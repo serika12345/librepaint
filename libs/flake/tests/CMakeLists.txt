@@ -653,32 +653,17 @@ target_compile_definitions(KoShapeLoadingContextSchemaContractTest PRIVATE krita
 
 
 kis_add_test(
-    KoToolBaseSchemaContractTest.cpp
+    KoDocumentResourceManagerContractTest.cpp
     LINK_LIBRARIES
+        kritaflake
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Test
 )
-target_include_directories(KoToolBaseSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KoToolBaseSchemaContractTest PRIVATE kritaflake_EXPORTS)
-
-
-
-kis_add_test(
-    KoDocumentResourceManagerSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoDocumentResourceManagerSchemaContractTest PRIVATE
+target_include_directories(KoDocumentResourceManagerContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
-target_compile_definitions(KoDocumentResourceManagerSchemaContractTest PRIVATE kritaflake_EXPORTS)
+target_compile_definitions(KoDocumentResourceManagerContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
     KoSvgTextEnumContractTest.cpp
@@ -737,24 +722,15 @@ target_include_directories(KoSvgTextFontSelectionValueContractTest PRIVATE
 target_compile_definitions(KoSvgTextFontSelectionValueContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
-    KoFFWWSConverterSchemaContractTest.cpp
+    KoFFWWSConverterContractTest.cpp
+    TEST_NAME KoFFWWSConverterContractTest
     LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Gui
+        kritaflake
         Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
 )
-target_include_directories(KoFFWWSConverterSchemaContractTest PRIVATE
+target_include_directories(KoFFWWSConverterContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    $<TARGET_PROPERTY:Freetype::Freetype,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:HarfBuzz::HarfBuzz,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Fontconfig::Fontconfig,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoFFWWSConverterSchemaContractTest PRIVATE
-    kritaflake_EXPORTS
-    kritaglobal_EXPORTS
 )
 
 
@@ -763,28 +739,15 @@ target_compile_definitions(KoFFWWSConverterSchemaContractTest PRIVATE
 
 
 kis_add_test(
-    KoFontGlyphModelSchemaContractTest.cpp
+    KoFontGlyphModelCompatibilityTest.cpp
+    TEST_NAME KoFontGlyphModelCompatibilityTest
     LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
+        kritaflake
         Qt${QT_MAJOR_VERSION}::Test
 )
-target_include_directories(KoFontGlyphModelSchemaContractTest PRIVATE
+target_include_directories(KoFontGlyphModelCompatibilityTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_CURRENT_SOURCE_DIR}/../text
-    ${CMAKE_CURRENT_SOURCE_DIR}/../text/data
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    $<TARGET_PROPERTY:Boost::boost,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Freetype::Freetype,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:HarfBuzz::HarfBuzz,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Fontconfig::Fontconfig,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoFontGlyphModelSchemaContractTest PRIVATE
-    kritaflake_EXPORTS
-    kritaglobal_EXPORTS
 )
 
 kis_add_test(

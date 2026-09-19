@@ -50,23 +50,11 @@ target_include_directories(TabletTestDialogTest PRIVATE
 )
 
 kis_add_test(
-    KisToolInvocationActionSchemaContractTest.cpp
-    TEST_NAME KisToolInvocationActionSchemaContractTest
+    KisToolInvocationActionCompatibilityTest.cpp
+    TEST_NAME KisToolInvocationActionCompatibilityTest
     LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
+        kritainputui
         Qt${QT_MAJOR_VERSION}::Test
-)
-target_compile_definitions(KisToolInvocationActionSchemaContractTest
-    PRIVATE
-        kritacanvas_EXPORTS
-        kritainputui_EXPORTS
-)
-target_include_directories(KisToolInvocationActionSchemaContractTest
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/..
-        ${CMAKE_CURRENT_BINARY_DIR}/..
-        ${CMAKE_SOURCE_DIR}/libs/canvas
-        ${CMAKE_BINARY_DIR}/libs/canvas
 )
 
 kis_add_test(

@@ -24,11 +24,19 @@ const QString PngMimetype = "image/png";
 
 void KisPngTest::testFiles()
 {
+    // Consumer: people opening standard PNG files in Krita.
+    // Operation: import the PNG-suite corpus through the PNG filter.
+    // Observable result: each imported image matches its recorded result.
+    // Failure impact: users see incorrectly decoded pixels or cannot open a PNG.
     TestUtil::testFiles(QString(FILES_DATA_DIR) + "/sources", QStringList(), QString(), 1);
 }
 
 void KisPngTest::testWriteonly()
 {
+    // Consumer: people importing a PNG from a file that cannot be read.
+    // Operation: start a PNG import with a write-only source file.
+    // Observable result: the import returns an error instead of a successful document.
+    // Failure impact: callers continue with a nonexistent or incomplete imported image.
     TestUtil::testImportFromWriteonly(PngMimetype);
 }
 
@@ -112,6 +120,10 @@ void roudTripHdrImage(const KoColorSpace *savingColorSpace)
 
 void KisPngTest::testSaveHDR()
 {
+    // Consumer: artists saving HDR PNG documents.
+    // Operation: export and import HDR pixels across supported depth/profile pairs.
+    // Observable result: the imported pixel values remain within the depth tolerance.
+    // Failure impact: saved HDR artwork loses highlight, color, or alpha information.
     QVector<KoID> colorDepthIds;
 #ifdef HAVE_OPENEXR
     colorDepthIds << Float16BitsColorDepthID;
@@ -181,6 +193,10 @@ void KisPngTest::testRoundtripCicpIccProfile_data()
 
 void KisPngTest::testRoundtripCicpIccProfile()
 {
+    // Consumer: artists preserving PNG color-management information.
+    // Operation: export and import a PNG with CICP color metadata.
+    // Observable result: the imported profile reports the original primaries and transfer curve.
+    // Failure impact: a reopened PNG is interpreted in the wrong color space.
     QFETCH(ColorPrimaries, primaries);
     QFETCH(TransferCharacteristics, transfer);
     QVector<double> colorants;
@@ -220,6 +236,10 @@ void KisPngTest::testRoundtripCicpIccProfile()
 
 void KisPngTest::testLoadPngWithLegacyProfile()
 {
+    // Consumer: artists opening PNG files containing Krita's legacy HDR profile.
+    // Operation: import the legacy-profile fixture.
+    // Observable result: the image uses the matching PQ profile and its CICP values.
+    // Failure impact: the reopened HDR image is interpreted with incorrect color data.
     const QString pngFilePath = TestUtil::fetchDataFileLazy("test-png-with-legacy-hdr-profile.png");
     KIS_ASSERT(QFile::exists(pngFilePath));
 
@@ -245,4 +265,3 @@ void KisPngTest::testLoadPngWithLegacyProfile()
 }
 
 KISTEST_MAIN(KisPngTest)
-

@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 01:26 JST
+- 更新日時: 2026-09-20 08:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -11,7 +11,17 @@
 - 目的: 残存するSchema試験を利用場面から判定し、根拠のない列挙値・内部型・役割番号の固定を除去する。意味論があるAPIは利用者が渡す値と観測できる結果で保護する。
 - 完了: 意味論を持たないSchema試験8件を削除した。角度選択APIは列挙値の順序からスクリプト文字列変換を分離した。ガイドと格子の設定は線種から描画ペンへの変換とXML往復へ統合し、Qt 6.4以降で色を復元できなかった不具合を修正した。マウスボタンから前景・背景色への対応試験は振る舞いを表す名称へ変更した。契約試験への型特性、コンパイル時形状検査、完全署名別名の再追加を拒否し、明示的な互換性試験には利用者と維持対象の記載を要求する高速検査を追加した。
 - 完了: `KisToolSelectUiBaseSchemaContractTest.cpp`は、選択ツールの利用側が列挙値の整数値へ依存せず、設定は`sampleAllLayers`などの文字列で保存され、既存の`TestToolSettingsUiContract`が設定の往復結果を検証していることを確認した。利用者向け結果を持たない専用Schema試験と、その専用CTest・広いinclude・compile definition・UI生成定義を削除した。
-- 次の作業: 残存Schema試験を利用場面から監査し、R2-G19cの高速検査と対象CTestを再実行する。列挙値と内部識別子の固定は、保存形式や外部連携の根拠がある場合だけ保持する。
+- 完了: PSD書出しの内部オフセット構造体を固定する`PSDLayerRecordSchemaContractTest.cpp`を削除した。PSD保存後の再読込、画素結果、透明マスクは既存の`kis_psd_test`が検証する。
+- 完了: 入力プロファイルは操作種別を16進数の数値で保存するため、`KisToolInvocationActionSchemaContractTest.cpp`を`KisToolInvocationActionCompatibilityTest.cpp`へ置き換えた。保存済みのTool InvocationおよびAlternate Invocationの各modeが、設定画面で同じ操作名へ解決されることを検証する。
+- 完了: 移動ストロークの内部ジョブデータを確認していた`KisFilterStrokeStrategySchemaContractTest.cpp`を、`MoveStrokeStrategyContractTest.cpp`へ置き換えた。レイヤーのドラッグ完了時の移動量と、途中取消後の位置復元を実際のストロークで検証する。
+- 完了: `KisPNGConverterSchemaContractTest.cpp`のオプション構造体既定値・コピー検査を削除した。既存のPNG実行試験から、HDR画素、CICP/ICCプロファイル、旧HDRプロファイルの読込結果を通常のCTestとして実行する。
+- 完了: `KisDlgImportVideoAnimationSchemaContractTest.cpp`を`KisVideoFrameImportContractTest.cpp`へ置き換えた。連番フレームと重複除去後フレームが、それぞれ連番配置とタイムスタンプ配置を選ぶ状態を検証する。
+- 完了: `KisFFMpegWrapperSchemaContractTest.cpp`を`KisFFMpegWrapperContractTest.cpp`へ置き換えた。外部エンコーダーの成功・失敗について、戻り値、signal、診断、コマンドログを検証する。
+- 完了: `KoFFWWSConverterSchemaContractTest.cpp`を`KoFFWWSConverterContractTest.cpp`へ置き換えた。SVG文字の一般フォント名が利用可能なフォント分類へ解決され、未知の名前を解決しないことを検証する。
+- 完了: `KoFontGlyphModelSchemaContractTest.cpp`を`KoFontGlyphModelCompatibilityTest.cpp`へ置き換えた。Glyph Palette QMLが使う`openType`、`glyphLabel`、`childCount`のモデルrole名を明示的な互換性要件として検証する。
+- 完了: `KoToolBaseSchemaContractTest.cpp`を削除した。ツールボックス区分は実行時に同じ定数を参照して並べ替える内部情報であり、保存形式・拡張記述子・スクリプトの互換性根拠はない。
+- 完了: `KoDocumentResourceManagerSchemaContractTest.cpp`を`KoDocumentResourceManagerContractTest.cpp`へ置き換えた。図形コントローラーが使う文書解像度とキャンバス領域の読取・変更通知、および形状ハンドルの安全な最小選択範囲を検証する。
+- 次の作業: 残存Schema試験を利用場面から監査する。次の`KoSvgTextEnumContractTest.cpp`では、SVG/CSSの保存・読込・描画で既に保護される変換と、内部値構造の固定を分ける。R2-G19cの高速検査と対象CTestを再実行する。列挙値と内部識別子の固定は、保存形式や外部連携の根拠がある場合だけ保持する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験は3回連続成功し、CTest登録は925件になった。運用検査39件を含む`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
@@ -112,6 +122,52 @@ standard action試験に残っていた完全署名別名を除去し、新し�
 外部識別子として利用されることを確認した。試験を`KStandardActionCompatibilityTest.cpp`へ改名し、
 識別子の一意性と主要な外部識別子、QAction生成結果、起動通知を実装ライブラリーで検証する。
 
+`libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp`は、PSD書出し中だけに使う
+`ChannelWritingInfo`の初期値とフィールドを固定していた。保存結果はPSD形式であり、
+`plugins/impex/psd/tests/kis_psd_test.cpp`が保存・再読込後の画素と透明マスクを検証するため、
+専用試験と広いCMake依存を削除した。
+
+`libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp`は、入力操作の列挙値を固定していた。
+`krita/data/input/*.profile`と利用者の入力プロファイルは、Tool InvocationおよびAlternate Invocationの
+modeを16進数値で保存する。`KisToolInvocationActionCompatibilityTest.cpp`は保存形式を読み込み、
+そのmodeが設定画面の同じ操作名へ解決されることを確認する。
+
+`libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp`は、移動ストロークの内部ジョブ種別、
+フィールド、LOD複製を固定していた。`MoveStrokeStrategyContractTest.cpp`は実際にストロークを開始し、
+ドラッグ完了後のレイヤー位置と取消後の位置復元を確認する。
+
+`libs/impex/tests/KisPNGConverterSchemaContractTest.cpp`は、PNG変換オプション構造体の既定値とコピーを
+固定していた。オプションはPNG書出しプラグインが設定値へ変換する内部入力であり、構造体の値そのものは
+保存形式ではない。`plugins/impex/png/tests/kis_png_test.cpp`からHDR画素の往復、CICP/ICCプロファイルの
+往復、旧HDRプロファイル読込を`KisPngHdrAndColorProfileContractTest`として通常のCTestへ登録した。
+
+`libs/impex/tests/KisDlgImportVideoAnimationSchemaContractTest.cpp`は、動画情報構造体の初期値とコピーを
+固定していた。動画取込では`RenderedFrames`がタイムスタンプの有無を`KisMainWindow`へ渡し、連番か
+位置再配置かを選択する。`KisVideoFrameImportContractTest.cpp`はこの利用側の状態判定を検証する。
+
+`libs/impex/tests/KisFFMpegWrapperSchemaContractTest.cpp`は、FFmpeg設定構造体とエラー番号の値を固定していた。
+これらは外部ファイルやスクリプトの互換性識別子ではない。`KisFFMpegWrapperContractTest.cpp`は自身を短い
+子プロセスとして実行し、動画入出力の成功時に開始・完了通知とログを返し、失敗時に失敗結果と診断を返す
+ことを検証する。
+
+`libs/flake/tests/KoFFWWSConverterSchemaContractTest.cpp`は、フォント分類用の内部構造体のフィールド、
+既定値、コピーを固定していた。SVG文字の利用者はCSS一般フォント名を指定するため、
+`KoFFWWSConverterContractTest.cpp`は`serif`、`sans-serif`、`monospace`の分類結果と未知の名前を解決しない
+結果を検証する。
+
+`libs/flake/tests/KoFontGlyphModelSchemaContractTest.cpp`は、glyph種別とモデルroleの番号を固定していた。
+Glyph Palette QMLは`openType`、`glyphLabel`、`childCount`というrole名でモデルを読むため、
+`KoFontGlyphModelCompatibilityTest.cpp`はその文字列を、QML利用者を明記した互換性要件として検証する。
+
+`libs/flake/tests/KoToolBaseSchemaContractTest.cpp`は、ツールボックスの内部区分文字列を固定していた。
+区分は`KoToolManager`の初期ツール選択と`KoToolBox`の配置にだけ使われ、全利用側が同じ定数を参照する。
+設定、XML、拡張記述子、スクリプトへの保存または外部公開はないため、専用試験とCTest定義を削除した。
+
+`libs/flake/tests/KoDocumentResourceManagerSchemaContractTest.cpp`は、文書リソースキーの番号を固定していた。
+各利用側は列挙子で参照し、保存・通信・拡張境界に番号を渡さない。`KoDocumentResourceManagerContractTest.cpp`は、
+図形コントローラーと編集部品が利用する文書解像度・画素領域の更新、読取、`resourceChanged`通知、
+ハンドル選択範囲の下限を検証する。
+
 ## 構築と検証
 
 Nixの評価済み環境へ入る`./scripts/run-shared-test-env`を利用する。
@@ -165,6 +221,20 @@ Nixの評価済み環境へ入る`./scripts/run-shared-test-env`を利用する�
 `KisDialogStateSaverTest`と同程度である。
 `python3 scripts/architecture/check_test_contracts.py`と`git diff --check`も成功した。
 Canvas2の削除後にInfinityManager識別子の利用箇所を再検索し、Canvas2とInfinityManagerの内部実装だけであることを確認した。
+`plugins-impex-psd-kis_psd_test`、`libs-input-ui-KisToolInvocationActionCompatibilityTest`、
+`libs-input-ui-KisToolProxyContractTest`、`libs-painting-MoveStrokeStrategyContractTest`、
+`libs-painting-TestPaintingBoundary`の構築とCTestがmacOSで成功した。入力プロファイルと移動ストロークの
+新しい試験は、それぞれ既存の実装ライブラリー試験と同じNinja依存閉包（42588行、28413行）に収まる。
+`plugins-impex-png-KisPngHdrAndColorProfileContractTest`、
+`libs-impex-KisVideoFrameImportContractTest`、`libs-impex-KisFFMpegWrapperContractTest`の構築とCTestが
+macOSで成功した。動画取込とFFmpegの新しい試験は、既存の`TestImportExportUiBoundary`と同じ
+Ninja依存閉包（70327行）に収まる。PNG-suite全体は、ICCプロファイルを持つ16ビットグレースケール7件の
+比較基準と色管理経路の不一致を理由に従来どおり隔離し、成功するHDR・プロファイル契約だけを通常のCTestで
+維持する。
+`libs-flake-KoFFWWSConverterContractTest`と`libs-flake-KoFontGlyphModelCompatibilityTest`の構築とCTestが
+macOSで成功した。`libs-flake-KoDocumentResourceManagerContractTest`も成功し、生成済みNinjaグラフの
+依存閉包は既存の`TestResourceManager`と同程度（12931行、12934行）である。`KoToolBaseSchemaContractTest`の
+削除後、CMake再構成で削除済みCTest登録がないことを確認する。
 
 主増分構築木`build/tdd-macos`と共有コンパイラーキャッシュを継続利用する。
 Qt 5、Linux、Windows、Android、実タブレット入力と全ネイティブ試験は未実施である。
