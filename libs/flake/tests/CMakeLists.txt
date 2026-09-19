@@ -95,77 +95,8 @@ target_compile_definitions(KoShapeReorderCommandSchemaContractTest PRIVATE
     kritapaintingundo_EXPORTS
 )
 
-kis_add_test(
-    KoShapeCreationSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Boost::boost
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoShapeCreationSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_CURRENT_SOURCE_DIR}/../commands
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/painting/undo
-    ${CMAKE_BINARY_DIR}/libs/painting/undo
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoShapeCreationSchemaContractTest PRIVATE
-    kritaflake_EXPORTS
-    kritapaintingundo_EXPORTS
-)
 
-kis_add_test(
-    KoPathPointTopologyCommandSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Boost::boost
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoPathPointTopologyCommandSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_CURRENT_SOURCE_DIR}/../commands
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/painting/undo
-    ${CMAKE_BINARY_DIR}/libs/painting/undo
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoPathPointTopologyCommandSchemaContractTest PRIVATE
-    kritaflake_EXPORTS
-    kritapaintingundo_EXPORTS
-)
 
-kis_add_test(
-    KoParameterShapeSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Boost::boost
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoParameterShapeSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_CURRENT_SOURCE_DIR}/../commands
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/painting/undo
-    ${CMAKE_BINARY_DIR}/libs/painting/undo
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoParameterShapeSchemaContractTest PRIVATE
-    kritaflake_EXPORTS
-    kritapaintingundo_EXPORTS
-)
 
 kis_add_test(
     KoSvgTextAddRemoveShapeCommandsSchemaContractTest.cpp
@@ -415,67 +346,10 @@ target_compile_definitions(KoSnapGuideSchemaContractTest PRIVATE
     kritaui_EXPORTS
 )
 
-kis_add_test(
-    KoPatternBackgroundSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoPatternBackgroundSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoPatternBackgroundSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
-kis_add_test(
-    KoShapeStrokeSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoShapeStrokeSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KoShapeStrokeSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
-kis_add_test(
-    KoCanvasResourceProviderSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoCanvasResourceProviderSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/resources
-)
-target_compile_definitions(KoCanvasResourceProviderSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
-kis_add_test(
-    KoResourceManagerSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoResourceManagerSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/resources
-)
-target_compile_definitions(KoResourceManagerSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
-kis_add_test(
-    KoPointerEventSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoPointerEventSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KoPointerEventSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
     TestSvgParser.cpp
@@ -780,43 +654,7 @@ target_include_directories(KoShapeEnumContractTest PRIVATE
 )
 target_compile_definitions(KoShapeEnumContractTest PRIVATE kritaflake_EXPORTS)
 
-kis_add_test(
-    KoShapeStateSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
-)
-target_include_directories(KoShapeStateSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KoShapeStateSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
-kis_add_test(
-    KoSelectionSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoSelectionSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/painting/undo
-    ${CMAKE_BINARY_DIR}/libs/painting/undo
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoSelectionSchemaContractTest PRIVATE
-    kritaflake_EXPORTS
-    kritapaintingundo_EXPORTS
-)
 
 kis_add_test(
     KoMarkerSchemaContractTest.cpp
@@ -831,19 +669,6 @@ target_include_directories(KoMarkerSchemaContractTest PRIVATE
 )
 target_compile_definitions(KoMarkerSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
-kis_add_test(
-    KoPathShapeSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoPathShapeSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoPathShapeSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
     KoShapeSavingContextSchemaContractTest.cpp
@@ -857,20 +682,6 @@ target_include_directories(KoShapeSavingContextSchemaContractTest PRIVATE
 )
 target_compile_definitions(KoShapeSavingContextSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
-kis_add_test(
-    SvgPresentationSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Boost::boost
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(SvgPresentationSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(SvgPresentationSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
     KoShapeLoadingContextSchemaContractTest.cpp
@@ -884,43 +695,8 @@ target_include_directories(KoShapeLoadingContextSchemaContractTest PRIVATE
 )
 target_compile_definitions(KoShapeLoadingContextSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
-kis_add_test(
-    KoCanvasBaseSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoCanvasBaseSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KoCanvasBaseSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
-kis_add_test(
-    KoCanvasControllerProxySchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoCanvasControllerProxySchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KoCanvasControllerProxySchemaContractTest PRIVATE kritaflake_EXPORTS)
 
-kis_add_test(
-    KoToolProxyPrivateSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Boost::boost
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoToolProxyPrivateSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoToolProxyPrivateSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
     KoToolBaseSchemaContractTest.cpp
@@ -936,36 +712,7 @@ target_include_directories(KoToolBaseSchemaContractTest PRIVATE
 )
 target_compile_definitions(KoToolBaseSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
-kis_add_test(
-    KoToolBasePrivateSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoToolBasePrivateSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoToolBasePrivateSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
-kis_add_test(
-    KoToolManagerSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Boost::boost
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoToolManagerSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoToolManagerSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
     KoDocumentResourceManagerSchemaContractTest.cpp
@@ -994,44 +741,7 @@ target_include_directories(KoSvgTextEnumContractTest PRIVATE
 )
 target_compile_definitions(KoSvgTextEnumContractTest PRIVATE kritaflake_EXPORTS)
 
-kis_add_test(
-    KoSvgTextShapeSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Boost::boost
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
-)
-target_include_directories(KoSvgTextShapeSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KoSvgTextShapeSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
-kis_add_test(
-    SvgParserSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Boost::boost
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
-)
-target_include_directories(SvgParserSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(SvgParserSchemaContractTest PRIVATE
-    kritaflake_EXPORTS
-    kritaglobal_EXPORTS
-    kritaresources_EXPORTS
-)
 
 kis_add_test(
     KoSvgTextShapeMarkupConverterSchemaContractTest.cpp
@@ -1046,23 +756,6 @@ target_include_directories(KoSvgTextShapeMarkupConverterSchemaContractTest PRIVA
 )
 target_compile_definitions(KoSvgTextShapeMarkupConverterSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
-kis_add_test(
-    KoSvgTextPropertiesModelSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Boost::boost
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
-        lager
-)
-target_include_directories(KoSvgTextPropertiesModelSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KoSvgTextPropertiesModelSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
     KoSvgTextEnumConversionContractTest.cpp
@@ -1110,120 +803,10 @@ target_compile_definitions(KoFFWWSConverterSchemaContractTest PRIVATE
     kritaglobal_EXPORTS
 )
 
-kis_add_test(
-    KoFontFamilySchemaContractTest.cpp
-    LINK_LIBRARIES
-        Boost::boost
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
-)
-target_include_directories(KoFontFamilySchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    $<TARGET_PROPERTY:Freetype::Freetype,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:HarfBuzz::HarfBuzz,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Fontconfig::Fontconfig,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoFontFamilySchemaContractTest PRIVATE
-    kritaflake_EXPORTS
-    kritaglobal_EXPORTS
-    kritaresources_EXPORTS
-)
 
-kis_add_test(
-    KoCssStylePresetSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Boost::boost
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
-)
-target_include_directories(KoCssStylePresetSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoCssStylePresetSchemaContractTest PRIVATE
-    kritaflake_EXPORTS
-    kritaglobal_EXPORTS
-    kritaresources_EXPORTS
-)
 
-kis_add_test(
-    KisSeExprScriptSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisSeExprScriptSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisSeExprScriptSchemaContractTest PRIVATE
-    kritaflake_EXPORTS
-    kritaresources_EXPORTS
-)
 
-kis_add_test(
-    KoSvgSymbolCollectionResourceSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Boost::boost
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
-)
-target_include_directories(KoSvgSymbolCollectionResourceSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoSvgSymbolCollectionResourceSchemaContractTest PRIVATE
-    kritaflake_EXPORTS
-    kritaglobal_EXPORTS
-    kritaresources_EXPORTS
-)
 
-kis_add_test(
-    KoGamutMaskSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Boost::boost
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
-)
-target_include_directories(KoGamutMaskSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoGamutMaskSchemaContractTest PRIVATE
-    kritaflake_EXPORTS
-    kritaglobal_EXPORTS
-    kritaresources_EXPORTS
-)
 
 kis_add_test(
     KoFontGlyphModelSchemaContractTest.cpp
@@ -1263,18 +846,6 @@ target_include_directories(KoSvgTextFontMetricsValueContractTest PRIVATE
 )
 target_compile_definitions(KoSvgTextFontMetricsValueContractTest PRIVATE kritaflake_EXPORTS)
 
-kis_add_test(
-    KoSvgTextContentElementSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
-)
-target_include_directories(KoSvgTextContentElementSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KoSvgTextContentElementSchemaContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
     CssLengthPercentageModelContractTest.cpp

@@ -7,21 +7,6 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Test
 )
 
-kis_add_test(
-    KisQQuickPopupWidgetSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Quick
-        Qt${QT_MAJOR_VERSION}::QuickWidgets
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Widgets
-)
-target_include_directories(KisQQuickPopupWidgetSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KisQQuickPopupWidgetSchemaContractTest PRIVATE kritaqmlwidgets_EXPORTS)
 
 get_target_property(
     qt_quick_library

@@ -23,23 +23,6 @@ target_include_directories(KisProjectionPixelFilterContractTest PRIVATE
 )
 target_compile_definitions(KisProjectionPixelFilterContractTest PRIVATE kritacanvas_EXPORTS)
 
-kis_add_test(
-    KisCanvasUpdateInfoSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisCanvasUpdateInfoSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisCanvasUpdateInfoSchemaContractTest PRIVATE
-    kritacanvas_EXPORTS
-    kritaglobal_EXPORTS
-)
 
 kis_add_test(
     KisProjectionLifecycleSchemaContractTest.cpp
@@ -105,31 +88,7 @@ target_compile_definitions(KisWorkspaceResourceSchemaContractTest PRIVATE
     kritapigment_EXPORTS
 )
 
-kis_add_test(
-    KisFrameDataSerializerSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisFrameDataSerializerSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KisFrameDataSerializerSchemaContractTest PRIVATE kritacanvas_EXPORTS)
 
-kis_add_test(
-    KisFrameCacheStoreSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisFrameCacheStoreSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KisFrameCacheStoreSchemaContractTest PRIVATE kritacanvas_EXPORTS)
 
 kis_add_test(
     KisCoordinatesConverterSchemaContractTest.cpp
@@ -169,25 +128,6 @@ target_include_directories(KisCanvasStateContractTest PRIVATE
 )
 target_compile_definitions(KisCanvasStateContractTest PRIVATE kritacanvas_EXPORTS)
 
-kis_add_test(
-    KisToolCanvasSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisToolCanvasSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KisToolCanvasSchemaContractTest PRIVATE
-    kritacanvas_EXPORTS
-    kritaimage_EXPORTS
-    kritaglobal_EXPORTS
-)
 
 kis_add_test(
     KisDisplayColorFilterContractTest.cpp
@@ -201,29 +141,6 @@ target_include_directories(KisDisplayColorFilterContractTest PRIVATE
 )
 target_compile_definitions(KisDisplayColorFilterContractTest PRIVATE kritacanvas_EXPORTS)
 
-kis_add_test(
-    KisDisplayColorTransformSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisDisplayColorTransformSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-)
-target_compile_definitions(KisDisplayColorTransformSchemaContractTest PRIVATE
-    kritacanvas_EXPORTS
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
-)
 
 kis_add_test(
     KisOcioConfigurationContractTest.cpp

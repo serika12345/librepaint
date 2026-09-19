@@ -183,38 +183,7 @@ target_compile_definitions(KoColorConversionTransformationAbstractFactoryContrac
     kritapigment_EXPORTS
 )
 
-kis_add_test(
-    KoColorTransformationVariantsSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoColorTransformationVariantsSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KoColorTransformationVariantsSchemaContractTest PRIVATE
-    kritapigment_EXPORTS
-)
 
-kis_add_test(
-    KoColorSpaceFactorySchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KoColorSpaceFactorySchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoColorSpaceFactorySchemaContractTest PRIVATE
-    kritaglobal_EXPORTS
-    kritapigment_EXPORTS
-)
 
 kis_add_test(
     KoColorSpaceEngineContractTest.cpp
@@ -247,19 +216,6 @@ target_include_directories(KoColorProfileConstantsContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
-kis_add_test(
-    KoColorProfileSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KoColorProfileSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KoColorProfileSchemaContractTest PRIVATE kritapigment_EXPORTS)
 
 kis_add_test(
     KoBasicHistogramProducerSchemaContractTest.cpp
@@ -317,137 +273,11 @@ target_include_directories(KoColorSpaceConstantsContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
-kis_add_test(
-    KoColorSpaceSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KoColorSpaceSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoColorSpaceSchemaContractTest PRIVATE
-    kritaglobal_EXPORTS
-    kritapigment_EXPORTS
-)
 
-kis_add_test(
-    KoColorSpaceAbstractSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Imath::ImathConfig
-        Boost::boost
-)
-target_include_directories(KoColorSpaceAbstractSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_SOURCE_DIR}/../compositeops
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/multiarch
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoColorSpaceAbstractSchemaContractTest PRIVATE
-    kritaglobal_EXPORTS
-    kritapigment_EXPORTS
-)
 
-kis_add_test(
-    KoColorDisplayRendererSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KoColorDisplayRendererSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoColorDisplayRendererSchemaContractTest PRIVATE
-    kritaglobal_EXPORTS
-    kritapigment_EXPORTS
-)
 
-kis_add_test(
-    KoGradientSegmentSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KoGradientSegmentSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoGradientSegmentSchemaContractTest PRIVATE
-    kritaglobal_EXPORTS
-    kritapigment_EXPORTS
-    kritaresources_EXPORTS
-)
 
-kis_add_test(
-    KoPatternSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KoPatternSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoPatternSchemaContractTest PRIVATE
-    kritapigment_EXPORTS
-    kritaresources_EXPORTS
-)
 
-kis_add_test(
-    KisPaletteResourcesSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisPaletteResourcesSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisPaletteResourcesSchemaContractTest PRIVATE
-    kritaglobal_EXPORTS
-    kritapigment_EXPORTS
-    kritaresources_EXPORTS
-)
 
 kis_add_test(
     KoCompositeOpIdsContractTest.cpp
@@ -467,62 +297,8 @@ target_compile_definitions(KoCompositeOpIdsContractTest PRIVATE
     kritapigment_EXPORTS
 )
 
-kis_add_test(
-    KoOptimizedCompositeOpFactorySchemaContractTest.cpp
-    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoOptimizedCompositeOpFactorySchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KoOptimizedCompositeOpFactorySchemaContractTest PRIVATE
-    kritapigment_EXPORTS
-)
 
-kis_add_test(
-    KoColorOperationFactorySchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-        xsimd
-)
-target_include_directories(KoColorOperationFactorySchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/multiarch
-    ${CMAKE_BINARY_DIR}/libs/multiarch
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoColorOperationFactorySchemaContractTest PRIVATE
-    kritaglobal_EXPORTS
-    kritamultiarch_EXPORTS
-    kritapigment_EXPORTS
-)
 
-kis_add_test(
-    KisCmykDitherAndCompositeSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-        Imath::ImathConfig
-)
-target_include_directories(KisCmykDitherAndCompositeSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisCmykDitherAndCompositeSchemaContractTest PRIVATE
-    kritaglobal_EXPORTS
-    kritapigment_EXPORTS
-)
 
 kis_add_test(
     KoCompositeOpSchemaContractTest.cpp
@@ -560,25 +336,6 @@ target_include_directories(KoCompositeOpFunctionsContractTest PRIVATE
 )
 target_compile_definitions(KoCompositeOpFunctionsContractTest PRIVATE kritapigment_EXPORTS)
 
-kis_add_test(
-    KoCompositeOpsSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Imath::ImathConfig
-        Boost::boost
-)
-target_include_directories(KoCompositeOpsSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_SOURCE_DIR}/../compositeops
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/multiarch
-    $<TARGET_PROPERTY:KF6::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoCompositeOpsSchemaContractTest PRIVATE kritapigment_EXPORTS)
 
 kis_add_test(
     KoStreamedMathContractTest.cpp

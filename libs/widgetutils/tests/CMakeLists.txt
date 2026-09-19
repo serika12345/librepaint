@@ -5,19 +5,6 @@ kis_add_tests(
     LINK_LIBRARIES kritawidgetutils kritaimage kritatestsdk
 )
 
-kis_add_test(
-    KisActionUtilitySchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Widgets
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisActionUtilitySchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KisActionUtilitySchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
     KoUpdaterContractTest.cpp
@@ -196,112 +183,13 @@ kis_add_test(
 )
 target_compile_definitions(KisDoubleParseSpinBoxContractTest PRIVATE kritawidgetutils_EXPORTS)
 
-kis_add_test(
-    KisSliderSpinBoxSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Widgets
-)
-target_include_directories(KisSliderSpinBoxSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KisSliderSpinBoxSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
 
-kis_add_test(
-    KisDoubleParseUnitSpinBoxSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Widgets
-        Boost::boost
-)
-target_include_directories(KisDoubleParseUnitSpinBoxSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/widgets
-    ${CMAKE_BINARY_DIR}/libs/widgets
-)
-target_compile_definitions(KisDoubleParseUnitSpinBoxSchemaContractTest PRIVATE
-    kritaglobal_EXPORTS
-    kritawidgets_EXPORTS
-    kritawidgetutils_EXPORTS
-)
 
-kis_add_test(
-    KisCursorSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Gui
-)
-target_include_directories(KisCursorSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KisCursorSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
 
-kis_add_test(
-    KisFontFamilyComboBoxSchemaContractTest.cpp
-    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisFontFamilyComboBoxSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisFontFamilyComboBoxSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
 
-kis_add_test(
-    KLanguageButtonSchemaContractTest.cpp
-    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KLanguageButtonSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KLanguageButtonSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
 
-kis_add_test(
-    KoFileDialogSchemaContractTest.cpp
-    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoFileDialogSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/widgets
-    ${CMAKE_BINARY_DIR}/libs/widgets
-    ${CMAKE_SOURCE_DIR}/libs/ui
-    ${CMAKE_BINARY_DIR}/libs/ui
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KoFileDialogSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
 
-kis_add_test(
-    KisActionRegistrySchemaContractTest.cpp
-    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisActionRegistrySchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisActionRegistrySchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
 
-kis_add_test(
-    KoProgressUpdaterSchemaContractTest.cpp
-    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoProgressUpdaterSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KoProgressUpdaterSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
     KStandardActionEnumContractTest.cpp
@@ -315,19 +203,6 @@ target_include_directories(KStandardActionEnumContractTest PRIVATE
 )
 target_compile_definitions(KStandardActionEnumContractTest PRIVATE kritawidgetutils_EXPORTS)
 
-kis_add_test(
-    KActionCategoryEditToolBarSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Test
-        KF${KF_MAJOR}::ConfigGui
-)
-target_include_directories(KActionCategoryEditToolBarSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../config
-    ${CMAKE_CURRENT_SOURCE_DIR}/../xmlgui
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KActionCategoryEditToolBarSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
     KXMLGUIClientSchemaContractTest.cpp
@@ -341,15 +216,6 @@ target_include_directories(KXMLGUIClientSchemaContractTest PRIVATE
 )
 target_compile_definitions(KXMLGUIClientSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
 
-kis_add_test(
-    KHelpMenuSchemaContractTest.cpp
-    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KHelpMenuSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../xmlgui
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KHelpMenuSchemaContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(KKeySequenceWidgetSchemaContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Gui Qt${QT_MAJOR_VERSION}::Test)

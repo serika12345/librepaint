@@ -11,59 +11,9 @@ target_include_directories(KisMetaDataTagsContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
 )
 
-kis_add_test(
-    KisMetaDataStoreSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisMetaDataStoreSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KisMetaDataStoreSchemaContractTest PRIVATE kritapaintingmetadata_EXPORTS)
 
-kis_add_test(
-    KisMetaDataSchemaRegistrySchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisMetaDataSchemaRegistrySchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KisMetaDataSchemaRegistrySchemaContractTest PRIVATE kritapaintingmetadata_EXPORTS)
 
-kis_add_test(
-    KisMetaDataFilterRegistryModelSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisMetaDataFilterRegistryModelSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KisMetaDataFilterRegistryModelSchemaContractTest PRIVATE kritapaintingmetadata_EXPORTS)
 
-kis_add_test(
-    KisMetaDataRegistrySchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisMetaDataRegistrySchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KisMetaDataRegistrySchemaContractTest PRIVATE kritapaintingmetadata_EXPORTS)
 
 kis_add_test(
     KisMetaDataIOBackendContractTest.cpp

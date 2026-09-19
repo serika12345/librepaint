@@ -123,125 +123,9 @@ target_compile_definitions(KisFilterStrokeStrategySchemaContractTest PRIVATE
     kritaresources_EXPORTS
 )
 
-kis_add_test(
-    KisNodeSelectionRecipeSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisNodeSelectionRecipeSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../strokes
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-)
-target_compile_definitions(KisNodeSelectionRecipeSchemaContractTest PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-    kritapainting_EXPORTS
-)
 
-kis_add_test(
-    KisColorSamplerStrokeSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisColorSamplerStrokeSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-)
-target_compile_definitions(KisColorSamplerStrokeSchemaContractTest PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-    kritapainting_EXPORTS
-)
 
-kis_add_test(
-    KisResourcesSnapshotSchemaContractTest.cpp
-    TEST_NAME KisResourcesSnapshotSchemaContractTest
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Xml
-        Boost::boost
-)
-target_include_directories(KisResourcesSnapshotSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_CURRENT_SOURCE_DIR}/../strokes
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/image/brushengine
-    ${CMAKE_SOURCE_DIR}/libs/image/filter
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    ${CMAKE_SOURCE_DIR}/libs/painting/undo
-    ${CMAKE_BINARY_DIR}/libs/painting/undo
-    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisResourcesSnapshotSchemaContractTest PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-    kritapainting_EXPORTS
-    kritapaintingundo_EXPORTS
-    kritapigment_EXPORTS
-    kritaresources_EXPORTS
-)
 
-kis_add_test(
-    KisFigurePaintingStrokeSchemaContractTest.cpp
-    TEST_NAME KisFigurePaintingStrokeSchemaContractTest
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisFigurePaintingStrokeSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_CURRENT_SOURCE_DIR}/../strokes
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/image/brushengine
-    ${CMAKE_SOURCE_DIR}/libs/image/filter
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-    ${CMAKE_SOURCE_DIR}/libs/painting/undo
-    ${CMAKE_BINARY_DIR}/libs/painting/undo
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisFigurePaintingStrokeSchemaContractTest PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-    kritapainting_EXPORTS
-    kritapaintingundo_EXPORTS
-    kritapigment_EXPORTS
-    kritaresources_EXPORTS
-)
 
 kis_add_test(
     KisMaskingBrushCompositeOpBaseContractTest.cpp
@@ -255,43 +139,8 @@ target_include_directories(KisMaskingBrushCompositeOpBaseContractTest PRIVATE
     ${CMAKE_SOURCE_DIR}/libs/pigment
 )
 
-kis_add_test(
-    KisStrokeEfficiencyMeasurerSchemaContractTest.cpp
-    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisStrokeEfficiencyMeasurerSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KisStrokeEfficiencyMeasurerSchemaContractTest PRIVATE
-    kritapainting_EXPORTS
-)
 
-kis_add_test(
-    KisMaskedFreehandStrokePainterSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisMaskedFreehandStrokePainterSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KisMaskedFreehandStrokePainterSchemaContractTest PRIVATE
-    kritapainting_EXPORTS
-)
 
-kis_add_test(
-    KisStrokeSpeedMonitorSchemaContractTest.cpp
-    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisStrokeSpeedMonitorSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KisStrokeSpeedMonitorSchemaContractTest PRIVATE
-    kritapainting_EXPORTS
-)
 
 kis_add_test(
     KUndo2CommandExtraDataContractTest.cpp

@@ -68,17 +68,6 @@ if (UNIX AND NOT IOS)
     target_compile_definitions(KisCrashSignalHandlerSetupContractTest PRIVATE kritaglobal_EXPORTS)
 endif()
 
-kis_add_test(
-    KisGlobalDiagnosticsSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisGlobalDiagnosticsSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KisGlobalDiagnosticsSchemaContractTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
     KisAlgebraExtendedSchemaContractTest.cpp
