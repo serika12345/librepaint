@@ -231,30 +231,6 @@ target_compile_definitions(KisPlaybackEngineSchemaContractTest PRIVATE
 
 
 kis_add_test(
-    KisGridConfigValueContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Gui
-        Boost::boost
-)
-target_include_directories(KisGridConfigValueContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/application
-    ${CMAKE_BINARY_DIR}/libs/application
-)
-target_compile_definitions(KisGridConfigValueContractTest PRIVATE
-    kritaui_EXPORTS
-)
-
-
-
-
-
-
-
-
-kis_add_test(
     KisToolSelectUiBaseSchemaContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core
