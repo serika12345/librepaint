@@ -2,16 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 00:41 JST
+- 更新日時: 2026-09-20 00:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
 - ブランチ: `develop`
 - 開始コミット: `63fa8d4cbfd`。型特性と完全signatureによるAPI形状検査の機械整理を確定済み。
 - 目的: 残存するSchema試験を利用場面から判定し、根拠のない列挙値・内部型・役割番号の固定を除去する。意味論があるAPIは利用者が渡す値と観測できる結果で保護する。
-- 完了: 意味論を持たないSchema試験8件を削除した。角度選択APIは列挙値の順序からスクリプト文字列変換を分離した。ガイドと格子の設定は線種から描画ペンへの変換とXML往復へ統合し、Qt 6.4以降で色を復元できなかった不具合を修正した。マウスボタンから前景・背景色への対応試験は振る舞いを表す名称へ変更した。
+- 完了: 意味論を持たないSchema試験8件を削除した。角度選択APIは列挙値の順序からスクリプト文字列変換を分離した。ガイドと格子の設定は線種から描画ペンへの変換とXML往復へ統合し、Qt 6.4以降で色を復元できなかった不具合を修正した。マウスボタンから前景・背景色への対応試験は振る舞いを表す名称へ変更した。契約試験への型特性、コンパイル時形状検査、完全署名別名の再追加を拒否し、明示的な互換性試験には利用者と維持対象の記載を要求する高速検査を追加した。
 - 次の作業: `KisToolSelectUiBaseSchemaContractTest.cpp`、`KisCollapsibleButtonGroupSchemaContractTest.cpp`、`KisCanvas2SchemaContractTest.cpp`を利用場面から分類する。列挙値と内部識別子の固定は、保存形式や外部連携の根拠がある場合だけ保持する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験は3回連続成功し、CTest登録は925件になった。運用検査39件を含む`verify-quick`も成功した。
+- 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
+  `KStandardActionEnumContractTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
+  `verify-quick`が成功した。
 
 ## 現在の変更範囲
 
@@ -43,6 +46,12 @@
 `libs/ui/tests/KisGridConfigValueContractTest.cpp`は、格子種別と線種の整数値および内部描画計算用
 `TrigoCache`のメンバー配置だけを固定していたため削除した。既存の`kis_grid_config_test.cpp`で、
 実線、破線、点線、非表示が実際の`QPen`へ反映され、色、格子種別とともにXML往復後も維持されることを検証する。
+
+`scripts/architecture/check_test_contracts.py`を高速検査へ追加した。`ContractTest`で型特性、
+コンパイル時形状検査、完全署名別名を使用すると失敗する。宣言形状を明示的な互換性として保護する
+`CompatibilityTest`には、利用者と維持対象を示す`// Compatibility requirement:`行を必須とする。
+既存のsignal compressorに残っていた列挙値の相違だけを調べる`static_assert`と、Bezier patchおよび
+standard action試験に残っていた完全署名別名を除去し、新しい検査条件を既存ソースへ適用した。
 
 `libs/resources/`、`libs/flake/`、`libs/widgets/`、`libs/image/`、`sdk/tests/`の所有対象から、
 別のヘッダーが偶然提供する完全型への依存を除去する。値で公開するQt型は公開ヘッダーで完結させ、

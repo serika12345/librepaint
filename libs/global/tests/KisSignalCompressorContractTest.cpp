@@ -32,12 +32,6 @@ private Q_SLOTS:
 
 void KisSignalCompressorContractTest::constructionConfigurationAndImmediateMode()
 {
-    static_assert(KisSignalCompressor::POSTPONE != KisSignalCompressor::FIRST_ACTIVE_POSTPONE_NEXT);
-    static_assert(KisSignalCompressor::FIRST_ACTIVE_POSTPONE_NEXT != KisSignalCompressor::FIRST_ACTIVE);
-    static_assert(KisSignalCompressor::FIRST_ACTIVE != KisSignalCompressor::FIRST_INACTIVE);
-    static_assert(KisSignalCompressor::FIRST_INACTIVE != KisSignalCompressor::UNDEFINED);
-    static_assert(KisSignalCompressor::PRECISE_INTERVAL != KisSignalCompressor::ADDITIVE_INTERVAL);
-
     KisSignalCompressor compressor;
     QCOMPARE(compressor.delay(), 0);
     QVERIFY(!compressor.isActive());

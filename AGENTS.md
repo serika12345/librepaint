@@ -225,6 +225,17 @@ coverage quotas are not maintained because they encourage fixing incidental
 implementation structure. Record decisions in review descriptions and current
 work in the progress snapshot.
 
+Before adding or expanding a contract test, identify the consumer, operation,
+observable result, and concrete caller-visible failure. Treat one use case or
+state transition as the coverage unit; a declaration is not a coverage unit.
+Tests named `*ContractTest` or `*_contract_test` do not use type traits,
+compile-time shape assertions, or exact signature aliases. A declaration-shape
+check required for source, binary, serialized-data, plugin, or scripting
+compatibility belongs in a `*CompatibilityTest` or `*_compatibility_test` and
+contains a `// Compatibility requirement:` line naming the consumer and stable
+property. `scripts/architecture/check_test_contracts.py` enforces these
+mechanical admission rules in `verify-quick`.
+
 Use these layers:
 
 - one Qt Test target during the red-green cycle;

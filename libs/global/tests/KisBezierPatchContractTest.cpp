@@ -12,8 +12,6 @@
 
 namespace
 {
-using SampleFunction = void (KisBezierPatch::*)(QSize &, QVector<QPointF> &, QVector<QPointF> &, const QPointF &) const;
-
 constexpr QPointF globalMappingResult(321.25, -44.5);
 constexpr QPointF localMappingResult(0.375, 0.625);
 
@@ -65,8 +63,11 @@ struct SampleResult {
     QVector<QPointF> transformedPoints;
 };
 
-SampleResult
-samplePatch(const KisBezierPatch &patch, SampleFunction function, const QPointF &step, bool prependSentinel = false)
+template<typename SampleFunction>
+SampleResult samplePatch(const KisBezierPatch &patch,
+                         SampleFunction function,
+                         const QPointF &step,
+                         bool prependSentinel = false)
 {
     SampleResult result{QSize(99, 88), {}, {}};
     if (prependSentinel) {
@@ -248,18 +249,16 @@ void KisBezierPatchContractTest::requestedStepUndercountsBothGridVariants()
 {
     const KisBezierPatch patch = makeLinearPatch();
     const QPointF requestedStep(60.0, 30.0);
-    const std::array<SampleFunction, 2> functions{
-        &KisBezierPatch::sampleRegularGrid,
-        &KisBezierPatch::sampleRegularGridSVG2,
-    };
-
-    for (SampleFunction function : functions) {
+    const auto verifyGrid = [&](auto function) {
         const SampleResult result = samplePatch(patch, function, requestedStep);
         QCOMPARE(result.gridSize, QSize(2, 2));
         QCOMPARE(result.transformedPoints.size(), 4);
         QVERIFY(result.transformedPoints[1].x() - result.transformedPoints[0].x() > requestedStep.x());
         QVERIFY(result.transformedPoints[2].y() - result.transformedPoints[0].y() > requestedStep.y());
-    }
+    };
+
+    verifyGrid(&KisBezierPatch::sampleRegularGrid);
+    verifyGrid(&KisBezierPatch::sampleRegularGridSVG2);
 }
 
 void KisBezierPatchContractTest::debugOutputReportsBoundsAndCornersInOrder()
