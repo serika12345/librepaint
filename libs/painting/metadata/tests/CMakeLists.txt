@@ -17,18 +17,6 @@ target_include_directories(KisMetaDataAnonymizerCompatibilityTest PRIVATE
 )
 
 kis_add_test(
-    KisMetaDataTagsContractTest.cpp
-    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisMetaDataTagsContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-)
-
-
-
-
-
-kis_add_test(
     KisMetaDataIOBackendContractTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Core

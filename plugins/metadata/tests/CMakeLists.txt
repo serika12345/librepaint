@@ -1,7 +1,14 @@
-##### Tests that currently fail and should be fixed #####
-
-# Works under Linux but does not work under Windows
-krita_add_broken_unit_test( kis_exif_test.cpp
-    TEST_NAME KisExifTest
-    LINK_LIBRARIES kritapaintingmetadata kritaapplicationui kritatestsdk
+if (WIN32)
+    # The EXIF test is not yet supported on Windows.
+    krita_add_broken_unit_test( kis_exif_test.cpp
+        TEST_NAME KisExifTest
+        LINK_LIBRARIES kritapaintingmetadata kritaapplicationui kritatestsdk
     )
+else()
+    kis_add_test(
+        kis_exif_test.cpp
+        TEST_NAME KisExifTest
+        LINK_LIBRARIES kritapaintingmetadata kritaapplicationui kritatestsdk
+    )
+endif()
+add_dependencies(KisExifTest kritaexif)

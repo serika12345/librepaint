@@ -97,12 +97,12 @@ Exiv2::Value *kmdIntOrderedArrayToExifArray(const KisMetaData::Value &value)
 }
 
 #if EXIV2_TEST_VERSION(0,28,0)
-QDateTime exivValueToDateTime(const Exiv2::Value::UniquePtr value)
+QDateTime exivValueToDateTime(const Exiv2::Value::UniquePtr &value)
 #else
-QDateTime exivValueToDateTime(const Exiv2::Value::AutoPtr value)
+QDateTime exivValueToDateTime(const Exiv2::Value::AutoPtr &value)
 #endif
 {
-    return QDateTime::fromString(value->toString().c_str(), Qt::ISODate);
+    return QDateTime::fromString(QString::fromStdString(value->toString()), QStringLiteral("yyyy:MM:dd hh:mm:ss"));
 }
 
 template<typename T>
@@ -647,7 +647,7 @@ bool KisExifIO::loadFrom(KisMetaData::Store *store, QIODevice *ioDevice) const
         } else if (tag == Exif::Photo::MakerNote) {
             store->addEntry({makerNoteSchema, "RawData", exivValueToKMDValue(it.getValue(), false)});
         } else if (tag == Exif::Image::DateTime) { // load as xmp:ModifyDate
-            store->addEntry({xmpSchema, "ModifyDate", exivValueToKMDValue(it.getValue(), false)});
+            store->addEntry({xmpSchema, "ModifyDate", KisMetaData::Value(exivValueToDateTime(it.getValue()))});
         } else if (tag == Exif::Image::ImageDescription) { // load as "dc:description"
             store->addEntry({dcSchema, "description", exivValueToKMDValue(it.getValue(), false)});
         } else if (tag == Exif::Image::Software) { // load as "xmp:CreatorTool"
@@ -681,7 +681,7 @@ bool KisExifIO::loadFrom(KisMetaData::Store *store, QIODevice *ioDevice) const
             } else if (tag == Exif::Photo::OECF) {
                 metaDataValue = exifOECFToKMDOECFStructure(*it.getValue(), byteOrder);
             } else if (tag == Exif::Photo::DateTimeDigitized || tag == Exif::Photo::DateTimeOriginal) {
-                metaDataValue = exivValueToKMDValue(it.getValue(), false);
+                metaDataValue = KisMetaData::Value(exivValueToDateTime(it.getValue()));
             } else if (tag == Exif::Photo::DeviceSettingDescription) {
                 metaDataValue = deviceSettingDescriptionExifToKMD(it.getValue());
             } else if (tag == Exif::Photo::CFAPattern) {

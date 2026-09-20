@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 12:01 JST
+- 更新日時: 2026-09-20 12:10 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -58,7 +58,8 @@
 - 完了: `KisMetaDataValueContractTest.cpp`を、メタデータ編集、文書複製、統合、言語別値の利用結果へ整理した。XMP入出力とメタデータ編集は、値種別と`xml:lang`修飾子を使う。異種値への編集は失敗として元の値を保ち、配列の有効な拡張編集は成功として返す。統合は完全な最新日時を保持し、時刻のミリ秒を正しく繰り上げる。言語修飾子を比較対象に含め、文書複製後の値は独立して編集できるようにした。`KisEntryEditorContractTest`は、構造体フィールドの編集後も他のフィールドを保存することを実ストアと画面部品で検証する。この試験で判明した構造体全体を単一フィールドで置換する不具合を修正した。両試験は実製品ライブラリーへ直接リンクし、編集部品試験はアプリケーション全体ではなく必要なメタデータ・Qt依存だけで閉じる。
 - 完了: `KisMetaDataTypeInfoContractTest.cpp`を、EXIFスキーマで検証するスカラー、配列、構造体、言語別コメント、XMP文字列解析の利用結果へ整理した。以前のPropertyType整数値、型情報キャッシュ、私有初期状態、選択肢のコピー、借用スキーマ参照には、保存形式、外部API、プラグイン、スクリプトの互換性根拠がない。実スキーマを使う検証器は不正な配列要素を`INVALID_TYPE`、閉じた選択肢の未定義値を`INVALID_VALUE`として報告する。言語別配列が`asArray()`の対象外であるため`xml:lang`のない要素を見逃す不具合を修正し、値の所有者が全要素を非公開に検証する。XMP入力の整数、有理数、日時はスキーマに対応する値へ解析され、検証器が受理する。試験は製品ライブラリーと標準スキーマ資産だけへ直接依存する。
 - 完了: `kis_meta_data_test.cpp`を、メタデータストアの追加・重複拒否・遅延作成・複製・削除と、検証器が未知項目、型不正、閉じた選択肢の値不正を区別して報告する利用結果へ縮小した。旧試験の値型初期化・等値・コピー、私有`TypeInfo`ファクトリー、型情報キャッシュ、スキーマ内部構造は利用者向け保証を持たず、専用補助ヘッダーとともに削除した。XMP読込が利用する解析結果は`KisMetaDataTypeInfoContractTest`へ統合した。外部の`Document::exportImage()`が指定する`Anonymizer`フィルターIDは`KisMetaDataAnonymizerCompatibilityTest.cpp`で明示的に維持し、Dublin CoreとPhotoshopの全個人情報項目を実ストアから除去することを検証する。製品側以外に`Parser`を実装する利用者は確認できないため、仮想呼出しと破棄だけを確認する`KisMetaDataParserContractTest.cpp`と専用CTestを削除した。
-- 次の作業: `KisMetaDataTagsContractTest.cpp`のEXIFタグ番号について、外部形式の互換性根拠と実際の入出力結果を確認する。根拠のあるタグだけを明示的な互換性試験へ移し、タグ列挙の全件固定や内部データの検査を維持しない。
+- 完了: `KisMetaDataTagsContractTest.cpp`を削除した。EXIF、RAW、TIFFの読込実装は一部のタグ番号で形式固有の変換・除外を選ぶが、専用試験は利用されないタグを含む表全件の数値だけを固定していた。`KisExifTest`を通常のmacOS/Linux CTestにし、実カメラ画像からTIFF/EXIF値、日時、OECF、CFAパターンを復元する結果と、不正なOECF/CFAデータを拒否して他のメタデータを保持する結果を検証する。動的に読み込む`kritaexif`をCTest対象の直接構築依存にし、実行に必要な資源初期化を`KISTEST_MAIN`へ移した。EXIF日時タグは文字列のまま読込まれて日時スキーマの検証に失敗していたため、標準日時文字列を`QDateTime`として復元するよう修正した。Windowsの既知の未対応状態はbroken testとして明示する。
+- 次の作業: `KisMetaDataIOBackendContractTest.cpp`を調べ、仮想呼出し・生ポインター・引数転送だけを固定する試験を、実際のメタデータ入出力利用者が観測する保存、読込、失敗結果へ統合または削除する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
