@@ -1018,16 +1018,16 @@ target_include_directories(KoCurveFitContractTest PRIVATE
 target_compile_definitions(KoCurveFitContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
-    FlakeDebugContractTest.cpp
+    FlakeDebugCompatibilityTest.cpp
     LINK_LIBRARIES
         kritaflakedebugobjects
         Qt${QT_MAJOR_VERSION}::Test
 )
-target_include_directories(FlakeDebugContractTest PRIVATE
+target_include_directories(FlakeDebugCompatibilityTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
-target_compile_definitions(FlakeDebugContractTest PRIVATE kritaflake_EXPORTS)
+target_compile_definitions(FlakeDebugCompatibilityTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
     KoPathFillRuleCommandContractTest.cpp
