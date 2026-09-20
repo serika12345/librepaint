@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 13:44 JST
+- 更新日時: 2026-09-20 13:52 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -90,7 +90,8 @@
 - 完了: `KisResourceTypesCompatibilityTest.cpp`を、保存済み型キーだけの互換性試験へ縮小した。資源バンドル、タグ、`resourcecache.sqlite`の`resource_types.name`は同じ型キーで資源を照会するため、既存キーを保持する。`KisResourceTypesContractTest.cpp`は、資源型選択、バンドル概要、欠落資源警告が型キーを利用者向け表示名へ変換する結果を検証する。キー列挙の順序、内部表示名map、翻訳値型の所有形状は固定しない。
 - 完了: `KisResourceThumbnailPainterContractTest.cpp`を、資源管理・取込画面が観測するサムネイル描画結果へ縮小した。要求サイズのプレビューは資源画像の色を保ち、選択した項目は選択色の枠内に画像を描画する。項目デリゲートの試験も同じ描画結果を検証する。親QObjectによる破棄通知は画面利用者の契約ではないため削除した。キャッシュへの挿入は描画入力の準備であり、呼出し結果を固定しない。
 - 完了: `KisIconToolTipContractTest.cpp`を削除し、資源一覧ビュー・一覧ウィジェットの既存契約試験へツールチップの利用結果を集約した。資源選択画面と資源管理画面は固定した縮小サイズでも画像の色を保ち、透明なパターン・グラデーションではチェッカー有効時だけ透明部分を可視化する。親QObjectと内部`QTextDocument`の所有・破棄は画面利用者が観測する契約ではないため維持しない。設定保存、XML、プラグイン、スクリプト、外部識別子による互換性要件は確認されなかった。
-- 次の作業: `KisResourceItemListViewContractTest.cpp`について、資源選択画面の配置、選択、通知、スクロールを利用者が観測する結果へ整理する。
+- 完了: `KisResourceItemListViewContractTest.cpp`を、資源選択画面の表示・選択・通知・入力結果へ整理した。資源管理、プリセット、パレットの選択画面は初期サムネイル格子、表示方式と項目寸法の切替、現在の資源を保つ厳密選択、選択・クリック・文脈メニュー通知、運動スクロール中のカーソル表示を利用する。Qtの既定プロパティ、内部resize呼出し、未発火signal、QObject破棄を固定する検証と試験用friendを削除した。サイズ変更signalは資源選択部品に接続されるが、その親部品が自身のresizeで表示更新するため、利用者影響を確認できない通知回数を契約にしない。
+- 次の作業: `KisResourceItemListWidgetContractTest.cpp`について、資源選択画面の配置、選択、通知、スクロールを利用者が観測する結果へ整理する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と

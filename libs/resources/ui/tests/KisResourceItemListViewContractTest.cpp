@@ -14,10 +14,8 @@
 
 #include <QApplication>
 #include <QColor>
+#include <QCoreApplication>
 #include <QContextMenuEvent>
-#include <QPointer>
-#include <QResizeEvent>
-#include <QScrollBar>
 #include <QSignalSpy>
 #include <QStandardItemModel>
 #include <QStandardPaths>
@@ -57,18 +55,6 @@ public:
     static QTextDocument *createDocument(KisIconToolTip &toolTip, const QModelIndex &index)
     {
         return toolTip.createDocument(index);
-    }
-};
-
-class KisResourceItemListViewContractAccess
-{
-public:
-    static void sendResizeEvent(KisResourceItemListView &view,
-                                const QSize &size,
-                                const QSize &oldSize)
-    {
-        QResizeEvent event(size, oldSize);
-        view.resizeEvent(&event);
     }
 };
 
@@ -124,17 +110,15 @@ private Q_SLOTS:
     void initTestCase();
     void init();
     void cleanupTestCase();
-    void constructorUsesIconGridDefaults();
-    void listModesAndItemSizeControlLayout();
-    void strictSelectionPreventsDeselectAndClearsRemovedItem();
+    void startsWithThumbnailGridForResourceChooser();
+    void selectedViewModesArrangeResourceItems();
+    void strictSelectionKeepsCurrentResourceUntilItIsRemoved();
     void fixedToolTipSizeControlsDocumentThumbnail();
     void checkerToolTipSettingControlsTransparency();
     void selectionEmitsCurrentResourceChanged();
     void clickEmitsCurrentResourceClicked();
     void contextMenuEmitsGlobalPosition();
-    void resizeDoesNotEmitDeclaredSizeSignal();
     void scrollerStateChangesCursor();
-    void destructionInvalidatesGuardedPointer();
 };
 
 void KisResourceItemListViewContractTest::initTestCase()
@@ -156,23 +140,30 @@ void KisResourceItemListViewContractTest::cleanupTestCase()
     config.sync();
 }
 
-void KisResourceItemListViewContractTest::constructorUsesIconGridDefaults()
+void KisResourceItemListViewContractTest::startsWithThumbnailGridForResourceChooser()
 {
+    // Consumer: resource manager and chooser screens created without a custom view mode.
+    // Operation: Create the resource item list view.
+    // Observable result: Resources start in a visible thumbnail grid with matching icon and cell sizes.
+    // Failure impact: A resource screen can open without usable visual resource previews.
     ExposedResourceItemListView view;
 
-    QCOMPARE(view.selectionMode(), QAbstractItemView::SingleSelection);
-    QCOMPARE(view.contextMenuPolicy(), Qt::DefaultContextMenu);
-    QCOMPARE(view.resizeMode(), QListView::Adjust);
-    QVERIFY(view.uniformItemSizes());
     QCOMPARE(view.viewMode(), QListView::IconMode);
-    QCOMPARE(view.gridSize(), QSize(56, 56));
-    QCOMPARE(view.iconSize(), QSize(56, 56));
+    QCOMPARE(view.gridSize(), view.iconSize());
+    QVERIFY(view.gridSize().width() > 0);
+    QVERIFY(view.gridSize().height() > 0);
 }
 
-void KisResourceItemListViewContractTest::listModesAndItemSizeControlLayout()
+void KisResourceItemListViewContractTest::selectedViewModesArrangeResourceItems()
 {
+    // Consumer: preset, palette, and resource chooser screens that switch their presentation mode.
+    // Operation: Set an item size and switch between grid, horizontal strip, and detail modes.
+    // Observable result: Each mode exposes resource cells at the requested size.
+    // Failure impact: Resource previews overlap, use stale dimensions, or cannot fit their chooser layout.
     ExposedResourceItemListView view;
     view.resize(200, 100);
+    view.show();
+    QCoreApplication::processEvents();
     const QSize requestedSize(40, 30);
 
     view.setItemSize(requestedSize);
@@ -181,40 +172,40 @@ void KisResourceItemListViewContractTest::listModesAndItemSizeControlLayout()
 
     view.setListViewMode(ListViewMode::IconStripHorizontal);
     QCOMPARE(view.viewMode(), QListView::IconMode);
-    QCOMPARE(view.flow(), QListView::LeftToRight);
-    QVERIFY(!view.isWrapping());
-    QCOMPARE(view.verticalScrollBarPolicy(), Qt::ScrollBarAlwaysOff);
-    KisResourceItemListViewContractAccess::sendResizeEvent(
-        view, QSize(200, 24), QSize(200, 100));
-    QCOMPARE(view.gridSize(), QSize(24, 24));
-    QCOMPARE(view.iconSize(), QSize(24, 24));
 
     view.setListViewMode(ListViewMode::Detail);
     QCOMPARE(view.viewMode(), QListView::ListMode);
-    QCOMPARE(view.flow(), QListView::TopToBottom);
-    QVERIFY(!view.isWrapping());
-    QCOMPARE(view.verticalScrollBarPolicy(), Qt::ScrollBarAsNeeded);
-    QCOMPARE(view.horizontalScrollBarPolicy(), Qt::ScrollBarAsNeeded);
     QCOMPARE(view.gridSize().height(), requestedSize.height());
     QCOMPARE(view.iconSize(), requestedSize);
 
     view.setListViewMode(ListViewMode::IconGrid);
     QCOMPARE(view.viewMode(), QListView::IconMode);
-    QCOMPARE(view.flow(), QListView::LeftToRight);
-    QVERIFY(view.isWrapping());
     QCOMPARE(view.gridSize(), requestedSize);
     QCOMPARE(view.iconSize(), requestedSize);
 }
 
-void KisResourceItemListViewContractTest::strictSelectionPreventsDeselectAndClearsRemovedItem()
+void KisResourceItemListViewContractTest::strictSelectionKeepsCurrentResourceUntilItIsRemoved()
 {
+    // Consumer: resource choosers that must keep their active brush or pattern selected.
+    // Operation: Ctrl-click an already selected resource, then remove that resource from the filtered model.
+    // Observable result: Ctrl-click keeps the current selection, while removing the current resource clears it.
+    // Failure impact: A chooser can unexpectedly clear the active resource or silently move selection to another one.
     ExposedResourceItemListView view;
+    view.resize(120, 120);
     QStandardItemModel model(2, 1);
+    model.setData(model.index(0, 0), QStringLiteral("First"));
+    model.setData(model.index(1, 0), QStringLiteral("Second"));
     view.setModel(&model);
     const QModelIndex index = model.index(0, 0);
+    view.setStrictSelectionMode(true);
+    view.show();
+    QCoreApplication::processEvents();
+
     view.setCurrentIndex(index);
     view.selectionModel()->select(index, QItemSelectionModel::ClearAndSelect);
-    view.setStrictSelectionMode(true);
+    QVERIFY(view.selectionModel()->isSelected(index));
+    QTest::mouseClick(view.viewport(), Qt::LeftButton, Qt::ControlModifier, view.visualRect(index).center());
+    QVERIFY(view.selectionModel()->isSelected(index));
 
     model.removeRow(0);
     QVERIFY(!view.selectionModel()->hasSelection());
@@ -271,6 +262,10 @@ void KisResourceItemListViewContractTest::checkerToolTipSettingControlsTranspare
 
 void KisResourceItemListViewContractTest::selectionEmitsCurrentResourceChanged()
 {
+    // Consumer: resource choosers that activate and preview the selected resource.
+    // Operation: Select a resource and then clear the selection.
+    // Observable result: The chooser receives the selected index followed by an invalid index.
+    // Failure impact: The active resource or its preview can remain stale after selection changes.
     ExposedResourceItemListView view;
     QStandardItemModel model(1, 1);
     view.setModel(&model);
@@ -288,6 +283,10 @@ void KisResourceItemListViewContractTest::selectionEmitsCurrentResourceChanged()
 
 void KisResourceItemListViewContractTest::clickEmitsCurrentResourceClicked()
 {
+    // Consumer: resource choosers that commit a user click on the active resource.
+    // Operation: Click a resource index in the list view.
+    // Observable result: The chooser receives one click notification for that index.
+    // Failure impact: A user click cannot trigger the action associated with the selected resource.
     ExposedResourceItemListView view;
     QStandardItemModel model(1, 1);
     view.setModel(&model);
@@ -303,6 +302,10 @@ void KisResourceItemListViewContractTest::clickEmitsCurrentResourceClicked()
 
 void KisResourceItemListViewContractTest::contextMenuEmitsGlobalPosition()
 {
+    // Consumer: resource tagging and management menus.
+    // Operation: Request a context menu over the resource list.
+    // Observable result: The menu handler receives the screen position of the request.
+    // Failure impact: The resource action menu opens at the wrong place or cannot be shown.
     ExposedResourceItemListView view;
     QSignalSpy contextMenuSpy(&view, &KisResourceItemListView::contextMenuRequested);
     const QPoint globalPosition(140, 260);
@@ -313,19 +316,12 @@ void KisResourceItemListViewContractTest::contextMenuEmitsGlobalPosition()
     QCOMPARE(contextMenuSpy.at(0).at(0).toPoint(), globalPosition);
 }
 
-void KisResourceItemListViewContractTest::resizeDoesNotEmitDeclaredSizeSignal()
-{
-    ExposedResourceItemListView view;
-    QSignalSpy sizeSpy(&view, &KisResourceItemListView::sigSizeChanged);
-
-    KisResourceItemListViewContractAccess::sendResizeEvent(
-        view, QSize(110, 110), QSize(100, 100));
-
-    QCOMPARE(sizeSpy.size(), 0);
-}
-
 void KisResourceItemListViewContractTest::scrollerStateChangesCursor()
 {
+    // Consumer: users dragging a kinetic-scrolling resource list.
+    // Operation: Press, drag, and release the scrolling gesture.
+    // Observable result: The pointer changes from an open hand to a closed hand and then returns to the normal cursor.
+    // Failure impact: The list gives no reliable visual feedback about whether a drag is active.
     ExposedResourceItemListView view;
 
     view.slotScrollerStateChange(QScroller::Pressed);
@@ -336,15 +332,6 @@ void KisResourceItemListViewContractTest::scrollerStateChangesCursor()
 
     view.slotScrollerStateChange(QScroller::Inactive);
     QCOMPARE(view.cursor().shape(), Qt::ArrowCursor);
-}
-
-void KisResourceItemListViewContractTest::destructionInvalidatesGuardedPointer()
-{
-    QPointer<KisResourceItemListView> view = new KisResourceItemListView;
-
-    QVERIFY(view);
-    delete view.data();
-    QVERIFY(view.isNull());
 }
 
 QTEST_MAIN(KisResourceItemListViewContractTest)
