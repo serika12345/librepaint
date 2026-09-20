@@ -2,19 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 23:53 JST
+- 更新日時: 2026-09-21 00:03 JST
 - 状態: `complete`
-- 現在の検査段階: R2-G19j 曲線制御インターフェース依存の監査（完了）
-- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j完了、R2-G19d-a・R2-G19d-b・R2-G19eは`planned`
+- 現在の検査段階: R2-G19k 曲線範囲モデルインターフェース依存の直接化（完了）
+- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k完了、R2-G19d-a・R2-G19d-b・R2-G19eは`planned`
 - ブランチ: `issue-44-direct-dependencies`
-- 開始コミット: `547128493c`。作業開始時点の作業ツリーは変更なし。
-- 目的: 曲線入力・範囲制御インターフェースが、借用ポインターの前方宣言、標準関数オブジェクト、公開記号だけで構成され、不要な実装・構築依存を持たないことを確認する。
-- 範囲固定: `plugins/paintops/libpaintop/KisCurveOptionInputControlsStrategyInterface.{h,cpp}`、`KisCurveOptionRangeControlsStrategyInterface.{h,cpp}`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurvecontrolinterfaceobjects`を監査した。`plugins/paintops/libpaintop/tests/KisCurveControlStrategyInterfacesContractTest.cpp`と同CMake定義は閲覧・実行のみとし、公開API、生成器の引数転送、仮想デストラクタの寿命契約を維持する。
-- 調査: `direnv exec . build-incremental native plan kritapaintopcurvecontrolinterfaceobjects`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。Ninja command closureは2件、File APIの直接依存は0件、2実装に対する`misc-include-cleaner`の診断は0件である。
-- 完了: 両公開ヘッダーは`std::function`、生成済み公開記号、借用ポインターの前方宣言を直接所有し、実装は自己ヘッダーだけを必要とする。対象のsource・binary取込みディレクトリー、`kritalibpaintop_EXPORTS`、依存なしというCMake定義も実使用と一致するため、製品ファイルとCMakeの変更は不要だった。
-- 検証: `direnv exec . build-incremental native build kritapaintopcurvecontrolinterfaceobjects`と`kritalibpaintop`は成功し、macOSパッケージ境界1723対象を確認した。`direnv exec . run-test KisCurveControlStrategyInterfacesContractTest`は1件成功した。
-- 残るリスク: 曲線範囲モデルインターフェースとその実利用側は未監査である。実行検証はmacOS・Qt 6.11.1であり、Qt 5、Linux、Windows、Android、iOSはIssue #44のプラットフォーム監査で扱う。
-- 次の作業: Issue #44の順序に従い、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurverangemodelinterfaceobjects`を次の有限な監査単位とし、曲線範囲モデルインターフェース実装の所有ヘッダーと直接依存を測定する。
+- 開始コミット: `2072d97701`。作業開始時点の作業ツリーは変更なし。
+- 目的: 曲線範囲モデルの公開生成器が使う標準関数オブジェクトを推移的取込みから得る状態を解消し、Qt値型、Lager、公開記号の利用要件を現行のまま明示する。
+- 範囲固定: `plugins/paintops/libpaintop/KisCurveRangeModelInterface.{h,cpp}`と、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurverangemodelinterfaceobjects`を変更する。`plugins/paintops/libpaintop/tests/KisCurveRangeModelInterfaceContractTest.cpp`と同CMake定義は閲覧・実行のみとし、公開API、曲線・範囲・センサー値を渡す生成器の結果を維持する。
+- 調査: `direnv exec . build-incremental native plan kritapaintopcurverangemodelinterfaceobjects`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。Ninja command closureは1件、File APIの直接依存は`Qt6::Core`と`lager`、`misc-include-cleaner`の実装診断は0件である。
+- 完了: `KisCurveRangeModelInterface.h`が使う`std::function`を`<functional>`から直接得る。Qt値型、Lagerカーソル・reader、公開記号は既存の所有ヘッダーとCMake利用要件で直接得ており、CMake変更は不要だった。
+- 検証: `direnv exec . build-incremental native build kritapaintopcurverangemodelinterfaceobjects`と`kritalibpaintop`は成功し、macOSパッケージ境界1723対象を確認した。`direnv exec . run-test KisCurveRangeModelInterfaceContractTest`は1件成功した。
+- 残るリスク: センサーパックインターフェースとその実利用側は未監査である。実行検証はmacOS・Qt 6.11.1であり、Qt 5、Linux、Windows、Android、iOSはIssue #44のプラットフォーム監査で扱う。
+- 次の作業: Issue #44の順序に従い、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopsensorpackinterfaceobjects`を次の有限な監査単位とし、センサーパックインターフェース実装の所有ヘッダーと直接依存を測定する。
 - 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
 - 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
 - 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。

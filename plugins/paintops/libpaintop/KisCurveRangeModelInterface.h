@@ -7,6 +7,8 @@
 #ifndef KISCURVERANGEMODELINTERFACE_H
 #define KISCURVERANGEMODELINTERFACE_H
 
+#include <functional>
+
 #include "kritapaintop_export.h"
 
 #include <lager/cursor.hpp>

@@ -1033,6 +1033,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] `kritapaintopcurvecontrolinterfaceobjects`の取込みディレクトリー、輸出定義、直接依存が最小であることを確認する。
 - [x] 対象構築、`kritalibpaintop`、既存の`KisCurveControlStrategyInterfacesContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
 
+### R2-G19k 曲線範囲モデルインターフェース依存の直接化
+
+目的は、曲線範囲モデルの公開生成器が使う標準関数オブジェクトを推移的取込みから得る状態を解消し、Qt値型、Lager、公開記号の利用要件を現行のまま明示することである。
+
+範囲は`plugins/paintops/libpaintop/KisCurveRangeModelInterface.{h,cpp}`と、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurverangemodelinterfaceobjects`に固定する。既存テストソース、公開API、曲線・範囲・センサー値を渡す生成器の結果を維持する。
+
+- [x] 公開ヘッダーを標準関数オブジェクト、Qt値型、Lager、公開記号の所有ヘッダーへ直接接続する。
+- [x] `kritapaintopcurverangemodelinterfaceobjects`のQt Core・Lager利用要件と取込みディレクトリーが実使用に一致することを確認する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisCurveRangeModelInterfaceContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない
