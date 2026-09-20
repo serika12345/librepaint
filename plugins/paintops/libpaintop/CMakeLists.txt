@@ -212,14 +212,13 @@ add_library(kritapaintopcoloroptiondataobjects OBJECT
     KisColorOptionData.cpp
 )
 target_compile_definitions(kritapaintopcoloroptiondataobjects PRIVATE
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
 )
 target_include_directories(kritapaintopcoloroptiondataobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
@@ -230,11 +229,12 @@ target_include_directories(kritapaintopcoloroptiondataobjects
 target_link_libraries(kritapaintopcoloroptiondataobjects
     PUBLIC
         Boost::boost
-        KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
+    PRIVATE
         Eigen3::Eigen
-        ${LINK_OPENEXR_LIB}
+        Imath::ImathConfig
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Gui
 )
 set_target_properties(kritapaintopcoloroptiondataobjects PROPERTIES
     AUTOMOC OFF
