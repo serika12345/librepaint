@@ -2,19 +2,21 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 22:53 JST
+- 更新日時: 2026-09-20 23:47 JST
 - 状態: `complete`
-- 現在の検査段階: R2-G19h 動的センサー工場依存の縮小（完了）
-- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h完了、R2-G19d-a・R2-G19d-b・R2-G19eは`planned`
-- ブランチ: `develop`
-- 開始コミット: `a5b4d0346c`。R2-G19g完了時点の作業ツリーは変更なし。
-- 目的: 動的センサー工場が公開引数で使う共通曲線設定型を、より広い派生設定ヘッダーから得るために生じた構築依存を除去する。工場2実装、取込み縮小で露出する直接利用者`KisDynamicSensorFactoryRegistry.h`、`kritapaintopdynamicsensorfactoryobjects`を範囲とし、テストソースと工場APIは変更しない。
-- 調査: `direnv exec . build-incremental native plan kritapaintopdynamicsensorfactoryobjects`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。対象は現在、Boost、Eigen、KDE翻訳、Qt Core・Xml、全体IDオブジェクト、lagerと全体基盤・画像の取込みディレクトリーを要求するが、実装の利用は`QString`、`Q_UNUSED`、`lager::cursor`、`QWidget`ポインターに限られる。
-- 完了: `KisDynamicSensorFactory.h`は広い`KisCurveOptionData.h`を、値渡しする`lager::cursor`が実体化に必要とする`KisCurveOptionDataCommon.h`へ置き換え、`QString`、lager、公開記号の所有ヘッダーを直接取り込む。完全型を前方宣言へ縮める案は既存工場契約の初回構築診断で利用者側の実体化に完全型が必要と確認し、公開APIを維持するため採用しなかった。単純工場は`Q_UNUSED`の所有ヘッダーを直接取り込む。工場登録簿は工場ヘッダーから偶然得ていた`KoID`と`QString`を直接取り込む。
-- 完了: `kritapaintopdynamicsensorfactoryobjects`は不要な全体基盤・画像の輸出定義と取込みディレクトリー、Boost、Eigen、KDE翻訳、Qt Xml、全体ID対象の列挙を除去した。公開依存はQt Core、lager、実際の引数型を所有する`kritapaintopcurveoptiondatacommonobjects`に限定した。
-- 検証: `direnv exec . build-incremental native build kritapaintopdynamicsensorfactoryobjects`と`kritalibpaintop`は成功し、macOSパッケージ境界1723対象を確認した。`direnv exec . run-test KisDynamicSensorFactoryContractTest`と`KisSimpleDynamicSensorFactoryContractTest`は各1件成功した。`direnv exec . ./scripts/verify-quick`は45個の方針試験、10責務、533公開ヘッダー、172プラグイン登録、文書・リンク・図を含めて成功した。
-- 残るリスク: 共通曲線設定型そのものが要求するBoost、Eigen、翻訳、全体ID、画像取込みは、この工場APIの値渡し署名を維持する限り公開構築要件となる。Qt 5と対象OSの実行確認はR2-G19dへ引き渡す。
-- 次の作業: `plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcoloroptionmodelobjects`を次の有限な監査単位とし、色オプションモデル1実装の所有ヘッダーと直接依存を測定する。
+- 現在の検査段階: R2-G19i 色オプションモデル依存の直接化（完了）
+- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i完了、R2-G19d-a・R2-G19d-b・R2-G19eは`planned`
+- ブランチ: `issue-44-direct-dependencies`
+- 開始コミット: `8f816dc5fd`。作業開始時点の作業ツリーは変更なし。
+- 目的: 色オプションモデルが、自己ヘッダーと広い取込みディレクトリー経由でLagerのカーソルとQt連携マクロ、色オプションデータ、公開記号を得る状態を解消する。利用側が公開ヘッダーを構築するために必要な色オプションデータ、Qt Core、Lagerの利用要件だけを明示する。
+- 範囲固定: `plugins/paintops/libpaintop/KisColorOptionModel.h`・`KisColorOptionModel.cpp`、取込み縮小で露出した直接利用者`KisColorOptionWidget.cpp`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcoloroptionmodelobjects`を変更する。`plugins/paintops/libpaintop/tests/KisColorOptionModelContractTest.cpp`と同CMake定義は閲覧・実行のみとし、公開API、色オプションの状態遷移、設定保存形式を維持する。
+- 調査: `direnv exec . build-incremental native configure`と`plan kritapaintopcoloroptionmodelobjects`は、変更前計画に再構成なしとmacOSパッケージ境界1723対象の成功を確認した。Ninja command closureは3件、File APIの変更前直接依存は`Boost::boost`、`Qt6::Core`、`lager`である。`misc-include-cleaner`は実装が`lager::cursor`、`KisColorOptionData`、`LAGER_QT`を自己ヘッダーから得る3診断を出した。
+- 完了: `KisColorOptionModel.h`は`QObject`、公開記号、Lager、色オプションデータの所有ヘッダーを直接取り込み、不要な`KisWidgetConnectionUtils.h`を除去した。実装もLagerカーソル・Qt連携マクロと色データを直接取り込む。ヘッダー縮小で露出した`KisColorOptionWidget.cpp`は、自身が使う`KisWidgetConnectionUtils.h`を直接取り込む。
+- 完了: `kritapaintopcoloroptionmodelobjects`は画像・Widgets用の輸出定義と全体基盤・画像・Widgetsの取込みディレクトリーを除去した。公開利用要件をQt Core、Lager、値として使う`KisColorOptionData`の所有対象`kritapaintopcoloroptiondataobjects`に限定し、色データ自身が公開するBoostなどのヘッダー要件はその所有対象から伝播する。
+- 調査: 直接`kritaimage`依存を加えた試行は対象構築に成功したが、Ninja command closureを3件から1201件へ拡大したため採用しない。最終集合のNinja command closureは4件、File APIの直接依存は`Qt6::Core`、`kritapaintopcoloroptiondataobjects`、`lager`である。`misc-include-cleaner`の対象実装診断は0件である。
+- 検証: `direnv exec . build-incremental native build kritapaintopcoloroptionmodelobjects`と`kritalibpaintop`は成功し、macOSパッケージ境界1723対象を確認した。`direnv exec . run-test KisColorOptionModelContractTest`は1件成功した。`direnv exec . ctest --preset tdd-macos --output-on-failure --tests-regex '^plugins-paintops-libpaintop-'`は30件成功した。`direnv exec . ./scripts/verify-quick`は45個の方針試験、10責務、533公開ヘッダー、172プラグイン登録、文書・リンク・図を含めて成功した。
+- 残るリスク: 色オプションデータ対象の取込み・直接依存は未監査であり、その公開要件は後続の有限対象で再測定する。実行検証はmacOS・Qt 6.11.1であり、Qt 5、Linux、Windows、Android、iOSはIssue #44のプラットフォーム監査で扱う。
+- 次の作業: Issue #44の順序に従い、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurvecontrolinterfaceobjects`を次の有限な監査単位とし、曲線入力・範囲制御インターフェース2実装の所有ヘッダーと直接依存を測定する。
 - 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
 - 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
 - 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。

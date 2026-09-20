@@ -11,6 +11,8 @@
 #include <QMetaProperty>
 
 #include <lager/constant.hpp>
+#include <KisWidgetConnectionUtils.h>
+
 #include "ui_wdgcoloroptions.h"
 
 #include "KisColorOptionModel.h"

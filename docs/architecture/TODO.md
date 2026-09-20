@@ -1013,6 +1013,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] 対象のコンパイル定義、取込みディレクトリー、リンク対象を実使用へ限定する。
 - [x] 対象構築、既存の工場契約2件、`verify-quick`を成功させ、後続の監査単位をPROGRESSへ記録する。
 
+### R2-G19i 色オプションモデル依存の直接化
+
+目的は、色オプションモデルが色データ、LagerのカーソルとQt連携マクロ、公開記号を別ヘッダーと広い取込みディレクトリーから偶然得る状態を解消し、公開ヘッダーを読む利用側に必要な構築要件だけを伝えることである。
+
+範囲は`plugins/paintops/libpaintop/KisColorOptionModel.h`・`KisColorOptionModel.cpp`、取込み縮小で露出する直接利用者`KisColorOptionWidget.cpp`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcoloroptionmodelobjects`に固定する。既存テストソース、公開API、色オプションの状態遷移、設定保存形式は維持する。
+
+- [x] 公開ヘッダーと実装を、Lager、Qt、色オプションデータ、公開記号の所有ヘッダーへ直接接続し、不要なWidgets取込みを除去する。
+- [x] `kritapaintopcoloroptionmodelobjects`の取込みディレクトリーと輸出定義を縮小し、公開ヘッダーに必要な色オプションデータ、Qt Core、Lagerの利用要件を直接列挙する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisColorOptionModelContractTest`、libpaintop CTest、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない

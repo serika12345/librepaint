@@ -620,25 +620,17 @@ add_library(kritapaintopcoloroptionmodelobjects OBJECT
     KisColorOptionModel.cpp
 )
 target_compile_definitions(kritapaintopcoloroptionmodelobjects PRIVATE
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritawidgets_EXPORTS
 )
 target_include_directories(kritapaintopcoloroptionmodelobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-        ${CMAKE_SOURCE_DIR}/libs/global
-        ${CMAKE_BINARY_DIR}/libs/global
-        ${CMAKE_SOURCE_DIR}/libs/image
-        ${CMAKE_BINARY_DIR}/libs/image
-        ${CMAKE_SOURCE_DIR}/libs/widgets
-        ${CMAKE_BINARY_DIR}/libs/widgets
 )
 target_link_libraries(kritapaintopcoloroptionmodelobjects
     PUBLIC
-        Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
+        kritapaintopcoloroptiondataobjects
         lager
 )
 set_target_properties(kritapaintopcoloroptionmodelobjects PROPERTIES
