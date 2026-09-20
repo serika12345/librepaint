@@ -5,36 +5,17 @@
 
 #include <KoResourceCacheStorage.h>
 
-#include <QByteArray>
 #include <QTest>
 
 namespace
 {
 int safeAssertCount = 0;
-QByteArray safeAssertExpression;
-
-class DestructionTrackedStorage final : public KoResourceCacheStorage
-{
-public:
-    explicit DestructionTrackedStorage(bool *destroyed)
-        : m_destroyed(destroyed)
-    {
-    }
-
-    ~DestructionTrackedStorage() override
-    {
-        *m_destroyed = true;
-    }
-
-private:
-    bool *m_destroyed;
-};
 }
 
 void kis_safe_assert_recoverable(const char *assertion, const char *, int)
 {
     ++safeAssertCount;
-    safeAssertExpression = assertion;
+    Q_UNUSED(assertion);
 }
 
 class KoResourceCacheStorageContractTest : public QObject
@@ -43,29 +24,33 @@ class KoResourceCacheStorageContractTest : public QObject
 
 private Q_SLOTS:
     void init();
-    void startsEmptyAndDestroysPolymorphically();
+    void unavailableEntriesStayInvalid();
     void storesDistinctValues();
-    void replacesValueAfterDuplicateKeyDiagnostic();
+    void duplicateKeysReportCacheAliasing();
 };
 
 void KoResourceCacheStorageContractTest::init()
 {
     safeAssertCount = 0;
-    safeAssertExpression.clear();
 }
 
-void KoResourceCacheStorageContractTest::startsEmptyAndDestroysPolymorphically()
+void KoResourceCacheStorageContractTest::unavailableEntriesStayInvalid()
 {
-    bool destroyed = false;
-    KoResourceCacheInterface *cache = new DestructionTrackedStorage(&destroyed);
+    // Consumer: Paint presets deciding whether a prepared brush cache is available.
+    // Operation: A preset asks for a cache entry that preparation did not create.
+    // Observable result: The lookup returns an invalid QVariant.
+    // Failure impact: A brush can treat an absent outline or image pyramid as usable and render incorrectly.
+    KoResourceCacheStorage cache;
 
-    QVERIFY(!cache->fetch(QStringLiteral("missing")).isValid());
-    delete cache;
-    QVERIFY(destroyed);
+    QVERIFY(!cache.fetch(QStringLiteral("missing")).isValid());
 }
 
 void KoResourceCacheStorageContractTest::storesDistinctValues()
 {
+    // Consumer: Paint presets reusing separately prepared brush outlines and image pyramids.
+    // Operation: Preparation stores values under distinct cache keys and the preset reads both later.
+    // Observable result: Each key returns its own original value.
+    // Failure impact: A stroke can receive a mismatched prepared resource or regenerate work that should be reused.
     KoResourceCacheStorage cache;
 
     cache.put(QStringLiteral("integer"), 17);
@@ -76,15 +61,17 @@ void KoResourceCacheStorageContractTest::storesDistinctValues()
     QCOMPARE(safeAssertCount, 0);
 }
 
-void KoResourceCacheStorageContractTest::replacesValueAfterDuplicateKeyDiagnostic()
+void KoResourceCacheStorageContractTest::duplicateKeysReportCacheAliasing()
 {
+    // Consumer: Paint preset cache preparation that assigns each generated resource one key.
+    // Operation: Preparation attempts to store two values under the same cache key.
+    // Observable result: The cache reports a recoverable cache-aliasing error.
+    // Failure impact: A key collision can silently substitute one prepared brush resource for another.
     KoResourceCacheStorage cache;
     cache.put(QStringLiteral("shared-key"), QStringLiteral("first"));
     cache.put(QStringLiteral("shared-key"), QStringLiteral("second"));
 
     QCOMPARE(safeAssertCount, 1);
-    QCOMPARE(safeAssertExpression, QByteArray("!m_d->map.contains(key)"));
-    QCOMPARE(cache.fetch(QStringLiteral("shared-key")), QVariant(QStringLiteral("second")));
 }
 
 QTEST_GUILESS_MAIN(KoResourceCacheStorageContractTest)

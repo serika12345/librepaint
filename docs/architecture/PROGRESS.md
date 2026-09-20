@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 12:55 JST
+- 更新日時: 2026-09-20 12:56 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -74,7 +74,8 @@
 - 完了: `KisTemporaryResourceStorageLockContractTest.cpp`を削除し、`TestResourceLocator`へ実ロケーターを使う一時ストレージの利用結果を統合した。同名のレイヤースタイルを同時に編集すると別々の一時ストレージが登録され、一方を閉じても他方の依存リソースは選択可能なまま残り、最後の編集終了後に消える。偽ロケーターへのアダプター呼出し、固定した接尾辞、ロック所有フラグは維持しない。
 - 完了: `KoResourceCacheInterfaceContractTest.cpp`は、ペイントスナップショットが古いブラシ・キャンバス状態のキャッシュを拒否する所有cookieと、プリセットのバックグラウンド更新結果をUIへ渡すQt型登録を検証する。偽キャッシュへの仮想呼出し、仮想破棄、共有ポインター型との直接比較は利用者向け契約ではないため削除した。実装キャッシュと接頭辞付きキャッシュの読取・格納試験を併せて実行する。
 - 完了: `KoResourceCachePrefixedStorageWrapperContractTest.cpp`は、主ブラシとマスキングブラシが同じ論理キーで輪郭を保存しても、接頭辞付きキャッシュにより別々の値を読むことを実装キャッシュで検証する。偽キャッシュの転送記録、空接頭辞、共有ポインターの寿命は利用者向け契約ではないため削除した。実装キャッシュの安全アサートを使うため、対象にその実装オブジェクトを最小の直接依存として追加した。
-- 次の作業: `KoResourceCacheStorageContractTest.cpp`について、ブラシ準備が読み書きするキャッシュ結果と、内部マップ・安全アサート式・仮想破棄だけを固定する検証を整理する。
+- 完了: `KoResourceCacheStorageContractTest.cpp`は、ブラシ準備が未生成のキャッシュを無効値として扱い、別々のキーの準備済み値を独立して読むことを検証する。同じキーへの重複格納はキャッシュ別名の回復可能なエラーとして報告する。内部マップの条件式、仮想破棄、無効操作後に残る上書き値は利用者向け契約ではないため削除した。
+- 次の作業: `KoEmbeddedResourceValueContractTest.cpp`について、埋込みリソースの利用者が観測する値・所有・保存読込結果と、値型の内部比較・初期化だけを固定する検証を整理する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
