@@ -5,8 +5,10 @@
  */
 
 #include <KoStore.h>
+#include <KoStoreDevice.h>
 
 #include <QBuffer>
+#include <QDomDocument>
 #include <QTemporaryDir>
 #include <QTest>
 
@@ -18,6 +20,7 @@ class TestResourceStorageArchiveContract : public QObject
 
 private Q_SLOTS:
     void zipRoundTrip();
+    void xmlDocumentRoundTripsThroughOpenedStoreDevice();
     void directoryRoundTrip();
     void malformedArchiveIsRejected();
     void failedReadPreservesArchiveSession();
@@ -48,6 +51,55 @@ void TestResourceStorageArchiveContract::zipRoundTrip()
     QVERIFY(reader->open(QStringLiteral("content/data.bin")));
     QCOMPARE(reader->read(13), QByteArrayLiteral("resource-data"));
     QVERIFY(reader->close());
+}
+
+void TestResourceStorageArchiveContract::xmlDocumentRoundTripsThroughOpenedStoreDevice()
+{
+    // Consumer: KRA, OpenRaster, and reference-image import/export code writing XML into an opened archive entry.
+    // Operation: An XML document is written and read through KoStoreDevice without a second QIODevice open operation.
+    // Observable result: The archived XML restores its document element and layer metadata.
+    // Failure impact: Saved documents and reference-image collections lose their XML metadata when reopened.
+    QDomDocument sourceDocument;
+    QDomElement stack = sourceDocument.createElement(QStringLiteral("stack"));
+    sourceDocument.appendChild(stack);
+    QDomElement layer = sourceDocument.createElement(QStringLiteral("layer"));
+    layer.setAttribute(QStringLiteral("name"), QStringLiteral("Foreground"));
+    stack.appendChild(layer);
+
+    QByteArray archive;
+    QBuffer output(&archive);
+    {
+        std::unique_ptr<KoStore> writer(
+            KoStore::createStore(&output, KoStore::Write, {}, KoStore::Zip, false));
+        QVERIFY(writer);
+        QVERIFY(!writer->bad());
+        QVERIFY(writer->open(QStringLiteral("stack.xml")));
+
+        KoStoreDevice device(writer.get());
+        const QByteArray xml = sourceDocument.toByteArray();
+        QCOMPARE(device.write(xml), qint64(xml.size()));
+        device.close();
+        QVERIFY(writer->close());
+        QVERIFY(writer->finalize());
+    }
+
+    QBuffer input(&archive);
+    std::unique_ptr<KoStore> reader(
+        KoStore::createStore(&input, KoStore::Read, {}, KoStore::Zip, false));
+    QVERIFY(reader);
+    QVERIFY(!reader->bad());
+    QVERIFY(reader->open(QStringLiteral("stack.xml")));
+
+    KoStoreDevice device(reader.get());
+    QDomDocument restoredDocument;
+    QVERIFY(restoredDocument.setContent(&device));
+    device.close();
+    QVERIFY(reader->close());
+
+    const QDomElement restoredStack = restoredDocument.documentElement();
+    QCOMPARE(restoredStack.tagName(), QStringLiteral("stack"));
+    QCOMPARE(restoredStack.firstChildElement(QStringLiteral("layer")).attribute(QStringLiteral("name")),
+             QStringLiteral("Foreground"));
 }
 
 void TestResourceStorageArchiveContract::directoryRoundTrip()

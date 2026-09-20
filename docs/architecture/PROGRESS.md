@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 15:07 JST
+- 更新日時: 2026-09-20 15:14 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -110,7 +110,8 @@
 - 完了: `DebugPigmentContractTest.cpp`を`DebugPigmentCompatibilityTest.cpp`へ置き換えた。Log Docker は保存済みの`LogDocker/pigment`設定を`krita.lib.pigment`のログ規則として適用し、色管理診断を有効化する。この外部設定との互換性を、実際に同規則を適用してPigmentのデバッグ出力が有効になる結果で検証する。singleton参照の同一性と既定の重大度は保存規則の利用結果ではないため固定しない。
 - 完了: `ResourceDebugCompatibilityTest.cpp`を追加し、Log Docker の保存済み`LogDocker/resources_30009`規則が資源管理のデバッグ出力を有効にすることを検証する。試験は実装が`krita.lib.resource`を返すため失敗し、同設定が適用する`krita.lib.resources`へ資源ライブラリーのカテゴリを修正した。既存のリソース種別互換性試験と新しい互換性試験は修正後に成功し、資源管理診断を有効にしても出力されない不具合を修復した。
 - 完了: `KisDebugContractTest.cpp`から、関数ポインターで全21カテゴリの名称を固定する検査を除いた。Log Docker の保存済み規則が使うグローバルカテゴリは`KisDebugCompatibilityTest.cpp`へ分離し、実際に各規則を適用してデバッグ出力が有効になる結果を検証する。保存規則外のDB移行、Android、ロケールカテゴリには互換性根拠がない。試験により、保存済み描画規則`krita.grender`とタブレット規則`krita.tablet`が実装の別名へ向き、診断を有効にできない不具合を発見した。各カテゴリを保存済み規則へ合わせ、既存のメソッド名整形・バックトレース試験も成功した。
-- 次の作業: `KoStoreDeviceContractTest.cpp`について、保存読込・書出しが使う`QIODevice`の実際の読取・書込・位置・終端結果を調べ、偽の`KoStore`実装、内部呼出し回数、所有形状を利用者向け契約へ整理する。
+- 完了: `KoStoreDeviceContractTest.cpp`を削除し、偽の`KoStore`が固定していた自動オープン状態、借用所有権、失敗後の開放モード、内部`seek()`回数を廃止した。KRA、OpenRaster、参照画像の保存読込は、開いたアーカイブ項目を`KoStoreDevice`経由で追加の`open()`なしにXMLとして読み書きするため、実ZIPアーカイブでXML文書とレイヤー名が往復する`TestResourceStorageArchiveContract`へ統合した。Qt XMLへの試験依存は、製品の`QDomDocument`利用と同じ保存結果を検証するために限定した。
+- 次の作業: `KoUnitContractTest.cpp`について、単位変換、UI選択、文書入出力が観測する換算・記号・選択結果を確認し、列挙順、一覧件数、換算定数だけの固定を整理する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
