@@ -564,6 +564,14 @@ kis_add_test(
 target_compile_definitions(KisDebugContractTest PRIVATE kritaglobal_EXPORTS)
 
 kis_add_test(
+    KisDebugCompatibilityTest.cpp
+    LINK_LIBRARIES
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisDebugCompatibilityTest PRIVATE kritaglobal_EXPORTS)
+
+kis_add_test(
     KisDomUtilsContractTest.cpp
     LINK_LIBRARIES
         kritaglobaldomutilsobjects
