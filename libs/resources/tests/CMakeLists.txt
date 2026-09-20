@@ -94,15 +94,17 @@ target_compile_definitions(KoResourceBundleManifestContractTest PRIVATE kritares
 kis_add_test(
     KisResourceStorageTypeCompatibilityTest.cpp
     LINK_LIBRARIES
+        kritaglobal
+        kritaresources
+        kritatestsdk
+        Qt${QT_MAJOR_VERSION}::Sql
         Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Gui
         KF${KF_MAJOR}::I18n
 )
 target_include_directories(KisResourceStorageTypeCompatibilityTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
-target_compile_definitions(KisResourceStorageTypeCompatibilityTest PRIVATE kritaresources_EXPORTS)
 
 
 
