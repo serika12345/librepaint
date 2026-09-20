@@ -102,6 +102,29 @@ void KisCurveOptionDataTest::disabledSensorsStayDisabledAfterReload()
     QCOMPARE(restored.sensorStruct().sensorRotation.curve, QStringLiteral("0.0,0.5;1,1;"));
 }
 
+void KisCurveOptionDataTest::timeSensorDurationSurvivesPresetSave()
+{
+    // Consumer: Artists editing a time-driven brush curve in the preset editor.
+    // Operation: A preset with an active periodic time sensor is saved and loaded.
+    // Observable result: The time curve, duration, and periodic input setting are restored.
+    // Failure impact: Reopened time-driven brushes use the wrong duration or stop responding to time.
+    KisCurveOptionData saved(KoID("Size"), KisCurveOptionData::Checkability::Checkable);
+    saved.sensorStruct().sensorTime.isActive = true;
+    saved.sensorStruct().sensorTime.length = 311;
+    saved.sensorStruct().sensorTime.isPeriodic = true;
+    saved.sensorStruct().sensorTime.curve = "0,0;0.7,0.9;1,1;";
+
+    KisPropertiesConfiguration config;
+    saved.write(&config);
+
+    KisCurveOptionData restored(KoID("Size"), KisCurveOptionData::Checkability::Checkable);
+    QVERIFY(restored.read(&config));
+    QVERIFY(restored.sensorStruct().sensorTime.isActive);
+    QCOMPARE(restored.sensorStruct().sensorTime.length, 311);
+    QVERIFY(restored.sensorStruct().sensorTime.isPeriodic);
+    QCOMPARE(restored.sensorStruct().sensorTime.curve, QStringLiteral("0,0;0.7,0.9;1,1;"));
+}
+
 void KisCurveOptionDataTest::missingSensorsUsePressureDefault()
 {
     // Consumer: Artists loading a preset that has no valid dynamic sensor selection.

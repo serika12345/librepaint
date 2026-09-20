@@ -13,6 +13,14 @@ kis_add_test(
 )
 
 kis_add_test(
+    KisKritaSensorPackCompatibilityTest.cpp
+    LINK_LIBRARIES
+        kritaimage
+        kritalibpaintop
+        kritatestsdk
+)
+
+kis_add_test(
     KisCurveOptionModelTest.cpp
     LINK_LIBRARIES
         kritapaintopcurveoptionmodelobjects
@@ -371,23 +379,6 @@ target_compile_definitions(KisSensorPackInterfaceContractTest PRIVATE
     kritalibpaintop_EXPORTS
 )
 
-kis_add_test(
-    KisKritaSensorPackContractTest.cpp
-    LINK_LIBRARIES
-        kritapaintopkritasensorpackobjects
-        kritapaintopsensordataobjects
-        kritapaintopsensorpackinterfaceobjects
-        kritaglobalidobjects
-        Boost::boost
-        Eigen3::Eigen
-        Imath::ImathConfig
-        KF${KF_MAJOR}::I18n
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Xml
-        Qt${QT_MAJOR_VERSION}::Test
-)
-
 kis_add_test(KisSizeOptionDataContractTest.cpp LINK_LIBRARIES
     kritapaintopsizeoptiondataobjects kritapaintopcurveoptiondataobjects
     kritapaintopcurveoptiondatacommonobjects kritapaintopkritasensorpackobjects
@@ -414,12 +405,6 @@ kis_add_test(KisScatterOptionDataContractTest.cpp LINK_LIBRARIES kritapaintopsca
 target_compile_definitions(KisScatterOptionDataContractTest PRIVATE kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
 kis_add_test(KisSpacingOptionDataContractTest.cpp LINK_LIBRARIES kritapaintopspacingoptiondataobjects kritapaintopcurveoptiondataobjects kritapaintopcurveoptiondatacommonobjects kritapaintopkritasensorpackobjects kritapaintopsensordataobjects kritapaintopsensorpackinterfaceobjects kritaglobalidobjects Qt${QT_MAJOR_VERSION}::Test)
 target_compile_definitions(KisSpacingOptionDataContractTest PRIVATE kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
-target_compile_definitions(KisKritaSensorPackContractTest PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-    kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
-)
 
 kis_add_test(
     KisDynamicSensorFactoryContractTest.cpp
