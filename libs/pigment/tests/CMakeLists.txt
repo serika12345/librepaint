@@ -33,16 +33,16 @@ target_compile_definitions(KoColorModelStandardIdsContractTest PRIVATE
 )
 
 kis_add_test(
-    DebugPigmentContractTest.cpp
+    DebugPigmentCompatibilityTest.cpp
     LINK_LIBRARIES
         kritapigmentdebugobjects
         Qt${QT_MAJOR_VERSION}::Test
 )
-target_include_directories(DebugPigmentContractTest PRIVATE
+target_include_directories(DebugPigmentCompatibilityTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
-target_compile_definitions(DebugPigmentContractTest PRIVATE kritapigment_EXPORTS)
+target_compile_definitions(DebugPigmentCompatibilityTest PRIVATE kritapigment_EXPORTS)
 
 kis_add_test(
     KoAlphaMaskApplicatorBaseContractTest.cpp
