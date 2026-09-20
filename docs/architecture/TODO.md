@@ -1023,6 +1023,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] `kritapaintopcoloroptionmodelobjects`の取込みディレクトリーと輸出定義を縮小し、公開ヘッダーに必要な色オプションデータ、Qt Core、Lagerの利用要件を直接列挙する。
 - [x] 対象構築、`kritalibpaintop`、既存の`KisColorOptionModelContractTest`、libpaintop CTest、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
 
+### R2-G19j 曲線制御インターフェース依存の監査
+
+目的は、曲線入力・範囲制御インターフェースが、借用ポインターの前方宣言、標準関数オブジェクト、公開記号だけで構成されていることを確認し、不要な実装依存を導入しないことである。
+
+範囲は`plugins/paintops/libpaintop/KisCurveOptionInputControlsStrategyInterface.{h,cpp}`、`KisCurveOptionRangeControlsStrategyInterface.{h,cpp}`と、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurvecontrolinterfaceobjects`に固定する。既存テストソース、公開API、制御器生成時の引数転送と寿命を維持する。
+
+- [x] 公開ヘッダーが標準関数オブジェクト、公開記号、借用ポインターの前方宣言を直接所有し、実装が自己ヘッダーだけを必要とすることを確認する。
+- [x] `kritapaintopcurvecontrolinterfaceobjects`の取込みディレクトリー、輸出定義、直接依存が最小であることを確認する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisCurveControlStrategyInterfacesContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない
