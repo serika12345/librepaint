@@ -173,6 +173,7 @@ kis_add_test(
     KisStorageChooserDelegateContractTest.cpp
     LINK_LIBRARIES
         kritastoragechooserdelegateobjects
+        kritawidgetutils
         Qt${QT_MAJOR_VERSION}::Test
         Qt${QT_MAJOR_VERSION}::Widgets
 )
