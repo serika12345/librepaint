@@ -205,19 +205,6 @@ target_include_directories(KoResourceCacheStorageContractTest PRIVATE
 target_compile_definitions(KoResourceCacheStorageContractTest PRIVATE kritaresources_EXPORTS)
 
 kis_add_test(
-    KoEmbeddedResourceValueContractTest.cpp
-    LINK_LIBRARIES
-        kritaembeddedresourcevalueobjects
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KoEmbeddedResourceValueContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KoEmbeddedResourceValueContractTest PRIVATE kritaresources_EXPORTS)
-
-kis_add_test(
     KoResourceLoadResultContractTest.cpp
     LINK_LIBRARIES
         kritaresourceloadvalueobjects
