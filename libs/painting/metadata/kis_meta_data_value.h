@@ -78,8 +78,9 @@ public:
     */
     QVariant asVariant() const;
     /**
-    * Set this Value to the given variant, or does nothing if this Value is not a Variant.
-    * @return true if the value was changed
+    * Set this Value to the given variant. Invalid values become Variant values;
+    * other non-Variant values remain unchanged.
+    * @return true if the stored value changed
     */
     bool setVariant(const QVariant& variant);
     bool setStructureVariant(const QString& fieldNAme, const QVariant& variant);

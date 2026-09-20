@@ -42,9 +42,6 @@ struct KisEntryEditor::Private {
     void setValue(const QVariant& variant) {
         KisMetaData::Value& value = store->getEntry(key).value();
         if (value.type() == KisMetaData::Value::Structure && !structField.isEmpty()) {
-            QMap<QString, KisMetaData::Value> structure = value.asStructure();
-            value = structure[ structField ];
-            value.setVariant(variant);
             value.setStructureVariant(structField, variant);
         } else if (value.isArray() && arrayIndex > -1) {
             value.setArrayVariant(arrayIndex, variant);
@@ -90,4 +87,3 @@ void KisEntryEditor::valueEdited()
     d->setValue(val);
     Q_EMIT valueHasBeenEdited();
 }
-

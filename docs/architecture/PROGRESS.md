@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 11:35 JST
+- 更新日時: 2026-09-20 11:46 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -55,7 +55,8 @@
 - 完了: `SvgTextCursorEnumContractTest.cpp`を削除し、型組版の基線選択を既存の`SvgTextCursorTest`へ統合した。カーソル移動と型組版ハンドルの整数値は保存形式、XML、プラグイン、スクリプト、外部識別子へ渡らない。既存試験は横書き、右横書き、縦書きの文字・語・行・段落移動の結果を検証している。Shiftで表意文字基線ハンドルを選ぶと、選択テキストの支配・配置基線プロパティが更新されることを追加で検証する。統合先の実装ライブラリー構築で、値として保持する`QPointF`と利用する画像、ノード、スナップガイドの完全型を推移的インクルードへ依存していたため、各所有者を直接取り込むよう修正した。
 - 完了: 削除済みの`KisDisplayConfigSchemaContractTest`と`KisDitherWidgetSchemaContractTest`の名前を使う、`libs/ui/tests/CMakeLists.txt`のUI生成定義を削除した。同じUIは`libs/ui`、`libs/application`、`libs/impex`の製品側生成定義が各利用者へ提供する。テスト専用の重複生成は利用者向け契約を持たないため、代替試験は追加しない。
 - 完了: `KoSvgTextFontMetricsValueContractTest.cpp`を削除した。フォント計測、背景・線、textPath、下線位置の構造体について、初期値、全メンバーのコピー、等値比較、列挙値だけを固定しており、保存形式・設定・プラグイン・スクリプト・外部識別子の互換性根拠はない。`TestSvgText`は実フォント計測とtextPathの開始位置・方向・伸張・装飾をSVG描画結果で、`TestSvgTextShape`は文字形状と輪郭形状の操作結果で保護する。専用CTestとそのQt・公開ヘッダー依存を削除し、重複した代替試験は追加しない。
-- 次の作業: 残存するValue試験と、名称に依存しない内部値型・初期化の固定を再検索し、利用場面と互換性根拠を監査する。R2-G19cの高速検査と対象CTestを再実行する。保存形式や外部連携の根拠がある場合だけ互換性試験を維持する。
+- 完了: `KisMetaDataValueContractTest.cpp`を、メタデータ編集、文書複製、統合、言語別値の利用結果へ整理した。XMP入出力とメタデータ編集は、値種別と`xml:lang`修飾子を使う。異種値への編集は失敗として元の値を保ち、配列の有効な拡張編集は成功として返す。統合は完全な最新日時を保持し、時刻のミリ秒を正しく繰り上げる。言語修飾子を比較対象に含め、文書複製後の値は独立して編集できるようにした。`KisEntryEditorContractTest`は、構造体フィールドの編集後も他のフィールドを保存することを実ストアと画面部品で検証する。この試験で判明した構造体全体を単一フィールドで置換する不具合を修正した。両試験は実製品ライブラリーへ直接リンクし、編集部品試験はアプリケーション全体ではなく必要なメタデータ・Qt依存だけで閉じる。
+- 次の作業: `KisMetaDataTypeInfoContractTest`を含む残存するValue試験と、名称に依存しない内部値型・初期化の固定を再検索し、利用場面と互換性根拠を監査する。R2-G19cの高速検査と対象CTestを再実行する。保存形式や外部連携の根拠がある場合だけ互換性試験を維持する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
@@ -65,6 +66,7 @@
 - 検証: macOSで`SvgTextCursorTest`の構築と`plugins-tools-svgtexttool-SvgTextCursorTest`のCTestが成功した。
 - 検証: macOSで`kritaapplicationui`の再構成を含む増分構築と`libs-ui-KisPlaybackEngineContractTest`のCTestが成功した。`check_test_contracts.py`と`verify-quick`も成功した。
 - 検証: macOSで`TestSvgText`の構築、`libs-flake-TestSvgTextShape`のCTest、削除済み`KoSvgTextFontMetricsValueContractTest`の登録件数0が成功した。`TestSvgText`の直接実行は、現行のバンドル実行パスを解決できず初期化前に失敗する既知のbroken testである。
+- 検証: macOSで`KisMetaDataValueContractTest`、`KisEntryEditorContractTest`、`kritametadataeditor`、`kis_meta_data_test`、`KisMetaDataTypeInfoContractTest`の構築と4件のCTestが成功した。
 
 ## 現在の変更範囲
 
