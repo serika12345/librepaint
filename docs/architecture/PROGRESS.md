@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 13:44 JST
+- 更新日時: 2026-09-20 13:51 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -68,7 +68,8 @@
 - 完了: `KisTagPseudoUrlCompatibilityTest.cpp`を、擬似URL関数の戻り値を直接比較する試験から、実際の`KisTagModel`が保存済みURLを擬似タグとして解決する互換性試験へ置き換えた。タグ選択部品は`SelectedTags`設定へURLを保存し、タグモデルとフィルターは`All`と`All untagged`を全件・未分類表示として扱う。隔離したキャッシュで両URLを復元し、選択対象の有効状態、種別、URL、表示名を検証する。試験はテスト専用のヘッダー定義ではなく`kritaresources`へ直接リンクする。
 - 完了: `KoCanvasResourcesInterfaceContractTest.cpp`を削除した。専用試験は偽実装への仮想呼出し、共有ポインターの所有、仮想破棄だけを固定しており、保存形式、プラグイン、スクリプト、外部APIの互換性根拠はない。実利用者は`KoCanvasResourceProvider`または局所ストロークの実装から値を読む。`TestResourceManager`が色・単位・派生リソースの読取と変更通知を、`TestPaintingBoundary`が局所ストロークのリソーススナップショットを検証するため、専用CTestとCMake定義を維持しない。
 - 完了: `KoLocalStrokeCanvasResourcesContractTest.cpp`を削除し、`TestPaintingBoundary`へ局所ストロークの利用結果を統合した。ペイントプリセットの複製は必要なキャンバス値を局所ストレージへ格納し、実行時スナップショットはその値を読む。パターンとグラデーションを取得後に選択を置換しても、開始済みスナップショットは元の署名を保持し、次のスナップショットだけが置換後の署名を使うことを検証する。任意キーの格納・置換、コピー・代入、共有ポインター破棄は利用者向け契約ではないため維持しない。
-- 次の作業: `KisResourceMetaDataModelContractTest.cpp`について、モデルrole、編集、通知、SQLite保存結果のうち利用者が観測する契約と、内部データ構造だけを固定する検証を整理する。
+- 完了: `KisResourceMetaDataModelContractTest.cpp`は、リソース選択部品、依存リソースの欠損判定、メタデータ絞込みがSQLiteの保存値を個別に読む結果を検証する。リソースID・表・キーに一致するBase64化`QVariant`だけを復元し、欠損または空の値は無効値として扱う。問い合わせの破棄後に表を再作成できることは内部資源管理であるため、専用検証を削除した。
+- 次の作業: `KisDatabaseTransactionLockContractTest.cpp`について、リソースキャッシュの複数SQL更新で利用者が観測する保存・取消結果と、ロック補助の内部状態だけを固定する検証を整理する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と

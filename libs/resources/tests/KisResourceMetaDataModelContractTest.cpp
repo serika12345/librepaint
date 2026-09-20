@@ -59,7 +59,6 @@ private Q_SLOTS:
     void initTestCase();
     void filtersSerializedValuesByTableResourceAndKey();
     void returnsInvalidValueForMissingOrEmptyData();
-    void releasesPreparedQueryBeforeSchemaReplacement();
     void cleanupTestCase();
 };
 
@@ -95,6 +94,10 @@ void KisResourceMetaDataModelContractTest::initTestCase()
 
 void KisResourceMetaDataModelContractTest::filtersSerializedValuesByTableResourceAndKey()
 {
+    // Consumer: Resource choosers and resource-query filters that read individual metadata keys.
+    // Operation: They request a key for a particular resource from its metadata table.
+    // Observable result: The matching stored QVariant is decoded without taking a value from another resource or table.
+    // Failure impact: A chooser can display the wrong resource state or filter a resource using another resource's metadata.
     KisResourceMetaDataModel resources(QStringLiteral("resources"));
     KisResourceMetaDataModel storages(QStringLiteral("storages"));
 
@@ -107,6 +110,10 @@ void KisResourceMetaDataModelContractTest::filtersSerializedValuesByTableResourc
 
 void KisResourceMetaDataModelContractTest::returnsInvalidValueForMissingOrEmptyData()
 {
+    // Consumer: Resource choosers and dependency checks that treat absent metadata as unavailable.
+    // Operation: They request a missing key, resource, table, or empty metadata value.
+    // Observable result: The lookup returns an invalid QVariant instead of inventing a value.
+    // Failure impact: Missing resource metadata can be presented as a real value or cause an incorrect dependency warning.
     KisResourceMetaDataModel resources(QStringLiteral("resources"));
     KisResourceMetaDataModel unknownTable(QStringLiteral("unknown"));
 
@@ -114,18 +121,6 @@ void KisResourceMetaDataModelContractTest::returnsInvalidValueForMissingOrEmptyD
     QVERIFY(!resources.metaDataValue(17, QStringLiteral("missing")).isValid());
     QVERIFY(!resources.metaDataValue(17, QStringLiteral("empty")).isValid());
     QVERIFY(!unknownTable.metaDataValue(17, QStringLiteral("answer")).isValid());
-}
-
-void KisResourceMetaDataModelContractTest::releasesPreparedQueryBeforeSchemaReplacement()
-{
-    {
-        KisResourceMetaDataModel resources(QStringLiteral("resources"));
-        QCOMPARE(resources.metaDataValue(17, QStringLiteral("answer")), QVariant(42));
-    }
-
-    QSqlQuery query;
-    QVERIFY(query.exec(QStringLiteral("DROP TABLE metadata")));
-    QVERIFY(createMetadataTable());
 }
 
 void KisResourceMetaDataModelContractTest::cleanupTestCase()
