@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 10:49 JST
+- 更新日時: 2026-09-20 10:59 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -47,7 +47,8 @@
 - 完了: `KisPaintOpFactorySchemaContractTest.cpp`を削除した。`AUTO`、`ALWAYS`、`NEVER`の列挙値は、ファクトリー内部の未使用状態に初期化されるだけで、設定、プリセット、XML、プラグイン、スクリプト、外部識別子には使われていない。paint-op IDはプリセットの`paintop`プロパティとして保存され、プラグイン登録、ブラシ選択、描画、ライブプレビューが解決するが、専用試験はその利用結果を検証していなかった。根拠のない互換性試験や重複した代替試験を追加せず、専用CTestと広いinclude・compile definitionを削除した。
 - 完了: `KisPlaybackEngineSchemaContractTest.cpp`を`KisPlaybackEngineContractTest.cpp`へ置き換えた。再生統計の初期値とコピーは、タイムラインdockerが表示する値型の実装詳細であり、設定、保存形式、XML、プラグイン、スクリプト、外部識別子の互換性根拠はない。アニメーションdockerの再生制御モデルは、フレームを落とす設定の値と変更signalへ接続する。実際のQt再生エンジンに対し、切替後の読取値とsignal引数が一致し、同値の再設定では通知しないことを検証する。
 - 完了: `KisReferenceImagesDecorationSchemaContractTest.cpp`を削除した。専用試験は参照画像を操作せず、ガイド装飾の内部登録名`guides-decoration`だけを固定していた。この名前はガイドマネージャー内の生成・検索で使われ、設定、保存形式、XML、プラグイン、スクリプト、外部識別子には使われていない。参照画像は作成操作後に参照画像レイヤーへ追加され、専用ツールへ切り替わり、失敗時には入力元を示す通知を表示する。この利用結果は既存の`KisNodeManagerReferenceImageContractTest`が検証する。
-- 次の作業: 残存Schema試験を利用場面から監査する。次の`KisDlgPreferencesEnumContractTest.cpp`では、設定保存、UI表示、プラグイン、スクリプト、外部識別子で観測できる契約を確認する。R2-G19cの高速検査と対象CTestを再実行する。内部値型と初期化だけの固定は、保存形式や外部連携の根拠がある場合だけ保持する。
+- 完了: `KisDlgPreferencesEnumContractTest.cpp`を削除した。色空間用のボタングループID、設定ページと各タブの整数値は、設定、保存形式、XML、プラグイン、スクリプト、外部識別子へ渡らない。設定ダイアログの再表示位置は`KisDlgPreferences/CurrentPage`の文字列として保存される。選択アクションパネルは一時的なページ要求で一般設定のツールタブを開くため、実際の`KisMainWindow`を使う`kis_view_signals_test`へ統合し、設定アクション後に表示されるページとタブを検証する。専用CTest、広い依存定義、生成UIヘッダーの専用登録を削除した。統合先試験は変換マスクを生成する補助コードが使う完全型を直接取り込む。
+- 次の作業: 残存Schema試験を利用場面から監査する。次の`KisActionEnumContractTest.cpp`では、アクション有効条件のビット値について設定、保存形式、XML、プラグイン、スクリプト、外部識別子の根拠と、実際の有効状態遷移を確認する。R2-G19cの高速検査と対象CTestを再実行する。内部値型と初期化だけの固定は、保存形式や外部連携の根拠がある場合だけ保持する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と

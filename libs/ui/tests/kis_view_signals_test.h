@@ -27,6 +27,7 @@ private Q_SLOTS:
     void testCurrentBrushPresetChanged();
     void testForegroundColorChanged();
     void testBackgroundColorChanged();
+    void testConfigureActionOpensToolsPreferences();
 
 private:
     KisDocument *m_document = nullptr;
