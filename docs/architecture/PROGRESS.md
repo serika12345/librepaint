@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 10:30 JST
+- 更新日時: 2026-09-20 10:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -43,7 +43,8 @@
 - 完了: `KisAnimUtilsSchemaContractTest.cpp`を削除した。試験が固定していた`FrameItem`の初期値、比較、ハッシュ、関数の宣言だけは、タイムラインdocker内部の移動要求を表す実装詳細であり、保存形式、設定、プラグイン、スクリプト、外部識別子の根拠はない。既存の`kis_animation_utils_test`は、同一レイヤーの循環移動、レイヤーをまたぐ移動、フレーム入替後の各時刻の画素とundo後の復元を検証する。
 - 完了: `KisAnimTimelineFramesModelSchemaContractTest.cpp`を削除した。試験が固定していたタイムライン選択値型の等値・ハッシュと、メニュー項目の名前・ダミー保持は、docker内部の一時データであり、保存形式、設定、プラグイン、スクリプト、外部識別子の根拠はない。タイムラインの固定状態はKRAの`intimeline`属性として既存の`kis_kra_saver_test`が保存往復を検証する。`timeline_model_test`は、既存レイヤーを選ぶとタイムラインに追加され、アクティブ化され、候補メニューから除かれる結果を検証する。この試験で、非同期のダミー更新前にアクティブ行を設定して別レイヤーを選択したままにする不具合を発見し、行への反映後に選択するよう修正した。共有の空ノード試験補助は、使用する`KisPaintDevice`の完全型を直接取り込む。
 - 完了: `KXMLGUIClientSchemaContractTest.cpp`を削除した。試験が固定していた状態反転列挙子の整数値と状態変更リストの初期化・コピーは、XMLGUI内部で一時的に使う実装詳細である。XMLGUIの状態要素、状態変更の製品側呼出し、状態反転値を使う保存形式、設定、プラグイン、スクリプト、外部識別子は確認されなかった。XMLGUIの実際のアクションIDはメニュー定義、入力、拡張機能で別途利用されるが、この試験の対象ではないため、根拠のない互換性試験や代替試験を追加しない。
-- 次の作業: 残存Schema試験を利用場面から監査する。次の`KisCurveOptionSchemaContractTest.cpp`では、ブラシ設定、プリセット保存、描画結果、プラグインで観測できる契約を確認する。R2-G19cの高速検査と対象CTestを再実行する。内部値型と初期化だけの固定は、保存形式や外部連携の根拠がある場合だけ保持する。
+- 完了: `KisCurveOptionSchemaContractTest.cpp`を削除した。`ValueComponents`の初期値と曲線ウィジェットのフラグ値は、曲線計算・画面構成だけが使う内部表現であり、ブラシプリセット、設定、XML、プラグイン、スクリプト、外部識別子に使われていない。既存の`KisCurveOptionDataTest`、`KisKritaSensorPackContractTest`、`KisCurveOptionModelTest`が、プリセットの曲線・センサー保存と復元、画面の有効状態・強度範囲・曲線選択を検証する。対象の構築では、ブラシ実行・設定画面ライブラリーが完全型と`KisMpl`を推移的インクルードへ依存し、実行時オブジェクトが共有ライブラリーへ取り込まれない不具合を検出した。使用する型・ユーティリティを直接取り込み、実行時の下位オブジェクトを最終ライブラリーにも組み込むよう修正した。
+- 次の作業: 残存Schema試験を利用場面から監査する。次の`KisPaintOpFactorySchemaContractTest.cpp`では、paint-op生成、プリセット保存、プラグイン登録、外部識別子で観測できる契約を確認する。R2-G19cの高速検査と対象CTestを再実行する。内部値型と初期化だけの固定は、保存形式や外部連携の根拠がある場合だけ保持する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と

@@ -9,6 +9,7 @@
 #include <KisCurveOption.h>
 
 class KoColorTransformation;
+class KisPropertiesConfiguration;
 struct KisHSVOptionData;
 
 

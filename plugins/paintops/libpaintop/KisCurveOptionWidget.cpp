@@ -15,6 +15,7 @@
 #include <kis_signals_blocker.h>
 #include <KisCurveOptionModel.h>
 #include <KisWidgetConnectionUtils.h>
+#include <KisMpl.h>
 
 #include <kis_algebra_2d.h>
 

@@ -8,6 +8,7 @@
 
 #include <KisCurveOption.h>
 
+class KisPropertiesConfiguration;
 struct KisMirrorOptionData;
 struct MirrorProperties;
 

@@ -123,6 +123,23 @@ set(kritapaintopruntime_LIB_SRCS
     sensors/KisDynamicSensors.cpp
 )
 
+set(kritapaintopruntime_OBJECTS
+    $<TARGET_OBJECTS:kritapaintopairbrushoptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopcolorsourceoptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopcurveoptiondatacommonobjects>
+    $<TARGET_OBJECTS:kritapaintopcurveoptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopmirroroptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopsharpnessoptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopscatteroptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopspacingoptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopsizeoptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopkritasensorpackobjects>
+    $<TARGET_OBJECTS:kritapaintoppaintingmodeoptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopprecisionoptionobjects>
+    $<TARGET_OBJECTS:kritapaintopsensorpackinterfaceobjects>
+    $<TARGET_OBJECTS:kritapaintoptexturelodobjects>
+)
+
 list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     ${kritapaintopruntime_LIB_SRCS}
     KisAirbrushOptionData.cpp
@@ -891,20 +908,7 @@ set_target_properties(kritapaintopdynamicsensorfactoryobjects PROPERTIES
 
 kis_add_library(kritapaintopruntime OBJECT
     ${kritapaintopruntime_LIB_SRCS}
-    $<TARGET_OBJECTS:kritapaintopairbrushoptiondataobjects>
-    $<TARGET_OBJECTS:kritapaintopcolorsourceoptiondataobjects>
-    $<TARGET_OBJECTS:kritapaintopcurveoptiondatacommonobjects>
-    $<TARGET_OBJECTS:kritapaintopcurveoptiondataobjects>
-    $<TARGET_OBJECTS:kritapaintopmirroroptiondataobjects>
-    $<TARGET_OBJECTS:kritapaintopsharpnessoptiondataobjects>
-    $<TARGET_OBJECTS:kritapaintopscatteroptiondataobjects>
-    $<TARGET_OBJECTS:kritapaintopspacingoptiondataobjects>
-    $<TARGET_OBJECTS:kritapaintopsizeoptiondataobjects>
-    $<TARGET_OBJECTS:kritapaintopkritasensorpackobjects>
-    $<TARGET_OBJECTS:kritapaintoppaintingmodeoptiondataobjects>
-    $<TARGET_OBJECTS:kritapaintopprecisionoptionobjects>
-    $<TARGET_OBJECTS:kritapaintopsensorpackinterfaceobjects>
-    $<TARGET_OBJECTS:kritapaintoptexturelodobjects>
+    ${kritapaintopruntime_OBJECTS}
 )
 target_compile_definitions(kritapaintopruntime PRIVATE kritalibpaintop_EXPORTS)
 target_include_directories(kritapaintopruntime INTERFACE
@@ -930,6 +934,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopdynamicsensorfactoryobjects>
     $<TARGET_OBJECTS:kritapaintopfilteroptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopruntime>
+    ${kritapaintopruntime_OBJECTS}
     $<TARGET_OBJECTS:kritapaintopcoloroptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopcurveoptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopcurvecontrolinterfaceobjects>
