@@ -64,12 +64,6 @@ kis_add_test(
 target_include_directories(KisDirtyStateSaverTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 kis_add_test(
-    KoCanvasResourceIdsContractTest.cpp
-    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoCanvasResourceIdsContractTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
-
-kis_add_test(
     KisResourceTypesContractTest.cpp
     LINK_LIBRARIES
         kritaresourcestypesobjects

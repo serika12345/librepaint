@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 12:33 JST
+- 更新日時: 2026-09-20 12:45 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -63,7 +63,8 @@
 - 完了: `KisMetaDataMergeStrategyContractTest.cpp`を、レイヤー統合の実ストア結果へ置き換えた。Layers dockerが選ぶ削除、先頭優先、一致のみ、Smartの各戦略は、メタデータを残さない、下側レイヤーを優先する、同値の項目だけを残す、重みの高い値・加重レーティング・作成者一覧を統合する結果を利用者へ示す。偽戦略のID・説明文・ポインター・呼出し回数・破棄の検査を削除し、製品ライブラリーへ直接リンクした。`OnlyIdenticalMergeStrategy`が各ソースの値ではなく最初の値だけを比較して競合値を残していた不具合を修正した。
 - 完了: `KisAsynchronousStrokeUpdateHelperContractTest.cpp`を、移動・フリーハンドの定期更新と終了時の強制更新、変形ツールの初期化前終了時の強制更新、取消後に更新を停止する状態遷移へ整理した。更新ジョブを受けるストロークIDと強制更新の結果を実`KisStroke`と更新窓口で検証し、ジョブの逐次性・排他性、複製、QObject破棄、未使用のカスタム工場、私有スロット呼出しを固定する検証を削除した。試験はテスト専用オブジェクトではなく`kritapainting`へ直接リンクする。
 - 完了: `KisResourceStorageTypeCompatibilityTest.cpp`を、`StorageType`列挙子の整数値と変換関数を直接固定する試験から、実際の`resourcecache.sqlite`の`storage_types`行を読む互換性試験へ置き換えた。`storages.storage_type_id`は同表の外部キーとして保存され、起動時の一時リソース削除とストレージ一覧は保存済みIDと非翻訳名を使う。隔離したキャッシュを初期化し、既存キャッシュと同じ7個のID・名称の組をSQLite結果として検証する。試験は`kritaresources`、SQL、テスト実行環境、翻訳ライブラリーへ直接リンクし、ヘッダーだけを検査する依存を除去した。
-- 次の作業: `KoCanvasResourceIdsContractTest.cpp`について、キャンバスリソースIDが保存形式、プラグイン、スクリプト、外部連携で安定識別子として使われる根拠を確認し、利用結果または根拠のある互換性へ整理する。
+- 完了: `KoCanvasResourceIdsContractTest.cpp`を削除した。キャンバスリソースのIDはツール、docker、描画処理が同一プロセス内で記号名として読取・変更通知に使う鍵であり、保存形式、設定、XML、プラグイン記述子、スクリプト、外部連携で数値を使う根拠はない。`TestResourceManager`が色、単位、派生リソースの読取と変更通知を実際の`KoCanvasResourceProvider`で検証するため、整数表だけを固定する専用CTestとCMake定義を維持しない。
+- 次の作業: `KisResourceTypesContractTest.cpp`について、リソース種別の文字列が保存形式、プラグイン、スクリプト、外部連携で安定識別子として使われる根拠を確認し、利用結果または根拠のある互換性へ整理する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
