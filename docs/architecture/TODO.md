@@ -1073,6 +1073,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] `kritapaintopkritasensorpackobjects`の公開・実装利用要件を分離し、不要なImath、翻訳、Qt Gui、広い輸出定義と取込みディレクトリーを除去する。
 - [x] 対象構築、`kritalibpaintop`、既存の`KisKritaSensorPackCompatibilityTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
 
+### R2-G19o 曲線オプション共通データ依存の直接化
+
+目的は、曲線オプション共通データの公開値型と設定委譲実装が、標準関数・ベクター、ID、Qt値型、共有データ、曲線既定値を推移的取込みから得る状態を解消し、センサーパックへの入出力と値修正コールバックの契約を維持することである。
+
+範囲は`plugins/paintops/libpaintop/KisCurveOptionDataCommon.{h,cpp}`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurveoptiondatacommonobjects`、集約構築で露出した`kritapaintopkritasensorpackobjects`のprivate色素取込みディレクトリー、`kritalibpaintop`の画像ライブラリー直接リンクに固定する。既存テストソース、公開API、設定キー、曲線値、センサー順序、既存16種のXML識別子互換性を維持する。
+
+- [x] 公開ヘッダーと実装を、標準関数・ベクター、ID、共有データ、Qt値型、設定、センサーパックインターフェース、曲線既定値の所有ヘッダーへ直接接続し、設定への参照を前方宣言に縮める。
+- [x] `kritapaintopcurveoptiondatacommonobjects`の利用要件を実使用に一致させ、`kritalibpaintop`が設定実装を所有する`kritaimage`を直接リンクする。センサーパックが読む色素ヘッダーは同対象のprivate取込みディレクトリーへ置く。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisCurveOptionDataTest`と`KisKritaSensorPackCompatibilityTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない

@@ -5,8 +5,14 @@
  */
 #include "KisCurveOptionDataCommon.h"
 
+#include <vector>
+
+#include <KoID.h>
 #include <kis_properties_configuration.h>
 #include "KisSensorPackInterface.h"
+
+#include <QString>
+#include <QtCore/qtypes.h>
 
 KisCurveOptionDataCommon::KisCurveOptionDataCommon(const QString &_prefix, const KoID &_id, bool _isCheckable, bool _isChecked, qreal _minValue, qreal _maxValue, KisSensorPackInterface *sensorInterface)
     : id(_id),
@@ -69,4 +75,3 @@ void KisCurveOptionDataCommon::writePrefixed(KisPropertiesConfiguration *setting
 {
     sensorData->write(*this, setting);
 }
-

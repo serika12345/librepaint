@@ -6,15 +6,23 @@
 #ifndef KISCURVEOPTIONDATACOMMON_H
 #define KISCURVEOPTIONDATACOMMON_H
 
+#include <functional>
+#include <vector>
+
 #include <KoID.h>
 #include <boost/operators.hpp>
 
-#include "kis_assert.h"
+#include <QSharedData>
+#include <QString>
+#include <QtCore/qtypes.h>
+
 #include "kis_cubic_curve.h"
 #include "kritapaintop_export.h"
 
 #include <KisSensorPackInterface.h>
 
+class KisPropertiesConfiguration;
+struct KisSensorData;
 
 struct PAINTOP_EXPORT KisCurveOptionDataCommon : boost::equality_comparable<KisCurveOptionDataCommon>
 {

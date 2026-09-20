@@ -408,32 +408,29 @@ set_target_properties(kritapaintopcurveoptiondataobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 target_compile_definitions(kritapaintopcurveoptiondatacommonobjects PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
 )
 target_include_directories(kritapaintopcurveoptiondatacommonobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
-        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
-        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_link_libraries(kritapaintopcurveoptiondatacommonobjects
     PUBLIC
         Boost::boost
         Eigen3::Eigen
         Imath::ImathConfig
-        KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
         kritaglobalidobjects
         kritapaintopsensorpackinterfaceobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Gui
 )
 set_target_properties(kritapaintopcurveoptiondatacommonobjects PROPERTIES
     AUTOMOC OFF
@@ -838,6 +835,8 @@ target_include_directories(kritapaintopkritasensorpackobjects
     PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
 )
 target_link_libraries(kritapaintopkritasensorpackobjects
     PUBLIC
@@ -931,7 +930,7 @@ kis_add_library(kritalibpaintop SHARED
 )
 generate_export_header(kritalibpaintop BASE_NAME kritapaintop EXPORT_MACRO_NAME PAINTOP_EXPORT)
 
-target_link_libraries(kritalibpaintop kritaapplicationui kritatoolsui kritalibbrush kritapainting kritawidgets kritawidgetutils)
+target_link_libraries(kritalibpaintop kritaapplicationui kritatoolsui kritalibbrush kritapainting kritaimage kritawidgets kritawidgetutils)
 target_link_libraries(kritalibpaintop LINK_INTERFACE_LIBRARIES kritaapplicationui kritatoolsui kritalibbrush kritapainting)
 
 set_target_properties(kritalibpaintop PROPERTIES
