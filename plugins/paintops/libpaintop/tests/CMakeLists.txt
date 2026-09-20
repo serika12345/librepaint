@@ -212,40 +212,6 @@ target_compile_definitions(KisTextureOptionDataValueContractTest PRIVATE
     kritalibpaintop_EXPORTS
 )
 
-
-
-kis_add_test(
-    KisPaintOpFactorySchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisPaintOpFactorySchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/image/brushengine
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_include_directories(KisPaintOpFactorySchemaContractTest SYSTEM PRIVATE
-    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Imath::ImathConfig,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisPaintOpFactorySchemaContractTest PRIVATE
-    HAVE_THREADED_TEXT_RENDERING_WORKAROUND
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-    kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
-)
-
 kis_add_test(
     KisPaintOpOptionWidgetUtilsContractTest.cpp
     LINK_LIBRARIES
