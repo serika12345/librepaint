@@ -185,25 +185,10 @@ kis_add_test(
 
 
 
-ki18n_wrap_ui(KisDisplayConfigSchemaContractTest
-    ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgcolorspaceselectoradvanced.ui
-    ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgGamutMaskToolbar.ui
-    ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgimportimagesequence.ui
-    ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgsegmentgradienteditor.ui
-    ${CMAKE_CURRENT_SOURCE_DIR}/../forms/wdgnewimage.ui
-    ${CMAKE_SOURCE_DIR}/libs/application/ui/workspace/wdgsplash.ui
-    ${CMAKE_CURRENT_SOURCE_DIR}/../forms/KisWelcomePage.ui
-    ${CMAKE_SOURCE_DIR}/libs/impex/animation/wdg_animationrenderer.ui
-)
 
 
 
 
-
-
-ki18n_wrap_ui(KisDitherWidgetSchemaContractTest
-    ${CMAKE_CURRENT_SOURCE_DIR}/../widgets/KisDitherWidget.ui
-)
 
 
 

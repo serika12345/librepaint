@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 11:27 JST
+- 更新日時: 2026-09-20 11:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -53,7 +53,8 @@
 - 完了: `KoDialogEnumContractTest.cpp`を`KoDialogContractTest.cpp`へ置き換えた。`ButtonCode`、`ButtonPopupMode`、見出しフラグの数値は保存形式、XML、プラグイン、スクリプト、外部識別子で使われていない。インポート、書出し、設定、復旧の各ダイアログは記号名のボタンとsignalを使い、利用者はボタンの表示状態、選択後のsignalと受理・取消結果、詳細領域の表示を観測する。実クリックでこれらを検証し、数値、レイアウトヒント、内部スロット呼出し、遅延破棄の固定を削除した。直接オブジェクト対象のリンクには、必要なヘルプ実装を加えた。
 - 完了: `KColorSchemeEnumContractTest.cpp`を`KColorSchemeThemeCompatibilityTest.cpp`へ置き換えた。色集合、背景・前景・装飾・濃淡の数値は製品側で記号名として使われ、保存形式、XML、プラグイン、スクリプト、外部識別子に渡らない。9個の同梱`.colors`テーマと利用者テーマは、`Colors:View`などのグループ名と色キーを保存しており、テーマ管理、各画面の配色、拡張機能のエラー表示が読込結果を利用する。全画面種別の背景・前景色、フィードバック・装飾色、境界の明暗を利用結果で検証する。Qt 6では`KF6::ColorScheme`が実装を提供するため、試験は製品ライブラリーと同じ実依存を明示する。
 - 完了: `SvgTextCursorEnumContractTest.cpp`を削除し、型組版の基線選択を既存の`SvgTextCursorTest`へ統合した。カーソル移動と型組版ハンドルの整数値は保存形式、XML、プラグイン、スクリプト、外部識別子へ渡らない。既存試験は横書き、右横書き、縦書きの文字・語・行・段落移動の結果を検証している。Shiftで表意文字基線ハンドルを選ぶと、選択テキストの支配・配置基線プロパティが更新されることを追加で検証する。統合先の実装ライブラリー構築で、値として保持する`QPointF`と利用する画像、ノード、スナップガイドの完全型を推移的インクルードへ依存していたため、各所有者を直接取り込むよう修正した。
-- 次の作業: 残存するSchema・Enum試験を再検索し、利用場面と互換性根拠を監査する。R2-G19cの高速検査と対象CTestを再実行する。内部値型と初期化だけの固定は、保存形式や外部連携の根拠がある場合だけ保持する。
+- 完了: 削除済みの`KisDisplayConfigSchemaContractTest`と`KisDitherWidgetSchemaContractTest`の名前を使う、`libs/ui/tests/CMakeLists.txt`のUI生成定義を削除した。同じUIは`libs/ui`、`libs/application`、`libs/impex`の製品側生成定義が各利用者へ提供する。テスト専用の重複生成は利用者向け契約を持たないため、代替試験は追加しない。
+- 次の作業: 残存するSchema・Enum試験と、名称に依存しない内部値型・初期化の固定を再検索し、利用場面と互換性根拠を監査する。R2-G19cの高速検査と対象CTestを再実行する。保存形式や外部連携の根拠がある場合だけ互換性試験を維持する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
@@ -61,6 +62,7 @@
 - 検証: macOSで`KoDialogContractTest`の構築と`libs-widgets-KoDialogContractTest`のCTestが成功した。
 - 検証: macOSで`KColorSchemeThemeCompatibilityTest`の構築と`libs-widgetutils-KColorSchemeThemeCompatibilityTest`のCTestが成功した。
 - 検証: macOSで`SvgTextCursorTest`の構築と`plugins-tools-svgtexttool-SvgTextCursorTest`のCTestが成功した。
+- 検証: macOSで`kritaapplicationui`の再構成を含む増分構築と`libs-ui-KisPlaybackEngineContractTest`のCTestが成功した。`check_test_contracts.py`と`verify-quick`も成功した。
 
 ## 現在の変更範囲
 
