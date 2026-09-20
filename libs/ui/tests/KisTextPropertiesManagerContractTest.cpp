@@ -11,6 +11,7 @@
 
 #include <QSignalSpy>
 #include <QTest>
+#include <QVariant>
 
 namespace
 {
@@ -18,6 +19,13 @@ KoSvgTextProperties propertiesWithWeight(int weight)
 {
     KoSvgTextProperties properties;
     properties.setProperty(KoSvgTextProperties::FontWeightId, weight);
+    return properties;
+}
+
+KoSvgTextProperties propertiesWithValue(KoSvgTextProperties::PropertyId id, const QVariant &value)
+{
+    KoSvgTextProperties properties;
+    properties.setProperty(id, value);
     return properties;
 }
 
@@ -31,12 +39,12 @@ public:
 
     QList<KoSvgTextProperties> getCharacterProperties() override
     {
-        return {};
+        return characterProperties;
     }
 
     KoSvgTextProperties getInheritedProperties() override
     {
-        return {};
+        return inheritedProperties;
     }
 
     void setPropertiesOnSelected(KoSvgTextProperties properties,
@@ -47,25 +55,45 @@ public:
         lastRemovedProperties = removeProperties;
     }
 
-    void setCharacterPropertiesOnSelected(KoSvgTextProperties,
-                                          QSet<KoSvgTextProperties::PropertyId>) override
+    void setCharacterPropertiesOnSelected(KoSvgTextProperties properties,
+                                          QSet<KoSvgTextProperties::PropertyId> removeProperties) override
     {
+        ++setCharacterPropertiesCallCount;
+        lastSetCharacterProperties = properties;
+        lastRemovedCharacterProperties = removeProperties;
     }
 
     bool spanSelection() override
     {
-        return false;
+        return selectsSpan;
     }
 
     bool characterPropertiesEnabled() override
     {
-        return false;
+        return characterSelectionEnabled;
+    }
+
+    void notifyTextSelectionChanged()
+    {
+        Q_EMIT textSelectionChanged();
+    }
+
+    void notifyCharacterSelectionChanged()
+    {
+        Q_EMIT textCharacterSelectionChanged();
     }
 
     QList<KoSvgTextProperties> selectedProperties;
+    QList<KoSvgTextProperties> characterProperties;
+    KoSvgTextProperties inheritedProperties;
     KoSvgTextProperties lastSetProperties;
+    KoSvgTextProperties lastSetCharacterProperties;
     QSet<KoSvgTextProperties::PropertyId> lastRemovedProperties;
+    QSet<KoSvgTextProperties::PropertyId> lastRemovedCharacterProperties;
     int setPropertiesCallCount {0};
+    int setCharacterPropertiesCallCount {0};
+    bool selectsSpan {false};
+    bool characterSelectionEnabled {false};
 };
 } // namespace
 
@@ -75,6 +103,7 @@ class KisTextPropertiesManagerContractTest : public QObject
 
 private Q_SLOTS:
     void mixedSelectionAndDockerEditsReachTheTextTool();
+    void characterSelectionAndDockerEditsReachTheTextTool();
 };
 
 void KisTextPropertiesManagerContractTest::mixedSelectionAndDockerEditsReachTheTextTool()
@@ -107,11 +136,20 @@ void KisTextPropertiesManagerContractTest::mixedSelectionAndDockerEditsReachTheT
     QVERIFY(dockerState.tristate.contains(KoSvgTextProperties::FontWeightId));
     QVERIFY(!dockerState.commonProperties.hasProperty(KoSvgTextProperties::FontWeightId));
 
+    textTool.selectedProperties = {propertiesWithWeight(500)};
+    textTool.notifyTextSelectionChanged();
+
+    QCOMPARE(canvasStateChanged.count(), 2);
+    QCOMPARE(textTool.setPropertiesCallCount, 0);
+    dockerState = canvasProvider.textPropertyData();
+    QVERIFY(!dockerState.tristate.contains(KoSvgTextProperties::FontWeightId));
+    QCOMPARE(dockerState.commonProperties.property(KoSvgTextProperties::FontWeightId).toInt(), 500);
+
     dockerState.tristate.remove(KoSvgTextProperties::FontWeightId);
     dockerState.commonProperties.setProperty(KoSvgTextProperties::FontWeightId, 700);
     canvasProvider.setTextPropertyData(dockerState);
 
-    QCOMPARE(canvasStateChanged.count(), 2);
+    QCOMPARE(canvasStateChanged.count(), 3);
     QCOMPARE(textTool.setPropertiesCallCount, 1);
     QCOMPARE(textTool.lastSetProperties.property(KoSvgTextProperties::FontWeightId).toInt(), 700);
     QVERIFY(textTool.lastRemovedProperties.isEmpty());
@@ -119,10 +157,66 @@ void KisTextPropertiesManagerContractTest::mixedSelectionAndDockerEditsReachTheT
     dockerState.commonProperties.removeProperty(KoSvgTextProperties::FontWeightId);
     canvasProvider.setTextPropertyData(dockerState);
 
-    QCOMPARE(canvasStateChanged.count(), 3);
+    QCOMPARE(canvasStateChanged.count(), 4);
     QCOMPARE(textTool.setPropertiesCallCount, 2);
     QVERIFY(!textTool.lastSetProperties.hasProperty(KoSvgTextProperties::FontWeightId));
     QVERIFY(textTool.lastRemovedProperties.contains(KoSvgTextProperties::FontWeightId));
+}
+
+void KisTextPropertiesManagerContractTest::characterSelectionAndDockerEditsReachTheTextTool()
+{
+    // Consumer: The text-properties docker and SVG text tool during character-range editing.
+    // Operation: Select characters, update the selection, choose a weight in the docker, then clear it.
+    // Observable result: The canvas preserves inherited and span state, then sends character formatting changes to the text tool.
+    // Failure impact: Character formatting controls show the wrong state or fail to apply and clear formatting in selected text.
+    KoCanvasResourceProvider resourceManager;
+    KisCanvasResourceProvider canvasProvider(nullptr);
+    canvasProvider.setResourceManager(&resourceManager);
+
+    TextPropertiesInterfaceProbe textTool;
+    textTool.characterSelectionEnabled = true;
+    textTool.selectsSpan = true;
+    textTool.characterProperties = {propertiesWithWeight(400)};
+    textTool.inheritedProperties = propertiesWithValue(KoSvgTextProperties::DirectionId, QStringLiteral("rtl"));
+
+    KisTextPropertiesManager manager;
+    manager.setCanvasResourceProvider(&canvasProvider);
+
+    QSignalSpy canvasStateChanged(&canvasProvider, &KisCanvasResourceProvider::sigCharacterPropertiesChanged);
+    manager.setTextPropertiesInterface(&textTool);
+
+    QCOMPARE(canvasStateChanged.count(), 1);
+    QCOMPARE(textTool.setCharacterPropertiesCallCount, 0);
+
+    KoSvgTextPropertyData dockerState = canvasProvider.characterTextPropertyData();
+    QVERIFY(dockerState.enabled);
+    QVERIFY(dockerState.spanSelection);
+    QCOMPARE(dockerState.commonProperties.property(KoSvgTextProperties::FontWeightId).toInt(), 400);
+    QCOMPARE(dockerState.inheritedProperties.property(KoSvgTextProperties::DirectionId).toString(), QStringLiteral("rtl"));
+
+    textTool.characterProperties = {propertiesWithWeight(500)};
+    textTool.notifyCharacterSelectionChanged();
+
+    QCOMPARE(canvasStateChanged.count(), 2);
+    QCOMPARE(textTool.setCharacterPropertiesCallCount, 0);
+    dockerState = canvasProvider.characterTextPropertyData();
+    QCOMPARE(dockerState.commonProperties.property(KoSvgTextProperties::FontWeightId).toInt(), 500);
+
+    dockerState.commonProperties.setProperty(KoSvgTextProperties::FontWeightId, 700);
+    canvasProvider.setCharacterPropertyData(dockerState);
+
+    QCOMPARE(canvasStateChanged.count(), 3);
+    QCOMPARE(textTool.setCharacterPropertiesCallCount, 1);
+    QCOMPARE(textTool.lastSetCharacterProperties.property(KoSvgTextProperties::FontWeightId).toInt(), 700);
+    QVERIFY(textTool.lastRemovedCharacterProperties.isEmpty());
+
+    dockerState.commonProperties.removeProperty(KoSvgTextProperties::FontWeightId);
+    canvasProvider.setCharacterPropertyData(dockerState);
+
+    QCOMPARE(canvasStateChanged.count(), 4);
+    QCOMPARE(textTool.setCharacterPropertiesCallCount, 2);
+    QVERIFY(!textTool.lastSetCharacterProperties.hasProperty(KoSvgTextProperties::FontWeightId));
+    QVERIFY(textTool.lastRemovedCharacterProperties.contains(KoSvgTextProperties::FontWeightId));
 }
 
 QTEST_MAIN(KisTextPropertiesManagerContractTest)
