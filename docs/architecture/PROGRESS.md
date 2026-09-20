@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 15:14 JST
+- 更新日時: 2026-09-20 15:23 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -111,7 +111,8 @@
 - 完了: `ResourceDebugCompatibilityTest.cpp`を追加し、Log Docker の保存済み`LogDocker/resources_30009`規則が資源管理のデバッグ出力を有効にすることを検証する。試験は実装が`krita.lib.resource`を返すため失敗し、同設定が適用する`krita.lib.resources`へ資源ライブラリーのカテゴリを修正した。既存のリソース種別互換性試験と新しい互換性試験は修正後に成功し、資源管理診断を有効にしても出力されない不具合を修復した。
 - 完了: `KisDebugContractTest.cpp`から、関数ポインターで全21カテゴリの名称を固定する検査を除いた。Log Docker の保存済み規則が使うグローバルカテゴリは`KisDebugCompatibilityTest.cpp`へ分離し、実際に各規則を適用してデバッグ出力が有効になる結果を検証する。保存規則外のDB移行、Android、ロケールカテゴリには互換性根拠がない。試験により、保存済み描画規則`krita.grender`とタブレット規則`krita.tablet`が実装の別名へ向き、診断を有効にできない不具合を発見した。各カテゴリを保存済み規則へ合わせ、既存のメソッド名整形・バックトレース試験も成功した。
 - 完了: `KoStoreDeviceContractTest.cpp`を削除し、偽の`KoStore`が固定していた自動オープン状態、借用所有権、失敗後の開放モード、内部`seek()`回数を廃止した。KRA、OpenRaster、参照画像の保存読込は、開いたアーカイブ項目を`KoStoreDevice`経由で追加の`open()`なしにXMLとして読み書きするため、実ZIPアーカイブでXML文書とレイヤー名が往復する`TestResourceStorageArchiveContract`へ統合した。Qt XMLへの試験依存は、製品の`QDomDocument`利用と同じ保存結果を検証するために限定した。
-- 次の作業: `KoUnitContractTest.cpp`について、単位変換、UI選択、文書入出力が観測する換算・記号・選択結果を確認し、列挙順、一覧件数、換算定数だけの固定を整理する。
+- 完了: `KoUnitContractTest.cpp`から、単位列挙と一覧オプションの整数値、型数、換算定数、代入と等値比較、デバッグ出力を固定する検査を除いた。整数値を読む保存形式、設定、プラグイン、スクリプト、外部識別子は見つからず、長さ・角度文字列の解析にも製品側の呼び出しはない。単位入力、文書単位メニュー、選択範囲操作、キャンバス・形状・スクリーントーンの変換、変形後のピクセル値を利用者が観測する結果として検証する。選択項目が対応する単位へ戻ること、ピクセル非表示時の選択結果、物理長の変換と表示値の再入力、変形後の寸法を維持する。
+- 次の作業: `KisZugContractTest.cpp`について、内部のzug変換器を列挙する検査と、実際のブラシ・表示設定・UIモデルが観測する状態更新を分離し、利用者向けの結果を守る既存試験へ統合できるか確認する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
