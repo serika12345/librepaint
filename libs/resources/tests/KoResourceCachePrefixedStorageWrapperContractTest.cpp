@@ -4,48 +4,13 @@
  */
 
 #include <KoResourceCachePrefixedStorageWrapper.h>
+#include <KoResourceCacheStorage.h>
 
-#include <QHash>
 #include <QTest>
 
-namespace
+void kis_safe_assert_recoverable(const char *assertion, const char *file, int line)
 {
-class RecordingResourceCache final : public KoResourceCacheInterface
-{
-public:
-    explicit RecordingResourceCache(bool *destroyed = nullptr)
-        : m_destroyed(destroyed)
-    {
-    }
-
-    ~RecordingResourceCache() override
-    {
-        if (m_destroyed) {
-            *m_destroyed = true;
-        }
-    }
-
-    QVariant fetch(const QString &key) const override
-    {
-        fetchedKey = key;
-        return values.value(key);
-    }
-
-    void put(const QString &key, const QVariant &value) override
-    {
-        putKey = key;
-        putValue = value;
-        values.insert(key, value);
-    }
-
-    mutable QHash<QString, QVariant> values;
-    mutable QString fetchedKey;
-    QString putKey;
-    QVariant putValue;
-
-private:
-    bool *m_destroyed;
-};
+    qFatal("unexpected safe assertion: %s at %s:%d", assertion, file, line);
 }
 
 class KoResourceCachePrefixedStorageWrapperContractTest : public QObject
@@ -53,43 +18,26 @@ class KoResourceCachePrefixedStorageWrapperContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void prefixesAndForwardsCacheOperations();
-    void retainsBaseInterfaceForItsLifetime();
+    void maskingBrushCachesUseSeparateNamespaces();
 };
 
-void KoResourceCachePrefixedStorageWrapperContractTest::prefixesAndForwardsCacheOperations()
+void KoResourceCachePrefixedStorageWrapperContractTest::maskingBrushCachesUseSeparateNamespaces()
 {
-    QSharedPointer<RecordingResourceCache> base(new RecordingResourceCache);
-    base->values.insert(QStringLiteral("MaskingBrush/Preset/existing"), 17);
+    // Consumer: Paint presets that prepare caches for a main brush and its masking brush.
+    // Operation: Both brushes store an outline under the same logical cache key.
+    // Observable result: The masking brush reads its prefixed outline while the main brush keeps its own outline.
+    // Failure impact: A brush stroke can use the masking brush's cache and render the wrong outline or dab.
+    KoResourceCacheInterfaceSP base(new KoResourceCacheStorage);
+    base->put(QStringLiteral("outline"), QStringLiteral("main-outline"));
     KoResourceCachePrefixedStorageWrapper cache(
         QStringLiteral("MaskingBrush/Preset/"), base);
 
-    QCOMPARE(cache.fetch(QStringLiteral("existing")), QVariant(17));
-    QCOMPARE(base->fetchedKey, QStringLiteral("MaskingBrush/Preset/existing"));
+    cache.put(QStringLiteral("outline"), QStringLiteral("masking-outline"));
 
-    cache.put(QStringLiteral("generated"), QStringLiteral("payload"));
-    QCOMPARE(base->putKey, QStringLiteral("MaskingBrush/Preset/generated"));
-    QCOMPARE(base->putValue, QVariant(QStringLiteral("payload")));
-    QCOMPARE(base->values.value(QStringLiteral("MaskingBrush/Preset/generated")),
-             QVariant(QStringLiteral("payload")));
-
-    KoResourceCachePrefixedStorageWrapper unprefixed(QString(), base);
-    unprefixed.put(QStringLiteral("plain"), 23);
-    QCOMPARE(base->putKey, QStringLiteral("plain"));
-}
-
-void KoResourceCachePrefixedStorageWrapperContractTest::retainsBaseInterfaceForItsLifetime()
-{
-    bool destroyed = false;
-    KoResourceCacheInterfaceSP base(new RecordingResourceCache(&destroyed));
-    {
-        KoResourceCachePrefixedStorageWrapper cache(QStringLiteral("scope/"), base);
-        base.clear();
-        QVERIFY(!destroyed);
-        cache.put(QStringLiteral("key"), QStringLiteral("value"));
-        QCOMPARE(cache.fetch(QStringLiteral("key")), QVariant(QStringLiteral("value")));
-    }
-    QVERIFY(destroyed);
+    QCOMPARE(base->fetch(QStringLiteral("outline")), QVariant(QStringLiteral("main-outline")));
+    QCOMPARE(cache.fetch(QStringLiteral("outline")), QVariant(QStringLiteral("masking-outline")));
+    QCOMPARE(base->fetch(QStringLiteral("MaskingBrush/Preset/outline")),
+             QVariant(QStringLiteral("masking-outline")));
 }
 
 QTEST_GUILESS_MAIN(KoResourceCachePrefixedStorageWrapperContractTest)

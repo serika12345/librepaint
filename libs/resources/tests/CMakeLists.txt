@@ -182,6 +182,7 @@ kis_add_test(
     LINK_LIBRARIES
         kritaresourcecacheprefixedwrapperobjects
         kritaresourcecacheinterfaceobjects
+        kritaresourcecachestorageobjects
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_include_directories(KoResourceCachePrefixedStorageWrapperContractTest PRIVATE
