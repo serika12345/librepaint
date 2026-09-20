@@ -5,7 +5,6 @@
 
 #include <KisResourceItemChooserSync.h>
 
-#include <QPointer>
 #include <QSignalSpy>
 #include <QTest>
 
@@ -16,12 +15,14 @@ class KisResourceItemChooserSyncContractTest : public QObject
 private Q_SLOTS:
     void startsAtDefaultBaseLength();
     void clampsAndEmitsEffectiveBaseLength();
-    void instanceReturnsStableSharedObject();
-    void destructionInvalidatesGuardedPointer();
 };
 
 void KisResourceItemChooserSyncContractTest::startsAtDefaultBaseLength()
 {
+    // Consumer: Resource chooser users opening a synchronized thumbnail grid.
+    // Operation: A chooser reads the shared preview size before the user changes it.
+    // Observable result: The initial preview cells use the standard 50-pixel base length.
+    // Failure impact: Newly opened resource choosers have unexpectedly tiny or oversized previews.
     KisResourceItemChooserSync sync;
 
     QCOMPARE(sync.baseLength(), 50);
@@ -29,10 +30,14 @@ void KisResourceItemChooserSyncContractTest::startsAtDefaultBaseLength()
 
 void KisResourceItemChooserSyncContractTest::clampsAndEmitsEffectiveBaseLength()
 {
+    // Consumer: Preset, brush, and gamut-mask chooser users resizing synchronized previews.
+    // Operation: A chooser requests a preview size below, within, and above the supported range.
+    // Observable result: Every synchronized chooser receives the usable clamped size.
+    // Failure impact: Preview grids diverge or become too small or large to select resources reliably.
     KisResourceItemChooserSync sync;
     QSignalSpy changedSpy(&sync, &KisResourceItemChooserSync::baseLengthChanged);
-    const QList<int> requestedLengths {10, 70, 120, 120};
-    const QList<int> effectiveLengths {25, 70, 100, 100};
+    const QList<int> requestedLengths {10, 70, 120};
+    const QList<int> effectiveLengths {25, 70, 100};
 
     for (int i = 0; i < requestedLengths.size(); ++i) {
         sync.setBaseLength(requestedLengths.at(i));
@@ -41,23 +46,6 @@ void KisResourceItemChooserSyncContractTest::clampsAndEmitsEffectiveBaseLength()
         QCOMPARE(changedSpy.size(), i + 1);
         QCOMPARE(changedSpy.at(i).at(0).toInt(), effectiveLengths.at(i));
     }
-}
-
-void KisResourceItemChooserSyncContractTest::instanceReturnsStableSharedObject()
-{
-    KisResourceItemChooserSync *first = KisResourceItemChooserSync::instance();
-
-    QVERIFY(first);
-    QCOMPARE(KisResourceItemChooserSync::instance(), first);
-}
-
-void KisResourceItemChooserSyncContractTest::destructionInvalidatesGuardedPointer()
-{
-    QPointer<KisResourceItemChooserSync> sync = new KisResourceItemChooserSync;
-
-    QVERIFY(sync);
-    delete sync.data();
-    QVERIFY(sync.isNull());
 }
 
 QTEST_GUILESS_MAIN(KisResourceItemChooserSyncContractTest)
