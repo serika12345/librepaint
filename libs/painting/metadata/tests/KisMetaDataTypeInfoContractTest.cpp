@@ -5,11 +5,18 @@
  */
 
 #include "kis_meta_data_entry.h"
+#include "kis_meta_data_parser.h"
 #include "kis_meta_data_schema.h"
 #include "kis_meta_data_schema_registry.h"
 #include "kis_meta_data_store.h"
+#include "kis_meta_data_type_info.h"
 #include "kis_meta_data_validator.h"
 #include "kis_meta_data_value.h"
+
+#include <QDate>
+#include <QDateTime>
+#include <QTime>
+#include <QVariant>
 
 #include <kistest.h>
 
@@ -34,6 +41,7 @@ private Q_SLOTS:
     void schemaValidationAcceptsTypedExifEntries();
     void schemaValidationReportsWrongTypesAndClosedChoiceValues();
     void schemaValidationRejectsLanguageEntriesWithoutLanguageQualifiers();
+    void schemaParsesXmpScalarTextForMetadataValidation();
 
 private:
     const KisMetaData::Schema *m_exifSchema {nullptr};
@@ -119,6 +127,47 @@ void KisMetaDataTypeInfoContractTest::schemaValidationRejectsLanguageEntriesWith
     QCOMPARE(validator.countInvalidEntries(), 1);
     QCOMPARE(validator.invalidEntries().value(m_exifSchema->generateQualifiedName(QStringLiteral("UserComment"))).type(),
              KisMetaData::Validator::Reason::INVALID_TYPE);
+}
+
+void KisMetaDataTypeInfoContractTest::schemaParsesXmpScalarTextForMetadataValidation()
+{
+    // Consumer: the XMP metadata importer.
+    // Operation: parse canonical EXIF integer, rational, and date-time text through their schema fields.
+    // Observable result: the parsed values retain their domain values and the metadata validator accepts them.
+    // Failure impact: imported XMP metadata is rejected or saved with a different dimension, exposure, or capture time.
+    const KisMetaData::TypeInfo *const pixelDimensionType = m_exifSchema->propertyType(QStringLiteral("PixelXDimension"));
+    const KisMetaData::TypeInfo *const fNumberType = m_exifSchema->propertyType(QStringLiteral("FNumber"));
+    const KisMetaData::TypeInfo *const captureTimeType = m_exifSchema->propertyType(QStringLiteral("DateTimeOriginal"));
+    QVERIFY(pixelDimensionType);
+    QVERIFY(fNumberType);
+    QVERIFY(captureTimeType);
+    QVERIFY(pixelDimensionType->parser());
+    QVERIFY(fNumberType->parser());
+    QVERIFY(captureTimeType->parser());
+
+    KisMetaData::Store store;
+    QVERIFY(store.addEntry(KisMetaData::Entry(
+        m_exifSchema,
+        QStringLiteral("PixelXDimension"),
+        pixelDimensionType->parser()->parse(QStringLiteral("1200")))));
+    QVERIFY(store.addEntry(KisMetaData::Entry(
+        m_exifSchema,
+        QStringLiteral("FNumber"),
+        fNumberType->parser()->parse(QStringLiteral("5/8")))));
+    QVERIFY(store.addEntry(KisMetaData::Entry(
+        m_exifSchema,
+        QStringLiteral("DateTimeOriginal"),
+        captureTimeType->parser()->parse(QStringLiteral("2026-08-30T03:00:00")))));
+
+    QCOMPARE(store.getValue(KisMetaData::Schema::EXIFSchemaUri, QStringLiteral("PixelXDimension")).asVariant(), QVariant(1200));
+    QCOMPARE(store.getValue(KisMetaData::Schema::EXIFSchemaUri, QStringLiteral("FNumber")).asRational(),
+             KisMetaData::Rational(5, 8));
+    QCOMPARE(store.getValue(KisMetaData::Schema::EXIFSchemaUri, QStringLiteral("DateTimeOriginal")).asVariant().toDateTime(),
+             QDateTime(QDate(2026, 8, 30), QTime(3, 0)));
+
+    const KisMetaData::Validator validator(&store);
+    QCOMPARE(validator.countValidEntries(), 3);
+    QCOMPARE(validator.countInvalidEntries(), 0);
 }
 
 KISTEST_MAIN(KisMetaDataTypeInfoContractTest)
