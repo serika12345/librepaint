@@ -22,6 +22,7 @@ private Q_SLOTS:
     void testResourceForIndex();
     void testIndexFromResource();
     void testSetInactiveByIndex();
+    void testStorageFilterShowsDisabledStorageResources();
     void testImportResourceFile();
     void testAddResource();
     void testAddTemporaryResource();

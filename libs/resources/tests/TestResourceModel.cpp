@@ -22,6 +22,7 @@
 #include <KisResourceCacheDb.h>
 #include <KisResourceLocator.h>
 #include <KisResourceModel.h>
+#include <KisStorageModel.h>
 
 #include <DummyResource.h>
 #include <ResourceTestHelper.h>
@@ -128,6 +129,10 @@ void TestResourceModel::testIndexFromResource()
 
 void TestResourceModel::testSetInactiveByIndex()
 {
+    // Consumer: The resource manager user toggling whether deleted resources are shown.
+    // Operation: The user deactivates a resource, then selects the all-resources or inactive-resources filter.
+    // Observable result: The deleted resource is hidden by default and becomes selectable through either requested filter.
+    // Failure impact: Users cannot find a deleted resource to inspect or restore it.
     KisResourceModel resourceModel(m_resourceType);
     int resourceCount = resourceModel.rowCount();
     KoResourceSP resource = resourceModel.resourceForIndex(resourceModel.index(0, 0));
@@ -143,6 +148,49 @@ void TestResourceModel::testSetInactiveByIndex()
         QVERIFY(resource2);
         QVERIFY(resourceModel.resourceForId(resource2->resourceId()));
     }
+
+    resourceModel.setResourceFilter(KisResourceModel::ShowAllResources);
+    QVERIFY(resourceModel.indexForResource(resource).isValid());
+    QVERIFY(resourceModel.resourceForId(resource->resourceId()));
+
+    resourceModel.setResourceFilter(KisResourceModel::ShowInactiveResources);
+    QCOMPARE(resourceModel.rowCount(), 1);
+    const KoResourceSP inactiveResource = resourceModel.resourceForIndex(resourceModel.index(0, 0));
+    QVERIFY(inactiveResource);
+    QCOMPARE(inactiveResource->resourceId(), resource->resourceId());
+}
+
+void TestResourceModel::testStorageFilterShowsDisabledStorageResources()
+{
+    // Consumer: Resource chooser users switching between enabled storages and all storages.
+    // Operation: The user disables a storage and then chooses to show resources from all storages.
+    // Observable result: Its resources are hidden from the default chooser and reappear when all storages are requested.
+    // Failure impact: Users cannot access resources from a disabled bundle in the resource manager.
+    KisResourceModel resourceModel(m_resourceType);
+    const KoResourceSP resource = resourceModel.resourceForIndex(resourceModel.index(0, 0));
+    QVERIFY(resource);
+
+    const int storageId = resourceModel.data(resourceModel.index(0, 0),
+                                             Qt::UserRole + KisAbstractResourceModel::StorageId).toInt();
+    KisStorageModel *storageModel = KisStorageModel::instance();
+    QModelIndex storageIndex;
+
+    for (int row = 0; row < storageModel->rowCount(); ++row) {
+        const QModelIndex index = storageModel->index(row, KisStorageModel::Id);
+        if (storageModel->data(index, Qt::UserRole + KisStorageModel::Id).toInt() == storageId) {
+            storageIndex = index;
+            break;
+        }
+    }
+
+    QVERIFY(storageIndex.isValid());
+    QVERIFY(storageModel->setData(storageIndex, false, Qt::CheckStateRole));
+    QVERIFY(!resourceModel.indexForResource(resource).isValid());
+
+    resourceModel.setStorageFilter(KisResourceModel::ShowAllStorages);
+    QVERIFY(resourceModel.indexForResource(resource).isValid());
+
+    QVERIFY(storageModel->setData(storageIndex, true, Qt::CheckStateRole));
 }
 
 void TestResourceModel::testImportResourceFile()
@@ -362,4 +410,3 @@ void TestResourceModel::cleanupTestCase()
 
 
 SIMPLE_TEST_MAIN(TestResourceModel)
-

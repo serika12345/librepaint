@@ -92,18 +92,17 @@ target_include_directories(KoResourceBundleManifestContractTest PRIVATE
 target_compile_definitions(KoResourceBundleManifestContractTest PRIVATE kritaresources_EXPORTS)
 
 kis_add_test(
-    KisResourceModelEnumContractTest.cpp
+    KisResourceStorageTypeCompatibilityTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test
         Qt${QT_MAJOR_VERSION}::Gui
         KF${KF_MAJOR}::I18n
-        Boost::boost
 )
-target_include_directories(KisResourceModelEnumContractTest PRIVATE
+target_include_directories(KisResourceStorageTypeCompatibilityTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
-target_compile_definitions(KisResourceModelEnumContractTest PRIVATE kritaresources_EXPORTS)
+target_compile_definitions(KisResourceStorageTypeCompatibilityTest PRIVATE kritaresources_EXPORTS)
 
 
 
