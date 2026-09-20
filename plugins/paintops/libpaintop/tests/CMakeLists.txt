@@ -123,6 +123,19 @@ target_compile_definitions(KisColorSourceOptionDataContractTest PRIVATE
     kritalibpaintop_EXPORTS
     kritapigment_EXPORTS
 )
+target_include_directories(KisColorSourceOptionDataContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+)
+target_link_libraries(KisColorSourceOptionDataContractTest
+    Eigen3::Eigen
+    Imath::ImathConfig
+    Qt${QT_MAJOR_VERSION}::Gui
+)
 
 kis_add_test(
     KisCompositeOpOptionDataContractTest.cpp

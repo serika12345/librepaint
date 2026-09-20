@@ -9,6 +9,10 @@
 #include <KoID.h>
 #include <kis_properties_configuration.h>
 
+#include <QGlobalStatic>
+#include <QMap>
+#include <QtCore/qcontainerfwd.h>
+
 namespace {
 
 struct ColorSourceTypeMapper {

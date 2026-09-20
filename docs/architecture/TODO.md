@@ -1103,6 +1103,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] `KisColorOptionDataContractTest`が直接読む画像設定の取込み・外部ライブラリー要件を同試験のCMake定義へ明示する。
 - [x] 対象構築、`kritalibpaintop`、既存の`KisColorOptionDataContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
 
+### R2-G19r 色ソース設定データ依存の直接化
+
+目的は、色ソース設定データの公開ID一覧と設定入出力実装が、ID、ベクター、マップ、Qtグローバル静的値、画像設定を推移的取込みから得る状態を解消し、6種の色ソース識別子と保存結果を維持することである。
+
+範囲は`plugins/paintops/libpaintop/KisColorSourceOptionData.{h,cpp}`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcolorsourceoptiondataobjects`、試験自身の直接構築要件を記録する`plugins/paintops/libpaintop/tests/CMakeLists.txt`に固定する。既存テストソース、公開API、識別子、設定キー、試験入力と期待値を維持する。
+
+- [x] 公開ヘッダーと実装をID、ベクター、マップ、グローバル静的値、設定、ローカライズの所有ヘッダーへ直接接続する。
+- [x] 製品・契約試験の公開・実装利用要件をCMakeへ分離して記録する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisColorSourceOptionDataContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない
