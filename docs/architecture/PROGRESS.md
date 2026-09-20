@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 09:48 JST
+- 更新日時: 2026-09-20 10:06 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -37,7 +37,8 @@
 - 完了: `KisKeyframeChannelSchemaContractTest.cpp`を削除した。スカラー曲線の利用者はアニメーションdockerと不透明度などのキーフレーム編集であり、既存の`kis_keyframing_test`が実チャンネルへの追加と制限変更後の再生値を検証している。KRA保存のチャンネル名は互換性対象だが、既存の`kis_kra_loader_test`が保存済みアニメーションの`content`チャンネルを復元する。専用試験が固定していた範囲値型の並びと未使用の抽象プローブは維持しない。
 - 完了: `KisNodeCommandsAdapterSchemaContractTest.cpp`を削除した。専用試験は、色ラベルを参照する内部キャッシュの比較用値型とリスト所有方式だけを固定しており、ノード編集アダプターの操作結果を検証していなかった。レイヤーdocker、フィルターダイアログ、拡張機能はアダプターでノード操作を実行し、既存の`kis_node_commands_adapter_test`が追加後の表示ツリーとundo、画像再束縛、選択マスク移動後の有効状態を検証している。色ラベルの統合結果はツール内部で一時利用され、保存形式、XML、スクリプト、外部識別子としての根拠は確認されなかった。
 - 完了: `KisPaintOpUtilsSchemaContractTest.cpp`を削除し、既存の`kis_paintop_test`へ利用結果を統合した。フリーハンド・液状化ツールは直前の異なるカーソル位置から輪郭方向を決め、ブラシ実装は自動間隔と最小ダブ判定でストローク密度を決める。試験はカーソル移動後に使う位置、異方・等方ブラシの実効間隔、不可視ダブの抑制を検証する。保存済みブラシプリセットとpaint-opプラグインが使うマスキングブラシのIDと設定キーは`KisPaintopSettingsIdsCompatibilityTest.cpp`へ明示的に分離し、既存プリセットを復元できることを守る。
-- 次の作業: 残存Schema試験を利用場面から監査する。次の`KoCompositeOpSchemaContractTest.cpp`では、合成操作の戻り値、描画結果、保存、プラグイン、スクリプトで観測できる契約を確認する。R2-G19cの高速検査と対象CTestを再実行する。内部値型と初期化だけの固定は、保存形式や外部連携の根拠がある場合だけ保持する。
+- 完了: `KoCompositeOpSchemaContractTest.cpp`を削除した。専用試験が固定していた`ParameterInfo`の生ポインター、既定値、コピー、平均不透明度のキャッシュは、合成処理中だけの内部バッファであり、保存形式や外部連携の根拠は確認されなかった。既存の`TestKoColorSpaceAbstract`がチャンネル制限を含む色空間をまたぐ合成後の画素を、`TestCompositeOpInversion`が各合成モードの描画結果を検証している。合成モードIDはKRAの`compositeop`属性とOpenRasterの`composite-op`属性へ保存されるため、`KoCompositeOpIdsCompatibilityTest.cpp`として明示的に維持する。
+- 次の作業: 残存Schema試験を利用場面から監査する。次の`KisResourceModelEnumContractTest.cpp`では、リソース一覧の役割・並べ替え・設定保存・プラグイン・スクリプトで観測できる契約を確認する。R2-G19cの高速検査と対象CTestを再実行する。内部値型と初期化だけの固定は、保存形式や外部連携の根拠がある場合だけ保持する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と

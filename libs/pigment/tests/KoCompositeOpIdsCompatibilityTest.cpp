@@ -14,7 +14,7 @@ namespace
 {
 } // namespace
 
-class KoCompositeOpIdsContractTest : public QObject
+class KoCompositeOpIdsCompatibilityTest : public QObject
 {
     Q_OBJECT
 
@@ -22,8 +22,13 @@ private Q_SLOTS:
     void compositeOperationIdsRemainStable();
 };
 
-void KoCompositeOpIdsContractTest::compositeOperationIdsRemainStable()
+// Compatibility requirement: Saved KRA and OpenRaster documents depend on composite-operation IDs.
+void KoCompositeOpIdsCompatibilityTest::compositeOperationIdsRemainStable()
 {
+    // Consumer: Users reopening documents whose layers store a composite-operation ID.
+    // Operation: Load a saved layer and resolve its stored blend mode.
+    // Observable result: The layer selects the same blend mode and produces its expected composition.
+    // Failure impact: Existing documents render with a different blend mode or fall back to Normal.
     QCOMPARE(COMPOSITE_OVER, QStringLiteral("normal"));
     QCOMPARE(COMPOSITE_ERASE, QStringLiteral("erase"));
     QCOMPARE(COMPOSITE_IN, QStringLiteral("in"));
@@ -174,6 +179,6 @@ void KoCompositeOpIdsContractTest::compositeOperationIdsRemainStable()
     QCOMPARE(COMPOSITE_LAMBERT_LIGHTING_GAMMA_2_2, QStringLiteral("lambert_lighting_gamma2.2"));
 }
 
-QTEST_GUILESS_MAIN(KoCompositeOpIdsContractTest)
+QTEST_GUILESS_MAIN(KoCompositeOpIdsCompatibilityTest)
 
-#include "KoCompositeOpIdsContractTest.moc"
+#include "KoCompositeOpIdsCompatibilityTest.moc"

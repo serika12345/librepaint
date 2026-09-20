@@ -261,42 +261,22 @@ target_include_directories(KoColorSpaceConstantsContractTest PRIVATE
 
 
 kis_add_test(
-    KoCompositeOpIdsContractTest.cpp
+    KoCompositeOpIdsCompatibilityTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test
         Boost::boost
 )
-target_include_directories(KoCompositeOpIdsContractTest PRIVATE
+target_include_directories(KoCompositeOpIdsCompatibilityTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
     $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
 )
-target_compile_definitions(KoCompositeOpIdsContractTest PRIVATE
+target_compile_definitions(KoCompositeOpIdsCompatibilityTest PRIVATE
     kritaglobal_EXPORTS
     kritapigment_EXPORTS
 )
-
-
-
-
-kis_add_test(
-    KoCompositeOpSchemaContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_sources(KoCompositeOpSchemaContractTest PRIVATE
-    $<TARGET_OBJECTS:kritapigmentcompositeparameterinfoobjects>
-)
-target_include_directories(KoCompositeOpSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KoCompositeOpSchemaContractTest PRIVATE kritapigment_EXPORTS)
-
 kis_add_test(
     KoCompositeOpFunctionsContractTest.cpp
     LINK_LIBRARIES
