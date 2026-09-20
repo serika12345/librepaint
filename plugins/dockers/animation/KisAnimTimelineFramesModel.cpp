@@ -13,6 +13,7 @@
 #include <QMimeData>
 #include <QPointer>
 #include <QPair>
+#include <QTimer>
 #include <KisResourceModel.h>
 
 #include "kis_layer.h"
@@ -849,9 +850,17 @@ bool KisAnimTimelineFramesModel::insertOtherLayer(int index, int dstRow)
 
     if (index < 0 || index >= list.size()) return false;
 
-    list[index].dummy->node()->setPinnedToTimeline(true);
-    dstRow = m_d->converter->rowForDummy(list[index].dummy);
-    setData(this->index(dstRow, 0), true, ActiveLayerRole);
+    QPointer<KisNodeDummy> dummy = list[index].dummy;
+    dummy->node()->setPinnedToTimeline(true);
+
+    QTimer::singleShot(0, this, [this, dummy] {
+        if (!dummy || !m_d->converter) return;
+
+        const int row = m_d->converter->rowForDummy(dummy);
+        if (row >= 0) {
+            setData(this->index(row, 0), true, ActiveLayerRole);
+        }
+    });
 
     return true;
 }

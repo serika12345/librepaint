@@ -24,7 +24,7 @@ private Q_SLOTS:
     void cleanup();
 
     void testConverter();
-    void testModel();
+    void testAddingExistingLayerPinsItAndMakesItActive();
     void testView();
     void testOnionSkins();
 

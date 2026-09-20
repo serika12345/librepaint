@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 10:16 JST
+- 更新日時: 2026-09-20 10:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -41,7 +41,8 @@
 - 完了: `KisResourceModelEnumContractTest.cpp`を整理した。リソース選択画面、リソース管理拡張、各dockerは列・役割・絞り込みを列挙子で参照し、値そのものを保存、XML、プラグイン、スクリプト、外部識別子へ渡していない。`TestResourceModel`は、無効化したリソースを全件・無効リソース絞り込みで再選択でき、無効化したストレージのリソースを全ストレージ絞り込みで再表示できることを検証する。`resourcecache.sqlite`の`storage_types`名と`storages.storage_type_id`は既存データの読込と一時リソース削除に使われるため、種別ID・非翻訳名だけを`KisResourceStorageTypeCompatibilityTest.cpp`へ明示的に分離した。
 - 完了: `KisTagModelSchemaContractTest.cpp`を整理した。タグ選択部品は、`SelectedTags`設定に保存されたURLで再起動後の選択を復元するため、`All`と`All untagged`の予約URLだけを`KisTagPseudoUrlCompatibilityTest.cpp`で維持する。擬似行ID、列番号、タグ・ストレージ絞り込み値の数値は保存形式、XML、プラグイン、スクリプト、外部識別子に使われていない。`TestTagModel`は、無効化したタグを全件・無効タグ絞り込みで再選択でき、無効化したストレージのタグを全ストレージ絞り込みで再表示できることを検証する。
 - 完了: `KisAnimUtilsSchemaContractTest.cpp`を削除した。試験が固定していた`FrameItem`の初期値、比較、ハッシュ、関数の宣言だけは、タイムラインdocker内部の移動要求を表す実装詳細であり、保存形式、設定、プラグイン、スクリプト、外部識別子の根拠はない。既存の`kis_animation_utils_test`は、同一レイヤーの循環移動、レイヤーをまたぐ移動、フレーム入替後の各時刻の画素とundo後の復元を検証する。
-- 次の作業: 残存Schema試験を利用場面から監査する。次の`KisAnimTimelineFramesModelSchemaContractTest.cpp`では、タイムラインdocker、保存形式、スクリプト、プラグインで観測できる契約を確認する。R2-G19cの高速検査と対象CTestを再実行する。内部値型と初期化だけの固定は、保存形式や外部連携の根拠がある場合だけ保持する。
+- 完了: `KisAnimTimelineFramesModelSchemaContractTest.cpp`を削除した。試験が固定していたタイムライン選択値型の等値・ハッシュと、メニュー項目の名前・ダミー保持は、docker内部の一時データであり、保存形式、設定、プラグイン、スクリプト、外部識別子の根拠はない。タイムラインの固定状態はKRAの`intimeline`属性として既存の`kis_kra_saver_test`が保存往復を検証する。`timeline_model_test`は、既存レイヤーを選ぶとタイムラインに追加され、アクティブ化され、候補メニューから除かれる結果を検証する。この試験で、非同期のダミー更新前にアクティブ行を設定して別レイヤーを選択したままにする不具合を発見し、行への反映後に選択するよう修正した。共有の空ノード試験補助は、使用する`KisPaintDevice`の完全型を直接取り込む。
+- 次の作業: 残存Schema試験を利用場面から監査する。次の`KXMLGUIClientSchemaContractTest.cpp`では、XMLGUIの保存形式、アクションID、プラグイン、スクリプトで観測できる契約を確認する。R2-G19cの高速検査と対象CTestを再実行する。内部値型と初期化だけの固定は、保存形式や外部連携の根拠がある場合だけ保持する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
