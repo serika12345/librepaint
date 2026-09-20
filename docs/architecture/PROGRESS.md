@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 15:02 JST
+- 更新日時: 2026-09-20 15:04 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -108,7 +108,8 @@
 - 完了: `WidgetsDebugContractTest.cpp`を削除した。`krita.lib.widgets`はウィジェット実装の診断出力だけで使われ、保存設定、Log Docker、プラグイン、スクリプト、外部診断設定で安定識別子として参照されない。参照の同一性、カテゴリ文字列、既定の重大度を固定する専用CTestとCMake定義を維持しない。診断ヘッダーを利用する既存の`zoomhandler_test`は増分構築と実行に成功した。
 - 完了: `FlakeDebugContractTest.cpp`を`FlakeDebugCompatibilityTest.cpp`へ置き換えた。Log Docker は保存済みの`LogDocker/tools_41003`設定を`krita.lib.flake`のログ規則として適用し、ツール診断を有効化する。この外部設定との互換性を、実際に同規則を適用してFlakeのデバッグ出力が有効になる結果で検証する。singleton参照の同一性と既定の重大度は保存規則の利用結果ではないため固定しない。
 - 完了: `DebugPigmentContractTest.cpp`を`DebugPigmentCompatibilityTest.cpp`へ置き換えた。Log Docker は保存済みの`LogDocker/pigment`設定を`krita.lib.pigment`のログ規則として適用し、色管理診断を有効化する。この外部設定との互換性を、実際に同規則を適用してPigmentのデバッグ出力が有効になる結果で検証する。singleton参照の同一性と既定の重大度は保存規則の利用結果ではないため固定しない。
-- 次の作業: `ResourceDebug.cpp`とLog Docker の資源管理診断設定について、保存規則`krita.lib.resources`と実際のカテゴリ`krita.lib.resource`の不一致を、保存済み設定によるデバッグ出力の有効状態で再現し、所有実装を修正する。
+- 完了: `ResourceDebugCompatibilityTest.cpp`を追加し、Log Docker の保存済み`LogDocker/resources_30009`規則が資源管理のデバッグ出力を有効にすることを検証する。試験は実装が`krita.lib.resource`を返すため失敗し、同設定が適用する`krita.lib.resources`へ資源ライブラリーのカテゴリを修正した。既存のリソース種別互換性試験と新しい互換性試験は修正後に成功し、資源管理診断を有効にしても出力されない不具合を修復した。
+- 次の作業: `KisDebugContractTest.cpp`について、Log Docker の保存済み規則が使うグローバル診断カテゴリと、保存・外部利用根拠のないカテゴリを分離し、関数ポインターとカテゴリ名の一覧固定を実際の規則適用結果へ整理する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
