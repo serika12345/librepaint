@@ -19,8 +19,6 @@
 #include <KoStopGradient.h>
 
 #include "kis_assert.h"
-#include "kis_debug.h"
-#include "kis_global.h"
 
 #include <KoFlakeUtils.h>
 

@@ -10,7 +10,6 @@
 #include "kis_signals_blocker.h"
 #include "kis_assert.h"
 
-#include "kis_document_aware_spin_box_unit_manager.h"
 
 RectangleShapeConfigWidget::RectangleShapeConfigWidget()
     : m_rectangle(0)

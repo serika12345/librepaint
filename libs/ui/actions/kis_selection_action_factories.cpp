@@ -6,14 +6,16 @@
 
 #include "kis_selection_action_factories.h"
 
+#include "dialogs/kis_dlg_stroke_selection_properties.h"
+
 #include <QMimeData>
 
 #include <klocalizedstring.h>
 #include <kundo2command.h>
 
-#include <workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisMainWindow.h>
 #include <document/KisDocument.h>
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <KoPathShape.h>
 #include <KoShapeController.h>
 #include <KoShapeRegistry.h>
@@ -25,23 +27,22 @@
 #include <metadata/KoDocumentInfo.h>
 #include <KoCanvasBase.h>
 
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_clipboard.h"
 #include "kis_pixel_selection.h"
 #include "kis_paint_layer.h"
 #include "kis_image.h"
 #include "KisImageBarrierLock.h"
-#include "kis_fill_painter.h"
 #include "kis_transaction.h"
-#include "kis_iterator_ng.h"
+#include "kis_sequential_iterator.h"
 #include "kis_processing_applicator.h"
 #include "kis_group_layer.h"
-#include "commands/kis_selection_commands.h"
-#include "commands/kis_image_layer_add_command.h"
-#include "kis_tool_proxy.h"
+#include "commands/KisDeselectActiveSelectionCommand.h"
+#include "commands/KisReselectActiveSelectionCommand.h"
+#include "commands/kis_set_global_selection_command.h"
+#include <KoToolProxy.h>
 #include "kis_canvas2.h"
-#include "kis_canvas_controller.h"
 #include "selection/kis_selection_manager.h"
 #include "commands_new/kis_transaction_based_command.h"
 #include "kis_selection_filters.h"

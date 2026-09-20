@@ -11,6 +11,7 @@
  */
 
 #include "kis_tool_select_contiguous.h"
+#include <QDomDocument>
 #include <QPainter>
 #include <QLayout>
 #include <QApplication>
@@ -19,6 +20,7 @@
 
 #include <KisOptionButtonStrip.h>
 #include <KisOptionCollectionWidget.h>
+#include <KoColorModelStandardIds.h>
 #include <KoGroupButton.h>
 #include <KisSpinBoxI18nHelper.h>
 #include <kis_color_button.h>
@@ -34,17 +36,13 @@
 #include "selection/kis_selection_manager.h"
 #include "kis_image.h"
 #include "canvas/kis_canvas2.h"
-#include "kis_layer.h"
 #include "kis_selection_options.h"
 #include "kis_paint_device.h"
 #include "kis_fill_painter.h"
 #include "kis_pixel_selection.h"
 #include "kis_selection_tool_helper.h"
 #include "kis_slider_spin_box.h"
-#include "tiles3/kis_hline_iterator.h"
 #include "kis_image.h"
-#include "kis_undo_stores.h"
-#include "kis_resources_snapshot.h"
 #include "kis_processing_applicator.h"
 #include <processing/fill_processing_visitor.h>
 #include <kis_image_animation_interface.h>

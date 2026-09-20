@@ -10,14 +10,13 @@
 
 #include <QString>
 #include <QWidget>
-#include <ui_WdgPaletteListWidget.h>
 
 #include "kritawidgets_export.h"
 
 #include <KoColorSet.h>
 
 class KoResource;
-
+class Ui_WdgPaletteListWidget;
 
 struct KisPaletteChooserPrivate;
 

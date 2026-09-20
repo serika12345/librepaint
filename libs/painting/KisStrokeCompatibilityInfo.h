@@ -12,7 +12,7 @@
 #include <QString>
 #include <KoColor.h>
 #include <KoResourceSignature.h>
-#include <KoCompositeOpRegistry.h>
+#include <KoCompositeOpIds.h>
 #include <QUuid>
 
 

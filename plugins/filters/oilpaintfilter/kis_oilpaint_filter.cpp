@@ -14,7 +14,6 @@
 #include "kis_oilpaint_filter.h"
 
 #include <stdlib.h>
-#include <vector>
 
 #include <QPoint>
 #include <QSpinBox>
@@ -29,6 +28,7 @@
 #include <document/KisDocument.h>
 #include <kis_image.h>
 #include <KisSequentialIteratorProgress.h>
+#include <kis_sequential_iterator.h>
 #include <kis_layer.h>
 #include <filter/kis_filter_registry.h>
 #include <kis_global.h>

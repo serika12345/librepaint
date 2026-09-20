@@ -5,9 +5,10 @@
  */
 #include "KoColorSpaceBlendingPolicy.h"
 
-#include <KoCompositeOpRegistry.h>
-#include <ksharedconfig.h>
+#include <KoCompositeOpIds.h>
+#include <QStringList>
 #include <kconfiggroup.h>
+#include <ksharedconfig.h>
 
 bool useSubtractiveBlendingForCmykColorSpaces()
 {

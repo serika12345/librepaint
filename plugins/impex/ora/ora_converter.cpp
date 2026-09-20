@@ -17,6 +17,7 @@
 #include <kis_image.h>
 #include <kis_open_raster_stack_load_visitor.h>
 #include <kis_open_raster_stack_save_visitor.h>
+#include <kis_paint_device.h>
 #include <kis_paint_layer.h>
 #include "kis_png_converter.h"
 #include "kis_open_raster_load_context.h"
@@ -109,5 +110,4 @@ void OraConverter::cancel()
 {
     m_stop = true;
 }
-
 

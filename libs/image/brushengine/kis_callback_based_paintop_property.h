@@ -9,6 +9,13 @@
 
 #include <functional>
 
+#include "kis_image_export.h"
+#include "kis_types.h"
+
+class KisUniformPaintOpProperty;
+class KoID;
+class QObject;
+
 template<class ParentClass>
 class KRITAIMAGE_EXPORT_TEMPLATE KisCallbackBasedPaintopProperty
     : public ParentClass

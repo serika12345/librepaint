@@ -6,16 +6,17 @@
 #ifndef _KIS_BASE_NODE_H
 #define _KIS_BASE_NODE_H
 
-#include <QObject>
 #include <QIcon>
-#include <QUuid>
+#include <QObject>
 #include <QString>
+#include <QUuid>
+#include <QVariant>
 
 #include <KoID.h>
 
-#include "kis_shared.h"
-#include "kis_paint_device.h"
 #include "kis_processing_visitor.h" // included, not forward declared for msvc
+#include "kis_shared.h"
+#include "kis_types.h"
 
 class KoProperties;
 class KoColorSpace;

@@ -6,14 +6,13 @@
 
 #include "KisFileUtils.h"
 
-#include <QString>
-#include <QFileInfo>
 #include <QDir>
+#include <QFileInfo>
 #include <QRegularExpression>
-#include <KisPortingUtils.h>
+#include <QString>
 
-
-namespace KritaUtils {
+namespace KritaUtils
+{
 
 QString resolveAbsoluteFilePath(const QString &baseDir, const QString &fileName)
 {
@@ -23,15 +22,14 @@ QString resolveAbsoluteFilePath(const QString &baseDir, const QString &fileName)
 
     QFileInfo fallbackBaseDirInfo(baseDir);
 
-    return QFileInfo(QDir(fallbackBaseDirInfo.isDir() ?
-                              fallbackBaseDirInfo.absoluteFilePath() :
-                              fallbackBaseDirInfo.absolutePath()),
-                     fileName).absoluteFilePath();
+    return QFileInfo(QDir(fallbackBaseDirInfo.isDir() ? fallbackBaseDirInfo.absoluteFilePath()
+                                                      : fallbackBaseDirInfo.absolutePath()),
+                     fileName)
+        .absoluteFilePath();
 }
 
-QString deduplicateFileName(const QString &fileName,
-                            const QString &separator,
-                            std::function<bool(QString)> fileAllowedCallback)
+QString
+deduplicateFileName(const QString &fileName, const QString &separator, std::function<bool(QString)> fileAllowedCallback)
 {
     const QFileInfo fileInfo(fileName);
 
@@ -53,9 +51,8 @@ QString deduplicateFileName(const QString &fileName,
     auto match = rex.match(proposedFileName);
 
     if (match.hasMatch()) {
-        using KisPortingUtils::stringRemoveFirst;
         baseName = match.captured(1);
-        completeSuffix = stringRemoveFirst(match.captured(2));
+        completeSuffix = match.captured(3);
     }
 
     while (!fileAllowedCallback(proposedFileName)) {
@@ -70,4 +67,4 @@ QString deduplicateFileName(const QString &fileName,
 
     return proposedFileName;
 }
-}
+} // namespace KritaUtils

@@ -7,9 +7,10 @@
 #ifndef KIS_ALTERNATE_INVOCATION_ACTION_H
 #define KIS_ALTERNATE_INVOCATION_ACTION_H
 
+#include <kritainputui_export.h>
+
 #include "kis_abstract_input_action.h"
 #include <QScopedPointer>
-#include "kis_tool.h"
 
 /**
  * \brief Alternate Invocation implementation of KisAbstractInputAction.
@@ -18,7 +19,7 @@
  * current tool. For example, using the brush tool it samples a color from
  * the canvas.
  */
-class KisAlternateInvocationAction : public KisAbstractInputAction
+class KRITAINPUTUI_EXPORT KisAlternateInvocationAction : public KisAbstractInputAction
 {
 public:
     /**
@@ -47,10 +48,6 @@ public:
     void inputEvent(QEvent* event) override;
 
     bool supportsHiResInputEvents(int shortcut) const override;
-
-
-private:
-    KisTool::ToolAction shortcutToToolAction(int shortcut) const;
 
 private:
     struct Private;

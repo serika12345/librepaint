@@ -13,11 +13,12 @@
 
 #include <KisMimeDatabase.h>
 #include <document/KisDocument.h>
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <KisPreviewFileDialog.h>
 #include <QFileInfo>
 
 #include <kis_painting_tweaks.h>
+#include <kis_paint_device.h>
 #include <kis_debug.h>
 #include <KisStaticInitializer.h>
 

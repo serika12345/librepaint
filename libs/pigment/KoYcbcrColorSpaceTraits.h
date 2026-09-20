@@ -7,6 +7,8 @@
 #ifndef _KO_YCbCr_COLORSPACE_TRAITS_H_
 #define _KO_YCbCr_COLORSPACE_TRAITS_H_
 
+#include <KoColorSpaceTrait.h>
+
 /** 
  * YCbCr traits, it provides some convenient functions to
  * access YCbCr  channels through an explicit API.

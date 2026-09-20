@@ -7,13 +7,13 @@
 #ifndef __KIS_EXTENDED_MODIFIERS_MAPPER_PLUGIN_INTERFACE_H
 #define __KIS_EXTENDED_MODIFIERS_MAPPER_PLUGIN_INTERFACE_H
 
-#include <kritaui_export.h>
+#include <kritainputui_export.h>
 #include <Qt>
 #include <QObject>
 #include <QVector>
 
 
-class KRITAUI_EXPORT KisExtendedModifiersMapperPluginInterface : public QObject
+class KRITAINPUTUI_EXPORT KisExtendedModifiersMapperPluginInterface : public QObject
 {
     Q_OBJECT
 public:

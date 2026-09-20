@@ -14,12 +14,26 @@
 #include "filter/kis_filter.h"
 #include "filter/kis_filter_configuration.h"
 #include "filter/kis_filter_registry.h"
-#include "kis_selection.h"
 #include "kis_node.h"
 #include "kis_node_visitor.h"
 #include "kis_processing_visitor.h"
 #include "kis_busy_progress_indicator.h"
+#include "kis_paint_device.h"
 #include "kis_painter.h"
+
+void kisSharedPtrAddReference(KisFilterMask *pointer)
+{
+    pointer->ref();
+}
+
+bool kisSharedPtrRelease(KisFilterMask *pointer)
+{
+    if (!pointer->deref()) {
+        delete pointer;
+        return false;
+    }
+    return true;
+}
 
 struct KisFilterMask::Private
 {
@@ -236,4 +250,3 @@ QRect KisFilterMask::needRect(const QRect& rect, PositionToFilthy pos) const
      */
     return filter->neededRect(rect, filterConfig.data(), lod);
 }
-

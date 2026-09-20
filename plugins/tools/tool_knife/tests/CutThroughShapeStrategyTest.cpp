@@ -7,7 +7,6 @@
 #include "CutThroughShapeStrategyTest.h"
 
 #include "CutThroughShapeStrategy.h"
-#include "KisToolKnife.h"
 #include <KoSelection.h>
 #include <KoCanvasBase.h>
 #include <tests/MockShapes.h>

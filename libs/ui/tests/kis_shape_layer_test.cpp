@@ -8,7 +8,6 @@
 
 #include <simpletest.h>
 
-#include "kis_global.h"
 
 #include "kis_shape_layer.h"
 #include "kis_paint_layer.h"
@@ -16,7 +15,7 @@
 #include <KoColorBackground.h>
 #include <testutil.h>
 
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
 
 #include <kis_meta_data_store.h>
@@ -24,7 +23,6 @@
 
 #include "kis_filter_strategy.h"
 
-#include "kis_layer_utils.h"
 
 #include <testui.h>
 #include <testutil.h>

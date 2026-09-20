@@ -8,8 +8,12 @@
 
 #include "kis_qmic_interface.h"
 
+#include <QDebug>
+#include <QRectF>
+#include <QSize>
+
 #include <KisImageSignals.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <kis_algebra_2d.h>
 #include <kis_debug.h>
 #include <kis_image.h>

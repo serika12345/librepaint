@@ -5,7 +5,6 @@
  */
 #include "SvgMeshArray.h"
 
-#include <KoPathSegment.h>
 #include <kis_global.h>
 
 SvgMeshArray::SvgMeshArray()
@@ -381,4 +380,3 @@ QColor SvgMeshArray::getColor(SvgMeshPatch::Type edge, int row, int col) const
 {
     return getStop(edge, row, col).color;
 }
-

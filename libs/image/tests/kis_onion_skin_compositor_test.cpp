@@ -35,7 +35,7 @@ void KisOnionSkinCompositorTest::testComposite()
     KisImageAnimationInterface *i = p.image->animationInterface();
     KisPaintDeviceSP paintDevice = p.layer->paintDevice();
     paintDevice->createKeyframeChannel(KoID());
-    KisKeyframeChannel *keyframes = paintDevice->keyframeChannel();
+    KisRasterKeyframeChannel *keyframes = paintDevice->keyframeChannel();
 
     keyframes->addKeyframe(0);
     keyframes->addKeyframe(10);
@@ -92,7 +92,7 @@ void KisOnionSkinCompositorTest::testSettings()
     KisImageAnimationInterface *i = p.image->animationInterface();
     KisPaintDeviceSP paintDevice = p.layer->paintDevice();
     paintDevice->createKeyframeChannel(KoID());
-    KisKeyframeChannel *keyframes = paintDevice->keyframeChannel();
+    KisRasterKeyframeChannel *keyframes = paintDevice->keyframeChannel();
 
     keyframes->addKeyframe(0);
     keyframes->addKeyframe(1);

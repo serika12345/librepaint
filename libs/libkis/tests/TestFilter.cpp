@@ -22,7 +22,7 @@
 #include <kis_image.h>
 #include <kis_fill_painter.h>
 #include <kis_paint_layer.h>
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 
 #include <testui.h>
 

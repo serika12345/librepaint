@@ -15,7 +15,6 @@
 #include "kis_stroke_strategy.h"
 #include "kis_undo_stores.h"
 #include "kis_post_execution_undo_adapter.h"
-#include "KisCppQuirks.h"
 
 typedef QQueue<KisStrokeSP> StrokesQueue;
 typedef QQueue<KisStrokeSP>::iterator StrokesQueueIterator;

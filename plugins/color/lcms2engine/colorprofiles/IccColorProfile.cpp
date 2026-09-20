@@ -7,9 +7,7 @@
 
 #include "IccColorProfile.h"
 
-#include <cmath>
 #include <cstdint>
-#include <limits>
 
 #include <lcms2.h>
 

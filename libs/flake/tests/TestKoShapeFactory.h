@@ -19,6 +19,7 @@ private Q_SLOTS:
     void testPriority();
     void testCreateDefaultShape();
     void testCreateShape();
+    void testRegisteredTemplateCreatesTheSelectedShape();
     void testBasicShapeFactoryUsesRegisteredFactories();
     void testBasicShapeFactoryCreatesFallbackPaths();
 

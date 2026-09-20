@@ -1,13 +1,150 @@
+add_library(kritacanvasinputactiongroupobjects OBJECT
+    KisInputActionGroup.cpp
+)
+target_compile_definitions(kritacanvasinputactiongroupobjects PRIVATE kritacanvas_EXPORTS)
+target_include_directories(kritacanvasinputactiongroupobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritacanvasinputactiongroupobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritacanvasinputactiongroupobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritacanvasanimationframecacheindexobjects OBJECT
+    animation/kis_animation_frame_cache_index.cpp
+)
+target_compile_definitions(kritacanvasanimationframecacheindexobjects PRIVATE kritacanvas_EXPORTS)
+target_include_directories(kritacanvasanimationframecacheindexobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+)
+target_link_libraries(kritacanvasanimationframecacheindexobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+)
+set_target_properties(kritacanvasanimationframecacheindexobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritacanvastiledatapoolobjects OBJECT
+    tiles/kis_tile_data_pool.h
+    tiles/kis_tile_data_pool.cpp
+)
+target_compile_definitions(kritacanvastiledatapoolobjects PRIVATE kritacanvas_EXPORTS)
+target_include_directories(kritacanvastiledatapoolobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritacanvastiledatapoolobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritacanvastiledatapoolobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritacanvasimagepatchobjects OBJECT
+    kis_image_patch.cpp
+)
+target_compile_definitions(kritacanvasimagepatchobjects PRIVATE
+    kritacanvas_EXPORTS
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+)
+target_include_directories(kritacanvasimagepatchobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritacanvasimagepatchobjects
+    PUBLIC
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritacanvasimagepatchobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritacanvasstateobjects OBJECT
+    KisCanvasState.cpp
+)
+target_compile_definitions(kritacanvasstateobjects PRIVATE kritacanvas_EXPORTS)
+target_include_directories(kritacanvasstateobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/flake>
+)
+target_link_libraries(kritacanvasstateobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritacanvasstateobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritacanvasupdateinfoobjects OBJECT
+    kis_update_info.cpp
+)
+target_compile_definitions(kritacanvasupdateinfoobjects PRIVATE
+    kritacanvas_EXPORTS
+    kritaglobal_EXPORTS
+)
+target_include_directories(kritacanvasupdateinfoobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritacanvasupdateinfoobjects PUBLIC
+    Qt${QT_MAJOR_VERSION}::Core
+    Boost::boost
+)
+set_target_properties(kritacanvasupdateinfoobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritacanvas_LIB_SRCS
     animation/kis_animation_frame_cache_index.h
-    animation/kis_animation_frame_cache_index.cpp
     animation/kis_frame_data_serializer.h
     animation/kis_frame_data_serializer.cpp
     animation/kis_frame_cache_store.h
     animation/kis_frame_cache_store.cpp
     tiles/kis_tile_data_buffer.h
-    tiles/kis_tile_data_pool.h
-    tiles/kis_tile_data_pool.cpp
     color/KisOcioConfiguration.h
     color/KisSurfaceColorSpaceWrapper.h
     color/kis_display_color_filter.h
@@ -15,7 +152,6 @@ set(kritacanvas_LIB_SRCS
     color/kis_display_color_transform.cpp
     kis_coordinates_converter.cpp
     kis_image_patch.h
-    kis_image_patch.cpp
     kis_prescaled_projection.h
     kis_prescaled_projection.cpp
     kis_projection_backend.h
@@ -24,13 +160,18 @@ set(kritacanvas_LIB_SRCS
     kis_projection_update_info.h
     kis_projection_update_info.cpp
     kis_update_info.h
-    kis_update_info.cpp
     KisToolCanvas.h
-    KisInputActionGroup.cpp
-    KisCanvasState.cpp
 )
 
-kis_add_library(kritacanvas SHARED ${kritacanvas_LIB_SRCS})
+kis_add_library(kritacanvas SHARED
+    ${kritacanvas_LIB_SRCS}
+    $<TARGET_OBJECTS:kritacanvasinputactiongroupobjects>
+    $<TARGET_OBJECTS:kritacanvasanimationframecacheindexobjects>
+    $<TARGET_OBJECTS:kritacanvastiledatapoolobjects>
+    $<TARGET_OBJECTS:kritacanvasimagepatchobjects>
+    $<TARGET_OBJECTS:kritacanvasstateobjects>
+    $<TARGET_OBJECTS:kritacanvasupdateinfoobjects>
+)
 generate_export_header(kritacanvas BASE_NAME kritacanvas)
 
 target_link_libraries(kritacanvas
@@ -55,18 +196,18 @@ set_target_properties(kritacanvas
 
 install(TARGETS kritacanvas ${INSTALL_TARGETS_DEFAULT_ARGS})
 
-# Workspace presentation resources keep their established symbols in kritaui
-# while their source ownership follows the canvas and docker state they persist.
+# Workspace presentation resources follow the canvas and docker state they
+# persist, and publish their established symbols from the application UI.
 kis_add_library(kritaworkspacepresentation OBJECT
     workspace/kis_workspace_resource.cpp
 )
-target_compile_definitions(kritaworkspacepresentation PRIVATE kritaui_EXPORTS)
+target_compile_definitions(kritaworkspacepresentation PRIVATE kritaapplicationui_EXPORTS)
 target_include_directories(kritaworkspacepresentation
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     PRIVATE
         ${CMAKE_SOURCE_DIR}/libs/ui
-        ${CMAKE_BINARY_DIR}/libs/ui
+        ${CMAKE_BINARY_DIR}/libs/application
 )
 target_link_libraries(kritaworkspacepresentation
     PRIVATE

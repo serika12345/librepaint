@@ -23,6 +23,7 @@
 #include <kis_types.h>
 #include <brushengine/kis_paintop.h>
 #include <kis_brush_based_paintop.h>
+#include <kis_dab_cache.h>
 #include <brushengine/kis_paint_information.h>
 #include <kis_fixed_paint_device.h>
 #include <kis_lod_transform.h>

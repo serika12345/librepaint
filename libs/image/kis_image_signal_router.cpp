@@ -10,6 +10,7 @@
 #include <KisStaticInitializer.h>
 
 #include "kis_image.h"
+#include "kis_node.h"
 
 
 #define CONNECT_TO_IMAGE(signal)                                        \

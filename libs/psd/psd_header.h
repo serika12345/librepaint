@@ -8,10 +8,10 @@
 #define PSD_HEADER_H
 
 #include "kritapsd_export.h"
+#include <psd_types.h>
 
 #include <QtGlobal>
 #include <kis_debug.h>
-#include <psd.h>
 
 class QIODevice;
 

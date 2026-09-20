@@ -14,10 +14,9 @@
 
 #include "psd.h"
 
-#include "kis_default_bounds.h"
 #include "kis_pixel_selection.h"
 #include "kis_random_accessor_ng.h"
-#include "kis_iterator_ng.h"
+#include "kis_sequential_iterator.h"
 
 #include "kis_convolution_kernel.h"
 #include "kis_convolution_painter.h"
@@ -28,7 +27,6 @@
 #include "kis_layer_style_filter_environment.h"
 #include "kis_selection_filters.h"
 #include "kis_multiple_projection.h"
-#include "kis_default_bounds_base.h"
 #include "kis_cached_paint_device.h"
 
 namespace KisLsUtils

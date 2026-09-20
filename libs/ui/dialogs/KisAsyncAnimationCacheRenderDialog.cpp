@@ -12,6 +12,8 @@
 #include <kis_image.h>
 #include <kis_image_animation_interface.h>
 
+#include <klocalizedstring.h>
+
 namespace {
 
 QList<int> calcDirtyFramesList(KisAnimationFrameCacheSP cache, const KisTimeSpan &playbackRange)

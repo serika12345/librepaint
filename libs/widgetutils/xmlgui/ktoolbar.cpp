@@ -1419,7 +1419,7 @@ void KisToolBar::emitToolbarStyleChanged()
 #endif
 }
 
-KisToolBarStateModel* KisToolBar::toolBarStateModel()
+QObject *KisToolBar::toolBarStateModel()
 {
     return s_toolBarsModel;
 }

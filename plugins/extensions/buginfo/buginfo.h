@@ -8,7 +8,7 @@
 #define BUGINFO_H
 
 #include <QVariant>
-#include <application/KisActionPlugin.h>
+#include <application/ui/orchestration/KisActionPlugin.h>
 #include <config-use-surface-color-management-api.h>
 
 class KUndo2MagicString;

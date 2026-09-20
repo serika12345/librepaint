@@ -10,7 +10,6 @@
 
 #include <kis_global.h>
 #include <KisPaletteModel.h>
-#include "kis_debug.h"
 
 #include "KisPaletteDelegate.h"
 

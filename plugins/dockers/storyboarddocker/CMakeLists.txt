@@ -26,7 +26,8 @@ generate_export_header(kritastoryboarddocker_static BASE_NAME kritastoryboarddoc
 
 target_link_libraries(kritastoryboarddocker_static
     PUBLIC
-        kritaui
+        kritaapplication
+        kritaapplicationui
     PRIVATE
         Qt${QT_MAJOR_VERSION}::PrintSupport
 )

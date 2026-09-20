@@ -6,23 +6,28 @@
 
 #include "kis_node.h"
 
+#include <optional>
+
+#include <QCoreApplication>
 #include <QList>
+#include <QMetaType>
 #include <QReadWriteLock>
 #include <QReadLocker>
 #include <QWriteLocker>
-#include <QPainterPath>
 #include <QRect>
-#include <QCoreApplication>
 
 #include <KoProperties.h>
 
-#include "kis_global.h"
-#include "kis_node_graph_listener.h"
-#include "kis_node_visitor.h"
-#include "kis_processing_visitor.h"
-#include "kis_node_progress_proxy.h"
-#include "kis_busy_progress_indicator.h"
 #include "KisFrameChangeUpdateRecipe.h"
+#include "KisProjectionUpdateFlags.h"
+#include "kis_busy_progress_indicator.h"
+#include "kis_default_bounds.h"
+#include "kis_layer.h"
+#include "kis_node_graph_listener.h"
+#include "kis_node_progress_proxy.h"
+#include "kis_node_visitor.h"
+#include "kis_paint_device.h"
+#include "kis_processing_visitor.h"
 
 #include "kis_clone_layer.h"
 
@@ -33,12 +38,26 @@ typedef KisSafeReadList<KisNodeSP> KisSafeReadNodeList;
 
 #include "kis_abstract_projection_plane.h"
 #include "kis_projection_leaf.h"
-#include "kis_undo_adapter.h"
 #include "kis_keyframe_channel.h"
 #include "kis_image.h"
 #include "kis_layer_utils.h"
+#include "kis_pointer_utils.h"
 #include "KisRegion.h"
 #include <KisStaticInitializer.h>
+
+void kisSharedPtrAddReference(KisNode *pointer)
+{
+    pointer->ref();
+}
+
+bool kisSharedPtrRelease(KisNode *pointer)
+{
+    if (!pointer->deref()) {
+        delete pointer;
+        return false;
+    }
+    return true;
+}
 
 /**
  * The link between KisProjection and KisImageUpdater

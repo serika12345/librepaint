@@ -9,16 +9,17 @@
 #define PSD_UTILS_H
 
 
-#include <QtEndian>
-#include <QtGlobal>
+#include <QByteArray>
 #include <QIODevice>
+#include <QString>
+#include <QtGlobal>
+
+#include <algorithm>
 #include <array>
-#include <psd.h>
-#include <resources/KoPattern.h>
+#include <cmath>
 #include <type_traits>
 
-class QIODevice;
-class QString;
+#include "psd_types.h"
 
 /**
  * Writing functions.
@@ -526,7 +527,7 @@ inline void psdwriteFixedPoint(QIODevice &io, double val)
     // val is bound to -16 to +16
 
     qint32 man = qint32(val);
-    quint32 frac= quint32(fabs(val - man) * max24);
+    quint32 frac= quint32(std::fabs(val - man) * max24);
     data = (qAbs(man) << 24) | frac;
     if (val < 0) {
         data *= -1;

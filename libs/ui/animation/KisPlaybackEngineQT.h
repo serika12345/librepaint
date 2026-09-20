@@ -11,11 +11,7 @@
 #include "animation/KisPlaybackEngine.h"
 
 #include <kritaui_export.h>
-
-
-#include "canvas/KisCanvasAnimationState.h"
 #include <boost/optional.hpp>
-
 
 /**
  * @brief The KisPlaybackEngineQT class is an implementation of KisPlaybackEngine

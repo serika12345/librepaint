@@ -12,9 +12,12 @@ class KisCurveOptionDataTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-    void testCurveOptionData();
-    void testSerializeDisabledSensors();
-    void testSerializeNoSensors();
+    void savedCurveRestoresBrushResponse();
+    void prefixedCurveSettingsRemainSeparate();
+    void disabledSensorsStayDisabledAfterReload();
+    void timeSensorDurationSurvivesPresetSave();
+    void sizeDynamicsUpdateInstantPreviewGuidance();
+    void missingSensorsUsePressureDefault();
 };
 
 #endif // KISCURVEOPTIONDATATEST_H

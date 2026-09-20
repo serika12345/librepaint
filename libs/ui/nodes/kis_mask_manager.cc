@@ -16,7 +16,7 @@
 #include <kis_undo_adapter.h>
 #include <kis_paint_layer.h>
 #include "document/KisDocument.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include <kis_layer.h>
 #include <kis_clone_layer.h>
 #include <kis_group_layer.h>
@@ -27,7 +27,6 @@
 #include <kis_selection_mask.h>
 #include <kis_effect_mask.h>
 #include "dialogs/kis_dlg_adjustment_layer.h"
-#include "widgets/kis_mask_widgets.h"
 #include <kis_selection.h>
 #include <selection/kis_selection_manager.h>
 #include <kis_pixel_selection.h>
@@ -39,7 +38,6 @@
 #include <commands/kis_node_commands_adapter.h>
 #include "commands/kis_deselect_global_selection_command.h"
 #include "commands_new/KisLayerCollapseCommand.h"
-#include "kis_iterator_ng.h"
 #include <KisGlobalResourcesInterface.h>
 #include "nodes/kis_node_manager.h"
 

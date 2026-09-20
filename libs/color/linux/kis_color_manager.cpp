@@ -9,8 +9,6 @@
 #include "kis_color_manager.h"
 #include "colord/KisColord.h"
 
-#include <kis_debug.h>
-
 Q_GLOBAL_STATIC(KisColorManager, s_instance)
 
 class KisColorManager::Private {

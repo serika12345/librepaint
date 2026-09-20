@@ -7,7 +7,6 @@
 #include "KisSqlQueryLoader.h"
 
 #include <algorithm>
-#include <stdexcept>
 
 #include <QtSql>
 #include <QFile>

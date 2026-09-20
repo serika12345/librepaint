@@ -11,7 +11,6 @@
 #include "filter/kis_filter_registry.h"
 #include "kis_default_bounds.h"
 #include "kis_pixel_selection.h"
-#include "kis_processing_information.h"
 #include "kis_selection.h"
 #include "kis_transaction.h"
 #include <KisGlobalResourcesInterface.h>

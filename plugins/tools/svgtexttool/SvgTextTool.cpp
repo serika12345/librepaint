@@ -38,8 +38,10 @@
 
 #include <klocalizedstring.h>
 
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <kis_canvas2.h>
+#include <kis_image.h>
+#include <kis_node.h>
 #include <KSharedConfig>
 #include "kis_assert.h"
 #include <kis_coordinates_converter.h>
@@ -47,6 +49,7 @@
 #include <KoFileDialog.h>
 #include <KoIcon.h>
 #include <KoCanvasBase.h>
+#include <KoSnapGuide.h>
 #include <KoSelection.h>
 #include <KoShapeManager.h>
 #include <KoShapeController.h>
@@ -68,10 +71,10 @@
 #include <KisResourceModel.h>
 
 #include <document/KisTextPropertiesManager.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <KisQQuickWidget.h>
 #include <QQmlError>
-#include <workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisMainWindow.h>
 
 #include "KisHandlePainterHelper.h"
 #include "kis_tool_utils.h"

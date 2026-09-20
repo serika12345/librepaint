@@ -21,7 +21,6 @@
 #include "kis_mypaintop_test.h"
 #include "MyPaintPaintOp.h"
 #include "MyPaintSurface.h"
-#include "MyPaintPaintOpSettings.h"
 
 #include <qimage_test_util.h>
 

@@ -10,11 +10,14 @@
 
 #include <QScopedPointer>
 
+#include <KoColorSpace.h>
+
 #include "kis_types.h"
 #include "kis_effect_mask.h"
 #include "kritaimage_export.h"
 
 class KoColor;
+class KoColorProfile;
 class KUndo2Command;
 
 namespace KisLazyFillTools

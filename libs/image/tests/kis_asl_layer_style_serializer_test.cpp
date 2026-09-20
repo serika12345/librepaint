@@ -17,7 +17,6 @@
 
 #include <resources/KoPattern.h>
 
-#include "kis_global.h"
 
 #include <testutil.h>
 #include <testimage.h>

@@ -7,7 +7,7 @@
 
 #include "kis_exif_test.h"
 
-#include <simpletest.h>
+#include <testui.h>
 
 
 #include <QBuffer>
@@ -31,6 +31,10 @@ using namespace KisMetaData;
 
 void KisExifTest::testExifLoader()
 {
+    // Consumer: image importers and the metadata editor.
+    // Operation: load EXIF bytes from a camera image into the metadata store.
+    // Observable result: standard TIFF and EXIF fields are restored with their schema values and pass validation.
+    // Failure impact: imported images lose camera metadata or expose it under the wrong editable field.
     IOBackend *exifIO = KisMetadataBackendRegistry::instance()->get("exif");
     QVERIFY(exifIO);
     QFile exifFile(QString(FILES_DATA_DIR) + "/metadata/hpim3238.exv");
@@ -44,13 +48,13 @@ void KisExifTest::testExifLoader()
     QVERIFY(loadSuccess);
     Validator validator(store);
 
+    QStringList invalidEntries;
     for (QMap<QString, Validator::Reason>::const_iterator it = validator.invalidEntries().begin();
          it != validator.invalidEntries().end();
          ++it) {
-        dbgKrita << it.key() << " = " << it.value().type() << " entry = " << store->getEntry(it.key());
+        invalidEntries << it.key();
     }
-
-    QCOMPARE(validator.countInvalidEntries(), 0);
+    QVERIFY2(validator.invalidEntries().isEmpty(), qPrintable(invalidEntries.join(QStringLiteral(", "))));
     QCOMPARE(validator.countValidEntries(), 51);
 
     const KisMetaData::Schema *tiffSchema =
@@ -100,6 +104,10 @@ void KisExifTest::testExifLoader()
 
 void KisExifTest::testOECF()
 {
+    // Consumer: image importers and the metadata editor.
+    // Operation: load a camera image containing an EXIF OECF structure.
+    // Observable result: the OECF rows, columns, names, and rational values are restored.
+    // Failure impact: an imported camera response curve is malformed or unavailable to metadata consumers.
     IOBackend *exifIO = KisMetadataBackendRegistry::instance()->get("exif");
     QVERIFY(exifIO);
 
@@ -129,6 +137,10 @@ void KisExifTest::testOECF()
 
 void KisExifTest::testMalformedOECF()
 {
+    // Consumer: image importers processing malformed camera metadata.
+    // Operation: load EXIF bytes with an invalid OECF payload.
+    // Observable result: the malformed OECF is rejected while unrelated metadata remains available.
+    // Failure impact: corrupt camera metadata either aborts the import or is presented as valid data.
     IOBackend *exifIO = KisMetadataBackendRegistry::instance()->get("exif");
     QVERIFY(exifIO);
 
@@ -156,6 +168,10 @@ void KisExifTest::testMalformedOECF()
 
 void KisExifTest::testCFAPattern()
 {
+    // Consumer: image importers and metadata export.
+    // Operation: save and reload an EXIF CFA pattern, then load a malformed version.
+    // Observable result: the valid structure round-trips and the malformed structure is rejected.
+    // Failure impact: camera sensor metadata is silently corrupted or invalid data is offered for editing.
     IOBackend *exifIO = KisMetadataBackendRegistry::instance()->get("exif");
     QVERIFY(exifIO);
 
@@ -194,4 +210,4 @@ void KisExifTest::testCFAPattern()
     QVERIFY(!invalidStore.containsEntry(exifSchema, "CFAPattern"));
 }
 
-SIMPLE_TEST_MAIN(KisExifTest)
+KISTEST_MAIN(KisExifTest)

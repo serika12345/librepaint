@@ -8,8 +8,6 @@
 #include "kis_node.h"
 #include "kis_layer.h"
 #include "kis_image.h"
-#include "kis_selection_mask.h"
-#include "kis_paint_layer.h"
 #include "commands/kis_node_property_list_command.h"
 #include "kis_undo_adapter.h"
 #include "kis_layer_properties_icons.h"

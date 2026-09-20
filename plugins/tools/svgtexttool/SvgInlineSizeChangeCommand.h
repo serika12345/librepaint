@@ -7,6 +7,8 @@
 #ifndef SVG_INLINE_SIZE_CHANGE_COMMAND_H
 #define SVG_INLINE_SIZE_CHANGE_COMMAND_H
 
+#include <QPointF>
+
 #include <kundo2command.h>
 
 class KoSvgTextShape;

@@ -14,12 +14,10 @@
 #include "kis_tile_data_wrapper.h"
 #include "kis_tiled_data_manager_p.h"
 #include "kis_memento_manager.h"
-#include "swap/kis_legacy_tile_compressor.h"
 #include "swap/kis_tile_compressor_factory.h"
 
 #include "kis_paint_device_writer.h"
 
-#include "kis_global.h"
 
 
 /* The data area is divided into tiles each say 64x64 pixels (defined at compile time)

@@ -83,7 +83,8 @@ target_link_libraries(kritaplatformpluginwayland
         Qt::GuiPrivate
         Qt::WaylandClient
         kritaglobal
-        kritaui
+        kritainputui
+        kritaapplicationui
 )
 
 if (KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)
@@ -94,4 +95,3 @@ if (KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)
 endif()
 
 install(TARGETS kritaplatformpluginwayland DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
-

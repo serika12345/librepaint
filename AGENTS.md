@@ -123,14 +123,20 @@ Every code, build, script, and policy change follows this sequence:
 
 1. Read the relevant implementation, tests, CMake target, and roadmap gate.
 2. Identify the smallest coherent change within the intended responsibility.
-3. Add or update the smallest meaningful observable contract.
-4. Run the contract and record the expected initial diagnostic.
-5. Implement the minimum production change that satisfies the contract.
-6. Refactor while the relevant contract remains green.
-7. Audit responsibility, dependency direction, ownership, lifetime, public
+3. Before editing implementation or contract code, inspect the target-scoped
+   incremental work plan and direct CMake dependencies. For a new or expanded
+   target, also measure its clean-tree command closure against the nearest
+   existing contract. Narrow an overbroad target or dependency before the
+   behavioral change; record why a remaining large concrete-owner closure is
+   necessary.
+4. Add or update the smallest meaningful observable contract.
+5. Run the contract and record the expected initial diagnostic.
+6. Implement the minimum production change that satisfies the contract.
+7. Refactor while the relevant contract remains green.
+8. Audit responsibility, dependency direction, ownership, lifetime, public
    API, file growth, and platform impact.
-8. Synchronize TODO, progress, architecture, fixed test data, and baselines.
-9. Run the verification tier required by the change scope.
+9. Synchronize TODO, progress, architecture, fixed test data, and baselines.
+10. Run the verification tier required by the change scope.
 
 Compiler options, linters, architecture checks, image comparisons, and
 verification scripts retain or increase their enforcement strength. A reviewed
@@ -141,9 +147,94 @@ Each reviewable change groups one feature or one structural concern.
 Structural preparation receives its own gate when it has an independent
 verification boundary.
 
+## Parallel Agent Work
+
+Parallel implementation uses one coordinator and non-overlapping worker
+lanes. The coordinator records one base commit and gives every lane a task
+packet containing the exact public headers and API identifiers, allowed paths,
+owned CMake files and targets, nearest contract, platform scope, build
+permission, Git authority, integration order, and stop conditions. The active
+lane packets and their states are recorded in `docs/architecture/PROGRESS.md`
+before workers start. Two active lanes never share a production header,
+implementation file, test source, CMake file, or generated artifact.
+
+Each worker lane uses a dedicated Git worktree and a worktree-local Ninja
+build tree. Native compiler-cache storage may be shared, while build trees and
+configuration markers remain isolated. The coordinator controls concurrent
+configure, build, test, and verification capacity so that host load does not
+turn target-scoped validation into an accidental full build.
+
+Worker lanes enter the primary worktree's cached test environment through
+`./scripts/run-shared-test-env` and execute the lane-local script path. The
+helper preserves the lane repository root, build tree, compiler-cache base,
+and compilation database while sharing the primary tool environment and
+compiler-cache storage. A lane does not evaluate `nix develop .#test` against
+its own full source tree because each distinct worktree revision would create
+another large Nix store source path. Work that changes the Nix development
+environment uses an explicitly assigned primary-worktree lane instead.
+
+The coordinator exclusively owns `AGENTS.md`, the architecture roadmap and
+progress documents, and shared generated artifacts unless a task packet
+explicitly transfers one of those files. A worker changes only its assigned
+production, test, fixture, and package-local CMake paths. It reports behavioral
+guarantees and documentation facts as structured handoff data instead of
+editing coordinator-owned files.
+
+Workers follow the complete implementation workflow within their lane,
+including the unchanged build plan, direct dependencies, clean command
+closure, expected first diagnostic, target test, repetition, and platform
+result. A lane task packet is the worker's scoped continuation of the global
+progress snapshot; the worker does not select the coordinator's next action or
+delegate further work unless its packet explicitly authorizes that action. A
+worker stops and reports when required work crosses its allowed paths, overlaps
+another lane, changes an unassigned public API, needs an unassigned dependency,
+or exposes an ambiguous behavior classification.
+
+The coordinator inspects and integrates one ready lane at a time, synchronizes
+architecture documents in the integrated change and reruns the affected
+contract and governance checks. Lane commits are transport artifacts rather
+than completed `develop` changes. Commits, branch creation,
+integration, worktree removal, and branch deletion still require the authority
+defined by the user and the Completion section below.
+
+The coordinator removes obsolete generated storage as soon as its replacement
+is verified. Completed lane worktrees include their lane-local build trees in
+the same removal. Keep the reusable primary Ninja tree and shared compiler
+cache. Remove obsolete lane build artifacts after integrated tests succeed.
+Record retained storage and reclaimed lane storage in the progress snapshot.
+Preserve user-owned artifacts and do not
+discard the primary incremental tree or shared cache while they remain useful.
+
+The task-packet, worktree, handoff, and integration procedures live in the
+"責務単位の並列実装" section of
+`docs/architecture/DEVELOPMENT.md`.
+
 ## Test-Driven Development
 
 Tests protect behavior and governance checks protect structure.
+
+Existing tests are maintained from their source and CMake definitions. Review
+assertions against callers and explicit requirements. Each retained test must
+explain what breaks for a caller when it fails. Preserve observable results,
+state transitions, necessary notifications, effects, errors, and domain
+invariants. Compatibility tests require an explicit compatibility requirement.
+Remove declaration-shape and implementation-detail assertions when they carry
+no public guarantee; add a behavioral test only for a required observable
+contract that existing tests do not cover. API inventories and declaration
+coverage quotas are not maintained because they encourage fixing incidental
+implementation structure. Record decisions in review descriptions and current
+work in the progress snapshot.
+
+Before adding or expanding a contract test, identify the consumer, operation,
+observable result, and concrete caller-visible failure. Treat one use case or
+state transition as the coverage unit; a declaration is not a coverage unit.
+Tests named `*ContractTest` or `*_contract_test` do not use type traits,
+compile-time shape assertions, or exact signature aliases. A declaration-shape
+check required for source, binary, serialized-data, plugin, or scripting
+compatibility belongs in a `*CompatibilityTest` or `*_compatibility_test` and
+contains a `// Compatibility requirement:` line naming the consumer and stable
+property. `scripts/architecture/check_test_contracts.py` enforces these
+mechanical admission rules in `verify-quick`.
 
 Use these layers:
 
@@ -258,21 +349,18 @@ their owners and reasons to change align.
 Source edits follow surrounding SPDX, licensing, formatting, and naming
 conventions. Formatting and renaming scope matches the active gate.
 
-## Governance and Baselines
+## Governance
 
 Governance checks encode repository-owned, reproducible contracts. Current
 contracts cover UTF-8 text representation, approved control and formatting
-characters, production-source size, shell scripts, architecture documents,
-links, and generated diagrams.
+characters, the compact package-boundary policy, current public headers and
+plugin registrations, shell scripts, architecture documents, links, and
+generated diagrams.
 
-The source-size baseline records the G0 maximum for each legacy large file.
-Each entry identifies its roadmap owner. Reductions update the recorded maximum
-in the same change. Reviewed exceptions contain a reason, tracked TODO,
-maximum extent, and removal condition.
-
-Architecture dependency contracts derive from CMake targets and actual
-includes. R1 records the current graph, defines the intended graph, and then
-turns each dependency direction and cycle rule into a reproducible contract.
+Architecture dependency contracts derive from the current CMake File API graph.
+Each platform configure checks target ownership, allowed dependency direction,
+and product-target cycles against the compact policy. Generated inventories and
+historical source-size ceilings are not continuing contracts after R1.
 
 ## Documentation
 

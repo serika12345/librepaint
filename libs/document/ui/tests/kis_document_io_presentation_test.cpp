@@ -10,6 +10,9 @@
 
 #include <KisImportExportErrorCode.h>
 
+#include <QApplication>
+#include <QSignalSpy>
+
 class KisDocumentIoPresentationTest : public QObject
 {
     Q_OBJECT
@@ -18,7 +21,10 @@ private Q_SLOTS:
     void testSaveNotificationOrder();
     void testCancelledSaveHasNoPresentation();
     void testBatchFailureEmitsStatusWithoutDialog();
+    void testBatchModeSuppressesLoadDialogs();
+    void testLoadSuccessNotification();
     void testAutoSaveStatusMessages();
+    void testAutoSaveFailureUsesStatusFallback();
 };
 
 void KisDocumentIoPresentationTest::testSaveNotificationOrder()
@@ -26,25 +32,31 @@ void KisDocumentIoPresentationTest::testSaveNotificationOrder()
     KisDocumentIoPresentation presentation;
     QStringList notifications;
 
-    connect(&presentation, &KisDocumentIoPresentation::savingCompleted,
-            this, [&notifications] { notifications.append("completed"); });
-    connect(&presentation, &KisDocumentIoPresentation::savingFinished,
-            this, [&notifications](const QString &) { notifications.append("savingFinished"); });
-    connect(&presentation, &KisDocumentIoPresentation::statusBarMessage,
-            this, [&notifications](const QString &, int) { notifications.append("statusBarMessage"); });
+    connect(&presentation, &KisDocumentIoPresentation::savingCompleted, this, [&notifications] {
+        notifications.append("completed");
+    });
+    connect(&presentation, &KisDocumentIoPresentation::savingFinished, this, [&notifications](const QString &) {
+        notifications.append("savingFinished");
+    });
+    connect(&presentation, &KisDocumentIoPresentation::statusBarMessage, this, [&notifications](const QString &, int) {
+        notifications.append("statusBarMessage");
+    });
 
     presentation.notifySaveSucceeded(QStringLiteral("/tmp/example.kra"));
 
-    QCOMPARE(notifications,
-             QStringList({"completed", "savingFinished", "statusBarMessage"}));
+    QCOMPARE(notifications, QStringList({"completed", "savingFinished", "statusBarMessage"}));
 }
 
 void KisDocumentIoPresentationTest::testCancelledSaveHasNoPresentation()
 {
     KisDocumentIoPresentation presentation;
     int statusMessageCount = 0;
-    connect(&presentation, &KisDocumentIoPresentation::statusBarMessage,
-            this, [&statusMessageCount](const QString &, int) { ++statusMessageCount; });
+    connect(&presentation,
+            &KisDocumentIoPresentation::statusBarMessage,
+            this,
+            [&statusMessageCount](const QString &, int) {
+                ++statusMessageCount;
+            });
 
     presentation.presentSaveResult(QStringLiteral("/tmp/example.kra"),
                                    KisImportExportErrorCode(ImportExportCodes::Cancelled),
@@ -59,8 +71,12 @@ void KisDocumentIoPresentationTest::testBatchFailureEmitsStatusWithoutDialog()
 {
     KisDocumentIoPresentation presentation;
     QString statusMessage;
-    connect(&presentation, &KisDocumentIoPresentation::statusBarMessage,
-            this, [&statusMessage](const QString &message, int) { statusMessage = message; });
+    connect(&presentation,
+            &KisDocumentIoPresentation::statusBarMessage,
+            this,
+            [&statusMessage](const QString &message, int) {
+                statusMessage = message;
+            });
 
     presentation.presentSaveResult(QStringLiteral("/tmp/example.kra"),
                                    KisImportExportErrorCode(ImportExportCodes::ErrorWhileWriting),
@@ -72,12 +88,41 @@ void KisDocumentIoPresentationTest::testBatchFailureEmitsStatusWithoutDialog()
     QVERIFY(statusMessage.contains(QStringLiteral("disk full")));
 }
 
+void KisDocumentIoPresentationTest::testBatchModeSuppressesLoadDialogs()
+{
+    KisDocumentIoPresentation presentation;
+
+    presentation.presentMissingFile(QStringLiteral("/tmp/missing.kra"), true);
+    presentation.presentLoadFailure(QStringLiteral("example.kra"),
+                                    KisImportExportErrorCode(ImportExportCodes::ErrorWhileReading),
+                                    QStringLiteral("read failed"),
+                                    QStringLiteral("partial data"),
+                                    true);
+    presentation.presentLoadWarning(QStringLiteral("example.kra"), QStringLiteral("partial data"), true);
+
+    QVERIFY(!QApplication::activeModalWidget());
+}
+
+void KisDocumentIoPresentationTest::testLoadSuccessNotification()
+{
+    KisDocumentIoPresentation presentation;
+    QSignalSpy loadingSpy(&presentation, &KisDocumentIoPresentation::loadingFinished);
+
+    presentation.notifyLoadSucceeded();
+
+    QCOMPARE(loadingSpy.count(), 1);
+}
+
 void KisDocumentIoPresentationTest::testAutoSaveStatusMessages()
 {
     KisDocumentIoPresentation presentation;
     QStringList statusMessages;
-    connect(&presentation, &KisDocumentIoPresentation::statusBarMessage,
-            this, [&statusMessages](const QString &message, int) { statusMessages.append(message); });
+    connect(&presentation,
+            &KisDocumentIoPresentation::statusBarMessage,
+            this,
+            [&statusMessages](const QString &message, int) {
+                statusMessages.append(message);
+            });
 
     presentation.notifyAutoSaveStarted(QStringLiteral("/tmp/.example.kra-autosave.kra"));
     presentation.notifyAutoSavePostponed();
@@ -91,6 +136,21 @@ void KisDocumentIoPresentationTest::testAutoSaveStatusMessages()
     QVERIFY(statusMessages.at(1).contains(QStringLiteral("postponed")));
     QVERIFY(statusMessages.at(2).contains(QStringLiteral("Finished autosaving")));
     QVERIFY(statusMessages.at(3).contains(QStringLiteral("disk full")));
+}
+
+void KisDocumentIoPresentationTest::testAutoSaveFailureUsesStatusFallback()
+{
+    KisDocumentIoPresentation presentation;
+    QSignalSpy statusSpy(&presentation, &KisDocumentIoPresentation::statusBarMessage);
+
+    presentation.notifyAutoSaveFailed(QStringLiteral("example.kra"),
+                                      KisImportExportErrorCode(ImportExportCodes::ErrorWhileWriting),
+                                      QString());
+
+    QCOMPARE(statusSpy.count(), 1);
+    const QList<QVariant> arguments = statusSpy.takeFirst();
+    QVERIFY(arguments.at(0).toString().contains(QStringLiteral("example.kra")));
+    QVERIFY(arguments.at(0).toString().contains(QStringLiteral("Error occurred")));
 }
 
 QTEST_MAIN(KisDocumentIoPresentationTest)

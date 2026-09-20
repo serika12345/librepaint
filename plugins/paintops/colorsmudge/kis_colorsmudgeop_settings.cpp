@@ -23,7 +23,7 @@ KisColorSmudgeOpSettings::~KisColorSmudgeOpSettings()
 
 #include <brushengine/kis_slider_based_paintop_property.h>
 #include <brushengine/kis_combo_based_paintop_property.h>
-#include "kis_paintop_preset.h"
+#include <qpointer.h>
 #include "KisPaintOpPresetUpdateProxy.h"
 #include "KisSmudgeLengthOptionData.h"
 #include "KisPaintThicknessOptionData.h"

@@ -16,6 +16,7 @@
 
 #include <kconfig.h>
 #include <kconfiggroup.h>
+#include <ksharedconfig.h>
 
 #include <klocalizedstring.h>
 
@@ -127,4 +128,3 @@ void KisCommonColors::recalculate()
     KisCommonColorsRecalculationRunner* runner = new KisCommonColorsRecalculationRunner(image, patchCount(), this);
     QThreadPool::globalInstance()->start(runner);
 }
-

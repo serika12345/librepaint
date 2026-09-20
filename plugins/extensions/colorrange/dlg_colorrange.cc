@@ -29,10 +29,11 @@
 #include <kis_selection.h>
 #include <selection/kis_selection_manager.h>
 #include <kis_default_bounds.h>
+#include <kis_image.h>
 #include <KisImageResolutionProxy.h>
 #include <kis_types.h>
 #include <kis_undo_adapter.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <kis_transaction.h>
 #include <kis_cursor.h>
 #include "kis_iterator_ng.h"
@@ -258,5 +259,4 @@ void DlgColorRange::slotDeselectClicked()
         m_page->bnDeselect->setEnabled(false);
     }
 }
-
 

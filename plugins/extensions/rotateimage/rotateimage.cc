@@ -15,12 +15,12 @@
 #include <kundo2magicstring.h>
 #include <kis_image.h>
 #include <kis_types.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <document/kis_image_manager.h>
 #include <nodes/kis_node_manager.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <kis_group_layer.h>
-#include <application/kis_action.h>
+#include <application/ui/orchestration/kis_action.h>
 #include <kis_selection.h>
 
 #include "dlg_rotateimage.h"

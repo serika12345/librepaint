@@ -10,12 +10,14 @@
 
 #include <QOpenGLWidget>
 #include "canvas/kis_canvas_widget_base.h"
-#include "opengl/kis_opengl_image_textures.h"
 
 #include "kritaui_export.h"
+#include <kis_shared_ptr.h>
 #include <kis_update_info.h>
 
 class KisCanvas2;
+class KisOpenGLImageTextures;
+typedef KisSharedPtr<KisOpenGLImageTextures> KisOpenGLImageTexturesSP;
 class QOpenGLShaderProgram;
 class QPainterPath;
 class QResizeEvent;

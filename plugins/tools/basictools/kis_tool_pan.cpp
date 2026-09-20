@@ -11,6 +11,7 @@
 #include "kis_canvas2.h"
 
 #include <KoCanvasController.h>
+#include <KoPointerEvent.h>
 
 #include <KoIcon.h>
 #include <klocalizedstring.h>

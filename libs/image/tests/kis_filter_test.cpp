@@ -12,7 +12,6 @@
 #include "kis_selection.h"
 #include "kis_default_bounds.h"
 #include "KisImageResolutionProxy.h"
-#include "kis_processing_information.h"
 #include "filter/kis_filter.h"
 #include <testutil.h>
 #include "kis_pixel_selection.h"

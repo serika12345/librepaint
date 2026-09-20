@@ -22,10 +22,11 @@
 #include "kis_pixel_selection.h"
 #include <testutil.h>
 #include <testimage.h>
-#include "kis_fill_painter.h"
+#include "kis_painter.h"
+#include "kis_selection.h"
 #include "kis_transaction.h"
 #include "kis_surrogate_undo_adapter.h"
-#include "commands/kis_selection_commands.h"
+#include "commands/kis_set_global_selection_command.h"
 
 
 void KisPixelSelectionTest::testCreation()
@@ -581,4 +582,3 @@ void KisPixelSelectionTest::testOutlineArtifacts()
 }
 
 KISTEST_MAIN(KisPixelSelectionTest)
-

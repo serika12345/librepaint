@@ -7,7 +7,7 @@
 #include "kis_canvas_decoration.h"
 #include "kis_canvas2.h"
 #include "kis_debug.h"
-#include "canvas/kis_canvas_resource_provider.h"
+#include <KoCanvasResourceProvider.h>
 
 struct KisCanvasDecoration::Private {
     bool visible;

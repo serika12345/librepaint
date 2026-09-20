@@ -12,12 +12,13 @@
 #include <kis_cursor.h>
 #include <kis_canvas2.h>
 #include <KoCanvasBase.h>
+#include <KoPointerEvent.h>
 #include <KoResourceServerProvider.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <KisSpinBoxI18nHelper.h>
 #include <KisTagFilterResourceProxyModel.h>
 #include <KisResourceTypes.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include "kis_display_color_converter.h"
 #include "kis_tool_utils.h"
 
@@ -25,6 +26,7 @@
 #include <kis_config_notifier.h>
 #include <dialogs/kis_dlg_preferences.h>
 #include <QSignalBlocker>
+#include <ksharedconfig.h>
 
 namespace
 {

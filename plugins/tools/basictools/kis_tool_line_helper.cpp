@@ -11,8 +11,9 @@
 #include "kis_algebra_2d.h"
 #include "kis_painting_information_builder.h"
 #include "kis_image.h"
+#include "kis_smoothing_options.h"
 
-#include "canvas/kis_canvas_resource_provider.h"
+#include <KoCanvasResourceProvider.h>
 #include <brushengine/kis_paintop_preset.h>
 
 struct KisToolLineHelper::Private

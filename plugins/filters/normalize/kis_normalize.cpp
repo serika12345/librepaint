@@ -6,7 +6,6 @@
 
 #include "kis_normalize.h"
 #include <stdlib.h>
-#include <vector>
 
 #include <QPoint>
 #include <QTime>

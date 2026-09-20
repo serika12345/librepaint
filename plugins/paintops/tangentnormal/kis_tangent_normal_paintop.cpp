@@ -12,6 +12,7 @@
 #include <KoColor.h>
 
 #include <kis_brush.h>
+#include <kis_dab_cache.h>
 #include <kis_paint_device.h>
 #include <kis_painter.h>
 #include <kis_node.h>

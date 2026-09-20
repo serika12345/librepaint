@@ -1,5 +1,5 @@
 kis_add_test(
     kis_webp_test.cpp
     TEST_NAME kis_webp_test
-    LINK_LIBRARIES kritapaintingmetadata kritaui kritatestsdk
+    LINK_LIBRARIES kritapaintingmetadata kritaapplicationui kritatestsdk
 )

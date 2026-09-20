@@ -9,6 +9,7 @@
 #define _KO_CMYK_COLORSPACE_TRAITS_H_
 
 #include <KoCmykColorSpaceMaths.h>
+#include <KoColorSpaceTrait.h>
 
 /** 
  * Base class for CMYK traits, it provides some convenient functions to

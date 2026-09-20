@@ -10,8 +10,6 @@
 #include <QRect>
 #include <QtMath>
 
-#include "kis_debug.h"
-#include "kis_global.h"
 
 KisVisualDiamondSelectorShape::KisVisualDiamondSelectorShape(KisVisualColorSelector *parent,
                                                                Dimensions dimension,

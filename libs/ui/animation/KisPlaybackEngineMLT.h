@@ -9,7 +9,6 @@
 #define KISPLAYBACKENGINEMLT_H
 
 #include <QObject>
-#include "KoCanvasObserverBase.h"
 #include "animation/KisPlaybackEngine.h"
 #include <kritaui_export.h>
 

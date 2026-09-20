@@ -9,6 +9,8 @@
 #include <simpletest.h>
 
 #include <QImage>
+#include <QDateTime>
+#include <QFileInfo>
 #include <QPainter>
 #include <QUuid>
 #include <QBuffer>
@@ -19,7 +21,6 @@
 #include <KoMD5Generator.h>
 #include <KoPattern.h>
 
-#include "DummyResource.h"
 #include "ResourceTestHelper.h"
 #include "KisResourceStorage.h"
 #include "KisResourceLocator.h"
@@ -78,6 +79,30 @@ void TestResourceStorage ::testStorage()
         QVERIFY(storage.type() == KisResourceStorage::StorageType::Memory);
         QVERIFY(!storage.valid());
     }
+}
+
+void TestResourceStorage::testStorageTimestamps()
+{
+    // Consumer: resource cache synchronization.
+    // Operation: Register folder, bundle, and document-local memory storages.
+    // Observable result: Persistent storages report their filesystem modification time and a memory storage keeps its creation timestamp.
+    // Failure impact: Resource synchronization misses changed storage or repeatedly rescans an unchanged document-local storage.
+    const QString folderLocation = QString(FILES_DATA_DIR);
+    KisResourceStorage folderStorage(folderLocation);
+    QCOMPARE(folderStorage.timestamp(), QFileInfo(folderLocation).lastModified());
+
+    const QString bundleLocation = folderLocation + QStringLiteral("/bundles/test1.bundle");
+    KisResourceStorage bundleStorage(bundleLocation);
+    QCOMPARE(bundleStorage.timestamp(), QFileInfo(bundleLocation).lastModified());
+
+    const QDateTime beforeCreation = QDateTime::currentDateTime();
+    KisResourceStorage memoryStorage(QUuid::createUuid().toString());
+    const QDateTime memoryTimestamp = memoryStorage.timestamp();
+    const QDateTime afterCreation = QDateTime::currentDateTime();
+    QVERIFY(memoryTimestamp >= beforeCreation);
+    QVERIFY(memoryTimestamp <= afterCreation);
+    QTest::qWait(5);
+    QCOMPARE(memoryStorage.timestamp(), memoryTimestamp);
 }
 
 void TestResourceStorage::testImportExportResource()
@@ -212,4 +237,3 @@ void TestResourceStorage::cleanupTestCase()
 }
 
 SIMPLE_TEST_MAIN(TestResourceStorage)
-

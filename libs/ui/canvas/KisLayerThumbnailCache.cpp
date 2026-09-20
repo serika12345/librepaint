@@ -7,6 +7,7 @@
 
 #include "application/kis_config.h"
 #include "kis_image.h"
+#include "kis_node.h"
 #include "canvas/KisIdleTasksManager.h"
 #include "kis_layer_utils.h"
 

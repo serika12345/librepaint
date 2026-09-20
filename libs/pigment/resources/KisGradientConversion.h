@@ -11,11 +11,11 @@
 
 #include <QGradient>
 
-#include <KoAbstractGradient.h>
-#include <KoStopGradient.h>
-#include <KoSegmentGradient.h>
-#include <KoCanvasResourcesInterface.h>
+#include "KoAbstractGradient.h"
+#include "KoSegmentGradient.h"
+#include "KoStopGradient.h"
 #include "kritapigment_export.h"
+#include <KoCanvasResourcesInterface.h>
 
 /**
  * @brief Namespace containing functions to convert to/from different types of gradients

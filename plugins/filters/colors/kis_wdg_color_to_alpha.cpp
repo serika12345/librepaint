@@ -14,7 +14,7 @@
 #include <KoColor.h>
 #include <KoToolManager.h>
 
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <filter/kis_filter.h>

@@ -6,7 +6,6 @@
  */
 
 #include "kis_asl_layer_style_serializer.h"
-#include "kis_image.h"
 
 #include <QDomDocument>
 #include <QMultiHash>
@@ -29,11 +28,9 @@
 #include <kis_pointer_utils.h>
 
 #include "psd.h"
-#include "kis_global.h"
 
 #include "asl/kis_asl_reader.h"
 #include "asl/kis_asl_xml_parser.h"
-#include "asl/kis_asl_writer_utils.h"
 
 #include "asl/kis_asl_xml_writer.h"
 #include "asl/kis_asl_writer.h"

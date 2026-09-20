@@ -7,11 +7,14 @@
 #include "kra_converter.h"
 
 #include <QApplication>
+#include <QDomDocument>
+#include <QIODevice>
 #include <QUrl>
 #include <QVersionNumber>
 
 #include <KoStore.h>
 #include <KoStoreDevice.h>
+#include <KoUpdater.h>
 #include <KoColorSpaceRegistry.h>
 #include <metadata/KoDocumentInfo.h>
 #include <KoXmlWriter.h>
@@ -22,6 +25,9 @@
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_paint_layer.h>
+
+#include "kis_kra_loader.h"
+#include "kis_kra_saver.h"
 
 static const char CURRENT_DTD_VERSION[] = "2.0";
 

@@ -12,7 +12,6 @@
 #include <KoColorConversions.h>
 #include <KoColorProfile.h>
 
-#include "kis_debug.h"
 #include "kis_assert.h"
 
 #include <KoColor.h>
@@ -29,7 +28,7 @@
 #include <opengl/KisOpenGLModeProber.h>
 #include <canvas/KisDisplayConfig.h>
 
-#include <application/KisPlatformPluginInterfaceFactory.h>
+#include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 
 #include <config-use-surface-color-management-api.h>
 #if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API

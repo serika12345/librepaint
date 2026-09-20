@@ -11,39 +11,34 @@
 
 #include "kis_tool_gradient.h"
 
-#include <cfloat>
+#include <cmath>
 
-#include <QApplication>
 #include <QPainter>
+#include <QPainterPath>
 #include <QLabel>
-#include <QLayout>
 #include <QCheckBox>
+#include <QWidget>
 
-#include <kis_transaction.h>
-#include <kis_debug.h>
-#include <klocalizedstring.h>
+#include <KisImageSignals.h>
+#include <kis_image.h>
 #include <kcombobox.h>
+#include <ksharedconfig.h>
+#include <kundo2magicstring.h>
 
 
 #include <KoPointerEvent.h>
 #include <KoCanvasBase.h>
-#include <KoViewConverter.h>
-#include <KoUpdater.h>
-#include <KoProgressUpdater.h>
 
+#include <kis_default_bounds_base.h>
 #include <kis_gradient_painter.h>
+#include <kis_paint_device.h>
 #include <kis_painter.h>
 #include <canvas/kis_canvas_resource_provider.h>
-#include <kis_layer.h>
-#include <kis_selection.h>
-#include <kis_paint_layer.h>
 
 #include <canvas/kis_canvas2.h>
-#include <workspace/KisViewManager.h>
-#include <kis_cmb_composite.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <kis_slider_spin_box.h>
 #include <kis_cursor.h>
-#include <application/kis_config.h>
 #include "kis_resources_snapshot.h"
 #include "kis_command_utils.h"
 #include "kis_processing_applicator.h"
@@ -197,7 +192,7 @@ QPointF KisToolGradient::straightLine(QPointF point)
     QPointF comparison = point - m_startPos;
     QPointF result;
 
-    if (fabs(comparison.x()) > fabs(comparison.y())) {
+    if (std::abs(comparison.x()) > std::abs(comparison.y())) {
         result.setX(point.x());
         result.setY(m_startPos.y());
     } else {

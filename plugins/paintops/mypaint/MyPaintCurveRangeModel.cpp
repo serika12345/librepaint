@@ -5,7 +5,6 @@
  */
 
 #include "MyPaintCurveRangeModel.h"
-#include "kis_algebra_2d.h"
 #include "kis_cubic_curve.h"
 #include <lager/lenses.hpp>
 #include <lager/constant.hpp>

@@ -60,8 +60,6 @@
 #include <application/kis_config.h>
 #include <KisKineticScroller.h>
 
-#include "kis_double_parse_spin_box.h"
-#include "kis_int_parse_spin_box.h"
 
 /*!
     \class KisUndoView

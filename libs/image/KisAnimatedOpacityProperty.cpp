@@ -7,6 +7,12 @@
 
 #include "KisAnimatedOpacityProperty.h"
 
+#include "kis_default_bounds_node_wrapper.h"
+
+#include <KoProperties.h>
+
+#include <QVariant>
+
 KisAnimatedOpacityProperty::KisAnimatedOpacityProperty(KisDefaultBoundsBaseSP bounds, KoProperties * const props, quint8 defaultValue, QObject *parent)
     : QObject(parent),
       m_bounds(bounds),

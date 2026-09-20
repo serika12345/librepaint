@@ -33,7 +33,7 @@
 #include <kis_selection.h>
 #include <kis_layer.h>
 #include <kis_canvas2.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <kis_floating_message.h>
 #include <kis_group_layer.h>
 #include <kis_resources_snapshot.h>

@@ -13,7 +13,6 @@
 
 #include "input/kis_input_profile.h"
 #include "input/kis_shortcut_configuration.h"
-#include "kis_input_button.h"
 #include "kis_mouse_input_editor.h"
 #include "kis_wheel_input_editor.h"
 #include "kis_key_input_editor.h"

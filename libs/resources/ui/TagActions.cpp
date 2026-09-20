@@ -6,18 +6,12 @@
  */
 #include "TagActions.h"
 
-#include <QDebug>
+#include "TagActionsSource_p.h"
+
+#include <QHBoxLayout>
 #include <QLabel>
-#include <QGridLayout>
 
-#include <KoIcon.h>
 #include <klocalizedstring.h>
-#include <KoResource.h>
-
-#include <KisPopupSelfActivatingLineEdit.h>
-#include <KisTag.h>
-
-#include "kis_debug.h"
 
 // ############ Simple Existing Tag Action ##############
 
@@ -53,10 +47,11 @@ LineEditAction::LineEditAction(QObject* parent)
     QWidget* pWidget = new QWidget (0);
     QHBoxLayout* pLayout = new QHBoxLayout();
     m_label = new QLabel(0);
-    m_editBox = new KisPopupSelfActivatingLineEdit(0);
+    m_editBox = TagActionsSource::createLineEdit(nullptr);
     m_editBox->setClearButtonEnabled(true);
     m_AddButton = new QPushButton();
-    m_AddButton->setIcon(koIcon("list-add"));
+    m_AddButton->setIcon(
+        TagActionsSource::loadIcon(QStringLiteral("list-add")));
     pLayout->addWidget(m_label);
     pLayout->addWidget(m_editBox);
     pLayout->addWidget(m_AddButton);
@@ -135,7 +130,7 @@ QString LineEditAction::userText()
 UserInputTagAction::UserInputTagAction(QObject* parent)
     : LineEditAction(parent)
 {
-    setIcon(koIcon("document-new"));
+    setIcon(TagActionsSource::loadIcon(QStringLiteral("document-new")));
     setPlaceholderText(i18n("New tag"));
     setCloseParentOnTrigger(true);
 }
@@ -154,7 +149,7 @@ void UserInputTagAction::onTriggered()
 NewTagResourceAction::NewTagResourceAction(KoResourceSP resource, QObject *parent)
     : LineEditAction(parent)
 {
-    setIcon(koIcon("document-new"));
+    setIcon(TagActionsSource::loadIcon(QStringLiteral("document-new")));
     setPlaceholderText(i18n("New tag"));
     setCloseParentOnTrigger(true);
     m_resource = resource;
@@ -197,4 +192,3 @@ void CompareWithOtherTagFunctor::setReferenceTag(KisTagSP referenceTag) {
 KisTagSP CompareWithOtherTagFunctor::referenceTag() {
     return m_referenceTag;
 }
-

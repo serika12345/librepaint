@@ -46,7 +46,7 @@ template <typename ModifyFunction>
 template <class Policy>
 bool compareShapePropertiesEqual(const QList<KoShape*> shapes, const Policy &policy)
 {
-    if (shapes.size() == 1) return true;
+    if (shapes.size() <= 1) return true;
 
     typename Policy::PointerType bg =
             policy.getProperty(shapes.first());

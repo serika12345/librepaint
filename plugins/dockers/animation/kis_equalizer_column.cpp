@@ -9,7 +9,6 @@
 #include <QVBoxLayout>
 #include <QApplication>
 
-#include "kis_debug.h"
 
 #include "kis_equalizer_slider.h"
 #include "kis_equalizer_button.h"

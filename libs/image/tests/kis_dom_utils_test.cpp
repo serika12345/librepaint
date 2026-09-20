@@ -9,7 +9,6 @@
 #include <simpletest.h>
 
 #include "kis_dom_utils.h"
-#include "kis_debug.h"
 
 
 const qreal f1 = 0.0003;

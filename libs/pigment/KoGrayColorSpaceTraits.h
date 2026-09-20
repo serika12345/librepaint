@@ -7,6 +7,8 @@
 #ifndef _KO_GRAY_COLORSPACE_TRAITS_H_
 #define _KO_GRAY_COLORSPACE_TRAITS_H_
 
+#include <KoColorSpaceTrait.h>
+
 /** 
  * Base class for graya traits, it provides some convenient functions to
  * access gray channels through an explicit API.

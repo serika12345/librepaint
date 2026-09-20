@@ -13,7 +13,6 @@
 #include <QPainter>
 #include <QPen>
 
-#include "kis_global.h"
 
 KoMarkerItemDelegate::KoMarkerItemDelegate(KoFlake::MarkerPosition position, QObject *parent)
 : QAbstractItemDelegate(parent)

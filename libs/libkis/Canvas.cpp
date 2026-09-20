@@ -6,7 +6,7 @@
 #include "Canvas.h"
 #include <KoCanvasBase.h>
 #include <kis_canvas2.h>
-#include <workspace/KisView.h>
+#include <application/ui/workspace/KisView.h>
 #include <KoCanvasController.h>
 #include <kis_canvas_controller.h>
 #include <canvas/kis_zoom_manager.h>

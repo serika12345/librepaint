@@ -18,7 +18,6 @@
 #include "kis_tangent_normal_paintop_settings_widget.h"
 #include "kis_simple_paintop_factory.h"
 
-#include "kis_global.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(TangentNormalPaintOpPluginFactory, "kritatangentnormalpaintop.json", registerPlugin<TangentNormalPaintOpPlugin>();)
 

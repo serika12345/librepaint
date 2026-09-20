@@ -27,7 +27,7 @@
 #include "application/kis_config.h"
 #include "KisAnimationRenderingOptions.h"
 
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 
 #ifdef Q_OS_ANDROID
 #include <KisMediaEncoderWrapper.h>

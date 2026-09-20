@@ -1,5 +1,5 @@
 kis_add_test(
     KisRawTest.cpp
     TEST_NAME KisRawTest
-    LINK_LIBRARIES kritaui kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritatestsdk
     )

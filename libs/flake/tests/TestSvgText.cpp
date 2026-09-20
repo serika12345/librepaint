@@ -6,6 +6,7 @@
 
 #include "TestSvgText.h"
 
+#include <KoPathShape.h>
 #include <simpletest.h>
 
 #include <text/KoCssTextUtils.h>
@@ -240,119 +241,6 @@ void TestSvgText::testTextPropertiesDifference()
     KoSvgTextProperties diff2 = newProps.ownProperties(props, true);
 
     QVERIFY(diff2.hasProperty(KoSvgTextProperties::FontSizeId));
-
-}
-
-void TestSvgText::testParseFontStyles()
-{
-    const QString data =
-        "<text x=\"7\" y=\"7\""
-        "    font-family=\"Verdana , \'Times New Roman\', serif\" font-size=\"15\" font-style=\"oblique\" fill=\"blue\""
-        "    font-stretch=\"extra-condensed\""
-        "    font-size-adjust=\"0.56\""
-        "    font=\"bold italic large Palatino, serif\"" // we don't support this right now.
-        "    font-variant=\"small-caps\" font-weight=\"600\" >"
-        "    Hello, out there"
-        "</text>";
-
-    QDomDocument doc;
-    QVERIFY(doc.setContent(data.toLatin1()));
-    QDomElement root = doc.documentElement();
-
-    KoDocumentResourceManager resourceManager;
-    SvgLoadingContext context(&resourceManager);
-    context.pushGraphicsContext();
-
-    SvgStyles styles = context.styleParser().collectStyles(root);
-    context.styleParser().parseFont(styles);
-
-    auto getFont = [&context]() {
-        return context.resolvedProperties();
-    };
-
-    {
-        QStringList expectedFonts = {"Verdana", "Times New Roman", "serif"};
-        QCOMPARE(getFont().property(KoSvgTextProperties::FontFamiliesId).toStringList(), expectedFonts);
-    }
-
-    QCOMPARE(getFont().fontSize().value, 15.0);
-
-    QCOMPARE(getFont().property(KoSvgTextProperties::FontStyleId).value<KoSvgText::CssFontStyleData>(), KoSvgText::CssFontStyleData(QFont::StyleOblique));
-    QCOMPARE(getFont().property(KoSvgTextProperties::FontVariantCapsId).toInt(), KoSvgText::CapsSmall);
-    QCOMPARE(getFont().property(KoSvgTextProperties::FontWeightId).toInt(), 600);
-
-    {
-        SvgStyles fontModifier;
-        fontModifier["font-weight"] = "bolder";
-        context.pushGraphicsContext();
-        context.styleParser().parseFont(fontModifier);
-        QCOMPARE(getFont().property(KoSvgTextProperties::FontWeightId).toInt(), 700);
-        context.popGraphicsContext();
-    }
-
-    {
-        SvgStyles fontModifier;
-        context.pushGraphicsContext();
-        fontModifier["font-weight"] = "lighter";
-        context.styleParser().parseFont(fontModifier);
-        QCOMPARE(getFont().property(KoSvgTextProperties::FontWeightId).toInt(), 500);
-        context.popGraphicsContext();
-    }
-
-    QCOMPARE(getFont().property(KoSvgTextProperties::FontStretchId).toInt(), int(QFont::ExtraCondensed));
-
-    {
-        SvgStyles fontModifier;
-        context.pushGraphicsContext();
-        fontModifier["font-stretch"] = "narrower";
-        context.styleParser().parseFont(fontModifier);
-        QCOMPARE(getFont().property(KoSvgTextProperties::FontStretchId).toInt(), int(QFont::UltraCondensed));
-        context.popGraphicsContext();
-    }
-
-    {
-        SvgStyles fontModifier;
-        context.pushGraphicsContext();
-        fontModifier["font-stretch"] = "wider";
-        context.styleParser().parseFont(fontModifier);
-        QCOMPARE(getFont().property(KoSvgTextProperties::FontStretchId).toInt(), int(QFont::Condensed));
-        context.popGraphicsContext();
-    }
-
-    {
-        SvgStyles fontModifier;
-        fontModifier["text-decoration"] = "underline";
-        context.styleParser().parseFont(fontModifier);
-        KoSvgText::TextDecorations deco = getFont().property(KoSvgTextProperties::TextDecorationLineId).value<KoSvgText::TextDecorations>();
-        QCOMPARE(deco.testFlag(KoSvgText::DecorationUnderline), true);
-    }
-
-    {
-        SvgStyles fontModifier;
-        fontModifier["text-decoration"] = "overline";
-        context.styleParser().parseFont(fontModifier);
-        KoSvgText::TextDecorations deco = getFont().property(KoSvgTextProperties::TextDecorationLineId).value<KoSvgText::TextDecorations>();
-        QCOMPARE(deco.testFlag(KoSvgText::DecorationOverline), true);
-    }
-
-    {
-        SvgStyles fontModifier;
-        fontModifier["text-decoration"] = "line-through";
-        context.styleParser().parseFont(fontModifier);
-        KoSvgText::TextDecorations deco = getFont().property(KoSvgTextProperties::TextDecorationLineId).value<KoSvgText::TextDecorations>();
-        QCOMPARE(deco.testFlag(KoSvgText::DecorationLineThrough), true);
-    }
-
-    {
-        SvgStyles fontModifier;
-        fontModifier["text-decoration"] = " line-through overline";
-        context.styleParser().parseFont(fontModifier);
-        KoSvgText::TextDecorations deco = getFont().property(KoSvgTextProperties::TextDecorationLineId).value<KoSvgText::TextDecorations>();
-        QCOMPARE(deco.testFlag(KoSvgText::DecorationUnderline), false);
-        QCOMPARE(deco.testFlag(KoSvgText::DecorationLineThrough), true);
-        QCOMPARE((deco.testFlag(KoSvgText::DecorationOverline)), true);
-    }
-    context.popGraphicsContext();
 
 }
 

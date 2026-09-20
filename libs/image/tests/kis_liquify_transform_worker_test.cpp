@@ -7,6 +7,7 @@
 #include "kis_liquify_transform_worker_test.h"
 
 #include <simpletest.h>
+#include <QDomDocument>
 
 #include <KoColor.h>
 #include <KoProgressUpdater.h>

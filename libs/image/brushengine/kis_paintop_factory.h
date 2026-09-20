@@ -9,12 +9,13 @@
 
 #include "kis_types.h"
 #include "kritaimage_export.h"
-#include <QObject>
-#include <QString>
 #include <QIcon>
+#include <QList>
+#include <QObject>
+#include <QSharedPointer>
+#include <QString>
 #include <QStringList>
 #include <kis_threaded_text_rendering_workaround.h>
-#include <brushengine/kis_paintop_settings.h>
 
 class KisPainter;
 class KisPaintOp;
@@ -24,6 +25,9 @@ class KisInterstrokeDataFactory;
 
 class KoResource;
 using KoResourceSP = QSharedPointer<KoResource>;
+
+class KoCanvasResourcesInterface;
+using KoCanvasResourcesInterfaceSP = QSharedPointer<KoCanvasResourcesInterface>;
 
 class KisResourcesInterface;
 using KisResourcesInterfaceSP = QSharedPointer<KisResourcesInterface>;

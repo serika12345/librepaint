@@ -8,6 +8,7 @@
 #include "KoJsonTrader.h"
 
 #include "kis_debug.h"
+#include "kis_pointer_utils.h"
 
 #include <QCoreApplication>
 #include <QPluginLoader>
@@ -253,6 +254,10 @@ KoJsonTrader::Plugin::~Plugin()
 
 QObject *KoJsonTrader::Plugin::instance() const
 {
+    if (!m_staticMetaData && !m_loader) {
+        return nullptr;
+    }
+
     QMutexLocker l(m_mutex);
     if (m_staticMetaData) {
         return KPluginFactory::loadFactory(*m_staticMetaData).plugin;
@@ -267,7 +272,7 @@ QJsonObject KoJsonTrader::Plugin::metaData() const
         result.insert(QStringLiteral("MetaData"), m_staticMetaData->rawData());
         return result;
     }
-    return m_loader->metaData();
+    return m_loader ? m_loader->metaData() : QJsonObject();
 }
 
 QString KoJsonTrader::Plugin::fileName() const
@@ -275,7 +280,7 @@ QString KoJsonTrader::Plugin::fileName() const
     if (m_staticMetaData) {
         return m_staticMetaData->fileName();
     }
-    return m_loader->fileName();
+    return m_loader ? m_loader->fileName() : QString();
 }
 
 QString KoJsonTrader::Plugin::errorString() const
@@ -283,5 +288,5 @@ QString KoJsonTrader::Plugin::errorString() const
     if (m_staticMetaData) {
         return KPluginFactory::loadFactory(*m_staticMetaData).errorString;
     }
-    return m_loader->errorString();
+    return m_loader ? m_loader->errorString() : QString();
 }

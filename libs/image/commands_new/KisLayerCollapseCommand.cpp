@@ -5,12 +5,14 @@
  */
 
 #include "KisLayerCollapseCommand.h"
+#include "KisLayerCollapseCommandNodeAccess_p.h"
 
-#include <kis_node.h>
-
+#include <kis_assert.h>
 
 KisLayerCollapseCommand::KisLayerCollapseCommand(KisNodeSP node, bool oldValue, bool newValue, KUndo2Command *parent)
-    : KUndo2Command(newValue ? kundo2_i18n("Collapse node %1", node->name()) : kundo2_i18n("Expand node %1", node->name()), parent)
+    : KUndo2Command(newValue ? kundo2_i18n("Collapse node %1", KisLayerCollapseCommandNodeAccess::name(node.data()))
+                             : kundo2_i18n("Expand node %1", KisLayerCollapseCommandNodeAccess::name(node.data())),
+                    parent)
     , m_node(node)
     , m_oldValue(oldValue)
     , m_newValue(newValue)
@@ -18,23 +20,23 @@ KisLayerCollapseCommand::KisLayerCollapseCommand(KisNodeSP node, bool oldValue, 
 }
 
 KisLayerCollapseCommand::KisLayerCollapseCommand(KisNodeSP node, bool newValue, KUndo2Command *parent)
-    : KisLayerCollapseCommand(node, node->collapsed(), newValue, parent)
+    : KisLayerCollapseCommand(node, KisLayerCollapseCommandNodeAccess::collapsed(node.data()), newValue, parent)
 {
 }
 
 void KisLayerCollapseCommand::redo()
 {
-    m_node->setCollapsed(m_newValue);
+    KisLayerCollapseCommandNodeAccess::setCollapsed(m_node.data(), m_newValue);
 }
 
 void KisLayerCollapseCommand::undo()
 {
-    m_node->setCollapsed(m_oldValue);
+    KisLayerCollapseCommandNodeAccess::setCollapsed(m_node.data(), m_oldValue);
 }
 
 bool KisLayerCollapseCommand::mergeWith(const KUndo2Command *other)
 {
-    const KisLayerCollapseCommand *cmd = dynamic_cast<const KisLayerCollapseCommand*>(other);
+    const KisLayerCollapseCommand *cmd = dynamic_cast<const KisLayerCollapseCommand *>(other);
 
     if (cmd && cmd->m_node == m_node) {
         // verify the commands are actually chained

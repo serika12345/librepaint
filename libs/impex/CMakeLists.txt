@@ -1,15 +1,236 @@
 set(kritaimpex_LIB_SRCS
-    KisImportExportAdditionalChecks.cpp
-    KisImportExportErrorCode.cpp
+    KisImportExportFilterFactory.cpp
+)
+
+add_library(kritaimpexfilterstateobjects OBJECT
     KisImportExportFilter.cpp
-    KisImportExportFilterRegistry.cpp
+)
+
+add_library(kritaimpexfilterprogressobjects OBJECT
+    KisImportExportFilterProgress.cpp
+)
+
+add_library(kritaimpexfilterconfigurationobjects OBJECT
+    KisImportExportFilterConfiguration.cpp
+)
+
+add_library(kritaimpexfiltersavedconfigurationobjects OBJECT
+    KisImportExportFilterSavedConfiguration.cpp
+)
+
+add_library(kritaimpexfiltercapabilityobjects OBJECT
+    KisImportExportFilterCapabilities.cpp
+)
+
+add_library(kritaimpexfiltercolormodelobjects OBJECT
+    KisImportExportFilterColorModels.cpp
+)
+
+add_library(kritaimpexfilterverificationobjects OBJECT
+    KisImportExportFilterVerification.cpp
+)
+
+add_library(kritaimpexfilterzipverificationobjects OBJECT
+    KisImportExportFilterZipVerification.cpp
+)
+
+add_library(kritaimpexexportcheckbaseobjects OBJECT
     KisExportCheckBase.cpp
-    KisPreExportChecker.cpp
+)
+
+add_library(kritaimpexexportcheckregistryobjects OBJECT
     KisExportCheckRegistry.cpp
+)
+
+add_library(kritaimpexpreexportcheckerobjects OBJECT
+    KisPreExportChecker.cpp
+)
+
+add_library(kritaimpexadditionalchecksobjects OBJECT
+    KisImportExportAdditionalChecks.cpp
+)
+
+add_library(kritaimpexfilterregistryobjects OBJECT
+    KisImportExportFilterRegistry.cpp
+)
+
+add_library(kritaimpexerrorobjects OBJECT
+    KisImportExportErrorCode.cpp
+)
+
+add_library(kritaimpexmetadataobjects OBJECT
     metadata/KoDocumentInfo.cpp
 )
 
-kis_add_library(kritaimpex SHARED ${kritaimpex_HEADERS_MOC} ${kritaimpex_LIB_SRCS})
+set(kritaimpex_OBJECT_TARGETS
+    kritaimpexfilterstateobjects
+    kritaimpexfilterprogressobjects
+    kritaimpexfilterconfigurationobjects
+    kritaimpexfiltersavedconfigurationobjects
+    kritaimpexfiltercapabilityobjects
+    kritaimpexfiltercolormodelobjects
+    kritaimpexfilterverificationobjects
+    kritaimpexfilterzipverificationobjects
+    kritaimpexexportcheckbaseobjects
+    kritaimpexexportcheckregistryobjects
+    kritaimpexpreexportcheckerobjects
+    kritaimpexadditionalchecksobjects
+    kritaimpexfilterregistryobjects
+    kritaimpexerrorobjects
+    kritaimpexmetadataobjects
+)
+
+foreach(target IN LISTS kritaimpex_OBJECT_TARGETS)
+    target_compile_definitions(${target} PRIVATE kritaimpex_EXPORTS)
+    target_include_directories(${target}
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    )
+    set_target_properties(${target} PROPERTIES POSITION_INDEPENDENT_CODE ON)
+endforeach()
+
+set(kritaimpex_FILTER_HEADER_INCLUDE_DIRECTORIES
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/flake>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+)
+
+add_library(kritaimpexfilterheaders INTERFACE)
+target_include_directories(kritaimpexfilterheaders INTERFACE ${kritaimpex_FILTER_HEADER_INCLUDE_DIRECTORIES})
+target_link_libraries(kritaimpexfilterheaders
+    INTERFACE
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        KF${KF_MAJOR}::I18n
+)
+
+target_link_libraries(kritaimpexfilterstateobjects PUBLIC kritaimpexfilterheaders)
+
+target_link_libraries(kritaimpexfilterprogressobjects
+    PUBLIC
+        kritaimpexfilterheaders
+        kritawidgetutils
+)
+
+target_link_libraries(kritaimpexfilterconfigurationobjects
+    PUBLIC
+        kritaimpexfilterheaders
+)
+
+target_link_libraries(kritaimpexfiltersavedconfigurationobjects
+    PUBLIC
+        kritaimpexfilterheaders
+        kritaimage
+)
+
+target_link_libraries(kritaimpexfiltercapabilityobjects
+    PUBLIC
+        kritaimpexfilterheaders
+)
+
+target_link_libraries(kritaimpexfiltercolormodelobjects
+    PUBLIC
+        kritaimpexfilterheaders
+        kritaimage
+        kritapigment
+)
+
+target_link_libraries(kritaimpexfilterverificationobjects
+    PUBLIC
+        kritaimpexfilterheaders
+)
+
+target_link_libraries(kritaimpexfilterzipverificationobjects
+    PUBLIC
+        kritaimpexfilterheaders
+        kritaresourcestorage
+)
+
+set_target_properties(
+    kritaimpexfilterprogressobjects
+    kritaimpexfilterconfigurationobjects
+    kritaimpexfiltersavedconfigurationobjects
+    kritaimpexfiltercapabilityobjects
+    kritaimpexfiltercolormodelobjects
+    kritaimpexfilterverificationobjects
+    kritaimpexfilterzipverificationobjects
+    PROPERTIES AUTOMOC OFF
+)
+
+target_link_libraries(kritaimpexexportcheckbaseobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+)
+
+target_link_libraries(kritaimpexexportcheckregistryobjects
+    PUBLIC
+        kritaimage
+        kritapigment
+        Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::I18n
+)
+
+target_link_libraries(kritaimpexpreexportcheckerobjects
+    PUBLIC
+        kritaimage
+        Qt${QT_MAJOR_VERSION}::Core
+)
+
+target_link_libraries(kritaimpexadditionalchecksobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+)
+
+target_link_libraries(kritaimpexfilterregistryobjects
+    PUBLIC
+        kritaplugin
+        Qt${QT_MAJOR_VERSION}::Core
+)
+
+target_link_libraries(kritaimpexerrorobjects
+    PUBLIC
+        kritaglobal
+        Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::I18n
+)
+
+target_link_libraries(kritaimpexmetadataobjects
+    PUBLIC
+        kritaresources
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::I18n
+)
+
+kis_add_library(kritaimpex SHARED
+    ${kritaimpex_HEADERS_MOC}
+    ${kritaimpex_LIB_SRCS}
+    $<TARGET_OBJECTS:kritaimpexfilterstateobjects>
+    $<TARGET_OBJECTS:kritaimpexfilterprogressobjects>
+    $<TARGET_OBJECTS:kritaimpexfilterconfigurationobjects>
+    $<TARGET_OBJECTS:kritaimpexfiltersavedconfigurationobjects>
+    $<TARGET_OBJECTS:kritaimpexfiltercapabilityobjects>
+    $<TARGET_OBJECTS:kritaimpexfiltercolormodelobjects>
+    $<TARGET_OBJECTS:kritaimpexfilterverificationobjects>
+    $<TARGET_OBJECTS:kritaimpexfilterzipverificationobjects>
+    $<TARGET_OBJECTS:kritaimpexexportcheckbaseobjects>
+    $<TARGET_OBJECTS:kritaimpexexportcheckregistryobjects>
+    $<TARGET_OBJECTS:kritaimpexpreexportcheckerobjects>
+    $<TARGET_OBJECTS:kritaimpexadditionalchecksobjects>
+    $<TARGET_OBJECTS:kritaimpexfilterregistryobjects>
+    $<TARGET_OBJECTS:kritaimpexerrorobjects>
+    $<TARGET_OBJECTS:kritaimpexmetadataobjects>
+)
 
 generate_export_header(kritaimpex BASE_NAME kritaimpex)
 
@@ -33,13 +254,108 @@ set_target_properties(kritaimpex
 
 install(TARGETS kritaimpex  ${INSTALL_TARGETS_DEFAULT_ARGS})
 
+add_library(kritaimpexuserfeedbackobjects OBJECT
+    ui/KisImportUserFeedbackInterface.cpp
+    ui/KisSynchronousImportUserFeedback.cpp
+)
+target_compile_definitions(kritaimpexuserfeedbackobjects PRIVATE kritaapplicationui_EXPORTS)
+target_include_directories(kritaimpexuserfeedbackobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ui>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+)
+target_link_libraries(kritaimpexuserfeedbackobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritaimpexuserfeedbackobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaimpexremotefilefetcherobjects OBJECT
+    ui/KisRemoteFileFetcher.cpp
+)
+target_compile_definitions(kritaimpexremotefilefetcherobjects PRIVATE kritaapplicationui_EXPORTS)
+target_include_directories(kritaimpexremotefilefetcherobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ui>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+)
+target_link_libraries(kritaimpexremotefilefetcherobjects
+    PUBLIC
+        kritaglobal
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Network
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritaimpexremotefilefetcherobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritaimpexutilsobjects OBJECT
+    ui/KisImportExportUtils.cpp
+)
+target_compile_definitions(kritaimpexutilsobjects PRIVATE kritaapplicationui_EXPORTS)
+target_include_directories(kritaimpexutilsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ui>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/ui/impex
+)
+target_link_libraries(kritaimpexutilsobjects
+    PUBLIC
+        kritaimpexerrorobjects
+        kritaimpexuserfeedbackobjects
+        kritaimage
+        kritapigment
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritaimpexutilsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+if(NOT IOS)
+    add_library(kritaimpexanimationoptionsstateobjects OBJECT
+        animation/KisAnimationRenderingOptions.cpp
+    )
+    add_library(kritaimpexanimationoptionspersistenceobjects OBJECT
+        animation/KisAnimationRenderingOptionsPersistence.cpp
+    )
+    add_library(kritaimpexanimationrenderdimensionsobjects OBJECT
+        animation/KisAnimationRenderDimensions.cpp
+    )
+    foreach(target
+            kritaimpexanimationoptionsstateobjects
+            kritaimpexanimationoptionspersistenceobjects
+            kritaimpexanimationrenderdimensionsobjects)
+        target_compile_definitions(${target} PRIVATE kritaapplicationui_EXPORTS)
+        target_include_directories(${target}
+            PUBLIC
+                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/animation>
+                $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+        )
+        set_target_properties(${target} PROPERTIES
+            AUTOMOC OFF
+            POSITION_INDEPENDENT_CODE ON
+        )
+    endforeach()
+    target_link_libraries(kritaimpexanimationoptionsstateobjects
+        PUBLIC
+            kritaimpexfilterheaders
+            kritaglobal
+    )
+    target_link_libraries(kritaimpexanimationoptionspersistenceobjects
+        PUBLIC
+            kritaimpexfilterheaders
+            kritaimage
+    )
+    target_link_libraries(kritaimpexanimationrenderdimensionsobjects
+        PUBLIC
+            kritaimpexfilterheaders
+    )
+endif()
+
 set(kritaimpexui_LIB_SRCS
     ui/KisImportExportAsyncFeedback.cpp
     ui/KisImportExportManager.cpp
-    ui/KisImportExportUtils.cpp
-    ui/KisImportUserFeedbackInterface.cpp
-    ui/KisRemoteFileFetcher.cpp
-    ui/KisSynchronousImportUserFeedback.cpp
     ui/KisSaveGroupVisitor.cpp
     ui/KisImportExportDialogs.cpp
     ui/kis_dlg_missing_color_profile.cpp
@@ -63,7 +379,6 @@ if(NOT IOS)
     list(APPEND kritaimpexui_LIB_SRCS
         animation/KisFFMpegWrapper.cpp
         animation/KisVideoSaver.cpp
-        animation/KisAnimationRenderingOptions.cpp
         animation/KisAnimationRender.cpp
         animation/KisDlgAnimationRenderer.cpp
         animation/VideoExportOptionsDialog.cpp
@@ -89,20 +404,14 @@ if(ANDROID)
     )
 endif()
 
-# These sources are separated as one ownership unit while their established
-# ABI is still published by kritaui. The object library ensures every public
-# implementation is incorporated into kritaui, including entry points used
-# only by dynamically loaded import/export plugins. Later document and
-# application package splits can turn this unit into an independently linked
-# shared library without moving the import-export sources again.
 kis_add_library(kritaimpexui OBJECT ${kritaimpexui_LIB_SRCS})
-target_compile_definitions(kritaimpexui PRIVATE kritaui_EXPORTS)
+target_compile_definitions(kritaimpexui PRIVATE kritaapplicationui_EXPORTS)
 
 target_include_directories(kritaimpexui
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ui>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/animation>
-        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/ui>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
     PRIVATE
         ${CMAKE_SOURCE_DIR}/libs/ui
         ${CMAKE_SOURCE_DIR}/libs/ui/canvas
@@ -116,6 +425,7 @@ target_include_directories(kritaimpexui
 
 target_link_libraries(kritaimpexui
     PUBLIC
+        kritaapplication
         kritaimpex
         kritaimage
         kritapainting

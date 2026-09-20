@@ -32,6 +32,7 @@ inline double drand48()
 
 #include <brushengine/kis_paint_information.h>
 #include <brushengine/kis_paintop_preset.h>
+#include <brushengine/kis_paintop_settings.h>
 
 #define GMP_IMAGE_WIDTH 3274
 #define GMP_IMAGE_HEIGHT 2067

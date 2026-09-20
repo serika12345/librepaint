@@ -8,7 +8,7 @@
 #include <testutil.h>
 #include "kis_auto_brush.h"
 #include "kis_auto_brush_factory.h"
-#include "kis_mask_generator.h"
+#include "kis_circle_mask_generator.h"
 #include <KoColor.h>
 #include <brushengine/kis_paint_information.h>
 #include <KisGlobalResourcesInterface.h>

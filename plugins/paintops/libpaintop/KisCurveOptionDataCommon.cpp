@@ -4,6 +4,8 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisCurveOptionDataCommon.h"
+
+#include <kis_properties_configuration.h>
 #include "KisSensorPackInterface.h"
 
 KisCurveOptionDataCommon::KisCurveOptionDataCommon(const QString &_prefix, const KoID &_id, bool _isCheckable, bool _isChecked, qreal _minValue, qreal _maxValue, KisSensorPackInterface *sensorInterface)
@@ -67,5 +69,4 @@ void KisCurveOptionDataCommon::writePrefixed(KisPropertiesConfiguration *setting
 {
     sensorData->write(*this, setting);
 }
-
 

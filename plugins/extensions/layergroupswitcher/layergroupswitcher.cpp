@@ -19,9 +19,9 @@
 #include <nodes/kis_node_manager.h>
 #include <kis_global.h>
 #include <kis_types.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 
-#include "application/kis_action.h"
+#include "application/ui/orchestration/kis_action.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(LayerGroupSwitcherFactory, "kritalayergroupswitcher.json", registerPlugin<LayerGroupSwitcher>();)
 

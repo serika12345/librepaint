@@ -5,22 +5,18 @@
  */
 
 #include "filter/kis_filter_configuration.h"
-#include "filter/kis_filter.h"
+
+#include "KisNodeFilterInterfaceFilterAccess_p.h"
 
 #include <kis_debug.h>
 #include <QDomDocument>
 #include <QString>
 
 #include "filter/kis_filter_registry.h"
-#include "kis_transaction.h"
-#include "kis_undo_adapter.h"
 #include "kis_painter.h"
-#include "kis_selection.h"
-#include "KoID.h"
 #include "kis_types.h"
 #include <KisRequiredResourcesOperators.h>
 
-#include "kis_config_widget.h"
 
 struct Q_DECL_HIDDEN KisFilterConfiguration::Private {
     QString name;
@@ -67,6 +63,40 @@ KisFilterConfiguration::KisFilterConfiguration(const KisFilterConfiguration & rh
 KisFilterConfiguration::~KisFilterConfiguration()
 {
     delete d;
+}
+
+void kisSharedPtrAddReference(KisFilterConfiguration *configuration)
+{
+    configuration->ref();
+}
+
+bool kisSharedPtrRelease(KisFilterConfiguration *configuration)
+{
+    if (!configuration->deref()) {
+        delete configuration;
+        return false;
+    }
+    return true;
+}
+
+void KisNodeFilterInterfaceFilterAccess::acquire(KisFilterConfiguration *configuration)
+{
+    configuration->sanityRefUsageCounter();
+}
+
+bool KisNodeFilterInterfaceFilterAccess::release(KisFilterConfiguration *configuration)
+{
+    return configuration->sanityDerefUsageCounter();
+}
+
+bool KisNodeFilterInterfaceFilterAccess::hasLocalResourcesSnapshot(const KisFilterConfiguration *configuration)
+{
+    return configuration->hasLocalResourcesSnapshot();
+}
+
+KisFilterConfigurationSP KisNodeFilterInterfaceFilterAccess::clone(const KisFilterConfiguration *configuration)
+{
+    return configuration->clone();
 }
 
 void KisFilterConfiguration::fromLegacyXML(const QDomElement& root)

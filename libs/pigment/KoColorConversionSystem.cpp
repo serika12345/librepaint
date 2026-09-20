@@ -10,7 +10,6 @@
 #include <QHash>
 #include <QString>
 
-#include "KoColorConversionAlphaTransformation.h"
 #include "KoColorConversionTransformation.h"
 #include "KoColorProfile.h"
 #include "KoColorProfileQuery.h"

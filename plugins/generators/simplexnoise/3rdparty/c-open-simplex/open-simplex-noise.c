@@ -13,7 +13,6 @@
  *   of any particular randomization library, so results
  *   will be the same when ported to other languages.
  */
-#include <math.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>

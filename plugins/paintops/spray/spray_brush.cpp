@@ -29,7 +29,7 @@
 #include <kis_fixed_paint_device.h>
 #include <kis_cross_device_color_sampler.h>
 
-#include "kis_spray_paintop_settings.h"
+#include <QPainterPath>
 
 #include <cmath>
 #include <ctime>

@@ -16,9 +16,7 @@
 
 #include "KoColorProfile.h"
 #include "KoColorSpace.h"
-#include "KoID.h"
 
-#include "widgets/kis_cmb_idlist.h"
 #include <KisSqueezedComboBox.h>
 
 #include "kis_image.h"

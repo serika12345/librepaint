@@ -5,11 +5,8 @@
  */
 
 #include "kis_particle_paintop.h"
-#include "kis_particle_paintop_settings.h"
 
-#include <cmath>
 
-#include "kis_vec.h"
 
 #include <KoCompositeOp.h>
 

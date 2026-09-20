@@ -21,7 +21,7 @@
 #include <KoPathPoint.h>
 #include <KoPathPointData.h>
 #include <KoPathPointMergeCommand.h>
-#include <widgets/KoStrokeConfigWidget.h>
+#include <KoStrokeConfigWidget.h>
 #include <KisHandlePainterHelper.h>
 
 #include <klocalizedstring.h>

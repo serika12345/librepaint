@@ -7,7 +7,6 @@
 #include "KisRunnableStrokeJobData.h"
 
 #include <QRunnable>
-#include <kis_assert.h>
 
 KisRunnableStrokeJobData::KisRunnableStrokeJobData(QRunnable *runnable, KisStrokeJobData::Sequentiality sequentiality, KisStrokeJobData::Exclusivity exclusivity)
     : KisRunnableStrokeJobDataBase(sequentiality, exclusivity),

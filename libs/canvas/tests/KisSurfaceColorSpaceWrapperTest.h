@@ -12,8 +12,10 @@ class KisSurfaceColorSpaceWrapperTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void testValueSemantics();
-    void testQtColorSpaceConversion();
+    void enumValuesDefaultsAndFactories();
+    void copyAndMovePreserveIndependentValues();
+    void qtColorSpacesRoundTrip();
+    void unsupportedQtColorSpaceFallsBackToDefault();
 };
 
 #endif

@@ -7,6 +7,7 @@
 #include "kis_roundmarkerop_settings.h"
 #include "KisRoundMarkerOpOptionData.h"
 #include <KisOptimizedBrushOutline.h>
+#include <QPainterPath>
 #include <QPointer>
 
 

@@ -17,7 +17,7 @@
 
 #include <document/KisDocument.h>
 #include <KisMimeDatabase.h>
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
@@ -26,7 +26,7 @@
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_image_animation_interface.h>
-#include <kis_iterator_ng.h>
+#include <kis_sequential_iterator.h>
 #include <kis_paint_device.h>
 #include <kis_paint_layer.h>
 #include <kis_png_converter.h>

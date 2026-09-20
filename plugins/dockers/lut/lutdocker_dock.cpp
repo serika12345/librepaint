@@ -22,7 +22,7 @@
 
 #include <klocalizedstring.h>
 
-#include <workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisMainWindow.h>
 #include <KoFileDialog.h>
 #include <KoChannelInfo.h>
 #include <KoColorSpace.h>
@@ -31,7 +31,7 @@
 #include <KoColorModelStandardIds.h>
 
 #include "kis_icon_utils.h"
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <document/KisDocument.h>
 #include <application/kis_config.h>
 #include <kis_canvas2.h>

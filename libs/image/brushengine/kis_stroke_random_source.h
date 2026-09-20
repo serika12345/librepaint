@@ -25,6 +25,7 @@ class KRITAIMAGE_EXPORT  KisStrokeRandomSource
 {
 public:
     KisStrokeRandomSource();
+    explicit KisStrokeRandomSource(int dabRandomSeed);
     KisStrokeRandomSource(const KisStrokeRandomSource &rhs);
     KisStrokeRandomSource& operator=(const KisStrokeRandomSource &rhs);
 

@@ -7,16 +7,15 @@
 #include "KisUpdateCommandEx.h"
 
 #include "kis_image_interfaces.h"
-#include "kis_node.h"
 
 KisUpdateCommandEx::KisUpdateCommandEx(KisBatchNodeUpdateSP updateData,
                                        KisUpdatesFacade *updatesFacade,
                                        State state,
                                        QWeakPointer<boost::none_t> blockUpdatesCookie)
-    : FlipFlopCommand(state),
-      m_updateData(updateData),
-      m_blockUpdatesCookie(blockUpdatesCookie),
-      m_updatesFacade(updatesFacade)
+    : FlipFlopCommand(state)
+    , m_updateData(updateData)
+    , m_blockUpdatesCookie(blockUpdatesCookie)
+    , m_updatesFacade(updatesFacade)
 {
 }
 
@@ -29,8 +28,10 @@ KisUpdateCommandEx::KisUpdateCommandEx(KisBatchNodeUpdateSP updateData, KisUpdat
 {
 }
 
-void KisUpdateCommandEx::partB() {
-    if (m_blockUpdatesCookie) return;
+void KisUpdateCommandEx::partB()
+{
+    if (m_blockUpdatesCookie)
+        return;
 
     for (auto it = m_updateData->begin(); it != m_updateData->end(); ++it) {
         m_updatesFacade->refreshGraphAsync(it->first, it->second);

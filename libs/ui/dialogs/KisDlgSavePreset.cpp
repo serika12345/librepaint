@@ -13,10 +13,12 @@
 #include <QDialogButtonBox>
 #include <QMessageBox>
 #include <QImageReader>
+#include <QStandardPaths>
 
 #include <KoFileDialog.h>
 #include "QDesktopServices"
 #include <kis_paintop_preset_icon_library.h>
+#include <kis_paintop_preset.h>
 #include <KisResourceUserOperations.h>
 
 #include <kstandardguiitem.h>

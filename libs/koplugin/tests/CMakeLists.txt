@@ -24,7 +24,6 @@ macro(add_dummy_plugin target_name plugin_id plugin_version plugin_json_file)
     target_link_libraries(${target_name}
         PRIVATE
             Qt::Core
-            kritaglobal
             KF${KF_MAJOR}::CoreAddons
             dummytrivialinterface
     )
@@ -39,7 +38,12 @@ kis_add_test(
     KoPluginLoaderTest.cpp
     TEST_NAME KoPluginLoaderTest
     TEST_NAME_VAR ko_plugin_loader_test_name
-    LINK_LIBRARIES kritaplugin kritaglobal kritatestsdk KF${KF_MAJOR}::CoreAddons KF${KF_MAJOR}::ConfigCore dummytrivialinterface
+    LINK_LIBRARIES
+        kritaplugin
+        Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::CoreAddons
+        KF${KF_MAJOR}::ConfigCore
+        dummytrivialinterface
 )
 
 kis_add_test(

@@ -130,4 +130,28 @@ void KisPrescaledProjectionContractTest::testEmptyUpdatePreservesLastValidFrame(
     QCOMPARE(fixture.projection->prescaledQImage(), lastValidFrame);
 }
 
+void KisPrescaledProjectionContractTest::testTwoTimesZoomExpandsDirtyViewport()
+{
+    ProjectionFixture fixture;
+    fixture.converter.setZoom(2.0);
+    fixture.converter.setDocumentOffset(QPoint(0, 0));
+    fixture.projection->notifyCanvasStateChanged(KisCanvasState::fromConverter(fixture.converter));
+
+    QCOMPARE(fixture.projection->prescaledQImage().size(), QSize(16, 16));
+
+    fixture.backend->frameColor = Qt::green;
+    const QRect dirtyImageRect(2, 3, 2, 2);
+    QCOMPARE(fixture.converter.imageToViewport(QRectF(dirtyImageRect)), QRectF(4, 6, 4, 4));
+
+    KisUpdateInfoSP update = fixture.projection->updateCache(dirtyImageRect);
+    fixture.projection->recalculateCache(update);
+
+    QCOMPARE(update->dirtyImageRect(), dirtyImageRect);
+    QCOMPARE(update->dirtyViewportRect(), QRect(2, 4, 8, 8));
+    QCOMPARE(fixture.projection->prescaledQImage().pixelColor(2, 4), QColor(Qt::green));
+    QCOMPARE(fixture.projection->prescaledQImage().pixelColor(9, 11), QColor(Qt::green));
+    QCOMPARE(fixture.projection->prescaledQImage().pixelColor(1, 4), QColor(Qt::red));
+    QCOMPARE(fixture.projection->prescaledQImage().pixelColor(10, 11), QColor(Qt::red));
+}
+
 SIMPLE_TEST_MAIN(KisPrescaledProjectionContractTest)

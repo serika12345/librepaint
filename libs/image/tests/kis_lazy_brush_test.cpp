@@ -10,13 +10,12 @@
 #include "kis_debug.h"
 
 #include "kis_fill_painter.h"
+#include "kis_sequential_iterator.h"
 
 #include <QImage>
 #include <QPainter>
 
 #include <boost/config.hpp>
-#include <iostream>
-#include <string>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/boykov_kolmogorov_max_flow.hpp>
 #include <boost/graph/read_dimacs.hpp>

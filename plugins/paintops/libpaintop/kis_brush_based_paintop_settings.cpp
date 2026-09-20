@@ -7,13 +7,8 @@
 #include "kis_brush_based_paintop_settings.h"
 
 #include <KisPaintingModeOptionData.h>
-#include "kis_brush_based_paintop_options_widget.h"
-#include <kis_boundary.h>
-#include "KisBrushServerProvider.h"
 #include <QLineF>
-#include "kis_signals_blocker.h"
 #include "kis_brush_option.h"
-#include <KisPaintopSettingsIds.h>
 #include <kis_paintop_preset.h>
 #include "KoCanvasResourcesIds.h"
 #include "kis_texture_option.h"
@@ -208,7 +203,6 @@ qreal KisBrushBasedPaintOpSettings::paintOpAngle() const
 
 
 #include <brushengine/kis_slider_based_paintop_property.h>
-#include "kis_paintop_preset.h"
 #include "KisPaintOpPresetUpdateProxy.h"
 
 QList<KisUniformPaintOpPropertySP> KisBrushBasedPaintOpSettings::uniformProperties(KisPaintOpSettingsSP settings, QPointer<KisPaintOpPresetUpdateProxy> updateProxy)

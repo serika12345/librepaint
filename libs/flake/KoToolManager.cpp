@@ -21,7 +21,6 @@
 #include "KoShapeManager.h"
 #include "KoSelectedShapesProxy.h"
 #include "KoCanvasBase.h"
-#include "KoPointerEvent.h"
 #include "tools/KoZoomTool.h"
 #include "kis_action_registry.h"
 #include "KoToolFactoryBase.h"

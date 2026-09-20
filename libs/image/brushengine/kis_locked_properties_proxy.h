@@ -46,7 +46,4 @@ private:
     KisPropertiesConfiguration* m_parent;
 };
 
-typedef KisPinnedSharedPtr<KisLockedPropertiesProxy> KisLockedPropertiesProxySP;
-typedef KisWeakSharedPtr<KisLockedPropertiesProxy> KisLockedPropertiesProxyWSP;
-
 #endif // KIS_LOCKED_PROPERTIES_PROXY_H

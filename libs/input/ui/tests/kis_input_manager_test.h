@@ -13,13 +13,13 @@ class KisInputManagerTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-    void testProfileActionResolution();
     void testProfileStorageLifecycle();
     void testSingleActionShortcut();
     void testStrokeShortcut();
     void testKeyEvents();
     void testReleaseUnnecessaryModifiers();
     void testMouseMoves();
+    void testSuppressionEventNormalization();
 
     void testIncrementalAverage();
 };

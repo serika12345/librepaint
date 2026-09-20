@@ -30,6 +30,7 @@
 
 #include <kis_annotation.h>
 #include <kis_types.h>
+#include <kis_selection.h>
 #include <kis_paint_layer.h>
 #include <document/KisDocument.h>
 #include <kis_image.h>

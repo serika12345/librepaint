@@ -13,7 +13,6 @@
 
 
 #include <math.h>
-#include <limits>
 
 #include <QPainter>
 #include <QPen>
@@ -24,18 +23,20 @@
 
 #include <kis_debug.h>
 #include <klocalizedstring.h>
+#include <ksharedconfig.h>
 
 #include <KoPointerEvent.h>
 #include <KoID.h>
 #include <KoCanvasBase.h>
 #include <KoViewConverter.h>
 #include <KoSelection.h>
+#include <KoToolManager.h>
 #include <KoCompositeOp.h>
 #include <KisCursorOverrideLock.h>
 
 #include <kis_global.h>
 #include <canvas/kis_canvas2.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <kis_painter.h>
 #include <kis_cursor.h>
 #include <kis_image.h>
@@ -61,7 +62,6 @@
 
 #include "kis_action_registry.h"
 
-#include "widgets/kis_progress_widget.h"
 
 #include "kis_transform_utils.h"
 #include "kis_warp_transform_strategy.h"
@@ -74,7 +74,6 @@
 #include "kis_transform_mask.h"
 #include "kis_transform_mask_adapter.h"
 
-#include "krita_container_utils.h"
 #include "kis_layer_utils.h"
 #include <KisDelayedUpdateNodeInterface.h>
 #include "kis_config_notifier.h"

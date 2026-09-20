@@ -13,7 +13,7 @@
 #include <klocalizedstring.h>
 
 #include <KoFileDialog.h>
-#include <application/KisApplication.h>
+#include <application/ui/orchestration/KisApplication.h>
 #include <KisImportExportManager.h>
 #include <kis_file_name_requester.h>
 #include <kis_config_widget.h>

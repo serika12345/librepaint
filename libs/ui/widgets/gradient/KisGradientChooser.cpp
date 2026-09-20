@@ -16,6 +16,8 @@
 #include <QActionGroup>
 
 #include <klocalizedstring.h>
+#include <KoColor.h>
+#include <KoDialog.h>
 #include <resources/KoAbstractGradient.h>
 #include <KoResource.h>
 #include <resources/KoSegmentGradient.h>

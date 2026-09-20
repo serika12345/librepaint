@@ -10,9 +10,8 @@
 #include <kis_image.h>
 #include <stroke_testing_utils.h>
 #include "kis_processing_applicator.h"
-#include "commands/kis_selection_commands.h"
-#include "kis_selection.h"
-
+#include "commands/kis_deselect_global_selection_command.h"
+#include "commands/kis_set_global_selection_command.h"
 
 void KisSelectionDecorationTest::testConcurrentSelectionFetches()
 {

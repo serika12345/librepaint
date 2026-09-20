@@ -7,20 +7,14 @@
 #define KIS_IMPORT_EXPORT_ADDITIONAL_CHECKS_H
 
 #include <QString>
-#include <KisImportExportErrorCode.h>
 #include <kritaimpex_export.h>
 
 class KRITAIMPEX_EXPORT KisImportExportAdditionalChecks
 {
-
 public:
-
     static bool isFileWritable(QString filepath);
     static bool isFileReadable(QString filepath);
     static bool doesFileExist(QString filepath);
 };
-
-
-
 
 #endif // #ifndef KIS_IMPORT_EXPORT_ADDITIONAL_CHECKS_H

@@ -12,6 +12,6 @@ ki18n_wrap_ui(kritaunsharpfilter_SOURCES
 
 kis_add_library(kritaunsharpfilter MODULE ${kritaunsharpfilter_SOURCES})
 
-target_link_libraries(kritaunsharpfilter kritaui)
+target_link_libraries(kritaunsharpfilter kritaapplicationui)
 
 install(TARGETS kritaunsharpfilter  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

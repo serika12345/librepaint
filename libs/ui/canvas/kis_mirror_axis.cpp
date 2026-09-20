@@ -8,6 +8,7 @@
 #include "kis_mirror_axis.h"
 
 #include "KoConfig.h"
+#include <KoPointerEvent.h>
 
 #include <QPainter>
 #include <QApplication>
@@ -15,17 +16,22 @@
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
 #include <QAction>
+#include <QMouseEvent>
+#include <QTabletEvent>
+#include <QTouchEvent>
 
-#include "opengl/KisOpenGLIOSCompat.h"
 
 #include <kis_icon.h>
 
 #include "kis_canvas2.h"
 #include "canvas/kis_canvas_resource_provider.h"
-#include "workspace/KisViewManager.h"
-#include "workspace/KisView.h"
+#include "application/ui/workspace/KisViewManager.h"
+#include "application/ui/workspace/KisView.h"
 #include "kis_image.h"
 #include "canvas/kis_canvas_controller.h"
+#ifdef Q_OS_IOS
+#include "opengl/KisOpenGLIOSCompat.h"
+#endif
 #include "kis_algebra_2d.h"
 
 #include <KisMirrorAxisConfig.h>

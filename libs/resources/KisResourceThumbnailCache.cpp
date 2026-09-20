@@ -5,15 +5,15 @@
  */
 
 #include "KisResourceThumbnailCache.h"
+#include "KisResourceThumbnailStorageLocation.h"
 
 #include <QMap>
 #include <QModelIndex>
 #include <QSize>
 
-#include <KisResourceLocator.h>
 #include <KisResourceModel.h>
 
-#include <kis_global.h>
+#include <kis_assert.h>
 
 Q_GLOBAL_STATIC(KisResourceThumbnailCache, s_instance);
 
@@ -169,7 +169,7 @@ QImage KisResourceThumbnailCache::getImage(const QModelIndex &index,
                                            Qt::AspectRatioMode aspectMode,
                                            Qt::TransformationMode transformMode)
 {
-    const QString storageLocation = KisResourceLocator::instance()->makeStorageLocationAbsolute(
+    const QString storageLocation = KisResourceThumbnailStorageLocation::makeAbsolute(
         index.data(Qt::UserRole + KisAbstractResourceModel::Location).value<QString>());
     const QString resourceType =
         index.data(Qt::UserRole + KisAbstractResourceModel::ResourceType).value<QString>();

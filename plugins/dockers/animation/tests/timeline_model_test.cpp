@@ -8,7 +8,6 @@
 
 #include "kis_image.h"
 #include "kis_node.h"
-#include "kis_paint_device.h"
 
 #include <QDialog>
 #include <QDoubleSpinBox>
@@ -18,7 +17,7 @@
 #include "kis_image_animation_interface.h"
 #include "document/KisDocument.h"
 #include "canvas/KisNodeDisplayModeAdapter.h"
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "kis_name_server.h"
 #include "flake/kis_shape_controller.h"
 #include "kis_undo_adapter.h"
@@ -31,7 +30,6 @@
 #include "commands/kis_image_layer_add_command.h"
 #include "commands/kis_image_layer_remove_command.h"
 
-#include "kis_double_parse_spin_box.h"
 #include "kis_int_parse_spin_box.h"
 
 #include <testui.h>
@@ -67,6 +65,10 @@ void TimelineModelTest::cleanup()
 
 void TimelineModelTest::testConverter()
 {
+    // Consumer: Animation timeline docker users reviewing the layers shown in the timeline.
+    // Operation: Pin multiple document nodes to the timeline.
+    // Observable result: Each pinned node occupies the row used by the timeline header and frame grid.
+    // Failure impact: Users would edit frames on a different layer than the one displayed in the timeline.
     constructImage();
     addSelectionMasks();
     m_shapeController->setImage(m_image);
@@ -108,18 +110,56 @@ void TimelineModelTest::testConverter()
     QCOMPARE(keeper.dummyFromRow(2), m_shapeController->dummyForNode(m_layer1));
     QCOMPARE(keeper.dummyFromRow(1), m_shapeController->dummyForNode(m_layer2));
     QCOMPARE(keeper.dummyFromRow(0), m_shapeController->dummyForNode(m_sel3));
-
-    TimelineNodeListKeeper::OtherLayersList list = keeper.otherLayersList();
-
-    Q_FOREACH (const TimelineNodeListKeeper::OtherLayer &l, list) {
-        qDebug() << ppVar(l.name) << ppVar(l.dummy->node()->name());
-    }
-
 }
 
-void TimelineModelTest::testModel()
+void TimelineModelTest::testAddingExistingLayerPinsItAndMakesItActive()
 {
-    QScopedPointer<KisAnimTimelineFramesModel> model(new KisAnimTimelineFramesModel(0));
+    // Consumer: Animation timeline docker users adding an existing document layer.
+    // Operation: Select an unpinned layer from the existing-layers menu.
+    // Observable result: The selected layer appears in the timeline, becomes active, and leaves the menu.
+    // Failure impact: Users cannot add the requested layer to animate its frames.
+    constructImage();
+    m_shapeController->setImage(m_image);
+
+    m_layer1->setPinnedToTimeline(true);
+    m_layer4->setPinnedToTimeline(true);
+    QTest::qWait(200);
+
+    KisAnimTimelineFramesModel model(nullptr);
+    model.setDummiesFacade(m_shapeController, m_image, m_displayModeAdapter);
+
+    const int rowsBefore = model.rowCount();
+    const QVariant value = model.headerData(0, Qt::Vertical, KisAnimTimelineFramesModel::OtherLayersRole);
+    QVERIFY(value.isValid());
+
+    const KisAnimTimelineFramesModel::OtherLayersList otherLayers =
+        value.value<KisAnimTimelineFramesModel::OtherLayersList>();
+
+    int layer3Index = -1;
+    for (int i = 0; i < otherLayers.size(); ++i) {
+        if (otherLayers.at(i).dummy->node().data() == m_layer3.data()) {
+            layer3Index = i;
+            break;
+        }
+    }
+
+    QVERIFY(layer3Index >= 0);
+    QVERIFY(!m_layer3->isPinnedToTimeline());
+
+    QVERIFY(model.insertOtherLayer(layer3Index, 0));
+    QTRY_COMPARE(model.rowCount(), rowsBefore + 1);
+
+    QVERIFY(m_layer3->isPinnedToTimeline());
+    QTRY_COMPARE(model.nodeAt(model.index(model.activeLayerRow(), 0)).data(), m_layer3.data());
+    QVERIFY(model.headerData(model.activeLayerRow(), Qt::Vertical,
+                             KisAnimTimelineFramesModel::ActiveLayerRole).toBool());
+
+    const KisAnimTimelineFramesModel::OtherLayersList updatedOtherLayers =
+        model.headerData(0, Qt::Vertical, KisAnimTimelineFramesModel::OtherLayersRole)
+            .value<KisAnimTimelineFramesModel::OtherLayersList>();
+    for (const KisAnimTimelineFramesModel::OtherLayer &layer : updatedOtherLayers) {
+        QVERIFY(layer.dummy->node().data() != m_layer3.data());
+    }
 }
 
 struct TestingInterface : KisAnimTimelineFramesModel::NodeManipulationInterface
@@ -279,8 +319,6 @@ void TimelineModelTest::slotGuiChangedNode(KisNodeSP node)
     qDebug() << "GUI changed active node:" << node->name();
 }
 
-#include "kis_equalizer_column.h"
-#include "kis_equalizer_slider.h"
 #include "kis_equalizer_widget.h"
 
 void TimelineModelTest::testOnionSkins()

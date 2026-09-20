@@ -16,8 +16,6 @@
 
 #include "KoCanvasBase.h"
 #include "KoToolBase.h"
-#include "kis_assert.h"
-#include "kis_global.h"
 
 using SvgInlineSizeHelper::InlineSizeInfo;
 using SvgInlineSizeHelper::Side;

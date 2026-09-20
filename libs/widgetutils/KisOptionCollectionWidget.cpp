@@ -4,13 +4,13 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <QWidget>
+#include <QBoxLayout>
 #include <QFrame>
 #include <QLabel>
 #include <QScrollArea>
+#include <QStringView>
 #include <QVariant>
-#include <QBoxLayout>
-#include <QStringRef>
+#include <QWidget>
 
 #include <kis_assert.h>
 
@@ -240,7 +240,7 @@ struct KisOptionCollectionWidget::Private
         lastWidgetWrapper->setSeparatorVisible(false);
     }
 
-    int widgetIndexFromId(QStringRef id) const
+    int widgetIndexFromId(QStringView id) const
     {
         for (int i = 0; i < widgetWrappers.size(); ++i) {
             if (widgetWrappers[i]->property("id").toString() == id) {
@@ -250,7 +250,7 @@ struct KisOptionCollectionWidget::Private
         return -1;
     }
 
-    bool containsWidget(QStringRef id) const
+    bool containsWidget(QStringView id) const
     {
         return widgetIndexFromId(id) != -1;
     }
@@ -260,12 +260,12 @@ struct KisOptionCollectionWidget::Private
         return widgetWrappers[index]->widget();
     }
 
-    QWidget* widget(QStringRef id) const
+    QWidget *widget(QStringView id) const
     {
         return widget(widgetIndexFromId(id));
     }
 
-    QWidget* findWidget(QStringRef path, QWidget *candidate = nullptr) const
+    QWidget *findWidget(QStringView path, QWidget *candidate = nullptr) const
     {
         while (path.startsWith('/')) {
             path = path.right(path.size() - 1);
@@ -289,7 +289,7 @@ struct KisOptionCollectionWidget::Private
             if (optionCollectionWidgetWithHeader) {
                 return optionCollectionWidgetWithHeader->m_d->widgetCollection->m_d->findWidget(path.right(path.size() - slashPosition), nextCandidate);
             }
-            QStringRef rest = path.right(path.size() - slashPosition);
+            QStringView rest = path.right(path.size() - slashPosition);
             while (rest.startsWith('/')) {
                 rest = rest.right(rest.size() - 1);
             }
@@ -316,12 +316,12 @@ KisOptionCollectionWidget::~KisOptionCollectionWidget()
 
 int KisOptionCollectionWidget::widgetIndexFromId(const QString &id) const
 {
-    return m_d->widgetIndexFromId(&id);
+    return m_d->widgetIndexFromId(id);
 }
 
 bool KisOptionCollectionWidget::containsWidget(const QString &id) const
 {
-    return m_d->containsWidget(&id);
+    return m_d->containsWidget(id);
 }
 
 QWidget* KisOptionCollectionWidget::widget(int index) const
@@ -331,12 +331,12 @@ QWidget* KisOptionCollectionWidget::widget(int index) const
 
 QWidget* KisOptionCollectionWidget::widget(const QString &id) const
 {
-    return m_d->widget(&id);
+    return m_d->widget(id);
 }
 
 QWidget* KisOptionCollectionWidget::findWidget(const QString &path) const
 {
-    return m_d->findWidget(&path);
+    return m_d->findWidget(path);
 }
 
 void KisOptionCollectionWidget::insertWidget(int index, const QString &id, QWidget *widget)

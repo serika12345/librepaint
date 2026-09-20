@@ -4,7 +4,8 @@
 
 #include "TestKoColorSpaceAbstract.h"
 
-#include "KoColorSpaceAbstract.h"
+#include "KoColorModelStandardIds.h"
+#include "KoMixColorsOpImpl.h"
 #include "KoColorSpaceTraits.h"
 
 #include <cfloat>

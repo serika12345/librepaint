@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisVisualEllipticalSelectorShape.h"
+#include "KisVisualColorSelector.h"
 
 #include <QColor>
 #include <QPainter>
@@ -11,7 +12,6 @@
 #include <QLineF>
 #include <QtMath>
 
-#include "kis_debug.h"
 #include "kis_global.h"
 
 #include "resources/KoGamutMask.h"

@@ -30,10 +30,6 @@ typedef QSharedPointer<KisResourcesInterface> KisResourcesInterfaceSP;
 
 class KoResourceLoadResult;
 
-namespace ResourceTestHelper {
-void overrideResourceVersion(KoResourceSP resource, int version);
-}
-
 /**
  * The KoResource class provides a representation of resources.  This
  * includes, but not limited to, brushes and patterns.
@@ -306,4 +302,3 @@ inline QDebug operator<<(QDebug dbg, const KoResourceSP res)
 }
 
 #endif // KORESOURCE_H_
-

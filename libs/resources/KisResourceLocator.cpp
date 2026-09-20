@@ -34,15 +34,17 @@
 #include "KisResourceStorage.h"
 #include "KisResourceCacheDb.h"
 #include "KisResourceLoaderRegistry.h"
-#include "KisMemoryStorage.h"
-#include "KisResourceModelProvider.h"
 #include <KisGlobalResourcesInterface.h>
 #include <KisStorageModel.h>
 #include <KoMD5Generator.h>
 #include <KoResourceLoadResult.h>
 #include <KisResourceThumbnailCache.h>
+#include "KisResourceThumbnailStorageLocation.h"
 
-#include "ResourceDebug.h"
+QString KisResourceThumbnailStorageLocation::makeAbsolute(const QString &storageLocation)
+{
+    return KisResourceLocator::instance()->makeStorageLocationAbsolute(storageLocation);
+}
 
 const QString KisResourceLocator::resourceLocationKey {"ResourceDirectory"};
 

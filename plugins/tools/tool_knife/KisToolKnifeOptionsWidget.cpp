@@ -9,6 +9,7 @@
 #include "ui_KisToolKnifeOptionsWidget.h"
 
 #include <KoColorSpaceRegistry.h>
+#include <ksharedconfig.h>
 
 #include "application/kis_config.h"
 #include <resources/KoColorSet.h>

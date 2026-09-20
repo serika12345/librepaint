@@ -7,7 +7,8 @@
  */
 #include "dlg_bundle_manager.h"
 
-#include "resourcemanager.h"
+#include "KoResourcePaths.h"
+#include "kis_debug.h"
 #include "dlg_create_bundle.h"
 
 #include <QPainter>
@@ -23,7 +24,6 @@
 #include <KoFileDialog.h>
 
 #include <kis_icon.h>
-#include "application/kis_action.h"
 #include <KisResourceStorage.h>
 #include <KisStorageModel.h>
 #include <KisStorageFilterProxyModel.h>
@@ -31,10 +31,9 @@
 #include <KisResourceLocator.h>
 #include <KisKineticScroller.h>
 #include <KisCursorOverrideLock.h>
-#include "KisBundleStorage.h"
 
-#include <workspace/KisMainWindow.h>
-#include <application/KisPart.h>
+#include <application/ui/workspace/KisMainWindow.h>
+#include <application/ui/orchestration/KisPart.h>
 
 DlgBundleManager::ItemDelegate::ItemDelegate(QObject *parent, KisStorageFilterProxyModel* proxy)
     : QStyledItemDelegate(parent)

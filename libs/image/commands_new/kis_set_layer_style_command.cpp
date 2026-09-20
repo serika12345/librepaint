@@ -5,7 +5,6 @@
  */
 #include "kis_set_layer_style_command.h"
 
-#include "kis_selection_mask.h"
 #include "kis_layer.h"
 #include "kis_abstract_projection_plane.h"
 #include "kis_psd_layer_style.h"

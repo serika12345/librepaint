@@ -7,7 +7,6 @@
 #include "kis_color_selector_simple.h"
 #include <QPainter>
 #include <QColor>
-#include <cmath>
 #include <kconfig.h>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>

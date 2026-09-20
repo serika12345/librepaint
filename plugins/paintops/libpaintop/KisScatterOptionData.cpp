@@ -5,8 +5,6 @@
  */
 #include "KisScatterOptionData.h"
 
-#include <kis_paintop_settings.h>
-
 const QString SCATTER_X = "Scattering/AxisX";
 const QString SCATTER_Y = "Scattering/AxisY";
 const QString SCATTER_AMOUNT = "Scattering/Amount";
@@ -32,11 +30,9 @@ KisScatterOptionData::KisScatterOptionData(const QString &prefix)
                                                                 std::nullopt,
                                                                 std::make_pair(0.0, 5.0))
 {
-    valueFixUpReadCallback = [] (KisCurveOptionDataCommon *data, const KisPropertiesConfiguration *setting) {
-
+    valueFixUpReadCallback = [](KisCurveOptionDataCommon *data, const KisPropertiesConfiguration *setting) {
         if (setting->hasProperty(SCATTER_AMOUNT) && !setting->hasProperty("ScatterValue")) {
             data->strengthValue = setting->getDouble(SCATTER_AMOUNT);
         }
-
     };
 }

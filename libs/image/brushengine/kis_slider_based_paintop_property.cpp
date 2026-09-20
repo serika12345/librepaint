@@ -6,8 +6,6 @@
 
 #include "kis_slider_based_paintop_property.h"
 
-#include "kis_paintop_settings.h"
-
 template<typename T>
 KisSliderBasedPaintOpProperty<T>::KisSliderBasedPaintOpProperty(Type type,
                                                                 SubType subType,
@@ -134,13 +132,5 @@ void KisSliderBasedPaintOpProperty<T>::setSuffix(QString value)
     m_suffix = value;
 }
 
-
-#include "kis_callback_based_paintop_property_impl.h"
-
 template class KRITAIMAGE_EXPORT_INSTANCE KisSliderBasedPaintOpProperty<int>;
 template class KRITAIMAGE_EXPORT_INSTANCE KisSliderBasedPaintOpProperty<qreal>;
-
-template class KRITAIMAGE_EXPORT_INSTANCE
-    KisCallbackBasedPaintopProperty<KisSliderBasedPaintOpProperty<int>>;
-template class KRITAIMAGE_EXPORT_INSTANCE
-    KisCallbackBasedPaintopProperty<KisSliderBasedPaintOpProperty<qreal>>;

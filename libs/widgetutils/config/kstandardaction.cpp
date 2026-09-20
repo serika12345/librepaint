@@ -16,7 +16,6 @@
 #include <kstandardshortcut.h>
 #include <kacceleratormanager.h>
 
-#include "kdualaction.h"
 #include "krecentfilesaction.h"
 #include "ktogglefullscreenaction.h"
 

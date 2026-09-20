@@ -9,44 +9,27 @@
 
 #include "KoShapeAnchor.h"
 
-#include <KoShapeContainer.h>
-#include <KoXmlWriter.h>
-#include <KoXmlNS.h>
-#include <KoShapeSavingContext.h>
-#include <KoShapeLoadingContext.h>
-
 #include <QPointF>
-#include <FlakeDebug.h>
+#include <QString>
 
 class Q_DECL_HIDDEN KoShapeAnchor::Private
 {
 public:
     Private(KoShape *s)
-            : shape(s)
-            , verticalPos(KoShapeAnchor::VTop)
-            , verticalRel(KoShapeAnchor::VLine)
-            , horizontalPos(KoShapeAnchor::HLeft)
-            , horizontalRel(KoShapeAnchor::HChar)
-            , flowWithText(true)
-            , anchorType(KoShapeAnchor::AnchorToCharacter)
-            , placementStrategy(0)
-            , pageNumber(-1)
-            , textLocation(0)
+        : shape(s)
+        , verticalPos(KoShapeAnchor::VTop)
+        , verticalRel(KoShapeAnchor::VLine)
+        , horizontalPos(KoShapeAnchor::HLeft)
+        , horizontalRel(KoShapeAnchor::HChar)
+        , flowWithText(true)
+        , anchorType(KoShapeAnchor::AnchorToCharacter)
+        , placementStrategy(0)
+        , pageNumber(-1)
+        , textLocation(0)
     {
     }
 
-
-    QDebug printDebug(QDebug dbg) const
-    {
-#ifndef NDEBUG
-        dbg.space() << "KoShapeAnchor" << this;
-        dbg.space() << "offset:" << offset;
-        dbg.space() << "shape:" << shape->name();
-#endif
-        return dbg.space();
-    }
-
-    KoShape * const shape;
+    KoShape *const shape;
     QPointF offset;
     KoShapeAnchor::VerticalPos verticalPos;
     KoShapeAnchor::VerticalRel verticalRel;

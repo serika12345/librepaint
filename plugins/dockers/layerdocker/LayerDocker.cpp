@@ -11,7 +11,6 @@
 
 #include <KoDockFactoryBase.h>
 #include <KoDockRegistry.h>
-#include "kis_debug.h"
 
 #include "LayerBox.h"
 

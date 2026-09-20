@@ -10,11 +10,14 @@
 #define _KIS_TIFF_PSD_LAYER_RECORD_H
 
 #include <cstdint>
+#include <kis_types.h>
 #include <memory>
-#include <psd.h>
-#include <psd_layer_section.h>
+#include <psd_types.h>
 
 #include "kritatiffpsd_export.h"
+
+class PSDLayerMaskSection;
+class QIODevice;
 
 class KRITATIFFPSD_EXPORT KisTiffPsdLayerRecord
 {

@@ -15,10 +15,12 @@ class TestKoIntegerMaths : public QObject
 
 private Q_SLOTS:
 
+    void clampAndAliasTests();
     void UINT8Tests();
+    void UINT8ScaleAndTripleTests();
     void UINT16Tests();
+    void INT16Tests();
     void conversionTests();
 };
 
 #endif
-

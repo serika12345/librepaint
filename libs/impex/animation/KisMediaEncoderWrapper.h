@@ -4,7 +4,6 @@
 #ifndef KISMEDIAENCODERWRAPPER
 #define KISMEDIAENCODERWRAPPER
 
-#include <QDir>
 #include <QObject>
 #include <QPointer>
 #include <QRunnable>

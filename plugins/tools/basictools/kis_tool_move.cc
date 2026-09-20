@@ -11,7 +11,9 @@
 #include "kis_tool_move.h"
 
 #include <QPoint>
+#include <ksharedconfig.h>
 
+#include <KoPointerEvent.h>
 
 #include "kis_cursor.h"
 #include "kis_selection.h"
@@ -25,15 +27,15 @@
 #include "strokes/move_selection_stroke_strategy.h"
 #include "kis_resources_snapshot.h"
 #include "kis_action_registry.h"
+#include "krita_container_utils.h"
 #include "krita_utils.h"
 
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <document/KisDocument.h>
 
 #include "nodes/kis_node_manager.h"
 #include "selection/kis_selection_manager.h"
 #include "kis_signals_blocker.h"
-#include "KisAnimAutoKey.h"
 #include <boost/operators.hpp>
 #include "KisMoveBoundsCalculationJob.h"
 #include <KisOptimizedBrushOutline.h>

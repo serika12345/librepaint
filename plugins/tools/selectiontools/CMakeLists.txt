@@ -19,7 +19,7 @@ kis_add_library(kritaselectiontools MODULE ${kritaselectiontools_SOURCES})
 generate_export_header(kritaselectiontools BASE_NAME kritaselectiontools)
 
 target_link_libraries(kritaselectiontools
-    kritaui
+    kritaapplicationui
     kritaflake
     kritatools
     kritabasicflakes
@@ -28,6 +28,7 @@ target_link_libraries(kritaselectiontools
 )
 
 install(TARGETS kritaselectiontools  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
+
 
 install( FILES
         KisToolSelectPolygonal.action

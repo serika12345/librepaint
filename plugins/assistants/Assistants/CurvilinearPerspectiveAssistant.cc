@@ -9,7 +9,6 @@
 
 #include "CurvilinearPerspectiveAssistant.h"
 
-#include "kis_debug.h"
 #include <klocalizedstring.h>
 
 #include <QPainter>
@@ -23,7 +22,6 @@
 #include <KoColorDisplayRendererInterface.h>
 
 #include <math.h>
-#include <limits>
 
 CurvilinearPerspectiveAssistant::CurvilinearPerspectiveAssistant()
     : KisPaintingAssistant("curvilinear-perspective", i18n("Curvilinear Perspective assistant"))

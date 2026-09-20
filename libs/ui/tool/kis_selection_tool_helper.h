@@ -7,17 +7,17 @@
 #define KIS_SELECTION_TOOL_HELPER_H
 
 #include <kritaui_export.h>
-#include <QMenu>
+#include <QList>
 #include <QPointer>
 
 #include "kundo2magicstring.h"
-#include "kis_layer.h"
 #include "kis_selection.h"
-#include "kis_processing_applicator.h"
 
 class KoCanvasBase;
 class KoShape;
 class KisCanvas2;
+class KisProcessingApplicator;
+class QMenu;
 
 /**
  * XXX: Doc!

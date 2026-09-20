@@ -9,9 +9,7 @@
 #include "kis_fill_painter.h"
 
 #include <stdlib.h>
-#include <string.h>
 #include <cfloat>
-#include <stack>
 
 #include <QFontInfo>
 #include <QFontMetrics>
@@ -31,11 +29,9 @@
 #include "kis_processing_information.h"
 #include "kis_debug.h"
 #include "kis_image.h"
-#include "kis_layer.h"
 #include "kis_paint_device.h"
 #include <resources/KoPattern.h>
 #include "KoColorSpace.h"
-#include "kis_transaction.h"
 #include "kis_pixel_selection.h"
 #include <KoCompositeOpRegistry.h>
 #include <floodfill/kis_scanline_fill.h>

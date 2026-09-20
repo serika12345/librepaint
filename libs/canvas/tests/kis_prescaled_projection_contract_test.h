@@ -14,6 +14,7 @@ class KisPrescaledProjectionContractTest : public QObject
 private Q_SLOTS:
     void testDirtyRegionProducesProjectionNotification();
     void testEmptyUpdatePreservesLastValidFrame();
+    void testTwoTimesZoomExpandsDirtyViewport();
 };
 
 #endif

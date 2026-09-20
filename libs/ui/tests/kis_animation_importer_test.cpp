@@ -6,7 +6,7 @@
 
 #include "kis_animation_importer_test.h"
 
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "kis_animation_importer.h"
 #include "document/KisDocument.h"
 #include <testutil.h>

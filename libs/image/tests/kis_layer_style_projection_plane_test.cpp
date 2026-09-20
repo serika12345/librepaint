@@ -23,8 +23,10 @@
 
 #include "kis_selection.h"
 #include "kis_pixel_selection.h"
+#include "kis_sequential_iterator.h"
 
 #include "layerstyles/kis_layer_style_projection_plane.h"
+#include "layerstyles/gimp_bump_map.h"
 #include "kis_psd_layer_style.h"
 #include "kis_paint_device_debug_utils.h"
 #include <KisGlobalResourcesInterface.h>
@@ -433,44 +435,49 @@ void KisLayerStyleProjectionPlaneTest::testStroke()
 
 }
 
-#include "layerstyles/gimp_bump_map.h"
-
 void KisLayerStyleProjectionPlaneTest::testBumpmap()
 {
-    KisPixelSelectionSP device = new KisPixelSelection();
+    // Consumer: The bevel-and-emboss layer style converts its height mask into visible highlights and shadows.
+    // Operation: Apply the linear bump map to the same height edge with each emboss direction.
+    // Observable result: The edge's selectedness changes, and reversing the direction reverses its lightness.
+    // Failure impact: Users could see a flat bevel or identical highlights and shadows for opposite directions.
+    const QRect sourceRect(0, 0, 5, 5);
+    const QRect bumpRect(1, 1, 3, 3);
 
-    const int numCycles = 30;
-    const int step = 5;
+    const auto createHeightMap = [&sourceRect] {
+        KisPixelSelectionSP selection = new KisPixelSelection();
 
-    QRect applyRect(200, 100, 100, 100);
-    QRect fillRect(210, 110, 80, 80);
-    quint8 selectedness = 256 - numCycles * step;
+        for (int y = sourceRect.top(); y <= sourceRect.bottom(); ++y) {
+            for (int x = sourceRect.left(); x <= sourceRect.right(); ++x) {
+                TestUtil::alphaDeviceSetPixel(selection, x, y,
+                                              x < sourceRect.center().x() ? MIN_SELECTED : MAX_SELECTED);
+            }
+        }
 
+        return selection;
+    };
 
-    for (int i = 0; i < numCycles; i++) {
-        device->select(fillRect, selectedness);
+    bumpmap_vals_t values;
+    values.azimuth = 0.0;
+    values.elevation = 30.0;
+    values.depth = 50;
+    values.ambient = 0;
+    values.compensate = true;
+    values.type = LINEAR;
 
-        fillRect = kisGrowRect(fillRect, -1);
-        selectedness += step;
-    }
+    KisPixelSelectionSP raisedEdge = createHeightMap();
+    bumpmap(raisedEdge, bumpRect, values);
 
-    KIS_DUMP_DEVICE_2(device, applyRect, "00_initial", "bumpmap");
+    values.invert = true;
+    KisPixelSelectionSP loweredEdge = createHeightMap();
+    bumpmap(loweredEdge, bumpRect, values);
 
+    const quint8 originalEdge = MAX_SELECTED;
+    const quint8 raisedEdgeValue = TestUtil::alphaDevicePixel(raisedEdge, 2, 2);
+    const quint8 loweredEdgeValue = TestUtil::alphaDevicePixel(loweredEdge, 2, 2);
 
-    bumpmap_vals_t bmvals;
-
-    bmvals.azimuth = 240;
-    bmvals.elevation = 30;
-    bmvals.depth = 50;
-    bmvals.ambient = 128;
-    bmvals.compensate = false;
-    bmvals.invert = false;
-    bmvals.type = 0;
-
-    bumpmap(device, applyRect, bmvals);
-
-    KIS_DUMP_DEVICE_2(device, applyRect, "01_bumpmapped", "bumpmap");
-
+    QVERIFY(raisedEdgeValue != originalEdge);
+    QVERIFY(raisedEdgeValue < loweredEdgeValue);
 }
 
 void KisLayerStyleProjectionPlaneTest::testBevel()

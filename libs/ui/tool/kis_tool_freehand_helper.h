@@ -8,24 +8,29 @@
 #define __KIS_TOOL_FREEHAND_HELPER_H
 
 #include <QObject>
+#include <QQueue>
+#include <QSharedPointer>
 #include <QVector>
 
 #include "kis_types.h"
+#include "kis_default_bounds_base.h"
 #include "kritaui_export.h"
-#include <brushengine/kis_paint_information.h>
-#include "kis_default_bounds.h"
 #include <brushengine/kis_paintop_settings.h>
-#include "kis_smoothing_options.h"
 #include "kundo2magicstring.h"
 
 
 class KoPointerEvent;
 class KoCanvasResourceProvider;
+class KisDistanceInformation;
+class KisOptimizedBrushOutline;
+class KisPaintInformation;
 class KisPaintingInformationBuilder;
 class KisStrokesFacade;
 class KisPostExecutionUndoAdapter;
 class KisPaintOp;
 class KisFreehandStrokeInfo;
+class KisSmoothingOptions;
+typedef QSharedPointer<KisSmoothingOptions> KisSmoothingOptionsSP;
 
 
 class KRITAUI_EXPORT KisToolFreehandHelper : public QObject

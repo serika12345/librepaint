@@ -8,8 +8,55 @@
 #include <simpletest.h>
 
 
+#include "kis_pinned_shared_ptr.h"
 #include "kis_shared_ptr.h"
 #include "kis_shared.h"
+#include "kis_types.h"
+
+namespace {
+
+class IncompleteTestClass;
+
+void copyIncompleteWeakSharedPointer()
+{
+    KisWeakSharedPtr<IncompleteTestClass> source;
+    KisWeakSharedPtr<IncompleteTestClass> copy(source);
+    KisWeakSharedPtr<IncompleteTestClass> assigned;
+    assigned = copy;
+}
+
+static_assert(sizeof(KisWeakSharedPtr<IncompleteTestClass>) == 2 * sizeof(void *));
+static_assert(sizeof(KisSelectionSP) == sizeof(void *));
+static_assert(sizeof(KisSelectionMaskSP) == sizeof(void *));
+static_assert(sizeof(KisNodeSP) == sizeof(void *));
+static_assert(sizeof(KisGroupLayerSP) == sizeof(void *));
+static_assert(sizeof(KisFilterMaskSP) == sizeof(void *));
+static_assert(sizeof(KisPaintOpSettingsSP) == sizeof(void *));
+static_assert(sizeof(KisPropertiesConfigurationSP) == sizeof(void *));
+
+template<typename SharedPointer>
+bool copyIncompleteSharedPointer()
+{
+    SharedPointer source;
+    SharedPointer copy(source);
+    SharedPointer assigned;
+    assigned = copy;
+
+    return source.isNull() && copy.isNull() && assigned.isNull();
+}
+
+}
+
+void KisSharedPtrTest::testIncompleteTypeCopy()
+{
+    QVERIFY(copyIncompleteSharedPointer<KisSelectionSP>());
+    QVERIFY(copyIncompleteSharedPointer<KisSelectionMaskSP>());
+    QVERIFY(copyIncompleteSharedPointer<KisNodeSP>());
+    QVERIFY(copyIncompleteSharedPointer<KisGroupLayerSP>());
+    QVERIFY(copyIncompleteSharedPointer<KisFilterMaskSP>());
+    QVERIFY(copyIncompleteSharedPointer<KisPaintOpSettingsSP>());
+    QVERIFY(copyIncompleteSharedPointer<KisPropertiesConfigurationSP>());
+}
 
 class TestClassWatcher
 {
@@ -253,6 +300,61 @@ void KisSharedPtrTest::testWeakSPToWeakSPCopy()
     TestClassWSP newInvalidInstanceWSP(instanceWSP);
 
     QVERIFY(!newInvalidInstanceWSP.isValid());
+}
+
+void KisSharedPtrTest::testWeakSPIncompleteTypeCopy()
+{
+    copyIncompleteWeakSharedPointer();
+}
+
+void KisSharedPtrTest::testWeakSPCopyLifetime()
+{
+    TestClassWatcher watcher;
+    TestClassWSP expiredCopy;
+
+    {
+        TestClassSP strong(new TestClass(&watcher));
+        TestClassWSP weak(strong);
+
+        {
+            TestClassWSP copy(weak);
+            QVERIFY(copy.isValid());
+            QCOMPARE(copy.data(), strong.data());
+        }
+
+        QVERIFY(weak.isValid());
+        strong.clear();
+        QVERIFY(watcher.deleted);
+        QVERIFY(!weak.isValid());
+
+        expiredCopy = weak;
+        QVERIFY(expiredCopy.isNull());
+        QVERIFY(!expiredCopy.isValid());
+    }
+
+    QVERIFY(expiredCopy.isNull());
+    QVERIFY(!expiredCopy.isValid());
+}
+
+void KisSharedPtrTest::testWeakSPSelfAssignment()
+{
+    TestClassWatcher watcher;
+    TestClassSP strong(new TestClass(&watcher));
+    TestClassWSP weak(strong);
+    TestClassWSP &weakAlias = weak;
+
+    weak = weakAlias;
+    QVERIFY(weak.isValid());
+    QCOMPARE(weak.data(), strong.data());
+
+    strong.clear();
+    QVERIFY(watcher.deleted);
+    QVERIFY(!weak.isNull());
+    QVERIFY(!weak.isValid());
+
+    weak = weakAlias;
+    QVERIFY(!weak.isNull());
+    QVERIFY(!weak.isValid());
 }
 
 #include "kis_restricted_shared_ptr.h"

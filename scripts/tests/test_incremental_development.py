@@ -11,6 +11,11 @@ import unittest
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[2]
 BUILD_SCRIPT = REPO_ROOT / "scripts" / "build-incremental"
+RUN_TEST_SCRIPT = REPO_ROOT / "scripts" / "run-test"
+VERIFY_SCRIPT = REPO_ROOT / "scripts" / "verify"
+SHARED_TEST_ENV_SCRIPT = REPO_ROOT / "scripts" / "run-shared-test-env"
+CHECK_ARCHITECTURE_SCRIPT = REPO_ROOT / "scripts" / "docs" / "check-architecture.sh"
+RENDER_ARCHITECTURE_SCRIPT = REPO_ROOT / "scripts" / "docs" / "render-architecture.sh"
 BASH = shutil.which("bash")
 
 
@@ -27,12 +32,30 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
             check=False,
         )
 
+    def run_test_script(self, *arguments: str, environment=None):
+        self.assertIsNotNone(BASH, "bash must be available in the test environment")
+        return subprocess.run(
+            [BASH, str(RUN_TEST_SCRIPT), *arguments],
+            cwd=REPO_ROOT,
+            env=environment,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+
     def test_direnv_enters_the_test_shell_and_exposes_repository_commands(self):
         envrc = (REPO_ROOT / ".envrc").read_text(encoding="utf-8")
 
         self.assertIn("use flake .#test", envrc)
         self.assertIn("PATH_add scripts", envrc)
         self.assertIn("watch_file CMakePresets.json", envrc)
+
+    def test_architecture_scripts_use_portable_environment_unsetting(self):
+        for script in (CHECK_ARCHITECTURE_SCRIPT, RENDER_ARCHITECTURE_SCRIPT):
+            contents = script.read_text(encoding="utf-8")
+            self.assertIn("env -u DEBUG d2", contents)
+            self.assertNotIn("env --unset=DEBUG", contents)
 
     def test_native_path_uses_the_host_tdd_tree(self):
         result = self.run_build_script("native", "path")
@@ -44,10 +67,86 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
             str(REPO_ROOT / "build" / f"tdd-{expected_platform}"),
         )
 
+    def test_shared_test_environment_reuses_primary_profile_for_current_worktree(self):
+        with tempfile.TemporaryDirectory() as temp_directory:
+            temp_root = pathlib.Path(temp_directory)
+            primary_root = temp_root / "primary"
+            profile = primary_root / ".direnv" / "flake-profile"
+            profile.parent.mkdir(parents=True)
+            profile.write_text("cached development environment", encoding="utf-8")
+            shared_cache = temp_root / "ccache"
+            command_log = temp_root / "commands"
+            environment_log = temp_root / "environment"
+            fake_bin = temp_root / "bin"
+            fake_bin.mkdir()
+            fake_nix = fake_bin / "nix"
+            fake_nix.write_text(
+                f"#!{BASH}\n"
+                "printf '%s\\n' \"$*\" >\"$COMMAND_LOG\"\n"
+                "printf '%s\\n' 'export LIBREPAINT_TEST_SHELL=1' "
+                f"'export PATH={fake_bin}:/usr/bin:/bin' "
+                "'printf '\"'\"'shell-hook-banner\\n'\"'\"''\n",
+                encoding="utf-8",
+            )
+            fake_nix.chmod(0o755)
+
+            environment = os.environ.copy()
+            environment.update(
+                {
+                    "COMMAND_LOG": str(command_log),
+                    "ENVIRONMENT_LOG": str(environment_log),
+                    "LIBREPAINT_PRIMARY_WORKTREE": str(primary_root),
+                    "LIBREPAINT_SHARED_CCACHE": str(shared_cache),
+                    "PATH": f"{fake_bin}:{environment['PATH']}",
+                }
+            )
+
+            result = subprocess.run(
+                [
+                    BASH,
+                    str(SHARED_TEST_ENV_SCRIPT),
+                    BASH,
+                    "-c",
+                    "set -euo pipefail; "
+                    "build_entry=\"$(command -v build-incremental)\"; "
+                    "printf '%s\\n' \"$PWD\" \"$CCACHE_BASEDIR\" "
+                    "\"$CCACHE_DIR\" \"$LIBREPAINT_REPO_ROOT\" "
+                    "\"$LIBREPAINT_BUILD_ROOT\" \"$build_entry\" "
+                    ">\"$ENVIRONMENT_LOG\"; "
+                    "printf '%s\\n' command-output",
+                ],
+                cwd=REPO_ROOT,
+                env=environment,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                check=False,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(result.stdout, "command-output\n")
+            self.assertEqual(
+                command_log.read_text(encoding="utf-8").strip(),
+                f"print-dev-env {profile.resolve()}",
+            )
+            self.assertEqual(
+                environment_log.read_text(encoding="utf-8").splitlines(),
+                [
+                    str(REPO_ROOT),
+                    str(REPO_ROOT),
+                    str(shared_cache),
+                    str(REPO_ROOT),
+                    str(REPO_ROOT / "build"),
+                    str(REPO_ROOT / "scripts" / "build-incremental"),
+                ],
+            )
+
     def test_native_configure_uses_the_host_preset(self):
         with tempfile.TemporaryDirectory() as temp_directory:
             temp_root = pathlib.Path(temp_directory)
             command_log = temp_root / "commands"
+            boundary_log = temp_root / "boundaries"
+            compile_commands_link = temp_root / "compile_commands.json"
             fake_bin = temp_root / "bin"
             fake_bin.mkdir()
             fake_cmake = fake_bin / "cmake"
@@ -56,12 +155,22 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
                 encoding="utf-8",
             )
             fake_cmake.chmod(0o755)
+            fake_python = fake_bin / "python3"
+            fake_python.write_text(
+                f"#!{BASH}\nprintf '%s\\n' \"$*\" >>\"$BOUNDARY_LOG\"\n",
+                encoding="utf-8",
+            )
+            fake_python.chmod(0o755)
             environment = os.environ.copy()
             environment.update(
                 {
+                    "BOUNDARY_LOG": str(boundary_log),
                     "COMMAND_LOG": str(command_log),
                     "LIBREPAINT_NATIVE_MARKER_PATH": str(
                         temp_root / "native-config"
+                    ),
+                    "LIBREPAINT_COMPILE_COMMANDS_LINK_PATH": str(
+                        compile_commands_link
                     ),
                     "LIBREPAINT_TEST_SHELL": "1",
                     "PATH": f"{fake_bin}:{environment['PATH']}",
@@ -78,6 +187,181 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
                 command_log.read_text(encoding="utf-8").strip(),
                 f"--preset tdd-{expected_platform}",
             )
+            boundary_commands = boundary_log.read_text(encoding="utf-8").splitlines()
+            self.assertEqual(
+                boundary_commands[0],
+                f"{REPO_ROOT / 'scripts/architecture/check_package_boundaries.py'} "
+                f"--prepare-query {REPO_ROOT / 'build' / f'tdd-{expected_platform}'}",
+            )
+            self.assertIn(
+                f"{REPO_ROOT / 'scripts/architecture/check_package_boundaries.py'} "
+                f"--reply-directory {REPO_ROOT / 'build' / f'tdd-{expected_platform}' / '.cmake/api/v1/reply'} "
+                f"--platform {expected_platform} --build-profile tdd-{expected_platform}",
+                boundary_commands[1],
+            )
+            self.assertTrue(compile_commands_link.is_symlink())
+            self.assertEqual(
+                compile_commands_link.resolve(strict=False),
+                REPO_ROOT
+                / "build"
+                / f"tdd-{expected_platform}"
+                / "compile_commands.json",
+            )
+
+    def test_native_plan_dry_runs_a_disposable_synchronized_manifest(self):
+        with tempfile.TemporaryDirectory() as temp_directory:
+            temp_root = pathlib.Path(temp_directory)
+            build_dir = temp_root / "native-build"
+            build_dir.mkdir()
+            build_manifest = build_dir / "build.ninja"
+            build_manifest.write_text(
+                "build ExampleTarget: phony\n",
+                encoding="utf-8",
+            )
+            command_log = temp_root / "commands"
+            boundary_log = temp_root / "boundaries"
+            compile_commands_link = temp_root / "compile_commands.json"
+            fake_bin = temp_root / "bin"
+            fake_bin.mkdir()
+
+            fake_ninja = fake_bin / "ninja"
+            fake_ninja.write_text(
+                f"#!{BASH}\n"
+                "printf '%s\\n' \"$*\" >>\"$COMMAND_LOG\"\n"
+                "plan_manifest=''\n"
+                "previous=''\n"
+                "for argument in \"$@\"; do\n"
+                "    if [[ \"$previous\" == '-f' ]]; then\n"
+                "        plan_manifest=\"$argument\"\n"
+                "    fi\n"
+                "    previous=\"$argument\"\n"
+                "done\n"
+                "if [[ -n \"$plan_manifest\" ]]; then\n"
+                "    [[ \"$PLAN_BUILD_DIR/build.ninja\" "
+                "-ef \"$PLAN_BUILD_DIR/$plan_manifest\" ]]\n"
+                "    printf '%s\\n' '[1/102] planned work'\n"
+                "    exit \"${FAKE_NINJA_PLAN_STATUS:-0}\"\n"
+                "fi\n"
+                "exit \"${FAKE_NINJA_SYNC_STATUS:-0}\"\n",
+                encoding="utf-8",
+            )
+            fake_ninja.chmod(0o755)
+
+            fake_cmake = fake_bin / "cmake"
+            fake_cmake.write_text(
+                f"#!{BASH}\nprintf '%s\\n' \"$*\" >>\"$COMMAND_LOG\"\n",
+                encoding="utf-8",
+            )
+            fake_cmake.chmod(0o755)
+            fake_ccache = fake_bin / "ccache"
+            fake_ccache.write_text(f"#!{BASH}\nexit 0\n", encoding="utf-8")
+            fake_ccache.chmod(0o755)
+            fake_python = fake_bin / "python3"
+            fake_python.write_text(
+                f"#!{BASH}\nprintf '%s\\n' \"$*\" >>\"$BOUNDARY_LOG\"\n",
+                encoding="utf-8",
+            )
+            fake_python.chmod(0o755)
+
+            environment = os.environ.copy()
+            environment.update(
+                {
+                    "BOUNDARY_LOG": str(boundary_log),
+                    "COMMAND_LOG": str(command_log),
+                    "LIBREPAINT_COMPILE_COMMANDS_LINK_PATH": str(
+                        compile_commands_link
+                    ),
+                    "LIBREPAINT_NATIVE_BUILD_DIR": str(build_dir),
+                    "LIBREPAINT_NATIVE_MARKER_PATH": str(
+                        temp_root / "native-config"
+                    ),
+                    "LIBREPAINT_TEST_SHELL": "1",
+                    "PATH": f"{fake_bin}:{environment['PATH']}",
+                    "PLAN_BUILD_DIR": str(build_dir),
+                }
+            )
+
+            configure_result = self.run_build_script(
+                "native", "configure", environment=environment
+            )
+            self.assertEqual(configure_result.returncode, 0, configure_result.stderr)
+            command_log.unlink()
+
+            plan_result = self.run_build_script(
+                "native", "plan", "ExampleTarget", environment=environment
+            )
+
+            self.assertEqual(plan_result.returncode, 0, plan_result.stderr)
+            plan_commands = command_log.read_text(encoding="utf-8").splitlines()
+            self.assertEqual(plan_commands[0], f"-C {build_dir} build.ninja")
+            self.assertRegex(
+                plan_commands[1],
+                rf"^-C {build_dir} -f \.librepaint-plan\..+ -n ExampleTarget$",
+            )
+            self.assertIn("[1/102] planned work", plan_result.stdout)
+            self.assertEqual(
+                list(build_dir.glob(".librepaint-plan.*")),
+                [],
+            )
+
+            command_log.unlink()
+            failing_environment = environment.copy()
+            failing_environment["FAKE_NINJA_PLAN_STATUS"] = "7"
+            failing_result = self.run_build_script(
+                "native",
+                "plan",
+                "ExampleTarget",
+                environment=failing_environment,
+            )
+
+            self.assertEqual(
+                failing_result.returncode,
+                7,
+                f"{failing_result.stdout}\n{failing_result.stderr}",
+            )
+            self.assertEqual(
+                list(build_dir.glob(".librepaint-plan.*")),
+                [],
+            )
+
+            command_log.unlink()
+            sync_failing_environment = environment.copy()
+            sync_failing_environment["FAKE_NINJA_SYNC_STATUS"] = "5"
+            sync_failing_result = self.run_build_script(
+                "native",
+                "plan",
+                "ExampleTarget",
+                environment=sync_failing_environment,
+            )
+
+            self.assertEqual(sync_failing_result.returncode, 5)
+            self.assertEqual(
+                command_log.read_text(encoding="utf-8").splitlines(),
+                [f"-C {build_dir} build.ninja"],
+            )
+            self.assertEqual(
+                list(build_dir.glob(".librepaint-plan.*")),
+                [],
+            )
+
+    def test_clang_tidy_configuration_matches_the_development_toolchain(self):
+        clang_tidy = shutil.which("clang-tidy")
+        self.assertIsNotNone(
+            clang_tidy, "clang-tidy must be available in the test environment"
+        )
+
+        result = subprocess.run(
+            [clang_tidy, "--verify-config"],
+            cwd=REPO_ROOT,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            check=False,
+        )
+
+        self.assertNotIn("Error parsing", result.stdout)
+        self.assertNotIn("warning:", result.stdout)
+        self.assertIn("No config errors detected.", result.stdout)
 
     def test_native_presets_route_compilers_through_the_shared_cache(self):
         presets = json.loads(
@@ -120,6 +404,67 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
             '#define KRITA_PLUGINS_DIR_FOR_TESTS "${CMAKE_BINARY_DIR}/bin"',
             test_config,
         )
+
+    def test_run_test_builds_only_the_requested_target_through_the_incremental_entry(self):
+        with tempfile.TemporaryDirectory() as temp_directory:
+            temp_root = pathlib.Path(temp_directory)
+            command_log = temp_root / "commands"
+            fake_bin = temp_root / "bin"
+            fake_bin.mkdir()
+            fake_build = temp_root / "build-incremental"
+            fake_build.write_text(
+                f"#!{BASH}\nprintf 'build-incremental %s\\n' \"$*\" >>\"$COMMAND_LOG\"\n",
+                encoding="utf-8",
+            )
+            fake_build.chmod(0o755)
+
+            for command in ("cmake", "ctest"):
+                fake_command = fake_bin / command
+                fake_command.write_text(
+                    f"#!{BASH}\nprintf '{command} %s\\n' \"$*\" >>\"$COMMAND_LOG\"\n",
+                    encoding="utf-8",
+                )
+                fake_command.chmod(0o755)
+
+            environment = os.environ.copy()
+            environment.update(
+                {
+                    "COMMAND_LOG": str(command_log),
+                    "LIBREPAINT_BUILD_INCREMENTAL_PATH": str(fake_build),
+                    "LIBREPAINT_TEST_SHELL": "1",
+                    "PATH": f"{fake_bin}:{environment['PATH']}",
+                }
+            )
+
+            result = self.run_test_script(
+                "FreehandStrokeContractTest",
+                "^libs-ui-FreehandStrokeContractTest$",
+                environment=environment,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue(command_log.exists())
+            expected_preset = "tdd-macos" if os.uname().sysname == "Darwin" else "tdd-linux"
+            self.assertEqual(
+                command_log.read_text(encoding="utf-8").splitlines(),
+                [
+                    "build-incremental native build FreehandStrokeContractTest",
+                    f"ctest --preset {expected_preset} --tests-regex ^libs-ui-FreehandStrokeContractTest$",
+                ],
+            )
+
+    def test_full_native_verification_reuses_the_incremental_build_entry(self):
+        verify_script = VERIFY_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn(
+            './scripts/build-incremental native build',
+            verify_script,
+        )
+        self.assertNotIn(
+            './scripts/build-incremental native configure',
+            verify_script,
+        )
+        self.assertNotIn('cmake --build --preset', verify_script)
 
     def test_every_platform_entry_point_is_executable(self):
         entry_points = [

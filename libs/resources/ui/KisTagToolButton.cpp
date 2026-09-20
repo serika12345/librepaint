@@ -23,7 +23,8 @@
 #include <kis_debug.h>
 #include <KisTagModel.h>
 
-#include "KisResourceItemChooserContextMenu.h"
+#include "TagActions.h"
+#include <QMenu>
 #include "KisMenuStyleDontCloseOnAlt.h"
 
 class KisTagToolButton::Private
@@ -147,5 +148,4 @@ void KisTagToolButton::onTagUndeleteClicked()
 {
     Q_EMIT undeletionOfTagRequested(d->undeleteCandidate);
 }
-
 

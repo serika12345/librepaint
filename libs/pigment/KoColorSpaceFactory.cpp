@@ -6,7 +6,6 @@
 
 #include "KoColorSpaceFactory.h"
 
-#include "DebugPigment.h"
 
 #include <QMutex>
 #include <QMutexLocker>

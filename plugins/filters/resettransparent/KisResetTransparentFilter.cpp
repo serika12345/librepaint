@@ -11,6 +11,7 @@
 #include <kis_debug.h>
 #include <kpluginfactory.h>
 
+#include <KoColor.h>
 #include <KoUpdater.h>
 #include <KisSequentialIteratorProgress.h>
 

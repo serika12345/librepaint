@@ -11,16 +11,14 @@
 #ifndef KIS_DUPLICATEOP_H_
 #define KIS_DUPLICATEOP_H_
 
+#include <QPointF>
+
 #include "kis_brush_based_paintop.h"
 
-#include <klocalizedstring.h>
-
 #include <kis_types.h>
-#include <brushengine/kis_paintop_factory.h>
-#include <brushengine/kis_paintop_settings.h>
 #include <KisOpacityOption.h>
 #include <KisRotationOption.h>
-#include <KisSizeOptionWidget.h>
+#include <KisStandardOptions.h>
 #include <KisDuplicateOptionData.h>
 
 
@@ -29,7 +27,6 @@
 class KisPaintInformation;
 
 
-class QPointF;
 class KisPainter;
 
 
@@ -45,10 +42,6 @@ protected:
     KisSpacingInformation paintAt(const KisPaintInformation& info) override;
 
     KisSpacingInformation updateSpacingImpl(const KisPaintInformation &info) const override;
-
-private:
-
-    qreal minimizeEnergy(const qreal* m, qreal* sol, int w, int h);
 
 private:
 

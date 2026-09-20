@@ -14,7 +14,6 @@
 
 #include "kundo2command.h"
 
-#include "kis_debug.h"
 #include "kis_paint_device_debug_utils.h"
 
 #include "kis_image_animation_interface.h"
@@ -22,6 +21,7 @@
 #include "kis_raster_keyframe_channel.h"
 #include "kis_time_span.h"
 #include "KisLockFrameGenerationLock.h"
+#include <KisRegion.h>
 
 
 void checkFrame(KisImageAnimationInterface *i, KisImageSP image, int frameId, bool externalFrameActive, const QRect &rc)
@@ -69,10 +69,10 @@ void KisImageAnimationInterfaceTest::testFrameRegeneration()
     i->switchCurrentTimeAsync(10);
     p.image->waitForDone();
 
-    KisKeyframeChannel *channel1 = dev1->keyframeChannel();
+    KisRasterKeyframeChannel *channel1 = dev1->keyframeChannel();
     channel1->addKeyframe(10);
 
-    KisKeyframeChannel *channel2 = dev2->keyframeChannel();
+    KisRasterKeyframeChannel *channel2 = dev2->keyframeChannel();
     channel2->addKeyframe(10);
 
 
@@ -146,7 +146,7 @@ void KisImageAnimationInterfaceTest::testFramesChangedSignal()
     KisPaintDeviceSP dev1 = p.layer->paintDevice();
     KisPaintDeviceSP dev2 = layer2->paintDevice();
 
-    KisKeyframeChannel *channel = dev2->keyframeChannel();
+    KisRasterKeyframeChannel *channel = dev2->keyframeChannel();
     channel->addKeyframe(10);
     channel->addKeyframe(20);
 
@@ -241,7 +241,7 @@ void KisImageAnimationInterfaceTest::testSwitchFrameWithUndo()
     KisImageAnimationInterface *i = p.image->animationInterface();
     KisPaintDeviceSP dev1 = p.layer->paintDevice();
 
-    KisKeyframeChannel *channel = dev1->keyframeChannel();
+    KisRasterKeyframeChannel *channel = dev1->keyframeChannel();
     channel->addKeyframe(10);
     channel->addKeyframe(20);
 
@@ -282,7 +282,7 @@ void KisImageAnimationInterfaceTest::testSwitchFrameHangup()
     KisImageAnimationInterface *i = p.image->animationInterface();
     KisPaintDeviceSP dev1 = p.layer->paintDevice();
 
-    KisKeyframeChannel *channel = dev1->keyframeChannel();
+    KisRasterKeyframeChannel *channel = dev1->keyframeChannel();
     channel->addKeyframe(10);
     channel->addKeyframe(20);
 

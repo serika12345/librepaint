@@ -12,7 +12,6 @@
 
 #include "SvgParser.h"
 
-#include <cmath>
 
 #include <FlakeDebug.h>
 
@@ -63,7 +62,6 @@
 
 #include "kis_algebra_2d.h"
 #include "kis_debug.h"
-#include "kis_global.h"
 #include <QXmlStreamReader>
 #include <algorithm>
 

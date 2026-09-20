@@ -11,7 +11,6 @@
 
 #include <QFlags>
 #include <QScopedPointer>
-#include <QPainterPath>
 
 #include <kis_paintop_settings.h>
 

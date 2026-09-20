@@ -10,6 +10,7 @@
 #include <KoUpdater.h>
 #include <kis_processing_information.h>
 #include <KisSequentialIteratorProgress.h>
+#include <kis_sequential_iterator.h>
 #include <filter/kis_filter_configuration.h>
 #include <generator/kis_generator_registry.h>
 #include <KoCompositeOpRegistry.h>

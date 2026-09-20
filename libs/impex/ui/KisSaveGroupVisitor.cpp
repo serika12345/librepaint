@@ -6,9 +6,13 @@
 #include "KisSaveGroupVisitor.h"
 
 #include <document/KisDocument.h>
+#include <kis_group_layer.h>
+#include <kis_image.h>
+#include <kis_layer.h>
 #include <kis_painter.h>
+#include <kis_paint_device.h>
 #include <kis_paint_layer.h>
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 
 KisSaveGroupVisitor::KisSaveGroupVisitor(KisImageWSP image,
                                          bool saveInvisible,
@@ -122,5 +126,3 @@ bool KisSaveGroupVisitor::visit(KisGroupLayer *layer)
 
     return true;
 }
-
-

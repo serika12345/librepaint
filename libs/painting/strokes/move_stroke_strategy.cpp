@@ -12,6 +12,7 @@
 #include "commands_new/kis_update_command.h"
 #include "commands_new/kis_node_move_command2.h"
 #include "kis_layer_utils.h"
+#include "krita_container_utils.h"
 #include "krita_utils.h"
 
 #include "KisRunnableStrokeJobData.h"
@@ -20,13 +21,10 @@
 #include "kis_abstract_projection_plane.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
-#include "kis_raster_keyframe_channel.h"
 #include "KisAnimAutoKey.h"
 
 #include "kis_transform_mask.h"
 #include "kis_transform_mask_params_interface.h"
-#include "kis_keyframe_channel.h"
-#include "kis_scalar_keyframe_channel.h"
 #include "commands_new/KisSimpleModifyTransformMaskCommand.h"
 #include "commands_new/KisLazyCreateTransformMaskKeyframesCommand.h"
 
@@ -570,52 +568,4 @@ KisStrokeStrategy* MoveStrokeStrategy::createLodClone(int levelOfDetail)
     m_sharedNodes.reset(new std::pair<KisNodeList, QSet<KisNodeSP>>());
     clone->m_sharedNodes = m_sharedNodes;
     return clone;
-}
-
-MoveStrokeStrategy::Data::Data(QPoint _offset)
-    : KisStrokeJobData(SEQUENTIAL, NORMAL),
-      offset(_offset)
-{
-}
-
-KisStrokeJobData *MoveStrokeStrategy::Data::createLodClone(int levelOfDetail)
-{
-    return new Data(*this, levelOfDetail);
-}
-
-MoveStrokeStrategy::Data::Data(const MoveStrokeStrategy::Data &rhs, int levelOfDetail)
-    : KisStrokeJobData(rhs)
-{
-    KisLodTransform t(levelOfDetail);
-    offset = t.map(rhs.offset);
-}
-
-MoveStrokeStrategy::PickLayerData::PickLayerData(QPoint _pos)
-    : KisStrokeJobData(SEQUENTIAL, NORMAL),
-      pos(_pos)
-{
-}
-
-KisStrokeJobData *MoveStrokeStrategy::PickLayerData::createLodClone(int levelOfDetail) {
-    return new PickLayerData(*this, levelOfDetail);
-}
-
-MoveStrokeStrategy::PickLayerData::PickLayerData(const MoveStrokeStrategy::PickLayerData &rhs, int levelOfDetail)
-    : KisStrokeJobData(rhs)
-{
-    KisLodTransform t(levelOfDetail);
-    pos = t.map(rhs.pos);
-}
-
-MoveStrokeStrategy::BarrierUpdateData::BarrierUpdateData(bool _forceUpdate)
-    : KisAsynchronousStrokeUpdateHelper::UpdateData(_forceUpdate, BARRIER, EXCLUSIVE)
-{}
-
-KisStrokeJobData *MoveStrokeStrategy::BarrierUpdateData::createLodClone(int levelOfDetail) {
-    return new BarrierUpdateData(*this, levelOfDetail);
-}
-
-MoveStrokeStrategy::BarrierUpdateData::BarrierUpdateData(const MoveStrokeStrategy::BarrierUpdateData &rhs, int levelOfDetail)
-    : KisAsynchronousStrokeUpdateHelper::UpdateData(rhs, levelOfDetail)
-{
 }

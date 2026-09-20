@@ -7,7 +7,8 @@
 #include "kis_uniform_paintop_property.h"
 
 #include <QVariant>
-#include "kis_debug.h"
+
+#include "KoID.h"
 #include "kis_paintop_settings.h"
 
 struct KisUniformPaintOpProperty::Private
@@ -114,6 +115,11 @@ KisPaintOpSettingsSP KisUniformPaintOpProperty::settings() const
     return m_d->settings ? m_d->settings : KisPaintOpSettingsSP();
 }
 
+KisPropertiesConfiguration *KisUniformPaintOpProperty::configuration() const
+{
+    return m_d->settings.data();
+}
+
 bool KisUniformPaintOpProperty::isVisible() const
 {
     return true;
@@ -126,8 +132,3 @@ void KisUniformPaintOpProperty::readValueImpl()
 void KisUniformPaintOpProperty::writeValueImpl()
 {
 }
-
-#include "kis_callback_based_paintop_property_impl.h"
-
-template class KRITAIMAGE_EXPORT_INSTANCE
-    KisCallbackBasedPaintopProperty<KisUniformPaintOpProperty>;

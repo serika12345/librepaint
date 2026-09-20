@@ -14,9 +14,11 @@
 #include <QMessageBox>
 #include <kactionmenu.h>
 #include <kactioncollection.h>
+#include <KConfigGroup>
+#include <KSharedConfig>
 
 #include <KoID.h>
-#include <workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisMainWindow.h>
 
 // krita/image
 #include <filter/kis_filter.h>
@@ -31,16 +33,15 @@
 #include <KisAnimAutoKey.h>
 
 // krita/ui
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "kis_canvas2.h"
 #include <kis_bookmarked_configuration_manager.h>
 
-#include "application/kis_action.h"
-#include "application/kis_action_manager.h"
+#include "application/ui/orchestration/kis_action.h"
+#include "application/ui/orchestration/kis_action_manager.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "dialogs/kis_dlg_filter.h"
 #include "strokes/kis_filter_stroke_strategy.h"
-#include "krita_utils.h"
 #include "kis_icon_utils.h"
 #include "kis_layer_utils.h"
 #include <KisGlobalResourcesInterface.h>

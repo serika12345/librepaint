@@ -6,17 +6,14 @@
 
 #include "KisStretchedIconButton.h"
 
+#include <QAction>
+#include <QHBoxLayout>
 #include <QIcon>
 #include <QLabel>
-#include <QHBoxLayout>
-#include <QAction>
-#include <QWindow>
-
-#include <kis_debug.h>
 
 KisStretchedIconButton::KisStretchedIconButton(QWidget *parent)
-    : QToolButton(parent),
-      m_label(new QLabel(this))
+    : QToolButton(parent)
+    , m_label(new QLabel(this))
 {
     m_label->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
     QHBoxLayout *layout = new QHBoxLayout();
@@ -45,10 +42,8 @@ void KisStretchedIconButton::setAssociatedAction(QAction *action)
     m_actionConnections.clear();
     m_action = action;
     if (action) {
-        m_actionConnections.addConnection(action, &QAction::changed,
-                                          this, &KisStretchedIconButton::slotActionChanged);
-        m_actionConnections.addConnection(this, &KisStretchedIconButton::clicked,
-                                          action, &QAction::trigger);
+        m_actionConnections.addConnection(action, &QAction::changed, this, &KisStretchedIconButton::slotActionChanged);
+        m_actionConnections.addConnection(this, &KisStretchedIconButton::clicked, action, &QAction::trigger);
     }
     slotActionChanged();
 }

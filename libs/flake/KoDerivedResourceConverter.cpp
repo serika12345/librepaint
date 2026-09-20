@@ -7,7 +7,6 @@
 #include "KoDerivedResourceConverter.h"
 
 #include "QVariant"
-#include "kis_assert.h"
 
 struct KoDerivedResourceConverter::Private
 {

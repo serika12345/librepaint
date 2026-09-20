@@ -15,8 +15,8 @@
 #include <QPointer>
 
 #include <kseparator.h>
-#include "workspace/KisMainWindow.h"
-#include "application/KisPart.h"
+#include "application/ui/workspace/KisMainWindow.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "KisDlgListPicker.h"
 #include "kis_utility_title_bar.h"
 

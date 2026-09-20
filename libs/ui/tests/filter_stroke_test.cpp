@@ -11,9 +11,9 @@
 #include "strokes/kis_filter_stroke_strategy.h"
 #include "kis_resources_snapshot.h"
 #include "kis_image.h"
+#include "kis_paint_device.h"
 #include "filter/kis_filter.h"
 #include "filter/kis_filter_registry.h"
-#include "filter/kis_filter_configuration.h"
 #include <KisGlobalResourcesInterface.h>
 
 class FilterStrokeTester : public utils::StrokeTester

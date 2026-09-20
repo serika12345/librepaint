@@ -11,7 +11,7 @@
 #include <QObject>
 #include <QStringList>
 
-#include "kritaui_export.h"
+#include <kritainputui_export.h>
 
 #define PROFILE_VERSION 6
 
@@ -24,7 +24,7 @@ class KisShortcutConfiguration;
  *
  *
  */
-class KRITAUI_EXPORT KisInputProfileManager : public QObject
+class KRITAINPUTUI_EXPORT KisInputProfileManager : public QObject
 {
     Q_OBJECT
 public:
@@ -105,6 +105,12 @@ public:
      * Resolve a persisted action identifier to its UI implementation.
      */
     KisAbstractInputAction *action(const QString &id) const;
+
+    /**
+     * Replace the application input actions. The manager takes ownership of
+     * every action in the list.
+     */
+    void setActions(const QList<KisAbstractInputAction *> &actions);
 
     /**
      * Set the resolved profile files and writable directory used by profile operations.

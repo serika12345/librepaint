@@ -24,20 +24,15 @@
 #include "KoPointerEvent.h"
 #include "KoInputDevice.h"
 #include "KoToolManager_p.h"
-#include "KoToolSelection.h"
 #include "KoCanvasBase.h"
 #include "KoCanvasController.h"
 #include "KoShapeManager.h"
 #include "KoSelection.h"
 #include "KoShapeLayer.h"
-#include "KoShapeRegistry.h"
 #include "KoShapeController.h"
 #include "KoViewConverter.h"
-#include "KoShapeFactoryBase.h"
 #include "kis_assert.h"
 #include "kactioncollection.h"
-#include "kis_global.h"
-#include "kis_algebra_2d.h"
 
 
 KoToolProxyPrivate::KoToolProxyPrivate(KoToolProxy *p)

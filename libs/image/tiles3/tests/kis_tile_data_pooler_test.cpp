@@ -7,7 +7,6 @@
 #include "kis_tile_data_pooler_test.h"
 #include <simpletest.h>
 
-#include "tiles3/kis_tiled_data_manager.h"
 
 #include "tiles3/kis_tile_data_store.h"
 #include "tiles3/kis_tile_data_store_iterators.h"

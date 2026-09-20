@@ -5,31 +5,29 @@
  */
 
 #include "KisAnimTimelineFramesModel.h"
+
+#include "nodes/kis_node_model.h"
 #include <QFont>
 #include <QSize>
 #include <QColor>
 #include <QMimeData>
 #include <QPointer>
 #include <QPair>
+#include <QTimer>
 #include <KisResourceModel.h>
 
 #include "kis_layer.h"
 #include "application/kis_config.h"
 
-#include "kis_global.h"
-#include "kis_debug.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
-#include "kis_undo_adapter.h"
 #include "kis_node_dummies_graph.h"
 #include "kis_dummies_facade_base.h"
 #include "canvas/KisNodeDisplayModeAdapter.h"
 #include "kis_signal_compressor.h"
-#include "kis_signal_compressor_with_param.h"
 #include "kis_keyframe_channel.h"
 #include "kis_raster_keyframe_channel.h"
 #include "kundo2command.h"
-#include "kis_post_execution_undo_adapter.h"
 #include <commands/kis_node_property_list_command.h>
 #include <commands_new/kis_switch_current_time_command.h>
 
@@ -42,14 +40,14 @@
 
 #include "nodes/kis_node_view_color_scheme.h"
 #include <kis_painting_tweaks.h>
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 #include <QApplication>
 #include "document/KisDocument.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "kis_processing_applicator.h"
 #include <KisImageBarrierLock.h>
 #include "kis_node_uuid_info.h"
-#include "workspace/KisMainWindow.h"
+#include "application/ui/workspace/KisMainWindow.h"
 
 
 struct KisAnimTimelineFramesModel::Private
@@ -852,9 +850,17 @@ bool KisAnimTimelineFramesModel::insertOtherLayer(int index, int dstRow)
 
     if (index < 0 || index >= list.size()) return false;
 
-    list[index].dummy->node()->setPinnedToTimeline(true);
-    dstRow = m_d->converter->rowForDummy(list[index].dummy);
-    setData(this->index(dstRow, 0), true, ActiveLayerRole);
+    QPointer<KisNodeDummy> dummy = list[index].dummy;
+    dummy->node()->setPinnedToTimeline(true);
+
+    QTimer::singleShot(0, this, [this, dummy] {
+        if (!dummy || !m_d->converter) return;
+
+        const int row = m_d->converter->rowForDummy(dummy);
+        if (row >= 0) {
+            setData(this->index(row, 0), true, ActiveLayerRole);
+        }
+    });
 
     return true;
 }

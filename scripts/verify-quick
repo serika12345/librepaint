@@ -11,21 +11,9 @@ if [[ "${LIBREPAINT_TEST_SHELL:-}" != "1" ]]; then
 fi
 
 python3 -m unittest discover -s scripts/tests -p 'test_*.py'
-python3 scripts/architecture/update_public_header_inventory.py --check
-python3 scripts/architecture/update_plugin_inventory.py --check
-python3 scripts/architecture/update_ui_class_responsibilities.py --check
-python3 scripts/architecture/update_ui_tool_class_responsibilities.py --check
-python3 scripts/architecture/update_package_responsibility_map.py --check
-python3 scripts/architecture/update_allowed_package_dependencies.py --check
-python3 scripts/architecture/update_dependency_violation_baseline.py --check
-python3 scripts/architecture/update_structural_dependency_baseline.py --check
-python3 scripts/architecture/check_public_surface_inventory.py
-python3 scripts/architecture/check_package_responsibility_map.py
-python3 scripts/architecture/check_allowed_package_dependencies.py
-python3 scripts/architecture/check_dependency_violation_baseline.py
-python3 scripts/architecture/check_structural_dependency_baseline.py
-python3 scripts/architecture/check_package_relocation_plan.py
-python3 scripts/architecture/check_document_boundary_assessment.py
+python3 scripts/architecture/check_package_boundaries.py
+python3 scripts/architecture/check_public_contracts.py
+python3 scripts/architecture/check_test_contracts.py
 python3 scripts/check_governance.py
 
 shellcheck \
@@ -34,8 +22,7 @@ shellcheck \
     scripts/platform/* \
     scripts/verify-quick \
     scripts/verify \
-    scripts/run-test \
-    scripts/docs/*.sh
+    scripts/run-test
 
 bash scripts/docs/check-architecture.sh
 

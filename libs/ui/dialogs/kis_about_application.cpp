@@ -15,7 +15,7 @@
 #include <kis_debug.h>
 #include <kis_global.h>
 
-#include "workspace/kis_splash_screen.h"
+#include "application/ui/workspace/kis_splash_screen.h"
 #include "ui_wdgaboutapplication.h"
 #include <KisPortingUtils.h>
 

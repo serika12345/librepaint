@@ -7,8 +7,8 @@
 #ifndef KIS_ANIMATION_EXPORTER_TEST_H
 #define KIS_ANIMATION_EXPORTER_TEST_H
 
-#include <simpletest.h>
 #include <KisSpinBoxSplineUnitConverter.h>
+#include <QObject>
 
 /**
  * KisSpinBoxSplineUnitConverterTest contains tests
@@ -31,7 +31,5 @@ private Q_SLOTS:
     void testCurveCalculationTwoWay_data();
 
     void testCurveCalculationCase64();
-
 };
 #endif
-

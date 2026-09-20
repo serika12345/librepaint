@@ -11,13 +11,13 @@
 #include <KisGlobalResourcesInterface.h>
 #include <kis_signals_blocker.h>
 #include <kis_generator_registry.h>
-#include <workspace/KisViewManager.h>
+#include <kis_image.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <KisSpinBoxI18nHelper.h>
 #include <KoUnit.h>
 
 #include "KisScreentoneConfigWidget.h"
-#include "KisScreentoneScreentoneFunctions.h"
 #include "KisScreentoneGeneratorConfiguration.h"
 
 KisScreentoneConfigWidget::KisScreentoneConfigWidget(QWidget* parent, const KoColorSpace *cs)

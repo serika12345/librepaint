@@ -11,7 +11,6 @@
 #include <kpluginfactory.h>
 
 #include "kis_round_corners_filter.h"
-#include "kis_global.h"
 #include "filter/kis_filter_registry.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(KisRoundCornersFilterPluginFactory, "kritaroundcornersfilter.json", registerPlugin<KisRoundCornersFilterPlugin>();)

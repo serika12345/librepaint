@@ -8,51 +8,807 @@ option(HAVE_MEMORY_LEAK_TRACKER "Enable memory leak tracker (always disabled in 
 option(HAVE_BACKTRACE_SUPPORT "Enable recording of backtrace in memory leak tracker" OFF)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/config-memory-leak-tracker.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-memory-leak-tracker.h) ### WRONG PLACE???
 
-set(kritaglobal_LIB_SRCS
-    kis_assert.cpp
-    kis_debug.cpp
-    kis_algebra_2d.cpp
-    kis_memory_leak_tracker.cpp
+add_library(kritaglobalalgebradirectionobjects OBJECT
+    kis_algebra_2d_direction.cpp
+)
+target_compile_definitions(kritaglobalalgebradirectionobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalalgebradirectionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalalgebradirectionobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+    PRIVATE
+        Eigen3::Eigen
+)
+set_target_properties(kritaglobalalgebradirectionobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalalgebrarectobjects OBJECT
+    kis_algebra_2d_rect.cpp
+)
+target_compile_definitions(kritaglobalalgebrarectobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalalgebrarectobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalalgebrarectobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+    PRIVATE
+        Boost::boost
+)
+set_target_properties(kritaglobalalgebrarectobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalalgebraplanargeometryobjects OBJECT
+    kis_algebra_2d_planar_geometry.cpp
+)
+target_compile_definitions(kritaglobalalgebraplanargeometryobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalalgebraplanargeometryobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalalgebraplanargeometryobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+    PRIVATE
+        Boost::boost
+        Eigen3::Eigen
+)
+set_target_properties(kritaglobalalgebraplanargeometryobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalalgebrapathtopologyobjects OBJECT
+    kis_algebra_2d_path_topology.cpp
+)
+target_compile_definitions(kritaglobalalgebrapathtopologyobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalalgebrapathtopologyobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalalgebrapathtopologyobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+    PRIVATE
+        Boost::boost
+)
+set_target_properties(kritaglobalalgebrapathtopologyobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalfileutilsobjects OBJECT
+    KisFileUtils.cpp
+)
+target_compile_definitions(kritaglobalfileutilsobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalfileutilsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalfileutilsobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaglobalfileutilsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalcumulativeundodataobjects OBJECT
+    KisCumulativeUndoData.cpp
+)
+target_compile_definitions(kritaglobalcumulativeundodataobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalcumulativeundodataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalcumulativeundodataobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::ConfigCore
+)
+set_target_properties(kritaglobalcumulativeundodataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobaltemporaryfileconfigurationobjects OBJECT
+    KisTemporaryFileConfiguration.cpp
+)
+target_compile_definitions(kritaglobaltemporaryfileconfigurationobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobaltemporaryfileconfigurationobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobaltemporaryfileconfigurationobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::ConfigCore
+)
+if(APPLE AND NOT IOS)
+    target_link_libraries(kritaglobaltemporaryfileconfigurationobjects PRIVATE kritamacosutils)
+endif()
+set_target_properties(kritaglobaltemporaryfileconfigurationobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalqpainterstatesaverobjects OBJECT
+    KisQPainterStateSaver.cpp
+)
+target_compile_definitions(kritaglobalqpainterstatesaverobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalqpainterstatesaverobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalqpainterstatesaverobjects PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritaglobalqpainterstatesaverobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobaldeletelaterwrapperobjects OBJECT
+    KisDeleteLaterWrapper.cpp
+)
+target_compile_definitions(kritaglobaldeletelaterwrapperobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobaldeletelaterwrapperobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobaldeletelaterwrapperobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritaglobaldeletelaterwrapperobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalbackupobjects OBJECT
+    KisBackup.cpp
+)
+target_compile_definitions(kritaglobalbackupobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalbackupobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalbackupobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaglobalbackupobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalcursoroverridelockobjects OBJECT
+    KisCursorOverrideLock.cpp
+)
+target_compile_definitions(kritaglobalcursoroverridelockobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalcursoroverridelockobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalcursoroverridelockobjects PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritaglobalcursoroverridelockobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalfilteredrollingmeanobjects OBJECT
+    KisFilteredRollingMean.cpp
+)
+target_compile_definitions(kritaglobalfilteredrollingmeanobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalfilteredrollingmeanobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalfilteredrollingmeanobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritaglobalfilteredrollingmeanobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalsharedobjects OBJECT
     kis_shared.cpp
-    kis_dom_utils.cpp
-    kis_painting_tweaks.cpp
-    KisHandlePainterHelper.cpp
-    KisHandleStyle.cpp
+)
+target_compile_definitions(kritaglobalsharedobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalsharedobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalsharedobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritaglobalsharedobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalrandomsourceobjects OBJECT
+    kis_random_source.cpp
+)
+target_compile_definitions(kritaglobalrandomsourceobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalrandomsourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalrandomsourceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritaglobalrandomsourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritagloballatencytrackerobjects OBJECT
+    kis_latency_tracker.cpp
+)
+target_compile_definitions(kritagloballatencytrackerobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritagloballatencytrackerobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritagloballatencytrackerobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritagloballatencytrackerobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalsignalcompressorobjects OBJECT
     kis_signal_compressor.cpp
     kis_signal_compressor_with_param.cpp
+)
+target_compile_definitions(kritaglobalsignalcompressorobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalsignalcompressorobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalsignalcompressorobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritaglobalsignalcompressorobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalthreadsafesignalcompressorobjects OBJECT
     kis_thread_safe_signal_compressor.cpp
+)
+target_compile_definitions(kritaglobalthreadsafesignalcompressorobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalthreadsafesignalcompressorobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalthreadsafesignalcompressorobjects
+    PUBLIC Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritaglobalthreadsafesignalcompressorobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalacyclicsignalconnectorobjects OBJECT
     kis_acyclic_signal_connector.cpp
-    kis_latency_tracker.cpp
-    KisQPainterStateSaver.cpp
-    KisRollingMeanAccumulatorWrapper.cpp
-    KisRollingSumAccumulatorWrapper.cpp
-    kis_config_notifier.cpp
-    KisDeleteLaterWrapper.cpp
-    KisUsageLogger.cpp
-    KisFileUtils.cpp
-    KisTemporaryFileConfiguration.cpp
+)
+target_compile_definitions(kritaglobalacyclicsignalconnectorobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalacyclicsignalconnectorobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalacyclicsignalconnectorobjects
+    PUBLIC Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritaglobalacyclicsignalconnectorobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalsignalmapperobjects OBJECT
     KisSignalMapper.cpp
-    KisRegion.cpp
-    KoID.cpp
-    KoUnit.cpp
-    KisBezierUtils.cpp
-    KisBezierPatch.cpp
-    KisBezierMesh.cpp
-    KisRectsGrid.cpp
+)
+target_compile_definitions(kritaglobalsignalmapperobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalsignalmapperobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalsignalmapperobjects
+    PUBLIC Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritaglobalsignalmapperobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalsynchronizedconnectionobjects OBJECT
     KisSynchronizedConnection.cpp
-    KisFilteredRollingMean.cpp
-    KisBackup.cpp
+)
+target_compile_definitions(kritaglobalsynchronizedconnectionobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalsynchronizedconnectionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalsynchronizedconnectionobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritaglobalsynchronizedconnectionobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalregionobjects OBJECT
+    KisRegion.cpp
+)
+target_compile_definitions(kritaglobalregionobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalregionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalregionobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+)
+set_target_properties(kritaglobalregionobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalmemoryleaktrackerobjects OBJECT
+    kis_memory_leak_tracker.cpp
+)
+target_compile_definitions(kritaglobalmemoryleaktrackerobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalmemoryleaktrackerobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalmemoryleaktrackerobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritaglobalmemoryleaktrackerobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobaldebugobjects OBJECT
+    kis_debug.cpp
+)
+target_compile_definitions(kritaglobaldebugobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobaldebugobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobaldebugobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritaglobaldebugobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobaldomutilsobjects OBJECT
+    kis_dom_utils.cpp
+)
+target_compile_definitions(kritaglobaldomutilsobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobaldomutilsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobaldomutilsobjects
+    PUBLIC
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritaglobaldomutilsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalbeziermeshobjects OBJECT
+    KisBezierMesh.cpp
+)
+target_compile_definitions(kritaglobalbeziermeshobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalbeziermeshobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalbeziermeshobjects
+    PUBLIC
+        kritaglobaldebugobjects
+        kritaglobaldomutilsobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+)
+set_target_properties(kritaglobalbeziermeshobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalconfignotifierobjects OBJECT
+    kis_config_notifier.cpp
+    kis_config_notifier.h
+)
+target_compile_definitions(kritaglobalconfignotifierobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalconfignotifierobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalconfignotifierobjects
+    PUBLIC
+        kritaglobaldebugobjects
+        kritaglobalsignalcompressorobjects
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritaglobalconfignotifierobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalpaintingtweaksobjects OBJECT
+    kis_painting_tweaks.cpp
+)
+target_compile_definitions(kritaglobalpaintingtweaksobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalpaintingtweaksobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalpaintingtweaksobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritaglobalpaintingtweaksobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalhandlestyleobjects OBJECT
+    KisHandleStyle.cpp
+)
+target_compile_definitions(kritaglobalhandlestyleobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalhandlestyleobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalhandlestyleobjects
+    PUBLIC
+        kritaglobalpaintingtweaksobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritaglobalhandlestyleobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalrollingsumobjects OBJECT
+    KisRollingSumAccumulatorWrapper.cpp
+)
+target_compile_definitions(kritaglobalrollingsumobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalrollingsumobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalrollingsumobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritaglobalrollingsumobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalrollingmeanobjects OBJECT
+    KisRollingMeanAccumulatorWrapper.cpp
+)
+target_compile_definitions(kritaglobalrollingmeanobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalrollingmeanobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalrollingmeanobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritaglobalrollingmeanobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalsamplerectiteratorobjects OBJECT
     KisSampleRectIterator.cpp
-    KisCursorOverrideLock.cpp
-    KisCumulativeUndoData.cpp
-    kis_random_source.cpp
+)
+target_compile_definitions(kritaglobalsamplerectiteratorobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalsamplerectiteratorobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalsamplerectiteratorobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+)
+set_target_properties(kritaglobalsamplerectiteratorobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalrectsgridobjects OBJECT
+    KisRectsGrid.cpp
+)
+target_compile_definitions(kritaglobalrectsgridobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalrectsgridobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalrectsgridobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+)
+set_target_properties(kritaglobalrectsgridobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalidobjects OBJECT
+    KoID.cpp
+)
+target_compile_definitions(kritaglobalidobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalidobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalidobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+)
+set_target_properties(kritaglobalidobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalunitobjects OBJECT
+    KoUnit.cpp
+)
+target_compile_definitions(kritaglobalunitobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalunitobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalunitobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+)
+set_target_properties(kritaglobalunitobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalbeziercurvelengthobjects OBJECT
+    KisBezierCurveLength.cpp
+)
+target_compile_definitions(kritaglobalbeziercurvelengthobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalbeziercurvelengthobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalbeziercurvelengthobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+)
+set_target_properties(kritaglobalbeziercurvelengthobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalbezierutilsobjects OBJECT
+    KisBezierUtils.cpp
+)
+target_compile_definitions(kritaglobalbezierutilsobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalbezierutilsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalbezierutilsobjects
+    PUBLIC
+        kritaglobalbeziercurvelengthobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+    PRIVATE
+        Eigen3::Eigen
+)
+if(GSL_FOUND)
+    target_link_libraries(kritaglobalbezierutilsobjects PRIVATE GSL::gsl)
+endif()
+set_target_properties(kritaglobalbezierutilsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalbezierpatchobjects OBJECT
+    KisBezierPatch.cpp
+)
+target_compile_definitions(kritaglobalbezierpatchobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalbezierpatchobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalbezierpatchobjects
+    PUBLIC
+        kritaglobalalgebradirectionobjects
+        kritaglobalbeziercurvelengthobjects
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+)
+set_target_properties(kritaglobalbezierpatchobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobaldecomposedmatrixobjects OBJECT
+    KisDecomposedMatrix.cpp
+)
+target_compile_definitions(kritaglobaldecomposedmatrixobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobaldecomposedmatrixobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobaldecomposedmatrixobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+    PRIVATE
+        Eigen3::Eigen
+)
+set_target_properties(kritaglobaldecomposedmatrixobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobaltransformcomponentsobjects OBJECT
+    KisTransformComponents.cpp
+)
+target_compile_definitions(kritaglobaltransformcomponentsobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobaltransformcomponentsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobaltransformcomponentsobjects
+    PUBLIC
+        kritaglobaldecomposedmatrixobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+)
+set_target_properties(kritaglobaltransformcomponentsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaglobalhandlepainterhelperobjects OBJECT
+    KisHandlePainterHelper.cpp
+)
+target_compile_definitions(kritaglobalhandlepainterhelperobjects PRIVATE kritaglobal_EXPORTS)
+target_include_directories(kritaglobalhandlepainterhelperobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaglobalhandlepainterhelperobjects
+    PUBLIC
+        kritaglobaldecomposedmatrixobjects
+        kritaglobalhandlestyleobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+)
+set_target_properties(kritaglobalhandlepainterhelperobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+if (UNIX AND NOT IOS)
+    add_library(kritaglobalcrashsignalhandlersetupobjects OBJECT
+        KisCrashSignalHandlerSetup.cpp
+    )
+    target_compile_definitions(kritaglobalcrashsignalhandlersetupobjects PRIVATE kritaglobal_EXPORTS)
+    target_include_directories(kritaglobalcrashsignalhandlersetupobjects
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    )
+    target_link_libraries(kritaglobalcrashsignalhandlersetupobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+    set_target_properties(kritaglobalcrashsignalhandlersetupobjects PROPERTIES
+        AUTOMOC OFF
+        POSITION_INDEPENDENT_CODE ON
+    )
+endif()
+
+set(kritaglobal_LIB_SRCS
+    kis_assert.cpp
+    kis_algebra_2d.cpp
+    KisUsageLogger.cpp
     KisNodeAdditionFlags.h
     KisMessageBoxWrapper.cpp
-    KisTransformComponents.cpp
 )
 
 if (ANDROID)
     list(APPEND kritaglobal_LIB_SRCS
+        $<TARGET_OBJECTS:kritaglobalcrashsignalhandlersetupobjects>
         KisAndroidCrashHandler.cpp
         KisAndroidExitInfo.cpp
         KisAndroidLogHandler.cpp
@@ -64,8 +820,49 @@ if (ANDROID)
     endif()
 endif()
 
-kis_add_library(kritaglobal SHARED ${kritaglobal_LIB_SRCS}
-   )
+kis_add_library(kritaglobal SHARED
+    ${kritaglobal_LIB_SRCS}
+    $<TARGET_OBJECTS:kritaglobalalgebradirectionobjects>
+    $<TARGET_OBJECTS:kritaglobalalgebrarectobjects>
+    $<TARGET_OBJECTS:kritaglobalalgebraplanargeometryobjects>
+    $<TARGET_OBJECTS:kritaglobalalgebrapathtopologyobjects>
+    $<TARGET_OBJECTS:kritaglobalfileutilsobjects>
+    $<TARGET_OBJECTS:kritaglobalcumulativeundodataobjects>
+    $<TARGET_OBJECTS:kritaglobaltemporaryfileconfigurationobjects>
+    $<TARGET_OBJECTS:kritaglobalqpainterstatesaverobjects>
+    $<TARGET_OBJECTS:kritaglobaldeletelaterwrapperobjects>
+    $<TARGET_OBJECTS:kritaglobalbackupobjects>
+    $<TARGET_OBJECTS:kritaglobalcursoroverridelockobjects>
+    $<TARGET_OBJECTS:kritaglobalfilteredrollingmeanobjects>
+    $<TARGET_OBJECTS:kritaglobalsharedobjects>
+    $<TARGET_OBJECTS:kritaglobalrandomsourceobjects>
+    $<TARGET_OBJECTS:kritagloballatencytrackerobjects>
+    $<TARGET_OBJECTS:kritaglobalsignalcompressorobjects>
+    $<TARGET_OBJECTS:kritaglobalthreadsafesignalcompressorobjects>
+    $<TARGET_OBJECTS:kritaglobalacyclicsignalconnectorobjects>
+    $<TARGET_OBJECTS:kritaglobalsignalmapperobjects>
+    $<TARGET_OBJECTS:kritaglobalsynchronizedconnectionobjects>
+    $<TARGET_OBJECTS:kritaglobalregionobjects>
+    $<TARGET_OBJECTS:kritaglobalmemoryleaktrackerobjects>
+    $<TARGET_OBJECTS:kritaglobaldebugobjects>
+    $<TARGET_OBJECTS:kritaglobaldomutilsobjects>
+    $<TARGET_OBJECTS:kritaglobalbeziermeshobjects>
+    $<TARGET_OBJECTS:kritaglobalconfignotifierobjects>
+    $<TARGET_OBJECTS:kritaglobalpaintingtweaksobjects>
+    $<TARGET_OBJECTS:kritaglobalhandlestyleobjects>
+    $<TARGET_OBJECTS:kritaglobalrollingsumobjects>
+    $<TARGET_OBJECTS:kritaglobalrollingmeanobjects>
+    $<TARGET_OBJECTS:kritaglobalsamplerectiteratorobjects>
+    $<TARGET_OBJECTS:kritaglobalrectsgridobjects>
+    $<TARGET_OBJECTS:kritaglobalidobjects>
+    $<TARGET_OBJECTS:kritaglobalunitobjects>
+    $<TARGET_OBJECTS:kritaglobalbeziercurvelengthobjects>
+    $<TARGET_OBJECTS:kritaglobalbezierutilsobjects>
+    $<TARGET_OBJECTS:kritaglobalbezierpatchobjects>
+    $<TARGET_OBJECTS:kritaglobaldecomposedmatrixobjects>
+    $<TARGET_OBJECTS:kritaglobaltransformcomponentsobjects>
+    $<TARGET_OBJECTS:kritaglobalhandlepainterhelperobjects>
+)
 
 target_sources(kritaglobal
   PRIVATE

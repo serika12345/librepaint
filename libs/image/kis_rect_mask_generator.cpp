@@ -6,14 +6,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <cmath>
 
 
 #include <QDomDocument>
 
 #include "KoMultiArchBuildSupport.h"
 #include "kis_base_mask_generator.h"
-#include "kis_fast_math.h"
 #include "kis_rect_mask_generator.h"
 #include "kis_rect_mask_generator_p.h"
 

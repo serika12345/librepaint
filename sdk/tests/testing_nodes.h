@@ -9,6 +9,7 @@
 
 #include "kis_node.h"
 #include "kis_image.h"
+#include "kis_paint_device.h"
 
 namespace TestUtil {
 
@@ -43,4 +44,3 @@ struct DefaultNode : public KisNode {
 }
 
 #endif // TESTING_NODES_H
-

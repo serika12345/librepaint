@@ -10,6 +10,10 @@
 #include <QGridLayout>
 
 #include <kis_signals_blocker.h>
+#include <KisMpl.h>
+
+#include "kis_node.h"
+#include "kis_paint_device.h"
 
 #include <kis_config_widget.h>
 #include <filter/kis_filter.h>

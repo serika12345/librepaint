@@ -8,6 +8,7 @@
 #define QIMAGE_TEST_UTIL_H
 
 #ifdef FILES_OUTPUT_DIR
+#include "kis_debug.h"
 
 #include <QProcessEnvironment>
 #include <QDir>
@@ -286,4 +287,3 @@ inline bool checkQImageExternal(const QImage &image, const QString &testName,
 #endif // FILES_OUTPUT_DIR
 
 #endif // QIMAGE_TEST_UTIL_H
-

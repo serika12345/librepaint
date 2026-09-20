@@ -8,7 +8,6 @@
 
 #include <QBuffer>
 #include <QIODevice>
-#include <algorithm>
 #include <kis_debug.h>
 #include <psd_resource_block.h>
 #include <psd_utils.h>

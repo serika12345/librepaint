@@ -45,9 +45,10 @@
 | `libs/document/files` | `kritadocumentfiles` | 文書ファイル、バックアップ、自動保存ファイル、回復ファイルの具体処理 | `kritadocument`、`kritaimpex`、描画、リソースの公開面を利用する |
 | `libs/document/ui` | `kritadocumentui` | 履歴接続と表示、文書情報編集、保存・読込のダイアログ、状態表示、Qt通知 | `kritadocumentfiles`、`kritadocument`、`kritaimpex`を利用する |
 
-`kritadocument`は`kritadocumentfiles`と`kritadocumentui`へ依存しない。
-`kritadocumentfiles`は`kritadocumentui`と`kritaui`へ依存しない。
-`kritadocumentui`が文書の具体機能を呼び出す最上位の文書パッケージとなる。
+文書パッケージは`kritadocument`、`kritadocumentfiles`、`kritadocumentui`の順に上位責務を
+積み上げる。
+`kritadocumentfiles`は`kritadocument`、`kritaimpex`、描画、リソースの公開面を利用する。
+`kritadocumentui`が文書の具体機能を呼び出す最上位の文書パッケージである。
 
 形式選択と形式変換は既存`kritaimpex`と`kritaimpexui`が所有する。文書ファイル保存から
 必要な公開面を直接利用し、同じ処理を包む新しい形式変換接続面は作らない。
@@ -142,10 +143,9 @@
 
 状態は`completed`とする。
 
-[文書境界評価](document-boundary-assessment.json)は、P1とP2で所有を移した3クラスと、
-UI直下に残る22クラスを対応付け、R1-G6e開始時の25クラスすべてに具体的な所有先または
-後続検査段階を記録する。残る22クラスは、`KisDocument`、外部ファイル層、操作管理、
-ノード・選択操作接続、Qtモデルと表示状態へ再分類した。
+文書クラスは`KisDocument`、外部ファイル層、操作管理、ノード・選択操作接続、Qtモデルと
+表示状態の具体所有へ接続する。現在の所有ターゲットと責務は
+`package-boundaries.json`および各責務ディレクトリーのCMake定義が示す。
 
 `KisDocument.cpp`にある130の一意なメソッド定義を8関心へ分類した。文書識別と状態は
 `kritadocument`、具体的なファイル処理は`kritadocumentfiles`、文書表示は`kritadocumentui`、
@@ -162,7 +162,7 @@ UI直下に残る22クラスを対応付け、R1-G6e開始時の25クラスす�
 - 文書パッケージ内の依存が`kritadocumentui`から`kritadocumentfiles`、
   `kritadocumentfiles`から`kritadocument`へ一方向に向く。
 - `kritadocument`の公開リンク閉包がQt Coreだけで構成される。
-- 文書表示と文書ファイル保存が`kritaui`ではなく、具体名を持つ所有ターゲットへ集約される。
+- 文書表示は`kritadocumentui`、文書ファイル保存は`kritadocumentfiles`へ集約される。
 - 形式選択と形式変換が既存の入出力所有に残り、重複する抽象接続面がない。
 - このマイルストーンだけを根拠とする汎用利用事例、汎用永続化、接続面、アダプター、
   サービス探索器、共通基底クラス、空ターゲットが存在しない。
@@ -173,13 +173,12 @@ UI直下に残る22クラスを対応付け、R1-G6e開始時の25クラスす�
 
 各実装検査段階は、対象の特性試験で初期診断を確認してから最小の移動を行う。
 対象CTest、`verify-quick`、macOSとLinuxの全ネイティブ試験を実行する。CMake境界を変更する
-P1からP3ではmacOS、Linux、iOS、Android、Windowsの対象ターゲットを構築し、5構成の
-CMake台帳、依存行列、循環、公開面を同一コミットから再生成する。
-P4は製品ソースとCMake境界を変更せず、評価台帳の全件被覆、実装との一致、抽象化判断を
-専用単体試験と`verify-quick`で検証する。
+P1からP3ではmacOS、Linux、iOS、Android、Windowsの対象ターゲットを構築し、各構成直後の
+CMake File API応答で依存方向と循環を検査する。P4は製品ソースとCMake境界を変更せず、
+実装との一致と抽象化判断を対象試験と`verify-quick`で検証する。
 
 ## 保守
 
-各検査段階の完了時に、この文書、`TODO.md`、`PROGRESS.md`、責務台帳、公開面台帳、
-再配置計画、CMake台帳を同じ変更で更新する。新しいパッケージまたは抽象を提案する場合は、
+各検査段階の完了時に、この文書、`TODO.md`、`PROGRESS.md`、パッケージ境界方針を
+同じ変更で更新する。新しいパッケージまたは抽象を提案する場合は、
 具体的な起点、現在の依存問題、製品利用元、製品実装、完了時に消える依存辺を記録する。

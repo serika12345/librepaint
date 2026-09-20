@@ -13,7 +13,9 @@
 #include <KoToolManager.h>
 
 #include <kis_tool_proxy.h>
-#include <kis_canvas2.h>
+#include <KoCanvasBase.h>
+#include <KoCanvasResourceProvider.h>
+#include <KisToolCanvas.h>
 #include <kis_coordinates_converter.h>
 
 #include "kis_tool.h"
@@ -176,7 +178,7 @@ void KisToolInvocationAction::begin(int shortcut, QEvent *event)
          * press. Until all the tools support it, we just duplicate the
          * key event and the method call
          */
-        inputManager()->canvas()->requestStrokeEndForTool();
+        inputManager()->toolCanvas()->requestStrokeEndForTool();
 
         /**
          * Some tools would like to distinguish automated requestStrokeEnd()
@@ -195,7 +197,7 @@ void KisToolInvocationAction::begin(int shortcut, QEvent *event)
          * so just request it.
          */
 
-        inputManager()->canvas()->requestStrokeCancellationForTool();
+        inputManager()->toolCanvas()->requestStrokeCancellationForTool();
     }
 }
 

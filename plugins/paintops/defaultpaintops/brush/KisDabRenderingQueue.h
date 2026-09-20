@@ -8,11 +8,13 @@
 #define KISDABRENDERINGQUEUE_H
 
 #include <QScopedPointer>
+#include <QtGlobal>
 
 #include "kritadefaultpaintops_export.h"
+#include "kis_types.h"
 
 #include <QList>
-class KisDabRenderingJob;
+class KoColorSpace;
 struct KisRenderedDab;
 
 #include "KisDabCacheUtils.h"

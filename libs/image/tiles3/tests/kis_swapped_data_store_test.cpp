@@ -13,7 +13,7 @@
 
 #include "kis_image_config.h"
 
-#include "tiles3/kis_tile_data.h"
+#include "tiles3/kis_tile_data_interface.h"
 #include "tiles_test_utils.h"
 
 #include "tiles3/kis_tile_data_store.h"

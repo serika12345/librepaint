@@ -13,14 +13,14 @@
 #include <filter/kis_filter.h>
 #include <filter/kis_filter_configuration.h>
 #include <kis_filter_mask.h>
+#include <kis_image.h>
 #include <kis_node.h>
 #include <kis_layer.h>
 #include <kis_paint_layer.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <KisInputActionGroup.h>
 #include <application/kis_config.h>
 
-#include "kis_selection.h"
 #include <commands/kis_node_commands_adapter.h>
 #include "document/kis_filter_manager.h"
 #include "ui_wdgfilterdialog.h"
@@ -29,6 +29,8 @@
 #include <kis_icon_utils.h>
 
 #include <kstandardguiitem.h>
+#include <kconfig.h>
+#include <ksharedconfig.h>
 
 struct KisDlgFilter::Private {
     Private(KisFilterManager *_filterManager, KisViewManager *_view)

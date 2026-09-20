@@ -9,7 +9,6 @@
 #include <QPainterPath>
 #include <QPen>
 
-#include "KoColorSpace.h"
 #include "kis_fixed_paint_device.h"
 #include "kis_outline_generator.h"
 

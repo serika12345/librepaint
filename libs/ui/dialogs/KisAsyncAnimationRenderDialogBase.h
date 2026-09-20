@@ -13,7 +13,6 @@
 
 #include <animation/KisAsyncAnimationRendererBase.h>
 
-class KisTimeSpan;
 class KisViewManager;
 class KisRegion;
 

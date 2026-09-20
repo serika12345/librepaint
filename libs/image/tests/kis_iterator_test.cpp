@@ -15,7 +15,6 @@
 #include <KoColor.h>
 
 #include "kis_random_accessor_ng.h"
-#include "kis_random_sub_accessor.h"
 #include <kis_iterator_ng.h>
 
 #include "kis_paint_device.h"

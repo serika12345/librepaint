@@ -6,7 +6,6 @@
 #include <simpletest.h>
 
 #include "kis_projection_benchmark.h"
-#include "kis_benchmark_values.h"
 
 #include <KoColor.h>
 
@@ -14,7 +13,7 @@
 #include <kis_paint_device.h>
 #include <document/KisDocument.h>
 #include <kis_image.h>
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 
 void KisProjectionBenchmark::initTestCase()
 {

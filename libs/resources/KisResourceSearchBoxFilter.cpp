@@ -10,7 +10,6 @@
 #include <QRegularExpression>
 #include <QList>
 #include <QSet>
-#include <kis_debug.h>
 
 class Q_DECL_HIDDEN KisResourceSearchBoxFilter::Private
 {

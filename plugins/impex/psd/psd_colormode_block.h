@@ -6,7 +6,7 @@
 #ifndef PSD_COLORMODE_BLOCK_H
 #define PSD_COLORMODE_BLOCK_H
 
-#include <psd.h>
+#include <psd_types.h>
 #include "psd_header.h"
 
 #include <QByteArray>

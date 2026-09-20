@@ -17,7 +17,6 @@
 #include "KoPluginLoader.h"
 #include "KoGenericRegistry.h"
 #include "DebugPigment.h"
-#include "KoBasicHistogramProducers.h"
 #include "KoColorSpace.h"
 #include "KoColorProfile.h"
 #include "KoColorConversionCache.h"

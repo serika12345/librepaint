@@ -17,17 +17,28 @@
 
 #include "kis_node_visitor.h"
 #include "kis_processing_visitor.h"
-#include "kis_debug.h"
 #include "kis_image.h"
 #include "kis_paint_device.h"
 #include "kis_default_bounds.h"
 #include "kis_clone_layer.h"
 #include "kis_selection_mask.h"
-#include "kis_psd_layer_style.h"
 #include "kis_layer_properties_icons.h"
 #include <kis_projection_leaf.h>
 #include <kis_abstract_projection_plane.h>
 
+void kisSharedPtrAddReference(KisGroupLayer *pointer)
+{
+    pointer->ref();
+}
+
+bool kisSharedPtrRelease(KisGroupLayer *pointer)
+{
+    if (!pointer->deref()) {
+        delete pointer;
+        return false;
+    }
+    return true;
+}
 
 struct Q_DECL_HIDDEN KisGroupLayer::Private
 {

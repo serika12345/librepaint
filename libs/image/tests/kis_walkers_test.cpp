@@ -17,7 +17,6 @@
 #include "kis_group_layer.h"
 #include "kis_clone_layer.h"
 #include "kis_adjustment_layer.h"
-#include "kis_selection.h"
 #include <KisGlobalResourcesInterface.h>
 
 #include "filter/kis_filter.h"

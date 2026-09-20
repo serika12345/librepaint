@@ -9,7 +9,6 @@
 #include "ui_kis_tool_smart_patch_options_widget.h"
 
 #include <KoColorSpaceRegistry.h>
-#include "KisPaletteModel.h"
 
 #include "application/kis_config.h"
 #include <resources/KoColorSet.h>

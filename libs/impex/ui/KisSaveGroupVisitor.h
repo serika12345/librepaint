@@ -8,15 +8,10 @@
 
 #include "kritaui_export.h"
 
-#include <QUrl>
 #include <QString>
 
 #include <kis_types.h>
 #include <kis_node_visitor.h>
-#include <kis_layer.h>
-#include <kis_group_layer.h>
-#include <kis_node.h>
-#include <kis_image.h>
 
 
 /**

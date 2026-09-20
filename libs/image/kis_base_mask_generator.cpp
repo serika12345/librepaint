@@ -9,14 +9,13 @@
 
 #include <KoMultiArchBuildSupport.h>
 
-#include "kis_brush_mask_applicator_factories.h"
-#include "kis_mask_generator.h"
-#include "kis_brush_mask_applicator_base.h"
+#include "KisConvolutionKernelMaskAccess_p.h"
 
 #include <cmath>
 #include "kis_fast_math.h"
 
 #include <QDomDocument>
+#include <klocalizedstring.h>
 
 #include "kis_circle_mask_generator.h"
 #include "kis_rect_mask_generator.h"
@@ -26,6 +25,30 @@
 #include "kis_curve_circle_mask_generator.h"
 #include "kis_curve_rect_mask_generator.h"
 #include <kis_dom_utils.h>
+
+const KoID DefaultId("default", ki18n("Default"));
+const KoID SoftId("soft", ki18n("Soft"));
+const KoID GaussId("gauss", ki18n("Gaussian"));
+
+namespace KisConvolutionKernelMaskAccess
+{
+
+qreal width(const KisMaskGenerator *generator)
+{
+    return generator->width();
+}
+
+qreal height(const KisMaskGenerator *generator)
+{
+    return generator->height();
+}
+
+quint8 valueAt(const KisMaskGenerator *generator, qreal x, qreal y)
+{
+    return generator->valueAt(x, y);
+}
+
+} // namespace KisConvolutionKernelMaskAccess
 
 struct KisMaskGenerator::Private {
     Private()

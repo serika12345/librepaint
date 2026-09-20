@@ -16,16 +16,11 @@
 #include <QHBoxLayout>
 #include <QRegularExpression>
 
-#include "KoChannelInfo.h"
-#include "KoBasicHistogramProducers.h"
-#include "KoColorModelStandardIds.h"
 #include "KoColorSpace.h"
 #include "KoColorTransformation.h"
 #include "KoCompositeColorTransformation.h"
 #include "KoCompositeOp.h"
-#include "KoID.h"
 
-#include "kis_signals_blocker.h"
 
 #include "kis_bookmarked_configuration_manager.h"
 #include "kis_config_widget.h"
@@ -35,8 +30,6 @@
 #include <kis_processing_information.h>
 #include <libs/global/kis_dom_utils.h>
 
-#include "kis_histogram.h"
-#include "kis_painter.h"
 #include "widgets/kis_curve_widget.h"
 #include <KisGlobalResourcesInterface.h>
 

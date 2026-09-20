@@ -5,8 +5,6 @@
  */
 
 #include "KoColorBackground.h"
-#include "KoShapeSavingContext.h"
-#include <KoXmlNS.h>
 
 #include <QColor>
 #include <QPainter>
@@ -88,4 +86,3 @@ void KoColorBackground::paint(QPainter &painter, const QPainterPath &fillPath) c
     painter.setBrush(brush());
     painter.drawPath(fillPath);
 }
-

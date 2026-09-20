@@ -6,15 +6,9 @@
 
 #include "KisRepaintDebugger.h"
 
-#include <KLocalizedString>
-
 #include <QPaintDevice>
-#include <QPainter>
 #include <QPaintEvent>
-#include <QThread>
-#include <QApplication>
-#include <QMessageBox>
-#include <QDebug>
+#include <QPainter>
 
 bool KisRepaintDebugger::enabled()
 {
@@ -42,8 +36,7 @@ void KisRepaintDebugger::paintFull(QPaintDevice *pd)
     if (!enabled()) {
         return;
     }
-    const QRect rect = QRectF(QPointF(), QSizeF(pd->width(), pd->height()) * pd->devicePixelRatioF())
-            .toAlignedRect();
+    const QRect rect = QRectF(QPointF(), QSizeF(pd->width(), pd->height()) * pd->devicePixelRatioF()).toAlignedRect();
     paint(pd, &rect, 1);
 }
 
@@ -53,7 +46,7 @@ void KisRepaintDebugger::paint(QPaintDevice *paintDevice, const QRect *widgetRec
         return;
     }
     constexpr int ALPHA = 63;
-    static QVector<QColor> colors {
+    static QVector<QColor> colors{
         QColor(255, 0, 0, ALPHA),
         QColor(0, 255, 0, ALPHA),
         QColor(0, 0, 255, ALPHA),

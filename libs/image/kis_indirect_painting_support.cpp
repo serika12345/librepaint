@@ -7,13 +7,13 @@
 
 #include "kis_indirect_painting_support.h"
 
+#include <KisRegion.h>
+
 #include <QReadWriteLock>
 
 #include <KoCompositeOp.h>
 #include "kis_layer.h"
-#include "kis_paint_layer.h"
 #include "kis_paint_device.h"
-#include "kis_selection.h"
 #include "kis_painter.h"
 #include <KisFakeRunnableStrokeJobsExecutor.h>
 #include "KisRunnableStrokeJobData.h"

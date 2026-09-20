@@ -11,9 +11,13 @@
 
 #include <klocalizedstring.h>
 #include <KoColor.h>
-#include <workspace/KisViewManager.h>
+#include <KoPointerEvent.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include "kis_canvas2.h"
+#include "kis_coordinates_converter.h"
 #include "kis_cursor.h"
+#include "kis_image.h"
+#include "kis_node.h"
 #include "kis_painter.h"
 #include "kis_paintop_preset.h"
 
@@ -32,9 +36,9 @@
 #include "kis_tool_smart_patch_options_widget.h"
 #include "libs/image/kis_paint_device_debug_utils.h"
 
-#include "kis_paint_layer.h"
 #include "kis_algebra_2d.h"
 #include "kis_resources_snapshot.h"
+#include "kis_selection.h"
 
 QRect patchImage(KisPaintDeviceSP imageDev, KisPaintDeviceSP maskDev, int radius, int accuracy, KisSelectionSP selection);
 

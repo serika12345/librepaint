@@ -8,9 +8,10 @@
 
 #include "threshold.h"
 #include <stdlib.h>
-#include <vector>
 
 #include <QPoint>
+#include <QPainter>
+#include <QPen>
 #include <QTime>
 
 #include <klocalizedstring.h>
@@ -33,7 +34,6 @@
 #include <kis_signals_blocker.h>
 
 #include <KoBasicHistogramProducers.h>
-#include "KoColorModelStandardIds.h"
 #include <KoColorSpace.h>
 #include <KoColorTransformation.h>
 #include <KoUpdater.h>

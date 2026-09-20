@@ -9,6 +9,7 @@
 
 #include <QtConcurrentRun>
 #include <QApplication>
+#include <QFuture>
 #include <QGlobalStatic>
 #include <QFutureWatcher>
 

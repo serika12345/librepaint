@@ -8,6 +8,9 @@
 
 #include "kis_paint_device.h"
 
+#include "KisProcessingInformationPaintDeviceOwnership_p.h"
+#include "KisRandomSubAccessorPaintDeviceAccess_p.h"
+
 #include <QRect>
 #include <QImage>
 #include <QList>
@@ -41,9 +44,7 @@
 #include "kis_repeat_iterators_pixel.h"
 #include "kis_fixed_paint_device.h"
 
-#include "tiles3/kis_hline_iterator.h"
-#include "tiles3/kis_vline_iterator.h"
-#include "tiles3/kis_random_accessor.h"
+#include "kis_sequential_iterator.h"
 
 #include "kis_default_bounds.h"
 
@@ -62,6 +63,35 @@
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KisPaintDeviceSP>("KisPaintDeviceSP");
+}
+
+void kisSharedPtrAddReference(KisPaintDevice *device)
+{
+    device->ref();
+}
+
+bool kisSharedPtrRelease(KisPaintDevice *device)
+{
+    if (!device->deref()) {
+        delete device;
+        return false;
+    }
+    return true;
+}
+
+KisRandomConstAccessorSP kisRandomSubAccessorCreateRandomConstAccessor(const KisPaintDevice *device)
+{
+    return device->createRandomConstAccessorNG();
+}
+
+void kisRandomSubAccessorMixColors(const KisPaintDevice *device,
+                                   const quint8 **pixels,
+                                   const qint16 *weights,
+                                   int numColors,
+                                   quint8 *destination,
+                                   int weightSum)
+{
+    device->colorSpace()->mixColorsOp()->mixColors(pixels, weights, numColors, destination, weightSum);
 }
 
 struct KisPaintDevice::Private
@@ -1852,12 +1882,12 @@ KisVLineConstIteratorSP KisPaintDevice::createVLineConstIteratorNG(qint32 x, qin
 
 KisRepeatHLineConstIteratorSP KisPaintDevice::createRepeatHLineConstIterator(qint32 x, qint32 y, qint32 w, const QRect& _dataWidth) const
 {
-    return new KisRepeatHLineConstIteratorNG(m_d->dataManager().data(), x, y, w, m_d->x(), m_d->y(), _dataWidth, m_d->cacheInvalidator());
+    return new KisRepeatHLineIteratorPixelBase<KisHLineIterator2>(m_d->dataManager().data(), x, y, w, m_d->x(), m_d->y(), _dataWidth, m_d->cacheInvalidator());
 }
 
 KisRepeatVLineConstIteratorSP KisPaintDevice::createRepeatVLineConstIterator(qint32 x, qint32 y, qint32 h, const QRect& _dataWidth) const
 {
-    return new KisRepeatVLineConstIteratorNG(m_d->dataManager().data(), x, y, h, m_d->x(), m_d->y(), _dataWidth, m_d->cacheInvalidator());
+    return new KisRepeatVLineIteratorPixelBase<KisVLineIterator2>(m_d->dataManager().data(), x, y, h, m_d->x(), m_d->y(), _dataWidth, m_d->cacheInvalidator());
 }
 
 KisRandomAccessorSP KisPaintDevice::createRandomAccessorNG()

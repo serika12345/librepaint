@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisVisualColorSelectorShape.h"
+#include "KisVisualColorSelector.h"
 
 #include <QColor>
 #include <QImage>
@@ -12,13 +13,10 @@
 #include <QVector4D>
 #include <QtMath>
 
-#include "KoColorConversions.h"
 #include "KoColorSpace.h"
 #include "KoColorDisplayRendererInterface.h"
-#include "KoChannelInfo.h"
 #include <KoColorModelStandardIds.h>
 
-#include "kis_debug.h"
 
 struct KisVisualColorSelectorShape::Private
 {

@@ -64,6 +64,10 @@ build-incremental <platform> <operation> [target]
 | `bootstrap [target]` | 同じNinja木へ最初の構築基準を作る |
 | `cache-stats` | 対象プラットフォームのコンパイラーキャッシュ統計を表示する |
 
+ネイティブの`plan`は最初に`build.ninja`だけを対象としてglob検査と必要なCMake再生成を同期し、
+同期済みmanifestの一時ハードリンクを別名で読み込んで対象の実作業を乾式表示する。この処理は
+コンパイルとリンクを実行せず、一時manifestを成功・失敗の両方で削除する。
+
 `native`はホストをmacOSまたはLinuxへ対応付ける。iOSはDarwinホスト、Androidと
 Windowsクロス構築はx86_64 Linuxホストを使用する。
 
@@ -76,6 +80,23 @@ build-incremental android build krita
 build-incremental windows build krita
 ```
 
+### 実装前の構築範囲監査
+
+コードまたは試験契約を編集する前に、変更対象の増分計画、直接CMake依存、空の構築木で必要になる
+コマンド閉包を確認する。既存対象では、変更のない状態の`plan`が対象本体を再構築しないことを確認する。
+新規対象、ソース追加、直接依存追加では、同じ責務を扱う最も近い既存契約と閉包を比較する。
+
+```sh
+build-incremental native plan <target>
+ninja -C "$(build-incremental native path)" -t commands <target> | wc -l
+```
+
+CMakeの対象定義とFile API応答で直接依存を照合する。対象にアプリケーション実行形式、全プラグイン集合、
+`all`、試験が利用しないUI所有者が入る場合は、挙動実装より先に試験対象または製品責務を分離する。
+具体的所有者の公開処理を直接検査するため閉包を縮小できない場合は、直接依存、閉包工程数、縮小に必要な
+製品分割を`PROGRESS.md`へ記録する。実装後は対象指定構築で、変更したソース、自動生成、リンク以外の
+不要な再構築が発生していないことを確認する。
+
 | プラットフォーム | 永続構築木 | コンパイラーキャッシュ |
 | --- | --- | --- |
 | macOS | `build/tdd-macos` | `.cache/librepaint/ccache/native` |
@@ -83,6 +104,11 @@ build-incremental windows build krita
 | iOS | `build-ios/krita/device-incremental/<構成指紋>` | `.cache/librepaint/ccache/ios` |
 | Android | `build/android/arm64-v8a/<構成指紋>` | `.cache/librepaint/ccache/android` |
 | Windows | `build/windows/x86_64/<構成指紋>/ninja` | `.cache/librepaint/ccache/windows` |
+
+ネイティブの`configure`、`plan`、`build`、`bootstrap`は、ホスト用Ninja木の
+`compile_commands.json`をリポジトリ直下の同名シンボリックリンクへ同期する。
+VS Codeのclangdはこのリンクから実際のコンパイル条件を読み込む。高速検査は、
+`.clang-tidy`をNix開発環境のclangツールで検証する。
 
 依存ライブラリーはNix storeとバイナリーキャッシュから供給する。iOS、Android、
 Windowsは、依存定義の指紋ごとに`build/nix-profiles/`または`build-ios/nix-profiles/`
@@ -114,10 +140,11 @@ nix develop .#test --command ./scripts/verify-quick
 
 次を検査する。
 
-- 製品ソースの行数契約と例外
 - UTF-8、制御文字、双方向書式文字のテキスト契約
 - 運用検査スクリプト自身の単体試験
-- 9責務の再配置先、移行順、互換経路、依存基準の縮小計画
+- 10責務の所有と許可依存方針
+- 現在の公開ヘッダーとプラグイン登録
+- 契約試験への型特性、コンパイル時形状検査、完全署名別名の混入と、互換性試験の根拠記載
 - シェルスクリプト
 - アーキテクチャ文書、リンク、D2、生成済みSVG
 
@@ -128,7 +155,8 @@ nix develop .#test --command ./scripts/run-test kis_strokes_queue_test
 ```
 
 第1引数はCMakeの試験ターゲットである。CTest名を絞る必要がある場合は
-第2引数へ正規表現を指定する。
+第2引数へ正規表現を指定する。`run-test`は`build-incremental native build`
+へ対象名を渡し、構成指紋が有効な間は永続Ninja木の再構成を省略する。
 
 書庫保存境界とXML直列化境界は、次の二つの契約で検査する。
 
@@ -154,9 +182,24 @@ nix develop .#test --command \
 ```
 
 スクリプトはホストOSに対応する`CMakePresets.json`の試験プリセットを
-選び、構成を同期してから対象だけを構築・実行する。ネイティブ試験は対応する
+選び、必要な場合に構成を同期してから対象と宣言済み依存だけを構築・実行する。ネイティブ試験は対応する
 `build/tdd-<platform>`をアプリケーション接頭辞とし、同じ構築木の`bin`から
-製品プラグインを読み込む。
+製品プラグインを読み込む。試験が動的に探索する製品プラグインは、試験実行形式の
+CMake依存として具体的なモジュールターゲットを接続する。試験の対象構築に
+アプリケーション実行形式、全プラグイン集合、`all`を接続しない。
+
+Ninjaが`premature end of file; recovering`を報告し、変更のない対象を再コンパイルする場合は、
+コンパイラーキャッシュではなく永続構築木の`.ninja_deps`破損を確認する。対象構築を停止し、
+`.ninja_deps`と`.ninja_log`を退避してから、Nix開発環境のNinjaで記録を再圧縮する。
+
+```sh
+cp -p build/tdd-macos/.ninja_deps build/tdd-macos/.ninja_deps.backup
+cp -p build/tdd-macos/.ninja_log build/tdd-macos/.ninja_log.backup
+nix develop .#test --command ninja -C build/tdd-macos -t recompact
+```
+
+再圧縮直後の対象構築は不足した依存記録を一度再生成する。続く同一対象の構築で
+`ninja: no work to do.`になることを確認し、退避物は確認完了後に構築木の保守対象から外す。
 
 ### 全ネイティブ検査
 
@@ -167,6 +210,8 @@ nix develop .#test --command ./scripts/verify
 高速検査に続いて、ネイティブ試験構成の全ターゲットを構築し、登録済みの
 通常CTestを実行する。対象コンポーネントが限定できるレッド・グリーン周期
 では単一試験を使用し、統合前または広い共有境界の変更で全検査を使用する。
+全体検証も`build-incremental native build`を使用し、有効な構成指紋と永続Ninja木を
+再利用してから全CTestを実行する。
 
 ### Nix評価
 
@@ -199,270 +244,181 @@ nix build --no-link .#checks.x86_64-linux.governance
 `LIMIT_LONG_TESTS=ON`、`CRASH_ON_SAFE_ASSERTS=ON`を使用する。各BROKEN試験の
 原因、決定性、比較規則を確認し、通常検査へ復旧する。
 
-## CMakeターゲット台帳
+## パッケージ境界と公開契約
 
-macOS、Linux、iOS、Android、Windowsの現在のターゲット、種別、定義場所、直接
-リンク依存は`docs/architecture/cmake-targets-<platform>.json`へ同じ形式で記録する。
-各再生成コマンドはFile APIの`codemodel-v2`問い合わせを対象の永続構築木へ作成し、
-構成を同期して台帳を更新する。macOSとiOSはDarwinホストで実行する。
+高速検査は、手動で保守する最小の方針と現在の製品ソースを検査する。
 
 ```sh
 nix develop .#test --command \
-  ./scripts/architecture/regenerate_cmake_graph.py macos
+  python3 scripts/architecture/check_package_boundaries.py
 nix develop .#test --command \
-  ./scripts/architecture/regenerate_cmake_graph.py ios
+  python3 scripts/architecture/check_public_contracts.py
 ```
 
-Linux、Android、Windowsはx86_64 Linuxホストで実行する。
+`docs/architecture/package-boundaries.json`は10責務、27の中核所有ターゲット、責務間で
+許可する直接リンク方向を保持する。責務や所有ターゲットを変更するときは、この方針を
+同じ変更で更新する。高速検査は所有の一意性、参照整合性、許可方向の非循環性を確認する。
+
+公開契約の検査は製品ソースを直接走査し、所有パッケージの外から利用されるヘッダーの
+公開マクロまたは公開ヘッダー構築契約を確認する。プラグインについては、登録マクロ、
+兄弟JSON、ID、サービス種別、CMake所有者の対応を確認する。公開ヘッダーまたは
+プラグイン登録を変更したときに更新する生成台帳はない。
+
+### 既存テストの保守
+
+対象責務の呼び出し側、仕様、試験コード、CMake定義を読み、利用者が観測する保証を特定する。
+振る舞いを検証する試験を維持し、互換性検査には明示的な要件の根拠を持たせる。
+宣言形状や内部構造だけを固定する検証は、必要な意味論の検証状況を確認して削除する。
+不足する振る舞いだけを公開操作と観測結果による試験で補う。
+契約試験を追加するときは、利用者、操作、観測結果、失敗時に利用者へ生じる不具合を先に定める。
+型特性、コンパイル時形状検査、完全署名別名は振る舞い契約へ追加しない。
+ソース、ABI、保存形式、プラグイン、スクリプトの互換性を宣言形状で守る場合は、試験名を
+`CompatibilityTest`とし、`// Compatibility requirement:`に利用者と維持対象を記載する。
+`scripts/architecture/check_test_contracts.py`はこの区別を高速検査で確認する。
+
+変更前に対象の増分構築計画と直接依存を確認し、新設・拡張対象では空構築閉包も測定する。
+変更後は対象試験、影響範囲のCTest、`verify-quick`を実行する。
+レビュー説明に、保証する結果、削除する制約の理由、検証結果を記す。
+`PROGRESS.md`には現在の対象、次の作業、検証状況を記録する。
+
+### 責務単位の並列実装
+
+並列実装を行うときは、一人の統合担当と最大三つの実装担当を使う。統合担当は
+現在の作業範囲から、公開ヘッダー、製品実装、試験ソース、CMake定義が重ならない責務単位を選ぶ。
+同じ試験ディレクトリーの単一`CMakeLists.txt`、同じ製品集約対象、同じ公開クラスを必要とする
+作業は一つの担当へまとめる。これにより、実装中の差分とCMake再生成を担当単位で判断できる。
+
+統合担当は、各担当を開始する前に次の担当票を確定する。担当識別子は`[a-z0-9-]+`とし、
+基準コミットは全担当で同じ値を使用する。
+
+```text
+担当識別子:
+基準コミット:
+作業ツリー絶対パス:
+目的と観測する挙動:
+対象公開ヘッダー:
+対象public API識別子:
+変更許可パス:
+担当CMakeファイルと対象:
+最も近い既存契約:
+対象プラットフォーム:
+共有コンパイラーキャッシュ:
+構築実行許可: waiting | granted
+Git操作権限: uncommitted | transport-commit
+追加委任: forbidden | authorized
+統合順:
+固有の停止条件:
+```
+
+統合担当は担当票と`preparing`、`implementing`、`ready`、`blocked`、`integrated`の状態を、
+実装担当の起動前に`docs/architecture/PROGRESS.md`の現在スナップショットへ記録する。再開時は
+Git作業ツリー、担当ブランチ、基準コミット、許可パスを実体と照合してから各担当を継続する。
+実装担当は担当票を現在作業の範囲として扱い、統合担当の次の操作を選び直さない。追加の
+エージェントへの委任は、担当票の`追加委任`が`authorized`の場合だけ行う。
+
+`AGENTS.md`、`docs/architecture/TODO.md`、`docs/architecture/PROGRESS.md`、
+`docs/architecture/README.md`、`docs/architecture/DEVELOPMENT.md`は統合担当が所有する。
+運用検査の共通処理も、担当票で明示的に移管した場合だけ実装担当が変更する。
+この中央所有により、現在の再開地点を一つの順序で更新できる。
+
+明示的なブランチ作成権限がある場合、統合担当は基準コミットから担当ごとのGit作業ツリーを
+作成する。作業ツリーはリポジトリーの兄弟ディレクトリーとし、既存パスがないことを確認して
+から追加する。
 
 ```sh
-for platform in linux android windows; do
-  nix develop .#test --command \
-    ./scripts/architecture/regenerate_cmake_graph.py "$platform"
-done
+task_primary_root="$(pwd -P)"
+task_base_commit="$(git rev-parse HEAD)"
+task_lane="<担当識別子>"
+task_worktree="$(dirname "$task_primary_root")/librepaint-work-$task_lane"
+test ! -e "$task_worktree"
+git worktree add -b "work/$task_lane" \
+  "$task_worktree" "$task_base_commit"
 ```
 
-生成した5台帳を一つの変更へ集約した後、共通ターゲット、条件付きターゲット、
-構成差を持つターゲットの行列を更新する。
+各作業ツリーは自身の`build/tdd-macos`または`build/tdd-linux`を使用する。CMakeキャッシュは
+ソース絶対パスを保持するため、別の作業ツリーからNinja木を複製して使用する構成にはしない。
+コンパイラーキャッシュだけを共有し、対象限定構築の再コンパイルを削減する。共有先の絶対パスは
+担当票から受け取る。主作業ツリーで許可済みの`.direnv`開発環境は`run-shared-test-env`で再利用し、
+担当作業ツリーのリポジトリールート、Ninja木、コンパイラーキャッシュ基準パスを保つ。
 
 ```sh
-nix develop .#test --command \
-  ./scripts/architecture/regenerate_cmake_graph_matrix.py
+task_shared_ccache="<共有コンパイラーキャッシュの絶対パス>"
+LIBREPAINT_SHARED_CCACHE="$task_shared_ccache" \
+  ./scripts/run-shared-test-env \
+  ./scripts/run-test <target> [ctest-regex]
 ```
 
-CMakeターゲットまたは`target_link_libraries`を変更したときは5台帳と差分行列を
-同じ変更へ含める。記録済み台帳と各実構成の一致は、同じコミットを指す清浄なDarwin
-作業ツリーとx86_64 Linux作業ツリーを用意し、次のコマンドで同時に確認する。
+担当作業ツリーを入力とする`nix develop .#test`は、担当ごとの完全なソース写像をNix storeへ
+追加するため、並列の通常実装周期には使用しない。Nix開発環境自体を変更する作業は担当票で
+主作業ツリーを所有し、その変更後の環境を検査する。`run-shared-test-env`はGit共通ディレクトリーから
+主作業ツリーを決定し、主`.direnv`の評価済み環境と共有コンパイラーキャッシュだけを再利用する。
+
+実装担当は、変更前の計画、直接CMake依存、空構築閉包を測定してから担当範囲を編集する。
+構築実行許可が`waiting`の間は、ソース調査、既存試験監査、契約設計を進める。統合担当が
+`granted`を通知した後に、担当の作業ツリーで構成、構築、CTest、反復実行、高速検査を行う。
+Linux検証はLinux担当票を受けた担当だけが`ssh nixos`の実機で実行し、接続不能時はmacOS結果と
+未実施理由を引渡しに記録する。
+
+実装担当は中央所有ファイルを変更せず、完了時に次の情報を統合担当へ返す。
+
+```text
+状態: ready | blocked
+基準コミットと担当先端:
+変更パス:
+構造変更の移動元と移動先:
+固定した挙動と分類:
+利用者から観測する結果と試験の対応:
+期待した最初の診断:
+変更前後の計画、直接依存、コマンド数、入力数:
+対象CTest、反復、影響範囲、高速検査の結果:
+未実施プラットフォームと理由:
+残る危険と次の操作:
+```
+
+`Git操作権限`が`transport-commit`の場合、実装担当は担当票の許可パスだけを一つの引渡しコミットにまとめる。
+`uncommitted`の場合は担当作業ツリーを未コミットのまま保持し、`ready`または`blocked`で止める。
+引渡しコミットは統合後の文書と検証結果を含まないため、`develop`へ直接入れる完成変更ではない。
+
+統合担当は担当の差分が許可パス内に収まることと、基準コミット以後の統合済み変更との非重複を
+確認する。準備済みの担当を一つずつ現在の統合作業ツリーへ取り込み、README、TODO、
+PROGRESSの必要な更新を同じ差分へ追加する。その後、対象CTest、必要な隣接CTest、
+`verify-quick`を実行する。一つの担当を一つのレビュー可能な変更として
+完了してから、次の担当を統合する。
+
+担当は、許可パス外の変更、別担当との重複、新しい公開API、未割当て依存、巨大な構築閉包、
+分類できない現行挙動を発見した時点で停止する。統合担当は担当票を分け直すか、構造改善だけの
+先行担当を作成する。
+
+輸送コミットを統合した担当作業ツリーは、担当処理の終了、作業木clean、輸送ブランチによる履歴保持を
+確認した直後に除去する。`git worktree remove --force <絶対パス>`は担当作業ツリー内の無視対象Ninja木も
+除去するため、対象を`git worktree list`の登録済み絶対パスへ限定する。未統合または未コミットの担当は
+作業ツリーを保持する。作業ブランチ削除は、履歴の保存要否を確認する別の保守操作として扱う。
+
+統合担当は、統合試験の成功後に不要となった生成物を削除する。
+担当構築木をゴミ箱へ移した場合も対象経路を確認して容量を回収する。
+`PROGRESS.md`に継続利用する生成物と回収した生成物を記録する。
+利用中の主増分構築木、共有キャッシュ、利用者所有の成果物は保持する。
+
+CMake構成を変更したときは、対象プラットフォームの構成入口を実行する。
 
 ```sh
-nix develop .#test --command \
-  ./scripts/architecture/verify_cmake_graphs.py \
-    --remote-host nixos \
-    --remote-repository /path/to/clean/librepaint
+build-incremental native configure
+build-incremental ios configure
+build-incremental linux configure
+build-incremental android configure
+build-incremental windows configure
 ```
 
-この入口はmacOSとiOSを手元のDarwinホスト、Linux、Android、WindowsをSSH先の
-x86_64 Linuxホストで並行して構成し、5台帳のバイト単位の一致を確認してから差分
-行列を確認する。コミットまたは作業ツリーがホスト間で異なる場合は構成開始前に
-診断する。
+各入口は、CMake File APIの`codemodel-v2`問い合わせを永続構築木へ作成してから構成し、
+生成直後の応答に対して次を検査する。
 
-`verify-quick`は固定File API応答を使用し、抽出形式、直接依存の選択、決定的な
-整列、差分診断、5台帳と差分行列の形式、同時検証入口のホスト割り当てを検査する。
-実構成との一致は上記の全プラットフォーム同時検証で検査する。
+- 方針にある中核所有ターゲットが存在する。
+- 中核所有ターゲットの直接リンクが許可した責務方向へ向かう。
+- 試験ターゲットを除く全製品ターゲットが循環を持たない。
 
-## 公開面台帳
-
-`docs/architecture/public-surface-inventory.json`は、公開ヘッダー、主要クラス、
-プラグインを所有ターゲットと対応プラットフォームへ接続する。次のコマンドは台帳の
-公開ヘッダー集合を製品ソースから再生成する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/update_public_header_inventory.py
-```
-
-次のコマンドは製品プラグインについて、登録マクロ、兄弟JSONメタデータ、CMake所有者、
-5構成の対応状況、サービス種別の機能所有者を再生成する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/update_plugin_inventory.py
-```
-
-次のコマンドは`libs/ui`直下の公開クラスについて、記録済みの責務分類を保持しながら
-宣言と実装単位を更新する。新しい公開クラスには責務分類を追加してから実行する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/update_ui_class_responsibilities.py
-```
-
-次のコマンドは`libs/ui/tool`以下の公開クラスについて、記録済みの責務分類を保持しながら
-宣言、実装単位、ツールディレクトリー外の全利用ソースを更新する。新しい公開クラスには
-責務分類を追加してから実行する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/update_ui_tool_class_responsibilities.py
-```
-
-次のコマンドは台帳の形式と整列に加え、リポジトリおよび5構成のCMakeターゲット台帳を
-根拠として内容を検査する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/check_public_surface_inventory.py
-```
-
-`docs/architecture/package-responsibilities.json`は、記録済みの責務分類を保持しながら、
-公開ヘッダー、クラス、プラグインと、23の中核所有ターゲットの直接依存および利用元を
-各台帳から再生成する。
-全件クラス台帳の範囲外にある共有ターゲット内の実装は、`reviewedSourcePaths`へ
-製品ソースの正規パスを記録し、一つの責務へ帰属させる。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/update_package_responsibility_map.py
-```
-
-次のコマンドは、9責務の参照と割当て、5構成の対象ターゲット、生成済みの根拠が正本の
-台帳と一致することを検査する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/check_package_responsibility_map.py
-```
-
-`docs/architecture/allowed-package-dependencies.json`は、9責務の階層、14公開接続面、
-接続面単位の許可依存を保持する。次のコマンドは、23の中核所有ターゲット間の直接リンクを
-責務候補へ射影し、同一責務内、許可方向、R1-G4で基準化する候補へ分類する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/update_allowed_package_dependencies.py
-```
-
-次のコマンドは責務参照、公開接続面、階層方向、有向非巡回性と、現在リンクの全分類を
-検査する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/check_allowed_package_dependencies.py
-```
-
-`docs/architecture/dependency-violation-baseline.json`は、許可方向外の現在辺から、直接includeで
-一意に帰属できる確認済み違反を記録する。
-次のコマンドは、審査済みの最大件数、理由、所有段階、除去条件を保持しながら、CMake辺、
-対応構成と直接includeを更新する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/update_dependency_violation_baseline.py
-```
-
-次のコマンドは、確認済み違反の増加、縮小可能な上限、根拠の置換を
-検査する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/check_dependency_violation_baseline.py
-```
-
-`docs/architecture/structural-dependency-baseline.json`は、共有ターゲット由来の射影解決、
-中核および全製品CMakeターゲットの循環、公開宣言を持たないヘッダーのパッケージ外参照を
-保持する。次のコマンドは、射影の直接include根拠、5構成の強連結成分、公開面台帳の
-外部include根拠を更新する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/update_structural_dependency_baseline.py
-```
-
-次のコマンドは、新たな未帰属射影、ターゲット循環、内部ヘッダー参照の増加、縮小可能な
-上限、根拠の置換を検査する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/check_structural_dependency_baseline.py
-```
-
-`docs/architecture/package-relocation-plan.json`は、9責務の目標ディレクトリー、名前空間、
-CMakeターゲット、8段階の移行順、一時互換経路、各依存基準の縮小上限を保持する。
-次のコマンドは、責務地図と許可依存方針、逆方向依存基準、構造依存基準、5構成の
-CMakeターゲット台帳へ計画を照合する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/check_package_relocation_plan.py
-```
-
-検査器は、許可依存の下位側を先に移す順序、現行、新規、実装済みターゲットの区別、
-全互換経路のR1-G7削除条件、現在75件の逆方向includeと4件の内部ヘッダー参照の
-段階別縮小、最終状態のゼロ上限を確認する。責務、公開接続面、基準、ターゲット台帳を
-変更した場合は、先行する台帳を更新してから再配置計画を同じ変更で更新する。
-
-`docs/architecture/document-boundary-assessment.json`は、R1-G6e開始時の文書25クラスの
-解決先、UI直下に残る20クラスの関心、`KisDocument.cpp`の全メソッド定義、追加抽象の
-現在必要性、次の検査段階を保持する。宣言と実装の経路はUIクラス責務台帳を正本とし、
-重複して保持しない。次のコマンドはUIクラス責務台帳、実装ファイル、
-再配置計画との一致を検査する。
-
-```sh
-nix develop .#test --command \
-  ./scripts/architecture/check_document_boundary_assessment.py
-```
-
-検査器は残る文書クラスと責務台帳の不一致、`KisDocument`メソッドの未分類と重複、
-未計画の責務、ディレクトリー、ターゲット、検査段階、現在の要求を持たない抽象化導入を
-診断する。UIクラス責務台帳、`KisDocument.cpp`のメソッド定義、または後続所有判断を変更した
-場合は、文書境界評価を同じ変更で更新する。
-
-検査は次の関係を確認する。
-
-- `publicHeaderPolicy`が対象ソース、拡張子、試験経路の除外、公開根拠の種類を固定する。
-- `kritacanvas`、`kritadocument`、`kritadocumentfiles`、`kritadocumentui`、`kritaimage`、
-  `kritaimpex`、`kritaimpexui`、`kritaui`について、公開マクロまたは
-  公開ヘッダー構築契約を持つ製品ヘッダーと、所有元外から直接includeされる製品ヘッダーの
-  和集合が、欠落と余分な項目なしで記録されている。
-- 所有ターゲットが記録した全プラットフォームに存在し、宣言と実装が所有元の
-  ソースディレクトリーに属する。
-- 公開根拠が公開マクロの宣言、公開ヘッダー構築契約、または所有元外の全利用ソースによる
-  直接includeと一致する。
-- 詳細な利用根拠のソースが利用元ターゲットに属し、対象ヘッダーを実際にincludeする。
-- 主要クラスの宣言、実装、公開ヘッダー、責務根拠が有効な参照を持つ。
-- `libs/ui`直下の公開クラスが欠落なく記録され、宣言種別、対応する実装単位、
-  所有ターゲット、5種類の責務領域がソースと一致する。
-- 文書状態に分類された20クラス、既に所有を移した5クラス、`KisDocument.cpp`の
-  130メソッド定義が、関心、
-  具体的な所有先、後続検査段階へ一度だけ割り当てられる。
-- `libs/ui/tool`以下の公開クラスが欠落なく記録され、宣言種別、対応する実装単位、
-  ディレクトリー外の全利用ソース、所有ターゲット、5種類の責務領域がソースと一致する。
-- 製品プラグインが欠落なく記録され、ID、実装、兄弟JSON、登録マクロ、CMake所有者、
-  対応構成、サービス種別、機能所有領域、実行時の読込元が一致する。
-- JSONのライブラリー名から決まる157件と、CMakeソース所属で所有者を固定する15件が、
-  記録済みの所有根拠と一致する。
-- パッケージ責務地図の9責務が、UIクラス領域、UIツールクラス領域、主要クラス、
-  プラグイン機能所有領域を各一回割り当てる。
-- UIクラス全件分類の範囲外にある審査済み公開ヘッダーが、一つの責務へ割り当てられる。
-- 23の中核所有ターゲットが5構成のいずれかに存在し、定義場所、種別、製品ターゲットへの
-  直接依存、製品ターゲットからの利用元がCMakeターゲット台帳の和集合と一致する。
-- 全プラグイン登録を所有する発見機構が一つ存在し、各機能責務のプラグインIDと
-  サービス種別が公開面台帳の機能所有領域と一致する。
-- 9責務の14公開接続面が目的、寿命、エラー動作を持ち、許可依存が既知の接続面を参照する。
-- 許可依存が自己参照を持たず、常に下位層へ向かい、有向非巡回グラフを形成する。
-- 23ターゲット間の72リンクが、共有ターゲットの全責務を含む151候補へ欠落なく射影され、
-  同一責務内23候補、許可方向89候補、R1-G4で基準化する39候補へ分類される。
-- 許可方向外の責務対のうち現在の3責務対が103件の直接includeへ一意に帰属し、元の
-  CMakeターゲット辺と5構成へ接続される。
-- 確認済み3責務対が理由、所有段階、除去条件、現在件数と等しい審査済み上限を持つ。
-- 残る12責務対が直接includeの実責務へ帰属し、逆方向依存ではない射影として解決される。
-- 22中核ターゲットと全製品構築ターゲットが、5構成すべてで強連結成分0件を維持する。
-- 公開宣言を持たない`kritaui`の2ヘッダー、2件のパッケージ外参照が、所有段階、理由、除去条件、
-  ヘッダー数と参照数の審査済み上限を持つ。
-- 9責務の目標パッケージと8移行段階が許可依存の下位から上位へ並び、各新規ターゲット、
-  互換経路、逆方向依存、内部ヘッダー参照を一度だけ処理して最終上限をゼロにする。
-
-公開ヘッダーの追加、削除、公開マクロ、またはパッケージ外includeを変更した場合は更新器を
-実行し、台帳を同じ変更へ含める。`libs/ui`直下の公開クラス、その実装ファイル、または
-責務分類を変更した場合はUIクラス責務台帳の更新器も実行する。共有ターゲット内にあり
-全件クラス台帳の範囲外となるソースの責務を変更した場合は、`reviewedSourcePaths`も更新する。
-`libs/ui/tool`以下の公開
-クラス、実装ファイル、ディレクトリー外の直接include、または責務分類を変更した場合は
-UIツールクラス責務台帳の更新器も実行する。プラグインの登録実装、JSON、CMake所有者、
-サービス種別を変更した場合はプラグイン台帳の更新器も実行する。責務、所有ソース、
-所有ターゲット、公開面またはCMake直接依存を変更した場合は、先行する該当台帳に続けて
-パッケージ責務地図と許可依存方針の更新器を順に実行する。責務層、公開接続面、許可依存を
-変更した場合は方針を編集してから許可依存方針の更新器を実行する。対象ソース、include、
-公開ヘッダー、クラス責務またはCMake直接依存を変更した場合は、先行する台帳更新後に依存違反
-基準の更新器を実行する。現在件数が変わった場合は`maximumDirectIncludes`を同じ変更で審査し、
-縮小時は現在件数まで下げる。続けて構造依存基準の更新器を実行し、内部ヘッダーの
-`maximumHeaders`と`maximumDirectReferences`を現在値へ縮小する。責務の目標配置、
-移行順、作成ターゲット、互換経路、または段階別上限が変わる場合は再配置計画も更新する。
-`verify-quick`は8更新器の`--check`、台帳検査器、再配置計画検査器、文書境界評価検査器、欠落、所有者、
-公開根拠、利用根拠、責務分類、ターゲット関係、依存方向、循環、未分類候補、基準拡大、
-縮小可能な上限の診断例を実行する。
-`scope.publicHeaders`、`scope.plugins`、UI直下クラス、UIツールクラスは全件であり、
-`scope.majorClasses`は3件の詳細な代表記録を維持する。
+`native`はmacOSまたはLinuxの現在ホスト、`ios`はDarwinホスト、
+`android`と`windows`はx86_64 Linuxホストで実行する。構成時の応答をその場で検査するため、
+ホスト間で生成JSONを同期する保守作業は発生しない。
 
 ## テスト駆動開発
 
@@ -478,24 +434,7 @@ UIツールクラス責務台帳の更新器も実行する。プラグインの
 スレッド条件と比較方法を試験データに記録する。基準画像の受け入れ時は、差分を
 維持する契約、既知不具合、設計課題のどれに分類したかを同じ変更で記録する。
 
-## ソース行数基準
-
-`docs/architecture/source-size-baseline.json`は、運用基盤導入時点で1,000行を
-超えていた製品ソースの最大行数を記録する。高速検査は、各ファイルを1,000行の
-標準最大値、記録済み最大値、審査済み例外から該当する契約へ対応付ける。
-
-ファイル縮小時は記録値も縮小し、1,000行以下では基準項目を完了扱いとして
-削除する。新しい例外は、理由、対応TODO、削除条件、最大行数を`exceptions`へ
-記録する。
-
-現状を意図的に再採取する保守コマンドは次のとおりである。
-
-```sh
-nix develop .#test --command \
-  ./scripts/check_governance.py --update-source-size-baseline
-```
-
-R1またはR6で責務分割の基準を再設定する審査時に、このコマンドで現状を採取する。
+## テキスト表現
 
 テキスト契約は、タブ、改行、通常の内容文字、翻訳で使うjoiner、左書き・右書き
 mark、ファイル先頭のUTF-8 BOMを扱う。検査はASCII制御文字と、表示順へ作用する

@@ -8,7 +8,7 @@
 
 #include "KoColorSpace.h"
 #include "KoIntegerMaths.h"
-#include "KoColorSpaceTraits.h"
+#include "KoColorSpaceMaths.h"
 #include "KoColorModelStandardIds.h"
 #include "KoColorModelStandardIdsUtils.h"
 

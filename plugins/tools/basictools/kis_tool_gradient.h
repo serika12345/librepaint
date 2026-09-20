@@ -14,25 +14,31 @@
 #define KIS_TOOL_GRADIENT_H_
 
 #include <QKeySequence>
+#include <QPointF>
+#include <QSet>
+
+#include <KLocalizedString>
+#include <KoToolFactoryBase.h>
+#include <kis_node.h>
 
 #include <KisToolPaintFactoryBase.h>
 
+#include <kis_tool.h>
 #include <kis_tool_paint.h>
-#include <kis_global.h>
-#include <kis_node.h>
-#include <kis_types.h>
 #include <kis_gradient_painter.h>
-#include <flake/kis_node_shape.h>
 #include <kis_icon.h>
-#include <kconfig.h>
 #include <kconfiggroup.h>
 
 
 class QLabel;
-class QPoint;
+class QPainter;
+class QRect;
 class QWidget;
 class QCheckBox;
 class KComboBox;
+class KoCanvasBase;
+class KoShape;
+class KoViewConverter;
 class KisDoubleSliderSpinBox;
 
 class KisToolGradient : public KisToolPaint

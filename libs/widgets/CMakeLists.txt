@@ -2,19 +2,381 @@ add_subdirectory( tests )
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
-set(kritawidgets_LIB_SRCS
-    KoVBox.cpp
-    KoDialog.cpp
-    KoZoomWidget.cpp
-    KoAspectButton.cpp
+add_library(kritawidgetsslidercomboobjects OBJECT
     KoSliderCombo.cpp
+)
+target_compile_definitions(kritawidgetsslidercomboobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetsslidercomboobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetsslidercomboobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetsslidercomboobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetsaspectbuttonobjects OBJECT
+    KoAspectButton.cpp
+)
+target_compile_definitions(kritawidgetsaspectbuttonobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetsaspectbuttonobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/widgetutils
+        ${CMAKE_BINARY_DIR}/libs/widgetutils
+)
+target_link_libraries(kritawidgetsaspectbuttonobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetsaspectbuttonobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetsanchorselectionwidgetobjects OBJECT
+    KoAnchorSelectionWidget.cpp
+)
+target_compile_definitions(kritawidgetsanchorselectionwidgetobjects PRIVATE
+    kritawidgets_EXPORTS
+)
+target_include_directories(kritawidgetsanchorselectionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/flake>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+        ${CMAKE_SOURCE_DIR}/libs/widgetutils
+        ${CMAKE_BINARY_DIR}/libs/widgetutils
+)
+target_link_libraries(kritawidgetsanchorselectionwidgetobjects
+    PUBLIC Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritawidgetsanchorselectionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetspalettedelegateobjects OBJECT
+    KisPaletteDelegate.cpp
+)
+target_compile_definitions(kritawidgetspalettedelegateobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetspalettedelegateobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+        ${CMAKE_SOURCE_DIR}/libs/pigment
+        ${CMAKE_BINARY_DIR}/libs/pigment
+        ${CMAKE_SOURCE_DIR}/libs/pigment/resources
+        ${CMAKE_BINARY_DIR}/libs/pigment/resources
+        ${CMAKE_SOURCE_DIR}/libs/resources
+        ${CMAKE_BINARY_DIR}/libs/resources
+        $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_link_libraries(kritawidgetspalettedelegateobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+    PRIVATE
+        Boost::boost
+)
+set_target_properties(kritawidgetspalettedelegateobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetslinestyleselectorobjects OBJECT
+    KoLineStyleSelector.cpp
+    KoLineStyleItemDelegate.cpp
+    KoLineStyleModel.cpp
+)
+target_compile_definitions(kritawidgetslinestyleselectorobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetslinestyleselectorobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetslinestyleselectorobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritawidgetslinestyleselectorobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritawidgetscolorpopupbuttonobjects OBJECT
     KoColorPopupButton.cpp
+)
+target_compile_definitions(kritawidgetscolorpopupbuttonobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetscolorpopupbuttonobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetscolorpopupbuttonobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetscolorpopupbuttonobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetsstackedwidgetobjects OBJECT
+    kis_stacked_widget.cpp
+)
+target_compile_definitions(kritawidgetsstackedwidgetobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetsstackedwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetsstackedwidgetobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetsstackedwidgetobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetsdocktitlebarbuttonobjects OBJECT
+    KoDockWidgetTitleBarButton.cpp
+)
+target_compile_definitions(kritawidgetsdocktitlebarbuttonobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetsdocktitlebarbuttonobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetsdocktitlebarbuttonobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetsdocktitlebarbuttonobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetsdocktitlebarobjects OBJECT
+    KoDockWidgetTitleBar.cpp
+)
+target_compile_definitions(kritawidgetsdocktitlebarobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetsdocktitlebarobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/widgetutils
+        ${CMAKE_BINARY_DIR}/libs/widgetutils
+)
+target_link_libraries(kritawidgetsdocktitlebarobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+        KF${KF_MAJOR}::WidgetsAddons
+)
+set_target_properties(kritawidgetsdocktitlebarobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetsvboxobjects OBJECT
+    KoVBox.cpp
+)
+target_compile_definitions(kritawidgetsvboxobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetsvboxobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetsvboxobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetsvboxobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetstitledtabobjects OBJECT
+    KoTitledTabWidget.cpp
+)
+target_compile_definitions(kritawidgetstitledtabobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetstitledtabobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetstitledtabobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetstitledtabobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritawidgetswarningblockobjects OBJECT
+    kis_warning_block.cpp
+)
+target_compile_definitions(kritawidgetswarningblockobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetswarningblockobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetswarningblockobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetswarningblockobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetsstretchediconbuttonobjects OBJECT
+    KisStretchedIconButton.cpp
+)
+target_compile_definitions(kritawidgetsstretchediconbuttonobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetsstretchediconbuttonobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritawidgetsstretchediconbuttonobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetsstretchediconbuttonobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetsanglegaugeobjects OBJECT
+    KisAngleGauge.cpp
+)
+target_compile_definitions(kritawidgetsanglegaugeobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetsanglegaugeobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetsanglegaugeobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetsanglegaugeobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritawidgetscolorlabelbuttonobjects OBJECT
+    kis_color_label_button.cpp
+)
+target_compile_definitions(kritawidgetscolorlabelbuttonobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetscolorlabelbuttonobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+)
+target_link_libraries(kritawidgetscolorlabelbuttonobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetscolorlabelbuttonobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritawidgetscolorlabelselectorobjects OBJECT
+    kis_color_label_selector_widget.cpp
+)
+target_compile_definitions(kritawidgetscolorlabelselectorobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetscolorlabelselectorobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+        ${CMAKE_SOURCE_DIR}/libs/widgetutils
+        ${CMAKE_BINARY_DIR}/libs/widgetutils
+)
+target_link_libraries(kritawidgetscolorlabelselectorobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetscolorlabelselectorobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritawidgetszoomhandlerobjects OBJECT
+    KoZoomHandler.cpp
+)
+target_compile_definitions(kritawidgetszoomhandlerobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetszoomhandlerobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/flake>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+)
+target_link_libraries(kritawidgetszoomhandlerobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Gui
+    PRIVATE
+        Boost::boost
+)
+set_target_properties(kritawidgetszoomhandlerobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetszoomactionstateobjects OBJECT
+    KoZoomActionState.cpp
+)
+target_compile_definitions(kritawidgetszoomactionstateobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetszoomactionstateobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/flake>
+)
+target_link_libraries(kritawidgetszoomactionstateobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+    PRIVATE
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritawidgetszoomactionstateobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetslevelssliderobjects OBJECT
+    KisLevelsSlider.cpp
+)
+target_compile_definitions(kritawidgetslevelssliderobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetslevelssliderobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetslevelssliderobjects
+    PUBLIC
+        kritaglobalpaintingtweaksobjects
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritawidgetslevelssliderobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritawidgetsdialogobjects OBJECT
+    KoDialog.cpp
+)
+target_compile_definitions(kritawidgetsdialogobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetsdialogobjects PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils/config>
+)
+target_link_libraries(kritawidgetsdialogobjects PUBLIC
+    kritaglobalsignalmapperobjects
+    Qt${QT_MAJOR_VERSION}::Widgets
+    KF${KF_MAJOR}::ConfigCore
+    KF${KF_MAJOR}::ConfigGui
+    KF${KF_MAJOR}::CoreAddons
+    KF${KF_MAJOR}::I18n
+    KF${KF_MAJOR}::WidgetsAddons
+)
+set_target_properties(kritawidgetsdialogobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+set(kritawidgets_LIB_SRCS
+    KoZoomWidget.cpp
     KoConfigAuthorPage.cpp
     KoUnitDoubleSpinBox.cpp
     KoZoomAction.cpp
-    KoZoomActionState.cpp
     KoZoomInput.cpp
-    KoZoomHandler.cpp
     KoColorPatch.cpp
     KoColorPopupAction.cpp
     KoColorSetWidget.cpp
@@ -24,29 +386,21 @@ set(kritawidgets_LIB_SRCS
     KoResourcePopupAction.cpp
     KoRuler.cpp
     KoResourceServerProvider.cpp
-    KoLineStyleSelector.cpp
-    KoLineStyleItemDelegate.cpp
-    KoLineStyleModel.cpp
-
-    KoDockWidgetTitleBar.cpp
-    KoDockWidgetTitleBarButton.cpp
-    
-    KoTitledTabWidget.cpp
-
     KoToolDocker.cpp
     
     KoMarkerSelector.cpp
     KoMarkerModel.cpp
     KoMarkerItemDelegate.cpp
-
-    WidgetsDebug.cpp
+    KoFillConfigWidget.cpp
+    KoStrokeConfigWidget.cpp
+    KisStopGradientEditor.cpp
+    KisStopGradientSlider.cpp
+    KisGradientColorEditor.cpp
+    KisGradientWidgetsUtils.cpp
 
     kis_file_name_requester.cpp
 
     KisColorSelectorInterface.cpp
-    KoAnchorSelectionWidget.cpp
-
-    KisLevelsSlider.cpp
 
     kis_color_input.cpp
 
@@ -64,37 +418,71 @@ set(kritawidgets_LIB_SRCS
     KisDlgInternalColorSelector.cpp
 
     KisPaletteModel.cpp
-    KisPaletteDelegate.cpp
     kis_palette_view.cpp
     KisPaletteChooser.cpp
     KisPaletteComboBox.cpp
 
     kis_color_button.cpp
-    kis_color_label_button.cpp
-    kis_color_label_selector_widget.cpp
 
-    KisAngleGauge.cpp
     KisAngleSelector.cpp
     kis_aspect_ratio_locker.cpp
 
     KisTagSelectionWidget.cpp
 
-    kis_warning_block.cpp
     KisWidgetConnectionUtils.cpp
     kis_spacing_selection_widget.cpp
-    kis_stacked_widget.cpp
 
-    KisStretchedIconButton.cpp
 )
 
 ki18n_wrap_ui( kritawidgets_LIB_SRCS
     KoConfigAuthorPage.ui
+    KoFillConfigWidget.ui
+    KoStrokeConfigWidget.ui
+    wdgstopgradienteditor.ui
     wdg_file_name_requester.ui
     WdgDlgInternalColorSelector.ui
     WdgPaletteListWidget.ui
 )
 
-kis_add_library(kritawidgets SHARED ${kritawidgets_LIB_SRCS})
+add_library(kritawidgetsdebugobjects OBJECT
+    WidgetsDebug.cpp
+)
+target_compile_definitions(kritawidgetsdebugobjects PRIVATE kritawidgets_EXPORTS)
+target_include_directories(kritawidgetsdebugobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetsdebugobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritawidgetsdebugobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+kis_add_library(kritawidgets SHARED
+    ${kritawidgets_LIB_SRCS}
+    $<TARGET_OBJECTS:kritawidgetsslidercomboobjects>
+    $<TARGET_OBJECTS:kritawidgetsaspectbuttonobjects>
+    $<TARGET_OBJECTS:kritawidgetsanchorselectionwidgetobjects>
+    $<TARGET_OBJECTS:kritawidgetspalettedelegateobjects>
+    $<TARGET_OBJECTS:kritawidgetslinestyleselectorobjects>
+    $<TARGET_OBJECTS:kritawidgetscolorpopupbuttonobjects>
+    $<TARGET_OBJECTS:kritawidgetsstackedwidgetobjects>
+    $<TARGET_OBJECTS:kritawidgetsdocktitlebarbuttonobjects>
+    $<TARGET_OBJECTS:kritawidgetsdocktitlebarobjects>
+    $<TARGET_OBJECTS:kritawidgetsvboxobjects>
+    $<TARGET_OBJECTS:kritawidgetsdebugobjects>
+    $<TARGET_OBJECTS:kritawidgetslevelssliderobjects>
+    $<TARGET_OBJECTS:kritawidgetsdialogobjects>
+    $<TARGET_OBJECTS:kritawidgetstitledtabobjects>
+    $<TARGET_OBJECTS:kritawidgetswarningblockobjects>
+    $<TARGET_OBJECTS:kritawidgetsstretchediconbuttonobjects>
+    $<TARGET_OBJECTS:kritawidgetsanglegaugeobjects>
+    $<TARGET_OBJECTS:kritawidgetscolorlabelbuttonobjects>
+    $<TARGET_OBJECTS:kritawidgetscolorlabelselectorobjects>
+    $<TARGET_OBJECTS:kritawidgetszoomhandlerobjects>
+    $<TARGET_OBJECTS:kritawidgetszoomactionstateobjects>
+)
 generate_export_header(kritawidgets BASE_NAME kritawidgets)
 target_link_libraries(kritawidgets
     PUBLIC

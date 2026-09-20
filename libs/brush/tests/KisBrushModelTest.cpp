@@ -8,18 +8,14 @@
 
 #include "KisBrushModel.h"
 #include "KisGlobalResourcesInterface.h"
+#include "kis_properties_configuration.h"
 
 #define TESTBRUSH
 #include <kistest.h>
 
-#include "testutil.h"
+#include "qimage_test_util.h"
 #include "KisResourceModel.h"
 #include <KisResourceCacheDb.h>
-#include "KisResourceLoaderRegistry.h"
-#include "KisResourceLoader.h"
-#include "KisResourceLocator.h"
-#include "kis_png_brush.h"
-#include "KoResourcePaths.h"
 
 void KisBrushModelTest::initTestCase()
 {

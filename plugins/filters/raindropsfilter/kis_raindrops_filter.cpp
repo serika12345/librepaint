@@ -13,7 +13,6 @@
 #include "kis_raindrops_filter.h"
 
 #include <stdlib.h>
-#include <vector>
 #include <math.h>
 
 #include <QDateTime>

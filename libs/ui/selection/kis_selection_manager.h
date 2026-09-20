@@ -10,8 +10,6 @@
 #include <QList>
 #include <QPointer>
 
-#include <kis_image.h>
-#include "workspace/KisView.h"
 #include <KisSelectionTags.h>
 
 #include <kritaui_export.h>
@@ -20,6 +18,12 @@ class KisActionManager;
 class KisAction;
 class QAction;
 class KisDocument;
+class KisNode;
+class KoColor;
+
+template<class T>
+class KisSharedPtr;
+typedef KisSharedPtr<KisNode> KisNodeSP;
 
 class KisViewManager;
 class KisClipboard;

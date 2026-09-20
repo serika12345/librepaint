@@ -6,7 +6,6 @@
 #include "NodeView.h"
 #include "NodePropertyAction_p.h"
 #include "NodeDelegate.h"
-#include "NodeViewVisibilityDelegate.h"
 #include "nodes/kis_node_model.h"
 #include "kis_signals_blocker.h"
 

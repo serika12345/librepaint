@@ -6,7 +6,6 @@
 
 #include "KoXmlNS.h"
 
-#include <string.h>
 
 const QString KoXmlNS::office("urn:oasis:names:tc:opendocument:xmlns:office:1.0");
 const QString KoXmlNS::meta("urn:oasis:names:tc:opendocument:xmlns:meta:1.0");

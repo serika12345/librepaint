@@ -6,22 +6,84 @@
 
 #include "KisLazyStorageTest.h"
 
-#include "simpletest.h"
-
 #include "KisLazyStorage.h"
 
-void KisLazyStorageTest::test()
+#include <QTest>
+
+#include <type_traits>
+
+namespace
 {
-    KisLazyStorage<int, int> storage1(42);
-    QCOMPARE(*storage1, 42);
+struct TrackedValue {
+    explicit TrackedValue(int value)
+        : value(value)
+    {
+        ++constructionCount;
+    }
 
-    KisLazyStorage<QPair<int, float>, int, float> storage2(13, 42.0f);
-    QCOMPARE(*storage2, qMakePair(13, 42.0f));
+    ~TrackedValue()
+    {
+        ++destructionCount;
+    }
 
-    KisLazyStorage<float, float> storage3(KisLazyStorage<float, float>::init_value_tag(),
-                                          42.0f);
-    QCOMPARE(*storage3, 42.0f);
+    int doubled() const
+    {
+        return value * 2;
+    }
 
+    static int constructionCount;
+    static int destructionCount;
+    int value;
+};
+
+int TrackedValue::constructionCount = 0;
+int TrackedValue::destructionCount = 0;
+} // namespace
+
+void KisLazyStorageTest::testLazyConstructionAndLifetime()
+{
+    TrackedValue::constructionCount = 0;
+    TrackedValue::destructionCount = 0;
+
+    {
+        KisLazyStorage<TrackedValue, int> storage(21);
+        QCOMPARE(TrackedValue::constructionCount, 0);
+
+        QCOMPARE(storage->doubled(), 42);
+        QCOMPARE(TrackedValue::constructionCount, 1);
+        QCOMPARE((*storage).value, 21);
+        QCOMPARE(TrackedValue::constructionCount, 1);
+    }
+
+    QCOMPARE(TrackedValue::destructionCount, 1);
 }
 
-SIMPLE_TEST_MAIN(KisLazyStorageTest);
+void KisLazyStorageTest::testImmediateConstruction()
+{
+    KisLazyStorage<float, float> storage(KisLazyStorage<float, float>::init_value_tag(), 42.0f);
+    QCOMPARE(*storage, 42.0f);
+}
+
+void KisLazyStorageTest::testMove()
+{
+    KisLazyStorage<int, int> source(13);
+    QCOMPARE(*source, 13);
+
+    KisLazyStorage<int, int> moved(std::move(source));
+    QCOMPARE(*moved, 13);
+
+    KisLazyStorage<int, int> assigned(42);
+    QCOMPARE(*assigned, 42);
+    assigned = std::move(moved);
+    QCOMPARE(*assigned, 13);
+}
+
+void KisLazyStorageTest::testCopyDisabled()
+{
+    using Storage = KisLazyStorage<int, int>;
+
+    QVERIFY(!std::is_copy_constructible_v<Storage>);
+    QVERIFY(!std::is_copy_assignable_v<Storage>);
+}
+
+QTEST_GUILESS_MAIN(KisLazyStorageTest)

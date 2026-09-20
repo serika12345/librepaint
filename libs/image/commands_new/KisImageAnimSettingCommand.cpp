@@ -5,20 +5,21 @@
  */
 
 #include "KisImageAnimSettingCommand.h"
+#include "KisImageAnimSettingCommandAnimationAccess_p.h"
 
 #include "kis_command_ids.h"
 #include "kis_time_span.h"
 
-KisImageAnimSettingCommand::KisImageAnimSettingCommand(KisImageAnimationInterface *const p_animInterface, Settings p_after, KUndo2Command *parent)
-    : KUndo2Command(kundo2_i18n("Update Animation Settings"), parent),
-      m_animInterface(p_animInterface),
-      m_after(p_after)
+KisImageAnimSettingCommand::KisImageAnimSettingCommand(KisImageAnimationInterface *const p_animInterface,
+                                                       Settings p_after,
+                                                       KUndo2Command *parent)
+    : KUndo2Command(kundo2_i18n("Update Animation Settings"), parent)
+    , m_animInterface(p_animInterface)
+    , m_after(p_after)
 {
-    m_before = {
-                    p_animInterface->framerate(),
-                    p_animInterface->documentPlaybackRange().start(),
-                    p_animInterface->documentPlaybackRange().end()
-               };
+    m_before = {kisImageAnimSettingCommandFramerate(p_animInterface),
+                kisImageAnimSettingCommandDocumentRange(p_animInterface).start(),
+                kisImageAnimSettingCommandDocumentRange(p_animInterface).end()};
 }
 
 void KisImageAnimSettingCommand::redo()
@@ -28,8 +29,9 @@ void KisImageAnimSettingCommand::redo()
 
     KUndo2Command::redo();
 
-    m_animInterface->setFramerate(m_after.FPS);
-    m_animInterface->setDocumentRange(KisTimeSpan::fromTimeToTime(m_after.startFrame, m_after.endFrame));
+    kisImageAnimSettingCommandSetFramerate(m_animInterface, m_after.FPS);
+    kisImageAnimSettingCommandSetDocumentRange(m_animInterface,
+                                               KisTimeSpan::fromTimeToTime(m_after.startFrame, m_after.endFrame));
 }
 
 void KisImageAnimSettingCommand::undo()
@@ -39,8 +41,9 @@ void KisImageAnimSettingCommand::undo()
 
     KUndo2Command::undo();
 
-    m_animInterface->setFramerate(m_before.FPS);
-    m_animInterface->setDocumentRange(KisTimeSpan::fromTimeToTime(m_before.startFrame, m_before.endFrame));
+    kisImageAnimSettingCommandSetFramerate(m_animInterface, m_before.FPS);
+    kisImageAnimSettingCommandSetDocumentRange(m_animInterface,
+                                               KisTimeSpan::fromTimeToTime(m_before.startFrame, m_before.endFrame));
 }
 
 int KisImageAnimSettingCommand::id() const
@@ -50,16 +53,17 @@ int KisImageAnimSettingCommand::id() const
 
 bool KisImageAnimSettingCommand::canMergeWith(const KUndo2Command *p_other) const
 {
-    const KisImageAnimSettingCommand *other = dynamic_cast<const KisImageAnimSettingCommand*>(p_other);
+    const KisImageAnimSettingCommand *other = dynamic_cast<const KisImageAnimSettingCommand *>(p_other);
 
     return other != nullptr;
 }
 
 bool KisImageAnimSettingCommand::mergeWith(const KUndo2Command *p_next)
 {
-    const KisImageAnimSettingCommand *next = dynamic_cast<const KisImageAnimSettingCommand*>(p_next);
+    const KisImageAnimSettingCommand *next = dynamic_cast<const KisImageAnimSettingCommand *>(p_next);
 
-    if (!next) return false;
+    if (!next)
+        return false;
 
     m_after = next->m_after;
 

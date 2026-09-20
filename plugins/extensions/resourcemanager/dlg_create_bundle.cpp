@@ -15,6 +15,7 @@
 #include "wdg_side.h"
 
 #include <QDebug>
+#include <QDir>
 #include <QFileInfo>
 #include <QGridLayout>
 #include <QHash>
@@ -389,5 +390,3 @@ void DlgCreateBundle::reject()
 
     QWizard::reject();
 }
-
-

@@ -8,15 +8,14 @@
 #include <brushengine/kis_paintop_settings.h>
 #include "kis_brush_based_paintop_settings.h"
 #include "kis_brush_option.h"
+#include "kis_dab_cache.h"
 #include "KisSpacingOption.h"
 #include "kis_painter.h"
 #include <kis_lod_transform.h>
 #include "kis_paintop_utils.h"
 #include "kis_paintop_plugin_utils.h"
-#include <KisResourceTypes.h>
 #include <QGlobalStatic>
 #include <kis_brush_registry.h>
-#include <KisUsageLogger.h>
 #include <KoResourceLoadResult.h>
 
 #include <QPainter>

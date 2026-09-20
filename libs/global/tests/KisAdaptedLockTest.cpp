@@ -6,9 +6,9 @@
 
 #include "KisAdaptedLockTest.h"
 
-#include "simpletest.h"
-
 #include "KisAdaptedLock.h"
+
+#include <QTest>
 
 /**
  * A simple test adapter that tracks lock/unlock calls
@@ -22,26 +22,32 @@ public:
         bool isLocked = false;
     };
 
-    TestAdapter(State* state) : m_state(state) {}
+    TestAdapter(State *state)
+        : m_state(state)
+    {
+    }
 
-    void lock() {
+    void lock()
+    {
         m_state->lockCount++;
         m_state->isLocked = true;
     }
 
-    void unlock() {
+    void unlock()
+    {
         m_state->unlockCount++;
         m_state->isLocked = false;
     }
 
-    bool try_lock() {
+    bool try_lock()
+    {
         m_state->lockCount++;
         m_state->isLocked = true;
         return true;
     }
 
 private:
-    State* m_state;
+    State *m_state;
 };
 
 KIS_DECLARE_ADAPTED_LOCK(TestAdaptedLock, TestAdapter)
@@ -119,8 +125,8 @@ void KisAdaptedLockTest::testMoveConstructor()
         // move constructor
         TestAdaptedLock lock2(std::move(lock1));
         QCOMPARE(lock1.owns_lock(), false); // original should not own lock
-        QCOMPARE(lock2.owns_lock(), true);  // new lock should own it
-        QCOMPARE(state.unlockCount, 0);     // should not unlock yet
+        QCOMPARE(lock2.owns_lock(), true); // new lock should own it
+        QCOMPARE(state.unlockCount, 0); // should not unlock yet
     }
     // only one unlock when lock2 goes out of scope
     QCOMPARE(state.unlockCount, 1);
@@ -138,8 +144,8 @@ void KisAdaptedLockTest::testInPlaceMoveConstructor()
         // in-place move constructor
         TestAdaptedLock lock2 = std::move(lock1);
         QCOMPARE(lock1.owns_lock(), false); // original should not own lock
-        QCOMPARE(lock2.owns_lock(), true);  // new lock should own it
-        QCOMPARE(state.unlockCount, 0);     // should not unlock yet
+        QCOMPARE(lock2.owns_lock(), true); // new lock should own it
+        QCOMPARE(state.unlockCount, 0); // should not unlock yet
     }
     // only one unlock when lock2 goes out of scope
     QCOMPARE(state.unlockCount, 1);
@@ -178,4 +184,4 @@ void KisAdaptedLockTest::testMoveAssignmentOperator()
     QCOMPARE(state1.isLocked, false);
 }
 
-SIMPLE_TEST_MAIN(KisAdaptedLockTest);
+QTEST_GUILESS_MAIN(KisAdaptedLockTest)

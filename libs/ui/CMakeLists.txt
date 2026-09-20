@@ -1,23 +1,1855 @@
 
+set(kritauiselectionactionspanel_INCLUDE_DIRS
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/application>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/canvas>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/canvas>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/flake>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/flake/resources>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/brushengine>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/compositeops>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/ui>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui/canvas>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui/flake>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui/ora>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui/tool>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui/utils>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui/widgets>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui/widgets/gradient>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils/config>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils/xmlgui>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgets>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgets>
+)
+
+add_library(kritauiselectionactionspanelobjects OBJECT
+    selection/kis_selection_actions_panel.cpp
+)
+target_compile_definitions(kritauiselectionactionspanelobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauiselectionactionspanelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauiselectionactionspanel_INCLUDE_DIRS}
+)
+target_link_libraries(kritauiselectionactionspanelobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauiselectionactionspanelobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauiselectionactionspanelsourceobjects OBJECT
+    selection/kis_selection_actions_panel_source.cpp
+)
+target_compile_definitions(kritauiselectionactionspanelsourceobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauiselectionactionspanelsourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauiselectionactionspanel_INCLUDE_DIRS}
+)
+target_link_libraries(kritauiselectionactionspanelsourceobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::ConfigGui
+        KF${KF_MAJOR}::Completion
+        KF${KF_MAJOR}::I18n
+        KF${KF_MAJOR}::WidgetsAddons
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauiselectionactionspanelsourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+set(kritauimultinodeproperty_INCLUDE_DIRS
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/painting/undo>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/painting/undo>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/compositeops>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/psdutils>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/psdutils>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/ui>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils/config>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils/xmlgui>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgets>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgets>
+)
+
+add_library(kritauimultinodepropertyobjects OBJECT
+    nodes/kis_multinode_property.cpp
+)
+target_compile_definitions(kritauimultinodepropertyobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauimultinodepropertyobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauimultinodeproperty_INCLUDE_DIRS}
+)
+target_link_libraries(kritauimultinodepropertyobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauimultinodepropertyobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauimultinodepropertysourceobjects OBJECT
+    nodes/kis_multinode_property_source.cpp
+)
+target_compile_definitions(kritauimultinodepropertysourceobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauimultinodepropertysourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauimultinodeproperty_INCLUDE_DIRS}
+)
+target_link_libraries(kritauimultinodepropertysourceobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauimultinodepropertysourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+set(kritauinodemanager_INCLUDE_DIRS
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/brushengine>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/filter>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/compositeops>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/psdutils>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/psdutils>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/ui>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/ui>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils/config>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils/xmlgui>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgets>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgets>
+)
+
+add_library(kritauinodemanagerimagestateobjects OBJECT
+    nodes/KisNodeManagerImageState.cpp
+)
+target_compile_definitions(kritauinodemanagerimagestateobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagerimagestateobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagerimagestateobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagerimagestateobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagerimagestatesourceobjects OBJECT
+    nodes/KisNodeManagerImageStateSource.cpp
+)
+target_compile_definitions(kritauinodemanagerimagestatesourceobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagerimagestatesourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagerimagestatesourceobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagerimagestatesourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagernodestateobjects OBJECT
+    nodes/KisNodeManagerNodeState.cpp
+)
+target_compile_definitions(kritauinodemanagernodestateobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagernodestateobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagernodestateobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagernodestateobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagernodestatesourceobjects OBJECT
+    nodes/KisNodeManagerNodeStateSource.cpp
+)
+target_compile_definitions(kritauinodemanagernodestatesourceobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagernodestatesourceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagernodestatesourceobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagernodestatesourceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagernodechangeobjects OBJECT
+    nodes/KisNodeManagerNodeChange.cpp
+)
+target_compile_definitions(kritauinodemanagernodechangeobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagernodechangeobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagernodechangeobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagernodechangeobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagermodificationobjects OBJECT
+    nodes/KisNodeManagerModification.cpp
+)
+target_compile_definitions(kritauinodemanagermodificationobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagermodificationobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagermodificationobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagermodificationobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanageractiveobjects OBJECT
+    nodes/KisNodeManagerActive.cpp
+)
+target_compile_definitions(kritauinodemanageractiveobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanageractiveobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanageractiveobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanageractiveobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanageraccessorobjects OBJECT
+    nodes/KisNodeManagerAccessors.cpp
+)
+target_compile_definitions(kritauinodemanageraccessorobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanageraccessorobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanageraccessorobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanageraccessorobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagerselectionstateobjects OBJECT
+    nodes/KisNodeManagerSelectionState.cpp
+)
+target_compile_definitions(kritauinodemanagerselectionstateobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagerselectionstateobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagerselectionstateobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagerselectionstateobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagerpropertiesobjects OBJECT
+    nodes/KisNodeManagerProperties.cpp
+)
+target_compile_definitions(kritauinodemanagerpropertiesobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagerpropertiesobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagerpropertiesobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagerpropertiesobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagerpropertydialogobjects OBJECT
+    nodes/KisNodeManagerPropertyDialog.cpp
+)
+target_compile_definitions(kritauinodemanagerpropertydialogobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagerpropertydialogobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagerpropertydialogobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagerpropertydialogobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagernodeupdateobjects OBJECT
+    nodes/KisNodeManagerNodeUpdate.cpp
+)
+target_compile_definitions(kritauinodemanagernodeupdateobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagernodeupdateobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagernodeupdateobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagernodeupdateobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanageravigationobjects OBJECT
+    nodes/KisNodeManagerNavigation.cpp
+)
+target_compile_definitions(kritauinodemanageravigationobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanageravigationobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanageravigationobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanageravigationobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagerorderingobjects OBJECT
+    nodes/KisNodeManagerOrdering.cpp
+)
+target_compile_definitions(kritauinodemanagerorderingobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagerorderingobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagerorderingobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagerorderingobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagerremovalobjects OBJECT
+    nodes/KisNodeManagerRemoval.cpp
+)
+target_compile_definitions(kritauinodemanagerremovalobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagerremovalobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagerremovalobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagerremovalobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagertreeoperationobjects OBJECT
+    nodes/KisNodeManagerTreeOperations.cpp
+)
+target_compile_definitions(kritauinodemanagertreeoperationobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagertreeoperationobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagertreeoperationobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagertreeoperationobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagerisolationobjects OBJECT
+    nodes/KisNodeManagerIsolation.cpp
+)
+target_compile_definitions(kritauinodemanagerisolationobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagerisolationobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagerisolationobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagerisolationobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagerselectionobjects OBJECT
+    nodes/KisNodeManagerSelection.cpp
+)
+target_compile_definitions(kritauinodemanagerselectionobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagerselectionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagerselectionobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagerselectionobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagertoggleobjects OBJECT
+    nodes/KisNodeManagerToggle.cpp
+)
+target_compile_definitions(kritauinodemanagertoggleobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagertoggleobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagertoggleobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagertoggleobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagermirrorobjects OBJECT
+    nodes/KisNodeManagerMirror.cpp
+)
+target_compile_definitions(kritauinodemanagermirrorobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagermirrorobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+        ${CMAKE_SOURCE_DIR}/libs/painting/undo
+        ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+target_link_libraries(kritauinodemanagermirrorobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagermirrorobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagerclipboardobjects OBJECT
+    nodes/KisNodeManagerClipboard.cpp
+)
+target_compile_definitions(kritauinodemanagerclipboardobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagerclipboardobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+        ${CMAKE_SOURCE_DIR}/libs/painting/undo
+        ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+target_link_libraries(kritauinodemanagerclipboardobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagerclipboardobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagersplitalphaobjects OBJECT
+    nodes/KisNodeManagerSplitAlpha.cpp
+)
+target_compile_definitions(kritauinodemanagersplitalphaobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagersplitalphaobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagersplitalphaobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagersplitalphaobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagerquickgroupobjects OBJECT
+    nodes/KisNodeManagerQuickGroup.cpp
+)
+target_compile_definitions(kritauinodemanagerquickgroupobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagerquickgroupobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+        ${CMAKE_SOURCE_DIR}/libs/painting/undo
+        ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+target_link_libraries(kritauinodemanagerquickgroupobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagerquickgroupobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagerreferenceimageobjects OBJECT
+    nodes/KisNodeManagerReferenceImage.cpp
+)
+target_compile_definitions(kritauinodemanagerreferenceimageobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagerreferenceimageobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagerreferenceimageobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagerreferenceimageobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagerlayercreationobjects OBJECT
+    nodes/KisNodeManagerLayerCreation.cpp
+)
+target_compile_definitions(kritauinodemanagerlayercreationobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagerlayercreationobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagerlayercreationobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagerlayercreationobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagernodetypeobjects OBJECT
+    nodes/KisNodeManagerNodeType.cpp
+)
+target_compile_definitions(kritauinodemanagernodetypeobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagernodetypeobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+        ${CMAKE_SOURCE_DIR}/libs/painting/undo
+        ${CMAKE_BINARY_DIR}/libs/painting/undo
+)
+target_link_libraries(kritauinodemanagernodetypeobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagernodetypeobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagerexportobjects OBJECT
+    nodes/KisNodeManagerExport.cpp
+)
+target_compile_definitions(kritauinodemanagerexportobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagerexportobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagerexportobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagerexportobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanageractivationobjects OBJECT
+    nodes/KisNodeManagerActivation.cpp
+)
+target_compile_definitions(kritauinodemanageractivationobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanageractivationobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanageractivationobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanageractivationobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagerlifecycleobjects OBJECT
+    nodes/KisNodeManagerLifecycle.cpp
+)
+target_compile_definitions(kritauinodemanagerlifecycleobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagerlifecycleobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagerlifecycleobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagerlifecycleobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagerlifecyclecontractobjects OBJECT
+    nodes/KisNodeManagerLifecycle.cpp
+)
+target_compile_definitions(kritauinodemanagerlifecyclecontractobjects PRIVATE
+    kritaapplicationui_EXPORTS
+    KIS_NODE_MANAGER_LIFECYCLE_CONTRACT
+)
+target_include_directories(kritauinodemanagerlifecyclecontractobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagerlifecyclecontractobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagerlifecyclecontractobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemanagersetupobjects OBJECT
+    nodes/KisNodeManagerSetup.cpp
+)
+target_compile_definitions(kritauinodemanagersetupobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemanagersetupobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemanagersetupobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemanagersetupobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemodeldisplaystateobjects OBJECT
+    nodes/KisNodeModelDisplayState.cpp
+)
+target_compile_definitions(kritauinodemodeldisplaystateobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemodeldisplaystateobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemodeldisplaystateobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        Eigen3::Eigen
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritauinodemodeldisplaystateobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemodeltransferprotocolobjects OBJECT
+    nodes/KisNodeModelTransferProtocol.cpp
+)
+target_compile_definitions(kritauinodemodeltransferprotocolobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemodeltransferprotocolobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemodeltransferprotocolobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauinodemodeltransferprotocolobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemodelindexmappingobjects OBJECT
+    nodes/KisNodeModelIndexMapping.cpp
+)
+target_compile_definitions(kritauinodemodelindexmappingobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemodelindexmappingobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemodelindexmappingobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauinodemodelindexmappingobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemodelisolationmembershipobjects OBJECT
+    nodes/KisNodeModelIsolationMembership.cpp
+)
+target_compile_definitions(kritauinodemodelisolationmembershipobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemodelisolationmembershipobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemodelisolationmembershipobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauinodemodelisolationmembershipobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemodelitemflagsobjects OBJECT
+    nodes/KisNodeModelItemFlags.cpp
+)
+target_compile_definitions(kritauinodemodelitemflagsobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemodelitemflagsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemodelitemflagsobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauinodemodelitemflagsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemodeldropacceptanceobjects OBJECT
+    nodes/KisNodeModelDropAcceptance.cpp
+)
+target_compile_definitions(kritauinodemodeldropacceptanceobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemodeldropacceptanceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemodeldropacceptanceobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauinodemodeldropacceptanceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemodeldropinsertionobjects OBJECT
+    nodes/KisNodeModelDropInsertion.cpp
+)
+target_compile_definitions(kritauinodemodeldropinsertionobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemodeldropinsertionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemodeldropinsertionobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauinodemodeldropinsertionobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemodelmimedataobjects OBJECT
+    nodes/KisNodeModelMimeData.cpp
+)
+target_compile_definitions(kritauinodemodelmimedataobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemodelmimedataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemodelmimedataobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauinodemodelmimedataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemodelfacadesetupobjects OBJECT
+    nodes/KisNodeModelFacadeSetup.cpp
+)
+target_compile_definitions(kritauinodemodelfacadesetupobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemodelfacadesetupobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemodelfacadesetupobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauinodemodelfacadesetupobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemodellifecycleobjects OBJECT
+    nodes/KisNodeModelLifecycle.cpp
+)
+target_compile_definitions(kritauinodemodellifecycleobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemodellifecycleobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemodellifecycleobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauinodemodellifecycleobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemodelstructureobjects OBJECT
+    nodes/KisNodeModelStructure.cpp
+)
+target_compile_definitions(kritauinodemodelstructureobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemodelstructureobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemodelstructureobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauinodemodelstructureobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemodelremovalobjects OBJECT
+    nodes/KisNodeModelRemoval.cpp
+)
+target_compile_definitions(kritauinodemodelremovalobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemodelremovalobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemodelremovalobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauinodemodelremovalobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemodeldataobjects OBJECT
+    nodes/KisNodeModelData.cpp
+)
+target_compile_definitions(kritauinodemodeldataobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemodeldataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemodeldataobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritauinodemodeldataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauinodemodelsetdataobjects OBJECT
+    nodes/KisNodeModelSetData.cpp
+)
+target_compile_definitions(kritauinodemodelsetdataobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauinodemodelsetdataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${kritauinodemanager_INCLUDE_DIRS}
+)
+target_link_libraries(kritauinodemodelsetdataobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauinodemodelsetdataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauiexposuregammacorrectionobjects OBJECT
+    canvas/kis_exposure_gamma_correction_interface.cpp
+)
+target_compile_definitions(kritauiexposuregammacorrectionobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauiexposuregammacorrectionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/canvas>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+)
+target_link_libraries(kritauiexposuregammacorrectionobjects PUBLIC
+    Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauiexposuregammacorrectionobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauisizegroupobjects OBJECT
+    widgets/kis_size_group.cpp
+    widgets/kis_size_group.h
+    widgets/kis_size_group_p.cpp
+    widgets/kis_size_group_p.h
+)
+target_compile_definitions(kritauisizegroupobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauisizegroupobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritauisizegroupobjects PUBLIC
+    Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritauisizegroupobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauielidedlabelobjects OBJECT
+    widgets/kis_elided_label.cpp
+)
+target_compile_definitions(kritauielidedlabelobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauielidedlabelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritauielidedlabelobjects PUBLIC
+    Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritauielidedlabelobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauiwarningwidgetobjects OBJECT
+    widgets/KisWarningWidget.cpp
+)
+target_compile_definitions(kritauiwarningwidgetobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauiwarningwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/widgetutils>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgetutils>
+)
+target_link_libraries(kritauiwarningwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritauiwarningwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 if (ANDROID)
     # We explicitly set QT_OPENGL_ES_3 here because Qt for some reason does
     # not enable this for Android.
     # See also: https://bugreports.qt.io/browse/QTBUG-64703
     # This is not needed for ARM GNU/Linux environments.
     add_definitions(-DQT_OPENGL_ES_3)
+    target_compile_definitions(kritaapplicationui PRIVATE QT_OPENGL_ES_3)
     if (QT_MAJOR_VERSION STREQUAL "5")
         include_directories (${Qt5AndroidExtras_INCLUDE_DIRS})
+        target_include_directories(kritaapplicationui PRIVATE ${Qt5AndroidExtras_INCLUDE_DIRS})
     endif()
+endif()
+
+add_library(kritauispinboxsplineunitconverterobjects OBJECT
+    utils/KisSpinBoxSplineUnitConverter.cpp
+)
+target_compile_definitions(kritauispinboxsplineunitconverterobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauispinboxsplineunitconverterobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/utils>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+)
+target_link_libraries(kritauispinboxsplineunitconverterobjects PUBLIC
+    Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauispinboxsplineunitconverterobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauimodelindexconverterbaseobjects OBJECT
+    nodes/kis_model_index_converter_base.cpp
+)
+target_compile_definitions(kritauimodelindexconverterbaseobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauimodelindexconverterbaseobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+)
+target_link_libraries(kritauimodelindexconverterbaseobjects PUBLIC
+    Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauimodelindexconverterbaseobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauiopenglrendererconfigobjects OBJECT
+    opengl/KisOpenGLRendererConfig.cpp
+)
+target_compile_definitions(kritauiopenglrendererconfigobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauiopenglrendererconfigobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/application>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+        $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_link_libraries(kritauiopenglrendererconfigobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        KF${KF_MAJOR}::ConfigCore
+        Boost::boost
+        Imath::ImathConfig
+)
+set_target_properties(kritauiopenglrendererconfigobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauiscreeninformationobjects OBJECT
+    opengl/KisScreenInformationAdapter.cpp
+)
+target_compile_definitions(kritauiscreeninformationobjects PRIVATE
+    kritaapplicationui_EXPORTS
+    kritacanvas_EXPORTS
+)
+target_include_directories(kritauiscreeninformationobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/canvas>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/canvas>
+)
+target_link_libraries(kritauiscreeninformationobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+)
+set_target_properties(kritauiscreeninformationobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauiopenglupdateinfoobjects OBJECT
+    opengl/kis_opengl_update_info.cpp
+)
+target_compile_definitions(kritauiopenglupdateinfoobjects PRIVATE
+    QT_GUI_LIB
+    QT_WIDGETS_LIB
+    QT_XML_LIB
+    kritaapplicationui_EXPORTS
+    kritacanvas_EXPORTS
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritapigment_EXPORTS
+)
+target_include_directories(kritauiopenglupdateinfoobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/canvas>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/canvas>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+        $<TARGET_PROPERTY:KF${KF_MAJOR}::ConfigCore,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_link_libraries(kritauiopenglupdateinfoobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+        Eigen3::Eigen
+        Imath::ImathConfig
+)
+set_target_properties(kritauiopenglupdateinfoobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauiabstractframecacheswapperobjects OBJECT
+    animation/cache/KisAbstractFrameCacheSwapper.cpp
+)
+target_compile_definitions(kritauiabstractframecacheswapperobjects PRIVATE
+    kritaapplicationui_EXPORTS
+)
+target_include_directories(kritauiabstractframecacheswapperobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritauiabstractframecacheswapperobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauiabstractframecacheswapperobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauiinmemoryframecacheswapperobjects OBJECT
+    animation/cache/KisInMemoryFrameCacheSwapper.cpp
+)
+target_compile_definitions(kritauiinmemoryframecacheswapperobjects PRIVATE
+    kritaapplicationui_EXPORTS
+    kritacanvas_EXPORTS
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritapigment_EXPORTS
+)
+target_include_directories(kritauiinmemoryframecacheswapperobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritauiinmemoryframecacheswapperobjects
+    PUBLIC
+        kritauiabstractframecacheswapperobjects
+        kritauiopenglupdateinfoobjects
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritauiinmemoryframecacheswapperobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritauiopenglupdateinfobuilderstateobjects OBJECT
+    opengl/KisOpenGLUpdateInfoBuilderState.cpp
+)
+target_compile_definitions(kritauiopenglupdateinfobuilderstateobjects PRIVATE
+    QT_GUI_LIB
+    QT_WIDGETS_LIB
+    QT_XML_LIB
+    kritaapplicationui_EXPORTS
+    kritacanvas_EXPORTS
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritapigment_EXPORTS
+)
+target_include_directories(kritauiopenglupdateinfobuilderstateobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/canvas>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/canvas>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+        $<TARGET_PROPERTY:KF${KF_MAJOR}::ConfigCore,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_link_libraries(kritauiopenglupdateinfobuilderstateobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+        Eigen3::Eigen
+        Imath::ImathConfig
+)
+set_target_properties(kritauiopenglupdateinfobuilderstateobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+if(WIN32)
+    target_link_libraries(kritauiscreeninformationobjects PUBLIC dxgi)
+    set_source_files_properties(
+        opengl/KisScreenInformationAdapter.cpp
+        TARGET_DIRECTORY kritauiscreeninformationobjects
+        PROPERTIES
+        INCLUDE_DIRECTORIES "${Qt${QT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}"
+    )
 endif()
 
 add_subdirectory( tests )
 
-if (APPLE AND NOT IOS)
-    find_library(FOUNDATION_LIBRARY Foundation)
-    find_library(APPKIT_LIBRARY AppKit)
-endif ()
-
 set(kritaui_LIB_SRCS
+    $<TARGET_OBJECTS:kritauiopenglrendererconfigobjects>
+    $<TARGET_OBJECTS:kritauiopenglupdateinfoobjects>
+    $<TARGET_OBJECTS:kritauiabstractframecacheswapperobjects>
+    $<TARGET_OBJECTS:kritauiinmemoryframecacheswapperobjects>
+    $<TARGET_OBJECTS:kritauiopenglupdateinfobuilderstateobjects>
+    $<TARGET_OBJECTS:kritauimodelindexconverterbaseobjects>
+    $<TARGET_OBJECTS:kritauispinboxsplineunitconverterobjects>
+    $<TARGET_OBJECTS:kritauiexposuregammacorrectionobjects>
+    $<TARGET_OBJECTS:kritauisizegroupobjects>
+    $<TARGET_OBJECTS:kritauielidedlabelobjects>
+    $<TARGET_OBJECTS:kritauiwarningwidgetobjects>
+    $<TARGET_OBJECTS:kritauiselectionactionspanelobjects>
+    $<TARGET_OBJECTS:kritauiselectionactionspanelsourceobjects>
+    $<TARGET_OBJECTS:kritauimultinodepropertyobjects>
+    $<TARGET_OBJECTS:kritauimultinodepropertysourceobjects>
+    $<TARGET_OBJECTS:kritauinodemanagerimagestateobjects>
+    $<TARGET_OBJECTS:kritauinodemanagerimagestatesourceobjects>
+    $<TARGET_OBJECTS:kritauinodemanagernodestateobjects>
+    $<TARGET_OBJECTS:kritauinodemanagernodestatesourceobjects>
+    $<TARGET_OBJECTS:kritauinodemanagernodechangeobjects>
+    $<TARGET_OBJECTS:kritauinodemanagermodificationobjects>
+    $<TARGET_OBJECTS:kritauinodemanageractiveobjects>
+    $<TARGET_OBJECTS:kritauinodemanageraccessorobjects>
+    $<TARGET_OBJECTS:kritauinodemanagerselectionstateobjects>
+    $<TARGET_OBJECTS:kritauinodemanagerpropertiesobjects>
+    $<TARGET_OBJECTS:kritauinodemanagerpropertydialogobjects>
+    $<TARGET_OBJECTS:kritauinodemanagernodeupdateobjects>
+    $<TARGET_OBJECTS:kritauinodemanageravigationobjects>
+    $<TARGET_OBJECTS:kritauinodemanagerorderingobjects>
+    $<TARGET_OBJECTS:kritauinodemanagerremovalobjects>
+    $<TARGET_OBJECTS:kritauinodemanagertreeoperationobjects>
+    $<TARGET_OBJECTS:kritauinodemanagerisolationobjects>
+    $<TARGET_OBJECTS:kritauinodemanagerselectionobjects>
+    $<TARGET_OBJECTS:kritauinodemanagertoggleobjects>
+    $<TARGET_OBJECTS:kritauinodemanagermirrorobjects>
+    $<TARGET_OBJECTS:kritauinodemanagerclipboardobjects>
+    $<TARGET_OBJECTS:kritauinodemanagersplitalphaobjects>
+    $<TARGET_OBJECTS:kritauinodemanagerquickgroupobjects>
+    $<TARGET_OBJECTS:kritauinodemanagerreferenceimageobjects>
+    $<TARGET_OBJECTS:kritauinodemanagerlayercreationobjects>
+    $<TARGET_OBJECTS:kritauinodemanagernodetypeobjects>
+    $<TARGET_OBJECTS:kritauinodemanagerexportobjects>
+    $<TARGET_OBJECTS:kritauinodemanageractivationobjects>
+    $<TARGET_OBJECTS:kritauinodemanagerlifecycleobjects>
+    $<TARGET_OBJECTS:kritauinodemanagersetupobjects>
+    $<TARGET_OBJECTS:kritauinodemodeldisplaystateobjects>
+    $<TARGET_OBJECTS:kritauinodemodeltransferprotocolobjects>
+    $<TARGET_OBJECTS:kritauinodemodelindexmappingobjects>
+    $<TARGET_OBJECTS:kritauinodemodelisolationmembershipobjects>
+    $<TARGET_OBJECTS:kritauinodemodelitemflagsobjects>
+    $<TARGET_OBJECTS:kritauinodemodeldropacceptanceobjects>
+    $<TARGET_OBJECTS:kritauinodemodeldropinsertionobjects>
+    $<TARGET_OBJECTS:kritauinodemodelmimedataobjects>
+    $<TARGET_OBJECTS:kritauinodemodelfacadesetupobjects>
+    $<TARGET_OBJECTS:kritauinodemodellifecycleobjects>
+    $<TARGET_OBJECTS:kritauinodemodelstructureobjects>
+    $<TARGET_OBJECTS:kritauinodemodelremovalobjects>
+    $<TARGET_OBJECTS:kritauinodemodeldataobjects>
+    $<TARGET_OBJECTS:kritauinodemodelsetdataobjects>
+
     canvas/kis_canvas_widget_base.cpp
     canvas/kis_canvas2.cpp
     canvas/kis_canvas_tool_support.cpp
@@ -25,8 +1857,6 @@ set(kritaui_LIB_SRCS
     canvas/kis_canvas_controller.cpp
     canvas/kis_display_color_converter.cpp
     canvas/kis_display_filter.cpp
-    canvas/kis_exposure_gamma_correction_interface.cpp
-    canvas/kis_tool_proxy.cpp
     canvas/kis_canvas_decoration.cc
     canvas/kis_grid_manager.cpp
     canvas/kis_grid_decoration.cpp
@@ -39,11 +1869,11 @@ set(kritaui_LIB_SRCS
     canvas/kis_guides_decoration.cpp
     canvas/kis_guides_manager.cpp
     canvas/kis_guides_config.cpp
-    canvas/kis_snap_config.cpp
     canvas/kis_snap_line_strategy.cpp
     canvas/KisSnapPointStrategy.cpp
     canvas/KisSnapPixelStrategy.cpp
-    canvas/KisMirrorAxisConfig.cpp
+    canvas/KisMirrorAxisConfig.h
+    $<TARGET_OBJECTS:kritauimirroraxisconfigobjects>
     canvas/KoCanvasControllerWidget.cpp
     canvas/KoCanvasControllerWidgetViewport_p.cpp
 
@@ -97,13 +1927,11 @@ set(kritaui_LIB_SRCS
     resources/KisPresetShadowUpdater.cpp
     canvas/kis_canvas_resource_provider.cpp
     resources/kis_derived_resources.cpp
-    application/kis_config.cc
     resources/kis_control_frame.cpp
     canvas/KisDisplayConfig.cpp
     resources/kis_custom_pattern.cc
     document/kis_file_layer.cpp
     document/kis_change_file_layer_command.h
-    workspace/kis_splash_screen.cpp
     document/kis_filter_manager.cc
     resources/kis_filters_model.cc
     document/kis_image_manager.cc
@@ -111,27 +1939,22 @@ set(kritaui_LIB_SRCS
     nodes/kis_layer_manager.cc
     nodes/kis_mask_manager.cc
     nodes/kis_node_manager.cpp
-    nodes/KisNodeManagerImageState.cpp
     nodes/kis_node_selection_adapter.cpp
     nodes/kis_node_insertion_adapter.cpp
     canvas/KisNodeDisplayModeAdapter.cpp
     nodes/kis_node_model.cpp
     nodes/kis_node_filter_proxy_model.cpp
-    nodes/kis_model_index_converter_base.cpp
     nodes/kis_model_index_converter.cpp
     nodes/kis_model_index_converter_show_all.cpp
     canvas/KisMultiSurfaceStateManager.cpp
     canvas/KisLayerThumbnailCache.cpp
     canvas/kis_painting_assistant.cc
     canvas/kis_painting_assistants_decoration.cpp
-    selection/kis_selection_actions_panel.cpp
     selection/kis_selection_actions_panel_handle.cpp
     selection/kis_selection_actions_panel_button.cpp
     canvas/KisDecorationsManager.cpp
     tool/kis_paintop_box.cc
     resources/kis_popup_palette.cpp
-    workspace/kis_preference_set_registry.cpp
-    application/KisResourceServerProvider.cpp
     flake/KisSelectedShapesProxy.cpp
     canvas/kis_selection_decoration.cc
     selection/kis_selection_manager.cc
@@ -139,12 +1962,7 @@ set(kritaui_LIB_SRCS
     canvas/kis_statusbar.cc
     canvas/kis_zoom_manager.cc
     resources/kis_favorite_resource_manager.cpp
-    application/kis_action.cpp
-    application/kis_action_manager.cpp
-    application/KisActionPlugin.cpp
     canvas/kis_canvas_controls_manager.cpp
-    nodes/kis_multinode_property.cpp
-    workspace/KisWelcomePageWidget.cpp
     theme/KisUiFont.cpp
     canvas/KisIdleTasksManager.cpp
     canvas/KisIdleTaskStrokeStrategy.cpp
@@ -158,10 +1976,9 @@ set(kritaui_LIB_SRCS
     opengl/kis_opengl_image_textures.cpp
     opengl/kis_texture_tile.cpp
     opengl/kis_opengl_shader_loader.cpp
-    opengl/kis_opengl_update_info.cpp
     opengl/KisOpenGLUpdateInfoBuilder.cpp
     opengl/KisOpenGLModeProber.cpp
-    opengl/KisScreenInformationAdapter.cpp
+    $<TARGET_OBJECTS:kritauiscreeninformationobjects>
     opengl/KisOpenGLBufferCircularStorage.cpp
     opengl/KisOpenGLSync.cpp
     opengl/KisOpenGLBufferCreationGuard.cpp
@@ -173,6 +1990,7 @@ set(kritaui_LIB_SRCS
     tool/kis_tool_freehand.cc
     tool/kis_painting_information_builder_adapters.cpp
     tool/kis_tool_freehand_helper.cpp
+    tool/kis_scratch_pad.cpp
     tool/kis_tool_multihand_helper.cpp
     tool/kis_tool_paint.cc
     tool/kis_tool_shape.cc
@@ -220,11 +2038,8 @@ set(kritaui_LIB_SRCS
 
     widgets/kis_preset_chooser.cpp
     widgets/kis_progress_widget.cpp
-    widgets/kis_scratch_pad.cpp
     widgets/kis_scratch_pad_event_filter.cpp
     widgets/KisSelectionPropertySlider.cpp
-    widgets/kis_size_group.cpp
-    widgets/kis_size_group_p.cpp
     widgets/kis_wdg_generator.cpp
     widgets/kis_workspace_chooser.cpp
     widgets/kis_widget_chooser.cpp
@@ -235,7 +2050,6 @@ set(kritaui_LIB_SRCS
     widgets/KisLodAvailabilityModel.cpp
     widgets/kis_color_filter_combo.cpp
     widgets/kis_layer_filter_widget.cpp
-    widgets/kis_elided_label.cpp
     widgets/kis_preset_live_preview_view.cpp
     widgets/KisScreenColorSampler.cpp
     widgets/KoDualColorButton.cpp
@@ -243,12 +2057,9 @@ set(kritaui_LIB_SRCS
     widgets/KoBackgroundColour.cpp
     widgets/KoSwapBgFgColours.cpp
     widgets/KoResetBgFgColours.cpp
-    widgets/KoStrokeConfigWidget.cpp
-    widgets/KoFillConfigWidget.cpp
     widgets/KisLayerStyleAngleSelector.cpp
     widgets/KisMemoryReportButton.cpp
     widgets/KisDitherWidget.cpp
-    widgets/KisWarningWidget.cpp
     widgets/KisAutoLevelsWidget.cpp
     widgets/KisHistogramPainter.cpp
     widgets/KisHistogramView.cpp
@@ -261,14 +2072,10 @@ set(kritaui_LIB_SRCS
     widgets/KisGrabKeyboardFocusRecoveryWorkaround.cpp
 
     # Gradient related widgets
-    widgets/gradient/KisStopGradientEditor.cpp
     widgets/gradient/KisSegmentGradientEditor.cpp
-    widgets/gradient/KisStopGradientSlider.cpp
     widgets/gradient/KisSegmentGradientSlider.cpp
     widgets/gradient/KisGradientChooser.cpp
     widgets/gradient/KisGenericGradientEditor.cpp
-    widgets/gradient/KisGradientWidgetsUtils.cpp
-    widgets/gradient/KisGradientColorEditor.cpp
 
     dialogs/KisDlgPaletteEditor.cpp
 
@@ -276,7 +2083,6 @@ set(kritaui_LIB_SRCS
 	widgets/KisColorSamplerPreviewPreview.cpp
 
     utils/kis_document_aware_spin_box_unit_manager.cpp
-    utils/KisSpinBoxSplineUnitConverter.cpp
     utils/KisDitherUtil.cpp
     utils/KisFileIconCreator.cpp
     utils/KisRecentDocumentsModelWrapper.cpp
@@ -292,6 +2098,16 @@ set(kritaui_LIB_SRCS
     actions/KisPasteActionFactories.cpp
     actions/KisTransformToolActivationCommand.cpp
     actions/KisLayerSelectionAction.cpp
+    actions/input/KisApplicationInputActions.cpp
+    actions/input/KisCanvasOnlyAction.cpp
+    actions/input/KisTouchGestureAction.cpp
+    actions/input/kis_change_frame_action.cpp
+    actions/input/kis_gamma_exposure_action.cpp
+    actions/input/kis_pan_action.cpp
+    actions/input/kis_rotate_canvas_action.cpp
+    actions/input/kis_select_layer_action.cpp
+    actions/input/kis_zoom_action.cpp
+    actions/input/kis_zoom_and_rotate_action.cpp
     animation/KisFrameDisplayProxy.cpp
     events/kis_gui_context_command.cpp
     events/kis_gui_context_command_p.cpp
@@ -310,9 +2126,6 @@ set(kritaui_LIB_SRCS
     canvas/kcanvaspreview.cc
     canvas/kis_abstract_perspective_grid.cpp
 
-    application/KisPlatformPluginInterfaceFactory.cpp
-    application/KisApplication.cpp
-    workspace/KisDetailsPane.cpp
     document/KisDocument.cpp
     document/KisDocumentImageState.cpp
     document/KisImageManagerDrop.cpp
@@ -322,34 +2135,15 @@ set(kritaui_LIB_SRCS
     document/KisCloneDocumentStroke.cpp
     nodes/kis_node_view_color_scheme.cpp
     events/kis_async_action_feedback.cpp
-    workspace/KisMainWindow.cpp
-    workspace/KisOpenPane.cpp
-    application/KisPart.cpp
-    workspace/KisTemplate.cpp
-    workspace/KisTemplateCreateDia.cpp
-    workspace/KisTemplateGroup.cpp
-    workspace/KisTemplates.cpp
-    workspace/KisTemplatesPane.cpp
-    workspace/KisTemplateTree.cpp
     actions/KisUndoActionsUpdateManager.cpp
-    workspace/KisView.cpp
-    workspace/KisCanvasWindow.cpp
 
     theme/thememanager.cpp
 
-    workspace/kis_mainwindow_observer.cpp
-    workspace/KisViewManager.cpp
     canvas/kis_mirror_manager.cpp
 
     qtsingleapplication/qtlocalpeer.cpp
     qtsingleapplication/qtsingleapplication.cpp
 
-    application/KisApplicationArguments.cpp
-
-
-    workspace/KisWindowLayoutResource.cpp
-    workspace/KisWindowLayoutManager.cpp
-    workspace/KisSessionResource.cpp
 
     canvas/KisReferenceImagesDecoration.cpp
     canvas/KisReferenceImage.cpp
@@ -359,11 +2153,29 @@ set(kritaui_LIB_SRCS
 
     canvas/KisDecorationsWrapperLayer.cpp
 
-    document/StoryboardItem.cpp
-
     nodes/KisNodeActivationActionCreatorVisitor.cpp
-    application/KisAndroidFileProxy.cpp
 )
+
+add_library(kritauistoryboarditemobjects OBJECT
+    document/StoryboardItem.cpp
+)
+target_compile_definitions(kritauistoryboarditemobjects PRIVATE kritaui_EXPORTS)
+target_include_directories(kritauistoryboarditemobjects PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${CMAKE_BINARY_DIR}/libs/application
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+)
+target_link_libraries(kritauistoryboarditemobjects PUBLIC
+    Qt${QT_MAJOR_VERSION}::Core
+    Qt${QT_MAJOR_VERSION}::Gui
+    Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritauistoryboarditemobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
+list(APPEND kritaui_LIB_SRCS $<TARGET_OBJECTS:kritauistoryboarditemobjects>)
 
 if (KSeExpr_FOUND)
     set(kritaui_LIB_SRCS ${kritaui_LIB_SRCS}
@@ -403,8 +2215,6 @@ endif()
         dialogs/KisAsyncAnimationFramesSaveDialog.cpp
         canvas/KisCanvasAnimationState.cpp	
         animation/cache/KisFrameCacheSwapper.cpp
-        animation/cache/KisAbstractFrameCacheSwapper.cpp
-        animation/cache/KisInMemoryFrameCacheSwapper.cpp
 
     )
 
@@ -415,15 +2225,7 @@ if(APPLE AND NOT IOS)
     )
 endif()
 
-if(ANDROID)
-    list(APPEND kritaui_LIB_SRCS
-        workspace/KisAndroidSplash.cpp
-    )
-endif()
-
-ki18n_wrap_ui(kritaui_LIB_SRCS
-    widgets/KoFillConfigWidget.ui
-    widgets/KoStrokeConfigWidget.ui
+ki18n_wrap_ui(kritaui_UI_HEADERS
     widgets/KisDitherWidget.ui
     widgets/KisAutoLevelsWidget.ui
 
@@ -463,12 +2265,8 @@ ki18n_wrap_ui(kritaui_LIB_SRCS
     forms/wdgpreseticonlibrary.ui
     forms/wdgimportimagesequence.ui
     forms/wdgstrokeselectionproperties.ui
-    forms/KisDetailsPaneBase.ui
-    forms/KisOpenPaneBase.ui
-    forms/wdgstopgradienteditor.ui
     forms/wdgsessionmanager.ui
     forms/wdgnewwindowlayout.ui
-    forms/KisWelcomePage.ui
     forms/WdgDlgPaletteEditor.ui
     forms/wdgGamutMaskToolbar.ui
     forms/wdgchangeclonesource.ui
@@ -495,14 +2293,13 @@ ki18n_wrap_ui(kritaui_LIB_SRCS
     layerstyles/wdgTexture.ui
     layerstyles/wdgKisLayerStyleAngleSelector.ui
 
-    workspace/wdgsplash.ui
     imagesize/wdg_imagesize.ui
     imagesize/wdg_layersize.ui
     imagesize/wdg_canvassize.ui
 )
 
 if(WIN32)
-    ki18n_wrap_ui(kritaui_LIB_SRCS
+    ki18n_wrap_ui(kritaui_UI_HEADERS
         dialogs/KisDlgCustomTabletResolution.ui
     )
 endif()
@@ -517,8 +2314,27 @@ if (KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)
     )
 endif()
 
-kis_add_library(kritaui SHARED ${kritaui_HEADERS_MOC} ${kritaui_LIB_SRCS})
-target_sources(kritaui PRIVATE $<TARGET_OBJECTS:kritaworkspacepresentation>)
+set_source_files_properties(
+    ${kritaui_UI_HEADERS}
+    TARGET_DIRECTORY kritaapplicationui
+    PROPERTIES GENERATED TRUE
+)
+add_custom_target(
+    kritaapplicationui_generated_ui_headers
+    DEPENDS ${kritaui_UI_HEADERS}
+)
+add_dependencies(
+    kritaapplicationui
+    kritaapplicationui_generated_ui_headers
+)
+
+target_sources(
+    kritaapplicationui
+    PRIVATE
+        ${kritaui_UI_HEADERS}
+        ${kritaui_HEADERS_MOC}
+        ${kritaui_LIB_SRCS}
+)
 
 if(IOS)
     # Qt 6 exposes the GLES backend through QT_CONFIG(opengles2), while this
@@ -527,18 +2343,29 @@ if(IOS)
         opengl/kis_opengl.cpp
         opengl/kis_opengl_image_textures.cpp
         opengl/kis_texture_tile.cpp
+        TARGET_DIRECTORY kritaapplicationui
         PROPERTIES COMPILE_DEFINITIONS QT_OPENGL_ES_2
     )
 endif()
 
-target_sources(kritaui
+target_sources(kritaapplicationui
   PRIVATE
     resources/kis_abstract_resources.h
     resources/kis_abstract_resources.cpp
+    $<TARGET_OBJECTS:kritaimpexuserfeedbackobjects>
+    $<TARGET_OBJECTS:kritaimpexremotefilefetcherobjects>
+    $<TARGET_OBJECTS:kritaimpexutilsobjects>
 )
-generate_export_header(kritaui BASE_NAME kritaui)
 
-target_link_libraries(kritaui
+if(NOT IOS)
+    target_sources(kritaapplicationui PRIVATE
+        $<TARGET_OBJECTS:kritaimpexanimationoptionsstateobjects>
+        $<TARGET_OBJECTS:kritaimpexanimationoptionspersistenceobjects>
+        $<TARGET_OBJECTS:kritaimpexanimationrenderdimensionsobjects>
+    )
+endif()
+
+target_link_libraries(kritaapplicationui
     PUBLIC
         KF${KF_MAJOR}::CoreAddons
         KF${KF_MAJOR}::Completion
@@ -563,34 +2390,34 @@ target_link_libraries(kritaui
         kritacanvas
         kritadocument
         kritainput
+        kritaapplication
     PRIVATE
         kritadocumentfiles
         kritadocumentui
         kritaimpexui
         kritainputui
+        kritaworkspacepresentation
         kritaresourceui
         kritaxmlserialization
 )
 
 if (KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)
-    target_link_libraries(kritaui
+    target_link_libraries(kritaapplicationui
         PRIVATE
             kritasurfacecolormanagementapi
     )
 endif()
 
 if(WIN32)
-    target_link_libraries(kritaui PRIVATE dxgi)
+    target_link_libraries(kritaapplicationui PRIVATE dxgi)
 
     # Private headers are needed for:
     #    * KisDlgCustomTabletResolution
-    #    * KisScreenInformationAdapter
     #    * dialogs/kis_dlg_preferences.cc
     set_source_files_properties(
         dialogs/KisDlgCustomTabletResolution.cpp
-        opengl/KisScreenInformationAdapter.cpp
         dialogs/kis_dlg_preferences.cc # for WinTab switching API
-        application/kis_config.cc # for logging the WinTab API
+        TARGET_DIRECTORY kritaapplicationui
         PROPERTIES
         INCLUDE_DIRECTORIES "${Qt${QT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}"
         )
@@ -601,6 +2428,7 @@ elseif(ANDROID)
     if(KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT)
         set_source_files_properties(
             canvas/KisAndroidScaling.cpp
+            TARGET_DIRECTORY kritaapplicationui
             PROPERTIES
             INCLUDE_DIRECTORIES "${Qt${QT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}"
         )
@@ -610,13 +2438,14 @@ endif()
 if (HAVE_X11)
     set_source_files_properties(
         opengl/KisOpenGLModeProber.cpp
+        TARGET_DIRECTORY kritaapplicationui
         PROPERTIES
         INCLUDE_DIRECTORIES "${Qt${QT_MAJOR_VERSION}Gui_PRIVATE_INCLUDE_DIRS}"
         )
 endif()
 
 if (QT_MAJOR_VERSION STREQUAL "6")
-    target_link_libraries(kritaui
+    target_link_libraries(kritaapplicationui
         PRIVATE
             Qt6::OpenGLWidgets
             Qt6::SvgWidgets
@@ -625,24 +2454,24 @@ if (QT_MAJOR_VERSION STREQUAL "6")
 endif()
 
 if (Mlt7_FOUND)
-    target_link_libraries(kritaui PRIVATE SDL2::SDL2 Mlt7::mlt Mlt7::mlt++)
+    target_link_libraries(kritaapplicationui PRIVATE SDL2::SDL2 Mlt7::mlt Mlt7::mlt++)
 endif()
 
 if (ANDROID)
-    target_link_libraries(kritaui PRIVATE GLESv3)
-    target_link_libraries(kritaui PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
-    target_link_libraries(kritaui PRIVATE Qt${QT_MAJOR_VERSION}::AndroidExtras)
+    target_link_libraries(kritaapplicationui PRIVATE GLESv3)
+    target_link_libraries(kritaapplicationui PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
+    target_link_libraries(kritaapplicationui PRIVATE Qt${QT_MAJOR_VERSION}::AndroidExtras)
     if(TARGET LibAV)
-        target_link_libraries(kritaui PRIVATE LibAV)
+        target_link_libraries(kritaapplicationui PRIVATE LibAV)
     endif()
 endif()
 
 if (HAIKU)
-  target_link_libraries(kritaui PRIVATE network expat iconv intl)
+  target_link_libraries(kritaapplicationui PRIVATE network expat iconv intl)
 endif()
 
 if(APPLE AND NOT IOS)
-    target_link_libraries(kritaui
+    target_link_libraries(kritaapplicationui
         PUBLIC
         kritamacosutils
 
@@ -653,11 +2482,13 @@ if(APPLE AND NOT IOS)
 endif ()
 
 if(OpenEXR_FOUND)
-  target_link_libraries(kritaui PUBLIC ${LINK_OPENEXR_LIB})
+  target_link_libraries(kritaapplicationui PUBLIC ${LINK_OPENEXR_LIB})
 endif()
 
-target_include_directories(kritaui
+target_include_directories(kritaapplicationui
     PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/impex/ui>
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/impex/animation>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/canvas>
@@ -670,12 +2501,29 @@ target_include_directories(kritaui
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/input/ui/wintab>
 )
 
-set_target_properties(kritaui
-    PROPERTIES VERSION ${GENERIC_KRITA_LIB_VERSION} SOVERSION ${GENERIC_KRITA_LIB_SOVERSION}
-)
-install(TARGETS kritaui  ${INSTALL_TARGETS_DEFAULT_ARGS})
-
-
 if (APPLE AND NOT IOS)
     install(FILES platform/osx.stylesheet DESTINATION ${KDE_INSTALL_DATADIR}/krita)
 endif ()
+add_library(kritauimirroraxisconfigobjects OBJECT
+    canvas/KisMirrorAxisConfig.cpp
+)
+target_compile_definitions(kritauimirroraxisconfigobjects PRIVATE kritaapplicationui_EXPORTS)
+target_include_directories(kritauimirroraxisconfigobjects PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/application>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
+)
+target_link_libraries(kritauimirroraxisconfigobjects PUBLIC
+    kritaglobaldomutilsobjects
+    kritaglobaldebugobjects
+    Qt${QT_MAJOR_VERSION}::Core
+    Qt${QT_MAJOR_VERSION}::Gui
+    Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritauimirroraxisconfigobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)

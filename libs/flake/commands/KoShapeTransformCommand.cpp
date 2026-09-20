@@ -7,27 +7,67 @@
 
 #include "kis_command_ids.h"
 
-#include <KoShapeBulkActionLock.h>
-#include "KoShapeTransformCommand.h"
 #include "KoShape.h"
+#include "KoShapeTransformCommand.h"
+#include <KoShapeBulkActionLock.h>
 
 #include <QList>
 #include <QTransform>
 
 #include <FlakeDebug.h>
 
+namespace
+{
+using TransformationBatchApplier = void (*)(const QList<KoShape *> &shapes, const QList<QTransform> &transformations);
+
+void applyTransformationBatch(const QList<KoShape *> &shapes, const QList<QTransform> &transformations)
+{
+    KoShapeBulkActionLock lock(shapes);
+
+    const int shapeCount = shapes.count();
+    for (int i = 0; i < shapeCount; ++i) {
+        shapes[i]->setTransformation(transformations[i]);
+    }
+
+    KoShapeBulkActionLock::bulkShapesUpdate(lock.unlock());
+}
+
+TransformationBatchApplier activeTransformationBatchApplier = applyTransformationBatch;
+} // namespace
+
+#if defined(KRITAFLAKE_SHAPE_TRANSFORM_COMMAND_CONTRACT_TESTING)
+namespace KoShapeTransformCommandTesting
+{
+Q_DECL_HIDDEN void setTransformationBatchApplierForTesting(TransformationBatchApplier applier)
+{
+    activeTransformationBatchApplier = applier;
+}
+
+Q_DECL_HIDDEN void resetTransformationBatchApplierForTesting()
+{
+    activeTransformationBatchApplier = applyTransformationBatch;
+}
+} // namespace KoShapeTransformCommandTesting
+#endif
+
 class Q_DECL_HIDDEN KoShapeTransformCommand::Private
 {
 public:
-    Private(const QList<KoShape*> &list) : shapes(list) { }
-    QList<KoShape*> shapes;
+    Private(const QList<KoShape *> &list)
+        : shapes(list)
+    {
+    }
+    QList<KoShape *> shapes;
     QList<QTransform> oldState;
     QList<QTransform> newState;
 };
 
-KoShapeTransformCommand::KoShapeTransformCommand(const QList<KoShape*> &shapes, const QList<QTransform> &oldState, const QList<QTransform> &newState, KUndo2Command * parent)
-        : KUndo2Command(parent),
-        d(new Private(shapes))
+KoShapeTransformCommand::KoShapeTransformCommand(const QList<KoShape *> &shapes,
+                                                 const QList<QTransform> &oldState,
+                                                 const QList<QTransform> &newState,
+                                                 KUndo2Command *parent)
+    : KUndo2Command(parent)
+    , d(new Private(shapes))
 {
     Q_ASSERT(shapes.count() == oldState.count());
     Q_ASSERT(shapes.count() == newState.count());
@@ -43,31 +83,13 @@ KoShapeTransformCommand::~KoShapeTransformCommand()
 void KoShapeTransformCommand::redo()
 {
     KUndo2Command::redo();
-
-    KoShapeBulkActionLock lock(d->shapes);
-
-    const int shapeCount = d->shapes.count();
-    for (int i = 0; i < shapeCount; ++i) {
-        KoShape * shape = d->shapes[i];
-        shape->setTransformation(d->newState[i]);
-    }
-
-    KoShapeBulkActionLock::bulkShapesUpdate(lock.unlock());
+    activeTransformationBatchApplier(d->shapes, d->newState);
 }
 
 void KoShapeTransformCommand::undo()
 {
     KUndo2Command::undo();
-
-    KoShapeBulkActionLock lock(d->shapes);
-
-    const int shapeCount = d->shapes.count();
-    for (int i = 0; i < shapeCount; ++i) {
-        KoShape * shape = d->shapes[i];
-        shape->setTransformation(d->oldState[i]);
-    }
-
-    KoShapeBulkActionLock::bulkShapesUpdate(lock.unlock());
+    activeTransformationBatchApplier(d->shapes, d->oldState);
 }
 
 int KoShapeTransformCommand::id() const
@@ -77,12 +99,9 @@ int KoShapeTransformCommand::id() const
 
 bool KoShapeTransformCommand::mergeWith(const KUndo2Command *command)
 {
-    const KoShapeTransformCommand *other = dynamic_cast<const KoShapeTransformCommand*>(command);
+    const KoShapeTransformCommand *other = dynamic_cast<const KoShapeTransformCommand *>(command);
 
-    if (!other ||
-        other->d->shapes != d->shapes ||
-        other->text() != text()) {
-
+    if (!other || other->d->shapes != d->shapes || other->text() != text()) {
         return false;
     }
 

@@ -6,7 +6,6 @@
  */
 #include "KisMultiSensorsSelector.h"
 
-#include "KisCurveOptionData.h"
 #include "ui_wdgmultisensorsselector.h"
 #include "KisMultiSensorsModel.h"
 #include <KisDynamicSensorFactoryRegistry.h>

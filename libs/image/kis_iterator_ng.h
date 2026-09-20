@@ -96,6 +96,4 @@ public:
     ~KisVLineIteratorNG() override;
 };
 
-#include "kis_sequential_iterator.h"
-
 #endif

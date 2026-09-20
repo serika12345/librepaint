@@ -11,7 +11,6 @@
 #include <QLinearGradient>
 #include <QRadialGradient>
 
-#include <cmath>
 #include <KoFlake.h>
 
 SvgGradientHelper::SvgGradientHelper()

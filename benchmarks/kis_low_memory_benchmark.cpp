@@ -8,7 +8,6 @@
 
 #include <simpletest.h>
 
-#include "kis_benchmark_values.h"
 
 #include <KoColor.h>
 #include <KoColorSpace.h>

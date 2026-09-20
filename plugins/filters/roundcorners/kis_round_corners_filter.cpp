@@ -12,7 +12,6 @@
 #include "kis_round_corners_filter.h"
 
 #include <stdlib.h>
-#include <vector>
 #include <math.h>
 
 #include <QPoint>

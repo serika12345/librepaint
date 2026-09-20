@@ -11,18 +11,23 @@
 #include <QSize>
 #include <QGuiApplication>
 #include <QFont>
+#include <QSharedPointer>
 #include <KoResourceSignature.h>
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>
 #include <boost/operators.hpp>
 #include <optional>
 
-#include "kis_paintop_settings.h"
+#include <brushengine/kis_paintop_lod_limitations.h>
 
 #include "kritabrush_export.h"
 
 // TODO: move enumBrushApplication into a separate file
 #include <kis_brush.h>
+
+class KisPropertiesConfiguration;
+class KisResourcesInterface;
+using KisResourcesInterfaceSP = QSharedPointer<KisResourcesInterface>;
 
 namespace KisBrushModel {
 struct BRUSH_EXPORT CommonData : public boost::equality_comparable<CommonData>

@@ -37,11 +37,8 @@
 #include <kis_algebra_2d.h>
 
 #include "kis_aspect_ratio_locker.h"
-#include "kis_debug.h"
 #include "kis_acyclic_signal_connector.h"
-#include "kis_signal_compressor.h"
 #include "kis_signals_blocker.h"
-#include "kis_icon.h"
 #include <kis_canvas2.h>
 
 

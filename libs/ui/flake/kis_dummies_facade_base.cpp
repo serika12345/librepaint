@@ -10,7 +10,6 @@
 
 #include "kis_image.h"
 #include "kis_node_dummies_graph.h"
-#include "kis_layer_utils.h"
 #include <KisSynchronizedConnection.h>
 
 struct KisDummiesFacadeBase::Private

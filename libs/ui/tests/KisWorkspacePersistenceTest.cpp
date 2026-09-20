@@ -10,7 +10,7 @@
 #include <QTest>
 #include <QUuid>
 
-#include <workspace/KisSessionResource.h>
+#include <application/ui/workspace/KisSessionResource.h>
 #include <workspace/kis_workspace_resource.h>
 
 class KisWorkspacePersistenceTest : public QObject

@@ -12,11 +12,12 @@
 #include <KoCanvasBase.h>
 #include <KoPointerEvent.h>
 #include <KoShapeStroke.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
 
 #include <kis_cursor.h>
+#include <kis_image.h>
 
 KisToolPencil::KisToolPencil(KoCanvasBase * canvas)
     : DelegatedPencilTool(canvas, Qt::ArrowCursor,

@@ -13,7 +13,6 @@
 #include <QPainter>
 
 #include "KoShapeManager.h"
-#include "KoSelection.h"
 #include "KoCanvasBase.h"
 #include <KoColor.h>
 #include <KoColorDisplayRendererInterface.h>

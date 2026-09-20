@@ -14,25 +14,16 @@
 #include <QList>
 #include <QDockWidget>
 #include <QPointer>
+#include <QScopedPointer>
+#include <QString>
 
-#include <kis_debug.h>
-
-#include <KoColorSpace.h>
 #include <KoDockFactoryBase.h>
 
 #include <kis_types.h>
 
-#include "application/kis_action.h"
-#include "workspace/KisViewManager.h"
-#include "workspace/kis_mainwindow_observer.h"
+#include "application/ui/workspace/kis_mainwindow_observer.h"
 #include "kis_signal_compressor.h"
-#include "kis_layer_filter_widget.h"
 #include "kis_signal_auto_connection.h"
-#include <QSlider>
-#include <QCheckBox>
-#include <kis_slider_spin_box.h>
-#include <QComboBox>
-#include <kis_idle_watcher.h>
 
 #include "kritalayerdocker_export.h"
 
@@ -42,12 +33,25 @@ typedef QList<QModelIndex> QModelIndexList;
 
 class QMenu;
 class QAbstractButton;
+class QCheckBox;
+class QComboBox;
+class QHideEvent;
+class QPoint;
+class QShowEvent;
+class QSlider;
 class KoCompositeOp;
+class KoColorSpace;
+class KoCanvasBase;
+class KisAction;
 class KisCanvas2;
+class KisLayerFilterWidget;
 class KisNodeModel;
 class KisNodeFilterProxyModel;
+class KisNodeManager;
 class Ui_WdgLayerBox;
 class KisColorLabelSelectorWidgetMenuWrapper;
+class KisSliderSpinBox;
+class KisViewManager;
 class QWidgetAction;
 class KisKeyframeChannel;
 class KisSelectionActionsAdapter;

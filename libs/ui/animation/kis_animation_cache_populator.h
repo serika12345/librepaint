@@ -8,9 +8,13 @@
 #define KIS_ANIMATION_CACHE_POPULATOR_H
 
 #include <QObject>
-#include "kis_types.h"
+#include <QScopedPointer>
+#include <QVector>
+
 #include "kis_animation_frame_cache_fwd.h"
 
+class KisImage;
+typedef KisSharedPtr<KisImage> KisImageSP;
 class KisPart;
 class KisIdleWatcher;
 

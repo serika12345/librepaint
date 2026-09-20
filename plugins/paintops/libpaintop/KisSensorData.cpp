@@ -6,6 +6,8 @@
 
 #include "KisSensorData.h"
 
+#include <kis_cubic_curve.h>
+
 #include <KisDynamicSensorIds.h>
 
 #include <QDomDocument>

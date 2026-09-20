@@ -18,7 +18,7 @@ ki18n_wrap_ui(krita_raw_import_SOURCES
 )
 
 kis_add_library(krita_raw_import MODULE ${krita_raw_import_SOURCES})
-target_link_libraries(krita_raw_import kritaui kritaexifcommon)
+target_link_libraries(krita_raw_import kritaapplicationui kritaexifcommon)
 
 if (QT_MAJOR_VERSION STREQUAL "6")
     target_link_libraries(krita_raw_import KDcrawQt6)

@@ -12,6 +12,7 @@
 #include "kis_debug.h"
 #include "kis_dom_utils.h"
 #include <kis_canvas2.h>
+#include "kis_image.h"
 #include "application/kis_config.h"
 
 #include <KoStore.h>
@@ -25,7 +26,6 @@
 #include <QDomDocument>
 #include <QPainterPath>
 #include <QDebug>
-#include <memory>
 
 Q_GLOBAL_STATIC(KisPaintingAssistantFactoryRegistry, s_instance)
 

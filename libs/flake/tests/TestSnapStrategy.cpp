@@ -9,6 +9,7 @@
 #include "KoPathPoint.h"
 #include "KoPathShape.h"
 #include "KoShapeControllerBase.h"
+#include "KoSnapGuide.h"
 #include "KoSnapProxy.h"
 #include "KoSnapStrategy.h"
 #include "KoViewConverter.h"
@@ -19,6 +20,118 @@
 
 //#include <PointProperties.h>
 #include <KoSnapData.h>
+
+namespace
+{
+class SnapGuideCanvas : public MockCanvas
+{
+public:
+    using MockCanvas::MockCanvas;
+
+    void gridSize(QPointF *offset, QSizeF *spacing) const override
+    {
+        *offset = QPointF();
+        *spacing = QSizeF(1000.0, 1000.0);
+    }
+
+    const KoViewConverter *viewConverter() const override
+    {
+        return &m_converter;
+    }
+
+    KoViewConverter *viewConverter() override
+    {
+        return &m_converter;
+    }
+
+private:
+    KoViewConverter m_converter;
+};
+
+class FixedSnapStrategy : public KoSnapStrategy
+{
+public:
+    FixedSnapStrategy(KoSnapGuide::Strategy strategy,
+                      const QPointF &position,
+                      SnapType snapType)
+        : KoSnapStrategy(strategy)
+        , m_position(position)
+        , m_snapType(snapType)
+    {
+    }
+
+    bool snap(const QPointF &mousePosition, KoSnapProxy *proxy, qreal maxSnapDistance) override
+    {
+        Q_UNUSED(mousePosition);
+        Q_UNUSED(proxy);
+        Q_UNUSED(maxSnapDistance);
+
+        setSnappedPosition(m_position, m_snapType);
+        return true;
+    }
+
+    QPainterPath decoration(const KoViewConverter &converter) const override
+    {
+        Q_UNUSED(converter);
+        return QPainterPath();
+    }
+
+private:
+    QPointF m_position;
+    SnapType m_snapType;
+};
+}
+
+void TestSnapStrategy::snapGuideAppliesEnabledStrategyAndShiftBypass()
+{
+    // Consumer: Canvas tools use the snap guide while a user moves a pointer over the document.
+    // Operation: Enable a configured snapping strategy, then hold Shift during the same move.
+    // Observable result: The enabled strategy changes the pointer position, while Shift preserves it.
+    // Failure impact: Users could be unable to activate a snap target or temporarily bypass it for precise placement.
+    MockShapeController shapeController;
+    SnapGuideCanvas canvas(&shapeController);
+    KoSnapGuide guide(&canvas);
+    const QPointF pointerPosition(50.0, 50.0);
+    const QPointF snappedPosition(56.0, 50.0);
+
+    guide.overrideSnapStrategy(KoSnapGuide::NodeSnapping,
+                               new FixedSnapStrategy(KoSnapGuide::NodeSnapping,
+                                                     snappedPosition,
+                                                     KoSnapStrategy::ToPoint));
+
+    QCOMPARE(guide.snap(pointerPosition, Qt::NoModifier), pointerPosition);
+
+    guide.enableSnapStrategy(KoSnapGuide::NodeSnapping, true);
+    QCOMPARE(guide.snap(pointerPosition, Qt::NoModifier), snappedPosition);
+    QCOMPARE(guide.snap(pointerPosition, Qt::ShiftModifier), pointerPosition);
+}
+
+void TestSnapStrategy::snapGuidePrefersPointTargetOverCloserLineTarget()
+{
+    // Consumer: Canvas tools offer several enabled snapping targets for one pointer movement.
+    // Operation: Provide a farther point target and a closer line target within the snap distance.
+    // Observable result: The pointer resolves to the point target, preserving point-over-line priority.
+    // Failure impact: Users could have their cursor attach to a nearby guide line instead of an intended object point.
+    MockShapeController shapeController;
+    SnapGuideCanvas canvas(&shapeController);
+    KoSnapGuide guide(&canvas);
+    const QPointF pointerPosition(50.0, 50.0);
+    const QPointF pointTarget(56.0, 50.0);
+    const QPointF lineTarget(51.0, 50.0);
+
+    guide.overrideSnapStrategy(KoSnapGuide::NodeSnapping,
+                               new FixedSnapStrategy(KoSnapGuide::NodeSnapping,
+                                                     pointTarget,
+                                                     KoSnapStrategy::ToPoint));
+    guide.overrideSnapStrategy(KoSnapGuide::OrthogonalSnapping,
+                               new FixedSnapStrategy(KoSnapGuide::OrthogonalSnapping,
+                                                     lineTarget,
+                                                     KoSnapStrategy::ToLine));
+    guide.enableSnapStrategy(KoSnapGuide::NodeSnapping, true);
+    guide.enableSnapStrategy(KoSnapGuide::OrthogonalSnapping, true);
+
+    QCOMPARE(guide.snap(pointerPosition, Qt::NoModifier), pointTarget);
+}
 
 void TestSnapStrategy::testOrthogonalSnap()
 {

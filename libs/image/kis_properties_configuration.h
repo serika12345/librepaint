@@ -9,7 +9,6 @@
 #include <QString>
 #include <QMap>
 #include <QVariant>
-#include <kis_debug.h>
 #include <kis_cubic_curve.h>
 #include <KoColor.h>
 

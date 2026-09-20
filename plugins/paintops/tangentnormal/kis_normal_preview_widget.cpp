@@ -6,11 +6,9 @@
  */
 
 #include "kis_normal_preview_widget.h"
-#include <cmath>
 #include <QColor>
 #include <QPoint>
 
-#include "kis_global.h"
 #include <KoResourcePaths.h>
 
 KisNormalPreviewWidget::KisNormalPreviewWidget(QWidget *parent)

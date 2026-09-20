@@ -11,10 +11,10 @@
 #include <KoCompositeOp.h>
 #include "kis_painter.h"
 #include "kis_paint_device.h"
-#include "kis_paint_layer.h"
+#include "kis_node.h"
 #include "kis_transaction.h"
 #include "kis_image.h"
-#include "kis_raster_keyframe_channel.h"
+#include <KisRegion.h>
 #include <kis_distance_information.h>
 #include "kis_undo_stores.h"
 #include "KisFreehandStrokeInfo.h"

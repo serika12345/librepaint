@@ -12,7 +12,6 @@
 #include <math.h>
 
 #include <stdlib.h>
-#include <string.h>
 
 #include <QSlider>
 #include <QPoint>
@@ -24,7 +23,6 @@
 #include <kis_debug.h>
 #include <kpluginfactory.h>
 
-#include "KoBasicHistogramProducers.h"
 #include <KoColorSpace.h>
 #include <KoColorTransformation.h>
 #include <filter/kis_filter_category_ids.h>

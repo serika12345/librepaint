@@ -11,6 +11,7 @@
 
 #include <qglobal.h>
 #include <qmetatype.h>
+#include <QObject>
 #include <QScopedPointer>
 
 #include "kritaimage_export.h"

@@ -5,10 +5,14 @@
  */
 #include "KisDynamicSensorTime.h"
 
+#include <cmath>
+
+#include <QtGlobal>
+
 #include <KisDynamicSensorIds.h>
+#include <KisSensorData.h>
 
 #include <kis_paint_information.h>
-#include <KisCurveOptionData.h>
 
 
 KisDynamicSensorTime::KisDynamicSensorTime(const KisSensorWithLengthData &data, std::optional<KisCubicCurve> curveOverride)

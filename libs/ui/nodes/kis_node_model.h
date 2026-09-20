@@ -184,6 +184,139 @@ protected Q_SLOTS:
     void slotLayerThumbnailUpdated(KisNodeSP node);
 
 protected:
+    struct KRITAUI_EXPORT DropMimeDataAccess {
+        struct Context {
+            KisImage *image;
+            KisShapeController *shapeController;
+            KisNodeInsertionAdapter *nodeInsertionAdapter;
+        };
+
+        static KisNodeDummy *parentDummy(const KisNodeModel *model, const QModelIndex &parent);
+        static KisNodeDummy *lastChild(KisNodeDummy *dummy);
+        static int rowCount(const KisNodeModel *model, const QModelIndex &parent);
+        static KisNodeDummy *dummyFromRow(const KisNodeModel *model, int row, const QModelIndex &parent);
+        static Context context(const KisNodeModel *model);
+        static bool insertMimeLayers(const QMimeData *data,
+                                     const Context &context,
+                                     KisNodeDummy *parentDummy,
+                                     KisNodeDummy *aboveThisDummy,
+                                     bool copyNode);
+    };
+
+    struct KRITAUI_EXPORT MimeDataAccess {
+        static KisNodeSP nodeFromIndex(const KisNodeModel *model, const QModelIndex &index);
+        static bool isEditable(const KisNodeSP &node, bool checkVisibility);
+        static KisImage *image(const KisNodeModel *model);
+        static QMimeData *createMimeData(const KisNodeList &nodes, KisImage *image, bool forceCopy);
+    };
+
+    struct KRITAUI_EXPORT ItemFlagsAccess {
+        static bool hasDummiesFacade(const KisNodeModel *model);
+        static bool isDropEnabled(const KisNodeModel *model, quintptr itemId);
+    };
+
+    struct KRITAUI_EXPORT FacadeSetupAccess {
+        static KisDummiesFacadeBase *currentFacade(const KisNodeModel *model);
+        static KisShapeController *currentShapeController(const KisNodeModel *model);
+        static bool hasImage(const KisNodeModel *model);
+        static void configureCollaborators(KisNodeModel *model,
+                                           KisShapeController *shapeController,
+                                           KisSelectionActionsAdapter *selectionActionsAdapter,
+                                           KisNodeManager *nodeManager);
+        static void configureDisplayMode(KisNodeModel *model, KisNodeManager *nodeManager);
+        static void disconnectCurrentTree(KisNodeModel *model, KisDummiesFacadeBase *oldFacade);
+        static void replaceTree(KisNodeModel *model,
+                                KisDummiesFacadeBase *dummiesFacade,
+                                const KisImageWSP &image);
+        static void connectCurrentTree(KisNodeModel *model);
+    };
+
+    struct KRITAUI_EXPORT LifecycleAccess {
+        static void *createPrivateState(int clonedColumns);
+        static void connectUpdateCompressor(KisNodeModel *model, void *privateState);
+        static void connectThumbnailCache(KisNodeModel *model, void *privateState);
+        static void destroyPrivateState(void *privateState);
+    };
+
+    struct KRITAUI_EXPORT RemovalAccess {
+        struct Plan {
+            QModelIndex parentIndex;
+            QModelIndex itemIndex;
+        };
+
+        static Plan prepare(KisNodeModel *model, KisNodeDummy *dummy);
+        static void disconnectDummy(KisNodeModel *model, KisNodeDummy *dummy);
+        static void beginRemoval(KisNodeModel *model, const Plan &plan);
+        static void notifyNodeRemoved(KisNodeModel *model, KisNodeDummy *dummy);
+    };
+
+    struct KRITAUI_EXPORT DataAccess {
+        static bool hasDummiesFacade(const KisNodeModel *model);
+        static bool hasImage(const KisNodeModel *model);
+        static QVariant nodeName(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant nodeIcon(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant imageSize(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant foreground(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant font(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant properties(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant aspectRatio(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant progress(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant active(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant shouldGrayOut(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant colorLabel(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant dropReason(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant isAnimated(const KisNodeModel *model, const QModelIndex &index);
+        static QVariant remainingData(const KisNodeModel *model, const QModelIndex &index, int role);
+    };
+
+    struct KRITAUI_EXPORT SetDataAccess {
+        static void setDropEnabled(KisNodeModel *model, const QMimeData *data);
+        static QModelIndex takeParentOfRemovedNode(KisNodeModel *model);
+        static KisNodeSP nodeFromIndex(const KisNodeModel *model, const QModelIndex &index);
+        static QModelIndex indexFromNode(const KisNodeModel *model, const KisNodeSP &node);
+        static QModelIndex activeNodeIndex(const KisNodeModel *model);
+        static void setActiveNodeIndex(KisNodeModel *model, const QModelIndex &index);
+        static void setSelectionAdapterActiveNode(KisNodeModel *model, const KisNodeSP &node);
+        static int dummyColumns(const KisNodeModel *model);
+        static bool setRemainingData(KisNodeModel *model,
+                                     const QModelIndex &index,
+                                     const QVariant &value,
+                                     int role);
+    };
+
+    struct KRITAUI_EXPORT StructureAccess {
+        static bool hasDummiesFacade(const KisNodeModel *model);
+        static KisNodeDummy *dummyFromRow(const KisNodeModel *model, int row, const QModelIndex &parent);
+        static KisNodeDummy *dummyFromIndex(const KisNodeModel *model, const QModelIndex &index);
+        static KisNodeDummy *parentDummy(KisNodeDummy *dummy);
+        static QModelIndex indexFromDummy(const KisNodeModel *model, KisNodeDummy *dummy);
+        static int rowCount(const KisNodeModel *model, const QModelIndex &parent);
+        static int dummyColumns(const KisNodeModel *model);
+        static bool hasMatchingModel(const KisNodeModel *model, const QModelIndex &index);
+    };
+
+    struct KRITAUI_EXPORT IsolationMembershipAccess {
+        static KisNodeSP isolationRoot(const KisImageSP &image);
+        static KisNodeDummy *dummyForNode(KisDummiesFacadeBase *dummiesFacade, const KisNodeSP &node);
+        static KisNodeDummy *parentDummy(KisNodeDummy *dummy);
+    };
+
+    struct KRITAUI_EXPORT IndexMappingAccess {
+        static KisNodeDummy *dummyFromIndex(const KisNodeModel *model, const QModelIndex &index);
+        static KisNodeSP nodeForDummy(KisNodeDummy *dummy);
+        static KisNodeDummy *dummyForNode(const KisNodeModel *model, KisNodeSP node);
+        static QModelIndex indexFromDummy(const KisNodeModel *model, KisNodeDummy *dummy);
+    };
+
+    struct KRITAUI_EXPORT DisplayStateAccess {
+        static bool hasDisplayModeAdapter(const KisNodeModel *model);
+        static bool showGlobalSelectionMask(const KisNodeModel *model);
+        static void setShowGlobalSelectionMask(KisNodeModel *model, bool value);
+        static void setPreferredThumbnailSize(const KisNodeModel *model, int preferredSize);
+        static void setIdleTaskManager(KisNodeModel *model, KisIdleTasksManager *idleTasksManager);
+        static bool hasDummiesFacade(const KisNodeModel *model);
+    };
+
     virtual KisModelIndexConverterBase *createIndexConverter();
     KisModelIndexConverterBase *indexConverter() const;
     KisDummiesFacadeBase *dummiesFacade() const;

@@ -77,7 +77,7 @@ set(kritaxcfimport_SOURCES
 
 kis_add_library(kritaxcfimport MODULE ${kritaxcfimport_SOURCES})
 
-target_link_libraries(kritaxcfimport kritaui xcftools)
+target_link_libraries(kritaxcfimport kritaapplicationui xcftools)
 
 install(TARGETS kritaxcfimport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

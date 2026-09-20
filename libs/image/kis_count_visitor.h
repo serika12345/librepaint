@@ -9,21 +9,10 @@
 #include "kritaimage_export.h"
 
 #include <KoProperties.h>
+#include <QStringList>
 
 #include "kis_node_visitor.h"
 
-#include "kis_node.h"
-#include "kis_paint_layer.h"
-#include "kis_group_layer.h"
-#include "kis_adjustment_layer.h"
-#include "kis_external_layer_iface.h"
-#include "kis_clone_layer.h"
-#include "kis_filter_mask.h"
-#include "kis_transform_mask.h"
-#include "kis_transparency_mask.h"
-#include "kis_selection_mask.h"
-#include "lazybrush/kis_colorize_mask.h"
-#include "generator/kis_generator_layer.h"
 /**
  * The count visitor traverses the node stack for nodes that conform
  * to certain properties. You can set the types of nodes to count and
@@ -34,76 +23,28 @@
 class KRITAIMAGE_EXPORT KisCountVisitor : public KisNodeVisitor
 {
 public:
-
     using KisNodeVisitor::visit;
 
-    KisCountVisitor(const QStringList & nodeTypes, const KoProperties & properties)
-        : m_nodeTypes(nodeTypes)
-        , m_properties(properties)
-        , m_count(0) {
-    }
+    KisCountVisitor(const QStringList &nodeTypes, const KoProperties &properties);
 
-    quint32 count() {
-        return m_count;
-    }
+    quint32 count();
 
-    bool visit(KisNode* node) override {
-        return check(node);
-    }
-
-    bool visit(KisPaintLayer *layer) override {
-        return check(layer);
-    }
-
-    bool visit(KisGroupLayer *layer) override {
-        return check(layer);
-    }
-
-
-    bool visit(KisAdjustmentLayer *layer) override {
-        return check(layer);
-    }
-
-
-    bool visit(KisExternalLayer *layer) override {
-        return check(layer);
-    }
-
-
-    bool visit(KisCloneLayer *layer) override {
-        return check(layer);
-    }
-
-
-    bool visit(KisFilterMask *mask) override {
-        return check(mask);
-    }
-
-    bool visit(KisTransformMask *mask) override {
-        return check(mask);
-    }
-
-    bool visit(KisTransparencyMask *mask) override {
-        return check(mask);
-    }
-
-
-    bool visit(KisGeneratorLayer * layer) override {
-        return check(layer);
-    }
-
-    bool visit(KisSelectionMask* mask) override {
-        return check(mask);
-    }
-
-    bool visit(KisColorizeMask* mask) override {
-        return check(mask);
-    }
+    bool visit(KisNode *node) override;
+    bool visit(KisPaintLayer *layer) override;
+    bool visit(KisGroupLayer *layer) override;
+    bool visit(KisAdjustmentLayer *layer) override;
+    bool visit(KisExternalLayer *layer) override;
+    bool visit(KisCloneLayer *layer) override;
+    bool visit(KisFilterMask *mask) override;
+    bool visit(KisTransformMask *mask) override;
+    bool visit(KisTransparencyMask *mask) override;
+    bool visit(KisGeneratorLayer *layer) override;
+    bool visit(KisSelectionMask *mask) override;
+    bool visit(KisColorizeMask *mask) override;
 
 private:
-
-    bool inList(KisNode* node);
-    bool check(KisNode * node);
+    bool inList(KisNode *node);
+    bool check(KisNode *node);
 
     const QStringList m_nodeTypes;
     const KoProperties m_properties;

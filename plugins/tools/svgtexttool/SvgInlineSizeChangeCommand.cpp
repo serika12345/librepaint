@@ -17,7 +17,6 @@
 #include "KoSvgTextShapeMarkupConverter.h"
 #include <KoShapeBulkActionLock.h>
 
-#include "kis_assert.h"
 #include "kis_command_ids.h"
 
 SvgInlineSizeChangeCommand::SvgInlineSizeChangeCommand(KoSvgTextShape *shape, double inlineSize, KUndo2Command *parent)

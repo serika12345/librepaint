@@ -10,8 +10,6 @@
 #include "nodes/kis_node_model.h"
 #include "NodeToolTip.h"
 #include "NodeView.h"
-#include "application/KisPart.h"
-#include "input/ui/kis_input_manager.h"
 
 #include <QtDebug>
 #include <QApplication>
@@ -26,13 +24,14 @@
 #include <QBitmap>
 #include <QToolTip>
 
-#include <klocalizedstring.h>
-#include "nodes/kis_node_view_color_scheme.h"
+#include "kis_config_notifier.h"
 #include "kis_icon_utils.h"
 #include "kis_layer_properties_icons.h"
 #include "krita_utils.h"
-#include "kis_config_notifier.h"
+#include "nodes/kis_node_view_color_scheme.h"
+#include <KisMpl.h>
 #include <kis_painting_tweaks.h>
+#include <klocalizedstring.h>
 
 typedef KisBaseNode::Property* OptionalProperty;
 

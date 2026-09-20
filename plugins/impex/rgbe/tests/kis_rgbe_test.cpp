@@ -13,6 +13,7 @@
 #include <QBuffer>
 #include <QDataStream>
 #include <RGBEImportUtils.h>
+#include <kis_sequential_iterator.h>
 
 #include <filestest.h>
 #include <kis_meta_data_backend_registry.h>

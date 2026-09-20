@@ -8,7 +8,6 @@
 
 #include <QGlobalStatic>
 
-#include <kis_debug.h>
 #include "kis_signal_compressor.h"
 
 Q_GLOBAL_STATIC(KisImageConfigNotifier, s_instance)

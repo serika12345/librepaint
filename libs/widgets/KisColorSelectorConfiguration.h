@@ -34,6 +34,7 @@ public:
     }
 
     KisColorSelectorConfiguration(QString string)
+        : KisColorSelectorConfiguration()
     {
         readString(string);
     }
@@ -47,14 +48,21 @@ public:
         QStringList strili = string.split('|');
         if(strili.length()!=4) return;
 
-        int imt=strili.at(0).toInt();
-        int ist=strili.at(1).toInt();
-        int imtp=strili.at(2).toInt();
-        int istp=strili.at(3).toInt();
+        bool mainTypeOk = false;
+        bool subTypeOk = false;
+        bool mainParameterOk = false;
+        bool subParameterOk = false;
+        int imt = strili.at(0).toInt(&mainTypeOk);
+        int ist = strili.at(1).toInt(&subTypeOk);
+        int imtp = strili.at(2).toInt(&mainParameterOk);
+        int istp = strili.at(3).toInt(&subParameterOk);
 
         // Makes sure that Type and Parameters are within bounds.
-        if(imt>Slider || ist>Slider || imtp>Hluma || istp>Hluma)
+        if (!mainTypeOk || !subTypeOk || !mainParameterOk || !subParameterOk ||
+            imt < 0 || ist < 0 || imtp < 0 || istp < 0 ||
+            imt > Slider || ist > Slider || imtp > Hluma || istp > Hluma) {
             return;
+        }
 
         mainType = Type(imt);
         subType = Type(ist);

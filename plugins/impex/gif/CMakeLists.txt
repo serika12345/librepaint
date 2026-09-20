@@ -9,7 +9,7 @@ ki18n_wrap_ui(kritagifexport_SOURCES )
 
 kis_add_library(kritagifexport MODULE ${kritagifexport_SOURCES})
 
-target_link_libraries(kritagifexport kritaui kritaimpex GIF::GIF)
+target_link_libraries(kritagifexport kritaapplicationui kritaimpex GIF::GIF)
 
 install(TARGETS kritagifexport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 
@@ -22,7 +22,7 @@ ki18n_wrap_ui(kritagifimport_SOURCES )
 
 kis_add_library(kritagifimport MODULE ${kritagifimport_SOURCES})
 
-target_link_libraries(kritagifimport kritaui GIF::GIF)
+target_link_libraries(kritagifimport kritaapplicationui GIF::GIF)
 
 install(TARGETS kritagifimport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

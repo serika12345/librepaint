@@ -8,8 +8,9 @@
 
 #include "ConcentricEllipseAssistant.h"
 
+#include <QLineF>
+
 #include <klocalizedstring.h>
-#include "kis_debug.h"
 #include <QPainter>
 #include <QPainterPath>
 #include <QLinearGradient>

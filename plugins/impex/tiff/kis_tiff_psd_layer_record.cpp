@@ -16,6 +16,7 @@
 #include <kis_debug.h>
 #include <memory>
 #include <psd_header.h>
+#include <psd_layer_section.h>
 #include <tiff.h>
 
 KisTiffPsdLayerRecord::KisTiffPsdLayerRecord(bool isBigEndian,

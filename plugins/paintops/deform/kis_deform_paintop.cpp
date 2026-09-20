@@ -5,9 +5,7 @@
  */
 
 #include "kis_deform_paintop.h"
-#include "kis_deform_paintop_settings.h"
 
-#include <cmath>
 
 #include <QtGlobal>
 #include <QRect>
@@ -15,11 +13,8 @@
 #include <kis_image.h>
 #include <kis_debug.h>
 
-#include "kis_global.h"
 #include "kis_paint_device.h"
 #include "kis_painter.h"
-#include "kis_selection.h"
-#include "kis_random_accessor_ng.h"
 #include "kis_lod_transform.h"
 
 #include <kis_fixed_paint_device.h>

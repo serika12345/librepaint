@@ -11,7 +11,7 @@
 #include <kritaimage_export.h>
 
 #include "kis_signal_compressor.h"
-#include <kis_properties_configuration.h>
+#include "kis_types.h"
 
 class KoCanvasResourcesInterface;
 using KoCanvasResourcesInterfaceSP = QSharedPointer<KoCanvasResourcesInterface>;

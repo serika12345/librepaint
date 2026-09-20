@@ -11,7 +11,7 @@
 
 #include <KoUnit.h>
 #include <kis_size_group.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <kis_image.h>
 #include <operations/kis_operation_configuration.h>
 

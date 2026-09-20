@@ -6,12 +6,9 @@
 
 #include "KisHoldUIUpdatesCommand.h"
 
-#include <algorithm>
 #include "kis_image_interfaces.h"
 #include "krita_utils.h"
 #include "kis_paintop_utils.h"
-#include "kis_image_signal_router.h"
-#include "KisRunnableStrokeJobData.h"
 #include "KisRunnableStrokeJobUtils.h"
 #include "KisRunnableStrokeJobsInterface.h"
 

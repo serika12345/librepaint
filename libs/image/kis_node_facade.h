@@ -9,7 +9,7 @@
 #include <QScopedPointer>
 
 #include "kis_types.h"
-#include "kis_node.h"
+#include "kis_shared_ptr.h"
 #include "kritaimage_export.h"
 
 #include "KisNodeAdditionFlags.h"

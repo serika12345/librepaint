@@ -23,12 +23,12 @@
 #include <kis_icon_utils.h>
 #include <canvas/kis_statusbar.h>
 #include <document/KisDocument.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <metadata/KoDocumentInfo.h>
 #include <kactioncollection.h>
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <KisKineticScroller.h>
-#include "workspace/KisMainWindow.h"
+#include "application/ui/workspace/KisMainWindow.h"
 #include "KoFileDialog.h"
 
 #include <QFileInfo>

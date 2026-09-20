@@ -11,8 +11,6 @@
 #include <QRect>
 
 #include <kis_types.h>
-#include <kis_image.h>
-#include <kis_node.h>
 #include <kritaui_export.h>
 
 class KisShapeController;
@@ -39,6 +37,7 @@ public:
     };
 
     KisMimeData(QList<KisNodeSP> nodes, KisImageSP image, bool forceCopy = false);
+    ~KisMimeData() override;
 
     /// return the node set on this mimedata object -- for internal use
     QList<KisNodeSP> nodes() const;

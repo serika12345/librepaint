@@ -8,7 +8,7 @@ krita_ios_add_static_resource(polyline)
 
 kis_add_library(kritatoolpolyline MODULE ${kritatoolpolyline_SOURCES})
 
-target_link_libraries(kritatoolpolyline kritaui kritapainting)
+target_link_libraries(kritatoolpolyline kritaapplicationui kritapainting)
 
 install(TARGETS kritatoolpolyline  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

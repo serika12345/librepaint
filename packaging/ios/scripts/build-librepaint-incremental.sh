@@ -137,6 +137,7 @@ marker_path="$build_dir/.krita-ios-incremental-config"
 lock_dir="${build_dir}.lock"
 target=krita
 configure_header_backup=""
+boundary_checker="$repo_root/scripts/architecture/check_package_boundaries.py"
 
 prepare_environment() {
     # Match the target-pure Nix builder while keeping debug paths stable across
@@ -365,6 +366,7 @@ configure_tree() {
         configure_header_backup="$(mktemp "${TMPDIR:-/tmp}/krita-ios-KoConfig.XXXXXX")"
         cp -p "$build_dir/KoConfig.h" "$configure_header_backup"
     fi
+    python3 "$boundary_checker" --prepare-query "$build_dir"
     if ! cmake -S "$repo_root" -B "$build_dir" \
         "${cmake_args[@]}" \
         -DCMAKE_C_COMPILER_LAUNCHER="$ccache_path" \
@@ -375,6 +377,11 @@ configure_tree() {
         return 1
     fi
     validate_configure_contract
+    python3 "$boundary_checker" \
+        --reply-directory "$build_dir/.cmake/api/v1/reply" \
+        --platform ios \
+        --build-profile ios-device-incremental \
+        --configuration Release
     if [[ -n "$configure_header_backup" ]]; then
         if cmp -s "$configure_header_backup" "$build_dir/KoConfig.h"; then
             touch -r "$configure_header_backup" "$build_dir/KoConfig.h"

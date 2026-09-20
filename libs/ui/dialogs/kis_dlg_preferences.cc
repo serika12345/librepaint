@@ -13,6 +13,7 @@
 #include <opengl/kis_opengl.h>
 
 #include <QAbstractItemView>
+#include <QAction>
 #include <QBitmap>
 #include <QCheckBox>
 #include <QComboBox>
@@ -45,10 +46,10 @@
 #include <QTimer>
 #endif
 
-#include <application/KisApplication.h>
+#include <application/ui/orchestration/KisApplication.h>
 #include <document/KisDocument.h>
 #include <kis_icon.h>
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <KisSpinBoxI18nHelper.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorProfile.h>
@@ -66,13 +67,13 @@
 #include <KoResourcePaths.h>
 #include <kformat.h>
 #include <klocalizedstring.h>
+#include <ksharedconfig.h>
 #include <kstandardguiitem.h>
 #include <kundo2stack.h>
 
 #include <KisResourceCacheDb.h>
 #include <KisResourceLocator.h>
 
-#include "KisProofingConfiguration.h"
 #include "KisProofingConfigModel.h"
 #include "KoColorConversionTransformation.h"
 #include "kis_action_registry.h"
@@ -86,13 +87,13 @@
 #include "kis_color_manager.h"
 #include "application/kis_config.h"
 #include "kis_image_config.h"
-#include "workspace/kis_preference_set_registry.h"
-#include "workspace/KisMainWindow.h"
+#include "application/ui/workspace/kis_preference_set_registry.h"
+#include "application/ui/workspace/KisMainWindow.h"
 #include "KisMimeDatabase.h"
 #include "kis_file_name_requester.h"
 #include <KisWidgetConnectionUtils.h>
 #include <dialogs/KisFrameRateLimitModel.h>
-#include <application/KisPlatformPluginInterfaceFactory.h>
+#include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 #ifdef Q_OS_LINUX
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <surfacecolormanagement/KisSurfaceColorimetry.h>

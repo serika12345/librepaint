@@ -11,7 +11,6 @@
 #include "KisAddRemoveStoryboardCommand.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
-#include "kis_layer_utils.h"
 
 KisAddStoryboardCommand::KisAddStoryboardCommand(int position,
                                                  StoryboardItemSP item,

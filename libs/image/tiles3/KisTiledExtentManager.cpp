@@ -11,7 +11,6 @@
 #include "kis_tile_data_interface.h"
 #include "kis_assert.h"
 #include "kis_global.h"
-#include "kis_debug.h"
 
 KisTiledExtentManager::Data::Data()
     : m_min(qint32_MAX), m_max(qint32_MIN), m_count(0)

@@ -14,7 +14,7 @@
 #include "kis_paint_device.h"
 #include "KoColorSpace.h"
 #include "kis_debug.h"
-#include "kis_iterator_ng.h"
+#include "kis_sequential_iterator.h"
 
 KisHistogram::KisHistogram(const KisPaintLayerSP layer,
                            KoHistogramProducer *producer,

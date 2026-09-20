@@ -12,18 +12,12 @@
 #include <kis_debug.h>
 #include <kpluginfactory.h>
 
-#include "kis_image.h"
-#include "kis_layer.h"
 #include "kis_paint_device.h"
-#include "kis_global.h"
 #include "kis_types.h"
-#include "workspace/KisViewManager.h"
-#include "kis_selection.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "selection/kis_selection_manager.h"
-#include "kis_selection_tool_helper.h"
 #include "kis_canvas2.h"
-#include "kis_iterator_ng.h"
-#include "application/kis_action.h"
+#include "application/ui/orchestration/kis_action.h"
 
 #include "dlg_colorrange.h"
 #include <KoColorSpace.h>

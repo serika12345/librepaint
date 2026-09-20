@@ -25,12 +25,11 @@
 #include <KoProgressUpdater.h>
 #include <KoUpdater.h>
 #include <KoMixColorsOp.h>
-#include "kis_lod_transform.h"
+#include "kis_lod_transform_base.h"
 #include <KoCompositeOpRegistry.h>
 
 #include "wdg_gaussianhighpass.h"
 #include "ui_wdggaussianhighpass.h"
-#include "KoColorSpaceTraits.h"
 #include <KisSequentialIteratorProgress.h>
 
 

@@ -7,8 +7,6 @@
 #ifndef _KIS_DYNAMIC_COLORING_H_
 #define _KIS_DYNAMIC_COLORING_H_
 
-#include "kis_paintop_option.h"
-
 #include <QRect>
 
 #include <KoColor.h>

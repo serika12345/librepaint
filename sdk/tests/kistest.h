@@ -102,9 +102,9 @@
 #endif
 
 #if defined(TESTUI)
-#include <workspace/KisWindowLayoutResource.h>
+#include <application/ui/workspace/KisWindowLayoutResource.h>
 #include <workspace/kis_workspace_resource.h>
-#include <workspace/KisSessionResource.h>
+#include <application/ui/workspace/KisSessionResource.h>
 #endif
 
 namespace {

@@ -7,12 +7,12 @@
 #include <KisPaintingModeOptionData.h>
 
 #include "kis_grid_paintop_settings.h"
-#include "kis_grid_paintop_settings_widget.h"
 
 #include "KisGridShapeOptionData.h"
 #include "KisGridOpOptionData.h"
 
 #include <KisColorOptionData.h>
+#include <QPainterPath>
 #include <KisOptimizedBrushOutline.h>
 
 struct KisGridPaintOpSettings::Private
@@ -197,7 +197,7 @@ KisOptimizedBrushOutline KisGridPaintOpSettings::brushOutline(const KisPaintInfo
 
 
 #include <brushengine/kis_slider_based_paintop_property.h>
-#include "kis_paintop_preset.h"
+#include <qpointer.h>
 #include "KisPaintOpPresetUpdateProxy.h"
 
 QList<KisUniformPaintOpPropertySP> KisGridPaintOpSettings::uniformProperties(KisPaintOpSettingsSP settings, QPointer<KisPaintOpPresetUpdateProxy> updateProxy)

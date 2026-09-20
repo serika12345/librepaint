@@ -8,25 +8,80 @@
 
 #include "KoPathPointMoveCommand.h"
 #include "KoPathPoint.h"
-#include <klocalizedstring.h>
 #include "kis_command_ids.h"
 #include "krita_container_utils.h"
 #include <KoShapeBulkActionLock.h>
+#include <klocalizedstring.h>
+
+#include <algorithm>
+
+namespace
+{
+using OffsetMap = QMap<KoPathPointData, QPointF>;
+using OffsetBatchApplier = void (*)(const OffsetMap &points, const QSet<KoPathShape *> &paths, qreal factor);
+
+void applyOffsetBatch(const OffsetMap &points, const QSet<KoPathShape *> &paths, qreal factor)
+{
+    QList<KoShape *> shapes;
+    std::copy(paths.begin(), paths.end(), std::back_inserter(shapes));
+
+    KoShapeBulkActionLock lock(shapes);
+
+    for (auto it = points.cbegin(); it != points.cend(); ++it) {
+        KoPathShape *path = it.key().pathShape;
+        // transform offset from document to shape coordinate system
+        QPointF shapeOffset = path->documentToShape(factor * it.value()) - path->documentToShape(QPointF());
+        QTransform matrix;
+        matrix.translate(shapeOffset.x(), shapeOffset.y());
+
+        KoPathPoint *point = path->pointByIndex(it.key().pointIndex);
+        if (point) {
+            point->map(matrix);
+        }
+    }
+
+    for (KoPathShape *path : paths) {
+        path->normalize();
+    }
+
+    KoShapeBulkActionLock::bulkShapesUpdate(lock.unlock());
+}
+
+OffsetBatchApplier activeOffsetBatchApplier = applyOffsetBatch;
+} // namespace
+
+#ifdef KRITAFLAKE_PATH_POINT_MOVE_COMMAND_CONTRACT_TESTING
+namespace KoPathPointMoveCommandTesting
+{
+Q_DECL_HIDDEN void setOffsetBatchApplierForTesting(OffsetBatchApplier applier)
+{
+    activeOffsetBatchApplier = applier;
+}
+
+Q_DECL_HIDDEN void resetOffsetBatchApplierForTesting()
+{
+    activeOffsetBatchApplier = applyOffsetBatch;
+}
+} // namespace KoPathPointMoveCommandTesting
+#endif
 
 class KoPathPointMoveCommandPrivate
 {
 public:
-    KoPathPointMoveCommandPrivate() { }
+    KoPathPointMoveCommandPrivate()
+    {
+    }
     void applyOffset(qreal factor);
 
-    QMap<KoPathPointData, QPointF > points;
-    QSet<KoPathShape*> paths;
+    OffsetMap points;
+    QSet<KoPathShape *> paths;
 };
 
-
-KoPathPointMoveCommand::KoPathPointMoveCommand(const QList<KoPathPointData> &pointData, const QPointF &offset, KUndo2Command *parent)
-    : KUndo2Command(parent),
-    d(new KoPathPointMoveCommandPrivate())
+KoPathPointMoveCommand::KoPathPointMoveCommand(const QList<KoPathPointData> &pointData,
+                                               const QPointF &offset,
+                                               KUndo2Command *parent)
+    : KUndo2Command(parent)
+    , d(new KoPathPointMoveCommandPrivate())
 {
     setText(kundo2_i18n("Move points"));
 
@@ -38,17 +93,19 @@ KoPathPointMoveCommand::KoPathPointMoveCommand(const QList<KoPathPointData> &poi
     }
 }
 
-KoPathPointMoveCommand::KoPathPointMoveCommand(const QList<KoPathPointData> &pointData, const QList<QPointF> &offsets, KUndo2Command *parent)
-    : KUndo2Command(parent),
-    d(new KoPathPointMoveCommandPrivate())
+KoPathPointMoveCommand::KoPathPointMoveCommand(const QList<KoPathPointData> &pointData,
+                                               const QList<QPointF> &offsets,
+                                               KUndo2Command *parent)
+    : KUndo2Command(parent)
+    , d(new KoPathPointMoveCommandPrivate())
 {
     Q_ASSERT(pointData.count() == offsets.count());
 
     setText(kundo2_i18n("Move points"));
 
-    uint dataCount = pointData.count();
-    for (uint i = 0; i < dataCount; ++i) {
-        const KoPathPointData & data = pointData[i];
+    const qsizetype dataCount = pointData.count();
+    for (qsizetype i = 0; i < dataCount; ++i) {
+        const KoPathPointData &data = pointData[i];
         if (!d->points.contains(data)) {
             d->points[data] = offsets[i];
             d->paths.insert(data.pathShape);
@@ -80,12 +137,10 @@ int KoPathPointMoveCommand::id() const
 
 bool KoPathPointMoveCommand::mergeWith(const KUndo2Command *command)
 {
-    const KoPathPointMoveCommand *other = dynamic_cast<const KoPathPointMoveCommand*>(command);
+    const KoPathPointMoveCommand *other = dynamic_cast<const KoPathPointMoveCommand *>(command);
 
-    if (!other ||
-        other->d->paths != d->paths ||
-        !KritaUtils::compareListsUnordered(other->d->points.keys(), d->points.keys())) {
-
+    if (!other || other->d->paths != d->paths
+        || !KritaUtils::compareListsUnordered(other->d->points.keys(), d->points.keys())) {
         return false;
     }
 
@@ -100,27 +155,5 @@ bool KoPathPointMoveCommand::mergeWith(const KUndo2Command *command)
 
 void KoPathPointMoveCommandPrivate::applyOffset(qreal factor)
 {
-    QList<KoShape*> shapes;
-    std::copy(paths.begin(), paths.end(), std::back_inserter(shapes));
-
-    KoShapeBulkActionLock lock(shapes);
-
-    QMap<KoPathPointData, QPointF>::iterator it(points.begin());
-    for (; it != points.end(); ++it) {
-        KoPathShape *path = it.key().pathShape;
-        // transform offset from document to shape coordinate system
-        QPointF shapeOffset = path->documentToShape(factor*it.value()) - path->documentToShape(QPointF());
-        QTransform matrix;
-        matrix.translate(shapeOffset.x(), shapeOffset.y());
-
-        KoPathPoint *p = path->pointByIndex(it.key().pointIndex);
-        if (p)
-            p->map(matrix);
-    }
-
-    foreach (KoPathShape *path, paths) {
-        path->normalize();
-    }
-
-    KoShapeBulkActionLock::bulkShapesUpdate(lock.unlock());
+    activeOffsetBatchApplier(points, paths, factor);
 }

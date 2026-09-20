@@ -11,7 +11,7 @@
 #include <QApplication>
 
 #include <kis_debug.h>
-#include <application/kis_config.h>
+#include "kis_input_config.h"
 #include <KisPortingUtils.h>
 
 #include <QGlobalStatic>
@@ -91,7 +91,7 @@ QString KisTabletDebugger::exTypeToString(QEvent::Type type) {
 KisTabletDebugger::KisTabletDebugger()
     : m_debugEnabled(false)
 {
-    KisConfig cfg(true);
+    KisInputConfig cfg(true);
     m_shouldEatDriverShortcuts = cfg.shouldEatDriverShortcuts();
 }
 

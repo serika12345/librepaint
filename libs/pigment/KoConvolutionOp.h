@@ -7,6 +7,10 @@
 #ifndef KO_CONVOLUTION_OP_H
 #define KO_CONVOLUTION_OP_H
 
+#include <QtGlobal>
+
+class QBitArray;
+
 /**
  * Base class of a convolution operation. A convolution operation is
  * defined by sum(colors[i] * kernelValues[i]) / factor + offset). The

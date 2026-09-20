@@ -10,30 +10,30 @@
 #ifndef KIS_PAINTOP_BOX_H_
 #define KIS_PAINTOP_BOX_H_
 
-#include <QMap>
-#include <QWidget>
 #include <QList>
+#include <QMap>
+#include <QPointer>
+#include <QSharedPointer>
+#include <QString>
+#include <QWidget>
 
-#include <KoResource.h>
 #include <KoID.h>
 #include <KoInputDevice.h>
 
 #include <kis_types.h>
-#include <brushengine/kis_paintop_settings.h>
-#include <brushengine/kis_locked_properties_proxy.h>
-#include <brushengine/kis_locked_properties_server.h>
-#include <brushengine/kis_locked_properties.h>
 #include "kritaui_export.h"
 #include "kis_signal_auto_connection.h"
 #include "kis_signal_compressor.h"
 
 class QMenu;
 class QToolButton;
-class QString;
 class QHBoxLayout;
+class QVariant;
 
 class KoColorSpace;
 class KoCanvasController;
+class KoResource;
+typedef QSharedPointer<KoResource> KoResourceSP;
 
 class KisViewManager;
 class KisCanvasResourceProvider;

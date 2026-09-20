@@ -11,7 +11,6 @@
 #include <simpletest.h>
 
 #include "kis_algebra_2d.h"
-#include "kis_debug.h"
 
 #include "kis_grid_interpolation_tools.h"
 #include "KisSpatialContainer.h"

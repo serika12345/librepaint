@@ -13,7 +13,7 @@
 #include "KoPointerEvent.h"
 #include "KoCanvasBase.h"
 
-#include "kis_global.h"
+#include "kis_pointer_utils.h"
 #include "kis_assert.h"
 
 

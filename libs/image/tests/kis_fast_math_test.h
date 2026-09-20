@@ -7,7 +7,7 @@
 #ifndef KIS_FAST_MATH_TEST_H
 #define KIS_FAST_MATH_TEST_H
 
-#include <simpletest.h>
+#include <QTest>
 
 class KisFastMathTest : public QObject
 {
@@ -15,7 +15,6 @@ class KisFastMathTest : public QObject
 private Q_SLOTS:
 
     void testAtan2();
-
 };
 
 #endif

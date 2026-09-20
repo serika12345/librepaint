@@ -17,6 +17,7 @@ class TestResourceStorage : public QObject
 private Q_SLOTS:
     void initTestCase();
     void testStorage();
+    void testStorageTimestamps();
     void testImportExportResource();
     void testAddResource();
     void testStorageVersioningHelperCounting();

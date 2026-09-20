@@ -5,7 +5,6 @@
  */
 
 #include "kis_stroke_strategy.h"
-#include <KoCompositeOpRegistry.h>
 #include "kis_stroke_job_strategy.h"
 #include "KisStrokesQueueMutatedJobInterface.h"
 

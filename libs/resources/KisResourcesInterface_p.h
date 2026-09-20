@@ -12,29 +12,17 @@
 #include <memory>
 
 #include <QReadWriteLock>
-#include <QReadLocker>
-#include <QWriteLocker>
 
 #include "kis_assert.h"
-
-/// added to Qt in 5.14.0
-/// https://codereview.qt-project.org/c/qt/qtbase/+/261819
-
-#if (QT_VERSION < QT_VERSION_CHECK(5, 14, 0))
-namespace std
-{
-    template<> struct hash<QString>
-    {
-        std::size_t operator()(const QString &s) const noexcept {
-            return qHash(s);
-        }
-    };
-}
-#endif
 
 class KRITARESOURCES_EXPORT KisResourcesInterfacePrivate
 {
 public:
+    virtual ~KisResourcesInterfacePrivate() {}
+
+private:
+    friend class KisResourcesInterface;
+
     mutable std::unordered_map<QString,
                        std::unique_ptr<
                            KisResourcesInterface::ResourceSourceAdapter>> sourceAdapters;
@@ -50,8 +38,6 @@ public:
 
         return nullptr;
     }
-
-    virtual ~KisResourcesInterfacePrivate() {}
 };
 
 #endif // KisResourcesInterface_P_H

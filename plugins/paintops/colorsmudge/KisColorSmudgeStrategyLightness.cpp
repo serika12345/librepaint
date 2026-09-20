@@ -11,7 +11,6 @@
 #include "kis_painter.h"
 #include "kis_paint_device.h"
 #include "kis_fixed_paint_device.h"
-#include "kis_selection.h"
 
 #include "KisColorSmudgeInterstrokeData.h"
 #include "kis_algebra_2d.h"

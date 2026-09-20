@@ -5,18 +5,25 @@
 
 #include <QFile>
 #include <QFileInfo>
+#include <QDir>
+#include <QStandardPaths>
 #include <QTemporaryDir>
 #include <QTest>
+
+#include <KoStore.h>
 
 #include <files/kis_document_autosave_files.h>
 #include <files/kis_document_backup_file.h>
 #include <files/kis_document_save_target.h>
+
+#include <memory>
 
 using Krita::Document::KisDocumentAutoSaveFile;
 using Krita::Document::KisDocumentAutoSaveFiles;
 using Krita::Document::KisDocumentBackupFile;
 using Krita::Document::KisDocumentBackupLocation;
 using Krita::Document::KisDocumentBackupOptions;
+using Krita::Document::KisDocumentBackupResult;
 using Krita::Document::KisDocumentBackupStatus;
 using Krita::Document::KisDocumentSaveTarget;
 
@@ -30,6 +37,18 @@ void writeFile(const QString &path, const QByteArray &contents)
     QCOMPARE(file.write(contents), contents.size());
 }
 
+void writeRecoveryArchive(const QString &path, const QByteArray &preview)
+{
+    std::unique_ptr<KoStore> store(
+        KoStore::createStore(path, KoStore::Write, {}, KoStore::Zip, false));
+    QVERIFY(store);
+    QVERIFY(!store->bad());
+    QVERIFY(store->open(QStringLiteral("Thumbnails/thumbnail.png")));
+    QCOMPARE(store->write(preview), qint64(preview.size()));
+    QVERIFY(store->close());
+    QVERIFY(store->finalize());
+}
+
 }
 
 class KisDocumentFilesTest : public QObject
@@ -38,8 +57,11 @@ class KisDocumentFilesTest : public QObject
 
 private Q_SLOTS:
     void classifiesSaveTargets();
+    void backupOptionsHaveStableDefaults();
     void preservesSimpleAndNumberedBackups();
+    void reportsBackupFailuresAndTemporaryLocations();
     void generatesAdjacentAndFallbackAutoSaveNames();
+    void usesDefaultAutoSaveLocations();
     void discoversAndRemovesRecoveryFiles();
     void removesEveryAutoSaveForADocument();
 };
@@ -66,6 +88,23 @@ void KisDocumentFilesTest::classifiesSaveTargets()
 #endif
 }
 
+void KisDocumentFilesTest::backupOptionsHaveStableDefaults()
+{
+    const KisDocumentBackupOptions options;
+    QVERIFY(!options.enabled);
+    QCOMPARE(options.location, KisDocumentBackupLocation::Adjacent);
+    QCOMPARE(options.numberOfBackups, 1);
+    QCOMPARE(options.suffix, QStringLiteral("~"));
+    QVERIFY(!options.forceTemporaryDirectory);
+
+    QVERIFY(KisDocumentBackupLocation::Adjacent != KisDocumentBackupLocation::Home);
+    QVERIFY(KisDocumentBackupLocation::Home != KisDocumentBackupLocation::Temporary);
+
+    const KisDocumentBackupResult result;
+    QCOMPARE(result.status, KisDocumentBackupStatus::NotNeeded);
+    QVERIFY(result.directory.isEmpty());
+}
+
 void KisDocumentFilesTest::preservesSimpleAndNumberedBackups()
 {
     QTemporaryDir directory;
@@ -80,8 +119,10 @@ void KisDocumentFilesTest::preservesSimpleAndNumberedBackups()
     options.numberOfBackups = 1;
     options.suffix = QStringLiteral("~");
 
-    QCOMPARE(KisDocumentBackupFile::create(path, options, directory.path()).status,
-             KisDocumentBackupStatus::Created);
+    const KisDocumentBackupResult simpleBackup =
+        KisDocumentBackupFile::create(path, options, directory.path());
+    QCOMPARE(simpleBackup.status, KisDocumentBackupStatus::Created);
+    QVERIFY(simpleBackup.directory.isEmpty());
     QVERIFY(QFileInfo::exists(path + QStringLiteral("~")));
 
     options.numberOfBackups = 2;
@@ -99,6 +140,48 @@ void KisDocumentFilesTest::preservesSimpleAndNumberedBackups()
     QFile previous(path + QStringLiteral(".2~"));
     QVERIFY(previous.open(QIODevice::ReadOnly));
     QCOMPARE(previous.readAll(), QByteArrayLiteral("first"));
+}
+
+void KisDocumentFilesTest::reportsBackupFailuresAndTemporaryLocations()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+
+    const QString uniqueName = QFileInfo(directory.path()).fileName() + QStringLiteral(".kra");
+    const QString path = directory.filePath(uniqueName);
+    writeFile(path, QByteArrayLiteral("document"));
+
+    KisDocumentBackupOptions options;
+    options.enabled = true;
+    options.suffix = QStringLiteral("/missing/backup");
+
+    const KisDocumentBackupResult failed =
+        KisDocumentBackupFile::create(path, options, directory.path());
+    QCOMPARE(failed.status, KisDocumentBackupStatus::Failed);
+    QVERIFY(failed.directory.isEmpty());
+
+    options.location = KisDocumentBackupLocation::Temporary;
+    options.suffix = QStringLiteral("~");
+    const KisDocumentBackupResult temporary =
+        KisDocumentBackupFile::create(path, options, directory.path());
+    QCOMPARE(temporary.status, KisDocumentBackupStatus::Created);
+    QCOMPARE(temporary.directory,
+             QStandardPaths::writableLocation(QStandardPaths::TempLocation));
+    const QString temporaryBackup =
+        QDir(temporary.directory).filePath(uniqueName + options.suffix);
+    QVERIFY(QFileInfo::exists(temporaryBackup));
+    QVERIFY(QFile::remove(temporaryBackup));
+
+    options.location = KisDocumentBackupLocation::Adjacent;
+    options.forceTemporaryDirectory = true;
+    const KisDocumentBackupResult forcedTemporary =
+        KisDocumentBackupFile::create(path, options, directory.path());
+    QCOMPARE(forcedTemporary.status, KisDocumentBackupStatus::Created);
+    QCOMPARE(forcedTemporary.directory, QDir::tempPath());
+    const QString forcedBackup =
+        QDir(forcedTemporary.directory).filePath(uniqueName + options.suffix);
+    QVERIFY(QFileInfo::exists(forcedBackup));
+    QVERIFY(QFile::remove(forcedBackup));
 }
 
 void KisDocumentFilesTest::generatesAdjacentAndFallbackAutoSaveNames()
@@ -125,6 +208,28 @@ void KisDocumentFilesTest::generatesAdjacentAndFallbackAutoSaveNames()
              recoveryDirectory.filePath(QStringLiteral("krita-42-document7-autosave.kra")));
 }
 
+void KisDocumentFilesTest::usesDefaultAutoSaveLocations()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+
+    const QString recoveryDirectory = KisDocumentAutoSaveFiles::directory();
+    QVERIFY(!recoveryDirectory.isEmpty());
+    QVERIFY(QFileInfo(recoveryDirectory).isAbsolute());
+
+    const QString path = directory.filePath(QStringLiteral("painting.kra"));
+    writeFile(path, QByteArrayLiteral("document"));
+    const QString autoSavePath = KisDocumentAutoSaveFiles::filePath(
+        path, QStringLiteral("publicApiContractDocument"), true);
+    QCOMPARE(autoSavePath,
+             directory.filePath(QStringLiteral(".painting.kra-autosave.kra")));
+
+    writeFile(autoSavePath, QByteArrayLiteral("autosave"));
+    KisDocumentAutoSaveFiles::removeForDocument(
+        path, false, QStringLiteral("publicApiContractDocument"), true);
+    QVERIFY(!QFileInfo::exists(autoSavePath));
+}
+
 void KisDocumentFilesTest::discoversAndRemovesRecoveryFiles()
 {
     QTemporaryDir directory;
@@ -132,7 +237,8 @@ void KisDocumentFilesTest::discoversAndRemovesRecoveryFiles()
 
     const QString hidden = directory.filePath(QStringLiteral(".krita-1-first-autosave.kra"));
     const QString visible = directory.filePath(QStringLiteral("krita-2-second-autosave.kra"));
-    writeFile(hidden, QByteArrayLiteral("hidden"));
+    const QByteArray preview = QByteArrayLiteral("preview-bytes");
+    writeRecoveryArchive(hidden, preview);
     writeFile(visible, QByteArrayLiteral("visible"));
     const QString empty = directory.filePath(QStringLiteral("empty.kra"));
     writeFile(empty, {});
@@ -150,12 +256,18 @@ void KisDocumentFilesTest::discoversAndRemovesRecoveryFiles()
         names.append(file.fileName);
         QVERIFY(!file.path.isEmpty());
         QVERIFY(file.lastModified.isValid());
+        if (file.fileName == QFileInfo(hidden).fileName()) {
+            QCOMPARE(file.previewData, preview);
+        } else {
+            QVERIFY(file.previewData.isEmpty());
+        }
     }
     QVERIFY(names.contains(QFileInfo(hidden).fileName()));
     QVERIFY(names.contains(QFileInfo(visible).fileName()));
 
     QVERIFY(KisDocumentAutoSaveFiles::remove(hidden));
     QVERIFY(!QFileInfo::exists(hidden));
+    QVERIFY(KisDocumentAutoSaveFiles::remove(hidden));
 }
 
 void KisDocumentFilesTest::removesEveryAutoSaveForADocument()

@@ -10,11 +10,9 @@
 
 #include <QDomElement>
 
-#include "KoColorModelStandardIds.h"
+#include "KoID.h"
 
-#include "KoColor.h"
 #include "KoChannelInfo.h"
-#include "DebugPigment.h"
 
 void TestKoChannelInfo::testDisplayPositionToChannelIndex()
 {

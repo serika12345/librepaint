@@ -7,6 +7,7 @@
 #include "kis_experiment_paintop_settings.h"
 #include "kis_current_outline_fetcher.h"
 #include "kis_algebra_2d.h"
+#include <QPainterPath>
 #include <KisOptimizedBrushOutline.h>
 
 struct KisExperimentPaintOpSettings::Private
@@ -55,7 +56,7 @@ KisOptimizedBrushOutline KisExperimentPaintOpSettings::brushOutline(const KisPai
 }
 
 #include <brushengine/kis_slider_based_paintop_property.h>
-#include "kis_paintop_preset.h"
+#include <qpointer.h>
 #include "KisPaintOpPresetUpdateProxy.h"
 #include "kis_standard_uniform_properties_factory.h"
 #include <KisOptimizedBrushOutline.h>

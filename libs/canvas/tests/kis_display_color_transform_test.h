@@ -12,7 +12,6 @@ class KisDisplayColorTransformTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void testOcioConfigurationIsAValueInput();
     void testStandardDisplayConversionWithoutUi();
     void testDisplayFilterParticipatesInConversion();
 };

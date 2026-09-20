@@ -30,7 +30,6 @@
 #include<KisWrappableHBoxLayout.h>
 
 
-#include "kis_icon.h"
 
 KisWdgTagSelectionControllerOneResource::KisWdgTagSelectionControllerOneResource(KisTagSelectionWidget *widget, bool editable)
     : QObject(widget)

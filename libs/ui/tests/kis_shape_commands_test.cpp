@@ -8,14 +8,13 @@
 
 #include <simpletest.h>
 
-#include "kis_global.h"
 
 #include "kis_shape_layer.h"
 #include <KoPathShape.h>
 #include <KoColorBackground.h>
 #include <testutil.h>
 
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
 
 #include <KoShapeGroup.h>

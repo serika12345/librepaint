@@ -13,7 +13,6 @@
 #include "kis_painter.h"
 #include "kis_projection_leaf.h"
 #include "kis_cached_paint_device.h"
-#include "kis_sequential_iterator.h"
 
 
 struct KisLayerProjectionPlane::Private

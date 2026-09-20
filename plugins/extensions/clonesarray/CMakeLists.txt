@@ -5,6 +5,6 @@ set(kritaclonesarray_SOURCES
 
 ki18n_wrap_ui(kritaclonesarray_SOURCES wdg_clonesarray.ui )
 kis_add_library(kritaclonesarray MODULE ${kritaclonesarray_SOURCES})
-target_link_libraries(kritaclonesarray kritaui)
+target_link_libraries(kritaclonesarray kritaapplicationui)
 install(TARGETS kritaclonesarray  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 install( FILES  clonesarray.xmlgui  DESTINATION ${KDE_INSTALL_DATADIR}/kritaplugins)

@@ -13,12 +13,13 @@
 #include "kritaimage_export.h"
 
 #include <QImage>
+#include <QObject>
 #include <QPolygon>
 #include <QPoint>
 #include <QPointF>
 #include <QRect>
 
-#include <KoUpdater.h>
+class KoUpdater;
 
 /**
  * Class to apply a transformation (affine, similitude, MLS) to a paintDevice

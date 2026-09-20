@@ -8,8 +8,9 @@
 
 #include <algorithm>
 
-#include <simpletest.h>
 #include <commands/kis_node_operation_batch.h>
+#include <kundo2magicstring.h>
+#include <simpletest.h>
 
 #include <KoColor.h>
 #include <KoColorSpace.h>

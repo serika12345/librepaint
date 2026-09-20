@@ -11,6 +11,7 @@
 #include <qsignalspy.h>
 #include <QRandomGenerator>
 
+#include "kis_paint_device.h"
 #include "kis_paint_device_frames_interface.h"
 #include "kis_keyframe_channel.h"
 #include "kis_scalar_keyframe_channel.h"

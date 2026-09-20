@@ -16,10 +16,8 @@
 #include <ksharedconfig.h>
 
 #include "kactioncollection.h"
-#include "kxmlguiclient.h"
 
 #include "KoResourcePaths.h"
-#include "kis_action_registry.h"
 
 
 QString KisKShortcutSchemesHelper::shortcutSchemeFileName(const QString &schemeName)

@@ -14,7 +14,6 @@
 
 #include "testutil.h"
 #include <kis_algebra_2d.h>
-#include "KisCppQuirks.h"
 
 #include <KisBezierUtils.h>
 #include <KisBezierPatch.h>

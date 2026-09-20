@@ -11,6 +11,8 @@
 #include <QVariant>
 #include <kundo2stack.h>
 #include <FlakeDebug.h>
+#include <KoColor.h>
+#include <KoUnit.h>
 
 #include "KoShape.h"
 #include "KoShapeController.h"

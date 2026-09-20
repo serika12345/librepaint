@@ -13,6 +13,7 @@
 
 #include "KisShortcutsEditor.h"
 #include "KisShortcutsEditor_p.h"
+#include <QAction>
 #include <QHeaderView>
 #include <QTreeWidget>
 #include <QDebug>
@@ -24,7 +25,6 @@
 #endif
 #include <ksharedconfig.h>
 #include <KConfigGroup>
-#include "kis_action_registry.h"
 #include <KisKineticScroller.h>
 
 //---------------------------------------------------------------------

@@ -12,7 +12,6 @@
 #include "kis_small_tiles_filter.h"
 
 #include <stdlib.h>
-#include <vector>
 
 #include <QPoint>
 #include <QSpinBox>

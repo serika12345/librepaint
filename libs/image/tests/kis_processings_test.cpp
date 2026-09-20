@@ -17,7 +17,6 @@
 #include "processing/kis_crop_processing_visitor.h"
 #include "processing/kis_mirror_processing_visitor.h"
 
-#include "testutil.h"
 #include "kistest.h"
 
 #define USE_DOCUMENT 0

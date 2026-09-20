@@ -7,6 +7,7 @@
  */
 #include "KisCurveOption.h"
 #include "KisCurveOptionData.h"
+#include "KisDynamicSensorIds.h"
 #include "kis_algebra_2d.h"
 
 #include <sensors/KisDynamicSensors.h>

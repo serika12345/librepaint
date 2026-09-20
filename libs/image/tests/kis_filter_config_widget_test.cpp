@@ -9,7 +9,6 @@
 #include <simpletest.h>
 
 
-#include "filter/kis_filter_configuration.h"
 #include "kis_config_widget.h"
 
 class TestWidget : public KisConfigWidget

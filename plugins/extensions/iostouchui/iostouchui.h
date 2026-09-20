@@ -7,7 +7,7 @@
 #ifndef KRITA_IOS_TOUCH_UI_H
 #define KRITA_IOS_TOUCH_UI_H
 
-#include <application/KisActionPlugin.h>
+#include <application/ui/orchestration/KisActionPlugin.h>
 
 #include <memory>
 

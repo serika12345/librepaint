@@ -16,12 +16,10 @@
 
 #include "kis_canvas2.h"
 #include "KisCanvasAnimationState.h"
+#include "kis_image.h"
 #include "kis_image_animation_interface.h"
-#include "kis_raster_keyframe_channel.h"
 #include "kis_signal_compressor_with_param.h"
-#include "animation/KisFrameDisplayProxy.h"
-#include "workspace/KisViewManager.h"
-#include "kis_onion_skin_compositor.h"
+#include "application/ui/workspace/KisViewManager.h"
 
 #include <mlt++/Mlt.h>
 #include <mlt++/MltConsumer.h>
@@ -33,7 +31,7 @@
 #include "KisRollingSumAccumulatorWrapper.h"
 
 #ifdef Q_OS_ANDROID
-#include <application/KisAndroidFileProxy.h>
+#include <application/platform-adapters/KisAndroidFileProxy.h>
 #endif
 
 #include "kis_debug.h"
@@ -639,5 +637,3 @@ KisPlaybackEngine::PlaybackStats KisPlaybackEngineMLT::playbackStatistics() cons
 
     return stats;
 }
-
-

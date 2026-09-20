@@ -18,7 +18,6 @@
 #include "KisAnimCurvesKeyDelegate.h"
 #include "KisAnimTimelineColors.h"
 #include "kis_scalar_keyframe_channel.h"
-#include "kis_zoom_button.h"
 #include "kis_custom_modifiers_catcher.h"
 #include <kis_painting_tweaks.h>
 #include "kis_zoom_scrollbar.h"

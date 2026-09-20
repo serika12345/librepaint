@@ -7,7 +7,6 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#include <cstdio>
 #include <kis_assistant_tool.h>
 
 #include <kis_debug.h>
@@ -27,6 +26,7 @@
 #include <KoViewConverter.h>
 #include <KoPointerEvent.h>
 #include <KoColorDisplayRendererInterface.h>
+#include <ksharedconfig.h>
 
 #include <canvas/kis_canvas2.h>
 #include <canvas/kis_abstract_perspective_grid.h>
@@ -39,7 +39,7 @@
 #include <canvas/kis_painting_assistants_decoration.h>
 #include <kis_undo_adapter.h>
 
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 
 #include "EditAssistantsCommand.h"
 #include "PerspectiveAssistant.h"
@@ -48,7 +48,6 @@
 #include "VanishingPointAssistant.h"
 
 #include <math.h>
-#include <queue>
 
 KisAssistantTool::KisAssistantTool(KoCanvasBase * canvas)
     : KisTool(canvas, KisCursor::arrowCursor())

@@ -9,14 +9,18 @@
 
 #include <QObject>
 
-class TestTag: public QObject
+class TestTag : public QObject
 {
     Q_OBJECT
+
 private Q_SLOTS:
-    void testLoadTag();
-    void testSaveTag();
-private:
-    QStringList m_languages;
+    void defaultStateAndValueProperties();
+    void localizedNamesCommentsAndLocaleSelection();
+    void copyAssignmentAndCloneOwnIndependentValues();
+    void saveLoadUtf8AndAutomaticOpen();
+    void localizedValuesAreNotPreservedBySerialization();
+    void incompleteAndInvalidInputReportCurrentResults();
+    void diagnosticStreamingDescribesTagsAndNullPointers();
 };
 
 #endif

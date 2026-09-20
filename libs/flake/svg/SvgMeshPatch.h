@@ -8,13 +8,13 @@
 
 #include <array>
 
-#include <QColor>
-#include <QPointF>
-#include <QVector>
-#include <QMap>
-#include <QPainterPath>
+#include "kritaflake_export.h"
 
-#include <KoPathShape.h>
+#include <QColor>
+#include <QPainterPath>
+#include <QPointF>
+#include <QTransform>
+#include <QVector>
 
 struct SvgMeshStop {
     QColor color;

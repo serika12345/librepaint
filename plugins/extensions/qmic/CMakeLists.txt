@@ -16,7 +16,7 @@ set(kritaqmicinterface_HEADERS
 
 kis_add_library(kritaqmicinterface SHARED ${kritaqmicinterface_SOURCES})
 generate_export_header(kritaqmicinterface)
-target_link_libraries(kritaqmicinterface kritaui kritaimage)
+target_link_libraries(kritaqmicinterface kritaapplicationui kritaimage)
 
 set_target_properties(kritaqmicinterface
     PROPERTIES

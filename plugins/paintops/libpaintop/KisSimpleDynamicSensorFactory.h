@@ -6,9 +6,12 @@
 #ifndef KISSIMPLEDYNAMICSENSORFACTORY_H
 #define KISSIMPLEDYNAMICSENSORFACTORY_H
 
+#include <QString>
+#include <lager/cursor.hpp>
+
 #include "KisDynamicSensorFactory.h"
 
-#include "KisCurveOptionDataCommon.h"
+class QWidget;
 
 class PAINTOP_EXPORT KisSimpleDynamicSensorFactory : public KisDynamicSensorFactory
 {

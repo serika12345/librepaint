@@ -27,13 +27,29 @@ kis_add_library(kritadefaulttools_static STATIC ${kritadefaulttools_static_SRCS}
 
 target_link_libraries(kritadefaulttools_static 
     PUBLIC
-        kritaui
+        kritaapplication
+        kritaapplicationui
+        kritacanvas
         kritaflake
+        kritaglobal
+        kritaimage
         kritatools
         kritapainting
+        kritapigment
         kritabasicflakes
+        kritaresources
+        kritaresourceui
+        kritawidgetutils
         kritawidgets
         Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::Completion
+        KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::CoreAddons
+        KF${KF_MAJOR}::I18n
+        KF${KF_MAJOR}::WidgetsAddons
 )
 
 set(kritadefaulttools_SOURCES

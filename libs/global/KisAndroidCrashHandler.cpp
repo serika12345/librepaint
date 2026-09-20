@@ -5,6 +5,7 @@
  */
 
 #include "KisAndroidCrashHandler.h"
+#include "KisCrashSignalHandlerSetup_p.h"
 
 #include <KritaVersionWrapper.h>
 
@@ -15,7 +16,6 @@
 #include <QThread>
 
 #include <android/log.h>
-#include <array>
 #include <fcntl.h>
 #include <signal.h>
 #include <sstream>
@@ -25,9 +25,10 @@
 
 #define CRASH_LOGGER(...) __android_log_print(ANDROID_LOG_WARN, "KisAndroidCrashHandler", __VA_ARGS__)
 
-namespace KisAndroidCrashHandler {
+namespace KisAndroidCrashHandler
+{
 
-static const std::array<int, 6> signals = {SIGABRT, SIGBUS, SIGFPE, SIGSEGV, SIGSYS, SIGTERM};
+static const QList<int> signals = {SIGABRT, SIGBUS, SIGFPE, SIGSEGV, SIGSYS, SIGTERM};
 static QMap<int, struct sigaction> g_old_actions;
 
 // we need to have keep this object alive
@@ -123,22 +124,8 @@ void crash_callback(int sig, siginfo_t *info, void *ucontext)
 
 void handler_init()
 {
-    // create an alternate stack to make sure we can handle overflows
-    stack_t alternate_stack;
-    alternate_stack.ss_flags = 0;
-    alternate_stack.ss_size = SIGSTKSZ;
-    if ((alternate_stack.ss_sp = malloc(SIGSTKSZ)) == nullptr) {
+    if (!KisCrashSignalHandlerSetup::installAlternateStack(signals, crash_callback, &g_old_actions)) {
         CRASH_LOGGER("Couldn't allocate memory for alternate stack");
-        return;
-    }
-
-    struct sigaction act = {};
-    act.sa_sigaction = crash_callback;
-    act.sa_flags = SA_SIGINFO | SA_ONSTACK;
-    sigaltstack(&alternate_stack, nullptr);
-
-    for (size_t i = 0; i < signals.size(); ++i) {
-        sigaction(signals[i], &act, &g_old_actions[signals[i]]);
     }
 }
 

@@ -14,9 +14,7 @@
 
 #include <KoShapeReorderCommand.h>
 
-#include "kis_pointer_utils.h"
 #include "kis_algebra_2d.h"
-#include "kis_debug.h"
 
 #include <simpletest.h>
 

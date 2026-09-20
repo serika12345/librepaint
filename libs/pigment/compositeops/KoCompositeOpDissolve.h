@@ -9,6 +9,7 @@
 
 #include <KoColorSpaceMaths.h>
 #include <KoCompositeOp.h>
+#include <KoCompositeOpRegistry.h>
 
 #include <kis_random_source.h>
 #include <QThreadStorage>

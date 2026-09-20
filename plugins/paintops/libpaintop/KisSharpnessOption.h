@@ -7,7 +7,9 @@
 #define KISSHARPNESSOPTION_H
 
 #include <KisCurveOption.h>
+#include <kis_types.h>
 
+class KisPropertiesConfiguration;
 struct KisSharpnessOptionData;
 
 class PAINTOP_EXPORT KisSharpnessOption : public KisCurveOption

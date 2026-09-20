@@ -29,7 +29,7 @@ struct KRITATOOLSUI_EXPORT KisOptionInfo
 
     QString label;
     KisPaintOpOption *option {nullptr};
-    int index;
+    int index {-1};
 };
 
 KRITATOOLSUI_EXPORT bool operator==(const KisOptionInfo& a, const KisOptionInfo& b);

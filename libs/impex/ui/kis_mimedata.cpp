@@ -9,6 +9,7 @@
 #include "kis_node.h"
 #include "kis_paint_device.h"
 #include "kis_shared_ptr.h"
+#include "KisPortingUtils.h"
 #include "kis_image.h"
 #include "kis_layer.h"
 #include "kis_shape_layer.h"
@@ -16,13 +17,12 @@
 #include "kis_clone_layer.h"
 #include "document/KisDocument.h"
 #include "kis_shape_controller.h"
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "kis_layer_utils.h"
 #include "kis_generator_registry.h"
 #include "KisGlobalResourcesInterface.h"
 #include "kis_filter_configuration.h"
 #include "kis_generator_layer.h"
-#include "kis_selection.h"
 #include "kis_dummies_facade_base.h"
 #include "kis_node_dummies_graph.h"
 #include "KisImportExportManager.h"
@@ -37,7 +37,7 @@
 #include <KoColorProfile.h>
 #include <KoColorSpaceRegistry.h>
 #include <canvas/KisDisplayConfig.h>
-#include <application/KisPlatformPluginInterfaceFactory.h>
+#include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 #include <opengl/KisOpenGLModeProber.h>
 
 #include <QApplication>
@@ -72,6 +72,8 @@ KisMimeData::KisMimeData(QList<KisNodeSP> nodes, KisImageSP image, bool forceCop
         m_copiedBounds |= KisLayerUtils::recursiveTightNodeVisibleBounds(node);
     }
 }
+
+KisMimeData::~KisMimeData() = default;
 
 KisDisplayConfig KisMimeData::displayConfigForMimePastes()
 {

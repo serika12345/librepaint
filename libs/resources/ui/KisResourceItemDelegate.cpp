@@ -7,13 +7,10 @@
 
 
 #include <QPainter>
-#include <QDebug>
 
 #include "KisResourceItemDelegate.h"
 #include "KisResourceModel.h"
-#include <KisResourceThumbnailCache.h>
-#include <KisResourceModelProvider.h>
-#include <KoIcon.h>
+#include <KisResourceModelIndexResolver.h>
 
 KisResourceItemDelegate::KisResourceItemDelegate(QObject *parent)
     : QAbstractItemDelegate(parent)
@@ -40,9 +37,7 @@ QModelIndex KisResourceItemDelegate::convertToGlobalModelIndexIfNeeded(const QMo
     const int resourceId = localIndex.data(Qt::UserRole + KisAllResourcesModel::Id).toInt();
     const QString resourceType = localIndex.data(Qt::UserRole + KisAllResourcesModel::ResourceType).toString();
 
-    auto *model = KisResourceModelProvider::resourceModel(resourceType);
-    QModelIndex globalIndex = model->indexForResourceId(resourceId);
-    return globalIndex;
+    return KisResourceModelIndexResolver::resourceIndex(resourceType, resourceId);
 }
 
 void KisResourceItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem & option, const QModelIndex &index) const

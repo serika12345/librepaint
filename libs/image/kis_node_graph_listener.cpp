@@ -7,7 +7,6 @@
 
 #include "kis_node_graph_listener.h"
 
-#include "kis_time_span.h"
 #include <QRect>
 #include <QtGlobal>
 

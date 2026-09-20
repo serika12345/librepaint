@@ -12,6 +12,7 @@ class KisMplTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void testTupleAndTypeUtilities();
     void testFoldOptional();
     void testMemberOperatorsEqualTo();
     void testMemberOperatorsEqualToPointer();
@@ -24,9 +25,12 @@ private Q_SLOTS:
     void testMemberOperatorsLessEqual();
     void testMemberOperatorsGreater();
     void testMemberOperatorsGreaterEqual();
+    void testMemberBinaryComparators();
 
     void testMemberOperatorsAccumulate();
     void testMemberOperatorsAccumulateToKisSharedPtr();
+    void testMemberOperatorFactories();
+    void testFinally();
 };
 
 #endif // KISMPLTEST_H

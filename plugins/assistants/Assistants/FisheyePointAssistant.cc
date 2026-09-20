@@ -9,7 +9,6 @@
 
 #include "FisheyePointAssistant.h"
 
-#include "kis_debug.h"
 #include <klocalizedstring.h>
 
 #include <QPainter>

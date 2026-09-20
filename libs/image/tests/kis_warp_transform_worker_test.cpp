@@ -12,6 +12,7 @@
 #include "kis_warptransform_worker.h"
 
 #include <KoProgressUpdater.h>
+#include <KoUpdater.h>
 
 struct WarpTransformWorkerData {
 

@@ -22,7 +22,6 @@
 #include "kis_canvas2.h"
 #include "kis_command_utils.h"
 #include "kis_image.h"
-#include "kis_iterator_ng.h"
 #include "kis_selection_tool_helper.h"
 #include "kis_slider_spin_box.h"
 #include "krita_utils.h"

@@ -8,6 +8,7 @@
 
 #include <KisCurveOption.h>
 
+class KisPropertiesConfiguration;
 struct KisScatterOptionData;
 
 class PAINTOP_EXPORT KisScatterOption : public KisCurveOption

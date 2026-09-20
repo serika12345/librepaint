@@ -6,7 +6,6 @@
 #include "KisRectsGridTest.h"
 
 #include "KisRectsGrid.h"
-#include "kis_debug.h"
 
 void KisRectsGridTest::test()
 {

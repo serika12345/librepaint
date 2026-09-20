@@ -21,7 +21,7 @@
 #include "filter/kis_filter_registry.h"
 #include "filter/kis_filter_configuration.h"
 #include "filter/kis_filter.h"
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "kis_image.h"
 #include "kis_pixel_selection.h"
 #include "kis_group_layer.h"
@@ -36,6 +36,7 @@
 #include "kis_fill_painter.h"
 #include "kis_shape_selection.h"
 #include "kis_default_bounds.h"
+#include "kis_transform_mask.h"
 #include "kis_transform_mask_params_interface.h"
 #include "kis_shape_controller.h"
 #include <KisGlobalResourcesInterface.h>

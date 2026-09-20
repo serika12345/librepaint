@@ -7,6 +7,7 @@
 
 #include <QMouseEvent>
 #include <QLabel>
+#include <ksharedconfig.h>
 
 #include "kis_shade_selector_line_editor.h"
 #include "kis_double_parse_spin_box.h"
@@ -111,4 +112,3 @@ void KisShadeSelectorLineEditor::valueChanged() {
 void KisShadeSelectorLineEditor::mousePressEvent(QMouseEvent* e) {
     e->accept();
 }
-

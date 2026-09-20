@@ -11,7 +11,6 @@
 #include <QDomElement>
 
 #include "kis_properties_configuration.h"
-#include <KisPaintopSettingsIds.h>
 #include <kis_brush.h>
 
 #include <KoCanvasResourcesInterface.h>

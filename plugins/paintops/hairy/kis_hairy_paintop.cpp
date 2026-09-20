@@ -5,12 +5,11 @@
  */
 
 #include "kis_hairy_paintop.h"
-#include "kis_hairy_paintop_settings.h"
 
-#include <cmath>
 #include <QRect>
 
 #include <kis_image.h>
+#include <kis_node.h>
 #include <kis_debug.h>
 
 #include "kis_paint_device.h"

@@ -36,18 +36,18 @@
 #include "KisCanvasAnimationState.h"
 #include "kis_canvas2.h"
 #include "kis_custom_modifiers_catcher.h"
-#include "application/kis_action.h"
+#include "application/ui/orchestration/kis_action.h"
+#include "application/ui/orchestration/kis_action_manager.h"
 #include "kis_signal_compressor.h"
 #include "kis_time_span.h"
 #include "kis_color_label_selector_widget.h"
 #include "kis_layer_filter_widget.h"
 #include "kis_keyframe_channel.h"
-#include "kis_slider_spin_box.h"
 #include "kis_signals_blocker.h"
 #include "kis_image_config.h"
 #include "widgets/kis_zoom_scrollbar.h"
 #include "KisImportExportManager.h"
-#include "KoFileDialog.h"
+#include <qdir.h>
 #include "KisIconToolTip.h"
 
 typedef QPair<QRect, QModelIndex> QItemViewPaintPair;

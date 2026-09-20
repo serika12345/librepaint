@@ -27,15 +27,16 @@
 
 #include <kis_types.h>
 #include <kis_image.h>
+#include <kis_node.h>
 #include <kis_layer_utils.h>
 #include <kis_selection.h>
 #include <kis_paint_device.h>
 #include <selection/kis_selection_manager.h>
 #include "kis_memory_statistics_server.h"
 
-#include "workspace/KisView.h"
+#include "application/ui/workspace/KisView.h"
 #include "document/KisDocument.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "canvas/kis_canvas2.h"
 #include "kis_progress_widget.h"
 #include "canvas/kis_zoom_manager.h"
@@ -43,7 +44,7 @@
 #include <kis_canvas_controller.h>
 #include <kis_signals_blocker.h>
 
-#include "workspace/KisMainWindow.h"
+#include "application/ui/workspace/KisMainWindow.h"
 #include "application/kis_config.h"
 
 #include "widgets/KisMemoryReportButton.h"

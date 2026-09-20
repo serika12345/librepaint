@@ -11,41 +11,31 @@
 #include "kis_duplicateop.h"
 #include "kis_duplicateop_p.h"
 
-#include <string.h>
 #include <memory>
 
+#include <QColor>
+#include <QPoint>
 #include <QRect>
-#include <QLayout>
-#include <QCheckBox>
-#include <QDomElement>
-#include <QHBoxLayout>
 
 #include <kis_image.h>
-#include <kis_debug.h>
+#include <kis_node.h>
 
-#include <KoColorTransformation.h>
 #include <KoColor.h>
 #include <KoColorSpace.h>
-#include <KoCompositeOpRegistry.h>
+#include <KoCompositeOpIds.h>
 #include <KoColorSpaceRegistry.h>
 
 #include <kis_brush.h>
-#include <kis_datamanager.h>
-#include <kis_global.h>
-#include <kis_paint_device.h>
-#include <kis_painter.h>
-#include <brushengine/kis_paintop.h>
-#include <kis_properties_configuration.h>
-#include <kis_selection.h>
-#include <kis_brush_option_widget.h>
-#include <kis_paintop_settings_widget.h>
-#include <kis_random_sub_accessor.h>
+#include <kis_dab_shape.h>
+#include <kis_dab_cache.h>
 #include <kis_fixed_paint_device.h>
 #include <kis_iterator_ng.h>
+#include <kis_paint_information.h>
+#include <kis_paint_device.h>
+#include <kis_painter.h>
 #include <kis_spacing_information.h>
 
 #include "kis_duplicateop_settings.h"
-#include "kis_duplicateop_settings_widget.h"
 #include <KisDuplicateOptionData.h>
 
 KisDuplicateOp::KisDuplicateOp(const KisPaintOpSettingsSP settings, KisPainter *painter, KisNodeSP node, KisImageSP image)

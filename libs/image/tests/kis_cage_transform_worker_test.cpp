@@ -17,6 +17,7 @@
 #include <kistest.h>
 
 #include <kis_cage_transform_worker.h>
+#include <KisRegion.h>
 #include <algorithm>
 
 void testCage(bool clockwise, bool unityTransform, bool benchmarkPrepareOnly = false, int pixelPrecision = 8, bool testQImage = false)

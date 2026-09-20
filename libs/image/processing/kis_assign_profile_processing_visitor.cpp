@@ -9,7 +9,7 @@
 #include "kis_external_layer_iface.h"
 
 #include "kis_paint_device.h"
-#include "kis_transaction.h"
+#include <kundo2command.h>
 #include "kis_undo_adapter.h"
 #include "kis_transform_mask.h"
 #include "lazybrush/kis_colorize_mask.h"

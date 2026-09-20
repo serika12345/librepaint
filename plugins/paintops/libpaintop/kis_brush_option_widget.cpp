@@ -15,7 +15,6 @@
 #include <lager/state.hpp>
 #include "KisBrushModel.h"
 #include "kis_precision_option.h"
-#include "kis_paintop_lod_limitations.h"
 
 #include "KisAutoBrushModel.h"
 #include "KisPredefinedBrushModel.h"

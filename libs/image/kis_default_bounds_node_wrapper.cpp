@@ -6,6 +6,7 @@
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
 #include "kis_global.h"
+#include "kis_paint_device.h"
 
 struct Q_DECL_HIDDEN KisDefaultBoundsNodeWrapper::Private {
     KisBaseNodeWSP node;
@@ -71,4 +72,3 @@ void *KisDefaultBoundsNodeWrapper::sourceCookie() const
 {
     return m_d->node->original() ? m_d->node->original()->defaultBounds()->sourceCookie() : nullptr;
 }
-

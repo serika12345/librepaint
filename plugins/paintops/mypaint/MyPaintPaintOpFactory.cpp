@@ -12,12 +12,12 @@
 #include <QJsonDocument>
 
 #include <kis_icon.h>
+#include <kis_image.h>
 #include <KoResourceServer.h>
 #include <KoResourceServerProvider.h>
 #include <KoResourceLoadResult.h>
 
 #include "MyPaintPaintOp.h"
-#include "MyPaintPaintOpPreset.h"
 #include "MyPaintPaintOpSettings.h"
 #include "MyPaintPaintOpSettingsWidget.h"
 

@@ -12,7 +12,7 @@ target_link_libraries(kritadbexplorer
     PRIVATE
         kritaresources
         kritaresourceui
-        kritaui
+        kritaapplicationui
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Widgets
         Qt${QT_MAJOR_VERSION}::Sql

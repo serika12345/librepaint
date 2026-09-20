@@ -7,6 +7,9 @@
 #include <QScreen>
 #include <QGuiApplication>
 #include <QApplication>
+#include <QEvent>
+#include <QKeyEvent>
+#include <QMouseEvent>
 #include <QScreen>
 #include <QColor>
 #include <QVBoxLayout>
@@ -17,12 +20,15 @@
 
 #include <kis_canvas2.h>
 
+#include <KoColor.h>
+
 #include "kis_shared_ptr.h"
 #include "kis_icon.h"
 #include "kis_image.h"
+#include "kis_paint_device.h"
 #include "kis_wrapped_rect.h"
 #include "document/KisDocument.h"
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "KisReferenceImagesLayer.h"
 #include "KisScreenColorSampler.h"
 #include "KisDlgInternalColorSelector.h"
@@ -322,4 +328,3 @@ bool KisScreenColorSamplingEventFilter::eventFilter(QObject *, QEvent *event)
 KIS_DECLARE_STATIC_INITIALIZER {
     KisDlgInternalColorSelector::setScreenColorSamplerFactory(KisScreenColorSampler::createScreenColorSampler);
 }
-

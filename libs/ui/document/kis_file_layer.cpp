@@ -10,14 +10,13 @@
 
 #include "kis_transform_worker.h"
 #include "kis_filter_strategy.h"
-#include "kis_node_progress_proxy.h"
 #include "kis_node_visitor.h"
 #include "kis_image.h"
 #include "kis_types.h"
 #include "commands_new/kis_node_move_command2.h"
 #include "kis_default_bounds.h"
 #include "kis_layer_properties_icons.h"
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
 #include <QDir>
 

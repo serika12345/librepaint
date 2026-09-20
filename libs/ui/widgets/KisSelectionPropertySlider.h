@@ -7,12 +7,14 @@
 #ifndef KISSELECTIONPROPERTYSLIDER_H
 #define KISSELECTIONPROPERTYSLIDER_H
 
+#include <QList>
 #include <QObject>
 
-#include <KoShape.h>
 #include <kritaui_export.h>
 #include <kis_signals_blocker.h>
 #include "kis_slider_spin_box.h"
+
+class KoShape;
 
 class KRITAUI_EXPORT KisSelectionPropertySliderBase : public KisDoubleSliderSpinBox
 {

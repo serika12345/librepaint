@@ -13,17 +13,12 @@ class TestPathSegment : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-    void segmentAssign();
-    void segmentCopy();
-    void segmentDegree();
-    void segmentConvexHull();
-    void segmentPointAt();
-    void segmentSplitAt();
-    void segmentIntersections();
-    void segmentLength();
-    void segmentFlatness();
-    void nearestPoint();
-    void paramAtLength();
+    void constructsCopiesAssignsAndOwnsDetachedEndpoints();
+    void evaluatesStableLineQuadraticAndCubicGeometry();
+    void transformsConvertsSplitsAndInterpolatesWithoutMutatingSource();
+    void measuresLengthAndMapsArcParameters();
+    void findsIntersectionsAndNearestParameters();
+    void classifiesFlatnessAndReportsNormalizedDirection();
 };
 
 #endif // TESTPATHSEGMENT_H

@@ -7,7 +7,10 @@
 #ifndef KISLOCKEDPROPERTIES_H
 #define KISLOCKEDPROPERTIES_H
 
-#include "kis_properties_configuration.h"
+#include "kis_shared.h"
+#include "kis_types.h"
+
+class QString;
 
 /**
  * This class maintains a list of all the PaintOp Options that are supposed to be

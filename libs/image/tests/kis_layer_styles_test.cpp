@@ -8,7 +8,6 @@
 
 #include <simpletest.h>
 
-#include "kis_transaction.h"
 
 #include <KoColor.h>
 

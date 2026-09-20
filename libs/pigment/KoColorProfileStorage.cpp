@@ -12,11 +12,9 @@
 #include <QReadWriteLock>
 #include <QString>
 
-#include "DebugPigment.h"
 #include "KoColorSpaceFactory.h"
 #include "KoColorProfile.h"
 #include "KoColorProfileQuery.h"
-#include "kis_assert.h"
 
 
 struct KoColorProfileStorage::Private {

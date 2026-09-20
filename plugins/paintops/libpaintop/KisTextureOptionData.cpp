@@ -6,7 +6,6 @@
 #include "KisTextureOptionData.h"
 
 #include <kis_properties_configuration.h>
-#include <kis_paintop_lod_limitations.h>
 
 bool KisTextureOptionData::read(const KisPropertiesConfiguration *setting)
 {
@@ -58,13 +57,4 @@ void KisTextureOptionData::write(KisPropertiesConfiguration *setting) const
     setting->setProperty("Texture/Pattern/AutoInvertOnErase", autoInvertOnErase);
     setting->setProperty("Texture/Pattern/isRandomOffsetX", isRandomOffsetX);
     setting->setProperty("Texture/Pattern/isRandomOffsetY", isRandomOffsetY);
-}
-
-KisPaintopLodLimitations KisTextureOptionData::lodLimitations() const
-{
-    KisPaintopLodLimitations l;
-    if (isEnabled) {
-        l.limitations << KoID("texture-pattern", i18nc("PaintOp instant preview limitation", "Texture->Pattern (low quality preview)"));
-    }
-    return l;
 }

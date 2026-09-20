@@ -17,8 +17,6 @@
 #include <kis_fixed_paint_device.h>
 #include <brushengine/kis_paintop.h>
 
-#include <kundo2command.h>
-
 struct PrecisionValues {
     qreal angle;
     qreal sizeFrac;
@@ -285,4 +283,3 @@ void KisDabCacheBase::fetchDabGenerationInfo(bool hasDabInCache,
 
     di->needsPostprocessing = needSeparateOriginal(resources->textureOption.get(), resources->sharpnessOption.get());
 }
-

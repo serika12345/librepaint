@@ -8,6 +8,8 @@
 #ifndef KIS_KRA_LOAD_VISITOR_H_
 #define KIS_KRA_LOAD_VISITOR_H_
 
+#include <QHash>
+#include <QMap>
 #include <QStringList>
 
 // kritaimage
@@ -16,11 +18,9 @@
 
 #include "kritalibkra_export.h"
 
-class KisFilterConfiguration;
 class KoStore;
 class KoShapeControllerBase;
 class KoColorProfile;
-class KisNodeFilterInterface;
 
 class KRITALIBKRA_EXPORT KisKraLoadVisitor : public KisNodeVisitor
 {
@@ -100,4 +100,3 @@ private:
 };
 
 #endif // KIS_KRA_LOAD_VISITOR_H_
-

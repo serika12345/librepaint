@@ -8,7 +8,6 @@
 
 #include "kis_gradient_painter.h"
 
-#include <algorithm>
 #include <cfloat>
 
 #include <KoColorSpace.h>

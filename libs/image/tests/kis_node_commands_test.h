@@ -7,15 +7,15 @@
 #ifndef KIS_NODE_COMMANDS_TEST_H
 #define KIS_NODE_COMMANDS_TEST_H
 
-#include <simpletest.h>
+#include <QObject>
 
 class KisNodeCommandsTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
 
-    void testCreation();
-
+    void constructorPreservesTextAndNullNode();
+    void destructorReleasesHeldNodeReference();
 };
 
 #endif

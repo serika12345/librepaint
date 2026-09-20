@@ -11,7 +11,6 @@
 #include <QScopedPointer>
 
 #include <KoID.h>
-#include <klocalizedstring.h>
 
 #include "kritaimage_export.h"
 
@@ -19,9 +18,9 @@ class QDomElement;
 class QDomDocument;
 class KisBrushMaskApplicatorBase;
 
-const KoID DefaultId("default", ki18n("Default")); ///< generate Krita default mask generator
-const KoID SoftId("soft", ki18n("Soft")); ///< generate brush mask from former softbrush paintop, where softness is based on curve
-const KoID GaussId("gauss", ki18n("Gaussian")); ///< generate brush mask with a Gaussian-blurred edge
+extern const KoID KRITAIMAGE_EXPORT DefaultId; ///< generate Krita default mask generator
+extern const KoID KRITAIMAGE_EXPORT SoftId; ///< generate brush mask from former softbrush paintop, where softness is based on curve
+extern const KoID KRITAIMAGE_EXPORT GaussId; ///< generate brush mask with a Gaussian-blurred edge
 
 static const int OVERSAMPLING = 4;
 

@@ -11,6 +11,7 @@
 
 #include <QDomDocument>
 #include <QIODevice>
+#include <QPen>
 #include <QString>
 #include <QVector>
 #include <functional>
@@ -18,8 +19,7 @@
 #include <kis_types.h>
 #include <kis_global.h>
 
-#include <kis_node.h>
-#include <kis_paint_device.h>
+#include <kis_filter_configuration.h>
 #include <kis_generator_registry.h>
 #include <KisGlobalResourcesInterface.h>
 #include <KisEmbeddedResourceStorageProxy.h>

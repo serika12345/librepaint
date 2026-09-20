@@ -17,6 +17,7 @@ private Q_SLOTS:
     void testRotation();
     void testBubbleUp();
     void testSortedList();
+    void testSortedListAccessAndClear();
 };
 
 #endif // KISHISTORYLISTTEST_H

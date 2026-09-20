@@ -7,7 +7,6 @@
 #define KIS_OPENGL_IMAGE_TEXTURES_H_
 
 #include <QVector>
-#include <QMap>
 #include <QOpenGLFunctions>
 
 #include "kritaui_export.h"

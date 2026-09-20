@@ -13,10 +13,13 @@
 #include <QMouseEvent>
 
 #include <KoColor.h>
+#include "kritawidgets_export.h"
 #include "KoColorDisplayRendererInterface.h"
 
-#include "KisVisualColorSelector.h"
 #include "KisColorSelectorConfiguration.h"
+
+class KisVisualColorModel;
+class KisVisualColorSelector;
 
 /**
  * @brief The KisVisualColorSelectorShape class
@@ -30,7 +33,7 @@
  * can be calculated properly.
  */
 
-class KisVisualColorSelectorShape : public QWidget
+class KRITAWIDGETS_EXPORT KisVisualColorSelectorShape : public QWidget
 {
     Q_OBJECT
 public:

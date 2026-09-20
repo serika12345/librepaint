@@ -29,6 +29,7 @@
 #include <KisTagResourceModel.h>
 #include <KisResourceModel.h>
 #include <KisResourceTypes.h>
+#include <KisTemporaryResourceStorageLock.h>
 
 #include <DummyResource.h>
 #include <ResourceTestHelper.h>
@@ -189,6 +190,46 @@ void TestResourceLocator::testDocumentStorage()
     QVERIFY(!m_locator->hasStorage(documentName));
 
     QVERIFY(model.rowCount() == rowcount);
+}
+
+void TestResourceLocator::testTemporaryLayerStyleStoragesDoNotCollide()
+{
+    // Consumer: Layer Style dialogs that expose immutable dependencies through a temporary resource storage.
+    // Operation: Two dialogs open styles with the same name, add a dependency to the first storage, and then close in turn.
+    // Observable result: Each dialog has a distinct registered storage; closing one preserves the other's resource and closing both removes it.
+    // Failure impact: Concurrent style editing can hide a dependency, delete another dialog's resource, or leave stale resources after closing.
+    KisResourceModel model(ResourceType::PaintOpPresets);
+    model.setResourceFilter(KisResourceModel::ShowAllResources);
+    const int originalRowCount = model.rowCount();
+
+    QString firstStorageLocation;
+    QString secondStorageLocation;
+    {
+        KisTemporaryResourceStorageLock firstLock(QStringLiteral("temporary layer style"));
+        firstStorageLocation = firstLock.storageLocation();
+        QVERIFY(!firstStorageLocation.isEmpty());
+        QVERIFY(m_locator->hasStorage(firstStorageLocation));
+
+        KoResourceSP dependency(new DummyResource("layer-style-dependency.kpp", ResourceType::PaintOpPresets));
+        dependency->setValid(true);
+        QVERIFY(model.addResource(dependency, firstStorageLocation));
+        QCOMPARE(model.rowCount(), originalRowCount + 1);
+
+        {
+            KisTemporaryResourceStorageLock secondLock(QStringLiteral("temporary layer style"));
+            secondStorageLocation = secondLock.storageLocation();
+            QVERIFY(!secondStorageLocation.isEmpty());
+            QVERIFY(firstStorageLocation != secondStorageLocation);
+            QVERIFY(m_locator->hasStorage(secondStorageLocation));
+        }
+
+        QVERIFY(!m_locator->hasStorage(secondStorageLocation));
+        QVERIFY(m_locator->hasStorage(firstStorageLocation));
+        QCOMPARE(model.rowCount(), originalRowCount + 1);
+    }
+
+    QVERIFY(!m_locator->hasStorage(firstStorageLocation));
+    QCOMPARE(model.rowCount(), originalRowCount);
 }
 
 int countMetaDataForResourceImpl(int resourceId, const QString &tableName)

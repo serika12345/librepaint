@@ -7,15 +7,24 @@
 #include "kis_view_signals_test.h"
 
 #include <QApplication>
+#include <QDialogButtonBox>
 #include <QScopedPointer>
 #include <QSignalSpy>
+#include <QTabWidget>
 #include <QTimer>
 
+#include <KPageDialog>
+#include <KPageWidgetItem>
+
 #include <document/KisDocument.h>
-#include <workspace/KisMainWindow.h>
-#include <application/KisPart.h>
-#include <workspace/KisView.h>
-#include <workspace/KisViewManager.h>
+#include <dialogs/kis_dlg_preferences.h>
+#include <application/ui/orchestration/kis_action.h>
+#include <application/ui/orchestration/kis_action_manager.h>
+#include <application/ui/workspace/KisMainWindow.h>
+#include <application/ui/orchestration/KisPart.h>
+#include <application/ui/workspace/KisView.h>
+#include <application/ui/workspace/KisViewManager.h>
+#include <kis_transform_mask.h>
 #include <opengl/kis_opengl.h>
 
 #include <KoInteractionTool.h>
@@ -189,6 +198,65 @@ void KisViewSignalsTest::testBackgroundColorChanged()
     QScopedPointer<ManagedColor> changedColor(m_view->backgroundColor());
     QVERIFY(changedColor);
     QVERIFY(*changedColor == *targetColor);
+}
+
+void KisViewSignalsTest::testConfigureActionOpensToolsPreferences()
+{
+    /*
+     * Consumer: The selection actions panel's Configure action.
+     * Operation: Requests the General / Tools preferences destination and triggers the action.
+     * Observable result: The modal preferences dialog presents the General page with the Tools tab selected.
+     * Failure impact: Users configuring the selection actions panel land on unrelated preferences.
+     */
+    KisAction *configureAction = m_viewManager->actionManager()->actionByName(
+        QStringLiteral("options_configure"));
+    QVERIFY(configureAction);
+
+    configureAction->setData(QVariantList {
+        KisDlgPreferences::Page::General,
+        KisDlgPreferences::GeneralTabs::Tools,
+    });
+
+    bool dialogWasShown = false;
+    QString pageName;
+    QString tabName;
+
+    QTimer closeGuard;
+    closeGuard.setSingleShot(true);
+    connect(&closeGuard, &QTimer::timeout, []() {
+        if (QWidget *modalWidget = QApplication::activeModalWidget()) {
+            modalWidget->close();
+        }
+    });
+    closeGuard.start(5000);
+
+    QTimer::singleShot(0, this, [&]() {
+        KPageDialog *dialog = qobject_cast<KPageDialog *>(QApplication::activeModalWidget());
+        if (!dialog) {
+            return;
+        }
+
+        dialogWasShown = true;
+        if (KPageWidgetItem *page = dialog->currentPage()) {
+            pageName = page->name();
+            if (QTabWidget *tabs = page->widget()->findChild<QTabWidget *>()) {
+                tabName = tabs->tabText(tabs->currentIndex());
+            }
+        }
+
+        if (QPushButton *cancelButton = dialog->button(QDialogButtonBox::Cancel)) {
+            cancelButton->click();
+        } else {
+            dialog->reject();
+        }
+    });
+
+    configureAction->trigger();
+    closeGuard.stop();
+
+    QVERIFY(dialogWasShown);
+    QCOMPARE(pageName, QStringLiteral("General"));
+    QCOMPARE(tabName, QStringLiteral("Tools"));
 }
 
 KISTEST_MAIN(KisViewSignalsTest)

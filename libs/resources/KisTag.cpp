@@ -8,10 +8,6 @@
 
 #include <QIODevice>
 #include <QLocale>
-#include <QBuffer>
-#include <QStandardPaths>
-#include <QFile>
-#include <QTextCodec>
 #include <QTextStream>
 
 #include <KLocalizedString>
@@ -314,4 +310,3 @@ void KisTag::setValid(bool valid)
 {
     d->valid = valid;
 }
-

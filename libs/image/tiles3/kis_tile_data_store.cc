@@ -6,12 +6,10 @@
  */
 
 // to disable assert when the leak tracker is active
-#include "config-memory-leak-tracker.h"
 
 #include <QGlobalStatic>
 
 #include "kis_tile_data_store.h"
-#include "kis_tile_data.h"
 #include "kis_debug.h"
 
 #include "kis_tile_data_store_iterators.h"

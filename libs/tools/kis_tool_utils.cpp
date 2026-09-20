@@ -12,6 +12,8 @@
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
 #include "kis_layer_utils.h"
+#include "kis_node.h"
+#include "kis_selection.h"
 #include "kis_command_utils.h"
 #include "kis_processing_applicator.h"
 

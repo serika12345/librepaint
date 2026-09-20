@@ -6,7 +6,6 @@
 
 #include "KoPathToolFactory.h"
 #include "KoPathTool.h"
-#include "KoPathShape.h"
 #include <kis_action_registry.h>
 
 #include <KoIcon.h>

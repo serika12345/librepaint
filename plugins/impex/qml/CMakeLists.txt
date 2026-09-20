@@ -7,6 +7,6 @@ set(kritaqmlexport_SOURCES
 
 kis_add_library(kritaqmlexport MODULE ${kritaqmlexport_SOURCES})
 
-target_link_libraries(kritaqmlexport kritaui kritaimpex)
+target_link_libraries(kritaqmlexport kritaapplicationui kritaimpex)
 
 install(TARGETS kritaqmlexport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

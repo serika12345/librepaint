@@ -8,16 +8,9 @@
 
 #include <klocalizedstring.h>
 
-#include "commands_new/kis_node_move_command2.h"
 
-#include "kis_group_layer.h"
-#include "kis_paint_layer.h"
-#include "kis_adjustment_layer.h"
-#include "generator/kis_generator_layer.h"
 
 #include "kis_transparency_mask.h"
-#include "kis_filter_mask.h"
-#include "kis_selection_mask.h"
 
 #include "kis_external_layer_iface.h"
 

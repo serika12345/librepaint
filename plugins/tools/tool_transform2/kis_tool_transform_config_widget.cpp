@@ -8,16 +8,15 @@
 #include "kis_tool_transform_config_widget.h"
 
 #include <kis_icon.h>
-#include "rotation_icons.h"
 #include "kis_canvas2.h"
 #include <KisSignalMapper.h>
 #include "kis_liquify_properties.h"
 
-#include "workspace/KisMainWindow.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisMainWindow.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "kis_transform_utils.h"
-#include "kis_config_notifier.h"
 #include <kstandardguiitem.h>
+#include <ksharedconfig.h>
 #include <KisSpinBoxI18nHelper.h>
 
 

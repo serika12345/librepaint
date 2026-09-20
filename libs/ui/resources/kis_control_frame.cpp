@@ -21,9 +21,10 @@
 #include <QHBoxLayout>
 #include <QWidgetAction>
 
-#include <klocalizedstring.h>
 #include <QAction>
 #include <kactioncollection.h>
+#include <klocalizedstring.h>
+#include <ksharedconfig.h>
 
 #include <KoDualColorButton.h>
 #include <KoForegroundColour.h>
@@ -43,7 +44,7 @@
 #include "widgets/kis_iconwidget.h"
 
 #include "widgets/gradient/KisGradientChooser.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "application/kis_config.h"
 #include "tool/kis_paintop_box.h"
 #include "KisDockerHud.h"

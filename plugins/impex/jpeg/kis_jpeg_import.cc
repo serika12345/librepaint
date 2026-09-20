@@ -11,7 +11,7 @@
 
 #include <document/KisDocument.h>
 #include <kis_image.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <KisImportExportManager.h>
 
 #include "kis_jpeg_converter.h"

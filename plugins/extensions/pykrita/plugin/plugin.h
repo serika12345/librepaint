@@ -11,7 +11,7 @@
 
 #include <QObject>
 
-#include <application/KisActionPlugin.h>
+#include <application/ui/orchestration/KisActionPlugin.h>
 #include "PythonPluginManager.h"
 
 class KritaPyQtPlugin : public QObject

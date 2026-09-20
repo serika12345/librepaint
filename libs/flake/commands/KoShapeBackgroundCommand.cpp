@@ -13,6 +13,52 @@
 
 #include "kis_command_ids.h"
 
+namespace
+{
+using BackgroundReader = QSharedPointer<KoShapeBackground> (*)(const KoShape *shape);
+using BackgroundWriter = void (*)(KoShape *shape, QSharedPointer<KoShapeBackground> background);
+using ShapeUpdater = void (*)(const KoShape *shape);
+
+QSharedPointer<KoShapeBackground> readBackground(const KoShape *shape)
+{
+    return shape->background();
+}
+
+void writeBackground(KoShape *shape, QSharedPointer<KoShapeBackground> background)
+{
+    shape->setBackground(background);
+}
+
+void updateShape(const KoShape *shape)
+{
+    shape->update();
+}
+
+BackgroundReader activeBackgroundReader = readBackground;
+BackgroundWriter activeBackgroundWriter = writeBackground;
+ShapeUpdater activeShapeUpdater = updateShape;
+} // namespace
+
+#ifdef KRITAFLAKE_SHAPE_BACKGROUND_COMMAND_CONTRACT_TESTING
+namespace KoShapeBackgroundCommandTesting
+{
+void setShapeAccessForTesting(BackgroundReader reader,
+                              BackgroundWriter writer,
+                              ShapeUpdater updater)
+{
+    activeBackgroundReader = reader;
+    activeBackgroundWriter = writer;
+    activeShapeUpdater = updater;
+}
+
+void resetShapeAccessForTesting()
+{
+    activeBackgroundReader = readBackground;
+    activeBackgroundWriter = writeBackground;
+    activeShapeUpdater = updateShape;
+}
+} // namespace KoShapeBackgroundCommandTesting
+#endif
 
 class Q_DECL_HIDDEN KoShapeBackgroundCommand::Private
 {
@@ -46,7 +92,7 @@ KoShapeBackgroundCommand::KoShapeBackgroundCommand(const QList<KoShape*> &shapes
 {
     d->shapes = shapes;
     Q_FOREACH (KoShape *shape, d->shapes) {
-        d->addOldFill(shape->background());
+        d->addOldFill(activeBackgroundReader(shape));
         d->addNewFill(fill);
     }
 
@@ -58,7 +104,7 @@ KoShapeBackgroundCommand::KoShapeBackgroundCommand(KoShape * shape, QSharedPoint
         , d(new Private())
 {
     d->shapes.append(shape);
-    d->addOldFill(shape->background());
+    d->addOldFill(activeBackgroundReader(shape));
     d->addNewFill(fill);
 
     setText(kundo2_i18n("Set background"));
@@ -70,7 +116,7 @@ KoShapeBackgroundCommand::KoShapeBackgroundCommand(const QList<KoShape*> &shapes
 {
     d->shapes = shapes;
     Q_FOREACH (KoShape *shape, d->shapes) {
-        d->addOldFill(shape->background());
+        d->addOldFill(activeBackgroundReader(shape));
     }
     foreach (QSharedPointer<KoShapeBackground>  fill, fills) {
         d->addNewFill(fill);
@@ -84,8 +130,8 @@ void KoShapeBackgroundCommand::redo()
     KUndo2Command::redo();
     QList<QSharedPointer<KoShapeBackground> >::iterator brushIt = d->newFills.begin();
     Q_FOREACH (KoShape *shape, d->shapes) {
-        shape->setBackground(*brushIt);
-        shape->update();
+        activeBackgroundWriter(shape, *brushIt);
+        activeShapeUpdater(shape);
         ++brushIt;
     }
 }
@@ -95,8 +141,8 @@ void KoShapeBackgroundCommand::undo()
     KUndo2Command::undo();
     QList<QSharedPointer<KoShapeBackground> >::iterator brushIt = d->oldFills.begin();
     Q_FOREACH (KoShape *shape, d->shapes) {
-        shape->setBackground(*brushIt);
-        shape->update();
+        activeBackgroundWriter(shape, *brushIt);
+        activeShapeUpdater(shape);
         ++brushIt;
     }
 }

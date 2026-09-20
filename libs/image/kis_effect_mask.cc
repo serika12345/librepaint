@@ -9,7 +9,6 @@
 
 #include <KoIcon.h>
 #include <kis_icon.h>
-#include "kis_image.h"
 
 KisEffectMask::KisEffectMask(KisImageWSP image, const QString &name)
         : KisMask(image, name)

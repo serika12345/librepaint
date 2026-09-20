@@ -11,6 +11,7 @@
 #include <kis_painter.h>
 #include <kis_node.h>
 #include <kis_indirect_painting_support.h>
+#include <KoColorSpaceConstants.h>
 
 
 KisFlowOpacityOption2::KisFlowOpacityOption2(const KisPropertiesConfiguration *setting, KisNodeSP currentNode)
@@ -44,6 +45,4 @@ void KisFlowOpacityOption2::apply(const KisPaintInformation &info, qreal *opacit
     }
     *flow = m_flowOption.apply(info);
 }
-
-
 

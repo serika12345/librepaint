@@ -16,16 +16,14 @@
 #include "filter/kis_filter.h"
 #include "filter/kis_filter_configuration.h"
 #include "filter/kis_filter_registry.h"
-#include "kis_selection.h"
 
 #include "scheduler_utils.h"
 #include "kis_update_scheduler.h"
 #include "kis_updater_context.h"
 #include "kis_update_job_item.h"
-#include "kis_simple_update_queue.h"
 #include <KisGlobalResourcesInterface.h>
 
-#include "../../sdk/tests/testutil.h"
+#include "qimage_test_util.h"
 #include "kistest.h"
 
 
@@ -417,4 +415,3 @@ void KisUpdateSchedulerTest::testLodSync()
 }
 
 KISTEST_MAIN(KisUpdateSchedulerTest)
-

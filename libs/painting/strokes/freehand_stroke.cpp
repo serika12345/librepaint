@@ -39,6 +39,16 @@ struct FreehandStrokeStrategy::Private
         }
     }
 
+    Private(KisResourcesSnapshotSP _resources, int dabRandomSeed)
+        : randomSource(dabRandomSeed)
+        , resources(_resources)
+        , needsAsynchronousUpdates(_resources->presetNeedsAsynchronousUpdates())
+    {
+        if (needsAsynchronousUpdates) {
+            timeSinceLastUpdate.start();
+        }
+    }
+
     Private(const Private &rhs)
         : randomSource(rhs.randomSource),
           resources(rhs.resources),
@@ -69,6 +79,17 @@ FreehandStrokeStrategy::FreehandStrokeStrategy(KisResourcesSnapshotSP resources,
     : KisPainterBasedStrokeStrategy(QLatin1String("FREEHAND_STROKE"), name,
                                     resources, strokeInfo),
       m_d(new Private(resources))
+{
+    init(flags);
+}
+
+FreehandStrokeStrategy::FreehandStrokeStrategy(KisResourcesSnapshotSP resources,
+                                               KisFreehandStrokeInfo *strokeInfo,
+                                               const KUndo2MagicString &name,
+                                               Flags flags,
+                                               int dabRandomSeed)
+    : KisPainterBasedStrokeStrategy(QLatin1String("FREEHAND_STROKE"), name, resources, strokeInfo)
+    , m_d(new Private(resources, dabRandomSeed))
 {
     init(flags);
 }

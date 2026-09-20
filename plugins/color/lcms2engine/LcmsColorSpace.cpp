@@ -8,7 +8,6 @@
 
 #include "LcmsColorSpace.h"
 #include "KoColorConversionTransformationFactory.h"
-#include "KoColorModelStandardIds.h"
 
 #include "QDebug"
 

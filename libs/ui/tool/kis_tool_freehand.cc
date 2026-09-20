@@ -27,6 +27,7 @@
 #include <canvas/kis_canvas_resource_provider.h>
 
 // Krita/image
+#include <kis_image.h>
 #include <kis_layer.h>
 #include <kis_paint_layer.h>
 #include <kis_painter.h>
@@ -43,11 +44,10 @@
 #include "kis_image_config.h"
 #include "canvas/kis_canvas2.h"
 #include "kis_cursor.h"
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_painting_assistants_decoration.h>
 #include "kis_painting_information_builder_adapters.h"
 #include "kis_tool_freehand_helper.h"
-#include "strokes/freehand_stroke.h"
 #include "kis_tool_utils.h"
 
 using namespace std::placeholders; // For _1 placeholder
@@ -495,4 +495,3 @@ KisOptimizedBrushOutline KisToolFreehand::getOutlinePath(const QPointF &document
     else
         return KisOptimizedBrushOutline();
 }
-

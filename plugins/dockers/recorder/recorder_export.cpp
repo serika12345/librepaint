@@ -29,7 +29,6 @@
 #include <QImageReader>
 #include <QElapsedTimer>
 
-#include "kis_debug.h"
 
 #ifdef Q_OS_ANDROID
 #include <KisMediaEncoderFormatPreferencesDialog.h>

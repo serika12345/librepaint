@@ -12,7 +12,6 @@
 #include <kis_tool.h>
 #include <KoToolRegistry.h>
 
-#include "kis_paint_device.h"
 #include "kis_tool_lazy_brush.h"
 
 

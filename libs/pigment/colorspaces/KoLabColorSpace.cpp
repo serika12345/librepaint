@@ -16,7 +16,6 @@
 #include <klocalizedstring.h>
 
 #include "KoChannelInfo.h"
-#include "KoID.h"
 #include "KoIntegerMaths.h"
 #include "KoColorConversions.h"
 

@@ -7,7 +7,6 @@
 #include "KisBezierGradientMesh.h"
 
 #include "kis_grid_interpolation_tools.h"
-#include "kis_debug.h"
 #include "kis_dom_utils.h"
 
 namespace KisBezierGradientMeshDetail {

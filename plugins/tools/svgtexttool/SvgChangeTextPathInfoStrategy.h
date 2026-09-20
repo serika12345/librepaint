@@ -8,6 +8,8 @@
 
 #include <KoInteractionStrategy.h>
 
+#include <QPointF>
+
 #include <KoSvgTextShape.h>
 #include <KoSvgText.h>
 

@@ -18,10 +18,10 @@ class QPainter;
 struct KisRenderedDab;
 class KisRegion;
 
+#include <QList>
 #include <QVector>
 #include "kritaimage_export.h"
 #include "kis_types.h"
-#include "krita_container_utils.h"
 #include <functional>
 
 

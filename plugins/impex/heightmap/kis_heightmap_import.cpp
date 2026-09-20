@@ -7,7 +7,6 @@
 
 #include "kis_heightmap_import.h"
 
-#include <ctype.h>
 
 #include <QApplication>
 #include <qendian.h>

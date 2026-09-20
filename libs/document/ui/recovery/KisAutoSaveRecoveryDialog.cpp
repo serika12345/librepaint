@@ -20,7 +20,6 @@
 #include <QHeaderView>
 #include <QPainter>
 #include <QCheckBox>
-#include <kis_debug.h>
 
 
 struct FileItem {

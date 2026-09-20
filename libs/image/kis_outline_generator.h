@@ -16,7 +16,7 @@
 
 #include "kritaimage_export.h"
 #include "kis_types.h"
-#include <kis_random_accessor_ng.h>
+
 class KoColorSpace;
 
 
@@ -33,6 +33,7 @@ public:
      * @param defaultOpacity opacity of pixels that shouldn't be included in the outline
      **/
     KisOutlineGenerator(const KoColorSpace* cs, quint8 defaultOpacity);
+    ~KisOutlineGenerator();
 
     /**
      * Generates the outline.

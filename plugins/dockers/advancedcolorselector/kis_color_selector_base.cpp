@@ -25,8 +25,8 @@
 #include "kis_canvas2.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_node.h"
-#include "workspace/KisViewManager.h"
-#include <workspace/KisView.h>
+#include "application/ui/workspace/KisViewManager.h"
+#include <application/ui/workspace/KisView.h>
 #include "kis_image.h"
 #include "kis_global.h"
 #include "kis_display_color_converter.h"

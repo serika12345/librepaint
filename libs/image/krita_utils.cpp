@@ -18,6 +18,7 @@
 #include "kis_algebra_2d.h"
 
 #include <KoColorSpaceRegistry.h>
+#include <KisRegion.h>
 
 #include "kis_image.h"
 #include "kis_image_config.h"

@@ -7,7 +7,7 @@
 #include "DlgColorManagementInfo.h"
 #include <QStandardPaths>
 
-#include <workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisMainWindow.h>
 
 #include <KoPluginLoader.h>
 #include <kpluginfactory.h>
@@ -76,10 +76,10 @@ QString DlgColorManagementInfo::replacementWarningText()
 
 #include <QWindow>
 
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <document/KisDocument.h>
 #include <kis_canvas2.h>
-#include <application/KisPlatformPluginInterfaceFactory.h>
+#include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 
 QString DlgColorManagementInfo::infoText(QSettings& kritarc)
 {

@@ -11,7 +11,7 @@
 #include <QCommandLineOption>
 
 #include "PythonPluginManager.h"
-#include <application/KisApplication.h>
+#include <application/ui/orchestration/KisApplication.h>
 
 #include <opengl/kis_opengl.h>
 

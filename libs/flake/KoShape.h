@@ -17,16 +17,18 @@
 #include <QSet>
 #include <QMap>
 #include <QMetaType>
+#include <QPointF>
+#include <QRectF>
 #include <QSharedDataPointer>
+#include <QSizeF>
+#include <QTransform>
 
 #include <QDomDocument>
 
 #include "kritaflake_export.h"
 
 class QPainter;
-class QRectF;
 class QPainterPath;
-class QTransform;
 
 class KoShapeContainer;
 class KoShapeStrokeModel;

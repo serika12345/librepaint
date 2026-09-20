@@ -11,7 +11,6 @@
 
 #include "input/ui/kis_abstract_input_action.h"
 #include "input/ui/kis_input_profile_manager.h"
-#include "input/kis_shortcut_configuration.h"
 #include "kis_action_shortcuts_model.h"
 #include "kis_input_type_delegate.h"
 #include "kis_input_mode_delegate.h"

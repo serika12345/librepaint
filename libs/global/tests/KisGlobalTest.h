@@ -13,6 +13,7 @@ class KisGlobalTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void testResolveAbsoluteFilePath();
     void testDeduplicateFileName_data();
     void testDeduplicateFileName();
 };

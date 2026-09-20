@@ -7,7 +7,7 @@ set(kritawebpexport_SOURCES
 ki18n_wrap_ui(kritawebpexport_SOURCES kis_wdg_options_webp.ui)
 
 kis_add_library(kritawebpexport MODULE ${kritawebpexport_SOURCES})
-target_link_libraries(kritawebpexport kritaui kritalibkra kritaimpex WebP::webp WebP::libwebpmux)
+target_link_libraries(kritawebpexport kritaapplicationui kritalibkra kritaimpex WebP::webp WebP::libwebpmux)
 
 install(TARGETS kritawebpexport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 
@@ -17,7 +17,7 @@ set(kritawebpimport_SOURCES
 )
 
 kis_add_library(kritawebpimport MODULE ${kritawebpimport_SOURCES})
-target_link_libraries(kritawebpimport kritaui WebP::webp WebP::webpdemux)
+target_link_libraries(kritawebpimport kritaapplicationui WebP::webp WebP::webpdemux)
 
 install(TARGETS kritawebpimport DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

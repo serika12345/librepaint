@@ -18,11 +18,8 @@
 #include <klocalizedstring.h>
 #include <kpluginfactory.h>
 
-#include "MyPaintPaintOp.h"
 #include "MyPaintPaintOpFactory.h"
 #include "MyPaintPaintOpPreset.h"
-#include "MyPaintPaintOpSettings.h"
-#include "MyPaintPaintOpSettingsWidget.h"
 #include "MyPaintSensorPack.h"
 
 namespace {

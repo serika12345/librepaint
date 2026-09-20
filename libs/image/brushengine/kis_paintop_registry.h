@@ -14,7 +14,6 @@
 #include "kis_paintop.h"
 #include <brushengine/kis_paintop_factory.h>
 #include "kis_types.h"
-#include <brushengine/kis_paintop_settings.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <kis_threaded_text_rendering_workaround.h>
 

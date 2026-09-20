@@ -7,8 +7,10 @@
 #ifndef __KIS_UPDATE_SELECTION_JOB_H
 #define __KIS_UPDATE_SELECTION_JOB_H
 
+#include <QRect>
+
 #include "kis_spontaneous_job.h"
-#include "kis_selection.h"
+#include "kis_types.h"
 
 class KRITAIMAGE_EXPORT KisUpdateSelectionJob : public KisSpontaneousJob
 {

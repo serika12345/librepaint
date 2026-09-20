@@ -6,13 +6,12 @@
 
 #include "kis_current_outline_fetcher.h"
 
-#include <KisOpacityOption.h>
+#include <KisStandardOptions.h>
 #include <KisRotationOption.h>
 #include <KisMirrorOption.h>
 #include <KisSharpnessOption.h>
 #include <KisMirrorProperties.h>
 #include <brushengine/kis_paintop_settings.h>
-#include <kis_properties_configuration.h>
 #include "kis_paintop_settings.h"
 #include <QElapsedTimer>
 #include "kis_algebra_2d.h"

@@ -14,7 +14,9 @@
 #include <kis_paint_device.h>
 #include <kis_random_accessor_ng.h>
 
+#ifndef KIS_GAP_MAP_MEASURE_ELAPSED_TIME
 #define KIS_GAP_MAP_MEASURE_ELAPSED_TIME 0
+#endif
 
 // Asserts are disabled by default in performance-critical code.
 #define KIS_GAP_MAP_DEBUG_LOGGING_AND_ASSERTS 0

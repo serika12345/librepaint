@@ -15,7 +15,6 @@
 #include <KoColorSpace.h>
 #include <resources/KoSegmentGradient.h>
 
-#include "kis_debug.h"
 
 #include "KisSegmentGradientSlider.h"
 

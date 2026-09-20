@@ -6,7 +6,6 @@
 
 #include "kis_xcf_import.h"
 
-#include <ctype.h>
 
 #include <QApplication>
 #include <QFile>

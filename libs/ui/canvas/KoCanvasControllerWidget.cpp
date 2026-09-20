@@ -20,8 +20,6 @@
 #include "KoCanvasBase.h"
 #include "KoCanvasObserverBase.h"
 #include "KoCanvasSupervisor.h"
-#include "KoToolManager_p.h"
-
 #include <FlakeDebug.h>
 #include <QMouseEvent>
 #include <QPainter>

@@ -9,14 +9,12 @@
 #include <klocalizedstring.h>
 
 #include "kis_input_manager.h"
-#include "kis_canvas2.h"
 #include "kis_tool_proxy.h"
 
 #include <QApplication>
 #include <QEvent>
 #include <QMouseEvent>
 
-#include "kis_cursor.h"
 
 
 KisChangePrimarySettingAction::KisChangePrimarySettingAction()

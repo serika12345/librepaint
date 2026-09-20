@@ -27,8 +27,8 @@ void KisConfigWidget::slotConfigChanged()
 }
 
 /// TODO: remove this method from KisConfigWidget, since
-/// KisViewManager is from kritaui, but we are in
-/// kritaimage
+/// KisViewManager belongs to the application UI while this class belongs to
+/// kritaimage.
 void KisConfigWidget::setView(KisViewManager *view)
 {
     if (!view) {

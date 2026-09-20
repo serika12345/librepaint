@@ -39,6 +39,7 @@
 #include <kis_paint_layer.h>
 #include <kis_transaction.h>
 #include "kis_iterator_ng.h"
+#include "kis_sequential_iterator.h"
 #include <kis_exr_layers_sorter.h>
 
 #include <kis_meta_data_entry.h>

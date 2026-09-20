@@ -8,21 +8,13 @@
 #define KIS_IMAGE_PIPE_BRUSH_P_H
 
 #include "kis_imagepipe_brush.h"
-#include <math.h>
-#include <limits.h>
-
-#include <QFile>
-#include <QPoint>
-
-#include <kis_debug.h>
-#include <klocalizedstring.h>
-#include <krandom.h>
-
-#include "kis_global.h"
-#include "kis_paint_device.h"
-#include "kis_layer.h"
+#include <QString>
+#include <QStringView>
+#include <QtGlobal>
 
 #include "kritabrush_export.h"
+
+class QIODevice;
 
 /**
  * The parasite info that gets loaded from the terribly documented gimp pipe brush parasite.

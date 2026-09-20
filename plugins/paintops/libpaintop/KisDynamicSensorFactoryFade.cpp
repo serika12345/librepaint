@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisDynamicSensorFactoryFade.h"
+#include "KisDynamicSensorIds.h"
 
 #include "ui_SensorFadeConfiguration.h"
 

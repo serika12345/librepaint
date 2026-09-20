@@ -6,13 +6,12 @@
 
 #include "kis_lod_capable_layer_offset.h"
 
-#include "kis_lod_transform.h"
+#include "kis_lod_transform_base.h"
 
 namespace KisLodSwitchingWrapperDetail
 {
-QPoint syncLodNValue(const QPoint &value, int lod) {
-    return {KisLodTransform::coordToLodCoord(value.x(), lod),
-            KisLodTransform::coordToLodCoord(value.y(), lod)};
+QPoint syncLodNValue(const QPoint &value, int lod)
+{
+    return {KisLodTransformBase::coordToLodCoord(value.x(), lod), KisLodTransformBase::coordToLodCoord(value.y(), lod)};
 }
-}
-
+} // namespace KisLodSwitchingWrapperDetail

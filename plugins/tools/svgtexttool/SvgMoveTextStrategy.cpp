@@ -7,7 +7,6 @@
 #include "SvgMoveTextStrategy.h"
 #include "SvgMoveTextCommand.h"
 
-#include "KoSvgText.h"
 #include "KoSvgTextShape.h"
 
 #include "KoCanvasBase.h"

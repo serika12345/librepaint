@@ -7,7 +7,6 @@
 */
 
 #include "KoZoomHandler.h"
-#include <WidgetsDebug.h>
 #include <KoUnit.h> // for POINT_TO_INCH
 #include <QPointF>
 #include <QRectF>

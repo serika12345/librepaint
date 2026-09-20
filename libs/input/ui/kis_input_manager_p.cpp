@@ -5,17 +5,21 @@
  */
 
 #include "kis_input_manager_p.h"
+#include "kis_input_event_normalizer_p.h"
 
 #include <QMap>
 #include <QApplication>
 #include <QScopedPointer>
 #include <QTimer>
+#include <QWidget>
 #include <QtGlobal>
 
 #include <boost/preprocessor/repeat_from_to.hpp>
 
+#include <KoPointerEvent.h>
+
 #include "kis_input_manager.h"
-#include "application/kis_config.h"
+#include "kis_input_config.h"
 #include "kis_abstract_input_action.h"
 #include <KisInputAction.h>
 #include "kis_tool_invocation_action.h"
@@ -25,8 +29,6 @@
 #include "kis_input_profile_manager.h"
 #include "kis_extended_modifiers_mapper.h"
 
-#include "kis_zoom_and_rotate_action.h"
-#include "resources/kis_popup_palette.h"
 #include "config-qt-patches-present.h"
 
 #include <memory>
@@ -104,63 +106,6 @@ constexpr bool supportsSyntheticMouseSuppression()
 #endif
 }
 
-KisInputEventSuppressor::Button normalizedButton(Qt::MouseButton button)
-{
-    if (button == Qt::LeftButton) {
-        return KisInputEventSuppressor::Button::Left;
-    }
-    if (button == Qt::NoButton) {
-        return KisInputEventSuppressor::Button::None;
-    }
-    return KisInputEventSuppressor::Button::Other;
-}
-
-KisInputEventSuppressor::Event normalizedSuppressionEvent(QEvent *event)
-{
-    using EventType = KisInputEventSuppressor::EventType;
-
-    KisInputEventSuppressor::Event result;
-    switch (event->type()) {
-    case QEvent::MouseMove:
-        result.type = EventType::MouseMove;
-        break;
-    case QEvent::MouseButtonPress:
-        result.type = EventType::MousePress;
-        break;
-    case QEvent::MouseButtonRelease:
-        result.type = EventType::MouseRelease;
-        break;
-    case QEvent::MouseButtonDblClick:
-        result.type = EventType::MouseDoubleClick;
-        break;
-    case QEvent::TabletPress:
-        result.type = EventType::TabletPress;
-        break;
-    case QEvent::TabletRelease:
-        result.type = EventType::TabletRelease;
-        break;
-    case QEvent::TouchBegin:
-        result.type = EventType::TouchBegin;
-        break;
-    default:
-        return result;
-    }
-
-    if (result.type == EventType::MouseMove ||
-        result.type == EventType::MousePress ||
-        result.type == EventType::MouseRelease ||
-        result.type == EventType::MouseDoubleClick) {
-        const auto *mouseEvent = static_cast<QMouseEvent *>(event);
-        result.button = normalizedButton(mouseEvent->button());
-        result.synthesized = mouseEvent->source() != Qt::MouseEventNotSynthesized;
-    } else if (result.type == EventType::TabletPress ||
-               result.type == EventType::TabletRelease) {
-        result.button = normalizedButton(static_cast<QTabletEvent *>(event)->button());
-    }
-
-    return result;
-}
-
 void debugSuppressedInputEvent(
     QEvent *event,
     KisInputEventSuppressor::SuppressionReason reason)
@@ -215,7 +160,7 @@ bool KisInputManager::Private::ignoringQtCursorEvents()
 bool KisInputManager::Private::filterSuppressedEvent(QEvent *event)
 {
     const KisInputEventSuppressor::SuppressionReason reason =
-        eventSuppressor.filter(normalizedSuppressionEvent(event));
+        eventSuppressor.filter(KisInputManagerDetail::normalizedSuppressionEvent(event));
     if (reason == KisInputEventSuppressor::SuppressionReason::None) {
         return false;
     }
@@ -242,10 +187,10 @@ KisInputManager::Private::Private(KisInputManager *qq)
     , popupWidget(nullptr)
     , touchHoldTimer(new QTimer(qq))
     , canvasSwitcher(this, qq)
-    , eventSuppressor(KisConfig(true).useRightMiddleTabletButtonWorkaround(),
+    , eventSuppressor(KisInputConfig(true).useRightMiddleTabletButtonWorkaround(),
                       supportsSyntheticMouseSuppression())
 {
-    KisConfig cfg(true);
+    KisInputConfig cfg(true);
 
     moveEventCompressor.setDelay(cfg.tabletEventsDelay());
     testingAcceptCompressedTabletEvents = cfg.testingAcceptCompressedTabletEvents();
@@ -257,7 +202,10 @@ KisInputManager::Private::Private(KisInputManager *qq)
 
     matcher.setInputActionGroupsMaskCallback(
         [this] () {
-            return this->canvas ? this->canvas->inputActionGroupsMaskInterface()->inputActionGroupsMask() : AllActionGroup;
+            auto *toolCanvas = dynamic_cast<KisToolCanvas *>(this->canvas.data());
+            return toolCanvas
+                ? toolCanvas->inputActionGroupsMaskInterface()->inputActionGroupsMask()
+                : AllActionGroup;
         });
 
     /**
@@ -307,7 +255,7 @@ void KisInputManager::Private::CanvasSwitcher::setupFocusThreshold(QObject* obje
     thresholdConnections.addConnection(&focusSwitchThreshold, SIGNAL(timeout()), widget, SLOT(setFocus()));
 }
 
-void KisInputManager::Private::CanvasSwitcher::addCanvas(KisCanvas2 *canvas)
+void KisInputManager::Private::CanvasSwitcher::addCanvas(KoCanvasBase *canvas)
 {
     if (!canvas) return;
 
@@ -333,7 +281,7 @@ void KisInputManager::Private::CanvasSwitcher::addCanvas(KisCanvas2 *canvas)
     }
 }
 
-void KisInputManager::Private::CanvasSwitcher::removeCanvas(KisCanvas2 *canvas)
+void KisInputManager::Private::CanvasSwitcher::removeCanvas(KoCanvasBase *canvas)
 {
     QObject *widget = canvas->canvasWidget();
 
@@ -380,7 +328,7 @@ bool KisInputManager::Private::CanvasSwitcher::eventFilter(QObject* object, QEve
         switch (event->type()) {
         case QEvent::FocusIn: {
             QFocusEvent *fevent = static_cast<QFocusEvent*>(event);
-            KisCanvas2 *canvas = canvasResolver.value(object);
+            KoCanvasBase *canvas = canvasResolver.value(object);
 
             // only relevant canvases from the same main window should be
             // registered in the switcher
@@ -713,7 +661,7 @@ void KisInputManager::Private::addTouchShortcut(KisAbstractInputAction* action, 
         // nothing otherwise and is therefore unambiguous.
         shortcut->setDisabledWhenTouchPaintingActive(true);
         shortcut->setTouchPaintingActiveCallback([]() {
-            return !KisConfig(true).disableTouchOnCanvas();
+            return !KisInputConfig(true).disableTouchOnCanvas();
         });
     }
 

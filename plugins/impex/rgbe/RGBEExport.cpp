@@ -11,9 +11,7 @@
 #include <kpluginfactory.h>
 
 #include <QBuffer>
-#include <array>
 #include <cmath>
-#include <cstdint>
 #include <cstring>
 
 #include <document/KisDocument.h>

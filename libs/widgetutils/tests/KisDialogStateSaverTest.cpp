@@ -5,12 +5,11 @@
  */
 
 #include "KisDialogStateSaverTest.h"
-#include <simpletest.h>
 #include <KisDialogStateSaver.h>
 #include <QWidget>
-#include <ksharedconfig.h>
 #include <kconfiggroup.h>
-
+#include <ksharedconfig.h>
+#include <simpletest.h>
 
 void KisDialogStateSaverTest::testSave()
 {
@@ -37,10 +36,17 @@ void KisDialogStateSaverTest::testRestore()
     QWidget w;
     Ui::DialogSaverTestWidget page;
     page.setupUi(&w);
+
+    KisDialogStateSaver::restoreState(&w, "StateSaverTest");
+
+    QCOMPARE(page.lineEdit->text(), QString("test"));
+    QCOMPARE(page.spinBox->value(), 5);
+    QCOMPARE(page.doubleSpinBox->value(), 3.0);
+    QCOMPARE(page.verticalSlider->value(), 10);
+    QCOMPARE(page.checkBox->isChecked(), true);
+
     QMap<QString, QVariant> overrideMap;
-
     overrideMap["spinBox"] = QVariant::fromValue<int>(10);
-
     KisDialogStateSaver::restoreState(&w, "StateSaverTest", overrideMap);
 
     QCOMPARE(page.lineEdit->text(), QString("test"));
@@ -48,8 +54,6 @@ void KisDialogStateSaverTest::testRestore()
     QCOMPARE(page.doubleSpinBox->value(), 3.0);
     QCOMPARE(page.verticalSlider->value(), 10);
     QCOMPARE(page.checkBox->isChecked(), true);
-
 }
-
 
 SIMPLE_TEST_MAIN(KisDialogStateSaverTest)

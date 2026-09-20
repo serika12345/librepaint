@@ -9,7 +9,6 @@
 #include <QDomElement>
 
 #include "kis_grid_config.h"
-#include "kis_debug.h"
 
 struct GridConfig::Private {
     Private() {}

@@ -8,6 +8,8 @@
 
 #include "KisDitherUtil.h"
 
+#include <KoPattern.h>
+
 #include <kis_filter_configuration.h>
 #include <KisRandomGenerator2D.h>
 #include <KisResourcesInterface.h>
@@ -23,7 +25,10 @@ void KisDitherUtil::setThresholdMode(const ThresholdMode thresholdMode)
     m_thresholdMode = thresholdMode;
 }
 
-void KisDitherUtil::setPattern(const QString &md5sum, const QString &patternName, const PatternValueMode valueMode, KisResourcesInterfaceSP resourcesInterface)
+void KisDitherUtil::setPattern(const QString &md5sum,
+                               const QString &patternName,
+                               const PatternValueMode valueMode,
+                               QSharedPointer<KisResourcesInterface> resourcesInterface)
 {
     m_patternValueMode = valueMode;
 

@@ -11,16 +11,14 @@
 #include <QPaintEvent>
 #include <QPainter>
 
-#include <application/kis_config.h>
+#include "../../kis_input_config.h"
 
 TabletTester::TabletTester(QWidget *parent)
     : QWidget(parent), m_mouseDown(false), m_tabletDown(false)
 {
-    KisConfig config(true);
-    const bool useEventTimestamps =
-        config.readEntry("useTimestampsForBrushSpeed", false);
-    const int smoothingSamples =
-        config.readEntry("speedValueSmoothing", 3);
+    KisInputConfig config(true);
+    const bool useEventTimestamps = config.useTimestampsForBrushSpeed();
+    const int smoothingSamples = config.speedValueSmoothing();
     m_mouseSpeedSmoother.setSettings(useEventTimestamps, smoothingSamples);
     m_tabletSpeedSmoother.setSettings(useEventTimestamps, smoothingSamples);
 }

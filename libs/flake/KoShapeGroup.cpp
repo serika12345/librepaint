@@ -8,14 +8,11 @@
 #include "KoShapeGroup.h"
 #include "KoShapeContainerModel.h"
 #include "KoShapeContainer_p.h"
-#include "KoShapeLayer.h"
 #include "SimpleShapeContainerModel.h"
 #include "KoShapeSavingContext.h"
 #include "KoShapeLoadingContext.h"
-#include "KoXmlWriter.h"
 #include "KoShapeRegistry.h"
 #include "KoShapeStrokeModel.h"
-#include "KoInsets.h"
 
 #include <FlakeDebug.h>
 

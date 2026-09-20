@@ -15,14 +15,14 @@
 
 #include <kis_icon.h>
 
+#include "application/ui/orchestration/kis_action.h"
+#include "application/ui/orchestration/kis_action_manager.h"
 #include "kis_canvas2.h"
-#include "kis_coordinates_converter.h"
 #include "application/kis_config.h"
 #include "kis_grid_decoration.h"
-#include "kis_image.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "document/KisDocument.h"
-#include "workspace/KisView.h"
+#include "application/ui/workspace/KisView.h"
 #include "kis_grid_config.h"
 #include "kis_signals_blocker.h"
 #include <kis_signal_auto_connection.h>
@@ -137,4 +137,3 @@ void KisGridManager::slotSnapToGridTriggered(bool value)
     setGridConfig(config);
     Q_EMIT sigRequestUpdateGridConfig(config);
 }
-

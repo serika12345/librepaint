@@ -5,7 +5,10 @@
  */
 #include "KisDynamicSensor.h"
 
+#include <QVector>
+
 #include <kis_algebra_2d.h>
+#include <kis_assert.h>
 #include <KisSensorData.h>
 
 KisDynamicSensor::KisDynamicSensor(const KoID &id,

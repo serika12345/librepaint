@@ -22,6 +22,7 @@
 #include <KisResourceLocator.h>
 #include <KisTagModel.h>
 #include <KisResourceModel.h>
+#include <KisStorageModel.h>
 #include <DummyResource.h>
 #include <ResourceTestHelper.h>
 
@@ -106,13 +107,13 @@ void TestTagModel::testData()
     QCOMPARE(v.toString(), "All");
 
     v = tagModel.data(tagModel.index(0, 0), Qt::UserRole + KisAllTagsModel::Url);
-    QCOMPARE(v.toString(), "All");
+    QCOMPARE(v.toString(), KisAllTagsModel::urlAll());
 
     v = tagModel.data(tagModel.index(1, 0), Qt::DisplayRole);
     QCOMPARE(v.toString(), "All untagged");
 
     v = tagModel.data(tagModel.index(1, 0), Qt::UserRole + KisAllTagsModel::Url);
-    QCOMPARE(v.toString(), "All untagged");
+    QCOMPARE(v.toString(), KisAllTagsModel::urlAllUntagged());
 
     v = tagModel.data(tagModel.index(2, 0), Qt::DisplayRole);
     QCOMPARE(v.toString(), "* Favorites");
@@ -137,11 +138,11 @@ void TestTagModel::testTagForIndex()
 
     QModelIndex idx = tagModel.index(0, 0);
     KisTagSP tag = tagModel.tagForIndex(idx);
-    QCOMPARE(tag->url(), "All");
+    QCOMPARE(tag->url(), KisAllTagsModel::urlAll());
 
     idx = tagModel.index(1, 0);
     tag = tagModel.tagForIndex(idx);
-    QCOMPARE(tag->url(), "All untagged");
+    QCOMPARE(tag->url(), KisAllTagsModel::urlAllUntagged());
 
     idx = tagModel.index(2, 0);
     tag = tagModel.tagForIndex(idx);
@@ -152,13 +153,13 @@ void TestTagModel::testTagForUrl()
 {
     KisTagModel tagModel(m_resourceType);
 
-    KisTagSP tag = tagModel.tagForUrl("All");
+    KisTagSP tag = tagModel.tagForUrl(KisAllTagsModel::urlAll());
     QVERIFY(tag);
-    QCOMPARE(tag->url(), "All");
+    QCOMPARE(tag->url(), KisAllTagsModel::urlAll());
 
-    tag = tagModel.tagForUrl("All untagged");
+    tag = tagModel.tagForUrl(KisAllTagsModel::urlAllUntagged());
     QVERIFY(tag);
-    QCOMPARE(tag->url(), "All untagged");
+    QCOMPARE(tag->url(), KisAllTagsModel::urlAllUntagged());
 
     tag = tagModel.tagForUrl(m_tag->url());
     QVERIFY(tag);
@@ -224,6 +225,10 @@ void TestTagModel::testAddTag()
 
 void TestTagModel::testSetTagActiveInactive()
 {
+    // Consumer: Resource chooser users switching between active, inactive, and all tags.
+    // Operation: The user deactivates a tag and selects each tag visibility filter.
+    // Observable result: The tag is hidden by default and remains selectable through the all-tags and inactive-tags views.
+    // Failure impact: Users cannot find a disabled tag to inspect or reactivate it.
     KisTagModel tagModel(m_resourceType);
 
     int rowCount = tagModel.rowCount();
@@ -231,11 +236,19 @@ void TestTagModel::testSetTagActiveInactive()
     tagModel.setTagInactive(m_tag);
     QVERIFY(!m_tag->active());
     QCOMPARE(tagModel.rowCount(), rowCount -1);
-    QModelIndex idx = tagModel.indexForTag(m_tag);
+    QVERIFY(!tagModel.indexForTag(m_tag).isValid());
 
+    tagModel.setTagFilter(KisTagModel::ShowAllTags);
+    QModelIndex idx = tagModel.indexForTag(m_tag);
+    QVERIFY(idx.isValid());
     QCOMPARE(tagModel.data(idx, Qt::UserRole + KisAllTagsModel::Active).toBool(), false);
 
+    tagModel.setTagFilter(KisTagModel::ShowInactiveTags);
+    idx = tagModel.indexForTag(m_tag);
+    QVERIFY(idx.isValid());
+    QCOMPARE(tagModel.data(idx, Qt::UserRole + KisAllTagsModel::Active).toBool(), false);
 
+    tagModel.setTagFilter(KisTagModel::ShowActiveTags);
     tagModel.setTagActive(m_tag);
     QVERIFY(m_tag->active());
     QCOMPARE(tagModel.rowCount(), rowCount);
@@ -245,6 +258,42 @@ void TestTagModel::testSetTagActiveInactive()
     QCOMPARE(idx.data(Qt::UserRole + KisAllTagsModel::Url).toString(), m_tag->url());
     QCOMPARE(idx.data(Qt::UserRole + KisAllTagsModel::Name).toString(), m_tag->name());
     QCOMPARE(tagModel.data(idx, Qt::UserRole + KisAllTagsModel::Active).toBool(), true);
+}
+
+void TestTagModel::testStorageFilterShowsDisabledStorageTags()
+{
+    // Consumer: Resource chooser users switching between enabled storages and all storages.
+    // Operation: The user disables a storage and then chooses to show tags from all storages.
+    // Observable result: Its tags are hidden from the default chooser and reappear when all storages are requested.
+    // Failure impact: Users cannot select tags supplied by a disabled bundle in the resource manager.
+    KisTagModel tagModel(m_resourceType);
+    QVERIFY(m_tag);
+
+    QSqlQuery query;
+    QVERIFY(query.prepare("SELECT storage_id FROM tags_storages WHERE tag_id = :tag_id"));
+    query.bindValue(":tag_id", m_tag->id());
+    QVERIFY(query.exec());
+    QVERIFY(query.first());
+    const int storageId = query.value(0).toInt();
+
+    KisStorageModel *storageModel = KisStorageModel::instance();
+    QModelIndex storageIndex;
+    for (int row = 0; row < storageModel->rowCount(); ++row) {
+        const QModelIndex index = storageModel->index(row, KisStorageModel::Id);
+        if (storageModel->data(index, Qt::UserRole + KisStorageModel::Id).toInt() == storageId) {
+            storageIndex = index;
+            break;
+        }
+    }
+
+    QVERIFY(storageIndex.isValid());
+    QVERIFY(storageModel->setData(storageIndex, false, Qt::CheckStateRole));
+    QVERIFY(!tagModel.indexForTag(m_tag).isValid());
+
+    tagModel.setStorageFilter(KisTagModel::ShowAllStorages);
+    QVERIFY(tagModel.indexForTag(m_tag).isValid());
+
+    QVERIFY(storageModel->setData(storageIndex, true, Qt::CheckStateRole));
 }
 
 void TestTagModel::testRenameTag()
@@ -345,4 +394,3 @@ void TestTagModel::cleanupTestCase()
 
 
 SIMPLE_TEST_MAIN(TestTagModel)
-

@@ -11,7 +11,6 @@
 
 #include "kis_node_facade.h"
 #include "kis_types.h"
-#include "kis_global.h"
 #include <testutil.h>
 
 void KisNodeFacadeTest::testCreation()

@@ -17,12 +17,9 @@
 #include <QMessageBox>
 #include <QRegularExpression>
 
-#include "KoChannelInfo.h"
-#include "KoBasicHistogramProducers.h"
 #include "KoColorModelStandardIds.h"
 #include "KoColorSpace.h"
 #include "KoColorTransformation.h"
-#include "KoCompositeColorTransformation.h"
 #include "KoCompositeOp.h"
 #include "KoID.h"
 

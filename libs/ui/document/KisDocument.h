@@ -23,7 +23,6 @@
 #include <kis_properties_configuration.h>
 #include <kis_types.h>
 #include <canvas/kis_painting_assistant.h>
-#include <canvas/KisReferenceImage.h>
 #include <kis_debug.h>
 #include <KisImportExportUtils.h>
 #include <application/kis_config.h>

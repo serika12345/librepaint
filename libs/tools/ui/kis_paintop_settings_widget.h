@@ -14,8 +14,6 @@
 #include <lager/reader.hpp>
 #include "kis_paintop_option.h"
 
-class KisPropertiesConfiguration;
-class KisPaintOpConfigWidget;
 class KisPaintopLodLimitations;
 
 /**

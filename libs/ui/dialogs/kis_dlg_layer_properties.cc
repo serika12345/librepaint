@@ -18,7 +18,7 @@
 #include <KoColorSpace.h>
 
 #include <KisSpinBoxI18nHelper.h>
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include <kis_debug.h>
 #include <kis_global.h>
 
@@ -27,7 +27,6 @@
 #include "nodes/kis_multinode_property.h"
 #include "kis_layer_utils.h"
 #include "kis_image.h"
-#include "kis_layer_properties_icons.h"
 #include "kis_signal_compressor.h"
 #include "commands_new/kis_saved_commands.h"
 #include "kis_post_execution_undo_adapter.h"

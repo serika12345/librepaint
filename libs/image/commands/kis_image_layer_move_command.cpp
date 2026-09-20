@@ -5,18 +5,14 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "kis_image_commands.h"
+#include "kis_image_layer_move_command.h"
 
 #include <klocalizedstring.h>
 
-#include "KoColor.h"
-#include "KoColorProfile.h"
 
 
 #include "kis_image.h"
-#include "kis_layer.h"
-#include "kis_group_layer.h"
-#include "kis_undo_adapter.h"
+#include "kis_node.h"
 
 
 KisImageLayerMoveCommand::KisImageLayerMoveCommand(KisImageWSP image, KisNodeSP layer, KisNodeSP newParent, KisNodeSP newAbove, bool doUpdates)

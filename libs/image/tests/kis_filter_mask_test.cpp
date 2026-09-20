@@ -9,12 +9,10 @@
 
 #include <KoColorSpaceRegistry.h>
 
-#include "kis_selection.h"
 #include "filter/kis_filter.h"
 #include "filter/kis_filter_configuration.h"
 #include "kis_filter_mask.h"
 #include "filter/kis_filter_registry.h"
-#include "kis_group_layer.h"
 #include "kis_paint_device.h"
 #include "kis_paint_layer.h"
 #include "kis_types.h"

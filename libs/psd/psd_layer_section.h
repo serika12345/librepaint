@@ -10,14 +10,16 @@
 #include "kritapsd_export.h"
 
 #include <QString>
+#include <QVector>
 
 class QIODevice;
+class PSDLayerRecord;
 
 #include <kis_types.h>
 #include <psd.h>
 
 #include "psd_header.h"
-#include "psd_layer_record.h"
+#include "psd_additional_layer_info_block.h"
 
 class KRITAPSD_EXPORT PSDLayerMaskSection
 {

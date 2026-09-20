@@ -5,6 +5,7 @@
  */
 
 #include "kis_node_facade.h"
+#include "kis_node.h"
 #include "kis_node_graph_listener.h"
 #include <kis_debug.h>
 
@@ -130,4 +131,3 @@ bool KisNodeFacade::removeNode(KisNodeSP node)
     return node->parent()->remove(node);
 
 }
-

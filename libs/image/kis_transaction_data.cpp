@@ -7,6 +7,7 @@
 #include "kis_transaction_data.h"
 
 #include "kis_pixel_selection.h"
+#include "kis_selection.h"
 #include "kis_paint_device.h"
 #include "kis_paint_device_frames_interface.h"
 #include "kis_datamanager.h"
@@ -14,8 +15,6 @@
 #include "KoColor.h"
 #include "KisTransactionWrapperFactory.h"
 #include "KisInterstrokeDataTransactionWrapperFactory.h"
-#include "kis_raster_keyframe_channel.h"
-#include "kis_image_config.h"
 #include <boost/optional.hpp>
 
 //#define DEBUG_TRANSACTIONS

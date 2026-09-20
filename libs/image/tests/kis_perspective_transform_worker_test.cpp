@@ -14,7 +14,6 @@
 #include "qimage_based_test.h"
 
 #include "kis_perspectivetransform_worker.h"
-#include "kis_transaction.h"
 
 
 class PerspectiveWorkerTester : public TestUtil::QImageBasedTest

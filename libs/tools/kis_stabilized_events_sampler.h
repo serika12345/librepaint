@@ -14,8 +14,6 @@
 #include "kritatools_export.h"
 
 class KisPaintInformation;
-#include <kis_paint_information.h>
-
 
 class KRITATOOLS_EXPORT KisStabilizedEventsSampler
 {

@@ -17,6 +17,7 @@ fi
 
 target="$1"
 test_regex="${2:-${target}$}"
+build_incremental_path="${LIBREPAINT_BUILD_INCREMENTAL_PATH:-$repo_root/scripts/build-incremental}"
 
 case "$(uname -s)" in
     Darwin)
@@ -31,6 +32,5 @@ case "$(uname -s)" in
         ;;
 esac
 
-cmake --preset "$preset"
-cmake --build --preset "$preset" --target "$target"
+"$build_incremental_path" native build "$target"
 ctest --preset "$preset" --tests-regex "$test_regex"

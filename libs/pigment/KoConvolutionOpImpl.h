@@ -8,6 +8,8 @@
 #ifndef KO_CONVOLUTION_OP_IMPL_H
 #define KO_CONVOLUTION_OP_IMPL_H
 
+#include <QBitArray>
+
 #include "DebugPigment.h"
 #include "KoColorSpaceMaths.h"
 #include "KoConvolutionOp.h"

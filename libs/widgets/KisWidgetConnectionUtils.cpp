@@ -17,7 +17,6 @@
 #include <QLineEdit>
 #include <QSlider>
 #include <QCheckBox>
-#include "kis_debug.h"
 #include "kis_spacing_selection_widget.h"
 #include "kis_multipliers_double_slider_spinbox.h"
 #include "KisAngleSelector.h"

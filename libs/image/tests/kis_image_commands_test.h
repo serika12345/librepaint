@@ -7,15 +7,15 @@
 #ifndef KIS_IMAGE_COMMANDS_TEST_H
 #define KIS_IMAGE_COMMANDS_TEST_H
 
-#include <simpletest.h>
+#include <QObject>
 
 class KisImageCommandsTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-
-    void testCreation();
-
+    void initializingStateRoutesDirtyRequestCalls();
+    void finalizingStateRoutesDirtyRequestCalls();
+    void publicPartsUseABorrowedFacade();
 };
 
 #endif

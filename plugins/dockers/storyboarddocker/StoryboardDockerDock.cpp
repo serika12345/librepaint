@@ -10,7 +10,6 @@
 #include "StoryboardModel.h"
 #include "StoryboardDelegate.h"
 #include "StoryboardView.h"
-#include "StoryboardUtils.h"
 #include "DlgExportStoryboard.h"
 #include "KisAddRemoveStoryboardCommand.h"
 
@@ -31,8 +30,8 @@
 
 #include <klocalizedstring.h>
 
-#include <application/KisPart.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/orchestration/KisPart.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <nodes/kis_node_manager.h>
 #include <document/KisDocument.h>
 #include <kis_icon.h>

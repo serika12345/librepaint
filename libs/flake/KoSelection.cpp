@@ -12,13 +12,12 @@
 #include "KoSelection_p.h"
 #include "KoShapeContainer.h"
 #include "KoShapeGroup.h"
-#include "KoPointerEvent.h"
 #include "kis_algebra_2d.h"
 #include "krita_container_utils.h"
 
 #include <QPainter>
 
-#include "kis_debug.h"
+#include <QDebug>
 KoSelection::KoSelection(QObject *parent)
     : QObject(parent)
     , KoShape()

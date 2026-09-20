@@ -18,7 +18,6 @@
 
 #include <kis_node_visitor.h>
 #include <kis_meta_data_store.h>
-#include <kis_meta_data_filter_registry_model.h>
 #include <kis_paint_layer.h>
 #include <kis_group_layer.h>
 

@@ -5,9 +5,9 @@
  */
 
 #include "canvas/KisReferenceImage.h"
+#include "KoColor.h"
 #include "KoColorProfile.h"
 #include "KoColorSpaceRegistry.h"
-
 #include <QImage>
 #include <QMessageBox>
 #include <QPainter>
@@ -26,12 +26,13 @@
 #include <krita_utils.h>
 #include <kis_coordinates_converter.h>
 #include <kis_dom_utils.h>
+#include <kis_paint_device.h>
 #include <SvgUtil.h>
 #include <libs/flake/svg/parsers/SvgTransformParser.h>
 #include <libs/brush/kis_qimage_pyramid.h>
 
 #include <document/KisDocument.h>
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 
 struct KisReferenceImage::Private : public QSharedData
 {

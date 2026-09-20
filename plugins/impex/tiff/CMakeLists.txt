@@ -29,7 +29,7 @@ set(kritatiffimport_SOURCES
 kis_add_library(kritatiffimport MODULE ${kritatiffimport_SOURCES})
 
 target_link_libraries(kritatiffimport
-    kritaui
+    kritaapplicationui
     kritaimpex
     LibExiv2::LibExiv2
     kritapaintingmetadata
@@ -61,7 +61,8 @@ ki18n_wrap_ui(kritatiffexport_SOURCES kis_wdg_options_tiff.ui)
 kis_add_library(kritatiffexport MODULE ${kritatiffexport_SOURCES})
 
 target_link_libraries(kritatiffexport
-    kritaui
+    kritaapplication
+    kritaapplicationui
     kritaimpex
     LibExiv2::LibExiv2
     kritaexifcommon

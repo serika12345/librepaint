@@ -16,16 +16,12 @@
  */
 
 #include <boost/multi_array.hpp>
-#include <random>
-#include <iostream>
 #include <functional>
 
 
 #include "kis_paint_device.h"
 #include "kis_painter.h"
-#include "kis_selection.h"
 
-#include "kis_debug.h"
 #include "kis_paint_device_debug_utils.h"
 //#include "kis_random_accessor_ng.h"
 
@@ -39,7 +35,7 @@
 #include "KoMixColorsOp.h"
 #include "KoColorModelStandardIds.h"
 #include "KoColorSpaceRegistry.h"
-#include "KoColorSpaceTraits.h"
+#include <KoUpdater.h>
 
 const int MAX_DIST = 65535;
 const quint8 MASK_SET = 255;
@@ -995,4 +991,3 @@ QRect patchImage(const KisPaintDeviceSP imageDev, const KisPaintDeviceSP maskDev
 
     return maskRect;
 }
-

@@ -9,7 +9,6 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoColor.h>
 #include <KoColorModelStandardIds.h>
-#include "kis_debug.h"
 
 KisFixedPaintDevice::KisFixedPaintDevice(const KoColorSpace* colorSpace, KisOptimizedByteArray::MemoryAllocatorSP allocator)
         : m_colorSpace(colorSpace),

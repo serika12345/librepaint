@@ -10,7 +10,8 @@
 #include <kritaimage_export.h>
 
 #include <KisStoragePlugin.h>
-#include <kis_asl_layer_style_serializer.h>
+
+class KisAslLayerStyleSerializer;
 
 class KRITAIMAGE_EXPORT KisAslStorage : public KisStoragePlugin
 {

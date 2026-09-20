@@ -12,11 +12,10 @@
 #include <kpluginfactory.h>
 
 #include <kis_image.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <nodes/kis_node_manager.h>
 #include <document/kis_image_manager.h>
-#include <application/kis_action.h>
-#include "kis_selection.h"
+#include <application/ui/orchestration/kis_action.h>
 
 #include "dlg_shearimage.h"
 

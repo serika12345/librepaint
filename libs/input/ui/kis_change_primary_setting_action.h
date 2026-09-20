@@ -7,6 +7,8 @@
 #ifndef KISCHANGEPRIMARYSETTINGACTION_H
 #define KISCHANGEPRIMARYSETTINGACTION_H
 
+#include <kritainputui_export.h>
+
 #include "kis_abstract_input_action.h"
 #include "kis_tool.h"
 
@@ -16,7 +18,7 @@
  * The Change Primary Setting action changes a tool's "Primary Setting",
  * for example the brush size for the brush tool.
  */
-class KisChangePrimarySettingAction : public KisAbstractInputAction
+class KRITAINPUTUI_EXPORT KisChangePrimarySettingAction : public KisAbstractInputAction
 {
 public:
     explicit KisChangePrimarySettingAction();

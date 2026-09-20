@@ -9,7 +9,6 @@
 #include "kis_fast_math.h"
 
 #include <cmath>
-#include <cstdio>
 #include <cstdlib>
 #include <QtGlobal>
 #include <QGlobalStatic>

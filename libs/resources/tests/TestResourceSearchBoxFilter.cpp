@@ -6,8 +6,7 @@
  */
 #include "TestResourceSearchBoxFilter.h"
 
-
-#include <simpletest.h>
+#include <QTest>
 
 
 TestResourceSearchBoxFilter::TestResourceSearchBoxFilter()
@@ -256,4 +255,4 @@ void TestResourceSearchBoxFilter::testResourceSearch()
 
 
 
-SIMPLE_TEST_MAIN(TestResourceSearchBoxFilter)
+QTEST_GUILESS_MAIN(TestResourceSearchBoxFilter)

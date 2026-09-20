@@ -21,7 +21,7 @@
 #include <kis_group_layer.h>
 #include <kis_shape_layer.h>
 #include <document/KisDocument.h>
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 
 #include <testui.h>
 

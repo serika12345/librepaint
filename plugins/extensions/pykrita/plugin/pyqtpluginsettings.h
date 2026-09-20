@@ -6,7 +6,7 @@
 #ifndef PYQTPLUGINSETTINGS_H
 #define PYQTPLUGINSETTINGS_H
 
-#include "workspace/kis_preference_set_registry.h"
+#include "application/ui/workspace/kis_preference_set_registry.h"
 
 namespace Ui
 {

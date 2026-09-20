@@ -17,7 +17,7 @@
 
 #include <kis_debug.h>
 
-#include "KoResourceServer.h"
+#include "KoResourceLoadResult.h"
 #include "kis_auto_brush_factory.h"
 #include "kis_text_brush_factory.h"
 #include "kis_predefined_brush_factory.h"

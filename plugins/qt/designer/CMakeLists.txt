@@ -12,4 +12,4 @@ set(KritaDesignerPlugin_SOURCES
 
 kis_add_library(kritadesignerplugin MODULE ${KritaDesignerPlugin_SOURCES})
 
-target_link_libraries(kritadesignerplugin kritaui)
+target_link_libraries(kritadesignerplugin kritaapplicationui)

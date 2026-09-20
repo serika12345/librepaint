@@ -10,7 +10,7 @@ ki18n_wrap_ui(kritawavefilter_SOURCES
 
 kis_add_library(kritawavefilter MODULE ${kritawavefilter_SOURCES})
 
-target_link_libraries(kritawavefilter kritaui)
+target_link_libraries(kritawavefilter kritaapplicationui)
 
 install(TARGETS kritawavefilter  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

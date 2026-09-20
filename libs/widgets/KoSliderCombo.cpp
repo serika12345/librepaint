@@ -20,9 +20,6 @@
 #include <QScreen>
 
 
-#include <klocalizedstring.h>
-#include <WidgetsDebug.h>
-
 KoSliderCombo::KoSliderCombo(QWidget *parent)
    : QComboBox(parent)
     ,d(new KoSliderComboPrivate())

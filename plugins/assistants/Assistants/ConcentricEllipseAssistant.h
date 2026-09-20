@@ -11,8 +11,6 @@
 
 #include "canvas/kis_painting_assistant.h"
 #include "Ellipse.h"
-#include <QLineF>
-#include <QObject>
 
 #include "kritaassistanttool_export.h"
 

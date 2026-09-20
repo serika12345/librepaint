@@ -22,7 +22,7 @@ target_include_directories(pykrita SYSTEM PUBLIC "${PYTHON_INCLUDE_DIRS}")
 target_link_libraries(
     pykrita
     ${PYTHON_LIBRARY}
-    kritaui
+    kritaapplicationui
     kritalibkis
   )
 
@@ -37,6 +37,7 @@ kis_add_library(kritapykrita MODULE
 
 target_link_libraries(
     kritapykrita
+    kritaapplication
     pykrita
   )
 
@@ -57,4 +58,3 @@ install(
     DESTINATION ${KDE_INSTALL_LIBDIR}/krita-python-libs
     FILES_MATCHING PATTERN "*.py"
 )
-

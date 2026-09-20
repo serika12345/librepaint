@@ -12,10 +12,10 @@
 #include <QtMath>
 
 #include "kis_global.h"
+#include "KisRegion.h"
 #include "kis_algebra_2d.h"
 
 #include "application/kis_config.h"
-#include "kis_config_notifier.h"
 #include "kis_image.h"
 #include "kis_canvas2.h"
 #include <animation/kis_animation_frame_cache.h>
@@ -27,26 +27,21 @@
 #include <document/KisDocument.h>
 #include <QFileInfo>
 #include <QThread>
-#include "kis_signal_compressor_with_param.h"
 #include "KisImageBarrierLock.h"
 #include "kis_layer_utils.h"
 #include "KisDecoratedNodeInterface.h"
 #include "kis_keyframe_channel.h"
 #include "kis_algebra_2d.h"
-#include "animation/KisPlaybackEngine.h"
 
 #include "kis_image_config.h"
 #include <limits>
 
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "kis_icon_utils.h"
 
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "dialogs/KisAsyncAnimationCacheRenderDialog.h"
-#include "KisRollingMeanAccumulatorWrapper.h"
-#include "kis_onion_skin_compositor.h"
 
-#include <atomic>
 
 class SingleShotSignal : public QObject {
     Q_OBJECT

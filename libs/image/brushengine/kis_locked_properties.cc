@@ -6,6 +6,8 @@
  */
 #include <brushengine/kis_locked_properties.h>
 
+#include "kis_properties_configuration.h"
+
 
 KisLockedProperties::KisLockedProperties()
 {
@@ -63,5 +65,4 @@ KisPropertiesConfigurationSP KisLockedProperties::lockedProperties()
 {
     return m_lockedProperties;
 }
-
 

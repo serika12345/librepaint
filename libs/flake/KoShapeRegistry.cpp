@@ -13,10 +13,6 @@
 
 #include "KoSvgTextShape.h"
 #include "KoPathShapeFactory.h"
-#include "KoShapeLoadingContext.h"
-#include "KoShapeSavingContext.h"
-#include "KoShapeGroup.h"
-#include "KoShapeLayer.h"
 
 #include <KoPluginLoader.h>
 #include <KoXmlNS.h>
@@ -118,7 +114,6 @@ void KoShapeRegistry::Private::insertFactory(KoShapeFactoryBase *factory)
     }
 }
 
-#include "kis_debug.h"
 #include <QMimeDatabase>
 #include <KoUnit.h>
 #include <KoDocumentResourceManager.h>

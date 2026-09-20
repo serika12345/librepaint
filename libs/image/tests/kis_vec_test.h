@@ -7,15 +7,15 @@
 #ifndef KIS_VEC_TEST_H
 #define KIS_VEC_TEST_H
 
-#include <simpletest.h>
+#include <QObject>
 
 class KisVecTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-
     void testCreation();
-
+    void pointsConvertToVectorsWithoutChangingCoordinates();
+    void vectorExpressionsConvertToPoints();
 };
 
 #endif

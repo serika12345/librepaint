@@ -23,10 +23,8 @@
 
 #include <KoProperties.h>
 #include "KoCanvasController.h"
-#include "KoChannelInfo.h"
-#include "KoIntegerMaths.h"
 #include <document/KisDocument.h>
-#include <workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisMainWindow.h>
 #include <KoSelection.h>
 #include <KoShapeManager.h>
 #include <KoSelectedShapesProxy.h>
@@ -37,49 +35,40 @@
 #include <KoSvgPaste.h>
 #include <kis_icon.h>
 
-#include "kis_adjustment_layer.h"
 #include "nodes/kis_node_manager.h"
 #include "canvas/kis_canvas2.h"
 #include "application/kis_config.h"
-#include "kis_convolution_painter.h"
-#include "kis_convolution_kernel.h"
-#include "kis_debug.h"
-#include "kis_fill_painter.h"
 #include "kis_group_layer.h"
 #include "kis_layer.h"
 #include "canvas/kis_statusbar.h"
 #include "kis_paint_device.h"
 #include "kis_paint_layer.h"
 #include "kis_painter.h"
-#include "kis_transaction.h"
 #include "kis_selection.h"
 #include "kis_types.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_undo_adapter.h"
 #include "kis_pixel_selection.h"
+#include "kis_processing_applicator.h"
 #include "flake/kis_shape_selection.h"
-#include "commands/kis_selection_commands.h"
-#include "kis_selection_mask.h"
+#include "commands/KisDeselectActiveSelectionCommand.h"
 #include "flake/kis_shape_layer.h"
 #include "canvas/kis_selection_decoration.h"
 #include "canvas/kis_canvas_decoration.h"
 #include <commands/kis_node_commands_adapter.h>
 #include "kis_iterator_ng.h"
 #include "kis_clipboard.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "kis_selection_filters.h"
 #include <kis_figure_painting_stroke.h>
-#include "workspace/KisView.h"
+#include "application/ui/workspace/KisView.h"
 #include "dialogs/kis_dlg_stroke_selection_properties.h"
 
 #include "actions/kis_selection_action_factories.h"
 #include "actions/KisPasteActionFactories.h"
-#include "application/kis_action.h"
-#include "application/kis_action_manager.h"
-#include "operations/kis_operation_configuration.h"
+#include "application/ui/orchestration/kis_action.h"
+#include "application/ui/orchestration/kis_action_manager.h"
 //new
-#include "kis_node_query_path.h"
-#include "kis_tool_shape.h"
 #include "kis_config_notifier.h"
 
 KisSelectionManager::KisSelectionManager(KisViewManager * view)

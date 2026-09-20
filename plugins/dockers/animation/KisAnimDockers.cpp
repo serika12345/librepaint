@@ -14,7 +14,6 @@
 #include <KoDockFactoryBase.h>
 #include <KoDockRegistry.h>
 
-#include "workspace/KisViewManager.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(AnimationDockersPluginFactory, "krita_animationdocker.json", registerPlugin<AnimationDockersPlugin>();)
 

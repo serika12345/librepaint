@@ -55,11 +55,11 @@
 #include <kis_image_animation_interface.h>
 #include <KoProperties.h>
 
-#include <application/kis_action.h>
-#include "application/kis_action_manager.h"
+#include <application/ui/orchestration/kis_action.h>
+#include "application/ui/orchestration/kis_action_manager.h"
 #include <kis_cmb_composite.h>
 #include "kis_slider_spin_box.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "nodes/kis_node_manager.h"
 #include "nodes/kis_node_model.h"
 #include <kis_clipboard.h>
@@ -69,11 +69,12 @@
 #include "kis_shape_controller.h"
 #include "kis_selection_mask.h"
 #include "application/kis_config.h"
-#include "workspace/KisView.h"
+#include "application/ui/workspace/KisView.h"
+#include "krita_container_utils.h"
 #include "krita_utils.h"
 #include "kis_color_label_selector_widget.h"
+#include "kis_layer_filter_widget.h"
 #include "kis_signals_blocker.h"
-#include "kis_color_filter_combo.h"
 #include "nodes/kis_node_filter_proxy_model.h"
 #include <KisSpinBoxI18nHelper.h>
 
@@ -81,7 +82,6 @@
 #include "kis_processing_applicator.h"
 #include "commands/kis_set_global_selection_command.h"
 #include "selection/KisSelectionActionsAdapter.h"
-#include "canvas/KisIdleTasksManager.h"
 
 #include "kis_layer_utils.h"
 

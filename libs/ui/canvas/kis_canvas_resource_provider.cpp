@@ -8,6 +8,7 @@
 #include <QPainter>
 
 #include <KConfigGroup>
+#include <KSharedConfig>
 #include <KoCanvasBase.h>
 #include <KoActiveCanvasResourceDependencyKoResource.h>
 #include <KoID.h>
@@ -36,7 +37,7 @@
 #include "resources/kis_favorite_resource_manager.h"
 #include "resources/kis_derived_resources.h"
 
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "canvas/kis_canvas2.h"
 #include <KoUnit.h>
 

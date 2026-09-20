@@ -13,14 +13,13 @@
 #include <QApplication>
 
 #include "document/KisDocument.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "KisAnimationRenderingOptions.h"
 #include "KisMimeDatabase.h"
 #include "dialogs/KisAsyncAnimationFramesSaveDialog.h"
 #include "kis_time_span.h"
-#include "workspace/KisMainWindow.h"
+#include "application/ui/workspace/KisMainWindow.h"
 
-#include "krita_container_utils.h"
 
 #include "KisVideoSaver.h"
 
@@ -38,15 +37,6 @@ bool looksLikeMp4(const QString &videoType)
     return videoType.contains(QStringLiteral("mp4"));
 #else
     return videoType == QStringLiteral("video/mp4");
-#endif
-}
-
-bool looksLikeMatroska(const QString &videoType)
-{
-#ifdef Q_OS_ANDROID
-    return videoType.contains(QStringLiteral("matroska"));
-#else
-    return videoType == QStringLiteral("video/x-matroska");
 #endif
 }
 
@@ -247,16 +237,4 @@ bool KisAnimationRender::render(KisDocument *doc, KisViewManager *viewManager, K
     } 
 
     return delayReturnSuccess;
-}
-
-bool KisAnimationRender::mustHaveEvenDimensions(const QString &videoType,
-                                                KisAnimationRenderingOptions::RenderMode renderMode)
-{
-    return renderMode != KisAnimationRenderingOptions::RENDER_FRAMES_ONLY
-        && (looksLikeMp4(videoType) || looksLikeMatroska(videoType));
-}
-
-bool KisAnimationRender::hasEvenDimensions(int width, int height)
-{
-    return !((width & 0x1) || (height & 0x1));
 }

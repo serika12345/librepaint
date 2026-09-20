@@ -8,8 +8,6 @@
 #include <stroke_testing_utils.h>
 #include <strokes/inplace_transform_stroke_strategy.h>
 
-#include "kis_selection.h"
-
 #include <testutil.h>
 #include "kistest.h"
 #include "kis_transform_mask.h"

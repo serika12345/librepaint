@@ -5,12 +5,40 @@
  */
 
 #include "kis_saved_commands.h"
+#include "KisPostExecutionUndoAdapterDelivery_p.h"
 
 #include <QVector>
 
 #include "kis_image_interfaces.h"
+#include "kis_undo_store.h"
 #include "kis_stroke_strategy_undo_command_based.h"
 #include <KisAsynchronouslyMergeableCommandInterface.h>
+
+KUndo2Command *KisPostExecutionUndoAdapterDelivery::createSavedCommand(
+    KUndo2CommandSP command,
+    KisStrokesFacade *strokesFacade)
+{
+    return new KisSavedCommand(command, strokesFacade);
+}
+
+KisSavedMacroCommand *KisPostExecutionUndoAdapterDelivery::createSavedMacro(
+    const KUndo2MagicString &macroName,
+    KisStrokesFacade *strokesFacade)
+{
+    return new KisSavedMacroCommand(macroName, strokesFacade);
+}
+
+void KisPostExecutionUndoAdapterDelivery::addCommand(KisUndoStore *undoStore,
+                                                     KUndo2Command *command)
+{
+    undoStore->addCommand(command);
+}
+
+void KisPostExecutionUndoAdapterDelivery::addMacro(KisUndoStore *undoStore,
+                                                   KisSavedMacroCommand *macro)
+{
+    undoStore->addCommand(macro);
+}
 
 
 KisSavedCommandBase::KisSavedCommandBase(const KUndo2MagicString &name,

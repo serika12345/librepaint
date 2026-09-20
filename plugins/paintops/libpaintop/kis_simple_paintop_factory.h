@@ -7,10 +7,19 @@
 #ifndef KIS_SIMPLE_PAINTOP_FACTORY_H
 #define KIS_SIMPLE_PAINTOP_FACTORY_H
 
+#include <QIcon>
+#include <QList>
+#include <QString>
+#include <QStringList>
+#include <QtGlobal>
+
+#include <type_traits>
+#include <utility>
+
 #include <brushengine/kis_paintop_factory.h>
 #include <brushengine/kis_paintop_settings.h>
 #include <kis_icon.h>
-#include <KisCppQuirks.h>
+#include <kis_image.h>
 #include <KoResourceLoadResult.h>
 
 class QWidget;

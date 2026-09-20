@@ -29,7 +29,6 @@
 #include "KisTagFilterWidget.h"
 #include "KisTagChooserWidget.h"
 #include "KisResourceItemChooserContextMenu.h"
-#include "kis_debug.h"
 #include "KisTag.h"
 
 class KisResourceTaggingManager::Private
@@ -124,8 +123,7 @@ KisTagChooserWidget *KisResourceTaggingManager::tagChooserWidget()
     return d->tagChooser;
 }
 
-KisTagFilterWidget *KisResourceTaggingManager::tagFilterWidget()
+QWidget *KisResourceTaggingManager::tagFilterWidget()
 {
     return d->tagFilter;
 }
-

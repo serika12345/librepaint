@@ -17,7 +17,7 @@
 #include <QRect>
 #include <QSlider>
 
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <KoColor.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorProfile.h>
@@ -39,7 +39,6 @@
 #include "document/KisDocument.h"
 #include "kis_clipboard.h"
 #include "kis_import_catcher.h"
-#include "widgets/kis_cmb_idlist.h"
 
 KisImageFromClipboardWidget::KisImageFromClipboardWidget(QWidget* parent, qint32 defWidth, qint32 defHeight, double resolution, const QString& defColorModel, const QString& defColorDepth, const QString& defColorProfile, const QString& imageName)
     : KisCustomImageWidget(parent, defWidth, defHeight, resolution, defColorModel, defColorDepth, defColorProfile, imageName)

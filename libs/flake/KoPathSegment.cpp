@@ -11,7 +11,6 @@
 #include <QTransform>
 #include <math.h>
 
-#include "kis_global.h"
 
 #include <KisBezierUtils.h>
 

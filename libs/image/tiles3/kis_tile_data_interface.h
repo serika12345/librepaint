@@ -105,7 +105,11 @@ public:
     /**
      * Information about data stored
      */
-    inline quint8* data() const;
+    inline quint8* data() const
+    {
+        // WARN: be careful - it can be null when swapped out!
+        return m_data;
+    }
     inline void setData(const quint8 *data);
     inline quint32 pixelSize() const;
 

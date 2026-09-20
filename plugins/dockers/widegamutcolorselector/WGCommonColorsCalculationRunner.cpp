@@ -16,6 +16,7 @@
 #include <QImage>
 
 #include "kis_image.h"
+#include "kis_paint_device.h"
 #include "KoColor.h"
 #include "KoColorSpaceRegistry.h"
 

@@ -1,6 +1,7 @@
 /*
- *  SPDX-FileCopyrightText: 2011 Hanna Skott <hannaetscott@gmail.com>
- *  SPDX-License-Identifier: GPL-2.0-or-later
+ * SPDX-FileCopyrightText: 2011 Hanna Skott <hannaetscott@gmail.com>
+ * SPDX-FileCopyrightText: 2026 LibrePaint contributors
+ * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
 #ifndef TESTINPUTDEVICE_H
@@ -11,18 +12,17 @@
 class TestInputDevice : public QObject
 {
     Q_OBJECT
+
 private Q_SLOTS:
-    // tests
-    void testTabletConstructor();
-    void testNoParameterConstructor();
-    void testConstructorWithSingleReference();
-    void testEqualityCheckOperator();
-    void testDevice();
-    void testPointer();
-    void testMouse();
-    void testStylus();
-    void testEraser();
-    
+    void enumValuesMatchQtInputClassifications();
+    void tabletEventsMapQtDeviceAndPointerTypes();
+    void constructionAndMouseFallbackPreserveState();
+    void copyAssignmentEqualityAndLifetime();
+    void factoriesExposeCanonicalDevices();
+    void equalDevicesProduceEqualHashes();
+    void debugOutputKeepsCurrentLabels();
+    void concreteMouseDeviceIsNotReportedAsMouse();
+    void qt6AdditionalTypesUseUnsupportedDebugLabels();
 };
 
-#endif /* TESTINPUTDEVICE_H */
+#endif // TESTINPUTDEVICE_H

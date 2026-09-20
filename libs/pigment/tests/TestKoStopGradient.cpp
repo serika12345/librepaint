@@ -17,8 +17,6 @@
 #include "KoColorSpace.h"
 #include "KoColorProfile.h"
 #include "KoColorSpaceRegistry.h"
-#include "DebugPigment.h"
-#include "kis_debug.h"
 
 #include <testpigment.h>
 
@@ -45,6 +43,26 @@ void TestKoStopGradient::TestSVGStopGradientLoading()
     QVERIFY2(svgSerialization.contains("icc-color"), QString("icc-color not found in serialization of cmyk gradient.").toLatin1());
     QVERIFY2(svgSerialization.contains("color-profile"), QString("color-profile not found in serialization of cmyk gradient.").toLatin1());
 
+}
+
+void TestKoStopGradient::testInterpolatesBetweenStops()
+{
+    const KoColorSpace *space = KoColorSpaceRegistry::instance()->rgb8();
+    KoStopGradient gradient;
+    gradient.setStops({KoGradientStop(0.0, KoColor(Qt::black, space)),
+                       KoGradientStop(1.0, KoColor(Qt::white, space))});
+
+    KoColor sample(space);
+    gradient.colorAt(sample, 0.0);
+    QCOMPARE(sample.toQColor(), QColor(Qt::black));
+    gradient.colorAt(sample, 1.0);
+    QCOMPARE(sample.toQColor(), QColor(Qt::white));
+    gradient.colorAt(sample, 0.5);
+    const QColor middle = sample.toQColor();
+    QVERIFY(qAbs(middle.red() - 128) <= 1);
+    QCOMPARE(middle.green(), middle.red());
+    QCOMPARE(middle.blue(), middle.red());
+    QCOMPARE(middle.alpha(), 255);
 }
 
 KISTEST_MAIN(TestKoStopGradient)

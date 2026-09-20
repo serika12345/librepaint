@@ -6,8 +6,11 @@
 #ifndef KISDYNAMICSENSORFACTORY_H
 #define KISDYNAMICSENSORFACTORY_H
 
-#include <KisCurveOptionData.h>
+#include <QString>
 #include <lager/cursor.hpp>
+
+#include "KisCurveOptionDataCommon.h"
+#include "kritapaintop_export.h"
 
 class QWidget;
 

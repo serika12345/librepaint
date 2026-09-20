@@ -27,7 +27,6 @@ class QWidget;
 class QString;
 class QPoint;
 
-class KisTagFilterWidget;
 class KisTagChooserWidget;
 class KisTagFilterResourceProxyModel;
 
@@ -72,7 +71,7 @@ public:
     /// \brief tagFilterWidget method to get the tag filter widget
     /// \return tag filter widget
     ///
-    KisTagFilterWidget *tagFilterWidget();
+    QWidget *tagFilterWidget();
     ///
     /// \brief tagChooserWidget method to get the tag chooser widget
     /// \return tag chooser widget

@@ -14,7 +14,7 @@
 #include <QScopedPointer>
 #include <QDockWidget>
 
-#include <workspace/kis_mainwindow_observer.h>
+#include <application/ui/workspace/kis_mainwindow_observer.h>
 #include <kis_utility_title_bar.h>
 
 #ifdef Q_OS_MACOS

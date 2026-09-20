@@ -17,6 +17,8 @@ class QVariant;
 namespace KisMetaData
 {
 
+class TypeInfo;
+
 struct Rational : public boost::equality_comparable<Rational>
 {
     explicit Rational(qint32 n = 0, qint32 d = 1) : numerator(n), denominator(d) {}
@@ -78,8 +80,9 @@ public:
     */
     QVariant asVariant() const;
     /**
-    * Set this Value to the given variant, or does nothing if this Value is not a Variant.
-    * @return true if the value was changed
+    * Set this Value to the given variant. Invalid values become Variant values;
+    * other non-Variant values remain unchanged.
+    * @return true if the stored value changed
     */
     bool setVariant(const QVariant& variant);
     bool setStructureVariant(const QString& fieldNAme, const QVariant& variant);
@@ -112,6 +115,9 @@ public:
     bool operator==(const Value&) const;
     Value& operator+=(const Value&);
 private:
+    bool hasValidLanguageArrayEntries() const;
+
+    friend class TypeInfo;
     Private* const d;
 };
 }

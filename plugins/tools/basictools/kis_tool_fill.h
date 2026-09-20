@@ -11,6 +11,7 @@
 
 #include <QPoint>
 #include <QList>
+#include <QKeySequence>
 #include <QVector>
 
 #include "kis_tool_paint.h"
@@ -23,7 +24,7 @@
 #include <kis_signal_auto_connection.h>
 #include <kis_resources_snapshot.h>
 #include <commands_new/KisMergeLabeledLayersCommand.h>
-#include <KoCompositeOpRegistry.h>
+#include <KoCompositeOpIds.h>
 
 class KisOptionCollectionWidget;
 class KoGroupButton;
@@ -257,4 +258,3 @@ public:
 };
 
 #endif //__filltool_h__
-

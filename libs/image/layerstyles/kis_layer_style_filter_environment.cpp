@@ -11,7 +11,6 @@
 #include "kis_layer.h"
 #include "kis_ls_utils.h"
 
-#include "kis_selection.h"
 #include "kis_pixel_selection.h"
 #include "kis_painter.h"
 #include "kis_image.h"
@@ -19,8 +18,7 @@
 #include "krita_utils.h"
 
 #include <boost/random/mersenne_twister.hpp>
-#include "kis_random_accessor_ng.h"
-#include "kis_iterator_ng.h"
+#include "kis_sequential_iterator.h"
 #include "kis_cached_paint_device.h"
 #include "KisLocalStrokeResources.h"
 

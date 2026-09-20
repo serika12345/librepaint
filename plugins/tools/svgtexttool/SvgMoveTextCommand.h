@@ -7,6 +7,8 @@
 #ifndef SVG_MOVE_TEXT_COMMAND_H
 #define SVG_MOVE_TEXT_COMMAND_H
 
+#include <QPointF>
+
 #include <kundo2command.h>
 
 class KoSvgTextShape;

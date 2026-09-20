@@ -6,7 +6,6 @@
 
 #include "posterize.h"
 #include <stdlib.h>
-#include <vector>
 
 #include <QPoint>
 #include <QTime>

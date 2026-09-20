@@ -11,7 +11,7 @@
 #include <QPointF>
 
 #include <KisFilteredRollingMean.h>
-#include <kis_algebra_2d.h>
+#include <kis_global.h>
 
 namespace {
 constexpr int MaximumSmoothHistory = 512;

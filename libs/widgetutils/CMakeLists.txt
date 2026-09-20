@@ -5,55 +5,506 @@ configure_file(xmlgui/config-xmlgui.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-x
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/config)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/xmlgui)
 
+add_library(kritawidgetutilsnumericparserobjects OBJECT
+    kis_num_parser.cpp
+)
+target_compile_definitions(kritawidgetutilsnumericparserobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsnumericparserobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilsnumericparserobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritawidgetutilsnumericparserobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetutilsintparsespinboxobjects OBJECT
+    kis_int_parse_spin_box.cpp
+)
+target_compile_definitions(kritawidgetutilsintparsespinboxobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsintparsespinboxobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilsintparsespinboxobjects
+    PUBLIC
+        kritaglobalpaintingtweaksobjects
+        kritawidgetutilsnumericparserobjects
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritawidgetutilsintparsespinboxobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetutilsdoubleparsespinboxobjects OBJECT
+    kis_double_parse_spin_box.cpp
+)
+target_compile_definitions(kritawidgetutilsdoubleparsespinboxobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsdoubleparsespinboxobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilsdoubleparsespinboxobjects
+    PUBLIC
+        kritaglobalpaintingtweaksobjects
+        kritawidgetutilsnumericparserobjects
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritawidgetutilsdoubleparsespinboxobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetutilspropertiesobjects OBJECT
+    KoProperties.cpp
+)
+target_compile_definitions(kritawidgetutilspropertiesobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilspropertiesobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilspropertiesobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritawidgetutilspropertiesobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritasqueezedcomboboxobjects OBJECT
+    KisSqueezedComboBox.cpp
+)
+target_compile_definitions(kritasqueezedcomboboxobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritasqueezedcomboboxobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritasqueezedcomboboxobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritasqueezedcomboboxobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritacheckerboardpainterobjects OBJECT
+    KoCheckerBoardPainter.cpp
+)
+target_compile_definitions(kritacheckerboardpainterobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritacheckerboardpainterobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritacheckerboardpainterobjects PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritacheckerboardpainterobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaitemtooltipobjects OBJECT
+    KoItemToolTip.cpp
+)
+target_compile_definitions(kritaitemtooltipobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritaitemtooltipobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaitemtooltipobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritaitemtooltipobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritakineticscrollerobjects OBJECT
+    KisKineticScroller.cpp
+)
+target_compile_definitions(kritakineticscrollerobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritakineticscrollerobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritakineticscrollerobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::ConfigCore
+)
+set_target_properties(kritakineticscrollerobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritapopupbuttonobjects OBJECT
+    KisPopupButton.cpp
+)
+target_compile_definitions(kritapopupbuttonobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritapopupbuttonobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapopupbuttonobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritapopupbuttonobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritamenustyledontcloseonaltobjects OBJECT
+    KisMenuStyleDontCloseOnAlt.cpp
+)
+target_compile_definitions(kritamenustyledontcloseonaltobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritamenustyledontcloseonaltobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritamenustyledontcloseonaltobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritamenustyledontcloseonaltobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapopupselfactivatinglineeditobjects OBJECT
+    KisPopupSelfActivatingLineEdit.cpp
+)
+target_compile_definitions(kritapopupselfactivatinglineeditobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritapopupselfactivatinglineeditobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapopupselfactivatinglineeditobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritapopupselfactivatinglineeditobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritaspinboxi18nhelperobjects OBJECT
+    KisSpinBoxI18nHelper.cpp
+)
+target_compile_definitions(kritaspinboxi18nhelperobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritaspinboxi18nhelperobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritaspinboxi18nhelperobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritaspinboxi18nhelperobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetutilsprogressupdaterobjects OBJECT
+    KoProgressProxy.cpp
+    KoProgressProxy.h
+    KoUpdater.cpp
+    KoUpdater.h
+    KoUpdaterPrivate_p.cpp
+    KoUpdaterPrivate_p.h
+)
+target_compile_definitions(kritawidgetutilsprogressupdaterobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsprogressupdaterobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilsprogressupdaterobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritawidgetutilsprogressupdaterobjects PROPERTIES
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetutilsfakeprogressproxyobjects OBJECT
+    KoFakeProgressProxy.cpp
+)
+target_compile_definitions(kritawidgetutilsfakeprogressproxyobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsfakeprogressproxyobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilsfakeprogressproxyobjects
+    PUBLIC
+        kritawidgetutilsprogressupdaterobjects
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritawidgetutilsfakeprogressproxyobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetutilsprogressbarobjects OBJECT
+    KoProgressBar.cpp
+    KoProgressBar.h
+)
+target_compile_definitions(kritawidgetutilsprogressbarobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsprogressbarobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilsprogressbarobjects
+    PUBLIC
+        kritawidgetutilsprogressupdaterobjects
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritawidgetutilsprogressbarobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritawidgetutilsrepaintdebuggerobjects OBJECT
+    KisRepaintDebugger.cpp
+)
+target_compile_definitions(kritawidgetutilsrepaintdebuggerobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsrepaintdebuggerobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilsrepaintdebuggerobjects PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritawidgetutilsrepaintdebuggerobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetutilsoptioncollectionobjects OBJECT
+    KisOptionCollectionWidget.cpp
+)
+target_compile_definitions(kritawidgetutilsoptioncollectionobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsoptioncollectionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+)
+target_link_libraries(kritawidgetutilsoptioncollectionobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetutilsoptioncollectionobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritawidgetutilswrappablehboxlayoutobjects OBJECT
+    KisWrappableHBoxLayout.cpp
+)
+target_compile_definitions(kritawidgetutilswrappablehboxlayoutobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilswrappablehboxlayoutobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilswrappablehboxlayoutobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetutilswrappablehboxlayoutobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritawidgetutilsoptionbuttonstripobjects OBJECT
+    KisOptionButtonStrip.cpp
+    KoGroupButton.cpp
+)
+target_compile_definitions(kritawidgetutilsoptionbuttonstripobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsoptionbuttonstripobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritawidgetutilsoptionbuttonstripobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritawidgetutilsoptionbuttonstripobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritawidgetutilstoolbarstatemodelobjects OBJECT
+    xmlgui/KisToolBarStateModel.cpp
+)
+target_compile_definitions(kritawidgetutilstoolbarstatemodelobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilstoolbarstatemodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/xmlgui>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilstoolbarstatemodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        lager
+)
+set_target_properties(kritawidgetutilstoolbarstatemodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetutilsrootsurfacetrackerobjects OBJECT
+    KisRootSurfaceTrackerBase.cpp
+    KisRootSurfaceTrackerBase.h
+)
+target_compile_definitions(kritawidgetutilsrootsurfacetrackerobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsrootsurfacetrackerobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+)
+target_link_libraries(kritawidgetutilsrootsurfacetrackerobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritawidgetutilsrootsurfacetrackerobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetutilsscreenmigrationtrackerobjects OBJECT
+    KisScreenMigrationTracker.cpp
+)
+target_compile_definitions(kritawidgetutilsscreenmigrationtrackerobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsscreenmigrationtrackerobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritawidgetutilsscreenmigrationtrackerobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+)
+set_target_properties(kritawidgetutilsscreenmigrationtrackerobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetutilsclickablelabelobjects OBJECT
+    KisClickableLabel.cpp
+)
+target_compile_definitions(kritawidgetutilsclickablelabelobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsclickablelabelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilsclickablelabelobjects PUBLIC Qt${QT_MAJOR_VERSION}::Widgets)
+set_target_properties(kritawidgetutilsclickablelabelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetutilsrecentfilesmanagerobjects OBJECT
+    KisRecentFilesManager.cpp
+)
+target_compile_definitions(kritawidgetutilsrecentfilesmanagerobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsrecentfilesmanagerobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritawidgetutilsrecentfilesmanagerobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::ConfigCore
+)
+set_target_properties(kritawidgetutilsrecentfilesmanagerobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetutilsrecentfilesactionobjects OBJECT
+    config/krecentfilesaction.cpp
+)
+target_compile_definitions(kritawidgetutilsrecentfilesactionobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsrecentfilesactionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/config>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritawidgetutilsrecentfilesactionobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::WidgetsAddons
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        KF${KF_MAJOR}::ConfigCore
+)
+set_target_properties(kritawidgetutilsrecentfilesactionobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritawidgetutilsspinboxunitmanagerobjects OBJECT
+    kis_spin_box_unit_manager.cpp
+    kis_spin_box_unit_manager.h
+)
+target_compile_definitions(kritawidgetutilsspinboxunitmanagerobjects PRIVATE kritawidgetutils_EXPORTS)
+target_include_directories(kritawidgetutilsspinboxunitmanagerobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritawidgetutilsspinboxunitmanagerobjects
+    PUBLIC
+        kritaglobalunitobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritawidgetutilsspinboxunitmanagerobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 set(kritawidgetutils_LIB_SRCS
+
+    $<TARGET_OBJECTS:kritawidgetutilsnumericparserobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsintparsespinboxobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsdoubleparsespinboxobjects>
+    $<TARGET_OBJECTS:kritawidgetutilspropertiesobjects>
+    $<TARGET_OBJECTS:kritasqueezedcomboboxobjects>
+    $<TARGET_OBJECTS:kritacheckerboardpainterobjects>
+    $<TARGET_OBJECTS:kritaitemtooltipobjects>
+    $<TARGET_OBJECTS:kritakineticscrollerobjects>
+    $<TARGET_OBJECTS:kritapopupbuttonobjects>
+    $<TARGET_OBJECTS:kritamenustyledontcloseonaltobjects>
+    $<TARGET_OBJECTS:kritapopupselfactivatinglineeditobjects>
+    $<TARGET_OBJECTS:kritaspinboxi18nhelperobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsprogressupdaterobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsfakeprogressproxyobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsprogressbarobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsrepaintdebuggerobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsoptioncollectionobjects>
+    $<TARGET_OBJECTS:kritawidgetutilswrappablehboxlayoutobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsoptionbuttonstripobjects>
+    $<TARGET_OBJECTS:kritawidgetutilstoolbarstatemodelobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsrootsurfacetrackerobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsscreenmigrationtrackerobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsclickablelabelobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsrecentfilesmanagerobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsrecentfilesactionobjects>
+    $<TARGET_OBJECTS:kritawidgetutilsspinboxunitmanagerobjects>
 
     WidgetUtilsDebug.cpp
 
     kis_icon_utils.cpp
     kis_action_registry.cpp
     KisActionsSnapshot.cpp
-    KoGroupButton.cpp
-    KoProgressProxy.cpp
-    KoFakeProgressProxy.cpp
-    KoProgressBar.cpp
     KoProgressUpdater.cpp
-    KoUpdater.cpp
-    KoUpdaterPrivate_p.cpp
-    KoProperties.cpp
     KoFileDialog.cpp
     KisPreviewFileDialog.cpp
-    KisKineticScroller.cpp
-    KoCheckerBoardPainter.cpp
-    KoItemToolTip.cpp
-    KisSqueezedComboBox.cpp
     KisDialogStateSaver.cpp
-    KisPopupButton.cpp
     kis_cursor.cc
     kis_cursor_cache.cpp
 
-    kis_double_parse_spin_box.cpp
     kis_double_parse_unit_spin_box.cpp
-    kis_int_parse_spin_box.cpp
-    kis_num_parser.cpp
     kis_slider_spin_box.cpp
     kis_multipliers_double_slider_spinbox.cpp
-    kis_spin_box_unit_manager.cpp
+    KisSpinBoxUnitManagerFactory.cpp
     kis_font_family_combo_box.cpp
     KisFontFamilyValidator.cpp
-    KisWrappableHBoxLayout.cpp
-    KisPopupSelfActivatingLineEdit.cpp
-    KisRecentFilesManager.cpp
-    KisOptionCollectionWidget.cpp
-    KisOptionButtonStrip.cpp
-    KisRepaintDebugger.cpp
-    KisMenuStyleDontCloseOnAlt.cpp
-    KisSpinBoxI18nHelper.cpp
-    KisScreenMigrationTracker.cpp
-    KisRootSurfaceTrackerBase.cpp
-
     config/khelpclient.cpp
     config/klanguagebutton.cpp
-    config/krecentfilesaction.cpp
     config/kstandardaction.cpp
 
     xmlgui/KisShortcutsEditorItem.cpp
@@ -79,7 +530,6 @@ set(kritawidgetutils_LIB_SRCS
     xmlgui/ktoggletoolbaraction.cpp
     xmlgui/ktoolbar.cpp
     xmlgui/ktoolbarhandler.cpp
-    xmlgui/KisToolBarStateModel.cpp
     xmlgui/kundoactions.cpp
     xmlgui/kxmlguibuilder.cpp
     xmlgui/kxmlguiclient.cpp
@@ -90,8 +540,6 @@ set(kritawidgetutils_LIB_SRCS
 
     katecommandbar.cpp
     commandmodel.cpp
-
-    KisClickableLabel.cpp
 )
 
 if (QT_MAJOR_VERSION STREQUAL "5")

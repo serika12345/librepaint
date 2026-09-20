@@ -10,16 +10,58 @@
 #include <KoShape.h>
 #include <klocalizedstring.h>
 
+namespace
+{
+using ShapeUpdater = void (*)(const KoShape *shape);
+using ShapeSizeSetter = void (*)(KoShape *shape, const QSizeF &size);
+
+void updateShape(const KoShape *shape)
+{
+    shape->update();
+}
+
+void setShapeSize(KoShape *shape, const QSizeF &size)
+{
+    shape->setSize(size);
+}
+
+struct ShapeAccess {
+    ShapeUpdater updater;
+    ShapeSizeSetter sizeSetter;
+};
+
+const ShapeAccess defaultShapeAccess{updateShape, setShapeSize};
+ShapeAccess activeShapeAccess = defaultShapeAccess;
+} // namespace
+
+#if defined(KRITAFLAKE_SHAPE_SIZE_COMMAND_CONTRACT_TESTING)
+namespace KoShapeSizeCommandTesting
+{
+Q_DECL_HIDDEN void setShapeAccessForTesting(ShapeUpdater updater, ShapeSizeSetter sizeSetter)
+{
+    activeShapeAccess = {updater, sizeSetter};
+}
+
+Q_DECL_HIDDEN void resetShapeAccessForTesting()
+{
+    activeShapeAccess = defaultShapeAccess;
+}
+} // namespace KoShapeSizeCommandTesting
+#endif
+
 class Q_DECL_HIDDEN KoShapeSizeCommand::Private
 {
 public:
-    QList<KoShape*> shapes;
+    QList<KoShape *> shapes;
     QList<QSizeF> previousSizes, newSizes;
 };
 
-KoShapeSizeCommand::KoShapeSizeCommand(const QList<KoShape*> &shapes, const QList<QSizeF> &previousSizes, const QList<QSizeF> &newSizes, KUndo2Command *parent)
-        : KUndo2Command(parent),
-        d(new Private())
+KoShapeSizeCommand::KoShapeSizeCommand(const QList<KoShape *> &shapes,
+                                       const QList<QSizeF> &previousSizes,
+                                       const QList<QSizeF> &newSizes,
+                                       KUndo2Command *parent)
+    : KUndo2Command(parent)
+    , d(new Private())
 {
     d->previousSizes = previousSizes;
     d->newSizes = newSizes;
@@ -40,9 +82,9 @@ void KoShapeSizeCommand::redo()
     KUndo2Command::redo();
     int i = 0;
     Q_FOREACH (KoShape *shape, d->shapes) {
-        shape->update();
-        shape->setSize(d->newSizes[i++]);
-        shape->update();
+        activeShapeAccess.updater(shape);
+        activeShapeAccess.sizeSetter(shape, d->newSizes[i++]);
+        activeShapeAccess.updater(shape);
     }
 }
 
@@ -51,8 +93,8 @@ void KoShapeSizeCommand::undo()
     KUndo2Command::undo();
     int i = 0;
     Q_FOREACH (KoShape *shape, d->shapes) {
-        shape->update();
-        shape->setSize(d->previousSizes[i++]);
-        shape->update();
+        activeShapeAccess.updater(shape);
+        activeShapeAccess.sizeSetter(shape, d->previousSizes[i++]);
+        activeShapeAccess.updater(shape);
     }
 }

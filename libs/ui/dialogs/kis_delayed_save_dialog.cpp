@@ -12,11 +12,10 @@
 #include <QTimer>
 #include <QtGlobal>
 
-#include "kis_debug.h"
 #include "KisBusyWaitBroker.h"
 #include "kis_image.h"
 #include "kis_composite_progress_proxy.h"
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 
 namespace
 {

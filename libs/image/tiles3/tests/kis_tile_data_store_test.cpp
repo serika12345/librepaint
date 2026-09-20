@@ -7,7 +7,6 @@
 #include "kis_tile_data_store_test.h"
 #include <simpletest.h>
 
-#include "kis_debug.h"
 
 #include "kis_image_config.h"
 

@@ -57,6 +57,11 @@ public:
         return createDefaultShape(resources);
     }
 
+    void registerTemplate(const KoShapeTemplate &shapeTemplate)
+    {
+        addTemplate(shapeTemplate);
+    }
+
     mutable QRectF rectangleProperties;
     mutable qreal cornerRadiusX = 0.0;
     mutable qreal cornerRadiusY = 0.0;
@@ -125,6 +130,49 @@ void TestKoShapeFactory::testCreateShape()
     QVERIFY(shape != 0);
     delete shape;
     delete factory;
+}
+
+void TestKoShapeFactory::testRegisteredTemplateCreatesTheSelectedShape()
+{
+    // Consumer: The shape chooser and canvas insertion code that consume templates published by shape plugins.
+    // Operation: Register a rounded-rectangle template, then create the selected shape from its published properties.
+    // Observable result: The template has the factory identifier and presentation metadata, and its properties configure the created shape.
+    // Failure impact: A shape preset cannot be selected reliably, or it creates a shape with the wrong geometry.
+    RecordingShapeFactory factory(QStringLiteral("RectangleShape"));
+    KoShapeTemplate templateDefinition;
+    templateDefinition.id = QStringLiteral("plugin-supplied-id");
+    templateDefinition.templateId = QStringLiteral("rounded-rectangle");
+    templateDefinition.name = QStringLiteral("Rounded Rectangle");
+    templateDefinition.family = QStringLiteral("geometric");
+    templateDefinition.toolTip = QStringLiteral("Rectangle with rounded corners");
+    templateDefinition.iconName = QStringLiteral("draw-rectangle");
+
+    auto *properties = new KoProperties;
+    properties->setProperty("x", 3.0);
+    properties->setProperty("y", 5.0);
+    properties->setProperty("width", 40.0);
+    properties->setProperty("height", 20.0);
+    properties->setProperty("rx", 25.0);
+    properties->setProperty("ry", 60.0);
+    templateDefinition.properties = properties;
+    factory.registerTemplate(templateDefinition);
+
+    const QList<KoShapeTemplate> templates = factory.templates();
+    QCOMPARE(templates.size(), 1);
+    const KoShapeTemplate &publishedTemplate = templates.first();
+    QCOMPARE(publishedTemplate.id, factory.id());
+    QCOMPARE(publishedTemplate.templateId, templateDefinition.templateId);
+    QCOMPARE(publishedTemplate.name, templateDefinition.name);
+    QCOMPARE(publishedTemplate.family, templateDefinition.family);
+    QCOMPARE(publishedTemplate.toolTip, templateDefinition.toolTip);
+    QCOMPARE(publishedTemplate.iconName, templateDefinition.iconName);
+
+    QScopedPointer<KoShape> shape(factory.createShape(publishedTemplate.properties, nullptr));
+    QVERIFY(shape);
+    QCOMPARE(shape->shapeId(), QStringLiteral("RectangleShapeCreated"));
+    QCOMPARE(factory.rectangleProperties, QRectF(3.0, 5.0, 40.0, 20.0));
+    QCOMPARE(factory.cornerRadiusX, 25.0);
+    QCOMPARE(factory.cornerRadiusY, 60.0);
 }
 
 void TestKoShapeFactory::testBasicShapeFactoryUsesRegisteredFactories()

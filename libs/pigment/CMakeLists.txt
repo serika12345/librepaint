@@ -3,6 +3,10 @@ project(kritapigment)
 ko_compile_for_all_implementations_no_scalar(__per_arch_factory_objs compositeops/KoOptimizedCompositeOpFactoryPerArch.cpp)
 ko_compile_for_all_implementations(__per_arch_alpha_applicator_factory_objs KoAlphaMaskApplicatorFactoryImpl.cpp)
 ko_compile_for_all_implementations(__per_arch_rgb_scaler_factory_objs KoOptimizedPixelDataScalerU8ToU16FactoryImpl.cpp)
+set(__per_arch_rgb_scaler_scalar_objs ${__per_arch_rgb_scaler_factory_objs})
+list(FILTER __per_arch_rgb_scaler_scalar_objs INCLUDE REGEX "_Scalar\\.cpp$")
+set(__per_arch_rgb_scaler_vector_objs ${__per_arch_rgb_scaler_factory_objs})
+list(FILTER __per_arch_rgb_scaler_vector_objs EXCLUDE REGEX "_Scalar\\.cpp$")
 
 message("Following objects are generated from the per-arch lib")
 foreach(_obj IN LISTS __per_arch_factory_objs __per_arch_alpha_applicator_factory_objs __per_arch_rgb_scaler_factory_objs)
@@ -12,55 +16,419 @@ endforeach()
 add_subdirectory(tests)
 add_subdirectory(benchmarks)
 
-set(kritapigment_SRCS
-    DebugPigment.cpp
-    KoBasicHistogramProducers.cpp
+add_library(kritapigmentcompositeparameterinfoobjects OBJECT
+    KoCompositeOpParameterInfo.cpp
+)
+target_compile_definitions(kritapigmentcompositeparameterinfoobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentcompositeparameterinfoobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapigmentcompositeparameterinfoobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Boost::boost
+)
+set_target_properties(kritapigmentcompositeparameterinfoobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapigmentalphamaskapplicatorbaseobjects OBJECT
     KoAlphaMaskApplicatorBase.cpp
+)
+target_compile_definitions(kritapigmentalphamaskapplicatorbaseobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentalphamaskapplicatorbaseobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapigmentalphamaskapplicatorbaseobjects PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritapigmentalphamaskapplicatorbaseobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapigmentoptimizedpixelscalerbaseobjects OBJECT
     KoOptimizedPixelDataScalerU8ToU16Base.cpp
+)
+target_compile_definitions(kritapigmentoptimizedpixelscalerbaseobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentoptimizedpixelscalerbaseobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapigmentoptimizedpixelscalerbaseobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritapigmentoptimizedpixelscalerbaseobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapigmentoptimizedpixelscalerfactoryobjects OBJECT
     KoOptimizedPixelDataScalerU8ToU16Factory.cpp
+    ${__per_arch_rgb_scaler_scalar_objs}
+)
+target_compile_definitions(kritapigmentoptimizedpixelscalerfactoryobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentoptimizedpixelscalerfactoryobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/multiarch>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/multiarch>
+)
+target_link_libraries(kritapigmentoptimizedpixelscalerfactoryobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        xsimd
+)
+set_target_properties(kritapigmentoptimizedpixelscalerfactoryobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+set(kritapigmentoptimizedpixelscalerfactory_product_objects
+    $<TARGET_OBJECTS:kritapigmentoptimizedpixelscalerfactoryobjects>
+)
+if(__per_arch_rgb_scaler_vector_objs)
+    add_library(kritapigmentoptimizedpixelscalervectorobjects OBJECT
+        ${__per_arch_rgb_scaler_vector_objs}
+    )
+    target_compile_definitions(kritapigmentoptimizedpixelscalervectorobjects PRIVATE kritapigment_EXPORTS)
+    target_include_directories(kritapigmentoptimizedpixelscalervectorobjects
+        PUBLIC
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+            $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        PRIVATE
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+            $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+            $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/multiarch>
+            $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/multiarch>
+    )
+    target_link_libraries(kritapigmentoptimizedpixelscalervectorobjects
+        PUBLIC
+            Qt${QT_MAJOR_VERSION}::Core
+            xsimd
+    )
+    set_target_properties(kritapigmentoptimizedpixelscalervectorobjects PROPERTIES
+        AUTOMOC OFF
+        POSITION_INDEPENDENT_CODE ON
+    )
+    list(APPEND kritapigmentoptimizedpixelscalerfactory_product_objects
+        $<TARGET_OBJECTS:kritapigmentoptimizedpixelscalervectorobjects>
+    )
+endif()
+
+add_library(kritapigmentstandardidsobjects OBJECT
+    KoColorModelStandardIds.cpp
+)
+target_compile_definitions(kritapigmentstandardidsobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentstandardidsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapigmentstandardidsobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+)
+set_target_properties(kritapigmentstandardidsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapigmenthistogramproducerobjects OBJECT
+    KoHistogramProducer.cpp
+)
+target_compile_definitions(kritapigmenthistogramproducerobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmenthistogramproducerobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapigmenthistogramproducerobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+)
+set_target_properties(kritapigmenthistogramproducerobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapigmentcolorimetryobjects OBJECT
+    KoColorimetryUtils.cpp
+)
+target_compile_definitions(kritapigmentcolorimetryobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentcolorimetryobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapigmentcolorimetryobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
+)
+set_target_properties(kritapigmentcolorimetryobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapigmentcmykmathsobjects OBJECT
+    KoCmykColorSpaceMaths.cpp
+)
+target_compile_definitions(kritapigmentcmykmathsobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentcmykmathsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapigmentcmykmathsobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritapigmentcmykmathsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapigmentmathsobjects OBJECT
+    KoColorSpaceMaths.cpp
+)
+target_compile_definitions(kritapigmentmathsobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentmathsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapigmentmathsobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritapigmentmathsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapigmentlabmathsobjects OBJECT
+    KoLabColorSpaceMaths.cpp
+)
+target_compile_definitions(kritapigmentlabmathsobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentlabmathsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapigmentlabmathsobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritapigmentlabmathsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapigmentdebugobjects OBJECT
+    DebugPigment.cpp
+)
+target_compile_definitions(kritapigmentdebugobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentdebugobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapigmentdebugobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritapigmentdebugobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapigmentcolorconversionsobjects OBJECT
+    KoColorConversions.cpp
+)
+target_compile_definitions(kritapigmentcolorconversionsobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentcolorconversionsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapigmentcolorconversionsobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritapigmentcolorconversionsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapigmentcolortransformationobjects OBJECT
+    KoColorTransformation.cpp
+    KoCompositeColorTransformation.cpp
+)
+target_compile_definitions(kritapigmentcolortransformationobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentcolortransformationobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapigmentcolortransformationobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritapigmentcolortransformationobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapigmentcolortransformationfactoryobjects OBJECT
+    KoColorTransformationFactory.cpp
+)
+target_compile_definitions(kritapigmentcolortransformationfactoryobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentcolortransformationfactoryobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapigmentcolortransformationfactoryobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritapigmentcolortransformationfactoryobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapigmentcolorspaceengineobjects OBJECT
+    KoColorSpaceEngine.cpp
+)
+target_compile_definitions(kritapigmentcolorspaceengineobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentcolorspaceengineobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapigmentcolorspaceengineobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritapigmentcolorspaceengineobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapigmentcolorspaceblendingpolicyobjects OBJECT
+    compositeops/KoColorSpaceBlendingPolicy.cpp
+)
+target_compile_definitions(kritapigmentcolorspaceblendingpolicyobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentcolorspaceblendingpolicyobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapigmentcolorspaceblendingpolicyobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::ConfigCore
+)
+set_target_properties(kritapigmentcolorspaceblendingpolicyobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapigmentalphadarkenparamswrapperobjects OBJECT
+    compositeops/KoAlphaDarkenParamsWrapper.cpp
+)
+target_compile_definitions(kritapigmentalphadarkenparamswrapperobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritapigmentalphadarkenparamswrapperobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapigmentalphadarkenparamswrapperobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        KF${KF_MAJOR}::ConfigCore
+        Imath::ImathConfig
+        Boost::boost
+)
+set_target_properties(kritapigmentalphadarkenparamswrapperobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapigmentcolorconversiontransformationobjects OBJECT KoColorConversionTransformation.cpp)
+target_include_directories(kritapigmentcolorconversiontransformationobjects PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/libs/global ${CMAKE_BINARY_DIR}/libs/global)
+target_link_libraries(kritapigmentcolorconversiontransformationobjects PUBLIC KF${KF_MAJOR}::I18n Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritapigmentcolorconversiontransformationobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritapigmentmultiplecolorconversiontransformationobjects OBJECT KoMultipleColorConversionTransformation.cpp)
+target_compile_definitions(kritapigmentmultiplecolorconversiontransformationobjects PRIVATE kritapigment_EXPORTS)
+if(BUILD_TESTING)
+    target_compile_definitions(kritapigmentmultiplecolorconversiontransformationobjects PRIVATE KRITAPIGMENT_MULTIPLE_CONVERSION_CONTRACT_TESTING)
+endif()
+target_include_directories(kritapigmentmultiplecolorconversiontransformationobjects PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(kritapigmentmultiplecolorconversiontransformationobjects PUBLIC kritapigmentcolorconversiontransformationobjects KF${KF_MAJOR}::I18n Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritapigmentmultiplecolorconversiontransformationobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
+
+set(kritapigment_SRCS
+    $<TARGET_OBJECTS:kritapigmentcompositeparameterinfoobjects>
+    $<TARGET_OBJECTS:kritapigmentcolorconversiontransformationobjects>
+    $<TARGET_OBJECTS:kritapigmentmultiplecolorconversiontransformationobjects>
+    $<TARGET_OBJECTS:kritapigmentcolortransformationobjects>
+    $<TARGET_OBJECTS:kritapigmentcolortransformationfactoryobjects>
+    $<TARGET_OBJECTS:kritapigmentcolorspaceengineobjects>
+    $<TARGET_OBJECTS:kritapigmentcolorspaceblendingpolicyobjects>
+    $<TARGET_OBJECTS:kritapigmentalphadarkenparamswrapperobjects>
+    $<TARGET_OBJECTS:kritapigmentoptimizedpixelscalerbaseobjects>
+    ${kritapigmentoptimizedpixelscalerfactory_product_objects}
+    KoBasicHistogramProducers.cpp
     KoColor.cpp
     KoColorDisplayRendererInterface.cpp
     KoColorConversionAlphaTransformation.cpp
     KoColorConversionCache.cpp
-    KoColorConversions.cpp
     KoColorConversionSystem.cpp
-    KoColorConversionTransformation.cpp
     KoColorProofingConversionTransformation.cpp
     KoColorConversionTransformationFactory.cpp
-    KoColorModelStandardIds.cpp
     KoColorProfile.cpp
     KoColorSpace.cpp
-    KoColorSpaceEngine.cpp
     KoColorSpaceFactory.cpp
-    KoColorSpaceMaths.cpp
-    KoColorimetryUtils.cpp
     KoColorProfileQuery.h
-    KoCmykColorSpaceMaths.cpp
-    KoLabColorSpaceMaths.cpp
     KoColorSpaceRegistry.cpp
     KoColorProfileStorage.cpp
-    KoColorTransformation.cpp
-    KoColorTransformationFactory.cpp
     KoColorTransformationFactoryRegistry.cpp
-    KoCompositeColorTransformation.cpp
     KoCompositeOp.cpp
     KoCompositeOpRegistry.cpp
     KoCopyColorConversionTransformation.cpp
     KoFallBackColorTransformation.cpp
-    KoHistogramProducer.cpp
-    KoMultipleColorConversionTransformation.cpp
-    colorspaces/KoAlphaColorSpace.cpp
     colorspaces/KoLabColorSpace.cpp
     colorspaces/KoRgbU16ColorSpace.cpp
     colorspaces/KoRgbU8ColorSpace.cpp
+    colorspaces/KoSimpleColorSpaceFactory.cpp
     colorspaces/KoSimpleColorSpaceEngine.cpp
     compositeops/KoOptimizedCompositeOpFactory.cpp
     compositeops/KoOptimizedCompositeOpFactoryPerArch_Scalar.cpp
-    compositeops/KoAlphaDarkenParamsWrapper.cpp
-    compositeops/KoColorSpaceBlendingPolicy.cpp
     ${__per_arch_factory_objs}
     ${__per_arch_alpha_applicator_factory_objs}
-    ${__per_arch_rgb_scaler_factory_objs}
     KoAlphaMaskApplicatorFactory.cpp
     colorprofiles/KoDummyColorProfile.cpp
     resources/KoAbstractGradient.cpp
@@ -75,12 +443,51 @@ set(kritapigment_SRCS
     resources/KisUniqueColorSet.cpp
 )
 
+add_library(kritaalphacolorspaceobjects OBJECT
+    colorspaces/KoAlphaColorSpace.cpp
+)
+target_compile_definitions(kritaalphacolorspaceobjects PRIVATE kritapigment_EXPORTS)
+target_include_directories(kritaalphacolorspaceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/colorspaces>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/compositeops>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritaalphacolorspaceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+        Boost::boost
+        ${LINK_OPENEXR_LIB}
+)
+set_target_properties(kritaalphacolorspaceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 if(MSVC OR (WIN32 AND "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel"))
   # avoid "cannot open file 'LIBC.lib'" error
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} /NODEFAULTLIB:LIBC.LIB")
 endif()
 
-kis_add_library(kritapigment SHARED ${kritapigment_SRCS})
+kis_add_library(kritapigment SHARED
+    ${kritapigment_SRCS}
+    $<TARGET_OBJECTS:kritapigmentalphamaskapplicatorbaseobjects>
+    $<TARGET_OBJECTS:kritapigmentmathsobjects>
+    $<TARGET_OBJECTS:kritapigmentcmykmathsobjects>
+    $<TARGET_OBJECTS:kritapigmentlabmathsobjects>
+    $<TARGET_OBJECTS:kritapigmentstandardidsobjects>
+    $<TARGET_OBJECTS:kritapigmenthistogramproducerobjects>
+    $<TARGET_OBJECTS:kritapigmentcolorimetryobjects>
+    $<TARGET_OBJECTS:kritaalphacolorspaceobjects>
+    $<TARGET_OBJECTS:kritapigmentdebugobjects>
+    $<TARGET_OBJECTS:kritapigmentcolorconversionsobjects>
+)
 
 target_sources(kritapigment
   PRIVATE
@@ -119,3 +526,44 @@ set_target_properties(kritapigment PROPERTIES
 )
 
 install(TARGETS kritapigment  ${INSTALL_TARGETS_DEFAULT_ARGS})
+
+if(BUILD_TESTING)
+    file(GLOB_RECURSE kritapigment_header_self_containment_headers
+        CONFIGURE_DEPENDS
+        RELATIVE "${CMAKE_CURRENT_SOURCE_DIR}"
+        "*.h"
+    )
+    list(FILTER kritapigment_header_self_containment_headers EXCLUDE REGEX
+        "(^|/)[^/]+_p\\.h$"
+    )
+    list(FILTER kritapigment_header_self_containment_headers EXCLUDE REGEX
+        "(^|/)(3rdparty|benchmarks|tests)/"
+    )
+
+    # KoStreamedMath.h selects this version-specific implementation for
+    # xsimd < 10. The current dependency profile validates its xsimd >= 10 path.
+    list(REMOVE_ITEM kritapigment_header_self_containment_headers
+        "compositeops/KoRgbaInterleavers.h"
+    )
+
+    set(kritapigment_header_self_containment_sources)
+    foreach(header IN LISTS kritapigment_header_self_containment_headers)
+        string(REPLACE "/" "__" source_name "${header}")
+        set(source_path
+            "${CMAKE_CURRENT_BINARY_DIR}/header_self_containment/${source_name}.cpp"
+        )
+        file(GENERATE OUTPUT "${source_path}" CONTENT "#include \"${header}\"\n")
+        list(APPEND kritapigment_header_self_containment_sources "${source_path}")
+    endforeach()
+
+    add_library(kritapigment_header_self_containment OBJECT
+        ${kritapigment_header_self_containment_sources}
+    )
+    target_link_libraries(kritapigment_header_self_containment PRIVATE
+        kritapigment
+    )
+    set_target_properties(kritapigment_header_self_containment PROPERTIES
+        AUTOMOC OFF
+        UNITY_BUILD OFF
+    )
+endif()

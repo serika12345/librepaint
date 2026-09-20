@@ -5,7 +5,7 @@
  */
 
 #include "recorder_profile_settings.h"
-#include "recorder_export_config.h"
+#include "recorder_export_settings.h"
 #include "ui_recorder_profile_settings.h"
 
 #include <klocalizedstring.h>

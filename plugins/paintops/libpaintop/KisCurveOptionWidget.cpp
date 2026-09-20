@@ -10,12 +10,12 @@
 
 #include "ui_wdgcurveoption2.h"
 #include "widgets/kis_curve_widget.h"
-#include "kis_global.h"
 #include "kis_icon_utils.h"
 
 #include <kis_signals_blocker.h>
 #include <KisCurveOptionModel.h>
 #include <KisWidgetConnectionUtils.h>
+#include <KisMpl.h>
 
 #include <kis_algebra_2d.h>
 

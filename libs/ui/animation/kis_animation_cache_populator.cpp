@@ -15,17 +15,17 @@
 
 #include "application/kis_config.h"
 #include "kis_config_notifier.h"
-#include "application/KisPart.h"
+#include "application/ui/orchestration/KisPart.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
 #include "kis_canvas2.h"
 #include "kis_time_span.h"
 #include "animation/kis_animation_frame_cache.h"
 #include "kis_idle_watcher.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "nodes/kis_node_manager.h"
 #include "kis_keyframe_channel.h"
-#include "workspace/KisMainWindow.h"
+#include "application/ui/workspace/KisMainWindow.h"
 
 #include <KisLockFrameGenerationLock.h>
 #include "animation/KisAsyncAnimationCacheRenderer.h"

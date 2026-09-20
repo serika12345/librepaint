@@ -12,8 +12,8 @@
 #include "kis_types.h"
 #include "kritaimage_export.h"
 
+#include <QPointer>
 #include <QRect>
-#include <KoUpdater.h>
 
 class KisPaintDevice;
 class KisFilterStrategy;

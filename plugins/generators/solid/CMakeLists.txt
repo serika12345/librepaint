@@ -10,6 +10,6 @@ ki18n_wrap_ui(kritacolorgenerator_SOURCES
 
 kis_add_library(kritacolorgenerator MODULE ${kritacolorgenerator_SOURCES})
 
-target_link_libraries(kritacolorgenerator kritaui)
+target_link_libraries(kritacolorgenerator kritaapplicationui)
 
 install(TARGETS kritacolorgenerator  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

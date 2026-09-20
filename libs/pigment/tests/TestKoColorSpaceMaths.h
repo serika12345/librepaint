@@ -11,8 +11,13 @@ class TestKoColorSpaceMaths : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-    void testColorSpaceMathsTraits();
-    void testScaleToA();
+    void numericTraitsAndLutsExposeStableDomains();
+    void coreMathPreservesConversionsAndSpecializedRounding();
+    void boundsCompositeAndFuzzyPoliciesPreserveThresholds();
+    void arithmeticFacadePreservesDelegationAndBounds();
+    void colorModelPoliciesPreserveLightnessAndSaturation();
+    void hueAndRgbPreservePrimarySectors();
+    void toneAndComponentAdjustmentsPreserveMappedValues();
 };
 
 #endif

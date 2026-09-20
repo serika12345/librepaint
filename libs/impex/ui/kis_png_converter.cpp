@@ -46,6 +46,7 @@
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_iterator_ng.h>
+#include <kis_sequential_iterator.h>
 #include <kis_layer.h>
 #include <kis_meta_data_backend_registry.h>
 #include <kis_meta_data_store.h>

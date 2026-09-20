@@ -9,14 +9,12 @@
 #define KIS_PROPERTY_WRAPPER_H
 
 #include <QObject>
-#include <QVariant>
 
 #include "kis_scalar_keyframe_channel.h"
-#include "kis_time_span.h"
-#include "kis_image.h"
-#include "KoProperties.h"
 
 #include "kritaimage_export.h"
+
+class KoProperties;
 
 class KRITAIMAGE_EXPORT KisAnimatedOpacityProperty : public QObject {
     Q_OBJECT

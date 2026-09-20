@@ -11,9 +11,9 @@
 #include <QPointer>
 
 #include <kritaui_export.h>
-#include <kis_image.h>
-#include "workspace/KisView.h"
+#include "application/ui/workspace/KisView.h"
 #include <kis_shared.h>
+#include <kis_shared_ptr.h>
 
 class KisCanvasWidgetBase;
 class KisCanvas2;

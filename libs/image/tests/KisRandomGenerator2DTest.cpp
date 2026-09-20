@@ -80,7 +80,6 @@ void KisRandomGenerator2DTest::testConstantness()
     testConstantness(6050);
 }
 
-#include <iostream>
 
 void KisRandomGenerator2DTest::testEvolution()
 {

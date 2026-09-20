@@ -6,12 +6,6 @@
 
 #include "KisSupportedArchitectures.h"
 
-#include <KConfigGroup>
-#include <KSharedConfig>
-#include <kis_debug.h>
-
-#include "xsimd_extensions/xsimd.hpp"
-
 #include <KoMultiArchBuildSupport.h>
 
 QString KisSupportedArchitectures::baseArchName()

@@ -11,7 +11,8 @@
 #include <kis_time_span.h>
 
 #include <animation/KisAsyncAnimationFramesSavingRenderer.h>
-#include "kis_properties_configuration.h"
+
+#include <klocalizedstring.h>
 
 #include "KisMimeDatabase.h"
 

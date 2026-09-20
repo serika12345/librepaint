@@ -36,7 +36,7 @@
 #include <KisUsageLogger.h>
 
 #include <kis_lod_transform.h>
-#include "kis_tool_proxy.h"
+#include <input/ui/kis_tool_proxy.h>
 #include "kis_coordinates_converter.h"
 #include "kis_prescaled_projection.h"
 #include "kis_qpainter_projection_factory.h"
@@ -45,7 +45,7 @@
 #include "kis_undo_adapter.h"
 #include "flake/kis_shape_layer.h"
 #include "canvas/kis_canvas_resource_provider.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "application/kis_config.h"
 #include "kis_config_notifier.h"
 #include "kis_abstract_canvas_widget.h"
@@ -63,14 +63,15 @@
 #include "kis_signal_compressor.h"
 #include "kis_display_color_converter.h"
 #include "kis_exposure_gamma_correction_interface.h"
-#include "workspace/KisView.h"
+#include "application/ui/workspace/KisView.h"
 #include "kis_canvas_controller.h"
 #include "kis_grid_config.h"
-#include "workspace/KisMainWindow.h"
+#include "application/ui/workspace/KisMainWindow.h"
 
 #include "KisCanvasAnimationState.h"
 #include <animation/kis_animation_frame_cache.h>
 #include "opengl/kis_opengl_canvas2.h"
+#include "opengl/kis_opengl_image_textures.h"
 #include "opengl/kis_opengl.h"
 #include "canvas/kis_fps_decoration.h"
 
@@ -85,7 +86,6 @@
 #include "kis_canvas_updates_compressor.h"
 
 #include <KisStrokeSpeedMonitor.h>
-#include "opengl/kis_opengl_canvas_debugger.h"
 
 #include "kis_wrapped_rect.h"
 #include "kis_algebra_2d.h"
@@ -105,10 +105,9 @@
 
 #endif /* KRITA_USE_SURFACE_COLOR_MANAGEMENT_API */
 
-#include <application/KisPlatformPluginInterfaceFactory.h>
+#include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 #include <canvas/KisMultiSurfaceStateManager.h>
 #include <KisCanvasState.h>
-
 
 namespace {
     struct ShapeLifetimeWrapper : KoShape::ShapeChangeListener
@@ -210,7 +209,6 @@ public:
         animationPlayer.reset();
     }
 
-
     KisCanvas2 *q = 0;
     KisCoordinatesConverter *coordinatesConverter = 0;
     QPointer<KisView>view;
@@ -256,7 +254,6 @@ public:
 
     QRect renderingLimit;
     int isBatchUpdateActive = 0;
-
 
 #if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API
     QScopedPointer<KisCanvasSurfaceColorSpaceManager> surfaceColorManager;
@@ -1318,8 +1315,6 @@ void KisCanvas2::slotEffectiveZoomChanged(qreal newZoom)
 {
     Q_UNUSED(newZoom)
 
-
-
     notifyLevelOfDetailChange();
 }
 
@@ -1678,6 +1673,11 @@ KisPaintingAssistantsDecorationSP KisCanvas2::paintingAssistantsDecoration() con
 {
     KisCanvasDecorationSP deco = decoration("paintingAssistantsDecoration");
     return qobject_cast<KisPaintingAssistantsDecoration*>(deco.data());
+}
+
+bool KisCanvas2::activeToolSupportsPaintingAssistants() const
+{
+    return m_d->toolProxy.supportsPaintingAssistants();
 }
 
 KisReferenceImagesDecorationSP KisCanvas2::referenceImagesDecoration() const

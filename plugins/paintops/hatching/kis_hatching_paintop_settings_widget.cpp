@@ -9,7 +9,7 @@
 
 #include "kis_hatching_paintop_settings.h"
 
-#include "KisHatchingStandardOptions.h"
+#include "KisHatchingStandardOptionData.h"
 
 #include <kis_brush_option_widget.h>
 #include <kis_paintop_settings_widget.h>

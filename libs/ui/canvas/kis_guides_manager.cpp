@@ -6,26 +6,27 @@
 
 #include "kis_guides_manager.h"
 
+#include <QEnterEvent>
 #include <QMenu>
+#include <QMouseEvent>
 #include <QGuiApplication>
 #include "kis_guides_decoration.h"
 #include <KoRuler.h>
 #include "kis_guides_config.h"
-#include "application/kis_action_manager.h"
-#include "application/kis_action.h"
+#include "application/ui/orchestration/kis_action_manager.h"
+#include "application/ui/orchestration/kis_action.h"
 #include "kis_signals_blocker.h"
 #include "kis_coordinates_converter.h"
 #include "canvas/kis_zoom_manager.h"
 #include "kis_signal_auto_connection.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "document/KisDocument.h"
 #include "kis_algebra_2d.h"
 #include <KoSnapGuide.h>
 #include "kis_snap_line_strategy.h"
 #include "kis_change_guides_command.h"
-#include "kis_snap_config.h"
+#include <application/kis_snap_config.h>
 #include  "kis_canvas2.h"
-#include "kis_signal_compressor.h"
 #include "kis_floating_message.h"
 
 struct KisGuidesManager::Private

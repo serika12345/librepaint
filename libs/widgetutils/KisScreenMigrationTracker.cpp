@@ -7,14 +7,11 @@
 #include "KisScreenMigrationTracker.h"
 
 #include <QGuiApplication>
+#include <QScreen>
 #include <QWidget>
 #include <QWindow>
-#include <QScreen>
 #include <kis_assert.h>
 #include <kis_signal_compressor.h>
-
-#include <kis_debug.h>
-
 
 KisScreenMigrationTracker::KisScreenMigrationTracker(QWidget *trackedWidget, QObject *parent)
     : KisRootSurfaceTrackerBase(trackedWidget, parent)
@@ -24,11 +21,13 @@ KisScreenMigrationTracker::KisScreenMigrationTracker(QWidget *trackedWidget, QOb
     // WARNING: we potentially call virtual functions here!
     initialize();
 
-    connect(m_resolutionChangeCompressor, &KisSignalCompressor::timeout,
-            this, &KisScreenMigrationTracker::slotResolutionCompressorTriggered);
+    connect(m_resolutionChangeCompressor,
+            &KisSignalCompressor::timeout,
+            this,
+            &KisScreenMigrationTracker::slotResolutionCompressorTriggered);
 }
 
-QScreen* KisScreenMigrationTracker::currentScreen() const
+QScreen *KisScreenMigrationTracker::currentScreen() const
 {
     KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(m_connectedTopLevelWindow, qApp->screens().first());
     return m_connectedTopLevelWindow->screen();
@@ -42,10 +41,14 @@ QScreen *KisScreenMigrationTracker::currentScreenSafe() const
 void KisScreenMigrationTracker::connectScreenSignals(QScreen *screen)
 {
     m_screenConnections.clear();
-    m_screenConnections.addConnection(screen, &QScreen::physicalDotsPerInchChanged,
-                                      this, &KisScreenMigrationTracker::slotScreenResolutionChanged);
-    m_screenConnections.addConnection(screen, &QScreen::logicalDotsPerInchChanged,
-                                      this, &KisScreenMigrationTracker::slotScreenLogicalResolutionChanged);
+    m_screenConnections.addConnection(screen,
+                                      &QScreen::physicalDotsPerInchChanged,
+                                      this,
+                                      &KisScreenMigrationTracker::slotScreenResolutionChanged);
+    m_screenConnections.addConnection(screen,
+                                      &QScreen::logicalDotsPerInchChanged,
+                                      this,
+                                      &KisScreenMigrationTracker::slotScreenLogicalResolutionChanged);
 }
 
 void KisScreenMigrationTracker::connectToNativeWindow(QWindow *window)

@@ -22,11 +22,10 @@
 
 #include <document/KisDocument.h>
 #include <KisGamutMaskToolbar.h>
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "kis_canvas2.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "nodes/kis_node_manager.h"
-#include "kis_node.h"
 #include "kis_paint_device.h"
 
 #include "kis_action_registry.h"

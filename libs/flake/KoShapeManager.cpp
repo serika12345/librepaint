@@ -26,7 +26,6 @@
 #include "KoClipMaskPainter.h"
 #include "KoViewConverter.h"
 #include "KisQPainterStateSaver.h"
-#include "KoSvgTextShape.h"
 #include <QApplication>
 
 #include <QPainter>
@@ -36,7 +35,6 @@
 #include <FlakeDebug.h>
 
 #include "kis_painting_tweaks.h"
-#include "kis_debug.h"
 #include "KisForest.h"
 #include <unordered_set>
 

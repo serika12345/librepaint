@@ -7,7 +7,6 @@
 
 #include "animation/KisPlaybackEngineQT.h"
 
-#include "kis_debug.h"
 #include "kis_canvas2.h"
 #include "KisCanvasAnimationState.h"
 #include "kis_image.h"
@@ -18,9 +17,6 @@
 #include "animation/KisFrameDisplayProxy.h"
 #include "KisRollingMeanAccumulatorWrapper.h"
 #include "KisRollingSumAccumulatorWrapper.h"
-
-#include "animation/KisPlaybackEngineQT.h"
-
 
 namespace {
 

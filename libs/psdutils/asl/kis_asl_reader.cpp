@@ -8,8 +8,6 @@
 
 #include "kis_dom_utils.h"
 
-#include <stdexcept>
-#include <string>
 
 #include <QBuffer>
 #include <QDomDocument>

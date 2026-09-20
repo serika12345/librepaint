@@ -7,7 +7,6 @@
 
 
 #include <klocalizedstring.h>
-#include "kis_debug.h"
 #include <QPainter>
 #include <QPainterPath>
 #include <QLinearGradient>
@@ -22,7 +21,6 @@
 #include<QDebug>
 #include <QtMath>
 
-#include <functional>
 
 
 // ################################## Ellipse in Polygon (in Perspective) #######################################

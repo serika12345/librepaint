@@ -7,7 +7,7 @@
 #include <QPainter>
 
 #include <KisOptimizedBrushOutline.h>
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <application/kis_config.h>
 #include <kis_config_notifier.h>
 #include <kis_cursor.h>

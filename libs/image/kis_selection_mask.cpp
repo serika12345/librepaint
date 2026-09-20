@@ -28,6 +28,19 @@
 #include "kis_image_config.h"
 #include "KisImageConfigNotifier.h"
 
+void kisSharedPtrAddReference(KisSelectionMask *pointer)
+{
+    pointer->ref();
+}
+
+bool kisSharedPtrRelease(KisSelectionMask *pointer)
+{
+    if (!pointer->deref()) {
+        delete pointer;
+        return false;
+    }
+    return true;
+}
 
 struct Q_DECL_HIDDEN KisSelectionMask::Private
 {

@@ -7,6 +7,8 @@
 #ifndef _KO_BGR_COLORSPACE_TRAITS_H_
 #define _KO_BGR_COLORSPACE_TRAITS_H_
 
+#include "KoColorSpaceTrait.h"
+
 /** 
  * Base class for bgr traits, it provides some convenient functions to
  * access BGR channels through an explicit API.

@@ -7,7 +7,6 @@
 #include "arrange_docker_widget.h"
 #include "ui_arrange_docker_widget.h"
 
-#include "kis_debug.h"
 
 #include "kactioncollection.h"
 

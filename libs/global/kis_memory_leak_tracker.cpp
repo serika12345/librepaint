@@ -10,7 +10,6 @@
 #include <QMutexLocker>
 #include <QGlobalStatic>
 
-#include "kis_debug.h"
 
 // Those defines are used to ignore classes that are often leaked due to a KisPaintDevice leak
 #define IGNORE_MEMENTO_ITEM

@@ -14,9 +14,9 @@
 #include <KoCompositeOpRegistry.h>
 #include "kis_image.h"
 #include "kis_fill_interval_map.h"
+#include "kis_paint_device.h"
 #include "kis_pixel_selection.h"
 #include "kis_random_accessor_ng.h"
-#include "kis_fill_sanity_checks.h"
 #include <KisColorSelectionPolicies.h>
 #include "kis_gap_map.h"
 #include <queue>

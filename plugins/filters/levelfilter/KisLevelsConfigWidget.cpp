@@ -7,7 +7,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <cmath>
 
 #include <klocalizedstring.h>
 
@@ -40,7 +39,7 @@
 #include "../colorsfilters/kis_multichannel_utils.h"
 
 #include "KisLevelsConfigWidget.h"
-#include "KisLevelsFilter.h"
+#include "KisLevelsFilterConfiguration.h"
 
 static int deNormalizeValue(qreal value, int min, int max)
 {

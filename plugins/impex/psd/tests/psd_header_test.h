@@ -7,15 +7,17 @@
 #ifndef _PSD_HEADER_TEST_H_
 #define _PSD_HEADER_TEST_H_
 
-#include <simpletest.h>
+#include <QObject>
 
 class PSDHeaderTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-    void testCreation();
-    void testLoading();
-    void testRoundTripping();
+    void defaultsExposeInvalidEmptyHeader();
+    void validationEnforcesFormatSpecificRanges();
+    void readDecodesBigEndianHeaderAndRejectsTruncation();
+    void writeProducesCanonicalHeaderBytes();
+    void debugOutputDescribesValidatedHeader();
 };
 
 #endif

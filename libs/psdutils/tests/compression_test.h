@@ -7,16 +7,22 @@
 #ifndef _COMPRESSION_TEST_H_
 #define _COMPRESSION_TEST_H_
 
-#include <simpletest.h>
+#include <QObject>
 
 class CompressionTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-
-    void testCompressionRLE();
-    void testCompressionZIP();
-    void testCompressionUncompressed();
+    void emptyInputProducesEmptyOutput();
+    void uncompressedModePreservesBinaryInput();
+    void rleUsesPackBitsAndRoundTripsBinaryInput();
+    void rleRejectsTruncatedInputAndPadsShortOutput();
+    void zipRoundTripsBinaryInputAndRejectsMalformedData();
+    void zipPredictionPreservesCurrentEightBitTransform();
+    void zipPredictionPreservesCurrentSixteenBitTransform();
+    void zipPredictionRejectsUnsupportedDepth();
+    void unknownCompressionTypeIsFatal_data();
+    void unknownCompressionTypeIsFatal();
 };
 
 #endif

@@ -18,7 +18,7 @@
 #include <KoCanvasBase.h>
 #include "kis_types.h"
 #include "kis_canvas2.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "kis_image.h"
 #include "kis_paint_device.h"
 

@@ -11,13 +11,14 @@
 #include <QCursor>
 #include <QMenu>
 #include <QTouchEvent>
+#include <QTimer>
 
 #include <klocalizedstring.h>
 
-#include <resources/kis_favorite_resource_manager.h>
-#include <kis_canvas2.h>
+#include <KoCanvasBase.h>
+#include <KoPointerEvent.h>
+
 #include "kis_tool_proxy.h"
-#include "resources/kis_popup_palette.h"
 #include "kis_input_manager.h"
 
 struct SinglePressEventEater : public QObject

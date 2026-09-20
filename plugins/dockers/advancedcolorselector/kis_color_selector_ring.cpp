@@ -8,6 +8,7 @@
 
 #include <QPainter>
 #include <QMouseEvent>
+#include <ksharedconfig.h>
 
 #include <Eigen/Core>
 #include <cmath>

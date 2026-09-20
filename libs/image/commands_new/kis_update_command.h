@@ -12,6 +12,8 @@
 #include "kritaimage_export.h"
 #include "kis_types.h"
 
+#include <QRect>
+
 class KisUpdatesFacade;
 
 

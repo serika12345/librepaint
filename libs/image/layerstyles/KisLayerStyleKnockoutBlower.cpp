@@ -5,6 +5,7 @@
  */
 #include "KisLayerStyleKnockoutBlower.h"
 
+#include "kis_selection.h"
 #include "kis_painter.h"
 #include "KoCompositeOpRegistry.h"
 #include "kis_default_bounds.h"

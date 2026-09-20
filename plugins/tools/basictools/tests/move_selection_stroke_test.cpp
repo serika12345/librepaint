@@ -14,11 +14,10 @@
 #include "strokes/move_selection_stroke_strategy.h"
 #include "stroke_testing_utils.h"
 #include "kis_selection.h"
-#include "commands/kis_selection_commands.h"
+#include "commands/kis_set_global_selection_command.h"
 #include "strokes/move_stroke_strategy.h"
 #include "kis_paint_layer.h"
 #include "KisImageBarrierLock.h"
-#include "kis_paint_device_frames_interface.h"
 #include "kis_paint_device_debug_utils.h"
 
 #include <testui.h>

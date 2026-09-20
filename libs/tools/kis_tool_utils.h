@@ -14,7 +14,6 @@
 #include <vector>
 
 class QPoint;
-class KoColor;
 
 namespace KisToolUtils {
 

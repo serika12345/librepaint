@@ -10,6 +10,7 @@
 
 #include <application/kis_config.h>
 #include <KoFileDialog.h>
+#include <QStandardPaths>
 
 #include <config-seexpr.h>
 

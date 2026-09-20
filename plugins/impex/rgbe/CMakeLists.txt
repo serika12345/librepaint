@@ -8,7 +8,7 @@ set(kritargbeimport_SOURCES
 )
 
 kis_add_library(kritargbeimport MODULE ${kritargbeimport_SOURCES})
-target_link_libraries(kritargbeimport kritaui kritargbeimportutils)
+target_link_libraries(kritargbeimport kritaapplicationui kritargbeimportutils)
 
 install(TARGETS kritargbeimport DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 
@@ -21,7 +21,7 @@ ki18n_wrap_ui(kritargbeexport_SOURCES kis_wdg_options_rgbe.ui )
 
 kis_add_library(kritargbeexport MODULE ${kritargbeexport_SOURCES})
 
-target_link_libraries(kritargbeexport kritaui kritalibkra kritaimpex)
+target_link_libraries(kritargbeexport kritaapplicationui kritalibkra kritaimpex)
 
 install(TARGETS kritargbeexport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 

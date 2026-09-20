@@ -7,15 +7,16 @@
 #ifndef KIS_TOOL_SELECT_MAGNETIC_H_
 #define KIS_TOOL_SELECT_MAGNETIC_H_
 
+#include <KConfigGroup>
 #include <QPoint>
+#include <QPainterPath>
+#include <KoShape.h>
 #include "KisSelectionToolFactoryBase.h"
 #include <kis_tool_select_ui_base.h>
 #include <kis_action_registry.h>
 #include <kis_signal_compressor.h>
 #include <kis_icon.h>
 #include "KisMagneticWorker.h"
-
-class QPainterPath;
 
 class KisToolSelectMagnetic : public KisToolSelect
 {

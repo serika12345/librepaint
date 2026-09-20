@@ -11,7 +11,6 @@
 #include <QPolygonF>
 
 
-#include "kis_debug.h"
 #include "kis_algebra_2d.h"
 
 

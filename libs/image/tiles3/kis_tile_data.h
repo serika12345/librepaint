@@ -18,11 +18,6 @@
 #include "kis_tile_data_store.h"
 
 
-inline quint8* KisTileData::data() const {
-        // WARN: be careful - it can be null when swapped out!
-        return m_data;
-    }
-
 void KisTileData::setData(const quint8 *data) {
     Q_ASSERT(m_data);
     memcpy(m_data, data, m_pixelSize*WIDTH*HEIGHT);

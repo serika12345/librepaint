@@ -13,15 +13,26 @@
 #include <QString>
 
 #include "kis_image.h"
-#include "kis_transaction.h"
-#include "kis_undo_adapter.h"
 #include "kis_painter.h"
-#include "kis_selection.h"
 #include "KoID.h"
 #include "kis_types.h"
 #include <KoColor.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpaceRegistry.h>
+
+void kisSharedPtrAddReference(KisPropertiesConfiguration *pointer)
+{
+    pointer->ref();
+}
+
+bool kisSharedPtrRelease(KisPropertiesConfiguration *pointer)
+{
+    if (!pointer->deref()) {
+        delete pointer;
+        return false;
+    }
+    return true;
+}
 
 struct Q_DECL_HIDDEN KisPropertiesConfiguration::Private {
     QMap<QString, QVariant> properties;

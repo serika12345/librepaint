@@ -15,9 +15,9 @@
 
 #include <filter/kis_filter_configuration.h>
 #include <document/KisDocument.h>
-#include <application/KisPart.h>
+#include <application/ui/orchestration/KisPart.h>
 #include <kis_image.h>
-#include <kis_iterator_ng.h>
+#include <kis_sequential_iterator.h>
 #include <kis_paint_device.h>
 #include <kundo2command.h>
 #include <KoColorSpaceRegistry.h>

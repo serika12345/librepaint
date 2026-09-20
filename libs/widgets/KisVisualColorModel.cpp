@@ -22,8 +22,6 @@
 #include "KoChannelInfo.h"
 #include "KoColorModelStandardIds.h"
 #include "KisColorSelectorConfiguration.h"
-#include "kis_signal_compressor.h"
-#include "kis_debug.h"
 
 struct KisVisualColorModel::Private
 {

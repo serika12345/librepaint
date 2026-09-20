@@ -6,12 +6,12 @@
 
 #include <QObject>
 #include <QPointer>
-#include <QScreen>
 
 #include "kritaui_export.h"
 
 class KisApplication;
 class KisConfig;
+class QScreen;
 
 class KRITAUI_EXPORT KisAndroidScaling : public QObject
 {

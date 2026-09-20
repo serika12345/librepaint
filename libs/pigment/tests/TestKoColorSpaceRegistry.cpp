@@ -42,6 +42,20 @@ void TestBaseColorSpaceRegistry::testRgb16()
     QVERIFY(*cs == *KoColorSpaceRegistry::instance()->colorSpace(RGBAColorModelID.id(), Integer16BitsColorDepthID.id(), 0));
 }
 
+void TestBaseColorSpaceRegistry::testComparisonOperators()
+{
+    const KoColorSpace *rgb8 = KoColorSpaceRegistry::instance()->rgb8();
+    const KoColorSpace *sameRgb8 =
+        KoColorSpaceRegistry::instance()->colorSpace(RGBAColorModelID.id(), Integer8BitsColorDepthID.id(), nullptr);
+    const KoColorSpace *lab16 = KoColorSpaceRegistry::instance()->lab16();
+
+    QVERIFY(*rgb8 == *sameRgb8);
+    QVERIFY(!(*rgb8 != *sameRgb8));
+    QCOMPARE(*rgb8 == *lab16, *lab16 == *rgb8);
+    QCOMPARE(*rgb8 != *lab16, *lab16 != *rgb8);
+    QCOMPARE(*rgb8 != *lab16, !(*rgb8 == *lab16));
+}
+
 void TestBaseColorSpaceRegistry::testProfileByUniqueId()
 {
     const KoColorSpace* cs = KoColorSpaceRegistry::instance()->rgb16();

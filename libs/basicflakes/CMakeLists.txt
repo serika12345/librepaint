@@ -23,7 +23,6 @@ target_include_directories(kritabasicflakes
 
 target_link_libraries(kritabasicflakes 
     PUBLIC
-        kritaui
         kritawidgets
         kritaflake 
         kritapigment
@@ -36,3 +35,6 @@ set_target_properties(kritabasicflakes PROPERTIES
 )
 
 install(TARGETS kritabasicflakes  ${INSTALL_TARGETS_DEFAULT_ARGS})
+
+if(BUILD_TESTING)
+endif()

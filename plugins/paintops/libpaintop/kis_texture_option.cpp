@@ -7,23 +7,32 @@
  */
 #include "kis_texture_option.h"
 
+#include <algorithm>
+
 #include <QString>
 #include <QCheckBox>
 #include <QBuffer>
 #include <QFormLayout>
 #include <QPainter>
 #include <QBoxLayout>
+#include <QScopedPointer>
+#include <QtGlobal>
 
 #include <klocalizedstring.h>
 
-#include <KoPattern.h>
 #include <KoAbstractGradient.h>
+#include <KoChannelInfo.h>
+#include <KoCompositeOpIds.h>
 #include <KoResource.h>
-#include <KoResourceServerProvider.h>
+#include <kis_assert.h>
+#include <kis_debug.h>
+#include <kis_global.h>
+#include <kis_pointer_utils.h>
 #include <kis_paint_device.h>
 #include <kis_fill_painter.h>
 #include <kis_painter.h>
 #include <kis_iterator_ng.h>
+#include <kis_sequential_iterator.h>
 #include <kis_fixed_paint_device.h>
 #include "KoMixColorsOp.h"
 #include <strokes/KisMaskingBrushCompositeOpBase.h>

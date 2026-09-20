@@ -16,6 +16,7 @@
 #include <QWindow>
 
 #include "opengl/kis_opengl_canvas2.h"
+#include "opengl/kis_opengl_image_textures.h"
 #include "opengl/KisOpenGLCanvasRenderer.h"
 #include "opengl/KisOpenGLSync.h"
 #include "opengl/kis_opengl_canvas_debugger.h"
@@ -26,12 +27,12 @@
 #include "application/kis_config.h"
 #include "kis_config_notifier.h"
 #include "kis_debug.h"
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include "KisRepaintDebugger.h"
 
 #include "KisOpenGLModeProber.h"
 #include "KisOpenGLContextSwitchLock.h"
-#include <application/KisPlatformPluginInterfaceFactory.h>
+#include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 #include <canvas/KisDisplayConfig.h>
 
 #include "config-qt-patches-present.h"

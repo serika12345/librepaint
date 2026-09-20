@@ -17,7 +17,6 @@
 #include "KoColorProfile.h"
 #include "KoColorSpaceRegistry.h"
 #include "DebugPigment.h"
-#include "kis_debug.h"
 
 #include <testpigment.h>
 
@@ -372,6 +371,39 @@ void TestKoColor::testSVGParsing()
     QString colorDef = c1.toSVG11(&profileList);
     QCOMPARE(profileList.size(), profileListSize);
 
+}
+
+void TestKoColor::testOpacityPreservesColorAndOriginalCopy()
+{
+    const KoColorSpace *space = KoColorSpaceRegistry::instance()->rgb8();
+    const QColor rgb(17, 83, 149);
+    const KoColor original(rgb, space);
+    KoColor changed = original;
+    changed.setOpacity(quint8(64));
+    QCOMPARE(changed.opacityU8(), quint8(64));
+    QCOMPARE(changed.toQColor(), QColor(17, 83, 149, 64));
+    QCOMPARE(original.toQColor(), rgb);
+
+    changed.setOpacity(qreal(0.5));
+    QVERIFY(qAbs(changed.opacityF() - 0.5) <= 1.0 / 255.0);
+    QCOMPARE(changed.toQColor().red(), rgb.red());
+    QCOMPARE(changed.toQColor().green(), rgb.green());
+    QCOMPARE(changed.toQColor().blue(), rgb.blue());
+    QCOMPARE(KoColor::createTransparent(space).opacityU8(), quint8(0));
+}
+
+void TestKoColor::testMetadataCopyAndClear()
+{
+    KoColor original;
+    original.addMetadata(QStringLiteral("spot-name"), QStringLiteral("Named ink"));
+    KoColor changed = original;
+    QCOMPARE(changed.metadata().value(QStringLiteral("spot-name")).toString(), QStringLiteral("Named ink"));
+    changed.addMetadata(QStringLiteral("spot-name"), QStringLiteral("Other ink"));
+    QCOMPARE(original.metadata().value(QStringLiteral("spot-name")).toString(), QStringLiteral("Named ink"));
+    QCOMPARE(changed.metadata().value(QStringLiteral("spot-name")).toString(), QStringLiteral("Other ink"));
+    changed.clearMetadata();
+    QVERIFY(changed.metadata().isEmpty());
+    QVERIFY(!original.metadata().isEmpty());
 }
 
 KISTEST_MAIN(TestKoColor)

@@ -16,9 +16,9 @@
 #include <QFileInfo>
 #include <QRegularExpression>
 
-#include <application/KisPart.h>
-#include <workspace/KisView.h>
-#include <workspace/KisMainWindow.h>
+#include <application/ui/orchestration/KisPart.h>
+#include <application/ui/workspace/KisView.h>
+#include <application/ui/workspace/KisMainWindow.h>
 #include <document/KisDocument.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
@@ -27,6 +27,7 @@
 
 #include <kis_debug.h>
 #include <kis_image.h>
+#include <kis_paint_device.h>
 #include <kis_paint_layer.h>
 #include <kis_raster_keyframe_channel.h>
 #include <kis_image_animation_interface.h>

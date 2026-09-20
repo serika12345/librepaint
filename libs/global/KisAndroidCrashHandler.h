@@ -7,10 +7,10 @@
 #ifndef __KISANDROIDCRASHHANDLER_H_
 #define __KISANDROIDCRASHHANDLER_H_
 
-#include <jni.h>
 #include <kis_global.h>
 
-namespace KisAndroidCrashHandler {
+namespace KisAndroidCrashHandler
+{
 
 KRITAGLOBAL_EXPORT void handler_init();
 

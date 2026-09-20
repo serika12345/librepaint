@@ -6,106 +6,107 @@
 #include "TestStorageFilterProxyModel.h"
 
 #include <simpletest.h>
-#include <QStandardPaths>
-#include <QDir>
-#include <QVersionNumber>
-#include <QDirIterator>
-#include <QSqlError>
-#include <QSqlQuery>
-#include <QAbstractItemModelTester>
 
-#include <kconfig.h>
-#include <kconfiggroup.h>
-#include <ksharedconfig.h>
-
-#include <KisResourceCacheDb.h>
-#include <KisResourceLocator.h>
 #include <KisResourceModel.h>
-
-#include <DummyResource.h>
-#include <ResourceTestHelper.h>
-
 #include <KisStorageFilterProxyModel.h>
+#include <KisStorageModel.h>
 
+#include <QStandardItemModel>
 
-#ifndef FILES_DATA_DIR
-#error "FILES_DATA_DIR not set. A directory with the data used for testing installing resources"
-#endif
-
-
-void TestStorageFilterProxyModel::initTestCase()
+namespace
 {
-    ResourceTestHelper::initTestDb();
-    ResourceTestHelper::createDummyLoaderRegistry();
-
-    m_srcLocation = QString(FILES_DATA_DIR);
-    QVERIFY2(QDir(m_srcLocation).exists(), m_srcLocation.toUtf8());
-
-    m_dstLocation = ResourceTestHelper::filesDestDir();
-    ResourceTestHelper::cleanDstLocation(m_dstLocation);
-
-    KConfigGroup cfg(KSharedConfig::openConfig(), "");
-    cfg.writeEntry(KisResourceLocator::resourceLocationKey, m_dstLocation);
-
-    m_locator = KisResourceLocator::instance();
-
-    if (!KisResourceCacheDb::initialize(QStandardPaths::writableLocation(QStandardPaths::AppDataLocation))) {
-        qDebug() << "Could not initialize KisResourceCacheDb on" << QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    }
-    QVERIFY(KisResourceCacheDb::isValid());
-
-    KisResourceLocator::LocatorError r = m_locator->initialize(m_srcLocation);
-    if (!m_locator->errorMessages().isEmpty()) qDebug() << m_locator->errorMessages();
-
-    QVERIFY(r == KisResourceLocator::LocatorError::Ok);
-    QVERIFY(QDir(m_dstLocation).exists());
+void setStorageRow(QStandardItemModel &model,
+                   int row,
+                   const QString &name,
+                   const QString &location,
+                   const QString &storageType,
+                   bool active)
+{
+    const QModelIndex index = model.index(row, KisAbstractResourceModel::Name);
+    model.setData(index, name, Qt::DisplayRole);
+    model.setData(index, name, Qt::UserRole + KisAbstractResourceModel::Name);
+    model.setData(index, location, Qt::UserRole + KisStorageModel::Location);
+    model.setData(index, storageType, Qt::UserRole + KisStorageModel::StorageType);
+    model.setData(index, active, Qt::UserRole + KisStorageModel::Active);
 }
 
-void TestStorageFilterProxyModel::testWithTagModelTester()
+void configureStorageModel(QStandardItemModel &model)
 {
-    KisStorageFilterProxyModel model;
-    model.setSourceModel(KisStorageModel::instance());
-    auto tester = new QAbstractItemModelTester(&model);
-    Q_UNUSED(tester);
+    model.setRowCount(3);
+    model.setColumnCount(KisAbstractResourceModel::Name + 1);
+    setStorageRow(model,
+                  0,
+                  QStringLiteral("Brush Bundle"),
+                  QStringLiteral("/brushes/default.bundle"),
+                  QStringLiteral("Bundle"),
+                  true);
+    setStorageRow(model,
+                  1,
+                  QStringLiteral("Style Library"),
+                  QStringLiteral("/styles/default.asl"),
+                  QStringLiteral("Adobe Style Library"),
+                  false);
+    setStorageRow(model,
+                  2,
+                  QStringLiteral("Pattern Folder"),
+                  QStringLiteral("/home/patterns"),
+                  QStringLiteral("Folder"),
+                  true);
+}
 }
 
-
-void TestStorageFilterProxyModel::testFilterByName()
+void TestStorageFilterProxyModel::filtersStorageRowsForChooser()
 {
-    QScopedPointer<KisStorageFilterProxyModel> proxyModel(new KisStorageFilterProxyModel());
-    proxyModel->setSourceModel(KisStorageModel::instance());
+    // Consumer: the resource chooser and bundle manager views.
+    // Operation: Select storages by filename, supported storage type, or active state.
+    // Observable result: The view contains only the matching storage rows, or every row when no active-state filter is selected.
+    // Failure impact: A user cannot find a resource source or is offered a storage that cannot provide the selected resource type.
+    QStandardItemModel model;
+    configureStorageModel(model);
 
-    QString fileName = "test1";
+    KisStorageFilterProxyModel proxy;
+    proxy.setSourceModel(&model);
+    proxy.setFilter(KisStorageFilterProxyModel::ByFileName,
+                    QStringLiteral("default.asl"));
+    QCOMPARE(proxy.rowCount(), 1);
+    QCOMPARE(proxy.index(0, KisAbstractResourceModel::Name).data(Qt::DisplayRole).toString(),
+             QStringLiteral("Style Library"));
 
-    proxyModel->setFilter(KisStorageFilterProxyModel::ByStorageType, fileName);
+    proxy.setFilter(KisStorageFilterProxyModel::ByStorageType,
+                    QStringList{QStringLiteral("Bundle"), QStringLiteral("Folder")});
+    QCOMPARE(proxy.rowCount(), 2);
 
+    proxy.setFilter(KisStorageFilterProxyModel::ByActive, false);
+    QCOMPARE(proxy.rowCount(), 1);
+    QCOMPARE(proxy.index(0, KisAbstractResourceModel::Name).data(Qt::DisplayRole).toString(),
+             QStringLiteral("Style Library"));
+
+    proxy.setFilter(KisStorageFilterProxyModel::ByActive, QVariant());
+    QCOMPARE(proxy.rowCount(), 3);
 }
 
-void TestStorageFilterProxyModel::testFilterByType()
+void TestStorageFilterProxyModel::updatesVisibleRowsWhenFilterChanges()
 {
-    QScopedPointer<KisStorageFilterProxyModel> proxyModel(new KisStorageFilterProxyModel());
-    proxyModel->setSourceModel(KisStorageModel::instance());
-    proxyModel->setFilter(KisStorageFilterProxyModel::ByStorageType,
-                          QStringList()
-                          << KisResourceStorage::storageTypeToUntranslatedString(KisResourceStorage::StorageType::Bundle)
-                          << KisResourceStorage::storageTypeToUntranslatedString(KisResourceStorage::StorageType::Folder));
+    // Consumer: the resource chooser and bundle manager views.
+    // Operation: Change the storage-type filter after the view has displayed a previous result.
+    // Observable result: The visible row changes to the storage matching the new type.
+    // Failure impact: A user selects a stale resource source or receives an incorrect missing-resource warning.
+    QStandardItemModel model;
+    configureStorageModel(model);
+    KisStorageFilterProxyModel proxy;
+    proxy.setSourceModel(&model);
+    proxy.setFilter(KisStorageFilterProxyModel::ByStorageType,
+                    QStringList{QStringLiteral("Bundle")});
+    QCOMPARE(proxy.rowCount(), 1);
+    QCOMPARE(proxy.index(0, KisAbstractResourceModel::Name).data(Qt::DisplayRole).toString(),
+             QStringLiteral("Brush Bundle"));
 
+    proxy.setFilter(KisStorageFilterProxyModel::ByStorageType,
+                    QStringList{QStringLiteral("Adobe Style Library")});
+
+    QCOMPARE(proxy.rowCount(), 1);
+    QCOMPARE(proxy.index(0, KisAbstractResourceModel::Name).data(Qt::DisplayRole).toString(),
+             QStringLiteral("Style Library"));
 }
-
-void TestStorageFilterProxyModel::testFilterByActive()
-{
-    QScopedPointer<KisStorageFilterProxyModel> proxyModel(new KisStorageFilterProxyModel());
-    proxyModel->setSourceModel(KisStorageModel::instance());
-    proxyModel->setFilter(KisStorageFilterProxyModel::ByStorageType, true);
-}
-
-
-void TestStorageFilterProxyModel::cleanupTestCase()
-{
-    ResourceTestHelper::rmTestDb();
-    ResourceTestHelper::cleanDstLocation(m_dstLocation);
-}
-
 
 SIMPLE_TEST_MAIN(TestStorageFilterProxyModel)
-

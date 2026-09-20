@@ -518,7 +518,7 @@ public:
     }
 
     operator CompositionIterator<T, true>() const {
-        return CompositionIterator<T, true>(this->m_node, this->m_state);
+        return CompositionIterator<T, true>(node(), m_state);
     }
 
 private:
@@ -663,7 +663,7 @@ public:
     }
 
     operator DepthFirstIterator<T, visit_on, true>() const {
-        return DepthFirstIterator<T, visit_on, true>(this->m_node, this->m_state);
+        return DepthFirstIterator<T, visit_on, true>(node(), this->base().state());
     }
 
 private:

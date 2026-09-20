@@ -165,7 +165,7 @@ KisDlgInternalColorSelector::KisDlgInternalColorSelector(QWidget *parent, KoColo
         m_d->hexColorInput->setToolTip(i18n("This is a hexcode input, for webcolors. It can only get colors in the sRGB space."));
     }
 
-    // KisScreenColorSampler is in the kritaui module, so dependency inversion is used to access it.
+    // KisScreenColorSampler belongs to the application UI, so the widget accesses it through the factory.
     m_ui->screenColorSamplerWidget->setLayout(new QHBoxLayout());
     if (s_screenColorSamplerFactory) {
         m_d->screenColorSampler = s_screenColorSamplerFactory(m_ui->screenColorSamplerWidget);
@@ -390,4 +390,3 @@ void KisDlgInternalColorSelector::showEvent(QShowEvent *event)
     updateAllElements(0);
     QDialog::showEvent(event);
 }
-

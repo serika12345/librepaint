@@ -6,8 +6,7 @@
 #ifndef KISFORESTTEST_H
 #define KISFORESTTEST_H
 
-#include <simpletest.h>
-#include <QObject>
+#include <QTest>
 
 class KisForestTest : public QObject
 {
@@ -50,6 +49,11 @@ private Q_SLOTS:
     void testConstSubtreeIterators();
     void testConstTailSubtreeIterators();
     void testConstTailFreeStandingForestFunctions();
+
+    void testPublicNodeAndIteratorTypes();
+    void testPublicForestSurface();
+    void testFreeIteratorFunctions();
+    void testDepthAndSize();
 
 };
 

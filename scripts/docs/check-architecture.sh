@@ -12,13 +12,13 @@ cd "$repo_root"
 shellcheck scripts/docs/*.sh
 markdownlint-cli2 "docs/architecture/*.md"
 lychee --offline --no-progress docs/architecture/*.md
-env --unset=DEBUG d2 fmt --check "$diagram_dir"/*.d2
+env -u DEBUG d2 fmt --check "$diagram_dir"/*.d2
 
 for source in "$diagram_dir"/*.d2; do
     output="$temporary_dir/$(basename "${source%.d2}.svg")"
     tracked="${source%.d2}.svg"
 
-    env --unset=DEBUG d2 --layout dagre "$source" "$output"
+    env -u DEBUG d2 --layout dagre "$source" "$output"
 
     if ! cmp --silent "$tracked" "$output"; then
         echo "Generated diagram is stale: ${tracked#"$repo_root"/}" >&2

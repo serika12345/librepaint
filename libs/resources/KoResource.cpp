@@ -102,10 +102,10 @@ bool KoResource::save()
         return false;
     }
 
-    saveToDevice(&file);
+    const bool result = saveToDevice(&file);
 
     file.close();
-    return true;
+    return result;
 }
 
 bool KoResource::saveToDevice(QIODevice *dev) const

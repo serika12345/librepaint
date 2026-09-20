@@ -51,7 +51,7 @@ KisTransformComponents compareTransformComponents(const QTransform &lhs, const Q
         result.setFlag(KisTransformComponent::Translate);
     }
 
-    if (qFuzzyCompare(m1.scaleX, m2.scaleX) && qFuzzyCompare(m1.scaleX, m2.scaleY)) {
+    if (qFuzzyCompare(m1.scaleX, m2.scaleX) && qFuzzyCompare(m1.scaleY, m2.scaleY)) {
         result.setFlag(KisTransformComponent::Scale);
     }
 

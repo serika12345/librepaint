@@ -7,13 +7,17 @@
 #ifndef KIS_BRUSH_BASED_PAINTOP_SETTINGS_H
 #define KIS_BRUSH_BASED_PAINTOP_SETTINGS_H
 
+#include <QList>
+#include <QPointer>
+#include <QSharedPointer>
+
 #include <brushengine/kis_paintop_settings.h>
 #include <kritapaintop_export.h>
 #include <kis_outline_generation_policy.h>
-#include <kis_brush.h>
-#include <kis_shared.h>
 #include <kis_shared_ptr.h>
 
+class KisBrush;
+using KisBrushSP = QSharedPointer<KisBrush>;
 
 class PAINTOP_EXPORT KisBrushBasedPaintOpSettings : public KisOutlineGenerationPolicy<KisPaintOpSettings>
 {

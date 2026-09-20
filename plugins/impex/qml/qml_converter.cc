@@ -11,6 +11,7 @@
 
 #include <kis_image.h>
 #include <kis_group_layer.h>
+#include <kis_paint_device.h>
 #include <KisPortingUtils.h>
 
 #define SPACE "    "
@@ -82,5 +83,4 @@ void QMLConverter::writeString(QTextStream&  out, int spacing, const QString& se
 void QMLConverter::writeInt(QTextStream&  out, int spacing, const QString& setting, int value) {
     writeString(out, spacing, setting, QString::number(value));
 }
-
 

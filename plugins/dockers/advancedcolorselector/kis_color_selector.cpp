@@ -32,7 +32,7 @@
 #include "kis_color_selector_container.h"
 #include "kis_canvas2.h"
 #include "kis_signal_compressor.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 
 
 KisColorSelector::KisColorSelector(KisColorSelectorConfiguration conf, QWidget* parent)

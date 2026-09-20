@@ -3,6 +3,7 @@ if(OpenEXR_FOUND)
 endif()
 include_directories( ${LCMS2_INCLUDE_DIR} )
 
+
 kis_add_tests(
     TestKoLcmsColorProfile.cpp
     TestColorSpaceRegistry.cpp

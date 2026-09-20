@@ -11,7 +11,7 @@
 #include <QObject>
 #include <QPointer>
 
-#include "workspace/KisView.h"
+#include "application/ui/workspace/KisView.h"
 #include "canvas/kis_painting_assistants_decoration.h"
 #include "canvas/KisReferenceImagesDecoration.h"
 

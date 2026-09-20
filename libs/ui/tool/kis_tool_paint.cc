@@ -18,7 +18,7 @@
 #include <KoCanvasResourceProvider.h>
 #include <KoPointerEvent.h>
 
-#include <workspace/KisViewManager.h>
+#include <application/ui/workspace/KisViewManager.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <kis_algebra_2d.h>
 #include <kis_canvas2.h>

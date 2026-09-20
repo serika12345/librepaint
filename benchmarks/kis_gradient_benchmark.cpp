@@ -10,7 +10,6 @@
 
 #include "kis_benchmark_values.h"
 
-#include "kis_random_accessor_ng.h"
 
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>

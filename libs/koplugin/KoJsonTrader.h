@@ -12,7 +12,6 @@
 #include <QString>
 #include <QMutex>
 #include <QSharedPointer>
-#include <kis_pointer_utils.h>
 #include "kritaplugin_export.h"
 
 class QPluginLoader;

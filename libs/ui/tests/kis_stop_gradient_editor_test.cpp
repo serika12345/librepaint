@@ -11,7 +11,6 @@
 #include <QVBoxLayout>
 #include <QLinearGradient>
 
-#include "kis_debug.h"
 #include "KisStopGradientEditor.h"
 
 

@@ -17,6 +17,7 @@
 #include <QAction>
 #include <QLabel>
 #include <kactioncollection.h>
+#include <ksharedconfig.h>
 
 #include <KoCanvasBase.h>
 #include <KoCanvasController.h>
@@ -28,14 +29,9 @@
 #include "kundo2magicstring.h"
 
 #include <KisUsageLogger.h>
-#include "kis_types.h"
 #include "kis_tool.h"
-#include "kis_paintop_preset.h"
-#include "kis_paintop_settings.h"
 #include "kis_aspect_ratio_locker.h"
 #include "kis_floating_message.h"
-#include "canvas/kis_canvas2.h"
-#include "workspace/KisViewManager.h"
 
 #define MAXIMUM_SMOOTHNESS_DISTANCE 1000.0 // 0..1000.0 == weight in gui
 #define MAXIMUM_MAGNETISM 1000

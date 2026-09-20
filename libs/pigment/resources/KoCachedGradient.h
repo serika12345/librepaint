@@ -5,6 +5,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#ifndef KOCACHEDGRADIENT_H
+#define KOCACHEDGRADIENT_H
+
+#include <KoColor.h>
+
+#include "KoAbstractGradient.h"
 
 class KoCachedGradient : public KoAbstractGradient
 {
@@ -100,3 +106,5 @@ private:
     QVector<KoColor> m_colors;
     KoColor m_black;
 };
+
+#endif

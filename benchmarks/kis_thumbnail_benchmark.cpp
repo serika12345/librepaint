@@ -5,11 +5,9 @@
  */
 
 #include "kis_thumbnail_benchmark.h"
-#include "kis_benchmark_values.h"
 
 #include <simpletest.h>
 #include <QImage>
-#include "kis_iterator_ng.h"
 
 #include "kis_paint_device.h"
 #include "KoColorSpace.h"
@@ -20,7 +18,6 @@
 #include "kis_image.h"
 #include "kis_painter.h"
 #include "kis_types.h"
-#include "kis_sequential_iterator.h"
 #include "kis_transform_worker.h"
 
 

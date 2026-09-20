@@ -16,7 +16,6 @@
 #include <boost/accumulators/statistics/mean.hpp>
 #include <boost/accumulators/statistics/variance.hpp>
 
-#include "kis_debug.h"
 
 struct CompressorTester : public QObject
 {

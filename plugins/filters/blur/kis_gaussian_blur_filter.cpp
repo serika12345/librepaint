@@ -16,14 +16,13 @@
 #include <kis_convolution_painter.h>
 #include <kis_gaussian_kernel.h>
 
-#include "ui_wdg_gaussian_blur.h"
 
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
 #include <kis_selection.h>
 #include <kis_paint_device.h>
 #include <kis_processing_information.h>
-#include "kis_lod_transform.h"
+#include "kis_lod_transform_base.h"
 
 
 #include <math.h>

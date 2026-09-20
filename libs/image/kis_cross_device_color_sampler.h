@@ -7,7 +7,9 @@
 #ifndef __KIS_CROSS_DEVICE_COLOR_SAMPLER_H
 #define __KIS_CROSS_DEVICE_COLOR_SAMPLER_H
 
+#include "KoColor.h"
 #include "KoColorSpace.h"
+#include "kis_paint_device.h"
 #include "kis_random_sub_accessor.h"
 
 

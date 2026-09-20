@@ -11,6 +11,8 @@
 
 #include "kis_image.h"
 #include "kis_image_config.h"
+#include "kis_node.h"
+#include "kis_paint_device.h"
 #include "kis_signal_compressor.h"
 
 #include "tiles3/kis_tile_data_store.h"
@@ -165,5 +167,4 @@ void KisMemoryStatisticsServer::notifyImageChanged()
 {
     m_d->updateCompressor.start();
 }
-
 

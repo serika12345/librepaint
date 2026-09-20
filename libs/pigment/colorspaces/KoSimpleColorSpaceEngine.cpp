@@ -6,13 +6,11 @@
 
 #include "KoSimpleColorSpaceEngine.h"
 
-#include "KoColorModelStandardIds.h"
 
 #include <klocalizedstring.h>
 
 #include "KoColorSpace.h"
 
-#include "DebugPigment.h"
 
 #include <QColor>
 

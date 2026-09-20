@@ -6,7 +6,6 @@
 
 #include "kis_meta_data_value.h"
 #include <QPoint>
-#include <QRegularExpression>
 #include <QTime>
 #include <QVariant>
 
@@ -18,6 +17,37 @@ using namespace KisMetaData;
 
 struct Q_DECL_HIDDEN Value::Private {
     Private() : type(Invalid) {}
+    ~Private()
+    {
+        clear();
+    }
+
+    void clear()
+    {
+        switch (type) {
+        case Invalid:
+            break;
+        case Variant:
+            delete value.variant;
+            break;
+        case OrderedArray:
+        case UnorderedArray:
+        case AlternativeArray:
+        case LangArray:
+            delete value.array;
+            break;
+        case Structure:
+            delete value.structure;
+            break;
+        case Rational:
+            delete value.rational;
+            break;
+        }
+
+        type = Invalid;
+        propertyQualifiers.clear();
+    }
+
     union {
         QVariant* variant;
         QList<Value>* array;
@@ -68,6 +98,11 @@ Value::Value(const Value& v) : d(new Private)
 
 Value& Value::operator=(const Value & v)
 {
+    if (this == &v) {
+        return *this;
+    }
+
+    d->clear();
     d->type = v.d->type;
     d->propertyQualifiers = v.d->propertyQualifiers;
     switch (d->type) {
@@ -157,7 +192,6 @@ bool Value::setVariant(const QVariant& variant)
         *this = KisMetaData::Value(variant);
         return true;
     case Rational: {
-        QRegularExpression rx("([^\\/]*)\\/([^\\/]*)");
         // TODO: erm... did someone forgot to write actual code here?
 
         // for now just safe assert and return a failure
@@ -165,12 +199,15 @@ bool Value::setVariant(const QVariant& variant)
         return false;
     }
     case KisMetaData::Value::Variant: {
-        if (d->value.variant->type() == variant.type()) {
-            *d->value.variant = variant;
-            return true;
+        if (d->value.variant->type() != variant.type()) {
+            return false;
         }
+        if (*d->value.variant == variant) {
+            return false;
+        }
+        *d->value.variant = variant;
+        return true;
     }
-    return true;
     default:
         break;
     }
@@ -187,13 +224,14 @@ bool Value::setStructureVariant(const QString& fieldNAme, const QVariant& varian
 
 bool Value::setArrayVariant(int index, const QVariant& variant)
 {
-    if (isArray()) {
-        for (int i = d->value.array->size(); i <= index; ++i) {
-            d->value.array->append(Value());
-        }
-        (*d->value.array)[index].setVariant(variant);
+    if (!isArray() || index < 0) {
+        return false;
     }
-    return false;
+
+    for (int i = d->value.array->size(); i <= index; ++i) {
+        d->value.array->append(Value());
+    }
+    return (*d->value.array)[index].setVariant(variant);
 }
 
 KisMetaData::Rational Value::asRational() const
@@ -216,6 +254,24 @@ QList<Value> Value::asArray() const
 bool Value::isArray() const
 {
     return type() == OrderedArray || type() == UnorderedArray || type() == AlternativeArray;
+}
+
+bool Value::hasValidLanguageArrayEntries() const
+{
+    if (type() != LangArray) {
+        return false;
+    }
+
+    for (const Value &entry : *d->value.array) {
+        const auto language = entry.propertyQualifiers().constFind(QStringLiteral("xml:lang"));
+        if (entry.type() != Variant || entry.asVariant().userType() != QMetaType::QString ||
+            language == entry.propertyQualifiers().cend() || language->type() != Variant ||
+            language->asVariant().userType() != QMetaType::QString) {
+            return false;
+        }
+    }
+
+    return true;
 }
 
 QMap<QString, KisMetaData::Value> Value::asStructure() const
@@ -254,6 +310,7 @@ QDebug operator<<(QDebug debug, const Value &v)
 bool Value::operator==(const Value& rhs) const
 {
     if (d->type != rhs.d->type) return false;
+    if (d->propertyQualifiers != rhs.d->propertyQualifiers) return false;
     switch (d->type) {
     case Value::Invalid:
         return true;
@@ -263,7 +320,7 @@ bool Value::operator==(const Value& rhs) const
     case Value::UnorderedArray:
     case Value::AlternativeArray:
     case Value::LangArray:
-        return asArray() == rhs.asArray();
+        return *d->value.array == *rhs.d->value.array;
     case Value::Structure:
         return asStructure() == rhs.asStructure();
     case Value::Rational:
@@ -292,7 +349,7 @@ Value& Value::operator+=(const Value & v)
                 *d->value.variant = qMax(v1.toDate(), v2.toDate());
                 break;
             case QMetaType::QDateTime:
-                *d->value.variant = qMax(v1.toDate(), v2.toDate());
+                *d->value.variant = qMax(v1.toDateTime(), v2.toDateTime());
                 break;
             case QMetaType::Double:
                 *d->value.variant = v1.toDouble() + v2.toDouble();
@@ -321,23 +378,10 @@ Value& Value::operator+=(const Value & v)
             case QMetaType::QTime: {
                 QTime t1 = v1.toTime();
                 QTime t2 = v2.toTime();
-                int h = t1.hour() + t2.hour();
-                int m = t1.minute() + t2.minute();
-                int s = t1.second() + t2.second();
-                int ms = t1.msec() + t2.msec();
-                if (ms > 999) {
-                    ms -= 999; s++;
-                }
-                if (s > 60) {
-                    s -= 60; m++;
-                }
-                if (m > 60) {
-                    m -= 60; h++;
-                }
-                if (h > 24) {
-                    h -= 24;
-                }
-                *d->value.variant = QTime(h, m, s, ms);
+                constexpr int millisecondsPerDay = 24 * 60 * 60 * 1000;
+                const int milliseconds =
+                    (t1.msecsSinceStartOfDay() + t2.msecsSinceStartOfDay()) % millisecondsPerDay;
+                *d->value.variant = QTime(0, 0).addMSecs(milliseconds);
             }
             break;
             case QMetaType::UInt:
@@ -428,7 +472,7 @@ QString Value::toString() const
             const QString& field = fields[i];
             const Value& val = d->value.structure->value(field);
             r += field + " => " + val.toString();
-            if (i != d->value.array->size() - 1) {
+            if (i != d->value.structure->size() - 1) {
                 r += ',';
             }
             r += ' ';

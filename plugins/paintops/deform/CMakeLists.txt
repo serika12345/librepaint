@@ -16,7 +16,7 @@ ki18n_wrap_ui(kritadeformpaintop_SOURCES wdgdeformoptions.ui )
 
 kis_add_library(kritadeformpaintop MODULE ${kritadeformpaintop_SOURCES})
 
-target_link_libraries(kritadeformpaintop kritaui kritalibpaintop)
+target_link_libraries(kritadeformpaintop kritaapplicationui kritalibpaintop)
 
 install(TARGETS kritadeformpaintop  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 install( FILES  krita-deform.png DESTINATION ${KDE_INSTALL_DATADIR}/krita/images )

@@ -30,7 +30,7 @@
 #include <flake/kis_node_shape.h>
 #include <kis_tool.h>
 #include <kis_canvas2.h>
-#include <application/kis_action.h>
+#include <application/ui/orchestration/kis_action.h>
 
 #include <KisToolPaintFactoryBase.h>
 

@@ -19,7 +19,6 @@
 
 #include "kis_signals_blocker.h"
 
-#include "kis_global.h"
 #include <application/kis_config.h>
 #include <resources/KisSeExprScript.h>
 

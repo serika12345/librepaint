@@ -10,7 +10,7 @@
 #include <tiffio.h>
 
 #include <kis_properties_configuration.h>
-#include <psd.h>
+#include <psd_types.h>
 
 KisPropertiesConfigurationSP KisTIFFOptions::toProperties() const
 {

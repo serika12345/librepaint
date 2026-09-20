@@ -8,7 +8,7 @@
 
 #include <QAbstractItemModel>
 
-#include "kis_global.h"
+#include "kis_pointer_utils.h"
 #include "kis_image.h"
 #include "kis_node.h"
 #include "kis_keyframe_channel.h"

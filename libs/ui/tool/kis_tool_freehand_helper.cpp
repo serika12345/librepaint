@@ -9,6 +9,7 @@
 #include <QTimer>
 #include <QElapsedTimer>
 #include <QQueue>
+#include <QVector2D>
 
 #include <klocalizedstring.h>
 
@@ -17,7 +18,8 @@
 
 #include "kis_algebra_2d.h"
 #include "kis_distance_information.h"
-#include "kis_painting_information_builder_adapters.h"
+#include <brushengine/kis_paint_information.h>
+#include "kis_painting_information_builder.h"
 #include "kis_image.h"
 #include "kis_painter.h"
 #include <brushengine/kis_paintop_preset.h>
@@ -30,11 +32,11 @@
 
 #include "kis_random_source.h"
 #include "KisPerStrokeRandomSource.h"
+#include "kis_smoothing_options.h"
 
 #include "strokes/freehand_stroke.h"
 #include "strokes/KisFreehandStrokeInfo.h"
 #include "KisAsynchronousStrokeUpdateHelper.h"
-#include "canvas/kis_canvas_resource_provider.h"
 #include <KisOptimizedBrushOutline.h>
 
 #include <math.h>

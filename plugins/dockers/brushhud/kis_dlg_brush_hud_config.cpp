@@ -8,7 +8,6 @@
 #include "ui_kis_dlg_brush_hud_config.h"
 
 #include "kis_paintop_preset.h"
-#include "kis_paintop_settings.h"
 
 #include "kis_brush_hud_properties_config.h"
 

@@ -2,2004 +2,444 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-08-25 11:04 JST
-- 状態: `planned`
-- 現在の検査段階: R1-G6g 入力UI共有ライブラリー境界
-- 関連TODO: `docs/architecture/TODO.md`の「R1: コードパッケージングの改善」
+- 更新日時: 2026-09-20 22:53 JST
+- 状態: `complete`
+- 現在の検査段階: R2-G19h 動的センサー工場依存の縮小（完了）
+- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h完了、R2-G19d-a・R2-G19d-b・R2-G19eは`planned`
 - ブランチ: `develop`
-- 目的: `kritainputui`を独立共有ライブラリーとして構築し、入力表示を利用する製品ターゲットを
-  その具体所有へ直接接続する。
-
-## 再開環境
-
-- direnvが`test`開発シェルと`build-incremental`、`run-test`、`verify-quick`、
-  `verify`を読み込む。
-- DarwinホストがmacOSとiOS、`ssh nixos`で接続するx86_64 NixOSホストがLinux、
-  Android、Windowsの構成を担当する。
-- 全プラットフォームの実構成差分は、両ホストの清浄な作業ツリーを同じコミットへ
-  揃え、`scripts/architecture/verify_cmake_graphs.py`から5構成を並行検証する。
-- CMake File API `codemodel-v2`の台帳は
-  `docs/architecture/cmake-targets-<platform>.json`、全構成の比較結果は
-  `docs/architecture/cmake-target-matrix.json`に記録する。
-
-## R1-G1で完了した作業
-
-- 固定File API応答と抽出器が、ターゲット名、種別、リポジトリ相対の定義場所、
-  `linkLibraries`による直接CMakeターゲット依存を決定的に整列する。
-- 再生成器が各プラットフォームの増分構築入口から永続構築木を取得し、問い合わせ、
-  構成同期、台帳更新、バイト単位の差分検査を実行する。
-- macOS 627件、Linux 642件、iOS 561件、Android 567件、Windows 597件の
-  ターゲットを同じ形式で記録した。
-- 差分行列が545件の共通ターゲット、119件の条件付きターゲット、247件の構成差を
-  持つターゲットを記録した。
-- 絶対パスから名前が変わる翻訳補助ターゲットを固定応答の契約で除外し、異なる
-  作業ツリーから同じ台帳を再生成できるようにした。
-- 全プラットフォーム同時検証入口が、Darwinとx86_64 Linuxの担当構成、同一コミット、
-  清浄な作業ツリーを構成開始前に検査する。遠隔の並行Nix評価は個別の評価処理を使う。
-- Windowsのソース準備処理を通常のNix構築と増分構築で共有し、CMakeの試行生成物を
-  Ninja構築木へ収める契約を固定した。
-- 台帳の範囲、差分行列、ホスト割り当て、更新手順、同時検証コマンドを
-  アーキテクチャガイドと開発手順へ記録した。
-
-## R1-G2aで完了した作業
-
-- `docs/architecture/public-surface-inventory.json`に、`kritaui`と`kritaimage`の
-  代表公開ヘッダー3件、主要クラス3件、PNG読込プラグイン1件を記録した。
-- 公開ヘッダーを所有ターゲット、公開マクロ、別ターゲットからの直接include、
-  対応プラットフォーム、責務、根拠へ接続した。
-- 主要クラスを宣言、実装、所有ターゲット、公開ヘッダー、利用元へ接続し、
-  プラグインをCMakeターゲット、JSONメタデータ、登録マクロ、実行時利用元へ接続した。
-- `check_public_surface_inventory.py`が、パス、決定的な整列、5台帳のターゲット実体、
-  ソース所属、公開マクロ、include、クラス宣言、メタデータ、登録を高速検査で確認する。
-- Nixの独立した運用検査を、Nix提供のBash、明示的なスクリプト処理系、認証局証明書で
-  完結させ、macOSとLinuxで同じ検査を構築できるようにした。
-- 台帳の目的、構成、検査方法、保守手順をアーキテクチャガイドと開発手順へ記録した。
-
-## R1-G2bで完了した作業
-
-- 公開マクロを使用する製品ヘッダーと、所有元外の製品ソースから直接includeされる
-  ヘッダーの和集合を、公開ヘッダーの全件採取規則として固定した。
-- `kritaimage`の332件と`kritaui`の307件を所有ターゲット、公開根拠、5構成、
-  外部利用ソース5,437箇所へ接続し、`scope.publicHeaders`を`complete`へ更新した。
-- `publicHeaderPolicy`が対象拡張子、製品ソースディレクトリー、試験経路の除外、
-  公開根拠を固定し、試験専用の共有ヘッダーを製品パッケージ間の公開面から分離した。
-- 決定的更新器が公開ヘッダー集合と全利用ソースを再生成し、検査器が欠落、余分な項目、
-  所有者、整列、公開マクロ、直接include、利用ソースの差分を診断する。
-- R1-G2aの詳細な代表記録を`publicHeaderDetails`として維持し、主要クラスとプラグインの
-  所有者、利用元ターゲット、責務との接続を保持した。
-- 全件採取の範囲、除外理由、更新コマンド、検査内容、変更時の保守手順を
-  アーキテクチャガイドと開発手順へ記録した。
-
-## R1-G2cで完了した作業
-
-- `libs/ui`直下の完全公開ヘッダー集合から、公開マクロを持つクラスと構造体124件を
-  決定的に採取した。
-- 115件を名前に対応する実装単位へ接続し、インライン、テンプレート、単純データ、
-  抽象接続面として宣言側で完結する9件を空の実装単位一覧として記録した。
-- 124件をアプリケーション調整7件、キャンバス・表示39件、文書状態21件、入出力14件、
-  資源・設定26件、ウィンドウ・作業空間17件へ分類した。
-- UI直下クラス責務台帳が、宣言種別、公開ヘッダー、実装単位、所有ターゲット、5構成、
-  責務領域を接続し、`KisApplication`、`KisDocument`、`KisImportExportManager`を固定した。
-- 決定的更新器が責務分類を保持して宣言と実装単位を更新し、検査器が候補の欠落、
-  余分な項目、未知の責務、宣言と実装の差分を診断する。
-- 台帳の範囲、6責務領域、更新方法、保守手順、`libs/ui/tool`を分離する理由を
-  アーキテクチャガイドと開発手順へ記録した。
-
-## R1-G2dで完了した作業
-
-- `libs/ui/tool`以下の完全公開ヘッダー集合から、公開マクロを持つクラスと構造体50件を
-  40ヘッダーから決定的に採取した。
-- 48件を名前に対応する実装単位へ接続し、抽象接続面とインライン実装として宣言側で
-  完結する2件を空の実装単位一覧として記録した。
-- 50件を入力解釈7件、ツール呼出し14件、ストローク生成9件、描画実行12件、
-  設定表示8件へ分類した。
-- UIツールクラス責務台帳が、宣言種別、公開ヘッダー、実装単位、`kritaui`所有者、
-  5構成、責務領域、ツールディレクトリー外の直接利用元102ソースを接続した。
-- 決定的更新器が責務分類を保持して構造と利用元を更新し、検査器が候補の欠落、
-  余分な項目、未知の責務、宣言、実装、利用元の差分を診断する。
-- 台帳の範囲、5責務領域、更新方法、保守手順と、現在のUI・入力・ストローク・描画責務の
-  混在をアーキテクチャガイドと開発手順へ記録した。
-
-## R1-G2eで完了した作業
-
-- 試験経路を除く`plugins`以下から、兄弟JSONを指定する登録マクロ172件を全件採取し、
-  プラグインID、実装、メタデータ、登録方式を一対一で接続した。
-- 実際のCMake所有ターゲットと対応構成を固定し、macOS 167件、Linux 170件、iOS 162件、
-  Android 162件、Windows 168件を記録した。
-- 14サービス種別を12の機能所有領域と実行時レジストリーへ接続し、入出力42件、
-  画像フィルター33件、ドッカー表示30件などの現在の登録境界を固定した。
-- 157件はJSONのライブラリー名をCMake所有者の根拠とし、同項目がないか記録済みターゲットと
-  一致しない15件は登録実装を含む`CMakeLists.txt`のソース所属で所有者を固定した。
-- 決定的更新器と検査器が、登録の欠落と重複、メタデータ、所有者、ターゲット種別、
-  対応構成、サービス種別、機能所有者、実行時読込元の差分を診断する。
-- `scope.plugins`を`complete`へ更新し、公開ヘッダー、主要クラス、UIツールクラス、
-  プラグインのR1-G2完了条件を満たした。
-
-## R1-G3aで完了した作業
-
-- `docs/architecture/package-responsibilities.json`に、アプリケーション調整、キャンバス表示、
-  文書寿命、入出力、入力解釈、描画、プラグイン基盤、リソース管理、ツール呼出しの
-  9責務を記録した。
-- 9責務を現在の所有ソースディレクトリーと15の中核CMakeターゲットへ接続し、
-  `kritaui`が7責務を所有する現在の集中を固定した。
-- R1-G2の公開ヘッダー、UI直下124クラス、UIツール50クラス、主要クラス3件、
-  プラグイン172登録と14サービス種別を責務へ接続した。
-- 15ターゲットについて、macOS、Linux、iOS、Android、Windowsに存在するターゲット種別、
-  製品ターゲットへの直接依存、製品ターゲットからの利用元を5台帳の和集合として記録した。
-- 決定的更新器と検査器が、責務の欠落と未知ID、所有ターゲットの欠落、責務領域の重複、
-  台帳参照、生成済み公開面、プラグイン、ターゲット関係の差分を診断する。
-- 責務地図の目的、現在の所有者、読み方、更新方法、保守条件をアーキテクチャガイドと
-  開発手順へ記録した。
-
-## R1-G3bで完了した作業
-
-- `docs/architecture/allowed-package-dependencies.json`に9責務を第0層から第7層へ配置し、
-  上位層から下位層だけへ向かう有向非巡回の許可グラフを定義した。
-- アプリケーション寿命、文書セッション、画像モデル、描画実行、プラグイン登録など
-  14の公開接続面に、目的、寿命、エラー動作を記録した。
-- 各許可依存を利用する公開接続面へ接続し、プラグイン登録のリンク方向と実行時の
-  登録制御を区別した。
-- 15の中核所有ターゲット間にある27の直接リンクを、共有ターゲットが所有する責務の
-  直積として69候補へ射影した。
-- 69候補を同一責務内8件、許可方向35件、R1-G4で基準化する26件へ分類し、後者が
-  14種類の責務対を持つことを固定した。
-- 決定的更新器と検査器が、未知の責務と公開接続面、自己依存、循環、同層と上位層への
-  依存、未分類または陳腐化した現在辺を診断する。
-- 責務層、公開接続面、現在辺の射影、更新方法をアーキテクチャガイドと開発手順へ記録し、
-  R1 TODOの責務・依存方向と一方向グラフ契約を完了へ更新した。
-
-## R1-G4aで完了した作業
-
-- `docs/architecture/dependency-violation-baseline.json`に、直接includeで一意に帰属できる
-  8種類、305件の確認済み逆方向依存を記録した。
-- アプリケーション調整から描画71件、キャンバス表示から文書寿命73件、描画から
-  文書寿命95件などを、元のCMakeターゲット辺と5構成へ接続した。
-- 各確認済み違反にR1-G6の所有段階、現在必要な理由、除去条件、現在件数と等しい
-  審査済み上限を設定した。
-- 直接includeを一意に帰属できない6種類を未確定射影として分離し、4種類は共有ヘッダー
-  1件、2種類は帰属済み直接includeが存在しないことを記録した。
-- 採取器が製品ソースと依存先ヘッダーをパス末尾または一意な名前で接続し、単一所有者、
-  公開クラス分類、最長責務ディレクトリーの順に責務を決定する。
-- 決定的更新器と検査器が、新規違反、審査済み上限の拡大、縮小可能な上限、根拠の置換、
-  確認済み責務対と未確定射影の欠落を診断する。
-- 基準の範囲、8種類の現在境界、採取規則、更新方法、上限の審査手順をアーキテクチャ
-  ガイドと開発手順へ記録した。
-
-## R1-G4bで完了した作業
-
-- `KoStrokeConfigWidget`を審査済み公開ヘッダーとしてキャンバス表示責務へ割り当て、
-  全件分類範囲外の公開ヘッダーを責務地図で一意に扱う契約を追加した。
-- 共有ターゲット由来の6未確定射影を、`kritabasicflakes`から`kritaui`への3includeと、
-  `kritaui`から`kritaimpex`への4includeの実責務へ帰属させ、逆方向依存ではないことを
-  `docs/architecture/structural-dependency-baseline.json`へ記録した。
-- 15中核ターゲットと全製品構築ターゲットの強連結成分を5構成で採取した。全製品範囲は
-  macOS 215件、Linux 221件、iOS 207件、Android 207件、Windows 224件で、両範囲の
-  循環上限を0件に固定した。
-- 公開マクロを持たず、所有元外の直接includeだけを公開根拠とする`kritaimage`の
-  29ヘッダー、593参照と、`kritaui`の15ヘッダー、34参照を既存違反基準へ記録した。
-- 構造依存基準の決定的更新器と検査器が、新たな未帰属射影、ターゲット循環、内部
-  ヘッダー参照の増加、縮小可能な上限、根拠の置換を診断する。
-- 構造基準の範囲、現在値、更新方法、上限の保守手順をアーキテクチャガイドと開発手順へ
-  記録し、R1の依存・ヘッダー境界検査ツールをNix高速検査へ固定した。
-
-## R1-G5で完了した作業
-
-- `docs/architecture/package-relocation-plan.json`に9責務の現行所有者と、目標
-  ディレクトリー、`Krita`名前空間、主CMakeターゲット、許可依存、完了条件を対応付けた。
-- プラグイン基盤の現行境界を第0層として保持し、リソース、描画、入出力、キャンバス、
-  文書、ツール、入力、アプリケーションの順にR1-G6aからR1-G6hまでの8段階を確定した。
-- 各段階に移動元、移動先、作成ターゲット、必要な特性試験、完了条件、中止条件を設定し、
-  8種類305件の逆方向includeと44ヘッダー627件の内部参照を最終的にゼロへ縮小する
-  段階別上限を固定した。
-- UI旧include、`kritaui`、既存の大域C++識別子を含む11の一時互換経路へ、導入段階、
-  R1-G7の所有者、最大範囲、削除条件、検証方法を設定した。
-- 最初の実装をR1-G6aに決め、`libs/store`を`libs/resources/storage`へ移す保存契約、
-  リソース表示と描画設定表示の分離、47件の逆方向include解消を一つの検査単位にした。
-- 計画検査器が責務地図、許可依存、依存違反基準、構造依存基準、5構成の現行
-  CMakeターゲットへ計画を照合し、移行順、全件被覆、段階別上限、最終ゼロ状態を検査する。
-- 再配置計画の目的、構成、実装順、最初の段階、検査方法、保守条件をアーキテクチャ
-  ガイドと開発手順へ記録した。
-
-## R1-G6a保存境界で完了した作業
-
-- ZIPとディレクトリーの読書き、不正ZIPの拒否、失敗した読込後の継続、重複書込の拒否と
-  既存データ保持を`TestResourceStorageArchiveContract`へ固定した。
-- `libs/store`の書庫保存実装、内部ヘッダー、手動試験を`libs/resources/storage`へ移し、
-  `kritaresourcestorage`を独立したライブラリーとして構築した。
-- `KoXmlNS`と`KoXmlWriter`を`libs/serialization/xml`へ移し、Qt Coreだけに依存する
-  `kritaxmlserialization`として書庫保存から分離した。
-- `libs/store`、`kritastore`、転送ヘッダー、旧公開マクロ、互換専用試験を除去し、製品中の
-  旧include経路を正規ヘッダーへ変更した。
-- 書庫保存とXML直列化の実利用ターゲットへ直接リンクを設定し、利用実体のなかった
-  `kritaresourcewidgets`とPSD書出しの保存リンクを除去した。
-- XML数値属性の15桁および`FLT_DIG`表現、エスケープ、文書構造を`TestXmlWriter`へ固定し、
-  保存契約を`TestResourceStorageArchiveContract`へ限定した。
-- 5構成で`kritaresourcestorage`と`kritaxmlserialization`を独立構築し、macOS、Linux、
-  Android、Windowsでは共有ライブラリー、iOSでは静的ライブラリーになることを
-  CMake台帳へ固定した。
-- Windows増分構成へ`Release`構成種別を明示し、清浄な構築木から有効なCMake File API
-  構成名を生成する契約を固定した。
-- タイル試験の共通補助から`KoStore_p.h`と保存内部状態の操作を除去し、CMakeへ登録されて
-  いなかった圧縮試験ソースを削除した。製品外を含め、保存内部ヘッダーは所有パッケージの
-  実装3ファイルだけが参照する。
-- ネイティブCTestのアプリケーション接頭辞とプラグイン探索先を各増分構築木へ固定した。
-  macOSで存在しないNix storeのインストール先を参照していた試験環境を解消した。
-
-## R1-G6a表示境界で完了した作業
-
-- `libs/resourcewidgets`を`libs/resources/ui`へ移し、汎用の選択、タグ、一覧、保管場所の
-  表示を`kritaresourceui`として独立構築した。型付きの不変リソース記述子と表示契約を
-  `TestResourceUiContract`へ固定した。
-- `libs/ui/KisPaintopPropertiesBase.*`、`libs/ui/KisPaletteEditor.*`、
-  `libs/ui/kis_categories_mapper.*`、`libs/ui/kis_categorized_*`、
-  `libs/ui/kis_composite_ops_model.*`、`libs/ui/kis_paint_ops_model.*`、
-  `libs/ui/kis_paintop_option*`、`libs/ui/kis_paintop_settings_widget.*`を
-  `libs/tools/ui`へ移した。
-- `libs/ui/widgets/kis_categorized_list_view.*`、`libs/ui/widgets/kis_cmb_composite.*`、
-  `libs/ui/widgets/kis_paintop_list_widget.*`を`libs/tools/ui`へ移し、描画設定表示を
-  `kritatoolsui`として独立構築した。設定表示契約を`TestToolSettingsUiContract`へ固定した。
-- `libs/ui/tests`にあった分類モデル試験を`libs/tools/ui/tests`へ移し、製品実装と試験の
-  所有先を一致させた。
-- `libs/ui/KisResourceServerProvider.*`を起点として、描画プリセットとレイヤースタイルの
-  提供処理を`libs/tools/ui/KisPaintResourceServerProvider.*`へ分離した。起点ファイルには
-  作業空間、ウィンドウ配置、セッションの提供処理を残した。
-- `libs/ui/kis_config.*`を起点として、画像入出力設定を`libs/image/kis_image_config.*`へ、
-  画面プロファイル選択を`libs/ui/KisDisplayConfig.*`へ分離した。
-- パレット編集の文書操作は`libs/tools/ui/KisPaletteEditor.*`の表示から分離し、
-  `plugins/dockers/palettedocker/palettedocker_dock.cpp`が現在の文書と操作ダイアログを
-  接続する。
-- 旧`libs/resourcewidgets`、旧`kritaresourcewidgets`ターゲット、転送ヘッダーを除去した。
-  `kritaresourceui`は描画ターゲットへ依存せず、リソース管理から描画への40件の
-  逆方向includeは0件になった。
-- 共有ターゲット内に残るパレット、レイヤー設定、プリセット編集の7ソースを
-  `reviewedSourcePaths`でツール呼出し責務へ帰属させ、未確定射影を0件に保った。
-- 確認済み逆方向依存は5責務対257件へ縮小した。全5構成で16中核ターゲットと
-  全製品ターゲットの循環は0件である。
-
-## R1-G6b描画実行境界で完了した作業
-
-- `libs/ui/tool/strokes`のストローク生成・実行を`libs/painting/strokes`へ移した。
-  同じ起点にあった`KisAsynchronousStrokeUpdateHelper.*`、
-  `KisStrokeCompatibilityInfo.*`、`KisStrokeSpeedMonitor.*`、
-  `kis_resources_snapshot.*`も`libs/painting`へ移し、`kritapainting`が所有する。
-- `libs/command`の画像・キャンバス向け取り消し処理を`libs/painting/undo`へ移し、
-  `kritapaintingundo`として分離した。`libs/metadata`の画像メタデータ実装は
-  `libs/painting/metadata`へ移し、`kritapaintingmetadata`として分離した。旧ディレクトリー、
-  旧メタデータターゲット、転送ヘッダーは残していない。
-- 画像層が利用する取り消しとメタデータを画像層より下、画像層を利用するストローク実行を
-  画像層より上に分けた。これにより3責務を描画所有へ集約しながらCMakeターゲットの循環を
-  発生させない構成にした。
-- `libs/ui/tool/kis_resources_snapshot.*`を起点とした資源スナップショットは、UIの具体的な
-  資源提供者ではなく`libs/resources`の読出し接続面を保持する。呼出し側が所有する提供者から
-  読出し接続面を渡すことで、描画処理からUI資源管理の知識を除去した。
-- `libs/ui/tool/KisStrokeSpeedMonitor.*`を起点とした速度計測は、設定の読取りをUI側へ移し、
-  描画側は呼出し側から有効状態を受け取る。`libs/ui/tool/kis_tool_utils.*`にあった画像状態だけを
-  扱う色採取とノード検索は`libs/painting/kis_painting_utils.*`へ移した。
-- 描画から文書寿命への直接includeは95件から0件になった。`kritaimage`の29ヘッダー593参照は、
-  `libs/painting/tests/TestPublicImageHeaders.cpp`の構築契約で公開面を確定し、未審査の内部参照を
-  0件にした。`kritaui`の内部参照は14ヘッダー32件まで縮小した。
-- 5構成のCMake台帳はmacOS 634件、Linux 649件、iOS 568件、Android 574件、Windows 604件、
-  共通552件、条件付き119件、構成差252件を記録する。18中核所有ターゲットと全製品ターゲットは
-  5構成すべてで循環0件を維持する。
-
-## EXIF構造化メタデータ読込修正で完了した作業
-
-- `plugins/metadata/exif/kis_exif_io.cpp`を起点として、OECFとCFAの列数と行数を
-  EXIF形式で定められた16ビット値として読み、ホストの整数幅とExiv2の版に依存しない
-  寸法解釈へ統一した。
-- OECFは列名領域と有理数領域、CFAは画素配列について、列数と行数から求めた必要量を
-  入力長と照合する。ゼロ寸法、積の表現範囲超過、切り詰め、余分なデータを不正値として扱う。
-  実機由来データで確認した列名の全省略は、有理数領域の長さが寸法と完全一致する場合だけ
-  列数分の空名として受理する。
-- 不正な構造化項目はその項目だけを読込対象から外し、同じEXIFデータに含まれるカメラ機種などの
-  正常なメタデータを保持する。CFAの各値は符号なし8ビット値として保持する。
-- `plugins/metadata/tests/kis_exif_test.cpp`に、実在するOECFの2列129行、切り詰めを誘発する
-  異常寸法、CFAの2行2列と値255の往復契約を追加した。EXIF試験の入口は画像・UI資源を
-  初期化しない構成へ限定し、macOSとLinuxで同じ入出力契約を実行可能にした。
-- `plugins/impex/jpeg/tests/kis_jpeg_test.cpp`の既存JPEG読込契約で、問題を再現した
-  `HPIM0760.JPG`を含む入力群が有限メモリーで完了することを確認した。
-
-## R1-G6c入出力境界で完了した作業
-
-- `libs/ui/KisImportExportFilter.*`、`KisImportExportErrorCode.*`、
-  `KisImportExportAdditionalChecks.*`を`libs/impex`へ移した。形式探索とMIME選択は
-  `KisImportExportFilterRegistry.*`が所有し、結果分類、ファイル事前条件、変換フィルターと
-  合わせて`kritaimpex`だけで構築・検査できる。
-- `libs/ui/KisImportExportManager.*`と`KisImportUserFeedbackInterface.*`を起点として、
-  文書変換の調整、利用者通知、ダイアログ、クリップボード、画像読込補助を
-  `libs/impex/ui`へ移した。動画符号化調整は`libs/impex/animation`へ移し、
-  `kritaimpexui`が両ディレクトリーを所有する。
-- `kritaimpexui`は文書・画面型との現在のABI接続を保つオブジェクト所有単位として
-  `kritaui`へ全実装を組み込む。入出力の製品実装は`kritaui`のソース一覧に属さず、
-  5構成のCMake台帳が所有ターゲットと依存方向を別々に記録する。
-- `KisMimeData`はノード追加・移動に必要な狭い接続面を所有し、UI側のノード挿入実装が
-  その接続面を実装する。参照画像のクリップボード読込はQtの画像値を受け取る経路へ変更し、
-  キャンバス表示から入出力への逆方向includeを除去した。
-- `libs/ui`の旧入出力ファイル、旧ダイアログ、旧媒体符号化ファイルを削除し、利用元を
-  正規の`libs/impex`経路へ更新した。転送ヘッダーと互換分岐は追加していない。
-- UI直下の入出力14クラスは所有先へ移り、UI直下クラス台帳は92件になった。
-  `kritaimpex`と`kritaimpexui`の未宣言パッケージ外参照は0件、`kritaui`の内部参照は
-  11ヘッダー28件になった。19中核所有ターゲットと全製品ターゲットは全5構成で循環0件を保つ。
-- Android増分構成へ`Release`構成種別を明示し、AndroidのCMake File API台帳を
-  他の構成と同じ決定的な構成名から再生成できるようにした。
-- `docs/architecture/TODO.md`に、UIから利用事例を呼び出す接続、起動時の実装登録、
-  ドメイン計算とI/O副作用の分離を長期ビジョンとして記録した。正式評価はキャンバス表示と
-  文書寿命の分離後に行い、専用の移行は保守責任者の明示的な決定後に開始する。
-
-## キャンバス座標境界で完了した作業
-
-- `libs/ui/canvas/kis_coordinates_converter.*`と`KisCanvasState.*`を`libs/canvas`へ
-  移し、独立した共有ライブラリー`kritacanvas`が座標変換と画面状態を所有するようにした。
-  旧ファイルと転送ヘッダーは残していない。
-- 座標変換器から設定読込みを除き、`libs/ui/canvas/kis_canvas2.cpp`が表示設定値を
-  明示的に渡すようにした。変換器は構築元画像を保持せず、画像解放後も構築時の幾何情報と
-  変換結果を利用できる寿命契約を追加した。
-- `libs/ui/tests/kis_coordinates_converter_test.*`を`libs/canvas/tests`へ移し、
-  `kritaui`をリンクせずに画像寿命、設定入力、既存の座標変換を検査するようにした。
-- 構造検査が`kritacanvas`の実体、旧配置の不在、UI設定・文書・表示型への逆方向includeの
-  不在を継続確認する。公開面台帳は`kritacanvas`の2ヘッダーを記録する。
-- 5構成のCMake台帳は`kritacanvas`を独立所有ターゲットとして記録し、20の中核所有
-  ターゲットと全製品ターゲットは全構成で循環0件を維持する。
-- この単位では投影更新、色変換、動画キャッシュおよび長期構造ビジョンの専用移行を
-  開始していない。長期構造の専用移行は保守責任者の明示的な判断を開始条件とする。
-
-## 投影更新境界で完了した作業
-
-- `libs/ui/canvas/kis_prescaled_projection.*`を起点として、表示用画像片、投影更新情報、
-  投影取得接続面、拡大縮小済みフレームを`libs/canvas`へ移し、`kritacanvas`が所有する
-  公開面を8ヘッダーへ拡張した。旧配置、転送ヘッダー、型別名だけを集めたヘッダーは
-  残していない。
-- 投影フレーム生成からUI設定の読取りと具体的な表示フィルター型を除き、呼出し側が
-  更新片の寸法、画面プロファイル、色変換方法、画素フィルターを明示的に渡す構成にした。
-  `libs/ui/canvas/kis_qpainter_projection_factory.*`がUI設定と具体的な画像投影実装を
-  キャンバス所有の接続面へ結ぶ。
-- 共通の更新情報は`libs/canvas/kis_update_info.*`が所有し、QPainter投影向けの更新情報を
-  `libs/canvas/kis_projection_update_info.*`、OpenGL固有のタイル更新情報を
-  `libs/ui/opengl/kis_opengl_update_info.*`へ分けた。キャンバス側はOpenGLタイル型を
-  参照しない。
-- `libs/canvas/tests/kis_prescaled_projection_contract_test.*`が、画像の汚れ領域を投影更新へ
-  通知すること、画像外の空更新では直前の有効フレームを保持することを、UIライブラリーを
-  リンクせずに検査する。
-- 構造検査が新しい所有先、旧配置の不在、UI設定、表示型、OpenGLタイル型、文書型への
-  逆方向includeの不在を継続確認する。表示色変換と動画キャッシュは後続の独立単位とする。
-
-## 表示色変換境界で完了した作業
-
-- `libs/ui/KisOcioConfiguration.*`と`libs/ui/KisSurfaceColorSpaceWrapper.h`を起点として、
-  表示色の設定値とQt画面色空間との変換値を`libs/canvas/color`へ移した。旧配置と
-  転送ヘッダーは残さず、プラグインとUIは`kritacanvas`の公開面を直接参照する。
-- `libs/ui/canvas/kis_display_color_converter.*`から画素、色、画像の変換処理を
-  `libs/canvas/color/kis_display_color_transform.*`へ分離した。変換本体はUI設定、現在ノード、
-  資源管理、画面パレットを参照せず、プロファイル、変換方法、表示フィルターを入力として
-  色変換を実行する。
-- UI側の色変換器は変換本体を保持し、現在ノードと設定通知の監視、前景色の視覚表現維持、
-  ハンドル色とシステムパレットの更新、利用元への変更通知を担当する。
-- `libs/canvas/tests/kis_display_color_transform_test.*`が標準表示変換、往復変換、
-  プロファイル一致時の省略判定、表示フィルター適用、ビット深度別キャッシュをUIなしで
-  検査する。`KisSurfaceColorSpaceWrapperTest`も`libs/canvas/tests`へ移した。
-- `libs/ui/tests/kis_display_color_converter_contract_test.cpp`が画面設定を一度だけ反映し、
-  同じ設定の再入力で通知を重複させず、UI接続後も表示色結果を維持することを検査する。
-- 公開面は`kritacanvas`の12ヘッダーへ拡張し、未宣言だった`kritaui`内部参照の基準を
-  11ヘッダー28件から9ヘッダー24件へ縮小した。動画キャッシュは後続の独立単位とする。
-
-## アニメーションキャッシュ境界で完了した作業
-
-- `libs/ui/kis_animation_frame_cache.*`を起点として、フレーム範囲の検索、挿入、無効化、
-  結合と移動指示を`libs/canvas/animation/kis_animation_frame_cache_index.*`へ分離した。
-  UI側のキャッシュはこの状態を保持し、画像の再生状態と保存・復元処理を調整する。
-- `libs/ui/KisFrameDataSerializer.*`と`libs/ui/KisFrameCacheStore.*`を起点として、
-  タイル差分の直列化とフレーム保存を`libs/canvas/animation`へ移した。保存値はUI型と
-  OpenGL型を含まず、UI側の`libs/ui/animation/cache/KisFrameCacheSwapper.*`が
-  OpenGL更新情報との相互変換を担当する。
-- `libs/ui/opengl/kis_texture_tile_info_pool.*`を、描画方式に依存しないタイル転送領域として
-  `libs/canvas/tiles`へ移した。旧クラス名、旧ファイル、転送ヘッダーは残していない。
-- `libs/ui/kis_animation_cache_populator.*`とキャッシュ調停を`libs/ui/animation`へ、
-  保存変換を`libs/ui/animation/cache`へ配置した。`libs/image/kis_types.h`からUIキャッシュ型の
-  別名を除き、UI所有の前方宣言を利用元が明示的に参照する。
-- `libs/ui/KisWidgetWithIdleTask.h`を`libs/ui/canvas`へ移し、ドッカーから利用する表示契約を
-  `libs/ui/tests/TestCanvasUiPublicHeaders.cpp`の構築で固定した。旧配置は残していない。
-- フレーム範囲、保存、直列化をUIライブラリーなしで検査する3契約と、UIの保存変換、
-  既存キャッシュ統合、公開表示ヘッダーを検査する3契約を固定した。
-- `kritacanvas`の公開面は17ヘッダー、`kritaui`は249ヘッダーになった。未宣言の
-  `kritaui`内部参照は9ヘッダー24件から7ヘッダー20件へ縮小し、キャンバス表示から
-  文書寿命への逆方向includeは0件を維持する。これによりR1-G6dの完了条件を満たす。
-
-## R1-G6e文書取り消し境界の実装
-
-- R1-G6e開始時にUIの文書状態へ分類した25クラスのうち、最初の起点を
-  `libs/ui/kis_document_undo_store.*`とした。文書全体への参照を取り消し履歴の直接借用へ
-  狭め、履歴操作と変更通知を`libs/document/undo`の`kritadocument`へ移した。
-- `KisDocument`は履歴を先に構築して接続へ渡し、履歴が接続より長く存続する責務を持つ。
-  接続は非nullと同一スレッドを検査し、履歴位置の通知を同期転送する。
-- 空履歴の現在操作、命令追加、直前命令の取消し、マクロの一括化、やり直し履歴の破棄、
-  履歴位置変更の同期通知、同一スレッド、非所有の借用寿命を専用契約へ固定した。
-- 旧ファイル、転送ヘッダー、旧クラス名の別名は存在しない。UI直下の文書状態分類は
-  24クラスとなり、公開面台帳は文書所有の正規ヘッダーを5構成へ接続する。
-- 5構成のCMake台帳は`kritadocument`を記録する。LibrePaint内の直接依存は
-  `kritapaintingundo`、直接利用元は`kritaui`であり、中核所有ターゲットと全製品ターゲットの
-  循環は全構成で0件を維持する。
-- この単位は取り消し履歴の所有境界だけを扱う。文書識別、変更状態、保存、自動保存、
-  回復、文書情報、ノードと選択の操作は後続レビュー単位とする。利用事例の登録構造と、
-  ドメイン計算からI/Oを分ける専用移行は開始しない。
-- 取り消し接続は`KisDocument`と`kritaui`を参照せず、`kritadocument`はLibrePaint内では
-  `kritapaintingundo`だけを下位依存として構築できる。既存の文書・画像の取り消し挙動は
-  専用契約とUI利用元の構築で維持する。
-- `kritapaintingundo`は操作履歴とQt Widgetsのアクション生成を同じライブラリーで提供するため、
-  この単位だけでは文書ドメインのQt Widgets依存は完了条件を満たさない。履歴と表示用アクションの
-  分離要否はR1-G6eの後続単位で判断し、最初の単位へ新しい接続面を追加しない。
-
-## R1-G6e文書識別境界の実装
-
-- `libs/ui/KisDocument.cpp`の文書パス、実ファイルパス、現在MIME形式、MIME自動判定由来を
-  起点として、`libs/document/session/kis_document_identity.{h,cpp}`の
-  `Krita::Document::Identity`へ移した。`KisDocument`は既存の公開API、パス変更通知、
-  MIME判定とファイルを開く調整を維持する。
-- 文書識別はQt Coreの値状態として、表示用パスと入出力用実ファイルパスを独立して保持する。
-  パスの実変更判定、MIME形式と自動判定由来、複製をUIなしの契約で固定した。
-- `KisDocument`の接続契約は、同一パスの再設定では通知しないこと、パス初期化時の通知、
-  パス初期化通知時点では実ファイルパスを保持して通知後に消去する順序、実ファイルパスと
-  MIME形式、保存用スナップショットへの識別状態の複製を固定する。
-- 旧`KisDocument::Private::outputMimeType`は設定と複製だけが行われ、読み取る利用元が
-  存在しなかったため削除した。互換経路、転送ヘッダー、旧名の別名は追加していない。
-- 公開面台帳は`kritadocument`の文書識別ヘッダーを、`kritaui`の直接利用と5構成の
-  対象へ接続する。文書識別の抽出ではUI直下の`document-state`分類24クラスは変わらない。
-- この単位の実装範囲は文書識別だけとし、変更状態は次の独立単位へ分けた。保存、自動保存、
-  回復、文書情報、ノードと選択の操作、および利用事例登録とI/O分離の専用移行は含まない。
-
-## R1-G6e文書変更状態境界の実装
-
-- `libs/ui/KisDocument.cpp`の変更済み、自動保存後変更、保存中変更、取り消し履歴に現れない
-  画像変更の4状態を起点として、
-  `libs/document/session/kis_document_modification_state.{h,cpp}`の
-  `Krita::Document::ModificationState`へ移した。
-- 文書変更状態は、同じ変更済み値の再設定でも自動保存後と保存中の変更を再記録する。
-  未変更への遷移は取り消し不能変更を消去し、失敗した自動保存は現在の変更済み状態から
-  次回自動保存の必要性を復元する。
-- 保存用の状態複製は変更済みと取り消し不能変更を引き継ぎ、元の文書で進行している保存と
-  自動保存の経過を複製先へ持ち込まない。
-- `KisDocument`は既存の`isModified()`、`setModified()`、`modified(bool)`を維持し、
-  編集時刻、文書情報更新、自動保存タイマー、保存・回復処理、Qt通知を接続する。
-- 互換経路、転送ヘッダー、旧名の別名は追加していない。変更状態の実装はQt型を参照せず、
-  公開面台帳は`kritadocument`の所有、`kritaui`の直接利用、5構成の対象へ接続する。
-- この抽出は`KisDocument`内の埋込み状態を移すため、UI直下の`document-state`分類は
-  24クラスを維持する。保存、自動保存、回復、文書情報、ノードと選択の操作は後続単位とする。
-  利用事例登録と純粋計算・I/O分離の専用移行は、保守責任者が開始を決定する段階まで
-  現行構造を維持する。
-
-## R1-G6e文書自動保存実行状態境界の実装
-
-- `libs/ui/KisDocument.cpp`の自動保存用複製の書出し中状態と連続失敗回数を起点として、
-  `libs/document/session/kis_document_autosave_state.{h,cpp}`の
-  `Krita::Document::AutoSaveState`へ移した。
-- 自動保存用複製の書出し開始と終了、3回の連続失敗後に次の試行で複製経路へ切り替える
-  境界値、通常間隔へ戻る際の失敗履歴消去をUIなしの契約で固定した。
-- `KisDocument`は自動保存タイマー、有効状態と通常・緊急間隔、文書複製、ファイル出力、
-  状態表示、回復用自動保存の調整を維持する。既存の`isAutosaving()`公開APIは新しい状態を
-  読み取る。
-- 読み書きされていなかった旧`disregardAutosaveFailure`は除去した。互換経路、転送ヘッダー、
-  旧名の別名は追加していない。
-- この抽出は`KisDocument`内の埋込み状態を移すため、UI直下の`document-state`分類は
-  24クラスを維持する。自動保存I/Oと回復処理の分離、利用事例登録、純粋計算・I/O分離の
-  専用移行は開始していない。
-
-## R1-G6e文書回復自動保存調停状態境界の実装
-
-- `libs/ui/KisDocument.cpp`の回復用自動保存要求、保存開始中状態、同期完了の延期結果、
-  既存保存への合流先を起点として、
-  `libs/document/session/kis_document_recovery_autosave_state.{h,cpp}`の
-  `Krita::Document::RecoveryAutoSaveState`へ移した。
-- 未処理要求の開始と取消し、利用可能な既存保存への合流、保存開始中に届いた同期完了の
-  延期、開始失敗時の延期破棄、要求ごとの一度限りの完了をUIなしの契約で固定した。
-- `KisDocument`は変更状態、自動保存タイマー、背景保存の開始と継続、ファイルの存在と
-  大きさの検証、状態表示、`sigRecoveryAutoSaveFinished`通知を維持する。
-- 旧6フィールドは除去した。互換経路、転送ヘッダー、旧名の別名は追加していない。
-- この抽出は`KisDocument`内の埋込み状態を移すため、UI直下の`document-state`分類は
-  24クラスを維持する。回復I/O、利用事例登録、純粋計算・I/O分離の専用移行は開始していない。
-
-## R1-G6e文書回復状態境界の実装
-
-- `libs/ui/KisDocument.cpp`の回復済み文書状態を起点として、
-  `libs/document/session/kis_document_recovery_status.{h,cpp}`の
-  `Krita::Document::RecoveryStatus`へ移した。
-- 通常文書の初期状態、実際の状態遷移だけを通知対象とする変更判定、文書状態の値コピーを
-  UIなしの契約で固定した。既存`KisDocument`契約は同値再設定時の通知抑制と、保存用
-  スナップショットが通常文書状態から始まる挙動を固定する。
-- `KisDocument`は回復データの探索と読込、保存後の回復ファイル消去、表示、
-  `sigRecoveredChanged`通知を維持する。
-- 旧`isRecovered`フィールドは除去した。互換経路、転送ヘッダー、旧名の別名は
-  追加していない。
-- この抽出は`KisDocument`内の埋込み状態を移すため、UI直下の`document-state`分類は
-  24クラスを維持する。回復I/O、利用事例登録、純粋計算・I/O分離の専用移行は開始していない。
-
-## R1-G6e-P0文書パッケージ境界計画で完了した作業
-
-- `AGENTS.md`に、依存方向、具体的な命名、現存する関心領域の分割と集約、必要性を確認した
-  ロジック再構築と抽象化というリファクタリング順序を固定した。
-- YAGNIを優先し、差し替え、値の受渡しでは成立しない試験境界、外部処理の置換、移動だけでは
-  解けない循環の根拠がない利用事例層、接続面、アダプター、リポジトリー、サービス探索器、
-  共通基底、空ターゲットを追加しない運用規則を固定した。
-- `docs/architecture/document-package-boundary-plan.md`に、文書状態の`kritadocument`、
-  文書ファイル保存の`kritadocumentfiles`、文書表示の`kritadocumentui`という
-  現在確認できる具体所有と一方向の依存を記録した。
-- 実装をP1独立した文書UIの一括移設、P2文書表示の構造分離、P3文書ファイル保存の構造分離、
-  P4残る境界評価の4検査段階へ分けた。ロジック再構築とI/O隔離はP4で現在の根拠を
-  確認してから独立段階として計画する。
-- 最初の実装単位は`libs/document/undo/kis_document_undo_store.{h,cpp}`と
-  `libs/command/{kundo2model,kundo2view}.{h,cpp}`を起点とし、文書と取り消し履歴の接続および
-  履歴表示を`libs/document/ui/undo`へ移す。`kritadocument`の公開リンク閉包をQt Coreだけへ
-  縮小した状態をP1の完了条件とする。
-
-## R1-G6e-P1独立した文書UIの一括移設で完了した作業
-
-- `libs/document/undo/kis_document_undo_store.{h,cpp}`を起点として
-  `libs/document/ui/undo/kis_document_undo_store.{h,cpp}`へ移し、文書と画像所有の履歴を
-  接続する責務を`kritadocumentui`へ移した。
-- `libs/command/{kundo2model,kundo2view}.{h,cpp}`を起点として
-  `libs/document/ui/undo/{kundo2model,kundo2view}.{h,cpp}`へ移し、履歴の行、選択状態、
-  操作名、有効状態を文書UI所有へ集約した。
-- `kritaui`は`kritadocument`と`kritadocumentui`を直接利用する。`kritadocumentui`は
-  `kritapaintingundo`を利用し、`kritadocument`はQt Core以外の公開リンク依存を持たない。
-- 履歴表示だけを所有していた旧`kritacommand`ターゲットと`libs/command`の旧ファイルを
-  除去した。旧配置の転送ヘッダー、別名、互換ターゲットは追加していない。
-- 既存の履歴操作、マクロ、やり直し破棄、同期通知、非所有の借用寿命を維持し、履歴表示、
-  操作名、取消し・やり直しの有効状態、履歴選択による移動を新しい特性契約で固定した。
-- 新しい利用事例層、永続化層、接続面、アダプター、サービス探索器、共通基底は追加せず、
-  現在存在する実装と依存を具体的な所有へ移した。
-- `libs/ui/KisAutoSaveRecoveryDialog.{h,cpp}`を起点として
-  `libs/document/ui/recovery/KisAutoSaveRecoveryDialog.{h,cpp}`へ移し、回復候補の一覧、選択、
-  一括破棄、プラットフォーム別回復場所を`kritadocumentui`へ集約した。
-- 独立ファイルの移設は同じPRへまとめた。`KoDocumentInfo`、`KoDocumentInfoDlg`、
-  `KisDocument.cpp`内の保存処理は上位状態へ直接依存し、別ライブラリー化にAPIと責務の
-  再構築が必要なため、機械的移設ではなくP2とP3の構造変更として扱う。
-
-## 検証状態
-
-- 初回の`TestXmlWriter`構築は、構築対象外だった旧試験が存在しないAPIと古い構築子を
-  参照していることを診断した。現在の公開面に対する数値、エスケープ、構造契約へ置換した。
-- `nix develop .#test --command ./scripts/run-test TestResourceStorageArchiveContract`:
-  ZIP、ディレクトリー、不正入力、失敗後の継続、重複書込の5契約がmacOSとLinuxで成功した。
-- `nix develop .#test --command ./scripts/run-test TestXmlWriter`: doubleとfloatの数値表現、
-  属性とテキストのエスケープ、字下げを含む文書構造がmacOSとLinuxで成功した。
-- macOSで`kritaflake`、`kritaimage`、`kritaui`、KRA/ORA入出力、画像・パス図形、既定
-  ツールを含む1,549工程の主要利用先構築が成功した。
-- macOS、iOS、Linux、Android、Windowsで`kritaresourcestorage`と
-  `kritaxmlserialization`の実構築が成功した。
-- 5構成のCMake台帳と差分行列を再生成した。全構成から`kritastore`と互換専用試験が消え、
-  書庫保存はQt Core、KConfig、QuaZip、XML直列化はQt Coreだけへ直接依存する。
-- `nix develop .#test --command ./scripts/verify-quick`: 86件の単体試験、責務・依存・構造台帳、
-  再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
-- `nix flake check --no-build --all-systems`: 全Nix出力の評価が成功した。
-- macOSの全3,563構築工程が成功し、LibrePaint本体、全製品プラグイン、登録済み試験を
-  旧保存互換なしでリンクした。
-- `ctest --preset tdd-macos`: 書庫保存、XML直列化、タイル保存を含む275件が成功した。
-  試験接頭辞修正前の資源経路による125件の異常終了は解消した。残る39件は既存の画像基準、
-  Qt 6モデル契約、macOSファイル権限、300秒制限、セグメンテーション違反で失敗する。
-  `TestResourceStorageArchiveContract`、`TestXmlWriter`と9件の登録済みタイル試験は成功する。
-- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos`:
-  同一コミットのmacOS、iOS、Linux、Android、Windows台帳と差分行列が成功した。
-- `nix develop .#test --command ./scripts/run-test TestResourceUiContract`、
-  `TestToolSettingsUiContract`、`TestKisPaletteModel`: macOSでリソース記述子、描画設定表示、
-  パレットモデルの契約が成功した。
-- macOSで`kritaui`、iOSでLibrePaint本体まで構築し、表示境界の分離後もリンクが成功した。
-- `ssh nixos`上のx86_64 Linuxで`kritaui`、Android arm64-v8aで
-  `libkritaui_arm64-v8a.so`、Windows x86_64で`libkritaui.dll`の構築とリンクが成功した。
-- 5構成のCMake台帳を再生成した。macOS 630件、Linux 645件、iOS 564件、Android 570件、
-  Windows 600件のターゲット、548件の共通ターゲット、119件の条件付きターゲット、
-  250件の構成差を持つターゲットを記録した。
-- `nix develop .#test --command ./scripts/verify-quick`: 88件の単体試験、責務・依存・構造台帳、
-  再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
-- `nix flake check --no-build --all-systems`: 表示境界分離後の全Nix出力の評価が成功した。
-- `nix develop .#test --command ./scripts/verify`: macOSの全2,395構築工程が成功し、
-  CTest 316件中279件が成功した。追加した表示境界契約はすべて成功し、残る37件は
-  既存の画像基準、Qt 6モデル契約、macOS環境、300秒制限、セグメンテーション違反で失敗する。
-- `ctest --preset tdd-macos`で描画境界、公開画像ヘッダー、取り消し、メタデータ、画像、投影、
-  トランザクション、ストローク、取り消し付きストローク、ストロークキューの対象10件が成功した。
-- `nix develop .#test --command ./scripts/verify-quick`: 88件の単体試験、責務・依存・構造台帳、
-  再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
-- `nix flake check --no-build --all-systems`: 描画境界分離後の全Nix出力の評価が成功した。
-- 描画境界分離後の`kritaui`をmacOSとx86_64 Linuxで、LibrePaint本体をiOSで構築した。
-  Android arm64-v8aの`libkritaui_arm64-v8a.so`とWindows x86_64の`libkritaui.dll`も構築し、
-  5構成すべてで最終生成物のリンクが成功した。
-- Androidの初回構築は、資源キャッシュの共有ポインターを`QVariant`から取り出す箇所で
-  完全型を要求するQt 5の診断を記録した。`libs/painting/kis_resources_snapshot.cpp`が
-  資源キャッシュ接続面の定義を直接includeするよう修正し、AndroidとiOSの再構築が成功した。
-- `nix develop .#test --command ./scripts/verify`: macOSの全3,201構築工程が成功し、
-  CTest 318件中281件が成功した。追加した描画境界と公開画像ヘッダーの2契約は成功し、
-  失敗37件は前段階と同数で、既存の画像基準、Qt 6モデル契約、macOS環境、300秒制限、
-  セグメンテーション違反に分類される。
-- 既存失敗の`plugins-impex-jpeg-kis_jpeg_test`は実メモリが最大約4.2 GiB、システムの
-  スワップ使用量が約23.3 GiBへ増加したため293秒時点で終了した。終了後のスワップ使用量は
-  約2.8 GiB、空きメモリ指標は88%へ回復した。
-- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos`:
-  同一コミットのmacOS、iOS、Linux、Android、Windows台帳と差分行列が成功した。
-- macOSで`KisExifTest`のOECF、異常OECF、CFA契約を実行し、5件すべて成功した。
-  `kis_jpeg_test::testFiles`は`HPIM0760.JPG`を含む3件すべてが成功し、最大常駐メモリーは
-  209,027,072バイトだった。修正前の制御実行では最大約13.4 GiBまで増加していた。
-- x86_64 Linuxで同じ`KisExifTest`の5件と`kis_jpeg_test::testFiles`の3件が成功した。
-  EXIF試験から不要なUI資源初期化を除いたため、画面やフォント資源に依存せず構造化
-  メタデータ契約を実行できる。
-- `kritaexif`をmacOSとx86_64 Linuxで共有モジュール、iOSで静的ライブラリー、Android
-  arm64-v8aで`kritaexif_arm64-v8a.so`、Windows x86_64で`kritaexif.dll`として構築した。
-  iOSはLibrePaintアプリケーション本体までリンクし、5構成で利用先との接続が成功した。
-- `nix develop .#test --command ./scripts/verify-quick`: 88件の単体試験、責務・依存・構造台帳、
-  再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
-- `nix flake check --no-build --all-systems`: EXIF修正後の全Nix出力の評価が成功した。
-- `nix develop .#test --command ./scripts/verify`: macOSの全製品と試験のリンクが成功し、
-  CTest 318件中281件が成功した。失敗37件は前段階と同数である。JPEG対象は2.67秒で終了し、
-  読込契約を含む5件が成功した。残る失敗は既存のmacOS読取専用出力契約1件である。
-- `TestImportExportBoundary`、`TestImportExportUiBoundary`、`KisMimeDatabaseTest`が成功した。
-  形式探索の依存方向、結果分類、ファイル事前条件、利用者通知の一括処理、
-  `.kra`のMIME判定を固定した。
-- `nix develop .#test --command ./scripts/verify`: macOSの全製品と試験のリンクが成功し、
-  CTest 321件中285件が成功した。追加した入出力境界契約とKRA保存往復は成功した。
-  残る36件は既存の画像基準、Qt 6モデル契約、macOS環境、300秒制限、
-  セグメンテーション違反に分類される。KRA保存の残る2件はmacOSの読取専用出力と
-  利用できない`rec2100 PQ 203 nits`プロファイルによる既存失敗である。
-- macOSで`kritaui`、iOSでLibrePaintアプリケーション本体、x86_64 Linuxで
-  `kritaui`を構築した。Android arm64-v8aの`libkritaui_arm64-v8a.so`と
-  Windows x86_64の`libkritaui.dll`も構築し、5構成すべてで最終生成物のリンクが成功した。
-- 5構成のCMake台帳を再生成した。macOS 638件、Linux 653件、iOS 572件、Android 578件、
-  Windows 608件のターゲット、556件の共通ターゲット、119件の条件付きターゲット、
-  256件の構成差を持つターゲットを記録した。19中核所有ターゲットと全製品ターゲットは
-  5構成すべてで循環0件を維持する。
-- `nix develop .#test --command ./scripts/verify-quick`: 90件の単体試験、責務・依存・構造台帳、
-  再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
-- `nix flake check --no-build --all-systems`: 入出力境界分離後の全Nix出力の評価が成功した。
-- `nix develop .#test --command ./scripts/run-test kis_coordinates_converter_test`:
-  macOSで座標変換、画像解放後の寿命、明示的な表示設定入力を含む1件が成功した。
-- `nix develop --no-eval-cache .#test --command ./scripts/verify`: macOSの全製品と
-  試験のリンクが成功し、CTest 321件中285件が成功した。`libs-canvas`所有へ移した
-  座標変換試験も成功した。残る36件は直前の入出力境界分離時と同数であり、既存の
-  画像基準、Qt 6モデル契約、macOS環境、300秒制限、セグメンテーション違反に分類される。
-- `nix develop --no-eval-cache .#test --command ./scripts/build-incremental ios build --allow-large`:
-  iOSの`libkritacanvas.a`と`LibrePaint.app/LibrePaint`のリンクが成功した。
-- Android arm64-v8aで`libkritacanvas_arm64-v8a.so`と`libkritaui_arm64-v8a.so`の
-  リンクが成功した。
-- x86_64 Linuxで`libkritacanvas.so`と`libkritaui.so`のリンク、および
-  `libs-canvas-kis_coordinates_converter_test`の1件が成功した。
-- Windows x86_64で`libkritacanvas.dll`と`libkritaui.dll`のリンクが成功した。
-- 5構成のCMake台帳を再生成した。macOS 639件、Linux 654件、iOS 573件、Android 579件、
-  Windows 609件のターゲット、557件の共通ターゲット、119件の条件付きターゲット、
-  257件の構成差を持つターゲットを記録した。20中核所有ターゲットと全製品ターゲットは
-  5構成すべてで循環0件を維持する。
-- `nix develop --no-eval-cache .#test --command ./scripts/verify-quick`: 92件の単体試験、
-  責務・依存・構造台帳、再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
-- `nix flake check --no-build --all-systems --no-eval-cache`: キャンバス座標境界分離後の
-  全Nix出力の評価が成功した。
-- `nix develop --no-eval-cache .#test --command ./scripts/run-test kis_prescaled_projection_contract_test`:
-  macOSで汚れ領域通知と最終有効フレーム保持の2契約が成功した。
-- `nix develop --no-eval-cache .#test --command ./scripts/run-test kis_prescaled_projection_test`:
-  既存の拡大縮小、移動、回転、更新契約がmacOSで成功した。
-- `nix develop --no-eval-cache .#test --command ./scripts/verify`: macOSの全製品と全試験の
-  構築・リンクが成功し、CTest 322件中287件が成功した。追加した投影更新契約は成功し、
-  残る35件は直前の36件から増加していない。
-- `nix develop --no-eval-cache .#test --command ./scripts/build-incremental ios build --allow-large`:
-  iOSの`libkritacanvas.a`と`LibrePaint.app/LibrePaint`のリンクが成功した。
-- `nix develop --no-eval-cache .#test --command ./scripts/verify-quick`: 94件の単体試験、
-  責務・依存・構造台帳、再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
-- `nix flake check --no-build --all-systems --no-eval-cache`: 投影更新境界分離後の全Nix出力の
-  評価が成功した。
-- x86_64 Linuxで`libkritacanvas.so`と`libkritaui.so`のリンク、および
-  `libs-canvas-kis_prescaled_projection_contract_test`の2契約が成功した。
-- Android arm64-v8aで`libkritacanvas_arm64-v8a.so`と`libkritaui_arm64-v8a.so`、
-  Windows x86_64で`libkritacanvas.dll`と`libkritaui.dll`のリンクが成功した。
-- 5構成のCMake台帳を再生成した。macOS 640件、Linux 655件、iOS 574件、Android 580件、
-  Windows 610件のターゲット、558件の共通ターゲット、119件の条件付きターゲット、
-  257件の構成差を持つターゲットを記録した。20中核所有ターゲットと全製品ターゲットは
-  5構成すべてで循環0件を維持する。
-- `kis_display_color_transform_test`、`KisSurfaceColorSpaceWrapperTest`、
-  `kis_display_color_converter_contract_test`、`kis_prescaled_projection_test`がmacOSで
-  成功した。表示色変換試験は、実際に登録された標準色空間のプロファイルを入力とし、
-  試験構築時だけ色管理プラグインを用意して高ビット深度の変換経路も検査する。
-- `nix develop --no-eval-cache .#test --command ./scripts/verify`: macOSの全製品と全試験の
-  構築・リンクが成功し、CTest 324件中288件が成功した。追加した表示色変換とUI接続の
-  2契約、および直前の投影更新契約は成功した。失敗36件のうち35件は直前から継続し、
-  追加の`libs-widgetutils-TestKoProgressUpdater`も単独再実行で失敗する変更範囲外の試験である。
-- `nix develop --no-eval-cache .#test --command ./scripts/build-incremental ios build --allow-large`:
-  iOSの`libkritacanvas.a`、`libkritaui.a`、`LibrePaint.app/LibrePaint`のリンクが成功した。
-- x86_64 Linuxで`QT_QPA_PLATFORM=offscreen`を設定し、
-  `libs-canvas-kis_display_color_transform_test`と
-  `libs-ui-kis_display_color_converter_contract_test`が成功した。`libkritacanvas.so`、
-  `libkritaui.so`と両試験実行ファイルのリンクも成功した。
-- Android arm64-v8aで`libkritacanvas_arm64-v8a.so`と`libkritaui_arm64-v8a.so`、
-  Windows x86_64で`libkritacanvas.dll`と`libkritaui.dll`のリンクが成功した。
-- 5構成のCMake台帳を再生成した。macOS 642件、Linux 657件、iOS 576件、Android 582件、
-  Windows 612件のターゲット、560件の共通ターゲット、119件の条件付きターゲット、
-  257件の構成差を持つターゲットを記録した。20中核所有ターゲットと全製品ターゲットは
-  5構成すべてで循環0件を維持する。
-- `nix develop --no-eval-cache .#test --command ./scripts/verify-quick`: 97件の単体試験、
-  責務・依存・構造台帳、再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
-- `nix flake check --no-build --all-systems --no-eval-cache`: 表示色変換境界分離後の
-  全Nix出力の評価が成功した。
-- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos`:
-  同一コミットのmacOS、iOS、Linux、Android、Windows台帳と差分行列が成功した。
-- macOSで`libkritacanvas.dylib`、iOSで`libkritacanvas.a`と
-  `LibrePaint.app/LibrePaint`、x86_64 Linuxで`libkritacanvas.so`と
-  `libkritaui.so`、Android arm64-v8aで`libkritacanvas_arm64-v8a.so`と
-  `libkritaui_arm64-v8a.so`、Windows x86_64で`libkritacanvas.dll`と
-  `libkritaui.dll`の構築とリンクが成功した。
-- Androidの初回構築は、`libs/canvas/animation/kis_frame_data_serializer.cpp`が
-  `QDataStream`を間接includeに依存していたことをQt 5構成で診断した。実装が利用する
-  Qt型を直接includeした後、macOS、iOS、Linux、Android、Windowsの全構成で再構築が
-  成功した。
-- `ctest --preset tdd-macos`: 327件中292件が成功した。今回のフレーム範囲、保存、
-  直列化、UI保存変換、既存キャッシュ統合、公開表示ヘッダーの6契約はすべて成功した。
-  残る35件は直前から継続する画像基準、Qt 6モデル契約、macOS環境、
-  セグメンテーション違反の既知失敗である。
-- x86_64 Linuxで`QT_QPA_PLATFORM=offscreen`を設定し、今回の6契約がすべて成功した。
-- 5構成のCMake台帳を再生成した。macOS 645件、Linux 660件、iOS 579件、Android
-  585件、Windows 615件のターゲット、563件の共通ターゲット、119件の条件付き
-  ターゲット、257件の構成差を持つターゲットを記録した。20中核所有ターゲットと
-  全製品ターゲットは5構成すべてで循環0件を維持する。
-- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos
-  --remote-repository /home/masato/librepaint-r1-g6b-verify`: 清浄な同一コミットから
-  macOS、iOS、Linux、Android、Windowsの5台帳と差分行列の一致を確認した。
-- `nix develop --no-eval-cache .#test --command ./scripts/verify-quick`: 97件の単体試験、
-  責務・依存・構造台帳、再配置計画、文書、リンク、D2再生成を含む高速検査が成功した。
-- `nix flake check --no-build --all-systems --no-eval-cache`: アニメーションキャッシュ
-  境界分離後の全Nix出力の評価が成功した。
-- 同一コミット`5eff49b46b5293af6c9c0d38d5546a775159a7b7`で
-  `nix develop .#test --command ./scripts/verify`を実行し、macOS 327件と
-  x86_64 Linux 329件の全ネイティブ試験が成功した。
-- `libs-widgetutils-TestKoProgressUpdater`をmacOSとx86_64 Linuxで各50回連続実行し、
-  進捗通知の値、表示、通常副処理と永続副処理の寿命契約がすべて成功した。
-- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
-  /home/masato/librepaint-r1-g6b-verify`で、macOS、iOS、Linux、Android、Windowsの
-  5台帳と差分行列の一致を確認した。
-- `nix flake check --no-build --all-systems`: 全Nix出力の評価が成功した。
-- `nix develop .#test --command ./scripts/verify-quick`: R1-G6e文書取り消し境界の計画、
-  現行25クラスとの整合、再配置計画、責務・依存・構造台帳、文書、リンク、D2再生成を含む
-  97件の単体試験と高速検査が成功した。
-- `nix develop .#test --command ./scripts/run-test kis_document_undo_store_test`:
-  履歴操作、マクロ、やり直し破棄、同期通知、同一スレッド、非所有の借用寿命を検査する
-  文書取り消し契約がmacOSで成功した。
-- macOSとx86_64 Linuxで`kritaui`、iOSでLibrePaint本体、AndroidとWindowsで`kritaui`を
-  構築した。新しい`kritadocument`と直接利用元が5対象すべてでコンパイルおよびリンクに成功した。
-- 5構成のCMake台帳と差分行列を再生成した。macOS 647件、Linux 662件、iOS 581件、
-  Android 587件、Windows 617件を記録し、`kritadocument`は全構成に存在する。
-- `nix develop .#test --command ./scripts/verify-quick`: 文書所有の公開面、21中核所有ターゲット、
-  57リンクの依存射影、循環0件、再配置計画、文書を含む97件の単体試験と高速検査が成功した。
-- 同一コミット`7247a9834a32ca3fef6a164bf37b367be61f0ad0`で
-  `nix develop .#test --command ./scripts/verify`を実行し、macOS 328件と
-  x86_64 Linux 330件の全ネイティブ試験が成功した。
-- `nix flake check --no-build --all-systems`: 文書取り消し境界分離後の全Nix出力の評価が
-  成功した。
-- `kis_document_identity_test`の初回構築は、新しい文書識別ヘッダーが存在しない診断で
-  失敗した。実装後は表示用パスと実ファイルパス、実変更判定、MIME形式、自動判定由来、
-  複製の契約がmacOSとx86_64 Linuxで成功した。
-- `KisDocumentReplaceTest`は既存公開APIから文書識別へ接続し、同一パスの通知抑制、
-  パス初期化通知時の実ファイルパス保持、初期化後の消去、保存用スナップショットへの複製を
-  macOSとx86_64 Linuxで固定した。
-- macOSの初回全試験では、既存`KisSafeDocumentLoaderTest`の1.5秒待機を使うファイル監視
-  通知が時間切れになった。再リンク後の反復では成功と時間切れの両方を再現し、文書を開く
-  項目は成功した。最終の全試験では同試験を含む329件がすべて成功した。
-- x86_64 Linuxでは331件の全ネイティブ試験が成功した。通知順序契約を追加した最終実装
-  コミットでも`KisDocumentReplaceTest`と`kis_document_identity_test`が成功した。
-- iOSで`libkritadocument.a`、`libkritaui.a`、`LibrePaint.app/LibrePaint`、Android arm64-v8aで
-  `libkritadocument_arm64-v8a.so`と`libkritaui_arm64-v8a.so`、Windows x86_64で
-  `libkritadocument.dll`と`libkritaui.dll`の構築とリンクが成功した。
-- 5構成のCMake台帳と差分行列を再生成した。macOS 648件、Linux 663件、iOS 582件、
-  Android 588件、Windows 618件のターゲット、566件の共通ターゲット、119件の条件付き
-  ターゲット、258件の構成差を持つターゲットを記録した。
-- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
-  /home/masato/librepaint-r1-g6b-verify`: 清浄な同一コミットから5構成の台帳と差分行列の一致を
-  確認した。21中核所有ターゲットと全製品ターゲットは全構成で循環0件を維持する。
-- `nix develop .#test --command ./scripts/verify-quick`: 文書識別の公開面、責務・依存・構造台帳、
-  再配置計画、完了文書を含む97件の単体試験と高速検査が成功した。
-- `nix flake check --no-build --all-systems --no-eval-cache`: 文書識別境界分離後の全Nix出力の
-  評価が成功した。
-- `kis_document_modification_state_test`の初回構築は、新しい文書変更状態ヘッダーが存在しない
-  診断で失敗した。実装後は初期状態、自動保存チェックポイント、保存中変更、取り消し履歴に
-  現れない変更、保存用複製の契約がmacOSとx86_64 Linuxで成功した。
-- `KisDocumentReplaceTest`は既存公開APIから文書変更状態へ接続し、同じ変更済み値の通知抑制、
-  保存用スナップショット、未変更への遷移をmacOSとx86_64 Linuxで固定した。
-- 同一コミット`e733cad55cac7792437b1dfbd9192c99451e9621`でx86_64 Linuxの全332試験が
-  成功した。macOSは全330件中、今回の変更契約を含む329件が成功し、既存の
-  `KisSafeDocumentLoaderTest`だけが1.5秒待機のファイル監視通知で時間切れになった。
-  同試験の単独再実行は成功し、変更対象外の環境依存試験として区別する。
-- iOSで`libkritadocument.a`、`libkritaui.a`、`LibrePaint.app/LibrePaint`、
-  Android arm64-v8aで`libkritadocument_arm64-v8a.so`と`libkritaui_arm64-v8a.so`、
-  Windows x86_64で`libkritadocument.dll`と`libkritaui.dll`の構築とリンクが成功した。
-- 5構成のCMake台帳と差分行列を再生成した。macOS 649件、Linux 664件、iOS 583件、
-  Android 589件、Windows 619件のターゲット、567件の共通ターゲット、119件の条件付き
-  ターゲット、258件の構成差を持つターゲットを記録した。
-- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
-  /home/masato/librepaint-r1-g6b-verify`: 清浄な同一コミットから5構成の台帳と差分行列の一致を
-  確認した。21中核所有ターゲットと全製品ターゲットは全構成で循環0件を維持する。
-- `nix develop .#test --command ./scripts/verify-quick`: 文書変更状態の公開面、責務・依存・構造
-  台帳、再配置計画、完了文書を含む97件の単体試験と高速検査が成功した。
-- `nix flake check --no-build --all-systems --no-eval-cache`: 文書変更状態境界分離後の
-  全Nix出力の評価が成功した。
-- `kis_document_autosave_state_test`の初回構築は、新しい文書自動保存状態ヘッダーが
-  存在しない診断で失敗した。実装後は書出し状態の寿命、3回の連続失敗後に次の試行で
-  複製経路へ切り替える境界値、失敗履歴の消去がmacOSで成功した。
-- `KisDocumentReplaceTest`は既存の文書接続を含めてmacOSで成功した。
-- 同一コミット`7b26fa7960115c81bb6a96da82f90b02c692454d`で
-  `nix develop .#test --command ./scripts/verify`を実行し、macOS 331件と
-  x86_64 Linux 333件の全ネイティブ試験が成功した。
-- iOSで`libkritadocument.a`、`libkritaui.a`、`LibrePaint.app/LibrePaint`、
-  Android arm64-v8aで`libkritadocument_arm64-v8a.so`と`libkritaui_arm64-v8a.so`、
-  Windows x86_64で`libkritadocument.dll`と`libkritaui.dll`の構築とリンクが成功した。
-- 5構成のCMake台帳と差分行列を再生成した。macOS 650件、Linux 665件、iOS 584件、
-  Android 590件、Windows 620件のターゲット、568件の共通ターゲット、119件の条件付き
-  ターゲット、258件の構成差を持つターゲットを記録した。
-- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
-  /home/masato/librepaint-r1-g6b-verify`: 清浄な同一コミットから5構成の台帳と差分行列の
-  一致を確認した。21中核所有ターゲットと全製品ターゲットは全構成で循環0件を維持する。
-- `nix develop .#test --command ./scripts/verify-quick`: 文書自動保存実行状態の公開面、
-  責務・依存・構造台帳、再配置計画、完了文書を含む97件の単体試験と高速検査が成功した。
-- `nix flake check --no-build --all-systems --no-eval-cache`: 文書自動保存実行状態境界分離後の
-  全Nix出力の評価が成功した。
-- `kis_document_recovery_autosave_state_test`の初回構築は、新しい文書回復自動保存状態
-  ヘッダーが存在しない診断で失敗した。実装後は要求の開始と取消し、既存保存への合流、
-  保存開始中に届いた同期完了の延期、開始失敗時の延期破棄、要求ごとの一度限りの完了が
-  macOSとx86_64 Linuxで成功した。
-- `KisDocumentReplaceTest`は既存の文書接続を含めてmacOSで成功した。
-- 同一コミット`ff7211a66e311505f6d1f23fc65136feb2ab88b0`で
-  `nix develop .#test --command ./scripts/verify`を実行し、macOS 332件と
-  x86_64 Linux 334件の全ネイティブ試験が成功した。
-- iOSで`libkritadocument.a`、`libkritaui.a`、`LibrePaint.app/LibrePaint`、
-  Android arm64-v8aで`libkritadocument_arm64-v8a.so`と`libkritaui_arm64-v8a.so`、
-  Windows x86_64で`libkritadocument.dll`と`libkritaui.dll`の構築とリンクが成功した。
-- 5構成のCMake台帳と差分行列を再生成した。macOS 651件、Linux 666件、iOS 585件、
-  Android 591件、Windows 621件のターゲット、569件の共通ターゲット、119件の条件付き
-  ターゲット、258件の構成差を持つターゲットを記録した。21中核所有ターゲットと
-  全製品ターゲットは全構成で循環0件を維持する。
-- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
-  /home/masato/librepaint-r1-g6b-verify`: 清浄な同一コミットから5構成の台帳と差分行列の
-  一致を確認した。
-- `nix develop .#test --command ./scripts/verify-quick`: 文書回復自動保存調停状態の公開面、
-  責務・依存・構造台帳、再配置計画、完了文書を含む97件の単体試験と高速検査が成功した。
-- `nix flake check --no-build --all-systems --no-eval-cache`: 文書回復自動保存調停状態境界
-  分離後の全Nix出力の評価が成功した。
-- `kis_document_recovery_status_test`の初回構築は、新しい文書回復状態ヘッダーが存在しない
-  診断で失敗した。実装後は通常文書の初期状態、実際の遷移だけを通知対象とする変更判定、
-  値コピーがmacOSとx86_64 Linuxで成功した。
-- `KisDocumentReplaceTest`は同値再設定時の通知抑制、回復状態の解除、保存用スナップショットが
-  通常文書状態から始まる既存挙動をmacOSとx86_64 Linuxで固定した。
-- 同一コミット`fe791e1aa878d2688b2941dc989ee36795a99dfb`で
-  `nix develop .#test --command ./scripts/verify`を実行した。x86_64 Linuxは335件の
-  全ネイティブ試験が成功した。macOSは333件中、変更契約を含む332件が成功し、既存の
-  `KisSafeDocumentLoaderTest`だけが1.5秒待機のファイル監視通知数で失敗した。
-  同試験の単独再実行でも通知数が試行ごとに変動し、変更対象外の環境依存試験として区別する。
-- iOSで`libkritadocument.a`、`libkritaui.a`、`LibrePaint.app/LibrePaint`、
-  Android arm64-v8aで`libkritadocument_arm64-v8a.so`と`libkritaui_arm64-v8a.so`、
-  Windows x86_64で`libkritadocument.dll`と`libkritaui.dll`の構築とリンクが成功した。
-- 5構成のCMake台帳と差分行列を再生成した。macOS 652件、Linux 667件、iOS 586件、
-  Android 592件、Windows 622件のターゲット、570件の共通ターゲット、119件の条件付き
-  ターゲット、258件の構成差を持つターゲットを記録した。21中核所有ターゲットと
-  全製品ターゲットは全構成で循環0件を維持する。
-- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
-  /home/masato/librepaint-r1-g6b-verify`: 清浄な同一コミットから5構成の台帳と差分行列の
-  一致を確認した。
-- `nix develop .#test --command ./scripts/verify-quick`: 文書回復状態の公開面、責務・依存・
-  構造台帳、再配置計画、完了文書を含む97件の単体試験と高速検査が成功した。
-- `nix flake check --no-build --all-systems --no-eval-cache`: 文書回復状態境界分離後の
-  全Nix出力の評価が成功した。
-- `nix develop .#test --command ./scripts/verify-quick`: 文書パッケージ境界計画、R1 TODO、
-  再配置計画、進捗スナップショットの整合を含む97件の単体試験と高速検査が成功した。
-- R1-G6e-P0は製品ソース、CMake、Nix出力を変更しない計画単位である。5構成の製品構築と
-  macOS、Linuxの全ネイティブ試験は、直前の文書回復状態境界で記録した結果を維持する。
-- `kis_document_undo_ui_test`の初回構築は、新しい文書UIターゲットが存在しないため
-  Qt Widgetsの`QAction`を解決できない診断で失敗した。公開面契約も旧文書所有の
-  6ヘッダーを検出して失敗した。
-- 実装後の`kis_document_undo_store_test`と`kis_document_undo_ui_test`はmacOSで成功した。
-  履歴操作、通知、借用寿命に加え、操作名、取消し・やり直しの有効状態、履歴行、
-  履歴選択による移動を固定した。
-- macOSで`kritadocument`、`kritadocumentui`、`kritaui`の構築とリンクが成功した。
-- 5構成のCMake台帳と差分行列を再生成した。macOS 653件、Linux 668件、iOS 587件、
-  Android 593件、Windows 623件のターゲット、571件の共通ターゲット、119件の条件付き
-  ターゲット、258件の構成差を持つターゲットを記録した。21中核所有ターゲットと
-  全製品ターゲットは全構成で循環0件を維持する。
-- `nix develop .#test --command ./scripts/verify-quick`: `kritadocument`の依存0件、
-  `kritadocumentui`から`kritapaintingundo`への依存、`kritaui`から両文書ターゲットへの依存、
-  公開面、責務、再配置計画、循環0件を含む97件の単体試験と高速検査が成功した。
-- 同一コミット`600aaf17eb00f34eb42ce3413a50c8b433e3c678`で
-  `nix develop .#test --command ./scripts/verify`を実行し、macOS 334件と
-  x86_64 Linux 336件の全ネイティブ試験が成功した。
-- iOSで`libkritadocument.a`、`libkritadocumentui.a`、`libkritaui.a`、
-  `LibrePaint.app/LibrePaint`、Android arm64-v8aで`libkritadocument_arm64-v8a.so`、
-  `libkritadocumentui_arm64-v8a.so`、`libkritaui_arm64-v8a.so`、Windows x86_64で
-  `libkritadocument.dll`、`libkritadocumentui.dll`、`libkritaui.dll`の構築とリンクが成功した。
-- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
-  /home/masato/librepaint-r1-g6b-verify`: 清浄な同一コミットから5構成の台帳と差分行列の
-  一致を確認した。21中核所有ターゲットと全製品ターゲットは全構成で循環0件を維持する。
-- `nix flake check --no-build --all-systems --no-eval-cache`: 取り消し履歴の文書UI境界分離後の
-  全Nix出力の評価が成功した。
-- `kis_document_autosave_recovery_dialog_test`の初回構築は、新しい文書UI所有の回復ダイアログ
-  ヘッダーが存在しない診断で失敗した。実装後は回復候補の初期選択と一括破棄がmacOSで
-  成功し、`kritaui`も新しい所有先を直接利用してリンクした。
-- 5構成のCMake台帳と差分行列を再生成した。macOS 654件、Linux 669件、iOS 588件、
-  Android 594件、Windows 624件のターゲット、572件の共通ターゲット、119件の条件付き
-  ターゲット、258件の構成差を持つターゲットを記録した。
-- 同一コミット`e0f24b17fc54ba482e7ed7b46bd614a87700b702`で
-  `nix develop .#test --command ./scripts/verify`を実行し、macOS 335件と
-  x86_64 Linux 337件の全ネイティブ試験が成功した。
-- `./scripts/build-incremental ios build --allow-large`でiOSの`libkritadocumentui.a`、
-  `libkritaui.a`、`LibrePaint.app/LibrePaint`まで構築成功した。
-  Android arm64-v8aとWindows x86_64では`./scripts/build-incremental <platform> build
-  kritaui`を実行し、それぞれ`libkritadocumentui_arm64-v8a.so`と
-  `libkritaui_arm64-v8a.so`、`libkritadocumentui.dll`と`libkritaui.dll`の構築に成功した。
-- `nix flake check --no-build --all-systems --no-eval-cache`: 自動保存回復UIの移設後も
-  全Nix出力の評価が成功した。
-- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
-  /home/masato/librepaint-r1-g6b-verify`: DarwinとNixOSの清浄な同一コミットから5構成の
-  台帳と差分行列の一致を確認し、21中核所有ターゲットと全製品ターゲットは循環0件を
-  維持した。
-
-## R1-G6e-P2で完了した作業
-
-- `libs/ui/KisDocument.cpp`の保存・読込ダイアログ、状態表示、Qt通知の接続を起点として、
-  `libs/document/ui/io/kis_document_io_presentation.{h,cpp}`へ移した。保存成功時の
-  `completed`、`sigSavingFinished`、状態表示の順序、取消し時の非表示、バッチ失敗時の
-  状態表示、自動保存の状態表示を専用契約へ固定した。
-- `libs/ui/KoDocumentInfoDlg.{h,cpp}`と`libs/ui/forms/koDocumentInfo{About,Author}Widget.ui`を
-  `libs/document/ui/info`へ移した。ダイアログは`KisDocument`の親型から値を推測せず、
-  表示するパスとMIME形式を値として受け取る。
-- `libs/ui/dialogs/KisRecoverNamedAutosaveDialog.{h,cpp,ui}`を
-  `libs/document/ui/recovery`へ移した。ファイルからのプレビュー生成は既存の
-  `KisFileIconCreator`利用元に維持し、ダイアログは生成済み`QIcon`値の表示だけを所有する。
-- `libs/ui/KoDocumentInfo.{h,cpp}`を`libs/impex/metadata`へ移した。文書情報は形式処理が
-  直接直列化する実依存に従って`kritaimpex`が所有し、`kritaimpexui`から文書寿命への
-  新しい逆方向依存を回避した。自動保存中と変更済み状態は呼出元が明示する。
-- 旧配置、転送ヘッダー、別名は残していない。既存の入出力エラー型、文書状態、`QIcon`値を
-  直接使用し、利用事例層、汎用永続化層、接続面、アダプター、共通基底クラスは追加していない。
-- 文書情報試験の初回構築は新しい所有先のヘッダーが存在しない診断で失敗した。
-  名前付き自動保存回復試験も同じく新しい回復ヘッダーが存在しない診断で失敗した。
-  実装後は文書情報、文書情報編集、入出力表示、名前付き自動保存回復の4試験がmacOSで成功し、
-  `kritaimpex`、`kritadocumentui`、`kritaui`の構築とリンクが成功した。
-- 5構成のCMake台帳と差分行列を再生成した。macOS 658件、Linux 673件、iOS 592件、
-  Android 598件、Windows 628件のターゲット、576件の共通ターゲット、119件の条件付き
-  ターゲット、259件の構成差を持つターゲットを記録した。21中核所有ターゲットと
-  全製品ターゲットは全構成で循環0件を維持する。
-- 確認済み逆方向includeは3種類96件、`kritaui`の内部ヘッダー参照は7ヘッダー20件を維持し、
-  新しい逆方向依存と内部ヘッダー参照を追加していない。
-- 同一コミット`8145698206b2185e2b4502985d8dab32e8e56e47`の清浄な作業ツリーで
-  `nix develop .#test --command ./scripts/verify`を実行し、macOS 339件と
-  x86_64 Linux 341件の全ネイティブ試験が成功した。追加した4試験も両構成で成功した。
-- `nix develop .#test --command ./scripts/build-incremental ios build --allow-large`で
-  `LibrePaint.app/LibrePaint`まで構築した。Android arm64-v8aとWindows x86_64では
-  `./scripts/build-incremental <platform> build kritaui`を実行し、
-  `libkritaui_arm64-v8a.so`と`libkritaui.dll`のリンクに成功した。
-- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
-  /home/masato/librepaint-r1-g6b-verify`は、清浄な同一コミットから5構成の台帳と差分行列を
-  検証し、21中核所有ターゲットと全製品ターゲットの循環0件を確認した。
-- `nix develop .#test --command ./scripts/verify-quick`はmacOSとLinuxで97件と全統治検査に
-  成功した。`nix flake check --no-build --all-systems --no-eval-cache`も全Nix出力の評価に
-  成功した。
-
-## R1-G6e-P3で完了した作業
-
-- `libs/ui/KisDocument.cpp`の保存先検査、バックアップ、自動保存名、回復ファイル消去を起点に、
-  `libs/document/files/kis_document_save_target.{h,cpp}`、
-  `kis_document_backup_file.{h,cpp}`、`kis_document_autosave_files.{h,cpp}`へ集約した。
-  `libs/document/files`を具体的な文書ファイル処理の所有先とする`kritadocumentfiles`を構築した。
-- `libs/document/ui/recovery/KisAutoSaveRecoveryDialog.{h,cpp}`の回復ファイル読込を起点に、
-  回復候補の探索、更新時刻、プレビュー読込を`kis_document_autosave_files`へ移した。
-  ダイアログは生成済みの回復候補値を表示し、選択結果を返す。
-- `libs/ui/KisApplication.cpp`と`libs/ui/KisView.cpp`は、起動時の回復調整と破棄操作を維持し、
-  自動保存ファイルの探索、パス組立て、使用可否判定、消去を`kritadocumentfiles`へ委ねる。
-- 旧配置の公開メソッド、転送ヘッダー、別名は残していない。既存の形式選択、形式変換、
-  直列化、非同期保存は既存`kritaimpex`と`KisDocument`に維持し、新しい利用事例層、
-  汎用永続化層、接続面、アダプター、サービス、リポジトリーは追加していない。
-- 文書ファイル契約の初回構築は、`files/kis_document_autosave_files.h`が存在しない診断で
-  失敗した。実装後は保存先の存在と書込可否、単純および世代付きバックアップ、自動保存名、
-  回復候補の探索、使用可否、消去を検証する`kis_document_files_test`が成功した。
-  自動保存回復ダイアログ試験と`kritaui`の構築・リンクもmacOSで成功した。
-- 5構成のCMake台帳と差分行列を再生成した。macOS 660件、Linux 675件、iOS 594件、
-  Android 600件、Windows 630件のターゲット、578件の共通ターゲット、119件の条件付き
-  ターゲット、260件の構成差を持つターゲットを記録した。22中核所有ターゲットと
-  全製品ターゲットは全構成で循環0件を維持する。
-- 確認済み逆方向includeは3種類96件、`kritaui`の内部ヘッダー参照は7ヘッダー20件を維持し、
-  新しい逆方向依存と内部ヘッダー参照を追加していない。
-- 同一コミット`19be6382d82d6124eced7172f7bf4a887323180e`の清浄な作業ツリーで
-  `nix develop .#test --command ./scripts/verify`を実行し、macOS 340件と
-  x86_64 Linux 342件の全ネイティブ試験が成功した。追加した文書ファイル契約も
-  両構成で成功した。
-- `nix develop .#test --command ./scripts/build-incremental ios build --allow-large`で
-  `libkritadocumentfiles.a`、`libkritadocumentui.a`、`libkritaui.a`と
-  `LibrePaint.app/LibrePaint`を構築した。Android arm64-v8aとWindows x86_64では
-  `./scripts/build-incremental <platform> build kritaui`を実行し、
-  `libkritadocumentfiles`、`libkritadocumentui`、`libkritaui`のリンクに成功した。
-- `scripts/architecture/verify_cmake_graphs.py --remote-host nixos --remote-repository
-  /home/masato/librepaint-r1-g6b-verify`は、清浄な同一コミットから5構成の台帳と差分行列を
-  検証し、22中核所有ターゲットと全製品ターゲットの循環0件を確認した。
-- `nix develop .#test --command ./scripts/verify-quick`はmacOSとLinuxで97件と全統治検査に
-  成功した。`nix flake check --no-build --all-systems --no-eval-cache`も全Nix出力の評価に
-  成功した。
-
-## R1-G6e-P4で完了した作業
-
-- `docs/architecture/ui-class-responsibilities.json`の`document-state`分類22クラスを起点に、
-  `docs/architecture/document-boundary-assessment.json`へ現在の関心、具体的な
-  所有先、後続検査段階を記録した。P1とP2で所有を移した3クラスと合わせ、R1-G6e開始時の
-  25クラスすべてを被覆する。宣言と実装の経路は既存の責務台帳を正本として重複を除いた。
-- 残る22クラスを`KisDocument`1件、外部ファイル層1件、操作管理5件、ノード・選択操作接続
-  4件、Qtモデルと表示状態11件へ再分類した。ノード表示モデルから`KisNodeManager`への依存と、
-  `KisFileLayer`から`KisPart`への依存を、ファイル移動を先行できない根拠として記録した。
-- `libs/ui/KisDocument.cpp`の130の一意なメソッド定義を、アプリケーション構成、文書付随状態、
-  ファイル読込、ファイル保存と回復、メタデータと資源、文書セッション、画像と取り消し、
-  表示と通知の8関心へ一度ずつ割り当てた。
-- 保存I/O差し替え、保存計算、利用事例登録、外部ファイル層の抽象接続面について、現在の
-  複数実装、差し替え要求、重複、決定的試験の阻害がないことを確認し、抽象を追加しない
-  判断を記録した。
-- `scripts/architecture/check_document_boundary_assessment.py`は、22クラスと責務台帳の一致、
-  130メソッドの欠落と重複、再配置計画にある所有先と後続段階、現在要求を
-  持たない抽象導入を検査する。
-- 専用単体試験の初回実行は、新しい評価検査器が存在しない診断で失敗した。検査器と台帳の
-  実装後は、全件被覆、欠落、陳腐化、重複、抽象化判断の6試験が成功した。
-- `nix develop .#test --command ./scripts/verify-quick`は、新規6件を含む103件の単体試験、
-  文書境界評価、既存の公開面、責務、依存、構造、再配置計画、文書、リンク、D2再生成の
-  全検査に成功した。製品ソースとCMake境界を変更していないため、構成別構築は実行しない。
-- 次の検査段階をR1-G6fとし、`libs/ui/tool`、`KisFilterManager`、`KisImageManager`、
-  `KisNodeCommandsAdapter`、`KisNodeManager`、`KisSelectionManager`を調査起点に記録した。
-  具体的な命令と、アクション、ダイアログ、キャンバス、ノード、選択の表示配線を分ける。
-
-## R1-G6f画像ノード命令境界で完了した作業
-
-- `libs/ui/kis_node_commands_adapter.{h,cpp}`を起点として、
-  `libs/image/commands/kis_node_commands_adapter.{h,cpp}`へ移した。ノード追加、移動、削除、
-  不透明度、合成方法、名前変更と、それらの取り消し履歴への登録を既存の画像命令へ集約した。
-- `KisViewManager`への参照を除去し、命令側は操作対象画像を弱参照する。長寿命の
-  `KisLayerManager`、`KisMaskManager`、`KisNodeManager`、`KisSelectionManager`は、
-  ビュー切替時に画像を明示的に結び直す。
-- `KisApplication`と`KisView`は画像命令を直接参照せず、既存の`KisNodeManager`へ
-  単一ノード追加を委ねる。文書、入出力、ツールの既存利用元は画像命令を直接利用し、
-  新しい逆方向依存を作らない。確認済み逆方向includeは75件、17件、4件を維持する。
-- 専用契約の初回構築は、画像を直接受ける構築子と画像の再設定操作が存在しない診断で
-  失敗した。実装後はノード追加が取り消し可能であることと、操作対象画像を再設定できることを
-  `KisNodeCommandsAdapterTest`で確認した。
-- 新規の汎用接続面、利用事例層、サービス、リポジトリーは追加していない。ツール専用ではない
-  実利用が判明したため、`kritatools`の作成を先行せず既存の画像命令所有へ配置した。
-- 5構成のCMake台帳はmacOS 661件、Linux 676件、iOS 595件、Android 601件、
-  Windows 631件を記録する。共通579件、条件付き119件、構成差260件であり、
-  22中核所有ターゲットと全製品ターゲットは全構成で循環0件を維持する。
-- 実装コミット`74f0d0c360bfcadc4cbf207b320297eded34cb59`を両ホストの清浄な作業ツリーへ
-  揃え、macOSの全341試験とx86_64 Linuxの全343試験が成功した。iOSはLibrePaint本体、
-  Android arm64-v8aとWindows x86_64はUIライブラリーまで構築に成功した。
-- 同じ実装コミットで5構成台帳の完全一致検査、103件の方針・台帳試験を含む
-  `verify-quick`、`nix flake check --no-build --all-systems --no-eval-cache`が成功した。
-
-## R1-G6f画像ノード操作バッチ境界で完了した作業
-
-- `libs/ui/kis_node_juggler_compressed.{h,cpp}`を起点として、
-  `libs/image/commands/kis_node_operation_batch.{h,cpp}`へ移した。連続するノードの追加、移動、
-  複製、削除、投影更新と一つの非同期取り消し履歴項目への集約を`kritaimage`が所有する。
-- 画像処理が借用していた`KisNodeManager`を除去した。選択復元に必要なアクティブノードは、
-  `KisNodeManager`が各操作の呼出し時に値として渡す。操作バッチの寿命構成と利用者操作の
-  配線はUI所有に残る。
-- `libs/ui/tests/kis_node_juggler_compressed_test.{h,cpp}`を起点として、
-  `libs/image/tests/kis_node_operation_batch_test.{h,cpp}`へ移した。新しい公開ヘッダーがない
-  初回構築の失敗を確認し、既存の移動、複製、コピー、取り消しに加え、渡したアクティブ
-  ノードが取り消し時に復元される契約を固定した。
-- `KisNodeOperationBatchTest`の全試験と`kritaui`の増分構築が成功した。旧ファイル、転送
-  ヘッダー、旧名の別名、新しい汎用接続面は追加していない。
-- 公開面台帳は`kritaimage`334ヘッダー、`kritaui`244ヘッダーを記録する。UI直下の
-  公開クラスは80件、文書状態分類は20件となり、R1-G6e開始時の25クラスのうち5クラスが
-  具体的な所有先へ移った。
-- 実装と台帳を含むコミット`8a92e2bf63b6bd5e3cfaabf82d5a5fb82499c4fd`をDarwinと
-  x86_64 Linuxの清浄な作業ツリーへ揃えた。macOSの全341試験とx86_64 Linuxの
-  全343試験が成功し、iOSはLibrePaint本体、Android arm64-v8aとWindows x86_64は
-  UIライブラリーまで構築に成功した。
-- 同じコミットで5構成台帳の完全一致検査と循環0件を確認した。103件の方針・台帳試験を
-  含む`verify-quick`と`nix flake check --no-build --all-systems --no-eval-cache`が成功した。
-- AndroidとWindowsは構築契約までを確認し、実行時の利用者操作はmacOSとLinuxの
-  `KisNodeOperationBatchTest`が固定する。移動対象外のUI管理器と各プラットフォームの
-  既存警告は、この境界の残存リスクとして追跡する。
-
-## R1-G6f画像ノード変更実行境界で完了した作業
-
-- `libs/ui/kis_node_manager.cpp`の`moveNodeAt()`にあった移動可能性の判定と、移動先レイヤーで
-  既存の選択マスクを非アクティブ化する不変条件を、既存の
-  `libs/image/commands/kis_node_commands_adapter.cpp`へ移した。二つの移動入口が同じ条件を
-  適用し、UI以外の命令利用元でも画像ノードの規則が成立する。
-- 同じ起点の`mirrorNodes()`にあった処理適用器、再帰実行、全フレーム処理、並行ジョブ、
-  取り消し履歴項目の構成を、既存の
-  `libs/image/processing/kis_mirror_processing_visitor.{h,cpp}`へ移した。UI管理器には編集可否の
-  警告、画像処理の呼出し、`nodesUpdated()`による表示更新通知を残した。
-- `libs/image/tests/kis_node_commands_adapter_test.cpp`は、アクティブな選択マスクを移すと移動先の
-  既存マスクが非アクティブになる契約を固定する。初回実行は既存マスクがアクティブなままの
-  診断で失敗し、実装後に成功した。
-- `libs/image/tests/kis_processings_test.{h,cpp}`は、UI管理器を使わずに画像、対象ノード、方向、
-  選択、操作名だけでミラー処理を実行し、取り消せる契約を固定する。初回構築は画像処理側に
-  実行入口が存在しない診断で失敗し、実装後に成功した。
-- 新しいファイル、CMakeターゲット、汎用層、利用事例、サービス、リポジトリーは追加して
-  いない。現存する二つの具体的な画像所有者へ処理を集約した。
-- `KisNodeManager`は`kis_processing_applicator.h`の直接利用元から外れ、公開面台帳を同期した。
-  `libs/ui/kis_node_manager.cpp`は1827行から1798行へ縮小し、ソース行数基準を更新した。
-- 実装と台帳を含むコミット`a6c74853d96bd17c18eb2144cd719111bd0f2611`をDarwinと
-  x86_64 Linuxの清浄な作業ツリーへ揃えた。macOSの全341試験とx86_64 Linuxの全343試験が
-  成功し、iOSは`LibrePaint.app`、Android arm64-v8aとWindows x86_64は`kritaui`まで構築に
-  成功した。
-- 同じコミットで5構成のCMake台帳と差分行列の完全一致を確認した。ターゲット数はmacOS
-  661件、Linux 676件、iOS 595件、Android 601件、Windows 631件を維持し、22中核所有
-  ターゲットと全製品ターゲットは全構成で循環0件を維持する。
-- 103件の方針・台帳試験を含む`verify-quick`、画像側の二契約、`kritaui`の増分構築、
-  `nix flake check --no-build --all-systems --no-eval-cache`が成功した。既存の
-  `KisNodeManagerTest`は通常構成でbroken試験として登録されており、実行対象外である。
-- AndroidとWindowsは構築契約までを確認し、実行時契約はmacOSとLinuxの画像側単体試験で
-  固定する。移動対象外のノード管理処理、broken試験のUI統合範囲、各構成の既存警告は
-  残存リスクとして追跡する。
-
-## R1-G6fツール命令所有境界で進行中の作業
-
-- `libs/ui/kis_node_manager.cpp`の`createQuickGroupImpl()`と`quickUngroup()`を起点として、
-  画像グラフの検証と変更を`libs/image/commands/kis_node_operation_batch.{h,cpp}`へ移した。
-  グループ作成、移動先適合性、子ノード移動、空になったグループの除去は新しい具体実装
-  `libs/image/commands/kis_node_group_operations.{h,cpp}`が所有する。UI管理器には操作名、編集可否、
-  選択更新、互換性エラーの表示を残した。
-- `libs/ui/tool/KisSelectionToolFactoryBase.*`、`KisToolPaintFactoryBase.*`、
-  `KisToolChangesTracker*`、`KisToolShapeUtils.*`、`kis_delegated_tool_policies.*`、
-  `kis_smoothing_options.*`、`kis_tool.{h,cc}`を`libs/tools/`の同名ファイルへ移した。
-  `libs/tools/CMakeLists.txt`はこれらを新しい共有ライブラリー`kritatools`として構築し、
-  `libs/tools/tests/TestToolCoreContract.cpp`が平滑化設定、ブラシ寸法、アクションID、起動方針を
-  固定する。旧配置、転送ヘッダー、旧名の別名は残していない。
-- `libs/ui/tool/kis_tool_utils.{h,cpp}`を起点として、画像消去、色採取設定、編集可否の文言、
-  カーソル位置、標準ブラシ寸法を`libs/tools/kis_tool_utils.{h,cpp}`へ移した。浮動メッセージと
-  複数レイヤー上の図形選択は`libs/ui/tool/kis_tool_canvas_utils.{h,cpp}`へ分離した。
-- `libs/ui/kis_config.{h,cc}`の線平滑化設定操作を除去し、既存の設定キーと既定値の所有を
-  `libs/tools/kis_smoothing_options.{h,cpp}`へ移した。設定保存は従来と同じ圧縮時機と
-  `KSharedConfig`を使用し、UIの汎用設定所有を経由しない。
-- ツールが借用する座標変換、画像、ノード選択、処理待機、編集可否、表示通知、輪郭描画、
-  設定通知を`libs/canvas/KisToolCanvas.h`へ固定した。`KisCanvas2`の実装は
-  `libs/ui/canvas/kis_canvas_tool_support.cpp`へ分割した。`kritatools`が`kritacanvas`へ依存し、
-  キャンバスからツールへの逆向き依存と新しい循環は存在しない。
-- UIツール責務台帳の33クラスから、`KisTool`、二つのファクトリー、二つの起動方針、
-  変更追跡、平滑化設定、共通値型を含む11クラスを`kritatools`へ移した。UI側の分類対象は
-  33件から22件、`kritaui`公開ヘッダーは244件から236件となり、`kritatools`の9公開
-  ヘッダーと`kritacanvas`の新しい借用契約を公開面台帳へ追加した。
-- `libs/ui/canvas/kis_canvas2.cpp`のツール接続実装を
-  `libs/ui/canvas/kis_canvas_tool_support.cpp`へ分け、行数上限1726を維持した。
-  `libs/image/commands/kis_node_operation_batch.cpp`はグループ処理を具体ファイルへ分けて
-  1041行から950行、`libs/ui/kis_node_manager.cpp`は1798行から1739行へ縮小した。
-- CMake台帳へ`kritatools`と`TestToolCoreContract`を追加した。現在の記録はmacOS 663件、
-  Linux 678件、iOS 597件、Android 603件、Windows 633件、共通581件、条件付き119件、
-  構成差262件である。23中核所有ターゲットと全製品ターゲットは5構成で循環0件を維持し、
-  `kritatools`の未宣言内部ヘッダー参照は0件である。`kritaui`の内部参照は7ヘッダー20件から
-  6ヘッダー19件へ縮小した。
-- `KisNodeOperationBatchTest`と`TestToolCoreContract`はmacOSで成功した。`kritatools`、
-  `kritaui`、既定描画ツール、選択ツールの増分構築も成功した。`kritaui`の初回再構築では、
-  `KisNodeManager`が別用途で必要とする`KisGroupLayer`の完全型include不足を検出し、明示的な
-  includeを復旧した後にリンクまで成功した。既存の非推奨API警告は基準内である。
-- `nix develop .#test --command ./scripts/verify`は、macOSの全1853構築工程と342件の
-  ネイティブ試験に成功した。`verify-quick`の103件、公開面、責務、依存、構造、再配置計画、
-  文書、リンク、D2再生成の全検査も成功した。
-- `nix flake check --no-build --all-systems --no-eval-cache`は、macOS、iOS、Linux、Android、
-  Windowsを含む全出力の式評価に成功した。
-- macOSとiOSのCMake台帳は現在の作業ツリーから再生成した。Linux、Android、Windowsの台帳は、
-  共通ターゲットの構成差を既存のQt/KF版とライブラリー種別へ反映した。清浄な同一コミットを
-  必要とする5構成の完全一致検査、Linuxの全ネイティブ試験、iOS本体、Android、Windowsの
-  再構築は、この進行中単位の残存検証である。
-- `libs/ui/tool/kis_delegated_tool.h`を`libs/tools/kis_delegated_tool.h`へ移し、委譲ツールが
-  `KisCanvas2`と入力管理器を直接参照する経路を除去した。優先入力フィルターの登録と解除は
-  `KisToolCanvas`の借用契約を通り、委譲先の入力転送、起動方針、設定部品の集約は維持する。
-- `libs/ui/tool/kis_tool_select_base.h`を、選択操作状態、修飾キー、選択境界移動を所有する
-  `libs/tools/kis_tool_select_base.h`と、設定部品、アクション接続、ショートカット表示、選択用
-  メニューを所有する`libs/ui/tool/kis_tool_select_ui_base.h`へ分けた。8種類の選択ツールは
-  新しい表示基底を使用し、旧配置と転送ヘッダーは残していない。
-- `plugins/tools/selectiontools/kis_selection_modifier_mapper.{h,cc}`を
-  `libs/tools/kis_selection_modifier_mapping.{h,cpp}`へ移し、大域オブジェクトと設定変更通知を
-  除去した。現在の交換設定を`KisToolCanvas`から値で渡し、修飾キー組合せとmacOSの
-  Shift+Meta補正を`TestToolCoreContract`で固定した。契約追加前はヘッダー不在でコンパイルが
-  失敗し、実装後は1件のCTestが成功した。
-- 選択取得、修飾キー交換設定、移動カーソル、優先入力フィルターを
-  `libs/canvas/KisToolCanvas.h`へ追加し、`libs/ui/canvas/kis_canvas_tool_support.cpp`が既存の
-  UI所有者へ接続する。選択メニューは`KisSelectionToolHelper`の表示責務に維持し、選択プラグイン
-  から`KisViewManager`を経由する選択取得も除去した。
-- 公開面は`kritatools`の9ヘッダーから12ヘッダーへ、`kritaui`の236ヘッダーから235ヘッダーへ
-  更新した。UIツール責務台帳は設定表示を所有する`KisToolSelectUiBase`を加えて23クラスとなり、
-  `kritaui`の未公開内部参照は6ヘッダー19件から4ヘッダー7件へ縮小した。
-- `kritaselectiontools`、`kritadefaulttools_static`、`kritatoolencloseandfill`はmacOSでリンクまで
-  成功した。macOSとiOSのCMake台帳は実構成から更新し、Linux、Android、Windowsは同じ三つの
-  直接`kritatools`依存を記録した。ターゲット数と循環上限は変わらない。
-- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験、公開面、責務、依存、
-  構造、再配置計画、文書、リンク、D2再生成を含めて成功した。
-- `nix develop .#test --command ./scripts/verify`はmacOSの245増分構築工程を完了し、342件中
-  341件のネイティブ試験が成功した。変更範囲外の`KisSafeDocumentLoaderTest::testFileLost()`は、
-  再作成した一時ファイルへの後続書込み後に`loadingFinished`が1500ミリ秒以内に届かず失敗した。
-  単独再実行でも同じ行で再現し、同試験、文書読込実装、入出力ターゲットには変更がない。
-- `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、
-  Windowsを含む全出力の式評価に成功した。
-- `libs/ui/tool/kis_tool_paint.{h,cc}`を起点として、ポインター追跡、ブラシ寸法・回転操作、
-  輪郭状態、輪郭生成を`libs/tools/kis_tool_paint_interaction.{h,cpp}`へ移した。UI側の
-  `KisToolPaint`はこの操作基盤を継承し、色採取、ポップアップ、設定部品、設定に基づく
-  輪郭表示、描画補助線の更新を所有する。`kritatools`から`kritaui`への逆向き依存はない。
-- 未使用だったプリセット、透過率、変更状態、版番号のスナップショットと復旧入口を除去した。
-  分離で明らかになった旧`kis_tool_paint.h`への暗黙依存は、図形基底と既定描画、動的、
-  多角形、多角線、囲み塗り、色塗りマスクの各プラグインで必要なQtまたは画像型を直接includeして
-  解消した。
-- `libs/ui/tool/kis_tool_paint.cc`は757行から465行、同ヘッダーは169行から87行へ縮小した。
-  新しい操作基盤は実装296行、公開ヘッダー92行である。公開面台帳は`kritatools`を12ヘッダー
-  から13ヘッダーへ更新し、`kritaui`の235ヘッダーとUIツール責務台帳23クラスを維持した。
-- `TestToolCoreContract`へ操作基盤の公開ヘッダー構築契約を追加した。初回はヘッダー不在で
-  コンパイルが失敗し、実装後は1件のCTestが成功した。`kritaui`、既定描画ツール、選択ツール、
-  囲み塗り、スマート補修、動的、多角形、多角線の各ターゲットはmacOSでリンクまで成功した。
-- `nix develop .#test --command cmake --build build/tdd-macos`は全製品と試験ターゲットのリンクまで
-  成功した。`nix develop .#test --command ./scripts/verify`は103件の運用検査と342件のネイティブ
-  試験をすべて完了した。前の単位で失敗した`KisSafeDocumentLoaderTest::testFileLost()`も成功し、
-  今回の単位に残るmacOS検証失敗はない。
-- `libs/ui/tool/kis_figure_painting_tool_helper.{h,cpp}`を
-  `libs/painting/kis_figure_painting_stroke.{h,cpp}`へ移し、図形描画ストロークの開始、描画ジョブ、
-  終了を`kritapainting`へ集約した。新しい`KisFigurePaintingStroke`は複製不能であり、構築から
-  破棄まで一つのストロークを所有する。UI側とlibkisは描画実行を所有せず、この具体契約を直接使う。
-- `libs/tools/KisToolShapeUtils.h`を`libs/painting/KisFigurePaintingOptions.h`へ移し、描線と塗りの
-  安定値を実際の描画所有者へ置いた。空だった`libs/tools/KisToolShapeUtils.cpp`、旧配置、旧名、
-  転送ヘッダーは除去した。`TestPaintingBoundary`は列挙値の順序とストローク所有契約を固定する。
-- ヘッダー縮小で明らかになった暗黙依存は、`libs/ui/tool/kis_tool_shape.cc`の`KisSelection`、
-  `plugins/tools/basictools/kis_tool_line.cc`の`QPainterPath`と`KisResourcesSnapshot`を利用元で
-  明示した。`libs/libkis/Notifier.*`は不要な`KisView`と`KisApplication`のヘッダー依存を除去し、
-  Qtアプリケーションと必要な画像ノード型を直接参照する。
-- 公開面台帳へ`kritapainting`の19ヘッダーを追加した。`kritatools`は13件から12件、`kritaui`は
-  235件から234件、UIツール責務台帳は23クラスから22クラスとなった。painting、toolsの未公開
-  内部参照は0件であり、UIの4ヘッダー7参照と全製品ターゲットの循環0件を維持する。
-- 多角形と多角線プラグインは`kritapainting`を直接リンクする。macOSとiOSのCMake台帳は実構成から
-  再生成し、Linux、Android、Windowsにも同じ2辺を同期した。差分行列は共通581件、条件付き119件、
-  構成差262件を維持する。
-- `TestPaintingBoundary`の初回構築は新しい公開ヘッダーが存在せず失敗し、実装後は1件のCTestが
-  成功した。`kritaui`、`kritalibkis`、既定描画ツール、多角形、多角線はmacOSでリンクまで成功した。
-- `TestNotifier`は公開ヘッダー縮小で不足が明らかになった画像ノード型を試験側で明示した後、
-  1件のCTestが成功した。`verify-quick`は103件の運用試験、公開面、責務、依存、構造、再配置計画、
-  文書、リンク、D2再生成を含めて成功した。
-- `nix develop .#test --command ./scripts/verify`はmacOSの全製品と試験ターゲットを構築し、342件中
-  341件のネイティブ試験が成功した。変更範囲外の`KisSafeDocumentLoaderTest::test()`は、監視対象を
-  再書込みした後の`loadingFinished`が1500ミリ秒以内に届かず、
-  `libs/ui/tests/KisSafeDocumentLoaderTest.cpp:44`で実測1件、期待2件として失敗した。単独再実行でも
-  同じ行で再現し、同じ試験の`testFileLost()`は成功した。同試験、文書監視実装、文書読込、入出力
-  ターゲットには変更がない。
-- `libs/ui/tool/kis_tool_rectangle_base.{h,cpp}`にあった矩形制約、修飾キー、ドラッグ座標、回転角、
-  矩形計算を`libs/tools/kis_rectangle_interaction.{h,cpp}`へ移した。具体的な値オブジェクトが画像画素
-  座標の操作状態を所有し、UI基底にはポインター座標変換、編集可否の警告、寸法と位置の表示、
-  輪郭描画、キャンバス更新、設定部品を残した。
-- `KisToolRectangleBase`の実装は430行から311行、ヘッダーは86行から75行へ縮小した。新しい
-  `KisRectangleInteraction`は実装191行、公開ヘッダー64行であり、UI、キャンバス、文書、描画実行を
-  参照しない。矩形、楕円、矩形選択、矩形囲み塗りは既存のUI基底から同じ操作状態を使用する。
-- `TestToolCoreContract`は比率制約、固定寸法、Shiftによる正方形化、Altによる移動、Controlによる
-  中央拡張、ControlとAltによる回転を固定する。初回構築は新しい公開ヘッダーが存在せず失敗した。
-  実装後の初回実行は、移設時に0寸法を無効寸法として既定構築した差を中央拡張契約で検出し、
-  明示的な`QSizeF(0, 0)`へ戻した後に1件のCTestが成功した。
-- `kritaui`、既定描画ツール、選択ツール、囲み塗りはmacOSでリンクまで成功した。公開面台帳は
-  `kritatools`を12ヘッダーから13ヘッダーへ更新し、`kritaui`の234ヘッダーを維持する。toolsの
-  未公開内部参照は0件、UIは4ヘッダー7参照、全製品ターゲットの循環0件を維持する。
-- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験、公開面、責務、依存、構造、
-  再配置計画、文書、リンク、D2再生成を含めて成功した。`nix develop .#test --command ./scripts/verify`は
-  43増分構築工程とmacOSの全342ネイティブ試験に成功した。前の単位で失敗した変更範囲外の
-  `KisSafeDocumentLoaderTest::test()`も成功し、今回の単位に残るmacOS検証失敗はない。
-- `libs/ui/tool/kis_tool_polyline_base.{h,cpp}`にあった点列、ドラッグ区間、閉路状態、点の取り消し、
-  完了と取消しを`libs/tools/kis_polyline_interaction.{h,cpp}`へ移した。具体的な値オブジェクトが画像
-  画素座標の多段階操作を所有し、UI基底にはポインター座標変換、画面距離による始点スナップ判定、
-  輪郭表示、再描画範囲、右クリックと操作アクションの接続を残した。
-- `KisToolPolylineBase`のヘッダーは63行から59行となり、点列と状態フラグを公開UIクラスから除去した。
-  新しい`KisPolylineInteraction`は実装105行、公開ヘッダー48行であり、UI、キャンバス、文書、描画実行を
-  参照しない。多角形、多角線、多角形選択は既存のUI基底から同じ操作状態を使用する。
-- `TestToolCoreContract`は単一点終了、複数点、カーソル区間、閉路、点の取り消し、全取消しを固定する。
-  初回構築は新しい公開ヘッダーが存在せず失敗し、実装後は1件のCTestが成功した。`kritaui`、多角形、
-  多角線、選択ツールはmacOSでリンクまで成功した。
-- 公開面台帳は`kritatools`を13ヘッダーから14ヘッダーへ更新し、`kritaui`の234ヘッダーを維持する。
-  toolsの未公開内部参照は0件、UIは4ヘッダー7参照、全製品ターゲットの循環0件を維持する。
-- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験、公開面、責務、依存、構造、
-  再配置計画、文書、リンク、D2再生成を含めて成功した。`nix develop .#test --command ./scripts/verify`は
-  増分構築を完了し、macOSの342件中341件のネイティブ試験が成功した。変更範囲外の
-  `KisShapeSelectionTest::testHistoryOnFlattening()`は選択矩形が空となり
-  `libs/ui/tests/kis_shape_selection_test.cpp:260`で失敗したが、同試験ターゲットの単独再実行は
-  1件中1件成功した。図形選択履歴の製品実装と試験実装には変更がなく、直前の矩形操作状態分離では
-  全342件が成功しているため、一時的な既存試験失敗として区別する。
-- `libs/ui/tool/KisToolOutlineBase.{h,cpp}`にあった点列、入力中状態、Controlによる継続入力、
-  継続点の取り消し、完了と取消しを`libs/tools/kis_outline_interaction.{h,cpp}`へ移した。具体的な
-  値オブジェクトが画像画素座標の自由形状操作を所有し、UI基底にはポインター座標変換、編集可否の
-  通知、輪郭表示、再描画範囲、入力フィルターと操作アクションの接続を残した。
-- `KisToolOutlineBase`のヘッダーは82行から76行、実装は319行から313行となり、未使用だった
-  `m_paintPath`も除去した。新しい`KisOutlineInteraction`は実装120行、公開ヘッダー52行であり、
-  UI、キャンバス、文書、描画実行を参照しない。自由選択と囲み塗りは既存のUI基底から同じ操作状態を
-  使用する。
-- `TestToolCoreContract`は通常入力、カーソル位置、完了、取消し、継続入力、継続点の取り消しを
-  固定する。初回構築は新しい公開ヘッダーが存在せず失敗し、実装後は1件のCTestが成功した。
-  `kritaui`、選択ツール、囲み塗りはmacOSでリンクまで成功した。
-- 公開面台帳は`kritatools`を14ヘッダーから15ヘッダーへ更新し、`kritaui`の234ヘッダーを維持する。
-  toolsの未公開内部参照は0件、UIは4ヘッダー7参照、全製品ターゲットの循環0件を維持する。
-- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験、公開面、責務、依存、構造、
-  再配置計画、文書、リンク、D2再生成を含めて成功した。`nix develop .#test --command ./scripts/verify`は
-  増分構築を完了し、macOSの342件中341件のネイティブ試験が成功した。変更範囲外の
-  `KisSafeDocumentLoaderTest`はファイル監視通知が1500ミリ秒以内に届かず、`test()`と
-  `testFileLost()`が失敗したが、同試験ターゲットの単独再実行は1件中1件成功した。同試験、文書監視、
-  文書読込、入出力の製品実装には変更がなく、既知の時間依存試験失敗として区別する。
-- `libs/ui/tool/kis_speed_smoother.{h,cpp}`を`libs/tools/kis_speed_smoother.{h,cpp}`へ移し、
-  時刻源と平滑化標本数を設定値として受け取る決定論的な速度計算にした。タブレット試験器は
-  UI設定を読んで二つの平滑化器へ明示的に渡し、製品の既存設定を維持する。
-- `libs/ui/tool/kis_painting_information_builder.{h,cpp}`の入力値決定部分を
-  `libs/tools/kis_painting_information_builder.{h,cpp}`へ、座標変換器と自由描画ツールへの接続を
-  `libs/ui/tool/kis_painting_information_builder_adapters.{h,cpp}`へ分けた。設定読込と変更通知は新しい
-  `libs/ui/tool/kis_painting_information_builder_config_p.h`から値として渡す。スクラッチパッド、直線、
-  自由描画、変形リキファイは同じUI接続を使用し、旧配置と転送ヘッダーは残していない。
-- 新しい中核は公開ヘッダー118行、実装331行、UI接続は公開ヘッダー62行、実装147行、内部設定接続
-  14行である。旧UI配置の公開ヘッダー154行と実装454行を除去した。`TestToolCoreContract`は固定した
-  圧力曲線、座標変換、時刻、遠近係数、回転、反転、負の傾き補正と、固定時刻列による速度平滑化を
-  検査する。契約追加直後は`libs/tools`に公開ヘッダーがなくコンパイル段階で失敗し、実装後は1件の
-  CTestが成功した。
-- 公開面台帳は`kritatools`を15ヘッダーから17ヘッダーへ更新し、`kritaui`の234ヘッダーを維持する。
-  UIツール責務台帳は22クラスから21クラスとなった。UIから画像描画への確認済み逆方向includeを
-  3件削減し、toolsの未公開内部参照0件、UIの4ヘッダー7参照、23中核所有ターゲットと全製品
-  ターゲットの5構成における循環0件を維持する。
-- 変形ツールは描画入力値の所有者`kritatools`を直接リンクする。macOSとiOSのCMake台帳を実構成から
-  再生成し、Linux、Android、Windowsへ同じ直接辺を同期した。ターゲット数はmacOS 663件、
-  Linux 678件、iOS 597件、Android 603件、Windows 633件、共通581件、条件付き119件、構成差262件を
-  維持する。`kritaui`、既定描画ツール、変形ツールはmacOSでリンクまで成功した。
-- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験、公開面、責務、依存、構造、
-  再配置計画、文書、リンク、D2再生成を含めて成功した。`nix develop .#test --command ./scripts/verify`は
-  増分構築とリンクを完了し、macOSの342件中341件のネイティブ試験が成功した。変更範囲外の
-  `KisSafeDocumentLoaderTest::testFileLost()`はファイル監視通知が1500ミリ秒以内に届かず
-  `libs/ui/tests/KisSafeDocumentLoaderTest.cpp:109`で実測0件、期待1件として失敗した。単独再実行では
-  同副試験が成功し、同じ時間依存通知を検査する`test()`が
-  `libs/ui/tests/KisSafeDocumentLoaderTest.cpp:44`で実測1件、期待2件として失敗した。同試験、文書監視、
-  文書読込、入出力の製品実装には変更がなく、失敗箇所の交替から既知の時間依存試験失敗として
-  区別する。`nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、
-  Windowsを含む全Nix出力の評価に成功した。
-- `libs/ui/widgets/kis_selection_options.{h,cc}`と
-  `libs/ui/tool/kis_selection_tool_config_widget_helper.{h,cpp}`を同名の`libs/tools/ui`へ移し、選択方式、
-  結合方法、アンチエイリアス、拡張、境界停止、ぼかし、参照レイヤー、色ラベルの表示と保存を
-  `kritatoolsui`へ集約した。旧配置と転送ヘッダーは残していない。
-- 選択設定が依存する`libs/ui/widgets/kis_color_label_button.{h,cpp}`と
-  `libs/ui/widgets/kis_color_label_selector_widget.{h,cpp}`は同名の`libs/widgets`へ移した。固定9色と
-  現在の強調色から表示色を作る契約を汎用ウィジェット側へ置き、レイヤーツリーの寸法と配色を持つ
-  `libs/ui/kis_node_view_color_scheme.{h,cpp}`はUI所有に維持した。
-- `TestToolSettingsUiContract`は全8設定の保存と別ウィジェットへの再読込を固定する。契約追加直後は
-  `kritatoolsui`に公開ヘッダーがなくコンパイル段階で失敗し、移設後は1件のCTestが成功した。
-  `kritatoolsui`、`kritaui`、選択ツールはmacOSでリンクまで成功した。移設で露出したinclude順依存は、
-  `libs/ui/kis_layer_manager.h`の選択型と`libs/ui/tool/kis_tool_select_ui_base.h`の図形型を直接includeして
-  解消した。
-- 公開面台帳は`kritaui`を234ヘッダーから230ヘッダーへ、UIツール責務台帳を21クラスから20クラスへ
-  縮小した。未解決の責務射影0件、構造射影10件、全製品ターゲットの循環0件を維持する。
-- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験、公開面、責務、依存、構造、
-  再配置計画、文書、リンク、D2再生成を含めて成功した。
-- `nix develop .#test --command ./scripts/verify`は移動した汎用ウィジェットを使うレイヤードッカー、
-  基本塗りつぶし、囲み塗りつぶしを含めて再構築し、macOSの全342件のネイティブ試験に成功した。
-  `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
-  含む全Nix出力の評価に成功した。
-- `libs/ui/widgets/kis_tool_options_popup.{h,cpp}`を同名の`libs/tools/ui`へ移し、設定部品の見出し、区切り、
-  並び替え、非表示部品への退避を`kritatoolsui`へ移した。旧配置と転送ヘッダーは残していない。
-  ドック用フォントは`libs/ui/kis_paintop_box.cc`が値として渡し、ポップアップボタン、キャンバス、
-  操作アクションとの接続をUI所有に維持した。未使用だったドック登録、設定、翻訳依存も除去した。
-- `TestToolSettingsUiContract`は二つの設定部品の見出しと親子関係、単一部品への更新後に旧部品を
-  退避する状態を固定する。契約追加直後は`kritatoolsui`に公開ヘッダーがなくコンパイル段階で失敗し、
-  移設後は1件のCTestが成功した。`kritatoolsui`と`kritaui`はmacOSでリンクまで成功し、未解決の
-  責務射影0件、構造射影10件、全製品ターゲットの循環0件を維持する。
-- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
-  `nix develop .#test --command ./scripts/verify`はmacOSの全342件のネイティブ試験に成功した。
-  `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
-  含む全Nix出力の評価に成功した。
-- `libs/ui/tool/kis_rectangle_constraint_widget.{h,cpp}`と
-  `libs/ui/forms/wdgrectangleconstraints.ui`を同名の`libs/tools/ui`へ移し、矩形の寸法・比率制約、角丸表示、
-  角丸設定の保存と再読込を`kritatoolsui`へ集約した。ウィジェットは矩形ツールを保持せず、設定グループを
-  受け取って制約値と角丸値を信号で返す。`libs/ui/tool/kis_tool_rectangle_base.cpp`が矩形状態、設定再読込、
-  制約適用を接続し、旧配置と転送ヘッダーは残していない。
-- 移設に必要な汎用比率ロックを`libs/ui/kis_aspect_ratio_locker.{h,cpp}`から同名の`libs/widgets`へ移した。
-  画像寸法、複数整数フィルター、グリッド、ブラシ、スプレー、基本図形の各利用元は同じ公開型を使い、
-  直接利用する4製品ターゲットへ`kritawidgets`リンクを明示した。macOSとiOSのCMake台帳は実構成から
-  再生成し、Linux、Android、Windowsへ同じ無条件の4辺を同期した。
-- `TestToolSettingsUiContract`は角丸X/Y値、角丸比率ロック、角丸UIの表示可否、別ウィジェットへの
-  設定再読込を固定する。契約追加直後は`libs/tools/ui`に公開ヘッダーがなくコンパイル段階で失敗し、
-  実装後は1件のCTestが成功した。`kritatoolsui`と`kritaui`はmacOSでリンクまで成功した。
-- 公開面台帳は`kritaui`を230ヘッダーから228ヘッダーへ、UIツール責務台帳を20クラスから19クラスへ、
-  UI直下責務台帳を80クラスから79クラスへ縮小した。未解決の責務射影0件、構造射影10件、全製品
-  ターゲットの循環0件を維持する。`nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と
-  全統治検査に成功した。
-- `nix develop .#test --command ./scripts/verify`は44増分構築工程を完了し、macOSの342件中341件の
-  ネイティブ試験が成功した。変更範囲外の`KisSafeDocumentLoaderTest::test()`はファイル監視通知が
-  1500ミリ秒以内に届かず、`libs/ui/tests/KisSafeDocumentLoaderTest.cpp:44`で実測1件、期待2件として
-  失敗した。同試験ターゲットの単独再実行は1件中1件成功し、同試験、文書監視、文書読込、入出力の
-  製品実装には変更がないため、既知の時間依存試験失敗として区別する。
-- `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
-  含む全Nix出力の評価に成功した。
-- `libs/ui/tool/kis_shape_tool_helper.{h,cpp}`を`libs/flake/KoBasicShapeFactory.{h,cpp}`へ移し、矩形と
-  楕円の生成、登録済み図形ファクトリーの検索、プラグイン不在時のパス代替生成を`kritaflake`へ
-  集約した。基本図形ツールと選択ツールは`kritaflake`へ直接依存し、旧UI補助クラスと転送ヘッダーは
-  残していない。未使用だった多角形選択側の旧includeも除去した。
-- `TestKoShapeFactory`は矩形の位置、寸法、角丸比率を登録済みファクトリーへ渡す契約、楕円の位置と
-  寸法を設定する契約、両プラグインがない場合に入力境界矩形と一致するパス図形を返す契約を固定する。
-  契約追加直後は`KoBasicShapeFactory.h`がなくコンパイル段階で失敗し、実装後は1件のCTestが成功した。
-  `kritaflake`、`kritadefaulttools_static`、`kritaselectiontools`はmacOSでリンクまで成功した。
-- 公開面台帳は`kritaui`を228ヘッダーから227ヘッダーへ、UIツール責務台帳を19クラスから18クラスへ
-  縮小した。macOSとiOSのCMake台帳は実構成から再生成し、基本図形ツールと選択ツールから
-  `kritaflake`への2辺をLinux、Android、Windowsへ同期した。未解決の責務射影0件、構造射影10件、
-  全製品ターゲットの循環0件を維持する。
-- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
-  `nix develop .#test --command ./scripts/verify`は18増分構築工程を完了し、macOSの342件中341件の
-  ネイティブ試験が成功した。変更範囲外の`KisSafeDocumentLoaderTest::test()`は
-  `libs/ui/tests/KisSafeDocumentLoaderTest.cpp:44`で実測1件、期待2件として失敗し、同試験ターゲットの
-  単独再実行は1件中1件成功した。文書監視、文書読込、入出力の製品実装には変更がないため、既知の
-  時間依存試験失敗として区別する。
-- `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
-  含む全Nix出力の評価に成功した。
-- `libs/ui/tool/kis_stabilized_events_sampler.{h,cpp}`と
-  `libs/ui/tool/KisStabilizerDelayedPaintHelper.{h,cpp}`を同名の`libs/tools`へ移し、入力イベントの実時間
-  標本化、描画点の遅延キュー、タイマー駆動を`kritatools`へ集約した。旧UI配置と転送ヘッダーは残して
-  いない。`libs/ui/tool/kis_tool_freehand_helper.cpp`は既存の自由描画線生成と輪郭更新をコールバックで
-  接続する。
-- `libs/ui/tests/kis_stabilized_events_sampler_test.{h,cpp}`を同名の`libs/tools/tests`へ移し、標本化の
-  時間分配に加えて、遅延描画キューが3入力点を2線分として順序どおり完了し、取消し時に未描画点を
-  破棄する契約を固定した。契約移設直後は`KisStabilizerDelayedPaintHelper.h`が`kritatools`の公開面に
-  なくコンパイル段階で失敗し、実装後は1件のCTestが成功した。`kritatools`と`kritaui`はmacOSで
-  リンクまで成功した。
-- 公開面台帳は`kritaui`を227ヘッダーから225ヘッダーへ縮小し、`kritatools`を17ヘッダーから
-  19ヘッダーへ拡張した。UIツール責務台帳は18クラスから15クラスへ縮小した。入力解釈責務の所有者に
-  `kritatools`を記録し、移設した4製品ファイルとUI接続元を明示分類した。未解決の責務射影0件、
-  構造射影12件、内部ヘッダー基準10件、全製品ターゲットの循環0件を維持する。
-- 入力解釈から描画への直接includeは、移設先に残る3件と、入力とストローク生成が混在するUI接続元の
-  明示分類で11件が可視化され、14件から25件になった。製品includeは追加していない。確認済み逆方向
-  includeは3責務対104件、移設計画の初期縮小量は319件となり、未解決射影0件を維持する。
-- 標本化試験ターゲットは`libs/ui/tests`から`libs/tools/tests`へ移り、直接依存を`kritaui`と
-  `kritalibkis`から`kritatools`へ縮小した。macOSとiOSのCMake台帳は実構成から再生成し、Linux、
-  Android、Windowsへ同じ無条件差分を同期した。
-- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
-  `nix develop .#test --command ./scripts/verify`は全製品と試験ターゲットをリンクし、macOSの342件中
-  341件が成功した。新しい`libs-tools-kis_stabilized_events_sampler_test`も成功した。
-- 変更範囲外の`KisSafeDocumentLoaderTest::test()`は
-  `libs/ui/tests/KisSafeDocumentLoaderTest.cpp:44`で実測1件、期待2件として失敗した。単独再実行2回も
-  不安定であり、1回目は同じ箇所、2回目は`test()`が成功した後に`testFileLost()`が109行で実測0件、
-  期待1件として失敗した。文書監視、文書読込、入出力の製品実装には変更がなく、通知待機の既知の
-  基線不安定性として区別する。
-- `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
-  含む全Nix出力の評価に成功した。
-- `libs/ui/tool/KisAsyncColorSamplerHelper.cpp`にあったストローク開始、採取ジョブ投入、完了ジョブ、
-  終了処理を、新しい`libs/painting/KisColorSamplerStroke.{h,cpp}`へ分離した。UI側の
-  `libs/ui/tool/KisAsyncColorSamplerHelper.{h,cpp}`は採取対象と参照画像の解決、キャンバス色資源、
-  カーソル、プレビュー配置と描画を維持し、画像ストローク接続面と内部ストローク戦略を直接扱わない。
-  `libs/painting/strokes/kis_color_sampler_stroke_strategy.h`は公開記号を除去し、描画パッケージ内部へ
-  閉じた。
-- `libs/painting/tests/TestPaintingBoundary.cpp`は、二つの採取ジョブ、完了ジョブ、ストローク終了の順序と、
-  最後の採取色を一度だけ確定通知する契約を固定する。契約追加直後は
-  `KisColorSamplerStroke.h`が存在せずコンパイル段階で失敗し、実装後は1件のCTestが成功した。
-  `kritaui`と`kritadefaulttools`もmacOSでリンクまで成功した。
-- 公開面台帳は旧ストローク戦略を新しい実行所有クラスへ置き換えて`kritapainting`の19ヘッダー、
-  `kritaui`の225ヘッダー、UIツール責務台帳の15クラスを維持した。入力解釈から描画への直接includeは
-  25件から24件、
-  確認済み逆方向includeは3責務対104件から103件へ縮小した。未解決の責務射影0件、構造射影12件、
-  内部ヘッダー基準10件、全製品ターゲットの循環0件を維持する。
-- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
-  `nix develop .#test --command ./scripts/verify`は全製品と試験ターゲットをリンクし、macOSの
-  全342件のネイティブ試験に成功した。`nix flake check --no-build --all-systems --no-eval-cache`は
-  macOS、iOS、Linux、Android、Windowsを含む全Nix出力の式評価に成功した。
-
-## R1-G6gショートカット照合境界で進行中の作業
-
-- R1-G6fの完了監査で、分類済み22クラスが`kritatools`、`kritatoolsui`、`kritapainting`、
-  `kritaflake`へ移設済みであり、ツール所有に割り当てた17件の`kritaui`内部ヘッダー参照が
-  除去済みであることを照合した。残るUIツール責務台帳15クラスは、入力解釈、ストローク生成、
-  描画実行、表示接続のR1-G6g以降の所有へ分類され、R1-G6fの二つの完了条件を満たした。
-- 次の開始ファイルと移設先を対応させ、旧配置と転送ヘッダーを残さず`kritainput`へ移した。
-  - `libs/ui/input/KisInputActionGroup.{h,cpp}`から`libs/input/KisInputActionGroup.{h,cpp}`。
-  - `libs/ui/input/kis_abstract_shortcut.{h,cpp}`から`libs/input/kis_abstract_shortcut.{h,cpp}`。
-  - `libs/ui/input/kis_single_action_shortcut.{h,cpp}`から`libs/input/kis_single_action_shortcut.{h,cpp}`。
-  - `libs/ui/input/kis_stroke_shortcut.{h,cpp}`から`libs/input/kis_stroke_shortcut.{h,cpp}`。
-  - `libs/ui/input/kis_touch_shortcut.{h,cpp}`から`libs/input/kis_touch_shortcut.{h,cpp}`。
-  - `libs/ui/input/kis_native_gesture_shortcut.{h,cpp}`から
-    `libs/input/kis_native_gesture_shortcut.{h,cpp}`。
-  - `libs/ui/input/kis_shortcut_matcher.{h,cpp}`から`libs/input/kis_shortcut_matcher.{h,cpp}`。
-- `libs/input/KisInputAction.h`は照合器が借用する命令の開始、入力、終了、候補切替、優先度、
-  利用可否を定義する。`libs/ui/input/kis_input_manager_p.cpp`の内部委譲オブジェクトが既存の
-  `KisAbstractInputAction`へ通知し、入力管理器がプロファイルごとの寿命を所有する。公開UI基底の
-  継承構造と仮想関数表を維持しながら、入力ターゲットから`kritaui`への逆向き依存を作らず、
-  `kritaui`から`kritainput`へ一方向に接続する。
-- タッチ設定列挙から`KisTouchGestureType`、接触点数、タッチ描画中の無効化条件への変換は
-  `libs/ui/input/kis_input_manager_p.cpp`へ残した。`KisTouchShortcut`は正規化済み値と動的な状態問い合わせを
-  受け取り、設定実装や描画・リソースヘッダーを参照しない。
-- `libs/input/tests/TestInputShortcutMatcher.cpp`はShiftと左ボタンによるマウス列を決定的に再生し、
-  候補選択、開始、移動、終了、再候補化の通知順を固定する。フォーカス喪失による未完了列の終了と
-  入力アクション群マスクのスコープ復旧も同じ独立ターゲットで固定した。契約追加時は
-  `KisInputAction.h`不在でコンパイルに失敗し、実装後は1件のCTestが成功した。
-- `nix develop .#test --command ./scripts/run-test TestInputShortcutMatcher`、
-  `nix develop .#test --command ./scripts/run-test KisInputManagerTest`、
-  `nix develop .#test --command ./scripts/build-incremental native build kritaui`はmacOSで成功した。
-  既存の非推奨API警告以外に構築失敗はない。
-- `nix develop .#test --command ./scripts/verify`はmacOSの全1827構築工程を完了し、
-  新しい入力照合契約を含む全343件のネイティブ試験に成功した。既知の時間依存試験
-  `KisSafeDocumentLoaderTest`も成功し、この単位に残るmacOS検証失敗はない。
-- `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、
-  Windowsを含む全Nix出力の式評価に成功した。
-- macOSとiOSのCMake台帳を実構成から再生成し、Linux、Android、Windowsへ共通ターゲットと依存を
-  同期した。現在はmacOS 665件、Linux 680件、iOS 599件、Android 605件、Windows 635件、
-  共通583件、条件付き119件、構成差266件である。
-- 公開面台帳は`kritainput`の9ヘッダーを追加し、`kritaui`を225ヘッダーから221ヘッダーへ縮小した。
-  中核所有ターゲットは24件、未公開内部参照は従来の4ヘッダー7件を維持し、全製品ターゲットの
-  循環は0件である。移設で可視化されたキャンバス表示とツール呼出しから入力解釈への各1件は、
-  R1-G6g所有、上限1件、除去条件を持つ一時逆方向参照として記録した。確認済み逆方向includeは
-  5責務対105件となり、R1-G6g完了時に両参照を0件へ除去する。
-- 入力プロファイル値について、次の開始ファイルと移設先を対応させ、旧配置と転送ヘッダーを
-  残さず所有を移した。
-  - `libs/ui/input/kis_input_profile.{h,cpp}`から`libs/input/kis_input_profile.{h,cpp}`。
-  - `libs/ui/input/kis_shortcut_configuration.{h,cpp}`の永続値と直列化から
-    `libs/input/kis_shortcut_configuration.{h,cpp}`。
-  - `libs/ui/input/kis_shortcut_configuration.{h,cpp}`の翻訳済み表示文字列生成から
-    `libs/ui/input/kis_shortcut_configuration_text.{h,cpp}`。
-- `KisShortcutConfiguration`はUIアクションの借用ポインターに代えて安定識別子を保持し、
-  `KisInputProfile`は同じ識別子でショートカットを索引する。プロファイル管理器は読込時に識別子を
-  設定し、入力管理器と設定画面だけが識別子をUIアクションへ解決する。既存の
-  `{mode;type;[key,key];buttons;wheel;gesture}`保存形式と表示文言を維持する。
-- `libs/input/tests/TestInputProfile.cpp`は保存列の固定値、直列化往復、識別子の保持、識別子ごとの
-  索引を固定する。契約追加時は`kis_input_profile.h`が入力ターゲットに存在せずコンパイルで失敗し、
-  実装後は1件のCTestが成功した。`KisInputManagerTest`は登録済み識別子の解決と未知識別子の拒否を
-  固定し、1件のCTestが成功した。`kritaui`もmacOSでリンクまで成功した。
-- CMake台帳は`TestInputProfile`を5構成の共通ターゲットとして追加した。現在はmacOS 666件、
-  Linux 681件、iOS 600件、Android 606件、Windows 636件、共通584件、条件付き119件、
-  構成差267件である。公開面台帳は`kritainput`を11ヘッダーへ増やし、`kritaui`は221ヘッダーを
-  維持する。全製品ターゲットの循環は0件である。
-- プロファイルから照合器への登録は`KisInputManager::Private`へ集約し、公開入力管理器の実装を
-  1148行から1129行へ縮小した。未知のアクション識別子は警告して登録を省略し、既知の識別子だけを
-  UIアクション実体へ解決する。
-- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
-  `nix develop .#test --command ./scripts/verify`は全893構築工程を完了し、新しいプロファイル契約を
-  含むmacOSの全344件のネイティブ試験に成功した。
-  `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
-  含む全Nix出力の式評価に成功した。
-- 合成入力抑止について、次の開始ファイルと移設先を対応させ、UI内部の状態所有を除去した。
-  - `libs/ui/input/kis_input_manager_p.{h,cpp}`の内部`EventEater`にあった連続マウス抑止、遅延した
-    左クリック1回、合成事象、右・中ボタン代替、タッチ開始の状態と判定から、
-    `libs/input/KisInputEventSuppressor.{h,cpp}`。
-  - 同じ開始ファイルの設定読込、Qt事象から正規化値への変換、タブレット診断表示、`TouchBegin`の
-    無視、Qt事象フィルター接続は`libs/ui/input/kis_input_manager_p.{h,cpp}`に維持した。
-- `KisInputEventSuppressor`は正規化済みの事象種別、ボタン種別、合成元情報を受け取り、抑止理由を
-  返す。右・中ボタン代替設定とプラットフォームの合成事象対応は構築時の値として固定し、macOSの
-  合成事象条件、Windowsで実行中ストロークを保護する解除条件、既存のQt事象伝播を維持する。
-- `libs/input/tests/TestInputEventSuppressor.cpp`はマウス、タブレット、タッチ列を再生し、連続抑止、
-  遅延左クリック1回、合成事象、右・中ボタン代替、タッチ開始の抑止理由を固定する。契約追加時は
-  `KisInputEventSuppressor.h`が存在せずコンパイルで失敗し、実装後は1件のCTestが成功した。
-  `KisInputManagerTest`も1件のCTestに成功し、`kritaui`はmacOSでリンクまで成功した。
-- CMake台帳は`TestInputEventSuppressor`を5構成の共通ターゲットとして追加した。現在はmacOS
-  667件、Linux 682件、iOS 601件、Android 607件、Windows 637件、共通585件、条件付き119件、
-  構成差267件である。公開面台帳は`kritainput`を12ヘッダーへ増やし、全製品ターゲットの循環0件を
-  維持する。`libs/ui/input/kis_input_manager_p.cpp`は1011行から990行へ縮小し、大規模ファイルの
-  ソース寸法基準から除去した。
-- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
-  `nix develop .#test --command ./scripts/verify`は44件の増分構築工程で全製品と試験ターゲットを
-  リンクし、新しい合成入力抑止契約を含むmacOSの全345件のネイティブ試験に成功した。
-  `nix flake check --no-build --all-systems --no-eval-cache`はmacOS、iOS、Linux、Android、Windowsを
-  含む全Nix出力の式評価に成功した。
-- `libs/ui/input`の87ファイルを同名構造の`libs/input/ui`へ、
-  `libs/ui/tests/kis_input_manager_test.{h,cpp}`を`libs/input/ui/tests`へ移した。製品実装と試験は
-  `libs/input`の責務ルートに集約され、利用元は`input/ui/...`のinclude経路を使う。
-- `kritainputui`オブジェクトターゲットが入力UIを一単位として構築し、`kritaui`が既存ABIへ
-  組み込む。公開面台帳は`kritainput`の12ヘッダー、`kritainputui`の9ヘッダー、`kritaui`の
-  217ヘッダーを記録する。
-- CMake台帳はmacOS 668件、Linux 683件、iOS 602件、Android 608件、Windows 638件、共通586件、
-  条件付き119件、構成差268件である。入力UI移設でパッケージ間参照となった内部ヘッダー9件16参照は、
-  所有段階と解消先を構造基準と再配置計画に記録する。
-- `kritainputui`と`kritaui`のmacOS構築、`KisInputManagerTest`は成功した。clangdの厳格な
-  include-cleaner診断は移設した全翻訳単位で不要includeと不足includeを報告していない。
-  `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
-
-## R1-G6g入力境界の第2実装単位で完了した作業
-
-- 次の開始ファイルと移設先を対応させ、入力列、キャンバス状態、画像操作の具体所有を分けた。
-  - `libs/input/KisInputActionGroup.{h,cpp}`から`libs/canvas/KisInputActionGroup.{h,cpp}`。
-  - `libs/image/kis_timed_signal_threshold.{h,cpp}`から
-    `libs/input/KisTimedSignalThreshold.{h,cpp}`。
-  - `libs/input/ui/kis_select_layer_action.cpp`のレイヤー探索、選択変更、選択メニューから
-    `libs/ui/actions/KisLayerSelectionAction.{h,cpp}`。
-  - `libs/ui/dialogs/kis_dlg_preferences.cc`の入力設定ページ追加とタブレット診断スロットから
-    `libs/ui/dialogs/kis_dlg_preferences_input.cpp`。
-- `KisCanvas2`はキャンバス単位の入力アクション群マスクとスコープガードを維持し、登録中の
-  `KisInputManager`から優先事象フィルター接続とキャンバス部品変更通知を受け取る。
-  ガイド、無限キャンバス、鏡軸、輪郭、折線は`KisCanvas2`または`KisToolCanvas`の具体操作面を使う。
-- 入力アクションはストローク終了と取消しを`KisToolCanvas`、活動ノードのアニメーション判定を
-  `KisViewManager`、レイヤー選択をUIアクションへ委譲する。矩形修飾キーは入力写像器と同じ
-  ShiftとMetaの正規化結果を局所値として使う。
-- 遅延描画、安定化標本化、自由描画ストローク生成、非同期色採取表示を実装する翻訳単位は
-  ツール呼出しへ帰属する。入力責務の既定ディレクトリーは`libs/input`と`libs/input/ui`であり、
-  個別のUI接続は分類済み公開クラスと審査済みソースで帰属する。
-- 確認済み逆方向includeは、キャンバス表示から入力解釈13件、入力解釈から描画24件、
-  ツール呼出しから入力解釈7件が各0件になった。入力解釈からリソース管理は3件へ縮小し、
-  アプリケーション調整から描画75件と合わせた確認済み基準は2責務対78件、未確定射影は0件である。
-- `nix develop .#test --command ./scripts/build-incremental native build kritaui`、
-  `nix develop .#test --command ./scripts/run-test KisInputManagerTest`、
-  `nix develop .#test --command ./scripts/run-test TestInputShortcutMatcher`はmacOSで成功した。
-  clangdのinclude-cleaner検査は変更した21翻訳単位で不要includeと不足includeを報告していない。
-  `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
-
-## R1-G6g入力プロファイル配置境界で完了した作業
-
-- `libs/ui/KisViewManager.cpp`がプロファイルの優先順付きファイル一覧と利用者用保存ディレクトリーを
-  解決し、既存の`KisInputProfileManager`へ値として渡す。プロファイル管理器は同じ値で読込、保存、
-  削除、再読込、既定値復旧を行い、移行器は一覧から選択済みの既定プロファイルを受け取る。
-- `libs/input/ui/KisInputProfileMigrator.cpp`、
-  `libs/input/ui/config/kis_input_configuration_page.cpp`、
-  `libs/input/ui/kis_input_profile_manager.cpp`から`KoResourcePaths.h`参照を除去した。
-  `kritainputui`から`kritaresources`と`kritaresourceui`への直接CMake依存も除去した。
-- `KisInputManagerTest::testProfileStorageLifecycle()`は、利用者用プロファイル優先、version 5から6への
-  移行と互換保存、編集後の保存、同梱既定プロファイルへの復旧を一時配置上で固定する。契約追加時は
-  `setProfileLocations()`が存在せずコンパイルで失敗し、実装後は1件のCTestが成功した。
-- 確認済み逆方向includeは入力解釈からリソース管理3件が0件となり、アプリケーション調整から
-  描画75件だけを残す1責務対75件へ縮小した。未確定射影0件、解決済み構造射影10件、
-  25中核所有ターゲットと全製品ターゲットの循環0件を維持する。
-- CMake台帳はmacOS 668件、Linux 683件、iOS 602件、Android 608件、Windows 638件、共通586件、
-  条件付き119件、構成差270件を維持する。macOSとiOSを実構成から再生成し、Linux、Android、
-  Windowsへ同じ無条件依存削除を同期した。
-- `kritainputui`と`kritaui`のmacOS構築、`KisInputManagerTest`は成功した。clangdのinclude-cleaner検査は
-  変更した5翻訳単位で不要includeと不足includeを報告していない。
-- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
-
-## R1-G6gキャンバス表示配置境界で完了した作業
-
-- `libs/ui`直下のアニメーション再生と非同期フレーム描画14ファイルを同名の
-  `libs/ui/animation`へ、キャンバス表示状態、装飾、座標変換、表示接続55ファイルを同名の
-  `libs/ui/canvas`へ移した。開始パスと宛先パスの全69件は
-  `docs/architecture/canvas-presentation-ui-relocations.json`が一対一で記録する。
-- `KisAsyncAnimation*`、`KisPlaybackEngine*`、`KisMLTProducerKrita*`はアニメーション再生配置を
-  所有する。`KisAsyncAnimationFramesSavingRenderer.cpp`は動画書出し調整として
-  `document-lifecycle`の審査済み帰属を維持する。残る移設ファイルはキャンバス表示配置を所有する。
-- `KisDecorationsManager`と`KisDecorationsWrapperLayer`、`KisMultiSurfaceStateManager`、
-  `kcanvaspreview`、`kis_fps_decoration`、`KisClonableViewConverter`、`kis_mirror_manager`は、
-  同じ具象表示関心の実装と対になるヘッダーとしてキャンバス表示配置へ集約した。
-- `kritaui`のCMake所有、クラス名、公開記号、所有寿命を維持し、製品と試験のincludeを正規の
-  `animation/...`または`canvas/...`経路へ更新した。公開ヘッダー試験は旧経路の移設前に
-  `animation/KisAsyncAnimationRendererBase.h`不在で失敗し、移設後に成功した。
-- UIクラス責務台帳は79クラス、実装単位を持つ77クラス、宣言側で完結する2クラスを維持する。
-  キャンバス・表示31クラスは分類済み入れ子ヘッダーとして継続追跡され、台帳上の
-  `libs/ui`直下キャンバス・表示ヘッダーは0件となった。5構成のCMakeターゲット台帳は
-  ターゲット、構成差、直接リンク依存を維持する。
-- `nix develop .#test --command ./scripts/build-incremental native build kritaui`、
-  `TestCanvasUiPublicHeaders`、`kis_image_view_converter_test`、`KisFrameCacheSwapperTest`、
-  `kis_display_color_converter_contract_test`はmacOSで成功した。clangdのinclude-cleaner検査は
-  移設した全33翻訳単位で不要includeと直接include不足を報告していない。
-- `nix develop .#test --command ./scripts/verify-quick`は103件の運用試験と全統治検査に成功した。
-
-## R1-G6g文書状態UI配置境界で完了した作業
-
-- `libs/ui`直下の文書構成と文書調整15ファイルを`libs/ui/document`、ノード表示モデルと
-  ノード操作接続26ファイルを`libs/ui/nodes`、選択操作接続と選択表示部品10ファイルを
-  `libs/ui/selection`へ移した。全51件の正確な開始パスと宛先パスは
-  `docs/architecture/document-state-ui-relocations.json`が一対一で記録する。
-- `KisDocument`、外部ファイル層、画像・フィルター管理、文書テキストと絵コンテ項目は
-  文書構成配置を所有する。ノード表示モデル、レイヤーとマスクの管理、ノード挿入接続は
-  ノード配置を所有し、選択アクション接続と選択パネル部品は選択配置を所有する。
-- `kritaui`のCMake所有、クラス名、公開記号、公開挙動、所有寿命を維持し、製品と試験の
-  includeを`document/...`、`nodes/...`、`selection/...`の正規経路へ更新した。
-  公開ヘッダー試験は移設前に`document/KisDocument.h`不在で失敗し、移設後に成功した。
-- UIクラス責務台帳は79クラスを維持し、文書状態20クラスを18の分類済み入れ子ヘッダーで
-  継続追跡する。再配置台帳の全開始パス消滅、全宛先実在、責務ディレクトリー、翻訳単位の
-  CMake登録、分類済みヘッダーとの対応は公開面検査が継続確認する。
-- `kritaui`、`TestDocumentStateUiPublicHeaders`、`kis_multinode_property_test`、
-  `kis_shape_selection_test`、`KisDocumentReplaceTest`はmacOSで成功した。clangdの
-  include-cleaner検査は移設した全25翻訳単位で不要includeと直接include不足を報告していない。
-- `nix develop .#test --command ./scripts/verify-quick`は104件の運用試験と全統治検査に成功した。
-- `KisSelectedShapesProxy.*`、`KisUndoActionsUpdateManager.*`、`kis_filters_model.*`、
-  `kis_bookmarked_filter_configurations_model.*`はベクター選択、履歴アクション、フィルター一覧の
-  画面接続を含む`libs/ui`直下の候補であり、公開文書状態クラス集合の外側で責務分類を行う。
-
-## R1-G6gアプリケーション・作業空間・ツールUI配置境界で完了した作業
-
-- `libs/ui`直下のアプリケーション調整20ファイルを`libs/ui/application`、ウィンドウ・
-  作業空間42ファイルを`libs/ui/workspace`、ツール呼出し8ファイルを既存の`libs/ui/tool`へ
-  同じ基底名で移した。全70件の正確な開始パスと宛先パスは
-  `docs/architecture/application-workspace-tool-ui-relocations.json`が一対一で記録する。
-- アクション、起動、設定、プラグイン、資源提供、Androidファイル接続はアプリケーション調整配置を
-  所有する。ウィンドウ、ビュー、セッション、作業空間、テンプレート、環境設定、
-  起動画面は作業空間配置を所有する。ブックマーク済みツール・フィルター設定と描画ツール箱は
-  ツール呼出し配置を所有する。
-- `kritaui`のCMake所有、クラス名、公開記号、公開挙動、所有寿命を維持し、製品と試験のinclude、
-  CMakeソース、`wdgsplash.ui`の参照を`application/...`、`workspace/...`、`tool/...`の正規経路へ
-  更新した。公開includeは正規経路へ直接接続し、公開ヘッダー試験は移設前に
-  `application/KisActionPlugin.h`不在で失敗し、移設後に成功した。
-- UIクラス責務台帳は79クラス、69ヘッダー、実装単位を持つ77クラス、宣言側で完結する2クラスを
-  維持する。対象の27クラスを25の分類済み入れ子ヘッダーで継続追跡し、分類済み公開クラスの
-  `libs/ui`直下配置を0件に固定した。UIツールクラス責務台帳は18クラス、16ヘッダー、利用元56ソースを
-  記録する。
-- `kritaui`、`TestApplicationWorkspaceToolUiPublicHeaders`、`kis_derived_resources_test`、
-  `kis_view_signals_test`はmacOSで成功した。clangdのinclude-cleaner検査は移設した全36翻訳単位で
-  不要includeと直接include不足を報告していない。
-- `nix develop .#test --command ./scripts/verify-quick`は104件の運用試験と全統治検査に成功した。
-- `libs/ui`直下の台帳外候補は、入出力表示の`KisImportExport*`、事象接続の
-  `KisLongPressEventFilter.*`と`KisMouseClickEater.*`、表示構成とOS接続の`KisUiFont.*`、
-  `thememanager.*`、`osx.*`、ツール・資源表示の`KisPresetShadowUpdater.*`、`kis_control_frame.*`、
-  `kis_custom_pattern.*`、`kis_derived_resources.*`、`kis_favorite_resource_manager.*`、
-  `kis_filters_model.*`、`kis_popup_palette.*`、文書・図形接続の`KisSelectedShapesProxy.*`と
-  `KisUndoActionsUpdateManager.*`、共有UI接続面と補助処理の残りで構成される。
-
-## R1-G6g UI root残存配置境界で完了した作業
-
-- `libs/ui`直下の台帳外43ファイルを現在責務へ配置した。入出力表示2ファイルは
-  `libs/ui/impex`、事象接続13ファイルは`libs/ui/events`、テーマ表示4ファイルは
-  `libs/ui/theme`、macOS接続3ファイルは`libs/ui/platform`、資源表示17ファイルは
-  `libs/ui/resources`、図形選択接続2ファイルは`libs/ui/flake`、履歴アクション接続2ファイルは
-  `libs/ui/actions`が所有する。全開始パスと宛先パスは
-  `docs/architecture/remaining-ui-root-relocations.json`が一対一で記録する。
-- `libs/ui`直下には`CMakeLists.txt`と`kritaui_export_instance.h`の2ファイルが存在する。
-  前者は`kritaui`の構築定義を、後者はターゲット公開テンプレート記号の設定を所有する。
-  再配置検査は旧開始パスの消滅、全宛先の実在、責務ディレクトリー、CMake登録、rootの
-  正確な2ファイルを継続確認する。
-- `KisPopupWidgetInterface.h`、`KisUiFont.h`、`kis_cursor_override_hijacker.h`、
-  `kis_favorite_resource_manager.h`、`kis_popup_palette.h`の公開面は責務別の正規入れ子経路を持つ。
-  `TestRemainingUiRootPublicHeaders`が5ヘッダーを一つの利用翻訳単位として構築する。
-- `libs/ui/resources/kis_md5_generator.cpp`は宣言ヘッダー、利用元、CMake登録が存在せず、
-  存在しない`kis_md5_generator.h`をincludeする孤立実装である。再配置台帳は現在の非構築状態を
-  `resource-presentation`所有、R1-G7追跡、最大1ファイル、宣言と実利用を確立した登録または
-  未利用実装の除去を完了条件とする審査済み例外へ固定する。
-- `kritaui`、`TestRemainingUiRootPublicHeaders`、`kis_derived_resources_test`はmacOSで成功した。
-  clangdのinclude-cleaner検査はCMake登録された移設先20翻訳単位で不要includeと直接include不足を
-  報告していない。`kis_md5_generator.cpp`のテキスト監査は欠落宣言ヘッダー1件、利用元0件、
-  CMake参照0件という現在状態を確認した。
-- `nix develop .#test --command ./scripts/verify-quick`は全運用試験と統治検査に成功した。
-
-## R1-G6gアプリケーション・作業空間include境界で完了した作業
-
-- `libs/ui/application/KisApplication.cpp`、`KisPart.cpp`、`kis_action_manager.cpp`と、
-  `libs/ui/workspace/KisMainWindow.cpp`、`KisView.cpp`、`KisViewManager.cpp`、
-  `kis_statusbar.cc`から、記号利用を持たない35件のincludeを除去した。
-- `KisApplication.cpp`は`KoGamutMask.h`と`KisSeExprScript.h`を直接参照する。
-  完全型を必要とする`KisPlaybackEngine.h`、`KisToolBarStateModel.h`、`kis_selection.h`も
-  各利用翻訳単位から直接参照する。
-- アプリケーション調整から描画への確認済み逆方向includeは、`filter/kis_filter.h`、
-  `generator/kis_generator.h`、`brushengine/kis_paintop_settings.h`の3件を解消し、
-  1責務対75件から72件へ縮小した。未確定射影0件とターゲット循環0件を維持する。
-- `kritaui`、`TestApplicationWorkspaceToolUiPublicHeaders`、`kis_view_signals_test`は
-  macOSで成功した。変更した7翻訳単位の差分はinclude行に限定される。
-  `nix develop .#test --command ./scripts/verify-quick`は104件の運用試験と全統治検査に成功した。
-
-## R1-G6gアプリケーション・作業空間include境界の第2単位で完了した作業
-
-- アプリケーション調整から描画への72件を、公開ヘッダーの画像型参照7件、
-  `KisApplication.cpp`の起動時レジストリー登録13件、文書・表示操作52件へ分類した。
-- `libs/ui/application/KisPart.h`、`libs/ui/workspace/KisView.h`、`KisViewManager.h`、
-  `kis_statusbar.h`は、公開関数で使用する画像共有ポインター型を前方宣言する。
-  `libs/ui/workspace/kis_preference_set_registry.h`はUI設定画面の登録型だけを宣言する。
-- `libs/impex/animation/KisFFMpegWrapper.cpp`はファイル入出力診断を宣言する
-  `kis_debug.h`を直接includeする。公開ヘッダーからの推移的な宣言に依存しない。
-- 確認済み逆方向includeは1責務対67件となり、公開ヘッダー型参照2件、起動時
-  レジストリー登録13件、文書・表示操作52件を持つ。公開ヘッダーの2件は、ノード追加
-  フラグ値と作業空間資源の設定基底型を宣言する。未確定射影0件とターゲット循環0件を維持する。
-- `kritaui`、`krita`、`TestApplicationWorkspaceToolUiPublicHeaders`、
-  `kis_view_signals_test`はmacOSで成功した。公開面台帳は`kis_types.h`の利用元を同期し、
-  変更した5公開ヘッダーと1翻訳単位のclangd include-cleaner検査は不要includeと直接include不足を
-  報告していない。`nix develop .#test --command ./scripts/verify-quick`は104件の運用試験と
-  全統治検査に成功した。
-
-## R1-G6g起動時描画登録所有境界で完了した作業
-
-- 起動時の組込み描画資源登録を次の開始ファイルと所有先へ対応させた。
-  - `libs/ui/application/KisApplication.cpp`のペイントプリセットローダー定義から
-    `libs/image/brushengine/kis_paintop_registry.{h,cc}`の`registerResourceLoader()`。
-  - 同ファイルのGBR、GIH、SVG、PNGブラシローダーと優先度10のブラシメタデータ修復登録から
-    `libs/brush/kis_brush_registry.{h,cpp}`の`registerResourceLoaders()`と
-    `registerResourceCacheFixup()`。
-  - 同ファイルのPSDレイヤースタイルローダー定義から
-    `libs/image/kis_psd_layer_style.{h,cpp}`の`registerResourceLoader()`。
-- `libs/ui/application/KisApplication.cpp`のフィルター、生成器、ペイント操作、メタデータの
-  レジストリー起動は、`libs/koplugin/KoPluginLoader.{h,cpp}`が所有する既存サービス読込面を使う。
-  サービス順序、プラグインの具体レジストリー、プロセス寿命、診断経路を維持する。
-- 資源ローダーの副種別、資源種別、表示名、MIME型、ブラシ修復優先度と登録順序を維持した。
-  `libs/image/tests/TestBuiltInResourceLoaderRegistration.cpp`はペイントプリセット、4ブラシ形式、
-  PSDレイヤースタイルを各MIME型から解決する契約を固定する。
-- `KisApplication.cpp`の描画所有ヘッダーは13件から4件となった。確認済み逆方向includeは
-  1責務対67件から58件へ縮小し、未確定射影0件、製品ターゲット循環0件を維持する。
-- `filter/kis_filter_configuration.h`と`kis_meta_data_io_backend.h`の直接利用を持たないincludeを
-  除去した。変更した4製品翻訳単位と契約試験のinclude-cleaner検査は、直接利用する宣言を各所有者の
-  正規ヘッダーから解決する。
-- macOSで`krita`、`TestBuiltInResourceLoaderRegistration`、
-  `TestApplicationWorkspaceToolUiPublicHeaders`、`kis_filter_registry_test`の構築と試験に成功した。
-  `nix develop .#test --command ./scripts/verify-quick`は104件の運用試験と全統治検査に成功した。
-
-## R1-G6gアクション有効状態所有境界で完了した作業
-
-- `libs/ui/application/kis_action_manager.cpp`にあった画像アニメーション有無の取得を
-  `libs/ui/document/KisDocument.{h,cpp}`の`hasAnimation()`へ配置した。
-- 同じ開始ファイルにあった活動ノードの存在、レイヤー型、継承型、編集可否、編集可能な
-  ペイントデバイス有無の取得を`libs/ui/nodes/kis_node_manager.{h,cpp}`へ配置した。
-  アクション管理は所有者から得た値を既存の順序で起動フラグと起動条件へ合成する。
-- `libs/ui/application/kis_action_manager.cpp`から`kis_layer.h`と
-  `kis_image_animation_interface.h`の直接includeを除去し、`nodes/kis_node_manager.h`を追加した。
-  確認済み逆方向includeは58件から56件へ縮小し、未確定射影0件、製品ターゲット循環0件を維持する。
-- `libs/ui/tests/kis_action_manager_test.cpp`は活動ノード未設定時とペイントレイヤー起動後の
-  `ACTIVE_LAYER`契約を検査する。macOSで`KisActionManagerTest`の構築に成功した。
-  CTest登録はbroken指定で除外され、直接実行は表示初期化中の既存SIGSEGVを再現する。
-- 変更した4翻訳単位のclangd include-cleaner検査は不要includeと直接include不足を報告していない。
-- `KisDocument.cpp`は最大3027行、`kis_node_manager.cpp`は最大1763行の審査済みソース行数例外を持つ。
-  R1-G6hの文書・画像構成とノード・画像調整の所有分割が各ファイルを標準最大値へ縮小し、例外を完了する。
-
-## R1-G6gアプリケーション共有サービス所有境界で完了した作業
-
-- アプリケーション調整にあった描画状態の取得と共有サービス接続を、次の開始ファイルと所有先へ
-  対応させた。
-  - `libs/ui/application/KisApplication.cpp`のアニメーション書出し範囲取得から
-    `libs/ui/dialogs/KisAsyncAnimationFramesSaveDialog.{h,cpp}`の文書再生範囲を使う生成経路。
-  - `libs/ui/application/KisPart.cpp`のテンプレート層名変換から
-    `libs/ui/document/KisDocument.h`と`libs/ui/document/KisDocumentTemplate.cpp`の
-    `translateTemplateRootLayerName()`。
-  - 同じ開始ファイルの優先キャッシュ範囲判定から
-    `libs/ui/animation/kis_animation_cache_populator.cpp`の優先要求受付。
-  - 同じ開始ファイルの画像待機表示コールバック登録から
-    `libs/ui/dialogs/kis_delayed_save_dialog.{h,cpp}`の`registerBusyWaitFeedback()`。
-  - 同じ開始ファイルのアイドル時メモリー統計接続から
-    `libs/image/kis_idle_watcher.{h,cpp}`の`connectMemoryStatisticsUpdates()`。
-- アニメーション書出し範囲、優先キャッシュの再生範囲、テンプレートのルートレイヤー名、強制待機表示、
-  アイドル時メモリー統計更新の順序と寿命を維持する。アプリケーション調整から描画への
-  確認済み逆方向includeは56件から48件へ縮小し、未確定射影0件、製品ターゲット循環0件を維持する。
-- `libs/ui/tests/kis_animation_exporter_test.cpp`は書出しダイアログが画像の文書再生範囲を使う経路を
-  検査する。`libs/ui/tests/KisDocumentReplaceTest.cpp`はテンプレート辞書によるルートレイヤー名変換を検査する。
-- 変更した9翻訳単位はmacOSの製品コンパイル条件でコード生成に成功した。include-cleaner監査は
-  未使用include 21件を除去し、`QMap`、標準アルゴリズム、排他制御、所有権、関数、キューの
-  直接includeを追加した。更新した実装オブジェクトを既存ライブラリーへ個別リンクした
-  `KisDocumentReplaceTest::testTemplateRootLayerNameTranslation`と
-  `KisAnimationExporterTest::testAnimationExport`は成功した。`verify-quick`は方針試験104件、
-  生成台帳、依存方向、製品ターゲット循環、ソース行数、文書と図の検査に成功した。
-
-## R1-G6gキャンバス状態表示所有境界で完了した作業
-
-- `libs/ui/workspace/kis_statusbar.h`を`libs/ui/canvas/kis_statusbar.h`、
-  `libs/ui/workspace/kis_statusbar.cc`を`libs/ui/canvas/kis_statusbar.cc`へ移した。
-  `KisStatusBar`は画像寸法、選択範囲、色プロファイル、メモリー使用量、キャンバス回転の
-  表示と利用者操作との接続をキャンバス表示配置で所有する。
-- `kritaui`のCMake所有、公開クラス名、公開記号、所有寿命を維持し、製品と公開ヘッダー試験の
-  10 include経路を`canvas/kis_statusbar.h`へ同期した。キャンバス表示再配置台帳は
-  14アニメーションファイルと55キャンバスファイル、アプリケーション・作業空間・ツール
-  再配置台帳は20アプリケーションファイル、44作業空間ファイル、8ツールファイルを記録する。
-- UIクラス責務台帳は`KisStatusBar`をキャンバス・表示へ分類し、キャンバス・表示31クラス、
-  ウィンドウ・作業空間16クラスを記録する。アプリケーション調整から描画への確認済み
-  逆方向includeは48件から42件へ縮小し、未確定射影0件、製品ターゲット循環0件を維持する。
-- 変更した11翻訳単位はmacOSの製品コンパイル条件でコード生成に成功した。
-  clangd include-cleaner監査は未使用includeと直接include不足が0件であることを確認した。
-  更新した公開ヘッダー試験オブジェクトを既存ライブラリーへ個別リンクした
-  `TestCanvasUiPublicHeaders`は3件すべて成功した。移設後の実装は474行、公開ヘッダーは135行で、
-  ソース行数検査の標準最大値内にある。
-- `verify-quick`は方針試験104件、生成台帳、依存方向、製品ターゲット循環、ソース行数、
-  文書と図の検査に成功した。
-
-## R1-G6gメインウィンドウ画像状態所有境界で完了した作業
-
-- `libs/ui/workspace/KisMainWindow.cpp`にあった描画状態の取得と操作を、次の開始箇所と
-  具体所有へ接続した。
-  - 画像設定変更通知から`libs/ui/dialogs/KisDlgPreferencesNotifications.cpp`。
-  - ルートノード設定更新とノード選択アクション生成から
-    `libs/ui/nodes/KisNodeManagerImageState.cpp`。
-  - 画像の存在と名前、アニメーション長・範囲・フレーム率、投影更新待機から
-    `libs/ui/document/KisDocumentImageState.cpp`。
-  - 保存済みアニメーション書出し設定読込から
-    `libs/impex/animation/KisAnimationRenderingOptions.cpp`。
-- 設定通知の順序と全ビュー走査条件、ノード選択アクションの走査順、動画取込の現在長診断、
-  範囲拡張条件、フレーム率設定、投影完了待機、描画再実行の設定キーを維持した。
-  clangd監査で直接利用0件を確認した`KisMainWindow.cpp`の`krita_utils.h`も除去した。
-- アプリケーション調整から描画への確認済み逆方向includeは42件から36件へ縮小した。
-  未確定射影0件、製品ターゲット循環0件を維持する。
-- 変更した製品翻訳単位と契約試験はmacOSの製品コンパイル条件でコード生成に成功した。
-  clangd include-cleaner監査は未使用includeと直接include不足が0件であることを確認した。
-  更新した実装オブジェクトを既存ライブラリーへ個別リンクした
-  `KisDocumentReplaceTest::testImageStateDelegation`は成功した。
-- `KisMainWindow.cpp`は3354行、`kis_node_manager.cpp`は1763行、
-  `kis_dlg_preferences.cc`は3327行、`KisDlgAnimationRenderer.cpp`は1089行で、
-  各審査済みソース行数上限以内にある。新しい具体所有実装3件は各標準最大値内にある。
-- `verify-quick`は方針試験104件、生成台帳、依存方向、製品ターゲット循環、ソース行数、
-  文書と図の検査に成功した。
-
-## R1-G6g作業ビュー画像状態所有境界で完了した作業
-
-- `libs/ui/workspace/KisView.cpp`にあった画像状態の取得、信号接続、画像編集を、次の開始箇所と
-  具体所有へ接続した。
-  - 画像信号接続、表示準備、浮動小数点色深度判定から
-    `libs/ui/canvas/KisCanvasImageState.cpp`と`libs/ui/canvas/kis_canvas2.h`。
-  - 色ドロップルーティングから`libs/ui/canvas/KisCanvasColorDrop.cpp`の
-    塗りつぶしストローク。
-  - 内部ノード、画像、URL、参照画像のドロップ処理から
-    `libs/ui/document/KisImageManagerDrop.cpp`と`libs/ui/document/kis_image_manager.{h,cc}`。
-  - 現在レイヤー、マスク、選択範囲、ノード除去後の選択先取得から
-    `libs/ui/nodes/KisNodeManagerImageState.cpp`。
-  - 画像メモリー統計取得と更新通知接続から`libs/ui/document/KisDocumentImageState.cpp`。
-- ドロップ操作の選択肢、修飾キー、塗りつぶしジョブと取り消し命令の順序、画像とノードの
-  共有寿命、ノード通知の直接接続、表示開始時の画像信号接続順、文書タイトルのメモリー表示を
-  維持した。`kis_image_manager.h`の新規操作は通常public面を使い、既存slotのメタオブジェクト面を
-  維持する。
-- アプリケーション調整から描画への確認済み逆方向includeは36件から20件へ縮小した。
-  未確定射影0件、製品ターゲット循環0件を維持する。公開ヘッダー、UIクラス責務、構造依存の
-  各台帳は新しい実利用経路を記録する。
-- 影響する10製品翻訳単位、契約試験、試験用mocはmacOSの製品コンパイル条件でコード生成に
-  成功した。clangd include-cleaner監査は未使用includeと直接include不足が0件であることを
-  確認した。
-  更新した実装オブジェクトを既存ライブラリーへ個別リンクした
-  `KisDocumentReplaceTest::testImageStateDelegation`は3件すべて成功した。
-- `KisView.cpp`は857行となり、標準ソース行数上限内にある。
-  `kis_canvas2.cpp`は1720行、`kis_node_manager.cpp`は1763行を維持し、新しい責務別翻訳単位3件は
-  各標準最大値内にある。
-- `verify-quick`は方針試験104件、生成台帳、依存方向、製品ターゲット循環、ソース行数、
-  文書と図の検査に成功した。
-
-## R1-G6g作業ビュー管理画像状態所有境界で完了した作業
-
-- `libs/ui/workspace/KisViewManager.cpp`にあった描画状態の取得と資源初期化を、次の開始箇所と
-  具体所有へ接続した。
-  - キャンバス資源変換器、更新仲介、活動資源依存の初期化から
-    `libs/ui/canvas/kis_canvas_resource_provider.{h,cpp}`。
-  - 画像進捗表示登録、画像取り消し接続取得、読取障壁ロック中の文書複製から
-    `libs/ui/document/KisDocument.h`と`libs/ui/document/KisDocumentImageState.cpp`。
-  - 活動ノード動画判定と活動レイヤー選択マスク編集可否判定から
-    `libs/ui/nodes/kis_node_manager.h`と`libs/ui/nodes/KisNodeManagerImageState.cpp`。
-- 資源変換器と依存の登録順、進捗表示の借用寿命、画像信号接続順、複製前の操作完了待機、
-  読取障壁ロック、文書保管場所の作成、取り消し接続、活動選択の判定を維持した。
-  `KisViewManager.cpp`の`kis_paint_layer.h`直接includeを除去した。
-- `KisViewManager.cpp`から描画所有ヘッダー10件への直接includeを除去した。アプリケーション調整から
-  描画への確認済み逆方向includeは20件から10件へ縮小し、未確定射影0件、製品ターゲット循環0件を
-  維持する。
-- 変更した4製品翻訳単位と1契約試験はmacOSの製品コンパイル条件でコード生成に成功した。
-  clangd include-cleaner監査は未使用includeと直接include不足が0件であることを確認した。
-  `KisDocumentReplaceTest::testImageStateDelegation`と`KisDerivedResourcesTest`は各3件すべて成功した。
-- `KisViewManager.cpp`は1643行となり、審査済みソース行数上限を同じ値へ縮小した。
-  具体所有へ接続した3実装は各標準最大値内にある。
-- `verify-quick`は方針試験104件、生成台帳、依存方向、製品ターゲット循環、ソース行数、
-  文書と図の検査に成功した。
-
-## R1-G6g起動資源・共有監視所有境界で完了した作業
-
-- `libs/ui/application/KisApplication.cpp`にあった組込み描画資源登録を、次の所有先へ接続した。
-  - ペイントプリセットとブラシローダー登録から
-    `libs/ui/canvas/kis_canvas_resource_provider.{h,cpp}`の組込み描画資源登録。
-  - PSDレイヤースタイルローダー登録から同じ所有先のレイヤースタイル資源登録。
-  - ブラシメタデータ修復登録から同じ所有先のブラシキャッシュ修復登録。
-- `libs/ui/application/KisPart.cpp`の共有状態を、次の所有先へ接続した。
-  - システム色管理初期化から`libs/ui/canvas/KisDisplayConfig.{h,cpp}`の表示色管理初期化。
-  - アプリケーション単位アイドル監視から
-    `libs/ui/animation/kis_animation_cache_populator.{h,cpp}`の文書画像追跡とキャッシュ生成通知。
-- 組込みローダーと修復処理の登録位置、資源種別、MIME型、優先度、色管理singletonの生成時機、
-  アイドル監視の生成・破棄順、文書画像追跡、メモリー統計通知、公開監視ポインターを維持した。
-- アプリケーション調整から描画への確認済み逆方向includeは10件から5件へ縮小した。
-  未確定射影0件と製品ターゲット循環0件を維持する。公開ヘッダー台帳は描画資源登録と
-  アイドル監視の実利用経路を各具体所有へ同期する。
-- 変更した5製品翻訳単位と2契約試験はmacOSの製品コンパイル条件でコード生成に成功した。
-  clangd include-cleaner監査は未使用includeと直接include不足が0件であることを確認した。
-  更新したキャンバス資源所有実装を既存ライブラリーへ個別リンクした
-  `TestApplicationPaintingResourceRegistration`は3件すべて成功した。
-- `verify-quick`は方針試験104件、生成台帳、依存方向、製品ターゲット循環、ソース行数、
-  文書と図の検査に成功した。
-
-## R1-G6g残存設定・セッション・作業空間表示所有境界で完了した作業
-
-- 残存する共有値型と一時ファイル方針を、次の開始ファイルと所有先へ対応させた。
-  - `libs/image/KisNodeAdditionFlags.h`から`libs/global/KisNodeAdditionFlags.h`へ、
-    ノード追加通知の値フラグを移した。
-  - `libs/painting/undo/KisCumulativeUndoData.{h,cpp}`から
-    `libs/global/KisCumulativeUndoData.{h,cpp}`へ、取り消し統合の設定値を移した。
-  - `libs/image/kis_image_config.{h,cpp}`の一時ファイルとswap配置方針から
-    `libs/global/KisTemporaryFileConfiguration.{h,cpp}`へ、書込み可能な配置解決を移した。
-    `libs/ui/application/kis_config.cc`と画像設定は同じ具体方針を利用する。
-- `libs/ui/workspace/KisSessionResource.cpp`のビュー表示状態は、同ファイルの値地図直列化と
-  `libs/ui/workspace/KisView.{h,cpp}`の表示状態取得・復元へ接続した。作業空間表示資源は
-  `libs/ui/workspace/kis_workspace_resource.{h,cpp}`から
-  `libs/canvas/workspace/kis_workspace_resource.{h,cpp}`へ移した。
-- `kritaworkspacepresentation`は作業空間表示資源を`canvas-presentation`責務で所有する。
-  `kritaui_EXPORTS`で生成したオブジェクトを`kritaui`へ組み込み、既存の`KRITAUI_EXPORT`公開記号、
-  型名、ABIを維持する。`kritaui`から色、画像、ブラシ、描画の各ターゲットへの直接リンクを解消した。
-- 取り消し統合の設定キーと既定値、一時ファイル設定キーと既定・代替配置、セッションと作業空間の
-  XML形式、Qt信号引数、ノード追加通知を維持する。`KisConfigurationValueTypesTest`は設定値と配置方針、
-  `KisWorkspacePersistenceTest`は作業空間とセッションの直列化往復を固定する。
-- アプリケーション調整から描画への確認済み逆方向includeと審査済み上限は各0件である。
-  未確定射影は0件であり、26中核ターゲットとmacOS 226件、Linux 232件、iOS 218件、
-  Android 218件、Windows 235件の製品ターゲットは各構成で循環0件である。
-- macOSで`kritaimpexui`、`kritaworkspacepresentation`、`kritaui`の構築に成功した。
-  `KisConfigurationValueTypesTest`、`KisWorkspacePersistenceTest`、
-  `TestApplicationWorkspaceToolUiPublicHeaders`、`TestKUndo2Stack`はすべて成功した。
-  clangdのinclude-cleaner監査により、変更した翻訳単位の未使用includeを除去し、実利用する
-  所有ヘッダーを各利用元から直接参照する。
-- 固定Nix環境の`./scripts/verify-quick`は105件の運用試験、生成台帳、依存方向、
-  製品ターゲット循環、移設元消滅、移設先実在、CMake所有、ソース行数、文書と図の検査に成功した。
-
-## 次の操作
-
-`kritainputui`を独立共有ライブラリーとして構築し、入力表示の公開記号を利用する製品ターゲットを
-`kritainputui`へ直接接続する。5構成のCMake台帳は共有ライブラリーの実体と循環0件を記録する。
-
-## R1-G5完了根拠
-
-- 9責務すべてが現行所有者、目標ディレクトリー、名前空間、主ターゲット、許可依存、
-  完了条件を持つ。
-- 8移行段階が許可依存の下位から上位へ並び、新規ターゲットを一度だけ作成する。
-- 11の一時互換経路が導入段階、最大範囲、R1-G7の削除条件、検証方法を持つ。
-- 8種類305件の逆方向includeと44ヘッダー627件の内部参照が各段階で一度だけ処理され、
-  最終上限がゼロになる。
-- 最初のR1-G6aが移動元、移動先、必要な契約、基準縮小、完了条件、中止条件を持つ。
-- 計画検査が責務・依存・構造基準と5構成の実体を照合し、DarwinとLinuxの独立検査で
-  同じ結果になる。
-
-## R1-G4完了根拠
-
-- 確認済み8責務対が全305件の直接includeと元のCMake辺へ対応付く。
-- 各違反が理由、所有段階、審査済み上限、除去条件を持つ。
-- 共有ターゲットによる6射影が実責務へ帰属し、未確定射影が0件になる。
-- 中核15ターゲットと全製品構築ターゲットが5構成すべてで循環0件を維持する。
-- 公開宣言を持たない44ヘッダー、627件のパッケージ外参照が審査済み上限を持つ。
-- 違反増加、根拠変更、上限縮小を高速検査で診断できる。
-- 5構成の実体、許可依存方針、逆方向依存、射影解決、循環、内部ヘッダー基準の一致を
-  同時検証できる。
+- 開始コミット: `a5b4d0346c`。R2-G19g完了時点の作業ツリーは変更なし。
+- 目的: 動的センサー工場が公開引数で使う共通曲線設定型を、より広い派生設定ヘッダーから得るために生じた構築依存を除去する。工場2実装、取込み縮小で露出する直接利用者`KisDynamicSensorFactoryRegistry.h`、`kritapaintopdynamicsensorfactoryobjects`を範囲とし、テストソースと工場APIは変更しない。
+- 調査: `direnv exec . build-incremental native plan kritapaintopdynamicsensorfactoryobjects`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。対象は現在、Boost、Eigen、KDE翻訳、Qt Core・Xml、全体IDオブジェクト、lagerと全体基盤・画像の取込みディレクトリーを要求するが、実装の利用は`QString`、`Q_UNUSED`、`lager::cursor`、`QWidget`ポインターに限られる。
+- 完了: `KisDynamicSensorFactory.h`は広い`KisCurveOptionData.h`を、値渡しする`lager::cursor`が実体化に必要とする`KisCurveOptionDataCommon.h`へ置き換え、`QString`、lager、公開記号の所有ヘッダーを直接取り込む。完全型を前方宣言へ縮める案は既存工場契約の初回構築診断で利用者側の実体化に完全型が必要と確認し、公開APIを維持するため採用しなかった。単純工場は`Q_UNUSED`の所有ヘッダーを直接取り込む。工場登録簿は工場ヘッダーから偶然得ていた`KoID`と`QString`を直接取り込む。
+- 完了: `kritapaintopdynamicsensorfactoryobjects`は不要な全体基盤・画像の輸出定義と取込みディレクトリー、Boost、Eigen、KDE翻訳、Qt Xml、全体ID対象の列挙を除去した。公開依存はQt Core、lager、実際の引数型を所有する`kritapaintopcurveoptiondatacommonobjects`に限定した。
+- 検証: `direnv exec . build-incremental native build kritapaintopdynamicsensorfactoryobjects`と`kritalibpaintop`は成功し、macOSパッケージ境界1723対象を確認した。`direnv exec . run-test KisDynamicSensorFactoryContractTest`と`KisSimpleDynamicSensorFactoryContractTest`は各1件成功した。`direnv exec . ./scripts/verify-quick`は45個の方針試験、10責務、533公開ヘッダー、172プラグイン登録、文書・リンク・図を含めて成功した。
+- 残るリスク: 共通曲線設定型そのものが要求するBoost、Eigen、翻訳、全体ID、画像取込みは、この工場APIの値渡し署名を維持する限り公開構築要件となる。Qt 5と対象OSの実行確認はR2-G19dへ引き渡す。
+- 次の作業: `plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcoloroptionmodelobjects`を次の有限な監査単位とし、色オプションモデル1実装の所有ヘッダーと直接依存を測定する。
+- 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
+- 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
+- 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。
+- 完了: `kritapaintopruntime`は、全体基盤、画像、ブラシ、描画、undo、色、資源、Qt Core・Gui・Widgets・Xml、KDE翻訳、Boostを公開利用要件として直接列挙した。オブジェクトを利用する`kritalibpaintop`のリンクまで成功し、集約対象の推移的リンク閉包へ依存しない構築経路を確認した。
+- 検証: `direnv exec . build-incremental native build kritapaintopruntime`と`kritalibpaintop`は成功し、macOSパッケージ境界1723対象を確認した。`run-test`で`kis_paintop_test`、`kis_linked_pattern_manager_test`、`KisTextureOptionDataIOContractTest`、`KisTextureOptionLodContractTest`は各1件成功し、`libpaintop`の残る29件も成功した。`direnv exec . ./scripts/verify-quick`は45個の方針試験、10責務、533公開ヘッダー、172プラグイン登録、文書・リンク・図を含めて成功した。完全native検査は対象を含む878件が成功し、変更外の`KisSafeDocumentLoaderTest`だけが並列時に通知数1対2で失敗した。同試験は直後の単独再実行で19.50秒・1件成功し、再度の並列実行では同じ競合を再現した。
+- 残るリスク: `KisSafeDocumentLoaderTest`の並列競合は今回のテスト固定方針により変更せず、後続の試験安定化対象として引き渡す。実行検証はmacOS・Qt 6.11.1であり、Qt 5、Linux、Windows、AndroidはR2-G19dの対象である。`kritapaintopruntime`以外の`libpaintop`オブジェクト対象と設定UI実装は未監査である。
+- 次の作業: `plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopdynamicsensorfactoryobjects`を次の有限な監査単位とし、2実装の所有ヘッダーと直接依存を測定する。
+- 目的: 画像ノード、画素ブラシ、複製paint-op、グラデーションツールの実装が、別ヘッダーや別CMake対象の推移的依存から型・記号・リンク対象を得る状態を解消する。既存の利用者向け試験は固定し、実装側の所有者だけを明示する。
+- 範囲固定: `libs/image/kis_node.h`・`libs/image/kis_node.cpp`、`plugins/paintops/defaultpaintops/brush/KisDabRenderingQueue.h`・`KisDabRenderingQueue.cpp`、`plugins/paintops/defaultpaintops/duplicate/kis_duplicateop.h`・`kis_duplicateop.cpp`・`kis_duplicateop_settings.h`・`kis_duplicateop_settings.cpp`、`plugins/tools/basictools/kis_tool_gradient.h`・`kis_tool_gradient.cc`を、各ファイルが使う標準・Qt・製品型の所有ヘッダーへ直接接続する。対応する`kritapixelbrush`、`kritadefaultpaintops_static`、`kritadefaulttools_static`のCMake依存を直接記載する。テストソース、公開動作、保存形式は変更しない。
+- 完了: `kis_node`は`QList`、標準`optional`、型登録、既定境界、レイヤー、ポインター変換、投影更新フラグの所有ヘッダーを直接取り込む。`KisDabRenderingQueue`は標準探索・数値上限、Qt削除補助、固定描画装置、共有型と色空間宣言を直接取り込む。複製paint-opは標準オプション、描画情報、合成ID、均一プロパティ、設定、ポインター変換の所有ヘッダーへ接続し、設定画面経由の取込み、重複取込み、未使用宣言を除去した。グラデーションツールは値型、ツール工場、翻訳、画像signal、既定境界、描画装置、undo表示名の所有ヘッダーへ接続し、数学関数を標準名前空間から使う。
+- 完了: `plugins/paintops/defaultpaintops/CMakeLists.txt`の`kritapixelbrush`と`kritadefaultpaintops_static`は、画像、全体基盤、ブラシ、色、paint-op、描画、Qt、翻訳の利用対象を直接列挙した。`plugins/tools/basictools/CMakeLists.txt`の`kritadefaulttools_static`は、キャンバス、画像、資源、部品、Qt、KDE Frameworksの利用対象を直接列挙した。公開ヘッダーが必要とする依存と実装専用依存を分け、誤っていた資源UI対象名は既存CTestのリンク診断から`kritaresourceui`へ修正した。
+- 検証: `direnv exec . build-incremental native build kritapixelbrush`、`kritadefaultpaintops_static`、`kritadefaulttools_static`は成功し、各回のmacOSパッケージ境界検査は1723対象を確認した。`direnv exec . run-test KisDabRenderingQueueTest`、`kis_node_test`、`MoveSelectionStrokeTest`は各1件成功した。`direnv exec . ./scripts/verify-quick`は45個の方針試験、10責務、533公開ヘッダー、172プラグイン登録、文書・リンク・図を含めて成功した。`direnv exec . ./scripts/verify`はnative CTest 879件を300.89秒で全件成功した。
+- 残るリスク: 実行検証はmacOS・Qt 6.11.1であり、Qt 5、Linux、Windows、Androidの実行確認はR2-G19dへ引き渡す。今回の完了範囲外にある実装ファイルとCMake対象の推移的依存は未監査である。
+- 範囲固定: ブラシプリセット設定群は、`plugins/paintops/libpaintop/tests/CMakeLists.txt`で実際の`KisCurveOptionData`・`KisKritaSensorPack`の保存・復元へ直接つながるデータ試験に限定した。`KisCurveOptionDataCommonContractTest.cpp`、`KisCurveOptionDataContractTest.cpp`、`KisKritaSensorPackContractTest.cpp`、`KisSizeOptionDataContractTest.cpp`、`KisMirrorOptionDataContractTest.cpp`、`KisSharpnessOptionDataContractTest.cpp`、`KisScatterOptionDataContractTest.cpp`、`KisSpacingOptionDataContractTest.cpp`、`KisPrefixedOptionDataWrapperContractTest.cpp`の監査を完了した。曲線・標準値・旧センサー・ミラー・シャープネス・散布・間隔の保存結果は既存または新設の実設定試験へ維持・統合し、構築既定値、内部ポインター、演算の写し、偽の設定ストアだけを固定する試験は削除した。`KisAirbrushOptionDataContractTest.cpp`、`KisColorOptionDataContractTest.cpp`、`KisColorSourceOptionDataContractTest.cpp`、`KisCompositeOpOptionDataContractTest.cpp`、`KisPaintingModeOptionDataContractTest.cpp`、`KisFilterOptionDataContractTest.cpp`は共通曲線・センサー保存経路を共有しないため、所有実装を変更するときに監査する後続対象とする。
+- 完了: 意味論を持たないSchema試験8件を削除した。角度選択APIは列挙値の順序からスクリプト文字列変換を分離した。ガイドと格子の設定は線種から描画ペンへの変換とXML往復へ統合し、Qt 6.4以降で色を復元できなかった不具合を修正した。マウスボタンから前景・背景色への対応試験は振る舞いを表す名称へ変更した。契約試験への型特性、コンパイル時形状検査、完全署名別名の再追加を拒否し、明示的な互換性試験には利用者と維持対象の記載を要求する高速検査を追加した。
+- 完了: `KisToolSelectUiBaseSchemaContractTest.cpp`は、選択ツールの利用側が列挙値の整数値へ依存せず、設定は`sampleAllLayers`などの文字列で保存され、既存の`TestToolSettingsUiContract`が設定の往復結果を検証していることを確認した。利用者向け結果を持たない専用Schema試験と、その専用CTest・広いinclude・compile definition・UI生成定義を削除した。
+- 完了: PSD書出しの内部オフセット構造体を固定する`PSDLayerRecordSchemaContractTest.cpp`を削除した。PSD保存後の再読込、画素結果、透明マスクは既存の`kis_psd_test`が検証する。
+- 完了: 入力プロファイルは操作種別を16進数の数値で保存するため、`KisToolInvocationActionSchemaContractTest.cpp`を`KisToolInvocationActionCompatibilityTest.cpp`へ置き換えた。保存済みのTool InvocationおよびAlternate Invocationの各modeが、設定画面で同じ操作名へ解決されることを検証する。
+- 完了: 移動ストロークの内部ジョブデータを確認していた`KisFilterStrokeStrategySchemaContractTest.cpp`を、`MoveStrokeStrategyContractTest.cpp`へ置き換えた。レイヤーのドラッグ完了時の移動量と、途中取消後の位置復元を実際のストロークで検証する。
+- 完了: `KisPNGConverterSchemaContractTest.cpp`のオプション構造体既定値・コピー検査を削除した。既存のPNG実行試験から、HDR画素、CICP/ICCプロファイル、旧HDRプロファイルの読込結果を通常のCTestとして実行する。
+- 完了: `KisDlgImportVideoAnimationSchemaContractTest.cpp`を`KisVideoFrameImportContractTest.cpp`へ置き換えた。連番フレームと重複除去後フレームが、それぞれ連番配置とタイムスタンプ配置を選ぶ状態を検証する。
+- 完了: `KisFFMpegWrapperSchemaContractTest.cpp`を`KisFFMpegWrapperContractTest.cpp`へ置き換えた。外部エンコーダーの成功・失敗について、戻り値、signal、診断、コマンドログを検証する。
+- 完了: `KoFFWWSConverterSchemaContractTest.cpp`を`KoFFWWSConverterContractTest.cpp`へ置き換えた。SVG文字の一般フォント名が利用可能なフォント分類へ解決され、未知の名前を解決しないことを検証する。
+- 完了: `KoFontGlyphModelSchemaContractTest.cpp`を`KoFontGlyphModelCompatibilityTest.cpp`へ置き換えた。Glyph Palette QMLが使う`openType`、`glyphLabel`、`childCount`のモデルrole名を明示的な互換性要件として検証する。
+- 完了: `KoToolBaseSchemaContractTest.cpp`を削除した。ツールボックス区分は実行時に同じ定数を参照して並べ替える内部情報であり、保存形式・拡張記述子・スクリプトの互換性根拠はない。
+- 完了: `KoDocumentResourceManagerSchemaContractTest.cpp`を`KoDocumentResourceManagerContractTest.cpp`へ置き換えた。図形コントローラーが使う文書解像度とキャンバス領域の読取・変更通知、および形状ハンドルの安全な最小選択範囲を検証する。
+- 完了: `KoSvgTextEnumContractTest.cpp`を`KoSvgTextFontStretchContractTest.cpp`へ置き換えた。SVG/CSSの9種類の`font-stretch`キーワードについて、読込後の幅と再保存時のキーワードを検証する。
+- 完了: `KoSvgTextShapeMarkupConverterSchemaContractTest.cpp`を`KoSvgTextWrappingContractTest.cpp`へ置き換えた。SVGテキストの`white-space`と`inline-size`を文書編集後にも維持し、`pre-wrap`に有効な幅がない場合は`pre`へ正規化することを検証する。
+- 完了: `KoSvgTextFontSelectionValueContractTest.cpp`を削除し、既存のフォント読込試験を`KoSvgTextFontImportContractTest.cpp`へ分離した。SVGの`font-family`、幅、太さ、style、variant、装飾を解析すると、編集部品が読む解決済み文字属性へ反映されることを検証する。
+- 完了: `KoSvgTextPropertyDataContractTest.cpp`を削除し、`KisTextPropertiesManagerContractTest.cpp`へ置き換えた。段落・文字範囲の混在する選択が文字プロパティdockerの状態となり、dockerの設定・解除がSVGテキストツールの選択へ反映されることを検証する。
+- 完了: `KoSvgTextPropertiesInterfaceContractTest.cpp`を削除した。試験内の仮想呼出しとsignal順序ではなく、文字範囲選択のsignal、継承プロパティ、span状態、設定・解除の利用者向け結果を`KisTextPropertiesManagerContractTest.cpp`へ統合した。
+- 完了: `KoShapeAnchorEnumContractTest.cpp`を削除した。アンカーの位置・基準・方式の整数値は、保存形式、SVG/XML、設定、プラグイン、スクリプト、外部識別子で利用されていない。製品の利用場面も確認できないため、数値順序を固定する専用CTestを維持せず、代替試験も追加しない。
+- 完了: `KoShapeAnchorContractTest.cpp`を、図形のインライン化による位置遷移、文字位置の借用、配置戦略の置換・破棄という公開状態と寿命の契約へ縮小した。参照同一性、仮想メソッド呼出し、変更できない既定値を固定する検証は削除した。
+- 完了: `KoShapeEnumContractTest.cpp`を削除し、形状プラグインが登録したテンプレートの識別子、表示情報、作成プロパティが形状生成へ渡ることを既存の`TestKoShapeFactory`へ統合した。空初期化と浅いコピーの検証は削除した。
+- 完了: `KoShapeLoadingContextSchemaContractTest.cpp`を削除した。追加属性の値型と登録簿は、製品のSVG/XML読込、設定、プラグイン、スクリプト、外部識別子から参照されていない。文字列保持と比較演算子だけを固定する専用CTestは維持せず、代替試験も追加しない。
+- 完了: `KoShapeSavingContextSchemaContractTest.cpp`を削除した。保存オプションのビット値は、既定値を設定する実装以外で読まれず、SVG/XML、設定、プラグイン、スクリプト、外部識別子に変換されない。整数値とQtフラグ演算だけを固定する専用CTestは維持せず、代替試験も追加しない。
+- 完了: `KoShapeReorderCommandSchemaContractTest.cpp`を削除した。既存の`TestShapeReorderCommand`が、前後移動、最前面・最背面、子図形、重なり、変更不能時の結果を実際のz順序で検証している。操作種別の整数値だけを固定する専用CTestは維持しない。
+- 完了: `KoSnapGuideSchemaContractTest.cpp`を削除し、`TestSnapStrategy`へ統合した。スナップ設定は`KisSnapConfig`の真偽値として保存され、利用者が選ぶ補助線種別の整数値や内部優先度は保存形式・XML・プラグイン・スクリプト・外部識別子に使われていない。キャンバス操作では、有効化した対象がポインター位置を変え、Shiftで一時的に吸着を回避できること、同時に候補があると点への吸着が近い線への吸着より優先されることを利用結果で検証する。
+- 完了: `GimpBumpMapSchemaContractTest.cpp`を削除し、`kis_layer_style_projection_plane_test`のバンプマップ処理へ統合した。`bumpmap_vals_t`はベベル・エンボス実装だけが構築し、既定値や`BumpmapType`の整数値は保存形式、設定、プラグイン、スクリプト、外部識別子に使われていない。同じ高さマスクに対しエンボス方向を反転すると、傾斜の選択値が変化し、反対方向では明暗が反転することを画素結果で検証する。
+- 完了: `KisKeyframeChannelSchemaContractTest.cpp`を削除した。スカラー曲線の利用者はアニメーションdockerと不透明度などのキーフレーム編集であり、既存の`kis_keyframing_test`が実チャンネルへの追加と制限変更後の再生値を検証している。KRA保存のチャンネル名は互換性対象だが、既存の`kis_kra_loader_test`が保存済みアニメーションの`content`チャンネルを復元する。専用試験が固定していた範囲値型の並びと未使用の抽象プローブは維持しない。
+- 完了: `KisNodeCommandsAdapterSchemaContractTest.cpp`を削除した。専用試験は、色ラベルを参照する内部キャッシュの比較用値型とリスト所有方式だけを固定しており、ノード編集アダプターの操作結果を検証していなかった。レイヤーdocker、フィルターダイアログ、拡張機能はアダプターでノード操作を実行し、既存の`kis_node_commands_adapter_test`が追加後の表示ツリーとundo、画像再束縛、選択マスク移動後の有効状態を検証している。色ラベルの統合結果はツール内部で一時利用され、保存形式、XML、スクリプト、外部識別子としての根拠は確認されなかった。
+- 完了: `KisPaintOpUtilsSchemaContractTest.cpp`を削除し、既存の`kis_paintop_test`へ利用結果を統合した。フリーハンド・液状化ツールは直前の異なるカーソル位置から輪郭方向を決め、ブラシ実装は自動間隔と最小ダブ判定でストローク密度を決める。試験はカーソル移動後に使う位置、異方・等方ブラシの実効間隔、不可視ダブの抑制を検証する。保存済みブラシプリセットとpaint-opプラグインが使うマスキングブラシのIDと設定キーは`KisPaintopSettingsIdsCompatibilityTest.cpp`へ明示的に分離し、既存プリセットを復元できることを守る。
+- 完了: `KoCompositeOpSchemaContractTest.cpp`を削除した。専用試験が固定していた`ParameterInfo`の生ポインター、既定値、コピー、平均不透明度のキャッシュは、合成処理中だけの内部バッファであり、保存形式や外部連携の根拠は確認されなかった。既存の`TestKoColorSpaceAbstract`がチャンネル制限を含む色空間をまたぐ合成後の画素を、`TestCompositeOpInversion`が各合成モードの描画結果を検証している。合成モードIDはKRAの`compositeop`属性とOpenRasterの`composite-op`属性へ保存されるため、`KoCompositeOpIdsCompatibilityTest.cpp`として明示的に維持する。
+- 完了: `KisResourceModelEnumContractTest.cpp`を整理した。リソース選択画面、リソース管理拡張、各dockerは列・役割・絞り込みを列挙子で参照し、値そのものを保存、XML、プラグイン、スクリプト、外部識別子へ渡していない。`TestResourceModel`は、無効化したリソースを全件・無効リソース絞り込みで再選択でき、無効化したストレージのリソースを全ストレージ絞り込みで再表示できることを検証する。`resourcecache.sqlite`の`storage_types`名と`storages.storage_type_id`は既存データの読込と一時リソース削除に使われるため、種別ID・非翻訳名だけを`KisResourceStorageTypeCompatibilityTest.cpp`へ明示的に分離した。
+- 完了: `KisTagModelSchemaContractTest.cpp`を整理した。タグ選択部品は、`SelectedTags`設定に保存されたURLで再起動後の選択を復元するため、`All`と`All untagged`の予約URLだけを`KisTagPseudoUrlCompatibilityTest.cpp`で維持する。擬似行ID、列番号、タグ・ストレージ絞り込み値の数値は保存形式、XML、プラグイン、スクリプト、外部識別子に使われていない。`TestTagModel`は、無効化したタグを全件・無効タグ絞り込みで再選択でき、無効化したストレージのタグを全ストレージ絞り込みで再表示できることを検証する。
+- 完了: `KisAnimUtilsSchemaContractTest.cpp`を削除した。試験が固定していた`FrameItem`の初期値、比較、ハッシュ、関数の宣言だけは、タイムラインdocker内部の移動要求を表す実装詳細であり、保存形式、設定、プラグイン、スクリプト、外部識別子の根拠はない。既存の`kis_animation_utils_test`は、同一レイヤーの循環移動、レイヤーをまたぐ移動、フレーム入替後の各時刻の画素とundo後の復元を検証する。
+- 完了: `KisAnimTimelineFramesModelSchemaContractTest.cpp`を削除した。試験が固定していたタイムライン選択値型の等値・ハッシュと、メニュー項目の名前・ダミー保持は、docker内部の一時データであり、保存形式、設定、プラグイン、スクリプト、外部識別子の根拠はない。タイムラインの固定状態はKRAの`intimeline`属性として既存の`kis_kra_saver_test`が保存往復を検証する。`timeline_model_test`は、既存レイヤーを選ぶとタイムラインに追加され、アクティブ化され、候補メニューから除かれる結果を検証する。この試験で、非同期のダミー更新前にアクティブ行を設定して別レイヤーを選択したままにする不具合を発見し、行への反映後に選択するよう修正した。共有の空ノード試験補助は、使用する`KisPaintDevice`の完全型を直接取り込む。
+- 完了: `KXMLGUIClientSchemaContractTest.cpp`を削除した。試験が固定していた状態反転列挙子の整数値と状態変更リストの初期化・コピーは、XMLGUI内部で一時的に使う実装詳細である。XMLGUIの状態要素、状態変更の製品側呼出し、状態反転値を使う保存形式、設定、プラグイン、スクリプト、外部識別子は確認されなかった。XMLGUIの実際のアクションIDはメニュー定義、入力、拡張機能で別途利用されるが、この試験の対象ではないため、根拠のない互換性試験や代替試験を追加しない。
+- 完了: `KisCurveOptionSchemaContractTest.cpp`を削除した。`ValueComponents`の初期値と曲線ウィジェットのフラグ値は、曲線計算・画面構成だけが使う内部表現であり、ブラシプリセット、設定、XML、プラグイン、スクリプト、外部識別子に使われていない。既存の`KisCurveOptionDataTest`、`KisKritaSensorPackCompatibilityTest`、`KisCurveOptionModelTest`が、プリセットの曲線・センサー保存と復元、画面の有効状態・強度範囲・曲線選択を検証する。対象の構築では、ブラシ実行・設定画面ライブラリーが完全型と`KisMpl`を推移的インクルードへ依存し、実行時オブジェクトが共有ライブラリーへ取り込まれない不具合を検出した。使用する型・ユーティリティを直接取り込み、実行時の下位オブジェクトを最終ライブラリーにも組み込むよう修正した。
+- 完了: macOS全体構築で露出した直接依存漏れを、値型・テンプレート・MOCが必要とするQt型と所有型を各利用元が直接取り込む形へ修正した。`KisDabRenderingQueue.cpp`は使用する`kismpl::mem_less`の所有ヘッダー`KisMpl.h`を直接取り込む。実ブラシ操作を使う`FreehandStrokeContractTest`は`kritapixelbrush`と`kritalibpaintop`の構築閉包へ接続し、リンク時に必要なpaint-op実装を確実に取り込む。XML色の保存読込試験は、Qt 6.11で妥当な`#RRGGBBAA`色を無効とする旧期待値を除き、保存した色が同じ色として復元される利用結果を検証する。
+- 完了: `KisPaintOpFactorySchemaContractTest.cpp`を削除した。`AUTO`、`ALWAYS`、`NEVER`の列挙値は、ファクトリー内部の未使用状態に初期化されるだけで、設定、プリセット、XML、プラグイン、スクリプト、外部識別子には使われていない。paint-op IDはプリセットの`paintop`プロパティとして保存され、プラグイン登録、ブラシ選択、描画、ライブプレビューが解決するが、専用試験はその利用結果を検証していなかった。根拠のない互換性試験や重複した代替試験を追加せず、専用CTestと広いinclude・compile definitionを削除した。
+- 完了: `KisPlaybackEngineSchemaContractTest.cpp`を`KisPlaybackEngineContractTest.cpp`へ置き換えた。再生統計の初期値とコピーは、タイムラインdockerが表示する値型の実装詳細であり、設定、保存形式、XML、プラグイン、スクリプト、外部識別子の互換性根拠はない。アニメーションdockerの再生制御モデルは、フレームを落とす設定の値と変更signalへ接続する。実際のQt再生エンジンに対し、切替後の読取値とsignal引数が一致し、同値の再設定では通知しないことを検証する。
+- 完了: `KisReferenceImagesDecorationSchemaContractTest.cpp`を削除した。専用試験は参照画像を操作せず、ガイド装飾の内部登録名`guides-decoration`だけを固定していた。この名前はガイドマネージャー内の生成・検索で使われ、設定、保存形式、XML、プラグイン、スクリプト、外部識別子には使われていない。参照画像は作成操作後に参照画像レイヤーへ追加され、専用ツールへ切り替わり、失敗時には入力元を示す通知を表示する。この利用結果は既存の`KisNodeManagerReferenceImageContractTest`が検証する。
+- 完了: `KisDlgPreferencesEnumContractTest.cpp`を削除した。色空間用のボタングループID、設定ページと各タブの整数値は、設定、保存形式、XML、プラグイン、スクリプト、外部識別子へ渡らない。設定ダイアログの再表示位置は`KisDlgPreferences/CurrentPage`の文字列として保存される。選択アクションパネルは一時的なページ要求で一般設定のツールタブを開くため、実際の`KisMainWindow`を使う`kis_view_signals_test`へ統合し、設定アクション後に表示されるページとタブを検証する。専用CTest、広い依存定義、生成UIヘッダーの専用登録を削除した。統合先試験は変換マスクを生成する補助コードが使う完全型を直接取り込む。
+- 完了: `KisActionEnumContractTest.cpp`を`KisActionCompatibilityTest.cpp`へ改名した。コアと29個のプラグインの`.action`定義は`activationFlags`と`activationConditions`を2進数文字列で保存し、`KisActionManager`が基数2で復元する。操作登録と拡張機能はこの値で有効状態を決めるため、各ビットの互換性要件と、変更時に影響する利用者を試験に明記した。Qtのフラグ演算を重複して検証していた文は削除した。
+- 完了: `KisConfigEnumContractTest.cpp`を`KisConfigCompatibilityTest.cpp`へ置き換えた。既存の`kritarc`は入力、色採取、起動、色管理、背景、選択アクションバー、レイヤー表示、補助線描画の各モードを整数で保存するため、その値を明示的な互換性要件として維持した。`ColorSamplerPreviewStyle::Count`は保存値ではないため除外した。キャンバス色管理、表示ビット深度、ルート表示形式は`kritarc`と`kritadisplayrc`の文字列で保存するため、実際の保存値と再読込後のモードを検証する。専用の広い依存定義を、設定実装を提供する`kritaapplication`への直接依存へ縮小した。
+- 完了: `KoDialogEnumContractTest.cpp`を`KoDialogContractTest.cpp`へ置き換えた。`ButtonCode`、`ButtonPopupMode`、見出しフラグの数値は保存形式、XML、プラグイン、スクリプト、外部識別子で使われていない。インポート、書出し、設定、復旧の各ダイアログは記号名のボタンとsignalを使い、利用者はボタンの表示状態、選択後のsignalと受理・取消結果、詳細領域の表示を観測する。実クリックでこれらを検証し、数値、レイアウトヒント、内部スロット呼出し、遅延破棄の固定を削除した。直接オブジェクト対象のリンクには、必要なヘルプ実装を加えた。
+- 完了: `KColorSchemeEnumContractTest.cpp`を`KColorSchemeThemeCompatibilityTest.cpp`へ置き換えた。色集合、背景・前景・装飾・濃淡の数値は製品側で記号名として使われ、保存形式、XML、プラグイン、スクリプト、外部識別子に渡らない。9個の同梱`.colors`テーマと利用者テーマは、`Colors:View`などのグループ名と色キーを保存しており、テーマ管理、各画面の配色、拡張機能のエラー表示が読込結果を利用する。全画面種別の背景・前景色、フィードバック・装飾色、境界の明暗を利用結果で検証する。Qt 6では`KF6::ColorScheme`が実装を提供するため、試験は製品ライブラリーと同じ実依存を明示する。
+- 完了: `SvgTextCursorEnumContractTest.cpp`を削除し、型組版の基線選択を既存の`SvgTextCursorTest`へ統合した。カーソル移動と型組版ハンドルの整数値は保存形式、XML、プラグイン、スクリプト、外部識別子へ渡らない。既存試験は横書き、右横書き、縦書きの文字・語・行・段落移動の結果を検証している。Shiftで表意文字基線ハンドルを選ぶと、選択テキストの支配・配置基線プロパティが更新されることを追加で検証する。統合先の実装ライブラリー構築で、値として保持する`QPointF`と利用する画像、ノード、スナップガイドの完全型を推移的インクルードへ依存していたため、各所有者を直接取り込むよう修正した。
+- 完了: 削除済みの`KisDisplayConfigSchemaContractTest`と`KisDitherWidgetSchemaContractTest`の名前を使う、`libs/ui/tests/CMakeLists.txt`のUI生成定義を削除した。同じUIは`libs/ui`、`libs/application`、`libs/impex`の製品側生成定義が各利用者へ提供する。テスト専用の重複生成は利用者向け契約を持たないため、代替試験は追加しない。
+- 完了: `KoSvgTextFontMetricsValueContractTest.cpp`を削除した。フォント計測、背景・線、textPath、下線位置の構造体について、初期値、全メンバーのコピー、等値比較、列挙値だけを固定しており、保存形式・設定・プラグイン・スクリプト・外部識別子の互換性根拠はない。`TestSvgText`は実フォント計測とtextPathの開始位置・方向・伸張・装飾をSVG描画結果で、`TestSvgTextShape`は文字形状と輪郭形状の操作結果で保護する。専用CTestとそのQt・公開ヘッダー依存を削除し、重複した代替試験は追加しない。
+- 完了: `KisMetaDataValueContractTest.cpp`を、メタデータ編集、文書複製、統合、言語別値の利用結果へ整理した。XMP入出力とメタデータ編集は、値種別と`xml:lang`修飾子を使う。異種値への編集は失敗として元の値を保ち、配列の有効な拡張編集は成功として返す。統合は完全な最新日時を保持し、時刻のミリ秒を正しく繰り上げる。言語修飾子を比較対象に含め、文書複製後の値は独立して編集できるようにした。`KisEntryEditorContractTest`は、構造体フィールドの編集後も他のフィールドを保存することを実ストアと画面部品で検証する。この試験で判明した構造体全体を単一フィールドで置換する不具合を修正した。両試験は実製品ライブラリーへ直接リンクし、編集部品試験はアプリケーション全体ではなく必要なメタデータ・Qt依存だけで閉じる。
+- 完了: `KisMetaDataTypeInfoContractTest.cpp`を、EXIFスキーマで検証するスカラー、配列、構造体、言語別コメント、XMP文字列解析の利用結果へ整理した。以前のPropertyType整数値、型情報キャッシュ、私有初期状態、選択肢のコピー、借用スキーマ参照には、保存形式、外部API、プラグイン、スクリプトの互換性根拠がない。実スキーマを使う検証器は不正な配列要素を`INVALID_TYPE`、閉じた選択肢の未定義値を`INVALID_VALUE`として報告する。言語別配列が`asArray()`の対象外であるため`xml:lang`のない要素を見逃す不具合を修正し、値の所有者が全要素を非公開に検証する。XMP入力の整数、有理数、日時はスキーマに対応する値へ解析され、検証器が受理する。試験は製品ライブラリーと標準スキーマ資産だけへ直接依存する。
+- 完了: `kis_meta_data_test.cpp`を、メタデータストアの追加・重複拒否・遅延作成・複製・削除と、検証器が未知項目、型不正、閉じた選択肢の値不正を区別して報告する利用結果へ縮小した。旧試験の値型初期化・等値・コピー、私有`TypeInfo`ファクトリー、型情報キャッシュ、スキーマ内部構造は利用者向け保証を持たず、専用補助ヘッダーとともに削除した。XMP読込が利用する解析結果は`KisMetaDataTypeInfoContractTest`へ統合した。外部の`Document::exportImage()`が指定する`Anonymizer`フィルターIDは`KisMetaDataAnonymizerCompatibilityTest.cpp`で明示的に維持し、Dublin CoreとPhotoshopの全個人情報項目を実ストアから除去することを検証する。製品側以外に`Parser`を実装する利用者は確認できないため、仮想呼出しと破棄だけを確認する`KisMetaDataParserContractTest.cpp`と専用CTestを削除した。
+- 完了: `KisMetaDataTagsContractTest.cpp`を削除した。EXIF、RAW、TIFFの読込実装は一部のタグ番号で形式固有の変換・除外を選ぶが、専用試験は利用されないタグを含む表全件の数値だけを固定していた。`KisExifTest`を通常のmacOS/Linux CTestにし、実カメラ画像からTIFF/EXIF値、日時、OECF、CFAパターンを復元する結果と、不正なOECF/CFAデータを拒否して他のメタデータを保持する結果を検証する。動的に読み込む`kritaexif`をCTest対象の直接構築依存にし、実行に必要な資源初期化を`KISTEST_MAIN`へ移した。EXIF日時タグは文字列のまま読込まれて日時スキーマの検証に失敗していたため、標準日時文字列を`QDateTime`として復元するよう修正した。Windowsの既知の未対応状態はbroken testとして明示する。
+- 完了: `KisMetaDataIOBackendContractTest.cpp`を削除した。専用試験のバックエンドは実際のプラグインを使わず、`BackendType`と`HeaderType`の数値、仮想呼出し、生ポインターの転送、仮想破棄だけを固定していた。EXIF、XMP、IPTCは同梱プラグインとして登録され、画像・KRAの入出力利用者が各形式の保存・読込結果を使う。共通インターフェースの形状そのものに保存形式、外部拡張、スクリプトの互換性根拠は確認できず、EXIFの実保存・読込結果は`KisExifTest`で保護されるため、根拠のない代替試験は追加しない。
+- 完了: `KisMetaDataMergeStrategyContractTest.cpp`を、レイヤー統合の実ストア結果へ置き換えた。Layers dockerが選ぶ削除、先頭優先、一致のみ、Smartの各戦略は、メタデータを残さない、下側レイヤーを優先する、同値の項目だけを残す、重みの高い値・加重レーティング・作成者一覧を統合する結果を利用者へ示す。偽戦略のID・説明文・ポインター・呼出し回数・破棄の検査を削除し、製品ライブラリーへ直接リンクした。`OnlyIdenticalMergeStrategy`が各ソースの値ではなく最初の値だけを比較して競合値を残していた不具合を修正した。
+- 完了: `KisAsynchronousStrokeUpdateHelperContractTest.cpp`を、移動・フリーハンドの定期更新と終了時の強制更新、変形ツールの初期化前終了時の強制更新、取消後に更新を停止する状態遷移へ整理した。更新ジョブを受けるストロークIDと強制更新の結果を実`KisStroke`と更新窓口で検証し、ジョブの逐次性・排他性、複製、QObject破棄、未使用のカスタム工場、私有スロット呼出しを固定する検証を削除した。試験はテスト専用オブジェクトではなく`kritapainting`へ直接リンクする。
+- 完了: `KisResourceStorageTypeCompatibilityTest.cpp`を、`StorageType`列挙子の整数値と変換関数を直接固定する試験から、実際の`resourcecache.sqlite`の`storage_types`行を読む互換性試験へ置き換えた。`storages.storage_type_id`は同表の外部キーとして保存され、起動時の一時リソース削除とストレージ一覧は保存済みIDと非翻訳名を使う。隔離したキャッシュを初期化し、既存キャッシュと同じ7個のID・名称の組をSQLite結果として検証する。試験は`kritaresources`、SQL、テスト実行環境、翻訳ライブラリーへ直接リンクし、ヘッダーだけを検査する依存を除去した。
+- 完了: `KoCanvasResourceIdsContractTest.cpp`を削除した。キャンバスリソースのIDはツール、docker、描画処理が同一プロセス内で記号名として読取・変更通知に使う鍵であり、保存形式、設定、XML、プラグイン記述子、スクリプト、外部連携で数値を使う根拠はない。`TestResourceManager`が色、単位、派生リソースの読取と変更通知を実際の`KoCanvasResourceProvider`で検証するため、整数表だけを固定する専用CTestとCMake定義を維持しない。
+- 完了: `KisResourceTypesContractTest.cpp`を`KisResourceTypesCompatibilityTest.cpp`へ改名した。リソース種別キーはリソースバンドルのMANIFEST、タグの`ResourceType`、`resourcecache.sqlite`、配置パスに保存されるため、既存のリソースを読込・分類する利用者の明示的な互換性対象である。全種別の保存キーを維持し、リソース選択画面が種別を対応する表示名へ解決する結果を検証する。保存形式・拡張利用の根拠がないサブ種別の文字列、ログ分類名、同一カテゴリ取得の検査を削除した。
+- 完了: `KisTagPseudoUrlCompatibilityTest.cpp`を、擬似URL関数の戻り値を直接比較する試験から、実際の`KisTagModel`が保存済みURLを擬似タグとして解決する互換性試験へ置き換えた。タグ選択部品は`SelectedTags`設定へURLを保存し、タグモデルとフィルターは`All`と`All untagged`を全件・未分類表示として扱う。隔離したキャッシュで両URLを復元し、選択対象の有効状態、種別、URL、表示名を検証する。試験はテスト専用のヘッダー定義ではなく`kritaresources`へ直接リンクする。
+- 完了: `KoCanvasResourcesInterfaceContractTest.cpp`を削除した。専用試験は偽実装への仮想呼出し、共有ポインターの所有、仮想破棄だけを固定しており、保存形式、プラグイン、スクリプト、外部APIの互換性根拠はない。実利用者は`KoCanvasResourceProvider`または局所ストロークの実装から値を読む。`TestResourceManager`が色・単位・派生リソースの読取と変更通知を、`TestPaintingBoundary`が局所ストロークのリソーススナップショットを検証するため、専用CTestとCMake定義を維持しない。
+- 完了: `KoLocalStrokeCanvasResourcesContractTest.cpp`を削除し、`TestPaintingBoundary`へ局所ストロークの利用結果を統合した。ペイントプリセットの複製は必要なキャンバス値を局所ストレージへ格納し、実行時スナップショットはその値を読む。パターンとグラデーションを取得後に選択を置換しても、開始済みスナップショットは元の署名を保持し、次のスナップショットだけが置換後の署名を使うことを検証する。任意キーの格納・置換、コピー・代入、共有ポインター破棄は利用者向け契約ではないため維持しない。
+- 完了: `KisResourceMetaDataModelContractTest.cpp`は、リソース選択部品、依存リソースの欠損判定、メタデータ絞込みがSQLiteの保存値を個別に読む結果を検証する。リソースID・表・キーに一致するBase64化`QVariant`だけを復元し、欠損または空の値は無効値として扱う。問い合わせの破棄後に表を再作成できることは内部資源管理であるため、専用検証を削除した。
+- 完了: `KisDatabaseTransactionLockContractTest.cpp`は、リソースキャッシュの初期化・同期・削除が複数のSQL更新を中断したとき全てを取消し、成功後に明示的に確定したとき全てを保持することを検証する。内部アダプターへの直接呼出し、重複呼出し、ロック所有フラグは利用者の観測結果ではないため削除した。
+- 完了: `KisSqlQueryLoaderContractTest.cpp`は、リソースキャッシュの初期化・移行・同期がSQL資源を順に実行し、単一文の値束縛と一括実行で全ての値を保存することを検証する。失敗時は診断がSQL資源と文番号、ファイルを開けない原因を示す。例外構造体の直生成・コピーと問い合わせ参照の同一性は内部形状であるため削除した。
+- 完了: `KisTemporaryResourceStorageLockContractTest.cpp`を削除し、`TestResourceLocator`へ実ロケーターを使う一時ストレージの利用結果を統合した。同名のレイヤースタイルを同時に編集すると別々の一時ストレージが登録され、一方を閉じても他方の依存リソースは選択可能なまま残り、最後の編集終了後に消える。偽ロケーターへのアダプター呼出し、固定した接尾辞、ロック所有フラグは維持しない。
+- 完了: `KoResourceCacheInterfaceContractTest.cpp`は、ペイントスナップショットが古いブラシ・キャンバス状態のキャッシュを拒否する所有cookieと、プリセットのバックグラウンド更新結果をUIへ渡すQt型登録を検証する。偽キャッシュへの仮想呼出し、仮想破棄、共有ポインター型との直接比較は利用者向け契約ではないため削除した。実装キャッシュと接頭辞付きキャッシュの読取・格納試験を併せて実行する。
+- 完了: `KoResourceCachePrefixedStorageWrapperContractTest.cpp`は、主ブラシとマスキングブラシが同じ論理キーで輪郭を保存しても、接頭辞付きキャッシュにより別々の値を読むことを実装キャッシュで検証する。偽キャッシュの転送記録、空接頭辞、共有ポインターの寿命は利用者向け契約ではないため削除した。実装キャッシュの安全アサートを使うため、対象にその実装オブジェクトを最小の直接依存として追加した。
+- 完了: `KoResourceCacheStorageContractTest.cpp`は、ブラシ準備が未生成のキャッシュを無効値として扱い、別々のキーの準備済み値を独立して読むことを検証する。同じキーへの重複格納はキャッシュ別名の回復可能なエラーとして報告する。内部マップの条件式、仮想破棄、無効操作後に残る上書き値は利用者向け契約ではないため削除した。
+- 完了: `KoEmbeddedResourceValueContractTest.cpp`を削除した。KPP読込の`KisPaintOpPresetTest`が実際の埋込みリソースを有効なMD5とともに復元し、破損したMD5を除外し、同名で同一・異なる内容のパターンを正しく再利用または分離する。`TestResourceLocator`はリソースの保存・読出しで同じMD5を維持する。署名値型の既定値・比較・デバッグ書式、装置読取位置、単体ハッシュ関数の重複検証は維持しない。
+- 完了: `KoResourceLoadResultContractTest.cpp`を、資源解決の利用結果へ縮小した。ペイントプリセット・フィルターが資源DBから既存依存を解決すると、その型付き資源と署名を使える。ローカルストロークのスナップショットとKRA読込は埋込み資源の内容と署名を取込み、未解決リンクは利用者が復旧できる署名付きの失敗として返る。既存の`KisPaintOpPresetTest`は実KPPの埋込み・未解決・再発見結果を検証する。値型のコピー時の共有所有、代入、診断書式は利用者向け契約ではないため削除した。
+- 完了: `KoResourceContractTest.cpp`を、資源の入出力と依存資源の利用結果へ縮小した。選択したファイルから資源を作ると読込パスと表示名を得る。存在しない・空のファイルは読込に失敗し、保存は内容を置換して下位書込みの失敗を呼出し側へ返す。内容から生成したMD5と明示的なMD5を資源解決・重複排除用の署名に使い、リンク・埋込み資源は順に返し、移管したサイドロード資源は消去する。下位書込み失敗を`save()`が成功として返していた不具合を修正し、パレット編集などが保存失敗を通知できるようにした。初期メンバー値、コピー、仮想破棄、デバッグ書式、値型の比較演算子は利用者向け契約ではないため削除した。
+- 完了: `KisStoragePluginContractTest.cpp`を削除し、ストレージ時刻の利用結果を`TestResourceStorage`へ統合した。フォルダー・バンドルの実ストレージはファイルシステムの更新時刻を返し、文書ローカルのメモリーストレージは生成時刻を維持するため、資源キャッシュ同期は変更を検出し、未変更の一時ストレージを繰り返し走査しない。既存のフォルダー・メモリー・バンドル試験が実資源の読込、版管理、列挙、入出力、MD5を検証する。偽プラグインのローダー探索・呼出し回数、既定値、仮想破棄、任意メタデータ転送を固定する専用CTestとCMake定義は削除した。
+- 完了: `KisResourcesInterfaceContractTest.cpp`を削除し、資源解決の利用結果を`KisLocalStrokeResourcesContractTest`へ統合した。局所ストロークの資源集合は、活動中で署名が一致する資源を優先し、古い文書のファイル名検索をbest-matchだけで行い、厳密照合は不一致のMD5を拒否する。未解決リンクは復旧用の署名を保ち、型付き取得は要求した資源型を返す。実KPP読込も埋込み・未解決・再発見の結果を検証する。インターフェースの内部ソースキャッシュ、私有状態、仮想破棄、偽アダプターの転送を固定する専用CTestとCMake定義は削除した。
+- 完了: `KisLocalStrokeResourcesContractTest.cpp`を、実行中ストロークが資源スナップショットから得る解決結果へ縮小した。レイヤースタイル画面が追加する複製済みの勾配・パターンと、ペイントプリセット・フィルターが使う資源は、型別に検索される。活動中の厳密一致が優先され、旧文書のファイル名候補はbest-matchだけで利用でき、未解決リンクは復旧に必要な署名を保つ。追加・除去後の候補更新も同じ試験で確認する。初期リストのnull除去、重複した内部リスト、回復可能アサートの回数、`clone()`後のコンテナーと共有ポインターの所有形状は利用者向け契約ではないため削除した。
+- 完了: `KisGlobalResourcesInterfaceContractTest.cpp`を削除した。全体資源インターフェースはGUIスレッドの資源モデルを型別sourceへ接続し、パレット・パターン選択、KPP・PSD・ブラシ読込がその解決結果を使う。実KPP読込とPSD読込の試験が資源を取得できる結果を検証する。複数スレッドで同一singletonを返すこと、sourceアダプターの同一アドレス、偽モデルsourceの生成回数は、外部利用を持たない内部初期化・キャッシュの形状であるため、専用CTestとCMake定義を削除した。
+- 完了: `KisStorageFilterProxyModelContractTest.cpp`を削除し、資源一覧の絞込み結果を既存の`TestStorageFilterProxyModel`へ統合した。資源選択画面とバンドル管理画面は、ファイル名、対応するストレージ種別、活動状態で候補を絞込み、条件を切り替えると新しい候補だけを表示する。試験で判明した再評価漏れを修正し、`setFilter()`は行フィルターを更新する。Qt 6.10以降では行フィルター変更APIを使い、旧Qtでは既存の無効化APIを使う。列挙子の整数値、親所有、内部source indexへの変換、偽ストレージ探索を固定する専用CTestとCMake定義は削除した。
+- 完了: `KisResourceThumbnailCacheContractTest.cpp`を削除した。資源一覧、プリセット選択、ツールチップは、要求サイズと変形方法に合うサムネイル画像を受け取り、選択状態を含めて描画する。既存の`KisResourceThumbnailPainterContractTest`と資源一覧ビュー・一覧ウィジェットの契約試験が画像のサイズ・色・選択枠・ツールチップへの結果を検証する。private挿入フック、ストレージ位置の正規化回数、内部キャッシュキー、返却値の所有期間、singletonポインターを固定する専用CTestとCMake定義は削除した。
+- 完了: `KisDatabaseTransactionLockContractTest.cpp`は利用者向けのトランザクション契約を既に検証しているため保持した。資源キャッシュの初期化・同期・掃除は、未承認の複数変更をスコープ終了または明示取消で残さず、全工程の成功後にcommitした変更だけを返す。部分的なキャッシュが資源選択画面へ現れることを防ぐSQLiteの実状態を検証する。ロック所有、内部接続、呼出し順序、適合ロックの継承形状は固定しない。
+- 完了: `KisResourceMetaDataModelContractTest.cpp`は利用者向けのメタデータ照会契約を既に検証しているため保持した。資源選択、依存判定、メタデータフィルターは、対象テーブル・資源・キーに一致する直列化値だけを読み、欠落・空値を利用不可として扱う。別の資源またはテーブルの値で選択・警告を誤ることを防ぐSQLiteの実状態を検証する。内部SQL行、モデル索引、準備済み問い合わせのキャッシュ形状は固定しない。
+- 完了: `KoResourceBundleManifestContractTest.cpp`を、バンドル編集と読込が観測する資源・型・タグ・失敗結果へ縮小した。資源の追加・削除後にバンドルローダーが残存する型別ファイルとタグを受け取り、壊れたまたは利用不能なマニフェストは失敗して古い資源を残さない。`KoResourceBundleManifestCompatibilityTest.cpp`は、`KoResourceBundle`が`META-INF/manifest.xml`へ保存し、バンドル読込が利用するXMLの名前空間、根エントリー、型、パス、MD5、タグを保存形式互換性として検証する。資源参照の既定値・構築子、マップ順序、仮想破棄、デバイスを開く回数とモードは固定しない。
+- 完了: `KisResourceTypesCompatibilityTest.cpp`を、保存済み型キーだけの互換性試験へ縮小した。資源バンドル、タグ、`resourcecache.sqlite`の`resource_types.name`は同じ型キーで資源を照会するため、既存キーを保持する。`KisResourceTypesContractTest.cpp`は、資源型選択、バンドル概要、欠落資源警告が型キーを利用者向け表示名へ変換する結果を検証する。キー列挙の順序、内部表示名map、翻訳値型の所有形状は固定しない。
+- 完了: `KisResourceThumbnailPainterContractTest.cpp`を、資源管理・取込画面が観測するサムネイル描画結果へ縮小した。要求サイズのプレビューは資源画像の色を保ち、選択した項目は選択色の枠内に画像を描画する。項目デリゲートの試験も同じ描画結果を検証する。親QObjectによる破棄通知は画面利用者の契約ではないため削除した。キャッシュへの挿入は描画入力の準備であり、呼出し結果を固定しない。
+- 完了: `KisIconToolTipContractTest.cpp`を削除し、資源一覧ビュー・一覧ウィジェットの既存契約試験へツールチップの利用結果を集約した。資源選択画面と資源管理画面は固定した縮小サイズでも画像の色を保ち、透明なパターン・グラデーションではチェッカー有効時だけ透明部分を可視化する。親QObjectと内部`QTextDocument`の所有・破棄は画面利用者が観測する契約ではないため維持しない。設定保存、XML、プラグイン、スクリプト、外部識別子による互換性要件は確認されなかった。
+- 完了: `KisResourceItemListViewContractTest.cpp`を、資源選択画面の表示・選択・通知・入力結果へ整理した。資源管理、プリセット、パレットの選択画面は初期サムネイル格子、表示方式と項目寸法の切替、現在の資源を保つ厳密選択、選択・クリック・文脈メニュー通知、運動スクロール中のカーソル表示を利用する。Qtの既定プロパティ、内部resize呼出し、未発火signal、QObject破棄を固定する検証と試験用friendを削除した。サイズ変更signalは資源選択部品に接続されるが、その親部品が自身のresizeで表示更新するため、利用者影響を確認できない通知回数を契約にしない。
+- 完了: `KisResourceItemListWidgetContractTest.cpp`を、バンドル作成画面が観測する複数選択と表示切替へ整理した。選択済みのブラシ・パターンをサムネイル格子で複数選択でき、保存済みのサムネイル／詳細設定を適用しても資源セルの寸法を保つ。`ListViewMode`の整数値は保存せず、資源管理拡張が設定の`0`／`1`を表示方式へ変換するため、列挙値の互換性試験は追加しない。未使用の厳密選択、ツールチップ設定、signal、内部resize、スクロール、QObject所有の検証と試験用friendを削除した。直接オブジェクト構成で常に所有するツールチップ・サムネイル経路をリンクする解決関数と安全アサートの試験実行用定義は、振る舞いを検証せずに維持する。
+- 完了: `KisResourceItemViewContractTest.cpp`を削除した。表形式資源ビューはリポジトリー内で生成、UI登録、signal接続、設定保存、XML、プラグイン、スクリプト、外部識別子として利用されていない。専用試験が固定していた表ヘッダー、列挙値、スクロール方針、signal回数、内部resize、QObject所有、ツールチップ内部文書には、利用者向けまたは互換性の根拠がない。
+- 完了: `KisResourceItemDelegateContractTest.cpp`を、資源選択画面とバンドル作成画面が観測するセル寸法、詳細表示のサムネイル配置、選択枠、実資源プレビューへ整理した。バンドル作成ではローカル行の資源型・IDから全体資源モデルの同じ資源を引き、描画結果が直接その全体モデルを描いた結果と一致する。試験内でresolver、ストレージ位置変換、privateキャッシュ挿入、安全アサートを再定義していた検証と、QObject親子破棄の検証を削除した。実資源DB・ローダーの既存フィクスチャを使うため、CTestは`kritaresources`、`kritaglobal`、`kritaplugin`、`kritatestsdk`の実装閉包を直接リンクする。設定保存、XML、プラグイン識別子、スクリプト、外部識別子の互換性要件は確認されなかった。
+- 完了: `KisResourceItemChooserSyncContractTest.cpp`を、同期済み資源選択画面の初期プレビュー寸法、利用可能範囲への丸め、画面更新へ渡すsignalの値へ整理した。プリセット、既定ブラシ、ガマットマスクの選択画面はこの値をセル寸法として利用する。singletonの同一アドレスとQObject破棄、同じ値を再設定した時の通知回数は利用者向け契約ではないため削除した。`KisViewManager`は`baseLength`を書き込むが、再読込する利用側、XML、プラグイン識別子、スクリプト、外部識別子の互換性要件は確認されなかった。
+- 完了: `TestResourceUiContract.cpp`を、偽の構築・表示・選択・入力・ボタン部品への内部転送を固定する20件の検証から、実際の資源選択画面の利用結果へ置き換えた。ブラシプリセット選択画面は、可視の実資源を選ぶと同じ資源を返して所有画面へ通知する。同期を有効にした二つの選択画面は、共有プレビュー寸法の変更後に同じセル寸法となる。実資源DB・ローダーと`kritaresourceui`を使う実装閉包へ更新し、列挙値、内部呼出し、偽ポインター、QObject所有、内部設定値を固定する検証を削除した。保存形式、XML、プラグイン識別子、スクリプト、外部識別子の互換性要件は確認されなかった。
+- 完了: `ResourceListViewModesContractTest.cpp`を削除した。資源管理の`ResourceItems*.viewMode`設定は`0`／`1`を格子・詳細表示へ直接変換しており、`ListViewMode`の整数値を保存しない。横ストリップを含む表示切替とセル寸法は`KisResourceItemListViewContractTest`、バンドル作成画面の格子・詳細切替は`KisResourceItemListWidgetContractTest`が利用結果として検証する。列挙順、数値、相違比較だけを固定する専用CTestとCMake定義を維持しない。
+- 完了: `KisResourceUiDescriptorContractTest.cpp`を削除した。記述子の型文字列は実際のブラシプリセット選択画面がその型の資源を表示・選択する結果として`TestResourceUiContract`で確認する。プレビュー方針は呼出し側が画面構成へ渡す内部値であり、保存形式、XML、プラグイン識別子、スクリプト、外部識別子の互換性要件は確認されなかった。単なる文字列・真偽値の保持と既定値を固定する専用CTestとCMake定義を維持しない。
+- 完了: `KisTagLabelContractTest.cpp`を、バンドルのタグプレビューが選択済みタグを表示から除くために使う文字列照会へ整理した。`WdgTagPreview`はタグ名と同じラベルを取り除くため、表示したタグ名を返すことを検証する。親QObjectの所有・破棄は利用者が観測する契約ではないため削除した。設定保存、XML、プラグイン識別子、スクリプト、外部識別子の互換性要件は確認されなかった。
+- 完了: `KisStorageChooserDelegateContractTest.cpp`を、資源選択ポップアップのセル寸法とストレージのサムネイル・有効状態の描画結果へ整理した。資源管理の利用者が同じストレージを有効・無効にすると、サムネイルを保ったままセル表示が変わることを検証する。Qt style primitiveとcheckboxの呼出し回数・状態フラグ、無効索引の早期return、QObject所有を固定する検証を削除した。フォールバックアイコンを含む実際の描画を使うため、CTestは`kritawidgetutils`へ直接依存する。設定保存、XML、プラグイン識別子、スクリプト、外部識別子の互換性要件は確認されなかった。
+- 完了: `KisStorageChooserWidgetContractTest.cpp`を削除し、表示中のバンドルをクリックするとそのストレージだけの有効状態が反転し、再クリックで復元される試験を`TestResourceUiContract.cpp`へ統合した。既存の`TestStorageModel`は実DBの有効状態遷移を、`TestStorageFilterProxyModel`はストレージ種別の絞り込み結果を保護する。専用試験が固定していた偽モデル、内部slot、子QObject所有、アイコン寸法、行数を削除した。資源選択ウィジェットの公開APIに保存形式、XML、プラグイン識別子、スクリプト、外部識別子の互換性要件は確認されなかった。
+- 完了: `KisResourceUserOperationsContractTest.cpp`を削除し、実製品ライブラリーの`TestResourceUiContract.cpp`へ上書き確認、重複名称の取消、読込失敗通知を統合した。肯定・取消した上書き確認は利用者の判断を返し、重複名称の取消は保存済み資源名を維持し、存在しない読込元は失敗警告と空の結果を返す。実際の読込・追加・名称変更・更新のDB結果は既存の`TestResourceModel`が保護する。偽の資源・モデル・保存・質問・警告経路、private関数の置換、内部呼出し回数を削除した。公開操作に保存形式、XML、プラグイン識別子、スクリプト、外部識別子の互換性要件は確認されなかった。
+- 完了: `KisTagChooserWidgetContractTest.cpp`を削除し、実製品ライブラリーの`TestResourceUiContract.cpp`へ、カスタムタグの追加・選択、選択signal、現在選択、`SelectedTags`設定への保存を統合した。資源選択画面は保存済みURLを読み直して選択を復元する。擬似タグURLの設定互換性は、利用者と保存対象を明記した既存の`KisTagPseudoUrlCompatibilityTest`が維持する。専用試験が固定していた偽モデル、追加・選択・保存関数、内部slot、子QObject所有、アイコン更新回数を削除した。
+- 完了: `TagActionsContractTest.cpp`を削除し、実製品ライブラリーの`TestResourceUiContract.cpp`へ、資源選択画面の文脈メニューから既存タグへ割り当てる操作、現在タグから解除する操作、新規タグを作成して割り当てる操作を統合した。タグ操作ボタンから名前を入力して新規タグを作成する画面経路も、実際のタグモデルへ反映される結果で検証する。既存の`TestTagResourceModel`は実DBのタグ付け・解除とモデル通知を保護する。専用試験が固定していた偽のタグ・資源・入力部品、アイコン名、QObject所有、privateコールバック、比較補助の状態を削除した。`TagActions`の利用側は資源選択画面、タグ選択部品、タグ操作ボタンだけであり、保存形式、XML、プラグイン識別子、スクリプト、外部識別子として維持すべき互換性要件は確認されなかった。
+- 完了: `StoreDebugContractTest.cpp`を`StoreDebugCompatibilityTest.cpp`へ置き換えた。Log Docker は保存済みの`LogDocker/file_41008`設定を`krita.lib.store`のログ規則として適用し、ファイル入出力診断を有効化する。この外部設定との互換性を、実際に同規則を適用してストレージのデバッグ出力が有効になる結果で検証する。singleton参照の同一性と既定の重大度は保存規則の利用結果ではないため固定しない。
+- 完了: `WidgetsDebugContractTest.cpp`を削除した。`krita.lib.widgets`はウィジェット実装の診断出力だけで使われ、保存設定、Log Docker、プラグイン、スクリプト、外部診断設定で安定識別子として参照されない。参照の同一性、カテゴリ文字列、既定の重大度を固定する専用CTestとCMake定義を維持しない。診断ヘッダーを利用する既存の`zoomhandler_test`は増分構築と実行に成功した。
+- 完了: `FlakeDebugContractTest.cpp`を`FlakeDebugCompatibilityTest.cpp`へ置き換えた。Log Docker は保存済みの`LogDocker/tools_41003`設定を`krita.lib.flake`のログ規則として適用し、ツール診断を有効化する。この外部設定との互換性を、実際に同規則を適用してFlakeのデバッグ出力が有効になる結果で検証する。singleton参照の同一性と既定の重大度は保存規則の利用結果ではないため固定しない。
+- 完了: `DebugPigmentContractTest.cpp`を`DebugPigmentCompatibilityTest.cpp`へ置き換えた。Log Docker は保存済みの`LogDocker/pigment`設定を`krita.lib.pigment`のログ規則として適用し、色管理診断を有効化する。この外部設定との互換性を、実際に同規則を適用してPigmentのデバッグ出力が有効になる結果で検証する。singleton参照の同一性と既定の重大度は保存規則の利用結果ではないため固定しない。
+- 完了: `ResourceDebugCompatibilityTest.cpp`を追加し、Log Docker の保存済み`LogDocker/resources_30009`規則が資源管理のデバッグ出力を有効にすることを検証する。試験は実装が`krita.lib.resource`を返すため失敗し、同設定が適用する`krita.lib.resources`へ資源ライブラリーのカテゴリを修正した。既存のリソース種別互換性試験と新しい互換性試験は修正後に成功し、資源管理診断を有効にしても出力されない不具合を修復した。
+- 完了: `KisDebugContractTest.cpp`から、関数ポインターで全21カテゴリの名称を固定する検査を除いた。Log Docker の保存済み規則が使うグローバルカテゴリは`KisDebugCompatibilityTest.cpp`へ分離し、実際に各規則を適用してデバッグ出力が有効になる結果を検証する。保存規則外のDB移行、Android、ロケールカテゴリには互換性根拠がない。試験により、保存済み描画規則`krita.grender`とタブレット規則`krita.tablet`が実装の別名へ向き、診断を有効にできない不具合を発見した。各カテゴリを保存済み規則へ合わせ、既存のメソッド名整形・バックトレース試験も成功した。
+- 完了: `KoStoreDeviceContractTest.cpp`を削除し、偽の`KoStore`が固定していた自動オープン状態、借用所有権、失敗後の開放モード、内部`seek()`回数を廃止した。KRA、OpenRaster、参照画像の保存読込は、開いたアーカイブ項目を`KoStoreDevice`経由で追加の`open()`なしにXMLとして読み書きするため、実ZIPアーカイブでXML文書とレイヤー名が往復する`TestResourceStorageArchiveContract`へ統合した。Qt XMLへの試験依存は、製品の`QDomDocument`利用と同じ保存結果を検証するために限定した。
+- 完了: `KoUnitContractTest.cpp`から、単位列挙と一覧オプションの整数値、型数、換算定数、代入と等値比較、デバッグ出力を固定する検査を除いた。整数値を読む保存形式、設定、プラグイン、スクリプト、外部識別子は見つからず、長さ・角度文字列の解析にも製品側の呼び出しはない。単位入力、文書単位メニュー、選択範囲操作、キャンバス・形状・スクリーントーンの変換、変形後のピクセル値を利用者が観測する結果として検証する。選択項目が対応する単位へ戻ること、ピクセル非表示時の選択結果、物理長の変換と表示値の再入力、変形後の寸法を維持する。
+- 完了: `KisZugContractTest.cpp`を削除した。キャスト、乗算、比較、丸め、タプル変換の検査はzug内部の変換器を直接固定しており、保存形式、設定、スクリプト、外部識別子の利用根拠はない。未使用の否定比較・小比較・タプル変換器は代替試験を要しない。角度反転、曲線強度範囲、即時プレビュー可否は、それぞれ描画角度センサー、曲線オプション、LOD可用性の既存モデル試験が状態更新として検証する。
+- 保留: `KisPredefinedBrushModel`の明るさ・コントラスト百分率、調整有効状態、ライトネスマップ状態には利用者向け契約が必要である。モデルは非公開で専用オブジェクト対象を持たず、現在の`kritalibpaintop`構築閉包は4,230入力に及ぶ。試験だけのために製品CMakeへ重複した構築対象を加える前に、設定UIを分離した所有者と最小の構築閉包を設計する。
+- 完了: `KisCurveOptionModelTest.cpp`から、範囲・強度・ラベル状態の完全型固定、完全な初期データ比較、内部範囲モデルとQObject破棄を固定する検証を除いた。曲線オプション画面は、共有曲線を最初のセンサーに表示し、外部有効状態とチェック状態を保存値へ反映し、強度スライダーに有効範囲を示し、共有曲線と個別センサー曲線を分け、選択センサーの曲線・長さ・ラベルを表示する。試験専用の`KisPropertiesConfiguration`再定義を削除して実ライブラリーへ接続した。残る`RangeProbe`は、注入された範囲モデルの選択入力だけを記録するカテゴリ4の補助であり、曲線計算・設定保存・永続化を再実装しない。実際の設定保存と復元は`KisCurveOptionDataTest`と互換性試験が保護する。実ライブラリーを使う構築閉包は4,236入力である。
+- 完了: `KisCurveOptionDataCommonContractTest.cpp`を削除し、構築既定値、等値比較、センサーポインター列挙、所有、null入力、偽の設定ストアを固定する検証を廃止した。曲線オプションは`KisCurveOptionDataTest`へ統合し、実際の設定で共有曲線・強度・有効センサーを保存して復元すること、複数の接頭辞付きオプションと無関係なプリセット値が共存すること、無効にしたセンサーが無効のまま復元すること、センサー定義がない場合に筆圧の既定曲線を使うことを検証する。既存の実ライブラリー対象を使うため、新しい対象・依存は追加していない。対象の構築閉包は4,236入力である。
+- 完了: `KisCurveOptionDataContractTest.cpp`を削除し、曲線データ種別の構築既定値、センサー列挙、強度範囲、チェック状態、偽の設定ストアを固定する検証を廃止した。標準オプションのIDは`KisKritaSensorPack`がプリセット設定のキーを組み立てるため、保存済みプリセットが利用する互換性要件である。`KisStandardOptionDataCompatibilityTest.cpp`は実設定へ強度を保存し、同じ既存キーだけを持つ設定から各標準オプションを復元する。互換性試験は標準の不透明度、流量、比率、硬さ、回転、色調整、速度、テクスチャ強度、明度強度の各キーを対象にする。新しい試験は既存の実ライブラリー構築閉包を使い、対象の入力は4,236件である。
+- 完了: `KisKritaSensorPackContractTest.cpp`を削除し、`Checkability`の数値、センサー宣言順、内部ポインター集合、等値比較、複製、安全断言回数、偽の設定ストアとXML出力順を固定する検証を廃止した。`KisKritaSensorPackCompatibilityTest.cpp`は実際の設定を使い、保存済みブラシプリセットの旧`SizeSensor` XMLに含まれる16種類の入力IDが、選択した入力と曲線を復元することを検証する。`KisCurveOptionDataTest`は時間入力の曲線、長さ、周期設定が保存後にも復元することを検証する。画面上の選択センサーの長さは`KisCurveOptionModelTest`、実ストロークの動的入力は`FreehandStrokeContractTest`が保護する。新しい互換性試験は既存の実ライブラリー構築閉包を使い、対象の入力は4,236件である。
+- 完了: `KisSizeOptionDataContractTest.cpp`を削除し、サイズID、接頭辞、構築既定値、内部の制限IDだけを固定する検証と偽の設定実装を廃止した。ブラシプリセットは`SizeValue`でサイズ曲線強度を保存するため、`KisStandardOptionDataCompatibilityTest`が実設定の保存・読込結果でこのキーを守る。ブラシ編集画面はSize曲線のFuzzy入力で即時プレビューを注意状態にし、Fade入力で利用不可にするため、`KisCurveOptionDataTest`が実ライブラリーの制限結果を検証する。状態を画面表示へ反映する規則は既存の`KisLodAvailabilityContractTest`が保護する。新しい対象や依存は追加せず、既存の実ライブラリー構築閉包4,236入力へ統合した。
+- 完了: `KisMirrorOptionDataContractTest.cpp`を削除し、構築既定値、接頭辞の保持、等値比較、偽の設定実装を固定する検証を廃止した。主ブラシとマスキングブラシのプリセットは`HorizontalMirrorEnabled`と`VerticalMirrorEnabled`を保存し、ブラシ実装とマスキング設定がこれらを読んでダブの反転方向を決める。`KisMirrorOptionDataCompatibilityTest.cpp`は実設定で主ブラシの水平反転を保存・読込してダブの反転結果を検証し、マスキングブラシの`MaskingBrush/Preset/`配下の垂直反転設定が埋込み設定へ復元することを検証する。最終描画は既存の`kis_brushop_test`が保護する。新しい試験は既存の実ライブラリー構築閉包を使い、対象の入力は4,236件である。
+- 完了: `KisSharpnessOptionDataContractTest.cpp`、`KisScatterOptionDataContractTest.cpp`、`KisSpacingOptionDataContractTest.cpp`を削除した。これらが固定していた構築既定値、データ等値比較、内部曲線、散布乱数、間隔演算、偽の設定ストアには利用者向け互換性根拠がなかった。`KisBrushPresetDynamicsCompatibilityTest.cpp`は実際の設定でシャープネスの輪郭整列と旧`Sharpness/factor`、散布の軸設定と旧`ScatterAmount`、間隔の`SpacingValue`・等方性・ダブ間隔設定を保存・復元し、シャープネスのダブ座標と散布無効時の位置、間隔係数を検証する。保存済みブラシプリセットを開いた利用者が同じ動的設定とダブ結果を得ることを保護する。
+- 完了: `KisPrefixedOptionDataWrapperContractTest.cpp`を削除した。偽の設定マップと架空のオプション値型が接頭辞操作を再実装していたためである。主ブラシとマスキングブラシの実設定を通す`KisMirrorOptionDataCompatibilityTest.cpp`へ統合し、`MaskingBrush/Preset/`配下の設定が埋込みプリセットへ復元する結果を保護する。
+- 完了: ブラシプリセット設定群のMock、Fake、Stub、試験専用派生、設定ストア、モデル、DB、直列化処理を監査した。曲線・標準値・旧センサー・ミラー・シャープネス・散布・間隔の保存試験はすべて実ライブラリーと実設定を使い、カテゴリ1の製品ロジック再実装、カテゴリ2の内部呼出し回数・順序固定、カテゴリ3の外部副作用隔離は残らない。`KisCurveOptionModelTest.cpp`の`RangeProbe`だけがカテゴリ4の入力記録補助として残り、限定理由を試験コメントへ記載した。試験専用の設定ストアと製品メソッド再定義は削除した。
+- 完了: `TestTagFilterResourceProxyModel`へ、実DB上でタグを選択し、表示中の資源を無効化してから`ShowAllResources`へ切り替える契約を追加した。画面と同じ`KisTagFilterResourceProxyModel`がタグ選択時に通す`KisTagResourceModel`経路で、同じ資源IDが再表示されることを検証する。
+- 後続一覧（高リスク優先監査）: R2-G19eは、`KisPropertiesConfiguration`の製品メソッドを再定義して設定ストアを再実装する`KisAirbrushOptionDataContractTest.cpp`、`KisColorOptionDataContractTest.cpp`、`KisColorSourceOptionDataContractTest.cpp`、`KisCompositeOpOptionDataContractTest.cpp`、`KisFilterOptionDataContractTest.cpp`、`KisPaintingModeOptionDataContractTest.cpp`、`KisPrecisionOptionContractTest.cpp`、`KisTextureOptionDataIOContractTest.cpp`の8件に限定する。実設定の保存・復元または公開操作の結果へ置き換え、完了後にリポジトリ全体の逐次監査へ拡大しない。
+- 後続一覧（所有実装変更時の監査）: `KisPredefinedBrushModel`は、所有する設定UIまたはpaint-opの変更に合わせて利用者向け保存・描画結果へ整理する。
+- 後続一覧（現状の振る舞い維持）: `KisCurveOptionDataTest.cpp`、`KisCurveOptionModelTest.cpp`、`KisStandardOptionDataCompatibilityTest.cpp`、`KisKritaSensorPackCompatibilityTest.cpp`、`KisMirrorOptionDataCompatibilityTest.cpp`、`KisBrushPresetDynamicsCompatibilityTest.cpp`、`TestTagFilterResourceProxyModel.cpp`は、現在の利用場面を実ライブラリーと実設定または実DBで保護するため維持する。
+- 検証: macOSで`cmake --build --preset tdd-macos --target KisBrushPresetDynamicsCompatibilityTest KisCurveOptionModelTest`、`cmake --build --preset tdd-macos --target TestTagFilterResourceProxyModel`、ブラシ設定6件と資源管理1件のCTest、削除済み4件のCTest登録0件、`python3 scripts/architecture/check_test_contracts.py`、`git diff --check`、`./scripts/verify-quick`が成功した。ブラシ設定の実ライブラリー構築閉包は4,236入力である。
+- 検証: macOSで`cmake --build --preset tdd-macos --target kritapixelbrush FreehandStrokeContractTest -- -j1`、`libs-ui-FreehandStrokeContractTest`、`plugins-paintops-defaultpaintops-brush-KisDabRenderingQueueTest`、`plugins-tools-basictools-MoveSelectionStrokeTest`のCTest 3件、`./scripts/verify-quick`、`./scripts/verify`が成功した。完全検査は879/879件成功した。
+- 未実施OS: R2-G19d-aはQt 5、Linux、Windows、Androidでブラシプリセット設定保存・復元と資源管理プロキシ切替を実行する。R2-G19d-bはAndroid crash handler、Windows/MSVC互換操作、Linux DBus・colord構成を実行環境で検証する。ソース検査は同一リビジョンの構築ホストで実行し、各OSまたは端末は実行時契約を検証する。
+- 次の作業: R2-G19d-aで各OSとQt 5の構築閉包・CTest実行可能性を確定し、移植済みのブラシ設定6試験と資源管理1試験を実行する。
+- 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
+- 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
+  `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
+  `verify-quick`が成功した。
+- 検証: macOSで`KoDialogContractTest`の構築と`libs-widgets-KoDialogContractTest`のCTestが成功した。
+- 検証: macOSで`KColorSchemeThemeCompatibilityTest`の構築と`libs-widgetutils-KColorSchemeThemeCompatibilityTest`のCTestが成功した。
+- 検証: macOSで`SvgTextCursorTest`の構築と`plugins-tools-svgtexttool-SvgTextCursorTest`のCTestが成功した。
+- 検証: macOSで`kritaapplicationui`の再構成を含む増分構築と`libs-ui-KisPlaybackEngineContractTest`のCTestが成功した。`check_test_contracts.py`と`verify-quick`も成功した。
+- 検証: macOSで`TestSvgText`の構築、`libs-flake-TestSvgTextShape`のCTest、削除済み`KoSvgTextFontMetricsValueContractTest`の登録件数0が成功した。`TestSvgText`の直接実行は、現行のバンドル実行パスを解決できず初期化前に失敗する既知のbroken testである。
+- 検証: macOSで`KisMetaDataValueContractTest`、`KisEntryEditorContractTest`、`kritametadataeditor`、`kis_meta_data_test`、`KisMetaDataTypeInfoContractTest`の構築と4件のCTestが成功した。
+- 検証: macOSで`KisMetaDataTypeInfoContractTest`、`kis_meta_data_test`、`KisMetaDataValueContractTest`の増分構築と3件のCTestが成功した。言語修飾子がない配列要素を有効と数える初期失敗を再現後、`check_test_contracts.py`と`git diff --check`が成功した。
+- 検証: macOSで`kis_meta_data_test`、`KisMetaDataAnonymizerCompatibilityTest`、`KisMetaDataTypeInfoContractTest`、`KisMetaDataValueContractTest`の増分構築と4件のCTestが成功した。削除済みの`KisMetaDataParserContractTest`は再構成後のCTest登録に存在しない。
+
+## 現在の変更範囲
+
+最初の機械削除では、ファイル名が`ContractTest.cpp`で終わり、`type_traits`または型特性の
+`static_assert`を含み、Qt Testの実行時検証を一つも持たない251ファイルを削除した。
+次の機械整理では、混在ファイルから型特性の文だけを除去し、値、状態、所有、通知、変換結果、失敗条件を
+検証する文を保持した。型特性の除去で空になった試験関数とファイル、専用CMake定義も削除した。
+通常の数値変換やテンプレート処理で型特性を利用する通常試験14件は、宣言形状検査ではないため対象外とした。
+
+列挙値、内部Traits、モデル役割番号だけを固定していた次のSchema試験を削除した。
+
+- `libs/ui/tests/KisDlgCreateNewDocumentSchemaContractTest.cpp`
+- `libs/flake/tests/KoSvgTextAddRemoveShapeCommandsSchemaContractTest.cpp`
+- `libs/resources/storage/tests/KoStoreSchemaContractTest.cpp`
+- `libs/canvas/tests/KisCoordinatesConverterSchemaContractTest.cpp`
+- `libs/widgets/tests/KisPaletteModelSchemaContractTest.cpp`
+
+`libs/widgets/tests/KisAngleSelectorSchemaContractTest.cpp`が固定していた列挙値にはスクリプト文字列との対応という
+利用者向け意味論があった。`libs/libkis/AngleSelector.cpp`の変換を列挙値の順序から分離し、
+`libs/libkis/tests/TestAngleSelector.cpp`で有効値の往復と無効値の無視を検証する。
+
+ガイド線種の数値だけを固定していた`libs/ui/tests/KisGuidesConfigSchemaContractTest.cpp`は削除し、
+既存の`kis_grid_config_test.cpp`で実際のペン種別、色、XML保存後の復元結果を検証する。
+この試験により、Qt 6.4以降で`QColor::fromString()`の戻り値を捨てて色を復元していなかった不具合を修正した。
+既定ショートカット種別のビット集合だけを固定していた`KKeySequenceWidgetSchemaContractTest.cpp`も削除した。
+`KisAcsTypesSchemaContractTest.cpp`は前景・背景色の選択という利用者向け結果を検証しているため、
+`KisAcsTypesTest.cpp`へ改名して保持した。
+
+`libs/ui/tests/KisGridConfigValueContractTest.cpp`は、格子種別と線種の整数値および内部描画計算用
+`TrigoCache`のメンバー配置だけを固定していたため削除した。既存の`kis_grid_config_test.cpp`で、
+実線、破線、点線、非表示が実際の`QPen`へ反映され、色、格子種別とともにXML往復後も維持されることを検証する。
+
+`scripts/architecture/check_test_contracts.py`を高速検査へ追加した。`ContractTest`で型特性、
+コンパイル時形状検査、完全署名別名を使用すると失敗する。宣言形状を明示的な互換性として保護する
+`CompatibilityTest`には、利用者と維持対象を示す`// Compatibility requirement:`行を必須とする。
+既存のsignal compressorに残っていた列挙値の相違だけを調べる`static_assert`と、Bezier patchおよび
+standard action試験に残っていた完全署名別名を除去し、新しい検査条件を既存ソースへ適用した。
+
+`libs/ui/tests/KisToolSelectUiBaseSchemaContractTest.cpp`は、`SampleAllLayers`、
+`SampleCurrentLayer`、`SampleColorLabeledLayers`の整数値だけを固定していたため削除した。
+選択ツールの利用側は列挙子との比較で採取対象を選び、永続設定は
+`libs/tools/ui/kis_selection_tool_config_widget_helper.cpp`の文字列へ変換される。
+この意味論は`libs/tools/ui/tests/TestToolSettingsUiContract.cpp`の設定往復試験で保護する。
+
+`libs/ui/tests/KisCollapsibleButtonGroupSchemaContractTest.cpp`は、LOD設定構造体の既定値・等値演算と、
+長押し機能の内部property文字列を固定していた。LODの利用者は描画エンジン設定画面であり、
+しきい値による即時プレビュー可否、設定保存、未知の描画エンジン設定での状態保持を
+`KisLodAvailabilityContractTest.cpp`で検証する。長押しの利用者はコンテキストメニューを持つ画面部品であり、
+有効時のメニュー発生と無効時のメニュー抑止を`KisLongPressEventFilterContractTest.cpp`で検証する。
+内部実装は共有ライブラリーの非公開記号のため、試験は公開API化せず、所有する実装ソースを試験対象へ組み込み、
+必要な`kritaimage`と`kritawidgetutils`へ直接依存する。LODの設定読込は描画エンジン登録簿を利用するため
+`kritaimage`の依存閉包を保持し、長押し試験は`kritawidgetutils`だけで閉じる。
+
+`libs/resources/`、`libs/flake/`、`libs/widgets/`、`libs/image/`、`sdk/tests/`の所有対象から、
+別のヘッダーが偶然提供する完全型への依存を除去する。値で公開するQt型は公開ヘッダーで完結させ、
+共有ライブラリー境界を越えて利用する関数とクラスは所有ライブラリーから公開する。
+
+`libs/image/tests/KisStandardUniformPropertiesFactoryContractTest.cpp`を削除し、
+`libs/image/tests/kis_paintop_test.cpp`へ標準プロパティの利用者向け動作を集約する。
+生成した寸法・不透明度・流量プロパティが設定へ値を書き戻し、設定変更通知後に最新値を読み直すことを検証する。
+
+`libs/widgets/tests/KisWidgetConnectionStateContractTest.cpp`は、状態構造体の初期値と変換処理の検査から、
+実際のQt画面部品とモデルの初期同期、双方向更新、範囲、有効状態、表示状態の反映へ置き換える。
+
+次の試験を削除する。これらの独立した代替試験は追加せず、製品の利用側で検証する。
+
+- `libs/image/tests/KisNodeVisitorContractTest.cpp`: 試験内visitorの仮想呼び出しと宣言形状の検査。
+  製品ノードの訪問は同じディレクトリーの`kis_node_visitor_test.cpp`が扱う。
+- `libs/image/tests/KisTransformMaskParamsInterfaceContractTest.cpp`: 試験内の変換設定・保持者の仮想呼び出し検査。
+  変換結果は同じディレクトリーの`kis_transform_mask_test.cpp`が扱う。
+- `libs/image/tests/KisPaintDeviceWriterContractTest.cpp`: 試験内writerの仮想呼び出し検査。
+  製品からの出力は同じディレクトリーの`kis_paint_device_test.cpp`が扱う。
+- `libs/flake/tests/KoShapeContainerModelContractTest.cpp`: 試験内modelの呼び出し履歴と宣言形状の検査。
+  図形の所属・移動・変形は同じディレクトリーの`TestShapeContainer.cpp`が扱う。
+
+- `libs/flake/tests/KoSvgTextCharacterResultValueContractTest.cpp`: 非公開の文字配置データ構造と初期値の検査。
+  文字の配置・描画は同じディレクトリーの`TestSvgText.cpp`と`TestSvgTextShape.cpp`が扱う。
+
+今回の本体修正は次の責務に分かれる。
+
+- `libs/resources/KisResourceModelIndexResolver.h`と
+  `libs/image/brushengine/kis_standard_uniform_properties_factory.h`は、利用側がリンクできる公開記号を提供する。
+- `libs/flake/KoShape.h`は値で公開するQt幾何型を直接取り込み、単独で利用できる公開ヘッダーにする。
+- `libs/flake/resources/`、`libs/widgets/`、`libs/image/`、`sdk/tests/`の各翻訳単位は、
+  メンバー参照、値返却、共有ポインター操作に必要な完全型を所有ヘッダーから直接取り込む。
+
+`libs/ui/tests/KisCanvas2SchemaContractTest.cpp`は、InfinityManagerの内部登録名だけを固定していた。
+この名前はCanvas2内部の装飾登録・検索・表示切替にだけ使われ、保存形式、設定、プラグイン、スクリプト、
+外部連携の利用は確認できなかったため、意味論を持つ代替試験を追加せず、試験ファイルと専用CTest定義を削除した。
+
+`libs/widgetutils/tests/KStandardActionEnumContractTest.cpp`は、`KStandardAction::StandardAction`の
+整数値が連続することだけを固定していた。整数値を保存・通信・外部APIで利用する証拠はなく、
+`KStandardAction::name()`の値は`krita/kritamenu.action`、製品のアクション検索、タッチUIプラグインで
+外部識別子として利用されることを確認した。試験を`KStandardActionCompatibilityTest.cpp`へ改名し、
+識別子の一意性と主要な外部識別子、QAction生成結果、起動通知を実装ライブラリーで検証する。
+
+`libs/psdutils/tests/PSDLayerRecordSchemaContractTest.cpp`は、PSD書出し中だけに使う
+`ChannelWritingInfo`の初期値とフィールドを固定していた。保存結果はPSD形式であり、
+`plugins/impex/psd/tests/kis_psd_test.cpp`が保存・再読込後の画素と透明マスクを検証するため、
+専用試験と広いCMake依存を削除した。
+
+`libs/input/ui/tests/KisToolInvocationActionSchemaContractTest.cpp`は、入力操作の列挙値を固定していた。
+`krita/data/input/*.profile`と利用者の入力プロファイルは、Tool InvocationおよびAlternate Invocationの
+modeを16進数値で保存する。`KisToolInvocationActionCompatibilityTest.cpp`は保存形式を読み込み、
+そのmodeが設定画面の同じ操作名へ解決されることを確認する。
+
+`libs/painting/tests/KisFilterStrokeStrategySchemaContractTest.cpp`は、移動ストロークの内部ジョブ種別、
+フィールド、LOD複製を固定していた。`MoveStrokeStrategyContractTest.cpp`は実際にストロークを開始し、
+ドラッグ完了後のレイヤー位置と取消後の位置復元を確認する。
+
+`libs/impex/tests/KisPNGConverterSchemaContractTest.cpp`は、PNG変換オプション構造体の既定値とコピーを
+固定していた。オプションはPNG書出しプラグインが設定値へ変換する内部入力であり、構造体の値そのものは
+保存形式ではない。`plugins/impex/png/tests/kis_png_test.cpp`からHDR画素の往復、CICP/ICCプロファイルの
+往復、旧HDRプロファイル読込を`KisPngHdrAndColorProfileContractTest`として通常のCTestへ登録した。
+
+`libs/impex/tests/KisDlgImportVideoAnimationSchemaContractTest.cpp`は、動画情報構造体の初期値とコピーを
+固定していた。動画取込では`RenderedFrames`がタイムスタンプの有無を`KisMainWindow`へ渡し、連番か
+位置再配置かを選択する。`KisVideoFrameImportContractTest.cpp`はこの利用側の状態判定を検証する。
+
+`libs/impex/tests/KisFFMpegWrapperSchemaContractTest.cpp`は、FFmpeg設定構造体とエラー番号の値を固定していた。
+これらは外部ファイルやスクリプトの互換性識別子ではない。`KisFFMpegWrapperContractTest.cpp`は自身を短い
+子プロセスとして実行し、動画入出力の成功時に開始・完了通知とログを返し、失敗時に失敗結果と診断を返す
+ことを検証する。
+
+`libs/flake/tests/KoFFWWSConverterSchemaContractTest.cpp`は、フォント分類用の内部構造体のフィールド、
+既定値、コピーを固定していた。SVG文字の利用者はCSS一般フォント名を指定するため、
+`KoFFWWSConverterContractTest.cpp`は`serif`、`sans-serif`、`monospace`の分類結果と未知の名前を解決しない
+結果を検証する。
+
+`libs/flake/tests/KoFontGlyphModelSchemaContractTest.cpp`は、glyph種別とモデルroleの番号を固定していた。
+Glyph Palette QMLは`openType`、`glyphLabel`、`childCount`というrole名でモデルを読むため、
+`KoFontGlyphModelCompatibilityTest.cpp`はその文字列を、QML利用者を明記した互換性要件として検証する。
+
+`libs/flake/tests/KoToolBaseSchemaContractTest.cpp`は、ツールボックスの内部区分文字列を固定していた。
+区分は`KoToolManager`の初期ツール選択と`KoToolBox`の配置にだけ使われ、全利用側が同じ定数を参照する。
+設定、XML、拡張記述子、スクリプトへの保存または外部公開はないため、専用試験とCTest定義を削除した。
+
+`libs/flake/tests/KoDocumentResourceManagerSchemaContractTest.cpp`は、文書リソースキーの番号を固定していた。
+各利用側は列挙子で参照し、保存・通信・拡張境界に番号を渡さない。`KoDocumentResourceManagerContractTest.cpp`は、
+図形コントローラーと編集部品が利用する文書解像度・画素領域の更新、読取、`resourceChanged`通知、
+ハンドル選択範囲の下限を検証する。
+
+`libs/flake/tests/KoSvgTextEnumContractTest.cpp`は、SVG文字の内部値構造、比較演算、CSSキーワード配列の添字を
+固定していた。CSSの`font-stretch`はSVG読込・保存で利用者が観測する形式であるため、
+`KoSvgTextFontStretchContractTest.cpp`は全キーワードを実際に読込み、解決したQt幅と保存後のキーワードを検証する。
+他の構造体既定値・コピー・flag構成は、SVG/CSS変換と描画の既存試験で十分に表現できる内部詳細として削除した。
+
+`libs/flake/tests/KoSvgTextShapeMarkupConverterSchemaContractTest.cpp`は、文書内で一時的に使う折返し種別と
+`QTextFormat` property番号を固定していた。PSD変換、SVGテキスト編集、再保存は`white-space`と`inline-size`を
+観測するため、`KoSvgTextWrappingContractTest.cpp`はSVGから`QTextDocument`への変換と再保存を行い、
+`pre`、有効な`pre-wrap`、幅のない`pre-wrap`の保存結果を検証する。
+
+`libs/flake/tests/KoSvgTextFontSelectionValueContractTest.cpp`は、フォント分類軸、OpenType機能の
+内部既定値・コピー、および描画器へ渡すタグ文字列を固定していた。SVG/CSSのフォント指定は読込時の
+解決済み文字属性として利用者が観測するため、既存のフォント読込試験を
+`KoSvgTextFontImportContractTest.cpp`へ分離して通常のCTestへ登録した。`font-variant-*`のCSS値と
+OpenType機能の変換・再保存は既存の`KoSvgTextEnumConversionContractTest`が検証する。フォント機能の
+画素結果は`TestSvgText::testCssFontVariants()`が担うが、macOSの現行Fontconfig構成では比較基準と一致せず、
+従来どおり隔離した画像試験として維持する。
+
+`libs/flake/tests/KoSvgTextPropertyDataContractTest.cpp`は、実際の`KoSvgTextProperties`を試験内で
+再定義し、プロパティデータの既定値、コピー、等値比較、メタ型名、デバッグ出力順序を固定していた。
+文字プロパティdockerとSVGテキストツールは、`KisTextPropertiesManager`とキャンバス資源プロバイダーを通じて
+混在選択、設定、解除を利用する。`KisTextPropertiesManagerContractTest.cpp`は段落・文字範囲で異なる太さの
+選択から混在状態を通知し、dockerが選んだ太さと解除操作を実際のツール境界へ渡すことを検証する。メタ型名と
+デバッグ書式に保存形式・プラグイン・スクリプトの互換性根拠はない。
+
+`libs/flake/tests/KoSvgTextPropertiesInterfaceContractTest.cpp`は、`KoSvgTextProperties`を再定義して試験用の
+仮想メソッドとsignalの呼出し順序を確認していた。実際のSVG文字ツールは文字選択signal、継承プロパティ、
+span選択状態を`KisTextPropertiesManager`へ渡すため、同じ管理者契約で文字範囲の選択変更、表示状態、設定、
+解除を検証する。親子関係と試験用実装の呼出し順序は、ツール利用者が観測する契約ではない。
+
+`libs/flake/tests/KoShapeAnchorEnumContractTest.cpp`は、アンカーの位置、基準、方式の列挙値を整数値へ
+固定していた。`libs`、`plugins`、`sdk`の製品利用箇所、保存、SVG/XML、設定、外部識別子を確認しても、
+これらの型と列挙子を消費する利用者は見つからない。値の並びは図形編集の結果、保存結果、表示結果を表さないため、
+試験と専用CTest定義を削除する。
+
+`libs/flake/tests/KoShapeAnchorContractTest.cpp`は、利用側のない参照同一性、仮想メソッドの呼出し回数、
+変更手段のない既定値を固定していた。`KoShapeAnchor`のヘッダーが定める公開状態と寿命は、インライン図形の
+文字相対位置、テキスト文書が所有する位置情報の存続、置換された配置戦略の破棄である。この3つを利用者の操作と
+観測できる結果として保持する。
+
+`libs/flake/tests/KoShapeEnumContractTest.cpp`は、`KoShapeTemplate`の空初期化と浅いコピーを固定していた。
+形状プラグインのテンプレートは、識別子、表示名、分類、説明、アイコン、作成プロパティを形状選択と作成へ渡す。
+`TestKoShapeFactory.cpp`は登録後に公開されるテンプレートと、そのプロパティで生成される形状を検証する。
+
+`libs/flake/tests/KoShapeLoadingContextSchemaContractTest.cpp`は、追加属性の値型が文字列を保持し、名前だけで
+比較されることを固定していた。追加属性の登録簿と取得結果を製品の読込処理は参照しておらず、SVG/XML、設定、
+プラグイン、スクリプト、外部識別子への変換もないため、専用試験とCTest定義を削除する。
+
+`libs/flake/tests/KoShapeSavingContextSchemaContractTest.cpp`は、保存オプションの整数値とQtフラグ演算を
+固定していた。各オプションは既定値を設定する実装以外から読まれず、保存結果や外部連携へ変換されない。
+SVG/XMLの保存結果は既存の保存試験で保護し、専用試験とCTest定義を削除する。
+
+`libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp`は、前後移動・最前面・最背面を表す列挙値の
+整数値を固定していた。既存の`TestShapeReorderCommand.cpp`は、図形選択の並べ替え後に利用者が見るz順序、
+子図形の順序、重なり、変更不能時の結果を検証するため、専用試験と広いCMake定義を削除する。
+
+## 構築と検証
+
+Nixの評価済み環境へ入る`./scripts/run-shared-test-env`を利用する。
+`nix develop .#test`はローカルバイナリキャッシュへの接続待ちが発生している。
+
+対象ごとの直接CMake依存と生成済みNinja定義の増分計画を確認した。
+標準プロパティの検証は既に画像ライブラリーを利用する`kis_paintop_test`へ集約し、独立試験専用の
+定義オブジェクトだけを使う経路を廃止した。これにより、共有ライブラリーから生成関数が公開されない不具合を
+リンク時に検出し、本体の公開指定を復旧した。
+
+実行コマンドは、評価済みNix環境内の`cmake --build --preset tdd-macos --target <対象>`、
+`ctest --preset tdd-macos --output-on-failure -R <対象名の完全一致>`を用いた。
+`kritaresourceui`、`kritaflake`、`kritawidgets`、`kritaimage`の全所有対象構築が成功した。
+`libs-image-kis_paintop_test`は成功し、設定値の書込と通知後の再読込を確認した。
+`libs-widgets-KisWidgetConnectionStateContractTest`は成功し、利用者入力とモデル更新の双方向反映を確認した。
+以前共有ライブラリー欠落で起動できなかった`libs-flake-TestSvgTextShape`、
+`libs-image-kis_node_visitor_test`、`libs-image-kis_paint_device_test`、
+`libs-image-kis_transform_mask_test`は全件成功した。
+`nm`でresource index resolverと標準プロパティ生成関数が各共有ライブラリーの外部記号として存在することを確認した。
+`./scripts/run-shared-test-env ./scripts/verify-quick`は、運用検査39件、依存境界、公開ヘッダー、
+プラグイン登録、文書、リンク、図の検証を含めて成功した。
+型特性専用試験の削除後にも同じ高速検査が成功した。
+`cmake --build --preset tdd-macos --target help`による再構成と、
+`ctest --preset tdd-macos -N`による対象CTestの登録確認が成功した。
+混在試験の整理後に、対象CTestの実行と残した試験対象のコンパイル・リンクが成功した。
+今回の`TestAngleSelector`構築では`kritalibkis`の完全な依存閉包を構築し、各翻訳単位が利用するQt事象型、
+画像型、設定型、領域型を直接取り込むように修正した。`kritaimpexui`の内側へ入れた補助オブジェクトが
+オブジェクトライブラリー境界を越えて伝播しなかったため、所有先の`kritaapplicationui`へ明示的に組み込んだ。
+その後、`TestAngleSelector`の構築と3回反復が成功した。
+`./scripts/run-shared-test-env ./scripts/verify-quick`は運用検査39件、依存境界、公開ヘッダー、
+プラグイン登録、文書、リンク、図の検証を含めて成功した。
+
+## 残る課題と再開条件
+
+機械的な型特性整理は完了した。次は残存Schema試験を利用場面から監査し、
+実際の呼び出し側と永続形式から互換性要件を確認する。列挙値や識別子の固定は保存データや外部連携の
+根拠がある場合だけ残し、公開操作の結果を検証しない試験は振る舞いへ置き換えるか削除する。
+
+`KisResourceItemDelegateContractTest`の索引変換は試験内でresolverを再定義しているため、
+実際の資源モデルが返す索引と描画結果による検証へ移す。
+`KoDialog::showEvent()`の表示直後の破棄に関する既知不具合はTODOの独立項目で扱う。
+
+今回の対象では、`TestToolSettingsUiContract`の構築と
+`libs-tools-ui-TestToolSettingsUiContract`のCTestがmacOSで成功した。
+`KisLodAvailabilityContractTest`と`KisLongPressEventFilterContractTest`の構築および
+`libs-ui-KisLodAvailabilityContractTest`、`libs-ui-KisLongPressEventFilterContractTest`のCTestがmacOSで成功した。
+新しい試験の増分依存閉包は、生成済みNinjaグラフでそれぞれ約27053行と6449行であり、
+`kritaapplicationui`全体への依存を避けて、LODは`kritaimage`、長押しは`kritawidgetutils`へ限定した。
+`KStandardActionCompatibilityTest`の構築と`libs-widgetutils-KStandardActionCompatibilityTest`のCTestもmacOSで成功した。
+実装ライブラリーを利用する依存閉包は生成済みNinjaグラフで約6443行であり、既存の
+`KisDialogStateSaverTest`と同程度である。
+`python3 scripts/architecture/check_test_contracts.py`と`git diff --check`も成功した。
+Canvas2の削除後にInfinityManager識別子の利用箇所を再検索し、Canvas2とInfinityManagerの内部実装だけであることを確認した。
+`plugins-impex-psd-kis_psd_test`、`libs-input-ui-KisToolInvocationActionCompatibilityTest`、
+`libs-input-ui-KisToolProxyContractTest`、`libs-painting-MoveStrokeStrategyContractTest`、
+`libs-painting-TestPaintingBoundary`の構築とCTestがmacOSで成功した。入力プロファイルと移動ストロークの
+新しい試験は、それぞれ既存の実装ライブラリー試験と同じNinja依存閉包（42588行、28413行）に収まる。
+`plugins-impex-png-KisPngHdrAndColorProfileContractTest`、
+`libs-impex-KisVideoFrameImportContractTest`、`libs-impex-KisFFMpegWrapperContractTest`の構築とCTestが
+macOSで成功した。動画取込とFFmpegの新しい試験は、既存の`TestImportExportUiBoundary`と同じ
+Ninja依存閉包（70327行）に収まる。PNG-suite全体は、ICCプロファイルを持つ16ビットグレースケール7件の
+比較基準と色管理経路の不一致を理由に従来どおり隔離し、成功するHDR・プロファイル契約だけを通常のCTestで
+維持する。
+`libs-flake-KoFFWWSConverterContractTest`と`libs-flake-KoFontGlyphModelCompatibilityTest`の構築とCTestが
+macOSで成功した。`libs-flake-KoDocumentResourceManagerContractTest`も成功し、生成済みNinjaグラフの
+依存閉包は既存の`TestResourceManager`と同程度（12931行、12934行）である。`KoToolBaseSchemaContractTest`の
+削除後、CMake再構成で削除済みCTest登録がないことを確認する。
+`libs-flake-KoSvgTextFontStretchContractTest`と`libs-flake-KoSvgTextWrappingContractTest`の構築とCTestが
+macOSで成功した。いずれも実装ライブラリーの`kritaflake`だけを追加依存とし、既存の文書リソース試験と
+同程度のNinja依存閉包（各12931行）に収まる。削除したSVG文字のSchema CTest登録も再構成後に残っていない。
+`KoSvgTextFontImportContractTest`の増分構築とCTestがmacOSで成功した。SVG読込の実装ライブラリーである
+`kritaflake`へ依存を限定し、フォント登録を伴う隔離済みの`TestSvgText`全体を通常CTestへ追加しない。
+生成済みNinjaグラフの依存閉包は12931行であり、既存のSVG文字契約試験と同程度に収まる。
+`testCssFontVariants`は同じ環境でFontconfig設定を読込めず、6件の文字画像比較基準と不一致になるため、
+この実行環境では通常CTestへ昇格できない。
+`KisTextPropertiesManagerContractTest`の増分構築とCTestがmacOSで成功した。段落・文字範囲のプロパティ状態を
+実際のキャンバス資源とツール境界へ渡す所有ライブラリー`kritaapplicationui`だけを直接依存とした。生成済み
+Ninjaグラフの依存閉包は70327行であり、同じUI所有ライブラリーを使う既存の文書状態試験（72368行）より小さい。
+
+主増分構築木`build/tdd-macos`と共有コンパイラーキャッシュを継続利用する。
+Qt 5、Linux、Windows、Android、実タブレット入力と全ネイティブ試験は未実施である。

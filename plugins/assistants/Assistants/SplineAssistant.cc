@@ -22,8 +22,6 @@
 #include <KoColorDisplayRendererInterface.h>
 
 #include <math.h>
-#include <limits>
-#include <algorithm>
 
 struct GoldenSearchParams
 {

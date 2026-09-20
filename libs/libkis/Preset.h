@@ -12,7 +12,6 @@
 #include "libkis.h"
 #include "Resource.h"
 #include <kis_types.h>
-#include <kis_paintop_preset.h>
 
 /**
  * @brief The Preset class

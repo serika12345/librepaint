@@ -10,10 +10,9 @@
 #define _KIS_PAINTOP_LIST_MODEL_H_
 
 #include <QAbstractListModel>
-#include <QPixmap>
+#include <QIcon>
 #include <kritatoolsui_export.h>
 #include "kis_categorized_list_model.h"
-#include <brushengine/kis_paintop_factory.h>
 
 class KisPaintOpFactory;
 
@@ -56,21 +55,12 @@ public:
 class KRITATOOLSUI_EXPORT KisSortedPaintOpListModel : public KisSortedCategorizedListModel<KisPaintOpListModel>
 {
 public:
-    KisSortedPaintOpListModel(QObject *parent)
-        : KisSortedCategorizedListModel<KisPaintOpListModel>(parent),
-          m_model(new KisPaintOpListModel(this))
-    {
-        initializeModel(m_model);
-    }
+    KisSortedPaintOpListModel(QObject *parent);
 
-    void fill(const QList<KisPaintOpFactory*> &list) {
-        m_model->fill(list);
-    }
+    void fill(const QList<KisPaintOpFactory*> &list);
 
 protected:
-    bool lessThan(const QModelIndex &left, const QModelIndex &right) const override {
-        return lessThanPriority(left, right, KisPaintOpFactory::categoryStable());
-    }
+    bool lessThan(const QModelIndex &left, const QModelIndex &right) const override;
 
 private:
     KisPaintOpListModel *m_model;

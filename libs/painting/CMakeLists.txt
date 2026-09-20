@@ -2,7 +2,6 @@ add_subdirectory(undo)
 add_subdirectory(metadata)
 
 set(kritapainting_LIB_SRCS
-    KisAsynchronousStrokeUpdateHelper.cpp
     KisColorSamplerStroke.cpp
     KisStrokeCompatibilityInfo.cpp
     KisStrokeSpeedMonitor.cpp
@@ -23,7 +22,84 @@ set(kritapainting_LIB_SRCS
     strokes/KisNodeSelectionRecipe.cpp
 )
 
-kis_add_library(kritapainting SHARED ${kritapainting_LIB_SRCS})
+add_library(kritapaintingasyncstrokeupdatehelperobjects OBJECT
+    KisAsynchronousStrokeUpdateHelper.cpp
+)
+target_compile_definitions(kritapaintingasyncstrokeupdatehelperobjects PRIVATE
+    kritaimage_EXPORTS
+    kritapainting_EXPORTS
+)
+target_include_directories(kritapaintingasyncstrokeupdatehelperobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+        ${CMAKE_SOURCE_DIR}/libs/image
+        ${CMAKE_BINARY_DIR}/libs/image
+)
+target_link_libraries(kritapaintingasyncstrokeupdatehelperobjects
+    PUBLIC
+        kritaimagejobstrategyobjects
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritapaintingasyncstrokeupdatehelperobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintingmovestrokejobdataobjects OBJECT
+    strokes/MoveStrokeJobData.cpp
+)
+target_compile_definitions(kritapaintingmovestrokejobdataobjects PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritapainting_EXPORTS
+    kritapaintingundo_EXPORTS
+    kritapigment_EXPORTS
+    kritaresources_EXPORTS
+)
+target_include_directories(kritapaintingmovestrokejobdataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/strokes>
+        ${CMAKE_SOURCE_DIR}/libs/global
+        ${CMAKE_BINARY_DIR}/libs/global
+        ${CMAKE_SOURCE_DIR}/libs/image
+        ${CMAKE_BINARY_DIR}/libs/image
+        ${CMAKE_SOURCE_DIR}/libs/image/brushengine
+        ${CMAKE_SOURCE_DIR}/libs/image/filter
+        ${CMAKE_SOURCE_DIR}/libs/pigment
+        ${CMAKE_BINARY_DIR}/libs/pigment
+        ${CMAKE_SOURCE_DIR}/libs/pigment/resources
+        ${CMAKE_SOURCE_DIR}/libs/resources
+        ${CMAKE_BINARY_DIR}/libs/resources
+        ${CMAKE_SOURCE_DIR}/libs/painting/undo
+        ${CMAKE_BINARY_DIR}/libs/painting/undo
+        $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
+        $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_link_libraries(kritapaintingmovestrokejobdataobjects
+    PUBLIC
+        kritaimagejobstrategyobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Xml
+        Boost::boost
+)
+set_target_properties(kritapaintingmovestrokejobdataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+kis_add_library(kritapainting SHARED
+    ${kritapainting_LIB_SRCS}
+    KisAsynchronousStrokeUpdateHelper.h
+    $<TARGET_OBJECTS:kritapaintingasyncstrokeupdatehelperobjects>
+    $<TARGET_OBJECTS:kritapaintingmovestrokejobdataobjects>
+)
 generate_export_header(kritapainting BASE_NAME kritapainting)
 
 target_link_libraries(kritapainting

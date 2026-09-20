@@ -5,9 +5,7 @@
  */
 
 #include "kis_spray_paintop.h"
-#include "kis_spray_paintop_settings.h"
 
-#include <cmath>
 
 #include <QRect>
 #include <kis_global.h>

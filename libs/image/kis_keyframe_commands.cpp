@@ -7,7 +7,6 @@
 
 #include "kis_keyframe_commands.h"
 #include "kis_scalar_keyframe_channel.h"
-#include "kis_signals_blocker.h"
 
 KisInsertKeyframeCommand::KisInsertKeyframeCommand(KisKeyframeChannel *channel, int time, KisKeyframeSP keyframe, KUndo2Command *parentCmd)
     : KUndo2Command(parentCmd),

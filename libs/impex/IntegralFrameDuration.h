@@ -11,28 +11,24 @@
 
 #include <klocalizedstring.h>
 
-#include <KoID.h>
 #include <kis_image.h>
 #include <kis_image_animation_interface.h>
 
-#include "KisExportCheckRegistry.h"
+#include "KisExportCheckBase.h"
 #include "kritaimpex_export.h"
 
 class KRITAIMPEX_EXPORT IntegralFrameDurationCheck : public KisExportCheckBase
 {
 public:
-    IntegralFrameDurationCheck(const QString &id,
-                               Level level,
-                               const QString &customWarning = QString())
+    IntegralFrameDurationCheck(const QString &id, Level level, const QString &customWarning = QString())
         : KisExportCheckBase(id, level, customWarning)
     {
         if (customWarning.isEmpty()) {
-            m_warning =
-                i18nc("image conversion warning",
-                      "The image is animated with a frame duration in "
-                      "<b>fractions of a millisecond</b>. The "
-                      "format cannot represent this, and the frame "
-                      "duration will be rounded to the nearest millisecond.");
+            m_warning = i18nc("image conversion warning",
+                              "The image is animated with a frame duration in "
+                              "<b>fractions of a millisecond</b>. The "
+                              "format cannot represent this, and the frame "
+                              "duration will be rounded to the nearest millisecond.");
         }
     }
 
@@ -42,8 +38,7 @@ public:
             return false;
         }
 
-        const auto frameDuration = 1000.0
-            / static_cast<double>(image->animationInterface()->framerate());
+        const auto frameDuration = 1000.0 / static_cast<double>(image->animationInterface()->framerate());
 
         return std::round(frameDuration) != frameDuration;
     }
@@ -54,17 +49,14 @@ public:
     }
 };
 
-class KRITAIMPEX_EXPORT IntegralFrameDurationCheckFactory
-    : public KisExportCheckFactory
+class KRITAIMPEX_EXPORT IntegralFrameDurationCheckFactory : public KisExportCheckFactory
 {
 public:
     IntegralFrameDurationCheckFactory() = default;
 
     ~IntegralFrameDurationCheckFactory() override = default;
 
-    KisExportCheckBase *
-    create(KisExportCheckBase::Level level,
-           const QString &customWarning = QString()) override
+    KisExportCheckBase *create(KisExportCheckBase::Level level, const QString &customWarning = QString()) override
     {
         return new IntegralFrameDurationCheck(id(), level, customWarning);
     }

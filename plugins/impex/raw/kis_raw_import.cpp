@@ -6,7 +6,6 @@
 
 #include "kis_raw_import.h"
 
-#include <cmath>
 #include <cstddef>
 #include <exiv2/exiv2.hpp>
 #include <utility>

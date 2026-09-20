@@ -12,7 +12,6 @@
 #include <QFileInfo>
 
 #include "kritaanimationdocker_export.h"
-#include "nodes/kis_node_model.h"
 #include "kis_types.h"
 #include "kis_node.h"
 #include "timeline_node_list_keeper.h"
@@ -21,6 +20,7 @@ class KisNodeDummy;
 class KisDummiesFacadeBase;
 class KisCanvasAnimationState;
 class KisNodeDisplayModeAdapter;
+class KisRasterKeyframeChannel;
 
 
 

@@ -1,12 +1,14 @@
 #ifndef KISCOLLAPSIBLEBUTTONGROUP_H
 #define KISCOLLAPSIBLEBUTTONGROUP_H
 
-#include <QObject>
-#include <QWidget>
 #include <QScopedPointer>
+#include <QSize>
+#include <QWidget>
 
 #include "kritaui_export.h"
 
+class QAction;
+class QResizeEvent;
 class QToolButton;
 
 class KRITAUI_EXPORT KisCollapsibleButtonGroup : public QWidget
@@ -35,7 +37,7 @@ public:
     QToolButton* addAction(QAction* action);
 
 protected:
-    virtual void resizeEvent(class QResizeEvent *event) override;
+    virtual void resizeEvent(QResizeEvent *event) override;
 
 private:
     struct Private;

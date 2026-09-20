@@ -11,11 +11,11 @@
 #include <QBuffer>
 #include <KoDocumentResourceManager.h>
 #include <kis_processing_applicator.h>
-#include <application/KisPart.h>
-#include <workspace/KisView.h>
+#include <application/ui/orchestration/KisPart.h>
+#include <application/ui/workspace/KisView.h>
 #include <document/KisDocument.h>
 #include <kis_canvas2.h>
-#include <workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisMainWindow.h>
 #include <KoShapeController.h>
 #include <KoSelection.h>
 

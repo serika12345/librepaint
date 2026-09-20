@@ -7,7 +7,7 @@ set(kritapropagatecolors_SOURCES
 
 kis_add_library(kritapropagatecolors MODULE ${kritapropagatecolors_SOURCES})
 
-target_link_libraries(kritapropagatecolors kritaui)
+target_link_libraries(kritapropagatecolors kritaapplicationui)
 
 install(
     TARGETS

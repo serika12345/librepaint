@@ -21,6 +21,7 @@
 #include <QMenu>
 #include <QTime>
 
+#include <KSharedConfig>
 #include <kis_debug.h>
 #include <kis_types.h>
 
@@ -42,16 +43,18 @@
 #include <brushengine/kis_paintop_registry.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paintop_settings.h>
+#include <brushengine/kis_locked_properties_proxy.h>
+#include <brushengine/kis_locked_properties_server.h>
 #include <brushengine/KisPaintOpPresetUpdateProxy.h>
 #include <kis_config_widget.h>
 #include <kis_image.h>
 #include <kis_node.h>
 #include <brushengine/kis_paintop_config_widget.h>
-#include <application/kis_action.h>
+#include <application/ui/orchestration/kis_action.h>
 
 #include "kis_canvas2.h"
 #include "nodes/kis_node_manager.h"
-#include "workspace/KisViewManager.h"
+#include "application/ui/workspace/KisViewManager.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include <KisPaintResourceServerProvider.h>
 #include "resources/kis_favorite_resource_manager.h"
@@ -73,13 +76,14 @@
 #include "widgets/kis_widget_chooser.h"
 #include <kis_tool.h>
 #include "kis_signals_blocker.h"
-#include "application/kis_action_manager.h"
+#include "application/ui/orchestration/kis_action_manager.h"
+#include "kis_action_registry.h"
 #include "KisHighlightedToolButton.h"
 #include <KisGlobalResourcesInterface.h>
 #include "KisResourceLoader.h"
 #include "KisResourceLoaderRegistry.h"
 #include "kis_acyclic_signal_connector.h"
-#include "workspace/KisMainWindow.h"
+#include "application/ui/workspace/KisMainWindow.h"
 #include "widgets/KisCompositeOpListConnectionHelper.h"
 
 KisPaintopBox::KisPaintopBox(KisViewManager *viewManager, QWidget *parent, const char *name)

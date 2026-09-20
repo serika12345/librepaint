@@ -175,7 +175,8 @@ endif()
 target_link_libraries(krita
     PRIVATE
                       kritamultiarch
-                      kritaui
+                      kritaapplication
+                      kritaapplicationui
                       Qt${QT_MAJOR_VERSION}::Core
                       Qt${QT_MAJOR_VERSION}::Gui
                       Qt${QT_MAJOR_VERSION}::Widgets
@@ -355,3 +356,7 @@ if (WIN32)
     endif()
     install(TARGETS krita_windows_stub_com ${INSTALL_TARGETS_DEFAULT_ARGS})
 endif (WIN32)
+
+if (BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

@@ -10,9 +10,6 @@
 #include <QApplication>
 #include <QKeyEvent>
 
-#include <kis_shortcut_matcher.h>
-
-
 void activateLocalMonitor(bool activate);
 
 QVector<Qt::Key> queryPressedKeysMac();

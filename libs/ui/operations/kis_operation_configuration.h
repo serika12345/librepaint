@@ -10,6 +10,7 @@
 #include <QString>
 #include <kritaui_export.h>
 #include "kis_properties_configuration.h"
+#include "operations/kis_operation_configuration_fwd.h"
 
 
 class KRITAUI_EXPORT KisOperationConfiguration : public KisPropertiesConfiguration
@@ -23,7 +24,5 @@ public:
 private:
     Q_DISABLE_COPY(KisOperationConfiguration)
 };
-
-typedef KisPinnedSharedPtr<KisOperationConfiguration> KisOperationConfigurationSP;
 
 #endif /* __KIS_OPERATION_CONFIGURATION_H */

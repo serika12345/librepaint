@@ -7,9 +7,7 @@
 #include "kis_color_balance_filter.h"
 #include <filter/kis_filter_category_ids.h>
 #include "filter/kis_color_transformation_configuration.h"
-#include "kis_selection.h"
 #include "kis_paint_device.h"
-#include "kis_processing_information.h"
 #include <KisGlobalResourcesInterface.h>
 
 KisColorBalanceFilter::KisColorBalanceFilter() 

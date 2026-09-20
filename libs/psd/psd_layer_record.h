@@ -10,11 +10,15 @@
 #include "kritapsd_export.h"
 
 #include <QByteArray>
+#include <QDebug>
+#include <QDomDocument>
+#include <QPair>
+#include <QRect>
 #include <QString>
 #include <QVector>
 
-#include <kis_node.h>
-#include <kis_paint_device.h>
+#include <array>
+
 #include <kis_types.h>
 #include <psd.h>
 
@@ -70,10 +74,7 @@ class KRITAPSD_EXPORT PSDLayerRecord
 public:
     PSDLayerRecord(const PSDHeader &header);
 
-    ~PSDLayerRecord()
-    {
-        qDeleteAll(channelInfoRecords);
-    }
+    ~PSDLayerRecord();
 
     QRect channelRect(ChannelInfo *channel) const;
 

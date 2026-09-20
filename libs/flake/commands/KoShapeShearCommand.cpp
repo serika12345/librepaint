@@ -10,19 +10,63 @@
 
 #include <klocalizedstring.h>
 
+namespace
+{
+using ShapeUpdater = void (*)(const KoShape *shape);
+using ShapeShearer = void (*)(KoShape *shape, qreal shearX, qreal shearY);
+
+void updateShape(const KoShape *shape)
+{
+    shape->update();
+}
+
+void shearShape(KoShape *shape, qreal shearX, qreal shearY)
+{
+    shape->shear(shearX, shearY);
+}
+
+struct ShapeAccess {
+    ShapeUpdater updater;
+    ShapeShearer shearer;
+};
+
+const ShapeAccess defaultShapeAccess{updateShape, shearShape};
+ShapeAccess activeShapeAccess = defaultShapeAccess;
+} // namespace
+
+#if defined(KRITAFLAKE_SHAPE_SHEAR_COMMAND_CONTRACT_TESTING)
+namespace KoShapeShearCommandTesting
+{
+Q_DECL_HIDDEN void setShapeAccessForTesting(ShapeUpdater updater, ShapeShearer shearer)
+{
+    activeShapeAccess = {updater, shearer};
+}
+
+Q_DECL_HIDDEN void resetShapeAccessForTesting()
+{
+    activeShapeAccess = defaultShapeAccess;
+}
+} // namespace KoShapeShearCommandTesting
+#endif
+
 class KoShapeShearCommandPrivate
 {
 public:
-    QList<KoShape*> shapes;
+    QList<KoShape *> shapes;
     QList<qreal> previousShearXs;
     QList<qreal> previousShearYs;
     QList<qreal> newShearXs;
     QList<qreal> newShearYs;
 };
 
-KoShapeShearCommand::KoShapeShearCommand(const QList<KoShape*> &shapes, const QList<qreal> &previousShearXs, const QList<qreal> &previousShearYs, const QList<qreal> &newShearXs, const QList<qreal> &newShearYs, KUndo2Command *parent)
-    : KUndo2Command(parent),
-    d(new KoShapeShearCommandPrivate())
+KoShapeShearCommand::KoShapeShearCommand(const QList<KoShape *> &shapes,
+                                         const QList<qreal> &previousShearXs,
+                                         const QList<qreal> &previousShearYs,
+                                         const QList<qreal> &newShearXs,
+                                         const QList<qreal> &newShearYs,
+                                         KUndo2Command *parent)
+    : KUndo2Command(parent)
+    , d(new KoShapeShearCommandPrivate())
 {
     d->shapes = shapes;
     d->previousShearXs = previousShearXs;
@@ -47,9 +91,9 @@ void KoShapeShearCommand::redo()
 {
     KUndo2Command::redo();
     for (int i = 0; i < d->shapes.count(); i++) {
-        d->shapes.at(i)->update();
-        d->shapes.at(i)->shear(d->newShearXs.at(i), d->newShearYs.at(i));
-        d->shapes.at(i)->update();
+        activeShapeAccess.updater(d->shapes.at(i));
+        activeShapeAccess.shearer(d->shapes.at(i), d->newShearXs.at(i), d->newShearYs.at(i));
+        activeShapeAccess.updater(d->shapes.at(i));
     }
 }
 
@@ -57,8 +101,8 @@ void KoShapeShearCommand::undo()
 {
     KUndo2Command::undo();
     for (int i = 0; i < d->shapes.count(); i++) {
-        d->shapes.at(i)->update();
-        d->shapes.at(i)->shear(d->previousShearXs.at(i), d->previousShearYs.at(i));
-        d->shapes.at(i)->update();
+        activeShapeAccess.updater(d->shapes.at(i));
+        activeShapeAccess.shearer(d->shapes.at(i), d->previousShearXs.at(i), d->previousShearYs.at(i));
+        activeShapeAccess.updater(d->shapes.at(i));
     }
 }

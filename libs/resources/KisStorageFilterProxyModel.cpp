@@ -5,11 +5,9 @@
  */
 #include "KisStorageFilterProxyModel.h"
 
-#include <QDebug>
 #include <KisResourceModel.h>
-#include <kis_debug.h>
-#include <KisResourceSearchBoxFilter.h>
-#include <KisResourceLocator.h>
+
+#include "KisStorageFilterProxyModelSource_p.h"
 
 struct KisStorageFilterProxyModel::Private
 {
@@ -31,17 +29,21 @@ KisStorageFilterProxyModel::~KisStorageFilterProxyModel()
 
 KisResourceStorageSP KisStorageFilterProxyModel::storageForIndex(QModelIndex index) const
 {
-    KisStorageModel *source = dynamic_cast<KisStorageModel*>(sourceModel());
-    if (source) {
-        return source->storageForIndex(mapToSource(index));
-    }
-    return 0;
+    return KisStorageFilterProxyModelSource::storageForIndex(sourceModel(), mapToSource(index));
 }
 
 void KisStorageFilterProxyModel::setFilter(KisStorageFilterProxyModel::FilterType filterType, QVariant filter)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+    beginFilterChange();
+#endif
     d->filter = filter;
     d->filterType = filterType;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+    endFilterChange(QSortFilterProxyModel::Direction::Rows);
+#else
+    invalidateFilter();
+#endif
 }
 
 
@@ -89,5 +91,10 @@ bool KisStorageFilterProxyModel::lessThan(const QModelIndex &source_left, const 
 
 void KisStorageFilterProxyModel::slotModelReset()
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+    beginFilterChange();
+    endFilterChange(QSortFilterProxyModel::Direction::Rows);
+#else
     invalidateFilter();
+#endif
 }

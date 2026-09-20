@@ -14,6 +14,7 @@
 
 #include "kis_image.h"
 #include "kis_painter.h"
+#include "kis_paint_device.h"
 #include "kis_paint_layer.h"
 #include "kis_clone_layer.h"
 #include "kis_group_layer.h"

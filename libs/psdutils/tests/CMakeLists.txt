@@ -2,6 +2,166 @@ set(PSD_TEST_LIBS kritapsdutils kritatestsdk)
 
 kis_add_tests(
     psd_utils_test.cpp
-    compression_test.cpp
     psd_cos_parser_test.cpp
     LINK_LIBRARIES ${PSD_TEST_LIBS})
+
+kis_add_test(
+    compression_test.cpp
+    LINK_LIBRARIES
+        kritapsdcompressionobjects
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(compression_test PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(compression_test PRIVATE kritapsdutils_EXPORTS)
+
+kis_add_test(
+    PsdFormatValuesContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF6::I18n
+)
+target_include_directories(PsdFormatValuesContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/flake
+    ${CMAKE_BINARY_DIR}/libs/flake
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/image/generator
+    ${CMAKE_SOURCE_DIR}/libs/image/filter
+    ${CMAKE_SOURCE_DIR}/libs/psd
+    ${CMAKE_BINARY_DIR}/libs/psd
+    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Eigen3::Eigen,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(PsdFormatValuesContractTest PRIVATE
+    kritapsdutils_EXPORTS
+    __clang_major__=9
+)
+
+kis_add_test(
+    PsdByteIoContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(PsdByteIoContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(PsdByteIoContractTest PRIVATE kritapsdutils_EXPORTS)
+
+
+kis_add_test(
+    KisAslWriterUtilsContractTest.cpp
+    LINK_LIBRARIES
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        Boost::boost
+)
+target_include_directories(KisAslWriterUtilsContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
+    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
+    $<TARGET_PROPERTY:Imath::Imath,INTERFACE_INCLUDE_DIRECTORIES>
+)
+target_compile_definitions(KisAslWriterUtilsContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritapsdutils_EXPORTS
+    kritaresources_EXPORTS
+)
+
+kis_add_test(
+    KisAslObjectCatcherContractTest.cpp
+    LINK_LIBRARIES
+        kritaaslobjectcatcherobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisAslObjectCatcherContractTest PRIVATE kritapsdutils_EXPORTS)
+
+kis_add_test(
+    KisOffsetKeeperContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisOffsetKeeperContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisOffsetKeeperContractTest PRIVATE kritapsdutils_EXPORTS)
+
+kis_add_test(
+    KisOffsetOnExitVerifierContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisOffsetOnExitVerifierContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+)
+target_compile_definitions(KisOffsetOnExitVerifierContractTest PRIVATE kritapsdutils_EXPORTS)
+
+kis_add_test(
+    KisCosParserContractTest.cpp
+    LINK_LIBRARIES
+        kritapsdcosparserobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+if (TARGET Qt6::Core5Compat)
+    target_link_libraries(KisCosParserContractTest Qt6::Core5Compat)
+endif()
+target_include_directories(KisCosParserContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisCosParserContractTest PRIVATE kritapsdutils_EXPORTS)
+
+kis_add_test(
+    KisCosWriterContractTest.cpp
+    LINK_LIBRARIES
+        kritapsdcosparserobjects
+        kritapsdcoswriterobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+if (TARGET Qt6::Core5Compat)
+    target_link_libraries(KisCosWriterContractTest Qt6::Core5Compat)
+endif()
+target_include_directories(KisCosWriterContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KisCosWriterContractTest PRIVATE kritapsdutils_EXPORTS)

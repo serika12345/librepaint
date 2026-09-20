@@ -6,11 +6,12 @@
 #include "KisResourcesInterface.h"
 
 
+#include <QReadLocker>
 #include <QString>
+#include <QWriteLocker>
 #include "kis_assert.h"
 #include "KisResourcesInterface_p.h"
 
-#include "kis_debug.h"
 
 //#define SANITY_CHECKS
 #define CRASH_ON_SANITY_CHECK_FAILURE

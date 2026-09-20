@@ -6,50 +6,14 @@
 #include "KisGlobalResourcesInterface.h"
 
 #include <QGlobalStatic>
-#include <KisResourceModel.h>
-#include <KisResourceModelProvider.h>
-
-#include <kis_debug.h>
-
 #include <QBasicMutex>
 #include <QMutexLocker>
 
+#include <kis_assert.h>
 
-namespace {
-class GlobalResourcesSource : public KisResourcesInterface::ResourceSourceAdapter
+namespace KisGlobalResourcesInterfaceDetail
 {
-public:
-    GlobalResourcesSource(const QString &resourceType, KisAllResourcesModel *model)
-        : KisResourcesInterface::ResourceSourceAdapter(resourceType)
-        , m_model(model)
-    {}
-
-    ~GlobalResourcesSource() override
-    {
-    }
-protected:
-    QVector<KoResourceSP> resourcesForFilename(const QString &filename) const override {
-        QVector<KoResourceSP> res = m_model->resourcesForFilename(filename);
-        return res;
-    }
-
-    QVector<KoResourceSP> resourcesForName(const QString &name) const override {
-        QVector<KoResourceSP> res = m_model->resourcesForName(name);
-        return res;
-    }
-
-    QVector<KoResourceSP> resourcesForMD5(const QString &md5) const override {
-        QVector<KoResourceSP> res = m_model->resourcesForMD5(md5);
-        return res;
-    }
-public:
-    KoResourceSP fallbackResource() const override {
-        return m_model->rowCount() > 0 ? m_model->resourceForIndex(m_model->index(0, 0)) : KoResourceSP();
-    }
-
-private:
-    KisAllResourcesModel *m_model;
-};
+KisResourcesInterface::ResourceSourceAdapter *createModelBackedSource(const QString &type);
 }
 
 KisResourcesInterfaceSP KisGlobalResourcesInterface::instance()
@@ -77,10 +41,11 @@ KisResourcesInterfaceSP KisGlobalResourcesInterface::instance()
     return d;
 }
 
-KisResourcesInterface::ResourceSourceAdapter *KisGlobalResourcesInterface::createSourceImpl(const QString &type) const
+KisResourcesInterface::ResourceSourceAdapter *
+KisGlobalResourcesInterface::createSourceImpl(const QString &type) const
 {
     KisResourcesInterface::ResourceSourceAdapter *source =
-        new GlobalResourcesSource(type, KisResourceModelProvider::resourceModel(type));
+        KisGlobalResourcesInterfaceDetail::createModelBackedSource(type);
 
     KIS_ASSERT(source);
     return source;

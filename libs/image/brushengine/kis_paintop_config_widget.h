@@ -10,9 +10,7 @@
 #include "kritaimage_export.h"
 
 #include "kis_config_widget.h"
-#include "kis_image.h"
-#include <kis_debug.h>
-#include <kis_properties_configuration.h>
+#include "kis_types.h"
 #include <lager/reader.hpp>
 
 class KisResourcesInterface;

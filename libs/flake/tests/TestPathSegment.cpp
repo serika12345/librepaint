@@ -1,358 +1,271 @@
 /* This file is part of the KDE project
  * SPDX-FileCopyrightText: 2008-2009 Jan Hambrecht <jaham@gmx.net>
+ * SPDX-FileCopyrightText: 2026 LibrePaint contributors
  *
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
 #include "TestPathSegment.h"
-#include <KoPathSegment.h>
+
+#include <KisHandlePainterHelper.h>
 #include <KoPathPoint.h>
-#include <QPainterPath>
-#include <simpletest.h>
+#include <KoPathSegment.h>
+#include <KoShape.h>
 
-void TestPathSegment::segmentAssign()
+#include <QTest>
+#include <QTransform>
+
+void KoShape::notifyChanged()
 {
-    KoPathSegment s1(QPointF(0, 0), QPointF(100, 100));
-    KoPathSegment s1Copy = s1;
-    QVERIFY(s1 == s1Copy);
-
-    KoPathSegment s2(QPointF(0, 0), QPointF(100, 100), QPointF(200, 0));
-    KoPathSegment s2Copy = s2;
-    QVERIFY(s2 == s2Copy);
-
-    KoPathSegment s3(QPointF(0, 0), QPointF(100, 100), QPointF(200, 100), QPointF(300, 0));
-    KoPathSegment s3Copy = s3;
-    QVERIFY(s3 == s3Copy);
+    qFatal("KoShape::notifyChanged must not be used by this detached contract");
 }
 
-void TestPathSegment::segmentCopy()
+QRectF KoShape::shapeToDocument(const QRectF &) const
 {
-    KoPathSegment s1(QPointF(0, 0), QPointF(100, 100));
-    KoPathSegment s1Copy(s1);
-    QVERIFY(s1 == s1Copy);
-
-    KoPathSegment s2(QPointF(0, 0), QPointF(100, 100), QPointF(200, 0));
-    KoPathSegment s2Copy(s2);
-    QVERIFY(s2 == s2Copy);
-
-    KoPathSegment s3(QPointF(0, 0), QPointF(100, 100), QPointF(200, 100), QPointF(300, 0));
-    KoPathSegment s3Copy(s3);
-    QVERIFY(s3 == s3Copy);
+    qFatal("KoShape::shapeToDocument must not be used by this detached contract");
+    return {};
 }
 
-void TestPathSegment::segmentDegree()
+void KisHandlePainterHelper::drawConnectionLine(const QPointF &, const QPointF &)
 {
-    KoPathSegment s0(0, 0);
-    QCOMPARE(s0.degree(), -1);
-
-    KoPathSegment s1(QPointF(0, 0), QPointF(100, 100));
-    QCOMPARE(s1.degree(), 1);
-
-    KoPathSegment s2(QPointF(0, 0), QPointF(100, 100), QPointF(200, 0));
-    QCOMPARE(s2.degree(), 2);
-
-    KoPathSegment s3(QPointF(0, 0), QPointF(100, 100), QPointF(200, 100), QPointF(300, 0));
-    QCOMPARE(s3.degree(), 3);
+    qFatal("Handle painting must not be used by this path-segment contract");
 }
 
-void TestPathSegment::segmentConvexHull()
+void KisHandlePainterHelper::drawGradientHandle(const QPointF &)
 {
-    KoPathSegment s1(QPointF(0, 0), QPointF(100, 100));
-    QList<QPointF> hull1 = s1.convexHull();
-    QCOMPARE(hull1.count(), 2);
-    QCOMPARE(hull1[0], QPointF(0, 0));
-    QCOMPARE(hull1[1], QPointF(100, 100));
-
-    KoPathSegment s2(QPointF(0, 0), QPointF(100, 100), QPointF(200, 0));
-    QList<QPointF> hull2 = s2.convexHull();
-    QCOMPARE(hull2.count(), 3);
-    QCOMPARE(hull2[0], QPointF(0, 0));
-    QCOMPARE(hull2[1], QPointF(100, 100));
-    QCOMPARE(hull2[2], QPointF(200, 0));
-
-    KoPathSegment s3(QPointF(0, 0), QPointF(100, 100), QPointF(200, 100), QPointF(300, 0));
-    QList<QPointF> hull3 = s3.convexHull();
-    QCOMPARE(hull3.count(), 4);
-    QCOMPARE(hull3[0], QPointF(0, 0));
-    QCOMPARE(hull3[1], QPointF(100, 100));
-    QCOMPARE(hull3[2], QPointF(200, 100));
-    QCOMPARE(hull3[3], QPointF(300, 0));
-
-    KoPathSegment s4(QPointF(0, 0), QPointF(150, 100), QPointF(150, 50), QPointF(300, 0));
-    QList<QPointF> hull4 = s4.convexHull();
-    QCOMPARE(hull4.count(), 3);
-    QCOMPARE(hull4[0], QPointF(0, 0));
-    QCOMPARE(hull4[1], QPointF(150, 100));
-    QCOMPARE(hull4[2], QPointF(300, 0));
+    qFatal("Handle painting must not be used by this path-segment contract");
 }
 
-void TestPathSegment::segmentPointAt()
+void KisHandlePainterHelper::drawHandleCircle(const QPointF &)
 {
-    KoPathSegment s1(QPointF(0, 0), QPointF(100, 0));
-    QCOMPARE(s1.pointAt(0.0), QPointF(0, 0));
-    QCOMPARE(s1.pointAt(0.5), QPointF(50, 0));
-    QCOMPARE(s1.pointAt(1.0), QPointF(100, 0));
-
-    KoPathSegment s2(QPointF(0, 0), QPointF(100, 100), QPointF(200, 0));
-    QCOMPARE(s2.pointAt(0.0), QPointF(0, 0));
-    QCOMPARE(s2.pointAt(0.5), QPointF(100, 50));
-    QCOMPARE(s2.pointAt(1.0), QPointF(200, 0));
-
-    KoPathSegment s3(QPointF(0, 0), QPointF(100, 100), QPointF(200, 100), QPointF(300, 0));
-    QCOMPARE(s3.pointAt(0.0), QPointF(0, 0));
-    QCOMPARE(s3.pointAt(1.0 / 3.0), QPointF(100, 100*2.0 / 3.0));
-    QCOMPARE(s3.pointAt(2.0 / 3.0), QPointF(200, 100*2.0 / 3.0));
-    QCOMPARE(s3.pointAt(1.0), QPointF(300, 0));
+    qFatal("Handle painting must not be used by this path-segment contract");
 }
 
-void TestPathSegment::segmentSplitAt()
+void KisHandlePainterHelper::drawHandleRect(const QPointF &)
 {
-    KoPathSegment s1(QPointF(0, 0), QPointF(100, 0));
-    QPair<KoPathSegment, KoPathSegment> parts1 = s1.splitAt( 0.5 );
-    QCOMPARE(parts1.first.first()->point(), QPointF(0, 0));
-    QCOMPARE(parts1.first.second()->point(), QPointF(50, 0));
-    QCOMPARE(parts1.first.degree(), 1);
-    QCOMPARE(parts1.second.first()->point(), QPointF(50, 0));
-    QCOMPARE(parts1.second.second()->point(), QPointF(100, 0));
-    QCOMPARE(parts1.second.degree(), 1);
-
-    QPainterPath p1;
-    p1.moveTo( QPoint(0, 0) );
-    p1.lineTo( QPointF(100, 0) );
-    QCOMPARE( parts1.first.second()->point(), p1.pointAtPercent( 0.5 ) );
-
-    KoPathSegment s2(QPointF(0, 0), QPointF(100, 100), QPointF(200, 0));
-    QPair<KoPathSegment, KoPathSegment> parts2 = s2.splitAt( 0.5 );
-    QCOMPARE(parts2.first.first()->point(), QPointF(0, 0));
-    QCOMPARE(parts2.first.second()->point(), QPointF(100, 50));
-    QCOMPARE(parts2.first.degree(), 2);
-    QCOMPARE(parts2.second.first()->point(), QPointF(100, 50));
-    QCOMPARE(parts2.second.second()->point(), QPointF(200, 0));
-    QCOMPARE(parts2.second.degree(), 2);
-
-    QPainterPath p2;
-    p2.moveTo( QPoint(0, 0) );
-    p2.quadTo( QPointF(100, 100), QPointF(200, 0) );
-    QCOMPARE( parts2.first.second()->point(), p2.pointAtPercent( 0.5 ) );
-
-    KoPathSegment s3(QPointF(0, 0), QPointF(100, 100), QPointF(200, 100), QPointF(300, 0));
-    QPair<KoPathSegment, KoPathSegment> parts3 = s3.splitAt( 0.5 );
-    QCOMPARE(parts3.first.first()->point(), QPointF(0, 0));
-    QCOMPARE(parts3.first.second()->point(), QPointF(150, 75));
-    QCOMPARE(parts3.first.degree(), 3);
-    QCOMPARE(parts3.second.first()->point(), QPointF(150, 75));
-    QCOMPARE(parts3.second.second()->point(), QPointF(300, 0));
-    QCOMPARE(parts3.second.degree(), 3);
-
-    QPainterPath p3;
-    p3.moveTo( QPoint(0, 0) );
-    p3.cubicTo( QPointF(100, 100), QPointF(200, 100), QPointF(300, 0) );
-    QCOMPARE( parts3.first.second()->point(), p3.pointAtPercent( 0.5 ) );
+    qFatal("Handle painting must not be used by this path-segment contract");
 }
 
-void TestPathSegment::segmentIntersections()
+void KisHandlePainterHelper::drawHandleSmallCircle(const QPointF &)
 {
-    // simple line intersections
-    {
-        KoPathSegment s1(QPointF(0, 0), QPointF(100, 0));
-        KoPathSegment s2(QPointF(50, -50), QPointF(50, 50));
-        QList<QPointF> isects = s1.intersections(s2);
-        QCOMPARE(isects.count(), 1);
-    }
-    {
-        KoPathSegment s1(QPointF(0, 0), QPointF(100, 100));
-        KoPathSegment s2(QPointF(25, 100), QPointF(75, 50));
-        QList<QPointF> isects = s1.intersections(s2);
-        QCOMPARE(isects.count(), 1);
-    }
-    // curve intersections
-    {
-        KoPathSegment s1(QPointF(0, 0), QPointF(50, 50), QPointF(100, -50), QPointF(150, 0));
-        KoPathSegment s2(QPointF(75, 75), QPointF(125, 25), QPointF(25, -25), QPointF(75, -75));
-        QList<QPointF> isects = s1.intersections(s2);
-        QCOMPARE(isects.count(), 1);
-    }
-    {
-        KoPathSegment s1(QPointF(0, 0), QPointF(50, 50), QPointF(100, -50), QPointF(150, 0));
-        KoPathSegment s2(QPointF(100, 75), QPointF(150, 25), QPointF(50, -25), QPointF(100, -75));
-        QList<QPointF> isects = s1.intersections(s2);
-        QCOMPARE(isects.count(), 1);
-    }
-    {
-        KoPathSegment s1(QPointF(0, 0), QPointF(25, 50), QPointF(75, 50), QPointF(100, 0));
-        KoPathSegment s2(QPointF(0, 30), QPointF(25, -20), QPointF(75, -20), QPointF(100, 30));
-        QList<QPointF> isects = s1.intersections(s2);
-        QCOMPARE(isects.count(), 2);
-    }
+    qFatal("Handle painting must not be used by this path-segment contract");
 }
 
-void TestPathSegment::segmentLength()
+void kis_safe_assert_recoverable(const char *, const char *, int)
 {
-    {
-        // line segment
-        KoPathSegment s(QPointF(0, 0), QPointF(100, 0));
-        QCOMPARE(s.length(), 100.0);
-    }
-    {
-        // quadric curve segment
-        KoPathSegment s1(QPointF(0, 0), QPointF(50, 0), QPointF(100, 0));
-        QCOMPARE(s1.length(), 100.0);
-        KoPathSegment s2(QPointF(0, 0), QPointF(50, 50), QPointF(100, 0));
-        QPainterPath p2;
-        p2.moveTo(QPointF(0, 0));
-        p2.quadTo(QPointF(50, 50), QPointF(100, 0));
-        // verify that difference is less than 0.5 percent of the length
-        QVERIFY(s2.length() - p2.length() < 0.005 * s2.length(0.01));
-    }
-    {
-        // cubic curve segment
-        KoPathSegment s1(QPointF(0, 0), QPointF(25, 0), QPointF(75, 0), QPointF(100, 0));
-        QCOMPARE(s1.length(), 100.0);
-        KoPathSegment s2(QPointF(0, 0), QPointF(25, 50), QPointF(75, 50), QPointF(100, 0));
-        QPainterPath p2;
-        p2.moveTo(QPointF(0, 0));
-        p2.cubicTo(QPointF(25, 50), QPointF(75, 50), QPointF(100, 0));
-        // verify that difference is less than 0.5 percent of the length
-        QVERIFY(s2.length() - p2.length() < 0.005 * s2.length(0.01));
-    }
+    qFatal("Unexpected Bezier assertion in path-segment contract");
 }
 
-void TestPathSegment::segmentFlatness()
+namespace KisAlgebra2D
 {
-    // line segments
-    {
-        KoPathSegment s1(QPointF(0, 0), QPointF(100, 0));
-        QVERIFY(s1.isFlat());
-        KoPathSegment s2(QPointF(0, 0), QPointF(0, 100));
-        QVERIFY(s2.isFlat());
-        KoPathSegment s3(QPointF(0, 0), QPointF(100, 100));
-        QVERIFY(s3.isFlat());
-    }
-    // quadratic segments
-    {
-        KoPathSegment s1(QPointF(0, 0), QPointF(50, 0), QPointF(100, 0));
-        QVERIFY(s1.isFlat());
-        KoPathSegment s2(QPointF(0, 0), QPointF(0, 50), QPointF(0, 100));
-        QVERIFY(s2.isFlat());
-        KoPathSegment s3(QPointF(0, 0), QPointF(50, 50), QPointF(100, 100));
-        QVERIFY(s3.isFlat());
-        KoPathSegment s4(QPointF(0, 0), QPointF(50, 50), QPointF(100, 0));
-        QVERIFY(! s4.isFlat());
-        KoPathSegment s5(QPointF(0, 0), QPointF(50, -50), QPointF(100, 0));
-        QVERIFY(! s5.isFlat());
-        KoPathSegment s6(QPointF(0, 0), QPointF(0, 100), QPointF(100, 100));
-        QVERIFY(! s6.isFlat());
-    }
-    // cubic segments
-    {
-        KoPathSegment s1(QPointF(0, 0), QPointF(25, 0), QPointF(75, 0), QPointF(100, 0));
-        QVERIFY(s1.isFlat());
-        KoPathSegment s2(QPointF(0, 0), QPointF(0, 25), QPointF(0, 75), QPointF(0, 100));
-        QVERIFY(s2.isFlat());
-        KoPathSegment s3(QPointF(0, 0), QPointF(25, 25), QPointF(75, 75), QPointF(100, 100));
-        QVERIFY(s3.isFlat());
-        KoPathSegment s4(QPointF(0, 0), QPointF(25, 50), QPointF(75, 50), QPointF(100, 0));
-        QVERIFY(! s4.isFlat());
-        KoPathSegment s5(QPointF(0, 0), QPointF(25, -50), QPointF(75, -50), QPointF(100, 0));
-        QVERIFY(! s5.isFlat());
-        KoPathSegment s6(QPointF(0, 0), QPointF(-25, 75), QPointF(25, 125), QPointF(100, 100));
-        QVERIFY(! s6.isFlat());
-    }
+bool fuzzyPointCompare(const QPointF &, const QPointF &, qreal)
+{
+    qFatal("Unexpected algebra comparison in path-segment contract");
+    return false;
 }
 
-void TestPathSegment::nearestPoint()
+boost::optional<QPointF> intersectLines(const QPointF &, const QPointF &, const QPointF &, const QPointF &)
 {
-    // line segments
-    {
-        KoPathSegment s1(QPointF(0, 0), QPointF(100, 0));
-        QCOMPARE( s1.nearestPoint( QPointF(0,0) ),    0.0 );
-        QCOMPARE( s1.nearestPoint( QPointF(-20,0) ),  0.0 );
-        QCOMPARE( s1.nearestPoint( QPointF(100,0) ),  1.0 );
-        QCOMPARE( s1.nearestPoint( QPointF(120,0) ),  1.0 );
-        QCOMPARE( s1.nearestPoint( QPointF(50,0) ),   0.5 );
-        QCOMPARE( s1.nearestPoint( QPointF(50,-10) ), 0.5 );
-        QCOMPARE( s1.nearestPoint( QPointF(50,10) ),  0.5 );
-        QCOMPARE( s1.nearestPoint( QPointF(63,50) ),  0.63 );
-        QCOMPARE( s1.nearestPoint( QPointF(63,50) ),  0.63 );
-        QCOMPARE( s1.nearestPoint( QPointF(63,50) ),  0.63 );
-        QCOMPARE( s1.nearestPoint( s1.pointAt( 0.25 ) ),  0.25 );
-        QCOMPARE( s1.nearestPoint( s1.pointAt( 0.75 ) ),  0.75 );
-    }
-    // quadratic segments
-    {
-        KoPathSegment s1(QPointF(0, 0), QPointF(50, 0), QPointF(100, 0));
-        QCOMPARE( s1.nearestPoint( QPointF(0,0) ),    0.0 );
-        QCOMPARE( s1.nearestPoint( QPointF(-20,0) ),  0.0 );
-        QCOMPARE( s1.nearestPoint( QPointF(100,0) ),  1.0 );
-        QCOMPARE( s1.nearestPoint( QPointF(120,0) ),  1.0 );
-        QCOMPARE( s1.nearestPoint( QPointF(50,0) ),   0.5 );
-        QCOMPARE( s1.nearestPoint( QPointF(50,-10) ), 0.5 );
-        QCOMPARE( s1.nearestPoint( QPointF(50,10) ),  0.5 );
-        KoPathSegment s2(QPointF(0, 0), QPointF(50, 50), QPointF(100, 0));
-        QCOMPARE( s2.nearestPoint( QPointF(0,0) ),    0.0 );
-        QCOMPARE( s2.nearestPoint( QPointF(-20,0) ),  0.0 );
-        QCOMPARE( s2.nearestPoint( QPointF(100,0) ),  1.0 );
-        QCOMPARE( s2.nearestPoint( QPointF(120,0) ),  1.0 );
-        QCOMPARE( s2.nearestPoint( QPointF(50,50) ),   0.5 );
+    qFatal("Unexpected algebra intersection in path-segment contract");
+    return boost::none;
+}
+} // namespace KisAlgebra2D
 
-        QCOMPARE( s2.nearestPoint( s2.pointAt( 0.0 ) ), 0.0 );
-        QCOMPARE( s2.nearestPoint( s2.pointAt( 0.25 ) ), 0.25 );
-        QCOMPARE( s2.nearestPoint( s2.pointAt( 0.5 ) ), 0.5 );
-        QCOMPARE( s2.nearestPoint( s2.pointAt( 0.75 ) ), 0.75 );
-        QCOMPARE( s2.nearestPoint( s2.pointAt( 1.0 ) ), 1.0 );
-    }
-    // cubic segments
-    {
-        // a flat cubic bezier
-        KoPathSegment s1(QPointF(0, 0), QPointF(25, 0), QPointF(75, 0), QPointF(100, 0));
-        QCOMPARE( s1.nearestPoint( QPointF(0,0) ),    0.0 );
-        QCOMPARE( s1.nearestPoint( QPointF(-20,0) ),  0.0 );
-        QCOMPARE( s1.nearestPoint( QPointF(100,0) ),  1.0 );
-        QCOMPARE( s1.nearestPoint( QPointF(120,0) ),  1.0 );
-        QCOMPARE( s1.nearestPoint( QPointF(50,0) ),   0.5 );
-        QCOMPARE( s1.nearestPoint( QPointF(50,-10) ), 0.5 );
-        QCOMPARE( s1.nearestPoint( QPointF(50,10) ),  0.5 );
-        KoPathSegment s2(QPointF(0, 0), QPointF(25, 50), QPointF(75, 50), QPointF(100, 0));
-        QCOMPARE( s2.nearestPoint( QPointF(0,0) ),    0.0 );
-        QCOMPARE( s2.nearestPoint( QPointF(-20,0) ),  0.0 );
-        QCOMPARE( s2.nearestPoint( QPointF(100,0) ),  1.0 );
-        QCOMPARE( s2.nearestPoint( QPointF(120,0) ),  1.0 );
-        QCOMPARE( s2.nearestPoint( QPointF(50,50) ),   0.5 );
-
-        QCOMPARE( s2.nearestPoint( s2.pointAt( 0.0 ) ), 0.0 );
-        QCOMPARE( s2.nearestPoint( s2.pointAt( 0.25 ) ), 0.25 );
-        QCOMPARE( s2.nearestPoint( s2.pointAt( 0.5 ) ), 0.5 );
-        QCOMPARE( s2.nearestPoint( s2.pointAt( 0.75 ) ), 0.75 );
-        QCOMPARE( s2.nearestPoint( s2.pointAt( 1.0 ) ), 1.0 );
-    }
+namespace
+{
+bool closeScalar(qreal actual, qreal expected, qreal tolerance = 1e-6)
+{
+    return qAbs(actual - expected) <= tolerance;
 }
 
-void TestPathSegment::paramAtLength()
+bool closePoint(const QPointF &actual, const QPointF &expected, qreal tolerance = 1e-6)
 {
-    // line segment
+    return closeScalar(actual.x(), expected.x(), tolerance) && closeScalar(actual.y(), expected.y(), tolerance);
+}
+} // namespace
+
+void TestPathSegment::constructsCopiesAssignsAndOwnsDetachedEndpoints()
+{
+    KoPathSegment invalid;
+    QVERIFY(!invalid.isValid());
+    QCOMPARE(invalid.first(), nullptr);
+    QCOMPARE(invalid.second(), nullptr);
+    QCOMPARE(invalid.degree(), -1);
+
+    KoPathSegment line(QPointF(0.0, 0.0), QPointF(10.0, 0.0));
+    KoPathSegment quadratic(QPointF(0.0, 0.0), QPointF(5.0, 10.0), QPointF(10.0, 0.0));
+    KoPathSegment cubic(QPointF(0.0, 0.0), QPointF(0.0, 10.0), QPointF(10.0, 10.0), QPointF(10.0, 0.0));
+    QVERIFY(line.isValid());
+    QCOMPARE(line.degree(), 1);
+    QCOMPARE(quadratic.degree(), 2);
+    QCOMPARE(cubic.degree(), 3);
+
+    auto *first = new KoPathPoint(nullptr, QPointF(1.0, 2.0));
+    auto *second = new KoPathPoint(nullptr, QPointF(3.0, 4.0));
+    KoPathSegment owned(first, second);
+    QCOMPARE(owned.first(), first);
+    QCOMPARE(owned.second(), second);
+
+    KoPathSegment copied(owned);
+    QVERIFY(copied == owned);
+    QVERIFY(copied.first() != owned.first());
+    QVERIFY(copied.second() != owned.second());
+
+    KoPathSegment assigned;
+    assigned = owned;
+    QVERIFY(assigned == owned);
+    QVERIFY(assigned.first() != owned.first());
+    QVERIFY(assigned.second() != owned.second());
+
+    assigned.setFirst(new KoPathPoint(nullptr, QPointF(-1.0, -2.0)));
+    assigned.setSecond(new KoPathPoint(nullptr, QPointF(-3.0, -4.0)));
+    QCOMPARE(assigned.first()->point(), QPointF(-1.0, -2.0));
+    QCOMPARE(assigned.second()->point(), QPointF(-3.0, -4.0));
+    QVERIFY(!(assigned == owned));
+
+    auto *const parentToken = reinterpret_cast<KoPathShape *>(quintptr(0x1));
+    KoPathPoint borrowedFirst(nullptr, QPointF(20.0, 30.0));
+    KoPathPoint borrowedSecond(nullptr, QPointF(40.0, 50.0));
+    borrowedFirst.setParent(parentToken);
+    borrowedSecond.setParent(parentToken);
     {
-        KoPathSegment s1(QPointF(0,0), QPointF(100,0));
-        QCOMPARE(s1.paramAtLength(0), 0.0);
-        QCOMPARE(s1.paramAtLength(100.0), 1.0);
-        QCOMPARE(s1.paramAtLength(50.0), 0.5);
-        QCOMPARE(s1.paramAtLength(120.0), 1.0);
+        KoPathSegment borrowed(&borrowedFirst, &borrowedSecond);
+        KoPathSegment borrowedCopy(borrowed);
+        QCOMPARE(borrowedCopy.first(), &borrowedFirst);
+        QCOMPARE(borrowedCopy.second(), &borrowedSecond);
+
+        KoPathSegment borrowedAssignment;
+        borrowedAssignment = borrowed;
+        QCOMPARE(borrowedAssignment.first(), &borrowedFirst);
+        QCOMPARE(borrowedAssignment.second(), &borrowedSecond);
     }
-    // quadratic segments
-    {
-        // a flat quadratic bezier
-        KoPathSegment s1(QPointF(0, 0), QPointF(50, 0), QPointF(100, 0));
-        QCOMPARE(s1.paramAtLength(0), 0.0);
-        QCOMPARE(s1.paramAtLength(100.0), 1.0);
-        QCOMPARE(s1.paramAtLength(120.0), 1.0);
-    }
-    // cubic segments
-    {
-        // a flat cubic bezier
-        KoPathSegment s1(QPointF(0, 0), QPointF(25, 0), QPointF(75, 0), QPointF(100, 0));
-        QCOMPARE(s1.paramAtLength(0), 0.0);
-        QCOMPARE(s1.paramAtLength(100.0), 1.0);
-        QCOMPARE(s1.paramAtLength(120.0), 1.0);
-    }
+    borrowedFirst.setParent(nullptr);
+    borrowedSecond.setParent(nullptr);
 }
 
-SIMPLE_TEST_MAIN(TestPathSegment)
+void TestPathSegment::evaluatesStableLineQuadraticAndCubicGeometry()
+{
+    KoPathSegment line(QPointF(0.0, 0.0), QPointF(10.0, 0.0));
+    QCOMPARE(line.pointAt(0.0), QPointF(0.0, 0.0));
+    QCOMPARE(line.pointAt(0.5), QPointF(5.0, 0.0));
+    QCOMPARE(line.pointAt(1.0), QPointF(10.0, 0.0));
+    QCOMPARE(line.controlPoints(), QList<QPointF>({QPointF(0.0, 0.0), QPointF(10.0, 0.0)}));
+    QCOMPARE(line.boundingRect(), QRectF(0.0, 0.0, 10.0, 0.1));
+    QCOMPARE(line.controlPointRect(), QRectF(0.0, 0.0, 10.0, 0.1));
+    QCOMPARE(line.convexHull(), QList<QPointF>({QPointF(0.0, 0.0), QPointF(10.0, 0.0)}));
+
+    KoPathSegment quadratic(QPointF(0.0, 0.0), QPointF(5.0, 10.0), QPointF(10.0, 0.0));
+    QCOMPARE(quadratic.pointAt(0.5), QPointF(5.0, 5.0));
+    QCOMPARE(quadratic.controlPoints(), QList<QPointF>({QPointF(0.0, 0.0), QPointF(5.0, 10.0), QPointF(10.0, 0.0)}));
+    QCOMPARE(quadratic.boundingRect(), QRectF(0.0, 0.0, 10.0, 5.0));
+    QCOMPARE(quadratic.controlPointRect(), QRectF(0.0, 0.0, 10.0, 10.0));
+    QCOMPARE(quadratic.convexHull(), QList<QPointF>({QPointF(0.0, 0.0), QPointF(5.0, 10.0), QPointF(10.0, 0.0)}));
+
+    KoPathSegment cubic(QPointF(0.0, 0.0), QPointF(0.0, 10.0), QPointF(10.0, 10.0), QPointF(10.0, 0.0));
+    QCOMPARE(cubic.pointAt(0.5), QPointF(5.0, 7.5));
+    QCOMPARE(cubic.controlPoints(),
+             QList<QPointF>({QPointF(0.0, 0.0), QPointF(0.0, 10.0), QPointF(10.0, 10.0), QPointF(10.0, 0.0)}));
+    QCOMPARE(cubic.boundingRect(), QRectF(0.0, 0.0, 10.0, 7.5));
+    QCOMPARE(cubic.controlPointRect(), QRectF(0.0, 0.0, 10.0, 10.0));
+    QCOMPARE(cubic.convexHull(),
+             QList<QPointF>({QPointF(0.0, 0.0), QPointF(0.0, 10.0), QPointF(10.0, 10.0), QPointF(10.0, 0.0)}));
+}
+
+void TestPathSegment::transformsConvertsSplitsAndInterpolatesWithoutMutatingSource()
+{
+    KoPathSegment source(QPointF(0.0, 0.0), QPointF(0.0, 10.0), QPointF(10.0, 10.0), QPointF(10.0, 0.0));
+    const KoPathSegment original(source);
+
+    KoPathSegment mapped = source.mapped(QTransform::fromTranslate(4.0, -2.0));
+    QCOMPARE(mapped.controlPoints(),
+             QList<QPointF>({QPointF(4.0, -2.0), QPointF(4.0, 8.0), QPointF(14.0, 8.0), QPointF(14.0, -2.0)}));
+    QVERIFY(source == original);
+
+    KoPathSegment line(QPointF(0.0, 0.0), QPointF(10.0, 0.0));
+    KoPathSegment cubicLine = line.toCubic();
+    QCOMPARE(cubicLine.degree(), 3);
+    QCOMPARE(cubicLine.controlPoints(),
+             QList<QPointF>({QPointF(0.0, 0.0), QPointF(3.0, 0.0), QPointF(7.0, 0.0), QPointF(10.0, 0.0)}));
+    QCOMPARE(line.degree(), 1);
+
+    const auto halves = source.splitAt(0.5);
+    QCOMPARE(halves.first.first()->point(), source.first()->point());
+    QCOMPARE(halves.first.second()->point(), source.pointAt(0.5));
+    QCOMPARE(halves.second.first()->point(), source.pointAt(0.5));
+    QCOMPARE(halves.second.second()->point(), source.second()->point());
+    QCOMPARE(halves.first.degree(), 3);
+    QCOMPARE(halves.second.degree(), 3);
+    QVERIFY(source == original);
+
+    KoPathSegment interpolated =
+        KoPathSegment::interpolate(QPointF(0.0, 0.0), QPointF(5.0, 5.0), QPointF(10.0, 0.0), 0.5);
+    QCOMPARE(interpolated.degree(), 2);
+    QCOMPARE(interpolated.controlPoints(), QList<QPointF>({QPointF(0.0, 0.0), QPointF(5.0, 10.0), QPointF(10.0, 0.0)}));
+    QCOMPARE(interpolated.pointAt(0.5), QPointF(5.0, 5.0));
+    QVERIFY(!KoPathSegment::interpolate(QPointF(), QPointF(1.0, 1.0), QPointF(2.0, 0.0), 0.0).isValid());
+}
+
+void TestPathSegment::measuresLengthAndMapsArcParameters()
+{
+    KoPathSegment line(QPointF(0.0, 0.0), QPointF(10.0, 0.0));
+    QCOMPARE(line.length(), 10.0);
+    QCOMPARE(line.length(0.001), 10.0);
+    QCOMPARE(line.lengthAt(0.0), 0.0);
+    QCOMPARE(line.lengthAt(0.25), 2.5);
+    QCOMPARE(line.lengthAt(1.0, 0.001), 10.0);
+    QCOMPARE(line.paramAtLength(-1.0), 0.0);
+    QCOMPARE(line.paramAtLength(2.5), 0.25);
+    QCOMPARE(line.paramAtLength(12.0), 1.0);
+
+    KoPathSegment curve(QPointF(0.0, 0.0), QPointF(5.0, 10.0), QPointF(10.0, 0.0));
+    const qreal totalLength = curve.length();
+    QVERIFY(totalLength > 10.0);
+    QVERIFY(totalLength < 20.0);
+    QVERIFY(closeScalar(curve.lengthAt(0.5), totalLength * 0.5, 0.01));
+    QVERIFY(closeScalar(curve.paramAtLength(totalLength * 0.5), 0.5, 0.001));
+}
+
+void TestPathSegment::findsIntersectionsAndNearestParameters()
+{
+    KoPathSegment horizontal(QPointF(0.0, 0.0), QPointF(10.0, 0.0));
+    KoPathSegment vertical(QPointF(5.0, -5.0), QPointF(5.0, 5.0));
+    QCOMPARE(horizontal.intersections(vertical), QList<QPointF>({QPointF(5.0, 0.0)}));
+    QVERIFY(horizontal.intersections(KoPathSegment(QPointF(0.0, 2.0), QPointF(10.0, 2.0))).isEmpty());
+
+    KoPathSegment firstCurve(QPointF(0.0, 0.0), QPointF(2.5, 5.0), QPointF(7.5, 5.0), QPointF(10.0, 0.0));
+    KoPathSegment secondCurve(QPointF(0.0, 3.0), QPointF(2.5, -2.0), QPointF(7.5, -2.0), QPointF(10.0, 3.0));
+    QCOMPARE(firstCurve.intersections(secondCurve).size(), 2);
+
+    QCOMPARE(horizontal.nearestPoint(QPointF(-2.0, 0.0)), 0.0);
+    QCOMPARE(horizontal.nearestPoint(QPointF(2.5, 4.0)), 0.25);
+    QCOMPARE(horizontal.nearestPoint(QPointF(12.0, 0.0)), 1.0);
+
+    KoPathSegment quadratic(QPointF(0.0, 0.0), QPointF(5.0, 5.0), QPointF(10.0, 0.0));
+    QVERIFY(closeScalar(quadratic.nearestPoint(quadratic.pointAt(0.25)), 0.25));
+    QVERIFY(closeScalar(quadratic.nearestPoint(QPointF(5.0, 5.0)), 0.5));
+
+    KoPathSegment cubic(QPointF(0.0, 0.0), QPointF(2.5, 5.0), QPointF(7.5, 5.0), QPointF(10.0, 0.0));
+    QVERIFY(closeScalar(cubic.nearestPoint(cubic.pointAt(0.75)), 0.75));
+}
+
+void TestPathSegment::classifiesFlatnessAndReportsNormalizedDirection()
+{
+    KoPathSegment line(QPointF(0.0, 0.0), QPointF(10.0, 0.0));
+    QVERIFY(line.isFlat());
+
+    KoPathSegment flatQuadratic(QPointF(0.0, 0.0), QPointF(5.0, 0.0), QPointF(10.0, 0.0));
+    KoPathSegment curvedQuadratic(QPointF(0.0, 0.0), QPointF(5.0, 5.0), QPointF(10.0, 0.0));
+    QVERIFY(flatQuadratic.isFlat());
+    QVERIFY(!curvedQuadratic.isFlat());
+    QVERIFY(curvedQuadratic.isFlat(5.0));
+
+    KoPathSegment flatCubic(QPointF(0.0, 0.0), QPointF(2.5, 0.0), QPointF(7.5, 0.0), QPointF(10.0, 0.0));
+    KoPathSegment curvedCubic(QPointF(0.0, 0.0), QPointF(2.5, 5.0), QPointF(7.5, 5.0), QPointF(10.0, 0.0));
+    QVERIFY(flatCubic.isFlat());
+    QVERIFY(!curvedCubic.isFlat());
+    QVERIFY(closePoint(flatCubic.angleVectorAtParam(0.0), QPointF(1.0, 0.0)));
+    QVERIFY(closePoint(flatCubic.angleVectorAtParam(0.5), QPointF(1.0, 0.0)));
+    QVERIFY(closePoint(flatCubic.angleVectorAtParam(1.0), QPointF(1.0, 0.0)));
+}
+
+QTEST_GUILESS_MAIN(TestPathSegment)

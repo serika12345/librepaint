@@ -11,17 +11,16 @@
 #include "kis_generator_layer.h"
 
 #include <klocalizedstring.h>
-#include "kis_debug.h"
 
 #include <KoIcon.h>
 #include <kis_icon.h>
-#include "kis_selection.h"
 #include "filter/kis_filter_configuration.h"
-#include "kis_processing_information.h"
 #include <kis_processing_visitor.h>
 #include "generator/kis_generator_registry.h"
 #include "generator/kis_generator.h"
+#include "kis_image.h"
 #include "kis_node_visitor.h"
+#include "kis_paint_device.h"
 #include "kis_thread_safe_signal_compressor.h"
 #include <kis_generator_stroke_strategy.h>
 #include <KisRunnableStrokeJobData.h>

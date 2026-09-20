@@ -8,6 +8,7 @@
 #ifndef _KO_LAB_COLORSPACE_TRAITS_H_
 #define _KO_LAB_COLORSPACE_TRAITS_H_
 
+#include <KoColorSpaceTrait.h>
 #include <KoLabColorSpaceMaths.h>
 
 /**

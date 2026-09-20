@@ -10,10 +10,12 @@
 
 #include <kis_canvas2.h>
 #include <kis_image.h>
+#include <kis_paint_device.h>
 #include <document/KisDocument.h>
+#include <KoColorProfile.h>
 #include <KoToolProxy.h>
-#include "kis_tool_proxy.h"
-#include <workspace/KisMainWindow.h>
+#include <input/ui/kis_tool_proxy.h>
+#include <application/ui/workspace/KisMainWindow.h>
 
 #include <QDir>
 #include <QDirIterator>

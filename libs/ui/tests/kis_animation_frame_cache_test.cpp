@@ -15,6 +15,7 @@
 #include "kis_time_span.h"
 #include "kis_keyframe_channel.h"
 #include "kistest.h"
+#include <KisRegion.h>
 
 #include "kundo2command.h"
 

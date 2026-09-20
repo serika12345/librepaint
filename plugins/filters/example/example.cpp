@@ -7,7 +7,6 @@
 
 #include "example.h"
 #include <stdlib.h>
-#include <vector>
 
 #include <QPoint>
 #include <QTime>
@@ -25,7 +24,6 @@
 #include <filter/kis_filter_registry.h>
 #include <kis_global.h>
 #include "KoColorModelStandardIds.h"
-#include "kis_filter_configuration.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaExampleFactory, "kritaexample.json", registerPlugin<KritaExample>();)
 

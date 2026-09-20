@@ -8,6 +8,7 @@
 
 #include "kis_convolution_kernel.h"
 #include <kis_convolution_painter.h>
+#include <kis_paint_device.h>
 #include <QRect>
 
 

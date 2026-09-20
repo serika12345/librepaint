@@ -10,6 +10,7 @@
 #include <vector>
 
 #include <QCheckBox>
+#include <QString>
 #include <QVector>
 
 #include "kritaui_export.h"

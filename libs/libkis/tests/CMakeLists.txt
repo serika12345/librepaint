@@ -8,5 +8,6 @@ kis_add_tests(
     TestFilter.cpp
     TestManagedColor.cpp
     TestNotifier.cpp
+    TestAngleSelector.cpp
     LINK_LIBRARIES kritalibkis kritatestsdk
     )

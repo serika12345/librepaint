@@ -5,8 +5,9 @@
 
 #include <QTest>
 
-#include <events/KisPopupWidgetInterface.h>
+#include <input/ui/KisPopupWidgetInterface.h>
 #include <events/kis_cursor_override_hijacker.h>
+#include <operations/kis_operation_ui_widget_factory.h>
 #include <resources/kis_favorite_resource_manager.h>
 #include <resources/kis_popup_palette.h>
 #include <theme/KisUiFont.h>

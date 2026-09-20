@@ -8,7 +8,6 @@
 
 #include <QMouseEvent>
 
-#include "kis_debug.h"
 
 
 KisDraggableToolButton::KisDraggableToolButton(QWidget *parent)
