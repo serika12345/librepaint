@@ -5,125 +5,14 @@
 
 #include "KisCurveOptionModel.h"
 
-#include <kis_properties_configuration.h>
-
 #include <QTest>
 
 namespace
 {
-[[noreturn]] void failUnexpectedConfigurationUse()
-{
-    qFatal("KisCurveOptionModelTest must not exercise configuration storage");
-}
-
-} // namespace
-
-void kis_assert_exception(const char *assertion, const char *file, int line)
-{
-    qFatal("Unexpected assertion %s at %s:%d", assertion, file, line);
-}
-
-void kis_safe_assert_recoverable(const char *assertion, const char *file, int line)
-{
-    qFatal("Unexpected recoverable assertion %s at %s:%d", assertion, file, line);
-}
-
-struct KisPropertiesConfiguration::Private {
-};
-KisPropertiesConfiguration::KisPropertiesConfiguration()
-    : d(new Private)
-{
-    failUnexpectedConfigurationUse();
-}
-KisPropertiesConfiguration::~KisPropertiesConfiguration()
-{
-    delete d;
-}
-bool KisPropertiesConfiguration::fromXML(const QString &, bool)
-{
-    failUnexpectedConfigurationUse();
-}
-void KisPropertiesConfiguration::fromXML(const QDomElement &)
-{
-    failUnexpectedConfigurationUse();
-}
-void KisPropertiesConfiguration::toXML(QDomDocument &, QDomElement &) const
-{
-    failUnexpectedConfigurationUse();
-}
-QString KisPropertiesConfiguration::toXML() const
-{
-    failUnexpectedConfigurationUse();
-}
-bool KisPropertiesConfiguration::hasProperty(const QString &) const
-{
-    failUnexpectedConfigurationUse();
-}
-void KisPropertiesConfiguration::setProperty(const QString &, const QVariant &)
-{
-    failUnexpectedConfigurationUse();
-}
-bool KisPropertiesConfiguration::getProperty(const QString &, QVariant &) const
-{
-    failUnexpectedConfigurationUse();
-}
-QVariant KisPropertiesConfiguration::getProperty(const QString &) const
-{
-    failUnexpectedConfigurationUse();
-}
-int KisPropertiesConfiguration::getInt(const QString &, int) const
-{
-    failUnexpectedConfigurationUse();
-}
-double KisPropertiesConfiguration::getDouble(const QString &, double) const
-{
-    failUnexpectedConfigurationUse();
-}
-bool KisPropertiesConfiguration::getBool(const QString &, bool) const
-{
-    failUnexpectedConfigurationUse();
-}
-QString KisPropertiesConfiguration::getString(const QString &, const QString &) const
-{
-    failUnexpectedConfigurationUse();
-}
-QMap<QString, QVariant> KisPropertiesConfiguration::getProperties() const
-{
-    failUnexpectedConfigurationUse();
-}
-QList<QString> KisPropertiesConfiguration::getPropertiesKeys() const
-{
-    failUnexpectedConfigurationUse();
-}
-void KisPropertiesConfiguration::getPrefixedProperties(const QString &prefix,
-                                                       KisPropertiesConfiguration *configuration) const
-{
-    Q_UNUSED(prefix);
-    Q_UNUSED(configuration);
-    failUnexpectedConfigurationUse();
-}
-void KisPropertiesConfiguration::setPrefixedProperties(const QString &prefix,
-                                                       const KisPropertiesConfiguration *configuration)
-{
-    Q_UNUSED(prefix);
-    Q_UNUSED(configuration);
-    failUnexpectedConfigurationUse();
-}
-QString KisPropertiesConfiguration::extractedPrefixKey()
-{
-    failUnexpectedConfigurationUse();
-}
-bool KisPropertiesConfiguration::compareTo(const KisPropertiesConfiguration *) const
-{
-    failUnexpectedConfigurationUse();
-}
-void KisPropertiesConfiguration::dump() const
-{
-    failUnexpectedConfigurationUse();
-}
-
-namespace
-{
+// Test seam classification: category 4 input-recording support.
+// The model receives this interface to display the selected sensor's range.
+// The probe records only factory input and exposes deterministic labels; it does
+// not reproduce paint-op calculation, configuration storage, or persistence.
 class RangeProbe final : public KisCurveRangeModelInterface
 {
 public:
@@ -195,6 +84,8 @@ struct Environment {
 
     KisCurveRangeModelFactory factory()
     {
+        // The factory captures the input selected by the model. A value-only test
+        // cannot verify that a sensor selection creates the matching range model.
         return [this](lager::cursor<QString> curveArg,
                       lager::cursor<QRectF> rangeArg,
                       lager::reader<QString> sensorIdArg,

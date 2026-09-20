@@ -258,6 +258,37 @@ void TestTagFilterResourceProxyModel::testResourceForIndex()
     QVERIFY(resource2);
 
 }
+
+void TestTagFilterResourceProxyModel::testTaggedInactiveResourceReappearsInAllResources()
+{
+    // Consumer: Resource chooser users who inspect a deleted resource under its assigned tag.
+    // Operation: The user selects that tag, deactivates the displayed resource, then selects ShowAllResources.
+    // Observable result: The tagged resource disappears while only active resources are shown and reappears with the same resource ID when all resources are requested.
+    // Failure impact: Users cannot find or restore a deleted resource from its tag in the resource chooser.
+    KisTagFilterResourceProxyModel proxyModel(m_resourceType);
+    QVERIFY(proxyModel.rowCount() > 0);
+
+    const KoResourceSP resource = proxyModel.resourceForIndex(proxyModel.index(0, 0));
+    QVERIFY(resource);
+
+    KisTagModel tagModel(m_resourceType);
+    const KisTagSP tag = tagModel.addTag(QStringLiteral("inactive-resource-show-all"), false, {resource});
+    QVERIFY(tag);
+
+    proxyModel.setTagFilter(tag);
+    const QModelIndex taggedIndex = proxyModel.indexForResource(resource);
+    QVERIFY(taggedIndex.isValid());
+
+    QVERIFY(proxyModel.setResourceInactive(taggedIndex));
+    QVERIFY(!proxyModel.indexForResource(resource).isValid());
+
+    proxyModel.setResourceFilter(KisAbstractResourceFilterInterface::ShowAllResources);
+    const QModelIndex restoredIndex = proxyModel.indexForResource(resource);
+    QVERIFY(restoredIndex.isValid());
+    const KoResourceSP restoredResource = proxyModel.resourceForIndex(restoredIndex);
+    QVERIFY(restoredResource);
+    QCOMPARE(restoredResource->resourceId(), resource->resourceId());
+}
 void TestTagFilterResourceProxyModel::cleanupTestCase()
 {
     ResourceTestHelper::rmTestDb();
@@ -266,4 +297,3 @@ void TestTagFilterResourceProxyModel::cleanupTestCase()
 
 #include <kistest.h>
 KISTEST_MAIN(TestTagFilterResourceProxyModel)
-

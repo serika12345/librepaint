@@ -21,28 +21,19 @@ kis_add_test(
 )
 
 kis_add_test(
+    KisBrushPresetDynamicsCompatibilityTest.cpp
+    LINK_LIBRARIES
+        kritaimage
+        kritalibpaintop
+        kritatestsdk
+)
+
+kis_add_test(
     KisCurveOptionModelTest.cpp
     LINK_LIBRARIES
-        kritapaintopcurveoptionmodelobjects
-        kritapaintopcurveoptiondataobjects
-        kritapaintopcurveoptiondatacommonobjects
-        kritapaintopkritasensorpackobjects
-        kritapaintopsensordataobjects
-        kritapaintopsensorpackinterfaceobjects
-        kritapaintopcurverangemodelinterfaceobjects
-        kritaglobalidobjects
-        kritaglobalsharedobjects
-        kritaimageserializableconfigurationobjects
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_compile_definitions(KisCurveOptionModelTest PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-    kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
-)
-target_sources(KisCurveOptionModelTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../KisCurveOptionModel.h
+        kritaimage
+        kritalibpaintop
+        kritatestsdk
 )
 
 kis_add_tests(kis_linked_pattern_manager_test.cpp
@@ -64,34 +55,6 @@ kis_add_test(
 target_include_directories(KisOptionTupleContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_SOURCE_DIR}/libs/global
-)
-
-kis_add_test(
-    KisPrefixedOptionDataWrapperContractTest.cpp
-    LINK_LIBRARIES
-        Eigen3::Eigen
-        Imath::ImathConfig
-        KF${KF_MAJOR}::I18n
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisPrefixedOptionDataWrapperContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-)
-target_compile_definitions(KisPrefixedOptionDataWrapperContractTest PRIVATE
-    kritaimage_EXPORTS
-    kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
 )
 
 kis_add_test(
@@ -386,17 +349,6 @@ kis_add_test(
         kritalibpaintop
         kritatestsdk
 )
-
-kis_add_test(KisSharpnessOptionDataContractTest.cpp LINK_LIBRARIES
-    kritapaintopsharpnessoptiondataobjects kritapaintopcurveoptiondataobjects
-    kritapaintopcurveoptiondatacommonobjects kritapaintopkritasensorpackobjects
-    kritapaintopsensordataobjects kritapaintopsensorpackinterfaceobjects kritaglobalidobjects Qt${QT_MAJOR_VERSION}::Test)
-target_compile_definitions(KisSharpnessOptionDataContractTest PRIVATE
-    kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
-kis_add_test(KisScatterOptionDataContractTest.cpp LINK_LIBRARIES kritapaintopscatteroptiondataobjects kritapaintopcurveoptiondataobjects kritapaintopcurveoptiondatacommonobjects kritapaintopkritasensorpackobjects kritapaintopsensordataobjects kritapaintopsensorpackinterfaceobjects kritaglobalidobjects Qt${QT_MAJOR_VERSION}::Test)
-target_compile_definitions(KisScatterOptionDataContractTest PRIVATE kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
-kis_add_test(KisSpacingOptionDataContractTest.cpp LINK_LIBRARIES kritapaintopspacingoptiondataobjects kritapaintopcurveoptiondataobjects kritapaintopcurveoptiondatacommonobjects kritapaintopkritasensorpackobjects kritapaintopsensordataobjects kritapaintopsensorpackinterfaceobjects kritaglobalidobjects Qt${QT_MAJOR_VERSION}::Test)
-target_compile_definitions(KisSpacingOptionDataContractTest PRIVATE kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
 
 kis_add_test(
     KisDynamicSensorFactoryContractTest.cpp

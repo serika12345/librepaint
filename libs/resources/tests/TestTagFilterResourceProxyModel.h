@@ -28,6 +28,7 @@ private Q_SLOTS:
     void testDataWhenSwitchingBetweenTagAllAllUntagged();
 
     void testResourceForIndex();
+    void testTaggedInactiveResourceReappearsInAllResources();
 
     void cleanupTestCase();
 
