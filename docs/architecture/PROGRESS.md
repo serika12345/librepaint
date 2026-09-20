@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 12:45 JST
+- 更新日時: 2026-09-20 12:47 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -70,7 +70,8 @@
 - 完了: `KoLocalStrokeCanvasResourcesContractTest.cpp`を削除し、`TestPaintingBoundary`へ局所ストロークの利用結果を統合した。ペイントプリセットの複製は必要なキャンバス値を局所ストレージへ格納し、実行時スナップショットはその値を読む。パターンとグラデーションを取得後に選択を置換しても、開始済みスナップショットは元の署名を保持し、次のスナップショットだけが置換後の署名を使うことを検証する。任意キーの格納・置換、コピー・代入、共有ポインター破棄は利用者向け契約ではないため維持しない。
 - 完了: `KisResourceMetaDataModelContractTest.cpp`は、リソース選択部品、依存リソースの欠損判定、メタデータ絞込みがSQLiteの保存値を個別に読む結果を検証する。リソースID・表・キーに一致するBase64化`QVariant`だけを復元し、欠損または空の値は無効値として扱う。問い合わせの破棄後に表を再作成できることは内部資源管理であるため、専用検証を削除した。
 - 完了: `KisDatabaseTransactionLockContractTest.cpp`は、リソースキャッシュの初期化・同期・削除が複数のSQL更新を中断したとき全てを取消し、成功後に明示的に確定したとき全てを保持することを検証する。内部アダプターへの直接呼出し、重複呼出し、ロック所有フラグは利用者の観測結果ではないため削除した。
-- 次の作業: `KisSqlQueryLoaderContractTest.cpp`について、リソースキャッシュのSQL資源を実行した結果と障害診断を保護する検証、例外値や問い合わせ公開の内部形状だけを固定する検証を整理する。
+- 完了: `KisSqlQueryLoaderContractTest.cpp`は、リソースキャッシュの初期化・移行・同期がSQL資源を順に実行し、単一文の値束縛と一括実行で全ての値を保存することを検証する。失敗時は診断がSQL資源と文番号、ファイルを開けない原因を示す。例外構造体の直生成・コピーと問い合わせ参照の同一性は内部形状であるため削除した。
+- 次の作業: `KisTemporaryResourceStorageLockContractTest.cpp`について、一時リソースストレージを利用する操作の相互排他と、ロック補助の内部状態だけを固定する検証を整理する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と

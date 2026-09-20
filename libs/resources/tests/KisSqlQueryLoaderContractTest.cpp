@@ -49,11 +49,13 @@ class KisSqlQueryLoaderContractTest : public QObject
 private Q_SLOTS:
     void initTestCase();
     void init();
-    void exceptionValuesPreserveDiagnostics();
-    void inlineMultiStatementExecutesInOrderAndReportsFailures();
+    void multiStatementScriptsApplyEveryStatement();
+    void failingScriptsReportTheirLocation();
     void inlineSingleStatementBindsAndExecutes();
+    void failingBoundStatementReportsItsLocation();
     void batchExecutesBoundValueLists();
-    void fileConstructorsLoadScriptsAndReportOpenFailures();
+    void fileScriptsExecuteWithBoundValues();
+    void missingScriptReportsItsPath();
     void cleanupTestCase();
 };
 
@@ -77,47 +79,26 @@ void KisSqlQueryLoaderContractTest::init()
     QVERIFY(query.exec(QStringLiteral("DELETE FROM records")));
 }
 
-void KisSqlQueryLoaderContractTest::exceptionValuesPreserveDiagnostics()
+void KisSqlQueryLoaderContractTest::multiStatementScriptsApplyEveryStatement()
 {
-    const KisSqlQueryLoader::single_statement_mode_t mode = KisSqlQueryLoader::single_statement_mode;
-    Q_UNUSED(mode);
-
-    const KisSqlQueryLoader::FileException fileException(QStringLiteral("file message"),
-                                                         QStringLiteral("/queries/file.sql"),
-                                                         QStringLiteral("permission denied"));
-    QCOMPARE(fileException.message, QStringLiteral("file message"));
-    QCOMPARE(fileException.filePath, QStringLiteral("/queries/file.sql"));
-    QCOMPARE(fileException.fileErrorString, QStringLiteral("permission denied"));
-
-    const QSqlError sqlError(QStringLiteral("driver"),
-                             QStringLiteral("database"),
-                             QSqlError::StatementError,
-                             QStringLiteral("19"));
-    const KisSqlQueryLoader::SQLException sqlException(QStringLiteral("sql message"),
-                                                       QStringLiteral("inline://query"),
-                                                       3,
-                                                       sqlError);
-    QCOMPARE(sqlException.message, QStringLiteral("sql message"));
-    QCOMPARE(sqlException.filePath, QStringLiteral("inline://query"));
-    QCOMPARE(sqlException.statementIndex, 3);
-    QCOMPARE(sqlException.sqlError.driverText(), QStringLiteral("driver"));
-    QCOMPARE(sqlException.sqlError.databaseText(), QStringLiteral("database"));
-    QCOMPARE(sqlException.sqlError.type(), QSqlError::StatementError);
-    QCOMPARE(sqlException.sqlError.nativeErrorCode(), QStringLiteral("19"));
+    // Consumer: Resource-cache initialization and database migration steps with SQL resource scripts.
+    // Operation: A script contains comments and several statements that add cache records.
+    // Observable result: Every executable statement runs in source order.
+    // Failure impact: A resource-cache migration can omit part of its schema or data update.
+    KisSqlQueryLoader loader(QStringLiteral("inline://ordered"),
+                             QStringLiteral("-- ignored comment\n"
+                                            "INSERT INTO records(value) VALUES (11);\n"
+                                            "INSERT INTO records(value) VALUES (12);"));
+    loader.exec();
+    QCOMPARE(recordValues(), QList<int>({11, 12}));
 }
 
-void KisSqlQueryLoaderContractTest::inlineMultiStatementExecutesInOrderAndReportsFailures()
+void KisSqlQueryLoaderContractTest::failingScriptsReportTheirLocation()
 {
-    {
-        KisSqlQueryLoader loader(QStringLiteral("inline://ordered"),
-                                 QStringLiteral("-- ignored comment\n"
-                                                "INSERT INTO records(value) VALUES (11);\n"
-                                                "INSERT INTO records(value) VALUES (12);"));
-        QCOMPARE(&loader.query(), &loader.query());
-        loader.exec();
-    }
-    QCOMPARE(recordValues(), QList<int>({11, 12}));
-
+    // Consumer: Resource-cache migration and synchronization error reporting.
+    // Operation: A multi-statement script succeeds once and then executes an invalid statement.
+    // Observable result: The reported diagnostic identifies the script and failing statement while earlier changes remain inspectable.
+    // Failure impact: A failed cache update cannot be diagnosed or recovered because its responsible SQL resource is unknown.
     try {
         KisSqlQueryLoader loader(QStringLiteral("inline://failure"),
                                  QStringLiteral("INSERT INTO records(value) VALUES (13);"
@@ -130,11 +111,15 @@ void KisSqlQueryLoaderContractTest::inlineMultiStatementExecutesInOrderAndReport
         QCOMPARE(exception.statementIndex, 1);
         QVERIFY(exception.sqlError.isValid());
     }
-    QCOMPARE(recordValues(), QList<int>({11, 12, 13}));
+    QCOMPARE(recordValues(), QList<int>({13}));
 }
 
 void KisSqlQueryLoaderContractTest::inlineSingleStatementBindsAndExecutes()
 {
+    // Consumer: Resource-cache queries that bind resource IDs, locations, and metadata keys.
+    // Operation: A single-statement loader receives a named value before execution.
+    // Observable result: The bound value is stored by the prepared statement.
+    // Failure impact: Resource synchronization can update the wrong row or fail to save its selected resource.
     KisSqlQueryLoader loader(QStringLiteral("inline://bound-insert"),
                              QStringLiteral("INSERT INTO records(value) VALUES (:value)"),
                              KisSqlQueryLoader::single_statement_mode);
@@ -142,7 +127,14 @@ void KisSqlQueryLoaderContractTest::inlineSingleStatementBindsAndExecutes()
     query.bindValue(QStringLiteral(":value"), 21);
     loader.exec();
     QCOMPARE(recordValues(), QList<int>({21}));
+}
 
+void KisSqlQueryLoaderContractTest::failingBoundStatementReportsItsLocation()
+{
+    // Consumer: Resource-cache query error reporting for statements with bound values.
+    // Operation: A bound statement violates a database constraint.
+    // Observable result: The failure reports the source name, first statement, and database error.
+    // Failure impact: A resource update can fail without identifying the SQL operation that needs repair.
     KisSqlQueryLoader failingLoader(QStringLiteral("inline://null-insert"),
                                     QStringLiteral("INSERT INTO records(value) VALUES (:value)"),
                                     KisSqlQueryLoader::single_statement_mode);
@@ -159,6 +151,10 @@ void KisSqlQueryLoaderContractTest::inlineSingleStatementBindsAndExecutes()
 
 void KisSqlQueryLoaderContractTest::batchExecutesBoundValueLists()
 {
+    // Consumer: Resource-cache synchronization that stores several selected values at once.
+    // Operation: A prepared statement receives a list of bound values for batch execution.
+    // Observable result: Each supplied value becomes a stored record.
+    // Failure impact: Resource metadata or associations can be missing after a bulk update.
     KisSqlQueryLoader loader(QStringLiteral("inline://batch-insert"),
                              QStringLiteral("INSERT INTO records(value) VALUES (?)"),
                              KisSqlQueryLoader::single_statement_mode);
@@ -168,8 +164,12 @@ void KisSqlQueryLoaderContractTest::batchExecutesBoundValueLists()
     QCOMPARE(recordValues(), QList<int>({31, 32, 33}));
 }
 
-void KisSqlQueryLoaderContractTest::fileConstructorsLoadScriptsAndReportOpenFailures()
+void KisSqlQueryLoaderContractTest::fileScriptsExecuteWithBoundValues()
 {
+    // Consumer: Resource-cache initialization and migration code that loads bundled SQL files.
+    // Operation: It executes a multi-statement file and binds a value into a single-statement file.
+    // Observable result: Both file-backed scripts apply their records.
+    // Failure impact: A bundled resource database cannot be created or upgraded correctly.
     QTemporaryFile multiStatementFile;
     const QString multiStatementPath = writeScript(&multiStatementFile,
                                                    QByteArrayLiteral("INSERT INTO records(value) VALUES (41);"
@@ -190,7 +190,14 @@ void KisSqlQueryLoaderContractTest::fileConstructorsLoadScriptsAndReportOpenFail
         loader.exec();
     }
     QCOMPARE(recordValues(), QList<int>({41, 42, 43}));
+}
 
+void KisSqlQueryLoaderContractTest::missingScriptReportsItsPath()
+{
+    // Consumer: Resource-cache initialization and migration error reporting.
+    // Operation: It opens a SQL resource file that is unavailable.
+    // Observable result: The file error identifies the unavailable path and its operating-system cause.
+    // Failure impact: A broken installation cannot be diagnosed when the resource database fails to initialize.
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     const QString missingPath = directory.filePath(QStringLiteral("missing.sql"));
