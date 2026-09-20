@@ -16,6 +16,7 @@ private Q_SLOTS:
     void prefixedCurveSettingsRemainSeparate();
     void disabledSensorsStayDisabledAfterReload();
     void timeSensorDurationSurvivesPresetSave();
+    void sizeDynamicsUpdateInstantPreviewGuidance();
     void missingSensorsUsePressureDefault();
 };
 

@@ -4,6 +4,7 @@
  */
 
 #include <KisStandardOptionData.h>
+#include <KisSizeOptionData.h>
 #include <kis_properties_configuration.h>
 
 #include <QTest>
@@ -39,7 +40,7 @@ private Q_SLOTS:
 void KisStandardOptionDataCompatibilityTest::savedPresetKeysRestoreStandardCurveStrengths()
 {
     // Compatibility requirement: Saved paint-op presets depend on the established curve option setting keys.
-    // Consumer: Artists reopening presets that use standard opacity, color, texture, and brush dynamics options.
+    // Consumer: Artists reopening presets that use standard size, opacity, color, texture, and brush dynamics options.
     // Operation: A standard curve option saves its strength and a preset containing that saved key is read.
     // Observable result: Each established setting key stores and restores the option's strength.
     // Failure impact: Existing presets lose a standard brush option value or apply it to the wrong behavior.
@@ -54,6 +55,7 @@ void KisStandardOptionDataCompatibilityTest::savedPresetKeysRestoreStandardCurve
     verifyPersistedStrengthKey<KisSaturationOptionData>(QStringLiteral("sValue"));
     verifyPersistedStrengthKey<KisValueOptionData>(QStringLiteral("vValue"));
     verifyPersistedStrengthKey<KisRateOptionData>(QStringLiteral("RateValue"));
+    verifyPersistedStrengthKey<KisSizeOptionData>(QStringLiteral("SizeValue"));
     verifyPersistedStrengthKey<KisStrengthOptionData>(QStringLiteral("Texture/Strength/Value"));
     verifyPersistedStrengthKey<KisLightnessStrengthOptionData>(QStringLiteral("LightnessStrengthValue"));
 }

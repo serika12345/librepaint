@@ -6,6 +6,7 @@
 #include "KisCurveOptionDataTest.h"
 
 #include <KisCurveOptionData.h>
+#include <KisSizeOptionData.h>
 #include <kis_properties_configuration.h>
 
 void KisCurveOptionDataTest::savedCurveRestoresBrushResponse()
@@ -123,6 +124,31 @@ void KisCurveOptionDataTest::timeSensorDurationSurvivesPresetSave()
     QCOMPARE(restored.sensorStruct().sensorTime.length, 311);
     QVERIFY(restored.sensorStruct().sensorTime.isPeriodic);
     QCOMPARE(restored.sensorStruct().sensorTime.curve, QStringLiteral("0,0;0.7,0.9;1,1;"));
+}
+
+void KisCurveOptionDataTest::sizeDynamicsUpdateInstantPreviewGuidance()
+{
+    // Consumer: Artists choosing Size dynamics in the brush preset editor.
+    // Operation: The artist enables Fuzzy or Fade for an enabled Size curve.
+    // Observable result: Fuzzy marks Instant Preview as limited, while Fade blocks Instant Preview.
+    // Failure impact: The editor presents Instant Preview as usable when the chosen size dynamics cannot support it.
+    KisSizeOptionData data;
+    data.sensorStruct().sensorFuzzyPerDab.isActive = true;
+
+    const KisPaintopLodLimitations disabledSizeDynamics = data.lodLimitations();
+    QVERIFY(disabledSizeDynamics.limitations.isEmpty());
+    QVERIFY(disabledSizeDynamics.blockers.isEmpty());
+
+    data.isChecked = true;
+    const KisPaintopLodLimitations fuzzyDynamics = data.lodLimitations();
+    QCOMPARE(fuzzyDynamics.limitations.size(), 1);
+    QVERIFY(fuzzyDynamics.blockers.isEmpty());
+
+    data.sensorStruct().sensorFuzzyPerDab.isActive = false;
+    data.sensorStruct().sensorFade.isActive = true;
+    const KisPaintopLodLimitations fadeDynamics = data.lodLimitations();
+    QVERIFY(fadeDynamics.limitations.isEmpty());
+    QCOMPARE(fadeDynamics.blockers.size(), 1);
 }
 
 void KisCurveOptionDataTest::missingSensorsUsePressureDefault()

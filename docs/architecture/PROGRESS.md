@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 15:53 JST
+- 更新日時: 2026-09-20 15:57 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -43,7 +43,7 @@
 - 完了: `KisAnimUtilsSchemaContractTest.cpp`を削除した。試験が固定していた`FrameItem`の初期値、比較、ハッシュ、関数の宣言だけは、タイムラインdocker内部の移動要求を表す実装詳細であり、保存形式、設定、プラグイン、スクリプト、外部識別子の根拠はない。既存の`kis_animation_utils_test`は、同一レイヤーの循環移動、レイヤーをまたぐ移動、フレーム入替後の各時刻の画素とundo後の復元を検証する。
 - 完了: `KisAnimTimelineFramesModelSchemaContractTest.cpp`を削除した。試験が固定していたタイムライン選択値型の等値・ハッシュと、メニュー項目の名前・ダミー保持は、docker内部の一時データであり、保存形式、設定、プラグイン、スクリプト、外部識別子の根拠はない。タイムラインの固定状態はKRAの`intimeline`属性として既存の`kis_kra_saver_test`が保存往復を検証する。`timeline_model_test`は、既存レイヤーを選ぶとタイムラインに追加され、アクティブ化され、候補メニューから除かれる結果を検証する。この試験で、非同期のダミー更新前にアクティブ行を設定して別レイヤーを選択したままにする不具合を発見し、行への反映後に選択するよう修正した。共有の空ノード試験補助は、使用する`KisPaintDevice`の完全型を直接取り込む。
 - 完了: `KXMLGUIClientSchemaContractTest.cpp`を削除した。試験が固定していた状態反転列挙子の整数値と状態変更リストの初期化・コピーは、XMLGUI内部で一時的に使う実装詳細である。XMLGUIの状態要素、状態変更の製品側呼出し、状態反転値を使う保存形式、設定、プラグイン、スクリプト、外部識別子は確認されなかった。XMLGUIの実際のアクションIDはメニュー定義、入力、拡張機能で別途利用されるが、この試験の対象ではないため、根拠のない互換性試験や代替試験を追加しない。
-- 完了: `KisCurveOptionSchemaContractTest.cpp`を削除した。`ValueComponents`の初期値と曲線ウィジェットのフラグ値は、曲線計算・画面構成だけが使う内部表現であり、ブラシプリセット、設定、XML、プラグイン、スクリプト、外部識別子に使われていない。既存の`KisCurveOptionDataTest`、`KisKritaSensorPackContractTest`、`KisCurveOptionModelTest`が、プリセットの曲線・センサー保存と復元、画面の有効状態・強度範囲・曲線選択を検証する。対象の構築では、ブラシ実行・設定画面ライブラリーが完全型と`KisMpl`を推移的インクルードへ依存し、実行時オブジェクトが共有ライブラリーへ取り込まれない不具合を検出した。使用する型・ユーティリティを直接取り込み、実行時の下位オブジェクトを最終ライブラリーにも組み込むよう修正した。
+- 完了: `KisCurveOptionSchemaContractTest.cpp`を削除した。`ValueComponents`の初期値と曲線ウィジェットのフラグ値は、曲線計算・画面構成だけが使う内部表現であり、ブラシプリセット、設定、XML、プラグイン、スクリプト、外部識別子に使われていない。既存の`KisCurveOptionDataTest`、`KisKritaSensorPackCompatibilityTest`、`KisCurveOptionModelTest`が、プリセットの曲線・センサー保存と復元、画面の有効状態・強度範囲・曲線選択を検証する。対象の構築では、ブラシ実行・設定画面ライブラリーが完全型と`KisMpl`を推移的インクルードへ依存し、実行時オブジェクトが共有ライブラリーへ取り込まれない不具合を検出した。使用する型・ユーティリティを直接取り込み、実行時の下位オブジェクトを最終ライブラリーにも組み込むよう修正した。
 - 完了: `KisPaintOpFactorySchemaContractTest.cpp`を削除した。`AUTO`、`ALWAYS`、`NEVER`の列挙値は、ファクトリー内部の未使用状態に初期化されるだけで、設定、プリセット、XML、プラグイン、スクリプト、外部識別子には使われていない。paint-op IDはプリセットの`paintop`プロパティとして保存され、プラグイン登録、ブラシ選択、描画、ライブプレビューが解決するが、専用試験はその利用結果を検証していなかった。根拠のない互換性試験や重複した代替試験を追加せず、専用CTestと広いinclude・compile definitionを削除した。
 - 完了: `KisPlaybackEngineSchemaContractTest.cpp`を`KisPlaybackEngineContractTest.cpp`へ置き換えた。再生統計の初期値とコピーは、タイムラインdockerが表示する値型の実装詳細であり、設定、保存形式、XML、プラグイン、スクリプト、外部識別子の互換性根拠はない。アニメーションdockerの再生制御モデルは、フレームを落とす設定の値と変更signalへ接続する。実際のQt再生エンジンに対し、切替後の読取値とsignal引数が一致し、同値の再設定では通知しないことを検証する。
 - 完了: `KisReferenceImagesDecorationSchemaContractTest.cpp`を削除した。専用試験は参照画像を操作せず、ガイド装飾の内部登録名`guides-decoration`だけを固定していた。この名前はガイドマネージャー内の生成・検索で使われ、設定、保存形式、XML、プラグイン、スクリプト、外部識別子には使われていない。参照画像は作成操作後に参照画像レイヤーへ追加され、専用ツールへ切り替わり、失敗時には入力元を示す通知を表示する。この利用結果は既存の`KisNodeManagerReferenceImageContractTest`が検証する。
@@ -118,7 +118,8 @@
 - 完了: `KisCurveOptionDataCommonContractTest.cpp`を削除し、構築既定値、等値比較、センサーポインター列挙、所有、null入力、偽の設定ストアを固定する検証を廃止した。曲線オプションは`KisCurveOptionDataTest`へ統合し、実際の設定で共有曲線・強度・有効センサーを保存して復元すること、複数の接頭辞付きオプションと無関係なプリセット値が共存すること、無効にしたセンサーが無効のまま復元すること、センサー定義がない場合に筆圧の既定曲線を使うことを検証する。既存の実ライブラリー対象を使うため、新しい対象・依存は追加していない。対象の構築閉包は4,237入力である。
 - 完了: `KisCurveOptionDataContractTest.cpp`を削除し、曲線データ種別の構築既定値、センサー列挙、強度範囲、チェック状態、偽の設定ストアを固定する検証を廃止した。標準オプションのIDは`KisKritaSensorPack`がプリセット設定のキーを組み立てるため、保存済みプリセットが利用する互換性要件である。`KisStandardOptionDataCompatibilityTest.cpp`は実設定へ強度を保存し、同じ既存キーだけを持つ設定から各標準オプションを復元する。互換性試験は標準の不透明度、流量、比率、硬さ、回転、色調整、速度、テクスチャ強度、明度強度の各キーを対象にする。新しい試験は既存の実ライブラリー構築閉包を使い、対象の入力は4,237件である。
 - 完了: `KisKritaSensorPackContractTest.cpp`を削除し、`Checkability`の数値、センサー宣言順、内部ポインター集合、等値比較、複製、安全断言回数、偽の設定ストアとXML出力順を固定する検証を廃止した。`KisKritaSensorPackCompatibilityTest.cpp`は実際の設定を使い、保存済みブラシプリセットの旧`SizeSensor` XMLに含まれる16種類の入力IDが、選択した入力と曲線を復元することを検証する。`KisCurveOptionDataTest`は時間入力の曲線、長さ、周期設定が保存後にも復元することを検証する。画面上の選択センサーの長さは`KisCurveOptionModelTest`、実ストロークの動的入力は`FreehandStrokeContractTest`が保護する。新しい互換性試験は既存の実ライブラリー構築閉包を使い、対象の入力は4,237件である。
-- 次の作業: `KisSizeOptionDataContractTest.cpp`について、サイズオプションの構築既定値、計算、保存形式、実際の描画結果と設定画面の利用側を確認し、利用者が観測する結果または根拠のある互換性へ整理する。
+- 完了: `KisSizeOptionDataContractTest.cpp`を削除し、サイズID、接頭辞、構築既定値、内部の制限IDだけを固定する検証と偽の設定実装を廃止した。ブラシプリセットは`SizeValue`でサイズ曲線強度を保存するため、`KisStandardOptionDataCompatibilityTest`が実設定の保存・読込結果でこのキーを守る。ブラシ編集画面はSize曲線のFuzzy入力で即時プレビューを注意状態にし、Fade入力で利用不可にするため、`KisCurveOptionDataTest`が実ライブラリーの制限結果を検証する。状態を画面表示へ反映する規則は既存の`KisLodAvailabilityContractTest`が保護する。新しい対象や依存は追加せず、既存の実ライブラリー構築閉包4,237入力へ統合した。
+- 次の作業: `KisMirrorOptionDataContractTest.cpp`について、ミラーオプションの構築既定値、計算、保存形式、描画結果と設定画面の利用側を確認し、利用者が観測する結果または根拠のある互換性へ整理する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
