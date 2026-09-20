@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 13:16 JST
+- 更新日時: 2026-09-20 13:28 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -66,7 +66,8 @@
 - 完了: `KoCanvasResourceIdsContractTest.cpp`を削除した。キャンバスリソースのIDはツール、docker、描画処理が同一プロセス内で記号名として読取・変更通知に使う鍵であり、保存形式、設定、XML、プラグイン記述子、スクリプト、外部連携で数値を使う根拠はない。`TestResourceManager`が色、単位、派生リソースの読取と変更通知を実際の`KoCanvasResourceProvider`で検証するため、整数表だけを固定する専用CTestとCMake定義を維持しない。
 - 完了: `KisResourceTypesContractTest.cpp`を`KisResourceTypesCompatibilityTest.cpp`へ改名した。リソース種別キーはリソースバンドルのMANIFEST、タグの`ResourceType`、`resourcecache.sqlite`、配置パスに保存されるため、既存のリソースを読込・分類する利用者の明示的な互換性対象である。全種別の保存キーを維持し、リソース選択画面が種別を対応する表示名へ解決する結果を検証する。保存形式・拡張利用の根拠がないサブ種別の文字列、ログ分類名、同一カテゴリ取得の検査を削除した。
 - 完了: `KisTagPseudoUrlCompatibilityTest.cpp`を、擬似URL関数の戻り値を直接比較する試験から、実際の`KisTagModel`が保存済みURLを擬似タグとして解決する互換性試験へ置き換えた。タグ選択部品は`SelectedTags`設定へURLを保存し、タグモデルとフィルターは`All`と`All untagged`を全件・未分類表示として扱う。隔離したキャッシュで両URLを復元し、選択対象の有効状態、種別、URL、表示名を検証する。試験はテスト専用のヘッダー定義ではなく`kritaresources`へ直接リンクする。
-- 次の作業: `KoCanvasResourcesInterfaceContractTest.cpp`について、仮想呼出し・破棄・共有ポインターの形状検査を、キャンバス利用者が観測するリソース値・状態遷移・通知へ整理できるか確認する。
+- 完了: `KoCanvasResourcesInterfaceContractTest.cpp`を削除した。専用試験は偽実装への仮想呼出し、共有ポインターの所有、仮想破棄だけを固定しており、保存形式、プラグイン、スクリプト、外部APIの互換性根拠はない。実利用者は`KoCanvasResourceProvider`または局所ストロークの実装から値を読む。`TestResourceManager`が色・単位・派生リソースの読取と変更通知を、`TestPaintingBoundary`が局所ストロークのリソーススナップショットを検証するため、専用CTestとCMake定義を維持しない。
+- 次の作業: `KoLocalStrokeCanvasResourcesContractTest.cpp`について、局所ストロークの実行時スナップショットに必要な値の独立性と、コピー・代入・共有所有の構造検査を分離して整理する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
