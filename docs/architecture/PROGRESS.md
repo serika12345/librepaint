@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 14:32 JST
+- 更新日時: 2026-09-20 14:34 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -102,7 +102,8 @@
 - 完了: `KisStorageChooserDelegateContractTest.cpp`を、資源選択ポップアップのセル寸法とストレージのサムネイル・有効状態の描画結果へ整理した。資源管理の利用者が同じストレージを有効・無効にすると、サムネイルを保ったままセル表示が変わることを検証する。Qt style primitiveとcheckboxの呼出し回数・状態フラグ、無効索引の早期return、QObject所有を固定する検証を削除した。フォールバックアイコンを含む実際の描画を使うため、CTestは`kritawidgetutils`へ直接依存する。設定保存、XML、プラグイン識別子、スクリプト、外部識別子の互換性要件は確認されなかった。
 - 完了: `KisStorageChooserWidgetContractTest.cpp`を削除し、表示中のバンドルをクリックするとそのストレージだけの有効状態が反転し、再クリックで復元される試験を`TestResourceUiContract.cpp`へ統合した。既存の`TestStorageModel`は実DBの有効状態遷移を、`TestStorageFilterProxyModel`はストレージ種別の絞り込み結果を保護する。専用試験が固定していた偽モデル、内部slot、子QObject所有、アイコン寸法、行数を削除した。資源選択ウィジェットの公開APIに保存形式、XML、プラグイン識別子、スクリプト、外部識別子の互換性要件は確認されなかった。
 - 完了: `KisResourceUserOperationsContractTest.cpp`を削除し、実製品ライブラリーの`TestResourceUiContract.cpp`へ上書き確認、重複名称の取消、読込失敗通知を統合した。肯定・取消した上書き確認は利用者の判断を返し、重複名称の取消は保存済み資源名を維持し、存在しない読込元は失敗警告と空の結果を返す。実際の読込・追加・名称変更・更新のDB結果は既存の`TestResourceModel`が保護する。偽の資源・モデル・保存・質問・警告経路、private関数の置換、内部呼出し回数を削除した。公開操作に保存形式、XML、プラグイン識別子、スクリプト、外部識別子の互換性要件は確認されなかった。
-- 次の作業: `KisTagChooserWidgetContractTest.cpp`について、タグ選択画面の利用者操作と保存済み選択を調べ、内部モデル・所有・slot実装の固定を整理する。
+- 完了: `KisTagChooserWidgetContractTest.cpp`を削除し、実製品ライブラリーの`TestResourceUiContract.cpp`へ、カスタムタグの追加・選択、選択signal、現在選択、`SelectedTags`設定への保存を統合した。資源選択画面は保存済みURLを読み直して選択を復元する。擬似タグURLの設定互換性は、利用者と保存対象を明記した既存の`KisTagPseudoUrlCompatibilityTest`が維持する。専用試験が固定していた偽モデル、追加・選択・保存関数、内部slot、子QObject所有、アイコン更新回数を削除した。
+- 次の作業: `TagActionsContractTest.cpp`について、タグ割当・追加・削除メニューの利用者操作と通知を調べ、偽のタグ・資源・画面部品と内部状態固定を整理する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と

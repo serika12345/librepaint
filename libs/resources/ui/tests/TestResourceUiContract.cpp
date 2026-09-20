@@ -14,7 +14,9 @@
 #include <KisStorageChooserWidget.h>
 #include <KisStorageFilterProxyModel.h>
 #include <KisStorageModel.h>
+#include <KisTagChooserWidget.h>
 #include <KisTagFilterResourceProxyModel.h>
+#include <KisTagModel.h>
 
 #include <ResourceTestHelper.h>
 
@@ -83,6 +85,7 @@ private Q_SLOTS:
     void asksBeforeOverwritingAResourceFile();
     void preservesAResourceWhenDuplicateRenameIsCancelled();
     void reportsAnImportFailure();
+    void savesTheSelectedTagForTheResourceChooser();
 };
 
 void TestResourceUiContract::initTestCase()
@@ -262,6 +265,29 @@ void TestResourceUiContract::reportsAnImportFailure()
         QStringLiteral("/tmp/librepaint-missing-resource.kpp"));
     QVERIFY(imported.isNull());
     QVERIFY(warningShown);
+}
+
+void TestResourceUiContract::savesTheSelectedTagForTheResourceChooser()
+{
+    // Consumer: Resource chooser users returning to a brush, pattern, or palette screen.
+    // Operation: The chooser adds and selects a custom tag.
+    // Observable result: The selected tag is announced and its URL is saved for the next chooser session.
+    // Failure impact: The resource screen loses the user's chosen filter or shows a different tag after reopening.
+    KisTagModel model(ResourceType::PaintOpPresets);
+    KisTagChooserWidget chooser(&model, ResourceType::PaintOpPresets, nullptr);
+    const QString tagName = QStringLiteral("UI contract tag");
+    chooser.addTag(tagName);
+
+    const KisTagSP tag = model.tagForUrl(tagName);
+    QVERIFY(tag);
+
+    QSignalSpy tagChosenSpy(&chooser, &KisTagChooserWidget::sigTagChosen);
+    chooser.setCurrentItem(tag->url());
+
+    QCOMPARE(tagChosenSpy.count(), 1);
+    QVERIFY(chooser.currentlySelectedTag() == tag);
+    KConfigGroup selectedTags = KSharedConfig::openConfig()->group("SelectedTags");
+    QCOMPARE(selectedTags.readEntry<QString>(ResourceType::PaintOpPresets, QString()), tag->url());
 }
 
 QTEST_MAIN(TestResourceUiContract)
