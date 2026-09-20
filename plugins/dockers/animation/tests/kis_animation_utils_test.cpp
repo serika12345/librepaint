@@ -66,6 +66,10 @@ bool verifyFrames(TestUtil::MaskParent &p,
 
 void KisAnimationUtilsTest::test()
 {
+    // Consumer: Timeline docker users moving or swapping content keyframes across animation layers.
+    // Operation: The user moves cyclic and non-cyclic frame selections, then undoes the operation.
+    // Observable result: Each frame displays its expected pixels at the destination time and undo restores every source frame.
+    // Failure impact: Animation timing or cel content changes unexpectedly when users rearrange timeline frames.
     QRect refRect(QRect(0,0,512,512));
     TestUtil::MaskParent p(refRect);
 
