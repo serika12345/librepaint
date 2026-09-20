@@ -109,15 +109,17 @@ target_include_directories(KisResourceStorageTypeCompatibilityTest PRIVATE
 kis_add_test(
     KisTagPseudoUrlCompatibilityTest.cpp
     LINK_LIBRARIES
+        kritaglobal
+        kritaresources
+        kritatestsdk
+        Qt${QT_MAJOR_VERSION}::Sql
         Qt${QT_MAJOR_VERSION}::Test
-        Qt${QT_MAJOR_VERSION}::Gui
         KF${KF_MAJOR}::I18n
 )
 target_include_directories(KisTagPseudoUrlCompatibilityTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
-target_compile_definitions(KisTagPseudoUrlCompatibilityTest PRIVATE kritaresources_EXPORTS)
 
 kis_add_test(
     KoCanvasResourcesInterfaceContractTest.cpp
