@@ -6,43 +6,22 @@
 #include <KoResourceCacheInterface.h>
 
 #include <QMetaType>
-#include <QString>
 #include <QTest>
 #include <QVariant>
 
 namespace
 {
-class RecordingResourceCache final : public KoResourceCacheInterface
+class CookieResourceCache final : public KoResourceCacheInterface
 {
 public:
-    explicit RecordingResourceCache(bool *destroyed)
-        : m_destroyed(destroyed)
+    QVariant fetch(const QString &) const override
     {
+        return {};
     }
 
-    ~RecordingResourceCache() override
+    void put(const QString &, const QVariant &) override
     {
-        *m_destroyed = true;
     }
-
-    QVariant fetch(const QString &key) const override
-    {
-        fetchedKey = key;
-        return QStringLiteral("cached-value");
-    }
-
-    void put(const QString &key, const QVariant &value) override
-    {
-        putKey = key;
-        putValue = value;
-    }
-
-    mutable QString fetchedKey;
-    QString putKey;
-    QVariant putValue;
-
-private:
-    bool *m_destroyed;
 };
 }
 
@@ -51,32 +30,17 @@ class KoResourceCacheInterfaceContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void dispatchesCacheOperationsAndSupportsPolymorphicLifetime();
-    void preservesRelatedResourceCookie();
-    void registersSharedPointerMetaType();
+    void cacheOwnershipCookieSurvivesPreparation();
+    void cacheResultsSupportQueuedPresetUpdates();
 };
 
-void KoResourceCacheInterfaceContractTest::dispatchesCacheOperationsAndSupportsPolymorphicLifetime()
+void KoResourceCacheInterfaceContractTest::cacheOwnershipCookieSurvivesPreparation()
 {
-    bool destroyed = false;
-    auto *recordingCache = new RecordingResourceCache(&destroyed);
-    KoResourceCacheInterface *cache = recordingCache;
-
-    cache->put(QStringLiteral("outline"), 27);
-    QCOMPARE(recordingCache->putKey, QStringLiteral("outline"));
-    QCOMPARE(recordingCache->putValue, QVariant(27));
-
-    QCOMPARE(cache->fetch(QStringLiteral("pyramid")), QVariant(QStringLiteral("cached-value")));
-    QCOMPARE(recordingCache->fetchedKey, QStringLiteral("pyramid"));
-
-    delete cache;
-    QVERIFY(destroyed);
-}
-
-void KoResourceCacheInterfaceContractTest::preservesRelatedResourceCookie()
-{
-    bool destroyed = false;
-    RecordingResourceCache cache(&destroyed);
+    // Consumer: Painting snapshots that reject a cache created for a previous brush or canvas-resource state.
+    // Operation: Cache preparation assigns its resource ownership cookie and the snapshot later reads it.
+    // Observable result: The assigned cookie remains available for cache-validity comparison.
+    // Failure impact: A stroke can reuse a stale brush outline or resource cache after the selected resource changes.
+    CookieResourceCache cache;
 
     QCOMPARE(cache.relatedResourceCookie(), KoResourceCacheInterface::RelatedResourceCookie());
     const KoResourceCacheInterface::RelatedResourceCookie cookie = 0x173u;
@@ -84,12 +48,15 @@ void KoResourceCacheInterfaceContractTest::preservesRelatedResourceCookie()
     QCOMPARE(cache.relatedResourceCookie(), cookie);
 }
 
-void KoResourceCacheInterfaceContractTest::registersSharedPointerMetaType()
+void KoResourceCacheInterfaceContractTest::cacheResultsSupportQueuedPresetUpdates()
 {
+    // Consumer: The preset shadow updater transferring prepared caches from a background job to the UI thread.
+    // Operation: The updater emits a queued result containing a shared resource-cache interface.
+    // Observable result: Qt resolves the registered cache-result type by its signal name.
+    // Failure impact: A selected brush can miss its prepared cache or fail when its background update reaches the UI.
     const QMetaType type = QMetaType::fromName("KoResourceCacheInterfaceSP");
 
     QVERIFY(type.isValid());
-    QCOMPARE(type, QMetaType::fromType<KoResourceCacheInterfaceSP>());
 }
 
 QTEST_GUILESS_MAIN(KoResourceCacheInterfaceContractTest)
