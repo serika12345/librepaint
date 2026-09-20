@@ -105,6 +105,10 @@ void TestPaintingBoundary::snapshotOwnsStrokeState()
 
 void TestPaintingBoundary::snapshotOwnsResourceSignatures()
 {
+    // Consumer: Painters that change their pattern or gradient after beginning a stroke.
+    // Operation: A stroke snapshots canvas resources, then the selected resources are replaced.
+    // Observable result: The active snapshot keeps its original signatures and the next snapshot uses the replacements.
+    // Failure impact: A running stroke can switch resources unexpectedly or a later stroke can ignore the new selection.
     KisImageSP image = new KisImage(nullptr,
                                     64,
                                     48,
@@ -134,6 +138,26 @@ void TestPaintingBoundary::snapshotOwnsResourceSignatures()
     KisResourcesSnapshot populatedSnapshot(image, layer, resources);
     QCOMPARE(populatedSnapshot.currentPatternSignature(), pattern->signature());
     QCOMPARE(populatedSnapshot.currentGradientSignature(), gradient->signature());
+
+    KoPatternSP replacementPattern(new KoPattern(QImage(2, 2, QImage::Format_ARGB32),
+                                                 QStringLiteral("replacement-pattern"),
+                                                 QStringLiteral("replacement-pattern.pat")));
+    replacementPattern->setMD5Sum(QStringLiteral("replacement-pattern-md5"));
+
+    KoStopGradientSP replacementGradient(new KoStopGradient(QStringLiteral("replacement-gradient.svg")));
+    replacementGradient->setName(QStringLiteral("replacement-gradient"));
+    replacementGradient->setMD5Sum(QStringLiteral("replacement-gradient-md5"));
+
+    resources->storeResource(KoCanvasResource::CurrentPattern, QVariant::fromValue(replacementPattern));
+    resources->storeResource(KoCanvasResource::CurrentGradient,
+                             QVariant::fromValue(KoAbstractGradientSP(replacementGradient)));
+
+    QCOMPARE(populatedSnapshot.currentPatternSignature(), pattern->signature());
+    QCOMPARE(populatedSnapshot.currentGradientSignature(), gradient->signature());
+
+    KisResourcesSnapshot replacementSnapshot(image, layer, resources);
+    QCOMPARE(replacementSnapshot.currentPatternSignature(), replacementPattern->signature());
+    QCOMPARE(replacementSnapshot.currentGradientSignature(), replacementGradient->signature());
 }
 
 void TestPaintingBoundary::measurementStateIsSetByTheCaller()

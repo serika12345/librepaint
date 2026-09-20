@@ -122,19 +122,6 @@ target_include_directories(KisTagPseudoUrlCompatibilityTest PRIVATE
 )
 
 kis_add_test(
-    KoLocalStrokeCanvasResourcesContractTest.cpp
-    LINK_LIBRARIES
-        kritalocalstrokecanvasresourcesobjects
-        kritacanvasresourcesinterfaceobjects
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KoLocalStrokeCanvasResourcesContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KoLocalStrokeCanvasResourcesContractTest PRIVATE kritaresources_EXPORTS)
-
-kis_add_test(
     KisResourceMetaDataModelContractTest.cpp
     LINK_LIBRARIES
         kritaresourcemetadatamodelobjects
