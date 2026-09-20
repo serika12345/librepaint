@@ -10,17 +10,38 @@
 #include <KisResourceLocator.h>
 #include <KisResourceModelProvider.h>
 #include <KisResourceTypes.h>
+#include <KisStorageChooserWidget.h>
+#include <KisStorageFilterProxyModel.h>
+#include <KisStorageModel.h>
 #include <KisTagFilterResourceProxyModel.h>
 
 #include <ResourceTestHelper.h>
 
+#include <QApplication>
 #include <QDir>
+#include <QListView>
 #include <QSignalSpy>
 #include <QStandardPaths>
 #include <QTest>
 
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
+
+namespace
+{
+QListView *storagePopupView()
+{
+    for (QWidget *widget : QApplication::allWidgets()) {
+        auto *view = qobject_cast<QListView *>(widget);
+        auto *model = view ? qobject_cast<KisStorageFilterProxyModel *>(view->model()) : nullptr;
+        if (model && model->sourceModel() == KisStorageModel::instance()) {
+            return view;
+        }
+    }
+
+    return nullptr;
+}
+}
 
 class TestResourceUiContract : public QObject
 {
@@ -31,6 +52,7 @@ private Q_SLOTS:
     void cleanupTestCase();
     void selectsAnInstalledResource();
     void synchronizesPreviewCellSizeAcrossChoosers();
+    void togglesTheStorageShownInChooserPopup();
 };
 
 void TestResourceUiContract::initTestCase()
@@ -106,6 +128,42 @@ void TestResourceUiContract::synchronizesPreviewCellSizeAcrossChoosers()
     QCOMPARE(firstChooser.itemView()->gridSize(), QSize(70, 70));
     QCOMPARE(secondChooser.itemView()->gridSize(), QSize(70, 70));
     KisResourceItemChooserSync::instance()->setBaseLength(50);
+}
+
+void TestResourceUiContract::togglesTheStorageShownInChooserPopup()
+{
+    // Consumer: Resource chooser users enabling or disabling an installed bundle.
+    // Operation: The user opens the storage popup and clicks a displayed bundle.
+    // Observable result: The displayed bundle changes active state and can be restored by clicking it again.
+    // Failure impact: A different storage is disabled, so the user loses resources they did not choose to hide.
+    KisResourceItemChooser chooser(
+        KisResourceUiDescriptor(ResourceType::PaintOpPresets, false));
+    chooser.resize(600, 400);
+    chooser.show();
+
+    auto *storageButton = chooser.findChild<KisStorageChooserWidget *>();
+    QVERIFY(storageButton);
+    QTest::mouseClick(storageButton, Qt::LeftButton);
+    QTRY_VERIFY(storageButton->isPopupWidgetVisible());
+    QTRY_VERIFY(storagePopupView());
+
+    QListView *view = storagePopupView();
+    auto *model = qobject_cast<KisStorageFilterProxyModel *>(view->model());
+    QVERIFY(model);
+    QVERIFY(model->rowCount() > 0);
+
+    const QModelIndex displayedIndex = model->index(0, KisStorageModel::Id);
+    const QModelIndex sourceIndex = model->mapToSource(displayedIndex);
+    QVERIFY(sourceIndex.isValid());
+    const bool initiallyActive = sourceIndex.data(Qt::UserRole + KisStorageModel::Active).toBool();
+
+    QTest::mouseClick(view->viewport(), Qt::LeftButton, Qt::NoModifier,
+                      view->visualRect(displayedIndex).center());
+    QTRY_COMPARE(sourceIndex.data(Qt::UserRole + KisStorageModel::Active).toBool(), !initiallyActive);
+
+    QTest::mouseClick(view->viewport(), Qt::LeftButton, Qt::NoModifier,
+                      view->visualRect(displayedIndex).center());
+    QTRY_COMPARE(sourceIndex.data(Qt::UserRole + KisStorageModel::Active).toBool(), initiallyActive);
 }
 
 QTEST_MAIN(TestResourceUiContract)
