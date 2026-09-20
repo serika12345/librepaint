@@ -1083,6 +1083,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] `kritapaintopcurveoptiondatacommonobjects`の利用要件を実使用に一致させ、`kritalibpaintop`が設定実装を所有する`kritaimage`を直接リンクする。センサーパックが読む色素ヘッダーは同対象のprivate取込みディレクトリーへ置く。
 - [x] 対象構築、`kritalibpaintop`、既存の`KisCurveOptionDataTest`と`KisKritaSensorPackCompatibilityTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
 
+### R2-G19p エアブラシ設定データ依存の直接化
+
+目的は、エアブラシ設定データの公開値型と設定入出力実装が、実数型、ブラシ設定、画像設定、色管理値型を推移的取込みから得る状態を解消し、既存の有効状態、発生率、間隔無視、設定キーと既定値の契約を維持することである。
+
+範囲は`plugins/paintops/libpaintop/KisAirbrushOptionData.cpp`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopairbrushoptiondataobjects`、試験自身の直接構築要件を記録する`plugins/paintops/libpaintop/tests/CMakeLists.txt`に固定する。既存テストソース、公開API、設定キー、既定値、保存結果、試験入力と期待値を維持する。
+
+- [x] 実装を実数型とブラシ設定の所有ヘッダーへ直接接続し、`kritapaintopairbrushoptiondataobjects`の公開・実装利用要件を分離する。
+- [x] `KisAirbrushOptionDataContractTest`が直接読むブラシ設定と画像設定の取込み・外部ライブラリー要件を同試験のCMake定義へ明示する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisAirbrushOptionDataContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない
