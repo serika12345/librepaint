@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 15:57 JST
+- 更新日時: 2026-09-20 16:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -119,7 +119,8 @@
 - 完了: `KisCurveOptionDataContractTest.cpp`を削除し、曲線データ種別の構築既定値、センサー列挙、強度範囲、チェック状態、偽の設定ストアを固定する検証を廃止した。標準オプションのIDは`KisKritaSensorPack`がプリセット設定のキーを組み立てるため、保存済みプリセットが利用する互換性要件である。`KisStandardOptionDataCompatibilityTest.cpp`は実設定へ強度を保存し、同じ既存キーだけを持つ設定から各標準オプションを復元する。互換性試験は標準の不透明度、流量、比率、硬さ、回転、色調整、速度、テクスチャ強度、明度強度の各キーを対象にする。新しい試験は既存の実ライブラリー構築閉包を使い、対象の入力は4,237件である。
 - 完了: `KisKritaSensorPackContractTest.cpp`を削除し、`Checkability`の数値、センサー宣言順、内部ポインター集合、等値比較、複製、安全断言回数、偽の設定ストアとXML出力順を固定する検証を廃止した。`KisKritaSensorPackCompatibilityTest.cpp`は実際の設定を使い、保存済みブラシプリセットの旧`SizeSensor` XMLに含まれる16種類の入力IDが、選択した入力と曲線を復元することを検証する。`KisCurveOptionDataTest`は時間入力の曲線、長さ、周期設定が保存後にも復元することを検証する。画面上の選択センサーの長さは`KisCurveOptionModelTest`、実ストロークの動的入力は`FreehandStrokeContractTest`が保護する。新しい互換性試験は既存の実ライブラリー構築閉包を使い、対象の入力は4,237件である。
 - 完了: `KisSizeOptionDataContractTest.cpp`を削除し、サイズID、接頭辞、構築既定値、内部の制限IDだけを固定する検証と偽の設定実装を廃止した。ブラシプリセットは`SizeValue`でサイズ曲線強度を保存するため、`KisStandardOptionDataCompatibilityTest`が実設定の保存・読込結果でこのキーを守る。ブラシ編集画面はSize曲線のFuzzy入力で即時プレビューを注意状態にし、Fade入力で利用不可にするため、`KisCurveOptionDataTest`が実ライブラリーの制限結果を検証する。状態を画面表示へ反映する規則は既存の`KisLodAvailabilityContractTest`が保護する。新しい対象や依存は追加せず、既存の実ライブラリー構築閉包4,237入力へ統合した。
-- 次の作業: `KisMirrorOptionDataContractTest.cpp`について、ミラーオプションの構築既定値、計算、保存形式、描画結果と設定画面の利用側を確認し、利用者が観測する結果または根拠のある互換性へ整理する。
+- 完了: `KisMirrorOptionDataContractTest.cpp`を削除し、構築既定値、接頭辞の保持、等値比較、偽の設定実装を固定する検証を廃止した。主ブラシとマスキングブラシのプリセットは`HorizontalMirrorEnabled`と`VerticalMirrorEnabled`を保存し、ブラシ実装とマスキング設定がこれらを読んでダブの反転方向を決める。`KisMirrorOptionDataCompatibilityTest.cpp`は実設定で主ブラシの水平反転を保存・読込してダブの反転結果を検証し、マスキングブラシの`MaskingBrush/Preset/`配下の垂直反転設定が埋込み設定へ復元することを検証する。最終描画は既存の`kis_brushop_test`が保護する。新しい試験は既存の実ライブラリー構築閉包を使い、対象の入力は4,237件である。
+- 次の作業: `KisSharpnessOptionDataContractTest.cpp`について、シャープネスオプションの構築既定値、計算、保存形式、描画結果と設定画面の利用側を確認し、利用者が観測する結果または根拠のある互換性へ整理する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
