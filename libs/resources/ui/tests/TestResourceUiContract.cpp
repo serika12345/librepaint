@@ -8,6 +8,7 @@
 #include <KisResourceItemChooserSync.h>
 #include <KisResourceItemListView.h>
 #include <KisResourceLocator.h>
+#include <KisResourceModel.h>
 #include <KisResourceModelProvider.h>
 #include <KisResourceTypes.h>
 #include <KisResourceUserOperations.h>
@@ -17,21 +18,31 @@
 #include <KisTagChooserWidget.h>
 #include <KisTagFilterResourceProxyModel.h>
 #include <KisTagModel.h>
+#include <KisTagResourceModel.h>
 
 #include <ResourceTestHelper.h>
 
-#include <QApplication>
 #include <QAbstractButton>
+#include <QApplication>
+#include <QContextMenuEvent>
 #include <QDir>
 #include <QListView>
+#include <QLineEdit>
 #include <QMessageBox>
+#include <QMenu>
+#include <QPushButton>
 #include <QSignalSpy>
 #include <QStandardPaths>
 #include <QTest>
 #include <QTimer>
+#include <QToolButton>
+#include <QWidgetAction>
 
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
+#include <klocalizedstring.h>
+
+#include <functional>
 
 namespace
 {
@@ -70,6 +81,44 @@ void answerNextMessageBox(QMessageBox::StandardButton answer,
         }
     });
 }
+
+bool triggerResourceContextMenuAction(
+    KisResourceItemChooser *chooser,
+    const std::function<bool(QMenu *)> &triggerAction)
+{
+    bool actionTriggered = false;
+    QTimer actionTimer;
+    actionTimer.setInterval(10);
+    int attempts = 0;
+    QObject::connect(&actionTimer, &QTimer::timeout, chooser, [&] {
+        auto *contextMenu = qobject_cast<QMenu *>(QApplication::activePopupWidget());
+        if (!contextMenu) {
+            return;
+        }
+
+        if (triggerAction(contextMenu)) {
+            actionTriggered = true;
+            actionTimer.stop();
+            contextMenu->close();
+            return;
+        }
+
+        if (++attempts == 100) {
+            actionTimer.stop();
+            contextMenu->close();
+        }
+    });
+
+    const QPoint menuPosition = chooser->itemView()->visualRect(
+        chooser->itemView()->currentIndex()).center();
+    QContextMenuEvent event(QContextMenuEvent::Mouse,
+                            menuPosition,
+                            chooser->itemView()->viewport()->mapToGlobal(menuPosition));
+    actionTimer.start();
+    QApplication::sendEvent(chooser->itemView()->viewport(), &event);
+
+    return actionTriggered;
+}
 }
 
 class TestResourceUiContract : public QObject
@@ -86,6 +135,10 @@ private Q_SLOTS:
     void preservesAResourceWhenDuplicateRenameIsCancelled();
     void reportsAnImportFailure();
     void savesTheSelectedTagForTheResourceChooser();
+    void assignsAResourceToAnExistingTagFromTheContextMenu();
+    void removesAResourceFromTheCurrentTagFromTheContextMenu();
+    void createsAndAssignsATagFromTheContextMenu();
+    void createsATagFromTheTagOptionsMenu();
 };
 
 void TestResourceUiContract::initTestCase()
@@ -288,6 +341,221 @@ void TestResourceUiContract::savesTheSelectedTagForTheResourceChooser()
     QVERIFY(chooser.currentlySelectedTag() == tag);
     KConfigGroup selectedTags = KSharedConfig::openConfig()->group("SelectedTags");
     QCOMPARE(selectedTags.readEntry<QString>(ResourceType::PaintOpPresets, QString()), tag->url());
+}
+
+void TestResourceUiContract::assignsAResourceToAnExistingTagFromTheContextMenu()
+{
+    // Consumer: Resource chooser users assigning a brush or pattern to an existing tag from its context menu.
+    // Operation: The user triggers the menu action for an available tag.
+    // Observable result: The selected resource is recorded under that tag.
+    // Failure impact: The tag menu reports success but the resource cannot be found through the chosen tag.
+    KisResourceModel resourceModel(ResourceType::PaintOpPresets);
+    resourceModel.setResourceFilter(KisResourceModel::ShowAllResources);
+    const KoResourceSP resource = resourceModel.resourceForIndex(resourceModel.index(0, 0));
+    QVERIFY(resource);
+
+    KisTagModel tagModel(ResourceType::PaintOpPresets);
+    const QString tagName = QStringLiteral("Context action tag");
+    tagModel.addTag(tagName, true, {});
+    const KisTagSP tag = tagModel.tagForUrl(tagName);
+    QVERIFY(tag);
+
+    KisResourceItemChooser chooser(
+        KisResourceUiDescriptor(ResourceType::PaintOpPresets, false));
+    chooser.resize(600, 400);
+    chooser.showTaggingBar(true);
+    chooser.show();
+    auto *tagChooser = chooser.findChild<KisTagChooserWidget *>();
+    QVERIFY(tagChooser);
+    tagChooser->setCurrentItem(KisAllTagsModel::urlAll());
+    chooser.setCurrentResource(resource);
+    QTRY_VERIFY(chooser.itemView()->currentIndex().isValid());
+
+    const bool actionTriggered = triggerResourceContextMenuAction(&chooser, [&](QMenu *contextMenu) {
+        for (QAction *rootAction : contextMenu->actions()) {
+            QMenu *subMenu = rootAction->menu();
+            if (!subMenu) {
+                continue;
+            }
+            for (QAction *candidate : subMenu->actions()) {
+                if (candidate->text() == tag->name()) {
+                    candidate->trigger();
+                    return true;
+                }
+            }
+        }
+        return false;
+    });
+
+    QVERIFY(actionTriggered);
+
+    KisTagResourceModel taggedResources(ResourceType::PaintOpPresets);
+    QVERIFY(taggedResources.isResourceTagged(tag, resource->resourceId()));
+}
+
+void TestResourceUiContract::removesAResourceFromTheCurrentTagFromTheContextMenu()
+{
+    // Consumer: Resource chooser users removing a brush or pattern from the current tag.
+    // Operation: The user triggers the menu action that removes the selected resource from that tag.
+    // Observable result: The tag no longer contains the selected resource.
+    // Failure impact: Resources remain in a tag the user explicitly removed them from, making filtering misleading.
+    KisResourceModel resourceModel(ResourceType::PaintOpPresets);
+    resourceModel.setResourceFilter(KisResourceModel::ShowAllResources);
+    const KoResourceSP resource = resourceModel.resourceForIndex(resourceModel.index(0, 0));
+    QVERIFY(resource);
+
+    KisTagModel tagModel(ResourceType::PaintOpPresets);
+    const QString tagName = QStringLiteral("Context removal tag");
+    tagModel.addTag(tagName, true, {});
+    const KisTagSP tag = tagModel.tagForUrl(tagName);
+    QVERIFY(tag);
+    KisTagResourceModel taggedResources(ResourceType::PaintOpPresets);
+    taggedResources.tagResources(tag, QVector<int>() << resource->resourceId());
+    QVERIFY(taggedResources.isResourceTagged(tag, resource->resourceId()));
+
+    KisResourceItemChooser chooser(
+        KisResourceUiDescriptor(ResourceType::PaintOpPresets, false));
+    chooser.resize(600, 400);
+    chooser.showTaggingBar(true);
+    chooser.show();
+    auto *tagChooser = chooser.findChild<KisTagChooserWidget *>();
+    QVERIFY(tagChooser);
+    tagChooser->setCurrentItem(tag->url());
+    chooser.setCurrentResource(resource);
+    QTRY_VERIFY(chooser.itemView()->currentIndex().isValid());
+
+    const bool actionTriggered = triggerResourceContextMenuAction(&chooser, [](QMenu *contextMenu) {
+        for (QAction *candidate : contextMenu->actions()) {
+            if (candidate->text() == i18n("Remove from this tag")) {
+                candidate->trigger();
+                return true;
+            }
+        }
+        return false;
+    });
+
+    QVERIFY(actionTriggered);
+    QVERIFY(!taggedResources.isResourceTagged(tag, resource->resourceId()));
+}
+
+void TestResourceUiContract::createsAndAssignsATagFromTheContextMenu()
+{
+    // Consumer: Resource chooser users creating a tag while assigning a brush or pattern.
+    // Operation: The user enters a new tag name in the context-menu action and submits it.
+    // Observable result: The new tag exists and contains the selected resource.
+    // Failure impact: The new tag or its assignment disappears, so the user cannot filter to the resource they just organized.
+    KisResourceModel resourceModel(ResourceType::PaintOpPresets);
+    resourceModel.setResourceFilter(KisResourceModel::ShowAllResources);
+    const KoResourceSP resource = resourceModel.resourceForIndex(resourceModel.index(0, 0));
+    QVERIFY(resource);
+
+    KisTagModel tagModel(ResourceType::PaintOpPresets);
+    const QString tagName = QStringLiteral("Context menu new tag");
+    KisResourceItemChooser chooser(
+        KisResourceUiDescriptor(ResourceType::PaintOpPresets, false));
+    chooser.resize(600, 400);
+    chooser.showTaggingBar(true);
+    chooser.show();
+    auto *tagChooser = chooser.findChild<KisTagChooserWidget *>();
+    QVERIFY(tagChooser);
+    tagChooser->setCurrentItem(KisAllTagsModel::urlAll());
+    chooser.setCurrentResource(resource);
+    QTRY_VERIFY(chooser.itemView()->currentIndex().isValid());
+
+    const bool actionTriggered = triggerResourceContextMenuAction(&chooser, [&](QMenu *contextMenu) {
+        for (QAction *rootAction : contextMenu->actions()) {
+            QMenu *subMenu = rootAction->menu();
+            if (!subMenu) {
+                continue;
+            }
+            for (QAction *candidate : subMenu->actions()) {
+                auto *inputAction = qobject_cast<QWidgetAction *>(candidate);
+                if (!inputAction) {
+                    continue;
+                }
+
+                QLineEdit *tagNameEdit = inputAction->defaultWidget()->findChild<QLineEdit *>();
+                QPushButton *submitButton = inputAction->defaultWidget()->findChild<QPushButton *>();
+                if (tagNameEdit && submitButton) {
+                    tagNameEdit->setText(tagName);
+                    submitButton->click();
+                    return true;
+                }
+            }
+        }
+        return false;
+    });
+
+    QVERIFY(actionTriggered);
+
+    const KisTagSP tag = tagModel.tagForUrl(tagName);
+    QVERIFY(tag);
+    KisTagResourceModel taggedResources(ResourceType::PaintOpPresets);
+    QVERIFY(taggedResources.isResourceTagged(tag, resource->resourceId()));
+}
+
+void TestResourceUiContract::createsATagFromTheTagOptionsMenu()
+{
+    // Consumer: Resource chooser users creating a tag from the tag options button.
+    // Operation: The user opens the tag options menu, enters a name, and submits it.
+    // Observable result: The new tag is available for filtering resources.
+    // Failure impact: Users cannot create organizational tags from the chooser's tag controls.
+    KisTagModel tagModel(ResourceType::PaintOpPresets);
+    KisTagChooserWidget chooser(&tagModel, ResourceType::PaintOpPresets, nullptr);
+    chooser.resize(300, 40);
+    chooser.show();
+
+    QToolButton *tagOptionsButton = nullptr;
+    for (QToolButton *candidate : chooser.findChildren<QToolButton *>()) {
+        if (candidate->menu()) {
+            tagOptionsButton = candidate;
+            break;
+        }
+    }
+    QVERIFY(tagOptionsButton);
+    QMenu *menu = tagOptionsButton->menu();
+    QVERIFY(menu);
+
+    const QString tagName = QStringLiteral("Tag options new tag");
+    bool actionTriggered = false;
+    QTimer actionTimer;
+    actionTimer.setInterval(10);
+    int attempts = 0;
+    connect(&actionTimer, &QTimer::timeout, &chooser, [&] {
+        auto *popup = qobject_cast<QMenu *>(QApplication::activePopupWidget());
+        if (!popup) {
+            return;
+        }
+
+        for (QAction *candidate : popup->actions()) {
+            auto *inputAction = qobject_cast<QWidgetAction *>(candidate);
+            if (!inputAction || !inputAction->isVisible()) {
+                continue;
+            }
+
+            QLineEdit *tagNameEdit = inputAction->defaultWidget()->findChild<QLineEdit *>();
+            QPushButton *submitButton = inputAction->defaultWidget()->findChild<QPushButton *>();
+            if (tagNameEdit && submitButton) {
+                tagNameEdit->setText(tagName);
+                submitButton->click();
+                actionTriggered = true;
+                actionTimer.stop();
+                popup->close();
+                return;
+            }
+        }
+
+        if (++attempts == 100) {
+            actionTimer.stop();
+            popup->close();
+        }
+    });
+
+    actionTimer.start();
+    QTest::mouseClick(tagOptionsButton, Qt::LeftButton);
+
+    QVERIFY(actionTriggered);
+    QVERIFY(tagModel.tagForUrl(tagName));
 }
 
 QTEST_MAIN(TestResourceUiContract)
