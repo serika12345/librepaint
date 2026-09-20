@@ -57,19 +57,15 @@ target_include_directories(KoPageWidgetItemContractTest PRIVATE
 target_compile_definitions(KoPageWidgetItemContractTest PRIVATE kritawidgets_EXPORTS)
 
 kis_add_test(
-    KoDialogEnumContractTest.cpp
+    KoDialogContractTest.cpp
+    ${CMAKE_SOURCE_DIR}/libs/widgetutils/config/khelpclient.cpp
+    TEST_NAME KoDialogContractTest
     LINK_LIBRARIES
         kritawidgetsdialogobjects
         Qt${QT_MAJOR_VERSION}::Test
         Qt${QT_MAJOR_VERSION}::Widgets
-        KF${KF_MAJOR}::ConfigCore
-        KF${KF_MAJOR}::WidgetsAddons
 )
-target_include_directories(KoDialogEnumContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KoDialogEnumContractTest PRIVATE kritawidgets_EXPORTS)
+target_compile_definitions(KoDialogContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
     KoTitledTabWidgetContractTest.cpp
