@@ -1,26 +1,30 @@
 kis_add_test(
     TestResourceUiContract.cpp
     LINK_LIBRARIES
-        kritaresourceuidescriptorobjects
-        kritaresourceitemchooserconstructionobjects
-        kritaresourceitemchooserpresentationobjects
-        kritaresourceitemchooserselectionobjects
-        kritaresourceitemchooserinputobjects
-        kritaresourceitemchooserbuttonobjects
-        kritaresourcestypesobjects
+        kritaresourceui
+        kritaresources
+        kritaglobal
+        kritaplugin
+        kritatestsdk
         Qt${QT_MAJOR_VERSION}::Test
         Qt${QT_MAJOR_VERSION}::Widgets
-        KF${KF_MAJOR}::I18n
+        KF${KF_MAJOR}::ConfigCore
 )
 target_include_directories(TestResourceUiContract PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
     ${CMAKE_SOURCE_DIR}/libs/resources
     ${CMAKE_BINARY_DIR}/libs/resources
+    ${CMAKE_SOURCE_DIR}/libs/resources/tests
     ${CMAKE_SOURCE_DIR}/libs/widgetutils
     ${CMAKE_BINARY_DIR}/libs/widgetutils
+    ${CMAKE_SOURCE_DIR}/libs/koplugin
+    ${CMAKE_BINARY_DIR}/libs/koplugin
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
 )
 target_compile_definitions(TestResourceUiContract PRIVATE
+    RESOURCE_TEST_DATA_DIR="${CMAKE_SOURCE_DIR}/libs/resources/tests/data/"
     kritaresourceui_EXPORTS
     kritaresources_EXPORTS
     kritawidgetutils_EXPORTS
