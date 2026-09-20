@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 08:59 JST
+- 更新日時: 2026-09-20 09:02 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -26,7 +26,8 @@
 - 完了: `KoSvgTextFontSelectionValueContractTest.cpp`を削除し、既存のフォント読込試験を`KoSvgTextFontImportContractTest.cpp`へ分離した。SVGの`font-family`、幅、太さ、style、variant、装飾を解析すると、編集部品が読む解決済み文字属性へ反映されることを検証する。
 - 完了: `KoSvgTextPropertyDataContractTest.cpp`を削除し、`KisTextPropertiesManagerContractTest.cpp`へ置き換えた。段落・文字範囲の混在する選択が文字プロパティdockerの状態となり、dockerの設定・解除がSVGテキストツールの選択へ反映されることを検証する。
 - 完了: `KoSvgTextPropertiesInterfaceContractTest.cpp`を削除した。試験内の仮想呼出しとsignal順序ではなく、文字範囲選択のsignal、継承プロパティ、span状態、設定・解除の利用者向け結果を`KisTextPropertiesManagerContractTest.cpp`へ統合した。
-- 次の作業: 残存Schema試験を利用場面から監査する。次の`KoShapeAnchorEnumContractTest.cpp`では、アンカー種別の数値が保存形式、SVG、プラグイン、スクリプト、外部識別子で使われるかを確認する。R2-G19cの高速検査と対象CTestを再実行する。列挙値と内部識別子の固定は、保存形式や外部連携の根拠がある場合だけ保持する。
+- 完了: `KoShapeAnchorEnumContractTest.cpp`を削除した。アンカーの位置・基準・方式の整数値は、保存形式、SVG/XML、設定、プラグイン、スクリプト、外部識別子で利用されていない。製品の利用場面も確認できないため、数値順序を固定する専用CTestを維持せず、代替試験も追加しない。
+- 次の作業: 残存Schema試験を利用場面から監査する。次の`KoShapeAnchorContractTest.cpp`では、アンカーの所有権、仮想呼出し、既定値が実際の図形編集・保存・配置で利用されるかを確認する。R2-G19cの高速検査と対象CTestを再実行する。内部所有と呼出し順序の固定は、利用者が観測できる結果または明示的な互換性根拠がある場合だけ保持する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
@@ -202,6 +203,11 @@ OpenType機能の変換・再保存は既存の`KoSvgTextEnumConversionContractT
 仮想メソッドとsignalの呼出し順序を確認していた。実際のSVG文字ツールは文字選択signal、継承プロパティ、
 span選択状態を`KisTextPropertiesManager`へ渡すため、同じ管理者契約で文字範囲の選択変更、表示状態、設定、
 解除を検証する。親子関係と試験用実装の呼出し順序は、ツール利用者が観測する契約ではない。
+
+`libs/flake/tests/KoShapeAnchorEnumContractTest.cpp`は、アンカーの位置、基準、方式の列挙値を整数値へ
+固定していた。`libs`、`plugins`、`sdk`の製品利用箇所、保存、SVG/XML、設定、外部識別子を確認しても、
+これらの型と列挙子を消費する利用者は見つからない。値の並びは図形編集の結果、保存結果、表示結果を表さないため、
+試験と専用CTest定義を削除する。
 
 ## 構築と検証
 
