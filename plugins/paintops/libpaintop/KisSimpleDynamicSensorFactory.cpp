@@ -6,6 +6,8 @@
 
 #include "KisSimpleDynamicSensorFactory.h"
 
+#include <QtGlobal>
+
 KisSimpleDynamicSensorFactory::KisSimpleDynamicSensorFactory(const QString &id,
                                                              int minimumValue,
                                                              int maximumValue,

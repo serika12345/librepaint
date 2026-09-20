@@ -1003,6 +1003,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] `kritapaintopruntime`が利用する製品ライブラリー、Qt、KDE Frameworks対象を直接列挙し、公開利用要件と実装専用依存を区別する。
 - [x] 対象構築、PaintOpの利用者向けCTest、`verify-quick`、完全なnative検査を実行し、後続の有限な依存監査単位をPROGRESSへ記録する。
 
+### R2-G19h 動的センサー工場依存の縮小
+
+目的は、動的センサー工場の公開面が利用しない広い曲線設定型とXML依存まで要求する状態を解消し、工場が実際に扱う共通曲線設定型へ依存を限定することである。
+
+範囲は`KisDynamicSensorFactory.h`・`KisDynamicSensorFactory.cpp`、`KisSimpleDynamicSensorFactory.h`・`KisSimpleDynamicSensorFactory.cpp`、工場ヘッダーの取込み縮小で露出する直接利用者`KisDynamicSensorFactoryRegistry.h`、`kritapaintopdynamicsensorfactoryobjects`に固定する。テストソース、工場API、生成結果は維持する。
+
+- [x] 公開引数の完全型を広い派生設定ヘッダーから共通曲線設定の所有ヘッダーへ縮め、文字列、公開記号、テンプレートの所有ヘッダーを直接取り込む。
+- [x] 対象のコンパイル定義、取込みディレクトリー、リンク対象を実使用へ限定する。
+- [x] 対象構築、既存の工場契約2件、`verify-quick`を成功させ、後続の監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない

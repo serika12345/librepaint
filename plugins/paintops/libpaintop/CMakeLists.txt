@@ -878,27 +878,17 @@ add_library(kritapaintopdynamicsensorfactoryobjects OBJECT
     KisSimpleDynamicSensorFactory.cpp
 )
 target_compile_definitions(kritapaintopdynamicsensorfactoryobjects PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
 )
 target_include_directories(kritapaintopdynamicsensorfactoryobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
-        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
-        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
 )
 target_link_libraries(kritapaintopdynamicsensorfactoryobjects
     PUBLIC
-        Boost::boost
-        Eigen3::Eigen
-        KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Xml
-        kritaglobalidobjects
+        kritapaintopcurveoptiondatacommonobjects
         lager
 )
 set_target_properties(kritapaintopdynamicsensorfactoryobjects PROPERTIES

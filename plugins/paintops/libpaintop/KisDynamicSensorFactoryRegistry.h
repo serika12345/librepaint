@@ -6,6 +6,9 @@
 #ifndef KISDYNAMICSENSORFACTORYREGISTRY_H
 #define KISDYNAMICSENSORFACTORYREGISTRY_H
 
+#include <QString>
+
+#include "KoID.h"
 #include "KoGenericRegistry.h"
 #include "KisDynamicSensorFactory.h"
 #include "kritapaintop_export.h"
