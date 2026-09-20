@@ -829,34 +829,27 @@ add_library(kritapaintopkritasensorpackobjects OBJECT
     KisKritaSensorPack.cpp
 )
 target_compile_definitions(kritapaintopkritasensorpackobjects PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
 )
 target_include_directories(kritapaintopkritasensorpackobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
-        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
-        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
 )
 target_link_libraries(kritapaintopkritasensorpackobjects
     PUBLIC
         Boost::boost
-        Eigen3::Eigen
-        Imath::ImathConfig
-        KF${KF_MAJOR}::I18n
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Xml
-        kritaglobalidobjects
         kritapaintopsensordataobjects
         kritapaintopsensorpackinterfaceobjects
+    PRIVATE
+        Eigen3::Eigen
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Xml
+        kritaglobalidobjects
+        kritapaintopcurveoptiondatacommonobjects
 )
 set_target_properties(kritapaintopkritasensorpackobjects PROPERTIES
     AUTOMOC OFF
