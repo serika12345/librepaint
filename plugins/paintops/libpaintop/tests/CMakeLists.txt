@@ -15,6 +15,8 @@ kis_add_test(
         kritapaintopsensorpackinterfaceobjects
         kritapaintopcurverangemodelinterfaceobjects
         kritaglobalidobjects
+        kritaglobalsharedobjects
+        kritaimageserializableconfigurationobjects
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(KisCurveOptionModelTest PRIVATE

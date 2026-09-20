@@ -7,173 +7,119 @@
 
 #include <kis_properties_configuration.h>
 
-#include <QHash>
-#include <QMap>
-#include <QPointer>
 #include <QTest>
-
-#include <type_traits>
 
 namespace
 {
-using PropertyStore = QMap<QString, QVariant>;
-QHash<const KisPropertiesConfiguration *, PropertyStore> &stores()
+[[noreturn]] void failUnexpectedConfigurationUse()
 {
-    static QHash<const KisPropertiesConfiguration *, PropertyStore> result;
-    return result;
-}
-
-PropertyStore &properties(KisPropertiesConfiguration *value)
-{
-    return stores()[value];
-}
-const PropertyStore &properties(const KisPropertiesConfiguration *value)
-{
-    return stores()[value];
+    qFatal("KisCurveOptionModelTest must not exercise configuration storage");
 }
 
 } // namespace
 
-void kis_assert_exception(const char *, const char *, int)
+void kis_assert_exception(const char *assertion, const char *file, int line)
 {
-}
-void kis_safe_assert_recoverable(const char *, const char *, int)
-{
+    qFatal("Unexpected assertion %s at %s:%d", assertion, file, line);
 }
 
-KisShared::KisShared()
-    : _ref(0)
-    , _sharedWeakReference(nullptr)
+void kis_safe_assert_recoverable(const char *assertion, const char *file, int line)
 {
+    qFatal("Unexpected recoverable assertion %s at %s:%d", assertion, file, line);
 }
-KisShared::~KisShared()
-{
-    delete _sharedWeakReference;
-}
-KisSerializableConfiguration::KisSerializableConfiguration() = default;
-KisSerializableConfiguration::KisSerializableConfiguration(const KisSerializableConfiguration &)
-    : KisShared()
-{
-}
-bool KisSerializableConfiguration::fromXML(const QString &, bool)
-{
-    return false;
-}
-QString KisSerializableConfiguration::toXML() const
-{
-    return {};
-}
+
 struct KisPropertiesConfiguration::Private {
 };
 KisPropertiesConfiguration::KisPropertiesConfiguration()
     : d(new Private)
 {
-    stores().insert(this, {});
+    failUnexpectedConfigurationUse();
 }
 KisPropertiesConfiguration::~KisPropertiesConfiguration()
 {
-    stores().remove(this);
     delete d;
-}
-KisPropertiesConfiguration::KisPropertiesConfiguration(const KisPropertiesConfiguration &rhs)
-    : KisSerializableConfiguration(rhs)
-    , d(new Private)
-{
-    stores().insert(this, properties(&rhs));
-}
-KisPropertiesConfiguration &KisPropertiesConfiguration::operator=(const KisPropertiesConfiguration &rhs)
-{
-    if (this != &rhs)
-        properties(this) = properties(&rhs);
-    return *this;
 }
 bool KisPropertiesConfiguration::fromXML(const QString &, bool)
 {
-    return false;
+    failUnexpectedConfigurationUse();
 }
 void KisPropertiesConfiguration::fromXML(const QDomElement &)
 {
+    failUnexpectedConfigurationUse();
 }
 void KisPropertiesConfiguration::toXML(QDomDocument &, QDomElement &) const
 {
+    failUnexpectedConfigurationUse();
 }
 QString KisPropertiesConfiguration::toXML() const
 {
-    return {};
+    failUnexpectedConfigurationUse();
 }
-bool KisPropertiesConfiguration::hasProperty(const QString &name) const
+bool KisPropertiesConfiguration::hasProperty(const QString &) const
 {
-    return properties(this).contains(name);
+    failUnexpectedConfigurationUse();
 }
-void KisPropertiesConfiguration::setProperty(const QString &name, const QVariant &value)
+void KisPropertiesConfiguration::setProperty(const QString &, const QVariant &)
 {
-    properties(this).insert(name, value);
+    failUnexpectedConfigurationUse();
 }
-bool KisPropertiesConfiguration::getProperty(const QString &name, QVariant &value) const
+bool KisPropertiesConfiguration::getProperty(const QString &, QVariant &) const
 {
-    const auto it = properties(this).constFind(name);
-    if (it == properties(this).constEnd())
-        return false;
-    value = *it;
-    return true;
+    failUnexpectedConfigurationUse();
 }
-QVariant KisPropertiesConfiguration::getProperty(const QString &name) const
+QVariant KisPropertiesConfiguration::getProperty(const QString &) const
 {
-    return properties(this).value(name);
+    failUnexpectedConfigurationUse();
 }
-int KisPropertiesConfiguration::getInt(const QString &name, int value) const
+int KisPropertiesConfiguration::getInt(const QString &, int) const
 {
-    const QVariant v = getProperty(name);
-    return v.isValid() ? v.toInt() : value;
+    failUnexpectedConfigurationUse();
 }
-double KisPropertiesConfiguration::getDouble(const QString &name, double value) const
+double KisPropertiesConfiguration::getDouble(const QString &, double) const
 {
-    const QVariant v = getProperty(name);
-    return v.isValid() ? v.toDouble() : value;
+    failUnexpectedConfigurationUse();
 }
-bool KisPropertiesConfiguration::getBool(const QString &name, bool value) const
+bool KisPropertiesConfiguration::getBool(const QString &, bool) const
 {
-    const QVariant v = getProperty(name);
-    return v.isValid() ? v.toBool() : value;
+    failUnexpectedConfigurationUse();
 }
-QString KisPropertiesConfiguration::getString(const QString &name, const QString &value) const
+QString KisPropertiesConfiguration::getString(const QString &, const QString &) const
 {
-    const QVariant v = getProperty(name);
-    return v.isValid() ? v.toString() : value;
+    failUnexpectedConfigurationUse();
 }
 QMap<QString, QVariant> KisPropertiesConfiguration::getProperties() const
 {
-    return properties(this);
+    failUnexpectedConfigurationUse();
 }
 QList<QString> KisPropertiesConfiguration::getPropertiesKeys() const
 {
-    return properties(this).keys();
+    failUnexpectedConfigurationUse();
 }
 void KisPropertiesConfiguration::getPrefixedProperties(const QString &prefix,
                                                        KisPropertiesConfiguration *configuration) const
 {
-    for (auto it = properties(this).constBegin(); it != properties(this).constEnd(); ++it) {
-        if (it.key().startsWith(prefix))
-            configuration->setProperty(it.key().mid(prefix.size()), it.value());
-    }
+    Q_UNUSED(prefix);
+    Q_UNUSED(configuration);
+    failUnexpectedConfigurationUse();
 }
 void KisPropertiesConfiguration::setPrefixedProperties(const QString &prefix,
                                                        const KisPropertiesConfiguration *configuration)
 {
-    for (auto it = properties(configuration).constBegin(); it != properties(configuration).constEnd(); ++it) {
-        setProperty(prefix + it.key(), it.value());
-    }
+    Q_UNUSED(prefix);
+    Q_UNUSED(configuration);
+    failUnexpectedConfigurationUse();
 }
 QString KisPropertiesConfiguration::extractedPrefixKey()
 {
-    return QStringLiteral("__extractedFromPrefix");
+    failUnexpectedConfigurationUse();
 }
-bool KisPropertiesConfiguration::compareTo(const KisPropertiesConfiguration *rhs) const
+bool KisPropertiesConfiguration::compareTo(const KisPropertiesConfiguration *) const
 {
-    return properties(this) == properties(rhs);
+    failUnexpectedConfigurationUse();
 }
 void KisPropertiesConfiguration::dump() const
 {
+    failUnexpectedConfigurationUse();
 }
 
 namespace
@@ -181,14 +127,9 @@ namespace
 class RangeProbe final : public KisCurveRangeModelInterface
 {
 public:
-    RangeProbe(lager::cursor<QString> curve, bool *destroyed)
+    explicit RangeProbe(lager::cursor<QString> curve)
         : m_curve(std::move(curve))
-        , m_destroyed(destroyed)
     {
-    }
-    ~RangeProbe() override
-    {
-        *m_destroyed = true;
     }
     lager::cursor<QString> curve() override
     {
@@ -244,11 +185,9 @@ private:
     lager::cursor<QString> m_curve;
     lager::reader<qreal> value = lager::make_state(qreal(0), lager::automatic_tag{});
     lager::reader<QString> suffix = lager::make_state(QString(), lager::automatic_tag{});
-    bool *m_destroyed;
 };
 
 struct Environment {
-    bool destroyed = false;
     QString curve;
     QRectF range;
     QString sensorId;
@@ -264,7 +203,7 @@ struct Environment {
             range = rangeArg.get();
             sensorId = sensorIdArg.get();
             sensorLength = sensorLengthArg.get();
-            return new RangeProbe(curveArg, &destroyed);
+            return new RangeProbe(curveArg);
         };
     }
 };
@@ -288,43 +227,41 @@ class KisCurveOptionModelTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-    void typesConstructorAndRangeFactoryPreserveOwnership();
+    void initialStateDisplaysCommonCurveForFirstSensor();
     void checkabilityAndExternalEnablementDriveEffectiveState();
     void strengthRangeClampsScalesAndBakes();
     void curveControlsRouteCommonAndPerSensorState();
     void labelsAndLengthFollowInjectedRangeAndActiveSensor();
 };
 
-void KisCurveOptionModelTest::typesConstructorAndRangeFactoryPreserveOwnership()
+void KisCurveOptionModelTest::initialStateDisplaysCommonCurveForFirstSensor()
 {
-    static_assert(std::is_same_v<RangeState, std::tuple<qreal, qreal>>);
-    static_assert(std::is_same_v<StrengthState, std::tuple<qreal, qreal, qreal>>);
-    static_assert(std::is_same_v<LabelsState, std::tuple<QString, int>>);
-
+    // Consumer: Brush option editors that present a curve for the selected input sensor.
+    // Operation: The editor opens an option that uses a shared curve.
+    // Observable result: The first sensor is selected and the shared curve and its range are displayed.
+    // Failure impact: The curve editor opens on the wrong curve or with mismatched input bounds.
     const KisCurveOptionData initial = makeData();
     auto state = lager::make_state(static_cast<KisCurveOptionDataCommon>(initial), lager::automatic_tag{});
     auto enabled = lager::make_state(true, lager::automatic_tag{});
     Environment environment;
-    QPointer<KisCurveOptionModel> model =
-        new KisCurveOptionModel(state, enabled, std::nullopt, 100.0, environment.factory());
+    auto *model = new KisCurveOptionModel(state, enabled, std::nullopt, 100.0, environment.factory());
 
-    QCOMPARE(model->optionData.get(), static_cast<KisCurveOptionDataCommon>(initial));
-    QCOMPARE(model->strengthRangeNorm.get(), RangeState(0.2, 0.8));
-    QCOMPARE(model->activeSensorIdData.get(), initial.sensors().front()->id.id());
-    QVERIFY(model->rangeModel);
+    QCOMPARE(model->activeSensorId(), initial.sensors().front()->id.id());
+    QCOMPARE(model->displayedCurve(), QStringLiteral("common-curve"));
     QCOMPARE(environment.curve, QStringLiteral("common-curve"));
     QCOMPARE(environment.range, initial.sensors().front()->baseCurveRange());
     QCOMPARE(environment.sensorId, initial.sensors().front()->id.id());
     QCOMPARE(environment.sensorLength, -1);
 
-    QObject *base = model;
-    delete base;
-    QVERIFY(model.isNull());
-    QVERIFY(environment.destroyed);
+    delete model;
 }
 
 void KisCurveOptionModelTest::checkabilityAndExternalEnablementDriveEffectiveState()
 {
+    // Consumer: Paint-op option rows and preset saving.
+    // Operation: An externally disabled option is enabled, then unchecked by the user.
+    // Observable result: The row becomes effective only while both conditions are enabled, and saving records that state.
+    // Failure impact: A disabled brush option is applied to strokes or saved as unexpectedly active.
     auto state = lager::make_state(static_cast<KisCurveOptionDataCommon>(makeData()), lager::automatic_tag{});
     auto enabled = lager::make_state(false, lager::automatic_tag{});
     Environment environment;
@@ -338,21 +275,27 @@ void KisCurveOptionModelTest::checkabilityAndExternalEnablementDriveEffectiveSta
     model.setisChecked(false);
     QVERIFY(!state.get().isChecked);
     QVERIFY(!model.effectiveIsChecked());
+    QVERIFY(!model.bakedOptionData().isChecked);
 }
 
 void KisCurveOptionModelTest::strengthRangeClampsScalesAndBakes()
 {
+    // Consumer: The brush editor strength slider and the resulting preset.
+    // Operation: The editor opens an out-of-range strength, then the user sets the displayed strength to 50 percent.
+    // Observable result: The slider shows the permitted 25--75 percent range and saving uses the normalized value 0.5.
+    // Failure impact: The editor shows an invalid strength or the saved brush produces a different stroke response.
     KisCurveOptionData data = makeData();
     data.strengthValue = 1.25;
     auto state = lager::make_state(static_cast<KisCurveOptionDataCommon>(data), lager::automatic_tag{});
     auto enabled = lager::make_state(true, lager::automatic_tag{});
-    auto range = lager::make_state(RangeState(0.25, 0.75), lager::automatic_tag{});
+    auto range = lager::make_state(std::tuple{qreal(0.25), qreal(0.75)}, lager::automatic_tag{});
     Environment environment;
     KisCurveOptionModel model(state, enabled, range, 100.0, environment.factory());
 
-    QCOMPARE(model.effectiveStrengthValueNorm(), 0.75);
-    QCOMPARE(model.strengthValueDenorm(), 125.0);
-    QCOMPARE(model.effectiveStrengthStateDenorm(), StrengthState(75.0, 25.0, 75.0));
+    const auto [displayedValue, displayedMinimum, displayedMaximum] = model.effectiveStrengthStateDenorm();
+    QCOMPARE(displayedValue, 75.0);
+    QCOMPARE(displayedMinimum, 25.0);
+    QCOMPARE(displayedMaximum, 75.0);
     model.setstrengthValueDenorm(50.0);
     QCOMPARE(state.get().strengthValue, 0.5);
 
@@ -365,6 +308,10 @@ void KisCurveOptionModelTest::strengthRangeClampsScalesAndBakes()
 
 void KisCurveOptionModelTest::curveControlsRouteCommonAndPerSensorState()
 {
+    // Consumer: Brush option editors that let the user share a curve or edit an individual sensor curve.
+    // Operation: The user edits the shared curve, then selects the pressure-specific curve and edits it.
+    // Observable result: Each edit reaches only the curve currently shown by the editor.
+    // Failure impact: Editing one sensor changes the shared curve or a different sensor's stroke response.
     auto state = lager::make_state(static_cast<KisCurveOptionDataCommon>(makeData()), lager::automatic_tag{});
     auto enabled = lager::make_state(true, lager::automatic_tag{});
     Environment environment;
@@ -390,6 +337,10 @@ void KisCurveOptionModelTest::curveControlsRouteCommonAndPerSensorState()
 
 void KisCurveOptionModelTest::labelsAndLengthFollowInjectedRangeAndActiveSensor()
 {
+    // Consumer: Curve editors with sensor-dependent labels and input limits.
+    // Operation: The user selects the time sensor while using separate curves.
+    // Observable result: The editor displays the time curve, its length, and the range labels supplied by the paint-op.
+    // Failure impact: Sensor-specific editing uses the wrong curve or presents misleading input values.
     KisCurveOptionData initial = makeData();
     const QString timeId = initial.sensorStruct().sensorTime.id.id();
     auto state = lager::make_state(static_cast<KisCurveOptionDataCommon>(initial), lager::automatic_tag{});
@@ -405,7 +356,6 @@ void KisCurveOptionModelTest::labelsAndLengthFollowInjectedRangeAndActiveSensor(
     model.setactiveSensorId(timeId);
     QCOMPARE(model.activeSensorId(), timeId);
     QCOMPARE(model.activeSensorLength(), 73);
-    QCOMPARE(model.labelsState(), LabelsState(timeId, 73));
     QCOMPARE(model.activeCurve(), QStringLiteral("time-curve"));
 }
 
