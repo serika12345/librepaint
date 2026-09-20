@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 13:38 JST
+- 更新日時: 2026-09-20 13:40 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -88,7 +88,8 @@
 - 完了: `KisResourceMetaDataModelContractTest.cpp`は利用者向けのメタデータ照会契約を既に検証しているため保持した。資源選択、依存判定、メタデータフィルターは、対象テーブル・資源・キーに一致する直列化値だけを読み、欠落・空値を利用不可として扱う。別の資源またはテーブルの値で選択・警告を誤ることを防ぐSQLiteの実状態を検証する。内部SQL行、モデル索引、準備済み問い合わせのキャッシュ形状は固定しない。
 - 完了: `KoResourceBundleManifestContractTest.cpp`を、バンドル編集と読込が観測する資源・型・タグ・失敗結果へ縮小した。資源の追加・削除後にバンドルローダーが残存する型別ファイルとタグを受け取り、壊れたまたは利用不能なマニフェストは失敗して古い資源を残さない。`KoResourceBundleManifestCompatibilityTest.cpp`は、`KoResourceBundle`が`META-INF/manifest.xml`へ保存し、バンドル読込が利用するXMLの名前空間、根エントリー、型、パス、MD5、タグを保存形式互換性として検証する。資源参照の既定値・構築子、マップ順序、仮想破棄、デバイスを開く回数とモードは固定しない。
 - 完了: `KisResourceTypesCompatibilityTest.cpp`を、保存済み型キーだけの互換性試験へ縮小した。資源バンドル、タグ、`resourcecache.sqlite`の`resource_types.name`は同じ型キーで資源を照会するため、既存キーを保持する。`KisResourceTypesContractTest.cpp`は、資源型選択、バンドル概要、欠落資源警告が型キーを利用者向け表示名へ変換する結果を検証する。キー列挙の順序、内部表示名map、翻訳値型の所有形状は固定しない。
-- 次の作業: `KisResourceThumbnailPainterContractTest.cpp`について、資源一覧の実サムネイル描画結果と、親所有・内部キャッシュ挿入・描画補助型だけを固定する検証を整理する。
+- 完了: `KisResourceThumbnailPainterContractTest.cpp`を、資源管理・取込画面が観測するサムネイル描画結果へ縮小した。要求サイズのプレビューは資源画像の色を保ち、選択した項目は選択色の枠内に画像を描画する。項目デリゲートの試験も同じ描画結果を検証する。親QObjectによる破棄通知は画面利用者の契約ではないため削除した。キャッシュへの挿入は描画入力の準備であり、呼出し結果を固定しない。
+- 次の作業: `KisIconToolTipContractTest.cpp`について、資源ツールチップが観測する画像サイズ・透明表示と、親所有・内部文書寿命を固定する検証を整理する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と

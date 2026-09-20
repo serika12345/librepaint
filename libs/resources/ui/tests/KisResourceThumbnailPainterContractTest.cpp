@@ -11,7 +11,6 @@
 
 #include <QAbstractListModel>
 #include <QPainter>
-#include <QPointer>
 #include <QTest>
 
 #include <utility>
@@ -94,25 +93,16 @@ class KisResourceThumbnailPainterContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void followsParentLifetime();
     void createsReadyThumbnailAtRequestedSize();
     void paintsSelectionMarginAroundThumbnail();
 };
 
-void KisResourceThumbnailPainterContractTest::followsParentLifetime()
-{
-    QPointer<KisResourceThumbnailPainter> painter;
-    {
-        QObject parent;
-        painter = new KisResourceThumbnailPainter(&parent);
-        QCOMPARE(painter->parent(), &parent);
-    }
-
-    QVERIFY(painter.isNull());
-}
-
 void KisResourceThumbnailPainterContractTest::createsReadyThumbnailAtRequestedSize()
 {
+    // Consumer: resource manager and importer previews.
+    // Operation: Request a ready image for a resource thumbnail at the preview size.
+    // Observable result: The preview contains the resource image at the requested dimensions and preserves its visible color.
+    // Failure impact: A user cannot recognize a resource before importing or managing it.
     QImage thumbnail(2, 2, QImage::Format_ARGB32);
     thumbnail.fill(Qt::red);
     seedThumbnail(QStringLiteral("ready.png"), thumbnail);
@@ -128,6 +118,10 @@ void KisResourceThumbnailPainterContractTest::createsReadyThumbnailAtRequestedSi
 
 void KisResourceThumbnailPainterContractTest::paintsSelectionMarginAroundThumbnail()
 {
+    // Consumer: resource manager and importer previews.
+    // Operation: Paint a selected resource thumbnail with a margin.
+    // Observable result: The selection color frames the thumbnail while the resource image remains visible inside it.
+    // Failure impact: A user cannot tell which resource is selected or cannot inspect its preview.
     QImage thumbnail(2, 2, QImage::Format_ARGB32);
     thumbnail.fill(Qt::red);
     seedThumbnail(QStringLiteral("paint.png"), thumbnail);
