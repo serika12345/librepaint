@@ -992,6 +992,17 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] 3つのCMake対象が使用する製品ライブラリーとQt・KDE Frameworks対象を直接列挙し、公開ヘッダーに必要な依存と実装専用依存を区別する。
 - [x] 既存の対象CTest、影響範囲のCTest、`verify-quick`、完全なnative検査を成功させ、対象外に残る推移的依存の調査単位をPROGRESSへ記録する。
 
+### R2-G19g PaintOp実行依存の直接化
+
+目的は、設定UIから分離済みのPaintOp実行対象が、集約ライブラリーの広い依存閉包から型、記号、取込み経路を偶然得る状態を解消することである。
+
+範囲は`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopruntime`と、その`kritapaintopruntime_LIB_SRCS`に列挙した実装に固定する。既存のテストソース、公開API、描画結果、保存形式は維持する。
+
+- [x] 変更前の対象単位構築計画と直接CMake依存を記録し、全実装を`misc-include-cleaner`で監査する。
+- [x] 標準、Qt、製品型とマクロの所有ヘッダーを直接取り込み、未使用または重複した取込みを除去する。
+- [x] `kritapaintopruntime`が利用する製品ライブラリー、Qt、KDE Frameworks対象を直接列挙し、公開利用要件と実装専用依存を区別する。
+- [x] 対象構築、PaintOpの利用者向けCTest、`verify-quick`、完全なnative検査を実行し、後続の有限な依存監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない

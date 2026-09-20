@@ -5,10 +5,14 @@
  */
 #include "KisDynamicSensorDistance.h"
 
+#include <cmath>
+
+#include <QtGlobal>
+
 #include <KisDynamicSensorIds.h>
+#include <KisSensorData.h>
 
 #include <kis_paint_information.h>
-#include <KisCurveOptionData.h>
 
 
 KisDynamicSensorDistance::KisDynamicSensorDistance(const KisSensorWithLengthData &data, std::optional<KisCubicCurve> curveOverride)
@@ -24,7 +28,7 @@ qreal KisDynamicSensorDistance::value(const KisPaintInformation &pi) const
 
     const qreal distance =
         m_periodic ?
-        fmod(pi.totalStrokeLength(), m_length) :
+        std::fmod(pi.totalStrokeLength(), m_length) :
         qMin(pi.totalStrokeLength(), (qreal)m_length);
 
     return distance / m_length;

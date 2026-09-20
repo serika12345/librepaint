@@ -14,8 +14,6 @@
 #include "KisSharpnessOption.h"
 #include "kis_texture_option.h"
 
-#include <kundo2command.h>
-
 struct KisDabCache::Private {
 
     Private(KisBrushSP brush)

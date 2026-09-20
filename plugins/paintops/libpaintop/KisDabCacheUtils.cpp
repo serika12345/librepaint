@@ -6,6 +6,7 @@
 
 #include "KisDabCacheUtils.h"
 
+#include "kis_assert.h"
 #include "kis_brush.h"
 #include "kis_paint_device.h"
 #include "kis_fixed_paint_device.h"
@@ -13,8 +14,6 @@
 
 #include <KisSharpnessOption.h>
 #include <kis_texture_option.h>
-
-#include <kundo2command.h>
 
 namespace KisDabCacheUtils
 {
@@ -105,4 +104,3 @@ void postProcessDab(KisFixedPaintDeviceSP dab,
 }
 
 }
-

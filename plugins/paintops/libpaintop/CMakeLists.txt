@@ -920,10 +920,22 @@ target_sources(kritapaintopruntime INTERFACE
     $<TARGET_OBJECTS:kritapaintopsensordataobjects>
 )
 target_link_libraries(kritapaintopruntime
-    kritalibbrush
-    kritapainting
-    kritapaintopsensordataobjects
-    kritapaintoptextureoptionioobjects
+    PUBLIC
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        kritaglobal
+        kritaimage
+        kritalibbrush
+        kritapainting
+        kritapaintingundo
+        kritapaintopsensordataobjects
+        kritapaintoptextureoptionioobjects
+        kritapigment
+        kritaresources
 )
 
 kis_add_library(kritalibpaintop SHARED

@@ -7,6 +7,7 @@
 #define KISOPACITYOPTION_H
 
 #include <KisStandardOptions.h>
+#include <kis_types.h>
 
 class KisPainter;
 

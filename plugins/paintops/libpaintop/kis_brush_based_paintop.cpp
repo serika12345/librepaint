@@ -14,10 +14,8 @@
 #include <kis_lod_transform.h>
 #include "kis_paintop_utils.h"
 #include "kis_paintop_plugin_utils.h"
-#include <KisResourceTypes.h>
 #include <QGlobalStatic>
 #include <kis_brush_registry.h>
-#include <KisUsageLogger.h>
 #include <KoResourceLoadResult.h>
 
 #include <QPainter>
