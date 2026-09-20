@@ -9,6 +9,8 @@
 #include <KisCurveOption.h>
 
 class KoAbstractGradient;
+class KoColor;
+class KisPropertiesConfiguration;
 typedef QSharedPointer<KoAbstractGradient> KoAbstractGradientSP;
 
 struct KisGradientOptionData;

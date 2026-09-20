@@ -25,6 +25,7 @@
 #include <kis_image_animation_interface.h>
 #include <kis_keyframe_channel.h>
 #include <kis_meta_data_backend_registry.h>
+#include <kis_paint_device.h>
 #include <kis_paint_layer.h>
 #include <kis_painter.h>
 #include <kis_properties_configuration.h>

@@ -34,6 +34,7 @@
 #include "kis_selection_tool_helper.h"
 #include <brushengine/kis_paintop_registry.h>
 #include <kis_command_utils.h>
+#include <kis_processing_applicator.h>
 #include <kis_selection_filters.h>
 #include <KisCursorOverrideLock.h>
 

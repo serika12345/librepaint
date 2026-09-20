@@ -9,6 +9,7 @@
 
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas_resource_provider.h>
+#include <kis_image.h>
 #include <kis_signal_compressor.h>
 
 #include <KisResourceModel.h>

@@ -23,6 +23,7 @@
 
 #include <kis_debug.h>
 #include <klocalizedstring.h>
+#include <ksharedconfig.h>
 
 #include <KoPointerEvent.h>
 #include <KoID.h>

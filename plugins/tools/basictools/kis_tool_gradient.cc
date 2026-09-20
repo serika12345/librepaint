@@ -21,8 +21,10 @@
 
 #include <kis_transaction.h>
 #include <kis_debug.h>
+#include <kis_image.h>
 #include <klocalizedstring.h>
 #include <kcombobox.h>
+#include <ksharedconfig.h>
 
 
 #include <KoPointerEvent.h>

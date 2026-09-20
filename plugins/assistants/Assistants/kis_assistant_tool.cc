@@ -26,6 +26,7 @@
 #include <KoViewConverter.h>
 #include <KoPointerEvent.h>
 #include <KoColorDisplayRendererInterface.h>
+#include <ksharedconfig.h>
 
 #include <canvas/kis_canvas2.h>
 #include <canvas/kis_abstract_perspective_grid.h>

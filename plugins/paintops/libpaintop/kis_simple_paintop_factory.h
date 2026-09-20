@@ -19,6 +19,7 @@
 #include <brushengine/kis_paintop_factory.h>
 #include <brushengine/kis_paintop_settings.h>
 #include <kis_icon.h>
+#include <kis_image.h>
 #include <KoResourceLoadResult.h>
 
 class QWidget;

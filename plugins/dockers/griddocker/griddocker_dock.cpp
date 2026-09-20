@@ -22,6 +22,7 @@
 #include <kis_guides_manager.h>
 #include <kis_guides_config.h>
 #include <application/ui/orchestration/kis_action.h>
+#include <application/ui/orchestration/kis_action_manager.h>
 #include <document/KisDocument.h>
 
 #include "grid_config_widget.h"

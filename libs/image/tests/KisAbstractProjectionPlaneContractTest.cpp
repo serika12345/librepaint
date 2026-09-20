@@ -4,6 +4,7 @@
  */
 
 #include "kis_abstract_projection_plane.h"
+#include "kis_paint_device.h"
 
 #include <QTest>
 

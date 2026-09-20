@@ -12,6 +12,7 @@
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QMouseEvent>
+#include <ksharedconfig.h>
 
 #include <utility>
 

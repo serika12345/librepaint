@@ -5,6 +5,7 @@
  */
 
 #include <KisOptimizedBrushOutline.h>
+#include <QPainterPath>
 #include <kis_deform_paintop_settings.h>
 #include <kis_deform_paintop_settings_widget.h>
 

@@ -7,10 +7,13 @@
 
 #include "kis_tool_path.h"
 
+#include <QMouseEvent>
 #include <QPainterPath>
+#include <QTabletEvent>
 #include <KoPathShape.h>
 #include <KoCanvasBase.h>
 #include <kis_cursor.h>
+#include <kis_image.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>

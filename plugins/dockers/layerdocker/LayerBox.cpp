@@ -70,6 +70,7 @@
 #include "kis_selection_mask.h"
 #include "application/kis_config.h"
 #include "application/ui/workspace/KisView.h"
+#include "krita_container_utils.h"
 #include "krita_utils.h"
 #include "kis_color_label_selector_widget.h"
 #include "kis_layer_filter_widget.h"

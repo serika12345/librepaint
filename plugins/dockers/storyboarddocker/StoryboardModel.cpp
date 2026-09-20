@@ -10,6 +10,7 @@
 #include <kis_image.h>
 #include <kis_image_animation_interface.h>
 #include <kis_keyframe_channel.h>
+#include <kis_paint_device.h>
 
 #include <QIODevice>
 #include <QMimeData>

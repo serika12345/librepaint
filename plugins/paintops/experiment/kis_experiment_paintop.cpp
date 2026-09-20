@@ -12,6 +12,7 @@
 #include <QPainterPath>
 
 #include <KoCompositeOpRegistry.h>
+#include <KisRegion.h>
 
 #include <kis_debug.h>
 
@@ -342,4 +343,3 @@ QPainterPath KisExperimentPaintOp::applyDisplace(const QPainterPath& path, int s
 
     return newPath;
 }
-

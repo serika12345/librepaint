@@ -11,6 +11,7 @@
 
 #include <QPoint>
 #include <QList>
+#include <QKeySequence>
 #include <QVector>
 
 #include "kis_tool_paint.h"

@@ -13,6 +13,7 @@
 
 #include <QDomElement>
 #include <QDomDocument>
+#include <QPainterPath>
 
 #include <KoPointerEvent.h>
 #include <KoCompositeOpRegistry.h>
@@ -240,5 +241,4 @@ QList<KisUniformPaintOpPropertySP> KisDuplicateOpSettings::uniformProperties(Kis
 
     return KisPaintOpSettings::uniformProperties(settings, updateProxy) + props;
 }
-
 

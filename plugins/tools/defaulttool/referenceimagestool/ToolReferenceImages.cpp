@@ -13,6 +13,7 @@
 #include <QMessageBox>
 #include <QAction>
 #include <QApplication>
+#include <QStandardPaths>
 #include <KoSelection.h>
 #include <KoShapeRegistry.h>
 #include <KoShapeManager.h>

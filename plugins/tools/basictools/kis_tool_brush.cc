@@ -17,6 +17,7 @@
 #include <QAction>
 #include <QLabel>
 #include <kactioncollection.h>
+#include <ksharedconfig.h>
 
 #include <KoCanvasBase.h>
 #include <KoCanvasController.h>

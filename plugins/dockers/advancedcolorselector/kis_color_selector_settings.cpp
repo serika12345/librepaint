@@ -12,6 +12,7 @@
 #include <QComboBox>
 
 #include <kconfiggroup.h>
+#include <ksharedconfig.h>
 #include <kstandardguiitem.h>
 
 
@@ -571,6 +572,5 @@ KisColorSelectorSettingsDialog::KisColorSelectorSettingsDialog(QWidget *parent) 
     connect(buttonBox->button(QDialogButtonBox::RestoreDefaults),
             SIGNAL(clicked()),  m_widget, SLOT(loadDefaultPreferences()));
 }
-
 
 

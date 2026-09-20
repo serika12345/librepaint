@@ -21,6 +21,7 @@
 
 #include <kis_image.h>
 #include <kis_debug.h>
+#include <kis_node.h>
 
 #include <KoColorTransformation.h>
 #include <KoColor.h>

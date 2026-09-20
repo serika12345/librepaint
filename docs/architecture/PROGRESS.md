@@ -2,10 +2,10 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 16:24 JST
+- 更新日時: 2026-09-20 18:44 JST
 - 状態: `complete`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理（完了）
-- 関連TODO: R2-G19a・R2-G19b・R2-G19c完了、R2-G19d対象OS検証は`planned`
+- 関連TODO: R2-G19a・R2-G19b・R2-G19c完了、R2-G19d-a・R2-G19d-b・R2-G19eは`planned`
 - ブランチ: `develop`
 - 開始コミット: `bd08b8556f`。宣言形状テストの再発防止検査を導入済み。
 - 目的: 残存するSchema試験を利用場面から判定し、根拠のない列挙値・内部型・役割番号の固定を除去する。意味論があるAPIは利用者が渡す値と観測できる結果で保護する。
@@ -45,6 +45,7 @@
 - 完了: `KisAnimTimelineFramesModelSchemaContractTest.cpp`を削除した。試験が固定していたタイムライン選択値型の等値・ハッシュと、メニュー項目の名前・ダミー保持は、docker内部の一時データであり、保存形式、設定、プラグイン、スクリプト、外部識別子の根拠はない。タイムラインの固定状態はKRAの`intimeline`属性として既存の`kis_kra_saver_test`が保存往復を検証する。`timeline_model_test`は、既存レイヤーを選ぶとタイムラインに追加され、アクティブ化され、候補メニューから除かれる結果を検証する。この試験で、非同期のダミー更新前にアクティブ行を設定して別レイヤーを選択したままにする不具合を発見し、行への反映後に選択するよう修正した。共有の空ノード試験補助は、使用する`KisPaintDevice`の完全型を直接取り込む。
 - 完了: `KXMLGUIClientSchemaContractTest.cpp`を削除した。試験が固定していた状態反転列挙子の整数値と状態変更リストの初期化・コピーは、XMLGUI内部で一時的に使う実装詳細である。XMLGUIの状態要素、状態変更の製品側呼出し、状態反転値を使う保存形式、設定、プラグイン、スクリプト、外部識別子は確認されなかった。XMLGUIの実際のアクションIDはメニュー定義、入力、拡張機能で別途利用されるが、この試験の対象ではないため、根拠のない互換性試験や代替試験を追加しない。
 - 完了: `KisCurveOptionSchemaContractTest.cpp`を削除した。`ValueComponents`の初期値と曲線ウィジェットのフラグ値は、曲線計算・画面構成だけが使う内部表現であり、ブラシプリセット、設定、XML、プラグイン、スクリプト、外部識別子に使われていない。既存の`KisCurveOptionDataTest`、`KisKritaSensorPackCompatibilityTest`、`KisCurveOptionModelTest`が、プリセットの曲線・センサー保存と復元、画面の有効状態・強度範囲・曲線選択を検証する。対象の構築では、ブラシ実行・設定画面ライブラリーが完全型と`KisMpl`を推移的インクルードへ依存し、実行時オブジェクトが共有ライブラリーへ取り込まれない不具合を検出した。使用する型・ユーティリティを直接取り込み、実行時の下位オブジェクトを最終ライブラリーにも組み込むよう修正した。
+- 完了: macOS全体構築で露出した直接依存漏れを、値型・テンプレート・MOCが必要とするQt型と所有型を各利用元が直接取り込む形へ修正した。`KisDabRenderingQueue.cpp`は使用する`kismpl::mem_less`の所有ヘッダー`KisMpl.h`を直接取り込む。実ブラシ操作を使う`FreehandStrokeContractTest`は`kritapixelbrush`と`kritalibpaintop`の構築閉包へ接続し、リンク時に必要なpaint-op実装を確実に取り込む。XML色の保存読込試験は、Qt 6.11で妥当な`#RRGGBBAA`色を無効とする旧期待値を除き、保存した色が同じ色として復元される利用結果を検証する。
 - 完了: `KisPaintOpFactorySchemaContractTest.cpp`を削除した。`AUTO`、`ALWAYS`、`NEVER`の列挙値は、ファクトリー内部の未使用状態に初期化されるだけで、設定、プリセット、XML、プラグイン、スクリプト、外部識別子には使われていない。paint-op IDはプリセットの`paintop`プロパティとして保存され、プラグイン登録、ブラシ選択、描画、ライブプレビューが解決するが、専用試験はその利用結果を検証していなかった。根拠のない互換性試験や重複した代替試験を追加せず、専用CTestと広いinclude・compile definitionを削除した。
 - 完了: `KisPlaybackEngineSchemaContractTest.cpp`を`KisPlaybackEngineContractTest.cpp`へ置き換えた。再生統計の初期値とコピーは、タイムラインdockerが表示する値型の実装詳細であり、設定、保存形式、XML、プラグイン、スクリプト、外部識別子の互換性根拠はない。アニメーションdockerの再生制御モデルは、フレームを落とす設定の値と変更signalへ接続する。実際のQt再生エンジンに対し、切替後の読取値とsignal引数が一致し、同値の再設定では通知しないことを検証する。
 - 完了: `KisReferenceImagesDecorationSchemaContractTest.cpp`を削除した。専用試験は参照画像を操作せず、ガイド装飾の内部登録名`guides-decoration`だけを固定していた。この名前はガイドマネージャー内の生成・検索で使われ、設定、保存形式、XML、プラグイン、スクリプト、外部識別子には使われていない。参照画像は作成操作後に参照画像レイヤーへ追加され、専用ツールへ切り替わり、失敗時には入力元を示す通知を表示する。この利用結果は既存の`KisNodeManagerReferenceImageContractTest`が検証する。
@@ -125,13 +126,13 @@
 - 完了: `KisPrefixedOptionDataWrapperContractTest.cpp`を削除した。偽の設定マップと架空のオプション値型が接頭辞操作を再実装していたためである。主ブラシとマスキングブラシの実設定を通す`KisMirrorOptionDataCompatibilityTest.cpp`へ統合し、`MaskingBrush/Preset/`配下の設定が埋込みプリセットへ復元する結果を保護する。
 - 完了: ブラシプリセット設定群のMock、Fake、Stub、試験専用派生、設定ストア、モデル、DB、直列化処理を監査した。曲線・標準値・旧センサー・ミラー・シャープネス・散布・間隔の保存試験はすべて実ライブラリーと実設定を使い、カテゴリ1の製品ロジック再実装、カテゴリ2の内部呼出し回数・順序固定、カテゴリ3の外部副作用隔離は残らない。`KisCurveOptionModelTest.cpp`の`RangeProbe`だけがカテゴリ4の入力記録補助として残り、限定理由を試験コメントへ記載した。試験専用の設定ストアと製品メソッド再定義は削除した。
 - 完了: `TestTagFilterResourceProxyModel`へ、実DB上でタグを選択し、表示中の資源を無効化してから`ShowAllResources`へ切り替える契約を追加した。画面と同じ`KisTagFilterResourceProxyModel`がタグ選択時に通す`KisTagResourceModel`経路で、同じ資源IDが再表示されることを検証する。
-- 後続一覧（高リスク優先監査）: リポジトリ全体で`Mock`、`Fake`、`Stub`を名称に持つ試験は0件である。`KisPropertiesConfiguration`の製品メソッドを再定義して設定ストアを再実装する`KisAirbrushOptionDataContractTest.cpp`、`KisColorOptionDataContractTest.cpp`、`KisColorSourceOptionDataContractTest.cpp`、`KisCompositeOpOptionDataContractTest.cpp`、`KisFilterOptionDataContractTest.cpp`、`KisPaintingModeOptionDataContractTest.cpp`、`KisPrecisionOptionContractTest.cpp`、`KisTextureOptionDataIOContractTest.cpp`は、製品保存経路を通らないカテゴリ1の候補として最優先に監査する。
-- 後続一覧（所有実装変更時の監査）: `KisPredefinedBrushModel`と、共通曲線・センサー保存経路を共有しないAirbrush、Color、Color Source、Composite Op、Painting Mode、Filterの各オプションデータは、所有する設定UIまたはpaint-opの変更に合わせて利用者向け保存・描画結果へ整理する。
+- 後続一覧（高リスク優先監査）: R2-G19eは、`KisPropertiesConfiguration`の製品メソッドを再定義して設定ストアを再実装する`KisAirbrushOptionDataContractTest.cpp`、`KisColorOptionDataContractTest.cpp`、`KisColorSourceOptionDataContractTest.cpp`、`KisCompositeOpOptionDataContractTest.cpp`、`KisFilterOptionDataContractTest.cpp`、`KisPaintingModeOptionDataContractTest.cpp`、`KisPrecisionOptionContractTest.cpp`、`KisTextureOptionDataIOContractTest.cpp`の8件に限定する。実設定の保存・復元または公開操作の結果へ置き換え、完了後にリポジトリ全体の逐次監査へ拡大しない。
+- 後続一覧（所有実装変更時の監査）: `KisPredefinedBrushModel`は、所有する設定UIまたはpaint-opの変更に合わせて利用者向け保存・描画結果へ整理する。
 - 後続一覧（現状の振る舞い維持）: `KisCurveOptionDataTest.cpp`、`KisCurveOptionModelTest.cpp`、`KisStandardOptionDataCompatibilityTest.cpp`、`KisKritaSensorPackCompatibilityTest.cpp`、`KisMirrorOptionDataCompatibilityTest.cpp`、`KisBrushPresetDynamicsCompatibilityTest.cpp`、`TestTagFilterResourceProxyModel.cpp`は、現在の利用場面を実ライブラリーと実設定または実DBで保護するため維持する。
 - 検証: macOSで`cmake --build --preset tdd-macos --target KisBrushPresetDynamicsCompatibilityTest KisCurveOptionModelTest`、`cmake --build --preset tdd-macos --target TestTagFilterResourceProxyModel`、ブラシ設定6件と資源管理1件のCTest、削除済み4件のCTest登録0件、`python3 scripts/architecture/check_test_contracts.py`、`git diff --check`、`./scripts/verify-quick`が成功した。ブラシ設定の実ライブラリー構築閉包は4,236入力である。
-- 検証: macOSで`./scripts/verify`を実行した。高速検査は成功したが、全体構築の`plugins/paintops/defaultpaintops/brush/KisDabRenderingQueue.cpp:204`が`kismpl`未宣言で停止した。対象変更にこのファイルは含まれず、同一対象の`cmake --build --preset tdd-macos --target kritapixelbrush`でも再現したため、R2-G19cへ取り込まない既知の基準不良として記録する。`KisRenderedDab`の暗黙コピー代入に関する警告も併せて出力される。
-- 未実施OS: Qt 5、Linux、Windows、Androidでのブラシプリセット設定保存・復元、資源管理プロキシ切替、契約試験再発防止はR2-G19dへ引き渡した。
-- 次の作業: R2-G19dで、Qt 5、Linux、Windows、Androidの実行環境ごとにR2-G19cの対象CTestと再発防止検査を実行する。
+- 検証: macOSで`cmake --build --preset tdd-macos --target kritapixelbrush FreehandStrokeContractTest -- -j1`、`libs-ui-FreehandStrokeContractTest`、`plugins-paintops-defaultpaintops-brush-KisDabRenderingQueueTest`、`plugins-tools-basictools-MoveSelectionStrokeTest`のCTest 3件、`./scripts/verify-quick`、`./scripts/verify`が成功した。完全検査は879/879件成功した。
+- 未実施OS: R2-G19d-aはQt 5、Linux、Windows、Androidでブラシプリセット設定保存・復元と資源管理プロキシ切替を実行する。R2-G19d-bはAndroid crash handler、Windows/MSVC互換操作、Linux DBus・colord構成を実行環境で検証する。ソース検査は同一リビジョンの構築ホストで実行し、各OSまたは端末は実行時契約を検証する。
+- 次の作業: R2-G19d-aで各OSとQt 5の構築閉包・CTest実行可能性を確定し、移植済みのブラシ設定6試験と資源管理1試験を実行する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と

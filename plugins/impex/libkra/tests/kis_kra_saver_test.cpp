@@ -21,7 +21,9 @@
 #include <KisImageResolutionProxy.h>
 #include "kis_group_layer.h"
 #include "kis_paint_layer.h"
+#include <generator/kis_generator_layer.h>
 #include "kis_adjustment_layer.h"
+#include <lazybrush/kis_colorize_mask.h>
 #include "kis_shape_layer.h"
 #include "kis_transparency_mask.h"
 #include "kis_selection.h"

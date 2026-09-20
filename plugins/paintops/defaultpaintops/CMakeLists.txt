@@ -43,7 +43,7 @@ if (TARGET FreehandStrokeContractTest)
         ${CMAKE_CURRENT_SOURCE_DIR}/brush
         ${CMAKE_SOURCE_DIR}/plugins/paintops/libpaintop
     )
-    target_link_libraries(FreehandStrokeContractTest kritapixelbrush)
+    target_link_libraries(FreehandStrokeContractTest kritapixelbrush kritalibpaintop)
 endif()
 
 install(TARGETS kritadefaultpaintops  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

@@ -7,6 +7,7 @@
 
 #include <KisPaintingModeOptionData.h>
 #include <KisColorOptionData.h>
+#include <QPainterPath>
 
 #include "kis_spray_paintop_settings.h"
 #include <KisOptimizedBrushOutline.h>

@@ -7,6 +7,7 @@
 #include "kis_experiment_paintop_settings.h"
 #include "kis_current_outline_fetcher.h"
 #include "kis_algebra_2d.h"
+#include <QPainterPath>
 #include <KisOptimizedBrushOutline.h>
 
 struct KisExperimentPaintOpSettings::Private

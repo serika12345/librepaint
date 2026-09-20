@@ -8,6 +8,7 @@
 #include <klocalizedstring.h>
 
 #include "kis_canvas2.h"
+#include <kis_image.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include "arrange_docker_widget.h"
 

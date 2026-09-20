@@ -39,6 +39,7 @@
 #include <kis_image_animation_interface.h>
 #include <kis_iterator_ng.h>
 #include <kis_meta_data_backend_registry.h>
+#include <kis_paint_device.h>
 #include <kis_paint_layer.h>
 #include <kis_raster_keyframe_channel.h>
 

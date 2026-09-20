@@ -10,6 +10,8 @@
 #include <stdlib.h>
 
 #include <QPoint>
+#include <QPainter>
+#include <QPen>
 #include <QTime>
 
 #include <klocalizedstring.h>

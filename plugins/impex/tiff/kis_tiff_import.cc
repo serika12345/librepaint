@@ -39,6 +39,7 @@
 
 #ifdef TIFF_HAS_PSD_TAGS
 #include <psd_layer_record.h>
+#include <psd_layer_section.h>
 #include <psd_resource_block.h>
 
 #include "kis_tiff_psd_layer_record.h"

@@ -11,6 +11,7 @@
 #include <KisGlobalResourcesInterface.h>
 #include <kis_signals_blocker.h>
 #include <kis_generator_registry.h>
+#include <kis_image.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <KisSpinBoxI18nHelper.h>

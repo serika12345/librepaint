@@ -11,6 +11,7 @@
 
 #include <kis_assert.h>
 #include <kis_paint_layer.h>
+#include <kis_properties_configuration.h>
 
 static constexpr quint32 nextPow2(quint32 n)
 {

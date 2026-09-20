@@ -11,6 +11,7 @@
 #include <QHeaderView>
 #include <QPainter>
 #include <QInputDialog>
+#include <QKeyEvent>
 #include <QThread>
 #include <QAction>
 #include <QStandardPaths>
@@ -33,6 +34,7 @@
 #include <document/KisDocument.h>
 #include <kis_group_layer.h>
 #include <kis_painter.h>
+#include <kis_paint_device.h>
 #include <kis_paint_layer.h>
 #include <application/ui/orchestration/kis_action.h>
 #include <application/ui/orchestration/kis_action_manager.h>

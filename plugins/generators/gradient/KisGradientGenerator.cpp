@@ -12,6 +12,7 @@
 #include <kis_processing_information.h>
 #include <filter/kis_filter_configuration.h>
 #include <kis_gradient_painter.h>
+#include <kis_paint_device.h>
 #include "KoCompositeOpRegistry.h"
 
 #include "KisGradientGenerator.h"

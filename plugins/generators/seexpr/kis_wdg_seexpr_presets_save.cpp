@@ -9,6 +9,7 @@
 #include <KStandardGuiItem>
 #include <QDate>
 #include <QMessageBox>
+#include <QStandardPaths>
 #include <QTime>
 
 #include <KisImportExportManager.h>

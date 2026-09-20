@@ -16,6 +16,7 @@
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_transform_utils.h"
 #include <kstandardguiitem.h>
+#include <ksharedconfig.h>
 #include <KisSpinBoxI18nHelper.h>
 
 

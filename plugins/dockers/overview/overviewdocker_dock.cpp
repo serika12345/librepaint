@@ -9,6 +9,8 @@
 #include "overviewwidget.h"
 #include "overviewdocker_page.h"
 
+#include <kis_image.h>
+
 OverviewDockerDock::OverviewDockerDock()
     : QDockWidget(i18n("Overview"))
 {

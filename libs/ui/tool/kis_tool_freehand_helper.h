@@ -13,6 +13,7 @@
 #include <QVector>
 
 #include "kis_types.h"
+#include "kis_default_bounds_base.h"
 #include "kritaui_export.h"
 #include <brushengine/kis_paintop_settings.h>
 #include "kundo2magicstring.h"
@@ -20,8 +21,6 @@
 
 class KoPointerEvent;
 class KoCanvasResourceProvider;
-class KisDefaultBoundsBase;
-typedef KisSharedPtr<KisDefaultBoundsBase> KisDefaultBoundsBaseSP;
 class KisDistanceInformation;
 class KisOptimizedBrushOutline;
 class KisPaintInformation;

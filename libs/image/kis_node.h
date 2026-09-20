@@ -416,9 +416,4 @@ private:
 
 };
 
-#ifndef Q_DECLARE_KISNODE
-#define  Q_DECLARE_KISNODE
-Q_DECLARE_METATYPE(KisNodeSP)
-Q_DECLARE_METATYPE(KisNodeWSP)
-#endif
 #endif

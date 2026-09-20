@@ -21,8 +21,10 @@
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_iterator_ng.h>
+#include <kis_paint_device.h>
 #include <kis_painter.h>
 #include <kis_tiff_psd_resource_record.h>
+#include <psd_layer_section.h>
 #include <psd_resource_block.h>
 
 #ifdef HAVE_OPENEXR

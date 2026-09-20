@@ -11,6 +11,7 @@
 #include <KisImportExportManager.h>
 #include <KoFileDialog.h>
 #include <KoResource.h>
+#include <QStandardPaths>
 #include "KisResourceStorage.h"
 
 

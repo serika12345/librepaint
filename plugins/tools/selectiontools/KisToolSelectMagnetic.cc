@@ -14,6 +14,7 @@
 
 #include <kis_debug.h>
 #include <klocalizedstring.h>
+#include <ksharedconfig.h>
 
 #include <KoPointerEvent.h>
 #include <KoShapeController.h>
@@ -35,6 +36,7 @@
 #include "kis_selection_tool_helper.h"
 #include <brushengine/kis_paintop_registry.h>
 #include <kis_command_utils.h>
+#include <kis_processing_applicator.h>
 #include <kis_selection_filters.h>
 #include <KisCursorOverrideLock.h>
 

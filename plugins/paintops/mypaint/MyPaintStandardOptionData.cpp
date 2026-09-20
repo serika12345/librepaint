@@ -5,6 +5,7 @@
  */
 
 #include <MyPaintStandardOptionData.h>
+#include <kis_properties_configuration.h>
 
 namespace deprecated_remove_after_krita6 {
 

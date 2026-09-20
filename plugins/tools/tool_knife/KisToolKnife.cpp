@@ -11,9 +11,11 @@
 
 #include <klocalizedstring.h>
 #include <KoColor.h>
+#include <KoPointerEvent.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include "kis_canvas2.h"
 #include "kis_cursor.h"
+#include "kis_image.h"
 #include "kis_painter.h"
 #include "kis_shape_layer.h"
 
@@ -274,4 +276,3 @@ QWidget * KisToolKnife::createOptionWidget()
 
     return m_d->optionsWidget;
 }
-

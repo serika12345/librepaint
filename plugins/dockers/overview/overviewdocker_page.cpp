@@ -14,6 +14,8 @@
 #include <QToolButton>
 #include <QStatusBar>
 #include <QApplication>
+#include <QMouseEvent>
+#include <QTouchEvent>
 
 #include <KisAngleSelector.h>
 #include <klocalizedstring.h>

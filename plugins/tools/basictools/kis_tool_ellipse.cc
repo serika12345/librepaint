@@ -20,6 +20,7 @@
 #include <canvas/kis_canvas_resource_provider.h>
 #include <KoBasicShapeFactory.h>
 #include <kis_figure_painting_stroke.h>
+#include <kis_image.h>
 #include <brushengine/kis_paintop_preset.h>
 
 KisToolEllipse::KisToolEllipse(KoCanvasBase * canvas)

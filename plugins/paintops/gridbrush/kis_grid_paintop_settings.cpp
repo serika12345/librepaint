@@ -12,6 +12,7 @@
 #include "KisGridOpOptionData.h"
 
 #include <KisColorOptionData.h>
+#include <QPainterPath>
 #include <KisOptimizedBrushOutline.h>
 
 struct KisGridPaintOpSettings::Private

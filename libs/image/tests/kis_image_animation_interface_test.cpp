@@ -21,6 +21,7 @@
 #include "kis_raster_keyframe_channel.h"
 #include "kis_time_span.h"
 #include "KisLockFrameGenerationLock.h"
+#include <KisRegion.h>
 
 
 void checkFrame(KisImageAnimationInterface *i, KisImageSP image, int frameId, bool externalFrameActive, const QRect &rc)

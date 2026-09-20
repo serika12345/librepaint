@@ -11,6 +11,7 @@
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_registry.h>
 #include <filter/kis_color_transformation_configuration.h>
+#include <kis_paint_device.h>
 #include <qmath.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaASCCDLFactory,

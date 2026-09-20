@@ -6,6 +6,7 @@
 
 #include "kis_sketch_paintop_settings.h"
 
+#include <QPainterPath>
 #include <KisPaintingModeOptionData.h>
 #include "kis_current_outline_fetcher.h"
 #include <KisOptimizedBrushOutline.h>

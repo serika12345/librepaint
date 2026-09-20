@@ -8,6 +8,7 @@
 
 #include <QVector>
 
+#include <KoShape.h>
 #include <KoShapeFillWrapper.h>
 #include <kis_algebra_2d.h>
 

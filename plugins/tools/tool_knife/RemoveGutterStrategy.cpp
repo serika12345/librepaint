@@ -18,6 +18,7 @@
 #include <KoPathShape.h>
 #include <krita_utils.h>
 #include <kis_canvas2.h>
+#include <kis_image.h>
 #include <QPainterPath>
 #include <KoShapeController.h>
 #include <kundo2command.h>

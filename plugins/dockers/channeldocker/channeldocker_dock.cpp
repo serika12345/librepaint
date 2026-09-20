@@ -10,6 +10,7 @@
 
 #include <KoCanvasBase.h>
 #include <kis_canvas2.h>
+#include <kis_image.h>
 
 ChannelDockerDock::ChannelDockerDock()
 {

@@ -9,6 +9,7 @@
 #include <QVector>
 #include <QPoint>
 #include <QList>
+#include <QMetaType>
 
 #include "kritaimage_export.h"
 
@@ -357,5 +358,11 @@ enum class KisThumbnailBoundsMode {
 #include <kis_shared_ptr.h>
 #include <kis_restricted_shared_ptr.h>
 #include <kis_pinned_shared_ptr.h>
+
+#ifndef Q_DECLARE_KISNODE
+#define Q_DECLARE_KISNODE
+Q_DECLARE_METATYPE(KisNodeSP)
+Q_DECLARE_METATYPE(KisNodeWSP)
+#endif
 
 #endif // KISTYPES_H_

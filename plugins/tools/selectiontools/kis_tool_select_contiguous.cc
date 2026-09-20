@@ -20,6 +20,7 @@
 
 #include <KisOptionButtonStrip.h>
 #include <KisOptionCollectionWidget.h>
+#include <KoColorModelStandardIds.h>
 #include <KoGroupButton.h>
 #include <KisSpinBoxI18nHelper.h>
 #include <kis_color_button.h>

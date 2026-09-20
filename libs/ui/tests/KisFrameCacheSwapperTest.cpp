@@ -16,6 +16,7 @@
 #include "KoColorSpaceRegistry.h"
 #include "KoColorSpace.h"
 #include "KisLockFrameGenerationLock.h"
+#include <KisRegion.h>
 
 #include "opengl/kis_opengl_update_info.h"
 

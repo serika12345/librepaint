@@ -24,6 +24,7 @@
 
 #include "application/ui/workspace/KisViewManager.h"
 #include <kis_command_utils.h>
+#include <kis_processing_applicator.h>
 #include <kis_selection_filters.h>
 
 __KisToolSelectPolygonalLocal::__KisToolSelectPolygonalLocal(KoCanvasBase *canvas)

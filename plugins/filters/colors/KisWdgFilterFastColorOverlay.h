@@ -8,6 +8,7 @@
 #define KISWDGFILTERFASTCOLOROVERLAY_H
 
 #include <kis_config_widget.h>
+#include <KoID.h>
 
 class Ui_WdgFilterFastColorOverlay;
 

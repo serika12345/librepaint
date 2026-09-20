@@ -9,6 +9,7 @@
 #include <KisCppQuirks.h>
 #include "KisSensorData.h"
 #include "kis_assert.h"
+#include <kis_properties_configuration.h>
 
 #include <KisCurveOptionDataCommon.h>
 #include <libmypaint/mypaint-brush-settings-gen.h>

@@ -17,6 +17,7 @@
 #include <canvas/kis_canvas_resource_provider.h>
 
 #include <kis_cursor.h>
+#include <kis_image.h>
 
 KisToolPencil::KisToolPencil(KoCanvasBase * canvas)
     : DelegatedPencilTool(canvas, Qt::ArrowCursor,

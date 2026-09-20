@@ -17,6 +17,7 @@
 #include "kis_coordinates_converter.h"
 #include "kis_cursor.h"
 #include "kis_image.h"
+#include "kis_node.h"
 #include "kis_painter.h"
 #include "kis_paintop_preset.h"
 

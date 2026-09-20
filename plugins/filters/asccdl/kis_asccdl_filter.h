@@ -8,6 +8,7 @@
 #define KIS_ASCCDL_FILTER_H
 
 #include <filter/kis_filter.h>
+#include <KoColor.h>
 #include "filter/kis_color_transformation_filter.h"
 
 class KritaASCCDL : public QObject

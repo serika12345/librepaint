@@ -8,8 +8,7 @@
 #define KISASYNCSTORYBOARDTHUMBNAILRENDERER_H
 
 #include <animation/KisAsyncAnimationRendererBase.h>
-
-class KisPaintDevice;
+#include <kis_paint_device.h>
 
 /**
  * @class KisAsyncStoryboardThumbnailRenderer

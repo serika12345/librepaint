@@ -66,7 +66,7 @@ class KisDomUtilsContractTest : public QObject
 
 private Q_SLOTS:
     void numberConversionsUseStableTextAndGermanFallbacks();
-    void colorHelpersAndXmlColorLoadingExposeCurrentBehavior();
+    void colorHelpersAndXmlColorLoadingRoundTrip();
     void scalarAndGeometryValuesRoundTripByType();
     void fractionalRectanglesCurrentlyLoadThroughIntegerConversion();
     void arraysUseDefaultAndExplicitEnvironments();
@@ -99,7 +99,7 @@ void KisDomUtilsContractTest::numberConversionsUseStableTextAndGermanFallbacks()
     QVERIFY(!ok);
 }
 
-void KisDomUtilsContractTest::colorHelpersAndXmlColorLoadingExposeCurrentBehavior()
+void KisDomUtilsContractTest::colorHelpersAndXmlColorLoadingRoundTrip()
 {
     const QColor source(12, 34, 56, 78);
     QCOMPARE(KisDomUtils::qColorToQString(source), QStringLiteral("12,34,56,78"));
@@ -116,11 +116,7 @@ void KisDomUtilsContractTest::colorHelpersAndXmlColorLoadingExposeCurrentBehavio
 
     QColor loaded;
     QVERIFY(KisDomUtils::loadValue(element, &loaded));
-#if QT_VERSION < QT_VERSION_CHECK(6, 4, 0)
     QCOMPARE(loaded, source);
-#else
-    QVERIFY(!loaded.isValid());
-#endif
 }
 
 void KisDomUtilsContractTest::scalarAndGeometryValuesRoundTripByType()

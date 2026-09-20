@@ -862,7 +862,7 @@ R2-G13bと同じ値を使い、間隔以外の差を持ち込まない。
 ### R2-G19c 利用者から観測できる振る舞いを守るテストへの整理（完了）
 
 目的は、機械的に判定できる宣言形状試験を除去して再導入を防ぎ、高リスク領域の利用者向け契約を保護し、以後のリファクタリングを安全に開始できる基準を確立することである。
-状態は`in_progress`、開始条件はR2-G19a・R2-G19bの完了である。
+状態は`complete`、開始条件はR2-G19a・R2-G19bの完了である。
 
 範囲は、機械削除済みの宣言形状試験の再発防止、ブラシプリセットの曲線・センサー・サイズ設定保存経路、資源管理画面のタグ付き資源切替経路、必要な補助コードと所有CMake定義とする。リポジトリ全体の逐次的な契約試験監査は、この検査段階の範囲に含めない。
 
@@ -886,7 +886,7 @@ R2-G13bと同じ値を使い、間隔以外の差を持ち込まない。
 - [x] 曲線、センサー、サイズを含むブラシプリセット設定群を、実際の保存・復元結果とモック分類で監査する。
 - [x] タグ選択中の資源を無効化し、`ShowAllResources`へ切り替えると同じ資源が再表示される資源管理プロキシ経路を検証する。
 - [x] 各変更の対象CTestと影響範囲のCTest、`verify-quick`を成功させる。
-- [x] macOSで`./scripts/verify`を実行し、変更範囲の失敗を解消し、無関係な既知の基準不良を記録する。
+- [x] macOSで`./scripts/verify`を実行し、変更範囲の失敗を解消する。
 - [x] Qt 5、Linux、Windows、Androidの未実施検証をR2-G19dへ明示的に引き渡す。
 - [x] 残る契約試験を、高リスク優先監査、所有実装変更時の監査、現状の振る舞い維持の区分で後続一覧へ記録する。
 
@@ -939,13 +939,24 @@ R2-G13bと同じ値を使い、間隔以外の差を持ち込まない。
 
 ### R2-G19d 対象OSでの実行検証
 
-目的は、OS固有の公開操作を対応する実行環境で検証することである。
+目的は、R2-G19cでmacOS上に確立した利用者向け契約と、OS固有の公開操作を対応する実行環境で検証することである。
 対象ごとに実行環境、ソース同期手順、対象CTestの構築範囲を確定して開始する。
 
-- Qt 5、Linux、Windows、Androidで、R2-G19cがmacOSで確認したブラシプリセット設定保存・復元、資源管理プロキシ切替、契約試験再発防止を実行する。
-- プラットフォーム差異で失敗する場合は、利用者向け結果、再現環境、所有者、修正または基準更新の判断を記録する。
-範囲はAndroidの初期化とcrash通知、Windows互換操作、Linuxの色管理設定とする。
-対象OSでの実行結果を検証根拠とし、環境不足または意味論未確定の場合は対象作業を保留する。
+#### R2-G19d-a 移植済み契約試験の実行可能性確認
+
+Qt 5、Linux、Windows、Androidで、ブラシプリセット設定保存・復元の6試験と資源管理プロキシ切替の1試験を構築・実行する。
+
+- [ ] 各OSとQt 5の実行環境について、同一ソースリビジョンの構成、構築閉包、CTest実行可能性を確定する。
+- [ ] `KisCurveOptionDataTest`、`KisCurveOptionModelTest`、`KisStandardOptionDataCompatibilityTest`、
+      `KisKritaSensorPackCompatibilityTest`、`KisMirrorOptionDataCompatibilityTest`、
+      `KisBrushPresetDynamicsCompatibilityTest`、`TestTagFilterResourceProxyModel`を実行し、保存・復元とタグ絞り込み切替の結果を確認する。
+- [ ] プラットフォーム差異の失敗について、利用者向け結果、再現環境、所有者、修正または基準更新の判断を記録する。
+
+`check_test_contracts.py`は同一ソースリビジョンの構築ホストで実行し、各OSまたは端末では実行時契約を検証する。
+
+#### R2-G19d-b OS固有契約
+
+Android、Windows、Linuxの公開操作を実行環境で検証する。
 
 - [ ] Android実機または利用可能なemulatorで、`KisAndroidCrashHandler::handler_init()`の
       callbackとunwindstack統合を確認する。
@@ -953,6 +964,22 @@ R2-G13bと同じ値を使い、間隔以外の差を持ち込まない。
       識別子取得、`readlink()`の失敗条件、`sleep()`の待機動作を検証する。
 - [ ] Linuxの標準構成と`-DHAVE_DBUS=ON`のcolord構成を検証し、Qt DBus検出と
       後段選択の関係を配布要件に基づいて確定する。
+
+実行環境を準備できない対象は、必要環境と再開条件を記録して保留する。
+
+### R2-G19e ブラシ設定試験の偽設定ストア撤去
+
+目的は、ブラシプリセット設定の残存試験を実設定の保存・復元結果へ集約し、製品ロジックを再実装する偽設定ストアを有限範囲で解消することである。
+
+範囲は`KisAirbrushOptionDataContractTest.cpp`、`KisColorOptionDataContractTest.cpp`、
+`KisColorSourceOptionDataContractTest.cpp`、`KisCompositeOpOptionDataContractTest.cpp`、
+`KisFilterOptionDataContractTest.cpp`、`KisPaintingModeOptionDataContractTest.cpp`、
+`KisPrecisionOptionContractTest.cpp`、`KisTextureOptionDataIOContractTest.cpp`の8件に固定する。
+
+- [ ] 各試験のMock、Fake、Stub、試験専用派生、製品メソッド再定義、設定ストアを、製品ロジック再実装、内部詳細固定、外部境界、入力・通知記録補助に分類する。
+- [ ] 製品ロジック再実装と内部詳細固定を、実`KisPropertiesConfiguration`の保存・復元または公開操作の結果を使う試験へ置き換える。
+- [ ] 外部境界と入力・通知記録補助には、置換対象、決定性、製品側の所有者を試験コメントへ記録する。
+- [ ] 対象CTest、影響範囲のCTest、`verify-quick`を成功させ、8件の分類と残る保守条件をPROGRESSへ記録する。
 
 ### R2-G20 矩形選択による自由描画クリップ契約
 

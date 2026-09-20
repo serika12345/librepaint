@@ -17,6 +17,7 @@
 #include "kis_selection_tool_helper.h"
 #include <application/ui/workspace/KisView.h>
 #include <kis_command_utils.h>
+#include <kis_processing_applicator.h>
 #include <kis_selection_filters.h>
 #include <KisOptimizedBrushOutline.h>
 #include <kis_default_bounds.h>

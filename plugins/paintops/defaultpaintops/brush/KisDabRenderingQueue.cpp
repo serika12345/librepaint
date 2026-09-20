@@ -13,6 +13,7 @@
 
 #include <QMutex>
 #include <QMutexLocker>
+#include <KisMpl.h>
 #include <KisRollingMeanAccumulatorWrapper.h>
 
 #include "kis_algebra_2d.h"
@@ -433,4 +434,3 @@ int KisDabRenderingQueue::testingGetQueueSize() const
 
     return m_d->jobs.size();
 }
-

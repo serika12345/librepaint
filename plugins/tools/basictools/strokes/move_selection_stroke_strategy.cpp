@@ -13,6 +13,7 @@
 #include "kis_paint_layer.h"
 #include "kis_painter.h"
 #include "kis_paint_device.h"
+#include <KisRegion.h>
 #include "kis_image_animation_interface.h"
 #include "kis_transaction.h"
 #include <commands_new/kis_selection_move_command2.h>

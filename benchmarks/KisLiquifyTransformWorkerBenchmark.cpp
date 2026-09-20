@@ -8,6 +8,7 @@
 #include <simpletest.h>
 
 #include <QRandomGenerator>
+#include <QDomDocument>
 
 #include <KoColor.h>
 #include <KoProgressUpdater.h>

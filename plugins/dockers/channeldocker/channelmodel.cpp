@@ -13,6 +13,7 @@
 #include <kis_painter.h>
 
 #include <kis_group_layer.h>
+#include <kis_image.h>
 #include <kis_paint_device.h>
 #include <kis_iterator_ng.h>
 #include <kis_default_bounds.h>

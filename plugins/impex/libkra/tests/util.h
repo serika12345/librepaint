@@ -29,6 +29,7 @@
 #include "kis_clone_layer.h"
 #include "kis_adjustment_layer.h"
 #include "kis_shape_layer.h"
+#include "kis_transform_mask.h"
 #include "kis_filter_mask.h"
 #include "kis_transparency_mask.h"
 #include "kis_selection_mask.h"

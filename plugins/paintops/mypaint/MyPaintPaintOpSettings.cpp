@@ -7,6 +7,8 @@
 #include "MyPaintPaintOpSettings.h"
 
 #include <cmath>
+#include <QPainterPath>
+
 #include <KisOptimizedBrushOutline.h>
 #include <MyPaintStandardOptionData.h>
 

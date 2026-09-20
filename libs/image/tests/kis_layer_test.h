@@ -14,6 +14,7 @@
 #include "kis_node_visitor.h"
 #include "kis_image.h"
 #include "kis_default_bounds.h"
+#include "kis_paint_device.h"
 
 class TestLayer : public KisLayer
 {
@@ -101,4 +102,3 @@ private Q_SLOTS:
 };
 
 #endif
-
