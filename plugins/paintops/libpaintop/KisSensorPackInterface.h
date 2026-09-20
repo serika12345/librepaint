@@ -7,8 +7,12 @@
 #ifndef KISSENSORPACKINTERFACE_H
 #define KISSENSORPACKINTERFACE_H
 
+#include <vector>
+
 #include "kritapaintop_export.h"
+
 #include <QSharedData>
+#include <QString>
 
 struct KisSensorData;
 struct KisCurveOptionDataCommon;

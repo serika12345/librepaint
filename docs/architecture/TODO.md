@@ -1043,6 +1043,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] `kritapaintopcurverangemodelinterfaceobjects`のQt Core・Lager利用要件と取込みディレクトリーが実使用に一致することを確認する。
 - [x] 対象構築、`kritalibpaintop`、既存の`KisCurveRangeModelInterfaceContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
 
+### R2-G19l センサーパックインターフェース依存の直接化
+
+目的は、センサーパックの公開インターフェースが共有データ、文字列、センサー一覧を推移的取込みから得る状態を解消し、複製・比較・設定入出力の既存契約を保ったまま利用要件を明示することである。
+
+範囲は`plugins/paintops/libpaintop/KisSensorPackInterface.{h,cpp}`と、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopsensorpackinterfaceobjects`に固定する。既存テストソース、公開API、共有データ複製、借用ポインター、操作結果と順序を維持する。
+
+- [x] 公開ヘッダーと実装を、標準ベクター、共有データ、文字列、公開記号の所有ヘッダーへ直接接続する。
+- [x] `kritapaintopsensorpackinterfaceobjects`のQt Core利用要件、取込みディレクトリー、輸出定義が実使用に一致することを確認する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisSensorPackInterfaceContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない
