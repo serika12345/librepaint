@@ -12,16 +12,16 @@ ecm_mark_as_test(storedroptest)
 macos_test_fixrpath( storedroptest )
 
 kis_add_test(
-    StoreDebugContractTest.cpp
+    StoreDebugCompatibilityTest.cpp
     LINK_LIBRARIES
         kritaresourcestoragelogobjects
         Qt${QT_MAJOR_VERSION}::Test
 )
-target_include_directories(StoreDebugContractTest PRIVATE
+target_include_directories(StoreDebugCompatibilityTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
 )
-target_compile_definitions(StoreDebugContractTest PRIVATE kritaresourcestorage_EXPORTS)
+target_compile_definitions(StoreDebugCompatibilityTest PRIVATE kritaresourcestorage_EXPORTS)
 
 kis_add_test(
     KoStoreDeviceContractTest.cpp
