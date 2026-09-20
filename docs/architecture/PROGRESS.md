@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 13:32 JST
+- 更新日時: 2026-09-20 13:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -86,7 +86,8 @@
 - 完了: `KisResourceThumbnailCacheContractTest.cpp`を削除した。資源一覧、プリセット選択、ツールチップは、要求サイズと変形方法に合うサムネイル画像を受け取り、選択状態を含めて描画する。既存の`KisResourceThumbnailPainterContractTest`と`KisIconToolTipContractTest`が画像のサイズ・色・選択枠・ツールチップへの結果を検証する。private挿入フック、ストレージ位置の正規化回数、内部キャッシュキー、返却値の所有期間、singletonポインターを固定する専用CTestとCMake定義は削除した。
 - 完了: `KisDatabaseTransactionLockContractTest.cpp`は利用者向けのトランザクション契約を既に検証しているため保持した。資源キャッシュの初期化・同期・掃除は、未承認の複数変更をスコープ終了または明示取消で残さず、全工程の成功後にcommitした変更だけを返す。部分的なキャッシュが資源選択画面へ現れることを防ぐSQLiteの実状態を検証する。ロック所有、内部接続、呼出し順序、適合ロックの継承形状は固定しない。
 - 完了: `KisResourceMetaDataModelContractTest.cpp`は利用者向けのメタデータ照会契約を既に検証しているため保持した。資源選択、依存判定、メタデータフィルターは、対象テーブル・資源・キーに一致する直列化値だけを読み、欠落・空値を利用不可として扱う。別の資源またはテーブルの値で選択・警告を誤ることを防ぐSQLiteの実状態を検証する。内部SQL行、モデル索引、準備済み問い合わせのキャッシュ形状は固定しない。
-- 次の作業: `KoResourceBundleManifestContractTest.cpp`について、バンドル編集・読込が観測するマニフェストの内容・エラー・保存結果と、内部JSON表現、マップ順序、所有形状を固定する検証を整理する。
+- 完了: `KoResourceBundleManifestContractTest.cpp`を、バンドル編集と読込が観測する資源・型・タグ・失敗結果へ縮小した。資源の追加・削除後にバンドルローダーが残存する型別ファイルとタグを受け取り、壊れたまたは利用不能なマニフェストは失敗して古い資源を残さない。`KoResourceBundleManifestCompatibilityTest.cpp`は、`KoResourceBundle`が`META-INF/manifest.xml`へ保存し、バンドル読込が利用するXMLの名前空間、根エントリー、型、パス、MD5、タグを保存形式互換性として検証する。資源参照の既定値・構築子、マップ順序、仮想破棄、デバイスを開く回数とモードは固定しない。
+- 次の作業: `KisResourceTypesCompatibilityTest.cpp`について、資源型の文字列が保存データ、プラグイン、スクリプト、資源選択で使われる根拠を確認し、互換性または利用結果として必要な検証だけを整理する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と

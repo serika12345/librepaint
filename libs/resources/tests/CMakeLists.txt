@@ -72,6 +72,20 @@ target_include_directories(KoResourceBundleManifestContractTest PRIVATE
 target_compile_definitions(KoResourceBundleManifestContractTest PRIVATE kritaresources_EXPORTS)
 
 kis_add_test(
+    KoResourceBundleManifestCompatibilityTest.cpp
+    LINK_LIBRARIES
+        kritaresourcebundlemanifestobjects
+        kritaresourcestypesobjects
+        kritaglobaldebugobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoResourceBundleManifestCompatibilityTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+target_compile_definitions(KoResourceBundleManifestCompatibilityTest PRIVATE kritaresources_EXPORTS)
+
+kis_add_test(
     KisResourceStorageTypeCompatibilityTest.cpp
     LINK_LIBRARIES
         kritaglobal
