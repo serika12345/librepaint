@@ -17,6 +17,9 @@ private Q_SLOTS:
     void testCreation();
     void testUniformPropertyConfiguration();
     void testStandardUniformPropertiesSynchronizeSettings();
+    void testFreehandOutlineUsesPreviousDistinctCursorPosition();
+    void testAutomaticBrushSpacingPreservesConfiguredStrokeGeometry();
+    void testScaledBrushSkipsSubpixelDabs();
 
 };
 

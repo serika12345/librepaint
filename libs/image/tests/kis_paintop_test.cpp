@@ -16,6 +16,7 @@
 #include "kis_paintop.h"
 #include "kis_painter.h"
 #include "kis_spacing_information.h"
+#include "brushengine/kis_paintop_utils.h"
 
 class TestPaintOp : public KisPaintOp
 {
@@ -160,6 +161,54 @@ void KisPaintopTest::testStandardUniformPropertiesSynchronizeSettings()
     QVERIFY(flowProperty);
     flowProperty->setValue(0.6);
     QCOMPARE(settings->paintOpFlow(), 0.6);
+}
+
+void KisPaintopTest::testFreehandOutlineUsesPreviousDistinctCursorPosition()
+{
+    // Consumer: Freehand and liquify canvas helpers that derive the brush-outline direction.
+    // Operation: Move the cursor beyond the outline-history threshold.
+    // Observable result: The next outline direction uses the previous distinct cursor position.
+    // Failure impact: The brush outline flickers or points in the wrong direction while drawing.
+    KisPaintOpUtils::PositionHistory history;
+    const QPointF initialPoint(10.0, 20.0);
+    const QPointF movedPoint(20.0, 30.0);
+    const QPointF nextPoint(30.0, 40.0);
+
+    history.reset(initialPoint);
+
+    QCOMPARE(history.pushThroughHistory(movedPoint, 1.0), initialPoint);
+    QCOMPARE(history.pushThroughHistory(nextPoint, 1.0), movedPoint);
+}
+
+void KisPaintopTest::testAutomaticBrushSpacingPreservesConfiguredStrokeGeometry()
+{
+    // Consumer: Brush paint operations that place dabs along a user-drawn stroke.
+    // Operation: Enable automatic spacing for an anisotropic or isotropic brush shape.
+    // Observable result: Dab distance follows the configured brush geometry, scale, and spacing mode.
+    // Failure impact: Strokes gain gaps, excess dabs, or a direction-dependent density.
+    const KisSpacingInformation anisotropicSpacing = KisPaintOpUtils::effectiveSpacing(
+        4.0, 9.0, 1.0, true, false, 0.0, false, 0.0, true, 0.5, 1.0);
+    QVERIFY(anisotropicSpacing.isDistanceSpacingEnabled());
+    QCOMPARE(anisotropicSpacing.distanceSpacing(), QPointF(1.0, 1.5));
+    QVERIFY(!anisotropicSpacing.isIsotropic());
+
+    const KisSpacingInformation isotropicSpacing = KisPaintOpUtils::effectiveSpacing(
+        4.0, 9.0, 2.0, false, true, 0.75, true, 0.0, true, 1.0, 1.0);
+    QVERIFY(!isotropicSpacing.isDistanceSpacingEnabled());
+    QCOMPARE(isotropicSpacing.distanceSpacing(), QPointF(6.0, 6.0));
+    QCOMPARE(isotropicSpacing.rotation(), 0.0);
+    QVERIFY(!isotropicSpacing.coordinateSystemFlipped());
+}
+
+void KisPaintopTest::testScaledBrushSkipsSubpixelDabs()
+{
+    // Consumer: Brush paint operations running at a small scale or low-detail level.
+    // Operation: Evaluate a dab whose scaled width or height falls below one hundredth of a pixel.
+    // Observable result: The operation skips an unrenderable dab and keeps a renderable dab.
+    // Failure impact: Strokes spend work on invisible marks or unexpectedly lose visible marks.
+    QVERIFY(KisPaintOpUtils::checkSizeTooSmall(1.0, 0.009, 10.0));
+    QVERIFY(KisPaintOpUtils::checkSizeTooSmall(1.0, 10.0, 0.009));
+    QVERIFY(!KisPaintOpUtils::checkSizeTooSmall(1.0, 0.01, 0.01));
 }
 
 
