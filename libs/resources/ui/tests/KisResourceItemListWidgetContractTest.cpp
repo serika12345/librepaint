@@ -13,6 +13,7 @@
 #include <KisResourceThumbnailStorageLocation.h>
 
 #include <QApplication>
+#include <QColor>
 #include <QContextMenuEvent>
 #include <QListWidgetItem>
 #include <QPointer>
@@ -218,6 +219,10 @@ void KisResourceItemListWidgetContractTest::strictSelectionClearsRemovedCurrentI
 
 void KisResourceItemListWidgetContractTest::fixedToolTipSizeControlsDocumentThumbnail()
 {
+    // Consumer: resource chooser widgets that preview patterns and gradients.
+    // Operation: Set a fixed tooltip thumbnail size for a resource item.
+    // Observable result: The tooltip image keeps the resource colour and fits the requested display bounds.
+    // Failure impact: A chooser can show an incorrectly scaled or misleading resource preview.
     QImage thumbnail(4, 2, QImage::Format_ARGB32);
     thumbnail.fill(Qt::red);
     ExposedResourceItemListWidget widget;
@@ -232,10 +237,15 @@ void KisResourceItemListWidgetContractTest::fixedToolTipSizeControlsDocumentThum
     QVERIFY(toolTip);
     QTextDocument *document = KisIconToolTipContractAccess::createDocument(*toolTip, index);
     QCOMPARE(documentThumbnail(document).deviceIndependentSize(), QSizeF(2, 1));
+    QCOMPARE(documentThumbnail(document).pixelColor(0, 0), QColor(Qt::red));
 }
 
 void KisResourceItemListWidgetContractTest::checkerToolTipSettingControlsTransparency()
 {
+    // Consumer: resource chooser widgets that preview transparent patterns and gradients.
+    // Operation: Enable and then disable checker rendering for an item tooltip.
+    // Observable result: The tooltip makes transparency visible with checkers only while the setting is enabled.
+    // Failure impact: Users cannot reliably distinguish transparent resource content from an empty preview.
     QImage thumbnail(2, 2, QImage::Format_ARGB32);
     thumbnail.fill(Qt::transparent);
     ExposedResourceItemListWidget widget;
