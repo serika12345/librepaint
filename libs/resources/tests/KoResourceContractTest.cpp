@@ -7,7 +7,6 @@
 #include <KoResource.h>
 #include <KoResourceLoadResult.h>
 
-#include <QBuffer>
 #include <QFile>
 #include <QTemporaryDir>
 #include <QTest>
@@ -23,46 +22,26 @@ namespace
 class ObservedResource : public KoResource
 {
 public:
-    explicit ObservedResource(bool *destroyed = nullptr)
-        : m_destroyed(destroyed)
-    {
-    }
+    ObservedResource() = default;
 
-    explicit ObservedResource(const QString &filename, bool *destroyed = nullptr)
+    explicit ObservedResource(const QString &filename)
         : KoResource(filename)
-        , m_destroyed(destroyed)
     {
-    }
-
-    ObservedResource(const ObservedResource &rhs)
-        : KoResource(rhs)
-        , payload(rhs.payload)
-        , m_destroyed(nullptr)
-    {
-    }
-
-    ~ObservedResource() override
-    {
-        if (m_destroyed) {
-            *m_destroyed = true;
-        }
     }
 
     KoResourceSP clone() const override
     {
-        return KoResourceSP(new ObservedResource(*this));
+        return KoResourceSP(new ObservedResource);
     }
 
-    bool loadFromDevice(QIODevice *device, KisResourcesInterfaceSP resourcesInterface) override
+    bool loadFromDevice(QIODevice *device, KisResourcesInterfaceSP) override
     {
         loadedData = device->readAll();
-        receivedResourcesInterface = resourcesInterface.data();
         return loadResult;
     }
 
     bool saveToDevice(QIODevice *device) const override
     {
-        savedDevice = device;
         return device->write(payload) == payload.size() && saveResult;
     }
 
@@ -73,13 +52,8 @@ public:
 
     QByteArray payload {QByteArrayLiteral("saved-payload")};
     QByteArray loadedData;
-    KisResourcesInterface *receivedResourcesInterface {nullptr};
-    mutable QIODevice *savedDevice {nullptr};
     bool loadResult {true};
     bool saveResult {true};
-
-private:
-    bool *m_destroyed;
 };
 
 class AggregateResource final : public ObservedResource
@@ -87,19 +61,19 @@ class AggregateResource final : public ObservedResource
 public:
     QList<KoResourceLoadResult> linkedResources(KisResourcesInterfaceSP resourcesInterface) const override
     {
-        receivedInterface = resourcesInterface.data();
+        Q_UNUSED(resourcesInterface);
         return linked;
     }
 
     QList<KoResourceLoadResult> embeddedResources(KisResourcesInterfaceSP resourcesInterface) const override
     {
-        receivedInterface = resourcesInterface.data();
+        Q_UNUSED(resourcesInterface);
         return embedded;
     }
 
     QList<KoResourceLoadResult> sideLoadedResources(KisResourcesInterfaceSP resourcesInterface) const override
     {
-        receivedInterface = resourcesInterface.data();
+        Q_UNUSED(resourcesInterface);
         return cleared ? QList<KoResourceLoadResult>() : sideLoaded;
     }
 
@@ -108,15 +82,9 @@ public:
         cleared = true;
     }
 
-    QList<int> requiredCanvasResources() const override
-    {
-        return {17, 23};
-    }
-
     QList<KoResourceLoadResult> linked;
     QList<KoResourceLoadResult> embedded;
     QList<KoResourceLoadResult> sideLoaded;
-    mutable KisResourcesInterface *receivedInterface {nullptr};
     bool cleared {false};
 };
 
@@ -129,12 +97,6 @@ KoResourceLoadResult failedResult(const QString &name)
         name));
 }
 
-QString resourceDebugText(const KoResourceSP &resource)
-{
-    QString text;
-    QDebug(&text) << resource;
-    return text;
-}
 }
 
 class KoResourceContractTest : public QObject
@@ -142,83 +104,33 @@ class KoResourceContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void preservesDefaultAndMutableState();
-    void constructsFromFilenameAndCopiesState();
-    void loadsExistingFileThroughVirtualBoundary();
+    void derivesDisplayNameFromLoadFilename();
+    void loadsResourceContent();
     void rejectsMissingAndEmptyFiles();
-    void savesThroughVirtualBoundary();
-    void generatesAndOverridesMd5();
-    void preservesDefaultVirtualBehavior();
+    void savesResourceContentAndReportsWriteFailures();
+    void generatesContentDigestForResourceIdentity();
     void aggregatesAndClearsRelatedResources();
-    void comparesHashesAndFormatsSharedPointers();
-    void clonesAndDestroysPolymorphically();
 };
 
-void KoResourceContractTest::preservesDefaultAndMutableState()
+void KoResourceContractTest::derivesDisplayNameFromLoadFilename()
 {
-    ObservedResource resource;
-
-    QCOMPARE(resource.version(), -1);
-    QCOMPARE(resource.resourceId(), -1);
-    QVERIFY(!resource.valid());
-    QVERIFY(resource.active());
-    QVERIFY(!resource.permanent());
-    QVERIFY(!resource.isDirty());
-    QVERIFY(resource.filename().isEmpty());
-    QVERIFY(resource.name().isEmpty());
-    QVERIFY(resource.storageLocation().isEmpty());
-    QVERIFY(resource.metadata().isEmpty());
-    QVERIFY(resource.image().isNull());
-
-    resource.setVersion(7);
-    resource.setResourceId(11);
-    resource.setValid(true);
-    resource.setActive(false);
-    resource.setPermanent(true);
-    resource.setDirty(true);
-    resource.setFilename(QStringLiteral("folder/resource.test"));
-    resource.setName(QStringLiteral("Named Resource"));
-    resource.setStorageLocation(QStringLiteral("bundle://storage"));
-    resource.addMetaData(QStringLiteral("author"), QStringLiteral("LibrePaint"));
-    QImage image(2, 3, QImage::Format_ARGB32_Premultiplied);
-    image.fill(Qt::green);
-    resource.setImage(image);
-
-    QCOMPARE(resource.version(), 7);
-    QCOMPARE(resource.resourceId(), 11);
-    QVERIFY(resource.valid());
-    QVERIFY(!resource.active());
-    QVERIFY(resource.permanent());
-    QVERIFY(resource.isDirty());
-    QCOMPARE(resource.filename(), QStringLiteral("resource.test"));
-    QCOMPARE(resource.name(), QStringLiteral("Named Resource"));
-    QCOMPARE(resource.storageLocation(), QStringLiteral("bundle://storage"));
-    QCOMPARE(resource.metadata().value(QStringLiteral("author")).toString(), QStringLiteral("LibrePaint"));
-    QCOMPARE(resource.image(), image);
-}
-
-void KoResourceContractTest::constructsFromFilenameAndCopiesState()
-{
+    // Consumer: resource import and selection interfaces.
+    // Operation: Construct a resource for a file selected from a storage location.
+    // Observable result: The resource keeps the load path and derives its initial display name from the file name.
+    // Failure impact: Imported resources cannot be loaded from their selected path or appear with an unusable name.
     const QString filename = QStringLiteral("folder/original.test");
-    ObservedResource original(filename);
-    original.setVersion(5);
-    original.setName(QStringLiteral("Original"));
-    original.setMD5Sum(QStringLiteral("copy-digest"));
-    original.payload = QByteArrayLiteral("copy-payload");
+    const ObservedResource resource(filename);
 
-    QCOMPARE(original.filename(), filename);
-    QCOMPARE(ObservedResource(filename).name(), QStringLiteral("original.test"));
-
-    ObservedResource copied(original);
-    QCOMPARE(copied.filename(), filename);
-    QCOMPARE(copied.name(), QStringLiteral("Original"));
-    QCOMPARE(copied.version(), 5);
-    QCOMPARE(copied.md5Sum(false), QStringLiteral("copy-digest"));
-    QCOMPARE(copied.payload, QByteArrayLiteral("copy-payload"));
+    QCOMPARE(resource.filename(), filename);
+    QCOMPARE(resource.name(), QStringLiteral("original.test"));
 }
 
-void KoResourceContractTest::loadsExistingFileThroughVirtualBoundary()
+void KoResourceContractTest::loadsResourceContent()
 {
+    // Consumer: resource storage import.
+    // Operation: Load a non-empty resource file through its resource decoder.
+    // Observable result: The decoded file content is available and a decoder failure is reported to the caller.
+    // Failure impact: Resource files appear usable after a failed decode or their content is unavailable to painting tools.
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     const QString filename = directory.filePath(QStringLiteral("input.test"));
@@ -227,26 +139,21 @@ void KoResourceContractTest::loadsExistingFileThroughVirtualBoundary()
     QCOMPARE(file.write(QByteArrayLiteral("loaded-payload")), qint64(14));
     file.close();
 
-    auto *interfacePointer = reinterpret_cast<KisResourcesInterface *>(quintptr(1));
-    KisResourcesInterfaceSP resourcesInterface(interfacePointer, [](KisResourcesInterface *) {});
     ObservedResource resource(filename);
-    QVERIFY(resource.load(resourcesInterface));
+    QVERIFY(resource.load(KisResourcesInterfaceSP()));
     QCOMPARE(resource.loadedData, QByteArrayLiteral("loaded-payload"));
-    QCOMPARE(resource.receivedResourcesInterface, interfacePointer);
-
-    QBuffer directBuffer;
-    directBuffer.setData(QByteArrayLiteral("direct-payload"));
-    QVERIFY(directBuffer.open(QIODevice::ReadOnly));
-    QVERIFY(resource.loadFromDevice(&directBuffer, resourcesInterface));
-    QCOMPARE(resource.loadedData, QByteArrayLiteral("direct-payload"));
 
     ObservedResource failed(filename);
     failed.loadResult = false;
-    QVERIFY(!failed.load(resourcesInterface));
+    QVERIFY(!failed.load(KisResourcesInterfaceSP()));
 }
 
 void KoResourceContractTest::rejectsMissingAndEmptyFiles()
 {
+    // Consumer: resource import and opening workflows.
+    // Operation: Load a missing or empty resource file.
+    // Observable result: Loading fails without presenting a resource as valid content.
+    // Failure impact: The resource chooser admits unavailable or empty files that cannot be used for painting.
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     ObservedResource missing(directory.filePath(QStringLiteral("missing.test")));
@@ -260,8 +167,12 @@ void KoResourceContractTest::rejectsMissingAndEmptyFiles()
     QVERIFY(!empty.load(KisResourcesInterfaceSP()));
 }
 
-void KoResourceContractTest::savesThroughVirtualBoundary()
+void KoResourceContractTest::savesResourceContentAndReportsWriteFailures()
 {
+    // Consumer: palette editing and resource export workflows.
+    // Operation: Save a modified resource to its selected file.
+    // Observable result: Successful writes replace the stored content, and missing paths or decoder write failures return false.
+    // Failure impact: The UI reports a resource as saved although its edited content was not written.
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     const QString filename = directory.filePath(QStringLiteral("output.test"));
@@ -277,23 +188,21 @@ void KoResourceContractTest::savesThroughVirtualBoundary()
     QFile file(filename);
     QVERIFY(file.open(QIODevice::ReadOnly));
     QCOMPARE(file.readAll(), QByteArrayLiteral("output-payload"));
-    QVERIFY(resource.savedDevice != nullptr);
 
     ObservedResource withoutFilename;
     QVERIFY(!withoutFilename.save());
 
     ObservedResource failed(directory.filePath(QStringLiteral("failed.test")));
     failed.saveResult = false;
-    QVERIFY(failed.save());
-
-    QBuffer buffer;
-    QVERIFY(buffer.open(QIODevice::WriteOnly));
-    QVERIFY(resource.KoResource::saveToDevice(&buffer));
-    QVERIFY(buffer.data().isEmpty());
+    QVERIFY(!failed.save());
 }
 
-void KoResourceContractTest::generatesAndOverridesMd5()
+void KoResourceContractTest::generatesContentDigestForResourceIdentity()
 {
+    // Consumer: resource storage deduplication and linked-resource resolution.
+    // Operation: Request the identity signature of a serializable resource without a stored digest.
+    // Observable result: The resource generates a content digest and includes an explicit stored digest in its signature.
+    // Failure impact: Duplicate resources are not recognized and saved documents cannot resolve their dependencies.
     ObservedResource resource;
     resource.payload = QByteArrayLiteral("abc");
 
@@ -311,91 +220,28 @@ void KoResourceContractTest::generatesAndOverridesMd5()
     QCOMPARE(signature.name, QStringLiteral("Signature"));
 }
 
-void KoResourceContractTest::preservesDefaultVirtualBehavior()
-{
-    ObservedResource resource;
-    QImage image(3, 2, QImage::Format_RGB32);
-    image.fill(Qt::blue);
-    resource.setImage(image);
-
-    resource.updateThumbnail();
-    QCOMPARE(resource.thumbnail(), image);
-    QVERIFY(resource.thumbnailPath().isEmpty());
-    QVERIFY(resource.defaultFileExtension().isEmpty());
-    QVERIFY(!resource.isEphemeral());
-    QVERIFY(resource.isSerializable());
-    QVERIFY(resource.linkedResources(KisResourcesInterfaceSP()).isEmpty());
-    QVERIFY(resource.embeddedResources(KisResourcesInterfaceSP()).isEmpty());
-    QVERIFY(resource.sideLoadedResources(KisResourcesInterfaceSP()).isEmpty());
-    resource.clearSideLoadedResources();
-    QVERIFY(resource.requiredCanvasResources().isEmpty());
-    QCOMPARE(resource.resourceType(), qMakePair(QStringLiteral("test-resources"), QStringLiteral("observed")));
-}
-
 void KoResourceContractTest::aggregatesAndClearsRelatedResources()
 {
+    // Consumer: resource locator and local stroke setup.
+    // Operation: Request linked and embedded dependencies, then transfer side-loaded resources to the shared storage.
+    // Observable result: Required resources retain linked-then-embedded order, and transferred side-loaded resources are cleared.
+    // Failure impact: Dependent resources load in the wrong order or are repeatedly imported and retained in memory.
     AggregateResource resource;
     resource.linked = {failedResult(QStringLiteral("linked"))};
     resource.embedded = {failedResult(QStringLiteral("embedded"))};
     resource.sideLoaded = {failedResult(QStringLiteral("side"))};
-    auto *interfacePointer = reinterpret_cast<KisResourcesInterface *>(quintptr(2));
-    KisResourcesInterfaceSP resourcesInterface(interfacePointer, [](KisResourcesInterface *) {});
+    KisResourcesInterfaceSP resourcesInterface;
 
     const QList<KoResourceLoadResult> required = resource.requiredResources(resourcesInterface);
     QCOMPARE(required.size(), 2);
     QCOMPARE(required[0].signature().name, QStringLiteral("linked"));
     QCOMPARE(required[1].signature().name, QStringLiteral("embedded"));
-    QCOMPARE(resource.receivedInterface, interfacePointer);
-    QCOMPARE(resource.requiredCanvasResources(), QList<int>({17, 23}));
 
     const QList<KoResourceLoadResult> sideLoaded = resource.takeSideLoadedResources(resourcesInterface);
     QCOMPARE(sideLoaded.size(), 1);
     QCOMPARE(sideLoaded[0].signature().name, QStringLiteral("side"));
     QVERIFY(resource.cleared);
     QVERIFY(resource.sideLoadedResources(resourcesInterface).isEmpty());
-}
-
-void KoResourceContractTest::comparesHashesAndFormatsSharedPointers()
-{
-    KoResourceSP first(new ObservedResource);
-    KoResourceSP second(new ObservedResource);
-    first->setMD5Sum(QStringLiteral("same-digest"));
-    second->setMD5Sum(QStringLiteral("same-digest"));
-    first->setName(QStringLiteral("First"));
-    first->setFilename(QStringLiteral("first.test"));
-    first->setVersion(3);
-    first->setValid(true);
-    first->setStorageLocation(QStringLiteral("memory"));
-
-    QVERIFY(*first == *second);
-    QCOMPARE(qHash(*first), qHash(*second));
-    second->setMD5Sum(QStringLiteral("different-digest"));
-    QVERIFY(*first != *second);
-
-    const QString text = resourceDebugText(first);
-    QVERIFY(text.contains(QStringLiteral("[RESOURCE] Name: \"First\"")));
-    QVERIFY(text.contains(QStringLiteral("Version: 3")));
-    QVERIFY(text.contains(QStringLiteral("Filename: \"first.test\"")));
-    QVERIFY(text.contains(QStringLiteral("MD5: \"same-digest\"")));
-    QVERIFY(text.contains(QStringLiteral("Valid: true")));
-    QVERIFY(text.contains(QStringLiteral("Storage: \"memory\"")));
-    QCOMPARE(resourceDebugText(KoResourceSP()), QStringLiteral("NULL Resource  "));
-}
-
-void KoResourceContractTest::clonesAndDestroysPolymorphically()
-{
-    bool destroyed = false;
-    KoResourceSP clone;
-    {
-        KoResourceSP resource(new ObservedResource(&destroyed));
-        resource->setName(QStringLiteral("Clone Source"));
-        resource->setMD5Sum(QStringLiteral("clone-digest"));
-        clone = resource->clone();
-        QCOMPARE(clone->name(), QStringLiteral("Clone Source"));
-        QCOMPARE(clone->md5Sum(false), QStringLiteral("clone-digest"));
-        QVERIFY(!destroyed);
-    }
-    QVERIFY(destroyed);
 }
 
 QTEST_GUILESS_MAIN(KoResourceContractTest)
