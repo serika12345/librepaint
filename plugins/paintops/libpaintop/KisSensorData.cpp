@@ -6,12 +6,19 @@
 
 #include "KisSensorData.h"
 
+#include <KoID.h>
+#include <kis_assert.h>
 #include <kis_cubic_curve.h>
 
 #include <KisDynamicSensorIds.h>
 
 #include <QDomDocument>
 #include <QDomElement>
+#include <QLatin1String>
+#include <QString>
+#include <QtCore/qlogging.h>
+#include <QtCore/qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 KisSensorData::KisSensorData(const KoID &sensorId)
     : id(sensorId),

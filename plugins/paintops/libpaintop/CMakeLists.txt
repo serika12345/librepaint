@@ -789,8 +789,7 @@ target_include_directories(kritapaintopsensordataobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
-        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
 )
@@ -799,7 +798,6 @@ target_link_libraries(kritapaintopsensordataobjects
         kritaglobalidobjects
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Xml
-        KF${KF_MAJOR}::I18n
         Eigen3::Eigen
 )
 set_target_properties(kritapaintopsensordataobjects PROPERTIES

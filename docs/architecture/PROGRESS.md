@@ -2,19 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-21 00:08 JST
+- 更新日時: 2026-09-21 00:19 JST
 - 状態: `complete`
-- 現在の検査段階: R2-G19l センサーパックインターフェース依存の直接化（完了）
-- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l完了、R2-G19d-a・R2-G19d-b・R2-G19eは`planned`
+- 現在の検査段階: R2-G19m センサーデータ依存の直接化（完了）
+- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l・R2-G19m完了、R2-G19d-a・R2-G19d-b・R2-G19eは`planned`
 - ブランチ: `issue-44-direct-dependencies`
-- 開始コミット: `b8c3277221`。作業開始時点の作業ツリーは変更なし。
-- 目的: センサーパックの公開インターフェースが共有データ、文字列、センサー一覧を推移的取込みから得る状態を解消し、複製・比較・設定入出力の既存契約を保ったまま利用要件を明示する。
-- 範囲固定: `plugins/paintops/libpaintop/KisSensorPackInterface.{h,cpp}`と、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopsensorpackinterfaceobjects`を変更する。`plugins/paintops/libpaintop/tests/KisSensorPackInterfaceContractTest.cpp`と同CMake定義は閲覧・実行のみとし、公開API、共有データ複製、借用ポインター、操作結果と順序を維持する。
-- 調査: `direnv exec . build-incremental native plan kritapaintopsensorpackinterfaceobjects`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。Ninja command closureは1件、CMakeは`Qt6::Core`を直接列挙しFile APIの構築依存は0件である。変更前の`misc-include-cleaner`は実装の`QString`に対して1件の診断を報告した。
-- 完了: 公開ヘッダーが`std::vector`、`QSharedData`、`QString`、公開記号を所有ヘッダーから直接得るようにし、実装も定義に使う`QString`を直接取得する。CMakeのQt Core利用要件、前方宣言、複製・設定入出力の責務は維持し、診断は0件になった。
-- 検証: `direnv exec . build-incremental native build kritapaintopsensorpackinterfaceobjects`と`kritalibpaintop`は成功し、macOSパッケージ境界1723対象を確認した。`direnv exec . run-test KisSensorPackInterfaceContractTest`は1件成功した。
-- 残るリスク: センサーデータオブジェクトとその実利用側は未監査である。実行検証はmacOS・Qt 6.11.1であり、Qt 5、Linux、Windows、Android、iOSはIssue #44のプラットフォーム監査で扱う。
-- 次の作業: Issue #44の順序に従い、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopsensordataobjects`を次の有限な監査単位とし、センサーデータ実装の所有ヘッダーと直接依存を測定する。
+- 開始コミット: `6027b460a2`。作業開始時点の作業ツリーは変更なし。
+- 目的: センサーデータの公開値型とXML入出力実装が、ID、Qt値型、検査マクロ、曲線既定値を推移的取込みから得る状態を解消し、既存の初期値・保存・リセット・等価性の契約を維持する。
+- 範囲固定: `plugins/paintops/libpaintop/KisSensorData.{h,cpp}`、取込み縮小で露出する直接利用者`kis_brush_based_paintop.cpp`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopsensordataobjects`を変更する。`plugins/paintops/libpaintop/tests/KisSensorDataContractTest.cpp`と同CMake定義は閲覧・実行のみとし、公開API、センサーID、XML属性、初期値、リセット、等価性を維持する。
+- 調査: `direnv exec . build-incremental native plan kritapaintopsensordataobjects`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。Ninja command closureは1件、File APIの構築依存は`kritaglobalidobjects`である。変更前の`misc-include-cleaner`は`KoID`、Qt補助マクロ・文字列型、検査マクロに6件の診断を報告した。
+- 完了: 公開ヘッダーは参照だけのXML型を前方宣言に縮め、ID、Qt値型、標準比較補助、公開記号の所有ヘッダーを直接得る。実装はID、検査マクロ、曲線既定値、QtのXML・文字列・補助マクロを直接得る。センサーデータ対象は`kritaglobalidobjects`、Qt Core・Xml、Eigenを直接使用し、重複した翻訳ライブラリー列挙と公開の画像取込みディレクトリーを除去する。`kis_brush_based_paintop.cpp`はXML値を直接構築するため、XML所有ヘッダーを直接得る。静的診断は0件になった。
+- 検証: `direnv exec . build-incremental native build kritapaintopsensordataobjects`と`kritalibpaintop`は成功し、macOSパッケージ境界1723対象を確認した。`direnv exec . run-test KisSensorDataContractTest`は1件成功した。
+- 残るリスク: Kritaセンサーパック実装とその実利用側は未監査である。実行検証はmacOS・Qt 6.11.1であり、Qt 5、Linux、Windows、Android、iOSはIssue #44のプラットフォーム監査で扱う。
+- 次の作業: Issue #44の順序に従い、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopkritasensorpackobjects`を次の有限な監査単位とし、Kritaセンサーパック実装の所有ヘッダーと直接依存を測定する。
 - 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
 - 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
 - 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。

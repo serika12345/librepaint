@@ -18,6 +18,8 @@
 #include <kis_brush_registry.h>
 #include <KoResourceLoadResult.h>
 
+#include <QDomDocument>
+#include <QDomElement>
 #include <QPainter>
 
 #ifdef HAVE_THREADED_TEXT_RENDERING_WORKAROUND

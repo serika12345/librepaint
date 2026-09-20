@@ -1053,6 +1053,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] `kritapaintopsensorpackinterfaceobjects`のQt Core利用要件、取込みディレクトリー、輸出定義が実使用に一致することを確認する。
 - [x] 対象構築、`kritalibpaintop`、既存の`KisSensorPackInterfaceContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
 
+### R2-G19m センサーデータ依存の直接化
+
+目的は、センサーデータの公開値型とXML入出力実装が、ID、Qt値型、検査マクロ、曲線既定値を推移的取込みから得る状態を解消し、既存の初期値・保存・リセット・等価性の契約を維持することである。
+
+範囲は`plugins/paintops/libpaintop/KisSensorData.{h,cpp}`、取込み縮小で露出する直接利用者`kis_brush_based_paintop.cpp`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopsensordataobjects`に固定する。既存テストソース、公開API、センサーID、XML属性、初期値、リセット、等価性を維持する。
+
+- [x] 公開ヘッダーと実装を、ID、Qt値型、検査マクロ、曲線既定値、公開記号の所有ヘッダーへ直接接続し、参照だけのXML型を前方宣言に縮める。
+- [x] `kritapaintopsensordataobjects`のグローバルID、Qt Core・Xml、Eigenの利用要件を維持し、重複した翻訳ライブラリーと公開の画像取込みディレクトリーを除去する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisSensorDataContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない
