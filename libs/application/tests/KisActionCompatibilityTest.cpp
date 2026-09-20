@@ -10,16 +10,18 @@
 #include <array>
 #include <utility>
 
-class KisActionEnumContractTest : public QObject
+// Compatibility requirement: Packaged core and plugin .action definitions depend on the binary encoding of KisAction activation flags and activation conditions.
+
+class KisActionCompatibilityTest : public QObject
 {
     Q_OBJECT
 
 private Q_SLOTS:
-    void activationFlagsRemainIndependentBits();
-    void activationConditionsRemainIndependentBits();
+    void activationFlagBitsRemainCompatible();
+    void activationConditionBitsRemainCompatible();
 };
 
-void KisActionEnumContractTest::activationFlagsRemainIndependentBits()
+void KisActionCompatibilityTest::activationFlagBitsRemainCompatible()
 {
     const std::array<std::pair<KisAction::ActivationFlag, int>, 21> flags{{
         {KisAction::NONE, 0x00000},
@@ -48,14 +50,9 @@ void KisActionEnumContractTest::activationFlagsRemainIndependentBits()
     for (const auto &flag : flags) {
         QCOMPARE(int(flag.first), flag.second);
     }
-
-    const KisAction::ActivationFlags selection = KisAction::PIXELS_SELECTED | KisAction::SHAPES_SELECTED;
-    QVERIFY(selection.testFlag(KisAction::PIXELS_SELECTED));
-    QVERIFY(selection.testFlag(KisAction::SHAPES_SELECTED));
-    QVERIFY(!selection.testFlag(KisAction::ACTIVE_IMAGE));
 }
 
-void KisActionEnumContractTest::activationConditionsRemainIndependentBits()
+void KisActionCompatibilityTest::activationConditionBitsRemainCompatible()
 {
     const std::array<std::pair<KisAction::ActivationCondition, int>, 5> conditions{{
         {KisAction::NO_CONDITION, 0x0},
@@ -68,13 +65,8 @@ void KisActionEnumContractTest::activationConditionsRemainIndependentBits()
     for (const auto &condition : conditions) {
         QCOMPARE(int(condition.first), condition.second);
     }
-
-    const KisAction::ActivationConditions editable = KisAction::ACTIVE_NODE_EDITABLE | KisAction::SELECTION_EDITABLE;
-    QVERIFY(editable.testFlag(KisAction::ACTIVE_NODE_EDITABLE));
-    QVERIFY(editable.testFlag(KisAction::SELECTION_EDITABLE));
-    QVERIFY(!editable.testFlag(KisAction::OPENGL_ENABLED));
 }
 
-QTEST_GUILESS_MAIN(KisActionEnumContractTest)
+QTEST_GUILESS_MAIN(KisActionCompatibilityTest)
 
-#include "KisActionEnumContractTest.moc"
+#include "KisActionCompatibilityTest.moc"

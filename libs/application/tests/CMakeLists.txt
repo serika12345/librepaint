@@ -44,18 +44,18 @@ target_compile_definitions(KisConfigEnumContractTest PRIVATE
 )
 
 kis_add_test(
-    KisActionEnumContractTest.cpp
+    KisActionCompatibilityTest.cpp
     LINK_LIBRARIES
         Qt${QT_MAJOR_VERSION}::Test
         Qt${QT_MAJOR_VERSION}::Widgets
 )
-target_include_directories(KisActionEnumContractTest PRIVATE
+target_include_directories(KisActionCompatibilityTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
     ${CMAKE_CURRENT_BINARY_DIR}/..
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
 )
-target_compile_definitions(KisActionEnumContractTest PRIVATE
+target_compile_definitions(KisActionCompatibilityTest PRIVATE
     kritaglobal_EXPORTS
     kritaui_EXPORTS
 )
