@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 13:30 JST
+- 更新日時: 2026-09-20 13:31 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -84,7 +84,8 @@
 - 完了: `KisGlobalResourcesInterfaceContractTest.cpp`を削除した。全体資源インターフェースはGUIスレッドの資源モデルを型別sourceへ接続し、パレット・パターン選択、KPP・PSD・ブラシ読込がその解決結果を使う。実KPP読込とPSD読込の試験が資源を取得できる結果を検証する。複数スレッドで同一singletonを返すこと、sourceアダプターの同一アドレス、偽モデルsourceの生成回数は、外部利用を持たない内部初期化・キャッシュの形状であるため、専用CTestとCMake定義を削除した。
 - 完了: `KisStorageFilterProxyModelContractTest.cpp`を削除し、資源一覧の絞込み結果を既存の`TestStorageFilterProxyModel`へ統合した。資源選択画面とバンドル管理画面は、ファイル名、対応するストレージ種別、活動状態で候補を絞込み、条件を切り替えると新しい候補だけを表示する。試験で判明した再評価漏れを修正し、`setFilter()`は行フィルターを更新する。Qt 6.10以降では行フィルター変更APIを使い、旧Qtでは既存の無効化APIを使う。列挙子の整数値、親所有、内部source indexへの変換、偽ストレージ探索を固定する専用CTestとCMake定義は削除した。
 - 完了: `KisResourceThumbnailCacheContractTest.cpp`を削除した。資源一覧、プリセット選択、ツールチップは、要求サイズと変形方法に合うサムネイル画像を受け取り、選択状態を含めて描画する。既存の`KisResourceThumbnailPainterContractTest`と`KisIconToolTipContractTest`が画像のサイズ・色・選択枠・ツールチップへの結果を検証する。private挿入フック、ストレージ位置の正規化回数、内部キャッシュキー、返却値の所有期間、singletonポインターを固定する専用CTestとCMake定義は削除した。
-- 次の作業: `KisDatabaseTransactionLockContractTest.cpp`について、資源データベース操作が利用者に返すトランザクション成功・失敗・復旧結果と、ロック所有形状、内部接続、呼出し順序を固定する検証を整理する。
+- 完了: `KisDatabaseTransactionLockContractTest.cpp`は利用者向けのトランザクション契約を既に検証しているため保持した。資源キャッシュの初期化・同期・掃除は、未承認の複数変更をスコープ終了または明示取消で残さず、全工程の成功後にcommitした変更だけを返す。部分的なキャッシュが資源選択画面へ現れることを防ぐSQLiteの実状態を検証する。ロック所有、内部接続、呼出し順序、適合ロックの継承形状は固定しない。
+- 次の作業: `KisResourceMetaDataModelContractTest.cpp`について、資源一覧と編集画面が観測するメタデータの読出し・更新・削除結果と、内部SQL行、モデル索引、キャッシュ形状を固定する検証を整理する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
