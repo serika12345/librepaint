@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 09:27 JST
+- 更新日時: 2026-09-20 09:36 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -35,7 +35,8 @@
 - 完了: `KoSnapGuideSchemaContractTest.cpp`を削除し、`TestSnapStrategy`へ統合した。スナップ設定は`KisSnapConfig`の真偽値として保存され、利用者が選ぶ補助線種別の整数値や内部優先度は保存形式・XML・プラグイン・スクリプト・外部識別子に使われていない。キャンバス操作では、有効化した対象がポインター位置を変え、Shiftで一時的に吸着を回避できること、同時に候補があると点への吸着が近い線への吸着より優先されることを利用結果で検証する。
 - 完了: `GimpBumpMapSchemaContractTest.cpp`を削除し、`kis_layer_style_projection_plane_test`のバンプマップ処理へ統合した。`bumpmap_vals_t`はベベル・エンボス実装だけが構築し、既定値や`BumpmapType`の整数値は保存形式、設定、プラグイン、スクリプト、外部識別子に使われていない。同じ高さマスクに対しエンボス方向を反転すると、傾斜の選択値が変化し、反対方向では明暗が反転することを画素結果で検証する。
 - 完了: `KisKeyframeChannelSchemaContractTest.cpp`を削除した。スカラー曲線の利用者はアニメーションdockerと不透明度などのキーフレーム編集であり、既存の`kis_keyframing_test`が実チャンネルへの追加と制限変更後の再生値を検証している。KRA保存のチャンネル名は互換性対象だが、既存の`kis_kra_loader_test`が保存済みアニメーションの`content`チャンネルを復元する。専用試験が固定していた範囲値型の並びと未使用の抽象プローブは維持しない。
-- 次の作業: 残存Schema試験を利用場面から監査する。次の`KisNodeCommandsAdapterSchemaContractTest.cpp`では、ノード編集コマンドの戻り値、状態遷移、undo/redo、保存、プラグイン、スクリプトで観測できる契約を確認する。R2-G19cの高速検査と対象CTestを再実行する。内部値型と初期化だけの固定は、保存形式や外部連携の根拠がある場合だけ保持する。
+- 完了: `KisNodeCommandsAdapterSchemaContractTest.cpp`を削除した。専用試験は、色ラベルを参照する内部キャッシュの比較用値型とリスト所有方式だけを固定しており、ノード編集アダプターの操作結果を検証していなかった。レイヤーdocker、フィルターダイアログ、拡張機能はアダプターでノード操作を実行し、既存の`kis_node_commands_adapter_test`が追加後の表示ツリーとundo、画像再束縛、選択マスク移動後の有効状態を検証している。色ラベルの統合結果はツール内部で一時利用され、保存形式、XML、スクリプト、外部識別子としての根拠は確認されなかった。
+- 次の作業: 残存Schema試験を利用場面から監査する。次の`KisPaintOpUtilsSchemaContractTest.cpp`では、描画操作ユーティリティの戻り値、状態遷移、描画結果、設定保存、プラグイン、スクリプトで観測できる契約を確認する。R2-G19cの高速検査と対象CTestを再実行する。内部値型と初期化だけの固定は、保存形式や外部連携の根拠がある場合だけ保持する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
