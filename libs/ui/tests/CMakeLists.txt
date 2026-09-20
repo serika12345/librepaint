@@ -209,31 +209,10 @@ target_include_directories(KisAnimationFrameCacheFwdContractTest PRIVATE
 )
 
 kis_add_test(
-    KisPlaybackEngineSchemaContractTest.cpp
+    KisPlaybackEngineContractTest.cpp
     LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Core
+        kritaapplicationui
         Qt${QT_MAJOR_VERSION}::Test
-        Boost::boost
-)
-target_include_directories(KisPlaybackEngineSchemaContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_BINARY_DIR}/libs/application
-    ${CMAKE_SOURCE_DIR}/libs/flake
-    ${CMAKE_BINARY_DIR}/libs/flake
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Widgets,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Xml,INTERFACE_INCLUDE_DIRECTORIES>
-    $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-)
-target_compile_definitions(KisPlaybackEngineSchemaContractTest PRIVATE
-    kritaapplicationui_EXPORTS
-    kritaflake_EXPORTS
-    kritaimage_EXPORTS
 )
 
 
