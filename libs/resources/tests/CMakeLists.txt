@@ -58,6 +58,14 @@ kis_add_test(
 target_compile_definitions(KisResourceTypesCompatibilityTest PRIVATE kritaresources_EXPORTS)
 
 kis_add_test(
+    KisResourceTypesContractTest.cpp
+    LINK_LIBRARIES
+        kritaresourcestypesobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisResourceTypesContractTest PRIVATE kritaresources_EXPORTS)
+
+kis_add_test(
     KoResourceBundleManifestContractTest.cpp
     LINK_LIBRARIES
         kritaresourcebundlemanifestobjects
