@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 09:31 JST
+- 更新日時: 2026-09-20 09:24 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -33,7 +33,8 @@
 - 完了: `KoShapeSavingContextSchemaContractTest.cpp`を削除した。保存オプションのビット値は、既定値を設定する実装以外で読まれず、SVG/XML、設定、プラグイン、スクリプト、外部識別子に変換されない。整数値とQtフラグ演算だけを固定する専用CTestは維持せず、代替試験も追加しない。
 - 完了: `KoShapeReorderCommandSchemaContractTest.cpp`を削除した。既存の`TestShapeReorderCommand`が、前後移動、最前面・最背面、子図形、重なり、変更不能時の結果を実際のz順序で検証している。操作種別の整数値だけを固定する専用CTestは維持しない。
 - 完了: `KoSnapGuideSchemaContractTest.cpp`を削除し、`TestSnapStrategy`へ統合した。スナップ設定は`KisSnapConfig`の真偽値として保存され、利用者が選ぶ補助線種別の整数値や内部優先度は保存形式・XML・プラグイン・スクリプト・外部識別子に使われていない。キャンバス操作では、有効化した対象がポインター位置を変え、Shiftで一時的に吸着を回避できること、同時に候補があると点への吸着が近い線への吸着より優先されることを利用結果で検証する。
-- 次の作業: 残存Schema試験を利用場面から監査する。次の`GimpBumpMapSchemaContractTest.cpp`では、バンプマップの型・既定値・列挙値がフィルター設定、保存、プラグイン、描画結果で観測できるかを確認する。R2-G19cの高速検査と対象CTestを再実行する。内部値型と初期化だけの固定は、保存形式や外部連携の根拠がある場合だけ保持する。
+- 完了: `GimpBumpMapSchemaContractTest.cpp`を削除し、`kis_layer_style_projection_plane_test`のバンプマップ処理へ統合した。`bumpmap_vals_t`はベベル・エンボス実装だけが構築し、既定値や`BumpmapType`の整数値は保存形式、設定、プラグイン、スクリプト、外部識別子に使われていない。同じ高さマスクに対しエンボス方向を反転すると、傾斜の選択値が変化し、反対方向では明暗が反転することを画素結果で検証する。
+- 次の作業: 残存Schema試験を利用場面から監査する。次の`KisKeyframeChannelSchemaContractTest.cpp`では、キーフレームチャンネルの種別・既定値・識別子がアニメーション保存、編集操作、再生結果、プラグイン、スクリプトで観測できるかを確認する。R2-G19cの高速検査と対象CTestを再実行する。内部値型と初期化だけの固定は、保存形式や外部連携の根拠がある場合だけ保持する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
