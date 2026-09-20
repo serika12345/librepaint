@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 11:15 JST
+- 更新日時: 2026-09-20 11:21 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -51,12 +51,14 @@
 - 完了: `KisActionEnumContractTest.cpp`を`KisActionCompatibilityTest.cpp`へ改名した。コアと29個のプラグインの`.action`定義は`activationFlags`と`activationConditions`を2進数文字列で保存し、`KisActionManager`が基数2で復元する。操作登録と拡張機能はこの値で有効状態を決めるため、各ビットの互換性要件と、変更時に影響する利用者を試験に明記した。Qtのフラグ演算を重複して検証していた文は削除した。
 - 完了: `KisConfigEnumContractTest.cpp`を`KisConfigCompatibilityTest.cpp`へ置き換えた。既存の`kritarc`は入力、色採取、起動、色管理、背景、選択アクションバー、レイヤー表示、補助線描画の各モードを整数で保存するため、その値を明示的な互換性要件として維持した。`ColorSamplerPreviewStyle::Count`は保存値ではないため除外した。キャンバス色管理、表示ビット深度、ルート表示形式は`kritarc`と`kritadisplayrc`の文字列で保存するため、実際の保存値と再読込後のモードを検証する。専用の広い依存定義を、設定実装を提供する`kritaapplication`への直接依存へ縮小した。
 - 完了: `KoDialogEnumContractTest.cpp`を`KoDialogContractTest.cpp`へ置き換えた。`ButtonCode`、`ButtonPopupMode`、見出しフラグの数値は保存形式、XML、プラグイン、スクリプト、外部識別子で使われていない。インポート、書出し、設定、復旧の各ダイアログは記号名のボタンとsignalを使い、利用者はボタンの表示状態、選択後のsignalと受理・取消結果、詳細領域の表示を観測する。実クリックでこれらを検証し、数値、レイアウトヒント、内部スロット呼出し、遅延破棄の固定を削除した。直接オブジェクト対象のリンクには、必要なヘルプ実装を加えた。
-- 次の作業: 残存Schema試験を利用場面から監査する。次の`KColorSchemeEnumContractTest.cpp`では、配色役割の値が保存形式、画面状態、プラグイン、スクリプト、外部識別子で必要か確認する。R2-G19cの高速検査と対象CTestを再実行する。内部値型と初期化だけの固定は、保存形式や外部連携の根拠がある場合だけ保持する。
+- 完了: `KColorSchemeEnumContractTest.cpp`を`KColorSchemeThemeCompatibilityTest.cpp`へ置き換えた。色集合、背景・前景・装飾・濃淡の数値は製品側で記号名として使われ、保存形式、XML、プラグイン、スクリプト、外部識別子に渡らない。9個の同梱`.colors`テーマと利用者テーマは、`Colors:View`などのグループ名と色キーを保存しており、テーマ管理、各画面の配色、拡張機能のエラー表示が読込結果を利用する。全画面種別の背景・前景色、フィードバック・装飾色、境界の明暗を利用結果で検証する。Qt 6では`KF6::ColorScheme`が実装を提供するため、試験は製品ライブラリーと同じ実依存を明示する。
+- 次の作業: 残存Schema試験を利用場面から監査する。次の`SvgTextCursorEnumContractTest.cpp`では、SVGテキストカーソル状態の値が保存形式、画面状態、プラグイン、スクリプト、外部識別子で必要か確認する。R2-G19cの高速検査と対象CTestを再実行する。内部値型と初期化だけの固定は、保存形式や外部連携の根拠がある場合だけ保持する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
   `verify-quick`が成功した。
 - 検証: macOSで`KoDialogContractTest`の構築と`libs-widgets-KoDialogContractTest`のCTestが成功した。
+- 検証: macOSで`KColorSchemeThemeCompatibilityTest`の構築と`libs-widgetutils-KColorSchemeThemeCompatibilityTest`のCTestが成功した。
 
 ## 現在の変更範囲
 

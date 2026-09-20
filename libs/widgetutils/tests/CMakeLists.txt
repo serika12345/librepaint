@@ -206,17 +206,14 @@ target_include_directories(KStandardActionCompatibilityTest PRIVATE
 
 
 kis_add_test(
-    KColorSchemeEnumContractTest.cpp
+    KColorSchemeThemeCompatibilityTest.cpp
     LINK_LIBRARIES
+        kritawidgetutils
         Qt${QT_MAJOR_VERSION}::Test
         Qt${QT_MAJOR_VERSION}::Gui
         KF${KF_MAJOR}::ConfigCore
+        KF${KF_MAJOR}::ColorScheme
 )
-target_include_directories(KColorSchemeEnumContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/../config
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-)
-target_compile_definitions(KColorSchemeEnumContractTest PRIVATE kritawidgetutils_EXPORTS)
 
 kis_add_test(
     KoCheckerBoardPainterContractTest.cpp
