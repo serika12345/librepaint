@@ -17,6 +17,8 @@ class QVariant;
 namespace KisMetaData
 {
 
+class TypeInfo;
+
 struct Rational : public boost::equality_comparable<Rational>
 {
     explicit Rational(qint32 n = 0, qint32 d = 1) : numerator(n), denominator(d) {}
@@ -113,6 +115,9 @@ public:
     bool operator==(const Value&) const;
     Value& operator+=(const Value&);
 private:
+    bool hasValidLanguageArrayEntries() const;
+
+    friend class TypeInfo;
     Private* const d;
 };
 }

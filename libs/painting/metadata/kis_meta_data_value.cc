@@ -256,6 +256,24 @@ bool Value::isArray() const
     return type() == OrderedArray || type() == UnorderedArray || type() == AlternativeArray;
 }
 
+bool Value::hasValidLanguageArrayEntries() const
+{
+    if (type() != LangArray) {
+        return false;
+    }
+
+    for (const Value &entry : *d->value.array) {
+        const auto language = entry.propertyQualifiers().constFind(QStringLiteral("xml:lang"));
+        if (entry.type() != Variant || entry.asVariant().userType() != QMetaType::QString ||
+            language == entry.propertyQualifiers().cend() || language->type() != Variant ||
+            language->asVariant().userType() != QMetaType::QString) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 QMap<QString, KisMetaData::Value> Value::asStructure() const
 {
     if (type() == Structure) {

@@ -228,18 +228,7 @@ bool TypeInfo::hasCorrectType(const Value& value) const
             return false;
         }
     case LangArrayType:
-        if (value.type() == Value::LangArray) {
-            QList< Value > values = value.asArray();
-            Q_FOREACH (const Value& vallang, values) {
-                if (!Private::Text->hasCorrectType(vallang) ||
-                        !Private::Text->hasCorrectType(vallang.propertyQualifiers()["xml:lang"])) {
-                    return false;
-                }
-            }
-            return true;
-        } else {
-            return false;
-        }
+        return value.hasValidLanguageArrayEntries();
     case StructureType:
         if (value.type() == Value::Structure) {
             QMap<QString, KisMetaData::Value> structure = value.asStructure();
