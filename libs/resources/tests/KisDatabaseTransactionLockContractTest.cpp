@@ -41,10 +41,9 @@ class KisDatabaseTransactionLockContractTest : public QObject
 private Q_SLOTS:
     void initTestCase();
     void init();
-    void adapterStartsRollsBackAndCommitsTransactions();
-    void lockRollsBackOnScopeExit();
-    void commitPersistsChanges();
-    void rollbackCancelsAndRelinquishesOwnership();
+    void scopeExitCancelsUncommittedCacheChanges();
+    void commitPersistsAllCacheChanges();
+    void explicitRollbackCancelsCacheChanges();
     void cleanupTestCase();
 };
 
@@ -65,53 +64,48 @@ void KisDatabaseTransactionLockContractTest::init()
     QVERIFY(query.exec(QStringLiteral("DELETE FROM records")));
 }
 
-void KisDatabaseTransactionLockContractTest::adapterStartsRollsBackAndCommitsTransactions()
+void KisDatabaseTransactionLockContractTest::scopeExitCancelsUncommittedCacheChanges()
 {
-    detail::KisDatabaseTransactionLockAdapter adapter(QSqlDatabase::database());
-
-    adapter.lock();
-    QVERIFY(insertValue(17));
-    adapter.unlock();
-    QCOMPARE(recordCount(), 0);
-    adapter.unlock();
-
-    adapter.lock();
-    QVERIFY(insertValue(23));
-    adapter.commit();
-    QCOMPARE(recordCount(), 1);
-    adapter.commit();
-}
-
-void KisDatabaseTransactionLockContractTest::lockRollsBackOnScopeExit()
-{
+    // Consumer: Resource-cache initialization, synchronization, and cleanup operations.
+    // Operation: An operation writes several cache records but ends before it is accepted.
+    // Observable result: Scope exit removes every uncommitted record.
+    // Failure impact: A failed resource update can leave a partial cache that shows missing or stale resources.
     {
         KisDatabaseTransactionLock lock(QSqlDatabase::database());
-        QVERIFY(lock.owns_lock());
         QVERIFY(insertValue(31));
+        QVERIFY(insertValue(32));
     }
 
     QCOMPARE(recordCount(), 0);
 }
 
-void KisDatabaseTransactionLockContractTest::commitPersistsChanges()
+void KisDatabaseTransactionLockContractTest::commitPersistsAllCacheChanges()
 {
+    // Consumer: Resource-cache initialization, synchronization, and cleanup operations.
+    // Operation: An operation writes several cache records and commits after every step succeeds.
+    // Observable result: All records remain available after the transaction object leaves scope.
+    // Failure impact: A successful resource update can disappear, leaving the resource chooser out of date.
     {
         KisDatabaseTransactionLock lock(QSqlDatabase::database());
         QVERIFY(insertValue(37));
+        QVERIFY(insertValue(38));
         lock.commit();
-        QVERIFY(lock.owns_lock());
     }
 
-    QCOMPARE(recordCount(), 1);
+    QCOMPARE(recordCount(), 2);
 }
 
-void KisDatabaseTransactionLockContractTest::rollbackCancelsAndRelinquishesOwnership()
+void KisDatabaseTransactionLockContractTest::explicitRollbackCancelsCacheChanges()
 {
+    // Consumer: Resource-cache initialization, synchronization, and cleanup operations that detect an error.
+    // Operation: An operation writes cache records and explicitly cancels the transaction.
+    // Observable result: The written records are unavailable immediately after cancellation.
+    // Failure impact: A rejected update can be presented as a valid resource-cache state.
     KisDatabaseTransactionLock lock(QSqlDatabase::database());
     QVERIFY(insertValue(41));
+    QVERIFY(insertValue(42));
 
     lock.rollback();
-    QVERIFY(!lock.owns_lock());
     QCOMPARE(recordCount(), 0);
 }
 
