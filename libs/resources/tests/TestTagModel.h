@@ -28,6 +28,7 @@ private Q_SLOTS:
     void testAddEmptyTag();
     void testAddTag();
     void testSetTagActiveInactive();
+    void testStorageFilterShowsDisabledStorageTags();
     void testRenameTag();
     void testChangeTagActive();
 
