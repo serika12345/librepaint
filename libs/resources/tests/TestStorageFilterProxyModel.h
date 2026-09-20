@@ -8,25 +8,12 @@
 
 #include <QObject>
 
-class KisResourceLocator;
-
 class TestStorageFilterProxyModel : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
-    void initTestCase();
-    void testWithTagModelTester();
-    void testFilterByName();
-    void testFilterByType();
-    void testFilterByActive();
-    void cleanupTestCase();
-private:
-
-    QString m_srcLocation;
-    QString m_dstLocation;
-
-    KisResourceLocator *m_locator;
-
+    void filtersStorageRowsForChooser();
+    void updatesVisibleRowsWhenFilterChanges();
 };
 
 #endif

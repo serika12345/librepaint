@@ -34,8 +34,16 @@ KisResourceStorageSP KisStorageFilterProxyModel::storageForIndex(QModelIndex ind
 
 void KisStorageFilterProxyModel::setFilter(KisStorageFilterProxyModel::FilterType filterType, QVariant filter)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+    beginFilterChange();
+#endif
     d->filter = filter;
     d->filterType = filterType;
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+    endFilterChange(QSortFilterProxyModel::Direction::Rows);
+#else
+    invalidateFilter();
+#endif
 }
 
 
@@ -83,5 +91,10 @@ bool KisStorageFilterProxyModel::lessThan(const QModelIndex &source_left, const 
 
 void KisStorageFilterProxyModel::slotModelReset()
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 10, 0)
+    beginFilterChange();
+    endFilterChange(QSortFilterProxyModel::Direction::Rows);
+#else
     invalidateFilter();
+#endif
 }
