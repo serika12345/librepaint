@@ -89,8 +89,11 @@ kis_add_test(
         kritaresourceitemdelegateobjects
         kritaresourcethumbnailpainterobjects
         kritacheckerboardpainterobjects
-        kritaresourcethumbnailcacheobjects
-        kritaresourcestypesobjects
+        kritaresources
+        kritaglobal
+        kritaplugin
+        kritatestsdk
+        KF${KF_MAJOR}::ConfigCore
         Qt${QT_MAJOR_VERSION}::Test
         Qt${QT_MAJOR_VERSION}::Widgets
 )
@@ -101,10 +104,14 @@ target_include_directories(KisResourceItemDelegateContractTest PRIVATE
     ${CMAKE_BINARY_DIR}/libs/widgetutils
     ${CMAKE_SOURCE_DIR}/libs/resources
     ${CMAKE_BINARY_DIR}/libs/resources
+    ${CMAKE_SOURCE_DIR}/libs/resources/tests
+    ${CMAKE_SOURCE_DIR}/libs/koplugin
+    ${CMAKE_BINARY_DIR}/libs/koplugin
     ${CMAKE_SOURCE_DIR}/libs/global
     ${CMAKE_BINARY_DIR}/libs/global
 )
 target_compile_definitions(KisResourceItemDelegateContractTest PRIVATE
+    RESOURCE_TEST_DATA_DIR="${CMAKE_SOURCE_DIR}/libs/resources/tests/data/"
     kritaresourceui_EXPORTS
     kritawidgetutils_EXPORTS
     kritaresources_EXPORTS

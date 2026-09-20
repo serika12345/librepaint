@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 13:58 JST
+- 更新日時: 2026-09-20 14:07 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -93,7 +93,8 @@
 - 完了: `KisResourceItemListViewContractTest.cpp`を、資源選択画面の表示・選択・通知・入力結果へ整理した。資源管理、プリセット、パレットの選択画面は初期サムネイル格子、表示方式と項目寸法の切替、現在の資源を保つ厳密選択、選択・クリック・文脈メニュー通知、運動スクロール中のカーソル表示を利用する。Qtの既定プロパティ、内部resize呼出し、未発火signal、QObject破棄を固定する検証と試験用friendを削除した。サイズ変更signalは資源選択部品に接続されるが、その親部品が自身のresizeで表示更新するため、利用者影響を確認できない通知回数を契約にしない。
 - 完了: `KisResourceItemListWidgetContractTest.cpp`を、バンドル作成画面が観測する複数選択と表示切替へ整理した。選択済みのブラシ・パターンをサムネイル格子で複数選択でき、保存済みのサムネイル／詳細設定を適用しても資源セルの寸法を保つ。`ListViewMode`の整数値は保存せず、資源管理拡張が設定の`0`／`1`を表示方式へ変換するため、列挙値の互換性試験は追加しない。未使用の厳密選択、ツールチップ設定、signal、内部resize、スクロール、QObject所有の検証と試験用friendを削除した。直接オブジェクト構成で常に所有するツールチップ・サムネイル経路をリンクする解決関数と安全アサートの試験実行用定義は、振る舞いを検証せずに維持する。
 - 完了: `KisResourceItemViewContractTest.cpp`を削除した。表形式資源ビューはリポジトリー内で生成、UI登録、signal接続、設定保存、XML、プラグイン、スクリプト、外部識別子として利用されていない。専用試験が固定していた表ヘッダー、列挙値、スクロール方針、signal回数、内部resize、QObject所有、ツールチップ内部文書には、利用者向けまたは互換性の根拠がない。
-- 次の作業: `KisResourceItemDelegateContractTest.cpp`について、資源一覧の実モデル索引と描画結果を用いて、資源選択画面が観測する表示を整理する。
+- 完了: `KisResourceItemDelegateContractTest.cpp`を、資源選択画面とバンドル作成画面が観測するセル寸法、詳細表示のサムネイル配置、選択枠、実資源プレビューへ整理した。バンドル作成ではローカル行の資源型・IDから全体資源モデルの同じ資源を引き、描画結果が直接その全体モデルを描いた結果と一致する。試験内でresolver、ストレージ位置変換、privateキャッシュ挿入、安全アサートを再定義していた検証と、QObject親子破棄の検証を削除した。実資源DB・ローダーの既存フィクスチャを使うため、CTestは`kritaresources`、`kritaglobal`、`kritaplugin`、`kritatestsdk`の実装閉包を直接リンクする。設定保存、XML、プラグイン識別子、スクリプト、外部識別子の互換性要件は確認されなかった。
+- 次の作業: 残る契約試験から、資源選択部品に近い`KisResourceItemChooserSyncContractTest.cpp`の利用側、保存状態、通知結果を確認する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と

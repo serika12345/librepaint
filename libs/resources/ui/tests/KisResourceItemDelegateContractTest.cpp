@@ -5,67 +5,37 @@
 
 #include <KisResourceItemDelegate.h>
 
+#include <KisResourceCacheDb.h>
+#include <KisResourceLocator.h>
 #include <KisResourceModel.h>
-#include <KisResourceModelIndexResolver.h>
-#include <KisResourceThumbnailCache.h>
-#include <KisResourceThumbnailStorageLocation.h>
+#include <KisResourceModelProvider.h>
+#include <KisResourceTypes.h>
+
+#include <ResourceTestHelper.h>
 
 #include <QAbstractListModel>
+#include <QDir>
 #include <QPainter>
-#include <QPersistentModelIndex>
-#include <QPointer>
+#include <QStandardPaths>
 #include <QStyleOptionViewItem>
 #include <QTest>
 
+#include <kconfiggroup.h>
+#include <ksharedconfig.h>
+
 #include <utility>
-
-namespace
-{
-QPersistentModelIndex resolvedResourceIndex;
-QString resolvedResourceType;
-int resolvedResourceId = -1;
-}
-
-QModelIndex KisResourceModelIndexResolver::resourceIndex(const QString &resourceType, int resourceId)
-{
-    resolvedResourceType = resourceType;
-    resolvedResourceId = resourceId;
-    return resolvedResourceIndex;
-}
-
-QString KisResourceThumbnailStorageLocation::makeAbsolute(const QString &storageLocation)
-{
-    return QStringLiteral("/normalized/") + storageLocation;
-}
-
-class KisResourceQueryMapper
-{
-public:
-    static void insert(KisResourceThumbnailCache &cache,
-                       const QPair<QString, QString> &key,
-                       const QImage &image)
-    {
-        cache.insert(key, image);
-    }
-};
-
-void kis_assert_exception(const char *assertion, const char *file, int line)
-{
-    qFatal("unexpected assertion: %s at %s:%d", assertion, file, line);
-}
-
-void kis_safe_assert_recoverable(const char *assertion, const char *file, int line)
-{
-    qFatal("unexpected safe assertion: %s at %s:%d", assertion, file, line);
-}
 
 class DelegateModel : public QAbstractListModel
 {
 public:
-    DelegateModel(QString filename, QImage thumbnail, int resourceId = 1)
+    DelegateModel(QString filename,
+                  QImage thumbnail,
+                  int resourceId = 1,
+                  QString resourceType = QStringLiteral("patterns"))
         : m_filename(std::move(filename))
         , m_thumbnail(std::move(thumbnail))
         , m_resourceId(resourceId)
+        , m_resourceType(std::move(resourceType))
     {
     }
 
@@ -88,7 +58,7 @@ public:
         case Qt::UserRole + KisAbstractResourceModel::Location:
             return QStringLiteral("bundle.asl");
         case Qt::UserRole + KisAbstractResourceModel::ResourceType:
-            return QStringLiteral("patterns");
+            return m_resourceType;
         case Qt::UserRole + KisAbstractResourceModel::Filename:
             return m_filename;
         case Qt::UserRole + KisAbstractResourceModel::Thumbnail:
@@ -102,15 +72,8 @@ private:
     QString m_filename;
     QImage m_thumbnail;
     int m_resourceId;
+    QString m_resourceType;
 };
-
-void seedThumbnail(const QString &filename, const QImage &thumbnail)
-{
-    KisResourceQueryMapper::insert(
-        *KisResourceThumbnailCache::instance(),
-        {QStringLiteral("/normalized/bundle.asl"), QStringLiteral("patterns/") + filename},
-        thumbnail);
-}
 
 QStyleOptionViewItem delegateOption(const QRect &rect)
 {
@@ -139,35 +102,46 @@ class KisResourceItemDelegateContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void init();
-    void followsParentLifetime();
-    void sizeHintUsesDecorationSize();
+    void initTestCase();
+    void cleanupTestCase();
+    void providesRequestedPreviewCellSize();
     void showTextControlsThumbnailLayout();
     void selectionStateReachesThumbnailPainter();
-    void indexConversionUsesResolvedGlobalIndex();
+    void bundlePreviewUsesGlobalResourceThumbnail();
 };
 
-void KisResourceItemDelegateContractTest::init()
+void KisResourceItemDelegateContractTest::initTestCase()
 {
-    resolvedResourceIndex = QPersistentModelIndex();
-    resolvedResourceType.clear();
-    resolvedResourceId = -1;
+    ResourceTestHelper::initTestDb();
+    ResourceTestHelper::createDummyLoaderRegistry();
+
+    const QString sourceLocation = QStringLiteral(RESOURCE_TEST_DATA_DIR);
+    QVERIFY2(QDir(sourceLocation).exists(), sourceLocation.toUtf8());
+
+    const QString destinationLocation = ResourceTestHelper::filesDestDir();
+    ResourceTestHelper::cleanDstLocation(destinationLocation);
+
+    KConfigGroup config(KSharedConfig::openConfig(), "");
+    config.writeEntry(KisResourceLocator::resourceLocationKey, destinationLocation);
+
+    QVERIFY(KisResourceCacheDb::initialize(
+        QStandardPaths::writableLocation(QStandardPaths::AppDataLocation)));
+    QVERIFY(KisResourceLocator::instance()->initialize(sourceLocation) == KisResourceLocator::LocatorError::Ok);
 }
 
-void KisResourceItemDelegateContractTest::followsParentLifetime()
+void KisResourceItemDelegateContractTest::cleanupTestCase()
 {
-    QPointer<KisResourceItemDelegate> delegate;
-    {
-        QObject parent;
-        delegate = new KisResourceItemDelegate(&parent);
-        QCOMPARE(delegate->parent(), &parent);
-    }
-
-    QVERIFY(delegate.isNull());
+    KisResourceModelProvider::testingCloseAllQueries();
+    ResourceTestHelper::rmTestDb();
+    ResourceTestHelper::cleanDstLocation(ResourceTestHelper::filesDestDir());
 }
 
-void KisResourceItemDelegateContractTest::sizeHintUsesDecorationSize()
+void KisResourceItemDelegateContractTest::providesRequestedPreviewCellSize()
 {
+    // Consumer: Resource chooser views arranging preview cells.
+    // Operation: The view asks the delegate for the size of a resource preview.
+    // Observable result: The returned cell size matches the view's requested preview decoration.
+    // Failure impact: Resource previews are clipped or leave inconsistent gaps in chooser grids.
     KisResourceItemDelegate delegate;
     const QStyleOptionViewItem option = delegateOption(QRect(0, 0, 20, 8));
 
@@ -176,56 +150,73 @@ void KisResourceItemDelegateContractTest::sizeHintUsesDecorationSize()
 
 void KisResourceItemDelegateContractTest::showTextControlsThumbnailLayout()
 {
-    QImage thumbnail(2, 2, QImage::Format_ARGB32);
-    thumbnail.fill(Qt::red);
-    seedThumbnail(QStringLiteral("layout.png"), thumbnail);
-    DelegateModel model(QStringLiteral("layout.png"), thumbnail);
+    // Consumer: Resource manager users switching a resource row to its detailed presentation.
+    // Operation: The resource view enables text while painting a preview item.
+    // Observable result: The thumbnail moves from the full cell to the leading preview area.
+    // Failure impact: Resource names and thumbnails overlap, making the selected resource hard to identify.
+    KisAllResourcesModel *resourceModel = KisResourceModelProvider::resourceModel(ResourceType::PaintOpPresets);
+    const QModelIndex resourceIndex = resourceModel->index(0, 0);
+    QVERIFY(resourceIndex.isValid());
+    resourceIndex.data(Qt::UserRole + KisAbstractResourceModel::Thumbnail);
     KisResourceItemDelegate delegate;
     const QStyleOptionViewItem option = delegateOption(QRect(0, 0, 20, 8));
 
-    const QImage imageOnly = paintDelegate(delegate, model.index(0, 0), option);
-    QCOMPARE(imageOnly.pixelColor(10, 4), QColor(Qt::red));
+    const QImage imageOnly = paintDelegate(delegate, resourceIndex, option);
+    QVERIFY(imageOnly.pixelColor(10, 4).alpha() != 0);
 
     delegate.setShowText(true);
-    const QImage withText = paintDelegate(delegate, model.index(0, 0), option);
+    const QImage withText = paintDelegate(delegate, resourceIndex, option);
     QCOMPARE(withText.pixelColor(10, 4).alpha(), 0);
 }
 
 void KisResourceItemDelegateContractTest::selectionStateReachesThumbnailPainter()
 {
-    QImage thumbnail(2, 2, QImage::Format_ARGB32);
-    thumbnail.fill(Qt::red);
-    seedThumbnail(QStringLiteral("selected.png"), thumbnail);
-    DelegateModel model(QStringLiteral("selected.png"), thumbnail);
+    // Consumer: Resource chooser users selecting a resource preview.
+    // Operation: The view paints an item with its selected state.
+    // Observable result: The selection color surrounds the resource thumbnail without replacing its image.
+    // Failure impact: Users cannot distinguish the selected resource from neighboring previews.
+    KisAllResourcesModel *resourceModel = KisResourceModelProvider::resourceModel(ResourceType::PaintOpPresets);
+    const QModelIndex resourceIndex = resourceModel->index(0, 0);
+    QVERIFY(resourceIndex.isValid());
+    resourceIndex.data(Qt::UserRole + KisAbstractResourceModel::Thumbnail);
     KisResourceItemDelegate delegate;
     QStyleOptionViewItem option = delegateOption(QRect(0, 0, 6, 6));
     option.state = QStyle::State_Selected;
 
-    const QImage selected = paintDelegate(delegate, model.index(0, 0), option);
+    const QImage selected = paintDelegate(delegate, resourceIndex, option);
 
     QCOMPARE(selected.pixelColor(0, 0), QColor(Qt::green));
-    QCOMPARE(selected.pixelColor(3, 3), QColor(Qt::red));
+    QVERIFY(selected.pixelColor(3, 3) != QColor(Qt::green));
 }
 
-void KisResourceItemDelegateContractTest::indexConversionUsesResolvedGlobalIndex()
+void KisResourceItemDelegateContractTest::bundlePreviewUsesGlobalResourceThumbnail()
 {
+    // Consumer: Bundle creator users reviewing resources selected from a local list.
+    // Operation: The list paints a local row that identifies an installed resource by type and ID.
+    // Observable result: The row shows the matching installed resource's thumbnail.
+    // Failure impact: The bundle creator displays an unrelated or blank preview for a selected resource.
+    KisAllResourcesModel *globalModel = KisResourceModelProvider::resourceModel(ResourceType::PaintOpPresets);
+    const QModelIndex globalIndex = globalModel->index(0, 0);
+    QVERIFY(globalIndex.isValid());
+
+    const int resourceId = globalIndex.data(Qt::UserRole + KisAbstractResourceModel::Id).toInt();
+    const QString resourceType = globalIndex.data(Qt::UserRole + KisAbstractResourceModel::ResourceType).toString();
+    QVERIFY(resourceId >= 0);
+    QVERIFY(!resourceType.isEmpty());
+    globalIndex.data(Qt::UserRole + KisAbstractResourceModel::Thumbnail);
+
     QImage localThumbnail(2, 2, QImage::Format_ARGB32);
     localThumbnail.fill(Qt::red);
-    DelegateModel localModel(QStringLiteral("local.png"), localThumbnail, 42);
-    QImage globalThumbnail(2, 2, QImage::Format_ARGB32);
-    globalThumbnail.fill(Qt::blue);
-    seedThumbnail(QStringLiteral("global.png"), globalThumbnail);
-    DelegateModel globalModel(QStringLiteral("global.png"), globalThumbnail, 99);
-    resolvedResourceIndex = globalModel.index(0, 0);
+    DelegateModel localModel(QStringLiteral("local.png"), localThumbnail, resourceId, resourceType);
+    KisResourceItemDelegate globalDelegate;
     KisResourceItemDelegate delegate;
     delegate.setNeedIndexConversion(true);
+    const QStyleOptionViewItem option = delegateOption(QRect(0, 0, 6, 6));
 
-    const QImage canvas = paintDelegate(
-        delegate, localModel.index(0, 0), delegateOption(QRect(0, 0, 6, 6)));
+    const QImage expected = paintDelegate(globalDelegate, globalIndex, option);
+    const QImage canvas = paintDelegate(delegate, localModel.index(0, 0), option);
 
-    QCOMPARE(resolvedResourceType, QStringLiteral("patterns"));
-    QCOMPARE(resolvedResourceId, 42);
-    QCOMPARE(canvas.pixelColor(3, 3), QColor(Qt::blue));
+    QCOMPARE(canvas, expected);
 }
 
 QTEST_MAIN(KisResourceItemDelegateContractTest)
