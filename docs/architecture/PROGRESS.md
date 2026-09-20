@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 09:05 JST
+- 更新日時: 2026-09-20 09:08 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -28,7 +28,8 @@
 - 完了: `KoSvgTextPropertiesInterfaceContractTest.cpp`を削除した。試験内の仮想呼出しとsignal順序ではなく、文字範囲選択のsignal、継承プロパティ、span状態、設定・解除の利用者向け結果を`KisTextPropertiesManagerContractTest.cpp`へ統合した。
 - 完了: `KoShapeAnchorEnumContractTest.cpp`を削除した。アンカーの位置・基準・方式の整数値は、保存形式、SVG/XML、設定、プラグイン、スクリプト、外部識別子で利用されていない。製品の利用場面も確認できないため、数値順序を固定する専用CTestを維持せず、代替試験も追加しない。
 - 完了: `KoShapeAnchorContractTest.cpp`を、図形のインライン化による位置遷移、文字位置の借用、配置戦略の置換・破棄という公開状態と寿命の契約へ縮小した。参照同一性、仮想メソッド呼出し、変更できない既定値を固定する検証は削除した。
-- 次の作業: 残存Schema試験を利用場面から監査する。次の`KoShapeEnumContractTest.cpp`では、図形種別の整数値が保存形式、SVG/XML、プラグイン、スクリプト、外部識別子で使われるかを確認する。R2-G19cの高速検査と対象CTestを再実行する。列挙値の固定は、保存形式や外部連携の根拠がある場合だけ保持する。
+- 完了: `KoShapeEnumContractTest.cpp`を削除し、形状プラグインが登録したテンプレートの識別子、表示情報、作成プロパティが形状生成へ渡ることを既存の`TestKoShapeFactory`へ統合した。空初期化と浅いコピーの検証は削除した。
+- 次の作業: 残存Schema試験を利用場面から監査する。次の`KoShapeLoadingContextSchemaContractTest.cpp`では、SVG/XML読込時のコンテキスト状態が形状生成、資源参照、エラー報告で観測できるかを確認する。R2-G19cの高速検査と対象CTestを再実行する。内部保持者と完全型の固定は、保存形式や外部連携の根拠がある場合だけ保持する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
@@ -214,6 +215,10 @@ span選択状態を`KisTextPropertiesManager`へ渡すため、同じ管理者�
 変更手段のない既定値を固定していた。`KoShapeAnchor`のヘッダーが定める公開状態と寿命は、インライン図形の
 文字相対位置、テキスト文書が所有する位置情報の存続、置換された配置戦略の破棄である。この3つを利用者の操作と
 観測できる結果として保持する。
+
+`libs/flake/tests/KoShapeEnumContractTest.cpp`は、`KoShapeTemplate`の空初期化と浅いコピーを固定していた。
+形状プラグインのテンプレートは、識別子、表示名、分類、説明、アイコン、作成プロパティを形状選択と作成へ渡す。
+`TestKoShapeFactory.cpp`は登録後に公開されるテンプレートと、そのプロパティで生成される形状を検証する。
 
 ## 構築と検証
 
