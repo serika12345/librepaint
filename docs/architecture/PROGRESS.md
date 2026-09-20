@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 12:59 JST
+- 更新日時: 2026-09-20 13:03 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -76,7 +76,8 @@
 - 完了: `KoResourceCachePrefixedStorageWrapperContractTest.cpp`は、主ブラシとマスキングブラシが同じ論理キーで輪郭を保存しても、接頭辞付きキャッシュにより別々の値を読むことを実装キャッシュで検証する。偽キャッシュの転送記録、空接頭辞、共有ポインターの寿命は利用者向け契約ではないため削除した。実装キャッシュの安全アサートを使うため、対象にその実装オブジェクトを最小の直接依存として追加した。
 - 完了: `KoResourceCacheStorageContractTest.cpp`は、ブラシ準備が未生成のキャッシュを無効値として扱い、別々のキーの準備済み値を独立して読むことを検証する。同じキーへの重複格納はキャッシュ別名の回復可能なエラーとして報告する。内部マップの条件式、仮想破棄、無効操作後に残る上書き値は利用者向け契約ではないため削除した。
 - 完了: `KoEmbeddedResourceValueContractTest.cpp`を削除した。KPP読込の`KisPaintOpPresetTest`が実際の埋込みリソースを有効なMD5とともに復元し、破損したMD5を除外し、同名で同一・異なる内容のパターンを正しく再利用または分離する。`TestResourceLocator`はリソースの保存・読出しで同じMD5を維持する。署名値型の既定値・比較・デバッグ書式、装置読取位置、単体ハッシュ関数の重複検証は維持しない。
-- 次の作業: `KoResourceLoadResultContractTest.cpp`について、リソース解決の成功・埋込み・失敗を利用者が観測する結果と、値型の内部保持・コピー・書式だけを固定する検証を整理する。
+- 完了: `KoResourceLoadResultContractTest.cpp`を、資源解決の利用結果へ縮小した。ペイントプリセット・フィルターが資源DBから既存依存を解決すると、その型付き資源と署名を使える。ローカルストロークのスナップショットとKRA読込は埋込み資源の内容と署名を取込み、未解決リンクは利用者が復旧できる署名付きの失敗として返る。既存の`KisPaintOpPresetTest`は実KPPの埋込み・未解決・再発見結果を検証する。値型のコピー時の共有所有、代入、診断書式は利用者向け契約ではないため削除した。
+- 次の作業: `KoResourceContractTest.cpp`について、リソースの公開状態・入出力・関連資源の利用結果と、初期値、等値比較、コピー、デバッグ書式などの内部形状だけを固定する検証を整理する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と

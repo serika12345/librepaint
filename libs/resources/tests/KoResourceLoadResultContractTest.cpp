@@ -6,7 +6,6 @@
 #include <KoResource.h>
 #include <KoResourceLoadResult.h>
 
-#include <QDebug>
 #include <QIODevice>
 #include <QTest>
 
@@ -20,8 +19,7 @@ namespace
 class TestResource final : public KoResource
 {
 public:
-    explicit TestResource(bool *destroyed = nullptr)
-        : m_destroyed(destroyed)
+    TestResource()
     {
         setMD5Sum(QStringLiteral("resource-digest"));
         setFilename(QStringLiteral("resource.test"));
@@ -30,16 +28,7 @@ public:
 
     TestResource(const TestResource &rhs)
         : KoResource(rhs)
-        , m_destroyed(nullptr)
-    {
-    }
-
-    ~TestResource() override
-    {
-        if (m_destroyed) {
-            *m_destroyed = true;
-        }
-    }
+    {}
 
     KoResourceSP clone() const override
     {
@@ -60,9 +49,6 @@ public:
     {
         return {QStringLiteral("test-resources"), QStringLiteral("test")};
     }
-
-private:
-    bool *m_destroyed;
 };
 
 KoResourceSignature testSignature()
@@ -74,12 +60,6 @@ KoResourceSignature testSignature()
         QStringLiteral("Pattern"));
 }
 
-QString debugText(const KoResourceLoadResult &result)
-{
-    QString text;
-    QDebug(&text) << result;
-    return text;
-}
 }
 
 class KoResourceLoadResultContractTest : public QObject
@@ -90,12 +70,14 @@ private Q_SLOTS:
     void representsExistingResourceAndTypedAccess();
     void representsEmbeddedResource();
     void representsFailedLink();
-    void copiesAssignsAndReleasesResource();
-    void formatsAllResultTypes();
 };
 
 void KoResourceLoadResultContractTest::representsExistingResourceAndTypedAccess()
 {
+    // Consumer: paint preset and filter resource resolvers.
+    // Operation: Resolve a dependency that is already available in the resource storage.
+    // Observable result: The result identifies an existing resource and exposes the typed resource and its signature.
+    // Failure impact: A saved preset or filter cannot use an installed dependency during painting or document loading.
     QSharedPointer<TestResource> resource(new TestResource);
     KoResourceLoadResult typedResult(resource);
 
@@ -112,6 +94,10 @@ void KoResourceLoadResultContractTest::representsExistingResourceAndTypedAccess(
 
 void KoResourceLoadResultContractTest::representsEmbeddedResource()
 {
+    // Consumer: local stroke snapshot creation and KRA resource import.
+    // Operation: Receive a dependency embedded in a document or preset.
+    // Observable result: The result identifies embedded content and exposes its bytes and resource signature for import.
+    // Failure impact: Embedded brushes, patterns, and filter resources cannot be restored for the document.
     const QByteArray data = QByteArrayLiteral("embedded-data");
     const KoEmbeddedResource embedded(testSignature(), data);
     const KoResourceLoadResult result(embedded);
@@ -125,6 +111,10 @@ void KoResourceLoadResultContractTest::representsEmbeddedResource()
 
 void KoResourceLoadResultContractTest::representsFailedLink()
 {
+    // Consumer: preset loading, document saving, and resource-loading diagnostics.
+    // Operation: Resolve a linked dependency that is unavailable from the resource storage.
+    // Observable result: The result identifies the failed link and preserves its signature for recovery or warning output.
+    // Failure impact: Missing dependencies are mistaken for valid resources or cannot be identified to the user.
     const KoResourceSignature signature = testSignature();
     const KoResourceLoadResult result(signature);
 
@@ -132,40 +122,6 @@ void KoResourceLoadResultContractTest::representsFailedLink()
     QVERIFY(result.resource().isNull());
     QVERIFY(!result.embeddedResource().isValid());
     QCOMPARE(result.signature(), signature);
-}
-
-void KoResourceLoadResultContractTest::copiesAssignsAndReleasesResource()
-{
-    bool destroyed = false;
-    {
-        QSharedPointer<TestResource> resource(new TestResource(&destroyed));
-        KoResourceLoadResult original(resource);
-        KoResourceLoadResult copied(original);
-        KoResourceLoadResult assigned(testSignature());
-        assigned = copied;
-        resource.clear();
-
-        QVERIFY(!destroyed);
-        QCOMPARE(copied.resource<TestResource>(), original.resource<TestResource>());
-        QCOMPARE(assigned.resource<TestResource>(), original.resource<TestResource>());
-    }
-    QVERIFY(destroyed);
-}
-
-void KoResourceLoadResultContractTest::formatsAllResultTypes()
-{
-    QSharedPointer<TestResource> resource(new TestResource);
-    const KoResourceLoadResult existing(resource);
-    const KoEmbeddedResource embedded(testSignature(), QByteArrayLiteral("embedded-data"));
-    const KoResourceLoadResult embeddedResult(embedded);
-    const KoResourceLoadResult failed(testSignature());
-
-    QVERIFY(debugText(existing).startsWith(QStringLiteral("KoResourceLoadResult(ExistingResource:")));
-    QVERIFY(debugText(existing).contains(QStringLiteral("resource.test")));
-    QVERIFY(debugText(embeddedResult).startsWith(QStringLiteral("KoResourceLoadResult(EmbeddedResource:")));
-    QVERIFY(debugText(embeddedResult).contains(QStringLiteral("pattern.pat")));
-    QVERIFY(debugText(failed).startsWith(QStringLiteral("KoResourceLoadResult(FailedLink:")));
-    QVERIFY(debugText(failed).contains(QStringLiteral("pattern.pat")));
 }
 
 QTEST_GUILESS_MAIN(KoResourceLoadResultContractTest)
