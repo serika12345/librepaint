@@ -3,145 +3,116 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_meta_data_entry.h"
 #include "kis_meta_data_merge_strategy.h"
+#include "kis_meta_data_merge_strategy_registry.h"
+#include "kis_meta_data_schema.h"
+#include "kis_meta_data_schema_registry.h"
+#include "kis_meta_data_store.h"
+#include "kis_meta_data_value.h"
 
-#include <QTest>
+#include <QVariant>
 
-#include <memory>
-
-namespace
-{
-class RecordingMergeStrategy final : public KisMetaData::MergeStrategy
-{
-public:
-    explicit RecordingMergeStrategy(int *destructionCount = nullptr)
-        : m_destructionCount(destructionCount)
-    {
-    }
-
-    ~RecordingMergeStrategy() override
-    {
-        if (m_destructionCount) {
-            ++*m_destructionCount;
-        }
-    }
-
-    QString id() const override
-    {
-        ++idCalls;
-        return idValue;
-    }
-
-    QString name() const override
-    {
-        ++nameCalls;
-        return nameValue;
-    }
-
-    QString description() const override
-    {
-        ++descriptionCalls;
-        return descriptionValue;
-    }
-
-    void merge(KisMetaData::Store *destination,
-               QList<const KisMetaData::Store *> sources,
-               QList<double> scores) const override
-    {
-        ++mergeCalls;
-        mergedDestination = destination;
-        mergedSources = sources;
-        mergedScores = scores;
-    }
-
-    QString idValue{QStringLiteral("merge/保持-β")};
-    QString nameValue{QStringLiteral("優先統合・日本語")};
-    QString descriptionValue{QStringLiteral("入力列と重みを順番どおり統合")};
-
-    mutable int idCalls{0};
-    mutable int nameCalls{0};
-    mutable int descriptionCalls{0};
-    mutable int mergeCalls{0};
-    mutable KisMetaData::Store *mergedDestination{nullptr};
-    mutable QList<const KisMetaData::Store *> mergedSources;
-    mutable QList<double> mergedScores;
-
-private:
-    int *m_destructionCount;
-};
+#include <kistest.h>
 
 class KisMetaDataMergeStrategyContractTest : public QObject
 {
     Q_OBJECT
 
 private Q_SLOTS:
-    void identityMethodsDispatchUnicodeValues();
-    void mergePreservesPointersOrderDuplicatesAndScores();
-    void baseOwnershipHasVirtualLifetime();
+    void initTestCase();
+    void layerMergeStrategiesResolveConflictingMetadata();
+    void smartLayerMergeWeightsValuesAndCombinesCreators();
+
+private:
+    const KisMetaData::Schema *m_xmpSchema {nullptr};
+    const KisMetaData::Schema *m_dublinCoreSchema {nullptr};
 };
 
-void KisMetaDataMergeStrategyContractTest::identityMethodsDispatchUnicodeValues()
+void KisMetaDataMergeStrategyContractTest::initTestCase()
 {
-
-    RecordingMergeStrategy strategy;
-    const KisMetaData::MergeStrategy &interface = strategy;
-
-    QCOMPARE(interface.id(), QStringLiteral("merge/保持-β"));
-    QCOMPARE(interface.name(), QStringLiteral("優先統合・日本語"));
-    QCOMPARE(interface.description(), QStringLiteral("入力列と重みを順番どおり統合"));
-    QCOMPARE(strategy.idCalls, 1);
-    QCOMPARE(strategy.nameCalls, 1);
-    QCOMPARE(strategy.descriptionCalls, 1);
-
-    strategy.idValue = QStringLiteral("merge/変更-γ");
-    strategy.nameValue = QStringLiteral("別名");
-    strategy.descriptionValue = QStringLiteral("別説明");
-
-    QCOMPARE(interface.id(), QStringLiteral("merge/変更-γ"));
-    QCOMPARE(interface.name(), QStringLiteral("別名"));
-    QCOMPARE(interface.description(), QStringLiteral("別説明"));
-    QCOMPARE(strategy.idCalls, 2);
-    QCOMPARE(strategy.nameCalls, 2);
-    QCOMPARE(strategy.descriptionCalls, 2);
+    m_xmpSchema = KisMetaData::SchemaRegistry::instance()->schemaFromUri(KisMetaData::Schema::XMPSchemaUri);
+    m_dublinCoreSchema = KisMetaData::SchemaRegistry::instance()->schemaFromUri(KisMetaData::Schema::DublinCoreSchemaUri);
+    QVERIFY(m_xmpSchema);
+    QVERIFY(m_dublinCoreSchema);
 }
 
-void KisMetaDataMergeStrategyContractTest::mergePreservesPointersOrderDuplicatesAndScores()
+void KisMetaDataMergeStrategyContractTest::layerMergeStrategiesResolveConflictingMetadata()
 {
-    char destinationToken = 0;
-    char firstSourceToken = 0;
-    char secondSourceToken = 0;
-    auto *destination = reinterpret_cast<KisMetaData::Store *>(&destinationToken);
-    const auto *firstSource = reinterpret_cast<const KisMetaData::Store *>(&firstSourceToken);
-    const auto *secondSource = reinterpret_cast<const KisMetaData::Store *>(&secondSourceToken);
-    const QList<const KisMetaData::Store *> sources{firstSource, secondSource, firstSource};
-    const QList<double> scores{0.625, 0.125, 0.25};
+    // Consumer: people merging paint layers in the Layers docker.
+    // Operation: merge two layers using the drop, priority-to-first, and only-identical metadata strategies.
+    // Observable result: the merged layer respectively keeps no metadata, prefers the bottom layer, or retains only shared values.
+    // Failure impact: merging layers discards wanted metadata or retains conflicting metadata without the user's selected rule.
+    KisMetaData::Store bottomLayer;
+    KisMetaData::Store topLayer;
+    QVERIFY(bottomLayer.addEntry({m_xmpSchema, QStringLiteral("Label"), KisMetaData::Value(QStringLiteral("bottom"))}));
+    QVERIFY(bottomLayer.addEntry({m_xmpSchema, QStringLiteral("Nickname"), KisMetaData::Value(QStringLiteral("bottom-only"))}));
+    QVERIFY(topLayer.addEntry({m_xmpSchema, QStringLiteral("Label"), KisMetaData::Value(QStringLiteral("top"))}));
+    QVERIFY(topLayer.addEntry({m_xmpSchema, QStringLiteral("Nickname"), KisMetaData::Value(QStringLiteral("top-only"))}));
 
-    RecordingMergeStrategy strategy;
-    const KisMetaData::MergeStrategy &interface = strategy;
+    const QList<const KisMetaData::Store *> sources{&bottomLayer, &topLayer};
+    const QList<double> scores{0.5, 0.5};
+    KisMetaData::MergeStrategyRegistry *const strategies = KisMetaData::MergeStrategyRegistry::instance();
 
-    interface.merge(destination, sources, scores);
+    KisMetaData::Store dropped;
+    const KisMetaData::MergeStrategy *const drop = strategies->get(QStringLiteral("Drop"));
+    QVERIFY(drop);
+    drop->merge(&dropped, sources, scores);
+    QVERIFY(dropped.isEmpty());
 
-    QCOMPARE(strategy.mergeCalls, 1);
-    QCOMPARE(strategy.mergedDestination, destination);
-    QCOMPARE(strategy.mergedSources, sources);
-    QCOMPARE(strategy.mergedSources.at(0), firstSource);
-    QCOMPARE(strategy.mergedSources.at(1), secondSource);
-    QCOMPARE(strategy.mergedSources.at(2), firstSource);
-    QCOMPARE(strategy.mergedScores, scores);
+    KisMetaData::Store priorityToFirst;
+    const KisMetaData::MergeStrategy *const priority = strategies->get(QStringLiteral("PriorityToFirst"));
+    QVERIFY(priority);
+    priority->merge(&priorityToFirst, sources, scores);
+    QCOMPARE(priorityToFirst.getValue(m_xmpSchema->uri(), QStringLiteral("Label")).asVariant(), QVariant(QStringLiteral("bottom")));
+    QCOMPARE(priorityToFirst.getValue(m_xmpSchema->uri(), QStringLiteral("Nickname")).asVariant(),
+             QVariant(QStringLiteral("bottom-only")));
+
+    topLayer.getEntry(m_xmpSchema, QStringLiteral("Label")).value() = KisMetaData::Value(QStringLiteral("bottom"));
+    KisMetaData::Store onlyIdentical;
+    const KisMetaData::MergeStrategy *const identical = strategies->get(QStringLiteral("OnlyIdentical"));
+    QVERIFY(identical);
+    identical->merge(&onlyIdentical, sources, scores);
+    QVERIFY(onlyIdentical.containsEntry(m_xmpSchema, QStringLiteral("Label")));
+    QVERIFY(!onlyIdentical.containsEntry(m_xmpSchema, QStringLiteral("Nickname")));
 }
 
-void KisMetaDataMergeStrategyContractTest::baseOwnershipHasVirtualLifetime()
+void KisMetaDataMergeStrategyContractTest::smartLayerMergeWeightsValuesAndCombinesCreators()
 {
-    int destructionCount = 0;
-    {
-        std::unique_ptr<KisMetaData::MergeStrategy> strategy =
-            std::make_unique<RecordingMergeStrategy>(&destructionCount);
-        QCOMPARE(destructionCount, 0);
-    }
-    QCOMPARE(destructionCount, 1);
-}
-} // namespace
+    // Consumer: people merging paint layers with the Smart metadata strategy.
+    // Operation: merge two layers with conflicting labels and ratings and different creator lists.
+    // Observable result: the higher-weight label wins, the rating is weighted, and both creator lists remain available.
+    // Failure impact: a merged document presents the wrong metadata rating, loses authors, or chooses the wrong layer label.
+    KisMetaData::Store backgroundLayer;
+    KisMetaData::Store foregroundLayer;
+    QVERIFY(backgroundLayer.addEntry({m_xmpSchema, QStringLiteral("Label"), KisMetaData::Value(QStringLiteral("background"))}));
+    QVERIFY(backgroundLayer.addEntry({m_xmpSchema, QStringLiteral("Rating"), KisMetaData::Value(2)}));
+    QVERIFY(backgroundLayer.addEntry(
+        {m_dublinCoreSchema,
+         QStringLiteral("creator"),
+         KisMetaData::Value(QList<KisMetaData::Value>{KisMetaData::Value(QStringLiteral("Ada"))},
+                            KisMetaData::Value::OrderedArray)}));
+    QVERIFY(foregroundLayer.addEntry({m_xmpSchema, QStringLiteral("Label"), KisMetaData::Value(QStringLiteral("foreground"))}));
+    QVERIFY(foregroundLayer.addEntry({m_xmpSchema, QStringLiteral("Rating"), KisMetaData::Value(4)}));
+    QVERIFY(foregroundLayer.addEntry(
+        {m_dublinCoreSchema,
+         QStringLiteral("creator"),
+         KisMetaData::Value(QList<KisMetaData::Value>{KisMetaData::Value(QStringLiteral("Bea"))},
+                            KisMetaData::Value::OrderedArray)}));
 
-QTEST_GUILESS_MAIN(KisMetaDataMergeStrategyContractTest)
+    KisMetaData::Store merged;
+    const KisMetaData::MergeStrategy *const smart = KisMetaData::MergeStrategyRegistry::instance()->get(QStringLiteral("Smart"));
+    QVERIFY(smart);
+    smart->merge(&merged, {&backgroundLayer, &foregroundLayer}, {0.25, 0.75});
+
+    QCOMPARE(merged.getValue(m_xmpSchema->uri(), QStringLiteral("Label")).asVariant(), QVariant(QStringLiteral("foreground")));
+    QCOMPARE(merged.getValue(m_xmpSchema->uri(), QStringLiteral("Rating")).asVariant(), QVariant(3));
+    const QList<KisMetaData::Value> creators = merged.getValue(m_dublinCoreSchema->uri(), QStringLiteral("creator")).asArray();
+    QCOMPARE(creators.size(), 2);
+    QVERIFY(creators.contains(KisMetaData::Value(QStringLiteral("Ada"))));
+    QVERIFY(creators.contains(KisMetaData::Value(QStringLiteral("Bea"))));
+}
+
+KISTEST_MAIN(KisMetaDataMergeStrategyContractTest)
 
 #include "KisMetaDataMergeStrategyContractTest.moc"

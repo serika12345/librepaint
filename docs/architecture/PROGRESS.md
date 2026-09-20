@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 12:10 JST
+- 更新日時: 2026-09-20 12:15 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -60,7 +60,8 @@
 - 完了: `kis_meta_data_test.cpp`を、メタデータストアの追加・重複拒否・遅延作成・複製・削除と、検証器が未知項目、型不正、閉じた選択肢の値不正を区別して報告する利用結果へ縮小した。旧試験の値型初期化・等値・コピー、私有`TypeInfo`ファクトリー、型情報キャッシュ、スキーマ内部構造は利用者向け保証を持たず、専用補助ヘッダーとともに削除した。XMP読込が利用する解析結果は`KisMetaDataTypeInfoContractTest`へ統合した。外部の`Document::exportImage()`が指定する`Anonymizer`フィルターIDは`KisMetaDataAnonymizerCompatibilityTest.cpp`で明示的に維持し、Dublin CoreとPhotoshopの全個人情報項目を実ストアから除去することを検証する。製品側以外に`Parser`を実装する利用者は確認できないため、仮想呼出しと破棄だけを確認する`KisMetaDataParserContractTest.cpp`と専用CTestを削除した。
 - 完了: `KisMetaDataTagsContractTest.cpp`を削除した。EXIF、RAW、TIFFの読込実装は一部のタグ番号で形式固有の変換・除外を選ぶが、専用試験は利用されないタグを含む表全件の数値だけを固定していた。`KisExifTest`を通常のmacOS/Linux CTestにし、実カメラ画像からTIFF/EXIF値、日時、OECF、CFAパターンを復元する結果と、不正なOECF/CFAデータを拒否して他のメタデータを保持する結果を検証する。動的に読み込む`kritaexif`をCTest対象の直接構築依存にし、実行に必要な資源初期化を`KISTEST_MAIN`へ移した。EXIF日時タグは文字列のまま読込まれて日時スキーマの検証に失敗していたため、標準日時文字列を`QDateTime`として復元するよう修正した。Windowsの既知の未対応状態はbroken testとして明示する。
 - 完了: `KisMetaDataIOBackendContractTest.cpp`を削除した。専用試験のバックエンドは実際のプラグインを使わず、`BackendType`と`HeaderType`の数値、仮想呼出し、生ポインターの転送、仮想破棄だけを固定していた。EXIF、XMP、IPTCは同梱プラグインとして登録され、画像・KRAの入出力利用者が各形式の保存・読込結果を使う。共通インターフェースの形状そのものに保存形式、外部拡張、スクリプトの互換性根拠は確認できず、EXIFの実保存・読込結果は`KisExifTest`で保護されるため、根拠のない代替試験は追加しない。
-- 次の作業: `KisMetaDataMergeStrategyContractTest.cpp`を調べ、統合日時・信頼度・競合結果がメタデータ利用者へ観測されるかを確認し、構造だけを固定する検証を実ストアの統合結果へ置換または削除する。
+- 完了: `KisMetaDataMergeStrategyContractTest.cpp`を、レイヤー統合の実ストア結果へ置き換えた。Layers dockerが選ぶ削除、先頭優先、一致のみ、Smartの各戦略は、メタデータを残さない、下側レイヤーを優先する、同値の項目だけを残す、重みの高い値・加重レーティング・作成者一覧を統合する結果を利用者へ示す。偽戦略のID・説明文・ポインター・呼出し回数・破棄の検査を削除し、製品ライブラリーへ直接リンクした。`OnlyIdenticalMergeStrategy`が各ソースの値ではなく最初の値だけを比較して競合値を残していた不具合を修正した。
+- 次の作業: `KisAsynchronousStrokeUpdateHelperContractTest.cpp`のストローク更新について、移動、変形、フリーハンド、図形入力が観測する更新・完了・取消結果を確認し、ジョブ種別、複製、寿命、内部スロットの固定を利用結果へ整理する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と

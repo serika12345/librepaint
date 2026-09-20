@@ -19,10 +19,15 @@ target_include_directories(KisMetaDataAnonymizerCompatibilityTest PRIVATE
 kis_add_test(
     KisMetaDataMergeStrategyContractTest.cpp
     LINK_LIBRARIES
-        kritapaintingmetadatamergestrategyobjects
+        kritapaintingmetadata
+        kritatestsdk
+        Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Test
 )
-target_compile_definitions(KisMetaDataMergeStrategyContractTest PRIVATE kritapaintingmetadata_EXPORTS)
+target_include_directories(KisMetaDataMergeStrategyContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
 
 kis_add_test(
     KisMetaDataValueContractTest.cpp

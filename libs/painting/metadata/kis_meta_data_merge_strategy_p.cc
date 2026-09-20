@@ -130,7 +130,7 @@ void OnlyIdenticalMergeStrategy::merge(Store* dst, QList<const Store*> srcs, QLi
         const Entry& e = srcs[0]->getEntry(key);
         const Value& v = e.value();
         Q_FOREACH (const Store* store, srcs) {
-            if (!(store->containsEntry(key) && e.value() == v)) {
+            if (!(store->containsEntry(key) && store->getEntry(key).value() == v)) {
                 keep = false;
                 break;
             }
