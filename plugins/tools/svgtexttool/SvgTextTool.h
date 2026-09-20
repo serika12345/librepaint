@@ -11,6 +11,7 @@
 
 #include <KConfigGroup>
 #include <KoToolBase.h>
+#include <QPointF>
 #include <QPointer>
 
 #include <KoSvgTextShapeOutlineHelper.h>

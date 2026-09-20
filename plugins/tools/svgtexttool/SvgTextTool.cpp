@@ -40,6 +40,8 @@
 
 #include <application/ui/orchestration/KisPart.h>
 #include <kis_canvas2.h>
+#include <kis_image.h>
+#include <kis_node.h>
 #include <KSharedConfig>
 #include "kis_assert.h"
 #include <kis_coordinates_converter.h>
@@ -47,6 +49,7 @@
 #include <KoFileDialog.h>
 #include <KoIcon.h>
 #include <KoCanvasBase.h>
+#include <KoSnapGuide.h>
 #include <KoSelection.h>
 #include <KoShapeManager.h>
 #include <KoShapeController.h>

@@ -17,6 +17,20 @@
 #include <tests/MockShapes.h>
 #include <simpletest.h>
 #include <testui.h>
+
+namespace
+{
+class CommandExecutingCanvas final : public MockCanvas
+{
+public:
+    void addCommand(KUndo2Command *command) override
+    {
+        command->redo();
+        delete command;
+    }
+};
+} // namespace
+
 void SvgTextCursorTest::initTestCase()
 {
     QString fileName = QString(FILES_DATA_DIR) + '/' + "DejaVuSans.ttf";
@@ -229,6 +243,35 @@ void SvgTextCursorTest::test_ttb_lr()
 
     cursor.moveCursor(mode);
     QCOMPARE(cursor.getPos(), result);
+}
+
+void SvgTextCursorTest::test_type_setting_baseline_handle()
+{
+    /*
+     * Consumer: SVG text artists choosing a dominant baseline with the Shift-modified type setting handles.
+     * Operation: Selects the ideographic baseline handle on an active text cursor.
+     * Observable result: The selected text receives matching dominant and alignment baseline properties.
+     * Failure impact: Text can remain aligned to the wrong baseline after the artist selects a baseline handle.
+     */
+    KoSvgTextShape textShape;
+    KoSvgTextShapeMarkupConverter converter(&textShape);
+    converter.convertFromSvg(QStringLiteral("<text style=\"font-size:10.0;font-family:Deja Vu Sans\">Baseline</text>"),
+                             QString(), QRectF(0, 0, 300, 300), 72.0);
+
+    CommandExecutingCanvas canvas;
+    SvgTextCursor cursor(&canvas);
+    cursor.setShape(&textShape);
+    cursor.setTypeSettingModeActive(true);
+    cursor.updateModifiers(Qt::ShiftModifier);
+
+    QVERIFY(!cursor.setDominantBaselineFromHandle(SvgTextCursor::NoHandle));
+    QVERIFY(cursor.setDominantBaselineFromHandle(SvgTextCursor::BaselineIdeographic));
+
+    const KoSvgTextProperties properties = textShape.propertiesForPos(textShape.posForIndex(0));
+    QCOMPARE(properties.property(KoSvgTextProperties::DominantBaselineId).toInt(),
+             int(KoSvgText::BaselineIdeographic));
+    QCOMPARE(properties.property(KoSvgTextProperties::AlignmentBaselineId).toInt(),
+             int(KoSvgText::BaselineIdeographic));
 }
 
 void SvgTextCursorTest::test_filter_control_chars_in_command_data()
