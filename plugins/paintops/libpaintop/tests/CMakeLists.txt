@@ -5,6 +5,14 @@ kis_add_tests(KisCurveOptionDataTest.cpp
     LINK_LIBRARIES kritaimage kritalibpaintop kritatestsdk)
 
 kis_add_test(
+    KisStandardOptionDataCompatibilityTest.cpp
+    LINK_LIBRARIES
+        kritaimage
+        kritalibpaintop
+        kritatestsdk
+)
+
+kis_add_test(
     KisCurveOptionModelTest.cpp
     LINK_LIBRARIES
         kritapaintopcurveoptionmodelobjects
@@ -380,18 +388,6 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Test
 )
 
-kis_add_test(
-    KisCurveOptionDataContractTest.cpp
-    LINK_LIBRARIES
-        kritapaintopcurveoptiondataobjects
-        kritapaintopcurveoptiondatacommonobjects
-        kritapaintopkritasensorpackobjects
-        kritapaintopsensordataobjects
-        kritapaintopsensorpackinterfaceobjects
-        kritaglobalidobjects
-        Qt${QT_MAJOR_VERSION}::Test
-)
-
 kis_add_test(KisSizeOptionDataContractTest.cpp LINK_LIBRARIES
     kritapaintopsizeoptiondataobjects kritapaintopcurveoptiondataobjects
     kritapaintopcurveoptiondatacommonobjects kritapaintopkritasensorpackobjects
@@ -418,12 +414,6 @@ kis_add_test(KisScatterOptionDataContractTest.cpp LINK_LIBRARIES kritapaintopsca
 target_compile_definitions(KisScatterOptionDataContractTest PRIVATE kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
 kis_add_test(KisSpacingOptionDataContractTest.cpp LINK_LIBRARIES kritapaintopspacingoptiondataobjects kritapaintopcurveoptiondataobjects kritapaintopcurveoptiondatacommonobjects kritapaintopkritasensorpackobjects kritapaintopsensordataobjects kritapaintopsensorpackinterfaceobjects kritaglobalidobjects Qt${QT_MAJOR_VERSION}::Test)
 target_compile_definitions(KisSpacingOptionDataContractTest PRIVATE kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
-target_compile_definitions(KisCurveOptionDataContractTest PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-    kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
-)
 target_compile_definitions(KisKritaSensorPackContractTest PRIVATE
     kritaglobal_EXPORTS
     kritaimage_EXPORTS
