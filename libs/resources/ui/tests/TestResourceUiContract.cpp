@@ -74,6 +74,8 @@ void TestResourceUiContract::selectsAnInstalledResource()
     const QModelIndex index = model->index(0, 0);
     const KoResourceSP expectedResource = model->resourceForIndex(index);
     QVERIFY(expectedResource);
+    QCOMPARE(index.data(Qt::UserRole + KisAbstractResourceModel::ResourceType).toString(),
+             ResourceType::PaintOpPresets);
 
     QSignalSpy selectedSpy(&chooser, &KisResourceItemChooser::resourceSelected);
     chooser.setCurrentItem(0);

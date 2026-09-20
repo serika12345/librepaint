@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 14:16 JST
+- 更新日時: 2026-09-20 14:19 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -97,7 +97,8 @@
 - 完了: `KisResourceItemChooserSyncContractTest.cpp`を、同期済み資源選択画面の初期プレビュー寸法、利用可能範囲への丸め、画面更新へ渡すsignalの値へ整理した。プリセット、既定ブラシ、ガマットマスクの選択画面はこの値をセル寸法として利用する。singletonの同一アドレスとQObject破棄、同じ値を再設定した時の通知回数は利用者向け契約ではないため削除した。`KisViewManager`は`baseLength`を書き込むが、再読込する利用側、XML、プラグイン識別子、スクリプト、外部識別子の互換性要件は確認されなかった。
 - 完了: `TestResourceUiContract.cpp`を、偽の構築・表示・選択・入力・ボタン部品への内部転送を固定する20件の検証から、実際の資源選択画面の利用結果へ置き換えた。ブラシプリセット選択画面は、可視の実資源を選ぶと同じ資源を返して所有画面へ通知する。同期を有効にした二つの選択画面は、共有プレビュー寸法の変更後に同じセル寸法となる。実資源DB・ローダーと`kritaresourceui`を使う実装閉包へ更新し、列挙値、内部呼出し、偽ポインター、QObject所有、内部設定値を固定する検証を削除した。保存形式、XML、プラグイン識別子、スクリプト、外部識別子の互換性要件は確認されなかった。
 - 完了: `ResourceListViewModesContractTest.cpp`を削除した。資源管理の`ResourceItems*.viewMode`設定は`0`／`1`を格子・詳細表示へ直接変換しており、`ListViewMode`の整数値を保存しない。横ストリップを含む表示切替とセル寸法は`KisResourceItemListViewContractTest`、バンドル作成画面の格子・詳細切替は`KisResourceItemListWidgetContractTest`が利用結果として検証する。列挙順、数値、相違比較だけを固定する専用CTestとCMake定義を維持しない。
-- 次の作業: `KisResourceUiDescriptorContractTest.cpp`の資源型・プレビュー方針が実画面の構築結果として既に保護されているかを確認する。
+- 完了: `KisResourceUiDescriptorContractTest.cpp`を削除した。記述子の型文字列は実際のブラシプリセット選択画面がその型の資源を表示・選択する結果として`TestResourceUiContract`で確認する。プレビュー方針は呼出し側が画面構成へ渡す内部値であり、保存形式、XML、プラグイン識別子、スクリプト、外部識別子の互換性要件は確認されなかった。単なる文字列・真偽値の保持と既定値を固定する専用CTestとCMake定義を維持しない。
+- 次の作業: `KisTagLabelContractTest.cpp`のタグ表示文字列、変更通知、親子所有のうち、資源選択画面で観測される結果を確認する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
