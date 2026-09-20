@@ -6,13 +6,18 @@
 
 #include "KisDabRenderingQueue.h"
 
+#include <algorithm>
+#include <limits>
+
 #include "KisDabRenderingJob.h"
 #include "KisRenderedDab.h"
+#include "kis_fixed_paint_device.h"
 #include "kis_painter.h"
 #include "KisOptimizedByteArray.h"
 
 #include <QMutex>
 #include <QMutexLocker>
+#include <QtAlgorithms>
 #include <KisMpl.h>
 #include <KisRollingMeanAccumulatorWrapper.h>
 

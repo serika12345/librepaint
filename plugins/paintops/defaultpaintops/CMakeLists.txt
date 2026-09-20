@@ -27,12 +27,38 @@ set(kritadefaultpaintops_SOURCES
 ki18n_wrap_ui(kritadefaultpaintops_SOURCES duplicate/wdgduplicateop.ui )
 
 kis_add_library(kritapixelbrush STATIC ${kritapixelbrush_SOURCES})
-target_link_libraries(kritapixelbrush kritapaintopruntime kritapainting)
+target_link_libraries(kritapixelbrush
+    PUBLIC
+        kritaglobal
+        kritaimage
+        kritalibbrush
+        kritapaintopruntime
+        kritapainting
+        kritapigment
+        Qt${QT_MAJOR_VERSION}::Core
+)
 
 kis_add_library(kritadefaultpaintops_static STATIC ${kritadefaultpaintops_SOURCES})
 generate_export_header(kritadefaultpaintops_static BASE_NAME kritadefaultpaintops EXPORT_MACRO_NAME KRITADEFAULTPAINTOPS_EXPORT)
 
-target_link_libraries(kritadefaultpaintops_static kritapixelbrush kritalibpaintop kritapainting)
+target_link_libraries(kritadefaultpaintops_static
+    PUBLIC
+        kritaimage
+        kritalibpaintop
+        kritapainting
+        kritapixelbrush
+        Qt${QT_MAJOR_VERSION}::Core
+    PRIVATE
+        kritaglobal
+        kritalibbrush
+        kritapigment
+        kritawidgets
+        kritawidgetutils
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        Qt${QT_MAJOR_VERSION}::Xml
+        KF${KF_MAJOR}::I18n
+)
 
 kis_add_library(kritadefaultpaintops MODULE defaultpaintops_plugin.cc)
 

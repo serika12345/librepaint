@@ -9,20 +9,22 @@
  */
 
 #include "kis_duplicateop_settings.h"
-#include <KisDuplicateOptionData.h>
 
 #include <QDomElement>
-#include <QDomDocument>
 #include <QPainterPath>
 
-#include <KoPointerEvent.h>
-#include <KoCompositeOpRegistry.h>
+#include <KLocalizedString>
+#include <KoCompositeOpIds.h>
+#include <KoID.h>
 
-#include <kis_image.h>
-#include <kis_brush_option_widget.h>
-#include <kis_paintop_settings_widget.h>
-#include <kis_dom_utils.h>
+#include <KisDuplicateOptionData.h>
 #include <KisOptimizedBrushOutline.h>
+#include <KisPaintOpPresetUpdateProxy.h>
+#include <brushengine/kis_uniform_paintop_property.h>
+#include <kis_dom_utils.h>
+#include <kis_paint_information.h>
+#include <kis_pointer_utils.h>
+#include <kis_properties_configuration.h>
 
 KisDuplicateOpSettings::KisDuplicateOpSettings(KisResourcesInterfaceSP resourcesInterface)
     : KisBrushBasedPaintOpSettings(resourcesInterface),
@@ -178,13 +180,6 @@ KisOptimizedBrushOutline KisDuplicateOpSettings::brushOutline(const KisPaintInfo
 }
 
 
-#include <brushengine/kis_uniform_paintop_property.h>
-#include <qpointer.h>
-#include "KisPaintOpPresetUpdateProxy.h"
-#include "kis_standard_uniform_properties_factory.h"
-#include <KisDuplicateOptionData.h>
-
-
 QList<KisUniformPaintOpPropertySP> KisDuplicateOpSettings::uniformProperties(KisPaintOpSettingsSP settings, QPointer<KisPaintOpPresetUpdateProxy> updateProxy)
 {
     QList<KisUniformPaintOpPropertySP> props =
@@ -241,4 +236,3 @@ QList<KisUniformPaintOpPropertySP> KisDuplicateOpSettings::uniformProperties(Kis
 
     return KisPaintOpSettings::uniformProperties(settings, updateProxy) + props;
 }
-

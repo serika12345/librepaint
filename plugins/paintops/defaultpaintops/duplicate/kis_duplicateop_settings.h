@@ -11,11 +11,19 @@
 #ifndef KIS_DUPLICATEOP_SETTINGS_H_
 #define KIS_DUPLICATEOP_SETTINGS_H_
 
+#include <QList>
 #include <kis_brush_based_paintop_settings.h>
 #include <kis_types.h>
 #include <QPointF>
+#include <QPointer>
+#include <QtGlobal>
+#include <brushengine/kis_uniform_paintop_property.h>
 
+class QDomDocument;
 class QDomElement;
+class KisOptimizedBrushOutline;
+class KisPaintInformation;
+class KisPaintOpPresetUpdateProxy;
 class KisDuplicateOpSettings : public KisBrushBasedPaintOpSettings
 {
 

@@ -2,13 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 18:44 JST
+- 更新日時: 2026-09-20 22:22 JST
 - 状態: `complete`
-- 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理（完了）
-- 関連TODO: R2-G19a・R2-G19b・R2-G19c完了、R2-G19d-a・R2-G19d-b・R2-G19eは`planned`
+- 現在の検査段階: R2-G19f 実装依存の直接化（完了）
+- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f完了、R2-G19d-a・R2-G19d-b・R2-G19eは`planned`
 - ブランチ: `develop`
-- 開始コミット: `bd08b8556f`。宣言形状テストの再発防止検査を導入済み。
-- 目的: 残存するSchema試験を利用場面から判定し、根拠のない列挙値・内部型・役割番号の固定を除去する。意味論があるAPIは利用者が渡す値と観測できる結果で保護する。
+- 開始コミット: `230b736c44585b2482eabeff79b55cd2109af8a1`。R2-G19c完了時点の作業ツリーは変更なし。
+- 目的: 画像ノード、画素ブラシ、複製paint-op、グラデーションツールの実装が、別ヘッダーや別CMake対象の推移的依存から型・記号・リンク対象を得る状態を解消する。既存の利用者向け試験は固定し、実装側の所有者だけを明示する。
+- 範囲固定: `libs/image/kis_node.h`・`libs/image/kis_node.cpp`、`plugins/paintops/defaultpaintops/brush/KisDabRenderingQueue.h`・`KisDabRenderingQueue.cpp`、`plugins/paintops/defaultpaintops/duplicate/kis_duplicateop.h`・`kis_duplicateop.cpp`・`kis_duplicateop_settings.h`・`kis_duplicateop_settings.cpp`、`plugins/tools/basictools/kis_tool_gradient.h`・`kis_tool_gradient.cc`を、各ファイルが使う標準・Qt・製品型の所有ヘッダーへ直接接続する。対応する`kritapixelbrush`、`kritadefaultpaintops_static`、`kritadefaulttools_static`のCMake依存を直接記載する。テストソース、公開動作、保存形式は変更しない。
+- 完了: `kis_node`は`QList`、標準`optional`、型登録、既定境界、レイヤー、ポインター変換、投影更新フラグの所有ヘッダーを直接取り込む。`KisDabRenderingQueue`は標準探索・数値上限、Qt削除補助、固定描画装置、共有型と色空間宣言を直接取り込む。複製paint-opは標準オプション、描画情報、合成ID、均一プロパティ、設定、ポインター変換の所有ヘッダーへ接続し、設定画面経由の取込み、重複取込み、未使用宣言を除去した。グラデーションツールは値型、ツール工場、翻訳、画像signal、既定境界、描画装置、undo表示名の所有ヘッダーへ接続し、数学関数を標準名前空間から使う。
+- 完了: `plugins/paintops/defaultpaintops/CMakeLists.txt`の`kritapixelbrush`と`kritadefaultpaintops_static`は、画像、全体基盤、ブラシ、色、paint-op、描画、Qt、翻訳の利用対象を直接列挙した。`plugins/tools/basictools/CMakeLists.txt`の`kritadefaulttools_static`は、キャンバス、画像、資源、部品、Qt、KDE Frameworksの利用対象を直接列挙した。公開ヘッダーが必要とする依存と実装専用依存を分け、誤っていた資源UI対象名は既存CTestのリンク診断から`kritaresourceui`へ修正した。
+- 検証: `direnv exec . build-incremental native build kritapixelbrush`、`kritadefaultpaintops_static`、`kritadefaulttools_static`は成功し、各回のmacOSパッケージ境界検査は1723対象を確認した。`direnv exec . run-test KisDabRenderingQueueTest`、`kis_node_test`、`MoveSelectionStrokeTest`は各1件成功した。`direnv exec . ./scripts/verify-quick`は45個の方針試験、10責務、533公開ヘッダー、172プラグイン登録、文書・リンク・図を含めて成功した。`direnv exec . ./scripts/verify`はnative CTest 879件を300.89秒で全件成功した。
+- 残るリスク: 実行検証はmacOS・Qt 6.11.1であり、Qt 5、Linux、Windows、Androidの実行確認はR2-G19dへ引き渡す。今回の完了範囲外にある実装ファイルとCMake対象の推移的依存は未監査である。
+- 次の作業: R2-G19dの環境準備と並行できる次の有限な直接依存監査として、`plugins/paintops/libpaintop`の一つのCMake対象を選び、全ソースの所有ヘッダーと直接リンク対象を同じ手順で測定する。
 - 範囲固定: ブラシプリセット設定群は、`plugins/paintops/libpaintop/tests/CMakeLists.txt`で実際の`KisCurveOptionData`・`KisKritaSensorPack`の保存・復元へ直接つながるデータ試験に限定した。`KisCurveOptionDataCommonContractTest.cpp`、`KisCurveOptionDataContractTest.cpp`、`KisKritaSensorPackContractTest.cpp`、`KisSizeOptionDataContractTest.cpp`、`KisMirrorOptionDataContractTest.cpp`、`KisSharpnessOptionDataContractTest.cpp`、`KisScatterOptionDataContractTest.cpp`、`KisSpacingOptionDataContractTest.cpp`、`KisPrefixedOptionDataWrapperContractTest.cpp`の監査を完了した。曲線・標準値・旧センサー・ミラー・シャープネス・散布・間隔の保存結果は既存または新設の実設定試験へ維持・統合し、構築既定値、内部ポインター、演算の写し、偽の設定ストアだけを固定する試験は削除した。`KisAirbrushOptionDataContractTest.cpp`、`KisColorOptionDataContractTest.cpp`、`KisColorSourceOptionDataContractTest.cpp`、`KisCompositeOpOptionDataContractTest.cpp`、`KisPaintingModeOptionDataContractTest.cpp`、`KisFilterOptionDataContractTest.cpp`は共通曲線・センサー保存経路を共有しないため、所有実装を変更するときに監査する後続対象とする。
 - 完了: 意味論を持たないSchema試験8件を削除した。角度選択APIは列挙値の順序からスクリプト文字列変換を分離した。ガイドと格子の設定は線種から描画ペンへの変換とXML往復へ統合し、Qt 6.4以降で色を復元できなかった不具合を修正した。マウスボタンから前景・背景色への対応試験は振る舞いを表す名称へ変更した。契約試験への型特性、コンパイル時形状検査、完全署名別名の再追加を拒否し、明示的な互換性試験には利用者と維持対象の記載を要求する高速検査を追加した。
 - 完了: `KisToolSelectUiBaseSchemaContractTest.cpp`は、選択ツールの利用側が列挙値の整数値へ依存せず、設定は`sampleAllLayers`などの文字列で保存され、既存の`TestToolSettingsUiContract`が設定の往復結果を検証していることを確認した。利用者向け結果を持たない専用Schema試験と、その専用CTest・広いinclude・compile definition・UI生成定義を削除した。

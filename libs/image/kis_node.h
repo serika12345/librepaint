@@ -14,6 +14,7 @@
 
 #include "kritaimage_export.h"
 
+#include <QList>
 #include <QVector>
 
 class QRect;
