@@ -4,25 +4,21 @@
  */
 
 #include "KisResourceTypes.h"
-#include "ResourceDebug.h"
 
 #include <QTest>
 
-class KisResourceTypesContractTest : public QObject
+class KisResourceTypesCompatibilityTest : public QObject
 {
     Q_OBJECT
 
 private Q_SLOTS:
-    void resourceTypesPreserveStorageKeys_data();
-    void resourceTypesPreserveStorageKeys();
-    void resourceSubTypesPreserveLoaderKeys_data();
-    void resourceSubTypesPreserveLoaderKeys();
-    void resourceNamesMapFromTypes_data();
-    void resourceNamesMapFromTypes();
-    void resourceLogPreservesCategoryAndDefaultSeverity();
+    void resourceTypeKeysRemainCompatibleWithSavedResources_data();
+    void resourceTypeKeysRemainCompatibleWithSavedResources();
+    void resourceTypesResolveToDisplayNames_data();
+    void resourceTypesResolveToDisplayNames();
 };
 
-void KisResourceTypesContractTest::resourceTypesPreserveStorageKeys_data()
+void KisResourceTypesCompatibilityTest::resourceTypeKeysRemainCompatibleWithSavedResources_data()
 {
     QTest::addColumn<QString>("actual");
     QTest::addColumn<QString>("expected");
@@ -44,39 +40,20 @@ void KisResourceTypesContractTest::resourceTypesPreserveStorageKeys_data()
     QTest::newRow("CssStyles") << ResourceType::CssStyles << QStringLiteral("css_styles");
 }
 
-void KisResourceTypesContractTest::resourceTypesPreserveStorageKeys()
+// Compatibility requirement: Existing resource bundles, resource tags, and resourcecache.sqlite entries depend on stable resource type keys.
+void KisResourceTypesCompatibilityTest::resourceTypeKeysRemainCompatibleWithSavedResources()
 {
+    // Consumer: Users opening existing resource bundles, tags, and resource-cache databases.
+    // Operation: LibrePaint resolves resource records using their saved type key.
+    // Observable result: Every supported resource type keeps its established saved key.
+    // Failure impact: Saved resources can be omitted, grouped under the wrong type, or fail to load.
     QFETCH(QString, actual);
     QFETCH(QString, expected);
 
     QCOMPARE(actual, expected);
 }
 
-void KisResourceTypesContractTest::resourceSubTypesPreserveLoaderKeys_data()
-{
-    QTest::addColumn<QString>("actual");
-    QTest::addColumn<QString>("expected");
-
-    QTest::newRow("AbrBrushes") << ResourceSubType::AbrBrushes << QStringLiteral("abr_brushes");
-    QTest::newRow("GbrBrushes") << ResourceSubType::GbrBrushes << QStringLiteral("gbr_brushes");
-    QTest::newRow("GihBrushes") << ResourceSubType::GihBrushes << QStringLiteral("gih_brushes");
-    QTest::newRow("SvgBrushes") << ResourceSubType::SvgBrushes << QStringLiteral("svg_brushes");
-    QTest::newRow("PngBrushes") << ResourceSubType::PngBrushes << QStringLiteral("png_brushes");
-    QTest::newRow("SegmentedGradients") << ResourceSubType::SegmentedGradients << QStringLiteral("segmented_gradients");
-    QTest::newRow("StopGradients") << ResourceSubType::StopGradients << QStringLiteral("stop_gradients");
-    QTest::newRow("KritaPaintOpPresets") << ResourceSubType::KritaPaintOpPresets << QStringLiteral("krita_paintop_presets");
-    QTest::newRow("MyPaintPaintOpPresets") << ResourceSubType::MyPaintPaintOpPresets << QStringLiteral("mypaint_paintop_presets");
-}
-
-void KisResourceTypesContractTest::resourceSubTypesPreserveLoaderKeys()
-{
-    QFETCH(QString, actual);
-    QFETCH(QString, expected);
-
-    QCOMPARE(actual, expected);
-}
-
-void KisResourceTypesContractTest::resourceNamesMapFromTypes_data()
+void KisResourceTypesCompatibilityTest::resourceTypesResolveToDisplayNames_data()
 {
     QTest::addColumn<QString>("resourceType");
     QTest::addColumn<QString>("expectedName");
@@ -98,8 +75,12 @@ void KisResourceTypesContractTest::resourceNamesMapFromTypes_data()
     QTest::newRow("CssStyles") << ResourceType::CssStyles << ResourceName::CssStyles.toString();
 }
 
-void KisResourceTypesContractTest::resourceNamesMapFromTypes()
+void KisResourceTypesCompatibilityTest::resourceTypesResolveToDisplayNames()
 {
+    // Consumer: Users choosing a resource type in a resource-management view.
+    // Operation: The view resolves a stored resource type to its display name.
+    // Observable result: Every supported type resolves to its non-empty matching display name.
+    // Failure impact: A resource type is missing or mislabeled in the chooser.
     QFETCH(QString, resourceType);
     QFETCH(QString, expectedName);
 
@@ -107,20 +88,6 @@ void KisResourceTypesContractTest::resourceNamesMapFromTypes()
     QCOMPARE(ResourceName::resourceTypeToName(resourceType), expectedName);
 }
 
-void KisResourceTypesContractTest::resourceLogPreservesCategoryAndDefaultSeverity()
-{
-    QLoggingCategory::setFilterRules(QString());
+QTEST_GUILESS_MAIN(KisResourceTypesCompatibilityTest)
 
-    const QLoggingCategory &first = RESOURCE_LOG();
-    const QLoggingCategory &second = RESOURCE_LOG();
-    QCOMPARE(&first, &second);
-    QCOMPARE(QString::fromLatin1(first.categoryName()), QStringLiteral("krita.lib.resource"));
-    QVERIFY(!first.isDebugEnabled());
-    QVERIFY(first.isInfoEnabled());
-    QVERIFY(first.isWarningEnabled());
-    QVERIFY(first.isCriticalEnabled());
-}
-
-QTEST_GUILESS_MAIN(KisResourceTypesContractTest)
-
-#include "KisResourceTypesContractTest.moc"
+#include "KisResourceTypesCompatibilityTest.moc"

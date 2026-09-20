@@ -64,12 +64,12 @@ kis_add_test(
 target_include_directories(KisDirtyStateSaverTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 kis_add_test(
-    KisResourceTypesContractTest.cpp
+    KisResourceTypesCompatibilityTest.cpp
     LINK_LIBRARIES
         kritaresourcestypesobjects
         Qt${QT_MAJOR_VERSION}::Test
 )
-target_compile_definitions(KisResourceTypesContractTest PRIVATE kritaresources_EXPORTS)
+target_compile_definitions(KisResourceTypesCompatibilityTest PRIVATE kritaresources_EXPORTS)
 
 kis_add_test(
     KoResourceBundleManifestContractTest.cpp
