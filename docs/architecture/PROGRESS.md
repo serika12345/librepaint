@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 09:14 JST
+- 更新日時: 2026-09-20 09:17 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19c 利用者から観測できる振る舞いを守るテストへの整理
 - 関連TODO: R2-G19a・R2-G19b完了、R2-G19cテスト整理、R2-G19d対象OS検証
@@ -31,7 +31,8 @@
 - 完了: `KoShapeEnumContractTest.cpp`を削除し、形状プラグインが登録したテンプレートの識別子、表示情報、作成プロパティが形状生成へ渡ることを既存の`TestKoShapeFactory`へ統合した。空初期化と浅いコピーの検証は削除した。
 - 完了: `KoShapeLoadingContextSchemaContractTest.cpp`を削除した。追加属性の値型と登録簿は、製品のSVG/XML読込、設定、プラグイン、スクリプト、外部識別子から参照されていない。文字列保持と比較演算子だけを固定する専用CTestは維持せず、代替試験も追加しない。
 - 完了: `KoShapeSavingContextSchemaContractTest.cpp`を削除した。保存オプションのビット値は、既定値を設定する実装以外で読まれず、SVG/XML、設定、プラグイン、スクリプト、外部識別子に変換されない。整数値とQtフラグ演算だけを固定する専用CTestは維持せず、代替試験も追加しない。
-- 次の作業: 残存Schema試験を利用場面から監査する。次の`KoShapeReorderCommandSchemaContractTest.cpp`では、図形の並べ替えが実際のキャンバス表示、保存、取り消し・再実行で観測できるかを確認する。R2-G19cの高速検査と対象CTestを再実行する。内部のコマンド構造と完全型の固定は、保存形式や外部連携の根拠がある場合だけ保持する。
+- 完了: `KoShapeReorderCommandSchemaContractTest.cpp`を削除した。既存の`TestShapeReorderCommand`が、前後移動、最前面・最背面、子図形、重なり、変更不能時の結果を実際のz順序で検証している。操作種別の整数値だけを固定する専用CTestは維持しない。
+- 次の作業: 残存Schema試験を利用場面から監査する。次の`KoSnapGuideSchemaContractTest.cpp`では、スナップ補助線の種類と色が実際のキャンバス描画、設定保存、利用者操作で観測できるかを確認する。R2-G19cの高速検査と対象CTestを再実行する。内部値型と初期化だけの固定は、保存形式や外部連携の根拠がある場合だけ保持する。
 - 検証: macOSで`TestAngleSelector`と全依存の構築、ガイド・格子設定試験、色役割試験が成功した。対象試験の反復実行と`verify-quick`も成功した。
 - 再発防止検証: macOSで`KisSignalCompressorContractTest`、`KisBezierPatchContractTest`、
   `KStandardActionCompatibilityTest`の構築とCTestが成功した。新しい検査を含む運用検査45件と
@@ -229,6 +230,10 @@ span選択状態を`KisTextPropertiesManager`へ渡すため、同じ管理者�
 `libs/flake/tests/KoShapeSavingContextSchemaContractTest.cpp`は、保存オプションの整数値とQtフラグ演算を
 固定していた。各オプションは既定値を設定する実装以外から読まれず、保存結果や外部連携へ変換されない。
 SVG/XMLの保存結果は既存の保存試験で保護し、専用試験とCTest定義を削除する。
+
+`libs/flake/tests/KoShapeReorderCommandSchemaContractTest.cpp`は、前後移動・最前面・最背面を表す列挙値の
+整数値を固定していた。既存の`TestShapeReorderCommand.cpp`は、図形選択の並べ替え後に利用者が見るz順序、
+子図形の順序、重なり、変更不能時の結果を検証するため、専用試験と広いCMake定義を削除する。
 
 ## 構築と検証
 
