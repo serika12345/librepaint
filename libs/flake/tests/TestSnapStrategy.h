@@ -176,6 +176,8 @@ class TestSnapStrategy : public QObject
      * @see KoSnapStrategy.h
      */   
     void testSquareDistanceToLine();
+    void snapGuideAppliesEnabledStrategyAndShiftBypass();
+    void snapGuidePrefersPointTargetOverCloserLineTarget();
         
 };
 
