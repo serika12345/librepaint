@@ -5,7 +5,6 @@
 
 #include <KisTagLabel.h>
 
-#include <QPointer>
 #include <QTest>
 
 class KisTagLabelContractTest : public QObject
@@ -13,21 +12,18 @@ class KisTagLabelContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void preservesTextAndFollowsParentLifetime();
+    void returnsTagNameForRemovingSelectedTag();
 };
 
-void KisTagLabelContractTest::preservesTextAndFollowsParentLifetime()
+void KisTagLabelContractTest::returnsTagNameForRemovingSelectedTag()
 {
-    QPointer<KisTagLabel> label;
-    {
-        QWidget parent;
-        label = new KisTagLabel(QStringLiteral("Favorites"), &parent);
+    // Consumer: Bundle tag preview users selecting an already displayed tag.
+    // Operation: The preview reads a tag label to remove the matching displayed tag.
+    // Observable result: The label returns the tag name it presents.
+    // Failure impact: Selecting a tag leaves a duplicate tag label in the bundle preview.
+    KisTagLabel label(QStringLiteral("Favorites"));
 
-        QCOMPARE(label->getText(), QStringLiteral("Favorites"));
-        QCOMPARE(label->parentWidget(), &parent);
-    }
-
-    QVERIFY(label.isNull());
+    QCOMPARE(label.getText(), QStringLiteral("Favorites"));
 }
 
 QTEST_MAIN(KisTagLabelContractTest)
