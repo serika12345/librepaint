@@ -27,6 +27,7 @@ private Q_SLOTS:
     void testResource();
     void testResourceForId();
     void testDocumentStorage();
+    void testTemporaryLayerStyleStoragesDoNotCollide();
     void testLoadResourceMetadataFromStorage();
     void testLoadResourceMetadataFromStorage_data();
 

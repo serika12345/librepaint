@@ -166,20 +166,6 @@ target_include_directories(KisSqlQueryLoaderContractTest PRIVATE
 target_compile_definitions(KisSqlQueryLoaderContractTest PRIVATE kritaresources_EXPORTS)
 
 kis_add_test(
-    KisTemporaryResourceStorageLockContractTest.cpp
-    LINK_LIBRARIES
-        kritatemporaryresourcestoragelockobjects
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_include_directories(KisTemporaryResourceStorageLockContractTest PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/..
-    ${CMAKE_CURRENT_BINARY_DIR}/..
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-)
-target_compile_definitions(KisTemporaryResourceStorageLockContractTest PRIVATE kritaresources_EXPORTS)
-
-kis_add_test(
     KoResourceCacheInterfaceContractTest.cpp
     LINK_LIBRARIES
         kritaresourcecacheinterfaceobjects
