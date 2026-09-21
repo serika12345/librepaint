@@ -2,19 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-21 15:20 JST
+- 更新日時: 2026-09-21 15:24 JST
 - 状態: `in_progress`
-- 現在の検査段階: R2-G19aa ミラーオプションデータ依存の直接化
-- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l・R2-G19m・R2-G19n・R2-G19o・R2-G19p・R2-G19q・R2-G19r・R2-G19s・R2-G19t・R2-G19u・R2-G19v・R2-G19w・R2-G19x・R2-G19y・R2-G19z・R2-G19aa完了、R2-G19e・R2-G19d-a・R2-G19d-bは`planned`
+- 現在の検査段階: R2-G19ab シャープネスオプションデータ依存の直接化
+- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l・R2-G19m・R2-G19n・R2-G19o・R2-G19p・R2-G19q・R2-G19r・R2-G19s・R2-G19t・R2-G19u・R2-G19v・R2-G19w・R2-G19x・R2-G19y・R2-G19z・R2-G19aa・R2-G19ab完了、R2-G19e・R2-G19d-a・R2-G19d-bは`planned`
 - ブランチ: `issue-44-direct-dependencies`
-- 開始コミット: `aa7494171c`。作業開始時点の作業ツリーは変更なし。
-- 目的: ミラーオプションデータの公開複合値型と設定入出力が、文字列、比較補助、ID、翻訳、画像設定、曲線データを推移的取込みから得る状態を解消し、保存済みブラシプリセットのミラー設定互換性を維持する。
-- 範囲固定: `KisMirrorOptionData.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopmirroroptiondataobjects`に限定する。既存テストソース、公開API、設定キー、既定値、接頭辞、保存結果を維持する。
-- 調査: 変更前のNinja command closureは1件、File API直接構築依存は曲線データ、共通曲線データ、Kritaセンサーパックの3対象であった。初回`misc-include-cleaner`はQStringと画像設定型の直接取込み不足2件を報告した。
-- 完了: 公開ヘッダーと実装をBoost比較補助、KoID、QString、翻訳、曲線データ、複合値型、接頭辞付き設定、公開記号、画像設定の所有ヘッダーへ直接接続した。対象は公開ヘッダーがインラインで構築・設定委譲するため、画像・色素・全体基盤の取込みと外部型を公開要件として直接宣言した。共通曲線データとセンサーパックの重複直接辺、未使用の全体基盤・画像・色素輸出定義を除去した。
-- 検証: `kritapaintopmirroroptiondataobjects`と`kritalibpaintop`、パッケージ境界1723対象、`KisMirrorOptionDataCompatibilityTest`、`KisCurveOptionDataTest`は成功した。変更後の`misc-include-cleaner`は診断0件である。`verify-quick`は45方針試験、10責務、533公開ヘッダー、172プラグイン登録、文書・リンク・図を含めて成功した。
-- 残るリスク: 実行検証はmacOS・Qt 6.11.1であり、Qt 5、Linux、Windows、Android、iOSはIssue #44の最終プラットフォーム検査で扱う。シャープネス、散布、間隔データ対象は未監査である。
-- 次の作業: R2-G19aaを一変更化し、`kritapaintopsharpnessoptiondataobjects`を次の有限な監査単位として開始する。
+- 開始コミット: `37160438d5`。作業開始時点の作業ツリーは変更なし。
+- 目的: シャープネスオプションデータの公開複合値型、旧設定補正、設定入出力が、文字列、Qt整数型、画像設定、曲線データ、翻訳を推移的取込みから得る状態を解消し、保存済みブラシプリセットの互換性を維持する。
+- 範囲固定: `KisSharpnessOptionData.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopsharpnessoptiondataobjects`に限定する。既存テストソース、公開API、設定キー、既定値、旧`Sharpness/factor`補正と保存結果を維持する。
+- 調査: 変更前のNinja command closureは1件、File API直接構築依存は曲線データ、共通曲線データ、Kritaセンサーパックの3対象であった。初回`misc-include-cleaner`はQString、画像設定、Qt整数型、複合値型、曲線データ、翻訳、共通曲線データの直接取込み不足7件を報告した。
+- 完了: 公開ヘッダーと実装を比較補助、QString、曲線データ、複合値型、接頭辞付き設定、公開記号、共通曲線データ、KoID、Qt整数型、翻訳、画像設定の所有ヘッダーへ直接接続した。公開ヘッダーの設定委譲に必要な画像・色素・全体基盤取込みと外部型を直接宣言し、共通曲線データとセンサーパックの重複直接辺、未使用の輸出定義を除去した。
+- 検証: `kritapaintopsharpnessoptiondataobjects`と`kritalibpaintop`、パッケージ境界1723対象、`KisStandardOptionDataCompatibilityTest`、`KisCurveOptionDataTest`は成功した。変更後の`misc-include-cleaner`は診断0件である。`verify-quick`は45方針試験、10責務、533公開ヘッダー、172プラグイン登録、文書・リンク・図を含めて成功した。
+- 残るリスク: 実行検証はmacOS・Qt 6.11.1であり、Qt 5、Linux、Windows、Android、iOSはIssue #44の最終プラットフォーム検査で扱う。散布、間隔データ対象は未監査である。
+- 次の作業: R2-G19abを一変更化し、`kritapaintopscatteroptiondataobjects`を次の有限な監査単位として開始する。
 - 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
 - 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
 - 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。
