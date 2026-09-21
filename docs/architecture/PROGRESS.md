@@ -2,19 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-21 01:30 JST
+- 更新日時: 2026-09-21 11:35 JST
 - 状態: `complete`
-- 現在の検査段階: R2-G19r 色ソース設定データ依存の直接化（完了）
-- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l・R2-G19m・R2-G19n・R2-G19o・R2-G19p・R2-G19q・R2-G19r完了、R2-G19d-a・R2-G19d-b・R2-G19eは`planned`
+- 現在の検査段階: R2-G19s 合成演算設定データ依存の直接化（完了）
+- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l・R2-G19m・R2-G19n・R2-G19o・R2-G19p・R2-G19q・R2-G19r・R2-G19s完了、R2-G19d-a・R2-G19d-b・R2-G19eは`planned`
 - ブランチ: `issue-44-direct-dependencies`
-- 開始コミット: `37e9a4a65e`。作業開始時点の作業ツリーは変更なし。
-- 目的: 色ソース設定データの公開ID一覧と設定入出力実装が、ID、ベクター、マップ、Qtグローバル静的値、画像設定を推移的取込みから得る状態を解消し、6種の色ソース識別子と保存結果を維持する。
-- 範囲固定: `plugins/paintops/libpaintop/KisColorSourceOptionData.{h,cpp}`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcolorsourceoptiondataobjects`、試験自身の直接構築要件を記録する`plugins/paintops/libpaintop/tests/CMakeLists.txt`を変更する。`KisColorSourceOptionDataContractTest.cpp`は閲覧・実行のみとし、公開API、識別子、設定キー、試験入力と期待値を維持する。
-- 調査: `direnv exec . build-incremental native plan kritapaintopcolorsourceoptiondataobjects`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。Ninja command closureは1件、変更前のFile API直接構築依存は`kritaglobalidobjects`である。`misc-include-cleaner`は`QMap`、`Q_GLOBAL_STATIC`、`QVector`の3診断を報告した。
-- 完了: 公開ヘッダーはIDとベクターを所有ヘッダーから直接得る。実装はローカライズ、ID、画像設定、マップ、グローバル静的値、ベクター別名の前方宣言を直接得る。対象は公開利用要件をグローバルID、Boost、Qt Coreへ固定し、全体基盤、画像、色素、Eigen、Imath、翻訳、Qt Guiをprivateへ分離した。契約試験の直接構築要件をCMakeへ明示し、試験ソースは変更していない。取込み完全性の診断は0件になった。
-- 検証: `direnv exec . build-incremental native build kritapaintopcolorsourceoptiondataobjects`と`kritalibpaintop`、`direnv exec . run-test KisColorSourceOptionDataContractTest`は成功し、macOSパッケージ境界1723対象を確認した。`verify-quick`は文書更新後に実行する。
+- 開始コミット: `94ee9efb5c`。作業開始時点の作業ツリーは変更なし。
+- 目的: 合成演算設定データの公開値型と設定入出力実装が、文字列、合成方式ID、画像設定を推移的取込みから得る状態を解消し、既定の`COMPOSITE_OVER`、消しゴム状態、`CompositeOp`・`EraserMode`設定キーと保存結果を維持する。
+- 範囲固定: `plugins/paintops/libpaintop/KisCompositeOpOptionData.{h,cpp}`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcompositeopoptiondataobjects`、試験自身の直接構築要件を記録する`plugins/paintops/libpaintop/tests/CMakeLists.txt`を変更する。`KisCompositeOpOptionDataContractTest.cpp`は閲覧・実行のみとし、公開API、設定キー、既定値、試験入力と期待値を維持する。
+- 調査: `direnv exec . build-incremental native plan kritapaintopcompositeopoptiondataobjects`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。Ninja command closureは1件、変更前のFile API直接構築依存は空である。`misc-include-cleaner`の初回実行は診断0件である。
+- 完了: 公開ヘッダーは文字列を所有ヘッダーから直接得る。対象は公開利用要件をBoostとQt Coreへ固定し、全体基盤、画像、色素、Eigen、Imath、翻訳、Qt Guiをprivateへ分離した。契約試験の画像設定・外部ライブラリー要件をCMakeへ明示し、試験ソースは変更していない。取込み完全性の診断は0件である。
+- 検証: `direnv exec . build-incremental native build kritapaintopcompositeopoptiondataobjects`と`kritalibpaintop`、`direnv exec . run-test KisCompositeOpOptionDataContractTest`は成功し、macOSパッケージ境界1723対象を確認した。`direnv exec . ./scripts/verify-quick`は方針45件、責務10件、公開ヘッダー533件、プラグイン登録172件、文書検査を含めて成功した。
 - 残るリスク: 契約試験の実設定への統合はR2-G19eが所有する。実行検証はmacOS・Qt 6.11.1であり、他プラットフォームはIssue #44のプラットフォーム監査で扱う。
-- 次の作業: `kritapaintopcompositeopoptiondataobjects`を監査する。
+- 次の作業: `kritapaintoppaintingmodeoptiondataobjects`を監査する。
 - 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
 - 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
 - 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。
