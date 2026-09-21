@@ -12,6 +12,7 @@
 #include <QObject>
 
 #include "KisMirrorOptionData.h"
+#include "kritapaintop_export.h"
 
 class PAINTOP_EXPORT KisMirrorOptionModel : public QObject
 {
