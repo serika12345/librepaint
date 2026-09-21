@@ -17,8 +17,6 @@ set(kritalibpaintop_LIB_SRCS
     KisMirrorOptionWidget.cpp
     KisMirrorOption.cpp
     KisSharpnessOption.cpp
-    KisScatterOptionModel.cpp
-    KisScatterOptionWidget.cpp
     KisScatterOption.cpp
     KisAirbrushOptionData.cpp
     KisAirbrushOptionModel.cpp
@@ -139,7 +137,7 @@ list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     KisFilterOptionModel.cpp
     KisPaintingModeOptionData.cpp
     KisPaintingModeOptionModel.cpp
-    KisScatterOptionModel.cpp
+    KisScatterOptionWidget.cpp
     KisSensorData.cpp
     KisSharpnessOptionWidget.cpp
     KisSpacingOptionWidget.cpp
@@ -1006,7 +1004,6 @@ add_library(kritapaintopoptionmodelobjects OBJECT
     KisColorSourceOptionModel.cpp
     KisCompositeOpOptionModel.cpp
     KisPaintingModeOptionModel.cpp
-    KisScatterOptionModel.cpp
 )
 target_compile_definitions(kritapaintopoptionmodelobjects PRIVATE
     kritalibpaintop_EXPORTS
@@ -1096,6 +1093,37 @@ target_link_libraries(kritapaintopsharpnessoptionwidgetobjects
         kritawidgetutils
 )
 set_target_properties(kritapaintopsharpnessoptionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopscatteroptionwidgetobjects OBJECT
+    KisScatterOptionModel.cpp
+    KisScatterOptionWidget.cpp
+)
+target_compile_definitions(kritapaintopscatteroptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopscatteroptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopscatteroptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcurveoptionwidgetobjects
+        kritapaintopscatteroptiondataobjects
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritawidgetutils
+)
+set_target_properties(kritapaintopscatteroptionwidgetobjects PROPERTIES
     AUTOMOC ON
     POSITION_INDEPENDENT_CODE ON
 )
@@ -1383,6 +1411,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopmirroroptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopoptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopsharpnessoptionwidgetobjects>
+    $<TARGET_OBJECTS:kritapaintopscatteroptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopspacingoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopsensormodelobjects>
     $<TARGET_OBJECTS:kritapaintopsensordataobjects>
