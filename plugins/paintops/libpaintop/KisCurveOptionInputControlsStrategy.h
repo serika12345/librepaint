@@ -7,6 +7,10 @@
 #ifndef KISCURVEOPTIONINPUTCONTROLSSTRATEGY_H
 #define KISCURVEOPTIONINPUTCONTROLSSTRATEGY_H
 
+#include <tuple>
+
+#include <QtCore/qtypes.h>
+
 #include <kritapaintop_export_instance.h>
 
 #include <lager/reader.hpp>

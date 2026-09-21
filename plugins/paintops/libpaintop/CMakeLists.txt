@@ -12,7 +12,6 @@ set(kritalibpaintop_LIB_SRCS
     kis_color_source_option.cpp
     KisCurveOptionDataUniformProperty.cpp
     KisSensorData.cpp
-    KisCurveOptionInputControlsStrategy.cpp
     KisCurveOption.cpp
     KisMultiSensorsSelector.cpp
     KisMultiSensorsModel.cpp
@@ -806,6 +805,36 @@ set_target_properties(kritapaintopcurverangemodelinterfaceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopcurveinputcontrolsobjects OBJECT
+    KisCurveOptionInputControlsStrategy.cpp
+)
+target_compile_definitions(kritapaintopcurveinputcontrolsobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopcurveinputcontrolsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopcurveinputcontrolsobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritapaintopcurvecontrolinterfaceobjects
+        kritapaintopcurverangemodelinterfaceobjects
+        lager
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritaapplicationui
+        kritaglobal
+)
+set_target_properties(kritapaintopcurveinputcontrolsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapaintopcurverangemodelobjects OBJECT
     KisCurveRangeModel.cpp
 )
@@ -1252,6 +1281,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopcoloroptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopcurveoptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopcurvecontrolinterfaceobjects>
+    $<TARGET_OBJECTS:kritapaintopcurveinputcontrolsobjects>
     $<TARGET_OBJECTS:kritapaintopcurverangemodelinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintopcurverangemodelobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptionmodelobjects>
