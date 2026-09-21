@@ -536,15 +536,13 @@ add_library(kritapaintoptexturelodobjects OBJECT
     KisTextureOptionLodLimitations.cpp
 )
 target_compile_definitions(kritapaintoptexturelodobjects PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
     kritalibpaintop_EXPORTS
 )
 target_include_directories(kritapaintoptexturelodobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
@@ -558,8 +556,10 @@ target_include_directories(kritapaintoptexturelodobjects
 )
 target_link_libraries(kritapaintoptexturelodobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
+    PRIVATE
         KF${KF_MAJOR}::I18n
         kritaglobalidobjects
 )

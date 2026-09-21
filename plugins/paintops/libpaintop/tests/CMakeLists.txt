@@ -332,6 +332,24 @@ target_compile_definitions(KisTextureOptionLodContractTest PRIVATE
     kritapigment_EXPORTS
     kritalibpaintop_EXPORTS
 )
+target_include_directories(KisTextureOptionLodContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/image/brushengine
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
+    ${CMAKE_SOURCE_DIR}/libs/resources
+    ${CMAKE_BINARY_DIR}/libs/resources
+)
+target_link_libraries(KisTextureOptionLodContractTest
+    Boost::boost
+    KF${KF_MAJOR}::I18n
+    Qt${QT_MAJOR_VERSION}::Core
+    Qt${QT_MAJOR_VERSION}::Gui
+)
 
 kis_add_test(
     KisCurveControlStrategyInterfacesContractTest.cpp

@@ -1153,6 +1153,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] `KisFilterOptionDataContractTest`が直接読む画像設定の取込み・外部ライブラリー要件を同試験のCMake定義へ明示する。
 - [x] 対象構築、`kritalibpaintop`、既存の`KisFilterOptionDataContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
 
+### R2-G19w テクスチャLOD制約実装依存の直接化
+
+目的は、テクスチャ設定のLOD制約実装が、翻訳、グローバルID、画像・資源ヘッダーを推移的取込みから得る状態を解消し、有効時だけ`texture-pattern`制約を返す即時プレビュー契約を維持することである。
+
+範囲は`plugins/paintops/libpaintop/KisTextureOptionLodLimitations.cpp`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintoptexturelodobjects`、試験自身の直接構築要件を記録する`plugins/paintops/libpaintop/tests/CMakeLists.txt`に固定する。`KisTextureOptionData.h`と既存テストソース、公開データ、制約ID、翻訳済み名称、試験入力と期待値を維持する。
+
+- [x] LOD実装を翻訳とグローバルIDの所有ヘッダーへ直接接続し、対象の公開・実装利用要件を分離する。
+- [x] `KisTextureOptionLodContractTest`が直接読む埋込みテクスチャ、LOD、外部ライブラリー要件を同試験のCMake定義へ明示する。
+- [ ] 対象構築、`kritalibpaintop`、既存の`KisTextureOptionLodContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない
