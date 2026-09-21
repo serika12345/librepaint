@@ -229,6 +229,20 @@ target_compile_definitions(KisFilterOptionDataContractTest PRIVATE
     kritalibpaintop_EXPORTS
     kritapigment_EXPORTS
 )
+target_include_directories(KisFilterOptionDataContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/image
+    ${CMAKE_BINARY_DIR}/libs/image
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+)
+target_link_libraries(KisFilterOptionDataContractTest
+    Eigen3::Eigen
+    ${LINK_OPENEXR_LIB}
+    KF${KF_MAJOR}::I18n
+    Qt${QT_MAJOR_VERSION}::Gui
+)
 
 kis_add_test(
     KisTextureOptionDataValueContractTest.cpp

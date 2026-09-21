@@ -5,8 +5,9 @@
  */
 #include "KisFilterOptionData.h"
 
-#include <kis_paintop_settings.h>
 #include <kis_properties_configuration.h>
+
+#include <QString>
 
 const QString FILTER_ID = "Filter/id";
 const QString FILTER_SMUDGE_MODE = "Filter/smudgeMode";
@@ -37,4 +38,3 @@ QString KisFilterOptionData::filterConfigTag()
 {
     return FILTER_CONFIGURATION;
 }
-

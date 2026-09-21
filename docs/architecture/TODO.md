@@ -1143,6 +1143,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] `KisPrecisionOptionContractTest`が直接読む画像設定の取込み・翻訳・Qt Gui要件を同試験のCMake定義へ明示する。
 - [x] 対象構築、`kritalibpaintop`、既存の`KisPrecisionOptionContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
 
+### R2-G19v フィルター設定データ依存の直接化
+
+目的は、フィルター設定データの公開値型と設定入出力実装が、フィルター登録、paint-op設定、画像設定を推移的取込みから得る状態を解消し、フィルターID、構成文字列、smudge状態、`Filter/*`設定キーと保存結果を維持することである。
+
+範囲は`plugins/paintops/libpaintop/KisFilterOptionData.{h,cpp}`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopfilteroptiondataobjects`、試験自身の直接構築要件を記録する`plugins/paintops/libpaintop/tests/CMakeLists.txt`に固定する。既存テストソース、公開API、設定キー、既定値、Unicode試験入力と期待値を維持する。
+
+- [x] 公開ヘッダーと実装をQStringの所有ヘッダーへ直接接続し、未使用のpaint-op設定・フィルター登録取込みを除去する。
+- [x] `KisFilterOptionDataContractTest`が直接読む画像設定の取込み・外部ライブラリー要件を同試験のCMake定義へ明示する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisFilterOptionDataContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない
