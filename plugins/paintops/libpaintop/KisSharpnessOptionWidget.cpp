@@ -5,18 +5,28 @@
  */
 #include "KisSharpnessOptionWidget.h"
 
+#include <functional>
 
-#include <KisLager.h>
-
-#include <QWidget>
 #include <QCheckBox>
-#include <QLabel>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QVBoxLayout>
+#include <QWidget>
+
+#include <KLocalizedString>
+
 #include <kis_slider_spin_box.h>
+#include <kis_paintop_option.h>
+#include <kis_types.h>
+#include <KisCurveOptionDataCommon.h>
+#include <KisCurveOptionWidget.h>
+#include <KisLager.h>
+#include <KisSharpnessOptionData.h>
 
 #include <KisSharpnessOptionModel.h>
 #include <KisWidgetConnectionUtils.h>
+
+#include <lager/cursor.hpp>
 
 struct KisSharpnessOptionWidget::Private
 {

@@ -16,8 +16,6 @@ set(kritalibpaintop_LIB_SRCS
     KisSpacingOption.cpp
     KisMirrorOptionWidget.cpp
     KisMirrorOption.cpp
-    KisSharpnessOptionModel.cpp
-    KisSharpnessOptionWidget.cpp
     KisSharpnessOption.cpp
     KisScatterOptionModel.cpp
     KisScatterOptionWidget.cpp
@@ -143,7 +141,7 @@ list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     KisPaintingModeOptionModel.cpp
     KisScatterOptionModel.cpp
     KisSensorData.cpp
-    KisSharpnessOptionModel.cpp
+    KisSharpnessOptionWidget.cpp
     KisSpacingOptionWidget.cpp
     KisLightnessStrengthOptionWidget.cpp
     KisSizeOptionWidget.cpp
@@ -1009,7 +1007,6 @@ add_library(kritapaintopoptionmodelobjects OBJECT
     KisCompositeOpOptionModel.cpp
     KisPaintingModeOptionModel.cpp
     KisScatterOptionModel.cpp
-    KisSharpnessOptionModel.cpp
 )
 target_compile_definitions(kritapaintopoptionmodelobjects PRIVATE
     kritalibpaintop_EXPORTS
@@ -1067,6 +1064,38 @@ target_link_libraries(kritapaintopspacingoptionwidgetobjects
         kritawidgetutils
 )
 set_target_properties(kritapaintopspacingoptionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopsharpnessoptionwidgetobjects OBJECT
+    KisSharpnessOptionModel.cpp
+    KisSharpnessOptionWidget.cpp
+)
+target_compile_definitions(kritapaintopsharpnessoptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopsharpnessoptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopsharpnessoptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcurveoptionwidgetobjects
+        kritapaintopsharpnessoptiondataobjects
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritawidgets
+        kritawidgetutils
+)
+set_target_properties(kritapaintopsharpnessoptionwidgetobjects PROPERTIES
     AUTOMOC ON
     POSITION_INDEPENDENT_CODE ON
 )
@@ -1353,6 +1382,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopcurverangemodelobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopoptionmodelobjects>
+    $<TARGET_OBJECTS:kritapaintopsharpnessoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopspacingoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopsensormodelobjects>
     $<TARGET_OBJECTS:kritapaintopsensordataobjects>
