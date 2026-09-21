@@ -1489,7 +1489,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 
 範囲は`plugins/paintops/libpaintop/KisSizeOptionWidget.{h,cpp}`とその直接の所有CMake対象に固定する。サイズ設定、設定画面、プリセット設定、描画結果と既存CTestは維持する。
 
-- [ ] 公開ヘッダーと実装の直接取込み、直接構築・リンク要件、既存のサイズ入力の利用者向け契約を監査する。
+- [x] 公開ヘッダーと実装の直接取込みを監査し、サイズ設定画面を`kritapaintopsizeoptionwidgetobjects`へ移す。曲線設定画面、サイズ設定値、paint-op画面基盤、Lagerを公開利用要件として直接接続し、使わない標準設定と実装専用依存を除去する。MOCは専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 専用画面対象、`kritalibpaintop`、既存のサイズ設定値互換性CTestをmacOSで成功させる。
+
+### R2-G19bf テクスチャ設定画面依存の直接化
+
+目的は、ブラシ設定画面が使うテクスチャ設定と選択画面を、集約ライブラリーの推移的な画面・資源・色依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisTextureOptionWidget.{h,cpp}`、`kis_texture_chooser.{h,cpp}`、`forms/wdgtexturechooser.ui`とその直接の所有CMake対象に固定する。テクスチャ設定、選択画面、プリセット設定、描画結果と既存CTestは維持する。
+
+- [ ] 公開ヘッダーと実装の直接取込み、直接構築・リンク要件、既存のテクスチャ入力の利用者向け契約を監査する。
 
 ### R2-G19av 固定CTestの製品利用要件直接化
 

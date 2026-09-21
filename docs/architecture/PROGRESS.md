@@ -2,19 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-21 19:38 JST
+- 更新日時: 2026-09-21 19:50 JST
 - 状態: `in_progress`
-- 現在の検査段階: R2-G19bd 明度・強度設定画面依存の直接化
-- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l・R2-G19m・R2-G19n・R2-G19o・R2-G19p・R2-G19q・R2-G19r・R2-G19s・R2-G19t・R2-G19u・R2-G19v・R2-G19w・R2-G19x・R2-G19y・R2-G19z・R2-G19aa・R2-G19ab・R2-G19ac・R2-G19ad・R2-G19ae・R2-G19af・R2-G19ag・R2-G19ah・R2-G19ai・R2-G19aj・R2-G19ak・R2-G19al・R2-G19am・R2-G19an・R2-G19ao・R2-G19ap・R2-G19aq・R2-G19ar・R2-G19as・R2-G19at・R2-G19au・R2-G19av・R2-G19aw・R2-G19ax・R2-G19ay・R2-G19az・R2-G19ba・R2-G19bb・R2-G19bc・R2-G19bd完了、R2-G19be・R2-G19d-a・R2-G19d-bは`planned`
+- 現在の検査段階: R2-G19be サイズ設定画面依存の直接化
+- 関連TODO: R2-G19aからR2-G19beまで完了、R2-G19bf・R2-G19d-a・R2-G19d-bは`planned`
 - ブランチ: `issue-44-direct-dependencies`
-- 開始コミット: `b2382a7e3f`。作業開始時点の作業ツリーは変更なし。
-- 目的: 明度・強度設定画面が、同じ構築対象のサイズ設定から偶然得るQt画面部品と標準設定依存を解消する。
-- 範囲固定: `plugins/paintops/libpaintop/KisLightnessStrengthOptionWidget.{h,cpp}`と同ディレクトリーのCMake対象に限定した。明度・強度の選択、設定画面、プリセット設定、描画結果と既存CTestは変更しない。
-- 調査: 公開ヘッダーと実装の`misc-include-cleaner`は開始時点から警告0件だった。一方、画面はサイズ設定と同じ`kritapaintopstandardoptionwidgetobjects`に収容され、サイズ用データと依存を得ていた。
-- 完了: 画面を`kritapaintoplightnessstrengthoptionwidgetobjects`へ移し、Qt Core・Widgets、曲線データと曲線画面、標準設定、Lagerを公開利用要件、翻訳・全体基盤・画像・画面基底型を実装専用依存として明示した。MOCは専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。既存の`KisBrushPresetDynamicsCompatibilityTest`がブラシ設定の動的状態を維持する。
-- 検証: `run-shared-test-env`経由で専用画面対象と`kritalibpaintop`を成功させ、macOSパッケージ境界は1,748対象を確認した。公開ヘッダーと実装の`misc-include-cleaner`は警告0件である。Ninja閉包は専用画面対象1,995工程、最終ライブラリー2,156工程である。既存の`KisBrushPresetDynamicsCompatibilityTest`は1件成功した。`verify-quick`は45件の方針試験、責務・公開契約・テスト契約・統治・文書検査を含めて成功した。
+- 開始コミット: `6eca813098`。作業開始時点の作業ツリーは変更なし。
+- 目的: サイズ設定画面が、役割を表さない標準設定画面対象と推移的な標準設定依存から構築要件を得る状態を解消する。
+- 範囲固定: `plugins/paintops/libpaintop/KisSizeOptionWidget.{h,cpp}`と同ディレクトリーのCMake対象に限定した。サイズ設定、設定画面、プリセット設定、描画結果と既存CTestは維持する。
+- 調査: 公開ヘッダーと実装の`misc-include-cleaner`は開始時点から警告0件だった。一方、唯一の翻訳単位が`kritapaintopstandardoptionwidgetobjects`に残り、使わない標準設定、翻訳、Qt Widgets、全体基盤、画像を利用要件として継承していた。
+- 完了: `KisSizeOptionWidget.cpp`を`kritapaintopsizeoptionwidgetobjects`へ移し、曲線設定画面・サイズ設定値・paint-op画面基盤・Lagerを公開利用要件として直接接続した。使わない標準設定オブジェクトと実装専用依存を除去し、MOCを専用対象で実行した。集約ライブラリーは同じオブジェクトを一度だけ取り込む。サイズ入力、保存形式、LOD結果、公開APIは維持する。
+- 検証: `run-shared-test-env`経由で専用画面対象と`kritalibpaintop`を成功させ、macOSパッケージ境界は1,748対象を確認した。公開ヘッダーと実装の`misc-include-cleaner`は警告0件である。Ninja閉包は専用画面対象1,993工程、最終ライブラリー2,156工程である。既存の`KisStandardOptionDataCompatibilityTest`は1件成功した。
 - 残るリスク: 実行検証はmacOS・Qt 6.11.1に限る。Qt 5、Linux、Windows、Androidの実行確認はR2-G19dで扱う。残る設定画面実装は未監査である。
-- 次の作業: R2-G19beとしてサイズ設定画面を次の有限な監査単位として確定する。R2-G19eは固定テストを変更する項目であり、Issue #44の範囲外に維持する。
+- 次の作業: R2-G19bfとしてテクスチャ設定画面とその選択画面、生成UIの所有対象を次の有限な監査単位として確定する。R2-G19eは固定テストを変更する項目であり、Issue #44の範囲外に維持する。
 - 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
 - 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
 - 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。
