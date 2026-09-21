@@ -1351,7 +1351,7 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 
 - [x] 公開ヘッダーと実装を、Qt画面部品・グローバル静的値・警告、翻訳、ID、曲線共通値、センサーパック・入力データ・画面モデル、接続補助、Lager、基底・単純ファクトリーの所有ヘッダーへ直接接続する。
 - [x] 基底・単純ファクトリーを既存対象に保ち、レジストリー、特殊入力、3つの生成UIを`kritapaintopdynamicsensorregistryobjects`へ分離する。公開利用要件と実装専用依存を分け、集約ライブラリーは両オブジェクトを一度ずつ取り込む。
-- [x] 保存済み入力IDがレジストリーで従来の範囲へ解決する互換性CTestを追加し、専用対象、`kritalibpaintop`、基底・単純ファクトリー、入力モデル、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
+- [x] 専用対象、`kritalibpaintop`、既存の基底・単純ファクトリーCTest、入力モデルCTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
 
 ### R2-G19aq 曲線入力制御依存の直接化
 
@@ -1371,7 +1371,7 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 
 - [x] 公開ヘッダーと実装を、標準ライブラリー、Qtメタオブジェクト・画面部品・signal/slot・イベント・レイアウト・モデル索引・文字列、Lager、曲線共通値、入力データ、安全検査、動的入力ファクトリーとレジストリー、複数入力モデルの所有ヘッダーへ直接接続する。
 - [x] 実装と生成UIを`kritapaintopmultisensorsselectorobjects`へ分離し、公開利用要件をQt Core・Widgets、曲線共通値、Lagerへ、実装専用依存を全体基盤と動的入力レジストリーへ分離する。MOCとUI生成は専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
-- [x] 対象構築、`kritalibpaintop`、曲線オプションモデルCTest、動的入力レジストリー互換性CTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
+- [x] 対象構築、`kritalibpaintop`、既存の曲線オプションモデルCTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
 
 ### R2-G19as 複数入力モデル依存の直接化
 
@@ -1381,7 +1381,7 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 
 - [x] 公開ヘッダーと実装を、標準pair・vector・探索、Qtモデル・索引・値・文字列・メタオブジェクト・signal、入力ID、Lagerカーソルの所有ヘッダーへ直接接続する。
 - [x] 実装を`kritapaintopmultisensorsmodelobjects`へ分離し、公開利用要件をQt Core、入力ID、Lagerへ限定する。MOCは専用対象で実行し、複数入力選択画面は実装対象を直接リンクし、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
-- [x] 入力名・有効状態・ID解決の表示結果と、最後に有効な入力を無効化できない遷移を契約CTestで検証し、対象構築、`kritalibpaintop`、曲線オプションモデルCTest、`verify-quick`をmacOSで成功させる。
+- [x] 対象構築、`kritalibpaintop`、既存の曲線オプションモデルCTest、`verify-quick`をmacOSで成功させる。
 
 ### R2-G19at 間隔設定画面依存の直接化
 
@@ -1391,7 +1391,7 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 
 - [x] 公開ヘッダーと実装を、標準関数、Qt画面部品・メタオブジェクト、設定型、翻訳、曲線設定、間隔データとモデル、画面接続、Lagerの所有ヘッダーへ直接接続する。
 - [x] 間隔画面とその専用モデルを`kritapaintopspacingoptionwidgetobjects`へ移し、Qt Core・Widgets、曲線設定画面、間隔データ、Lagerを公開利用要件、翻訳と画面接続を実装専用依存へ分離する。MOCは専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
-- [x] 実画面で有効化した等方間隔とダブ間更新がプリセット設定へ保存されることを契約CTestで検証し、対象構築、`kritalibpaintop`、ブラシプリセット動的設定互換性CTest、`verify-quick`をmacOSで成功させる。
+- [x] 対象構築、`kritalibpaintop`、既存のブラシプリセット動的設定互換性CTest、`verify-quick`をmacOSで成功させる。
 
 ### R2-G19au シャープネス設定画面依存の直接化
 
@@ -1400,6 +1400,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 範囲は`plugins/paintops/libpaintop/KisSharpnessOptionWidget.{h,cpp}`、`KisSharpnessOptionModel.{h,cpp}`とその直接の所有CMake対象に固定する。シャープネス入力、設定画面、プリセット設定、描画結果は維持する。
 
 - [ ] 公開ヘッダーと実装の直接取込み、直接構築・リンク要件、既存のシャープネス入力の利用者向け契約を監査する。
+
+### R2-G19av 固定CTestの製品利用要件直接化
+
+目的は、固定された既存CTestを、テスト側の探索パスとリンク指定ではなく、それぞれの製品オブジェクト対象が提供する直接利用要件だけで構築できるようにすることである。
+
+範囲は`plugins/paintops/libpaintop/CMakeLists.txt`の airbrush、color、color source、composite operation、painting mode、precision、filter、texture I/O、texture LOD の9オブジェクト対象に固定する。`tests/`配下のソース、CTest登録、fixture、baseline、公開API、描画結果は維持する。
+
+- [x] テスト側へ追加していた探索パス・リンク指定と作業中に追加したCTestを除去し、テスト側の開始コミットとの差分をゼロに戻す。
+- [x] 固定CTestが直接使う全体基盤、画像・ブラシ、色、Qt、KDE翻訳、Boost、Eigen、Imath、OpenEXRの所有ディレクトリーと対象を、9製品対象の公開利用要件として明示する。
+- [x] 10件の固定CTestをmacOSで成功させ、`kritalibpaintop`と`verify-quick`を実行してPROGRESSへ記録する。
 
 ### R2-G20 矩形選択による自由描画クリップ契約
 

@@ -181,11 +181,11 @@ target_include_directories(kritapaintopairbrushoptiondataobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/brushengine>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
 )
@@ -193,7 +193,6 @@ target_link_libraries(kritapaintopairbrushoptiondataobjects
     PUBLIC
         Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
-    PRIVATE
         Eigen3::Eigen
         Imath::ImathConfig
         KF${KF_MAJOR}::I18n
@@ -214,7 +213,6 @@ target_include_directories(kritapaintopcoloroptiondataobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
@@ -226,7 +224,6 @@ target_link_libraries(kritapaintopcoloroptiondataobjects
     PUBLIC
         Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
-    PRIVATE
         Eigen3::Eigen
         Imath::ImathConfig
         KF${KF_MAJOR}::I18n
@@ -247,7 +244,6 @@ target_include_directories(kritapaintopcompositeopoptiondataobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
@@ -259,7 +255,6 @@ target_link_libraries(kritapaintopcompositeopoptiondataobjects
     PUBLIC
         Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
-    PRIVATE
         Eigen3::Eigen
         Imath::ImathConfig
         KF${KF_MAJOR}::I18n
@@ -280,7 +275,6 @@ target_include_directories(kritapaintopcolorsourceoptiondataobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
@@ -293,11 +287,11 @@ target_link_libraries(kritapaintopcolorsourceoptiondataobjects
         kritaglobalidobjects
         Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
-    PRIVATE
         Eigen3::Eigen
         Imath::ImathConfig
-        KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Gui
+    PRIVATE
+        KF${KF_MAJOR}::I18n
 )
 set_target_properties(kritapaintopcolorsourceoptiondataobjects PROPERTIES
     AUTOMOC OFF
@@ -612,7 +606,6 @@ target_include_directories(kritapaintoppaintingmodeoptiondataobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
@@ -623,7 +616,6 @@ target_include_directories(kritapaintoppaintingmodeoptiondataobjects
 target_link_libraries(kritapaintoppaintingmodeoptiondataobjects
     PUBLIC
         Boost::boost
-    PRIVATE
         KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
@@ -645,7 +637,6 @@ target_include_directories(kritapaintopprecisionoptionobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
@@ -657,7 +648,6 @@ target_link_libraries(kritapaintopprecisionoptionobjects
     PUBLIC
         Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
-    PRIVATE
         Eigen3::Eigen
         Imath::ImathConfig
         KF${KF_MAJOR}::I18n
@@ -678,7 +668,6 @@ target_include_directories(kritapaintopfilteroptiondataobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
@@ -690,7 +679,6 @@ target_link_libraries(kritapaintopfilteroptiondataobjects
     PUBLIC
         Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
-    PRIVATE
         KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Gui
         Eigen3::Eigen
@@ -736,7 +724,6 @@ target_include_directories(kritapaintoptexturelodobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
@@ -1096,7 +1083,6 @@ target_include_directories(kritapaintoptextureoptionioobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
@@ -1108,7 +1094,6 @@ target_link_libraries(kritapaintoptextureoptionioobjects
     PUBLIC
         Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
-    PRIVATE
         Eigen3::Eigen
         KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Gui

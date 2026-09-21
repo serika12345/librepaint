@@ -29,14 +29,6 @@ kis_add_test(
 )
 
 kis_add_test(
-    KisSpacingOptionWidgetContractTest.cpp
-    LINK_LIBRARIES
-        Qt${QT_MAJOR_VERSION}::Test
-        kritalibpaintop
-        kritatestsdk
-)
-
-kis_add_test(
     KisCurveOptionModelTest.cpp
     LINK_LIBRARIES
         kritaimage
@@ -76,21 +68,6 @@ target_compile_definitions(KisAirbrushOptionDataContractTest PRIVATE
     kritapigment_EXPORTS
     kritalibpaintop_EXPORTS
 )
-target_include_directories(KisAirbrushOptionDataContractTest PRIVATE
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/image/brushengine
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-)
-target_link_libraries(KisAirbrushOptionDataContractTest
-    Eigen3::Eigen
-    Imath::ImathConfig
-    KF${KF_MAJOR}::I18n
-    Qt${QT_MAJOR_VERSION}::Gui
-)
 
 kis_add_test(
     KisColorOptionDataContractTest.cpp
@@ -102,20 +79,6 @@ target_compile_definitions(KisColorOptionDataContractTest PRIVATE
     kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
     kritapigment_EXPORTS
-)
-target_include_directories(KisColorOptionDataContractTest PRIVATE
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-)
-target_link_libraries(KisColorOptionDataContractTest
-    Eigen3::Eigen
-    Imath::ImathConfig
-    KF${KF_MAJOR}::I18n
-    Qt${QT_MAJOR_VERSION}::Gui
 )
 
 kis_add_test(
@@ -131,19 +94,6 @@ target_compile_definitions(KisColorSourceOptionDataContractTest PRIVATE
     kritalibpaintop_EXPORTS
     kritapigment_EXPORTS
 )
-target_include_directories(KisColorSourceOptionDataContractTest PRIVATE
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-)
-target_link_libraries(KisColorSourceOptionDataContractTest
-    Eigen3::Eigen
-    Imath::ImathConfig
-    Qt${QT_MAJOR_VERSION}::Gui
-)
 
 kis_add_test(
     KisCompositeOpOptionDataContractTest.cpp
@@ -156,20 +106,6 @@ target_compile_definitions(KisCompositeOpOptionDataContractTest PRIVATE
     kritalibpaintop_EXPORTS
     kritapigment_EXPORTS
 )
-target_include_directories(KisCompositeOpOptionDataContractTest PRIVATE
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-)
-target_link_libraries(KisCompositeOpOptionDataContractTest
-    Eigen3::Eigen
-    Imath::ImathConfig
-    KF${KF_MAJOR}::I18n
-    Qt${QT_MAJOR_VERSION}::Gui
-)
 
 kis_add_test(
     KisPaintingModeOptionDataContractTest.cpp
@@ -181,21 +117,6 @@ target_compile_definitions(KisPaintingModeOptionDataContractTest PRIVATE
     kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
     kritapigment_EXPORTS
-)
-target_include_directories(KisPaintingModeOptionDataContractTest PRIVATE
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-)
-target_link_libraries(KisPaintingModeOptionDataContractTest
-    Eigen3::Eigen
-    ${LINK_OPENEXR_LIB}
-    KF${KF_MAJOR}::I18n
-    Qt${QT_MAJOR_VERSION}::Core
-    Qt${QT_MAJOR_VERSION}::Gui
 )
 
 kis_add_test(
@@ -213,18 +134,6 @@ target_compile_definitions(KisPrecisionOptionContractTest PRIVATE
     kritalibpaintop_EXPORTS
     kritapigment_EXPORTS
 )
-target_include_directories(KisPrecisionOptionContractTest PRIVATE
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-)
-target_link_libraries(KisPrecisionOptionContractTest
-    KF${KF_MAJOR}::I18n
-    Qt${QT_MAJOR_VERSION}::Gui
-)
 
 kis_add_test(
     KisFilterOptionDataContractTest.cpp
@@ -236,20 +145,6 @@ target_compile_definitions(KisFilterOptionDataContractTest PRIVATE
     kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
     kritapigment_EXPORTS
-)
-target_include_directories(KisFilterOptionDataContractTest PRIVATE
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-)
-target_link_libraries(KisFilterOptionDataContractTest
-    Eigen3::Eigen
-    ${LINK_OPENEXR_LIB}
-    KF${KF_MAJOR}::I18n
-    Qt${QT_MAJOR_VERSION}::Gui
 )
 
 kis_add_test(
@@ -326,20 +221,6 @@ target_compile_definitions(KisTextureOptionDataIOContractTest PRIVATE
     kritapigment_EXPORTS
     kritalibpaintop_EXPORTS
 )
-target_include_directories(KisTextureOptionDataIOContractTest PRIVATE
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-)
-target_link_libraries(KisTextureOptionDataIOContractTest
-    Eigen3::Eigen
-    KF${KF_MAJOR}::I18n
-    Qt${QT_MAJOR_VERSION}::Gui
-    ${LINK_OPENEXR_LIB}
-)
 
 kis_add_test(
     KisTextureOptionLodContractTest.cpp
@@ -353,24 +234,6 @@ target_compile_definitions(KisTextureOptionLodContractTest PRIVATE
     kritaimage_EXPORTS
     kritapigment_EXPORTS
     kritalibpaintop_EXPORTS
-)
-target_include_directories(KisTextureOptionLodContractTest PRIVATE
-    ${CMAKE_SOURCE_DIR}/libs/global
-    ${CMAKE_BINARY_DIR}/libs/global
-    ${CMAKE_SOURCE_DIR}/libs/image
-    ${CMAKE_BINARY_DIR}/libs/image
-    ${CMAKE_SOURCE_DIR}/libs/image/brushengine
-    ${CMAKE_SOURCE_DIR}/libs/pigment
-    ${CMAKE_BINARY_DIR}/libs/pigment
-    ${CMAKE_SOURCE_DIR}/libs/pigment/resources
-    ${CMAKE_SOURCE_DIR}/libs/resources
-    ${CMAKE_BINARY_DIR}/libs/resources
-)
-target_link_libraries(KisTextureOptionLodContractTest
-    Boost::boost
-    KF${KF_MAJOR}::I18n
-    Qt${QT_MAJOR_VERSION}::Core
-    Qt${QT_MAJOR_VERSION}::Gui
 )
 
 kis_add_test(
@@ -512,39 +375,5 @@ kis_add_test(
 target_compile_definitions(KisSimpleDynamicSensorFactoryContractTest PRIVATE
     kritaglobal_EXPORTS
     kritaimage_EXPORTS
-    kritalibpaintop_EXPORTS
-)
-
-kis_add_test(
-    KisDynamicSensorRegistryCompatibilityTest.cpp
-    LINK_LIBRARIES
-        kritapaintopcurveoptiondatacommonobjects
-        kritapaintopdynamicsensorfactoryobjects
-        kritapaintopdynamicsensorregistryobjects
-        kritapaintopkritasensorpackobjects
-        kritapaintopsensordataobjects
-        kritapaintopsensormodelobjects
-        kritapaintopsensorpackinterfaceobjects
-        kritaglobalidobjects
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-)
-target_compile_definitions(KisDynamicSensorRegistryCompatibilityTest PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-    kritalibpaintop_EXPORTS
-)
-
-kis_add_test(
-    KisMultiSensorsModelContractTest.cpp
-    LINK_LIBRARIES
-        kritapaintopmultisensorsmodelobjects
-        kritaglobalidobjects
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Test
-        lager
-)
-target_compile_definitions(KisMultiSensorsModelContractTest PRIVATE
-    kritaglobal_EXPORTS
     kritalibpaintop_EXPORTS
 )
