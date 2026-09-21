@@ -8,22 +8,44 @@
  */
 #include "KisCurveOptionWidget.h"
 
+#include <functional>
+#include <optional>
+#include <tuple>
+
+#include <QLabel>
+#include <QList>
+#include <QPalette>
+#include <QPointF>
+#include <QWidget>
+#include <QtCore/qobjectdefs.h>
+#include <QtCore/qoverload.h>
+#include <QtCore/qtypes.h>
+
+#include <KLocalizedString>
+
 #include "ui_wdgcurveoption2.h"
 #include "widgets/kis_curve_widget.h"
 #include "kis_icon_utils.h"
 
+#include <kis_assert.h>
 #include <kis_signals_blocker.h>
+#include <kis_types.h>
+#include <KisCurveOptionDataCommon.h>
 #include <KisCurveOptionModel.h>
+#include <KisCurveOptionInputControlsStrategyInterface.h>
+#include <KisCurveRangeModelInterface.h>
+#include <kis_paintop_option.h>
 #include <KisWidgetConnectionUtils.h>
 #include <KisMpl.h>
 
-#include <kis_algebra_2d.h>
-
 #include <KisMultiSensorsSelector.h>
-#include <KisDynamicSensorFactoryRegistry.h>
 #include <KisCurveWidgetConnectionHelper.h>
 #include <KisCurveRangeModel.h>
 #include <KisCurveOptionInputControlsStrategy.h>
+
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/reader.hpp>
 
 struct KisCurveOptionWidget::Private
 {

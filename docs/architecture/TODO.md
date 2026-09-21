@@ -1323,6 +1323,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] 2翻訳単位を`kritapaintopstandardoptionwidgetobjects`へ分離し、公開利用要件をQt Core、曲線・サイズ・標準設定値、設定画面、Lagerへ、実装専用依存を翻訳、Qt Widgets、全体基盤、画像へ分離する。MOCは設定画面オブジェクトの所有対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
 - [x] 対象構築、`kritalibpaintop`、標準設定値の保存互換性CTest、設定画面生成ユーティリティCTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
 
+### R2-G19an 曲線オプション設定画面依存の直接化
+
+目的は、曲線オプション設定画面が、集約ライブラリーから偶然得るQtメタオブジェクト、Lager状態、曲線・入力制御・範囲モデル、画面接続補助、生成UIの依存とMOC処理に依存する状態を解消することである。
+
+範囲は`plugins/paintops/libpaintop/KisCurveOptionWidget.{h,cpp}`、および`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurveoptionwidgetobjects`に固定する。既存テストソース、公開API、プリセット設定キー、共有・個別曲線、強度範囲、入力選択、描画結果は維持する。
+
+- [x] 公開ヘッダーと実装を、標準ライブラリー、Qtメタオブジェクト・画面部品・signal・オーバーロード、翻訳、設定画面基底型、曲線共通値・入力制御・範囲モデル、Lager、画面接続補助、公開記号の所有ヘッダーへ直接接続する。
+- [x] 実装と生成UIを`kritapaintopcurveoptionwidgetobjects`へ分離し、公開利用要件をQt、曲線境界、設定画面、Lagerへ、実装専用依存を翻訳、全体基盤、画像、曲線モデル、画面接続補助の具体的所有者、部品ユーティリティへ分離する。MOCとUI生成を専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 対象構築、`kritalibpaintop`、曲線オプションモデルCTest、設定画面生成ユーティリティCTestをmacOSで成功させ、`verify-quick`と後続の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない

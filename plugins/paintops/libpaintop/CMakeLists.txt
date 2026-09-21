@@ -14,7 +14,6 @@ set(kritalibpaintop_LIB_SRCS
     KisSensorData.cpp
     KisCurveOptionInputControlsStrategy.cpp
     KisCurveRangeModel.cpp
-    KisCurveOptionWidget.cpp
     KisCurveOption.cpp
     KisMultiSensorsSelector.cpp
     KisMultiSensorsModel.cpp
@@ -169,7 +168,6 @@ ki18n_wrap_ui(kritalibpaintop_LIB_SRCS
     forms/wdgautobrush.ui
     forms/wdgBrushSizeOptions.ui
     forms/wdgcurveoption.ui
-    forms/wdgcurveoption2.ui
     forms/wdgcustombrush.ui
     forms/wdgclipboardbrush.ui
     forms/wdgtextbrush.ui
@@ -416,6 +414,46 @@ target_link_libraries(kritapaintopstandardoptionwidgetobjects
         kritaimage
 )
 set_target_properties(kritapaintopstandardoptionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopcurveoptionwidgetobjects OBJECT
+    KisCurveOptionWidget.cpp
+)
+ki18n_wrap_ui(kritapaintopcurveoptionwidgetobjects
+    forms/wdgcurveoption2.ui
+)
+target_compile_definitions(kritapaintopcurveoptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopcurveoptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopcurveoptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcurveoptiondatacommonobjects
+        kritapaintopcurvecontrolinterfaceobjects
+        kritapaintopcurverangemodelinterfaceobjects
+        kritatoolsui
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritaapplicationui
+        kritaglobal
+        kritaimage
+        kritapaintopcurveoptionmodelobjects
+        kritawidgetutils
+)
+set_target_properties(kritapaintopcurveoptionwidgetobjects PROPERTIES
     AUTOMOC ON
     POSITION_INDEPENDENT_CODE ON
 )
@@ -1159,6 +1197,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopoptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopsensormodelobjects>
     $<TARGET_OBJECTS:kritapaintopsensordataobjects>
+    $<TARGET_OBJECTS:kritapaintopcurveoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopstandardoptionobjects>
     $<TARGET_OBJECTS:kritapaintopstandardoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintoptextureoptionioobjects>

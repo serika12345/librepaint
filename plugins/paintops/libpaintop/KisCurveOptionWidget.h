@@ -6,18 +6,30 @@
 #ifndef KisCurveOptionWidget_H
 #define KisCurveOptionWidget_H
 
+#include <optional>
+#include <tuple>
+
+#include <QFlags>
+#include <QScopedPointer>
+#include <QString>
+#include <QtCore/qtypes.h>
+#include <QtCore/qtmetamacros.h>
+
 #include <kis_paintop_option.h>
+#include <kis_types.h>
 
 class Ui_WdgCurveOption2;
-class KisCurveOption;
 class QComboBox;
 
-#include <KisCurveOptionData.h>
+#include <KisCurveOptionDataCommon.h>
 #include <KisCurveRangeModelInterface.h>
 #include <KisCurveOptionInputControlsStrategyInterface.h>
 #include <KisCurveOptionRangeControlsStrategyInterface.h>
 #include <lager/cursor.hpp>
 #include <lager/constant.hpp>
+#include <lager/reader.hpp>
+
+#include <kritapaintop_export.h>
 
 
 class PAINTOP_EXPORT KisCurveOptionWidget : public KisPaintOpOption
