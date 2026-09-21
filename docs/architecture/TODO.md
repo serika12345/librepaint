@@ -1419,7 +1419,17 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 
 範囲は`plugins/paintops/libpaintop/KisMirrorOptionWidget.{h,cpp}`とその直接の所有CMake対象に固定する。ミラー入力、設定画面、プリセット設定、描画結果と既存CTestは維持する。
 
-- [ ] 公開ヘッダーと実装の直接取込み、直接構築・リンク要件、既存のミラー入力の利用者向け契約を監査する。
+- [x] 公開ヘッダーと実装を、標準関数、Qt画面部品・メタオブジェクト、設定型、翻訳、曲線設定、ミラーデータとモデル、画面接続、Lagerの所有ヘッダーへ直接接続する。
+- [x] 実装を`kritapaintopmirroroptionwidgetobjects`へ移し、Qt Core・Widgets、曲線設定画面、ミラーデータとモデル、Lagerを公開利用要件、翻訳と画面接続を実装専用依存へ分離する。MOCは専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 対象構築、`kritalibpaintop`、既存のミラー設定互換性CTest、ミラーモデルCTest、`verify-quick`をmacOSで成功させる。
+
+### R2-G19ay エアブラシ設定画面依存の直接化
+
+目的は、ブラシ設定画面が使うエアブラシ設定実装を、集約ライブラリーの推移的なQt画面部品、エアブラシモデル、設定依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisAirbrushOptionWidget.{h,cpp}`、`KisAirbrushOptionModel.{h,cpp}`とその直接の所有CMake対象に固定する。エアブラシ入力、設定画面、プリセット設定、描画結果と既存CTestは維持する。
+
+- [ ] 公開ヘッダーと実装の直接取込み、直接構築・リンク要件、既存のエアブラシ入力の利用者向け契約を監査する。
 
 ### R2-G19av 固定CTestの製品利用要件直接化
 

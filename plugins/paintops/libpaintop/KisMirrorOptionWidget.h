@@ -6,9 +6,16 @@
 #ifndef KISMIRROROPTIONWIDGET_H
 #define KISMIRROROPTIONWIDGET_H
 
+#include <QScopedPointer>
+#include <QtCore/qtmetamacros.h>
+
+#include <kis_paintop_option.h>
+#include <kis_types.h>
+#include <kritapaintop_export.h>
+
 #include <KisCurveOptionWidget.h>
 #include <KisMirrorOptionData.h>
-
+#include <lager/cursor.hpp>
 
 class PAINTOP_EXPORT KisMirrorOptionWidget : public KisCurveOptionWidget
 {

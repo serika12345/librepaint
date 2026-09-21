@@ -14,7 +14,6 @@ set(kritalibpaintop_LIB_SRCS
     KisSensorData.cpp
     KisCurveOption.cpp
     KisSpacingOption.cpp
-    KisMirrorOptionWidget.cpp
     KisMirrorOption.cpp
     KisSharpnessOption.cpp
     KisScatterOption.cpp
@@ -139,6 +138,7 @@ list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     KisPaintingModeOptionModel.cpp
     KisScatterOptionWidget.cpp
     KisSensorData.cpp
+    KisMirrorOptionWidget.cpp
     KisSharpnessOptionWidget.cpp
     KisSpacingOptionWidget.cpp
     KisLightnessStrengthOptionWidget.cpp
@@ -996,6 +996,37 @@ set_target_properties(kritapaintopmirroroptionmodelobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopmirroroptionwidgetobjects OBJECT
+    KisMirrorOptionWidget.cpp
+)
+target_compile_definitions(kritapaintopmirroroptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopmirroroptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopmirroroptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcurveoptionwidgetobjects
+        kritapaintopmirroroptiondataobjects
+        kritapaintopmirroroptionmodelobjects
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritawidgetutils
+)
+set_target_properties(kritapaintopmirroroptionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 # These models bind preset option data to the settings UI. Keeping their
 # compilation separate lets focused option-data changes avoid the remaining
 # settings widgets while preserving the objects in kritalibpaintop.
@@ -1409,6 +1440,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopmultisensorsselectorobjects>
     $<TARGET_OBJECTS:kritapaintopcurverangemodelobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptionmodelobjects>
+    $<TARGET_OBJECTS:kritapaintopmirroroptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopoptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopsharpnessoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopscatteroptionwidgetobjects>
