@@ -5,8 +5,14 @@
  */
 
 #include "recorder_writer.h"
+#include "KisQStringListFwd.h"
+#include "KoColorModelStandardIds.h"
+#include "KoColorProfileConstants.h"
+#include "kis_debug.h"
+#include "kis_types.h"
 #include "recorder_const.h"
 #include "recorder_export_settings.h"
+#include "recorder_format.h"
 
 #include <kis_canvas2.h>
 #include <kis_image.h>
@@ -29,6 +35,16 @@
 #include <QVector>
 #include <QSharedPointer>
 #include <atomic>
+#include <qlatin1stringview.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qrgb.h>
+#include <qstringview.h>
+#include <qthread.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 namespace
 {

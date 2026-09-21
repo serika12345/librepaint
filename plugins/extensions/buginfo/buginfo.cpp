@@ -8,13 +8,15 @@
 
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 #include <kpluginfactory.h>
-#include <kis_icon.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <application/ui/orchestration/kis_action.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 #include "DlgKritaLog.h"
 #include "DlgSysInfo.h"
+#include "ui/orchestration/KisActionPlugin.h"
 
 #ifdef Q_OS_ANDROID
 #include "DlgAndroidLogcatDumper.h"

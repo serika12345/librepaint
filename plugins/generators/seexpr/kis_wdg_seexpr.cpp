@@ -6,13 +6,13 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KSeExprUI/ExprControl.h>
 #include <QCheckBox>
 
 #include <KSeExprUI/ErrorMessages.h>
 #include <KisDialogStateSaver.h>
 #include <KisGlobalResourcesInterface.h>
 #include <KisResourceUserOperations.h>
-#include <KoColor.h>
 #include <KoResourceServer.h>
 #include <KoResourceServerProvider.h>
 
@@ -20,12 +20,26 @@
 #include <kis_assert.h>
 #include <application/kis_config.h>
 #include <kis_debug.h>
-#include <kis_icon.h>
 #include <kis_signals_blocker.h>
+#include <qfontdatabase.h>
+#include <qfontmetrics.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
+#include "KisResourceModel.h"
+#include "KisResourceTypes.h"
+#include "KisSeExprScript.h"
 #include "SeExprExpressionContext.h"
 #include "generator.h"
 #include "kis_wdg_seexpr.h"
+#include "kis_icon_utils.h"
+#include "kis_types.h"
+#include "kis_wdg_seexpr_presets_save.h"
 #include "ui_wdgseexpr.h"
 
 KisWdgSeExpr::KisWdgSeExpr(QWidget *parent)

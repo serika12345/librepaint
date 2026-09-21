@@ -8,14 +8,19 @@
  */
 
 #include "dlg_imagesplit.h"
+#include "KoDialog.h"
+#include "wdg_imagesplit.h"
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 
 #include <application/ui/workspace/KisViewManager.h>
-#include <kis_image.h>
 #include <kis_paint_device.h>
 #include <QPainter>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qtypes.h>
 
 DlgImagesplit::DlgImagesplit(KisViewManager* view
                              , const QString &suffix

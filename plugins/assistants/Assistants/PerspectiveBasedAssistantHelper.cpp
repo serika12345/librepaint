@@ -6,10 +6,22 @@
 
 #include <QTransform>
 
+#include "canvas/kis_painting_assistant.h"
 #include "kis_algebra_2d.h"
+#include "kis_global.h"
 
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
 #include <math.h>
 #include <QtMath>
+#include <qline.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <utility>
 
 
 

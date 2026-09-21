@@ -14,6 +14,15 @@
 #include <QtMath>
 #include <QApplication>
 #include <QStyle>
+#include <qcolor.h>
+#include <qheaderview.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qscopedpointer.h>
+#include <qtextoption.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 struct KisAnimCurvesValuesHeader::Private
 {

@@ -10,6 +10,9 @@
 #include <QTableView>
 #include <QHeaderView>
 
+#include "KisKineticScroller.h"
+#include "KisQStringListFwd.h"
+#include "KisWidgetWithIdleTask.h"
 #include "channelmodel.h"
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_canvas2.h>
@@ -18,6 +21,10 @@
 #include "KisChannelsThumbnailsStrokeStrategy.h"
 #include <kis_display_color_converter.h>
 #include <canvas/KisDisplayConfig.h>
+#include <qabstractitemview.h>
+#include <qobjectdefs.h>
+#include <qscroller.h>
+#include <qsize.h>
 
 ChannelDockerWidget::ChannelDockerWidget(QWidget *parent, const char *name)
     : KisWidgetWithIdleTask<QWidget>(parent)

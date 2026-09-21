@@ -5,6 +5,9 @@
  */
 
 #include "SpiralShapeFactory.h"
+#include "KoPathShape.h"
+#include "KoShapeConfigWidgetBase.h"
+#include "KoShapeFactoryBase.h"
 #include "SpiralShape.h"
 #include "SpiralShapeConfigWidget.h"
 #include <KoShapeStroke.h>
@@ -12,6 +15,9 @@
 
 #include <KoIcon.h>
 #include <klocalizedstring.h>
+#include <qdom.h>
+#include <qlist.h>
+#include <qtpreprocessorsupport.h>
 
 #include "kis_pointer_utils.h"
 

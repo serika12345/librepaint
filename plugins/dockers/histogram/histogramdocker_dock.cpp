@@ -13,9 +13,15 @@
 #include <klocalizedstring.h>
 
 
+#include "KoCanvasBase.h"
 #include "kis_canvas2.h"
 #include <application/ui/workspace/KisViewManager.h>
+#include <qdockwidget.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qsizepolicy.h>
 #include "histogramdockerwidget.h"
+#include "kis_icon_utils.h"
 
 HistogramDockerDock::HistogramDockerDock()
     : QDockWidget(i18n("Histogram"))

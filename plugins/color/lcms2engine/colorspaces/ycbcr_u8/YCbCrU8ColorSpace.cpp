@@ -11,11 +11,20 @@
 #include <QDebug>
 #include <klocalizedstring.h>
 
+#include "KisQStringListFwd.h"
+#include "KoChannelInfo.h"
+#include "KoColorProfile.h"
+#include "KoColorSpace.h"
+#include "KoColorSpaceMaths.h"
+#include "LcmsColorSpace.h"
 #include "compositeops/KoCompositeOps.h"
 #include "dithering/KisYCbCrDitherOpFactory.h"
 #include <KoColorConversions.h>
 
 #include <kis_dom_utils.h>
+#include <lcms2.h>
+#include <qnamespace.h>
+#include <qtypes.h>
 
 YCbCrU8ColorSpace::YCbCrU8ColorSpace(const QString &name, KoColorProfile *p)
     : LcmsColorSpace<KoYCbCrU8Traits>(colorSpaceId(), name, TYPE_YCbCrA_8, cmsSigYCbCrData, p)

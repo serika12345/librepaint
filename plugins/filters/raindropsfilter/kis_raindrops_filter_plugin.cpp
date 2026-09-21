@@ -11,6 +11,8 @@
 #include <kpluginfactory.h>
 
 #include <filter/kis_filter_registry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 
 #include "kis_raindrops_filter.h"

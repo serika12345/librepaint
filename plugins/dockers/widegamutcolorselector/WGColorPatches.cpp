@@ -7,6 +7,7 @@
 #include "WGColorPatches.h"
 #include "WGCommonColorSet.h"
 #include "WGConfig.h"
+#include "WGSelectorWidgetBase.h"
 
 #include <kis_display_color_converter.h>
 #include <kis_icon_utils.h>
@@ -17,6 +18,19 @@
 #include <QScroller>
 #include <QScrollEvent>
 #include <QToolButton>
+#include <qcolor.h>
+#include <qcoreevent.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 
 namespace {
     inline QPoint transposed(QPoint point) {

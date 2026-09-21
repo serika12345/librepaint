@@ -5,25 +5,36 @@
  */
 
 #include "kis_tga_import.h"
+#include "KisImportExportErrorCode.h"
+#include "KisImportExportFilter.h"
+#include "KoIntegerMaths.h"
+#include "kis_debug.h"
+#include "kis_types.h"
 
 #include <QCheckBox>
 #include <QBuffer>
 #include <QSlider>
 #include <QApplication>
 
+#include <cstring>
 #include <kpluginfactory.h>
 
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 
-#include <kis_transaction.h>
 #include <kis_paint_device.h>
 #include <document/KisDocument.h>
 #include <kis_image.h>
 #include <kis_paint_layer.h>
-#include <kis_node.h>
 #include <kis_group_layer.h>
 
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qlogging.h>
+#include <qrgb.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
 #include <tga.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KisTGAImportFactory, "krita_tga_import.json", registerPlugin<KisTGAImport>();)

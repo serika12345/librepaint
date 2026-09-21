@@ -5,6 +5,11 @@
  */
 
 #include "RectangleShapeFactory.h"
+#include "KisQStringListFwd.h"
+#include "KoFlake.h"
+#include "KoPathShape.h"
+#include "KoShapeConfigWidgetBase.h"
+#include "KoShapeFactoryBase.h"
 #include "RectangleShape.h"
 #include "RectangleShapeConfigWidget.h"
 #include "KoShapeStroke.h"
@@ -16,6 +21,13 @@
 
 #include <KoIcon.h>
 #include <klocalizedstring.h>
+#include <qbrush.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qpair.h>
+#include <qsharedpointer.h>
+#include <qtpreprocessorsupport.h>
 
 #include "kis_pointer_utils.h"
 

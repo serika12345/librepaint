@@ -11,6 +11,8 @@
 #include <kpluginfactory.h>
 
 #include <kis_meta_data_backend_registry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 #include "kis_xmp_io.h"
 

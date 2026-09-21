@@ -6,12 +6,19 @@
 
 #include "timeline_node_list_keeper.h"
 
+#include "KisQStringListFwd.h"
+#include "kis_assert.h"
 #include "kis_node_dummies_graph.h"
 #include "kis_dummies_facade_base.h"
 #include "timeline_frames_index_converter.h"
 
 #include <QSet>
 #include <QPointer>
+#include <qabstractitemmodel.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qmap.h>
+#include <qobjectdefs.h>
 #include "kis_keyframe_channel.h"
 #include "canvas/KisNodeDisplayModeAdapter.h"
 #include "kis_signal_auto_connection.h"

@@ -5,6 +5,11 @@
  */
 
 #include "page_bundle_saver.h"
+#include "KisBundleStorage.h"
+#include "KisResourceStorage.h"
+#include "KisResourceTypes.h"
+#include "KoID.h"
+#include "KoResourceBundle.h"
 #include "ui_pagebundlesaver.h"
 #include "dlg_create_bundle.h"
 
@@ -13,6 +18,16 @@
 #include <QStandardPaths>
 
 #include <config-seexpr.h>
+#include <iterator>
+#include <qcontainerfwd.h>
+#include <qfileinfo.h>
+#include <qmap.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qsharedpointer.h>
+#include <qwidget.h>
+#include <qwizard.h>
 
 PageBundleSaver::PageBundleSaver(KoResourceBundleSP bundle, QWidget *parent) :
     QWizardPage(parent),

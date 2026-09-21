@@ -6,7 +6,16 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
 #include <kpluginfactory.h>
+#include <qcborcommon.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qset.h>
+#include <qtypes.h>
 #include <webp/encode.h>
 #include <webp/mux.h>
 #include <webp/mux_types.h>
@@ -36,6 +45,17 @@
 #include <kis_raster_keyframe_channel.h>
 #include <kis_time_span.h>
 
+#include "KisDitherOp.h"
+#include "KisExportCheckBase.h"
+#include "KoColorProfileConstants.h"
+#include "KoID.h"
+#include "kis_assert.h"
+#include "kis_config_widget.h"
+#include "kis_meta_data_filter_registry_model.h"
+#include "kis_meta_data_io_backend.h"
+#include "kis_meta_data_store.h"
+#include "kis_properties_configuration.h"
+#include "kis_types.h"
 #include "kis_wdg_options_webp.h"
 #include "kis_webp_export.h"
 

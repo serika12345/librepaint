@@ -33,10 +33,8 @@
 #include <QProxyStyle>
 #include <QStyleFactory>
 
-#include <kis_debug.h>
 #include <klocalizedstring.h>
 
-#include <kis_icon.h>
 #include <KoColorSpace.h>
 #include <KoCompositeOpRegistry.h>
 #include <document/KisDocument.h>
@@ -47,19 +45,22 @@
 #include <kis_paint_device.h>
 #include <kis_layer.h>
 #include <kis_group_layer.h>
-#include <kis_mask.h>
 #include <kis_node.h>
 #include <kis_base_node.h>
 #include <kis_composite_ops_model.h>
-#include <kis_keyframe_channel.h>
 #include <kis_image_animation_interface.h>
 #include <KoProperties.h>
 
 #include <application/ui/orchestration/kis_action.h>
+#include "KisQStringListFwd.h"
 #include "application/ui/orchestration/kis_action_manager.h"
 #include <kis_cmb_composite.h>
+#include "kis_assert.h"
+#include "kis_icon_utils.h"
 #include "kis_slider_spin_box.h"
 #include "application/ui/workspace/KisViewManager.h"
+#include "kis_stroke_job_strategy.h"
+#include "kundo2magicstring.h"
 #include "nodes/kis_node_manager.h"
 #include "nodes/kis_node_model.h"
 #include <kis_clipboard.h>
@@ -77,6 +78,19 @@
 #include "kis_signals_blocker.h"
 #include "nodes/kis_node_filter_proxy_model.h"
 #include <KisSpinBoxI18nHelper.h>
+#include <qabstractitemmodel.h>
+#include <qassert.h>
+#include <qdockwidget.h>
+#include <qforeach.h>
+#include <qitemselectionmodel.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qstyleoption.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #include "kis_selection.h"
 #include "kis_processing_applicator.h"

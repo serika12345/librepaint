@@ -13,18 +13,19 @@
 #include <QApplication>
 
 #include <KisImportExportManager.h>
-#include <KoColorModelStandardIds.h>
-#include <KoColorSpace.h>
 
 #include <KisExportCheckRegistry.h>
 #include <document/KisDocument.h>
-#include <kis_image.h>
-#include <kis_node.h>
-#include <kis_group_layer.h>
-#include <kis_paint_layer.h>
 #include <kis_shape_layer.h>
-#include <KoProperties.h>
 #include <application/kis_config.h>
+#include "KisExportCheckBase.h"
+#include "KisImportExportErrorCode.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_types.h"
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qobject.h>
 #include "kra_converter.h"
 
 class KisExternalLayer;

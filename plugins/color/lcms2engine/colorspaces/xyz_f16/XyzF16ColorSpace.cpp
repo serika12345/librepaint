@@ -9,12 +9,22 @@
 #include <QDomElement>
 
 #include <QDebug>
+#include <half.h>
 #include <klocalizedstring.h>
 
+#include "KisQStringListFwd.h"
+#include "KoChannelInfo.h"
+#include "KoColorProfile.h"
+#include "KoColorSpace.h"
+#include "KoColorSpaceMaths.h"
+#include "LcmsColorSpace.h"
 #include "compositeops/KoCompositeOps.h"
 #include "dithering/KisXyzDitherOpFactory.h"
 #include <KoColorConversions.h>
 #include <kis_dom_utils.h>
+#include <lcms2.h>
+#include <qnamespace.h>
+#include <qtypes.h>
 
 XyzF16ColorSpace::XyzF16ColorSpace(const QString &name, KoColorProfile *p) :
     LcmsColorSpace<KoXyzF16Traits>(colorSpaceId(), name, TYPE_XYZA_HALF_FLT, cmsSigXYZData, p)

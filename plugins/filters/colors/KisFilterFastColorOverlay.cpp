@@ -6,6 +6,11 @@
 
 #include "KisFilterFastColorOverlay.h"
 
+#include "KoColorConversionTransformation.h"
+#include "KoCompositeOpIds.h"
+#include "KoID.h"
+#include "kis_config_widget.h"
+#include "kis_filter.h"
 #include "kis_paint_device.h"
 #include "kis_random_accessor_ng.h"
 #include "KoCompositeOp.h"
@@ -15,8 +20,13 @@
 
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
+#include <qminmax.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 #include "KisWdgFilterFastColorOverlay.h"
+#include "kis_types.h"
 
 KisFilterFastColorOverlay::KisFilterFastColorOverlay()
     : KisFilter(id(), FiltersCategoryColorId, i18n("Fast Color &Overlay..."))

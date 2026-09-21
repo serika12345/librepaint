@@ -5,6 +5,13 @@
  */
 
 #include "kis_pdf_import_widget.h"
+#include <memory>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qtversionchecks.h>
+#include <qwidget.h>
 
 #define UNSTABLE_POPPLER_QT4
 // poppler's headers

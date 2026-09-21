@@ -5,10 +5,14 @@
  */
 
 #include "KisResetTransparentFilter.h"
+#include "KoColorSpace.h"
+#include "KoColorSpaceConstants.h"
+#include "kis_filter.h"
+#include "kis_types.h"
 
+#include <cstring>
 #include <klocalizedstring.h>
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
 #include <KoColor.h>
@@ -17,6 +21,10 @@
 
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_registry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qpaintdevice.h>
+#include <qtpreprocessorsupport.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(ResetTransparentFactory, "kritaresettransparent.json", registerPlugin<ResetTransparent>();)
 

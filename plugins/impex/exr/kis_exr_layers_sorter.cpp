@@ -8,11 +8,18 @@
 
 #include <QDomDocument>
 #include <QDomElement>
+#include <algorithm>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qmap.h>
 
+#include "kis_assert.h"
 #include "kis_image.h"
 #include "exr_extra_tags.h"
 #include "kis_kra_savexml_visitor.h"
 #include "kis_paint_layer.h"
+#include "kis_types.h"
 
 
 struct KisExrLayersSorter::Private

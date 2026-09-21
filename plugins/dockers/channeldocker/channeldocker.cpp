@@ -6,11 +6,13 @@
 
 #include "channeldocker.h"
 
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
 #include <stdlib.h>
 
 
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 #include <klocalizedstring.h>
 

@@ -11,6 +11,8 @@
 
 #include "kis_small_tiles_filter.h"
 
+#include <qassert.h>
+#include <qtypes.h>
 #include <stdlib.h>
 
 #include <QPoint>
@@ -22,21 +24,18 @@
 #include <KoUpdater.h>
 
 #include <document/KisDocument.h>
-#include <kis_debug.h>
 #include <kis_image.h>
-#include <kis_layer.h>
 #include <filter/kis_filter_registry.h>
-#include <kis_global.h>
 #include <kis_types.h>
 #include <kis_paint_device.h>
 #include <kis_filter_strategy.h>
 #include <kis_painter.h>
-#include <kis_selection.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_processing_information.h>
-#include <KoCompositeOpRegistry.h>
 
+#include "KoCompositeOpIds.h"
+#include "KoIntegerMaths.h"
+#include "kis_config_widget.h"
 #include "widgets/kis_multi_integer_filter_widget.h"
 
 KisSmallTilesFilter::KisSmallTilesFilter() : KisFilter(id(), FiltersCategoryMapId, i18n("&Small Tiles..."))

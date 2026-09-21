@@ -6,11 +6,15 @@
 
 #include "lutdocker.h"
 
+#include <OpenColorABI.h>
+#include <OpenColorTypes.h>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
 #include <stdlib.h>
 
 
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 #include <klocalizedstring.h>
 
@@ -21,7 +25,6 @@
 #include "lutdocker_dock.h"
 #include <KoDockRegistry.h>
 
-#include <OpenColorIO.h>
 namespace OCIO = OCIO_NAMESPACE;
 
 

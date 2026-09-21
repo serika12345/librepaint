@@ -4,10 +4,15 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_wdg_edge_detection.h"
+#include "kis_config_widget.h"
+#include "kis_types.h"
 
 #include <filter/kis_filter_configuration.h>
 #include <klocalizedstring.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 KisWdgEdgeDetection::KisWdgEdgeDetection(QWidget *parent) :
     KisConfigWidget(parent),

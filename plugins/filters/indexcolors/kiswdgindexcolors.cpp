@@ -4,9 +4,13 @@
  * SPDX-License-Identifier: ICS
  */
 
+#include "KisResourceTypes.h"
 #include "filter/kis_color_transformation_configuration.h"
 
 #include "kiswdgindexcolors.h"
+#include "indexcolorpalette.h"
+#include "kis_config_widget.h"
+#include "kis_types.h"
 #include "palettegeneratorconfig.h"
 #include "ui_kiswdgindexcolors.h"
 #include <KisGlobalResourcesInterface.h>
@@ -14,6 +18,14 @@
 #include "kis_int_parse_spin_box.h"
 
 #include <kis_color_button.h>
+#include <qboxlayout.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qlabel.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qspinbox.h>
+#include <qwidget.h>
 
 KisWdgIndexColors::KisWdgIndexColors(QWidget* parent, Qt::WindowFlags f, int delay): KisConfigWidget(parent, f, delay)
 {

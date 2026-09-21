@@ -10,9 +10,18 @@
 #include <kconfig.h>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
+#include <qassert.h>
+#include <qminmax.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
+#include "KisColorSelectorConfiguration.h"
+#include "kis_color_selector.h"
+#include "kis_color_selector_component.h"
 #include "kis_display_color_converter.h"
 #include "kis_acs_pixel_cache_renderer.h"
+#include "kis_types.h"
 
 
 KisColorSelectorSimple::KisColorSelectorSimple(KisColorSelector *parent) :

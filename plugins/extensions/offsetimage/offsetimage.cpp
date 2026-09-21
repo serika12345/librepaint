@@ -10,21 +10,27 @@
 #include <klocalizedstring.h>
 #include <kis_debug.h>
 #include <kpluginfactory.h>
-#include <kis_icon.h>
 #include <kis_image.h>
 #include <kis_types.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <document/kis_image_manager.h>
 #include <nodes/kis_node_manager.h>
 #include <canvas/kis_canvas_resource_provider.h>
-#include <kis_group_layer.h>
-#include <kis_image_signal_router.h>
 #include <kis_processing_applicator.h>
 #include <application/ui/orchestration/kis_action.h>
 #include <kis_selection.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
+#include "KisImageSignals.h"
 #include "dlg_offsetimage.h"
 #include "kis_offset_processing_visitor.h"
+#include "kis_stroke_job_strategy.h"
+#include "kundo2magicstring.h"
+#include "ui/orchestration/KisActionPlugin.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(OffsetImageFactory, "kritaoffsetimage.json", registerPlugin<OffsetImage>();)
 

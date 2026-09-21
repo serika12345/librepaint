@@ -9,25 +9,35 @@
 
 #include <QApplication>
 #include <QFile>
-#include <qendian.h>
+#include <cstdint>
+#include <cstdlib>
+#include <qcontainerfwd.h>
 
 #include <kpluginfactory.h>
 
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
-#include <KoColorSpaceTraits.h>
 #include <KoCompositeOpRegistry.h>
 #include <kis_debug.h>
 #include <document/KisDocument.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
-#include <kis_transaction.h>
 #include <kis_paint_layer.h>
 #include <kis_transparency_mask.h>
+#include "KisImportExportErrorCode.h"
+#include "KisImportExportFilter.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KoBgrColorSpaceTraits.h"
+#include "KoCompositeOpIds.h"
+#include "KoIntegerMaths.h"
 #include "kis_iterator_ng.h"
 #include "kis_types.h"
 #include <KoColorModelStandardIds.h>
+#include <qminmax.h>
+#include <qobject.h>
+#include <qtypes.h>
 extern "C" {
 
 #include "xcftools.h"

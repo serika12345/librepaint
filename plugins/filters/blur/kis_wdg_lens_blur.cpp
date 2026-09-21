@@ -9,15 +9,18 @@
 #include "kis_wdg_lens_blur.h"
 #include <QLayout>
 
-#include <filter/kis_filter.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_selection.h>
 #include <kis_paint_device.h>
-#include <kis_processing_information.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
+#include "KisAngleGauge.h"
+#include "kis_config_widget.h"
 #include "kis_lens_blur_filter.h"
 
+#include "kis_types.h"
 #include "ui_wdg_lens_blur.h"
 
 KisWdgLensBlur::KisWdgLensBlur(QWidget * parent) : KisConfigWidget(parent)

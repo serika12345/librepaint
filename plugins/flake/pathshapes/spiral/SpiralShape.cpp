@@ -9,10 +9,14 @@
 #include <KoParameterShape_p.h>
 #include <KoPathPoint.h>
 #include <KoShapeSavingContext.h>
-#include <KoXmlWriter.h>
-#include <KoXmlNS.h>
 
 #include <math.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include "kis_assert.h"
 
 

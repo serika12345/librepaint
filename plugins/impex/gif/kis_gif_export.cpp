@@ -12,13 +12,20 @@
 #include <kpluginfactory.h>
 #include <QApplication>
 #include <KoColorModelStandardIds.h>
-#include <KisExportCheckRegistry.h>
 #include <KisImportExportManager.h>
 #include <kis_paint_device.h>
 #include <document/KisDocument.h>
 #include <kis_image.h>
-#include <kis_paint_layer.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
 
+#include "KisImportExportErrorCode.h"
+#include "KoColorConversionTransformation.h"
+#include "KoID.h"
+#include "kis_assert.h"
+#include "kis_types.h"
 #include "qgiflibhandler.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(KisGIFExportFactory, "krita_gif_export.json", registerPlugin<KisGIFExport>();)

@@ -15,13 +15,17 @@
 #include <QPainter>
 #include <QMimeData>
 
+#include <functional>
 #include <kconfig.h>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
 
+#include "KoCanvasResourcesIds.h"
 #include "KoColorSpace.h"
 #include "KoColorSpaceRegistry.h"
 
+#include "kis_acs_types.h"
+#include "kis_assert.h"
 #include "kis_canvas2.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_node.h"
@@ -31,7 +35,15 @@
 #include "kis_global.h"
 #include "kis_display_color_converter.h"
 
-#include <resources/KoGamutMask.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qcoreevent.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpair.h>
+#include <qtpreprocessorsupport.h>
+#include <qtversionchecks.h>
+#include <qvariant.h>
 
 class KisColorPreviewPopup : public QWidget {
 public:

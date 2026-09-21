@@ -5,13 +5,22 @@
  */
 
 #include "kis_brush_export.h"
+#include "KisExportCheckBase.h"
+#include "KisImportExportErrorCode.h"
+#include "KisQStringListFwd.h"
+#include "KoColorConversionTransformation.h"
+#include "KoColorModelStandardIds.h"
+#include "KoID.h"
+#include "kis_brush.h"
+#include "kis_config_widget.h"
+#include "kis_types.h"
+#include <kis_node.h>
 
 #include <QCheckBox>
 #include <QSlider>
 #include <QBuffer>
 
 #include <KoProperties.h>
-#include <KoDialog.h>
 #include <kpluginfactory.h>
 #include <QFileInfo>
 
@@ -20,8 +29,6 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_image.h>
 #include <document/KisDocument.h>
-#include <kis_paint_layer.h>
-#include <kis_spacing_selection_widget.h>
 #include <kis_gbr_brush.h>
 #include <kis_imagepipe_brush.h>
 #include <kis_pipebrush_parasite.h>
@@ -29,6 +36,12 @@
 #include <KisWdgOptionsBrush.h>
 #include <KisImportExportManager.h>
 #include <application/kis_config.h>
+#include <qapplication.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
 struct KisBrushExportOptions {
     qreal spacing;
@@ -228,4 +241,3 @@ void KisBrushExport::initializeCapabilities()
 
 
 #include "kis_brush_export.moc"
-

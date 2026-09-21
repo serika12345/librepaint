@@ -15,8 +15,15 @@
 #include <KisDitherWidget.h>
 #include <QBuffer>
 #include <KoMD5Generator.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qtypes.h>
 
 #include "KisGradientMapFilterConfiguration.h"
+#include "KisGradientConversion.h"
+#include "KisResourceTypes.h"
+#include "kis_filter_configuration.h"
+#include "kis_types.h"
 
 KisGradientMapFilterConfiguration::KisGradientMapFilterConfiguration(KisResourcesInterfaceSP resourcesInterface)
     : KisFilterConfiguration(defaultName(), defaultVersion(), resourcesInterface)

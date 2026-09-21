@@ -7,10 +7,20 @@
 #include "kis_phong_bumpmap_config_widget.h"
 #include <filter/kis_filter_configuration.h>
 #include <kis_size_group.h>
+#include "kis_config_widget.h"
+#include "kis_types.h"
 #include "phong_bumpmap_constants.h"
 #include "KoChannelInfo.h"
 #include "KoColorSpace.h"
 #include <KisGlobalResourcesInterface.h>
+#include <qassert.h>
+#include <qboxlayout.h>
+#include <qcolor.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
 KisPhongBumpmapConfigWidget::KisPhongBumpmapConfigWidget(const KisPaintDeviceSP dev, QWidget *parent, Qt::WindowFlags f)
     : KisConfigWidget(parent, f)

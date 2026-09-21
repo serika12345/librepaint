@@ -9,14 +9,25 @@
 
 #include <QDomElement>
 
+#include <half.h>
 #include <klocalizedstring.h>
 
-#include <KoIntegerMaths.h>
 #include <KoColorSpaceRegistry.h>
 
+#include "IccColorProfile.h"
+#include "KisQStringListFwd.h"
+#include "KoChannelInfo.h"
+#include "KoColorSpace.h"
+#include "KoColorSpaceMaths.h"
+#include "LcmsColorSpace.h"
 #include "compositeops/KoCompositeOps.h"
 #include "dithering/KisGrayDitherOpFactory.h"
 #include <kis_dom_utils.h>
+#include <lcms2.h>
+#include <qassert.h>
+#include <qnamespace.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 GrayF16ColorSpace::GrayF16ColorSpace(const QString &name, KoColorProfile *p)
     : LcmsColorSpace<KoGrayF16Traits>(colorSpaceId(), name,  TYPE_GRAYA_HALF_FLT, cmsSigGrayData, p)

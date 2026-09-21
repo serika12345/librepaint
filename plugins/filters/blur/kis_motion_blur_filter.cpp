@@ -8,8 +8,16 @@
 
 
 #include "kis_motion_blur_filter.h"
+#include "KoColorSpace.h"
+#include "kis_assert.h"
+#include "kis_config_widget.h"
+#include "kis_filter.h"
+#include "kis_global.h"
+#include "kis_painter.h"
+#include "kis_types.h"
 #include "kis_wdg_motion_blur.h"
 
+#include <Eigen/Core>
 #include <KoCompositeOp.h>
 
 #include <kis_convolution_kernel.h>
@@ -18,15 +26,20 @@
 
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_selection.h>
 #include <kis_paint_device.h>
-#include <kis_processing_information.h>
 #include "kis_lod_transform_base.h"
+#include "kundo2magicstring.h"
 
 
 #include <QPainter>
 
 #include <math.h>
+#include <qassert.h>
+#include <qbitarray.h>
+#include <qpoint.h>
+#include <qrgb.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 
 KisMotionBlurFilter::KisMotionBlurFilter() : KisFilter(id(), FiltersCategoryBlurId, i18n("&Motion Blur..."))

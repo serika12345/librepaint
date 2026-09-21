@@ -14,8 +14,16 @@
 #include <QBuffer>
 #include <KisMimeDatabase.h>
 #include <KoXmlWriter.h>
+#include "KoShape.h"
 #include "kis_dom_utils.h"
 #include <QRegularExpression>
+#include <qdom.h>
+#include <qgenericatomic.h>
+#include <qnamespace.h>
+#include <qscopedpointer.h>
+#include <qshareddata.h>
+#include <qsize.h>
+#include <qtypes.h>
 #include "KisQPainterStateSaver.h"
 
 

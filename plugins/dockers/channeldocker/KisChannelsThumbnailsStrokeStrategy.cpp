@@ -7,10 +7,19 @@
 
 #include "KisChannelsThumbnailsStrokeStrategy.h"
 
+#include "KisImageThumbnailStrokeStrategy.h"
 #include "kis_sequential_iterator.h"
 #include "KoColorModelStandardIds.h"
 #include "KoColorSpace.h"
+#include "kis_types.h"
 #include <KisStaticInitializer.h>
+#include <qcontainerfwd.h>
+#include <qimage.h>
+#include <qobject.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<QVector<QImage>>("QVector<QImage>");

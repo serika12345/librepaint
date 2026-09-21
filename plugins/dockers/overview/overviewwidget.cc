@@ -18,14 +18,22 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
-#include <kis_signal_compressor.h>
 #include <application/kis_config.h>
 #include <QApplication>
+#include "KisWidgetWithIdleTask.h"
 #include "canvas/KisImageThumbnailStrokeStrategy.h"
 #include <kis_display_color_converter.h>
 #include <application/ui/workspace/KisMainWindow.h>
 #include "canvas/KisIdleTasksManager.h"
 #include <canvas/KisDisplayConfig.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpolygon.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 OverviewWidget::OverviewWidget(QWidget * parent)

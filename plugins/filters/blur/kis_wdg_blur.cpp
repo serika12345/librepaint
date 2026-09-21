@@ -9,13 +9,16 @@
 #include "kis_wdg_blur.h"
 #include <QLayout>
 
-#include <filter/kis_filter.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_selection.h>
 #include <kis_paint_device.h>
-#include <kis_processing_information.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
+#include "kis_config_widget.h"
+#include "kis_types.h"
 #include "ui_wdgblur.h"
 
 KisWdgBlur::KisWdgBlur(QWidget * parent) : KisConfigWidget(parent)

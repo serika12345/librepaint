@@ -6,13 +6,36 @@
  */
 
 #include "kis_tiff_export.h"
+#include "KisExportCheckBase.h"
+#include "KisImportExportErrorCode.h"
+#include "KisImportExportFilter.h"
+#include "KoColorSpaceConstants.h"
+#include "KoID.h"
+#include "kis_config_widget.h"
+#include "kis_debug.h"
+#include "kis_layer.h"
+#include "kis_meta_data_io_backend.h"
+#include "kis_paint_device.h"
+#include "kis_properties_configuration.h"
+#include "kis_types.h"
 
 #include <QBuffer>
 
+#include <cstdint>
+#include <exiv2/error.hpp>
+#include <exiv2/exif.hpp>
+#include <exiv2/image.hpp>
+#include <exiv2/types.hpp>
+#include <exiv2/version.hpp>
 #include <memory>
 
-#include <exiv2/exiv2.hpp>
 #include <kpluginfactory.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <tiff.h>
+#include <utility>
 #ifdef Q_OS_WIN
 #include <io.h>
 #endif

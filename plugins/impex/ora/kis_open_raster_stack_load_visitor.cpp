@@ -18,18 +18,22 @@
 #include <filter/kis_filter_registry.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
-#include <KoCompositeOpRegistry.h>
 #include <kis_filter_configuration.h>
 #include <KisGlobalResourcesInterface.h>
 
 #include <kis_dom_utils.h>
 #include <kis_paint_layer.h>
-#include <kis_selection.h>
+#include <qtypes.h>
 
 
+#include "KisQStringListFwd.h"
+#include "KoCompositeOpIds.h"
 #include "document/KisDocument.h"
 
+#include "kis_debug.h"
 #include "kis_open_raster_load_context.h"
+#include "kis_types.h"
+#include <kis_paint_device.h>
 
 struct KisOpenRasterStackLoadVisitor::Private {
     KisImageSP image;

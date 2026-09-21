@@ -11,6 +11,9 @@
 
 #include <KoDockFactoryBase.h>
 #include <KoDockRegistry.h>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
 
 #include "smallcolorselector_dock.h"
 #include "opengl/kis_opengl.h"

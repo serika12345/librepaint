@@ -17,9 +17,15 @@
 
 #include <QAction>
 #include <kactioncollection.h>
+#include <qassert.h>
+#include <qdialog.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
 #include "kis_canvas2.h"
 #include "application/ui/workspace/KisViewManager.h"
+#include "kis_color_patches.h"
 #include "nodes/kis_node_manager.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_config_notifier.h"

@@ -5,6 +5,13 @@
  */
 
 #include "kis_brush_import.h"
+#include "KisColorfulBrush.h"
+#include "KisImportExportErrorCode.h"
+#include "KisImportExportFilter.h"
+#include "KisQStringListFwd.h"
+#include "kis_brush.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
 
 #include <QCheckBox>
 #include <QBuffer>
@@ -19,17 +26,17 @@
 
 #include <document/KisDocument.h>
 
-#include <kis_transaction.h>
 #include <kis_paint_device.h>
 #include <kis_image.h>
 #include <kis_paint_layer.h>
-#include <kis_node.h>
 #include <kis_group_layer.h>
 
 #include <kis_gbr_brush.h>
 #include <kis_imagepipe_brush.h>
 #include <KisAnimatedBrushAnnotation.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qcontainerfwd.h>
+#include <qsharedpointer.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KisBrushImportFactory, "krita_brush_import.json", registerPlugin<KisBrushImport>();)
 

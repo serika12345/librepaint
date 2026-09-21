@@ -7,6 +7,12 @@
 #include "NodeViewVisibilityDelegate.h"
 
 #include "nodes/kis_node_view_color_scheme.h"
+#include <qabstractitemdelegate.h>
+#include <qabstractitemmodel.h>
+#include <qicon.h>
+#include <qobject.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
 
 
 NodeViewVisibilityDelegate::NodeViewVisibilityDelegate(QObject *parent)

@@ -16,14 +16,28 @@
 #include <QTextLayout>
 
 #include <KisResourceItemChooser.h>
-#include <KisResourceItemListView.h>
 #include <KisResourceModel.h>
 #include <KisResourceThumbnailCache.h>
+#include <cmath>
 #include <kis_icon_utils.h>
 #include <application/kis_config.h>
 #include "KisPopupButton.h"
+#include "KisResourceTypes.h"
+#include "KisResourceUiDescriptor.h"
+#include "KoGamutMask.h"
+#include "KoID.h"
+#include "KoResource.h"
+#include "ResourceListViewModes.h"
 #include <KisResourceModelProvider.h>
 #include <KisResourceMetaDataModel.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qstyleoption.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 
 /// The resource item delegate for rendering the resource preview

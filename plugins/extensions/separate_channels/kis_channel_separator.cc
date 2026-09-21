@@ -11,19 +11,18 @@
 
 #include "kis_channel_separator.h"
 
+#include <cstring>
 #include <limits.h>
+#include <qlist.h>
+#include <qtypes.h>
 #include <stdlib.h>
 
 #include <QStandardPaths>
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
-#include <kpluginfactory.h>
 
 
-#include <KisImportExportManager.h>
 #include <KoUpdater.h>
-#include <KoFileDialog.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoChannelInfo.h>
@@ -34,18 +33,16 @@
 #include <kis_layer.h>
 #include <kis_paint_layer.h>
 #include <kis_group_layer.h>
-#include <kis_transaction.h>
-#include <kis_undo_adapter.h>
-#include <kis_global.h>
 #include <kis_types.h>
+#include "KoColorSpaceConstants.h"
 #include "kis_iterator_ng.h"
 #include <application/ui/orchestration/KisPart.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_paint_device.h>
 #include <nodes/kis_node_manager.h>
 #include <commands/kis_node_commands_adapter.h>
-#include <KisMimeDatabase.h>
 #include "KisImageBarrierLock.h"
+#include "kundo2magicstring.h"
 
 KisChannelSeparator::KisChannelSeparator(KisViewManager * view)
     : m_viewManager(view)

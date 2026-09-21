@@ -8,6 +8,7 @@
 
 #include "KisAnimTimelineTimeHeader.h"
 
+#include <cmath>
 #include <limits>
 
 #include <QMenu>
@@ -17,10 +18,35 @@
 #include <animation/KisPlaybackEngine.h>
 
 #include <klocalizedstring.h>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qcoreevent.h>
+#include <qforeach.h>
+#include <qheaderview.h>
+#include <qitemselectionmodel.h>
+#include <qline.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qpalette.h>
+#include <qpoint.h>
+#include <qrgb.h>
+#include <qscopedpointer.h>
+#include <qstyle.h>
+#include <qstyleoption.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
 #include "KisTimeBasedItemModel.h"
 #include "KisAnimTimelineColors.h"
 #include "application/ui/orchestration/kis_action.h"
+#include "kis_assert.h"
+#include "kis_signal_compressor.h"
 #include "kis_signal_compressor_with_param.h"
 #include "application/kis_config.h"
 

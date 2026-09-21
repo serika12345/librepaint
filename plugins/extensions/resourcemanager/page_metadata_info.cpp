@@ -5,13 +5,18 @@
  */
 
 #include "page_metadata_info.h"
+#include "KoResourceBundle.h"
 #include "ui_pagemetadatainfo.h"
 #include <application/kis_config.h>
 #include <metadata/KoDocumentInfo.h>
 #include <KisImportExportManager.h>
 #include <KoFileDialog.h>
-#include <KoResource.h>
 #include <QStandardPaths>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qwizard.h>
 #include "KisResourceStorage.h"
 
 

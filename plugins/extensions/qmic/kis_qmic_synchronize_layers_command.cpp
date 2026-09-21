@@ -8,6 +8,11 @@
 
 #include "kis_qmic_synchronize_layers_command.h"
 
+#include <algorithm>
+#include <qalgorithms.h>
+#include <qassert.h>
+#include <qpainter.h>
+#include <qtdeprecationdefinitions.h>
 #include <utility>
 
 #include <document/KisDocument.h>
@@ -27,7 +32,11 @@
 #include <kis_transaction.h>
 #include <kis_types.h>
 
+#include "KisQStringListFwd.h"
+#include "commands/kis_image_command.h"
+#include "kis_debug.h"
 #include "kis_qmic_import_tools.h"
+#include "kis_qmic_interface.h"
 
 struct Q_DECL_HIDDEN KisQmicSynchronizeLayersCommand::Private {
     Private(KisNodeListSP nodes,

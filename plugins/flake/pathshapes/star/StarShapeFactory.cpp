@@ -5,6 +5,8 @@
  */
 
 #include "star/StarShapeFactory.h"
+#include "KisQStringListFwd.h"
+#include "KoPathShape.h"
 #include "star/StarShape.h"
 #include "star/StarShapeConfigWidget.h"
 
@@ -18,6 +20,10 @@
 #include <KoIcon.h>
 
 #include <klocalizedstring.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qsharedpointer.h>
+#include <qtpreprocessorsupport.h>
 
 #include "kis_pointer_utils.h"
 

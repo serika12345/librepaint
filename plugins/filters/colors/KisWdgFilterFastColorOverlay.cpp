@@ -9,10 +9,16 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
+#include "KoCanvasResourceProvider.h"
+#include "KoCompositeOpIds.h"
+#include "kis_config_widget.h"
 #include "kis_filter_configuration.h"
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 #include <ui_wdgfilterfastcoloroverlay.h>
-#include <KoCompositeOpRegistry.h>
 #include "KisFilterFastColorOverlay.h"
+#include "kis_types.h"
 #include <KisGlobalResourcesInterface.h>
 
 KisWdgFilterFastColorOverlay::KisWdgFilterFastColorOverlay(QWidget *parent)

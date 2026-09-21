@@ -14,10 +14,7 @@
 #include <KoFileDialog.h>
 
 #include <KisResourceModel.h>
-#include <kis_assert.h>
 #include <kis_debug.h>
-#include <KisResourceTypes.h>
-#include <application/ui/workspace/KisMainWindow.h>
 #include <KisResourceTypeModel.h>
 #include <KisResourceLoaderRegistry.h>
 #include <KisMimeDatabase.h>
@@ -25,8 +22,24 @@
 #include <KisResourceLocator.h>
 #include <application/kis_config.h>
 #include <KisResourceUserOperations.h>
+#include <qabstractitemmodel.h>
+#include <qalgorithms.h>
+#include <qboxlayout.h>
+#include <qdialog.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qplaintextedit.h>
+#include <qsizepolicy.h>
+#include <qwidget.h>
 
 #include "DlgResourceTypeForFile.h"
+#include "KisQStringListFwd.h"
+#include "KoDialog.h"
+#include "KoResource.h"
+#include "ui_wdgdlgbundlemanager.h"
 
 // ------------ Warnings dialog ---------------
 class FailureReasonsDialog : public KoDialog

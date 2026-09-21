@@ -7,8 +7,10 @@
  */
 
 #include "RulerAssistant.h"
+#include "KoCanvasBase.h"
+#include "kis_painting_assistant.h"
+#include "kis_types.h"
 
-#include <kis_debug.h>
 #include <klocalizedstring.h>
 
 #include <QPainter>
@@ -20,6 +22,11 @@
 #include <kis_dom_utils.h>
 
 #include <math.h>
+#include <qassert.h>
+#include <qmap.h>
+#include <qpoint.h>
+#include <qtypes.h>
+#include <qxmlstream.h>
 
 RulerAssistant::RulerAssistant()
     : RulerAssistant("ruler", i18n("Ruler assistant"))

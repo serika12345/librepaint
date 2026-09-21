@@ -9,6 +9,8 @@
 #include <jerror.h>
 
 #include <QIODevice>
+#include <jpeglib.h>
+#include <qtypes.h>
 
 
 namespace

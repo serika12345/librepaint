@@ -10,7 +10,15 @@
  */
 
 #include "kis_round_corners_filter.h"
+#include "KisQStringListFwd.h"
+#include "KoColorSpaceConstants.h"
+#include "kis_config_widget.h"
 
+#include <qassert.h>
+#include <qforeach.h>
+#include <qminmax.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -26,12 +34,9 @@
 #include <filter/kis_filter_registry.h>
 #include <kis_global.h>
 #include <kis_image.h>
-#include <kis_layer.h>
 #include <widgets/kis_multi_integer_filter_widget.h>
-#include <kis_selection.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_processing_information.h>
 #include <kis_types.h>
 #include <KisSequentialIteratorProgress.h>
 #include <kis_algebra_2d.h>

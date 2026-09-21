@@ -16,8 +16,15 @@
 #include <kconfig.h>
 #include <kconfiggroup.h>
 #include <klocalizedstring.h>
-#include <KoColorSpaceRegistry.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qsize.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
+#include "KisQStringListFwd.h"
+#include "kis_acs_types.h"
 #include "kis_canvas2.h"
 
 #include "kis_color_selector_base_proxy.h"

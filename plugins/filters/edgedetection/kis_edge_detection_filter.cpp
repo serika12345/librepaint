@@ -4,25 +4,31 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_edge_detection_filter.h"
+#include "KoColorSpace.h"
+#include "kis_assert.h"
+#include "kis_config_widget.h"
+#include "kis_filter.h"
+#include "kis_painter.h"
+#include "kis_types.h"
 #include "kis_wdg_edge_detection.h"
 #include <kis_edge_detection_kernel.h>
-#include <kis_convolution_kernel.h>
-#include <kis_convolution_painter.h>
 
-#include <KoColorSpaceRegistry.h>
-#include <KoColorModelStandardIds.h>
 
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_selection.h>
 #include <kis_paint_device.h>
-#include <kis_processing_information.h>
 #include "kis_lod_transform_base.h"
 
 #include <kpluginfactory.h>
 
 #include <klocalizedstring.h>
 #include <filter/kis_filter_registry.h>
+#include <qassert.h>
+#include <qbitarray.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
+#include <qvariant.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaEdgeDetectionFilterFactory, "kritaedgedetection.json", registerPlugin<KritaEdgeDetectionFilter>();)
 

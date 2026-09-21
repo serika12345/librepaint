@@ -6,6 +6,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <qobjectdefs.h>
+#include <qwidget.h>
 #include <webp/encode.h>
 
 #include <kis_properties_configuration.h>
@@ -13,6 +15,10 @@
 #include <KisSpinBoxI18nHelper.h>
 
 #include "kis_wdg_options_webp.h"
+#include "kis_config_widget.h"
+#include "kis_meta_data_filter.h"
+#include "kis_types.h"
+#include "ui_kis_wdg_options_webp.h"
 
 KisWdgOptionsWebP::KisWdgOptionsWebP(QWidget *parent)
     : KisConfigWidget(parent)

@@ -9,8 +9,15 @@
 #include <generator/kis_generator.h>
 #include <generator/kis_generator_registry.h>
 #include <KoResourceLoadResult.h>
+#include <qcontainerfwd.h>
+#include <qhash.h>
+#include <qlist.h>
+#include <qtypes.h>
 
 #include "KisHalftoneFilterConfiguration.h"
+#include "KoColor.h"
+#include "kis_filter_configuration.h"
+#include "kis_types.h"
 
 KisHalftoneFilterConfiguration::KisHalftoneFilterConfiguration(const QString & name,
                                                                qint32 version,

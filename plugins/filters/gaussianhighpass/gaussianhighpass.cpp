@@ -12,6 +12,8 @@
 #include "gaussianhighpass_filter.h"
 
 #include <filter/kis_filter_registry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(GaussianHighPassPluginFactory, "kritagaussianhighpassfilter.json", registerPlugin<GaussianHighPassPlugin>();)
 

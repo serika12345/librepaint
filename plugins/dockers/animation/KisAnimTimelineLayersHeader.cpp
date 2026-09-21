@@ -8,12 +8,26 @@
 
 #include "KisAnimTimelineLayersHeader.h"
 
+#include "KisQStringListFwd.h"
+#include "KoID.h"
 #include "kis_icon_utils.h"
 #include "kis_global.h"
 
 #include <QPainter>
 #include <QHelpEvent>
 #include <QToolTip>
+#include <qcoreevent.h>
+#include <qforeach.h>
+#include <qheaderview.h>
+#include <qicon.h>
+#include <qline.h>
+#include <qnamespace.h>
+#include <qpaintdevice.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
 #include "KisAnimTimelineFramesModel.h"
 #include "KisAnimTimelineColors.h"

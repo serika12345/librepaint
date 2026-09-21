@@ -4,6 +4,8 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "kis_small_color_widget.h"
+#include "KisQStringListFwd.h"
+#include "KoColorProfileConstants.h"
 #include "kis_slider_spin_box.h"
 #include <QVBoxLayout>
 #include "kis_signal_compressor.h"
@@ -25,12 +27,26 @@
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpaceRegistry.h>
 #include "kis_fixed_paint_device.h"
+#include "kis_types.h"
+#include <algorithm>
+#include <cstring>
+#include <functional>
+#include <half.h>
 #include <opengl/KisOpenGLModeProber.h>
 #include <canvas/KisDisplayConfig.h>
 
 #include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 
 #include <config-use-surface-color-management-api.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qsizepolicy.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 #if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API
 
 #include <canvas/KisRootSurfaceInfoProxy.h>

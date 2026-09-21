@@ -9,7 +9,16 @@
 #include <filter/kis_color_transformation_configuration.h>
 #include <kis_paint_device.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qhash.h>
+#include <qobjectdefs.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
+#include "KoColorSpace.h"
+#include "KoColorTransformation.h"
+#include "kis_config_widget.h"
+#include "kis_filter_configuration.h"
+#include "kis_types.h"
 #include "ui_DodgeBurnConfigurationBaseWidget.h"
 
 KisFilterDodgeBurn::KisFilterDodgeBurn(const QString& id, const QString& prefix, const QString& name ) : KisColorTransformationFilter(KoID(id, name), FiltersCategoryAdjustId, name), m_prefix(prefix)

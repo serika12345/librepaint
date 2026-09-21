@@ -12,17 +12,28 @@
 #include <QHeaderView>
 #include <QTableView>
 
-#include <KoResourcePaths.h>
-#include <kis_debug.h>
-#include <kis_icon.h>
 #include <kis_meta_data_entry.h>
 #include <kis_meta_data_schema.h>
 #include <kis_meta_data_schema_registry.h>
 #include <kis_meta_data_store.h>
-#include <kis_meta_data_value.h>
 #include <klocalizedstring.h>
+#include <kpagedialog.h>
+#include <kpagewidgetmodel.h>
+#include <qassert.h>
+#include <qcheckbox.h>
+#include <qcombobox.h>
+#include <qdatetimeedit.h>
+#include <qforeach.h>
+#include <qlineedit.h>
+#include <qlist.h>
+#include <qoverload.h>
+#include <qspinbox.h>
+#include <qtextedit.h>
+#include <qwidget.h>
 
 #include "kis_entry_editor.h"
+#include "kis_icon_utils.h"
+#include "kis_int_parse_spin_box.h"
 #include "kis_meta_data_model.h"
 
 

@@ -12,15 +12,17 @@
 #include <KoResourceServerProvider.h>
 #include <KoResourceServer.h>
 #include <KoCanvasBase.h>
-#include <KoColor.h>
+#include <qabstractitemmodel.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 #include <resources/KoGamutMask.h>
 #include <kis_icon_utils.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <kis_shape_layer.h>
 #include <kis_types.h>
 #include <document/KisDocument.h>
-#include <nodes/kis_node_selection_adapter.h>
-#include <kis_group_layer.h>
 #include <application/ui/workspace/KisView.h>
 #include <KisResourceItemChooser.h>
 #include <KisResourceUserOperations.h>
@@ -38,10 +40,15 @@
 #include <canvas/kis_canvas_resource_provider.h>
 #include <KoColorBackground.h>
 #include <KoShapeStroke.h>
+#include "KisResourceModel.h"
+#include "KisResourceTypes.h"
+#include "KoFlakeTypes.h"
 #include "application/ui/workspace/KisMainWindow.h"
 
 #include <ctime>
 
+#include "kis_assert.h"
+#include <kis_group_layer.h>
 #include "ui_wdgGamutMaskChooser.h"
 #include <kis_layer_utils.h>
 

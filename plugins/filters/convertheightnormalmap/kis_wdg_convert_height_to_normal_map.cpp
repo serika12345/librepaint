@@ -4,10 +4,19 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_wdg_convert_height_to_normal_map.h"
+#include "KoColorSpace.h"
+#include "kis_config_widget.h"
+#include "kis_types.h"
 #include <filter/kis_filter_configuration.h>
 #include <klocalizedstring.h>
 #include <KoChannelInfo.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qboxlayout.h>
+#include <qlabel.h>
+#include <qlist.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 KisWdgConvertHeightToNormalMap::KisWdgConvertHeightToNormalMap(QWidget *parent, const KoColorSpace *cs)
     : KisConfigWidget(parent)

@@ -5,12 +5,18 @@
  */
 
 #include "recorder_export_config.h"
+#include "recorder_export_settings.h"
 
 #include <application/kis_config.h>
 
 #include <QString>
 #include <QDir>
 #include <QRegularExpression>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qset.h>
+#include <qvariant.h>
 
 #ifdef Q_OS_ANDROID
 #include <QJsonDocument>

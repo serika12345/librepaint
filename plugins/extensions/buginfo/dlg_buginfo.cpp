@@ -5,9 +5,10 @@
  */
 
 #include "dlg_buginfo.h"
+#include "KisQStringListFwd.h"
+#include "KoDialog.h"
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 #include <opengl/kis_opengl.h>
 #include <KritaVersionWrapper.h>
 #include <QSysInfo>
@@ -26,6 +27,13 @@
 
 
 #include <KisPortingUtils.h>
+#include <qassert.h>
+#include <qconfig.h>
+#include <qdebug.h>
+#include <qguiapplication.h>
+#include <qhashfunctions.h>
+#include <qtversion.h>
+#include <qwidget.h>
 
 #ifdef Q_OS_ANDROID
 #include <QtAndroid>

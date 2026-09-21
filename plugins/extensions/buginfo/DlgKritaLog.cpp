@@ -5,7 +5,11 @@
  */
 
 #include "DlgKritaLog.h"
+#include "dlg_buginfo.h"
+#include "ui_wdg_buginfo.h"
 #include <QStandardPaths>
+#include <qhashfunctions.h>
+#include <qwidget.h>
 
 DlgKritaLog::DlgKritaLog(QWidget *parent)
     : DlgBugInfo(parent)

@@ -12,13 +12,22 @@
 #include <kpluginfactory.h>
 #include <QApplication>
 #include <KoColorModelStandardIds.h>
-#include <KisExportCheckRegistry.h>
 #include <KisImportExportManager.h>
 #include <kis_paint_device.h>
 #include <document/KisDocument.h>
 #include <kis_image.h>
-#include <kis_paint_layer.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qrgb.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
+#include "KisImportExportErrorCode.h"
+#include "KoColorConversionTransformation.h"
+#include "KoID.h"
+#include "kis_types.h"
 #include "tga.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(KisTGAExportFactory, "krita_tga_export.json", registerPlugin<KisTGAExport>();)

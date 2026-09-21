@@ -6,6 +6,11 @@
  */
 
 #include "example.h"
+#include <qcontainerfwd.h>
+#include <qkeysequence.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
 #include <stdlib.h>
 
 #include <QPoint>
@@ -13,17 +18,15 @@
 
 #include <klocalizedstring.h>
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
-#include <kis_processing_information.h>
 #include <kis_types.h>
-#include <kis_selection.h>
-#include <kis_layer.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_registry.h>
-#include <kis_global.h>
 #include "KoColorModelStandardIds.h"
+#include "KoColorSpace.h"
+#include "KoColorTransformation.h"
+#include "kis_color_transformation_filter.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaExampleFactory, "kritaexample.json", registerPlugin<KritaExample>();)
 

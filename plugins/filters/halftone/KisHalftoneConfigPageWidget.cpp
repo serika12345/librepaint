@@ -8,7 +8,6 @@
 
 #include <generator/kis_generator.h>
 #include <generator/kis_generator_registry.h>
-#include <KoColor.h>
 #include <KisGlobalResourcesInterface.h>
 #include <filter/kis_filter_configuration.h>
 #include <kis_config_widget.h>
@@ -17,8 +16,16 @@
 
 #include <QScrollBar>
 #include <QResizeEvent>
+#include <qassert.h>
+#include <qboxlayout.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 #include "KisHalftoneConfigPageWidget.h"
+#include "KisHalftoneFilterConfiguration.h"
+#include "kis_types.h"
+#include "ui_KisHalftoneConfigPageWidget.h"
 
 KisHalftoneConfigPageWidget::KisHalftoneConfigPageWidget(QWidget *parent, const KisPaintDeviceSP dev)
     : QWidget(parent)

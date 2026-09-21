@@ -13,6 +13,11 @@
 #include <kis_meta_data_value.h>
 #include <kis_meta_data_store.h>
 #include <kis_meta_data_entry.h>
+#include <qassert.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 struct KisEntryEditor::Private {
     QWidget* object;

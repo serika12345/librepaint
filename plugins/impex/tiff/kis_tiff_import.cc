@@ -7,7 +7,20 @@
 
 #include "kis_tiff_import.h"
 #include "KisImportExportErrorCode.h"
+#include "KisImportExportFilter.h"
+#include "KisQStringListFwd.h"
+#include "KoColorConversionTransformation.h"
+#include "KoColorModelStandardIds.h"
+#include "KoColorSpaceConstants.h"
+#include "KoColorTransformation.h"
+#include "KoCompositeOpIds.h"
 #include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_global.h"
+#include "kis_meta_data_io_backend.h"
+#include "kis_types.h"
+#include "psd.h"
+#include "psd_types.h"
 
 #include <QBuffer>
 #include <QPair>
@@ -15,8 +28,27 @@
 #include <QStack>
 
 #include <array>
-#include <exiv2/exiv2.hpp>
+#include <cstdint>
+#include <exiv2/error.hpp>
+#include <exiv2/exif.hpp>
+#include <exiv2/image.hpp>
+#include <exiv2/types.hpp>
+#include <exiv2/version.hpp>
+#include <half.h>
 #include <kpluginfactory.h>
+#include <limits>
+#include <math.h>
+#include <memory>
+#include <qcontainerfwd.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qobject.h>
+#include <qtypes.h>
+#include <qvariant.h>
+#include <tiff.h>
+#include <type_traits>
+#include <utility>
 #ifdef Q_OS_WIN
 #include <io.h>
 #endif

@@ -10,14 +10,19 @@
 
 
 
+#include "KisQStringListFwd.h"
+#include "kis_node.h"
 #include "kis_transparency_mask.h"
 
 #include "kis_external_layer_iface.h"
 
 #include "kis_paint_device.h"
 #include "kis_transaction.h"
+#include "kis_types.h"
 #include "kis_undo_adapter.h"
 #include <kis_transform_worker.h>
+#include <qforeach.h>
+#include <qtpreprocessorsupport.h>
 #include "lazybrush/kis_colorize_mask.h"
 
 

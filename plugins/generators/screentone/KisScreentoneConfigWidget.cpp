@@ -7,7 +7,6 @@
  */
 
 #include <KoColor.h>
-#include <filter/kis_filter_configuration.h>
 #include <KisGlobalResourcesInterface.h>
 #include <kis_signals_blocker.h>
 #include <kis_generator_registry.h>
@@ -16,9 +15,20 @@
 #include <canvas/kis_canvas_resource_provider.h>
 #include <KisSpinBoxI18nHelper.h>
 #include <KoUnit.h>
+#include <qcontainerfwd.h>
+#include <qminmax.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #include "KisScreentoneConfigWidget.h"
 #include "KisScreentoneGeneratorConfiguration.h"
+#include "KoCanvasResourceProvider.h"
+#include "kis_assert.h"
+#include "kis_config_widget.h"
+#include "kis_types.h"
+#include "ui_KisScreentoneConfigWidget.h"
 
 KisScreentoneConfigWidget::KisScreentoneConfigWidget(QWidget* parent, const KoColorSpace *cs)
     : KisConfigWidget(parent)

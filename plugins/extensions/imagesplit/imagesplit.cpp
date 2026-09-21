@@ -14,6 +14,7 @@
 #include <QStandardPaths>
 #include <QMessageBox>
 
+#include <algorithm>
 #include <klocalizedstring.h>
 #include <kpluginfactory.h>
 
@@ -22,7 +23,6 @@
 #include <document/KisDocument.h>
 
 #include <application/ui/orchestration/KisPart.h>
-#include <kis_debug.h>
 #include <kis_types.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_image.h>
@@ -31,10 +31,24 @@
 #include <kis_painter.h>
 #include <kis_paint_device.h>
 #include <KisMimeDatabase.h>
-#include <kis_coordinates_converter.h>
 #include <kis_guides_config.h>
+#include <qapplication.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtransform.h>
+#include <qtypes.h>
+#include <qurl.h>
 
+#include "KisQStringListFwd.h"
 #include "dlg_imagesplit.h"
+#include "ui/orchestration/KisActionPlugin.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(ImagesplitFactory, "kritaimagesplit.json", registerPlugin<Imagesplit>();)
 

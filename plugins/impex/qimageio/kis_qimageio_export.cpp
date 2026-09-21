@@ -5,6 +5,14 @@
  */
 
 #include "kis_qimageio_export.h"
+#include "KisExportCheckBase.h"
+#include "KisImportExportErrorCode.h"
+#include "KisImportExportFilter.h"
+#include "KoColorConversionTransformation.h"
+#include "KoColorModelStandardIds.h"
+#include "KoID.h"
+#include "kis_properties_configuration.h"
+#include "kis_types.h"
 #include "ui_kis_wdg_options_qimageio.h"
 
 #include <QCheckBox>
@@ -19,8 +27,12 @@
 #include <kis_paint_device.h>
 #include <document/KisDocument.h>
 #include <kis_image.h>
-#include <kis_paint_layer.h>
 #include <kis_config_widget.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qvariant.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KisQImageIOExportFactory, "krita_qimageio_export.json", registerPlugin<KisQImageIOExport>();)
 

@@ -6,7 +6,9 @@
 
 #include <KoColor.h>
 #include "kis_color.h"
-#include <kis_arcs_constants.h>
+#include "kis_display_color_converter.h"
+#include <qnamespace.h>
+#include <qtypes.h>
 
 
 KisColor::KisColor(KisDisplayColorConverter* converter, Type type,

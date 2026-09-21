@@ -9,22 +9,36 @@
 
 #include "kis_hsv_adjustment_filter.h"
 
+#include <cmath>
 #include <klocalizedstring.h>
 
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_color_transformation_configuration.h>
-#include <kis_selection.h>
 #include <kis_paint_device.h>
-#include <kis_processing_information.h>
 #include <KoColorSpace.h>
-#include <KoColorProfile.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorConversions.h>
 #include <KisGlobalResourcesInterface.h>
 #include <KisHsvColorSlider.h>
+#include <qhash.h>
+#include <qkeysequence.h>
+#include <qlabel.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qspinbox.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
+#include "kis_assert.h"
+#include "kis_config_widget.h"
+#include "kis_filter_configuration.h"
 #include "kis_signals_blocker.h"
+#include "kis_types.h"
+#include "ui_wdg_hsv_adjustment.h"
 
 namespace {
 

@@ -11,11 +11,8 @@
 #include <QApplication>
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
-#include <KoProgressUpdater.h>
-#include <KoUpdater.h>
 #include <KoColorSpace.h>
 
 #include <application/ui/workspace/KisViewManager.h>
@@ -25,12 +22,19 @@
 #include <kis_layer.h>
 #include <canvas/kis_statusbar.h>
 #include <nodes/kis_node_manager.h>
-#include <widgets/kis_progress_widget.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 #include <application/ui/orchestration/kis_action.h>
 #include <KisCursorOverrideLock.h>
 
 #include "kis_channel_separator.h"
 #include "dlg_separate.h"
+#include "ui/orchestration/KisActionPlugin.h"
+#include <KoUpdater.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KisSeparateChannelsPluginFactory, "kritaseparatechannels.json", registerPlugin<KisSeparateChannelsPlugin>();)
 

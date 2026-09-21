@@ -7,6 +7,7 @@
 #include "channeldocker_dock.h"
 
 #include "ChannelDockerWidget.h"
+#include "kundo2magicstring.h"
 
 #include <KoCanvasBase.h>
 #include <kis_canvas2.h>

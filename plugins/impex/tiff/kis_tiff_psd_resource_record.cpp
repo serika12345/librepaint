@@ -10,7 +10,7 @@
 #include <QIODevice>
 #include <kis_debug.h>
 #include <psd_resource_block.h>
-#include <psd_utils.h>
+#include <qtypes.h>
 
 KisTiffPsdResourceRecord::KisTiffPsdResourceRecord()
 {

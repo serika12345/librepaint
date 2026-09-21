@@ -8,18 +8,24 @@
 
 #include "kis_convolution_filter.h"
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 
 #include <KoCompositeOp.h>
 
+#include "KoColorSpace.h"
+#include "KoID.h"
+#include "kis_filter.h"
+#include "kis_global.h"
 #include "kis_painter.h"
 #include "kis_convolution_painter.h"
 #include "kis_convolution_kernel.h"
 #include <filter/kis_filter_configuration.h>
-#include <kis_selection.h>
 #include <kis_paint_device.h>
-#include <kis_processing_information.h>
+#include <qassert.h>
+#include <qmath.h>
+#include <qminmax.h>
+#include <qtpreprocessorsupport.h>
 #include "kis_lod_transform_base.h"
+#include "kis_types.h"
 
 KisConvolutionFilter::KisConvolutionFilter(const KoID& id, const KoID & category, const QString & entry)
         : KisFilter(id, category, entry)

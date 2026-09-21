@@ -6,15 +6,24 @@
 
 #include "indexcolors.h"
 
+#include <cstring>
 #include <kpluginfactory.h>
 #include <filter/kis_filter_registry.h>
-#include <kis_global.h>
 #include <KoColorSpaceMaths.h>
-#include <KoColorSpaceRegistry.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_color_transformation_configuration.h>
-#include <widgets/kis_multi_integer_filter_widget.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
+#include "KoColorSpace.h"
+#include "KoColorTransformation.h"
+#include "KoID.h"
+#include "indexcolorpalette.h"
+#include "kis_config_widget.h"
+#include "kis_filter_configuration.h"
+#include "kis_types.h"
 #include "kiswdgindexcolors.h"
 #include "palettegeneratorconfig.h"
 

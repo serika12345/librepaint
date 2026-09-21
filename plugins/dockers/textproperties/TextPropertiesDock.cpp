@@ -20,7 +20,13 @@
 #include <canvas/kis_canvas_resource_provider.h>
 
 #include <KLocalizedContext>
+#include <qcolor.h>
+#include <qdockwidget.h>
+#include <qlogging.h>
+#include <qobject.h>
+#include <qvariant.h>
 
+#include "KisResourceTypes.h"
 #include "TextPropertiesCanvasObserver.h"
 
 struct TextPropertiesDock::Private

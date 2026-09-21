@@ -15,6 +15,8 @@
 #include <QDomDocument>
 #include <QHBoxLayout>
 
+#include "KisCurveWidgetControlsManager.h"
+#include "KisResourceTypes.h"
 #include "KoChannelInfo.h"
 #include "KoColorModelStandardIds.h"
 #include "KoColorSpace.h"
@@ -23,16 +25,24 @@
 #include "KoID.h"
 
 
+#include "kis_assert.h"
 #include "kis_bookmarked_configuration_manager.h"
 #include "kis_config_widget.h"
 #include <filter/kis_filter_configuration.h>
-#include <kis_selection.h>
 #include <kis_paint_device.h>
-#include <kis_processing_information.h>
 
 #include <KisGlobalResourcesInterface.h>
+#include <qassert.h>
+#include <qkeysequence.h>
+#include <qlist.h>
+#include <qwidget.h>
 
+#include "kis_cubic_curve.h"
+#include "kis_multichannel_filter_base.h"
 #include "kis_multichannel_utils.h"
+#include "kis_pinned_shared_ptr.h"
+#include "kis_types.h"
+#include "virtual_channel_info.h"
 
 KisPerChannelConfigWidget::KisPerChannelConfigWidget(QWidget * parent, KisPaintDeviceSP dev, Qt::WindowFlags f)
         : KisMultiChannelConfigWidget(parent, dev, f)

@@ -10,7 +10,6 @@
 
 #include <QPoint>
 
-#include <kis_debug.h>
 
 #include <kpluginfactory.h>
 #include <klocalizedstring.h>
@@ -18,14 +17,18 @@
 #include <kis_fill_painter.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
-#include <kis_layer.h>
 #include <generator/kis_generator_registry.h>
-#include <kis_global.h>
-#include <kis_selection.h>
 #include <kis_types.h>
 #include <filter/kis_filter_configuration.h>
 #include <kis_processing_information.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qvariant.h>
 
+#include "KoColorSpace.h"
 #include "kis_wdg_color.h"
 #include "ui_wdgcoloroptions.h"
 

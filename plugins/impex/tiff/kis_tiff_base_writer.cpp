@@ -5,14 +5,22 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <KoColorModelStandardIdsUtils.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoID.h>
+#include <array>
+#include <cstdint>
+#include <half.h>
 #include <kis_iterator_ng.h>
+#include <qassert.h>
+#include <qtypes.h>
+#include <tiff.h>
+#include <tiffio.h>
 
 #include "kis_tiff_base_writer.h"
+#include "KoColorModelStandardIds.h"
 #include "kis_tiff_converter.h"
+#include "kis_types.h"
 
 KisTIFFBaseWriter::KisTIFFBaseWriter(TIFF *image, KisTIFFOptions *options)
     : m_image(image)

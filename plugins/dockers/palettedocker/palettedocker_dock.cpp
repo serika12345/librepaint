@@ -25,7 +25,6 @@
 #include <klocalizedstring.h>
 #include <KoResourceServerProvider.h>
 #include <KisResourceLocator.h>
-#include <KoColorSpaceRegistry.h>
 #include <KoFileDialog.h>
 #include <kis_floating_message.h>
 #include <kis_icon.h>
@@ -45,12 +44,31 @@
 #include <KisStorageModel.h>
 
 #include <KisPaletteModel.h>
-#include <KisPaletteDelegate.h>
 #include <kis_palette_view.h>
 #include <KisPaletteChooser.h>
 
 #include <dialogs/KisDlgPaletteEditor.h>
+#include <qabstractitemmodel.h>
+#include <qapplication.h>
+#include <qcursor.h>
+#include <qdialog.h>
+#include <qfiledevice.h>
+#include <qfont.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsharedpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qvariant.h>
 
+#include "KisResourceModel.h"
+#include "KisResourceStorage.h"
+#include "KisResourceTypes.h"
+#include "KisSwatch.h"
+#include "KoColorSet.h"
+#include "KoResourceServer.h"
+#include "kis_debug.h"
+#include "kis_icon_utils.h"
 #include "ui_wdgpalettedock.h"
 
 PaletteDockerDock::PaletteDockerDock( )

@@ -5,5 +5,6 @@
 */
 
 #include "libkdcraw_debug.h"
+#include <qloggingcategory.h>
 
 Q_LOGGING_CATEGORY(LIBKDCRAW_LOG, "libkdcraw")

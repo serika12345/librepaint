@@ -10,6 +10,7 @@
 
 #include "kis_my_paint_shade_selector.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
 
@@ -25,11 +26,21 @@
 #include <kconfig.h>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
+#include <math.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
+#include "KoCanvasResourcesIds.h"
 #include "KoColorSpace.h"
 #include "KoColor.h"
 #include "KoCanvasResourceProvider.h"
 
+#include "kis_acs_types.h"
+#include "kis_color_selector_base.h"
+#include "kis_debug.h"
 #include "kis_paint_device.h"
 #include "kis_painter.h"
 #include "kis_sequential_iterator.h"

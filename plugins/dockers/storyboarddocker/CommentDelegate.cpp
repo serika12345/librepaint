@@ -14,7 +14,14 @@
 #include <QSize>
 #include <QMouseEvent>
 
-#include <kis_icon.h>
+#include <qabstractitemmodel.h>
+#include <qcoreevent.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpaintdevice.h>
+#include <qstyleditemdelegate.h>
+#include <qstyleoption.h>
+#include <qtpreprocessorsupport.h>
 
 CommentDelegate::CommentDelegate(QObject *parent)
     : QStyledItemDelegate(parent)

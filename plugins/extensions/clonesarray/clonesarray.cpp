@@ -8,13 +8,18 @@
 
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 #include <kpluginfactory.h>
-#include <kis_image.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <application/ui/orchestration/kis_action.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtpreprocessorsupport.h>
 
 #include "dlg_clonesarray.h"
+#include "ui/orchestration/KisActionPlugin.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(ClonesArrayFactory, "kritaclonesarray.json", registerPlugin<ClonesArray>();)
 

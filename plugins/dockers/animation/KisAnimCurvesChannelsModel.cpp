@@ -10,15 +10,28 @@
 #include <QPalette>
 
 #include "KisAnimCurvesModel.h"
+#include "kis_assert.h"
 #include "kis_dummies_facade_base.h"
 #include "kis_node_dummies_graph.h"
 #include "kis_node.h"
+#include "kis_types.h"
+#include <kis_image.h>
 #include "nodes/kis_node_view_color_scheme.h"
 #include "kis_scalar_keyframe_channel.h"
 #include "kis_signal_auto_connection.h"
 #include <kis_painting_tweaks.h>
 #include "KisAnimUtils.h"
-#include <kis_image.h>
+#include <qabstractitemmodel.h>
+#include <qalgorithms.h>
+#include <qcolor.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 const quintptr ID_NODE = 0xffffffff;
 

@@ -10,6 +10,8 @@
 
 // ImageShape
 #include "ImageShape.h"
+#include "KisQStringListFwd.h"
+#include "KoShapeFactoryBase.h"
 //#include "ImageShapeConfigWidget.h"
 
 // Calligra
@@ -21,6 +23,13 @@
 
 // KDE
 #include <klocalizedstring.h>
+#include <qcontainerfwd.h>
+#include <qimage.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qpair.h>
+#include <qtpreprocessorsupport.h>
+#include <qtransform.h>
 
 ImageShapeFactory::ImageShapeFactory()
     : KoShapeFactoryBase(ImageShapeId, i18n("Image shape"))

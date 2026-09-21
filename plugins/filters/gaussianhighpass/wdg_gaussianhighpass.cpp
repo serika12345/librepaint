@@ -9,11 +9,14 @@
 #include "wdg_gaussianhighpass.h"
 #include <QLayout>
 
-#include <filter/kis_filter.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_processing_information.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qobjectdefs.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
+#include "kis_config_widget.h"
+#include "kis_types.h"
 #include "ui_wdggaussianhighpass.h"
 
 KisWdgGaussianHighPass::KisWdgGaussianHighPass(QWidget * parent) : KisConfigWidget(parent)

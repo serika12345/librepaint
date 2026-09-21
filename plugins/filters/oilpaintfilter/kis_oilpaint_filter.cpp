@@ -13,6 +13,9 @@
 
 #include "kis_oilpaint_filter.h"
 
+#include <cstring>
+#include <qassert.h>
+#include <qtypes.h>
 #include <stdlib.h>
 
 #include <QPoint>
@@ -20,7 +23,6 @@
 #include <QDateTime>
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
 #include <KoUpdater.h>
@@ -29,14 +31,15 @@
 #include <kis_image.h>
 #include <KisSequentialIteratorProgress.h>
 #include <kis_sequential_iterator.h>
-#include <kis_layer.h>
 #include <filter/kis_filter_registry.h>
-#include <kis_global.h>
 #include <kis_types.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_processing_information.h>
 #include <kis_paint_device.h>
+#include "KisQStringListFwd.h"
+#include "KoColorSpaceConstants.h"
+#include "KoIntegerMaths.h"
+#include "kis_config_widget.h"
 #include "widgets/kis_multi_integer_filter_widget.h"
 #include <KisGlobalResourcesInterface.h>
 

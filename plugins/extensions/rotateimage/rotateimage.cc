@@ -9,9 +9,7 @@
 #include <math.h>
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 #include <kpluginfactory.h>
-#include <kis_icon.h>
 #include <kundo2magicstring.h>
 #include <kis_image.h>
 #include <kis_types.h>
@@ -19,11 +17,18 @@
 #include <document/kis_image_manager.h>
 #include <nodes/kis_node_manager.h>
 #include <canvas/kis_canvas_resource_provider.h>
-#include <kis_group_layer.h>
 #include <application/ui/orchestration/kis_action.h>
-#include <kis_selection.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
 
 #include "dlg_rotateimage.h"
+#include "ui/orchestration/KisActionPlugin.h"
+#include <kis_group_layer.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(RotateImageFactory, "kritarotateimage.json", registerPlugin<RotateImage>();)
 

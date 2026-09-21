@@ -12,6 +12,13 @@
 #include "kis_pixelize_filter.h"
 
 
+#include <cstring>
+#include <qassert.h>
+#include <qmath.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qscopedpointer.h>
+#include <qtypes.h>
 #include <stdlib.h>
 
 #include <QPoint>
@@ -22,21 +29,17 @@
 
 #include <KoUpdater.h>
 
-#include <kis_debug.h>
 #include <document/KisDocument.h>
 #include <filter/kis_filter_registry.h>
-#include <kis_global.h>
 #include <kis_image.h>
-#include <kis_layer.h>
-#include <kis_selection.h>
 #include <kis_types.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_processing_information.h>
 
+#include "KoColorSpace.h"
+#include "kis_config_widget.h"
 #include "widgets/kis_multi_integer_filter_widget.h"
 #include <KoMixColorsOp.h>
-#include <KisSequentialIteratorProgress.h>
 #include <kis_sequential_iterator.h>
 #include "kis_algebra_2d.h"
 #include "kis_lod_transform_base.h"

@@ -8,8 +8,14 @@
 
 #include <QMouseEvent>
 #include <QPainter>
+#include "KisGLImageWidget.h"
+#include "color/KisSurfaceColorSpaceWrapper.h"
 #include "kis_algebra_2d.h"
-#include <kis_debug.h>
+#include <cmath>
+#include <qpaintdevice.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 KisClickableGLImageWidget::KisClickableGLImageWidget(QWidget *parent)
     : KisGLImageWidget(parent)

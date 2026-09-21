@@ -7,6 +7,8 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include <algorithm>
+#include <kconfiggroup.h>
 #include <kis_assistant_tool.h>
 
 #include <kis_debug.h>
@@ -21,7 +23,6 @@
 #include <QLineF>
 #include <QMessageBox>
 
-#include <KoIcon.h>
 #include <KoFileDialog.h>
 #include <KoViewConverter.h>
 #include <KoPointerEvent.h>
@@ -29,7 +30,6 @@
 #include <ksharedconfig.h>
 
 #include <canvas/kis_canvas2.h>
-#include <canvas/kis_abstract_perspective_grid.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <kis_cursor.h>
 #include <kis_document_aware_spin_box_unit_manager.h>
@@ -42,12 +42,35 @@
 #include <application/ui/workspace/KisViewManager.h>
 
 #include "EditAssistantsCommand.h"
+#include "KoID.h"
+#include "KoShape.h"
 #include "PerspectiveAssistant.h"
 #include "RulerAssistant.h"
 #include "TwoPointAssistant.h"
 #include "VanishingPointAssistant.h"
+#include "kis_icon_utils.h"
+#include "kis_painting_assistant.h"
+#include "kis_pointer_utils.h"
+#include "kis_tool.h"
+#include "kundo2stack.h"
 
 #include <math.h>
+#include <qapplication.h>
+#include <qassert.h>
+#include <qevent.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qsharedpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 KisAssistantTool::KisAssistantTool(KoCanvasBase * canvas)
     : KisTool(canvas, KisCursor::arrowCursor())

@@ -9,8 +9,18 @@
 
 #include <QDomElement>
 
+#include <half.h>
 #include <klocalizedstring.h>
 #include <KoColorConversions.h>
+#include "KisQStringListFwd.h"
+#include "KoChannelInfo.h"
+#include "KoColorConversionTransformationFactory.h"
+#include "KoColorProfile.h"
+#include "KoColorProfileConstants.h"
+#include "KoColorSpace.h"
+#include "KoColorSpaceMaths.h"
+#include "KoColorSpaceRegistry.h"
+#include "LcmsColorSpace.h"
 #include "LcmsRGBP2020PQColorSpace.h"
 #include "compositeops/KoCompositeOps.h"
 
@@ -18,9 +28,14 @@
 #include "compositeops/RgbCompositeOpOut.h"
 #include "compositeops/RgbCompositeOpBumpmap.h"
 #include "dithering/KisRgbDitherOpFactory.h"
+#include "kis_assert.h"
 #include <kis_dom_utils.h>
 #include <KoColorSpacePreserveLightnessUtils.h>
 #include <KoColorProfileQuery.h>
+#include <lcms2.h>
+#include <qlist.h>
+#include <qrgb.h>
+#include <qtypes.h>
 
 RgbF16ColorSpace::RgbF16ColorSpace(const QString &name, KoColorProfile *p) :
     LcmsColorSpace<KoRgbF16Traits>(colorSpaceId(), name, TYPE_RGBA_HALF_FLT, cmsSigRgbData, p)

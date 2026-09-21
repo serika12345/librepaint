@@ -7,6 +7,8 @@
 #include "kis_colorize_dom_utils.h"
 
 #include <KoColorSpaceRegistry.h>
+#include <qdom.h>
+#include <qtypes.h>
 #include "kis_dom_utils.h"
 #include "lazybrush/kis_lazy_fill_tools.h"
 #include "kis_kra_tags.h"

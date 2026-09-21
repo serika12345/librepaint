@@ -5,6 +5,11 @@
  */
 #include "kis_kra_saver.h"
 
+#include "KisQStringListFwd.h"
+#include "KoEmbeddedResource.h"
+#include "KoResourceLoadResult.h"
+#include "document/StoryboardItem.h"
+#include "kis_assert.h"
 #include "kis_kra_tags.h"
 #include "kis_kra_save_visitor.h"
 #include "kis_kra_savexml_visitor.h"
@@ -24,21 +29,17 @@
 #include <KoColorSpace.h>
 #include <KoColorProfile.h>
 #include <KoColor.h>
-#include <KoColorSet.h>
 #include <KoStore.h>
-#include <KoStoreDevice.h>
 #include <KisResourceTypes.h>
-#include <KisResourceModel.h>
 #include <kis_annotation.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
 #include <kis_image_animation_interface.h>
 #include <KisImportExportManager.h>
 #include <kis_group_layer.h>
-#include <kis_layer.h>
-#include <kis_adjustment_layer.h>
 #include <kis_layer_composition.h>
-#include <canvas/kis_painting_assistants_decoration.h>
+#include "kis_node.h"
+#include "kis_painting_assistant.h"
 #include "kis_png_converter.h"
 #include "kis_keyframe_channel.h"
 #include <kis_time_span.h>
@@ -48,11 +49,20 @@
 #include "kis_guides_config.h"
 #include "KisProofingConfiguration.h"
 #include "kis_asl_layer_style_serializer.h"
+#include "kis_psd_layer_style.h"
+#include "kis_types.h"
 
 #include <KisMirrorAxisConfig.h>
 
 #include <QFileInfo>
 #include <QDir>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 using namespace KRA;

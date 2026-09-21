@@ -47,6 +47,10 @@
 #include "rsliderspinbox.h"
 
 #include <kis_icon_utils.h>
+#include <qnamespace.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace KDcrawIface
 {

@@ -5,18 +5,27 @@
 */
 
 #include "kis_desaturate_adjustment.h"
+#include "KoBgrColorSpaceTraits.h"
+#include "KoColorSpaceMaths.h"
+#include "KoColorTransformationFactory.h"
+#include "KoRgbColorSpaceTraits.h"
 
 #include <KoConfig.h>
 
+#include <half.h>
 #include <kis_debug.h>
 #include <klocalizedstring.h>
 
-#include <KoColorConversions.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpace.h>
-#include <KoColorSpaceTraits.h>
 #include <KoColorTransformation.h>
 #include <KoID.h>
+#include <qcontainerfwd.h>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qtypes.h>
 
 #define SCALE_TO_FLOAT( v ) KoColorSpaceMaths< _channel_type_, float>::scaleToA( v )
 #define SCALE_FROM_FLOAT( v  ) KoColorSpaceMaths< float, _channel_type_>::scaleToA( v )

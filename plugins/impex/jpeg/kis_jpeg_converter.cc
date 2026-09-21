@@ -4,12 +4,28 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_jpeg_converter.h"
+#include "KisImportExportErrorCode.h"
+#include "KoID.h"
+#include "KoIntegerMaths.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_global.h"
+#include "kis_meta_data_io_backend.h"
+#include "kis_types.h"
 
+#include <cstdlib>
+#include <cstring>
+#include <exiv2/types.hpp>
+#include <jpeglib.h>
+#include <math.h>
+#include <qassert.h>
+#include <qstringview.h>
+#include <qtypes.h>
+#include <stdexcept>
 #include <stdint.h>
 
 #include <KoConfig.h>
 #ifdef HAVE_LCMS2
-#   include <lcms2.h>
 #else
 #   include <lcms.h>
 #endif
@@ -18,7 +34,6 @@ extern "C" {
 #include <iccjpeg.h>
 }
 
-#include <exiv2/jpgimage.hpp>
 #include <exiv2/version.hpp>
 #if EXIV2_TEST_VERSION(0,28,0)
 #include <exiv2/photoshop.hpp>
@@ -30,7 +45,6 @@ extern "C" {
 
 #include <klocalizedstring.h>
 
-#include <metadata/KoDocumentInfo.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorProfile.h>
@@ -51,7 +65,6 @@ extern "C" {
 #include <kis_paint_device.h>
 #include <kis_paint_layer.h>
 #include <kis_painter.h>
-#include <kis_transaction.h>
 #include <kis_transform_worker.h>
 
 #define ICC_MARKER  (JPEG_APP0 + 2) /* JPEG marker code for ICC */

@@ -11,28 +11,38 @@
 #include <QPoint>
 
 
+#include <algorithm>
+#include <iterator>
 #include <kpluginfactory.h>
 #include <klocalizedstring.h>
 
-#include <KoColor.h>
 #include <KisResourceTypes.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qpolygon.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtransform.h>
+#include <qtypes.h>
+#include <qvariant.h>
 #include <resources/KoPattern.h>
 
-#include <kis_debug.h>
 #include <kis_fill_painter.h>
-#include <kis_image.h>
 #include <kis_paint_device.h>
-#include <kis_layer.h>
 #include <generator/kis_generator_registry.h>
 #include <kis_global.h>
-#include <kis_selection.h>
 #include <kis_types.h>
 #include <filter/kis_filter_configuration.h>
 #include <kis_processing_information.h>
-#include <kis_pattern_chooser.h>
 #include <KisResourcesInterface.h>
 #include <KoResourceLoadResult.h>
 
+#include "KoColorSpace.h"
+#include "kis_assert.h"
 #include "kis_wdg_pattern.h"
 #include "ui_wdgpatternoptions.h"
 

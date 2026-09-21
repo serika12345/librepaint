@@ -15,15 +15,24 @@
 #include <KoUpdater.h>
 
 #include <kis_paint_device.h>
-#include <kis_selection.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_processing_information.h>
 
+#include "KoChannelInfo.h"
+#include "KoColorSpace.h"
+#include "kis_assert.h"
+#include "kis_config_widget.h"
+#include "kis_debug.h"
+#include "kis_filter.h"
+#include "kis_types.h"
 #include "ui_wdgcolortoalphabase.h"
 #include "kis_wdg_color_to_alpha.h"
-#include <kis_iterator_ng.h>
 #include <KisSequentialIteratorProgress.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 KisFilterColorToAlpha::KisFilterColorToAlpha()
     : KisFilter(id(), FiltersCategoryColorId, i18n("&Color to Alpha..."))

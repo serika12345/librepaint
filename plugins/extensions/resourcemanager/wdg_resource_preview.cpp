@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisResourceTypes.h"
 #include "ui_wdgresourcepreview.h"
 #include "wdg_resource_preview.h"
 
@@ -17,22 +18,25 @@
 #include <QCompleter>
 #include <QLineEdit>
 
-#include <application/ui/orchestration/kis_action.h>
 #include <application/ui/orchestration/kis_action_manager.h>
-#include <kis_icon.h>
 #include <KisResourceTypeModel.h>
 #include <KisStorageModel.h>
 #include <KisTagModel.h>
 #include <KisResourceItemListView.h>
-#include <KisResourceLocator.h>
 #include <KisResourceModel.h>
 #include <KisTagFilterResourceProxyModel.h>
 #include <kis_assert.h>
 #include <KisResourceItemDelegate.h>
-#include <wdgtagselection.h>
+#include <qabstractitemmodel.h>
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsharedpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <kis_paintop_factory.h>
-#include <kis_paintop_registry.h>
-#include <dlg_create_bundle.h>
 #include <ResourceImporter.h>
 #include <KoIcon.h>
 #include "ResourceListViewModes.h"

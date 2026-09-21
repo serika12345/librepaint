@@ -7,14 +7,34 @@
 #include "KisTimeBasedItemModel.h"
 
 #include <QPointer>
+#include <algorithm>
 #include <application/kis_config.h>
 
 #include <animation/kis_animation_frame_cache.h>
+#include <functional>
+#include <memory>
+#include <qabstractitemmodel.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 #include "KisCanvasAnimationState.h"
+#include "KisQStringListFwd.h"
 #include "animation/KisFrameDisplayProxy.h"
+#include "animation/kis_animation_frame_cache_fwd.h"
+#include "kis_assert.h"
+#include "kis_signal_compressor.h"
 #include "kis_signal_compressor_with_param.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
+#include "kis_stroke_job_strategy.h"
 #include "kis_time_span.h"
 #include "KisAnimUtils.h"
 #include "kis_keyframe_channel.h"
@@ -24,6 +44,9 @@
 #include "commands_new/kis_switch_current_time_command.h"
 #include "application/ui/orchestration/KisPart.h"
 #include "animation/KisPlaybackEngine.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 struct KisTimeBasedItemModel::Private
 {

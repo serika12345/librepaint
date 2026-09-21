@@ -17,7 +17,23 @@
 #include <QEvent>
 #include <QToolButton>
 #include <QAction>
+#include <qcolor.h>
+#include <qforeach.h>
+#include <qlayout.h>
+#include <qlayoutitem.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
+#include "KisResourceTypes.h"
+#include "KoCanvasResourcesIds.h"
+#include "kis_assert.h"
+#include "kis_types.h"
 #include "kis_uniform_paintop_property.h"
 #include "kis_uniform_paintop_property_widget.h"
 #include "canvas/kis_canvas_resource_provider.h"

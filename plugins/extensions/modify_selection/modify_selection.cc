@@ -9,17 +9,19 @@
 #include "modify_selection.h"
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 
 #include "application/ui/orchestration/kis_action.h"
 #include <kpluginfactory.h>
 #include <operations/kis_operation_ui_widget_factory.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 #include "dlg_grow_selection.h"
 #include "dlg_shrink_selection.h"
 #include "dlg_border_selection.h"
 #include "dlg_feather_selection.h"
 #include "modify_selection_operations.h"
+#include "ui/orchestration/KisActionPlugin.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(ModifySelectionFactory, "kritamodifyselection.json", registerPlugin<ModifySelection>();)
 

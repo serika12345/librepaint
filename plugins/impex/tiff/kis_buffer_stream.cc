@@ -6,8 +6,11 @@
  */
 
 #include "kis_buffer_stream.h"
+#include "kis_assert.h"
 
-#include <kis_debug.h>
+#include <cstdint>
+#include <qsharedpointer.h>
+#include <tiffio.h>
 
 KisBufferStreamContigBase::KisBufferStreamContigBase(uint8_t *src,
                                                      uint16_t depth,

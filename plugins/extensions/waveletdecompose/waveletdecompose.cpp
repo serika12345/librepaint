@@ -13,10 +13,8 @@
 #include <kpluginfactory.h>
 
 #include <KoColorSpace.h>
-#include <KoChannelInfo.h>
 #include <KoColor.h>
 
-#include <kis_debug.h>
 #include <kis_types.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_image.h>
@@ -28,15 +26,26 @@
 #include <kis_paint_device.h>
 #include <kis_paint_layer.h>
 #include <kis_group_layer.h>
-#include <kis_random_accessor_ng.h>
+#include "KoColorSpaceConstants.h"
+#include "KoCompositeOpIds.h"
 #include "dlg_waveletdecompose.h"
+#include "kundo2magicstring.h"
 #include "nodes/kis_node_manager.h"
 #include <commands/kis_node_commands_adapter.h>
 #include "kis_undo_adapter.h"
+#include "ui/orchestration/KisActionPlugin.h"
 
 #include <KisCursorOverrideLock.h>
 #include <KoUpdater.h>
 #include <KoProgressUpdater.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 
 

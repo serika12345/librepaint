@@ -7,6 +7,12 @@
  */
 
 #include "kis_kra_save_visitor.h"
+#include "KisPortingUtils.h"
+#include "KisQStringListFwd.h"
+#include "KoShape.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_external_layer_iface.h"
 #include "kis_kra_tags.h"
 
 #include <QBuffer>
@@ -16,7 +22,11 @@
 #include <KoStore.h>
 #include <KoColorSpace.h>
 
+#include "kis_meta_data_io_backend.h"
+#include "kis_node.h"
+#include "kis_types.h"
 #include "lazybrush/kis_colorize_mask.h"
+#include <algorithm>
 #include <canvas/KisReferenceImage.h>
 #include <KisReferenceImagesLayer.h>
 #include <filter/kis_filter_configuration.h>
@@ -33,7 +43,6 @@
 #include <kis_meta_data_backend_registry.h>
 #include <kis_meta_data_store.h>
 #include <kis_paint_layer.h>
-#include <kis_pixel_selection.h>
 #include <kis_selection.h>
 #include <kis_selection_component.h>
 #include <kis_selection_mask.h>
@@ -51,6 +60,13 @@
 
 #include "lazybrush/kis_lazy_fill_tools.h"
 #include <KoStoreDevice.h>
+#include <qassert.h>
+#include <qbytearrayalgorithms.h>
+#include <qdebug.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qtpreprocessorsupport.h>
 #include "kis_colorize_dom_utils.h"
 #include "kis_dom_utils.h"
 

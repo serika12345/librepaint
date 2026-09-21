@@ -5,7 +5,22 @@
 */
 
 #include "kis_hsv_adjustment.h"
+#include "KoBgrColorSpaceTraits.h"
+#include "KoColorSpaceMaths.h"
+#include "KoColorTransformationFactory.h"
+#include "KoRgbColorSpaceTraits.h"
+#include "kis_assert.h"
 #include <KoConfig.h>
+#include <cmath>
+#include <cstdlib>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #ifdef HAVE_OPENEXR
 #include <half.h>
 #endif
@@ -17,7 +32,6 @@
 #include <KoColorConversions.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpace.h>
-#include <KoColorSpaceTraits.h>
 #include <KoColorTransformation.h>
 #include <KoID.h>
 

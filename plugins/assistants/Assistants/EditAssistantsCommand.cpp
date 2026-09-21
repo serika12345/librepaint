@@ -5,14 +5,17 @@
  */
 
 #include "EditAssistantsCommand.h"
+#include "kis_assert.h"
+#include "kundo2magicstring.h"
 
 
 #include <kis_canvas2.h>
 #include <application/ui/workspace/KisView.h>
 #include <document/KisDocument.h>
 #include <application/ui/workspace/KisViewManager.h>
-#include <canvas/kis_canvas_resource_provider.h>
 #include <canvas/kis_painting_assistants_decoration.h>
+#include <qpointer.h>
+#include <qtpreprocessorsupport.h>
 
 EditAssistantsCommand::EditAssistantsCommand(QPointer<KisCanvas2> canvas, AssistantSPList origAssistants, AssistantSPList newAssistants, KUndo2Command *parent)
     : KUndo2Command(kundo2_i18n("Edit Assistants"), parent)

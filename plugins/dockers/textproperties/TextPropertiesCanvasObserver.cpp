@@ -15,11 +15,27 @@
 #include <KisResourceModel.h>
 #include <KisResourceUserOperations.h>
 
-#include <lager/state.hpp>
 #include <QApplication>
+#include <qdialog.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
+#include "FlakeDebug.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KoCssStylePreset.h"
+#include "KoID.h"
+#include "KoResource.h"
 #include "TextPropertyConfigDialog.h"
 #include "CssStylePresetEditDialog.h"
+#include "TextPropertyConfigModel.h"
+#include "kis_assert.h"
+#include "lager/KoSvgTextPropertiesModel.h"
 
 struct TextPropertiesCanvasObserver::Private {
 

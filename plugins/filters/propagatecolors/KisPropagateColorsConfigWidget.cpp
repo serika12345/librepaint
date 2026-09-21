@@ -9,7 +9,6 @@
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 
-#include <filter/kis_filter_configuration.h>
 #include <kis_signals_blocker.h>
 #include <KisGlobalResourcesInterface.h>
 
@@ -18,8 +17,18 @@
 #include <KisOptionCollectionWidget.h>
 #include <kis_slider_spin_box.h>
 #include <KisSpinBoxI18nHelper.h>
+#include <qobjectdefs.h>
+#include <qoverload.h>
+#include <qsizepolicy.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 #include "KisPropagateColorsFilterConfiguration.h"
+#include "KisResourceTypes.h"
+#include "kis_assert.h"
+#include "kis_config_widget.h"
+#include "kis_types.h"
 #include "KisPropagateColorsConfigWidget.h"
 
 class KisPropagateColorsConfigWidget::Private

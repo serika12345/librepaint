@@ -9,18 +9,25 @@
 #include <klocalizedstring.h>
 
 #include <KoResourceServerProvider.h>
-#include <kis_debug.h>
 
 #include <application/ui/workspace/KisViewManager.h>
-#include <kis_image.h>
 #include <kis_paint_device.h>
 
+#include "KisPaletteChooser.h"
+#include "KoColorSet.h"
+#include "KoDialog.h"
+#include "KoResourceServer.h"
 #include "kis_slider_spin_box.h"
+#include "wdg_layersplit.h"
 #include <QCheckBox>
 #include <QSpinBox>
 
 #include <application/kis_config.h>
 #include <KisDialogStateSaver.h>
+#include <qmap.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qvariant.h>
 
 DlgLayerSplit::DlgLayerSplit()
     : KoDialog()

@@ -16,22 +16,40 @@
 #include <QHBoxLayout>
 #include <QRegularExpression>
 
+#include "KisCurveWidgetControlsManager.h"
+#include "KisResourceTypes.h"
 #include "KoColorSpace.h"
 #include "KoColorTransformation.h"
 #include "KoCompositeColorTransformation.h"
 #include "KoCompositeOp.h"
 
 
+#include "kis_assert.h"
 #include "kis_bookmarked_configuration_manager.h"
+#include "kis_color_transformation_configuration.h"
 #include "kis_config_widget.h"
 #include <filter/kis_filter_configuration.h>
-#include <kis_selection.h>
 #include <kis_paint_device.h>
-#include <kis_processing_information.h>
 #include <libs/global/kis_dom_utils.h>
 
+#include "kis_cubic_curve.h"
+#include "kis_multichannel_filter_base.h"
+#include "kis_properties_configuration.h"
+#include "kis_types.h"
+#include "virtual_channel_info.h"
 #include "widgets/kis_curve_widget.h"
 #include <KisGlobalResourcesInterface.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qhash.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 #include "../../color/colorspaceextensions/kis_hsv_adjustment.h"
 

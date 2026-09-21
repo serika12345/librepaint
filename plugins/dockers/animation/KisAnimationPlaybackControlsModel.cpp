@@ -10,6 +10,7 @@
 
 #include "KisCanvasAnimationState.h"
 #include "animation/KisPlaybackEngine.h"
+#include <lager/extra/qt.hpp>
 
 
 KisAnimationPlaybackControlsModel::KisAnimationPlaybackControlsModel()

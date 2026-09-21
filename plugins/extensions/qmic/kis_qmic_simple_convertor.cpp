@@ -6,11 +6,24 @@
  */
 
 #include "kis_qmic_simple_convertor.h"
+#include "KoBgrColorSpaceTraits.h"
+#include "KoColorSpaceMaths.h"
+#include "KoCompositeOpIds.h"
+#include "KoRgbColorSpaceTraits.h"
+#include "kis_qmic_interface.h"
+#include "kis_types.h"
 
 #include <array>
 #include <cstddef>
+#include <cstring>
+#include <half.h>
 #include <map>
 #include <memory>
+#include <qassert.h>
+#include <qhashfunctions.h>
+#include <qminmax.h>
+#include <qrgb.h>
+#include <qtypes.h>
 #include <vector>
 
 #include <kis_debug.h>
@@ -19,7 +32,6 @@
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
-#include <KoColorSpaceTraits.h>
 #include <KoCompositeOpRegistry.h>
 
 #define SCALE_TO_FLOAT(v) KoColorSpaceMaths<_channel_type_, float>::scaleToA(v)

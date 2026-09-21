@@ -6,14 +6,25 @@
 
 #include "KisGLImageWidget.h"
 
+#include <OpenGL/gl.h>
 #include <QPainter>
 #include <QFile>
 #include <QResizeEvent>
 #include <QVector3D>
 #include <config-hdr.h>
 #include <opengl/kis_opengl.h>
+#include <qfiledevice.h>
+#include <qlogging.h>
+#include <qobjectdefs.h>
+#include <qopengl.h>
+#include <qopenglshaderprogram.h>
+#include <qopenglwidget.h>
+#include <qpaintdevice.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 #include "KisGLImageF16.h"
+#include "KisQStringListFwd.h"
 
 namespace {
 inline void rectToVertices(QVector3D* vertices, const QRectF &rc)

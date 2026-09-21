@@ -5,6 +5,13 @@
  */
 
 #include "page_resource_chooser.h"
+#include "KisBundleStorage.h"
+#include "KisResourceItemDelegate.h"
+#include "KisResourceStorage.h"
+#include "KisResourceTypes.h"
+#include "KisResourcesInterface.h"
+#include "KoResource.h"
+#include "KoResourceBundle.h"
 #include "ui_pageresourcechooser.h"
 #include "wdg_resource_preview.h"
 #include "KisResourceItemViewer.h"
@@ -19,13 +26,29 @@
 #include <QListWidgetItem>
 
 #include <KisResourceModel.h>
-#include <KisResourceTypeModel.h>
 #include <KisTagFilterResourceProxyModel.h>
 #include "KisResourceItemListWidget.h"
 #include "ResourceListViewModes.h"
 #include "KisGlobalResourcesInterface.h"
 
 #include <config-seexpr.h>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qpixmap.h>
+#include <qsharedpointer.h>
+#include <qsortfilterproxymodel.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qwidget.h>
+#include <qwizard.h>
 
 #define ICON_SIZE 56
 

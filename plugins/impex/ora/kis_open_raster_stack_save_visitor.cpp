@@ -11,18 +11,21 @@
 
 #include <QDomElement>
 
-#include <KoCompositeOpRegistry.h>
 
+#include "KoCompositeOpIds.h"
 #include "filter/kis_filter_configuration.h"
 #include "kis_adjustment_layer.h"
 #include "kis_group_layer.h"
 #include "kis_image.h"
+#include "kis_layer.h"
 #include "kis_open_raster_save_context.h"
 #include "kis_paint_device.h"
 #include "kis_paint_layer.h"
+#include "kis_types.h"
 #include <generator/kis_generator_layer.h>
 #include <kis_clone_layer.h>
 #include <kis_external_layer_iface.h>
+#include <qnumeric.h>
 
 struct KisOpenRasterStackSaveVisitor::Private {
     Private() {}

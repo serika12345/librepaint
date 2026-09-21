@@ -7,11 +7,18 @@
 
 #include <QMouseEvent>
 #include <QLabel>
+#include <kconfiggroup.h>
 #include <ksharedconfig.h>
+#include <qboxlayout.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 #include "kis_shade_selector_line_editor.h"
+#include "KoID.h"
 #include "kis_double_parse_spin_box.h"
 #include "application/kis_config.h"
+#include "kis_shade_selector_line.h"
 
 KisShadeSelectorLineEditor::KisShadeSelectorLineEditor(QWidget* parent, KisShadeSelectorLine* preview)
     : KisShadeSelectorLineBase(parent)

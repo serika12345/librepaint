@@ -10,6 +10,8 @@
 #include <KoDockRegistry.h>
 
 #include <kpluginfactory.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(SvgCollectionDockerPluginFactory, "svgcollectiondocker.json", registerPlugin<Plugin>();)
 

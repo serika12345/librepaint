@@ -7,20 +7,17 @@
 
 #include "kis_heightmap_export.h"
 
-#include <qendian.h>
+#include <qcontainerfwd.h>
 #include <QDataStream>
 #include <QApplication>
 
 #include <kpluginfactory.h>
 
 #include <KoColorSpace.h>
-#include <KoColorSpaceConstants.h>
-#include <KoColorSpaceTraits.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorModelStandardIds.h>
 
 #include <KisImportExportManager.h>
-#include <KisExportCheckRegistry.h>
 
 #include <document/KisDocument.h>
 #include <kis_image.h>
@@ -28,9 +25,17 @@
 #include <kis_properties_configuration.h>
 #include <application/kis_config.h>
 #include <kis_sequential_iterator.h>
-#include <kis_random_accessor_ng.h>
 #include <kis_config_widget.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
+#include "KisImportExportErrorCode.h"
+#include "KoGrayColorSpaceTraits.h"
+#include "KoID.h"
+#include "kis_assert.h"
+#include "kis_types.h"
 #include "kis_wdg_options_heightmap.h"
 #include "kis_heightmap_utils.h"
 

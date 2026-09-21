@@ -5,6 +5,9 @@
  */
 
 #include "specificcolorselector.h"
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
 #include <stdlib.h>
 
 

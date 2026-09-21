@@ -5,9 +5,18 @@
  */
 
 #include "kis_wdg_options_jpegxl.h"
+#include "KisImportExportFilter.h"
+#include "KoColorProfileConstants.h"
+#include "kis_config_widget.h"
+#include "kis_types.h"
+#include "ui_kis_wdg_options_jpegxl.h"
 
 #include <jxl/version.h>
 
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qoverload.h>
+#include <qwidget.h>
 #include <tuple>
 
 #include <KoColorModelStandardIds.h>

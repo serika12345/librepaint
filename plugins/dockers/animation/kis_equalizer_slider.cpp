@@ -11,6 +11,15 @@
 #include <QMouseEvent>
 #include <QApplication>
 #include <QStyleOptionSlider>
+#include <qabstractslider.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpaintdevice.h>
+#include <qpoint.h>
+#include <qrgb.h>
+#include <qsizepolicy.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 #include "kis_global.h"
 

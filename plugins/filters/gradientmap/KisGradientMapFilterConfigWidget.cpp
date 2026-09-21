@@ -10,11 +10,24 @@
 #include <filter/kis_filter_configuration.h>
 #include <KisGlobalResourcesInterface.h>
 #include <application/ui/workspace/KisViewManager.h>
+#include "KoAbstractGradient.h"
+#include "KoCanvasResourceProvider.h"
+#include "KoCanvasResourcesIds.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include <kis_signals_blocker.h>
+#include <qassert.h>
+#include <qcombobox.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qoverload.h>
+#include <qtmetamacros.h>
 
 #include "KisGradientMapFilterConfigWidget.h"
 #include "KisGradientMapFilterConfiguration.h"
+#include "kis_assert.h"
+#include "kis_config_widget.h"
+#include "kis_signal_compressor.h"
+#include "kis_types.h"
 
 
 KisGradientMapFilterConfigWidget::KisGradientMapFilterConfigWidget(QWidget *parent, Qt::WindowFlags f)

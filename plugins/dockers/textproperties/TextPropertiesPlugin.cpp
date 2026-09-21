@@ -5,18 +5,22 @@
  */
 #include "TextPropertiesPlugin.h"
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 #include <klocalizedstring.h>
 #include <KoDockFactoryBase.h>
 #include <KisStaticInitializer.h>
 
+#include "KoSvgText.h"
 #include "application/kis_config.h"
 
 #include "TextPropertiesDock.h"
 #include <KoDockRegistry.h>
 #include <QQmlEngine>
 
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qqml.h>
 #include <text/lager/KoSvgTextPropertiesModel.h>
 #include <text/lager/CssLengthPercentageModel.h>
 #include <text/lager/LineHeightModel.h>

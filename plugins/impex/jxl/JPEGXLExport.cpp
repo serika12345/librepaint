@@ -10,6 +10,11 @@
 
 #include <KisGlobalResourcesInterface.h>
 
+#include <future>
+#include <jxl/codestream_header.h>
+#include <jxl/encode.h>
+#include <jxl/resizable_parallel_runner.h>
+#include <jxl/types.h>
 #include <jxl/version.h>
 #include <jxl/color_encoding.h>
 #include <jxl/encode_cxx.h>
@@ -25,15 +30,14 @@
 #include <document/KisDocument.h>
 #include <KisExportCheckRegistry.h>
 #include <KisImportExportErrorCode.h>
-#include <libs/global/KoAlwaysInline.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorProfile.h>
 #include <KoColorProfileQuery.h>
 #include <KoColorSpace.h>
 #include <KoColorTransferFunctions.h>
 #include <KoConfig.h>
+#include <memory>
 #include <metadata/KoDocumentInfo.h>
-#include <KoProperties.h>
 #include <KoUpdater.h>
 #include <filter/kis_filter.h>
 #include <filter/kis_filter_configuration.h>
@@ -55,7 +59,23 @@
 #include <kis_paint_device.h>
 #include <kis_raster_keyframe_channel.h>
 #include <kis_time_span.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qset.h>
+#include <qstringview.h>
+#include <qtypes.h>
 
+#include "KisExportCheckBase.h"
+#include "KisImportExportFilter.h"
+#include "KisQStringListFwd.h"
+#include "KoColorConversionTransformation.h"
+#include "KoColorProfileConstants.h"
+#include "KoColorimetryUtils.h"
+#include "kis_config_widget.h"
+#include "kis_meta_data_io_backend.h"
+#include "kis_types.h"
 #include "kis_wdg_options_jpegxl.h"
 #include "kis_jpegxl_export_tools.h"
 

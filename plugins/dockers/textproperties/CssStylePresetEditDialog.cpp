@@ -9,12 +9,25 @@
 #include <QQuickItem>
 #include <QColorDialog>
 #include <QPushButton>
-#include <KoResourcePaths.h>
 #include <KLocalizedContext>
 #include <KLocalizedString>
-#include <KoFontRegistry.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <qvariant.h>
+#include <qwidget.h>
 #include "FontAxesModel.h"
 #include "FontStyleModel.h"
+#include "KisQQuickWidget.h"
+#include "KoCssStylePreset.h"
+#include "KoDialog.h"
+#include "KoSvgTextProperties.h"
+#include "KoSvgTextPropertyData.h"
 
 QVariant variantFromAlignment(Qt::Alignment align) {
     return QVariant(static_cast<Qt::Alignment::Int>(align));

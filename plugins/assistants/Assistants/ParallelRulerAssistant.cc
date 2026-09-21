@@ -8,6 +8,10 @@
  */
 
 #include "ParallelRulerAssistant.h"
+#include "KoCanvasBase.h"
+#include "kis_assert.h"
+#include "kis_painting_assistant.h"
+#include "kis_types.h"
 
 #include <klocalizedstring.h>
 
@@ -22,6 +26,13 @@
 #include <kis_dom_utils.h>
 
 #include <math.h>
+#include <qassert.h>
+#include <qline.h>
+#include <qmap.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qtypes.h>
+#include <qxmlstream.h>
 
 ParallelRulerAssistant::ParallelRulerAssistant()
     : KisPaintingAssistant("parallel ruler", i18n("Parallel Ruler assistant"))

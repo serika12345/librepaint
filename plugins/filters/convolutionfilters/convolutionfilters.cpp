@@ -7,7 +7,12 @@
  */
 
 #include "convolutionfilters.h"
+#include "kis_convolution_filter.h"
+#include "kis_filter_registry.h"
 
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtypes.h>
 #include <stdlib.h>
 
 #include <klocalizedstring.h>
@@ -15,13 +20,8 @@
 #include <kpluginfactory.h>
 
 #include <kis_convolution_kernel.h>
-#include <kis_convolution_painter.h>
 
 #include <filter/kis_filter_category_ids.h>
-#include <filter/kis_filter_configuration.h>
-#include <kis_selection.h>
-#include <kis_paint_device.h>
-#include <kis_processing_information.h>
 
 #include <Eigen/Core>
 

@@ -5,8 +5,15 @@
  */
 
 #include "KisAsyncStoryboardThumbnailRenderer.h"
+#include "animation/KisAsyncAnimationRendererBase.h"
 #include "kis_image_animation_interface.h"
 #include "kis_image.h"
+#include "kis_paint_device.h"
+#include "kis_types.h"
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
 KisAsyncStoryboardThumbnailRenderer::KisAsyncStoryboardThumbnailRenderer(QObject *parent)
     : KisAsyncAnimationRendererBase(parent)

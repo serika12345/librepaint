@@ -7,24 +7,38 @@
 
 #include "IccColorProfile.h"
 
+#include <cstddef>
 #include <cstdint>
 
+#include <functional>
 #include <lcms2.h>
 
 #include <QDebug>
 #include <QFile>
 #include <QSharedPointer>
 
-#include <KoColorConversions.h>
 #include <KoColorProfileQuery.h>
 #include <kis_assert.h>
 
+#include "KoChannelInfo.h"
+#include "KoColorProfile.h"
+#include "KoColorProfileConstants.h"
+#include "KoColorimetryUtils.h"
 #include "LcmsColorProfileContainer.h"
 #include "LcmsPredefinedPipelineFunctions.h"
 #include "kis_dom_utils.h"
+#include "kis_global.h"
 
 #include <KisLazyStorage.h>
 #include <KisLazyValueWrapper.h>
+#include <optional>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qscopedpointer.h>
+#include <qstringview.h>
+#include <qtypes.h>
 
 
 struct IccColorProfile::Data::Private {

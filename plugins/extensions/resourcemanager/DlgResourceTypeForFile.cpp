@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "DlgResourceTypeForFile.h"
+#include "KoDialog.h"
 
 
 #include <QRadioButton>
@@ -14,6 +15,12 @@
 
 #include <KisResourceTypeModel.h>
 #include <KisResourceTypes.h>
+#include <qboxlayout.h>
+#include <qcontainerfwd.h>
+#include <qlabel.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qwidget.h>
 
 DlgResourceTypeForFile::DlgResourceTypeForFile(QWidget *parent, QMap<QString, QStringList> resourceTypesForMimetype)
     : KoDialog(parent)

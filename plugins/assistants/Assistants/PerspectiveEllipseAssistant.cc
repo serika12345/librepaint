@@ -3,9 +3,14 @@
  */
 
 #include "PerspectiveEllipseAssistant.h"
+#include "Ellipse.h"
+#include "KisQStringListFwd.h"
+#include "KoCanvasBase.h"
 #include "PerspectiveBasedAssistantHelper.h"
 
 
+#include <Eigen/Core>
+#include <Eigen/LU>
 #include <klocalizedstring.h>
 #include <QPainter>
 #include <QPainterPath>
@@ -14,12 +19,25 @@
 
 #include <kis_canvas2.h>
 #include <kis_coordinates_converter.h>
+#include "kis_abstract_perspective_grid.h"
 #include "kis_algebra_2d.h"
-#include <Eigen/Eigenvalues>
+#include "kis_assert.h"
+#include "kis_painting_assistant.h"
+#include "kis_types.h"
 
 #include <math.h>
 #include<QDebug>
 #include <QtMath>
+#include <qassert.h>
+#include <qcolor.h>
+#include <qline.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 
@@ -634,4 +652,3 @@ KisPaintingAssistant* PerspectiveEllipseAssistantFactory::createPaintingAssistan
 {
     return new PerspectiveEllipseAssistant;
 }
-

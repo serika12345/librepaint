@@ -6,6 +6,10 @@
 
 #include "WGColorSelectorDock.h"
 
+#include "KisVisualColorModel.h"
+#include "KoCanvasResourcesIds.h"
+#include "WGConfig.h"
+#include "WGSelectorWidgetBase.h"
 #include "document/KisDocument.h"
 #include "WGActionManager.h"
 #include "WGColorSelectorSettings.h"
@@ -17,13 +21,12 @@
 #include "WGShadeSelector.h"
 #include "KisVisualColorSelector.h"
 #include "KisColorSourceToggle.h"
+#include "kis_icon_utils.h"
 
 #include <klocalizedstring.h>
 
-#include <kis_icon.h>
 #include <kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
-#include <kis_config_notifier.h>
 #include <kis_display_color_converter.h>
 #include <kis_signal_compressor.h>
 #include <KisUniqueColorSet.h>
@@ -36,7 +39,16 @@
 #include <QWidgetAction>
 
 #include <QDebug>
-#include <kis_assert.h>
+#include <qcolor.h>
+#include <qcoreevent.h>
+#include <qdialog.h>
+#include <qdockwidget.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 WGColorSelectorDock::WGColorSelectorDock()
 	: QDockWidget()

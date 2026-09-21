@@ -9,19 +9,21 @@
 #include "layergroupswitcher.h"
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
 #include <kis_image.h>
 #include <kis_layer.h>
-#include <kis_group_layer.h>
 #include <kis_node.h>
 #include <nodes/kis_node_manager.h>
-#include <kis_global.h>
 #include <kis_types.h>
 #include <application/ui/workspace/KisViewManager.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 #include "application/ui/orchestration/kis_action.h"
+#include "ui/orchestration/KisActionPlugin.h"
+#include <kis_group_layer.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(LayerGroupSwitcherFactory, "kritalayergroupswitcher.json", registerPlugin<LayerGroupSwitcher>();)
 

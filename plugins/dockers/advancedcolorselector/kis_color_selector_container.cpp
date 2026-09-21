@@ -22,6 +22,10 @@
 
 #include <document/KisDocument.h>
 #include <KisGamutMaskToolbar.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
+#include <qwidget.h>
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_canvas2.h"
 #include "canvas/kis_canvas_resource_provider.h"

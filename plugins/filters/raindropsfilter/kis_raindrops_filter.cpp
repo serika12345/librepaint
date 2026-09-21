@@ -12,6 +12,8 @@
 
 #include "kis_raindrops_filter.h"
 
+#include <qassert.h>
+#include <qtypes.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -20,7 +22,6 @@
 #include <QSpinBox>
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
 #include "KoIntegerMaths.h"
@@ -30,14 +31,14 @@
 #include <filter/kis_filter_registry.h>
 #include <filter/kis_filter.h>
 #include <kis_global.h>
-#include <kis_selection.h>
 #include <kis_types.h>
 #include <kis_paint_device.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_processing_information.h>
 #include <kis_random_accessor_ng.h>
 #include <KisGlobalResourcesInterface.h>
 
+#include "kis_assert.h"
+#include "kis_config_widget.h"
 #include "widgets/kis_multi_integer_filter_widget.h"
 
 #include <QRandomGenerator>

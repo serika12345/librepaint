@@ -6,7 +6,9 @@
 
 #include "WGSelectorConfigGrid.h"
 
+#include "KisVisualColorModel.h"
 #include "KisVisualColorSelector.h"
+#include "kis_assert.h"
 
 
 #include <QAction>
@@ -18,6 +20,16 @@
 #include <QString>
 #include <QTimer>
 #include <QToolButton>
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qlayoutitem.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 
 class SelectorConfigAction: public QAction

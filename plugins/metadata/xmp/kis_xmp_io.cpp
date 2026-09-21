@@ -5,7 +5,21 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "kis_xmp_io.h"
+#include "kis_assert.h"
+#include "kis_meta_data_io_backend.h"
 
+#include <cstddef>
+#include <exception>
+#include <exiv2/properties.hpp>
+#include <exiv2/types.hpp>
+#include <exiv2/value.hpp>
+#include <exiv2/version.hpp>
+#include <exiv2/xmp_exiv2.hpp>
+#include <map>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qmap.h>
 #include <string>
 
 #include <QIODevice>

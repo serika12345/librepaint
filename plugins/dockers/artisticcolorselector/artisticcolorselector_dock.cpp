@@ -4,25 +4,22 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
-#include <kis_debug.h>
 
 #include <klocalizedstring.h>
 #include <KoCanvasResourceProvider.h>
-#include <KoResourceServerProvider.h>
-#include <KoResourceServer.h>
 #include <KoCanvasBase.h>
 #include <kis_canvas2.h>
 #include <KoColor.h>
+#include <qdockwidget.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
 #include <resources/KoGamutMask.h>
 #include <kis_icon_utils.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <kis_shape_layer.h>
-#include <kis_types.h>
 #include <document/KisDocument.h>
-#include <nodes/kis_node_selection_adapter.h>
-#include <kis_group_layer.h>
 #include <application/ui/workspace/KisView.h>
-#include <KisResourceItemChooser.h>
 #include <kis_display_color_converter.h>
 
 #include <QWidget>
@@ -34,6 +31,7 @@
 #include <kis_arcs_constants.h>
 #include <KisGamutMaskToolbar.h>
 
+#include "KoCanvasResourcesIds.h"
 #include "ui_wdgArtisticColorSelector.h"
 #include "ui_wdgARCSSettings.h"
 #include "ui_wdgWheelPreferencesPopup.h"

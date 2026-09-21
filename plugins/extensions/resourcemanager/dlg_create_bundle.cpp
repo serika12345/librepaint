@@ -7,6 +7,13 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "dlg_create_bundle.h"
+#include "KisResourceModel.h"
+#include "KisResourceTypes.h"
+#include "KisTag.h"
+#include "KisTagModel.h"
+#include "KoResourceBundle.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
 #include "page_resource_chooser.h"
 #include "page_tag_chooser.h"
 #include "page_metadata_info.h"
@@ -28,27 +35,29 @@
 #include <QVBoxLayout>
 
 #include <KisImportExportManager.h>
-#include <metadata/KoDocumentInfo.h>
-#include <KoFileDialog.h>
+#include <cstddef>
 #include <application/kis_config.h>
-#include <kis_icon.h>
 #include <KoResource.h>
 #include <KoResourceServer.h>
 #include <KoResourceServerProvider.h>
 #include <KoResource.h>
 #include <kstandardguiitem.h>
 
-#include <workspace/kis_workspace_resource.h>
-#include <brushengine/kis_paintop_preset.h>
-#include <dlg_embed_tags.h>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsharedpointer.h>
+#include <qwizard.h>
 #include <KisGlobalResourcesInterface.h>
 #include <KisResourceTypeModel.h>
 #include "KisBundleStorage.h"
-#include <KisResourceLocator.h>
 #include <KisResourceStorage.h>
 #include <QUuid>
-#include <KisStorageModel.h>
-#include <wdgtagselection.h>
 
 
 DlgCreateBundle::DlgCreateBundle(KoResourceBundleSP bundle, QWidget *parent)

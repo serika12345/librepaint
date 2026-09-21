@@ -9,7 +9,9 @@
 
 
 #include <QApplication>
-#include <qendian.h>
+#include <cmath>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
 
 #include <kpluginfactory.h>
 #include <KoDialog.h>
@@ -18,23 +20,32 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpace.h>
-#include <KoColorSpaceTraits.h>
 
-#include <kis_debug.h>
 #include <document/KisDocument.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_paint_layer.h>
 #include <kis_paint_device.h>
-#include <kis_transaction.h>
 #include <kis_iterator_ng.h>
-#include <kis_random_accessor_ng.h>
 #include <application/kis_config.h>
 #include <kis_image_config.h>
 #include <events/kis_cursor_override_hijacker.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
+#include "KisImportExportErrorCode.h"
+#include "KoColorSpaceConstants.h"
+#include "KoGrayColorSpaceTraits.h"
+#include "KoID.h"
+#include "kis_assert.h"
+#include "kis_properties_configuration.h"
+#include "kis_types.h"
 #include "kis_wdg_options_heightmap.h"
 #include "kis_heightmap_utils.h"
+#include "ui_kis_wdg_options_heightmap.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(HeightMapImportFactory, "krita_heightmap_import.json", registerPlugin<KisHeightMapImport>();)
 

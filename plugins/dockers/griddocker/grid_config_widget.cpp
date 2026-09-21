@@ -5,6 +5,7 @@
  */
 
 #include "grid_config_widget.h"
+#include "KoID.h"
 #include "ui_grid_config_widget.h"
 
 #include "kis_grid_config.h"
@@ -18,6 +19,11 @@
 
 #include <QStandardItem>
 #include <QStandardItemModel>
+#include <limits>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 struct GridConfigWidget::Private
 {

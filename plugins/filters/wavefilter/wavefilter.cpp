@@ -7,11 +7,14 @@
  */
 
 #include "wavefilter.h"
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
 #include <stdlib.h>
 #include <math.h>
 #include <QPoint>
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
 #include <klocalizedstring.h>
@@ -20,18 +23,15 @@
 
 #include <kis_image.h>
 #include <filter/kis_filter_registry.h>
-#include <kis_global.h>
-#include <kis_layer.h>
 #include <kis_random_sub_accessor.h>
-#include <kis_selection.h>
 #include <kis_types.h>
 #include <kis_paint_device.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_processing_information.h>
+#include "KoColorSpace.h"
+#include "kis_assert.h"
 #include "kis_wdg_wave.h"
 #include "ui_wdgwaveoptions.h"
-#include <kis_iterator_ng.h>
 #include <KisSequentialIteratorProgress.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaWaveFilterFactory, "kritawavefilter.json", registerPlugin<KritaWaveFilter>();)

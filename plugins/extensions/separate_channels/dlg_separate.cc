@@ -7,6 +7,8 @@
  */
 
 #include "dlg_separate.h"
+#include "KoDialog.h"
+#include "kis_channel_separator.h"
 
 #include <QRadioButton>
 #include <QCheckBox>
@@ -14,7 +16,10 @@
 #include <KisDialogStateSaver.h>
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
+#include <qassert.h>
+#include <qhashfunctions.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 DlgSeparate::DlgSeparate(const QString & imageCS,
                          const QString & layerCS,
                          QWidget *  parent,

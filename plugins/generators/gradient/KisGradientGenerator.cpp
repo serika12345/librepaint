@@ -13,10 +13,21 @@
 #include <filter/kis_filter_configuration.h>
 #include <kis_gradient_painter.h>
 #include <kis_paint_device.h>
-#include "KoCompositeOpRegistry.h"
+#include "KisGradientGeneratorConfiguration.h"
+#include "KoCompositeOpIds.h"
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
 
 #include "KisGradientGenerator.h"
 #include "KisGradientGeneratorConfigWidget.h"
+#include "KoID.h"
+#include "kis_assert.h"
+#include "kis_generator.h"
+#include "kis_types.h"
+#include "ui_KisGradientGeneratorConfigWidget.h"
 
 KisGradientGenerator::KisGradientGenerator() : KisGenerator(id(), KoID("basic"), i18n("&Gradient..."))
 {

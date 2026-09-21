@@ -7,7 +7,25 @@
  */
 
 #include "palettize.h"
+#include "KisDitherWidget.h"
+#include "KisResourceTypes.h"
+#include "KisResourceUiDescriptor.h"
+#include "KisSwatch.h"
+#include "KoColor.h"
+#include "KoColorSpace.h"
+#include "KoID.h"
+#include "kis_assert.h"
 
+#include <algorithm>
+#include <boost/geometry/algorithms/detail/distance/interface.hpp>
+#include <boost/geometry/core/cs.hpp>
+#include <boost/geometry/geometries/point.hpp>
+#include <boost/geometry/index/parameters.hpp>
+#include <boost/geometry/index/predicates.hpp>
+#include <boost/geometry/index/rtree.hpp>
+#include <cstddef>
+#include <cstring>
+#include <iterator>
 #include <kis_types.h>
 #include <kpluginfactory.h>
 #include <kis_config_widget.h>
@@ -18,11 +36,21 @@
 #include <KisSequentialIteratorProgress.h>
 #include <KisResourceItemChooser.h>
 #include <KoColorSet.h>
-#include <KoPattern.h>
-#include <KisRandomGenerator2D.h>
 #include <KisDitherUtil.h>
 #include <KisGlobalResourcesInterface.h>
 #include <KoResourceLoadResult.h>
+#include <qcombobox.h>
+#include <qcontainerfwd.h>
+#include <qgroupbox.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qoverload.h>
+#include <qpaintdevice.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
+#include <utility>
+#include <vector>
 
 K_PLUGIN_FACTORY_WITH_JSON(PalettizeFactory, "kritapalettize.json", registerPlugin<Palettize>();)
 

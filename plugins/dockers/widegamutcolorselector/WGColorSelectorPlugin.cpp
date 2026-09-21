@@ -4,12 +4,16 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include "KisColorSelectorConfiguration.h"
 #include "WGColorSelectorDock.h"
 
 #include <kpluginfactory.h>
 //#include <klocalizedstring.h>
 #include <KoDockFactoryBase.h>
 #include <KoDockRegistry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 class WGColorSelectorPlugin: public QObject
 {

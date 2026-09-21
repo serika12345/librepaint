@@ -6,10 +6,30 @@
  */
 
 #include "ocio_display_filter_vfx2021.h"
+#include "kis_assert.h"
+#include "kis_display_filter.h"
+#include "kis_exposure_gamma_correction_interface.h"
 
+#include <OpenColorABI.h>
+#include <OpenColorAppHelpers.h>
+#include <OpenColorIO.h>
+#include <OpenColorTransforms.h>
+#include <OpenColorTypes.h>
+#include <OpenGL/gl.h>
+#include <OpenGL/glext.h>
+#include <OpenGL/gltypes.h>
 #include <QMessageBox>
 #include <QOpenGLContext>
 #include <QOpenGLExtraFunctions>
+#include <algorithm>
+#include <qlogging.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qopenglshaderprogram.h>
+#include <qopenglversionprofile.h>
+#include <qtconfigmacros.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
 #if !defined(QT_OPENGL_ES_2)
 #include <QOpenGLFunctions_2_0>
 #include <QOpenGLFunctions_3_0>

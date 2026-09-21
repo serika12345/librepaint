@@ -5,19 +5,28 @@
  */
 
 #include "dlg_clonesarray.h"
+#include "KoDialog.h"
+#include "commands/kis_image_layer_add_command.h"
+#include "kis_global.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_types.h"
 
+#include <cmath>
 #include <klocalizedstring.h>
 
 #include <KoColorSpaceConstants.h>
 
-#include <kis_debug.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_image.h>
 #include <kis_processing_applicator.h>
-#include <commands/kis_image_commands.h>
 #include <kis_node.h>
 #include <kis_group_layer.h>
 #include <kis_clone_layer.h>
+#include <qassert.h>
+#include <qhashfunctions.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
 
 
 DlgClonesArray::DlgClonesArray(KisViewManager *viewManager, QWidget *parent)

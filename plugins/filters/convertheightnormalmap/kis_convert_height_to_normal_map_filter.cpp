@@ -4,6 +4,11 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_convert_height_to_normal_map_filter.h"
+#include "KoChannelInfo.h"
+#include "KoColorSpace.h"
+#include "kis_config_widget.h"
+#include "kis_filter.h"
+#include "kis_types.h"
 #include "kis_wdg_convert_height_to_normal_map.h"
 #include <kpluginfactory.h>
 #include <klocalizedstring.h>
@@ -13,6 +18,13 @@
 #include "kis_lod_transform_base.h"
 #include <kis_edge_detection_kernel.h>
 #include <kis_paint_device.h>
+#include <qassert.h>
+#include <qbitarray.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qobject.h>
+#include <qvariant.h>
 
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaConvertHeightToNormalMapFilterFactory, "kritaconvertheighttonormalmap.json", registerPlugin<KritaConvertHeightToNormalMapFilter>();)

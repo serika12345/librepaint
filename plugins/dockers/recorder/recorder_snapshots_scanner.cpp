@@ -13,6 +13,11 @@
 #include <QDirIterator>
 #include <QRegularExpression>
 #include <KisStaticInitializer.h>
+#include <qfileinfo.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<SnapshotDirInfoList>("SnapshotDirInfoList");

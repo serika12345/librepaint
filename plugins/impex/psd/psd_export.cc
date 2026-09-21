@@ -14,15 +14,19 @@
 #include <KisExportCheckRegistry.h>
 #include <KisImportExportManager.h>
 #include <ImageSizeCheck.h>
-#include <KoColorSpaceRegistry.h>
-#include <KoColorSpaceConstants.h>
 
 #include <document/KisDocument.h>
-#include <kis_image.h>
-#include <kis_group_layer.h>
-#include <kis_paint_layer.h>
 #include <kis_paint_device.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qobject.h>
 
+#include "KisExportCheckBase.h"
+#include "KisImportExportErrorCode.h"
+#include "KisResourceTypes.h"
+#include "KoColorModelStandardIds.h"
+#include "KoID.h"
+#include "kis_types.h"
 #include "psd_saver.h"
 
 class KisExternalLayer;

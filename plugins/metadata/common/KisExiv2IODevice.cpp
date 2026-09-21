@@ -8,6 +8,17 @@
 
 #include <QDebug>
 #include <QFileInfo>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <exiv2/basicio.hpp>
+#include <exiv2/types.hpp>
+#include <exiv2/version.hpp>
+#include <qfiledevice.h>
+#include <qlogging.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <string>
 
 KisExiv2IODevice::KisExiv2IODevice(QString path)
     : m_file(path)
