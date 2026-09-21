@@ -13,7 +13,6 @@ set(kritalibpaintop_LIB_SRCS
     KisCurveOptionDataUniformProperty.cpp
     KisSensorData.cpp
     KisCurveOption.cpp
-    KisMultiSensorsSelector.cpp
     KisMultiSensorsModel.cpp
     KisSpacingOptionWidget.cpp
     KisSpacingOptionModel.cpp
@@ -165,7 +164,6 @@ ki18n_wrap_ui(kritalibpaintop_LIB_SRCS
     forms/wdgclipboardbrush.ui
     forms/wdgtextbrush.ui
     forms/wdgincremental.ui
-    forms/wdgmultisensorsselector.ui
     forms/wdgairbrush.ui
     forms/wdgfilteroption.ui
     forms/wdgcoloroptions.ui
@@ -835,6 +833,38 @@ set_target_properties(kritapaintopcurveinputcontrolsobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopmultisensorsselectorobjects OBJECT
+    KisMultiSensorsSelector.cpp
+)
+ki18n_wrap_ui(kritapaintopmultisensorsselectorobjects
+    forms/wdgmultisensorsselector.ui
+)
+target_compile_definitions(kritapaintopmultisensorsselectorobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopmultisensorsselectorobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopmultisensorsselectorobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcurveoptiondatacommonobjects
+        lager
+    PRIVATE
+        kritaglobal
+        kritapaintopdynamicsensorregistryobjects
+)
+set_target_properties(kritapaintopmultisensorsselectorobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapaintopcurverangemodelobjects OBJECT
     KisCurveRangeModel.cpp
 )
@@ -1283,6 +1313,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopcurvecontrolinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintopcurveinputcontrolsobjects>
     $<TARGET_OBJECTS:kritapaintopcurverangemodelinterfaceobjects>
+    $<TARGET_OBJECTS:kritapaintopmultisensorsselectorobjects>
     $<TARGET_OBJECTS:kritapaintopcurverangemodelobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopoptionmodelobjects>

@@ -6,13 +6,16 @@
 #ifndef KisMultiSensorsSelector_H
 #define KisMultiSensorsSelector_H
 
-class KisCubicCurve;
-class QModelIndex;
-class KisCurveOption;
-
 #include <QWidget>
-#include <KisCurveOptionData.h>
+#include <QString>
+#include <QtCore/qtmetamacros.h>
+
+#include <KisCurveOptionDataCommon.h>
 #include <lager/cursor.hpp>
+
+class QEvent;
+class QModelIndex;
+class QObject;
 
 class KisMultiSensorsSelector : public QWidget
 {

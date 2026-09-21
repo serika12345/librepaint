@@ -2,19 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-21 17:54 JST
+- 更新日時: 2026-09-21 18:00 JST
 - 状態: `in_progress`
-- 現在の検査段階: R2-G19aq 曲線入力制御依存の直接化
-- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l・R2-G19m・R2-G19n・R2-G19o・R2-G19p・R2-G19q・R2-G19r・R2-G19s・R2-G19t・R2-G19u・R2-G19v・R2-G19w・R2-G19x・R2-G19y・R2-G19z・R2-G19aa・R2-G19ab・R2-G19ac・R2-G19ad・R2-G19ae・R2-G19af・R2-G19ag・R2-G19ah・R2-G19ai・R2-G19aj・R2-G19ak・R2-G19al・R2-G19am・R2-G19an・R2-G19ao・R2-G19ap・R2-G19aq完了、R2-G19ar・R2-G19e・R2-G19d-a・R2-G19d-bは`planned`
+- 現在の検査段階: R2-G19ar 複数入力選択依存の直接化
+- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l・R2-G19m・R2-G19n・R2-G19o・R2-G19p・R2-G19q・R2-G19r・R2-G19s・R2-G19t・R2-G19u・R2-G19v・R2-G19w・R2-G19x・R2-G19y・R2-G19z・R2-G19aa・R2-G19ab・R2-G19ac・R2-G19ad・R2-G19ae・R2-G19af・R2-G19ag・R2-G19ah・R2-G19ai・R2-G19aj・R2-G19ak・R2-G19al・R2-G19am・R2-G19an・R2-G19ao・R2-G19ap・R2-G19aq・R2-G19ar完了、R2-G19as・R2-G19e・R2-G19d-a・R2-G19d-bは`planned`
 - ブランチ: `issue-44-direct-dependencies`
-- 開始コミット: `5f79dfb5d4`。作業開始時点の作業ツリーは変更なし。
-- 目的: 曲線設定画面の入力制御実装が、集約ライブラリーから偶然得るQt画面部品、Lager状態合成、曲線範囲境界、曲線画面部品、制御管理、数値変換の依存と構築経路に依存する状態を解消する。
-- 範囲固定: `plugins/paintops/libpaintop/KisCurveOptionInputControlsStrategy.{h,cpp}`、および`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurveinputcontrolsobjects`に限定した。テストソース、公開API、共有・個別曲線の入力選択、強度・範囲表示、設定画面、プリセット設定、描画結果は変更しない。
-- 調査: 初期の`misc-include-cleaner`は公開ヘッダーと実装で12件の直接取込み不足を報告した。実装は最終ライブラリーのソース一覧にあり、曲線入力制御だけを構築する経路を持たなかった。
-- 完了: 公開ヘッダーを標準tuple、Qt実数、Lager reader、スコープポインター、曲線入力制御境界、公開テンプレート記号の所有ヘッダーへ直接接続した。実装を標準関数、Qtスピンボックス・画面部品・レイアウト・文字・寸法・実数、数値変換、曲線画面部品・制御管理・範囲境界、Lager状態合成の所有ヘッダーへ直接接続した。実装を`kritapaintopcurveinputcontrolsobjects`へ移し、公開利用要件をQt Core、曲線制御・範囲境界、Lagerへ、実装専用依存をQt Widgets、曲線画面部品の具体的所有者`kritaapplicationui`、全体基盤へ分離した。集約ライブラリーは同じオブジェクトを一度だけ取り込む。
-- 検証: `run-shared-test-env`経由で専用対象と`kritalibpaintop`を成功させ、macOSパッケージ境界は1,734対象を確認した。公開ヘッダーと実装の`misc-include-cleaner`は警告0件であり、Ninja閉包は専用対象1,659工程、最終ライブラリー2,126工程である。`KisCurveControlStrategyInterfacesContractTest`と`KisCurveOptionModelTest`は各1件成功した。`verify-quick`は後続で実行する。
-- 残るリスク: 実行検証はmacOS・Qt 6.11.1に限る。Qt 5、Linux、Windows、Androidの実行確認はR2-G19dで扱う。`libpaintop`の複数入力選択、残る設定画面実装は未監査である。
-- 次の作業: R2-G19aqを一変更化し、複数入力選択実装を次の有限な監査単位として確定する。
+- 開始コミット: `fa26315869`。作業開始時点の作業ツリーは変更なし。
+- 目的: 曲線設定画面の複数入力選択実装が、集約ライブラリーから偶然得るQtメタオブジェクト・画面部品・signal、Lager状態、曲線共通値、入力データ、動的入力レジストリー、生成UIの依存とMOC処理に依存する状態を解消する。
+- 範囲固定: `plugins/paintops/libpaintop/KisMultiSensorsSelector.{h,cpp}`、`forms/wdgmultisensorsselector.ui`、および`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopmultisensorsselectorobjects`に限定した。テストソース、公開API、入力選択、共有・個別曲線、設定画面、プリセット設定、描画結果は変更しない。
+- 調査: 初期の`misc-include-cleaner`は公開ヘッダーと実装で27件の直接取込み不足または未使用取込みを報告した。実装、生成UI、MOCは最終ライブラリーに収容され、単独構築経路を持たなかった。
+- 完了: 公開ヘッダーをQt画面基底型・文字列・メタオブジェクト、曲線共通値、Lagerカーソル、必要な前方宣言へ直接接続した。実装を標準vector、Qtイベント・レイアウト・モデル索引・オブジェクト・文字列・画面部品・signal/slot、曲線共通値、入力データ、安全検査、動的入力ファクトリーとレジストリー、複数入力モデル、Lagerカーソル・レンズの所有ヘッダーへ直接接続し、範囲forで入力一覧を走査するよう整理した。実装と生成UIを`kritapaintopmultisensorsselectorobjects`へ移し、公開利用要件をQt Core・Widgets、曲線共通値、Lagerへ、実装専用依存を全体基盤、動的入力レジストリーへ分離した。MOCとUI生成は専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- 検証: `run-shared-test-env`経由で専用対象と`kritalibpaintop`を成功させ、macOSパッケージ境界は1,735対象を確認した。公開ヘッダーと実装の`misc-include-cleaner`は警告0件であり、Ninja閉包は専用対象1,273工程、最終ライブラリー2,128工程である。`KisCurveOptionModelTest`と`KisDynamicSensorRegistryCompatibilityTest`は各1件成功した。`verify-quick`は後続で実行する。
+- 残るリスク: 実行検証はmacOS・Qt 6.11.1に限る。Qt 5、Linux、Windows、Androidの実行確認はR2-G19dで扱う。複数入力モデルと残る設定画面実装は未監査である。
+- 次の作業: R2-G19arを一変更化し、複数入力モデルを次の有限な監査単位として確定する。
 - 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
 - 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
 - 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。
