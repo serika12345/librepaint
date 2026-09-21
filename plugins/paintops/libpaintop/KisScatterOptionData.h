@@ -6,10 +6,16 @@
 #ifndef KISSCATTEROPTIONDATA_H
 #define KISSCATTEROPTIONDATA_H
 
-#include "KisCurveOptionData.h"
+#include <boost/operators.hpp>
 
-#include <KisOptionTuple.h>
-#include <KisPrefixedOptionDataWrapper.h>
+#include <QString>
+
+#include "KisCurveOptionData.h"
+#include "KisOptionTuple.h"
+#include "KisPrefixedOptionDataWrapper.h"
+#include "kritapaintop_export.h"
+
+class KisPropertiesConfiguration;
 
 
 struct PAINTOP_EXPORT KisScatterOptionMixInImpl
