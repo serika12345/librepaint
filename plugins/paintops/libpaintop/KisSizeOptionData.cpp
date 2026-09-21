@@ -5,6 +5,15 @@
  */
 #include "KisSizeOptionData.h"
 
+#include "KisCurveOptionData.h"
+
+#include <KoID.h>
+
+#include <QString>
+
+#include <KLocalizedString>
+
+#include <kis_paintop_lod_limitations.h>
 
 KisSizeOptionData::KisSizeOptionData(const QString &prefix)
     : KisCurveOptionData(prefix,

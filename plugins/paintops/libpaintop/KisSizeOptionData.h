@@ -6,8 +6,12 @@
 #ifndef KISSIZEOPTIONDATA_H
 #define KISSIZEOPTIONDATA_H
 
+#include <QString>
+
 #include <KisCurveOptionData.h>
 #include <kis_paintop_lod_limitations.h>
+
+#include <kritapaintop_export.h>
 
 struct PAINTOP_EXPORT KisSizeOptionData : KisCurveOptionData
 {
