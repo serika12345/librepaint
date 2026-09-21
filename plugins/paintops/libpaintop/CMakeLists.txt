@@ -123,6 +123,7 @@ list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     ${kritapaintopruntime_LIB_SRCS}
     KisAirbrushOptionData.cpp
     KisAirbrushOptionModel.cpp
+    KisAutoBrushModel.cpp
     KisColorOptionWidget.cpp
     KisColorSourceOptionData.cpp
     KisColorSourceOptionModel.cpp
@@ -146,11 +147,11 @@ list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     KisTextureOptionData.cpp
     KisTextureOptionModel.cpp
     KisTextureOptionWidget.cpp
+    kis_auto_brush_widget.cpp
     kis_texture_chooser.cpp
 )
 
 ki18n_wrap_ui(kritalibpaintop_LIB_SRCS
-    forms/wdgautobrush.ui
     forms/wdgBrushSizeOptions.ui
     forms/wdgcurveoption.ui
     forms/wdgcustombrush.ui
@@ -1009,6 +1010,70 @@ set_target_properties(kritapaintopcoloroptionwidgetobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopautobrushmodelobjects OBJECT
+    KisAutoBrushModel.cpp
+)
+target_compile_definitions(kritapaintopautobrushmodelobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopautobrushmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopautobrushmodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritalibbrush
+        kritawidgets
+        lager
+)
+set_target_properties(kritapaintopautobrushmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopautobrushwidgetobjects OBJECT
+    kis_auto_brush_widget.cpp
+)
+ki18n_wrap_ui(kritapaintopautobrushwidgetobjects
+    forms/wdgautobrush.ui
+)
+target_compile_definitions(kritapaintopautobrushwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopautobrushwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopautobrushwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritaapplicationui
+        kritaimage
+        kritalibbrush
+        kritapaintopautobrushmodelobjects
+        kritawidgets
+        kritawidgetutils
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritaglobal
+        kritaresources
+        lager
+)
+set_target_properties(kritapaintopautobrushwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapaintopcurveoptionmodelobjects OBJECT
     KisCurveOptionModel.cpp
 )
@@ -1752,6 +1817,8 @@ kis_add_library(kritalibpaintop SHARED
     ${kritapaintopruntime_OBJECTS}
     $<TARGET_OBJECTS:kritapaintopcoloroptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopcoloroptionwidgetobjects>
+    $<TARGET_OBJECTS:kritapaintopautobrushmodelobjects>
+    $<TARGET_OBJECTS:kritapaintopautobrushwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopcurveoptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopcurvecontrolinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintopcurveinputcontrolsobjects>

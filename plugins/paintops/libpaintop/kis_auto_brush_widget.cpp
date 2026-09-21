@@ -7,26 +7,39 @@
 
 #include "kis_auto_brush_widget.h"
 
-#include <math.h>
-#include <kis_debug.h>
-#include <QSpinBox>
+#include <functional>
+
+#include <QIcon>
 #include <QImage>
+#include <QList>
 #include <QPixmap>
 #include <QResizeEvent>
+#include <QSharedPointer>
+#include <QSize>
+#include <QtCore/qnamespace.h>
+#include <QtCore/qtypes.h>
 
-#include <kis_fixed_paint_device.h>
-#include <kis_mask_generator.h>
-#include <kis_slider_spin_box.h>
-#include "kis_signals_blocker.h"
-#include "kis_signal_compressor.h"
-#include "kis_aspect_ratio_locker.h"
+#include <KLocalizedString>
+
 #include <KisAngleSelector.h>
+#include <KisAutoBrushModel.h>
+#include <KisGlobalResourcesInterface.h>
 #include <KisSpinBoxI18nHelper.h>
 #include <KisWidgetConnectionUtils.h>
+#include <kis_aspect_ratio_locker.h>
+#include <kis_auto_brush.h>
 #include <kis_cubic_curve.h>
+#include <kis_curve_widget.h>
 #include <kis_auto_brush_factory.h>
-#include <KisGlobalResourcesInterface.h>
-#include <KisAutoBrushModel.h>
+#include <kis_base_mask_generator.h>
+#include <kis_brush.h>
+#include <kis_signal_compressor.h>
+#include <kis_signals_blocker.h>
+#include <kis_slider_spin_box.h>
+#include <kis_types.h>
+
+#include <lager/extra/qt.hpp>
+#include <lager/watch.hpp>
 
 
 struct KisAutoBrushWidget::Private {

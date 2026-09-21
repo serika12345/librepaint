@@ -7,14 +7,16 @@
 #ifndef _KIS_AUTO_BRUSH_WIDGET_H_
 #define _KIS_AUTO_BRUSH_WIDGET_H_
 
-#include <QObject>
+#include <QScopedPointer>
 #include <QResizeEvent>
-#include "kritapaintop_export.h"
-#include "ui_wdgautobrush.h"
-#include <kis_auto_brush.h>
+#include <QString>
+#include <QWidget>
+#include <QtCore/qtmetamacros.h>
 
-#include <lager/cursor.hpp>
-#include <KisBrushModel.h>
+#include <kis_brush.h>
+#include <kritapaintop_export.h>
+
+#include "ui_wdgautobrush.h"
 
 class KisSignalCompressor;
 class KisAspectRatioLocker;

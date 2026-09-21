@@ -1516,7 +1516,8 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 
 範囲は`plugins/paintops/libpaintop/kis_auto_brush_widget.{h,cpp}`、`KisAutoBrushModel.{h,cpp}`、`forms/wdgautobrush.ui`とその直接の所有CMake対象に固定する。ブラシ生成、設定画面、プリセット設定、描画結果と既存CTestは維持する。
 
-- [ ] 公開ヘッダーと実装の直接取込み、直接構築・リンク要件、既存の自動ブラシ入力の利用者向け契約を監査する。
+- [x] 公開ヘッダーと実装を、ブラシ共有ポインター、ブラシ・モデル値型、Qtメタオブジェクトと値型、画面部品、生成器、Lagerの所有ヘッダーへ直接接続する。モデルを`kritapaintopautobrushmodelobjects`、画面と生成UIを`kritapaintopautobrushwidgetobjects`へ移し、モデルはQt Core・ブラシ・画面接続・Lager、画面はQt Core・Widgets・アプリケーションUI・画像・ブラシ・モデル・画面部品を公開利用要件、翻訳・全体基盤・資源・Lagerを実装専用依存として明示する。各対象でMOCを実行し、集約ライブラリーは各オブジェクトを一度だけ取り込む。
+- [x] 専用画面対象、`kritalibpaintop`、既存の同一コンポーネント`KisCurveOptionModelTest`をmacOSで成功させる。自動ブラシ専用CTestがないことを記録し、固定テストは変更しない。
 
 ### R2-G19av 固定CTestの製品利用要件直接化
 
