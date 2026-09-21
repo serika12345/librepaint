@@ -130,6 +130,7 @@ list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     KisEmbeddedTextureData.cpp
     KisFilterOptionData.cpp
     KisFilterOptionModel.cpp
+    KisFilterOptionWidget.cpp
     KisPaintingModeOptionData.cpp
     KisPaintingModeOptionModel.cpp
     KisScatterOptionWidget.cpp
@@ -152,7 +153,6 @@ ki18n_wrap_ui(kritalibpaintop_LIB_SRCS
     forms/wdgcustombrush.ui
     forms/wdgclipboardbrush.ui
     forms/wdgtextbrush.ui
-    forms/wdgfilteroption.ui
     forms/wdgcoloroptions.ui
     forms/wdgbrushchooser.ui
     forms/wdgpredefinedbrushchooser.ui
@@ -699,6 +699,43 @@ target_link_libraries(kritapaintopfilteroptionmodelobjects
         kritaresources
 )
 set_target_properties(kritapaintopfilteroptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopfilteroptionwidgetobjects OBJECT
+    KisFilterOptionWidget.cpp
+)
+ki18n_wrap_ui(kritapaintopfilteroptionwidgetobjects
+    forms/wdgfilteroption.ui
+)
+target_compile_definitions(kritapaintopfilteroptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopfilteroptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopfilteroptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopfilteroptiondataobjects
+        kritapaintopfilteroptionmodelobjects
+        kritatoolsui
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritaapplicationui
+        kritaimage
+        kritaglobal
+        kritawidgets
+)
+set_target_properties(kritapaintopfilteroptionwidgetobjects PROPERTIES
     AUTOMOC ON
     POSITION_INDEPENDENT_CODE ON
 )
@@ -1609,6 +1646,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopdynamicsensorregistryobjects>
     $<TARGET_OBJECTS:kritapaintopfilteroptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopfilteroptionmodelobjects>
+    $<TARGET_OBJECTS:kritapaintopfilteroptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopruntime>
     ${kritapaintopruntime_OBJECTS}
     $<TARGET_OBJECTS:kritapaintopcoloroptionmodelobjects>
