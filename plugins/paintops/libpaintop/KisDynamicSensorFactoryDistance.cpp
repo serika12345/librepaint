@@ -6,11 +6,22 @@
 #include "KisDynamicSensorFactoryDistance.h"
 #include "KisDynamicSensorIds.h"
 
+#include <QWidget>
+#include <QtCore/qlogging.h>
+
+#include <KLocalizedString>
+
 #include "ui_SensorDistanceConfiguration.h"
 
+#include <KisCurveOptionDataCommon.h>
+#include <KisKritaSensorPack.h>
+#include <KisSensorData.h>
+#include <KisSimpleDynamicSensorFactory.h>
 #include <KisWidgetConnectionUtils.h>
 #include <KisSensorWithLengthModel.h>
-#include <KisKritaSensorPack.h>
+
+#include <lager/cursor.hpp>
+#include <lager/lenses.hpp>
 
 namespace {
     auto safeDereferenceDistanceSensor = lager::lenses::getset(

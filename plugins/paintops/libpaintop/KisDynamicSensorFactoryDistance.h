@@ -6,7 +6,15 @@
 #ifndef KISDYNAMICSENSORFACTORYDISTANCE_H
 #define KISDYNAMICSENSORFACTORYDISTANCE_H
 
-#include "KisSimpleDynamicSensorFactory.h"
+#include <QString>
+
+#include <KisCurveOptionDataCommon.h>
+#include <KisSimpleDynamicSensorFactory.h>
+#include <lager/cursor.hpp>
+
+#include <kritapaintop_export.h>
+
+class QWidget;
 
 class PAINTOP_EXPORT KisDynamicSensorFactoryDistance : public KisSimpleDynamicSensorFactory
 {

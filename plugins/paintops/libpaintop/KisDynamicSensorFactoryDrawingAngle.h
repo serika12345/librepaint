@@ -6,7 +6,13 @@
 #ifndef KISDYNAMICSENSORFACTORYDRAWINGANGLE_H
 #define KISDYNAMICSENSORFACTORYDRAWINGANGLE_H
 
-#include "KisSimpleDynamicSensorFactory.h"
+#include <KisCurveOptionDataCommon.h>
+#include <KisSimpleDynamicSensorFactory.h>
+#include <lager/cursor.hpp>
+
+#include <kritapaintop_export.h>
+
+class QWidget;
 
 class PAINTOP_EXPORT KisDynamicSensorFactoryDrawingAngle : public KisSimpleDynamicSensorFactory
 {

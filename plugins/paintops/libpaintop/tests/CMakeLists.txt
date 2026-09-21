@@ -506,3 +506,23 @@ target_compile_definitions(KisSimpleDynamicSensorFactoryContractTest PRIVATE
     kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
 )
+
+kis_add_test(
+    KisDynamicSensorRegistryCompatibilityTest.cpp
+    LINK_LIBRARIES
+        kritapaintopcurveoptiondatacommonobjects
+        kritapaintopdynamicsensorfactoryobjects
+        kritapaintopdynamicsensorregistryobjects
+        kritapaintopkritasensorpackobjects
+        kritapaintopsensordataobjects
+        kritapaintopsensormodelobjects
+        kritapaintopsensorpackinterfaceobjects
+        kritaglobalidobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisDynamicSensorRegistryCompatibilityTest PRIVATE
+    kritaglobal_EXPORTS
+    kritaimage_EXPORTS
+    kritalibpaintop_EXPORTS
+)

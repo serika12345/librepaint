@@ -16,7 +16,6 @@ set(kritalibpaintop_LIB_SRCS
     KisCurveOption.cpp
     KisMultiSensorsSelector.cpp
     KisMultiSensorsModel.cpp
-    KisDynamicSensorFactoryRegistry.cpp
     KisSpacingOptionWidget.cpp
     KisSpacingOptionModel.cpp
     KisSpacingOption.cpp
@@ -76,10 +75,6 @@ set(kritalibpaintop_LIB_SRCS
     sensors/KisDynamicSensorDistance.cpp
     sensors/KisDynamicSensorFade.cpp
     sensors/KisDynamicSensorTime.cpp
-    KisDynamicSensorFactoryTime.cpp
-    KisDynamicSensorFactoryFade.cpp
-    KisDynamicSensorFactoryDistance.cpp
-    KisDynamicSensorFactoryDrawingAngle.cpp
     KisDrawingAngleSensorModel.cpp
     KisTextBrushModel.cpp
 )
@@ -180,10 +175,6 @@ ki18n_wrap_ui(kritalibpaintop_LIB_SRCS
     forms/wdgtexturechooser.ui
     forms/wdgCompositeOpOption.ui
     forms/wdgflowopacityoption.ui
-    sensors/SensorDistanceConfiguration.ui
-    sensors/SensorTimeConfiguration.ui
-    sensors/SensorFadeConfiguration.ui
-
 )
 
 add_library(kritapaintopairbrushoptiondataobjects OBJECT
@@ -1174,6 +1165,47 @@ set_target_properties(kritapaintopdynamicsensorfactoryobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopdynamicsensorregistryobjects OBJECT
+    KisDynamicSensorFactoryRegistry.cpp
+    KisDynamicSensorFactoryTime.cpp
+    KisDynamicSensorFactoryFade.cpp
+    KisDynamicSensorFactoryDistance.cpp
+    KisDynamicSensorFactoryDrawingAngle.cpp
+)
+ki18n_wrap_ui(kritapaintopdynamicsensorregistryobjects
+    sensors/SensorDistanceConfiguration.ui
+    sensors/SensorTimeConfiguration.ui
+    sensors/SensorFadeConfiguration.ui
+)
+target_compile_definitions(kritapaintopdynamicsensorregistryobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopdynamicsensorregistryobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintopdynamicsensorregistryobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritaglobal
+        kritapaintopcurveoptiondatacommonobjects
+        kritapaintopdynamicsensorfactoryobjects
+        lager
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+        kritaglobalidobjects
+        kritapaintopkritasensorpackobjects
+        kritapaintopsensormodelobjects
+        kritatoolsui
+        kritawidgetutils
+)
+set_target_properties(kritapaintopdynamicsensorregistryobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 kis_add_library(kritapaintopruntime OBJECT
     ${kritapaintopruntime_LIB_SRCS}
     ${kritapaintopruntime_OBJECTS}
@@ -1212,6 +1244,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopcoloroptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopcompositeopoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopdynamicsensorfactoryobjects>
+    $<TARGET_OBJECTS:kritapaintopdynamicsensorregistryobjects>
     $<TARGET_OBJECTS:kritapaintopfilteroptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopfilteroptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopruntime>
