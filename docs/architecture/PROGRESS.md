@@ -2,19 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-21 15:32 JST
+- 更新日時: 2026-09-21 15:39 JST
 - 状態: `in_progress`
-- 現在の検査段階: R2-G19ad 間隔オプションデータ依存の直接化
-- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l・R2-G19m・R2-G19n・R2-G19o・R2-G19p・R2-G19q・R2-G19r・R2-G19s・R2-G19t・R2-G19u・R2-G19v・R2-G19w・R2-G19x・R2-G19y・R2-G19z・R2-G19aa・R2-G19ab・R2-G19ac・R2-G19ad完了、R2-G19e・R2-G19d-a・R2-G19d-bは`planned`
+- 現在の検査段階: R2-G19ae 曲線オプションモデル依存の直接化
+- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l・R2-G19m・R2-G19n・R2-G19o・R2-G19p・R2-G19q・R2-G19r・R2-G19s・R2-G19t・R2-G19u・R2-G19v・R2-G19w・R2-G19x・R2-G19y・R2-G19z・R2-G19aa・R2-G19ab・R2-G19ac・R2-G19ad・R2-G19ae完了、R2-G19e・R2-G19d-a・R2-G19d-bは`planned`
 - ブランチ: `issue-44-direct-dependencies`
-- 開始コミット: `3c26afb80f`。作業開始時点の作業ツリーは変更なし。
-- 目的: 間隔オプションデータの公開複合値型、設定入出力、描画更新設定が、文字列、画像設定、曲線データ、翻訳を推移的取込みから得る状態を解消し、保存済みブラシプリセットの互換性を維持する。
-- 範囲固定: `KisSpacingOptionData.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopspacingoptiondataobjects`に限定した。既存テストソース、公開API、`Spacing/Isotropic`・`SPACING_USE_UPDATES`設定キー、既定値と保存結果を維持した。
-- 調査: 変更前のNinja command closureは1件、File API直接構築依存は曲線データ、共通曲線データ、Kritaセンサーパックの3対象であった。初回`misc-include-cleaner`はQStringと画像設定の直接取込み不足2件を報告した。
-- 完了: 公開ヘッダーと実装を比較補助、KoID、QString、翻訳、曲線データ、複合値型、接頭辞付き設定、公開記号、描画設定、画像設定の所有ヘッダーへ直接接続した。公開インライン処理が使う全体基盤、画像、色、Qt、翻訳、Boost、Eigen、OpenEXRの利用要件を直接宣言し、共通曲線データとセンサーパックの重複直接辺、未使用の輸出定義を除去した。
-- 検証: `kritapaintopspacingoptiondataobjects`と`kritalibpaintop`、パッケージ境界1723対象、`KisStandardOptionDataCompatibilityTest`、`KisCurveOptionDataTest`は成功した。変更後の`misc-include-cleaner`は診断0件である。`verify-quick`は45方針試験、10責務、533公開ヘッダー、172プラグイン登録、文書・リンク・図を含めて成功した。
-- 残るリスク: 実行検証はmacOS・Qt 6.11.1であり、Qt 5、Linux、Windows、Android、iOSはIssue #44の最終プラットフォーム検査で扱う。曲線オプションモデル対象は未監査である。
-- 次の作業: R2-G19adを一変更化し、`kritapaintopcurveoptionmodelobjects`を次の有限な監査単位として開始する。
+- 開始コミット: `9e156237d9`。作業開始時点の作業ツリーは変更なし。
+- 目的: 曲線オプション画面モデルが、標準・Qt値型、Lager状態合成、曲線データ、範囲モデル境界、センサーデータ、安全検査を推移的取込みから得る状態を解消し、ブラシ編集とプリセット保存の振る舞いを維持する。
+- 範囲固定: `KisCurveOptionModel.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurveoptionmodelobjects`に限定した。既存テストソース、公開API、共有・個別センサー曲線、強度範囲、チェック状態、表示ラベルと保存結果を維持した。
+- 調査: 変更前のNinja command closureは1件、File API直接構築依存はBoost、Eigen、Imath、翻訳、Qt Core・Gui・Xml、Lager、Zugの9対象であった。初回`misc-include-cleaner`は標準アルゴリズム・関数・値型、Qt値型、Lager合成、曲線データ、範囲モデル境界、センサーデータ、安全検査など30件の直接取込み不足を報告した。
+- 完了: 公開ヘッダーと実装を標準所有・値型、Qt Core値型、Lagerカーソル・読取・状態・レンズ・合成、曲線データ、範囲モデル境界、センサーデータ、安全検査の所有ヘッダーへ直接接続した。公開利用要件をQt Core、曲線データ、範囲モデル境界、Lagerへ限定し、実装専用の全体基盤ヘッダーとZugを非公開化した。画像、色、翻訳、未使用の輸出定義を除去し、File API直接依存を5対象へ縮小した。
+- 検証: `kritapaintopcurveoptionmodelobjects`と`kritalibpaintop`、パッケージ境界1723対象、`KisCurveOptionModelTest`、`KisCurveOptionDataTest`は成功した。変更後の`misc-include-cleaner`は診断0件である。`verify-quick`は45方針試験、10責務、533公開ヘッダー、172プラグイン登録、文書・リンク・図を含めて成功した。
+- 残るリスク: 実行検証はmacOS・Qt 6.11.1であり、Qt 5、Linux、Windows、Android、iOSはIssue #44の最終プラットフォーム検査で扱う。センサーモデル対象は未監査である。
+- 次の作業: R2-G19aeを一変更化し、`kritapaintopsensormodelobjects`を次の有限な監査単位として開始する。
 - 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
 - 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
 - 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。

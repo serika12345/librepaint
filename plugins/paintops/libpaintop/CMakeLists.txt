@@ -696,32 +696,23 @@ add_library(kritapaintopcurveoptionmodelobjects OBJECT
     KisCurveOptionModel.cpp
 )
 target_compile_definitions(kritapaintopcurveoptionmodelobjects PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
 )
 target_include_directories(kritapaintopcurveoptionmodelobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
         ${CMAKE_SOURCE_DIR}/libs/global
         ${CMAKE_BINARY_DIR}/libs/global
-        ${CMAKE_SOURCE_DIR}/libs/image
-        ${CMAKE_BINARY_DIR}/libs/image
-        ${CMAKE_SOURCE_DIR}/libs/pigment
-        ${CMAKE_BINARY_DIR}/libs/pigment
 )
 target_link_libraries(kritapaintopcurveoptionmodelobjects
     PUBLIC
-        Boost::boost
-        Eigen3::Eigen
-        Imath::ImathConfig
-        KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Xml
+        kritapaintopcurveoptiondataobjects
+        kritapaintopcurverangemodelinterfaceobjects
         lager
+    PRIVATE
         zug
 )
 set_target_properties(kritapaintopcurveoptionmodelobjects PROPERTIES
