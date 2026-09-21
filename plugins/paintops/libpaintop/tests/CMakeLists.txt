@@ -29,6 +29,14 @@ kis_add_test(
 )
 
 kis_add_test(
+    KisSpacingOptionWidgetContractTest.cpp
+    LINK_LIBRARIES
+        Qt${QT_MAJOR_VERSION}::Test
+        kritalibpaintop
+        kritatestsdk
+)
+
+kis_add_test(
     KisCurveOptionModelTest.cpp
     LINK_LIBRARIES
         kritaimage
