@@ -420,7 +420,9 @@ target_link_libraries(kritapaintopscatteroptiondataobjects
 )
 set_target_properties(kritapaintopscatteroptiondataobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 add_library(kritapaintopspacingoptiondataobjects OBJECT KisSpacingOptionData.cpp)
-target_compile_definitions(kritapaintopspacingoptiondataobjects PRIVATE kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
+target_compile_definitions(kritapaintopspacingoptiondataobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
 target_include_directories(kritapaintopspacingoptiondataobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -433,7 +435,17 @@ target_include_directories(kritapaintopspacingoptiondataobjects
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
     PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/brushengine>)
-target_link_libraries(kritapaintopspacingoptiondataobjects PUBLIC kritapaintopcurveoptiondataobjects kritapaintopcurveoptiondatacommonobjects kritapaintopkritasensorpackobjects)
+target_link_libraries(kritapaintopspacingoptiondataobjects
+    PUBLIC
+        Boost::boost
+        Eigen3::Eigen
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        kritaglobalidobjects
+        kritapaintopcurveoptiondataobjects
+        ${LINK_OPENEXR_LIB}
+)
 set_target_properties(kritapaintopspacingoptiondataobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(kritapaintopcurveoptiondataobjects PRIVATE
     kritalibpaintop_EXPORTS
