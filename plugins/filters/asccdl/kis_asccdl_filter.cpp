@@ -5,6 +5,12 @@
  */
 
 #include "kis_asccdl_filter.h"
+#include "KoColorSpace.h"
+#include "KoColorTransformation.h"
+#include "KoIntegerMaths.h"
+#include "kis_config_widget.h"
+#include "kis_filter_configuration.h"
+#include "kis_types.h"
 #include "kis_wdg_asccdl.h"
 #include <kpluginfactory.h>
 #include <klocalizedstring.h>
@@ -12,7 +18,12 @@
 #include <filter/kis_filter_registry.h>
 #include <filter/kis_color_transformation_configuration.h>
 #include <kis_paint_device.h>
+#include <qcontainerfwd.h>
 #include <qmath.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaASCCDLFactory,
                            "kritaasccdl.json",

@@ -5,13 +5,15 @@
  */
 
 #include "kis_import_catcher.h"
-#include <kis_debug.h>
 
 #include <klocalizedstring.h>
 #include <QFileInfo>
 
 #include <KisImportExportManager.h>
 
+#include "KisQStringListFwd.h"
+#include "KoColorSpaceConstants.h"
+#include "kis_types.h"
 #include "nodes/kis_node_manager.h"
 #include "kis_paint_layer.h"
 #include <KoProperties.h>
@@ -21,6 +23,9 @@
 #include "kis_layer.h"
 #include "kis_painter.h"
 #include <commands/kis_node_commands_adapter.h>
+#include <qforeach.h>
+#include <qobjectdefs.h>
+#include <qtransform.h>
 #include "kis_group_layer.h"
 #include "application/kis_config.h"
 #include "application/ui/orchestration/KisPart.h"

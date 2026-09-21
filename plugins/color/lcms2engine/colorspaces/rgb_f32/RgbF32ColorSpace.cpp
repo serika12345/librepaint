@@ -11,17 +11,32 @@
 
 #include <klocalizedstring.h>
 
+#include "IccColorProfile.h"
+#include "KisQStringListFwd.h"
+#include "KoChannelInfo.h"
+#include "KoColorConversionTransformationFactory.h"
+#include "KoColorProfile.h"
+#include "KoColorProfileConstants.h"
+#include "KoColorSpace.h"
+#include "KoColorSpaceRegistry.h"
+#include "LcmsColorSpace.h"
 #include "LcmsRGBP2020PQColorSpace.h"
 #include "compositeops/KoCompositeOps.h"
 #include "compositeops/RgbCompositeOpBumpmap.h"
 #include "compositeops/RgbCompositeOpIn.h"
 #include "compositeops/RgbCompositeOpOut.h"
 #include "dithering/KisRgbDitherOpFactory.h"
+#include "kis_assert.h"
 #include <KoColorConversions.h>
 #include <KoColorSpaceMaths.h>
 #include <KoColorSpacePreserveLightnessUtils.h>
 #include <kis_dom_utils.h>
 #include <KoColorProfileQuery.h>
+#include <lcms2.h>
+#include <qassert.h>
+#include <qlist.h>
+#include <qrgb.h>
+#include <qtypes.h>
 
 RgbF32ColorSpace::RgbF32ColorSpace(const QString &name, KoColorProfile *p) :
     LcmsColorSpace<KoRgbF32Traits>(colorSpaceId(), name, TYPE_RGBA_FLT, cmsSigRgbData, p)

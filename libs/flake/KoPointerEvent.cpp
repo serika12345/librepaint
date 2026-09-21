@@ -18,7 +18,18 @@
 #include <ksharedconfig.h>
 #include <kconfiggroup.h>
 #include <kis_config_notifier.h>
-#include <kis_assert.h>
+#include <optional>
+#include <qglobalstatic.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qsharedpointer.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
 
 class KisTouchPressureSensitivityOptionContainer : public QObject
 {

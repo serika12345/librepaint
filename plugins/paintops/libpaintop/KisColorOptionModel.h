@@ -6,13 +6,13 @@
 #ifndef KIS_COLOR_OPTION_MODEL_H
 #define KIS_COLOR_OPTION_MODEL_H
 
+#include <QObject>
+#include <kritapaintop_export.h>
+
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>
 
-#include <QObject>
-
 #include "KisColorOptionData.h"
-#include "KisWidgetConnectionUtils.h"
 
 class PAINTOP_EXPORT KisColorOptionModel : public QObject
 {

@@ -11,6 +11,7 @@
 #include <KoViewConverter.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <KoCanvasBase.h>
+#include <cmath>
 #include <kis_icon.h>
 #include <kis_canvas2.h>
 #include <kis_cubic_curve.h>
@@ -20,8 +21,28 @@
 #include <brushengine/kis_paintop_preset.h>
 #include <kis_tool_utils.h>
 #include <KoColorDisplayRendererInterface.h>
+#include <qguiapplication.h>
+#include <qhashfunctions.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qpainter.h>
+#include <qset.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #include "KisToolBasicBrushBase.h"
+#include "KisOptimizedBrushOutline.h"
+#include "KoColor.h"
+#include "kis_assert.h"
+#include "kis_cursor.h"
+#include "kis_global.h"
+#include "kis_tool.h"
+#include "kis_tool_paint.h"
+#include "kis_tool_shape.h"
+#include "kis_types.h"
+#include "ui_wdggeometryoptions.h"
 
 KisToolBasicBrushBase::KisToolBasicBrushBase(KoCanvasBase * canvas, ToolType type, const QCursor & cursor)
     : KisToolShape(canvas, cursor)

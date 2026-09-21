@@ -7,6 +7,7 @@
 #include "KisGridOpOptionData.h"
 
 #include "kis_properties_configuration.h"
+#include <qminmax.h>
 
 
 bool KisGridOpOptionData::read(const KisPropertiesConfiguration *setting)

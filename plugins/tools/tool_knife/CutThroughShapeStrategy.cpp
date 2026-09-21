@@ -5,10 +5,15 @@
  */
 
 #include "CutThroughShapeStrategy.h"
+#include "GutterWidthsConfig.h"
+#include "KoInteractionStrategy.h"
+#include "kis_assert.h"
+#include "kundo2magicstring.h"
 
 #include <QDebug>
 #include <QPainter>
 
+#include <cmath>
 #include <kis_algebra_2d.h>
 #include <KoToolBase.h>
 #include <KoCanvasBase.h>
@@ -26,6 +31,14 @@
 #include <QtMath>
 #include <KoSvgTextShape.h>
 #include <KoColorDisplayRendererInterface.h>
+#include <memory>
+#include <qforeach.h>
+#include <qline.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qtypes.h>
 
 
 CutThroughShapeStrategy::CutThroughShapeStrategy(KoToolBase *tool, KoSelection *selection, const QList<KoShape *> &shapes, QPointF startPoint, const GutterWidthsConfig &width)

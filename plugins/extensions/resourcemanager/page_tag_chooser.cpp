@@ -5,6 +5,10 @@
  */
 
 #include "page_tag_chooser.h"
+#include "KisBundleStorage.h"
+#include "KisResourceStorage.h"
+#include "KisResourceTypes.h"
+#include "KoResourceBundle.h"
 #include "ui_pagetagchooser.h"
 #include "dlg_create_bundle.h"
 
@@ -18,19 +22,19 @@
 
 #include <KisImportExportManager.h>
 #include <metadata/KoDocumentInfo.h>
-#include <KoFileDialog.h>
-#include <kis_icon.h>
-#include <KoResource.h>
-#include <KoResourceServer.h>
 #include <KoResourceServerProvider.h>
 #include <kstandardguiitem.h>
 #include <KisTagModel.h>
 #include "wdgtagpreview.h"
 #include <KisTag.h>
 
-#include <workspace/kis_workspace_resource.h>
-#include <brushengine/kis_paintop_preset.h>
-#include <dlg_embed_tags.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsharedpointer.h>
+#include <qtmetamacros.h>
+#include <qwizard.h>
 
 #include <application/kis_config.h>
 

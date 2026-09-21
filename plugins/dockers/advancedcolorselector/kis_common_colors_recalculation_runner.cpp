@@ -7,6 +7,11 @@
 #include <cmath>
 
 #include <QImage>
+#include <qassert.h>
+#include <qlist.h>
+#include <qrgb.h>
+#include <qset.h>
+#include <qtypes.h>
 
 #include "KoColor.h"
 #include "KoColorSpaceRegistry.h"

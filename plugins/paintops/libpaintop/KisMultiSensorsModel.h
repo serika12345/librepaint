@@ -7,14 +7,19 @@
 #ifndef KisMultiSensorsModel_H_
 #define KisMultiSensorsModel_H_
 
-#include <QScopedPointer>
-#include <QAbstractListModel>
-#include <lager/cursor.hpp>
-#include <KoID.h>
-#include <QObject>
+#include <utility>
+#include <vector>
 
-class KisCubicCurve;
-class KisCurveOption;
+#include <QAbstractListModel>
+#include <QModelIndex>
+#include <QScopedPointer>
+#include <QString>
+#include <QVariant>
+#include <QtCore/qnamespace.h>
+#include <QtCore/qtmetamacros.h>
+
+#include <KoID.h>
+#include <lager/cursor.hpp>
 
 
 class KisMultiSensorsModel : public QAbstractListModel

@@ -6,6 +6,7 @@
 #include "KisHairyInkOptionData.h"
 
 #include "kis_properties_configuration.h"
+#include <qhashfunctions.h>
 
 
 const QString HAIRY_INK_DEPLETION_ENABLED = "HairyInk/enabled";

@@ -9,6 +9,7 @@
 #include "KisTagToolButton.h"
 
 #include <KisTagModel.h>
+#include <qobjectdefs.h>
 
 namespace KisTagChooserWidgetConstructionSource
 {

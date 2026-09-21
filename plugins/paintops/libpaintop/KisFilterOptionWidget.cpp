@@ -5,25 +5,41 @@
  */
 #include "KisFilterOptionWidget.h"
 
+#include <functional>
+#include <tuple>
+
 #include <QWidget>
 #include <QCheckBox>
 #include <QGridLayout>
+#include <QList>
+#include <QString>
+#include <QtCore/qobjectdefs.h>
 
+#include <KLocalizedString>
+#include <KoID.h>
+
+#include <kis_assert.h>
+#include <kis_paintop_option.h>
 #include <kis_signals_blocker.h>
+#include <kis_types.h>
 #include <KisMpl.h>
 
-#include "kis_node.h"
-#include "kis_paint_device.h"
+#include <kis_node.h>
+#include <kis_paint_device.h>
 
 #include <kis_config_widget.h>
 #include <filter/kis_filter.h>
 #include <filter/kis_filter_registry.h>
 #include <filter/kis_filter_configuration.h>
 
+#include <KisFilterOptionData.h>
 #include <KisFilterOptionModel.h>
 #include <KisWidgetConnectionUtils.h>
 
-#include "ui_wdgfilteroption.h"
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+
+#include <ui_wdgfilteroption.h>
 
 
 namespace {

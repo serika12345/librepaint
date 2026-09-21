@@ -10,10 +10,14 @@
 #include "application/ui/workspace/KisMainWindow.h"
 #include "application/ui/workspace/KisView.h"
 #include "document/KisDocument.h"
+#include "kis_double_parse_unit_spin_box.h"
+#include "kis_spin_box_unit_manager.h"
 #include "kis_types.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
 #include "kis_time_span.h"
+#include <qobject.h>
+#include <qtypes.h>
 
 
 KisSpinBoxUnitManager* KisDocumentAwareSpinBoxUnitManagerBuilder::buildUnitManager(QObject* parent)

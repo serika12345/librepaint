@@ -5,11 +5,17 @@
  */
 #include "KoSvgTextAddRemoveShapeCommands.h"
 #include "kis_assert.h"
+#include "kis_command_utils.h"
+#include "kundo2stack.h"
 #include <optional>
 
 #include <KoShapeBulkActionLock.h>
 #include <KoSvgTextShape.h>
 #include <KoShapeContainer.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qtransform.h>
 
 struct KoSvgTextAddRemoveShapeCommandImpl::Private {
     Private(KoSvgTextShape *_text, KoShape *_shape, int _startPos, int _endPos)

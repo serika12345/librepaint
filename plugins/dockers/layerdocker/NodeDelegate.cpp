@@ -5,8 +5,10 @@
 
   SPDX-License-Identifier: LGPL-2.0-or-later
 */
+#include "KisSelectionTags.h"
 #include "application/kis_config.h"
 #include "NodeDelegate.h"
+#include "kis_global.h"
 #include "nodes/kis_node_model.h"
 #include "NodeToolTip.h"
 #include "NodeView.h"
@@ -30,8 +32,32 @@
 #include "krita_utils.h"
 #include "nodes/kis_node_view_color_scheme.h"
 #include <KisMpl.h>
+#include <algorithm>
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
+#include <iterator>
 #include <kis_painting_tweaks.h>
 #include <klocalizedstring.h>
+#include <qabstractitemdelegate.h>
+#include <qassert.h>
+#include <qcolor.h>
+#include <qcoreevent.h>
+#include <qflags.h>
+#include <qfont.h>
+#include <qforeach.h>
+#include <qimage.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 typedef KisBaseNode::Property* OptionalProperty;
 

@@ -9,10 +9,19 @@
 #include "KoShape_p.h"
 #include "KoShapeManager.h"
 #include "KoShapeContainer.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
+#include <algorithm>
 #include <klocalizedstring.h>
-#include <FlakeDebug.h>
 #include <limits.h>
+#include <limits>
+#include <qassert.h>
+#include <qdebug.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qtypes.h>
 
 KoShapeReorderCommand::IndexedShape::IndexedShape()
 {

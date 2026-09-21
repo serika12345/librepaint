@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "HtmlWriter.h"
+#include "KisQStringListFwd.h"
 
 #include <QDebug>
 #include <QIODevice>
@@ -19,6 +20,9 @@
 #include <html/HtmlSavingContext.h>
 
 #include <KisPortingUtils.h>
+#include <qforeach.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
 
 HtmlWriter::HtmlWriter(const QList<KoShape*> &toplevelShapes)
     : m_toplevelShapes(toplevelShapes)

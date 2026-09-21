@@ -7,9 +7,14 @@
 
 
 #include <QMutexLocker>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qtypes.h>
 #include "kis_tile.h"
 #include "kis_memento_manager.h"
 #include "kis_debug.h"
+#include "kis_shared.h"
+#include "tiles3/kis_tile_data_interface.h"
 
 
 void KisTile::init(qint32 col, qint32 row,

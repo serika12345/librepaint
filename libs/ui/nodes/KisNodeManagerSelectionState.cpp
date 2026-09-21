@@ -4,7 +4,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_types.h"
 #include "nodes/kis_node_manager.h"
+#include <qtmetamacros.h>
 
 void KisNodeManager::slotImageRequestNodeReselection(KisNodeSP activeNode, const KisNodeList &selectedNodes)
 {

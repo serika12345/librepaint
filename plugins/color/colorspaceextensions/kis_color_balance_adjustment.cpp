@@ -5,7 +5,17 @@
 */
 
 #include "kis_color_balance_adjustment.h"
+#include "KoBgrColorSpaceTraits.h"
+#include "KoColorSpaceMaths.h"
+#include "KoColorTransformationFactory.h"
+#include "KoIntegerMaths.h"
+#include "KoRgbColorSpaceTraits.h"
 #include <KoConfig.h>
+#include <qcontainerfwd.h>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qtypes.h>
 #ifdef HAVE_OPENEXR
 #include <half.h>
 #endif
@@ -16,10 +26,8 @@
 #include <KoColorConversions.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpace.h>
-#include <KoColorSpaceTraits.h>
 #include <KoColorTransformation.h>
 #include <KoID.h>
-#include <kis_hsv_adjustment.h>
 
 
 #define SCALE_TO_FLOAT( v ) KoColorSpaceMaths< _channel_type_, float>::scaleToA( v )

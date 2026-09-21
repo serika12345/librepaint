@@ -12,6 +12,7 @@
 #include <QRect>
 
 #include <Eigen/LU>
+#include <qpoint.h>
 
 Matrix3qreal KisPerspectiveMath::computeMatrixTransfo(const QPointF& topLeft1, const QPointF& topRight1, const QPointF& bottomLeft1, const QPointF& bottomRight1 , const QPointF& topLeft2, const QPointF& topRight2, const QPointF& bottomLeft2, const QPointF& bottomRight2)
 {

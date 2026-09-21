@@ -6,6 +6,14 @@
  */
 
 #include "psd_pixel_utils.h"
+#include "KoBgrColorSpaceTraits.h"
+#include "KoCmykColorSpaceTraits.h"
+#include "KoGrayColorSpaceTraits.h"
+#include "KoLabColorSpaceTraits.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_types.h"
+#include "psd_types.h"
 
 #include <QIODevice>
 #include <QMap>
@@ -14,8 +22,9 @@
 
 #include <KoColorSpace.h>
 #include <KoColorSpaceMaths.h>
-#include <KoColorSpaceTraits.h>
 #include <colorspaces/KoAlphaColorSpace.h>
+#include <cstdint>
+#include <functional>
 #include <kis_global.h>
 #include <kis_iterator_ng.h>
 #include <kis_sequential_iterator.h>
@@ -24,8 +33,15 @@
 #include <asl/kis_asl_writer_utils.h>
 #include <asl/kis_offset_keeper.h>
 #include <compression.h>
-#include <psd.h>
+#include <limits>
 #include <psd_layer_record.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qscopedpointer.h>
+#include <qtypes.h>
+#include <utility>
 
 namespace PsdPixelUtils
 {

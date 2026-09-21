@@ -8,7 +8,11 @@
 
 #include "KisScreentoneScreentoneFunctions.h"
 
+#include <algorithm>
 #include <cmath>
+#include <math.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 namespace KisScreentoneScreentoneFunctions {
 

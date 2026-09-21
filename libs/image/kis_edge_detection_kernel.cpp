@@ -5,14 +5,28 @@
  */
 
 #include "kis_edge_detection_kernel.h"
+#include "KoColor.h"
+#include "kis_assert.h"
 #include "kis_global.h"
 #include "kis_convolution_kernel.h"
+#include "kis_paint_device.h"
+#include "kis_painter.h"
+#include "kis_types.h"
+#include <Eigen/Core>
+#include <boost/optional/optional.hpp>
+#include <cmath>
+#include <cstring>
 #include <kis_convolution_painter.h>
 #include <KoCompositeOpRegistry.h>
 #include <QRect>
 #include <KoColorSpace.h>
 #include <kis_sequential_iterator.h>
 #include <QVector3D>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qpoint.h>
+#include <qtypes.h>
 
 KisEdgeDetectionKernel::KisEdgeDetectionKernel()
 {

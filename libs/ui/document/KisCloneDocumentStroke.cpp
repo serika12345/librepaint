@@ -7,8 +7,14 @@
 
 #include "document/KisDocument.h"
 #include "kis_layer_utils.h"
+#include "kis_simple_stroke_strategy.h"
+#include "kis_stroke_job_strategy.h"
+#include "kritaimage_export.h"
+#include "kundo2magicstring.h"
 
 #include <QApplication>
+#include <qlatin1stringview.h>
+#include <qtmetamacros.h>
 
 
 struct KRITAIMAGE_NO_EXPORT KisCloneDocumentStroke::Private

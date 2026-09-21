@@ -5,15 +5,16 @@
  */
 
 #include "KisPerStrokeRandomSource.h"
+#include "kis_shared.h"
 
 #include <QHash>
 #include <QMutex>
 #include <QMutexLocker>
 #include <QRandomGenerator>
 
-#include <boost/random/normal_distribution.hpp>
 #include <boost/random/taus88.hpp>
-#include <boost/random/uniform_smallint.hpp>
+#include <qhashfunctions.h>
+#include <qtypes.h>
 
 struct KisPerStrokeRandomSource::Private
 {

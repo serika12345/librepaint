@@ -8,9 +8,20 @@
 
 #include <kis_image.h>
 #include <kundo2magicstring.h>
+#include "KisQStringListFwd.h"
+#include <qforeach.h>
+#include <qhash.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qsharedpointer.h>
 #include "KisRegion.h"
+#include "KisRunnableBasedStrokeStrategy.h"
+#include "kis_assert.h"
 #include "kis_node.h"
 #include "kis_paint_device.h"
+#include "kis_simple_stroke_strategy.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_types.h"
 #include "krita_container_utils.h"
 #include "krita_utils.h"
 #include "kis_layer_utils.h"

@@ -6,7 +6,12 @@
 
 #include "EllipseShapeConfigCommand.h"
 #include <klocalizedstring.h>
+#include "ellipse/EllipseShape.h"
+#include <qassert.h>
+#include <qtypes.h>
 #include "kis_command_ids.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 EllipseShapeConfigCommand::EllipseShapeConfigCommand(EllipseShape *ellipse, EllipseShape::EllipseType type, qreal startAngle, qreal endAngle, KUndo2Command *parent)
     : KUndo2Command(parent)

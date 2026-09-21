@@ -12,8 +12,12 @@
 
 #include <QBuffer>
 
+#include <cstddef>
+#include <cstdint>
+#include <functional>
 #include <kpluginfactory.h>
-#include <libheif/heif.h>
+#include <libheif/heif_color.h>
+#include <libheif/heif_context.h>
 #include <libheif/heif_cxx.h>
 
 #include <document/KisDocument.h>
@@ -26,18 +30,33 @@
 #include <dialogs/kis_dlg_hlg_import.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
-#include <kis_iterator_ng.h>
 #include <kis_meta_data_backend_registry.h>
 #include <kis_meta_data_entry.h>
-#include <kis_meta_data_store.h>
-#include <kis_meta_data_value.h>
 #include <kis_node.h>
 #include <kis_paint_device.h>
 #include <kis_paint_layer.h>
-#include <kis_transaction.h>
-#include <qmutex.h>
+#include <libheif/heif_error.h>
+#include <libheif/heif_image.h>
+#include <libheif/heif_library.h>
+#include <qcontainerfwd.h>
+#include <qgenericatomic.h>
+#include <qlist.h>
+#include <qoverload.h>
+#include <qtypes.h>
+#include <qvariant.h>
+#include <vector>
 
+#include "KisImportExportErrorCode.h"
+#include "KoColorModelStandardIds.h"
+#include "KoColorProfileConstants.h"
+#include "KoColorSpaceConstants.h"
+#include "KoColorTransferFunctions.h"
+#include "KoID.h"
+#include "KoMultiArchBuildSupport.h"
+#include "kis_debug.h"
 #include "kis_heif_import_tools.h"
+#include "kis_meta_data_io_backend.h"
+#include "kis_types.h"
 
 using heif::Error;
 

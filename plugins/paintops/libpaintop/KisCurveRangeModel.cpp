@@ -6,9 +6,20 @@
 
 #include "KisCurveRangeModel.h"
 
+#include <utility>
+
+#include <QRectF>
+#include <QString>
+#include <QtCore/qtypes.h>
+
+#include <kis_assert.h>
+#include <KisCurveRangeModelInterface.h>
+#include <KisDynamicSensorFactory.h>
 #include <KisDynamicSensorFactoryRegistry.h>
 
-using LabelsState = std::tuple<QString, int>;
+#include <lager/cursor.hpp>
+#include <lager/reader.hpp>
+#include <lager/with.hpp>
 
 namespace {
 QString calcMinLabelWithFactory(const QString &sensorId) 
@@ -76,7 +87,7 @@ KisCurveRangeModelFactory KisCurveRangeModel::factory(const QString &yMinLabel,
                               lager::reader<QString> activeSensorId,
                               lager::reader<int> activeSensorLength) {
 
-        Q_UNUSED(curveRange);
+        (void)curveRange;
         return new KisCurveRangeModel(curve, activeSensorId, activeSensorLength, yMinLabel, yMaxLabel, curveMinValue, curveMaxValue, curveValueSuffix);
     };
 }

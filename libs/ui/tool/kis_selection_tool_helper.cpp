@@ -14,19 +14,23 @@
 #include <KoShapeController.h>
 #include <KoPathShape.h>
 
-#include "kis_pixel_selection.h"
+#include "KisResourceTypes.h"
+#include "KisSelectionTags.h"
+#include "kis_icon_utils.h"
 #include "kis_layer.h"
+#include "kis_pixel_selection.h"
 #include "kis_shape_selection.h"
 #include "kis_image.h"
 #include "canvas/kis_canvas2.h"
 #include "application/ui/workspace/KisViewManager.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_types.h"
 #include "selection/kis_selection_manager.h"
 #include "kis_transaction.h"
 #include "commands/KisDeselectActiveSelectionCommand.h"
 #include "commands/kis_set_global_selection_command.h"
 #include "kis_shape_controller.h"
 
-#include <kis_icon.h>
 #include "kis_processing_applicator.h"
 #include "commands_new/kis_transaction_based_command.h"
 #include "events/kis_gui_context_command.h"
@@ -36,6 +40,12 @@
 #include "application/kis_config.h"
 #include "application/ui/orchestration/kis_action_manager.h"
 #include <QMenu>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qtimer.h>
 
 
 KisSelectionToolHelper::KisSelectionToolHelper(KisCanvas2* canvas, const KUndo2MagicString& name)

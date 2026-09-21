@@ -7,6 +7,8 @@
 
 #include <animation/kis_frame_cache_store.h>
 
+#include "animation/kis_frame_data_serializer.h"
+#include "kis_assert.h"
 #include "opengl/kis_opengl_update_info.h"
 #include "opengl/KisOpenGLUpdateInfoBuilder.h"
 #include "opengl/kis_texture_tile_update_info.h"

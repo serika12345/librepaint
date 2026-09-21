@@ -14,21 +14,40 @@
 #include <QAction>
 #include <QMessageBox>
 
+#include <cmath>
 #include <klocalizedstring.h>
 #include <kactioncollection.h>
 
-#include <kis_icon.h>
 
 #include <KoCanvasBase.h>
 #include <KisResourceItemChooser.h>
 #include <KisResourceLoader.h>
-#include <KisResourceItemListView.h>
 #include <KisResourceLoaderRegistry.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_canvas2.h>
 #include <application/ui/workspace/KisMainWindow.h>
 #include <KisResourceUserOperations.h>
+#include <qabstractitemmodel.h>
+#include <qcoreapplication.h>
+#include <qfileinfo.h>
+#include <qforeach.h>
+#include <qlineedit.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qstyle.h>
+#include <qstyleoption.h>
 
+#include "KisQStringListFwd.h"
+#include "KisResourceModel.h"
+#include "KisResourceTypes.h"
+#include "KisResourceUiDescriptor.h"
+#include "KoResourceServer.h"
+#include "ResourceListViewModes.h"
+#include "kis_icon_utils.h"
+#include "taskset_resource.h"
 #include "tasksetmodel.h"
 
 

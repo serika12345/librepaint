@@ -13,23 +13,24 @@
 #include <QPainterPath>
 #include <QPointer>
 
-#include <KoPointerEvent.h>
 #include <KoColor.h>
-#include <KoCompositeOpRegistry.h>
 #include <KoViewConverter.h>
 
+#include "KoCompositeOpIds.h"
 #include "kis_dom_utils.h"
 #include "kis_paintop_preset.h"
 #include "kis_painter.h"
 #include "kis_paint_device.h"
 #include "kis_paintop_registry.h"
+#include "kis_pointer_utils.h"
 #include "kis_timing_information.h"
 #include <brushengine/kis_paint_information.h>
 #include "kis_paintop_config_widget.h"
 #include <brushengine/kis_paintop_preset.h>
 #include "KisPaintOpPresetUpdateProxy.h"
+#include <cmath>
+#include <cstdint>
 #include <kis_types.h>
-#include <kis_signals_blocker.h>
 
 #include <brushengine/kis_locked_properties_server.h>
 #include <brushengine/kis_locked_properties_proxy.h>
@@ -37,10 +38,22 @@
 #include "KisPaintopSettingsIds.h"
 #include "kis_algebra_2d.h"
 #include "kis_image_config.h"
+#include "kis_uniform_paintop_property.h"
 #include <KoCanvasResourcesInterface.h>
 #include <KoResourceCacheInterface.h>
 #include <KoResourceCachePrefixedStorageWrapper.h>
 #include <brushengine/KisOptimizedBrushOutline.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #define SANITY_CHECK_CACHE
 

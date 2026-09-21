@@ -11,9 +11,10 @@
 #include <KoStore.h>
 #include <KoStoreDevice.h>
 
-#include <kis_image.h>
 #include <kis_paint_device.h>
+#include "kis_debug.h"
 #include "kis_png_converter.h"
+#include "kis_types.h"
 
 KisOpenRasterLoadContext::KisOpenRasterLoadContext(KoStore* _store)
     : m_store(_store)

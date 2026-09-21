@@ -9,7 +9,11 @@
 #include "kis_image.h"
 #include "kis_selection.h"
 #include "kis_layer_utils.h"
+#include "kis_signal_compressor.h"
+#include "kis_thread_safe_signal_compressor.h"
+#include "kis_types.h"
 #include "kis_update_selection_job.h"
+#include <qobjectdefs.h>
 
 
 KisSelectionUpdateCompressor::KisSelectionUpdateCompressor(KisSelection *selection)

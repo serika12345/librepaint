@@ -8,6 +8,8 @@
 #include <QString>
 
 #include <kis_debug.h>
+#include <qassert.h>
+#include <qtdeprecationdefinitions.h>
 
 #include "kis_meta_data_value.h"
 #include "kis_meta_data_schema.h"

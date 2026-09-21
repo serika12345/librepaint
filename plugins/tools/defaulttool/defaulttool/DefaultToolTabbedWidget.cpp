@@ -6,13 +6,20 @@
 
 #include "DefaultToolTabbedWidget.h"
 
+#include "KoFlake.h"
+#include "KoTitledTabWidget.h"
+#include "defaulttool/KoShapeMeshGradientHandles.h"
 #include "kis_icon_utils.h"
 #include "DefaultToolGeometryWidget.h"
 #include "KoStrokeConfigWidget.h"
 #include "KoFillConfigWidget.h"
+#include "ui_DefaultToolGeometryWidget.h"
 #include <KoInteractionTool.h>
 
 #include <kis_document_aware_spin_box_unit_manager.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 
 DefaultToolTabbedWidget::DefaultToolTabbedWidget(KoInteractionTool *tool, QWidget *parent)

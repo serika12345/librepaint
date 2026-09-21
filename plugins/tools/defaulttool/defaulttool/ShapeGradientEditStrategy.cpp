@@ -11,12 +11,18 @@
 #include <KoCanvasResourceProvider.h>
 #include <KoShapeManager.h>
 #include <KoShape.h>
+#include "KoFlake.h"
+#include "KoInteractionStrategy.h"
 #include "kis_assert.h"
 #include "SelectionDecorator.h"
 #include <kundo2command.h>
 #include <kis_command_utils.h>
 #include <KoSnapGuide.h>
 #include <KisSnapPointStrategy.h>
+#include <memory>
+#include <qforeach.h>
+#include <qnamespace.h>
+#include <qtpreprocessorsupport.h>
 
 
 

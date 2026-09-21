@@ -5,12 +5,17 @@
  */
 
 #include <QMutexLocker>
+#include <cstring>
+#include <qassert.h>
+#include <qlogging.h>
+#include <qtypes.h>
 //#include "kis_debug.h"
 #include "kis_swapped_data_store.h"
 #include "kis_memory_window.h"
 #include "kis_image_config.h"
 
 #include "kis_tile_compressor_2.h"
+#include "tiles3/swap/kis_chunk_allocator.h"
 
 //#define COMPRESSOR_VERSION 2
 

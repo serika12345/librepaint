@@ -5,9 +5,23 @@
  */
 #include "KisTextureOptionWidget.h"
 
-#include <kis_paintop_lod_limitations.h>
+#include <functional>
+
+#include <KLocalizedString>
+
+#include <KisLevelsSlider.h>
+#include <KisResourcesInterface.h>
+#include <KisTextureOptionData.h>
 #include <KisTextureOptionModel.h>
 #include <KisWidgetConnectionUtils.h>
+#include <kis_paintop_lod_limitations.h>
+#include <kis_paintop_option.h>
+#include <kis_pattern_chooser.h>
+#include <kis_slider_spin_box.h>
+#include <kis_types.h>
+
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
 
 #include "kis_texture_chooser.h"
 

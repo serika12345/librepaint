@@ -10,6 +10,11 @@
 #include <QDomDocument>
 #include <QDataStream>
 #include <QIODevice>
+#include <qforeach.h>
+#include <qmap.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
 class Q_DECL_HIDDEN KoProperties::Private
 {

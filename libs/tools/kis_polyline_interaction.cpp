@@ -4,6 +4,7 @@
  */
 
 #include <kis_polyline_interaction.h>
+#include <qpoint.h>
 
 void KisPolylineInteraction::begin()
 {

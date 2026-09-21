@@ -9,12 +9,9 @@
 #include "imagesize.h"
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
-#include <kpluginfactory.h>
 
 #include <kis_image.h>
 #include <kis_layer.h>
-#include <kis_global.h>
 #include <kis_types.h>
 #include <application/ui/workspace/KisViewManager.h>
 
@@ -23,13 +20,23 @@
 #include <kis_group_layer.h>
 #include <kis_selection_mask.h>
 #include <kis_selection.h>
+#include <qassert.h>
+#include <qdialog.h>
+#include <qforeach.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpainter.h>
+#include <qsize.h>
+#include <qtypes.h>
 
 #include "dlg_imagesize.h"
 #include "dlg_canvassize.h"
 #include "dlg_layersize.h"
+#include "kis_assert.h"
 #include "kis_filter_strategy.h"
 #include "application/ui/orchestration/kis_action.h"
 #include "application/ui/orchestration/kis_action_manager.h"
+#include "ui/orchestration/KisActionPlugin.h"
 
 ImageSize::ImageSize(QObject *parent)
     : KisActionPlugin(parent)

@@ -9,6 +9,7 @@
 #include "EllipseAssistant.h"
 
 #include <klocalizedstring.h>
+#include "KoCanvasBase.h"
 #include "kis_debug.h"
 #include <QPainter>
 #include <QPainterPath>
@@ -18,8 +19,17 @@
 #include <kis_canvas2.h>
 #include <kis_coordinates_converter.h>
 #include "kis_algebra_2d.h"
+#include "kis_painting_assistant.h"
+#include "kis_types.h"
 
 #include <math.h>
+#include <qassert.h>
+#include <qcursor.h>
+#include <qmap.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qtypes.h>
+#include <tuple>
 
 EllipseAssistant::EllipseAssistant()
         : KisPaintingAssistant("ellipse", i18n("Ellipse assistant"))

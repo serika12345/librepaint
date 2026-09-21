@@ -5,6 +5,7 @@
  */
 
 #include "SvgUtil.h"
+#include "KisQStringListFwd.h"
 #include "SvgGraphicContext.h"
 
 #include <KoUnit.h>
@@ -14,9 +15,16 @@
 #include <QRectF>
 #include <QStringList>
 #include <math.h>
+#include "kis_assert.h"
 #include "kis_global.h"
 
 #include <KoXmlWriter.h>
+#include <qdom.h>
+#include <qlatin1stringview.h>
+#include <qnumeric.h>
+#include <qstringview.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include "kis_dom_utils.h"
 
 #define DPI 72.0

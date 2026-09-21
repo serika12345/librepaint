@@ -7,8 +7,14 @@
 #include "kis_multipliers_double_slider_spinbox.h"
 #include "kis_multipliers_double_slider_spinbox_p.h"
 #include <QHBoxLayout>
-#include <kis_debug.h>
 #include <klocalizedstring.h>
+#include <qminmax.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 qreal KisMultipliersDoubleSliderSpinBox::Private::currentMultiplier()
 {

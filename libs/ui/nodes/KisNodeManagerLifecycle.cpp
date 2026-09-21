@@ -4,6 +4,7 @@
  */
 
 #include <QObject>
+#include <qtmetamacros.h>
 
 #if defined(KIS_NODE_MANAGER_LIFECYCLE_CONTRACT)
 #pragma push_macro("Q_OBJECT")

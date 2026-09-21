@@ -5,6 +5,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisFlowOpacityOption.h"
+#include "kis_types.h"
 
 
 #include <kis_properties_configuration.h>
@@ -12,6 +13,7 @@
 #include <kis_node.h>
 #include <kis_indirect_painting_support.h>
 #include <KoColorSpaceConstants.h>
+#include <qtypes.h>
 
 
 KisFlowOpacityOption2::KisFlowOpacityOption2(const KisPropertiesConfiguration *setting, KisNodeSP currentNode)
@@ -45,4 +47,3 @@ void KisFlowOpacityOption2::apply(const KisPaintInformation &info, qreal *opacit
     }
     *flow = m_flowOption.apply(info);
 }
-

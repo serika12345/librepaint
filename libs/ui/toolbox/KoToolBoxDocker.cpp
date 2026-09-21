@@ -21,6 +21,15 @@
 #include <klocalizedstring.h>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
+#include <qapplication.h>
+#include <qdockwidget.h>
+#include <qevent.h>
+#include <qfont.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 KoToolBoxDocker::KoToolBoxDocker(KoToolBox *toolBox)
     : QDockWidget(i18n("Toolbox"))

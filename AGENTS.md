@@ -105,9 +105,31 @@ pinned device environment. Android and Windows use source-independent pinned
 profiles on the x86_64 Linux build host. `path`, `configure`, `plan`, `build`,
 `bootstrap`, and `cache-stats` expose each supported platform cycle.
 
-Direct Nix entry remains available through `nix develop .#test`.
-Documentation work may use `nix develop .#docs`. Required tool additions target
-the narrowest relevant shell.
+One evaluated development profile serves the complete source-iteration
+session. A shell already loaded by direnv runs the commands above directly.
+Automation or another process that does not inherit that shell uses
+`./scripts/run-shared-test-env <command> [arguments...]`, including in the
+primary worktree. The helper loads the stable `.direnv/flake-profile` through
+`nix print-dev-env`; it does not evaluate the current worktree as a new local
+flake input.
+
+Direct `nix develop .#test` and `nix develop .#docs` entry remains available
+for initial profile creation and after the corresponding development-shell,
+flake input, lock file, or source-filter definition changes. Do not wrap each
+source edit, target build, test, verification command, or per-target commit in
+`nix develop` or `direnv exec`: a distinct local-flake source state enters the
+immutable Nix store, and the application source filter can create a second
+near-complete source path. Required tool additions target the narrowest
+relevant shell and receive one deliberate environment reevaluation.
+
+Before and after a deliberate local-flake reevaluation during a large roadmap
+item, compare the dead `*-source` and `*-librepaint-source` path count and
+recoverable size. Unexpected growth stops further local-flake evaluation; the
+session resumes through the last valid cached profile and records the cause in
+`docs/architecture/PROGRESS.md`. Garbage collection is a separate storage
+operation: resolve exact dead paths, preserve active profiles and build caches,
+and obtain the authority required by the destructive-action rules before
+deleting them.
 
 Nix expressions preserve small inputs and reusable cache boundaries.
 Source-independent dependencies, LibrePaint compilation, test execution,

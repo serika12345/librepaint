@@ -4,11 +4,20 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 #include "LcmsPredefinedPipelineFunctions.h"
+#include "KoColorProfileConstants.h"
+#include "KoColorimetryUtils.h"
 #include "kis_dom_utils.h"
 #include <KoColorTransferFunctions.h>
 #include <KoColorProfile.h>
 #include <QMatrix4x4>
 #include <QVector4D>
+#include <cstddef>
+#include <lcms2.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <vector>
 
 /**
  * @brief bradfordMatrix

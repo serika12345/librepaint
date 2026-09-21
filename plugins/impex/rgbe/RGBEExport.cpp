@@ -6,8 +6,8 @@
 
 #include "RGBEExport.h"
 
-#include <KisGlobalResourcesInterface.h>
 
+#include <algorithm>
 #include <kpluginfactory.h>
 
 #include <QBuffer>
@@ -17,22 +17,32 @@
 #include <document/KisDocument.h>
 #include <KisExportCheckRegistry.h>
 #include <KisImportExportErrorCode.h>
-#include <libs/global/KoAlwaysInline.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorProfile.h>
 #include <KoColorSpace.h>
-#include <KoColorTransferFunctions.h>
 #include <KoConfig.h>
-#include <metadata/KoDocumentInfo.h>
 #include <kis_assert.h>
 #include <kis_debug.h>
-#include <kis_iterator_ng.h>
-#include <kis_layer.h>
 #include <kis_layer_utils.h>
 #include <kis_painter.h>
 #include <kis_properties_configuration.h>
 #include <kis_sequential_iterator.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qstringview.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
+#include "KisExportCheckBase.h"
+#include "KisImportExportFilter.h"
+#include "KoColorConversionTransformation.h"
+#include "KoColorProfileConstants.h"
+#include "kis_config_widget.h"
+#include "kis_paint_device.h"
+#include "kis_types.h"
+#include <kis_node.h>
 #include "kis_wdg_options_rgbe.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(KisRGBEExportFactory, "krita_rgbe_export.json", registerPlugin<RGBEExport>();)

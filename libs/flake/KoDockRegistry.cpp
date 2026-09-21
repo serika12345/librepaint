@@ -10,9 +10,9 @@
 #include <QDebug>
 #include <QApplication>
 
-#include <ksharedconfig.h>
-#include <kconfiggroup.h>
+#include <qforeach.h>
 
+#include "KoDockFactoryBase.h"
 #include "KoPluginLoader.h"
 
 Q_GLOBAL_STATIC(KoDockRegistry, s_instance)

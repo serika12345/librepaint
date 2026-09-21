@@ -8,7 +8,13 @@
 #include "KoParameterToPathCommand.h"
 #include "KoPathPoint.h"
 #include "KoParameterShape.h"
+#include "KoPathShape.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <klocalizedstring.h>
+#include <qalgorithms.h>
+#include <qforeach.h>
+#include <qlist.h>
 
 class KoParameterToPathCommandPrivate
 {

@@ -4,14 +4,16 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "FillLayer.h"
+#include "kis_types.h"
 #include <kis_generator_layer.h>
 #include <kis_image.h>
 #include <kis_filter_configuration.h>
 #include <kis_generator_registry.h>
 #include <InfoObject.h>
-#include <kis_selection.h>
 #include <KisGlobalResourcesInterface.h>
 #include <kis_assert.h>
+#include <qforeach.h>
+#include <qobject.h>
 
 FillLayer::FillLayer(KisImageSP image, QString name, KisFilterConfigurationSP filterConfig, Selection &selection, QObject *parent) :
     Node(image, new KisGeneratorLayer(image, name, filterConfig->cloneWithResourcesSnapshot(), selection.selection()), parent)

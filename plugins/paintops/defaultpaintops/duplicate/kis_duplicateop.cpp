@@ -9,6 +9,7 @@
  */
 
 #include "kis_duplicateop.h"
+#include "kis_brush_based_paintop.h"
 #include "kis_duplicateop_p.h"
 
 #include <memory>
@@ -36,7 +37,13 @@
 #include <kis_spacing_information.h>
 
 #include "kis_duplicateop_settings.h"
+#include "kis_paintop_settings.h"
+#include "kis_types.h"
 #include <KisDuplicateOptionData.h>
+#include <qassert.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qtypes.h>
 
 KisDuplicateOp::KisDuplicateOp(const KisPaintOpSettingsSP settings, KisPainter *painter, KisNodeSP node, KisImageSP image)
     : KisBrushBasedPaintOp(settings, painter)

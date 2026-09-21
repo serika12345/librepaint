@@ -7,6 +7,7 @@
 #include "kis_lod_capable_layer_offset.h"
 
 #include "kis_lod_transform_base.h"
+#include <qpoint.h>
 
 namespace KisLodSwitchingWrapperDetail
 {

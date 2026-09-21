@@ -17,11 +17,21 @@
 #include <QSharedPointer>
 #include <QMessageBox>
 
+#include <array>
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
 #include <klocalizedstring.h>
 
-#include <KoIcon.h>
 #include <KoColor.h>
 #include <KoColorPopupAction.h>
+#include "KisResourceTypes.h"
+#include "KoAbstractGradient.h"
+#include "KoCanvasResourcesIds.h"
+#include "KoColorSpaceConstants.h"
+#include "KoFlake.h"
+#include "KoFlakeCoordinateSystem.h"
+#include "KoFlakeTypes.h"
+#include "KoResource.h"
 #include "KoResourceServerProvider.h"
 #include <KoSelection.h>
 #include <KoCanvasBase.h>
@@ -39,6 +49,8 @@
 #include <KoPatternBackground.h>
 #include <KoResourcePopupAction.h>
 #include "KoColorPopupButton.h"
+#include "SvgMeshArray.h"
+#include "kis_icon_utils.h"
 #include "ui_KoFillConfigWidget.h"
 #include <kis_signals_blocker.h>
 #include <kis_signal_compressor_with_param.h>
@@ -50,6 +62,19 @@
 #include <functional>
 
 #include <KisResourceUserOperations.h>
+#include <qfileinfo.h>
+#include <qforeach.h>
+#include <qlineedit.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qscopedpointer.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <utility>
+#include <vector>
 
 
 static const char* const buttonnone[]={

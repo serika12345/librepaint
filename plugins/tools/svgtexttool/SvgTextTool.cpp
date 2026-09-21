@@ -6,9 +6,19 @@
 */
 
 #include "SvgTextTool.h"
+#include "KisHandleStyle.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KisSignalMapper.h"
+#include "KoCanvasResourcesIds.h"
+#include "KoResource.h"
+#include "KoSvgText.h"
 #include "KoSvgTextProperties.h"
 #include "KoSvgTextShape.h"
 #include "KoSvgTextShapeMarkupConverter.h"
+#include "KoSvgTextShapeOutlineHelper.h"
+#include "KoToolBase.h"
+#include "KoToolSelection.h"
 #include "SvgCreateTextStrategy.h"
 #include "SvgInlineSizeChangeCommand.h"
 #include "SvgInlineSizeChangeStrategy.h"
@@ -21,6 +31,7 @@
 #include "SvgTextRemoveCommand.h"
 #include "KoSvgConvertTextTypeCommand.h"
 #include "SvgTextShortCuts.h"
+#include "SvgTextToolOptionsManager.h"
 #include "SvgTextToolOptionsModel.h"
 #include "SvgTextTypeSettingStrategy.h"
 #include "SvgTextChangeTransformsOnRange.h"
@@ -46,8 +57,6 @@
 #include "kis_assert.h"
 #include <kis_coordinates_converter.h>
 
-#include <KoFileDialog.h>
-#include <KoIcon.h>
 #include <KoCanvasBase.h>
 #include <KoSnapGuide.h>
 #include <KoSelection.h>
@@ -56,7 +65,6 @@
 #include <KoShapeRegistry.h>
 #include <KoShapeFactoryBase.h>
 #include <KoPointerEvent.h>
-#include <KoProperties.h>
 #include <KoSelectedShapesProxy.h>
 #include "KoToolManager.h"
 #include <KoShapeFillWrapper.h>
@@ -77,11 +85,32 @@
 #include <application/ui/workspace/KisMainWindow.h>
 
 #include "KisHandlePainterHelper.h"
+#include "kis_command_utils.h"
+#include "kis_global.h"
+#include "kis_icon_utils.h"
 #include "kis_tool_utils.h"
 #include "kis_tool_canvas_utils.h"
 #include "kis_debug.h"
+#include "kis_types.h"
 #include <commands/KoKeepShapesSelectedCommand.h>
 #include <kis_display_color_converter.h>
+#include <optional>
+#include <qevent.h>
+#include <qforeach.h>
+#include <qline.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qsizepolicy.h>
+#include <qtenvironmentvariables.h>
+#include <qtypes.h>
+#include <qvectornd.h>
+#include <utility>
 
 #ifdef Q_OS_ANDROID
 #include <QMenuBar>

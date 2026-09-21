@@ -5,14 +5,24 @@
  */
 
 #include "wdgtagpreview.h"
+#include "KisResourceModel.h"
+#include "KisResourceStorage.h"
+#include "KisResourceTypes.h"
+#include "KoResourceBundle.h"
 #include "ui_wdgtagpreview.h"
 #include "KisTagLabel.h"
 
 #include "KisTagSelectionWidget.h"
 #include "KoID.h"
+#include <qabstractitemmodel.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsharedpointer.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 #include <wdgtagselection.h>
 #include <KisTag.h>
-#include <KisTagModelProvider.h>
 #include <KisWrappableHBoxLayout.h>
 #include <KisTagSelectionWidget.h>
 #include "KisBundleStorage.h"

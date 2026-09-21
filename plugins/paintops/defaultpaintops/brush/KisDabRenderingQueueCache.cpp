@@ -5,6 +5,7 @@
  */
 
 #include "KisDabRenderingQueueCache.h"
+#include "KisDabCacheUtils.h"
 
 struct KisDabRenderingQueueCache::Private
 {

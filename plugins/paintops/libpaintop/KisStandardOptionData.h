@@ -6,7 +6,19 @@
 #ifndef KISSTANDARDOPTIONDATA_H
 #define KISSTANDARDOPTIONDATA_H
 
+#include <optional>
+#include <utility>
+
+#include <KoID.h>
+
+#include <QString>
+
+#include <KLocalizedString>
+
 #include <KisCurveOptionData.h>
+#include <KisKritaSensorPack.h>
+
+#include <kritapaintop_export.h>
 
 
 struct KisOpacityOptionData : KisCurveOptionData

@@ -9,16 +9,17 @@
 
 #include <canvas/kis_canvas_resource_provider.h>
 #include <kis_filter.h>
-#include <kis_properties_configuration.h>
 #include <kis_filter_configuration.h>
 #include <document/kis_filter_manager.h>
 #include <kis_filter_registry.h>
 #include <document/KisDocument.h>
 #include <kis_paint_device.h>
-#include <kis_paint_device_frames_interface.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <application/ui/workspace/KisView.h>
 
+#include <qforeach.h>
+#include <qobject.h>
+#include <qpointer.h>
 #include <strokes/kis_filter_stroke_strategy.h>
 #include <krita_utils.h>
 #include <KisGlobalResourcesInterface.h>
@@ -27,6 +28,8 @@
 #include "Document.h"
 #include "InfoObject.h"
 #include "Node.h"
+#include "kis_resources_snapshot.h"
+#include "kis_types.h"
 
 struct Filter::Private {
     Private() {}

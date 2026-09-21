@@ -7,7 +7,6 @@
 #include "palettedocker.h"
 
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 #include <klocalizedstring.h>
 
@@ -17,6 +16,9 @@
 
 #include "palettedocker_dock.h"
 #include <KoDockRegistry.h>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(PaletteDockerPluginFactory, "krita_palettedocker.json", registerPlugin<PaletteDockerPlugin>();)
 

@@ -8,6 +8,11 @@
 
 #include "kis_fill_painter.h"
 
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qminmax.h>
+#include <qsharedpointer.h>
+#include <qtypes.h>
 #include <stdlib.h>
 #include <cfloat>
 
@@ -23,9 +28,16 @@
 
 #include <KoUpdater.h>
 
+#include "KisRunnableStrokeJobUtils.h"
+#include "KisSelectionTags.h"
+#include "KoCompositeOpIds.h"
 #include "generator/kis_generator.h"
 #include "filter/kis_filter_configuration.h"
 #include "generator/kis_generator_registry.h"
+#include "kis_assert.h"
+#include "kis_default_bounds_base.h"
+#include "kis_global.h"
+#include "kis_painter.h"
 #include "kis_processing_information.h"
 #include "kis_debug.h"
 #include "kis_image.h"
@@ -35,7 +47,10 @@
 #include "kis_pixel_selection.h"
 #include <KoCompositeOpRegistry.h>
 #include <floodfill/kis_scanline_fill.h>
+#include "kis_processing_visitor.h"
 #include "kis_selection_filters.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_types.h"
 #include <kis_perspectivetransform_worker.h>
 #include <kis_sequential_iterator.h>
 #include <KisColorSelectionPolicies.h>

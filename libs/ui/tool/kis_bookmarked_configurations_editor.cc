@@ -5,9 +5,13 @@
  */
 
 #include "tool/kis_bookmarked_configurations_editor.h"
+#include "kis_serializable_configuration.h"
 #include "ui_wdgbookmarkedconfigurationseditor.h"
 
 #include "tool/kis_bookmarked_configurations_model.h"
+#include <qdialog.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 struct KisBookmarkedConfigurationsEditor::Private {
     Ui_WdgBookmarkedConfigurationsEditor editorUi;

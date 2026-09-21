@@ -12,15 +12,20 @@
 
 #include <KoUpdater.h>
 
-#include <kis_layer.h>
 #include <kis_math_toolbox.h>
+#include <new>
+#include <qassert.h>
+#include <qwidget.h>
 #include <widgets/kis_multi_double_filter_widget.h>
-#include <widgets/kis_multi_integer_filter_widget.h>
 #include <kis_paint_device.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_processing_information.h>
+#include "KisResourceTypes.h"
+#include "kis_assert.h"
+#include "kis_config_widget.h"
+#include "kis_filter.h"
 #include "kis_global.h"
+#include "kis_types.h"
 
 KisWaveletNoiseReduction::KisWaveletNoiseReduction()
     : KisFilter(id(), FiltersCategoryEnhanceId, i18n("&Wavelet Noise Reducer..."))

@@ -5,6 +5,14 @@
  */
 
 #include "kis_brush_hud_properties_list.h"
+#include "kis_uniform_paintop_property.h"
+#include <qabstractitemview.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlistwidget.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qwidget.h>
 
 
 struct KisBrushHudPropertiesList::Private

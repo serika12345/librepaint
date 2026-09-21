@@ -11,15 +11,34 @@
 #include <QInputDialog>
 #include <QDir>
 
-#include <kis_icon.h>
-#include <KoFileDialog.h>
 
 #include <KisResourceModel.h>
-#include <KisResourceItemListView.h>
 
+#include <qabstractitemdelegate.h>
+#include <qabstractitemmodel.h>
+#include <qaction.h>
+#include <qboxlayout.h>
+#include <qimage.h>
+#include <qlayoutitem.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpainter.h>
+#include <qsize.h>
+#include <qstyle.h>
+#include <qstyleoption.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 #include <ui_WdgPaletteListWidget.h>
 #include "KisPaletteChooser.h"
 #include "KisPaletteChooser_p.h"
+#include "KisResourceTypes.h"
+#include "KisResourceUiDescriptor.h"
+#include "KoColorSet.h"
+#include "KoID.h"
+#include "KoResource.h"
+#include "ResourceListViewModes.h"
+#include "kis_icon_utils.h"
 
 KisPaletteChooser::KisPaletteChooser(QWidget *parent)
     : QWidget(parent)

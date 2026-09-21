@@ -10,9 +10,26 @@
 #include <QMutexLocker>
 #include <QPointer>
 #include <QSharedPointer>
+#include <algorithm>
+#include <iterator>
 #include <kundo2magicstring.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qset.h>
+#include <qtmetamacros.h>
 
+#include "KisImageSignals.h"
+#include "KisProjectionUpdateFlags.h"
+#include "KisQStringListFwd.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
 #include "kis_image.h"
+#include "kis_mask.h"
+#include "kis_pointer_utils.h"
 #include "kis_processing_applicator.h"
 #include "commands/kis_image_layer_move_command.h"
 #include "commands/kis_image_layer_add_command.h"
@@ -22,6 +39,9 @@
 #include "kis_layer.h"
 #include "kis_selection_mask.h"
 #include "commands/kis_node_group_operations.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_types.h"
+#include "kundo2stack.h"
 
 
 /**

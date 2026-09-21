@@ -5,6 +5,10 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisForest.h"
+#include "KisQStringListFwd.h"
+#include "KoShape.h"
+#include "KoSvgText.h"
 #include "KoSvgTextShape.h"
 #include "KoSvgTextShape_p.h"
 #include "KoSvgTextShapeLayoutFunc.h"
@@ -15,28 +19,39 @@
 #include "KoSvgTextProperties.h"
 #include "KoColorBackground.h"
 #include "KoWritingSystemUtils.h"
+#include "kis_assert.h"
 
 #include <FlakeDebug.h>
 #include <KoPathShape.h>
 
-#include <kis_global.h>
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <freetype/config/ftheader.h>
+#include <freetype/config/integer-types.h>
 
 #include <QPainterPath>
 #include <QtMath>
 
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qlocale.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qpair.h>
+#include <qtypes.h>
 #include <variant>
 
 #include <graphemebreak.h>
+#include <vector>
 #include <wordbreak.h>
 #include <linebreak.h>
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_TRUETYPE_TABLES_H
 
-#include <hb.h>
-#include <hb-ft.h>
-#include <hb-ot.h>
 
 #include <raqm.h>
 

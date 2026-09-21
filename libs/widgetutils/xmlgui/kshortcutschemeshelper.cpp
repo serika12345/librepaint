@@ -12,8 +12,10 @@
 #include <QStandardPaths>
 
 #include <QDir>
-#include <kconfiggroup.h>
-#include <ksharedconfig.h>
+#include <qcontainerfwd.h>
+#include <qfileinfo.h>
+#include <qforeach.h>
+#include <qhash.h>
 
 #include "kactioncollection.h"
 

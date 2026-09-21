@@ -10,8 +10,14 @@
 #include <KoPathCombineCommand.h>
 #include <KoPathPointMergeCommand.h>
 #include <KoSelection.h>
+#include <qlist.h>
+#include <qscopedpointer.h>
+#include <qtdeprecationdefinitions.h>
 
+#include "KoShape.h"
 #include "kis_assert.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 
 struct Q_DECL_HIDDEN KoMultiPathPointMergeCommand::Private

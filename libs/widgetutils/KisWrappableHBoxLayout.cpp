@@ -5,8 +5,14 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
-#include <QtWidgets>
 #include <KisWrappableHBoxLayout.h>
+#include <qlayout.h>
+#include <qlayoutitem.h>
+#include <qmargins.h>
+#include <qminmax.h>
+#include <qsize.h>
+#include <qwidget.h>
+#include <utility>
 
 
 KisWrappableHBoxLayout::KisWrappableHBoxLayout(QWidget *parent)

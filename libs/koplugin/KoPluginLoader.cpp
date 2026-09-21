@@ -14,12 +14,24 @@
 
 #include "kis_debug.h"
 
+#include <algorithm>
+#include <iterator>
 #include <kis_debug.h>
 
 #include <KConfig>
 #include <KSharedConfig>
 #include <KConfigGroup>
 #include <KPluginFactory>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qglobalstatic.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qobject.h>
+#include <qtdeprecationdefinitions.h>
+#include <qvariant.h>
+#include <utility>
+#include <vector>
 
 namespace
 {

@@ -4,6 +4,9 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "RemoveGutterStrategy.h"
+#include "KoInteractionStrategy.h"
+#include "kis_assert.h"
+#include "kundo2magicstring.h"
 
 
 #include <QDebug>
@@ -24,6 +27,11 @@
 #include <kundo2command.h>
 #include <KoKeepShapesSelectedCommand.h>
 #include <KoColorDisplayRendererInterface.h>
+#include <qforeach.h>
+#include <qline.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
 
 
 

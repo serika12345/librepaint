@@ -10,8 +10,14 @@
 #include <QDomElement>
 
 #include <KisMpl.h>
+#include "KisQStringListFwd.h"
+#include <algorithm>
+#include <qforeach.h>
+#include <qlist.h>
 #include "application/kis_config.h"
+#include "kis_debug.h"
 #include "kis_dom_utils.h"
+#include "kis_uniform_paintop_property.h"
 
 
 struct KisBrushHudPropertiesConfig::Private

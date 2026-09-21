@@ -6,6 +6,7 @@
  */
 
 #include "KoZoomStrategy.h"
+#include "KoShapeRubberSelectStrategy.h"
 #include "KoShapeRubberSelectStrategy_p.h"
 #include "KoZoomTool.h"
 #include "KoCanvasBase.h"
@@ -13,9 +14,10 @@
 #include "KoViewConverter.h"
 #include "KoViewTransformStillPoint.h"
 
-#include <FlakeDebug.h>
 
 #include <QTransform>
+#include <qnamespace.h>
+#include <qtclasshelpermacros.h>
 
 KoZoomStrategy::KoZoomStrategy(KoZoomTool *tool, KoCanvasController *controller, const QPointF &clicked)
         : KoShapeRubberSelectStrategy(tool, clicked, false),

@@ -6,10 +6,27 @@
  */
 #include "KisMultiSensorsSelector.h"
 
-#include "ui_wdgmultisensorsselector.h"
-#include "KisMultiSensorsModel.h"
-#include <KisDynamicSensorFactoryRegistry.h>
+#include <vector>
 
+#include <QEvent>
+#include <QHBoxLayout>
+#include <QModelIndex>
+#include <QObject>
+#include <QString>
+#include <QWidget>
+#include <QtCore/qobjectdefs.h>
+#include <QtCore/qtmetamacros.h>
+
+#include "ui_wdgmultisensorsselector.h"
+#include <kis_assert.h>
+#include <KisCurveOptionDataCommon.h>
+#include <KisDynamicSensorFactory.h>
+#include <KisDynamicSensorFactoryRegistry.h>
+#include <KisMultiSensorsModel.h>
+#include <KisSensorData.h>
+
+#include <lager/cursor.hpp>
+#include <lager/lenses.hpp>
 
 struct KisMultiSensorsSelector::Private {
     lager::cursor<KisCurveOptionDataCommon> optionData;
@@ -27,7 +44,7 @@ auto sensorsLens = lager::lenses::getset(
         KisMultiSensorsModel::MultiSensorData sensors;
         sensors.reserve(srcSensors.size());
 
-        Q_FOREACH(const KisSensorData* srcSensor, srcSensors) {
+        for (const KisSensorData *srcSensor : srcSensors) {
             sensors.emplace_back(srcSensor->id, srcSensor->isActive);
         }
         return sensors;

@@ -8,10 +8,12 @@
 
 #include <klocalizedstring.h>
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
 #include <brushengine/kis_paintop_registry.h>
+#include "kis_paintop_factory.h"
+#include <qcontainerfwd.h>
+#include <qobject.h>
 #include "kis_roundmarkerop_settings.h"
 
 #include "kis_roundmarkerop.h"

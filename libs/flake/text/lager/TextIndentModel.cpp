@@ -4,6 +4,11 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "TextIndentModel.h"
+#include "KoSvgText.h"
+#include <functional>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/watch.hpp>
 
 TextIndentModel::TextIndentModel(lager::cursor<KoSvgText::TextIndentInfo> _textData)
     : data(_textData)

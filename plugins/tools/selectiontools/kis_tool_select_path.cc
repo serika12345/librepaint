@@ -8,19 +8,40 @@
 
 #include <KoPathShape.h>
 
+#include "KisResourceTypes.h"
+#include "KisSelectionTags.h"
+#include "KoCreatePathTool.h"
+#include "KoPointerEvent.h"
+#include "kis_assert.h"
 #include "kis_canvas2.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_cursor.h"
 #include "kis_image.h"
 #include "kis_painter.h"
+#include "kis_painting_assistants_decoration.h"
 #include "kis_pixel_selection.h"
 #include "kis_selection_tool_helper.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_tool_select_ui_base.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 #include <application/ui/workspace/KisView.h>
 #include <kis_command_utils.h>
 #include <kis_processing_applicator.h>
 #include <kis_selection_filters.h>
 #include <KisOptimizedBrushOutline.h>
 #include <kis_default_bounds.h>
+#include <qcoreevent.h>
+#include <qevent.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpainter.h>
+#include <qpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtransform.h>
+#include <qwidget.h>
 
 KisToolSelectPath::KisToolSelectPath(KoCanvasBase * canvas)
     : KisToolSelectUiBase<KisDelegatedSelectPathWrapper>(canvas,

@@ -11,7 +11,6 @@
 
 #include <kdesktopfile.h>
 #include <kconfig.h>
-#include <kis_debug.h>
 
 
 #include <KoResourcePaths.h>
@@ -21,6 +20,11 @@
 #include <application/ui/workspace/KisTemplate.h>
 #include <application/ui/workspace/KisTemplateGroup.h>
 #include <application/ui/workspace/KisTemplates.h>
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qfileinfo.h>
+#include <qforeach.h>
+#include <qlist.h>
 
 static QString currentLocale()
 {

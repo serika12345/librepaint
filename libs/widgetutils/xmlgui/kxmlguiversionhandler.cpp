@@ -15,6 +15,14 @@
 #include <QDomElement>
 #include <QStandardPaths>
 #include <QMap>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qstringview.h>
+#include <qtypes.h>
 
 struct DocStruct {
     QString file;

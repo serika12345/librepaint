@@ -7,6 +7,9 @@
 
 #include <QDomDocument>
 #include <QDomElement>
+#include <qlist.h>
+#include <qobject.h>
+#include <qtypes.h>
 
 #include "kis_guides_config.h"
 

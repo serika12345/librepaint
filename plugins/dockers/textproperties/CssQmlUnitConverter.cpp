@@ -4,12 +4,23 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "CssQmlUnitConverter.h"
+#include "KoCSSFontInfo.h"
+#include "KoSvgTextPropertyData.h"
 #include <QVariant>
 #include <KoUnit.h>
 #include <KoSvgText.h>
 #include <KoSvgTextProperties.h>
 #include <lager/KoSvgTextPropertiesModel.h>
 #include <KLocalizedString>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 struct CssQmlUnitConverter::Private {
     QMap<int, int> dataUnitMap;

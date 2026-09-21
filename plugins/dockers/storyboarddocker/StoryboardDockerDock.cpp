@@ -7,6 +7,8 @@
 #include "StoryboardDockerDock.h"
 #include "CommentDelegate.h"
 #include "CommentModel.h"
+#include "KisQStringListFwd.h"
+#include "KoCanvasBase.h"
 #include "StoryboardModel.h"
 #include "StoryboardDelegate.h"
 #include "StoryboardView.h"
@@ -28,18 +30,42 @@
 #include <QMessageBox>
 #include <QSizePolicy>
 
+#include <algorithm>
+#include <boost/optional/optional.hpp>
 #include <klocalizedstring.h>
 
 #include <application/ui/orchestration/KisPart.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <nodes/kis_node_manager.h>
 #include <document/KisDocument.h>
-#include <kis_icon.h>
-#include <kis_image_animation_interface.h>
 #include <kis_time_span.h>
 #include <kis_global.h>
 #include <KisCursorOverrideLock.h>
+#include <qabstractitemview.h>
+#include <qaction.h>
+#include <qbrush.h>
+#include <qdialog.h>
+#include <qdir.h>
+#include <qdockwidget.h>
+#include <qdom.h>
+#include <qfileinfo.h>
+#include <qfont.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpen.h>
+#include <qpixmap.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
+#include "document/StoryboardItem.h"
+#include "kis_assert.h"
+#include "kis_icon_utils.h"
 #include "ui_wdgstoryboarddock.h"
 #include "ui_wdgcommentmenu.h"
 #include "ui_wdgarrangemenu.h"

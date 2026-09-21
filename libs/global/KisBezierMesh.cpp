@@ -7,6 +7,7 @@
 #include "KisBezierMesh.h"
 
 #include <QDebug>
+#include <qdom.h>
 
 #include "kis_dom_utils.h"
 

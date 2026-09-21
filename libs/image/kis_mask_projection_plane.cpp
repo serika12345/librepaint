@@ -6,11 +6,14 @@
 
 #include "kis_mask_projection_plane.h"
 
-#include <KoColorSpace.h>
-#include <KoChannelInfo.h>
+#include "KisRenderPassFlags.h"
+#include "kis_assert.h"
+#include "kis_node.h"
+#include <qtpreprocessorsupport.h>
 #include "kis_painter.h"
 #include "kis_paint_device.h"
 #include "kis_mask.h"
+#include "kis_types.h"
 
 
 struct KisMaskProjectionPlane::Private

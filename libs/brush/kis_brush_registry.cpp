@@ -10,15 +10,20 @@
 #include <QGlobalStatic>
 #include <klocalizedstring.h>
 
-#include <KoPluginLoader.h>
 #include <KisResourceLoader.h>
 #include <KisResourceLoaderRegistry.h>
 #include <KisResourceTypes.h>
 
 #include <kis_debug.h>
+#include <optional>
+#include <qdom.h>
+#include <qforeach.h>
 
+#include "KisBrushModel.h"
 #include "KoResourceLoadResult.h"
+#include "kis_assert.h"
 #include "kis_auto_brush_factory.h"
+#include "kis_brush_factory.h"
 #include "kis_text_brush_factory.h"
 #include "kis_predefined_brush_factory.h"
 #include "KisBrushTypeMetaDataFixup.h"

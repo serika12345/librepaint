@@ -14,7 +14,8 @@
 #include <QtMath>
 #include <QDomDocument>
 
-#include <kis_debug.h>
+#include <cmath>
+#include <cstdlib>
 
 #include <kpluginfactory.h>
 #include <klocalizedstring.h>
@@ -22,16 +23,28 @@
 #include <kis_fill_painter.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
-#include <kis_layer.h>
 #include <generator/kis_generator_registry.h>
-#include <kis_global.h>
 #include <kis_selection.h>
 #include <kis_types.h>
 #include <filter/kis_filter_configuration.h>
 #include <kis_processing_information.h>
 #include <kis_progress_update_helper.h>
 #include <KoStopGradient.h>
+#include <math.h>
+#include <qassert.h>
+#include <qbrush.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
+#include "KoColorSpace.h"
+#include "kis_painter.h"
 #include "kis_wdg_multigrid_pattern.h"
 
 

@@ -5,20 +5,36 @@
  */
 
 #include "MyPaintSurface.h"
+#include "KisQStringListFwd.h"
+#include "KoCompositeOpIds.h"
+#include "KoIntegerMaths.h"
+#include "kis_fixed_paint_device.h"
+#include "kis_global.h"
+#include "kis_painter.h"
+#include "kis_types.h"
 
 #include <KoColorConversions.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceMaths.h>
 #include <QtMath>
+#include <algorithm>
+#include <cmath>
+#include <half.h>
 #include <kis_algebra_2d.h>
-#include <kis_cross_device_color_sampler.h>
 #include <kis_image.h>
 #include <kis_node.h>
 #include <kis_sequential_iterator.h>
-#include <kis_selection.h>
-#include <qmath.h>
+#include <libmypaint/mypaint-surface.h>
+#include <math.h>
 #include <KoCompositeOpRegistry.h>
 #include <KoMixColorsOp.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <utility>
 
 using namespace std;
 

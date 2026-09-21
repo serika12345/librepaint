@@ -4,7 +4,15 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisDrawingAngleSensorModel.h"
+
+#include <QObject>
+#include <QtCore/qtypes.h>
+
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+
 #include <KisZug.h>
+#include "KisSensorData.h"
 
 KisDrawingAngleSensorModel::KisDrawingAngleSensorModel(lager::cursor<KisDrawingAngleSensorData> data, QObject *parent)
     : QObject(parent)

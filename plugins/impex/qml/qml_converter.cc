@@ -5,6 +5,9 @@
  */
 
 #include "qml_converter.h"
+#include "KisImportExportErrorCode.h"
+#include "kis_debug.h"
+#include "kis_types.h"
 
 #include <QFileInfo>
 #include <QDir>
@@ -13,6 +16,7 @@
 #include <kis_group_layer.h>
 #include <kis_paint_device.h>
 #include <KisPortingUtils.h>
+#include <qdebug.h>
 
 #define SPACE "    "
 

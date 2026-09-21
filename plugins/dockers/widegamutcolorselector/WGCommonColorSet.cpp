@@ -6,8 +6,16 @@
 
 #include "WGCommonColorSet.h"
 
+#include "KisUniqueColorSet.h"
 #include "WGCommonColorsCalculationRunner.h"
+#include "kis_types.h"
 #include <QThreadPool>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <utility>
 
 WGCommonColorSet::WGCommonColorSet(QObject *parent)
     : KisUniqueColorSet(parent)

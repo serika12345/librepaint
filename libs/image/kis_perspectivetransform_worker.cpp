@@ -16,16 +16,23 @@
 #include <QVector3D>
 #include <QPolygonF>
 
-#include <KoUpdater.h>
 #include <KoColor.h>
 #include <KoCompositeOpRegistry.h>
 
+#include "KoCompositeOpIds.h"
+#include "kis_assert.h"
+#include "kis_global.h"
 #include "kis_paint_device.h"
 #include "kis_perspective_math.h"
 #include "kis_random_accessor_ng.h"
 #include "kis_random_sub_accessor.h"
 #include "kis_selection.h"
-#include <kis_iterator_ng.h>
+#include <cstring>
+#include "kis_types.h"
+#include <math.h>
+#include <qforeach.h>
+#include <qnumeric.h>
+#include <qtypes.h>
 #include "krita_utils.h"
 #include "kis_progress_update_helper.h"
 #include "kis_painter.h"

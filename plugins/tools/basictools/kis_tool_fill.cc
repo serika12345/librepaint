@@ -10,7 +10,6 @@
 
 #include "kis_tool_fill.h"
 
-#include <kis_debug.h>
 #include <klocalizedstring.h>
 
 #include <QSlider>
@@ -27,8 +26,17 @@
 #include <KoCanvasBase.h>
 #include <KoPointerEvent.h>
 
-#include <kis_layer.h>
-#include <resources/KoPattern.h>
+#include <qdom.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qsharedpointer.h>
+#include <qsizepolicy.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <kis_selection.h>
 
 #include <application/ui/workspace/KisViewManager.h>
@@ -36,7 +44,6 @@
 #include <kis_slider_spin_box.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <kis_cursor.h>
-#include <kis_color_filter_combo.h>
 #include <KisAngleSelector.h>
 #include <kis_color_label_selector_widget.h>
 #include <kis_color_button.h>
@@ -54,14 +61,30 @@
 
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
-#include <kis_dummies_facade.h>
 #include <KoShapeControllerBase.h>
 #include <kis_shape_controller.h>
 #include <kis_image_animation_interface.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <KisSpinBoxI18nHelper.h>
 
+#include "KisAngleGauge.h"
+#include "KisQStringListFwd.h"
+#include "KoColorModelStandardIds.h"
+#include "KoColorSpaceConstants.h"
+#include "KoCompositeOpIds.h"
+#include "KoCompositeOpRegistry.h"
+#include "commands_new/KisMergeLabeledLayersCommand.h"
+#include "kis_assert.h"
+#include "kis_floating_message.h"
+#include "kis_global.h"
+#include "kis_node.h"
 #include "kis_icon_utils.h"
+#include "kis_resources_snapshot.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_tool.h"
+#include "kis_tool_paint.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 
 KisToolFill::KisToolFill(KoCanvasBase * canvas)
     : KisToolPaint(canvas, KisCursor::loadWithSize("tool_fill_cursor.svg", 32, 32, 6, 6))

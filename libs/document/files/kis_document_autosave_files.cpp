@@ -15,6 +15,10 @@
 
 #include <KoStore.h>
 #include <KisUsageLogger.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qtypes.h>
 
 namespace Krita::Document
 {

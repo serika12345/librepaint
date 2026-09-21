@@ -4,6 +4,8 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "DlgExportStoryboard.h"
+#include "KoDialog.h"
+#include "KoID.h"
 #include "StoryboardModel.h"
 
 #include "KoFileDialog.h"
@@ -13,6 +15,14 @@
 
 #include <QSpinBox>
 #include <QMessageBox>
+#include <qcontainerfwd.h>
+#include <qdir.h>
+#include <qfileinfo.h>
+#include <qminmax.h>
+#include <qobjectdefs.h>
+#include <qpagelayout.h>
+#include <qsharedpointer.h>
+#include <qsize.h>
 
 DlgExportStoryboard::DlgExportStoryboard(ExportFormat format, QSharedPointer<StoryboardModel> model)
         : KoDialog()

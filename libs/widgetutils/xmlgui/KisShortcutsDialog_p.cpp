@@ -17,6 +17,11 @@
 #include <KSharedConfig>
 #include <KConfigGroup>
 #include <KisCursorOverrideLock.h>
+#include <kmessagebox.h>
+#include <kstandardguiitem.h>
+#include <qkeysequence.h>
+#include <qlist.h>
+#include <qnamespace.h>
 
 
 QKeySequence primarySequence(const QList<QKeySequence> &sequences)

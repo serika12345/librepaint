@@ -5,6 +5,9 @@
  */
 
 #include "KoClipMaskApplicatorFactoryImpl.h"
+#include "KoClipMaskApplicator.h"
+#include "KoClipMaskApplicatorBase.h"
+#include "xsimd_extensions/config/xsimd_arch.hpp"
 
 #ifndef DISABLE_CLIP_MASK_PAINTER_ON_MACOS
 

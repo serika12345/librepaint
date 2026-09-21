@@ -6,11 +6,16 @@
  */
 
 #include "kis_paintop_config_widget.h"
+#include "kis_assert.h"
+#include "kis_config_widget.h"
+#include "kis_types.h"
 
 #include <brushengine/kis_paintop_settings.h>
 
 #include <KisResourcesInterface.h>
-#include <KoCanvasResourcesInterface.h>
+#include <qnamespace.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 
 KisPaintOpConfigWidget::KisPaintOpConfigWidget(QWidget * parent, Qt::WindowFlags f)

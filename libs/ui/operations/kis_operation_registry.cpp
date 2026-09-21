@@ -8,6 +8,8 @@
 #include "kis_operation_registry.h"
 
 #include <QGlobalStatic>
+#include <qforeach.h>
+#include <qhashfunctions.h>
 #include "actions/kis_selection_action_factories.h"
 #include "actions/KisPasteActionFactories.h"
 

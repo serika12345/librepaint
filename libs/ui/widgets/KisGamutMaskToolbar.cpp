@@ -7,9 +7,17 @@
 #include <QWidget>
 #include <QToolTip>
 #include "KisGamutMaskToolbar.h"
+#include "KisAngleGauge.h"
+#include "KoID.h"
+#include "ui_wdgGamutMaskToolbar.h"
 #include <kis_icon_utils.h>
 #include <canvas/kis_canvas_resource_provider.h>
-#include <kis_signals_blocker.h>
+#include <qcursor.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 struct KisGamutMaskToolbar::Private {
     Private()

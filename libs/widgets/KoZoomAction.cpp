@@ -18,10 +18,21 @@
 #include <QList>
 #include <QButtonGroup>
 
+#include <algorithm>
+#include <iterator>
 #include <klocalizedstring.h>
 #include <kis_signal_compressor.h>
 #include <KoZoomActionState.h>
 #include <KisPortingUtils.h>
+#include <kselectaction.h>
+#include <qcontainerfwd.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 class Q_DECL_HIDDEN KoZoomAction::Private
 {

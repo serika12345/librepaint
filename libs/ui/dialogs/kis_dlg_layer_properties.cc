@@ -18,12 +18,25 @@
 #include <KoColorSpace.h>
 
 #include <KisSpinBoxI18nHelper.h>
+#include "KoDialog.h"
 #include "application/ui/workspace/KisViewManager.h"
-#include <kis_debug.h>
-#include <kis_global.h>
 
 #include <kis_cmb_composite.h>
+#include <qcheckbox.h>
+#include <qdialog.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qpointer.h>
+#include <qsharedpointer.h>
+#include <qtpreprocessorsupport.h>
 #include "KoColorProfile.h"
+#include "kis_base_node.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 #include "nodes/kis_multinode_property.h"
 #include "kis_layer_utils.h"
 #include "kis_image.h"

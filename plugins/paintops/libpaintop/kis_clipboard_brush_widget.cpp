@@ -14,17 +14,23 @@
 #include <QDialogButtonBox>
 #include <QUuid>
 
-#include <KoResourcePaths.h>
 
-#include <kis_debug.h>
+#include <kguiitem.h>
+#include "kis_brush.h"
 #include "kis_image.h"
 #include "kis_clipboard.h"
 #include "kis_paint_device.h"
 #include "kis_gbr_brush.h"
 #include "KisBrushServerProvider.h"
+#include "kis_types.h"
+#include "ui_wdgclipboardbrush.h"
 #include <KisResourceUserOperations.h>
 
 #include <kstandardguiitem.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 KisClipboardBrushWidget::KisClipboardBrushWidget(QWidget *parent, const QString &caption, KisImageWSP /*image*/)
     : KisWdgClipboardBrush(parent)

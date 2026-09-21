@@ -7,8 +7,12 @@
 
 #include "KoShapeLockCommand.h"
 #include "KoShape.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 #include <klocalizedstring.h>
+#include <qassert.h>
+#include <qlist.h>
 
 KoShapeLockCommand::KoShapeLockCommand(const QList<KoShape*> &shapes, const QList<bool> &oldLock, const QList<bool> &newLock, KUndo2Command *parent)
         : KUndo2Command(parent)

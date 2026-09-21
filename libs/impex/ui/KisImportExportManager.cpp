@@ -6,6 +6,7 @@
 
 #include "KisImportExportManager.h"
 
+#include <functional>
 #include <memory>
 
 #include <QDir>
@@ -26,7 +27,6 @@
 #include <QTemporaryFile>
 
 #include <klocalizedstring.h>
-#include <ksqueezedtextlabel.h>
 
 #include <KisMimeDatabase.h>
 #include <application/ui/orchestration/KisPart.h>
@@ -38,18 +38,17 @@
 #include <KoColorProfileConstants.h>
 #include <KoDialog.h>
 #include <KoFileDialog.h>
-#include <KoProgressUpdater.h>
 #include <kis_assert.h>
 #include <kis_config_widget.h>
-#include <kis_debug.h>
 #include <kis_icon_utils.h>
 #include <kis_image.h>
-#include <kis_iterator_ng.h>
 #include <kis_layer_utils.h>
 #include <kis_paint_layer.h>
 #include <kis_paint_device.h>
 #include <kis_painter.h>
 
+#include "KisExportCheckBase.h"
+#include "KisQStringListFwd.h"
 #include "document/KisDocument.h"
 #include "KisImportExportAsyncFeedback.h"
 #include "KisImportExportErrorCode.h"
@@ -61,11 +60,26 @@
 #include <kis_image_config.h>
 #include "kis_grid_config.h"
 #include "kis_guides_config.h"
+#include "kis_layer.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
 #include <kis_adjustment_layer.h>
 #include <kis_filter_mask.h>
 
 #include <KisImportUserFeedbackInterface.h>
 #include <KisSynchronousImportUserFeedback.h>
+#include <qfiledevice.h>
+#include <qforeach.h>
+#include <qgenericatomic.h>
+#include <qlatin1stringview.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qsharedpointer.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <qthread.h>
+#include <qurl.h>
 
 class Q_DECL_HIDDEN KisImportExportManager::Private
 {

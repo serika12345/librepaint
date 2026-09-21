@@ -17,6 +17,7 @@
 
 #include "KisShortcutsDialog.h"
 #include "KisShortcutsDialog_p.h"
+#include "KisShortcutsEditor.h"
 #include "kshortcutschemeshelper_p.h"
 #include "kshortcutschemeseditor.h"
 
@@ -27,10 +28,16 @@
 #include <QDebug>
 #include <QPushButton>
 
+#include <kguiitem.h>
 #include <klocalizedstring.h>
 #include <kconfiggroup.h>
 #include <kmessagebox.h>
 #include <ksharedconfig.h>
+#include <kstandardguiitem.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
 #include "kxmlguiclient.h"
 #include "kactioncollection.h"
 

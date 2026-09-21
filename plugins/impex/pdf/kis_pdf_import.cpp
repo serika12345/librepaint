@@ -6,6 +6,17 @@
  */
 
 #include "kis_pdf_import.h"
+#include "KisImportExportFilter.h"
+#include "kis_global.h"
+#include "kis_types.h"
+#include "ui_pdfimportwidgetbase.h"
+#include <memory>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
 
 // poppler's headers
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
@@ -30,15 +41,12 @@
 // calligra's headers
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
-#include <KoProgressUpdater.h>
-#include <KoUpdater.h>
 
 // krita's headers
 #include <document/KisDocument.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_paint_layer.h>
-#include <kis_transaction.h>
 #include <events/kis_cursor_override_hijacker.h>
 
 // plugins's headers

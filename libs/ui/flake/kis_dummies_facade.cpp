@@ -6,7 +6,10 @@
 
 #include "kis_dummies_facade.h"
 
+#include "kis_dummies_facade_base.h"
 #include "kis_node_dummies_graph.h"
+#include "kis_types.h"
+#include <qobject.h>
 
 
 struct KisDummiesFacade::Private

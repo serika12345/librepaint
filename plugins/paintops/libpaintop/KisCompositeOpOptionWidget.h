@@ -6,7 +6,13 @@
 #ifndef KISCOMPOSITEOPOPTIONWIDGET_H
 #define KISCOMPOSITEOPOPTIONWIDGET_H
 
+#include <QScopedPointer>
+#include <QString>
+
 #include <kis_paintop_option.h>
+#include <kis_types.h>
+#include <kritapaintop_export.h>
+
 #include <KisCompositeOpOptionData.h>
 #include <lager/cursor.hpp>
 

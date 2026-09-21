@@ -6,12 +6,22 @@
  */
 
 #include "KoMarkerItemDelegate.h"
+#include "KoFlake.h"
 
 #include <KoPathShape.h>
 #include <KoMarker.h>
 
 #include <QPainter>
 #include <QPen>
+#include <qabstractitemdelegate.h>
+#include <qabstractitemmodel.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qsize.h>
+#include <qstyle.h>
+#include <qstyleoption.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 KoMarkerItemDelegate::KoMarkerItemDelegate(KoFlake::MarkerPosition position, QObject *parent)

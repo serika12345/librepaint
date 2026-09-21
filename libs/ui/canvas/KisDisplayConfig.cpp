@@ -10,6 +10,10 @@
 #include <KoColorSpaceRegistry.h>
 #include <kis_color_manager.h>
 #include <application/kis_config.h>
+#include <qdebug.h>
+#include <qhashfunctions.h>
+#include <qstringview.h>
+#include <qtpreprocessorsupport.h>
 //#include <opengl/KisOpenGLModeProber.h>
 
 namespace {

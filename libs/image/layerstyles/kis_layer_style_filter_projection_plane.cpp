@@ -6,6 +6,9 @@
 
 #include "kis_layer_style_filter_projection_plane.h"
 
+#include "KisRenderPassFlags.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
 #include "kis_layer_style_filter.h"
 #include "kis_layer_style_filter_environment.h"
 #include "kis_paint_device.h"
@@ -15,6 +18,9 @@
 #include "kis_painter.h"
 #include "kis_multiple_projection.h"
 #include "KisLayerStyleKnockoutBlower.h"
+#include "kis_types.h"
+#include <qscopedpointer.h>
+#include <qtpreprocessorsupport.h>
 
 
 struct KisLayerStyleFilterProjectionPlane::Private

@@ -11,7 +11,11 @@
 #include <QFile>
 #include <QString>
 #include <QVariant>
+#include <qassert.h>
+#include <qlist.h>
+#include <qtversionchecks.h>
 
+#include "kis_debug.h"
 #include "kis_meta_data_type_info_p.h"
 #include "kis_meta_data_schema_p.h"
 #include "kis_meta_data_value.h"

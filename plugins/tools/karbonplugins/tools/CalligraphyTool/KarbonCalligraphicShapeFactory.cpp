@@ -6,10 +6,13 @@
 
 #include "KarbonCalligraphicShapeFactory.h"
 #include "KarbonCalligraphicShape.h"
+#include "KoShapeFactoryBase.h"
 
 #include <KoIcon.h>
 #include <klocalizedstring.h>
 #include <KoShapeLoadingContext.h>
+#include <qdom.h>
+#include <qtpreprocessorsupport.h>
 
 KarbonCalligraphicShapeFactory::KarbonCalligraphicShapeFactory()
     : KoShapeFactoryBase(KarbonCalligraphicShapeId, i18n("A calligraphic shape"))

@@ -7,16 +7,28 @@
  * */
 
 #include "KisResourceItemChooserContextMenu.h"
+#include "TagActions.h"
 
 #include <QDebug>
 #include <QGridLayout>
 
 #include <KoIcon.h>
+#include <algorithm>
 #include <klocalizedstring.h>
 #include <KoResource.h>
 #include <KisResourceModel.h>
 #include <KisTagResourceModel.h>
 #include <KisTag.h>
+#include <qabstractitemmodel.h>
+#include <qaction.h>
+#include <qforeach.h>
+#include <qicon.h>
+#include <qimage.h>
+#include <qlist.h>
+#include <qmenu.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
 
 
 

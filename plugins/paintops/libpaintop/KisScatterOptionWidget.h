@@ -6,9 +6,16 @@
 #ifndef KISSCATTEROPTIONWIDGET_H
 #define KISSCATTEROPTIONWIDGET_H
 
+#include <QScopedPointer>
+#include <QtCore/qtmetamacros.h>
+
+#include <kis_paintop_option.h>
+#include <kis_types.h>
+#include <kritapaintop_export.h>
+
 #include <KisCurveOptionWidget.h>
 #include <KisScatterOptionData.h>
-
+#include <lager/cursor.hpp>
 
 class PAINTOP_EXPORT KisScatterOptionWidget : public KisCurveOptionWidget
 {

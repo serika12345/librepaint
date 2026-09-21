@@ -6,12 +6,15 @@
  */
 
 
+#include "KisWraparoundAxis.h"
 #include "kis_global.h"
 #include "kis_default_bounds.h"
 #include "kis_paint_device.h"
 #include "kis_image_animation_interface.h"
 #include "kis_image.h"
 #include "kis_node.h"
+#include "kis_types.h"
+#include <qtdeprecationdefinitions.h>
 
 
 const QRect KisDefaultBounds::infiniteRect =

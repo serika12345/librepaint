@@ -6,6 +6,7 @@
 
 #include "kis_count_visitor.h"
 
+#include "KisQStringListFwd.h"
 #include "generator/kis_generator_layer.h"
 #include "kis_adjustment_layer.h"
 #include "kis_clone_layer.h"
@@ -18,6 +19,8 @@
 #include "kis_transform_mask.h"
 #include "kis_transparency_mask.h"
 #include "lazybrush/kis_colorize_mask.h"
+#include <qforeach.h>
+#include <qtypes.h>
 
 KisCountVisitor::KisCountVisitor(const QStringList &nodeTypes, const KoProperties &properties)
     : m_nodeTypes(nodeTypes)

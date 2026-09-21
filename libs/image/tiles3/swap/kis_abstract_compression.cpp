@@ -5,6 +5,8 @@
  */
 
 #include "kis_abstract_compression.h"
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 KisAbstractCompression::KisAbstractCompression()
 {

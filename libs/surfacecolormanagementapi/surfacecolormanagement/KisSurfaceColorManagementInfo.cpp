@@ -5,6 +5,7 @@
  */
 
 #include "KisSurfaceColorManagementInfo.h"
+#include <qobject.h>
 
 KisSurfaceColorManagementInfo::KisSurfaceColorManagementInfo(QObject *parent)
     : QObject(parent)

@@ -8,6 +8,13 @@
  */
 
 #include "simplexnoisegenerator.h"
+#include "KoColor.h"
+#include "KoColorSpace.h"
+#include "KoColorSpaceConstants.h"
+#include "KoID.h"
+#include "KoIntegerMaths.h"
+#include "kis_generator.h"
+#include "kis_types.h"
 #include "ui_wdgsimplexnoiseoptions.h"
 #include "kis_wdg_simplex_noise.h"
 #include "3rdparty/c-open-simplex/open-simplex-noise.h"
@@ -15,12 +22,24 @@
 #include <KisSequentialIteratorProgress.h>
 #include <KoUpdater.h>
 #include <QCryptographicHash>
+#include <cmath>
+#include <cstdlib>
 #include <filter/kis_filter_configuration.h>
 #include <generator/kis_generator_registry.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpaceRegistry.h>
 #include <kis_processing_information.h>
 #include <kpluginfactory.h>
+#include <math.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qpaintdevice.h>
+#include <qsize.h>
+#include <qstringview.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaSimplexNoiseGeneratorFactory, "kritasimplexnoisegenerator.json", registerPlugin<KisSimplexNoiseGeneratorHandle>();)
 

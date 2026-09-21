@@ -5,10 +5,12 @@
 */
 
 #include "extensions_plugin.h"
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
 #include <KoColorTransformationFactoryRegistry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
 
 #include "kis_hsv_adjustment.h"
 #include "kis_dodgemidtones_adjustment.h"

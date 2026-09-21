@@ -4,8 +4,10 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KoEmbeddedResource.h"
+#include "KoResourceSignature.h"
 
 #include <KoMD5Generator.h>
+#include <qstringview.h>
 
 KoEmbeddedResource::KoEmbeddedResource()
 {

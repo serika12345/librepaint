@@ -4,14 +4,21 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisFrameRateLimitModel.h"
+#include "KisWidgetConnectionUtils.h"
 
+#include <functional>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/lenses.hpp>
 #include <lager/lenses/tuple.hpp>
 #include <lager/constant.hpp>
-#include <KisLager.h>
-#include <kis_assert.h>
 
 #include <QGuiApplication>
 #include <QScreen>
+#include <lager/with.hpp>
+#include <qlist.h>
+#include <qnumeric.h>
+#include <qtypes.h>
 
 namespace {
     int calculateMaxScreenFrameRate() {

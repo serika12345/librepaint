@@ -10,15 +10,18 @@
  */
 
 #include "kis_tool_polygon.h"
+#include "KisQStringListFwd.h"
+#include "kis_cursor.h"
+#include "kis_tool_polyline_base.h"
+#include "kis_tool_shape.h"
+#include "kundo2magicstring.h"
 
-#include <KoPointerEvent.h>
 #include <KoCanvasBase.h>
 #include <KoPathShape.h>
-#include <KoShapeStroke.h>
 
-#include <brushengine/kis_paintop_registry.h>
 #include <kis_image.h>
 #include <kis_figure_painting_stroke.h>
+#include <qtransform.h>
 
 KisToolPolygon::KisToolPolygon(KoCanvasBase *canvas)
         : KisToolPolylineBase(canvas,  KisToolPolylineBase::PAINT, KisCursor::loadWithSize("tool_polygon_cursor.svg", 32, 32, 6, 6))

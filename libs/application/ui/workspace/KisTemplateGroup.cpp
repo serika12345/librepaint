@@ -9,6 +9,10 @@
 #include <application/ui/workspace/KisTemplate.h>
 
 #include <QFile>
+#include <qalgorithms.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
 
 KisTemplateGroup::KisTemplateGroup(const QString &name, const QString &dir,
                                    int _sortingWeight, bool touched)

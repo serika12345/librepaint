@@ -5,11 +5,18 @@
  */
 
 #include "compositionmodel.h"
+#include "kis_icon_utils.h"
+#include "kis_types.h"
 
-#include <kis_icon.h>
 
 #include <QAction>
 #include <klocalizedstring.h>
+#include <qabstractitemmodel.h>
+#include <qassert.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qvariant.h>
 
 CompositionModel::CompositionModel(QObject* parent): QAbstractTableModel(parent)
 {

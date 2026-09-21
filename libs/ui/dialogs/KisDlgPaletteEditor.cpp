@@ -14,11 +14,8 @@
 #include <QPicture>
 #include <QSignalBlocker>
 
-#include <KoResourceServerProvider.h>
-#include <KoResourceServer.h>
-#include <KoDialog.h>
 #include <KoColorSet.h>
-#include <kis_global.h>
+#include <kguiitem.h>
 #include <KisPaletteModel.h>
 #include <KisStorageModel.h>
 
@@ -29,6 +26,10 @@
 #include "KisDlgPaletteEditor.h"
 
 #include <kstandardguiitem.h>
+#include <qdialog.h>
+#include <qforeach.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
 
 KisDlgPaletteEditor::KisDlgPaletteEditor(KisPaletteEditor *editor, QWidget *parent, Qt::WindowFlags f)
     : QDialog(parent, f)

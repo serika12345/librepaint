@@ -5,6 +5,19 @@
  */
 #include "KisSharpnessOptionData.h"
 
+#include "KisCurveOptionData.h"
+#include "KisCurveOptionDataCommon.h"
+#include "KisOptionTuple.h"
+
+#include <KoID.h>
+
+#include <QString>
+#include <QtCore/qtypes.h>
+
+#include <KLocalizedString>
+
+#include <kis_properties_configuration.h>
+
 const QString SHARPNESS_FACTOR = "Sharpness/factor";
 const QString SHARPNESS_ALIGN_OUTLINE_PIXELS = "Sharpness/alignoutline";
 const QString SHARPNESS_SOFTNESS  = "Sharpness/softness";

@@ -12,6 +12,7 @@
 
 #include <QAction>
 #include <QToolButton>
+#include <qforeach.h>
 
 struct ArrangeDockerWidget::Private
 {

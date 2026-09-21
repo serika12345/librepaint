@@ -4,7 +4,15 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisSmudgeRadiusOptionData.h"
+#include "KisCurveOptionData.h"
+#include "KisCurveOptionDataCommon.h"
+#include "KoID.h"
+#include "kis_properties_configuration.h"
 #include <KisSmudgeLengthOptionData.h>
+#include <optional>
+#include <qminmax.h>
+#include <qtypes.h>
+#include <utility>
 
 KisSmudgeRadiusOptionData::KisSmudgeRadiusOptionData()
     : KisCurveOptionData(

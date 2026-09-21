@@ -5,6 +5,9 @@
  *   SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_types.h"
+#include "psd_header.h"
+#include "psd_types.h"
 #include <psd_image_data.h>
 
 #include <QtEndian>
@@ -14,15 +17,13 @@
 #include <QVector>
 #include <QBuffer>
 
-#include <KoChannelInfo.h>
 #include <KoColorSpace.h>
-#include <kis_iterator_ng.h>
 #include <kis_paint_device.h>
 
 #include <asl/kis_asl_reader_utils.h>
-#include <compression.h>
 #include <psd_pixel_utils.h>
 #include <psd_utils.h>
+#include <qtypes.h>
 
 PSDImageData::PSDImageData(PSDHeader *header)
 {

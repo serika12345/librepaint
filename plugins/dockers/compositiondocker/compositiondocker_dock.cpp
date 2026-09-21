@@ -5,6 +5,11 @@
  */
 
 #include "compositiondocker_dock.h"
+#include "KoColorSpaceConstants.h"
+#include "kis_debug.h"
+#include "kis_icon_utils.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
 
 #include <QGridLayout>
 #include <QListView>
@@ -22,7 +27,6 @@
 #include <klocalizedstring.h>
 #include <kactioncollection.h>
 
-#include <kis_icon.h>
 #include <KoCanvasBase.h>
 #include <KoFileDialog.h>
 
@@ -38,9 +42,19 @@
 #include <kis_paint_layer.h>
 #include <application/ui/orchestration/kis_action.h>
 #include <application/ui/orchestration/kis_action_manager.h>
-#include <kis_action_registry.h>
 
 #include <dialogs/KisAsyncAnimationFramesSaveDialog.h>
+#include <qabstractitemmodel.h>
+#include <qcoreevent.h>
+#include <qdockwidget.h>
+#include <qfileinfo.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscroller.h>
+#include <qsharedpointer.h>
 #ifndef Q_OS_IOS
 #include <KisAnimationRenderingOptions.h>
 #include <KisAnimationRender.h>

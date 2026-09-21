@@ -5,7 +5,15 @@
  */
 
 
+#include <qforeach.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qthread.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <stdio.h>
+#include "kis_assert.h"
 #include "kis_tile_data_store.h"
 #include "kis_tile_data_store_iterators.h"
 #include "kis_debug.h"

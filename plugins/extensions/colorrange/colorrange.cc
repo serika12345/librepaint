@@ -9,9 +9,9 @@
 #include "colorrange.h"
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
+#include "KisSelectionTags.h"
 #include "kis_paint_device.h"
 #include "kis_types.h"
 #include "application/ui/workspace/KisViewManager.h"
@@ -20,8 +20,12 @@
 #include "application/ui/orchestration/kis_action.h"
 
 #include "dlg_colorrange.h"
-#include <KoColorSpace.h>
+#include "ui/orchestration/KisActionPlugin.h"
 #include <KisSignalMapper.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(ColorRangeFactory, "kritacolorrange.json", registerPlugin<ColorRange>();)
 

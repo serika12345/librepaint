@@ -5,18 +5,25 @@
 */
 
 #include "kis_dodgeshadows_adjustment.h"
+#include "KoBgrColorSpaceTraits.h"
+#include "KoColorSpaceMaths.h"
+#include "KoColorTransformationFactory.h"
+#include "KoRgbColorSpaceTraits.h"
 #include <KoConfig.h>
 
 #include <kis_debug.h>
 #include <klocalizedstring.h>
+#include <qcontainerfwd.h>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qtypes.h>
 #ifdef HAVE_OPENEXR
 #include <half.h>
 #endif
 
-#include <KoColorConversions.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpace.h>
-#include <KoColorSpaceTraits.h>
 #include <KoColorTransformation.h>
 #include <KoID.h>
 

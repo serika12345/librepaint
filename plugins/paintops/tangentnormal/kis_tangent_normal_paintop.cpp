@@ -5,6 +5,13 @@
  */
 
 #include "kis_tangent_normal_paintop.h"
+#include "KisQStringListFwd.h"
+#include "KoColorSpaceTrait.h"
+#include "kis_brush_based_paintop.h"
+#include "kis_dab_shape.h"
+#include "kis_spacing_information.h"
+#include "kis_timing_information.h"
+#include "kis_types.h"
 
 #include <QRect>
 
@@ -21,6 +28,10 @@
 #include <kis_image.h>
 #include <kis_lod_transform.h>
 #include <kis_paintop_plugin_utils.h>
+#include <qassert.h>
+#include <qpoint.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 KisTangentNormalPaintOp::KisTangentNormalPaintOp(const KisPaintOpSettingsSP settings, KisPainter* painter, KisNodeSP node, KisImageSP image)

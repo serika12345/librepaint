@@ -7,7 +7,6 @@
 #include "kis_pan_action.h"
 #include "KisApplicationInputActions.h"
 
-#include <kis_debug.h>
 #include <QMouseEvent>
 #include <QApplication>
 #include <QGesture>
@@ -17,7 +16,12 @@
 #include <KoCanvasController.h>
 
 #include <kis_canvas2.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qnamespace.h>
+#include <qtpreprocessorsupport.h>
 
+#include "KisInputActionGroup.h"
 #include "kis_input_manager.h"
 
 class KisPanAction::Private

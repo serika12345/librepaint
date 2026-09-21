@@ -7,12 +7,14 @@
  */
 
 #include "ShapeShearStrategy.h"
+#include "KoFlake.h"
+#include "KoInteractionStrategy.h"
 #include "SelectionDecorator.h"
 
 #include <KoToolBase.h>
 #include <KoCanvasBase.h>
-#include <KoPointerEvent.h>
 #include <KoShapeManager.h>
+#include <algorithm>
 #include <commands/KoShapeShearCommand.h>
 #include <commands/KoShapeMoveCommand.h>
 #include <commands/KoShapeTransformCommand.h>
@@ -24,7 +26,15 @@
 #include <math.h>
 #include <QDebug>
 #include <klocalizedstring.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include "kis_algebra_2d.h"
+#include "kundo2magicstring.h"
 
 ShapeShearStrategy::ShapeShearStrategy(KoToolBase *tool, KoSelection *selection, const QPointF &clicked, KoFlake::SelectionHandle direction)
     : KoInteractionStrategy(tool)

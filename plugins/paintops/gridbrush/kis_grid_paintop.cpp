@@ -6,13 +6,13 @@
 
 #include "kis_grid_paintop.h"
 #include "kis_grid_paintop_settings.h"
+#include "kis_random_source.h"
 
 #include <cmath>
 
 #include <QtGlobal>
 #include <QRect>
 
-#include <kis_global.h>
 #include <kis_node.h>
 #include <kis_paint_device.h>
 #include <kis_painter.h>
@@ -28,6 +28,13 @@
 
 #include <KisColorOptionData.h>
 #include <kis_lod_transform.h>
+#include <qhash.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qscopedpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
 
 #ifdef BENCHMARK

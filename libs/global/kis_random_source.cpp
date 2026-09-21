@@ -5,12 +5,14 @@
  */
 
 #include "kis_random_source.h"
+#include "kis_shared.h"
 
 #include <boost/random/normal_distribution.hpp>
 #include <boost/random/taus88.hpp>
 #include <boost/random/uniform_smallint.hpp>
 
 #include <QRandomGenerator>
+#include <qtypes.h>
 
 struct KisRandomSource::Private
 {

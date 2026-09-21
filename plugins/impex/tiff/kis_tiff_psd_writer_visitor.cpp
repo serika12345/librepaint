@@ -5,30 +5,39 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisImportExportErrorCode.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_tiff_base_writer.h"
+#include "kis_types.h"
+#include "psd_types.h"
+#include "psd_utils.h"
 #include <QBuffer>
 
+#include <array>
+#include <cstdint>
 #include <memory>
 
+#include <qtypes.h>
 #include <tiff.h>
 
-#include <KoColorModelStandardIds.h>
 #include <KoColorProfile.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoConfig.h>
-#include <KoID.h>
 #include <KoUnit.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
-#include <kis_iterator_ng.h>
 #include <kis_paint_device.h>
 #include <kis_painter.h>
 #include <kis_tiff_psd_resource_record.h>
 #include <psd_layer_section.h>
 #include <psd_resource_block.h>
+#include <tiffio.h>
+#include <type_traits>
+#include <kis_iterator_ng.h>
 
 #ifdef HAVE_OPENEXR
-#include <half.h>
 #endif
 
 #include "kis_tiff_converter.h"

@@ -11,22 +11,19 @@
 #include <QBuffer>
 #include <QPointer>
 
-#include <KoColorSpaceConstants.h>
-#include <KoCompositeOpRegistry.h>
 
+#include <cmath>
 #include <klocalizedstring.h>
 
+#include "KisSelectionTags.h"
+#include "KoCompositeOpIds.h"
+#include "kis_assert.h"
+#include "kis_base_node.h"
+#include "kis_layer.h"
 #include "kis_mimedata.h"
-#include <kis_debug.h>
 #include <kis_node.h>
 #include <kis_node_progress_proxy.h>
 #include <kis_image.h>
-#include <kis_selection.h>
-#include <kis_selection_mask.h>
-#include <kis_undo_adapter.h>
-#include <commands/kis_node_property_list_command.h>
-#include <kis_paint_layer.h>
-#include <kis_group_layer.h>
 #include <kis_projection_leaf.h>
 #include <filter/kis_filter_configuration.h>
 #include <kis_shape_controller.h>
@@ -34,11 +31,25 @@
 #include "kis_dummies_facade_base.h"
 #include "kis_filter_mask.h"
 #include "kis_node_dummies_graph.h"
+#include "kis_types.h"
 #include "nodes/kis_model_index_converter.h"
 #include "nodes/kis_model_index_converter_show_all.h"
 #include "nodes/kis_node_selection_adapter.h"
 #include "nodes/kis_node_insertion_adapter.h"
 #include "nodes/kis_node_manager.h"
+#include <qabstractitemmodel.h>
+#include <qcolor.h>
+#include <qfont.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 #include <selection/KisSelectionActionsAdapter.h>
 #include <canvas/KisNodeDisplayModeAdapter.h>
 

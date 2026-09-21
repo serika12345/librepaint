@@ -6,7 +6,12 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <cstddef>
+#include <decode.h>
 #include <kpluginfactory.h>
+#include <mux_types.h>
+#include <qcontainerfwd.h>
+#include <qtypes.h>
 #include <webp/demux.h>
 
 #include <QBuffer>
@@ -20,7 +25,6 @@
 #include <KoColorModelStandardIds.h>
 #include <KoColorProfile.h>
 #include <KoCompositeOpRegistry.h>
-#include <KoDialog.h>
 #include <kis_group_layer.h>
 #include <kis_image_animation_interface.h>
 #include <kis_keyframe_channel.h>
@@ -28,10 +32,17 @@
 #include <kis_paint_device.h>
 #include <kis_paint_layer.h>
 #include <kis_painter.h>
-#include <kis_properties_configuration.h>
 #include <kis_raster_keyframe_channel.h>
 
 #include "kis_webp_import.h"
+#include "KisImportExportFilter.h"
+#include "KoColorConversionTransformation.h"
+#include "KoCompositeOpIds.h"
+#include "KoID.h"
+#include "kis_debug.h"
+#include "kis_image.h"
+#include "kis_meta_data_io_backend.h"
+#include "kis_types.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(KisWebPImportFactory, "krita_webp_import.json", registerPlugin<KisWebPImport>();)
 

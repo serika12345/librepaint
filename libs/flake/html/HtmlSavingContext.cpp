@@ -6,8 +6,8 @@
 
 #include "HtmlSavingContext.h"
 #include <KoXmlWriter.h>
-#include <KoShape.h>
 #include <QBuffer>
+#include <qscopedpointer.h>
 
 struct HtmlSavingContext::Private {
 

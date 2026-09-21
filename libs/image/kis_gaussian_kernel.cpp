@@ -6,11 +6,24 @@
 
 #include "kis_gaussian_kernel.h"
 
+#include "kis_assert.h"
 #include "kis_global.h"
 #include "kis_convolution_kernel.h"
+#include "kis_paint_device.h"
+#include "kis_painter.h"
+#include "kis_types.h"
+#include <Eigen/Core>
+#include <cmath>
 #include <kis_convolution_painter.h>
 #include <kis_transaction.h>
 #include <QRect>
+#include <math.h>
+#include <qbitarray.h>
+#include <qminmax.h>
+#include <qpoint.h>
+#include <qscopedpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 qreal KisGaussianKernel::sigmaFromRadius(qreal radius)

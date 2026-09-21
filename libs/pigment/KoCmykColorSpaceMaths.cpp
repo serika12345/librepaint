@@ -10,6 +10,7 @@
 #include <cfloat>
 
 #include <QtGlobal>
+#include <half.h>
 
 #ifdef HAVE_OPENEXR
 const half KoCmykColorSpaceMathsTraits<half>::zeroValueCMYK = 0.0;

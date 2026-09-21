@@ -6,10 +6,15 @@
 
 #include "KisReselectActiveSelectionCommand.h"
 
+#include "KisQStringListFwd.h"
 #include "kis_node.h"
 #include "kis_layer.h"
+#include "kis_reselect_global_selection_command.h"
 #include "kis_selection_mask.h"
+#include "kis_types.h"
+#include "kundo2stack.h"
 #include <KoProperties.h>
+#include <qlist.h>
 
 
 KisReselectActiveSelectionCommand::KisReselectActiveSelectionCommand(KisNodeSP activeNode, KisImageWSP image, KUndo2Command *parent)

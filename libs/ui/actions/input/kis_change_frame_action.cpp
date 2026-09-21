@@ -8,6 +8,7 @@
 #include "KisApplicationInputActions.h"
 
 #include <klocalizedstring.h>
+#include <qhash.h>
 #include "application/ui/orchestration/kis_action.h"
 #include "kis_input_manager.h"
 #include "kis_canvas2.h"

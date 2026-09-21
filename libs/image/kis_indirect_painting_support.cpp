@@ -11,15 +11,26 @@
 
 #include <QReadWriteLock>
 
-#include <KoCompositeOp.h>
+#include "KisQStringListFwd.h"
+#include "KisRunnableStrokeJobDataBase.h"
+#include "KoColorSpaceConstants.h"
+#include "KoCompositeOpIds.h"
 #include "kis_layer.h"
 #include "kis_paint_device.h"
 #include "kis_painter.h"
 #include <KisFakeRunnableStrokeJobsExecutor.h>
+#include <mutex>
+#include <qforeach.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include "KisRunnableStrokeJobData.h"
 #include "KisRunnableStrokeJobUtils.h"
 #include "kis_transaction.h"
 #include "kis_pointer_utils.h"
+#include "kis_types.h"
 
 
 struct Q_DECL_HIDDEN KisIndirectPaintingSupport::Private {

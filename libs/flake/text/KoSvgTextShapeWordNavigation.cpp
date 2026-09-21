@@ -4,10 +4,12 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KoSvgText.h"
 #include "KoSvgTextShape.h"
 #include "KoSvgTextShape_p.h"
 
 #include "KoSvgTextProperties.h"
+#include <qminmax.h>
 
 int KoSvgTextShape::wordLeft(int pos, bool visual)
 {

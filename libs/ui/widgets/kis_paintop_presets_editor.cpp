@@ -22,30 +22,47 @@
 #include <QSplitter>
 #include <QActionGroup>
 
-#include <kconfig.h>
+#include <algorithm>
 #include <klocalizedstring.h>
 
-#include <KoDockRegistry.h>
 
-#include <kis_icon.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paintop_config_widget.h>
 #include <canvas/kis_canvas_resource_provider.h>
+#include <lager/tags.hpp>
+#include <qabstractitemmodel.h>
+#include <qimage.h>
+#include <qmargins.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qslider.h>
+#include <qstringview.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 #include <widgets/kis_preset_chooser.h>
 #include <KisResourceUserOperations.h>
 #include <KisResourceItemChooser.h>
 
 #include <ui_wdgpaintopsettings.h>
 #include <kis_node.h>
+#include "KisLodAvailabilityData.h"
+#include "KisResourceModel.h"
+#include "KisResourceTypes.h"
+#include "KoCanvasResourcesIds.h"
 #include "application/kis_config.h"
 
 #include <KisPaintResourceServerProvider.h>
+#include "dialogs/KisDlgSavePreset.h"
+#include "kis_assert.h"
+#include "kis_global.h"
+#include "kis_icon_utils.h"
 #include "kis_lod_availability_widget.h"
 #include "KisLodAvailabilityModel.h"
 
 #include "kis_signal_auto_connection.h"
+#include "kis_types.h"
+#include "resources/kis_favorite_resource_manager.h"
 #include <kis_paintop_settings.h>
-#include <KisPaintOpPresetUpdateProxy.h>
 
 // ones from brush engine selector
 #include <brushengine/kis_paintop_factory.h>

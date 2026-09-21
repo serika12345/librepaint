@@ -6,11 +6,19 @@
 
 #include "kis_color_selector_component.h"
 
+#include "kis_color_selector.h"
 #include "kis_color_selector_base.h"
 
 #include "KoColorSpace.h"
 #include <QPainter>
 #include <QMouseEvent>
+#include <cstdlib>
+#include <qassert.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 #include <resources/KoGamutMask.h>
 
 

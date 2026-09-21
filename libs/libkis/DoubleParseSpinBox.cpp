@@ -6,6 +6,10 @@
  */
 
 #include "DoubleParseSpinBox.h"
+#include "kis_double_parse_spin_box.h"
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qspinbox.h>
 
 struct DoubleParseSpinBox::Private {
     Private() {}

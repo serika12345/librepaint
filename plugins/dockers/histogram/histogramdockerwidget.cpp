@@ -12,10 +12,27 @@
 #include <QTime>
 #include <QPainter>
 #include <QPainterPath>
+#include <cmath>
 #include <functional>
+#include <qcolor.h>
+#include <qforeach.h>
+#include <qlabel.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qtypes.h>
+#include <qwidget.h>
+#include <vector>
 
+#include "HistogramComputationStrokeStrategy.h"
+#include "KisWidgetWithIdleTask.h"
 #include "KoChannelInfo.h"
 #include "application/ui/workspace/KisViewManager.h"
+#include "kis_assert.h"
 #include "kis_canvas2.h"
 #include "kis_image.h"
 

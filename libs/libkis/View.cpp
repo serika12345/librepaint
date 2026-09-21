@@ -12,6 +12,11 @@
 #include <application/ui/workspace/KisView.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <nodes/kis_node_manager.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtransform.h>
+#include <qtypes.h>
 #include <selection/kis_selection_manager.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <kis_exposure_gamma_correction_interface.h>
@@ -24,11 +29,14 @@
 #include <document/KisDocument.h>
 #include "Document.h"
 #include "Canvas.h"
+#include "KoCanvasResourcesIds.h"
 #include "Window.h"
 #include "Resource.h"
 #include "ManagedColor.h"
 
 #include "LibKisUtils.h"
+#include "kis_floating_message.h"
+#include "kis_types.h"
 
 
 struct View::Private {

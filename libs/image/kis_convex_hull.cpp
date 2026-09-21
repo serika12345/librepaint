@@ -1,5 +1,7 @@
 #include "kis_convex_hull.h"
 
+#include "KoColorSpaceConstants.h"
+#include "kis_assert.h"
 #include "kis_convex_hull_p.h"
 
 #include "kis_paint_device.h"
@@ -7,6 +9,12 @@
 #include "KoColorSpace.h"
 #include "KoColor.h"
 #include "KoColorModelStandardIds.h"
+#include "kis_types.h"
+#include <algorithm>
+#include <cstring>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qtypes.h>
 
 namespace {
 

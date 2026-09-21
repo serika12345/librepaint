@@ -5,6 +5,7 @@
  */
 
 #include "kis_file_name_requester.h"
+#include "KoFileDialog.h"
 #include "ui_wdg_file_name_requester.h"
 
 #include <QStandardPaths>
@@ -12,6 +13,11 @@
 
 #include "KoIcon.h"
 #include <KisFileUtils.h>
+#include <qcontainerfwd.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qvalidator.h>
+#include <qwidget.h>
 
 KisFileNameRequester::KisFileNameRequester(QWidget *parent)
     : QWidget(parent)

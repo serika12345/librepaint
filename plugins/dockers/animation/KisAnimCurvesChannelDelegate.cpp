@@ -6,12 +6,22 @@
 
 #include "KisAnimCurvesChannelDelegate.h"
 #include "KisAnimCurvesChannelsModel.h"
+#include "kis_assert.h"
 #include "krita_utils.h"
 #include "kis_icon_utils.h"
 
 #include <QApplication>
 #include <QMouseEvent>
 #include <QPainter>
+#include <qabstractitemmodel.h>
+#include <qcolor.h>
+#include <qcoreevent.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpalette.h>
+#include <qpoint.h>
+#include <qstyleditemdelegate.h>
+#include <qstyleoption.h>
 
 const int CHANNEL_LEGEND_RADIUS = 6;
 const int CHANNEL_ICON_SIZE = 16;

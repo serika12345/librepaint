@@ -22,8 +22,14 @@
 #include <kundo2command.h>
 #include <KoColorSpaceRegistry.h>
 #include <kis_file_name_requester.h>
+#include "KisImportExportErrorCode.h"
+#include "kis_debug.h"
+#include "kis_types.h"
 #include "ui_wdgfastcolortransfer.h"
 #include <KisGlobalResourcesInterface.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
 KisWdgFastColorTransfer::KisWdgFastColorTransfer(QWidget * parent) : KisConfigWidget(parent)
 {

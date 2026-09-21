@@ -11,11 +11,14 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "kis_debug.h"
 #include <cmath>
 
  #include <QDataStream>
 #include <QIODevice>
+#include <cstring>
 #include <kis_sequential_iterator.h>
+#include <qtypes.h>
 
 namespace RGBEIMPORT
 {

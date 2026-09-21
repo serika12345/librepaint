@@ -6,6 +6,8 @@
 
 #include "KisSensorPackInterface.h"
 
+#include <QString>
+
 KisSensorPackInterface::~KisSensorPackInterface()
 {
 }

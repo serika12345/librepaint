@@ -5,10 +5,20 @@
  */
 #include "KisFilterOptionModel.h"
 
+#include <tuple>
+
 #include <kis_filter.h>
 #include <kis_filter_configuration.h>
 #include <kis_filter_registry.h>
+#include <kis_types.h>
 #include <KisGlobalResourcesInterface.h>
+
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/lenses.hpp>
+#include <lager/with.hpp>
+
+#include "KisFilterOptionData.h"
 
 namespace {
 
@@ -49,6 +59,5 @@ KisFilterOptionData KisFilterOptionModel::bakedOptionData() const
 
     return data;
 }
-
 
 

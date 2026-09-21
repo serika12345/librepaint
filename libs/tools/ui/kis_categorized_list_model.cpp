@@ -5,6 +5,8 @@
  */
 
 #include "kis_categorized_list_model.h"
+#include <qabstractitemmodel.h>
+#include <qobject.h>
 
 __CategorizedListModelBase::__CategorizedListModelBase(QObject *parent)
     : QAbstractListModel(parent)

@@ -1,4 +1,6 @@
 #include "kis_abstract_resources.h"
+#include "KoAbstractCanvasResourceInterface.h"
+#include <qtypes.h>
 #include <qvariant.h>
 
 

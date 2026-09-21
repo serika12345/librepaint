@@ -6,6 +6,7 @@
 
 #include "KisCanvasState.h"
 #include "KoZoomState.h"
+#include <qnumeric.h>
 
 bool KisCanvasState::operator==(const KisCanvasState &other) const {
     return qFuzzyCompare(zoom, other.zoom) &&

@@ -5,11 +5,16 @@
  */
 
 #include "KoToolManager_p.h"
+#include "KoToolManager.h"
 
 #include <KoShapeManager.h>
 #include <KoSelection.h>
 #include <KoToolBase.h>
 #include <KoToolFactoryBase.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
 
 //   ************ KoToolAction::Private **********
 

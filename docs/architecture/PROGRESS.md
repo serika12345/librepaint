@@ -2,19 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-20 22:53 JST
-- 状態: `complete`
-- 現在の検査段階: R2-G19h 動的センサー工場依存の縮小（完了）
-- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h完了、R2-G19d-a・R2-G19d-b・R2-G19eは`planned`
-- ブランチ: `develop`
-- 開始コミット: `a5b4d0346c`。R2-G19g完了時点の作業ツリーは変更なし。
-- 目的: 動的センサー工場が公開引数で使う共通曲線設定型を、より広い派生設定ヘッダーから得るために生じた構築依存を除去する。工場2実装、取込み縮小で露出する直接利用者`KisDynamicSensorFactoryRegistry.h`、`kritapaintopdynamicsensorfactoryobjects`を範囲とし、テストソースと工場APIは変更しない。
-- 調査: `direnv exec . build-incremental native plan kritapaintopdynamicsensorfactoryobjects`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。対象は現在、Boost、Eigen、KDE翻訳、Qt Core・Xml、全体IDオブジェクト、lagerと全体基盤・画像の取込みディレクトリーを要求するが、実装の利用は`QString`、`Q_UNUSED`、`lager::cursor`、`QWidget`ポインターに限られる。
-- 完了: `KisDynamicSensorFactory.h`は広い`KisCurveOptionData.h`を、値渡しする`lager::cursor`が実体化に必要とする`KisCurveOptionDataCommon.h`へ置き換え、`QString`、lager、公開記号の所有ヘッダーを直接取り込む。完全型を前方宣言へ縮める案は既存工場契約の初回構築診断で利用者側の実体化に完全型が必要と確認し、公開APIを維持するため採用しなかった。単純工場は`Q_UNUSED`の所有ヘッダーを直接取り込む。工場登録簿は工場ヘッダーから偶然得ていた`KoID`と`QString`を直接取り込む。
-- 完了: `kritapaintopdynamicsensorfactoryobjects`は不要な全体基盤・画像の輸出定義と取込みディレクトリー、Boost、Eigen、KDE翻訳、Qt Xml、全体ID対象の列挙を除去した。公開依存はQt Core、lager、実際の引数型を所有する`kritapaintopcurveoptiondatacommonobjects`に限定した。
-- 検証: `direnv exec . build-incremental native build kritapaintopdynamicsensorfactoryobjects`と`kritalibpaintop`は成功し、macOSパッケージ境界1723対象を確認した。`direnv exec . run-test KisDynamicSensorFactoryContractTest`と`KisSimpleDynamicSensorFactoryContractTest`は各1件成功した。`direnv exec . ./scripts/verify-quick`は45個の方針試験、10責務、533公開ヘッダー、172プラグイン登録、文書・リンク・図を含めて成功した。
-- 残るリスク: 共通曲線設定型そのものが要求するBoost、Eigen、翻訳、全体ID、画像取込みは、この工場APIの値渡し署名を維持する限り公開構築要件となる。Qt 5と対象OSの実行確認はR2-G19dへ引き渡す。
-- 次の作業: `plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcoloroptionmodelobjects`を次の有限な監査単位とし、色オプションモデル1実装の所有ヘッダーと直接依存を測定する。
+- 更新日時: 2026-09-21 23:25 JST
+- 状態: `paused`
+- 現在の検査段階: R2-G19bm プラットフォーム構築による直接依存補正
+- 関連TODO: R2-G19aからR2-G19bmのmacOS・iOS範囲まで完了、R2-G19dは`planned`
+- ブランチ: `issue-44-direct-dependencies`
+- 開始コミット: `59f0b0722a`。作業開始時点の作業ツリーは変更なし。
+- 目的: macOSの一括監査をiOS構成で実コンパイルし、デスクトップ側の推移的な外部依存と条件付きヘッダーに依存する製品対象を直接化する。
+- 範囲固定: iOSの製品対象1673件と、診断で露出した26個の製品・CMakeファイルに限定する。固定CTest、公開API、保存形式、描画結果は維持する。
+- 調査: iOS構成と初回3391段階の構築から、Boost・Lagerの直接利用要件、GSL無効構成、iOSに存在しないデスクトップOpenGLヘッダー、条件分岐でだけ使うアイコン所有ヘッダーの不足を抽出した。
+- 完了: 公開ヘッダーでBoostを使うオブジェクト対象へ利用要件を伝播し、paint-op画面モデルへLagerを直接接続した。GSLヘッダーを機能条件内へ移し、機械監査が追加したデスクトップOpenGLヘッダーを除去し、iOS条件ソースへ所有ヘッダーを追加した。
+- 検証: `build-incremental ios bootstrap`は1164段階を完走して`LibrePaint.app`をリンクし、静的依存資源監査は未分類0件で成功した。再構成後のmacOS完全native検査は879/879件、306.23秒で成功し、`verify: OK`となった。固定テスト配下の開始基準からの差分はゼロである。
+- 残るリスク: Qt 5構成を提供する既存プロファイルがない。Linux・Windows・Androidの増分構成はx86_64 Linux構築ホストを要求し、macOSホストでは開始前に拒否されたため、Issue #44の全プラットフォーム完了条件は未達である。
+- 次の作業: x86_64 Linux構築ホストで同一ブランチを取得し、`build-incremental linux configure`、`windows configure`、`android configure`から各全製品対象を構築する。Qt 5構成を用意して対象構築を完了した後、対象和集合を確定してIssue #44を完了する。
 - 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
 - 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
 - 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。

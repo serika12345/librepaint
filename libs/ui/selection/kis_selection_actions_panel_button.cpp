@@ -9,10 +9,20 @@
 #include "events/KisLongPressEventFilter.h"
 #include "kis_icon_utils.h"
 #include <qapplication.h>
+#include <qcolor.h>
+#include <qcoreevent.h>
 #include <qevent.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qpaintdevice.h>
 #include <qpainter.h>
 #include <qpainterpath.h>
 #include <KoColorDisplayRendererInterface.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtversionchecks.h>
+#include <qwidget.h>
 
 static constexpr int ICON_SIZE_OFFSET = 6;
 

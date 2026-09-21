@@ -7,6 +7,19 @@
 
 #include <QDateTime>
 #include <QApplication>
+#include <qabstractitemmodel.h>
+#include <qcoreevent.h>
+#include <qicon.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpaintdevice.h>
+#include <qsqldatabase.h>
+#include <qsqlrelationaldelegate.h>
+#include <qsqlrelationaltablemodel.h>
+#include <qsqltablemodel.h>
+#include <qstyleoption.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
 TableDelegate::TableDelegate(QObject *parent)
     : QSqlRelationalDelegate(parent)

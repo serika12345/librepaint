@@ -16,11 +16,18 @@
 #include <KoShapeStroke.h>
 #include <KoShapeBackgroundCommand.h>
 #include <KoShapeStrokeCommand.h>
-#include <KoStopGradient.h>
 
+#include "KoFlake.h"
+#include "KoFlakeTypes.h"
 #include "kis_assert.h"
+#include "kis_pointer_utils.h"
 
 #include <KoFlakeUtils.h>
+#include <qforeach.h>
+#include <qnamespace.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
+#include <qtpreprocessorsupport.h>
 
 struct ShapeBackgroundFetchPolicy
 {

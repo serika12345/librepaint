@@ -8,12 +8,17 @@
  */
 
 #include "dlg_shrink_selection.h"
+#include "KoID.h"
+#include "operations/kis_operation_ui_widget.h"
 
 #include <KoUnit.h>
 #include <kis_size_group.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_image.h>
 #include <operations/kis_operation_configuration.h>
+#include <qassert.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
 
 WdgShrinkSelection::WdgShrinkSelection(QWidget* parent, KisViewManager *view, KisOperationConfigurationSP config)
     : KisOperationUIWidget(i18n("Shrink Selection"), parent)
@@ -98,4 +103,3 @@ void WdgShrinkSelection::getConfiguration(KisOperationConfigurationSP config)
     config->setProperty("y-radius", m_shrinkValue);
     config->setProperty("edgeLock", !m_shrinkFromImageBorder);
 }
-

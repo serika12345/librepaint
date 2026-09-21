@@ -4,11 +4,18 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisVisualTriangleSelectorShape.h"
+#include "KisVisualColorSelectorShape.h"
 
 #include <QColor>
 #include <QPainter>
 #include <QRect>
 #include <QtMath>
+#include <qimage.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qpoint.h>
+#include <qregion.h>
+#include <qtypes.h>
 
 
 KisVisualTriangleSelectorShape::KisVisualTriangleSelectorShape(KisVisualColorSelector *parent,

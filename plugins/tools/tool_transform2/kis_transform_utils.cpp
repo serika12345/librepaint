@@ -9,8 +9,17 @@
 #include <QPainterPath>
 #include <QTransform>
 #include <QVector3D>
-#include <KoUpdater.h>
 #include <KoUnit.h>
+#include <KoUpdater.h>
+#include "KisQStringListFwd.h"
+#include "kis_assert.h"
+#include "kis_coordinates_converter.h"
+#include "kis_global.h"
+#include "kis_layer_utils.h"
+#include "kis_processing_visitor.h"
+#include "kis_transform_mask_params_interface.h"
+#include "kis_types.h"
+#include "kundo2commandextradata.h"
 #include "tool_transform_args.h"
 #include "kis_paint_device.h"
 #include "kis_algebra_2d.h"
@@ -22,6 +31,13 @@
 #include <kis_warptransform_worker.h>
 #include <kis_cage_transform_worker.h>
 #include <kis_liquify_transform_worker.h>
+#include <math.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qpoint.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #include "commands_new/kis_saved_commands.h"
 #include "kis_transform_mask.h"

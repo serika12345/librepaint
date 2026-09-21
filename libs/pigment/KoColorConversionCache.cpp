@@ -5,6 +5,7 @@
 */
 
 #include "KoColorConversionCache.h"
+#include "KoColorConversionTransformation.h"
 
 #include <QList>
 #include <QMutex>
@@ -12,6 +13,12 @@
 #include <QThreadStorage>
 
 #include <KoColorSpace.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <qtypes.h>
 
 struct KoColorConversionCacheKey {
 

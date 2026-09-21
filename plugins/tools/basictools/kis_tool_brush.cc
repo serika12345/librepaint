@@ -8,7 +8,7 @@
  */
 
 #include "kis_tool_brush.h"
-#include <kis_icon.h>
+#include <cmath>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -23,12 +23,26 @@
 #include <KoCanvasController.h>
 
 #include <kis_action_registry.h>
+#include "KisToolPaintFactoryBase.h"
 #include "kis_cursor.h"
 #include "application/kis_config.h"
+#include "kis_global.h"
 #include "kis_slider_spin_box.h"
+#include "kis_smoothing_options.h"
+#include "kis_tool_freehand.h"
 #include "kundo2magicstring.h"
 
-#include <KisUsageLogger.h>
+#include <qboxlayout.h>
+#include <qframe.h>
+#include <qgridlayout.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qsizepolicy.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 #include "kis_tool.h"
 #include "kis_aspect_ratio_locker.h"
 #include "kis_floating_message.h"

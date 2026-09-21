@@ -6,9 +6,10 @@
 #ifndef KISCOMPOSITEOPOPTIONDATA_H
 #define KISCOMPOSITEOPOPTIONDATA_H
 
-#include "kis_types.h"
 #include <boost/operators.hpp>
 #include <kritapaintop_export.h>
+
+#include <QString>
 
 class KisPropertiesConfiguration;
 

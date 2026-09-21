@@ -9,8 +9,11 @@
 
 #include <QApplication>
 #include <QNativeGestureEvent>
+#include <cmath>
 #include <klocalizedstring.h>
 
+#include "KisInputActionGroup.h"
+#include "kis_assert.h"
 #include "kis_cursor.h"
 #include "kis_canvas_controller.h"
 #include <kis_canvas2.h>
@@ -18,6 +21,12 @@
 #include <KoViewTransformStillPoint.h>
 
 #include <math.h>
+#include <qhash.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 constexpr qreal DISCRETE_ANGLE_STEP = 15.0;  // discrete rotation snapping angle
 

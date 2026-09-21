@@ -9,6 +9,9 @@
 
 #include <kis_assert.h>
 #include <kis_time_span.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qpair.h>
 
 namespace
 {

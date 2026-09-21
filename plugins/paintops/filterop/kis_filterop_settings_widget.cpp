@@ -9,16 +9,18 @@
  */
 
 #include "kis_filterop_settings_widget.h"
+#include "KisBrushOptionWidgetFlags.h"
+#include "kis_brush_based_paintop_options_widget.h"
 #include "kis_filterop_settings.h"
+#include "kis_types.h"
 
-#include <kis_properties_configuration.h>
-#include <filter/kis_filter.h>
 #include <KisStandardOptionData.h>
 #include <KisPaintOpOptionWidgetUtils.h>
 #include <KisCompositeOpOptionWidget.h>
 #include <KisSizeOptionWidget.h>
 #include <KisMirrorOptionWidget.h>
 #include <KisFilterOptionWidget.h>
+#include <qwidget.h>
 
 KisFilterOpSettingsWidget::KisFilterOpSettingsWidget(QWidget* parent)
     : KisBrushBasedPaintopOptionWidget(KisBrushOptionWidgetFlag::SupportsPrecision, parent)

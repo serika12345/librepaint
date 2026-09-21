@@ -9,11 +9,10 @@
 
 
 
-#include <KoResourcePaths.h>
 #include <filter/kis_filter.h>
 #include <filter/kis_filter_configuration.h>
+#include <kguiitem.h>
 #include <kis_filter_mask.h>
-#include <kis_image.h>
 #include <kis_node.h>
 #include <kis_layer.h>
 #include <kis_paint_layer.h>
@@ -23,6 +22,8 @@
 
 #include <commands/kis_node_commands_adapter.h>
 #include "document/kis_filter_manager.h"
+#include "kis_types.h"
+#include <kis_image.h>
 #include "ui_wdgfilterdialog.h"
 #include "kis_canvas2.h"
 #include "kis_signal_compressor.h"
@@ -31,6 +32,12 @@
 #include <kstandardguiitem.h>
 #include <kconfig.h>
 #include <ksharedconfig.h>
+#include <qassert.h>
+#include <qdialog.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
 
 struct KisDlgFilter::Private {
     Private(KisFilterManager *_filterManager, KisViewManager *_view)

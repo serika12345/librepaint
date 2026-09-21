@@ -7,14 +7,17 @@
 
 #include "WGActionManager.h"
 
+#include "KisVisualColorModel.h"
 #include "WGColorSelectorDock.h"
 #include "WGColorPatches.h"
 #include "WGColorPreviewToolTip.h"
+#include "WGConfig.h"
 #include "WGConfigSelectorTypes.h"
 #include "WGMyPaintShadeSelector.h"
 #include "WGSelectorPopup.h"
 #include "WGSelectorWidgetBase.h"
 #include "WGShadeSelector.h"
+#include "kis_assert.h"
 
 #include <application/ui/orchestration/kis_action.h>
 #include <application/ui/orchestration/kis_action_manager.h>
@@ -26,6 +29,14 @@
 #include <KisVisualColorSelector.h>
 
 #include <QVector4D>
+#include <qcolor.h>
+#include <qminmax.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 WGActionManager::WGActionManager(WGColorSelectorDock *parentDock)
     : QObject(parentDock)

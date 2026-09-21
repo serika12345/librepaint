@@ -13,28 +13,30 @@
 #include "kis_emboss_filter.h"
 
 
+#include <qassert.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <stdlib.h>
 
 #include <QPoint>
 #include <QSpinBox>
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
+#include "KoColorSpace.h"
 #include "KoIntegerMaths.h"
 #include <KoUpdater.h>
 
 #include <kis_random_accessor_ng.h>
 #include <filter/kis_filter_registry.h>
 #include <kis_global.h>
-#include <kis_selection.h>
 #include <kis_types.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
 #include <kis_paint_device.h>
-#include <kis_processing_information.h>
 
+#include "kis_config_widget.h"
 #include "widgets/kis_multi_integer_filter_widget.h"
 #include <KisSequentialIteratorProgress.h>
 

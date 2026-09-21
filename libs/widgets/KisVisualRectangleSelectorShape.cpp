@@ -5,6 +5,7 @@
  */
 #include "KisVisualRectangleSelectorShape.h"
 #include "KisVisualColorSelector.h"
+#include "KisVisualColorSelectorShape.h"
 
 #include <QColor>
 #include <QPainter>
@@ -12,6 +13,14 @@
 #include <QList>
 #include <QLineF>
 #include <QtMath>
+#include <qforeach.h>
+#include <qimage.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qregion.h>
+#include <qtypes.h>
 
 
 KisVisualRectangleSelectorShape::KisVisualRectangleSelectorShape(KisVisualColorSelector *parent,

@@ -7,6 +7,7 @@
 #include "KisHatchingPreferencesData.h"
 
 #include "kis_properties_configuration.h"
+#include <qhashfunctions.h>
 
 
 const QString HATCHING_ANTIALIAS = "Hatching/bool_antialias";

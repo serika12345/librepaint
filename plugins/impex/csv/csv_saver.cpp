@@ -16,13 +16,9 @@
 #include <QRegularExpression>
 
 #include <document/KisDocument.h>
-#include <KisMimeDatabase.h>
 #include <application/ui/orchestration/KisPart.h>
-#include <KoColorModelStandardIds.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
-#include <kis_annotation.h>
-#include <kis_debug.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_image_animation_interface.h>
@@ -34,8 +30,17 @@
 #include <kis_time_span.h>
 #include <kis_types.h>
 #include <KisCursorOverrideLock.h>
+#include <qalgorithms.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
 
+#include "KisImportExportErrorCode.h"
+#include "KisQStringListFwd.h"
+#include "KoColorSpaceConstants.h"
+#include "KoCompositeOpIds.h"
 #include "csv_layer_record.h"
+#include "kis_assert.h"
 
 CSVSaver::CSVSaver(KisDocument *doc, bool batchMode)
     : m_image(doc->savingImage())

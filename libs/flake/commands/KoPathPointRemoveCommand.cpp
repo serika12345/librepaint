@@ -6,10 +6,18 @@
  */
 
 #include "KoPathPointRemoveCommand.h"
+#include "KoPathPointData.h"
 #include "KoSubpathRemoveCommand.h"
 #include "KoShapeController.h"
 #include "KoPathPoint.h"
+#include "kundo2magicstring.h"
+#include <algorithm>
+#include <functional>
 #include <klocalizedstring.h>
+#include <qalgorithms.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qmap.h>
 
 class KoPathPointRemoveCommandPrivate
 {

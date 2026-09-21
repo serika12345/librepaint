@@ -3,7 +3,12 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "KisExportCheckBase.h"
+#include "KisImportExportFilter.h"
 #include "KisImportExportFilter_p.h"
+#include <qalgorithms.h>
+#include <qmap.h>
+#include <qobject.h>
 
 QMap<QString, KisExportCheckBase *> KisImportExportFilter::exportChecks()
 {

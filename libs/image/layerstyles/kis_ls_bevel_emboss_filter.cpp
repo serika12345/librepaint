@@ -9,15 +9,28 @@
 
 #include "kis_ls_bevel_emboss_filter.h"
 
+#include <cmath>
 #include <cstdlib>
 
 #include <QBitArray>
 
-#include <KoUpdater.h>
-#include <resources/KoPattern.h>
+#include <math.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #include <resources/KoAbstractGradient.h>
 
+#include "KisSelectionTags.h"
+#include "KoCompositeOpIds.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_filter_configuration.h"
+#include "kis_global.h"
+#include "kis_layer_style_filter.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 #include "psd.h"
 
 #include "kis_convolution_kernel.h"
@@ -34,6 +47,7 @@
 #include "gimp_bump_map.h"
 #include "kis_multiple_projection.h"
 #include "kis_cached_paint_device.h"
+#include "psd_types.h"
 
 
 KisLsBevelEmbossFilter::KisLsBevelEmbossFilter()

@@ -5,9 +5,14 @@
  */
 
 #include "deform_brush.h"
+#include "KisDeformOptionData.h"
+#include "KoColorSpaceConstants.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
 #include "kis_painter.h"
 
 #include "kis_fixed_paint_device.h"
+#include "kis_random_source.h"
 
 #include <KoColor.h>
 #include <KoColorSpace.h>
@@ -15,11 +20,16 @@
 #include <QRect>
 
 #include <kis_types.h>
-#include <kis_iterator_ng.h>
 #include <kis_cross_device_color_sampler.h>
 
 #include <ctime>
 #include <KoColorSpaceRegistry.h>
+#include <math.h>
+#include <qcolor.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qtransform.h>
+#include <qtypes.h>
 
 const qreal degToRad = M_PI / 180.0;
 

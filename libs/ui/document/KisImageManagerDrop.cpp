@@ -5,6 +5,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "KoColorSpaceConstants.h"
 #include "document/kis_image_manager.h"
 
 #include "canvas/KisReferenceImage.h"
@@ -14,6 +15,8 @@
 #include "document/KisDocument.h"
 #include "document/kis_file_layer.h"
 #include "kis_clipboard.h"
+#include "kis_debug.h"
+#include <kis_group_layer.h>
 #include "kis_mimedata.h"
 #include "kis_shape_controller.h"
 #include "nodes/kis_node_manager.h"
@@ -24,6 +27,7 @@
 
 #include <KoToolManager.h>
 
+#include <boost/optional/optional.hpp>
 #include <klocalizedstring.h>
 
 #include <QCursor>
@@ -34,7 +38,6 @@
 #include <QTemporaryFile>
 #include <QUrl>
 
-#include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_layer.h>
 #include <kis_node.h>
@@ -42,6 +45,12 @@
 
 #include <algorithm>
 #include <functional>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
 
 void KisImageManager::handleImageDrop(KisView *imageView,
                                       QDropEvent *event,

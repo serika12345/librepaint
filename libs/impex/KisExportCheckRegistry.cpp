@@ -5,11 +5,10 @@
  */
 
 #include "KisExportCheckRegistry.h"
+#include "KisExportCheckBase.h"
 #include <KoID.h>
 #include <klocalizedstring.h>
-#include <kis_image.h>
 #include <KoColorSpace.h>
-#include <KoColorModelStandardIds.h>
 #include <KoColorSpaceRegistry.h>
 #include <kis_generator_registry.h>
 
@@ -27,6 +26,10 @@
 #include <MultiTransparencyMaskCheck.h>
 #include <NodeTypeCheck.h>
 #include <PSDLayerStylesCheck.h>
+#include <qalgorithms.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
 #include <sRGBProfileCheck.h>
 #include <ShapeLayerTypeCheck.h>
 

@@ -5,10 +5,15 @@
  */
 
 #include "tasksetmodel.h"
+#include "kis_icon_utils.h"
 
 #include <QAction>
 #include <klocalizedstring.h>
-#include <kis_icon.h>
+#include <qabstractitemmodel.h>
+#include <qicon.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qvariant.h>
 
 TasksetModel::TasksetModel(QObject* parent): QAbstractTableModel(parent)
 {

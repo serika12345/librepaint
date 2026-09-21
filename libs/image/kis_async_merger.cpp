@@ -8,9 +8,10 @@
 
 #include <kis_debug.h>
 
-#include <KoChannelInfo.h>
-#include <KoCompositeOpRegistry.h>
+#include <qassert.h>
+#include <qtpreprocessorsupport.h>
 
+#include "kis_assert.h"
 #include "kis_node_visitor.h"
 #include "kis_painter.h"
 #include "kis_layer.h"
@@ -30,6 +31,7 @@
 #include "kis_merge_walker.h"
 
 #include "kis_abstract_projection_plane.h"
+#include "kis_types.h"
 
 
 //#define DEBUG_MERGER

@@ -7,6 +7,10 @@
 #include "KoTitledTabWidget.h"
 
 #include <QLabel>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtabwidget.h>
+#include <qwidget.h>
 
 KoTitledTabWidget::KoTitledTabWidget(QWidget *parent)
     : QTabWidget(parent)

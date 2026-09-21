@@ -6,14 +6,22 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include <KisRunnableStrokeJobUtils.h>
+#include <boost/none_t.hpp>
 #include <filter/kis_filter_configuration.h>
 #include <kis_generator_layer.h>
 #include <kis_processing_information.h>
 #include <kis_processing_visitor.h>
-#include <kis_selection.h>
 #include <krita_utils.h>
+#include <qlatin1stringview.h>
 
 #include "kis_generator_stroke_strategy.h"
+#include "KisQStringListFwd.h"
+#include "KisRunnableBasedStrokeStrategy.h"
+#include "kis_simple_stroke_strategy.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_types.h"
+#include "kis_paint_device.h"
+#include "kundo2magicstring.h"
 
 KisGeneratorStrokeStrategy::KisGeneratorStrokeStrategy()
     : KisRunnableBasedStrokeStrategy(QLatin1String("KisGenerator"), kundo2_i18n("Fill Layer Render"))

@@ -6,7 +6,6 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <kis_debug.h>
 #include <klocalizedstring.h>
 
 #include <QCheckBox>
@@ -21,17 +20,30 @@
 #include <KoCanvasBase.h>
 #include <KoPointerEvent.h>
 
-#include <kis_layer.h>
 #include <kis_painter.h>
-#include <resources/KoPattern.h>
-#include <kis_selection.h>
+#include <qdom.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qsizepolicy.h>
+#include <qtpreprocessorsupport.h>
+#include <qtransform.h>
+#include <qtypes.h>
 
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas2.h>
 #include <kis_slider_spin_box.h>
-#include <kis_cursor.h>
+#include "KisAngleGauge.h"
+#include "KisQStringListFwd.h"
+#include "KoColorModelStandardIds.h"
+#include "KoCompositeOpIds.h"
+#include "commands_new/KisMergeLabeledLayersCommand.h"
+#include "kis_assert.h"
+#include "kis_floating_message.h"
+#include "kis_icon_utils.h"
 #include "kis_resources_snapshot.h"
-#include <kis_color_filter_combo.h>
 #include <KisAngleSelector.h>
 #include <KoGroupButton.h>
 #include <kis_color_button.h>
@@ -42,14 +54,12 @@
 #include <kis_stroke_strategy_undo_command_based.h>
 #include <commands_new/kis_processing_command.h>
 #include <commands_new/kis_update_command.h>
-#include <kis_command_utils.h>
 #include <kis_group_layer.h>
 #include <kis_layer_utils.h>
 
 #include <KisSpinBoxI18nHelper.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
-#include <kis_dummies_facade.h>
 #include <KoShapeControllerBase.h>
 #include <kis_shape_controller.h>
 #include <canvas/kis_canvas_resource_provider.h>
@@ -59,6 +69,12 @@
 #include <processing/KisEncloseAndFillProcessingVisitor.h>
 
 #include "KisToolEncloseAndFill.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_tool.h"
+#include "kis_tool_shape.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "subtools/KisDynamicDelegatedTool.h"
 #include "subtools/KisRectangleEnclosingProducer.h"
 #include "subtools/KisEllipseEnclosingProducer.h"
 #include "subtools/KisPathEnclosingProducer.h"

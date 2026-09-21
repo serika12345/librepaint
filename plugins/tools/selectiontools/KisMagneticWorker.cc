@@ -6,6 +6,13 @@
 
 #include "KisMagneticWorker.h"
 
+#include <algorithm>
+#include <boost/core/ref.hpp>
+#include <boost/graph/named_function_params.hpp>
+#include <boost/graph/properties.hpp>
+#include <boost/property_map/property_map.hpp>
+#include <cmath>
+#include <functional>
 #include <kis_gaussian_kernel.h>
 #include <lazybrush/kis_lazy_fill_tools.h>
 #include <kis_algebra_2d.h>
@@ -18,8 +25,18 @@
 
 #include <boost/graph/astar_search.hpp>
 #include <krita_utils.h>
+#include <limits>
+#include <map>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qpoint.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <utility>
 
 #include "KisMagneticGraph.h"
+#include "kis_global.h"
+#include "kis_types.h"
 
 struct DistanceMap {
     typedef VertexDescriptor key_type;

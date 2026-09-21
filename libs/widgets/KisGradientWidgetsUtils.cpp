@@ -7,8 +7,17 @@
 #include <QPainterPath>
 
 #include <KoCheckerBoardPainter.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qsize.h>
+#include <qtypes.h>
 
 #include "KisGradientWidgetsUtils.h"
+#include "KoAbstractGradient.h"
+#include "KoSegmentGradient.h"
 
 namespace KisGradientWidgetsUtils
 {

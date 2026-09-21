@@ -5,6 +5,8 @@
  */
 
 #include "SvgInlineSizeChangeStrategy.h"
+#include "KoFlake.h"
+#include "KoInteractionStrategy.h"
 #include "SvgInlineSizeChangeCommand.h"
 #include "SvgMoveTextCommand.h"
 #include "SvgInlineSizeHelper.h"
@@ -16,6 +18,10 @@
 
 #include "KoCanvasBase.h"
 #include "KoToolBase.h"
+#include <cmath>
+#include <optional>
+#include <qnamespace.h>
+#include <qnumeric.h>
 
 using SvgInlineSizeHelper::InlineSizeInfo;
 using SvgInlineSizeHelper::Side;

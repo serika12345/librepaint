@@ -6,8 +6,11 @@
  */
 
 #include "kis_tiff_converter.h"
+#include "kis_types.h"
 
-#include <tiffio.h>
+#include <qhash.h>
+#include <qtypes.h>
+#include <tiff.h>
 
 #include <kis_properties_configuration.h>
 #include <psd_types.h>

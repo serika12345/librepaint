@@ -10,15 +10,15 @@
 
 #include <KoStore.h>
 #include <KoStoreDevice.h>
-#include <KoColorSpaceRegistry.h>
 #include <kundo2command.h>
-#include <kis_paint_layer.h>
 #include <kis_paint_device.h>
-#include <kis_image.h>
 
 #include <kis_meta_data_store.h>
+#include <qtypes.h>
 
+#include "kis_debug.h"
 #include "kis_png_converter.h"
+#include "kis_types.h"
 
 KisOpenRasterSaveContext::KisOpenRasterSaveContext(KoStore* store)
     : m_id(0)

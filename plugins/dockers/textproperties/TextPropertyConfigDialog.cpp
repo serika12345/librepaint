@@ -9,9 +9,14 @@
 #include <QQmlEngine>
 #include <QQmlContext>
 #include <QQuickItem>
-#include <KoResourcePaths.h>
+#include <qlogging.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
 #include "TextPropertyConfigDialog.h"
+#include "KisQQuickWidget.h"
+#include "KoDialog.h"
+#include "TextPropertyConfigModel.h"
 
 TextPropertyConfigDialog::TextPropertyConfigDialog(QWidget *parent)
     : KoDialog(parent)

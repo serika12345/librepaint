@@ -10,36 +10,41 @@
 
 #include <KoProperties.h>
 
-#include <kis_transaction.h>
 #include <filter/kis_filter_configuration.h>
-#include <commands/kis_node_commands.h>
 #include <kis_undo_adapter.h>
 #include <kis_paint_layer.h>
+#include "KisQStringListFwd.h"
+#include "KoColorSpaceConstants.h"
+#include "commands/kis_change_filter_command.h"
+#include "commands/kis_image_layer_add_command.h"
 #include "document/KisDocument.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include <kis_layer.h>
-#include <kis_clone_layer.h>
-#include <kis_group_layer.h>
 #include <kis_filter_mask.h>
 #include <lazybrush/kis_colorize_mask.h>
 #include <kis_transform_mask.h>
 #include <kis_transparency_mask.h>
 #include <kis_selection_mask.h>
-#include <kis_effect_mask.h>
 #include "dialogs/kis_dlg_adjustment_layer.h"
-#include <kis_selection.h>
+#include <qapplication.h>
+#include <qassert.h>
+#include <qdialog.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qpointer.h>
+#include <qtpreprocessorsupport.h>
 #include <selection/kis_selection_manager.h>
-#include <kis_pixel_selection.h>
 #include "dialogs/kis_dlg_adj_layer_props.h"
 #include <kis_image.h>
-#include <kis_transform_worker.h>
-#include <KoColorSpace.h>
-#include <KoColor.h>
 #include <commands/kis_node_commands_adapter.h>
 #include "commands/kis_deselect_global_selection_command.h"
 #include "commands_new/KisLayerCollapseCommand.h"
 #include <KisGlobalResourcesInterface.h>
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 #include "nodes/kis_node_manager.h"
+#include "ui/workspace/KisView.h"
+#include "ui_wdgfilternodecreation.h"
 
 
 KisMaskManager::KisMaskManager(KisViewManager * view)

@@ -6,8 +6,12 @@
 
 #include <kis_dom_utils.h>
 #include <QPointF>
+#include <qassert.h>
+#include <qhashfunctions.h>
+#include <qobject.h>
 
 #include "KisMirrorAxisConfig.h"
+#include "kis_assert.h"
 
 
 class Q_DECL_HIDDEN KisMirrorAxisConfig::Private

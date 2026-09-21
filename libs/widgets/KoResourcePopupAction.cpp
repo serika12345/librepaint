@@ -7,6 +7,7 @@
  */
 
 #include "KoResourcePopupAction.h"
+#include "KisResourceTypes.h"
 
 #include <KisResourceItemListView.h>
 #include <KisResourceModel.h>
@@ -15,6 +16,16 @@
 
 #include <KoCheckerBoardPainter.h>
 #include <KoShapeBackground.h>
+#include <qaction.h>
+#include <qicon.h>
+#include <qkeysequence.h>
+#include <qlistview.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsharedpointer.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 #include <resources/KoAbstractGradient.h>
 #include <resources/KoPattern.h>
 #include <KoGradientBackground.h>

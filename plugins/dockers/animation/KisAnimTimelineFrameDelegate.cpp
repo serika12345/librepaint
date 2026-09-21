@@ -11,6 +11,15 @@
 #include <QApplication>
 #include <QSvgRenderer>
 #include <kis_painting_tweaks.h>
+#include <qabstractitemmodel.h>
+#include <qimage.h>
+#include <qitemdelegate.h>
+#include <qline.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpoint.h>
+#include <qstyleoption.h>
+#include <qwidget.h>
 #include "KisAnimTimelineFramesModel.h"
 #include "KisAnimTimelineColors.h"
 

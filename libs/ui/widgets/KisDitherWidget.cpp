@@ -8,16 +8,25 @@
 
 #include "KisDitherWidget.h"
 
+#include <cstdlib>
 #include <kpluginfactory.h>
-#include <KoUpdater.h>
+#include "KisResourceTypes.h"
+#include "KisResourceUiDescriptor.h"
+#include "KoID.h"
 #include "kis_filter_configuration.h"
 #include "KisResourcesInterface.h"
 #include <KisResourceItemChooser.h>
-#include <KoColorSet.h>
 #include <KoPattern.h>
 #include <kis_properties_configuration.h>
 #include "KisDitherUtil.h"
+#include "ui_KisDitherWidget.h"
 #include <KoResourceLoadResult.h>
+#include <qcombobox.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qoverload.h>
+#include <qvalidator.h>
 
 KisDitherWidget::KisDitherWidget(QWidget* parent)
     : QWidget(parent), Ui::KisDitherWidget()

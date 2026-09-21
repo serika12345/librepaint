@@ -4,9 +4,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisToolChangesTrackerData.h"
 #include <KisToolChangesTracker.h>
 
 #include <QSharedPointer>
+#include <qlist.h>
+#include <qtmetamacros.h>
 
 struct KisToolChangesTracker::Private {
     QList<KisToolChangesTrackerDataSP> undoStack;

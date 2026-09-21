@@ -7,23 +7,35 @@
 #include "kis_resources_snapshot.h"
 
 #include <KoColor.h>
+#include <qbitarray.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpoint.h>
+#include <qtypes.h>
 #include <resources/KoAbstractGradient.h>
 #include <KoCompositeOpRegistry.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paintop_settings.h>
 #include <brushengine/kis_paintop_registry.h>
-#include <kis_threaded_text_rendering_workaround.h>
 #include <resources/KoPattern.h>
 #include <KoCanvasResourcesIds.h>
 #include <KoCanvasResourcesInterface.h>
 #include <KoResourceCacheInterface.h>
+#include "KoColorSpaceConstants.h"
+#include "KoCompositeOpIds.h"
+#include "KoResourceSignature.h"
 #include "filter/kis_filter_configuration.h"
+#include "kis_assert.h"
+#include "kis_default_bounds.h"
+#include "kis_default_bounds_base.h"
 #include "kis_image.h"
+#include "kis_layer.h"
 #include "kis_paint_device.h"
 #include "kis_paint_layer.h"
 #include "kis_selection_mask.h"
 #include "kis_algebra_2d.h"
 #include "KisGlobalResourcesInterface.h"
+#include "kis_types.h"
 
 struct KisResourcesSnapshot::Private {
     Private()

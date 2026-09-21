@@ -15,11 +15,17 @@
 #include <kis_signals_blocker.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas_resource_provider.h>
+#include <qassert.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
 
 #include "KisHalftoneConfigWidget.h"
 #include "KisHalftoneConfigPageWidget.h"
 #include "KisHalftoneFilterConfiguration.h"
+#include "kis_config_widget.h"
+#include "kis_generator.h"
+#include "kis_types.h"
 
 KisHalftoneConfigWidget::KisHalftoneConfigWidget(QWidget *parent,  const KisPaintDeviceSP dev)
     : KisConfigWidget(parent)

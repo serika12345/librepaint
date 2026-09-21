@@ -7,10 +7,20 @@
 #include <KoCompositeOpRegistry.h>
 #include <kis_algebra_2d.h>
 #include <QtMath>
+#include <qminmax.h>
+#include <qpolygon.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include "KisColorSmudgeStrategyMaskLegacy.h"
 #include "KisColorSmudgeSampleUtils.h"
 
+#include "KisColorSmudgeSource.h"
+#include "KisColorSmudgeStrategyMask.h"
+#include "KoColorSpaceConstants.h"
+#include "KoCompositeOpIds.h"
 #include "kis_image.h"
+#include "kis_painter.h"
+#include "kis_types.h"
 
 KisColorSmudgeStrategyMaskLegacy::KisColorSmudgeStrategyMaskLegacy(KisPainter *painter, KisImageSP image,
                                                                    bool smearAlpha, bool useDullingMode,

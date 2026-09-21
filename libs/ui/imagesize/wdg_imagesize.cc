@@ -18,6 +18,16 @@
 #include <klocalizedstring.h>
 
 #include <kis_filter_strategy.h>
+#include <qassert.h>
+#include <qboxlayout.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qoverload.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 #include "kis_aspect_ratio_locker.h"
 #include "kis_acyclic_signal_connector.h"

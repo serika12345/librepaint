@@ -12,19 +12,23 @@
 #include <QSpinBox>
 
 #include <KoColor.h>
-#include <KoToolManager.h>
 
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
-#include <filter/kis_filter.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_selection.h>
 #include <kis_paint_device.h>
-#include <kis_processing_information.h>
 #include <KoColorSpaceRegistry.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qevent.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qvariant.h>
 
+#include "KoCanvasResourceProvider.h"
+#include "kis_config_widget.h"
+#include "kis_types.h"
 #include "ui_wdgcolortoalphabase.h"
 
 KisWdgColorToAlpha::KisWdgColorToAlpha(QWidget * parent)

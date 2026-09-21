@@ -20,7 +20,10 @@
 #include <QHash>
 #include <QFile>
 #include <QFileInfo>
-#include <KisMimeDatabase.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 
 class Q_DECL_HIDDEN SvgSavingContext::Private
 {

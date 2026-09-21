@@ -11,9 +11,24 @@
 #include <QPointF>
 #include <QPainter>
 #include <QPainterPath>
+#include <cmath>
+#include <qforeach.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
+#include "KisHandleStyle.h"
+#include "KisQStringListFwd.h"
 #include "KoColorDisplayRendererInterface.h"
+#include "kis_assert.h"
 #include "kis_coordinates_converter.h"
+#include "kis_global.h"
+#include "kis_simplified_action_policy_strategy.h"
+#include "kis_warptransform_worker.h"
 #include "tool_transform_args.h"
 #include "transform_transaction_properties.h"
 #include "kis_painting_tweaks.h"

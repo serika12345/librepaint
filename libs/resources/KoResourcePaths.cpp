@@ -16,6 +16,14 @@
 #include <QCoreApplication>
 #include <QMutex>
 #include <QRegularExpression>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtenvironmentvariables.h>
+#include <qtpreprocessorsupport.h>
 #include "kis_debug.h"
 #include "ksharedconfig.h"
 #include "kconfiggroup.h"
@@ -96,9 +104,6 @@ static const Qt::CaseSensitivity cs = Qt::CaseSensitive;
 #endif
 
 #ifdef Q_OS_MACOS
-#include <ApplicationServices/ApplicationServices.h>
-#include <CoreFoundation/CoreFoundation.h>
-#include <CoreServices/CoreServices.h>
 #endif
 
 QString getInstallationPrefix() {

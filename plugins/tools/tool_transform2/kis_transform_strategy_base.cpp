@@ -9,7 +9,11 @@
 #include <QImage>
 #include <QPainterPath>
 #include <QTransform>
+#include <qminmax.h>
+#include <qtpreprocessorsupport.h>
 #include "KoPointerEvent.h"
+#include "KoToolBase.h"
+#include "kis_tool.h"
 
 
 struct KisTransformStrategyBase::Private

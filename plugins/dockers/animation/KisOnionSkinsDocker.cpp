@@ -5,6 +5,9 @@
  */
 
 #include "KisOnionSkinsDocker.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KoCanvasObserverBase.h"
 #include "ui_KisOnionSkinsDocker.h"
 
 #include <QSlider>
@@ -22,6 +25,12 @@
 #include <KoColorSpaceRegistry.h>
 #include "application/ui/workspace/KisMainWindow.h"
 #include <KisSpinBoxI18nHelper.h>
+#include <qboxlayout.h>
+#include <qcolor.h>
+#include <qlayout.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qset.h>
 
 #include "kis_equalizer_widget.h"
 #include "kis_color_label_button.h"

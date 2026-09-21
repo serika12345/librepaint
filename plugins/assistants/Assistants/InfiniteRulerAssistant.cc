@@ -9,6 +9,11 @@
  */
 
 #include "InfiniteRulerAssistant.h"
+#include "KisQStringListFwd.h"
+#include "KoCanvasBase.h"
+#include "RulerAssistant.h"
+#include "kis_painting_assistant.h"
+#include "kis_types.h"
 
 #include <klocalizedstring.h>
 
@@ -20,7 +25,13 @@
 #include <kis_coordinates_converter.h>
 #include <kis_algebra_2d.h>
 
+#include <limits>
 #include <math.h>
+#include <qassert.h>
+#include <qline.h>
+#include <qmap.h>
+#include <qpoint.h>
+#include <qtypes.h>
 
 InfiniteRulerAssistant::InfiniteRulerAssistant()
     : RulerAssistant("infinite ruler", i18n("Infinite Ruler assistant"))

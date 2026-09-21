@@ -28,10 +28,23 @@
 #include "application/ui/workspace/KisMainWindow.h"
 
 #include <QCoreApplication>
-#include <kis_debug.h>
 
 #include <klocalizedstring.h>
 #include <KritaVersionWrapper.h>
+#include <qabstractitemmodel.h>
+#include <qabstractitemview.h>
+#include <qapplication.h>
+#include <qcolor.h>
+#include <qcoreevent.h>
+#include <qforeach.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qscopedpointer.h>
+#include <qscroller.h>
+#include <qwidget.h>
 
 
 KisWelcomePageWidget::KisWelcomePageWidget(QWidget *parent)

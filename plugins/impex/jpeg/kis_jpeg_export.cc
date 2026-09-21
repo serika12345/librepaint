@@ -37,10 +37,23 @@
 #include <kis_meta_data_schema_registry.h>
 #include <kis_meta_data_filter_registry_model.h>
 #include <kis_exif_info_visitor.h>
-#include <generator/kis_generator_layer.h>
 #include <KisExportCheckRegistry.h>
 #include <KisSpinBoxI18nHelper.h>
+#include "KisExportCheckBase.h"
+#include "KisImportExportErrorCode.h"
+#include "KisResourceTypes.h"
+#include "KoColorModelStandardIds.h"
+#include "KoID.h"
+#include "kis_config_widget.h"
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qvariant.h>
 #include "kis_jpeg_converter.h"
+#include "kis_types.h"
 
 class KisExternalLayer;
 

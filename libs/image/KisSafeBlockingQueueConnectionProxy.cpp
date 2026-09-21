@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisSafeBlockingQueueConnectionProxy.h"
+#include "kis_signal_compressor_with_param.h"
 
 #include <QThread>
 #include <QApplication>
@@ -11,6 +12,9 @@
 #include <KisBusyWaitBroker.h>
 #include <atomic>
 #include <memory>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 namespace {
 struct BlockingCallState

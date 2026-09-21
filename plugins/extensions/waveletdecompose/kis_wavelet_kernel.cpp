@@ -6,10 +6,17 @@
 
 #include "kis_wavelet_kernel.h"
 
+#include "kis_assert.h"
 #include "kis_convolution_kernel.h"
+#include "kis_painter.h"
+#include "kis_types.h"
+#include <Eigen/Core>
+#include <cmath>
 #include <kis_convolution_painter.h>
 #include <kis_paint_device.h>
 #include <QRect>
+#include <qbitarray.h>
+#include <qtypes.h>
 
 
 

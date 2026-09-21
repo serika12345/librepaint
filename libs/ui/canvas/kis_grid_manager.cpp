@@ -9,11 +9,9 @@
 #include "kis_grid_manager.h"
 
 #include <QAction>
-#include <ktoggleaction.h>
 #include <kactioncollection.h>
 #include <klocalizedstring.h>
 
-#include <kis_icon.h>
 
 #include "application/ui/orchestration/kis_action.h"
 #include "application/ui/orchestration/kis_action_manager.h"
@@ -26,6 +24,11 @@
 #include "kis_grid_config.h"
 #include "kis_signals_blocker.h"
 #include <kis_signal_auto_connection.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 
 struct KisGridManager::Private
 {

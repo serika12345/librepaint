@@ -6,8 +6,11 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisDynamicSensors.h"
+#include "kis_cubic_curve.h"
+#include "sensors/KisDynamicSensor.h"
 
 #include <KisDynamicSensorIds.h>
+#include <optional>
 
 
 KisDynamicSensorSpeed::KisDynamicSensorSpeed(const KisSensorData &data, std::optional<KisCubicCurve> curveOverride)

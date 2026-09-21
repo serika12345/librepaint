@@ -6,6 +6,10 @@
 
 #include "kis_gui_context_command.h"
 #include "kis_gui_context_command_p.h"
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
 
 KisGuiContextCommand::KisGuiContextCommand(KUndo2Command *command, QObject *guiObject)

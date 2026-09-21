@@ -7,20 +7,34 @@
 #include "kis_filter_stroke_strategy.h"
 
 #include <filter/kis_filter.h>
-#include <filter/kis_filter_configuration.h>
 #include <krita_utils.h>
 #include <kis_layer_utils.h>
-#include <kis_raster_keyframe_channel.h>
 #include <kis_transaction.h>
-#include <kis_paint_device_frames_interface.h>
 #include <kis_selection.h>
 #include <KisRunnableStrokeJobUtils.h>
 #include <KisRunnableStrokeJobsInterface.h>
 #include <KoCompositeOpRegistry.h>
+#include "KisQStringListFwd.h"
+#include "KisRunnableStrokeJobData.h"
+#include "kis_assert.h"
 #include "kis_image_animation_interface.h"
+#include "kis_lod_transform.h"
+#include "kis_node.h"
 #include "kis_painter.h"
 #include "KisAnimAutoKey.h"
+#include "kis_pointer_utils.h"
+#include "kis_processing_visitor.h"
+#include "kis_resources_snapshot.h"
+#include "kis_simple_stroke_strategy.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_stroke_strategy.h"
+#include "kis_stroke_strategy_undo_command_based.h"
+#include "kundo2magicstring.h"
 #include <commands_new/KisDisableDirtyRequestsCommand.h>
+#include <qforeach.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
+#include <qswap.h>
 
 
 struct KisFilterStrokeStrategy::Private {

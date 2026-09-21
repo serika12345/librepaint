@@ -15,18 +15,40 @@
 
 #include <KisResourceModel.h>
 
-#include <KoResourceServerProvider.h>
+#include <qfileinfo.h>
+#include <qforeach.h>
+#include <qimage.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <resources/KoAbstractGradient.h>
 #include <resources/KoSegmentGradient.h>
 #include <resources/KoStopGradient.h>
 #include <resources/KoPattern.h>
 
+#include "KisGlobalResourcesInterface.h"
+#include "KisLocalStrokeResources.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KisResourcesInterface.h"
+#include "KoCompositeOpIds.h"
+#include "KoEmbeddedResource.h"
+#include "KoResourceLoadResult.h"
+#include "KoResourceSignature.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
 #include "kis_layer_utils.h"
 #include "kis_dom_utils.h"
 
 #include <kis_layer.h>
 #include <kis_pointer_utils.h>
 
+#include "kis_psd_layer_style.h"
+#include "kis_types.h"
 #include "psd.h"
 
 #include "asl/kis_asl_reader.h"
@@ -34,6 +56,7 @@
 
 #include "asl/kis_asl_xml_writer.h"
 #include "asl/kis_asl_writer.h"
+#include "psd_types.h"
 
 #include <functional>
 

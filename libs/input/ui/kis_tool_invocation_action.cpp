@@ -6,7 +6,6 @@
 
 #include "kis_tool_invocation_action.h"
 
-#include <kis_debug.h>
 
 #include <klocalizedstring.h>
 
@@ -16,8 +15,16 @@
 #include <KoCanvasBase.h>
 #include <KoCanvasResourceProvider.h>
 #include <KisToolCanvas.h>
-#include <kis_coordinates_converter.h>
+#include <qevent.h>
+#include <qflags.h>
+#include <qhash.h>
+#include <qnamespace.h>
+#include <qpointer.h>
+#include <qtpreprocessorsupport.h>
 
+#include "KisInputActionGroup.h"
+#include "kis_abstract_input_action.h"
+#include "kis_assert.h"
 #include "kis_tool.h"
 #include "kis_input_manager.h"
 

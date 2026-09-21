@@ -8,6 +8,14 @@
 
 #include <QDebug>
 #include <QSpinBox>
+#include <functional>
+#include <qlatin1stringview.h>
+#include <qlogging.h>
+#include <qobject.h>
+#include <qoverload.h>
+#include <qsharedpointer.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
 namespace KisSpinBoxI18nHelper
 {

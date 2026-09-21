@@ -7,14 +7,20 @@
 #include <lazybrush/kis_colorize_mask.h>
 #include <lazybrush/kis_lazy_fill_tools.h>
 #include <kis_image.h>
+#include "ManagedColor.h"
 #include "Selection.h"
-#include <kis_selection.h>
 #include <KoColor.h>
+#include "kis_assert.h"
+#include "kis_base_node.h"
 #include "kis_layer_properties_icons.h"
-#include <kis_transaction.h>
-#include <kis_update_scheduler.h>
-#include <kis_undo_stores.h>
+#include "kis_types.h"
+#include <kis_paint_device.h>
 #include <kis_default_bounds.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qobject.h>
+#include <qstringview.h>
+#include <qtypes.h>
 
 
 

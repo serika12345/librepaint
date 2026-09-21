@@ -4,6 +4,8 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisDynamicSensorDistance.h"
+#include "kis_cubic_curve.h"
+#include "sensors/KisDynamicSensor.h"
 
 #include <cmath>
 
@@ -13,6 +15,9 @@
 #include <KisSensorData.h>
 
 #include <kis_paint_information.h>
+#include <optional>
+#include <qminmax.h>
+#include <qtypes.h>
 
 
 KisDynamicSensorDistance::KisDynamicSensorDistance(const KisSensorWithLengthData &data, std::optional<KisCubicCurve> curveOverride)

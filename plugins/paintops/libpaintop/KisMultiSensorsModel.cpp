@@ -6,7 +6,24 @@
  */
 
 #include "KisMultiSensorsModel.h"
+
+#include <algorithm>
+#include <cstddef>
+#include <functional>
+#include <iterator>
+
+#include <QAbstractListModel>
+#include <QModelIndex>
+#include <QObject>
+#include <QString>
+#include <QVariant>
+#include <QtCore/qnamespace.h>
+#include <QtCore/qobjectdefs.h>
+#include <QtCore/qtmetamacros.h>
+
 #include <KoID.h>
+
+#include <lager/cursor.hpp>
 
 struct KisMultiSensorsModel::Private
 {
@@ -84,7 +101,7 @@ QString KisMultiSensorsModel::getSensorId(const QModelIndex& index)
 
 QModelIndex KisMultiSensorsModel::sensorIndex(const QString &id)
 {
-    const size_t foundIndex =
+    const std::size_t foundIndex =
             std::distance(m_d->sensorsData->begin(),
                  std::find_if(m_d->sensorsData->begin(), m_d->sensorsData->end(),
                      [id] (const SensorData &sensor) {

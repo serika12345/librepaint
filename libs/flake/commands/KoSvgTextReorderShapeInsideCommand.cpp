@@ -4,8 +4,15 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KoSvgTextReorderShapeInsideCommand.h"
+#include "kundo2stack.h"
 #include <KoShapeBulkActionLock.h>
 #include <KoSvgTextShape.h>
+#include <algorithm>
+#include <iterator>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qtdeprecationdefinitions.h>
 
 namespace
 {

@@ -16,15 +16,25 @@
 #include <KoPointerEvent.h>
 #include <KoCanvasResourceProvider.h>
 
+#include "KisQStringListFwd.h"
+#include "KoCanvasResourcesIds.h"
 #include "kis_algebra_2d.h"
+#include "kis_debug.h"
+#include "kis_default_bounds_base.h"
 #include "kis_distance_information.h"
 #include <brushengine/kis_paint_information.h>
+#include "kis_global.h"
 #include "kis_painting_information_builder.h"
 #include "kis_image.h"
 #include "kis_painter.h"
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paintop_utils.h>
 
+#include "kis_paintop_settings.h"
+#include "kis_resources_snapshot.h"
+#include "kis_stroke_strategy.h"
+#include "kis_timing_information.h"
+#include "kis_types.h"
 #include "kis_update_time_monitor.h"
 #include "kis_stabilized_events_sampler.h"
 #include "KisStabilizerDelayedPaintHelper.h"
@@ -40,6 +50,17 @@
 #include <KisOptimizedBrushOutline.h>
 
 #include <math.h>
+#include <qassert.h>
+#include <qline.h>
+#include <qlist.h>
+#include <qmath.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <tuple>
 
 //#define DEBUG_BEZIER_CURVES
 

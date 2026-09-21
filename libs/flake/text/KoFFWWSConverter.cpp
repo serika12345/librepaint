@@ -4,12 +4,37 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KoFFWWSConverter.h"
+#include "KoCSSFontInfo.h"
+#include "KoFontLibraryResourceUtils.h"
+#include "KoSvgText.h"
 
 #include <KisForest.h>
-#include <KisStaticInitializer.h>
+#include <fontconfig/fontconfig.h>
+#include <freetype/config/ftheader.h>
+#include <freetype/freetype.h>
+#include <hb-ot.h>
+#include <iterator>
 #include <kis_assert.h>
 #include <hb.h>
 #include <hb-ft.h>
+#include <optional>
+#include <qcontainerfwd.h>
+#include <qdatetime.h>
+#include <qdebug.h>
+#include <qfont.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qlocale.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qstringview.h>
+#include <qtypes.h>
+#include <vector>
 #include FT_TRUETYPE_TABLES_H
 
 #include <QFileInfo>

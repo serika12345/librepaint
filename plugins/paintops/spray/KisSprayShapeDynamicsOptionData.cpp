@@ -7,6 +7,7 @@
 #include "KisSprayShapeDynamicsOptionData.h"
 
 #include "kis_properties_configuration.h"
+#include <qhashfunctions.h>
 
 
 const QString SHAPE_DYNAMICS_VERSION = "ShapeDynamicsVersion";

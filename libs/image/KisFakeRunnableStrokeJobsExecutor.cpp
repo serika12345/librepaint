@@ -5,11 +5,15 @@
  */
 
 #include "KisFakeRunnableStrokeJobsExecutor.h"
+#include "KisRunnableStrokeJobDataBase.h"
+#include "kis_stroke_job_strategy.h"
 
-#include <KisRunnableStrokeJobData.h>
 #include <kis_assert.h>
 
 #include <QVector>
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
 
 KisFakeRunnableStrokeJobsExecutor::KisFakeRunnableStrokeJobsExecutor()
     : m_flags(None)

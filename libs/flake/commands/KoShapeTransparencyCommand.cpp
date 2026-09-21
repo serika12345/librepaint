@@ -8,7 +8,13 @@
 #include "KoShape.h"
 
 #include "kis_command_ids.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <klocalizedstring.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 
 namespace
 {

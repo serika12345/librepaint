@@ -12,10 +12,33 @@
 #include <QStandardItemModel>
 #include <QStyledItemDelegate>
 #include <QMouseEvent>
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
+#include <kconfiggroup.h>
 #include <ksharedconfig.h>
 
+#include <qabstractitemmodel.h>
+#include <qabstractitemview.h>
+#include <qcolor.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpainter.h>
+#include <qscopedpointer.h>
+#include <qscroller.h>
+#include <qscrollerproperties.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <qstyleoption.h>
+#include <qtableview.h>
+#include <qwidget.h>
 #include <utility>
 
+#include "KisKineticScroller.h"
 #include "kis_color_patches.h"
 
 class KisColorPatchesTableDelegate : public QStyledItemDelegate

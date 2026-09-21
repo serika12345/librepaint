@@ -16,16 +16,16 @@
 #include <kis_debug.h>
 #include <kis_node.h>
 #include <kis_paint_device.h>
-#include <kis_paint_layer.h>
 
-#include "psd.h"
+#include "kis_assert.h"
+#include "kis_types.h"
+#include "psd_additional_layer_info_block.h"
 #include "psd_header.h"
+#include "psd_types.h"
 #include "psd_utils.h"
 
 #include <KoColorSpace.h>
-#include <KoColorSpaceMaths.h>
 #include <KoColorSpaceRegistry.h>
-#include <KoColorSpaceTraits.h>
 
 #include <KoPathShape.h>
 #include <KoPathSegment.h>
@@ -33,10 +33,14 @@
 
 #include <asl/kis_asl_reader_utils.h>
 #include <asl/kis_asl_writer_utils.h>
-#include <asl/kis_offset_keeper.h>
 
 #include "psd_pixel_utils.h"
 #include <kundo2command.h>
+#include <qalgorithms.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qpair.h>
+#include <qtypes.h>
 
 // Just for pretty debug messages
 QString channelIdToChannelType(int channelId, psd_color_mode colormode)

@@ -8,6 +8,8 @@
 #include <QApplication>
 #include <QTouchEvent>
 
+#include <cmath>
+#include <cstdlib>
 #include <klocalizedstring.h>
 #include <kis_canvas_controller.h>
 #include <kis_canvas2.h>
@@ -16,8 +18,16 @@
 
 #include "kis_zoom_and_rotate_action.h"
 #include "KisApplicationInputActions.h"
+#include "KisInputActionGroup.h"
+#include "KoZoomMode.h"
 #include "kis_input_manager.h"
 #include <KoViewTransformStillPoint.h>
+#include <math.h>
+#include <qhash.h>
+#include <qlogging.h>
+#include <qnumeric.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 class KisZoomAndRotateAction::Private {
 public:

@@ -13,9 +13,24 @@
 #include <KoFontRegistry.h>
 #include <lager/KoSvgTextPropertiesModel.h>
 #include <KoSvgTextPropertyData.h>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qlatin1stringview.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qsortfilterproxymodel.h>
+#include <qstringview.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
+#include <vector>
 
 
 #include "OpenTypeFeatureModel.h"
+#include "data/KoUnicodeBlockData.h"
 struct OpenTypeFeatureModel::Private {
     Private(QObject *parent)
         : glyphModel(new KoFontGlyphModel(parent))

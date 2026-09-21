@@ -8,10 +8,17 @@
 
 #include <QString>
 
+#include "KoColorSpace.h"
+#include "KoID.h"
 #include "kis_bookmarked_configuration_manager.h"
 #include "filter/kis_filter_configuration.h"
 #include "kis_paint_device.h"
+#include "kis_properties_configuration.h"
+#include "kis_serializable_configuration.h"
+#include "kis_types.h"
 #include <KisGlobalResourcesInterface.h>
+#include <qkeysequence.h>
+#include <qtdeprecationdefinitions.h>
 
 
 class KisBaseProcessorConfigurationFactory : public KisSerializableConfigurationFactory

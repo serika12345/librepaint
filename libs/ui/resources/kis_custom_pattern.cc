@@ -7,6 +7,13 @@
 #include "kis_custom_pattern.h"
 
 #include <KoResourceServerProvider.h>
+#include <qassert.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 #include <resources/KoPattern.h>
 
 #include <QPixmap>
@@ -15,6 +22,8 @@
 #include <KoFileDialog.h>
 #include <QMessageBox>
 
+#include "KisResourceTypes.h"
+#include "KoColorConversionTransformation.h"
 #include "document/KisDocument.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_image.h"
@@ -22,8 +31,8 @@
 #include "kis_paint_device.h"
 #include "kis_selection.h"
 #include "kis_painter.h"
+#include "kundo2magicstring.h"
 
-#include <kis_debug.h>
 #include <KisResourceLoaderRegistry.h>
 #include <KisResourceUserOperations.h>
 

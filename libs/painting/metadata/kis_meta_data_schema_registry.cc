@@ -10,6 +10,10 @@
 #include <QString>
 
 #include <KoResourcePaths.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhash.h>
 
 #include "kis_debug.h"
 #include "kis_meta_data_schema_p.h"

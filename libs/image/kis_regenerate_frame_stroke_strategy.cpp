@@ -7,16 +7,32 @@
 #include "kis_regenerate_frame_stroke_strategy.h"
 
 #include <KisRegion.h>
+#include "KisProjectionUpdateFlags.h"
+#include "KisQStringListFwd.h"
+#include "kis_assert.h"
+#include "kis_base_rects_walker.h"
+#include "kis_debug.h"
 #include "kis_image_interfaces.h"
 #include "kis_image_animation_interface.h"
 #include "kis_node.h"
 #include "kis_image.h"
+#include "kis_simple_stroke_strategy.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_types.h"
 #include "krita_utils.h"
 
 #include "kis_full_refresh_walker.h"
 #include "kis_async_merger.h"
 #include "kis_projection_updates_filter.h"
+#include "kundo2magicstring.h"
 #include <KisLockFrameGenerationLock.h>
+#include <optional>
+#include <qforeach.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qstack.h>
+#include <qtpreprocessorsupport.h>
+#include <utility>
 
 
 struct KisRegenerateFrameStrokeStrategy::Private

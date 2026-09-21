@@ -26,8 +26,6 @@
 #include <KoFileDialog.h>
 #include <KisImportExportManager.h>
 #include <KoStoreDevice.h>
-#include <KoResourceServer.h>
-#include <KisResourceStorage.h>
 #include <KisGlobalResourcesInterface.h>
 #include <KisResourceModel.h>
 
@@ -45,13 +43,22 @@
 #include <kis_external_layer_iface.h>
 #include <kis_filter_mask.h>
 #include <kis_transform_mask.h>
+#include "KisQStringListFwd.h"
+#include "KoColorModelStandardIds.h"
+#include "KoColorSpaceConstants.h"
+#include "KoResourceSignature.h"
+#include "document/StoryboardItem.h"
+#include "kis_node.h"
+#include "kis_node_uuid_info.h"
+#include "kis_painting_assistant.h"
+#include "kis_pointer_utils.h"
+#include "kis_shared_ptr.h"
+#include "kis_types.h"
 #include "lazybrush/kis_colorize_mask.h"
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_layer.h>
-#include <kis_name_server.h>
 #include <kis_paint_layer.h>
-#include <kis_selection.h>
 #include <kis_selection_mask.h>
 #include <kis_shape_layer.h>
 #include <kis_transparency_mask.h>
@@ -81,6 +88,14 @@
 #include "nodes/kis_node_view_color_scheme.h"
 #include "KisMirrorAxisConfig.h"
 #include <events/kis_cursor_override_hijacker.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qobject.h>
+#include <qstringview.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 /*
   Color model id comparison through the ages:

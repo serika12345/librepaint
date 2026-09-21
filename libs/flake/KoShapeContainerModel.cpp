@@ -6,9 +6,15 @@
 
 #include "KoShapeContainerModel.h"
 
+#include "KoShape.h"
 #include "KoShapeContainer.h"
 
 #include "kis_assert.h"
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qpoint.h>
+#include <qtpreprocessorsupport.h>
 
 KoShapeContainerModel::KoShapeContainerModel()
 {

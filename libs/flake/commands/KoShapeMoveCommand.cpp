@@ -7,11 +7,19 @@
 
 #include "KoShapeMoveCommand.h"
 
+#include "KoFlake.h"
 #include "kis_command_ids.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <KoShape.h>
 #include <KoShapeBulkActionLock.h>
 #include <kis_assert.h>
 #include <klocalizedstring.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qpoint.h>
+#include <qtdeprecationdefinitions.h>
 
 namespace
 {

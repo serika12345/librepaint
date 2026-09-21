@@ -7,8 +7,17 @@
 #ifndef KISCURVEOPTIONDATA_H
 #define KISCURVEOPTIONDATA_H
 
-#include <KisCurveOptionDataCommon.h>
-#include <KisKritaSensorPack.h>
+#include <optional>
+#include <utility>
+
+#include <KoID.h>
+
+#include <QString>
+#include <QtCore/qtypes.h>
+
+#include "KisCurveOptionDataCommon.h"
+#include "KisKritaSensorPack.h"
+#include "kritapaintop_export.h"
 
 
 struct PAINTOP_EXPORT KisCurveOptionData : KisCurveOptionDataCommon

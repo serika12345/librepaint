@@ -5,6 +5,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisForest.h"
+#include "KisQStringListFwd.h"
+#include "KoFlake.h"
+#include "KoFlakeTypes.h"
+#include "KoSvgText.h"
+#include "KoSvgTextContentElement.h"
 #include "KoSvgTextShape.h"
 #include "KoSvgTextShape_p.h"
 
@@ -23,11 +29,22 @@
 #include <KoShapeGroup.h>
 #include <KoShapeGroupCommand.h>
 
+#include <algorithm>
 #include <kis_algebra_2d.h>
 
 #include <QPainter>
 #include <QtMath>
 
+#include <qbrush.h>
+#include <qfont.h>
+#include <qforeach.h>
+#include <qimage.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qpolygon.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
 #include <variant>
 
 static void inheritPaintProperties(const KisForest<KoSvgTextContentElement>::composition_iterator it,

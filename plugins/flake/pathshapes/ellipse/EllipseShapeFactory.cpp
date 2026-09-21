@@ -14,7 +14,19 @@
 
 #include <KoIcon.h>
 #include <klocalizedstring.h>
+#include <qbrush.h>
+#include <qcontainerfwd.h>
+#include <qdom.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qpair.h>
+#include <qsharedpointer.h>
+#include <qtpreprocessorsupport.h>
 
+#include "KisQStringListFwd.h"
+#include "KoPathShape.h"
+#include "KoShapeConfigWidgetBase.h"
+#include "KoShapeFactoryBase.h"
 #include "kis_pointer_utils.h"
 
 EllipseShapeFactory::EllipseShapeFactory()

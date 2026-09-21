@@ -7,20 +7,31 @@
 
 #include "DlgResourceManager.h"
 
+#include "KisResourceStorage.h"
+#include "KisResourceTypes.h"
+#include "KoDialog.h"
 #include "ui_WdgDlgResourceManager.h"
+#include "wdg_resource_preview.h"
 
 #include <QItemSelection>
 #include <QPainter>
 
 #include <application/ui/orchestration/kis_action.h>
 #include <application/ui/orchestration/kis_action_manager.h>
-#include <KisResourceTypeModel.h>
-#include <KisStorageModel.h>
 #include <KisTagModel.h>
 #include <KisResourceModel.h>
 #include <KisTagFilterResourceProxyModel.h>
-#include <kis_assert.h>
-#include <KisResourceItemDelegate.h>
+#include <qabstractitemmodel.h>
+#include <qforeach.h>
+#include <qimage.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
 #include <wdgtagselection.h>
 #include <kis_paintop_factory.h>
 #include <kis_paintop_registry.h>

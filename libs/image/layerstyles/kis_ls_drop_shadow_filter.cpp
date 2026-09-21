@@ -9,9 +9,16 @@
 #include <cstdlib>
 
 
-#include <KoUpdater.h>
-#include <resources/KoAbstractGradient.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
+#include "KoCompositeOpIds.h"
+#include "kis_assert.h"
+#include "kis_filter_configuration.h"
+#include "kis_global.h"
+#include "kis_layer_style_filter.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 #include "psd.h"
 
 #include "kis_gaussian_kernel.h"
@@ -24,6 +31,7 @@
 #include "kis_ls_utils.h"
 #include "kis_layer_style_filter_environment.h"
 #include "kis_cached_paint_device.h"
+#include "psd_types.h"
 
 
 

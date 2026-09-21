@@ -5,6 +5,7 @@
  */
 
 #include "KisTag.h"
+#include "kis_assert.h"
 
 #include <QIODevice>
 #include <QLocale>
@@ -12,8 +13,13 @@
 
 #include <KLocalizedString>
 
-#include <kis_debug.h>
 #include <KisPortingUtils.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
 
 const QString KisTag::s_group {"Desktop Entry"};
 const QString KisTag::s_type {"Type"};

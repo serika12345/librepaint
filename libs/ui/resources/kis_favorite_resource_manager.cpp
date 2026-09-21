@@ -5,17 +5,16 @@
    SPDX-License-Identifier: LGPL-2.0-only
 */
 
-#include <kis_debug.h>
 #include <QPoint>
 #include <QString>
 #include <QColor>
 #include <QImage>
-#include <brushengine/kis_paintop_registry.h>
 #include <brushengine/kis_paintop_preset.h>
-#include <KoID.h>
-#include <kconfig.h>
 #include "kis_favorite_resource_manager.h"
+#include "KisResourceTypes.h"
+#include "KisTag.h"
 #include "kis_popup_palette.h"
+#include "kis_types.h"
 #include "tool/kis_paintop_box.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include <KisPaintResourceServerProvider.h>
@@ -26,6 +25,14 @@
 #include <KisTagModel.h>
 #include <kis_paintop_preset.h>
 #include <KisSortedHistoryList.h>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsharedpointer.h>
+#include <qtmetamacros.h>
+#include <tuple>
 
 const int KisFavoriteResourceManager::MAX_RECENT_COLOR = 12;
 

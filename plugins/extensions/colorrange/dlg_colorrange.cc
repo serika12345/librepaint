@@ -14,19 +14,17 @@
 #include <QRadioButton>
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 
-#include <KoColorConversions.h>
-#include <KoColorProfile.h>
 #include <KoColorSpace.h>
 #include <KoColor.h>
 #include <KoColorSpaceRegistry.h>
-#include <KoColorModelStandardIds.h>
-#include <KoColorSpaceTraits.h>
 
-#include <kis_layer.h>
 #include <kis_paint_device.h>
 #include <kis_selection.h>
+#include <qassert.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
 #include <selection/kis_selection_manager.h>
 #include <kis_default_bounds.h>
 #include <kis_image.h>
@@ -34,10 +32,16 @@
 #include <kis_types.h>
 #include <kis_undo_adapter.h>
 #include <application/ui/workspace/KisViewManager.h>
-#include <kis_transaction.h>
 #include <kis_cursor.h>
+#include "KisSelectionTags.h"
+#include "KoColorSpaceConstants.h"
+#include "KoDialog.h"
+#include "kis_assert.h"
+#include "kis_global.h"
 #include "kis_iterator_ng.h"
+#include "kis_pointer_utils.h"
 #include "kis_selection_tool_helper.h"
+#include "kundo2magicstring.h"
 #include <kis_slider_spin_box.h>
 #include <KisCursorOverrideLock.h>
 

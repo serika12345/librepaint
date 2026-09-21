@@ -10,7 +10,11 @@
 
 #include "KoSvgTextShape.h"
 #include "KoSvgTextShapeMarkupConverter.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <KoShapeBulkActionLock.h>
+#include <qassert.h>
+#include <qminmax.h>
 
 SvgTextRemoveCommand::SvgTextRemoveCommand(KoSvgTextShape *shape,
                                            int endIndex, int pos,

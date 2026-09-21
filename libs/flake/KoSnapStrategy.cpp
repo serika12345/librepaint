@@ -5,6 +5,7 @@
  */
 
 #include "KoSnapStrategy.h"
+#include "KoFlake.h"
 #include "KoSnapProxy.h"
 #include "KoSnapGuide.h"
 #include <KoPathShape.h>
@@ -17,6 +18,11 @@
 #include <QPainterPath>
 
 #include <cmath>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnumeric.h>
+#include <qtypes.h>
 
 #if defined(_MSC_VER) && (_MSC_VER < 1800)
 #define isfinite(x) (double)(x)

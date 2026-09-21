@@ -6,12 +6,17 @@
  */
 
 #include "KisSampleScreenColor.h"
+#include "ui/orchestration/KisActionPlugin.h"
 
 #include <KisScreenColorSampler.h>
 #include <kpluginfactory.h>
 #include <application/ui/orchestration/kis_action.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <application/ui/workspace/KisViewManager.h>
+#include <qaction.h>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KisSampleScreenColorFactory, "kritasamplescreencolor.json", registerPlugin<KisSampleScreenColor>();)
 

@@ -11,17 +11,20 @@
 
 #include <KoStore.h>
 #include <KoStoreDevice.h>
-#include <KoColorSpaceRegistry.h>
 #include <document/KisDocument.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_open_raster_stack_load_visitor.h>
 #include <kis_open_raster_stack_save_visitor.h>
 #include <kis_paint_device.h>
-#include <kis_paint_layer.h>
+#include "KisImportExportErrorCode.h"
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qsize.h>
 #include "kis_png_converter.h"
 #include "kis_open_raster_load_context.h"
 #include "kis_open_raster_save_context.h"
+#include "kis_types.h"
 
 OraConverter::OraConverter(KisDocument *doc)
     : m_doc(doc)

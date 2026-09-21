@@ -4,6 +4,11 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KoCssStylePreset.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KoResource.h"
+#include "KoSvgText.h"
+#include "KoSvgTextProperties.h"
 
 #include <KoPathShape.h>
 #include <KoShapePainter.h>
@@ -19,6 +24,15 @@
 #include <QFileInfo>
 
 #include <FlakeDebug.h>
+#include <memory>
+#include <qcontainerfwd.h>
+#include <qdebug.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qscopedpointer.h>
+#include <qtpreprocessorsupport.h>
 
 const QString TITLE = "title";
 const QString DESCRIPTION = "description";

@@ -7,8 +7,14 @@
  */
 
 #include "KisAutoLevelsWidget.h"
+#include "KisAutoLevels.h"
+#include "KoColor.h"
+#include "ui_KisAutoLevelsWidget.h"
 
 #include <KisSpinBoxI18nHelper.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 KisAutoLevelsWidget::KisAutoLevelsWidget(QWidget *parent)
     : QWidget(parent)

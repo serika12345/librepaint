@@ -7,9 +7,18 @@
 
 #include "KisStoryboardThumbnailRenderScheduler.h"
 #include "KisAsyncStoryboardThumbnailRenderer.h"
+#include "animation/KisAsyncAnimationRendererBase.h"
+#include "kis_assert.h"
+#include "kis_types.h"
 
 #include <KisLockFrameGenerationLock.h>
+#include <algorithm>
+#include <cstdlib>
 #include <kis_image_animation_interface.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <utility>
 
 KisStoryboardThumbnailRenderScheduler::KisStoryboardThumbnailRenderScheduler(QObject *parent)
     : QObject(parent)

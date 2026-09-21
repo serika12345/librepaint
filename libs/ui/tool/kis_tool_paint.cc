@@ -6,6 +6,14 @@
  */
 
 #include "kis_tool_paint.h"
+#include "KisOptimizedBrushOutline.h"
+#include "KisPopupWidgetInterface.h"
+#include "kis_assert.h"
+#include "kis_global.h"
+#include "kis_icon_utils.h"
+#include "kis_painting_assistants_decoration.h"
+#include "kis_tool.h"
+#include "kis_tool_paint_interaction.h"
 
 #include <QAction>
 #include <QHBoxLayout>
@@ -24,8 +32,19 @@
 #include <kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <application/kis_config.h>
-#include <kis_icon.h>
 #include <kis_image.h>
+#include <qassert.h>
+#include <qcursor.h>
+#include <qgridlayout.h>
+#include <qlayoutitem.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpainter.h>
+#include <qset.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <resources/kis_popup_palette.h>
 #include <kis_tool_canvas_utils.h>
 #include <kis_tool_utils.h>

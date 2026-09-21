@@ -11,6 +11,10 @@
 #include <klocalizedstring.h>
 
 #include "kis_command_ids.h"
+#include "kis_node_command.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 KisNodeRenameCommand::KisNodeRenameCommand(KisNodeSP node, const QString &oldName, const QString &newName)
     : KisNodeCommand(kundo2_i18n("Node Rename"), node)

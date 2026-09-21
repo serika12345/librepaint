@@ -4,6 +4,8 @@
  */
 
 #include "kis_lazy_fill_tools.h"
+#include <qnumeric.h>
+#include <qtypes.h>
 
 namespace KisLazyFillTools
 {

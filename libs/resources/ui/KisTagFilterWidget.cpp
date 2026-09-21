@@ -7,6 +7,7 @@
  */
 
 #include "KisTagFilterWidget.h"
+#include "KisTagModel.h"
 
 #include <QAction>
 #include <QGridLayout>
@@ -16,12 +17,14 @@
 
 #include <klocalizedstring.h>
 
-#include <KoIcon.h>
 
-#include <kis_debug.h>
 #include <kconfig.h>
 #include <ksharedconfig.h>
 #include <kconfiggroup.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
 class KisTagFilterWidget::Private
 {

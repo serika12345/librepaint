@@ -8,6 +8,9 @@
 #include "KisResourceItemChooserSync.h"
 
 #include <QGlobalStatic>
+#include <qminmax.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
 
 Q_GLOBAL_STATIC(KisResourceItemChooserSync, s_instance)
 

@@ -7,26 +7,40 @@
 #include "freehand_stroke.h"
 
 #include <QElapsedTimer>
-#include <brushengine/kis_paintop_preset.h>
-#include <brushengine/kis_paintop_settings.h>
+#include "KisPerStrokeRandomSource.h"
+#include "KisQStringListFwd.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_default_bounds_base.h"
 #include "kis_painter.h"
+#include "kis_painter_based_stroke_strategy.h"
 #include "kis_paintop.h"
 
+#include "kis_random_source.h"
+#include "kis_resources_snapshot.h"
+#include "kis_simple_stroke_strategy.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_stroke_strategy.h"
 #include "kis_update_time_monitor.h"
 
 #include <brushengine/kis_stroke_random_source.h>
 #include <KisRunnableStrokeJobsInterface.h>
 #include <KisRunnableStrokeJobUtils.h>
 #include "FreehandStrokeRunnableJobDataWithUpdate.h"
+#include <functional>
 #include <mutex>
 
 #include "KisStrokeEfficiencyMeasurer.h"
 #include <KisStrokeSpeedMonitor.h>
+#include <numeric>
+#include <qlatin1stringview.h>
 #include <strokes/KisFreehandStrokeInfo.h>
 #include <strokes/KisMaskedFreehandStrokePainter.h>
+#include <tuple>
 
 #include "brushengine/kis_paintop_utils.h"
 #include "KisAsynchronousStrokeUpdateHelper.h"
+#include "kundo2magicstring.h"
 
 struct FreehandStrokeStrategy::Private
 {

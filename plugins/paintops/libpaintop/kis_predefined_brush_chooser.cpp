@@ -22,7 +22,6 @@
 #include <klocalizedstring.h>
 
 #include <KoFileDialog.h>
-#include <KisKineticScroller.h>
 
 #include <KisResourceItemView.h>
 #include <KisResourceItemChooser.h>
@@ -30,7 +29,12 @@
 #include <KisResourceMetaDataModel.h>
 #include <KisResourceModelProvider.h>
 
-#include <kis_icon.h>
+#include "KisBrushModel.h"
+#include "KisResourceTypes.h"
+#include "KisResourceUiDescriptor.h"
+#include "kis_assert.h"
+#include "kis_brush.h"
+#include "kis_icon_utils.h"
 #include "kis_painting_tweaks.h"
 #include "kis_slider_spin_box.h"
 #include "krita_utils.h"
@@ -38,7 +42,6 @@
 
 #include "kis_custom_brush_widget.h"
 #include "kis_clipboard_brush_widget.h"
-#include <kis_image_config.h>
 #include <KisMimeDatabase.h>
 
 #include "kis_global.h"
@@ -52,9 +55,19 @@
 
 #include <KisWidgetConnectionUtils.h>
 
-#include <lager/state.hpp>
+#include <ksqueezedtextlabel.h>
+#include <lager/extra/qt.hpp>
+#include <lager/reader.hpp>
 #include <kis_predefined_brush_factory.h>
 #include <KisPredefinedBrushModel.h>
+#include <qdialog.h>
+#include <qforeach.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qstyle.h>
+#include <qstyleoption.h>
+#include <qtypes.h>
 
 using namespace KisBrushModel;
 using namespace KisWidgetConnectionUtils;

@@ -14,15 +14,19 @@
 
 #include <KisExportCheckRegistry.h>
 #include <KisImportExportManager.h>
-#include <KoColorSpaceConstants.h>
 
 #include <document/KisDocument.h>
-#include <kis_image.h>
-#include <kis_group_layer.h>
-#include <kis_paint_layer.h>
 #include <kis_paint_device.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qobject.h>
 
+#include "KisExportCheckBase.h"
+#include "KisImportExportErrorCode.h"
+#include "KoColorModelStandardIds.h"
+#include "KoID.h"
 #include "csv_saver.h"
+#include "kis_types.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(KisCSVExportFactory, "krita_csv_export.json", registerPlugin<KisCSVExport>();)
 

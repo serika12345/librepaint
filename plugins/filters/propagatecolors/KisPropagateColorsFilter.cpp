@@ -8,16 +8,26 @@
 
 #include <cmath>
 
+#include <cstring>
 #include <filter/kis_filter_category_ids.h>
 #include <KoUpdater.h>
 #include <kis_filter_configuration.h>
-#include <KisGlobalResourcesInterface.h>
-#include <KisSequentialIteratorProgress.h>
-#include <kis_processing_information.h>
 #include <KoColorSpaceRegistry.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qnumeric.h>
+#include <qpaintdevice.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 #include "KisPropagateColorsConfigWidget.h"
 #include "KisPropagateColorsFilterConfiguration.h"
+#include "KoColorSpace.h"
+#include "KoColorSpaceConstants.h"
+#include "kis_assert.h"
+#include "kis_filter.h"
+#include "kis_paint_device.h"
+#include "kis_types.h"
 #include "KisPropagateColorsFilter.h"
 
 KisPropagateColorsFilter::KisPropagateColorsFilter()

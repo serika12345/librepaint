@@ -8,12 +8,14 @@
 
 #include <QXmlStreamReader>
 #include "canvas/kis_painting_assistant.h"
+#include "KoIntegerMaths.h"
 #include "kis_coordinates_converter.h"
 #include "kis_debug.h"
 #include "kis_dom_utils.h"
 #include <kis_canvas2.h>
 #include "kis_image.h"
 #include "application/kis_config.h"
+#include "kis_shared.h"
 
 #include <KoStore.h>
 #include <KoColorDisplayRendererInterface.h>
@@ -26,6 +28,20 @@
 #include <QDomDocument>
 #include <QPainterPath>
 #include <QDebug>
+#include <qassert.h>
+#include <qcolor.h>
+#include <qcursor.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qpixmap.h>
+#include <qpoint.h>
+#include <qsharedpointer.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 Q_GLOBAL_STATIC(KisPaintingAssistantFactoryRegistry, s_instance)
 

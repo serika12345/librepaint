@@ -13,6 +13,18 @@
 
 #include <kactionmenu.h>
 #include <klocalizedstring.h>
+#include <kstandardshortcut.h>
+#include <qalgorithms.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlatin1stringview.h>
+#include <qlinkedlist.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #include "kxmlguiwindow.h"
 #include "ktoggletoolbaraction.h"

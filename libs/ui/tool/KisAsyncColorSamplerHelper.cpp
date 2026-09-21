@@ -15,14 +15,29 @@
 #include <QPixmap>
 #include <QtMath>
 #include <QTransform>
+#include <functional>
+#include <qcursor.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qsize.h>
+#include <qtimer.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <utility>
 
+#include "KisResourceTypes.h"
 #include "KoCanvasResourcesIds.h"
 #include "KoCanvasResourceProvider.h"
+#include "KoColorSpaceConstants.h"
 #include "KoViewConverter.h"
 #include "KoIcon.h"
 #include "KisColorSamplerStroke.h"
+#include "kis_assert.h"
 #include "kis_paint_device.h"
 #include "kis_cursor.h"
+#include "kis_signal_compressor.h"
 #include "kis_signal_compressor_with_param.h"
 #include "kis_canvas2.h"
 #include "application/ui/workspace/KisViewManager.h"
@@ -30,6 +45,7 @@
 #include "KisReferenceImagesLayer.h"
 #include "canvas/KisReferenceImagesDecoration.h"
 #include "kis_display_color_converter.h"
+#include "opengl/kis_opengl.h"
 
 
 namespace {

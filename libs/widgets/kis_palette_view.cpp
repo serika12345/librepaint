@@ -27,11 +27,22 @@
 
 #include "KisPaletteDelegate.h"
 #include "KisPaletteModel.h"
+#include "KoColor.h"
+#include "KoColorSet.h"
+#include "kis_assert.h"
 #include "kis_color_button.h"
 #include <KisSwatch.h>
-#include <KisResourceModel.h>
-#include <kis_debug.h>
 #include <KisResourceUserOperations.h>
+#include <qabstractitemmodel.h>
+#include <qassert.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscroller.h>
+#include <qtableview.h>
+#include <qtmetamacros.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
 int KisPaletteView::MINIMUM_ROW_HEIGHT = 10;
 

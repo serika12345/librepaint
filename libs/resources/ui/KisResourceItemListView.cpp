@@ -10,8 +10,22 @@
 #include <QScroller>
 #include <QScrollBar>
 #include <QHelpEvent>
+#include <qabstractitemmodel.h>
+#include <qabstractitemview.h>
+#include <qitemselectionmodel.h>
+#include <qlistview.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qstyleoption.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtversionchecks.h>
 
 #include "KisIconToolTip.h"
+#include "KisKineticScroller.h"
+#include "ResourceListViewModes.h"
 
 
 struct  Q_DECL_HIDDEN KisResourceItemListView::Private

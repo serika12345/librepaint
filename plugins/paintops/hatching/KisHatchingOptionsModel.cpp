@@ -5,8 +5,11 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisHatchingOptionsModel.h"
+#include "KisHatchingOptionsData.h"
 
 #include <KisLager.h>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
 
 using namespace KisWidgetConnectionUtils;
 

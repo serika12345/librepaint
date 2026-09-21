@@ -5,11 +5,18 @@
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  */
 #include "kis_iptc_io.h"
+#include "kis_meta_data_io_backend.h"
 
+#include <cstdint>
+#include <exiv2/datasets.hpp>
+#include <exiv2/error.hpp>
 #include <exiv2/iptc.hpp>
 
 #include <QIODevice>
 
+#include <exiv2/types.hpp>
+#include <exiv2/value.hpp>
+#include <exiv2/version.hpp>
 #include <kis_debug.h>
 #include <kis_exiv2_common.h>
 #include <kis_meta_data_entry.h>
@@ -17,6 +24,14 @@
 #include <kis_meta_data_schema_registry.h>
 #include <kis_meta_data_store.h>
 #include <kis_meta_data_value.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 const char photoshopMarker[] = "Photoshop 3.0\0";
 const char photoshopBimId_[] = "8BIM";

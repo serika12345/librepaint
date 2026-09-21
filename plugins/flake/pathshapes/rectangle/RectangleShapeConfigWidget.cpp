@@ -5,10 +5,16 @@
  */
 
 #include "RectangleShapeConfigWidget.h"
+#include "KoShape.h"
+#include "KoUnit.h"
 #include "RectangleShape.h"
 #include "RectangleShapeConfigCommand.h"
 #include "kis_signals_blocker.h"
 #include "kis_assert.h"
+#include "kundo2stack.h"
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qtypes.h>
 
 
 RectangleShapeConfigWidget::RectangleShapeConfigWidget()

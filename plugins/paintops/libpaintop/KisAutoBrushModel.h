@@ -6,13 +6,16 @@
 #ifndef KISAUTOBRUSHMODEL_H
 #define KISAUTOBRUSHMODEL_H
 
-#include <lager/cursor.hpp>
-#include <lager/extra/qt.hpp>
-
 #include <QObject>
+#include <QString>
+#include <QtCore/qtypes.h>
+#include <QtCore/qtmetamacros.h>
 
 #include <KisBrushModel.h>
 #include <KisWidgetConnectionUtils.h>
+
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
 
 using namespace KisBrushModel;
 using namespace KisWidgetConnectionUtils;

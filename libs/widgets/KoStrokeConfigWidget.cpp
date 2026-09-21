@@ -39,7 +39,6 @@
 #include <KoLineStyleSelector.h>
 #include <KoUnitDoubleSpinBox.h>
 #include <KoMarkerSelector.h>
-#include <KoColorPopupAction.h>
 #include <KoMarker.h>
 #include <KoShapeStroke.h>
 #include <KoPathShape.h>
@@ -54,11 +53,28 @@
 #include <KoShapeStrokeCommand.h>
 #include <KoShapeStrokeModel.h>
 #include <KoSelectedShapesProxy.h>
+#include "KoCanvasResourcesIds.h"
+#include "KoFlake.h"
+#include "KoFlakeTypes.h"
+#include "kis_assert.h"
 #include "ui_KoStrokeConfigWidget.h"
 #include <KoFlakeUtils.h>
 #include <KoFillConfigWidget.h>
 #include "kis_acyclic_signal_connector.h"
 #include <kis_signal_compressor.h>
+#include <qforeach.h>
+#include <qgridlayout.h>
+#include <qlayout.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
+#include <qsize.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <vector>
 
 // Krita
 #include "kis_double_parse_unit_spin_box.h"

@@ -17,11 +17,28 @@
 #include <cmath>
 
 #include <application/kis_config.h>
+#include <functional>
 #include <kis_arcs_constants.h>
+#include <math.h>
+#include <qcontainerfwd.h>
+#include <qcoreevent.h>
+#include <qfont.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpair.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 #include <resources/KoGamutMask.h>
 //#include <KisGamutMaskViewConverter.h>
 
 #include "kis_color_selector.h"
+#include "KoColor.h"
+#include "kis_acs_types.h"
+#include "kis_color.h"
+#include "kis_radian.h"
 
 //#define DEBUG_ARC_SELECTOR
 

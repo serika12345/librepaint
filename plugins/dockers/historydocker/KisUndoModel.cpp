@@ -44,7 +44,25 @@
 **
 ****************************************************************************/
 #include "KisUndoModel.h"
+#include "kis_canvas2.h"
+#include "kis_types.h"
+#include "kundo2stack.h"
+#include "ui/workspace/KisViewManager.h"
 #include <klocalizedstring.h>
+#include <qabstractitemmodel.h>
+#include <qforeach.h>
+#include <qicon.h>
+#include <qimage.h>
+#include <qitemselectionmodel.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
 KisUndoModel::KisUndoModel(QObject *parent)
     : QAbstractItemModel(parent)

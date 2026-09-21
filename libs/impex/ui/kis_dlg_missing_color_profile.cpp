@@ -5,7 +5,11 @@
  */
 
 #include <QPushButton>
+#include <qwidget.h>
 #include "kis_dlg_missing_color_profile.h"
+#include "KoDialog.h"
+#include "kis_clipboard.h"
+#include "ui_wdgMissingColorProfile.h"
 
 
 KisDlgMissingColorProfile::KisDlgMissingColorProfile(QWidget *parent)

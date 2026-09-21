@@ -8,7 +8,12 @@
 
 #include <KisCppQuirks.h>
 #include "KisSensorData.h"
+#include "KisSensorPackInterface.h"
+#include "KoID.h"
 #include "kis_assert.h"
+#include "kis_cubic_curve.h"
+#include <algorithm>
+#include <functional>
 #include <kis_properties_configuration.h>
 
 #include <KisCurveOptionDataCommon.h>
@@ -18,6 +23,15 @@
 #include <MyPaintCurveRangeModel.h>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <memory>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qpoint.h>
+#include <qtypes.h>
+#include <tuple>
+#include <vector>
 
 namespace detail {
 

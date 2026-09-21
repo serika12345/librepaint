@@ -7,12 +7,9 @@
 #include <KoResource.h>
 #include <QBuffer>
 
-#include <KoPattern.h>
-#include <KoAbstractGradient.h>
 #include <kis_brush.h>
-#include <kis_paintop_preset.h>
-#include <KoColorSet.h>
-#include <workspace/kis_workspace_resource.h>
+#include <qassert.h>
+#include <qimage.h>
 #include <KisResourceLocator.h>
 
 struct Resource::Private {

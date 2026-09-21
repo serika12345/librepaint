@@ -131,6 +131,7 @@ target_include_directories(kritaresourceitemchooserconstructionobjects
 )
 target_link_libraries(kritaresourceitemchooserconstructionobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -155,6 +156,7 @@ target_include_directories(kritaresourceitemchooserconstructionsourceobjects
 )
 target_link_libraries(kritaresourceitemchooserconstructionsourceobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -178,6 +180,7 @@ target_include_directories(kritaresourceitemchooserpresentationobjects
 )
 target_link_libraries(kritaresourceitemchooserpresentationobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -203,6 +206,7 @@ target_include_directories(kritaresourceitemchooserpresentationsourceobjects
 )
 target_link_libraries(kritaresourceitemchooserpresentationsourceobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -226,6 +230,7 @@ target_include_directories(kritaresourceitemchooserselectionobjects
 )
 target_link_libraries(kritaresourceitemchooserselectionobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -249,6 +254,7 @@ target_include_directories(kritaresourceitemchooserselectionsourceobjects
 )
 target_link_libraries(kritaresourceitemchooserselectionsourceobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -272,6 +278,7 @@ target_include_directories(kritaresourceitemchooserinputobjects
 )
 target_link_libraries(kritaresourceitemchooserinputobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -295,6 +302,7 @@ target_include_directories(kritaresourceitemchooserinputsourceobjects
 )
 target_link_libraries(kritaresourceitemchooserinputsourceobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -318,6 +326,7 @@ target_include_directories(kritaresourceitemchooserbuttonobjects
 )
 target_link_libraries(kritaresourceitemchooserbuttonobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -343,6 +352,7 @@ target_include_directories(kritaresourceitemchooserbuttonsourceobjects
 )
 target_link_libraries(kritaresourceitemchooserbuttonsourceobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -368,6 +378,7 @@ target_include_directories(kritaresourceitemchooseroperationsobjects
 )
 target_link_libraries(kritaresourceitemchooseroperationsobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::ConfigCore
         KF${KF_MAJOR}::I18n
@@ -434,6 +445,7 @@ target_include_directories(kritastoragechooserdelegateobjects
 )
 target_link_libraries(kritastoragechooserdelegateobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -454,6 +466,7 @@ target_include_directories(kritastoragechooserwidgetobjects
 )
 target_link_libraries(kritastoragechooserwidgetobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -474,6 +487,7 @@ target_include_directories(kritastoragechooserwidgetactivationobjects
 )
 target_link_libraries(kritastoragechooserwidgetactivationobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -497,6 +511,7 @@ target_include_directories(kritastoragechooserwidgetmodelsourceobjects
 )
 target_link_libraries(kritastoragechooserwidgetmodelsourceobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
         KF${KF_MAJOR}::I18n
@@ -521,6 +536,7 @@ target_include_directories(kritaresourceuseroperationsaddobjects
 )
 target_link_libraries(kritaresourceuseroperationsaddobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -542,6 +558,7 @@ target_include_directories(kritaresourceuseroperationsaddsourceobjects
 )
 target_link_libraries(kritaresourceuseroperationsaddsourceobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -565,6 +582,7 @@ target_include_directories(kritaresourceuseroperationsupdateobjects
 )
 target_link_libraries(kritaresourceuseroperationsupdateobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -586,6 +604,7 @@ target_include_directories(kritaresourceuseroperationsupdatesourceobjects
 )
 target_link_libraries(kritaresourceuseroperationsupdatesourceobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -607,6 +626,7 @@ target_include_directories(kritaresourceuseroperationsoverwriteobjects
 )
 target_link_libraries(kritaresourceuseroperationsoverwriteobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -628,6 +648,7 @@ target_include_directories(kritaresourceuseroperationsnameusageobjects
 )
 target_link_libraries(kritaresourceuseroperationsnameusageobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -649,6 +670,7 @@ target_include_directories(kritaresourceuseroperationsnamesourceobjects
 )
 target_link_libraries(kritaresourceuseroperationsnamesourceobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
         KF${KF_MAJOR}::I18n
@@ -673,6 +695,7 @@ target_include_directories(kritaresourceuseroperationsimportobjects
 )
 target_link_libraries(kritaresourceuseroperationsimportobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -694,6 +717,7 @@ target_include_directories(kritaresourceuseroperationsimportsourceobjects
 )
 target_link_libraries(kritaresourceuseroperationsimportsourceobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -717,6 +741,7 @@ target_include_directories(kritaresourceuseroperationsrenameobjects
 )
 target_link_libraries(kritaresourceuseroperationsrenameobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -738,6 +763,7 @@ target_include_directories(kritaresourceuseroperationsrenamesourceobjects
 )
 target_link_libraries(kritaresourceuseroperationsrenamesourceobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -761,6 +787,7 @@ target_include_directories(kritatagchooserwidgetobjects
 )
 target_link_libraries(kritatagchooserwidgetobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -781,6 +808,7 @@ target_include_directories(kritatagchooserwidgetconstructionsourceobjects
 )
 target_link_libraries(kritatagchooserwidgetconstructionsourceobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -804,6 +832,7 @@ target_include_directories(kritatagchooserwidgetoperationsobjects
 )
 target_link_libraries(kritatagchooserwidgetoperationsobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -825,6 +854,7 @@ target_include_directories(kritatagchooserwidgetaddobjects
 )
 target_link_libraries(kritatagchooserwidgetaddobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -846,6 +876,7 @@ target_include_directories(kritatagchooserwidgetaddsourceobjects
 )
 target_link_libraries(kritatagchooserwidgetaddsourceobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -867,6 +898,7 @@ target_include_directories(kritatagchooserwidgetselectionobjects
 )
 target_link_libraries(kritatagchooserwidgetselectionobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )
@@ -888,6 +920,7 @@ target_include_directories(kritatagchooserwidgetselectionsourceobjects
 )
 target_link_libraries(kritatagchooserwidgetselectionsourceobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::ConfigCore
         KF${KF_MAJOR}::I18n
@@ -911,6 +944,7 @@ target_include_directories(kritatagactionsobjects
 )
 target_link_libraries(kritatagactionsobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::I18n
 )

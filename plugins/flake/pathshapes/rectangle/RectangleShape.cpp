@@ -7,17 +7,23 @@
 */
 
 #include "RectangleShape.h"
+#include "KoPathShape.h"
 
 #include <KoParameterShape_p.h>
 #include <KoPathPoint.h>
 #include <KoShapeSavingContext.h>
 #include <KoXmlWriter.h>
-#include <KoXmlNS.h>
-#include <KoUnit.h>
 #include <SvgSavingContext.h>
 #include <SvgLoadingContext.h>
 #include <SvgUtil.h>
 #include <SvgStyleWriter.h>
+#include <qdom.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 RectangleShape::RectangleShape()
     : KoParameterShape()

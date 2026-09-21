@@ -9,22 +9,30 @@
 #include "kis_unsharp_filter.h"
 #include <QBitArray>
 
-#include <kis_mask_generator.h>
-#include <kis_convolution_kernel.h>
-#include <kis_convolution_painter.h>
+#include <cstring>
 #include <kis_gaussian_kernel.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_processing_information.h>
 #include <KoProgressUpdater.h>
 #include <KoUpdater.h>
 #include <KoConvolutionOp.h>
 #include <kis_paint_device.h>
+#include "KoColorSpace.h"
+#include "KoColorSpaceMaths.h"
+#include "KoIntegerMaths.h"
+#include "kis_assert.h"
+#include "kis_config_widget.h"
+#include "kis_filter.h"
 #include "kis_lod_transform_base.h"
 
+#include "kis_types.h"
 #include "kis_wdg_unsharp.h"
 #include "ui_wdgunsharp.h"
 #include <KisSequentialIteratorProgress.h>
+#include <qpointer.h>
+#include <qscopedpointer.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 
 KisUnsharpFilter::KisUnsharpFilter() : KisFilter(id(), FiltersCategoryEnhanceId, i18n("&Unsharp Mask..."))

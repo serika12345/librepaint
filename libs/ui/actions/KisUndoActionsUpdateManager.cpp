@@ -5,11 +5,14 @@
  */
 
 #include "KisUndoActionsUpdateManager.h"
+#include "KoID.h"
 
 #include <QAction>
 #include <kundo2stack.h>
 
 #include <document/KisDocument.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 
 KisUndoActionsUpdateManager::KisUndoActionsUpdateManager(QAction *undoAction, QAction *redoAction, QObject *parent)

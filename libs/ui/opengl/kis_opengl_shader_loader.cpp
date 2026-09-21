@@ -7,6 +7,7 @@
 
 #include "kis_opengl_shader_loader.h"
 
+#include "kis_display_filter.h"
 #include "opengl/kis_opengl.h"
 #include "application/kis_config.h"
 
@@ -15,6 +16,12 @@
 #include <QFile>
 #include <QMessageBox>
 #include <KLocalizedString>
+#include <map>
+#include <qassert.h>
+#include <qfiledevice.h>
+#include <qopenglshaderprogram.h>
+#include <qsharedpointer.h>
+#include <qstringview.h>
 
 #define PROGRAM_VERTEX_ATTRIBUTE 0
 #define PROGRAM_TEXCOORD_ATTRIBUTE 1

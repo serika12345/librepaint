@@ -27,6 +27,18 @@
  *
  * ============================================================ */
 
+#include "rwidgetutils.h"
+#include <kconfiggroup.h>
+#include <qfiledialog.h>
+#include <qlatin1stringview.h>
+#include <qlineedit.h>
+#include <qloggingcategory.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
+#include <rawdecodingsettings.h>
 #define OPTIONFIXCOLORSHIGHLIGHTSENTRY "FixColorsHighlights"
 #define OPTIONDECODESIXTEENBITENTRY "SixteenBitsImage"
 #define OPTIONWHITEBALANCEENTRY "White Balance"

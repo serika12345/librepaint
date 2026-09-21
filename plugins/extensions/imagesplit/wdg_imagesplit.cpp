@@ -8,7 +8,7 @@
  */
 #include "wdg_imagesplit.h"
 
-#include <kis_debug.h>
+#include <qwidget.h>
 
 #include "application/kis_config.h"
 

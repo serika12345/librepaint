@@ -7,15 +7,23 @@
 #ifndef KISCURVEOPTIONMODEL_H
 #define KISCURVEOPTIONMODEL_H
 
-#include "kritapaintop_export.h"
-#include "KisCurveOptionData.h"
-#include "KisCurveRangeModelInterface.h"
-
-#include <lager/state.hpp>
-#include <lager/constant.hpp>
-#include <lager/extra/qt.hpp>
+#include <memory>
+#include <optional>
+#include <tuple>
 
 #include <QObject>
+#include <QString>
+#include <QtCore/qtypes.h>
+
+#include <lager/constant.hpp>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/reader.hpp>
+#include <lager/state.hpp>
+
+#include "KisCurveOptionData.h"
+#include "KisCurveRangeModelInterface.h"
+#include "kritapaintop_export.h"
 
 using RangeState = std::tuple<qreal, qreal>;
 using StrengthState = std::tuple<qreal, qreal, qreal>;

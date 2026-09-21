@@ -8,6 +8,9 @@
 
 #include <QByteArray>
 #include <QSize>
+#include <half.h>
+#include <qassert.h>
+#include <qshareddata.h>
 
 struct KisGLImageF16::Private : public QSharedData
 {

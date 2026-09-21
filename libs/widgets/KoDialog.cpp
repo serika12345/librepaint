@@ -26,14 +26,28 @@
 #include <QScreen>
 #include <QTimer>
 
-#include <kconfig.h>
+#include <kguiitem.h>
 #include <klocalizedstring.h>
 
 #include <kseparator.h>
 #include <kstandardguiitem.h>
 #include <khelpclient.h>
 #include <kurllabel.h>
-#include <kwindowconfig.h>
+#include <qassert.h>
+#include <qdialog.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qlayoutitem.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qtclasshelpermacros.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 void KoDialogPrivate::setupLayout()
 {

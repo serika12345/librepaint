@@ -9,8 +9,12 @@
 #include <KoShapeBulkActionLock.h>
 
 #include <QRegularExpression>
+#include <qminmax.h>
+#include <qobject.h>
 
 #include "kis_command_ids.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 SvgTextInsertCommand::SvgTextInsertCommand(KoSvgTextShape *shape, int pos, int anchor, QString text, KUndo2Command *parent)
     : KUndo2Command(parent)
     , m_shape(shape)

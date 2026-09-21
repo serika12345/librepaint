@@ -21,17 +21,26 @@
 #include <KoColorModelStandardIds.h>
 #include <KoColorProfile.h>
 #include <KoCompositeOpRegistry.h>
-#include <KoDialog.h>
 #include <kis_group_layer.h>
-#include <kis_iterator_ng.h>
 #include <kis_meta_data_backend_registry.h>
 #include <kis_paint_layer.h>
 #include <kis_painter.h>
-#include <kis_properties_configuration.h>
 #include <kis_sequential_iterator.h>
+#include <qcontainerfwd.h>
+#include <qgenericatomic.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qregularexpression.h>
 
 #include "RGBEImport.h"
+#include "KisImportExportFilter.h"
+#include "KoColorSpaceConstants.h"
+#include "KoID.h"
 #include "RGBEImportUtils.h"
+#include "kis_debug.h"
+#include "kis_image.h"
+#include "kis_paint_device.h"
+#include "kis_types.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(KisRGBEImportFactory, "krita_rgbe_import.json", registerPlugin<RGBEImport>();)
 

@@ -4,6 +4,10 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "MyPaintBasicOptionModel.h"
+#include "MyPaintBasicOptionData.h"
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <qtypes.h>
 
 
 MyPaintBasicOptionModel::MyPaintBasicOptionModel(lager::cursor<MyPaintBasicOptionData> _optionData,

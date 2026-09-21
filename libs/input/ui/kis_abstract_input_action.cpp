@@ -5,6 +5,8 @@
  */
 
 #include "kis_abstract_input_action.h"
+#include "KisInputActionGroup.h"
+#include "kis_assert.h"
 
 #include <QPointF>
 #include <QMouseEvent>
@@ -14,6 +16,11 @@
 
 #include <input/ui/kis_input_manager.h>
 #include <KoCanvasBase.h>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtpreprocessorsupport.h>
+#include <qtversionchecks.h>
 
 
 class Q_DECL_HIDDEN KisAbstractInputAction::Private

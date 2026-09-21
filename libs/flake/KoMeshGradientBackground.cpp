@@ -3,16 +3,23 @@
  */
 
 #include "KoMeshGradientBackground.h"
-#include <KoColorSpaceRegistry.h>
-#include <KoMixColorsOp.h>
 #include <kis_algebra_2d.h>
 
 #include <QRegion>
 #include <QPainter>
 #include <QPainterPath>
 #include <QDebug>
+#include <qassert.h>
+#include <qpaintdevice.h>
+#include <qscopedpointer.h>
+#include <qshareddata.h>
 
+#include "KoFlakeCoordinateSystem.h"
 #include "KoMeshPatchesRenderer.h"
+#include "KoShapeBackground.h"
+#include "SvgMeshArray.h"
+#include "SvgMeshGradient.h"
+#include "SvgMeshPatch.h"
 
 class KoMeshGradientBackground::Private : public QSharedData
 {

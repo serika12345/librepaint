@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisLodAvailabilityData.h"
+#include "kis_paintop_factory.h"
 
 #include <kis_properties_configuration.h>
 #include <kis_paintop_registry.h>

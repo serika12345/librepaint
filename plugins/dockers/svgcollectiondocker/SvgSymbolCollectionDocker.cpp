@@ -17,18 +17,35 @@
 #include <QWidgetAction>
 #include <QMenu>
 
-#include <KoResourceServerProvider.h>
-#include <KoResourceServer.h>
 #include <KoShapeFactoryBase.h>
-#include <KoProperties.h>
 #include <KoDrag.h>
 
+#include "KisKineticScroller.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceModel.h"
+#include "KisResourceTypes.h"
+#include "KoCanvasObserverBase.h"
+#include "KoDockFactoryBase.h"
 #include "kis_icon_utils.h"
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
 
 #include "ui_WdgSvgCollection.h"
 
+#include <qabstractitemview.h>
+#include <qdockwidget.h>
+#include <qforeach.h>
+#include <qicon.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qradiobutton.h>
+#include <qscroller.h>
+#include <qsharedpointer.h>
+#include <qslider.h>
+#include <qtpreprocessorsupport.h>
+#include <qvariant.h>
 #include <resources/KoSvgSymbolCollectionResource.h>
 
 //

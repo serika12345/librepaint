@@ -12,6 +12,8 @@
 #include "KoPathPoint.h"
 #include <KoSnapData.h>
 #include <KoShapeLayer.h>
+#include <qforeach.h>
+#include <qlist.h>
 
 KoSnapProxy::KoSnapProxy(KoSnapGuide * snapGuide)
         : m_snapGuide(snapGuide)

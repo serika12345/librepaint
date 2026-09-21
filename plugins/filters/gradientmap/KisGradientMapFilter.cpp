@@ -9,24 +9,29 @@
 
 #include <KoColorSpace.h>
 #include <KoColor.h>
+#include <cstring>
 #include <kis_paint_device.h>
-#include <kis_global.h>
 #include <kis_types.h>
 #include <filter/kis_filter_category_ids.h>
 #include <KoAbstractGradient.h>
-#include <KoStopGradient.h>
-#include <KoColorSet.h>
 #include <KisDitherUtil.h>
-#include <KisGlobalResourcesInterface.h>
 #include <KisSequentialIteratorProgress.h>
 #include <KoUpdater.h>
 #include <KoCachedGradient.h>
+#include <qassert.h>
+#include <qminmax.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 #include "KisGradientMapFilter.h"
 #include "KisGradientMapFilterConfigWidget.h"
 #include "KisGradientMapFilterConfiguration.h"
 #include "KisGradientMapFilterNearestCachedGradient.h"
 #include "KisGradientMapFilterDitherCachedGradient.h"
+#include "kis_assert.h"
+#include "kis_filter_configuration.h"
+#include "ui_KisGradientMapFilterConfigWidget.h"
 
 KisGradientMapFilter::KisGradientMapFilter()
     : KisFilter(id(), FiltersCategoryMapId, i18n("&Gradient Map..."))

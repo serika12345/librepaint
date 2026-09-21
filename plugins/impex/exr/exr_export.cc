@@ -12,8 +12,6 @@
 
 #include <kpluginfactory.h>
 
-#include <KoColorSpaceRegistry.h>
-#include <KoColorSpaceConstants.h>
 #include <KisImportExportManager.h>
 #include <KisExportCheckRegistry.h>
 
@@ -21,11 +19,21 @@
 #include <application/kis_config.h>
 #include <document/KisDocument.h>
 #include <kis_image.h>
-#include <kis_group_layer.h>
 #include <kis_paint_device.h>
-#include <kis_paint_layer.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qvariant.h>
 
+#include "KisExportCheckBase.h"
+#include "KisImportExportErrorCode.h"
+#include "KoColorModelStandardIds.h"
+#include "KoID.h"
 #include "exr_converter.h"
+#include "kis_config_widget.h"
+#include "kis_debug.h"
+#include "kis_types.h"
 
 
 class KisExternalLayer;

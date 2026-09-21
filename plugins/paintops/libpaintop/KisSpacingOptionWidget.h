@@ -6,8 +6,15 @@
 #ifndef KISSPACINGOPTIONWIDGET_H
 #define KISSPACINGOPTIONWIDGET_H
 
+#include <QScopedPointer>
+#include <QtCore/qtmetamacros.h>
+
+#include <kis_types.h>
+#include <kritapaintop_export.h>
+
 #include <KisCurveOptionWidget.h>
 #include <KisSpacingOptionData.h>
+#include <lager/cursor.hpp>
 
 class PAINTOP_EXPORT KisSpacingOptionWidget : public KisCurveOptionWidget
 {

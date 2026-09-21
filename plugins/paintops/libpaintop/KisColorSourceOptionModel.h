@@ -6,6 +6,8 @@
 #ifndef KISCOLORSOURCEOPTIONMODEL_H
 #define KISCOLORSOURCEOPTIONMODEL_H
 
+#include <QtCore/qtmetamacros.h>
+
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>
 

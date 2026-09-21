@@ -5,11 +5,16 @@
  */
 
 #include "ShapeMeshGradientEditStrategy.h"
+#include "KoFlake.h"
+#include "KoInteractionStrategy.h"
 
 #include <KoToolBase.h>
 #include <KoCanvasBase.h>
 #include <kundo2command.h>
 #include <kis_command_utils.h>
+#include <memory>
+#include <qnamespace.h>
+#include <qtpreprocessorsupport.h>
 
 struct ShapeMeshGradientEditStrategy::Private {
     Private(const QPointF& start, KoShape *shape, KoFlake::FillVariant fillVariant)

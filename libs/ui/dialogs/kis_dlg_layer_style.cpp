@@ -20,28 +20,36 @@
 #include <QUuid>
 #include <QWidget>
 
-#include <KoColorPopupButton.h>
-#include <KoColorSpaceRegistry.h>
-#include <KoResourceServerProvider.h>
 #include <KoResourcePaths.h>
 #include <KoMD5Generator.h>
-#include <KisResourceLoaderRegistry.h>
 
+#include "KisResourceModel.h"
+#include "KisResourceStorage.h"
 #include "KisResourceTypes.h"
+#include "KisResourcesInterface.h"
+#include "KoAbstractGradient.h"
+#include "KoDialog.h"
+#include "KoID.h"
+#include "KoPattern.h"
+#include "KoResourceServer.h"
+#include "KoResourceSignature.h"
 #include "kis_asl_layer_style_serializer.h"
 #include "application/kis_config.h"
+#include "kis_assert.h"
 #include "kis_cmb_gradient.h"
 #include <KisPaintResourceServerProvider.h>
+#include "kis_debug.h"
 #include "kis_psd_layer_style.h"
 #include <KisAslStorage.h>
 #include <KisResourceLocator.h>
 #include <KisSpinBoxI18nHelper.h>
-#include <KisStorageModel.h>
 #include <KisResourceUserOperations.h>
 
 #include "kis_signals_blocker.h"
 #include "kis_signal_compressor.h"
 #include "canvas/kis_canvas_resource_provider.h"
+#include "psd.h"
+#include "psd_types.h"
 #include <KisGlobalResourcesInterface.h>
 #include <KisLocalStrokeResources.h>
 #include <KisRequiredResourcesOperators.h>
@@ -49,6 +57,21 @@
 
 #include <KoFileDialog.h>
 #include <QMessageBox>
+#include <mutex>
+#include <qabstractitemmodel.h>
+#include <qabstractitemview.h>
+#include <qfileinfo.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlineedit.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qsharedpointer.h>
+#include <qsortfilterproxymodel.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 
 
 template <typename Type, typename TypeSP = QSharedPointer<Type>>

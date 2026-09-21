@@ -5,6 +5,7 @@
  */
 
 #include "KisAnimationRenderingOptions.h"
+#include "kis_assert.h"
 
 #include <QFileInfo>
 #include <QStandardPaths>

@@ -12,6 +12,12 @@
 #include <QtConcurrentRun>
 #include <QProgressDialog>
 #include <KLocalizedString>
+#include <functional>
+#include <memory>
+#include <qcoreapplication.h>
+#include <qfuture.h>
+#include <qnamespace.h>
+#include <qscopedpointer.h>
 
 
 struct KisAsyncActionFeedback::Private

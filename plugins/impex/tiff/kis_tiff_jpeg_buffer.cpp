@@ -6,7 +6,11 @@
 
 #include "kis_tiff_jpeg_buffer.h"
 
+#include <cstdint>
 #include <cstring>
+#include <qcontainerfwd.h>
+#include <tiffio.h>
+#include <utility>
 
 namespace
 {

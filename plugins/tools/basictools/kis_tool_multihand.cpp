@@ -11,17 +11,37 @@
 #include <QPushButton>
 #include <QFormLayout>
 #include <QStackedWidget>
+#include <cmath>
 #include <kis_slider_spin_box.h>
+#include "KoCanvasBase.h"
+#include "KoPointerEvent.h"
 #include "kis_aspect_ratio_locker.h"
 #include "kis_canvas2.h"
 #include "kis_cursor.h"
+#include "kis_floating_message.h"
+#include "kis_global.h"
 #include "kis_image.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_selection.h"
 
+#include "kis_tool.h"
+#include "kis_tool_brush.h"
+#include "kis_tool_freehand.h"
+#include "kis_tool_multihand_config.h"
 #include "kis_tool_multihand_helper.h"
+#include "kundo2magicstring.h"
 
 #include <QtGlobal>
+#include <math.h>
+#include <qassert.h>
+#include <qbrush.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpainter.h>
+#include <qpen.h>
+#include <qtypes.h>
 
 
 static const int MAXIMUM_BRUSHES = 50;

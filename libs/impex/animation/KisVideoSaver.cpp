@@ -20,14 +20,18 @@
 #include <kis_image.h>
 #include <kis_image_animation_interface.h>
 #include <kis_time_span.h>
-#include <KoColorSpace.h>
-#include <KoColorSpaceRegistry.h>
-#include <KoColorModelStandardIds.h>
-#include <KoResourcePaths.h>
+#include "KisImportExportErrorCode.h"
+#include "KisResourceTypes.h"
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
+#include <qtpreprocessorsupport.h>
 #include "application/kis_config.h"
 #include "KisAnimationRenderingOptions.h"
 
 #include "application/ui/orchestration/KisPart.h"
+#include "kis_debug.h"
 
 #ifdef Q_OS_ANDROID
 #include <KisMediaEncoderWrapper.h>

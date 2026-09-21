@@ -5,6 +5,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_assert.h"
 #include "kis_shade_selector_line_combo_box.h"
 #include "kis_shade_selector_line_combo_box_popup.h"
 
@@ -15,6 +16,12 @@
 #include <kconfig.h>
 #include <ksharedconfig.h>
 #include <kconfiggroup.h>
+#include <qassert.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qwidget.h>
 
 #include "kis_global.h"
 #include "kis_shade_selector_line.h"

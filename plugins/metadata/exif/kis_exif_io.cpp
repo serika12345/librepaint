@@ -6,7 +6,12 @@
  */
 
 #include "kis_exif_io.h"
+#include "kis_meta_data_io_backend.h"
 
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <exception>
 #include <exiv2/error.hpp>
 #include <exiv2/exif.hpp>
 
@@ -19,6 +24,10 @@
 #include <QVariant>
 #include <QtEndian>
 
+#include <exiv2/tags.hpp>
+#include <exiv2/types.hpp>
+#include <exiv2/value.hpp>
+#include <exiv2/version.hpp>
 #include <limits>
 
 #include <kis_debug.h>
@@ -29,6 +38,12 @@
 #include <kis_meta_data_store.h>
 #include <kis_meta_data_tags.h>
 #include <kis_meta_data_value.h>
+#include <qassert.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qobject.h>
+#include <qtypes.h>
+#include <vector>
 
 // ---- Exception conversion functions ---- //
 

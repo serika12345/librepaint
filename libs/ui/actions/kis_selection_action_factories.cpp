@@ -6,6 +6,10 @@
 
 #include "kis_selection_action_factories.h"
 
+#include "KisFigurePaintingOptions.h"
+#include "KoCanvasResourcesIds.h"
+#include "KoColorSpaceConstants.h"
+#include "KoFlakeTypes.h"
 #include "dialogs/kis_dlg_stroke_selection_properties.h"
 
 #include <QMimeData>
@@ -24,16 +28,20 @@
 #include <KoSelection.h>
 #include <KoDocumentResourceManager.h>
 #include <KoShapeStroke.h>
-#include <metadata/KoDocumentInfo.h>
 #include <KoCanvasBase.h>
 
 #include "application/ui/workspace/KisViewManager.h"
 #include "canvas/kis_canvas_resource_provider.h"
+#include "kis_assert.h"
 #include "kis_clipboard.h"
+#include "kis_command_utils.h"
+#include "kis_floating_message.h"
 #include "kis_pixel_selection.h"
 #include "kis_paint_layer.h"
 #include "kis_image.h"
 #include "KisImageBarrierLock.h"
+#include "kis_resources_snapshot.h"
+#include "kis_stroke_job_strategy.h"
 #include "kis_transaction.h"
 #include "kis_sequential_iterator.h"
 #include "kis_processing_applicator.h"
@@ -43,6 +51,8 @@
 #include "commands/kis_set_global_selection_command.h"
 #include <KoToolProxy.h>
 #include "kis_canvas2.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 #include "selection/kis_selection_manager.h"
 #include "commands_new/kis_transaction_based_command.h"
 #include "kis_selection_filters.h"
@@ -54,9 +64,8 @@
 #include "kis_keyframe_channel.h"
 #include "nodes/kis_node_manager.h"
 #include "kis_layer_utils.h"
-#include <kis_selection_mask.h>
-#include <KisReferenceImagesLayer.h>
 
+#include <mutex>
 #include <processing/fill_processing_visitor.h>
 #include <kis_stroke_strategy_undo_command_based.h>
 #include <commands_new/kis_processing_command.h>
@@ -64,6 +73,14 @@
 #include <kis_selection_tool_helper.h>
 
 #include <kis_figure_painting_stroke.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qpainterpath.h>
+#include <qsharedpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtransform.h>
+#include <qtypes.h>
 #include "kis_update_outline_job.h"
 
 namespace ActionHelper {

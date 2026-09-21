@@ -7,10 +7,20 @@
 */
 
 #include "tablettester.h"
+#include "KoDialog.h"
 #include "tablettest.h"
 #include "ui_tablettest.h"
 
 #include <QTabletEvent>
+#include <qapplication.h>
+#include <qcoreevent.h>
+#include <qdialog.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
+#include <qtversionchecks.h>
+#include <qwidget.h>
 
 TabletTestDialog::TabletTestDialog(QWidget *parent)
     : KoDialog(parent, Qt::Dialog)

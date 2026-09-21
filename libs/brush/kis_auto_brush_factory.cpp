@@ -9,7 +9,11 @@
 
 #include <QDomDocument>
 
+#include "KisBrushModel.h"
+#include "KisResourceTypes.h"
 #include "kis_auto_brush.h"
+#include "kis_base_mask_generator.h"
+#include "kis_brush.h"
 #include "kis_circle_mask_generator.h"
 #include "kis_curve_circle_mask_generator.h"
 #include "kis_curve_rect_mask_generator.h"
@@ -18,6 +22,8 @@
 #include "kis_rect_mask_generator.h"
 #include <kis_dom_utils.h>
 #include <KoResourceLoadResult.h>
+#include <optional>
+#include <qtpreprocessorsupport.h>
 
 
 KoResourceLoadResult KisAutoBrushFactory::createBrush(const QDomElement &brushDefinition, KisResourcesInterfaceSP resourcesInterface)

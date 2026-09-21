@@ -7,6 +7,11 @@
 
 #include "exr_converter.h"
 
+#include <ImathBox.h>
+#include <ImfPixelType.h>
+#include <ImfThreading.h>
+#include <cstdlib>
+#include <exception>
 #include <half.h>
 
 #include <ImfAttribute.h>
@@ -17,6 +22,14 @@
 #include <ImfOutputFile.h>
 
 #include <ImfStringAttribute.h>
+#include "KisImportExportErrorCode.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KoColorSpaceConstants.h"
+#include "KoCompositeOpIds.h"
+#include "KoGrayColorSpaceTraits.h"
+#include "KoIntegerMaths.h"
+#include "KoRgbColorSpaceTraits.h"
 #include "exr_extra_tags.h"
 
 #include <QApplication>
@@ -27,7 +40,6 @@
 
 #include <KoColorSpaceRegistry.h>
 #include <KoCompositeOpRegistry.h>
-#include <KoColorSpaceTraits.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColor.h>
 #include <KoColorProfile.h>
@@ -37,7 +49,8 @@
 #include <kis_image.h>
 #include <kis_paint_device.h>
 #include <kis_paint_layer.h>
-#include <kis_transaction.h>
+#include "kis_assert.h"
+#include "kis_debug.h"
 #include "kis_iterator_ng.h"
 #include "kis_sequential_iterator.h"
 #include <kis_exr_layers_sorter.h>
@@ -49,9 +62,20 @@
 #include <kis_meta_data_value.h>
 
 #include "kis_kra_savexml_visitor.h"
+#include "kis_types.h"
 
 #include <KisImportExportAdditionalChecks.h>
 #include <KisPortingUtils.h>
+#include <qalgorithms.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qset.h>
+#include <qtypes.h>
+#include <set>
+#include <string>
 
 // Do not translate!
 #define HDR_LAYER "HDR Layer"

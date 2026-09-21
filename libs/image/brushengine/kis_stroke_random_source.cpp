@@ -5,6 +5,8 @@
  */
 
 #include "kis_stroke_random_source.h"
+#include "KisPerStrokeRandomSource.h"
+#include "kis_random_source.h"
 
 struct KisStrokeRandomSource::Private
 {

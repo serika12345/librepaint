@@ -10,6 +10,17 @@
     SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
+#include <algorithm>
+#include <math.h>
+#include <qassert.h>
+#include <qbrush.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <resources/KoSegmentGradient.h>
 
 #include <array>
@@ -31,10 +42,13 @@
 #include <kis_global.h>
 #include <klocalizedstring.h>
 
+#include "KisPortingUtils.h"
+#include "KoAbstractGradient.h"
 #include "KoColor.h"
 #include "KoColorSpace.h"
 #include "KoColorSpaceRegistry.h"
 #include "KoMixColorsOp.h"
+#include "KoResource.h"
 
 KoGradientSegment::RGBColorInterpolationStrategy *KoGradientSegment::RGBColorInterpolationStrategy::m_instance = 0;
 KoGradientSegment::HSVCWColorInterpolationStrategy *KoGradientSegment::HSVCWColorInterpolationStrategy::m_instance = 0;

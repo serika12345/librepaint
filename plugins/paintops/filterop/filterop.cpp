@@ -7,12 +7,14 @@
 #include "filterop.h"
 #include <klocalizedstring.h>
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
-#include <KoCompositeOpRegistry.h>
 
 #include <brushengine/kis_paintop_registry.h>
+#include "KoCompositeOpIds.h"
+#include "kis_paintop_factory.h"
+#include <qcontainerfwd.h>
+#include <qobject.h>
 #include "kis_simple_paintop_factory.h"
 #include "kis_filterop.h"
 #include "kis_filterop_settings.h"

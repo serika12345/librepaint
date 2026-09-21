@@ -6,7 +6,6 @@
 
 #include "krita_utils.h"
 
-#include <QtCore/qmath.h>
 
 #include <QRect>
 #include <QRegion>
@@ -15,9 +14,11 @@
 #include <QPen>
 #include <QPainter>
 
+#include "KisQStringListFwd.h"
+#include "KoColorSpaceConstants.h"
+#include "KoID.h"
 #include "kis_algebra_2d.h"
 
-#include <KoColorSpaceRegistry.h>
 #include <KisRegion.h>
 
 #include "kis_image.h"
@@ -26,8 +27,24 @@
 #include "kis_node.h"
 #include "kis_sequential_iterator.h"
 #include "kis_random_accessor_ng.h"
+#include "kis_types.h"
+#include "kritaimage_export.h"
 
 #include <KisRenderedDab.h>
+#include <cmath>
+#include <functional>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qrgb.h>
+#include <qtypes.h>
+#include <utility>
 
 
 namespace KritaUtils

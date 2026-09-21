@@ -6,12 +6,17 @@
 
 #include "kis_processing_applicator.h"
 
+#include "KisImageSignals.h"
+#include "KisQStringListFwd.h"
+#include "kis_assert.h"
 #include "kis_image.h"
+#include "kis_layer.h"
 #include "kis_paint_layer.h"
 #include "kis_node.h"
 #include "kis_clone_layer.h"
 #include "kis_processing_visitor.h"
 #include "commands_new/kis_processing_command.h"
+#include "kis_stroke_job_strategy.h"
 #include "kis_stroke_strategy_undo_command_based.h"
 #include "kis_layer_utils.h"
 #include "kis_command_utils.h"
@@ -19,8 +24,18 @@
 #include "kis_image_signal_router.h"
 #include "KisAsynchronouslyMergeableCommandInterface.h"
 #include "kis_command_ids.h"
+#include "kis_types.h"
+#include "kundo2commandextradata.h"
 #include <KisRegion.h>
 #include <KisRunnableStrokeJobUtils.h>
+#include <future>
+#include <qforeach.h>
+#include <qobject.h>
+#include <qpoint.h>
+#include <qset.h>
+#include <qsharedpointer.h>
+#include <qtenvironmentvariables.h>
+#include <utility>
 
 class DisableUIUpdatesCommand : public KisCommandUtils::FlipFlopCommand, public KisAsynchronouslyMergeableCommandInterface
 {

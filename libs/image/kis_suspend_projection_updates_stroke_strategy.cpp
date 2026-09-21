@@ -10,18 +10,36 @@
 
 #include <KisRegion.h>
 
+#include <functional>
 #include <kis_image.h>
 #include <krita_utils.h>
 #include <kis_projection_updates_filter.h>
+#include "KisProjectionUpdateFlags.h"
+#include "KisRunnableBasedStrokeStrategy.h"
+#include "kis_assert.h"
 #include "kis_image_signal_router.h"
 #include "kis_image_animation_interface.h"
 
+#include "kis_pointer_utils.h"
+#include "kis_simple_stroke_strategy.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_types.h"
 #include "kundo2command.h"
 #include "KisRunnableStrokeJobDataBase.h"
 #include "KisRunnableStrokeJobsInterface.h"
 #include "kis_paintop_utils.h"
+#include "kundo2stack.h"
 
 #include <memory>
+#include <numeric>
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qsharedpointer.h>
+#include <qtypes.h>
 
 
 inline uint qHash(const QRect &rc) {

@@ -9,6 +9,11 @@
 #include <QPainter>
 #include <QApplication>
 #include <QMouseEvent>
+#include <qassert.h>
+#include <qcombobox.h>
+#include <qnamespace.h>
+#include <qpaintdevice.h>
+#include <qwidget.h>
 
 #include "kis_color_selector.h"
 #include "kis_canvas2.h"

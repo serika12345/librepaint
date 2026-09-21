@@ -5,6 +5,11 @@
  */
 #include "KisSharpnessOptionModel.h"
 
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+
+#include "KisSharpnessOptionData.h"
+
 KisSharpnessOptionModel::KisSharpnessOptionModel(lager::cursor<KisSharpnessOptionMixIn> optionData)
     : sharpnessOptionData(optionData)
     , LAGER_QT(alignOutlinePixels) {sharpnessOptionData[&KisSharpnessOptionMixIn::alignOutlinePixels]}

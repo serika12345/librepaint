@@ -4,11 +4,14 @@
  *
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  */
+#include "kis_properties_configuration.h"
+#include "kis_types.h"
 #include <brushengine/kis_locked_properties_server.h>
 #include <brushengine/kis_locked_properties.h>
 #include <brushengine/kis_locked_properties_proxy.h>
 
 #include <QGlobalStatic>
+#include <cstddef>
 
 Q_GLOBAL_STATIC(KisLockedPropertiesServer, s_instance)
 

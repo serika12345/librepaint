@@ -11,7 +11,15 @@
 #include <QRect>
 #include <QLineF>
 #include <QtMath>
+#include <cmath>
+#include <qimage.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qregion.h>
+#include <qtypes.h>
 
+#include "KisVisualColorSelectorShape.h"
+#include "kis_assert.h"
 #include "kis_global.h"
 
 #include "resources/KoGamutMask.h"

@@ -13,6 +13,9 @@
 
 #include <KoDockFactoryBase.h>
 #include <KoDockRegistry.h>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
 
 
 K_PLUGIN_FACTORY_WITH_JSON(AnimationDockersPluginFactory, "krita_animationdocker.json", registerPlugin<AnimationDockersPlugin>();)

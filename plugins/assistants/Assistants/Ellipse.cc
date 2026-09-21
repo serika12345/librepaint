@@ -6,6 +6,9 @@
 
 #include "Ellipse.h"
 #include <cmath>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qtypes.h>
 
 
 Ellipse::Ellipse() : a(-1), b(-1)

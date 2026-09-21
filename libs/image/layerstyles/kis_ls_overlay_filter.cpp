@@ -10,10 +10,16 @@
 
 #include <QBitArray>
 
-#include <resources/KoPattern.h>
+#include <qnumeric.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
-#include <resources/KoAbstractGradient.h>
 
+#include "kis_assert.h"
+#include "kis_filter_configuration.h"
+#include "kis_layer_style_filter.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 #include "psd.h"
 
 #include "kis_gaussian_kernel.h"

@@ -4,7 +4,11 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_types.h"
 #include "nodes/kis_node_manager.h"
+#include <qminmax.h>
+#include <qobject.h>
+#include <qtypes.h>
 
 qint32 KisNodeManager::convertOpacityToInt(qreal opacity)
 {

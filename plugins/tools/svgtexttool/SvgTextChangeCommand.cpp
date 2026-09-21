@@ -8,9 +8,13 @@
 
 #include <math.h>
 #include <klocalizedstring.h>
+#include <qassert.h>
+#include <qobject.h>
 
 #include "KoSvgTextShape.h"
 #include "KoSvgTextShapeMarkupConverter.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 SvgTextChangeCommand::SvgTextChangeCommand(KoSvgTextShape *shape,
                                            const QString &svg,

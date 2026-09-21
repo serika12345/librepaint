@@ -5,9 +5,27 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <algorithm>
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
+#include <optional>
+#include <qcoreapplication.h>
+#include <qdebug.h>
+#include <qforeach.h>
+#include <qguiapplication.h>
+#include <qhash.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qopengl.h>
+#include <qsize.h>
+#include <qstringview.h>
+#include <qtpreprocessorsupport.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
 #include <tuple>
 
-#include <boost/optional.hpp>
 
 #include <QtGlobal>
 
@@ -39,10 +57,14 @@
 
 #include <color/KisSurfaceColorSpaceWrapper.h>
 #include "KisOpenGLModeProber.h"
+#include "KisQStringListFwd.h"
+#include "KoIntegerMaths.h"
 #include "opengl/kis_opengl.h"
 
 #include <config-hdr.h>
 #include <config-use-surface-color-management-api.h>
+#include <utility>
+#include <vector>
 
 #ifndef GL_RENDERER
 #  define GL_RENDERER 0x1F01

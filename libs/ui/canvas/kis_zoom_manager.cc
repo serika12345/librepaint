@@ -11,8 +11,6 @@
 #include <QGridLayout>
 
 #include <kactioncollection.h>
-#include <ktoggleaction.h>
-#include <kis_debug.h>
 
 #include <application/ui/workspace/KisView.h>
 #include <KoZoomAction.h>
@@ -21,9 +19,15 @@
 #include <KoCanvasControllerWidget.h>
 #include <KoUnit.h>
 
+#include "KoCanvasController.h"
+#include "KoCanvasResourcesIds.h"
+#include "KoID.h"
+#include "KoSnapGuide.h"
+#include "KoZoomMode.h"
 #include "document/KisDocument.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "canvas/kis_canvas2.h"
+#include "kis_assert.h"
 #include "kis_coordinates_converter.h"
 #include "kis_image.h"
 #include "canvas/kis_statusbar.h"
@@ -34,6 +38,11 @@
 #include "kis_guides_config.h"
 #include "kis_guides_manager.h"
 #include <kis_config_notifier.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qtypes.h>
 
 
 // A delay longer than 80 ms is needed for a visibly smoother canvas updates

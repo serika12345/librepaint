@@ -3,10 +3,15 @@
  *
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
+#include "kis_types.h"
 #include <brushengine/kis_paintop_factory.h>
 
 #include <klocalizedstring.h>
-#include <KoColorSpace.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qicon.h>
+#include <qnamespace.h>
+#include <qpixmap.h>
 
 KisPaintOpFactory::KisPaintOpFactory(const QStringList & whiteListedCompositeOps)
     : m_whiteListedCompositeOps(whiteListedCompositeOps), m_priority(100)

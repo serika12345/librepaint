@@ -4,9 +4,13 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "KisResourceIterator.h"
+#include "KoResource.h"
 
 #include <KisResourceModel.h>
 #include <QModelIndex>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qnamespace.h>
 
 KisResourceItem::KisResourceItem(KisResourceModel *resourceModel, const QModelIndex &index)
     : m_resourceModel(resourceModel)

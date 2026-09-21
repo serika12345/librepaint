@@ -8,6 +8,8 @@
 
 #include <QTimer>
 #include <QAtomicInt>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
 #include "KoProgressProxy.h"
 

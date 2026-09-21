@@ -6,12 +6,15 @@
  */
 
 #include "SvgGradientHelper.h"
+#include "KoFlakeCoordinateSystem.h"
+#include "SvgMeshGradient.h"
 
 #include <QConicalGradient>
 #include <QLinearGradient>
 #include <QRadialGradient>
 
 #include <KoFlake.h>
+#include <qscopedpointer.h>
 
 SvgGradientHelper::SvgGradientHelper()
     : m_gradient(new QGradient())

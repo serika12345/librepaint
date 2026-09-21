@@ -17,13 +17,21 @@
 #include <KisToolCanvas.h>
 
 #include "kis_tool_polyline_base.h"
+#include "KoToolBase.h"
 #include "kis_canvas2.h"
+#include "kis_tool.h"
+#include "kis_tool_paint.h"
+#include "kis_tool_shape.h"
+#include "ui_wdggeometryoptions.h"
 #include <canvas/kis_canvas_resource_provider.h>
 #include <application/ui/workspace/KisViewManager.h>
-#include <application/ui/orchestration/kis_action.h>
 #include <kactioncollection.h>
 #include <kis_icon.h>
 #include <kis_image.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qtpreprocessorsupport.h>
 
 
 #define SNAPPING_THRESHOLD 10

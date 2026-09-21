@@ -8,12 +8,9 @@
 
 
 
-#include <KoCompositeOp.h>
 
 #include <kis_image.h>
-#include <kis_debug.h>
 
-#include <kis_global.h>
 #include <kis_paint_device.h>
 #include <kis_painter.h>
 #include <kis_lod_transform.h>
@@ -21,6 +18,7 @@
 #include <kis_paintop_plugin_utils.h>
 #include <brushengine/kis_paintop.h>
 #include <brushengine/kis_paint_information.h>
+#include <qtpreprocessorsupport.h>
 
 #include "KisParticleOpOptionData.h"
 

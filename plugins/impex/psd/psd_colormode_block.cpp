@@ -4,9 +4,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "psd_colormode_block.h"
+#include "psd_types.h"
 
 #include <psd_utils.h>
 #include <QColor>
+#include <qrgb.h>
+#include <qtypes.h>
 
 PSDColorModeBlock::PSDColorModeBlock(psd_color_mode colormode)
     : blocksize(0)

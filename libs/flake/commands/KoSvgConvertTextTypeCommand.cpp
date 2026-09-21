@@ -4,7 +4,11 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "KoSvgConvertTextTypeCommand.h"
+#include "KoSvgTextShape.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <KoShapeBulkActionLock.h>
+#include <qminmax.h>
 
 KoSvgConvertTextTypeCommand::KoSvgConvertTextTypeCommand(KoSvgTextShape *shape, KoSvgTextShape::TextType type, int pos, KUndo2Command *parent)
     : KUndo2Command(parent)

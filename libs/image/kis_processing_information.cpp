@@ -5,9 +5,11 @@
  */
 
 #include "kis_processing_information.h"
-
 #include "KisProcessingInformationPaintDeviceOwnership_p.h"
 #include "kis_shared_ptr.h"
+
+#include <qpoint.h>
+#include <qtdeprecationdefinitions.h>
 
 struct Q_DECL_HIDDEN KisConstProcessingInformation::Private {
     Private() : device(0), selection(0) {}

@@ -5,8 +5,11 @@
  */
 
 #include "KisRunnableStrokeJobData.h"
+#include "KisRunnableStrokeJobDataBase.h"
+#include "kis_stroke_job_strategy.h"
 
 #include <QRunnable>
+#include <functional>
 
 KisRunnableStrokeJobData::KisRunnableStrokeJobData(QRunnable *runnable, KisStrokeJobData::Sequentiality sequentiality, KisStrokeJobData::Exclusivity exclusivity)
     : KisRunnableStrokeJobDataBase(sequentiality, exclusivity),

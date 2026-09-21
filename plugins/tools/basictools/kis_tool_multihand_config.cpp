@@ -5,7 +5,7 @@
 */
 
 
-#include <kis_icon.h>
+#include <qwidget.h>
 #include "kis_tool_multihand_config.h"
 
 KisToolMultiHandConfigWidget::KisToolMultiHandConfigWidget(QWidget* parent)

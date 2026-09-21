@@ -8,6 +8,9 @@
  */
 
 #include "FisheyePointAssistant.h"
+#include "KoCanvasBase.h"
+#include "kis_painting_assistant.h"
+#include "kis_types.h"
 
 #include <klocalizedstring.h>
 
@@ -22,6 +25,12 @@
 
 #include <math.h>
 #include <limits>
+#include <qassert.h>
+#include <qline.h>
+#include <qmap.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qtypes.h>
 
 FisheyePointAssistant::FisheyePointAssistant()
     : KisPaintingAssistant("fisheye-point", i18n("Fish Eye Point assistant"))

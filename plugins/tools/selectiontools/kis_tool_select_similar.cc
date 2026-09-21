@@ -15,25 +15,39 @@
 
 #include <ksharedconfig.h>
 
-#include <KoColorSpace.h>
 #include <KisCursorOverrideLock.h>
 #include <KisSpinBoxI18nHelper.h>
 
+#include "KisOptionCollectionWidget.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KisSelectionTags.h"
+#include "commands_new/KisMergeLabeledLayersCommand.h"
+#include "kis_assert.h"
 #include "kis_canvas2.h"
 #include "kis_command_utils.h"
 #include "kis_image.h"
+#include "kis_processing_visitor.h"
 #include "kis_selection_tool_helper.h"
 #include "kis_slider_spin_box.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_stroke_strategy_undo_command_based.h"
+#include "kis_tool_select_ui_base.h"
+#include "kis_types.h"
 #include "krita_utils.h"
+#include "kundo2magicstring.h"
 #include <KoPointerEvent.h>
 #include <kis_cursor.h>
 #include <kis_paint_device.h>
 #include <kis_pixel_selection.h>
-#include <kis_selection_filters.h>
 #include <kis_selection_options.h>
 #include <kis_image_animation_interface.h>
 #include <kis_default_bounds.h>
 #include <kis_fill_painter.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qsharedpointer.h>
+#include <qwidget.h>
 
 KisToolSelectSimilar::KisToolSelectSimilar(KoCanvasBase *canvas)
     : KisToolSelect(canvas,

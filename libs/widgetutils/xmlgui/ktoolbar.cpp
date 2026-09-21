@@ -13,6 +13,7 @@
 */
 
 #include "ktoolbar.h"
+#include "KisQStringListFwd.h"
 #include "config-xmlgui.h"
 #include <QAction>
 #include <QApplication>
@@ -25,6 +26,29 @@
 #include <QMouseEvent>
 #include <QToolButton>
 #include <QDomElement>
+#include <algorithm>
+#include <functional>
+#include <lager/extra/qt.hpp>
+#include <qassert.h>
+#include <qcolor.h>
+#include <qcoreapplication.h>
+#include <qcoreevent.h>
+#include <qforeach.h>
+#include <qglobalstatic.h>
+#include <qkeysequence.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qmainwindow.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qregion.h>
+#include <qset.h>
+#include <qtoolbar.h>
+#include <qtypes.h>
+#include <qwidget.h>
 #ifdef HAVE_DBUS
 #include <QDBusConnection>
 #include <QDBusMessage>

@@ -7,9 +7,15 @@
 #include "dlg_offsetimage.h"
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 #include <application/kis_config.h>
+#include <qassert.h>
+#include <qhashfunctions.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qwidget.h>
 
+#include "KoDialog.h"
 #include "kis_document_aware_spin_box_unit_manager.h"
 
 const QString DlgOffsetImage::PARAM_PREFIX = "imageoffsetdlg";

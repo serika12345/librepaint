@@ -12,6 +12,10 @@
 #include <QDebug>
 #include <QEvent>
 #include <QKeyEvent>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qlogging.h>
+#include <qnamespace.h>
 
 
 struct KisCustomModifiersCatcher::Private

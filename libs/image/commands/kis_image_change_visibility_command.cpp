@@ -7,6 +7,9 @@
 
 #include "kis_image_change_visibility_command.h"
 #include "kis_node.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 #include <klocalizedstring.h>
 

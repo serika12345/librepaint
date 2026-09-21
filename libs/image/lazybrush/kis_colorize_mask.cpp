@@ -12,6 +12,17 @@
 #include <QStack>
 
 #include <KoColorSpaceRegistry.h>
+#include "KisRenderPassFlags.h"
+#include "KisRunnableStrokeJobDataBase.h"
+#include "KoCompositeOpIds.h"
+#include "kis_assert.h"
+#include "kis_base_node.h"
+#include "kis_default_bounds.h"
+#include "kis_default_bounds_base.h"
+#include "kis_effect_mask.h"
+#include "kis_indirect_painting_support.h"
+#include "kis_mask.h"
+#include "kis_node.h"
 #include "kis_pixel_selection.h"
 
 #include "kis_icon_utils.h"
@@ -24,6 +35,7 @@
 #include "kis_cached_paint_device.h"
 #include "kis_paint_device_debug_utils.h"
 #include "kis_layer_properties_icons.h"
+#include "kis_signal_compressor.h"
 #include "kis_thread_safe_signal_compressor.h"
 
 #include "kis_colorize_stroke_strategy.h"
@@ -33,11 +45,22 @@
 #include "kis_post_execution_undo_adapter.h"
 #include "kis_command_utils.h"
 #include "kis_processing_applicator.h"
+#include "kis_types.h"
 #include "krita_utils.h"
+#include "kundo2magicstring.h"
 #include <KisFakeRunnableStrokeJobsExecutor.h>
 #include <KisRunnableStrokeJobData.h>
 #include <KisRunnableStrokeJobUtils.h>
+#include <algorithm>
 #include <kis_pointer_utils.h>
+#include <qforeach.h>
+#include <qicon.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 using namespace KisLazyFillTools;

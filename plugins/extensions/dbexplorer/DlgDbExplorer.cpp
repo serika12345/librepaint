@@ -8,7 +8,6 @@
 #include "DlgDbExplorer.h"
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 
 #include <QDataWidgetMapper>
 #include <QTableView>
@@ -24,8 +23,19 @@
 #include <KisTagFilterResourceProxyModel.h>
 #include <KisTagModel.h>
 #include <KisTagResourceModel.h>
+#include <qabstractitemview.h>
+#include <qassert.h>
+#include <qimage.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qwidget.h>
 
 #include "KisResourceModelProvider.h"
+#include "KisResourceTypes.h"
+#include "KisTag.h"
+#include "KoDialog.h"
 #include "TableModel.h"
 
 DlgDbExplorer::DlgDbExplorer(QWidget *parent)

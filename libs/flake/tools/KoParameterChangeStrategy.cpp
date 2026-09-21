@@ -5,11 +5,15 @@
    SPDX-License-Identifier: LGPL-2.0-or-later
 */
 #include "KoParameterChangeStrategy.h"
+#include "KoInteractionStrategy.h"
 #include "KoParameterChangeStrategy_p.h"
 #include "KoParameterShape.h"
+#include "KoToolBase.h"
 #include "commands/KoParameterHandleMoveCommand.h"
 
 #include <KoCanvasBase.h>
+#include <qnamespace.h>
+#include <qtclasshelpermacros.h>
 #include "KoSnapGuide.h"
 
 

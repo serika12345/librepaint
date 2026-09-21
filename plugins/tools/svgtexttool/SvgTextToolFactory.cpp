@@ -7,13 +7,19 @@
 
 #include "SvgTextToolFactory.h"
 
+#include "KoCanvasBase.h"
 #include "KoSvgTextShape.h"
+#include "KoToolBase.h"
+#include "KoToolFactoryBase.h"
 #include "SvgTextTool.h"
 #include "SvgTextShortCuts.h"
 
 #include <KoIcon.h>
 #include <klocalizedstring.h>
 #include <kis_action_registry.h>
+#include <qaction.h>
+#include <qforeach.h>
+#include <qlist.h>
 
 SvgTextToolFactory::SvgTextToolFactory()
     : KoToolFactoryBase("SvgTextTool")

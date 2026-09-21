@@ -9,11 +9,13 @@
 #include <QMap>
 #include <QPointer>
 
+#include <algorithm>
+#include <cstring>
+#include <future>
 #include <klocalizedstring.h>
 #include <kpluginfactory.h>
 
 #include <KoColorSpace.h>
-#include <KoChannelInfo.h>
 #include <KoColor.h>
 
 #include <kis_debug.h>
@@ -28,17 +30,28 @@
 #include <kis_paint_layer.h>
 #include <kis_group_layer.h>
 #include <kis_random_accessor_ng.h>
+#include "KoColorSpaceConstants.h"
 #include "dlg_layersplit.h"
+#include "kundo2magicstring.h"
 #include "nodes/kis_node_manager.h"
 #include <commands/kis_node_commands_adapter.h>
 #include "kis_undo_adapter.h"
 #include <KisImageBarrierLock.h>
 #include "kis_selection_mask.h"
 #include "kis_layer_utils.h"
+#include "ui/orchestration/KisActionPlugin.h"
 
 #include <KoUpdater.h>
 #include <KoProgressUpdater.h>
 #include <KisCursorOverrideLock.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(LayerSplitFactory, "kritalayersplit.json", registerPlugin<LayerSplit>();)
 

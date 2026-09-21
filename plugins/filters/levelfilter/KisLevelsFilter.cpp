@@ -8,11 +8,22 @@
  */
 
 #include <filter/kis_filter_category_ids.h>
+#include <qassert.h>
+#include <qkeysequence.h>
+#include <qlist.h>
+#include <qnamespace.h>
 
 #include "../colorsfilters/kis_multichannel_utils.h"
 
 #include "KisLevelsFilter.h"
 #include "KisLevelsConfigWidget.h"
+#include "KisLevelsFilterConfiguration.h"
+#include "KoColorSpace.h"
+#include "kis_color_transformation_filter.h"
+#include "kis_config_widget.h"
+#include "kis_filter_configuration.h"
+#include "kis_types.h"
+#include "ui_KisLevelsConfigWidget.h"
 
 KisLevelsFilter::KisLevelsFilter()
     : KisColorTransformationFilter(id(), FiltersCategoryAdjustId, i18n("&Levels..."))

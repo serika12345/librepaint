@@ -5,11 +5,17 @@
  */
 
 #include "KisMaskingBrushOptionProperties.h"
+#include "KisBrushModel.h"
+#include "KoCompositeOpIds.h"
+#include "kis_types.h"
 
 #include <brushengine/KisPaintopSettingsIds.h>
 
 #include <kis_image_config.h>
 #include <kis_properties_configuration.h>
+#include <optional>
+#include <qnumeric.h>
+#include <qtypes.h>
 
 bool KisBrushModel::operator==(const KisBrushModel::MaskingBrushData &lhs, const KisBrushModel::MaskingBrushData &rhs)
 {

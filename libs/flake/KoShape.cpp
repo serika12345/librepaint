@@ -8,10 +8,14 @@
    SPDX-License-Identifier: LGPL-2.0-or-later
 */
 
+#include <algorithm>
+#include <cmath>
 #include <limits>
 
 #include "KisMpl.h"
 #include "KoShape.h"
+#include "KoFlake.h"
+#include "KoFlakeTypes.h"
 #include "KoShape_p.h"
 #include "KoShapeContainer.h"
 #include "KoShapeContainerModel.h"
@@ -30,19 +34,26 @@
 #include <KoSnapData.h>
 
 #include <KoXmlWriter.h>
-#include <KoXmlNS.h>
-#include <KoUnit.h>
 
 #include <QPainter>
 #include <QVariant>
 #include <QPainterPath>
 #include <QList>
 #include <QMap>
-#include <FlakeDebug.h>
 
 #include "kis_assert.h"
 
 #include <KisHandlePainterHelper.h>
+#include <math.h>
+#include <numeric>
+#include <qforeach.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qset.h>
+#include <qshareddata.h>
+#include <qsharedpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 // KoShape::Private
 

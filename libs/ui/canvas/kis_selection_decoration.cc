@@ -5,6 +5,8 @@
  */
 
 #include "canvas/kis_selection_decoration.h"
+#include "KoCanvasResourcesIds.h"
+#include "kis_canvas_decoration.h"
 #include "selection/kis_selection_actions_panel.h"
 
 #include <QPainter>
@@ -14,7 +16,6 @@
 #include <QWindow>
 #include <QScreen>
 
-#include <kis_debug.h>
 #include <klocalizedstring.h>
 
 #include <application/ui/workspace/KisMainWindow.h>
@@ -37,6 +38,13 @@
 #include <application/ui/orchestration/KisPart.h>
 #include <KisScreenMigrationTracker.h>
 #include <kis_display_color_converter.h>
+#include <qcolor.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtimer.h>
+#include <qtpreprocessorsupport.h>
+#include <qvariant.h>
 
 static const unsigned int ANT_LENGTH = 4;
 static const unsigned int ANT_SPACE = 4;

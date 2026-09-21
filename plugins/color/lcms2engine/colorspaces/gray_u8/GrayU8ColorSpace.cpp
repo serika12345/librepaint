@@ -11,12 +11,19 @@
 #include <QDebug>
 #include <klocalizedstring.h>
 
-#include <KoIntegerMaths.h>
 #include <KoColorSpaceRegistry.h>
 
+#include "KisQStringListFwd.h"
+#include "KoChannelInfo.h"
+#include "KoColorSpace.h"
+#include "KoColorSpaceMaths.h"
+#include "KoGrayColorSpaceTraits.h"
+#include "LcmsColorSpace.h"
 #include "compositeops/KoCompositeOps.h"
 #include "dithering/KisGrayDitherOpFactory.h"
 #include <kis_dom_utils.h>
+#include <lcms2.h>
+#include <qtypes.h>
 
 GrayAU8ColorSpace::GrayAU8ColorSpace(const QString &name, KoColorProfile *p)
     : LcmsColorSpace<KoGrayU8Traits>(colorSpaceId(), name,  TYPE_GRAYA_8, cmsSigGrayData, p)

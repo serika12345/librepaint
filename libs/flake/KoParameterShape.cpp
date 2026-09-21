@@ -7,11 +7,19 @@
 
 #include "KoParameterShape.h"
 #include "KoParameterShape_p.h"
+#include "KoPathShape.h"
+#include "KoShape.h"
 
 #include <KisHandlePainterHelper.h>
 
 #include <QPainter>
 #include <FlakeDebug.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qshareddata.h>
+#include <qsize.h>
 
 KoParameterShape::Private::Private()
     : QSharedData()

@@ -5,8 +5,14 @@
 */
 
 #include "KoResetBgFgColours.h"
+#include "KoColorDisplayRendererInterface.h"
+#include "KoDualColorButton.h"
+#include "KoID.h"
+#include "ui/workspace/KisView.h"
 #include <QPainter>
 #include <QEvent>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 
 

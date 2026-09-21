@@ -4,6 +4,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisSmudgeLengthOptionWidget.h"
+#include "KisCurveOptionDataCommon.h"
+#include "KisCurveOptionWidget.h"
+#include "KisSmudgeLengthOptionData.h"
+#include "KoID.h"
+#include "kis_paintop_option.h"
+#include "kis_types.h"
 
 #include <KisLager.h>
 
@@ -16,6 +22,10 @@
 
 #include <KisSmudgeLengthOptionModel.h>
 #include <KisWidgetConnectionUtils.h>
+#include <functional>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/reader.hpp>
 
 
 struct KisSmudgeLengthOptionWidget::Private

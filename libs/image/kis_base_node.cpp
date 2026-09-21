@@ -8,17 +8,33 @@
 #include <klocalizedstring.h>
 
 #include <kis_image.h>
-#include <kis_icon.h>
 #include <KoProperties.h>
 #include <KisAnimatedOpacityProperty.h>
-#include <KoColorSpace.h>
-#include <KoCompositeOpRegistry.h>
+#include <new>
+#include <qassert.h>
+#include <qdebug.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <quuid.h>
+#include <qvariant.h>
 
 
+#include "KoColorSpaceConstants.h"
+#include "KoCompositeOpIds.h"
+#include "kis_default_bounds.h"
+#include "kis_node.h"
 #include "kis_paint_device.h"
 #include "kis_layer_properties_icons.h"
 
 #include "kis_scalar_keyframe_channel.h"
+#include "kis_shared.h"
+#include "kis_types.h"
 
 struct Q_DECL_HIDDEN KisBaseNode::Private
 {

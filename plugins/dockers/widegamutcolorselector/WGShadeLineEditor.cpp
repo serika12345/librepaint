@@ -5,12 +5,24 @@
  */
 
 #include "WGShadeLineEditor.h"
+#include "KisColorSelectorConfiguration.h"
+#include "KisVisualColorModel.h"
+#include "WGConfig.h"
+#include "WGSelectorWidgetBase.h"
 #include "WGShadeSlider.h"
 
 #include "ui_WdgWGShadeLineEditor.h"
 
 #include <QCoreApplication>
 #include <QResizeEvent>
+#include <qframe.h>
+#include <qicon.h>
+#include <qlayout.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 WGShadeLineEditor::WGShadeLineEditor(QWidget *parent)
     : QFrame(parent, Qt::Popup)

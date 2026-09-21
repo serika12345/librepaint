@@ -5,9 +5,37 @@
  */
 
 #include "kis_raw_import.h"
+#include "KisImportExportFilter.h"
+#include "KoBgrColorSpaceTraits.h"
+#include "KoColorModelStandardIds.h"
+#include "dcrawsettingswidget.h"
+#include "kis_assert.h"
+#include "kis_global.h"
+#include "kis_types.h"
 
 #include <cstddef>
-#include <exiv2/exiv2.hpp>
+#include <cstdint>
+#include <exiv2/error.hpp>
+#include <exiv2/exif.hpp>
+#include <exiv2/image.hpp>
+#include <exiv2/types.hpp>
+#include <exiv2/version.hpp>
+#include <memory>
+#include <qbuffer.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qfileinfo.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpixmap.h>
+#include <qpointer.h>
+#include <qrgb.h>
+#include <qsize.h>
+#include <qstringview.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 #include <utility>
 #include <kpluginfactory.h>
 #include <libkdcraw_version.h>
@@ -20,7 +48,6 @@
 #include <KisImportExportErrorCode.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
-#include <KoColorSpaceTraits.h>
 #include <KoDialog.h>
 #include <KoUpdater.h>
 #include <kis_debug.h>
@@ -32,7 +59,6 @@
 #include <kis_paint_device.h>
 #include <kis_paint_layer.h>
 #include <kis_random_accessor_ng.h>
-#include <kis_transaction.h>
 
 using namespace KDcrawIface;
 

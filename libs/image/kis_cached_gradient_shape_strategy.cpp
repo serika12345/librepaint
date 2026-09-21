@@ -12,9 +12,17 @@
 #include <cmath>
 
 #include <functional>
+#include <qassert.h>
+#include <qminmax.h>
+#include <qpoint.h>
+#include <qscopedpointer.h>
+#include <qtypes.h>
 
 #include "kis_algebra_2d.h"
+#include "kis_assert.h"
+#include "kis_bspline.h"
 #include "kis_debug.h"
+#include "kis_gradient_shape_strategy.h"
 
 
 using namespace KisBSplines;

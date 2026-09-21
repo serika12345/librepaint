@@ -13,9 +13,14 @@
 #include <klocalizedstring.h>
 #include <QGlobalStatic>
 
+#include "KoID.h"
 #include "kis_debug.h"
 #include <QtMath>
 #include <QSize>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 Q_GLOBAL_STATIC(KisFilterStrategyRegistry, s_instance)
 

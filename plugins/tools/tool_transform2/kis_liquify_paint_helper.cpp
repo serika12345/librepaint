@@ -12,11 +12,16 @@
 #include "KoPointerEvent.h"
 #include <brushengine/kis_paint_information.h>
 #include <kis_painting_information_builder_adapters.h>
+#include "kis_assert.h"
 #include "kis_liquify_transform_worker.h"
 #include <brushengine/kis_paintop_utils.h>
+#include <qpoint.h>
+#include <qscopedpointer.h>
+#include <qtypes.h>
 #include "kis_coordinates_converter.h"
 #include "kis_liquify_paintop.h"
 #include "kis_liquify_properties.h"
+#include "kis_painting_information_builder.h"
 
 struct KisLiquifyPaintHelper::Private
 {

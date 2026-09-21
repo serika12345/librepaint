@@ -17,19 +17,18 @@
 #include <QString>
 #include <QList>
 #include <QMap>
+#include <algorithm>
+#include <functional>
 #include <kis_debug.h>
 #include <kundo2command.h>
 #include <commands_new/kis_node_move_command2.h>
 #include <QMimeData>
 
-#include <kis_icon.h>
 #include <KoColorSpace.h>
 #include <KoCompositeOp.h>
 #include <document/KisDocument.h>
-#include <KoUnit.h>
 #include <KoShapeContainer.h>
 #include <KoShapeLayer.h>
-#include <KoShapeGroup.h>
 #include <KoShapeLoadingContext.h>
 #include <KoShapeManager.h>
 #include <KoSelectedShapesProxy.h>
@@ -39,19 +38,22 @@
 #include <KoShapeControllerBase.h>
 #include <KoStoreDevice.h>
 #include <KoViewConverter.h>
-#include <KoXmlNS.h>
-#include <KoXmlWriter.h>
 #include <KoSelection.h>
 #include <KoShapeMoveCommand.h>
 #include <KoShapeTransformCommand.h>
 
+#include "KisQStringListFwd.h"
+#include "KoColorConversionTransformation.h"
 #include "SvgWriter.h"
 #include "SvgParser.h"
 
 #include <kis_types.h>
 #include <kis_image.h>
+#include "kis_assert.h"
 #include "kis_default_bounds.h"
 #include <kis_paint_device.h>
+#include "kis_global.h"
+#include "kis_icon_utils.h"
 #include "kis_shape_layer_canvas.h"
 #include "canvas/kis_image_view_converter.h"
 #include <kis_painter.h>
@@ -68,6 +70,13 @@
 
 
 #include <SimpleShapeContainerModel.h>
+#include <qdebug.h>
+#include <qforeach.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 class ShapeLayerContainerModel : public SimpleShapeContainerModel
 {
 public:

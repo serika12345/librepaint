@@ -9,6 +9,7 @@
 #include "kis_assert.h"
 #include <KoShapeManager.h>
 #include <KoSelection.h>
+#include <qobjectdefs.h>
 
 KoSelectedShapesProxySimple::KoSelectedShapesProxySimple(KoShapeManager *shapeManager)
     : m_shapeManager(shapeManager)

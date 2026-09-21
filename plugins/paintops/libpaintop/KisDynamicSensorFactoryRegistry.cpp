@@ -5,6 +5,11 @@
  */
 #include "KisDynamicSensorFactoryRegistry.h"
 
+#include <QGlobalStatic>
+#include <QString>
+
+#include <KLocalizedString>
+#include <KoID.h>
 #include <KisDynamicSensorIds.h>
 
 #include <KisSimpleDynamicSensorFactory.h>
@@ -39,7 +44,8 @@ KisDynamicSensorFactoryRegistry::KisDynamicSensorFactoryRegistry()
 
 KisDynamicSensorFactoryRegistry::~KisDynamicSensorFactoryRegistry()
 {
-    Q_FOREACH (const QString & id, keys()) {
+    const auto sensorIds = keys();
+    for (const QString &id : sensorIds) {
         delete get(id);
     }
 }

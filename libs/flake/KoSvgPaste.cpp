@@ -12,9 +12,13 @@
 
 #include <SvgParser.h>
 #include <KoDocumentResourceManager.h>
-#include <FlakeDebug.h>
 #include <QRectF>
 #include <KoMarker.h>
+#include <qdom.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qtypes.h>
 
 class KoSvgPaste::Private
 {

@@ -5,6 +5,8 @@
  */
 
 #include "KisCurveWidgetControlsManager.h"
+#include "kis_assert.h"
+#include "kritaui_export_instance.h"
 
 #include <QSpinBox>
 #include <QDoubleSpinBox>
@@ -12,6 +14,13 @@
 #include <kis_signals_blocker.h>
 
 #include <KisSpinBoxSplineUnitConverter.h>
+#include <optional>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qpoint.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 namespace detail {
 qreal io2sp(int x, int min, int max)

@@ -7,6 +7,11 @@
 
 #include "KisResourceItemChooserSelectionSource_p.h"
 #include "KisResourceItemChooser_p.h"
+#include "KoResource.h"
+#include <qabstractitemmodel.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 
 KoResourceSP KisResourceItemChooser::currentResource(bool includeHidden) const
 {

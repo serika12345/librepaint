@@ -12,10 +12,16 @@
 #include <QTimer>
 #include <QDebug>
 
+#include <algorithm>
 #include <kconfig.h>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
 #include <KisMpl.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qtmetamacros.h>
+#include <qurl.h>
 
 class KisRecentFilesManager::Private
 {

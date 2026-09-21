@@ -11,6 +11,10 @@
 
 #include <KoDockFactoryBase.h>
 #include <KoDockRegistry.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
 
 #include "kis_color_selector_ng_dock.h"
 #include "kis_color_selector_settings.h"

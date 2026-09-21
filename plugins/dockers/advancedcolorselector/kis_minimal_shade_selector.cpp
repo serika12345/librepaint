@@ -15,9 +15,14 @@
 #include <kconfig.h>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
+#include <qforeach.h>
+#include <qnamespace.h>
+#include <qwidget.h>
 
+#include "KisQStringListFwd.h"
 #include "KoCanvasResourceProvider.h"
 
+#include "KoCanvasResourcesIds.h"
 #include "kis_shade_selector_line.h"
 
 #include "kis_color_selector_base_proxy.h"

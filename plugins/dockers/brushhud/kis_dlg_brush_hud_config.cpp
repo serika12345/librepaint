@@ -5,13 +5,22 @@
  */
 
 #include "kis_dlg_brush_hud_config.h"
+#include "kis_types.h"
+#include "kis_uniform_paintop_property.h"
 #include "ui_kis_dlg_brush_hud_config.h"
 
 #include "kis_paintop_preset.h"
 
 #include "kis_brush_hud_properties_config.h"
 
+#include <kguiitem.h>
 #include <kstandardguiitem.h>
+#include <qdialog.h>
+#include <qlist.h>
+#include <qlistwidget.h>
+#include <qminmax.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 
 struct KisDlgConfigureBrushHud::Private

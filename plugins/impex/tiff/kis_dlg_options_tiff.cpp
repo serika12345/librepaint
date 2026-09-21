@@ -5,6 +5,7 @@
  */
 
 #include "kis_dlg_options_tiff.h"
+#include "kis_types.h"
 
 #include <QCheckBox>
 #include <QGroupBox>
@@ -12,17 +13,17 @@
 #include <QStackedWidget>
 #include <QApplication>
 
-#include <kcombobox.h>
 #include <klocalizedstring.h>
 
 #include <KisImportExportFilter.h>
-#include <KoChannelInfo.h>
 #include <KoColorModelStandardIds.h>
-#include <KoColorSpace.h>
 #include <application/kis_config.h>
 #include <kis_properties_configuration.h>
 
 #include <config-tiff.h>
+#include <qobjectdefs.h>
+#include <qoverload.h>
+#include <qwidget.h>
 
 KisTIFFOptionsWidget::KisTIFFOptionsWidget(QWidget *parent)
     : KisConfigWidget(parent)

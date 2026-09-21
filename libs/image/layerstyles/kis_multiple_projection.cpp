@@ -11,10 +11,13 @@
 
 
 #include <KoColorSpace.h>
+#include <qtypes.h>
 
+#include "KoColorSpaceConstants.h"
 #include "kis_painter.h"
 #include "kis_paint_device.h"
 #include "kis_layer_style_filter_environment.h"
+#include "kis_types.h"
 
 
 struct ProjectionStruct {

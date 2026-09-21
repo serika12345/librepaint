@@ -5,9 +5,18 @@
  */
 #include "KisAutoBrushModel.h"
 
+#include <math.h>
+
+#include <KisBrushModel.h>
 #include <KisLager.h>
-#include <lager/constant.hpp>
-#include <lager/lenses.hpp>
+#include <KisWidgetConnectionUtils.h>
+
+#include <QtCore/qtypes.h>
+
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/with.hpp>
+#include <zug/transducer/map.hpp>
 
 
 KisAutoBrushModel::KisAutoBrushModel(lager::cursor<CommonData> commonData, lager::cursor<AutoBrushData> autoBrushData, lager::cursor<qreal> commonBrushSizeData)

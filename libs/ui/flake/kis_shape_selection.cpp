@@ -15,16 +15,12 @@
 #include <QThread>
 
 #include <KoShapeStroke.h>
-#include <KoPathShape.h>
 #include <KoShapeGroup.h>
-#include <KoCompositeOp.h>
 #include <KoShapeManager.h>
 #include <document/KisDocument.h>
 
-#include <KoXmlNS.h>
 #include <KoShapeRegistry.h>
 #include <KoShapeLoadingContext.h>
-#include <KoXmlWriter.h>
 #include <KoStore.h>
 #include <KoShapeController.h>
 #include <KoShapeSavingContext.h>
@@ -37,14 +33,29 @@
 #include <kis_sequential_iterator.h>
 #include <kis_selection.h>
 
+#include "KoColorSpaceConstants.h"
+#include "KoShapeFactoryBase.h"
+#include "kis_assert.h"
 #include "kis_shape_selection_model.h"
 #include "kis_shape_selection_canvas.h"
 #include "kis_take_all_shapes_command.h"
 #include "canvas/kis_image_view_converter.h"
 #include "kis_shape_layer.h"
 #include "kis_lod_transform.h"
+#include "kis_types.h"
 
-#include <kis_debug.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qrgb.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 KisShapeSelection::KisShapeSelection(KoShapeControllerBase *shapeControllerBase, KisSelectionWSP selection)

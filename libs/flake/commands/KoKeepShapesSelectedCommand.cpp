@@ -5,10 +5,14 @@
  */
 
 #include "KoKeepShapesSelectedCommand.h"
+#include "kis_command_utils.h"
+#include "kundo2stack.h"
 
 #include <KoShape.h>
 #include <KoSelection.h>
 #include <KoSelectedShapesProxy.h>
+#include <qforeach.h>
+#include <qlist.h>
 
 
 KoKeepShapesSelectedCommand::KoKeepShapesSelectedCommand(const QList<KoShape*> &selectedBefore,

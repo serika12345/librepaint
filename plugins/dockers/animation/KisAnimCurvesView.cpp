@@ -9,6 +9,14 @@
 #include <QMouseEvent>
 #include <QApplication>
 #include <QScrollBar>
+#include <qabstractitemmodel.h>
+#include <qabstractitemview.h>
+#include <qforeach.h>
+#include <qitemselectionmodel.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
 #include <qpainter.h>
 #include <QtMath>
 
@@ -17,10 +25,23 @@
 #include "KisAnimCurvesValuesHeader.h"
 #include "KisAnimCurvesKeyDelegate.h"
 #include "KisAnimTimelineColors.h"
+#include "KisKineticScroller.h"
+#include "KisTimeBasedItemModel.h"
+#include "kis_assert.h"
 #include "kis_scalar_keyframe_channel.h"
 #include "kis_custom_modifiers_catcher.h"
 #include <kis_painting_tweaks.h>
+#include <qpoint.h>
+#include <qscroller.h>
+#include <qscrollerproperties.h>
+#include <qstyleoption.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvectornd.h>
+#include <qwidget.h>
 #include "kis_zoom_scrollbar.h"
+#include "kundo2magicstring.h"
 
 struct KisAnimCurvesView::Private
 {

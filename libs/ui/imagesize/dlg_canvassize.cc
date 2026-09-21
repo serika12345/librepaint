@@ -7,17 +7,25 @@
  */
 
 #include "dlg_canvassize.h"
+#include "KoDialog.h"
 #include "canvas/kcanvaspreview.h"
+#include "kis_icon_utils.h"
+#include "kis_spin_box_unit_manager.h"
 
 #include <application/kis_config.h>
 #include <KoUnit.h>
-#include <kis_icon.h>
 #include <kis_size_group.h>
 #include <klocalizedstring.h>
 
 #include <kis_document_aware_spin_box_unit_manager.h>
 
 #include <QButtonGroup>
+#include <qassert.h>
+#include <qhashfunctions.h>
+#include <qicon.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
 
 const QString DlgCanvasSize::PARAM_PREFIX = "canvasizedlg";
 const QString DlgCanvasSize::PARAM_WIDTH_UNIT = DlgCanvasSize::PARAM_PREFIX + "_widthunit";

@@ -7,6 +7,14 @@
 #include "KisColorSourceToggle.h"
 
 #include <QPainter>
+#include <qabstractbutton.h>
+#include <qcolor.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qpaintdevice.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <qwidget.h>
 
 class KisColorSourceToggle::Private
 {

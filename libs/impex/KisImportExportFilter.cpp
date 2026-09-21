@@ -7,7 +7,10 @@
     SPDX-License-Identifier: LGPL-2.0-or-later
 */
 
+#include "KisImportExportFilter.h"
 #include "KisImportExportFilter_p.h"
+#include <qalgorithms.h>
+#include <qobject.h>
 
 const QString KisImportExportFilter::ImageContainsTransparencyTag = "ImageContainsTransparency";
 const QString KisImportExportFilter::ColorModelIDTag = "ColorModelID";

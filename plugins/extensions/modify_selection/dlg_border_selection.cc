@@ -8,12 +8,17 @@
  */
 
 #include "dlg_border_selection.h"
+#include "KoID.h"
+#include "operations/kis_operation_ui_widget.h"
 
 #include <KoUnit.h>
 #include <kis_size_group.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_image.h>
 #include <operations/kis_operation_configuration.h>
+#include <qassert.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
 
 
 WdgBorderSelection::WdgBorderSelection(QWidget* parent, KisViewManager *view, KisOperationConfigurationSP config)
@@ -116,4 +121,3 @@ void WdgBorderSelection::getConfiguration(KisOperationConfigurationSP config)
     config->setProperty("y-radius", m_width);
     config->setProperty("antialiasing", m_antialiasing);
 }
-

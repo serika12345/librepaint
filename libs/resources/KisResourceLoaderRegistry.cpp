@@ -5,13 +5,18 @@
  */
 
 #include "KisResourceLoaderRegistry.h"
+#include "KisResourceLoader.h"
 
 #include <QApplication>
 #include <QString>
 #include <QDebug>
 
-#include <KisResourceCacheDb.h>
 #include <KisMimeDatabase.h>
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qmap.h>
+#include <qobject.h>
 
 struct KisResourceLoaderRegistry::Private
 {

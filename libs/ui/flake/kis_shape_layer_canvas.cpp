@@ -14,23 +14,35 @@
 #include <KoViewConverter.h>
 #include <KoColorSpace.h>
 
+#include <functional>
 #include <kis_paint_device.h>
 #include <kis_image.h>
-#include <kis_layer.h>
 #include <kis_painter.h>
 #include <flake/kis_shape_layer.h>
 #include <KoCompositeOpRegistry.h>
 #include <KoSelection.h>
 #include <KoUnit.h>
+#include "KisQStringListFwd.h"
+#include "KoColorConversionTransformation.h"
 #include "canvas/kis_image_view_converter.h"
 
-#include <kis_debug.h>
 
 #include <QThread>
 #include <QApplication>
 
 #include <kis_spontaneous_job.h>
+#include "kis_assert.h"
+#include "kis_default_bounds_base.h"
+#include <qdebug.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qobjectdefs.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <utility>
 #include "kis_global.h"
+#include "kis_signal_compressor.h"
+#include "kis_types.h"
 #include "krita_utils.h"
 #include "canvas/kis_image_view_converter.h"
 #include "kis_default_bounds.h"

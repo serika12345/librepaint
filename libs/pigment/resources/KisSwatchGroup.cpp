@@ -8,6 +8,13 @@
  */
 
 #include "KisSwatchGroup.h"
+#include "KisSwatch.h"
+#include "kis_assert.h"
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qmap.h>
 
 int KisSwatchGroup::DEFAULT_COLUMN_COUNT = 16;
 int KisSwatchGroup::DEFAULT_ROW_COUNT = 20;

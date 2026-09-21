@@ -25,7 +25,6 @@
 #include <KoUnit.h>
 #include <KoShapeManager.h>
 #include <flake/KisSelectedShapesProxy.h>
-#include <KoColorProfile.h>
 #include <KoCanvasControllerWidget.h>
 #include <document/KisDocument.h>
 #include <KoSelection.h>
@@ -33,10 +32,17 @@
 #include <KisReferenceImagesLayer.h>
 #include <KoSvgTextShape.h>
 
-#include <KisUsageLogger.h>
 
 #include <kis_lod_transform.h>
 #include <input/ui/kis_tool_proxy.h>
+#include "KisInputActionGroup.h"
+#include "KisQStringListFwd.h"
+#include "KisReferenceImagesDecoration.h"
+#include "KisWraparoundAxis.h"
+#include "KoCanvasController.h"
+#include "KoZoomMode.h"
+#include "animation/kis_animation_frame_cache_fwd.h"
+#include "kis_assert.h"
 #include "kis_coordinates_converter.h"
 #include "kis_prescaled_projection.h"
 #include "kis_qpainter_projection_factory.h"
@@ -52,6 +58,7 @@
 #include "kis_qpainter_canvas.h"
 #include "kis_group_layer.h"
 #include "flake/kis_shape_controller.h"
+#include "kis_update_info.h"
 #include "nodes/kis_node_manager.h"
 #include "kis_selection.h"
 #include "kis_selection_component.h"
@@ -78,6 +85,21 @@
 #include "KoColorConversionTransformation.h"
 #include "KisProofingConfiguration.h"
 
+#include <optional>
+#include <qassert.h>
+#include <qcursor.h>
+#include <qforeach.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <resources/kis_favorite_resource_manager.h>
 #include <resources/kis_popup_palette.h>
 
@@ -94,7 +116,6 @@
 #include "KisSnapPixelStrategy.h"
 #include "canvas/KisDisplayConfig.h"
 #include "config-qt-patches-present.h"
-#include <KoIcon.h>
 
 #include <config-use-surface-color-management-api.h>
 #if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API

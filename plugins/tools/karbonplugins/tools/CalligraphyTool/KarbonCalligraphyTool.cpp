@@ -7,9 +7,10 @@
 #include "KarbonCalligraphyTool.h"
 #include "KarbonCalligraphicShape.h"
 #include "KarbonCalligraphyOptionWidget.h"
+#include "KoShapeBackground.h"
+#include "KoToolBase.h"
 
 #include <KoPathShape.h>
-#include <KoShapeGroup.h>
 #include <KoPointerEvent.h>
 #include <KoPathPoint.h>
 #include <KoCanvasBase.h>
@@ -22,6 +23,7 @@
 #include <KoCanvasResourceProvider.h>
 #include <KoColor.h>
 #include <KoViewConverter.h>
+#include <__math/roots.h>
 #include <input/ui/KisPopupWidgetInterface.h>
 
 #include <QAction>
@@ -30,6 +32,15 @@
 #include <QPainter>
 
 #include <cmath>
+#include <math.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qset.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 #undef M_PI
 const qreal M_PI = 3.1415927;

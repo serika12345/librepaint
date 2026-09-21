@@ -5,12 +5,25 @@
  */
 #include "KisPaintingModeOptionWidget.h"
 
+#include <functional>
+
 #include <QButtonGroup>
+#include <QString>
+#include <QWidget>
+
+#include <KLocalizedString>
+
+#include <kis_paintop_option.h>
+#include <kis_types.h>
+#include <KisPaintingModeOptionData.h>
+#include <KisPaintingModeOptionModel.h>
+#include <KisWidgetConnectionUtils.h>
 
 #include <lager/constant.hpp>
-#include "ui_wdgincremental.h"
+#include <lager/cursor.hpp>
+#include <lager/reader.hpp>
 
-#include "KisPaintingModeOptionModel.h"
+#include "ui_wdgincremental.h"
 
 namespace {
 

@@ -7,9 +7,11 @@
 
 #include <QApplication>
 
-#include <kis_node.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <kis_config_notifier.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 #include "View.h"
 #include "Window.h"
 #include "Document.h"

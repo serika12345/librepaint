@@ -11,13 +11,14 @@
 #include <KisDynamicSensorFactoryRegistry.h>
 #include <KisSimpleDynamicSensorFactory.h>
 #include <brushengine/kis_paintop_registry.h>
-#include <kis_debug.h>
-#include <kis_fixed_paint_device.h>
-#include <kis_global.h>
-#include <kis_simple_paintop_factory.h>
 #include <klocalizedstring.h>
 #include <kpluginfactory.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
 
+#include "KisResourceTypes.h"
+#include "KoID.h"
 #include "MyPaintPaintOpFactory.h"
 #include "MyPaintPaintOpPreset.h"
 #include "MyPaintSensorPack.h"

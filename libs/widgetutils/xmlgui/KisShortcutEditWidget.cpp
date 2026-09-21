@@ -19,6 +19,12 @@
 #include <QApplication>
 
 #include <klocalizedstring.h>
+#include <qkeysequence.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 //#include <kglobalaccel.h>
 
 #include "kkeysequencewidget.h"

@@ -5,10 +5,21 @@
  */
 #include "KisLightnessStrengthOptionWidget.h"
 
+#include <functional>
+
+#include <lager/cursor.hpp>
+#include <lager/reader.hpp>
+
+#include <KisCurveOptionDataCommon.h>
+#include <KisCurveOptionWidget.h>
 #include <QLabel>
 #include <QVBoxLayout>
+#include <QWidget>
+#include <QtCore/qnamespace.h>
+#include <KLocalizedString>
 #include <KisLager.h>
 #include <KisStandardOptionData.h>
+#include <kis_paintop_option.h>
 
 
 struct KisLightnessStrengthOptionWidget::Private

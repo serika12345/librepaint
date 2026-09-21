@@ -9,6 +9,7 @@
 #include <QMutex>
 #include <QMutexLocker>
 #include <QGlobalStatic>
+#include <qtpreprocessorsupport.h>
 
 
 // Those defines are used to ignore classes that are often leaked due to a KisPaintDevice leak

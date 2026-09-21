@@ -4,7 +4,10 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_dlg_hlg_import.h"
+#include "KoDialog.h"
 #include "ui_kis_dlg_hlg_import.h"
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 KisDlgHLGImport::KisDlgHLGImport(bool apply, float gamma, float brightness, QWidget *parent)
     : KoDialog(parent)

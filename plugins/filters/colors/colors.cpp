@@ -13,6 +13,8 @@
 #include "kis_color_to_alpha.h"
 #include "KisFilterFastColorOverlay.h"
 #include <filter/kis_filter_registry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaExtensionsColorsFactory, "kritaextensioncolorsfilters.json", registerPlugin<KritaExtensionsColors>();)
 

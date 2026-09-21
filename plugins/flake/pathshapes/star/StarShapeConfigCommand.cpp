@@ -6,7 +6,12 @@
 
 #include "StarShapeConfigCommand.h"
 #include "StarShape.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <klocalizedstring.h>
+#include <qassert.h>
+#include <qpoint.h>
+#include <qtypes.h>
 
 StarShapeConfigCommand::StarShapeConfigCommand(StarShape *star, uint cornerCount, qreal innerRadius, qreal outerRadius, bool convex, KUndo2Command *parent)
     : KUndo2Command(parent)

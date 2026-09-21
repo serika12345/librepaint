@@ -14,7 +14,12 @@
 #include <QPainter>
 
 #include <klocalizedstring.h>
+#include <qcombobox.h>
+#include <qcursor.h>
+#include <qminmax.h>
 #include <qnamespace.h>
+#include <qobject.h>
+#include <qwidget.h>
 
 #include "kis_shade_selector_line.h"
 #include "kis_shade_selector_line_combo_box_popup.h"

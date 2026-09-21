@@ -19,6 +19,8 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include "nubasis.h"
+#include "local_definitions.h"
+#include "nugrid.h"
 #include <stdlib.h>
 
   

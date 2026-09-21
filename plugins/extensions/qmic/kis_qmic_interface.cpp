@@ -21,11 +21,18 @@
 #include <kis_processing_applicator.h>
 #include <kis_selection.h>
 #include <kundo2magicstring.h>
+#include <mutex>
+#include <qmutex.h>
+#include <qtypes.h>
 
+#include "KisQStringListFwd.h"
 #include "gmic.h"
+#include "kis_assert.h"
 #include "kis_qmic_import_tools.h"
 #include "kis_qmic_simple_convertor.h"
 #include "kis_qmic_synchronize_layers_command.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_types.h"
 
 struct KisImageInterface::Private {
     Private() = default;

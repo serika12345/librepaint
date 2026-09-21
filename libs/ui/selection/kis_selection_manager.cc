@@ -16,12 +16,14 @@
 #include <QMimeData>
 
 #include <QAction>
-#include <ktoggleaction.h>
 #include <klocalizedstring.h>
 #include <kstandardaction.h>
 #include <kactioncollection.h>
 
 #include <KoProperties.h>
+#include "KisFigurePaintingOptions.h"
+#include "KisQStringListFwd.h"
+#include "KisSelectionTags.h"
 #include "KoCanvasController.h"
 #include <document/KisDocument.h>
 #include <application/ui/workspace/KisMainWindow.h>
@@ -31,10 +33,14 @@
 #include <KoShapeStroke.h>
 #include <KoColorSpace.h>
 #include <KoCompositeOp.h>
-#include <KoToolProxy.h>
 #include <KoSvgPaste.h>
-#include <kis_icon.h>
 
+#include "KoCanvasResourcesIds.h"
+#include "KoColorSpaceConstants.h"
+#include "KoFlakeTypes.h"
+#include <KoToolProxy.h>
+#include "kis_assert.h"
+#include "kundo2magicstring.h"
 #include "nodes/kis_node_manager.h"
 #include "canvas/kis_canvas2.h"
 #include "application/kis_config.h"
@@ -61,6 +67,16 @@
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_selection_filters.h"
 #include <kis_figure_painting_stroke.h>
+#include <qassert.h>
+#include <qdialog.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtransform.h>
+#include <qtypes.h>
 #include "application/ui/workspace/KisView.h"
 #include "dialogs/kis_dlg_stroke_selection_properties.h"
 

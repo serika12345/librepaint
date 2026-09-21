@@ -5,6 +5,14 @@
  */
 
 #include "kis_normalize.h"
+#include "KisQStringListFwd.h"
+#include "KoColorSpace.h"
+#include "KoColorTransformation.h"
+#include <cstring>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <stdlib.h>
 
 #include <QPoint>
@@ -14,17 +22,11 @@
 #include <kpluginfactory.h>
 #include <klocalizedstring.h>
 
-#include <kis_debug.h>
 
-#include <kis_processing_information.h>
 #include <kis_types.h>
-#include <kis_selection.h>
-#include <kis_layer.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_registry.h>
-#include <kis_global.h>
 
-#include <KoColorSpaceMaths.h>
 #include <filter/kis_color_transformation_configuration.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaNormalizeFilterFactory, "kritanormalize.json", registerPlugin<KritaNormalizeFilter>();)

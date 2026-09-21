@@ -6,7 +6,10 @@
  */
 #include "KisSprayOpOptionData.h"
 
+#include "kis_cubic_curve.h"
 #include "kis_properties_configuration.h"
+#include <qhashfunctions.h>
+#include <qvariant.h>
 
 bool KisSprayOpOptionData::read(const KisPropertiesConfiguration *settings)
 {

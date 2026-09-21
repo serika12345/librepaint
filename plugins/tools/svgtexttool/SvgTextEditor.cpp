@@ -6,6 +6,10 @@
  */
 
 #include "SvgTextEditor.h"
+#include "BasicXMLSyntaxHighlighter.h"
+#include "kstandardaction.h"
+#include "kxmlguiwindow.h"
+#include "ui_WdgSvgTextSettings.h"
 
 #include <QAction>
 #include <QActionGroup>
@@ -47,16 +51,23 @@
 #include <KoResourcePaths.h>
 #include <KoSvgTextShape.h>
 #include <KoSvgTextShapeMarkupConverter.h>
-#include <KoColorSpaceRegistry.h>
-#include <KoColorPopupAction.h>
+#include <qcolor.h>
+#include <qdialog.h>
+#include <qevent.h>
+#include <qforeach.h>
+#include <qguiapplication.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qstringview.h>
+#include <qtextcursor.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 #include <svg/SvgUtil.h>
 #include <KisPortingUtils.h>
 
 #include <KisSpinBoxI18nHelper.h>
 #include <KisScreenColorSampler.h>
-#include <kis_icon.h>
 #include <application/kis_config.h>
-#include <kis_file_name_requester.h>
 #include <kis_action_registry.h>
 
 

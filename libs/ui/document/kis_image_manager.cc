@@ -14,6 +14,7 @@
 #include <QColorDialog>
 #include <QTemporaryFile>
 
+#include <functional>
 #include <klocalizedstring.h>
 
 #include <KoColor.h>
@@ -22,9 +23,18 @@
 #include <kis_types.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
-#include <kis_icon.h>
 #include <KisImportExportManager.h>
 #include <KisMimeDatabase.h>
+#include "KisImportExportErrorCode.h"
+#include "KisQStringListFwd.h"
+#include "KoColorConversionTransformation.h"
+#include <qdialog.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include "kis_import_catcher.h"
 #include "KisRemoteFileFetcher.h"
 #include "application/ui/workspace/KisViewManager.h"
@@ -35,6 +45,7 @@
 #include "kis_layer_utils.h"
 #include "kis_canvas2.h"
 
+#include "kis_signal_compressor.h"
 #include "kis_signal_compressor_with_param.h"
 
 

@@ -9,8 +9,10 @@
 #include <algorithm>
 #include <limits>
 
+#include "KisDabCacheUtils.h"
 #include "KisDabRenderingJob.h"
 #include "KisRenderedDab.h"
+#include "kis_assert.h"
 #include "kis_fixed_paint_device.h"
 #include "kis_painter.h"
 #include "KisOptimizedByteArray.h"
@@ -20,6 +22,13 @@
 #include <QtAlgorithms>
 #include <KisMpl.h>
 #include <KisRollingMeanAccumulatorWrapper.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #include "kis_algebra_2d.h"
 

@@ -4,8 +4,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisSampleRectIterator.h"
+#include "kis_assert.h"
 
 #include <kis_algebra_2d.h>
+#include <qassert.h>
+#include <qpoint.h>
+#include <qshareddata.h>
 
 struct KisSampleRectIterator::HaltonSampler : QSharedData {
     HaltonSampler() : x(2), y(3) {}

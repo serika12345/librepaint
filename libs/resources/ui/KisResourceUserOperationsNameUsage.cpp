@@ -6,6 +6,8 @@
 #include "KisResourceUserOperations.h"
 
 #include <algorithm>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 #include "KisResourceUserOperationsNameSource_p.h"
 

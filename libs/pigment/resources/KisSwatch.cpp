@@ -7,9 +7,12 @@
 */
 
 #include "KisSwatch.h"
+#include "KoColor.h"
+#include "KoColorModelStandardIds.h"
 #include <QDomDocument>
 #include <QDomElement>
 #include <QIODevice>
+#include <qhashfunctions.h>
 
 KisSwatch::KisSwatch(const KoColor &color, const QString &name)
     : m_color(color)

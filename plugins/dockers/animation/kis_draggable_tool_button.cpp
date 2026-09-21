@@ -7,6 +7,14 @@
 #include "kis_draggable_tool_button.h"
 
 #include <QMouseEvent>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <qtoolbutton.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 
 

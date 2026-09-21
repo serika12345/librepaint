@@ -14,10 +14,18 @@
 
 #include <KisExportCheckRegistry.h>
 #include <document/KisDocument.h>
-#include <kis_image.h>
 
+#include "KisExportCheckBase.h"
+#include "KisImportExportErrorCode.h"
+#include "KisImportExportFilter.h"
+#include "KoID.h"
+#include "kis_types.h"
 #include "qml_converter.h"
 #include <KoColorModelStandardIds.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qobject.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KisQmlExportFactory, "krita_qml_export.json", registerPlugin<QMLExport>();)
 

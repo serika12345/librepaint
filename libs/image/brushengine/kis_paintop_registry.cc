@@ -10,23 +10,28 @@
 
 #include <klocalizedstring.h>
 
-#include <KoGenericRegistry.h>
 #include <KoPluginLoader.h>
-#include <KoColorSpace.h>
-#include <KoColorSpaceRegistry.h>
-#include <KoCompositeOp.h>
 #include <KoID.h>
 #include <KisResourceLoader.h>
 #include <KisResourceLoaderRegistry.h>
 #include <KisResourceTypes.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qicon.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qpixmap.h>
 
 
-#include "kis_image.h"
 #include "kis_paint_device.h"
 #include "kis_painter.h"
 #include "kis_debug.h"
 #include "kis_paintop_config_widget.h"
+#include "kis_paintop_factory.h"
+#include "kis_paintop_preset.h"
 #include "kis_paintop_settings.h"
+#include "kis_types.h"
+#include "kis_image.h"
 
 Q_GLOBAL_STATIC(KisPaintOpRegistry, s_registryInstance)
 

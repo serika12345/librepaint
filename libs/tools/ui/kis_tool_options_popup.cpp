@@ -14,6 +14,12 @@
 #include <QFrame>
 #include <QLabel>
 #include <QApplication>
+#include <qalgorithms.h>
+#include <qforeach.h>
+#include <qlayout.h>
+#include <qset.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 struct KisToolOptionsPopup::Private
 {

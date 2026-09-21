@@ -7,7 +7,10 @@
 #include "kis_transform_mask_params_factory_registry.h"
 
 #include <QGlobalStatic>
+#include <qhashfunctions.h>
 
+#include "kis_assert.h"
+#include "kis_default_bounds_base.h"
 #include "kis_transform_mask_params_interface.h"
 
 Q_GLOBAL_STATIC(KisTransformMaskParamsFactoryRegistry, s_instance)

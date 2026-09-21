@@ -7,6 +7,9 @@
 #include "kis_projection_leaf.h"
 
 #include <KoColorSpace.h>
+#include <qobject.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 
 #include "kis_layer.h"
 #include "kis_image.h"
@@ -15,6 +18,7 @@
 #include "kis_selection_mask.h"
 #include "kis_adjustment_layer.h"
 
+#include "kis_types.h"
 #include "krita_utils.h"
 
 #include "kis_refresh_subtree_walker.h"

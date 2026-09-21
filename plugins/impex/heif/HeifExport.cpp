@@ -9,6 +9,17 @@
 
 #include "HeifExport.h"
 #include "HeifError.h"
+#include "KisExportCheckBase.h"
+#include "KisImportExportErrorCode.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KoColorProfileConstants.h"
+#include "KoID.h"
+#include "kis_config_widget.h"
+#include "kis_debug.h"
+#include "kis_heif_export_tools.h"
+#include "kis_meta_data_io_backend.h"
+#include "kis_types.h"
 
 #include <QApplication>
 #include <QBuffer>
@@ -16,7 +27,12 @@
 #include <QScopedPointer>
 #include <QSlider>
 
+#include <cstddef>
+#include <cstdint>
+#include <functional>
 #include <kpluginfactory.h>
+#include <libheif/heif_color.h>
+#include <libheif/heif_context.h>
 #include <libheif/heif_cxx.h>
 
 #include <document/KisDocument.h>
@@ -24,7 +40,6 @@
 #include <KisImportExportManager.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorProfile.h>
-#include <KoColorSpaceConstants.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorTransferFunctions.h>
 #include <KoColorProfileQuery.h>
@@ -33,10 +48,8 @@
 #include <kis_exif_info_visitor.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
-#include <kis_iterator_ng.h>
 #include <kis_meta_data_backend_registry.h>
 #include <kis_meta_data_entry.h>
-#include <kis_meta_data_filter_registry_model.h>
 #include <kis_meta_data_schema.h>
 #include <kis_meta_data_schema_registry.h>
 #include <kis_meta_data_store.h>
@@ -44,6 +57,19 @@
 #include <kis_paint_device.h>
 #include <kis_paint_layer.h>
 #include <kis_properties_configuration.h>
+#include <libheif/heif_error.h>
+#include <libheif/heif_image.h>
+#include <libheif/heif_library.h>
+#include <qcontainerfwd.h>
+#include <qgenericatomic.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qoverload.h>
+#include <qsysinfo.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
+#include <vector>
 
 using heif::Error;
 

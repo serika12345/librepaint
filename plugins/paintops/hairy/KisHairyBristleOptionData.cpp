@@ -5,8 +5,10 @@
  */
 #include "KisHairyBristleOptionData.h"
 
+#include "KoID.h"
 #include "kis_properties_configuration.h"
 #include <kis_paintop_lod_limitations.h>
+#include <qhashfunctions.h>
 
 
 const QString HAIRY_BRISTLE_USE_MOUSEPRESSURE = "HairyBristle/useMousePressure";

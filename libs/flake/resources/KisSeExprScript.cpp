@@ -14,8 +14,15 @@
 #include <QFileInfo>
 #include <QTextDecoder>
 #include <kis_assert.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qscopedpointer.h>
+#include <qtpreprocessorsupport.h>
 
 #include "KisSeExprScript.h"
+#include "KisResourceTypes.h"
+#include "KoResource.h"
 
 struct KisSeExprScript::Private {
     QString script;

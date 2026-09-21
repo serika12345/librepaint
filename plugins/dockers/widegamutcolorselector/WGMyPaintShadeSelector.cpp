@@ -12,7 +12,10 @@
  */
 
 #include "WGMyPaintShadeSelector.h"
+#include "KisVisualColorModel.h"
+#include "WGSelectorWidgetBase.h"
 
+#include <algorithm>
 #include <kis_display_color_converter.h>
 #include <kis_paint_device.h>
 #include <kis_painter.h>
@@ -23,6 +26,14 @@
 #include <QVector4D>
 
 #include <cmath>
+#include <math.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 template<class Iterator>
 void setColorWithIterator(Iterator &it, const KoColor &color, const int pixelSize) {

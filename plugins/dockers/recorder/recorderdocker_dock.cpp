@@ -6,11 +6,24 @@
  */
 
 #include "recorderdocker_dock.h"
+#include "KisQStringListFwd.h"
+#include "KoCanvasBase.h"
 #include "recorder_config.h"
+#include "recorder_format.h"
 #include "recorder_writer.h"
 #include "recorder_const.h"
 #include "ui_recorderdocker.h"
 #include "recorder_snapshots_manager.h"
+#include <qcolor.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qscopedpointer.h>
+#include <qscroller.h>
+#include <qtypes.h>
 #ifndef Q_OS_IOS
 #include "recorder_export.h"
 #endif

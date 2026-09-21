@@ -7,15 +7,20 @@
 #include "kis_painter_based_stroke_strategy.h"
 
 #include <KoColorSpace.h>
-#include <KoColor.h>
-#include <KoCompositeOp.h>
+#include "KisQStringListFwd.h"
+#include "KisRunnableBasedStrokeStrategy.h"
+#include "kis_assert.h"
+#include "kis_indirect_painting_support.h"
 #include "kis_painter.h"
 #include "kis_paint_device.h"
 #include "kis_node.h"
+#include "kis_resources_snapshot.h"
+#include "kis_simple_stroke_strategy.h"
+#include "kis_stroke_job_strategy.h"
 #include "kis_transaction.h"
 #include "kis_image.h"
 #include <KisRegion.h>
-#include <kis_distance_information.h>
+#include "kis_types.h"
 #include "kis_undo_stores.h"
 #include "KisFreehandStrokeInfo.h"
 #include "KisMaskedFreehandStrokePainter.h"
@@ -35,6 +40,11 @@
 #include "KisRunnableStrokeJobsInterface.h"
 #include "KisRunnableStrokeJobUtils.h"
 #include <KisStrokeCompatibilityInfo.h>
+#include <memory>
+#include <qdatetime.h>
+#include <qforeach.h>
+#include <qlatin1stringview.h>
+#include <qsharedpointer.h>
 #include "KisAnimAutoKey.h"
 
 

@@ -4,6 +4,7 @@
  */
 
 #include "KoCompositeOp.h"
+#include <qnumeric.h>
 
 KoCompositeOp::ParameterInfo::ParameterInfo()
     : opacity(1.0f)

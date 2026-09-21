@@ -4,9 +4,13 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "CloneLayer.h"
-#include <kis_clone_layer.h>
+#include "KoColorSpaceConstants.h"
+#include "kis_assert.h"
+#include "kis_types.h"
 #include <kis_image.h>
+#include <kis_clone_layer.h>
 #include <kis_layer.h>
+#include <qobject.h>
 
 CloneLayer::CloneLayer(KisImageSP image, QString name, KisLayerSP source, QObject *parent) :
     Node(image, new KisCloneLayer(source, image, name, OPACITY_OPAQUE_U8), parent)

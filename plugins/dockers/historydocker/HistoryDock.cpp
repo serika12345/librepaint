@@ -5,14 +5,19 @@
  */
 
 #include "HistoryDock.h"
+#include "KisUndoView.h"
+#include "KoCanvasBase.h"
+#include "kis_canvas2.h"
+#include "kundo2magicstring.h"
 #include <KoDocumentResourceManager.h>
 #include <application/kis_config.h>
-#include <kis_icon_utils.h>
 
 #include <QDebug>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QSpacerItem>
+#include <qdockwidget.h>
+#include <qpointer.h>
 
 HistoryDock::HistoryDock()
     : QDockWidget()

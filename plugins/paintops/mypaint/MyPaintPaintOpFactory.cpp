@@ -7,19 +7,27 @@
 
 #include "MyPaintPaintOpFactory.h"
 
-#include <qmath.h>
+#include <qassert.h>
+#include <qicon.h>
+#include <qlist.h>
 #include <QJsonObject>
 #include <QJsonDocument>
 
-#include <kis_icon.h>
-#include <kis_image.h>
-#include <KoResourceServer.h>
-#include <KoResourceServerProvider.h>
 #include <KoResourceLoadResult.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
+#include "KisPaintopPropertiesBase.h"
 #include "MyPaintPaintOp.h"
 #include "MyPaintPaintOpSettings.h"
 #include "MyPaintPaintOpSettingsWidget.h"
+#include "kis_icon_utils.h"
+#include "kis_image.h"
+#include "kis_paintop.h"
+#include "kis_paintop_config_widget.h"
+#include "kis_paintop_factory.h"
+#include "kis_types.h"
 
 class KisMyPaintOpFactory::Private {
 };

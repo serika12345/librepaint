@@ -6,6 +6,8 @@
  */
 
 #include "kis_double_parse_unit_spin_box.h"
+#include "KoUnit.h"
+#include "kis_double_parse_spin_box.h"
 #include "kis_spin_box_unit_manager.h"
 #include <klocalizedstring.h>
 
@@ -16,6 +18,17 @@
 #include <QRegularExpression>
 #include <QString>
 #include <QActionGroup>
+#include <qabstractspinbox.h>
+#include <qevent.h>
+#include <qforeach.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 class Q_DECL_HIDDEN KisDoubleParseUnitSpinBox::Private
 {

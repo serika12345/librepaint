@@ -6,7 +6,7 @@
 #include "wdg_layersplit.h"
 
 #include <QPainter>
-#include <kis_debug.h>
+#include <qwidget.h>
 
 #include "application/kis_config.h"
 

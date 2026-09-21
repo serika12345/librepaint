@@ -5,8 +5,10 @@
  */
 
 #include "KisOpenGLSync.h"
+#include "opengl/kis_opengl.h"
 
 #include <kis_debug.h>
+#include <qopenglcontext.h>
 
 namespace Sync {
     //For checking sync status

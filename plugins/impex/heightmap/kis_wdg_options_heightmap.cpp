@@ -5,13 +5,22 @@
  */
 
 #include "kis_wdg_options_heightmap.h"
+#include "KisResourceTypes.h"
+#include "kis_config_widget.h"
+#include "kis_types.h"
 
 #include <QtMath>
 #include <QToolTip>
 
 #include <kis_assert.h>
-#include <kis_paint_layer.h>
 #include <kis_properties_configuration.h>
+#include <qcursor.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 static constexpr quint32 nextPow2(quint32 n)
 {

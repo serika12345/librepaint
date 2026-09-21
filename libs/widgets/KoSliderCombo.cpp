@@ -18,6 +18,16 @@
 #include <QMouseEvent>
 #include <QDoubleSpinBox>
 #include <QScreen>
+#include <qcombobox.h>
+#include <qcoreevent.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 
 KoSliderCombo::KoSliderCombo(QWidget *parent)

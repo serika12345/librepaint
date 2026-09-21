@@ -19,6 +19,9 @@
 
 #include <klocalizedstring.h>
 #include <kstandardaction.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
 using namespace KDEPrivate;
 

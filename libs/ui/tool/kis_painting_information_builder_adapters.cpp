@@ -6,6 +6,8 @@
 
 #include <kis_painting_information_builder_adapters.h>
 
+#include "kis_assert.h"
+#include "kis_painting_information_builder.h"
 #include "kis_painting_information_builder_config_p.h"
 
 #include <kis_canvas2.h>
@@ -13,6 +15,9 @@
 #include <kis_config_notifier.h>
 #include <kis_coordinates_converter.h>
 #include <kis_tool_freehand.h>
+#include <qobject.h>
+#include <qpoint.h>
+#include <qtypes.h>
 
 namespace {
 KisPaintingInformationSettings currentPaintingInformationSettings()

@@ -5,8 +5,11 @@
 #include "kis_qpainter_projection_factory.h"
 
 #include <kis_image_config.h>
+#include <memory>
+#include <qsize.h>
 
 #include "kis_image_pyramid.h"
+#include "kis_projection_backend.h"
 
 std::unique_ptr<KisProjectionBackend> createQPainterProjectionBackend()
 {

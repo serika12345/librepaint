@@ -9,8 +9,13 @@
 #include <cmath>
 
 #include <kis_dom_utils.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qnumeric.h>
+#include <qtypes.h>
 
 #include "KisLevelsCurve.h"
+#include "kis_assert.h"
 
 KisLevelsCurve::KisLevelsCurve()
     : KisLevelsCurve(defaultInputBlackPoint(), defaultInputWhitePoint(), defaultInputGamma(),

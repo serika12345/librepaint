@@ -20,6 +20,11 @@
 #include <QAction>
 #include <QMessageBox>
 #include <QToolTip>
+#include <qcursor.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
 KisInputConfigurationPageItem::KisInputConfigurationPageItem(QWidget *parent, Qt::WindowFlags f)
     : QWidget(parent, f)

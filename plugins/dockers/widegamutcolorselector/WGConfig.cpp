@@ -4,7 +4,13 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include "KisColorSelectorConfiguration.h"
+#include "KisVisualColorModel.h"
+#include "KisVisualColorSelector.h"
+#include "KoColorSpace.h"
+#include "WGConfig.h"
 #include "WGConfigSelectorTypes.h"
+#include "kis_assert.h"
 
 #include <kconfig.h>
 #include <kis_debug.h>
@@ -16,6 +22,12 @@
 #include <QStringList>
 #include <QTextStream>
 #include <QThread>
+#include <qcontainerfwd.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <utility>
 
 namespace WGConfig {
 

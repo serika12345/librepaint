@@ -6,12 +6,17 @@
 
 #include "kis_scanline_fill.h"
 
+#include <cstring>
+#include <functional>
 #include <libs/global/KoAlwaysInline.h>
 
 #include <QStack>
 #include <KoColor.h>
 #include <KoColorSpace.h>
 #include <KoCompositeOpRegistry.h>
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_global.h"
 #include "kis_image.h"
 #include "kis_fill_interval_map.h"
 #include "kis_paint_device.h"
@@ -19,7 +24,17 @@
 #include "kis_random_accessor_ng.h"
 #include <KisColorSelectionPolicies.h>
 #include "kis_gap_map.h"
+#include "kis_shared_ptr.h"
+#include "kis_types.h"
+#include <qcontainerfwd.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <queue>
+#include <tuple>
+#include <vector>
 
 #define MEASURE_FILL_TIME 0
 #if MEASURE_FILL_TIME

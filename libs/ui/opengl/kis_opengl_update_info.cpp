@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_opengl_update_info.h"
+#include "kis_update_info.h"
+#include <qlogging.h>
 
 KisOpenGLUpdateInfo::KisOpenGLUpdateInfo() = default;
 

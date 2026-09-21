@@ -7,8 +7,13 @@
 #ifndef KISKRITASENSORPACK_H
 #define KISKRITASENSORPACK_H
 
+#include <vector>
+
 #include "kritapaintop_export.h"
+
 #include <boost/operators.hpp>
+
+#include <QString>
 
 #include <KisSensorData.h>
 #include <KisSensorPackInterface.h>

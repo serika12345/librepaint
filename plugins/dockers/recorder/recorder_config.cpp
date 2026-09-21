@@ -5,6 +5,7 @@
  */
 
 #include "recorder_config.h"
+#include "recorder_format.h"
 
 #include <application/kis_config.h>
 

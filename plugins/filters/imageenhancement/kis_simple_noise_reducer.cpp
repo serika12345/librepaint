@@ -6,25 +6,34 @@
 
 #include "kis_simple_noise_reducer.h"
 
+#include <cstring>
 #include <kundo2command.h>
 
 #include <KoColorSpace.h>
 #include <KoCompositeOp.h>
 #include <KoUpdater.h>
 
-#include <kis_mask_generator.h>
 #include <kis_convolution_kernel.h>
 #include <kis_convolution_painter.h>
 #include <kis_global.h>
+#include <qassert.h>
+#include <qmath.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qwidget.h>
 #include <widgets/kis_multi_integer_filter_widget.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_processing_information.h>
 #include <kis_paint_device.h>
-#include <kis_selection.h>
 #include <KisSequentialIteratorProgress.h>
 #include <kis_sequential_iterator.h>
+#include "KisResourceTypes.h"
+#include "kis_assert.h"
+#include "kis_circle_mask_generator.h"
+#include "kis_config_widget.h"
+#include "kis_filter.h"
 #include "kis_lod_transform_base.h"
+#include "kis_types.h"
 
 
 KisSimpleNoiseReducer::KisSimpleNoiseReducer()

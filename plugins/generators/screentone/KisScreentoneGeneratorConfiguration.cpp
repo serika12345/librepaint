@@ -11,8 +11,14 @@
 #include <QMutexLocker>
 
 #include <klocalizedstring.h>
+#include <qcontainerfwd.h>
+#include <qsharedpointer.h>
+#include <qtypes.h>
 
 #include "KisScreentoneGeneratorTemplate.h"
+#include "KoColor.h"
+#include "kis_filter_configuration.h"
+#include "kis_types.h"
 #include "KisScreentoneGeneratorConfiguration.h"
 
 QStringList screentonePatternNames()

@@ -7,12 +7,19 @@
 #include "kis_dab_cache.h"
 
 #include <KoColor.h>
+#include "KisDabCacheUtils.h"
+#include "kis_dab_cache_base.h"
+#include "kis_dab_shape.h"
 #include "kis_paint_device.h"
 #include "kis_brush.h"
 #include <kis_fixed_paint_device.h>
+#include <qassert.h>
+#include <qpoint.h>
+#include <qtypes.h>
 #include "kis_color_source.h"
 #include "KisSharpnessOption.h"
 #include "kis_texture_option.h"
+#include "kis_types.h"
 
 struct KisDabCache::Private {
 

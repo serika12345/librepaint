@@ -14,6 +14,10 @@
 #include <QUrlQuery>
 #include <QStandardPaths>
 #include <QDesktopServices>
+#include <qcontainerfwd.h>
+#include <qdir.h>
+#include <qforeach.h>
+#include <qlatin1stringview.h>
 
 void KHelpClient::invokeHelp(const QString &anchor, const QString &_appname)
 {

@@ -15,10 +15,18 @@
 
 #include <kis_debug.h>
 #include "KoMD5Generator.h"
+#include "KoResourceSignature.h"
 #include "kis_assert.h"
 
 #include "KoResourceLoadResult.h"
 #include <KisStaticInitializer.h>
+#include <qassert.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qsharedpointer.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtpreprocessorsupport.h>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KoResourceSP>("KoResourceSP");

@@ -7,12 +7,19 @@
 #include "KisAsyncAnimationCacheRenderDialog.h"
 
 #include "animation/KisAsyncAnimationCacheRenderer.h"
+#include "animation/KisAsyncAnimationRendererBase.h"
+#include "animation/kis_animation_frame_cache_fwd.h"
+#include "dialogs/KisAsyncAnimationRenderDialogBase.h"
+#include "kis_assert.h"
+#include "kis_types.h"
 #include <animation/kis_animation_frame_cache.h>
 #include <kis_time_span.h>
 #include <kis_image.h>
 #include <kis_image_animation_interface.h>
 
 #include <klocalizedstring.h>
+#include <qlist.h>
+#include <qtpreprocessorsupport.h>
 
 namespace {
 

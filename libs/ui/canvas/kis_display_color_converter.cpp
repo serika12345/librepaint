@@ -20,13 +20,26 @@
 #include <color/kis_display_color_transform.h>
 #include <kis_fixed_paint_device.h>
 #include <kis_paint_device.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
+#include <utility>
 
+#include "KoCanvasResourcesIds.h"
 #include "canvas/KisDisplayConfig.h"
 #include "application/ui/workspace/KisMainWindow.h"
 #include "application/ui/orchestration/KisPart.h"
 #include "application/kis_config.h"
+#include "kis_assert.h"
 #include "kis_config_notifier.h"
+#include "kis_display_filter.h"
 #include "kis_node.h"
+#include "kis_types.h"
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QGuiApplication>

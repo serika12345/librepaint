@@ -14,6 +14,10 @@
 #include <QKeySequence>
 #include <QLineEdit>
 #include <QSpinBox>
+#include <qglobalstatic.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
 
 #include "opengl/kis_opengl_canvas2.h"
 #include "canvas/kis_qpainter_canvas.h"

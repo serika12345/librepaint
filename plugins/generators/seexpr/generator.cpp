@@ -11,18 +11,23 @@
 #include <cstring>
 #include <filter/kis_filter_configuration.h>
 #include <generator/kis_generator_registry.h>
-#include <kis_debug.h>
 #include <kis_fill_painter.h>
-#include <kis_global.h>
 #include <kis_image.h>
-#include <kis_layer.h>
 #include <kis_paint_device.h>
 #include <kis_processing_information.h>
-#include <kis_selection.h>
 #include <kis_types.h>
 #include <klocalizedstring.h>
 #include <kpluginfactory.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
+#include "KoColorConversionTransformation.h"
+#include "KoColorModelStandardIds.h"
+#include "KoColorSpace.h"
+#include "KoColorSpaceConstants.h"
 #include "SeExprExpressionContext.h"
 #include "generator.h"
 #include "kis_wdg_seexpr.h"

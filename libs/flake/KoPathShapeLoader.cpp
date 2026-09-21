@@ -6,9 +6,15 @@
 
 #include "KoPathShapeLoader.h"
 #include "KoPathShape.h"
+#include <cmath>
 #include <math.h>
 #include <FlakeDebug.h>
 #include <kis_algebra_2d.h>
+#include <qassert.h>
+#include <qnumeric.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 class KoPathShapeLoaderPrivate
 {

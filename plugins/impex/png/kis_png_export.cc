@@ -15,7 +15,6 @@
 #include <KoColorSpace.h>
 #include <KisImportExportManager.h>
 #include <KisImportExportErrorCode.h>
-#include <KoColorProfile.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpaceRegistry.h>
 
@@ -25,14 +24,22 @@
 #include <kis_paint_device.h>
 #include <document/KisDocument.h>
 #include <kis_image.h>
-#include <kis_paint_layer.h>
-#include <kis_group_layer.h>
 #include <application/kis_config.h>
 #include <kis_meta_data_store.h>
-#include <kis_meta_data_filter_registry_model.h>
 #include <kis_exif_info_visitor.h>
+#include "KisExportCheckBase.h"
+#include "KoID.h"
+#include "kis_assert.h"
+#include "kis_config_widget.h"
+#include "kis_debug.h"
 #include "kis_png_converter.h"
-#include <kis_iterator_ng.h>
+#include "kis_types.h"
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qvariant.h>
 
 K_PLUGIN_CLASS_WITH_JSON(KisPNGExport, "krita_png_export.json")
 

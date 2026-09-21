@@ -6,6 +6,8 @@
 
 #include "KarbonCalligraphyToolFactory.h"
 #include "KarbonCalligraphyTool.h"
+#include "KoToolBase.h"
+#include "KoToolFactoryBase.h"
 
 #include <KoToolRegistry.h>
 #include <kis_action_registry.h>
@@ -13,6 +15,8 @@
 #include <KoIcon.h>
 #include <klocalizedstring.h>
 #include <QDebug>
+#include <qaction.h>
+#include <qlist.h>
 
 KarbonCalligraphyToolFactory::KarbonCalligraphyToolFactory()
     : KoToolFactoryBase("KarbonCalligraphyTool")

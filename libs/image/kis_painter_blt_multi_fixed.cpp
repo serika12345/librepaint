@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_assert.h"
 #include "kis_painter.h"
 #include "kis_painter_p.h"
 
@@ -11,6 +12,11 @@
 #include "kis_fixed_paint_device.h"
 #include "kis_random_accessor_ng.h"
 #include "KisRenderedDab.h"
+#include "kis_types.h"
+#include <qforeach.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qtypes.h>
 
 void KisPainter::Private::applyDevice(const QRect &applyRect,
                                       const KisRenderedDab &dab,

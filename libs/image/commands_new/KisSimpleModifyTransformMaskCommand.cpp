@@ -5,9 +5,18 @@
  */
 
 #include "KisSimpleModifyTransformMaskCommand.h"
+#include "kis_assert.h"
+#include "kis_types.h"
+#include "kundo2stack.h"
 
+#include <algorithm>
+#include <boost/none_t.hpp>
+#include <functional>
+#include <iterator>
 #include <kis_command_ids.h>
 #include <kis_transform_mask.h>
+#include <memory>
+#include <qsharedpointer.h>
 
 
 KisSimpleModifyTransformMaskCommand::KisSimpleModifyTransformMaskCommand(KisTransformMaskSP mask,

@@ -4,9 +4,12 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "kis_paintop_option.h"
 #include "kis_paintop_options_model_source_p.h"
 
 #include <QSignalMapper>
+#include <qobject.h>
+#include <qoverload.h>
 
 namespace KisPaintOpOptionsModelSource
 {

@@ -17,10 +17,11 @@
 #include <application/ui/workspace/KisView.h>
 #include <KoSelection.h>
 #include <KoShapeLayer.h>
-#include <KoPathShape.h>
 #include <KoColorSpaceConstants.h>
 #include <KoCanvasController.h>
 
+#include "kis_assert.h"
+#include "kis_command_utils.h"
 #include "nodes/kis_node_manager.h"
 #include "kis_shape_selection.h"
 #include "kis_selection.h"
@@ -38,7 +39,13 @@
 
 #include <KoDocumentResourceManager.h>
 #include <commands/kis_image_layer_add_command.h>
-#include <kis_undo_adapter.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include "KoSelectedShapesProxy.h"
 #include "kis_signal_auto_connection.h"
 

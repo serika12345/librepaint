@@ -10,12 +10,18 @@
 #include <functional>
 
 #include <compression.h>
-#include <kis_debug.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qimage.h>
+#include <qpaintdevice.h>
+#include <qtypes.h>
 #include <resources/KoPattern.h>
 
 #include "kis_asl_callback_object_catcher.h"
 #include "kis_asl_writer_utils.h"
 #include "kis_asl_xml_parser.h"
+#include "kis_assert.h"
+#include "psd_types.h"
 
 KisAslPatternsWriter::KisAslPatternsWriter(const QDomDocument &doc, QIODevice &device, psd_byte_order byteOrder)
     : m_doc(doc)

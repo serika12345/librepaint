@@ -5,6 +5,7 @@
  */
 
 #include "kis_gradient_shape_strategy.h"
+#include <qpoint.h>
 
 
 KisGradientShapeStrategy::KisGradientShapeStrategy()

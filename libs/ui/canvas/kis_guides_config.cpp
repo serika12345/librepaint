@@ -12,11 +12,22 @@
 #include <QColor>
 #include <QPen>
 
+#include "KoUnit.h"
 #include "application/kis_config.h"
 #include "kis_dom_utils.h"
 #include "kis_algebra_2d.h"
 #include "kis_global.h"
 #include <KisStaticInitializer.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qsharedpointer.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KisGuidesConfig>("KisGuidesConfig");

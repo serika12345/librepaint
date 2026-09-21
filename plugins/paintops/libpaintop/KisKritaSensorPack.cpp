@@ -5,16 +5,30 @@
  */
 
 #include "KisKritaSensorPack.h"
-#include "KisDynamicSensorIds.h"
 
-#include <kis_properties_configuration.h>
+#include <algorithm>
+#include <functional>
+#include <vector>
+
+#include <KisCurveOptionDataCommon.h>
+#include "KisDynamicSensorIds.h"
+#include <KisSensorData.h>
+#include <KisSensorPackInterface.h>
+
 #include "KisCppQuirks.h"
 #include "kis_assert.h"
+#include <kis_cubic_curve.h>
+#include <kis_properties_configuration.h>
 
 #include <QDomDocument>
 #include <QDomElement>
-
-#include <KisCurveOptionData.h>
+#include <QLatin1String>
+#include <QList>
+#include <QMap>
+#include <QSet>
+#include <QVector>
+#include <QtCore/qcontainerfwd.h>
+#include <QtCore/qforeach.h>
 
 namespace detail {
 template <typename Data,

@@ -6,6 +6,16 @@
  */
 #include "psd_layer_section.h"
 
+#include "KisResourceTypes.h"
+#include "KoColorSpaceConstants.h"
+#include "KoFlakeTypes.h"
+#include "KoSvgText.h"
+#include "asl/kis_asl_xml_writer.h"
+#include "kis_assert.h"
+#include "kis_layer.h"
+#include "kis_psd_layer_style.h"
+#include "kis_types.h"
+#include "psd_additional_layer_info_block.h"
 #include "psd_layer_record.h"
 
 #include <QBuffer>
@@ -14,6 +24,10 @@
 #include <KoColor.h>
 #include <KoColorSpace.h>
 
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
+#include <cstddef>
+#include <functional>
 #include <kis_debug.h>
 #include <kis_effect_mask.h>
 #include <kis_group_layer.h>
@@ -27,7 +41,6 @@
 #include <kis_transparency_mask.h>
 #include <kis_shape_layer.h>
 #include <KoSvgTextShape.h>
-#include <KoShapeBackground.h>
 #include <KoColorBackground.h>
 #include <KoPatternBackground.h>
 #include <KoGradientBackground.h>
@@ -42,6 +55,7 @@
 
 #include "psd.h"
 #include "psd_header.h"
+#include "psd_types.h"
 #include "psd_utils.h"
 
 
@@ -51,6 +65,19 @@
 #include <kis_asl_layer_style_serializer.h>
 #include <cos/kis_txt2_utls.h>
 #include <cos/psd_text_data_converter.h>
+#include <memory>
+#include <qalgorithms.h>
+#include <qdom.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qpolygon.h>
+#include <qsharedpointer.h>
+#include <qtypes.h>
 
 PSDLayerMaskSection::PSDLayerMaskSection(const PSDHeader &header)
     : globalInfoSection(header)

@@ -5,9 +5,21 @@
  */
 #include <KisLager.h>
 #include "KoSvgTextPropertiesModel.h"
+#include "KoSvgText.h"
 #include "KoSvgTextProperties.h"
-#include <lager/constant.hpp>
+#include "KoSvgTextPropertyData.h"
+#include <functional>
 #include <QDebug>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/lenses.hpp>
+#include <lager/watch.hpp>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qlogging.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
 using kislager::lenses::variant_to;
 

@@ -6,6 +6,7 @@
  */
 
 #include "kis_dlg_adjustment_layer.h"
+#include <kguiitem.h>
 #include <klocalizedstring.h>
 #include <kstandardguiitem.h>
 
@@ -15,6 +16,7 @@
 #include <QPixmap>
 #include <QDialogButtonBox>
 
+#include "KoDialog.h"
 #include "filter/kis_filter.h"
 #include "kis_config_widget.h"
 #include "filter/kis_filter_configuration.h"
@@ -24,6 +26,10 @@
 #include <application/kis_config.h>
 #include "application/ui/workspace/KisViewManager.h"
 #include <kis_icon_utils.h>
+#include <qassert.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtpreprocessorsupport.h>
 
 
 KisDlgAdjustmentLayer::KisDlgAdjustmentLayer(KisNodeSP node,

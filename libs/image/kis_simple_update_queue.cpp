@@ -8,10 +8,22 @@
 
 #include <QMutexLocker>
 #include <QVector>
+#include <mutex>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qtypes.h>
 
+#include "KisProjectionUpdateFlags.h"
+#include "KisQStringListFwd.h"
+#include "kis_assert.h"
+#include "kis_base_rects_walker.h"
 #include "kis_image_config.h"
 #include "kis_full_refresh_walker.h"
+#include "kis_layer.h"
+#include "kis_merge_walker.h"
 #include "kis_spontaneous_job.h"
+#include "kis_types.h"
+#include "kis_updater_context.h"
 
 
 //#define ENABLE_DEBUG_JOIN

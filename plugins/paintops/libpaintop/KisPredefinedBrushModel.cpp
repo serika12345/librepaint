@@ -4,12 +4,28 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisPredefinedBrushModel.h"
+#include "KisBrushModel.h"
+#include "KisResourceTypes.h"
+#include "KisWidgetConnectionUtils.h"
+#include "kis_assert.h"
+#include "kis_brush.h"
 
 #include <KisGlobalResourcesInterface.h>
+#include <algorithm>
 #include <kis_predefined_brush_factory.h>
-#include <lager/lenses/tuple.hpp>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/lenses.hpp>
 #include <KisZug.h>
 #include <KisLager.h>
+#include <lager/with.hpp>
+#include <math.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qsize.h>
+#include <qtypes.h>
+#include <tuple>
+#include <zug/transducer/map.hpp>
 
 namespace {
 

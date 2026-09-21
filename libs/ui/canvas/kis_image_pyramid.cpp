@@ -10,8 +10,8 @@
 #include <KoCompositeOp.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorModelStandardIds.h>
-#include <KoColorSpaceMaths.h>
 
+#include "kis_image_patch.h"
 #include "kis_painter.h"
 #include "kis_iterator_ng.h"
 #include "kis_datamanager.h"
@@ -19,12 +19,25 @@
 #include "kis_debug.h"
 #include "application/kis_config.h"
 #include "kis_image_config.h"
+#include "kis_projection_pixel_filter.h"
+#include "kis_projection_update_info.h"
+#include "kis_types.h"
 
 #include <memory>
 
 //#define DEBUG_PYRAMID
 
 #include <config-ocio.h>
+#include <qassert.h>
+#include <qimage.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qobjectdefs.h>
+#include <qpainter.h>
+#include <qsharedpointer.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #define ORIGINAL_INDEX           0
 #define FIRST_NOT_ORIGINAL_INDEX 1
@@ -35,7 +48,6 @@
 
 #include <KoConfig.h>
 #ifdef HAVE_OPENEXR
-#include <half.h>
 #endif
 
 #define ceiledSize(sz) QSize(ceil((sz).width()), ceil((sz).height()))

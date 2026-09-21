@@ -4,8 +4,19 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "SvgTextChangeTransformsOnRange.h"
+#include "KisQStringListFwd.h"
+#include "KoSvgTextShape.h"
 #include "kis_command_ids.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <KoShapeBulkActionLock.h>
+#include <algorithm>
+#include <qline.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qpoint.h>
+#include <qtransform.h>
+#include <qtypes.h>
 
 SvgTextChangeTransformsOnRange::SvgTextChangeTransformsOnRange(KoSvgTextShape *shape, int startPos, int endPos, QVector<QPointF> positions, QVector<qreal> rotations, bool calculateDeltaPositions, KUndo2Command *parentCommand)
     : KUndo2Command(parentCommand)

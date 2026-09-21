@@ -8,11 +8,14 @@
 
 #include <QRectF>
 
+#include "KoShape.h"
+#include "KoShapeContainer.h"
+#include "KoShapeContainerModel.h"
 #include "SimpleShapeContainerModel.h"
 #include "KoShapeSavingContext.h"
 #include "KoShapeLoadingContext.h"
-#include <KoXmlWriter.h>
-#include <KoXmlNS.h>
+#include <qpoint.h>
+#include <qtpreprocessorsupport.h>
 
 KoShapeLayer::KoShapeLayer()
         : KoShapeContainer(new SimpleShapeContainerModel())

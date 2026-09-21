@@ -14,11 +14,15 @@
 #include <kis_selection_filters.h>
 #include <kis_pixel_selection.h>
 #include <kis_processing_applicator.h>
-#include <kis_image.h>
 #include <kis_transaction.h>
+#include <qpaintdevice.h>
 #include <selection/kis_selection_manager.h>
 #include <kis_command_utils.h>
 #include "commands/KisDeselectActiveSelectionCommand.h"
+#include "kis_types.h"
+#include <kis_image.h>
+#include "kundo2stack.h"
+#include "operations/kis_operation_configuration.h"
 
 void KisFilterSelectionOperation::runFilter(KisSelectionFilter* filter, KisViewManager* view, const KisOperationConfiguration& config)
 {

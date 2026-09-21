@@ -8,7 +8,9 @@
 #include <QtEndian>
 
 #include "kis_abr_brush_collection.h"
+#include "KoIntegerMaths.h"
 #include "kis_abr_brush.h"
+#include "kis_global.h"
 
 #include <QDomElement>
 #include <QFile>
@@ -16,6 +18,8 @@
 #include <QPoint>
 #include <QColor>
 #include <QByteArray>
+#include <cstdlib>
+#include <cstring>
 #include <kis_debug.h>
 #include <QString>
 #include <QBuffer>
@@ -24,6 +28,11 @@
 #include <klocalizedstring.h>
 
 #include <KoColor.h>
+#include <qmap.h>
+#include <qrgb.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 struct AbrInfo {

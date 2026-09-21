@@ -14,6 +14,8 @@
 #include <QTime>
 #include <QList>
 #include <QtMath>
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
 #include <events/kis_async_action_feedback.h>
 
 #include <klocalizedstring.h>
@@ -23,12 +25,21 @@
 #include "application/ui/workspace/KisViewManager.h"
 #include "animation/KisAsyncAnimationRendererBase.h"
 #include "KisRegion.h"
+#include "kis_assert.h"
 #include "kis_image.h"
 #include "kis_image_config.h"
 #include "kis_memory_statistics_server.h"
 #include "kis_signal_compressor.h"
-#include <boost/optional.hpp>
 
+#include <qcontainerfwd.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <utility>
 #include <vector>
 #include <memory>
 

@@ -5,6 +5,7 @@
  */
 
 #include "kis_spin_box_unit_manager.h"
+#include <qobject.h>
 
 KisSpinBoxUnitManagerBuilder* KisSpinBoxUnitManagerFactory::builder = nullptr;
 

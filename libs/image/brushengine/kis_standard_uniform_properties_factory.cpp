@@ -8,9 +8,19 @@
 
 #include "KisPaintOpPresetUpdateProxy.h"
 #include "KisStandardUniformPropertyDefinition.h"
+#include "KoID.h"
+#include "kis_assert.h"
 #include "kis_image_config.h"
 #include "kis_paintop_settings.h"
+#include "kis_pointer_utils.h"
 #include "kis_slider_based_paintop_property.h"
+#include "kis_types.h"
+#include "kis_uniform_paintop_property.h"
+#include <qhashfunctions.h>
+#include <qlogging.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
 
 namespace KisStandardUniformPropertiesFactory
 {

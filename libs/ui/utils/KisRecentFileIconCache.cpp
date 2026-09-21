@@ -12,6 +12,17 @@
 #include <QFuture>
 #include <QGlobalStatic>
 #include <QFutureWatcher>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qthread.h>
+#include <qtmetamacros.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
+#include <qurl.h>
 
 #include "KisFileIconCreator.h"
 #include "KisRecentDocumentsModelWrapper.h"

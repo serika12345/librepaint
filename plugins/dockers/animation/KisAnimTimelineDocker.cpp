@@ -9,6 +9,8 @@
 #include "KisAnimTimelineDocker.h"
 
 #include <QPointer>
+#include "KisResourceTypes.h"
+#include "KoCanvasBase.h"
 #include "QHBoxLayout"
 #include "QVBoxLayout"
 #include "QFormLayout"
@@ -18,10 +20,12 @@
 #include "QWidgetAction"
 #include <QActionGroup>
 
+#include "kis_base_node.h"
+#include "kis_icon_utils.h"
+#include "kis_utility_title_bar.h"
 #include "krita_utils.h"
 #include "kis_canvas2.h"
 #include "kis_image.h"
-#include <KoIcon.h>
 #include "application/ui/workspace/KisViewManager.h"
 #include "document/KisDocument.h"
 #include "kis_shape_controller.h"
@@ -53,7 +57,15 @@
 #include "KisAnimationPlaybackControlsModel.h"
 #include "KisWidgetConnectionUtils.h"
 #include "KisImageConfigNotifier.h"
+#include "opengl/kis_opengl.h"
 #include <KisSpinBoxI18nHelper.h>
+#include <qabstractitemmodel.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qsizepolicy.h>
+#include <qtypes.h>
 
 
 KisAnimTimelineDockerTitlebar::KisAnimTimelineDockerTitlebar(QWidget* parent) :

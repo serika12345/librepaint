@@ -12,12 +12,21 @@
 #include <QDebug>
 #include <klocalizedstring.h>
 
-#include <KoIntegerMaths.h>
 #include <KoColorSpaceRegistry.h>
 
+#include "IccColorProfile.h"
+#include "KisQStringListFwd.h"
+#include "KoChannelInfo.h"
+#include "KoColorSpace.h"
+#include "KoColorSpaceMaths.h"
+#include "LcmsColorSpace.h"
 #include "compositeops/KoCompositeOps.h"
 #include "dithering/KisGrayDitherOpFactory.h"
 #include <kis_dom_utils.h>
+#include <lcms2.h>
+#include <qassert.h>
+#include <qnamespace.h>
+#include <qtypes.h>
 
 GrayF32ColorSpace::GrayF32ColorSpace(const QString &name, KoColorProfile *p)
     : LcmsColorSpace<KoGrayF32Traits>(colorSpaceId(), name,  TYPE_GRAYA_FLT, cmsSigGrayData, p)

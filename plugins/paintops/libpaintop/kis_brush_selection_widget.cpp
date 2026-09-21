@@ -13,20 +13,33 @@
 #include <QButtonGroup>
 #include <QStackedWidget>
 
+#include <functional>
 #include <klocalizedstring.h>
 
-#include <widgets/kis_preset_chooser.h>
-#include <kis_image.h>
-#include <kis_fixed_paint_device.h>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/reader.hpp>
+#include <lager/with.hpp>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qgridlayout.h>
+#include <qlogging.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
+#include "KisBrushModel.h"
+#include "KisBrushOptionWidgetFlags.h"
+#include "KoGroupButton.h"
+#include "kis_assert.h"
 #include "kis_brush.h"
+#include "kis_precision_option.h"
 #include "kis_predefined_brush_chooser.h"
 #include "kis_auto_brush_widget.h"
 #include "kis_text_brush_chooser.h"
 #include "KisWidgetConnectionUtils.h"
+#include "kis_types.h"
 #include <KisZug.h>
 #include <KisLager.h>
-#include <lager/constant.hpp>
 
 using namespace KisBrushModel;
 using namespace KisWidgetConnectionUtils;

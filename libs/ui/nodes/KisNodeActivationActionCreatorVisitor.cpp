@@ -4,12 +4,14 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "nodes/KisNodeActivationActionCreatorVisitor.h"
+#include "kis_node.h"
 
 #include <nodes/kis_node_manager.h>
 #include <klocalizedstring.h>
 #include <kactioncollection.h>
 #include <QObject>
 #include <kis_projection_leaf.h>
+#include <qobjectdefs.h>
 
 KisNodeActivationActionCreatorVisitor::KisNodeActivationActionCreatorVisitor(KisKActionCollection *actionCollection, KisNodeManager *nodeManager)
     : m_nodeManager(nodeManager)

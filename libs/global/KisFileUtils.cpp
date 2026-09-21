@@ -10,6 +10,8 @@
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QString>
+#include <functional>
+#include <qcontainerfwd.h>
 
 namespace KritaUtils
 {

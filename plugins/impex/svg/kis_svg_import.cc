@@ -8,6 +8,11 @@
 
 #include <kpluginfactory.h>
 #include <QFileInfo>
+#include "KisImportExportErrorCode.h"
+#include "KisImportExportFilter.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KoColorSpaceConstants.h"
 #include "application/kis_config.h"
 
 #include <QInputDialog>
@@ -17,7 +22,15 @@
 #include <SvgParser.h>
 #include <KoColorSpaceRegistry.h>
 #include "kis_shape_layer.h"
+#include "kis_types.h"
 #include <KoShapeControllerBase.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(SVGImportFactory, "krita_svg_import.json", registerPlugin<KisSVGImport>();)
 

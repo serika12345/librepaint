@@ -13,7 +13,10 @@
 #include <QLineEdit>
 #include <QString>
 #include <QFontDialog>
+#include <qfont.h>
+#include <qobjectdefs.h>
 
+#include "KisResourceTypes.h"
 #include "KisTextBrushModel.h"
 #include "KisWidgetConnectionUtils.h"
 

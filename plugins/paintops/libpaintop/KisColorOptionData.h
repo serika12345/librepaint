@@ -8,9 +8,10 @@
 #define KIS_COLOR_OPTION_DATA_H
 
 
-#include "kis_types.h"
 #include <boost/operators.hpp>
 #include <kritapaintop_export.h>
+
+#include <QString>
 
 class KisPropertiesConfiguration;
 

@@ -5,9 +5,11 @@
  */
 
 #include "kis_tool_ellipse_base.h"
+#include "KoToolBase.h"
+#include "kis_assert.h"
+#include "kis_tool_rectangle_base.h"
 
 #include <QPainterPath>
-#include <KoPointerEvent.h>
 #include <KoCanvasBase.h>
 #include <KoCanvasController.h>
 #include <KoViewConverter.h>

@@ -9,10 +9,22 @@
 #include <kis_node.h>
 #include <kis_image.h>
 #include <kis_wrapped_rect.h>
+#include "KisSelectionTags.h"
+#include "KoColorSpaceConstants.h"
+#include "KoCompositeOpIds.h"
+#include "kis_fill_painter.h"
+#include "kis_painter.h"
+#include "kis_processing_visitor.h"
+#include "kis_resources_snapshot.h"
+#include "kis_types.h"
 #include "lazybrush/kis_colorize_mask.h"
 #include <kis_assert.h>
 #include <KisImageResolutionProxy.h>
-#include <KoCompositeOpRegistry.h>
+#include <qforeach.h>
+#include <qpoint.h>
+#include <qsharedpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include "KisAnimAutoKey.h"
 #include "kis_undo_adapter.h"
 

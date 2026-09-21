@@ -6,6 +6,7 @@
  */
 
 #include "KoShapeGroup.h"
+#include "KoShape.h"
 #include "KoShapeContainerModel.h"
 #include "KoShapeContainer_p.h"
 #include "SimpleShapeContainerModel.h"
@@ -13,10 +14,14 @@
 #include "KoShapeLoadingContext.h"
 #include "KoShapeRegistry.h"
 #include "KoShapeStrokeModel.h"
+#include "kis_assert.h"
 
-#include <FlakeDebug.h>
 
 #include <QPainter>
+#include <qforeach.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
 
 class ShapeGroupContainerModel : public SimpleShapeContainerModel
 {

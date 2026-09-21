@@ -5,6 +5,15 @@
  */
 
 #include "KisColorfulBrush.h"
+#include "kis_assert.h"
+#include "kis_brush.h"
+#include "kis_scaling_size_brush.h"
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qrgb.h>
+#include <qtypes.h>
 
 
 KisColorfulBrush::KisColorfulBrush(const QString &filename)
@@ -13,7 +22,6 @@ KisColorfulBrush::KisColorfulBrush(const QString &filename)
 }
 
 #include <KoColorSpaceMaths.h>
-#include <KoColorSpaceTraits.h>
 
 namespace {
 

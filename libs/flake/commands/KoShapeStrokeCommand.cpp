@@ -8,13 +8,20 @@
  */
 
 #include "KoShapeStrokeCommand.h"
+#include "KoFlakeTypes.h"
 #include "KoShape.h"
 #include "KoShapeStrokeModel.h"
 #include <KoShapeBulkActionLock.h>
 
 #include <klocalizedstring.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qtdeprecationdefinitions.h>
 
 #include "kis_command_ids.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 namespace
 {

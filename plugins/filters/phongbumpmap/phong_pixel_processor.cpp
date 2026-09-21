@@ -5,8 +5,12 @@
 */
 
 #include "phong_pixel_processor.h"
+#include "kis_types.h"
+#include "phong_bumpmap_constants.h"
 #include <cmath>
-#include <KoChannelInfo.h>
+#include <math.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
 PhongPixelProcessor::PhongPixelProcessor(quint32 pixelArea, const KisPropertiesConfigurationSP config)
 {

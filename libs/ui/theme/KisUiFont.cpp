@@ -14,10 +14,16 @@
 
 #include <application/kis_config.h>
 
-#include <boost/optional.hpp>
+#include <boost/none.hpp>
 
 #include <QtGlobal>
 #include <QFontDatabase>
+#include <boost/optional/optional.hpp>
+#include <qfont.h>
+#include <qhashfunctions.h>
+#include <qnumeric.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
 
 #if defined(Q_OS_WIN) && QT_VERSION < 0x060000
 # include <qt_windows.h>

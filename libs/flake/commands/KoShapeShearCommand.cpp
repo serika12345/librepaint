@@ -7,8 +7,14 @@
 
 #include "KoShapeShearCommand.h"
 #include "KoShape.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 #include <klocalizedstring.h>
+#include <qassert.h>
+#include <qlist.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 
 namespace
 {

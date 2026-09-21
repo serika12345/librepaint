@@ -44,7 +44,14 @@
 **
 ****************************************************************************/
 #include "kundo2model.h"
+#include "kundo2stack.h"
 #include <klocalizedstring.h>
+#include <qabstractitemmodel.h>
+#include <qitemselectionmodel.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qvariant.h>
 KUndo2Model::KUndo2Model(QObject *parent)
     : QAbstractItemModel(parent)
 {

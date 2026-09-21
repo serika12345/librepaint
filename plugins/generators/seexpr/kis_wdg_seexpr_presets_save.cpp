@@ -16,15 +16,25 @@
 #include <KisResourceUserOperations.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoFileDialog.h>
-#include <KoResourceServerProvider.h>
 
+#include <kguiitem.h>
 #include <kis_fill_painter.h>
 #include <kis_paint_device.h>
 #include <kis_default_bounds.h>
+#include <qabstractitemmodel.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qtmetamacros.h>
+#include <qtversionchecks.h>
 
+#include "KisResourceModel.h"
 #include "KisResourceTypes.h"
 #include "kis_wdg_seexpr_presets_save.h"
+#include "kis_assert.h"
+#include "kis_default_bounds_base.h"
+#include "kis_types.h"
 #include "resources/KisSeExprScript.h"
+#include "ui_wdgseexprsavepreset.h"
 
 KisWdgSeExprPresetsSave::KisWdgSeExprPresetsSave(QWidget *parent)
     : KisWdgSeExprSavePreset(parent)

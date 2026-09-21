@@ -4,8 +4,21 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "SvgMeshArray.h"
+#include "SvgMeshPatch.h"
+#include "kis_assert.h"
 
-#include <kis_global.h>
+#include <algorithm>
+#include <array>
+#include <qassert.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qpolygon.h>
+#include <qsize.h>
+#include <qtransform.h>
+#include <qtypes.h>
 
 SvgMeshArray::SvgMeshArray()
 {

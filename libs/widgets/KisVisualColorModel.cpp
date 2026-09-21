@@ -15,13 +15,23 @@
 
 #include <KSharedConfig>
 #include <KConfigGroup>
+#include <cmath>
+#include <cstring>
+#include <qcontainerfwd.h>
+#include <qminmax.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
+#include "KoColor.h"
 #include "KoColorConversions.h"
 #include "KoColorDisplayRendererInterface.h"
 #include "KoColorProfile.h"
 #include "KoChannelInfo.h"
 #include "KoColorModelStandardIds.h"
 #include "KisColorSelectorConfiguration.h"
+#include "KoColorProfileConstants.h"
+#include "kis_assert.h"
 
 struct KisVisualColorModel::Private
 {

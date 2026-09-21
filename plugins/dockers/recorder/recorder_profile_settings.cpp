@@ -8,9 +8,14 @@
 #include "recorder_export_settings.h"
 #include "ui_recorder_profile_settings.h"
 
+#include <kguiitem.h>
 #include <klocalizedstring.h>
 #include <kstandardguiitem.h>
 #include <kis_icon_utils.h>
+#include <qdialog.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace
 {

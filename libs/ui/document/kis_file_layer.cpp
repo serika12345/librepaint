@@ -8,6 +8,9 @@
 #include <QFile>
 #include <QFileInfo>
 
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_icon_utils.h"
 #include "kis_transform_worker.h"
 #include "kis_filter_strategy.h"
 #include "kis_node_visitor.h"
@@ -19,6 +22,15 @@
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
 #include <QDir>
+#include <qforeach.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qtenvironmentvariables.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 KisFileLayer::KisFileLayer(KisImageWSP image, const QString &name, quint8 opacity)

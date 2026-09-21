@@ -4,6 +4,7 @@
  */
 
 #include "kis_node_model.h"
+#include "kis_types.h"
 
 void KisNodeModel::setDummiesFacade(KisDummiesFacadeBase *dummiesFacade,
                                     KisImageWSP image,

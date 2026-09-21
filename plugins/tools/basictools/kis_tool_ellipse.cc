@@ -12,6 +12,12 @@
  */
 
 #include "kis_tool_ellipse.h"
+#include "KoFlakeTypes.h"
+#include "kis_cursor.h"
+#include "kis_resources_snapshot.h"
+#include "kis_tool_ellipse_base.h"
+#include "kis_tool_shape.h"
+#include "kundo2magicstring.h"
 #include <KoCanvasBase.h>
 #include <KoShapeStroke.h>
 
@@ -21,7 +27,11 @@
 #include <KoBasicShapeFactory.h>
 #include <kis_figure_painting_stroke.h>
 #include <kis_image.h>
-#include <brushengine/kis_paintop_preset.h>
+#include <qmath.h>
+#include <qobjectdefs.h>
+#include <qpainterpath.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 KisToolEllipse::KisToolEllipse(KoCanvasBase * canvas)
         : KisToolEllipseBase(canvas, KisToolEllipseBase::PAINT, KisCursor::loadWithSize("tool_ellipse_cursor.svg", 32, 32, 6, 6))

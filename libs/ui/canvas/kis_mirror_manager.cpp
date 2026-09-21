@@ -6,22 +6,27 @@
  */
 
 #include "canvas/kis_mirror_manager.h"
+#include "KoCanvasController.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include <kis_canvas_controller.h>
-#include <kis_icon.h>
 
 #include <klocalizedstring.h>
-#include <kguiitem.h>
 #include <ktoggleaction.h>
 #include <kactioncollection.h>
 #include <QAction>
 
 #include "kis_canvas2.h"
+#include "kis_icon_utils.h"
 #include "kis_mirror_axis.h"
 #include <KisMirrorAxisConfig.h>
 #include <document/KisDocument.h>
 #include <kis_signals_blocker.h>
 #include <kis_types.h>
+#include <qkeysequence.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtpreprocessorsupport.h>
 
 KisMirrorManager::KisMirrorManager(KisViewManager* view) : QObject(view)
     , m_imageView(0)

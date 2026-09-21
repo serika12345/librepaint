@@ -5,19 +5,23 @@
  */
 
 #include "nodes/kis_node_manager.h"
+#include "KisQStringListFwd.h"
+#include "KoColorSpaceConstants.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
 #include "kis_filter_mask.h"
 
 #include <KisSignalMapper.h>
 #include <QApplication>
 #include <QMessageBox>
 #include <QStandardPaths>
+#include <algorithm>
 #include <krita_container_utils.h>
 #include <kactioncollection.h>
 #include <kundo2magicstring.h>
 
 #include <QKeySequence>
 
-#include <kis_icon.h>
 #include <KoSelection.h>
 #include <KoShapeManager.h>
 #include <KoShape.h>
@@ -29,7 +33,6 @@
 
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
-#include <KoColorModelStandardIds.h>
 
 #include <kis_types.h>
 #include <kis_node.h>
@@ -47,6 +50,7 @@
 #include "application/ui/orchestration/KisPart.h"
 #include "canvas/KisReferenceImage.h"
 #include "canvas/kis_canvas2.h"
+#include "kis_floating_message.h"
 #include "kis_shape_controller.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "application/ui/workspace/KisViewManager.h"
@@ -76,6 +80,15 @@
 #include <libs/image/kis_layer_properties_icons.h>
 #include <libs/image/commands/kis_node_property_list_command.h>
 #include <KisSynchronizedConnection.h>
+#include <qassert.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qstringview.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 struct KisNodeManager::Private {
     Private(KisNodeManager *_q, KisViewManager *v)

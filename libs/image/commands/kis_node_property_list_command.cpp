@@ -5,19 +5,31 @@
  */
 
 #include <klocalizedstring.h>
+#include "kis_assert.h"
+#include "kis_base_node.h"
 #include "kis_node.h"
 #include "kis_layer.h"
 #include "kis_image.h"
 #include "commands/kis_node_property_list_command.h"
+#include "kis_node_command.h"
+#include "kis_types.h"
 #include "kis_undo_adapter.h"
 #include "kis_layer_properties_icons.h"
 #include "kis_command_ids.h"
 
 #include <memory>
+#include <qforeach.h>
+#include <qlatin1stringview.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
+#include <qset.h>
+#include <qvariant.h>
 
 // HACK! please refactor out!
 #include "kis_simple_stroke_strategy.h"
 #include "kis_abstract_projection_plane.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 namespace {
 

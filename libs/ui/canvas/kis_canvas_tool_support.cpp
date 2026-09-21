@@ -9,13 +9,17 @@
 #include <KisOptimizedBrushOutline.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <application/kis_config.h>
+#include <functional>
 #include <kis_config_notifier.h>
 #include <kis_cursor.h>
-#include <kis_icon.h>
 #include <kis_image.h>
 #include <nodes/kis_node_manager.h>
-#include <kis_selection.h>
+#include <qcursor.h>
+#include <qobject.h>
+#include <utility>
 
+#include "kis_icon_utils.h"
+#include "kis_types.h"
 #include "opengl/kis_opengl_canvas2.h"
 
 KisSelectionSP KisCanvas2::currentSelectionForTool() const

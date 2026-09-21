@@ -6,16 +6,30 @@
 
 #include "KoSvgTextContentElement.h"
 
+#include "KisQStringListFwd.h"
 #include "KoCssTextUtils.h"
+#include <algorithm>
+#include <boost/optional/optional.hpp>
 #include <kis_dom_utils.h>
+#include "KoSvgText.h"
+#include "SvgLoadingContext.h"
 #include "SvgUtil.h"
 #include "KoXmlWriter.h"
 #include "SvgStyleWriter.h"
 #include <kis_global.h>
 
 #include "SvgGraphicContext.h"
+#include "kis_assert.h"
 
 #include <QRegularExpression>
+#include <qcontainerfwd.h>
+#include <qdom.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qmap.h>
+#include <qtguiexports.h>
+#include <qtypes.h>
+#include <utility>
 
 KoSvgTextContentElement::KoSvgTextContentElement()
 {

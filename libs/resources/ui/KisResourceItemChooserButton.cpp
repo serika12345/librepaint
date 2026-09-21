@@ -7,6 +7,12 @@
 
 #include "KisResourceItemChooserButtonSource_p.h"
 #include "KisResourceItemChooser_p.h"
+#include "KoResource.h"
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
 
 void KisResourceItemChooser::slotButtonClicked(int button)
 {

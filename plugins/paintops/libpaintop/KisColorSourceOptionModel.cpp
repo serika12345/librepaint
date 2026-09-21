@@ -5,7 +5,12 @@
  */
 #include "KisColorSourceOptionModel.h"
 
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+
 #include <KisLager.h>
+
+#include "KisColorSourceOptionData.h"
 
 KisColorSourceOptionModel::KisColorSourceOptionModel(lager::cursor<KisColorSourceOptionData> optionData)
     : optionData(optionData)
@@ -14,4 +19,3 @@ KisColorSourceOptionModel::KisColorSourceOptionModel(lager::cursor<KisColorSourc
                   KisColorSourceOptionData::Type, int>)}
 {
 }
-

@@ -8,6 +8,8 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <KoIcon.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 #include "KoZoomTool.h"
 
 KoZoomToolWidget::KoZoomToolWidget(KoZoomTool* tool, QWidget* parent)

@@ -13,6 +13,9 @@
 #include <QWindow>
 
 #include <kis_assert.h>
+#include <qforeach.h>
+#include <qpointer.h>
+#include <qtmetamacros.h>
 
 
 namespace {

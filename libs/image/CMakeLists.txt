@@ -609,6 +609,7 @@ target_include_directories(kritaimagenonuniformbsplineengineobjects
    PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/einspline>
 )
+target_link_libraries(kritaimagenonuniformbsplineengineobjects PRIVATE Boost::boost)
 set_target_properties(kritaimagenonuniformbsplineengineobjects PROPERTIES
    AUTOMOC OFF
    POSITION_INDEPENDENT_CODE ON
@@ -882,6 +883,7 @@ target_include_directories(kritaimageprojectionplaneobjects
 )
 target_link_libraries(kritaimageprojectionplaneobjects
    PUBLIC
+      Boost::boost
       Imath::Imath
       KF${KF_MAJOR}::I18n
       Qt${QT_MAJOR_VERSION}::Core

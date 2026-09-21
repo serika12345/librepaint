@@ -5,13 +5,22 @@
  */
 
 #include "KisSpatialContainer.h"
+#include "kis_assert.h"
 
+#include <algorithm>
 #include <kis_algebra_2d.h>
 #include <kis_debug.h>
 
 #include <QtMath>
 
 #include <kis_grid_interpolation_tools.h>
+#include <optional>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qtypes.h>
 
 struct KisSpatialContainer::SpatialNode {
 public:

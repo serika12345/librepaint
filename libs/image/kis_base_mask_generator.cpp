@@ -7,11 +7,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <KoMultiArchBuildSupport.h>
+#include "kis_base_mask_generator.h"
 
 #include "KisConvolutionKernelMaskAccess_p.h"
 
 #include <cmath>
+#include "KoID.h"
 #include "kis_fast_math.h"
 
 #include <QDomDocument>
@@ -25,6 +26,10 @@
 #include "kis_curve_circle_mask_generator.h"
 #include "kis_curve_rect_mask_generator.h"
 #include <kis_dom_utils.h>
+#include <math.h>
+#include <qlist.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 const KoID DefaultId("default", ki18n("Default"));
 const KoID SoftId("soft", ki18n("Soft"));

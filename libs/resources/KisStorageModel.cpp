@@ -5,6 +5,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisStorageModel.h"
+#include "KisResourceStorage.h"
 
 #include <QBuffer>
 #include <QDir>
@@ -13,17 +14,23 @@
 #include <QSqlQuery>
 #include <KisResourceLocator.h>
 #include <KoResourcePaths.h>
-#include <KisResourceModelProvider.h>
 #include <KisResourceThumbnailCache.h>
 #include <QFileInfo>
 #include <QSaveFile>
 #include <kis_assert.h>
 
-#include <kconfig.h>
-#include <kconfiggroup.h>
-#include <ksharedconfig.h>
 
-#include <kis_debug.h>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qglobalstatic.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qsharedpointer.h>
+#include <qtmetamacros.h>
 
 Q_GLOBAL_STATIC(KisStorageModel, s_instance)
 

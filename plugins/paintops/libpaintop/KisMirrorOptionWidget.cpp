@@ -5,16 +5,25 @@
  */
 #include "KisMirrorOptionWidget.h"
 
-#include <KisLager.h>
+#include <functional>
 
-#include <QWidget>
 #include <QCheckBox>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QWidget>
 
+#include <KLocalizedString>
+
+#include <kis_paintop_option.h>
+#include <kis_types.h>
+#include <KisCurveOptionDataCommon.h>
+#include <KisCurveOptionWidget.h>
+#include <KisLager.h>
+#include <KisMirrorOptionData.h>
 #include <KisMirrorOptionModel.h>
 #include <KisWidgetConnectionUtils.h>
 
+#include <lager/cursor.hpp>
 
 struct KisMirrorOptionWidget::Private
 {

@@ -7,12 +7,17 @@
  */
 
 #include "randompickfilter.h"
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
 #include <stdlib.h>
 #include <math.h>
 
 #include <QPoint>
 
-#include <kis_debug.h>
 
 #include <kpluginfactory.h>
 #include <klocalizedstring.h>
@@ -21,21 +26,17 @@
 
 #include <KoMixColorsOp.h>
 #include <filter/kis_filter_registry.h>
-#include <kis_global.h>
 #include <kis_image.h>
-#include <kis_layer.h>
 #include <kis_paint_device.h>
 #include <kis_random_accessor_ng.h>
 #include <KisRandomGenerator2D.h>
-#include <kis_selection.h>
 #include <kis_types.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_processing_information.h>
 
+#include "KoColorSpace.h"
 #include "kis_wdg_random_pick.h"
 #include "ui_wdgrandompickoptions.h"
-#include <kis_iterator_ng.h>
 #include <KisSequentialIteratorProgress.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaRandomPickFilterFactory, "kritarandompickfilter.json", registerPlugin<KritaRandomPickFilter>();)

@@ -17,13 +17,23 @@
 #include <QSqlError>
 #include <QString>
 #include <QVariant>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qsqlquery.h>
+#include <qtdeprecationdefinitions.h>
 
 #include "KisResourceLocator.h"
 #include "KisResourceMetaDataModel.h"
 #include "KisResourceModel.h"
 #include "KisResourceModelProvider.h"
+#include "KisResourceStorage.h"
 #include "KisResourceThumbnailCache.h"
+#include "KisResourceTypes.h"
 #include "KisTag.h"
+#include "KoResource.h"
 #include "kis_assert.h"
 
 

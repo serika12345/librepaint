@@ -5,12 +5,17 @@
  */
 
 #include "document/KisDocument.h"
+#include "kis_types.h"
 
 #include <kis_image.h>
 #include <kis_image_animation_interface.h>
 #include <kis_composite_progress_proxy.h>
 #include <KisImageBarrierLock.h>
 #include <kis_memory_statistics_server.h>
+#include <qassert.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
 
 bool KisDocument::hasImage() const
 {

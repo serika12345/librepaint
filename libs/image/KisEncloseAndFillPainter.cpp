@@ -6,15 +6,25 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <cstring>
 #include <krita_utils.h>
 #include <floodfill/kis_scanline_fill.h>
 #include <kis_selection_filters.h>
 #include <kis_sequential_iterator.h>
-#include <KoUpdater.h>
 #include <kis_default_bounds.h>
 #include <KisImageResolutionProxy.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qminmax.h>
+#include <qpoint.h>
+#include <qtransform.h>
+#include <qtypes.h>
 
 #include "KisEncloseAndFillPainter.h"
+#include "KisSelectionTags.h"
+#include "kis_fill_painter.h"
+#include "kis_global.h"
+#include "kis_types.h"
 
 namespace KisEncloseAndFillPainterDetail {
 

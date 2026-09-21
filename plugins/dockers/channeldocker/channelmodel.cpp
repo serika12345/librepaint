@@ -5,20 +5,28 @@
  */
 
 #include "channelmodel.h"
+#include "kis_assert.h"
+#include "kis_types.h"
 #include <QImage>
 #include <KoColorSpace.h>
 #include <KoChannelInfo.h>
-#include <KoColorModelStandardIds.h>
 
 #include <kis_painter.h>
 
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
-#include <kis_iterator_ng.h>
-#include <kis_default_bounds.h>
 
 #include <kis_canvas2.h>
+#include <qabstractitemmodel.h>
+#include <qassert.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 
 ChannelModel::ChannelModel(QObject* parent):
     QAbstractTableModel(parent),

@@ -10,6 +10,8 @@
 #include <QDebug>
 
 #include <kis_debug.h>
+#include <qhashfunctions.h>
+#include <qlogging.h>
 
 QString KisOpenGL::convertOpenGLRendererToConfig(KisOpenGL::OpenGLRenderer renderer)
 {

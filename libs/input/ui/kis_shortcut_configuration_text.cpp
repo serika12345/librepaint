@@ -6,11 +6,15 @@
  */
 
 #include "kis_shortcut_configuration_text.h"
+#include "kis_shortcut_configuration.h"
 
 #include <QKeySequence>
 #include <KLocalizedString>
 
-#include <boost/preprocessor/repeat_from_to.hpp>
+#include <boost/preprocessor/repetition/repeat_from_to.hpp>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
 
 QString KisShortcutConfigurationText::inputText(const KisShortcutConfiguration &shortcut)
 {

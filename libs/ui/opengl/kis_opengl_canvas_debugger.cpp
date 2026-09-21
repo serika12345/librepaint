@@ -13,6 +13,9 @@
 
 #include "application/kis_config.h"
 #include <kis_config_notifier.h>
+#include <qlogging.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
 
 struct KisOpenglCanvasDebugger::Private
 {

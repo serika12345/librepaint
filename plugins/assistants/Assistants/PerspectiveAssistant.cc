@@ -8,7 +8,6 @@
 
 #include "PerspectiveAssistant.h"
 
-#include <kis_debug.h>
 #include <klocalizedstring.h>
 
 #include <QPainter>
@@ -21,10 +20,24 @@
 #include <kis_coordinates_converter.h>
 #include <kis_dom_utils.h>
 
+#include "KoCanvasBase.h"
 #include "PerspectiveBasedAssistantHelper.h"
+#include "kis_abstract_perspective_grid.h"
+#include "kis_assert.h"
+#include "kis_painting_assistant.h"
+#include "kis_types.h"
 
 #include <math.h>
 #include <limits>
+#include <qassert.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpolygon.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qxmlstream.h>
 
 PerspectiveAssistant::PerspectiveAssistant(QObject *parent)
     : KisAbstractPerspectiveGrid(parent)

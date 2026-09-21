@@ -10,27 +10,27 @@
 #include <QBitArray>
 
 #include <KoColorSpace.h>
-#include <KoChannelInfo.h>
-#include <KoColor.h>
 #include <kis_painter.h>
 #include <kis_paint_device.h>
-#include <kis_paint_layer.h>
-#include <kis_group_layer.h>
 
-#include <kis_mask_generator.h>
 #include <kis_gaussian_kernel.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_processing_information.h>
 #include <KoProgressUpdater.h>
 #include <KoUpdater.h>
-#include <KoMixColorsOp.h>
+#include "KoCompositeOpIds.h"
+#include "kis_assert.h"
+#include "kis_cached_paint_device.h"
+#include "kis_config_widget.h"
+#include "kis_filter.h"
 #include "kis_lod_transform_base.h"
-#include <KoCompositeOpRegistry.h>
 
+#include "kis_types.h"
 #include "wdg_gaussianhighpass.h"
 #include "ui_wdggaussianhighpass.h"
-#include <KisSequentialIteratorProgress.h>
+#include <qpointer.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 
 KisGaussianHighPassFilter::KisGaussianHighPassFilter() : KisFilter(id(), FiltersCategoryEdgeDetectionId, i18n("&Gaussian High Pass..."))

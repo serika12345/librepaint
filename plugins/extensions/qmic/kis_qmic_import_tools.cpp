@@ -8,7 +8,7 @@
 
 #include <QRegularExpression>
 
-#include <KoCompositeOpRegistry.h>
+#include <cmath>
 #include <commands/KisNodeRenameCommand.h>
 #include <commands/kis_node_compositeop_command.h>
 #include <commands/kis_node_opacity_command.h>
@@ -18,11 +18,16 @@
 #include <kis_node.h>
 #include <kis_paint_layer.h>
 #include <kis_painter.h>
-#include <kis_selection.h>
 #include <kis_types.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qpoint.h>
+#include <qtypes.h>
 
+#include "KoCompositeOpIds.h"
 #include "gmic.h"
 #include "kis_qmic_import_tools.h"
+#include "kis_debug.h"
 #include "kis_qmic_interface.h"
 #include "kis_qmic_simple_convertor.h"
 

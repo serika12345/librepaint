@@ -10,6 +10,8 @@
 #include <kpluginfactory.h>
 
 #include <KoShapeRegistry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 #include "ImageShapeFactory.h"
 

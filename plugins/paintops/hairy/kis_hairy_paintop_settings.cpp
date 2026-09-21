@@ -6,10 +6,14 @@
  */
 
 #include <QPainter>
+#include <qtypes.h>
 
 
 #include "kis_hairy_paintop_settings.h"
 #include "KisOptimizedBrushOutline.h"
+#include "kis_brush_based_paintop_settings.h"
+#include "kis_paint_information.h"
+#include "kis_paintop_settings.h"
 
 KisHairyPaintOpSettings::KisHairyPaintOpSettings(KisResourcesInterfaceSP resourcesInterface)
     : KisBrushBasedPaintOpSettings(resourcesInterface)

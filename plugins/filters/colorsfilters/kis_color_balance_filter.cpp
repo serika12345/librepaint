@@ -6,9 +6,20 @@
 
 #include "kis_color_balance_filter.h"
 #include <filter/kis_filter_category_ids.h>
+#include "KisResourceTypes.h"
 #include "filter/kis_color_transformation_configuration.h"
+#include "kis_config_widget.h"
+#include "kis_filter_configuration.h"
 #include "kis_paint_device.h"
+#include "kis_types.h"
+#include "ui_wdg_color_balance.h"
 #include <KisGlobalResourcesInterface.h>
+#include <qhash.h>
+#include <qkeysequence.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtpreprocessorsupport.h>
+#include <qvariant.h>
 
 KisColorBalanceFilter::KisColorBalanceFilter() 
         : KisColorTransformationFilter(id(), FiltersCategoryAdjustId, i18n("&Color Balance..."))

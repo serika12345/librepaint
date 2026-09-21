@@ -12,6 +12,14 @@
 #include <QMenu>
 
 #include <klocalizedstring.h>
+#include <qcursor.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 #include "kis_equalizer_column.h"
 #include "kis_signal_compressor.h"

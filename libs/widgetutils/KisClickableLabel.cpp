@@ -8,6 +8,15 @@
 #include <QResizeEvent>
 #include <QtMath>
 #include <kis_icon_utils.h>
+#include <qlabel.h>
+#include <qnamespace.h>
+#include <qpushbutton.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qwidget.h>
+#include <utility>
 
 KisClickableLabel::KisClickableLabel(QWidget *parent)
     : QLabel(parent)

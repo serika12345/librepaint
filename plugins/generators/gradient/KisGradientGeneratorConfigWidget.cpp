@@ -15,8 +15,18 @@
 #include <kis_gradient_painter.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas_resource_provider.h>
+#include <qcontainerfwd.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
 #include "KisGradientGeneratorConfiguration.h"
+#include "KoAbstractGradient.h"
+#include "KoCanvasResourceProvider.h"
+#include "KoCanvasResourcesIds.h"
+#include "kis_assert.h"
+#include "kis_config_widget.h"
+#include "kis_types.h"
+#include "ui_KisGradientGeneratorConfigWidget.h"
 #include "KisGradientGeneratorConfigWidget.h"
 
 KisGradientGeneratorConfigWidget::KisGradientGeneratorConfigWidget(QWidget* parent)

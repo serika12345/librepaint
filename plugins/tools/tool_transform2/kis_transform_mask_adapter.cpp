@@ -8,8 +8,19 @@
 
 #include <QTransform>
 #include <QDomElement>
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_default_bounds_base.h"
+#include <qhashfunctions.h>
+#include <qnumeric.h>
+#include <qsharedpointer.h>
+#include <qtpreprocessorsupport.h>
 #include "kis_dom_utils.h"
 
+#include "kis_pointer_utils.h"
+#include "kis_processing_visitor.h"
+#include "kis_transform_mask_params_interface.h"
+#include "kis_types.h"
 #include "tool_transform_args.h"
 #include "kis_transform_utils.h"
 #include "KisAnimatedTransformMaskParamsHolder.h"

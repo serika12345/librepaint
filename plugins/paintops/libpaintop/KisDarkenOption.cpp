@@ -13,7 +13,9 @@
 #include <kis_paint_information.h>
 #include <kis_painter.h>
 #include <kis_properties_configuration.h>
+#include <qtypes.h>
 
+#include "KisCurveOption.h"
 #include "kis_color_source.h"
 
 namespace kpou = KisPaintOpOptionUtils;

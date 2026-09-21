@@ -6,6 +6,8 @@
  */
 
 #include "kis_shape_selection_canvas.h"
+#include "KoSelectedShapesProxy.h"
+#include "KoShapeControllerBase.h"
 
 
 #include <QPainter>
@@ -13,7 +15,9 @@
 #include <KoShapeManager.h>
 #include <KoSelectedShapesProxySimple.h>
 #include <KoUnit.h>
-#include <kis_shape_controller.h>
+#include <qassert.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
 
 KisShapeSelectionCanvas::KisShapeSelectionCanvas(KoShapeControllerBase *shapeController)
     : KoCanvasBase(shapeController)

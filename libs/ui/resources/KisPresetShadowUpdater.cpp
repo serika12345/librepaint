@@ -5,6 +5,9 @@
  */
 
 #include "KisPresetShadowUpdater.h"
+#include "kis_assert.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
 
 #include <application/ui/workspace/KisViewManager.h>
 
@@ -23,6 +26,11 @@
 #include <KoCanvasResourceProvider.h>
 #include <KoCanvasResourcesInterface.h>
 #include <KoResourceCacheStorage.h>
+#include <qdebug.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qtmetamacros.h>
 
 
 class ShadowUpdatePresetJob : public QObject, public KisSpontaneousJob

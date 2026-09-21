@@ -4,6 +4,11 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "TabSizeModel.h"
+#include "KoSvgText.h"
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/lenses.hpp>
+#include <qtypes.h>
 
 namespace  {
 

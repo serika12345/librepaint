@@ -8,6 +8,7 @@
 #include <kis_assert.h>
 
 #include "KisResourceUserOperationsUpdateSource_p.h"
+#include "KoResource.h"
 
 bool KisResourceUserOperations::updateResourceWithUserInput(QWidget *widgetParent,
                                                              KoResourceSP resource)

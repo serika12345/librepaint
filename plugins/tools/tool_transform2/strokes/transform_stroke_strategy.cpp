@@ -9,6 +9,7 @@
 #include <QMutexLocker>
 
 
+#include <cstring>
 #include <klocalizedstring.h>
 #include <kis_node.h>
 #include <kis_group_layer.h>
@@ -17,7 +18,20 @@
 #include <kis_painter.h>
 #include <kis_transform_worker.h>
 #include <kis_transform_mask.h>
+#include "KisBatchNodeUpdate.h"
+#include "KisDelayedUpdateNodeInterface.h"
+#include "KisQStringListFwd.h"
+#include "KoColorModelStandardIds.h"
+#include "commands_new/KisUpdateCommandEx.h"
+#include "kis_assert.h"
+#include "kis_command_utils.h"
+#include "kis_debug.h"
+#include "kis_global.h"
+#include "kis_pointer_utils.h"
+#include "kis_processing_visitor.h"
+#include "kis_stroke_strategy_undo_command_based.h"
 #include "kis_transform_mask_adapter.h"
+#include "kis_transform_mask_params_interface.h"
 #include "kis_transform_utils.h"
 #include "kis_convex_hull.h"
 #include "kis_abstract_projection_plane.h"
@@ -36,6 +50,14 @@
 #include "kis_layer_utils.h"
 #include <QQueue>
 #include <KisDeleteLaterWrapper.h>
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include <qassert.h>
+#include <qforeach.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 #include "transform_transaction_properties.h"
 #include "commands_new/KisLazyCreateTransformMaskKeyframesCommand.h"
 #include "kis_command_ids.h"

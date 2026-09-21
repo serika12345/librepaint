@@ -11,10 +11,18 @@
 #include "kis_brushop_settings_widget.h"
 #include <KisBrushOpSettings.h>
 
-#include <lager/state.hpp>
 
 #include <KisMaskingBrushOption.h>
 #include <KisPaintopSettingsIds.h>
+#include "KisBrushModel.h"
+#include "KisBrushOptionWidgetFlags.h"
+#include "KisMirrorOptionData.h"
+#include "KisPaintopPropertiesBase.h"
+#include "KisScatterOptionData.h"
+#include "KisSizeOptionData.h"
+#include "KisTextureOptionData.h"
+#include "kis_brush_based_paintop_options_widget.h"
+#include "kis_brush_based_paintop_settings.h"
 #include "kis_brush_option_widget.h"
 #include "KisSpacingOptionWidget.h"
 #include "KisMirrorOptionWidget.h"
@@ -27,9 +35,13 @@
 #include "KisLightnessStrengthOptionWidget.h"
 #include "KisTextureOptionWidget.h"
 #include "KisSizeOptionWidget.h"
+#include "kis_paintop_option.h"
+#include "kis_types.h"
 
 #include <KisStandardOptionData.h>
 #include <KisPaintOpOptionWidgetUtils.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 KisBrushOpSettingsWidget::KisBrushOpSettingsWidget(QWidget* parent, KisResourcesInterfaceSP resourcesInterface, KoCanvasResourcesInterfaceSP canvasResourcesInterface)
     : KisBrushBasedPaintopOptionWidget(KisBrushOptionWidgetFlag::SupportsPrecision |

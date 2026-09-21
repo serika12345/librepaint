@@ -6,9 +6,13 @@
  */
 
 #include "dlg_waveletdecompose.h"
+#include "KoDialog.h"
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
+#include <qassert.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 DlgWaveletDecompose::DlgWaveletDecompose(QWidget *  parent,
                                        const char * name)

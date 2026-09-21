@@ -7,9 +7,11 @@
 #include "kis_callback_based_paintop_property.h"
 
 #include "kis_combo_based_paintop_property.h"
-#include "kis_paintop_settings.h"
+#include "kis_image_export.h"
 #include "kis_slider_based_paintop_property.h"
+#include "kis_types.h"
 #include "kis_uniform_paintop_property.h"
+#include <qtypes.h>
 
 template<class ParentClass>
 KisCallbackBasedPaintopProperty<ParentClass>::KisCallbackBasedPaintopProperty(typename ParentClass::Type type,

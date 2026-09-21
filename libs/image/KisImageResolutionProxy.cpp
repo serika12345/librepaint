@@ -6,8 +6,15 @@
 
 #include "KisImageResolutionProxy.h"
 
+#include <functional>
 #include <kis_image.h>
+#include <qglobalstatic.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
 #include "kis_pointer_utils.h"
+#include "kis_types.h"
 
 namespace {
 

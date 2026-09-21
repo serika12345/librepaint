@@ -3,12 +3,18 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "KisExportCheckBase.h"
 #include "KisImportExportFilter.h"
+#include "KoID.h"
 
 #include <KisExportCheckRegistry.h>
-#include <KoColorModelStandardIds.h>
 #include <KoColorSpaceRegistry.h>
 #include <klocalizedstring.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qobject.h>
 
 void KisImportExportFilter::addSupportedColorModels(QList<QPair<KoID, KoID>> supportedColorModels,
                                                     const QString &name,

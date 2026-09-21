@@ -6,9 +6,13 @@
  */
 
 #include "kis_effect_mask.h"
+#include "kis_icon_utils.h"
+#include "kis_mask.h"
+#include "kis_types.h"
 
-#include <KoIcon.h>
 #include <kis_icon.h>
+#include <qhashfunctions.h>
+#include <qicon.h>
 
 KisEffectMask::KisEffectMask(KisImageWSP image, const QString &name)
         : KisMask(image, name)

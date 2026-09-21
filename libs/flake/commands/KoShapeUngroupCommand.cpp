@@ -9,8 +9,16 @@
 #include "KoShapeContainer.h"
 #include "KoShapeReorderCommand.h"
 
+#include <algorithm>
+#include <iterator>
 #include <klocalizedstring.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qscopedpointer.h>
+#include <qtransform.h>
 #include "kis_assert.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 
 struct KoShapeUngroupCommand::Private

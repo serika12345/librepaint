@@ -6,6 +6,14 @@
 #include "kis_debug.h"
 
 #include "config-debug.h"
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
+#include <qhashfunctions.h>
+#include <qlatin1stringview.h>
+#include <qlogging.h>
+#include <qloggingcategory.h>
+#include <qstringview.h>
 
 #if HAVE_BACKTRACE
 #include <execinfo.h>

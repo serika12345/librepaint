@@ -7,21 +7,12 @@
 #include "LibKisUtils.h"
 
 #include <kis_node.h>
-#include <kis_paint_layer.h>
 #include <kis_group_layer.h>
-#include <document/kis_file_layer.h>
-#include <kis_adjustment_layer.h>
-#include <kis_generator_layer.h>
-#include <kis_clone_layer.h>
-#include <kis_shape_layer.h>
-#include <kis_transparency_mask.h>
-#include <kis_filter_mask.h>
-#include <kis_transform_mask.h>
-#include <kis_selection_mask.h>
-#include <lazybrush/kis_colorize_mask.h>
-#include <kis_layer.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qpointer.h>
 
 #include "Document.h"
 #include "Node.h"
@@ -35,6 +26,7 @@
 #include "SelectionMask.h"
 #include "TransparencyMask.h"
 #include "TransformMask.h"
+#include "kis_types.h"
 
 
 

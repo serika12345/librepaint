@@ -14,6 +14,10 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QTextEdit>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 namespace
 {

@@ -27,8 +27,17 @@
 #include <kis_fixed_paint_device.h>
 #include <kis_sequential_iterator.h>
 #include <kis_paint_device.h>
+#include <qcontainerfwd.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qsharedpointer.h>
+#include <qsize.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
+#include <utility>
 
 #include "kis_display_color_filter.h"
+#include "kis_types.h"
 
 struct KisDisplayColorTransform::Private
 {

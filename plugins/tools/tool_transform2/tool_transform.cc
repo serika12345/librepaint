@@ -10,18 +10,22 @@
 
 #include <klocalizedstring.h>
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
-#include <kis_global.h>
-#include <kis_types.h>
 #include <KoToolRegistry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qpainterpath.h>
 
 
+#include "kis_default_bounds_base.h"
+#include "kis_pointer_utils.h"
 #include "kis_tool_transform.h"
 #include "kis_transform_mask_params_factory_registry.h"
 #include "kis_transform_mask_adapter.h"
 #include "KisAnimatedTransformMaskParamsHolder.h"
+#include "kis_transform_mask_params_interface.h"
+#include "transform_transaction_properties.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(ToolTransformFactory, "kritatooltransform.json", registerPlugin<ToolTransform>();)
 

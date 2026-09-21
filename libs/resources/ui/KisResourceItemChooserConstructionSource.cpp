@@ -17,16 +17,25 @@
 
 #include <klocalizedstring.h>
 
-#include <KoIcon.h>
 #include <KisKineticScroller.h>
 #include <KisResourceTypes.h>
 #include <KisTagFilterResourceProxyModel.h>
+#include <qabstractitemview.h>
+#include <qboxlayout.h>
+#include <qlayout.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qscroller.h>
+#include <qsizepolicy.h>
 
 #include "KisPopupButton.h"
 #include "KisResourceItemDelegate.h"
 #include "KisResourceItemListView.h"
 #include "KisResourceTaggingManager.h"
 #include "KisStorageChooserWidget.h"
+#include "kis_icon_utils.h"
 
 void KisResourceItemChooser::constructPresentation()
 {

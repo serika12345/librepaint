@@ -9,8 +9,15 @@
 
 #include <klocalizedstring.h>
 #include <math.h>
+#include <qlist.h>
+#include <qtypes.h>
 
+#include "KoPathBaseCommand.h"
+#include "KoPathPointData.h"
 #include "KoPathSegment.h"
+#include "KoPathShape.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 KoPathPointTypeCommand::KoPathPointTypeCommand(
     const QList<KoPathPointData> & pointDataList,

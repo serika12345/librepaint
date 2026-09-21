@@ -13,6 +13,8 @@
 
 #include "KisSnapshotModel.h"
 #include "KisSnapshotView.h"
+#include "KoCanvasBase.h"
+#include "KoID.h"
 
 #include <kis_canvas2.h>
 #include <kis_icon_utils.h>
@@ -20,6 +22,9 @@
 #include <application/ui/orchestration/kis_action_manager.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_signal_auto_connection.h>
+#include <qdockwidget.h>
+#include <qpointer.h>
+#include <qscopedpointer.h>
 
 struct SnapshotDocker::Private
 {

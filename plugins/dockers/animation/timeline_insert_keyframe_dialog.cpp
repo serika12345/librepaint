@@ -14,8 +14,12 @@
 #include <QDialogButtonBox>
 #include <QVBoxLayout>
 #include <QFormLayout>
+#include <kguiitem.h>
 #include <klocalizedstring.h>
 #include <kstandardguiitem.h>
+#include <qdialog.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 #include "KSharedConfig"
 #include "KConfigGroup"

@@ -7,9 +7,14 @@
 */
 
 #include "KoZoomHandler.h"
+#include "KoViewConverter.h"
+#include "KoZoomMode.h"
 #include <KoUnit.h> // for POINT_TO_INCH
 #include <QPointF>
 #include <QRectF>
+#include <qnumeric.h>
+#include <qsize.h>
+#include <qtypes.h>
 
 KoZoomHandler::KoZoomHandler()
     : KoViewConverter()

@@ -5,10 +5,14 @@
  */
 
 #include "kis_meta_data_filter_registry.h"
+#include "KoGenericRegistry.h"
+#include "kis_meta_data_filter.h"
 #include "kis_meta_data_filter_p.h"
 #include "kis_debug.h"
 
 #include <QGlobalStatic>
+#include <qforeach.h>
+#include <qhashfunctions.h>
 
 using namespace KisMetaData;
 

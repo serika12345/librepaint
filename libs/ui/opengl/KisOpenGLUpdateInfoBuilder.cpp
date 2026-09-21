@@ -6,9 +6,19 @@
 #include "KisOpenGLUpdateInfoBuilder.h"
 #include "KisOpenGLUpdateInfoBuilderPrivate.inc"
 
+#include <qbitarray.h>
+#include <qtypes.h>
 #include <tiles/kis_tile_data_pool.h>
 
 #include "KisProofingConfiguration.h"
+#include "KoColorConversionTransformation.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_global.h"
+#include "kis_lod_transform.h"
+#include "kis_update_info.h"
+#include "opengl/kis_opengl_update_info.h"
+#include "opengl/kis_texture_tile_update_info.h"
 
 #include <QReadLocker>
 #include <QWriteLocker>

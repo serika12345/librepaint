@@ -6,6 +6,8 @@
 
 #include "KisOverlayPaintDeviceWrapper.h"
 
+#include "KoOptimizedPixelDataScalerU8ToU16Base.h"
+#include "kis_assert.h"
 #include "kis_paint_device.h"
 #include <KoColor.h>
 #include "KisRectsGrid.h"
@@ -13,11 +15,19 @@
 #include "KoColorModelStandardIds.h"
 #include "KisFastDeviceProcessingUtils.h"
 #include "KisRegion.h"
+#include "kis_types.h"
 #include "kis_wrapped_rect.h"
 #include <KoOptimizedPixelDataScalerU8ToU16Factory.h>
+#include <iterator>
 #include <kundo2command.h>
 #include <memory>
 #include <kis_transaction.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
+#include <qtypes.h>
+#include <vector>
 #include "kis_command_utils.h"
 #include "KoColorProfile.h"
 

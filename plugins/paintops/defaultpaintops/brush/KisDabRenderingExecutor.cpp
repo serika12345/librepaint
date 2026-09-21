@@ -6,11 +6,16 @@
 
 #include "KisDabRenderingExecutor.h"
 
+#include "KisDabCacheUtils.h"
 #include "KisDabRenderingQueue.h"
 #include "KisDabRenderingQueueCache.h"
 #include "KisDabRenderingJob.h"
 #include "KisRenderedDab.h"
 #include "KisRunnableStrokeJobsInterface.h"
+#include "kis_stroke_job_strategy.h"
+#include <qlist.h>
+#include <qscopedpointer.h>
+#include <qtypes.h>
 #include <strokes/FreehandStrokeRunnableJobDataWithUpdate.h>
 
 struct KisDabRenderingExecutor::Private

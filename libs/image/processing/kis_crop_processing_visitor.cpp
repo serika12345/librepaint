@@ -7,16 +7,22 @@
 #include "kis_crop_processing_visitor.h"
 
 #include <klocalizedstring.h>
+#include <qforeach.h>
 
+#include "KisQStringListFwd.h"
 #include "commands_new/kis_node_move_command2.h"
 
 #include "kis_external_layer_iface.h"
 
+#include "kis_node.h"
 #include "kis_paint_device.h"
 #include "kis_image.h"
+#include "kis_simple_processing_visitor.h"
 #include "kis_transaction.h"
+#include "kis_types.h"
 #include "kis_undo_adapter.h"
 #include "kis_transform_mask.h"
+#include "kundo2magicstring.h"
 #include "lazybrush/kis_colorize_mask.h"
 
 

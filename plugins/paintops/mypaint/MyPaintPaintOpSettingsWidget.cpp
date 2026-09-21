@@ -6,18 +6,24 @@
  */
 #include "MyPaintPaintOpSettingsWidget.h"
 
+#include <cmath>
 #include <klocalizedstring.h>
 
 #include "MyPaintPaintOpSettings.h"
+#include "kis_paintop_option.h"
+#include "kis_paintop_settings_widget.h"
+#include "kis_types.h"
 #include <KisAirbrushOptionWidget.h>
 #include <KisPaintOpOptionWidgetUtils.h>
 
-#include <MyPaintCurveOptionData.h>
 #include <MyPaintCurveOptionWidget.h>
 #include <MyPaintBasicOptionWidget.h>
 #include <MyPaintStandardOptionData.h>
 
-#include <kis_paintop_lod_limitations.h>
+#include <lager/reader.hpp>
+#include <qobject.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 namespace KisPaintOpOptionWidgetUtils {
 

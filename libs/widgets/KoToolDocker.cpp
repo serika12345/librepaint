@@ -7,6 +7,8 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "KoToolDocker.h"
+#include "KisKineticScroller.h"
+#include "KoCanvasObserverBase.h"
 
 #include <klocalizedstring.h>
 
@@ -16,6 +18,17 @@
 #include <QLabel>
 #include <QScrollArea>
 #include <QScroller>
+#include <qalgorithms.h>
+#include <qdockwidget.h>
+#include <qforeach.h>
+#include <qframe.h>
+#include <qlayout.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qset.h>
+#include <qtdeprecationdefinitions.h>
 
 class Q_DECL_HIDDEN KoToolDocker::Private
 {

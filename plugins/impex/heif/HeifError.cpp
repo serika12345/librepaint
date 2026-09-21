@@ -5,6 +5,12 @@
  */
 
 #include "HeifError.h"
+#include "KisImportExportErrorCode.h"
+#include "KoID.h"
+#include "document/KisDocument.h"
+#include "kis_assert.h"
+#include <libheif/heif_cxx.h>
+#include <libheif/heif_error.h>
 
 
 KisImportExportErrorCode setHeifError(KisDocument* document,

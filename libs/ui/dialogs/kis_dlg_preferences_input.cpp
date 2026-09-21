@@ -11,6 +11,8 @@
 
 #include <input/ui/config/kis_input_configuration_page.h>
 #include <input/ui/wintab/drawpile_tablettester/tablettester.h>
+#include <kpagewidgetmodel.h>
+#include <qobjectdefs.h>
 
 #include "kis_icon_utils.h"
 

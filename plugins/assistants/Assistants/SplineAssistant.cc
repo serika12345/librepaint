@@ -17,11 +17,25 @@
 
 #include <kis_canvas2.h>
 #include <kis_coordinates_converter.h>
+#include "KoIntegerMaths.h"
 #include "kis_debug.h"
 #include "KisBezierUtils.h"
+#include "kis_painting_assistant.h"
+#include "kis_types.h"
 #include <KoColorDisplayRendererInterface.h>
 
 #include <math.h>
+#include <qassert.h>
+#include <qcolor.h>
+#include <qcursor.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qtypes.h>
 
 struct GoldenSearchParams
 {

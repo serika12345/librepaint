@@ -11,6 +11,12 @@
 
 #include <math.h>
 
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <stdlib.h>
 
 #include <QSlider>
@@ -19,31 +25,26 @@
 
 #include <klocalizedstring.h>
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
 #include "KoBasicHistogramProducers.h"
 #include <KoColorSpace.h>
 #include <KoColorTransformation.h>
 #include <filter/kis_filter_category_ids.h>
-#include <filter/kis_filter_configuration.h>
 #include <kis_paint_device.h>
-#include <kis_processing_information.h>
 #include <document/KisDocument.h>
 #include <kis_image.h>
-#include <kis_layer.h>
-#include <kis_global.h>
 #include <kis_types.h>
-#include <kis_selection.h>
 #include <kis_histogram.h>
 #include <filter/kis_filter_registry.h>
 #include <kis_painter.h>
 #include <KoUpdater.h>
-#include <KoColorSpaceConstants.h>
 #include <KoCompositeOp.h>
 #include <KisSequentialIteratorProgress.h>
 
 
+#include "KoHistogramProducer.h"
+#include "kis_assert.h"
 #include "kis_hsv_adjustment_filter.h"
 #include "kis_perchannel_filter.h"
 #include "kis_cross_channel_filter.h"

@@ -22,9 +22,10 @@
 
 #include <KoResource.h>
 
-#include <KisResourceModel.h>
 #include <KisTagFilterResourceProxyModel.h>
 #include <KisTagModel.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 #include "KisTagFilterWidget.h"
 #include "KisTagChooserWidget.h"

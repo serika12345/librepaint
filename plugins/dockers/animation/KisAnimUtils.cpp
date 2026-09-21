@@ -6,6 +6,11 @@
 
 #include "KisAnimUtils.h"
 
+#include "KisQStringListFwd.h"
+#include "KoID.h"
+#include "kis_assert.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_types.h"
 #include "kundo2command.h"
 #include "kis_algebra_2d.h"
 #include "kis_image.h"
@@ -18,6 +23,20 @@
 #include "kis_command_utils.h"
 #include "kis_processing_applicator.h"
 #include "kis_transaction.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
+#include <algorithm>
+#include <memory>
+#include <qabstractitemmodel.h>
+#include <qdebug.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qset.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <utility>
 
 
 namespace KisAnimUtils {

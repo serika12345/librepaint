@@ -6,6 +6,17 @@
 
 #include "KisCurveOptionData.h"
 
+#include <optional>
+#include <utility>
+
+#include <KoID.h>
+
+#include <QString>
+#include <QtCore/qtypes.h>
+
+#include "KisCurveOptionDataCommon.h"
+#include "KisKritaSensorPack.h"
+
 KisCurveOptionData::KisCurveOptionData(const QString &prefix,
                                        const KoID &id,
                                        Checkability checkability,

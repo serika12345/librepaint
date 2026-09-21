@@ -10,8 +10,13 @@
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorSpaceEngine.h>
-#include <KoID.h>
 #include <KisSqueezedComboBox.h>
+#include "KoDialog.h"
+#include <algorithm>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
 #include "application/kis_config.h"
 
 KisDlgPngImport::KisDlgPngImport(const QString &path, const QString &colorModelID, const QString &colorDepthID, QWidget *parent)

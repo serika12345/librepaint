@@ -7,15 +7,32 @@
 
 #include "kis_selection_filters.h"
 
+#include <Eigen/Core>
 #include <algorithm>
 
+#include <cmath>
+#include <cstring>
+#include <iterator>
 #include <klocalizedstring.h>
 
 #include <KoColorSpace.h>
+#include "KoIntegerMaths.h"
+#include "kis_assert.h"
 #include "kis_convolution_painter.h"
 #include "kis_convolution_kernel.h"
+#include "kis_default_bounds_base.h"
+#include "kis_global.h"
+#include "kis_paint_device.h"
 #include "kis_pixel_selection.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 #include <kis_sequential_iterator.h>
+#include <math.h>
+#include <qcontainerfwd.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))

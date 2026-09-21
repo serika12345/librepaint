@@ -16,7 +16,6 @@
 
 #include <klocalizedstring.h>
 #include <kuser.h>
-#include <kemailsettings.h>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
 #include <KoResourcePaths.h>
@@ -38,6 +37,16 @@
 #include <QFile>
 #include <QDir>
 #include <QByteArray>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qframe.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qstyleditemdelegate.h>
+#include <qstyleoption.h>
+#include <qtdeprecationdefinitions.h>
 
 class Q_DECL_HIDDEN KoConfigAuthorPage::Private
 {

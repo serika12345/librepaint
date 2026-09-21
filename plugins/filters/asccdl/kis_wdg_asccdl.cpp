@@ -5,13 +5,21 @@
  */
 
 #include "kis_wdg_asccdl.h"
+#include "KoColor.h"
+#include "kis_config_widget.h"
+#include "kis_types.h"
 #include <application/kis_config.h>
 #include <kis_color_button.h>
 #include <kis_filter_configuration.h>
 #include <KisVisualColorSelectorShape.h>
-#include <KisVisualRectangleSelectorShape.h>
-#include <KisVisualEllipticalSelectorShape.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
 KisASCCDLConfigWidget::KisASCCDLConfigWidget(QWidget *parent, const KoColorSpace *cs)
     :KisConfigWidget(parent),

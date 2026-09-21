@@ -7,19 +7,35 @@
  */
 
 #include "JPEGXLImport.h"
+#include "KisImportExportFilter.h"
+#include "KisQStringListFwd.h"
+#include "KoColorProfileConstants.h"
+#include "KoID.h"
+#include "kis_image.h"
+#include "kis_types.h"
 #include <KoColorProfileQuery.h>
 
 #include <KisGlobalResourcesInterface.h>
 
+#include <climits>
+#include <cmath>
+#include <cstdint>
+#include <half.h>
+#include <jxl/codestream_header.h>
+#include <jxl/color_encoding.h>
+#include <jxl/decode.h>
 #include <jxl/decode_cxx.h>
+#include <jxl/resizable_parallel_runner.h>
 #include <jxl/resizable_parallel_runner_cxx.h>
 #include <jxl/types.h>
+#include <jxl/version.h>
 #include <kpluginfactory.h>
 
 #include <QBuffer>
 #include <algorithm>
 #include <array>
 #include <cstring>
+#include <limits>
 #include <map>
 
 #include <document/KisDocument.h>
@@ -42,6 +58,12 @@
 #include <kis_paint_device.h>
 #include <kis_paint_layer.h>
 #include <kis_raster_keyframe_channel.h>
+#include <qcontainerfwd.h>
+#include <qlogging.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
+#include <type_traits>
+#include <vector>
 
 K_PLUGIN_FACTORY_WITH_JSON(ImportFactory, "krita_jxl_import.json", registerPlugin<JPEGXLImport>();)
 

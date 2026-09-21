@@ -22,8 +22,6 @@
 #include <kis_paint_device.h>
 #include <kis_histogram.h>
 #include <kis_painter.h>
-#include <kis_processing_information.h>
-#include <kis_selection.h>
 #include <kis_types.h>
 #include <KisGlobalResourcesInterface.h>
 #include <kis_color_transformation_configuration.h>
@@ -35,11 +33,28 @@
 #include <KoDialog.h>
 #include <KisAutoLevels.h>
 #include <KisAutoLevelsWidget.h>
+#include <qassert.h>
+#include <qdialog.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 #include "../colorsfilters/kis_multichannel_utils.h"
 
 #include "KisLevelsConfigWidget.h"
+#include "KisLevelsCurve.h"
 #include "KisLevelsFilterConfiguration.h"
+#include "KoChannelInfo.h"
+#include "KoColorConversionTransformation.h"
+#include "KoHistogramProducer.h"
+#include "kis_assert.h"
+#include "kis_config_widget.h"
+#include "kis_debug.h"
 
 static int deNormalizeValue(qreal value, int min, int max)
 {

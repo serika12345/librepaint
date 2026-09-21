@@ -5,12 +5,21 @@
  */
 
 #include "KoShapeMeshGradientHandles.h"
+#include "KoFlake.h"
+#include "KoFlakeCoordinateSystem.h"
+#include "SvgMeshArray.h"
+#include "SvgMeshPatch.h"
+#include "kis_assert.h"
 
 #include <QVector>
 
 #include <KoShape.h>
 #include <KoShapeFillWrapper.h>
+#include <algorithm>
+#include <array>
 #include <kis_algebra_2d.h>
+#include <qcontainerfwd.h>
+#include <qscopedpointer.h>
 
 KoShapeMeshGradientHandles::KoShapeMeshGradientHandles(KoFlake::FillVariant fillVariant,
                                                        KoShape *shape)

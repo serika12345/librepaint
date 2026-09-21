@@ -6,6 +6,9 @@
 
 #include "kis_config_widget.h"
 #include "kis_debug.h"
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 KisConfigWidget::KisConfigWidget(QWidget * parent, Qt::WindowFlags f, int delay)
         : QWidget(parent, f)

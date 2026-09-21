@@ -14,9 +14,7 @@
 #include <KoColorSpace.h>
 
 #include <kis_image.h>
-#include <kis_debug.h>
 
-#include <kis_global.h>
 #include <kis_paint_device.h>
 #include <kis_painter.h>
 #include <kis_types.h>
@@ -26,11 +24,20 @@
 #include <kis_fixed_paint_device.h>
 
 #include <kis_dab_cache.h>
+#include "KisPaintopPropertiesBase.h"
+#include "KoColorSpaceConstants.h"
+#include "KoIntegerMaths.h"
 #include "kis_lod_transform.h"
+#include "kis_random_source.h"
 #include <KoResourceLoadResult.h>
 
 
 #include <QtGlobal>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 /*
 * Based on Harmony project https://github.com/mrdoob/harmony/

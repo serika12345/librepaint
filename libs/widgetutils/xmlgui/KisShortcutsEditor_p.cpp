@@ -11,7 +11,9 @@
  *  SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include "KisShortcutsDialog_p.h"
 #include "KisShortcutsEditor.h"
+#include "ui_KisShortcutsDialog.h"
 #include "KisShortcutsEditor_p.h"
 #include <QAction>
 #include <QHeaderView>
@@ -19,11 +21,29 @@
 #include <QDebug>
 #include <QTextTable>
 #include <QTextDocument>
+#include <qabstractitemmodel.h>
+#include <qabstractitemview.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qfont.h>
+#include <qfontdatabase.h>
+#include <qguiapplication.h>
+#include <qkeysequence.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpair.h>
+#include <qscroller.h>
+#include <qtextformat.h>
+#include <qtreewidgetitemiterator.h>
+#include <qtypes.h>
 #ifndef Q_OS_IOS
 #include <QPrinter>
 #include <QPrintDialog>
 #endif
-#include <ksharedconfig.h>
 #include <KConfigGroup>
 #include <KisKineticScroller.h>
 

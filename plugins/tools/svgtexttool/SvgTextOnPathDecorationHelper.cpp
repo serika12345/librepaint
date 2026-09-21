@@ -4,12 +4,19 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "SvgTextOnPathDecorationHelper.h"
+#include "KisHandleStyle.h"
+#include "KoSvgText.h"
 
 #include <KoSvgTextShape.h>
 #include <KisHandlePainterHelper.h>
 #include <KoViewConverter.h>
 #include <QDebug>
 #include <KoPathShape.h>
+#include <cmath>
+#include <qline.h>
+#include <qminmax.h>
+#include <qpainterpath.h>
+#include <qtypes.h>
 struct SvgTextOnPathDecorationHelper::Private {
     KoSvgTextShape *shape = nullptr;
     int pos = 0;

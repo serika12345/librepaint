@@ -6,6 +6,11 @@
 
 #include "KisMaskingBrushOption.h"
 
+#include "KisBrushModel.h"
+#include "KisBrushOptionWidgetFlags.h"
+#include "kis_assert.h"
+#include "kis_paintop_option.h"
+#include "kis_precision_option.h"
 #include "kis_predefined_brush_chooser.h"
 #include "kis_brush_selection_widget.h"
 
@@ -19,17 +24,31 @@
 #include "kis_image_config.h"
 
 #include "KisMaskingBrushOptionProperties.h"
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/reader.hpp>
+#include <lager/tags.hpp>
+#include <lager/watch.hpp>
+#include <lager/with.hpp>
+#include <optional>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qnumeric.h>
+#include <qoverload.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 #include <strokes/KisMaskingBrushCompositeOpFactory.h>
 #include <KoCompositeOpRegistry.h>
-#include <brushengine/KisPaintopSettingsIds.h>
 #include <brushengine/kis_paintop_lod_limitations.h>
 #include <lager/state.hpp>
-#include <lager/constant.hpp>
 #include <KisWidgetConnectionUtils.h>
 #include <functional>
 #include "KisAutoBrushModel.h"
 #include "KisPredefinedBrushModel.h"
 #include "KisTextBrushModel.h"
+#include "kis_types.h"
+#include "ui_wdgbrushchooser.h"
 
 
 using namespace KisBrushModel;

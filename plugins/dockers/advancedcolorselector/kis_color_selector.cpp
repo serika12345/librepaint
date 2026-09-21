@@ -19,18 +19,27 @@
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
 
-#include <kis_debug.h>
 
 #include <KoCanvasResourceProvider.h>
 #include <canvas/kis_canvas_resource_provider.h>
-#include <kis_icon.h>
+#include <qassert.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
+#include "KisColorSelectorConfiguration.h"
+#include "KoGamutMask.h"
+#include "kis_acs_types.h"
+#include "kis_color_selector_base.h"
 #include "kis_color_selector_ring.h"
 #include "kis_color_selector_triangle.h"
 #include "kis_color_selector_simple.h"
 #include "kis_color_selector_wheel.h"
 #include "kis_color_selector_container.h"
 #include "kis_canvas2.h"
+#include "kis_icon_utils.h"
 #include "kis_signal_compressor.h"
 #include "application/ui/workspace/KisViewManager.h"
 

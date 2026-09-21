@@ -5,10 +5,15 @@
  */
 
 #include "kis_layer_properties_icons.h"
+#include "KoID.h"
+#include "kis_base_node.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 
 #include <QMap>
 
 #include <QGlobalStatic>
+#include <qicon.h>
 Q_GLOBAL_STATIC(KisLayerPropertiesIcons, s_instance)
 
 #include <KoColorSpace.h>

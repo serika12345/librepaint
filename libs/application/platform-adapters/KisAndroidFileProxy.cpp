@@ -11,6 +11,7 @@
 #include <QFile>
 #include <QStandardPaths>
 #include <kis_debug.h>
+#include <qlogging.h>
 
 QString KisAndroidFileProxy::getFileFromContentUri(QString contentUri)
 {

@@ -11,8 +11,6 @@
 #include <QDebug>
 #include <QIODevice>
 
-#include <asl/kis_offset_keeper.h>
-#include <asl/kis_asl_writer_utils.h>
 #include <asl/kis_asl_reader_utils.h>
 
 CSVReadLine::CSVReadLine()

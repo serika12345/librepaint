@@ -6,6 +6,12 @@
 
 #include "KisAnimTimelineFramesModel.h"
 
+#include "KisQStringListFwd.h"
+#include "KisTimeBasedItemModel.h"
+#include "kis_assert.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 #include "nodes/kis_node_model.h"
 #include <QFont>
 #include <QSize>
@@ -28,7 +34,7 @@
 #include "kis_keyframe_channel.h"
 #include "kis_raster_keyframe_channel.h"
 #include "kundo2command.h"
-#include <commands/kis_node_property_list_command.h>
+#include <algorithm>
 #include <commands_new/kis_switch_current_time_command.h>
 
 #include "KisAnimUtils.h"
@@ -46,8 +52,33 @@
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_processing_applicator.h"
 #include <KisImageBarrierLock.h>
+#include <limits>
+#include <memory>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qfiledevice.h>
+#include <qfileinfo.h>
+#include <qforeach.h>
+#include <qimage.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qscopedpointer.h>
+#include <qset.h>
+#include <qstringview.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <utility>
 #include "kis_node_uuid_info.h"
 #include "application/ui/workspace/KisMainWindow.h"
+#include "timeline_node_list_keeper.h"
 
 
 struct KisAnimTimelineFramesModel::Private

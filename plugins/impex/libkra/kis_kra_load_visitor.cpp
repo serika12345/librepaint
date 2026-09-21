@@ -6,6 +6,11 @@
  */
 
 #include "kis_kra_load_visitor.h"
+#include "KisQStringListFwd.h"
+#include "KoColorProfileConstants.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_generator.h"
 #include "kis_kra_tags.h"
 #include "flake/kis_shape_layer.h"
 #include "flake/KisReferenceImagesLayer.h"
@@ -33,6 +38,7 @@
 #include "kis_dom_utils.h"
 #include "kis_filter_registry.h"
 #include "kis_generator_registry.h"
+#include "kis_meta_data_io_backend.h"
 #include "kis_paint_device_frames_interface.h"
 #include "kis_raster_keyframe_channel.h"
 #include "kis_shape_selection.h"
@@ -47,7 +53,6 @@
 #include <kis_image.h>
 #include <kis_layer.h>
 #include <kis_meta_data_backend_registry.h>
-#include <kis_meta_data_store.h>
 #include <kis_node_visitor.h>
 #include <kis_paint_layer.h>
 #include <kis_pixel_selection.h>
@@ -59,6 +64,13 @@
 #include <kis_types.h>
 #include <lazybrush/kis_colorize_mask.h>
 #include <lazybrush/kis_lazy_fill_tools.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qobject.h>
+#include <qtversionchecks.h>
 
 using namespace KRA;
 

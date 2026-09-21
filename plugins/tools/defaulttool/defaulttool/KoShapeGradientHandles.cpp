@@ -12,6 +12,11 @@
 #include <KoShapeBackgroundCommand.h>
 #include <KoShapeFillWrapper.h>
 #include <kis_assert.h>
+#include "KoFlake.h"
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qpaintdevice.h>
+#include <qscopedpointer.h>
 #include "kis_algebra_2d.h"
 
 KoShapeGradientHandles::KoShapeGradientHandles(KoFlake::FillVariant fillVariant, KoShape *shape)

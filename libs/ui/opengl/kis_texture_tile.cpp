@@ -4,12 +4,19 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_global.h"
+#include "opengl/kis_opengl.h"
+#include <cstring>
+#include <qopengl.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <qstringview.h>
+#include <qtypes.h>
 #define GL_GLEXT_PROTOTYPES
 #include "kis_texture_tile.h"
 #include "kis_texture_tile_update_info.h"
 #include "KisOpenGLBufferCircularStorage.h"
 
-#include <kis_debug.h>
 #if !defined(QT_OPENGL_ES)
 #include <QOpenGLBuffer>
 #endif

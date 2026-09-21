@@ -7,7 +7,24 @@
 #include "KisAnimCurvesModel.h"
 
 #include <QAbstractItemModel>
+#include <memory>
+#include <qalgorithms.h>
+#include <qcolor.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qsharedpointer.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
+#include "KisTimeBasedItemModel.h"
+#include "kis_assert.h"
 #include "kis_pointer_utils.h"
 #include "kis_image.h"
 #include "kis_node.h"
@@ -18,6 +35,10 @@
 #include "kis_processing_applicator.h"
 #include "kis_command_utils.h"
 #include "KisImageBarrierLock.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 struct KisAnimationCurve::Private
 {

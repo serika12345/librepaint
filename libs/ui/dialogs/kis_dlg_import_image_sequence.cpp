@@ -6,6 +6,9 @@
 
 #include "kis_dlg_import_image_sequence.h"
 
+#include "KisQStringListFwd.h"
+#include "KoDialog.h"
+#include "KoID.h"
 #include "document/KisDocument.h"
 #include "application/ui/workspace/KisMainWindow.h"
 #include "kis_image.h"
@@ -15,6 +18,16 @@
 #include <QStandardPaths>
 #include <QRegularExpression>
 #include <QListWidgetItem>
+#include <qabstractbutton.h>
+#include <qabstractitemview.h>
+#include <qcheckbox.h>
+#include <qcollator.h>
+#include <qforeach.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtversionchecks.h>
 
 class KisDlgImportImageSequence::ListItem : QListWidgetItem {
 

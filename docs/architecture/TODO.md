@@ -1013,6 +1013,573 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] 対象のコンパイル定義、取込みディレクトリー、リンク対象を実使用へ限定する。
 - [x] 対象構築、既存の工場契約2件、`verify-quick`を成功させ、後続の監査単位をPROGRESSへ記録する。
 
+### R2-G19i 色オプションモデル依存の直接化
+
+目的は、色オプションモデルが色データ、LagerのカーソルとQt連携マクロ、公開記号を別ヘッダーと広い取込みディレクトリーから偶然得る状態を解消し、公開ヘッダーを読む利用側に必要な構築要件だけを伝えることである。
+
+範囲は`plugins/paintops/libpaintop/KisColorOptionModel.h`・`KisColorOptionModel.cpp`、取込み縮小で露出する直接利用者`KisColorOptionWidget.cpp`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcoloroptionmodelobjects`に固定する。既存テストソース、公開API、色オプションの状態遷移、設定保存形式は維持する。
+
+- [x] 公開ヘッダーと実装を、Lager、Qt、色オプションデータ、公開記号の所有ヘッダーへ直接接続し、不要なWidgets取込みを除去する。
+- [x] `kritapaintopcoloroptionmodelobjects`の取込みディレクトリーと輸出定義を縮小し、公開ヘッダーに必要な色オプションデータ、Qt Core、Lagerの利用要件を直接列挙する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisColorOptionModelContractTest`、libpaintop CTest、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19j 曲線制御インターフェース依存の監査
+
+目的は、曲線入力・範囲制御インターフェースが、借用ポインターの前方宣言、標準関数オブジェクト、公開記号だけで構成されていることを確認し、不要な実装依存を導入しないことである。
+
+範囲は`plugins/paintops/libpaintop/KisCurveOptionInputControlsStrategyInterface.{h,cpp}`、`KisCurveOptionRangeControlsStrategyInterface.{h,cpp}`と、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurvecontrolinterfaceobjects`に固定する。既存テストソース、公開API、制御器生成時の引数転送と寿命を維持する。
+
+- [x] 公開ヘッダーが標準関数オブジェクト、公開記号、借用ポインターの前方宣言を直接所有し、実装が自己ヘッダーだけを必要とすることを確認する。
+- [x] `kritapaintopcurvecontrolinterfaceobjects`の取込みディレクトリー、輸出定義、直接依存が最小であることを確認する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisCurveControlStrategyInterfacesContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19k 曲線範囲モデルインターフェース依存の直接化
+
+目的は、曲線範囲モデルの公開生成器が使う標準関数オブジェクトを推移的取込みから得る状態を解消し、Qt値型、Lager、公開記号の利用要件を現行のまま明示することである。
+
+範囲は`plugins/paintops/libpaintop/KisCurveRangeModelInterface.{h,cpp}`と、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurverangemodelinterfaceobjects`に固定する。既存テストソース、公開API、曲線・範囲・センサー値を渡す生成器の結果を維持する。
+
+- [x] 公開ヘッダーを標準関数オブジェクト、Qt値型、Lager、公開記号の所有ヘッダーへ直接接続する。
+- [x] `kritapaintopcurverangemodelinterfaceobjects`のQt Core・Lager利用要件と取込みディレクトリーが実使用に一致することを確認する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisCurveRangeModelInterfaceContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19l センサーパックインターフェース依存の直接化
+
+目的は、センサーパックの公開インターフェースが共有データ、文字列、センサー一覧を推移的取込みから得る状態を解消し、複製・比較・設定入出力の既存契約を保ったまま利用要件を明示することである。
+
+範囲は`plugins/paintops/libpaintop/KisSensorPackInterface.{h,cpp}`と、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopsensorpackinterfaceobjects`に固定する。既存テストソース、公開API、共有データ複製、借用ポインター、操作結果と順序を維持する。
+
+- [x] 公開ヘッダーと実装を、標準ベクター、共有データ、文字列、公開記号の所有ヘッダーへ直接接続する。
+- [x] `kritapaintopsensorpackinterfaceobjects`のQt Core利用要件、取込みディレクトリー、輸出定義が実使用に一致することを確認する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisSensorPackInterfaceContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19m センサーデータ依存の直接化
+
+目的は、センサーデータの公開値型とXML入出力実装が、ID、Qt値型、検査マクロ、曲線既定値を推移的取込みから得る状態を解消し、既存の初期値・保存・リセット・等価性の契約を維持することである。
+
+範囲は`plugins/paintops/libpaintop/KisSensorData.{h,cpp}`、取込み縮小で露出する直接利用者`kis_brush_based_paintop.cpp`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopsensordataobjects`に固定する。既存テストソース、公開API、センサーID、XML属性、初期値、リセット、等価性を維持する。
+
+- [x] 公開ヘッダーと実装を、ID、Qt値型、検査マクロ、曲線既定値、公開記号の所有ヘッダーへ直接接続し、参照だけのXML型を前方宣言に縮める。
+- [x] `kritapaintopsensordataobjects`のグローバルID、Qt Core・Xml、Eigenの利用要件を維持し、重複した翻訳ライブラリーと公開の画像取込みディレクトリーを除去する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisSensorDataContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19n Kritaセンサーパック依存の直接化
+
+目的は、Kritaセンサーパックの公開値型とXML設定実装が、センサーデータ、曲線オプション共通データ、標準コンテナー、Qtコレクション、曲線既定値を推移的に得る状態を解消し、保存済みプリセットのセンサー復元を維持することである。
+
+範囲は`plugins/paintops/libpaintop/KisKritaSensorPack.{h,cpp}`と、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopkritasensorpackobjects`に固定する。既存テストソース、公開API、センサー順序、設定入出力、既存16種のXML識別子互換性を維持する。
+
+- [x] 公開ヘッダーと実装を、センサーデータ、センサーパックインターフェース、曲線オプション共通データ、標準コンテナー、Qt XML・コレクション、曲線既定値の所有ヘッダーへ直接接続する。
+- [x] `kritapaintopkritasensorpackobjects`の公開・実装利用要件を分離し、不要なImath、翻訳、Qt Gui、広い輸出定義と取込みディレクトリーを除去する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisKritaSensorPackCompatibilityTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19o 曲線オプション共通データ依存の直接化
+
+目的は、曲線オプション共通データの公開値型と設定委譲実装が、標準関数・ベクター、ID、Qt値型、共有データ、曲線既定値を推移的取込みから得る状態を解消し、センサーパックへの入出力と値修正コールバックの契約を維持することである。
+
+範囲は`plugins/paintops/libpaintop/KisCurveOptionDataCommon.{h,cpp}`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurveoptiondatacommonobjects`、集約構築で露出した`kritapaintopkritasensorpackobjects`のprivate色素取込みディレクトリー、`kritalibpaintop`の画像ライブラリー直接リンクに固定する。既存テストソース、公開API、設定キー、曲線値、センサー順序、既存16種のXML識別子互換性を維持する。
+
+- [x] 公開ヘッダーと実装を、標準関数・ベクター、ID、共有データ、Qt値型、設定、センサーパックインターフェース、曲線既定値の所有ヘッダーへ直接接続し、設定への参照を前方宣言に縮める。
+- [x] `kritapaintopcurveoptiondatacommonobjects`の利用要件を実使用に一致させ、`kritalibpaintop`が設定実装を所有する`kritaimage`を直接リンクする。センサーパックが読む色素ヘッダーは同対象のprivate取込みディレクトリーへ置く。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisCurveOptionDataTest`と`KisKritaSensorPackCompatibilityTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19p エアブラシ設定データ依存の直接化
+
+目的は、エアブラシ設定データの公開値型と設定入出力実装が、実数型、ブラシ設定、画像設定、色管理値型を推移的取込みから得る状態を解消し、既存の有効状態、発生率、間隔無視、設定キーと既定値の契約を維持することである。
+
+範囲は`plugins/paintops/libpaintop/KisAirbrushOptionData.cpp`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopairbrushoptiondataobjects`、試験自身の直接構築要件を記録する`plugins/paintops/libpaintop/tests/CMakeLists.txt`に固定する。既存テストソース、公開API、設定キー、既定値、保存結果、試験入力と期待値を維持する。
+
+- [x] 実装を実数型とブラシ設定の所有ヘッダーへ直接接続し、`kritapaintopairbrushoptiondataobjects`の公開・実装利用要件を分離する。
+- [x] `KisAirbrushOptionDataContractTest`が直接読むブラシ設定と画像設定の取込み・外部ライブラリー要件を同試験のCMake定義へ明示する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisAirbrushOptionDataContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19q 色オプション設定データ依存の直接化
+
+目的は、色オプション設定データの公開値型と設定入出力実装が、文字列、画像設定、色管理値型を推移的取込みから得る状態を解消し、色相・彩度・明度、ランダム化、背景・粒子・混色の既存設定キーと保存結果を維持することである。
+
+範囲は`plugins/paintops/libpaintop/KisColorOptionData.{h,cpp}`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcoloroptiondataobjects`、試験自身の直接構築要件を記録する`plugins/paintops/libpaintop/tests/CMakeLists.txt`に固定する。既存テストソース、公開API、設定キー、既定値、保存結果、試験入力と期待値を維持する。
+
+- [x] 公開ヘッダーを文字列の所有ヘッダーへ直接接続し、`kritapaintopcoloroptiondataobjects`の公開・実装利用要件を分離する。
+- [x] `KisColorOptionDataContractTest`が直接読む画像設定の取込み・外部ライブラリー要件を同試験のCMake定義へ明示する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisColorOptionDataContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19r 色ソース設定データ依存の直接化
+
+目的は、色ソース設定データの公開ID一覧と設定入出力実装が、ID、ベクター、マップ、Qtグローバル静的値、画像設定を推移的取込みから得る状態を解消し、6種の色ソース識別子と保存結果を維持することである。
+
+範囲は`plugins/paintops/libpaintop/KisColorSourceOptionData.{h,cpp}`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcolorsourceoptiondataobjects`、試験自身の直接構築要件を記録する`plugins/paintops/libpaintop/tests/CMakeLists.txt`に固定する。既存テストソース、公開API、識別子、設定キー、試験入力と期待値を維持する。
+
+- [x] 公開ヘッダーと実装をID、ベクター、マップ、グローバル静的値、設定、ローカライズの所有ヘッダーへ直接接続する。
+- [x] 製品・契約試験の公開・実装利用要件をCMakeへ分離して記録する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisColorSourceOptionDataContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19s 合成演算設定データ依存の直接化
+
+目的は、合成演算設定データの公開値型と設定入出力実装が、文字列、合成方式ID、画像設定を推移的取込みから得る状態を解消し、既定の`COMPOSITE_OVER`、消しゴム状態、`CompositeOp`・`EraserMode`設定キーと保存結果を維持することである。
+
+範囲は`plugins/paintops/libpaintop/KisCompositeOpOptionData.{h,cpp}`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcompositeopoptiondataobjects`、試験自身の直接構築要件を記録する`plugins/paintops/libpaintop/tests/CMakeLists.txt`に固定する。既存テストソース、公開API、設定キー、既定値、試験入力と期待値を維持する。
+
+- [x] 公開ヘッダーを文字列の所有ヘッダーへ直接接続し、`kritapaintopcompositeopoptiondataobjects`の公開・実装利用要件を分離する。
+- [x] `KisCompositeOpOptionDataContractTest`が直接読む画像設定の取込み・外部ライブラリー要件を同試験のCMake定義へ明示する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisCompositeOpOptionDataContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19t 描画モード設定データ依存の直接化
+
+目的は、描画モード設定データの公開値型と設定入出力実装が、設定データと色管理の推移的取込みから得る状態を解消し、`BUILDUP`・`WASH`、既定の読込値、`PaintOpAction`設定キーと保存結果を維持することである。
+
+範囲は`plugins/paintops/libpaintop/KisPaintingModeOptionData.{h,cpp}`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintoppaintingmodeoptiondataobjects`、試験自身の直接構築要件を記録する`plugins/paintops/libpaintop/tests/CMakeLists.txt`に固定する。既存テストソース、公開API、列挙値、設定キー、既定値、試験入力と期待値を維持する。
+
+- [x] 公開ヘッダーから不要な全体型取込みを除去し、`kritapaintoppaintingmodeoptiondataobjects`の公開・実装利用要件を分離する。
+- [x] `KisPaintingModeOptionDataContractTest`が直接読む画像設定の取込み・外部ライブラリー要件を同試験のCMake定義へ明示する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisPaintingModeOptionDataContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19u 精度設定データ依存の直接化
+
+目的は、精度設定の公開値型と設定入出力実装が、画像設定・色管理を推移的取込みから得る状態を解消し、精度値、自動精度、30.0のしきい値、既定値、`KisPrecisionOption/*`設定キーと保存結果を維持することである。
+
+範囲は`plugins/paintops/libpaintop/kis_precision_option.{h,cpp}`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopprecisionoptionobjects`、試験自身の直接構築要件を記録する`plugins/paintops/libpaintop/tests/CMakeLists.txt`に固定する。既存テストソース、公開API、設定キー、既定値、試験入力と期待値を維持する。
+
+- [x] 公開ヘッダーをBoostとQt Coreの比較・実数型へ直接接続し、画像設定を前方宣言へ置き換え、実装の実数型取込みを明示する。
+- [x] `KisPrecisionOptionContractTest`が直接読む画像設定の取込み・翻訳・Qt Gui要件を同試験のCMake定義へ明示する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisPrecisionOptionContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19v フィルター設定データ依存の直接化
+
+目的は、フィルター設定データの公開値型と設定入出力実装が、フィルター登録、paint-op設定、画像設定を推移的取込みから得る状態を解消し、フィルターID、構成文字列、smudge状態、`Filter/*`設定キーと保存結果を維持することである。
+
+範囲は`plugins/paintops/libpaintop/KisFilterOptionData.{h,cpp}`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopfilteroptiondataobjects`、試験自身の直接構築要件を記録する`plugins/paintops/libpaintop/tests/CMakeLists.txt`に固定する。既存テストソース、公開API、設定キー、既定値、Unicode試験入力と期待値を維持する。
+
+- [x] 公開ヘッダーと実装をQStringの所有ヘッダーへ直接接続し、未使用のpaint-op設定・フィルター登録取込みを除去する。
+- [x] `KisFilterOptionDataContractTest`が直接読む画像設定の取込み・外部ライブラリー要件を同試験のCMake定義へ明示する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisFilterOptionDataContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19w テクスチャLOD制約実装依存の直接化
+
+目的は、テクスチャ設定のLOD制約実装が、翻訳、グローバルID、画像・資源ヘッダーを推移的取込みから得る状態を解消し、有効時だけ`texture-pattern`制約を返す即時プレビュー契約を維持することである。
+
+範囲は`plugins/paintops/libpaintop/KisTextureOptionLodLimitations.cpp`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintoptexturelodobjects`、試験自身の直接構築要件を記録する`plugins/paintops/libpaintop/tests/CMakeLists.txt`に固定する。`KisTextureOptionData.h`と既存テストソース、公開データ、制約ID、翻訳済み名称、試験入力と期待値を維持する。
+
+- [x] LOD実装を翻訳とグローバルIDの所有ヘッダーへ直接接続し、対象の公開・実装利用要件を分離する。
+- [x] `KisTextureOptionLodContractTest`が直接読む埋込みテクスチャ、LOD、外部ライブラリー要件を同試験のCMake定義へ明示する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisTextureOptionLodContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19x テクスチャ設定入出力依存の直接化
+
+目的は、テクスチャ設定データの公開値型と入出力実装が、画像全体型、パターン完全型、Qt型と外部ライブラリーを推移的な取込みと公開要件から得る状態を解消し、保存済みブラシプリセットの設定結果を維持することである。
+
+範囲は`KisEmbeddedTextureData.{h,cpp}`、`KisEmbeddedTextureDataIO.cpp`、`KisTextureOptionData.{h,cpp}`、公開取込み縮小で露出する直接利用者`KisTextureOptionModel.cpp`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintoptextureoptionioobjects`、試験自身の直接構築要件を記録する`plugins/paintops/libpaintop/tests/CMakeLists.txt`に固定する。既存テストソース、公開API、設定キー、既定値、保存結果を維持する。
+
+- [x] 公開ヘッダーをQString、共有ポインター、Qtフラグ、実数型と比較関数の所有ヘッダーへ直接接続し、画像全体型とパターン完全型を前方宣言へ縮める。
+- [x] パターン完全型を使う実装へ所有ヘッダーを移し、`kritapaintoptextureoptionioobjects`の公開要件をBoost・Qt Coreに限定して設定実装専用要件をprivateへ分離する。
+- [x] 対象構築、`kritalibpaintop`、既存のテクスチャ設定・値・LOD契約、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19y 曲線オプションデータ依存の直接化
+
+目的は、曲線オプションデータの公開値型とセンサーパック生成実装が、文字列、ID、標準値型、Qt実数型、基底型、センサーパック型を推移的取込みから得る状態を解消し、曲線設定とセンサー状態の既存契約を維持することである。
+
+範囲は`KisCurveOptionData.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurveoptiondataobjects`に固定する。既存テストソース、公開API、設定キー、既定値、センサー順序と保存結果を維持する。
+
+- [x] 公開ヘッダーと実装を標準optional・pair、QString、qreal、KoID、公開記号、共通曲線データ、Kritaセンサーパックの所有ヘッダーへ直接接続する。
+- [x] 対象の公開要件を実使用へ限定し、全体基盤、画像、色素の公開取込みディレクトリーと未使用の輸出定義を除去する。
+- [x] 対象構築、`kritalibpaintop`、既存の曲線データ・センサーパック契約、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19z サイズオプションデータ依存の直接化
+
+目的は、サイズオプションデータの公開値型とLOD制約実装が、文字列、曲線データ、ID、翻訳、LOD型を推移的取込みから得る状態を解消し、サイズセンサーと即時プレビュー制約の契約を維持することである。
+
+範囲は`KisSizeOptionData.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopsizeoptiondataobjects`に固定する。既存テストソース、公開API、設定キー、既定値、センサー状態、制約IDと翻訳済み名称を維持する。
+
+- [x] 公開ヘッダーと実装をQString、曲線データ、LOD型、公開記号、KoID、翻訳の所有ヘッダーへ直接接続する。
+- [x] 対象の公開要件を実使用へ限定し、広い公開取込み、重複直接辺、未使用の輸出定義を除去する。
+- [x] 対象構築、`kritalibpaintop`、既存の標準オプション互換性・曲線データ契約、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19aa ミラーオプションデータ依存の直接化
+
+目的は、ミラーオプションデータの公開複合値型と設定入出力が、文字列、比較補助、ID、翻訳、画像設定、曲線データを推移的取込みから得る状態を解消し、保存済みブラシプリセットのミラー設定互換性を維持することである。
+
+範囲は`KisMirrorOptionData.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopmirroroptiondataobjects`に固定する。既存テストソース、公開API、設定キー、既定値、接頭辞、保存結果を維持する。
+
+- [x] 公開ヘッダーと実装を比較補助、ID、文字列、翻訳、曲線データ、複合値型、接頭辞付き設定、公開記号、画像設定の所有ヘッダーへ直接接続する。
+- [x] 公開ヘッダーのインライン処理に必要な利用要件を直接宣言し、重複直接辺と未使用の輸出定義を除去する。
+- [x] 対象構築、`kritalibpaintop`、既存のミラー互換性・曲線データ契約、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19ab シャープネスオプションデータ依存の直接化
+
+目的は、シャープネスオプションデータの公開複合値型、旧設定補正、設定入出力が、文字列、Qt整数型、画像設定、曲線データ、翻訳を推移的取込みから得る状態を解消し、保存済みブラシプリセットの互換性を維持することである。
+
+範囲は`KisSharpnessOptionData.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopsharpnessoptiondataobjects`に固定する。既存テストソース、公開API、設定キー、既定値、旧`Sharpness/factor`補正と保存結果を維持する。
+
+- [x] 公開ヘッダーと実装を文字列、Qt整数型、画像設定、曲線データ、複合値型、接頭辞付き設定、翻訳の所有ヘッダーへ直接接続する。
+- [x] 公開ヘッダーの設定委譲に必要な利用要件を直接宣言し、重複直接辺と未使用の輸出定義を除去する。
+- [x] 対象構築、`kritalibpaintop`、既存の標準オプション互換性・曲線データ契約、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19ac 散布オプションデータ依存の直接化
+
+目的は、散布オプションデータの公開複合値型、旧設定補正、設定入出力が、標準値型、文字列、画像設定、曲線データ、翻訳を推移的取込みから得る状態を解消し、保存済みブラシプリセットの互換性を維持することである。
+
+範囲は`KisScatterOptionData.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopscatteroptiondataobjects`に固定する。既存テストソース、公開API、設定キー、既定値、旧`Scattering/Amount`補正と保存結果を維持する。
+
+- [x] 公開ヘッダーと実装を標準値型、文字列、画像設定、曲線データ、複合値型、接頭辞付き設定、翻訳の所有ヘッダーへ直接接続する。
+- [x] 公開設定委譲に必要な利用要件を直接宣言し、重複直接辺と未使用の輸出定義を除去する。
+- [x] 対象構築、`kritalibpaintop`、既存の標準オプション互換性・曲線データ契約、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19ad 間隔オプションデータ依存の直接化
+
+目的は、間隔オプションデータの公開複合値型、設定入出力、描画更新設定が、文字列、画像設定、曲線データ、翻訳を推移的取込みから得る状態を解消し、保存済みブラシプリセットの互換性を維持することである。
+
+範囲は`KisSpacingOptionData.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopspacingoptiondataobjects`に固定する。既存テストソース、公開API、`Spacing/Isotropic`・`SPACING_USE_UPDATES`設定キー、既定値と保存結果を維持する。
+
+- [x] 公開ヘッダーと実装を比較補助、ID、文字列、翻訳、曲線データ、複合値型、接頭辞付き設定、公開記号、描画設定、画像設定の所有ヘッダーへ直接接続する。
+- [x] 公開インライン処理に必要な利用要件を直接宣言し、重複直接辺と未使用の輸出定義を除去する。
+- [x] 対象構築、`kritalibpaintop`、既存の標準オプション互換性・曲線データ契約、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19ae 曲線オプションモデル依存の直接化
+
+目的は、曲線オプション画面モデルが、標準・Qt値型、Lager状態合成、曲線データ、範囲モデル境界、センサーデータ、安全検査を推移的取込みから得る状態を解消し、ブラシ編集とプリセット保存の振る舞いを維持することである。
+
+範囲は`KisCurveOptionModel.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurveoptionmodelobjects`に固定する。既存テストソース、公開API、共有・個別センサー曲線、強度範囲、チェック状態、表示ラベルと保存結果を維持する。
+
+- [x] 公開ヘッダーと実装を標準・Qt値型、Lager状態合成、曲線データ、範囲モデル境界、センサーデータ、安全検査の所有ヘッダーへ直接接続する。
+- [x] 公開利用要件を曲線データと範囲モデル境界へ接続し、実装専用依存を非公開化して未使用の依存と輸出定義を除去する。
+- [x] 対象構築、`kritalibpaintop`、既存の曲線モデル・曲線データ契約、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19af センサーモデル依存の直接化
+
+目的は、長さ付き入力と描画角度入力の画面モデルが、曲線オプション全体や画像・翻訳依存の推移的取込みから型と状態変換を得る状態を解消し、センサー設定画面の更新結果を維持することである。
+
+範囲は`KisSensorWithLengthModel.{h,cpp}`、`KisDrawingAngleSensorModel.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopsensormodelobjects`に固定する。既存テストソース、公開API、長さ・周期、角度反転・固定角度・角補完状態を維持する。
+
+- [x] 両モデルの公開ヘッダーと実装をQObject、Qt値型、Lagerカーソル・Qt連携、センサーデータの所有ヘッダーへ直接接続する。
+- [x] 公開利用要件をセンサーデータへ接続し、角度反転専用依存を非公開化して未使用の依存と輸出定義を除去する。
+- [x] 対象構築、`kritalibpaintop`、長さ付き・描画角度モデル契約、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19ag ミラーオプションモデル依存の直接化
+
+目的は、ミラーオプション画面モデルが、ミラー設定データとLager状態連携を画像・色・翻訳系の推移的依存から得る状態を解消し、ブラシ編集とプリセット保存の反転状態を維持することである。
+
+範囲は`KisMirrorOptionModel.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopmirroroptionmodelobjects`に固定する。既存テストソース、公開API、水平・垂直反転状態と保存結果を維持する。
+
+- [x] 公開ヘッダーと実装をQObject、Lagerカーソル・Qt連携、ミラー設定データ、公開記号の所有ヘッダーへ直接接続する。
+- [x] 公開利用要件をミラー設定データへ接続し、推移的に得ていた画像・色・翻訳系の依存と未使用の輸出定義を除去する。
+- [x] 対象構築、`kritalibpaintop`、ミラーモデル・保存互換性契約、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19ah Nixソース世代の再生成防止
+
+目的は、通常の実装反復が変更状態ごとにローカルFlakeを再評価し、ほぼ同じ全ソースをNix storeへ累積させる運用経路を閉じることである。
+
+範囲は運用契約`AGENTS.md`、利用手順`docs/architecture/DEVELOPMENT.md`、現在状態と検査段階に固定する。Nix式、開発シェル、構築木、コンパイラーキャッシュ、製品コードは変更しない。
+
+- [x] 通常のソース反復を一つの評価済み開発プロファイルへ固定し、環境を継承しない処理の再利用入口を`run-shared-test-env`へ統一する。
+- [x] ローカルFlake再評価の条件、前後のstore測定、増加時の停止・記録条件、ごみ収集の権限境界を運用契約と利用手順へ記録する。
+- [x] 評価済みプロファイル経由で`verify-quick`を成功させ、通常反復の前後で死んだstoreパスが増えないことを確認する。
+
+### R2-G19ai プリセットオプションモデル依存の直接化
+
+目的は、ブラシプリセット設定画面の状態モデルが、集約ライブラリーの設定画面実装を経由してデータ型、Lager、Qt連携、画面状態を得る状態を解消し、対象を限定した構築と変更を可能にすることである。
+
+範囲は`plugins/paintops/libpaintop/KisAirbrushOptionModel.{h,cpp}`、`KisColorSourceOptionModel.cpp`、`KisCompositeOpOptionModel.{h,cpp}`、`KisPaintingModeOptionModel.{h,cpp}`、`KisScatterOptionModel.cpp`、`KisSharpnessOptionModel.cpp`、`KisSpacingOptionModel.cpp`、および`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopoptionmodelobjects`に固定する。既存テストソース、公開API、プリセット保存形式、画面状態遷移、描画結果は維持する。
+
+- [x] 公開ヘッダーと実装を、設定データ、Lagerカーソル・reader・Qt連携、標準関数オブジェクト、Qt値型、画面状態変換の所有ヘッダーへ直接接続する。
+- [x] 7実装を`kritapaintopoptionmodelobjects`へ分離し、公開利用要件と`KisLager.h`だけが使う実装専用取込みディレクトリーを直接列挙する。集約ライブラリーは同じオブジェクトを取り込み、公開ライブラリーの名前と動作を維持する。
+- [x] 対象構築、`kritalibpaintop`、既存のプリセット保存互換性CTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19aj フィルターオプションモデル依存の直接化
+
+目的は、フィルター設定モデルが、集約ライブラリーから偶然得るフィルター登録簿、全体資源、Lagerのレンズ・結合、値タプルへの依存を、その利用元から所有者へ明示することである。
+
+範囲は`plugins/paintops/libpaintop/KisFilterOptionModel.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopfilteroptionmodelobjects`に固定する。既存テストソース、公開API、フィルターID・設定XML、フォールバック選択、smudge状態、描画結果は維持する。
+
+- [x] 公開ヘッダーと実装を、標準タプル、Qt文字列、設定データ、Lagerカーソル・Qt連携・レンズ・結合、フィルター型・登録簿、全体資源の所有ヘッダーへ直接接続する。
+- [x] 1実装を`kritapaintopfilteroptionmodelobjects`へ分離し、公開利用要件を設定データ、Qt Core、Lagerへ、実装専用依存を`kritaimage`と`kritaresources`へ分離する。集約ライブラリーは資源サービスを直接リンクして同じオブジェクトを取り込む。
+- [x] 対象構築、`kritalibpaintop`、既存のフィルター設定CTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19ak テクスチャオプションモデル依存の直接化
+
+目的は、テクスチャ設定モデルと埋込みテクスチャ値型が、実行対象と集約ライブラリーの推移的な資源・色素依存とソース取り込みから得る状態を解消することである。
+
+範囲は`plugins/paintops/libpaintop/KisTextureOptionModel.h`、`KisEmbeddedTextureData.cpp`、および`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintoptextureoptionmodelobjects`と`kritapaintopembeddedtexturedataobjects`に固定する。既存テストソース、公開API、テクスチャ設定、リンク済み・埋込みパターン復元、LOD、描画結果は維持する。
+
+- [x] 公開ヘッダーをQt実数型と資源インターフェースの所有ヘッダーへ直接接続し、実装をその設定データ、資源、色素、Lager、検査マクロの所有者へ接続する。
+- [x] 埋込み値型を独立したオブジェクト対象へ移し、テクスチャモデルの公開・実装利用要件と最終ライブラリーの色素・資源リンクを直接列挙する。旧ソースは集約ライブラリーから除去して、同じ定義を一度だけ取り込む。
+- [x] 両対象、`kritalibpaintop`、テクスチャ設定・LOD・リンク済みパターンの既存CTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19al 標準オプション依存の直接化
+
+目的は、標準ブラシオプションの設定値・設定画面生成が、集約ライブラリーから偶然得る文字列、翻訳、センサー、設定識別子、設定画面基底型と構築依存に依存する状態を解消することである。
+
+範囲は`plugins/paintops/libpaintop/KisStandardOptionData.{h,cpp}`、`KisStandardOptions.{h,cpp}`、および`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopstandardoptionobjects`に固定する。既存テストソース、公開API、プリセット設定キー、標準設定画面、描画結果は維持する。
+
+- [x] 公開ヘッダーと実装を、標準ライブラリー、ID、Qt文字列・実数型、翻訳、センサー、設定画面基底型、設定識別子の所有ヘッダーへ直接接続する。
+- [x] 2翻訳単位を`kritapaintopstandardoptionobjects`へ分離し、公開利用要件をBoost、翻訳、Qt Core、ID、曲線・センサー・サイズ設定値へ、実装専用依存を全体基盤、画像、設定画面、Lagerへ分離する。集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 対象構築、`kritalibpaintop`、標準設定値の保存互換性CTest、設定画面生成ユーティリティCTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19am 標準オプション設定画面依存の直接化
+
+目的は、標準ブラシオプションのサイズ・明度強度設定画面が、集約ライブラリーから偶然得るQtメタオブジェクト、Lagerカーソル、曲線設定値、設定画面基底型、画像LODの依存とMOC処理に依存する状態を解消することである。
+
+範囲は`plugins/paintops/libpaintop/KisSizeOptionWidget.{h,cpp}`、`KisLightnessStrengthOptionWidget.{h,cpp}`、および`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopstandardoptionwidgetobjects`に固定する。既存テストソース、公開API、プリセット設定キー、サイズLOD、明度モード時の画面状態、描画結果は維持する。
+
+- [x] 公開ヘッダーと実装を、Qtメタオブジェクト・スコープポインター、標準関数、Lager、曲線・サイズ・標準設定値、設定画面基底型・カテゴリ、LOD、Qt画面部品・配置・整列、翻訳、公開記号の所有ヘッダーへ直接接続する。
+- [x] 2翻訳単位を`kritapaintopstandardoptionwidgetobjects`へ分離し、公開利用要件をQt Core、曲線・サイズ・標準設定値、設定画面、Lagerへ、実装専用依存を翻訳、Qt Widgets、全体基盤、画像へ分離する。MOCは設定画面オブジェクトの所有対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 対象構築、`kritalibpaintop`、標準設定値の保存互換性CTest、設定画面生成ユーティリティCTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19an 曲線オプション設定画面依存の直接化
+
+目的は、曲線オプション設定画面が、集約ライブラリーから偶然得るQtメタオブジェクト、Lager状態、曲線・入力制御・範囲モデル、画面接続補助、生成UIの依存とMOC処理に依存する状態を解消することである。
+
+範囲は`plugins/paintops/libpaintop/KisCurveOptionWidget.{h,cpp}`、および`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurveoptionwidgetobjects`に固定する。既存テストソース、公開API、プリセット設定キー、共有・個別曲線、強度範囲、入力選択、描画結果は維持する。
+
+- [x] 公開ヘッダーと実装を、標準ライブラリー、Qtメタオブジェクト・画面部品・signal・オーバーロード、翻訳、設定画面基底型、曲線共通値・入力制御・範囲モデル、Lager、画面接続補助、公開記号の所有ヘッダーへ直接接続する。
+- [x] 実装と生成UIを`kritapaintopcurveoptionwidgetobjects`へ分離し、公開利用要件をQt、曲線境界、設定画面、Lagerへ、実装専用依存を翻訳、全体基盤、画像、曲線モデル、画面接続補助の具体的所有者、部品ユーティリティへ分離する。MOCとUI生成を専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 対象構築、`kritalibpaintop`、曲線オプションモデルCTest、設定画面生成ユーティリティCTestをmacOSで成功させ、`verify-quick`と後続の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19ao 曲線範囲モデル依存の直接化
+
+目的は、曲線範囲モデルが、集約ライブラリーから偶然得るQt文字列・実数、Lagerカーソル・reader、範囲モデル境界、入力ファクトリー、検査マクロの依存と構築経路に依存する状態を解消することである。
+
+範囲は`plugins/paintops/libpaintop/KisCurveRangeModel.{h,cpp}`、および`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurverangemodelobjects`に固定する。既存テストソース、公開API、曲線編集、入力依存のX範囲、画面指定のY範囲、プリセット設定、描画結果は維持する。
+
+- [x] 公開ヘッダーと実装を、標準ライブラリー、Qt文字列・実数・矩形、範囲モデル境界、動的入力ファクトリーとレジストリー、安全検査、Lagerの所有ヘッダーへ直接接続する。
+- [x] 実装を`kritapaintopcurverangemodelobjects`へ分離し、公開利用要件をQt Core、範囲モデル境界、Lagerへ、実装専用依存を全体基盤と動的入力ファクトリーへ分離する。集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 対象構築、`kritalibpaintop`、曲線オプションモデルCTest、範囲モデル境界CTestをmacOSで成功させ、`verify-quick`と後続の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19ap 動的入力レジストリー依存の直接化
+
+目的は、曲線範囲計算と設定画面が使う動的入力レジストリーを、集約ライブラリーの推移的なQt、翻訳、識別子、入力ファクトリー依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisDynamicSensorFactoryRegistry.{h,cpp}`、その直接の入力ファクトリー実装、および所有CMake対象に固定する。既存の入力ID、範囲・表示ラベル、設定画面、プリセット設定、描画結果は維持する。
+
+- [x] 公開ヘッダーと実装を、Qt画面部品・グローバル静的値・警告、翻訳、ID、曲線共通値、センサーパック・入力データ・画面モデル、接続補助、Lager、基底・単純ファクトリーの所有ヘッダーへ直接接続する。
+- [x] 基底・単純ファクトリーを既存対象に保ち、レジストリー、特殊入力、3つの生成UIを`kritapaintopdynamicsensorregistryobjects`へ分離する。公開利用要件と実装専用依存を分け、集約ライブラリーは両オブジェクトを一度ずつ取り込む。
+- [x] 専用対象、`kritalibpaintop`、既存の基底・単純ファクトリーCTest、入力モデルCTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19aq 曲線入力制御依存の直接化
+
+目的は、曲線設定画面が使う入力制御実装を、集約ライブラリーの推移的な画面部品、範囲モデル、入力モデル、設定画面依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisCurveOptionInputControlsStrategy.{h,cpp}`とその直接の所有CMake対象に固定する。共有・個別曲線の入力選択、強度・範囲表示、設定画面、プリセット設定、描画結果は維持する。
+
+- [x] 公開ヘッダーと実装を、標準ライブラリー、Qt実数・スピンボックス・画面部品・レイアウト・文字・寸法、Lager、曲線制御・範囲境界、曲線画面部品・制御管理、数値変換、公開テンプレート記号の所有ヘッダーへ直接接続する。
+- [x] 実装を`kritapaintopcurveinputcontrolsobjects`へ分離し、公開利用要件をQt Core、曲線制御・範囲境界、Lagerへ、実装専用依存をQt Widgets、曲線画面部品の具体的所有者、全体基盤へ分離する。集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 対象構築、`kritalibpaintop`、曲線制御境界CTest、曲線オプションモデルCTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19ar 複数入力選択依存の直接化
+
+目的は、曲線設定画面が使う複数入力選択実装を、集約ライブラリーの推移的な画面部品、センサーデータ、曲線モデル、設定画面依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisMultiSensorsSelector.{h,cpp}`とその直接の所有CMake対象に固定する。入力選択、共有・個別曲線、設定画面、プリセット設定、描画結果は維持する。
+
+- [x] 公開ヘッダーと実装を、標準ライブラリー、Qtメタオブジェクト・画面部品・signal/slot・イベント・レイアウト・モデル索引・文字列、Lager、曲線共通値、入力データ、安全検査、動的入力ファクトリーとレジストリー、複数入力モデルの所有ヘッダーへ直接接続する。
+- [x] 実装と生成UIを`kritapaintopmultisensorsselectorobjects`へ分離し、公開利用要件をQt Core・Widgets、曲線共通値、Lagerへ、実装専用依存を全体基盤と動的入力レジストリーへ分離する。MOCとUI生成は専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 対象構築、`kritalibpaintop`、既存の曲線オプションモデルCTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19as 複数入力モデル依存の直接化
+
+目的は、複数入力選択画面が使う入力モデルを、集約ライブラリーの推移的なQtモデル、曲線共通値、Lager、設定画面依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisMultiSensorsModel.{h,cpp}`とその直接の所有CMake対象に固定する。入力選択、共有・個別曲線、設定画面、プリセット設定、描画結果は維持する。
+
+- [x] 公開ヘッダーと実装を、標準pair・vector・探索、Qtモデル・索引・値・文字列・メタオブジェクト・signal、入力ID、Lagerカーソルの所有ヘッダーへ直接接続する。
+- [x] 実装を`kritapaintopmultisensorsmodelobjects`へ分離し、公開利用要件をQt Core、入力ID、Lagerへ限定する。MOCは専用対象で実行し、複数入力選択画面は実装対象を直接リンクし、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 対象構築、`kritalibpaintop`、既存の曲線オプションモデルCTest、`verify-quick`をmacOSで成功させる。
+
+### R2-G19at 間隔設定画面依存の直接化
+
+目的は、ブラシ設定画面が使う間隔設定実装を、集約ライブラリーの推移的なQt画面部品、曲線設定、入力モデル、設定依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisSpacingOptionWidget.{h,cpp}`とその直接の所有CMake対象に固定する。間隔入力、設定画面、プリセット設定、描画結果は維持する。
+
+- [x] 公開ヘッダーと実装を、標準関数、Qt画面部品・メタオブジェクト、設定型、翻訳、曲線設定、間隔データとモデル、画面接続、Lagerの所有ヘッダーへ直接接続する。
+- [x] 間隔画面とその専用モデルを`kritapaintopspacingoptionwidgetobjects`へ移し、Qt Core・Widgets、曲線設定画面、間隔データ、Lagerを公開利用要件、翻訳と画面接続を実装専用依存へ分離する。MOCは専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 対象構築、`kritalibpaintop`、既存のブラシプリセット動的設定互換性CTest、`verify-quick`をmacOSで成功させる。
+
+### R2-G19au シャープネス設定画面依存の直接化
+
+目的は、ブラシ設定画面が使うシャープネス設定実装を、集約ライブラリーの推移的なQt画面部品、曲線設定、シャープネスモデル、設定依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisSharpnessOptionWidget.{h,cpp}`、`KisSharpnessOptionModel.{h,cpp}`とその直接の所有CMake対象に固定する。シャープネス入力、設定画面、プリセット設定、描画結果は維持する。
+
+- [x] 公開ヘッダーと実装を、標準関数、Qt画面部品・メタオブジェクト、設定型、翻訳、曲線設定、シャープネスデータとモデル、画面接続、Lagerの所有ヘッダーへ直接接続する。
+- [x] シャープネス画面とその専用モデルを`kritapaintopsharpnessoptionwidgetobjects`へ移し、Qt Core・Widgets、曲線設定画面、シャープネスデータ、Lagerを公開利用要件、翻訳、スライダー画面部品、画面接続を実装専用依存へ分離する。MOCは専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 対象構築、`kritalibpaintop`、既存のブラシプリセット動的設定互換性CTest、`verify-quick`をmacOSで成功させる。
+
+### R2-G19aw 散布設定画面依存の直接化
+
+目的は、ブラシ設定画面が使う散布設定実装を、集約ライブラリーの推移的なQt画面部品、曲線設定、散布モデル、設定依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisScatterOptionWidget.{h,cpp}`、`KisScatterOptionModel.{h,cpp}`とその直接の所有CMake対象に固定する。散布入力、設定画面、プリセット設定、描画結果と既存CTestは維持する。
+
+- [x] 公開ヘッダーと実装を、標準関数、Qt画面部品・メタオブジェクト、設定型、翻訳、曲線設定、散布データとモデル、画面接続、Lagerの所有ヘッダーへ直接接続する。
+- [x] 散布画面とその専用モデルを`kritapaintopscatteroptionwidgetobjects`へ移し、Qt Core・Widgets、曲線設定画面、散布データ、Lagerを公開利用要件、翻訳と画面接続を実装専用依存へ分離する。MOCは専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 対象構築、`kritalibpaintop`、既存のブラシプリセット動的設定互換性CTest、`verify-quick`をmacOSで成功させる。
+
+### R2-G19ax ミラー設定画面依存の直接化
+
+目的は、ブラシ設定画面が使うミラー設定実装を、集約ライブラリーの推移的なQt画面部品、ミラーモデル、設定依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisMirrorOptionWidget.{h,cpp}`とその直接の所有CMake対象に固定する。ミラー入力、設定画面、プリセット設定、描画結果と既存CTestは維持する。
+
+- [x] 公開ヘッダーと実装を、標準関数、Qt画面部品・メタオブジェクト、設定型、翻訳、曲線設定、ミラーデータとモデル、画面接続、Lagerの所有ヘッダーへ直接接続する。
+- [x] 実装を`kritapaintopmirroroptionwidgetobjects`へ移し、Qt Core・Widgets、曲線設定画面、ミラーデータとモデル、Lagerを公開利用要件、翻訳と画面接続を実装専用依存へ分離する。MOCは専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 対象構築、`kritalibpaintop`、既存のミラー設定互換性CTest、ミラーモデルCTest、`verify-quick`をmacOSで成功させる。
+
+### R2-G19ay エアブラシ設定画面依存の直接化
+
+目的は、ブラシ設定画面が使うエアブラシ設定実装を、集約ライブラリーの推移的なQt画面部品、エアブラシモデル、設定依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisAirbrushOptionWidget.{h,cpp}`、`KisAirbrushOptionModel.{h,cpp}`とその直接の所有CMake対象に固定する。エアブラシ入力、設定画面、プリセット設定、描画結果と既存CTestは維持する。
+
+- [x] 公開ヘッダーと実装を、スマートポインター、標準関数、Qt画面部品・型・メタオブジェクト、設定型、翻訳、エアブラシデータとモデル、画面接続、Lagerの所有ヘッダーへ直接接続する。
+- [x] エアブラシモデルを`kritapaintopairbrushoptionmodelobjects`、画面を`kritapaintopairbrushoptionwidgetobjects`へ分け、画面フォームの生成を画面対象へ移す。モデルはQt Core、エアブラシデータ、Lagerを、画面はQt Core・Widgets、エアブラシデータとモデル、画面基底型、Lagerを公開利用要件、翻訳と画面接続を実装専用依存として明示する。MOCは各専用対象で実行し、集約ライブラリーは両オブジェクトを一度だけ取り込む。
+- [x] 専用画面対象、`kritalibpaintop`、既存のエアブラシ設定データ契約CTest、`verify-quick`をmacOSで成功させる。
+
+### R2-G19az 合成方法設定画面依存の直接化
+
+目的は、ブラシ設定画面が使う合成方法設定実装を、集約ライブラリーの推移的なQt画面部品、合成方法モデル、設定依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisCompositeOpOptionWidget.{h,cpp}`、`KisCompositeOpOptionModel.{h,cpp}`とその直接の所有CMake対象に固定する。合成方法の選択、設定画面、プリセット設定、描画結果と既存CTestは維持する。
+
+- [x] 公開ヘッダーと実装を、スマートポインター、標準関数、Qt画面部品・文字列・メタオブジェクト、設定型、翻訳、合成方法ID・レジストリー、アイコン、合成方法データとモデル、画面接続、Lagerの所有ヘッダーへ直接接続する。
+- [x] 合成方法モデルを`kritapaintopcompositeopoptionmodelobjects`、画面を`kritapaintopcompositeopoptionwidgetobjects`へ分け、画面フォームの生成を画面対象へ移す。モデルはQt Core、合成方法データ、Lagerを、画面はQt Core・Widgets、合成方法データとモデル、画面基底型、Lagerを公開利用要件、翻訳・合成方法UI・色処理・画面接続・アイコンを実装専用依存として明示する。MOCは各専用対象で実行し、集約ライブラリーは両オブジェクトを一度だけ取り込む。
+- [x] 専用画面対象、`kritalibpaintop`、既存の合成方法設定データ契約CTest、`verify-quick`をmacOSで成功させる。
+
+### R2-G19ba 色源設定画面依存の直接化
+
+目的は、ブラシ設定画面が使う色源設定実装を、集約ライブラリーの推移的なQt画面部品、色源モデル、設定依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisColorSourceOptionWidget.{h,cpp}`、`KisColorSourceOptionModel.{h,cpp}`とその直接の所有CMake対象に固定する。色源の選択、設定画面、プリセット設定、描画結果と既存CTestは維持する。
+
+- [x] 公開ヘッダーと実装を、スマートポインター、標準関数、Qt画面部品・反復マクロ・メタオブジェクト、設定型、翻訳、色源識別子、色源データとモデル、画面接続、Lagerの所有ヘッダーへ直接接続する。
+- [x] 色源モデルを`kritapaintopcolorsourceoptionmodelobjects`、画面を`kritapaintopcolorsourceoptionwidgetobjects`へ分ける。モデルはQt Core、色源データ、Lagerを、画面はQt Core・Widgets、色源データとモデル、画面基底型、Lagerを公開利用要件、翻訳と画面接続を実装専用依存として明示する。MOCは各専用対象で実行し、集約ライブラリーは両オブジェクトを一度だけ取り込む。
+- [x] 専用画面対象、`kritalibpaintop`、既存の色源設定データ契約CTest、`verify-quick`をmacOSで成功させる。
+
+### R2-G19bb 描画方法設定画面依存の直接化
+
+目的は、ブラシ設定画面が使う描画方法設定実装を、集約ライブラリーの推移的なQt画面部品、描画方法モデル、設定依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisPaintingModeOptionWidget.{h,cpp}`、`KisPaintingModeOptionModel.{h,cpp}`とその直接の所有CMake対象に固定する。描画方法の選択、設定画面、プリセット設定、描画結果と既存CTestは維持する。
+
+- [x] 公開ヘッダーと実装を、スマートポインター、標準関数、Qt画面部品・文字列・メタオブジェクト、設定型、翻訳、描画方法データとモデル、画面接続、Lagerの所有ヘッダーへ直接接続する。
+- [x] 描画方法モデルを`kritapaintoppaintingmodeoptionmodelobjects`、画面を`kritapaintoppaintingmodeoptionwidgetobjects`へ分け、画面フォームの生成を画面対象へ移す。モデルはQt Core、描画方法データ、画面接続、Lagerを、画面はQt Core・Widgets、描画方法データとモデル、画面基底型、画面接続、Lagerを公開利用要件、翻訳を実装専用依存として明示する。MOCは各専用対象で実行し、集約ライブラリーは両オブジェクトを一度だけ取り込む。
+- [x] 専用画面対象、`kritalibpaintop`、既存の描画方法設定データ契約CTest、`verify-quick`をmacOSで成功させる。
+
+### R2-G19bc フィルター設定画面依存の直接化
+
+目的は、ブラシ設定画面が使うフィルター設定実装を、集約ライブラリーの推移的なQt画面部品、フィルターモデル、設定依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisFilterOptionWidget.{h,cpp}`とその直接の所有CMake対象に固定する。フィルターの選択、設定画面、プリセット設定、描画結果と既存CTestは維持する。
+
+- [x] 公開ヘッダーと実装を、スマートポインター、標準関数、Qt画面部品・コンテナー・メタオブジェクト、設定型、翻訳、ID、フィルター・設定・登録、画像・ノード・描画装置、信号遮断、画面接続、Lagerの所有ヘッダーへ直接接続する。
+- [x] フィルター画面を`kritapaintopfilteroptionwidgetobjects`へ移し、Qt Core・Widgets、フィルターデータとモデル、画面基底型、Lagerを公開利用要件、翻訳・アプリケーションUI・画像処理・全体基盤・画面接続を実装専用依存として明示する。フォーム生成とMOCは専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 専用画面対象、`kritalibpaintop`、既存のフィルター設定データ契約CTest、`verify-quick`をmacOSで成功させる。
+
+### R2-G19bd 明度・強度設定画面依存の直接化
+
+目的は、ブラシ設定画面が使う明度・強度設定実装を、集約ライブラリーの推移的なQt画面部品と設定依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisLightnessStrengthOptionWidget.{h,cpp}`とその直接の所有CMake対象に固定する。明度・強度の選択、設定画面、プリセット設定、描画結果と既存CTestは維持する。
+
+- [x] 公開ヘッダーと実装の直接取込みを監査し、既存の明度・強度入力の利用者向け契約を維持する。
+- [x] 明度・強度画面を`kritapaintoplightnessstrengthoptionwidgetobjects`へ移し、Qt Core・Widgets、曲線データと曲線画面、標準設定、Lagerを公開利用要件、翻訳・全体基盤・画像・画面基底型を実装専用依存として明示する。MOCは専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 専用画面対象、`kritalibpaintop`、既存のブラシプリセット動的設定互換性CTest、`verify-quick`をmacOSで成功させる。
+
+### R2-G19be サイズ設定画面依存の直接化
+
+目的は、ブラシ設定画面が使うサイズ設定実装を、集約ライブラリーの推移的なQt画面部品と標準設定依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisSizeOptionWidget.{h,cpp}`とその直接の所有CMake対象に固定する。サイズ設定、設定画面、プリセット設定、描画結果と既存CTestは維持する。
+
+- [x] 公開ヘッダーと実装の直接取込みを監査し、サイズ設定画面を`kritapaintopsizeoptionwidgetobjects`へ移す。曲線設定画面、サイズ設定値、paint-op画面基盤、Lagerを公開利用要件として直接接続し、使わない標準設定と実装専用依存を除去する。MOCは専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 専用画面対象、`kritalibpaintop`、既存のサイズ設定値互換性CTestをmacOSで成功させる。
+
+### R2-G19bf テクスチャ設定画面依存の直接化
+
+目的は、ブラシ設定画面が使うテクスチャ設定と選択画面を、集約ライブラリーの推移的な画面・資源・色依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisTextureOptionWidget.{h,cpp}`、`kis_texture_chooser.{h,cpp}`、`forms/wdgtexturechooser.ui`とその直接の所有CMake対象に固定する。テクスチャ設定、選択画面、プリセット設定、描画結果と既存CTestは維持する。
+
+- [x] 公開ヘッダー・選択画面・実装の直接取込みを監査し、テクスチャ設定画面、選択画面、生成UIを`kritapaintoptextureoptionwidgetobjects`へ移す。Qt、画像・資源、テクスチャ値・モデル、paint-op画面基盤、Lagerを公開利用要件として直接接続し、翻訳、アプリケーションUI、色、画面部品を実装専用依存として明示する。MOCは専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 専用画面対象、`kritalibpaintop`、既存のテクスチャ保存・LOD互換性CTest、`verify-quick`をmacOSで成功させる。
+
+### R2-G19bg 色設定画面依存の直接化
+
+目的は、ブラシ設定画面が使う色設定画面を、集約ライブラリーの推移的なQt画面部品と色設定モデル依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisColorOptionWidget.{h,cpp}`、`forms/wdgcoloroptions.ui`とその直接の所有CMake対象に固定する。色設定、設定画面、プリセット設定、描画結果と既存CTestは維持する。
+
+- [x] 公開ヘッダーと実装の直接取込みを監査し、色設定画面と生成UIを`kritapaintopcoloroptionwidgetobjects`へ移す。Qt、色設定値・モデル、paint-op画面基盤、Lagerを公開利用要件として直接接続し、翻訳とスピンボックスを実装専用依存として明示する。集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 専用画面対象、`kritalibpaintop`、既存の色設定値互換性CTest、`verify-quick`をmacOSで成功させる。
+
+### R2-G19bh 自動ブラシ設定画面・モデル依存の直接化
+
+目的は、ブラシ選択画面が使う自動ブラシ設定画面とモデルを、集約ライブラリーの推移的な画像・画面・Lager依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/kis_auto_brush_widget.{h,cpp}`、`KisAutoBrushModel.{h,cpp}`、`forms/wdgautobrush.ui`とその直接の所有CMake対象に固定する。ブラシ生成、設定画面、プリセット設定、描画結果と既存CTestは維持する。
+
+- [x] 公開ヘッダーと実装を、ブラシ共有ポインター、ブラシ・モデル値型、Qtメタオブジェクトと値型、画面部品、生成器、Lagerの所有ヘッダーへ直接接続する。モデルを`kritapaintopautobrushmodelobjects`、画面と生成UIを`kritapaintopautobrushwidgetobjects`へ移し、モデルはQt Core・ブラシ・画面接続・Lager、画面はQt Core・Widgets・アプリケーションUI・画像・ブラシ・モデル・画面部品を公開利用要件、翻訳・全体基盤・資源・Lagerを実装専用依存として明示する。各対象でMOCを実行し、集約ライブラリーは各オブジェクトを一度だけ取り込む。
+- [x] 専用画面対象、`kritalibpaintop`、既存の同一コンポーネント`KisCurveOptionModelTest`をmacOSで成功させる。自動ブラシ専用CTestがないことを記録し、固定テストは変更しない。
+
+### R2-G19bi libpaintop製品ソースの一括直接取込み
+
+目的は、`plugins/paintops/libpaintop`の製品翻訳単位が、集約対象と別実装ヘッダーから標準・Qt・製品型を推移的に得る状態を一括監査で解消することである。
+
+範囲は同ディレクトリーの`tests/`を除く101翻訳単位と既存の所有対象に固定する。固定CTest、公開API、設定キー、保存形式、描画結果は維持する。
+
+- [x] コンパイルデータベースから101翻訳単位を抽出し、`misc-include-cleaner`を8並列で適用する。40実装を所有ヘッダーへ直接接続し、不要取込みを除去する。
+- [x] 自動修正後の`kritalibpaintop`を構築し、静的検査が誤って除去したLOD戻り値と`dynamic_cast`入力側の完全型3件をコンパイラー診断に基づいて維持する。
+- [x] `libpaintop`の固定CTest 30件と`verify-quick`を成功させ、固定テスト配下の差分をゼロに保つ。
+
+### R2-G19bj PaintOp・ツール製品ソースの一括直接取込み
+
+目的は、`libpaintop`を除くPaintOpとツールの製品翻訳単位が、集約対象と別実装ヘッダーから標準・Qt・製品型を推移的に得る状態を機械的な一括監査で解消することである。
+
+範囲は`plugins/paintops`と`plugins/tools`の試験・ベンチマークを除く303翻訳単位に固定する。固定CTest、公開API、設定キー、保存形式、描画結果は維持する。
+
+- [x] コンパイルデータベースから303翻訳単位を抽出し、`misc-include-cleaner`を8並列で一括適用して299実装を所有ヘッダーへ直接接続する。
+- [x] `plugins/paintops/all`と`plugins/tools/all`を構築し、静的検査が誤って除去した完全型と継承変換に必要な取込みをコンパイラー診断に基づいて維持する。
+- [x] 部分木CTestの実行可能範囲を確認し、成功30件と、バンドルを経由しない実行に共通する既知の8件の環境停止を区別して記録する。固定テスト配下の差分をゼロに保つ。
+
+### R2-G19bk ライブラリー製品ソースの一括直接取込み
+
+目的は、`libs/`の製品翻訳単位が別の公開・実装ヘッダーから標準・Qt・製品型を推移的に得る状態を、機械的な一括監査で解消することである。
+
+範囲は`libs/`の試験・ベンチマークを除く1592翻訳単位に固定する。固定CTest、公開API、保存形式、描画結果は維持する。
+
+- [x] コンパイルデータベースから1592翻訳単位を抽出し、`misc-include-cleaner`を8並列で一括適用して1493実装を所有ヘッダーへ直接接続する。
+- [x] nativeの`all`を構築し、静的検査が誤って除去した完全型、継承変換、Boost・MLT集約ヘッダーをコンパイラー診断に基づいて復元する。
+- [x] 固定テスト配下の差分をゼロに保ち、`verify-quick`で方針・構造検査を確認する。
+
+### R2-G19bl 残存プラグイン製品ソースの一括直接取込み
+
+目的は、PaintOpとツール以外のプラグイン製品翻訳単位が、集約対象と別実装ヘッダーから標準・Qt・製品型を推移的に得る状態を、機械的な一括監査で解消することである。
+
+範囲は`plugins/paintops`と`plugins/tools`を除くプラグインの試験・ベンチマーク外557翻訳単位に固定する。固定CTest、公開API、保存形式、描画結果は維持する。
+
+- [x] コンパイルデータベースから557翻訳単位を抽出し、`misc-include-cleaner`を8並列で一括適用して549実装を所有ヘッダーへ直接接続する。
+- [x] nativeの`all`を構築し、静的検査が誤って除去した完全型、継承変換、Eigen分解ヘッダーをコンパイラー診断に基づいて復元する。
+- [x] 固定テスト配下の差分をゼロに保ち、`verify-quick`で方針・構造検査を確認する。
+
+### R2-G19bm プラットフォーム構築による直接依存補正
+
+目的は、macOSの機械監査結果をiOSの全製品対象で実コンパイルし、外部依存と条件付きヘッダーの推移的な取得を解消することである。
+
+範囲はiOS構成の製品対象と、その診断で露出した製品・CMakeファイルに固定する。固定CTest、公開API、保存形式、描画結果は維持する。
+
+- [x] iOSの1673対象を構成し、`build-incremental ios bootstrap`で全製品対象とアプリを構築する。
+- [x] Boost・Lagerの直接利用要件、GSL無効構成、デスクトップOpenGLヘッダー、iOS条件ソースの不足を所有元で補正する。
+- [x] macOSを再構成し、完全native検査879件と方針検査を成功させ、固定テスト配下の差分をゼロに保つ。
+- [ ] x86_64 Linux構築ホストでLinux・Windows・Android対象を構成・構築し、Qt 5構成と対象和集合を確定する。
+
+### R2-G19av 固定CTestの製品利用要件直接化
+
+目的は、固定された既存CTestを、テスト側の探索パスとリンク指定ではなく、それぞれの製品オブジェクト対象が提供する直接利用要件だけで構築できるようにすることである。
+
+範囲は`plugins/paintops/libpaintop/CMakeLists.txt`の airbrush、color、color source、composite operation、painting mode、precision、filter、texture I/O、texture LOD の9オブジェクト対象に固定する。`tests/`配下のソース、CTest登録、fixture、baseline、公開API、描画結果は維持する。
+
+- [x] テスト側へ追加していた探索パス・リンク指定と作業中に追加したCTestを除去し、テスト側の開始コミットとの差分をゼロに戻す。
+- [x] 固定CTestが直接使う全体基盤、画像・ブラシ、色、Qt、KDE翻訳、Boost、Eigen、Imath、OpenEXRの所有ディレクトリーと対象を、9製品対象の公開利用要件として明示する。
+- [x] 10件の固定CTestをmacOSで成功させ、`kritalibpaintop`と`verify-quick`を実行してPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない

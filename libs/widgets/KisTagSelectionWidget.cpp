@@ -6,6 +6,9 @@
  */
 
 #include "KisTagSelectionWidget.h"
+#include "KisResourceTypes.h"
+#include "kis_assert.h"
+#include "kis_icon_utils.h"
 
 #include <QProcessEnvironment>
 #include <QMessageBox>
@@ -21,16 +24,26 @@
 #include <QInputDialog>
 #include <QPainterPath>
 
-#include <KoFileDialog.h>
-#include <kis_icon.h>
 #include <KoID.h>
 
-#include <kis_debug.h>
-#include <kis_global.h>
 #include <TagActions.h>
 
 #include <KisWrappableHBoxLayout.h>
 #include <kis_signals_blocker.h>
+#include <qboxlayout.h>
+#include <qcolor.h>
+#include <qforeach.h>
+#include <qlayoutitem.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qpoint.h>
+#include <qsizepolicy.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
 
 

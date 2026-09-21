@@ -15,11 +15,22 @@
 #include <klocalizedstring.h>
 
 #include "KisMimeDatabase.h"
+#include "animation/KisAsyncAnimationRendererBase.h"
+#include "dialogs/KisAsyncAnimationRenderDialogBase.h"
+#include "kis_assert.h"
+#include "kis_types.h"
 
 #include <QFileInfo>
 #include <QDir>
 #include <QMessageBox>
 #include <QApplication>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
 
 struct KisAsyncAnimationFramesSaveDialog::Private {
     Private(KisImageSP _image,

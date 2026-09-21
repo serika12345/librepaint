@@ -6,8 +6,15 @@
 #ifndef KISSHARPNESSOPTIONWIDGET_H
 #define KISSHARPNESSOPTIONWIDGET_H
 
+#include <QScopedPointer>
+#include <QtCore/qtmetamacros.h>
+
+#include <kis_types.h>
+#include <kritapaintop_export.h>
+
 #include <KisCurveOptionWidget.h>
 #include <KisSharpnessOptionData.h>
+#include <lager/cursor.hpp>
 
 class PAINTOP_EXPORT KisSharpnessOptionWidget : public KisCurveOptionWidget
 {

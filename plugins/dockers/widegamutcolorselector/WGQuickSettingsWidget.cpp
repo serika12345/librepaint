@@ -6,6 +6,8 @@
 
 #include "WGQuickSettingsWidget.h"
 
+#include "KisVisualColorModel.h"
+#include "WGConfig.h"
 #include "ui_WdgQuickSettings.h"
 #include "WGConfigSelectorTypes.h"
 #include "WGSelectorConfigGrid.h"
@@ -14,6 +16,9 @@
 #include <KisColorSelectorConfiguration.h>
 
 #include <QButtonGroup>
+#include <qobjectdefs.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 WGQuickSettingsWidget::WGQuickSettingsWidget(QWidget *parent, KisVisualColorSelector *selector)
     : QWidget(parent)

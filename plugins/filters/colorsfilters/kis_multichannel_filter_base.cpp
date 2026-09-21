@@ -21,20 +21,43 @@
 #include "KoColorSpace.h"
 #include "KoColorTransformation.h"
 #include "KoCompositeOp.h"
+#include "KoHistogramProducer.h"
 #include "KoID.h"
 
+#include "kis_assert.h"
+#include "kis_color_transformation_configuration.h"
+#include "kis_color_transformation_filter.h"
+#include "kis_debug.h"
+#include "kis_properties_configuration.h"
 #include "kis_signals_blocker.h"
 
 #include "kis_bookmarked_configuration_manager.h"
 #include "kis_config_widget.h"
+#include <algorithm>
+#include <cmath>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_selection.h>
+#include <iterator>
 #include <kis_paint_device.h>
-#include <kis_processing_information.h>
+#include <qapplication.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 #include "kis_histogram.h"
 #include "kis_painter.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "virtual_channel_info.h"
 #include "widgets/kis_curve_widget.h"
 
 #include "kis_multichannel_utils.h"

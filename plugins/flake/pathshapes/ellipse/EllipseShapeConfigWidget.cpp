@@ -8,7 +8,11 @@
 #include "EllipseShapeConfigCommand.h"
 #include <klocalizedstring.h>
 #include <kis_signals_blocker.h>
+#include "KoShape.h"
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 #include "kis_assert.h"
+#include "kundo2stack.h"
 
 EllipseShapeConfigWidget::EllipseShapeConfigWidget()
     : m_ellipse(0)

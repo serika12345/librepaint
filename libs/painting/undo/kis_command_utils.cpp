@@ -6,6 +6,12 @@
 
 #include "kis_command_utils.h"
 #include "kis_assert.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
+#include <functional>
+#include <memory>
+#include <qalgorithms.h>
+#include <qforeach.h>
 
 namespace KisCommandUtils
 {

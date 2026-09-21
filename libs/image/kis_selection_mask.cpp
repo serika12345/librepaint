@@ -7,8 +7,15 @@
 
 #include "kis_selection_mask.h"
 
+#include "KisQStringListFwd.h"
+#include "KisRenderPassFlags.h"
+#include "kis_base_node.h"
+#include "kis_effect_mask.h"
+#include "kis_global.h"
+#include "kis_icon_utils.h"
 #include "kis_image.h"
 #include "kis_layer.h"
+#include "kis_painter.h"
 #include "kis_selection.h"
 #include <KoColorSpaceRegistry.h>
 #include <KoColorSpace.h>
@@ -18,9 +25,17 @@
 #include "kis_node_visitor.h"
 #include "kis_processing_visitor.h"
 #include "kis_pixel_selection.h"
+#include "kis_signal_compressor.h"
+#include "kis_types.h"
 #include "kis_undo_adapter.h"
-#include <KoIcon.h>
 #include <kis_icon.h>
+#include <qassert.h>
+#include <qhashfunctions.h>
+#include <qicon.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtpreprocessorsupport.h>
 #include "kis_thread_safe_signal_compressor.h"
 #include "kis_layer_properties_icons.h"
 #include "kis_cached_paint_device.h"

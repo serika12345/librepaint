@@ -6,7 +6,9 @@
 
 #include "canvas/KisDecorationsWrapperLayer.h"
 
+#include "KoColorSpaceConstants.h"
 #include "document/KisDocument.h"
+#include "kis_assert.h"
 #include "kis_node_visitor.h"
 #include "kis_processing_visitor.h"
 #include "kis_grid_config.h"
@@ -14,6 +16,10 @@
 #include "kis_paint_device.h"
 #include "canvas/kis_painting_assistant.h"
 #include "kis_default_bounds.h"
+#include "kis_types.h"
+#include <qforeach.h>
+#include <qlist.h>
+#include <qtransform.h>
 
 struct KisDecorationsWrapperLayer::Private
 {

@@ -11,17 +11,24 @@
 #include <KoPathPoint.h>
 #include <KoShapeSavingContext.h>
 #include <KoXmlWriter.h>
-#include <KoXmlNS.h>
-#include <KoUnit.h>
 #include <SvgSavingContext.h>
 #include <SvgLoadingContext.h>
 #include <SvgUtil.h>
 #include <SvgStyleWriter.h>
 
 #include <KoParameterShape_p.h>
+#include "KoPathShape.h"
+#include "kis_assert.h"
 #include "kis_global.h"
 
 #include <math.h>
+#include <qdom.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 EllipseShape::EllipseShape()
     : m_startAngle(0)

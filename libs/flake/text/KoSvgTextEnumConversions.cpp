@@ -11,6 +11,12 @@
 #include <algorithm>
 #include <array>
 #include <functional>
+#include <qcontainerfwd.h>
+#include <qfont.h>
+#include <qforeach.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qtpreprocessorsupport.h>
 
 namespace KoSvgText
 {

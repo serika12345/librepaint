@@ -5,6 +5,10 @@
  */
 
 #include "StoryboardModel.h"
+#include "document/StoryboardItem.h"
+#include <qabstractitemmodel.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 
 void StoryboardModel::slotCommentDataChanged()
 {

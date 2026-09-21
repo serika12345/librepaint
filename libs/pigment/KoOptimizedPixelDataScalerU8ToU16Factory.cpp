@@ -6,6 +6,8 @@
 
 #include "KoOptimizedPixelDataScalerU8ToU16Factory.h"
 
+#include "KoMultiArchBuildSupport.h"
+#include "KoOptimizedPixelDataScalerU8ToU16Base.h"
 #include "KoOptimizedPixelDataScalerU8ToU16FactoryImpl.h"
 
 

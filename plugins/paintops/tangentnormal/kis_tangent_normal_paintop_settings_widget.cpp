@@ -5,10 +5,12 @@
  */
 
 #include "kis_tangent_normal_paintop_settings_widget.h"
+#include "KisBrushOptionWidgetFlags.h"
+#include "KisPaintopPropertiesBase.h"
+#include "kis_brush_based_paintop_options_widget.h"
 #include "kis_brush_based_paintop_settings.h"
 #include "KisTangentTiltOptionWidget.h"
 
-#include <kis_properties_configuration.h>
 #include <KisStandardOptionData.h>
 #include <KisPaintOpOptionWidgetUtils.h>
 
@@ -20,7 +22,10 @@
 #include "KisScatterOptionWidget.h"
 #include "KisAirbrushOptionWidget.h"
 #include "KisPaintingModeOptionWidget.h"
+#include "kis_types.h"
 #include <KisTextureOptionWidget.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 KisTangentNormalPaintOpSettingsWidget::KisTangentNormalPaintOpSettingsWidget(QWidget* parent, KisResourcesInterfaceSP resourcesInterface, KoCanvasResourcesInterfaceSP canvasResourcesInterface):
     KisBrushBasedPaintopOptionWidget(KisBrushOptionWidgetFlag::SupportsPrecision |

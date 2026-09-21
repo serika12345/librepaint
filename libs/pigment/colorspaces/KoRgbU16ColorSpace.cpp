@@ -9,6 +9,11 @@
 #include "KoRgbU16ColorSpace.h"
 
 #include <limits.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qrgb.h>
+#include <qtypes.h>
 #include <stdlib.h>
 
 
@@ -16,6 +21,9 @@
 
 
 #include "KoColorConversions.h"
+#include "KoColorModelStandardIds.h"
+#include "KoColorSpace.h"
+#include "colorspaces/KoSimpleColorSpace.h"
 #include "dithering/KisRgbDitherOpFactory.h"
 #include <KoColorSpacePreserveLightnessUtils.h>
 

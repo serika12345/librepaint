@@ -4,6 +4,8 @@
  */
 
 #include "kis_node_model.h"
+#include "kis_types.h"
+#include <qabstractitemmodel.h>
 
 QMimeData *KisNodeModel::mimeData(const QModelIndexList &indexes) const
 {

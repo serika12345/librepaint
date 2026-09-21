@@ -15,18 +15,24 @@
 #include <kis_annotation.h>
 #include <kis_types.h>
 #include <kis_paint_layer.h>
+#include "KisImportExportErrorCode.h"
+#include "KoColorConversionTransformation.h"
+#include "kis_assert.h"
 #include "kis_painter.h"
 #include <document/KisDocument.h>
 #include <kis_image.h>
 #include <kis_group_layer.h>
 #include <kis_paint_device.h>
-#include <kis_transaction.h>
 #include <kis_debug.h>
 #include <kis_guides_config.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qtypes.h>
 
-#include "psd.h"
 #include "psd_header.h"
 #include "psd_colormode_block.h"
+#include "psd_types.h"
 #include "psd_utils.h"
 #include "psd_resource_section.h"
 #include "psd_layer_section.h"

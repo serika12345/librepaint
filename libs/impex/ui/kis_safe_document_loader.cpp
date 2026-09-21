@@ -17,15 +17,30 @@
 #include <KoStore.h>
 #include <QTemporaryFile>
 
-#include <kis_paint_layer.h>
-#include <kis_group_layer.h>
+#include <cstdio>
+#include "KisQStringListFwd.h"
 #include "document/KisDocument.h"
 #include <kis_image.h>
+#include "kis_assert.h"
+#include "kis_debug.h"
 #include "kis_signal_compressor.h"
 #include "application/ui/orchestration/KisPart.h"
+#include "kis_types.h"
 
 #include <kis_layer_utils.h>
-#include <kis_global.h>
+#include <qdatetime.h>
+#include <qelapsedtimer.h>
+#include <qglobalstatic.h>
+#include <qhash.h>
+#include <qlatin1stringview.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qstringview.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 class FileSystemWatcherWrapper : public QObject
 {

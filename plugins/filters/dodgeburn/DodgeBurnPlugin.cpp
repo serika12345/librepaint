@@ -8,8 +8,12 @@
 
 #include <kpluginfactory.h>
 #include <filter/kis_filter_registry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
 
 #include "DodgeBurn.h"
+#include "KoID.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(DodgeBurnPluginFactory, "kritadodgeburn.json", registerPlugin<DodgeBurnPlugin>();)
 

@@ -8,6 +8,10 @@
 
 #include "kis_image_interfaces.h"
 #include "kis_node.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
+#include <qsharedpointer.h>
 
 
 KisUpdateCommand::KisUpdateCommand(KisNodeSP node, QRect dirtyRect,

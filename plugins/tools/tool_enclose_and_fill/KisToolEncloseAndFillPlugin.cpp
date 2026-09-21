@@ -8,6 +8,8 @@
 
 #include <kpluginfactory.h>
 #include <KoToolRegistry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 #include "KisToolEncloseAndFillPlugin.h"
 #include "KisToolEncloseAndFillFactory.h"

@@ -6,6 +6,8 @@
 
 #include "KisPasteActionFactories.h"
 
+#include "KoColorSpaceConstants.h"
+#include "kis_assert.h"
 #include "kis_group_layer.h"
 
 #include "application/kis_config.h"
@@ -25,8 +27,12 @@
 #include "commands/kis_image_layer_add_command.h"
 #include "KisTransformToolActivationCommand.h"
 #include "kis_processing_applicator.h"
+#include "kis_stroke_job_strategy.h"
+#include "kundo2magicstring.h"
 #include "nodes/kis_node_manager.h"
 
+#include <algorithm>
+#include <iterator>
 #include <metadata/KoDocumentInfo.h>
 #include <KoSvgPaste.h>
 #include <KoShapeController.h>
@@ -52,6 +58,11 @@
 #include <application/ui/workspace/KisMainWindow.h>
 #include <QApplication>
 #include <QClipboard>
+#include <qalgorithms.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 namespace {
 QPointF getFittingOffset(QList<KoShape*> shapes,

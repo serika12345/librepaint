@@ -6,20 +6,17 @@
  */
 
 #include "imageenhancement.h"
+#include <qcontainerfwd.h>
+#include <qobject.h>
 #include <stdlib.h>
 
 #include <QPoint>
 
 #include <klocalizedstring.h>
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
-#include <document/KisDocument.h>
-#include <kis_image.h>
-#include <kis_layer.h>
 #include <filter/kis_filter_registry.h>
-#include <kis_global.h>
 #include <kis_types.h>
 #include "kis_simple_noise_reducer.h"
 #include "kis_wavelet_noise_reduction.h"

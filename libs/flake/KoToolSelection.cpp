@@ -5,6 +5,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "KoToolSelection.h"
+#include <qobject.h>
 
 KoToolSelection::KoToolSelection(QObject *parent)
         : QObject(parent)

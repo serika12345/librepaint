@@ -17,13 +17,16 @@
 #include <QPoint>
 #include <QBuffer>
 
-#include <kis_debug.h>
+#include <cmath>
+#include <cstring>
 #include <klocalizedstring.h>
 
 #include <KoColor.h>
 #include <KoColorSpaceMaths.h>
 #include <KoColorSpaceRegistry.h>
 
+#include "kis_assert.h"
+#include "kis_dab_shape.h"
 #include "kis_datamanager.h"
 #include "kis_paint_device.h"
 #include "kis_global.h"
@@ -31,14 +34,27 @@
 #include "kis_image.h"
 #include "kis_iterator_ng.h"
 #include "kis_brush_registry.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
 #include <brushengine/kis_paint_information.h>
 #include <kis_fixed_paint_device.h>
 #include <kis_qimage_pyramid.h>
 #include <brushengine/kis_paintop_lod_limitations.h>
+#include <qassert.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qrgb.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
+#include <qvariant.h>
 #include <resources/KoAbstractGradient.h>
 #include <resources/KoCachedGradient.h>
 #include <KoResource.h>
-#include <KoResourceServerProvider.h>
+#include <KoResourceLoadResult.h>
 #include <KisLazySharedCacheStorage.h>
 #include <KisOptimizedBrushOutline.h>
 #include <KisStaticInitializer.h>

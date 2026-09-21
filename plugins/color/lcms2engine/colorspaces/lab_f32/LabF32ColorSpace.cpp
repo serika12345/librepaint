@@ -12,9 +12,22 @@
 #include <klocalizedstring.h>
 
 #include "../compositeops/KoCompositeOps.h"
+#include "IccColorProfile.h"
+#include "KisQStringListFwd.h"
+#include "KoChannelInfo.h"
+#include "KoColorProfile.h"
+#include "KoColorSpace.h"
+#include "KoColorSpaceMaths.h"
+#include "KoIntegerMaths.h"
+#include "LcmsColorSpace.h"
 #include "dithering/KisLabDitherOpFactory.h"
+#include "kis_debug.h"
 #include <KoColorConversions.h>
 #include <kis_dom_utils.h>
+#include <lcms2.h>
+#include <qassert.h>
+#include <qbitarray.h>
+#include <qtypes.h>
 
 LabF32ColorSpace::LabF32ColorSpace(const QString &name, KoColorProfile *p)
     : LcmsColorSpace<KoLabF32Traits>(colorSpaceId(), name, TYPE_LabA_FLT, cmsSigLabData, p)

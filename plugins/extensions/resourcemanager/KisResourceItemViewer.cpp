@@ -6,13 +6,20 @@
 
 #include "KisResourceItemViewer.h"
 
+#include "KoID.h"
 #include "ResourceListViewModes.h"
 #include "KisPopupButton.h"
-#include <KoIcon.h>
+#include "kis_icon_utils.h"
 #include <application/kis_config.h>
 
 #include <QMenu>
 #include <QActionGroup>
+#include <qaction.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtoolbutton.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 KisResourceItemViewer::KisResourceItemViewer(Viewer type, QWidget *parent) :
     KisPopupButton(parent),

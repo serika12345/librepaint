@@ -6,11 +6,15 @@
 
 #include <document/StoryboardItem.h>
 #include <kis_time_span.h>
+#include <qabstractitemmodel.h>
+#include <qvariant.h>
 
 #include "StoryboardModel.h"
 #include "KisAddRemoveStoryboardCommand.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 
 KisAddStoryboardCommand::KisAddStoryboardCommand(int position,
                                                  StoryboardItemSP item,

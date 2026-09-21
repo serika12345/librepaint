@@ -6,7 +6,12 @@
 #ifndef KISCOLORSOURCEOPTIONWIDGET_H
 #define KISCOLORSOURCEOPTIONWIDGET_H
 
+#include <QScopedPointer>
+
 #include <kis_paintop_option.h>
+#include <kis_types.h>
+#include <kritapaintop_export.h>
+
 #include <KisColorSourceOptionData.h>
 #include <lager/cursor.hpp>
 

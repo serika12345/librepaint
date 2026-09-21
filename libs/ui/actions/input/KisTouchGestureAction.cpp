@@ -5,11 +5,16 @@
  */
 
 #include "KisTouchGestureAction.h"
+#include "KisResourceTypes.h"
+#include "kis_abstract_input_action.h"
 #include <application/ui/workspace/KisMainWindow.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <QAction>
 #include <kactioncollection.h>
-#include <kis_debug.h>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <qlogging.h>
+#include <qtpreprocessorsupport.h>
 
 KisTouchGestureAction::KisTouchGestureAction()
     : KisAbstractInputAction("Touch Gestures")

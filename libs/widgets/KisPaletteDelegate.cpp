@@ -10,6 +10,17 @@
 
 #include <kis_global.h>
 #include <KisPaletteModel.h>
+#include <qabstractitemdelegate.h>
+#include <qabstractitemmodel.h>
+#include <qhashfunctions.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpaintdevice.h>
+#include <qsize.h>
+#include <qstyle.h>
+#include <qstyleoption.h>
+#include <qvariant.h>
 
 #include "KisPaletteDelegate.h"
 

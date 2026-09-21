@@ -5,10 +5,13 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_hairy_paintop_settings_widget.h"
+#include "KisBrushOptionWidgetFlags.h"
+#include "kis_brush_based_paintop_options_widget.h"
 #include "kis_hairy_paintop_settings.h"
 
 #include "KisHairyBristleOptionWidget.h"
 #include "KisHairyInkOptionWidget.h"
+#include "kis_types.h"
 
 #include <KisPaintOpOptionWidgetUtils.h>
 #include <KisCompositeOpOptionWidget.h>
@@ -16,6 +19,8 @@
 #include <KisSizeOptionWidget.h>
 #include <KisPaintingModeOptionWidget.h>
 #include <kis_brush_option_widget.h>
+#include <qcontainerfwd.h>
+#include <qwidget.h>
 
 KisHairyPaintOpSettingsWidget:: KisHairyPaintOpSettingsWidget(QWidget* parent)
     : KisBrushBasedPaintopOptionWidget(KisBrushOptionWidgetFlag::None, parent)

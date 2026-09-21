@@ -12,8 +12,16 @@
 #include <KoSegmentGradient.h>
 
 #include <cmath>
+#include <math.h>
+#include <qcontainerfwd.h>
+#include <qpoint.h>
+#include <qtypes.h>
 
 #include "KisGradientGeneratorConfiguration.h"
+#include "KoAbstractGradient.h"
+#include "kis_filter_configuration.h"
+#include "kis_gradient_painter.h"
+#include "kis_types.h"
 
 KisGradientGeneratorConfiguration::KisGradientGeneratorConfiguration(qint32 version, KisResourcesInterfaceSP resourcesInterface)
     : KisFilterConfiguration(defaultName(), version, resourcesInterface)

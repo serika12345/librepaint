@@ -39,13 +39,55 @@ run-test kis_strokes_queue_test
 verify-quick
 ```
 
-Nixシェルを直接開く場合は同じ`test`属性を使用する。文書と図だけを扱う周期には
-軽量な`docs`シェルを使用する。
+Nixシェルを最初に直接開く場合は同じ`test`属性を使用する。文書と図だけを扱う周期には
+軽量な`docs`シェルを使用する。この評価は作業セッションの開始時に一度行い、以後の
+ソース編集、対象構築、試験、検査、対象単位コミットは同じシェル内で実行する。
 
 ```sh
 nix develop .#test
 nix develop .#docs
 ```
+
+### 評価済みNix環境の再利用
+
+direnvが読み込まれたシェルでは、`build-incremental`、`run-test`、`verify-quick`、`verify`を
+直接実行する。自動処理、別プロセス、主作業ツリー、担当作業ツリーのうち、現在のシェル環境を
+継承しない実行は、主作業ツリーの安定した`.direnv/flake-profile`を次の入口から読み込む。
+
+```sh
+./scripts/run-shared-test-env ./scripts/build-incremental native build <target>
+./scripts/run-shared-test-env ./scripts/run-test <target> [ctest-regex]
+./scripts/run-shared-test-env ./scripts/verify-quick
+```
+
+`run-shared-test-env`は評価済みプロファイルを`nix print-dev-env`で読み込み、現在の作業ツリー、
+専用Ninja木、共有コンパイラーキャッシュを維持する。番号付きの
+`.direnv/flake-profile-*-link`を呼出し側で選ばず、安定した`.direnv/flake-profile`を入口とする。
+
+`nix develop .#test`、`nix develop .#docs`、`direnv exec .`によるローカルFlake評価は、初回の
+プロファイル作成、または開発シェル、Flake入力、`flake.lock`、ソース絞り込みの変更後に限定する。
+通常のC++、CMake、試験、文書の反復ごとには実行しない。ローカルFlakeは追跡済み作業ツリーを
+不変の`*-source`として保存し、アプリケーション構築は`cleanSourceWith`から追加の
+`*-librepaint-source`を生成するため、変更状態ごとの再評価は同じ大きさのソース世代を累積させる。
+
+大きなロードマップ項目で意図的にローカルFlakeを再評価する前後は、死んだソース世代の件数と
+回収可能量を比較する。
+
+```sh
+nix-store --gc --print-dead \
+  | rg -- '-(source|librepaint-source)$' \
+  | wc -l
+
+nix-store --gc --print-dead \
+  | rg -- '-(source|librepaint-source)$' \
+  | xargs nix path-info --json -S \
+  | jq 'map(.narSize // 0) | add'
+```
+
+通常のソース反復で件数が増えた場合は、追加のローカルFlake評価を停止し、最後に成功した
+`.direnv/flake-profile`へ戻す。原因、増加件数、回収可能量、再開入口を`PROGRESS.md`へ記録する。
+ごみ収集は環境再利用とは別の保守操作として、対象の死んだパス、利用中のプロファイル、主増分構築木、
+共有キャッシュを確認し、削除権限を得てから行う。
 
 ### 全プラットフォーム共通の増分構築入口
 

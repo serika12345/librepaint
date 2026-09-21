@@ -5,7 +5,14 @@
  */
 
 #include "kis_base_rects_walker.h"
+#include "KisQStringListFwd.h"
+#include "KisRenderPassFlags.h"
 #include "kis_clone_layer.h"
+#include "kis_layer.h"
+#include <algorithm>
+#include <iterator>
+#include <qforeach.h>
+#include <qregion.h>
 
 void KisBaseRectsWalker::addCloneSourceRegenerationJobs()
 {

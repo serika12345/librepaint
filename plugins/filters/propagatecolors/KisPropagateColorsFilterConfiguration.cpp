@@ -7,6 +7,9 @@
  */
 
 #include "KisPropagateColorsFilterConfiguration.h"
+#include "kis_filter_configuration.h"
+#include "kis_types.h"
+#include <qtypes.h>
 
 KisPropagateColorsFilterConfiguration::KisPropagateColorsFilterConfiguration(KisResourcesInterfaceSP resourcesInterface)
     : KisFilterConfiguration(defaultId(), defaultVersion(), resourcesInterface)

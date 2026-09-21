@@ -6,7 +6,10 @@
    SPDX-License-Identifier: LGPL-2.0-only
 
 */
-#include <QtGui>
+#include <QtCore>
+#include <QMouseEvent>
+#include <QPainterPath>
+#include <QTabletEvent>
 #include <QGraphicsOpacityEffect>
 #include <QMenu>
 #include <QPushButton>
@@ -17,11 +20,15 @@
 
 #include <KisTagModel.h>
 
+#include "KisResourceStorage.h"
+#include "KisResourceTypes.h"
+#include "kis_assert.h"
 #include "kis_canvas2.h"
 #include "application/kis_config.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_popup_palette.h"
 #include "kis_favorite_resource_manager.h"
+#include "kis_global.h"
 #include "kis_icon_utils.h"
 #include "kactioncollection.h"
 #include <canvas/kis_canvas_resource_provider.h>
@@ -30,6 +37,7 @@
 #include "KisColorSelectorInterface.h"
 #include "KisHighlightedToolButton.h"
 #include <KisVisualColorSelector.h>
+#include <cmath>
 #include <kis_config_notifier.h>
 #include "kis_signal_compressor.h"
 #include "widgets/kis_round_hud_button.h"
@@ -37,9 +45,28 @@
 #include "kis_signals_blocker.h"
 #include "kis_canvas_controller.h"
 #include "kis_acyclic_signal_connector.h"
-#include <kis_paintop_preset.h>
 #include "events/KisMouseClickEater.h"
 #include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
+#include <math.h>
+#include <qabstractitemmodel.h>
+#include <qapplication.h>
+#include <qcoreevent.h>
+#include <qforeach.h>
+#include <qgridlayout.h>
+#include <qline.h>
+#include <qlist.h>
+#include <qmath.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpen.h>
+#include <qregion.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 static const int WIDGET_MARGIN = 16;
 static const qreal BORDER_WIDTH = 3.0;

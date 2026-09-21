@@ -6,6 +6,8 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_progress_updater.h"
+#include "KoProgressUpdater.h"
+#include <qassert.h>
 
 KisProgressUpdater::KisProgressUpdater(KisProgressInterface* progressInterface, KoProgressProxy* proxy, KoProgressUpdater::Mode mode)
     : KoProgressUpdater(proxy, mode)

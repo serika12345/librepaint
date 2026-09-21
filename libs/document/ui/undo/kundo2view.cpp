@@ -47,6 +47,10 @@
 #include "kundo2view.h"
 #include "kundo2model.h"
 #include "kundo2group.h"
+#include <qlistview.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 #ifndef QT_NO_UNDOVIEW
 

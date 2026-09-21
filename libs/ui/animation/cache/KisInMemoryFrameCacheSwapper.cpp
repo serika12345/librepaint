@@ -6,6 +6,10 @@
 #include "animation/cache/KisInMemoryFrameCacheSwapper.h"
 
 #include <QMap>
+#include "kis_assert.h"
+#include "kis_update_info.h"
+#include "kritaui_export.h"
+#include <qtpreprocessorsupport.h>
 #include "opengl/kis_opengl_update_info.h"
 
 

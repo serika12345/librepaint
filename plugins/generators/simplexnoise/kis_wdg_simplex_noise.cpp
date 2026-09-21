@@ -8,11 +8,17 @@
  */
 
 #include "kis_wdg_simplex_noise.h"
+#include "kis_config_widget.h"
+#include "kis_types.h"
 #include "ui_wdgsimplexnoiseoptions.h"
 
 #include <QLayout>
 #include <filter/kis_filter_configuration.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
 KisWdgSimplexNoise::KisWdgSimplexNoise(KisFilter* /*nfilter*/, QWidget* parent)
         : KisConfigWidget(parent),

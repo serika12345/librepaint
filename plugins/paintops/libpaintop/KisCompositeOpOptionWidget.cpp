@@ -5,14 +5,28 @@
  */
 #include "KisCompositeOpOptionWidget.h"
 
+#include <functional>
+
+#include <QLabel>
+#include <QWidget>
+
+#include <KLocalizedString>
 #include <KoCompositeOpRegistry.h>
+#include <KoID.h>
 
-#include "kis_icon_utils.h"
+#include <kis_paintop_option.h>
+#include <kis_types.h>
+#include <kis_icon_utils.h>
+
+#include <KisCompositeOpListConnectionHelper.h>
+#include <KisCompositeOpOptionData.h>
+#include <KisCompositeOpOptionModel.h>
+#include <KisWidgetConnectionUtils.h>
+
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+
 #include <ui_wdgCompositeOpOption.h>
-
-#include "KisCompositeOpOptionModel.h"
-#include "KisWidgetConnectionUtils.h"
-#include "KisCompositeOpListConnectionHelper.h"
 
 struct KisCompositeOpOptionWidget::Private
 {

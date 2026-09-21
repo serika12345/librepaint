@@ -6,6 +6,8 @@
 #include <KisResourceLoader.h>
 #include <QDebug>
 #include <KisMimeDatabase.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
 
 /**
  * @return a set of filters ("*.bla,*.foo") that is suitable for filtering

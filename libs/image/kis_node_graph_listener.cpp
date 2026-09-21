@@ -6,9 +6,14 @@
  */
 
 #include "kis_node_graph_listener.h"
+#include "KisNodeAdditionFlags.h"
+#include "KisProjectionUpdateFlags.h"
 
 #include <QRect>
 #include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtpreprocessorsupport.h>
 
 
 struct Q_DECL_HIDDEN KisNodeGraphListener::Private

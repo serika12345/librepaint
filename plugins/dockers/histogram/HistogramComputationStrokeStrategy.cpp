@@ -6,11 +6,25 @@
  */
 #include "HistogramComputationStrokeStrategy.h"
 
+#include "KisIdleTaskStrokeStrategy.h"
 #include "KoColorSpace.h"
 
+#include "kis_stroke_job_strategy.h"
+#include "kis_types.h"
 #include "krita_utils.h"
 #include "kis_image.h"
 #include "kis_sequential_iterator.h"
+#include "kundo2magicstring.h"
+#include <cmath>
+#include <limits>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlatin1stringview.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <vector>
 
 struct HistogramComputationStrokeStrategy::Private
 {

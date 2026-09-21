@@ -20,11 +20,13 @@
 #include <KoColorSpaceEngine.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoResourcePaths.h>
-#include <kis_assert.h>
-#include <kis_debug.h>
 
+#include "DebugPigment.h"
+#include "IccColorProfile.h"
 #include "IccColorSpaceEngine.h"
 #include <KoColorProfileQuery.h>
+#include "KoColorModelStandardIds.h"
+#include "KoColorProfileConstants.h"
 #include "colorprofiles/LcmsColorProfileContainer.h"
 
 #include "colorspaces/cmyk_u8/CmykU8ColorSpace.h"
@@ -52,9 +54,15 @@
 #include "colorspaces/ycbcr_f32/YCbCrF32ColorSpace.h"
 
 #include <KoConfig.h>
+#include <lcms2.h>
+#include <optional>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlogging.h>
+#include <qobject.h>
 
 #ifdef HAVE_OPENEXR
-#   include <half.h>
 #   ifdef HAVE_LCMS24
 #       include "colorspaces/gray_f16/GrayF16ColorSpace.h"
 #       include "colorspaces/xyz_f16/XyzF16ColorSpace.h"

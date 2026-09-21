@@ -11,20 +11,25 @@
 
 #include <kpluginfactory.h>
 #include <QApplication>
-#include <KoStore.h>
 #include <KisImportExportManager.h>
 #include <KoColorModelStandardIds.h>
-#include <KoColorSpace.h>
 #include <KisExportCheckRegistry.h>
 
 #include <document/KisDocument.h>
-#include <kis_image.h>
 #include <kis_node.h>
-#include <kis_group_layer.h>
-#include <kis_paint_layer.h>
 #include <kis_shape_layer.h>
 #include <KoProperties.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qobject.h>
 
+#include "KisExportCheckBase.h"
+#include "KisImportExportErrorCode.h"
+#include "KisImportExportFilter.h"
+#include "KoID.h"
+#include "kis_types.h"
 #include "ora_converter.h"
 
 class KisExternalLayer;

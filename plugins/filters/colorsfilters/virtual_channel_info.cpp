@@ -9,6 +9,7 @@
 
 #include <KoColorSpace.h>
 #include <KoColorModelStandardIds.h>
+#include <qlist.h>
 
 
 VirtualChannelInfo::VirtualChannelInfo()

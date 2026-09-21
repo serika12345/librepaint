@@ -13,6 +13,11 @@
 #include <QWidget>
 
 #include <kis_assert.h>
+#include <qcontainerfwd.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 #include "KisOptionCollectionWidget.h"
 

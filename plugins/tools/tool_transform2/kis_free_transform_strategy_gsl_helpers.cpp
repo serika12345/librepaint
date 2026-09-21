@@ -6,15 +6,21 @@
 
 #include "kis_free_transform_strategy_gsl_helpers.h"
 
+#include "kis_global.h"
 #include "tool_transform_args.h"
 #include "kis_transform_utils.h"
 
+#include <Eigen/Core>
 #include <QApplication>
 #include <QMessageBox>
+#include <cstddef>
 #include <kis_algebra_2d.h>
 
 #include <Eigen/Dense>
 #include <kis_algebra_2d.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qtypes.h>
 
 namespace KisAlgebra2D {
 
@@ -34,7 +40,9 @@ inline Eigen::Matrix3d fromQTransformStraight(const QTransform &t)
 #include <config-gsl.h>
 
 #ifdef HAVE_GSL
+#include <gsl/gsl_errno.h>
 #include <gsl/gsl_multimin.h>
+#include <gsl/gsl_vector_double.h>
 
 
 

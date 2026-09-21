@@ -5,6 +5,10 @@
 #include "qtsingleapplication.h"
 #include "qtlocalpeer.h"
 #include <QWidget>
+#include <qapplication.h>
+#include <qcoreapplication.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
 
 
 /*!

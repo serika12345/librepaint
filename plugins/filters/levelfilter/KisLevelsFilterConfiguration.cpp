@@ -9,8 +9,16 @@
 #include <QRegularExpression>
 
 #include <kis_dom_utils.h>
+#include <qdom.h>
+#include <qhash.h>
+#include <qnumeric.h>
+#include <qtypes.h>
 
 #include "KisLevelsFilterConfiguration.h"
+#include "KisLevelsCurve.h"
+#include "kis_color_transformation_configuration.h"
+#include "kis_filter_configuration.h"
+#include "kis_types.h"
 
 KisLevelsFilterConfiguration::KisLevelsFilterConfiguration(int channelCount, qint32 version, KisResourcesInterfaceSP resourcesInterface)
     : KisColorTransformationConfiguration(defaultName(), version, resourcesInterface)

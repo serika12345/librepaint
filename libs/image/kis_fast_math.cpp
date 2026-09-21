@@ -12,6 +12,8 @@
 #include <cstdlib>
 #include <QtGlobal>
 #include <QGlobalStatic>
+#include <math.h>
+#include <qtypes.h>
 
 // Algorithm from http://web.archive.org/web/20090728150504/http://www.snippetcenter.org/en/a-fast-atan2-function-s1868.aspx
 const qreal MAX_SECOND_DERIV_IN_RANGE = 0.6495;

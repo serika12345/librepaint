@@ -16,14 +16,13 @@
 #include <QPainter>
 #include <QRect>
 
-#include <kis_debug.h>
 #include <klocalizedstring.h>
 
+#include "kis_assert.h"
 #include "kis_convolution_kernel.h"
 #include "kis_image.h"
 #include "kis_paint_device.h"
 #include "kis_painter.h"
-#include <KoChannelInfo.h>
 #include "kis_types.h"
 #include "kis_default_bounds.h"
 

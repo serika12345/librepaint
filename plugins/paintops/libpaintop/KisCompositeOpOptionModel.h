@@ -6,8 +6,12 @@
 #ifndef KISCOMPOSITEOPOPTIONMODEL_H
 #define KISCOMPOSITEOPOPTIONMODEL_H
 
+#include <QtCore/qtmetamacros.h>
+
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>
+
+#include <QString>
 
 #include "KisCompositeOpOptionData.h"
 

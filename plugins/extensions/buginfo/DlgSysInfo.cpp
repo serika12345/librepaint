@@ -5,7 +5,11 @@
  */
 
 #include "DlgSysInfo.h"
+#include "dlg_buginfo.h"
+#include "ui_wdg_buginfo.h"
 #include <QStandardPaths>
+#include <qhashfunctions.h>
+#include <qwidget.h>
 
 DlgSysInfo::DlgSysInfo(QWidget *parent)
     : DlgBugInfo(parent)

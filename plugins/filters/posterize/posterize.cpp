@@ -5,6 +5,15 @@
  */
 
 #include "posterize.h"
+#include "KoColorConversionTransformation.h"
+#include "KoColorSpace.h"
+#include "KoColorTransformation.h"
+#include "kis_config_widget.h"
+#include "kis_filter_configuration.h"
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <stdlib.h>
 
 #include <QPoint>
@@ -12,16 +21,11 @@
 
 #include <klocalizedstring.h>
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
-#include <kis_processing_information.h>
 #include <kis_types.h>
-#include <kis_selection.h>
-#include <kis_layer.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_registry.h>
-#include <kis_global.h>
 
 #include <KoColorSpaceMaths.h>
 #include <filter/kis_color_transformation_configuration.h>

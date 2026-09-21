@@ -8,6 +8,10 @@
  */
 
 #include "VanishingPointAssistant.h"
+#include "KoCanvasBase.h"
+#include "kis_assert.h"
+#include "kis_painting_assistant.h"
+#include "kis_types.h"
 
 #include <klocalizedstring.h>
 
@@ -21,6 +25,14 @@
 #include <kis_algebra_2d.h>
 #include <kis_dom_utils.h>
 #include <math.h>
+#include <qcolor.h>
+#include <qline.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qtypes.h>
+#include <qxmlstream.h>
 
 VanishingPointAssistant::VanishingPointAssistant()
     : KisPaintingAssistant("vanishing point", i18n("Vanishing Point assistant"))

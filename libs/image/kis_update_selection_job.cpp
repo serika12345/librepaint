@@ -6,6 +6,9 @@
 
 #include "kis_update_selection_job.h"
 #include "KisUpdateSelectionJobSelectionAccess_p.h"
+#include "kis_spontaneous_job.h"
+#include "kis_types.h"
+#include <qhashfunctions.h>
 
 KisUpdateSelectionJob::KisUpdateSelectionJob(KisSelectionSP selection, const QRect &updateRect)
     : m_selection(selection)

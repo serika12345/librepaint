@@ -4,12 +4,17 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGlobalResourcesInterface.h"
+#include "KisResourcesInterface.h"
 
 #include <QGlobalStatic>
 #include <QBasicMutex>
 #include <QMutexLocker>
 
 #include <kis_assert.h>
+#include <qatomic_cxx11.h>
+#include <qbasicatomic.h>
+#include <qhashfunctions.h>
+#include <qtdeprecationdefinitions.h>
 
 namespace KisGlobalResourcesInterfaceDetail
 {

@@ -5,9 +5,13 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "psd_header.h"
+#include "psd_types.h"
 
 #include <QIODevice>
 #include <QtEndian>
+#include <cstring>
+#include <qhashfunctions.h>
+#include <qtypes.h>
 
 namespace
 {

@@ -10,6 +10,7 @@
 #include <QApplication>
 #include <QNativeGestureEvent>
 
+#include <cmath>
 #include <klocalizedstring.h>
 
 #include <KoCanvasControllerWidget.h>
@@ -17,6 +18,17 @@
 #include <kis_canvas2.h>
 #include <kis_canvas_controller.h>
 #include <KoViewTransformStillPoint.h>
+#include "KisInputActionGroup.h"
+#include "KoCanvasController.h"
+#include "KoZoomMode.h"
+#include "kis_assert.h"
+#include <qcursor.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include "kis_cursor.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_input_manager.h"

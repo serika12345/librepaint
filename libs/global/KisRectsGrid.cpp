@@ -10,6 +10,12 @@
 #include "kis_lod_transform_base.h"
 #include "kis_algebra_2d.h"
 #include <KisUsageLogger.h>
+#include <cmath>
+#include <cstring>
+#include <qcontainerfwd.h>
+#include <qnumeric.h>
+#include <qtypes.h>
+#include <utility>
 
 
 

@@ -11,7 +11,12 @@
 #include <KisSignalMapper.h>
 
 #include <klocalizedstring.h>
+#include "KoCanvasResourcesIds.h"
+#include "KoColorSpace.h"
+#include "kis_canvas_resource_provider.h"
 #include "kis_icon_utils.h"
+#include "ui/workspace/KisViewManager.h"
+#include "workspace/kis_workspace_resource.h"
 
 #include <KoColorPatch.h>
 #include <KoColorSlider.h>
@@ -22,6 +27,12 @@
 
 #include <kis_color_button.h>
 #include <kis_properties_configuration.h>
+#include <qdockwidget.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpushbutton.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
 
 class DigitalMixerPatch : public KoColorPatch {
     public:

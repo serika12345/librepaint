@@ -12,15 +12,30 @@
 #include <QToolTip>
 
 
-#include <canvas/kis_canvas_resource_provider.h>
+#include <functional>
 #include <kis_slider_spin_box.h>
+#include "KisLodAvailabilityModel.h"
+#include "KisResourceTypes.h"
+#include "KoID.h"
 #include "kis_image_config.h"
 #include <QWidgetAction>
 #include <QMenu>
 #include <events/KisLongPressEventFilter.h>
 #include <KisWidgetConnectionUtils.h>
 #include <KisMpl.h>
+#include <lager/extra/qt.hpp>
+#include <qcursor.h>
+#include <qfont.h>
+#include <qforeach.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qscopedpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
+#include "kis_paintop_lod_limitations.h"
 #include "kis_signals_blocker.h"
 
 

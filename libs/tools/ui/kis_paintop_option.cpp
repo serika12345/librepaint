@@ -5,18 +5,28 @@
  */
 
 #include "kis_paintop_option.h"
+#include "kis_assert.h"
+#include "kis_types.h"
 
 
 #include <QWidget>
 
+#include <functional>
 #include <klocalizedstring.h>
 
 #include <KisResourcesInterface.h>
 #include <KoCanvasResourcesInterface.h>
 
 #include <lager/constant.hpp>
+#include <lager/cursor.hpp>
+#include <lager/reader.hpp>
 #include <lager/state.hpp>
 #include <kis_paintop_lod_limitations.h>
+#include <lager/tags.hpp>
+#include <lager/with.hpp>
+#include <optional>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 
 struct KisPaintOpOption::Private
 {

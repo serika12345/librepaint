@@ -18,6 +18,11 @@
 #include <KoXmlWriter.h>
 
 #include <kis_debug.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qmap.h>
+#include <qstringview.h>
+#include <qtversionchecks.h>
 
 #include "KisResourceTypes.h"
 

@@ -9,7 +9,6 @@
 #include <kpluginfactory.h>
 #include <KoUpdater.h>
 #include <kis_processing_information.h>
-#include <KisSequentialIteratorProgress.h>
 #include <kis_sequential_iterator.h>
 #include <filter/kis_filter_configuration.h>
 #include <generator/kis_generator_registry.h>
@@ -19,14 +18,26 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoColorProfile.h>
 #include <KisImageResolutionProxy.h>
+#include <qassert.h>
+#include <qnumeric.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #include "KisScreentoneGenerator.h"
 #include "KisScreentoneConfigWidget.h"
 #include "KisScreentoneBrightnessContrastFunctions.h"
+#include "KisScreentoneGeneratorConfiguration.h"
 #include "KisScreentoneScreentoneFunctions.h"
 #include "KisScreentoneGeneratorFunctionSampler.h"
 #include "KisScreentoneGeneratorTemplate.h"
 #include "KisScreentoneGeneratorTemplateSampler.h"
+#include "KoCompositeOpIds.h"
+#include "KoID.h"
+#include "kis_assert.h"
+#include "kis_generator.h"
+#include "kis_types.h"
+#include "ui_KisScreentoneConfigWidget.h"
 
 KisScreentoneGenerator::KisScreentoneGenerator() : KisGenerator(id(), KoID("basic"), i18n("&Screentone..."))
 {

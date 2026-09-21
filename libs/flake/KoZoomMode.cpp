@@ -14,6 +14,10 @@
 #include <ksharedconfig.h>
 
 #include <cmath>
+#include <math.h>
+#include <qcontainerfwd.h>
+#include <qminmax.h>
+#include <qtypes.h>
 #include "kis_assert.h"
 
 QString KoZoomMode::toString(Mode mode)

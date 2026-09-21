@@ -8,17 +8,31 @@
 
 #include <klocalizedstring.h>
 #include <KoColorSpace.h>
-#include <KoCompositeOpRegistry.h>
+#include "KoColorSpaceConstants.h"
+#include "KoCompositeOpIds.h"
 #include "kis_image.h"
+#include "kis_image_interfaces.h"
+#include "kis_indirect_painting_support.h"
 #include "kis_paint_layer.h"
 #include "kis_painter.h"
 #include "kis_paint_device.h"
 #include <KisRegion.h>
 #include "kis_image_animation_interface.h"
+#include "kis_pointer_utils.h"
+#include "kis_simple_stroke_strategy.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_stroke_strategy.h"
+#include "kis_stroke_strategy_undo_command_based.h"
 #include "kis_transaction.h"
 #include <commands_new/kis_selection_move_command2.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 #include "kis_lod_transform.h"
 #include "KisAnimAutoKey.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 
 
 MoveSelectionStrokeStrategy::MoveSelectionStrokeStrategy(KisPaintLayerSP paintLayer,

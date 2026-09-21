@@ -8,7 +8,6 @@
 #include "kis_mask.h"
 
 
-#include <kis_debug.h>
 
 // to prevent incomplete class types on "delete selection->flatten();"
 #include <kundo2command.h>
@@ -18,8 +17,22 @@
 #include <KoColor.h>
 #include <KoColorSpace.h>
 #include <KoCompositeOpRegistry.h>
+#include <qassert.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
+#include "KisRenderPassFlags.h"
+#include "KoColorSpaceConstants.h"
+#include "KoCompositeOpIds.h"
+#include "kis_default_bounds.h"
+#include "kis_default_bounds_base.h"
+#include "kis_indirect_painting_support.h"
+#include "kis_keyframe_channel.h"
+#include "kis_node.h"
 #include "kis_paint_device.h"
+#include "kis_pointer_utils.h"
 #include "kis_selection.h"
 #include "kis_pixel_selection.h"
 #include "kis_painter.h"
@@ -32,6 +45,7 @@
 
 #include "kis_raster_keyframe_channel.h"
 #include "KisSafeNodeProjectionStore.h"
+#include "kis_types.h"
 
 
 struct Q_DECL_HIDDEN KisMask::Private {

@@ -15,6 +15,7 @@
 
 #include <klocalizedstring.h>
 #include <KisUsageLogger.h>
+#include <qlogging.h>
 #include "config-safe-asserts.h"
 
 /**

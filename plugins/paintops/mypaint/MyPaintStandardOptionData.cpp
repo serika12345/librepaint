@@ -4,8 +4,15 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisCurveOptionDataCommon.h"
+#include "KisSensorPackInterface.h"
+#include "KoID.h"
+#include "MyPaintCurveOptionData.h"
+#include "MyPaintSensorPack.h"
 #include <MyPaintStandardOptionData.h>
+#include <cmath>
 #include <kis_properties_configuration.h>
+#include <qhashfunctions.h>
 
 namespace deprecated_remove_after_krita6 {
 

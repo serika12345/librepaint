@@ -22,7 +22,11 @@
 #include "KisAnimCurvesChannelDelegate.h"
 
 #include "KisCanvasAnimationState.h"
+#include "KisKineticScroller.h"
+#include "KisQStringListFwd.h"
+#include "KoCanvasBase.h"
 #include "animation/KisFrameDisplayProxy.h"
+#include "kis_assert.h"
 #include "kis_keyframe_channel.h"
 
 #include "kis_image_animation_interface.h"
@@ -33,6 +37,9 @@
 #include "kis_shape_controller.h"
 #include "kis_signal_auto_connection.h"
 #include "application/ui/workspace/KisViewManager.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_utility_title_bar.h"
+#include "kundo2magicstring.h"
 #include "nodes/kis_node_manager.h"
 #include <animation/kis_animation_frame_cache.h>
 #include "klocalizedstring.h"
@@ -52,6 +59,15 @@
 #include "application/ui/orchestration/KisPart.h"
 #include "animation/KisPlaybackEngine.h"
 #include <QItemSelection>
+#include <qabstractitemmodel.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qtypes.h>
+#include <qwidgetaction.h>
 #include "KisAnimationPlaybackControlsModel.h"
 #include "KisWidgetConnectionUtils.h"
 

@@ -11,15 +11,24 @@
 #include "kis_tool_move.h"
 
 #include <QPoint>
+#include <kconfiggroup.h>
 #include <ksharedconfig.h>
 
 #include <KoPointerEvent.h>
 
+#include "KisNodeSelectionRecipe.h"
+#include "KisToolChangesTrackerData.h"
+#include "KisToolPaintFactoryBase.h"
+#include "kis_assert.h"
 #include "kis_cursor.h"
+#include "kis_floating_message.h"
+#include "kis_global.h"
 #include "kis_selection.h"
 #include "kis_canvas2.h"
 #include "kis_image.h"
 
+#include "kis_stroke_strategy.h"
+#include "kis_tool.h"
 #include "kis_tool_utils.h"
 #include "kis_paint_layer.h"
 #include "strokes/move_stroke_strategy.h"
@@ -39,6 +48,15 @@
 #include <boost/operators.hpp>
 #include "KisMoveBoundsCalculationJob.h"
 #include <KisOptimizedBrushOutline.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qsharedpointer.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 struct KisToolMoveState : KisToolChangesTrackerData, boost::equality_comparable<KisToolMoveState>

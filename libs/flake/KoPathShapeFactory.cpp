@@ -5,7 +5,9 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "KoPathShapeFactory.h"
+#include "KisQStringListFwd.h"
 #include "KoPathShape.h"
+#include "KoShapeFactoryBase.h"
 #include "KoShapeStroke.h"
 #include "KoMarkerCollection.h"
 #include "KoDocumentResourceManager.h"
@@ -15,6 +17,8 @@
 #include <klocalizedstring.h>
 
 #include <KoXmlNS.h>
+#include <qdom.h>
+#include <qtpreprocessorsupport.h>
 
 #include "kis_pointer_utils.h"
 

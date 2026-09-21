@@ -9,17 +9,19 @@
 #include "defaultpaintops_plugin.h"
 #include <klocalizedstring.h>
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
-#include <KoCompositeOpRegistry.h>
 
+#include "KoCompositeOpIds.h"
+#include "kis_paintop_factory.h"
 #include "kis_simple_paintop_factory.h"
 #include "kis_brushop.h"
 #include "kis_brushop_settings_widget.h"
 #include "kis_duplicateop.h"
 #include "kis_duplicateop_settings.h"
 #include <brushengine/kis_paintop_registry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 #include "KisBrushOpSettings.h"
 #include "kis_duplicateop_settings_widget.h"
 

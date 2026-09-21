@@ -6,6 +6,7 @@
  */
 
 #include "KoPathShapeMarkerCommand.h"
+#include "KoFlake.h"
 #include "KoMarker.h"
 #include "KoPathShape.h"
 #include <KoShapeBulkActionLock.h>
@@ -13,9 +14,15 @@
 #include <kis_pointer_utils.h>
 
 #include "kis_command_ids.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 #include <klocalizedstring.h>
 
+#include <qforeach.h>
+#include <qlist.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 #include <utility>
 
 namespace

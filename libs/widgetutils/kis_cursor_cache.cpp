@@ -10,10 +10,14 @@
 #include <QScreen>
 #include <QWindow>
 #include <QBitmap>
-#include <qmath.h>
+#include <qcursor.h>
+#include <qglobalstatic.h>
+#include <qlogging.h>
 #include <QDebug>
 #include <QPainter>
 #include <QApplication>
+#include <qnamespace.h>
+#include <qpoint.h>
 
 #include "KoResourcePaths.h"
 

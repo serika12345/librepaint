@@ -8,6 +8,7 @@
 
 #include <KConfigGroup>
 #include <KSharedConfig>
+#include <tuple>
 
 std::tuple<bool, bool> vectorizationConfiguration()
 {

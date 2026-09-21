@@ -6,19 +6,23 @@
  */
 
 #include "KoHatchBackground.h"
-
-#include <KoShapeSavingContext.h>
-
-#include <KoXmlNS.h>
-#include <KoUnit.h>
+#include "KoColorBackground.h"
 
 
-#include <FlakeDebug.h>
+
+
 
 #include <QColor>
 #include <QString>
 #include <QPainter>
 #include <QPainterPath>
+#include <cmath>
+#include <math.h>
+#include <qcontainerfwd.h>
+#include <qline.h>
+#include <qnumeric.h>
+#include <qshareddata.h>
+#include <qtypes.h>
 
 class KoHatchBackground::Private : public QSharedData
 {

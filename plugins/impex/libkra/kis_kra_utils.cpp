@@ -5,6 +5,8 @@
  */
 
 #include "kis_kra_utils.h"
+#include <qbitarray.h>
+#include <qminmax.h>
 
 QString KRA::flagsToString(const QBitArray& flags, int size, char trueToken, char falseToken, bool defaultTrue)
 {

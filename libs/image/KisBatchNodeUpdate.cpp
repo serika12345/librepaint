@@ -7,8 +7,14 @@
 #include "KisBatchNodeUpdate.h"
 
 #include <algorithm>
+#include <iterator>
+#include <qdebug.h>
+#include <qforeach.h>
+#include <utility>
+#include <vector>
 
 #include "KisBatchNodeUpdateNodeAccess_p.h"
+#include "kis_types.h"
 
 KisBatchNodeUpdate::KisBatchNodeUpdate(const std::vector<std::pair<KisNodeSP, QRect>> &rhs)
     : std::vector<std::pair<KisNodeSP, QRect>>(rhs)

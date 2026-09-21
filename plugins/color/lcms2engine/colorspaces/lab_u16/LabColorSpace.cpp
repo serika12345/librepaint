@@ -9,12 +9,25 @@
 
 #include <QDomElement>
 
+#include <cmath>
 #include <klocalizedstring.h>
 
 #include "../compositeops/KoCompositeOps.h"
+#include "KisQStringListFwd.h"
+#include "KoChannelInfo.h"
+#include "KoColorProfile.h"
+#include "KoColorSpace.h"
+#include "KoColorSpaceMaths.h"
+#include "KoIntegerMaths.h"
+#include "KoLabColorSpaceMaths.h"
+#include "KoLabColorSpaceTraits.h"
+#include "LcmsColorSpace.h"
 #include "dithering/KisLabDitherOpFactory.h"
 #include <KoColorConversions.h>
 #include <kis_dom_utils.h>
+#include <lcms2.h>
+#include <qbitarray.h>
+#include <qtypes.h>
 
 LabU16ColorSpace::LabU16ColorSpace(const QString &name, KoColorProfile *p)
     : LcmsColorSpace<KoLabU16Traits>(colorSpaceId(), name, TYPE_LABA_16, cmsSigLabData, p)

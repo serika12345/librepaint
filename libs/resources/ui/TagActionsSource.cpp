@@ -4,8 +4,8 @@
  */
 
 #include "TagActionsSource_p.h"
+#include "kis_icon_utils.h"
 
-#include <KoIcon.h>
 #include <KisPopupSelfActivatingLineEdit.h>
 
 namespace TagActionsSource

@@ -13,6 +13,7 @@
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
 #include <klocalizedstring.h>
+#include <qnamespace.h>
 
 namespace KisMessageBoxWrapper {
 

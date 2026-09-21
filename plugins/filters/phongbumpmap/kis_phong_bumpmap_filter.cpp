@@ -5,7 +5,13 @@
  */
 
 #include "kis_phong_bumpmap_filter.h"
+#include "KisResourceTypes.h"
+#include "KoColorSpace.h"
+#include "kis_assert.h"
+#include "kis_filter.h"
 #include "kis_phong_bumpmap_config_widget.h"
+#include "kis_types.h"
+#include "phong_bumpmap_constants.h"
 #include "phong_pixel_processor.h"
 
 #include "kis_paint_device.h"
@@ -14,8 +20,15 @@
 #include "kis_math_toolbox.h"
 #include "KoColorSpaceRegistry.h"
 #include <KoChannelInfo.h>
+#include <cstdlib>
+#include <cstring>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qtypes.h>
+#include <qwidget.h>
 #include "kis_iterator_ng.h"
 #include "kundo2command.h"
 #include "kis_painter.h"

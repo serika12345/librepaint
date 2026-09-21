@@ -18,15 +18,17 @@
 #include <QDomDocument>
 #include <QDomElement>
 
+#include "kis_debug.h"
+#include "kis_serializable_configuration.h"
+#include "kis_types.h"
 #include "ui_wdgfilterselector.h"
 
-#include <kis_layer.h>
+#include <kguiitem.h>
 #include <kis_paint_device.h>
 #include <filter/kis_filter.h>
 #include <kis_config_widget.h>
 #include <filter/kis_filter_configuration.h>
 #include "kis_default_bounds.h"
-#include <KisKineticScroller.h>
 #include <KisGlobalResourcesInterface.h>
 
 // From krita/ui
@@ -36,6 +38,20 @@
 #include "application/kis_config.h"
 
 #include <kstandardguiitem.h>
+#include <qapplication.h>
+#include <qassert.h>
+#include <qboxlayout.h>
+#include <qdialog.h>
+#include <qgridlayout.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
+#include <qtclasshelpermacros.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 class ThumbnailBounds : public KisDefaultBounds {
 public:

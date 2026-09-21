@@ -5,15 +5,25 @@
  */
 #include "KisSpacingOptionWidget.h"
 
-#include <KisLager.h>
+#include <functional>
 
-#include <QWidget>
 #include <QCheckBox>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QWidget>
 
+#include <KLocalizedString>
+
+#include <kis_paintop_option.h>
+#include <kis_types.h>
+#include <KisCurveOptionDataCommon.h>
+#include <KisCurveOptionWidget.h>
+#include <KisLager.h>
+#include <KisSpacingOptionData.h>
 #include <KisSpacingOptionModel.h>
 #include <KisWidgetConnectionUtils.h>
+
+#include <lager/cursor.hpp>
 
 struct KisSpacingOptionWidget::Private
 {

@@ -5,7 +5,10 @@
  */
 
 #include "MyPaintCurveOptionWidget.h"
+#include "KisCurveOptionDataCommon.h"
+#include "KisCurveOptionWidget.h"
 #include "KisLager.h"
+#include "MyPaintCurveOptionData.h"
 #include "kis_paintop_option.h"
 #include "MyPaintCurveRangeModel.h"
 #include "MyPaintCurveOptionRangeControlsStrategy.h"
@@ -13,6 +16,11 @@
 #include "MyPaintSensorPack.h"
 #include "kis_paintop_lod_limitations.h"
 #include "ui_wdgcurveoption2.h"
+#include <lager/constant.hpp>
+#include <lager/cursor.hpp>
+#include <lager/reader.hpp>
+#include <optional>
+#include <qtypes.h>
 
 namespace {
 KisPaintopLodLimitations calcGeneralMyPaintLodLimitations(const MyPaintCurveOptionData &data)

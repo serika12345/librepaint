@@ -11,16 +11,11 @@
 #include <QApplication>
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
 #include <KoColorSpace.h>
 
-#include <kis_undo_adapter.h>
-#include <kis_transaction.h>
-#include <kis_annotation.h>
 #include <application/kis_config.h>
-#include <kis_global.h>
 #include <kis_image.h>
 #include <nodes/kis_node_manager.h>
 #include <kis_layer.h>
@@ -32,7 +27,14 @@
 #include <kis_group_layer.h>
 
 #include <dialogs/KisColorSpaceConversionDialog.h>
+#include "KoColorConversionTransformation.h"
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 #include "application/ui/orchestration/kis_action_manager.h"
+#include "ui/orchestration/KisActionPlugin.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(ColorSpaceConversionFactory, "kritacolorspaceconversion.json", registerPlugin<ColorSpaceConversion>();)
 

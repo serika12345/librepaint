@@ -20,16 +20,24 @@
 #include <filter/kis_filter_registry.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
-#include <kis_selection.h>
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_processing_information.h>
 
+#include "KoColorSpace.h"
+#include "kis_config_widget.h"
+#include "kis_debug.h"
+#include "kis_filter.h"
+#include "kis_types.h"
 #include "kis_wdg_fastcolortransfer.h"
 #include "ui_wdgfastcolortransfer.h"
 #include <KisSequentialIteratorProgress.h>
 #include <kis_sequential_iterator.h>
 #include <KoProgressUpdater.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaFastColorTransferFactory, "kritafastcolortransfer.json", registerPlugin<FastColorTransferPlugin>();)

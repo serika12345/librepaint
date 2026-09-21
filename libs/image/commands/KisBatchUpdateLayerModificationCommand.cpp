@@ -4,6 +4,10 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisBatchUpdateLayerModificationCommand.h"
+#include "kis_assert.h"
+#include "kis_command_utils.h"
+#include "kis_types.h"
+#include "kundo2stack.h"
 
 #include <kis_image.h>
 #include <kis_node.h>

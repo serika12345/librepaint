@@ -5,8 +5,10 @@
  */
 #include "KisEmbeddedTextureData.h"
 
+#include <QByteArray>
 #include <QFileInfo>
 #include <KisResourceTypes.h>
+#include <KoPattern.h>
 #include <KoResourceLoadResult.h>
 #include <KisResourcesInterface.h>
 #include <kis_assert.h>

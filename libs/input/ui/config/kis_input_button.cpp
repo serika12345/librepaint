@@ -12,9 +12,16 @@
 #include <QKeyEvent>
 #include <KLocalizedString>
 #include <QPushButton>
+#include <qflags.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 #include "kis_icon_utils.h"
 #include "input/ui/kis_shortcut_configuration_text.h"
+#include "kis_shortcut_configuration.h"
 
 
 class KisInputButton::Private

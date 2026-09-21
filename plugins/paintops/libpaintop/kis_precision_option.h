@@ -8,9 +8,13 @@
 #ifndef __KIS_PRECISION_OPTION_H
 #define __KIS_PRECISION_OPTION_H
 
+#include <boost/operators.hpp>
+
+#include <QtCore/qtypes.h>
 #include <QString>
 #include <kritapaintop_export.h>
-#include <kis_properties_configuration.h>
+
+class KisPropertiesConfiguration;
 
 const QString PRECISION_LEVEL = "KisPrecisionOption/precisionLevel";
 const QString AUTO_PRECISION_ENABLED = "KisPrecisionOption/AutoPrecisionEnabled";

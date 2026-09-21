@@ -11,7 +11,10 @@
 #include <QStack>
 
 #include <KoDialog.h>
+#include <optional>
+#include <qtpreprocessorsupport.h>
 
+#include "kis_clipboard.h"
 #include "kis_dlg_missing_color_profile.h"
 #include "kis_dlg_paste_format.h"
 #include "kis_dlg_png_import.h"

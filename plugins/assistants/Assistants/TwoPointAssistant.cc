@@ -7,6 +7,9 @@
  */
 
 #include "TwoPointAssistant.h"
+#include "kis_painting_assistant.h"
+#include "kis_types.h"
+#include <cfloat>
 #include <klocalizedstring.h>
 
 #include <QPainter>
@@ -19,9 +22,19 @@
 #include <kis_algebra_2d.h>
 #include <kis_dom_utils.h>
 #include <math.h>
-#include <QtCore/qmath.h>
 #include <kis_assert.h>
 #include <KoColorDisplayRendererInterface.h>
+#include <qassert.h>
+#include <qcolor.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qxmlstream.h>
 
 TwoPointAssistant::TwoPointAssistant()
     : KisPaintingAssistant("two point", i18n("Two point assistant"))

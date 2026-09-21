@@ -15,10 +15,12 @@
 #include <document/KisDocument.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <application/ui/orchestration/kis_action_manager.h>
-#include <kis_debug.h>
 
 #include <Document.h>
 #include <View.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qobjectdefs.h>
 
 
 struct Window::Private {

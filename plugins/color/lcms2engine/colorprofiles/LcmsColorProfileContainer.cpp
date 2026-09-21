@@ -13,6 +13,7 @@
 
 #include <QGenericMatrix>
 #include <QTransform>
+#include <algorithm>
 #include <array>
 #include <cfloat>
 #include <cmath>
@@ -20,11 +21,23 @@
 #include <QDebug>
 
 #include "DebugPigment.h"
+#include "IccColorProfile.h"
+#include "KoColorProfileConstants.h"
+#include "KoColorimetryUtils.h"
 #include "kis_dom_utils.h"
+#include "kis_global.h"
 
 #include <KisLazyStorage.h>
 #include <KisLazyValueWrapper.h>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
 #include <lcms2.h>
+#include <optional>
+#include <qcontainerfwd.h>
+#include <qlogging.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 
 namespace {
 struct ReverseCurveWrapper

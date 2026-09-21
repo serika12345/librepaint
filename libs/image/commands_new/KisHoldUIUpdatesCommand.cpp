@@ -6,11 +6,17 @@
 
 #include "KisHoldUIUpdatesCommand.h"
 
+#include "KisQStringListFwd.h"
+#include "kis_command_utils.h"
 #include "kis_image_interfaces.h"
 #include "krita_utils.h"
 #include "kis_paintop_utils.h"
 #include "KisRunnableStrokeJobUtils.h"
 #include "KisRunnableStrokeJobsInterface.h"
+#include <functional>
+#include <numeric>
+#include <qforeach.h>
+#include <qsharedpointer.h>
 
 
 KisHoldUIUpdatesCommand::KisHoldUIUpdatesCommand(KisUpdatesFacade *updatesFacade, State state)

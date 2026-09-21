@@ -7,6 +7,8 @@
 #include "KoColorTransformationFactoryRegistry.h"
 
 #include "KoColorTransformationFactory.h"
+#include <qalgorithms.h>
+#include <qtdeprecationdefinitions.h>
 
 struct Q_DECL_HIDDEN KoColorTransformationFactoryRegistry::Private {
     static KoColorTransformationFactoryRegistry* s_registry;

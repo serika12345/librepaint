@@ -6,6 +6,8 @@
  */
 
 #include "KoZoomToolFactory.h"
+#include "KoToolBase.h"
+#include "KoToolFactoryBase.h"
 #include "KoZoomTool.h"
 
 #include <KoIcon.h>

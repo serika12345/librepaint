@@ -5,11 +5,14 @@
  */
 #include "KisLayerStyleKnockoutBlower.h"
 
+#include "KoCompositeOpIds.h"
+#include "kis_assert.h"
 #include "kis_selection.h"
 #include "kis_painter.h"
-#include "KoCompositeOpRegistry.h"
 #include "kis_default_bounds.h"
 #include "KisImageResolutionProxy.h"
+#include "kis_types.h"
+#include <qreadwritelock.h>
 
 
 KisLayerStyleKnockoutBlower::KisLayerStyleKnockoutBlower()

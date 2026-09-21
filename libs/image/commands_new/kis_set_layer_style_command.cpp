@@ -8,6 +8,9 @@
 #include "kis_layer.h"
 #include "kis_abstract_projection_plane.h"
 #include "kis_psd_layer_style.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 
 KisSetLayerStyleCommand::KisSetLayerStyleCommand(KisLayerSP layer, KisPSDLayerStyleSP oldStyle, KisPSDLayerStyleSP newStyle, KUndo2Command *parent)

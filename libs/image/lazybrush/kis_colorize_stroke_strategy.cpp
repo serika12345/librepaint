@@ -8,6 +8,11 @@
 
 #include <QBitArray>
 
+#include "KisRunnableBasedStrokeStrategy.h"
+#include "kis_lod_transform_base.h"
+#include "kis_simple_stroke_strategy.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_stroke_strategy.h"
 #include "krita_utils.h"
 #include "kis_paint_device.h"
 #include "kis_lazy_fill_tools.h"
@@ -21,10 +26,17 @@
 #include "kis_processing_visitor.h"
 
 #include "kis_transaction.h"
+#include "kundo2magicstring.h"
 
 #include <KisRunnableStrokeJobData.h>
 #include <KisRunnableStrokeJobUtils.h>
 #include <KisRunnableStrokeJobsInterface.h>
+#include <qforeach.h>
+#include <qlatin1stringview.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 using namespace KisLazyFillTools;
 

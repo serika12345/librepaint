@@ -11,9 +11,11 @@
 
 #include <KLocalizedString>
 
-#include <kis_icon.h>
 #include <kis_assert.h>
+#include "KisOptionCollectionWidget.h"
+#include "KisSelectionTags.h"
 #include "kis_config_notifier.h"
+#include "kis_icon_utils.h"
 
 #include <ksharedconfig.h>
 #include <kconfiggroup.h>
@@ -22,6 +24,12 @@
 #include <KoGroupButton.h>
 #include <kis_color_label_selector_widget.h>
 #include <kis_slider_spin_box.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qoverload.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 namespace {
 bool selectionActionBarEnabled()

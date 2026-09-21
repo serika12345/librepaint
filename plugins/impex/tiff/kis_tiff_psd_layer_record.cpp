@@ -7,16 +7,18 @@
  */
 
 #include "kis_tiff_psd_layer_record.h"
+#include "kis_types.h"
+#include "psd_types.h"
 #include "psd_utils.h"
 
 #include <QBuffer>
 #include <QLatin1String>
-#include <asl/kis_asl_reader_utils.h>
-#include <asl/kis_asl_writer_utils.h>
+#include <cstdint>
 #include <kis_debug.h>
 #include <memory>
 #include <psd_header.h>
 #include <psd_layer_section.h>
+#include <qtypes.h>
 #include <tiff.h>
 
 KisTiffPsdLayerRecord::KisTiffPsdLayerRecord(bool isBigEndian,

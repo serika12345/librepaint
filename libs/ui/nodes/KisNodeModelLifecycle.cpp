@@ -4,6 +4,9 @@
  */
 
 #include "kis_node_model.h"
+#include <qabstractitemmodel.h>
+#include <qminmax.h>
+#include <qobject.h>
 
 KisNodeModel::KisNodeModel(QObject *parent, int clonedColumns)
     : QAbstractItemModel(parent)

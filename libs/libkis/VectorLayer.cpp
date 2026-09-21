@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "VectorLayer.h"
+#include <algorithm>
 #include <kis_shape_layer.h>
 #include <kis_image.h>
 #include <SvgWriter.h>
@@ -14,11 +15,17 @@
 #include <KoShapeGroup.h>
 #include <document/KisDocument.h>
 #include <kis_processing_applicator.h>
-#include <kis_group_layer.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qpoint.h>
+#include <qsize.h>
 
+#include "KoColorSpaceConstants.h"
 #include "Krita.h"
 #include "GroupShape.h"
 #include "LibKisUtils.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 
 
 VectorLayer::VectorLayer(KoShapeControllerBase* shapeController, KisImageSP image, QString name, QObject *parent) :

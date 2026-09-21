@@ -5,6 +5,7 @@
  */
 
 #include "recorder_export.h"
+#include "recorder_format.h"
 #include "ui_recorder_export.h"
 #include "recorder_export_config.h"
 #include "recorder_export_settings.h"
@@ -28,6 +29,19 @@
 #include <QJsonArray>
 #include <QImageReader>
 #include <QElapsedTimer>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qcoreevent.h>
+#include <qdialog.h>
+#include <qfileinfo.h>
+#include <qicon.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qtypes.h>
 
 
 #ifdef Q_OS_ANDROID

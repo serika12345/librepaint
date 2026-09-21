@@ -6,20 +6,28 @@
 
 #include "KisCurveOptionInputControlsStrategy.h"
 
-#include <QHBoxLayout>
-#include <QFont>
+#include <functional>
 
-#include <QSpinBox>
 #include <QDoubleSpinBox>
+#include <QFont>
+#include <QHBoxLayout>
+#include <QSize>
+#include <QSizePolicy>
+#include <QSpinBox>
+#include <QWidget>
+#include <QtCore/qtypes.h>
 
 #include <kis_algebra_2d.h>
 #include <KisMpl.h>
 
 #include <kis_curve_widget.h>
+#include <KisCurveOptionInputControlsStrategyInterface.h>
 #include <KisCurveWidgetControlsManager.h>
 #include <KisCurveRangeModelInterface.h>
 
+#include <lager/with.hpp>
 
+#include <kritapaintop_export_instance.h>
 
 template<typename SpinBox>
 KisCurveOptionInputControlsStrategy<SpinBox>::

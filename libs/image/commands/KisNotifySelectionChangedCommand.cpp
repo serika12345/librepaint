@@ -6,7 +6,10 @@
 
 #include "KisNotifySelectionChangedCommand.h"
 
+#include "kis_assert.h"
+#include "kis_command_utils.h"
 #include "kis_image.h"
+#include "kis_types.h"
 
 KisNotifySelectionChangedCommand::KisNotifySelectionChangedCommand(KisImageWSP image, State state)
     : KisCommandUtils::FlipFlopCommand(state)

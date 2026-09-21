@@ -4,6 +4,20 @@
    SPDX-License-Identifier: LGPL-2.0-or-later
 */
 
+#include "KoDialog.h"
+#include "kis_document_autosave_files.h"
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscroller.h>
+#include <qsize.h>
+#include <qtversionchecks.h>
+#include <qwidget.h>
 #include <recovery/KisAutoSaveRecoveryDialog.h>
 
 #include <kwidgetitemdelegate.h>

@@ -5,8 +5,12 @@
  */
 
 #include "palettegeneratorconfig.h"
+#include "KoColor.h"
+#include "indexcolorpalette.h"
 #include <QTextStream>
 #include <QIODevice>
+#include <qlogging.h>
+#include <qnamespace.h>
 
 PaletteGeneratorConfig::PaletteGeneratorConfig()
 {

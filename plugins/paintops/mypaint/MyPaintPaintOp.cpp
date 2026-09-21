@@ -5,22 +5,27 @@
  */
 
 #include "MyPaintPaintOp.h"
+#include "KoCompositeOpIds.h"
+#include "MyPaintPaintOpPreset.h"
+#include "MyPaintSurface.h"
+#include "kis_lod_transform.h"
+#include "kis_types.h"
 
-#include <KoColorConversions.h>
-#include <KoCompositeOpRegistry.h>
 #include <KoToolManager.h>
 #include <QDebug>
 #include <QtMath>
-#include <kis_brush_based_paintop_settings.h>
+#include <cmath>
+#include <cstdlib>
 #include <kis_image.h>
-#include <kis_node.h>
 #include <kis_paint_information.h>
 #include <kis_painter.h>
 #include <kis_paintop.h>
 #include <kis_paintop_plugin_utils.h>
 #include <kis_paintop_settings.h>
 #include <kis_spacing_information.h>
+#include <libmypaint/mypaint-brush-settings-gen.h>
 #include <libmypaint/mypaint-brush.h>
+#include <qtypes.h>
 
 KisMyPaintPaintOp::KisMyPaintPaintOp(const KisPaintOpSettingsSP settings, KisPainter *painter, KisNodeSP /*node*/, KisImageSP image)
     : KisPaintOp (painter) {

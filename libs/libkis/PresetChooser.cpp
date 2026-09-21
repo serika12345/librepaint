@@ -7,7 +7,11 @@
 
 #include <KoResource.h>
 #include <application/kis_config.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 #include "Resource.h"
+#include "kis_preset_chooser.h"
 
 PresetChooser::PresetChooser(QWidget *parent)
     : KisPresetChooser(parent)

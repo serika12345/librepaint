@@ -5,13 +5,17 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisPerStrokeRandomSource.h"
+#include "KoCanvasResourcesIds.h"
+#include "KoCompositeOpIds.h"
+#include "kis_tool.h"
+#include "kis_types.h"
 #include <kis_tool_paint_interaction.h>
 
 #include <QAction>
 
 #include <KoCanvasBase.h>
 #include <KoCanvasResourceProvider.h>
-#include <KoCompositeOpRegistry.h>
 #include <KoPointerEvent.h>
 
 #include <KisToolCanvas.h>
@@ -23,6 +27,12 @@
 #include <kis_image_config.h>
 #include <kis_paint_information.h>
 #include <kis_random_source.h>
+#include <qassert.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 struct KisToolPaintInteraction::Private
 {

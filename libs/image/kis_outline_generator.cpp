@@ -13,9 +13,17 @@
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 
+#include "kis_debug.h"
 #include "kis_paint_device.h"
-#include <kis_iterator_ng.h>
+#include <cstring>
 #include <kis_random_accessor_ng.h>
+#include <new>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qpolygon.h>
+#include <qscopedpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 class LinearStorage
 {

@@ -44,6 +44,7 @@ target_include_directories(kritapsdresourcevaluerecordobjects
 )
 target_link_libraries(kritapsdresourcevaluerecordobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
         KF${KF_MAJOR}::I18n

@@ -6,7 +6,14 @@
 
 #include "kis_wrapped_random_accessor.h"
 
+#include "KisRegion.h"
+#include "KisWraparoundAxis.h"
+#include "kis_iterator_complete_listener.h"
 #include "kis_wrapped_rect.h"
+#include "tiles3/kis_random_accessor.h"
+#include "tiles3/kis_tiled_data_manager.h"
+#include <qminmax.h>
+#include <qtypes.h>
 
 
 KisWrappedRandomAccessor::KisWrappedRandomAccessor(KisTiledDataManager *ktm,

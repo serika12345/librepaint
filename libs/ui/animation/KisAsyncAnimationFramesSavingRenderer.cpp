@@ -6,7 +6,10 @@
 
 #include "animation/KisAsyncAnimationFramesSavingRenderer.h"
 
+#include "KisImportExportErrorCode.h"
 #include "KisRegion.h"
+#include "animation/KisAsyncAnimationRendererBase.h"
+#include "kis_assert.h"
 #include "kis_image.h"
 #include "kis_paint_device.h"
 #include "KisImportExportFilter.h"
@@ -14,8 +17,13 @@
 #include "document/KisDocument.h"
 #include "kis_time_span.h"
 #include "kis_paint_layer.h"
+#include "kis_types.h"
 
 #include <kis_debug.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
 
 #ifdef Q_OS_ANDROID
 #include <KisAndroidUtils.h>

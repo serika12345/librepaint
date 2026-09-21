@@ -10,6 +10,11 @@
 #include <QMouseEvent>
 
 #include <kis_icon_utils.h>
+#include <qobjectdefs.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtoolbutton.h>
+#include <qwidget.h>
 
 class Q_DECL_HIDDEN KoAspectButton::Private
 {

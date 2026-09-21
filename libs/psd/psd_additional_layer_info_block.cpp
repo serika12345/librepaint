@@ -6,10 +6,16 @@
  */
 
 #include "psd_additional_layer_info_block.h"
-#include "psd.h"
+#include "cos/kis_cos_parser.h"
+#include "cos/kis_cos_writer.h"
+#include "kis_debug.h"
+#include "kis_types.h"
+#include "psd_header.h"
+#include "psd_types.h"
 
 #include <QDomDocument>
 
+#include <array>
 #include <asl/kis_offset_on_exit_verifier.h>
 
 #include <asl/kis_asl_patterns_writer.h>
@@ -18,6 +24,10 @@
 #include <asl/kis_asl_writer.h>
 #include <asl/kis_asl_writer_utils.h>
 #include <cos/kis_txt2_utls.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qpaintdevice.h>
+#include <qtypes.h>
 
 
 PsdAdditionalLayerInfoBlock::PsdAdditionalLayerInfoBlock(const PSDHeader &header)

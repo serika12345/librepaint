@@ -5,9 +5,12 @@
  */
 
 #include "KoColorBackground.h"
+#include "KoShapeBackground.h"
 
 #include <QColor>
 #include <QPainter>
+#include <qnamespace.h>
+#include <qshareddata.h>
 
 class KoColorBackground::Private : public QSharedData
 {

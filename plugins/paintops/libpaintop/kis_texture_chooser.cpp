@@ -5,9 +5,19 @@
  */
 
 #include "kis_texture_chooser.h"
+
+#include <utility>
+
+#include <QString>
+#include <QtCore/qcontainerfwd.h>
+#include <QWidget>
+
+#include <KLocalizedString>
+
+#include <KoCompositeOpIds.h>
 #include <KoCompositeOpRegistry.h>
 
-#include <KisGradientChooser.h>
+#include <KisTextureOptionData.h>
 
 KisTextureChooser::KisTextureChooser(KisBrushTextureFlags flags, QWidget *parent)
     : QWidget(parent)

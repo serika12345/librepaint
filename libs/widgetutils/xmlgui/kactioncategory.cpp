@@ -6,6 +6,9 @@
 #include "kactioncategory.h"
 #include "config-xmlgui.h"
 #include <QAction>
+#include "kactioncollection.h"
+#include <qlist.h>
+#include <qobject.h>
 #include "kstandardaction.h"
 
 struct KisKActionCategoryPrivate {

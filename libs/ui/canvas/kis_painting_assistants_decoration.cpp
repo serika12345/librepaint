@@ -7,22 +7,26 @@
 
 #include "canvas/kis_painting_assistants_decoration.h"
 
+#include <cmath>
 #include <limits>
 
 #include <QList>
 #include <QPointF>
 #include <klocalizedstring.h>
 #include <kactioncollection.h>
-#include <ktoggleaction.h>
 #include <kis_algebra_2d.h>
+#include "KoCompositeOpIds.h"
+#include "kis_assert.h"
+#include "kis_canvas_decoration.h"
 #include "kis_debug.h"
 #include "document/KisDocument.h"
 #include "application/ui/workspace/KisView.h"
 #include "kis_canvas2.h"
 #include "application/ui/workspace/KisViewManager.h"
+#include "kis_global.h"
+#include "kis_painting_assistant.h"
 #include <KoCanvasResourceProvider.h>
 #include <KoCanvasResourcesIds.h>
-#include <KoCompositeOpRegistry.h>
 #include <KoColorDisplayRendererInterface.h>
 #include <KoPointerEvent.h>
 #include <KoSnapGuide.h>
@@ -30,6 +34,18 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QApplication>
+#include <qcolor.h>
+#include <qforeach.h>
+#include <qimage.h>
+#include <qmargins.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpointer.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
 
 struct KisPaintingAssistantsDecoration::Private {
     Private()

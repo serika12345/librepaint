@@ -12,11 +12,19 @@
 
 #include <QVBoxLayout>
 
+#include "KisSelectionTags.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_canvas2.h"
+#include "kis_cursor.h"
 #include "kis_painter.h"
 #include "kis_pixel_selection.h"
 #include "kis_selection_tool_helper.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_tool_ellipse_base.h"
+#include "kis_tool_select_ui_base.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "ui_wdggeometryoptions.h"
 #include <KoBasicShapeFactory.h>
 #include <KoShape.h>
 #include <brushengine/kis_paintop_registry.h>
@@ -24,6 +32,11 @@
 #include <kis_processing_applicator.h>
 #include <kis_selection_filters.h>
 #include <kis_default_bounds.h>
+#include <qassert.h>
+#include <qmath.h>
+#include <qnamespace.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 __KisToolSelectEllipticalLocal::__KisToolSelectEllipticalLocal(KoCanvasBase *canvas)
     : KisToolEllipseBase(canvas, KisToolEllipseBase::SELECT,

@@ -12,35 +12,18 @@ set(kritalibpaintop_LIB_SRCS
     kis_color_source_option.cpp
     KisCurveOptionDataUniformProperty.cpp
     KisSensorData.cpp
-    KisCurveOptionInputControlsStrategy.cpp
-    KisCurveRangeModel.cpp
-    KisCurveOptionWidget.cpp
     KisCurveOption.cpp
-    KisMultiSensorsSelector.cpp
-    KisMultiSensorsModel.cpp
-    KisDynamicSensorFactoryRegistry.cpp
-    KisSpacingOptionWidget.cpp
-    KisSpacingOptionModel.cpp
     KisSpacingOption.cpp
-    KisMirrorOptionWidget.cpp
     KisMirrorOption.cpp
-    KisSharpnessOptionModel.cpp
-    KisSharpnessOptionWidget.cpp
     KisSharpnessOption.cpp
-    KisScatterOptionModel.cpp
-    KisScatterOptionWidget.cpp
     KisScatterOption.cpp
     KisAirbrushOptionData.cpp
     KisAirbrushOptionModel.cpp
-    KisAirbrushOptionWidget.cpp
     KisCompositeOpOptionModel.cpp
-    KisCompositeOpOptionWidget.cpp
     KisPaintingModeOptionData.cpp
     KisPaintingModeOptionModel.cpp
-    KisPaintingModeOptionWidget.cpp
     KisColorSourceOptionData.cpp
     KisColorSourceOptionModel.cpp
-    KisColorSourceOptionWidget.cpp
     KisLightnessStrengthOptionWidget.cpp
     KisTextureOptionData.cpp
     KisEmbeddedTextureData.cpp
@@ -78,10 +61,6 @@ set(kritalibpaintop_LIB_SRCS
     sensors/KisDynamicSensorDistance.cpp
     sensors/KisDynamicSensorFade.cpp
     sensors/KisDynamicSensorTime.cpp
-    KisDynamicSensorFactoryTime.cpp
-    KisDynamicSensorFactoryFade.cpp
-    KisDynamicSensorFactoryDistance.cpp
-    KisDynamicSensorFactoryDrawingAngle.cpp
     KisDrawingAngleSensorModel.cpp
     KisTextBrushModel.cpp
 )
@@ -95,7 +74,6 @@ set(kritapaintopruntime_LIB_SRCS
     KisCurveOptionDataUniformProperty.cpp
     KisDabCacheUtils.cpp
     KisDarkenOption.cpp
-    KisEmbeddedTextureData.cpp
     KisFlowOpacityOption.cpp
     KisHSVOption.cpp
     KisMirrorOption.cpp
@@ -128,6 +106,7 @@ set(kritapaintopruntime_OBJECTS
     $<TARGET_OBJECTS:kritapaintopcolorsourceoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopcurveoptiondatacommonobjects>
     $<TARGET_OBJECTS:kritapaintopcurveoptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopembeddedtexturedataobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopsharpnessoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopscatteroptiondataobjects>
@@ -143,44 +122,50 @@ set(kritapaintopruntime_OBJECTS
 list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     ${kritapaintopruntime_LIB_SRCS}
     KisAirbrushOptionData.cpp
+    KisAirbrushOptionModel.cpp
+    KisAutoBrushModel.cpp
+    KisColorOptionWidget.cpp
     KisColorSourceOptionData.cpp
+    KisColorSourceOptionModel.cpp
+    KisCompositeOpOptionModel.cpp
     KisDrawingAngleSensorModel.cpp
+    KisEmbeddedTextureData.cpp
     KisFilterOptionData.cpp
+    KisFilterOptionModel.cpp
+    KisFilterOptionWidget.cpp
     KisPaintingModeOptionData.cpp
+    KisPaintingModeOptionModel.cpp
+    KisScatterOptionWidget.cpp
     KisSensorData.cpp
+    KisMirrorOptionWidget.cpp
+    KisSharpnessOptionWidget.cpp
+    KisSpacingOptionWidget.cpp
+    KisLightnessStrengthOptionWidget.cpp
+    KisSizeOptionWidget.cpp
+    KisStandardOptionData.cpp
+    KisStandardOptions.cpp
     KisTextureOptionData.cpp
+    KisTextureOptionModel.cpp
+    KisTextureOptionWidget.cpp
+    kis_auto_brush_widget.cpp
+    kis_texture_chooser.cpp
 )
 
 ki18n_wrap_ui(kritalibpaintop_LIB_SRCS
-    forms/wdgautobrush.ui
     forms/wdgBrushSizeOptions.ui
     forms/wdgcurveoption.ui
-    forms/wdgcurveoption2.ui
     forms/wdgcustombrush.ui
     forms/wdgclipboardbrush.ui
     forms/wdgtextbrush.ui
-    forms/wdgincremental.ui
-    forms/wdgmultisensorsselector.ui
-    forms/wdgairbrush.ui
-    forms/wdgfilteroption.ui
-    forms/wdgcoloroptions.ui
     forms/wdgbrushchooser.ui
     forms/wdgpredefinedbrushchooser.ui
-    forms/wdgtexturechooser.ui
-    forms/wdgCompositeOpOption.ui
     forms/wdgflowopacityoption.ui
-    sensors/SensorDistanceConfiguration.ui
-    sensors/SensorTimeConfiguration.ui
-    sensors/SensorFadeConfiguration.ui
-
 )
 
 add_library(kritapaintopairbrushoptiondataobjects OBJECT
     KisAirbrushOptionData.cpp
 )
 target_compile_definitions(kritapaintopairbrushoptiondataobjects PRIVATE
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
     kritalibpaintop_EXPORTS
 )
 target_include_directories(kritapaintopairbrushoptiondataobjects
@@ -194,18 +179,15 @@ target_include_directories(kritapaintopairbrushoptiondataobjects
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/brushengine>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
-        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
 )
 target_link_libraries(kritapaintopairbrushoptiondataobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Xml
-        KF${KF_MAJOR}::I18n
         Eigen3::Eigen
-        ${LINK_OPENEXR_LIB}
+        Imath::ImathConfig
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Gui
 )
 set_target_properties(kritapaintopairbrushoptiondataobjects PROPERTIES
     AUTOMOC OFF
@@ -216,9 +198,7 @@ add_library(kritapaintopcoloroptiondataobjects OBJECT
     KisColorOptionData.cpp
 )
 target_compile_definitions(kritapaintopcoloroptiondataobjects PRIVATE
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
 )
 target_include_directories(kritapaintopcoloroptiondataobjects
     PUBLIC
@@ -234,11 +214,11 @@ target_include_directories(kritapaintopcoloroptiondataobjects
 target_link_libraries(kritapaintopcoloroptiondataobjects
     PUBLIC
         Boost::boost
-        KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
         Eigen3::Eigen
-        ${LINK_OPENEXR_LIB}
+        Imath::ImathConfig
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Gui
 )
 set_target_properties(kritapaintopcoloroptiondataobjects PROPERTIES
     AUTOMOC OFF
@@ -249,9 +229,7 @@ add_library(kritapaintopcompositeopoptiondataobjects OBJECT
     KisCompositeOpOptionData.cpp
 )
 target_compile_definitions(kritapaintopcompositeopoptiondataobjects PRIVATE
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
 )
 target_include_directories(kritapaintopcompositeopoptiondataobjects
     PUBLIC
@@ -263,15 +241,15 @@ target_include_directories(kritapaintopcompositeopoptiondataobjects
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
-        $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_link_libraries(kritapaintopcompositeopoptiondataobjects
     PUBLIC
         Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
         Eigen3::Eigen
         Imath::ImathConfig
-        Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Gui
 )
 set_target_properties(kritapaintopcompositeopoptiondataobjects PROPERTIES
     AUTOMOC OFF
@@ -282,9 +260,7 @@ add_library(kritapaintopcolorsourceoptiondataobjects OBJECT
     KisColorSourceOptionData.cpp
 )
 target_compile_definitions(kritapaintopcolorsourceoptiondataobjects PRIVATE
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
 )
 target_include_directories(kritapaintopcolorsourceoptiondataobjects
     PUBLIC
@@ -296,16 +272,17 @@ target_include_directories(kritapaintopcolorsourceoptiondataobjects
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
-        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_link_libraries(kritapaintopcolorsourceoptiondataobjects
     PUBLIC
         kritaglobalidobjects
         Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
         Eigen3::Eigen
         Imath::ImathConfig
+        Qt${QT_MAJOR_VERSION}::Gui
+    PRIVATE
         KF${KF_MAJOR}::I18n
-        Qt${QT_MAJOR_VERSION}::Core
 )
 set_target_properties(kritapaintopcolorsourceoptiondataobjects PROPERTIES
     AUTOMOC OFF
@@ -322,53 +299,246 @@ add_library(kritapaintopcurveoptiondataobjects OBJECT
 
 add_library(kritapaintopsizeoptiondataobjects OBJECT KisSizeOptionData.cpp)
 target_compile_definitions(kritapaintopsizeoptiondataobjects PRIVATE
-    kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
-target_include_directories(kritapaintopsizeoptiondataobjects PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
-    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
-    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/brushengine>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
-    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>)
-target_link_libraries(kritapaintopsizeoptiondataobjects PUBLIC
-    kritapaintopcurveoptiondataobjects kritapaintopcurveoptiondatacommonobjects
-    kritapaintopkritasensorpackobjects)
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopsizeoptiondataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/brushengine>
+)
+target_link_libraries(kritapaintopsizeoptiondataobjects
+    PUBLIC
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        kritaglobalidobjects
+        kritapaintopcurveoptiondataobjects
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+)
 set_target_properties(kritapaintopsizeoptiondataobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritapaintopstandardoptionobjects OBJECT
+    KisStandardOptionData.cpp
+    KisStandardOptions.cpp
+)
+target_compile_definitions(kritapaintopstandardoptionobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopstandardoptionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopstandardoptionobjects
+    PUBLIC
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        kritaglobalidobjects
+        kritapaintopcurveoptiondataobjects
+        kritapaintopkritasensorpackobjects
+        kritapaintopsizeoptiondataobjects
+    PRIVATE
+        kritaglobal
+        kritaimage
+        kritatoolsui
+        lager
+)
+set_target_properties(kritapaintopstandardoptionobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopsizeoptionwidgetobjects OBJECT
+    KisSizeOptionWidget.cpp
+)
+target_compile_definitions(kritapaintopsizeoptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopsizeoptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopsizeoptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritapaintopcurveoptionwidgetobjects
+        kritapaintopsizeoptiondataobjects
+        kritatoolsui
+        lager
+)
+set_target_properties(kritapaintopsizeoptionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintoplightnessstrengthoptionwidgetobjects OBJECT
+    KisLightnessStrengthOptionWidget.cpp
+)
+target_compile_definitions(kritapaintoplightnessstrengthoptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintoplightnessstrengthoptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintoplightnessstrengthoptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcurveoptiondataobjects
+        kritapaintopcurveoptionwidgetobjects
+        kritapaintopstandardoptionobjects
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritaglobal
+        kritaimage
+        kritatoolsui
+)
+set_target_properties(kritapaintoplightnessstrengthoptionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopcurveoptionwidgetobjects OBJECT
+    KisCurveOptionWidget.cpp
+)
+ki18n_wrap_ui(kritapaintopcurveoptionwidgetobjects
+    forms/wdgcurveoption2.ui
+)
+target_compile_definitions(kritapaintopcurveoptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopcurveoptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopcurveoptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcurveoptiondatacommonobjects
+        kritapaintopcurvecontrolinterfaceobjects
+        kritapaintopcurverangemodelinterfaceobjects
+        kritatoolsui
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritaapplicationui
+        kritaglobal
+        kritaimage
+        kritapaintopcurveoptionmodelobjects
+        kritawidgetutils
+)
+set_target_properties(kritapaintopcurveoptionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
 
 add_library(kritapaintopmirroroptiondataobjects OBJECT KisMirrorOptionData.cpp)
 target_compile_definitions(kritapaintopmirroroptiondataobjects PRIVATE
-    kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
-target_include_directories(kritapaintopmirroroptiondataobjects PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global> $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image> $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment> $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>)
-target_link_libraries(kritapaintopmirroroptiondataobjects PUBLIC
-    kritapaintopcurveoptiondataobjects kritapaintopcurveoptiondatacommonobjects
-    kritapaintopkritasensorpackobjects)
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopmirroroptiondataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+)
+target_link_libraries(kritapaintopmirroroptiondataobjects
+    PUBLIC
+        Boost::boost
+        Eigen3::Eigen
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        kritaglobalidobjects
+        kritapaintopcurveoptiondataobjects
+        ${LINK_OPENEXR_LIB}
+)
 set_target_properties(kritapaintopmirroroptiondataobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 
 add_library(kritapaintopsharpnessoptiondataobjects OBJECT KisSharpnessOptionData.cpp)
 target_compile_definitions(kritapaintopsharpnessoptiondataobjects PRIVATE
-    kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
-target_include_directories(kritapaintopsharpnessoptiondataobjects PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global> $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image> $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment> $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>)
-target_link_libraries(kritapaintopsharpnessoptiondataobjects PUBLIC
-    kritapaintopcurveoptiondataobjects kritapaintopcurveoptiondatacommonobjects kritapaintopkritasensorpackobjects)
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopsharpnessoptiondataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+)
+target_link_libraries(kritapaintopsharpnessoptiondataobjects
+    PUBLIC
+        Boost::boost
+        Eigen3::Eigen
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        kritaglobalidobjects
+        kritapaintopcurveoptiondataobjects
+        ${LINK_OPENEXR_LIB}
+)
 set_target_properties(kritapaintopsharpnessoptiondataobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 add_library(kritapaintopscatteroptiondataobjects OBJECT KisScatterOptionData.cpp)
-target_compile_definitions(kritapaintopscatteroptiondataobjects PRIVATE kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
-target_include_directories(kritapaintopscatteroptiondataobjects PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}> $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}> $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global> $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global> $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image> $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image> $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment> $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>)
-target_link_libraries(kritapaintopscatteroptiondataobjects PUBLIC kritapaintopcurveoptiondataobjects kritapaintopcurveoptiondatacommonobjects kritapaintopkritasensorpackobjects)
+target_compile_definitions(kritapaintopscatteroptiondataobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopscatteroptiondataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+)
+target_link_libraries(kritapaintopscatteroptiondataobjects
+    PUBLIC
+        Boost::boost
+        Eigen3::Eigen
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        kritaglobalidobjects
+        kritapaintopcurveoptiondataobjects
+        ${LINK_OPENEXR_LIB}
+)
 set_target_properties(kritapaintopscatteroptiondataobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 add_library(kritapaintopspacingoptiondataobjects OBJECT KisSpacingOptionData.cpp)
-target_compile_definitions(kritapaintopspacingoptiondataobjects PRIVATE kritaglobal_EXPORTS kritaimage_EXPORTS kritalibpaintop_EXPORTS kritapigment_EXPORTS)
+target_compile_definitions(kritapaintopspacingoptiondataobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
 target_include_directories(kritapaintopspacingoptiondataobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -381,59 +551,62 @@ target_include_directories(kritapaintopspacingoptiondataobjects
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
     PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/brushengine>)
-target_link_libraries(kritapaintopspacingoptiondataobjects PUBLIC kritapaintopcurveoptiondataobjects kritapaintopcurveoptiondatacommonobjects kritapaintopkritasensorpackobjects)
+target_link_libraries(kritapaintopspacingoptiondataobjects
+    PUBLIC
+        Boost::boost
+        Eigen3::Eigen
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+        kritaglobalidobjects
+        kritapaintopcurveoptiondataobjects
+        ${LINK_OPENEXR_LIB}
+)
 set_target_properties(kritapaintopspacingoptiondataobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(kritapaintopcurveoptiondataobjects PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
 )
-target_include_directories(kritapaintopcurveoptiondataobjects PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
-    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
-    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
-    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+target_include_directories(kritapaintopcurveoptiondataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )
-target_link_libraries(kritapaintopcurveoptiondataobjects PUBLIC
-    kritapaintopcurveoptiondatacommonobjects
-    kritapaintopkritasensorpackobjects
+target_link_libraries(kritapaintopcurveoptiondataobjects
+    PUBLIC
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        kritaglobalidobjects
+        kritapaintopcurveoptiondatacommonobjects
+        kritapaintopkritasensorpackobjects
 )
 set_target_properties(kritapaintopcurveoptiondataobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
 target_compile_definitions(kritapaintopcurveoptiondatacommonobjects PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
 )
 target_include_directories(kritapaintopcurveoptiondatacommonobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
-        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
+        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
+    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
-        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_link_libraries(kritapaintopcurveoptiondatacommonobjects
     PUBLIC
         Boost::boost
         Eigen3::Eigen
         Imath::ImathConfig
-        KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
         kritaglobalidobjects
         kritapaintopsensorpackinterfaceobjects
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Gui
 )
 set_target_properties(kritapaintopcurveoptiondatacommonobjects PROPERTIES
     AUTOMOC OFF
@@ -444,9 +617,7 @@ add_library(kritapaintoppaintingmodeoptiondataobjects OBJECT
     KisPaintingModeOptionData.cpp
 )
 target_compile_definitions(kritapaintoppaintingmodeoptiondataobjects PRIVATE
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
 )
 target_include_directories(kritapaintoppaintingmodeoptiondataobjects
     PUBLIC
@@ -477,9 +648,7 @@ add_library(kritapaintopprecisionoptionobjects OBJECT
     kis_precision_option.cpp
 )
 target_compile_definitions(kritapaintopprecisionoptionobjects PRIVATE
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
 )
 target_include_directories(kritapaintopprecisionoptionobjects
     PUBLIC
@@ -491,15 +660,15 @@ target_include_directories(kritapaintopprecisionoptionobjects
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
-        $<TARGET_PROPERTY:KF${KF_MAJOR}::I18n,INTERFACE_INCLUDE_DIRECTORIES>
-        $<TARGET_PROPERTY:Qt${QT_MAJOR_VERSION}::Gui,INTERFACE_INCLUDE_DIRECTORIES>
 )
 target_link_libraries(kritapaintopprecisionoptionobjects
     PUBLIC
         Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
         Eigen3::Eigen
         Imath::ImathConfig
-        Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Gui
 )
 set_target_properties(kritapaintopprecisionoptionobjects PROPERTIES
     AUTOMOC OFF
@@ -510,9 +679,7 @@ add_library(kritapaintopfilteroptiondataobjects OBJECT
     KisFilterOptionData.cpp
 )
 target_compile_definitions(kritapaintopfilteroptiondataobjects PRIVATE
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
 )
 target_include_directories(kritapaintopfilteroptiondataobjects
     PUBLIC
@@ -522,18 +689,15 @@ target_include_directories(kritapaintopfilteroptiondataobjects
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/brushengine>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image/filter>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
 )
 target_link_libraries(kritapaintopfilteroptiondataobjects
     PUBLIC
         Boost::boost
-        KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
+        KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Xml
         Eigen3::Eigen
         ${LINK_OPENEXR_LIB}
 )
@@ -542,13 +706,72 @@ set_target_properties(kritapaintopfilteroptiondataobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopfilteroptionmodelobjects OBJECT
+    KisFilterOptionModel.cpp
+)
+target_compile_definitions(kritapaintopfilteroptionmodelobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopfilteroptionmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintopfilteroptionmodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritapaintopfilteroptiondataobjects
+        lager
+    PRIVATE
+        kritaimage
+        kritaresources
+)
+set_target_properties(kritapaintopfilteroptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopfilteroptionwidgetobjects OBJECT
+    KisFilterOptionWidget.cpp
+)
+ki18n_wrap_ui(kritapaintopfilteroptionwidgetobjects
+    forms/wdgfilteroption.ui
+)
+target_compile_definitions(kritapaintopfilteroptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopfilteroptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopfilteroptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopfilteroptiondataobjects
+        kritapaintopfilteroptionmodelobjects
+        kritatoolsui
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritaapplicationui
+        kritaimage
+        kritaglobal
+        kritawidgets
+)
+set_target_properties(kritapaintopfilteroptionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapaintoptexturelodobjects OBJECT
     KisTextureOptionLodLimitations.cpp
 )
 target_compile_definitions(kritapaintoptexturelodobjects PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
-    kritapigment_EXPORTS
     kritalibpaintop_EXPORTS
 )
 target_include_directories(kritapaintoptexturelodobjects
@@ -568,8 +791,10 @@ target_include_directories(kritapaintoptexturelodobjects
 )
 target_link_libraries(kritapaintoptexturelodobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
+    PRIVATE
         KF${KF_MAJOR}::I18n
         kritaglobalidobjects
 )
@@ -616,32 +841,235 @@ set_target_properties(kritapaintopcurverangemodelinterfaceobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopcurveinputcontrolsobjects OBJECT
+    KisCurveOptionInputControlsStrategy.cpp
+)
+target_compile_definitions(kritapaintopcurveinputcontrolsobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopcurveinputcontrolsobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopcurveinputcontrolsobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritapaintopcurvecontrolinterfaceobjects
+        kritapaintopcurverangemodelinterfaceobjects
+        lager
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritaapplicationui
+        kritaglobal
+)
+set_target_properties(kritapaintopcurveinputcontrolsobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopmultisensorsmodelobjects OBJECT
+    KisMultiSensorsModel.cpp
+)
+target_compile_definitions(kritapaintopmultisensorsmodelobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopmultisensorsmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintopmultisensorsmodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritaglobalidobjects
+        lager
+)
+set_target_properties(kritapaintopmultisensorsmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopmultisensorsselectorobjects OBJECT
+    KisMultiSensorsSelector.cpp
+)
+ki18n_wrap_ui(kritapaintopmultisensorsselectorobjects
+    forms/wdgmultisensorsselector.ui
+)
+target_compile_definitions(kritapaintopmultisensorsselectorobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopmultisensorsselectorobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopmultisensorsselectorobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcurveoptiondatacommonobjects
+        lager
+    PRIVATE
+        kritaglobal
+        kritapaintopdynamicsensorregistryobjects
+        kritapaintopmultisensorsmodelobjects
+)
+set_target_properties(kritapaintopmultisensorsselectorobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopcurverangemodelobjects OBJECT
+    KisCurveRangeModel.cpp
+)
+target_compile_definitions(kritapaintopcurverangemodelobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopcurverangemodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopcurverangemodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritapaintopcurverangemodelinterfaceobjects
+        lager
+    PRIVATE
+        kritaglobal
+        kritapaintopdynamicsensorfactoryobjects
+)
+set_target_properties(kritapaintopcurverangemodelobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapaintopcoloroptionmodelobjects OBJECT
     KisColorOptionModel.cpp
 )
 target_compile_definitions(kritapaintopcoloroptionmodelobjects PRIVATE
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritawidgets_EXPORTS
 )
 target_include_directories(kritapaintopcoloroptionmodelobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-        ${CMAKE_SOURCE_DIR}/libs/global
-        ${CMAKE_BINARY_DIR}/libs/global
-        ${CMAKE_SOURCE_DIR}/libs/image
-        ${CMAKE_BINARY_DIR}/libs/image
-        ${CMAKE_SOURCE_DIR}/libs/widgets
-        ${CMAKE_BINARY_DIR}/libs/widgets
 )
 target_link_libraries(kritapaintopcoloroptionmodelobjects
     PUBLIC
-        Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
+        kritapaintopcoloroptiondataobjects
         lager
 )
 set_target_properties(kritapaintopcoloroptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopcoloroptionwidgetobjects OBJECT
+    KisColorOptionWidget.cpp
+)
+ki18n_wrap_ui(kritapaintopcoloroptionwidgetobjects
+    forms/wdgcoloroptions.ui
+)
+target_compile_definitions(kritapaintopcoloroptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopcoloroptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopcoloroptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcoloroptiondataobjects
+        kritapaintopcoloroptionmodelobjects
+        kritatoolsui
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritawidgetutils
+)
+set_target_properties(kritapaintopcoloroptionwidgetobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopautobrushmodelobjects OBJECT
+    KisAutoBrushModel.cpp
+)
+target_compile_definitions(kritapaintopautobrushmodelobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopautobrushmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopautobrushmodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritalibbrush
+        kritawidgets
+        lager
+)
+set_target_properties(kritapaintopautobrushmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopautobrushwidgetobjects OBJECT
+    kis_auto_brush_widget.cpp
+)
+ki18n_wrap_ui(kritapaintopautobrushwidgetobjects
+    forms/wdgautobrush.ui
+)
+target_compile_definitions(kritapaintopautobrushwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopautobrushwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopautobrushwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritaapplicationui
+        kritaimage
+        kritalibbrush
+        kritapaintopautobrushmodelobjects
+        kritawidgets
+        kritawidgetutils
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritaglobal
+        kritaresources
+        lager
+)
+set_target_properties(kritapaintopautobrushwidgetobjects PROPERTIES
     AUTOMOC ON
     POSITION_INDEPENDENT_CODE ON
 )
@@ -650,32 +1078,23 @@ add_library(kritapaintopcurveoptionmodelobjects OBJECT
     KisCurveOptionModel.cpp
 )
 target_compile_definitions(kritapaintopcurveoptionmodelobjects PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
 )
 target_include_directories(kritapaintopcurveoptionmodelobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
         ${CMAKE_SOURCE_DIR}/libs/global
         ${CMAKE_BINARY_DIR}/libs/global
-        ${CMAKE_SOURCE_DIR}/libs/image
-        ${CMAKE_BINARY_DIR}/libs/image
-        ${CMAKE_SOURCE_DIR}/libs/pigment
-        ${CMAKE_BINARY_DIR}/libs/pigment
 )
 target_link_libraries(kritapaintopcurveoptionmodelobjects
     PUBLIC
-        Boost::boost
-        Eigen3::Eigen
-        Imath::ImathConfig
-        KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Xml
+        kritapaintopcurveoptiondataobjects
+        kritapaintopcurverangemodelinterfaceobjects
         lager
+    PRIVATE
         zug
 )
 set_target_properties(kritapaintopcurveoptionmodelobjects PROPERTIES
@@ -688,26 +1107,22 @@ add_library(kritapaintopsensormodelobjects OBJECT
     KisSensorWithLengthModel.cpp
 )
 target_compile_definitions(kritapaintopsensormodelobjects PRIVATE
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
 )
 target_include_directories(kritapaintopsensormodelobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
         ${CMAKE_SOURCE_DIR}/libs/global
         ${CMAKE_BINARY_DIR}/libs/global
-        ${CMAKE_SOURCE_DIR}/libs/image
-        ${CMAKE_BINARY_DIR}/libs/image
 )
 target_link_libraries(kritapaintopsensormodelobjects
     PUBLIC
-        Boost::boost
-        Eigen3::Eigen
-        KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Xml
+        kritapaintopsensordataobjects
         lager
+    PRIVATE
         zug
 )
 set_target_properties(kritapaintopsensormodelobjects PROPERTIES
@@ -719,34 +1134,370 @@ add_library(kritapaintopmirroroptionmodelobjects OBJECT
     KisMirrorOptionModel.cpp
 )
 target_compile_definitions(kritapaintopmirroroptionmodelobjects PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
 )
 target_include_directories(kritapaintopmirroroptionmodelobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-        ${CMAKE_SOURCE_DIR}/libs/global
-        ${CMAKE_BINARY_DIR}/libs/global
-        ${CMAKE_SOURCE_DIR}/libs/image
-        ${CMAKE_BINARY_DIR}/libs/image
-        ${CMAKE_SOURCE_DIR}/libs/pigment
-        ${CMAKE_BINARY_DIR}/libs/pigment
 )
 target_link_libraries(kritapaintopmirroroptionmodelobjects
     PUBLIC
-        Boost::boost
-        Eigen3::Eigen
-        Imath::ImathConfig
-        KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Xml
+        kritapaintopmirroroptiondataobjects
         lager
 )
 set_target_properties(kritapaintopmirroroptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopmirroroptionwidgetobjects OBJECT
+    KisMirrorOptionWidget.cpp
+)
+target_compile_definitions(kritapaintopmirroroptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopmirroroptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopmirroroptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcurveoptionwidgetobjects
+        kritapaintopmirroroptiondataobjects
+        kritapaintopmirroroptionmodelobjects
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritawidgetutils
+)
+set_target_properties(kritapaintopmirroroptionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintoppaintingmodeoptionmodelobjects OBJECT
+    KisPaintingModeOptionModel.cpp
+)
+target_compile_definitions(kritapaintoppaintingmodeoptionmodelobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintoppaintingmodeoptionmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintoppaintingmodeoptionmodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritapaintoppaintingmodeoptiondataobjects
+        kritawidgets
+        lager
+)
+set_target_properties(kritapaintoppaintingmodeoptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintoppaintingmodeoptionwidgetobjects OBJECT
+    KisPaintingModeOptionWidget.cpp
+)
+ki18n_wrap_ui(kritapaintoppaintingmodeoptionwidgetobjects
+    forms/wdgincremental.ui
+)
+target_compile_definitions(kritapaintoppaintingmodeoptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintoppaintingmodeoptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintoppaintingmodeoptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintoppaintingmodeoptiondataobjects
+        kritapaintoppaintingmodeoptionmodelobjects
+        kritatoolsui
+        kritawidgets
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+)
+set_target_properties(kritapaintoppaintingmodeoptionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopcolorsourceoptionmodelobjects OBJECT
+    KisColorSourceOptionModel.cpp
+)
+target_compile_definitions(kritapaintopcolorsourceoptionmodelobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopcolorsourceoptionmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintopcolorsourceoptionmodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritapaintopcolorsourceoptiondataobjects
+        lager
+)
+set_target_properties(kritapaintopcolorsourceoptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopcolorsourceoptionwidgetobjects OBJECT
+    KisColorSourceOptionWidget.cpp
+)
+target_compile_definitions(kritapaintopcolorsourceoptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopcolorsourceoptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopcolorsourceoptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcolorsourceoptiondataobjects
+        kritapaintopcolorsourceoptionmodelobjects
+        kritatoolsui
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritawidgets
+)
+set_target_properties(kritapaintopcolorsourceoptionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopcompositeopoptionmodelobjects OBJECT
+    KisCompositeOpOptionModel.cpp
+)
+target_compile_definitions(kritapaintopcompositeopoptionmodelobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopcompositeopoptionmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintopcompositeopoptionmodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritapaintopcompositeopoptiondataobjects
+        lager
+)
+set_target_properties(kritapaintopcompositeopoptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopcompositeopoptionwidgetobjects OBJECT
+    KisCompositeOpOptionWidget.cpp
+)
+ki18n_wrap_ui(kritapaintopcompositeopoptionwidgetobjects
+    forms/wdgCompositeOpOption.ui
+)
+target_compile_definitions(kritapaintopcompositeopoptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopcompositeopoptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopcompositeopoptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcompositeopoptiondataobjects
+        kritapaintopcompositeopoptionmodelobjects
+        kritatoolsui
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritaapplicationui
+        kritapigment
+        kritawidgets
+        kritawidgetutils
+)
+set_target_properties(kritapaintopcompositeopoptionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopairbrushoptionmodelobjects OBJECT
+    KisAirbrushOptionModel.cpp
+)
+target_compile_definitions(kritapaintopairbrushoptionmodelobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopairbrushoptionmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintopairbrushoptionmodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritapaintopairbrushoptiondataobjects
+        lager
+)
+set_target_properties(kritapaintopairbrushoptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopairbrushoptionwidgetobjects OBJECT
+    KisAirbrushOptionWidget.cpp
+)
+ki18n_wrap_ui(kritapaintopairbrushoptionwidgetobjects
+    forms/wdgairbrush.ui
+)
+target_compile_definitions(kritapaintopairbrushoptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopairbrushoptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopairbrushoptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopairbrushoptiondataobjects
+        kritapaintopairbrushoptionmodelobjects
+        kritatoolsui
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritawidgetutils
+)
+set_target_properties(kritapaintopairbrushoptionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopspacingoptionwidgetobjects OBJECT
+    KisSpacingOptionModel.cpp
+    KisSpacingOptionWidget.cpp
+)
+target_compile_definitions(kritapaintopspacingoptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopspacingoptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopspacingoptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcurveoptionwidgetobjects
+        kritapaintopspacingoptiondataobjects
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritawidgetutils
+)
+set_target_properties(kritapaintopspacingoptionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopsharpnessoptionwidgetobjects OBJECT
+    KisSharpnessOptionModel.cpp
+    KisSharpnessOptionWidget.cpp
+)
+target_compile_definitions(kritapaintopsharpnessoptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopsharpnessoptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopsharpnessoptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcurveoptionwidgetobjects
+        kritapaintopsharpnessoptiondataobjects
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritawidgets
+        kritawidgetutils
+)
+set_target_properties(kritapaintopsharpnessoptionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopscatteroptionwidgetobjects OBJECT
+    KisScatterOptionModel.cpp
+    KisScatterOptionWidget.cpp
+)
+target_compile_definitions(kritapaintopscatteroptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopscatteroptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopscatteroptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcurveoptionwidgetobjects
+        kritapaintopscatteroptiondataobjects
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritawidgetutils
+)
+set_target_properties(kritapaintopscatteroptionwidgetobjects PROPERTIES
     AUTOMOC ON
     POSITION_INDEPENDENT_CODE ON
 )
@@ -757,7 +1508,6 @@ add_library(kritapaintoptextureoptionioobjects OBJECT
 )
 target_compile_definitions(kritapaintoptextureoptionioobjects PRIVATE
     kritaimage_EXPORTS
-    kritapigment_EXPORTS
     kritalibpaintop_EXPORTS
 )
 target_include_directories(kritapaintoptextureoptionioobjects
@@ -770,20 +1520,111 @@ target_include_directories(kritapaintoptextureoptionioobjects
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
-        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
 )
 target_link_libraries(kritapaintoptextureoptionioobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        KF${KF_MAJOR}::I18n
         Eigen3::Eigen
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Gui
         ${LINK_OPENEXR_LIB}
 )
 set_target_properties(kritapaintoptextureoptionioobjects PROPERTIES
     AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopembeddedtexturedataobjects OBJECT
+    KisEmbeddedTextureData.cpp
+)
+target_compile_definitions(kritapaintopembeddedtexturedataobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopembeddedtexturedataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintopembeddedtexturedataobjects
+    PUBLIC
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+    PRIVATE
+        kritapigment
+        kritaresources
+)
+set_target_properties(kritapaintopembeddedtexturedataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintoptextureoptionmodelobjects OBJECT
+    KisTextureOptionModel.cpp
+)
+target_compile_definitions(kritapaintoptextureoptionmodelobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintoptextureoptionmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintoptextureoptionmodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritapaintoptextureoptionioobjects
+        kritaresources
+        lager
+    PRIVATE
+        kritapaintopembeddedtexturedataobjects
+        kritapigment
+)
+set_target_properties(kritapaintoptextureoptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintoptextureoptionwidgetobjects OBJECT
+    KisTextureOptionWidget.cpp
+    kis_texture_chooser.cpp
+)
+ki18n_wrap_ui(kritapaintoptextureoptionwidgetobjects
+    forms/wdgtexturechooser.ui
+)
+target_compile_definitions(kritapaintoptextureoptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintoptextureoptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintoptextureoptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritaimage
+        kritapaintoptextureoptionioobjects
+        kritapaintoptextureoptionmodelobjects
+        kritaresources
+        kritatoolsui
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritaapplicationui
+        kritapigment
+        kritawidgets
+        kritawidgetutils
+)
+set_target_properties(kritapaintoptextureoptionwidgetobjects PROPERTIES
+    AUTOMOC ON
     POSITION_INDEPENDENT_CODE ON
 )
 
@@ -797,8 +1638,7 @@ target_include_directories(kritapaintopsensordataobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
-        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
 )
@@ -807,7 +1647,6 @@ target_link_libraries(kritapaintopsensordataobjects
         kritaglobalidobjects
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Xml
-        KF${KF_MAJOR}::I18n
         Eigen3::Eigen
 )
 set_target_properties(kritapaintopsensordataobjects PROPERTIES
@@ -839,17 +1678,13 @@ add_library(kritapaintopkritasensorpackobjects OBJECT
     KisKritaSensorPack.cpp
 )
 target_compile_definitions(kritapaintopkritasensorpackobjects PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
 )
 target_include_directories(kritapaintopkritasensorpackobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
-        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
@@ -858,15 +1693,14 @@ target_include_directories(kritapaintopkritasensorpackobjects
 target_link_libraries(kritapaintopkritasensorpackobjects
     PUBLIC
         Boost::boost
-        Eigen3::Eigen
-        Imath::ImathConfig
-        KF${KF_MAJOR}::I18n
-        Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        Qt${QT_MAJOR_VERSION}::Xml
-        kritaglobalidobjects
         kritapaintopsensordataobjects
         kritapaintopsensorpackinterfaceobjects
+    PRIVATE
+        Eigen3::Eigen
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Xml
+        kritaglobalidobjects
+        kritapaintopcurveoptiondatacommonobjects
 )
 set_target_properties(kritapaintopkritasensorpackobjects PROPERTIES
     AUTOMOC OFF
@@ -892,6 +1726,47 @@ target_link_libraries(kritapaintopdynamicsensorfactoryobjects
         lager
 )
 set_target_properties(kritapaintopdynamicsensorfactoryobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopdynamicsensorregistryobjects OBJECT
+    KisDynamicSensorFactoryRegistry.cpp
+    KisDynamicSensorFactoryTime.cpp
+    KisDynamicSensorFactoryFade.cpp
+    KisDynamicSensorFactoryDistance.cpp
+    KisDynamicSensorFactoryDrawingAngle.cpp
+)
+ki18n_wrap_ui(kritapaintopdynamicsensorregistryobjects
+    sensors/SensorDistanceConfiguration.ui
+    sensors/SensorTimeConfiguration.ui
+    sensors/SensorFadeConfiguration.ui
+)
+target_compile_definitions(kritapaintopdynamicsensorregistryobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopdynamicsensorregistryobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintopdynamicsensorregistryobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritaglobal
+        kritapaintopcurveoptiondatacommonobjects
+        kritapaintopdynamicsensorfactoryobjects
+        lager
+    PRIVATE
+        Qt${QT_MAJOR_VERSION}::Widgets
+        KF${KF_MAJOR}::I18n
+        kritaglobalidobjects
+        kritapaintopkritasensorpackobjects
+        kritapaintopsensormodelobjects
+        kritatoolsui
+        kritawidgetutils
+)
+set_target_properties(kritapaintopdynamicsensorregistryobjects PROPERTIES
     AUTOMOC OFF
     POSITION_INDEPENDENT_CODE ON
 )
@@ -934,21 +1809,49 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopcoloroptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopcompositeopoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopdynamicsensorfactoryobjects>
+    $<TARGET_OBJECTS:kritapaintopdynamicsensorregistryobjects>
     $<TARGET_OBJECTS:kritapaintopfilteroptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopfilteroptionmodelobjects>
+    $<TARGET_OBJECTS:kritapaintopfilteroptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopruntime>
     ${kritapaintopruntime_OBJECTS}
     $<TARGET_OBJECTS:kritapaintopcoloroptionmodelobjects>
+    $<TARGET_OBJECTS:kritapaintopcoloroptionwidgetobjects>
+    $<TARGET_OBJECTS:kritapaintopautobrushmodelobjects>
+    $<TARGET_OBJECTS:kritapaintopautobrushwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopcurveoptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopcurvecontrolinterfaceobjects>
+    $<TARGET_OBJECTS:kritapaintopcurveinputcontrolsobjects>
     $<TARGET_OBJECTS:kritapaintopcurverangemodelinterfaceobjects>
+    $<TARGET_OBJECTS:kritapaintopmultisensorsmodelobjects>
+    $<TARGET_OBJECTS:kritapaintopmultisensorsselectorobjects>
+    $<TARGET_OBJECTS:kritapaintopcurverangemodelobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptionmodelobjects>
+    $<TARGET_OBJECTS:kritapaintopmirroroptionwidgetobjects>
+    $<TARGET_OBJECTS:kritapaintoppaintingmodeoptionmodelobjects>
+    $<TARGET_OBJECTS:kritapaintoppaintingmodeoptionwidgetobjects>
+    $<TARGET_OBJECTS:kritapaintopcolorsourceoptionmodelobjects>
+    $<TARGET_OBJECTS:kritapaintopcolorsourceoptionwidgetobjects>
+    $<TARGET_OBJECTS:kritapaintopcompositeopoptionmodelobjects>
+    $<TARGET_OBJECTS:kritapaintopcompositeopoptionwidgetobjects>
+    $<TARGET_OBJECTS:kritapaintopairbrushoptionmodelobjects>
+    $<TARGET_OBJECTS:kritapaintopairbrushoptionwidgetobjects>
+    $<TARGET_OBJECTS:kritapaintopsharpnessoptionwidgetobjects>
+    $<TARGET_OBJECTS:kritapaintopscatteroptionwidgetobjects>
+    $<TARGET_OBJECTS:kritapaintopspacingoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopsensormodelobjects>
     $<TARGET_OBJECTS:kritapaintopsensordataobjects>
+    $<TARGET_OBJECTS:kritapaintopcurveoptionwidgetobjects>
+    $<TARGET_OBJECTS:kritapaintopstandardoptionobjects>
+    $<TARGET_OBJECTS:kritapaintopsizeoptionwidgetobjects>
+    $<TARGET_OBJECTS:kritapaintoplightnessstrengthoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintoptextureoptionioobjects>
+    $<TARGET_OBJECTS:kritapaintoptextureoptionmodelobjects>
+    $<TARGET_OBJECTS:kritapaintoptextureoptionwidgetobjects>
 )
 generate_export_header(kritalibpaintop BASE_NAME kritapaintop EXPORT_MACRO_NAME PAINTOP_EXPORT)
 
-target_link_libraries(kritalibpaintop kritaapplicationui kritatoolsui kritalibbrush kritapainting kritawidgets kritawidgetutils)
+target_link_libraries(kritalibpaintop kritaapplicationui kritatoolsui kritalibbrush kritapainting kritaimage kritapigment kritaresources kritawidgets kritawidgetutils)
 target_link_libraries(kritalibpaintop LINK_INTERFACE_LIBRARIES kritaapplicationui kritatoolsui kritalibbrush kritapainting)
 
 set_target_properties(kritalibpaintop PROPERTIES

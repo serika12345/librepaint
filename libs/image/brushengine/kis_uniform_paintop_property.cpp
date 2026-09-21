@@ -7,8 +7,11 @@
 #include "kis_uniform_paintop_property.h"
 
 #include <QVariant>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 #include "KoID.h"
+#include "kis_types.h"
 #include "kis_paintop_settings.h"
 
 struct KisUniformPaintOpProperty::Private

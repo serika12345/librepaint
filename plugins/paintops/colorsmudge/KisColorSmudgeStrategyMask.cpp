@@ -6,8 +6,19 @@
 
 #include "KisColorSmudgeStrategyMask.h"
 
+#include "KisColorSmudgeStrategyBase.h"
+#include "KisColorSmudgeStrategyWithOverlay.h"
+#include "kis_dab_cache.h"
+#include "kis_dab_shape.h"
 #include "kis_image.h"
 #include "kis_fixed_paint_device.h"
+#include "kis_paint_information.h"
+#include "kis_painter.h"
+#include "kis_types.h"
+#include <qnamespace.h>
+#include <qpaintdevice.h>
+#include <qpoint.h>
+#include <qtypes.h>
 
 KisColorSmudgeStrategyMask::KisColorSmudgeStrategyMask(KisPainter *painter, KisImageSP image, bool smearAlpha,
                                                        bool useDullingMode, bool useOverlayMode)

@@ -8,8 +8,16 @@
 #include "KoPathControlPointMoveCommand.h"
 #include <klocalizedstring.h>
 #include <math.h>
+#include "KoPathPoint.h"
+#include "KoPathPointData.h"
+#include "KoPathShape.h"
 #include "kis_command_ids.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <KoShapeBulkActionLock.h>
+#include <qassert.h>
+#include <qpoint.h>
+#include <qtypes.h>
 
 KoPathControlPointMoveCommand::KoPathControlPointMoveCommand(
     const KoPathPointData &pointData,

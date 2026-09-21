@@ -14,12 +14,23 @@
 #include <QPaintEvent>
 
 #include <KoColorSpace.h>
-#include <KoColorProfile.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoPointerEvent.h>
+#include <qforeach.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qpainter.h>
+#include <qpen.h>
+#include <qpoint.h>
+#include <qtclasshelpermacros.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <resources/KoAbstractGradient.h>
 
-#include <KisPortingUtils.h>
 
 #include <kis_cursor.h>
 #include <kis_painting_utils.h>
@@ -30,7 +41,11 @@
 #include <kis_default_bounds.h>
 #include <canvas/kis_canvas_resource_provider.h>
 
+#include "KisQStringListFwd.h"
+#include "KoColorSpaceConstants.h"
+#include "KoPattern.h"
 #include "application/kis_config.h"
+#include "kis_assert.h"
 #include "kis_image.h"
 #include "kis_undo_stores.h"
 #include "kis_update_scheduler.h"

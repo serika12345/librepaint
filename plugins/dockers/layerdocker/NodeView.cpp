@@ -6,15 +6,15 @@
 #include "NodeView.h"
 #include "NodePropertyAction_p.h"
 #include "NodeDelegate.h"
+#include "kis_base_node.h"
+#include "kis_icon_utils.h"
 #include "nodes/kis_node_model.h"
 #include "kis_signals_blocker.h"
 
 
+#include <cstdlib>
 #include <kconfig.h>
-#include <kconfiggroup.h>
 #include <application/kis_config.h>
-#include <kis_icon.h>
-#include <ksharedconfig.h>
 #include <KisKineticScroller.h>
 
 #include <QtDebug>
@@ -29,6 +29,21 @@
 #include <QPainter>
 #include <QScrollBar>
 #include <QScroller>
+#include <optional>
+#include <qabstractitemview.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qcoreevent.h>
+#include <qcursor.h>
+#include <qforeach.h>
+#include <qimage.h>
+#include <qitemselectionmodel.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtversionchecks.h>
 
 #include "nodes/kis_node_view_color_scheme.h"
 

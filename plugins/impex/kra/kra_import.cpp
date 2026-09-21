@@ -9,8 +9,12 @@
 #include <kpluginfactory.h>
 
 #include <document/KisDocument.h>
-#include <kis_image.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
+#include "KisImportExportErrorCode.h"
+#include "KisImportExportFilter.h"
+#include "kis_types.h"
 #include "kra_converter.h"
 
 K_PLUGIN_CLASS_WITH_JSON(KraImport, "krita_kra_import.json")

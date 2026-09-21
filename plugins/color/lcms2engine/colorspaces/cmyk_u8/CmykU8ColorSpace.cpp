@@ -12,10 +12,21 @@
 #include <QDebug>
 #include <klocalizedstring.h>
 
+#include "KisQStringListFwd.h"
+#include "KoChannelInfo.h"
+#include "KoCmykColorSpaceTraits.h"
+#include "KoColorProfile.h"
+#include "KoColorSpace.h"
+#include "KoColorSpaceMaths.h"
+#include "LcmsColorSpace.h"
 #include "compositeops/KoCompositeOps.h"
 #include "dithering/KisCmykDitherOpFactory.h"
 #include <KoColorConversions.h>
 #include <kis_dom_utils.h>
+#include <lcms2.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qtypes.h>
 
 CmykU8ColorSpace::CmykU8ColorSpace(const QString &name, KoColorProfile *p)
     : LcmsColorSpace<KoCmykU8Traits>(colorSpaceId(), name, TYPE_CMYKA_8, cmsSigCmykData, p)

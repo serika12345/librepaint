@@ -5,6 +5,9 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "KisQStringListFwd.h"
+#include "KoColorSpaceConstants.h"
+#include "KoCompositeOpIds.h"
 #include "canvas/kis_canvas2.h"
 
 #include <KoColor.h>
@@ -31,8 +34,23 @@
 #include <kis_resources_snapshot.h>
 #include <kis_selection.h>
 #include <kis_stroke_strategy_undo_command_based.h>
+#include <qassert.h>
+#include <qcolor.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qsharedpointer.h>
+#include <qstringview.h>
+#include <qtypes.h>
 
 #include "canvas/kis_canvas_resource_provider.h"
+#include "kis_assert.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include "nodes/kis_node_manager.h"
 #include "processing/fill_processing_visitor.h"
 #include "application/ui/workspace/KisViewManager.h"

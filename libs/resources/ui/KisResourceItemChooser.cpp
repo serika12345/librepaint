@@ -28,6 +28,10 @@
 #include <QToolButton>
 #include <QLineEdit>
 
+#include "KoResource.h"
+#include "KisTagChooserWidget.h"
+#include "ResourceListViewModes.h"
+#include "kis_assert.h"
 #include "ksharedconfig.h"
 #include "kconfiggroup.h"
 
@@ -35,10 +39,15 @@
 
 #include <KisResourceModel.h>
 #include <KisTagFilterResourceProxyModel.h>
+#include <qabstractitemmodel.h>
+#include <qlatin1stringview.h>
+#include <qlayout.h>
+#include <qnamespace.h>
+#include <qrgb.h>
+#include <qstringview.h>
+#include <qwidget.h>
 
 #include "KisResourceItemListView.h"
-#include "KisResourceItemDelegate.h"
-#include "KisTagChooserWidget.h"
 #include "KisResourceItemChooserSync.h"
 #include "KisResourceTaggingManager.h"
 

@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "Canvas.h"
+#include "KoZoomMode.h"
 #include <KoCanvasBase.h>
 #include <kis_canvas2.h>
 #include <application/ui/workspace/KisView.h>
@@ -11,6 +12,8 @@
 #include <kis_canvas_controller.h>
 #include <canvas/kis_zoom_manager.h>
 #include <View.h>
+#include <qobject.h>
+#include <qtypes.h>
 
 struct Canvas::Private {
     Private() {}

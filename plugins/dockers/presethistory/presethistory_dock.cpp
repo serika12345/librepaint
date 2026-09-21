@@ -19,6 +19,9 @@
 #include <KoCanvasResourceProvider.h>
 #include <KoCanvasBase.h>
 
+#include "KisQStringListFwd.h"
+#include "KisResourceModel.h"
+#include "KoCanvasResourcesIds.h"
 #include "application/kis_config.h"
 #include "kis_canvas2.h"
 #include "application/ui/workspace/KisViewManager.h"
@@ -29,6 +32,18 @@
 #include <KisKineticScroller.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <kis_types.h>
+#include <qabstractitemmodel.h>
+#include <qabstractitemview.h>
+#include <qdockwidget.h>
+#include <qevent.h>
+#include <qforeach.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qscroller.h>
+#include <qsizepolicy.h>
+#include <qtmetamacros.h>
 
 #define ICON_SIZE 48
 

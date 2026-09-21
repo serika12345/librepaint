@@ -5,11 +5,18 @@
  */
 
 #include "kis_colorsmudgeop_settings_widget.h"
+#include "KisBrushModel.h"
+#include "KisBrushOptionWidgetFlags.h"
+#include "KisMirrorOptionData.h"
+#include "KisPaintopPropertiesBase.h"
+#include "kis_brush.h"
+#include "kis_brush_based_paintop_options_widget.h"
 #include "kis_brush_option_widget.h"
 
-#include <kis_properties_configuration.h>
-#include <kis_paintop_settings_widget.h>
+#include <functional>
 #include "kis_colorsmudgeop_settings.h"
+#include "kis_paintop_option.h"
+#include "kis_types.h"
 #include <KisAirbrushOptionWidget.h>
 #include <KisPaintOpOptionWidgetUtils.h>
 #include <KisTextureOptionWidget.h>
@@ -26,6 +33,12 @@
 #include <KisColorSmudgeStandardOptionData.h>
 #include <KisSmudgeRadiusOptionData.h>
 #include <KisZug.h>
+#include <lager/constant.hpp>
+#include <lager/reader.hpp>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qwidget.h>
+#include <tuple>
 
 
 struct KisColorSmudgeOpSettingsWidget::Private

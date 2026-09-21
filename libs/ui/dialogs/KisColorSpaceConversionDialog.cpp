@@ -12,15 +12,21 @@
 #include <QCheckBox>
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 
+#include "KoColorConversionTransformation.h"
 #include "KoColorProfile.h"
 #include "KoColorSpace.h"
 
 #include <KisSqueezedComboBox.h>
+#include <qassert.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtpreprocessorsupport.h>
 
+#include "KoDialog.h"
 #include "kis_image.h"
 #include "kis_layer_utils.h"
+#include "kis_types.h"
 
 KisColorSpaceConversionDialog::KisColorSpaceConversionDialog(QWidget *  parent,
         const char * name)

@@ -5,6 +5,11 @@
  */
 
 #include "kis_spriter_export.h"
+#include "KisExportCheckBase.h"
+#include "KisImportExportErrorCode.h"
+#include "KoColorModelStandardIds.h"
+#include "kis_debug.h"
+#include <kis_paint_device.h>
 
 #include <QApplication>
 #include <QCheckBox>
@@ -15,7 +20,6 @@
 
 #include <kpluginfactory.h>
 
-#include <KoColorSpaceConstants.h>
 #include <KoColorSpaceRegistry.h>
 
 #include <KisExportCheckRegistry.h>
@@ -27,20 +31,21 @@
 #include <kis_layer.h>
 #include <kis_node.h>
 #include <kis_painter.h>
-#include <kis_paint_layer.h>
 #include <kis_shape_layer.h>
-#include <document/kis_file_layer.h>
-#include <kis_clone_layer.h>
-#include <kis_generator_layer.h>
-#include <kis_adjustment_layer.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <kis_types.h>
 #include <kis_png_converter.h>
 #include <kis_global.h> // for KisDegreesToRadians
 #include <kis_fast_math.h>
 #include <math.h>
-#include <kis_dom_utils.h>
 #include <kis_layer_utils.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qtypes.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KisSpriterExportFactory, "krita_spriter_export.json", registerPlugin<KisSpriterExport>();)
 

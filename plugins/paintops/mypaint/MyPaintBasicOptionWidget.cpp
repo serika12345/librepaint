@@ -7,8 +7,14 @@
 
 #include "KisWidgetConnectionUtils.h"
 
+#include "MyPaintBasicOptionData.h"
 #include "MyPaintBasicOptionModel.h"
+#include "kis_paintop_option.h"
+#include "kis_types.h"
 #include "ui_wdgmypaintoptions.h"
+#include <functional>
+#include <lager/cursor.hpp>
+#include <qtypes.h>
 
 
 struct MyPaintBasicOptionWidget::Private

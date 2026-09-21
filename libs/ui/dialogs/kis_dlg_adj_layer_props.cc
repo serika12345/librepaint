@@ -13,6 +13,7 @@
 
 #include <QLineEdit>
 
+#include "KoDialog.h"
 #include "kis_config_widget.h"
 #include "filter/kis_filter.h"
 #include "filter/kis_filter_configuration.h"
@@ -20,7 +21,11 @@
 #include "kis_adjustment_layer.h"
 #include "kis_paint_device.h"
 #include "kis_node_filter_interface.h"
+#include "kis_types.h"
 #include <KisGlobalResourcesInterface.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
+#include <qwidget.h>
 
 KisDlgAdjLayerProps::KisDlgAdjLayerProps(KisNodeSP node,
                                          KisNodeFilterInterface* nfi,

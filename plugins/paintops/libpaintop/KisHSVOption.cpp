@@ -5,11 +5,14 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisHSVOption.h"
+#include "KisCurveOption.h"
+#include "KisCurveOptionData.h"
 
 
 #include <kis_properties_configuration.h>
 #include <kis_paint_information.h>
 #include <KisStandardOptionData.h>
+#include <qtypes.h>
 
 
 KisHSVOption::KisHSVOption(const KisCurveOptionData &data)

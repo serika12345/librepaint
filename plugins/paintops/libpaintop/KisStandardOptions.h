@@ -6,6 +6,8 @@
 #ifndef KISSTANDARDOPTIONS_H
 #define KISSTANDARDOPTIONS_H
 
+#include <QtCore/qtypes.h>
+
 #include <KisCurveOption.h>
 #include "kis_properties_configuration.h"
 
@@ -14,6 +16,8 @@
 
 #include <KisPaintOpOptionUtils.h>
 namespace kpou = KisPaintOpOptionUtils;
+
+class KisPaintInformation;
 
 template <typename Data>
 class KisStandardOption : public KisCurveOption

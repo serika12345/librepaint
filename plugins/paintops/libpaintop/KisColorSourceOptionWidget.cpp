@@ -5,15 +5,25 @@
  */
 #include "KisColorSourceOptionWidget.h"
 
+#include <functional>
+
 #include <QGroupBox>
 #include <QButtonGroup>
 #include <QRadioButton>
 #include <QVBoxLayout>
+#include <QWidget>
+#include <QtCore/qforeach.h>
 
+#include <KLocalizedString>
 #include <KoID.h>
 
+#include <kis_paintop_option.h>
+#include <kis_types.h>
+#include <KisColorSourceOptionData.h>
 #include <KisColorSourceOptionModel.h>
 #include <KisWidgetConnectionUtils.h>
+
+#include <lager/cursor.hpp>
 
 struct KisColorSourceOptionWidget::Private
 {
