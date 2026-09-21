@@ -7,6 +7,8 @@
 
 #include "kis_precision_option.h"
 
+#include <QtCore/qtypes.h>
+
 #include "kis_properties_configuration.h"
 
 KisPrecisionOption::KisPrecisionOption(const KisPropertiesConfiguration *setting)
