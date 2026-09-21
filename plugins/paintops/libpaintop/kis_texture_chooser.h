@@ -7,9 +7,11 @@
 #ifndef _KIS_TEXTURE_CHOOSER_H_
 #define _KIS_TEXTURE_CHOOSER_H_
 
-#include "ui_wdgtexturechooser.h"
+#include <QWidget>
+#include <QtCore/qtmetamacros.h>
 
 #include "KisTextureOptionData.h"
+#include "ui_wdgtexturechooser.h"
 
 class KisTextureChooser : public QWidget, public Ui::KisWdgTextureChooser
 {

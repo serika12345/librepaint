@@ -144,6 +144,8 @@ list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     KisStandardOptions.cpp
     KisTextureOptionData.cpp
     KisTextureOptionModel.cpp
+    KisTextureOptionWidget.cpp
+    kis_texture_chooser.cpp
 )
 
 ki18n_wrap_ui(kritalibpaintop_LIB_SRCS
@@ -156,7 +158,6 @@ ki18n_wrap_ui(kritalibpaintop_LIB_SRCS
     forms/wdgcoloroptions.ui
     forms/wdgbrushchooser.ui
     forms/wdgpredefinedbrushchooser.ui
-    forms/wdgtexturechooser.ui
     forms/wdgflowopacityoption.ui
 )
 
@@ -1488,6 +1489,46 @@ set_target_properties(kritapaintoptextureoptionmodelobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintoptextureoptionwidgetobjects OBJECT
+    KisTextureOptionWidget.cpp
+    kis_texture_chooser.cpp
+)
+ki18n_wrap_ui(kritapaintoptextureoptionwidgetobjects
+    forms/wdgtexturechooser.ui
+)
+target_compile_definitions(kritapaintoptextureoptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintoptextureoptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintoptextureoptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritaimage
+        kritapaintoptextureoptionioobjects
+        kritapaintoptextureoptionmodelobjects
+        kritaresources
+        kritatoolsui
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritaapplicationui
+        kritapigment
+        kritawidgets
+        kritawidgetutils
+)
+set_target_properties(kritapaintoptextureoptionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapaintopsensordataobjects OBJECT
     KisSensorData.cpp
 )
@@ -1704,6 +1745,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintoplightnessstrengthoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintoptextureoptionioobjects>
     $<TARGET_OBJECTS:kritapaintoptextureoptionmodelobjects>
+    $<TARGET_OBJECTS:kritapaintoptextureoptionwidgetobjects>
 )
 generate_export_header(kritalibpaintop BASE_NAME kritapaintop EXPORT_MACRO_NAME PAINTOP_EXPORT)
 

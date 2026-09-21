@@ -1498,7 +1498,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 
 範囲は`plugins/paintops/libpaintop/KisTextureOptionWidget.{h,cpp}`、`kis_texture_chooser.{h,cpp}`、`forms/wdgtexturechooser.ui`とその直接の所有CMake対象に固定する。テクスチャ設定、選択画面、プリセット設定、描画結果と既存CTestは維持する。
 
-- [ ] 公開ヘッダーと実装の直接取込み、直接構築・リンク要件、既存のテクスチャ入力の利用者向け契約を監査する。
+- [x] 公開ヘッダー・選択画面・実装の直接取込みを監査し、テクスチャ設定画面、選択画面、生成UIを`kritapaintoptextureoptionwidgetobjects`へ移す。Qt、画像・資源、テクスチャ値・モデル、paint-op画面基盤、Lagerを公開利用要件として直接接続し、翻訳、アプリケーションUI、色、画面部品を実装専用依存として明示する。MOCは専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 専用画面対象、`kritalibpaintop`、既存のテクスチャ保存・LOD互換性CTest、`verify-quick`をmacOSで成功させる。
+
+### R2-G19bg 色設定画面依存の直接化
+
+目的は、ブラシ設定画面が使う色設定画面を、集約ライブラリーの推移的なQt画面部品と色設定モデル依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisColorOptionWidget.{h,cpp}`、`forms/wdgcoloroptions.ui`とその直接の所有CMake対象に固定する。色設定、設定画面、プリセット設定、描画結果と既存CTestは維持する。
+
+- [ ] 公開ヘッダーと実装の直接取込み、直接構築・リンク要件、既存の色入力の利用者向け契約を監査する。
 
 ### R2-G19av 固定CTestの製品利用要件直接化
 
