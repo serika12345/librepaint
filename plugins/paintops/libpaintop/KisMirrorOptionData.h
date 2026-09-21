@@ -6,10 +6,20 @@
 #ifndef KISMIRROROPTIONDATA_H
 #define KISMIRROROPTIONDATA_H
 
-#include "KisCurveOptionData.h"
+#include <boost/operators.hpp>
 
-#include <KisOptionTuple.h>
-#include <KisPrefixedOptionDataWrapper.h>
+#include <KoID.h>
+
+#include <QString>
+
+#include <KLocalizedString>
+
+#include "KisCurveOptionData.h"
+#include "KisOptionTuple.h"
+#include "KisPrefixedOptionDataWrapper.h"
+#include "kritapaintop_export.h"
+
+class KisPropertiesConfiguration;
 
 struct PAINTOP_EXPORT KisMirrorOptionMixInImpl
     : boost::equality_comparable<KisMirrorOptionMixInImpl>
