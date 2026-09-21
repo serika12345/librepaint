@@ -9,6 +9,10 @@
 #include <boost/operators.hpp>
 #include <kritapaintop_export.h>
 
+#include <QFlags>
+#include <QtCore/qnumeric.h>
+#include <QtCore/qtypes.h>
+
 #include "KisEmbeddedTextureData.h"
 
 class KisPaintopLodLimitations;

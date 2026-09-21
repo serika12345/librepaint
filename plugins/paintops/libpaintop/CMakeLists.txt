@@ -739,29 +739,28 @@ add_library(kritapaintoptextureoptionioobjects OBJECT
 )
 target_compile_definitions(kritapaintoptextureoptionioobjects PRIVATE
     kritaimage_EXPORTS
-    kritapigment_EXPORTS
     kritalibpaintop_EXPORTS
 )
 target_include_directories(kritapaintoptextureoptionioobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment/resources>
-        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/resources>
-        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/resources>
 )
 target_link_libraries(kritapaintoptextureoptionioobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Gui
-        KF${KF_MAJOR}::I18n
+    PRIVATE
         Eigen3::Eigen
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Gui
         ${LINK_OPENEXR_LIB}
 )
 set_target_properties(kritapaintoptextureoptionioobjects PROPERTIES

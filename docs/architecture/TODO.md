@@ -1163,6 +1163,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] `KisTextureOptionLodContractTest`が直接読む埋込みテクスチャ、LOD、外部ライブラリー要件を同試験のCMake定義へ明示する。
 - [x] 対象構築、`kritalibpaintop`、既存の`KisTextureOptionLodContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
 
+### R2-G19x テクスチャ設定入出力依存の直接化
+
+目的は、テクスチャ設定データの公開値型と入出力実装が、画像全体型、パターン完全型、Qt型と外部ライブラリーを推移的な取込みと公開要件から得る状態を解消し、保存済みブラシプリセットの設定結果を維持することである。
+
+範囲は`KisEmbeddedTextureData.{h,cpp}`、`KisEmbeddedTextureDataIO.cpp`、`KisTextureOptionData.{h,cpp}`、公開取込み縮小で露出する直接利用者`KisTextureOptionModel.cpp`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintoptextureoptionioobjects`、試験自身の直接構築要件を記録する`plugins/paintops/libpaintop/tests/CMakeLists.txt`に固定する。既存テストソース、公開API、設定キー、既定値、保存結果を維持する。
+
+- [x] 公開ヘッダーをQString、共有ポインター、Qtフラグ、実数型と比較関数の所有ヘッダーへ直接接続し、画像全体型とパターン完全型を前方宣言へ縮める。
+- [x] パターン完全型を使う実装へ所有ヘッダーを移し、`kritapaintoptextureoptionioobjects`の公開要件をBoost・Qt Coreに限定して設定実装専用要件をprivateへ分離する。
+- [x] 対象構築、`kritalibpaintop`、既存のテクスチャ設定・値・LOD契約、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない

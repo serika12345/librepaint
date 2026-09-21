@@ -7,6 +7,7 @@
 #include "KisEmbeddedTextureData.h"
 
 #include <QFileInfo>
+
 #include <kis_properties_configuration.h>
 
 bool KisEmbeddedTextureData::read(const KisPropertiesConfiguration *setting)
