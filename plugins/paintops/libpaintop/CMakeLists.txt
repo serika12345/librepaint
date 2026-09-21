@@ -437,14 +437,13 @@ add_library(kritapaintoppaintingmodeoptiondataobjects OBJECT
     KisPaintingModeOptionData.cpp
 )
 target_compile_definitions(kritapaintoppaintingmodeoptiondataobjects PRIVATE
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
 )
 target_include_directories(kritapaintoppaintingmodeoptiondataobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
@@ -455,6 +454,7 @@ target_include_directories(kritapaintoppaintingmodeoptiondataobjects
 target_link_libraries(kritapaintoppaintingmodeoptiondataobjects
     PUBLIC
         Boost::boost
+    PRIVATE
         KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
