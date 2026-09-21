@@ -5,6 +5,13 @@
  */
 
 #include "MyPaintPaintOpSettings.h"
+#include "KisPaintopPropertiesBase.h"
+#include "MyPaintSensorPack.h"
+#include "kis_current_outline_fetcher.h"
+#include "kis_global.h"
+#include "kis_outline_generation_policy.h"
+#include "kis_paint_information.h"
+#include "kis_paintop_settings.h"
 
 #include <cmath>
 #include <QPainterPath>
@@ -13,6 +20,9 @@
 #include <MyPaintStandardOptionData.h>
 
 #include <KisValueCache.h>
+#include <qcontainerfwd.h>
+#include <qminmax.h>
+#include <qtypes.h>
 
 
 struct KisMyPaintOpSettings::Private

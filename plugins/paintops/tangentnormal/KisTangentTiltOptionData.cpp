@@ -6,6 +6,7 @@
 #include "KisTangentTiltOptionData.h"
 
 #include "kis_properties_configuration.h"
+#include <qhashfunctions.h>
 
 
 const QString TANGENT_RED = "Tangent/swizzleRed";

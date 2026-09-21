@@ -5,6 +5,9 @@
  */
 
 #include "kis_cage_transform_strategy.h"
+#include "KisQStringListFwd.h"
+#include "kis_simplified_action_policy_strategy.h"
+#include "kis_warp_transform_strategy.h"
 #include "tool_transform_args.h"
 
 #include <QPointF>
@@ -12,6 +15,7 @@
 
 #include "kis_painting_tweaks.h"
 #include <kis_cage_transform_worker.h>
+#include <qminmax.h>
 
 
 struct KisCageTransformStrategy::Private

@@ -5,6 +5,7 @@
  */
 #include "SvgChangeTextPaddingMarginStrategy.h"
 
+#include "KisHandleStyle.h"
 #include "SvgTextTool.h"
 #include <KoPathShape.h>
 #include <KoPathSegment.h>
@@ -16,6 +17,16 @@
 #include "SvgTextMergePropertiesRangeCommand.h"
 
 #include <kis_global.h>
+#include <limits>
+#include <optional>
+#include <qforeach.h>
+#include <qline.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qpainterpath.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 SvgChangeTextPaddingMarginStrategy::SvgChangeTextPaddingMarginStrategy(SvgTextTool *tool, KoSvgTextShape *shape, const QPointF &clicked)
     : KoInteractionStrategy(tool)

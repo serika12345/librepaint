@@ -11,12 +11,15 @@
 #include <QRect>
 
 #include <kis_image.h>
-#include <kis_debug.h>
 #include "kis_paint_device.h"
 #include "kis_painter.h"
 #include "kis_types.h"
 #include "kis_spacing_information.h"
 #include <kis_lod_transform.h>
+#include <qassert.h>
+#include <qnamespace.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <kis_paintop_settings.h>
 
 

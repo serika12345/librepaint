@@ -12,7 +12,10 @@
 
 #include <KoShape.h>
 #include <KoSelection.h>
-#include <KoResourcePaths.h>
+#include "KisHandleStyle.h"
+#include "KisQStringListFwd.h"
+#include "KoFlake.h"
+#include "defaulttool/KoShapeMeshGradientHandles.h"
 #include "kis_algebra_2d.h"
 
 #include <KisHandlePainterHelper.h>
@@ -20,9 +23,12 @@
 #include <KisQPainterStateSaver.h>
 #include "KoShapeGradientHandles.h"
 #include <KoCanvasBase.h>
-#include <KoSvgTextShape.h>
 #include <KoColorDisplayRendererInterface.h>
+#include <qbrush.h>
+#include <qforeach.h>
+#include <qlist.h>
 
+#include "kis_assert.h"
 #include "kis_painting_tweaks.h"
 
 

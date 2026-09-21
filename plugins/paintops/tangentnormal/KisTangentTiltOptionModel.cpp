@@ -4,8 +4,11 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "KisTangentTiltOptionModel.h"
+#include "KisTangentTiltOptionData.h"
 
 #include <KisLager.h>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
 
 using namespace KisWidgetConnectionUtils;
 

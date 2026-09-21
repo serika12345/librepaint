@@ -8,13 +8,26 @@
 
 #include <QtMath>
 
+#include "KoCanvasResourcesIds.h"
 #include "kis_algebra_2d.h"
+#include "kis_assert.h"
+#include "kis_global.h"
+#include "kis_image_interfaces.h"
+#include "kis_paint_information.h"
 #include "kis_painting_information_builder.h"
 #include "kis_image.h"
 #include "kis_smoothing_options.h"
+#include "kis_tool_freehand_helper.h"
+#include "kis_types.h"
 
 #include <KoCanvasResourceProvider.h>
 #include <brushengine/kis_paintop_preset.h>
+#include <cmath>
+#include <cstdlib>
+#include <qcontainerfwd.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qtypes.h>
 
 struct KisToolLineHelper::Private
 {

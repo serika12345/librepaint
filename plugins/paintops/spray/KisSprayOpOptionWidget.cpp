@@ -10,13 +10,21 @@
 #include <QButtonGroup>
 #include <QMetaProperty>
 
-#include <lager/constant.hpp>
+#include <functional>
+#include "KisAngleGauge.h"
+#include "KisWidgetConnectionUtils.h"
+#include "kis_paintop_option.h"
+#include "kis_types.h"
 #include "ui_wdgsprayoptions.h"
 
 #include "KisSprayOpOptionModel.h"
 #include <KisSpinBoxI18nHelper.h>
 #include "kis_curve_widget.h"
 #include <KisCurveWidgetConnectionHelper.h>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <qtypes.h>
+#include <qwidget.h>
 
 namespace {
 

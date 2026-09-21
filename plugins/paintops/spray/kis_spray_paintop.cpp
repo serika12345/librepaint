@@ -5,21 +5,26 @@
  */
 
 #include "kis_spray_paintop.h"
+#include "KisPaintopPropertiesBase.h"
+#include "kis_debug.h"
 
 
 #include <QRect>
-#include <kis_global.h>
 #include <kis_paint_device.h>
 #include <kis_painter.h>
 #include <kis_types.h>
 #include <brushengine/kis_paintop.h>
 #include <kis_node.h>
 
-#include <kis_fixed_paint_device.h>
 #include <kis_brush_option.h>
+#include <kis_fixed_paint_device.h>
 #include <kis_lod_transform.h>
 #include <kis_paintop_plugin_utils.h>
 #include <KoResourceLoadResult.h>
+#include <qassert.h>
+#include <qlist.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 KisSprayPaintOp::KisSprayPaintOp(const KisPaintOpSettingsSP settings, KisPainter *painter, KisNodeSP node, KisImageSP image)

@@ -10,10 +10,15 @@
 #include <QButtonGroup>
 #include <QMetaProperty>
 
-#include <lager/constant.hpp>
+#include <functional>
+#include "KisWidgetConnectionUtils.h"
+#include "kis_paintop_option.h"
+#include "kis_types.h"
 #include "ui_wdggridoptions.h"
 
 #include <KisSpinBoxI18nHelper.h>
+#include <lager/cursor.hpp>
+#include <qwidget.h>
 #include "KisGridOpOptionModel.h"
 
 namespace {

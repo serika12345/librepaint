@@ -11,6 +11,14 @@
 #include "DefaultTool.h"
 #include "DefaultToolGeometryWidget.h"
 #include "DefaultToolTabbedWidget.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KoCanvasResourcesIds.h"
+#include "KoFlake.h"
+#include "KoShapeAlignCommand.h"
+#include "KoShapeReorderCommand.h"
+#include "KoSvgText.h"
+#include "KoSvgTextShapeOutlineHelper.h"
 #include "SelectionDecorator.h"
 #include "ShapeMoveStrategy.h"
 #include "ShapeRotateStrategy.h"
@@ -25,13 +33,13 @@
 #include <KoShapeManager.h>
 #include <KoSelectedShapesProxy.h>
 #include <KoShapeGroup.h>
-#include <KoShapeLayer.h>
 #include <KoPathShape.h>
 #include <KoDrag.h>
 #include <KoCanvasBase.h>
 #include <KoCanvasResourceProvider.h>
 #include <KoShapeRubberSelectStrategy.h>
 #include <KoSvgTextShape.h>
+#include <algorithm>
 #include <commands/KoShapeMoveCommand.h>
 #include <commands/KoShapeTransformCommand.h>
 #include <commands/KoShapeDeleteCommand.h>
@@ -49,7 +57,11 @@
 
 #include <KoSnapGuide.h>
 #include <KoStrokeConfigWidget.h>
+#include "kis_command_utils.h"
+#include "kis_floating_message.h"
 #include "kis_node.h"
+#include "kis_pointer_utils.h"
+#include "kundo2magicstring.h"
 #include "nodes/kis_node_manager.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_canvas2.h"
@@ -60,7 +72,6 @@
 #include <KisHandlePainterHelper.h>
 
 
-#include <KoIcon.h>
 
 #include <QPainterPath>
 #include <QPointer>
@@ -69,18 +80,32 @@
 #include <QTimer>
 #include <QActionGroup>
 #include <KisSignalMapper.h>
-#include <KoResourcePaths.h>
 
 #include <KoCanvasController.h>
 #include <kactioncollection.h>
 #include <QMenu>
 
+#include <limits>
 #include <math.h>
 #include "kis_assert.h"
 #include "kis_global.h"
 #include "krita_utils.h"
 
 #include <QVector2D>
+#include <qassert.h>
+#include <qflags.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qset.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <utility>
 
 #define HANDLE_DISTANCE 10
 #define HANDLE_DISTANCE_SQ (HANDLE_DISTANCE * HANDLE_DISTANCE)
@@ -172,7 +197,6 @@ public:
         tool()->canvas()->updateCanvas(selectedRectangle() | tool()->decorationsRect());
     }
 };
-#include <KoGradientBackground.h>
 #include "KoShapeGradientHandles.h"
 #include "ShapeGradientEditStrategy.h"
 

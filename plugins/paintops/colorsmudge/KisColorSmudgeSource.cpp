@@ -6,9 +6,12 @@
 
 #include "KisColorSmudgeSource.h"
 
+#include "kis_assert.h"
 #include "kis_paint_device.h"
 #include "kis_image.h"
 #include "KisOverlayPaintDeviceWrapper.h"
+#include "kis_types.h"
+#include <qtypes.h>
 
 void KisColorSmudgeSource::readRect(const QRect &rect) {
     readRects({rect});

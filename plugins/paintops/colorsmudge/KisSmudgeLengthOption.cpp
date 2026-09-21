@@ -4,8 +4,9 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisSmudgeLengthOption.h"
+#include "KisCurveOption.h"
+#include "KisSmudgeLengthOptionData.h"
 
-#include <kis_painter.h>
 
 #include <KisPaintOpOptionUtils.h>
 namespace kpou = KisPaintOpOptionUtils;

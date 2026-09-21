@@ -12,6 +12,7 @@
 #include "kis_tool_transform.h"
 
 
+#include <kconfiggroup.h>
 #include <math.h>
 
 #include <QPainter>
@@ -26,12 +27,9 @@
 #include <ksharedconfig.h>
 
 #include <KoPointerEvent.h>
-#include <KoID.h>
 #include <KoCanvasBase.h>
 #include <KoViewConverter.h>
-#include <KoSelection.h>
 #include <KoToolManager.h>
-#include <KoCompositeOp.h>
 #include <KisCursorOverrideLock.h>
 
 #include <kis_global.h>
@@ -40,17 +38,18 @@
 #include <kis_painter.h>
 #include <kis_cursor.h>
 #include <kis_image.h>
-#include <kis_undo_adapter.h>
-#include <kis_transaction.h>
 #include <kis_selection.h>
-#include <kis_filter_strategy.h>
-#include <widgets/kis_cmb_idlist.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <canvas/kis_statusbar.h>
 #include <kis_transform_worker.h>
-#include <kis_perspectivetransform_worker.h>
 #include <kis_warptransform_worker.h>
-#include <kis_pixel_selection.h>
-#include <kis_shape_selection.h>
 #include <selection/kis_selection_manager.h>
 #include <krita_utils.h>
 #include <kis_resources_snapshot.h>
@@ -60,9 +59,17 @@
 #include <KoCanvasController.h>
 #include <kis_display_color_converter.h>
 
+#include "KisToolChangesTrackerData.h"
+#include "KisToolPaintFactoryBase.h"
 #include "kis_action_registry.h"
 
 
+#include "kis_assert.h"
+#include "kis_floating_message.h"
+#include "kis_icon.h"
+#include "kis_pointer_utils.h"
+#include "kis_stroke_strategy.h"
+#include "kis_tool.h"
 #include "kis_transform_utils.h"
 #include "kis_warp_transform_strategy.h"
 #include "kis_cage_transform_strategy.h"
@@ -75,7 +82,6 @@
 #include "kis_transform_mask_adapter.h"
 
 #include "kis_layer_utils.h"
-#include <KisDelayedUpdateNodeInterface.h>
 #include "kis_config_notifier.h"
 
 #include "strokes/transform_stroke_strategy.h"

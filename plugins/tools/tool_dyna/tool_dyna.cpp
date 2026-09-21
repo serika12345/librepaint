@@ -8,18 +8,16 @@
 
 #include "tool_dyna.h"
 
+#include <qcontainerfwd.h>
+#include <qobject.h>
 #include <stdlib.h>
 
 #include <QPoint>
 
 #include <klocalizedstring.h>
 
-#include <kis_debug.h>
-#include <kis_paint_device.h>
 #include <kpluginfactory.h>
 
-#include <kis_global.h>
-#include <kis_types.h>
 #include <KoToolRegistry.h>
 
 

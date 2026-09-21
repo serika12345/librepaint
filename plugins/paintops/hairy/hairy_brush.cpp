@@ -5,6 +5,12 @@
  */
 
 #include "hairy_brush.h"
+#include "KoColorSpaceConstants.h"
+#include "KoCompositeOpIds.h"
+#include "bristle.h"
+#include "kis_debug.h"
+#include "kis_paint_information.h"
+#include "kis_random_source.h"
 
 #include <KoColor.h>
 #include <KoColorSpace.h>
@@ -14,6 +20,7 @@
 #include <QVariant>
 #include <QVector>
 
+#include <cstring>
 #include <kis_types.h>
 #include <kis_random_accessor_ng.h>
 #include <kis_cross_device_color_sampler.h>
@@ -23,6 +30,10 @@
 
 #include <cmath>
 #include <ctime>
+#include <qalgorithms.h>
+#include <qnumeric.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 HairyBrush::HairyBrush()

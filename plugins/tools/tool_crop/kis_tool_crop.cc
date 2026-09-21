@@ -10,6 +10,9 @@
  */
 
 #include "kis_tool_crop.h"
+#include "kis_assert.h"
+#include "kis_tool.h"
+#include "ui/orchestration/kis_action.h"
 
 
 #include <QCheckBox>
@@ -19,28 +22,33 @@
 #include <QRect>
 #include <QMenu>
 
-#include <kis_debug.h>
 #include <klocalizedstring.h>
 #include <ksharedconfig.h>
 
 #include <KoCanvasBase.h>
-#include <kis_global.h>
 #include <kis_painter.h>
 #include <kis_cursor.h>
 #include <kis_image.h>
+#include <kis_node.h>
 #include <kis_undo_adapter.h>
 #include <KoPointerEvent.h>
 #include <kis_selection.h>
-#include <kis_layer.h>
 #include <kis_canvas2.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_floating_message.h>
-#include <kis_group_layer.h>
 #include <kis_resources_snapshot.h>
 
 #include <kundo2command.h>
 #include <kis_crop_saved_extra_data.h>
 #include <kis_display_color_converter.h>
+#include <qassert.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 struct DecorationLine

@@ -25,14 +25,23 @@
 #include <KisSpinBoxI18nHelper.h>
 #include <kis_color_button.h>
 
-#include <kis_debug.h>
 #include <klocalizedstring.h>
 #include <ksharedconfig.h>
 
+#include "KisSelectionTags.h"
+#include "KoColorSpaceConstants.h"
 #include "KoPointerEvent.h"
 #include "KoViewConverter.h"
 
+#include "commands_new/KisMergeLabeledLayersCommand.h"
+#include "kis_assert.h"
 #include "kis_cursor.h"
+#include "kis_default_bounds.h"
+#include "kis_icon_utils.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_tool_select_ui_base.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 #include "selection/kis_selection_manager.h"
 #include "kis_image.h"
 #include "canvas/kis_canvas2.h"
@@ -44,9 +53,13 @@
 #include "kis_slider_spin_box.h"
 #include "kis_image.h"
 #include "kis_processing_applicator.h"
-#include <processing/fill_processing_visitor.h>
 #include <kis_image_animation_interface.h>
 #include <KisCursorOverrideLock.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qsizepolicy.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 #include "kis_command_utils.h"
 

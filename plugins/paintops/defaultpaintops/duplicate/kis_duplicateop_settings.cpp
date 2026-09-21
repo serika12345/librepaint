@@ -9,6 +9,9 @@
  */
 
 #include "kis_duplicateop_settings.h"
+#include "kis_brush_based_paintop_settings.h"
+#include "kis_paintop_settings.h"
+#include "kis_types.h"
 
 #include <QDomElement>
 #include <QPainterPath>
@@ -25,6 +28,14 @@
 #include <kis_paint_information.h>
 #include <kis_pointer_utils.h>
 #include <kis_properties_configuration.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qpoint.h>
+#include <qpointer.h>
+#include <qtypes.h>
 
 KisDuplicateOpSettings::KisDuplicateOpSettings(KisResourcesInterfaceSP resourcesInterface)
     : KisBrushBasedPaintOpSettings(resourcesInterface),

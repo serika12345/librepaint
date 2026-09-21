@@ -7,17 +7,38 @@
 #include <QVector3D>
 #include "kis_tool_transform_config_widget.h"
 
-#include <kis_icon.h>
+#include <cmath>
+#include <kconfiggroup.h>
+#include <kguiitem.h>
+#include "KisAngleGauge.h"
+#include "KisQStringListFwd.h"
+#include "KoID.h"
+#include "kis_assert.h"
 #include "kis_canvas2.h"
 #include <KisSignalMapper.h>
+#include "kis_global.h"
+#include "kis_icon_utils.h"
 #include "kis_liquify_properties.h"
 
 #include "application/ui/workspace/KisMainWindow.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_transform_utils.h"
+#include "kis_warptransform_worker.h"
+#include "ui_wdg_tool_transform.h"
 #include <kstandardguiitem.h>
 #include <ksharedconfig.h>
 #include <KisSpinBoxI18nHelper.h>
+#include <math.h>
+#include <qassert.h>
+#include <qbuttongroup.h>
+#include <qhashfunctions.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 template<typename T> inline T sign(T x) {

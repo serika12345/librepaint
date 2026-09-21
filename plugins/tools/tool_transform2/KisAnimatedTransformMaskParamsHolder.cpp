@@ -7,13 +7,28 @@
  */
 
 #include "KisAnimatedTransformMaskParamsHolder.h"
+#include "kis_assert.h"
+#include "kis_default_bounds_base.h"
+#include "kis_global.h"
+#include "kis_pointer_utils.h"
 #include "kis_scalar_keyframe_channel.h"
+#include "kis_transform_mask_adapter.h"
+#include "kis_transform_mask_params_interface.h"
+#include "kis_types.h"
+#include "kundo2stack.h"
 #include "tool_transform_args.h"
 #include "kis_transform_utils.h"
 #include <QHash>
 
 #include <kis_lod_transform.h>
 #include <kis_lod_capable_layer_offset.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qpoint.h>
+#include <qsharedpointer.h>
+#include <qtransform.h>
+#include <qtypes.h>
+#include <utility>
 #include "KisChangeValueCommand.h"
 
 namespace KisLodSwitchingWrapperDetail

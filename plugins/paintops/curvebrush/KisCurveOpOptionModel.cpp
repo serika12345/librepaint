@@ -4,8 +4,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisCurveOpOptionModel.h"
+#include "KisCurveOpOptionData.h"
 
 #include <KisLager.h>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <qtypes.h>
 
 
 KisCurveOpOptionModel::KisCurveOpOptionModel(lager::cursor<KisCurveOpOptionData> _optionData)

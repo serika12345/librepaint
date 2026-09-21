@@ -6,15 +6,18 @@
 
 #include "KisToolKnife.h"
 
+#include "KoInteractionStrategy.h"
+#include "KoInteractionTool.h"
 #include "QApplication"
 #include "QPainterPath"
 
 #include <klocalizedstring.h>
-#include <KoColor.h>
 #include <KoPointerEvent.h>
 #include <application/ui/workspace/KisViewManager.h>
+#include "kis_assert.h"
 #include "kis_canvas2.h"
 #include "kis_cursor.h"
+#include "kis_floating_message.h"
 #include "kis_image.h"
 #include "kis_painter.h"
 #include "kis_shape_layer.h"
@@ -23,7 +26,6 @@
 
 #include "canvas/kis_canvas_resource_provider.h"
 
-#include <KisCursorOverrideLock.h>
 
 #include "KisToolKnifeOptionsWidget.h"
 
@@ -33,8 +35,15 @@
 #include "RemoveGutterStrategy.h"
 
 #include "kis_algebra_2d.h"
-#include <KoSelection.h>
 #include <KoShapeManager.h>
+#include <qcolor.h>
+#include <qline.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qset.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 struct KisToolKnife::Private {

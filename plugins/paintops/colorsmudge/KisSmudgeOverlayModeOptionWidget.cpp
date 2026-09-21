@@ -4,6 +4,10 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisSmudgeOverlayModeOptionWidget.h"
+#include "KisSmudgeOverlayModeOptionData.h"
+#include "KoID.h"
+#include "kis_paintop_option.h"
+#include "kis_types.h"
 
 #include <QWidget>
 #include <QLabel>
@@ -11,9 +15,13 @@
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 
+#include <functional>
 #include <kis_paintop_lod_limitations.h>
 #include <KisSmudgeOverlayModeOptionModel.h>
 #include <KisWidgetConnectionUtils.h>
+#include <lager/cursor.hpp>
+#include <lager/reader.hpp>
+#include <qnamespace.h>
 
 struct KisSmudgeOverlayModeOptionWidget::Private
 {

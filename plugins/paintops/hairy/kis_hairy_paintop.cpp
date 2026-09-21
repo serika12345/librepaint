@@ -10,11 +10,11 @@
 
 #include <kis_image.h>
 #include <kis_node.h>
-#include <kis_debug.h>
 
+#include "KisPaintopPropertiesBase.h"
+#include "KisPerStrokeRandomSource.h"
 #include "kis_paint_device.h"
 #include "kis_painter.h"
-#include <kis_vec.h>
 
 #include "KisHairyInkOptionData.h"
 #include "KisHairyBristleOptionData.h"
@@ -24,9 +24,15 @@
 #include <kis_lod_transform.h>
 #include <kis_spacing_information.h>
 #include <KoResourceLoadResult.h>
+#include <qassert.h>
+#include <qlist.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 #include "kis_brush.h"
+#include "kis_random_source.h"
+#include "kis_types.h"
 
 KisHairyPaintOp::KisHairyPaintOp(const KisPaintOpSettingsSP settings, KisPainter * painter, KisNodeSP node, KisImageSP image)
     : KisPaintOp(painter)

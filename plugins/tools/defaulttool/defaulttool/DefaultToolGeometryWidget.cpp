@@ -23,6 +23,10 @@
 #include <commands/KoShapeKeepAspectRatioCommand.h>
 #include <commands/KoShapeTransparencyCommand.h>
 #include <commands/KoShapePaintOrderCommand.h>
+#include "KisQStringListFwd.h"
+#include "KoCanvasResourcesIds.h"
+#include "KoFlake.h"
+#include "KoID.h"
 #include "SelectionDecorator.h"
 #include <KoShapeGroup.h>
 
@@ -38,8 +42,14 @@
 
 #include "kis_aspect_ratio_locker.h"
 #include "kis_acyclic_signal_connector.h"
+#include "kis_icon_utils.h"
 #include "kis_signals_blocker.h"
-#include <kis_canvas2.h>
+#include <qevent.h>
+#include <qforeach.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 DefaultToolGeometryWidget::DefaultToolGeometryWidget(KoInteractionTool *tool, QWidget *parent)

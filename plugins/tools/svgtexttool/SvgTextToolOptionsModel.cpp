@@ -4,6 +4,13 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "SvgTextToolOptionsModel.h"
+#include "SvgTextToolOptionsData.h"
+#include <functional>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/watch.hpp>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 SvgTextToolOptionsModel::SvgTextToolOptionsModel(const QString &configName, lager::cursor<SvgTextToolOptionsData> _data, QObject *parent)
     : QObject{parent}

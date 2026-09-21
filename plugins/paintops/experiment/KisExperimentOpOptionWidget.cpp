@@ -9,7 +9,14 @@
 
 #include <QButtonGroup>
 
-#include <lager/constant.hpp>
+#include <functional>
+#include "KisExperimentOpOptionData.h"
+#include "KisWidgetConnectionUtils.h"
+#include "kis_paintop_option.h"
+#include "kis_types.h"
+#include <lager/cursor.hpp>
+#include <qhashfunctions.h>
+#include <qwidget.h>
 #include "ui_wdgexperimentoptions.h"
 
 #include "KisExperimentOpOptionModel.h"

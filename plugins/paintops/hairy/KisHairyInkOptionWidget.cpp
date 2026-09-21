@@ -5,12 +5,17 @@
  */
 #include "KisHairyInkOptionWidget.h"
 
-#include <lager/constant.hpp>
+#include <functional>
+#include "KisWidgetConnectionUtils.h"
+#include "kis_paintop_option.h"
+#include "kis_types.h"
 #include "ui_wdgInkOptions.h"
 
 #include "KisHairyInkOptionModel.h"
 #include "KisCurveWidgetConnectionHelper.h"
 #include <KisSpinBoxI18nHelper.h>
+#include <lager/cursor.hpp>
+#include <qwidget.h>
 
 namespace {
 

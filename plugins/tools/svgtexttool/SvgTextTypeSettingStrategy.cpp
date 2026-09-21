@@ -5,6 +5,10 @@
  */
 
 #include "SvgTextTypeSettingStrategy.h"
+#include "KisQStringListFwd.h"
+#include "KoInteractionStrategy.h"
+#include "KoSvgText.h"
+#include "KoSvgTextShape.h"
 #include "SvgTextCursor.h"
 #include "SvgTextChangeTransformsOnRange.h"
 #include "SvgTextMergePropertiesRangeCommand.h"
@@ -13,10 +17,19 @@
 #include <KoToolBase.h>
 #include <KoCanvasBase.h>
 #include "KoSnapGuide.h"
+#include "kis_global.h"
 #include <QVector2D>
+#include <cmath>
 #include <kis_algebra_2d.h>
 #include <QDebug>
 #include <KoViewConverter.h>
+#include <qforeach.h>
+#include <qline.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qset.h>
+#include <qtypes.h>
 
 SvgTextTypeSettingStrategy::SvgTextTypeSettingStrategy(KoToolBase *tool, KoSvgTextShape *textShape, SvgTextCursor *textCursor, const QRectF &regionOfInterest, Qt::KeyboardModifiers modifiers)
     : KoInteractionStrategy(tool)

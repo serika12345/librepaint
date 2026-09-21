@@ -6,8 +6,19 @@
 
 
 #include "kis_tool_movetooloptionswidget.h"
+#include "KisResourceTypes.h"
+#include "kis_tool_move.h"
 #include <ksharedconfig.h>
 #include <KoUnit.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 
 MoveToolOptionsWidget::MoveToolOptionsWidget(QWidget *parent, int resolution, QString toolId)

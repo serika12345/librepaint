@@ -7,6 +7,7 @@
 #include "KisCurveOpOptionData.h"
 
 #include "kis_properties_configuration.h"
+#include <qhashfunctions.h>
 
 // new rewrite
 const QString CURVE_LINE_WIDTH = "Curve/lineWidth"; // same as in sketch

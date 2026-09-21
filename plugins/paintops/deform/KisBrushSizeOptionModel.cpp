@@ -4,8 +4,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisBrushSizeOptionModel.h"
+#include "KisBrushSizeOptionData.h"
 
 #include <KisLager.h>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <qtypes.h>
 
 using namespace KisWidgetConnectionUtils;
 

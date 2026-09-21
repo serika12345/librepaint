@@ -10,6 +10,8 @@
 #include <KoToolRegistry.h>
 
 #include <kpluginfactory.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(DefaultToolPluginFactory, "calligra_tool_defaults.json", registerPlugin<Plugin>();)
 

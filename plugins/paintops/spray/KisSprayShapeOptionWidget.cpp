@@ -12,9 +12,15 @@
 #include <QMetaMethod>
 
 #include <KisImportExportManager.h>
+#include "KisWidgetConnectionUtils.h"
 #include "kis_aspect_ratio_locker.h"
 
-#include <lager/constant.hpp>
+#include <functional>
+#include "kis_paintop_option.h"
+#include "kis_types.h"
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <qtypes.h>
 #include "ui_wdgsprayshapeoptions.h"
 #include "kis_signals_blocker.h"
 

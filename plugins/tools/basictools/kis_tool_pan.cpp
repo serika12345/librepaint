@@ -7,14 +7,20 @@
 #include <QKeyEvent>
 
 #include "kis_tool_pan.h"
+#include "KoToolBase.h"
+#include "KoToolFactoryBase.h"
 #include "kis_cursor.h"
 #include "kis_canvas2.h"
+#include "kis_tool.h"
 
 #include <KoCanvasController.h>
 #include <KoPointerEvent.h>
 
 #include <KoIcon.h>
 #include <klocalizedstring.h>
+#include <qnamespace.h>
+#include <qpainter.h>
+#include <qtpreprocessorsupport.h>
 
 
 KisToolPan::KisToolPan(KoCanvasBase *canvas)

@@ -6,10 +6,17 @@
 
 #include "KisBrushOpResources.h"
 
+#include "KisDabCacheUtils.h"
+#include "KisTextureOptionData.h"
+#include "kis_assert.h"
 #include "kis_brush.h"
 
 #include <KoColorSpace.h>
 #include <KoColorTransformation.h>
+#include <qalgorithms.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qlist.h>
 
 #include "kis_color_source.h"
 #include "kis_color_source_option.h"
@@ -20,6 +27,7 @@
 #include "kis_texture_option.h"
 #include "kis_painter.h"
 #include "kis_paintop_settings.h"
+#include "kis_types.h"
 
 struct KisBrushOpResources::Private
 {

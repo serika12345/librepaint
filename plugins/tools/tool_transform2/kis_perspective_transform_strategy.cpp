@@ -7,6 +7,7 @@
 
 #include "kis_perspective_transform_strategy.h"
 
+#include <Eigen/Core>
 #include <QPointF>
 #include <QPainter>
 #include <QPainterPath>
@@ -14,9 +15,22 @@
 #include <QVector2D>
 
 #include <Eigen/Dense>
+#include <qforeach.h>
+#include <qimage.h>
+#include <qline.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
+#include "KisQStringListFwd.h"
 #include "KoColorDisplayRendererInterface.h"
+#include "kis_algebra_2d.h"
+#include "kis_assert.h"
 #include "kis_coordinates_converter.h"
+#include "kis_global.h"
+#include "kis_simplified_action_policy_strategy.h"
 #include "tool_transform_args.h"
 #include "transform_transaction_properties.h"
 #include "krita_utils.h"

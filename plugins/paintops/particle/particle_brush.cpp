@@ -6,15 +6,21 @@
 
 #include "particle_brush.h"
 
+#include "KoColorSpaceConstants.h"
 #include "kis_paint_device.h"
 #include "kis_random_accessor_ng.h"
+#include "kis_types.h"
 
 #include <KoColorSpace.h>
 #include <KoColor.h>
 
+#include <cstring>
 #include <kis_global.h>
 
 #include <math.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qtypes.h>
 
 const qreal TIME = 0.000030;
 

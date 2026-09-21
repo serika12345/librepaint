@@ -4,9 +4,17 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "GlyphPaletteProxyModel.h"
+#include "KoFontGlyphModel.h"
 #include <KLocalizedString>
 #include <QDebug>
 #include <data/KoUnicodeBlockData.h>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qobject.h>
+#include <qsortfilterproxymodel.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 struct GlyphPaletteProxyModel::Private {
     KoUnicodeBlockData block{KoUnicodeBlockDataFactory::noBlock()};

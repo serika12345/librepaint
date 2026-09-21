@@ -9,8 +9,19 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
 
 #include "KisLassoEnclosingProducer.h"
+#include "KisQStringListFwd.h"
+#include "KisToolOutlineBase.h"
+#include "kis_cursor.h"
+#include "kis_painter.h"
+#include "kis_pixel_selection.h"
+#include "kis_types.h"
+#include "subtools/KisDynamicDelegatedTool.h"
 
 KisLassoEnclosingProducer::KisLassoEnclosingProducer(KoCanvasBase * canvas)
     : KisDynamicDelegateTool<KisToolOutlineBase>(canvas, KisToolOutlineBase::PAINT, KisCursor::loadWithSize("tool_outline_selection_cursor.svg", 32, 32, 5, 5))

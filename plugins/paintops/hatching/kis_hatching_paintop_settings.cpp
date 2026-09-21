@@ -6,6 +6,17 @@
  */
 
 #include "kis_hatching_paintop_settings.h"
+#include "KisPaintopPropertiesBase.h"
+#include "kis_brush_based_paintop_settings.h"
+#include "kis_paintop_settings.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
+#include "kis_uniform_paintop_property.h"
+#include "ui_wdghatchingpreferences.h"
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 struct KisHatchingPaintOpSettings::Private
 {

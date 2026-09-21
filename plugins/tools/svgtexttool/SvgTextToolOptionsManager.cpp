@@ -4,6 +4,9 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "SvgTextToolOptionsManager.h"
+#include "SvgTextToolOptionsModel.h"
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 struct SvgTextToolOptionsManager::Private
 {

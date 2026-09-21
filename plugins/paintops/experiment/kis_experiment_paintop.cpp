@@ -6,15 +6,16 @@
  */
 
 #include "kis_experiment_paintop.h"
+#include "KisExperimentOpOptionData.h"
+#include "KoCompositeOpIds.h"
+#include "kis_types.h"
 
 #include <cmath>
 
 #include <QPainterPath>
 
-#include <KoCompositeOpRegistry.h>
 #include <KisRegion.h>
 
-#include <kis_debug.h>
 
 #include <kis_paint_device.h>
 #include <kis_painter.h>
@@ -22,6 +23,11 @@
 #include <kis_spacing_information.h>
 #include <krita_utils.h>
 #include <kis_algebra_2d.h>
+#include <qforeach.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 KisExperimentPaintOp::KisExperimentPaintOp(const KisPaintOpSettingsSP settings, KisPainter *painter, KisNodeSP node, KisImageSP image)

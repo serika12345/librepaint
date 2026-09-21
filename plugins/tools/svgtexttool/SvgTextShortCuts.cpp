@@ -4,10 +4,18 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "SvgTextShortCuts.h"
+#include "KoSvgText.h"
 #include <QAction>
 #include <KoSvgTextProperties.h>
 
 #include <KisStaticInitializer.h>
+#include <boost/operators.hpp>
+#include <qcontainerfwd.h>
+#include <qfont.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qtversionchecks.h>
+#include <qvariant.h>
 
 /**
  * @brief The SvgTextShortcutInfo class

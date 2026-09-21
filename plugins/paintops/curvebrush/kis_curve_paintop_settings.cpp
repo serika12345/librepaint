@@ -5,7 +5,18 @@
  */
 #include <kis_curve_paintop_settings.h>
 #include <KisPaintingModeOptionData.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include "KisCurveOpOptionData.h"
+#include "KoID.h"
+#include "kis_paintop_settings.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
+#include "kis_uniform_paintop_property.h"
 
 struct KisCurvePaintOpSettings::Private
 {

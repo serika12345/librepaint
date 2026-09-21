@@ -4,8 +4,12 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "SvgSelectTextStrategy.h"
+#include "KoInteractionStrategy.h"
 #include "SvgTextCursor.h"
 #include <QDebug>
+#include <qnamespace.h>
+#include <qpoint.h>
+#include <qtpreprocessorsupport.h>
 
 SvgSelectTextStrategy::SvgSelectTextStrategy(KoToolBase *tool, SvgTextCursor *cursor, const QPointF &clicked, Qt::KeyboardModifiers modifiers)
     : KoInteractionStrategy(tool)

@@ -8,8 +8,9 @@
 
 #include <kpluginfactory.h>
 
-#include <kis_tool.h>
 #include <KoToolRegistry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 #include "KisToolKnife.h"
 

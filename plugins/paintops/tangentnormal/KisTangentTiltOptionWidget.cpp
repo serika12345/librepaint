@@ -8,11 +8,18 @@
 
 #include <QButtonGroup>
 
-#include <lager/constant.hpp>
+#include <functional>
+#include "KisTangentTiltOptionData.h"
+#include "KisWidgetConnectionUtils.h"
+#include "kis_paintop_option.h"
+#include "kis_types.h"
 #include "ui_wdgtangenttiltoption.h"
 
 #include "KisTangentTiltOptionModel.h"
 #include <KisSpinBoxI18nHelper.h>
+#include <lager/cursor.hpp>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 namespace {
 

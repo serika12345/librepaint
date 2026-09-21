@@ -9,8 +9,18 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpainterpath.h>
+#include <qtmetamacros.h>
 
 #include "KisBrushEnclosingProducer.h"
+#include "kis_cursor.h"
+#include "kis_painter.h"
+#include "kis_pixel_selection.h"
+#include "kis_types.h"
+#include "subtools/KisDynamicDelegatedTool.h"
+#include "subtools/KisToolBasicBrushBase.h"
 
 KisBrushEnclosingProducer::KisBrushEnclosingProducer(KoCanvasBase * canvas)
     : KisDynamicDelegateTool<KisToolBasicBrushBase>(canvas, KisToolBasicBrushBase::PAINT, KisCursor::load("tool_freehand_cursor.xpm", 2, 2))

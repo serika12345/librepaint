@@ -8,13 +8,29 @@
 #include <KoCompositeOpRegistry.h>
 #include "KisColorSmudgeStrategyLightness.h"
 
+#include "KisColorSmudgeSource.h"
+#include "KisColorSmudgeStrategyBase.h"
+#include "KisPaintThicknessOptionData.h"
+#include "KoColorSpaceMaths.h"
+#include "KoCompositeOpIds.h"
+#include "kis_assert.h"
+#include "kis_dab_cache.h"
+#include "kis_dab_shape.h"
 #include "kis_painter.h"
 #include "kis_paint_device.h"
 #include "kis_fixed_paint_device.h"
 
 #include "KisColorSmudgeInterstrokeData.h"
 #include "kis_algebra_2d.h"
+#include "kis_pointer_utils.h"
 #include <KoBgrColorSpaceTraits.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qrgb.h>
+#include <qtypes.h>
 
 KisColorSmudgeStrategyLightness::KisColorSmudgeStrategyLightness(KisPainter *painter, bool smearAlpha,
                                                                  bool useDullingMode, KisPaintThicknessOptionData::ThicknessMode thicknessMode)

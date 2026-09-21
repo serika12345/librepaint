@@ -10,17 +10,32 @@
 #include <QFile>
 #include <QFileInfo>
 #include <array>
+#include <libmypaint/mypaint-brush-settings-gen.h>
 #include <libmypaint/mypaint-brush.h>
 #include <png.h>
 
-#include <KisResourceLocator.h>
 #include <KoColorConversions.h>
 #include <KoColorModelStandardIds.h>
 #include <kis_debug.h>
+#include <pngconf.h>
+#include <qcolor.h>
+#include <qfiledevice.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qstringview.h>
+#include <qtversionchecks.h>
 
+#include "KisPaintopPropertiesBase.h"
+#include "KoColor.h"
+#include "KoColorSpace.h"
 #include "MyPaintPaintOpSettings.h"
 #include "MyPaintSensorPack.h"
 #include "MyPaintStandardOptionData.h"
+#include "kis_paintop_preset.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
 
 class KisMyPaintPaintOpPreset::Private {
 

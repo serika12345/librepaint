@@ -13,9 +13,14 @@
 
 #include "kis_tool_rectangle.h"
 
-#include <kis_debug.h>
-#include <brushengine/kis_paintop_registry.h>
+#include "KisFigurePaintingOptions.h"
 #include "KoCanvasBase.h"
+#include "KoFlakeTypes.h"
+#include "kis_cursor.h"
+#include "kis_pointer_utils.h"
+#include "kis_tool_rectangle_base.h"
+#include "kis_tool_shape.h"
+#include "kundo2magicstring.h"
 
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas2.h>
@@ -25,6 +30,11 @@
 
 #include <KoCanvasController.h>
 #include <KoShapeStroke.h>
+#include <qcolor.h>
+#include <qmath.h>
+#include <qobjectdefs.h>
+#include <qpainterpath.h>
+#include <qtypes.h>
 
 
 KisToolRectangle::KisToolRectangle(KoCanvasBase * canvas)

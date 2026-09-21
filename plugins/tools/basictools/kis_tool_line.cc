@@ -15,6 +15,7 @@
 #include <QCheckBox>
 #include <QPainterPath>
 
+#include <cmath>
 #include <ksharedconfig.h>
 
 #include <KoCanvasBase.h>
@@ -23,18 +24,31 @@
 #include <KoShapeController.h>
 #include <KoShapeStroke.h>
 
-#include <kis_debug.h>
 #include <kis_cursor.h>
 #include <kis_image.h>
-#include <brushengine/kis_paintop_registry.h>
 #include <kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <application/ui/workspace/KisViewManager.h>
-#include <kis_action_registry.h>
 #include <kis_painting_information_builder_adapters.h>
 #include <kis_resources_snapshot.h>
+#include <math.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
+#include "KoFlakeTypes.h"
+#include "kis_assert.h"
+#include "kis_floating_message.h"
+#include "kis_icon.h"
+#include "kis_tool.h"
 #include "kis_tool_line_helper.h"
+#include "kis_tool_paint.h"
+#include "kis_tool_shape.h"
+#include "kundo2magicstring.h"
+#include "ui_wdggeometryoptions.h"
 
 
 const KisCoordinatesConverter* getCoordinatesConverter(KoCanvasBase * canvas)

@@ -12,23 +12,21 @@
 
 #include "kis_tool_select_outline.h"
 
-#include <kis_debug.h>
 #include <klocalizedstring.h>
 
-#include <KoPointerEvent.h>
 #include <KoShapeController.h>
 #include <KoPathShape.h>
-#include <KoColorSpace.h>
-#include <KoCompositeOp.h>
 #include <KoViewConverter.h>
 
-#include <kis_layer.h>
-#include <kis_selection_options.h>
 #include <kis_cursor.h>
 #include <kis_image.h>
 #include <kis_default_bounds.h>
 
+#include "KisQStringListFwd.h"
+#include "KisSelectionTags.h"
+#include "KisToolOutlineBase.h"
 #include "canvas/kis_canvas2.h"
+#include "kis_assert.h"
 #include "kis_painter.h"
 #include "kis_pixel_selection.h"
 #include "kis_selection_tool_helper.h"
@@ -37,8 +35,14 @@
 #include <kis_processing_applicator.h>
 #include <kis_selection_filters.h>
 #include <KisCursorOverrideLock.h>
+#include <qnamespace.h>
+#include <qtpreprocessorsupport.h>
 
 #include "kis_algebra_2d.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_tool_select_ui_base.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 
 __KisToolSelectOutlineLocal::__KisToolSelectOutlineLocal(KoCanvasBase * canvas)
     : KisToolOutlineBase(canvas, KisToolOutlineBase::SELECT,

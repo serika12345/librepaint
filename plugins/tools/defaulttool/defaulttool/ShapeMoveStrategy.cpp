@@ -7,6 +7,8 @@
 */
 
 #include "ShapeMoveStrategy.h"
+#include "KoFlake.h"
+#include "KoInteractionStrategy.h"
 #include "SelectionDecorator.h"
 
 #include <KoCanvasBase.h>
@@ -17,11 +19,15 @@
 #include <commands/KoShapeMoveCommand.h>
 #include <KoShapeBulkActionLock.h>
 #include <KoSnapGuide.h>
-#include <KoPointerEvent.h>
 #include <KoToolBase.h>
 #include <KoSelection.h>
 #include <klocalizedstring.h>
 #include <kis_global.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qtpreprocessorsupport.h>
 
 
 ShapeMoveStrategy::ShapeMoveStrategy(KoToolBase *tool, KoSelection *selection, const QPointF &clicked)

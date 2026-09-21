@@ -9,24 +9,48 @@
 
 #include "kis_tool_colorsampler.h"
 
+#include <kconfiggroup.h>
 #include <kis_cursor.h>
 #include <kis_canvas2.h>
 #include <KoCanvasBase.h>
 #include <KoPointerEvent.h>
-#include <KoResourceServerProvider.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <KisSpinBoxI18nHelper.h>
 #include <KisTagFilterResourceProxyModel.h>
 #include <KisResourceTypes.h>
 #include <application/ui/workspace/KisViewManager.h>
+#include "KisQStringListFwd.h"
+#include "KisResourceModel.h"
+#include "KisSwatch.h"
+#include "KisSwatchGroup.h"
+#include "KoCanvasResourcesIds.h"
+#include "KoChannelInfo.h"
+#include "KoColorModelStandardIds.h"
+#include "KoColorSet.h"
+#include "kis_assert.h"
 #include "kis_display_color_converter.h"
+#include "kis_tool.h"
 #include "kis_tool_utils.h"
+#include "ui_WdgPopupPaletteSettings.h"
 
 #include <application/kis_config.h>
 #include <kis_config_notifier.h>
 #include <dialogs/kis_dlg_preferences.h>
 #include <QSignalBlocker>
 #include <ksharedconfig.h>
+#include <qcombobox.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qoverload.h>
+#include <qpainter.h>
+#include <qset.h>
+#include <qsharedpointer.h>
+#include <qtenvironmentvariables.h>
+#include <qtpreprocessorsupport.h>
+#include <qtreewidget.h>
+#include <qtypes.h>
 
 namespace
 {

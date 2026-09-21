@@ -5,9 +5,16 @@
  */
 
 #include "KisMoveBoundsCalculationJob.h"
+#include "kis_debug.h"
 #include "kis_node.h"
 #include "kis_selection.h"
 #include "kis_layer_utils.h"
+#include "kis_spontaneous_job.h"
+#include "kis_types.h"
+#include <qdebug.h>
+#include <qforeach.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 KisMoveBoundsCalculationJob::KisMoveBoundsCalculationJob(KisNodeList nodes,
                                                          KisSelectionSP selection,

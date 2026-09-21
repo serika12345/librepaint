@@ -7,6 +7,8 @@
 #include "KisSprayShapeOptionData.h"
 
 #include "kis_properties_configuration.h"
+#include <qhashfunctions.h>
+#include <qtypes.h>
 
 
 const QString SPRAYSHAPE_ENABLED = "SprayShape/enabled";

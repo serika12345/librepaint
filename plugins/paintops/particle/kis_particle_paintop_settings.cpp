@@ -6,8 +6,18 @@
 #include "kis_particle_paintop_settings.h"
 
 #include "KisParticleOpOptionData.h"
+#include "KoID.h"
+#include "kis_no_size_paintop_settings.h"
+#include "kis_paintop_settings.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
+#include "kis_uniform_paintop_property.h"
 
 #include <KisPaintingModeOptionData.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 struct KisParticlePaintOpSettings::Private
 {

@@ -8,6 +8,7 @@
 
 #include "KisParticleOpOptionWidget.h"
 #include "kis_particle_paintop_settings.h"
+#include "kis_types.h"
 
 #include <kis_paintop_settings_widget.h>
 #include <KisPaintingModeOptionWidget.h>
@@ -15,6 +16,7 @@
 #include <KisAirbrushOptionWidget.h>
 #include <KisCompositeOpOptionWidget.h>
 #include <KisStandardOptionData.h>
+#include <qwidget.h>
 
 KisParticlePaintOpSettingsWidget:: KisParticlePaintOpSettingsWidget(QWidget* parent)
     : KisPaintOpSettingsWidget(parent)

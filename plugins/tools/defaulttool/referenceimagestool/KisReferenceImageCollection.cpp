@@ -4,13 +4,21 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisReferenceImageCollection.h"
+#include "KoShape.h"
+#include "kundo2magicstring.h"
 
 #include <QIODevice>
 #include <QMessageBox>
 
 #include <KoStore.h>
+#include <algorithm>
 #include <canvas/KisReferenceImage.h>
 #include <KoStoreDevice.h>
+#include <qcontainerfwd.h>
+#include <qdom.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qscopedpointer.h>
 
 const QString METADATA_FILE = "reference_images.xml";
 

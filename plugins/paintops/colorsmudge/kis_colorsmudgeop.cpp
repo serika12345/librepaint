@@ -12,10 +12,24 @@
 
 #include <kis_brush.h>
 #include <kis_image.h>
-#include <kis_selection.h>
 #include <kis_fixed_paint_device.h>
 #include <kis_lod_transform.h>
 #include <kis_spacing_information.h>
+#include "KisHSVOption.h"
+#include "KisPaintThicknessOptionData.h"
+#include "KisPaintopPropertiesBase.h"
+#include "KisSmudgeLengthOptionData.h"
+#include "kis_assert.h"
+#include "kis_brush_based_paintop.h"
+#include "kis_dab_shape.h"
+#include <qalgorithms.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
 #include "kis_paintop_plugin_utils.h"
 
 #include "KisInterstrokeData.h"
@@ -28,6 +42,8 @@
 #include "KisColorSmudgeStrategyMask.h"
 #include "KisColorSmudgeStrategyStamp.h"
 #include "KisColorSmudgeStrategyMaskLegacy.h"
+#include "kis_timing_information.h"
+#include "kis_types.h"
 
 struct ColorSmudgeInterstrokeDataFactory : public KisInterstrokeDataFactory
 {

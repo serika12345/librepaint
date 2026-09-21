@@ -4,8 +4,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisPaintThicknessOption.h"
+#include "KisCurveOption.h"
+#include "KisPaintThicknessOptionData.h"
+#include "sensors/KisDynamicSensor.h"
 
 #include <KisPaintOpOptionUtils.h>
+#include <qtypes.h>
 namespace kpou = KisPaintOpOptionUtils;
 
 

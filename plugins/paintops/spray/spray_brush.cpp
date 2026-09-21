@@ -5,6 +5,16 @@
  */
 
 #include "spray_brush.h"
+#include "KisColorOptionData.h"
+#include "KisSprayOpOption.h"
+#include "KisSprayOpOptionData.h"
+#include "KisSprayShapeDynamicsOptionData.h"
+#include "KisSprayShapeOptionData.h"
+#include "kis_brush.h"
+#include "kis_dab_shape.h"
+#include "kis_global.h"
+#include "kis_random_source.h"
+#include "kis_types.h"
 
 #include <KoColor.h>
 #include <KoColorSpace.h>
@@ -19,8 +29,8 @@
 #include <QTransform>
 #include <QImage>
 
+#include <cstring>
 #include <kis_random_accessor_ng.h>
-#include <kis_random_sub_accessor.h>
 
 #include <kis_paint_device.h>
 
@@ -35,6 +45,13 @@
 #include <ctime>
 
 #include <QtGlobal>
+#include <math.h>
+#include <qassert.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qtypes.h>
 
 SprayBrush::SprayBrush()
 {

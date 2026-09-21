@@ -12,16 +12,27 @@
 #include <QDoubleSpinBox>
 #include <QLabel>
 
+#include <cmath>
 #include <klocalizedstring.h>
 #include <ksharedconfig.h>
 
+#include "KisAngleGauge.h"
 #include "KoPointerEvent.h"
+#include "KoShape.h"
+#include "kis_global.h"
+#include "kis_tool_freehand.h"
+#include "kis_tool_paint.h"
 #include "kundo2magicstring.h"
 
 #include "kis_cursor.h"
 #include <kis_image.h>
 #include <kis_slider_spin_box.h>
 #include <KisAngleSelector.h>
+#include <math.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 
 #define MAXIMUM_SMOOTHNESS 1000

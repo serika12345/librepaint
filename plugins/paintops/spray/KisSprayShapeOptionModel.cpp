@@ -4,9 +4,16 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisSprayShapeOptionModel.h"
+#include "KisSprayShapeOptionData.h"
 
 #include <KisLager.h>
 #include <klocalizedstring.h>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/lenses.hpp>
+#include <lager/with.hpp>
+#include <qtypes.h>
+#include <tuple>
 
 namespace {
 

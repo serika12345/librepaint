@@ -4,8 +4,14 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "KisTangentTiltOption.h"
+#include "KisTangentTiltOptionData.h"
+#include "kis_global.h"
+#include "kis_paint_information.h"
 
 #include <KisPaintOpOptionUtils.h>
+#include <cmath>
+#include <math.h>
+#include <qtypes.h>
 namespace kpou = KisPaintOpOptionUtils;
 
 

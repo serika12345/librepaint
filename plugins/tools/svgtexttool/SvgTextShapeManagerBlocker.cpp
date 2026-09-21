@@ -5,6 +5,7 @@
  */
 
 #include "SvgTextShapeManagerBlocker.h"
+#include "KoShapeManager.h"
 
 SvgTextShapeManagerBlockerAdapter::SvgTextShapeManagerBlockerAdapter(KoShapeManager *shapeManager)
     :m_manager(shapeManager), m_managerState(shapeManager->updatesBlocked())

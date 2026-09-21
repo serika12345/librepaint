@@ -14,9 +14,16 @@
 #include <kconfig.h>
 #include <kconfiggroup.h>
 
+#include "KisBezierTransformMesh.h"
+#include "KisToolChangesTrackerData.h"
+#include "kis_assert.h"
+#include "kis_liquify_properties.h"
 #include "kis_liquify_transform_worker.h"
 #include "kis_dom_utils.h"
+#include "kis_warptransform_worker.h"
 #include <QMatrix4x4>
+#include <memory>
+#include <qtypes.h>
 
 
 ToolTransformArgs::ToolTransformArgs()

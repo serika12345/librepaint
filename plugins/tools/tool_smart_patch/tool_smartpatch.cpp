@@ -6,11 +6,11 @@
 
 #include "tool_smartpatch.h"
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
-#include <kis_tool.h>
 #include <KoToolRegistry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 #include "kis_tool_smart_patch.h"
 

@@ -6,6 +6,7 @@
 
 #include "kis_tool_smart_patch.h"
 
+#include "KoShape.h"
 #include "QApplication"
 #include "QPainterPath"
 
@@ -13,14 +14,19 @@
 #include <KoColor.h>
 #include <KoPointerEvent.h>
 #include <application/ui/workspace/KisViewManager.h>
+#include "kis_assert.h"
 #include "kis_canvas2.h"
 #include "kis_coordinates_converter.h"
 #include "kis_cursor.h"
+#include "kis_floating_message.h"
 #include "kis_image.h"
 #include "kis_node.h"
 #include "kis_painter.h"
 #include "kis_paintop_preset.h"
 
+#include "kis_stroke_job_strategy.h"
+#include "kis_tool.h"
+#include "kis_tool_paint.h"
 #include "kundo2magicstring.h"
 #include "kundo2stack.h"
 #include "commands_new/kis_transaction_based_command.h"
@@ -32,6 +38,13 @@
 #include "KoColorSpaceRegistry.h"
 #include <kis_display_color_converter.h>
 #include <KisCursorOverrideLock.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qpainter.h>
+#include <qpoint.h>
+#include <qset.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #include "kis_tool_smart_patch_options_widget.h"
 #include "libs/image/kis_paint_device_debug_utils.h"

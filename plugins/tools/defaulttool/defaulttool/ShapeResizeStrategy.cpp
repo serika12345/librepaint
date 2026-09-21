@@ -7,13 +7,13 @@
  */
 
 #include "ShapeResizeStrategy.h"
+#include "KoFlake.h"
+#include "KoInteractionStrategy.h"
 #include "SelectionDecorator.h"
 
 #include <KoShapeManager.h>
-#include <KoPointerEvent.h>
 #include <KoCanvasBase.h>
 #include <commands/KoShapeResizeCommand.h>
-#include <kis_command_utils.h>
 #include <KoSnapGuide.h>
 #include <KoToolBase.h>
 #include <KoSelection.h>
@@ -22,8 +22,14 @@
 #include <limits>
 #include <math.h>
 
-#include <kis_debug.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include "kis_algebra_2d.h"
+#include "kis_assert.h"
 
 ShapeResizeStrategy::ShapeResizeStrategy(KoToolBase *tool, KoSelection *selection, const QPointF &clicked, KoFlake::SelectionHandle direction, bool forceUniformScalingMode)
     : KoInteractionStrategy(tool),

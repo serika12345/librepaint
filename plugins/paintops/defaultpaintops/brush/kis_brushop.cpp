@@ -15,19 +15,25 @@
 #include <QRect>
 
 #include <kis_image.h>
-#include <kis_vec.h>
-#include <kis_debug.h>
 
-#include <KoColorTransformation.h>
-#include <KoColor.h>
 
 #include <kis_brush.h>
-#include <kis_global.h>
 #include <kis_paint_device.h>
 #include <kis_painter.h>
 #include <kis_brush_based_paintop_settings.h>
 #include <kis_lod_transform.h>
 #include <kis_paintop_plugin_utils.h>
+#include "KisTextureOptionData.h"
+#include "KisWraparoundAxis.h"
+#include "KoColorSpaceConstants.h"
+#include "kis_assert.h"
+#include "kis_brush_based_paintop.h"
+#include "kis_dab_shape.h"
+#include "kis_paintop_utils.h"
+#include "kis_pointer_utils.h"
+#include "kis_spacing_information.h"
+#include "kis_timing_information.h"
+#include "kis_types.h"
 #include "krita_utils.h"
 #include <KisDabRenderingExecutor.h>
 #include <KisDabCacheUtils.h>
@@ -36,9 +42,17 @@
 
 #include <KisRunnableStrokeJobData.h>
 #include <KisRunnableStrokeJobUtils.h>
-#include <KisRunnableStrokeJobsInterface.h>
 
 #include <QThread>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <utility>
 #include "kis_image_config.h"
 #include "kis_wrapped_rect.h"
 

@@ -9,8 +9,20 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qpainterpath.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 #include "KisRectangleEnclosingProducer.h"
+#include "kis_cursor.h"
+#include "kis_painter.h"
+#include "kis_pixel_selection.h"
+#include "kis_tool_rectangle_base.h"
+#include "kis_types.h"
+#include "subtools/KisDynamicDelegatedTool.h"
 
 KisRectangleEnclosingProducer::KisRectangleEnclosingProducer(KoCanvasBase * canvas)
     : KisDynamicDelegateTool<KisToolRectangleBase>(canvas, KisToolRectangleBase::PAINT, KisCursor::loadWithSize("tool_rectangular_selection_cursor.svg", 32, 32, 6, 6))

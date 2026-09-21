@@ -4,6 +4,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisPaintThicknessOptionWidget.h"
+#include "KisCurveOptionDataCommon.h"
+#include "KisCurveOptionWidget.h"
+#include "KisPaintThicknessOptionData.h"
+#include "KoID.h"
+#include "kis_paintop_option.h"
+#include "kis_types.h"
 
 #include <QLabel>
 #include <QComboBox>
@@ -12,6 +18,10 @@
 #include <KisLager.h>
 #include <KisPaintThicknessOptionModel.h>
 #include <KisWidgetConnectionUtils.h>
+#include <functional>
+#include <lager/cursor.hpp>
+#include <lager/reader.hpp>
+#include <qnamespace.h>
 
 struct KisPaintThicknessOptionWidget::Private
 {

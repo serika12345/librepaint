@@ -14,9 +14,19 @@
 #include <KoCanvasController.h>
 
 #include <application/ui/workspace/KisViewManager.h>
+#include "KisQStringListFwd.h"
+#include "KoPointerEvent.h"
+#include "kis_assert.h"
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qset.h>
 #include "kis_canvas2.h"
 #include "kis_cursor.h"
 #include "application/kis_config.h"
+#include "kis_tool.h"
+#include "kis_tool_freehand.h"
+#include "kis_types.h"
 #include "kundo2magicstring.h"
 
 #include "KoProperties.h"

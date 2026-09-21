@@ -6,20 +6,26 @@
 
 #include "KisToolKnifeOptionsWidget.h"
 
+#include "GutterWidthsConfig.h"
+#include "KisResourceTypes.h"
+#include "kis_assert.h"
+#include "kis_types.h"
 #include "ui_KisToolKnifeOptionsWidget.h"
 
-#include <KoColorSpaceRegistry.h>
+#include <kconfiggroup.h>
 #include <ksharedconfig.h>
 
 #include "application/kis_config.h"
-#include <resources/KoColorSet.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
+#include <qwidget.h>
 #include "canvas/kis_canvas_resource_provider.h"
 #include <KisOptionButtonStrip.h>
 #include <kis_icon_utils.h>
 #include <KoGroupButton.h>
 #include <KoUnit.h>
 
-#include <kis_node.h>
 #include <kis_shape_layer.h>
 
 

@@ -4,9 +4,16 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "SvgTextCursor.h"
+#include "KisHandleStyle.h"
+#include "KisQStringListFwd.h"
 #include "KoCanvasBase.h"
+#include "KoCanvasResourcesIds.h"
 #include "KoColorDisplayRendererInterface.h"
+#include "KoFlakeTypes.h"
+#include "KoSvgText.h"
 #include "KoSvgTextProperties.h"
+#include "KoSvgTextPropertiesInterface.h"
+#include "KoSvgTextShape.h"
 #include "SvgTextInsertCommand.h"
 #include "SvgTextInsertRichCommand.h"
 #include "SvgTextMergePropertiesRangeCommand.h"
@@ -22,15 +29,19 @@
 #include "KoColor.h"
 
 #include "KoViewConverter.h"
+#include "kis_algebra_2d.h"
 #include "kis_debug.h"
+#include "kis_global.h"
 #include "kis_painting_tweaks.h"
 #include "KoCanvasController.h"
 #include "KoCanvasResourceProvider.h"
+#include <algorithm>
 #include <kis_signal_compressor.h>
 #include <KisHandlePainterHelper.h>
 #include <kis_acyclic_signal_connector.h>
 
 #include "kundo2command.h"
+#include "kundo2magicstring.h"
 #include <QTimer>
 #include <QDebug>
 #include <QClipboard>
@@ -43,6 +54,32 @@
 #include <QInputMethodEvent>
 #include <QBuffer>
 #include <QWidget>
+#include <limits>
+#include <memory>
+#include <qcontainerfwd.h>
+#include <qfont.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qinputmethod.h>
+#include <qlatin1stringview.h>
+#include <qline.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpainterpath.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qscopedpointer.h>
+#include <qset.h>
+#include <qsharedpointer.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtextformat.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <utility>
 
 #ifdef Q_OS_ANDROID
 #include <config-qt-patches-present.h>

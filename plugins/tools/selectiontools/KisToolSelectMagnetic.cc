@@ -12,25 +12,27 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-#include <kis_debug.h>
+#include <cmath>
 #include <klocalizedstring.h>
 #include <ksharedconfig.h>
 
 #include <KoPointerEvent.h>
 #include <KoShapeController.h>
 #include <KoPathShape.h>
-#include <KoColorSpace.h>
-#include <KoCompositeOp.h>
 #include <KoColorDisplayRendererInterface.h>
 #include <KoViewConverter.h>
 
-#include <kis_layer.h>
 #include <kis_selection_options.h>
 #include <kis_cursor.h>
 #include <kis_image.h>
 #include <kis_default_bounds.h>
 
+#include "KisHandleStyle.h"
+#include "KisOptionCollectionWidget.h"
+#include "KisSelectionTags.h"
 #include "canvas/kis_canvas2.h"
+#include "kis_assert.h"
+#include "kis_global.h"
 #include "kis_painter.h"
 #include "kis_pixel_selection.h"
 #include "kis_selection_tool_helper.h"
@@ -43,8 +45,22 @@
 #include "kis_algebra_2d.h"
 
 #include "KisHandlePainterHelper.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_tool.h"
+#include "kis_tool_select_ui_base.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 #include <KisOptimizedBrushOutline.h>
 #include <kis_slider_spin_box.h>
+#include <qevent.h>
+#include <qforeach.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 #define FEEDBACK_LINE_WIDTH 2
 

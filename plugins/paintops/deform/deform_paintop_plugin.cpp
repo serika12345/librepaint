@@ -7,14 +7,17 @@
 #include "deform_paintop_plugin.h"
 #include <klocalizedstring.h>
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
-#include <KoCompositeOpRegistry.h>
 
 #include <brushengine/kis_paintop_registry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
+#include "KoCompositeOpIds.h"
 #include "kis_deform_paintop.h"
+#include "kis_deform_paintop_settings.h"
+#include "kis_paintop_factory.h"
 #include "kis_simple_paintop_factory.h"
 #include "kis_deform_paintop_settings_widget.h"
 

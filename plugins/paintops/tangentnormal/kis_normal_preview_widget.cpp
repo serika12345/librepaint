@@ -10,6 +10,12 @@
 #include <QPoint>
 
 #include <KoResourcePaths.h>
+#include <qimage.h>
+#include <qlabel.h>
+#include <qnamespace.h>
+#include <qpixmap.h>
+#include <qrgb.h>
+#include <qwidget.h>
 
 KisNormalPreviewWidget::KisNormalPreviewWidget(QWidget *parent)
         : QLabel(parent)

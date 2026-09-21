@@ -9,33 +9,35 @@
  */
 
 #include "kis_filterop.h"
+#include "KoCompositeOpIds.h"
+#include "kis_brush_based_paintop.h"
+#include "kis_dab_shape.h"
+#include "kis_types.h"
 
-#include <kis_debug.h>
 
 #include <KoColorSpaceRegistry.h>
-#include <KoColorTransformation.h>
 #include <KoColor.h>
 #include <KoCompositeOpRegistry.h>
 #include <KoResourceLoadResult.h>
 
-#include <kis_processing_information.h>
 #include <filter/kis_filter_registry.h>
 #include <filter/kis_filter.h>
 #include <filter/kis_filter_configuration.h>
 #include <kis_brush.h>
 #include <kis_dab_cache.h>
-#include <kis_global.h>
 #include <kis_painter.h>
 #include <kis_paint_device.h>
-#include <kis_properties_configuration.h>
-#include <kis_selection.h>
 #include <kis_filterop_settings.h>
-#include <kis_iterator_ng.h>
 #include <kis_fixed_paint_device.h>
 #include <kis_transaction.h>
 #include <kis_lod_transform.h>
 #include <kis_spacing_information.h>
 #include <KisFilterOptionData.h>
+#include <qassert.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 KisFilterOp::KisFilterOp(const KisPaintOpSettingsSP settings, KisPainter *painter, KisNodeSP node, KisImageSP image)
