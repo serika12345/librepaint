@@ -9,7 +9,6 @@
 #include "KoPathPoint.h"
 #include "KoPathShape.h"
 
-#include <FlakeDebug.h>
 #include <QPainter>
 #include <QPointF>
 #include <KisHandlePainterHelper.h>
@@ -17,6 +16,9 @@
 #include <math.h>
 
 #include <qnumeric.h> // for qIsNaN
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
+#include <utility>
 static bool qIsNaNPoint(const QPointF &p) {
     return qIsNaN(p.x()) || qIsNaN(p.y());
 }

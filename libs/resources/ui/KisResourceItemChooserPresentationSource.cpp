@@ -10,12 +10,15 @@
 #include "KisResourceTaggingManager.h"
 #include "KisStorageChooserWidget.h"
 #include "KisTagChooserWidget.h"
+#include "ResourceListViewModes.h"
+#include "kis_icon_utils.h"
 
 #include <KoIcon.h>
 
 #include <QFrame>
 #include <QSplitter>
 #include <QToolButton>
+#include <qnamespace.h>
 
 namespace KisResourceItemChooserPresentationSource
 {

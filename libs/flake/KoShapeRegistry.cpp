@@ -11,11 +11,11 @@
 // Own
 #include "KoShapeRegistry.h"
 
+#include "KoShapeFactoryBase.h"
 #include "KoSvgTextShape.h"
 #include "KoPathShapeFactory.h"
 
 #include <KoPluginLoader.h>
-#include <KoXmlNS.h>
 
 #include <QString>
 #include <QHash>
@@ -24,6 +24,11 @@
 #include <QGlobalStatic>
 
 #include <FlakeDebug.h>
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qtdeprecationdefinitions.h>
 
 Q_GLOBAL_STATIC(KoShapeRegistry, s_instance)
 
@@ -115,10 +120,6 @@ void KoShapeRegistry::Private::insertFactory(KoShapeFactoryBase *factory)
 }
 
 #include <QMimeDatabase>
-#include <KoUnit.h>
-#include <KoDocumentResourceManager.h>
-#include <KoShapeController.h>
-#include <KoShapeGroupCommand.h>
 
 
 QList<KoShapeFactoryBase*> KoShapeRegistry::factoriesForElement(const QString &nameSpace, const QString &elementName)

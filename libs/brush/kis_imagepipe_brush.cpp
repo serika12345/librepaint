@@ -5,11 +5,28 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_imagepipe_brush.h"
+#include "KoResource.h"
+#include "kis_assert.h"
+#include "kis_brush.h"
+#include "kis_dab_shape.h"
+#include "kis_debug.h"
+#include "kis_gbr_brush.h"
+#include "kis_global.h"
+#include "kis_paint_information.h"
 #include "kis_pipebrush_parasite.h"
 #include "kis_brushes_pipe.h"
 #include "kis_paint_device.h"
+#include "kis_types.h"
 #include <KisOptimizedBrushOutline.h>
 #include <QIODevice>
+#include <cmath>
+#include <math.h>
+#include <qassert.h>
+#include <qbytearrayalgorithms.h>
+#include <qforeach.h>
+#include <qnumeric.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 class KisImageBrushesPipe : public KisBrushesPipe<KisGbrBrush>
 {

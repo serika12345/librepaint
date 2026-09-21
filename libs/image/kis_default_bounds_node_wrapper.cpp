@@ -3,10 +3,13 @@
  */
 
 #include "kis_default_bounds_node_wrapper.h"
+#include "KisWraparoundAxis.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
 #include "kis_global.h"
 #include "kis_paint_device.h"
+#include "kis_types.h"
+#include <qassert.h>
 
 struct Q_DECL_HIDDEN KisDefaultBoundsNodeWrapper::Private {
     KisBaseNodeWSP node;

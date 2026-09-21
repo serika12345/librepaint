@@ -12,13 +12,14 @@
 
 #include <KoCanvasResourceProvider.h>
 
+#include "KoCanvasResourcesIds.h"
 #include "application/ui/orchestration/kis_action.h"
 #include "application/ui/orchestration/kis_action_manager.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_canvas2.h"
 #include "canvas/kis_canvas_resource_provider.h"
+#include "kis_floating_message.h"
 
-#include <brushengine/kis_locked_properties_proxy.h>
 #include <brushengine/kis_locked_properties_server.h>
 #include <brushengine/kis_locked_properties.h>
 
@@ -27,6 +28,13 @@
 #include <ksharedconfig.h>
 
 #include <math.h>
+#include <qcolor.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 const int STEP = 25;
 

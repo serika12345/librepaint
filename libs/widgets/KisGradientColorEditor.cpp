@@ -12,8 +12,19 @@
 #include <kis_color_button.h>
 #include <kis_icon_utils.h>
 #include <KisSpinBoxI18nHelper.h>
+#include <qminmax.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 #include "KisGradientColorEditor.h"
+#include "KisGradientWidgetsUtils.h"
+#include "KisResourceTypes.h"
+#include "KoColor.h"
 
 class Q_DECL_HIDDEN KisGradientColorEditor::Private
 {

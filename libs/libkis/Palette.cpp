@@ -5,11 +5,13 @@
  */
 
 #include "Palette.h"
+#include "kis_debug.h"
 #include <KoColorSet.h>
-#include <KisSwatch.h>
 #include <KisSwatchGroup.h>
 #include <ManagedColor.h>
-#include <KisPaletteModel.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qobject.h>
 
 struct Palette::Private {
     KoColorSetSP palette {0};

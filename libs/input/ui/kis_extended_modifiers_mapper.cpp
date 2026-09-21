@@ -11,7 +11,8 @@
 #include <QKeyEvent>
 #include <QApplication>
 
-#include <algorithm>
+#include <qnamespace.h>
+#include <qtpreprocessorsupport.h>
 
 #ifdef Q_OS_MACOS
 

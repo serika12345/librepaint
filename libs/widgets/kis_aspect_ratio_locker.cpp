@@ -9,6 +9,13 @@
 #include <QSpinBox>
 #include <QDoubleSpinBox>
 
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qvariant.h>
 #include <type_traits>
 
 #include <KoAspectButton.h>
@@ -20,6 +27,7 @@
 #include "kis_double_parse_unit_spin_box.h"
 #include "KisAngleSelector.h"
 #include "KisAngleGauge.h"
+#include "kritawidgets_export.h"
 
 
 struct SliderWrapper

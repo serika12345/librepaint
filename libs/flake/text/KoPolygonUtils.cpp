@@ -8,6 +8,11 @@
 #include <boost/polygon/polygon.hpp>
 #include <QPolygon>
 #include <QList>
+#include <cstddef>
+#include <qforeach.h>
+#include <qpoint.h>
+#include <qtpreprocessorsupport.h>
+#include <vector>
 
 namespace boost { namespace polygon {
     // QPoint wrapper
@@ -114,4 +119,3 @@ QList<QPolygon> KoPolygonUtils::offsetPolygons(const QList<QPolygon> polygons, i
     }
     return finalPolygons;
 }
-

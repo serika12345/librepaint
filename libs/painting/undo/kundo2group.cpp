@@ -43,6 +43,10 @@
 #include "kundo2stack.h"
 #include "kundo2stack_p.h"
 #include <klocalizedstring.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
 #ifndef QT_NO_UNDOGROUP
 

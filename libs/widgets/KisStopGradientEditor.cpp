@@ -14,7 +14,16 @@
 #include <QAction>
 #include <QDialog>
 
-#include <KoColorSpace.h>
+#include <algorithm>
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
+#include <qboxlayout.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 #include <resources/KoStopGradient.h>
 
 #include <kis_signals_blocker.h>
@@ -25,6 +34,9 @@
 #include <KoCanvasResourcesInterface.h>
 
 #include "KisStopGradientEditor.h"
+#include "KisGradientWidgetsUtils.h"
+#include "KoColor.h"
+#include "ui_wdgstopgradienteditor.h"
 
 KisStopGradientEditor::KisStopGradientEditor(QWidget *parent)
     : QWidget(parent),

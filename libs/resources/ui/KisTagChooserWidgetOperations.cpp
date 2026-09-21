@@ -10,6 +10,7 @@
  *    SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "KisTag.h"
 #include "KisTagChooserWidget.h"
 
 #include <QComboBox>
@@ -17,8 +18,13 @@
 
 #include <klocalizedstring.h>
 #include <kis_assert.h>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
 
 #include "KisTagChooserWidget_p.h"
+#include "KisTagModel.h"
 #include "KisTagToolButton.h"
 
 void KisTagChooserWidget::tagToolDeleteCurrentTag()

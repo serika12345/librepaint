@@ -7,11 +7,22 @@
 
 #include "KisAnimatedOpacityProperty.h"
 
+#include "kis_assert.h"
+#include "kis_default_bounds_base.h"
 #include "kis_default_bounds_node_wrapper.h"
+#include "kis_keyframe_channel.h"
+#include "kis_node.h"
+#include "kis_scalar_keyframe_channel.h"
+#include "kis_types.h"
 
 #include <KoProperties.h>
 
 #include <QVariant>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 KisAnimatedOpacityProperty::KisAnimatedOpacityProperty(KisDefaultBoundsBaseSP bounds, KoProperties * const props, quint8 defaultValue, QObject *parent)
     : QObject(parent),

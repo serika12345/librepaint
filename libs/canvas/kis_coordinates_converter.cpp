@@ -5,12 +5,18 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <algorithm>
 #include <cmath>
 
 #include "kis_coordinates_converter.h"
 
 #include "KisCanvasState.h"
 #include "KoViewTransformStillPoint.h"
+#include "KoZoomHandler.h"
+#include "KoZoomMode.h"
+#include "kis_debug.h"
+#include "kis_global.h"
+#include "kis_types.h"
 
 #include <QtMath>
 #include <QTransform>
@@ -21,6 +27,15 @@
 #include <kis_assert.h>
 #include <KisValueCache.h>
 #include <KisPortingUtils.h>
+#include <optional>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qpolygon.h>
+#include <qsize.h>
+#include <qtypes.h>
 
 KisCanvasState KisCanvasState::fromConverter(const KisCoordinatesConverter &converter)
 {

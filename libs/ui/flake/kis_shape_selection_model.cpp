@@ -9,9 +9,15 @@
 #include <KoShapeContainer.h>
 #include <KoShapeBackground.h>
 #include <KoShapeManager.h>
+#include <qlist.h>
+#include <qsharedpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtransform.h>
 
+#include "KisImageResolutionProxy.h"
 #include "kis_shape_selection.h"
 #include "kis_selection.h"
+#include "kis_types.h"
 
 
 KisShapeSelectionModel::KisShapeSelectionModel(KisImageResolutionProxySP resolutionProxy, KisSelectionWSP selection, KisShapeSelection* shapeSelection)

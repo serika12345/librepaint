@@ -5,7 +5,7 @@
 
 #include "kis_node_model.h"
 
-#include "kis_shared_ptr.h"
+#include "kis_types.h"
 
 bool KisNodeModel::belongsToIsolatedGroup(KisImageSP image, KisNodeSP node, KisDummiesFacadeBase *dummiesFacade)
 {

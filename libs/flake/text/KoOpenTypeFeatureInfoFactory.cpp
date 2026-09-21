@@ -8,6 +8,11 @@
 
 #include "KoOpenTypeFeatureInfoFactory.h"
 #include <klocalizedstring.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qstringview.h>
+#include <qtdeprecationdefinitions.h>
 
 struct Q_DECL_HIDDEN KoOpenTypeFeatureInfoFactory::Private
 {

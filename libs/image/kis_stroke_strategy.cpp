@@ -5,8 +5,16 @@
  */
 
 #include "kis_stroke_strategy.h"
+#include "KisLodPreferences.h"
+#include "kis_assert.h"
 #include "kis_stroke_job_strategy.h"
 #include "KisStrokesQueueMutatedJobInterface.h"
+#include "kundo2magicstring.h"
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qlatin1stringview.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 KisStrokeStrategy::KisStrokeStrategy(const QLatin1String &id, const KUndo2MagicString &name)

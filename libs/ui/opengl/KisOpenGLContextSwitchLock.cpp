@@ -8,6 +8,7 @@
 
 #include <QOpenGLContext>
 #include <QOpenGLWidget>
+#include <qtversionchecks.h>
 
 
 namespace {

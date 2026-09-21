@@ -7,6 +7,13 @@
 #include "animation/KisAsyncAnimationCacheRenderer.h"
 
 #include <animation/kis_animation_frame_cache.h>
+#include "animation/KisAsyncAnimationRendererBase.h"
+#include "animation/kis_animation_frame_cache_fwd.h"
+#include "kis_assert.h"
+#include "kis_types.h"
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 #include "opengl/kis_opengl_update_info.h"
 
 struct KisAsyncAnimationCacheRenderer::Private

@@ -11,7 +11,15 @@
 #include "KoShape.h"
 
 #include <QGradient>
+#include <functional>
 #include <math.h>
+#include "kis_assert.h"
+#include <qcontainerfwd.h>
+#include <qline.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpolygon.h>
+#include <qtypes.h>
 #include "kis_global.h"
 
 QGradient *KoFlake::cloneGradient(const QGradient *gradient)

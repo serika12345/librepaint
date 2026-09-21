@@ -6,6 +6,7 @@
 
 #include "kis_transaction_data.h"
 
+#include "kis_assert.h"
 #include "kis_pixel_selection.h"
 #include "kis_selection.h"
 #include "kis_paint_device.h"
@@ -15,7 +16,12 @@
 #include "KoColor.h"
 #include "KisTransactionWrapperFactory.h"
 #include "KisInterstrokeDataTransactionWrapperFactory.h"
-#include <boost/optional.hpp>
+#include "kis_types.h"
+#include "tiles3/kis_memento.h"
+#include <qassert.h>
+#include <qscopedpointer.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtpreprocessorsupport.h>
 
 //#define DEBUG_TRANSACTIONS
 

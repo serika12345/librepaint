@@ -4,12 +4,18 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_frame_cache_store.h"
+#include "animation/kis_frame_data_serializer.h"
+#include "kritacanvas_export.h"
+#include "tiles/kis_tile_data_pool.h"
 
 #include <QMap>
 #include <QSharedPointer>
 
+#include <boost/optional/optional.hpp>
 #include <kis_assert.h>
-#include <kis_shared_ptr.h>
+#include <qhashfunctions.h>
+#include <qtypes.h>
+#include <utility>
 
 namespace {
 enum FrameType {

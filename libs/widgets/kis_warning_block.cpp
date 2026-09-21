@@ -8,7 +8,13 @@
 
 #include <QHBoxLayout>
 #include <QLabel>
+#include <qgroupbox.h>
 #include <qnamespace.h>
+#include <qobject.h>
+#include <qpixmap.h>
+#include <qsizepolicy.h>
+#include <qtdeprecationdefinitions.h>
+#include <qwidget.h>
 
 struct Q_DECL_HIDDEN KisWarningBlock::Private {
     QLabel *lblIcon = nullptr;

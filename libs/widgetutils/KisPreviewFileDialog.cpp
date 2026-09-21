@@ -16,6 +16,13 @@
 #include <ksharedconfig.h>
 #include <klocalizedstring.h>
 #include <kis_icon_utils.h>
+#include <qfiledialog.h>
+#include <qfileinfo.h>
+#include <qicon.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 KisAbstractFileIconCreator *KisPreviewFileDialog::s_iconCreator {0};
 

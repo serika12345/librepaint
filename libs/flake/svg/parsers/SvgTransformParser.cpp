@@ -10,11 +10,22 @@
 
 //#include "kis_debug.h"
 
+#include <boost/fusion/adapted/struct/adapt_struct.hpp>
 #include <boost/config/warning_disable.hpp>
 #include <boost/phoenix/fusion.hpp>
 #include <boost/phoenix/operator.hpp>
 #include <boost/phoenix/stl.hpp>
 #include <boost/spirit/include/qi.hpp>
+#include <boost/spirit/home/qi/domain.hpp>
+#include <boost/spirit/home/qi/nonterminal/grammar.hpp>
+#include <boost/spirit/home/qi/nonterminal/rule.hpp>
+#include <boost/spirit/home/qi/parse.hpp>
+#include <boost/spirit/home/support/common_terminals.hpp>
+#include <cmath>
+#include <qhashfunctions.h>
+#include <qtypes.h>
+#include <string>
+#include <vector>
 
 namespace Private
 {
@@ -262,5 +273,4 @@ QTransform SvgTransformParser::transform() const
 {
     return m_transform;
 }
-
 

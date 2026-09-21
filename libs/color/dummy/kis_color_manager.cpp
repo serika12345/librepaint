@@ -5,6 +5,10 @@
  */
 
 #include "kis_color_manager.h"
+#include <qcontainerfwd.h>
+#include <qglobalstatic.h>
+#include <qobject.h>
+#include <qstringview.h>
 
 Q_GLOBAL_STATIC(KisColorManager, s_instance)
 

@@ -6,11 +6,15 @@
 
 #include "kis_switch_current_time_command.h"
 
+#include "KoID.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
 #include "kis_command_ids.h"
 #include "kis_keyframe_channel.h"
 #include "kis_node.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 
 KisSwitchCurrentTimeCommand::KisSwitchCurrentTimeCommand(KisImageAnimationInterface *animation, int oldTime, int newTime, KUndo2Command *parent)

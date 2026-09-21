@@ -5,6 +5,13 @@
  */
 
 #include "KisRequiredResourcesOperators.h"
+#include "KisResourceLoader.h"
+#include "KisResourcesInterface.h"
+#include "KoEmbeddedResource.h"
+#include "KoResource.h"
+#include "KoResourceLoadResult.h"
+#include "KoResourceSignature.h"
+#include "kis_assert.h"
 
 #include <QApplication>
 #include <QBuffer>
@@ -12,6 +19,9 @@
 #include <KisLocalStrokeResources.h>
 #include <KisResourceLoaderRegistry.h>
 #include <KisMimeDatabase.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qsharedpointer.h>
 
 
 bool KisRequiredResourcesOperators::detail::isLocalResourcesStorage(KisResourcesInterfaceSP resourcesInterface)

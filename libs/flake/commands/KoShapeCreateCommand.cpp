@@ -13,12 +13,16 @@
 #include <klocalizedstring.h>
 
 #include "kis_assert.h"
+#include "kundo2magicstring.h"
 #include <KoShapeLayer.h>
 #include <KoShapeReorderCommand.h>
 
 
 #include <kis_undo_stores.h>
 #include <KoAddRemoveShapeCommands.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qtdeprecationdefinitions.h>
 
 class Q_DECL_HIDDEN KoShapeCreateCommand::Private
 {

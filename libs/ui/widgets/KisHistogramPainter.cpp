@@ -18,8 +18,23 @@
 #include <kis_algebra_2d.h>
 #include <KoColor.h>
 #include <KoColorModelStandardIds.h>
+#include <math.h>
+#include <qassert.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qimage.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpainter.h>
+#include <qpen.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <qtypes.h>
 
 #include "KisHistogramPainter.h"
+#include "KoColorConversionTransformation.h"
+#include "kis_global.h"
 
 struct HistogramShapeInfo
 {

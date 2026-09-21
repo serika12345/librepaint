@@ -4,7 +4,18 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KoSvgTextLoader.h"
+#include "KisForest.h"
+#include "KoFlakeTypes.h"
+#include "KoShape.h"
+#include "KoShapeBackground.h"
+#include "KoSvgText.h"
+#include "KoSvgTextContentElement.h"
+#include "KoSvgTextShape.h"
 #include "KoSvgTextShape_p.h"
+#include "SvgLoadingContext.h"
+#include <qdom.h>
+#include <qsharedpointer.h>
+#include <qvariant.h>
 
 
 struct KoSvgTextLoader::Private {

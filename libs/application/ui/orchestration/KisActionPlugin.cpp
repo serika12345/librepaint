@@ -8,7 +8,10 @@
 #include "application/ui/orchestration/KisActionPlugin.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "application/ui/orchestration/kis_action_manager.h"
+#include "kis_assert.h"
 #include "operations/kis_operation.h"
+#include <qobject.h>
+#include <qpointer.h>
 
 KisActionPlugin::KisActionPlugin(QObject* parent)
     : QObject(parent)

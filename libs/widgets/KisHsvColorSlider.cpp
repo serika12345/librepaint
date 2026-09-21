@@ -15,10 +15,22 @@
 #include <QStyleOption>
 #include <QPointer>
 
+#include <cmath>
+#include <kselector.h>
 #include <memory>
 
 #include "KoColorDisplayRendererInterface.h"
 #include <kis_signal_compressor.h>
+#include <qcolor.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qpoint.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 namespace {
 

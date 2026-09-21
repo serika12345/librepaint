@@ -7,6 +7,9 @@
 #include <QAbstractItemModel>
 #include <QApplication>
 #include <QMessageBox>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
 
 #include "KisResourceModel.h"
 #include "KisResourceStorage.h"

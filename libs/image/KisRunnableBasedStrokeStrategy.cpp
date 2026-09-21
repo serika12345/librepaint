@@ -7,9 +7,15 @@
 #include "KisRunnableBasedStrokeStrategy.h"
 
 #include <QRunnable>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlatin1stringview.h>
 
 #include "KisRunnableStrokeJobDataBase.h"
 #include "KisRunnableStrokeJobsInterface.h"
+#include "kis_simple_stroke_strategy.h"
+#include "kis_stroke_job_strategy.h"
+#include "kundo2magicstring.h"
 
 struct KisRunnableBasedStrokeStrategy::JobsInterface : public KisRunnableStrokeJobsInterface
 {

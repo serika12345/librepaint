@@ -11,8 +11,14 @@
 #include <KLocalizedString>
 
 #include <kis_assert.h>
-#include <kis_global.h>
-#include <psd_utils.h>
+#include "KisLocalStrokeResources.h"
+#include "KisResourcesInterface.h"
+#include "KoEmbeddedResource.h"
+#include "KoResource.h"
+#include "KoResourceLoadResult.h"
+#include "KoResourceSignature.h"
+#include "kis_debug.h"
+#include "kis_pointer_utils.h"
 #include "krita_container_utils.h"
 
 #include <KoCanvasResourcesInterface.h>
@@ -22,8 +28,16 @@
 #include <KisResourceLoaderRegistry.h>
 #include <KisResourceTypes.h>
 #include <KoMD5Generator.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qsharedpointer.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #include "kis_asl_layer_style_serializer.h"
+#include "psd_types.h"
 
 
 struct Q_DECL_HIDDEN KisPSDLayerStyle::Private

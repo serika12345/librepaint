@@ -11,6 +11,15 @@
 #include <QStyle>
 
 #include <KoIcon.h>
+#include <qabstractitemdelegate.h>
+#include <qabstractitemmodel.h>
+#include <qcolor.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qstyleoption.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #include "KisStorageModel.h"
 

@@ -5,11 +5,15 @@
  */
 
 #include "kis_asl_object_catcher.h"
+#include "KoPattern.h"
 
 #include <KoColor.h>
 #include <QPointF>
 #include <QString>
 
+#include <qcontainerfwd.h>
+#include <qpaintdevice.h>
+#include <qstringview.h>
 #include <resources/KoAbstractGradient.h>
 
 #include <kis_debug.h>

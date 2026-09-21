@@ -8,7 +8,18 @@
 #include "kis_prescaled_projection.h"
 
 #include <cstring>
+#include <memory>
 #include <optional>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qdebug.h>
+#include <qforeach.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qregion.h>
+#include <qsharedpointer.h>
+#include <qtypes.h>
 #include <tuple>
 #include <utility>
 
@@ -19,7 +30,12 @@
 #include <QSize>
 #include <QPainter>
 
+#include "KoColorConversionTransformation.h"
+#include "kis_debug.h"
 #include "kis_image.h"
+#include "kis_image_patch.h"
+#include "kis_types.h"
+#include "kis_update_info.h"
 #include "krita_utils.h"
 
 #include "kis_coordinates_converter.h"

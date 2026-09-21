@@ -7,10 +7,15 @@
 #include "kis_convolution_kernel.h"
 
 #include "KisConvolutionKernelMaskAccess_p.h"
+#include "kis_types.h"
 
+#include <Eigen/Core>
 #include <math.h>
 
 #include <QImage>
+#include <qgenericatomic.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 struct Q_DECL_HIDDEN KisConvolutionKernel::Private {
     qreal offset;

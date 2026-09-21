@@ -17,6 +17,13 @@
 #include <QScroller>
 #include <QStyleHints>
 #include <QTimer>
+#include <qcoreevent.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
+#include <qwidget.h>
 #ifdef Q_OS_ANDROID
 #include <QtAndroid>
 #endif

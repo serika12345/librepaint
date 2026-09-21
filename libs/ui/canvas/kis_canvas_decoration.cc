@@ -5,9 +5,12 @@
  */
 
 #include "kis_canvas_decoration.h"
+#include "kis_assert.h"
 #include "kis_canvas2.h"
 #include "kis_debug.h"
 #include <KoCanvasResourceProvider.h>
+#include <qobject.h>
+#include <qpointer.h>
 
 struct KisCanvasDecoration::Private {
     bool visible;

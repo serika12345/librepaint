@@ -4,12 +4,16 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_assert.h"
 #include <KoShapeBulkActionLock.h>
 
-#include <kis_debug.h>
 #include <KoShape.h>
 
 #include <KoShapeBulkActionInterface.h>
+#include <qdebug.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
 
 KoShapeBulkActionLockAdapter::KoShapeBulkActionLockAdapter(const QList<KoShape*> &shapes)
 {

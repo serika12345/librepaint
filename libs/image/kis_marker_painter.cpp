@@ -8,11 +8,18 @@
 
 #include <KoColor.h>
 #include <KoColorSpace.h>
+#include <cstring>
+#include <qcontainerfwd.h>
+#include <qpaintdevice.h>
+#include <qpoint.h>
+#include <qtypes.h>
 
+#include "kis_assert.h"
 #include "kis_paint_device.h"
 
 #include "kis_algebra_2d.h"
 #include "kis_sequential_iterator.h"
+#include "kis_types.h"
 
 
 struct KisMarkerPainter::Private

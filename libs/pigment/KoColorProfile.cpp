@@ -7,8 +7,14 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtpreprocessorsupport.h>
 
 #include "KoColorProfile.h"
+#include "KoColorProfileConstants.h"
+#include "KoColorimetryUtils.h"
 #include "kis_assert.h"
 
 struct Q_DECL_HIDDEN KoColorProfile::Private {

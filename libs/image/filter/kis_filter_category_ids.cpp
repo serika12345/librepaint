@@ -5,6 +5,7 @@
  */
 
 #include "kis_filter_category_ids.h"
+#include "KoID.h"
 
 #include <klocalizedstring.h>
 

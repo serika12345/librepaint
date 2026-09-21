@@ -12,15 +12,24 @@
 
 #include "KisRegion.h"
 
+#include <cmath>
+#include <cstring>
+#include <math.h>
+#include <qassert.h>
 #include <qmath.h>
 #include <klocalizedstring.h>
 
 #include <QTransform>
 
-#include <KoColorSpace.h>
-#include <KoCompositeOpRegistry.h>
 #include <KoColor.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qstringview.h>
+#include <qtypes.h>
 
+#include "kis_assert.h"
+#include "kis_filter_weights_buffer.h"
 #include "kis_paint_device.h"
 #include "kis_selection.h"
 #include "kis_random_accessor_ng.h"
@@ -30,6 +39,7 @@
 #include "kis_progress_update_helper.h"
 #include "kis_pixel_selection.h"
 #include "kis_image.h"
+#include "kis_types.h"
 
 
 KisTransformWorker::KisTransformWorker(KisPaintDeviceSP dev,

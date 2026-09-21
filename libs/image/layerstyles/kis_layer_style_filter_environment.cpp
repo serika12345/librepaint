@@ -8,6 +8,9 @@
 
 #include <QBitArray>
 
+#include "KisResourceTypes.h"
+#include "KoColorSpaceConstants.h"
+#include "KoPattern.h"
 #include "kis_layer.h"
 #include "kis_ls_utils.h"
 
@@ -15,9 +18,13 @@
 #include "kis_painter.h"
 #include "kis_image.h"
 
+#include "kis_types.h"
 #include "krita_utils.h"
 
 #include <boost/random/mersenne_twister.hpp>
+#include <qassert.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 #include "kis_sequential_iterator.h"
 #include "kis_cached_paint_device.h"
 #include "KisLocalStrokeResources.h"

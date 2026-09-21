@@ -9,11 +9,14 @@
 #include "kis_paintop_list_widget.h"
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 #include <brushengine/kis_paintop_factory.h>
+#include "kis_categorized_list_view.h"
 #include "kis_paint_ops_model.h"
 #include "kis_categorized_item_delegate.h"
 #include <brushengine/kis_locked_properties_server.h>
+#include <qlist.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
 KisPaintOpListWidget::KisPaintOpListWidget(QWidget* parent, const char* name):
     KisCategorizedListView(parent),

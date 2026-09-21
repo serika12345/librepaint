@@ -4,11 +4,13 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KoColorSpaceBlendingPolicy.h"
+#include "KisQStringListFwd.h"
 
 #include <KoCompositeOpIds.h>
 #include <QStringList>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
+#include <qlogging.h>
 
 bool useSubtractiveBlendingForCmykColorSpaces()
 {

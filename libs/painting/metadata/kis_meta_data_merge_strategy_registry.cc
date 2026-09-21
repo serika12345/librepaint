@@ -4,9 +4,12 @@
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  */
 #include <QGlobalStatic>
+#include <qforeach.h>
 
+#include "KoGenericRegistry.h"
 #include "kis_debug.h"
 #include "kis_meta_data_merge_strategy_registry.h"
+#include "kis_meta_data_merge_strategy.h"
 #include "kis_meta_data_merge_strategy_p.h"
 
 Q_GLOBAL_STATIC(KisMetaData::MergeStrategyRegistry, s_instance)

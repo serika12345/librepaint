@@ -11,12 +11,21 @@
 #include <QDir>
 #include <QMessageBox>
 #include <QApplication>
+#include <qfiledevice.h>
+#include <qforeach.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qscopedpointer.h>
+#include <qsize.h>
 
+#include "KisImportExportErrorCode.h"
+#include "KisResourceTypes.h"
 #include "document/KisDocument.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "KisAnimationRenderingOptions.h"
 #include "KisMimeDatabase.h"
 #include "dialogs/KisAsyncAnimationFramesSaveDialog.h"
+#include "kis_assert.h"
 #include "kis_time_span.h"
 #include "application/ui/workspace/KisMainWindow.h"
 

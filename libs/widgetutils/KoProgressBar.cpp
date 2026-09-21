@@ -5,6 +5,10 @@
  */
 
 #include "KoProgressBar.h"
+#include <qobject.h>
+#include <qprogressbar.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 KoProgressBar::KoProgressBar(QWidget *parent)
  : QProgressBar(parent)

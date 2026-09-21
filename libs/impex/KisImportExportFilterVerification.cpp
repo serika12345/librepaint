@@ -10,6 +10,8 @@
 #include <QFile>
 #include <QFileInfo>
 #include <klocalizedstring.h>
+#include <qobject.h>
+#include <qtypes.h>
 
 QString KisImportExportFilter::verify(const QString &fileName) const
 {

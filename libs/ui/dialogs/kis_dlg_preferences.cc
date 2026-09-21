@@ -8,8 +8,21 @@
  */
 
 #include "kis_dlg_preferences.h"
+#include "KisQStringListFwd.h"
+#include "KisScreenMigrationTracker.h"
+#include "KoColorimetryUtils.h"
+#include "KoDialog.h"
+#include "kis_assert.h"
+#include "kis_global.h"
+#include "kis_icon_utils.h"
+#include "kis_types.h"
 
+#include <algorithm>
 #include <config-hdr.h>
+#include <functional>
+#include <kguiitem.h>
+#include <kpagedialog.h>
+#include <kpagewidgetmodel.h>
 #include <opengl/kis_opengl.h>
 
 #include <QAbstractItemView>
@@ -41,6 +54,36 @@
 #include <QSurfaceFormat>
 #include <QColorSpace>
 #include <QTextBrowser>
+#include <optional>
+#include <qalgorithms.h>
+#include <qapplication.h>
+#include <qassert.h>
+#include <qboxlayout.h>
+#include <qdialogbuttonbox.h>
+#include <qdir.h>
+#include <qevent.h>
+#include <qfileinfo.h>
+#include <qforeach.h>
+#include <qguiapplication.h>
+#include <qimage.h>
+#include <qlayoutitem.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qoverload.h>
+#include <qsizepolicy.h>
+#include <qtenvironmentvariables.h>
+#include <qtguiexports.h>
+#include <qtpreprocessorsupport.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
+#include <qvalidator.h>
+#include <qwidget.h>
+#include <tuple>
 #ifdef Q_OS_IOS
 #include <QStackedWidget>
 #include <QTimer>
@@ -71,7 +114,6 @@
 #include <kstandardguiitem.h>
 #include <kundo2stack.h>
 
-#include <KisResourceCacheDb.h>
 #include <KisResourceLocator.h>
 
 #include "KisProofingConfigModel.h"

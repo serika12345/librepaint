@@ -7,6 +7,8 @@
 #include "kis_exposure_gamma_correction_interface.h"
 
 #include <QGlobalStatic>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 Q_GLOBAL_STATIC(KisDumbExposureGammaCorrectionInterface, s_instance)
 

@@ -6,8 +6,18 @@
 
 #include "kis_color_sampler_stroke_strategy.h"
 
+#include "kis_lod_transform.h"
 #include "kis_painting_utils.h"
 #include "kis_paint_device.h"
+#include "kis_simple_stroke_strategy.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_stroke_strategy.h"
+#include <boost/optional/optional.hpp>
+#include <qlatin1stringview.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qtmetamacros.h>
 
 struct KisColorSamplerStrokeStrategy::Private
 {

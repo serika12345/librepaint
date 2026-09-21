@@ -17,6 +17,13 @@
 #include <QTextStream>
 #include <cmath>
 #include <klocalizedstring.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qpixmap.h>
+#include <qrgb.h>
+#include <qwidget.h>
 
 
 #include "kis_tone_curve_widget.h"

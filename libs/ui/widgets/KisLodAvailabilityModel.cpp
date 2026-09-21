@@ -4,9 +4,18 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisLodAvailabilityModel.h"
+#include "KisLodAvailabilityData.h"
+#include "kis_paintop_lod_limitations.h"
 
+#include <functional>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
 #include <lager/lenses/tuple.hpp>
 #include <KisZug.h>
+#include <lager/reader.hpp>
+#include <lager/with.hpp>
+#include <qtypes.h>
+#include <tuple>
 
 namespace {
 KisLodAvailabilityModel::AvailabilityStatePack

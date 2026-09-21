@@ -8,9 +8,14 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QPen>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qnamespace.h>
 
+#include "KoColorSpaceConstants.h"
 #include "kis_fixed_paint_device.h"
 #include "kis_outline_generator.h"
+#include "kis_types.h"
 
 struct KisBoundary::Private {
     KisFixedPaintDeviceSP m_device;

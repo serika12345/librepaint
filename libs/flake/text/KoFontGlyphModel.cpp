@@ -4,10 +4,31 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KoFontGlyphModel.h"
+#include "KoFontLibraryResourceUtils.h"
 #include "KoOpenTypeFeatureInfoFactory.h"
+#include "data/KoUnicodeBlockData.h"
 #include <QDebug>
+#include <algorithm>
+#include <freetype/freetype.h>
+#include <freetype/fttypes.h>
+#include <hb-ot.h>
 #include <hb.h>
 #include <hb-ft.h>
+#include <limits>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qlatin1stringview.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qstringview.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
+#include <vector>
 
 static constexpr uint invalidUnicodeCodePoint = std::numeric_limits<uint>::max();
 

@@ -4,12 +4,18 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KoShapeMergeTextPropertiesCommand.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 #include <KoSvgTextShape.h>
 #include <KoSvgTextProperties.h>
 #include <kis_command_ids.h>
 #include <krita_container_utils.h>
 #include <KoShapeBulkActionLock.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qset.h>
 
 struct KoShapeMergeTextPropertiesCommand::Private {
     Private(const QList<KoShape*> &list) : shapes(list) { }

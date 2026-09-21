@@ -5,7 +5,11 @@
  */
 #include "canvas/KisLayerThumbnailCache.h"
 
+#include "KisIdleTaskStrokeStrategy.h"
+#include "KisQStringListFwd.h"
+#include "KisRunnableStrokeJobData.h"
 #include "application/kis_config.h"
+#include "kis_debug.h"
 #include "kis_image.h"
 #include "kis_node.h"
 #include "canvas/KisIdleTasksManager.h"
@@ -13,6 +17,17 @@
 
 #include "KisRunnableStrokeJobUtils.h"
 #include "KisRunnableStrokeJobsInterface.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include <qelapsedtimer.h>
+#include <qimage.h>
+#include <qlatin1stringview.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 
 
 namespace {

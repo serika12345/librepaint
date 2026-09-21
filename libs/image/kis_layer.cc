@@ -17,21 +17,36 @@
 #include <QReadLocker>
 #include <QWriteLocker>
 
-#include <KoIcon.h>
 #include <kis_icon.h>
 #include <KoProperties.h>
 #include <KoCompositeOpRegistry.h>
 #include <KoColorSpace.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
+#include "KisQStringListFwd.h"
+#include "KisRenderPassFlags.h"
+#include "KoColorSpaceConstants.h"
+#include "KoCompositeOpIds.h"
+#include "kis_assert.h"
+#include "kis_base_node.h"
+#include "kis_default_bounds.h"
 #include "kis_image.h"
 
 #include "kis_effect_mask.h"
 #include "kis_filter_mask.h"
 #include "kis_mask.h"
 #include "kis_meta_data_store.h"
+#include "kis_node.h"
 #include "kis_paint_device.h"
 #include "kis_paint_layer.h"
 #include "kis_painter.h"
+#include "kis_pointer_utils.h"
 #include "kis_raster_keyframe_channel.h"
 #include "kis_selection_mask.h"
 
@@ -39,6 +54,7 @@
 
 #include "kis_psd_layer_style.h"
 #include "kis_layer_projection_plane.h"
+#include "kis_types.h"
 #include "layerstyles/kis_layer_style_projection_plane.h"
 
 #include "krita_utils.h"

@@ -5,6 +5,7 @@
  */
 
 #include "kis_shared.h"
+#include <qassert.h>
 
 
 /**

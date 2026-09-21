@@ -21,10 +21,9 @@
 #include <kis_debug.h>
 #include <application/kis_config.h>
 
-#include <KoColorProfile.h>
+#include "KisWraparoundAxis.h"
+#include "kis_canvas_widget_base.h"
 #include "kis_coordinates_converter.h"
-#include <KoZoomHandler.h>
-#include <KoToolManager.h>
 #include <KoToolProxy.h>
 
 #include <kis_image.h>
@@ -40,10 +39,18 @@
 #include "document/KisDocument.h"
 #include "kis_config_notifier.h"
 #include "kis_group_layer.h"
+#include "kis_update_info.h"
 
 #include <KoCanvasController.h>
 #include <KisRepaintDebugger.h>
 #include <canvas/KisDisplayConfig.h>
+#include <qassert.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpolygon.h>
+#include <qsharedpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 class KisQPainterCanvas::Private
 {

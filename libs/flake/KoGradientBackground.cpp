@@ -6,15 +6,15 @@
 
 #include "KoGradientBackground.h"
 #include "KoFlake.h"
-#include <KoXmlNS.h>
+#include "KoShapeBackground.h"
 #include <KoShapeSavingContext.h>
 
-#include <FlakeDebug.h>
 
 #include <QBrush>
 #include <QPainter>
 #include <QSharedData>
 #include <QPainterPath>
+#include <qassert.h>
 
 class KoGradientBackground::Private : public QSharedData
 {

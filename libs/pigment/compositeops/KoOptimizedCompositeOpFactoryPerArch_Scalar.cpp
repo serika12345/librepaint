@@ -13,6 +13,7 @@
 #include "KoAlphaDarkenParamsWrapper.h"
 #include "KoCompositeOpOver.h"
 #include "KoCompositeOpCopy2.h"
+#include "xsimd_extensions/config/xsimd_arch.hpp"
 
 template<>
 template<>

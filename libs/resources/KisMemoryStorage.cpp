@@ -5,12 +5,13 @@
  */
 
 #include "KisMemoryStorage.h"
+#include "KisStoragePlugin.h"
+#include "KoResource.h"
 
+#include <algorithm>
 #include <optional>
 #include <QVector>
 
-#include <KisMimeDatabase.h>
-#include <kis_debug.h>
 #include <KisTag.h>
 #include <KisResourceStorage.h>
 #include <QBuffer>
@@ -19,6 +20,16 @@
 #include <KoMD5Generator.h>
 #include <kis_assert.h>
 #include <KisMpl.h>
+#include <qcontainerfwd.h>
+#include <qdatetime.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qsharedpointer.h>
+#include <qvariant.h>
+#include <utility>
 
 
 namespace detail {

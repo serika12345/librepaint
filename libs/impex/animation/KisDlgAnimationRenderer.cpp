@@ -17,11 +17,8 @@
 #include <klocalizedstring.h>
 #include <kpluginfactory.h>
 
-#include <KoResourcePaths.h>
 #include <kis_properties_configuration.h>
-#include <kis_debug.h>
 #include <KisMimeDatabase.h>
-#include <KoJsonTrader.h>
 #include <KisImportExportFilter.h>
 #include <krita_container_utils.h>
 #include <kis_icon_utils.h>
@@ -36,10 +33,27 @@
 #include <application/kis_config.h>
 #include <kis_file_name_requester.h>
 #include <KoDialog.h>
+#include "KoFileDialog.h"
+#include "KoID.h"
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qfileinfo.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qicon.h>
+#include <qjsonvalue.h>
+#include <qlist.h>
+#include <qobjectdefs.h>
+#include <qregularexpression.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
+#include <qtpreprocessorsupport.h>
 #include "kis_acyclic_signal_connector.h"
 #include "KisVideoSaver.h"
 #include "KisAnimationRenderingOptions.h"
+#include "kis_assert.h"
 #include "kis_image_config.h"
+#include "kis_types.h"
 
 #ifdef Q_OS_ANDROID
 #include <QButtonGroup>

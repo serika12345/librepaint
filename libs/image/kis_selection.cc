@@ -8,6 +8,11 @@
 
 #include "kis_selection.h"
 
+#include "kis_assert.h"
+#include "kis_paint_device.h"
+#include "kis_shared.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_types.h"
 #include "kundo2command.h"
 
 #include "kis_selection_component.h"
@@ -28,6 +33,15 @@
 #include <QReadWriteLock>
 #include <QReadLocker>
 #include <QWriteLocker>
+#include <memory>
+#include <qassert.h>
+#include <qcolor.h>
+#include <qimage.h>
+#include <qlatin1stringview.h>
+#include <qscopedpointer.h>
+#include <qtransform.h>
+#include <qtypes.h>
+#include <utility>
 
 void kisSharedPtrAddReference(KisSelection *pointer)
 {

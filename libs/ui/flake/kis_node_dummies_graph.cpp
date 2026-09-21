@@ -7,6 +7,10 @@
 #include "kis_node_dummies_graph.h"
 #include "kis_node_shape.h"
 #include "kis_selection_mask.h"
+#include "kis_types.h"
+#include <qalgorithms.h>
+#include <qassert.h>
+#include <qobject.h>
 
 
 /********************************************************************/

@@ -6,6 +6,11 @@
 
 #include "kshortcutwidget.h"
 #include "ui_kshortcutwidget.h"
+#include <qkeysequence.h>
+#include <qlist.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 class KisKShortcutWidgetPrivate
 {

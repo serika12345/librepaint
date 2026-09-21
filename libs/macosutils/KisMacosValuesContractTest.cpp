@@ -5,9 +5,11 @@
 
 #include "KisMacosEntitlements.h"
 #include "KisMacosSecurityBookmarkManager.h"
-#include "KisMacosSystemProber.h"
 
 #include <QTest>
+#include <qobject.h>
+#include <qtestcase.h>
+#include <qtmetamacros.h>
 
 
 class KisMacosValuesContractTest : public QObject

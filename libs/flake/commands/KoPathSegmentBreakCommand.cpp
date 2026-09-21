@@ -7,6 +7,9 @@
 
 #include "KoPathSegmentBreakCommand.h"
 #include "KoPathPoint.h"
+#include "KoPathPointData.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <klocalizedstring.h>
 #include <math.h>
 

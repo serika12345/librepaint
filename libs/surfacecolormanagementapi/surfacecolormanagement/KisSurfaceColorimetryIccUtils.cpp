@@ -5,8 +5,15 @@
  */
 
 #include "KisSurfaceColorimetryIccUtils.h"
+#include "KoColorProfileConstants.h"
+#include "KoColorProfileQuery.h"
+#include "KoColorimetryUtils.h"
+#include "surfacecolormanagement/KisSurfaceColorimetry.h"
 
 #include <QDebug>
+#include <cstdint>
+#include <optional>
+#include <variant>
 
 namespace KisSurfaceColorimetry {
 

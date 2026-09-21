@@ -8,8 +8,10 @@
 
 #include <QRect>
 #include <QImage>
+#include <qlogging.h>
 
 #include "kis_paint_device.h"
+#include "kis_types.h"
 
 
 void kis_debug_save_device_incremental(KisPaintDeviceSP device,

@@ -4,6 +4,7 @@
  */
 
 #include "kis_node_manager.h"
+#include "kis_types.h"
 
 void KisNodeManager::toggleNodeProperty(ToggleProperty property)
 {

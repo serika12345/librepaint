@@ -4,9 +4,16 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "Scratchpad.h"
-#include <KoResource.h>
 #include <application/kis_config.h>
 #include <kis_gradient_painter.h>
+#include <qimage.h>
+#include <qlogging.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qpoint.h>
+#include <qtransform.h>
+#include <qtypes.h>
 #include <tool/kis_scratch_pad.h>
 #include "Resource.h"
 #include "View.h"

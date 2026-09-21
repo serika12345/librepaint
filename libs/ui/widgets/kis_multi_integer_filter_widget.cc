@@ -14,8 +14,19 @@
 #include <filter/kis_filter_configuration.h>
 #include <klocalizedstring.h>
 #include <KisGlobalResourcesInterface.h>
+#include "KoIntegerMaths.h"
+#include "kis_config_widget.h"
+#include "kis_debug.h"
+#include <qforeach.h>
+#include <qlayoutitem.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 #include "kis_slider_spin_box.h"
 #include "kis_aspect_ratio_locker.h"
+#include "kis_types.h"
 
 KisDelayedActionIntegerInput::KisDelayedActionIntegerInput(QWidget * parent, const QString & name)
     : KisSliderSpinBox(parent)

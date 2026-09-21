@@ -5,10 +5,21 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_fixed_paint_device.h"
+#include "KisOptimizedByteArray.h"
+#include "KoColorSpaceConstants.h"
+#include "kis_assert.h"
+#include "kis_shared.h"
 
 #include <KoColorSpaceRegistry.h>
 #include <KoColor.h>
 #include <KoColorModelStandardIds.h>
+#include <cstring>
+#include <new>
+#include <qassert.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qtypes.h>
 
 KisFixedPaintDevice::KisFixedPaintDevice(const KoColorSpace* colorSpace, KisOptimizedByteArray::MemoryAllocatorSP allocator)
         : m_colorSpace(colorSpace),

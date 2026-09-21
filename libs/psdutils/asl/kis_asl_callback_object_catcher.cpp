@@ -13,7 +13,13 @@
 #include <QString>
 
 #include <KoColor.h>
+#include <qcontainerfwd.h>
+#include <qmap.h>
+#include <qpaintdevice.h>
+#include <qstringview.h>
 
+#include "KoAbstractGradient.h"
+#include "KoPattern.h"
 #include "kis_debug.h"
 
 typedef QHash<QString, ASLCallbackDouble> MapHashDouble;

@@ -5,6 +5,7 @@
  */
 
 #include "DockWidgetFactoryBase.h"
+#include "KoDockFactoryBase.h"
 #include <QDebug>
 
 DockWidgetFactoryBase::DockWidgetFactoryBase(const QString& _id, KoDockFactoryBase::DockPosition _dockPosition)

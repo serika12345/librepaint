@@ -27,9 +27,26 @@
 #include <QStyleFactory>
 #include <QActionGroup>
 
-#include <kconfig.h>
-#include <kconfiggroup.h>
+#include <climits>
 #include <klocalizedstring.h>
+#include <kselectaction.h>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qfontmetrics.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlatin1stringview.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qstyle.h>
+#include <qtclasshelpermacros.h>
+#include <qtmetamacros.h>
+#include <qtversionchecks.h>
+#include <qurl.h>
+#include <qwidget.h>
 
 #include "KisRecentFilesManager.h"
 

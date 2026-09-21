@@ -5,6 +5,11 @@
  */
 
 #include "kis_elided_label.h"
+#include <qfontmetrics.h>
+#include <qlabel.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qwidget.h>
 
 struct KisElidedLabel::Private
 {

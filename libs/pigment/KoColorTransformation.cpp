@@ -7,6 +7,10 @@
 #include "KoColorTransformation.h"
 #include <QDebug>
 #include <QVariant>
+#include <qhash.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qtpreprocessorsupport.h>
 
 KoColorTransformation::~KoColorTransformation()
 {

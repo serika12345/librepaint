@@ -7,16 +7,19 @@
  */
 
 #include "kis_progress_widget.h"
-#include <kis_debug.h>
+#include "kis_icon_utils.h"
 #include <QToolButton>
 #include <QHBoxLayout>
 
-#include <kis_icon.h>
 
 #include <KoProgressUpdater.h>
 #include <KoProgressBar.h>
 
-#include <kis_progress_updater.h>
+#include <qforeach.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 KisProgressWidget::KisProgressWidget(QWidget* parent)
         : QWidget(parent)

@@ -5,6 +5,13 @@
  */
 
 #include "KisAslStorage.h"
+#include "KisResourceTypes.h"
+#include "KisStoragePlugin.h"
+#include "KisTag.h"
+#include "KoPattern.h"
+#include "KoResource.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
 #include <KisResourceStorage.h>
 #include <kis_asl_layer_style_serializer.h>
 #include <kis_psd_layer_style.h>
@@ -12,6 +19,12 @@
 #include <QFileInfo>
 #include <KisStaticInitializer.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qcontainerfwd.h>
+#include <qdatetime.h>
+#include <qhash.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
+#include <qvector.h>
 
 
 KIS_DECLARE_STATIC_INITIALIZER {

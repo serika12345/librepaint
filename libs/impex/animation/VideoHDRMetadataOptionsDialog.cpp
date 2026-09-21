@@ -5,11 +5,14 @@
  */
 
 #include "VideoHDRMetadataOptionsDialog.h"
+#include "KoDialog.h"
 #include "ui_VideoHDRMetadataOptionsDialog.h"
 
 #include "KisHDRMetadataOptions.h"
 
 #include <kstandardguiitem.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 VideoHDRMetadataOptionsDialog::VideoHDRMetadataOptionsDialog(QWidget *parent)
     : KoDialog(parent),

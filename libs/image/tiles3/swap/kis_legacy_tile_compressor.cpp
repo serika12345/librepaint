@@ -6,7 +6,16 @@
 
 #include "kis_legacy_tile_compressor.h"
 #include "kis_paint_device_writer.h"
+#include "tiles3/kis_tile.h"
+#include "tiles3/kis_tile_data_interface.h"
+#include "tiles3/kis_tiled_data_manager.h"
 #include <QIODevice>
+#include <cstdio>
+#include <cstring>
+#include <qassert.h>
+#include <qscopedpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #define TILE_DATA_SIZE(pixelSize) ((pixelSize) * KisTileData::WIDTH * KisTileData::HEIGHT)
 

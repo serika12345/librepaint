@@ -5,8 +5,11 @@
  */
 
 #include "canvas/kis_canvas2.h"
+#include "kis_types.h"
 
 #include <kis_image.h>
+#include <qnamespace.h>
+#include <qtmetamacros.h>
 
 void KisCanvas2::connectViewImageSignals()
 {

@@ -5,15 +5,28 @@
  */
 
 #include "KoTriangleColorSelector.h"
+#include "KisColorSelectorInterface.h"
+#include "KoIntegerMaths.h"
 #include <math.h>
 
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPixmap>
 #include <QTimer>
-#include <KoColorSpaceRegistry.h>
-#include <KoColorConversions.h>
 #include <KoColorDisplayRendererInterface.h>
+#include <qimage.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qrgb.h>
+#include <qsize.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 
 enum CurrentHandle {

@@ -7,10 +7,13 @@
 
 #include "kis_tool_utils.h"
 
+#include <cmath>
+#include <functional>
 #include <kis_transaction.h>
 #include <kis_properties_configuration.h>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
+#include "KoID.h"
 #include "kis_layer_utils.h"
 #include "kis_node.h"
 #include "kis_selection.h"
@@ -20,8 +23,18 @@
 #include <algorithm>
 
 #include "KisAnimAutoKey.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 
 #include <QApplication>
+#include <memory>
+#include <qcursor.h>
+#include <qforeach.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qtypes.h>
+#include <vector>
 
 namespace KisToolUtils {
 

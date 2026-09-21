@@ -6,14 +6,20 @@
 
 #include "KoShapeClipCommand.h"
 #include "KoClipPath.h"
+#include "KoFlakeCoordinateSystem.h"
 #include "KoPathShape.h"
 #include "KoShape.h"
 #include "KoShapeContainer.h"
 #include "KoShapeControllerBase.h"
 
 #include <klocalizedstring.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 
 #include "kis_pointer_utils.h"
+#include "kundo2magicstring.h"
 
 namespace
 {

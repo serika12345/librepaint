@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_assert.h"
 #include "kis_tool.h"
 
 KisTool::AlternateAction KisTool::actionToAlternateAction(ToolAction action)

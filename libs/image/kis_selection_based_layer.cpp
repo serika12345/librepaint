@@ -9,21 +9,37 @@
 #include "kis_selection_based_layer.h"
 
 #include <klocalizedstring.h>
+#include "KoColorSpaceConstants.h"
+#include "kis_assert.h"
 #include "kis_debug.h"
 
 #include <KoCompositeOpRegistry.h>
+#include <qassert.h>
+#include <qimage.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #include "kis_image.h"
+#include "kis_indirect_painting_support.h"
+#include "kis_keyframe_channel.h"
+#include "kis_layer.h"
+#include "kis_node_filter_interface.h"
 #include "kis_painter.h"
 #include "kis_default_bounds.h"
 #include "KisImageResolutionProxy.h"
 
+#include "kis_pointer_utils.h"
 #include "kis_selection.h"
 #include "kis_pixel_selection.h"
 #include "filter/kis_filter_registry.h"
 #include "kis_signal_auto_connection.h"
 
 #include "kis_raster_keyframe_channel.h"
+#include "kis_types.h"
 
 
 struct Q_DECL_HIDDEN KisSelectionBasedLayer::Private

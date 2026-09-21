@@ -6,6 +6,9 @@
 #include "KisMenuStyleDontCloseOnAlt.h"
 
 #include <QStyleFactory>
+#include <qobject.h>
+#include <qproxystyle.h>
+#include <qstyle.h>
 
 KisMenuStyleDontCloseOnAlt::KisMenuStyleDontCloseOnAlt(QStyle *baseStyle)
     : QProxyStyle(QStyleFactory::create(baseStyle->objectName()))

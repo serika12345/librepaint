@@ -10,6 +10,10 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QCursor>
+#include <qnamespace.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 KCanvasPreview::KCanvasPreview(QWidget * parent) : QWidget(parent), m_dragging(false)
 {

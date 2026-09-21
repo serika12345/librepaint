@@ -18,6 +18,10 @@
 
 #include <kis_display_color_converter.h>
 #include <KoColorDisplayRendererInterface.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qobject.h>
 
 struct ManagedColor::Private {
     KoColor color;

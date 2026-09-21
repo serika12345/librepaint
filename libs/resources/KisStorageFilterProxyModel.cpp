@@ -6,8 +6,17 @@
 #include "KisStorageFilterProxyModel.h"
 
 #include <KisResourceModel.h>
+#include <qabstractitemmodel.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qsortfilterproxymodel.h>
+#include <qtversionchecks.h>
+#include <qvariant.h>
 
+#include "KisResourceStorage.h"
 #include "KisStorageFilterProxyModelSource_p.h"
+#include "KisStorageModel.h"
 
 struct KisStorageFilterProxyModel::Private
 {

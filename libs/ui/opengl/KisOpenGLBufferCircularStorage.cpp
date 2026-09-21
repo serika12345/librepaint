@@ -7,8 +7,16 @@
 #include "KisOpenGLBufferCircularStorage.h"
 
 #include <QtMath>
+#include <algorithm>
+#include <cstddef>
+#include <iterator>
+#include <limits>
+#include <qminmax.h>
+#include <qtdeprecationdefinitions.h>
+#include <vector>
 
 #include "kis_assert.h"
+#include "kis_global.h"
 #include "kis_opengl.h"
 
 KisOpenGLBufferCircularStorage::BufferBinder::BufferBinder(KisOpenGLBufferCircularStorage *bufferStorage, const void **dataPtr, int dataSize) {

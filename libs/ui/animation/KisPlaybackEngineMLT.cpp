@@ -14,18 +14,37 @@
 #include <QElapsedTimer>
 #include <QWaitCondition>
 
+#include "KoCanvasBase.h"
+#include "animation/KisPlaybackEngine.h"
+#include "kis_assert.h"
 #include "kis_canvas2.h"
 #include "KisCanvasAnimationState.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
+#include "kis_signal_compressor.h"
 #include "kis_signal_compressor_with_param.h"
 #include "application/ui/workspace/KisViewManager.h"
 
+#include <boost/optional/optional.hpp>
+#include <functional>
 #include <mlt++/Mlt.h>
 #include <mlt++/MltConsumer.h>
 #include <mlt++/MltFrame.h>
 #include <mlt++/MltFilter.h>
 #include <mlt-7/framework/mlt_service.h>
+#include <qfileinfo.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
+#include <qtenvironmentvariables.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #include "KisRollingMeanAccumulatorWrapper.h"
 #include "KisRollingSumAccumulatorWrapper.h"

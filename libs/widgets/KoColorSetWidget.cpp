@@ -5,6 +5,9 @@
    SPDX-License-Identifier: LGPL-2.0-or-later
 */
 #include "KoColorSetWidget.h"
+#include "KisPaletteChooser.h"
+#include "KisPaletteComboBox.h"
+#include "KisPopupButton.h"
 #include "KoColorSetWidget_p.h"
 
 #include <QApplication>
@@ -21,8 +24,10 @@
 #include <QVBoxLayout>
 
 #include <klocalizedstring.h>
-#include <ksharedconfig.h>
 
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 #include <resources/KoColorSet.h>
 #include <KoColorPatch.h>
 #include <KoColorSpaceRegistry.h>
@@ -30,7 +35,6 @@
 #include <KoResourceServerProvider.h>
 
 #include <kis_palette_view.h>
-#include <KisPaletteDelegate.h>
 #include <KisPaletteModel.h>
 #include <kis_icon_utils.h>
 

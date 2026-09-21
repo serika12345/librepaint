@@ -5,6 +5,10 @@
  */
 
 #include "kis_png_brush.h"
+#include "KisColorfulBrush.h"
+#include "KoResource.h"
+#include "kis_brush.h"
+#include "kis_debug.h"
 
 #include <QDomElement>
 #include <QFileInfo>
@@ -14,6 +18,10 @@
 #include <QPainter>
 
 #include <kis_dom_utils.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qrgb.h>
+#include <qtpreprocessorsupport.h>
 
 KisPngBrush::KisPngBrush(const QString& filename)
     : KisColorfulBrush(filename)

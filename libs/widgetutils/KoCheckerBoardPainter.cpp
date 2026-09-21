@@ -6,6 +6,9 @@
 
 #include "KoCheckerBoardPainter.h"
 #include <QPainter>
+#include <qnamespace.h>
+#include <qpaintdevice.h>
+#include <qpoint.h>
 
 KoCheckerBoardPainter::KoCheckerBoardPainter(int checkerSize)
     : m_checkerSize(checkerSize)

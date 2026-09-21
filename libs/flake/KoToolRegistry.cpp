@@ -7,7 +7,6 @@
 
 #include "KoToolRegistry.h"
 
-#include <FlakeDebug.h>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
 
@@ -16,6 +15,10 @@
 #include <KoPluginLoader.h>
 
 #include <QGlobalStatic>
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
 
 Q_GLOBAL_STATIC(KoToolRegistry, s_instance)
 

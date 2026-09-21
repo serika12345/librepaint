@@ -9,6 +9,9 @@
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
 #include "kis_command_ids.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 
 KisChangeProjectionColorCommand::KisChangeProjectionColorCommand(KisImageSP image, const KoColor &newColor, KUndo2Command *parent)

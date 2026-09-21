@@ -5,6 +5,9 @@
  */
 #include "KoWritingSystemUtils.h"
 #include <QRegularExpression>
+#include <qcontainerfwd.h>
+#include <qfontdatabase.h>
+#include <qmap.h>
 
 static QMap<QFontDatabase::WritingSystem, QString> WRITINGSYSTEM_SCRIPT_MAP {
     {{QFontDatabase::Any},{"Zyyy"}},

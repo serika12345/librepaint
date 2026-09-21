@@ -6,6 +6,7 @@
  */
 
 #include "kis_lzf_compression.h"
+#include <qtypes.h>
 
 
 #define HASH_LOG  12

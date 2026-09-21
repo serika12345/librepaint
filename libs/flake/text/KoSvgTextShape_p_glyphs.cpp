@@ -5,29 +5,48 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KoSvgText.h"
 #include "KoSvgTextShape.h"
 #include "KoSvgTextShape_p.h"
 
 #include "KisTofuGlyph.h"
 #include "KoFontLibraryResourceUtils.h"
+#include "kis_assert.h"
 
 #include <FlakeDebug.h>
-#include <KoPathShape.h>
 
-#include <kis_global.h>
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
+#include <freetype/config/ftheader.h>
+#include <freetype/config/integer-types.h>
+#include <freetype/ftimage.h>
+#include <freetype/fttypes.h>
+#include <hb-ot.h>
 
 #include <QPainterPath>
 #include <QtMath>
 
+#include <qbrush.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qline.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qrgb.h>
+#include <qsize.h>
+#include <qtypes.h>
+#include <tuple>
 #include <utility>
 #include <variant>
 
-#include <ft2build.h>
 #include FT_FREETYPE_H
 #include FT_COLOR_H
 #include FT_BITMAP_H
 #include FT_OUTLINE_H
-#include FT_TRUETYPE_TABLES_H
 
 #include <hb.h>
 #include <hb-ft.h>

@@ -6,6 +6,7 @@
 
 #include "KisCursorOverrideLock.h"
 #include <QGuiApplication>
+#include <qcursor.h>
 
 KisCursorOverrideLockAdapter::KisCursorOverrideLockAdapter(const QCursor &cursor)
     : m_cursor(cursor)

@@ -6,7 +6,14 @@
  */
 
 #include "kis_keyframe_commands.h"
+#include "kis_assert.h"
+#include "kis_keyframe_channel.h"
 #include "kis_scalar_keyframe_channel.h"
+#include "kis_types.h"
+#include "kundo2stack.h"
+#include <qpoint.h>
+#include <qsharedpointer.h>
+#include <qtypes.h>
 
 KisInsertKeyframeCommand::KisInsertKeyframeCommand(KisKeyframeChannel *channel, int time, KisKeyframeSP keyframe, KUndo2Command *parentCmd)
     : KUndo2Command(parentCmd),

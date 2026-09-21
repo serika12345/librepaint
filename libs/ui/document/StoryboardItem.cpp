@@ -8,8 +8,11 @@
 
 #include <QDomElement>
 #include <QDomDocument>
+#include <qsharedpointer.h>
+#include <qvariant.h>
 
 #include "kis_pointer_utils.h"
+#include "kis_types.h"
 
 StoryboardItem::StoryboardItem()
     : m_childData()

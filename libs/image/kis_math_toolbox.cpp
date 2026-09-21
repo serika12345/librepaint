@@ -7,8 +7,18 @@
  */
 
 #include "kis_math_toolbox.h"
+#include "KoChannelInfo.h"
+#include "KoIntegerMaths.h"
+#include "kis_types.h"
 
 #include <KoConfig.h>
+#include <cstring>
+#include <limits>
+#include <math.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qnumeric.h>
+#include <qtypes.h>
 
 #ifdef HAVE_OPENEXR
 #include <half.h>

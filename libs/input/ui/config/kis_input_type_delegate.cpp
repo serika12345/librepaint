@@ -9,6 +9,13 @@
 
 #include <kcombobox.h>
 #include <klocalizedstring.h>
+#include <qabstractitemmodel.h>
+#include <qassert.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qstyleditemdelegate.h>
+#include <qstyleoption.h>
+#include <qwidget.h>
 
 class KisInputTypeDelegate::Private
 {

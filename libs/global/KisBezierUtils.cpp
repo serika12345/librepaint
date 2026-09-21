@@ -7,13 +7,37 @@
 
 #include "KisBezierUtils.h"
 
+#include <Eigen/Core>
+#include <algorithm>
+#include <array>
+#include <boost/optional/optional.hpp>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
+#include <gsl/gsl_errno.h>
+#include <gsl/gsl_vector_double.h>
+#include <iterator>
+#include <limits>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qline.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qtypes.h>
 #include <tuple>
 #include <QStack>
 #include <QDebug>
 
 #include "KisBezierPatch.h"
+#include "kis_algebra_2d.h"
+#include "kis_assert.h"
+#include "kis_global.h"
 
 #include <config-gsl.h>
+#include <utility>
 
 #ifdef HAVE_GSL
 #include <gsl/gsl_multimin.h>

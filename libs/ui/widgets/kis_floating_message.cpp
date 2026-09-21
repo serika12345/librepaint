@@ -21,9 +21,14 @@
 #include <QLabel>
 #include <QGraphicsDropShadowEffect>
 
-#include <kis_icon.h>
-#include <kis_debug.h>
+#include <qcolor.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 #include "kis_global.h"
+#include "kis_icon_utils.h"
 
 
 #define OSD_WINDOW_OPACITY 0.85

@@ -6,6 +6,9 @@
  */
 
 #include "KisPaletteModel.h"
+#include "KisResourceTypes.h"
+#include "KisSwatch.h"
+#include "KisSwatchGroup.h"
 
 #include <QBrush>
 #include <QDomDocument>
@@ -14,11 +17,22 @@
 
 #include <KoColor.h>
 
-#include <KoColorSpace.h>
-#include <KoColorModelStandardIds.h>
+#include <qabstractitemmodel.h>
+#include <qassert.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsharedpointer.h>
+#include <qstringview.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qvariant.h>
 #include <resources/KoColorSet.h>
 #include <KoColorDisplayRendererInterface.h>
-#include <KisResourceModel.h>
 #include <QFileInfo>
 #include <QScopedValueRollback>
 

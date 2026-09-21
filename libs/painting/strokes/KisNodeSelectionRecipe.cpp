@@ -9,6 +9,7 @@
 #include "kis_layer_utils.h"
 #include "kis_painting_utils.h"
 #include "kis_lod_transform.h"
+#include "kis_types.h"
 
 KisNodeSelectionRecipe::KisNodeSelectionRecipe(KisNodeList _selectedNodes)
     : selectedNodes(_selectedNodes),

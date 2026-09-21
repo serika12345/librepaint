@@ -4,6 +4,11 @@
  *  SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "KisFontFamilyValidator.h"
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
+#include <qvalidator.h>
 
 KisFontFamilyValidator::KisFontFamilyValidator(QObject *parent)
     : QValidator(parent)

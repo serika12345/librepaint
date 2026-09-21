@@ -8,7 +8,11 @@
 
 #include <QApplication>
 #include <QPainter>
+#include "KisQStringListFwd.h"
+#include "KoColor.h"
+#include "kis_assert.h"
 #include "kis_canvas2.h"
+#include "kis_canvas_decoration.h"
 #include "kis_coordinates_converter.h"
 #include "opengl/kis_opengl_canvas_debugger.h"
 #include <KisStrokeSpeedMonitor.h>
@@ -16,6 +20,12 @@
 #include <QGraphicsPixmapItem>
 #include <QGraphicsDropShadowEffect>
 #include <KoColorDisplayRendererInterface.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpaintdevice.h>
+#include <qpointer.h>
+#include <qsize.h>
+#include <qtypes.h>
 
 const QString KisFpsDecoration::idTag = "fps_decoration";
 

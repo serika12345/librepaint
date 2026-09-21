@@ -4,6 +4,8 @@
  */
 
 #include "kis_node_model.h"
+#include <qabstractitemmodel.h>
+#include <qnamespace.h>
 
 Qt::ItemFlags KisNodeModel::flags(const QModelIndex &index) const
 {

@@ -8,9 +8,17 @@
 
 #include <QThread>
 #include <KisStaticInitializer.h>
+#include <qforeach.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
+#include "KisImageSignals.h"
+#include "KisNodeAdditionFlags.h"
 #include "kis_image.h"
 #include "kis_node.h"
+#include "kis_types.h"
 
 
 #define CONNECT_TO_IMAGE(signal)                                        \

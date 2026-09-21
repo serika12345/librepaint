@@ -5,10 +5,13 @@
  */
 
 #include "kis_document_undo_store.h"
+#include "kis_undo_store.h"
+#include "kundo2magicstring.h"
 
 #include <kundo2stack.h>
 
 #include <kis_assert.h>
+#include <qnamespace.h>
 
 KisDocumentUndoStore::KisDocumentUndoStore(KUndo2Stack *undoStack)
     : m_undoStack(undoStack)

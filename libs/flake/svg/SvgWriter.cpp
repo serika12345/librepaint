@@ -26,6 +26,7 @@
 #include "SvgSavingContext.h"
 #include "SvgShape.h"
 #include "SvgStyleWriter.h"
+#include "kis_assert.h"
 
 #include <KoShapeLayer.h>
 #include <KoShapeGroup.h>
@@ -41,8 +42,11 @@
 #include <QPainter>
 #include <QSvgGenerator>
 
-#include <kis_debug.h>
+#include <algorithm>
 #include <KisPortingUtils.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qsize.h>
 
 SvgWriter::SvgWriter(const QList<KoShapeLayer*> &layers)
     : m_writeInlineImages(true)

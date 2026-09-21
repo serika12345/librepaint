@@ -6,6 +6,9 @@
 
 #include "KisChangeChannelFlagsCommand.h"
 #include "kis_layer.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 #include <klocalizedstring.h>
 

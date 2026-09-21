@@ -6,6 +6,35 @@
  */
 
 #include "kis_png_converter.h"
+#include "KisImportExportErrorCode.h"
+#include "KisQStringListFwd.h"
+#include "KoIntegerMaths.h"
+#include "kis_annotation.h"
+#include "kis_debug.h"
+#include "kis_global.h"
+#include "kis_meta_data_io_backend.h"
+#include "kis_types.h"
+#include <cmath>
+#include <csetjmp>
+#include <cstdarg>
+#include <cstddef>
+#include <cstdlib>
+#include <cstring>
+#include <new>
+#include <png.h>
+#include <pngconf.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qcoreapplication.h>
+#include <qdebug.h>
+#include <qlatin1stringview.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qscopedpointer.h>
+#include <qsize.h>
+#include <qstringview.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 // A big thank to Glenn Randers-Pehrson for his wonderful
 // documentation of libpng available at
 // http://www.libpng.org/pub/png/libpng-1.2.5-manual.html
@@ -53,7 +82,6 @@
 #include <kis_paint_device.h>
 #include <kis_paint_layer.h>
 #include <kis_painter.h>
-#include <kis_transaction.h>
 
 #include <kis_assert.h>
 

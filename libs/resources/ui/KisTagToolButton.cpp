@@ -20,11 +20,16 @@
 
 #include <KoIcon.h>
 
-#include <kis_debug.h>
-#include <KisTagModel.h>
 
+#include "KisTag.h"
 #include "TagActions.h"
 #include <QMenu>
+#include <qaction.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qvariant.h>
+#include <qwidget.h>
 #include "KisMenuStyleDontCloseOnAlt.h"
 
 class KisTagToolButton::Private

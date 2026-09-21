@@ -18,6 +18,11 @@
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
 #include <kundo2command.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 class KoshapeControllerBasePrivate
 {

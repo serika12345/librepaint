@@ -3,13 +3,17 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "KisTag.h"
 #include "KisTagChooserWidget.h"
 
 #include <QAbstractItemModel>
 #include <QComboBox>
+#include <qnamespace.h>
+#include <qtmetamacros.h>
 
 #include "KisTagChooserWidgetSelectionSource_p.h"
 #include "KisTagChooserWidget_p.h"
+#include "KisTagModel.h"
 
 void KisTagChooserWidget::setCurrentIndex(int index)
 {

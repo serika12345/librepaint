@@ -7,6 +7,9 @@
 
 #include "kis_node_filter_interface.h"
 #include "KisNodeFilterInterfaceFilterAccess_p.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_types.h"
 
 #define SANITY_ACQUIRE_FILTER(filter)                                                                                  \
     do {                                                                                                               \

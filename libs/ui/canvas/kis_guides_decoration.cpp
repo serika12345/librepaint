@@ -8,10 +8,18 @@
 
 #include <document/KisDocument.h>
 #include "application/kis_config.h"
+#include "kis_canvas_decoration.h"
 #include "kis_guides_config.h"
 #include "kis_coordinates_converter.h"
 #include <KoColorDisplayRendererInterface.h>
 #include <kis_canvas2.h>
+#include <qforeach.h>
+#include <qpaintdevice.h>
+#include <qpainter.h>
+#include <qpoint.h>
+#include <qpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 struct KisGuidesDecoration::Private
 {

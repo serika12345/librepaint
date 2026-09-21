@@ -6,11 +6,14 @@
 
 #include "animation/kis_animation_frame_cache.h"
 
+#include "animation/kis_animation_frame_cache_fwd.h"
+#include "kis_assert.h"
 #include "kis_debug.h"
 #include "KisRegion.h"
 
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
+#include "kis_lod_transform.h"
 #include "kis_time_span.h"
 #include "application/ui/orchestration/KisPart.h"
 
@@ -21,11 +24,25 @@
 #include "kis_image_config.h"
 #include "kis_config_notifier.h"
 
+#include "kis_types.h"
 #include "opengl/kis_opengl_image_textures.h"
 
+#include <algorithm>
 #include <animation/kis_animation_frame_cache_index.h>
 #include <kis_algebra_2d.h>
 #include <cmath>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qmath.h>
+#include <qminmax.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 struct KisAnimationFrameCache::Private

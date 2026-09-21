@@ -5,14 +5,23 @@
  */
 
 #include "tool/kis_bookmarked_configurations_model.h"
+#include "kis_serializable_configuration.h"
 #include <QList>
 
+#include <algorithm>
 #include <kis_debug.h>
 #include <klocalizedstring.h>
 
 #include <KoID.h>
 
 #include <kis_bookmarked_configuration_manager.h>
+#include <qabstractitemmodel.h>
+#include <qdebug.h>
+#include <qflags.h>
+#include <qnamespace.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qvariant.h>
 
 struct KisBookmarkedConfigurationsModel::Private {
     KisBookmarkedConfigurationManager* bookmarkManager;

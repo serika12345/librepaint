@@ -7,9 +7,11 @@
 #include "generator/kis_generator.h"
 
 #include <QString>
+#include <qsize.h>
 
-#include "kis_bookmarked_configuration_manager.h"
+#include "kis_base_processor.h"
 #include "filter/kis_filter_configuration.h"
+#include "kis_bookmarked_configuration_manager.h"
 #include "kis_processing_information.h"
 #include "kis_paint_device.h"
 #include "kis_types.h"

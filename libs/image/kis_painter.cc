@@ -12,11 +12,36 @@
  */
 
 #include "kis_painter.h"
+#include "KisFakeRunnableStrokeJobsExecutor.h"
+#include "KisPerStrokeRandomSource.h"
+#include "KisQStringListFwd.h"
+#include "KoAbstractGradient.h"
+#include "KoColorConversionTransformation.h"
+#include "KoColorSpaceConstants.h"
+#include "KoCompositeOpIds.h"
+#include "kis_assert.h"
+#include "kis_fill_painter.h"
+#include "kis_global.h"
+#include "kis_random_source.h"
+#include "kis_types.h"
+#include <new>
+#include <qassert.h>
+#include <qbrush.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qmath.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qrgb.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <stdlib.h>
 #include <cfloat>
 #include <cmath>
+#include <utility>
 #ifndef Q_OS_WIN
-#include <strings.h>
 #endif
 
 #include <QImage>

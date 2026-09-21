@@ -15,9 +15,24 @@
 #include <QStandardPaths>
 #include <QGlobalStatic>
 
+#include <qbrush.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtdeprecationdefinitions.h>
 #include <resources/KoSegmentGradient.h>
 #include <resources/KoStopGradient.h>
+#include "KisResourceTypes.h"
+#include "KisSeExprScript.h"
+#include "KoAbstractGradient.h"
+#include "KoColorSet.h"
+#include "KoColorSpace.h"
 #include "KoColorSpaceRegistry.h"
+#include "KoCssStylePreset.h"
+#include "KoGamutMask.h"
+#include "KoPattern.h"
+#include "KoResourceServer.h"
+#include "KoSvgSymbolCollectionResource.h"
 #include "klocalizedstring.h"
 
 using namespace std;

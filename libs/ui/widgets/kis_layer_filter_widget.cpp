@@ -19,13 +19,26 @@
 #include <QScreen>
 #include <QStylePainter>
 #include <QGraphicsDropShadowEffect>
+#include <qbrush.h>
+#include <qcolor.h>
+#include <qguiapplication.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qsizepolicy.h>
+#include <qstyleoption.h>
 
+#include "KisQStringListFwd.h"
+#include "KoID.h"
 #include "kis_node.h"
 #include "kis_global.h"
 #include "kis_icon_utils.h"
 
 #include "kis_color_filter_combo.h"
 #include "kis_color_label_button.h"
+#include "kis_types.h"
 #include "nodes/kis_node_view_color_scheme.h"
 
 #include "KisPopupSelfActivatingLineEdit.h"

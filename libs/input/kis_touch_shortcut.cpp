@@ -6,12 +6,16 @@
  *
  */
 
+#include "KisTouchGestureType.h"
+#include "kis_abstract_shortcut.h"
+#include <functional>
 #include <kis_touch_shortcut.h>
 
 #include <KisInputAction.h>
 
 #include <QTouchEvent>
 
+#include <qtversionchecks.h>
 #include <utility>
 
 class KisTouchShortcut::Private

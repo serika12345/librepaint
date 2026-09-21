@@ -6,7 +6,11 @@
 
 #include "KisNewWindowLayoutDialog.h"
 
+#include <kguiitem.h>
 #include <kstandardguiitem.h>
+#include <qdialog.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 KisNewWindowLayoutDialog::KisNewWindowLayoutDialog(QWidget *parent)
     : QDialog(parent)

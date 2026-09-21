@@ -7,6 +7,7 @@
 */
 
 #include "KoShapeRubberSelectStrategy.h"
+#include "KoInteractionStrategy.h"
 #include "KoShapeRubberSelectStrategy_p.h"
 #include "KoViewConverter.h"
 
@@ -16,6 +17,11 @@
 #include "KoCanvasBase.h"
 #include <KoColor.h>
 #include <KoColorDisplayRendererInterface.h>
+#include <qflags.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qtclasshelpermacros.h>
+#include <qtypes.h>
 
 KoShapeRubberSelectStrategy::KoShapeRubberSelectStrategy(KoToolBase *tool, const QPointF &clicked, bool useSnapToGrid)
     : KoInteractionStrategy(*(new KoShapeRubberSelectStrategyPrivate(tool)))

@@ -24,24 +24,37 @@
 
 #include <klocalizedstring.h>
 #include <ksharedconfig.h>
-#include <kis_debug.h>
 #include <QUrl>
 
 
 #include <KisKineticScroller.h>
 #include <KoFileDialog.h>
-#include <KoIcon.h>
 #include "application/ui/workspace/KisTemplateTree.h"
 #include "application/ui/workspace/KisTemplateGroup.h"
 #include "application/ui/workspace/KisTemplate.h"
 #include "application/ui/workspace/KisDetailsPane.h"
 #include "application/ui/workspace/KisTemplatesPane.h"
+#include "kis_icon_utils.h"
 #include "ui_KisOpenPaneBase.h"
 
 #include <limits.h>
 #include <kconfiggroup.h>
 
 #include <kis_icon.h>
+#include <qassert.h>
+#include <qdialog.h>
+#include <qforeach.h>
+#include <qicon.h>
+#include <qitemselectionmodel.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscroller.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 class KoSectionListItem : public QTreeWidgetItem
 {

@@ -14,10 +14,13 @@
 
 #include "kis_canvas2.h"
 #include <klocalizedstring.h>
-#include <kguiitem.h>
-#include <ktoggleaction.h>
 #include <kactioncollection.h>
 #include <document/KisDocument.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qoverload.h>
+#include <qpointer.h>
 
 
 KisDecorationsManager::KisDecorationsManager(KisViewManager* view)

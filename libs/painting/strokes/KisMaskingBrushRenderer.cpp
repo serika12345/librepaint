@@ -11,13 +11,18 @@
 #include <KoColorModelStandardIds.h>
 #include <KoChannelInfo.h>
 #include <KoCompositeOpRegistry.h>
+#include <algorithm>
+#include <qlist.h>
+#include <qtypes.h>
 
+#include "kis_assert.h"
 #include "kis_painter.h"
 #include "kis_paint_device.h"
 #include "kis_random_accessor_ng.h"
 
 #include "KisMaskingBrushCompositeOpBase.h"
 #include "KisMaskingBrushCompositeOpFactory.h"
+#include "kis_types.h"
 
 
 KisMaskingBrushRenderer::KisMaskingBrushRenderer(KisPaintDeviceSP dstDevice, const QString &compositeOpId)

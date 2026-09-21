@@ -6,6 +6,7 @@
 #include "application/ui/workspace/kis_preference_set_registry.h"
 
 #include <QGlobalStatic>
+#include <qalgorithms.h>
 
 Q_GLOBAL_STATIC(KisPreferenceSetRegistry, s_instance)
 

@@ -6,6 +6,7 @@
 #include "KisResourceUserOperations.h"
 
 #include "KisResourceUserOperationsImportSource_p.h"
+#include "KoResource.h"
 
 KoResourceSP KisResourceUserOperations::importResourceFileWithUserInput(
     QWidget *widgetParent,

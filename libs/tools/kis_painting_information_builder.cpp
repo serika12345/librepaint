@@ -4,6 +4,9 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KoCanvasResourcesIds.h"
+#include "kis_global.h"
+#include "kis_paint_information.h"
 #include <kis_painting_information_builder.h>
 
 #include <KoCanvasResourceProvider.h>
@@ -11,6 +14,8 @@
 
 #include <kis_cubic_curve.h>
 #include <kis_speed_smoother.h>
+#include <qminmax.h>
+#include <qtypes.h>
 
 const int KisPaintingInformationBuilder::PressureResolution = 1024;
 

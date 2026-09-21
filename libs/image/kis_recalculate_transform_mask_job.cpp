@@ -6,6 +6,7 @@
 
 #include "kis_recalculate_transform_mask_job.h"
 
+#include "KisProjectionUpdateFlags.h"
 #include "kis_transform_mask.h"
 #include "kis_debug.h"
 #include "kis_layer.h"
@@ -13,6 +14,9 @@
 #include "kis_abstract_projection_plane.h"
 #include "kis_paint_device.h"
 #include "kis_transform_mask_params_interface.h"
+#include "kis_types.h"
+#include <qassert.h>
+#include <qobject.h>
 
 KisRecalculateTransformMaskJob::KisRecalculateTransformMaskJob(KisTransformMaskSP mask, const QRect &extraUpdateRect)
     : m_mask(mask)

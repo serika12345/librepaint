@@ -13,8 +13,12 @@
 
 #include <KConfigGroup>
 #include <KSharedConfig>
+#include <kguiitem.h>
 #include <kstandardguiitem.h>
 
+#include "KisResourceTypes.h"
+#include "KisScreenColorSamplerBase.h"
+#include "KisVisualColorModel.h"
 #include "KoColorSpaceRegistry.h"
 #include <KoColorSet.h>
 #include <KisPaletteModel.h>
@@ -22,6 +26,12 @@
 #include <kis_palette_view.h>
 #include <KisResourceModel.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qboxlayout.h>
+#include <qdialog.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 #include "kis_signal_compressor.h"
 #include "KoColorDisplayRendererInterface.h"

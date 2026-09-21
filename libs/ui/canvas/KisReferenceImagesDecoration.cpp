@@ -6,6 +6,7 @@
 
 #include "canvas/KisReferenceImagesDecoration.h"
 
+#include "KisNodeAdditionFlags.h"
 #include "canvas/KisDisplayConfig.h"
 #include "canvas/KisReferenceImage.h"
 #include "canvas/kis_canvas2.h"
@@ -14,9 +15,20 @@
 #include "kis_algebra_2d.h"
 #include "document/KisDocument.h"
 #include "KisReferenceImagesLayer.h"
+#include "kis_canvas_decoration.h"
 #include "kis_layer_utils.h"
+#include "kis_shared_ptr.h"
+#include "kis_types.h"
+#include "ui/workspace/KisView.h"
 #include <kis_display_color_converter.h>
 #include <qcolorspace.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qoverload.h>
+#include <qpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
 
 struct KisReferenceImagesDecoration::Private {
     struct Buffer

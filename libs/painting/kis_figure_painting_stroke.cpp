@@ -8,13 +8,17 @@
 
 #include <KoCanvasResourceProvider.h>
 
+#include "KisFigurePaintingOptions.h"
 #include "kis_resources_snapshot.h"
 #include <kis_distance_information.h>
 #include "kis_image.h"
 #include "kis_painter.h"
+#include <qtransform.h>
 #include <strokes/KisFreehandStrokeInfo.h>
 #include <strokes/freehand_stroke.h>
 #include "KisAsynchronousStrokeUpdateHelper.h"
+#include "kis_stroke_strategy.h"
+#include "kis_types.h"
 
 
 KisFigurePaintingStroke::KisFigurePaintingStroke(

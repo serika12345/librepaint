@@ -6,6 +6,13 @@
 
 #include "kis_update_scheduler.h"
 
+#include "KisLodPreferences.h"
+#include "KisProjectionUpdateFlags.h"
+#include "KisQStringListFwd.h"
+#include "kis_assert.h"
+#include "kis_stroke_strategy_factory.h"
+#include "kis_strokes_queue_undo_result.h"
+#include "kis_types.h"
 #include "klocalizedstring.h"
 #include "kis_image_config.h"
 
@@ -18,7 +25,14 @@
 
 #include <QReadWriteLock>
 #include "kis_lazy_wait_condition.h"
+#include <functional>
 #include <mutex>
+#include <qassert.h>
+#include <qatomic.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 
 //#define DEBUG_BALANCING
 

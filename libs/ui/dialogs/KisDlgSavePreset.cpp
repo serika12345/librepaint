@@ -17,11 +17,24 @@
 
 #include <KoFileDialog.h>
 #include "QDesktopServices"
+#include "kis_canvas_resource_provider.h"
+#include "kis_types.h"
+#include "resources/kis_favorite_resource_manager.h"
+#include "ui_wdgpreseticonlibrary.h"
+#include <kguiitem.h>
 #include <kis_paintop_preset_icon_library.h>
 #include <kis_paintop_preset.h>
 #include <KisResourceUserOperations.h>
 
 #include <kstandardguiitem.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qstringview.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 
 KisPresetSaveWidget::KisPresetSaveWidget(QWidget * parent)

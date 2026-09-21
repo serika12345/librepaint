@@ -4,6 +4,9 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "application/ui/workspace/KisSessionResource.h"
+#include "KisQStringListFwd.h"
+#include "KoResource.h"
+#include "ui/workspace/KisWindowLayoutResource.h"
 
 #include <QDomElement>
 #include <QMap>
@@ -16,6 +19,12 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <application/ui/workspace/KisMainWindow.h>
 #include <application/ui/workspace/KisView.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qpointer.h>
+#include <qsharedpointer.h>
+#include <quuid.h>
 
 
 struct KisSessionResource::Private

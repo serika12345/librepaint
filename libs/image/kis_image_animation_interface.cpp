@@ -5,13 +5,17 @@
  */
 
 #include "kis_image_animation_interface.h"
+#include "KisQStringListFwd.h"
 #include "commands_new/KisImageAnimSettingCommandAnimationAccess_p.h"
 
 #include <QMutex>
 
+#include "kis_assert.h"
 #include "kis_global.h"
 #include "kis_image.h"
 #include "kis_regenerate_frame_stroke_strategy.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_stroke_strategy.h"
 #include "kis_switch_time_stroke_strategy.h"
 #include "KoProperties.h"
 #include "kis_keyframe_channel.h"
@@ -19,9 +23,18 @@
 #include "kis_time_span.h"
 
 #include <KisLockFrameGenerationLock.h>
+#include <algorithm>
+#include <qatomic.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qset.h>
+#include <qtmetamacros.h>
+#include <utility>
 #include "kis_post_execution_undo_adapter.h"
 #include "commands_new/kis_switch_current_time_command.h"
 #include "kis_layer_utils.h"
+#include "kis_types.h"
 
 
 struct KisImageAnimationInterface::Private

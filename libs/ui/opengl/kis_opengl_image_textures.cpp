@@ -5,6 +5,33 @@
  */
 
 #include "opengl/kis_opengl_image_textures.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KoChannelInfo.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_pointer_utils.h"
+#include "kis_update_info.h"
+#include "opengl/kis_opengl.h"
+#include "opengl/kis_opengl_update_info.h"
+#include "opengl/kis_texture_tile.h"
+#include "opengl/kis_texture_tile_update_info.h"
+#include <OpenGL/gl.h>
+#include <OpenGL/glext.h>
+#include <OpenGL/gltypes.h>
+#include <qassert.h>
+#include <qbitarray.h>
+#include <qforeach.h>
+#include <qimage.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qopenglbuffer.h>
+#include <qscopedpointer.h>
+#include <qstringview.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #ifdef QT_OPENGL_ES_2
 #include <qopengl.h>
@@ -34,11 +61,9 @@
 #include <QVector3D>
 #include "kis_painting_tweaks.h"
 #include "KisOpenGLBufferCreationGuard.h"
-#include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 #include <tiles/kis_tile_data_pool.h>
 
 #ifdef HAVE_OPENEXR
-#include <half.h>
 #endif
 
 #ifndef GL_CLAMP_TO_EDGE

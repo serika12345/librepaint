@@ -9,6 +9,8 @@
 #include <QDebug>
 
 #include <ResourceDebug.h>
+#include <qassert.h>
+#include <qhashfunctions.h>
 
 namespace ResourceType {
     const QString PaintOpPresets {QStringLiteral("paintoppresets")};

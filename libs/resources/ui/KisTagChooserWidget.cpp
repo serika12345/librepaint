@@ -17,6 +17,8 @@
 #include <QGridLayout>
 
 #include <klocalizedstring.h>
+#include <qoverload.h>
+#include <qsizepolicy.h>
 
 #include "KisTagChooserWidgetConstructionSource_p.h"
 #include "KisTagChooserWidget_p.h"

@@ -10,14 +10,27 @@
 
 #include "KoSelection.h"
 #include "KoSelection_p.h"
+#include "KoShape.h"
 #include "KoShapeContainer.h"
 #include "KoShapeGroup.h"
 #include "kis_algebra_2d.h"
+#include "kis_assert.h"
 #include "krita_container_utils.h"
 
 #include <QPainter>
 
 #include <QDebug>
+#include <algorithm>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qset.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 KoSelection::KoSelection(QObject *parent)
     : QObject(parent)
     , KoShape()

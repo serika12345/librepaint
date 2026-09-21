@@ -18,6 +18,8 @@
 #include <KoID.h>
 
 #include <KoConfig.h>
+#include <algorithm>
+#include <kguiitem.h>
 #include <kis_icon.h>
 
 #include <QStandardPaths>
@@ -28,11 +30,29 @@
 
 #include <QUrl>
 
+#include "KoColorProfileConstants.h"
+#include "KoColorimetryUtils.h"
 #include "ui_wdgcolorspaceselectoradvanced.h"
 
 #include <kis_debug.h>
 
 #include <kstandardguiitem.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qdir.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlistwidget.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qsizepolicy.h>
+#include <qtextcursor.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 struct KisAdvancedColorSpaceSelector::Private {
     Ui_WdgColorSpaceSelectorAdvanced* colorSpaceSelector;

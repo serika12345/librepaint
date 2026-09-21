@@ -5,6 +5,7 @@
    SPDX-License-Identifier: LGPL-2.0-or-later
 */
 #include "KoColorSlider.h"
+#include "KoColorDisplayRendererInterface.h"
 #include "KoColorSpace.h"
 
 #include <KoColor.h>
@@ -15,6 +16,19 @@
 #include <QStyleOption>
 #include <QPointer>
 #include <kis_signal_compressor.h>
+#include <kselector.h>
+#include <qassert.h>
+#include <qcolor.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qpixmap.h>
+#include <qpoint.h>
+#include <qstyle.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 #define ARROWSIZE 8
 

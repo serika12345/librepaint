@@ -5,8 +5,15 @@
  */
 
 #include "KoCopyColorConversionTransformation.h"
+#include "KoColorConversionTransformation.h"
+#include "KoColorConversionTransformationFactory.h"
 
 #include <KoColorSpace.h>
+#include <cstring>
+#include <qassert.h>
+#include <qhashfunctions.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 // --- KoCopyColorConversionTransformation ---
 KoCopyColorConversionTransformation::KoCopyColorConversionTransformation(const KoColorSpace* cs)

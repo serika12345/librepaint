@@ -14,19 +14,21 @@
 #include <QGridLayout>
 #include <QLineEdit>
 #include <QLabel>
-#include <KisKineticScroller.h>
 
 #include <klocalizedstring.h>
 
 #include <KisResourceItemChooser.h>
-#include <KisResourceItemListView.h>
 #include <KoResource.h>
 #include <KisResourceModel.h>
 #include <KisResourceModelProvider.h>
-#include <KoDockWidgetTitleBar.h>
 #include <application/ui/workspace/KisMainWindow.h>
-#include <KisTagFilterResourceProxyModel.h>
 
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KisResourceUiDescriptor.h"
+#include "ResourceListViewModes.h"
+#include "kis_icon_utils.h"
+#include "ui/workspace/KisWindowLayoutResource.h"
 #include "workspace/kis_workspace_resource.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "canvas/kis_canvas_resource_provider.h"
@@ -35,8 +37,18 @@
 #include "application/ui/workspace/KisWindowLayoutManager.h"
 #include "dialogs/KisNewWindowLayoutDialog.h"
 #include "application/kis_config.h"
-#include <kis_icon.h>
 #include <KisResourceUserOperations.h>
+#include <qabstractitemmodel.h>
+#include <qdialog.h>
+#include <qfont.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qsize.h>
+#include <qstyle.h>
+#include <qstyleoption.h>
+#include <qwidget.h>
 
 
 class KisWorkspaceDelegate : public QStyledItemDelegate

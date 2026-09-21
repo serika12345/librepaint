@@ -6,9 +6,14 @@
 
 #include "kis_layer_style_projection_plane.h"
 
+#include "KisQStringListFwd.h"
+#include "KisRenderPassFlags.h"
+#include "kis_assert.h"
+#include "kis_layer.h"
 #include "kis_layer_style_filter_projection_plane.h"
 #include "kis_layer_projection_plane.h"
 #include "KisStrokeLayerStyleFilterProjectionPlane.h"
+#include "kis_pointer_utils.h"
 #include "kis_psd_layer_style.h"
 
 #include "kis_ls_drop_shadow_filter.h"
@@ -21,7 +26,11 @@
 #include "kis_painter.h"
 #include "kis_ls_utils.h"
 #include "KisLayerStyleKnockoutBlower.h"
+#include "kis_types.h"
 #include "krita_utils.h"
+#include <qassert.h>
+#include <qforeach.h>
+#include <qtdeprecationdefinitions.h>
 
 struct Q_DECL_HIDDEN KisLayerStyleProjectionPlane::Private
 {

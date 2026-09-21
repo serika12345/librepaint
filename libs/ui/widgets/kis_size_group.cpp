@@ -6,6 +6,7 @@
 
 #include "kis_size_group.h"
 #include "kis_size_group_p.h"
+#include <qobject.h>
 
 
 KisSizeGroup::KisSizeGroup(QObject *parent, KisSizeGroup::mode mode, bool ignoreHidden)

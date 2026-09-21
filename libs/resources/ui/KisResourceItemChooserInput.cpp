@@ -9,6 +9,10 @@
 #include "KisResourceItemChooser_p.h"
 
 #include <QWheelEvent>
+#include <qcoreevent.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qscroller.h>
 
 void KisResourceItemChooser::setSynced(bool sync)
 {

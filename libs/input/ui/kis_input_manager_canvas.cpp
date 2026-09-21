@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_assert.h"
 #include "kis_input_manager.h"
 
 #include <QPointer>

@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisQStringListFwd.h"
+#include "selection/kis_selection_actions_panel.h"
 #include "selection/kis_selection_actions_panel_source_p.h"
 
 #include "KoColor.h"
@@ -36,6 +38,8 @@
 #include <kconfiggroup.h>
 #include <KSharedConfig>
 #include <klocalizedstring.h>
+#include <qlist.h>
+#include <qobjectdefs.h>
 
 namespace KisSelectionActionsPanelSource
 {

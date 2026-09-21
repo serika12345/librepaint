@@ -4,6 +4,8 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "Channel.h"
+#include "kis_paint_device.h"
+#include "kis_types.h"
 
 #include <cstring>
 
@@ -17,6 +19,10 @@
 #include <KoColorSpace.h>
 #include <kis_sequential_iterator.h>
 #include <kis_layer.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qpaintdevice.h>
+#include <qtypes.h>
 
 #ifdef HAVE_OPENEXR
 #include <half.h>

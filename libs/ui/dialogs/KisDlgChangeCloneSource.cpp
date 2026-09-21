@@ -8,13 +8,25 @@
 
 #include <kis_clone_layer.h>
 #include <kis_image.h>
-#include <kis_undo_adapter.h>
 #include <kis_processing_applicator.h>
 #include <KisImageSignals.h>
 #include <kis_signals_blocker.h>
 
+#include "KoDialog.h"
 #include "application/ui/workspace/KisViewManager.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
+#include "ui_wdgchangeclonesource.h"
 #include <commands_new/KisChangeCloneLayersCommand.h>
+#include <qdialog.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qoverload.h>
+#include <qscopedpointer.h>
 
 struct KisDlgChangeCloneSource::Private
 {

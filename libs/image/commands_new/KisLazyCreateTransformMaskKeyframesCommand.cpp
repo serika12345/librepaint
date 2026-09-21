@@ -6,9 +6,16 @@
 
 #include "KisLazyCreateTransformMaskKeyframesCommand.h"
 
+#include "KisQStringListFwd.h"
+#include "kis_assert.h"
+#include "kis_command_utils.h"
+#include "kis_keyframe_channel.h"
 #include "kis_transform_mask.h"
 #include "kis_paint_device.h"
 #include "kis_scalar_keyframe_channel.h"
+#include "kis_types.h"
+#include <memory>
+#include <qforeach.h>
 
 KisLazyCreateTransformMaskKeyframesCommand::KisLazyCreateTransformMaskKeyframesCommand(KisTransformMaskSP mask, KUndo2Command *parent)
     : KisCommandUtils::AggregateCommand(parent)

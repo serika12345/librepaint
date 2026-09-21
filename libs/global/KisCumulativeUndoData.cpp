@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisCumulativeUndoData.h"
+#include "kritaglobal_export.h"
 
 #include <kconfiggroup.h>
 #include <kis_debug.h>

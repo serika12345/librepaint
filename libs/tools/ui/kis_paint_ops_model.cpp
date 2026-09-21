@@ -7,7 +7,15 @@
  */
 
 #include "kis_paint_ops_model.h"
+#include "kis_categorized_list_model.h"
 #include "kis_paint_ops_model_source_p.h"
+#include <qabstractitemmodel.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qvariant.h>
 
 namespace Source = KisPaintOpsModelSource;
 

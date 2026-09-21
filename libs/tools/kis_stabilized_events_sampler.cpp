@@ -11,7 +11,10 @@
 #include <QList>
 #include <QElapsedTimer>
 #include <QtMath>
+#include <qtypes.h>
+#include <utility>
 
+#include "kis_debug.h"
 #include "kis_paint_information.h"
 
 

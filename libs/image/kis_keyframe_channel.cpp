@@ -8,14 +8,29 @@
 
 #include "kis_keyframe_channel.h"
 #include "KoID.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_default_bounds.h"
+#include "kis_default_bounds_base.h"
+#include "kis_default_bounds_node_wrapper.h"
 #include "kis_node.h"
 #include "kis_time_span.h"
+#include "kis_types.h"
 #include "kundo2command.h"
 #include "kis_image_animation_interface.h"
 #include "kis_keyframe_commands.h"
 #include "kis_command_utils.h"
+#include "kundo2stack.h"
 
 #include <QMap>
+#include <qcontainerfwd.h>
+#include <qdom.h>
+#include <qforeach.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qset.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 
 
 const KoID KisKeyframeChannel::Raster = KoID("content", ki18n("Content"));

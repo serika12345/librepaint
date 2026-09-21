@@ -6,8 +6,14 @@
 
 #include "KoPathFillRuleCommand.h"
 #include "KoPathShape.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 #include <klocalizedstring.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qtdeprecationdefinitions.h>
 
 namespace
 {

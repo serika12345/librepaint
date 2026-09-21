@@ -10,6 +10,15 @@
 #include <QApplication>
 #include <QDir>
 #include <QUrl>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qstandarditemmodel.h>
+#include <qthread.h>
+#include <qtmetamacros.h>
+#include <qvariant.h>
 
 #include "kis_icon_utils.h"
 #include "KisRecentFileIconCache.h"

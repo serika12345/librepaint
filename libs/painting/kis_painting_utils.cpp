@@ -6,11 +6,20 @@
  */
 
 #include "kis_painting_utils.h"
+#include "KoColorSpaceConstants.h"
+#include "kis_assert.h"
+#include "kis_global.h"
+#include "kis_layer.h"
+#include "kis_types.h"
 
 #include <KoColor.h>
 #include <KoMixColorsOp.h>
 #include <kis_group_layer.h>
 #include <kis_sequential_iterator.h>
+#include <qobject.h>
+#include <qpaintdevice.h>
+#include <qscopedpointer.h>
+#include <qtypes.h>
 
 namespace KisPaintingUtils
 {

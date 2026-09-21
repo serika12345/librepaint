@@ -6,10 +6,14 @@
 
 #include "KoPathToolFactory.h"
 #include "KoPathTool.h"
+#include "KoToolBase.h"
+#include "KoToolFactoryBase.h"
 #include <kis_action_registry.h>
 
 #include <KoIcon.h>
 #include <klocalizedstring.h>
+#include <qaction.h>
+#include <qlist.h>
 
 KoPathToolFactory::KoPathToolFactory()
         : KoToolFactoryBase("PathTool")

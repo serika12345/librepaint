@@ -8,10 +8,12 @@
 */
 
 #include "KoPathShape.h"
+#include "KoFlake.h"
 #include "KoPathShape_p.h"
 
 #include "KoPathSegment.h"
 #include "KoPathPoint.h"
+#include "KoShape.h"
 #include "KoShapeStrokeModel.h"
 #include "KoPathShapeLoader.h"
 #include "KoShapeSavingContext.h"
@@ -22,7 +24,6 @@
 #include "KoShapeStroke.h"
 #include "KoInsets.h"
 
-#include <KoUnit.h>
 #include "KisQPainterStateSaver.h"
 
 #include <FlakeDebug.h>
@@ -30,9 +31,22 @@
 #include <QPainterPath>
 
 #include "kis_global.h"
+#include <algorithm>
+#include <cmath>
 #include <kis_algebra_2d.h>
 
+#include <limits>
+#include <math.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qnamespace.h>
 #include <qnumeric.h> // for qIsNaN
+#include <qsharedpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 static bool qIsNaNPoint(const QPointF &p) {
     return qIsNaN(p.x()) || qIsNaN(p.y());
 }

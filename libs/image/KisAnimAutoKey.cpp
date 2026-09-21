@@ -11,12 +11,18 @@
 
 #include <QApplication>
 #include <QThread>
+#include <qcoreapplication.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
 
+#include "kis_assert.h"
 #include "kis_image_config.h"
 #include "KisImageConfigNotifier.h"
 
 #include "kis_transaction.h"
 #include "kis_raster_keyframe_channel.h"
+#include "kis_types.h"
 
 
 namespace KisAutoKey

@@ -8,10 +8,12 @@
 
 #include <KoProperties.h>
 
+#include "KoColorSpaceConstants.h"
 #include "kis_group_layer.h"
 #include "kis_image.h"
 #include "kis_layer_utils.h"
 #include "kis_node_operation_batch.h"
+#include "kis_types.h"
 #include "krita_container_utils.h"
 
 namespace KisNodeGroupOperations

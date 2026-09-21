@@ -12,7 +12,6 @@
 
 #include <KoUnit.h>
 #include <KoShape.h>
-#include <KoGradientBackground.h>
 #include <KoCanvasBase.h>
 #include <KoShapeController.h>
 #include <KoColorBackground.h>
@@ -24,22 +23,33 @@
 #include <klocalizedstring.h>
 #include <ksharedconfig.h>
 
-#include <kis_debug.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <kis_image.h>
 #include <brushengine/kis_paintop_registry.h>
-#include <kis_paint_layer.h>
 #include <kis_paint_device.h>
 #include <kis_figure_painting_stroke.h>
-#include <kis_node_query_path.h>
 #include <kis_selection.h>
 
 #include <KoSelectedShapesProxy.h>
 #include <KoSelection.h>
 #include <commands/KoKeepShapesSelectedCommand.h>
+#include "KisAngleGauge.h"
+#include "KisFigurePaintingOptions.h"
+#include "KoCanvasResourcesIds.h"
+#include "KoFlakeTypes.h"
+#include "kis_resources_snapshot.h"
+#include <qlist.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qsharedpointer.h>
+#include <qtypes.h>
 #include "kis_selection_mask.h"
 #include "kis_shape_selection.h"
 #include "kis_processing_applicator.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_tool.h"
+#include "kis_tool_paint.h"
+#include "kis_types.h"
 
 
 KisToolShape::KisToolShape(KoCanvasBase * canvas, const QCursor & cursor)

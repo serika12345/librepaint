@@ -4,6 +4,9 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "FontVariantLigaturesModel.h"
+#include "KoSvgText.h"
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
 
 FontVariantLigaturesModel::FontVariantLigaturesModel(lager::cursor<KoSvgText::FontFeatureLigatures> _data)
     : data(_data)

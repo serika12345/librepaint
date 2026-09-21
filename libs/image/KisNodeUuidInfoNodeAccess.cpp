@@ -6,6 +6,9 @@
 #include "KisNodeUuidInfoNodeAccess_p.h"
 
 #include "kis_node.h"
+#include "kis_types.h"
+#include <qhashfunctions.h>
+#include <quuid.h>
 
 QUuid KisNodeUuidInfoNodeAccess::uuid(KisNode *node)
 {

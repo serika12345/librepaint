@@ -6,6 +6,7 @@
 #include "kis_node_manager.h"
 
 #include <QStringList>
+#include <qobject.h>
 
 namespace
 {

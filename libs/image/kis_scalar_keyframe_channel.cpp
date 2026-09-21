@@ -5,12 +5,28 @@
  */
 
 #include "kis_scalar_keyframe_channel.h"
+#include "KoID.h"
+#include "kis_assert.h"
+#include "kis_default_bounds_base.h"
+#include "kis_keyframe.h"
 #include "kis_node.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
 #include "kundo2command.h"
 #include "kis_keyframe_commands.h"
 #include "kis_time_span.h"
-#include <kis_global.h>
+#include "kundo2stack.h"
 #include <kis_dom_utils.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qpoint.h>
+#include <qset.h>
+#include <qsharedpointer.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 KisScalarKeyframe::KisScalarKeyframe(qreal value, QSharedPointer<ScalarKeyframeLimits> limits)

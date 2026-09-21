@@ -7,6 +7,8 @@
 #include "slider_and_spin_box_sync.h"
 
 #include <QSpinBox>
+#include <qobjectdefs.h>
+#include <qtypes.h>
 #include "kis_slider_spin_box.h"
 
 

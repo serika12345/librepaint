@@ -14,17 +14,35 @@
 #include <QtMath>
 #include <QRegularExpression>
 
+#include <algorithm>
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
 #include <cmath>
+#include <functional>
+#include <iterator>
+#include <limits>
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qdatetime.h>
+#include <qglobalstatic.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qsharedpointer.h>
 #include <quazip.h>
-#include <boost/optional.hpp>
 
-#include <kis_debug.h>
 #include <kis_pointer_utils.h>
+#include <qvariant.h>
 
 
 #include "KisFolderStorage.h"
 #include "KisBundleStorage.h"
 #include "KisMemoryStorage.h"
+#include "KoResource.h"
+#include "kis_assert.h"
 
 
 namespace {

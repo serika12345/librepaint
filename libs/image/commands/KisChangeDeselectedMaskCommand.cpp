@@ -6,7 +6,9 @@
 
 #include "KisChangeDeselectedMaskCommand.h"
 #include "KisImageGlobalSelectionManagementInterface.h"
+#include "kis_assert.h"
 #include "kis_image.h"
+#include "kis_types.h"
 
 KisChangeDeselectedMaskCommand::KisChangeDeselectedMaskCommand(KisImageWSP image)
     : m_image(image)

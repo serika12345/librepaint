@@ -4,15 +4,22 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "KoQuaZipStore.h"
+#include "KoStore.h"
 #include "KoStore_p.h"
 
 #include <StoreDebug.h>
 
+#include <qcontainerfwd.h>
+#include <qdebug.h>
+#include <qfiledevice.h>
+#include <qlogging.h>
+#include <qtclasshelpermacros.h>
+#include <qtypes.h>
+#include <zip.h>
 #include <zlib.h>
 #include <quazip.h>
 #include <quazipfile.h>
 #include <quazipdir.h>
-#include <quazipfileinfo.h>
 #include <quazipnewinfo.h>
 
 #include <QTemporaryFile>

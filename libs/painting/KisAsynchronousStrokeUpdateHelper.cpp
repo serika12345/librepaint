@@ -5,7 +5,9 @@
  */
 
 #include "KisAsynchronousStrokeUpdateHelper.h"
+#include "kis_assert.h"
 #include "kis_image_interfaces.h"
+#include <qobjectdefs.h>
 
 KisAsynchronousStrokeUpdateHelper::KisAsynchronousStrokeUpdateHelper()
     : m_strokesFacade(0)

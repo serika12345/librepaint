@@ -2,6 +2,9 @@
 // SPDX-License-Ref: LGPL-2.0-or-later
 
 #include "kis_stacked_widget.h"
+#include <qsize.h>
+#include <qstackedwidget.h>
+#include <qwidget.h>
 
 KisStackedWidget::KisStackedWidget(QWidget *parent)
     : QStackedWidget(parent)

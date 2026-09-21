@@ -12,9 +12,16 @@
 #include <QSharedData>
 #include <QPainterPath>
 #include <KoShape.h>
+#include "KoFlakeCoordinateSystem.h"
 #include "kis_algebra_2d.h"
+#include "kis_assert.h"
 
 #include <KoShapePainter.h>
+#include <qalgorithms.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qtdeprecationdefinitions.h>
 
 struct Q_DECL_HIDDEN KoClipMask::Private : public QSharedData
 {

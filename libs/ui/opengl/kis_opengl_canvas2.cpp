@@ -5,6 +5,32 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisQStringListFwd.h"
+#include "KisWraparoundAxis.h"
+#include "kis_assert.h"
+#include "kis_canvas_widget_base.h"
+#include "kis_floating_message.h"
+#include "kis_update_info.h"
+#include "opengl/kis_opengl.h"
+#include <OpenGL/gl.h>
+#include <OpenGL/gltypes.h>
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
+#include <qbitarray.h>
+#include <qcolor.h>
+#include <qdebug.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qopengl.h>
+#include <qopenglwidget.h>
+#include <qpainter.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
+#include <qtclasshelpermacros.h>
+#include <qtenvironmentvariables.h>
+#include <qtypes.h>
 #define GL_GLEXT_PROTOTYPES
 
 #include <QEvent>

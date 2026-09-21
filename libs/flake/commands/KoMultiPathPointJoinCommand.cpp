@@ -5,6 +5,10 @@
  */
 
 #include "KoMultiPathPointJoinCommand.h"
+#include "KoMultiPathPointMergeCommand.h"
+#include "KoPathPointData.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 #include <KoSubpathJoinCommand.h>
 

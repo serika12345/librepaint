@@ -5,16 +5,20 @@
  */
 
 #include "KoPatternBackground.h"
+#include "KoShapeBackground.h"
 #include "KoShapeSavingContext.h"
-#include <KoXmlNS.h>
-#include <KoUnit.h>
 
-#include <FlakeDebug.h>
 
 #include <QBrush>
 #include <QPainter>
 #include <QPainterPath>
 #include <QSharedData>
+#include <qdebug.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 class KoPatternBackground::Private : public QSharedData
 {

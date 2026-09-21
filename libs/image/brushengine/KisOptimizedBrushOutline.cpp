@@ -5,10 +5,16 @@
  */
 
 #include "KisOptimizedBrushOutline.h"
+#include "kis_assert.h"
 
 #include <QPainterPath>
 #include <QTransform>
 #include <kis_algebra_2d.h>
+#include <optional>
+#include <qcontainerfwd.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qtypes.h>
 
 KisOptimizedBrushOutline::KisOptimizedBrushOutline()
 {

@@ -6,12 +6,17 @@
 
 #include "kis_bspline_1d.h"
 
-#include <kis_debug.h>
 #include <limits>
+#include <qcontainerfwd.h>
+#include <qtdeprecationdefinitions.h>
 
+#include "einspline/bspline_base.h"
 #include "einspline/bspline_create.h"
 #include "einspline/bspline_eval_std_s.h"
 
+#include "einspline/bspline_structs.h"
+#include "kis_assert.h"
+#include "kis_bspline.h"
 #include "kis_bspline_p.h"
 
 namespace KisBSplines {

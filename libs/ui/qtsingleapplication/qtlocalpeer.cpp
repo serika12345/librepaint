@@ -7,6 +7,19 @@
 #include <QDataStream>
 #include <QRegularExpression>
 #include <QTime>
+#include <qabstractsocket.h>
+#include <qbytearrayalgorithms.h>
+#include <qbytearrayview.h>
+#include <qdir.h>
+#include <qlatin1stringview.h>
+#include <qlocalserver.h>
+#include <qlocalsocket.h>
+#include <qlogging.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
 
 #if defined(Q_OS_WIN)
 #include <QLibrary>
@@ -15,7 +28,6 @@ typedef BOOL(WINAPI*PProcessIdToSessionId)(DWORD,DWORD*);
 static PProcessIdToSessionId pProcessIdToSessionId = 0;
 #endif
 #if defined(Q_OS_UNIX)
-#include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
 #endif

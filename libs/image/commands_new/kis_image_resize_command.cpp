@@ -8,7 +8,11 @@
 #include "kis_image_resize_command.h"
 
 #include <klocalizedstring.h>
+#include <qsize.h>
 #include "kis_image.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 
 KisImageResizeCommand::KisImageResizeCommand(KisImageWSP image,

@@ -7,16 +7,20 @@
 #include "kis_transparency_mask.h"
 
 
-#include <KoIcon.h>
 #include <kis_icon.h>
 #include <KoColor.h>
-#include <KoColorSpace.h>
-#include <KoCompositeOpRegistry.h>
+#include "KisRenderPassFlags.h"
+#include "kis_effect_mask.h"
+#include "kis_icon_utils.h"
+#include "kis_mask.h"
+#include <qicon.h>
+#include <qtpreprocessorsupport.h>
 #include "kis_paint_device.h"
 #include "kis_painter.h"
 #include "kis_node_visitor.h"
 #include "kis_processing_visitor.h"
 #include "kis_image.h"
+#include "kis_types.h"
 
 KisTransparencyMask::KisTransparencyMask(KisImageWSP image, const QString &name)
         : KisEffectMask(image, name)

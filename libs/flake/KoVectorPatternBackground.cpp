@@ -5,11 +5,17 @@
  */
 
 #include "KoVectorPatternBackground.h"
+#include "KoFlakeCoordinateSystem.h"
 
 #include <QTransform>
 #include <KoShape.h>
 #include <KoShapePainter.h>
 #include <KoBakedShapeRenderer.h>
+#include <qalgorithms.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qshareddata.h>
+#include <qtpreprocessorsupport.h>
 
 class KoVectorPatternBackground::Private : public QSharedData
 {

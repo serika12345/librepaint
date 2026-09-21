@@ -13,14 +13,17 @@
 #include "KoMarker.h"
 
 #include <KoXmlWriter.h>
-#include <KoStore.h>
-#include <KoStoreDevice.h>
 #include <KoSharedSavingData.h>
 
 #include <FlakeDebug.h>
 #include <QUuid>
 #include <QImage>
-#include <KisMimeDatabase.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qtypes.h>
 
 class KoShapeSavingContextPrivate {
 public:

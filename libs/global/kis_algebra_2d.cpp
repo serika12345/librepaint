@@ -5,14 +5,29 @@
  */
 
 #include "kis_algebra_2d.h"
+#include "kis_assert.h"
+#include "kis_global.h"
 
+#include <Eigen/Core>
 #include <QTransform>
 #include <QPainterPath>
+#include <cmath>
+#include <cstddef>
+#include <gsl/gsl_errno.h>
+#include <gsl/gsl_vector_double.h>
 #include <kis_debug.h>
 
 #include <QtMath>
 
 #include <config-gsl.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qtypes.h>
+#include <utility>
 
 #ifdef HAVE_GSL
 #include <gsl/gsl_multimin.h>

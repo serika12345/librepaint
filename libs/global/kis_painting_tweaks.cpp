@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <cmath>
 #include <kis_global.h>
 #include "kis_painting_tweaks.h"
 
@@ -11,6 +12,12 @@
 #include <QRegion>
 #include <QPainter>
 #include <QTransform>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qtypes.h>
 
 #include "kis_debug.h"
 

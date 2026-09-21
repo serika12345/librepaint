@@ -7,8 +7,11 @@
 #include "KoShapeRenameCommand.h"
 
 #include "KoShape.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <QString>
 #include <klocalizedstring.h>
+#include <qtdeprecationdefinitions.h>
 
 namespace
 {

@@ -4,6 +4,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KoFontFamily.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KoFFWWSConverter.h"
+#include "KoResource.h"
+#include "KoSvgText.h"
+#include "KoSvgTextProperties.h"
 #include <KoMD5Generator.h>
 #include <KoSvgTextShape.h>
 #include <KoColorBackground.h>
@@ -11,6 +17,18 @@
 #include <QPainter>
 #include <QBuffer>
 #include <KoShapePainter.h>
+#include <qcontainerfwd.h>
+#include <qdatetime.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qlist.h>
+#include <qlocale.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qpaintdevice.h>
+#include <qsharedpointer.h>
+#include <qtpreprocessorsupport.h>
+#include <qvariant.h>
 
 const QString TYPOGRAPHIC_NAME = "typographic_name";
 const QString LOCALIZED_TYPOGRAPHIC_NAME = "localized_typographic_name";

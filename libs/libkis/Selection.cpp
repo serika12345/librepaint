@@ -6,7 +6,9 @@
 #include "Selection.h"
 
 #include <KoColorSpace.h>
+#include "KisSelectionTags.h"
 #include "kis_iterator_ng.h"
+#include "kis_types.h"
 #include <kis_selection.h>
 #include <kis_pixel_selection.h>
 #include <kis_paint_device.h>
@@ -17,6 +19,8 @@
 #include <QByteArray>
 
 #include <Node.h>
+#include <qobject.h>
+#include <qtypes.h>
 
 struct Selection::Private {
     Private() {}

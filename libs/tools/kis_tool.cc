@@ -16,7 +16,6 @@
 #include <kactioncollection.h>
 
 #include <KoConfig.h>
-#include <KoColorSpaceRegistry.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColor.h>
 #include <KoCanvasBase.h>
@@ -25,7 +24,15 @@
 #include <KoID.h>
 #include <KoPointerEvent.h>
 #include <KoViewConverter.h>
-#include <KoSelection.h>
+#include <qassert.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <resources/KoAbstractGradient.h>
 #include <KoSnapGuide.h>
 
@@ -33,17 +40,18 @@
 #include <kis_image.h>
 #include <kis_group_layer.h>
 #include <kis_adjustment_layer.h>
-#include <kis_mask.h>
 #include <kis_paint_layer.h>
 #include <kis_painter.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paintop_settings.h>
 #include <resources/KoPattern.h>
+#include "KoCanvasResourcesIds.h"
 #include "kis_coordinates_converter.h"
 #include "filter/kis_filter_configuration.h"
-#include <kis_selection_mask.h>
+#include "kis_indirect_painting_support.h"
 #include "kis_resources_snapshot.h"
 #include "kis_tool_utils.h"
+#include "kis_types.h"
 #include <KisOptimizedBrushOutline.h>
 
 

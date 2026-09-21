@@ -11,6 +11,7 @@
 */
 
 #include "KisShortcutsEditor.h"
+#include "KisShortcutsDialog_p.h"
 #include "KisShortcutsEditor_p.h"
 #include "kshortcutschemeshelper_p.h"
 #include "config-xmlgui.h"
@@ -36,6 +37,12 @@
 #include "kactioncollection.h"
 #include "kactioncategory.h"
 #include <ktreewidgetsearchline.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qtreewidgetitemiterator.h>
 
 //---------------------------------------------------------------------
 // KisShortcutsEditor

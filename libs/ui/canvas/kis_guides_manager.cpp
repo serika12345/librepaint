@@ -10,6 +10,8 @@
 #include <QMenu>
 #include <QMouseEvent>
 #include <QGuiApplication>
+#include "KoID.h"
+#include "kis_assert.h"
 #include "kis_guides_decoration.h"
 #include <KoRuler.h>
 #include "kis_guides_config.h"
@@ -26,6 +28,18 @@
 #include "kis_snap_line_strategy.h"
 #include "kis_change_guides_command.h"
 #include <application/kis_snap_config.h>
+#include <limits>
+#include <qcontainerfwd.h>
+#include <qcoreevent.h>
+#include <qcursor.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include  "kis_canvas2.h"
 #include "kis_floating_message.h"
 

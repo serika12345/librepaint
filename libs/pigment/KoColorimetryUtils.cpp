@@ -8,6 +8,10 @@
 #include "KoColorimetryUtils.h"
 
 #include <QDebug>
+#include <cstdlib>
+#include <qmatrix4x4.h>
+#include <qnumeric.h>
+#include <qvectornd.h>
 
 namespace KoColorimetryUtils
 {

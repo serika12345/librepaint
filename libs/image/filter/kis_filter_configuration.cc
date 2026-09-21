@@ -8,7 +8,6 @@
 
 #include "KisNodeFilterInterfaceFilterAccess_p.h"
 
-#include <kis_debug.h>
 #include <QDomDocument>
 #include <QString>
 
@@ -16,6 +15,11 @@
 #include "kis_painter.h"
 #include "kis_types.h"
 #include <KisRequiredResourcesOperators.h>
+#include <qatomic.h>
+#include <qlist.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 struct Q_DECL_HIDDEN KisFilterConfiguration::Private {

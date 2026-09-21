@@ -6,8 +6,13 @@
 
 #include "KisEmbeddedResourceStorageProxy.h"
 
+#include "KisLocalStrokeResources.h"
+#include "KisResourceTypes.h"
+#include "KoResource.h"
 #include "kis_assert.h"
 #include "KisGlobalResourcesInterface.h"
+#include <qhashfunctions.h>
+#include <qlogging.h>
 
 KisEmbeddedResourceStorageProxy::KisEmbeddedResourceStorageProxy(const QString &storageLocation)
     : m_storageLocation(storageLocation),

@@ -12,10 +12,25 @@
 #include <QFontMetrics>
 #include <QPainter>
 
+#include "KoColorSpace.h"
+#include "KoResource.h"
+#include "kis_assert.h"
+#include "kis_brush.h"
+#include "kis_dab_shape.h"
 #include "kis_gbr_brush.h"
 #include "kis_brushes_pipe.h"
+#include "kis_paint_information.h"
+#include "kis_scaling_size_brush.h"
+#include "kis_types.h"
 #include <kis_dom_utils.h>
-#include <kis_threaded_text_rendering_workaround.h>
+#include <qassert.h>
+#include <qfont.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #ifdef HAVE_THREADED_TEXT_RENDERING_WORKAROUND
 #include <QApplication>

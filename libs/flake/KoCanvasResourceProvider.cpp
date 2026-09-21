@@ -9,8 +9,12 @@
 #include "KoCanvasResourceProvider.h"
 
 #include <QVariant>
-#include <FlakeDebug.h>
 
+#include "KoAbstractCanvasResourceInterface.h"
+#include "KoActiveCanvasResourceDependency.h"
+#include "KoCanvasResourcesIds.h"
+#include "KoDerivedResourceConverter.h"
+#include "KoResourceUpdateMediator.h"
 #include "KoShape.h"
 #include "KoShapeStroke.h"
 #include "KoResourceManager_p.h"
@@ -19,6 +23,9 @@
 #include <KoUnit.h>
 
 #include <KoCanvasResourcesInterface.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtdeprecationdefinitions.h>
 
 struct Q_DECL_HIDDEN CanvasResourceProviderInterfaceWrapper : public KoCanvasResourcesInterface
 {

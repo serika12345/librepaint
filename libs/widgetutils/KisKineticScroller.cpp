@@ -11,6 +11,12 @@
 #include <QAbstractItemView>
 #include <QEvent>
 #include <QScrollBar>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qscroller.h>
+#include <qscrollerproperties.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 #ifdef Q_OS_ANDROID
 #include <QtAndroid>
 #else

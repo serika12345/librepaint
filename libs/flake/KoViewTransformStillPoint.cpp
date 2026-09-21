@@ -5,6 +5,8 @@
  */
 
 #include <QDebug>
+#include <qpoint.h>
+#include <utility>
 #include "KoViewTransformStillPoint.h"
 
 KoViewTransformStillPoint::KoViewTransformStillPoint(const QPointF &docPoint, const QPointF &viewPoint)

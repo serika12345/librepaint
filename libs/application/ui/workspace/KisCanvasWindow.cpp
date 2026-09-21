@@ -5,6 +5,8 @@
  */
 
 #include <QHBoxLayout>
+#include <qnamespace.h>
+#include <qwidget.h>
 
 #include "application/ui/workspace/KisCanvasWindow.h"
 #include "application/ui/workspace/KisMainWindow.h"

@@ -8,8 +8,17 @@
 #include "kis_input_mode_delegate.h"
 #include "../kis_abstract_input_action.h"
 
+#include <algorithm>
 #include <kcombobox.h>
 #include <klocalizedstring.h>
+#include <qabstractitemmodel.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qstyleditemdelegate.h>
+#include <qstyleoption.h>
+#include <qwidget.h>
 
 class KisInputModeDelegate::Private
 {

@@ -4,10 +4,16 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_assert.h"
 #include "kis_debug.h"
+#include "tiles3/swap/kis_chunk_allocator.h"
 #include "kis_memory_window.h"
 
 #include <QDir>
+#include <qhashfunctions.h>
+#include <qlogging.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #define SWP_PREFIX "KRITA_SWAP_FILE_XXXXXX"
 

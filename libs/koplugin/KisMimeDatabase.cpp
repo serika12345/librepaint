@@ -11,6 +11,8 @@
 #include <kis_debug.h>
 
 #include <klocalizedstring.h>
+#include <qforeach.h>
+#include <qlist.h>
 
 QList<KisMimeDatabase::KisMimeType> KisMimeDatabase::s_mimeDatabase;
 #ifdef Q_OS_ANDROID

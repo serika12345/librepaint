@@ -4,15 +4,20 @@
  *
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  */
+#include "kis_assert.h"
+#include "kis_properties_configuration.h"
+#include "kis_types.h"
 #include <brushengine/kis_locked_properties_proxy.h>
 
-#include <KoResource.h>
 #include <KisDirtyStateSaver.h>
 
 #include <brushengine/kis_locked_properties.h>
 #include <brushengine/kis_locked_properties_server.h>
 #include <brushengine/kis_paintop_settings.h>
-#include <brushengine/kis_paintop_preset.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qset.h>
+#include <qvariant.h>
 
 
 KisLockedPropertiesProxy::KisLockedPropertiesProxy(KisPropertiesConfiguration *p, KisLockedPropertiesSP l)

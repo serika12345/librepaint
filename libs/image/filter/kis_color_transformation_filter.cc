@@ -5,13 +5,16 @@
  */
 
 #include "kis_color_transformation_filter.h"
+#include "KoID.h"
+#include "kis_filter.h"
+#include "kis_filter_configuration.h"
+#include "kis_types.h"
 
 #include <KoColorTransformation.h>
 #include <KoUpdater.h>
 
-#include <kis_processing_information.h>
 #include <kis_paint_device.h>
-#include <kis_selection.h>
+#include <qassert.h>
 
 #ifndef NDEBUG
 #include <QTime>

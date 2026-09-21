@@ -6,6 +6,14 @@
 #include "KisRegion.h"
 
 #include <QRegion>
+#include <algorithm>
+#include <functional>
+#include <initializer_list>
+#include <iterator>
+#include <numeric>
+#include <qcontainerfwd.h>
+#include <qtpreprocessorsupport.h>
+#include <utility>
 #include "kis_assert.h"
 
 namespace detail {

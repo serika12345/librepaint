@@ -7,9 +7,21 @@
 #include "nodes/kis_node_filter_proxy_model.h"
 
 #include <QSet>
-#include <boost/optional.hpp>
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
+#include <qabstractitemmodel.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsortfilterproxymodel.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qvariant.h>
 
+#include "kis_assert.h"
 #include "kis_node.h"
+#include "kis_types.h"
 #include "nodes/kis_node_model.h"
 #include "kis_signal_compressor.h"
 #include "kis_signal_auto_connection.h"

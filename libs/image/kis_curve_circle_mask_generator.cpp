@@ -8,9 +8,14 @@
 #include <QDomDocument>
 #include <QVector>
 
-#include <KoColorSpaceConstants.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qtypes.h>
 
+#include "KoMultiArchBuildSupport.h"
 #include "kis_antialiasing_fade_maker.h"
+#include "kis_base_mask_generator.h"
 #include "kis_brush_mask_applicator_factories.h"
 
 #include "kis_curve_circle_mask_generator.h"

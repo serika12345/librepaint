@@ -9,10 +9,15 @@
 
 #include <QVector>
 
+#include "kis_assert.h"
 #include "kis_image_interfaces.h"
+#include "kis_types.h"
 #include "kis_undo_store.h"
 #include "kis_stroke_strategy_undo_command_based.h"
 #include <KisAsynchronouslyMergeableCommandInterface.h>
+#include <qcontainerfwd.h>
+#include <qdatetime.h>
+#include <qforeach.h>
 
 KUndo2Command *KisPostExecutionUndoAdapterDelivery::createSavedCommand(
     KUndo2CommandSP command,

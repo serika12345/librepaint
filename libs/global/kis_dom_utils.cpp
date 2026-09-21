@@ -8,8 +8,18 @@
 
 #include <QTransform>
 #include <QVector3D>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qdom.h>
+#include <qhashfunctions.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
 
+#include "kis_assert.h"
 #include "kis_debug.h"
+#include "kis_global.h"
 
 namespace KisDomUtils {
 

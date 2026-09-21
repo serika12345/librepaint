@@ -6,10 +6,13 @@
 #include "KisResourceItemChooserSelectionSource_p.h"
 
 #include "KisResourceItemListView.h"
+#include "KoResource.h"
 
 #include <KisTagFilterResourceProxyModel.h>
 
 #include <QItemSelectionModel>
+#include <qabstractitemmodel.h>
+#include <qhashfunctions.h>
 
 namespace KisResourceItemChooserSelectionSource
 {

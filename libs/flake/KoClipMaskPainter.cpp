@@ -9,11 +9,14 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QRectF>
-#include <KoStreamedMath.h>
 #include <KoClipMaskApplicatorBase.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qtdeprecationdefinitions.h>
 #include <xsimd/KoClipMaskApplicatorFactoryImpl.h>
 
 #include "kis_assert.h"
+#include "xsimd_extensions/config/xsimd_arch.hpp"
 
 struct KoClipMaskApplicatorFactory {
     static KoClipMaskApplicatorBase* createApplicator() {

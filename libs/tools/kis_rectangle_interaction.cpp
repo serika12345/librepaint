@@ -8,6 +8,11 @@
 #include <QTransform>
 
 #include <cmath>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <qtypes.h>
 
 void KisRectangleInteraction::setConstraints(bool forceRatio,
                                              bool forceWidth,

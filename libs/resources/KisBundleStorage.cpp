@@ -14,13 +14,23 @@
 #include <KisTag.h>
 #include "KisResourceStorage.h"
 #include <KoMD5Generator.h>
+#include "KoResource.h"
 #include "KoResourceBundle.h"
 #include "KoResourceBundleManifest.h"
 #include <KisGlobalResourcesInterface.h>
 
 #include <KisResourceLoaderRegistry.h>
 #include <kis_pointer_utils.h>
-#include <kis_debug.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
+#include <qvariant.h>
 
 class KisBundleStorage::Private {
 public:

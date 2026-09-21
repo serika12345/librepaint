@@ -17,20 +17,41 @@
 
 #include <KFormat>
 
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KoColorModelStandardIds.h"
+#include "KoColorProfileConstants.h"
 #include "KoColorProfileQuery.h"
 #include "KoColorProfile.h"
+#include "KoDialog.h"
 #include "KoFileDialog.h"
 
+#include <cmath>
 #include <document/KisDocument.h>
 #include <application/ui/workspace/KisMainWindow.h>
 #include <KisImportExportManager.h>
+#include <functional>
 #include <kis_image.h>
 #include <kis_image_animation_interface.h>
 #include <kis_image_config.h>
 #include <kis_memory_statistics_server.h>
 #include <kis_icon_utils.h>
+#include <qfileinfo.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qscopedpointer.h>
+#include <qsize.h>
+#include <qstringview.h>
+#include <qtimer.h>
+#include <qtypes.h>
 
 #include "KisFFMpegWrapper.h"
+#include "kis_debug.h"
+#include "kis_types.h"
 
 KisDlgImportVideoAnimation::KisDlgImportVideoAnimation(KisMainWindow *mainWindow, KisView *activeView) :
     KoDialog(mainWindow),

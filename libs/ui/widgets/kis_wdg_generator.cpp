@@ -22,7 +22,12 @@
 #include <filter/kis_filter_configuration.h>
 #include <KoColorSpaceRegistry.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
+#include "kis_types.h"
 #include "ui_wdggenerators.h"
 
 class KisGeneratorItem : public QListWidgetItem

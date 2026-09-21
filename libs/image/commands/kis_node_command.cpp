@@ -6,6 +6,9 @@
  */
 
 #include "commands/kis_node_command.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 KisNodeCommand::KisNodeCommand(const KUndo2MagicString& name, KisNodeSP node)
     : KUndo2Command(name), m_node(node)

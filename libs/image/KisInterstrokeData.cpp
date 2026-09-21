@@ -5,6 +5,8 @@
  */
 
 #include "KisInterstrokeData.h"
+#include "kis_assert.h"
+#include "kis_types.h"
 
 #include <KoColorSpace.h>
 #include <kis_paint_device.h>

@@ -7,6 +7,7 @@
 #include "kis_legacy_undo_adapter.h"
 
 #include "kis_image.h"
+#include "kis_types.h"
 
 
 KisLegacyUndoAdapter::KisLegacyUndoAdapter(KisUndoStore *undoStore,

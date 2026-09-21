@@ -33,8 +33,28 @@
 #include <kis_node.h>
 #include <kis_paint_device.h>
 #include <kis_time_span.h>
+#include <numeric>
+#include <optional>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qglobalstatic.h>
+#include <qhash.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qset.h>
+#include <qsize.h>
+#include <qstringview.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qvariant.h>
 
 // local
+#include "KisImportExportErrorCode.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
 #include "document/KisDocument.h"
 #include "KisImportExportManager.h"
 #include "application/ui/workspace/KisMainWindow.h"
@@ -45,6 +65,7 @@
 #include "kis_mimedata.h"
 #include "kis_store_paintdevice_writer.h"
 #include "canvas/KisDisplayConfig.h"
+#include "kis_types.h"
 
 Q_GLOBAL_STATIC(KisClipboard, s_instance)
 

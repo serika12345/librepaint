@@ -6,6 +6,7 @@
 
 #include "kis_paintop_lod_limitations.h"
 #include "KisStaticInitializer.h"
+#include <qsharedpointer.h>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KisPaintopLodLimitations>("KisPaintopLodLimitations");

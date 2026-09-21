@@ -8,6 +8,9 @@
  */
 
 #include "KoID.h"
+#include <boost/optional/optional.hpp>
+#include <qhashfunctions.h>
+#include <utility>
 
 KoID::TranslatedString::TranslatedString(
     const boost::optional<KLocalizedString> &source)

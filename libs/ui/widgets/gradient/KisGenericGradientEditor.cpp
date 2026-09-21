@@ -21,8 +21,6 @@
 #include <KisGradientChooser.h>
 #include <kis_icon_utils.h>
 #include <KisGradientConversion.h>
-#include <kis_signals_blocker.h>
-#include <KoResourceServerProvider.h>
 #include <KisResourceItemChooser.h>
 #include <KisResourceUserOperations.h>
 #include <KisPopupButton.h>
@@ -30,8 +28,21 @@
 
 #include <ksharedconfig.h>
 #include <kconfiggroup.h>
+#include <qcoreevent.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 #include "KisGenericGradientEditor.h"
+#include "KisResourceModel.h"
+#include "KisResourceStorage.h"
+#include "KisResourceTypes.h"
+#include "KoAbstractGradient.h"
 
 class Q_DECL_HIDDEN KisGenericGradientEditor::Private
 {

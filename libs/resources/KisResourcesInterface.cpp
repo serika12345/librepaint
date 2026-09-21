@@ -9,6 +9,15 @@
 #include <QReadLocker>
 #include <QString>
 #include <QWriteLocker>
+#include "KoResource.h"
+#include "KoResourceLoadResult.h"
+#include <algorithm>
+#include <memory>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qpair.h>
+#include <qtclasshelpermacros.h>
+#include <utility>
 #include "kis_assert.h"
 #include "KisResourcesInterface_p.h"
 

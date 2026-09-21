@@ -17,9 +17,19 @@
 #include <QRect>
 
 #include <KoProperties.h>
+#include <qforeach.h>
+#include <qobject.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #include "KisFrameChangeUpdateRecipe.h"
+#include "KisNodeAdditionFlags.h"
 #include "KisProjectionUpdateFlags.h"
+#include "KisQStringListFwd.h"
+#include "kis_assert.h"
+#include "kis_base_node.h"
 #include "kis_busy_progress_indicator.h"
 #include "kis_default_bounds.h"
 #include "kis_layer.h"
@@ -34,6 +44,7 @@
 #include "kis_time_span.h"
 
 #include "kis_safe_read_list.h"
+#include "kis_types.h"
 typedef KisSafeReadList<KisNodeSP> KisSafeReadNodeList;
 
 #include "kis_abstract_projection_plane.h"

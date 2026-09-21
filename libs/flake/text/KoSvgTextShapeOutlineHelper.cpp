@@ -4,9 +4,10 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KoSvgTextShapeOutlineHelper.h"
+#include "KisHandleStyle.h"
+#include "kis_icon_utils.h"
 
 #include <KoCanvasBase.h>
-#include <kis_icon.h>
 #include <KoCanvasResourceProvider.h>
 
 #include <KoSvgTextShape.h>
@@ -16,6 +17,14 @@
 #include <QApplication>
 #include <QPalette>
 #include <KoColorDisplayRendererInterface.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qline.h>
+#include <qlist.h>
+#include <qpainterpath.h>
+#include <qpen.h>
+#include <qpolygon.h>
 
 const int BUTTON_ICON_SIZE = 16;
 const int BUTTON_PADDING = 4;

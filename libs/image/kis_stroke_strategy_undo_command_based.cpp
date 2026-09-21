@@ -7,9 +7,18 @@
 #include "kis_stroke_strategy_undo_command_based.h"
 
 #include <QMutexLocker>
+#include "KisRunnableBasedStrokeStrategy.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qlatin1stringview.h>
 #include "kis_image_interfaces.h"
 #include "kis_post_execution_undo_adapter.h"
 #include "commands_new/kis_saved_commands.h"
+#include "kis_simple_stroke_strategy.h"
+#include "kis_types.h"
+#include "kundo2commandextradata.h"
 
 
 KisStrokeStrategyUndoCommandBased::Data::~Data()

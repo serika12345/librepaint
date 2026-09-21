@@ -7,6 +7,8 @@
  */
 
 #include "kis_warptransform_worker.h"
+#include "kis_algebra_2d.h"
+#include "kis_assert.h"
 #include "kis_datamanager.h"
 
 #include <QVector2D>
@@ -17,8 +19,14 @@
 #include <KoColor.h>
 
 #include <math.h>
+#include <qcontainerfwd.h>
+#include <qimage.h>
+#include <qpolygon.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #include "kis_grid_interpolation_tools.h"
+#include "kis_types.h"
 
 QPointF KisWarpTransformWorker::affineTransformMath(QPointF v, QVector<QPointF> p, QVector<QPointF> q, qreal alpha)
 {

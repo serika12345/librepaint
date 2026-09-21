@@ -6,6 +6,9 @@
 
 #include "kis_cage_transform_worker.h"
 
+#include "kis_algebra_2d.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
 #include "kis_grid_interpolation_tools.h"
 #include "kis_green_coordinates_math.h"
 
@@ -15,9 +18,19 @@
 #include "kis_selection.h"
 #include "kis_painter.h"
 #include "kis_image.h"
+#include "kis_types.h"
 #include "krita_utils.h"
 
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qminmax.h>
+#include <qnamespace.h>
 #include <qnumeric.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 struct Q_DECL_HIDDEN KisCageTransformWorker::Private
 {

@@ -16,6 +16,8 @@
 #include "KoCanvasBase.h"
 #include "kis_global.h"
 #include "kis_command_utils.h"
+#include <qnamespace.h>
+#include <qtpreprocessorsupport.h>
 
 KoPathPointMoveStrategy::KoPathPointMoveStrategy(KoPathTool *tool, const QPointF &mousePosition, const QPointF &pointPosition)
     : KoInteractionStrategy(*(new KoInteractionStrategyPrivate(tool))),

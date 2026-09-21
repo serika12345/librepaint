@@ -9,10 +9,19 @@
 #include "KoResourceManager_p.h"
 
 #include <QVariant>
-#include <FlakeDebug.h>
 #include <KoColor.h>
 #include <KoUnit.h>
+#include <qassert.h>
+#include <qhash.h>
+#include <qlogging.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
+#include "KoAbstractCanvasResourceInterface.h"
+#include "KoActiveCanvasResourceDependency.h"
+#include "KoDerivedResourceConverter.h"
+#include "KoResourceUpdateMediator.h"
 #include "KoShape.h"
 #include "kis_assert.h"
 

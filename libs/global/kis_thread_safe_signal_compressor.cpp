@@ -5,8 +5,12 @@
  */
 
 #include "kis_thread_safe_signal_compressor.h"
+#include "kis_signal_compressor.h"
 
 #include <QApplication>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
 
 KisThreadSafeSignalCompressor::KisThreadSafeSignalCompressor(int delay, KisSignalCompressor::Mode mode)

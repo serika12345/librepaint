@@ -7,12 +7,19 @@
  */
 
 #include "KisDitherUtil.h"
+#include "KisResourceTypes.h"
 
 #include <KoPattern.h>
 
+#include <algorithm>
 #include <kis_filter_configuration.h>
 #include <KisRandomGenerator2D.h>
 #include <KisResourcesInterface.h>
+#include <qimage.h>
+#include <qpoint.h>
+#include <qsharedpointer.h>
+#include <qtypes.h>
+#include <utility>
 
 KisDitherUtil::KisDitherUtil()
     : m_thresholdMode(ThresholdMode::Pattern), m_patternValueMode(PatternValueMode::Auto)

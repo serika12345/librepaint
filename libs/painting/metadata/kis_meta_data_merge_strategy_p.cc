@@ -6,6 +6,11 @@
 
 #include "kis_meta_data_merge_strategy_p.h"
 #include <klocalizedstring.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qtpreprocessorsupport.h>
 
 #include "kis_debug.h"
 

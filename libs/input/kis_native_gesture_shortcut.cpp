@@ -5,9 +5,11 @@
  *
  */
 
+#include "kis_abstract_shortcut.h"
 #include <kis_native_gesture_shortcut.h>
 
 #include <QNativeGestureEvent>
+#include <qnamespace.h>
 
 class KisNativeGestureShortcut::Private
 {

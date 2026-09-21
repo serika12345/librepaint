@@ -5,13 +5,21 @@
  */
 
 #include "KoBasicHistogramProducers.h"
+#include "KoColorConversionTransformation.h"
+#include "KoColorSpace.h"
+#include "KoColorSpaceConstants.h"
+#include "KoHistogramProducer.h"
+#include "KoID.h"
 
 #include <QString>
+#include <cstdint>
 #include <klocalizedstring.h>
 
 #include <KoConfig.h>
+#include <qassert.h>
+#include <qlist.h>
+#include <qtypes.h>
 #ifdef HAVE_OPENEXR
-#include <half.h>
 #endif
 
 // #include "Ko_global.h"

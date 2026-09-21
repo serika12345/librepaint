@@ -5,9 +5,17 @@
  */
 
 #include "KisBrushModel.h"
+#include "KisResourceTypes.h"
+#include "kis_brush.h"
 #include "kis_brush_registry.h"
+#include "kis_paintop_lod_limitations.h"
 #include "kis_properties_configuration.h"
-#include <kis_predefined_brush_factory.h>
+#include <optional>
+#include <QDomDocument>
+#include <QDomElement>
+#include <qhashfunctions.h>
+#include <qnumeric.h>
+#include <qtypes.h>
 
 namespace KisBrushModel {
 

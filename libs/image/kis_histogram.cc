@@ -8,13 +8,18 @@
 #include "kis_histogram.h"
 
 #include <QVector>
+#include <qassert.h>
+#include <qtypes.h>
 
+#include "KoHistogramProducer.h"
+#include "KoIntegerMaths.h"
 #include "kis_image.h"
 #include "kis_paint_layer.h"
 #include "kis_paint_device.h"
 #include "KoColorSpace.h"
 #include "kis_debug.h"
 #include "kis_sequential_iterator.h"
+#include "kis_types.h"
 
 KisHistogram::KisHistogram(const KisPaintLayerSP layer,
                            KoHistogramProducer *producer,

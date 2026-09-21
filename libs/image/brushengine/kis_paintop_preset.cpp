@@ -17,21 +17,35 @@
 #include <KisDirtyStateSaver.h>
 
 #include <brushengine/kis_paintop_settings.h>
+#include "KoID.h"
+#include "KoResource.h"
+#include "KoResourceLoadResult.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_paintop_factory.h"
 #include "kis_paintop_registry.h"
 #include <brushengine/kis_paint_information.h>
 #include "kis_paint_device.h"
 #include "KisPaintOpPresetUpdateProxy.h"
+#include "kis_types.h"
+#include "kis_uniform_paintop_property.h"
 #include <brushengine/kis_paintop_config_widget.h>
 #include <KisRequiredResourcesOperators.h>
 #include <KoLocalStrokeCanvasResources.h>
 #include <KisLocalStrokeResources.h>
 #include <KisResourceModel.h>
-#include <KisResourceTypes.h>
-#include <KisResourceModelProvider.h>
+#include <cstring>
 #include <krita_container_utils.h>
 #include <KoResourceCacheInterface.h>
 
-#include <KoStore.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qpointer.h>
+#include <qregularexpression.h>
+#include <qscopedpointer.h>
+#include <qtdeprecationdefinitions.h>
 
 struct Q_DECL_HIDDEN KisPaintOpPreset::Private {
 

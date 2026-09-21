@@ -5,6 +5,9 @@
  */
 
 #include "kis_undo_adapter.h"
+#include "kis_undo_store.h"
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 
 KisUndoAdapter::KisUndoAdapter(KisUndoStore *undoStore, QObject *parent)

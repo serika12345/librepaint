@@ -5,7 +5,11 @@
  */
 
 #include "kis_abstract_projection_plane.h"
+#include "KisRenderPassFlags.h"
+#include "kis_layer.h"
 #include "kis_paint_device.h"
+#include "kis_types.h"
+#include <qtpreprocessorsupport.h>
 
 
 KisAbstractProjectionPlane::KisAbstractProjectionPlane()

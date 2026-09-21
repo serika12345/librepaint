@@ -7,7 +7,7 @@
 
 #include "KisMergeLabeledLayersCommand.h"
 
-#include "KoCompositeOpRegistry.h"
+#include "KoCompositeOpIds.h"
 
 #include "kis_layer_utils.h"
 #include "kis_node.h"
@@ -19,7 +19,12 @@
 #include "kis_paint_layer.h"
 #include "kis_assert.h"
 #include "KisDeleteLaterWrapper.h"
+#include "kis_types.h"
+#include "kis_undo_stores.h"
+#include "kundo2magicstring.h"
 #include <kis_image_animation_interface.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
 
 KisMergeLabeledLayersCommand::KisMergeLabeledLayersCommand(KisImageSP image,
                                                            KisPaintDeviceSP newRefPaintDevice,

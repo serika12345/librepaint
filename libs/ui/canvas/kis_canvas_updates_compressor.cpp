@@ -5,6 +5,9 @@
  */
 
 #include "kis_canvas_updates_compressor.h"
+#include "kis_assert.h"
+#include "kis_update_info.h"
+#include <qmutex.h>
 
 bool KisCanvasUpdatesCompressor::putUpdateInfo(KisUpdateInfoSP info)
 {

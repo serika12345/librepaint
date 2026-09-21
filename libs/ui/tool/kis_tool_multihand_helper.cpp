@@ -8,9 +8,16 @@
 
 #include <QTransform>
 
+#include "kis_distance_information.h"
+#include "kis_global.h"
 #include "kis_painter.h"
+#include <qcontainerfwd.h>
+#include <qpoint.h>
+#include <qtypes.h>
 #include <strokes/KisFreehandStrokeInfo.h>
 #include "kis_algebra_2d.h"
+#include "kis_tool_freehand_helper.h"
+#include "kundo2magicstring.h"
 
 struct KisToolMultihandHelper::Private
 {

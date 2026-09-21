@@ -15,6 +15,13 @@
 #include "kmainwindow.h"
 #include "config-xmlgui.h"
 #include "kmainwindow_p.h"
+#include <qassert.h>
+#include <qforeach.h>
+#include <qglobalstatic.h>
+#include <qlatin1stringview.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtpreprocessorsupport.h>
 #ifdef HAVE_DBUS
 #include "kmainwindowiface_p.h"
 #endif
@@ -38,8 +45,6 @@
 #ifdef HAVE_DBUS
 #include <QDBusConnection>
 #endif
-#include <ktoggleaction.h>
-#include <kaboutdata.h>
 #include <kconfig.h>
 #include <ksharedconfig.h>
 #include <klocalizedstring.h>

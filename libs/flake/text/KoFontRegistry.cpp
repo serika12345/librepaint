@@ -5,6 +5,7 @@
  */
 #include "KoFontRegistry.h"
 #include "FlakeDebug.h"
+#include "KoCSSFontInfo.h"
 #include "KoCssTextUtils.h"
 
 #include <QApplication>
@@ -15,18 +16,48 @@
 #include <QThread>
 #include <QThreadStorage>
 #include <QtGlobal>
+#include <cstdint>
+#include <fontconfig/fontconfig.h>
+#include <freetype/config/ftheader.h>
+#include <freetype/config/integer-types.h>
+#include <freetype/ftimage.h>
+#include <freetype/ftmm.h>
+#include <freetype/fttypes.h>
+#include <hb-ft.h>
+#include <hb-ot.h>
+#include <hb.h>
+#include <qcontainerfwd.h>
+#include <qfont.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsharedpointer.h>
+#include <qstringview.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtenvironmentvariables.h>
+#include <qtypes.h>
 #include <utility>
 
 #include <optional>
 
 #include <KoResourcePaths.h>
-#include <kis_debug.h>
 
 #include "KoFontLibraryResourceUtils.h"
 #include "KoFFWWSConverter.h"
 #include "KoFontChangeTracker.h"
+#include "KoSvgText.h"
 #include "KoWritingSystemUtils.h"
+#include "kis_assert.h"
 #include <KisResourceLocator.h>
+#include <vector>
 #include FT_TRUETYPE_TABLES_H
 #include FT_FREETYPE_H
 

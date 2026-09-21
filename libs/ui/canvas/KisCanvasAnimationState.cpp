@@ -11,6 +11,7 @@
 #include <QTimer>
 #include <QtMath>
 
+#include "kis_assert.h"
 #include "kis_global.h"
 #include "KisRegion.h"
 #include "kis_algebra_2d.h"
@@ -24,6 +25,8 @@
 #include "kis_time_span.h"
 #include "kis_signal_compressor.h"
 #include "animation/KisFrameDisplayProxy.h"
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
 #include <document/KisDocument.h>
 #include <QFileInfo>
 #include <QThread>
@@ -35,12 +38,19 @@
 
 #include "kis_image_config.h"
 #include <limits>
+#include <qforeach.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_icon_utils.h"
 
 #include "application/ui/orchestration/KisPart.h"
 #include "dialogs/KisAsyncAnimationCacheRenderDialog.h"
+#include "kis_types.h"
 
 
 class SingleShotSignal : public QObject {

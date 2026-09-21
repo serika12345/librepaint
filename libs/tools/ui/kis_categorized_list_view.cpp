@@ -6,14 +6,24 @@
 
 #include "kis_categorized_list_view.h"
 #include "kis_categorized_list_model.h"
+#include "kis_icon_utils.h"
 #include <QMouseEvent>
 #include <QMenu>
 #include <QAction>
 #include <QShowEvent>
-#include <kconfig.h>
 #include <klocalizedstring.h>
-#include <kis_icon.h>
 #include <KisKineticScroller.h>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qcoreevent.h>
+#include <qicon.h>
+#include <qlistview.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qscroller.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
 
 KisCategorizedListView::KisCategorizedListView(QWidget* parent):
     QListView(parent)

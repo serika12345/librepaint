@@ -4,11 +4,14 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
 */
 
+#include "KoChannelInfo.h"
 #include <KoColorSpaceMaths.h>
 
 #include <cfloat>
 
 #include <QtGlobal>
+#include <half.h>
+#include <qtypes.h>
 
 #ifdef HAVE_OPENEXR
 const half KoColorSpaceMathsTraits<half>::zeroValue = 0.0;

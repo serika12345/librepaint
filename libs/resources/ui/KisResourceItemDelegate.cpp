@@ -11,6 +11,15 @@
 #include "KisResourceItemDelegate.h"
 #include "KisResourceModel.h"
 #include <KisResourceModelIndexResolver.h>
+#include <qabstractitemdelegate.h>
+#include <qabstractitemmodel.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qsize.h>
+#include <qstyle.h>
+#include <qstyleoption.h>
+#include <qtpreprocessorsupport.h>
 
 KisResourceItemDelegate::KisResourceItemDelegate(QObject *parent)
     : QAbstractItemDelegate(parent)

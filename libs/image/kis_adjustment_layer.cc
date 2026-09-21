@@ -9,17 +9,23 @@
 
 #include <klocalizedstring.h>
 
-#include <KoIcon.h>
 #include <kis_icon.h>
-#include <KoCompositeOpRegistry.h>
+#include <qicon.h>
+#include <qtpreprocessorsupport.h>
 
+#include "KoCompositeOpIds.h"
+#include "kis_base_node.h"
+#include "kis_icon_utils.h"
 #include "kis_image.h"
+#include "kis_layer.h"
 #include "kis_paint_device.h"
 #include "filter/kis_filter_configuration.h"
 #include "filter/kis_filter_registry.h"
 #include "filter/kis_filter.h"
 #include "kis_node_visitor.h"
 #include "kis_processing_visitor.h"
+#include "kis_selection_based_layer.h"
+#include "kis_types.h"
 
 
 KisAdjustmentLayer::KisAdjustmentLayer(KisImageWSP image,

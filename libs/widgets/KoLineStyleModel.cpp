@@ -7,6 +7,11 @@
 #include "KoLineStyleModel_p.h"
 
 #include <QPen>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qtypes.h>
 
 KoLineStyleModel::KoLineStyleModel(QObject *parent)
     : QAbstractListModel(parent),

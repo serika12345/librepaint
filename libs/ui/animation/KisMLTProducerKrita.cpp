@@ -21,10 +21,15 @@
 
 #include "animation/KisMLTProducerKrita.h"
 
-#include <framework/mlt.h>
+#include <MltRepository.h>
+#include <framework/mlt_audio.h>
+#include <framework/mlt_events.h>
+#include <framework/mlt_pool.h>
+#include <framework/mlt_properties.h>
+#include <framework/mlt_types.h>
 #include <limits.h>
 #include <math.h>
-#include <stdbool.h>
+#include <qnumeric.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,7 +39,6 @@
 #include <framework/mlt_factory.h>
 #include <framework/mlt_frame.h>
 #include <framework/mlt_producer.h>
-#include <framework/mlt_property.h>
 #include <framework/mlt_service.h>
 
 typedef struct

@@ -5,8 +5,12 @@
  */
 
 #include "KisSupportedArchitectures.h"
+#include "xsimd_extensions/config/xsimd_arch.hpp"
 
 #include <KoMultiArchBuildSupport.h>
+#include <xsimd/config/xsimd_arch.hpp>
+#include <xsimd/config/xsimd_config.hpp>
+#include <xsimd/config/xsimd_cpuid.hpp>
 
 QString KisSupportedArchitectures::baseArchName()
 {

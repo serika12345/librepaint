@@ -6,11 +6,30 @@
 
 #include "KisBezierTransformMesh.h"
 
+#include "KisBezierPatch.h"
+#include "KisBezierUtils.h"
+#include "kis_algebra_2d.h"
+#include "kis_assert.h"
+#include "kis_global.h"
 #include "kis_grid_interpolation_tools.h"
 #include <KisBezierPatchParamSpaceUtils.h>
 #include <KisSampleRectIterator.h>
 #include <KisBezierPatchParamToSourceSampler.h>
+#include <algorithm>
+#include <iterator>
+#include <qcontainerfwd.h>
+#include <qdom.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qsize.h>
+#include <qtypes.h>
+#include <tuple>
 #include "kis_debug.h"
+#include "kis_types.h"
 
 KisBezierTransformMesh::patch_const_iterator
 KisBezierTransformMesh::hitTestPatchImpl(const QPointF &pt, QPointF *localPointResult) const

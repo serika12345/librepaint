@@ -6,7 +6,9 @@
 
 #include "KisResetGroupLayerCacheCommand.h"
 
+#include "kis_command_utils.h"
 #include "kis_group_layer.h"
+#include "kis_types.h"
 
 KisResetGroupLayerCacheCommand::KisResetGroupLayerCacheCommand(KisGroupLayerSP layer, const KoColorSpace *dstColorSpace, KisCommandUtils::FlipFlopCommand::State state)
     : KisCommandUtils::FlipFlopCommand(state)

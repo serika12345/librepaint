@@ -3,10 +3,13 @@
  *
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
-#include "KisGlobalResourcesInterface.h"
+#include "KisResourcesInterface.h"
+#include "KoResource.h"
 
 #include <KisResourceModel.h>
 #include <KisResourceModelProvider.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
 
 namespace
 {

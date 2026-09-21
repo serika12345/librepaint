@@ -9,6 +9,10 @@
 #include "KoCurveFitPathShapeWriter_p.h"
 #include <QVector>
 #include <math.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qnumeric.h>
+#include <qtypes.h>
 
 /// our equivalent to zero
 const qreal Zero = 10e-12;

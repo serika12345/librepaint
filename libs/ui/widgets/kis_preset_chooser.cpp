@@ -20,23 +20,33 @@
 
 #include <application/kis_config.h>
 #include <klocalizedstring.h>
-#include <KisKineticScroller.h>
 
-#include <KoIcon.h>
 #include <KisResourceItemChooser.h>
 #include <KisResourceItemChooserSync.h>
-#include <KisResourceItemListView.h>
-#include <KisResourceLocator.h>
 #include <KisResourceTypes.h>
 
-#include <brushengine/kis_paintop_settings.h>
 #include <brushengine/kis_paintop_preset.h>
+#include "KisResourceUiDescriptor.h"
+#include "KoResource.h"
+#include "ResourceListViewModes.h"
+#include "kis_assert.h"
 #include "kis_config_notifier.h"
+#include "kis_icon_utils.h"
+#include "kis_types.h"
 #include <kis_icon.h>
-#include <KisResourceModelProvider.h>
 #include <KisTagFilterResourceProxyModel.h>
 #include <KisResourceThumbnailCache.h>
-#include <KisResourceMetaDataModel.h>
+#include <qimage.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qpixmap.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 
 /// The resource item delegate for rendering the resource preview

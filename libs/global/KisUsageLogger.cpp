@@ -26,6 +26,13 @@
 #include <QStyle>
 #include <QStyleFactory>
 #include <QTextCodec>
+#include <qassert.h>
+#include <qconfig.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qtversion.h>
+#include <qtversionchecks.h>
 
 #ifdef Q_OS_WIN
 #include <windows.h>

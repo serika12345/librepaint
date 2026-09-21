@@ -9,10 +9,15 @@
 #include "KoPathPoint.h"
 #include "KoPathPointData.h"
 #include "KoPathShape.h"
+#include <boost/optional/optional.hpp>
 #include <klocalizedstring.h>
 #include <QPointF>
+#include <qtdeprecationdefinitions.h>
+#include <utility>
 #include "kis_assert.h"
 #include "KoPathMergeUtils.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 
 class Q_DECL_HIDDEN KoPathPointMergeCommand::Private

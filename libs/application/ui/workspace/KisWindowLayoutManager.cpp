@@ -5,6 +5,9 @@
  */
 
 #include "application/ui/workspace/KisWindowLayoutManager.h"
+#include "KisQStringListFwd.h"
+#include "KoResourceServer.h"
+#include "ui/workspace/KisWindowLayoutResource.h"
 
 #include <QWidget>
 #include <QScreen>
@@ -20,6 +23,18 @@
 #include <kis_dom_utils.h>
 #include <application/ui/orchestration/KisResourceServerProvider.h>
 #include <application/ui/workspace/KisSessionResource.h>
+#include <qforeach.h>
+#include <qglobalstatic.h>
+#include <qguiapplication.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <quuid.h>
 
 Q_GLOBAL_STATIC(KisWindowLayoutManager, s_instance)
 

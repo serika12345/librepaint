@@ -5,8 +5,17 @@
  */
 
 #include <QtGlobal>
+#include <cstdio>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qtypes.h>
 #include "kis_memento_manager.h"
+#include "kis_assert.h"
 #include "kis_memento.h"
+#include "tiles3/kis_memento_item.h"
+#include "tiles3/kis_tile.h"
+#include "tiles3/kis_tile_data_interface.h"
+#include "tiles3/kis_tile_hash_table2.h"
 
 
 //#define DEBUG_MM

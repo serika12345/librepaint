@@ -8,6 +8,14 @@
 #include <FlakeDebug.h>
 #include <QPair>
 #include <QRegularExpression>
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qdom.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qnamespace.h>
 
 /// Token types used for tokenizing complex selectors
 enum CssTokenType {

@@ -7,6 +7,7 @@
 #include "kis_node_shapes_graph.h"
 
 #include "kis_node_shape.h"
+#include "kis_types.h"
 
 
 KisNodeShape* KisNodeShapesGraph::addNode(KisNodeSP node, KisNodeSP parent, KisNodeSP aboveThis)

@@ -7,6 +7,7 @@
 
 #include "kxmlguibuilder.h"
 
+#include "KisQStringListFwd.h"
 #include "kxmlguiclient.h"
 #include "ktoolbar.h"
 #include "kmainwindow.h"
@@ -24,6 +25,12 @@
 #include <QDebug>
 
 #include <kis_icon_utils.h>
+#include <qhashfunctions.h>
+#include <qicon.h>
+#include <qlatin1stringview.h>
+#include <qlogging.h>
+#include <qmainwindow.h>
+#include <qstringview.h>
 
 #if defined(KCONFIG_BEFORE_5_24)
 # define authorizeAction authorizeKAction

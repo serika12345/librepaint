@@ -5,12 +5,21 @@
  */
 
 #include "kis_svg_brush.h"
+#include "KoResource.h"
+#include "kis_brush.h"
+#include "kis_scaling_size_brush.h"
 
 #include <QDomElement>
 #include <QFileInfo>
 #include <QPainter>
 #include <QImageReader>
 #include <QSvgRenderer>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qrgb.h>
+#include <qtpreprocessorsupport.h>
 
 KisSvgBrush::KisSvgBrush(const QString& filename)
     : KisScalingSizeBrush(filename)

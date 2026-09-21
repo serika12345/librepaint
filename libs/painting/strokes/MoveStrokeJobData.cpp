@@ -4,7 +4,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisAsynchronousStrokeUpdateHelper.h"
+#include "kis_lod_transform.h"
+#include "kis_stroke_job_strategy.h"
 #include "move_stroke_strategy.h"
+#include <qpoint.h>
 
 MoveStrokeStrategy::Data::Data(QPoint _offset)
     : KisStrokeJobData(SEQUENTIAL, NORMAL)

@@ -19,6 +19,10 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include "multi_bspline_create.h"
+#include "einspline/bspline_base.h"
+#include "einspline/local_definitions.h"
+#include "einspline/multi_bspline_structs.h"
+#include <cstdint>
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 600
 #endif

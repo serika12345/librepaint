@@ -5,6 +5,13 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "KisImportExportUtils.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceModel.h"
+#include "KoColorSet.h"
+#include "KoColorSpaceConstants.h"
+#include "KoResourceLoadResult.h"
+#include "KoResourceSignature.h"
 #include "application/ui/workspace/KisMainWindow.h" // XXX: remove
 
 #include <KisMimeDatabase.h>
@@ -16,6 +23,7 @@
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 #include <info/KoDocumentInfoDlg.h>
+#include <memory>
 #include <metadata/KoDocumentInfo.h>
 #include <KoUnit.h>
 #include <KoID.h>
@@ -26,9 +34,6 @@
 #include <KoShapeController.h>
 #include <KoStore.h>
 #include <KoUpdater.h>
-#include <KoXmlWriter.h>
-#include <KoStoreDevice.h>
-#include <KoDialog.h>
 #include <KisImportExportErrorCode.h>
 #include <KisImportExportFilter.h>
 #include <KoDocumentResourceManager.h>
@@ -37,6 +42,21 @@
 #include <KisResourceLocator.h>
 #include <KisResourceTypes.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qassert.h>
+#include <qdatetime.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlatin1stringview.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qsharedpointer.h>
+#include <qtclasshelpermacros.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <session/kis_document_autosave_state.h>
 #include <session/kis_document_identity.h>
 #include <session/kis_document_modification_state.h>
@@ -46,7 +66,6 @@
 #include <files/kis_document_backup_file.h>
 #include <files/kis_document_save_target.h>
 #include <KisResourceLoaderRegistry.h>
-#include <KisResourceModelProvider.h>
 #include <KisResourceCacheDb.h>
 #include <KoEmbeddedResource.h>
 #include <KisUsageLogger.h>
@@ -55,8 +74,6 @@
 #include <kis_generator_layer.h>
 #include <kis_generator_registry.h>
 #include <io/kis_document_io_presentation.h>
-#include <kdesktopfile.h>
-#include <kconfiggroup.h>
 #include <application/ui/workspace/KisView.h>
 
 #include <QTextBrowser>
@@ -92,18 +109,26 @@
 #include <kis_name_server.h>
 #include <kis_paint_layer.h>
 #include <kis_painter.h>
-#include <kis_selection.h>
 #include <kis_fill_painter.h>
 #include <undo/kis_document_undo_store.h>
 #include <kis_idle_watcher.h>
 #include <kis_signal_auto_connection.h>
 #include <kis_canvas_widget_base.h>
 #include "KisUniqueColorSet.h"
+#include "document/StoryboardItem.h"
+#include "kis_assert.h"
+#include "kis_filter_configuration.h"
 #include "kis_layer_utils.h"
 
 // Local
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_clipboard.h"
+#include "kis_node_filter_interface.h"
+#include "kis_painting_assistant.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_types.h"
+#include "kis_undo_stores.h"
+#include "kundo2magicstring.h"
 #include "widgets/kis_custom_image_widget.h"
 #include "canvas/kis_canvas2.h"
 #include "flake/kis_shape_controller.h"
@@ -132,6 +157,7 @@
 #include <canvas/KisDecorationsWrapperLayer.h>
 #include "kis_simple_stroke_strategy.h"
 #include <KisCursorOverrideLock.h>
+#include <utility>
 
 // Define the protocol used here for embedded documents' URL
 // This used to "store" but QUrl didn't like it,
@@ -142,7 +168,6 @@
 #define INTERNAL_PREFIX "intern:/"
 // Warning, keep it sync in koStore.cc
 
-#include <unistd.h>
 
 #ifdef Q_OS_MACOS
 #include "KisMacosSecurityBookmarkManager.h"

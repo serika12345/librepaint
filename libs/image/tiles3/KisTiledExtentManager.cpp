@@ -8,6 +8,12 @@
 #include "KisTiledExtentManager.h"
 
 #include <QVector>
+#include <qatomic.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qpoint.h>
+#include <qreadwritelock.h>
+#include <qtypes.h>
 #include "kis_tile_data_interface.h"
 #include "kis_assert.h"
 #include "kis_global.h"

@@ -10,6 +10,9 @@
 #include <cmath>
 
 #include <QtGlobal>
+#include <math.h>
+#include <qminmax.h>
+#include <qtypes.h>
 
 /**
  * A number of often-used conversions between color models

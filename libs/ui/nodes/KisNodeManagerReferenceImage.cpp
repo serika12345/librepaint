@@ -4,11 +4,13 @@
  */
 
 #include "kis_node_manager.h"
+#include "kis_paint_device.h"
 
 #include <memory>
 
 #include <QImage>
 #include <klocalizedstring.h>
+#include <qobject.h>
 
 void KisNodeManager::createReferenceImage(bool fromLayer)
 {

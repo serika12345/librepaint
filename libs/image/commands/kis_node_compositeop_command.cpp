@@ -6,10 +6,14 @@
  */
 
 #include <klocalizedstring.h>
-#include <KoCompositeOp.h>
+#include "kis_assert.h"
 #include "kis_node.h"
 #include "kis_node_compositeop_command.h"
 #include "kis_command_ids.h"
+#include "kis_node_command.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 KisNodeCompositeOpCommand::KisNodeCompositeOpCommand(KisNodeSP node, const QString& newCompositeOp) :
         KisNodeCommand(kundo2_i18n("Composition Mode Change"), node)

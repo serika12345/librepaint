@@ -5,9 +5,14 @@
  */
 
 #include "kis_random_accessor.h"
+#include "kis_iterator_complete_listener.h"
+#include "tiles3/kis_tile_data_interface.h"
+#include "tiles3/kis_tiled_data_manager.h"
 
 
-#include <kis_debug.h>
+#include <cstring>
+#include <qassert.h>
+#include <qtypes.h>
 
 
 const quint32 KisRandomAccessor2::CACHESIZE = 4; // Define the number of tiles we keep in cache

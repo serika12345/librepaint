@@ -8,8 +8,11 @@
 
 #include <klocalizedstring.h>
 #include "kis_image.h"
+#include "kis_image_command.h"
 #include "kis_image_layer_remove_command_impl.h"
 #include "kis_node.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 
 
 KisImageLayerRemoveCommand::KisImageLayerRemoveCommand(KisImageWSP image,

@@ -9,6 +9,7 @@
 #include "kis_paint_device.h"
 
 #include "KisProcessingInformationPaintDeviceOwnership_p.h"
+#include "KisQStringListFwd.h"
 #include "KisRandomSubAccessorPaintDeviceAccess_p.h"
 
 #include <QRect>
@@ -18,7 +19,11 @@
 #include <QMutex>
 #include <QMutexLocker>
 #include <QIODevice>
-#include <qmath.h>
+#include <algorithm>
+#include <cstring>
+#include <new>
+#include <qassert.h>
+#include <qforeach.h>
 #include <KisRegion.h>
 
 #include <klocalizedstring.h>
@@ -29,11 +34,17 @@
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorModelStandardIds.h>
-#include <KoIntegerMaths.h>
 #include <KoMixColorsOp.h>
 #include <KoUpdater.h>
 
+#include "KoColorSpaceConstants.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_default_bounds_base.h"
+#include "kis_default_bounds_node_wrapper.h"
 #include "kis_image.h"
+#include "kis_iterator_complete_listener.h"
+#include "kis_pointer_utils.h"
 #include "kis_random_sub_accessor.h"
 #include "kis_selection.h"
 #include "kis_node.h"
@@ -56,10 +67,24 @@
 #include "kis_paint_device_data.h"
 #include "kis_paint_device_frames_interface.h"
 
+#include "kis_shared.h"
 #include "kis_transform_worker.h"
 #include "kis_filter_strategy.h"
+#include "kis_types.h"
 #include "krita_utils.h"
+#include "tiles3/kis_hline_iterator.h"
+#include "tiles3/kis_vline_iterator.h"
 #include <KisStaticInitializer.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
+#include <qset.h>
+#include <qsharedpointer.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <utility>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KisPaintDeviceSP>("KisPaintDeviceSP");

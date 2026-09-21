@@ -9,7 +9,17 @@
 
 #include "KoCanvasControllerWidgetViewport_p.h"
 
+#include <algorithm>
 #include <limits.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpaintdevice.h>
+#include <qpoint.h>
+#include <qtpreprocessorsupport.h>
 #include <stdlib.h>
 
 #include <QPainter>
@@ -33,6 +43,7 @@
 #include "KoCanvasControllerWidget.h"
 #include "KoViewConverter.h"
 #include "KoSvgPaste.h"
+#include "kis_assert.h"
 #include <kis_canvas2.h>
 
 // ********** Viewport **********

@@ -8,6 +8,9 @@
 #include "KisExportCheckBase.h"
 #include "KisExportCheckRegistry.h"
 
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qmap.h>
 #include <kis_image.h>
 
 KisPreExportChecker::KisPreExportChecker()
@@ -66,4 +69,3 @@ QStringList KisPreExportChecker::warnings() const
 {
     return m_warnings;
 }
-

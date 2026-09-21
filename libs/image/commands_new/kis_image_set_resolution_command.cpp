@@ -5,9 +5,13 @@
  */
 
 #include "kis_image_set_resolution_command.h"
+#include "kis_assert.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 
 #include <klocalizedstring.h>
 #include <kis_image.h>
+#include <qtypes.h>
 
 
 KisImageSetResolutionCommand::KisImageSetResolutionCommand(KisImageWSP image, qreal newXRes, qreal newYRes, KUndo2Command *parent)

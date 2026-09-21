@@ -6,9 +6,14 @@
  */
 
 #include "KoPathSegmentTypeCommand.h"
+#include "KoPathPointData.h"
+#include "KoPathShape.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 #include <KoPathSegment.h>
 #include <klocalizedstring.h>
+#include <qlist.h>
 
 KoPathSegmentTypeCommand::KoPathSegmentTypeCommand(const KoPathPointData & pointData, SegmentType segmentType, KUndo2Command *parent)
 : KUndo2Command(parent)

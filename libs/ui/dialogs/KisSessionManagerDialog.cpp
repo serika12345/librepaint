@@ -8,9 +8,21 @@
 #include <QMessageBox>
 #include <application/ui/orchestration/KisPart.h>
 #include "KisSessionManagerDialog.h"
+#include "KisResourceTypes.h"
+#include "ui_wdgsessionmanager.h"
 #include <KisResourceUserOperations.h>
 #include <KisResourceModel.h>
 #include <application/ui/workspace/KisMainWindow.h>
+#include <qabstractitemmodel.h>
+#include <qabstractitemview.h>
+#include <qapplication.h>
+#include <qcoreevent.h>
+#include <qdialog.h>
+#include <qhashfunctions.h>
+#include <qitemselectionmodel.h>
+#include <qlineedit.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
 
 int KisSessionManagerDialog::refreshEventType = -1;
 

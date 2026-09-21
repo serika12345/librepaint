@@ -13,6 +13,12 @@
 #include "kis_dom_utils.h"
 #include "kis_algebra_2d.h"
 #include <KisStaticInitializer.h>
+#include <qcontainerfwd.h>
+#include <qglobalstatic.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qtypes.h>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KisGridConfig>("KisGridConfig");

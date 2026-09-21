@@ -8,11 +8,16 @@
 // to disable assert when the leak tracker is active
 
 #include <QGlobalStatic>
+#include <qassert.h>
+#include <qreadwritelock.h>
+#include <qtypes.h>
 
 #include "kis_tile_data_store.h"
 #include "kis_debug.h"
 
 #include "kis_tile_data_store_iterators.h"
+#include "lock_free_map/concurrent_map.h"
+#include "tiles3/kis_tile_data_interface.h"
 
 Q_GLOBAL_STATIC(KisTileDataStore, s_instance)
 

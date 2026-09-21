@@ -6,20 +6,31 @@
 
 #include <QMutex>
 #include <QMutexLocker>
-#include <KoIcon.h>
 #include <kis_icon.h>
 #include <KoCompositeOpRegistry.h>
+#include <optional>
+#include <qicon.h>
+#include <qtpreprocessorsupport.h>
 
 #include "kis_filter_mask.h"
+#include "KisRenderPassFlags.h"
+#include "KoCompositeOpIds.h"
 #include "filter/kis_filter.h"
 #include "filter/kis_filter_configuration.h"
 #include "filter/kis_filter_registry.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_effect_mask.h"
+#include "kis_icon_utils.h"
+#include "kis_mask.h"
 #include "kis_node.h"
+#include "kis_node_filter_interface.h"
 #include "kis_node_visitor.h"
 #include "kis_processing_visitor.h"
 #include "kis_busy_progress_indicator.h"
 #include "kis_paint_device.h"
 #include "kis_painter.h"
+#include "kis_types.h"
 
 void kisSharedPtrAddReference(KisFilterMask *pointer)
 {

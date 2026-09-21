@@ -8,14 +8,21 @@
 
 #include <QGlobalStatic>
 #include <QApplication>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 
+#include "kis_assert.h"
 #include "kis_image.h"
 #include "kis_image_config.h"
 #include "kis_node.h"
 #include "kis_paint_device.h"
 #include "kis_signal_compressor.h"
 
+#include "kis_types.h"
 #include "tiles3/kis_tile_data_store.h"
+#include "tiles3/swap/kis_chunk_allocator.h"
 
 Q_GLOBAL_STATIC(KisMemoryStatisticsServer, s_instance)
 

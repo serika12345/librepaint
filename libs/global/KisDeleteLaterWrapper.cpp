@@ -5,6 +5,7 @@
 #include "KisDeleteLaterWrapper.h"
 
 #include <QApplication>
+#include <qobject.h>
 
 
 void KisDeleteLaterWrapperPrivate::moveToGuiThread(QObject *object)

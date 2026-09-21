@@ -7,6 +7,8 @@
 
 #include "animation/KisPlaybackEngine.h"
 
+#include "KoCanvasBase.h"
+#include "kis_assert.h"
 #include "kis_canvas2.h"
 #include "kis_image.h"
 #include "KisCanvasAnimationState.h"
@@ -17,6 +19,11 @@
 #include "application/kis_config.h"
 
 #include "kis_onion_skin_compositor.h"
+#include "kis_types.h"
+#include <boost/optional/optional.hpp>
+#include <qobject.h>
+#include <qset.h>
+#include <qtmetamacros.h>
 
 struct KisPlaybackEngine::Private {
 public:

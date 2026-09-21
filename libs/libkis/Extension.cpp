@@ -8,6 +8,7 @@
 #include "Extension.h"
 
 #include <QDebug>
+#include <qobject.h>
 
 Extension::Extension(QObject* parent)
     : QObject(parent)

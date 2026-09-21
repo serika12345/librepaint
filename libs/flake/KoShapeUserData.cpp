@@ -5,6 +5,8 @@
  */
 
 #include "KoShapeUserData.h"
+#include <qobject.h>
+#include <qtpreprocessorsupport.h>
 
 KoShapeUserData::KoShapeUserData(QObject *parent)
     : QObject(parent)

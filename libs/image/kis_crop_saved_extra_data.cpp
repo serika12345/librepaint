@@ -5,6 +5,7 @@
  */
 
 #include "kis_crop_saved_extra_data.h"
+#include "kis_types.h"
 
 KisCropSavedExtraData::KisCropSavedExtraData(Type type, QRect cropRect, KisNodeSP cropNode)
     : m_type(type)

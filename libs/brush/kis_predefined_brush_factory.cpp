@@ -9,12 +9,23 @@
 #include <QApplication>
 #include <QThread>
 #include <QDomDocument>
+#include "KisBrushModel.h"
+#include "KisColorfulBrush.h"
+#include "KisResourceTypes.h"
+#include "KoResourceLoadResult.h"
+#include "kis_assert.h"
+#include "kis_brush.h"
 #include "kis_gbr_brush.h"
 #include "kis_png_brush.h"
 #include "kis_abr_brush.h"
 #include "kis_svg_brush.h"
 #include <kis_dom_utils.h>
 #include <KisResourcesInterface.h>
+#include <optional>
+#include <qminmax.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <variant>
 #include "kis_imagepipe_brush.h"
 
 KisPredefinedBrushFactory::KisPredefinedBrushFactory(const QString &brushType)

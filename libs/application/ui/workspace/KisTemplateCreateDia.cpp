@@ -7,6 +7,7 @@
    SPDX-License-Identifier: LGPL-2.0-or-later
 */
 
+#include "KoDialog.h"
 #include <application/ui/workspace/KisTemplateCreateDia.h>
 
 #include <QFile>
@@ -26,7 +27,6 @@
 #include <QDir>
 
 #include <klocalizedstring.h>
-#include <kis_icon.h>
 #include <document/KisDocument.h>
 #include <application/ui/workspace/KisTemplates.h>
 #include <application/ui/workspace/KisTemplateTree.h>
@@ -40,6 +40,17 @@
 #include <KoFileDialog.h>
 
 #include <ksharedconfig.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qimage.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qstandardpaths.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 // ODF thumbnail extent
 static const int thumbnailExtent = 128;

@@ -10,6 +10,7 @@
 #include <QKeyEvent>
 
 #include "application/ui/workspace/KisViewManager.h"
+#include "kis_assert.h"
 #include "kis_canvas2.h"
 #include <KisOptionCollectionWidget.h>
 #include <KoCanvasBase.h>
@@ -17,8 +18,19 @@
 #include <KoPointerEvent.h>
 #include <KoViewConverter.h>
 #include <kis_icon.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qpainter.h>
+#include <qset.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
+#include "kis_floating_message.h"
 #include "kis_rectangle_constraint_widget.h"
+#include "kis_tool.h"
+#include "kis_tool_paint.h"
+#include "kis_tool_shape.h"
+#include "ui_wdggeometryoptions.h"
 
 namespace
 {

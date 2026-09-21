@@ -44,6 +44,13 @@
 
 #include <kis_raster_keyframe_channel.h>
 #include <kis_keyframe.h>
+#include "KoCanvasResourcesIds.h"
+#include "KoColorModelStandardIds.h"
+#include "kis_debug.h"
+#include "kis_figure_painting_stroke.h"
+#include "kis_paint_device.h"
+#include "kis_paint_information.h"
+#include "kis_psd_layer_style.h"
 #include "kis_selection.h"
 
 #include "InfoObject.h"
@@ -73,6 +80,14 @@
 #include "kis_canvas2.h"
 #include "KoCanvasResourceProvider.h"
 #include <brushengine/kis_paintop_preset.h>
+#include <qforeach.h>
+#include <qimage.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qobject.h>
+#include <qpaintdevice.h>
+#include <qpoint.h>
+#include <qtypes.h>
 
 
 struct Node::Private {

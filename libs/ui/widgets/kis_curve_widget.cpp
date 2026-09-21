@@ -30,12 +30,19 @@
 
 // KDE includes.
 
-#include <kis_debug.h>
 #include <application/kis_config.h>
 #include <klocalizedstring.h>
 
-#include <kis_signal_compressor.h>
 #include <kis_thread_safe_signal_compressor.h>
+#include <optional>
+#include <qassert.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 
 // Local includes.

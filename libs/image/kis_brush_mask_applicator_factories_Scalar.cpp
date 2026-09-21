@@ -5,6 +5,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_base_mask_generator.h"
 #include "kis_brush_mask_applicator_factories.h"
 
 #include "kis_circle_mask_generator.h"
@@ -15,6 +16,7 @@
 #include "kis_rect_mask_generator.h"
 
 #include "kis_brush_mask_scalar_applicator.h"
+#include "xsimd_extensions/config/xsimd_arch.hpp"
 
 template<>
 template<>

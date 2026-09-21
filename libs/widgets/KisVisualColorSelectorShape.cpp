@@ -13,9 +13,25 @@
 #include <QVector4D>
 #include <QtMath>
 
+#include "KoColor.h"
 #include "KoColorSpace.h"
 #include "KoColorDisplayRendererInterface.h"
-#include <KoColorModelStandardIds.h>
+#include "kis_assert.h"
+#include <cstring>
+#include <qassert.h>
+#include <qcoreevent.h>
+#include <qevent.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpoint.h>
+#include <qscopedpointer.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 
 struct KisVisualColorSelectorShape::Private

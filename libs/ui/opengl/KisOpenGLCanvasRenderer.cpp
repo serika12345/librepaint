@@ -5,7 +5,31 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisQStringListFwd.h"
+#include "KisWraparoundAxis.h"
+#include "KoCanvasResourcesIds.h"
 #include "KoColorDisplayRendererInterface.h"
+#include "KoCompositeOpIds.h"
+#include "KoID.h"
+#include "kis_assert.h"
+#include "kis_global.h"
+#include "kis_update_info.h"
+#include "opengl/kis_opengl.h"
+#include "opengl/kis_opengl_image_textures.h"
+#include "opengl/kis_opengl_update_info.h"
+#include "opengl/kis_texture_tile.h"
+#include "ui/workspace/KisView.h"
+#include <OpenGL/gl.h>
+#include <OpenGL/gltypes.h>
+#include <cmath>
+#include <qbitarray.h>
+#include <qlogging.h>
+#include <qmath.h>
+#include <qminmax.h>
+#include <qscopedpointer.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #define GL_GLEXT_PROTOTYPES
 
 #include "opengl/KisOpenGLCanvasRenderer.h"
@@ -35,7 +59,6 @@
 #include <QMessageBox>
 #include <QVector3D>
 #include <KoCompositeOpRegistry.h>
-#include <KoColorModelStandardIds.h>
 #include "KisOpenGLBufferCircularStorage.h"
 #include "kis_painting_tweaks.h"
 #include <KisOptimizedBrushOutline.h>

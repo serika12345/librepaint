@@ -6,7 +6,12 @@
 #include "KisCurveWidgetConnectionHelper.h"
 
 #include <QMetaProperty>
+#include <qhashfunctions.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qvariant.h>
 
+#include "kis_assert.h"
 #include "kis_cubic_curve.h"
 #include "kis_curve_widget.h"
 

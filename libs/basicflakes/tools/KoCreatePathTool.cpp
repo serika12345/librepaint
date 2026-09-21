@@ -7,9 +7,12 @@
  */
 
 #include "KoCreatePathTool.h"
+#include "KisHandleStyle.h"
+#include "KoCanvasResourcesIds.h"
 #include "KoCreatePathTool_p.h"
 
 #include <KoUnit.h>
+#include "KoFlakeTypes.h"
 #include "KoPointerEvent.h"
 #include "KoPathShape.h"
 #include "KoSelection.h"
@@ -20,6 +23,9 @@
 #include <KoColorDisplayRendererInterface.h>
 #include <KisHandlePainterHelper.h>
 #include "KoPathPointTypeCommand.h"
+#include "KoToolBase.h"
+#include "kis_assert.h"
+#include "kis_global.h"
 #include <KisAngleSelector.h>
 
 #include <klocalizedstring.h>
@@ -29,6 +35,14 @@
 #include <QPainter>
 #include <QSpinBox>
 #include <QVBoxLayout>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qset.h>
+#include <qtclasshelpermacros.h>
+#include <qtypes.h>
 
 KoCreatePathTool::KoCreatePathTool(KoCanvasBase *canvas)
     : KoToolBase(*(new KoCreatePathToolPrivate(this, canvas)))

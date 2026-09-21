@@ -6,6 +6,10 @@
 
 #include "kis_onion_skin_compositor.h"
 
+#include "KisQStringListFwd.h"
+#include "KoCompositeOpIds.h"
+#include "kis_assert.h"
+#include "kis_keyframe_channel.h"
 #include "kis_paint_device.h"
 #include "kis_painter.h"
 #include "KoColor.h"
@@ -14,6 +18,15 @@
 #include "KoColorSpaceConstants.h"
 #include "kis_image_config.h"
 #include "kis_raster_keyframe_channel.h"
+#include "kis_types.h"
+#include <algorithm>
+#include <iterator>
+#include <qglobalstatic.h>
+#include <qnumeric.h>
+#include <qset.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <vector>
 
 Q_GLOBAL_STATIC(KisOnionSkinCompositor, s_instance)
 

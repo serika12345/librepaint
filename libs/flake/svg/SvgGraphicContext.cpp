@@ -7,7 +7,10 @@
 
 #include "SvgGraphicContext.h"
 
+#include "KoShapeStroke.h"
 #include "kis_pointer_utils.h"
+#include <qnamespace.h>
+#include <qtypes.h>
 
 
 SvgGraphicsContext::SvgGraphicsContext()

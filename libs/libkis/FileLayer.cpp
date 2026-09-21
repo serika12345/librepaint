@@ -4,10 +4,14 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "FileLayer.h"
-#include <document/kis_file_layer.h>
+#include "KoColorSpaceConstants.h"
+#include "kis_assert.h"
+#include "kis_types.h"
 #include <kis_image.h>
+#include <document/kis_file_layer.h>
 #include <QFileInfo>
 #include <QDir>
+#include <qobject.h>
 
 FileLayer::FileLayer(KisImageSP image, const QString name, const QString baseName, const QString fileName,
                      const QString scalingMethod, const QString scalingFilter, QObject *parent)
@@ -118,5 +122,4 @@ QString FileLayer::getFileNameFromAbsolute(const QString &basePath, QString file
 
     return filePath;
 }
-
 

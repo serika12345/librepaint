@@ -10,13 +10,17 @@
 
 #include <QKeyEvent>
 
+#include "KoInteractionStrategy.h"
+#include "KoInteractionTool.h"
 #include "KoZoomStrategy.h"
 #include "KoZoomToolWidget.h"
 #include "KoPointerEvent.h"
 #include "KoCanvasBase.h"
 #include "KoCanvasController.h"
 
-#include <FlakeDebug.h>
+#include <qnamespace.h>
+#include <qpixmap.h>
+#include <qset.h>
 
 KoZoomTool::KoZoomTool(KoCanvasBase *canvas)
         : KoInteractionTool(canvas)

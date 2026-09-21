@@ -9,9 +9,12 @@
 
 #include <info/KoDocumentInfoDlg.h>
 
+#include "kis_icon_utils.h"
 #include "ui_koDocumentInfoAboutWidget.h"
 #include "ui_koDocumentInfoAuthorWidget.h"
 
+#include <kguiitem.h>
+#include <kpagedialog.h>
 #include <metadata/KoDocumentInfo.h>
 #include "KoPageWidgetItem.h"
 #include <KoIcon.h>
@@ -24,6 +27,16 @@
 #include <QLineEdit>
 #include <QDateTime>
 #include <KisMimeDatabase.h>
+#include <qcontainerfwd.h>
+#include <qdialogbuttonbox.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlistwidget.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qstringview.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 class KoPageWidgetItemAdapter : public KPageWidgetItem
 {

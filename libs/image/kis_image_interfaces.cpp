@@ -5,8 +5,11 @@
  */
 
 #include "kis_image_interfaces.h"
+#include "KisProjectionUpdateFlags.h"
+#include "kis_types.h"
 
 #include <QRect>
+#include <qcontainerfwd.h>
 
 KisStrokesFacade::~KisStrokesFacade()
 {

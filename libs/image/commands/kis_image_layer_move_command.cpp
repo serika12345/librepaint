@@ -8,11 +8,16 @@
 #include "kis_image_layer_move_command.h"
 
 #include <klocalizedstring.h>
+#include <qtypes.h>
 
 
 
+#include "KisProjectionUpdateFlags.h"
 #include "kis_image.h"
+#include "kis_image_command.h"
 #include "kis_node.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 
 
 KisImageLayerMoveCommand::KisImageLayerMoveCommand(KisImageWSP image, KisNodeSP layer, KisNodeSP newParent, KisNodeSP newAbove, bool doUpdates)

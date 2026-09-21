@@ -15,8 +15,12 @@
 #include <QThread>
 
 #include <kis_assert.h>
-#include <kis_shared_ptr.h>
 #include <kis_signal_compressor.h>
+#include <qalgorithms.h>
+#include <qminmax.h>
+#include <qobject.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 namespace
 {

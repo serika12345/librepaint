@@ -8,12 +8,23 @@
 
 #include <algorithm>
 #include <mutex>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpair.h>
+#include <qpointer.h>
 #include <utility>
 
 #include <QTimer>
 #include <QStack>
 
+#include "KisQStringListFwd.h"
+#include "animation/KisAsyncAnimationRendererBase.h"
+#include "animation/kis_animation_frame_cache_fwd.h"
 #include "application/kis_config.h"
+#include "kis_assert.h"
 #include "kis_config_notifier.h"
 #include "application/ui/orchestration/KisPart.h"
 #include "kis_image.h"

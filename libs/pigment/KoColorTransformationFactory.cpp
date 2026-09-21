@@ -5,6 +5,8 @@
 */
 
 #include "KoColorTransformationFactory.h"
+#include <qhashfunctions.h>
+#include <qtdeprecationdefinitions.h>
 
 struct Q_DECL_HIDDEN KoColorTransformationFactory::Private {
     QString id;

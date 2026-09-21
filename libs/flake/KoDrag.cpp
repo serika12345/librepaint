@@ -14,17 +14,19 @@
 #include <QMimeData>
 #include <QString>
 
-#include <FlakeDebug.h>
 
-#include <KoStore.h>
-#include <KoXmlWriter.h>
 #include "KoShapeSavingContext.h"
 
-#include <KoShapeContainer.h>
 #include <KoShape.h>
 
 #include <QRect>
 #include <SvgWriter.h>
+#include <algorithm>
+#include <qalgorithms.h>
+#include <qforeach.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qsize.h>
 
 
 class KoDragPrivate {

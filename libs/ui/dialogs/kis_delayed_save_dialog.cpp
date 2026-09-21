@@ -5,12 +5,20 @@
  */
 
 #include "kis_delayed_save_dialog.h"
+#include "KisResourceTypes.h"
+#include "KoDialog.h"
+#include "kis_assert.h"
 #include "ui_kis_delayed_save_dialog.h"
 
 #include <QElapsedTimer>
 #include <QThread>
 #include <QTimer>
 #include <QtGlobal>
+#include <qapplication.h>
+#include <qeventloop.h>
+#include <qnamespace.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtmetamacros.h>
 
 #include "KisBusyWaitBroker.h"
 #include "kis_image.h"

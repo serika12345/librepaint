@@ -8,8 +8,12 @@
 #include "KoShapeDeleteCommand.h"
 #include "KoShapeContainer.h"
 #include "KoShapeControllerBase.h"
+#include "kundo2magicstring.h"
 
 #include <klocalizedstring.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qtdeprecationdefinitions.h>
 
 namespace
 {

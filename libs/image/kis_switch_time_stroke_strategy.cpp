@@ -8,10 +8,18 @@
 
 #include <QMutex>
 #include <QMutexLocker>
+#include <qlatin1stringview.h>
+#include <qtpreprocessorsupport.h>
 
+#include "kis_assert.h"
 #include "kis_image_animation_interface.h"
 #include "kis_post_execution_undo_adapter.h"
 #include "commands_new/kis_switch_current_time_command.h"
+#include "kis_simple_stroke_strategy.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_stroke_strategy.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 
 
 struct KisSwitchTimeStrokeStrategy::Private

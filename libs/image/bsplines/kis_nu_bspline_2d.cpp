@@ -6,12 +6,19 @@
 
 #include "kis_nu_bspline_2d.h"
 
-#include <kis_debug.h>
 #include <limits>
+#include <qcontainerfwd.h>
+#include <qpoint.h>
+#include <qtdeprecationdefinitions.h>
 
+#include "einspline/bspline_base.h"
 #include "einspline/nubspline_create.h"
 #include "einspline/nubspline_eval_std_s.h"
 
+#include "einspline/nubspline_structs.h"
+#include "einspline/nugrid.h"
+#include "kis_assert.h"
+#include "kis_bspline.h"
 #include "kis_bspline_p.h"
 
 namespace KisBSplines {

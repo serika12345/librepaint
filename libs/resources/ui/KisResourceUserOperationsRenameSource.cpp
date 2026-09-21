@@ -11,6 +11,7 @@
 
 #include "KisResourceModel.h"
 #include "KisResourceUserOperations.h"
+#include "KoResource.h"
 
 namespace KisResourceUserOperationsRenameSource
 {

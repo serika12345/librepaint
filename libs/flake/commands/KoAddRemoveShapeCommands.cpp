@@ -5,6 +5,8 @@
  */
 
 #include "KoAddRemoveShapeCommands.h"
+#include "kis_command_utils.h"
+#include "kundo2stack.h"
 
 #include <KoShapeContainer.h>
 #include <kis_assert.h>

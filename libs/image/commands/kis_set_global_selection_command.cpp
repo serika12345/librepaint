@@ -8,9 +8,11 @@
 
 #include <klocalizedstring.h>
 
+#include "kis_assert.h"
 #include "kis_image.h"
 #include "kis_default_bounds.h"
 #include "KisImageResolutionProxy.h"
+#include "kis_pointer_utils.h"
 #include "kis_selection.h"
 #include "kis_selection_mask.h"
 #include "kis_group_layer.h"
@@ -21,6 +23,7 @@
 #include "kis_activate_selection_mask_command.h"
 #include "KisChangeDeselectedMaskCommand.h"
 #include "KisNotifySelectionChangedCommand.h"
+#include "kis_types.h"
 
 
 KisSetGlobalSelectionCommand::KisSetGlobalSelectionCommand(KisImageWSP image, KisSelectionSP selection)

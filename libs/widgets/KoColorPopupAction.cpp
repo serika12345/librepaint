@@ -7,7 +7,9 @@
 
 #include "KoColorPopupAction.h"
 
+#include "KoColorSet.h"
 #include "KoColorSetWidget.h"
+#include "KoColorSpaceConstants.h"
 #include "KoTriangleColorSelector.h"
 #include "KoColorSlider.h"
 #include "KoCheckerBoardPainter.h"
@@ -16,7 +18,6 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoColor.h>
 
-#include <WidgetsDebug.h>
 #include <klocalizedstring.h>
 
 #include <QPainter>
@@ -25,6 +26,16 @@
 #include <QHBoxLayout>
 #include <QGridLayout>
 #include <QToolButton>
+#include <qaction.h>
+#include <qcolor.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 class KoColorPopupAction::KoColorPopupActionPrivate
 {

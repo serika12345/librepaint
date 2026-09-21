@@ -6,6 +6,14 @@
  */
 
 #include "KoSvgTextShape.h"
+#include "KisForest.h"
+#include "KisQStringListFwd.h"
+#include "KoFlake.h"
+#include "KoFlakeTypes.h"
+#include "KoShape.h"
+#include "KoShapeFactoryBase.h"
+#include "KoSvgText.h"
+#include "KoSvgTextContentElement.h"
 #include "KoSvgTextShape_p.h"
 
 #include <QTextLayout>
@@ -13,27 +21,44 @@
 #include <klocalizedstring.h>
 
 #include "KoSvgTextProperties.h"
+#include "html/HtmlSavingContext.h"
+#include "kis_assert.h"
 #include <KoDocumentResourceManager.h>
-#include <KoShapeContainer_p.h>
 #include <KoShapeController.h>
+#include <limits>
+#include <memory>
+#include <optional>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qline.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpair.h>
+#include <qpoint.h>
+#include <qset.h>
+#include <qsharedpointer.h>
+#include <qtextoption.h>
+#include <qtpreprocessorsupport.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
 #include <text/KoCssTextUtils.h>
-#include <text/KoFontRegistry.h>
 #include <text/KoSvgTextShapeMarkupConverter.h>
-#include <text/KoPolygonUtils.h>
 
 #include <kis_global.h>
 
 #include <KoClipMaskPainter.h>
 #include <KoColorBackground.h>
 #include <KoIcon.h>
-#include <KoPathShape.h>
 #include <KoProperties.h>
 #include <KoShapeLoadingContext.h>
 #include <KoXmlNS.h>
-#include <KoInsets.h>
 
 #include <SvgLoadingContext.h>
-#include <SvgGraphicContext.h>
 #include <SvgUtil.h>
 #include <SvgStyleWriter.h>
 

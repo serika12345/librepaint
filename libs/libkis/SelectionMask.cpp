@@ -5,9 +5,10 @@
  */
 #include "SelectionMask.h"
 #include <kis_selection_mask.h>
-#include <kis_image.h>
 #include "Selection.h"
-#include <kis_selection.h>
+#include "kis_types.h"
+#include <kis_image.h>
+#include <qobject.h>
 
 SelectionMask::SelectionMask(KisImageSP image, QString name, QObject *parent) :
     Node(image, new KisSelectionMask(image), parent)

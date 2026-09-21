@@ -5,7 +5,11 @@
  */
 
 #include "kis_merge_walker.h"
+#include "KisRenderPassFlags.h"
+#include "kis_base_rects_walker.h"
+#include "kis_layer.h"
 #include "kis_projection_leaf.h"
+#include "kis_types.h"
 
 
 

@@ -5,7 +5,6 @@
 
 #include "KoZoomInput.h"
 
-#include <WidgetsDebug.h>
 #include <klocalizedstring.h>
 
 #include <QComboBox>
@@ -19,6 +18,15 @@
 #include <QEvent>
 #include <QKeyEvent>
 #include <QLineEdit>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qstackedwidget.h>
+#include <qtpreprocessorsupport.h>
+#include <qtversionchecks.h>
+#include <qwidget.h>
 
 class KoZoomInput::Private
 {

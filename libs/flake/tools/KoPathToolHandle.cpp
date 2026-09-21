@@ -8,9 +8,13 @@
  */
 
 #include "KoPathToolHandle.h"
+#include "KisHandleStyle.h"
+#include "KoPathPoint.h"
+#include "KoPathPointData.h"
 #include "KoPathTool.h"
 #include "KoPathPointMoveStrategy.h"
 #include "KoPathControlPointMoveStrategy.h"
+#include "KoPathToolSelection.h"
 #include "commands/KoPathPointTypeCommand.h"
 #include "KoParameterChangeStrategy.h"
 #include "KoParameterShape.h"
@@ -18,9 +22,13 @@
 #include "KoViewConverter.h"
 #include "KoPointerEvent.h"
 #include "KoShapeController.h"
+#include "kis_assert.h"
 #include <QPainter>
 #include <KisHandlePainterHelper.h>
 #include <KoColorDisplayRendererInterface.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qtypes.h>
 
 
 KoPathToolHandle::KoPathToolHandle(KoPathTool *tool)

@@ -5,11 +5,16 @@
 */
 
 #include "KoForegroundColour.h"
+#include "KoColorDisplayRendererInterface.h"
+#include "KoDualColorButton.h"
+#include "KoID.h"
 #include <QPainter>
 #include <QColorDialog>
 #include <QEvent>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 KoForegroundColour::KoForegroundColour(KisCanvasResourceProvider *canvasResourceProvider,
                                      const KoColorDisplayRendererInterface *displayRenderer,

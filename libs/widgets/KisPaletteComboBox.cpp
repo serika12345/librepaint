@@ -12,7 +12,22 @@
 
 // STL
 #include <algorithm>
+#include <qabstractitemmodel.h>
+#include <qcombobox.h>
+#include <qhashfunctions.h>
+#include <qicon.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qsharedpointer.h>
+#include <qtmetamacros.h>
+#include <qvariant.h>
 
+#include "KisSqueezedComboBox.h"
+#include "KisSwatch.h"
+#include "KisSwatchGroup.h"
+#include "KoColorSet.h"
 #include "kis_palette_view.h"
 #include "KisPaletteComboBox.h"
 

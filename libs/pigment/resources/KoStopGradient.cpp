@@ -7,6 +7,21 @@
     SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
+#include <algorithm>
+#include <limits>
+#include <math.h>
+#include <qbrush.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qsharedpointer.h>
+#include <qstringview.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <resources/KoStopGradient.h>
 
 #include <array>
@@ -20,14 +35,19 @@
 #include <QBuffer>
 
 #include <klocalizedstring.h>
-#include <DebugPigment.h>
 
+#include "KisPortingUtils.h"
+#include "KoAbstractGradient.h"
+#include "KoColorSpaceConstants.h"
 #include "KoColorSpaceRegistry.h"
 #include <KoColorSpaceEngine.h>
 #include <KoColorProfile.h>
 #include "KoMixColorsOp.h"
 
+#include "KoResource.h"
+#include "kis_assert.h"
 #include "kis_dom_utils.h"
+#include "kis_global.h"
 #include <KisMpl.h>
 
 #include <KoColorModelStandardIds.h>

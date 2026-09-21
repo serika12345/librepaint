@@ -9,7 +9,11 @@
 
 #include <KLocalizedString>
 #include <QMessageBox>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
+#include "KoDialog.h"
 #include "kis_icon_utils.h"
 #include "input/ui/kis_input_profile_manager.h"
 #include "kis_input_profile_model.h"

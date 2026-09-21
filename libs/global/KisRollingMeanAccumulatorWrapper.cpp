@@ -6,9 +6,12 @@
 
 #include "KisRollingMeanAccumulatorWrapper.h"
 
-#include <boost/accumulators/accumulators.hpp>
+#include <boost/accumulators/framework/accumulator_set.hpp>
+#include <boost/accumulators/statistics/rolling_count.hpp>
+#include <boost/accumulators/statistics/rolling_window.hpp>
 #include <boost/accumulators/statistics/stats.hpp>
 #include <boost/accumulators/statistics/rolling_mean.hpp>
+#include <qtypes.h>
 
 using namespace boost::accumulators;
 

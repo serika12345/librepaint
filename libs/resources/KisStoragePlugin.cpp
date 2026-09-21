@@ -10,6 +10,12 @@
 
 #include <KoResource.h>
 #include <KisMimeDatabase.h>
+#include "KisResourceLoader.h"
+#include <qcontainerfwd.h>
+#include <qdatetime.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qtpreprocessorsupport.h>
 #include "KisResourceLoaderRegistry.h"
 
 class KisStoragePlugin::Private

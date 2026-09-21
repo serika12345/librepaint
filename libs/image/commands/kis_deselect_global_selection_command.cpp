@@ -6,7 +6,8 @@
 
 #include "kis_deselect_global_selection_command.h"
 
-#include "kis_selection_mask.h"
+#include "kis_assert.h"
+#include "kis_command_utils.h"
 
 #include <klocalizedstring.h>
 
@@ -15,6 +16,10 @@
 #include "KisChangeDeselectedMaskCommand.h"
 #include "kis_image_layer_remove_command.h"
 #include "KisNotifySelectionChangedCommand.h"
+#include "kis_types.h"
+#include "kis_selection_mask.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 
 KisDeselectGlobalSelectionCommand::KisDeselectGlobalSelectionCommand(KisImageWSP image, KUndo2Command * parent)

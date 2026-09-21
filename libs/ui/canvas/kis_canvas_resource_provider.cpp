@@ -12,12 +12,14 @@
 #include <KoCanvasBase.h>
 #include <KoActiveCanvasResourceDependencyKoResource.h>
 #include <KoID.h>
-#include <KoColorModelStandardIds.h>
-#include <KoColorProfile.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qvariant.h>
 #include <resources/KoAbstractGradient.h>
-#include <KoCompositeOpRegistry.h>
-#include <KoResourceServerProvider.h>
-#include <resources/KoStopGradient.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoResource.h>
 #include <KoSvgTextPropertyData.h>
@@ -27,19 +29,26 @@
 #include <kis_paint_device.h>
 #include <filter/kis_filter_configuration.h>
 #include <kis_image.h>
-#include <kis_group_layer.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paintop_registry.h>
-#include <brushengine/kis_paintop_settings.h>
 #include <kis_brush_registry.h>
 #include <kis_psd_layer_style.h>
 #include <KisResourceLoaderRegistry.h>
+#include "KoCanvasResourcesIds.h"
+#include "KoCompositeOpIds.h"
+#include "KoGamutMask.h"
+#include "KoIntegerMaths.h"
+#include "kis_debug.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
+#include <kis_node.h>
+#include <KoUnit.h>
 #include "resources/kis_favorite_resource_manager.h"
 #include "resources/kis_derived_resources.h"
 
 #include "application/ui/workspace/KisViewManager.h"
 #include "canvas/kis_canvas2.h"
-#include <KoUnit.h>
+#include "workspace/kis_workspace_resource.h"
 
 
 KisCanvasResourceProvider::KisCanvasResourceProvider(KisViewManager * view)

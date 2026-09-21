@@ -5,6 +5,8 @@
  */
 #include "kis_frame_data_serializer.h"
 
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
 #include <cstring>
 
 #include <QByteArray>
@@ -17,8 +19,17 @@
 #include <QString>
 #include <QTemporaryDir>
 
+#include <functional>
 #include <kis_assert.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <utility>
 
+#include "kritacanvas_export.h"
+#include "tiles/kis_tile_data_pool.h"
 #include "tiles3/swap/kis_lzf_compression.h"
 
 struct KRITACANVAS_NO_EXPORT KisFrameDataSerializer::Private

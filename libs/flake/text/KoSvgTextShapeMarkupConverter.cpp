@@ -6,13 +6,32 @@
 
 #include "KoSvgTextShapeMarkupConverter.h"
 
+#include "KisQStringListFwd.h"
 #include "klocalizedstring.h"
 #include "kis_assert.h"
 #include "kis_debug.h"
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_TRUETYPE_TABLES_H
+#include <algorithm>
+#include <boost/optional/optional.hpp>
+#include <freetype/config/ftheader.h>
+#include <optional>
+#include <qdom.h>
+#include <qforeach.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
+#include <qset.h>
+#include <qtextformat.h>
+#include <qtguiexports.h>
+#include <qtpreprocessorsupport.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
+#include <utility>
 
 #include <QXmlStreamReader>
 #include <QXmlStreamWriter>
@@ -35,7 +54,6 @@
 #endif
 
 #include <KoSvgTextShape.h>
-#include <KoXmlWriter.h>
 #include <KoDocumentResourceManager.h>
 
 #include <KoColor.h>
@@ -50,7 +68,6 @@
 #include <html/HtmlWriter.h>
 
 #include "kis_dom_utils.h"
-#include <boost/optional.hpp>
 
 #include <FlakeDebug.h>
 

@@ -35,10 +35,23 @@ wavelength, and thus define the outline of the CIE "tongue" diagram.
 
 #include <klocalizedstring.h>
 
-#include <kis_icon.h>
 #include <KoColorSpaceRegistry.h>
+#include <qassert.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qpixmap.h>
+#include <qrgb.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 #include "kis_cie_tongue_widget.h"
+#include "KoColor.h"
+#include "KoColorSpace.h"
+#include "KoColorimetryUtils.h"
 
 static const double spectral_chromaticity[81][3] =
 {

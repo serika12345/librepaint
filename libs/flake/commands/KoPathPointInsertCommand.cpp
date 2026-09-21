@@ -8,8 +8,16 @@
 #include "KoPathPointInsertCommand.h"
 
 #include "KoPathPoint.h"
+#include "KoPathPointData.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <KoPathSegment.h>
 #include <klocalizedstring.h>
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qtypes.h>
+#include <utility>
 
 class KoPathPointInsertCommandPrivate
 {

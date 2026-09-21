@@ -22,6 +22,7 @@
 
 #include <KoColor.h>
 
+#include "KisScreenColorSamplerBase.h"
 #include "kis_shared_ptr.h"
 #include "kis_icon.h"
 #include "kis_image.h"
@@ -32,10 +33,17 @@
 #include "KisReferenceImagesLayer.h"
 #include "KisScreenColorSampler.h"
 #include "KisDlgInternalColorSelector.h"
+#include "ui/workspace/KisView.h"
 #include <KisStaticInitializer.h>
-#include <KisPortingUtils.h>
 
 #include <KisGrabKeyboardFocusRecoveryWorkaround.h>
+#include <qforeach.h>
+#include <qkeysequence.h>
+#include <qlatin1stringview.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
 
 struct KisScreenColorSampler::Private
 {

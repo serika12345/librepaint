@@ -11,6 +11,9 @@
 
 #include "KisSignalMapper.h"
 #include "qhash.h"
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
 class KisSignalMapper::Private
 {

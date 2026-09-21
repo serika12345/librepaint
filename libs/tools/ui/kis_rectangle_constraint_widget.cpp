@@ -10,9 +10,13 @@
 #include <cmath>
 
 #include <kis_aspect_ratio_locker.h>
-#include <kis_icon.h>
 #include <kis_signals_blocker.h>
+#include <qicon.h>
+#include <qoverload.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
+#include "kis_icon_utils.h"
 #include "ui_wdgrectangleconstraints.h"
 
 struct KisRectangleConstraintWidget::Private

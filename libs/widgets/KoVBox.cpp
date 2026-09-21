@@ -9,6 +9,9 @@
 #include <QEvent>
 #include <QApplication>
 #include <QVBoxLayout>
+#include <qframe.h>
+#include <qsize.h>
+#include <qwidget.h>
 
 KoVBox::KoVBox(QWidget *parent)
     : QFrame(parent),

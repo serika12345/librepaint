@@ -10,6 +10,10 @@
 #include "kis_debug.h"
 
 #include <cmath>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qsize.h>
+#include <qtypes.h>
 
 /****** Some helper functions *******/
 

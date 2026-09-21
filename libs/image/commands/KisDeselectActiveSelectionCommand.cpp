@@ -5,9 +5,13 @@
  */
 
 #include "KisDeselectActiveSelectionCommand.h"
+#include "kis_assert.h"
+#include "kis_deselect_global_selection_command.h"
 #include "kis_image.h"
 #include "kis_selection.h"
 #include "kis_selection_mask.h"
+#include "kis_types.h"
+#include "kundo2stack.h"
 
 KisDeselectActiveSelectionCommand::KisDeselectActiveSelectionCommand(KisSelectionSP activeSelection, KisImageWSP image, KUndo2Command *parent)
     : KisDeselectGlobalSelectionCommand(image, parent),

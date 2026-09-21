@@ -5,6 +5,9 @@
  */
 
 #include <KisPopupSelfActivatingLineEdit.h>
+#include <qlineedit.h>
+#include <qnamespace.h>
+#include <qwidget.h>
 
 
 KisPopupSelfActivatingLineEdit::KisPopupSelfActivatingLineEdit(QWidget *parent)

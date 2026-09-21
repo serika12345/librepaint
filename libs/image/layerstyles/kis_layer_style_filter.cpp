@@ -5,8 +5,11 @@
  */
 
 #include "kis_layer_style_filter.h"
+#include "kis_shared.h"
 
 #include <KoID.h>
+#include <qhashfunctions.h>
+#include <qtdeprecationdefinitions.h>
 
 
 struct Q_DECL_HIDDEN KisLayerStyleFilter::Private

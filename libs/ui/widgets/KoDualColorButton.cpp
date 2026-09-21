@@ -6,6 +6,7 @@
 */
 
 #include "KoDualColorButton.h"
+#include "KisResourceTypes.h"
 #include "KoColor.h"
 #include "KoColorDisplayRendererInterface.h"
 #include <kcolormimedata.h>
@@ -17,8 +18,8 @@
 #include <QColorDialog>
 #include "KisDlgInternalColorSelector.h"
 
+#include "kis_icon_utils.h"
 #include "kis_signals_blocker.h"
-#include <kis_icon.h>
 #include "canvas/kis_canvas_resource_provider.h"
 
 #include <QBrush>
@@ -26,9 +27,17 @@
 #include <QDragEnterEvent>
 #include <QPainter>
 #include <QPointer>
+#include <optional>
+#include <qcoreevent.h>
 #include <qdrawutil.h>
 #include <QApplication>
 #include <kis_signal_auto_connection.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qwidget.h>
 
 class KoDualColorButton::Private
 {

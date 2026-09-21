@@ -4,18 +4,35 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <algorithm>
+#include <functional>
+#include <iterator>
 #include <kis_shortcut_matcher.h>
 
 #include <QEvent>
 #include <QMouseEvent>
 #include <QTabletEvent>
 
+#include "KisInputActionGroup.h"
 #include "kis_assert.h"
 #include <KisInputAction.h>
+#include "kis_single_action_shortcut.h"
 #include "kis_stroke_shortcut.h"
 #include "kis_touch_shortcut.h"
 #include "kis_native_gesture_shortcut.h"
 #include <KoPointerEvent.h>
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qkeysequence.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qscopedpointer.h>
+#include <qset.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtpreprocessorsupport.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
 
 //#define DEBUG_MATCHER
 

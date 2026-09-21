@@ -4,8 +4,17 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "KisPaletteModel.h"
+#include "ManagedColor.h"
+#include "Palette.h"
+#include "Swatch.h"
+#include "kis_palette_view.h"
 #include <PaletteView.h>
 #include <QVBoxLayout>
+#include <qabstractitemmodel.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 struct PaletteView::Private
 {

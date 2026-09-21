@@ -6,16 +6,20 @@
 
 #include "kis_clone_layer.h"
 
-#include <kis_debug.h>
 #include <klocalizedstring.h>
 
-#include <KoIcon.h>
 #include <kis_icon.h>
 
 #include <KoColorSpace.h>
 #include <KoCompositeOpRegistry.h>
 
+#include "kis_base_node.h"
 #include "kis_default_bounds.h"
+#include "kis_default_bounds_base.h"
+#include "kis_icon_utils.h"
+#include "kis_layer.h"
+#include "kis_node.h"
+#include "kis_node_uuid_info.h"
 #include "kis_paint_device.h"
 #include "kis_image.h"
 #include "kis_painter.h"
@@ -24,8 +28,14 @@
 #include "kis_paint_layer.h"
 
 #include <QStack>
-#include <kis_effect_mask.h>
+#include <qassert.h>
+#include <qicon.h>
+#include <qlist.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 #include "kis_lod_capable_layer_offset.h"
+#include "kis_types.h"
+#include <kis_effect_mask.h>
 
 
 struct Q_DECL_HIDDEN KisCloneLayer::Private
@@ -338,4 +348,3 @@ void KisCloneLayer::syncLodCache()
     KisLayer::syncLodCache();
     m_d->offset.syncLodCache();
 }
-

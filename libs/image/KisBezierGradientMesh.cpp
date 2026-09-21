@@ -6,8 +6,22 @@
 
 #include "KisBezierGradientMesh.h"
 
+#include "KisBezierUtils.h"
+#include "kis_assert.h"
+#include "kis_four_point_interpolator_backward.h"
 #include "kis_grid_interpolation_tools.h"
 #include "kis_dom_utils.h"
+#include <array>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qdom.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qsize.h>
 
 namespace KisBezierGradientMeshDetail {
 

@@ -7,12 +7,16 @@
  */
 
 #include "kis_input_manager.h"
+#include "KisQStringListFwd.h"
+#include "KoIntegerMaths.h"
+#include "kis_assert.h"
 
 #include <KisMpl.h>
 #include <QApplication>
 #include <QQueue>
 #include <QTouchEvent>
 #include <QWidget>
+#include <algorithm>
 #include <kis_debug.h>
 #include <klocalizedstring.h>
 
@@ -20,6 +24,16 @@
 #include <KoPointerEvent.h>
 #include <KoCanvasBase.h>
 #include <KisToolCanvas.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qpair.h>
+#include <qtpreprocessorsupport.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
+#include <type_traits>
 #ifdef Q_OS_IOS
 #include <KoInputDevice.h>
 #endif

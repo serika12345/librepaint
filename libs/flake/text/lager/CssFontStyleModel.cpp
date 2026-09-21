@@ -4,6 +4,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "CssFontStyleModel.h"
+#include "KoSvgText.h"
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/lenses.hpp>
+#include <qfont.h>
+#include <qtypes.h>
 
 namespace  {
 

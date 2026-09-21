@@ -8,13 +8,19 @@
  */
 
 #include "KoPathTool.h"
+#include "KisHandleStyle.h"
 #include "KoCanvasBase.h"
+#include "KoCanvasResourcesIds.h"
 #include "KoDocumentResourceManager.h"
+#include "KoFlake.h"
+#include "KoIntegerMaths.h"
 #include "KoParameterChangeStrategy.h"
 #include "KoParameterShape.h"
 #include "KoPathPoint.h"
 #include "KoPathPointRubberSelectStrategy.h"
+#include "KoPathSegment.h"
 #include "KoPathSegmentChangeStrategy.h"
+#include "KoPathShape.h"
 #include "KoPathToolHandle.h"
 #include "KoPointerEvent.h"
 #include "KoSelectedShapesProxy.h"
@@ -22,8 +28,10 @@
 #include "KoShapeController.h"
 #include "KoShapeManager.h"
 #include "KoSnapGuide.h"
+#include "KoSvgTextShapeOutlineHelper.h"
 #include "KoToolBase_p.h"
 #include "KoToolManager.h"
+#include "KoToolSelection.h"
 #include "KoViewConverter.h"
 #include "PathToolOptionWidget.h"
 #include "commands/KoParameterToPathCommand.h"
@@ -33,8 +41,11 @@
 #include "commands/KoPathPointTypeCommand.h"
 #include "commands/KoPathSegmentBreakCommand.h"
 #include "commands/KoPathSegmentTypeCommand.h"
+#include "kis_assert.h"
 #include "kis_command_utils.h"
+#include "kis_global.h"
 #include "kis_pointer_utils.h"
+#include "kundo2magicstring.h"
 #include <KisHandlePainterHelper.h>
 #include <KoShapeStrokeModel.h>
 #include <KoColorDisplayRendererInterface.h>
@@ -42,13 +53,23 @@
 #include <commands/KoMultiPathPointJoinCommand.h>
 #include <commands/KoMultiPathPointMergeCommand.h>
 #include <commands/KoShapeGroupCommand.h>
+#include <memory>
+#include <qevent.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qset.h>
+#include <qtclasshelpermacros.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <text/KoSvgTextShape.h>
 
-#include <KoIcon.h>
 
 #include <QMenu>
 #include <QAction>
-#include <FlakeDebug.h>
 #include <klocalizedstring.h>
 #include <QPainter>
 #include <QPainterPath>

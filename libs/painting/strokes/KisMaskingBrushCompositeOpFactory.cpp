@@ -7,13 +7,17 @@
 
 #include "KisMaskingBrushCompositeOpFactory.h"
 
+#include "KoChannelInfo.h"
+#include "KoCompositeOpIds.h"
 #include "kis_assert.h"
 
-#include <KoCompositeOpRegistry.h>
 
 #include "KisMaskingBrushCompositeOp.h"
 
 #include <KoConfig.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qtypes.h>
 #ifdef HAVE_OPENEXR
 #include <half.h>
 #endif /* HAVE_OPENEXR */

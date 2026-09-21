@@ -5,11 +5,14 @@
  */
 
 #include "workspace/kis_workspace_resource.h"
+#include "KoResource.h"
+#include "kis_properties_configuration.h"
 
 #include <QDomDocument>
 #include <QTextStream>
 #include <QBuffer>
 #include <KisPortingUtils.h>
+#include <qtpreprocessorsupport.h>
 
 
 #define WORKSPACE_VERSION 1

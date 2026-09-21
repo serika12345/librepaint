@@ -12,8 +12,16 @@
 #include <dialogs/KisProofingConfigModel.h>
 #include <KoColorProfile.h>
 #include <kis_signal_compressor.h>
+#include <lager/extra/qt.hpp>
+#include <qobject.h>
+#include <qoverload.h>
+#include <qtmetamacros.h>
 
 
+#include "KisProofingConfiguration.h"
+#include "KoColorSpace.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
 #include "ui_wdgproofingoptions.h"
 
 struct KisProofingOptionsWidget::Private

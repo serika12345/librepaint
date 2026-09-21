@@ -5,6 +5,7 @@
  */
 
 #include "kis_latency_tracker.h"
+#include <qtypes.h>
 
 KisLatencyTracker::KisLatencyTracker(int windowSize) :
     KisScalarTracker<qint64>("event latency", windowSize)

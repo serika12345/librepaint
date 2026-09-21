@@ -6,8 +6,11 @@
 
 #include "KisChangeChannelLockFlagsCommand.h"
 #include "kis_paint_layer.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 #include <klocalizedstring.h>
+#include <qbitarray.h>
 
 KisChangeChannelLockFlagsCommand::KisChangeChannelLockFlagsCommand(const QBitArray &newFlags, const QBitArray &oldFlags,
                                                                    KisPaintLayerSP layer, KUndo2Command *parentCommand)

@@ -4,10 +4,15 @@
  */
 
 #include "kis_node_manager.h"
+#include "kis_paint_device.h"
+#include "kis_types.h"
 
 #include <QSizeF>
 #include <QUrl>
 #include <klocalizedstring.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qpaintdevice.h>
 
 void KisNodeManager::saveNodeAsImage()
 {

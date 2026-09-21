@@ -5,6 +5,7 @@
  */
 
 #include "KisFileIconCreator.h"
+#include "kis_types.h"
 
 #include <QFileInfo>
 #include <QApplication>
@@ -19,8 +20,15 @@
 
 #include <kis_painting_tweaks.h>
 #include <kis_paint_device.h>
-#include <kis_debug.h>
 #include <KisStaticInitializer.h>
+#include <qbrush.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpixmap.h>
+#include <qscopedpointer.h>
+#include <qsize.h>
+#include <qstringview.h>
+#include <qtypes.h>
 
 namespace
 {

@@ -4,12 +4,15 @@
 
 #include "KisSelectionBasedProcessingHelper.h"
 
+#include "kis_assert.h"
 #include "kis_paint_device.h"
 #include "kis_painter.h"
 #include "kis_selection.h"
 #include "kis_transaction_based_command.h"
 #include "kis_transaction.h"
+#include "kis_types.h"
 #include "kis_undo_adapter.h"
+#include <functional>
 
 KisSelectionBasedProcessingHelper::KisSelectionBasedProcessingHelper(KisSelectionSP selection, Functor func)
     : m_selection(selection),

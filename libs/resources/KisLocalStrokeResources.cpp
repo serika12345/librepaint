@@ -4,10 +4,18 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisLocalStrokeResources.h"
+#include "KisResourcesInterface.h"
 #include "KisResourcesInterface_p.h"
 
+#include "KoResource.h"
 #include "kis_assert.h"
 #include "kis_debug.h"
+#include <algorithm>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qtclasshelpermacros.h>
 
 namespace {
 class LocalResourcesSource : public KisResourcesInterface::ResourceSourceAdapter

@@ -11,6 +11,16 @@
 #include "kis_tool_utils.h"
 #include <QMouseEvent>
 #include <QTabletEvent>
+#include <cmath>
+#include <cstdlib>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpaintdevice.h>
+#include <qscrollbar.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 KisZoomableScrollBar::KisZoomableScrollBar(QWidget *parent)
     : QScrollBar(parent)

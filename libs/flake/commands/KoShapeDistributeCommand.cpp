@@ -9,9 +9,16 @@
 
 #include "KoShape.h"
 #include "commands/KoShapeMoveCommand.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <QMap>
 
 #include <klocalizedstring.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qpoint.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 
 namespace
 {

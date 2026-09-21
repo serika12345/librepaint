@@ -9,6 +9,7 @@
 #include <QReadWriteLock>
 #include <QReadLocker>
 #include <QWriteLocker>
+#include <qscopedpointer.h>
 
 
 #include "kis_paint_device.h"
@@ -19,6 +20,7 @@
 #include "KoColorSpace.h"
 
 #include "kis_raster_keyframe_channel.h"
+#include "kis_types.h"
 
 
 struct KisOnionSkinCache::Private

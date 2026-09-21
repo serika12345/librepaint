@@ -8,7 +8,24 @@
 
 #include <QRect>
 #include <QVector>
+#include <cstdio>
+#include <cstring>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qpoint.h>
+#include <qreadwritelock.h>
+#include <qstringview.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <utility>
 
+#include "KisRegion.h"
+#include "kis_debug.h"
+#include "kis_shared.h"
 #include "kis_tile.h"
 #include "kis_tiled_data_manager.h"
 #include "kis_tile_data_wrapper.h"
@@ -17,6 +34,9 @@
 #include "swap/kis_tile_compressor_factory.h"
 
 #include "kis_paint_device_writer.h"
+#include "tiles3/kis_tile_data_interface.h"
+#include "tiles3/kis_tile_hash_table2.h"
+#include "tiles3/swap/kis_abstract_tile_compressor.h"
 
 
 

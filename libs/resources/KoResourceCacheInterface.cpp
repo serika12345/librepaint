@@ -6,6 +6,8 @@
 
 #include "KoResourceCacheInterface.h"
 #include <KisStaticInitializer.h>
+#include <qsharedpointer.h>
+#include <qtversionchecks.h>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KoResourceCacheInterfaceSP>("KoResourceCacheInterfaceSP");

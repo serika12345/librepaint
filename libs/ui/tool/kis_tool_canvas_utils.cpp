@@ -17,7 +17,6 @@
 #include <KoSelection.h>
 #include <KoShape.h>
 #include <KoShapeManager.h>
-#include <KoSvgTextProperties.h>
 #include <KoSvgTextShape.h>
 
 #include <application/ui/workspace/KisViewManager.h>
@@ -26,8 +25,14 @@
 #include <kis_layer_utils.h>
 #include <nodes/kis_node_manager.h>
 #include <kis_shape_layer.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qtypes.h>
 
+#include "KoSvgText.h"
 #include "kis_canvas2.h"
+#include "kis_types.h"
 
 namespace KisToolUtils
 {

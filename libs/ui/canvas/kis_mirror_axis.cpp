@@ -7,9 +7,11 @@
 
 #include "kis_mirror_axis.h"
 
+#include "KisResourceTypes.h"
 #include "KoConfig.h"
 #include <KoPointerEvent.h>
 
+#include <OpenGL/gl.h>
 #include <QPainter>
 #include <QApplication>
 #include <QPaintEngine>
@@ -21,12 +23,24 @@
 #include <QTouchEvent>
 
 
-#include <kis_icon.h>
+#include <cmath>
+#include <qimage.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 #include "kis_canvas2.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "application/ui/workspace/KisView.h"
+#include "kis_canvas_decoration.h"
+#include "kis_icon_utils.h"
 #include "kis_image.h"
 #include "canvas/kis_canvas_controller.h"
 #ifdef Q_OS_IOS

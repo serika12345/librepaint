@@ -6,12 +6,24 @@
  */
 #include "TagActions.h"
 
+#include "KisTag.h"
+#include "KoResource.h"
 #include "TagActionsSource_p.h"
 
 #include <QHBoxLayout>
 #include <QLabel>
 
 #include <klocalizedstring.h>
+#include <qaction.h>
+#include <qkeysequence.h>
+#include <qlayout.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qpushbutton.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
+#include <qwidgetaction.h>
 
 // ############ Simple Existing Tag Action ##############
 

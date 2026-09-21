@@ -6,13 +6,30 @@
  */
 
 #include "KisOpenGLModeProber.h"
+#include "kis_assert.h"
+#include "opengl/kis_opengl.h"
 
+#include <OpenGL/gl.h>
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
 #include <config-hdr.h>
 #include <QApplication>
 #include <QOpenGLContext>
 #include <QOpenGLFunctions>
 #include <QWindow>
 #include <QColorSpace>
+#include <qcoreapplication.h>
+#include <qguiapplication.h>
+#include <qhashfunctions.h>
+#include <qlatin1stringview.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qscopedpointer.h>
+#include <qstringview.h>
+#include <qsurfaceformat.h>
+#include <qtenvironmentvariables.h>
+#include <qtpreprocessorsupport.h>
+#include <utility>
 
 #ifdef HAVE_HDR
 // for fetching the legacy 80-nits PQ space

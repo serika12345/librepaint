@@ -11,11 +11,20 @@
 
 #include "KisMpl.h"
 #include "KisRegion.h"
+#include "kis_assert.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
 #include "kis_signal_auto_connection.h"
 #include "kis_image_config.h"
+#include "kis_types.h"
+#include "kritaui_export.h"
 #include <KisStaticInitializer.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <utility>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KisAsyncAnimationRendererBase::CancelReason>("KisAsyncAnimationRendererBase::CancelReason");

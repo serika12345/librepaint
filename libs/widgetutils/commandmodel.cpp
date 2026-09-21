@@ -8,6 +8,13 @@
 #include <KLocalizedString>
 #include <QAction>
 #include <QDebug>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qvariant.h>
+#include <utility>
 
 CommandModel::CommandModel(QObject *parent)
     : QAbstractTableModel(parent)

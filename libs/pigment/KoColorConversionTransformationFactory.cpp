@@ -7,6 +7,7 @@
 #include "KoColorConversionTransformationFactory.h"
 
 #include <QString>
+#include <qtdeprecationdefinitions.h>
 
 #include "KoColorProfile.h"
 #include "KoColorSpace.h"

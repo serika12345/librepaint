@@ -9,8 +9,9 @@
  */
 
 #include "dlg_layersize.h"
+#include "KoDialog.h"
+#include "kis_spin_box_unit_manager.h"
 
-#include <KoUnit.h>
 #include <application/kis_config.h>
 
 #include <klocalizedstring.h>
@@ -18,6 +19,13 @@
 #include <kis_document_aware_spin_box_unit_manager.h>
 
 #include <kis_filter_strategy.h>// XXX: I'm really real bad at arithmetic, let alone math. Here
+#include <qassert.h>
+#include <qhashfunctions.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 // be rounding errors. (Boudewijn)
 
 const QString DlgLayerSize::PARAM_PREFIX = "layersizedlg";

@@ -8,12 +8,23 @@
 
 #include "KoPathPointMoveCommand.h"
 #include "KoPathPoint.h"
+#include "KoPathPointData.h"
 #include "kis_command_ids.h"
 #include "krita_container_utils.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <KoShapeBulkActionLock.h>
+#include <iterator>
 #include <klocalizedstring.h>
 
 #include <algorithm>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qset.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 
 namespace
 {

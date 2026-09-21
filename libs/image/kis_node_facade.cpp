@@ -5,9 +5,13 @@
  */
 
 #include "kis_node_facade.h"
+#include "KisNodeAdditionFlags.h"
 #include "kis_node.h"
 #include "kis_node_graph_listener.h"
+#include "kis_types.h"
 #include <kis_debug.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 
 struct Q_DECL_HIDDEN KisNodeFacade::Private
 {

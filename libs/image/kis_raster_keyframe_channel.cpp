@@ -6,12 +6,26 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_raster_keyframe_channel.h"
+#include "KoID.h"
+#include "kis_assert.h"
+#include "kis_default_bounds_base.h"
 #include "kis_node.h"
 #include "kis_dom_utils.h"
 
 #include "kis_paint_device.h"
 #include "kis_paint_device_frames_interface.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
 #include "kundo2command.h"
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qdom.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qset.h>
+#include <qtmetamacros.h>
 
 KisRasterKeyframe::KisRasterKeyframe(KisPaintDeviceWSP paintDevice)
     : KisKeyframe()

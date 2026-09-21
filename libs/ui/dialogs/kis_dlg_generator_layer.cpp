@@ -6,26 +6,32 @@
  */
 
 #include "kis_dlg_generator_layer.h"
+#include "kis_assert.h"
+#include "kis_signal_compressor.h"
+#include "kis_types.h"
+#include "kis_undo_adapter.h"
 
 #include <QGroupBox>
 #include <QLayout>
 #include <QGridLayout>
 
+#include <kguiitem.h>
 #include <klocalizedstring.h>
 #include <kstandardguiitem.h>
 
 #include <kis_config_widget.h>
 #include <filter/kis_filter_configuration.h>
 #include <kis_paint_device.h>
-#include <kis_transaction.h>
 #include <commands/kis_change_filter_command.h>
 #include <commands/KisNodeRenameCommand.h>
 #include <kis_generator_layer.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <document/KisDocument.h>
-#include <KisGlobalResourcesInterface.h>
 #include <kis_command_utils.h>
 #include <kis_icon_utils.h>
+#include <qassert.h>
+#include <qdialog.h>
+#include <qobjectdefs.h>
 
 #define UPDATE_DELAY 100 /*ms */
 
@@ -179,4 +185,3 @@ QString KisDlgGeneratorLayer::layerName() const
 {
     return dlgWidget.txtLayerName->text();
 }
-

@@ -6,8 +6,35 @@
  */
 
 #include "application/ui/orchestration/KisApplication.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KoColorSpaceConstants.h"
+#include "kis_assert.h"
+#include "kis_global.h"
+#include "qtsingleapplication/qtsingleapplication.h"
+#include "ui/workspace/KisWindowLayoutResource.h"
 
+#include <exception>
 #include <functional>
+#include <ksharedconfig.h>
+#include <qapplication.h>
+#include <qcoreapplication.h>
+#include <qdatetime.h>
+#include <qdebug.h>
+#include <qdialog.h>
+#include <qevent.h>
+#include <qflags.h>
+#include <qforeach.h>
+#include <qglobalstatic.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qtenvironmentvariables.h>
+#include <qtpreprocessorsupport.h>
+#include <qtversionchecks.h>
 #include <queue>
 #include <stdlib.h>
 #ifdef Q_OS_WIN

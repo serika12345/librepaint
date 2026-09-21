@@ -9,9 +9,15 @@
 #include <QList>
 
 #include <KoCanvasResourcesIds.h>
-#include <KoColorSpaceRegistry.h>
+#include <qbrush.h>
+#include <qnumeric.h>
+#include <qtypes.h>
 
 #include "KisGradientConversion.h"
+#include "KoAbstractGradient.h"
+#include "KoColor.h"
+#include "KoSegmentGradient.h"
+#include "KoStopGradient.h"
 
 namespace KisGradientConversion
 {

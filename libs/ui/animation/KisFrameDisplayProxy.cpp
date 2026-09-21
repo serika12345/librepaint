@@ -6,12 +6,16 @@
  */
 
 #include "KisFrameDisplayProxy.h"
+#include "animation/kis_animation_frame_cache_fwd.h"
 #include "kis_animation_frame_cache.h"
 
+#include "kis_assert.h"
 #include "kis_canvas2.h"
 #include "kis_image.h"
 #include "kis_image_animation_interface.h"
 #include "KisCanvasAnimationState.h"
+#include <qobject.h>
+#include <qtmetamacros.h>
 
 struct Private {
     Private(KisCanvas2* c)

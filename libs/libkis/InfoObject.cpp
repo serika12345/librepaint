@@ -4,8 +4,14 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "InfoObject.h"
+#include "KoColor.h"
+#include "kis_types.h"
 
 #include <kis_properties_configuration.h>
+#include <qforeach.h>
+#include <qmap.h>
+#include <qobject.h>
+#include <qvariant.h>
 
 struct InfoObject::Private {
     Private() {}

@@ -7,6 +7,9 @@
 #include "KisMouseClickEater.h"
 
 #include <QMouseEvent>
+#include <qcoreevent.h>
+#include <qnamespace.h>
+#include <qobject.h>
 
 KisMouseClickEater::KisMouseClickEater(Qt::MouseButtons buttons,
                                        int clicksToEat,

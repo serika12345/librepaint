@@ -18,12 +18,19 @@
 #include "KoShapeConfigWidgetBase.h"
 #include "KoShapeFactoryBase.h"
 #include "KoShape.h"
-#include <KoUnit.h>
 
 #include <QObject>
 
 #include <kpagedialog.h>
 #include <klocalizedstring.h>
+#include <KoUnit.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qminmax.h>
+#include <qobjectdefs.h>
+#include <qtypes.h>
 
 class KoShapeController::Private
 {

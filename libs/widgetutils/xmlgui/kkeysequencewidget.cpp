@@ -17,6 +17,7 @@
 #include <QApplication>
 #include <QDebug>
 
+#include <kguiitem.h>
 #include <klocalizedstring.h>
 #include <kmessagebox.h>
 #include "kactioncollection.h"
@@ -24,6 +25,21 @@
 #include <kis_icon_utils.h>
 
 #include <QtGui/private/qkeymapper_p.h>
+#include <kstandardshortcut.h>
+#include <qcoreevent.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qkeysequence.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpushbutton.h>
+#include <qset.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
 
 
 uint qHash(const QKeySequence &seq)

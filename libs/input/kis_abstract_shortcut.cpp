@@ -4,9 +4,14 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisInputActionGroup.h"
 #include <kis_abstract_shortcut.h>
 
 #include <KisInputAction.h>
+#include <qforeach.h>
+#include <qnamespace.h>
+#include <qset.h>
+#include <qtdeprecationdefinitions.h>
 
 
 class Q_DECL_HIDDEN KisAbstractShortcut::Private

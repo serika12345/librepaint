@@ -7,6 +7,8 @@
 #include "KisPaintOpPresetUpdateProxy.h"
 
 #include "kis_signal_compressor.h"
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
 struct KisPaintOpPresetUpdateProxy::Private
 {

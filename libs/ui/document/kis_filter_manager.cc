@@ -25,14 +25,14 @@
 #include <filter/kis_filter_registry.h>
 #include <filter/kis_filter_configuration.h>
 #include <kis_paint_device.h>
-#include <kis_paint_device_frames_interface.h>
 #include <kis_image_animation_interface.h>
-#include <kis_raster_keyframe_channel.h>
 #include <kis_time_span.h>
 #include <kis_image_config.h>
 #include <KisAnimAutoKey.h>
 
 // krita/ui
+#include "KisQStringListFwd.h"
+#include "KoColorSpace.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_canvas2.h"
 #include <kis_bookmarked_configuration_manager.h>
@@ -41,10 +41,22 @@
 #include "application/ui/orchestration/kis_action_manager.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "dialogs/kis_dlg_filter.h"
+#include "kis_debug.h"
+#include "kis_resources_snapshot.h"
+#include "kis_types.h"
+#include <kis_node.h>
+#include "kundo2magicstring.h"
 #include "strokes/kis_filter_stroke_strategy.h"
 #include "kis_icon_utils.h"
 #include "kis_layer_utils.h"
 #include <KisGlobalResourcesInterface.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qset.h>
+#include <qtpreprocessorsupport.h>
 
 struct KisFilterManager::Private {
     KisAction* reapplyAction = nullptr;

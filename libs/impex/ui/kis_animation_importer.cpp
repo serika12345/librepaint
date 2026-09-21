@@ -8,20 +8,35 @@
 
 #include <QStatusBar>
 
+#include "KisImportExportErrorCode.h"
+#include "KisQStringListFwd.h"
 #include "KoColorSpace.h"
 #include <KoUpdater.h>
 #include <QApplication>
 #include <QQueue>
+#include "KoColorSpaceConstants.h"
 #include "application/ui/orchestration/KisPart.h"
 #include "document/KisDocument.h"
+#include "kis_assert.h"
 #include "kis_image.h"
+#include "kis_keyframe_channel.h"
+#include "kis_types.h"
 #include "kis_undo_adapter.h"
 #include "kis_paint_layer.h"
 #include "kis_group_layer.h"
 #include "kis_raster_keyframe_channel.h"
 #include "kis_assign_profile_processing_visitor.h"
 #include "commands/kis_image_layer_add_command.h"
+#include "kundo2magicstring.h"
 #include <QRegularExpression>
+#include <cstddef>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
 
 struct KisAnimationImporter::Private
 {

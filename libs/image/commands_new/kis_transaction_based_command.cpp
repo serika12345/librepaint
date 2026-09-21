@@ -5,6 +5,8 @@
  */
 
 #include "kis_transaction_based_command.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 KisTransactionBasedCommand::KisTransactionBasedCommand(const KUndo2MagicString &text, KUndo2Command* parent)
     : KUndo2Command(text, parent), m_transactionData(0)

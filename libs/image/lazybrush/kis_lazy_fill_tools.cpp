@@ -4,22 +4,29 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_assert.h"
+#include "kis_global.h"
+#include "kis_types.h"
+#include <boost/property_map/property_map.hpp>
+#include <cstring>
+#include <limits>
+#include <qcontainerfwd.h>
+#include <qpoint.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <vector>
 #define BOOST_DISABLE_ASSERTS 1
 
 #include "kis_lazy_fill_tools.h"
 
-#include <boost/limits.hpp>
 
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/properties.hpp>
-#include <boost/iterator/counting_iterator.hpp>
-#include <boost/iterator/transform_iterator.hpp>
 
 // we use a forked version of the algorithm
 //#include <boost/graph/boykov_kolmogorov_max_flow.hpp>
 #include "patched_boykov_kolmogorov_max_flow.hpp"
 
-#include <boost/graph/iteration_macros.hpp>
 
 #include "lazybrush/kis_lazy_fill_graph.h"
 #include "lazybrush/kis_lazy_fill_capacity_map.h"

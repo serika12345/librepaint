@@ -5,7 +5,11 @@
  */
 #include "KisResourceMetaDataModel.h"
 
-#include <QtSql>
+#include <qlogging.h>
+#include <qobject.h>
+#include <qsqlquery.h>
+#include <QSqlError>
+#include <qstringview.h>
 
 struct KisResourceMetaDataModel::Private
 {

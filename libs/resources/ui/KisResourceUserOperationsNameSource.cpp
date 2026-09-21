@@ -7,8 +7,10 @@
 
 #include <algorithm>
 #include <iterator>
+#include <qcontainerfwd.h>
 
 #include "KisResourceModel.h"
+#include "KoResource.h"
 
 namespace KisResourceUserOperationsNameSource
 {

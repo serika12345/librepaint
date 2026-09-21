@@ -11,6 +11,7 @@
     SPDX-License-Identifier: LGPL-2.0-or-later
 */
 
+#include "KisShortcutsDialog_p.h"
 #include "KisShortcutsEditor_p.h"
 
 #include <QApplication>
@@ -20,6 +21,21 @@
 #include <QTreeWidgetItemIterator>
 #include <QAction>
 #include <QDebug>
+#include <kextendableitemdelegate.h>
+#include <qabstractitemmodel.h>
+#include <qabstractitemview.h>
+#include <qassert.h>
+#include <qcolor.h>
+#include <qcoreevent.h>
+#include <qkeysequence.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qsize.h>
+#include <qstyleoption.h>
+#include <qtmetamacros.h>
 
 namespace {
     KisShortcutsEditorItem *itemFromIndex(QTreeWidget *const w, const QModelIndex &index)

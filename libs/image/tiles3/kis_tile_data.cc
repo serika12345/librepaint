@@ -9,10 +9,21 @@
 #include "kis_tile_data.h"
 #include "kis_tile_data_store.h"
 
+#include <boost/pool/detail/mutex.hpp>
+#include <boost/pool/pool.hpp>
+#include <cstdlib>
+#include <cstring>
 #include <kis_debug.h>
 
 #include <boost/pool/singleton_pool.hpp>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qdeadlinetimer.h>
+#include <qforeach.h>
+#include <qreadwritelock.h>
+#include <qtypes.h>
 #include "kis_tile_data_store_iterators.h"
+#include "tiles3/kis_tile_data_interface.h"
 
 // BPP == bytes per pixel
 #define TILE_SIZE_4BPP (4 * __TILE_DATA_WIDTH * __TILE_DATA_HEIGHT)

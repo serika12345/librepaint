@@ -5,6 +5,8 @@
  */
 
 #include "widgets/kis_multi_bool_filter_widget.h"
+#include "kis_config_widget.h"
+#include "kis_types.h"
 #include <QLayout>
 #include <QCheckBox>
 #include <QVBoxLayout>
@@ -12,6 +14,12 @@
 #include <KisGlobalResourcesInterface.h>
 
 #include <klocalizedstring.h>
+#include <qhashfunctions.h>
+#include <qlayoutitem.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 KisBoolWidgetParam::KisBoolWidgetParam(bool ninitvalue, const QString & nlabel, const QString & nname) :
         initvalue(ninitvalue),

@@ -6,8 +6,13 @@
 
 #include "kis_macro_based_undo_store.h"
 
+#include "kis_assert.h"
 #include "kis_saved_commands.h"
 #include "kis_pointer_utils.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
 
 
 struct KisMacroBasedUndoStore::Private

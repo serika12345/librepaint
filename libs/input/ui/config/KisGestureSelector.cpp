@@ -6,6 +6,10 @@
 
 #include "KisGestureSelector.h"
 #include "input/ui/kis_shortcut_configuration_text.h"
+#include "kis_shortcut_configuration.h"
+#include <kcombobox.h>
+#include <qcontainerfwd.h>
+#include <qwidget.h>
 
 KisGestureSelector::KisGestureSelector(QWidget *parent)
     : KComboBox(parent)

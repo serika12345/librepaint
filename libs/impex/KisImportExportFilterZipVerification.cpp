@@ -9,6 +9,8 @@
 #include <KoStore.h>
 #include <QScopedPointer>
 #include <klocalizedstring.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 QString KisImportExportFilter::verifyZiPBasedFiles(const QString &fileName, const QStringList &filesToCheck) const
 {

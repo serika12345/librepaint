@@ -5,6 +5,7 @@
  */
 
 #include "kis_operation_ui_factory.h"
+#include <qtdeprecationdefinitions.h>
 
 class Q_DECL_HIDDEN KisOperationUIFactory::Private {
 

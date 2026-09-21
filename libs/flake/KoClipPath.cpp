@@ -5,8 +5,10 @@
  */
 
 #include "KoClipPath.h"
+#include "KoFlakeCoordinateSystem.h"
 #include "KoPathShape.h"
 #include "KoShapeGroup.h"
+#include "kis_assert.h"
 
 #include <QTransform>
 #include <QPainterPath>
@@ -14,7 +16,15 @@
 #include <QVarLengthArray>
 #include <QSharedData>
 
+#include <algorithm>
 #include <kis_algebra_2d.h>
+#include <qalgorithms.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 
 
 QTransform scaleToPercent(const QSizeF &size)

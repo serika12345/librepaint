@@ -6,8 +6,12 @@
  */
 
 #include "kis_paintop_settings_widget.h"
+#include "KisPaintopPropertiesBase.h"
+#include "kis_categorized_list_view.h"
+#include "kis_paintop_config_widget.h"
 #include "kis_paintop_option.h"
 #include "kis_paintop_options_model.h"
+#include "kis_types.h"
 
 #include <QHBoxLayout>
 #include <QList>
@@ -19,7 +23,7 @@
 #include <QShowEvent>
 
 #include <brushengine/kis_paintop_preset.h>
-#include <kis_cmb_composite.h>
+#include <functional>
 #include <kis_categorized_item_delegate.h>
 #include <brushengine/kis_locked_properties_server.h>
 #include <brushengine/kis_locked_properties_proxy.h>
@@ -28,6 +32,21 @@
 
 #include <lager/constant.hpp>
 #include <KisLager.h>
+#include <lager/reader.hpp>
+#include <optional>
+#include <qabstractscrollarea.h>
+#include <qalgorithms.h>
+#include <qassert.h>
+#include <qcoreevent.h>
+#include <qforeach.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qsizepolicy.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
 struct KisPaintOpSettingsWidget::Private

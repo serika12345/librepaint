@@ -5,6 +5,7 @@
  */
 
 #include "KoColorDisplayRendererInterface.h"
+#include "KoColor.h"
 
 #include <QGlobalStatic>
 
@@ -14,6 +15,13 @@
 #include <KoColorSpace.h>
 #include <KisHandleStyle.h>
 #include <QPalette>
+#include <qassert.h>
+#include <qcolor.h>
+#include <qimage.h>
+#include <qminmax.h>
+#include <qsize.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 Q_GLOBAL_STATIC(KoDumbColorDisplayRenderer, s_instance)
 

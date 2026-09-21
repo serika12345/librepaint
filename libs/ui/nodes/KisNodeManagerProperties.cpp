@@ -4,6 +4,8 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_base_node.h"
+#include "kis_types.h"
 #include "nodes/kis_node_manager.h"
 
 bool KisNodeManager::trySetNodeProperties(KisNodeSP node, KisImageSP image, KisBaseNode::PropertyList properties) const

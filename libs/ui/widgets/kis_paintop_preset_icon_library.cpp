@@ -4,13 +4,23 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "kis_paintop_preset_icon_library.h"
+#include "ui_wdgpreseticonlibrary.h"
 #include <QImage>
 #include <QStandardItem>
 #include <QSlider>
 #include <QPainter>
-#include <kis_icon.h>
+#include <cstddef>
 #include <QDebug>
 #include <KoResourcePaths.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qicon.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 KisPaintopPresetIconLibrary::KisPaintopPresetIconLibrary(QWidget *parent): QWidget(parent), ui(new Ui_wdgpreseticonlibrary)
 {

@@ -5,6 +5,11 @@
  */
 
 #include "kis_input_manager_p.h"
+#include "KisInputActionGroup.h"
+#include "KisInputEventSuppressor.h"
+#include "KisTouchGestureType.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
 #include "kis_input_event_normalizer_p.h"
 
 #include <QMap>
@@ -14,7 +19,6 @@
 #include <QWidget>
 #include <QtGlobal>
 
-#include <boost/preprocessor/repeat_from_to.hpp>
 
 #include <KoPointerEvent.h>
 
@@ -22,6 +26,7 @@
 #include "kis_input_config.h"
 #include "kis_abstract_input_action.h"
 #include <KisInputAction.h>
+#include "kis_single_action_shortcut.h"
 #include "kis_tool_invocation_action.h"
 #include "kis_stroke_shortcut.h"
 #include "kis_touch_shortcut.h"
@@ -31,7 +36,24 @@
 
 #include "config-qt-patches-present.h"
 
+#include <boost/preprocessor/repetition/repeat_from_to.hpp>
 #include <memory>
+#include <qcursor.h>
+#include <qelapsedtimer.h>
+#include <qforeach.h>
+#include <qhashfunctions.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qset.h>
+#include <qsharedpointer.h>
+#include <qtenvironmentvariables.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
 
 namespace {
 

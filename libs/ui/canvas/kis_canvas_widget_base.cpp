@@ -11,20 +11,27 @@
 #include <QTimer>
 
 #include <KoShapeManager.h>
-#include <KoToolManager.h>
 #include <KoViewConverter.h>
 #include <KoToolProxy.h>
 #include <KoCanvasController.h>
 #include <KoShape.h>
-#include <KoSelection.h>
+#include <algorithm>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 
+#include "KisQStringListFwd.h"
+#include "KisWraparoundAxis.h"
 #include "kis_coordinates_converter.h"
 #include "kis_canvas_decoration.h"
 #include "application/kis_config.h"
 #include "kis_canvas2.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "document/KisDocument.h"
+#include "kis_debug.h"
 #include "kis_update_info.h"
 #include "KisQPainterStateSaver.h"
 

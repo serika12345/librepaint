@@ -8,7 +8,10 @@
  */
 
 #include "KoPathToolSelection.h"
+#include "KisHandleStyle.h"
+#include "KoPathShape.h"
 #include "KoPathTool.h"
+#include "kis_assert.h"
 #include <KoParameterShape.h>
 #include <KoPathPoint.h>
 #include <KoPathPointData.h>
@@ -19,6 +22,12 @@
 #include <KoColorDisplayRendererInterface.h>
 #include <QPainter>
 #include <KisHandlePainterHelper.h>
+#include <algorithm>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qset.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 
 KoPathToolSelection::KoPathToolSelection(KoPathTool * tool)
         : m_tool(tool)

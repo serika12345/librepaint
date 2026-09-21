@@ -4,14 +4,16 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <boost/circular_buffer.hpp>
 #include <kis_speed_smoother.h>
 
-#include <boost/circular_buffer.hpp>
 #include <QElapsedTimer>
 #include <QPointF>
 
 #include <KisFilteredRollingMean.h>
 #include <kis_global.h>
+#include <qnumeric.h>
+#include <qtypes.h>
 
 namespace {
 constexpr int MaximumSmoothHistory = 512;

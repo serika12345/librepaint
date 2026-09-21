@@ -9,6 +9,9 @@
 
 #include <QHBoxLayout>
 #include <QToolButton>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 #include "kis_icon_utils.h"
 #include "klocalizedstring.h"

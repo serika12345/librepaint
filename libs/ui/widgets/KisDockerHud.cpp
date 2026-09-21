@@ -15,9 +15,19 @@
 #include <QPointer>
 
 #include <kseparator.h>
+#include "KoID.h"
+#include <qdialog.h>
+#include <qforeach.h>
+#include <qhash.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 #include "application/ui/workspace/KisMainWindow.h"
 #include "application/ui/orchestration/KisPart.h"
 #include "KisDlgListPicker.h"
+#include "kis_assert.h"
 #include "kis_utility_title_bar.h"
 
 #include "application/kis_config.h"

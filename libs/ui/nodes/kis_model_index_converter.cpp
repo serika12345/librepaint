@@ -12,6 +12,9 @@
 #include "nodes/kis_node_model.h"
 #include "KisReferenceImagesLayer.h"
 #include "canvas/KisDecorationsWrapperLayer.h"
+#include <qabstractitemmodel.h>
+#include <qassert.h>
+#include <qhashfunctions.h>
 
 
 KisModelIndexConverter::KisModelIndexConverter(KisDummiesFacadeBase *dummiesFacade,

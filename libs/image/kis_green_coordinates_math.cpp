@@ -9,6 +9,11 @@
 #include <cmath>
 #include <kis_global.h>
 #include <kis_algebra_2d.h>
+#include <math.h>
+#include <qcontainerfwd.h>
+#include <qpoint.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 using namespace KisAlgebra2D;
 
 

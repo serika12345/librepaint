@@ -9,6 +9,9 @@
 #include <QGlobalStatic>
 #include <QMutexLocker>
 
+#include <qforeach.h>
+#include <qshareddata.h>
+#include <qtypes.h>
 #include <string.h>
 
 namespace {

@@ -11,6 +11,7 @@
  */
 
 #include "KoCanvasControllerWidget.h"
+#include "KoCanvasController.h"
 #include "KoCanvasControllerWidget_p.h"
 
 #include "KoCanvasControllerWidgetViewport_p.h"
@@ -20,7 +21,8 @@
 #include "KoCanvasBase.h"
 #include "KoCanvasObserverBase.h"
 #include "KoCanvasSupervisor.h"
-#include <FlakeDebug.h>
+#include "KoZoomMode.h"
+#include "kis_assert.h"
 #include <QMouseEvent>
 #include <QPainter>
 #include <QScrollBar>
@@ -32,7 +34,17 @@
 #include <KoViewTransformStillPoint.h>
 
 #include <math.h>
-#include <kis_debug.h>
+#include <optional>
+#include <qabstractscrollarea.h>
+#include <qforeach.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qpoint.h>
+#include <qsizepolicy.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 
 void KoCanvasControllerWidget::Private::activate()
 {

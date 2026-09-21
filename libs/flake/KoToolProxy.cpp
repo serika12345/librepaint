@@ -5,6 +5,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "KoToolProxy.h"
+#include "KisQStringListFwd.h"
 #include "KoToolProxy_p.h"
 
 #include <QMimeData>
@@ -14,11 +15,22 @@
 #include <QClipboard>
 #include <QEvent>
 
+#include <algorithm>
+#include <iterator>
 #include <kundo2command.h>
-#include <KoProperties.h>
 
-#include <FlakeDebug.h>
 #include <klocalizedstring.h>
+#include <qassert.h>
+#include <qflags.h>
+#include <qforeach.h>
+#include <qkeysequence.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qtmetamacros.h>
+#include <qvariant.h>
 
 #include "KoToolBase.h"
 #include "KoPointerEvent.h"

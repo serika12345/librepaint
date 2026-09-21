@@ -13,9 +13,30 @@
 #include <KSharedConfig>
 #include <KConfigGroup>
 
+#include "KisColorSelectorInterface.h"
+#include "KisVisualColorModel.h"
+#include "KoColor.h"
 #include "KoColorDisplayRendererInterface.h"
-#include <KoColorModelStandardIds.h>
+#include <qalgorithms.h>
+#include <qassert.h>
+#include <qevent.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qwidget.h>
+#include <utility>
 //#include <QPointer>
+#include "KoGamutMask.h"
+#include "kis_assert.h"
 #include "kis_signal_compressor.h"
 #include "kis_debug.h"
 

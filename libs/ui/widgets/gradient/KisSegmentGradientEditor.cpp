@@ -13,10 +13,17 @@
 #include <QMenu>
 
 #include <KoColorSpace.h>
+#include <qboxlayout.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 #include <resources/KoSegmentGradient.h>
 
 
+#include "KisGradientWidgetsUtils.h"
 #include "KisSegmentGradientSlider.h"
+#include "ui_wdgsegmentgradienteditor.h"
 
 #include <KoCanvasResourcesIds.h>
 #include <KoCanvasResourcesInterface.h>

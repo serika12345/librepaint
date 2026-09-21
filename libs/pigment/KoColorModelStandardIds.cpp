@@ -5,6 +5,7 @@
 */
 
 #include "KoColorModelStandardIds.h"
+#include "KoID.h"
 
 #include <klocalizedstring.h>
 

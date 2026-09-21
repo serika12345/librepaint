@@ -10,6 +10,11 @@
 #include <QLabel>
 #include <QList>
 #include <QSignalBlocker>
+#include "KisVisualColorModel.h"
+#include "KoID.h"
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 #include "kis_double_parse_spin_box.h"
 
 struct KisSpinboxHSXSelector::Private

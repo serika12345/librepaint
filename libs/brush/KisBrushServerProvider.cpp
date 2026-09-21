@@ -4,16 +4,16 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisBrushServerProvider.h"
+#include "KisResourceTypes.h"
+#include "KoResourceServer.h"
+#include "kis_brush.h"
 
 #include <QDir>
 #include <QApplication>
 
 #include <QGlobalStatic>
-#include <KoResourcePaths.h>
 
-#include <KoResource.h>
 
-#include <kis_debug.h>
 
 Q_GLOBAL_STATIC(KisBrushServerProvider, s_instance)
 

@@ -5,6 +5,10 @@
  */
 
 #include "kis_debug.h"
+#include <qassert.h>
+#include <qforeach.h>
+#include <qlogging.h>
+#include <qtypes.h>
 #include "kis_chunk_allocator.h"
 
 

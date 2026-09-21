@@ -7,6 +7,7 @@
 #include <QApplication>
 #include <QWidget>
 #include <QDebug>
+#include <qscopedpointer.h>
 
 #include "KisGrabKeyboardFocusRecoveryWorkaround.h"
 

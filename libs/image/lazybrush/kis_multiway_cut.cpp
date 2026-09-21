@@ -11,11 +11,17 @@
 #include <KoColor.h>
 
 #include "KisRegion.h"
+#include "KoColorSpaceConstants.h"
+#include "kis_assert.h"
 #include "kis_paint_device.h"
 #include "kis_painter.h"
 #include "kis_lazy_fill_tools.h"
 #include "kis_sequential_iterator.h"
+#include "kis_types.h"
+#include <algorithm>
 #include <floodfill/kis_scanline_fill.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
 
 
 using namespace KisLazyFillTools;

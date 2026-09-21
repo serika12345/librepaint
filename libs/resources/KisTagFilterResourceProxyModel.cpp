@@ -4,6 +4,10 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "KisTagFilterResourceProxyModel.h"
+#include "KisResourceTypes.h"
+#include "KisTag.h"
+#include "KoResource.h"
+#include "kis_assert.h"
 
 #include <QDebug>
 
@@ -13,8 +17,19 @@
 #include <KisTagModel.h>
 #include <KisResourceMetaDataModel.h>
 
-#include <kis_debug.h>
 #include <KisResourceSearchBoxFilter.h>
+#include <qabstractitemmodel.h>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
+#include <qsortfilterproxymodel.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qvariant.h>
 
 struct KisTagFilterResourceProxyModel::Private
 {

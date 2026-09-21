@@ -5,9 +5,20 @@
 */
 
 #include "application/ui/workspace/KisDetailsPane.h"
+#include "ui_KisDetailsPaneBase.h"
 
 #include <QStandardItemModel>
 #include <QKeyEvent>
+#include <qabstractitemmodel.h>
+#include <qcolor.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qtmetamacros.h>
+#include <qwidget.h>
 
 ////////////////////////////////////
 // class KisDetailsPane

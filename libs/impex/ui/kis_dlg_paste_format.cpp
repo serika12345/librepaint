@@ -5,7 +5,11 @@
  */
 
 #include <QPushButton>
+#include <qwidget.h>
 #include "kis_dlg_paste_format.h"
+#include "KoDialog.h"
+#include "kis_clipboard.h"
+#include "ui_wdgPasteFormat.h"
 
 
 KisDlgPasteFormat::KisDlgPasteFormat(QWidget *parent)

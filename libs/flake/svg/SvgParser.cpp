@@ -11,6 +11,15 @@
  */
 
 #include "SvgParser.h"
+#include "KisPortingUtils.h"
+#include "KisQStringListFwd.h"
+#include "KoFlake.h"
+#include "KoFlakeCoordinateSystem.h"
+#include "KoFlakeTypes.h"
+#include "KoID.h"
+#include "KoSvgSymbolCollectionResource.h"
+#include "SvgStyleParser.h"
+#include "kis_assert.h"
 
 
 #include <FlakeDebug.h>
@@ -37,6 +46,23 @@
 #include <KoClipPath.h>
 #include <KoClipMask.h>
 #include <KoXmlNS.h>
+#include <memory>
+#include <qalgorithms.h>
+#include <qbrush.h>
+#include <qcontainerfwd.h>
+#include <qdebug.h>
+#include <qdom.h>
+#include <qfiledevice.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qscopedpointer.h>
+#include <qshareddata.h>
+#include <qsharedpointer.h>
+#include <qstringview.h>
+#include <qtversionchecks.h>
+#include <qtypes.h>
+#include <vector>
 
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
 #include <QXmlSimpleReader>

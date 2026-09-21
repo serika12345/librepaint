@@ -8,17 +8,28 @@
 #include "kis_properties_configuration.h"
 
 
-#include <kis_debug.h>
 #include <QDomDocument>
 #include <QString>
 
+#include "kis_cubic_curve.h"
 #include "kis_image.h"
 #include "kis_painter.h"
 #include "KoID.h"
+#include "kis_serializable_configuration.h"
 #include "kis_types.h"
 #include <KoColor.h>
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpaceRegistry.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qset.h>
+#include <qstringview.h>
+#include <qtdeprecationdefinitions.h>
+#include <qvariant.h>
 
 void kisSharedPtrAddReference(KisPropertiesConfiguration *pointer)
 {

@@ -8,9 +8,11 @@
 
 #include <QApplication>
 
-#include <KoToolManager.h>
-#include <KoToolBase.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 #include "canvas/kis_canvas2.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 KisTransformToolActivationCommand::KisTransformToolActivationCommand(KisViewManager* view, KUndo2Command * parent)
     : KUndo2Command(kundo2_i18n("Activate transform tool"), parent),  m_firstRedo(true), m_view(view)

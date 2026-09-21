@@ -6,11 +6,14 @@
  */
 
 #include "KoPathPointRubberSelectStrategy.h"
+#include "KoShapeRubberSelectStrategy.h"
 #include "KoShapeRubberSelectStrategy_p.h"
 
 #include "KoCanvasBase.h"
 #include "KoPathTool.h"
 #include "KoPathToolSelection.h"
+#include <qnamespace.h>
+#include <qtclasshelpermacros.h>
 
 KoPathPointRubberSelectStrategy::KoPathPointRubberSelectStrategy(KoPathTool *tool, const QPointF &clicked)
         : KoShapeRubberSelectStrategy(tool, clicked)

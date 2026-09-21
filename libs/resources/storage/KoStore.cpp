@@ -22,6 +22,10 @@
 #include <KConfig>
 #include <KSharedConfig>
 #include <KConfigGroup>
+#include <qassert.h>
+#include <qdebug.h>
+#include <qtclasshelpermacros.h>
+#include <qtypes.h>
 
 
 #define DefaultFormat KoStore::Zip

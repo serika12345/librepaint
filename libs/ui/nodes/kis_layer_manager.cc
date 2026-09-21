@@ -19,36 +19,30 @@
 #include <QMimeData>
 
 
+#include <cstddef>
+#include <functional>
 #include <kactioncollection.h>
 #include <klocalizedstring.h>
 #include <QMessageBox>
 #include <QUrl>
 
 #include <kis_file_name_requester.h>
-#include <kis_icon.h>
 #include <KisImportExportManager.h>
 #include <document/KisDocument.h>
 #include <KoColorSpace.h>
 #include <KoCompositeOpRegistry.h>
-#include <KoPointerEvent.h>
-#include <KoColorProfile.h>
-#include <KoSelection.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <application/ui/workspace/KisMainWindow.h>
 
 #include <filter/kis_filter_configuration.h>
-#include <filter/kis_filter.h>
-#include <kis_filter_strategy.h>
 #include <generator/kis_generator_layer.h>
 #include <document/kis_file_layer.h>
 #include <kis_adjustment_layer.h>
-#include <kis_mask.h>
 #include <kis_clone_layer.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_layer.h>
 #include <kis_paint_device.h>
-#include <kis_selection.h>
 #include <flake/kis_shape_layer.h>
 #include <kis_undo_adapter.h>
 #include <kis_painter.h>
@@ -58,6 +52,11 @@
 #include <KisMimeDatabase.h>
 #include <kis_clipboard.h>
 
+#include "KisQStringListFwd.h"
+#include "KoCanvasResourceProvider.h"
+#include "KoColorSpaceConstants.h"
+#include "KoDialog.h"
+#include "KoFileDialog.h"
 #include "application/kis_config.h"
 #include "dialogs/kis_dlg_adj_layer_props.h"
 #include "dialogs/kis_dlg_adjustment_layer.h"
@@ -67,12 +66,20 @@
 #include "dialogs/kis_dlg_layer_style.h"
 #include "dialogs/KisDlgChangeCloneSource.h"
 #include "document/kis_filter_manager.h"
+#include "kis_assert.h"
+#include "kis_command_utils.h"
+#include "kis_debug.h"
+#include "kis_floating_message.h"
+#include "kis_keyframe_channel.h"
 #include "kis_node_visitor.h"
 #include "kis_paint_layer.h"
 #include "commands/kis_change_filter_command.h"
 #include <commands/KisNodeRenameCommand.h>
 #include "document/kis_change_file_layer_command.h"
 #include "canvas/kis_canvas_resource_provider.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 #include "selection/kis_selection_manager.h"
 #include "canvas/kis_statusbar.h"
 #include "application/ui/workspace/KisViewManager.h"
@@ -96,6 +103,16 @@
 
 #include "KisSaveGroupVisitor.h"
 #include <kis_asl_layer_style_serializer.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qguiapplication.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qscopedpointer.h>
 
 
 KisLayerManager::KisLayerManager(KisViewManager * view)

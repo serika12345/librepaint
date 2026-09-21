@@ -12,10 +12,13 @@
 #include <KoToolManager.h>
 
 #include <kis_types.h>
-#include <kis_layer.h>
 #include <kis_node.h>
 
 #include <KoSelectedShapesProxy.h>
+#include "KoShape.h"
+#include "kis_assert.h"
+#include <qforeach.h>
+#include <qobjectdefs.h>
 #include "kis_shape_layer.h"
 
 

@@ -19,17 +19,33 @@
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorModelStandardIds.h>
-#include <KoIntegerMaths.h>
 #include <KoCompositeOpRegistry.h>
 
+#include "KisQStringListFwd.h"
+#include "KisSelectionTags.h"
 #include "kis_debug.h"
+#include "kis_default_bounds_base.h"
+#include "kis_global.h"
 #include "kis_image.h"
 #include "kis_fill_painter.h"
 #include "kis_outline_generator.h"
+#include <cstdlib>
 #include <kis_iterator_ng.h>
 #include <kis_sequential_iterator.h>
+#include <new>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qtypes.h>
 #include "kis_lod_transform.h"
 #include "kis_node.h"
+#include "kis_paint_device.h"
+#include "kis_painter.h"
+#include "kis_selection.h"
+#include "kis_selection_component.h"
+#include "kis_types.h"
 #include "krita_utils.h"
 #include "kundo2command.h"
 

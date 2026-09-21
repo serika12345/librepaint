@@ -8,6 +8,13 @@
 
 #include <QPen>
 #include <QPainter>
+#include <qabstractitemdelegate.h>
+#include <qabstractitemmodel.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qsize.h>
+#include <qstyle.h>
+#include <qstyleoption.h>
 
 KoLineStyleItemDelegate::KoLineStyleItemDelegate(QObject * parent)
     : QAbstractItemDelegate(parent)

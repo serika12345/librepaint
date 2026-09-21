@@ -6,6 +6,7 @@
  */
 
 #include "kis_input_configuration_page.h"
+#include "KisKineticScroller.h"
 #include "ui_kis_input_configuration_page.h"
 
 #include <QDebug>
@@ -21,6 +22,15 @@
 #include "kis_input_configuration_page_item.h"
 #include "../kis_input_config.h"
 #include <kis_signals_blocker.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qscroller.h>
+#include <qset.h>
+#include <qwidget.h>
 
 
 #include "kis_icon_utils.h"

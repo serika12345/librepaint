@@ -5,6 +5,8 @@
  */
 
 #include "KisAnimationRenderingOptions.h"
+#include "kis_properties_configuration.h"
+#include "kis_types.h"
 
 #include <kis_image_config.h>
 

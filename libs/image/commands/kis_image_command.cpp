@@ -7,9 +7,15 @@
 
 #include "kis_image_command.h"
 #include <klocalizedstring.h>
+#include <qminmax.h>
+#include <qobject.h>
 
+#include "KisProjectionUpdateFlags.h"
+#include "kis_assert.h"
 #include "kis_image.h"
 #include "kis_layer.h"
+#include "kis_types.h"
+#include "kundo2stack.h"
 
 
 

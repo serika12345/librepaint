@@ -8,8 +8,30 @@
 #include "kis_image.h"
 
 #include <KoConfig.h> // WORDS_BIGENDIAN
+#include <algorithm>
+#include <iterator>
 #include <krita_container_utils.h>
 
+#include <qassert.h>
+#include <qatomic.h>
+#include <qcoreapplication.h>
+#include <qforeach.h>
+#include <qlatin1stringview.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qmath.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qqueue.h>
+#include <qregularexpression.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -21,6 +43,14 @@
 
 #include <klocalizedstring.h>
 
+#include "KisImageSignals.h"
+#include "KisLodPreferences.h"
+#include "KisNodeAdditionFlags.h"
+#include "KisProjectionUpdateFlags.h"
+#include "KisQStringListFwd.h"
+#include "KisWraparoundAxis.h"
+#include "KoColorModelStandardIds.h"
+#include "KoColorSpaceConstants.h"
 #include "KoColorSpaceRegistry.h"
 #include "KoColor.h"
 #include "KoColorProfile.h"
@@ -29,15 +59,23 @@
 #include "KisProofingConfiguration.h"
 
 #include "kis_annotation.h"
+#include "kis_assert.h"
+#include "kis_command_utils.h"
 #include "kis_count_visitor.h"
+#include "kis_debug.h"
 #include "kis_filter_strategy.h"
 #include "kis_group_layer.h"
 #include "kis_layer.h"
+#include "kis_node_facade.h"
 #include "kis_paint_layer.h"
+#include "kis_pointer_utils.h"
 #include "kis_projection_leaf.h"
 #include "kis_painter.h"
 #include "kis_selection.h"
 #include "kis_selection_mask.h"
+#include "kis_shared.h"
+#include "kis_stroke_strategy_factory.h"
+#include "kis_strokes_queue_undo_result.h"
 #include "kis_transaction.h"
 #include "kis_meta_data_merge_strategy.h"
 #include "kis_memory_statistics_server.h"
@@ -58,6 +96,7 @@
 
 #include "kis_transform_worker.h"
 #include "kis_processing_applicator.h"
+#include "kundo2magicstring.h"
 #include "processing/kis_crop_processing_visitor.h"
 #include "processing/kis_crop_selections_processing_visitor.h"
 #include "processing/kis_transform_processing_visitor.h"
@@ -98,6 +137,8 @@
 
 #include "KisBusyWaitBroker.h"
 #include <KisStaticInitializer.h>
+#include <utility>
+#include <vector>
 #include "KisImageGlobalSelectionManagementInterface.h"
 
 

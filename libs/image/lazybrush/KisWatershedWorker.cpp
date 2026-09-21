@@ -9,9 +9,17 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoColorSpace.h>
 #include <KoColor.h>
+#include <algorithm>
+#include <boost/accumulators/framework/accumulator_set.hpp>
+#include <boost/accumulators/statistics/count.hpp>
+#include <boost/heap/policies.hpp>
+#include <cstring>
+#include <iterator>
 #include <libs/global/KoAlwaysInline.h>
 #include <KoUpdater.h>
 
+#include "kis_assert.h"
+#include "kis_debug.h"
 #include "kis_lazy_fill_tools.h"
 
 #include "kis_paint_device_debug_utils.h"
@@ -21,9 +29,21 @@
 #include "kis_scanline_fill.h"
 
 #include "kis_random_accessor_ng.h"
+#include "kis_types.h"
 
 #include <boost/heap/fibonacci_heap.hpp>
+#include <qassert.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qpair.h>
+#include <qset.h>
+#include <qtypes.h>
 #include <set>
+#include <vector>
 
 using namespace KisLazyFillTools;
 
@@ -798,7 +818,6 @@ QVector<GroupLevelPair> KisWatershedWorker::Private::calculateConflictingPairs()
     return result;
 }
 
-#include <boost/accumulators/accumulators.hpp>
 #include <boost/accumulators/statistics/stats.hpp>
 #include <boost/accumulators/statistics/mean.hpp>
 #include <boost/accumulators/statistics/min.hpp>

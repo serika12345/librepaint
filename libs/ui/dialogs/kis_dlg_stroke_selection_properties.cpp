@@ -16,22 +16,29 @@
 
 #include <klocalizedstring.h>
 
-#include <KoColorSpace.h>
+#include "KisFigurePaintingOptions.h"
+#include "KoCanvasResourcesIds.h"
 #include "KoColor.h"
 #include "KoColorPopupAction.h"
+#include "KoDialog.h"
 #include "kis_icon_utils.h"
 #include "kis_image.h"
 #include <kis_image_config.h>
 #include "application/kis_config.h"
 #include <KisSqueezedComboBox.h>
 #include "kis_layer_utils.h"
-#include <kis_ls_utils.h>
 #include "canvas/kis_canvas_resource_provider.h"
 #include "KoUnit.h"
 #include "kis_display_color_converter.h"
 #include "application/ui/workspace/KisMainWindow.h"
+#include "kis_types.h"
+#include "ui/workspace/KisView.h"
 
 #include <kis_signals_blocker.h>
+#include <qcolor.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
 
 KisDlgStrokeSelection::KisDlgStrokeSelection(KisImageWSP image, KisViewManager *view, bool isVectorLayer)
     : KoDialog(view->mainWindowAsQWidget())

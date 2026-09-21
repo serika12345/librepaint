@@ -5,6 +5,8 @@
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  */
 #include <brushengine/kis_locked_properties.h>
+#include <qmap.h>
+#include <qvariant.h>
 
 #include "kis_properties_configuration.h"
 

@@ -10,11 +10,19 @@
 #include <QScrollBar>
 #include <QTabletEvent>
 
+#include <functional>
 #include <klocalizedstring.h>
 #include <kactioncollection.h>
+#include "KisWraparoundAxis.h"
+#include "KoCanvasBase.h"
+#include "KoCanvasControllerWidget.h"
+#include "KoZoomMode.h"
 #include "kis_canvas_decoration.h"
 #include "kis_coordinates_converter.h"
 #include "kis_canvas2.h"
+#include "kis_floating_message.h"
+#include "kis_signal_compressor.h"
+#include "opengl/kis_opengl.h"
 #include "opengl/kis_opengl_canvas2.h"
 #include "document/KisDocument.h"
 #include "kis_image.h"
@@ -27,6 +35,18 @@
 #include "kis_config_notifier.h"
 #include <KoUnit.h>
 #include <KoViewTransformStillPoint.h>
+#include <optional>
+#include <qassert.h>
+#include <qcoreevent.h>
+#include <qcursor.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
+#include <qtmetamacros.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qvariant.h>
 
 #include "KisCanvasState.h"
 

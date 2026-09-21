@@ -3,9 +3,14 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_assert.h"
 #include "kis_node_manager.h"
+#include "kis_paint_device.h"
+#include "kis_types.h"
 
 #include <kundo2magicstring.h>
+#include <qlatin1stringview.h>
+#include <qobject.h>
 
 KisNodeSP KisNodeManager::createNode(const QString &nodeType, bool quiet, KisPaintDeviceSP copyFrom)
 {

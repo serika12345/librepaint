@@ -16,11 +16,15 @@
 
 #include <application/ui/orchestration/KisPart.h>
 
-#include <kis_icon.h>
 
 #include <kconfiggroup.h>
 #include <klocalizedstring.h>
 #include <ksharedconfig.h>
+#include <qcontainerfwd.h>
+#include <qfontmetrics.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 KisSplashScreen::KisSplashScreen(QWidget *parent, Qt::WindowFlags f)
     : QWidget(parent, Qt::SplashScreen | Qt::FramelessWindowHint | f)

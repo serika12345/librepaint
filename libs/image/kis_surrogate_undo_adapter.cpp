@@ -5,6 +5,8 @@
  */
 
 #include "kis_surrogate_undo_adapter.h"
+#include "kis_undo_adapter.h"
+#include "kis_undo_store.h"
 #include "kis_undo_stores.h"
 
 

@@ -14,6 +14,13 @@
 #include <QBoxLayout>
 #include <QDebug>
 #include <klocalizedstring.h>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 #include "KoZoomInput.h"
 #include "KoIcon.h"

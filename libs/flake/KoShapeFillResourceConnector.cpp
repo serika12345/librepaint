@@ -9,6 +9,7 @@
 #include <KoCanvasResourceProvider.h>
 #include <KoSelectedShapesProxy.h>
 
+#include "KoCanvasResourcesIds.h"
 #include "kis_assert.h"
 #include "kis_signal_auto_connection.h"
 
@@ -17,6 +18,9 @@
 #include <KoShapeFillWrapper.h>
 #include <KoSelection.h>
 #include <KoCanvasBase.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 
 

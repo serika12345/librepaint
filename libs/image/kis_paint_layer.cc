@@ -9,17 +9,27 @@
 
 #include "kis_paint_layer.h"
 
-#include <kis_debug.h>
 #include <klocalizedstring.h>
 
-#include <KoIcon.h>
 #include <kis_icon.h>
 #include <KoColorSpace.h>
-#include <KoColorProfile.h>
 #include <KoCompositeOpRegistry.h>
 #include <KoProperties.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qicon.h>
+#include <qobjectdefs.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 
+#include "KoCompositeOpIds.h"
+#include "kis_assert.h"
+#include "kis_base_node.h"
+#include "kis_icon_utils.h"
 #include "kis_image.h"
+#include "kis_indirect_painting_support.h"
+#include "kis_keyframe_channel.h"
+#include "kis_layer.h"
 #include "kis_painter.h"
 #include "kis_paint_device.h"
 #include "kis_node_visitor.h"
@@ -35,6 +45,7 @@
 #include "KisFrameChangeUpdateRecipe.h"
 #include "kis_onion_skin_cache.h"
 #include "kis_time_span.h"
+#include "kis_types.h"
 
 
 struct Q_DECL_HIDDEN KisPaintLayer::Private

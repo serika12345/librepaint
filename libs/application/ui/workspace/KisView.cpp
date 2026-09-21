@@ -7,9 +7,13 @@
 
 #include "application/ui/workspace/KisView.h"
 
+#include "KisNodeAdditionFlags.h"
+#include "KisWraparoundAxis.h"
+#include "KoZoomMode.h"
+#include "KoZoomState.h"
 #include "application/ui/workspace/KisView_p.h"
 
-#include <metadata/KoDocumentInfo.h>
+#include <boost/operators.hpp>
 #include <KoToolManager.h>
 
 #include <files/kis_document_autosave_files.h>
@@ -45,6 +49,7 @@
 #include "application/kis_config.h"
 #include "document/kis_filter_manager.h"
 #include "document/kis_image_manager.h"
+#include "kis_floating_message.h"
 #include "kis_mimedata.h"
 #include "nodes/kis_node_manager.h"
 #include "canvas/kis_painting_assistants_decoration.h"
@@ -53,6 +58,18 @@
 #include "kis_signal_compressor.h"
 #include "canvas/kis_zoom_manager.h"
 #include <KisScreenMigrationTracker.h>
+#include <qassert.h>
+#include <qmap.h>
+#include <qminmax.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
+#include <qwidget.h>
 #include "kformat.h"
 
 

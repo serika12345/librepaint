@@ -7,11 +7,30 @@
 #include "move_stroke_strategy.h"
 
 #include <klocalizedstring.h>
+#include "KisAsynchronousStrokeUpdateHelper.h"
+#include "KisNodeSelectionRecipe.h"
+#include "KisQStringListFwd.h"
+#include "kis_assert.h"
+#include "kis_command_utils.h"
+#include <memory>
+#include <qforeach.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qtmetamacros.h>
+#include <tuple>
+#include <unordered_map>
+#include <utility>
 #include "kis_image_interfaces.h"
+#include "kis_lod_transform.h"
 #include "kis_node.h"
 #include "commands_new/kis_update_command.h"
 #include "commands_new/kis_node_move_command2.h"
 #include "kis_layer_utils.h"
+#include "kis_pointer_utils.h"
+#include "kis_simple_stroke_strategy.h"
+#include "kis_stroke_strategy_undo_command_based.h"
+#include "kis_types.h"
 #include "krita_container_utils.h"
 #include "krita_utils.h"
 
@@ -27,6 +46,7 @@
 #include "kis_transform_mask_params_interface.h"
 #include "commands_new/KisSimpleModifyTransformMaskCommand.h"
 #include "commands_new/KisLazyCreateTransformMaskKeyframesCommand.h"
+#include "kundo2magicstring.h"
 
 /* MoveNodeStrategyBase and descendants
  *

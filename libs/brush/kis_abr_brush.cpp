@@ -6,6 +6,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_abr_brush.h"
+#include "KoResource.h"
 #include "kis_abr_brush_collection.h"
 
 #include <QDomElement>
@@ -18,9 +19,12 @@
 #include <klocalizedstring.h>
 
 #include <KoColor.h>
+#include <qtpreprocessorsupport.h>
 
+#include "kis_brush.h"
 #include "kis_datamanager.h"
 #include "kis_paint_device.h"
+#include "kis_scaling_size_brush.h"
 
 #define DEFAULT_SPACING 0.25
 

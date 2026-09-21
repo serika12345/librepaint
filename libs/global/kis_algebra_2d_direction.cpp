@@ -6,8 +6,16 @@
 
 #include "kis_algebra_2d.h"
 
+#include <Eigen/Core>
 #include <Eigen/Eigenvalues>
 #include <QVector2D>
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
+#include <cmath>
+#include <qline.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qtypes.h>
 
 namespace KisAlgebra2D
 {

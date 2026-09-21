@@ -7,6 +7,10 @@
 
 #include "KisResourceItemChooserPresentationSource_p.h"
 #include "KisResourceItemChooser_p.h"
+#include "ResourceListViewModes.h"
+#include <qnamespace.h>
+#include <qsize.h>
+#include <qtmetamacros.h>
 
 void KisResourceItemChooser::setResponsiveness(bool isResponsive)
 {

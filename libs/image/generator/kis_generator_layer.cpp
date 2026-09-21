@@ -10,20 +10,36 @@
 
 #include "kis_generator_layer.h"
 
+#include <boost/none.hpp>
+#include <boost/none_t.hpp>
 #include <klocalizedstring.h>
 
-#include <KoIcon.h>
 #include <kis_icon.h>
+#include "KisQStringListFwd.h"
 #include "filter/kis_filter_configuration.h"
 #include <kis_processing_visitor.h>
 #include "generator/kis_generator_registry.h"
 #include "generator/kis_generator.h"
+#include "kis_assert.h"
+#include "kis_base_node.h"
+#include "kis_icon_utils.h"
 #include "kis_image.h"
+#include "kis_layer.h"
 #include "kis_node_visitor.h"
 #include "kis_paint_device.h"
+#include "kis_selection_based_layer.h"
+#include "kis_signal_compressor.h"
 #include "kis_thread_safe_signal_compressor.h"
+#include "kis_types.h"
 #include <kis_generator_stroke_strategy.h>
-#include <KisRunnableStrokeJobData.h>
+#include <qforeach.h>
+#include <qicon.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qregion.h>
+#include <qsharedpointer.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtypes.h>
 
 
 #define UPDATE_DELAY 100 /*ms */

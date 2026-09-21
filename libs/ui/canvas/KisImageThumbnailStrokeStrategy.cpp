@@ -9,13 +9,23 @@
 
 #include <kis_paint_device.h>
 #include <kis_painter.h>
+#include "KisIdleTaskStrokeStrategy.h"
+#include "KisRunnableStrokeJobData.h"
+#include "kis_types.h"
 #include "krita_utils.h"
 #include "kis_transform_worker.h"
 #include "kis_filter_strategy.h"
 #include <KoColorSpaceRegistry.h>
 #include <KoUpdater.h>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qlatin1stringview.h>
+#include <qnamespace.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
 #include "KisRunnableStrokeJobUtils.h"
 #include "KisRunnableStrokeJobsInterface.h"
+#include "kundo2magicstring.h"
 
 const qreal oversample = 2.;
 const int thumbnailTileDim = 128;

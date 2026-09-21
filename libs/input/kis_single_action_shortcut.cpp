@@ -4,10 +4,17 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_abstract_shortcut.h"
+#include <algorithm>
+#include <iterator>
 #include <kis_single_action_shortcut.h>
 
 #include <QKeySequence>
 #include <KisInputAction.h>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qset.h>
+#include <qtdeprecationdefinitions.h>
 
 class Q_DECL_HIDDEN KisSingleActionShortcut::Private
 {

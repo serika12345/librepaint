@@ -8,6 +8,9 @@
 #include "KoLabColorSpace.h"
 
 #include <limits.h>
+#include <qhashfunctions.h>
+#include <qrgb.h>
+#include <qtypes.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -15,11 +18,16 @@
 
 #include <klocalizedstring.h>
 
+#include "KisQStringListFwd.h"
 #include "KoChannelInfo.h"
+#include "KoColorModelStandardIds.h"
+#include "KoColorSpace.h"
+#include "KoColorSpaceMaths.h"
 #include "KoIntegerMaths.h"
 #include "KoColorConversions.h"
 
 #include "../compositeops/KoCompositeOps.h"
+#include "colorspaces/KoSimpleColorSpace.h"
 #include "dithering/KisLabDitherOpFactory.h"
 
 KoLabColorSpace::KoLabColorSpace() :

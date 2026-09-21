@@ -6,18 +6,24 @@
 
 #include "kis_mirror_processing_visitor.h"
 
+#include "KisQStringListFwd.h"
 #include "kis_paint_device.h"
 #include "kis_node.h"
 #include "kis_image.h"
 #include "kis_painter.h"
 #include "kis_processing_applicator.h"
+#include "kis_processing_visitor.h"
 #include "kis_selection.h"
 
+#include "kis_stroke_job_strategy.h"
 #include "kis_transform_worker.h"
+#include "kis_types.h"
 #include "lazybrush/kis_colorize_mask.h"
 #include "processing/kis_transform_processing_visitor.h"
 
 #include <functional>
+#include <qforeach.h>
+#include <qnamespace.h>
 
 
 KisMirrorProcessingVisitor::KisMirrorProcessingVisitor(const QRect &bounds, Qt::Orientation orientation)

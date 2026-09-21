@@ -10,7 +10,10 @@
 #include <QVector>
 #include <QElapsedTimer>
 
-#include <boost/optional.hpp>
+#include <boost/optional/optional.hpp>
+#include <qcontainerfwd.h>
+#include <qforeach.h>
+#include <qtypes.h>
 
 #include "kis_global.h"
 

@@ -5,8 +5,14 @@
  */
 
 #include "KisChangeCloneLayersCommand.h"
+#include "kis_assert.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 #include <kis_clone_layer.h>
+#include <qforeach.h>
+#include <qlist.h>
 
 struct KisChangeCloneLayersCommand::Private
 {

@@ -20,11 +20,11 @@
 #include <KoResourcePaths.h>
 
 #include <KFormat>
+#include <kguiitem.h>
 #include <kstandardguiitem.h>
 
 #include <kis_debug.h>
 
-#include <kis_icon.h>
 #include <KoCompositeOp.h>
 #include <KoColorProfile.h>
 #include <KoColorSpace.h>
@@ -33,20 +33,32 @@
 #include <KoUnit.h>
 #include <KoColorModelStandardIds.h>
 
-#include <kis_fill_painter.h>
 #include <kis_image.h>
-#include <kis_layer.h>
 #include <kis_group_layer.h>
 #include <kis_paint_layer.h>
 #include <kis_paint_device.h>
 #include <kis_painter.h>
 
+#include "KisQStringListFwd.h"
 #include "application/kis_config.h"
 #include "application/ui/orchestration/KisPart.h"
 #include "document/KisDocument.h"
 #include <KisSpinBoxI18nHelper.h>
 #include <KisSqueezedComboBox.h>
+#include "kis_assert.h"
+#include "kis_icon_utils.h"
+#include "kis_properties_configuration.h"
+#include <qassert.h>
+#include <qforeach.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 #include "kis_signals_blocker.h"
+#include "kis_types.h"
+#include "ui/workspace/KisOpenPane.h"
 
 static QString pixelsInchStr()
 {

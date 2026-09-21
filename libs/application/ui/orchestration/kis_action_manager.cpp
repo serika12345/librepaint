@@ -9,11 +9,16 @@
 #include <QList>
 #include <kactioncollection.h>
 
+#include "KoGenericRegistry.h"
 #include "application/ui/orchestration/KisPart.h"
 #include "application/ui/orchestration/kis_action.h"
 #include "kis_action_registry.h"
 #include "application/ui/workspace/KisView.h"
 #include "application/ui/workspace/KisViewManager.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kstandardaction.h"
+#include "operations/kis_operation_configuration_fwd.h"
 #include "selection/kis_selection_manager.h"
 #include "operations/kis_operation_configuration.h"
 #include "operations/kis_operation_ui_factory.h"
@@ -29,6 +34,16 @@
 #include "QFile"
 #include <QDomDocument>
 #include <QDomElement>
+#include <qalgorithms.h>
+#include <qassert.h>
+#include <qforeach.h>
+#include <qkeysequence.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qtdeprecationdefinitions.h>
+#include <qtpreprocessorsupport.h>
 
 class Q_DECL_HIDDEN KisActionManager::Private {
 
