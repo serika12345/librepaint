@@ -34,7 +34,16 @@
 #include <kis_iterator_ng.h>
 #include <kis_sequential_iterator.h>
 #include <kis_fixed_paint_device.h>
+#include "KisTextureMaskInfo.h"
+#include "KisTextureOptionData.h"
 #include "KoMixColorsOp.h"
+#include "kis_cached_paint_device.h"
+#include "kis_types.h"
+#include <qlist.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qrgb.h>
+#include <qtypes.h>
 #include <strokes/KisMaskingBrushCompositeOpBase.h>
 #include <strokes/KisMaskingBrushCompositeOpFactory.h>
 #include <kis_random_accessor_ng.h>

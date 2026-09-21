@@ -4,11 +4,14 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisSpacingOption.h"
+#include "KisCurveOption.h"
+#include "sensors/KisDynamicSensor.h"
 
 #include <kis_properties_configuration.h>
 #include <KisSpacingOptionData.h>
 
 #include <KisPaintOpOptionUtils.h>
+#include <qtypes.h>
 namespace kpou = KisPaintOpOptionUtils;
 
 

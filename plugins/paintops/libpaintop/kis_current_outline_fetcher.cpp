@@ -14,8 +14,13 @@
 #include <brushengine/kis_paintop_settings.h>
 #include "kis_paintop_settings.h"
 #include <QElapsedTimer>
+#include <math.h>
+#include <qpoint.h>
+#include <qscopedpointer.h>
+#include <qtypes.h>
 #include "kis_algebra_2d.h"
 #include "KisOptimizedBrushOutline.h"
+#include "kis_types.h"
 
 #define NOISY_UPDATE_SPEED 50  // Time in ms for outline updates to noisy brushes
 

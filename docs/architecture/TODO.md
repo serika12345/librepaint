@@ -1519,6 +1519,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] 公開ヘッダーと実装を、ブラシ共有ポインター、ブラシ・モデル値型、Qtメタオブジェクトと値型、画面部品、生成器、Lagerの所有ヘッダーへ直接接続する。モデルを`kritapaintopautobrushmodelobjects`、画面と生成UIを`kritapaintopautobrushwidgetobjects`へ移し、モデルはQt Core・ブラシ・画面接続・Lager、画面はQt Core・Widgets・アプリケーションUI・画像・ブラシ・モデル・画面部品を公開利用要件、翻訳・全体基盤・資源・Lagerを実装専用依存として明示する。各対象でMOCを実行し、集約ライブラリーは各オブジェクトを一度だけ取り込む。
 - [x] 専用画面対象、`kritalibpaintop`、既存の同一コンポーネント`KisCurveOptionModelTest`をmacOSで成功させる。自動ブラシ専用CTestがないことを記録し、固定テストは変更しない。
 
+### R2-G19bi libpaintop製品ソースの一括直接取込み
+
+目的は、`plugins/paintops/libpaintop`の製品翻訳単位が、集約対象と別実装ヘッダーから標準・Qt・製品型を推移的に得る状態を一括監査で解消することである。
+
+範囲は同ディレクトリーの`tests/`を除く101翻訳単位と既存の所有対象に固定する。固定CTest、公開API、設定キー、保存形式、描画結果は維持する。
+
+- [x] コンパイルデータベースから101翻訳単位を抽出し、`misc-include-cleaner`を8並列で適用する。40実装を所有ヘッダーへ直接接続し、不要取込みを除去する。
+- [x] 自動修正後の`kritalibpaintop`を構築し、静的検査が誤って除去したLOD戻り値と`dynamic_cast`入力側の完全型3件をコンパイラー診断に基づいて維持する。
+- [x] `libpaintop`の固定CTest 30件と`verify-quick`を成功させ、固定テスト配下の差分をゼロに保つ。
+
 ### R2-G19av 固定CTestの製品利用要件直接化
 
 目的は、固定された既存CTestを、テスト側の探索パスとリンク指定ではなく、それぞれの製品オブジェクト対象が提供する直接利用要件だけで構築できるようにすることである。

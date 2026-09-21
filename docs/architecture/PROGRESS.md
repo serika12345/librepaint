@@ -2,19 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-21 20:31 JST
+- 更新日時: 2026-09-21 20:48 JST
 - 状態: `in_progress`
-- 現在の検査段階: R2-G19bh 自動ブラシ設定画面・モデル依存の直接化
-- 関連TODO: R2-G19aからR2-G19bhまで完了、R2-G19d-a・R2-G19d-bは`planned`
+- 現在の検査段階: R2-G19bi libpaintop製品ソースの一括直接取込み
+- 関連TODO: R2-G19aからR2-G19biまで完了、残るPaintOp・ツール群とR2-G19dは`planned`
 - ブランチ: `issue-44-direct-dependencies`
-- 開始コミット: `0fd98feb31`。作業開始時点の作業ツリーは変更なし。
-- 目的: ブラシ選択画面が使う自動ブラシ設定画面とモデルが、集約ライブラリーの推移的な画像、画面、Lager依存から構築要件を得る状態を解消する。
-- 範囲固定: `plugins/paintops/libpaintop/kis_auto_brush_widget.{h,cpp}`、`KisAutoBrushModel.{h,cpp}`、`forms/wdgautobrush.ui`と同ディレクトリーのCMake対象に限定した。ブラシ生成、設定画面、プリセット設定、描画結果と既存CTestは維持する。
-- 調査: 公開ヘッダーと実装はブラシ共有ポインター、ブラシ・モデル値型、Qtメタオブジェクトと値型、画面部品、生成器、LagerのAPIを推移的な取込みから得ていた。モデル、画面本体、生成UIは集約ライブラリーに残り、専用の構築対象を持たなかった。
-- 完了: モデルを`kritapaintopautobrushmodelobjects`、画面本体と生成UIを`kritapaintopautobrushwidgetobjects`へ移した。モデルはQt Core、ブラシ、画面接続、Lagerを、画面はQt Core・Widgets、アプリケーションUI、画像、ブラシ、モデル、画面部品を公開利用要件として直接接続した。翻訳、全体基盤、資源、Lagerは実装専用に限定し、使わない取込みを除去した。集約ライブラリーは各オブジェクトを一度だけ取り込む。ブラシ生成、保存形式、公開APIは維持する。
-- 検証: `run-shared-test-env`経由で専用画面対象と`kritalibpaintop`を成功させ、macOSパッケージ境界は1,752対象を確認した。公開ヘッダーと実装の`misc-include-cleaner`は警告0件である。既存の自動ブラシ専用CTestはないため、同一コンポーネントの`KisCurveOptionModelTest`を実行して1件成功させた。`verify-quick`は45件の方針試験、責務・公開契約・テスト契約・統治・文書検査を含めて成功した。
-- 残るリスク: 実行検証はmacOS・Qt 6.11.1に限る。Qt 5、Linux、Windows、Androidの実行確認はR2-G19dで扱う。自動ブラシ専用の利用者向けCTestがないため、構築と同一コンポーネントの既存試験で統合を確認した。
-- 次の作業: R2-G19d-aとして、同一リビジョンでQt 5、Linux、Windows、Androidの構成、構築閉包、固定されたブラシプリセット・資源管理CTestの実行可能性を確定する。R2-G19eは固定テストを変更する項目であり、Issue #44の範囲外に維持する。
+- 開始コミット: `2b0d588fab`。作業開始時点の作業ツリーは変更なし。
+- 目的: `plugins/paintops/libpaintop`の製品翻訳単位を一括監査し、集約対象や別実装ヘッダーから偶然得ていた標準・Qt・製品型の所有ヘッダーを直接取り込む。
+- 範囲固定: 同ディレクトリーの`tests/`を除く101翻訳単位をコンパイルデータベースから選び、製品`.cpp`と既存の所有CMake対象だけを対象とした。固定CTest、公開API、設定キー、保存形式、描画結果は維持する。
+- 調査: 8並列の`misc-include-cleaner`で101翻訳単位を走査し、40ファイルに281行の直接取込み追加と19行の不要取込み除去を適用した。初回構築はLOD戻り値と`dynamic_cast`入力側の完全型3件を静的検査が不要と誤判定したため停止した。
+- 完了: 標準コンテナー・関数・数値処理、Qt値型・メタオブジェクト、画像・ブラシ・設定・資源・画面型の所有ヘッダーへ40実装を直接接続した。コンパイラーが要求した`kis_paintop_lod_limitations.h`と2件の`kis_node.h`は維持し、再走査の実診断2件を解消した。既存のruntime、オブジェクト、最終共有ライブラリーの所有関係は維持した。
+- 検証: `kritalibpaintop`の一括構築、同ディレクトリーの固定CTest 30件、`verify-quick`の45件が成功した。macOSパッケージ境界は1,752対象である。再走査の残る3診断は、除去すると実際のコンパイルが失敗する既知の完全型誤判定として分類した。Issue開始コミットから`tests/`・`test/`配下の差分はない。
+- 残るリスク: 実行検証はmacOS・Qt 6.11.1に限る。ヘッダー単独の全件監査、他PaintOp・ツール、下位ライブラリー、プラグイン、Qt 5と各OS構成は未完了である。
+- 次の作業: Issue #44の順序に従い、残るPaintOpとツールの製品翻訳単位をコンパイルデータベースから一括抽出し、低リスクの直接取込み修正をまとめて適用する。モジュール版と静的版は同じ構築単位で検証する。
 - 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
 - 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
 - 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。

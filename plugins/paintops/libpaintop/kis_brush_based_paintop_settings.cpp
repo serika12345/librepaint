@@ -6,14 +6,31 @@
 
 #include "kis_brush_based_paintop_settings.h"
 
+#include <KLocalizedString>
 #include <KisPaintingModeOptionData.h>
 #include <QLineF>
+#include "KisPaintopPropertiesBase.h"
+#include "kis_assert.h"
 #include "kis_brush_option.h"
 #include <kis_paintop_preset.h>
 #include "KoCanvasResourcesIds.h"
+#include "kis_current_outline_fetcher.h"
+#include "kis_global.h"
+#include "kis_outline_generation_policy.h"
+#include "kis_paint_information.h"
+#include "kis_paintop_settings.h"
+#include "kis_pointer_utils.h"
 #include "kis_texture_option.h"
+#include "kis_types.h"
+#include "kis_uniform_paintop_property.h"
 #include <KoResourceCacheInterface.h>
 #include <KisOptimizedBrushOutline.h>
+#include <qlist.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qtypes.h>
 
 struct BrushReader {
     BrushReader(const KisBrushBasedPaintOpSettings *parent)

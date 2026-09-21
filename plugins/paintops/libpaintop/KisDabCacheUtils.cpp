@@ -11,9 +11,11 @@
 #include "kis_paint_device.h"
 #include "kis_fixed_paint_device.h"
 #include "kis_color_source.h"
+#include "kis_types.h"
 
 #include <KisSharpnessOption.h>
 #include <kis_texture_option.h>
+#include <qsize.h>
 
 namespace KisDabCacheUtils
 {

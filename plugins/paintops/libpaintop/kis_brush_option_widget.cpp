@@ -4,21 +4,33 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "kis_brush_option_widget.h"
+#include <functional>
 #include <klocalizedstring.h>
 
-#include <kis_image.h>
 #include <kis_image_config.h>
 
+#include "KisBrushOptionWidgetFlags.h"
 #include "kis_brush_selection_widget.h"
 #include "kis_brush.h"
 
+#include <lager/reader.hpp>
 #include <lager/state.hpp>
+#include <lager/tags.hpp>
+#include <lager/watch.hpp>
+#include <lager/with.hpp>
+#include <optional>
+#include <qcontainerfwd.h>
+#include <qlogging.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include "KisBrushModel.h"
+#include "kis_paintop_option.h"
 #include "kis_precision_option.h"
 
 #include "KisAutoBrushModel.h"
 #include "KisPredefinedBrushModel.h"
 #include "KisTextBrushModel.h"
+#include "kis_types.h"
 
 struct KisBrushOptionWidget::Private
 {

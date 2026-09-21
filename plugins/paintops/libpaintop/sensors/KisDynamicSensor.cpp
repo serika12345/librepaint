@@ -4,12 +4,17 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisDynamicSensor.h"
+#include "KoID.h"
+#include "kis_cubic_curve.h"
 
 #include <QVector>
 
 #include <kis_algebra_2d.h>
 #include <kis_assert.h>
 #include <KisSensorData.h>
+#include <optional>
+#include <qcontainerfwd.h>
+#include <qtypes.h>
 
 KisDynamicSensor::KisDynamicSensor(const KoID &id,
                                      const KisSensorData &data,

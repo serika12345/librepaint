@@ -5,6 +5,9 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisSharpnessOption.h"
+#include "KisCurveOption.h"
+#include "KoColorSpaceConstants.h"
+#include "kis_types.h"
 
 #include <kis_properties_configuration.h>
 #include <kis_paintop.h>
@@ -13,6 +16,9 @@
 #include <KisSharpnessOptionData.h>
 
 #include <KisPaintOpOptionUtils.h>
+#include <qnumeric.h>
+#include <qpaintdevice.h>
+#include <qtypes.h>
 namespace kpou = KisPaintOpOptionUtils;
 
 

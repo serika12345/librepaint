@@ -10,6 +10,7 @@
 #include <QDomDocument>
 #include <QDomElement>
 
+#include "KisPaintopPropertiesBase.h"
 #include "kis_properties_configuration.h"
 #include <kis_brush.h>
 
@@ -17,6 +18,8 @@
 #include <KoCanvasResourcesIds.h>
 #include <KoAbstractGradient.h>
 #include <KoResourceLoadResult.h>
+#include <qlist.h>
+#include <qtpreprocessorsupport.h>
 
 void KisBrushOptionProperties::writeOptionSettingImpl(KisPropertiesConfiguration *setting) const
 {

@@ -4,6 +4,8 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisDynamicSensorDrawingAngle.h"
+#include "kis_cubic_curve.h"
+#include "sensors/KisDynamicSensor.h"
 
 #include <QtMath>
 
@@ -11,6 +13,9 @@
 #include <KisSensorData.h>
 
 #include <kis_paint_information.h>
+#include <math.h>
+#include <optional>
+#include <qtypes.h>
 
 KisDynamicSensorDrawingAngle::KisDynamicSensorDrawingAngle(const KisDrawingAngleSensorData &data, std::optional<KisCubicCurve> curveOverride)
     : KisDynamicSensor(DrawingAngleId, data, curveOverride)

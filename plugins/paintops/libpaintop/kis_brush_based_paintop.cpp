@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_brush_based_paintop.h"
+#include "KisTextureOptionData.h"
 #include "kis_properties_configuration.h"
 #include <brushengine/kis_paintop_settings.h>
 #include "kis_brush_based_paintop_settings.h"
@@ -14,6 +15,8 @@
 #include <kis_lod_transform.h>
 #include "kis_paintop_utils.h"
 #include "kis_paintop_plugin_utils.h"
+#include "kis_spacing_information.h"
+#include "kis_types.h"
 #include <QGlobalStatic>
 #include <kis_brush_registry.h>
 #include <KoResourceLoadResult.h>
@@ -21,6 +24,11 @@
 #include <QDomDocument>
 #include <QDomElement>
 #include <QPainter>
+#include <qassert.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qsize.h>
+#include <qtypes.h>
 
 #ifdef HAVE_THREADED_TEXT_RENDERING_WORKAROUND
 

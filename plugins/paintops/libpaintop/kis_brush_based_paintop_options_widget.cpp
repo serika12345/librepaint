@@ -6,8 +6,14 @@
 
 #include "kis_brush_based_paintop_options_widget.h"
 
+#include "KisBrushOptionWidgetFlags.h"
+#include "kis_brush.h"
 #include "kis_brush_option_widget.h"
+#include "kis_paintop_settings_widget.h"
 #include <klocalizedstring.h>
+#include <lager/reader.hpp>
+#include <qtypes.h>
+#include <qwidget.h>
 
 KisBrushBasedPaintopOptionWidget::KisBrushBasedPaintopOptionWidget(KisBrushOptionWidgetFlags flags, QWidget* parent)
     : KisPaintOpSettingsWidget(parent)

@@ -5,6 +5,8 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisRotationOption.h"
+#include "KisCurveOption.h"
+#include "kis_global.h"
 
 #include <kis_properties_configuration.h>
 #include <kis_paint_information.h>
@@ -12,6 +14,8 @@
 #include <kis_paintop.h>
 
 #include <KisPaintOpOptionUtils.h>
+#include <math.h>
+#include <qtypes.h>
 namespace kpou = KisPaintOpOptionUtils;
 
 

@@ -7,7 +7,9 @@
 #include "kis_dab_cache_base.h"
 
 #include <KoColor.h>
+#include "KisDabCacheUtils.h"
 #include "kis_color_source.h"
+#include "kis_dab_shape.h"
 #include "kis_paint_device.h"
 #include "kis_brush.h"
 #include <KisMirrorOption.h>
@@ -16,6 +18,10 @@
 #include <kis_precision_option.h>
 #include <kis_fixed_paint_device.h>
 #include <brushengine/kis_paintop.h>
+#include <math.h>
+#include <qminmax.h>
+#include <qnumeric.h>
+#include <qtypes.h>
 
 struct PrecisionValues {
     qreal angle;

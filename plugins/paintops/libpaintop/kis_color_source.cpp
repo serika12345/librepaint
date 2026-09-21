@@ -5,8 +5,12 @@
  */
 
 #include "kis_color_source.h"
+#include <cstring>
 #include <kis_paint_device.h>
 
+#include <qassert.h>
+#include <qtpreprocessorsupport.h>
+#include <qtypes.h>
 #include <resources/KoAbstractGradient.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorTransformation.h>
@@ -14,6 +18,7 @@
 #include <kis_datamanager.h>
 #include <kis_fill_painter.h>
 #include "kis_iterator_ng.h"
+#include "kis_types.h"
 #include <kis_random_source.h>
 #include <brushengine/kis_paint_information.h>
 

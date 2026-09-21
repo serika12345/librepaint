@@ -7,7 +7,7 @@
 
 #include "kis_custom_brush_widget.h"
 
-#include <kis_debug.h>
+#include <kguiitem.h>
 #include <QImage>
 #include <QCheckBox>
 #include <QUuid>
@@ -18,11 +18,14 @@
 
 #include <KoResourcePaths.h>
 
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KoID.h"
+#include "kis_brush.h"
 #include "kis_image.h"
 #include "kis_paint_device.h"
 #include "kis_gbr_brush.h"
 #include "kis_imagepipe_brush.h"
-#include <kis_fixed_paint_device.h>
 
 #include "KisBrushServerProvider.h"
 #include "kis_paint_layer.h"
@@ -31,9 +34,17 @@
 #include <KoProperties.h>
 #include "kis_iterator_ng.h"
 #include "KisImageBarrierLock.h"
+#include "kis_types.h"
 #include <KisResourceUserOperations.h>
 
 #include <kstandardguiitem.h>
+#include <qforeach.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qtmetamacros.h>
+#include <qtypes.h>
+#include <qwidget.h>
 
 KisCustomBrushWidget::KisCustomBrushWidget(QWidget *parent, const QString& caption, KisImageWSP image)
     : KisWdgCustomBrush(parent)
