@@ -1243,6 +1243,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] 公開利用要件を曲線データと範囲モデル境界へ接続し、実装専用依存を非公開化して未使用の依存と輸出定義を除去する。
 - [x] 対象構築、`kritalibpaintop`、既存の曲線モデル・曲線データ契約、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
 
+### R2-G19af センサーモデル依存の直接化
+
+目的は、長さ付き入力と描画角度入力の画面モデルが、曲線オプション全体や画像・翻訳依存の推移的取込みから型と状態変換を得る状態を解消し、センサー設定画面の更新結果を維持することである。
+
+範囲は`KisSensorWithLengthModel.{h,cpp}`、`KisDrawingAngleSensorModel.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopsensormodelobjects`に固定する。既存テストソース、公開API、長さ・周期、角度反転・固定角度・角補完状態を維持する。
+
+- [x] 両モデルの公開ヘッダーと実装をQObject、Qt値型、Lagerカーソル・Qt連携、センサーデータの所有ヘッダーへ直接接続する。
+- [x] 公開利用要件をセンサーデータへ接続し、角度反転専用依存を非公開化して未使用の依存と輸出定義を除去する。
+- [x] 対象構築、`kritalibpaintop`、長さ付き・描画角度モデル契約、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない

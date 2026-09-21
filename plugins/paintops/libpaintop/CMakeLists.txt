@@ -725,26 +725,22 @@ add_library(kritapaintopsensormodelobjects OBJECT
     KisSensorWithLengthModel.cpp
 )
 target_compile_definitions(kritapaintopsensormodelobjects PRIVATE
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
 )
 target_include_directories(kritapaintopsensormodelobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
         ${CMAKE_SOURCE_DIR}/libs/global
         ${CMAKE_BINARY_DIR}/libs/global
-        ${CMAKE_SOURCE_DIR}/libs/image
-        ${CMAKE_BINARY_DIR}/libs/image
 )
 target_link_libraries(kritapaintopsensormodelobjects
     PUBLIC
-        Boost::boost
-        Eigen3::Eigen
-        KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
-        Qt${QT_MAJOR_VERSION}::Xml
+        kritapaintopsensordataobjects
         lager
+    PRIVATE
         zug
 )
 set_target_properties(kritapaintopsensormodelobjects PROPERTIES

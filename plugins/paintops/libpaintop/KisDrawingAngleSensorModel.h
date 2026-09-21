@@ -6,13 +6,14 @@
 #ifndef KISDRAWINGANGLESENSORMODEL_H
 #define KISDRAWINGANGLESENSORMODEL_H
 
-#include "kritapaintop_export.h"
+#include <QObject>
+#include <QtCore/qtypes.h>
 
-#include <KisCurveOptionData.h>
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>
 
-#include <QObject>
+#include "KisSensorData.h"
+#include "kritapaintop_export.h"
 
 class PAINTOP_EXPORT KisDrawingAngleSensorModel : public QObject
 {
