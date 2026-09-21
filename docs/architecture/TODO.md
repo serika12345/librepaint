@@ -1161,7 +1161,7 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 
 - [x] LOD実装を翻訳とグローバルIDの所有ヘッダーへ直接接続し、対象の公開・実装利用要件を分離する。
 - [x] `KisTextureOptionLodContractTest`が直接読む埋込みテクスチャ、LOD、外部ライブラリー要件を同試験のCMake定義へ明示する。
-- [ ] 対象構築、`kritalibpaintop`、既存の`KisTextureOptionLodContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+- [x] 対象構築、`kritalibpaintop`、既存の`KisTextureOptionLodContractTest`、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
 
 ### R2-G20 矩形選択による自由描画クリップ契約
 

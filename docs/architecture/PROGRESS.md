@@ -2,19 +2,18 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-21 12:30 JST
-- 状態: `paused`
-- 現在の検査段階: R2-G19w テクスチャLOD制約実装依存の直接化（空き容量回復待ち）
-- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l・R2-G19m・R2-G19n・R2-G19o・R2-G19p・R2-G19q・R2-G19r・R2-G19s・R2-G19t・R2-G19u・R2-G19v完了、R2-G19wは`in_progress`、R2-G19d-a・R2-G19d-b・R2-G19eは`planned`
+- 更新日時: 2026-09-21 14:52 JST
+- 状態: `in_progress`
+- 現在の検査段階: R2-G19e ブラシ設定試験の偽設定ストア撤去
+- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l・R2-G19m・R2-G19n・R2-G19o・R2-G19p・R2-G19q・R2-G19r・R2-G19s・R2-G19t・R2-G19u・R2-G19v・R2-G19w完了、R2-G19eは`in_progress`、R2-G19d-a・R2-G19d-bは`planned`
 - ブランチ: `issue-44-direct-dependencies`
 - 開始コミット: `57cb5ef27d`。作業開始時点の作業ツリーは変更なし。
-- 目的: テクスチャ設定のLOD制約実装が、翻訳、グローバルID、画像・資源ヘッダーを推移的取込みから得る状態を解消し、有効時だけ`texture-pattern`制約を返す即時プレビュー契約を維持する。
-- 範囲固定: `plugins/paintops/libpaintop/KisTextureOptionLodLimitations.cpp`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintoptexturelodobjects`、試験自身の直接構築要件を記録する`plugins/paintops/libpaintop/tests/CMakeLists.txt`を変更する。`KisTextureOptionData.h`と`KisTextureOptionLodContractTest.cpp`は閲覧・実行のみとし、公開データ、制約ID、翻訳済み名称、試験入力と期待値を維持する。
-- 調査: `direnv exec . build-incremental native plan kritapaintoptexturelodobjects`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。Ninja command closureは1件、変更前のFile API直接構築依存は`kritaglobalidobjects`である。`misc-include-cleaner`の初回実行は`i18nc`の直接ヘッダー不足を1件報告した。
-- 完了: 実装は翻訳とグローバルIDを所有ヘッダーから直接得る。公開データが必要とするBoost・Qt Core・Qt Guiを公開利用要件として維持し、全体基盤、画像、brushengine、色素、資源、翻訳、グローバルIDを実装専用へ分離した。製品対象の公開インクルード縮小後にLOD契約試験が埋込みテクスチャの`kis_types.h`を取得できない診断を確認し、同試験の画像・brushengine・色素・資源ヘッダーとBoost・翻訳・Qt要件をCMakeへ明示した。試験ソースは変更していない。取込み完全性の診断は0件である。
-- 検証: 既存`build/tdd-macos`に記録されたNix CMake 4.3.4、Clang 21.1.8、Ninja 1.13.2で`kritapaintoptexturelodobjects`と`kritalibpaintop`、パッケージ境界1723対象、`KisTextureOptionLodContractTest`の直接実行とCTest 1/1を成功させた。清潔な作業ツリーでの`direnv exec . ./scripts/verify-quick`を再試行したが、Nixシェル再評価が空き領域不足で開始できなかった。
-- 残るリスク: 契約試験の実設定への統合はR2-G19eが所有する。実行検証はmacOS・Qt 6.11.1であり、他プラットフォームはIssue #44のプラットフォーム監査で扱う。端末の空き容量を回復して高速検査を実行するまでR2-G19wは完了にしない。
-- 再開条件と次の作業: 端末の空き容量を回復した後に`direnv exec . ./scripts/verify-quick`、最終差分検査、Issue #44の記録を実行し、R2-G19wを完了にする。続けて`kritapaintoptextureoptionioobjects`を監査する。
+- 目的: ブラシ設定試験の偽設定ストアを、実`KisPropertiesConfiguration`による保存・復元または公開操作の結果へ置き換え、利用者が読み戻す設定とブラシ挙動の契約だけを維持する。
+- 範囲固定: `KisAirbrushOptionDataContractTest.cpp`、`KisColorOptionDataContractTest.cpp`、`KisColorSourceOptionDataContractTest.cpp`、`KisCompositeOpOptionDataContractTest.cpp`、`KisFilterOptionDataContractTest.cpp`、`KisPaintingModeOptionDataContractTest.cpp`、`KisPrecisionOptionContractTest.cpp`、`KisTextureOptionDataIOContractTest.cpp`を対象に限定する。対応する試験CMake定義と、実設定の保存・復元を支える最小の製品コードだけを変更候補とし、公開設定キーと利用者向け結果を維持する。
+- 完了: R2-G19wでは`KisTextureOptionLodLimitations.cpp`が翻訳とグローバルIDの所有ヘッダーを直接取り込み、`kritapaintoptexturelodobjects`と`KisTextureOptionLodContractTest`のCMake利用要件を公開・実装・試験で分離した。テクスチャ有効時に`texture-pattern`制約を返す即時プレビュー契約、公開データ、制約ID、翻訳済み名称、試験入力と期待値は維持した。
+- 検証: 既存`build/tdd-macos`で`kritapaintoptexturelodobjects`、`kritalibpaintop`、`KisTextureOptionLodContractTest`の直接実行とCTest 1/1、パッケージ境界1723対象が成功した。GC後に行った一回の`direnv exec . ./scripts/verify-quick`は、45個の方針試験、10責務、533公開ヘッダー、172プラグイン登録、文書・リンク・図を含めて成功した。
+- 残るリスク: R2-G19eの8試験は、実設定を使えること、各補助が製品ロジック再実装ではないこと、設定キーと復元結果が利用者向け契約となることを個別に確認する必要がある。実行検証はmacOS・Qt 6.11.1であり、他プラットフォームはR2-G19dで扱う。
+- 次の作業: 8試験と直接CMake依存を読み、Mock、Fake、Stub、試験専用派生、製品メソッド再定義、設定ストアを分類する。ローカルflakeの再評価は、対象変更後の検査段階ごとに一回に限定する。
 - 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
 - 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
 - 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。
