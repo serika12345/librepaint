@@ -1313,6 +1313,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] 2翻訳単位を`kritapaintopstandardoptionobjects`へ分離し、公開利用要件をBoost、翻訳、Qt Core、ID、曲線・センサー・サイズ設定値へ、実装専用依存を全体基盤、画像、設定画面、Lagerへ分離する。集約ライブラリーは同じオブジェクトを一度だけ取り込む。
 - [x] 対象構築、`kritalibpaintop`、標準設定値の保存互換性CTest、設定画面生成ユーティリティCTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
 
+### R2-G19am 標準オプション設定画面依存の直接化
+
+目的は、標準ブラシオプションのサイズ・明度強度設定画面が、集約ライブラリーから偶然得るQtメタオブジェクト、Lagerカーソル、曲線設定値、設定画面基底型、画像LODの依存とMOC処理に依存する状態を解消することである。
+
+範囲は`plugins/paintops/libpaintop/KisSizeOptionWidget.{h,cpp}`、`KisLightnessStrengthOptionWidget.{h,cpp}`、および`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopstandardoptionwidgetobjects`に固定する。既存テストソース、公開API、プリセット設定キー、サイズLOD、明度モード時の画面状態、描画結果は維持する。
+
+- [x] 公開ヘッダーと実装を、Qtメタオブジェクト・スコープポインター、標準関数、Lager、曲線・サイズ・標準設定値、設定画面基底型・カテゴリ、LOD、Qt画面部品・配置・整列、翻訳、公開記号の所有ヘッダーへ直接接続する。
+- [x] 2翻訳単位を`kritapaintopstandardoptionwidgetobjects`へ分離し、公開利用要件をQt Core、曲線・サイズ・標準設定値、設定画面、Lagerへ、実装専用依存を翻訳、Qt Widgets、全体基盤、画像へ分離する。MOCは設定画面オブジェクトの所有対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 対象構築、`kritalibpaintop`、標準設定値の保存互換性CTest、設定画面生成ユーティリティCTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない

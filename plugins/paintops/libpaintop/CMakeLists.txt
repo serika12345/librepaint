@@ -157,6 +157,8 @@ list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     KisSensorData.cpp
     KisSharpnessOptionModel.cpp
     KisSpacingOptionModel.cpp
+    KisLightnessStrengthOptionWidget.cpp
+    KisSizeOptionWidget.cpp
     KisStandardOptionData.cpp
     KisStandardOptions.cpp
     KisTextureOptionData.cpp
@@ -381,6 +383,40 @@ target_link_libraries(kritapaintopstandardoptionobjects
 )
 set_target_properties(kritapaintopstandardoptionobjects PROPERTIES
     AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopstandardoptionwidgetobjects OBJECT
+    KisLightnessStrengthOptionWidget.cpp
+    KisSizeOptionWidget.cpp
+)
+target_compile_definitions(kritapaintopstandardoptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopstandardoptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopstandardoptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritapaintopcurveoptiondataobjects
+        kritapaintopsizeoptiondataobjects
+        kritapaintopstandardoptionobjects
+        kritatoolsui
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritaglobal
+        kritaimage
+)
+set_target_properties(kritapaintopstandardoptionwidgetobjects PROPERTIES
+    AUTOMOC ON
     POSITION_INDEPENDENT_CODE ON
 )
 
@@ -1124,6 +1160,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopsensormodelobjects>
     $<TARGET_OBJECTS:kritapaintopsensordataobjects>
     $<TARGET_OBJECTS:kritapaintopstandardoptionobjects>
+    $<TARGET_OBJECTS:kritapaintopstandardoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintoptextureoptionioobjects>
     $<TARGET_OBJECTS:kritapaintoptextureoptionmodelobjects>
 )

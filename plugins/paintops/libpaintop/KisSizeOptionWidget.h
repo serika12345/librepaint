@@ -6,8 +6,16 @@
 #ifndef KISSIZEOPTIONWIDGET_H
 #define KISSIZEOPTIONWIDGET_H
 
+#include <QScopedPointer>
+#include <QtCore/qtmetamacros.h>
+
+#include <lager/cursor.hpp>
+
 #include <KisCurveOptionWidget.h>
 #include <KisSizeOptionData.h>
+#include <kis_paintop_option.h>
+
+#include <kritapaintop_export.h>
 
 class PAINTOP_EXPORT KisSizeOptionWidget : public KisCurveOptionWidget
 {

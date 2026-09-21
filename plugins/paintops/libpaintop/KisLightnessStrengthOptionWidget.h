@@ -6,7 +6,15 @@
 #ifndef KISLIGHTNESSSTRENGTHOPTIONWIDGET_H
 #define KISLIGHTNESSSTRENGTHOPTIONWIDGET_H
 
+#include <QScopedPointer>
+#include <QtCore/qtmetamacros.h>
+
+#include <lager/cursor.hpp>
+#include <lager/reader.hpp>
+
 #include <KisCurveOptionWidget.h>
+
+#include <kritapaintop_export.h>
 
 struct KisLightnessStrengthOptionData;
 
