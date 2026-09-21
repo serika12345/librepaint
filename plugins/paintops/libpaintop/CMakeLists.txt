@@ -22,7 +22,6 @@ set(kritalibpaintop_LIB_SRCS
     KisCompositeOpOptionModel.cpp
     KisPaintingModeOptionData.cpp
     KisPaintingModeOptionModel.cpp
-    KisPaintingModeOptionWidget.cpp
     KisColorSourceOptionData.cpp
     KisColorSourceOptionModel.cpp
     KisLightnessStrengthOptionWidget.cpp
@@ -153,7 +152,6 @@ ki18n_wrap_ui(kritalibpaintop_LIB_SRCS
     forms/wdgcustombrush.ui
     forms/wdgclipboardbrush.ui
     forms/wdgtextbrush.ui
-    forms/wdgincremental.ui
     forms/wdgfilteroption.ui
     forms/wdgcoloroptions.ui
     forms/wdgbrushchooser.ui
@@ -1022,16 +1020,39 @@ set_target_properties(kritapaintopmirroroptionwidgetobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
-# These models bind preset option data to the settings UI. Keeping their
-# compilation separate lets focused option-data changes avoid the remaining
-# settings widgets while preserving the objects in kritalibpaintop.
-add_library(kritapaintopoptionmodelobjects OBJECT
+add_library(kritapaintoppaintingmodeoptionmodelobjects OBJECT
     KisPaintingModeOptionModel.cpp
 )
-target_compile_definitions(kritapaintopoptionmodelobjects PRIVATE
+target_compile_definitions(kritapaintoppaintingmodeoptionmodelobjects PRIVATE
     kritalibpaintop_EXPORTS
 )
-target_include_directories(kritapaintopoptionmodelobjects
+target_include_directories(kritapaintoppaintingmodeoptionmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintoppaintingmodeoptionmodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritapaintoppaintingmodeoptiondataobjects
+        kritawidgets
+        lager
+)
+set_target_properties(kritapaintoppaintingmodeoptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintoppaintingmodeoptionwidgetobjects OBJECT
+    KisPaintingModeOptionWidget.cpp
+)
+ki18n_wrap_ui(kritapaintoppaintingmodeoptionwidgetobjects
+    forms/wdgincremental.ui
+)
+target_compile_definitions(kritapaintoppaintingmodeoptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintoppaintingmodeoptionwidgetobjects
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
@@ -1039,17 +1060,19 @@ target_include_directories(kritapaintopoptionmodelobjects
         $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
         $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
 )
-target_link_libraries(kritapaintopoptionmodelobjects
+target_link_libraries(kritapaintoppaintingmodeoptionwidgetobjects
     PUBLIC
         Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
         kritapaintoppaintingmodeoptiondataobjects
-        kritapaintopscatteroptiondataobjects
-        kritapaintopsharpnessoptiondataobjects
-        kritapaintopspacingoptiondataobjects
+        kritapaintoppaintingmodeoptionmodelobjects
+        kritatoolsui
         kritawidgets
         lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
 )
-set_target_properties(kritapaintopoptionmodelobjects PROPERTIES
+set_target_properties(kritapaintoppaintingmodeoptionwidgetobjects PROPERTIES
     AUTOMOC ON
     POSITION_INDEPENDENT_CODE ON
 )
@@ -1598,13 +1621,14 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopcurverangemodelobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptionwidgetobjects>
+    $<TARGET_OBJECTS:kritapaintoppaintingmodeoptionmodelobjects>
+    $<TARGET_OBJECTS:kritapaintoppaintingmodeoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopcolorsourceoptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopcolorsourceoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopcompositeopoptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopcompositeopoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopairbrushoptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopairbrushoptionwidgetobjects>
-    $<TARGET_OBJECTS:kritapaintopoptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopsharpnessoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopscatteroptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopspacingoptionwidgetobjects>

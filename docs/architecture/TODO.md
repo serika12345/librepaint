@@ -1459,7 +1459,17 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 
 範囲は`plugins/paintops/libpaintop/KisPaintingModeOptionWidget.{h,cpp}`、`KisPaintingModeOptionModel.{h,cpp}`とその直接の所有CMake対象に固定する。描画方法の選択、設定画面、プリセット設定、描画結果と既存CTestは維持する。
 
-- [ ] 公開ヘッダーと実装の直接取込み、直接構築・リンク要件、既存の描画方法入力の利用者向け契約を監査する。
+- [x] 公開ヘッダーと実装を、スマートポインター、標準関数、Qt画面部品・文字列・メタオブジェクト、設定型、翻訳、描画方法データとモデル、画面接続、Lagerの所有ヘッダーへ直接接続する。
+- [x] 描画方法モデルを`kritapaintoppaintingmodeoptionmodelobjects`、画面を`kritapaintoppaintingmodeoptionwidgetobjects`へ分け、画面フォームの生成を画面対象へ移す。モデルはQt Core、描画方法データ、画面接続、Lagerを、画面はQt Core・Widgets、描画方法データとモデル、画面基底型、画面接続、Lagerを公開利用要件、翻訳を実装専用依存として明示する。MOCは各専用対象で実行し、集約ライブラリーは両オブジェクトを一度だけ取り込む。
+- [x] 専用画面対象、`kritalibpaintop`、既存の描画方法設定データ契約CTest、`verify-quick`をmacOSで成功させる。
+
+### R2-G19bc フィルター設定画面依存の直接化
+
+目的は、ブラシ設定画面が使うフィルター設定実装を、集約ライブラリーの推移的なQt画面部品、フィルターモデル、設定依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisFilterOptionWidget.{h,cpp}`とその直接の所有CMake対象に固定する。フィルターの選択、設定画面、プリセット設定、描画結果と既存CTestは維持する。
+
+- [ ] 公開ヘッダーと実装の直接取込み、直接構築・リンク要件、既存のフィルター入力の利用者向け契約を監査する。
 
 ### R2-G19av 固定CTestの製品利用要件直接化
 

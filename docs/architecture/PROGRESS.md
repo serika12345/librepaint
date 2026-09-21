@@ -2,19 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-21 19:20 JST
+- 更新日時: 2026-09-21 19:26 JST
 - 状態: `in_progress`
-- 現在の検査段階: R2-G19ba 色源設定画面依存の直接化
-- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l・R2-G19m・R2-G19n・R2-G19o・R2-G19p・R2-G19q・R2-G19r・R2-G19s・R2-G19t・R2-G19u・R2-G19v・R2-G19w・R2-G19x・R2-G19y・R2-G19z・R2-G19aa・R2-G19ab・R2-G19ac・R2-G19ad・R2-G19ae・R2-G19af・R2-G19ag・R2-G19ah・R2-G19ai・R2-G19aj・R2-G19ak・R2-G19al・R2-G19am・R2-G19an・R2-G19ao・R2-G19ap・R2-G19aq・R2-G19ar・R2-G19as・R2-G19at・R2-G19au・R2-G19av・R2-G19aw・R2-G19ax・R2-G19ay・R2-G19az・R2-G19ba完了、R2-G19bb・R2-G19e・R2-G19d-a・R2-G19d-bは`planned`
+- 現在の検査段階: R2-G19bb 描画方法設定画面依存の直接化
+- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l・R2-G19m・R2-G19n・R2-G19o・R2-G19p・R2-G19q・R2-G19r・R2-G19s・R2-G19t・R2-G19u・R2-G19v・R2-G19w・R2-G19x・R2-G19y・R2-G19z・R2-G19aa・R2-G19ab・R2-G19ac・R2-G19ad・R2-G19ae・R2-G19af・R2-G19ag・R2-G19ah・R2-G19ai・R2-G19aj・R2-G19ak・R2-G19al・R2-G19am・R2-G19an・R2-G19ao・R2-G19ap・R2-G19aq・R2-G19ar・R2-G19as・R2-G19at・R2-G19au・R2-G19av・R2-G19aw・R2-G19ax・R2-G19ay・R2-G19az・R2-G19ba・R2-G19bb完了、R2-G19bc・R2-G19e・R2-G19d-a・R2-G19d-bは`planned`
 - ブランチ: `issue-44-direct-dependencies`
-- 開始コミット: `52ee1884a4`。作業開始時点の作業ツリーは変更なし。
-- 目的: 色源設定画面と状態モデルが、集約ライブラリーと無関係な設定モデルから偶然得るQt画面部品、画面基底型、色源識別子、MOC処理とリンク実装に依存する状態を解消する。
-- 範囲固定: `plugins/paintops/libpaintop/KisColorSourceOptionWidget.{h,cpp}`、`KisColorSourceOptionModel.{h,cpp}`と同ディレクトリーのCMake対象に限定した。色源の選択、設定画面、プリセット設定、描画結果と既存CTestは変更しない。
-- 調査: 初期の`misc-include-cleaner`は公開ヘッダー、画面実装、モデル公開ヘッダーで計10件の直接取込み不足を報告した。画面実装は集約ライブラリーだけに収容され、モデルは異なる設定モデルと単一のオブジェクト対象に束ねられていた。
-- 完了: 公開ヘッダーと実装をスマートポインター、標準関数、Qt画面部品・反復マクロ・メタオブジェクト、設定型、翻訳、色源識別子、色源データとモデル、画面接続、Lagerの所有ヘッダーへ直接接続した。モデルを`kritapaintopcolorsourceoptionmodelobjects`、画面を`kritapaintopcolorsourceoptionwidgetobjects`へ分けた。モデルはQt Core、色源データ、Lagerを、画面はQt Core・Widgets、色源データとモデル、画面基底型、Lagerを公開利用要件、翻訳と画面接続を実装専用依存として明示する。MOCは各専用対象で実行し、集約ライブラリーは両オブジェクトを一度だけ取り込む。既存の`KisColorSourceOptionDataContractTest`が識別子と保存値の読み書きを維持する。
-- 検証: `run-shared-test-env`経由で専用画面対象と`kritalibpaintop`を成功させ、macOSパッケージ境界は1,745対象を確認した。公開ヘッダーと実装の`misc-include-cleaner`は警告0件である。Ninja閉包は専用画面対象1,258工程、最終ライブラリー2,150工程である。既存の`KisColorSourceOptionDataContractTest`は1件成功した。`verify-quick`は45件の方針試験、責務・公開契約・テスト契約・統治・文書検査を含めて成功した。
+- 開始コミット: `abce4eb43f`。作業開始時点の作業ツリーは変更なし。
+- 目的: 描画方法設定画面と状態モデルが、集約ライブラリーと無関係な設定モデルから偶然得るQt画面部品、画面基底型、画面接続状態、MOC処理とリンク実装に依存する状態を解消する。
+- 範囲固定: `plugins/paintops/libpaintop/KisPaintingModeOptionWidget.{h,cpp}`、`KisPaintingModeOptionModel.{h,cpp}`と同ディレクトリーのCMake対象に限定した。描画方法の選択、設定画面、プリセット設定、描画結果と既存CTestは変更しない。
+- 調査: 初期の`misc-include-cleaner`は公開ヘッダー、画面実装、モデル公開ヘッダーで計18件の直接取込み不足を報告した。画面実装は集約ライブラリーだけに収容され、モデルは異なる設定モデルと単一のオブジェクト対象に束ねられていた。
+- 完了: 公開ヘッダーと実装をスマートポインター、標準関数、Qt画面部品・文字列・メタオブジェクト、設定型、翻訳、描画方法データとモデル、画面接続、Lagerの所有ヘッダーへ直接接続した。モデルを`kritapaintoppaintingmodeoptionmodelobjects`、画面を`kritapaintoppaintingmodeoptionwidgetobjects`へ分け、画面フォームの生成も画面対象へ移した。モデルはQt Core、描画方法データ、画面接続、Lagerを、画面はQt Core・Widgets、描画方法データとモデル、画面基底型、画面接続、Lagerを公開利用要件、翻訳を実装専用依存として明示する。MOCは各専用対象で実行し、不要になった複数モデル用対象を削除した。集約ライブラリーは両オブジェクトを一度だけ取り込む。既存の`KisPaintingModeOptionDataContractTest`が保存値の読み書きを維持する。
+- 検証: `run-shared-test-env`経由で専用画面対象と`kritalibpaintop`を成功させ、macOSパッケージ境界は1,746対象を確認した。公開ヘッダーと実装の`misc-include-cleaner`は警告0件である。Ninja閉包は専用画面対象1,259工程、最終ライブラリー2,152工程である。既存の`KisPaintingModeOptionDataContractTest`は1件成功した。`verify-quick`は45件の方針試験、責務・公開契約・テスト契約・統治・文書検査を含めて成功した。
 - 残るリスク: 実行検証はmacOS・Qt 6.11.1に限る。Qt 5、Linux、Windows、Androidの実行確認はR2-G19dで扱う。残る設定画面実装は未監査である。
-- 次の作業: R2-G19baを一変更化し、描画方法設定画面を次の有限な監査単位として確定する。
+- 次の作業: R2-G19bbを一変更化し、フィルター設定画面を次の有限な監査単位として確定する。
 - 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
 - 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
 - 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。
