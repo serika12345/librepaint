@@ -1293,6 +1293,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] 1実装を`kritapaintopfilteroptionmodelobjects`へ分離し、公開利用要件を設定データ、Qt Core、Lagerへ、実装専用依存を`kritaimage`と`kritaresources`へ分離する。集約ライブラリーは資源サービスを直接リンクして同じオブジェクトを取り込む。
 - [x] 対象構築、`kritalibpaintop`、既存のフィルター設定CTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
 
+### R2-G19ak テクスチャオプションモデル依存の直接化
+
+目的は、テクスチャ設定モデルと埋込みテクスチャ値型が、実行対象と集約ライブラリーの推移的な資源・色素依存とソース取り込みから得る状態を解消することである。
+
+範囲は`plugins/paintops/libpaintop/KisTextureOptionModel.h`、`KisEmbeddedTextureData.cpp`、および`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintoptextureoptionmodelobjects`と`kritapaintopembeddedtexturedataobjects`に固定する。既存テストソース、公開API、テクスチャ設定、リンク済み・埋込みパターン復元、LOD、描画結果は維持する。
+
+- [x] 公開ヘッダーをQt実数型と資源インターフェースの所有ヘッダーへ直接接続し、実装をその設定データ、資源、色素、Lager、検査マクロの所有者へ接続する。
+- [x] 埋込み値型を独立したオブジェクト対象へ移し、テクスチャモデルの公開・実装利用要件と最終ライブラリーの色素・資源リンクを直接列挙する。旧ソースは集約ライブラリーから除去して、同じ定義を一度だけ取り込む。
+- [x] 両対象、`kritalibpaintop`、テクスチャ設定・LOD・リンク済みパターンの既存CTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない

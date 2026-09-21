@@ -95,7 +95,6 @@ set(kritapaintopruntime_LIB_SRCS
     KisCurveOptionDataUniformProperty.cpp
     KisDabCacheUtils.cpp
     KisDarkenOption.cpp
-    KisEmbeddedTextureData.cpp
     KisFlowOpacityOption.cpp
     KisHSVOption.cpp
     KisMirrorOption.cpp
@@ -128,6 +127,7 @@ set(kritapaintopruntime_OBJECTS
     $<TARGET_OBJECTS:kritapaintopcolorsourceoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopcurveoptiondatacommonobjects>
     $<TARGET_OBJECTS:kritapaintopcurveoptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopembeddedtexturedataobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopsharpnessoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopscatteroptiondataobjects>
@@ -148,6 +148,7 @@ list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     KisColorSourceOptionModel.cpp
     KisCompositeOpOptionModel.cpp
     KisDrawingAngleSensorModel.cpp
+    KisEmbeddedTextureData.cpp
     KisFilterOptionData.cpp
     KisFilterOptionModel.cpp
     KisPaintingModeOptionData.cpp
@@ -157,6 +158,7 @@ list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     KisSharpnessOptionModel.cpp
     KisSpacingOptionModel.cpp
     KisTextureOptionData.cpp
+    KisTextureOptionModel.cpp
 )
 
 ki18n_wrap_ui(kritalibpaintop_LIB_SRCS
@@ -879,6 +881,59 @@ set_target_properties(kritapaintoptextureoptionioobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopembeddedtexturedataobjects OBJECT
+    KisEmbeddedTextureData.cpp
+)
+target_compile_definitions(kritapaintopembeddedtexturedataobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopembeddedtexturedataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintopembeddedtexturedataobjects
+    PUBLIC
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+    PRIVATE
+        kritapigment
+        kritaresources
+)
+set_target_properties(kritapaintopembeddedtexturedataobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintoptextureoptionmodelobjects OBJECT
+    KisTextureOptionModel.cpp
+)
+target_compile_definitions(kritapaintoptextureoptionmodelobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintoptextureoptionmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintoptextureoptionmodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritapaintoptextureoptionioobjects
+        kritaresources
+        lager
+    PRIVATE
+        kritapaintopembeddedtexturedataobjects
+        kritapigment
+)
+set_target_properties(kritapaintoptextureoptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapaintopsensordataobjects OBJECT
     KisSensorData.cpp
 )
@@ -1032,10 +1087,11 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopsensormodelobjects>
     $<TARGET_OBJECTS:kritapaintopsensordataobjects>
     $<TARGET_OBJECTS:kritapaintoptextureoptionioobjects>
+    $<TARGET_OBJECTS:kritapaintoptextureoptionmodelobjects>
 )
 generate_export_header(kritalibpaintop BASE_NAME kritapaintop EXPORT_MACRO_NAME PAINTOP_EXPORT)
 
-target_link_libraries(kritalibpaintop kritaapplicationui kritatoolsui kritalibbrush kritapainting kritaimage kritaresources kritawidgets kritawidgetutils)
+target_link_libraries(kritalibpaintop kritaapplicationui kritatoolsui kritalibbrush kritapainting kritaimage kritapigment kritaresources kritawidgets kritawidgetutils)
 target_link_libraries(kritalibpaintop LINK_INTERFACE_LIBRARIES kritaapplicationui kritatoolsui kritalibbrush kritapainting)
 
 set_target_properties(kritalibpaintop PROPERTIES

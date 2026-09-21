@@ -7,9 +7,12 @@
 #define KISTEXTUREOPTIONMODEL_H
 
 #include <QObject>
+#include <QtCore/qtypes.h>
 
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>
+
+#include <KisResourcesInterface.h>
 
 #include "KisTextureOptionData.h"
 #include "KoResourceLoadResult.h"
