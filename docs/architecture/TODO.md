@@ -1333,6 +1333,24 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] 実装と生成UIを`kritapaintopcurveoptionwidgetobjects`へ分離し、公開利用要件をQt、曲線境界、設定画面、Lagerへ、実装専用依存を翻訳、全体基盤、画像、曲線モデル、画面接続補助の具体的所有者、部品ユーティリティへ分離する。MOCとUI生成を専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
 - [x] 対象構築、`kritalibpaintop`、曲線オプションモデルCTest、設定画面生成ユーティリティCTestをmacOSで成功させ、`verify-quick`と後続の有限な監査単位をPROGRESSへ記録する。
 
+### R2-G19ao 曲線範囲モデル依存の直接化
+
+目的は、曲線範囲モデルが、集約ライブラリーから偶然得るQt文字列・実数、Lagerカーソル・reader、範囲モデル境界、入力ファクトリー、検査マクロの依存と構築経路に依存する状態を解消することである。
+
+範囲は`plugins/paintops/libpaintop/KisCurveRangeModel.{h,cpp}`、および`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurverangemodelobjects`に固定する。既存テストソース、公開API、曲線編集、入力依存のX範囲、画面指定のY範囲、プリセット設定、描画結果は維持する。
+
+- [x] 公開ヘッダーと実装を、標準ライブラリー、Qt文字列・実数・矩形、範囲モデル境界、動的入力ファクトリーとレジストリー、安全検査、Lagerの所有ヘッダーへ直接接続する。
+- [x] 実装を`kritapaintopcurverangemodelobjects`へ分離し、公開利用要件をQt Core、範囲モデル境界、Lagerへ、実装専用依存を全体基盤と動的入力ファクトリーへ分離する。集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 対象構築、`kritalibpaintop`、曲線オプションモデルCTest、範囲モデル境界CTestをmacOSで成功させ、`verify-quick`と後続の有限な監査単位をPROGRESSへ記録する。
+
+### R2-G19ap 動的入力レジストリー依存の直接化
+
+目的は、曲線範囲計算と設定画面が使う動的入力レジストリーを、集約ライブラリーの推移的なQt、翻訳、識別子、入力ファクトリー依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/KisDynamicSensorFactoryRegistry.{h,cpp}`、その直接の入力ファクトリー実装、および所有CMake対象に固定する。既存の入力ID、範囲・表示ラベル、設定画面、プリセット設定、描画結果は維持する。
+
+- [ ] 公開ヘッダーと実装の直接取込み、入力ファクトリーとの構築・リンク要件、既存の入力範囲と設定画面の契約を監査する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない
