@@ -5,13 +5,23 @@
  */
 #include "KisAirbrushOptionWidget.h"
 
+#include <functional>
+
 #include <QWidget>
 #include <QCheckBox>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QtCore/qtypes.h>
 
+#include <KLocalizedString>
+
+#include <kis_paintop_option.h>
+#include <kis_types.h>
+#include <KisAirbrushOptionData.h>
 #include <KisAirbrushOptionModel.h>
 #include <KisWidgetConnectionUtils.h>
+
+#include <lager/cursor.hpp>
 
 #include "ui_wdgairbrush.h"
 
