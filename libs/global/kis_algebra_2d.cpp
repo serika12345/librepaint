@@ -13,8 +13,6 @@
 #include <QPainterPath>
 #include <cmath>
 #include <cstddef>
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_vector_double.h>
 #include <kis_debug.h>
 
 #include <QtMath>
@@ -30,7 +28,9 @@
 #include <utility>
 
 #ifdef HAVE_GSL
+#include <gsl/gsl_errno.h>
 #include <gsl/gsl_multimin.h>
+#include <gsl/gsl_vector_double.h>
 #endif /*HAVE_GSL*/
 
 #include <Eigen/Eigenvalues>

@@ -14,8 +14,6 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <cstddef>
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_vector_double.h>
 #include <kis_algebra_2d.h>
 
 #include <Eigen/Dense>
@@ -42,7 +40,9 @@ inline Eigen::Matrix3d fromQTransformStraight(const QTransform &t)
 #include <config-gsl.h>
 
 #ifdef HAVE_GSL
+#include <gsl/gsl_errno.h>
 #include <gsl/gsl_multimin.h>
+#include <gsl/gsl_vector_double.h>
 
 
 

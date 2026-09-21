@@ -378,7 +378,7 @@ set_target_properties(kritapigmentalphadarkenparamswrapperobjects PROPERTIES
 
 add_library(kritapigmentcolorconversiontransformationobjects OBJECT KoColorConversionTransformation.cpp)
 target_include_directories(kritapigmentcolorconversiontransformationobjects PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/libs/global ${CMAKE_BINARY_DIR}/libs/global)
-target_link_libraries(kritapigmentcolorconversiontransformationobjects PUBLIC KF${KF_MAJOR}::I18n Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Gui)
+target_link_libraries(kritapigmentcolorconversiontransformationobjects PUBLIC Boost::boost KF${KF_MAJOR}::I18n Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Gui)
 set_target_properties(kritapigmentcolorconversiontransformationobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 
 add_library(kritapigmentmultiplecolorconversiontransformationobjects OBJECT KoMultipleColorConversionTransformation.cpp)
@@ -387,7 +387,7 @@ if(BUILD_TESTING)
     target_compile_definitions(kritapigmentmultiplecolorconversiontransformationobjects PRIVATE KRITAPIGMENT_MULTIPLE_CONVERSION_CONTRACT_TESTING)
 endif()
 target_include_directories(kritapigmentmultiplecolorconversiontransformationobjects PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
-target_link_libraries(kritapigmentmultiplecolorconversiontransformationobjects PUBLIC kritapigmentcolorconversiontransformationobjects KF${KF_MAJOR}::I18n Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Gui)
+target_link_libraries(kritapigmentmultiplecolorconversiontransformationobjects PUBLIC kritapigmentcolorconversiontransformationobjects Boost::boost KF${KF_MAJOR}::I18n Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Gui)
 set_target_properties(kritapigmentmultiplecolorconversiontransformationobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 
 set(kritapigment_SRCS

@@ -2,19 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-21 21:52 JST
-- 状態: `in_progress`
-- 現在の検査段階: R2-G19bl 残存プラグイン製品ソースの一括直接取込み
-- 関連TODO: R2-G19aからR2-G19blまで完了、R2-G19dは`planned`
+- 更新日時: 2026-09-21 23:25 JST
+- 状態: `paused`
+- 現在の検査段階: R2-G19bm プラットフォーム構築による直接依存補正
+- 関連TODO: R2-G19aからR2-G19bmのmacOS・iOS範囲まで完了、R2-G19dは`planned`
 - ブランチ: `issue-44-direct-dependencies`
-- 開始コミット: `d38fddf53d`。作業開始時点の作業ツリーは変更なし。
-- 目的: PaintOpとツール以外のプラグイン製品翻訳単位を一括監査し、集約対象や別実装ヘッダーから偶然得ていた標準・Qt・製品型の所有ヘッダーを直接取り込む。
-- 範囲固定: 試験・ベンチマークを除く557翻訳単位を対象とし、固定CTest、公開API、保存形式、描画結果を維持する。
-- 調査: 8並列の`misc-include-cleaner`を557翻訳単位へ一括適用し、549実装を機械修正した。全体構築の失敗だけを抽出し、完全型、継承変換、Eigen分解に必要な誤削除を12実装へ局所的に復元した。
-- 完了: 標準ライブラリー、Qt値型・メタオブジェクト、画像・ノード・描画装置・更新通知・反復子の所有ヘッダーへ549実装を直接接続した。
-- 検証: 既存の共有Nix環境とNinja木だけを使った`ninja -C build/tdd-macos -k 100 all`が成功した。固定テスト配下の開始基準からの差分はゼロである。
-- 残るリスク: 実行検証はmacOS・Qt 6.11.1に限る。Qt 5と各OS構成は未完了である。
-- 次の作業: 完全native検査を実行し、R2-G19dのプラットフォーム構成検査へ進む。
+- 開始コミット: `59f0b0722a`。作業開始時点の作業ツリーは変更なし。
+- 目的: macOSの一括監査をiOS構成で実コンパイルし、デスクトップ側の推移的な外部依存と条件付きヘッダーに依存する製品対象を直接化する。
+- 範囲固定: iOSの製品対象1673件と、診断で露出した26個の製品・CMakeファイルに限定する。固定CTest、公開API、保存形式、描画結果は維持する。
+- 調査: iOS構成と初回3391段階の構築から、Boost・Lagerの直接利用要件、GSL無効構成、iOSに存在しないデスクトップOpenGLヘッダー、条件分岐でだけ使うアイコン所有ヘッダーの不足を抽出した。
+- 完了: 公開ヘッダーでBoostを使うオブジェクト対象へ利用要件を伝播し、paint-op画面モデルへLagerを直接接続した。GSLヘッダーを機能条件内へ移し、機械監査が追加したデスクトップOpenGLヘッダーを除去し、iOS条件ソースへ所有ヘッダーを追加した。
+- 検証: `build-incremental ios bootstrap`は1164段階を完走して`LibrePaint.app`をリンクし、静的依存資源監査は未分類0件で成功した。再構成後のmacOS完全native検査は879/879件、306.23秒で成功し、`verify: OK`となった。固定テスト配下の開始基準からの差分はゼロである。
+- 残るリスク: Qt 5構成を提供する既存プロファイルがない。Linux・Windows・Androidの増分構成はx86_64 Linux構築ホストを要求し、macOSホストでは開始前に拒否されたため、Issue #44の全プラットフォーム完了条件は未達である。
+- 次の作業: x86_64 Linux構築ホストで同一ブランチを取得し、`build-incremental linux configure`、`windows configure`、`android configure`から各全製品対象を構築する。Qt 5構成を用意して対象構築を完了した後、対象和集合を確定してIssue #44を完了する。
 - 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
 - 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
 - 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。

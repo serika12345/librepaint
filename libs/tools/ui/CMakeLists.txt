@@ -113,6 +113,7 @@ target_link_libraries(kritatoolsuipaintopoptionsmodelobjects
         KF${KF_MAJOR}::I18n
         Boost::boost
         Eigen3::Eigen
+        lager
         ${LINK_OPENEXR_LIB}
 )
 set_target_properties(kritatoolsuipaintopoptionsmodelobjects PROPERTIES
@@ -142,6 +143,7 @@ target_link_libraries(kritatoolsuipaintopoptionsmodelsourceobjects
         KF${KF_MAJOR}::I18n
         Boost::boost
         Eigen3::Eigen
+        lager
         ${LINK_OPENEXR_LIB}
 )
 set_target_properties(kritatoolsuipaintopoptionsmodelsourceobjects PROPERTIES

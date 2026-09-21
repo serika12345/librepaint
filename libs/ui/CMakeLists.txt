@@ -2517,6 +2517,7 @@ target_include_directories(kritauimirroraxisconfigobjects PUBLIC
     $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/application>
 )
 target_link_libraries(kritauimirroraxisconfigobjects PUBLIC
+    Boost::boost
     kritaglobaldomutilsobjects
     kritaglobaldebugobjects
     Qt${QT_MAJOR_VERSION}::Core

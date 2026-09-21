@@ -21,6 +21,7 @@ target_link_libraries(kritaglobalalgebradirectionobjects
     PUBLIC
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
     PRIVATE
         Eigen3::Eigen
 )
@@ -121,6 +122,7 @@ target_link_libraries(kritaglobalcumulativeundodataobjects
     PUBLIC
         Qt${QT_MAJOR_VERSION}::Core
         KF${KF_MAJOR}::ConfigCore
+        Boost::boost
 )
 set_target_properties(kritaglobalcumulativeundodataobjects PROPERTIES
     AUTOMOC OFF

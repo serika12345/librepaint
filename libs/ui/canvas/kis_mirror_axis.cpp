@@ -11,7 +11,6 @@
 #include "KoConfig.h"
 #include <KoPointerEvent.h>
 
-#include <OpenGL/gl.h>
 #include <QPainter>
 #include <QApplication>
 #include <QPaintEngine>

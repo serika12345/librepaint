@@ -5,8 +5,6 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include <OpenGL/gl.h>
-#include <OpenGL/gltypes.h>
 #include <algorithm>
 #include <boost/none.hpp>
 #include <boost/optional/optional.hpp>

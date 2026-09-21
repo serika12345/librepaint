@@ -1466,6 +1466,7 @@ target_include_directories(kritaflakekeepshapesselectedcommandobjects
 )
 target_link_libraries(kritaflakekeepshapesselectedcommandobjects
     PUBLIC
+        Boost::boost
         KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
@@ -1492,6 +1493,7 @@ target_include_directories(kritaflakeaddremoveshapecommandobjects
 )
 target_link_libraries(kritaflakeaddremoveshapecommandobjects
     PUBLIC
+        Boost::boost
         KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
@@ -1522,6 +1524,7 @@ target_include_directories(kritaflakesvgtextflipshapecontourtypecommandobjects
 )
 target_link_libraries(kritaflakesvgtextflipshapecontourtypecommandobjects
     PUBLIC
+        Boost::boost
         KF${KF_MAJOR}::I18n
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui

@@ -34,6 +34,8 @@ target_link_libraries(kritawidgetutilsintparsespinboxobjects
         kritaglobalpaintingtweaksobjects
         kritawidgetutilsnumericparserobjects
         Qt${QT_MAJOR_VERSION}::Widgets
+    PRIVATE
+        Boost::boost
 )
 set_target_properties(kritawidgetutilsintparsespinboxobjects PROPERTIES
     AUTOMOC ON
@@ -54,6 +56,8 @@ target_link_libraries(kritawidgetutilsdoubleparsespinboxobjects
         kritaglobalpaintingtweaksobjects
         kritawidgetutilsnumericparserobjects
         Qt${QT_MAJOR_VERSION}::Widgets
+    PRIVATE
+        Boost::boost
 )
 set_target_properties(kritawidgetutilsdoubleparsespinboxobjects PROPERTIES
     AUTOMOC ON

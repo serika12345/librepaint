@@ -16,9 +16,6 @@
 #include "opengl/kis_opengl_update_info.h"
 #include "opengl/kis_texture_tile.h"
 #include "opengl/kis_texture_tile_update_info.h"
-#include <OpenGL/gl.h>
-#include <OpenGL/glext.h>
-#include <OpenGL/gltypes.h>
 #include <qassert.h>
 #include <qbitarray.h>
 #include <qforeach.h>

@@ -7,7 +7,6 @@
 #include "KisOpenGLSync.h"
 #include "opengl/kis_opengl.h"
 
-#include <OpenGL/gltypes.h>
 #include <kis_debug.h>
 #include <qopenglcontext.h>
 

@@ -14,8 +14,6 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdlib>
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_vector_double.h>
 #include <iterator>
 #include <limits>
 #include <qcontainerfwd.h>
@@ -40,7 +38,9 @@
 #include <utility>
 
 #ifdef HAVE_GSL
+#include <gsl/gsl_errno.h>
 #include <gsl/gsl_multimin.h>
+#include <gsl/gsl_vector_double.h>
 #endif
 
 #include <Eigen/Dense>

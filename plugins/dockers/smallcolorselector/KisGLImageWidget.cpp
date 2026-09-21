@@ -6,7 +6,6 @@
 
 #include "KisGLImageWidget.h"
 
-#include <OpenGL/gl.h>
 #include <QPainter>
 #include <QFile>
 #include <QResizeEvent>
@@ -289,4 +288,3 @@ QSize KisGLImageWidget::sizeHint() const
 {
     return m_sourceImage.size();
 }
-

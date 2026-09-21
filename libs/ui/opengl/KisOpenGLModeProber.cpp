@@ -9,7 +9,6 @@
 #include "kis_assert.h"
 #include "opengl/kis_opengl.h"
 
-#include <OpenGL/gl.h>
 #include <boost/none.hpp>
 #include <boost/optional/optional.hpp>
 #include <config-hdr.h>

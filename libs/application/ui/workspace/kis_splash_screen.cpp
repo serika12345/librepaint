@@ -15,6 +15,7 @@
 #include <QWindow>
 
 #include <application/ui/orchestration/KisPart.h>
+#include <kis_icon_utils.h>
 
 
 #include <kconfiggroup.h>

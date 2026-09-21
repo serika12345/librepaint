@@ -15,8 +15,6 @@
 #include <cmath>
 #include <config-gsl.h>
 #include <cstddef>
-#include <gsl/gsl_errno.h>
-#include <gsl/gsl_vector_double.h>
 #include <qforeach.h>
 #include <qline.h>
 #include <qlist.h>
@@ -25,7 +23,9 @@
 #include <qtypes.h>
 
 #ifdef HAVE_GSL
+#include <gsl/gsl_errno.h>
 #include <gsl/gsl_multimin.h>
+#include <gsl/gsl_vector_double.h>
 #endif /* HAVE_GSL */
 
 #include <QtCore/qmath.h>

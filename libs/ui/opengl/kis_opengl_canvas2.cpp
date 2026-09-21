@@ -12,8 +12,6 @@
 #include "kis_floating_message.h"
 #include "kis_update_info.h"
 #include "opengl/kis_opengl.h"
-#include <OpenGL/gl.h>
-#include <OpenGL/gltypes.h>
 #include <boost/none.hpp>
 #include <boost/optional/optional.hpp>
 #include <qbitarray.h>

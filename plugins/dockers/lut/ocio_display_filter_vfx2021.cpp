@@ -15,9 +15,6 @@
 #include <OpenColorIO.h>
 #include <OpenColorTransforms.h>
 #include <OpenColorTypes.h>
-#include <OpenGL/gl.h>
-#include <OpenGL/glext.h>
-#include <OpenGL/gltypes.h>
 #include <QMessageBox>
 #include <QOpenGLContext>
 #include <QOpenGLExtraFunctions>

@@ -6,8 +6,6 @@
 
 #include "kis_global.h"
 #include "opengl/kis_opengl.h"
-#include <OpenGL/gl.h>
-#include <OpenGL/gltypes.h>
 #include <cstring>
 #include <qopengl.h>
 #include <qpoint.h>

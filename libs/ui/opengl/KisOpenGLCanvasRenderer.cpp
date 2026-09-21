@@ -19,8 +19,6 @@
 #include "opengl/kis_opengl_update_info.h"
 #include "opengl/kis_texture_tile.h"
 #include "ui/workspace/KisView.h"
-#include <OpenGL/gl.h>
-#include <OpenGL/gltypes.h>
 #include <cmath>
 #include <qbitarray.h>
 #include <qlogging.h>
