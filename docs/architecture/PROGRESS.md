@@ -2,19 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-21 15:50 JST
+- 更新日時: 2026-09-21 16:01 JST
 - 状態: `in_progress`
-- 現在の検査段階: R2-G19ag ミラーオプションモデル依存の直接化
-- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l・R2-G19m・R2-G19n・R2-G19o・R2-G19p・R2-G19q・R2-G19r・R2-G19s・R2-G19t・R2-G19u・R2-G19v・R2-G19w・R2-G19x・R2-G19y・R2-G19z・R2-G19aa・R2-G19ab・R2-G19ac・R2-G19ad・R2-G19ae・R2-G19af・R2-G19ag完了、R2-G19e・R2-G19d-a・R2-G19d-bは`planned`
+- 現在の検査段階: R2-G19ah Nixソース世代の再生成防止
+- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l・R2-G19m・R2-G19n・R2-G19o・R2-G19p・R2-G19q・R2-G19r・R2-G19s・R2-G19t・R2-G19u・R2-G19v・R2-G19w・R2-G19x・R2-G19y・R2-G19z・R2-G19aa・R2-G19ab・R2-G19ac・R2-G19ad・R2-G19ae・R2-G19af・R2-G19ag・R2-G19ah完了、R2-G19e・R2-G19d-a・R2-G19d-bは`planned`
 - ブランチ: `issue-44-direct-dependencies`
-- 開始コミット: `06139529c0`。作業開始時点の作業ツリーは変更なし。
-- 目的: ミラーオプション画面モデルが、ミラー設定データとLager状態連携を画像・色・翻訳系の推移的依存から得る状態を解消し、ブラシ編集とプリセット保存の反転状態を維持する。
-- 範囲固定: `KisMirrorOptionModel.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopmirroroptionmodelobjects`に限定した。既存テストソース、公開API、水平・垂直反転状態と保存結果を維持した。
-- 調査: 変更前のNinja command closureは3件、File API直接構築依存はBoost、Eigen、Imath、翻訳、Qt Core・Gui・Xml、Lagerの8対象であった。初回`misc-include-cleaner`はLagerカーソル・Qt連携、ミラー設定データの直接取込み不足3件を報告した。
-- 完了: 公開ヘッダーと実装をQObject、Lagerカーソル・Qt連携、ミラー設定データ、公開記号の所有ヘッダーへ直接接続した。公開利用要件をQt Core、ミラー設定データ、Lagerへ限定し、全体基盤、画像、色、翻訳、XML、未使用の輸出定義を除去した。File API直接依存を3対象へ縮小した。
-- 検証: `kritapaintopmirroroptionmodelobjects`と`kritalibpaintop`、パッケージ境界1723対象、`KisMirrorOptionModelContractTest`、`KisMirrorOptionDataCompatibilityTest`は成功した。変更後の`misc-include-cleaner`は診断0件である。`verify-quick`は45方針試験、10責務、533公開ヘッダー、172プラグイン登録、文書・リンク・図を含めて成功した。
-- 残るリスク: 実行検証はmacOS・Qt 6.11.1であり、Qt 5、Linux、Windows、Android、iOSはIssue #44の最終プラットフォーム検査で扱う。`kritalibpaintop`の残る集約ソースは未監査である。
-- 次の作業: R2-G19agを一変更化し、`kritalibpaintop`のうち分離済み対象とruntimeを除く残存ソースを次の有限な監査単位として確定する。
+- 開始コミット: `30f470bb1f`。作業開始時点の作業ツリーは変更なし。
+- 目的: 通常の実装反復が変更状態ごとにローカルFlakeを再評価し、ほぼ同じ全ソースをNix storeへ累積させる運用経路を閉じる。
+- 範囲固定: 運用契約`AGENTS.md`、利用手順`docs/architecture/DEVELOPMENT.md`、現在状態と検査段階に限定した。Nix式、開発シェル、構築木、コンパイラーキャッシュ、製品コードは変更しない。
+- 調査: Nix storeは41 GiB、死んだパスは71件、NAR換算の回収可能量は26.0 GiBであった。内訳は汎用`*-source`31世代、`*-librepaint-source`19世代、macOS派生定義19件、その他2件である。追跡済み作業ツリー563,488,865 bytesに対し、実パスは各566--568 MiBであった。`po` 210 MiB、`libs` 156 MiB、`plugins` 103 MiB、`krita` 81 MiBが主な入力である。`.git` 5.6 GiBと主増分構築木9.5 GiBはstore内ソースから除外されていた。
+- 完了: 一つの評価済み開発プロファイルを作業セッション全体で使い、環境を継承しない主・担当作業ツリーの処理は`run-shared-test-env`から安定した`.direnv/flake-profile`を読む運用を正本へ追加した。ローカルFlake再評価を初回作成とNix環境入力変更へ限定し、再評価前後の死んだソース件数・容量比較、増加時の停止条件、原因記録、削除権限を伴うごみ収集の分離を定めた。
+- 検証: 評価済みプロファイルを直接利用した対象構築、契約試験、`verify-quick`の実績後も、当時の死んだパスは71件のまま維持された。再発防止文書の検証開始時点では以前の死んだパスが既に消失し、Nix storeは41 GiBから13 GiB、空き容量は56 GiBから83 GiBへ変化していた。この作業から削除コマンドは実行していない。更新後の`run-shared-test-env`経由で`verify-quick`を成功させ、検証前後の死んだパスが0件のまま増えないことを確認した。
+- 残るリスク: 既存パスを削除した外部操作の実行主体と時刻は、この作業の観測だけでは確定できない。`auto-optimise-store`は無効であり、自動最適化と定期ごみ収集はホスト全体へ影響するため、この変更では設定しない。
+- 次の作業: R2-G19ahを一変更化し、`kritalibpaintop`のうち分離済み対象とruntimeを除く残存ソースを次の有限な監査単位として確定する。
 - 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
 - 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
 - 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。
