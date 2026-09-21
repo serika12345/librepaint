@@ -1479,7 +1479,9 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 
 範囲は`plugins/paintops/libpaintop/KisLightnessStrengthOptionWidget.{h,cpp}`とその直接の所有CMake対象に固定する。明度・強度の選択、設定画面、プリセット設定、描画結果と既存CTestは維持する。
 
-- [ ] 公開ヘッダーと実装の直接取込み、直接構築・リンク要件、既存の明度・強度入力の利用者向け契約を監査する。
+- [x] 公開ヘッダーと実装の直接取込みを監査し、既存の明度・強度入力の利用者向け契約を維持する。
+- [x] 明度・強度画面を`kritapaintoplightnessstrengthoptionwidgetobjects`へ移し、Qt Core・Widgets、曲線データと曲線画面、標準設定、Lagerを公開利用要件、翻訳・全体基盤・画像・画面基底型を実装専用依存として明示する。MOCは専用対象で実行し、集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 専用画面対象、`kritalibpaintop`、既存のブラシプリセット動的設定互換性CTest、`verify-quick`をmacOSで成功させる。
 
 ### R2-G19av 固定CTestの製品利用要件直接化
 

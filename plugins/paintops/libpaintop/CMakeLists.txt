@@ -352,7 +352,6 @@ set_target_properties(kritapaintopstandardoptionobjects PROPERTIES
 )
 
 add_library(kritapaintopstandardoptionwidgetobjects OBJECT
-    KisLightnessStrengthOptionWidget.cpp
     KisSizeOptionWidget.cpp
 )
 target_compile_definitions(kritapaintopstandardoptionwidgetobjects PRIVATE
@@ -381,6 +380,39 @@ target_link_libraries(kritapaintopstandardoptionwidgetobjects
         kritaimage
 )
 set_target_properties(kritapaintopstandardoptionwidgetobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintoplightnessstrengthoptionwidgetobjects OBJECT
+    KisLightnessStrengthOptionWidget.cpp
+)
+target_compile_definitions(kritapaintoplightnessstrengthoptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintoplightnessstrengthoptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintoplightnessstrengthoptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcurveoptiondataobjects
+        kritapaintopcurveoptionwidgetobjects
+        kritapaintopstandardoptionobjects
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritaglobal
+        kritaimage
+        kritatoolsui
+)
+set_target_properties(kritapaintoplightnessstrengthoptionwidgetobjects PROPERTIES
     AUTOMOC ON
     POSITION_INDEPENDENT_CODE ON
 )
@@ -1675,6 +1707,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopcurveoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopstandardoptionobjects>
     $<TARGET_OBJECTS:kritapaintopstandardoptionwidgetobjects>
+    $<TARGET_OBJECTS:kritapaintoplightnessstrengthoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintoptextureoptionioobjects>
     $<TARGET_OBJECTS:kritapaintoptextureoptionmodelobjects>
 )
