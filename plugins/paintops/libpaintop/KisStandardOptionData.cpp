@@ -9,6 +9,10 @@
 #include <KisPaintOpOptionWidgetUtils.h>
 #include <KisPaintopSettingsIds.h>
 
+#include <KLocalizedString>
+#include <QString>
+#include <kis_paintop_option.h>
+
 
 namespace KisPaintOpOptionWidgetUtils {
 

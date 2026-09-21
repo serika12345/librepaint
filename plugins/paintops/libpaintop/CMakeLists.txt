@@ -157,6 +157,8 @@ list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     KisSensorData.cpp
     KisSharpnessOptionModel.cpp
     KisSpacingOptionModel.cpp
+    KisStandardOptionData.cpp
+    KisStandardOptions.cpp
     KisTextureOptionData.cpp
     KisTextureOptionModel.cpp
 )
@@ -346,6 +348,41 @@ target_link_libraries(kritapaintopsizeoptiondataobjects
         KF${KF_MAJOR}::I18n
 )
 set_target_properties(kritapaintopsizeoptiondataobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
+
+add_library(kritapaintopstandardoptionobjects OBJECT
+    KisStandardOptionData.cpp
+    KisStandardOptions.cpp
+)
+target_compile_definitions(kritapaintopstandardoptionobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopstandardoptionobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopstandardoptionobjects
+    PUBLIC
+        Boost::boost
+        KF${KF_MAJOR}::I18n
+        Qt${QT_MAJOR_VERSION}::Core
+        kritaglobalidobjects
+        kritapaintopcurveoptiondataobjects
+        kritapaintopkritasensorpackobjects
+        kritapaintopsizeoptiondataobjects
+    PRIVATE
+        kritaglobal
+        kritaimage
+        kritatoolsui
+        lager
+)
+set_target_properties(kritapaintopstandardoptionobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
 
 add_library(kritapaintopmirroroptiondataobjects OBJECT KisMirrorOptionData.cpp)
 target_compile_definitions(kritapaintopmirroroptiondataobjects PRIVATE
@@ -1086,6 +1123,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopoptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopsensormodelobjects>
     $<TARGET_OBJECTS:kritapaintopsensordataobjects>
+    $<TARGET_OBJECTS:kritapaintopstandardoptionobjects>
     $<TARGET_OBJECTS:kritapaintoptextureoptionioobjects>
     $<TARGET_OBJECTS:kritapaintoptextureoptionmodelobjects>
 )

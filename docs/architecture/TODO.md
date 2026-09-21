@@ -1303,6 +1303,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] 埋込み値型を独立したオブジェクト対象へ移し、テクスチャモデルの公開・実装利用要件と最終ライブラリーの色素・資源リンクを直接列挙する。旧ソースは集約ライブラリーから除去して、同じ定義を一度だけ取り込む。
 - [x] 両対象、`kritalibpaintop`、テクスチャ設定・LOD・リンク済みパターンの既存CTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
 
+### R2-G19al 標準オプション依存の直接化
+
+目的は、標準ブラシオプションの設定値・設定画面生成が、集約ライブラリーから偶然得る文字列、翻訳、センサー、設定識別子、設定画面基底型と構築依存に依存する状態を解消することである。
+
+範囲は`plugins/paintops/libpaintop/KisStandardOptionData.{h,cpp}`、`KisStandardOptions.{h,cpp}`、および`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopstandardoptionobjects`に固定する。既存テストソース、公開API、プリセット設定キー、標準設定画面、描画結果は維持する。
+
+- [x] 公開ヘッダーと実装を、標準ライブラリー、ID、Qt文字列・実数型、翻訳、センサー、設定画面基底型、設定識別子の所有ヘッダーへ直接接続する。
+- [x] 2翻訳単位を`kritapaintopstandardoptionobjects`へ分離し、公開利用要件をBoost、翻訳、Qt Core、ID、曲線・センサー・サイズ設定値へ、実装専用依存を全体基盤、画像、設定画面、Lagerへ分離する。集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 対象構築、`kritalibpaintop`、標準設定値の保存互換性CTest、設定画面生成ユーティリティCTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない
