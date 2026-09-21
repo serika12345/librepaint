@@ -1173,6 +1173,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] パターン完全型を使う実装へ所有ヘッダーを移し、`kritapaintoptextureoptionioobjects`の公開要件をBoost・Qt Coreに限定して設定実装専用要件をprivateへ分離する。
 - [x] 対象構築、`kritalibpaintop`、既存のテクスチャ設定・値・LOD契約、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
 
+### R2-G19y 曲線オプションデータ依存の直接化
+
+目的は、曲線オプションデータの公開値型とセンサーパック生成実装が、文字列、ID、標準値型、Qt実数型、基底型、センサーパック型を推移的取込みから得る状態を解消し、曲線設定とセンサー状態の既存契約を維持することである。
+
+範囲は`KisCurveOptionData.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurveoptiondataobjects`に固定する。既存テストソース、公開API、設定キー、既定値、センサー順序と保存結果を維持する。
+
+- [x] 公開ヘッダーと実装を標準optional・pair、QString、qreal、KoID、公開記号、共通曲線データ、Kritaセンサーパックの所有ヘッダーへ直接接続する。
+- [x] 対象の公開要件を実使用へ限定し、全体基盤、画像、色素の公開取込みディレクトリーと未使用の輸出定義を除去する。
+- [x] 対象構築、`kritalibpaintop`、既存の曲線データ・センサーパック契約、`verify-quick`を成功させ、次の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない

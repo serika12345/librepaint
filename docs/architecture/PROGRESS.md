@@ -2,19 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-21 15:06 JST
+- 更新日時: 2026-09-21 15:11 JST
 - 状態: `in_progress`
-- 現在の検査段階: R2-G19x テクスチャ設定入出力依存の直接化
-- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l・R2-G19m・R2-G19n・R2-G19o・R2-G19p・R2-G19q・R2-G19r・R2-G19s・R2-G19t・R2-G19u・R2-G19v・R2-G19w・R2-G19x完了、R2-G19e・R2-G19d-a・R2-G19d-bは`planned`
+- 現在の検査段階: R2-G19y 曲線オプションデータ依存の直接化
+- 関連TODO: R2-G19a・R2-G19b・R2-G19c・R2-G19f・R2-G19g・R2-G19h・R2-G19i・R2-G19j・R2-G19k・R2-G19l・R2-G19m・R2-G19n・R2-G19o・R2-G19p・R2-G19q・R2-G19r・R2-G19s・R2-G19t・R2-G19u・R2-G19v・R2-G19w・R2-G19x・R2-G19y完了、R2-G19e・R2-G19d-a・R2-G19d-bは`planned`
 - ブランチ: `issue-44-direct-dependencies`
-- 開始コミット: `5b4d881227`。作業開始時点の作業ツリーは変更なし。
-- 目的: テクスチャ設定データの公開値型と入出力実装が、画像型、パターン型、Qt型と外部ライブラリーを推移的な取込み・公開要件から得る状態を解消し、保存済みブラシプリセットの設定結果を維持する。
-- 範囲固定: `KisEmbeddedTextureData.{h,cpp}`、`KisEmbeddedTextureDataIO.cpp`、`KisTextureOptionData.{h,cpp}`、公開取込み縮小で露出した`KisTextureOptionModel.cpp`、`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintoptextureoptionioobjects`、試験の直接構築要件を記録する`plugins/paintops/libpaintop/tests/CMakeLists.txt`に限定した。既存テストソース、公開API、設定キー、既定値、保存結果は維持した。
-- 調査: 変更前のNinja command closureは2件、File API直接構築依存はEigen、KF I18n、OpenEXR、Qt Core・Guiであった。対象2実装の`misc-include-cleaner`は診断0件だったが、公開面へ全体基盤、画像、色素、資源の取込みディレクトリーと実装専用依存が伝播していた。
-- 完了: 公開ヘッダーはQString、共有ポインター、Qtフラグ、実数型と比較関数を所有ヘッダーから直接得る。画像全体型とパターン完全型を前方宣言へ縮め、実際にパターンを操作する実装2件へ`KoPattern.h`を移した。対象の公開要件をBoost・Qt Coreに限定し、設定実装に必要な全体基盤、画像、色素の取込みとEigen、KF I18n、Qt Gui、OpenEXRをprivateへ分離した。翻訳、Gui、OpenEXR、画像・色素・資源取込みの公開伝播と未使用の色素輸出定義を除去した。
-- 検証: `kritapaintoptextureoptionioobjects`と`kritalibpaintop`の構築、パッケージ境界1723対象、`KisTextureOptionDataIOContractTest`、`KisTextureOptionDataValueContractTest`、`KisTextureOptionLodContractTest`は成功した。対象2実装と取込み縮小で露出した2利用実装の`misc-include-cleaner`は診断0件である。`verify-quick`は45方針試験、10責務、533公開ヘッダー、172プラグイン登録、文書・リンク・図を含めて成功した。
-- 残るリスク: 実行検証はmacOS・Qt 6.11.1であり、Qt 5、Linux、Windows、Android、iOSはIssue #44の最終プラットフォーム検査で扱う。`plugins/paintops/libpaintop`の後続オブジェクト対象と共有ライブラリー残存ソースは未監査である。
-- 次の作業: R2-G19xを一変更化し、`kritapaintopcurveoptiondataobjects`を次の有限な監査単位として開始する。
+- 開始コミット: `2153bd1325`。作業開始時点の作業ツリーは変更なし。
+- 目的: 曲線オプションデータの公開値型とセンサーパック生成実装が、文字列、ID、標準値型、Qt実数型、基底型、センサーパック型を推移的取込みから得る状態を解消し、曲線設定とセンサー状態の既存契約を維持する。
+- 範囲固定: `KisCurveOptionData.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopcurveoptiondataobjects`に限定する。既存テストソース、公開API、設定キー、既定値、センサー順序と保存結果を維持する。
+- 調査: 変更前のNinja command closureは1件、File API直接構築依存は`kritapaintopcurveoptiondatacommonobjects`と`kritapaintopkritasensorpackobjects`であった。初回`misc-include-cleaner`はQString、KoID、標準optional・pair、qreal、基底型、センサーパック型、センサーデータ型の直接取込み不足8件を報告した。
+- 完了: 公開ヘッダーと実装を標準optional・pair、QString、qreal、KoID、公開記号、共通曲線データ、Kritaセンサーパックの所有ヘッダーへ直接接続した。対象の公開要件をBoost、Qt Core、グローバルID、共通曲線データ、Kritaセンサーパックへ限定し、全体基盤、画像、色素の公開取込みディレクトリーと未使用の全体基盤・画像・色素輸出定義を除去した。
+- 検証: `kritapaintopcurveoptiondataobjects`と`kritalibpaintop`の構築、およびパッケージ境界1723対象が成功した。変更後の`misc-include-cleaner`は診断0件である。`KisCurveOptionDataTest`と`KisKritaSensorPackCompatibilityTest`は各1件成功し、`verify-quick`は45方針試験、10責務、533公開ヘッダー、172プラグイン登録、文書・リンク・図を含めて成功した。
+- 残るリスク: 実行検証はmacOS・Qt 6.11.1であり、Qt 5、Linux、Windows、Android、iOSはIssue #44の最終プラットフォーム検査で扱う。派生するサイズ、ミラー、シャープネス、散布、間隔データ対象は未監査である。
+- 次の作業: R2-G19yを一変更化し、`kritapaintopsizeoptiondataobjects`を次の有限な監査単位として開始する。
 - 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
 - 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
 - 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。

@@ -380,24 +380,20 @@ target_include_directories(kritapaintopspacingoptiondataobjects
 target_link_libraries(kritapaintopspacingoptiondataobjects PUBLIC kritapaintopcurveoptiondataobjects kritapaintopcurveoptiondatacommonobjects kritapaintopkritasensorpackobjects)
 set_target_properties(kritapaintopspacingoptiondataobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 target_compile_definitions(kritapaintopcurveoptiondataobjects PRIVATE
-    kritaglobal_EXPORTS
-    kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
-    kritapigment_EXPORTS
 )
-target_include_directories(kritapaintopcurveoptiondataobjects PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
-    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/image>
-    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/image>
-    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
-    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+target_include_directories(kritapaintopcurveoptiondataobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 )
-target_link_libraries(kritapaintopcurveoptiondataobjects PUBLIC
-    kritapaintopcurveoptiondatacommonobjects
-    kritapaintopkritasensorpackobjects
+target_link_libraries(kritapaintopcurveoptiondataobjects
+    PUBLIC
+        Boost::boost
+        Qt${QT_MAJOR_VERSION}::Core
+        kritaglobalidobjects
+        kritapaintopcurveoptiondatacommonobjects
+        kritapaintopkritasensorpackobjects
 )
 set_target_properties(kritapaintopcurveoptiondataobjects PROPERTIES
     AUTOMOC OFF
