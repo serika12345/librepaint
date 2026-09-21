@@ -20,7 +20,6 @@ set(kritalibpaintop_LIB_SRCS
     KisAirbrushOptionData.cpp
     KisAirbrushOptionModel.cpp
     KisCompositeOpOptionModel.cpp
-    KisCompositeOpOptionWidget.cpp
     KisPaintingModeOptionData.cpp
     KisPaintingModeOptionModel.cpp
     KisPaintingModeOptionWidget.cpp
@@ -161,7 +160,6 @@ ki18n_wrap_ui(kritalibpaintop_LIB_SRCS
     forms/wdgbrushchooser.ui
     forms/wdgpredefinedbrushchooser.ui
     forms/wdgtexturechooser.ui
-    forms/wdgCompositeOpOption.ui
     forms/wdgflowopacityoption.ui
 )
 
@@ -1030,7 +1028,6 @@ set_target_properties(kritapaintopmirroroptionwidgetobjects PROPERTIES
 # settings widgets while preserving the objects in kritalibpaintop.
 add_library(kritapaintopoptionmodelobjects OBJECT
     KisColorSourceOptionModel.cpp
-    KisCompositeOpOptionModel.cpp
     KisPaintingModeOptionModel.cpp
 )
 target_compile_definitions(kritapaintopoptionmodelobjects PRIVATE
@@ -1048,7 +1045,6 @@ target_link_libraries(kritapaintopoptionmodelobjects
     PUBLIC
         Qt${QT_MAJOR_VERSION}::Core
         kritapaintopcolorsourceoptiondataobjects
-        kritapaintopcompositeopoptiondataobjects
         kritapaintoppaintingmodeoptiondataobjects
         kritapaintopscatteroptiondataobjects
         kritapaintopsharpnessoptiondataobjects
@@ -1057,6 +1053,65 @@ target_link_libraries(kritapaintopoptionmodelobjects
         lager
 )
 set_target_properties(kritapaintopoptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopcompositeopoptionmodelobjects OBJECT
+    KisCompositeOpOptionModel.cpp
+)
+target_compile_definitions(kritapaintopcompositeopoptionmodelobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopcompositeopoptionmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintopcompositeopoptionmodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritapaintopcompositeopoptiondataobjects
+        lager
+)
+set_target_properties(kritapaintopcompositeopoptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopcompositeopoptionwidgetobjects OBJECT
+    KisCompositeOpOptionWidget.cpp
+)
+ki18n_wrap_ui(kritapaintopcompositeopoptionwidgetobjects
+    forms/wdgCompositeOpOption.ui
+)
+target_compile_definitions(kritapaintopcompositeopoptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopcompositeopoptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopcompositeopoptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcompositeopoptiondataobjects
+        kritapaintopcompositeopoptionmodelobjects
+        kritatoolsui
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritaapplicationui
+        kritapigment
+        kritawidgets
+        kritawidgetutils
+)
+set_target_properties(kritapaintopcompositeopoptionwidgetobjects PROPERTIES
     AUTOMOC ON
     POSITION_INDEPENDENT_CODE ON
 )
@@ -1493,6 +1548,8 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopcurverangemodelobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptionwidgetobjects>
+    $<TARGET_OBJECTS:kritapaintopcompositeopoptionmodelobjects>
+    $<TARGET_OBJECTS:kritapaintopcompositeopoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopairbrushoptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopairbrushoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopoptionmodelobjects>
