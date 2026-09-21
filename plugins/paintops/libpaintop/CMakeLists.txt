@@ -149,6 +149,7 @@ list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     KisCompositeOpOptionModel.cpp
     KisDrawingAngleSensorModel.cpp
     KisFilterOptionData.cpp
+    KisFilterOptionModel.cpp
     KisPaintingModeOptionData.cpp
     KisPaintingModeOptionModel.cpp
     KisScatterOptionModel.cpp
@@ -603,6 +604,31 @@ set_target_properties(kritapaintopfilteroptiondataobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopfilteroptionmodelobjects OBJECT
+    KisFilterOptionModel.cpp
+)
+target_compile_definitions(kritapaintopfilteroptionmodelobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopfilteroptionmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintopfilteroptionmodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritapaintopfilteroptiondataobjects
+        lager
+    PRIVATE
+        kritaimage
+        kritaresources
+)
+set_target_properties(kritapaintopfilteroptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapaintoptexturelodobjects OBJECT
     KisTextureOptionLodLimitations.cpp
 )
@@ -994,6 +1020,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopcompositeopoptiondataobjects>
     $<TARGET_OBJECTS:kritapaintopdynamicsensorfactoryobjects>
     $<TARGET_OBJECTS:kritapaintopfilteroptiondataobjects>
+    $<TARGET_OBJECTS:kritapaintopfilteroptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopruntime>
     ${kritapaintopruntime_OBJECTS}
     $<TARGET_OBJECTS:kritapaintopcoloroptionmodelobjects>
@@ -1008,7 +1035,7 @@ kis_add_library(kritalibpaintop SHARED
 )
 generate_export_header(kritalibpaintop BASE_NAME kritapaintop EXPORT_MACRO_NAME PAINTOP_EXPORT)
 
-target_link_libraries(kritalibpaintop kritaapplicationui kritatoolsui kritalibbrush kritapainting kritaimage kritawidgets kritawidgetutils)
+target_link_libraries(kritalibpaintop kritaapplicationui kritatoolsui kritalibbrush kritapainting kritaimage kritaresources kritawidgets kritawidgetutils)
 target_link_libraries(kritalibpaintop LINK_INTERFACE_LIBRARIES kritaapplicationui kritatoolsui kritalibbrush kritapainting)
 
 set_target_properties(kritalibpaintop PROPERTIES

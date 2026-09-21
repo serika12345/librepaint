@@ -1283,6 +1283,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] 7実装を`kritapaintopoptionmodelobjects`へ分離し、公開利用要件と`KisLager.h`だけが使う実装専用取込みディレクトリーを直接列挙する。集約ライブラリーは同じオブジェクトを取り込み、公開ライブラリーの名前と動作を維持する。
 - [x] 対象構築、`kritalibpaintop`、既存のプリセット保存互換性CTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
 
+### R2-G19aj フィルターオプションモデル依存の直接化
+
+目的は、フィルター設定モデルが、集約ライブラリーから偶然得るフィルター登録簿、全体資源、Lagerのレンズ・結合、値タプルへの依存を、その利用元から所有者へ明示することである。
+
+範囲は`plugins/paintops/libpaintop/KisFilterOptionModel.{h,cpp}`と`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopfilteroptionmodelobjects`に固定する。既存テストソース、公開API、フィルターID・設定XML、フォールバック選択、smudge状態、描画結果は維持する。
+
+- [x] 公開ヘッダーと実装を、標準タプル、Qt文字列、設定データ、Lagerカーソル・Qt連携・レンズ・結合、フィルター型・登録簿、全体資源の所有ヘッダーへ直接接続する。
+- [x] 1実装を`kritapaintopfilteroptionmodelobjects`へ分離し、公開利用要件を設定データ、Qt Core、Lagerへ、実装専用依存を`kritaimage`と`kritaresources`へ分離する。集約ライブラリーは資源サービスを直接リンクして同じオブジェクトを取り込む。
+- [x] 対象構築、`kritalibpaintop`、既存のフィルター設定CTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない
