@@ -13,7 +13,6 @@ set(kritalibpaintop_LIB_SRCS
     KisCurveOptionDataUniformProperty.cpp
     KisSensorData.cpp
     KisCurveOption.cpp
-    KisMultiSensorsModel.cpp
     KisSpacingOptionWidget.cpp
     KisSpacingOptionModel.cpp
     KisSpacingOption.cpp
@@ -833,6 +832,28 @@ set_target_properties(kritapaintopcurveinputcontrolsobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopmultisensorsmodelobjects OBJECT
+    KisMultiSensorsModel.cpp
+)
+target_compile_definitions(kritapaintopmultisensorsmodelobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopmultisensorsmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintopmultisensorsmodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritaglobalidobjects
+        lager
+)
+set_target_properties(kritapaintopmultisensorsmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapaintopmultisensorsselectorobjects OBJECT
     KisMultiSensorsSelector.cpp
 )
@@ -859,6 +880,7 @@ target_link_libraries(kritapaintopmultisensorsselectorobjects
     PRIVATE
         kritaglobal
         kritapaintopdynamicsensorregistryobjects
+        kritapaintopmultisensorsmodelobjects
 )
 set_target_properties(kritapaintopmultisensorsselectorobjects PROPERTIES
     AUTOMOC ON
@@ -1313,6 +1335,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopcurvecontrolinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintopcurveinputcontrolsobjects>
     $<TARGET_OBJECTS:kritapaintopcurverangemodelinterfaceobjects>
+    $<TARGET_OBJECTS:kritapaintopmultisensorsmodelobjects>
     $<TARGET_OBJECTS:kritapaintopmultisensorsselectorobjects>
     $<TARGET_OBJECTS:kritapaintopcurverangemodelobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptionmodelobjects>

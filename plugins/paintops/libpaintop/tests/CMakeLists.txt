@@ -526,3 +526,17 @@ target_compile_definitions(KisDynamicSensorRegistryCompatibilityTest PRIVATE
     kritaimage_EXPORTS
     kritalibpaintop_EXPORTS
 )
+
+kis_add_test(
+    KisMultiSensorsModelContractTest.cpp
+    LINK_LIBRARIES
+        kritapaintopmultisensorsmodelobjects
+        kritaglobalidobjects
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Test
+        lager
+)
+target_compile_definitions(KisMultiSensorsModelContractTest PRIVATE
+    kritaglobal_EXPORTS
+    kritalibpaintop_EXPORTS
+)
