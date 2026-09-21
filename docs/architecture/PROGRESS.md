@@ -2,19 +2,19 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-21 20:04 JST
+- 更新日時: 2026-09-21 20:11 JST
 - 状態: `in_progress`
-- 現在の検査段階: R2-G19bf テクスチャ設定画面依存の直接化
-- 関連TODO: R2-G19aからR2-G19bfまで完了、R2-G19bg・R2-G19d-a・R2-G19d-bは`planned`
+- 現在の検査段階: R2-G19bg 色設定画面依存の直接化
+- 関連TODO: R2-G19aからR2-G19bgまで完了、R2-G19bh・R2-G19d-a・R2-G19d-bは`planned`
 - ブランチ: `issue-44-direct-dependencies`
-- 開始コミット: `bd26498f39`。作業開始時点の作業ツリーは変更なし。
-- 目的: テクスチャ設定画面と選択画面が、集約ライブラリーの推移的な画面、資源、色依存から構築要件を得る状態を解消する。
-- 範囲固定: `plugins/paintops/libpaintop/KisTextureOptionWidget.{h,cpp}`、`kis_texture_chooser.{h,cpp}`、`forms/wdgtexturechooser.ui`と同ディレクトリーのCMake対象に限定した。テクスチャ設定、選択画面、プリセット設定、描画結果と既存CTestは維持する。
-- 調査: 画面実装は資源インターフェース、Qt UI型、翻訳、合成モードID、Lager型を推移的な取込みから得ていた。画面本体、選択画面、生成UIはいずれも集約ライブラリーに残り、専用の構築対象を持たなかった。
-- 完了: 2実装と生成UIを`kritapaintoptextureoptionwidgetobjects`へ移し、Qt Core・Widgets、画像・資源、テクスチャ値・モデル、paint-op画面基盤、Lagerを公開利用要件として直接接続した。翻訳、アプリケーションUI、色、画面部品を実装専用依存として明示し、不要なグラデーション選択画面取込みを除去した。MOCと最終ライブラリーのオブジェクト取込みは専用対象が所有する。LOD制限型の所有ヘッダーは`std::mem_fn`によるテンプレート実体化で完全型が必要なため、取込み診断の偽陽性よりコンパイラー診断を優先して維持した。テクスチャ選択、保存形式、LOD結果、公開APIは維持する。
-- 検証: `run-shared-test-env`経由で専用画面対象と`kritalibpaintop`を成功させ、macOSパッケージ境界は1,749対象を確認した。公開ヘッダー・選択画面・実装の`misc-include-cleaner`はLOD完全型の既知の偽陽性1件を除いて警告0件である。Ninja閉包は専用画面対象1,987工程、最終ライブラリー2,158工程である。既存の`KisTextureOptionDataIOContractTest`と`KisTextureOptionLodContractTest`は各1件成功した。`verify-quick`は45件の方針試験、責務・公開契約・テスト契約・統治・文書検査を含めて成功した。
+- 開始コミット: `568da328bb`。作業開始時点の作業ツリーは変更なし。
+- 目的: 色設定画面が、集約ライブラリーの推移的なQt画面部品と色設定モデル依存から構築要件を得る状態を解消する。
+- 範囲固定: `plugins/paintops/libpaintop/KisColorOptionWidget.{h,cpp}`、`forms/wdgcoloroptions.ui`と同ディレクトリーのCMake対象に限定した。色設定、設定画面、プリセット設定、描画結果と既存CTestは維持する。
+- 調査: 公開ヘッダーと実装は公開記号、設定共有ポインター、標準関数、画面部品、色設定モデルを推移的な取込みから得ていた。画面本体と生成UIは集約ライブラリーに残り、専用の構築対象を持たなかった。
+- 完了: 画面本体と生成UIを`kritapaintopcoloroptionwidgetobjects`へ移し、Qt Core・Widgets、色設定値・モデル、paint-op画面基盤、Lagerを公開利用要件として直接接続した。翻訳とスピンボックスを実装専用依存として明示し、使わないQt・Lager取込みを除去した。集約ライブラリーは同じオブジェクトを一度だけ取り込む。色選択、保存形式、公開APIは維持する。
+- 検証: `run-shared-test-env`経由で専用画面対象と`kritalibpaintop`を成功させ、macOSパッケージ境界は1,750対象を確認した。公開ヘッダーと実装の`misc-include-cleaner`は警告0件である。Ninja閉包は専用画面対象1,257工程、最終ライブラリー2,158工程である。既存の`KisColorOptionDataContractTest`は1件成功した。`verify-quick`は45件の方針試験、責務・公開契約・テスト契約・統治・文書検査を含めて成功した。
 - 残るリスク: 実行検証はmacOS・Qt 6.11.1に限る。Qt 5、Linux、Windows、Androidの実行確認はR2-G19dで扱う。残る設定画面実装は未監査である。
-- 次の作業: R2-G19bgとして色設定画面と生成UIの所有対象を次の有限な監査単位として確定する。R2-G19eは固定テストを変更する項目であり、Issue #44の範囲外に維持する。
+- 次の作業: R2-G19bhとして自動ブラシ設定画面・モデル・生成UIの所有対象を次の有限な監査単位として確定する。R2-G19eは固定テストを変更する項目であり、Issue #44の範囲外に維持する。
 - 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
 - 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
 - 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。

@@ -123,6 +123,7 @@ list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     ${kritapaintopruntime_LIB_SRCS}
     KisAirbrushOptionData.cpp
     KisAirbrushOptionModel.cpp
+    KisColorOptionWidget.cpp
     KisColorSourceOptionData.cpp
     KisColorSourceOptionModel.cpp
     KisCompositeOpOptionModel.cpp
@@ -155,7 +156,6 @@ ki18n_wrap_ui(kritalibpaintop_LIB_SRCS
     forms/wdgcustombrush.ui
     forms/wdgclipboardbrush.ui
     forms/wdgtextbrush.ui
-    forms/wdgcoloroptions.ui
     forms/wdgbrushchooser.ui
     forms/wdgpredefinedbrushchooser.ui
     forms/wdgflowopacityoption.ui
@@ -975,6 +975,40 @@ set_target_properties(kritapaintopcoloroptionmodelobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritapaintopcoloroptionwidgetobjects OBJECT
+    KisColorOptionWidget.cpp
+)
+ki18n_wrap_ui(kritapaintopcoloroptionwidgetobjects
+    forms/wdgcoloroptions.ui
+)
+target_compile_definitions(kritapaintopcoloroptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopcoloroptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopcoloroptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcoloroptiondataobjects
+        kritapaintopcoloroptionmodelobjects
+        kritatoolsui
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritawidgetutils
+)
+set_target_properties(kritapaintopcoloroptionwidgetobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapaintopcurveoptionmodelobjects OBJECT
     KisCurveOptionModel.cpp
 )
@@ -1717,6 +1751,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopruntime>
     ${kritapaintopruntime_OBJECTS}
     $<TARGET_OBJECTS:kritapaintopcoloroptionmodelobjects>
+    $<TARGET_OBJECTS:kritapaintopcoloroptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopcurveoptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopcurvecontrolinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintopcurveinputcontrolsobjects>

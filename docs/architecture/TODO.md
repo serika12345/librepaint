@@ -1507,7 +1507,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 
 範囲は`plugins/paintops/libpaintop/KisColorOptionWidget.{h,cpp}`、`forms/wdgcoloroptions.ui`とその直接の所有CMake対象に固定する。色設定、設定画面、プリセット設定、描画結果と既存CTestは維持する。
 
-- [ ] 公開ヘッダーと実装の直接取込み、直接構築・リンク要件、既存の色入力の利用者向け契約を監査する。
+- [x] 公開ヘッダーと実装の直接取込みを監査し、色設定画面と生成UIを`kritapaintopcoloroptionwidgetobjects`へ移す。Qt、色設定値・モデル、paint-op画面基盤、Lagerを公開利用要件として直接接続し、翻訳とスピンボックスを実装専用依存として明示する。集約ライブラリーは同じオブジェクトを一度だけ取り込む。
+- [x] 専用画面対象、`kritalibpaintop`、既存の色設定値互換性CTest、`verify-quick`をmacOSで成功させる。
+
+### R2-G19bh 自動ブラシ設定画面・モデル依存の直接化
+
+目的は、ブラシ選択画面が使う自動ブラシ設定画面とモデルを、集約ライブラリーの推移的な画像・画面・Lager依存から分離することである。
+
+範囲は`plugins/paintops/libpaintop/kis_auto_brush_widget.{h,cpp}`、`KisAutoBrushModel.{h,cpp}`、`forms/wdgautobrush.ui`とその直接の所有CMake対象に固定する。ブラシ生成、設定画面、プリセット設定、描画結果と既存CTestは維持する。
+
+- [ ] 公開ヘッダーと実装の直接取込み、直接構築・リンク要件、既存の自動ブラシ入力の利用者向け契約を監査する。
 
 ### R2-G19av 固定CTestの製品利用要件直接化
 
