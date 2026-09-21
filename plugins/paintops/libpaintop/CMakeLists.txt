@@ -25,7 +25,6 @@ set(kritalibpaintop_LIB_SRCS
     KisPaintingModeOptionWidget.cpp
     KisColorSourceOptionData.cpp
     KisColorSourceOptionModel.cpp
-    KisColorSourceOptionWidget.cpp
     KisLightnessStrengthOptionWidget.cpp
     KisTextureOptionData.cpp
     KisEmbeddedTextureData.cpp
@@ -1027,7 +1026,6 @@ set_target_properties(kritapaintopmirroroptionwidgetobjects PROPERTIES
 # compilation separate lets focused option-data changes avoid the remaining
 # settings widgets while preserving the objects in kritalibpaintop.
 add_library(kritapaintopoptionmodelobjects OBJECT
-    KisColorSourceOptionModel.cpp
     KisPaintingModeOptionModel.cpp
 )
 target_compile_definitions(kritapaintopoptionmodelobjects PRIVATE
@@ -1044,7 +1042,6 @@ target_include_directories(kritapaintopoptionmodelobjects
 target_link_libraries(kritapaintopoptionmodelobjects
     PUBLIC
         Qt${QT_MAJOR_VERSION}::Core
-        kritapaintopcolorsourceoptiondataobjects
         kritapaintoppaintingmodeoptiondataobjects
         kritapaintopscatteroptiondataobjects
         kritapaintopsharpnessoptiondataobjects
@@ -1053,6 +1050,59 @@ target_link_libraries(kritapaintopoptionmodelobjects
         lager
 )
 set_target_properties(kritapaintopoptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopcolorsourceoptionmodelobjects OBJECT
+    KisColorSourceOptionModel.cpp
+)
+target_compile_definitions(kritapaintopcolorsourceoptionmodelobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopcolorsourceoptionmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritapaintopcolorsourceoptionmodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritapaintopcolorsourceoptiondataobjects
+        lager
+)
+set_target_properties(kritapaintopcolorsourceoptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritapaintopcolorsourceoptionwidgetobjects OBJECT
+    KisColorSourceOptionWidget.cpp
+)
+target_compile_definitions(kritapaintopcolorsourceoptionwidgetobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopcolorsourceoptionwidgetobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopcolorsourceoptionwidgetobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Widgets
+        kritapaintopcolorsourceoptiondataobjects
+        kritapaintopcolorsourceoptionmodelobjects
+        kritatoolsui
+        lager
+    PRIVATE
+        KF${KF_MAJOR}::I18n
+        kritawidgets
+)
+set_target_properties(kritapaintopcolorsourceoptionwidgetobjects PROPERTIES
     AUTOMOC ON
     POSITION_INDEPENDENT_CODE ON
 )
@@ -1548,6 +1598,8 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopcurverangemodelobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptionwidgetobjects>
+    $<TARGET_OBJECTS:kritapaintopcolorsourceoptionmodelobjects>
+    $<TARGET_OBJECTS:kritapaintopcolorsourceoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopcompositeopoptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopcompositeopoptionwidgetobjects>
     $<TARGET_OBJECTS:kritapaintopairbrushoptionmodelobjects>
