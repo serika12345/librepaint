@@ -5,7 +5,17 @@
  */
 #include "KisPaintingModeOptionModel.h"
 
+#include <functional>
+
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/reader.hpp>
+#include <lager/with.hpp>
+
 #include <KisLager.h>
+
+#include "KisPaintingModeOptionData.h"
+#include "KisWidgetConnectionUtils.h"
 
 using ToControlState = KisWidgetConnectionUtils::ToControlState;
 

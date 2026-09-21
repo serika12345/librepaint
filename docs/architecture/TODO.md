@@ -1273,6 +1273,16 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 - [x] ローカルFlake再評価の条件、前後のstore測定、増加時の停止・記録条件、ごみ収集の権限境界を運用契約と利用手順へ記録する。
 - [x] 評価済みプロファイル経由で`verify-quick`を成功させ、通常反復の前後で死んだstoreパスが増えないことを確認する。
 
+### R2-G19ai プリセットオプションモデル依存の直接化
+
+目的は、ブラシプリセット設定画面の状態モデルが、集約ライブラリーの設定画面実装を経由してデータ型、Lager、Qt連携、画面状態を得る状態を解消し、対象を限定した構築と変更を可能にすることである。
+
+範囲は`plugins/paintops/libpaintop/KisAirbrushOptionModel.{h,cpp}`、`KisColorSourceOptionModel.cpp`、`KisCompositeOpOptionModel.{h,cpp}`、`KisPaintingModeOptionModel.{h,cpp}`、`KisScatterOptionModel.cpp`、`KisSharpnessOptionModel.cpp`、`KisSpacingOptionModel.cpp`、および`plugins/paintops/libpaintop/CMakeLists.txt`の`kritapaintopoptionmodelobjects`に固定する。既存テストソース、公開API、プリセット保存形式、画面状態遷移、描画結果は維持する。
+
+- [x] 公開ヘッダーと実装を、設定データ、Lagerカーソル・reader・Qt連携、標準関数オブジェクト、Qt値型、画面状態変換の所有ヘッダーへ直接接続する。
+- [x] 7実装を`kritapaintopoptionmodelobjects`へ分離し、公開利用要件と`KisLager.h`だけが使う実装専用取込みディレクトリーを直接列挙する。集約ライブラリーは同じオブジェクトを取り込み、公開ライブラリーの名前と動作を維持する。
+- [x] 対象構築、`kritalibpaintop`、既存のプリセット保存互換性CTest、`verify-quick`をmacOSで成功させ、後続の有限な監査単位をPROGRESSへ記録する。
+
 ### R2-G20 矩形選択による自由描画クリップ契約
 
 目的は、R2-G13bの固定自由描画を一つの矩形選択へ制限し、選択内の画素結果と選択外を変更しない

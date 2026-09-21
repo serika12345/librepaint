@@ -5,6 +5,11 @@
  */
 #include "KisCompositeOpOptionModel.h"
 
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+
+#include "KisCompositeOpOptionData.h"
+
 KisCompositeOpOptionModel::KisCompositeOpOptionModel(lager::cursor<KisCompositeOpOptionData> _optionData)
     : optionData(_optionData)
     , LAGER_QT(compositeOpId) {optionData[&KisCompositeOpOptionData::compositeOpId]}

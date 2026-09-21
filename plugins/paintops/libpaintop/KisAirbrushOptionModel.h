@@ -7,6 +7,7 @@
 #define KISAIRBRUSHOPTIONMODEL_H
 
 #include <QObject>
+#include <QtCore/qtypes.h>
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>
 

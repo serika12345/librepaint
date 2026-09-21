@@ -5,6 +5,11 @@
  */
 #include "KisScatterOptionModel.h"
 
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+
+#include "KisScatterOptionData.h"
+
 KisScatterOptionModel::KisScatterOptionModel(lager::cursor<KisScatterOptionMixIn> optionData)
     : scatterOptionData(optionData)
     , LAGER_QT(axisX) {scatterOptionData[&KisScatterOptionMixIn::axisX]}

@@ -8,6 +8,7 @@
 
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>
+#include <lager/reader.hpp>
 
 #include "KisPaintingModeOptionData.h"
 #include "KisWidgetConnectionUtils.h"

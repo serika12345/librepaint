@@ -143,11 +143,18 @@ set(kritapaintopruntime_OBJECTS
 list(REMOVE_ITEM kritalibpaintop_LIB_SRCS
     ${kritapaintopruntime_LIB_SRCS}
     KisAirbrushOptionData.cpp
+    KisAirbrushOptionModel.cpp
     KisColorSourceOptionData.cpp
+    KisColorSourceOptionModel.cpp
+    KisCompositeOpOptionModel.cpp
     KisDrawingAngleSensorModel.cpp
     KisFilterOptionData.cpp
     KisPaintingModeOptionData.cpp
+    KisPaintingModeOptionModel.cpp
+    KisScatterOptionModel.cpp
     KisSensorData.cpp
+    KisSharpnessOptionModel.cpp
+    KisSpacingOptionModel.cpp
     KisTextureOptionData.cpp
 )
 
@@ -770,6 +777,47 @@ set_target_properties(kritapaintopmirroroptionmodelobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+# These models bind preset option data to the settings UI. Keeping their
+# compilation separate lets focused option-data changes avoid the remaining
+# settings widgets while preserving the objects in kritalibpaintop.
+add_library(kritapaintopoptionmodelobjects OBJECT
+    KisAirbrushOptionModel.cpp
+    KisColorSourceOptionModel.cpp
+    KisCompositeOpOptionModel.cpp
+    KisPaintingModeOptionModel.cpp
+    KisScatterOptionModel.cpp
+    KisSharpnessOptionModel.cpp
+    KisSpacingOptionModel.cpp
+)
+target_compile_definitions(kritapaintopoptionmodelobjects PRIVATE
+    kritalibpaintop_EXPORTS
+)
+target_include_directories(kritapaintopoptionmodelobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    PRIVATE
+        $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+        $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+)
+target_link_libraries(kritapaintopoptionmodelobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        kritapaintopairbrushoptiondataobjects
+        kritapaintopcolorsourceoptiondataobjects
+        kritapaintopcompositeopoptiondataobjects
+        kritapaintoppaintingmodeoptiondataobjects
+        kritapaintopscatteroptiondataobjects
+        kritapaintopsharpnessoptiondataobjects
+        kritapaintopspacingoptiondataobjects
+        kritawidgets
+        lager
+)
+set_target_properties(kritapaintopoptionmodelobjects PROPERTIES
+    AUTOMOC ON
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritapaintoptextureoptionioobjects OBJECT
     KisEmbeddedTextureDataIO.cpp
     KisTextureOptionData.cpp
@@ -953,6 +1001,7 @@ kis_add_library(kritalibpaintop SHARED
     $<TARGET_OBJECTS:kritapaintopcurvecontrolinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintopcurverangemodelinterfaceobjects>
     $<TARGET_OBJECTS:kritapaintopmirroroptionmodelobjects>
+    $<TARGET_OBJECTS:kritapaintopoptionmodelobjects>
     $<TARGET_OBJECTS:kritapaintopsensormodelobjects>
     $<TARGET_OBJECTS:kritapaintopsensordataobjects>
     $<TARGET_OBJECTS:kritapaintoptextureoptionioobjects>
