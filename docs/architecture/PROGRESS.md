@@ -2,12 +2,12 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-23 15:44 JST
+- 更新日時: 2026-09-23 16:25 JST
 - 状態: `in_progress`
 - 現在の検査段階: R1-G8b 最初の局所化実装
-- 関連TODO: R1-G1からR1-G8aおよびR2-G19bmまで完了、R1-G8bは他構成の検証待ち、R2-G19d-aは`planned`
+- 関連TODO: R1-G1からR1-G8aおよびR2-G19bmまで完了、R1-G8bはx86_64 Linux構築ホストでの3構成検証待ち、R2-G19d-aは`planned`
 - ブランチ: `develop`
-- 開始コミット: `b85033aced2ad5b25c285518f498de33117c132d`。`origin/develop`と一致する。R1-G8b開始時点では、完了済みのR1-G8aに属する文書、測定入口、単体試験が未コミット状態で存在した。
+- 開始コミット: `b85033aced2ad5b25c285518f498de33117c132d`。R1-G8aとG8bのmacOS実装は`183107a06c`（`Localize KoID translation storage change impact`）としてコミット済みであり、`develop`は`origin/develop`より1コミット先行する。
 - 目的: 識別子と表示名の共有値契約を維持したまま、遅延翻訳の私有格納実装を公開ヘッダーから分離し、その内部依存の変更が要求する再コンパイルと再リンクを局所化する。
 - 範囲固定: R1-G8bの製品変更は`KoID`一単位と、公開ヘッダーから得ていた宣言を直接の所有ヘッダーへ接続する利用元に限定した。CMake対象、新しい抽象、公開API、保存形式、識別子は追加していない。
 - 構造移動: `libs/global/KoID.h`の`TranslatedString`、`StorageType`、`KoIDPrivate`の完全定義とBoost optional、KDE翻訳、`KisLazyStorage`への実装依存を`libs/global/KoID.cpp`へ移した。`KoID.h`には値契約、`KLocalizedString`の前方宣言、共有私有データの所有だけを残した。所有先は`kritaglobalidobjects`と最終共有ライブラリー`kritaglobal`のままである。
@@ -16,9 +16,10 @@
 - 波及結果: `KoID.h`は直接取込み245ファイル、推移的コンパイル2147工程、生成252工程、影響704対象、直接リンク570対象、再リンク閉包703対象の共有契約範囲を維持した。分離した`KisLazyStorage.h`は、直接取込み5ファイルを維持しながら、推移的コンパイルを2151工程（製品1702・試験449）から7工程（製品6・試験1）、生成工程を252件から0件、影響対象を704件から5件、直接リンク対象を571件から4件、再リンク閉包を704件（製品217・試験487）から625件（製品217・試験408）へ縮小した。
 - 契約維持: 公開クラス名、構築、複製、代入、`id()`、`name()`、比較、メタ型、デバッグ出力、`QSharedPointer`によるオブジェクト配置は維持した。変更後の共有ライブラリーは変更前と同じ`KoID`の公開および既存私有記号名を持ち、CMake所有と直接辺に変更はない。
 - macOS検証: `./scripts/verify`は構造・方針・文書検査と879/879件のCTestを366.51秒で成功し、`verify: OK`となった。`./scripts/run-test KoIDContractTest`は1/1件成功し、`build-incremental native plan KoIDContractTest`は作業なしとなった。`git diff --check`も成功した。測定入口の単体試験5件を含むスクリプト試験50件も成功した。
+- iOS検証: `build-incremental ios build --allow-large`はKoID公開ヘッダー変更の再構築3092工程を完走し、`LibrePaint.app`を最終リンクした。静的依存資源監査は7保持群253ファイル（画像248）、除外1群、未分類0件で成功した。直後の`build-incremental ios plan`は資源、ブランド、互換識別子の各監査に成功し、`planned build steps: 0`となった。
 - 構築状態: コンパイラーキャッシュは全期間集計で命中121483/161769件、75.10%である。macOSの完全構築後に同じ測定入口で変更後値を採取した。
-- 残るリスク: 共通C++実装のmacOS契約、構築、記号は確認済みである。iOSと、x86_64 Linux構築ホスト上のLinux、Windows、Android Qt 5では、条件付き利用元を含む製品構築とパッケージ境界検査が残る。各OSの実行時契約CTestはR2-G19d-aの範囲である。
-- 次の作業: 現在の未コミット差分を保ったまま、iOS製品構築を実行し、その後x86_64 Linux構築ホストでLinux、Windows、Android Qt 5の全製品構築と直接辺を検査する。5構成の成功後にR1-G8bを完了し、同じ測定で次候補へ展開するかを別の検査段階として判断する。
+- 残るリスク: 共通C++実装のmacOS契約、構築、記号とiOS製品リンクは確認済みである。x86_64 Linux構築ホスト上のLinux、Windows、Android Qt 5では、条件付き利用元を含む製品構築とパッケージ境界検査が残る。各OSの実行時契約CTestはR2-G19d-aの範囲である。
+- 次の作業: 同じmacOS依存データから次の局所化候補を有限集合として分類し、起点、行先、既存契約、変更前波及を固定する。製品変更へ進める候補は、公開契約と所有を維持したまま実装依存を分離できるものに限定する。G8bのLinux、Windows、Android Qt 5統合検証はx86_64 Linux構築ホストで実行する。
 
 ## 直前の完了記録: R2-G19bm プラットフォーム構築による直接依存補正
 
