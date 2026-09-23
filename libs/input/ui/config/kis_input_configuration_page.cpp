@@ -23,7 +23,7 @@
 #include "../kis_input_config.h"
 #include <kis_signals_blocker.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qlogging.h>
 #include <qnamespace.h>

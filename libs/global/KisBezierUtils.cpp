@@ -17,14 +17,12 @@
 #include <iterator>
 #include <limits>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qline.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnumeric.h>
 #include <qpoint.h>
 #include <qpolygon.h>
-#include <qtypes.h>
 #include <tuple>
 #include <QStack>
 #include <QDebug>

@@ -13,7 +13,7 @@
 #include <KoID.h>
 
 #include <QString>
-#include <QtCore/qtypes.h>
+#include <QtGlobal>
 
 #include "KisCurveOptionDataCommon.h"
 #include "KisKritaSensorPack.h"

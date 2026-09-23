@@ -14,7 +14,7 @@
 #include <KisMimeDatabase.h>
 #include <qalgorithms.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qmap.h>
 #include <qobject.h>
 

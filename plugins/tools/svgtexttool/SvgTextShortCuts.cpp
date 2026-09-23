@@ -14,7 +14,7 @@
 #include <qfont.h>
 #include <qlist.h>
 #include <qmap.h>
-#include <qtversionchecks.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 /**

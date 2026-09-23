@@ -6,7 +6,7 @@
 #ifndef KISSTANDARDOPTIONS_H
 #define KISSTANDARDOPTIONS_H
 
-#include <QtCore/qtypes.h>
+#include <QtGlobal>
 
 #include <KisCurveOption.h>
 #include "kis_properties_configuration.h"

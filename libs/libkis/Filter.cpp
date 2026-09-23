@@ -17,7 +17,7 @@
 #include <application/ui/orchestration/KisPart.h>
 #include <application/ui/workspace/KisView.h>
 
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qobject.h>
 #include <qpointer.h>
 #include <strokes/kis_filter_stroke_strategy.h>

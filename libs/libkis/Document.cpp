@@ -48,6 +48,7 @@
 #include <KoColorProfile.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorConversionTransformation.h>
+#include <KoUpdater.h>
 #include <metadata/KoDocumentInfo.h>
 #include <KisGlobalResourcesInterface.h>
 
@@ -70,14 +71,14 @@
 #include <kis_undo_adapter.h>
 #include <commands/kis_set_global_selection_command.h>
 #include <qfileinfo.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qstringview.h>
 #include <qtransform.h>
-#include <qtypes.h>
 
 
 struct Document::Private {

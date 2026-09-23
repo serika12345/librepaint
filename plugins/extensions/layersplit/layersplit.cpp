@@ -46,12 +46,11 @@
 #include <KisCursorOverrideLock.h>
 #include <qcontainerfwd.h>
 #include <qdialog.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(LayerSplitFactory, "kritalayersplit.json", registerPlugin<LayerSplit>();)
 

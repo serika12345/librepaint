@@ -14,12 +14,9 @@
 #include <algorithm>
 #include <cmath>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qpoint.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include "kis_grid_interpolation_tools.h"
 #include "kis_dom_utils.h"
 #include "kis_painter.h"

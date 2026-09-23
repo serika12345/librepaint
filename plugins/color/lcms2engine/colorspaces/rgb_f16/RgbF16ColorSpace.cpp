@@ -35,7 +35,7 @@
 #include <lcms2.h>
 #include <qlist.h>
 #include <qrgb.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 RgbF16ColorSpace::RgbF16ColorSpace(const QString &name, KoColorProfile *p) :
     LcmsColorSpace<KoRgbF16Traits>(colorSpaceId(), name, TYPE_RGBA_HALF_FLT, cmsSigRgbData, p)

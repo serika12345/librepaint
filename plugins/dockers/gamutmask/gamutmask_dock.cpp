@@ -16,7 +16,7 @@
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <resources/KoGamutMask.h>
 #include <kis_icon_utils.h>
 #include <application/ui/orchestration/KisPart.h>

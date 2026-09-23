@@ -22,8 +22,7 @@
 #include <algorithm>
 #include <cstring>
 #include <new>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <KisRegion.h>
 
 #include <klocalizedstring.h>
@@ -75,15 +74,11 @@
 #include "tiles3/kis_hline_iterator.h"
 #include "tiles3/kis_vline_iterator.h"
 #include <KisStaticInitializer.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qscopedpointer.h>
 #include <qset.h>
 #include <qsharedpointer.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <utility>
 
 KIS_DECLARE_STATIC_INITIALIZER {

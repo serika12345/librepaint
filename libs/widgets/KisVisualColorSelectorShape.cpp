@@ -4,6 +4,8 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisVisualColorSelectorShape.h"
+
+#include <QDebug>
 #include "KisVisualColorSelector.h"
 
 #include <QColor>
@@ -18,19 +20,15 @@
 #include "KoColorDisplayRendererInterface.h"
 #include "kis_assert.h"
 #include <cstring>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcoreevent.h>
 #include <qevent.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qpoint.h>
 #include <qscopedpointer.h>
 #include <qsize.h>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 

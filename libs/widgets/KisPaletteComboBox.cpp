@@ -21,7 +21,7 @@
 #include <qobjectdefs.h>
 #include <qpixmap.h>
 #include <qsharedpointer.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 #include "KisSqueezedComboBox.h"

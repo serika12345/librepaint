@@ -23,12 +23,10 @@
 #include <KisMpl.h>
 #include <KisRollingMeanAccumulatorWrapper.h>
 #include <qlist.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <qscopedpointer.h>
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "kis_algebra_2d.h"
 

@@ -22,8 +22,7 @@
 #include <QFileInfo>
 #include <qobject.h>
 #include <qscopedpointer.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 class Q_DECL_HIDDEN SvgSavingContext::Private
 {

@@ -20,14 +20,11 @@
 
 #include <qcontainerfwd.h>
 #include <qdom.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnamespace.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
 #include <text/KoSvgText.h>
 #include <text/KoSvgTextProperties.h>
 

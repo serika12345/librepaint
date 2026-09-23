@@ -17,12 +17,9 @@
 #include <algorithm>
 #include <cmath>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
 #include "kis_dom_utils.h"
 #include "kis_algebra_2d.h"
 

@@ -14,7 +14,7 @@
 #include "kis_uniform_paintop_property.h"
 
 #include <KisPaintingModeOptionData.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qobject.h>
 #include <qobjectdefs.h>

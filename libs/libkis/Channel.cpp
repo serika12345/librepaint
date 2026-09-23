@@ -22,7 +22,7 @@
 #include <qlist.h>
 #include <qobject.h>
 #include <qpaintdevice.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #ifdef HAVE_OPENEXR
 #include <half.h>

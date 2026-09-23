@@ -35,16 +35,13 @@
 #include <QVector>
 #include <QSharedPointer>
 #include <atomic>
-#include <qlatin1stringview.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qrgb.h>
 #include <qstringview.h>
 #include <qthread.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 namespace
 {

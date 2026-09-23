@@ -29,7 +29,7 @@
 #include <qimage.h>
 #include <qlist.h>
 #include <qlogging.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qsharedpointer.h>
 #include <quazip.h>

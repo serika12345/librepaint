@@ -38,15 +38,12 @@
 #include <ksharedconfig.h>
 #include <qcoreevent.h>
 #include <qeasingcurve.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qpalette.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 
 OverviewDockerPage::OverviewDockerPage(QWidget *parent, const char *name, Qt::WindowFlags f)
     : QWidget(parent, f)

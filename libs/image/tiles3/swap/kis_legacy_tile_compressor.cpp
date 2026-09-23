@@ -12,10 +12,8 @@
 #include <QIODevice>
 #include <cstdio>
 #include <cstring>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qscopedpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #define TILE_DATA_SIZE(pixelSize) ((pixelSize) * KisTileData::WIDTH * KisTileData::HEIGHT)
 

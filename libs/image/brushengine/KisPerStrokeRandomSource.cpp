@@ -14,7 +14,7 @@
 
 #include <boost/random/taus88.hpp>
 #include <qhashfunctions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 struct KisPerStrokeRandomSource::Private
 {

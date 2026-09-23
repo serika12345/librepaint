@@ -18,13 +18,11 @@
 #include "kis_icon_utils.h"
 #include <QApplication>
 #include <qabstractitemmodel.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 #include "input/ui/kis_abstract_input_action.h"
 #include "input/kis_input_profile.h"

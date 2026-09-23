@@ -24,10 +24,7 @@
 #include "kis_spacing_information.h"
 #include "kis_timing_information.h"
 #include "kis_types.h"
-#include <qassert.h>
 #include <qpoint.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #ifdef Q_OS_WIN
 // quoting DRAND48(3) man-page:

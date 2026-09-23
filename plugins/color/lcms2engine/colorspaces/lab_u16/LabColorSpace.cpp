@@ -27,7 +27,7 @@
 #include <kis_dom_utils.h>
 #include <lcms2.h>
 #include <qbitarray.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 LabU16ColorSpace::LabU16ColorSpace(const QString &name, KoColorProfile *p)
     : LcmsColorSpace<KoLabU16Traits>(colorSpaceId(), name, TYPE_LABA_16, cmsSigLabData, p)

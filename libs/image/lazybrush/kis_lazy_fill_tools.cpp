@@ -12,8 +12,7 @@
 #include <limits>
 #include <qcontainerfwd.h>
 #include <qpoint.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <vector>
 #define BOOST_DISABLE_ASSERTS 1
 

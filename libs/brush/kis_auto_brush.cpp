@@ -35,15 +35,13 @@
 #include "kis_brush.h"
 #include "kis_types.h"
 #include <KisOptimizedBrushOutline.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpoint.h>
 #include <qscopedpointer.h>
 #include <qsize.h>
 #include <qthread.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <stdlib.h>

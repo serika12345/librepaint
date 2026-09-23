@@ -19,9 +19,7 @@
 #include <qobjectdefs.h>
 #include <qsize.h>
 #include <qstyleoption.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtversionchecks.h>
+#include <QtGlobal>
 
 #include "KisIconToolTip.h"
 #include "KisKineticScroller.h"

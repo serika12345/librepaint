@@ -16,6 +16,8 @@
  */
 
 #include <algorithm>
+
+#include <QDebug>
 #include <boost/multi_array.hpp>
 #include <boost/multi_array/base.hpp>
 #include <cassert>
@@ -49,11 +51,9 @@
 #include "kis_shared_ptr.h"
 #include "kis_types.h"
 #include <KoUpdater.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qminmax.h>
 #include <qnumeric.h>
-#include <qtypes.h>
 #include <utility>
 #include <vector>
 

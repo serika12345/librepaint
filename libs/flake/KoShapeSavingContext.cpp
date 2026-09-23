@@ -18,12 +18,10 @@
 #include <FlakeDebug.h>
 #include <QUuid>
 #include <QImage>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 #include <qlist.h>
 #include <qmap.h>
-#include <qtypes.h>
 
 class KoShapeSavingContextPrivate {
 public:

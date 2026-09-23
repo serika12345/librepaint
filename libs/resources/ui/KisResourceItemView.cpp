@@ -22,8 +22,7 @@
 #include <qobjectdefs.h>
 #include <qstyleoption.h>
 #include <qtableview.h>
-#include <qtmetamacros.h>
-#include <qtversionchecks.h>
+#include <QtGlobal>
 
 KisResourceItemView::KisResourceItemView(QWidget *parent)
     : QTableView(parent)

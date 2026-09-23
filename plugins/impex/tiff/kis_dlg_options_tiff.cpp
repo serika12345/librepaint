@@ -22,7 +22,7 @@
 
 #include <config-tiff.h>
 #include <qobjectdefs.h>
-#include <qoverload.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 KisTIFFOptionsWidget::KisTIFFOptionsWidget(QWidget *parent)

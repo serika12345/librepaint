@@ -8,7 +8,7 @@
  */
 
 #include <filter/kis_filter_category_ids.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qkeysequence.h>
 #include <qlist.h>
 #include <qnamespace.h>

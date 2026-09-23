@@ -15,7 +15,7 @@
 #include "kis_stroke_job_strategy.h"
 #include <qlist.h>
 #include <qscopedpointer.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <strokes/FreehandStrokeRunnableJobDataWithUpdate.h>
 
 struct KisDabRenderingExecutor::Private

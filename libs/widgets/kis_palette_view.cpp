@@ -34,13 +34,12 @@
 #include <KisSwatch.h>
 #include <KisResourceUserOperations.h>
 #include <qabstractitemmodel.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qscroller.h>
 #include <qtableview.h>
-#include <qtmetamacros.h>
 #include <qvariant.h>
 #include <qwidget.h>
 

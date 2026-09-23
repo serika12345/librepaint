@@ -34,7 +34,7 @@
 #include <lcms2.h>
 #include <qlist.h>
 #include <qrgb.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #define downscale(quantum)  (quantum) //((unsigned char) ((quantum)/257UL))
 #define upscale(value)  (value) // ((quint8) (257UL*(value)))

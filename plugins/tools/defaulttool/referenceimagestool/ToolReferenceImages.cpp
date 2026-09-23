@@ -32,14 +32,12 @@
 #include "KisQStringListFwd.h"
 #include "QClipboard"
 #include <KisCursorOverrideLock.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qoverload.h>
 #include <qpointer.h>
 #include <qset.h>
-#include <qtpreprocessorsupport.h>
 
 #include "ToolReferenceImagesWidget.h"
 #include "KisReferenceImageCollection.h"

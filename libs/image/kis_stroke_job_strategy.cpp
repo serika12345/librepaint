@@ -7,7 +7,6 @@
 #include "kis_stroke_job_strategy.h"
 
 #include <QtGlobal>
-#include <qtpreprocessorsupport.h>
 
 
 KisStrokeJobData::KisStrokeJobData(Sequentiality sequentiality,

@@ -13,7 +13,7 @@
 #include <qpoint.h>
 #include <qpolygon.h>
 #include <qsize.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KisGradientWidgetsUtils.h"
 #include "KoAbstractGradient.h"

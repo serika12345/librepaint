@@ -10,7 +10,7 @@
 #include <lager/extra/qt.hpp>
 
 #include <QObject>
-#include <QtCore/qtmetamacros.h>
+#include <QtGlobal>
 
 #include "KisSpacingOptionData.h"
 

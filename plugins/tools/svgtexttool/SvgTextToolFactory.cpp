@@ -18,7 +18,7 @@
 #include <klocalizedstring.h>
 #include <kis_action_registry.h>
 #include <qaction.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 
 SvgTextToolFactory::SvgTextToolFactory()

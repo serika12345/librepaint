@@ -17,7 +17,7 @@
 #include <kseparator.h>
 #include "KoID.h"
 #include <qdialog.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 #include <qlist.h>
 #include <qnamespace.h>

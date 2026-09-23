@@ -30,7 +30,7 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpainter.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 
 KisToolPath::KisToolPath(KoCanvasBase * canvas)

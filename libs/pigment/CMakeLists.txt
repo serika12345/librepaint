@@ -377,6 +377,7 @@ set_target_properties(kritapigmentalphadarkenparamswrapperobjects PROPERTIES
 )
 
 add_library(kritapigmentcolorconversiontransformationobjects OBJECT KoColorConversionTransformation.cpp)
+target_compile_definitions(kritapigmentcolorconversiontransformationobjects PRIVATE kritapigment_EXPORTS)
 target_include_directories(kritapigmentcolorconversiontransformationobjects PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_SOURCE_DIR}/libs/global ${CMAKE_BINARY_DIR}/libs/global)
 target_link_libraries(kritapigmentcolorconversiontransformationobjects PUBLIC Boost::boost KF${KF_MAJOR}::I18n Qt${QT_MAJOR_VERSION}::Core Qt${QT_MAJOR_VERSION}::Gui)
 set_target_properties(kritapigmentcolorconversiontransformationobjects PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)

@@ -17,11 +17,10 @@
 #include <KoColor.h>
 #include <KoColorSpace.h>
 #include <KoCompositeOpRegistry.h>
-#include <qassert.h>
+#include <QtGlobal>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "KisRenderPassFlags.h"
 #include "KoColorSpaceConstants.h"

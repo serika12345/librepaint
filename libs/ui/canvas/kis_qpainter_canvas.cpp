@@ -44,13 +44,11 @@
 #include <KoCanvasController.h>
 #include <KisRepaintDebugger.h>
 #include <canvas/KisDisplayConfig.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpolygon.h>
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 class KisQPainterCanvas::Private
 {

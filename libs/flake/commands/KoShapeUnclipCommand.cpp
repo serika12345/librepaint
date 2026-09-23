@@ -15,9 +15,8 @@
 
 #include <klocalizedstring.h>
 #include <qalgorithms.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtypes.h>
 
 class KoShapeUnclipCommand::Private
 {

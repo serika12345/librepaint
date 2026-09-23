@@ -18,13 +18,10 @@
 #include <klocalizedstring.h>
 
 #include <algorithm>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qmap.h>
 #include <qset.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
 
 namespace
 {

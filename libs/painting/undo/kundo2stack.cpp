@@ -55,13 +55,10 @@
 #include "kundo2group.h"
 #include <QtGlobal>
 #include <qalgorithms.h>
-#include <qassert.h>
 #include <qdatetime.h>
 #include <qlogging.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 #include <qvector.h>
 #include "kis_assert.h"
 

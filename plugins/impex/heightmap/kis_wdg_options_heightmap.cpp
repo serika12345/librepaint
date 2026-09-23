@@ -17,9 +17,7 @@
 #include <qcursor.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 static constexpr quint32 nextPow2(quint32 n)

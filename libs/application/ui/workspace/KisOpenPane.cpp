@@ -41,9 +41,8 @@
 #include <kconfiggroup.h>
 
 #include <kis_icon.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qdialog.h>
-#include <qforeach.h>
 #include <qicon.h>
 #include <qitemselectionmodel.h>
 #include <qlist.h>
@@ -52,8 +51,6 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qscroller.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 #include <qwidget.h>
 
 class KoSectionListItem : public QTreeWidgetItem

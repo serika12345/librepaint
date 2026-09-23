@@ -3,6 +3,8 @@
  */
 
 #include "PerspectiveEllipseAssistant.h"
+
+#include <QDebug>
 #include "Ellipse.h"
 #include "KisQStringListFwd.h"
 #include "KoCanvasBase.h"
@@ -28,7 +30,7 @@
 #include <math.h>
 #include<QDebug>
 #include <QtMath>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
 #include <qline.h>
 #include <qmap.h>
@@ -36,8 +38,6 @@
 #include <qobject.h>
 #include <qpoint.h>
 #include <qpolygon.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 

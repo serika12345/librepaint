@@ -11,7 +11,7 @@
 #include "kis_slider_based_paintop_property.h"
 #include "kis_types.h"
 #include "kis_uniform_paintop_property.h"
-#include <qtypes.h>
+#include <QtGlobal>
 
 template<class ParentClass>
 KisCallbackBasedPaintopProperty<ParentClass>::KisCallbackBasedPaintopProperty(typename ParentClass::Type type,

@@ -9,9 +9,8 @@
 #include <QMutexLocker>
 #include <QVector>
 #include <mutex>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtypes.h>
 
 #include "KisProjectionUpdateFlags.h"
 #include "KisQStringListFwd.h"

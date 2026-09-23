@@ -11,15 +11,12 @@
 
 #include <algorithm>
 #include <limits.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qpaintdevice.h>
 #include <qpoint.h>
-#include <qtpreprocessorsupport.h>
 #include <stdlib.h>
 
 #include <QPainter>

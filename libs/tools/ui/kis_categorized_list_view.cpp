@@ -23,7 +23,7 @@
 #include <qpalette.h>
 #include <qscroller.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 KisCategorizedListView::KisCategorizedListView(QWidget* parent):
     QListView(parent)

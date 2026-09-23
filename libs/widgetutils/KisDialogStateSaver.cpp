@@ -18,8 +18,7 @@
 #include <QDoubleSpinBox>
 #include <QGroupBox>
 #include <QRadioButton>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qobject.h>

@@ -14,7 +14,7 @@
 #include <kis_paint_information.h>
 #include <optional>
 #include <qhashfunctions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KisDynamicSensorFuzzyBase::KisDynamicSensorFuzzyBase(const KoID &id, bool fuzzyPerStroke, const QString &perStrokeRandomSourceKey, const KisSensorData &data, std::optional<KisCubicCurve> curveOverride)
     : KisDynamicSensor(id, data, curveOverride)

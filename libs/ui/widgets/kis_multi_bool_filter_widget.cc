@@ -18,7 +18,7 @@
 #include <qlayoutitem.h>
 #include <qobjectdefs.h>
 #include <qsizepolicy.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 KisBoolWidgetParam::KisBoolWidgetParam(bool ninitvalue, const QString & nlabel, const QString & nname) :

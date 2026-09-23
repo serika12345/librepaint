@@ -13,8 +13,7 @@
 #include <qobjectdefs.h>
 #include <qpaintdevice.h>
 #include <qpainterpath.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KisRectangleEnclosingProducer.h"
 #include "kis_cursor.h"

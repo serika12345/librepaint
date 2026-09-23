@@ -11,8 +11,7 @@
 
 #include <QIODevice>
 #include <jpeglib.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 namespace

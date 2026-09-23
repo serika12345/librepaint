@@ -13,14 +13,12 @@
 #include "kundo2stack.h"
 #include <KoShape.h>
 #include <KoShapeBulkActionLock.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qpoint.h>
 #include <qsize.h>
-#include <qtdeprecationdefinitions.h>
 #include <qtransform.h>
-#include <qtypes.h>
 
 namespace
 {

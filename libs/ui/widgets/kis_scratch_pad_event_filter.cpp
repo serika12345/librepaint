@@ -15,7 +15,7 @@
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qscopedpointer.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qtransform.h>
 
 KisScratchPadEventFilter::KisScratchPadEventFilter(QWidget *parent)

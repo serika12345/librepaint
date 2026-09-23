@@ -12,7 +12,7 @@
 #include <KoPluginLoader.h>
 
 #include <kis_debug.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 
 Q_GLOBAL_STATIC(KisMetadataBackendRegistry, s_instance)

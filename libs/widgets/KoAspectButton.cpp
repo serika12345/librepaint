@@ -11,8 +11,7 @@
 
 #include <kis_icon_utils.h>
 #include <qobjectdefs.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qtoolbutton.h>
 #include <qwidget.h>
 

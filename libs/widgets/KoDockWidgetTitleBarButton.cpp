@@ -16,8 +16,7 @@
 #include <qnamespace.h>
 #include <qpainter.h>
 #include <qpixmap.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtversionchecks.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 class Q_DECL_HIDDEN KoDockWidgetTitleBarButton::Private

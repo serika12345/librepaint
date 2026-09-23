@@ -25,14 +25,13 @@
 #include <KoSvgText.h>
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <qvariant.h>
 #include <qwidget.h>
 #include <vector>

@@ -14,8 +14,7 @@
 
 #include <QImage>
 #include <qgenericatomic.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 struct Q_DECL_HIDDEN KisConvolutionKernel::Private {
     qreal offset;

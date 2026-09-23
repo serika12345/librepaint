@@ -30,8 +30,7 @@
 #include <qimage.h>
 #include <qnamespace.h>
 #include <qpoint.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <utility>
 
 #include "KisMagneticGraph.h"

@@ -21,10 +21,8 @@
 #include <kis_lod_transform.h>
 #include <kis_paintop_plugin_utils.h>
 #include <KoResourceLoadResult.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 KisSprayPaintOp::KisSprayPaintOp(const KisPaintOpSettingsSP settings, KisPainter *painter, KisNodeSP node, KisImageSP image)

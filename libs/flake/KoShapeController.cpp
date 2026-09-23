@@ -24,13 +24,11 @@
 #include <kpagedialog.h>
 #include <klocalizedstring.h>
 #include <KoUnit.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
 
 class KoShapeController::Private
 {

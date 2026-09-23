@@ -29,13 +29,11 @@
 #include <memory>
 #include <qabstractitemmodel.h>
 #include <qdebug.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qset.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <utility>
 
 

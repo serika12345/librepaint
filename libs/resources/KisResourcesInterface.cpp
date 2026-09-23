@@ -5,6 +5,8 @@
  */
 #include "KisResourcesInterface.h"
 
+#include <QDebug>
+
 
 #include <QReadLocker>
 #include <QString>
@@ -14,9 +16,8 @@
 #include <algorithm>
 #include <memory>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qpair.h>
-#include <qtclasshelpermacros.h>
 #include <utility>
 #include "kis_assert.h"
 #include "KisResourcesInterface_p.h"

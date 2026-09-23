@@ -28,10 +28,9 @@
 #include "ui_wdgcolortoalphabase.h"
 #include "kis_wdg_color_to_alpha.h"
 #include <KisSequentialIteratorProgress.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qlist.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 KisFilterColorToAlpha::KisFilterColorToAlpha()

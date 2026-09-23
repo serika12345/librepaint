@@ -37,10 +37,8 @@
 #include "kis_do_something_command.h"
 #include <functional>
 #include <kis_transform_mask_params_interface.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "KisSimpleModifyTransformMaskCommand.h"
 

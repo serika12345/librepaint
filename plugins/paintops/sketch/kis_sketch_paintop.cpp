@@ -34,10 +34,7 @@
 
 #include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnumeric.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 /*
 * Based on Harmony project https://github.com/mrdoob/harmony/

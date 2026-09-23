@@ -19,12 +19,10 @@
 
 #include <qcolor.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qmap.h>
 #include <qobject.h>
 #include <qset.h>
-#include <qtypes.h>
 #include "kis_assert.h"
 
 namespace KisIconUtils

@@ -12,7 +12,7 @@
 #include <KoSelection.h>
 #include <qlist.h>
 #include <qscopedpointer.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 
 #include "KoShape.h"
 #include "kis_assert.h"

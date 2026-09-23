@@ -47,7 +47,7 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsizepolicy.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 WGColorSelectorDock::WGColorSelectorDock()

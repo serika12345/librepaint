@@ -20,8 +20,7 @@
 #include <qglobalstatic.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include "document/KisDocument.h"
 #include "kis_color_patches.h"
 #include "kis_color_selector_base.h"

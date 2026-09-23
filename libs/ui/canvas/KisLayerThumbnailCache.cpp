@@ -21,13 +21,12 @@
 #include "kundo2magicstring.h"
 #include <qelapsedtimer.h>
 #include <qimage.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 
 
 namespace {

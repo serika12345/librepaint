@@ -22,10 +22,9 @@
 #include <kis_dom_utils.h>
 
 #include <math.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qmap.h>
 #include <qpoint.h>
-#include <qtypes.h>
 #include <qxmlstream.h>
 
 RulerAssistant::RulerAssistant()

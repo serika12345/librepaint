@@ -16,8 +16,7 @@
 #include <exiv2/version.hpp>
 #include <qfiledevice.h>
 #include <qlogging.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <string>
 
 KisExiv2IODevice::KisExiv2IODevice(QString path)

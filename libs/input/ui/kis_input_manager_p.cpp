@@ -40,10 +40,9 @@
 #include <memory>
 #include <qcursor.h>
 #include <qelapsedtimer.h>
-#include <qforeach.h>
 #include <qhashfunctions.h>
-#include <qlatin1stringview.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
@@ -51,9 +50,6 @@
 #include <qpoint.h>
 #include <qset.h>
 #include <qsharedpointer.h>
-#include <qtenvironmentvariables.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 
 namespace {
 

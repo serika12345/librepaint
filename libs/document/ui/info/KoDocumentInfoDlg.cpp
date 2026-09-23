@@ -29,13 +29,12 @@
 #include <KisMimeDatabase.h>
 #include <qcontainerfwd.h>
 #include <qdialogbuttonbox.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qlistwidget.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qstringview.h>
-#include <qtpreprocessorsupport.h>
 #include <qwidget.h>
 
 class KoPageWidgetItemAdapter : public KPageWidgetItem

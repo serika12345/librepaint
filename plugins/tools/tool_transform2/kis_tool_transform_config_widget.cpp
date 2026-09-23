@@ -29,16 +29,13 @@
 #include <ksharedconfig.h>
 #include <KisSpinBoxI18nHelper.h>
 #include <math.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qbuttongroup.h>
 #include <qhashfunctions.h>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 template<typename T> inline T sign(T x) {

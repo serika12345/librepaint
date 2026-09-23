@@ -24,16 +24,12 @@
 #include <klocalizedstring.h>
 
 #include <assert.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
-#include <qlatin1stringview.h>
 #include <qlist.h>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qnamespace.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 
 #if defined(KCONFIG_BEFORE_5_24)
 # define authorizeAction authorizeKAction

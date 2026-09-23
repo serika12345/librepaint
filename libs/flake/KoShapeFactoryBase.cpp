@@ -27,13 +27,10 @@
 #include <QPointer>
 
 
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
 #include <qlist.h>
 #include <qobjectdefs.h>
-#include <qtdeprecationdefinitions.h>
 
 class Q_DECL_HIDDEN KoShapeFactoryBase::Private
 {

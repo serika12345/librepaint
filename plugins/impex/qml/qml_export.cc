@@ -22,7 +22,7 @@
 #include "kis_types.h"
 #include "qml_converter.h"
 #include <KoColorModelStandardIds.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qlist.h>
 #include <qobject.h>

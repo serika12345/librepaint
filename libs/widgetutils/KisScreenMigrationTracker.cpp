@@ -14,9 +14,7 @@
 #include <kis_assert.h>
 #include <kis_signal_compressor.h>
 #include <qobject.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KisScreenMigrationTracker::KisScreenMigrationTracker(QWidget *trackedWidget, QObject *parent)
     : KisRootSurfaceTrackerBase(trackedWidget, parent)

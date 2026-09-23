@@ -7,7 +7,7 @@
 #include <QDebug>
 #include <KisMimeDatabase.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 
 /**
  * @return a set of filters ("*.bla,*.foo") that is suitable for filtering

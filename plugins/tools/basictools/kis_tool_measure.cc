@@ -32,7 +32,7 @@
 #include "kis_canvas2.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include <KisOptimizedBrushOutline.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qgridlayout.h>
 #include <qlayoutitem.h>
 #include <qnamespace.h>
@@ -40,9 +40,6 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #define INNER_RADIUS 50
 

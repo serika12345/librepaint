@@ -14,8 +14,7 @@
 
 #include <kis_cubic_curve.h>
 #include <kis_speed_smoother.h>
-#include <qminmax.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 const int KisPaintingInformationBuilder::PressureResolution = 1024;
 

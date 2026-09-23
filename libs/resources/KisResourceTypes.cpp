@@ -9,7 +9,7 @@
 #include <QDebug>
 
 #include <ResourceDebug.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 
 namespace ResourceType {

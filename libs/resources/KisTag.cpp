@@ -14,9 +14,9 @@
 #include <KLocalizedString>
 
 #include <KisPortingUtils.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qnamespace.h>

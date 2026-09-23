@@ -5,12 +5,10 @@
  */
 #include <kis_curve_paintop_settings.h>
 #include <KisPaintingModeOptionData.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include "KisCurveOpOptionData.h"
 #include "KoID.h"
 #include "kis_paintop_settings.h"

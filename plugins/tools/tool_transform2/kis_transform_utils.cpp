@@ -32,12 +32,9 @@
 #include <kis_cage_transform_worker.h>
 #include <kis_liquify_transform_worker.h>
 #include <math.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qpoint.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "commands_new/kis_saved_commands.h"
 #include "kis_transform_mask.h"

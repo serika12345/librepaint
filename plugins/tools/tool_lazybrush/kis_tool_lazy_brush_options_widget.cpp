@@ -21,12 +21,10 @@
 #include <algorithm>
 #include <qabstractitemmodel.h>
 #include <qcoreevent.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
 #include <qvariant.h>
 #include <qwidget.h>
 #include <resources/KoColorSet.h>

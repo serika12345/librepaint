@@ -17,7 +17,7 @@
 #include <klocalizedstring.h>
 #include <qdom.h>
 #include <qlist.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "kis_pointer_utils.h"
 

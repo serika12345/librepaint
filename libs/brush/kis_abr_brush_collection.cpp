@@ -30,9 +30,7 @@
 #include <KoColor.h>
 #include <qmap.h>
 #include <qrgb.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 struct AbrInfo {

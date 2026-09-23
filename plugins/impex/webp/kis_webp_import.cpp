@@ -11,7 +11,7 @@
 #include <kpluginfactory.h>
 #include <mux_types.h>
 #include <qcontainerfwd.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <webp/demux.h>
 
 #include <QBuffer>

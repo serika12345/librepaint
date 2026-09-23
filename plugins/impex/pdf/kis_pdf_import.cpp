@@ -15,8 +15,7 @@
 #include <qdialog.h>
 #include <qlist.h>
 #include <qobject.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 // poppler's headers
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))

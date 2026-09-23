@@ -15,7 +15,7 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_painting_assistants_decoration.h>
 #include <qpointer.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 EditAssistantsCommand::EditAssistantsCommand(QPointer<KisCanvas2> canvas, AssistantSPList origAssistants, AssistantSPList newAssistants, KUndo2Command *parent)
     : KUndo2Command(kundo2_i18n("Edit Assistants"), parent)

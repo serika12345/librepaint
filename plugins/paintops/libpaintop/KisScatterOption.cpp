@@ -16,9 +16,8 @@
 #include <KisScatterOptionData.h>
 
 #include <KisPaintOpOptionUtils.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qpoint.h>
-#include <qtypes.h>
 namespace kpou = KisPaintOpOptionUtils;
 
 

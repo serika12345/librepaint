@@ -15,7 +15,7 @@
 #include <lcms2.h>
 #include <qhashfunctions.h>
 #include <qlist.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <vector>
 

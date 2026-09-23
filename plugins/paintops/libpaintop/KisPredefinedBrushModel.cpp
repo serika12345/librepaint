@@ -23,7 +23,7 @@
 #include <qcontainerfwd.h>
 #include <qhashfunctions.h>
 #include <qsize.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <tuple>
 #include <zug/transducer/map.hpp>
 

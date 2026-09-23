@@ -34,16 +34,14 @@
 #include <QtMath>
 
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qlocale.h>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qpair.h>
-#include <qtypes.h>
 #include <variant>
 
 #include <graphemebreak.h>

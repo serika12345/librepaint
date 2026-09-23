@@ -20,11 +20,9 @@
 
 #include <KoXmlWriter.h>
 #include <qdom.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <qstringview.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include "kis_dom_utils.h"
 
 #define DPI 72.0

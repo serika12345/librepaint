@@ -8,12 +8,12 @@
 
 #include <kis_paintop_settings.h>
 #include <qimage.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qrgb.h>
-#include <qtypes.h>
 #include <resources/KoPattern.h>
 #include "KisTextureOptionData.h"
 #include "KoColorSpaceConstants.h"

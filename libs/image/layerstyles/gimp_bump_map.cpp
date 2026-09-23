@@ -20,9 +20,8 @@
 #include <cmath>
 #include <math.h>
 #include <memory>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qscopedpointer.h>
-#include <qtypes.h>
 
 
 typedef int gint;

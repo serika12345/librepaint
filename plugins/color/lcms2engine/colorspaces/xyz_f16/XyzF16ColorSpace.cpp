@@ -24,7 +24,7 @@
 #include <kis_dom_utils.h>
 #include <lcms2.h>
 #include <qnamespace.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 XyzF16ColorSpace::XyzF16ColorSpace(const QString &name, KoColorProfile *p) :
     LcmsColorSpace<KoXyzF16Traits>(colorSpaceId(), name, TYPE_XYZA_HALF_FLT, cmsSigXYZData, p)

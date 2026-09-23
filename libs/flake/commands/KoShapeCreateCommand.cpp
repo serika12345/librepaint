@@ -20,9 +20,8 @@
 
 #include <kis_undo_stores.h>
 #include <KoAddRemoveShapeCommands.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtdeprecationdefinitions.h>
 
 class Q_DECL_HIDDEN KoShapeCreateCommand::Private
 {

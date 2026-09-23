@@ -17,15 +17,13 @@
 #include "kis_pointer_utils.h"
 #include "kis_types.h"
 #include "kundo2command.h"
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qdom.h>
-#include <qforeach.h>
 #include <qhash.h>
 #include <qlist.h>
 #include <qmap.h>
 #include <qset.h>
-#include <qtmetamacros.h>
 
 KisRasterKeyframe::KisRasterKeyframe(KisPaintDeviceWSP paintDevice)
     : KisKeyframe()

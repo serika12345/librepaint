@@ -33,16 +33,12 @@
 #include <KoDialog.h>
 #include <KisAutoLevels.h>
 #include <KisAutoLevelsWidget.h>
-#include <qassert.h>
 #include <qdialog.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 #include "../colorsfilters/kis_multichannel_utils.h"
 

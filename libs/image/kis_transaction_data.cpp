@@ -18,10 +18,8 @@
 #include "KisInterstrokeDataTransactionWrapperFactory.h"
 #include "kis_types.h"
 #include "tiles3/kis_memento.h"
-#include <qassert.h>
+#include <QtGlobal>
 #include <qscopedpointer.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
 
 //#define DEBUG_TRANSACTIONS
 

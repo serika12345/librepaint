@@ -34,18 +34,16 @@
 #include "KoColor.h"
 #include <KisResourceUserOperations.h>
 #include <qabstractitemmodel.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qboxlayout.h>
 #include <qdir.h>
-#include <qforeach.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpalette.h>
 #include <qset.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
 #include <qvariant.h>
 
 namespace {

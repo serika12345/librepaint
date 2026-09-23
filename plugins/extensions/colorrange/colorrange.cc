@@ -22,7 +22,7 @@
 #include "dlg_colorrange.h"
 #include "ui/orchestration/KisActionPlugin.h"
 #include <KisSignalMapper.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qobject.h>
 #include <qobjectdefs.h>

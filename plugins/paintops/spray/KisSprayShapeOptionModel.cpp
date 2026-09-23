@@ -12,7 +12,7 @@
 #include <lager/extra/qt.hpp>
 #include <lager/lenses.hpp>
 #include <lager/with.hpp>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <tuple>
 
 namespace {

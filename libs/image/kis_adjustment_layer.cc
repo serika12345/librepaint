@@ -11,7 +11,7 @@
 
 #include <kis_icon.h>
 #include <qicon.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "KoCompositeOpIds.h"
 #include "kis_base_node.h"

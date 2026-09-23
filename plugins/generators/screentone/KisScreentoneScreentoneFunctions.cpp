@@ -11,8 +11,7 @@
 #include <algorithm>
 #include <cmath>
 #include <math.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace KisScreentoneScreentoneFunctions {
 

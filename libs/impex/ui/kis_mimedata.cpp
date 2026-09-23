@@ -56,16 +56,13 @@
 #include <QDomElement>
 #include <QScreen>
 #include <QDir>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qmimedata.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qpoint.h>
 #include <qscopedpointer.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 #include <qvariant.h>
 
 namespace {

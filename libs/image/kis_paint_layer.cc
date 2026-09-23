@@ -15,12 +15,9 @@
 #include <KoColorSpace.h>
 #include <KoCompositeOpRegistry.h>
 #include <KoProperties.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qicon.h>
 #include <qobjectdefs.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
 
 #include "KoCompositeOpIds.h"
 #include "kis_assert.h"

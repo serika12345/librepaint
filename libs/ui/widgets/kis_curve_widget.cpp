@@ -35,13 +35,10 @@
 
 #include <kis_thread_safe_signal_compressor.h>
 #include <optional>
-#include <qassert.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpalette.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 

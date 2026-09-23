@@ -12,7 +12,7 @@
 #include <qicon.h>
 #include <qobject.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 
 NodeViewVisibilityDelegate::NodeViewVisibilityDelegate(QObject *parent)

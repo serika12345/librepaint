@@ -8,11 +8,10 @@
 
 #include <QThread>
 #include <KisStaticInitializer.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
 
 #include "KisImageSignals.h"
 #include "KisNodeAdditionFlags.h"

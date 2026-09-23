@@ -15,16 +15,12 @@
 #include <KoSvgTextPropertyData.h>
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
-#include <qlatin1stringview.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qsortfilterproxymodel.h>
 #include <qstringview.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qvariant.h>
 #include <vector>
 

@@ -10,8 +10,7 @@
 #include "kis_node_graph_listener.h"
 #include "kis_types.h"
 #include <kis_debug.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 struct Q_DECL_HIDDEN KisNodeFacade::Private
 {

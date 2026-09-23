@@ -17,7 +17,7 @@
 #include <qdom.h>
 #include <qhashfunctions.h>
 #include <qimage.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qpoint.h>
 #include <qpolygon.h>

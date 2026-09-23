@@ -10,7 +10,7 @@
 #include <qkeysequence.h>
 #include <qnamespace.h>
 #include <qobject.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <stdlib.h>
 
 #include <QPoint>

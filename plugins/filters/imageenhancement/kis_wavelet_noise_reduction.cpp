@@ -14,7 +14,7 @@
 
 #include <kis_math_toolbox.h>
 #include <new>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qwidget.h>
 #include <widgets/kis_multi_double_filter_widget.h>
 #include <kis_paint_device.h>

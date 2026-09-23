@@ -21,11 +21,10 @@
 #include <kis_types.h>
 #include <filter/kis_filter_configuration.h>
 #include <kis_processing_information.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qobject.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
 #include <qvariant.h>
 
 #include "KoColorSpace.h"

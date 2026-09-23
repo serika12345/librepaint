@@ -23,11 +23,10 @@
 #include <kis_algebra_2d.h>
 
 #include <math.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qmap.h>
 #include <qpoint.h>
 #include <qpolygon.h>
-#include <qtypes.h>
 #include <tuple>
 
 ConcentricEllipseAssistant::ConcentricEllipseAssistant()

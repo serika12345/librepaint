@@ -13,7 +13,7 @@
 #include <KisFilteredRollingMean.h>
 #include <kis_global.h>
 #include <qnumeric.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace {
 constexpr int MaximumSmoothHistory = 512;

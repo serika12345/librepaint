@@ -53,14 +53,11 @@
 #include <KisRunnableStrokeJobUtils.h>
 #include <algorithm>
 #include <kis_pointer_utils.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qicon.h>
 #include <qlist.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 using namespace KisLazyFillTools;

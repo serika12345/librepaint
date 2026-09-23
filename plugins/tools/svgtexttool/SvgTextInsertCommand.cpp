@@ -9,7 +9,7 @@
 #include <KoShapeBulkActionLock.h>
 
 #include <QRegularExpression>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qobject.h>
 
 #include "kis_command_ids.h"

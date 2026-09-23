@@ -8,7 +8,7 @@
 #include <QMetaProperty>
 #include <qhashfunctions.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 #include "kis_assert.h"

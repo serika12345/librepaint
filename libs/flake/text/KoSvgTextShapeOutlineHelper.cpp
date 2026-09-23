@@ -17,7 +17,7 @@
 #include <QApplication>
 #include <QPalette>
 #include <KoColorDisplayRendererInterface.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qimage.h>
 #include <qline.h>

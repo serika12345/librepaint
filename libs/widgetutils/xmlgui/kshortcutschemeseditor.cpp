@@ -26,7 +26,7 @@
 #include <qlogging.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 #include "KisShortcutsDialog.h"
 #include "kshortcutschemeshelper_p.h"

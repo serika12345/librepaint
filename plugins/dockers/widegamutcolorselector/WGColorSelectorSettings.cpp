@@ -29,10 +29,9 @@
 #include <qcontainerfwd.h>
 #include <qdialog.h>
 #include <qlayout.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
 #include <qwidget.h>
 #include <utility>
 

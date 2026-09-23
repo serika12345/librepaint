@@ -24,16 +24,13 @@
 #include <math.h>
 #include <kis_assert.h>
 #include <KoColorDisplayRendererInterface.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
-#include <qforeach.h>
 #include <qlist.h>
 #include <qmap.h>
 #include <qnumeric.h>
 #include <qpoint.h>
 #include <qpolygon.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qxmlstream.h>
 
 TwoPointAssistant::TwoPointAssistant()

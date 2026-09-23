@@ -44,14 +44,10 @@
 #include <KisRunnableStrokeJobUtils.h>
 
 #include <QThread>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <utility>
 #include "kis_image_config.h"
 #include "kis_wrapped_rect.h"

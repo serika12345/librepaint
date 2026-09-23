@@ -12,7 +12,7 @@
 #include "KisSensorPackInterface.h"
 
 #include <QString>
-#include <QtCore/qtypes.h>
+#include <QtGlobal>
 
 KisCurveOptionDataCommon::KisCurveOptionDataCommon(const QString &_prefix, const KoID &_id, bool _isCheckable, bool _isChecked, qreal _minValue, qreal _maxValue, KisSensorPackInterface *sensorInterface)
     : id(_id),

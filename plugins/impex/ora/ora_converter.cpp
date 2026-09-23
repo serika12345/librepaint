@@ -18,6 +18,7 @@
 #include <kis_open_raster_stack_save_visitor.h>
 #include <kis_paint_device.h>
 #include "KisImportExportErrorCode.h"
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qsize.h>

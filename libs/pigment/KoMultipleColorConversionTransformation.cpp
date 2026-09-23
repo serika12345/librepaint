@@ -10,11 +10,7 @@
 #include <QList>
 
 #include <KoColorSpace.h>
-#include <qassert.h>
-#include <qforeach.h>
-#include <qminmax.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace
 {

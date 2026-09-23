@@ -10,9 +10,7 @@
 #include <qnumeric.h>
 #include <qpoint.h>
 #include <qsize.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include "kis_algebra_2d.h"
 #include "kis_assert.h"
 

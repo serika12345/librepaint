@@ -15,7 +15,7 @@
 
 #include <qlist.h>
 #include <qnamespace.h>
-#include <qoverload.h>
+#include <QtGlobal>
 #include <qwidget.h>
 #include <tuple>
 

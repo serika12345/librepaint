@@ -40,16 +40,15 @@
 #include <qabstractitemmodel.h>
 #include <qcolor.h>
 #include <qfont.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qset.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <selection/KisSelectionActionsAdapter.h>
 #include <canvas/KisNodeDisplayModeAdapter.h>
 

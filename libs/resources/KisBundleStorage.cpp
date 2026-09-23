@@ -21,9 +21,8 @@
 
 #include <KisResourceLoaderRegistry.h>
 #include <kis_pointer_utils.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qhash.h>
 #include <qlist.h>
 #include <qlogging.h>

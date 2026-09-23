@@ -16,14 +16,12 @@
 #include <filter/kis_filter_registry.h>
 #include <kis_paint_device.h>
 #include <qabstractitemmodel.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qflags.h>
-#include <qforeach.h>
 #include <qhash.h>
 #include <qlist.h>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
 
 struct KisFiltersModel::Private {
     struct Node {

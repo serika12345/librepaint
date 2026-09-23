@@ -20,10 +20,8 @@
 #include "kis_convolution_kernel.h"
 #include <filter/kis_filter_configuration.h>
 #include <kis_paint_device.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qmath.h>
-#include <qminmax.h>
-#include <qtpreprocessorsupport.h>
 #include "kis_lod_transform_base.h"
 #include "kis_types.h"
 

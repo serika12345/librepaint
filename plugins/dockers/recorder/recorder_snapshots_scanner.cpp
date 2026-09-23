@@ -17,7 +17,7 @@
 #include <qlist.h>
 #include <qlogging.h>
 #include <qobject.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<SnapshotDirInfoList>("SnapshotDirInfoList");

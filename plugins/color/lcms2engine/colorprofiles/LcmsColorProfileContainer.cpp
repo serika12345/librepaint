@@ -36,8 +36,7 @@
 #include <optional>
 #include <qcontainerfwd.h>
 #include <qlogging.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace {
 struct ReverseCurveWrapper

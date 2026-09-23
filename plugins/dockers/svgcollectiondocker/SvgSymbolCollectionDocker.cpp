@@ -34,7 +34,7 @@
 
 #include <qabstractitemview.h>
 #include <qdockwidget.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qicon.h>
 #include <qlist.h>
 #include <qnamespace.h>
@@ -44,7 +44,6 @@
 #include <qscroller.h>
 #include <qsharedpointer.h>
 #include <qslider.h>
-#include <qtpreprocessorsupport.h>
 #include <qvariant.h>
 #include <resources/KoSvgSymbolCollectionResource.h>
 

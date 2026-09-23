@@ -17,10 +17,8 @@
 #include "kis_debug.h"
 #include <QtMath>
 #include <QSize>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 Q_GLOBAL_STATIC(KisFilterStrategyRegistry, s_instance)
 

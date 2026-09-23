@@ -19,14 +19,11 @@
 
 #include <kis_canvas2.h>
 #include <qabstractitemmodel.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 
 ChannelModel::ChannelModel(QObject* parent):
     QAbstractTableModel(parent),

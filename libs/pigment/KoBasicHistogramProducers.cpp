@@ -16,9 +16,8 @@
 #include <klocalizedstring.h>
 
 #include <KoConfig.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtypes.h>
 #ifdef HAVE_OPENEXR
 #endif
 

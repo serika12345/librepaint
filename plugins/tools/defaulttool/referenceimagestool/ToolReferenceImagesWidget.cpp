@@ -25,11 +25,10 @@
 
 #include <QApplication>
 #include <QStandardItemModel>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 #include "ToolReferenceImages.h"

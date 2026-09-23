@@ -19,8 +19,9 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <application/ui/workspace/KisMainWindow.h>
 #include <application/ui/workspace/KisView.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qpointer.h>
 #include <qsharedpointer.h>

@@ -17,16 +17,11 @@
 #include <QTabletEvent>
 #include <QTouchEvent>
 #include <QWidget>
-#include <kconfigconversioncheck_p.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 
 namespace Source = KisSelectionActionsPanelSource;
 

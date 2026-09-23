@@ -23,7 +23,7 @@
 #include <qscopedpointer.h>
 #include <qshareddata.h>
 #include <qsize.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include "KisQPainterStateSaver.h"
 
 

@@ -12,7 +12,7 @@
 #include <kis_debug.h>
 #include <qdebug.h>
 #include <qhashfunctions.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qstringview.h>

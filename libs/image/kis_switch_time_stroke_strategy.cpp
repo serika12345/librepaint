@@ -8,8 +8,7 @@
 
 #include <QMutex>
 #include <QMutexLocker>
-#include <qlatin1stringview.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "kis_assert.h"
 #include "kis_image_animation_interface.h"

@@ -2159,7 +2159,7 @@ set(kritaui_LIB_SRCS
 add_library(kritauistoryboarditemobjects OBJECT
     document/StoryboardItem.cpp
 )
-target_compile_definitions(kritauistoryboarditemobjects PRIVATE kritaui_EXPORTS)
+target_compile_definitions(kritauistoryboarditemobjects PRIVATE kritaapplicationui_EXPORTS)
 target_include_directories(kritauistoryboarditemobjects PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}

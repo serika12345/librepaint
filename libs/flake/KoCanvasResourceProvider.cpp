@@ -25,7 +25,7 @@
 #include <KoCanvasResourcesInterface.h>
 #include <qnamespace.h>
 #include <qobject.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 
 struct Q_DECL_HIDDEN CanvasResourceProviderInterfaceWrapper : public KoCanvasResourcesInterface
 {

@@ -34,16 +34,14 @@
 #include <kis_resources_snapshot.h>
 #include <kis_selection.h>
 #include <kis_stroke_strategy_undo_command_based.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qsharedpointer.h>
 #include <qstringview.h>
-#include <qtypes.h>
 
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_assert.h"

@@ -26,9 +26,8 @@
 #include <FlakeDebug.h>
 #include <qalgorithms.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtdeprecationdefinitions.h>
 
 Q_GLOBAL_STATIC(KoShapeRegistry, s_instance)
 

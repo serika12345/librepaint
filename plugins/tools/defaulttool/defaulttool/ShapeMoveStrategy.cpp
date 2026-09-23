@@ -23,11 +23,9 @@
 #include <KoSelection.h>
 #include <klocalizedstring.h>
 #include <kis_global.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
 
 
 ShapeMoveStrategy::ShapeMoveStrategy(KoToolBase *tool, KoSelection *selection, const QPointF &clicked)

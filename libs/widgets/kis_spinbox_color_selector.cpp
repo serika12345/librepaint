@@ -13,16 +13,13 @@
 #include "kis_int_parse_spin_box.h"
 
 #include <KoConfig.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qlist.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <qwidget.h>
 #ifdef HAVE_OPENEXR
 #include <half.h>

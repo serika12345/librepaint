@@ -23,12 +23,9 @@
 #include "kis_brush_based_paintop.h"
 #include "kis_dab_shape.h"
 #include <qalgorithms.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qhash.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qvariant.h>
 #include "kis_paintop_plugin_utils.h"
 

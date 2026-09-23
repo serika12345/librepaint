@@ -10,9 +10,8 @@
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_image.h"
 #include "operations/kis_operation_configuration.h"
-#include <qassert.h>
+#include <QtGlobal>
 #include <qlogging.h>
-#include <qtpreprocessorsupport.h>
 
 KisOperation::KisOperation(const QString &id)
     : m_id(id)

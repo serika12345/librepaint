@@ -13,12 +13,9 @@
 
 #include <KisBezierUtils.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnumeric.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
 
 class Q_DECL_HIDDEN KoPathSegment::Private
 {

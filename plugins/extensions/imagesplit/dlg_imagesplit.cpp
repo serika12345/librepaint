@@ -20,7 +20,7 @@
 #include <qlist.h>
 #include <qobjectdefs.h>
 #include <qpixmap.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 DlgImagesplit::DlgImagesplit(KisViewManager* view
                              , const QString &suffix

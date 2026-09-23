@@ -7,7 +7,7 @@
 
 #include "MyPaintPaintOpFactory.h"
 
-#include <qassert.h>
+#include <QtGlobal>
 #include <qicon.h>
 #include <qlist.h>
 #include <QJsonObject>
@@ -15,7 +15,6 @@
 
 #include <KoResourceLoadResult.h>
 #include <qobject.h>
-#include <qtpreprocessorsupport.h>
 #include <qwidget.h>
 
 #include "KisPaintopPropertiesBase.h"

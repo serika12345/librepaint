@@ -71,12 +71,9 @@
 
 #include <SimpleShapeContainerModel.h>
 #include <qdebug.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 class ShapeLayerContainerModel : public SimpleShapeContainerModel
 {
 public:

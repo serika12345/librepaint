@@ -8,8 +8,7 @@
 
 #include <QObject>
 #include <QString>
-#include <QtCore/qtypes.h>
-#include <QtCore/qtmetamacros.h>
+#include <QtGlobal>
 
 #include <KisBrushModel.h>
 #include <KisWidgetConnectionUtils.h>

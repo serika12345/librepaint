@@ -12,7 +12,7 @@
 #include <qcontainerfwd.h>
 #include <qhash.h>
 #include <qlist.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KisHalftoneFilterConfiguration.h"
 #include "KoColor.h"

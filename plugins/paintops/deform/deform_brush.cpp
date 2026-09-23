@@ -29,7 +29,7 @@
 #include <qnumeric.h>
 #include <qpoint.h>
 #include <qtransform.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 const qreal degToRad = M_PI / 180.0;
 

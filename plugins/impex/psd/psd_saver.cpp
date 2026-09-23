@@ -26,9 +26,8 @@
 #include <kis_debug.h>
 #include <kis_guides_config.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtypes.h>
 
 #include "psd_header.h"
 #include "psd_colormode_block.h"

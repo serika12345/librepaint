@@ -16,7 +16,7 @@
 #include <KisDialogStateSaver.h>
 
 #include <klocalizedstring.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qobjectdefs.h>
 #include <qwidget.h>

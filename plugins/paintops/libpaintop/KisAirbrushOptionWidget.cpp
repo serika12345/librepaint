@@ -11,7 +11,7 @@
 #include <QCheckBox>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
-#include <QtCore/qtypes.h>
+#include <QtGlobal>
 
 #include <KLocalizedString>
 

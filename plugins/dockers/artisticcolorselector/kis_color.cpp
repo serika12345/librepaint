@@ -8,7 +8,7 @@
 #include "kis_color.h"
 #include "kis_display_color_converter.h"
 #include <qnamespace.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 KisColor::KisColor(KisDisplayColorConverter* converter, Type type,

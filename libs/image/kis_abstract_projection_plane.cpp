@@ -9,7 +9,7 @@
 #include "kis_layer.h"
 #include "kis_paint_device.h"
 #include "kis_types.h"
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 
 KisAbstractProjectionPlane::KisAbstractProjectionPlane()

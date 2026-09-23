@@ -24,7 +24,7 @@
 #include "kis_debug.h"
 #include "kis_types.h"
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qobject.h>
 #include "kra_converter.h"
 

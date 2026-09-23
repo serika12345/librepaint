@@ -17,10 +17,9 @@
 #include <KisResourceThumbnailCache.h>
 #include <klocalizedstring.h>
 #include <qimage.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qsize.h>
-#include <qtypes.h>
 
 #include "KoCheckerBoardPainter.h"
 

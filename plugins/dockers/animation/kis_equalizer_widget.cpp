@@ -18,7 +18,7 @@
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qpoint.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 #include "kis_equalizer_column.h"

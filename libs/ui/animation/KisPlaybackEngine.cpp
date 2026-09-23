@@ -23,7 +23,7 @@
 #include <boost/optional/optional.hpp>
 #include <qobject.h>
 #include <qset.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 struct KisPlaybackEngine::Private {
 public:

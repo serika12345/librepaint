@@ -24,7 +24,7 @@
 #include <kis_dom_utils.h>
 #include <lcms2.h>
 #include <qnamespace.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 YCbCrU8ColorSpace::YCbCrU8ColorSpace(const QString &name, KoColorProfile *p)
     : LcmsColorSpace<KoYCbCrU8Traits>(colorSpaceId(), name, TYPE_YCbCrA_8, cmsSigYCbCrData, p)

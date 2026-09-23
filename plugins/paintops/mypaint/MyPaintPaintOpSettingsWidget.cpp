@@ -22,7 +22,7 @@
 
 #include <lager/reader.hpp>
 #include <qobject.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 namespace KisPaintOpOptionWidgetUtils {

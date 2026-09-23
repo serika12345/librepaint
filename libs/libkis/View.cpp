@@ -16,7 +16,7 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qtransform.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <selection/kis_selection_manager.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <kis_exposure_gamma_correction_interface.h>

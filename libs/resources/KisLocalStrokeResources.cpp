@@ -12,10 +12,9 @@
 #include "kis_debug.h"
 #include <algorithm>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlist.h>
-#include <qtclasshelpermacros.h>
 
 namespace {
 class LocalResourcesSource : public KisResourcesInterface::ResourceSourceAdapter

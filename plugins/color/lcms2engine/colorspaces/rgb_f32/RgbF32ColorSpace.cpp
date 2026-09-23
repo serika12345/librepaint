@@ -33,10 +33,9 @@
 #include <kis_dom_utils.h>
 #include <KoColorProfileQuery.h>
 #include <lcms2.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qrgb.h>
-#include <qtypes.h>
 
 RgbF32ColorSpace::RgbF32ColorSpace(const QString &name, KoColorProfile *p) :
     LcmsColorSpace<KoRgbF32Traits>(colorSpaceId(), name, TYPE_RGBA_FLT, cmsSigRgbData, p)

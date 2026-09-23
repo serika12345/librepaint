@@ -13,9 +13,8 @@
 #include <qicon.h>
 #include <qlist.h>
 #include <qobject.h>
-#include <qoverload.h>
+#include <QtGlobal>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 #include "KisOptionButtonStrip.h"
 

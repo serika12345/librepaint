@@ -36,8 +36,7 @@
 #include <qobjectdefs.h>
 #include <qsize.h>
 #include <qstyleoption.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 /// The resource item delegate for rendering the resource preview

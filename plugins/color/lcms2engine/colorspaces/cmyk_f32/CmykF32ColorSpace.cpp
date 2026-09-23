@@ -24,11 +24,9 @@
 #include <KoColorConversions.h>
 #include <kis_dom_utils.h>
 #include <lcms2.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
-#include <qtypes.h>
 
 CmykF32ColorSpace::CmykF32ColorSpace(const QString &name, KoColorProfile *p)
     : LcmsColorSpace<KoCmykF32Traits>(colorSpaceId(), name,  TYPE_CMYKA_FLT, cmsSigCmykData, p)

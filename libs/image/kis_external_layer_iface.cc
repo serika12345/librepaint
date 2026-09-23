@@ -8,7 +8,7 @@
 #include "KoColorSpace.h"
 #include "kis_layer.h"
 #include <qpaintdevice.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 // This is a Key function, this will create a strong symbol
 void KisExternalLayer::resetCache(const KoColorSpace *colorSpace)

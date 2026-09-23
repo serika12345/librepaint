@@ -25,9 +25,8 @@
 #include <KoColorConversions.h>
 #include <kis_dom_utils.h>
 #include <lcms2.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qbitarray.h>
-#include <qtypes.h>
 
 LabF32ColorSpace::LabF32ColorSpace(const QString &name, KoColorProfile *p)
     : LcmsColorSpace<KoLabF32Traits>(colorSpaceId(), name, TYPE_LabA_FLT, cmsSigLabData, p)

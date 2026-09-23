@@ -12,8 +12,7 @@
 
 #include <qmath.h>
 #include <qnumeric.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 #include "KoCompositeOpIds.h"

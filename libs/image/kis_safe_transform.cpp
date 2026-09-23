@@ -11,8 +11,7 @@
 #include <QPolygonF>
 #include <qnumeric.h>
 #include <qpoint.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 #include "kis_algebra_2d.h"

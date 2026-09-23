@@ -37,7 +37,7 @@
 
 #include <qbrush.h>
 #include <qfont.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qimage.h>
 #include <qlist.h>
 #include <qmap.h>

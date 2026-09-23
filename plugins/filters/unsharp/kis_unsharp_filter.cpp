@@ -31,7 +31,7 @@
 #include <KisSequentialIteratorProgress.h>
 #include <qpointer.h>
 #include <qscopedpointer.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 

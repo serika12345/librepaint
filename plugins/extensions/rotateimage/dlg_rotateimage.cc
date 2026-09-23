@@ -14,9 +14,8 @@
 #include <math.h>
 
 #include <klocalizedstring.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qobjectdefs.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 DlgRotateImage::DlgRotateImage(QWidget *  parent,

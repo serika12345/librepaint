@@ -13,7 +13,7 @@
 #include <QWindow>
 
 #include <config-hdr.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 
 

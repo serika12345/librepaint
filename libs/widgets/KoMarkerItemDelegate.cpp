@@ -20,8 +20,7 @@
 #include <qsize.h>
 #include <qstyle.h>
 #include <qstyleoption.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 KoMarkerItemDelegate::KoMarkerItemDelegate(KoFlake::MarkerPosition position, QObject *parent)

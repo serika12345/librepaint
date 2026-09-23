@@ -20,8 +20,7 @@
 #include <qlist.h>
 #include <qobject.h>
 #include <qrgb.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 #include "KisImportExportErrorCode.h"

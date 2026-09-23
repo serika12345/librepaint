@@ -17,10 +17,11 @@
 #include <kis_paint_device.h>
 #include <kis_default_bounds.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qobject.h>
 #include <qstringview.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 

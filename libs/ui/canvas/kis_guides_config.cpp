@@ -19,15 +19,13 @@
 #include "kis_global.h"
 #include <KisStaticInitializer.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpoint.h>
 #include <qsharedpointer.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KisGuidesConfig>("KisGuidesConfig");

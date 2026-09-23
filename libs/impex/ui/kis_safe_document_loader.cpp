@@ -32,15 +32,14 @@
 #include <qelapsedtimer.h>
 #include <qglobalstatic.h>
 #include <qhash.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
 #include <qstringview.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 class FileSystemWatcherWrapper : public QObject
 {

@@ -13,13 +13,11 @@
 #include "kis_assert.h"
 #include "kis_slider_spin_box.h"
 #include <KisAngleSelector.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpalette.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <qwidget.h>
 #include "kis_acyclic_signal_connector.h"
 #include "kis_slider_based_paintop_property.h"

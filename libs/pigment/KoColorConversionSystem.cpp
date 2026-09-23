@@ -13,12 +13,9 @@
 #include <algorithm>
 #include <iterator>
 #include <qalgorithms.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qlist.h>
-#include <qminmax.h>
-#include <qtpreprocessorsupport.h>
 
 #include "KoColorConversionTransformation.h"
 #include "KoColorConversionTransformationFactory.h"

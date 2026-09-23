@@ -17,7 +17,7 @@
 #include <kis_debug.h>
 #include <optional>
 #include <qdom.h>
-#include <qforeach.h>
+#include <QtGlobal>
 
 #include "KisBrushModel.h"
 #include "KoResourceLoadResult.h"

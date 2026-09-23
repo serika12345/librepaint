@@ -13,9 +13,10 @@
 #include "KisResourceLoader.h"
 #include <qcontainerfwd.h>
 #include <qdatetime.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include "KisResourceLoaderRegistry.h"
 
 class KisStoragePlugin::Private

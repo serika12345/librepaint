@@ -20,7 +20,7 @@
 #include <qlogging.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace KisStandardUniformPropertiesFactory
 {

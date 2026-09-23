@@ -20,7 +20,7 @@
 #include <kis_algebra_2d.h>
 #include <qnumeric.h>
 #include <qpoint.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace KisAlgebra2D {
 

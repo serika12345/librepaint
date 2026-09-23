@@ -14,7 +14,7 @@
 #include <cstring>
 #include <limits.h>
 #include <qlist.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <stdlib.h>
 
 #include <QStandardPaths>

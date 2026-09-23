@@ -31,7 +31,7 @@
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpoint.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qxmlstream.h>
 
 VanishingPointAssistant::VanishingPointAssistant()

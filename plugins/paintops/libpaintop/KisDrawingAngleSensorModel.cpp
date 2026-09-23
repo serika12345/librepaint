@@ -6,7 +6,7 @@
 #include "KisDrawingAngleSensorModel.h"
 
 #include <QObject>
-#include <QtCore/qtypes.h>
+#include <QtGlobal>
 
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>

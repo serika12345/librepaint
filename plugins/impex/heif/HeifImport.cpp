@@ -41,8 +41,7 @@
 #include <qcontainerfwd.h>
 #include <qgenericatomic.h>
 #include <qlist.h>
-#include <qoverload.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qvariant.h>
 #include <vector>
 

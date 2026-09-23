@@ -25,9 +25,8 @@
 #include <filter/kis_filter_configuration.h>
 #include <kis_paint_device.h>
 #include <math.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qbitarray.h>
-#include <qtypes.h>
 #include <qwidget.h>
 #include "kis_circle_mask_generator.h"
 #include "kis_rect_mask_generator.h"

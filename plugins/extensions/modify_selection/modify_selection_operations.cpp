@@ -8,7 +8,7 @@
 #include "modify_selection_operations.h"
 #include "operations/kis_operation_configuration.h"
 #include <kis_selection_filters.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 void GrowSelectionOperation::runFromXML(KisViewManager* view, const KisOperationConfiguration& config)
 {

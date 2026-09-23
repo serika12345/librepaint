@@ -12,7 +12,7 @@
 #include <kcombobox.h>
 #include <klocalizedstring.h>
 #include <qabstractitemmodel.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qnamespace.h>
 #include <qobject.h>

@@ -35,15 +35,12 @@
 #include <QDomDocument>
 #include <QDomElement>
 #include <qalgorithms.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qkeysequence.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpointer.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
 
 class Q_DECL_HIDDEN KisActionManager::Private {
 

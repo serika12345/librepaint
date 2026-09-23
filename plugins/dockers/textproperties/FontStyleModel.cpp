@@ -13,15 +13,13 @@
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
 #include <qfont.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qstringview.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <resources/KoFontFamily.h>
 #include <KisResourceModel.h>
 #include <KoFontRegistry.h>

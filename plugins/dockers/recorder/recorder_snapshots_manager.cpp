@@ -21,16 +21,14 @@
 #include <QStandardItemModel>
 #include <QDialogButtonBox>
 #include <qabstractitemmodel.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qdialog.h>
 #include <qitemselectionmodel.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpixmap.h>
 #include <qsize.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 namespace

@@ -42,8 +42,7 @@
 #include <KisStrokeCompatibilityInfo.h>
 #include <memory>
 #include <qdatetime.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qsharedpointer.h>
 #include "KisAnimAutoKey.h"
 

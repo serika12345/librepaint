@@ -13,11 +13,10 @@
 #include <qabstractitemmodel.h>
 #include <qabstractitemview.h>
 #include <qcolor.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qstyleoption.h>
-#include <qtversionchecks.h>
 #include <qwidget.h>
 
 #include "StoryboardView.h"

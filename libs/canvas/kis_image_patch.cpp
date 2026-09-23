@@ -13,7 +13,7 @@
 #include <qimage.h>
 #include <qnamespace.h>
 #include <qsize.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 /****** Some helper functions *******/
 

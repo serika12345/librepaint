@@ -10,7 +10,7 @@
 #include <kcombobox.h>
 #include <klocalizedstring.h>
 #include <qabstractitemmodel.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qstyleditemdelegate.h>

@@ -26,13 +26,10 @@
 #include <math.h>
 #include <QDebug>
 #include <klocalizedstring.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include "kis_algebra_2d.h"
 #include "kundo2magicstring.h"
 

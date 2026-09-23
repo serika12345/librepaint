@@ -20,7 +20,7 @@
 #include <lager/cursor.hpp>
 #include <lager/reader.hpp>
 #include <optional>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace {
 KisPaintopLodLimitations calcGeneralMyPaintLodLimitations(const MyPaintCurveOptionData &data)

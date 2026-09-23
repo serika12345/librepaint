@@ -13,12 +13,10 @@
 #include <kis_sequential_iterator.h>
 #include <kis_default_bounds.h>
 #include <KisImageResolutionProxy.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qminmax.h>
 #include <qpoint.h>
 #include <qtransform.h>
-#include <qtypes.h>
 
 #include "KisEncloseAndFillPainter.h"
 #include "KisSelectionTags.h"

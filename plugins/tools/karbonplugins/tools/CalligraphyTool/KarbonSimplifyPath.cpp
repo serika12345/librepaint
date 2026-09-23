@@ -11,12 +11,10 @@
 #include <KoPathPoint.h>
 #include <QDebug>
 #include <qalgorithms.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qlogging.h>
-#include <qminmax.h>
 #include <qnumeric.h>
-#include <qtypes.h>
 
 /*
 the algorithm proceeds as following:

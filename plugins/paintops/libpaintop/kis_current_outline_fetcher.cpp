@@ -17,7 +17,7 @@
 #include <math.h>
 #include <qpoint.h>
 #include <qscopedpointer.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include "kis_algebra_2d.h"
 #include "KisOptimizedBrushOutline.h"
 #include "kis_types.h"

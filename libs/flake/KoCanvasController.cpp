@@ -11,8 +11,7 @@
 #include <QSize>
 #include <QPoint>
 #include <qobject.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 class Q_DECL_HIDDEN KoCanvasController::Private
 {

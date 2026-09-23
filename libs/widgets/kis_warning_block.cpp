@@ -13,7 +13,7 @@
 #include <qobject.h>
 #include <qpixmap.h>
 #include <qsizepolicy.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 struct Q_DECL_HIDDEN KisWarningBlock::Private {

@@ -46,13 +46,11 @@
 #include <KisKineticScroller.h>
 #include <kis_assert.h>
 #include <kstandardguiitem.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qboxlayout.h>
 #include <qcontainerfwd.h>
 #include <qfileinfo.h>
-#include <qforeach.h>
 #include <qglobalstatic.h>
-#include <qlatin1stringview.h>
 #include <qlist.h>
 #include <qlistview.h>
 #include <qlogging.h>
@@ -61,10 +59,6 @@
 #include <qobjectdefs.h>
 #include <qscroller.h>
 #include <qset.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qttranslation.h>
-#include <qtversionchecks.h>
 
 static const char separatorstring[] = QT_TRANSLATE_NOOP("KEditToolBar", "--- separator ---");
 

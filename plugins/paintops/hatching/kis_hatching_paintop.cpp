@@ -34,10 +34,8 @@
 
 
 #include <KoColorSpaceRegistry.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 KisHatchingPaintOp::KisHatchingPaintOp(const KisPaintOpSettingsSP settings, KisPainter * painter, KisNodeSP node, KisImageSP /*image*/)
     : KisBrushBasedPaintOp(settings, painter)

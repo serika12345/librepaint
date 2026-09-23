@@ -30,9 +30,8 @@
 #include <cstring>
 #include "kis_types.h"
 #include <math.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtypes.h>
 #include "krita_utils.h"
 #include "kis_progress_update_helper.h"
 #include "kis_painter.h"

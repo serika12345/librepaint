@@ -11,7 +11,7 @@
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qpoint.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <resources/KoAbstractGradient.h>
 #include <KoCompositeOpRegistry.h>
 #include <brushengine/kis_paintop_preset.h>

@@ -13,13 +13,11 @@
 #include <QTabletEvent>
 #include <cmath>
 #include <cstdlib>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpaintdevice.h>
 #include <qscrollbar.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 KisZoomableScrollBar::KisZoomableScrollBar(QWidget *parent)

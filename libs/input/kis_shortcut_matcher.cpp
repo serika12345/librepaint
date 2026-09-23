@@ -5,6 +5,8 @@
  */
 
 #include <algorithm>
+
+#include <QDebug>
 #include <functional>
 #include <iterator>
 #include <kis_shortcut_matcher.h>
@@ -23,16 +25,12 @@
 #include <KoPointerEvent.h>
 #include <qalgorithms.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qkeysequence.h>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qscopedpointer.h>
 #include <qset.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 
 //#define DEBUG_MATCHER
 

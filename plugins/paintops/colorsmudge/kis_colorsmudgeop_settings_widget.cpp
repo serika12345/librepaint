@@ -35,8 +35,7 @@
 #include <KisZug.h>
 #include <lager/constant.hpp>
 #include <lager/reader.hpp>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 #include <tuple>
 

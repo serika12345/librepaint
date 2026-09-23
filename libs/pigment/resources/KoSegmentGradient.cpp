@@ -12,15 +12,11 @@
 
 #include <algorithm>
 #include <math.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qbrush.h>
 #include <qcolor.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qlist.h>
-#include <qminmax.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <resources/KoSegmentGradient.h>
 
 #include <array>

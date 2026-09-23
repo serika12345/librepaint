@@ -15,7 +15,7 @@
 #include <kis_paint_information.h>
 #include <math.h>
 #include <optional>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KisDynamicSensorDrawingAngle::KisDynamicSensorDrawingAngle(const KisDrawingAngleSensorData &data, std::optional<KisCubicCurve> curveOverride)
     : KisDynamicSensor(DrawingAngleId, data, curveOverride)

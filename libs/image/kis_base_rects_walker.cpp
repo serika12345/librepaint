@@ -11,7 +11,7 @@
 #include "kis_layer.h"
 #include <algorithm>
 #include <iterator>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qregion.h>
 
 void KisBaseRectsWalker::addCloneSourceRegenerationJobs()

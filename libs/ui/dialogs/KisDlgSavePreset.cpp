@@ -33,7 +33,7 @@
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qstringview.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 

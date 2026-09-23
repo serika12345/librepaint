@@ -13,7 +13,7 @@
 
 #include <KoCanvasBase.h>
 #include <qnamespace.h>
-#include <qtclasshelpermacros.h>
+#include <QtGlobal>
 #include "KoSnapGuide.h"
 
 

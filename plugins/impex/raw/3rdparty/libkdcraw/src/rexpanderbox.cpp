@@ -55,9 +55,7 @@
 #include <qscrollarea.h>
 #include <qsize.h>
 #include <qsizepolicy.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtversionchecks.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 namespace KDcrawIface

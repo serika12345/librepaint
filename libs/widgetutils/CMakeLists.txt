@@ -1,4 +1,6 @@
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
 
 configure_file(xmlgui/config-xmlgui.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-xmlgui.h )
 
@@ -136,6 +138,9 @@ target_link_libraries(kritakineticscrollerobjects
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::ConfigCore
 )
+if(ANDROID AND TARGET Qt5::AndroidExtras)
+    target_link_libraries(kritakineticscrollerobjects PRIVATE Qt5::AndroidExtras)
+endif()
 set_target_properties(kritakineticscrollerobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 add_library(kritapopupbuttonobjects OBJECT
@@ -321,6 +326,7 @@ target_include_directories(kritawidgetutilstoolbarstatemodelobjects
 )
 target_link_libraries(kritawidgetutilstoolbarstatemodelobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
         lager
 )

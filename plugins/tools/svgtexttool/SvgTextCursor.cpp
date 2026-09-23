@@ -58,14 +58,12 @@
 #include <memory>
 #include <qcontainerfwd.h>
 #include <qfont.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qinputmethod.h>
-#include <qlatin1stringview.h>
 #include <qline.h>
 #include <qlist.h>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpainterpath.h>
@@ -74,11 +72,7 @@
 #include <qscopedpointer.h>
 #include <qset.h>
 #include <qsharedpointer.h>
-#include <qtdeprecationdefinitions.h>
 #include <qtextformat.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <utility>
 
 #ifdef Q_OS_ANDROID

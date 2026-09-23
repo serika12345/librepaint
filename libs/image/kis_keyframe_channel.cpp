@@ -25,12 +25,11 @@
 #include <QMap>
 #include <qcontainerfwd.h>
 #include <qdom.h>
-#include <qforeach.h>
+#include <QtGlobal>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qset.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 
 
 const KoID KisKeyframeChannel::Raster = KoID("content", ki18n("Content"));

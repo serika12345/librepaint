@@ -20,7 +20,7 @@
 #include <qcontainerfwd.h>
 #include <qlist.h>
 #include <qlogging.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qurl.h>
 
 class KisRecentFilesManager::Private

@@ -13,8 +13,7 @@
 
 #include <KoID.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include "KoCompositeOp.h"
 #include "KoColorSpace.h"
 

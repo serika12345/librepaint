@@ -22,14 +22,12 @@
 #include <kis_debug.h>
 #include <qcontainerfwd.h>
 #include <qcoreapplication.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qprogressdialog.h>
 #include <qsharedpointer.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 
 #include "KisImportExportErrorCode.h"
 #include "KoColorProfileConstants.h"

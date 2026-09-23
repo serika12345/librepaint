@@ -14,7 +14,7 @@
 #include <qcoreapplication.h>
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 #include "kis_assert.h"
 #include "kis_image_config.h"

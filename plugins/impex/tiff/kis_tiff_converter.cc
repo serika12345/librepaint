@@ -9,7 +9,7 @@
 #include "kis_types.h"
 
 #include <qhash.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <tiff.h>
 
 #include <kis_properties_configuration.h>

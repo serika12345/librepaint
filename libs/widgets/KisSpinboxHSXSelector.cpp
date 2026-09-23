@@ -14,7 +14,7 @@
 #include "KoID.h"
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include "kis_double_parse_spin_box.h"
 
 struct KisSpinboxHSXSelector::Private

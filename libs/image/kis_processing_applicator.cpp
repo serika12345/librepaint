@@ -29,12 +29,11 @@
 #include <KisRegion.h>
 #include <KisRunnableStrokeJobUtils.h>
 #include <future>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qobject.h>
 #include <qpoint.h>
 #include <qset.h>
 #include <qsharedpointer.h>
-#include <qtenvironmentvariables.h>
 #include <utility>
 
 class DisableUIUpdatesCommand : public KisCommandUtils::FlipFlopCommand, public KisAsynchronouslyMergeableCommandInterface

@@ -19,8 +19,7 @@
 #include <qcombobox.h>
 #include <qcontainerfwd.h>
 #include <qdialog.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qwidget.h>

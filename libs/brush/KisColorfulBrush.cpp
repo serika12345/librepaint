@@ -10,10 +10,9 @@
 #include "kis_scaling_size_brush.h"
 #include <qhashfunctions.h>
 #include <qimage.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <qrgb.h>
-#include <qtypes.h>
 
 
 KisColorfulBrush::KisColorfulBrush(const QString &filename)

@@ -21,7 +21,7 @@
 #include <qimage.h>
 #include <qnamespace.h>
 #include <qrgb.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 KisPngBrush::KisPngBrush(const QString& filename)
     : KisColorfulBrush(filename)

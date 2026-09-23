@@ -16,11 +16,11 @@
 #include <kis_grid_interpolation_tools.h>
 #include <optional>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <qpoint.h>
-#include <qtypes.h>
 
 struct KisSpatialContainer::SpatialNode {
 public:

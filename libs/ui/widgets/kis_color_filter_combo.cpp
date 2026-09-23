@@ -22,16 +22,13 @@
 #include <qbrush.h>
 #include <qcolor.h>
 #include <qcoreevent.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qpalette.h>
 #include <qpixmap.h>
 #include <qset.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 #include <qwidget.h>
 
 

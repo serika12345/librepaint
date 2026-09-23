@@ -23,13 +23,11 @@
 #include <kis_algebra_2d.h>
 #include <QDebug>
 #include <KoViewConverter.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qline.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qset.h>
-#include <qtypes.h>
 
 SvgTextTypeSettingStrategy::SvgTextTypeSettingStrategy(KoToolBase *tool, KoSvgTextShape *textShape, SvgTextCursor *textCursor, const QRectF &regionOfInterest, Qt::KeyboardModifiers modifiers)
     : KoInteractionStrategy(tool)

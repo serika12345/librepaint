@@ -13,9 +13,8 @@
 #include "kis_paint_device.h"
 #include "kis_brush.h"
 #include <kis_fixed_paint_device.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qpoint.h>
-#include <qtypes.h>
 #include "kis_color_source.h"
 #include "KisSharpnessOption.h"
 #include "kis_texture_option.h"

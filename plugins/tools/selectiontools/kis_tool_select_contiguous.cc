@@ -58,7 +58,7 @@
 #include <qobjectdefs.h>
 #include <qset.h>
 #include <qsizepolicy.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 #include "kis_command_utils.h"

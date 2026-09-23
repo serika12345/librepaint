@@ -8,9 +8,8 @@
 
 
 #include <QDomDocument>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtypes.h>
 
 #include "kis_circle_mask_generator.h"
 #include "KoMultiArchBuildSupport.h"

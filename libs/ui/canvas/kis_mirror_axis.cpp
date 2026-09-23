@@ -24,15 +24,12 @@
 
 #include <cmath>
 #include <qimage.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpaintdevice.h>
 #include <qscopedpointer.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "kis_canvas2.h"
 #include "canvas/kis_canvas_resource_provider.h"

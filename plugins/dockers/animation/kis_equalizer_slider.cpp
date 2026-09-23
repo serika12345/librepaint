@@ -18,7 +18,7 @@
 #include <qpoint.h>
 #include <qrgb.h>
 #include <qsizepolicy.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 #include "kis_global.h"

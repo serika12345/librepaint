@@ -11,12 +11,10 @@
 #include <KoShapeSavingContext.h>
 
 #include <math.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include "kis_assert.h"
 
 

@@ -12,7 +12,7 @@
 #include <QRadioButton>
 #include <QVBoxLayout>
 #include <QWidget>
-#include <QtCore/qforeach.h>
+#include <QtGlobal>
 
 #include <KLocalizedString>
 #include <KoID.h>

@@ -12,8 +12,7 @@
 #include <QSlider>
 
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qvariant.h>
 #include <qwidget.h>
 #include <resources/KoPattern.h>

@@ -12,6 +12,8 @@
 #include "kis_types.h"
 #include "kritaimage_export.h"
 
+#include <KoUpdater.h>
+
 #include <QPointer>
 #include <QRect>
 

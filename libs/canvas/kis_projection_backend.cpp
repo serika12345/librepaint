@@ -6,8 +6,7 @@
 
 #include "kis_projection_backend.h"
 #include <qpainter.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KisProjectionBackend::~KisProjectionBackend() = default;
 

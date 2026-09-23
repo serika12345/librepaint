@@ -22,7 +22,7 @@
 #include "processing/kis_transform_processing_visitor.h"
 
 #include <functional>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 
 

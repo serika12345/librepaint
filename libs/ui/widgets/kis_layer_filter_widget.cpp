@@ -23,7 +23,7 @@
 #include <qcolor.h>
 #include <qguiapplication.h>
 #include <qlist.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qset.h>

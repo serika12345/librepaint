@@ -11,7 +11,7 @@
 
 #include <QFlags>
 #include <QtCore/qnumeric.h>
-#include <QtCore/qtypes.h>
+#include <QtGlobal>
 
 #include "KisEmbeddedTextureData.h"
 

@@ -25,17 +25,14 @@
 #include <KoColorDisplayRendererInterface.h>
 
 #include <math.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
 #include <qcursor.h>
-#include <qforeach.h>
 #include <qlist.h>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpoint.h>
-#include <qtypes.h>
 
 struct GoldenSearchParams
 {

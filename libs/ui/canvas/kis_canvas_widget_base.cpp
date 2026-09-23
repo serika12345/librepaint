@@ -16,11 +16,9 @@
 #include <KoCanvasController.h>
 #include <KoShape.h>
 #include <algorithm>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 #include "KisQStringListFwd.h"

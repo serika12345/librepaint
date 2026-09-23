@@ -11,7 +11,7 @@
 #include "kis_image.h"
 #include "KisOverlayPaintDeviceWrapper.h"
 #include "kis_types.h"
-#include <qtypes.h>
+#include <QtGlobal>
 
 void KisColorSmudgeSource::readRect(const QRect &rect) {
     readRects({rect});

@@ -31,10 +31,9 @@
 #include "kis_stroke_strategy_undo_command_based.h"
 #include "kundo2magicstring.h"
 #include <commands_new/KisDisableDirtyRequestsCommand.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qscopedpointer.h>
 #include <qsharedpointer.h>
-#include <qswap.h>
 
 
 struct KisFilterStrokeStrategy::Private {

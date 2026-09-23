@@ -17,7 +17,7 @@
 #include <kis_tool_freehand.h>
 #include <qobject.h>
 #include <qpoint.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace {
 KisPaintingInformationSettings currentPaintingInformationSettings()

@@ -20,14 +20,13 @@
 #include <qcoreapplication.h>
 #include <qguiapplication.h>
 #include <qhashfunctions.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qscopedpointer.h>
 #include <qstringview.h>
 #include <qsurfaceformat.h>
-#include <qtenvironmentvariables.h>
-#include <qtpreprocessorsupport.h>
 #include <utility>
 
 #ifdef HAVE_HDR

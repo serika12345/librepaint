@@ -9,7 +9,7 @@
 #include <QDebug>
 #include <qnamespace.h>
 #include <qpoint.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 SvgSelectTextStrategy::SvgSelectTextStrategy(KoToolBase *tool, SvgTextCursor *cursor, const QPointF &clicked, Qt::KeyboardModifiers modifiers)
     : KoInteractionStrategy(tool)

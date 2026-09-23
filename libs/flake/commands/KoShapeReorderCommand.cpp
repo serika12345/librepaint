@@ -16,12 +16,10 @@
 #include <klocalizedstring.h>
 #include <limits.h>
 #include <limits>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qdebug.h>
-#include <qforeach.h>
 #include <qlist.h>
 #include <qmap.h>
-#include <qtypes.h>
 
 KoShapeReorderCommand::IndexedShape::IndexedShape()
 {

@@ -17,11 +17,10 @@
 
 #include <QAction>
 #include <kactioncollection.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qdialog.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
 
 #include "kis_canvas2.h"
 #include "application/ui/workspace/KisViewManager.h"

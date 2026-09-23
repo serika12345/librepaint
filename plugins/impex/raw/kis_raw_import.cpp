@@ -25,8 +25,9 @@
 #include <qcontainerfwd.h>
 #include <qdialog.h>
 #include <qfileinfo.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qpixmap.h>
@@ -34,8 +35,6 @@
 #include <qrgb.h>
 #include <qsize.h>
 #include <qstringview.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
 #include <utility>
 #include <kpluginfactory.h>
 #include <libkdcraw_version.h>

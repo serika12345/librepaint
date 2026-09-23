@@ -10,13 +10,11 @@
 #include <cstdint>
 #include <half.h>
 #include <limits.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qrgb.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <stdlib.h>
 
 #include <QImage>

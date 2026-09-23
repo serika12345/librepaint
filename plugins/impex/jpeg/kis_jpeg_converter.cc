@@ -18,9 +18,8 @@
 #include <exiv2/types.hpp>
 #include <jpeglib.h>
 #include <math.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qstringview.h>
-#include <qtypes.h>
 #include <stdexcept>
 #include <stdint.h>
 

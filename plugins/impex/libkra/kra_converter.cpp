@@ -23,15 +23,13 @@
 #include <kis_image.h>
 #include <qcoreapplication.h>
 #include <qdebug.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qimage.h>
 #include <qlist.h>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qpixmap.h>
 #include <qpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
 
 #include "KisImportExportErrorCode.h"
 #include "KisResourceTypes.h"

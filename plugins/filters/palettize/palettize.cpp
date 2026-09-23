@@ -44,10 +44,8 @@
 #include <qgroupbox.h>
 #include <qlist.h>
 #include <qobject.h>
-#include <qoverload.h>
+#include <QtGlobal>
 #include <qpaintdevice.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qvariant.h>
 #include <utility>
 #include <vector>

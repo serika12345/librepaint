@@ -15,12 +15,10 @@
 #include <cmath>
 #include <config-gsl.h>
 #include <cstddef>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qline.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnumeric.h>
-#include <qtypes.h>
 
 #ifdef HAVE_GSL
 #include <gsl/gsl_errno.h>

@@ -14,9 +14,10 @@
 
 #include <cmath>
 #include <kis_debug.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnumeric.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace
 {

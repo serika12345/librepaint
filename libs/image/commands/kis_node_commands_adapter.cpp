@@ -10,11 +10,10 @@
 #include "kis_image_layer_add_command.h"
 #include "kis_stroke_job_strategy.h"
 #include "kis_types.h"
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qobject.h>
 #include <qscopedpointer.h>
-#include <qtypes.h>
 #include "kis_undo_adapter.h"
 #include "kis_image.h"
 #include "commands/kis_image_layer_move_command.h"

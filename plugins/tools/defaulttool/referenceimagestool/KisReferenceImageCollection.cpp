@@ -16,7 +16,7 @@
 #include <KoStoreDevice.h>
 #include <qcontainerfwd.h>
 #include <qdom.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qscopedpointer.h>
 

@@ -7,7 +7,7 @@
 #define KISSHARPNESSOPTIONWIDGET_H
 
 #include <QScopedPointer>
-#include <QtCore/qtmetamacros.h>
+#include <QtGlobal>
 
 #include <kis_types.h>
 #include <kritapaintop_export.h>

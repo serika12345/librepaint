@@ -15,7 +15,7 @@
 #include <kis_config_notifier.h>
 #include <qlogging.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 struct KisOpenglCanvasDebugger::Private
 {

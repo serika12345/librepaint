@@ -32,16 +32,14 @@
 #include "kis_types.h"
 
 #include <boost/heap/fibonacci_heap.hpp>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnumeric.h>
 #include <qpair.h>
 #include <qset.h>
-#include <qtypes.h>
 #include <set>
 #include <vector>
 

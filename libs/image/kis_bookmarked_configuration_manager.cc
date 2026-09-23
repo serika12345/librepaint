@@ -16,10 +16,9 @@
 
 
 #include <qdebug.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qmap.h>
-#include <qtdeprecationdefinitions.h>
 
 #include "kis_debug.h"
 #include "kis_serializable_configuration.h"

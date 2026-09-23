@@ -10,9 +10,8 @@
 
 #include <algorithm>
 #include <qalgorithms.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qpainter.h>
-#include <qtdeprecationdefinitions.h>
 #include <utility>
 
 #include <document/KisDocument.h>

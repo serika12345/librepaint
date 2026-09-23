@@ -22,6 +22,7 @@
 #include <KLocalizedContext>
 #include <qcolor.h>
 #include <qdockwidget.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qobject.h>
 #include <qvariant.h>

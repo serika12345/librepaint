@@ -13,8 +13,7 @@
 #include "KoColorTransformation.h"
 #include <qalgorithms.h>
 #include <qhashfunctions.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qvariant.h>
 #include "filter/kis_color_transformation_filter.h"
 #include "kis_filter_configuration.h"

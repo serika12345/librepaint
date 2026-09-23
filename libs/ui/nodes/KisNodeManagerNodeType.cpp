@@ -9,7 +9,7 @@
 #include "kis_types.h"
 
 #include <kundo2magicstring.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qobject.h>
 
 KisNodeSP KisNodeManager::createNode(const QString &nodeType, bool quiet, KisPaintDeviceSP copyFrom)

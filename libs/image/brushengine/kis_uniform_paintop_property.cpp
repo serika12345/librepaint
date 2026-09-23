@@ -8,7 +8,7 @@
 
 #include <QVariant>
 #include <qobject.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 #include "KoID.h"
 #include "kis_types.h"

@@ -27,9 +27,7 @@
 #include <qobjectdefs.h>
 #include <qpaintdevice.h>
 #include <qpoint.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 namespace {

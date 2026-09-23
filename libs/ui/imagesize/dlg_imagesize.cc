@@ -13,8 +13,7 @@
 #include "KoDialog.h"
 #include "wdg_imagesize.h"
 #include <klocalizedstring.h>
-#include <qassert.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 DlgImageSize::DlgImageSize(QWidget *parent, int width, int height, double resolution)

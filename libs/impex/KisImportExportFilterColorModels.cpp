@@ -10,9 +10,10 @@
 #include <KisExportCheckRegistry.h>
 #include <KoColorSpaceRegistry.h>
 #include <klocalizedstring.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qobject.h>
 

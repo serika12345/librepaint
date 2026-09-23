@@ -4,6 +4,8 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisVisualTriangleSelectorShape.h"
+
+#include <QDebug>
 #include "KisVisualColorSelectorShape.h"
 
 #include <QColor>
@@ -11,11 +13,10 @@
 #include <QRect>
 #include <QtMath>
 #include <qimage.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qpoint.h>
 #include <qregion.h>
-#include <qtypes.h>
 
 
 KisVisualTriangleSelectorShape::KisVisualTriangleSelectorShape(KisVisualColorSelector *parent,

@@ -14,8 +14,7 @@
 #include <filter/kis_color_transformation_configuration.h>
 #include <qcontainerfwd.h>
 #include <qobject.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KoColorSpace.h"
 #include "KoColorTransformation.h"

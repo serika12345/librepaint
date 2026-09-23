@@ -20,7 +20,7 @@
 #include <qhash.h>
 #include <qnamespace.h>
 #include <qpointer.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "KisInputActionGroup.h"
 #include "kis_abstract_input_action.h"

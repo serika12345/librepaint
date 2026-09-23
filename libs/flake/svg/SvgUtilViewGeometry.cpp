@@ -15,7 +15,7 @@
 #include <qnamespace.h>
 #include <qpoint.h>
 #include <qsize.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 double SvgUtil::fromUserSpace(double value)
 {

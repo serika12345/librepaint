@@ -14,7 +14,7 @@
 #include <KoColorSpace.h>
 #include <KoColorTransformation.h>
 #include <qalgorithms.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 #include <qlist.h>
 

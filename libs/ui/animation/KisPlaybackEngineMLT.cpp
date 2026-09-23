@@ -33,18 +33,15 @@
 #include <mlt++/MltFilter.h>
 #include <mlt-7/framework/mlt_service.h>
 #include <qfileinfo.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
 #include <qsharedpointer.h>
-#include <qtenvironmentvariables.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "KisRollingMeanAccumulatorWrapper.h"
 #include "KisRollingSumAccumulatorWrapper.h"

@@ -10,8 +10,7 @@
 #include <QApplication>
 #include <qobjectdefs.h>
 #include <qset.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "kis_assert.h"
 #include "kis_image.h"

@@ -10,9 +10,8 @@
 #include <functional>
 #include <numeric>
 #include <QtMath>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtypes.h>
 #include <vector>
 #include "kis_assert.h"
 

@@ -15,7 +15,7 @@
 #include "kis_scalar_keyframe_channel.h"
 #include "kis_types.h"
 #include <memory>
-#include <qforeach.h>
+#include <QtGlobal>
 
 KisLazyCreateTransformMaskKeyframesCommand::KisLazyCreateTransformMaskKeyframesCommand(KisTransformMaskSP mask, KUndo2Command *parent)
     : KisCommandUtils::AggregateCommand(parent)

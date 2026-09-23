@@ -20,6 +20,7 @@
 #include <KisResourceLoaderRegistry.h>
 #include <KisMimeDatabase.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qsharedpointer.h>
 

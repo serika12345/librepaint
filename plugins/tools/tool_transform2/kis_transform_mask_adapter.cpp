@@ -14,7 +14,7 @@
 #include <qhashfunctions.h>
 #include <qnumeric.h>
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include "kis_dom_utils.h"
 
 #include "kis_pointer_utils.h"

@@ -8,11 +8,9 @@
 
 #include "kis_fill_painter.h"
 
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qminmax.h>
 #include <qsharedpointer.h>
-#include <qtypes.h>
 #include <stdlib.h>
 #include <cfloat>
 

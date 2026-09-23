@@ -5,13 +5,15 @@
  */
 
 #include "kis_global.h"
+
+#include <QDebug>
 #include "opengl/kis_opengl.h"
 #include <cstring>
 #include <qopengl.h>
 #include <qpoint.h>
 #include <qsize.h>
 #include <qstringview.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #define GL_GLEXT_PROTOTYPES
 #include "kis_texture_tile.h"
 #include "kis_texture_tile_update_info.h"

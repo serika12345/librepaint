@@ -13,8 +13,7 @@
 #include "kundo2magicstring.h"
 
 #include <QApplication>
-#include <qlatin1stringview.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 
 struct KRITAIMAGE_NO_EXPORT KisCloneDocumentStroke::Private

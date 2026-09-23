@@ -22,12 +22,9 @@
 
 #include <KoCanvasResourceProvider.h>
 #include <canvas/kis_canvas_resource_provider.h>
-#include <qassert.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "KisColorSelectorConfiguration.h"
 #include "KoGamutMask.h"

@@ -25,9 +25,7 @@
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <utility>
 
 #include "KoCanvasResourcesIds.h"

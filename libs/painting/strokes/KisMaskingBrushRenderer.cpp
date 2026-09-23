@@ -13,7 +13,7 @@
 #include <KoCompositeOpRegistry.h>
 #include <algorithm>
 #include <qlist.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "kis_assert.h"
 #include "kis_painter.h"

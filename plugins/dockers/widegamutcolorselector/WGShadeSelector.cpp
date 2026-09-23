@@ -17,8 +17,7 @@
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qvectornd.h>
+#include <QtGlobal>
 #include <qwidget.h>
 #include <utility>
 

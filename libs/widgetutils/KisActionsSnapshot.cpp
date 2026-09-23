@@ -12,7 +12,7 @@
 #include "kis_debug.h"
 #include <qalgorithms.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qmap.h>
 #include <qset.h>

@@ -35,13 +35,12 @@
 #include <QPainter>
 
 #include <math.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qbitarray.h>
 #include <qnamespace.h>
 #include <qpolygon.h>
 #include <qrgb.h>
 #include <qsize.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 

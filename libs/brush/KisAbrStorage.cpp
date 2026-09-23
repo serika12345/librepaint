@@ -19,11 +19,10 @@
 #include <KisStaticInitializer.h>
 #include <qcontainerfwd.h>
 #include <qdatetime.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qimage.h>
 #include <qmap.h>
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     KisStoragePluginRegistry::instance()->addStoragePluginFactory(KisResourceStorage::StorageType::AdobeBrushLibrary, new KisStoragePluginFactory<KisAbrStorage>());

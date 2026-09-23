@@ -13,12 +13,9 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <cstdlib>
-#include <qassert.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <qobject.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <resources/KoGamutMask.h>
 
 

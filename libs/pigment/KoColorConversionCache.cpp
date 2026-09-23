@@ -13,12 +13,10 @@
 #include <QThreadStorage>
 
 #include <KoColorSpace.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qhash.h>
 #include <qhashfunctions.h>
-#include <qtypes.h>
 
 struct KoColorConversionCacheKey {
 

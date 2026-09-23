@@ -13,14 +13,11 @@
 #include <KoConfig.h>
 #include <cmath>
 #include <cstdlib>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qhash.h>
 #include <qhashfunctions.h>
 #include <qlist.h>
-#include <qminmax.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #ifdef HAVE_OPENEXR
 #include <half.h>
 #endif

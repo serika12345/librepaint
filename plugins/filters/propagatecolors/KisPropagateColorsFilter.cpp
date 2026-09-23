@@ -13,11 +13,10 @@
 #include <KoUpdater.h>
 #include <kis_filter_configuration.h>
 #include <KoColorSpaceRegistry.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qnumeric.h>
 #include <qpaintdevice.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 #include "KisPropagateColorsConfigWidget.h"

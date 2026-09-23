@@ -23,10 +23,9 @@
 #include <memory>
 #include <kis_transaction.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qscopedpointer.h>
 #include <qsharedpointer.h>
-#include <qtypes.h>
 #include <vector>
 #include "kis_command_utils.h"
 #include "KoColorProfile.h"

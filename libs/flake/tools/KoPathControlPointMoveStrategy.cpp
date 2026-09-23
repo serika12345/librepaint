@@ -14,7 +14,7 @@
 #include "commands/KoPathControlPointMoveCommand.h"
 #include "kis_command_utils.h"
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 KoPathControlPointMoveStrategy::KoPathControlPointMoveStrategy(KoPathTool *tool, const KoPathPointData &pointData, KoPathPoint::PointType type, const QPointF &pos)
         : KoInteractionStrategy(tool)

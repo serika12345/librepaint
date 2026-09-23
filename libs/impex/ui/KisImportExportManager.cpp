@@ -69,9 +69,9 @@
 #include <KisImportUserFeedbackInterface.h>
 #include <KisSynchronousImportUserFeedback.h>
 #include <qfiledevice.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qgenericatomic.h>
-#include <qlatin1stringview.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qnamespace.h>

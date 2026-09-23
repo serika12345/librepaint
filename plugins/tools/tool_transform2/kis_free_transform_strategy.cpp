@@ -14,12 +14,9 @@
 #include <cmath>
 #include <math.h>
 #include <qimage.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "KoColorDisplayRendererInterface.h"
 #include "kis_assert.h"

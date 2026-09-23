@@ -10,7 +10,7 @@
 #include <kis_assert.h>
 #include <qabstractitemmodel.h>
 #include <qabstractitemview.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlistview.h>
 
 struct KisSnapshotView::Private

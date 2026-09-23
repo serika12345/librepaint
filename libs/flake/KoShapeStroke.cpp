@@ -31,14 +31,10 @@
 #include <KoPathPoint.h>
 #include <cmath>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qpair.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include "KisQPainterStateSaver.h"
 
 #include "kis_assert.h"

@@ -20,9 +20,9 @@
 #include <lager/with.hpp>
 #include <optional>
 #include <qcontainerfwd.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include "KisBrushModel.h"
 #include "kis_paintop_option.h"
 #include "kis_precision_option.h"

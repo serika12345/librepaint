@@ -12,8 +12,7 @@
 
 #include <boost/optional/optional.hpp>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "kis_global.h"
 

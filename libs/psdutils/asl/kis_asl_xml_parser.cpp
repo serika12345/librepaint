@@ -16,11 +16,11 @@
 
 #include <KoColorSpaceRegistry.h>
 #include <KoColorConversions.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qpaintdevice.h>
 #include <qstringview.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <resources/KoSegmentGradient.h>
 
 #include "KoColorSpaceConstants.h"

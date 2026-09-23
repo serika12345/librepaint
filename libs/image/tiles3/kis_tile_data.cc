@@ -16,12 +16,10 @@
 #include <kis_debug.h>
 
 #include <boost/pool/singleton_pool.hpp>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qdeadlinetimer.h>
-#include <qforeach.h>
 #include <qreadwritelock.h>
-#include <qtypes.h>
 #include "kis_tile_data_store_iterators.h"
 #include "tiles3/kis_tile_data_interface.h"
 

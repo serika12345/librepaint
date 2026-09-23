@@ -28,14 +28,13 @@
 #include <qcontainerfwd.h>
 #include <qcoreevent.h>
 #include <qhashfunctions.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qsize.h>
 #include <qstyle.h>
 #include <qstyleoption.h>
-#include <qtmetamacros.h>
 #include <utility>
 
 class CommandBarFilterModel : public QSortFilterProxyModel

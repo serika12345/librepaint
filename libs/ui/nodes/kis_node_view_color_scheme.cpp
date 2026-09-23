@@ -14,7 +14,7 @@
 
 #include <QGlobalStatic>
 #include <application/kis_config.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qrgb.h>
 Q_GLOBAL_STATIC(KisNodeViewColorScheme, s_instance)

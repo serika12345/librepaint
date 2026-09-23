@@ -24,10 +24,8 @@
 #include "dithering/KisGrayDitherOpFactory.h"
 #include <kis_dom_utils.h>
 #include <lcms2.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 GrayF16ColorSpace::GrayF16ColorSpace(const QString &name, KoColorProfile *p)
     : LcmsColorSpace<KoGrayF16Traits>(colorSpaceId(), name,  TYPE_GRAYA_HALF_FLT, cmsSigGrayData, p)

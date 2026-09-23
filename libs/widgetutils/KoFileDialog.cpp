@@ -26,20 +26,16 @@
 #include "WidgetUtilsDebug.h"
 
 #include <kis_assert.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qdialog.h>
 #include <qfileinfo.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
 #include <qlist.h>
 #include <qmap.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
 #include <qstringview.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtenvironmentvariables.h>
 #include <qwidget.h>
 
 #ifdef Q_OS_MACOS

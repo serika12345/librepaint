@@ -14,8 +14,7 @@
 #include <qhashfunctions.h>
 #include <qpoint.h>
 #include <qsize.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "kis_assert.h"
 #include "kis_debug.h"

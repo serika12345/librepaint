@@ -7,13 +7,12 @@
 #include "kis_custom_pattern.h"
 
 #include <KoResourceServerProvider.h>
-#include <qassert.h>
+#include <QtGlobal>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <resources/KoPattern.h>
 
 #include <QPixmap>

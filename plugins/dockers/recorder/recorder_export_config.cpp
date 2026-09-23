@@ -12,7 +12,7 @@
 #include <QString>
 #include <QDir>
 #include <QRegularExpression>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qlist.h>
 #include <qset.h>

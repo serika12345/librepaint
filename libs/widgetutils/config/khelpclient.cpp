@@ -16,8 +16,7 @@
 #include <QDesktopServices>
 #include <qcontainerfwd.h>
 #include <qdir.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 
 void KHelpClient::invokeHelp(const QString &anchor, const QString &_appname)
 {

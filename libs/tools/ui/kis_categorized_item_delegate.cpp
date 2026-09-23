@@ -22,7 +22,7 @@
 #include <kis_icon.h>
 #include <qabstractitemmodel.h>
 #include <qimage.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qpalette.h>
@@ -30,7 +30,6 @@
 #include <qpolygon.h>
 #include <qstyleditemdelegate.h>
 #include <qtextoption.h>
-#include <qtypes.h>
 
 KisCategorizedItemDelegate::KisCategorizedItemDelegate(QObject *parent)
     : QStyledItemDelegate(parent),

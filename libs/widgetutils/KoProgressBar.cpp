@@ -7,7 +7,7 @@
 #include "KoProgressBar.h"
 #include <qobject.h>
 #include <qprogressbar.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 KoProgressBar::KoProgressBar(QWidget *parent)

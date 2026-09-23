@@ -8,7 +8,7 @@
 
 #include <QGlobalStatic>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 #include "kis_signal_compressor.h"
 

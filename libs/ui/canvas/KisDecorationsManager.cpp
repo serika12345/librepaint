@@ -19,7 +19,7 @@
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qoverload.h>
+#include <QtGlobal>
 #include <qpointer.h>
 
 

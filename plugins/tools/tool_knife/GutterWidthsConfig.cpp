@@ -7,7 +7,7 @@
 #include "GutterWidthsConfig.h"
 #include "KoUnit.h"
 #include <kis_algebra_2d.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 GutterWidthsConfig::GutterWidthsConfig(KoUnit _baseUnit, qreal _resolution, qreal _horizontal, qreal _vertical, qreal _diagonal, qreal _angleDegrees)

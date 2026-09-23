@@ -24,10 +24,10 @@
 #include <KoViewTransformStillPoint.h>
 #include <math.h>
 #include <qhash.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnumeric.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 class KisZoomAndRotateAction::Private {
 public:

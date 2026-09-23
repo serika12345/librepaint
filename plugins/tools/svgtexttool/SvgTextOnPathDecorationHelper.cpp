@@ -14,9 +14,8 @@
 #include <KoPathShape.h>
 #include <cmath>
 #include <qline.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qpainterpath.h>
-#include <qtypes.h>
 struct SvgTextOnPathDecorationHelper::Private {
     KoSvgTextShape *shape = nullptr;
     int pos = 0;

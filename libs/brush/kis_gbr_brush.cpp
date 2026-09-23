@@ -10,13 +10,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include <cstring>
-#include <qbytearrayalgorithms.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qrgb.h>
 #include <qstringview.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <sys/types.h>
 #include <QtEndian>
 

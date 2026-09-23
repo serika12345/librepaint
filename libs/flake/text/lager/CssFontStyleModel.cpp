@@ -9,7 +9,7 @@
 #include <lager/extra/qt.hpp>
 #include <lager/lenses.hpp>
 #include <qfont.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace  {
 

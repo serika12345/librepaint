@@ -12,8 +12,7 @@
 #include <KoColorModelStandardIds.h>
 #include <qcontainerfwd.h>
 #include <qnumeric.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KoCompositeOpIds.h"
 #include "kis_global.h"

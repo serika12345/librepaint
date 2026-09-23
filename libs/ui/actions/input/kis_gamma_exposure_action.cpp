@@ -12,8 +12,7 @@
 #include <klocalizedstring.h>
 #include <kis_canvas2.h>
 #include <qhash.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include "kis_cursor.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_input_manager.h"

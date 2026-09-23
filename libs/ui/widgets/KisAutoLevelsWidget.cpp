@@ -13,7 +13,7 @@
 
 #include <KisSpinBoxI18nHelper.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 KisAutoLevelsWidget::KisAutoLevelsWidget(QWidget *parent)

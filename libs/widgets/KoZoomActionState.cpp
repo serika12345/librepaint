@@ -14,10 +14,8 @@
 #include <iterator>
 #include <klocalizedstring.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtypes.h>
 
 namespace
 {

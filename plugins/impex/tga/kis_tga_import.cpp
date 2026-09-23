@@ -28,12 +28,11 @@
 #include <kis_paint_layer.h>
 #include <kis_group_layer.h>
 
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qrgb.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qvariant.h>
 #include <tga.h>
 

@@ -25,7 +25,7 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpoint.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qtoolbutton.h>
 #include <qwidget.h>
 

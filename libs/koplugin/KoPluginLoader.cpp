@@ -23,12 +23,12 @@
 #include <KConfigGroup>
 #include <KPluginFactory>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qglobalstatic.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qobject.h>
-#include <qtdeprecationdefinitions.h>
 #include <qvariant.h>
 #include <utility>
 #include <vector>

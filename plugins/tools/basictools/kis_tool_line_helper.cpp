@@ -27,7 +27,7 @@
 #include <qcontainerfwd.h>
 #include <qnumeric.h>
 #include <qpoint.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 struct KisToolLineHelper::Private
 {

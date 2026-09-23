@@ -16,12 +16,10 @@
 #include <QKeySequence>
 #include <QAction>
 #include <QDebug>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qlogging.h>
 #include <qobjectdefs.h>
-#include <qtdeprecationdefinitions.h>
 
 class Q_DECL_HIDDEN KoToolFactoryBase::Private
 {

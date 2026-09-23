@@ -25,7 +25,7 @@
 #include "KisSizeOptionWidget.h"
 #include "KisMirrorOptionWidget.h"
 #include <KisPaintingModeOptionWidget.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qwidget.h>
 #include "KisTextureOptionWidget.h"
 #include "kis_paintop_option.h"

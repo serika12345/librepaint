@@ -28,13 +28,11 @@
 #include <KisResourceLoaderRegistry.h>
 #include <KisResourceTypes.h>
 #include <KoMD5Generator.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qsharedpointer.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "kis_asl_layer_style_serializer.h"
 #include "psd_types.h"

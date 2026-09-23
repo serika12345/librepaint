@@ -20,6 +20,8 @@
  */
 
 #include "kis_gap_map.h"
+
+#include <QDebug>
 #include "KoAlwaysInline.h"
 #include "kis_assert.h"
 #include "kis_global.h"
@@ -30,9 +32,8 @@
 #include <QMutexLocker>
 #include <KoColor.h>
 #include <KoColorSpaceRegistry.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qpoint.h>
-#include <qtypes.h>
 
 #if KIS_GAP_MAP_MEASURE_ELAPSED_TIME
 #include <QElapsedTimer>

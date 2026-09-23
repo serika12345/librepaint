@@ -7,10 +7,8 @@
 
 #include <KoCompositeOpRegistry.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include "KisColorSmudgeStrategyBase.h"
 #include "KisColorSmudgeSource.h"
 #include "KoColorSpaceConstants.h"

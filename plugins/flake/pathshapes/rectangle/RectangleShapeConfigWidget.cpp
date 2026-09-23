@@ -14,7 +14,7 @@
 #include "kundo2stack.h"
 #include <qobjectdefs.h>
 #include <qsize.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 RectangleShapeConfigWidget::RectangleShapeConfigWidget()

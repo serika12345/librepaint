@@ -6,7 +6,7 @@
 #include "kis_node_model.h"
 #include <qabstractitemmodel.h>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 bool KisNodeModel::dropMimeData(const QMimeData *data,
                                 Qt::DropAction action,

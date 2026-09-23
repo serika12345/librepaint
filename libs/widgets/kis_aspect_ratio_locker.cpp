@@ -13,8 +13,7 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qvariant.h>
 #include <type_traits>
 

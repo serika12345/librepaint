@@ -14,7 +14,7 @@
 #include <cstring>
 #include <qcontainerfwd.h>
 #include <qnumeric.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <utility>
 
 

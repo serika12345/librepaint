@@ -20,15 +20,11 @@
 #include "kis_signal_compressor.h"
 
 #include <qalgorithms.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qpointer.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 class Q_DECL_HIDDEN KoProgressUpdater::Private
 {

@@ -31,17 +31,15 @@
 #include <kis_progress_update_helper.h>
 #include <KoStopGradient.h>
 #include <math.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qbrush.h>
 #include <qcontainerfwd.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "KoColorSpace.h"
 #include "kis_painter.h"

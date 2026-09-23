@@ -39,16 +39,12 @@
 #include "virtual_channel_info.h"
 #include "widgets/kis_curve_widget.h"
 #include <KisGlobalResourcesInterface.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qhash.h>
-#include <qlatin1stringview.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qobjectdefs.h>
 #include <qpoint.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 #include "../../color/colorspaceextensions/kis_hsv_adjustment.h"

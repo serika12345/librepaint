@@ -13,11 +13,9 @@
 #include <QLayout>
 #include <QGridLayout>
 #include <QFormLayout>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qboxlayout.h>
-#include <qforeach.h>
 #include <qlayoutitem.h>
-#include <qminmax.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 

@@ -9,7 +9,7 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QDebug>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qpaintdevice.h>
 #include <qscopedpointer.h>
 #include <qshareddata.h>

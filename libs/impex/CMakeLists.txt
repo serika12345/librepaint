@@ -113,7 +113,12 @@ target_link_libraries(kritaimpexfilterheaders
         KF${KF_MAJOR}::I18n
 )
 
-target_link_libraries(kritaimpexfilterstateobjects PUBLIC kritaimpexfilterheaders)
+target_link_libraries(kritaimpexfilterstateobjects
+    PUBLIC
+        kritaimpexfilterheaders
+    PRIVATE
+        kritawidgetutilsprogressupdaterobjects
+)
 
 target_link_libraries(kritaimpexfilterprogressobjects
     PUBLIC

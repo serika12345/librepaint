@@ -31,14 +31,11 @@
 #include <kis_display_color_converter.h>
 #include <KisPopupButton.h>
 #include <kis_icon_utils.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 
 #include "ui_wdgSpecificColorSelectorWidget.h"

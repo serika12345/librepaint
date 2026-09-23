@@ -43,15 +43,14 @@
 #include <kis_asl_layer_style_serializer.h>
 #include <asl/kis_asl_xml_parser.h>
 #include <cos/psd_text_data_converter.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qpoint.h>
 #include <qtransform.h>
-#include <qtypes.h>
 
 #include "KisImportExportErrorCode.h"
 #include "KisImportExportUtils.h"

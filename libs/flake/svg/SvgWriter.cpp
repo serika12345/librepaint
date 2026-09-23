@@ -44,7 +44,7 @@
 
 #include <algorithm>
 #include <KisPortingUtils.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qsize.h>
 

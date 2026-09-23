@@ -18,7 +18,7 @@
 #include <QIODevice>
 #include <cstring>
 #include <kis_sequential_iterator.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace RGBEIMPORT
 {

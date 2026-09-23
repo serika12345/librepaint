@@ -9,7 +9,7 @@
 #include <QPainter>
 #include <QApplication>
 #include <QMouseEvent>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcombobox.h>
 #include <qnamespace.h>
 #include <qpaintdevice.h>

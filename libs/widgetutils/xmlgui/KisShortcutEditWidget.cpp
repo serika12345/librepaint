@@ -23,7 +23,7 @@
 #include <qlist.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 //#include <kglobalaccel.h>
 

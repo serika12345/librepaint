@@ -8,7 +8,7 @@
 
 #include <limits>
 #include <qcontainerfwd.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 
 #include "einspline/bspline_base.h"
 #include "einspline/bspline_create.h"

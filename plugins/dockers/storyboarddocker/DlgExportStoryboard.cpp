@@ -18,7 +18,7 @@
 #include <qcontainerfwd.h>
 #include <qdir.h>
 #include <qfileinfo.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qobjectdefs.h>
 #include <qpagelayout.h>
 #include <qsharedpointer.h>

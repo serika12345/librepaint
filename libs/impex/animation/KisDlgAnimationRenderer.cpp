@@ -38,7 +38,7 @@
 #include <qcontainerfwd.h>
 #include <qdialog.h>
 #include <qfileinfo.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qicon.h>
 #include <qjsonvalue.h>
@@ -47,7 +47,6 @@
 #include <qregularexpression.h>
 #include <qscopedpointer.h>
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
 #include "kis_acyclic_signal_connector.h"
 #include "KisVideoSaver.h"
 #include "KisAnimationRenderingOptions.h"

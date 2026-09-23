@@ -28,7 +28,7 @@
 
 #include <dialogs/KisColorSpaceConversionDialog.h>
 #include "KoColorConversionTransformation.h"
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qdialog.h>
 #include <qobject.h>

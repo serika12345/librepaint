@@ -12,7 +12,7 @@
 #include <boost/random/uniform_smallint.hpp>
 
 #include <QRandomGenerator>
-#include <qtypes.h>
+#include <QtGlobal>
 
 struct KisRandomSource::Private
 {

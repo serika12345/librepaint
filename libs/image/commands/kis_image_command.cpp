@@ -7,7 +7,7 @@
 
 #include "kis_image_command.h"
 #include <klocalizedstring.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qobject.h>
 
 #include "KisProjectionUpdateFlags.h"

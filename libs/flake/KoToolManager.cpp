@@ -54,22 +54,18 @@
 #include <QLabel>
 #include <QGlobalStatic>
 #include <qalgorithms.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
-#include <qlatin1stringview.h>
 #include <qlayoutitem.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qset.h>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 
 Q_GLOBAL_STATIC(KoToolManager, s_instance)
 

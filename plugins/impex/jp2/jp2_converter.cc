@@ -36,9 +36,8 @@
 #include <plugins/impex/xcf/3rdparty/xcftools/xcftools.h>
 
 #include <iostream>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qstringview.h>
-#include <qtypes.h>
 #include <sstream>
 #include <cstring>
 #include <list> 

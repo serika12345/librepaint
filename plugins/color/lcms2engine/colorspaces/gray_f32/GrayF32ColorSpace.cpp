@@ -24,9 +24,8 @@
 #include "dithering/KisGrayDitherOpFactory.h"
 #include <kis_dom_utils.h>
 #include <lcms2.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qnamespace.h>
-#include <qtypes.h>
 
 GrayF32ColorSpace::GrayF32ColorSpace(const QString &name, KoColorProfile *p)
     : LcmsColorSpace<KoGrayF32Traits>(colorSpaceId(), name,  TYPE_GRAYA_FLT, cmsSigGrayData, p)

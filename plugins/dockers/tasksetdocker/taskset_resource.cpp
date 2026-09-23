@@ -13,8 +13,7 @@
 #include <QBuffer>
 
 #include <KisPortingUtils.h>
-#include <qforeach.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #define TASKSET_VERSION 1
 

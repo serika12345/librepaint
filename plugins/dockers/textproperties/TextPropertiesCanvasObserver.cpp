@@ -17,13 +17,10 @@
 
 #include <QApplication>
 #include <qdialog.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 #include "FlakeDebug.h"
 #include "KisQStringListFwd.h"

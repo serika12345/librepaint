@@ -19,10 +19,11 @@
 #include <qcontainerfwd.h>
 #include <qdir.h>
 #include <qfileinfo.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qscopedpointer.h>
 #include <qsharedpointer.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 

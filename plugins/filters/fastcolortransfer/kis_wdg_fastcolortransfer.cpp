@@ -28,7 +28,7 @@
 #include "ui_wdgfastcolortransfer.h"
 #include <KisGlobalResourcesInterface.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 KisWdgFastColorTransfer::KisWdgFastColorTransfer(QWidget * parent) : KisConfigWidget(parent)

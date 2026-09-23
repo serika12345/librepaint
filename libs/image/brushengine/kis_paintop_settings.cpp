@@ -44,16 +44,12 @@
 #include <KoResourceCachePrefixedStorageWrapper.h>
 #include <brushengine/KisOptimizedBrushOutline.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 #include <qlist.h>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #define SANITY_CHECK_CACHE
 

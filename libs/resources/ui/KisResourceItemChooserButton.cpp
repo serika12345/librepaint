@@ -10,7 +10,7 @@
 #include "KoResource.h"
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 

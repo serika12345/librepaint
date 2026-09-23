@@ -21,7 +21,7 @@
 #include <KoUpdater.h>
 #include <new>
 #include <qscopedpointer.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 KisFilter::KisFilter(const KoID& _id, const KoID & category, const QString & entry)
     : KisBaseProcessor(_id, category, entry),

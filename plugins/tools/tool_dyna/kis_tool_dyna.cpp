@@ -31,7 +31,7 @@
 #include <math.h>
 #include <qobjectdefs.h>
 #include <qset.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 

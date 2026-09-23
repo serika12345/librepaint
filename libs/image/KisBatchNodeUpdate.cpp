@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <iterator>
 #include <qdebug.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <utility>
 #include <vector>
 

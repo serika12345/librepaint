@@ -17,7 +17,7 @@
 #include "canvas/kis_painting_assistant.h"
 #include "kis_default_bounds.h"
 #include "kis_types.h"
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qtransform.h>
 

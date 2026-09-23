@@ -11,10 +11,8 @@
 #include "KoSnapGuide.h"
 #include "KoSnapStrategy.h"
 #include <limits>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include "kis_global.h"
 
 struct KisSnapPointStrategy::Private

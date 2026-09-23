@@ -12,7 +12,7 @@
 #include <kis_command_ids.h>
 #include <krita_container_utils.h>
 #include <KoShapeBulkActionLock.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qmap.h>
 #include <qset.h>

@@ -14,7 +14,7 @@
 #include <cstring>
 #include <qcontainerfwd.h>
 #include <qnamespace.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace {
 

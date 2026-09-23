@@ -14,11 +14,8 @@
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
 #include <math.h>
-#include <qassert.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 #include "KisColorSelectorConfiguration.h"
 #include "kis_color_selector.h"

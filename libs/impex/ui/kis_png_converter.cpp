@@ -23,18 +23,15 @@
 #include <new>
 #include <png.h>
 #include <pngconf.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qcoreapplication.h>
 #include <qdebug.h>
-#include <qlatin1stringview.h>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qscopedpointer.h>
 #include <qsize.h>
 #include <qstringview.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 // A big thank to Glenn Randers-Pehrson for his wonderful
 // documentation of libpng available at
 // http://www.libpng.org/pub/png/libpng-1.2.5-manual.html

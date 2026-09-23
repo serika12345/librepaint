@@ -40,11 +40,11 @@
 #include <math.h>
 #include <memory>
 #include <qcontainerfwd.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qobject.h>
-#include <qtypes.h>
 #include <qvariant.h>
 #include <tiff.h>
 #include <type_traits>

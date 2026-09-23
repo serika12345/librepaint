@@ -12,7 +12,7 @@
 #include <application/ui/orchestration/kis_action.h>
 #include <application/ui/orchestration/kis_action_manager.h>
 #include <kis_cmb_composite.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 namespace KisWidgetConnectionUtils

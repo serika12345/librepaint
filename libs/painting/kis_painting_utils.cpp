@@ -19,7 +19,7 @@
 #include <qobject.h>
 #include <qpaintdevice.h>
 #include <qscopedpointer.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace KisPaintingUtils
 {

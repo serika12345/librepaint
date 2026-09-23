@@ -7,10 +7,8 @@
 #include <KoCompositeOpRegistry.h>
 #include <kis_algebra_2d.h>
 #include <QtMath>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qpolygon.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include "KisColorSmudgeStrategyMaskLegacy.h"
 #include "KisColorSmudgeSampleUtils.h"
 

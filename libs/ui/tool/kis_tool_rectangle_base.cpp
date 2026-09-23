@@ -22,8 +22,7 @@
 #include <qnamespace.h>
 #include <qpainter.h>
 #include <qset.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "kis_floating_message.h"
 #include "kis_rectangle_constraint_widget.h"

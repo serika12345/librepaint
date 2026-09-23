@@ -23,16 +23,13 @@
 #include <cstdlib>
 #include <iterator>
 #include <math.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qshareddata.h>
 #include <qsharedpointer.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #undef M_PI
 const qreal M_PI = 3.1415927;

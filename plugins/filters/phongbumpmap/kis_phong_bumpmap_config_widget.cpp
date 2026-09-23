@@ -13,13 +13,12 @@
 #include "KoChannelInfo.h"
 #include "KoColorSpace.h"
 #include <KisGlobalResourcesInterface.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qboxlayout.h>
 #include <qcolor.h>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
 #include <qvariant.h>
 
 KisPhongBumpmapConfigWidget::KisPhongBumpmapConfigWidget(const KisPaintDeviceSP dev, QWidget *parent, Qt::WindowFlags f)

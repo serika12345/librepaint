@@ -15,7 +15,7 @@
 #include <qobject.h>
 #include <qscroller.h>
 #include <qscrollerproperties.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 #ifdef Q_OS_ANDROID
 #include <QtAndroid>

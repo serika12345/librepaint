@@ -36,8 +36,7 @@
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qset.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KoFlakeTypes.h"
 #include "kis_assert.h"

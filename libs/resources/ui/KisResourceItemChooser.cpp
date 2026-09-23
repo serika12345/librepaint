@@ -40,7 +40,7 @@
 #include <KisResourceModel.h>
 #include <KisTagFilterResourceProxyModel.h>
 #include <qabstractitemmodel.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qlayout.h>
 #include <qnamespace.h>
 #include <qrgb.h>

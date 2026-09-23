@@ -33,7 +33,7 @@
 #include <canvas/kis_canvas_resource_provider.h>
 #include <application/kis_config.h>
 #include <kis_image.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcursor.h>
 #include <qgridlayout.h>
 #include <qlayoutitem.h>
@@ -43,8 +43,6 @@
 #include <qset.h>
 #include <qsize.h>
 #include <qsizepolicy.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <resources/kis_popup_palette.h>
 #include <kis_tool_canvas_utils.h>
 #include <kis_tool_utils.h>

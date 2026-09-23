@@ -10,19 +10,14 @@
 #include "KoColorDisplayRendererInterface.h"
 
 #include <KoConfig.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qgridlayout.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 #ifdef HAVE_OPENEXR
 #include <half.h>
 #endif

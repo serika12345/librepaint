@@ -21,12 +21,8 @@
 #include <QIODevice>
 #include <cmath>
 #include <math.h>
-#include <qassert.h>
-#include <qbytearrayalgorithms.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 class KisImageBrushesPipe : public KisBrushesPipe<KisGbrBrush>
 {

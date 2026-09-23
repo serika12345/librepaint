@@ -34,7 +34,7 @@
 #include <config-seexpr.h>
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qlogging.h>
 #include <qnamespace.h>
@@ -44,9 +44,6 @@
 #include <qpixmap.h>
 #include <qsharedpointer.h>
 #include <qsortfilterproxymodel.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qwidget.h>
 #include <qwizard.h>
 

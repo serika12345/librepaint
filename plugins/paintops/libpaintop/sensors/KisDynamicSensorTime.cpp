@@ -16,8 +16,6 @@
 
 #include <kis_paint_information.h>
 #include <optional>
-#include <qminmax.h>
-#include <qtypes.h>
 
 
 KisDynamicSensorTime::KisDynamicSensorTime(const KisSensorWithLengthData &data, std::optional<KisCubicCurve> curveOverride)

@@ -10,10 +10,9 @@
 #include "KoShapeBackground.h"
 
 #include <klocalizedstring.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qsharedpointer.h>
-#include <qtdeprecationdefinitions.h>
 
 #include "kis_command_ids.h"
 #include "kundo2magicstring.h"

@@ -16,10 +16,8 @@
 #include <kis_convolution_kernel.h>
 #include <kis_convolution_painter.h>
 #include <kis_global.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qmath.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qwidget.h>
 #include <widgets/kis_multi_integer_filter_widget.h>
 #include <filter/kis_filter_category_ids.h>

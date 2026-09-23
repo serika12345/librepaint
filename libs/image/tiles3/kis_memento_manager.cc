@@ -6,9 +6,6 @@
 
 #include <QtGlobal>
 #include <cstdio>
-#include <qassert.h>
-#include <qforeach.h>
-#include <qtypes.h>
 #include "kis_memento_manager.h"
 #include "kis_assert.h"
 #include "kis_memento.h"

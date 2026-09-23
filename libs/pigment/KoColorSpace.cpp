@@ -39,18 +39,14 @@
 #include <QPointF>
 #include <cstring>
 #include <qalgorithms.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qhash.h>
 #include <qhashfunctions.h>
 #include <qimage.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qrgb.h>
 #include <qscopedpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 KoColorSpace::KoColorSpace()

@@ -23,7 +23,6 @@
 #include <KoCanvasResourceProvider.h>
 #include <KoColor.h>
 #include <KoViewConverter.h>
-#include <__math/roots.h>
 #include <input/ui/KisPopupWidgetInterface.h>
 
 #include <QAction>
@@ -39,8 +38,7 @@
 #include <qobjectdefs.h>
 #include <qpointer.h>
 #include <qset.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #undef M_PI
 const qreal M_PI = 3.1415927;

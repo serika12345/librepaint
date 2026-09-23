@@ -28,7 +28,7 @@
 #include <qlist.h>
 #include <qobject.h>
 #include <qpair.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qtransform.h>
 
 ImageShapeFactory::ImageShapeFactory()

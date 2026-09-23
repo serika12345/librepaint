@@ -12,8 +12,7 @@
 #include "kis_wrapped_rect.h"
 #include "tiles3/kis_random_accessor.h"
 #include "tiles3/kis_tiled_data_manager.h"
-#include <qminmax.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 KisWrappedRandomAccessor::KisWrappedRandomAccessor(KisTiledDataManager *ktm,

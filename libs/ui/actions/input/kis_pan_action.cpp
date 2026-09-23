@@ -16,10 +16,9 @@
 #include <KoCanvasController.h>
 
 #include <kis_canvas2.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
 
 #include "KisInputActionGroup.h"
 #include "kis_input_manager.h"

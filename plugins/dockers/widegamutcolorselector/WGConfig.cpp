@@ -23,10 +23,9 @@
 #include <QTextStream>
 #include <QThread>
 #include <qcontainerfwd.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
-#include <qtmetamacros.h>
 #include <utility>
 
 namespace WGConfig {

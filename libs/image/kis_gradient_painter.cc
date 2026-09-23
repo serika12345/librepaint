@@ -14,15 +14,10 @@
 #include <cmath>
 #include <cstring>
 #include <math.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qsharedpointer.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <resources/KoAbstractGradient.h>
 
 #include <KoColorModelStandardIds.h>

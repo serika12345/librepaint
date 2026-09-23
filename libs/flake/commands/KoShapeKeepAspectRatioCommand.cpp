@@ -11,9 +11,8 @@
 #include <klocalizedstring.h>
 
 #include <KoShape.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtdeprecationdefinitions.h>
 
 namespace
 {

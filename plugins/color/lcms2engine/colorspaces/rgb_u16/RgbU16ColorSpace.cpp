@@ -34,7 +34,7 @@
 #include <lcms2.h>
 #include <qlist.h>
 #include <qrgb.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 RgbU16ColorSpace::RgbU16ColorSpace(const QString &name, KoColorProfile *p) :
     LcmsColorSpace<KoBgrU16Traits>(colorSpaceId(), name, TYPE_BGRA_16, cmsSigRgbData, p)

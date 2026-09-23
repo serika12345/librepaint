@@ -13,13 +13,14 @@
 #include <config-hdr.h>
 #include <opengl/kis_opengl.h>
 #include <qfiledevice.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qobjectdefs.h>
 #include <qopengl.h>
 #include <qopenglshaderprogram.h>
 #include <qopenglwidget.h>
 #include <qpaintdevice.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 #include "KisGLImageF16.h"

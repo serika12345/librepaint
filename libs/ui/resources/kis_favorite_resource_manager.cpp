@@ -31,7 +31,7 @@
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qsharedpointer.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <tuple>
 
 const int KisFavoriteResourceManager::MAX_RECENT_COLOR = 12;

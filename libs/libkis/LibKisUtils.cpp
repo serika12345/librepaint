@@ -10,7 +10,7 @@
 #include <kis_group_layer.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qpointer.h>
 

@@ -12,7 +12,7 @@
 #include <QDebug>
 #include <QEvent>
 #include <QKeyEvent>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 #include <qlogging.h>
 #include <qnamespace.h>

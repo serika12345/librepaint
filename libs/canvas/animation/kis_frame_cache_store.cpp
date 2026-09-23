@@ -14,7 +14,7 @@
 #include <boost/optional/optional.hpp>
 #include <kis_assert.h>
 #include <qhashfunctions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <utility>
 
 namespace {

@@ -17,7 +17,7 @@
 #include <klocalizedstring.h>
 
 #include <KisResourceTypes.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qlist.h>
 #include <qnamespace.h>
@@ -25,9 +25,7 @@
 #include <qobject.h>
 #include <qpolygon.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
 #include <qtransform.h>
-#include <qtypes.h>
 #include <qvariant.h>
 #include <resources/KoPattern.h>
 

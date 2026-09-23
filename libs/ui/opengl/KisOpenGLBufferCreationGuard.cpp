@@ -9,7 +9,7 @@
 
 #include "kis_opengl.h"
 #include <qopenglbuffer.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 KisOpenGLBufferCreationGuard::KisOpenGLBufferCreationGuard(QOpenGLBuffer *buffer, int size, QOpenGLBuffer::UsagePattern usagePattern)

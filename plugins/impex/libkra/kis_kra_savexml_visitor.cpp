@@ -41,10 +41,8 @@
 #include <kis_psd_layer_style.h>
 #include <canvas/KisReferenceImage.h>
 #include <KisReferenceImagesLayer.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qmap.h>
-#include <qtypes.h>
 #include "kis_dom_utils.h"
 #include "kis_node.h"
 #include "kis_types.h"

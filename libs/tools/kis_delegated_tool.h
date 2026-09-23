@@ -25,7 +25,7 @@
       (_event)->modifiers() == Qt::NoModifier))
 
 template <class BaseClass, class DelegateTool, class ActivationPolicy = NoopActivationPolicy>
-class KRITATOOLS_EXPORT KisDelegatedTool : public BaseClass
+class KisDelegatedTool : public BaseClass
 {
 public:
     KisDelegatedTool(KoCanvasBase *canvas,

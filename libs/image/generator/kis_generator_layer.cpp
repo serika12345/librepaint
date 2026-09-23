@@ -32,14 +32,12 @@
 #include "kis_thread_safe_signal_compressor.h"
 #include "kis_types.h"
 #include <kis_generator_stroke_strategy.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qicon.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qregion.h>
 #include <qsharedpointer.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
 
 
 #define UPDATE_DELAY 100 /*ms */

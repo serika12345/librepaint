@@ -12,9 +12,7 @@
 #include <qnamespace.h>
 #include <qpushbutton.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 #include <utility>
 

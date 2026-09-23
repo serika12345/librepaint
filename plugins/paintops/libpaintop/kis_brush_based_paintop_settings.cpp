@@ -30,7 +30,7 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpointer.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 struct BrushReader {
     BrushReader(const KisBrushBasedPaintOpSettings *parent)

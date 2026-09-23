@@ -18,7 +18,7 @@
 #include <qcontainerfwd.h>
 #include <qlist.h>
 #include <qnumeric.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #ifdef HAVE_OPENEXR
 #include <half.h>

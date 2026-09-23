@@ -23,7 +23,7 @@
 #include <kis_dom_utils.h>
 #include <KoResourceLoadResult.h>
 #include <optional>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 
 KoResourceLoadResult KisAutoBrushFactory::createBrush(const QDomElement &brushDefinition, KisResourcesInterfaceSP resourcesInterface)

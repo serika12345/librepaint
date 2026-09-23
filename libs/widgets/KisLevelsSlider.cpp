@@ -13,18 +13,14 @@
 #include <cmath>
 
 #include <kis_painting_tweaks.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
 #include <qcoreevent.h>
 #include <qimage.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qrgb.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 #include "KisLevelsSlider.h"

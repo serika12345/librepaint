@@ -14,7 +14,7 @@
 #include <QPainter>
 #include <QSharedData>
 #include <QPainterPath>
-#include <qassert.h>
+#include <QtGlobal>
 
 class KoGradientBackground::Private : public QSharedData
 {

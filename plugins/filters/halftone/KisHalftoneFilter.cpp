@@ -25,14 +25,11 @@
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorProfile.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnumeric.h>
 #include <qobject.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "KisHalftoneFilter.h"
 #include "KisHalftoneConfigWidget.h"

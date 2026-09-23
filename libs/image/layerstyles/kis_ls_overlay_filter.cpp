@@ -11,8 +11,7 @@
 #include <QBitArray>
 
 #include <qnumeric.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 #include "kis_assert.h"

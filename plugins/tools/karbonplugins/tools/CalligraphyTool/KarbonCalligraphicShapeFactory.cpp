@@ -12,7 +12,7 @@
 #include <klocalizedstring.h>
 #include <KoShapeLoadingContext.h>
 #include <qdom.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 KarbonCalligraphicShapeFactory::KarbonCalligraphicShapeFactory()
     : KoShapeFactoryBase(KarbonCalligraphicShapeId, i18n("A calligraphic shape"))

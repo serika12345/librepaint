@@ -21,7 +21,7 @@
 #include <qnamespace.h>
 #include <qpair.h>
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "KisQStringListFwd.h"
 #include "KoPathShape.h"

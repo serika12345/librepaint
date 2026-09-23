@@ -35,7 +35,7 @@
 #include <kis_selection_filters.h>
 #include <qmath.h>
 #include <qnamespace.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 __KisToolSelectRectangularLocal::__KisToolSelectRectangularLocal(KoCanvasBase * canvas)
     : KisToolRectangleBase(canvas, KisToolRectangleBase::SELECT,

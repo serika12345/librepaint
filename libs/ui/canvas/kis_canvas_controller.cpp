@@ -36,16 +36,12 @@
 #include <KoUnit.h>
 #include <KoViewTransformStillPoint.h>
 #include <optional>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcoreevent.h>
 #include <qcursor.h>
-#include <qminmax.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qscopedpointer.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qvariant.h>
 
 #include "KisCanvasState.h"

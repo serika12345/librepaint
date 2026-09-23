@@ -13,7 +13,7 @@
 #include <klocalizedstring.h>
 #include <qcontainerfwd.h>
 #include <qsharedpointer.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KisScreentoneGeneratorTemplate.h"
 #include "KoColor.h"

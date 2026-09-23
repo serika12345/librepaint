@@ -8,7 +8,7 @@
 #include "kundo2magicstring.h"
 #include "kundo2stack.h"
 #include <KoShapeBulkActionLock.h>
-#include <qminmax.h>
+#include <QtGlobal>
 
 KoSvgConvertTextTypeCommand::KoSvgConvertTextTypeCommand(KoSvgTextShape *shape, KoSvgTextShape::TextType type, int pos, KUndo2Command *parent)
     : KUndo2Command(parent)

@@ -8,7 +8,7 @@
 #include "kis_image_layer_move_command.h"
 
 #include <klocalizedstring.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 

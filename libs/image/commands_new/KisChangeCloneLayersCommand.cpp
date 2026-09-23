@@ -11,7 +11,7 @@
 #include "kundo2stack.h"
 
 #include <kis_clone_layer.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 
 struct KisChangeCloneLayersCommand::Private

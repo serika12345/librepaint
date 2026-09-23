@@ -6,7 +6,7 @@
 
 #include "kis_types.h"
 #include "nodes/kis_node_manager.h"
-#include <qassert.h>
+#include <QtGlobal>
 
 KisNodeSP KisNodeManager::activeNode()
 {

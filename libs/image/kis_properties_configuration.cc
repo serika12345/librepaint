@@ -22,13 +22,13 @@
 #include <KoColorSpaceRegistry.h>
 #include <qcolor.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qset.h>
 #include <qstringview.h>
-#include <qtdeprecationdefinitions.h>
 #include <qvariant.h>
 
 void kisSharedPtrAddReference(KisPropertiesConfiguration *pointer)

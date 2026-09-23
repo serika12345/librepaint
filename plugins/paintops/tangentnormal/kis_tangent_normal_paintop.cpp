@@ -28,10 +28,8 @@
 #include <kis_image.h>
 #include <kis_lod_transform.h>
 #include <kis_paintop_plugin_utils.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qpoint.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 KisTangentNormalPaintOp::KisTangentNormalPaintOp(const KisPaintOpSettingsSP settings, KisPainter* painter, KisNodeSP node, KisImageSP image)

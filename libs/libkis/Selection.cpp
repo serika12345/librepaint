@@ -20,7 +20,7 @@
 
 #include <Node.h>
 #include <qobject.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 struct Selection::Private {
     Private() {}

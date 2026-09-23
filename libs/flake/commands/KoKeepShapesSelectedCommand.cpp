@@ -11,7 +11,7 @@
 #include <KoShape.h>
 #include <KoSelection.h>
 #include <KoSelectedShapesProxy.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 
 

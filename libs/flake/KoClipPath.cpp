@@ -19,12 +19,9 @@
 #include <algorithm>
 #include <kis_algebra_2d.h>
 #include <qalgorithms.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
 
 
 QTransform scaleToPercent(const QSizeF &size)

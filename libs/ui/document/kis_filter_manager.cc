@@ -50,13 +50,11 @@
 #include "kis_icon_utils.h"
 #include "kis_layer_utils.h"
 #include <KisGlobalResourcesInterface.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpointer.h>
 #include <qset.h>
-#include <qtpreprocessorsupport.h>
 
 struct KisFilterManager::Private {
     KisAction* reapplyAction = nullptr;

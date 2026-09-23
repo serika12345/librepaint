@@ -16,11 +16,10 @@
 #include <KoShapeRegistry.h>
 #include <KoShapeFactoryBase.h>
 #include <KoUnit.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlayout.h>
 #include <qlist.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 #include "kis_assert.h"
 

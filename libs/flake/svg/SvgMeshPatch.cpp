@@ -19,9 +19,8 @@
 #include <qpolygon.h>
 #include <qsize.h>
 #include <qstringview.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 #include <qtransform.h>
-#include <qtypes.h>
 
 
 inline QPointF lerp(const QPointF& p1, const QPointF& p2, qreal t)

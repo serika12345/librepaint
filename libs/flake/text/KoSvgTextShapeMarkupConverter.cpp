@@ -16,21 +16,15 @@
 #include <freetype/config/ftheader.h>
 #include <optional>
 #include <qdom.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qscopedpointer.h>
 #include <qset.h>
 #include <qtextformat.h>
-#include <qtguiexports.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 #include <utility>
 
 #include <QXmlStreamReader>

@@ -45,15 +45,14 @@
 
 #include <limits>
 #include <optional>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qnamespace.h>
 #include <qset.h>
 #include <qsharedpointer.h>
-#include <qtenvironmentvariables.h>
 #include <stdlib.h>
 #include <utility>
 

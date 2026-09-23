@@ -21,7 +21,7 @@
 #include <KisTag.h>
 #include <qabstractitemmodel.h>
 #include <qaction.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qicon.h>
 #include <qimage.h>
 #include <qlist.h>

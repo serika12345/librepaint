@@ -35,17 +35,13 @@
 #include <QPainterPath>
 #include <QApplication>
 #include <qcolor.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qimage.h>
 #include <qmargins.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpointer.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 
 struct KisPaintingAssistantsDecoration::Private {
     Private()

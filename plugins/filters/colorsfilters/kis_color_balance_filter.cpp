@@ -18,7 +18,7 @@
 #include <qkeysequence.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 KisColorBalanceFilter::KisColorBalanceFilter() 

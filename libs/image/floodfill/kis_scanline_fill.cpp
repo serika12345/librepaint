@@ -6,6 +6,8 @@
 
 #include "kis_scanline_fill.h"
 
+#include <QDebug>
+
 #include <cstring>
 #include <functional>
 #include <libs/global/KoAlwaysInline.h>
@@ -27,11 +29,8 @@
 #include "kis_shared_ptr.h"
 #include "kis_types.h"
 #include <qcontainerfwd.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <queue>
 #include <tuple>
 #include <vector>

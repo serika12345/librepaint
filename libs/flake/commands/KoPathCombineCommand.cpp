@@ -15,9 +15,8 @@
 #include <KoPathPointData.h>
 
 #include <QHash>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtdeprecationdefinitions.h>
 
 class Q_DECL_HIDDEN KoPathCombineCommand::Private
 {

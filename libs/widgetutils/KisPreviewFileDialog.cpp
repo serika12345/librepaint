@@ -21,7 +21,7 @@
 #include <qicon.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 KisAbstractFileIconCreator *KisPreviewFileDialog::s_iconCreator {0};

@@ -16,7 +16,7 @@
 #include <qalgorithms.h>
 #include <qcontainerfwd.h>
 #include <qlist.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <utility>
 
 class KoPathPointInsertCommandPrivate

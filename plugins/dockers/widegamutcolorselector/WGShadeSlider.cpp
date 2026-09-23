@@ -18,15 +18,13 @@
 #include <QtMath>
 #include <cmath>
 #include <cstring>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpaintdevice.h>
 #include <qpoint.h>
 #include <qscopedpointer.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 struct WGShadeSlider::Private

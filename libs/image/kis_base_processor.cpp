@@ -18,7 +18,7 @@
 #include "kis_types.h"
 #include <KisGlobalResourcesInterface.h>
 #include <qkeysequence.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 
 
 class KisBaseProcessorConfigurationFactory : public KisSerializableConfigurationFactory

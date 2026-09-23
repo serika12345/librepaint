@@ -50,7 +50,7 @@
 #include "ui/workspace/KisViewManager.h"
 #include <klocalizedstring.h>
 #include <qabstractitemmodel.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qicon.h>
 #include <qimage.h>
 #include <qitemselectionmodel.h>
@@ -60,8 +60,6 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qvariant.h>
 
 KisUndoModel::KisUndoModel(QObject *parent)

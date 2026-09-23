@@ -18,7 +18,7 @@
 #include <qnamespace.h>
 #include <qpaintdevice.h>
 #include <qpoint.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KisColorSmudgeStrategyMask::KisColorSmudgeStrategyMask(KisPainter *painter, KisImageSP image, bool smearAlpha,
                                                        bool useDullingMode, bool useOverlayMode)

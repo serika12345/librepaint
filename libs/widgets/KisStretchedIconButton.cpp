@@ -11,7 +11,7 @@
 #include <QIcon>
 #include <QLabel>
 #include <qnamespace.h>
-#include <qtversionchecks.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 KisStretchedIconButton::KisStretchedIconButton(QWidget *parent)

@@ -37,15 +37,14 @@
 #include <KritaVersionWrapper.h>
 
 #include <KisGlobalResourcesInterface.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qdom.h>
-#include <qforeach.h>
 #include <qhashfunctions.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
-#include <qtypes.h>
 
 
 KoResourceBundle::KoResourceBundle(QString const& fileName)

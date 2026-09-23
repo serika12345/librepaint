@@ -24,9 +24,8 @@
 #include <QVector3D>
 #include <qcontainerfwd.h>
 #include <qlist.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qpoint.h>
-#include <qtypes.h>
 
 KisEdgeDetectionKernel::KisEdgeDetectionKernel()
 {

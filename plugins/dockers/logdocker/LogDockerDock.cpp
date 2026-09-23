@@ -42,7 +42,7 @@
 #include <qcolor.h>
 #include <qdir.h>
 #include <qfont.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qlogging.h>
 #include <qloggingcategory.h>
 #include <qnamespace.h>
@@ -50,7 +50,6 @@
 #include <qobjectdefs.h>
 #include <qtextcursor.h>
 #include <qtextformat.h>
-#include <qtmetamacros.h>
 #include <utility>
 
 QTextCharFormat LogDockerDock::s_debug;

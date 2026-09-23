@@ -10,7 +10,7 @@
 
 #include <boost/operators.hpp>
 
-#include <QtCore/qtypes.h>
+#include <QtGlobal>
 #include <QString>
 #include <kritapaintop_export.h>
 

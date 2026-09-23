@@ -11,7 +11,7 @@
 #include <QIODevice>
 #include <qpaintdevice.h>
 #include <qtransform.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KisResourceTypes.h"
 #include "kis_assert.h"

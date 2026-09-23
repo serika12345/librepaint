@@ -9,7 +9,7 @@
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>
 #include <lager/lenses.hpp>
-#include <qtypes.h>
+#include <QtGlobal>
 
 auto getValue =  lager::lenses::getset (
             [] (const KoSvgText::CssLengthPercentage &data) -> qreal {

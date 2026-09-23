@@ -16,8 +16,9 @@
 #include <QBuffer>
 #include <KoMD5Generator.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KisGradientMapFilterConfiguration.h"
 #include "KisGradientConversion.h"

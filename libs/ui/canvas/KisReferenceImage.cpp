@@ -39,12 +39,10 @@
 
 #include <document/KisDocument.h>
 #include <application/ui/orchestration/KisPart.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qsize.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 
 struct KisReferenceImage::Private : public QSharedData
 {

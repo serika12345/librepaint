@@ -1565,10 +1565,10 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 
 範囲はiOS構成の製品対象と、その診断で露出した製品・CMakeファイルに固定する。固定CTest、公開API、保存形式、描画結果は維持する。
 
-- [x] iOSの1673対象を構成し、`build-incremental ios bootstrap`で全製品対象とアプリを構築する。
+- [x] iOSの1629対象を構成し、`build-incremental ios bootstrap`で全製品対象とアプリを構築する。
 - [x] Boost・Lagerの直接利用要件、GSL無効構成、デスクトップOpenGLヘッダー、iOS条件ソースの不足を所有元で補正する。
 - [x] macOSを再構成し、完全native検査879件と方針検査を成功させ、固定テスト配下の差分をゼロに保つ。
-- [ ] x86_64 Linux構築ホストでLinux・Windows・Android対象を構成・構築し、Qt 5構成と対象和集合を確定する。
+- [x] x86_64 Linux構築ホストでLinux 1766対象、Windows 1670対象、Android Qt 5 1642対象を構成・構築し、5構成1789対象の和集合を確定する。
 
 ### R2-G19av 固定CTestの製品利用要件直接化
 

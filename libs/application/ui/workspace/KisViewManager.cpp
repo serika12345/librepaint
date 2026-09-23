@@ -50,6 +50,7 @@
 #include <KoCanvasController.h>
 #include <KoCompositeOp.h>
 #include <KoDockWidgetTitleBar.h>
+#include <KoFileDialog.h>
 #include <KisResourceItemChooserSync.h>
 #include <KoStore.h>
 #include <KoToolManager.h>
@@ -113,17 +114,13 @@
 #include <canvas/KisIdleTasksManager.h>
 #include <document/KisTextPropertiesManager.h>
 #include <optional>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qdialog.h>
 #include <qdir.h>
-#include <qforeach.h>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 class BlockingUserInputEventFilter : public QObject
 {

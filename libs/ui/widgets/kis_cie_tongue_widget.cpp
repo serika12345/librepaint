@@ -36,16 +36,13 @@ wavelength, and thus define the outline of the CIE "tongue" diagram.
 #include <klocalizedstring.h>
 
 #include <KoColorSpaceRegistry.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qhashfunctions.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qpixmap.h>
 #include <qrgb.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 #include "kis_cie_tongue_widget.h"

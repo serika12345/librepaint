@@ -33,12 +33,9 @@
 #include <kis_iterator_ng.h>
 #include <kis_sequential_iterator.h>
 #include <new>
-#include <qassert.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
-#include <qtypes.h>
 #include "kis_lod_transform.h"
 #include "kis_node.h"
 #include "kis_paint_device.h"

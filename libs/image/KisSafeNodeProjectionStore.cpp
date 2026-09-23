@@ -6,16 +6,17 @@
 
 #include "KisSafeNodeProjectionStore.h"
 
+#include <QDebug>
+
 #include <QCoreApplication>
 #include <QMutex>
 #include <QMutexLocker>
 #include <QVector>
 #include <KoColorSpace.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
-#include <qtmetamacros.h>
 
 #include "kis_assert.h"
 #include "kis_image.h"

@@ -12,11 +12,10 @@
 #include <KoColorSpace.h>
 
 #include <kis_layer.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qobject.h>
-#include <qtypes.h>
 
 QString BaseAdapter::NodeAccess::compositeOpId(KisNodeSP node)
 {

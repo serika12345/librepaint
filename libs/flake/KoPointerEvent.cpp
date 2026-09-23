@@ -26,10 +26,7 @@
 #include <qobjectdefs.h>
 #include <qpoint.h>
 #include <qsharedpointer.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 class KisTouchPressureSensitivityOptionContainer : public QObject
 {

@@ -18,14 +18,13 @@
 #include <qcontainerfwd.h>
 #include <qendian.h>
 #include <qimage.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qpaintdevice.h>
 #include <qpoint.h>
 #include <qrgb.h>
 #include <qstringview.h>
 #include <qtransform.h>
-#include <qtypes.h>
 
 #include "compression.h"
 #include "kis_offset_on_exit_verifier.h"

@@ -25,7 +25,7 @@
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qstringview.h>
-#include <qtversionchecks.h>
+#include <QtGlobal>
 
 #include "KisPaintopPropertiesBase.h"
 #include "KoColor.h"

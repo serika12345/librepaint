@@ -8,7 +8,7 @@
 #include "kis_types.h"
 
 #include <kis_properties_configuration.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qmap.h>
 #include <qobject.h>
 #include <qvariant.h>

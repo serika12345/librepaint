@@ -14,7 +14,7 @@
 #include <KisZug.h>
 #include <lager/reader.hpp>
 #include <lager/with.hpp>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <tuple>
 
 namespace {

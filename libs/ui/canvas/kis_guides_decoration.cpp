@@ -13,13 +13,11 @@
 #include "kis_coordinates_converter.h"
 #include <KoColorDisplayRendererInterface.h>
 #include <kis_canvas2.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qpaintdevice.h>
 #include <qpainter.h>
 #include <qpoint.h>
 #include <qpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 struct KisGuidesDecoration::Private
 {

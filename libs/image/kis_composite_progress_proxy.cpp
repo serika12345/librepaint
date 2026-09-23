@@ -6,7 +6,7 @@
 
 #include "kis_composite_progress_proxy.h"
 #include "KoProgressProxy.h"
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 
 

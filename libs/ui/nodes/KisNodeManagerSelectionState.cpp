@@ -6,7 +6,7 @@
 
 #include "kis_types.h"
 #include "nodes/kis_node_manager.h"
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 void KisNodeManager::slotImageRequestNodeReselection(KisNodeSP activeNode, const KisNodeList &selectedNodes)
 {

@@ -11,8 +11,7 @@
 
 #include "kis_small_tiles_filter.h"
 
-#include <qassert.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <stdlib.h>
 
 #include <QPoint>

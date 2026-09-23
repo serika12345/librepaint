@@ -28,12 +28,9 @@
 #include <kis_algebra_2d.h>
 #include <KoColorDisplayRendererInterface.h>
 #include <qcolor.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qpoint.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 KisInfinityManager::KisInfinityManager(QPointer<KisView>view, KisCanvas2 *canvas)
   : KisCanvasDecoration(INFINITY_DECORATION_ID, view),

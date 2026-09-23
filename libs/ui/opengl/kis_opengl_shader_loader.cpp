@@ -17,7 +17,7 @@
 #include <QMessageBox>
 #include <KLocalizedString>
 #include <map>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qfiledevice.h>
 #include <qopenglshaderprogram.h>
 #include <qsharedpointer.h>

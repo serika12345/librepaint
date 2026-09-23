@@ -33,16 +33,13 @@
 
 #include <KisPortingUtils.h>
 #include <qfileinfo.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qkeysequence.h>
-#include <qlatin1stringview.h>
 #include <qlist.h>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qstringview.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 
 Q_DECLARE_METATYPE(QList<QKeySequence>)
 

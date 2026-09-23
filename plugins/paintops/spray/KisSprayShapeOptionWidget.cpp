@@ -20,7 +20,7 @@
 #include "kis_types.h"
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>
-#include <qtypes.h>
+#include <QtGlobal>
 #include "ui_wdgsprayshapeoptions.h"
 #include "kis_signals_blocker.h"
 

@@ -24,14 +24,12 @@
 #include <KisOptimizedBrushOutline.h>
 #include <cmath>
 #include <qlist.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpaintdevice.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 struct KisGridPaintOpSettings::Private
 {

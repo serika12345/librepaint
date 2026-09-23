@@ -24,7 +24,7 @@
 #include <qcontainerfwd.h>
 #include <qobject.h>
 #include <qpaintdevice.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 K_PLUGIN_FACTORY_WITH_JSON(ResetTransparentFactory, "kritaresettransparent.json", registerPlugin<ResetTransparent>();)
 

@@ -30,7 +30,7 @@
 #include <memory>
 
 #include <kpluginfactory.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qlist.h>
 #include <qobject.h>

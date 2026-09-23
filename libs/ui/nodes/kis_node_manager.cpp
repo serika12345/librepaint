@@ -7,6 +7,7 @@
 #include "nodes/kis_node_manager.h"
 #include "KisQStringListFwd.h"
 #include "KoColorSpaceConstants.h"
+#include <KisPortingUtils.h>
 #include "kis_assert.h"
 #include "kis_debug.h"
 #include "kis_filter_mask.h"
@@ -80,15 +81,13 @@
 #include <libs/image/kis_layer_properties_icons.h>
 #include <libs/image/commands/kis_node_property_list_command.h>
 #include <KisSynchronizedConnection.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
 #include <qstringview.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 struct KisNodeManager::Private {
     Private(KisNodeManager *_q, KisViewManager *v)

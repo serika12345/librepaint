@@ -8,6 +8,7 @@
 #include <QDomDocument>
 #include <kis_paintop_preset.h>
 #include <qhashfunctions.h>
+#include <QDebug>
 #include <qlogging.h>
 
 struct Preset::Private {

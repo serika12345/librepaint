@@ -15,8 +15,7 @@
 #include <KisResourceLoader.h>
 #include <KisResourceLoaderRegistry.h>
 #include <KisResourceTypes.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qicon.h>
 #include <qlist.h>
 #include <qnamespace.h>

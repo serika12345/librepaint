@@ -15,11 +15,10 @@
 #include <KoColorModelStandardIds.h>
 #include <cstring>
 #include <new>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qimage.h>
 #include <qnamespace.h>
-#include <qtypes.h>
 
 KisFixedPaintDevice::KisFixedPaintDevice(const KoColorSpace* colorSpace, KisOptimizedByteArray::MemoryAllocatorSP allocator)
         : m_colorSpace(colorSpace),

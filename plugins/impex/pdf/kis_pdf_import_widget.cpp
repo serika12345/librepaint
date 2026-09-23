@@ -10,7 +10,7 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsize.h>
-#include <qtversionchecks.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 #define UNSTABLE_POPPLER_QT4

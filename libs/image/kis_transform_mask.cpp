@@ -6,7 +6,10 @@
  */
 
 #include <QMutex>
+
+#include <QDebug>
 #include <QMutexLocker>
+#include <KoUpdater.h>
 #include <kis_icon.h>
 #include <KoCompositeOpRegistry.h>
 
@@ -47,16 +50,11 @@
 #include "kis_lod_capable_layer_offset.h"
 
 #include <QReadWriteLock>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qicon.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include "KisTransformMaskTestingInterface.h"
 #include "kis_types.h"
 

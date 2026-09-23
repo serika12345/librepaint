@@ -26,9 +26,10 @@
 
 #include <memory>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qobject.h>
 #include <qsharedpointer.h>

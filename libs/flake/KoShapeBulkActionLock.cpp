@@ -11,7 +11,7 @@
 
 #include <KoShapeBulkActionInterface.h>
 #include <qdebug.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qlogging.h>
 

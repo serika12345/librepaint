@@ -44,15 +44,10 @@
 #include <KisTemporaryFileConfiguration.h>
 #include <QSurfaceFormat>
 #include <qcolor.h>
-#include <qforeach.h>
 #include <qguiapplication.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qpoint.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 
 #if defined Q_OS_WIN && QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #  include <QtGui/private/qguiapplication_p.h>

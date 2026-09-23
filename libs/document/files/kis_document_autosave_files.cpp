@@ -18,7 +18,7 @@
 #include <qcontainerfwd.h>
 #include <qhashfunctions.h>
 #include <qlist.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace Krita::Document
 {

@@ -12,7 +12,7 @@
 #include <InfoObject.h>
 #include <KisGlobalResourcesInterface.h>
 #include <kis_assert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qobject.h>
 
 FillLayer::FillLayer(KisImageSP image, QString name, KisFilterConfigurationSP filterConfig, Selection &selection, QObject *parent) :

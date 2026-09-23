@@ -13,14 +13,11 @@
 #include <klocalizedstring.h>
 
 #include <kis_debug.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qdebug.h>
-#include <qforeach.h>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qmap.h>
-#include <qminmax.h>
-#include <qtdeprecationdefinitions.h>
 
 using namespace KisMetaData;
 

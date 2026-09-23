@@ -12,7 +12,7 @@
 #include <QAction>
 #include <klocalizedstring.h>
 #include <qabstractitemmodel.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobject.h>

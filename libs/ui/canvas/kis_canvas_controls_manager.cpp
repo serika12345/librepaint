@@ -29,12 +29,10 @@
 
 #include <math.h>
 #include <qcolor.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 const int STEP = 25;
 

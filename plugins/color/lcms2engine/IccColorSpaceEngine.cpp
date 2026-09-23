@@ -13,12 +13,11 @@
 #include <KoColorProfileQuery.h>
 #include <kis_assert.h>
 #include <lcms2.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qstringview.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "DebugPigment.h"
 #include "IccColorProfile.h"

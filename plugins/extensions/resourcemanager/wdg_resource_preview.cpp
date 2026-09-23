@@ -34,8 +34,7 @@
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <kis_paintop_factory.h>
 #include <ResourceImporter.h>
 #include <KoIcon.h>

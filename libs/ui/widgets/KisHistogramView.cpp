@@ -12,17 +12,14 @@
 #include <KoColorSpace.h>
 #include <KisHistogramPainter.h>
 #include <qalgorithms.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qbrush.h>
 #include <qcolor.h>
 #include <qcontainerfwd.h>
 #include <qimage.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpainter.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 #include "KisHistogramView.h"

@@ -11,7 +11,7 @@
 #include <KoShapeManager.h>
 #include <qlist.h>
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qtransform.h>
 
 #include "KisImageResolutionProxy.h"

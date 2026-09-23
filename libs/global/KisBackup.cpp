@@ -16,10 +16,7 @@
 #include <QDir>
 #include <QFileInfo>
 #include <qcontainerfwd.h>
-#include <qlatin1stringview.h>
-#include <qminmax.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 bool KisBackup::backupFile(const QString &qFilename, const QString &backupDir)
 {

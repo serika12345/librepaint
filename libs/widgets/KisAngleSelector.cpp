@@ -23,16 +23,12 @@
 #include <kis_signals_blocker.h>
 
 #include <klocalizedstring.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qoverload.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 #include "KisAngleSelector.h"

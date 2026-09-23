@@ -13,7 +13,7 @@
 #include <kis_node.h>
 #include <kis_indirect_painting_support.h>
 #include <KoColorSpaceConstants.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 KisFlowOpacityOption2::KisFlowOpacityOption2(const KisPropertiesConfiguration *setting, KisNodeSP currentNode)

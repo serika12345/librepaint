@@ -16,7 +16,7 @@
 #include <kis_paint_device.h>
 #include <QRect>
 #include <qbitarray.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 

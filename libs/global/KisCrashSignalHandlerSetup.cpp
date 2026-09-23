@@ -9,7 +9,6 @@
 #include <qlist.h>
 #include <qmap.h>
 #include <signal.h>
-#include <sys/_types/_sigaltstack.h>
 #include <sys/signal.h>
 
 namespace KisCrashSignalHandlerSetup

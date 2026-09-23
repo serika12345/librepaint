@@ -22,8 +22,9 @@
 #include <KisMpl.h>
 #include <qcontainerfwd.h>
 #include <qdatetime.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qnamespace.h>

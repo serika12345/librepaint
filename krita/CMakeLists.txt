@@ -329,6 +329,7 @@ if (WIN32)
     endif()
     set_target_properties(krita_windows_stub_exe
         PROPERTIES
+            ARCHIVE_OUTPUT_NAME "krita_stub_exe"
             OUTPUT_NAME "krita"
     )
     if (MSVC)
@@ -344,6 +345,7 @@ if (WIN32)
     target_link_libraries(krita_windows_stub_com PRIVATE krita)
     set_target_properties(krita_windows_stub_com
         PROPERTIES
+            ARCHIVE_OUTPUT_NAME "krita_stub_com"
             WIN32_EXECUTABLE false
             OUTPUT_NAME "krita"
             SUFFIX ".com"

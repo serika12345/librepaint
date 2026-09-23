@@ -24,12 +24,11 @@
 #include <math.h>
 #include <klocalizedstring.h>
 #include <qbrush.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpen.h>
-#include <qtypes.h>
 
 ShapeRotateStrategy::ShapeRotateStrategy(KoToolBase *tool, KoSelection *selection, const QPointF &clicked, Qt::MouseButtons buttons)
     : KoInteractionStrategy(tool)

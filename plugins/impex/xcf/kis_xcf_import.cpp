@@ -35,9 +35,8 @@
 #include "kis_iterator_ng.h"
 #include "kis_types.h"
 #include <KoColorModelStandardIds.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qobject.h>
-#include <qtypes.h>
 extern "C" {
 
 #include "xcftools.h"

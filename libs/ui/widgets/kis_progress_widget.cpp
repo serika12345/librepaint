@@ -15,10 +15,9 @@
 #include <KoProgressUpdater.h>
 #include <KoProgressBar.h>
 
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qobjectdefs.h>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 
 KisProgressWidget::KisProgressWidget(QWidget* parent)

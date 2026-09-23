@@ -14,14 +14,12 @@
 #include "kis_debug.h"
 
 #include <KoCompositeOpRegistry.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qimage.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "kis_image.h"
 #include "kis_indirect_painting_support.h"

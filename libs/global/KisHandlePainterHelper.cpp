@@ -10,13 +10,12 @@
 #include <QPainterPath>
 #include <qcolor.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qline.h>
 #include <qnamespace.h>
 #include <qpixmap.h>
 #include <qpoint.h>
 #include <qpolygon.h>
-#include <qtypes.h>
 #include "kis_algebra_2d.h"
 #include "kis_assert.h"
 #include "kis_global.h"

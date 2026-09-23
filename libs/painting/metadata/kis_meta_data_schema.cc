@@ -11,9 +11,8 @@
 #include <QFile>
 #include <QString>
 #include <QVariant>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtversionchecks.h>
 
 #include "kis_debug.h"
 #include "kis_meta_data_type_info_p.h"

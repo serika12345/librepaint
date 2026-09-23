@@ -8,7 +8,7 @@
 #include "KoColor.h"
 
 #include <limits>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
 #include <qcontainerfwd.h>
 #include <qmath.h>
@@ -18,7 +18,6 @@
 #include <KoColorSpaceRegistry.h>
 #include <qnumeric.h>
 #include <qpair.h>
-#include <qtypes.h>
 
 float IndexColorPalette::similarity(LabColor c0, LabColor c1) const
 {

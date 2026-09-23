@@ -29,9 +29,7 @@
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 class Q_DECL_HIDDEN KoZoomAction::Private

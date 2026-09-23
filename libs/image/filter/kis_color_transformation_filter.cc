@@ -14,7 +14,7 @@
 #include <KoUpdater.h>
 
 #include <kis_paint_device.h>
-#include <qassert.h>
+#include <QtGlobal>
 
 #ifndef NDEBUG
 #include <QTime>

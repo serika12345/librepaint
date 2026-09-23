@@ -9,9 +9,8 @@
 #include "kundo2magicstring.h"
 #include "kundo2stack.h"
 #include <klocalizedstring.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtdeprecationdefinitions.h>
 
 namespace
 {

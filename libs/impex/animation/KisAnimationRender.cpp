@@ -12,7 +12,8 @@
 #include <QMessageBox>
 #include <QApplication>
 #include <qfiledevice.h>
-#include <qforeach.h>
+#include <QtGlobal>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qscopedpointer.h>

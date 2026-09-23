@@ -53,13 +53,10 @@
 #include <KisOptimizedBrushOutline.h>
 #include <kis_slider_spin_box.h>
 #include <qevent.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qset.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 #define FEEDBACK_LINE_WIDTH 2

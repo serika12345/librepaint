@@ -9,7 +9,7 @@
 #include <qkeysequence.h>
 #include <qlist.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 class KisKShortcutWidgetPrivate

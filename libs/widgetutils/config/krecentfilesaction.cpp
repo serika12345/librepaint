@@ -33,18 +33,13 @@
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
 #include <qfontmetrics.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
-#include <qlatin1stringview.h>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qstyle.h>
-#include <qtclasshelpermacros.h>
-#include <qtmetamacros.h>
-#include <qtversionchecks.h>
 #include <qurl.h>
 #include <qwidget.h>
 

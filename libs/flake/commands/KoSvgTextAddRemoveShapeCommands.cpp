@@ -13,7 +13,7 @@
 #include <KoSvgTextShape.h>
 #include <KoShapeContainer.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qtransform.h>
 

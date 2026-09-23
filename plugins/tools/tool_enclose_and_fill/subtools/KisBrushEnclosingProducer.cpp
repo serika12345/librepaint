@@ -12,7 +12,7 @@
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpainterpath.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 #include "KisBrushEnclosingProducer.h"
 #include "kis_cursor.h"

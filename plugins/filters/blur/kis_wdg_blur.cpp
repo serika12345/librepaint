@@ -13,8 +13,7 @@
 #include <kis_paint_device.h>
 #include <KisGlobalResourcesInterface.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 #include "kis_config_widget.h"

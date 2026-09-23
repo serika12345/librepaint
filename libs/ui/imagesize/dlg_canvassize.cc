@@ -20,12 +20,11 @@
 #include <kis_document_aware_spin_box_unit_manager.h>
 
 #include <QButtonGroup>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qicon.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
 
 const QString DlgCanvasSize::PARAM_PREFIX = "canvasizedlg";
 const QString DlgCanvasSize::PARAM_WIDTH_UNIT = DlgCanvasSize::PARAM_PREFIX + "_widthunit";

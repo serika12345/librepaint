@@ -11,7 +11,7 @@
 #include <QFileInfo>
 #include <klocalizedstring.h>
 #include <qobject.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 QString KisImportExportFilter::verify(const QString &fileName) const
 {

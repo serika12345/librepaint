@@ -5,6 +5,9 @@
  */
 #include "KisResourceMetaDataModel.h"
 
+#include <QDataStream>
+#include <QDebug>
+#include <QVariant>
 #include <qlogging.h>
 #include <qobject.h>
 #include <qsqlquery.h>

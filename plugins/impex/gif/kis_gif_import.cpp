@@ -22,7 +22,7 @@
 #include <kis_group_layer.h>
 #include <document/KisDocument.h>
 #include <qcontainerfwd.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "KisImportExportErrorCode.h"
 #include "KisImportExportFilter.h"

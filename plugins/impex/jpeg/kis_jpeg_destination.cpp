@@ -10,7 +10,7 @@
 
 #include <QIODevice>
 #include <jpeglib.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 namespace

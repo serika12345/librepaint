@@ -13,13 +13,11 @@
 #include <qcontainerfwd.h>
 #include <qhashfunctions.h>
 #include <qlogging.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <qpoint.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
 #include <qtransform.h>
-#include <qtypes.h>
 #include <resources/KoAbstractGradient.h>
 #include <KoColorSpace.h>
 #include <resources/KoPattern.h>

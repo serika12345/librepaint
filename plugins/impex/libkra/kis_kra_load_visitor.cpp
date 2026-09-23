@@ -64,13 +64,11 @@
 #include <kis_types.h>
 #include <lazybrush/kis_colorize_mask.h>
 #include <lazybrush/kis_lazy_fill_tools.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 #include <qlist.h>
 #include <qmap.h>
 #include <qobject.h>
-#include <qtversionchecks.h>
 
 using namespace KRA;
 

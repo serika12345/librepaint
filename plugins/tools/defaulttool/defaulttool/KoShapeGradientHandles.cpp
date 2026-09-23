@@ -14,7 +14,7 @@
 #include <kis_assert.h>
 #include "KoFlake.h"
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qpaintdevice.h>
 #include <qscopedpointer.h>
 #include "kis_algebra_2d.h"

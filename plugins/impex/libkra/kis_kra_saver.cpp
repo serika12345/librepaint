@@ -8,6 +8,7 @@
 #include "KisQStringListFwd.h"
 #include "KoEmbeddedResource.h"
 #include "KoResourceLoadResult.h"
+#include <KisPortingUtils.h>
 #include "document/StoryboardItem.h"
 #include "kis_assert.h"
 #include "kis_kra_tags.h"
@@ -56,13 +57,11 @@
 
 #include <QFileInfo>
 #include <QDir>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 using namespace KRA;

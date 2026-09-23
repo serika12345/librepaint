@@ -15,7 +15,7 @@
 #include <QSet>
 #include <QPointer>
 #include <qabstractitemmodel.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qmap.h>
 #include <qobjectdefs.h>

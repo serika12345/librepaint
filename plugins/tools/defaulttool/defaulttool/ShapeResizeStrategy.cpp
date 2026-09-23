@@ -22,12 +22,9 @@
 #include <limits>
 #include <math.h>
 
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include "kis_algebra_2d.h"
 #include "kis_assert.h"
 

@@ -13,7 +13,7 @@
 #include <KoDockRegistry.h>
 #include <qcontainerfwd.h>
 #include <qobject.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 class WGColorSelectorPlugin: public QObject
 {

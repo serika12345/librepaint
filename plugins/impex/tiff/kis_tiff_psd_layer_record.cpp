@@ -18,7 +18,7 @@
 #include <memory>
 #include <psd_header.h>
 #include <psd_layer_section.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <tiff.h>
 
 KisTiffPsdLayerRecord::KisTiffPsdLayerRecord(bool isBigEndian,

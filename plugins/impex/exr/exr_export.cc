@@ -20,7 +20,7 @@
 #include <document/KisDocument.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qlist.h>
 #include <qobject.h>

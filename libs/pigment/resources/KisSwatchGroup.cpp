@@ -10,7 +10,7 @@
 #include "KisSwatchGroup.h"
 #include "KisSwatch.h"
 #include "kis_assert.h"
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qhashfunctions.h>
 #include <qlist.h>

@@ -5,6 +5,8 @@
  */
 
 #include "MyPaintCurveRangeModel.h"
+
+#include <QDebug>
 #include "KisCurveRangeModelInterface.h"
 #include "KisWidgetConnectionUtils.h"
 #include "kis_cubic_curve.h"
@@ -17,9 +19,8 @@
 #include <lager/reader.hpp>
 #include <lager/with.hpp>
 #include <qlist.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtypes.h>
 #include <tuple>
 #include <utility>
 

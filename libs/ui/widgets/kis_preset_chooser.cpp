@@ -10,6 +10,8 @@
 
 #include "kis_preset_chooser.h"
 
+#include <QDebug>
+
 #include <QVBoxLayout>
 #include <QPainter>
 #include <QAbstractItemDelegate>
@@ -44,8 +46,7 @@
 #include <qpaintdevice.h>
 #include <qpixmap.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 

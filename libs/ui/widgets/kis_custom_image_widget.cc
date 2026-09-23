@@ -48,13 +48,10 @@
 #include "kis_assert.h"
 #include "kis_icon_utils.h"
 #include "kis_properties_configuration.h"
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpalette.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <qwidget.h>
 #include "kis_signals_blocker.h"
 #include "kis_types.h"

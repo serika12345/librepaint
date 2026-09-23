@@ -96,20 +96,17 @@
 #include <kis_display_color_converter.h>
 #include <optional>
 #include <qevent.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qline.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qset.h>
 #include <qsizepolicy.h>
-#include <qtenvironmentvariables.h>
-#include <qtypes.h>
-#include <qvectornd.h>
 #include <utility>
 
 #ifdef Q_OS_ANDROID

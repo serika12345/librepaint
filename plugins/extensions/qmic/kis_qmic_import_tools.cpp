@@ -22,7 +22,7 @@
 #include <qlist.h>
 #include <qlogging.h>
 #include <qpoint.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KoCompositeOpIds.h"
 #include "gmic.h"

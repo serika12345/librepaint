@@ -36,11 +36,9 @@
 #include <limits>
 #include <psd_layer_record.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qscopedpointer.h>
-#include <qtypes.h>
 #include <utility>
 
 namespace PsdPixelUtils

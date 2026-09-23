@@ -23,7 +23,7 @@
 #include <kis_dom_utils.h>
 #include <lcms2.h>
 #include <qnamespace.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 YCbCrU16ColorSpace::YCbCrU16ColorSpace(const QString &name, KoColorProfile *p)
     : LcmsColorSpace<KoYCbCrU16Traits>(colorSpaceId(), name, TYPE_YCbCrA_16, cmsSigYCbCrData, p)

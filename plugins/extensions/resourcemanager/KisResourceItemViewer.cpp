@@ -16,9 +16,8 @@
 #include <QActionGroup>
 #include <qaction.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qtoolbutton.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 KisResourceItemViewer::KisResourceItemViewer(Viewer type, QWidget *parent) :

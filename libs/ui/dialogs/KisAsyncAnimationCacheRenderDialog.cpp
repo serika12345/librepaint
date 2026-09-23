@@ -19,7 +19,7 @@
 
 #include <klocalizedstring.h>
 #include <qlist.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 namespace {
 

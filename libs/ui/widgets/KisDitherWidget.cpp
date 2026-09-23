@@ -25,7 +25,7 @@
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobject.h>
-#include <qoverload.h>
+#include <QtGlobal>
 #include <qvalidator.h>
 
 KisDitherWidget::KisDitherWidget(QWidget* parent)

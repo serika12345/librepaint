@@ -19,7 +19,7 @@
 #include <KoColor.h>
 #include <KoColorModelStandardIds.h>
 #include <math.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
 #include <qcontainerfwd.h>
 #include <qimage.h>
@@ -30,7 +30,6 @@
 #include <qpen.h>
 #include <qpoint.h>
 #include <qsize.h>
-#include <qtypes.h>
 
 #include "KisHistogramPainter.h"
 #include "KoColorConversionTransformation.h"

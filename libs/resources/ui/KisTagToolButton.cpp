@@ -27,7 +27,7 @@
 #include <qaction.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qvariant.h>
 #include <qwidget.h>
 #include "KisMenuStyleDontCloseOnAlt.h"

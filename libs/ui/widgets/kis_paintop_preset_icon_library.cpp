@@ -15,11 +15,10 @@
 #include <qcolor.h>
 #include <qcontainerfwd.h>
 #include <qicon.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpixmap.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 KisPaintopPresetIconLibrary::KisPaintopPresetIconLibrary(QWidget *parent): QWidget(parent), ui(new Ui_wdgpreseticonlibrary)

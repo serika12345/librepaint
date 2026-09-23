@@ -17,7 +17,7 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpalette.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 ////////////////////////////////////

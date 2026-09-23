@@ -19,11 +19,9 @@
 #include <SvgStyleWriter.h>
 #include <qdom.h>
 #include <qlist.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 RectangleShape::RectangleShape()
     : KoParameterShape()

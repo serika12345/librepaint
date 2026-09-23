@@ -15,12 +15,10 @@
 #include "KoCanvasResourcesIds.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include <kis_signals_blocker.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcombobox.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qoverload.h>
-#include <qtmetamacros.h>
 
 #include "KisGradientMapFilterConfigWidget.h"
 #include "KisGradientMapFilterConfiguration.h"

@@ -19,7 +19,7 @@
 #include <qobjectdefs.h>
 #include <qpoint.h>
 #include <qsize.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 #include "kis_slider_spin_box.h"
 

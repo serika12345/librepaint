@@ -35,7 +35,7 @@
 #include <qpaintdevice.h>
 #include <qpoint.h>
 #include <qpointer.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KisDuplicateOpSettings::KisDuplicateOpSettings(KisResourcesInterfaceSP resourcesInterface)
     : KisBrushBasedPaintOpSettings(resourcesInterface),

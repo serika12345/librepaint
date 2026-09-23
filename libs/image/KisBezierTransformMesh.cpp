@@ -21,12 +21,12 @@
 #include <qdom.h>
 #include <qhashfunctions.h>
 #include <qimage.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qpoint.h>
 #include <qpolygon.h>
 #include <qsize.h>
-#include <qtypes.h>
 #include <tuple>
 #include "kis_debug.h"
 #include "kis_types.h"

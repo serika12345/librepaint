@@ -15,11 +15,9 @@
 #include <KoShapeBulkActionLock.h>
 #include <kis_assert.h>
 #include <klocalizedstring.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qpoint.h>
-#include <qtdeprecationdefinitions.h>
 
 namespace
 {

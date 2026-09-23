@@ -4,6 +4,8 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisVisualRectangleSelectorShape.h"
+
+#include <QDebug>
 #include "KisVisualColorSelector.h"
 #include "KisVisualColorSelectorShape.h"
 
@@ -13,14 +15,12 @@
 #include <QList>
 #include <QLineF>
 #include <QtMath>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qimage.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpoint.h>
 #include <qregion.h>
-#include <qtypes.h>
 
 
 KisVisualRectangleSelectorShape::KisVisualRectangleSelectorShape(KisVisualColorSelector *parent,

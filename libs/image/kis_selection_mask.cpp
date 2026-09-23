@@ -29,13 +29,12 @@
 #include "kis_types.h"
 #include "kis_undo_adapter.h"
 #include <kis_icon.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qicon.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
 #include "kis_thread_safe_signal_compressor.h"
 #include "kis_layer_properties_icons.h"
 #include "kis_cached_paint_device.h"

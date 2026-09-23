@@ -21,13 +21,10 @@
 #include <QPainter>
 #include <QImage>
 #include <functional>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qscopedpointer.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
 
 class SimpleCanvas : public KoCanvasBase
 {

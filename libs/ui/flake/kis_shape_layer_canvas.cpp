@@ -34,11 +34,9 @@
 #include "kis_assert.h"
 #include "kis_default_bounds_base.h"
 #include <qdebug.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <utility>
 #include "kis_global.h"
 #include "kis_signal_compressor.h"

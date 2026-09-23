@@ -46,7 +46,7 @@
 #include <qlist.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 #ifndef QT_NO_UNDOGROUP
 

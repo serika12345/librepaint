@@ -5,7 +5,7 @@
  */
 
 #include "kis_name_server.h"
-#include <qtypes.h>
+#include <QtGlobal>
 
 KisNameServer::KisNameServer(qint32 seed) : m_generator(seed)
 { }

@@ -16,8 +16,7 @@
 #include <math.h>
 
 #include <qnumeric.h> // for qIsNaN
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <utility>
 static bool qIsNaNPoint(const QPointF &p) {
     return qIsNaN(p.x()) || qIsNaN(p.y());

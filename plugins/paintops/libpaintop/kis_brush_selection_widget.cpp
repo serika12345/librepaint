@@ -21,10 +21,10 @@
 #include <lager/reader.hpp>
 #include <lager/with.hpp>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qgridlayout.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 
 #include "KisBrushModel.h"

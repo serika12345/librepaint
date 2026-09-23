@@ -15,9 +15,8 @@
 #include "KoColorModelStandardIdsUtils.h"
 #include <cstdint>
 #include <half.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
-#include <qtypes.h>
 
 /**
  * Converter from the alpha color space to any color space

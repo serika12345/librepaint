@@ -4,7 +4,7 @@
  */
 
 #include "kis_node_model.h"
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 void KisNodeModel::slotBeginRemoveDummy(KisNodeDummy *dummy)
 {

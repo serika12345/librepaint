@@ -28,7 +28,7 @@
 #include <QSet>
 #include <QVector>
 #include <QtCore/qcontainerfwd.h>
-#include <QtCore/qforeach.h>
+#include <QtGlobal>
 
 namespace detail {
 template <typename Data,

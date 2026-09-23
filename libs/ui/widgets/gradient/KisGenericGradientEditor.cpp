@@ -29,13 +29,12 @@
 #include <ksharedconfig.h>
 #include <kconfiggroup.h>
 #include <qcoreevent.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qobjectdefs.h>
 #include <qsize.h>
 #include <qsizepolicy.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 
 #include "KisGenericGradientEditor.h"

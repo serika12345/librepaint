@@ -10,10 +10,8 @@
 
 #include <KoColorSpace.h>
 #include <cstring>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 // --- KoCopyColorConversionTransformation ---
 KoCopyColorConversionTransformation::KoCopyColorConversionTransformation(const KoColorSpace* cs)

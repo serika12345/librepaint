@@ -11,7 +11,7 @@
 #include "ui/workspace/KisView.h"
 #include <QPainter>
 #include <QEvent>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 

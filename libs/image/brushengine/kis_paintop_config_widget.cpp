@@ -14,7 +14,7 @@
 
 #include <KisResourcesInterface.h>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 

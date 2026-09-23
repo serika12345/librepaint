@@ -11,9 +11,8 @@
 #include <QScrollBar>
 #include <qabstractitemmodel.h>
 #include <qabstractitemview.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qitemselectionmodel.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
@@ -35,10 +34,6 @@
 #include <qscroller.h>
 #include <qscrollerproperties.h>
 #include <qstyleoption.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
-#include <qvectornd.h>
 #include <qwidget.h>
 #include "kis_zoom_scrollbar.h"
 #include "kundo2magicstring.h"

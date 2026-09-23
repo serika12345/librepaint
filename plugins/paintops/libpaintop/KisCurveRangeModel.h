@@ -8,7 +8,7 @@
 #define KISCURVERANGEMODEL_H
 
 #include <QString>
-#include <QtCore/qtypes.h>
+#include <QtGlobal>
 
 #include <KisCurveRangeModelInterface.h>
 #include <lager/constant.hpp>

@@ -25,9 +25,8 @@
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtypes.h>
 #include <qwidget.h>
 #include "kis_iterator_ng.h"
 #include "kundo2command.h"

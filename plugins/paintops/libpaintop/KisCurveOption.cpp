@@ -17,12 +17,11 @@
 #include <algorithm>
 #include <memory>
 #include <optional>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
 #include <qnumeric.h>
-#include <qtypes.h>
 #include <sensors/KisDynamicSensors.h>
 #include <sensors/KisDynamicSensorDrawingAngle.h>
 #include <sensors/KisDynamicSensorDistance.h>

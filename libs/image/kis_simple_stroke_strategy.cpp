@@ -9,9 +9,8 @@
 #include "kis_stroke_strategy.h"
 #include "kundo2magicstring.h"
 #include <qhashfunctions.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qlogging.h>
-#include <qtpreprocessorsupport.h>
 
 
 /***************************************************************/

@@ -20,9 +20,8 @@
 #include <KoSnapGuide.h>
 #include <KisSnapPointStrategy.h>
 #include <memory>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
 
 
 

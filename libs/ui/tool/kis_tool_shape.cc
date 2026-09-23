@@ -42,7 +42,7 @@
 #include <qobjectdefs.h>
 #include <qset.h>
 #include <qsharedpointer.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include "kis_selection_mask.h"
 #include "kis_shape_selection.h"
 #include "kis_processing_applicator.h"

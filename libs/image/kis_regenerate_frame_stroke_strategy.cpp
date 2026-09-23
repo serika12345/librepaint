@@ -27,11 +27,9 @@
 #include "kundo2magicstring.h"
 #include <KisLockFrameGenerationLock.h>
 #include <optional>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qstack.h>
-#include <qtpreprocessorsupport.h>
 #include <utility>
 
 

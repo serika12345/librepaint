@@ -18,10 +18,7 @@
 #include <KisSequentialIteratorProgress.h>
 #include <KoUpdater.h>
 #include <KoCachedGradient.h>
-#include <qassert.h>
-#include <qminmax.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 #include "KisGradientMapFilter.h"

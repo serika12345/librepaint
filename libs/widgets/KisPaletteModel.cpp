@@ -18,18 +18,17 @@
 #include <KoColor.h>
 
 #include <qabstractitemmodel.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
 #include <qcontainerfwd.h>
 #include <qhashfunctions.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsharedpointer.h>
 #include <qstringview.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 #include <qvariant.h>
 #include <resources/KoColorSet.h>
 #include <KoColorDisplayRendererInterface.h>

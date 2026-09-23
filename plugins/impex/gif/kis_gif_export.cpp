@@ -19,7 +19,7 @@
 #include <qcontainerfwd.h>
 #include <qlist.h>
 #include <qobject.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "KisImportExportErrorCode.h"
 #include "KoColorConversionTransformation.h"

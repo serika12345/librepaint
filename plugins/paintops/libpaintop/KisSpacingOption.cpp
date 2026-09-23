@@ -11,7 +11,7 @@
 #include <KisSpacingOptionData.h>
 
 #include <KisPaintOpOptionUtils.h>
-#include <qtypes.h>
+#include <QtGlobal>
 namespace kpou = KisPaintOpOptionUtils;
 
 

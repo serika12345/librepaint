@@ -24,7 +24,7 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsharedpointer.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 #include <resources/KoAbstractGradient.h>
 #include <resources/KoPattern.h>

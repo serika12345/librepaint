@@ -18,8 +18,7 @@
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 

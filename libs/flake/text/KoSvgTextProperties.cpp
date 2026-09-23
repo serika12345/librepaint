@@ -25,17 +25,14 @@
 #include <qcolor.h>
 #include <qcontainerfwd.h>
 #include <qfont.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qlogging.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpaintdevice.h>
 #include <qsharedpointer.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 #include <qvariant.h>
 
 #include "KisQStringListFwd.h"

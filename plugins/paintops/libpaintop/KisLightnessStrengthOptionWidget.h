@@ -7,7 +7,7 @@
 #define KISLIGHTNESSSTRENGTHOPTIONWIDGET_H
 
 #include <QScopedPointer>
-#include <QtCore/qtmetamacros.h>
+#include <QtGlobal>
 
 #include <lager/cursor.hpp>
 #include <lager/reader.hpp>

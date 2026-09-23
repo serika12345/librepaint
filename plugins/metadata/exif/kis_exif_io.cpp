@@ -38,11 +38,10 @@
 #include <kis_meta_data_store.h>
 #include <kis_meta_data_tags.h>
 #include <kis_meta_data_value.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qmap.h>
 #include <qobject.h>
-#include <qtypes.h>
 #include <vector>
 
 // ---- Exception conversion functions ---- //

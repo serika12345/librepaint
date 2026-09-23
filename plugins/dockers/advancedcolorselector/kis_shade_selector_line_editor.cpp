@@ -11,7 +11,7 @@
 #include <ksharedconfig.h>
 #include <qboxlayout.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 #include "kis_shade_selector_line_editor.h"

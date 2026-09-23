@@ -7,11 +7,10 @@
 
 #include <QKeyEvent>
 #include <algorithm>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobject.h>
-#include <qtclasshelpermacros.h>
 
 #include "KoInteractionTool.h"
 #include "KoInteractionStrategyFactory.h"

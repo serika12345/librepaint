@@ -27,10 +27,8 @@
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
 #include <math.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 #include "KoCanvasResourcesIds.h"

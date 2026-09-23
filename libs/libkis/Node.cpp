@@ -80,14 +80,14 @@
 #include "kis_canvas2.h"
 #include "KoCanvasResourceProvider.h"
 #include <brushengine/kis_paintop_preset.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qimage.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qobject.h>
 #include <qpaintdevice.h>
 #include <qpoint.h>
-#include <qtypes.h>
 
 
 struct Node::Private {

@@ -42,8 +42,7 @@
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qset.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 struct KisToolKnife::Private {

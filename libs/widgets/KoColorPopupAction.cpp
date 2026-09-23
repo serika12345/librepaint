@@ -33,8 +33,7 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 class KoColorPopupAction::KoColorPopupActionPrivate

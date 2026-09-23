@@ -23,7 +23,7 @@
 #include <qevent.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 #include "KoCanvasResourceProvider.h"

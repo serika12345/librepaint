@@ -9,9 +9,8 @@
 #include <QPolygon>
 #include <QList>
 #include <cstddef>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qpoint.h>
-#include <qtpreprocessorsupport.h>
 #include <vector>
 
 namespace boost { namespace polygon {

@@ -22,18 +22,16 @@
 #include <qdatetime.h>
 #include <qdebug.h>
 #include <qfont.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qlocale.h>
 #include <qlogging.h>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qstringview.h>
-#include <qtypes.h>
 #include <vector>
 #include FT_TRUETYPE_TABLES_H
 

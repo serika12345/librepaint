@@ -5,7 +5,7 @@
  */
 
 #include "recorder_format.h"
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 
 namespace RecorderFormatInfo
 {

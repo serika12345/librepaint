@@ -25,8 +25,7 @@
 #include <lager/tags.hpp>
 #include <lager/with.hpp>
 #include <optional>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 struct KisPaintOpOption::Private
 {

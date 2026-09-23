@@ -14,7 +14,7 @@
 #include <cmath>
 #include <qpaintdevice.h>
 #include <qpoint.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 KisClickableGLImageWidget::KisClickableGLImageWidget(QWidget *parent)

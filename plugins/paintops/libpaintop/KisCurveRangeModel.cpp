@@ -10,7 +10,7 @@
 
 #include <QRectF>
 #include <QString>
-#include <QtCore/qtypes.h>
+#include <QtGlobal>
 
 #include <kis_assert.h>
 #include <KisCurveRangeModelInterface.h>

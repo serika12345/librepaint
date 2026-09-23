@@ -11,7 +11,7 @@
 #include <QtEndian>
 #include <cstring>
 #include <qhashfunctions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace
 {

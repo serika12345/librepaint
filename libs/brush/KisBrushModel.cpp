@@ -15,7 +15,7 @@
 #include <QDomElement>
 #include <qhashfunctions.h>
 #include <qnumeric.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace KisBrushModel {
 

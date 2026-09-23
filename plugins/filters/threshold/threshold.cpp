@@ -10,17 +10,14 @@
 #include <cmath>
 #include <cstring>
 #include <qapplication.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qoverload.h>
 #include <qpalette.h>
 #include <qpixmap.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <stdlib.h>
 
 #include <QPoint>

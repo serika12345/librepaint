@@ -20,13 +20,11 @@
 
 #include "KoResourceLoadResult.h"
 #include <KisStaticInitializer.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qsharedpointer.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KoResourceSP>("KoResourceSP");

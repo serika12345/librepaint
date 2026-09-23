@@ -13,7 +13,7 @@
 
 #include <QObject>
 #include <QString>
-#include <QtCore/qtypes.h>
+#include <QtGlobal>
 
 #include <lager/constant.hpp>
 #include <lager/cursor.hpp>

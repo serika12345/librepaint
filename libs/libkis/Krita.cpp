@@ -36,9 +36,8 @@
 #include <kis_filter.h>
 #include <application/kis_config.h>
 #include <qalgorithms.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
-#include <qforeach.h>
 #include <qimage.h>
 #include <qlist.h>
 #include <qmap.h>

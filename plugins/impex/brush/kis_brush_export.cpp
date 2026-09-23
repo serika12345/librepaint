@@ -38,9 +38,8 @@
 #include <application/kis_config.h>
 #include <qapplication.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtypes.h>
 #include <qvariant.h>
 
 struct KisBrushExportOptions {

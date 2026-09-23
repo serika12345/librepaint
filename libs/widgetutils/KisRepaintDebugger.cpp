@@ -12,7 +12,7 @@
 #include <cstddef>
 #include <qcolor.h>
 #include <qcontainerfwd.h>
-#include <qtenvironmentvariables.h>
+#include <QtGlobal>
 
 bool KisRepaintDebugger::enabled()
 {

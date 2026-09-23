@@ -22,8 +22,7 @@
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <utility>
 
 KIS_DECLARE_STATIC_INITIALIZER {

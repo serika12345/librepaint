@@ -8,9 +8,7 @@
 #include <cstring>
 #include <kis_paint_device.h>
 
-#include <qassert.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <resources/KoAbstractGradient.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorTransformation.h>

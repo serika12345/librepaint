@@ -11,9 +11,7 @@
 #include <QMutexLocker>
 #include <mutex>
 #include <qalgorithms.h>
-#include <qassert.h>
-#include <qforeach.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <utility>
 
 #include "KisUpdaterContextSnapshotEx.h"

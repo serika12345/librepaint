@@ -22,15 +22,11 @@
 #include "krita_utils.h"
 
 #include <qcontainerfwd.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpoint.h>
 #include <qpolygon.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 struct Q_DECL_HIDDEN KisCageTransformWorker::Private
 {

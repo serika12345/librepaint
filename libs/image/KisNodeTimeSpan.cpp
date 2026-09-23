@@ -9,7 +9,7 @@
 #include "kis_keyframe_channel.h"
 #include "kis_node.h"
 #include "kis_layer_utils.h"
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qmap.h>
 
 KisTimeSpan KisTimeSpan::calculateIdenticalFramesRecursive(const KisNode *node, int time)

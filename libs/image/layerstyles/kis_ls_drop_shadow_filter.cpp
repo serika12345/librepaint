@@ -9,8 +9,7 @@
 #include <cstdlib>
 
 
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KoCompositeOpIds.h"
 #include "kis_assert.h"

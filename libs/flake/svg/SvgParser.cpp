@@ -53,15 +53,13 @@
 #include <qdebug.h>
 #include <qdom.h>
 #include <qfiledevice.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qscopedpointer.h>
 #include <qshareddata.h>
 #include <qsharedpointer.h>
 #include <qstringview.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 #include <vector>
 
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))

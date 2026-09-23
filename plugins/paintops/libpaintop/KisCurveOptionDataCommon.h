@@ -14,7 +14,7 @@
 
 #include <QSharedData>
 #include <QString>
-#include <QtCore/qtypes.h>
+#include <QtGlobal>
 
 #include "kis_cubic_curve.h"
 #include "kritapaintop_export.h"

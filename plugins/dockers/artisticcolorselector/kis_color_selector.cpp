@@ -23,13 +23,11 @@
 #include <qcontainerfwd.h>
 #include <qcoreevent.h>
 #include <qfont.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpair.h>
 #include <qpoint.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <qwidget.h>
 #include <resources/KoGamutMask.h>
 //#include <KisGamutMaskViewConverter.h>

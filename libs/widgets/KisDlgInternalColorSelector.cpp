@@ -30,7 +30,7 @@
 #include <qdialog.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 #include "kis_signal_compressor.h"

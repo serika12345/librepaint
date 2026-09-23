@@ -24,8 +24,7 @@
 #include <qglobalstatic.h>
 #include <qnumeric.h>
 #include <qset.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <vector>
 
 Q_GLOBAL_STATIC(KisOnionSkinCompositor, s_instance)

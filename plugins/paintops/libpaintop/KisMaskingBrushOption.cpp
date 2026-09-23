@@ -32,12 +32,9 @@
 #include <lager/with.hpp>
 #include <optional>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qoverload.h>
 #include <qscopedpointer.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <strokes/KisMaskingBrushCompositeOpFactory.h>
 #include <KoCompositeOpRegistry.h>
 #include <brushengine/kis_paintop_lod_limitations.h>

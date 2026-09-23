@@ -18,10 +18,9 @@
 #include "KoColorSpace.h"
 
 #include <KisSqueezedComboBox.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
 
 #include "KoDialog.h"
 #include "kis_image.h"

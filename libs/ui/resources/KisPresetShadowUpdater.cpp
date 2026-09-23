@@ -30,7 +30,7 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpointer.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 
 class ShadowUpdatePresetJob : public QObject, public KisSpontaneousJob

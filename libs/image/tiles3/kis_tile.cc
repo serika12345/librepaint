@@ -7,9 +7,9 @@
 
 
 #include <QMutexLocker>
-#include <qassert.h>
-#include <qforeach.h>
-#include <qtypes.h>
+
+#include <QDebug>
+#include <QtGlobal>
 #include "kis_tile.h"
 #include "kis_memento_manager.h"
 #include "kis_debug.h"

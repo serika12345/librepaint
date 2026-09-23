@@ -10,7 +10,7 @@
 #include <KoColorTransformationFactoryRegistry.h>
 #include <qcontainerfwd.h>
 #include <qobject.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "kis_hsv_adjustment.h"
 #include "kis_dodgemidtones_adjustment.h"

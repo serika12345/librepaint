@@ -21,7 +21,7 @@
 #include <qobjectdefs.h>
 #include <qpixmap.h>
 #include <qpushbutton.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 #include <qwidgetaction.h>
 

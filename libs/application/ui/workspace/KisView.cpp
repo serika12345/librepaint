@@ -56,19 +56,16 @@
 #include "selection/kis_selection_manager.h"
 #include "kis_shape_controller.h"
 #include "kis_signal_compressor.h"
+#include <KoColorProfile.h>
 #include "canvas/kis_zoom_manager.h"
 #include <KisScreenMigrationTracker.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpalette.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qwidget.h>
 #include "kformat.h"
 

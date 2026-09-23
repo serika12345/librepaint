@@ -27,7 +27,7 @@
 #include <qobjectdefs.h>
 #include <qpixmap.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qvariant.h>
 #include <qwidget.h>
 

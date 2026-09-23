@@ -31,19 +31,16 @@
 #include <QScroller>
 #include <optional>
 #include <qabstractitemview.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qcoreevent.h>
 #include <qcursor.h>
-#include <qforeach.h>
 #include <qimage.h>
 #include <qitemselectionmodel.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtversionchecks.h>
 
 #include "nodes/kis_node_view_color_scheme.h"
 

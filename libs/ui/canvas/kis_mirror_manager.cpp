@@ -26,7 +26,7 @@
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 KisMirrorManager::KisMirrorManager(KisViewManager* view) : QObject(view)
     , m_imageView(0)

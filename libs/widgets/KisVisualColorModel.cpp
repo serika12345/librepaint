@@ -18,10 +18,8 @@
 #include <cmath>
 #include <cstring>
 #include <qcontainerfwd.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qobject.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 #include "KoColor.h"
 #include "KoColorConversions.h"

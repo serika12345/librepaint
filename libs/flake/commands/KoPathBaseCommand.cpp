@@ -8,7 +8,7 @@
 #include "KoPathBaseCommand.h"
 #include "KoPathShape.h"
 #include "kundo2stack.h"
-#include <qforeach.h>
+#include <QtGlobal>
 
 KoPathBaseCommand::KoPathBaseCommand(KUndo2Command *parent)
         : KUndo2Command(parent)

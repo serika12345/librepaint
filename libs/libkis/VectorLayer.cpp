@@ -16,6 +16,7 @@
 #include <document/KisDocument.h>
 #include <kis_processing_applicator.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qpoint.h>
 #include <qsize.h>

@@ -9,11 +9,9 @@
 #include "kis_lzf_compression.h"
 #include <QIODevice>
 #include <cstring>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlist.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include "kis_paint_device_writer.h"
 #include "tiles3/kis_tile.h"
 #include "tiles3/kis_tile_data_interface.h"

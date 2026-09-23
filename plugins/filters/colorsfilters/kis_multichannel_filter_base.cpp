@@ -40,17 +40,12 @@
 #include <iterator>
 #include <kis_paint_device.h>
 #include <qapplication.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qlatin1stringview.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpalette.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 #include "kis_histogram.h"

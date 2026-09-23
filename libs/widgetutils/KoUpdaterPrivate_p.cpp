@@ -10,7 +10,7 @@
 #include <KoUpdater.h>
 #include <qobject.h>
 #include <qpointer.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 KoUpdaterPrivate::KoUpdaterPrivate(int weight, const QString &name, bool isPersistent)
     : QObject(0)

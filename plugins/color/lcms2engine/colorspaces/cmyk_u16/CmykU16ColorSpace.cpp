@@ -23,9 +23,8 @@
 #include <KoColorConversions.h>
 #include <kis_dom_utils.h>
 #include <lcms2.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
-#include <qtypes.h>
 
 CmykU16ColorSpace::CmykU16ColorSpace(const QString &name, KoColorProfile *p)
     : LcmsColorSpace<KoCmykU16Traits>(colorSpaceId(), name, TYPE_CMYKA_16, cmsSigCmykData, p)

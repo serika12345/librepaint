@@ -11,7 +11,7 @@
 
 #include <klocalizedstring.h>
 #include <kis_image.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 KisImageSetResolutionCommand::KisImageSetResolutionCommand(KisImageWSP image, qreal newXRes, qreal newYRes, KUndo2Command *parent)

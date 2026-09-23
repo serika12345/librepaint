@@ -11,7 +11,7 @@
 #include <qalgorithms.h>
 #include <qcontainerfwd.h>
 #include <qdom.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qmap.h>

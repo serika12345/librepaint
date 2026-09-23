@@ -22,7 +22,7 @@
 #include "kis_paint_layer.h"
 #include "kis_time_span.h"
 #include <QSet>
-#include <qforeach.h>
+#include <QtGlobal>
 
 
 KisAssignProfileProcessingVisitor::KisAssignProfileProcessingVisitor(const KoColorSpace *srcColorSpace,

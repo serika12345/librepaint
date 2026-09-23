@@ -18,7 +18,7 @@
 #include <KisPaintOpOptionUtils.h>
 #include <qnumeric.h>
 #include <qpaintdevice.h>
-#include <qtypes.h>
+#include <QtGlobal>
 namespace kpou = KisPaintOpOptionUtils;
 
 

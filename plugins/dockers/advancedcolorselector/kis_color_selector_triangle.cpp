@@ -10,11 +10,8 @@
 #include <QMouseEvent>
 
 #include <cmath>
-#include <qassert.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qpoint.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 
 #include "KoColorSpaceConstants.h"

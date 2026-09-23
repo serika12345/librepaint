@@ -20,7 +20,7 @@
 
 #include <kis_assert.h>
 #include <qhash.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 class KisSelectLayerAction::Private
 {

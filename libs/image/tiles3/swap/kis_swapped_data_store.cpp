@@ -6,9 +6,9 @@
 
 #include <QMutexLocker>
 #include <cstring>
-#include <qassert.h>
+#include <QtGlobal>
+#include <QDebug>
 #include <qlogging.h>
-#include <qtypes.h>
 //#include "kis_debug.h"
 #include "kis_swapped_data_store.h"
 #include "kis_memory_window.h"

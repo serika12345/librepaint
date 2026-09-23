@@ -26,7 +26,7 @@
 
 #include <qabstractitemmodel.h>
 #include <qabstractitemview.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>

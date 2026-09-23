@@ -16,10 +16,8 @@
 #include "kis_types.h"
 #include "kis_spacing_information.h"
 #include <kis_lod_transform.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <kis_paintop_settings.h>
 
 

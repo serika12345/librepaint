@@ -12,7 +12,7 @@
 #include "kis_paintop_settings_widget.h"
 #include <klocalizedstring.h>
 #include <lager/reader.hpp>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 KisBrushBasedPaintopOptionWidget::KisBrushBasedPaintopOptionWidget(KisBrushOptionWidgetFlags flags, QWidget* parent)

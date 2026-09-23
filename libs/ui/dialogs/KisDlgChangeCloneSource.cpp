@@ -22,10 +22,9 @@
 #include "ui_wdgchangeclonesource.h"
 #include <commands_new/KisChangeCloneLayersCommand.h>
 #include <qdialog.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qobject.h>
-#include <qoverload.h>
 #include <qscopedpointer.h>
 
 struct KisDlgChangeCloneSource::Private

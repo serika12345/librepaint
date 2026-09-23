@@ -12,7 +12,7 @@
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpoint.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 #include "KisLassoEnclosingProducer.h"
 #include "KisQStringListFwd.h"

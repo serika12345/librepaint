@@ -8,14 +8,13 @@
 
 #include "KoResource.h"
 #include <cstring>
-#include <qbytearrayalgorithms.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnumeric.h>
 #include <qrgb.h>
 #include <qstringview.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <resources/KoPattern.h>
 
 #include <QtEndian>

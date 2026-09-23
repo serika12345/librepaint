@@ -18,7 +18,7 @@
 #include <qcontainerfwd.h>
 #include <qlogging.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 using kislager::lenses::variant_to;

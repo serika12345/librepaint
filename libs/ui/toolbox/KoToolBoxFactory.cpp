@@ -9,7 +9,7 @@
 #include "KoToolBox_p.h"
 #include "KoToolBoxDocker_p.h"
 #include <qdockwidget.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 
 
 KoToolBoxFactory::KoToolBoxFactory()

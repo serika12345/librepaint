@@ -20,14 +20,12 @@
 #include <boost/none.hpp>
 #include <boost/optional/optional.hpp>
 #include <cstdint>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include "animation/KisFrameDisplayProxy.h"
 #include "KisRollingMeanAccumulatorWrapper.h"
 #include "KisRollingSumAccumulatorWrapper.h"

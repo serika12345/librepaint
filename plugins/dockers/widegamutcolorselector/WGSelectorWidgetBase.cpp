@@ -10,8 +10,7 @@
 #include <kis_display_color_converter.h>
 #include <qnamespace.h>
 #include <qpoint.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 const KisDisplayColorConverter *WGSelectorDisplayConfig::displayConverter() const

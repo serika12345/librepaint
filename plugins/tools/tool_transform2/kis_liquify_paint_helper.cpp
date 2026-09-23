@@ -17,7 +17,7 @@
 #include <brushengine/kis_paintop_utils.h>
 #include <qpoint.h>
 #include <qscopedpointer.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include "kis_coordinates_converter.h"
 #include "kis_liquify_paintop.h"
 #include "kis_liquify_properties.h"

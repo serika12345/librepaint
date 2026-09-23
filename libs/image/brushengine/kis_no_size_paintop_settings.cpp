@@ -6,8 +6,7 @@
 
 #include "kis_no_size_paintop_settings.h"
 #include "kis_paintop_settings.h"
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KisNoSizePaintOpSettings::KisNoSizePaintOpSettings(KisResourcesInterfaceSP resourcesInterface)
     : KisPaintOpSettings(resourcesInterface)

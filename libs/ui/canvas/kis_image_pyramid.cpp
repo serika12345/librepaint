@@ -28,16 +28,13 @@
 //#define DEBUG_PYRAMID
 
 #include <config-ocio.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qimage.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qobjectdefs.h>
 #include <qpainter.h>
 #include <qsharedpointer.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #define ORIGINAL_INDEX           0
 #define FIRST_NOT_ORIGINAL_INDEX 1

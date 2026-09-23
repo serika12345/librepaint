@@ -23,7 +23,7 @@
 #include <asl/kis_asl_reader_utils.h>
 #include <psd_pixel_utils.h>
 #include <psd_utils.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 PSDImageData::PSDImageData(PSDHeader *header)
 {

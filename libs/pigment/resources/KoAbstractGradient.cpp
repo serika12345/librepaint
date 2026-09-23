@@ -9,9 +9,7 @@
 #include <cstring>
 #include <qbrush.h>
 #include <qrgb.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <resources/KoAbstractGradient.h>
 #include "KoColorSpaceRegistry.h"
 #include "KoResource.h"

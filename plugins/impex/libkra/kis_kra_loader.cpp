@@ -88,14 +88,11 @@
 #include "nodes/kis_node_view_color_scheme.h"
 #include "KisMirrorAxisConfig.h"
 #include <events/kis_cursor_override_hijacker.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qmap.h>
 #include <qobject.h>
 #include <qstringview.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 /*
   Color model id comparison through the ages:

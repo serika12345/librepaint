@@ -10,6 +10,7 @@
 #include <QStringList>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
+#include <QDebug>
 #include <qlogging.h>
 
 bool useSubtractiveBlendingForCmykColorSpaces()

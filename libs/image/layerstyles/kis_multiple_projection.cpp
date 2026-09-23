@@ -11,7 +11,7 @@
 
 
 #include <KoColorSpace.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KoColorSpaceConstants.h"
 #include "kis_painter.h"

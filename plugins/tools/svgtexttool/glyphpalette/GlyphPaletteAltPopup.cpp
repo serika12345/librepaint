@@ -14,10 +14,11 @@
 #include <qfont.h>
 #include <qframe.h>
 #include <qlayout.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qvariant.h>
 #include <qwidget.h>
 #include "GlyphPaletteAltPopup.h"

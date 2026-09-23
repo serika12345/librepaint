@@ -60,13 +60,10 @@
 
 #include "lazybrush/kis_lazy_fill_tools.h"
 #include <KoStoreDevice.h>
-#include <qassert.h>
-#include <qbytearrayalgorithms.h>
+#include <QtGlobal>
 #include <qdebug.h>
-#include <qforeach.h>
 #include <qlist.h>
 #include <qmap.h>
-#include <qtpreprocessorsupport.h>
 #include "kis_colorize_dom_utils.h"
 #include "kis_dom_utils.h"
 

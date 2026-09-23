@@ -8,7 +8,7 @@
 
 #include <QSpinBox>
 #include <qobjectdefs.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include "kis_slider_spin_box.h"
 
 

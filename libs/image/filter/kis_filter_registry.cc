@@ -15,9 +15,8 @@
 #include <klocalizedstring.h>
 
 #include <KoPluginLoader.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qobject.h>
-#include <qtmetamacros.h>
 
 #include "KoGenericRegistry.h"
 #include "kis_debug.h"

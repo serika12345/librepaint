@@ -7,7 +7,7 @@
 #include "kis_crop_processing_visitor.h"
 
 #include <klocalizedstring.h>
-#include <qforeach.h>
+#include <QtGlobal>
 
 #include "KisQStringListFwd.h"
 #include "commands_new/kis_node_move_command2.h"

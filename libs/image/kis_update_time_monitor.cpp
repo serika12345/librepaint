@@ -32,10 +32,8 @@
 #include <qcontainerfwd.h>
 #include <qdebug.h>
 #include <qfiledevice.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlogging.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
 
 Q_GLOBAL_STATIC(KisUpdateTimeMonitor, s_instance)
 

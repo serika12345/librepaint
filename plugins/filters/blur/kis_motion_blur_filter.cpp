@@ -34,11 +34,10 @@
 #include <QPainter>
 
 #include <math.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qbitarray.h>
 #include <qpoint.h>
 #include <qrgb.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 

@@ -16,12 +16,11 @@
 #include <nodes/kis_node_manager.h>
 #include <document/kis_image_manager.h>
 #include <application/ui/orchestration/kis_action.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qdialog.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
 
 #include "dlg_shearimage.h"
 #include "ui/orchestration/KisActionPlugin.h"

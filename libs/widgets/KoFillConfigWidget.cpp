@@ -63,16 +63,13 @@
 
 #include <KisResourceUserOperations.h>
 #include <qfileinfo.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlineedit.h>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpixmap.h>
 #include <qscopedpointer.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 #include <utility>
 #include <vector>
 

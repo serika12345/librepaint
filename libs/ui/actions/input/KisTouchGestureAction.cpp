@@ -14,7 +14,7 @@
 #include <qhash.h>
 #include <qhashfunctions.h>
 #include <qlogging.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 KisTouchGestureAction::KisTouchGestureAction()
     : KisAbstractInputAction("Touch Gestures")

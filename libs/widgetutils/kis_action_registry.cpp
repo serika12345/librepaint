@@ -15,15 +15,14 @@
 #include <KConfigGroup>
 #include <qcontainerfwd.h>
 #include <qdom.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qkeysequence.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qset.h>
 #include <qstringview.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
 #include <qvariant.h>
 
 #include "kis_debug.h"

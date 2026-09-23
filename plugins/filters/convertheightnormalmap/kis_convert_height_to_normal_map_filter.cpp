@@ -18,11 +18,10 @@
 #include "kis_lod_transform_base.h"
 #include <kis_edge_detection_kernel.h>
 #include <kis_paint_device.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qbitarray.h>
 #include <qcontainerfwd.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qobject.h>
 #include <qvariant.h>
 

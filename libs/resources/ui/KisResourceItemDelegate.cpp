@@ -19,7 +19,7 @@
 #include <qsize.h>
 #include <qstyle.h>
 #include <qstyleoption.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 KisResourceItemDelegate::KisResourceItemDelegate(QObject *parent)
     : QAbstractItemDelegate(parent)

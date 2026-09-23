@@ -27,12 +27,11 @@
 #include <kis_selection_mask.h>
 #include "dialogs/kis_dlg_adjustment_layer.h"
 #include <qapplication.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qdialog.h>
 #include <qlist.h>
 #include <qobject.h>
 #include <qpointer.h>
-#include <qtpreprocessorsupport.h>
 #include <selection/kis_selection_manager.h>
 #include "dialogs/kis_dlg_adj_layer_props.h"
 #include <kis_image.h>

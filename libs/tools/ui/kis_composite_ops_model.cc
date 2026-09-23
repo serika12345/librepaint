@@ -13,14 +13,12 @@
 #include <QStyle>
 #include <QStyleOptionButton>
 #include <qabstractitemmodel.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qhashfunctions.h>
 #include <qmap.h>
 #include <qnamespace.h>
 #include <qsize.h>
-#include <qtversionchecks.h>
 #include <qvariant.h>
 
 namespace {

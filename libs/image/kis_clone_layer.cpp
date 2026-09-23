@@ -28,11 +28,9 @@
 #include "kis_paint_layer.h"
 
 #include <QStack>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qicon.h>
 #include <qlist.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
 #include "kis_lod_capable_layer_offset.h"
 #include "kis_types.h"
 #include <kis_effect_mask.h>

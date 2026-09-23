@@ -7,7 +7,7 @@
 #define KISMIRROROPTIONWIDGET_H
 
 #include <QScopedPointer>
-#include <QtCore/qtmetamacros.h>
+#include <QtGlobal>
 
 #include <kis_paintop_option.h>
 #include <kis_types.h>

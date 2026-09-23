@@ -8,18 +8,13 @@
 #include <QRegularExpression>
 #include <QTime>
 #include <qabstractsocket.h>
-#include <qbytearrayalgorithms.h>
-#include <qbytearrayview.h>
+#include <QtGlobal>
 #include <qdir.h>
-#include <qlatin1stringview.h>
 #include <qlocalserver.h>
 #include <qlocalsocket.h>
 #include <qlogging.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 
 #if defined(Q_OS_WIN)
 #include <QLibrary>

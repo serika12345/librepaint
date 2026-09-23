@@ -21,13 +21,12 @@
 #include "ui/workspace/KisView.h"
 #include <cmath>
 #include <qbitarray.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmath.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qscopedpointer.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #define GL_GLEXT_PROTOTYPES
 
 #include "opengl/KisOpenGLCanvasRenderer.h"

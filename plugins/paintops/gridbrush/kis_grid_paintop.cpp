@@ -29,11 +29,8 @@
 #include <KisColorOptionData.h>
 #include <kis_lod_transform.h>
 #include <qhash.h>
-#include <qminmax.h>
 #include <qnumeric.h>
 #include <qscopedpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qvariant.h>
 
 
