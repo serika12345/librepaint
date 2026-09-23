@@ -10,11 +10,9 @@
 
 #include <klocalizedstring.h>
 #include "kis_image_command.h"
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qobject.h>
-#include <qtdeprecationdefinitions.h>
 #include "kis_layer.h"
 #include "kis_clone_layer.h"
 #include "kis_types.h"

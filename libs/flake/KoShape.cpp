@@ -46,14 +46,12 @@
 #include <KisHandlePainterHelper.h>
 #include <math.h>
 #include <numeric>
-#include <qforeach.h>
+#include <QtGlobal>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
 #include <qset.h>
 #include <qshareddata.h>
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 // KoShape::Private
 

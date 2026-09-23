@@ -13,9 +13,7 @@
 #include <qobjectdefs.h>
 #include <qpaintdevice.h>
 #include <qpainterpath.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KisEllipseEnclosingProducer.h"
 #include "kis_cursor.h"

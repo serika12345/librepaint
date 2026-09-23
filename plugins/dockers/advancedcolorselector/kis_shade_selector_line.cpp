@@ -16,11 +16,10 @@
 #include <kconfig.h>
 #include <kconfiggroup.h>
 #include <klocalizedstring.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qsize.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 #include "KisQStringListFwd.h"

@@ -14,10 +14,8 @@
 #include <kis_node.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtdeprecationdefinitions.h>
 
 struct PathElement {
     enum Type {

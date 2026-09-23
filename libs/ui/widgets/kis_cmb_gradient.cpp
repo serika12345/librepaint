@@ -13,10 +13,9 @@
 
 #include <qhashfunctions.h>
 #include <qimage.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qpixmap.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 #include <resources/KoAbstractGradient.h>
 

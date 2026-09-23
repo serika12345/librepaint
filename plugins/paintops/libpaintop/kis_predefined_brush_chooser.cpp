@@ -61,13 +61,12 @@
 #include <kis_predefined_brush_factory.h>
 #include <KisPredefinedBrushModel.h>
 #include <qdialog.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qimage.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qstyle.h>
 #include <qstyleoption.h>
-#include <qtypes.h>
 
 using namespace KisBrushModel;
 using namespace KisWidgetConnectionUtils;

@@ -8,7 +8,7 @@
 
 #include <KoColorSpaceRegistry.h>
 #include <qdom.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include "kis_dom_utils.h"
 #include "lazybrush/kis_lazy_fill_tools.h"
 #include "kis_kra_tags.h"

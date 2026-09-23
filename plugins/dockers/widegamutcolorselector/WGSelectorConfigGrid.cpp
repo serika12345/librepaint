@@ -28,8 +28,7 @@
 #include <qobjectdefs.h>
 #include <qpixmap.h>
 #include <qpoint.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 class SelectorConfigAction: public QAction

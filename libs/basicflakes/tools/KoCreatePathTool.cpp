@@ -41,8 +41,7 @@
 #include <qobjectdefs.h>
 #include <qpointer.h>
 #include <qset.h>
-#include <qtclasshelpermacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KoCreatePathTool::KoCreatePathTool(KoCanvasBase *canvas)
     : KoToolBase(*(new KoCreatePathToolPrivate(this, canvas)))

@@ -33,9 +33,8 @@
 #include <kstandardguiitem.h>
 #include <khelpclient.h>
 #include <kurllabel.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qdialog.h>
-#include <qforeach.h>
 #include <qhash.h>
 #include <qlayoutitem.h>
 #include <qlist.h>
@@ -44,9 +43,6 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsize.h>
-#include <qtclasshelpermacros.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 #include <qwidget.h>
 
 void KoDialogPrivate::setupLayout()

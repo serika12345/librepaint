@@ -27,12 +27,10 @@
 #include <kis_image_config.h>
 #include <kis_paint_information.h>
 #include <kis_random_source.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qset.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 struct KisToolPaintInteraction::Private
 {

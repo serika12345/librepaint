@@ -19,11 +19,9 @@
 #include <boost/optional/optional.hpp>
 #include <qboxlayout.h>
 #include <qlist.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <resources/KoStopGradient.h>
 
 #include <kis_signals_blocker.h>

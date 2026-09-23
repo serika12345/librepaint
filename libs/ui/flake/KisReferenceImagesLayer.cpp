@@ -29,11 +29,9 @@
 #include "kis_types.h"
 #include "kundo2magicstring.h"
 #include <KoViewConverter.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 
 struct AddReferenceImagesCommand : KoShapeCreateCommand
 {

@@ -15,11 +15,10 @@
 #include <kis_paint_device.h>
 #include "KisGradientGeneratorConfiguration.h"
 #include "KoCompositeOpIds.h"
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qpoint.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
 
 #include "KisGradientGenerator.h"
 #include "KisGradientGeneratorConfigWidget.h"

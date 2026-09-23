@@ -17,7 +17,7 @@
 #include <qcontainerfwd.h>
 #include <qnamespace.h>
 #include <qobject.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 namespace
 {

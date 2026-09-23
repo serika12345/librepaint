@@ -13,7 +13,7 @@
 #include <QVBoxLayout>
 #include <qabstractitemmodel.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 struct PaletteView::Private

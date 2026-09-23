@@ -40,16 +40,12 @@
 #include <kis_fixed_paint_device.h>
 #include <kis_qimage_pyramid.h>
 #include <brushengine/kis_paintop_lod_limitations.h>
-#include <qassert.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qrgb.h>
 #include <qscopedpointer.h>
 #include <qsharedpointer.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 #include <qvariant.h>
 #include <resources/KoAbstractGradient.h>
 #include <resources/KoCachedGradient.h>

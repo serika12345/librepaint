@@ -16,8 +16,7 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qstringview.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include "kis_paintop_preset.h"
 #include "kis_paintop_settings.h"
 

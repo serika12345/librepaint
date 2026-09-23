@@ -10,7 +10,7 @@
 #include <kis_painter.h>
 #include <kis_node.h>
 #include <kis_indirect_painting_support.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 KisOpacityOption::KisOpacityOption(const KisPropertiesConfiguration *setting, KisNodeSP currentNode)

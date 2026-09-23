@@ -12,10 +12,9 @@
 #include <kis_composite_progress_proxy.h>
 #include <KisImageBarrierLock.h>
 #include <kis_memory_statistics_server.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
 
 bool KisDocument::hasImage() const
 {

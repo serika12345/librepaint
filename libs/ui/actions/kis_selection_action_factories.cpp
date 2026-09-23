@@ -73,14 +73,12 @@
 #include <kis_selection_tool_helper.h>
 
 #include <kis_figure_painting_stroke.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qpainterpath.h>
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
 #include <qtransform.h>
-#include <qtypes.h>
 #include "kis_update_outline_job.h"
 
 namespace ActionHelper {

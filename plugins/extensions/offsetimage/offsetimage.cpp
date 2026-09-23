@@ -19,7 +19,7 @@
 #include <kis_processing_applicator.h>
 #include <application/ui/orchestration/kis_action.h>
 #include <kis_selection.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qdialog.h>
 #include <qobject.h>

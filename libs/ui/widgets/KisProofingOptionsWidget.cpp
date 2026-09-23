@@ -14,8 +14,7 @@
 #include <kis_signal_compressor.h>
 #include <lager/extra/qt.hpp>
 #include <qobject.h>
-#include <qoverload.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 
 #include "KisProofingConfiguration.h"

@@ -11,12 +11,10 @@
 
 #include <math.h>
 
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qobject.h>
 #include <qscopedpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <stdlib.h>
 
 #include <QSlider>

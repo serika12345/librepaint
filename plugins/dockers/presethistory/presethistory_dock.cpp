@@ -36,14 +36,12 @@
 #include <qabstractitemview.h>
 #include <qdockwidget.h>
 #include <qevent.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpixmap.h>
 #include <qscroller.h>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
 
 #define ICON_SIZE 48
 

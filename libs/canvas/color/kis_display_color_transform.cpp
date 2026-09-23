@@ -28,12 +28,10 @@
 #include <kis_sequential_iterator.h>
 #include <kis_paint_device.h>
 #include <qcontainerfwd.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qsharedpointer.h>
 #include <qsize.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 #include <utility>
 
 #include "kis_display_color_filter.h"

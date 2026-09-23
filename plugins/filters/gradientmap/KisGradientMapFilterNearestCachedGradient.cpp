@@ -12,7 +12,7 @@
 #include <KoSegmentGradient.h>
 #include <KoColorSpace.h>
 #include <cstdlib>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KisGradientMapFilterNearestCachedGradient.h"
 

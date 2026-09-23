@@ -6,6 +6,8 @@
  */
 
 #include "KoSvgText.h"
+
+#include <QDebug>
 #include "KoSvgTextShape.h"
 #include "KoSvgTextShape_p.h"
 
@@ -29,7 +31,7 @@
 #include <QtMath>
 
 #include <qbrush.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qimage.h>
 #include <qline.h>
@@ -38,7 +40,6 @@
 #include <qpoint.h>
 #include <qrgb.h>
 #include <qsize.h>
-#include <qtypes.h>
 #include <tuple>
 #include <utility>
 #include <variant>

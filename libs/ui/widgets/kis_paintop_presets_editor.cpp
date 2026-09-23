@@ -37,8 +37,7 @@
 #include <qobjectdefs.h>
 #include <qslider.h>
 #include <qstringview.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <widgets/kis_preset_chooser.h>
 #include <KisResourceUserOperations.h>
 #include <KisResourceItemChooser.h>

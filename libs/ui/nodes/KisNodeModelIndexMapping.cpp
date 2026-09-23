@@ -7,7 +7,7 @@
 
 #include "kis_types.h"
 #include <qabstractitemmodel.h>
-#include <qassert.h>
+#include <QtGlobal>
 
 KisNodeSP KisNodeModel::nodeFromIndex(const QModelIndex &index) const
 {

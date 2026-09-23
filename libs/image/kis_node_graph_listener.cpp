@@ -12,8 +12,6 @@
 #include <QRect>
 #include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
 
 
 struct Q_DECL_HIDDEN KisNodeGraphListener::Private

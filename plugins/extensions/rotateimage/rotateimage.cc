@@ -18,13 +18,12 @@
 #include <nodes/kis_node_manager.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <application/ui/orchestration/kis_action.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qdialog.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
 
 #include "dlg_rotateimage.h"
 #include "ui/orchestration/KisActionPlugin.h"

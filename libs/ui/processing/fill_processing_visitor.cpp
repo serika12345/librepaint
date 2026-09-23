@@ -20,11 +20,9 @@
 #include "lazybrush/kis_colorize_mask.h"
 #include <kis_assert.h>
 #include <KisImageResolutionProxy.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qpoint.h>
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include "KisAnimAutoKey.h"
 #include "kis_undo_adapter.h"
 

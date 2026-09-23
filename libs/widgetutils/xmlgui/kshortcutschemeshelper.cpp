@@ -14,7 +14,7 @@
 #include <QDir>
 #include <qcontainerfwd.h>
 #include <qfileinfo.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 
 #include "kactioncollection.h"

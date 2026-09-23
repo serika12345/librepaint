@@ -24,7 +24,7 @@
 #include <qdialog.h>
 #include <qevent.h>
 #include <qflags.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qglobalstatic.h>
 #include <qlist.h>
 #include <qlogging.h>
@@ -32,9 +32,6 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
-#include <qtenvironmentvariables.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
 #include <queue>
 #include <stdlib.h>
 #ifdef Q_OS_WIN

@@ -15,9 +15,7 @@
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qpoint.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 

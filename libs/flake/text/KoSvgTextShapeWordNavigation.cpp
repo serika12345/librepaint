@@ -9,7 +9,7 @@
 #include "KoSvgTextShape_p.h"
 
 #include "KoSvgTextProperties.h"
-#include <qminmax.h>
+#include <QtGlobal>
 
 int KoSvgTextShape::wordLeft(int pos, bool visual)
 {

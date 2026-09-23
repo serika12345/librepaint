@@ -12,9 +12,8 @@
 #include <kguiitem.h>
 #include <kstandardguiitem.h>
 #include <qdialog.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qvariant.h>

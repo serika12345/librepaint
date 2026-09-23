@@ -10,7 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <qhashfunctions.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qlogging.h>
 #include <qloggingcategory.h>
 #include <qstringview.h>

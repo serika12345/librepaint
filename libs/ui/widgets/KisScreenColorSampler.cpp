@@ -37,13 +37,11 @@
 #include <KisStaticInitializer.h>
 
 #include <KisGrabKeyboardFocusRecoveryWorkaround.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qkeysequence.h>
-#include <qlatin1stringview.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpoint.h>
-#include <qtmetamacros.h>
 
 struct KisScreenColorSampler::Private
 {

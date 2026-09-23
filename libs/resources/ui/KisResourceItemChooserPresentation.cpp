@@ -10,7 +10,7 @@
 #include "ResourceListViewModes.h"
 #include <qnamespace.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 void KisResourceItemChooser::setResponsiveness(bool isResponsive)
 {

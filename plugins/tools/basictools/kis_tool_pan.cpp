@@ -20,7 +20,7 @@
 #include <klocalizedstring.h>
 #include <qnamespace.h>
 #include <qpainter.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 
 KisToolPan::KisToolPan(KoCanvasBase *canvas)

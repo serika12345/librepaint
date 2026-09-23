@@ -37,9 +37,7 @@
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include  "kis_canvas2.h"
 #include "kis_floating_message.h"
 

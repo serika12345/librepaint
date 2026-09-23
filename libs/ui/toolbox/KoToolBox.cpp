@@ -38,16 +38,15 @@
 #include <KoToolManager.h>
 #include <qcoreevent.h>
 #include <qevent.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qguiapplication.h>
-#include <qlatin1stringview.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
 
 #define BUTTON_MARGIN 10
 

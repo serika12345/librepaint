@@ -10,7 +10,7 @@
 #include "KoColorimetryUtils.h"
 #include <optional>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qstringview.h>
 
 KoDummyColorProfile::KoDummyColorProfile()

@@ -178,7 +178,10 @@ if(ANDROID)
 endif()
 
 kis_add_library(kritaapplicationui SHARED ${kritaapplicationui_LIB_SRCS})
-generate_export_header(kritaapplicationui BASE_NAME kritaui)
+generate_export_header(kritaapplicationui
+    BASE_NAME kritaui
+    EXPORT_FILE_NAME ${CMAKE_BINARY_DIR}/libs/ui/kritaui_export.h
+)
 
 target_include_directories(kritaapplicationui
     PUBLIC

@@ -6,7 +6,7 @@
  */
 
 #include <QPainter>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 #include "kis_hairy_paintop_settings.h"

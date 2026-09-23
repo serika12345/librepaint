@@ -11,7 +11,7 @@
 #include "kis_debug.h"
 
 #include <QGlobalStatic>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 
 using namespace KisMetaData;

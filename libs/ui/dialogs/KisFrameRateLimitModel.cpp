@@ -18,7 +18,7 @@
 #include <lager/with.hpp>
 #include <qlist.h>
 #include <qnumeric.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace {
     int calculateMaxScreenFrameRate() {

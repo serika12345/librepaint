@@ -9,10 +9,8 @@
 #include <KoSvgTextShape.h>
 #include <algorithm>
 #include <iterator>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
-#include <qtdeprecationdefinitions.h>
 
 namespace
 {

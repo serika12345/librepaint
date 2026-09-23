@@ -11,9 +11,8 @@
 #include "kundo2magicstring.h"
 
 #include <klocalizedstring.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtdeprecationdefinitions.h>
 
 namespace
 {

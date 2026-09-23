@@ -45,10 +45,8 @@
 #include "KoColorModelStandardIds.h"
 #include "KoID.h"
 #include "kis_config_widget.h"
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qvariant.h>

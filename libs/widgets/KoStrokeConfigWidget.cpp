@@ -62,7 +62,7 @@
 #include <KoFillConfigWidget.h>
 #include "kis_acyclic_signal_connector.h"
 #include <kis_signal_compressor.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qgridlayout.h>
 #include <qlayout.h>
 #include <qlist.h>
@@ -71,9 +71,6 @@
 #include <qscopedpointer.h>
 #include <qsharedpointer.h>
 #include <qsize.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <vector>
 
 // Krita

@@ -18,14 +18,10 @@
 #include "KoLoadingShapeUpdater.h"
 
 #include <FlakeDebug.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qhashfunctions.h>
 #include <qset.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 uint qHash(const KoShapeLoadingContext::AdditionalAttributeData & attributeData)
 {

@@ -7,7 +7,7 @@
 #include "KisOpenGLUpdateInfoBuilderPrivate.inc"
 
 #include <qbitarray.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <tiles/kis_tile_data_pool.h>
 
 #include "KisProofingConfiguration.h"

@@ -17,7 +17,7 @@
 #include <qhash.h>
 #include <qhashfunctions.h>
 #include <qlist.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #ifdef HAVE_OPENEXR
 #include <half.h>
 #endif

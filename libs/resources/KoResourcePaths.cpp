@@ -16,14 +16,10 @@
 #include <QCoreApplication>
 #include <QMutex>
 #include <QRegularExpression>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qlogging.h>
 #include <qnamespace.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtenvironmentvariables.h>
-#include <qtpreprocessorsupport.h>
 #include "kis_debug.h"
 #include "ksharedconfig.h"
 #include "kconfiggroup.h"

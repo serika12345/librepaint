@@ -18,10 +18,8 @@
 #include <math.h>
 #include <KisBezierUtils.h>
 #include <kis_command_utils.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <tuple>
 
 KoPathSegmentChangeStrategy::KoPathSegmentChangeStrategy(KoPathTool *tool, const QPointF &pos, const KoPathPointData &segment, qreal segmentParam)

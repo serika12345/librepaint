@@ -13,7 +13,7 @@
 #include "kundo2stack.h"
 #include <qpoint.h>
 #include <qsharedpointer.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KisInsertKeyframeCommand::KisInsertKeyframeCommand(KisKeyframeChannel *channel, int time, KisKeyframeSP keyframe, KUndo2Command *parentCmd)
     : KUndo2Command(parentCmd),

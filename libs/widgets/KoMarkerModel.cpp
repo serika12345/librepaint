@@ -12,12 +12,11 @@
 // Qt
 #include <QSize>
 #include <qabstractitemmodel.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qshareddata.h>
-#include <qtpreprocessorsupport.h>
 #include <qvariant.h>
 
 

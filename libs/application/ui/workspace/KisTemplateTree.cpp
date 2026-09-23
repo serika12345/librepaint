@@ -7,6 +7,7 @@
 #include "application/ui/workspace/KisTemplateTree.h"
 
 #include <QDir>
+#include <QLocale>
 #include <QUrl>
 
 #include <kdesktopfile.h>
@@ -23,7 +24,7 @@
 #include <qalgorithms.h>
 #include <qcontainerfwd.h>
 #include <qfileinfo.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 
 static QString currentLocale()

@@ -26,8 +26,7 @@
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qset.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KisToolOutlineBase.h"
 #include "KoToolBase.h"

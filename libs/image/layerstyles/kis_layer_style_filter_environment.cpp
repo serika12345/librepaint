@@ -22,9 +22,7 @@
 #include "krita_utils.h"
 
 #include <boost/random/mersenne_twister.hpp>
-#include <qassert.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include "kis_sequential_iterator.h"
 #include "kis_cached_paint_device.h"
 #include "KisLocalStrokeResources.h"

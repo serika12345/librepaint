@@ -16,15 +16,14 @@
 #include <KisResourceModel.h>
 
 #include <qfileinfo.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qimage.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qnamespace.h>
 #include <qobject.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <resources/KoAbstractGradient.h>
 #include <resources/KoSegmentGradient.h>
 #include <resources/KoStopGradient.h>

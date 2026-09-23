@@ -25,11 +25,10 @@
 #include <qdebug.h>
 #include <qdom.h>
 #include <qfiledevice.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qobject.h>
 #include <qshareddata.h>
-#include <qtdeprecationdefinitions.h>
 
 
 class Q_DECL_HIDDEN KoMarkerCollection::Private

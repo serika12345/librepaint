@@ -22,12 +22,10 @@
 #include <qabstractitemview.h>
 #include <qcheckbox.h>
 #include <qcollator.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtversionchecks.h>
 
 class KisDlgImportImageSequence::ListItem : QListWidgetItem {
 

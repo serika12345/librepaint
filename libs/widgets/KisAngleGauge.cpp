@@ -13,13 +13,10 @@
 #include <math.h>
 #include <qcolor.h>
 #include <qcoreevent.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpoint.h>
-#include <qtmetamacros.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 #include "KisAngleGauge.h"

@@ -13,7 +13,7 @@
 #include "qhash.h"
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 class KisSignalMapper::Private
 {

@@ -18,12 +18,11 @@
 #include <QString>
 #include <QVariant>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qnamespace.h>
 #include <qsqlquery.h>
-#include <qtdeprecationdefinitions.h>
 
 #include "KisResourceLocator.h"
 #include "KisResourceMetaDataModel.h"

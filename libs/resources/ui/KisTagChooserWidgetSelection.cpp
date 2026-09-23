@@ -9,7 +9,7 @@
 #include <QAbstractItemModel>
 #include <QComboBox>
 #include <qnamespace.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 #include "KisTagChooserWidgetSelectionSource_p.h"
 #include "KisTagChooserWidget_p.h"

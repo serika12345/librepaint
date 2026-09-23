@@ -14,7 +14,7 @@
 #include "kis_image.h"
 #include "kis_node.h"
 #include "kis_types.h"
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 
 
 const QRect KisDefaultBounds::infiniteRect =

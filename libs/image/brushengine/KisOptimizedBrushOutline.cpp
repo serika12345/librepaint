@@ -14,7 +14,7 @@
 #include <qcontainerfwd.h>
 #include <qpoint.h>
 #include <qpolygon.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KisOptimizedBrushOutline::KisOptimizedBrushOutline()
 {

@@ -11,7 +11,7 @@
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qsortfilterproxymodel.h>
-#include <qtversionchecks.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 #include "KisResourceStorage.h"

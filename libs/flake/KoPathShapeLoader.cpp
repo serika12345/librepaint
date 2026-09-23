@@ -10,11 +10,8 @@
 #include <math.h>
 #include <FlakeDebug.h>
 #include <kis_algebra_2d.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 class KoPathShapeLoaderPrivate
 {

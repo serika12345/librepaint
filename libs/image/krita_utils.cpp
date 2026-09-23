@@ -33,17 +33,14 @@
 #include <KisRenderedDab.h>
 #include <cmath>
 #include <functional>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qimage.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpoint.h>
 #include <qrgb.h>
-#include <qtypes.h>
 #include <utility>
 
 

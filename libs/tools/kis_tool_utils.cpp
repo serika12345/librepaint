@@ -30,10 +30,8 @@
 #include <QApplication>
 #include <memory>
 #include <qcursor.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtypes.h>
 #include <vector>
 
 namespace KisToolUtils {

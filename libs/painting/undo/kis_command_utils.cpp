@@ -11,7 +11,7 @@
 #include <functional>
 #include <memory>
 #include <qalgorithms.h>
-#include <qforeach.h>
+#include <QtGlobal>
 
 namespace KisCommandUtils
 {

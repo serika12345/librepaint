@@ -13,7 +13,8 @@
 #include <KLocalizedString>
 #include <qcolor.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>

@@ -32,7 +32,7 @@
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qstringview.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 #include "KisExportCheckBase.h"

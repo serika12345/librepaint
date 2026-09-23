@@ -28,7 +28,7 @@
 #include <KoColorDisplayRendererInterface.h>
 #include <qlist.h>
 #include <qnamespace.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 KoPathToolHandle::KoPathToolHandle(KoPathTool *tool)

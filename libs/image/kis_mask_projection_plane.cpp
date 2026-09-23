@@ -9,7 +9,7 @@
 #include "KisRenderPassFlags.h"
 #include "kis_assert.h"
 #include "kis_node.h"
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include "kis_painter.h"
 #include "kis_paint_device.h"
 #include "kis_mask.h"

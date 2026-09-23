@@ -9,9 +9,8 @@
 #include "KoDialog.h"
 
 #include <klocalizedstring.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qobjectdefs.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 DlgWaveletDecompose::DlgWaveletDecompose(QWidget *  parent,

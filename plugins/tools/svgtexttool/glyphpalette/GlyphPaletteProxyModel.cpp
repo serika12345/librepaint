@@ -13,8 +13,7 @@
 #include <qhashfunctions.h>
 #include <qobject.h>
 #include <qsortfilterproxymodel.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 struct GlyphPaletteProxyModel::Private {
     KoUnicodeBlockData block{KoUnicodeBlockDataFactory::noBlock()};

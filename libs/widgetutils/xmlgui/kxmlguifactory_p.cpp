@@ -17,9 +17,8 @@
 #include <assert.h>
 #include <qalgorithms.h>
 #include <qdom.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
-#include <qlatin1stringview.h>
 #include <qlist.h>
 #include <qlogging.h>
 #include <qobject.h>

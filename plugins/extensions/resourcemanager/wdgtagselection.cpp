@@ -30,13 +30,12 @@
 
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qmap.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
 
 
 

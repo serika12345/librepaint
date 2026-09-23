@@ -25,12 +25,10 @@
 #include "kis_pointer_utils.h"
 #include <KoBgrColorSpaceTraits.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <qpoint.h>
 #include <qrgb.h>
-#include <qtypes.h>
 
 KisColorSmudgeStrategyLightness::KisColorSmudgeStrategyLightness(KisPainter *painter, bool smearAlpha,
                                                                  bool useDullingMode, KisPaintThicknessOptionData::ThicknessMode thicknessMode)

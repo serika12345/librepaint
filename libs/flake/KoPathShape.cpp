@@ -37,16 +37,13 @@
 
 #include <limits>
 #include <math.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h> // for qIsNaN
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 static bool qIsNaNPoint(const QPointF &p) {
     return qIsNaN(p.x()) || qIsNaN(p.y());
 }

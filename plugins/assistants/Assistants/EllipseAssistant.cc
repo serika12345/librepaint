@@ -23,12 +23,11 @@
 #include "kis_types.h"
 
 #include <math.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcursor.h>
 #include <qmap.h>
 #include <qpoint.h>
 #include <qpolygon.h>
-#include <qtypes.h>
 #include <tuple>
 
 EllipseAssistant::EllipseAssistant()

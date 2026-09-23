@@ -55,16 +55,12 @@
 #include <commands/KoShapeGroupCommand.h>
 #include <memory>
 #include <qevent.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpointer.h>
 #include <qset.h>
-#include <qtclasshelpermacros.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <text/KoSvgTextShape.h>
 
 

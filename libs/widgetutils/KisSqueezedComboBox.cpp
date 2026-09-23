@@ -20,15 +20,13 @@
 #include <QApplication>
 #include <QResizeEvent>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsize.h>
 #include <qstyleoption.h>
-#include <qtypes.h>
 #include <qvariant.h>
 
 KisSqueezedComboBox::KisSqueezedComboBox(QWidget *parent, const char *name)

@@ -8,7 +8,7 @@
 
 #include "kis_properties_configuration.h"
 #include "kis_types.h"
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 KisHDRMetadataOptions::KisHDRMetadataOptions()

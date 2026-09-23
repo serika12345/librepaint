@@ -8,7 +8,7 @@
 
 #include "SeExprVariable.h"
 #include <KSeExpr/Expression.h>
-#include <qassert.h>
+#include <QtGlobal>
 
 SeExprVariable::SeExprVariable()
     : KSeExpr::ExprVarRef(KSeExpr::ExprType().FP(1).Varying())

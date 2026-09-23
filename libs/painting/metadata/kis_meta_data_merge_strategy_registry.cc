@@ -4,7 +4,7 @@
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  */
 #include <QGlobalStatic>
-#include <qforeach.h>
+#include <QtGlobal>
 
 #include "KoGenericRegistry.h"
 #include "kis_debug.h"

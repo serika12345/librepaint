@@ -24,14 +24,11 @@
 #include <kis_meta_data_schema_registry.h>
 #include <kis_meta_data_store.h>
 #include <kis_meta_data_value.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qhash.h>
 #include <qhashfunctions.h>
 #include <qlist.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 const char photoshopMarker[] = "Photoshop 3.0\0";
 const char photoshopBimId_[] = "8BIM";

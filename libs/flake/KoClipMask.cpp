@@ -18,10 +18,9 @@
 
 #include <KoShapePainter.h>
 #include <qalgorithms.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
-#include <qtdeprecationdefinitions.h>
 
 struct Q_DECL_HIDDEN KoClipMask::Private : public QSharedData
 {

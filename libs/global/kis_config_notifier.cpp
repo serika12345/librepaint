@@ -10,7 +10,7 @@
 #include <kis_debug.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include "kis_signal_compressor.h"
 
 Q_GLOBAL_STATIC(KisConfigNotifier, s_instance)

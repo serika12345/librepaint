@@ -38,14 +38,13 @@
 #include <krita_container_utils.h>
 #include <KoResourceCacheInterface.h>
 
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qpointer.h>
 #include <qregularexpression.h>
 #include <qscopedpointer.h>
-#include <qtdeprecationdefinitions.h>
 
 struct Q_DECL_HIDDEN KisPaintOpPreset::Private {
 

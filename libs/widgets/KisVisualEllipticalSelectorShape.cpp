@@ -4,6 +4,8 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisVisualEllipticalSelectorShape.h"
+
+#include <QDebug>
 #include "KisVisualColorSelector.h"
 
 #include <QColor>
@@ -13,10 +15,9 @@
 #include <QtMath>
 #include <cmath>
 #include <qimage.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qregion.h>
-#include <qtypes.h>
 
 #include "KisVisualColorSelectorShape.h"
 #include "kis_assert.h"

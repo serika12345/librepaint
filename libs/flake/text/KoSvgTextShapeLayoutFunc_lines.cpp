@@ -14,13 +14,11 @@
 
 #include <FlakeDebug.h>
 #include <cstdlib>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qpoint.h>
 #include <qpolygon.h>
-#include <qtypes.h>
 #include <qvector.h>
 
 namespace KoSvgTextShapeLayoutFunc

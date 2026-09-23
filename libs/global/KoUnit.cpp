@@ -17,10 +17,7 @@
 #include <math.h>
 #include <qcontainerfwd.h>
 #include <qdebug.h>
-#include <qlatin1stringview.h>
 #include <qnumeric.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 // ensure the same order as in KoUnit::Unit

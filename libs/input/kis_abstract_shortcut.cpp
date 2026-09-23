@@ -8,10 +8,9 @@
 #include <kis_abstract_shortcut.h>
 
 #include <KisInputAction.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qset.h>
-#include <qtdeprecationdefinitions.h>
 
 
 class Q_DECL_HIDDEN KisAbstractShortcut::Private

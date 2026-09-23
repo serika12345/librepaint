@@ -32,8 +32,7 @@
 #include <qdialogbuttonbox.h>
 #include <qnamespace.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 #include "document/KisDocument.h"
 #include "kis_clipboard.h"

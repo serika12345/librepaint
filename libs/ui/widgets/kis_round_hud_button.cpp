@@ -14,8 +14,7 @@
 #include <qpixmap.h>
 #include <qpoint.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 #include "kis_global.h"

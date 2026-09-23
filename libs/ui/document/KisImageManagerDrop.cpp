@@ -45,10 +45,10 @@
 
 #include <algorithm>
 #include <functional>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 

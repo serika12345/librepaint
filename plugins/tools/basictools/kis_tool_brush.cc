@@ -41,8 +41,7 @@
 #include <qobjectdefs.h>
 #include <qset.h>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include "kis_tool.h"
 #include "kis_aspect_ratio_locker.h"
 #include "kis_floating_message.h"

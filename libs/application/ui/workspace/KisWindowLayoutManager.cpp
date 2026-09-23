@@ -23,17 +23,17 @@
 #include <kis_dom_utils.h>
 #include <application/ui/orchestration/KisResourceServerProvider.h>
 #include <application/ui/workspace/KisSessionResource.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qglobalstatic.h>
 #include <qguiapplication.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpointer.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
 #include <quuid.h>
 
 Q_GLOBAL_STATIC(KisWindowLayoutManager, s_instance)

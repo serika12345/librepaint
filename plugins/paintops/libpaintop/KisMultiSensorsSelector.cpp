@@ -15,7 +15,7 @@
 #include <QString>
 #include <QWidget>
 #include <QtCore/qobjectdefs.h>
-#include <QtCore/qtmetamacros.h>
+#include <QtGlobal>
 
 #include "ui_wdgmultisensorsselector.h"
 #include <kis_assert.h>

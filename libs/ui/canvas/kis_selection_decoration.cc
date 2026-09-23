@@ -43,7 +43,7 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qtimer.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 static const unsigned int ANT_LENGTH = 4;

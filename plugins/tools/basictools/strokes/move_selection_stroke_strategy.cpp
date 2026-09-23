@@ -27,8 +27,7 @@
 #include <commands_new/kis_selection_move_command2.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include "kis_lod_transform.h"
 #include "KisAnimAutoKey.h"
 #include "kis_types.h"

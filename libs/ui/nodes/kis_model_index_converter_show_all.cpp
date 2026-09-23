@@ -10,9 +10,8 @@
 #include "kis_dummies_facade_base.h"
 #include "nodes/kis_node_model.h"
 #include <qabstractitemmodel.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
-#include <qtpreprocessorsupport.h>
 
 
 KisModelIndexConverterShowAll::KisModelIndexConverterShowAll(KisDummiesFacadeBase *dummiesFacade,

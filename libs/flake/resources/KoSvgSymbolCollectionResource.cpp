@@ -8,11 +8,8 @@
 #include <qalgorithms.h>
 #include <qcontainerfwd.h>
 #include <qdom.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <resources/KoSvgSymbolCollectionResource.h>
 
 #include <QDebug>

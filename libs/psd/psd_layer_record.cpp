@@ -37,10 +37,8 @@
 #include "psd_pixel_utils.h"
 #include <kundo2command.h>
 #include <qalgorithms.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qpair.h>
-#include <qtypes.h>
 
 // Just for pretty debug messages
 QString channelIdToChannelType(int channelId, psd_color_mode colormode)

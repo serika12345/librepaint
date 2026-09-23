@@ -50,17 +50,14 @@
 
 #include <klocalizedstring.h>
 #include <qfiledialog.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qframe.h>
-#include <qlatin1stringview.h>
 #include <qlineedit.h>
 #include <qloggingcategory.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsize.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
 #include <qurl.h>
 
 // Local includes

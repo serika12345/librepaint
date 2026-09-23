@@ -19,9 +19,7 @@
 #include <qpainter.h>
 #include <qpainterpath.h>
 #include <KoColorDisplayRendererInterface.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 static constexpr int ICON_SIZE_OFFSET = 6;

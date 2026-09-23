@@ -9,7 +9,7 @@
 #include <QApplication>
 
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include "canvas/kis_canvas2.h"
 #include "kundo2magicstring.h"
 #include "kundo2stack.h"

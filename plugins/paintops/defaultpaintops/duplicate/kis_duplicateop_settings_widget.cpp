@@ -25,7 +25,7 @@
 #include <KisTextureOptionWidget.h>
 #include <brushengine/kis_paintop_lod_limitations.h>
 #include <kis_paintop_settings_widget.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 KisDuplicateOpSettingsWidget::KisDuplicateOpSettingsWidget(QWidget* parent, KisResourcesInterfaceSP resourcesInterface, KoCanvasResourcesInterfaceSP canvasResourcesInterface)

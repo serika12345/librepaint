@@ -6,6 +6,8 @@
 
 #include "kis_layer_utils.h"
 
+#include <QDebug>
+
 #include <algorithm>
 
 #include <QUuid>
@@ -61,16 +63,14 @@
 #include <KisDelayedUpdateNodeInterface.h>
 #include <KisCroppedOriginalLayerInterface.h>
 #include <optional>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qregion.h>
 #include <qscopedpointer.h>
 #include <qset.h>
 #include <qsharedpointer.h>
-#include <qtypes.h>
 #include "krita_container_utils.h"
 #include "krita_utils.h"
 #include "kis_image_signal_router.h"

@@ -15,17 +15,13 @@
 #include <QTimer>
 #include <KoColorDisplayRendererInterface.h>
 #include <qimage.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qpoint.h>
 #include <qrgb.h>
 #include <qsize.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 

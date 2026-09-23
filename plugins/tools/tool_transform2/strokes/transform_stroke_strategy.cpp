@@ -52,12 +52,9 @@
 #include <KisDeleteLaterWrapper.h>
 #include "kis_types.h"
 #include "kundo2magicstring.h"
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qpoint.h>
 #include <qpolygon.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include "transform_transaction_properties.h"
 #include "commands_new/KisLazyCreateTransformMaskKeyframesCommand.h"
 #include "kis_command_ids.h"

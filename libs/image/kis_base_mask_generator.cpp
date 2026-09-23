@@ -28,8 +28,7 @@
 #include <kis_dom_utils.h>
 #include <math.h>
 #include <qlist.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 const KoID DefaultId("default", ki18n("Default"));
 const KoID SoftId("soft", ki18n("Soft"));

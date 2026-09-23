@@ -9,9 +9,8 @@
 #include <kis_image.h>
 #include <kundo2magicstring.h>
 #include "KisQStringListFwd.h"
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
-#include <qlatin1stringview.h>
 #include <qlist.h>
 #include <qsharedpointer.h>
 #include "KisRegion.h"

@@ -9,7 +9,7 @@
 
 #include <algorithm>
 #include <array>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
 #include <qcontainerfwd.h>
 #include <qhashfunctions.h>
@@ -18,7 +18,6 @@
 #include <qpolygon.h>
 #include <qsize.h>
 #include <qtransform.h>
-#include <qtypes.h>
 
 SvgMeshArray::SvgMeshArray()
 {

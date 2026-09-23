@@ -19,8 +19,7 @@
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qpoint.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace detail {
 qreal io2sp(int x, int min, int max)

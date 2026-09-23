@@ -7,12 +7,10 @@
 #include "kis_meta_data_type_info.h"
 
 #include <QVariant>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 #include <qlist.h>
 #include <qmap.h>
-#include <qtdeprecationdefinitions.h>
 
 #include "kis_meta_data_parser_p.h"
 #include "kis_meta_data_type_info_p.h"

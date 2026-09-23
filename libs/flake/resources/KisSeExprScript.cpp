@@ -18,7 +18,7 @@
 #include <qhashfunctions.h>
 #include <qimage.h>
 #include <qscopedpointer.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "KisSeExprScript.h"
 #include "KisResourceTypes.h"

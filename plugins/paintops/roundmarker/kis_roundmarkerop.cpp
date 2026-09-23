@@ -16,12 +16,9 @@
 #include <kis_lod_transform.h>
 #include <kis_spacing_information.h>
 #include "kis_dab_shape.h"
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qpair.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <kis_paintop_settings.h>
 #include "kis_marker_painter.h"
 #include "kis_paintop_utils.h"

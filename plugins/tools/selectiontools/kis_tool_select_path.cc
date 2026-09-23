@@ -33,13 +33,12 @@
 #include <kis_default_bounds.h>
 #include <qcoreevent.h>
 #include <qevent.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qpainter.h>
 #include <qpointer.h>
-#include <qtpreprocessorsupport.h>
 #include <qtransform.h>
 #include <qwidget.h>
 

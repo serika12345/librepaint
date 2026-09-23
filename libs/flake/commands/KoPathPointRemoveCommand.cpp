@@ -15,7 +15,7 @@
 #include <functional>
 #include <klocalizedstring.h>
 #include <qalgorithms.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qmap.h>
 

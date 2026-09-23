@@ -9,8 +9,7 @@
 #include <QImage>
 #include <QPainterPath>
 #include <QTransform>
-#include <qminmax.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include "KoPointerEvent.h"
 #include "KoToolBase.h"
 #include "kis_tool.h"

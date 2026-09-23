@@ -5,6 +5,8 @@
 */
 
 #include "kstandardaction.h"
+
+#include <QDebug>
 #include "kritawidgetutils_export.h"
 #include "kstandardaction_p.h"
 #include "moc_kstandardaction_p.cpp"
@@ -26,7 +28,7 @@
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace KStandardAction
 {

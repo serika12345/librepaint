@@ -23,14 +23,12 @@
 #include <kis_painter.h>
 #include <qdom.h>
 #include <qlist.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qset.h>
 #include <qsizepolicy.h>
-#include <qtpreprocessorsupport.h>
 #include <qtransform.h>
-#include <qtypes.h>
 
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas2.h>

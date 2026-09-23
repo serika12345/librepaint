@@ -26,7 +26,7 @@
 #include <klocalizedstring.h>
 
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 #include <resources/KoColorSet.h>
 #include <KoColorPatch.h>

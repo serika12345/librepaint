@@ -32,7 +32,7 @@
 #include <kis_paint_device.h>
 
 #include <KisGlobalResourcesInterface.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qkeysequence.h>
 #include <qlist.h>
 #include <qwidget.h>

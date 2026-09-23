@@ -9,7 +9,7 @@
 
 #include <QSharedPointer>
 #include <qlist.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 struct KisToolChangesTracker::Private {
     QList<KisToolChangesTrackerDataSP> undoStack;

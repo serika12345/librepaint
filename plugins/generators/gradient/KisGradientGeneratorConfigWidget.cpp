@@ -17,7 +17,7 @@
 #include <canvas/kis_canvas_resource_provider.h>
 #include <qcontainerfwd.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 #include "KisGradientGeneratorConfiguration.h"
 #include "KoAbstractGradient.h"

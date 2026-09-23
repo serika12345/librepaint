@@ -18,8 +18,7 @@
 #include "kis_command_ids.h"
 
 #include <memory>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qobject.h>
 #include <qscopedpointer.h>
 #include <qset.h>

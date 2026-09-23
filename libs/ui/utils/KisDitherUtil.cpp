@@ -18,7 +18,7 @@
 #include <qimage.h>
 #include <qpoint.h>
 #include <qsharedpointer.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <utility>
 
 KisDitherUtil::KisDitherUtil()

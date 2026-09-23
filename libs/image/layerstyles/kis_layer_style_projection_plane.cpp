@@ -28,9 +28,7 @@
 #include "KisLayerStyleKnockoutBlower.h"
 #include "kis_types.h"
 #include "krita_utils.h"
-#include <qassert.h>
-#include <qforeach.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 
 struct Q_DECL_HIDDEN KisLayerStyleProjectionPlane::Private
 {

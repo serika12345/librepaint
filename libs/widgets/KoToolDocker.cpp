@@ -20,7 +20,7 @@
 #include <QScroller>
 #include <qalgorithms.h>
 #include <qdockwidget.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qframe.h>
 #include <qlayout.h>
 #include <qlist.h>
@@ -28,7 +28,6 @@
 #include <qobjectdefs.h>
 #include <qpointer.h>
 #include <qset.h>
-#include <qtdeprecationdefinitions.h>
 
 class Q_DECL_HIDDEN KoToolDocker::Private
 {

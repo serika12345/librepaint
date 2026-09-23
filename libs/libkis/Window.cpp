@@ -18,7 +18,7 @@
 
 #include <Document.h>
 #include <View.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qobjectdefs.h>
 

@@ -17,7 +17,7 @@
 #include <QPointer>
 #include <kis_signal_compressor.h>
 #include <kselector.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
 #include <qimage.h>
 #include <qnamespace.h>
@@ -26,8 +26,6 @@
 #include <qpixmap.h>
 #include <qpoint.h>
 #include <qstyle.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 #define ARROWSIZE 8

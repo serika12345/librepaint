@@ -6,7 +6,7 @@
 #ifndef KISPAINTINGMODEOPTIONMODEL_H
 #define KISPAINTINGMODEOPTIONMODEL_H
 
-#include <QtCore/qtmetamacros.h>
+#include <QtGlobal>
 
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>

@@ -35,8 +35,7 @@
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 class KoDualColorButton::Private

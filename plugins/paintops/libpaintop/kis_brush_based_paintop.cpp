@@ -24,11 +24,11 @@
 #include <QDomDocument>
 #include <QDomElement>
 #include <QPainter>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qsize.h>
-#include <qtypes.h>
 
 #ifdef HAVE_THREADED_TEXT_RENDERING_WORKAROUND
 

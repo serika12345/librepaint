@@ -20,14 +20,12 @@
 #include <kis_group_layer.h>
 #include <kis_selection_mask.h>
 #include <kis_selection.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qdialog.h>
-#include <qforeach.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpainter.h>
 #include <qsize.h>
-#include <qtypes.h>
 
 #include "dlg_imagesize.h"
 #include "dlg_canvassize.h"

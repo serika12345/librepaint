@@ -23,7 +23,7 @@
 #include "kis_warptransform_worker.h"
 #include <QMatrix4x4>
 #include <memory>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 ToolTransformArgs::ToolTransformArgs()

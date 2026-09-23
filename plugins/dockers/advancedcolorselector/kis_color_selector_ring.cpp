@@ -14,13 +14,10 @@
 #include <Eigen/Core>
 #include <cmath>
 #include <math.h>
-#include <qassert.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <qpoint.h>
 #include <qrgb.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 #include "KisColorSelectorConfiguration.h"
 #include "KoColor.h"

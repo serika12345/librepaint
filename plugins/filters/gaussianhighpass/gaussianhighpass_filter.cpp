@@ -29,7 +29,7 @@
 #include "wdg_gaussianhighpass.h"
 #include "ui_wdggaussianhighpass.h"
 #include <qpointer.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 

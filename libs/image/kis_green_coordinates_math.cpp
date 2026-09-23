@@ -12,8 +12,7 @@
 #include <math.h>
 #include <qcontainerfwd.h>
 #include <qpoint.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 using namespace KisAlgebra2D;
 
 

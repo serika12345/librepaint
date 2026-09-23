@@ -9,7 +9,7 @@
 #include <QGlobalStatic>
 #include <QList>
 #include <qalgorithms.h>
-#include <qforeach.h>
+#include <QtGlobal>
 
 Q_GLOBAL_STATIC(KoHistogramProducerFactoryRegistry, s_instance)
 

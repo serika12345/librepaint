@@ -19,7 +19,7 @@
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpolygon.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include "kis_global.h"
 
 QGradient *KoFlake::cloneGradient(const QGradient *gradient)

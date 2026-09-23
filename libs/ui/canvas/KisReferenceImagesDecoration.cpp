@@ -24,11 +24,8 @@
 #include <qcolorspace.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qoverload.h>
+#include <QtGlobal>
 #include <qpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 
 struct KisReferenceImagesDecoration::Private {
     struct Buffer

@@ -19,14 +19,12 @@
 #include <QOpenGLContext>
 #include <QOpenGLExtraFunctions>
 #include <algorithm>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qopenglshaderprogram.h>
-#include <qopenglversionprofile.h>
-#include <qtconfigmacros.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #if !defined(QT_OPENGL_ES_2)
 #include <QOpenGLFunctions_2_0>
 #include <QOpenGLFunctions_3_0>

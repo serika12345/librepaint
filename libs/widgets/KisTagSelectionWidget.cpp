@@ -32,7 +32,7 @@
 #include <kis_signals_blocker.h>
 #include <qboxlayout.h>
 #include <qcolor.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlayoutitem.h>
 #include <qlist.h>
 #include <qnamespace.h>
@@ -40,9 +40,6 @@
 #include <qpixmap.h>
 #include <qpoint.h>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qvariant.h>
 
 

@@ -13,13 +13,11 @@
 #include <QUuid>
 
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qpaintdevice.h>
 #include <qpolygon.h>
 #include <qstringview.h>
-#include <qtypes.h>
 #include <resources/KoPattern.h>
 #include <resources/KoSegmentGradient.h>
 #include <resources/KoStopGradient.h>

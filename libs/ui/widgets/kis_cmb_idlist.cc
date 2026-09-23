@@ -14,8 +14,7 @@
 #include <qcombobox.h>
 #include <qlist.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 KisCmbIDList::KisCmbIDList(QWidget * parent, const char * name)

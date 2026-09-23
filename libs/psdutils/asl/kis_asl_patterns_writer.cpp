@@ -11,10 +11,9 @@
 
 #include <compression.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qimage.h>
 #include <qpaintdevice.h>
-#include <qtypes.h>
 #include <resources/KoPattern.h>
 
 #include "kis_asl_callback_object_catcher.h"

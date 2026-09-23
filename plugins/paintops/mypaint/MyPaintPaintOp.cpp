@@ -25,7 +25,7 @@
 #include <kis_spacing_information.h>
 #include <libmypaint/mypaint-brush-settings-gen.h>
 #include <libmypaint/mypaint-brush.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KisMyPaintPaintOp::KisMyPaintPaintOp(const KisPaintOpSettingsSP settings, KisPainter *painter, KisNodeSP /*node*/, KisImageSP image)
     : KisPaintOp (painter) {

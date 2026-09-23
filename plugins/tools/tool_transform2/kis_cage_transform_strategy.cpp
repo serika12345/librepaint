@@ -15,7 +15,7 @@
 
 #include "kis_painting_tweaks.h"
 #include <kis_cage_transform_worker.h>
-#include <qminmax.h>
+#include <QtGlobal>
 
 
 struct KisCageTransformStrategy::Private

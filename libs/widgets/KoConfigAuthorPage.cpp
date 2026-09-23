@@ -39,14 +39,13 @@
 #include <QByteArray>
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qframe.h>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qstyleditemdelegate.h>
 #include <qstyleoption.h>
-#include <qtdeprecationdefinitions.h>
 
 class Q_DECL_HIDDEN KoConfigAuthorPage::Private
 {

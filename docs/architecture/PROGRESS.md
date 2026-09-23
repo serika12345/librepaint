@@ -2,19 +2,20 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-21 23:25 JST
-- 状態: `paused`
+- 更新日時: 2026-09-23 12:40 JST
+- 状態: `complete`
 - 現在の検査段階: R2-G19bm プラットフォーム構築による直接依存補正
-- 関連TODO: R2-G19aからR2-G19bmのmacOS・iOS範囲まで完了、R2-G19dは`planned`
+- 関連TODO: R2-G19aからR2-G19bmまで完了、R2-G19d-aは`planned`
 - ブランチ: `issue-44-direct-dependencies`
 - 開始コミット: `59f0b0722a`。作業開始時点の作業ツリーは変更なし。
-- 目的: macOSの一括監査をiOS構成で実コンパイルし、デスクトップ側の推移的な外部依存と条件付きヘッダーに依存する製品対象を直接化する。
-- 範囲固定: iOSの製品対象1673件と、診断で露出した26個の製品・CMakeファイルに限定する。固定CTest、公開API、保存形式、描画結果は維持する。
-- 調査: iOS構成と初回3391段階の構築から、Boost・Lagerの直接利用要件、GSL無効構成、iOSに存在しないデスクトップOpenGLヘッダー、条件分岐でだけ使うアイコン所有ヘッダーの不足を抽出した。
-- 完了: 公開ヘッダーでBoostを使うオブジェクト対象へ利用要件を伝播し、paint-op画面モデルへLagerを直接接続した。GSLヘッダーを機能条件内へ移し、機械監査が追加したデスクトップOpenGLヘッダーを除去し、iOS条件ソースへ所有ヘッダーを追加した。
-- 検証: `build-incremental ios bootstrap`は1164段階を完走して`LibrePaint.app`をリンクし、静的依存資源監査は未分類0件で成功した。再構成後のmacOS完全native検査は879/879件、306.23秒で成功し、`verify: OK`となった。固定テスト配下の開始基準からの差分はゼロである。
-- 残るリスク: Qt 5構成を提供する既存プロファイルがない。Linux・Windows・Androidの増分構成はx86_64 Linux構築ホストを要求し、macOSホストでは開始前に拒否されたため、Issue #44の全プラットフォーム完了条件は未達である。
-- 次の作業: x86_64 Linux構築ホストで同一ブランチを取得し、`build-incremental linux configure`、`windows configure`、`android configure`から各全製品対象を構築する。Qt 5構成を用意して対象構築を完了した後、対象和集合を確定してIssue #44を完了する。
+- 目的: 製品実装が集約ヘッダーと上位リンク閉包から型・記号・利用要件を偶然得る状態を、対応する全構成の実コンパイルで解消する。固定CTest、公開API、ABI、保存形式、プラグイン識別子、設定キー、描画結果は維持する。
+- 範囲固定: `libs/`と`plugins/`の試験・ベンチマーク外実装、診断で露出した直接所有ヘッダー、対応する既存`CMakeLists.txt`、Windows実行入口に限定した。開始基準`8f816dc5fd`から固定テスト配下の差分はゼロである。
+- 調査: 557翻訳単位への`misc-include-cleaner`一括診断、macOSの全製品構築、iOS、Linux、Windows、Androidの順で実コンパイルした。Qt 6だけが推移的に与える宣言、Qt 5の型定義、GSL・HDR・OpenGLの条件付き宣言、オブジェクト対象の最終リンク所有者、MinGWの輸出入指定を分類した。
+- 完了: 549実装を使用する型・関数・マクロの所有ヘッダーへ直接接続し、未使用・重複・過度に広い取込みを除去した。Boost、Lager、KConfig、paint-op実行ライブラリー、進捗更新、色変換の直接利用要件を所有対象へ記載した。Windowsの実行スタブとDLLの取込みライブラリー名を分離し、ヘッダーのみの選択ツールテンプレートはWindowsで誤ったDLL取込み指定を持たず、他OSの可視性を維持する。
+- 対象和集合: CMake File APIからmacOS 1752対象、iOS 1629対象、Linux 1766対象、Windows 1670対象、Android Qt 5 1642対象を再生成した。対象名の和集合は1789件であり、各構成のパッケージ境界、直接辺、製品対象循環を既存方針検査で確認した。
+- 検証: macOSの`./scripts/verify`は879/879件を272.73秒で成功し、方針検査45件、外部利用ヘッダー529件、プラグイン登録172件を含めて`verify: OK`となった。iOSは最終60段階を構築して`LibrePaint.app`をリンクし、静的依存資源監査は未分類0件で成功した。x86_64 Linuxの全製品対象、Windowsの全1670対象、Android Qt 5の全1642対象を構築した。`nix flake check --no-build --all-systems`と固定テスト差分検査も成功した。
+- 残るリスク: 実行可能なクロス構築でコンパイルと最終リンクまで確認した。WindowsとAndroidの端末上実行、および各OSの移植済み契約CTest実行は、実行時契約を扱うR2-G19d-aの範囲である。
+- 次の作業: R2-G19d-aでQt 5、Linux、Windows、Androidの構築閉包とCTest実行可能性を確定し、ブラシプリセット設定保存・復元6試験と資源管理プロキシ切替1試験を対象実行環境で検証する。
 - 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
 - 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
 - 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。

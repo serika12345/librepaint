@@ -11,8 +11,7 @@
 
 
 #include <cstring>
-#include <qassert.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 const quint32 KisRandomAccessor2::CACHESIZE = 4; // Define the number of tiles we keep in cache

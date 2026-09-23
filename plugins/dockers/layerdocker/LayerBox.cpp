@@ -79,18 +79,13 @@
 #include "nodes/kis_node_filter_proxy_model.h"
 #include <KisSpinBoxI18nHelper.h>
 #include <qabstractitemmodel.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qdockwidget.h>
-#include <qforeach.h>
 #include <qitemselectionmodel.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qstyleoption.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "kis_selection.h"
 #include "kis_processing_applicator.h"

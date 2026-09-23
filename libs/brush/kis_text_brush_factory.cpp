@@ -13,7 +13,7 @@
 #include <KoResourceLoadResult.h>
 #include <optional>
 #include <qdom.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 
 KoResourceLoadResult KisTextBrushFactory::createBrush(const QDomElement& brushDefinition, KisResourcesInterfaceSP resourcesInterface)

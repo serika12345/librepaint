@@ -54,14 +54,12 @@
 #include <qcolor.h>
 #include <qdialog.h>
 #include <qevent.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qguiapplication.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qstringview.h>
 #include <qtextcursor.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <svg/SvgUtil.h>
 #include <KisPortingUtils.h>
 

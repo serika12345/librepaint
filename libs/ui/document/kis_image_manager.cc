@@ -29,12 +29,10 @@
 #include "KisQStringListFwd.h"
 #include "KoColorConversionTransformation.h"
 #include <qdialog.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qobjectdefs.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include "kis_import_catcher.h"
 #include "KisRemoteFileFetcher.h"
 #include "application/ui/workspace/KisViewManager.h"

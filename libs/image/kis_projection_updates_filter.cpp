@@ -11,7 +11,6 @@
 #include <QtGlobal>
 #include <QRect>
 #include <qcontainerfwd.h>
-#include <qtpreprocessorsupport.h>
 
 KisProjectionUpdatesFilter::~KisProjectionUpdatesFilter()
 {

@@ -11,9 +11,9 @@
 
 #include <QDir>
 #include <qhashfunctions.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #define SWP_PREFIX "KRITA_SWAP_FILE_XXXXXX"
 

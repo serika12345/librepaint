@@ -29,7 +29,7 @@
 #include <document/KisDocument.h>
 #include <kis_command_utils.h>
 #include <kis_icon_utils.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qdialog.h>
 #include <qobjectdefs.h>
 

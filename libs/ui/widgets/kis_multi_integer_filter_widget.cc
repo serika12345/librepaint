@@ -17,12 +17,10 @@
 #include "KoIntegerMaths.h"
 #include "kis_config_widget.h"
 #include "kis_debug.h"
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlayoutitem.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <qwidget.h>
 #include "kis_slider_spin_box.h"
 #include "kis_aspect_ratio_locker.h"

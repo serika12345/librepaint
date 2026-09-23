@@ -13,7 +13,7 @@
 #include <QEvent>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 KoForegroundColour::KoForegroundColour(KisCanvasResourceProvider *canvasResourceProvider,

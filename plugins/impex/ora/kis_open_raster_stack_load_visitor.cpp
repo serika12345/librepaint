@@ -23,7 +23,7 @@
 
 #include <kis_dom_utils.h>
 #include <kis_paint_layer.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 #include "KisQStringListFwd.h"

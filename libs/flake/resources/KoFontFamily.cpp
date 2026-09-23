@@ -19,7 +19,7 @@
 #include <KoShapePainter.h>
 #include <qcontainerfwd.h>
 #include <qdatetime.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 #include <qlist.h>
 #include <qlocale.h>
@@ -27,7 +27,6 @@
 #include <qnamespace.h>
 #include <qpaintdevice.h>
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
 #include <qvariant.h>
 
 const QString TYPOGRAPHIC_NAME = "typographic_name";

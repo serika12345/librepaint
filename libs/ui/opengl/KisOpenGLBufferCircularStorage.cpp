@@ -11,8 +11,7 @@
 #include <cstddef>
 #include <iterator>
 #include <limits>
-#include <qminmax.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 #include <vector>
 
 #include "kis_assert.h"

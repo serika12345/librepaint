@@ -18,7 +18,7 @@
 #include <qdialog.h>
 #include <qlist.h>
 #include <qlistwidget.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qobjectdefs.h>
 #include <qwidget.h>
 

@@ -14,9 +14,7 @@
 #include <functional>
 #include <numeric>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
-#include <qminmax.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace KisPaintOpUtils {
 

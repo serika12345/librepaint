@@ -51,21 +51,16 @@
 #include <qabstractitemmodel.h>
 #include <qapplication.h>
 #include <qcoreevent.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qgridlayout.h>
 #include <qline.h>
 #include <qlist.h>
 #include <qmath.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpen.h>
 #include <qregion.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 static const int WIDGET_MARGIN = 16;

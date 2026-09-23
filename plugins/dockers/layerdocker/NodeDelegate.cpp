@@ -39,24 +39,19 @@
 #include <kis_painting_tweaks.h>
 #include <klocalizedstring.h>
 #include <qabstractitemdelegate.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
 #include <qcoreevent.h>
 #include <qflags.h>
 #include <qfont.h>
-#include <qforeach.h>
 #include <qimage.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpixmap.h>
 #include <qpoint.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 typedef KisBaseNode::Property* OptionalProperty;

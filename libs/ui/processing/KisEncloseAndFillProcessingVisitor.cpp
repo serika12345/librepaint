@@ -9,12 +9,9 @@
 #include <kis_node.h>
 #include <kis_image.h>
 #include <lazybrush/kis_colorize_mask.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "KisEncloseAndFillProcessingVisitor.h"
 #include "KisEncloseAndFillPainter.h"

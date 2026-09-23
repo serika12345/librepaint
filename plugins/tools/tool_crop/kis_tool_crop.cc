@@ -41,14 +41,10 @@
 #include <kundo2command.h>
 #include <kis_crop_saved_extra_data.h>
 #include <kis_display_color_converter.h>
-#include <qassert.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qset.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 struct DecorationLine

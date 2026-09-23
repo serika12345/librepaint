@@ -13,12 +13,10 @@
 
 
 #include <cstring>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qmath.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qscopedpointer.h>
-#include <qtypes.h>
 #include <stdlib.h>
 
 #include <QPoint>

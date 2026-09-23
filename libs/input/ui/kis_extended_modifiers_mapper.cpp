@@ -12,7 +12,7 @@
 #include <QApplication>
 
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #ifdef Q_OS_MACOS
 

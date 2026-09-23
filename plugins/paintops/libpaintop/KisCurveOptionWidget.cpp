@@ -18,8 +18,7 @@
 #include <QPointF>
 #include <QWidget>
 #include <QtCore/qobjectdefs.h>
-#include <QtCore/qoverload.h>
-#include <QtCore/qtypes.h>
+#include <QtGlobal>
 
 #include <KLocalizedString>
 

@@ -26,14 +26,12 @@
 #include <lager/extra/qt.hpp>
 #include <qcursor.h>
 #include <qfont.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpoint.h>
 #include <qscopedpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "kis_paintop_lod_limitations.h"
 #include "kis_signals_blocker.h"

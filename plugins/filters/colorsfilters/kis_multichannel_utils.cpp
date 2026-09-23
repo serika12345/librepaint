@@ -14,12 +14,10 @@
 #include <KoCompositeColorTransformation.h>
 #include <kis_cubic_curve.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 #include <qhashfunctions.h>
 #include <qlist.h>
-#include <qminmax.h>
-#include <qtypes.h>
 #include <qvariant.h>
 
 #include "../../color/colorspaceextensions/kis_hsv_adjustment.h"

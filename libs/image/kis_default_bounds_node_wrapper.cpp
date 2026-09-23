@@ -9,7 +9,7 @@
 #include "kis_global.h"
 #include "kis_paint_device.h"
 #include "kis_types.h"
-#include <qassert.h>
+#include <QtGlobal>
 
 struct Q_DECL_HIDDEN KisDefaultBoundsNodeWrapper::Private {
     KisBaseNodeWSP node;

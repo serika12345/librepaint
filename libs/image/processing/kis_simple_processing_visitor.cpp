@@ -24,7 +24,7 @@
 
 #include "kis_do_something_command.h"
 #include "kis_undo_adapter.h"
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 
 KisSimpleProcessingVisitor::~KisSimpleProcessingVisitor()

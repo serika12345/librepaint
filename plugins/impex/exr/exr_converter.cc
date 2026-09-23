@@ -67,13 +67,11 @@
 #include <KisImportExportAdditionalChecks.h>
 #include <KisPortingUtils.h>
 #include <qalgorithms.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qset.h>
-#include <qtypes.h>
 #include <set>
 #include <string>
 

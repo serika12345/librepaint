@@ -40,7 +40,7 @@
 
 #include <KisStandardOptionData.h>
 #include <KisPaintOpOptionWidgetUtils.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 KisBrushOpSettingsWidget::KisBrushOpSettingsWidget(QWidget* parent, KisResourcesInterfaceSP resourcesInterface, KoCanvasResourcesInterfaceSP canvasResourcesInterface)

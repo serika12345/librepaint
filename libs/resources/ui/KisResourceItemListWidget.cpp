@@ -20,8 +20,7 @@
 #include <qlistwidget.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 #include "KisIconToolTip.h"
 #include "KisKineticScroller.h"

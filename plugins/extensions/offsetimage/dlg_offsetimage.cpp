@@ -8,7 +8,7 @@
 
 #include <klocalizedstring.h>
 #include <application/kis_config.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>

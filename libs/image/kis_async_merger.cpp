@@ -5,11 +5,12 @@
 
 #include "kis_async_merger.h"
 
+#include <QDebug>
+
 
 #include <kis_debug.h>
 
-#include <qassert.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "kis_assert.h"
 #include "kis_node_visitor.h"

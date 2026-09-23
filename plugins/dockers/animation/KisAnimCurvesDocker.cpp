@@ -60,13 +60,12 @@
 #include "animation/KisPlaybackEngine.h"
 #include <QItemSelection>
 #include <qabstractitemmodel.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpointer.h>
-#include <qtypes.h>
 #include <qwidgetaction.h>
 #include "KisAnimationPlaybackControlsModel.h"
 #include "KisWidgetConnectionUtils.h"

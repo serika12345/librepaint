@@ -7,11 +7,9 @@
  */
 
 #include "randompickfilter.h"
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qobject.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qvariant.h>
 #include <stdlib.h>
 #include <math.h>

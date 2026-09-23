@@ -29,7 +29,7 @@
 #include <kstandardguiitem.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 KisClipboardBrushWidget::KisClipboardBrushWidget(QWidget *parent, const QString &caption, KisImageWSP /*image*/)

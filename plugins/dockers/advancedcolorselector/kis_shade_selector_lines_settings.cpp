@@ -12,11 +12,10 @@
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 
 #include "kis_shade_selector_line_combo_box.h"

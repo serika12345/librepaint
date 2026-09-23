@@ -18,7 +18,7 @@
 #include <QToolButton>
 #include <QAction>
 #include <qcolor.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlayout.h>
 #include <qlayoutitem.h>
 #include <qnamespace.h>
@@ -27,7 +27,6 @@
 #include <qpixmap.h>
 #include <qsize.h>
 #include <qsizepolicy.h>
-#include <qtpreprocessorsupport.h>
 #include <qwidget.h>
 
 #include "KisResourceTypes.h"

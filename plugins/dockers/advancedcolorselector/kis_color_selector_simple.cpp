@@ -10,11 +10,8 @@
 #include <kconfig.h>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
-#include <qassert.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qpoint.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 #include "KisColorSelectorConfiguration.h"
 #include "kis_color_selector.h"

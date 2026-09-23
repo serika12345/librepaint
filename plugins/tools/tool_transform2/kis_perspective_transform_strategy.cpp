@@ -15,14 +15,11 @@
 #include <QVector2D>
 
 #include <Eigen/Dense>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qimage.h>
 #include <qline.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "KisQStringListFwd.h"
 #include "KoColorDisplayRendererInterface.h"

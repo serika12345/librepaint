@@ -26,9 +26,7 @@
 #include <qpainter.h>
 #include <qscopedpointer.h>
 #include <qsharedpointer.h>
-#include <qtclasshelpermacros.h>
-#include <qtenvironmentvariables.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #define GL_GLEXT_PROTOTYPES
 
 #include <QEvent>

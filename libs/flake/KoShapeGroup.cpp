@@ -18,10 +18,9 @@
 
 
 #include <QPainter>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qpoint.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
 
 class ShapeGroupContainerModel : public SimpleShapeContainerModel
 {

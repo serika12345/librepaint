@@ -32,13 +32,12 @@
 #include <KoSvgTextShape.h>
 #include <KoColorDisplayRendererInterface.h>
 #include <memory>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qline.h>
 #include <qlist.h>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
-#include <qtypes.h>
 
 
 CutThroughShapeStrategy::CutThroughShapeStrategy(KoToolBase *tool, KoSelection *selection, const QList<KoShape *> &shapes, QPointF startPoint, const GutterWidthsConfig &width)

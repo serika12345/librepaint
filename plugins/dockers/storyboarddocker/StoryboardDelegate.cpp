@@ -22,8 +22,7 @@
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
 #include <qcoreevent.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
@@ -32,8 +31,6 @@
 #include <qstyleditemdelegate.h>
 #include <qstyleoption.h>
 #include <qtextcursor.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 #include "KisAddRemoveStoryboardCommand.h"
 #include "document/StoryboardItem.h"
 #include "kis_assert.h"

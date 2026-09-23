@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <qlogging.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <zconf.h>
 #include <zlib.h>
 

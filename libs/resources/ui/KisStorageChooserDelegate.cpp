@@ -18,8 +18,7 @@
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qstyleoption.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KisStorageModel.h"
 

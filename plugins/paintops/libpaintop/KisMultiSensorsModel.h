@@ -16,7 +16,7 @@
 #include <QString>
 #include <QVariant>
 #include <QtCore/qnamespace.h>
-#include <QtCore/qtmetamacros.h>
+#include <QtGlobal>
 
 #include <KoID.h>
 #include <lager/cursor.hpp>

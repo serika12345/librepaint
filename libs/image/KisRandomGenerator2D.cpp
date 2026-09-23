@@ -8,8 +8,7 @@
  */
 
 #include "KisRandomGenerator2D.h"
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 /* Mac OS X doesn't define a number of UINT* macros without this before stdlib.h */
 #define __STDC_LIMIT_MACROS

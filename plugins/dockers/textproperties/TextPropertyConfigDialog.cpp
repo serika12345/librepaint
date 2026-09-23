@@ -9,6 +9,7 @@
 #include <QQmlEngine>
 #include <QQmlContext>
 #include <QQuickItem>
+#include <QDebug>
 #include <qlogging.h>
 #include <qvariant.h>
 #include <qwidget.h>

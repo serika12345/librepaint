@@ -9,6 +9,7 @@
 
 #include "KisImportExportFilter.h"
 #include "KisImportExportFilter_p.h"
+#include <KoUpdater.h>
 #include <qalgorithms.h>
 #include <qobject.h>
 

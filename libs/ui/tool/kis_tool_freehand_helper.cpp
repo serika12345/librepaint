@@ -50,16 +50,13 @@
 #include <KisOptimizedBrushOutline.h>
 
 #include <math.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qline.h>
 #include <qlist.h>
 #include <qmath.h>
-#include <qminmax.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qpoint.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <tuple>
 
 //#define DEBUG_BEZIER_CURVES

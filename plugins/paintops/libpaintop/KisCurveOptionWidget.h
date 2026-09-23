@@ -12,8 +12,7 @@
 #include <QFlags>
 #include <QScopedPointer>
 #include <QString>
-#include <QtCore/qtypes.h>
-#include <QtCore/qtmetamacros.h>
+#include <QtGlobal>
 
 #include <kis_paintop_option.h>
 #include <kis_types.h>

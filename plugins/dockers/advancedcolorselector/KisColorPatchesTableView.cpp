@@ -20,7 +20,7 @@
 #include <qabstractitemmodel.h>
 #include <qabstractitemview.h>
 #include <qcolor.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qnamespace.h>

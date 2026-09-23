@@ -15,10 +15,8 @@
 #include <QBitArray>
 
 #include <math.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include <resources/KoAbstractGradient.h>
 

@@ -23,14 +23,12 @@
 #include <KoColorDisplayRendererInterface.h>
 #include <qguiapplication.h>
 #include <qhashfunctions.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qpainter.h>
 #include <qset.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "KisToolBasicBrushBase.h"
 #include "KisOptimizedBrushOutline.h"

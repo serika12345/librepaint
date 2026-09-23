@@ -58,7 +58,7 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 #include "KisResourceModel.h"

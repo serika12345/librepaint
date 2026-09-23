@@ -14,7 +14,7 @@
 #include <kis_paint_device.h>
 
 #include <kis_meta_data_store.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "kis_debug.h"
 #include "kis_png_converter.h"

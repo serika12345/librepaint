@@ -10,7 +10,7 @@
 #include <KisSwatchGroup.h>
 #include <ManagedColor.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qobject.h>
 
 struct Palette::Private {

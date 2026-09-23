@@ -10,7 +10,7 @@
 #include <KoCompositeOpRegistry.h>
 #include <optional>
 #include <qicon.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "kis_filter_mask.h"
 #include "KisRenderPassFlags.h"

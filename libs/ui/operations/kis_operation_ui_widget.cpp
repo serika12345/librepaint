@@ -7,7 +7,7 @@
 
 #include "kis_operation_ui_widget.h"
 #include <qobject.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 class Q_DECL_HIDDEN KisOperationUIWidget::Private {

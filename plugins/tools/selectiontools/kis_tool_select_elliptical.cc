@@ -32,11 +32,9 @@
 #include <kis_processing_applicator.h>
 #include <kis_selection_filters.h>
 #include <kis_default_bounds.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qmath.h>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 __KisToolSelectEllipticalLocal::__KisToolSelectEllipticalLocal(KoCanvasBase *canvas)
     : KisToolEllipseBase(canvas, KisToolEllipseBase::SELECT,

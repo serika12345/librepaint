@@ -15,8 +15,7 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsortfilterproxymodel.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 #include "kis_assert.h"

@@ -19,7 +19,7 @@
 #include <KoColor.h>
 #include <KoDialog.h>
 #include <qaction.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qbrush.h>
 #include <qcoreevent.h>
 #include <qframe.h>
@@ -29,9 +29,6 @@
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qsizepolicy.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <qwidget.h>
 #include <resources/KoAbstractGradient.h>
 #include <KoResource.h>

@@ -15,7 +15,7 @@
 #include "KisRunnableStrokeJobsInterface.h"
 #include <functional>
 #include <numeric>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qsharedpointer.h>
 
 

@@ -30,12 +30,10 @@
 
 #include <QVector4D>
 #include <qcolor.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsizepolicy.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 WGActionManager::WGActionManager(WGColorSelectorDock *parentDock)

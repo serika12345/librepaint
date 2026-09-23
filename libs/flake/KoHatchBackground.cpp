@@ -22,7 +22,7 @@
 #include <qline.h>
 #include <qnumeric.h>
 #include <qshareddata.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 class KoHatchBackground::Private : public QSharedData
 {

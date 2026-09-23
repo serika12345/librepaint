@@ -13,8 +13,7 @@
 #include "kundo2stack.h"
 #include <klocalizedstring.h>
 #include <qalgorithms.h>
-#include <qforeach.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 
 namespace
 {

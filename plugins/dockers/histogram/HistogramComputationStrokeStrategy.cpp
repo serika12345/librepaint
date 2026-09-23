@@ -18,12 +18,8 @@
 #include <cmath>
 #include <limits>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <vector>
 
 struct HistogramComputationStrokeStrategy::Private

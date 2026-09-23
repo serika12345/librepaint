@@ -11,10 +11,9 @@
 #include <QDebug>
 #include <QRectF>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 #include <qmap.h>
-#include <qminmax.h>
 
 QVariantHash uncompressColor(const QVariantHash object) {
     QVariantHash newObject;

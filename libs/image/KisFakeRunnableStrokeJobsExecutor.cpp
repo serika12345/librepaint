@@ -13,7 +13,7 @@
 #include <QVector>
 #include <qalgorithms.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 
 KisFakeRunnableStrokeJobsExecutor::KisFakeRunnableStrokeJobsExecutor()
     : m_flags(None)

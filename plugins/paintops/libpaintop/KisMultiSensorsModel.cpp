@@ -19,7 +19,7 @@
 #include <QVariant>
 #include <QtCore/qnamespace.h>
 #include <QtCore/qobjectdefs.h>
-#include <QtCore/qtmetamacros.h>
+#include <QtGlobal>
 
 #include <KoID.h>
 

@@ -9,7 +9,7 @@
 #include <limits>
 #include <qcontainerfwd.h>
 #include <qpoint.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 
 #include "einspline/bspline_base.h"
 #include "einspline/nubspline_create.h"

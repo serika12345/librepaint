@@ -49,16 +49,13 @@
 #include <kis_config_notifier.h>
 #include <ksharedconfig.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qmap.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 #ifdef __APPLE__
 #include <QStyle>

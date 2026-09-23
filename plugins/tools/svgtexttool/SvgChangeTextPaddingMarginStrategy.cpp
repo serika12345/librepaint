@@ -19,14 +19,13 @@
 #include <kis_global.h>
 #include <limits>
 #include <optional>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qline.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qpainterpath.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 SvgChangeTextPaddingMarginStrategy::SvgChangeTextPaddingMarginStrategy(SvgTextTool *tool, KoSvgTextShape *shape, const QPointF &clicked)
     : KoInteractionStrategy(tool)

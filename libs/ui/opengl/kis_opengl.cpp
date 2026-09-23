@@ -11,23 +11,18 @@
 #include <optional>
 #include <qcoreapplication.h>
 #include <qdebug.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qguiapplication.h>
 #include <qhash.h>
 #include <qlogging.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qopengl.h>
 #include <qsize.h>
 #include <qstringview.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 #include <tuple>
 
 
-#include <QtGlobal>
 
 #include <QOpenGLContext>
 #include <QOpenGLDebugLogger>

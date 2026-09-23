@@ -17,9 +17,7 @@
 #include <filter/kis_filter_category_ids.h>
 #include <kis_paint_device.h>
 #include <KisSequentialIteratorProgress.h>
-#include <qassert.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 typedef void (*funcMaxMin)(const quint8* , quint8* , uint);

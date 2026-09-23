@@ -31,12 +31,10 @@
 #include <kis_layer_utils.h>
 #include <kis_selection.h>
 #include <kis_paint_device.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qframe.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <selection/kis_selection_manager.h>
 #include "KisAngleGauge.h"
 #include "kis_memory_statistics_server.h"

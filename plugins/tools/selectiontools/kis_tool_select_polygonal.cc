@@ -35,7 +35,7 @@
 #include <kis_command_utils.h>
 #include <kis_processing_applicator.h>
 #include <kis_selection_filters.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qpoint.h>
 

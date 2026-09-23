@@ -11,12 +11,11 @@
 #include <kpluginfactory.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <application/ui/orchestration/kis_action.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qdialog.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
 
 #include "dlg_clonesarray.h"
 #include "ui/orchestration/KisActionPlugin.h"

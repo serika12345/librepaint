@@ -6,7 +6,7 @@
 
 #include "KisStandardUniformPropertyDefinition.h"
 #include <optional>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 
 std::optional<KisStandardUniformPropertyDefinition> standardUniformPropertyDefinition(const QString &id)
 {

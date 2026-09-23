@@ -22,11 +22,10 @@
 #include <kis_node.h>
 #include <kis_group_layer.h>
 #include <kis_clone_layer.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
 
 
 DlgClonesArray::DlgClonesArray(KisViewManager *viewManager, QWidget *parent)

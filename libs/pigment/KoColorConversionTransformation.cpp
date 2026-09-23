@@ -10,9 +10,7 @@
 
 #include <KisStaticInitializer.h>
 #include <cstring>
-#include <qassert.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KoColorConversionTransformation::Intent>();

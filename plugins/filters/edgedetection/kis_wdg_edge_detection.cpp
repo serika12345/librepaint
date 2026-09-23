@@ -11,7 +11,7 @@
 #include <klocalizedstring.h>
 #include <KisGlobalResourcesInterface.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 KisWdgEdgeDetection::KisWdgEdgeDetection(QWidget *parent) :

@@ -17,7 +17,7 @@
 #include <kis_image_animation_interface.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <utility>
 
 KisStoryboardThumbnailRenderScheduler::KisStoryboardThumbnailRenderScheduler(QObject *parent)

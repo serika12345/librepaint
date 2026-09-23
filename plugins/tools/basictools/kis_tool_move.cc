@@ -54,9 +54,7 @@
 #include <qobjectdefs.h>
 #include <qset.h>
 #include <qsharedpointer.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 struct KisToolMoveState : KisToolChangesTrackerData, boost::equality_comparable<KisToolMoveState>

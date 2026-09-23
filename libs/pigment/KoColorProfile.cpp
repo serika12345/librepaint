@@ -9,8 +9,7 @@
 #include <cmath>
 #include <qcontainerfwd.h>
 #include <qlist.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "KoColorProfile.h"
 #include "KoColorProfileConstants.h"

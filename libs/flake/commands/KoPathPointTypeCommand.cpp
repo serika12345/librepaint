@@ -10,7 +10,7 @@
 #include <klocalizedstring.h>
 #include <math.h>
 #include <qlist.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KoPathBaseCommand.h"
 #include "KoPathPointData.h"

@@ -8,8 +8,7 @@
 #include <kis_signal_compressor.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 #include "KisSelectionPropertySlider.h"

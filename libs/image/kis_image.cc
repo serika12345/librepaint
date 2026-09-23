@@ -12,16 +12,14 @@
 #include <iterator>
 #include <krita_container_utils.h>
 
-#include <qassert.h>
+#include <QtGlobal>
 #include <qatomic.h>
 #include <qcoreapplication.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qmath.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobject.h>
@@ -29,9 +27,6 @@
 #include <qqueue.h>
 #include <qregularexpression.h>
 #include <qscopedpointer.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <stdlib.h>
 #include <math.h>
 

@@ -10,7 +10,7 @@
 #include <qcontainerfwd.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 struct KoFontChangeTracker::Private {
 

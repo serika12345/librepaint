@@ -18,10 +18,8 @@
 #include <kis_slider_spin_box.h>
 #include <KisSpinBoxI18nHelper.h>
 #include <qobjectdefs.h>
-#include <qoverload.h>
+#include <QtGlobal>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 #include "KisPropagateColorsFilterConfiguration.h"

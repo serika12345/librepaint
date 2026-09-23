@@ -7,7 +7,7 @@
 #include "MyPaintBasicOptionData.h"
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 MyPaintBasicOptionModel::MyPaintBasicOptionModel(lager::cursor<MyPaintBasicOptionData> _optionData,

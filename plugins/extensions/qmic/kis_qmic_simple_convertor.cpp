@@ -19,11 +19,9 @@
 #include <half.h>
 #include <map>
 #include <memory>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
-#include <qminmax.h>
 #include <qrgb.h>
-#include <qtypes.h>
 #include <vector>
 
 #include <kis_debug.h>

@@ -13,15 +13,12 @@
 #include "KoSvgTextShape.h"
 #include "SvgTextTool.h"
 #include "kundo2magicstring.h"
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qline.h>
 #include <qlist.h>
 #include <QDebug>
 #include <qnamespace.h>
 #include <qobject.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
-#include <qvectornd.h>
 
 SvgChangeTextPathInfoStrategy::SvgChangeTextPathInfoStrategy(SvgTextTool *tool, KoSvgTextShape *shape, const QPointF &clicked, int textCursorPos)
     :KoInteractionStrategy(tool)

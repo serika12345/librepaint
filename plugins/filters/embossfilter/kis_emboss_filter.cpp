@@ -13,9 +13,7 @@
 #include "kis_emboss_filter.h"
 
 
-#include <qassert.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <stdlib.h>
 
 #include <QPoint>

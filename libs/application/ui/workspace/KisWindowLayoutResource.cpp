@@ -26,13 +26,13 @@
 #include <kis_dom_utils.h>
 #include <application/ui/workspace/KisMainWindow.h>
 #include <application/ui/workspace/KisView.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qguiapplication.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qpointer.h>
 #include <qstringview.h>
-#include <qtpreprocessorsupport.h>
 #include <quuid.h>
 #include <utility>
 

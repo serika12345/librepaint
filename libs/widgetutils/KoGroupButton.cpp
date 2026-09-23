@@ -13,13 +13,12 @@
 #include <QStylePainter>
 
 #include <KLocalizedString>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
 #include <qpaintdevice.h>
 #include <qpalette.h>
 #include <qsizepolicy.h>
 #include <qstyle.h>
-#include <qtdeprecationdefinitions.h>
 #include <qwidget.h>
 
 class Q_DECL_HIDDEN KoGroupButton::Private

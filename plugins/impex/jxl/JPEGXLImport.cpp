@@ -59,9 +59,9 @@
 #include <kis_paint_layer.h>
 #include <kis_raster_keyframe_channel.h>
 #include <qcontainerfwd.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <type_traits>
 #include <vector>
 

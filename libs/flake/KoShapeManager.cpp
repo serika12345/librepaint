@@ -42,17 +42,14 @@
 #include <functional>
 #include <iterator>
 #include <memory>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qhash.h>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
 #include <qset.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <unordered_set>
 
 

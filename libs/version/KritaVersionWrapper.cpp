@@ -7,7 +7,7 @@
 
 #include <kritaversion.h>
 #include <kritagitversion.h>
-#include <qtversionchecks.h>
+#include <QtGlobal>
 
 QString KritaVersionWrapper::versionString(bool checkGit)
 {

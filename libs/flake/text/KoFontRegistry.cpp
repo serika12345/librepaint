@@ -28,22 +28,16 @@
 #include <hb.h>
 #include <qcontainerfwd.h>
 #include <qfont.h>
-#include <qforeach.h>
 #include <qhash.h>
-#include <qlatin1stringview.h>
 #include <qlist.h>
 #include <qlogging.h>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsharedpointer.h>
 #include <qstringview.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtenvironmentvariables.h>
-#include <qtypes.h>
 #include <utility>
 
 #include <optional>

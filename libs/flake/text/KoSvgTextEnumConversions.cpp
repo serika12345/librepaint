@@ -13,10 +13,8 @@
 #include <functional>
 #include <qcontainerfwd.h>
 #include <qfont.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlogging.h>
-#include <qminmax.h>
-#include <qtpreprocessorsupport.h>
 
 namespace KoSvgText
 {

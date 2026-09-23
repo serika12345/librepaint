@@ -14,7 +14,7 @@
 #include <QRectF>
 #include <qnumeric.h>
 #include <qsize.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KoZoomHandler::KoZoomHandler()
     : KoViewConverter()

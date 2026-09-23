@@ -37,11 +37,10 @@
 #include <kis_debug.h>
 
 #include <kstandardguiitem.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qdialog.h>
 #include <qdir.h>
-#include <qforeach.h>
 #include <qlist.h>
 #include <qlistwidget.h>
 #include <qnamespace.h>
@@ -50,8 +49,6 @@
 #include <qpolygon.h>
 #include <qsizepolicy.h>
 #include <qtextcursor.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 struct KisAdvancedColorSpaceSelector::Private {

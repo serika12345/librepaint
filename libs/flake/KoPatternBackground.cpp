@@ -15,10 +15,8 @@
 #include <QSharedData>
 #include <qdebug.h>
 #include <qlogging.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 class KoPatternBackground::Private : public QSharedData
 {

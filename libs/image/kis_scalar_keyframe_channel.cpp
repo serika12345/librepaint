@@ -18,15 +18,12 @@
 #include "kundo2stack.h"
 #include <kis_dom_utils.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qpoint.h>
 #include <qset.h>
 #include <qsharedpointer.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 KisScalarKeyframe::KisScalarKeyframe(qreal value, QSharedPointer<ScalarKeyframeLimits> limits)

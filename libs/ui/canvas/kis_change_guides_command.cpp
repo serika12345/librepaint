@@ -12,7 +12,7 @@
 
 #include <QList>
 #include <QListIterator>
-#include <qtypes.h>
+#include <QtGlobal>
 
 struct KisChangeGuidesCommand::Private
 {

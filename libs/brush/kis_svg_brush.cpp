@@ -19,7 +19,7 @@
 #include <qimage.h>
 #include <qnamespace.h>
 #include <qrgb.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 KisSvgBrush::KisSvgBrush(const QString& filename)
     : KisScalingSizeBrush(filename)

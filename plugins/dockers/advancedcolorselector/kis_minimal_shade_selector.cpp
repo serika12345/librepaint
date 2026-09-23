@@ -15,7 +15,7 @@
 #include <kconfig.h>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qwidget.h>
 

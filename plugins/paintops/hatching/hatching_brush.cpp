@@ -16,9 +16,8 @@
 
 #include <cmath>
 #include <math.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtypes.h>
 
 
 void inline myround(double *x)

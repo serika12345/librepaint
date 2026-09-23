@@ -13,7 +13,7 @@
 #include <qpaintdevice.h>
 #include <qpoint.h>
 #include <qtransform.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <tool/kis_scratch_pad.h>
 #include "Resource.h"
 #include "View.h"

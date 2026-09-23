@@ -14,7 +14,7 @@
 #include <KisSensorData.h>
 #include <optional>
 #include <qcontainerfwd.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KisDynamicSensor::KisDynamicSensor(const KoID &id,
                                      const KisSensorData &data,

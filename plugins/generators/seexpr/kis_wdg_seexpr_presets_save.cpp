@@ -24,8 +24,7 @@
 #include <qabstractitemmodel.h>
 #include <qobjectdefs.h>
 #include <qpixmap.h>
-#include <qtmetamacros.h>
-#include <qtversionchecks.h>
+#include <QtGlobal>
 
 #include "KisResourceModel.h"
 #include "KisResourceTypes.h"

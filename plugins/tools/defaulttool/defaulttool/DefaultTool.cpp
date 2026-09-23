@@ -92,19 +92,14 @@
 #include "krita_utils.h"
 
 #include <QVector2D>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qflags.h>
-#include <qforeach.h>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpixmap.h>
 #include <qset.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <utility>
 
 #define HANDLE_DISTANCE 10

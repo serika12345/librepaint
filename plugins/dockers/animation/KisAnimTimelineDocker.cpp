@@ -65,7 +65,7 @@
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
 #include <qsizepolicy.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 KisAnimTimelineDockerTitlebar::KisAnimTimelineDockerTitlebar(QWidget* parent) :

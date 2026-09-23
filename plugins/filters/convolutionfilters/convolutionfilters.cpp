@@ -12,7 +12,7 @@
 
 #include <qcontainerfwd.h>
 #include <qobject.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <stdlib.h>
 
 #include <klocalizedstring.h>

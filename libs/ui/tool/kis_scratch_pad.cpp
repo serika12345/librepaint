@@ -16,8 +16,7 @@
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoPointerEvent.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
@@ -25,10 +24,6 @@
 #include <qpainter.h>
 #include <qpen.h>
 #include <qpoint.h>
-#include <qtclasshelpermacros.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <resources/KoAbstractGradient.h>
 
 

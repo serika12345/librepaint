@@ -31,7 +31,7 @@
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qset.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 
 #define SNAPPING_THRESHOLD 10

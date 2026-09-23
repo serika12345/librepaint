@@ -28,20 +28,16 @@
 #include <QDomDocument>
 #include <QPainterPath>
 #include <QDebug>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
 #include <qcursor.h>
-#include <qforeach.h>
 #include <qlist.h>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qpixmap.h>
 #include <qpoint.h>
 #include <qsharedpointer.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 Q_GLOBAL_STATIC(KisPaintingAssistantFactoryRegistry, s_instance)
 

@@ -11,7 +11,7 @@
 #include <KoShapeManager.h>
 #include <KoSelection.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 
 struct KisSelectedShapesProxy::Private

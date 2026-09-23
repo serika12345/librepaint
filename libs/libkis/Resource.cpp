@@ -8,7 +8,7 @@
 #include <QBuffer>
 
 #include <kis_brush.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qimage.h>
 #include <KisResourceLocator.h>
 

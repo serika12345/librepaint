@@ -26,13 +26,10 @@
 #include <cmath>
 
 #include <KoViewConverter.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qfont.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
 #include <qline.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
@@ -40,8 +37,6 @@
 #include <qpolygon.h>
 #include <qsize.h>
 #include <qtextoption.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 // the distance in pixels of a mouse position considered outside the rule
 static const int OutsideRulerThreshold = 20;

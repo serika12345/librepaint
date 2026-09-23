@@ -17,8 +17,6 @@
 #include <qapplication.h>
 #include <qeventloop.h>
 #include <qnamespace.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
 
 #include "KisBusyWaitBroker.h"
 #include "kis_image.h"

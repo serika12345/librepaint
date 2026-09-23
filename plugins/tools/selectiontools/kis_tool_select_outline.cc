@@ -36,7 +36,7 @@
 #include <kis_selection_filters.h>
 #include <KisCursorOverrideLock.h>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "kis_algebra_2d.h"
 #include "kis_stroke_job_strategy.h"

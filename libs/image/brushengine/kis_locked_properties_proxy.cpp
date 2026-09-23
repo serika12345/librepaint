@@ -15,6 +15,7 @@
 #include <brushengine/kis_locked_properties_server.h>
 #include <brushengine/kis_paintop_settings.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qset.h>
 #include <qvariant.h>

@@ -10,9 +10,8 @@
 #include <QString>
 
 #include <KoResourcePaths.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qhash.h>
 
 #include "kis_debug.h"

@@ -12,7 +12,7 @@
 #include <kis_properties_configuration.h>
 #include <kis_paint_information.h>
 #include <KisStandardOptionData.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 KisHSVOption::KisHSVOption(const KisCurveOptionData &data)

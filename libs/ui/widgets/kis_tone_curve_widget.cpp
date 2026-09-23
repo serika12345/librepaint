@@ -17,9 +17,7 @@
 #include <QTextStream>
 #include <cmath>
 #include <klocalizedstring.h>
-#include <qassert.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qpixmap.h>
 #include <qrgb.h>

@@ -9,8 +9,7 @@
 #include "kundo2stack.h"
 #include "spiral/SpiralShape.h"
 #include <klocalizedstring.h>
-#include <qassert.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 SpiralShapeConfigCommand::SpiralShapeConfigCommand(SpiralShape *spiral, SpiralShape::SpiralType type, bool clockWise, qreal fade, KUndo2Command *parent)
     : KUndo2Command(parent)

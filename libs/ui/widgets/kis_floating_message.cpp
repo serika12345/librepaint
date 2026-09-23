@@ -22,7 +22,7 @@
 #include <QGraphicsDropShadowEffect>
 
 #include <qcolor.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>

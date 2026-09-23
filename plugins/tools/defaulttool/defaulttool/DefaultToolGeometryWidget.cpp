@@ -45,11 +45,9 @@
 #include "kis_icon_utils.h"
 #include "kis_signals_blocker.h"
 #include <qevent.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 DefaultToolGeometryWidget::DefaultToolGeometryWidget(KoInteractionTool *tool, QWidget *parent)

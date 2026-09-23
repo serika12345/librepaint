@@ -23,11 +23,9 @@
 #include <QPainter>
 #include <KisHandlePainterHelper.h>
 #include <algorithm>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qset.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 KoPathToolSelection::KoPathToolSelection(KoPathTool * tool)
         : m_tool(tool)

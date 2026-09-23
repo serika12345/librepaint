@@ -34,13 +34,11 @@
 #include <QReadLocker>
 #include <QWriteLocker>
 #include <memory>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
 #include <qimage.h>
-#include <qlatin1stringview.h>
 #include <qscopedpointer.h>
 #include <qtransform.h>
-#include <qtypes.h>
 #include <utility>
 
 void kisSharedPtrAddReference(KisSelection *pointer)

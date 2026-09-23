@@ -13,13 +13,10 @@
 #include <algorithm>
 #include <functional>
 #include <qalgorithms.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qhashfunctions.h>
 #include <qqueue.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 KisStroke::KisStroke(KisStrokeStrategy *strokeStrategy, Type type, int levelOfDetail)

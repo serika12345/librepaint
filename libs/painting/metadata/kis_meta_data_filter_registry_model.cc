@@ -11,11 +11,10 @@
 #include "kis_meta_data_filter_registry.h"
 #include <QStringList>
 #include <qabstractitemmodel.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qnamespace.h>
-#include <qtdeprecationdefinitions.h>
 #include <qvariant.h>
 
 using namespace KisMetaData;

@@ -30,10 +30,8 @@
 #include "kundo2magicstring.h"
 #include <QRegularExpression>
 #include <cstddef>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
 #include <qlist.h>
 #include <qobject.h>
 #include <qscopedpointer.h>

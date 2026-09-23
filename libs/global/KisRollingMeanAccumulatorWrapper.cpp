@@ -11,7 +11,7 @@
 #include <boost/accumulators/statistics/rolling_window.hpp>
 #include <boost/accumulators/statistics/stats.hpp>
 #include <boost/accumulators/statistics/rolling_mean.hpp>
-#include <qtypes.h>
+#include <QtGlobal>
 
 using namespace boost::accumulators;
 

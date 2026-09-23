@@ -56,11 +56,11 @@
 
 #include <math.h>
 #include <qapplication.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qevent.h>
-#include <qforeach.h>
 #include <qhashfunctions.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qnamespace.h>
@@ -69,8 +69,6 @@
 #include <qobjectdefs.h>
 #include <qset.h>
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 KisAssistantTool::KisAssistantTool(KoCanvasBase * canvas)
     : KisTool(canvas, KisCursor::arrowCursor())

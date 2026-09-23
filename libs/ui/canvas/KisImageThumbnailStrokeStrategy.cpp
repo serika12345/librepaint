@@ -18,11 +18,8 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoUpdater.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qnamespace.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include "KisRunnableStrokeJobUtils.h"
 #include "KisRunnableStrokeJobsInterface.h"
 #include "kundo2magicstring.h"

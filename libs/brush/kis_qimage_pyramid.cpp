@@ -5,18 +5,18 @@
  */
 
 #include "kis_qimage_pyramid.h"
+
+#include <QDebug>
 #include "kis_assert.h"
 #include "kis_dab_shape.h"
 
 #include <limits>
 #include <QPainter>
 #include <qimage.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpaintdevice.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #define MIPMAP_SIZE_THRESHOLD 512
 #define MAX_MIPMAP_SCALE 8.0

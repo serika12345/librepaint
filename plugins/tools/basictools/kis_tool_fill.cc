@@ -28,15 +28,13 @@
 
 #include <qdom.h>
 #include <qlist.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qset.h>
 #include <qsharedpointer.h>
 #include <qsizepolicy.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <kis_selection.h>
 
 #include <application/ui/workspace/KisViewManager.h>

@@ -28,7 +28,7 @@
 #include <qscopedpointer.h>
 #include <qsize.h>
 #include <qstringview.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace
 {

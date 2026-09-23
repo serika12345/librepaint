@@ -20,8 +20,7 @@
 #include <qlayoutitem.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 KisDelayedActionDoubleInput::KisDelayedActionDoubleInput(QWidget * parent, const QString & name)

@@ -23,7 +23,7 @@
 #include <kundo2magicstring.h>
 #include <mutex>
 #include <qmutex.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KisQStringListFwd.h"
 #include "gmic.h"

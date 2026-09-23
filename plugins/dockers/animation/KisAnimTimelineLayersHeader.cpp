@@ -17,15 +17,13 @@
 #include <QHelpEvent>
 #include <QToolTip>
 #include <qcoreevent.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qheaderview.h>
 #include <qicon.h>
 #include <qline.h>
 #include <qnamespace.h>
 #include <qpaintdevice.h>
 #include <qpoint.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <qvariant.h>
 #include <qwidget.h>
 

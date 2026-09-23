@@ -12,7 +12,7 @@
 #include <qabstractitemdelegate.h>
 #include <qabstractitemmodel.h>
 #include <qcolor.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobject.h>
@@ -20,8 +20,6 @@
 #include <qpoint.h>
 #include <qsize.h>
 #include <qstyleoption.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "KisAnimCurvesModel.h"
 #include "KisAnimCurvesValuesHeader.h"

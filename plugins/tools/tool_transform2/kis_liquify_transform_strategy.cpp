@@ -11,11 +11,8 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <cmath>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "KoPointerEvent.h"
 

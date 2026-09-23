@@ -14,11 +14,7 @@
 #include "KoColorSpaceConstants.h"
 #include "kis_config_widget.h"
 
-#include <qassert.h>
-#include <qforeach.h>
-#include <qminmax.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <stdlib.h>
 #include <math.h>
 

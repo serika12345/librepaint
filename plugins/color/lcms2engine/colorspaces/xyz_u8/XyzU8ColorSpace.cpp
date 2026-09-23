@@ -23,7 +23,7 @@
 #include <kis_dom_utils.h>
 #include <lcms2.h>
 #include <qnamespace.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 XyzU8ColorSpace::XyzU8ColorSpace(const QString &name, KoColorProfile *p)
     : LcmsColorSpace<KoXyzU8Traits>(colorSpaceId(), name, TYPE_XYZA_8, cmsSigXYZData, p)

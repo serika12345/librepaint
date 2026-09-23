@@ -24,15 +24,11 @@
 #include <KoID.h>
 #include <KoPointerEvent.h>
 #include <KoViewConverter.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qset.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <resources/KoAbstractGradient.h>
 #include <KoSnapGuide.h>
 

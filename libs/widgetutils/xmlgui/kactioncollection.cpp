@@ -35,16 +35,12 @@
 #include <QWidget>
 
 #include <qalgorithms.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcoreapplication.h>
-#include <qforeach.h>
 #include <qkeysequence.h>
-#include <qlatin1stringview.h>
 #include <qlogging.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 #include <stdio.h>
 
 #if defined(KCONFIG_BEFORE_5_24)

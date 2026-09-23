@@ -9,7 +9,7 @@
 #include "KoID.h"
 #include "MyPaintSensorPack.h"
 #include <qhashfunctions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 MyPaintCurveOptionData::MyPaintCurveOptionData(const QString &prefix,
                                        const KoID &id,

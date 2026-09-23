@@ -39,18 +39,14 @@
 
 #include <kstandardguiitem.h>
 #include <qapplication.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qboxlayout.h>
 #include <qdialog.h>
 #include <qgridlayout.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsizepolicy.h>
-#include <qtclasshelpermacros.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 #include <qwidget.h>
 
 class ThumbnailBounds : public KisDefaultBounds {

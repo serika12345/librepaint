@@ -17,7 +17,7 @@
 #include <KoConfig.h>
 #include <qcontainerfwd.h>
 #include <qhashfunctions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #ifdef HAVE_OPENEXR
 #include <half.h>
 #endif /* HAVE_OPENEXR */

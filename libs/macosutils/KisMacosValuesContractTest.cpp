@@ -9,7 +9,7 @@
 #include <QTest>
 #include <qobject.h>
 #include <qtestcase.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 
 class KisMacosValuesContractTest : public QObject

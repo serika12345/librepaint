@@ -27,7 +27,7 @@
 #include <qsize.h>
 #include <qstyle.h>
 #include <qstyleoption.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 #include <ui_WdgPaletteListWidget.h>
 #include "KisPaletteChooser.h"

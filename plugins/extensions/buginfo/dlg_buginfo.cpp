@@ -27,12 +27,11 @@
 
 
 #include <KisPortingUtils.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qconfig.h>
 #include <qdebug.h>
 #include <qguiapplication.h>
 #include <qhashfunctions.h>
-#include <qtversion.h>
 #include <qwidget.h>
 
 #ifdef Q_OS_ANDROID

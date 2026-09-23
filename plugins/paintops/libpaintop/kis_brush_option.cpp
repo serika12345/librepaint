@@ -19,7 +19,7 @@
 #include <KoAbstractGradient.h>
 #include <KoResourceLoadResult.h>
 #include <qlist.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 void KisBrushOptionProperties::writeOptionSettingImpl(KisPropertiesConfiguration *setting) const
 {

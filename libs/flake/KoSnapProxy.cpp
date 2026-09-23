@@ -12,7 +12,7 @@
 #include "KoPathPoint.h"
 #include <KoSnapData.h>
 #include <KoShapeLayer.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 
 KoSnapProxy::KoSnapProxy(KoSnapGuide * snapGuide)

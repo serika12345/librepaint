@@ -8,8 +8,7 @@
 
 #include <KoColorSpace.h>
 #include <qobject.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "kis_layer.h"
 #include "kis_image.h"

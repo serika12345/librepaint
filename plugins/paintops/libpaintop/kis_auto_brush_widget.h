@@ -11,7 +11,7 @@
 #include <QResizeEvent>
 #include <QString>
 #include <QWidget>
-#include <QtCore/qtmetamacros.h>
+#include <QtGlobal>
 
 #include <kis_brush.h>
 #include <kritapaintop_export.h>

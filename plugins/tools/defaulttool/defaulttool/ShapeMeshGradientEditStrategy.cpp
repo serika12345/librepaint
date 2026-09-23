@@ -14,7 +14,7 @@
 #include <kis_command_utils.h>
 #include <memory>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 struct ShapeMeshGradientEditStrategy::Private {
     Private(const QPointF& start, KoShape *shape, KoFlake::FillVariant fillVariant)

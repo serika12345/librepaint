@@ -15,7 +15,7 @@
 #include <KisFileUtils.h>
 #include <qcontainerfwd.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qvalidator.h>
 #include <qwidget.h>
 

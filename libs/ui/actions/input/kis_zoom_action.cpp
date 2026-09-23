@@ -23,12 +23,10 @@
 #include "KoZoomMode.h"
 #include "kis_assert.h"
 #include <qcursor.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include "kis_cursor.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_input_manager.h"

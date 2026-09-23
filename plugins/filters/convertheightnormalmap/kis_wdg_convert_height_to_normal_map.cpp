@@ -15,7 +15,7 @@
 #include <qlabel.h>
 #include <qlist.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 KisWdgConvertHeightToNormalMap::KisWdgConvertHeightToNormalMap(QWidget *parent, const KoColorSpace *cs)

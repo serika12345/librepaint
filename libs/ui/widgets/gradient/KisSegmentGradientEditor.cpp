@@ -16,8 +16,7 @@
 #include <qboxlayout.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <resources/KoSegmentGradient.h>
 
 

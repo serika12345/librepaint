@@ -7,10 +7,9 @@
  */
 
 #include "wavefilter.h"
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qobject.h>
-#include <qtpreprocessorsupport.h>
 #include <stdlib.h>
 #include <math.h>
 #include <QPoint>

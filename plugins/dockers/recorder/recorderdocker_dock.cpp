@@ -16,14 +16,13 @@
 #include "recorder_snapshots_manager.h"
 #include <qcolor.h>
 #include <qmap.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpalette.h>
 #include <qscopedpointer.h>
 #include <qscroller.h>
-#include <qtypes.h>
 #ifndef Q_OS_IOS
 #include "recorder_export.h"
 #endif

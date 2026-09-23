@@ -12,7 +12,7 @@
 #include <boost/optional/optional.hpp>
 #include <klocalizedstring.h>
 #include <QPointF>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 #include <utility>
 #include "kis_assert.h"
 #include "KoPathMergeUtils.h"

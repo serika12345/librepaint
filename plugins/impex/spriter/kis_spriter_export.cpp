@@ -5,6 +5,8 @@
  */
 
 #include "kis_spriter_export.h"
+
+#include <QDebug>
 #include "KisExportCheckBase.h"
 #include "KisImportExportErrorCode.h"
 #include "KoColorModelStandardIds.h"
@@ -39,13 +41,11 @@
 #include <kis_fast_math.h>
 #include <math.h>
 #include <kis_layer_utils.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qlist.h>
 #include <qnumeric.h>
 #include <qobject.h>
-#include <qtypes.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KisSpriterExportFactory, "krita_spriter_export.json", registerPlugin<KisSpriterExport>();)
 

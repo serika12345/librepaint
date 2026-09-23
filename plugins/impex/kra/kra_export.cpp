@@ -18,7 +18,7 @@
 #include <document/KisDocument.h>
 #include <kis_shape_layer.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qobject.h>
 
 #include "KisExportCheckBase.h"

@@ -14,8 +14,6 @@
 
 #include <kis_paint_information.h>
 #include <optional>
-#include <qminmax.h>
-#include <qtypes.h>
 
 
 KisDynamicSensorFade::KisDynamicSensorFade(const KisSensorWithLengthData &data, std::optional<KisCubicCurve> curveOverride)

@@ -5,7 +5,7 @@
  */
 
 #include <KisColorSelectorInterface.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 void KisColorSelectorInterface::slotSetColorSpace(const KoColorSpace *cs)
 {

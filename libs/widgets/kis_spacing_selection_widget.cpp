@@ -9,9 +9,7 @@
 #include <QCheckBox>
 #include <QHBoxLayout>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 #include "klocalizedstring.h"

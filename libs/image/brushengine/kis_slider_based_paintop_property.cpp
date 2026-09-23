@@ -11,8 +11,7 @@
 #include "kis_uniform_paintop_property.h"
 #include <qlogging.h>
 #include <qobject.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 template<typename T>
 KisSliderBasedPaintOpProperty<T>::KisSliderBasedPaintOpProperty(Type type,

@@ -14,8 +14,7 @@
 #include <qobjectdefs.h>
 #include <qsize.h>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 KoColorPatch::KoColorPatch( QWidget *parent ) : QFrame( parent )

@@ -11,7 +11,7 @@
 
 #include <KoDockFactoryBase.h>
 #include <KoDockRegistry.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qnamespace.h>
 #include <qobject.h>

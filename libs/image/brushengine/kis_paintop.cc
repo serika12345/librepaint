@@ -21,11 +21,8 @@
 #include "kis_paint_device.h"
 #include <brushengine/kis_paint_information.h>
 #include "kis_types.h"
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <utility>
 #include "kis_vec.h"
 #include "kis_perspective_math.h"

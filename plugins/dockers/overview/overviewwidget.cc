@@ -26,14 +26,11 @@
 #include <application/ui/workspace/KisMainWindow.h>
 #include "canvas/KisIdleTasksManager.h"
 #include <canvas/KisDisplayConfig.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpolygon.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 OverviewWidget::OverviewWidget(QWidget * parent)

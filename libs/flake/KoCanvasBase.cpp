@@ -20,7 +20,7 @@
 #include "KoSelection.h"
 #include "KoSelectedShapesProxy.h"
 #include <KoColorDisplayRendererInterface.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qobject.h>
 
 class Q_DECL_HIDDEN KoCanvasBase::Private

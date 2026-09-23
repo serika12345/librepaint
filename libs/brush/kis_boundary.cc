@@ -9,7 +9,7 @@
 #include <QPainterPath>
 #include <QPen>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 
 #include "KoColorSpaceConstants.h"

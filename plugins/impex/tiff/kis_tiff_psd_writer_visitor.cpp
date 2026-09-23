@@ -18,7 +18,7 @@
 #include <cstdint>
 #include <memory>
 
-#include <qtypes.h>
+#include <QtGlobal>
 #include <tiff.h>
 
 #include <KoColorProfile.h>

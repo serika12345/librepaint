@@ -15,9 +15,8 @@
 #include "kundo2magicstring.h"
 #include "kundo2stack.h"
 #include <KoShapeBulkActionLock.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qpoint.h>
-#include <qtypes.h>
 
 KoPathControlPointMoveCommand::KoPathControlPointMoveCommand(
     const KoPathPointData &pointData,

@@ -17,7 +17,7 @@
 #include <QGlobalStatic>
 #include <qalgorithms.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 
 Q_GLOBAL_STATIC(KoToolRegistry, s_instance)

@@ -24,7 +24,7 @@
 #include "KisPaintingModeOptionWidget.h"
 #include "kis_types.h"
 #include <KisTextureOptionWidget.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 KisTangentNormalPaintOpSettingsWidget::KisTangentNormalPaintOpSettingsWidget(QWidget* parent, KisResourcesInterfaceSP resourcesInterface, KoCanvasResourcesInterfaceSP canvasResourcesInterface):

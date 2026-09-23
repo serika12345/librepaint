@@ -15,7 +15,7 @@
 #include "kis_paint_device.h"
 #include "kis_transform_mask_params_interface.h"
 #include "kis_types.h"
-#include <qassert.h>
+#include <QtGlobal>
 #include <qobject.h>
 
 KisRecalculateTransformMaskJob::KisRecalculateTransformMaskJob(KisTransformMaskSP mask, const QRect &extraUpdateRect)

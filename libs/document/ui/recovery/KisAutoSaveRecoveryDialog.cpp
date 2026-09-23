@@ -8,7 +8,7 @@
 #include "kis_document_autosave_files.h"
 #include <qalgorithms.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qnamespace.h>
@@ -16,7 +16,6 @@
 #include <qobjectdefs.h>
 #include <qscroller.h>
 #include <qsize.h>
-#include <qtversionchecks.h>
 #include <qwidget.h>
 #include <recovery/KisAutoSaveRecoveryDialog.h>
 

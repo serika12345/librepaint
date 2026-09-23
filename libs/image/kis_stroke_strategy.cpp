@@ -12,9 +12,7 @@
 #include "kundo2magicstring.h"
 #include <qalgorithms.h>
 #include <qcontainerfwd.h>
-#include <qlatin1stringview.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 KisStrokeStrategy::KisStrokeStrategy(const QLatin1String &id, const KUndo2MagicString &name)

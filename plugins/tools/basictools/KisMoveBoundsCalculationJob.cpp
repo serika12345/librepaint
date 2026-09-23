@@ -12,9 +12,8 @@
 #include "kis_spontaneous_job.h"
 #include "kis_types.h"
 #include <qdebug.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qobject.h>
-#include <qtmetamacros.h>
 
 KisMoveBoundsCalculationJob::KisMoveBoundsCalculationJob(KisNodeList nodes,
                                                          KisSelectionSP selection,

@@ -27,7 +27,7 @@
 #include <kundo2command.h>
 #include <KoKeepShapesSelectedCommand.h>
 #include <KoColorDisplayRendererInterface.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qline.h>
 #include <qlist.h>
 #include <qlogging.h>

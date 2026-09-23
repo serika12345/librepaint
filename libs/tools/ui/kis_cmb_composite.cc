@@ -23,13 +23,12 @@
 #include <qabstractitemmodel.h>
 #include <qcombobox.h>
 #include <qlistview.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qstyleoption.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 //////////////////////////////////////////////////////////////////////////////////////////

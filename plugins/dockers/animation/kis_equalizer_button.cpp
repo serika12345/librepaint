@@ -18,8 +18,7 @@
 #include <qpaintdevice.h>
 #include <qrgb.h>
 #include <qsizepolicy.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 

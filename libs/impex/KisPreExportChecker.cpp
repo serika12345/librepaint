@@ -8,7 +8,7 @@
 #include "KisExportCheckBase.h"
 #include "KisExportCheckRegistry.h"
 
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qmap.h>
 #include <kis_image.h>

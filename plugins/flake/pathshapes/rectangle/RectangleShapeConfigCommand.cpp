@@ -7,8 +7,7 @@
 #include "RectangleShapeConfigCommand.h"
 #include "RectangleShape.h"
 #include <klocalizedstring.h>
-#include <qassert.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include "kis_command_ids.h"
 #include "kundo2magicstring.h"
 #include "kundo2stack.h"

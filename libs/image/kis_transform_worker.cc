@@ -15,18 +15,16 @@
 #include <cmath>
 #include <cstring>
 #include <math.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qmath.h>
 #include <klocalizedstring.h>
 
 #include <QTransform>
 
 #include <KoColor.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qstringview.h>
-#include <qtypes.h>
 
 #include "kis_assert.h"
 #include "kis_filter_weights_buffer.h"

@@ -18,14 +18,10 @@
 #include <functional>
 #include <iterator>
 #include <mutex>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <tuple>
 #include <utility>
 #include "kis_stroke.h"

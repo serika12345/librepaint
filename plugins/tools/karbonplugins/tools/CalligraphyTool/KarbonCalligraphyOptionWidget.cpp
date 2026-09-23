@@ -23,12 +23,9 @@
 #include <QToolButton>
 #include <QMessageBox>
 #include <qalgorithms.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 #include "kis_double_parse_spin_box.h"
 

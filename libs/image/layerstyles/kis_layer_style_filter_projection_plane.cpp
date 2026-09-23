@@ -20,7 +20,7 @@
 #include "KisLayerStyleKnockoutBlower.h"
 #include "kis_types.h"
 #include <qscopedpointer.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 
 struct KisLayerStyleFilterProjectionPlane::Private

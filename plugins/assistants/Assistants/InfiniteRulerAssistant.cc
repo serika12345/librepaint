@@ -27,11 +27,10 @@
 
 #include <limits>
 #include <math.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qline.h>
 #include <qmap.h>
 #include <qpoint.h>
-#include <qtypes.h>
 
 InfiniteRulerAssistant::InfiniteRulerAssistant()
     : RulerAssistant("infinite ruler", i18n("Infinite Ruler assistant"))

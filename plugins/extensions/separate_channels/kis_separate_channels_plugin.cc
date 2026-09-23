@@ -22,7 +22,7 @@
 #include <kis_layer.h>
 #include <canvas/kis_statusbar.h>
 #include <nodes/kis_node_manager.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qdialog.h>
 #include <qnamespace.h>

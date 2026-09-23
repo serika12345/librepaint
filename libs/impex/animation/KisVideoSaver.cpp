@@ -26,7 +26,7 @@
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qscopedpointer.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include "application/kis_config.h"
 #include "KisAnimationRenderingOptions.h"
 

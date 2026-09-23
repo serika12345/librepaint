@@ -7,8 +7,7 @@
 #include "kis_scaling_size_brush.h"
 #include "kis_brush.h"
 #include <qhashfunctions.h>
-#include <qminmax.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KisScalingSizeBrush::KisScalingSizeBrush()
     : KisBrush()

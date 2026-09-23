@@ -5,6 +5,8 @@
  */
 
 #include "kis_algebra_2d.h"
+
+#include <QDebug>
 #include "kis_assert.h"
 #include "kis_global.h"
 
@@ -19,12 +21,11 @@
 
 #include <config-gsl.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpoint.h>
-#include <qtypes.h>
 #include <utility>
 
 #ifdef HAVE_GSL

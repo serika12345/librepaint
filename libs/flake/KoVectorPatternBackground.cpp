@@ -15,7 +15,7 @@
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qshareddata.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 class KoVectorPatternBackground::Private : public QSharedData
 {

@@ -23,7 +23,7 @@
 #include <KoColorSpaceRegistry.h>
 #include <KisGlobalResourcesInterface.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qobjectdefs.h>
 #include <qwidget.h>
 

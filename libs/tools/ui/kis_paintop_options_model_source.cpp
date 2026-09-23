@@ -9,7 +9,7 @@
 
 #include <QSignalMapper>
 #include <qobject.h>
-#include <qoverload.h>
+#include <QtGlobal>
 
 namespace KisPaintOpOptionsModelSource
 {

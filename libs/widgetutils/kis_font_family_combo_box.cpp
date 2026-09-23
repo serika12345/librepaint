@@ -22,8 +22,7 @@
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
 #include <qfont.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
@@ -32,8 +31,6 @@
 #include <qsizepolicy.h>
 #include <qstyleditemdelegate.h>
 #include <qstyleoption.h>
-#include <qtmetamacros.h>
-#include <qtversionchecks.h>
 
 PinnedFontsSeparator::PinnedFontsSeparator(QAbstractItemDelegate *_default, QWidget *parent)
     : QStyledItemDelegate(parent)

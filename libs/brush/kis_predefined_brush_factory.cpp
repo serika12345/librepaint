@@ -22,9 +22,7 @@
 #include <kis_dom_utils.h>
 #include <KisResourcesInterface.h>
 #include <optional>
-#include <qminmax.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <variant>
 #include "kis_imagepipe_brush.h"
 

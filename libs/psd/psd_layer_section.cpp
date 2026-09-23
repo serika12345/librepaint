@@ -68,16 +68,15 @@
 #include <memory>
 #include <qalgorithms.h>
 #include <qdom.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qpolygon.h>
 #include <qsharedpointer.h>
-#include <qtypes.h>
 
 PSDLayerMaskSection::PSDLayerMaskSection(const PSDHeader &header)
     : globalInfoSection(header)

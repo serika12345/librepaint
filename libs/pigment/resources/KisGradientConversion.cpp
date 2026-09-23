@@ -11,7 +11,7 @@
 #include <KoCanvasResourcesIds.h>
 #include <qbrush.h>
 #include <qnumeric.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KisGradientConversion.h"
 #include "KoAbstractGradient.h"

@@ -39,12 +39,10 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_slider_spin_box.h>
 #include <kis_cursor.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qset.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include "kis_resources_snapshot.h"
 #include "kis_command_utils.h"
 #include "kis_processing_applicator.h"

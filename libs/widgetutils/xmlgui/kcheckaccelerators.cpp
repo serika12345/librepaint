@@ -8,6 +8,8 @@
 
 #include "kcheckaccelerators.h"
 
+#include <QDebug>
+
 #include <QApplication>
 #include <QCheckBox>
 #include <QDialog>
@@ -31,8 +33,7 @@
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #ifndef Q_OS_IOS
 #include <QProcess>
 #endif

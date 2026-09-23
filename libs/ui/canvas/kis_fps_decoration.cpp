@@ -25,7 +25,7 @@
 #include <qpaintdevice.h>
 #include <qpointer.h>
 #include <qsize.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 const QString KisFpsDecoration::idTag = "fps_decoration";
 

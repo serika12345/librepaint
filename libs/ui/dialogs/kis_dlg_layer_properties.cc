@@ -24,14 +24,13 @@
 #include <kis_cmb_composite.h>
 #include <qcheckbox.h>
 #include <qdialog.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpaintdevice.h>
 #include <qpointer.h>
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
 #include "KoColorProfile.h"
 #include "kis_base_node.h"
 #include "kis_pointer_utils.h"

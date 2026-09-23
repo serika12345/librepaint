@@ -12,7 +12,8 @@
 #include <QVariantList>
 #include <QBuffer>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
 

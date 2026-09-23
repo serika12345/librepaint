@@ -10,9 +10,8 @@
 #include "KisRunnableBasedStrokeStrategy.h"
 #include "kis_assert.h"
 #include "kis_debug.h"
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qlatin1stringview.h>
 #include "kis_image_interfaces.h"
 #include "kis_post_execution_undo_adapter.h"
 #include "commands_new/kis_saved_commands.h"

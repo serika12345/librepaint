@@ -29,13 +29,13 @@
 #include <memory>
 #include <optional>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qline.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpair.h>
@@ -43,9 +43,6 @@
 #include <qset.h>
 #include <qsharedpointer.h>
 #include <qtextoption.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 #include <text/KoCssTextUtils.h>
 #include <text/KoSvgTextShapeMarkupConverter.h>
 

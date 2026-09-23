@@ -27,8 +27,7 @@
 #include <NodeTypeCheck.h>
 #include <PSDLayerStylesCheck.h>
 #include <qalgorithms.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <sRGBProfileCheck.h>
 #include <ShapeLayerTypeCheck.h>

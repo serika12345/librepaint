@@ -31,14 +31,12 @@
 #include <kis_processing_information.h>
 #include <kpluginfactory.h>
 #include <math.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qobject.h>
 #include <qpaintdevice.h>
 #include <qsize.h>
 #include <qstringview.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qvariant.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaSimplexNoiseGeneratorFactory, "kritasimplexnoisegenerator.json", registerPlugin<KisSimplexNoiseGeneratorHandle>();)

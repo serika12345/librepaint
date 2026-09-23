@@ -36,7 +36,8 @@
 #include <qapplication.h>
 #include <qcolor.h>
 #include <qcoreevent.h>
-#include <qforeach.h>
+#include <QtGlobal>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>

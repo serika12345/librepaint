@@ -34,13 +34,13 @@
 
 #include <KoPathShape.h>
 #include <KoPathSegment.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qpolygon.h>
-#include <qtypes.h>
 
 SvgCreateTextStrategy::SvgCreateTextStrategy(SvgTextTool *tool, const QPointF &clicked, KoShape *shape)
     : KoInteractionStrategy(tool)

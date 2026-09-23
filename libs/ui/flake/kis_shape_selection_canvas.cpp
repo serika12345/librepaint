@@ -15,9 +15,8 @@
 #include <KoShapeManager.h>
 #include <KoSelectedShapesProxySimple.h>
 #include <KoUnit.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
 
 KisShapeSelectionCanvas::KisShapeSelectionCanvas(KoShapeControllerBase *shapeController)
     : KoCanvasBase(shapeController)

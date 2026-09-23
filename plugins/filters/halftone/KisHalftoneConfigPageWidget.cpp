@@ -16,10 +16,9 @@
 
 #include <QScrollBar>
 #include <QResizeEvent>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qboxlayout.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 
 #include "KisHalftoneConfigPageWidget.h"

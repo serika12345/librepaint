@@ -40,7 +40,7 @@
 #include "application/kis_config.h"
 #include "application/ui/orchestration/kis_action_manager.h"
 #include <QMenu>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>

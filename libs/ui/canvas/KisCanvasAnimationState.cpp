@@ -38,12 +38,10 @@
 
 #include "kis_image_config.h"
 #include <limits>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_icon_utils.h"

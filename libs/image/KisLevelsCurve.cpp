@@ -12,7 +12,7 @@
 #include <qcontainerfwd.h>
 #include <qhashfunctions.h>
 #include <qnumeric.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KisLevelsCurve.h"
 #include "kis_assert.h"

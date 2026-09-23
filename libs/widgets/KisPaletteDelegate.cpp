@@ -13,7 +13,7 @@
 #include <qabstractitemdelegate.h>
 #include <qabstractitemmodel.h>
 #include <qhashfunctions.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qpaintdevice.h>

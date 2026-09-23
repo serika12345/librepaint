@@ -13,13 +13,12 @@
 #include <cstddef>
 #include <deque>
 #include <algorithm>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qobject.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 uint qHash(const KoColor &color, uint seed = 0)
 {

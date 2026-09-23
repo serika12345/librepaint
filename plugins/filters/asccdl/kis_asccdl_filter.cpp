@@ -22,7 +22,7 @@
 #include <qmath.h>
 #include <qnamespace.h>
 #include <qobject.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaASCCDLFactory,

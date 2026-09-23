@@ -11,12 +11,11 @@
 #include <limits>
 #include <cmath>
 #include <qcontainerfwd.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <qpoint.h>
 #include <qpolygon.h>
 #include <qsize.h>
-#include <qtypes.h>
 
 #include "KisScreentoneGeneratorConfiguration.h"
 #include "KisScreentoneScreentoneFunctions.h"

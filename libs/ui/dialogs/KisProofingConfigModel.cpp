@@ -9,6 +9,7 @@
 #include "KoColorConversionTransformation.h"
 #include "KoID.h"
 #include <KisLager.h>
+#include <KisPortingUtils.h>
 #include <KisZug.h>
 
 #include <functional>
@@ -20,10 +21,9 @@
 #include <lager/constant.hpp>
 #include <lager/watch.hpp>
 #include <lager/with.hpp>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qobject.h>
-#include <qtversionchecks.h>
 
 namespace {
 auto conversionFlag = [](KoColorConversionTransformation::ConversionFlag flag) {

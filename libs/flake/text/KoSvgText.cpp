@@ -31,14 +31,10 @@
 #include <KisStaticInitializer.h>
 #include <qdom.h>
 #include <qfont.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <qregion.h>
 #include <qtextoption.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KoSvgText::CssLengthPercentage>("KoSvgText::CssLengthPercentage");

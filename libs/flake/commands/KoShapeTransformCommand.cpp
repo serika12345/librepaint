@@ -15,8 +15,7 @@
 #include <QList>
 #include <QTransform>
 
-#include <qassert.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 
 namespace
 {

@@ -7,8 +7,7 @@
 #include "StoryboardModel.h"
 #include "document/StoryboardItem.h"
 #include <qabstractitemmodel.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 void StoryboardModel::slotCommentDataChanged()
 {

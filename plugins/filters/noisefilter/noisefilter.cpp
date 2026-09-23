@@ -8,13 +8,10 @@
 
 #include "noisefilter.h"
 #include <cstdlib>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qminmax.h>
 #include <qobject.h>
 #include <qrgb.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <vector>
 
 #include <kpluginfactory.h>

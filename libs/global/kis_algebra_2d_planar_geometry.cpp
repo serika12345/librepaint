@@ -17,12 +17,11 @@
 #include <qcontainerfwd.h>
 #include <qline.h>
 #include <qlist.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpoint.h>
 #include <qpolygon.h>
-#include <qtypes.h>
 
 namespace KisAlgebra2D {
 

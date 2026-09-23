@@ -25,8 +25,7 @@
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpoint.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 constexpr qreal DISCRETE_ANGLE_STEP = 15.0;  // discrete rotation snapping angle
 

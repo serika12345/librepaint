@@ -12,7 +12,7 @@
 #include <kis_processing_information.h>
 #include <kis_processing_visitor.h>
 #include <krita_utils.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 
 #include "kis_generator_stroke_strategy.h"
 #include "KisQStringListFwd.h"

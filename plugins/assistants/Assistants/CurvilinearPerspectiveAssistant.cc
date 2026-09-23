@@ -29,8 +29,7 @@
 #include <qline.h>
 #include <qmap.h>
 #include <qpoint.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 CurvilinearPerspectiveAssistant::CurvilinearPerspectiveAssistant()
     : KisPaintingAssistant("curvilinear-perspective", i18n("Curvilinear Perspective assistant"))

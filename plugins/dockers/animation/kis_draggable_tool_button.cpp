@@ -10,10 +10,8 @@
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qpoint.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qtoolbutton.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 

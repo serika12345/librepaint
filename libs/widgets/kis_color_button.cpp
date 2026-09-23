@@ -29,7 +29,7 @@
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpushbutton.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 class KisColorButton::KisColorButtonPrivate

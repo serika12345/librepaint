@@ -13,10 +13,8 @@
 #include "KoShapeControllerBase.h"
 
 #include <klocalizedstring.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
 
 #include "kis_pointer_utils.h"
 #include "kundo2magicstring.h"

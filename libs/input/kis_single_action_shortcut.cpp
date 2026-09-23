@@ -14,7 +14,7 @@
 #include <qcontainerfwd.h>
 #include <qnamespace.h>
 #include <qset.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 
 class Q_DECL_HIDDEN KisSingleActionShortcut::Private
 {

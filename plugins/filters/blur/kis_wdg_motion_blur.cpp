@@ -13,7 +13,7 @@
 #include <kis_paint_device.h>
 #include <KisGlobalResourcesInterface.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 #include "KisAngleGauge.h"

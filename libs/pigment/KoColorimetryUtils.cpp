@@ -11,7 +11,7 @@
 #include <cstdlib>
 #include <qmatrix4x4.h>
 #include <qnumeric.h>
-#include <qvectornd.h>
+#include <QtGlobal>
 
 namespace KoColorimetryUtils
 {

@@ -7,7 +7,7 @@
 
 #include "kis_precision_option.h"
 
-#include <QtCore/qtypes.h>
+#include <QtGlobal>
 
 #include "kis_properties_configuration.h"
 

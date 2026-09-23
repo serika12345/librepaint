@@ -12,11 +12,9 @@
 #include <cmath>
 
 #include <functional>
-#include <qassert.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qpoint.h>
 #include <qscopedpointer.h>
-#include <qtypes.h>
 
 #include "kis_algebra_2d.h"
 #include "kis_assert.h"

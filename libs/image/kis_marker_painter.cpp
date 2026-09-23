@@ -12,7 +12,7 @@
 #include <qcontainerfwd.h>
 #include <qpaintdevice.h>
 #include <qpoint.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "kis_assert.h"
 #include "kis_paint_device.h"

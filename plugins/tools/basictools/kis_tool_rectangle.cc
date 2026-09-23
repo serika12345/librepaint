@@ -34,7 +34,7 @@
 #include <qmath.h>
 #include <qobjectdefs.h>
 #include <qpainterpath.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 KisToolRectangle::KisToolRectangle(KoCanvasBase * canvas)

@@ -21,11 +21,10 @@
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
 #include <qcoreevent.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qheaderview.h>
 #include <qitemselectionmodel.h>
 #include <qline.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
@@ -36,10 +35,6 @@
 #include <qscopedpointer.h>
 #include <qstyle.h>
 #include <qstyleoption.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 #include <qvariant.h>
 
 #include "KisTimeBasedItemModel.h"

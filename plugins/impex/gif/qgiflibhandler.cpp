@@ -9,14 +9,13 @@
 #include <QVariant>
 #include <cstdlib>
 #include <gif_lib.h>
-#include <qbytearrayalgorithms.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qimage.h>
 #include <qimageiohandler.h>
 #include <qlogging.h>
 #include <qobject.h>
 #include <qrgb.h>
-#include <qtypes.h>
 #include <string.h>		// memset
 #include <QPainter>
 

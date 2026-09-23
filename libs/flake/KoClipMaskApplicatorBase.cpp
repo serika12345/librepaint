@@ -7,7 +7,7 @@
 #include "KoStreamedMath.h"
 #include "xsimd_extensions/config/xsimd_arch.hpp"
 #include <qrgb.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 void KoClipMaskApplicatorBase::fallbackLuminanceMask(quint8 *pixels, quint8 *maskPixels, const int nPixels) const{
     const quint32 colorChannelsMask = 0x00FFFFFF;

@@ -6,7 +6,7 @@
 #ifndef KISCOMPOSITEOPOPTIONMODEL_H
 #define KISCOMPOSITEOPOPTIONMODEL_H
 
-#include <QtCore/qtmetamacros.h>
+#include <QtGlobal>
 
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>

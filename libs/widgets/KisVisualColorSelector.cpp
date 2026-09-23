@@ -18,9 +18,8 @@
 #include "KoColor.h"
 #include "KoColorDisplayRendererInterface.h"
 #include <qalgorithms.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qevent.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobject.h>
@@ -29,9 +28,6 @@
 #include <qpoint.h>
 #include <qsize.h>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qwidget.h>
 #include <utility>
 //#include <QPointer>

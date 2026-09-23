@@ -13,7 +13,7 @@
 #include "KisReferenceImagesLayer.h"
 #include "canvas/KisDecorationsWrapperLayer.h"
 #include <qabstractitemmodel.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 
 

@@ -39,14 +39,10 @@
 #include <kis_cursor.h>
 #include <kis_image.h>
 #include <kis_selection.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qobjectdefs.h>
 #include <qset.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <canvas/kis_statusbar.h>
 #include <kis_transform_worker.h>
 #include <kis_warptransform_worker.h>

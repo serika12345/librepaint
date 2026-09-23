@@ -10,8 +10,7 @@
 #include <QVector>
 #include <qcontainerfwd.h>
 #include <qlist.h>
-#include <qminmax.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "kis_assert.h"
 #include "kis_global.h"

@@ -22,14 +22,13 @@
 #include <QVector>
 
 #include <qabstractitemmodel.h>
-#include <qforeach.h>
+#include <QtGlobal>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsortfilterproxymodel.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 
 static int s_fakeRowsCount {2};
 

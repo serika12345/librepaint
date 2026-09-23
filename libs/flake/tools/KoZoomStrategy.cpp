@@ -17,7 +17,7 @@
 
 #include <QTransform>
 #include <qnamespace.h>
-#include <qtclasshelpermacros.h>
+#include <QtGlobal>
 
 KoZoomStrategy::KoZoomStrategy(KoZoomTool *tool, KoCanvasController *controller, const QPointF &clicked)
         : KoShapeRubberSelectStrategy(tool, clicked, false),

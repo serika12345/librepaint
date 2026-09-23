@@ -9,7 +9,7 @@
 #include "phong_bumpmap_constants.h"
 #include <cmath>
 #include <math.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 PhongPixelProcessor::PhongPixelProcessor(quint32 pixelArea, const KisPropertiesConfigurationSP config)

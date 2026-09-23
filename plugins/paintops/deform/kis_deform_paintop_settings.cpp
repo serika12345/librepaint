@@ -7,13 +7,11 @@
 #include <KisOptimizedBrushOutline.h>
 #include <QPainterPath>
 #include <kis_deform_paintop_settings.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "KisBrushSizeOptionData.h"
 

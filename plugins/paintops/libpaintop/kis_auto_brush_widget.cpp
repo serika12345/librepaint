@@ -17,7 +17,7 @@
 #include <QSharedPointer>
 #include <QSize>
 #include <QtCore/qnamespace.h>
-#include <QtCore/qtypes.h>
+#include <QtGlobal>
 
 #include <KLocalizedString>
 

@@ -12,7 +12,7 @@
 #include <algorithm>
 #include <iterator>
 #include <klocalizedstring.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qscopedpointer.h>
 #include <qtransform.h>

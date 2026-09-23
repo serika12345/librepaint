@@ -15,8 +15,7 @@
 
 
 #include <QColor>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 // -- KoSimpleColorConversionTransformation --
 

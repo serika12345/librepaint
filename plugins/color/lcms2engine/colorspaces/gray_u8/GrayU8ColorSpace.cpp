@@ -23,7 +23,7 @@
 #include "dithering/KisGrayDitherOpFactory.h"
 #include <kis_dom_utils.h>
 #include <lcms2.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 GrayAU8ColorSpace::GrayAU8ColorSpace(const QString &name, KoColorProfile *p)
     : LcmsColorSpace<KoGrayU8Traits>(colorSpaceId(), name,  TYPE_GRAYA_8, cmsSigGrayData, p)

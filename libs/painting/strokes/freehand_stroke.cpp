@@ -33,7 +33,7 @@
 #include "KisStrokeEfficiencyMeasurer.h"
 #include <KisStrokeSpeedMonitor.h>
 #include <numeric>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <strokes/KisFreehandStrokeInfo.h>
 #include <strokes/KisMaskedFreehandStrokePainter.h>
 #include <tuple>

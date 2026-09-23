@@ -11,9 +11,8 @@
 #include <QFile>
 #include <QDir>
 #include <StoreDebug.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qobject.h>
-#include <qtclasshelpermacros.h>
 
 // HMMM... I used QFile and QDir.... but maybe this should be made network transparent?
 

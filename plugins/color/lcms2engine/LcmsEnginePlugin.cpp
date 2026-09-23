@@ -56,9 +56,8 @@
 #include <KoConfig.h>
 #include <lcms2.h>
 #include <optional>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qlogging.h>
 #include <qobject.h>
 

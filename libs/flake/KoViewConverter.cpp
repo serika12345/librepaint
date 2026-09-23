@@ -10,7 +10,7 @@
 #include <QRectF>
 #include <QTransform>
 #include <qnumeric.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KoViewConverter::KoViewConverter()
     : m_zoomLevel(1.0)

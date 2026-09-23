@@ -7,7 +7,7 @@
 #define KISSIZEOPTIONWIDGET_H
 
 #include <QScopedPointer>
-#include <QtCore/qtmetamacros.h>
+#include <QtGlobal>
 
 #include <lager/cursor.hpp>
 

@@ -12,7 +12,7 @@
 #include <qdom.h>
 #include <qhash.h>
 #include <qnumeric.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KisLevelsFilterConfiguration.h"
 #include "KisLevelsCurve.h"

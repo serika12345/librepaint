@@ -23,11 +23,8 @@
 #include <kis_spacing_information.h>
 #include <krita_utils.h>
 #include <kis_algebra_2d.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 KisExperimentPaintOp::KisExperimentPaintOp(const KisPaintOpSettingsSP settings, KisPainter *painter, KisNodeSP node, KisImageSP image)

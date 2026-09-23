@@ -13,7 +13,7 @@
 #include <kis_paint_information.h>
 #include <kis_painter.h>
 #include <kis_properties_configuration.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KisCurveOption.h"
 #include "kis_color_source.h"

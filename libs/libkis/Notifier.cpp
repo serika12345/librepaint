@@ -11,7 +11,7 @@
 #include <kis_config_notifier.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include "View.h"
 #include "Window.h"
 #include "Document.h"

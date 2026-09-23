@@ -32,11 +32,9 @@
 #include "kis_types.h"
 #include <kis_projection_leaf.h>
 #include <kis_abstract_projection_plane.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qicon.h>
 #include <qobject.h>
-#include <qtypes.h>
 #include <tuple>
 
 void kisSharedPtrAddReference(KisGroupLayer *pointer)

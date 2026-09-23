@@ -13,7 +13,7 @@
 #include "kis_painter.h"
 #include <qcontainerfwd.h>
 #include <qpoint.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <strokes/KisFreehandStrokeInfo.h>
 #include "kis_algebra_2d.h"
 #include "kis_tool_freehand_helper.h"

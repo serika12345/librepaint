@@ -9,7 +9,7 @@
 #include "kis_selection_mask.h"
 #include "kis_types.h"
 #include <qalgorithms.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qobject.h>
 
 

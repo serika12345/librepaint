@@ -54,16 +54,14 @@
 #include <limits>
 #include <qabstractitemmodel.h>
 #include <qabstractitemview.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qcoreevent.h>
 #include <qdir.h>
-#include <qforeach.h>
 #include <qheaderview.h>
 #include <qitemselectionmodel.h>
 #include <qlist.h>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
@@ -73,9 +71,6 @@
 #include <qstyleoption.h>
 #include <qtableview.h>
 #include <qtoolbutton.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 #include <qwidgetaction.h>
 #include "KisIconToolTip.h"
 

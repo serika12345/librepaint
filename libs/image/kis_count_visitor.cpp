@@ -19,8 +19,7 @@
 #include "kis_transform_mask.h"
 #include "kis_transparency_mask.h"
 #include "lazybrush/kis_colorize_mask.h"
-#include <qforeach.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KisCountVisitor::KisCountVisitor(const QStringList &nodeTypes, const KoProperties &properties)
     : m_nodeTypes(nodeTypes)

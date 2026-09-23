@@ -21,10 +21,9 @@
 #include <kis_image_signal_router.h>
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qsharedpointer.h>
-#include <qtmetamacros.h>
 
 struct KisSnapshotModel::Private
 {

@@ -61,17 +61,16 @@
 #include <qabstractitemmodel.h>
 #include <qabstractitemview.h>
 #include <qfileinfo.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlineedit.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpalette.h>
 #include <qsharedpointer.h>
 #include <qsortfilterproxymodel.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 
 
 template <typename Type, typename TypeSP = QSharedPointer<Type>>

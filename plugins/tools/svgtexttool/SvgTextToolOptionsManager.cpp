@@ -6,7 +6,7 @@
 #include "SvgTextToolOptionsManager.h"
 #include "SvgTextToolOptionsModel.h"
 #include <qobject.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 struct SvgTextToolOptionsManager::Private
 {

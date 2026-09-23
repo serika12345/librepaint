@@ -53,17 +53,13 @@
 #include <canvas/KisDisplayConfig.h>
 
 #include <KisCursorOverrideLock.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpointer.h>
 #include <qstandardpaths.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 #include <qurl.h>
 #include <quuid.h>
 #include "kis_action_registry.h"

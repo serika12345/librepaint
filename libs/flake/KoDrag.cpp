@@ -23,8 +23,7 @@
 #include <SvgWriter.h>
 #include <algorithm>
 #include <qalgorithms.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qsize.h>
 

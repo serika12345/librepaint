@@ -39,8 +39,7 @@
 
 #include <kis_icon_utils.h>
 #include <qnamespace.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 namespace KDcrawIface

@@ -21,7 +21,7 @@
 
 #include <QDebug>
 #include <algorithm>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qlogging.h>
 #include <qobject.h>
@@ -29,8 +29,6 @@
 #include <qpoint.h>
 #include <qset.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 KoSelection::KoSelection(QObject *parent)
     : QObject(parent)
     , KoShape()

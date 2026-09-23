@@ -13,7 +13,7 @@
 #include "kundo2stack.h"
 #include <klocalizedstring.h>
 #include <qalgorithms.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 
 class KoParameterToPathCommandPrivate

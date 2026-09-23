@@ -9,7 +9,7 @@
 #include <QDomDocument>
 #include <QDomElement>
 #include <algorithm>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qmap.h>

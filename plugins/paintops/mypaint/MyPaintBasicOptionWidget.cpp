@@ -14,7 +14,7 @@
 #include "ui_wdgmypaintoptions.h"
 #include <functional>
 #include <lager/cursor.hpp>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 struct MyPaintBasicOptionWidget::Private

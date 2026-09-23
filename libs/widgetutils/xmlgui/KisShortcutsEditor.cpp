@@ -37,8 +37,7 @@
 #include "kactioncollection.h"
 #include "kactioncategory.h"
 #include <ktreewidgetsearchline.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qset.h>

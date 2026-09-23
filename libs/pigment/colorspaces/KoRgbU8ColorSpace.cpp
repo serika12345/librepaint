@@ -10,7 +10,7 @@
 #include <limits.h>
 #include <qhashfunctions.h>
 #include <qrgb.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <stdlib.h>
 
 

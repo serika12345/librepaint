@@ -57,12 +57,11 @@
 #include <array>
 #include <qalgorithms.h>
 #include <qdebug.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qsharedpointer.h>
 #include <qsize.h>
-#include <qtypes.h>
 
 
 void SvgStyleWriter::saveSvgStyle(KoShape *shape, SvgSavingContext &context)

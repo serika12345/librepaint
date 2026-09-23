@@ -8,8 +8,7 @@
 #include <cmath>
 
 #include <qpoint.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 Trajectory::Trajectory()
 {

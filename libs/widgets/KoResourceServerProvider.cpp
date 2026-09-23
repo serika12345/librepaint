@@ -19,7 +19,7 @@
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobject.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 #include <resources/KoSegmentGradient.h>
 #include <resources/KoStopGradient.h>
 #include "KisResourceTypes.h"

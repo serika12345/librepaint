@@ -28,6 +28,7 @@
 #include <qdialog.h>
 #include <qhashfunctions.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qnamespace.h>

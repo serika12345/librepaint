@@ -32,8 +32,7 @@
 #include <events/kis_cursor_override_hijacker.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 #include "KisImportExportErrorCode.h"

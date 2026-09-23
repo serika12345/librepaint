@@ -20,16 +20,14 @@
 #include <kundo2command.h>
 
 #include <klocalizedstring.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qflags.h>
-#include <qforeach.h>
 #include <qkeysequence.h>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qpoint.h>
-#include <qtmetamacros.h>
 #include <qvariant.h>
 
 #include "KoToolBase.h"

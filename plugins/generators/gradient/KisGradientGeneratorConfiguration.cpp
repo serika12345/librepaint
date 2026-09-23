@@ -15,7 +15,7 @@
 #include <math.h>
 #include <qcontainerfwd.h>
 #include <qpoint.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KisGradientGeneratorConfiguration.h"
 #include "KoAbstractGradient.h"

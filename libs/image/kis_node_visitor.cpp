@@ -7,7 +7,7 @@
 
 #include "kis_node_visitor.h"
 #include "kis_node.h"
-#include <qtypes.h>
+#include <QtGlobal>
 
 bool KisNodeVisitor::visitAll(KisNode * node, bool breakOnFail)
 {

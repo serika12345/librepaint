@@ -33,11 +33,9 @@
 #include <kis_lod_transform.h>
 #include <kis_spacing_information.h>
 #include <KisFilterOptionData.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 KisFilterOp::KisFilterOp(const KisPaintOpSettingsSP settings, KisPainter *painter, KisNodeSP node, KisImageSP image)

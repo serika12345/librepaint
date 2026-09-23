@@ -23,7 +23,7 @@
 #include <QTextDocument>
 #include <qabstractitemmodel.h>
 #include <qabstractitemview.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qdialog.h>
 #include <qfont.h>
@@ -39,7 +39,6 @@
 #include <qscroller.h>
 #include <qtextformat.h>
 #include <qtreewidgetitemiterator.h>
-#include <qtypes.h>
 #ifndef Q_OS_IOS
 #include <QPrinter>
 #include <QPrintDialog>

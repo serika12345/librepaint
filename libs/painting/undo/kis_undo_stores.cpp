@@ -9,8 +9,7 @@
 #include <kundo2stack.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 
 /*****************************************************************/

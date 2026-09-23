@@ -12,14 +12,10 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <cmath>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "KisHandleStyle.h"
 #include "KisQStringListFwd.h"

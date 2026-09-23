@@ -27,8 +27,7 @@
 #include <qlayout.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qoverload.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 #include "KoColorSpace.h"
 #include "KoColorSpaceRegistry.h"

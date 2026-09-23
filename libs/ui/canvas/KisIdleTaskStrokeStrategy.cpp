@@ -12,12 +12,10 @@
 #include "kundo2magicstring.h"
 #include <boost/none.hpp>
 #include <boost/none_t.hpp>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
+#include <QDebug>
 #include <qlogging.h>
 #include <qsharedpointer.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 KisIdleTaskStrokeStrategy::KisIdleTaskStrokeStrategy(const QLatin1String &id, const KUndo2MagicString &name)

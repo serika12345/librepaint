@@ -10,20 +10,15 @@
 #include "KoResource.h"
 #include "kundo2stack.h"
 #include <cstring>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
 #include <qset.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 
 #include <QFile>
 #include <QFileInfo>

@@ -23,7 +23,7 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 #ifdef Q_OS_ANDROID
 #include <KisAndroidUtils.h>

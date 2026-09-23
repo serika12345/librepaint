@@ -22,7 +22,7 @@
 #include <limits>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 struct GridConfigWidget::Private

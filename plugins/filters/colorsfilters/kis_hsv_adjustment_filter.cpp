@@ -24,13 +24,10 @@
 #include <qhash.h>
 #include <qkeysequence.h>
 #include <qlabel.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qspinbox.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qvariant.h>
 
 #include "kis_assert.h"

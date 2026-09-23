@@ -18,14 +18,11 @@
 #include <qfont.h>
 #include <qgraphicsview.h>
 #include <qimage.h>
-#include <qlatin1stringview.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qpixmap.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <qwidget.h>
 #include <strokes/freehand_stroke.h>
 #include <strokes/KisFreehandStrokeInfo.h>

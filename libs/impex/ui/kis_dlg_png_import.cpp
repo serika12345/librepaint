@@ -14,7 +14,7 @@
 #include "KoDialog.h"
 #include <algorithm>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include "application/kis_config.h"

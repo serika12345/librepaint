@@ -21,8 +21,7 @@
 
 #include <KisValueCache.h>
 #include <qcontainerfwd.h>
-#include <qminmax.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 struct KisMyPaintOpSettings::Private

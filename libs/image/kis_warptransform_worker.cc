@@ -22,8 +22,7 @@
 #include <qcontainerfwd.h>
 #include <qimage.h>
 #include <qpolygon.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "kis_grid_interpolation_tools.h"
 #include "kis_types.h"

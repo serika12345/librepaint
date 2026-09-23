@@ -17,9 +17,7 @@
 #include <qhashfunctions.h>
 #include <qnamespace.h>
 #include <qpoint.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 WGColorPreviewToolTip::WGColorPreviewToolTip(QWidget *parent)

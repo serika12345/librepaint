@@ -27,8 +27,7 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpointer.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 struct KisGridManager::Private
 {

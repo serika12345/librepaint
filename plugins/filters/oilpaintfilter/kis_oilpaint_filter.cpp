@@ -14,8 +14,7 @@
 #include "kis_oilpaint_filter.h"
 
 #include <cstring>
-#include <qassert.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <stdlib.h>
 
 #include <QPoint>

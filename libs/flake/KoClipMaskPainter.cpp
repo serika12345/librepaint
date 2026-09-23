@@ -12,7 +12,7 @@
 #include <KoClipMaskApplicatorBase.h>
 #include <qimage.h>
 #include <qnamespace.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 #include <xsimd/KoClipMaskApplicatorFactoryImpl.h>
 
 #include "kis_assert.h"

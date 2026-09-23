@@ -16,9 +16,8 @@
 
 #include <kis_base_node.h>
 #include <kis_layer_properties_icons.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
-#include <qtypes.h>
 
 NodeToolTip::NodeToolTip()
 {

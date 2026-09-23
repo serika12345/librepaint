@@ -14,7 +14,7 @@
 #include "kis_icon_utils.h"
 #include "kis_mask.h"
 #include <qicon.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include "kis_paint_device.h"
 #include "kis_painter.h"
 #include "kis_node_visitor.h"

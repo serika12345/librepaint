@@ -18,11 +18,9 @@
 #include <kis_types.h>
 #include <klocalizedstring.h>
 #include <kpluginfactory.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qhashfunctions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "KoColorConversionTransformation.h"
 #include "KoColorModelStandardIds.h"

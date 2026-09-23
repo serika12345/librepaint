@@ -9,7 +9,6 @@
 
 #include <QtGlobal>
 #include <QGlobalStatic>
-#include <qtpreprocessorsupport.h>
 
 Q_GLOBAL_STATIC(KoFakeProgressProxy, s_instance)
 

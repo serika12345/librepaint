@@ -19,8 +19,7 @@
 #include <qdebug.h>
 #include <qflags.h>
 #include <qnamespace.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 struct KisBookmarkedConfigurationsModel::Private {

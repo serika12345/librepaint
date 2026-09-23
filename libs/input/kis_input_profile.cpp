@@ -9,10 +9,9 @@
 
 #include <QMultiHash>
 #include <qalgorithms.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qobject.h>
-#include <qtmetamacros.h>
 
 #include "kis_shortcut_configuration.h"
 

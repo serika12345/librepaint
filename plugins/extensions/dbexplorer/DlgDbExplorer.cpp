@@ -24,8 +24,9 @@
 #include <KisTagModel.h>
 #include <KisTagResourceModel.h>
 #include <qabstractitemview.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qimage.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>

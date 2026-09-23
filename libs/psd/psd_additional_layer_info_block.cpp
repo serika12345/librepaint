@@ -25,9 +25,8 @@
 #include <asl/kis_asl_writer_utils.h>
 #include <cos/kis_txt2_utls.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qpaintdevice.h>
-#include <qtypes.h>
 
 
 PsdAdditionalLayerInfoBlock::PsdAdditionalLayerInfoBlock(const PSDHeader &header)

@@ -36,17 +36,13 @@
 #include <optional>
 #include <qabstractscrollarea.h>
 #include <qalgorithms.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcoreevent.h>
-#include <qforeach.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpalette.h>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 struct KisPaintOpSettingsWidget::Private

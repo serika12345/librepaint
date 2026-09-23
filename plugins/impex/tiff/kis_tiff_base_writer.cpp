@@ -12,8 +12,7 @@
 #include <cstdint>
 #include <half.h>
 #include <kis_iterator_ng.h>
-#include <qassert.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <tiff.h>
 #include <tiffio.h>
 

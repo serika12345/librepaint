@@ -32,17 +32,14 @@
 #include <kis_algebra_2d.h>
 #include <cmath>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qmath.h>
-#include <qminmax.h>
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 struct KisAnimationFrameCache::Private

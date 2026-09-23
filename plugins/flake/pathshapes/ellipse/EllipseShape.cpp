@@ -27,8 +27,7 @@
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 EllipseShape::EllipseShape()
     : m_startAngle(0)

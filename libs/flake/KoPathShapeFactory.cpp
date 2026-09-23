@@ -18,7 +18,7 @@
 
 #include <KoXmlNS.h>
 #include <qdom.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "kis_pointer_utils.h"
 

@@ -10,17 +10,13 @@
 #include <QVector>
 #include <cstdio>
 #include <cstring>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qhashfunctions.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qpoint.h>
 #include <qreadwritelock.h>
 #include <qstringview.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <utility>
 
 #include "KisRegion.h"

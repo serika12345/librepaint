@@ -16,11 +16,9 @@
 #include <QtMath>
 #include <qline.h>
 #include <qlist.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qpoint.h>
 #include <qpolygon.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <utility>
 
 

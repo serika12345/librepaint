@@ -32,7 +32,7 @@
 #include <kstandardguiitem.h>
 #include <kconfig.h>
 #include <ksharedconfig.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qdialog.h>
 #include <qnamespace.h>
 #include <qobject.h>

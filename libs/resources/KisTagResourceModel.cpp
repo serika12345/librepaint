@@ -22,18 +22,16 @@
 #include <KisStorageModel.h>
 #include <kis_assert.h>
 #include <qabstractitemmodel.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qhash.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qsortfilterproxymodel.h>
 #include <qstringview.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 
 struct KisAllTagResourceModel::Private {
     QString resourceType;

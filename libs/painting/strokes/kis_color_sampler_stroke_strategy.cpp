@@ -13,11 +13,9 @@
 #include "kis_stroke_job_strategy.h"
 #include "kis_stroke_strategy.h"
 #include <boost/optional/optional.hpp>
-#include <qlatin1stringview.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
-#include <qtmetamacros.h>
 
 struct KisColorSamplerStrokeStrategy::Private
 {

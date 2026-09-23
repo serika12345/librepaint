@@ -11,12 +11,12 @@
 #include <QVariant>
 #include <KoColor.h>
 #include <KoUnit.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhash.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
 
 #include "KoAbstractCanvasResourceInterface.h"
 #include "KoActiveCanvasResourceDependency.h"

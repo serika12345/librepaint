@@ -18,7 +18,7 @@
 #include "application/kis_config.h"
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 #include "canvas/kis_canvas_resource_provider.h"
 #include <KisOptionButtonStrip.h>

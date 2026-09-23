@@ -11,7 +11,7 @@
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>
 #include <lager/lenses.hpp>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 namespace {

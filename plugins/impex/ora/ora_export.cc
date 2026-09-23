@@ -19,9 +19,8 @@
 #include <kis_node.h>
 #include <kis_shape_layer.h>
 #include <KoProperties.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qlist.h>
 #include <qobject.h>
 

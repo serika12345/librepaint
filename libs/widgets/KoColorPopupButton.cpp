@@ -11,7 +11,7 @@
 #include <QStyleOptionToolButton>
 #include <qnamespace.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qtoolbutton.h>
 #include <qwidget.h>
 

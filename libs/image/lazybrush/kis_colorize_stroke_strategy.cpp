@@ -31,12 +31,9 @@
 #include <KisRunnableStrokeJobData.h>
 #include <KisRunnableStrokeJobUtils.h>
 #include <KisRunnableStrokeJobsInterface.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qscopedpointer.h>
 #include <qsharedpointer.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 using namespace KisLazyFillTools;
 

@@ -28,8 +28,7 @@
 #include <kis_config_widget.h>
 #include <qlist.h>
 #include <qobject.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KisImportExportErrorCode.h"
 #include "KoGrayColorSpaceTraits.h"

@@ -11,13 +11,9 @@
 #include <QPaintEvent>
 #include <QPainter>
 #include <qcoreevent.h>
-#include <qinputdevice.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 #include "../../kis_input_config.h"

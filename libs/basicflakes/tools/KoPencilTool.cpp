@@ -38,13 +38,12 @@
 
 #include <math.h>
 #include <qcolor.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qset.h>
-#include <qtypes.h>
 
 #include "KoCreatePathTool_p.h"
 #include "KoFlakeTypes.h"

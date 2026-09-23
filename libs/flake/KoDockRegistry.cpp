@@ -10,7 +10,7 @@
 #include <QDebug>
 #include <QApplication>
 
-#include <qforeach.h>
+#include <QtGlobal>
 
 #include "KoDockFactoryBase.h"
 #include "KoPluginLoader.h"

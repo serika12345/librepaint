@@ -45,7 +45,7 @@
 
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qlogging.h>
 #include <qmap.h>

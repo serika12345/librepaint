@@ -23,14 +23,12 @@
 #include "kis_scaling_size_brush.h"
 #include "kis_types.h"
 #include <kis_dom_utils.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qfont.h>
 #include <qhashfunctions.h>
 #include <qimage.h>
 #include <qmap.h>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #ifdef HAVE_THREADED_TEXT_RENDERING_WORKAROUND
 #include <QApplication>

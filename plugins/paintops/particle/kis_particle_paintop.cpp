@@ -18,7 +18,7 @@
 #include <kis_paintop_plugin_utils.h>
 #include <brushengine/kis_paintop.h>
 #include <brushengine/kis_paint_information.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "KisParticleOpOptionData.h"
 

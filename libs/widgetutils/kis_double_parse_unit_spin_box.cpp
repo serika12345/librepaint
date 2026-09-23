@@ -20,15 +20,11 @@
 #include <QActionGroup>
 #include <qabstractspinbox.h>
 #include <qevent.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpoint.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 
 class Q_DECL_HIDDEN KisDoubleParseUnitSpinBox::Private
 {

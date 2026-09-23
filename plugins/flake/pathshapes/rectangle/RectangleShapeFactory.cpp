@@ -27,7 +27,7 @@
 #include <qnamespace.h>
 #include <qpair.h>
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "kis_pointer_utils.h"
 

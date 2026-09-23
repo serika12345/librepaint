@@ -14,9 +14,8 @@
 #include <qbuttongroup.h>
 #include <qcolor.h>
 #include <qcoreevent.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qpaintdevice.h>
@@ -25,9 +24,6 @@
 #include <qsize.h>
 #include <qsizepolicy.h>
 #include <qstyle.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 

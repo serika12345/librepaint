@@ -12,9 +12,8 @@
 #include <math.h>
 
 #include <klocalizedstring.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qobjectdefs.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 DlgShearImage::DlgShearImage(QWidget *  parent,

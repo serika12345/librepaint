@@ -12,7 +12,7 @@
 #include <qnumeric.h>
 #include <qpoint.h>
 #include <qsize.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 void KisRectangleInteraction::setConstraints(bool forceRatio,
                                              bool forceWidth,

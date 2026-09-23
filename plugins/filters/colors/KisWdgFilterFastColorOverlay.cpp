@@ -14,8 +14,7 @@
 #include "kis_config_widget.h"
 #include "kis_filter_configuration.h"
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <ui_wdgfilterfastcoloroverlay.h>
 #include "KisFilterFastColorOverlay.h"
 #include "kis_types.h"

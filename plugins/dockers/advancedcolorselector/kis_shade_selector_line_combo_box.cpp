@@ -16,7 +16,7 @@
 #include <klocalizedstring.h>
 #include <qcombobox.h>
 #include <qcursor.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qwidget.h>

@@ -11,11 +11,9 @@
 #include <QHash>
 #include <QReadWriteLock>
 #include <QString>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnumeric.h>
-#include <qtypes.h>
 
 #include "KoColorProfileConstants.h"
 #include "KoColorSpaceFactory.h"

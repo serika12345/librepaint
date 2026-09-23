@@ -15,7 +15,7 @@
 #include <kpluginfactory.h>
 #include <qcontainerfwd.h>
 #include <qobject.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "KisResourceTypes.h"
 #include "KoID.h"

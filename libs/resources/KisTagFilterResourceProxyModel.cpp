@@ -19,16 +19,13 @@
 
 #include <KisResourceSearchBoxFilter.h>
 #include <qabstractitemmodel.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qmap.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qscopedpointer.h>
 #include <qsortfilterproxymodel.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 #include <qvariant.h>
 
 struct KisTagFilterResourceProxyModel::Private

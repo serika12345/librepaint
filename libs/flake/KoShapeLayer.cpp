@@ -15,7 +15,7 @@
 #include "KoShapeSavingContext.h"
 #include "KoShapeLoadingContext.h"
 #include <qpoint.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 KoShapeLayer::KoShapeLayer()
         : KoShapeContainer(new SimpleShapeContainerModel())

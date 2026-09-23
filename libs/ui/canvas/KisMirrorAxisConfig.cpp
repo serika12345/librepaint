@@ -6,7 +6,7 @@
 
 #include <kis_dom_utils.h>
 #include <QPointF>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qobject.h>
 

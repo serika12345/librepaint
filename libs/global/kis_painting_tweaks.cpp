@@ -14,10 +14,11 @@
 #include <QTransform>
 #include <qcolor.h>
 #include <qcontainerfwd.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qnamespace.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "kis_debug.h"
 

@@ -14,7 +14,7 @@
 #include <qcontainerfwd.h>
 #include <qpoint.h>
 #include <qsize.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <vector>
 
 QRectF KisBezierPatch::dstBoundingRect() const {

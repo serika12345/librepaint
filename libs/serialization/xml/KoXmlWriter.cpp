@@ -13,12 +13,9 @@
 #include <QTextStream>
 #include <cstring>
 #include <float.h>
-#include <qassert.h>
-#include <qbytearrayalgorithms.h>
+#include <QtGlobal>
 #include <qgenericatomic.h>
 #include <qlogging.h>
-#include <qminmax.h>
-#include <qtypes.h>
 
 namespace
 {

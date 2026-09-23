@@ -12,8 +12,7 @@
 #include <qkeysequence.h>
 #include <qlist.h>
 #include <qobjectdefs.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qvariant.h>
 #include <qwidgetaction.h>
 

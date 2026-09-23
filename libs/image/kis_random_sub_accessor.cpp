@@ -13,7 +13,7 @@
 
 #include <QtMath>
 #include <qnumeric.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KisRandomSubAccessor::KisRandomSubAccessor(KisPaintDeviceSP device)
     : m_device(device)

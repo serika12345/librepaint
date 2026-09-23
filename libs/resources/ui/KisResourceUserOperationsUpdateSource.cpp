@@ -10,6 +10,7 @@
 #include <QMessageBox>
 
 #include <klocalizedstring.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 

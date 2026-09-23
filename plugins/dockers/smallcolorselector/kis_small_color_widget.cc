@@ -38,14 +38,13 @@
 #include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 
 #include <config-use-surface-color-management-api.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <qwidget.h>
 #if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API
 

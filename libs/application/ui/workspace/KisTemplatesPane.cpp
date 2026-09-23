@@ -19,13 +19,12 @@
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
 #include <qabstractitemmodel.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qimage.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpixmap.h>
-#include <qtmetamacros.h>
 #include <qwidget.h>
 
 class KisTemplatesPanePrivate

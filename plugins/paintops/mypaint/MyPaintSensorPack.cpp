@@ -25,11 +25,11 @@
 #include <QJsonObject>
 #include <memory>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qpoint.h>
-#include <qtypes.h>
 #include <tuple>
 #include <vector>
 

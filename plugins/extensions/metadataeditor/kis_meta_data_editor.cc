@@ -19,14 +19,12 @@
 #include <klocalizedstring.h>
 #include <kpagedialog.h>
 #include <kpagewidgetmodel.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcheckbox.h>
 #include <qcombobox.h>
 #include <qdatetimeedit.h>
-#include <qforeach.h>
 #include <qlineedit.h>
 #include <qlist.h>
-#include <qoverload.h>
 #include <qspinbox.h>
 #include <qtextedit.h>
 #include <qwidget.h>

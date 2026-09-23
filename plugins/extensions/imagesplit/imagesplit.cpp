@@ -33,17 +33,14 @@
 #include <KisMimeDatabase.h>
 #include <kis_guides_config.h>
 #include <qapplication.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qdialog.h>
-#include <qforeach.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qtransform.h>
-#include <qtypes.h>
 #include <qurl.h>
 
 #include "KisQStringListFwd.h"

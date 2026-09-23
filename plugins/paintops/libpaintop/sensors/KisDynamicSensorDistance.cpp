@@ -16,8 +16,6 @@
 
 #include <kis_paint_information.h>
 #include <optional>
-#include <qminmax.h>
-#include <qtypes.h>
 
 
 KisDynamicSensorDistance::KisDynamicSensorDistance(const KisSensorWithLengthData &data, std::optional<KisCubicCurve> curveOverride)

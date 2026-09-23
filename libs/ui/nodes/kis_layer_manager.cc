@@ -103,10 +103,10 @@
 
 #include "KisSaveGroupVisitor.h"
 #include <kis_asl_layer_style_serializer.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qguiapplication.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>

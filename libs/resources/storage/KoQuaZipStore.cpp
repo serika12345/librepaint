@@ -13,8 +13,7 @@
 #include <qdebug.h>
 #include <qfiledevice.h>
 #include <qlogging.h>
-#include <qtclasshelpermacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <zip.h>
 #include <zlib.h>
 #include <quazip.h>

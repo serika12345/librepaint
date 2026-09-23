@@ -48,7 +48,7 @@
 #include <qcoreevent.h>
 #include <qdockwidget.h>
 #include <qfileinfo.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobject.h>

@@ -32,7 +32,7 @@ target_link_libraries(kritapixelbrush
         kritaglobal
         kritaimage
         kritalibbrush
-        kritapaintopruntime
+        kritalibpaintop
         kritapainting
         kritapigment
         Qt${QT_MAJOR_VERSION}::Core

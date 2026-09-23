@@ -8,8 +8,7 @@
 #include "kis_histogram.h"
 
 #include <QVector>
-#include <qassert.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KoHistogramProducer.h"
 #include "KoIntegerMaths.h"

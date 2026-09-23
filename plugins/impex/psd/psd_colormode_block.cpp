@@ -9,7 +9,7 @@
 #include <psd_utils.h>
 #include <QColor>
 #include <qrgb.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 PSDColorModeBlock::PSDColorModeBlock(psd_color_mode colormode)
     : blocksize(0)

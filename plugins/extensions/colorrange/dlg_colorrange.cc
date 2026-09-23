@@ -21,10 +21,9 @@
 
 #include <kis_paint_device.h>
 #include <kis_selection.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
 #include <selection/kis_selection_manager.h>
 #include <kis_default_bounds.h>
 #include <kis_image.h>

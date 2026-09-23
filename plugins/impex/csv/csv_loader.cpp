@@ -36,9 +36,7 @@
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qscopedpointer.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KisImportExportErrorCode.h"
 #include "KisQStringListFwd.h"

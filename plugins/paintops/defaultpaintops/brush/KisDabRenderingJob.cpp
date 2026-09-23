@@ -19,7 +19,7 @@
 #include <qcontainerfwd.h>
 #include <qlist.h>
 #include <qpoint.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <strokes/FreehandStrokeRunnableJobDataWithUpdate.h>
 
 KisDabRenderingJob::KisDabRenderingJob(int _seqNo, KisDabRenderingJob::JobType _type, qreal _opacity, qreal _flow)

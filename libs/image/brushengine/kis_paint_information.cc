@@ -21,12 +21,10 @@
 #include <cmath>
 #include <kis_dom_utils.h>
 #include <math.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
-#include <qvectornd.h>
 #include <utility>
 
 struct KisPaintInformation::Private {

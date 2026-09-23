@@ -86,9 +86,9 @@
 #include "KisProofingConfiguration.h"
 
 #include <optional>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcursor.h>
-#include <qforeach.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
@@ -96,10 +96,6 @@
 #include <qobjectdefs.h>
 #include <qscopedpointer.h>
 #include <qsharedpointer.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <resources/kis_favorite_resource_manager.h>
 #include <resources/kis_popup_palette.h>
 
@@ -116,6 +112,7 @@
 #include "KisSnapPixelStrategy.h"
 #include "canvas/KisDisplayConfig.h"
 #include "config-qt-patches-present.h"
+#include <KoIcon.h>
 
 #include <config-use-surface-color-management-api.h>
 #if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API

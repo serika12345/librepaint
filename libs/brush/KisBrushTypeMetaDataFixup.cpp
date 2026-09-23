@@ -16,6 +16,7 @@
 #include "KoResource.h"
 #include "kis_assert.h"
 #include <qcontainerfwd.h>
+#include <QDebug>
 #include <qlogging.h>
 #include "kis_brush.h"
 

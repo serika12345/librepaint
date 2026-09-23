@@ -12,7 +12,7 @@
 #include <math.h>
 #include <qbrush.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 #include <qhashfunctions.h>
 #include <qlist.h>
@@ -20,8 +20,6 @@
 #include <qnumeric.h>
 #include <qsharedpointer.h>
 #include <qstringview.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <resources/KoStopGradient.h>
 
 #include <array>

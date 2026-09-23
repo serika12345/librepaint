@@ -11,8 +11,7 @@
 #include <KConfigGroup>
 #include <KSharedConfig>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 namespace {
 

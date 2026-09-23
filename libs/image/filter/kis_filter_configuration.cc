@@ -17,9 +17,7 @@
 #include <KisRequiredResourcesOperators.h>
 #include <qatomic.h>
 #include <qlist.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 struct Q_DECL_HIDDEN KisFilterConfiguration::Private {

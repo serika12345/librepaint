@@ -10,7 +10,7 @@
 #include <QStandardPaths>
 
 #include <KisBackup.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 namespace Krita::Document
 {

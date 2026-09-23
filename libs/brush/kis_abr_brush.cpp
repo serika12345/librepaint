@@ -19,7 +19,7 @@
 #include <klocalizedstring.h>
 
 #include <KoColor.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "kis_brush.h"
 #include "kis_datamanager.h"

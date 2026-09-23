@@ -39,18 +39,14 @@
 #include <QSignalBlocker>
 #include <ksharedconfig.h>
 #include <qcombobox.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qoverload.h>
 #include <qpainter.h>
 #include <qset.h>
 #include <qsharedpointer.h>
-#include <qtenvironmentvariables.h>
-#include <qtpreprocessorsupport.h>
 #include <qtreewidget.h>
-#include <qtypes.h>
 
 namespace
 {

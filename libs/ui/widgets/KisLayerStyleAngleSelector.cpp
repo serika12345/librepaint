@@ -6,8 +6,7 @@
 
 #include <kis_signals_blocker.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 #include "KisLayerStyleAngleSelector.h"

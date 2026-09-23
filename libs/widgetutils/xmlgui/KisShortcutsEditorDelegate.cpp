@@ -24,7 +24,7 @@
 #include <kextendableitemdelegate.h>
 #include <qabstractitemmodel.h>
 #include <qabstractitemview.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcolor.h>
 #include <qcoreevent.h>
 #include <qkeysequence.h>
@@ -35,7 +35,6 @@
 #include <qpixmap.h>
 #include <qsize.h>
 #include <qstyleoption.h>
-#include <qtmetamacros.h>
 
 namespace {
     KisShortcutsEditorItem *itemFromIndex(QTreeWidget *const w, const QModelIndex &index)

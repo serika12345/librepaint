@@ -9,7 +9,7 @@
 #include <KisLager.h>
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 KisCurveOpOptionModel::KisCurveOpOptionModel(lager::cursor<KisCurveOpOptionData> _optionData)

@@ -15,10 +15,9 @@
 #include <KisStaticInitializer.h>
 #include <qcontainerfwd.h>
 #include <qglobalstatic.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
-#include <qtypes.h>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KisGridConfig>("KisGridConfig");

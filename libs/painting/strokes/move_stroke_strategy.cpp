@@ -13,11 +13,10 @@
 #include "kis_assert.h"
 #include "kis_command_utils.h"
 #include <memory>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qset.h>
-#include <qtmetamacros.h>
 #include <tuple>
 #include <unordered_map>
 #include <utility>

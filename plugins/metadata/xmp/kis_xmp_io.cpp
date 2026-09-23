@@ -16,7 +16,7 @@
 #include <exiv2/version.hpp>
 #include <exiv2/xmp_exiv2.hpp>
 #include <map>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qlist.h>
 #include <qmap.h>

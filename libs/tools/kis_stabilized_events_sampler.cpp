@@ -11,7 +11,7 @@
 #include <QList>
 #include <QElapsedTimer>
 #include <QtMath>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <utility>
 
 #include "kis_debug.h"

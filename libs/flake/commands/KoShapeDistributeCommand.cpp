@@ -14,11 +14,9 @@
 #include <QMap>
 
 #include <klocalizedstring.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qpoint.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
 
 namespace
 {

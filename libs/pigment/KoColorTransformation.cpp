@@ -10,7 +10,7 @@
 #include <qhash.h>
 #include <qlist.h>
 #include <qlogging.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 KoColorTransformation::~KoColorTransformation()
 {

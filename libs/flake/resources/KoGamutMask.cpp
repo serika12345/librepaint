@@ -37,8 +37,7 @@
 #include <qimage.h>
 #include <qmap.h>
 #include <qpoint.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 //#include <kis_debug.h>
 

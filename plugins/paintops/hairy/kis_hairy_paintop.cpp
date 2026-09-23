@@ -24,10 +24,8 @@
 #include <kis_lod_transform.h>
 #include <kis_spacing_information.h>
 #include <KoResourceLoadResult.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 #include "kis_brush.h"

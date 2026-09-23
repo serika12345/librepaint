@@ -10,6 +10,8 @@
  */
 
 #include "kis_outline_generator.h"
+
+#include <QDebug>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 
@@ -19,11 +21,9 @@
 #include <kis_random_accessor_ng.h>
 #include <new>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qpolygon.h>
 #include <qscopedpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 class LinearStorage
 {

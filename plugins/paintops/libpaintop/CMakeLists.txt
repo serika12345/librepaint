@@ -833,6 +833,7 @@ target_include_directories(kritapaintopcurverangemodelinterfaceobjects
 )
 target_link_libraries(kritapaintopcurverangemodelinterfaceobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
         lager
 )

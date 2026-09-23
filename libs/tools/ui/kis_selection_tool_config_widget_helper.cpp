@@ -12,12 +12,11 @@
 
 #include <KConfigGroup>
 #include <KSharedConfig>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobject.h>
-#include <qtmetamacros.h>
 
 KisSelectionToolConfigWidgetHelper::KisSelectionToolConfigWidgetHelper(
     const QString &windowTitle)

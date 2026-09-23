@@ -26,10 +26,9 @@
 #include <application/kis_config.h>
 #include "application/ui/workspace/KisViewManager.h"
 #include <kis_icon_utils.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
 
 
 KisDlgAdjustmentLayer::KisDlgAdjustmentLayer(KisNodeSP node,

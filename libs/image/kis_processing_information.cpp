@@ -9,7 +9,7 @@
 #include "kis_shared_ptr.h"
 
 #include <qpoint.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 
 struct Q_DECL_HIDDEN KisConstProcessingInformation::Private {
     Private() : device(0), selection(0) {}

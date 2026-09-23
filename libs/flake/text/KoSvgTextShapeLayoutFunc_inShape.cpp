@@ -25,15 +25,13 @@
 
 #include <QPainter>
 #include <QtMath>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qline.h>
 #include <qlist.h>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnumeric.h>
 #include <qpoint.h>
 #include <qpolygon.h>
-#include <qtypes.h>
 
 namespace KoSvgTextShapeLayoutFunc {
 

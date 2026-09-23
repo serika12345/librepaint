@@ -15,8 +15,7 @@
 #include <qnamespace.h>
 #include <qpaintdevice.h>
 #include <qstyleoption.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 class Q_DECL_HIDDEN KoLineStyleSelector::Private

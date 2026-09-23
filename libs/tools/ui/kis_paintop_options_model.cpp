@@ -12,11 +12,10 @@
 #include <klocalizedstring.h>
 #include <kis_assert.h>
 #include <qabstractitemmodel.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qnamespace.h>
 #include <qobject.h>
-#include <qtmetamacros.h>
 #include <qvariant.h>
 
 

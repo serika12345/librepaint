@@ -13,8 +13,7 @@
 #include <KoColor.h>
 #include <KoUnit.h>
 #include <qobject.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "KoShape.h"
 #include "KoShapeController.h"

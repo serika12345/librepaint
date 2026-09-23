@@ -9,9 +9,8 @@
 #include <QVector>
 
 #include <qlist.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtypes.h>
 
 #include "KoMultiArchBuildSupport.h"
 #include "kis_antialiasing_fade_maker.h"

@@ -7,7 +7,7 @@
 #include <qcontainerfwd.h>
 #include <qnamespace.h>
 #include <qobject.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qvalidator.h>
 
 KisFontFamilyValidator::KisFontFamilyValidator(QObject *parent)

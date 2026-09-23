@@ -5,8 +5,7 @@
  */
 
 #include "kis_selection_component.h"
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 // NOTE: this is a Key function
 void KisSelectionComponent::moveX(qint32 x)

@@ -28,14 +28,13 @@
 #include <KisValueCache.h>
 #include <KisPortingUtils.h>
 #include <optional>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
 #include <qnumeric.h>
 #include <qpolygon.h>
 #include <qsize.h>
-#include <qtypes.h>
 
 KisCanvasState KisCanvasState::fromConverter(const KisCoordinatesConverter &converter)
 {

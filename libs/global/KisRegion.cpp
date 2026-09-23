@@ -12,7 +12,7 @@
 #include <iterator>
 #include <numeric>
 #include <qcontainerfwd.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <utility>
 #include "kis_assert.h"
 

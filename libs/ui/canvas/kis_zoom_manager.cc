@@ -42,7 +42,7 @@
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpointer.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 // A delay longer than 80 ms is needed for a visibly smoother canvas updates

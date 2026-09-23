@@ -7,7 +7,7 @@
 
 #include <klocalizedstring.h>
 #include "kis_assert.h"
-#include <qtypes.h>
+#include <QtGlobal>
 #include "kis_node.h"
 #include "commands/kis_node_opacity_command.h"
 #include "kis_command_ids.h"

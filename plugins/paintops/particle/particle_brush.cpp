@@ -20,7 +20,7 @@
 #include <math.h>
 #include <qnumeric.h>
 #include <qpoint.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 const qreal TIME = 0.000030;
 

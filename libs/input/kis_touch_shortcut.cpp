@@ -15,7 +15,7 @@
 
 #include <QTouchEvent>
 
-#include <qtversionchecks.h>
+#include <QtGlobal>
 #include <utility>
 
 class KisTouchShortcut::Private

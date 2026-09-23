@@ -11,7 +11,7 @@
 #include "kundo2stack.h"
 #include <QString>
 #include <klocalizedstring.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 
 namespace
 {

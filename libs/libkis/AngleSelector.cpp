@@ -8,11 +8,10 @@
 #include "KisAngleGauge.h"
 #include "KisAngleSelector.h"
 #include "kis_debug.h"
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 

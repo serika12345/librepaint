@@ -26,11 +26,12 @@
 #include <qhashfunctions.h>
 #include <qimage.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qnamespace.h>
 #include <qsharedpointer.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 Q_GLOBAL_STATIC(KisStorageModel, s_instance)
 

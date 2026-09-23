@@ -13,8 +13,7 @@
 #include <KoToolFactoryBase.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 //   ************ KoToolAction::Private **********
 

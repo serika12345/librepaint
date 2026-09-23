@@ -27,7 +27,7 @@
 
 #include <kstandardguiitem.h>
 #include <qdialog.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 

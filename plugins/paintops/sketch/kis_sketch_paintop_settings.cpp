@@ -13,8 +13,7 @@
 #include "kis_brush_based_paintop_settings.h"
 #include "kis_current_outline_fetcher.h"
 #include <KisOptimizedBrushOutline.h>
-#include <qminmax.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KisSketchPaintOpSettings::KisSketchPaintOpSettings(KisResourcesInterfaceSP resourcesInterface)
     : KisBrushBasedPaintOpSettings(resourcesInterface)

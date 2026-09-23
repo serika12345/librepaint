@@ -8,8 +8,7 @@
 #include "KisClonableViewConverter.h"
 #include "KisImageResolutionProxy.h"
 #include "kis_pointer_utils.h"
-#include <qassert.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KisImageViewConverter::KisImageViewConverter()
     : KisImageViewConverter(KisImageWSP())

@@ -20,8 +20,7 @@
 #include <html/HtmlSavingContext.h>
 
 #include <KisPortingUtils.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qlist.h>
 
 HtmlWriter::HtmlWriter(const QList<KoShape*> &toplevelShapes)

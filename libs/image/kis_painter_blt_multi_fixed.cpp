@@ -13,10 +13,8 @@
 #include "kis_random_accessor_ng.h"
 #include "KisRenderedDab.h"
 #include "kis_types.h"
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qminmax.h>
-#include <qtypes.h>
 
 void KisPainter::Private::applyDevice(const QRect &applyRect,
                                       const KisRenderedDab &dab,

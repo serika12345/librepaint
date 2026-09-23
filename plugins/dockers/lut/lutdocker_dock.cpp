@@ -12,15 +12,11 @@
 #include <config-hdr.h>
 
 #include <functional>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qoverload.h>
 #include <qsharedpointer.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <sstream>
 
 #include <QLayout>
@@ -57,6 +53,10 @@
 #include "kis_signals_blocker.h"
 #include "krita_utils.h"
 #include <color/KisOcioConfiguration.h>
+#ifdef HAVE_HDR
+#include <color/KisSurfaceColorSpaceWrapper.h>
+#include <opengl/KisOpenGLModeProber.h>
+#endif
 
 
 #include "black_white_point_chooser.h"

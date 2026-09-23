@@ -13,9 +13,8 @@
 #include <qcborcommon.h>
 #include <qcontainerfwd.h>
 #include <qlist.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qset.h>
-#include <qtypes.h>
 #include <webp/encode.h>
 #include <webp/mux.h>
 #include <webp/mux_types.h>

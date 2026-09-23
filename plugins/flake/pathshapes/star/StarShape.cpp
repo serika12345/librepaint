@@ -17,8 +17,7 @@
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qnamespace.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 StarShape::StarShape()
     : m_cornerCount(5)

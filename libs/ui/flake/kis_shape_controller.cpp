@@ -39,13 +39,10 @@
 
 #include <KoDocumentResourceManager.h>
 #include <commands/kis_image_layer_add_command.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include "KoSelectedShapesProxy.h"
 #include "kis_signal_auto_connection.h"
 

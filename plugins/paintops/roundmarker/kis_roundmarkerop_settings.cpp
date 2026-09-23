@@ -19,8 +19,7 @@
 #include <qlist.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 struct KisRoundMarkerOpSettings::Private

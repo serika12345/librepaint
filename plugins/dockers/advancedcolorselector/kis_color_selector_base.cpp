@@ -35,14 +35,12 @@
 #include "kis_global.h"
 #include "kis_display_color_converter.h"
 
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qcoreevent.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qpair.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
 #include <qvariant.h>
 
 class KisColorPreviewPopup : public QWidget {

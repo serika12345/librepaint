@@ -25,7 +25,7 @@
 #include <KoCanvasBase.h>
 #include <KoColorDisplayRendererInterface.h>
 #include <qbrush.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 
 #include "kis_assert.h"

@@ -24,11 +24,9 @@
 #include <QRegularExpression>
 #include <qcontainerfwd.h>
 #include <qdom.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qmap.h>
-#include <qtguiexports.h>
-#include <qtypes.h>
 #include <utility>
 
 KoSvgTextContentElement::KoSvgTextContentElement()

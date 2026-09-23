@@ -33,11 +33,9 @@
 #include <KisSequentialIteratorProgress.h>
 #include <kis_sequential_iterator.h>
 #include <KoProgressUpdater.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qobject.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaFastColorTransferFactory, "kritafastcolortransfer.json", registerPlugin<FastColorTransferPlugin>();)

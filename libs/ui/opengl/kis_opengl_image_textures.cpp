@@ -16,19 +16,15 @@
 #include "opengl/kis_opengl_update_info.h"
 #include "opengl/kis_texture_tile.h"
 #include "opengl/kis_texture_tile_update_info.h"
-#include <qassert.h>
+#include <QtGlobal>
 #include <qbitarray.h>
-#include <qforeach.h>
 #include <qimage.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
 #include <qopenglbuffer.h>
 #include <qscopedpointer.h>
 #include <qstringview.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #ifdef QT_OPENGL_ES_2
 #include <qopengl.h>

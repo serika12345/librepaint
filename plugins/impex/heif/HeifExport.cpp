@@ -64,10 +64,8 @@
 #include <qgenericatomic.h>
 #include <qlist.h>
 #include <qnamespace.h>
-#include <qoverload.h>
+#include <QtGlobal>
 #include <qsysinfo.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qvariant.h>
 #include <vector>
 

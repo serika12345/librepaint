@@ -24,7 +24,6 @@
 #include <QItemSelectionModel>
 #include <QStringLiteral>
 
-#include <kconfigconversioncheck_p.h>
 #include <KoFileDialog.h>
 
 #include <kis_icon.h>
@@ -40,12 +39,12 @@
 #include <application/ui/orchestration/KisPart.h>
 #include <qabstractitemmodel.h>
 #include <qapplication.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qdir.h>
 #include <qfileinfo.h>
-#include <qforeach.h>
 #include <qhashfunctions.h>
 #include <qimage.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
@@ -58,7 +57,6 @@
 #include <qstyleditemdelegate.h>
 #include <qstyleoption.h>
 #include <qtextoption.h>
-#include <qtpreprocessorsupport.h>
 
 DlgBundleManager::ItemDelegate::ItemDelegate(QObject *parent, KisStorageFilterProxyModel* proxy)
     : QStyledItemDelegate(parent)

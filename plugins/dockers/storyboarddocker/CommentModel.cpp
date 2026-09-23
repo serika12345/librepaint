@@ -14,11 +14,9 @@
 
 #include <qabstractitemmodel.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qobject.h>
-#include <qtmetamacros.h>
 #include <qvariant.h>
 
 StoryboardCommentModel::StoryboardCommentModel(QObject *parent)

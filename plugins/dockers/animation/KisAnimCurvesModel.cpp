@@ -10,7 +10,7 @@
 #include <memory>
 #include <qalgorithms.h>
 #include <qcolor.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qnamespace.h>
@@ -18,9 +18,6 @@
 #include <qobjectdefs.h>
 #include <qpoint.h>
 #include <qsharedpointer.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qvariant.h>
 
 #include "KisTimeBasedItemModel.h"

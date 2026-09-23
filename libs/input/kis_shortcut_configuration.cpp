@@ -11,7 +11,7 @@
 #include <qcontainerfwd.h>
 #include <qlist.h>
 #include <qnamespace.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 class KisShortcutConfiguration::Private
 {

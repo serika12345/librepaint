@@ -29,14 +29,12 @@
 
 #include <math.h>
 #include <limits>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qpolygon.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <qxmlstream.h>
 
 PerspectiveAssistant::PerspectiveAssistant(QObject *parent)

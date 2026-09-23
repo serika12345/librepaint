@@ -19,11 +19,8 @@
 #include <klocalizedstring.h>
 #include <qdebug.h>
 #include <qevent.h>
-#include <qinputdevice.h>
+#include <QtGlobal>
 #include <qobject.h>
-#include <qpointingdevice.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
 
 Q_GLOBAL_STATIC(KisTabletDebugger, s_instance)
 

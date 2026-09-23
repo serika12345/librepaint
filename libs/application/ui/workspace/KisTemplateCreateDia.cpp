@@ -41,15 +41,14 @@
 
 #include <ksharedconfig.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qimage.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
 #include <qstandardpaths.h>
-#include <qtpreprocessorsupport.h>
 #include <qwidget.h>
 
 // ODF thumbnail extent

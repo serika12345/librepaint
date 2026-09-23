@@ -37,7 +37,7 @@
 #include <kis_memory_statistics_server.h>
 #include <kis_icon_utils.h>
 #include <qfileinfo.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
@@ -47,7 +47,6 @@
 #include <qsize.h>
 #include <qstringview.h>
 #include <qtimer.h>
-#include <qtypes.h>
 
 #include "KisFFMpegWrapper.h"
 #include "kis_debug.h"

@@ -5,6 +5,8 @@
  */
 #include "KisTextureOptionModel.h"
 
+#include <QDebug>
+
 #include "KisEmbeddedTextureData.h"
 #include "KisTextureOptionData.h"
 

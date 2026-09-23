@@ -17,7 +17,7 @@
 
 #include <QButtonGroup>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 WGQuickSettingsWidget::WGQuickSettingsWidget(QWidget *parent, KisVisualColorSelector *selector)

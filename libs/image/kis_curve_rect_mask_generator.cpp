@@ -8,9 +8,8 @@
 #include <QDomDocument>
 
 #include "KoMultiArchBuildSupport.h"
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtypes.h>
 #include "kis_antialiasing_fade_maker.h"
 #include "kis_base_mask_generator.h"
 #include "kis_brush_mask_applicator_factories.h"

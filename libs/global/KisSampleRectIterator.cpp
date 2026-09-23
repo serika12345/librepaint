@@ -7,7 +7,7 @@
 #include "kis_assert.h"
 
 #include <kis_algebra_2d.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qpoint.h>
 #include <qshareddata.h>
 

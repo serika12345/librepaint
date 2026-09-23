@@ -14,7 +14,7 @@
 #include "kundo2magicstring.h"
 
 #include <klocalizedstring.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 KisImageLayerAddCommand::KisImageLayerAddCommand(KisImageWSP image,

@@ -9,7 +9,7 @@
 #include <qlayout.h>
 #include <qlayoutitem.h>
 #include <qmargins.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qsize.h>
 #include <qwidget.h>
 #include <utility>

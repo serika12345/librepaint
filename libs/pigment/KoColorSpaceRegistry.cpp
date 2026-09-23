@@ -38,17 +38,15 @@
 
 #include <KoColorModelStandardIds.h>
 #include <memory>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qscopedpointer.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtversionchecks.h>
 
 Q_GLOBAL_STATIC(KoColorSpaceRegistry, s_instance)
 

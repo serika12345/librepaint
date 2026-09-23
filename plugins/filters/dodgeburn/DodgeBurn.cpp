@@ -11,7 +11,7 @@
 #include <KisGlobalResourcesInterface.h>
 #include <qhash.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 #include "KoColorSpace.h"

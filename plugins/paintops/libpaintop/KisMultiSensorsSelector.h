@@ -8,7 +8,7 @@
 
 #include <QWidget>
 #include <QString>
-#include <QtCore/qtmetamacros.h>
+#include <QtGlobal>
 
 #include <KisCurveOptionDataCommon.h>
 #include <lager/cursor.hpp>

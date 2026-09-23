@@ -23,11 +23,10 @@
 
 #include <klocalizedstring.h>
 #include <filter/kis_filter_registry.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qbitarray.h>
 #include <qcontainerfwd.h>
 #include <qobject.h>
-#include <qtpreprocessorsupport.h>
 #include <qvariant.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaEdgeDetectionFilterFactory, "kritaedgedetection.json", registerPlugin<KritaEdgeDetectionFilter>();)

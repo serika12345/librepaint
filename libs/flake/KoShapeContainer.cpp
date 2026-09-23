@@ -14,9 +14,8 @@
 
 #include <QPainter>
 #include <QPainterPath>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtpreprocessorsupport.h>
 
 #include "kis_painting_tweaks.h"
 #include "kis_assert.h"

@@ -17,12 +17,8 @@
 #include <QRect>
 
 #include <KoProperties.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qobject.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "KisFrameChangeUpdateRecipe.h"
 #include "KisNodeAdditionFlags.h"

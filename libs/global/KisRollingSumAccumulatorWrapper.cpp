@@ -12,7 +12,7 @@
 #include <boost/accumulators/statistics/stats.hpp>
 #include <boost/accumulators/statistics/rolling_sum.hpp>
 #include <boost/accumulators/statistics/rolling_count.hpp>
-#include <qtypes.h>
+#include <QtGlobal>
 
 using namespace boost::accumulators;
 

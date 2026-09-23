@@ -17,7 +17,7 @@
 #include "kis_image_animation_interface.h"
 #include "kis_time_span.h"
 #include <qobject.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 KisSpinBoxUnitManager* KisDocumentAwareSpinBoxUnitManagerBuilder::buildUnitManager(QObject* parent)

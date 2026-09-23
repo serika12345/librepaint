@@ -59,10 +59,8 @@
 #include <QApplication>
 #include <QClipboard>
 #include <qalgorithms.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 namespace {
 QPointF getFittingOffset(QList<KoShape*> shapes,

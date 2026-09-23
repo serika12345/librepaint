@@ -27,7 +27,7 @@
 #include <kis_icon_utils.h>
 #include <qhashfunctions.h>
 #include <qicon.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qlogging.h>
 #include <qmainwindow.h>
 #include <qstringview.h>

@@ -10,8 +10,7 @@
 #include "kis_properties_configuration.h"
 #include <KisSmudgeLengthOptionData.h>
 #include <optional>
-#include <qminmax.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <utility>
 
 KisSmudgeRadiusOptionData::KisSmudgeRadiusOptionData()

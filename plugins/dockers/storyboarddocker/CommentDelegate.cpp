@@ -21,7 +21,7 @@
 #include <qpaintdevice.h>
 #include <qstyleditemdelegate.h>
 #include <qstyleoption.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 CommentDelegate::CommentDelegate(QObject *parent)
     : QStyledItemDelegate(parent)

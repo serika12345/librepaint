@@ -15,10 +15,10 @@
 #include <QRectF>
 #include <KoMarker.h>
 #include <qdom.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qtypes.h>
 
 class KoSvgPaste::Private
 {

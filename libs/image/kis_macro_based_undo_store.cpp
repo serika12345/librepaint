@@ -11,8 +11,7 @@
 #include "kis_pointer_utils.h"
 #include "kundo2magicstring.h"
 #include "kundo2stack.h"
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 
 struct KisMacroBasedUndoStore::Private

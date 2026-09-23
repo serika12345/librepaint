@@ -22,12 +22,11 @@
 
 #include <kis_lod_transform.h>
 #include <kis_lod_capable_layer_offset.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qpoint.h>
 #include <qsharedpointer.h>
 #include <qtransform.h>
-#include <qtypes.h>
 #include <utility>
 #include "KisChangeValueCommand.h"
 

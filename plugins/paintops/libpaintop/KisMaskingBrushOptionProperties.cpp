@@ -15,7 +15,7 @@
 #include <kis_properties_configuration.h>
 #include <optional>
 #include <qnumeric.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 bool KisBrushModel::operator==(const KisBrushModel::MaskingBrushData &lhs, const KisBrushModel::MaskingBrushData &rhs)
 {

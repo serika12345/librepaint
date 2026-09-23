@@ -21,8 +21,7 @@
 #include "kis_types.h"
 #include "kis_undo_adapter.h"
 #include <kis_transform_worker.h>
-#include <qforeach.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include "lazybrush/kis_colorize_mask.h"
 
 

@@ -67,16 +67,13 @@
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_selection_filters.h"
 #include <kis_figure_painting_stroke.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qdialog.h>
-#include <qforeach.h>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
 #include <qtransform.h>
-#include <qtypes.h>
 #include "application/ui/workspace/KisView.h"
 #include "dialogs/kis_dlg_stroke_selection_properties.h"
 

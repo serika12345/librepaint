@@ -14,7 +14,7 @@
 #include <qatomic_cxx11.h>
 #include <qbasicatomic.h>
 #include <qhashfunctions.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 
 namespace KisGlobalResourcesInterfaceDetail
 {

@@ -12,13 +12,10 @@
 #include <kis_color_button.h>
 #include <kis_icon_utils.h>
 #include <KisSpinBoxI18nHelper.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qobjectdefs.h>
 #include <qsize.h>
 #include <qsizepolicy.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 #include "KisGradientColorEditor.h"

@@ -12,7 +12,7 @@
 #include <qnumeric.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include "kis_pointer_utils.h"
 #include "kis_types.h"
 

@@ -15,9 +15,8 @@
 #include <kis_signals_blocker.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas_resource_provider.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
 
 
 #include "KisHalftoneConfigWidget.h"

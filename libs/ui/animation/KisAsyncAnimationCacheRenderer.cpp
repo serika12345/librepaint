@@ -13,7 +13,7 @@
 #include "kis_types.h"
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include "opengl/kis_opengl_update_info.h"
 
 struct KisAsyncAnimationCacheRenderer::Private

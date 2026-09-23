@@ -13,7 +13,7 @@
 #include <canvas/kis_zoom_manager.h>
 #include <View.h>
 #include <qobject.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 struct Canvas::Private {
     Private() {}

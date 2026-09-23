@@ -11,7 +11,7 @@
 
 #include <QPointF>
 #include <QString>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 
 class Q_DECL_HIDDEN KoShapeAnchor::Private
 {

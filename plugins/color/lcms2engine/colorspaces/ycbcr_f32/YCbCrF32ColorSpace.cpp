@@ -23,9 +23,8 @@
 #include <KoColorConversions.h>
 #include <kis_dom_utils.h>
 #include <lcms2.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qnamespace.h>
-#include <qtypes.h>
 
 YCbCrF32ColorSpace::YCbCrF32ColorSpace(const QString &name, KoColorProfile *p)
     : LcmsColorSpace<KoYCbCrF32Traits>(colorSpaceId(), name, TYPE_YCbCrA_FLT, cmsSigYCbCrData, p)

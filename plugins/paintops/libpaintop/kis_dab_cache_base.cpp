@@ -19,9 +19,8 @@
 #include <kis_fixed_paint_device.h>
 #include <brushengine/kis_paintop.h>
 #include <math.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtypes.h>
 
 struct PrecisionValues {
     qreal angle;

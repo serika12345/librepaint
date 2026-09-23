@@ -25,15 +25,12 @@
 #include <cstdlib>
 #include <limits>
 #include <qcursor.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qpaintdevice.h>
 #include <qset.h>
 #include <qsize.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <tuple>
 
 #include "kis_painting_tweaks.h"

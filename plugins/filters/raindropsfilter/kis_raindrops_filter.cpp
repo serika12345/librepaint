@@ -12,8 +12,7 @@
 
 #include "kis_raindrops_filter.h"
 
-#include <qassert.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <stdlib.h>
 #include <math.h>
 

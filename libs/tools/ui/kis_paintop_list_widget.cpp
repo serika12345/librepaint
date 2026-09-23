@@ -16,7 +16,7 @@
 #include <brushengine/kis_locked_properties_server.h>
 #include <qlist.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 KisPaintOpListWidget::KisPaintOpListWidget(QWidget* parent, const char* name):
     KisCategorizedListView(parent),

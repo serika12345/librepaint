@@ -25,12 +25,11 @@
 #include <QMessageBox>
 #include <QApplication>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
-#include <qminmax.h>
 #include <qobject.h>
-#include <qtpreprocessorsupport.h>
 
 struct KisAsyncAnimationFramesSaveDialog::Private {
     Private(KisImageSP _image,

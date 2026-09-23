@@ -8,7 +8,7 @@
 
 #include <math.h>
 #include <klocalizedstring.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qobject.h>
 
 #include "KoSvgTextShape.h"

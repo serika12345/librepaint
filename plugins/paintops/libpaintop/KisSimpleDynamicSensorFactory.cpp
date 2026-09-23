@@ -9,7 +9,6 @@
 
 #include <QtGlobal>
 #include <lager/cursor.hpp>
-#include <qtpreprocessorsupport.h>
 
 KisSimpleDynamicSensorFactory::KisSimpleDynamicSensorFactory(const QString &id,
                                                              int minimumValue,

@@ -24,14 +24,12 @@
 #include <qabstractitemmodel.h>
 #include <qalgorithms.h>
 #include <qcolor.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhashfunctions.h>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 const quintptr ID_NODE = 0xffffffff;
 

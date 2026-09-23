@@ -21,14 +21,10 @@
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
 #include <qcolor.h>
-#include <qforeach.h>
-#include <qlatin1stringview.h>
+#include <QtGlobal>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qstringview.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 
 struct Q_DECL_HIDDEN KisApplicationArguments::Private
 {

@@ -28,12 +28,10 @@
 #include <math.h>
 #include <KoCompositeOpRegistry.h>
 #include <KoMixColorsOp.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <qpoint.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <utility>
 
 using namespace std;

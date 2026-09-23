@@ -30,9 +30,8 @@
 
 
 #include <math.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qbitarray.h>
-#include <qtypes.h>
 #include <qwidget.h>
 
 

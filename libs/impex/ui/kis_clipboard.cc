@@ -35,20 +35,18 @@
 #include <kis_time_span.h>
 #include <numeric>
 #include <optional>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qglobalstatic.h>
 #include <qhash.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qset.h>
 #include <qsize.h>
 #include <qstringview.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
 #include <qvariant.h>
 
 // local

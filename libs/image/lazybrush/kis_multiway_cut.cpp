@@ -21,7 +21,7 @@
 #include <algorithm>
 #include <floodfill/kis_scanline_fill.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 
 
 using namespace KisLazyFillTools;

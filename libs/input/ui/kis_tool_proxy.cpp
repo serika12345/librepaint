@@ -19,12 +19,12 @@
 
 #include <KoCanvasBase.h>
 #include <KoToolProxy_p.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcoreevent.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qnamespace.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
 
 
 KisToolProxy::KisToolProxy(KoCanvasBase *canvas, QObject *parent)

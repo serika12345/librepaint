@@ -12,8 +12,7 @@
 #include "kis_filter_configuration.h"
 #include <qcontainerfwd.h>
 #include <qobject.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <stdlib.h>
 
 #include <QPoint>

@@ -16,11 +16,8 @@
 #include <KisSpinBoxI18nHelper.h>
 #include <KoUnit.h>
 #include <qcontainerfwd.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "KisScreentoneConfigWidget.h"
 #include "KisScreentoneGeneratorConfiguration.h"

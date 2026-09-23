@@ -12,7 +12,7 @@
 #include <QTextStream>
 #include <QBuffer>
 #include <KisPortingUtils.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 
 #define WORKSPACE_VERSION 1

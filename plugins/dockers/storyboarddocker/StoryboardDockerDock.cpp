@@ -50,7 +50,7 @@
 #include <qdom.h>
 #include <qfileinfo.h>
 #include <qfont.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qlogging.h>
 #include <qmap.h>
@@ -59,8 +59,6 @@
 #include <qpen.h>
 #include <qpixmap.h>
 #include <qscopedpointer.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
 #include <qvariant.h>
 
 #include "document/StoryboardItem.h"

@@ -22,10 +22,8 @@
 #include <functional>
 #include <kis_assert.h>
 #include <qlogging.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <utility>
 
 #include "kritacanvas_export.h"

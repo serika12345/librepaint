@@ -17,7 +17,6 @@
 #include <QLatin1String>
 #include <QString>
 #include <QtCore/qlogging.h>
-#include <QtCore/qtpreprocessorsupport.h>
 #include <QtGlobal>
 
 KisSensorData::KisSensorData(const KoID &sensorId)

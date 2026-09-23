@@ -24,15 +24,12 @@
 #include <KoPointerEvent.h>
 #include <KoCanvasBase.h>
 #include <KisToolCanvas.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qpair.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 #include <type_traits>
 #ifdef Q_OS_IOS
 #include <KoInputDevice.h>

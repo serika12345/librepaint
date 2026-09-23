@@ -18,11 +18,9 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoColorProfile.h>
 #include <KisImageResolutionProxy.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qnumeric.h>
 #include <qsize.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 #include "KisScreentoneGenerator.h"
 #include "KisScreentoneConfigWidget.h"

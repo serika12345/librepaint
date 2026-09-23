@@ -23,9 +23,8 @@
 #include <KoColorConversions.h>
 #include <kis_dom_utils.h>
 #include <lcms2.h>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qnamespace.h>
-#include <qtypes.h>
 
 XyzF32ColorSpace::XyzF32ColorSpace(const QString &name, KoColorProfile *p) :
     LcmsColorSpace<KoXyzF32Traits>(colorSpaceId(), name, TYPE_XYZA_FLT, cmsSigXYZData, p)

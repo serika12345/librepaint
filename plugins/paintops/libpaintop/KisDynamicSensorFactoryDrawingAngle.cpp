@@ -4,6 +4,8 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisDynamicSensorFactoryDrawingAngle.h"
+
+#include <QDebug>
 #include "KisDynamicSensorIds.h"
 
 #include <QCheckBox>

@@ -15,7 +15,7 @@
 #include <QSizePolicy>
 #include <QSpinBox>
 #include <QWidget>
-#include <QtCore/qtypes.h>
+#include <QtGlobal>
 
 #include <kis_algebra_2d.h>
 #include <KisMpl.h>

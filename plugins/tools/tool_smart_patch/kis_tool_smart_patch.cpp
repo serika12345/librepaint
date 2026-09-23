@@ -43,8 +43,7 @@
 #include <qpainter.h>
 #include <qpoint.h>
 #include <qset.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "kis_tool_smart_patch_options_widget.h"
 #include "libs/image/kis_paint_device_debug_utils.h"

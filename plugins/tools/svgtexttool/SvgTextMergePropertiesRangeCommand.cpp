@@ -10,8 +10,7 @@
 #include "kundo2magicstring.h"
 #include "kundo2stack.h"
 #include <KoShapeBulkActionLock.h>
-#include <qforeach.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qset.h>
 
 SvgTextMergePropertiesRangeCommand::SvgTextMergePropertiesRangeCommand(KoSvgTextShape *shape,

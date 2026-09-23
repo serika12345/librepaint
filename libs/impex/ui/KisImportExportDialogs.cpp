@@ -12,7 +12,7 @@
 
 #include <KoDialog.h>
 #include <optional>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 
 #include "kis_clipboard.h"
 #include "kis_dlg_missing_color_profile.h"

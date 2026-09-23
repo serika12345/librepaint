@@ -20,12 +20,9 @@
 #include "kis_painter.h"
 #include <KisFakeRunnableStrokeJobsExecutor.h>
 #include <mutex>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qscopedpointer.h>
 #include <qsharedpointer.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include "KisRunnableStrokeJobData.h"
 #include "KisRunnableStrokeJobUtils.h"
 #include "kis_transaction.h"

@@ -27,12 +27,11 @@
 #include <memory>
 #include <qcontainerfwd.h>
 #include <qdebug.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qmap.h>
 #include <qnamespace.h>
 #include <qscopedpointer.h>
-#include <qtpreprocessorsupport.h>
 
 const QString TITLE = "title";
 const QString DESCRIPTION = "description";

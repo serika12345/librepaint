@@ -30,9 +30,8 @@
 #include <qabstractitemmodel.h>
 #include <qcoreapplication.h>
 #include <qfileinfo.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlineedit.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>

@@ -13,7 +13,7 @@
 #include <qdebug.h>
 #include <qhashfunctions.h>
 #include <qstringview.h>
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 //#include <opengl/KisOpenGLModeProber.h>
 
 namespace {

@@ -27,12 +27,10 @@
 #include "kis_lazy_wait_condition.h"
 #include <functional>
 #include <mutex>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qatomic.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtypes.h>
 
 //#define DEBUG_BALANCING
 

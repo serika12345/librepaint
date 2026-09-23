@@ -9,7 +9,7 @@
 #include "kis_assert.h"
 #include "kis_update_info.h"
 #include "kritaui_export.h"
-#include <qtpreprocessorsupport.h>
+#include <QtGlobal>
 #include "opengl/kis_opengl_update_info.h"
 
 

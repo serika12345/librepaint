@@ -11,7 +11,7 @@
 #include <qcontainerfwd.h>
 #include <qnamespace.h>
 #include <qobject.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 KoLineStyleModel::KoLineStyleModel(QObject *parent)
     : QAbstractListModel(parent),

@@ -14,7 +14,7 @@
 #include <kis_icon_utils.h>
 #include <qdialog.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 namespace

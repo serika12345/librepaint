@@ -23,7 +23,6 @@
 #include <boost/spirit/home/support/common_terminals.hpp>
 #include <cmath>
 #include <qhashfunctions.h>
-#include <qtypes.h>
 #include <string>
 #include <vector>
 

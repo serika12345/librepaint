@@ -19,10 +19,8 @@
 #include <QVector2D>
 #include <QTransform>
 #include <math.h>
-#include <qassert.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnumeric.h>
-#include <qtypes.h>
 #include "kis_algebra_2d.h"
 #include "kis_dom_utils.h"
 

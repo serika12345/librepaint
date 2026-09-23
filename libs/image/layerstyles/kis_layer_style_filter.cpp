@@ -9,7 +9,7 @@
 
 #include <KoID.h>
 #include <qhashfunctions.h>
-#include <qtdeprecationdefinitions.h>
+#include <QtGlobal>
 
 
 struct Q_DECL_HIDDEN KisLayerStyleFilter::Private

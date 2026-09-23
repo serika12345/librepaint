@@ -8,7 +8,6 @@
 #include "kis_processing_visitor.h"
 
 #include <QtGlobal>
-#include <qtpreprocessorsupport.h>
 
 KisDoNothingProcessingVisitor::~KisDoNothingProcessingVisitor()
 {

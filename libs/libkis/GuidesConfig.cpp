@@ -9,7 +9,7 @@
 #include <QDomElement>
 #include <qlist.h>
 #include <qobject.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 #include "kis_guides_config.h"
 

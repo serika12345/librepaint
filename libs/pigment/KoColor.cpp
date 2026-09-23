@@ -30,16 +30,14 @@
 #include <KoConfig.h>
 #include <cstddef>
 #include <cstring>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
 #include <qhash.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
 #include <qnamespace.h>
-#include <qtversionchecks.h>
-#include <qtypes.h>
 #ifdef HAVE_OPENEXR
 #include <half.h>
 #endif

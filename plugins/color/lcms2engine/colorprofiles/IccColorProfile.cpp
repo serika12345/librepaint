@@ -32,13 +32,12 @@
 #include <KisLazyStorage.h>
 #include <KisLazyValueWrapper.h>
 #include <optional>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qcontainerfwd.h>
 #include <qlist.h>
 #include <qlogging.h>
 #include <qscopedpointer.h>
 #include <qstringview.h>
-#include <qtypes.h>
 
 
 struct IccColorProfile::Data::Private {

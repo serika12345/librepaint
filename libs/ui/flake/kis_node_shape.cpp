@@ -17,7 +17,7 @@
 #include <KoSelectedShapesProxy.h>
 #include "KoShape.h"
 #include "kis_assert.h"
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qobjectdefs.h>
 #include "kis_shape_layer.h"
 

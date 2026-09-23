@@ -7,7 +7,7 @@
 #include "KisTimedSignalThreshold.h"
 #include <QElapsedTimer>
 #include <qobject.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 
 struct KisTimedSignalThreshold::Private

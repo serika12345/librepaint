@@ -9,7 +9,7 @@
 #include <klocalizedstring.h>
 #include "kis_shape_selection.h"
 #include "kundo2magicstring.h"
-#include <qforeach.h>
+#include <QtGlobal>
 
 
 KisTakeAllShapesCommand::KisTakeAllShapesCommand(KisShapeSelection *shapeSelection, bool takeSilently, bool restoreSilently)

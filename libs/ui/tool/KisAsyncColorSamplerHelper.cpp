@@ -23,8 +23,7 @@
 #include <qscopedpointer.h>
 #include <qsize.h>
 #include <qtimer.h>
-#include <qtmetamacros.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <utility>
 
 #include "KisResourceTypes.h"

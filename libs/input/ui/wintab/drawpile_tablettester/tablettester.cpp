@@ -18,8 +18,7 @@
 #include <qhashfunctions.h>
 #include <qnamespace.h>
 #include <qobject.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 TabletTestDialog::TabletTestDialog(QWidget *parent)

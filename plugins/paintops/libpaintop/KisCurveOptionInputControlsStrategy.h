@@ -9,7 +9,7 @@
 
 #include <tuple>
 
-#include <QtCore/qtypes.h>
+#include <QtGlobal>
 
 #include <kritapaintop_export_instance.h>
 

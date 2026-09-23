@@ -23,7 +23,7 @@
 #include "kis_layer.h"
 #include "kis_painter.h"
 #include <commands/kis_node_commands_adapter.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qobjectdefs.h>
 #include <qtransform.h>
 #include "kis_group_layer.h"

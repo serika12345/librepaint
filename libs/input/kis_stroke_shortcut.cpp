@@ -12,10 +12,9 @@
 #include <QMouseEvent>
 
 #include <cmath>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qset.h>
-#include <qtdeprecationdefinitions.h>
 
 class Q_DECL_HIDDEN KisStrokeShortcut::Private
 {

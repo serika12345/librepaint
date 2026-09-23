@@ -11,9 +11,8 @@
 #include <QList>
 #include <QSet>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
-#include <qtdeprecationdefinitions.h>
 
 class Q_DECL_HIDDEN KisResourceSearchBoxFilter::Private
 {

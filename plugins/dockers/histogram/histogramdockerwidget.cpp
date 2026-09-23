@@ -15,7 +15,7 @@
 #include <cmath>
 #include <functional>
 #include <qcolor.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlabel.h>
 #include <qlist.h>
 #include <qmap.h>
@@ -24,7 +24,6 @@
 #include <qobject.h>
 #include <qobjectdefs.h>
 #include <qpaintdevice.h>
-#include <qtypes.h>
 #include <qwidget.h>
 #include <vector>
 

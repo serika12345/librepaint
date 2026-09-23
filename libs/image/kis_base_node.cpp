@@ -11,16 +11,12 @@
 #include <KoProperties.h>
 #include <KisAnimatedOpacityProperty.h>
 #include <new>
-#include <qassert.h>
+#include <QtGlobal>
 #include <qdebug.h>
 #include <qmap.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <quuid.h>
 #include <qvariant.h>
 

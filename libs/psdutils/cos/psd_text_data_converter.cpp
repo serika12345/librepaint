@@ -14,7 +14,7 @@
 #include <qcontainerfwd.h>
 #include <qdom.h>
 #include <qfont.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
 #include <qhashfunctions.h>
 #include <qlist.h>

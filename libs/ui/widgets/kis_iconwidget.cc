@@ -22,8 +22,7 @@
 #include <qregion.h>
 #include <qsize.h>
 #include <qstyle.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
+#include <QtGlobal>
 #include <qwidget.h>
 
 struct KisIconWidget::Private

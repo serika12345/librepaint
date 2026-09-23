@@ -31,7 +31,7 @@
 #include <qcontainerfwd.h>
 #include <qlist.h>
 #include <qobject.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 #include <qvariant.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KisQImageIOExportFactory, "krita_qimageio_export.json", registerPlugin<KisQImageIOExport>();)

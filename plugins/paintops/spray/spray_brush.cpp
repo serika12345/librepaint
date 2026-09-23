@@ -46,12 +46,9 @@
 
 #include <QtGlobal>
 #include <math.h>
-#include <qassert.h>
 #include <qlist.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qnumeric.h>
-#include <qtypes.h>
 
 SprayBrush::SprayBrush()
 {

@@ -36,15 +36,13 @@
 #include <math.h>
 #include <optional>
 #include <qabstractscrollarea.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qpaintdevice.h>
 #include <qpoint.h>
 #include <qsizepolicy.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 
 void KoCanvasControllerWidget::Private::activate()
 {

@@ -17,7 +17,7 @@
 #include <KisAsynchronouslyMergeableCommandInterface.h>
 #include <qcontainerfwd.h>
 #include <qdatetime.h>
-#include <qforeach.h>
+#include <QtGlobal>
 
 KUndo2Command *KisPostExecutionUndoAdapterDelivery::createSavedCommand(
     KUndo2CommandSP command,

@@ -25,11 +25,10 @@
 #include <KisLockFrameGenerationLock.h>
 #include <algorithm>
 #include <qatomic.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qobject.h>
 #include <qset.h>
-#include <qtmetamacros.h>
 #include <utility>
 #include "kis_post_execution_undo_adapter.h"
 #include "commands_new/kis_switch_current_time_command.h"

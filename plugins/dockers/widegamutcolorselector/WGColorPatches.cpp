@@ -5,6 +5,8 @@
  */
 
 #include "WGColorPatches.h"
+
+#include <QDebug>
 #include "WGCommonColorSet.h"
 #include "WGConfig.h"
 #include "WGSelectorWidgetBase.h"
@@ -21,7 +23,7 @@
 #include <qcolor.h>
 #include <qcoreevent.h>
 #include <qlist.h>
-#include <qminmax.h>
+#include <QtGlobal>
 #include <qnamespace.h>
 #include <qnumeric.h>
 #include <qobject.h>
@@ -29,8 +31,6 @@
 #include <qpoint.h>
 #include <qsize.h>
 #include <qsizepolicy.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
 
 namespace {
     inline QPoint transposed(QPoint point) {

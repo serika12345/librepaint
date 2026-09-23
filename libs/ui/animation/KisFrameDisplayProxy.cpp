@@ -15,7 +15,7 @@
 #include "kis_image_animation_interface.h"
 #include "KisCanvasAnimationState.h"
 #include <qobject.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 struct Private {
     Private(KisCanvas2* c)

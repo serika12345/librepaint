@@ -58,13 +58,12 @@
 #include <qcontainerfwd.h>
 #include <qfiledevice.h>
 #include <qfileinfo.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qimage.h>
-#include <qlatin1stringview.h>
 #include <qlist.h>
+#include <QDebug>
 #include <qlogging.h>
 #include <qmap.h>
-#include <qminmax.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
@@ -72,9 +71,6 @@
 #include <qscopedpointer.h>
 #include <qset.h>
 #include <qstringview.h>
-#include <qtmetamacros.h>
-#include <qtpreprocessorsupport.h>
-#include <qtypes.h>
 #include <utility>
 #include "kis_node_uuid_info.h"
 #include "application/ui/workspace/KisMainWindow.h"

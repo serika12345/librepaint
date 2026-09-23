@@ -19,7 +19,7 @@
 #include <qnamespace.h>
 #include <qpaintdevice.h>
 #include <qpoint.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 KisColorSmudgeStrategyStamp::KisColorSmudgeStrategyStamp(KisPainter *painter, KisImageSP image, bool smearAlpha,

@@ -10,7 +10,7 @@
 #include <QDomDocument>
 
 #include <qnumeric.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 #include "KoMultiArchBuildSupport.h"

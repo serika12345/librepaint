@@ -18,9 +18,7 @@
 #include <KoCanvasBase.h>
 #include <qhash.h>
 #include <qhashfunctions.h>
-#include <qtdeprecationdefinitions.h>
-#include <qtpreprocessorsupport.h>
-#include <qtversionchecks.h>
+#include <QtGlobal>
 
 
 class Q_DECL_HIDDEN KisAbstractInputAction::Private

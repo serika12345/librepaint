@@ -34,12 +34,10 @@
 #include <numeric>
 #include <qalgorithms.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qhash.h>
-#include <qlatin1stringview.h>
 #include <qlist.h>
 #include <qsharedpointer.h>
-#include <qtypes.h>
 
 
 inline uint qHash(const QRect &rc) {

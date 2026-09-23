@@ -8,7 +8,7 @@
 #include <cmath>
 #include <qpoint.h>
 #include <qpolygon.h>
-#include <qtypes.h>
+#include <QtGlobal>
 
 
 Ellipse::Ellipse() : a(-1), b(-1)

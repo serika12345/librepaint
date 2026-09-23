@@ -17,12 +17,11 @@
 #include <commands/KoShapeReorderCommand.h>
 
 #include <klocalizedstring.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
 #include <qpoint.h>
 #include <qscopedpointer.h>
 #include <qtransform.h>
-#include <qtypes.h>
 
 // static
 KoShapeGroupCommand * KoShapeGroupCommand::createCommand(KoShapeContainer *container, const QList<KoShape *> &shapes, bool shouldNormalize)

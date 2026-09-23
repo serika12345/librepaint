@@ -9,7 +9,7 @@
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <qtmetamacros.h>
+#include <QtGlobal>
 
 
 KisGuiContextCommand::KisGuiContextCommand(KUndo2Command *command, QObject *guiObject)

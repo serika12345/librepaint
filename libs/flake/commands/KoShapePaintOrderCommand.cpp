@@ -12,9 +12,8 @@
 #include "kundo2stack.h"
 #include <klocalizedstring.h>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtdeprecationdefinitions.h>
 
 namespace
 {

@@ -15,12 +15,11 @@
 #include <cmath>
 #include <functional>
 #include <qcontainerfwd.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qline.h>
 #include <qnumeric.h>
 #include <qpoint.h>
 #include <qpolygon.h>
-#include <qtypes.h>
 
 namespace KisAlgebra2D {
 

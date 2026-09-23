@@ -8,6 +8,7 @@
 
 #include <QRect>
 #include <QImage>
+#include <QDebug>
 #include <qlogging.h>
 
 #include "kis_paint_device.h"

@@ -14,10 +14,8 @@
 #include <KoShapeBulkActionLock.h>
 
 #include <klocalizedstring.h>
-#include <qassert.h>
-#include <qforeach.h>
+#include <QtGlobal>
 #include <qlist.h>
-#include <qtdeprecationdefinitions.h>
 
 #include "kis_command_ids.h"
 #include "kundo2magicstring.h"
