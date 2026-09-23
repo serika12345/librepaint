@@ -8,6 +8,7 @@
 
 #include "GutterWidthsConfig.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "kis_assert.h"
 #include "kis_types.h"
 #include "ui_KisToolKnifeOptionsWidget.h"

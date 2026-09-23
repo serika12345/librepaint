@@ -5,6 +5,7 @@
  */
 
 #include <KoShapeCreateCommand.h>
+#include <klocalizedstring.h>
 #include <KoShapeDeleteCommand.h>
 #include <KoKeepShapesSelectedCommand.h>
 #include <KoSelection.h>

@@ -7,6 +7,7 @@
  */
 
 #include "widgets/kis_custom_image_widget.h"
+#include <klocalizedstring.h>
 
 #include <QMimeData>
 #include <QSlider>
@@ -549,4 +550,3 @@ void KisCustomImageWidget::changeDocumentInfoLabel()
                          KFormat().formatByteSize(layerSize));
     lblDocumentInfo->setText(text);
 }
-

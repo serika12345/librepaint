@@ -9,6 +9,7 @@
 
 #include "KisResourceStorage.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoDialog.h"
 #include "ui_WdgDlgResourceManager.h"
 #include "wdg_resource_preview.h"

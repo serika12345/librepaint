@@ -10,6 +10,7 @@
 #define KISGRADIENTGENERATOR_H
 
 #include <QObject>
+#include <klocalizedstring.h>
 
 #include "generator/kis_generator.h"
 

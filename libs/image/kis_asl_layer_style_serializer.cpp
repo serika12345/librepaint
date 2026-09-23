@@ -33,6 +33,7 @@
 #include "KisLocalStrokeResources.h"
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisResourcesInterface.h"
 #include "KoCompositeOpIds.h"
 #include "KoEmbeddedResource.h"

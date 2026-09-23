@@ -6,6 +6,7 @@
 
 #include "KisBrushModel.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "kis_brush.h"
 #include "kis_brush_registry.h"
 #include "kis_paintop_lod_limitations.h"

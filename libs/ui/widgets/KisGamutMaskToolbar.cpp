@@ -5,6 +5,7 @@
  */
 
 #include <QWidget>
+#include <klocalizedstring.h>
 #include <QToolTip>
 #include "KisGamutMaskToolbar.h"
 #include "KisAngleGauge.h"

@@ -8,6 +8,7 @@
  */
 
 #include <KoColorSpace.h>
+#include <klocalizedstring.h>
 #include <KoColor.h>
 #include <cstring>
 #include <kis_paint_device.h>

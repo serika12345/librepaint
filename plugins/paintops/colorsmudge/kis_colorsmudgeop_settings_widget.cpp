@@ -5,6 +5,7 @@
  */
 
 #include "kis_colorsmudgeop_settings_widget.h"
+#include <klocalizedstring.h>
 #include "KisBrushModel.h"
 #include "KisBrushOptionWidgetFlags.h"
 #include "KisMirrorOptionData.h"

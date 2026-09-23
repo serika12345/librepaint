@@ -20,6 +20,7 @@
 
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoID.h"
 #include "kis_brush.h"
 #include "kis_image.h"

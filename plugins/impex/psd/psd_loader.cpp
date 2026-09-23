@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "psd_loader.h"
+#include <klocalizedstring.h>
 
 #include <QApplication>
 

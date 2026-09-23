@@ -5,6 +5,7 @@
  */
 
 #include <QAction>
+#include <klocalizedstring.h>
 #include <QSpinBox>
 #include <QVBoxLayout>
 #include <QLineEdit>

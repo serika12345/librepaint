@@ -5,6 +5,7 @@
  */
 
 #include "kis_ls_overlay_filter.h"
+#include <klocalizedstring.h>
 
 #include <cstdlib>
 

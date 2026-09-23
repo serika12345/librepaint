@@ -7,6 +7,7 @@
  */
 
 #include "gaussianhighpass_filter.h"
+#include <klocalizedstring.h>
 #include <QBitArray>
 
 #include <KoColorSpace.h>

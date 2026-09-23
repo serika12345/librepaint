@@ -19,6 +19,7 @@
 
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoColorModelStandardIds.h"
 #include "KoColorProfileConstants.h"
 #include "KoColorProfileQuery.h"

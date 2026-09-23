@@ -7,6 +7,7 @@
  */
 
 #include "widgets/kis_image_from_clipboard_widget.h"
+#include <klocalizedstring.h>
 #include "KoColorSpaceConstants.h"
 #include "kis_assert.h"
 #include "kis_types.h"

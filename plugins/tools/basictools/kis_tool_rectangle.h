@@ -13,6 +13,7 @@
 #define __KIS_TOOL_RECTANGLE_H__
 
 #include "kis_tool_shape.h"
+#include <klocalizedstring.h>
 #include "kis_types.h"
 #include "KisToolPaintFactoryBase.h"
 #include "flake/kis_node_shape.h"
@@ -66,4 +67,3 @@ public:
 
 
 #endif // __KIS_TOOL_RECTANGLE_H__
-

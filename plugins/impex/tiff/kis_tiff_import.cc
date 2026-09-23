@@ -6,6 +6,7 @@
  */
 
 #include "kis_tiff_import.h"
+#include <klocalizedstring.h>
 #include "KisImportExportErrorCode.h"
 #include "KisImportExportFilter.h"
 #include "KisQStringListFwd.h"

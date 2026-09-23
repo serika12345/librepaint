@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "Document.h"
+#include <klocalizedstring.h>
 #include <QPointer>
 #include <QUrl>
 #include <QDomDocument>

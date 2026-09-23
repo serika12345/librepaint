@@ -6,6 +6,7 @@
  */
 
 #include "kis_hatching_paintop_settings.h"
+#include <klocalizedstring.h>
 #include "KisPaintopPropertiesBase.h"
 #include "kis_brush_based_paintop_settings.h"
 #include "kis_paintop_settings.h"
@@ -196,4 +197,3 @@ QList<KisUniformPaintOpPropertySP> KisHatchingPaintOpSettings::uniformProperties
 
     return KisPaintOpSettings::uniformProperties(settings, updateProxy) + props;
 }
-

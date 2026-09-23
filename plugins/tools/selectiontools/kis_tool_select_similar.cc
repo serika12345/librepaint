@@ -21,6 +21,7 @@
 #include "KisOptionCollectionWidget.h"
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisSelectionTags.h"
 #include "commands_new/KisMergeLabeledLayersCommand.h"
 #include "kis_assert.h"

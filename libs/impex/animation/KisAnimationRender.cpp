@@ -21,6 +21,7 @@
 
 #include "KisImportExportErrorCode.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "document/KisDocument.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "KisAnimationRenderingOptions.h"

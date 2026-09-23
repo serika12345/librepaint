@@ -5,6 +5,7 @@
  */
 
 #include "ToolReferenceImages.h"
+#include <klocalizedstring.h>
 
 #include <QDesktopServices>
 #include <QFile>

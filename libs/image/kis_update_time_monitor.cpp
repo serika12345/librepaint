@@ -22,6 +22,7 @@
 
 #include <KisPortingUtils.h>
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoResource.h"
 #include "kis_global.h"
 #include "kis_image_config.h"

@@ -7,6 +7,7 @@
  */
 
 #include <QPainter>
+#include <klocalizedstring.h>
 #include <QSpinBox>
 #include <QDoubleSpinBox>
 #include <QPoint>

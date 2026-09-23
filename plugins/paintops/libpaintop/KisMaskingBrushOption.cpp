@@ -5,6 +5,7 @@
  */
 
 #include "KisMaskingBrushOption.h"
+#include <klocalizedstring.h>
 
 #include "KisBrushModel.h"
 #include "KisBrushOptionWidgetFlags.h"

@@ -12,6 +12,7 @@
 #include "KisImportExportFilter.h"
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoColorSpaceConstants.h"
 #include "application/kis_config.h"
 

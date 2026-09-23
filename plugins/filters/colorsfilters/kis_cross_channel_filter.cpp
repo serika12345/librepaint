@@ -18,6 +18,7 @@
 
 #include "KisCurveWidgetControlsManager.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoColorSpace.h"
 #include "KoColorTransformation.h"
 #include "KoCompositeColorTransformation.h"

@@ -8,6 +8,7 @@
 #define KIS_TOOL_PENCIL_H_
 
 #include <KoPencilTool.h>
+#include <klocalizedstring.h>
 #include <KoToolFactoryBase.h>
 
 #include "flake/kis_node_shape.h"
@@ -90,4 +91,3 @@ public:
 
 
 #endif // KIS_TOOL_PENCIL_H_
-

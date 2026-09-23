@@ -6,6 +6,7 @@
 #include "KisPredefinedBrushModel.h"
 #include "KisBrushModel.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisWidgetConnectionUtils.h"
 #include "kis_assert.h"
 #include "kis_brush.h"

@@ -12,6 +12,7 @@
 
 #include "KisShortcutsDialog_p.h"
 
+#include <KLocalizedString>
 #include <QDebug>
 #include "KisShortcutsEditor_p.h"
 #include "ui_KisShortcutsDialog.h"

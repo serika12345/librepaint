@@ -27,6 +27,7 @@
 #include <utility>
 
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoCanvasResourcesIds.h"
 #include "KoCanvasResourceProvider.h"
 #include "KoColorSpaceConstants.h"

@@ -24,6 +24,7 @@
 
 #include "KisPropagateColorsFilterConfiguration.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "kis_assert.h"
 #include "kis_config_widget.h"
 #include "kis_types.h"

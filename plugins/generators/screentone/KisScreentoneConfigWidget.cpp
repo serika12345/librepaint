@@ -7,6 +7,7 @@
  */
 
 #include <KoColor.h>
+#include <klocalizedstring.h>
 #include <KisGlobalResourcesInterface.h>
 #include <kis_signals_blocker.h>
 #include <kis_generator_registry.h>

@@ -7,6 +7,7 @@
 #include "kis_color_balance_filter.h"
 #include <filter/kis_filter_category_ids.h>
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "filter/kis_color_transformation_configuration.h"
 #include "kis_config_widget.h"
 #include "kis_filter_configuration.h"

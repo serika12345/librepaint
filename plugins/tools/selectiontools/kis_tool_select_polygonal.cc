@@ -11,6 +11,7 @@
  */
 
 #include "kis_tool_select_polygonal.h"
+#include <klocalizedstring.h>
 
 #include <KoPathShape.h>
 

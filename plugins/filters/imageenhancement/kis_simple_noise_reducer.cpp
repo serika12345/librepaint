@@ -26,6 +26,7 @@
 #include <KisSequentialIteratorProgress.h>
 #include <kis_sequential_iterator.h>
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "kis_assert.h"
 #include "kis_circle_mask_generator.h"
 #include "kis_config_widget.h"

@@ -10,6 +10,7 @@
  */
 
 #include "kis_tool_freehand.h"
+#include <klocalizedstring.h>
 #include <QPainter>
 #include <QRect>
 #include <QThreadPool>

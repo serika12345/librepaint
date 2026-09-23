@@ -4,6 +4,9 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "KisResourceTypes.h"
+
+#include <KLocalizedString>
+
 #include <QCoreApplication>
 #include <QMap>
 #include <QDebug>

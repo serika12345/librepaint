@@ -6,6 +6,7 @@
 
 #include "KisTouchGestureAction.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "kis_abstract_input_action.h"
 #include <application/ui/workspace/KisMainWindow.h>
 #include <application/ui/orchestration/KisPart.h>

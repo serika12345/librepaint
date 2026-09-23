@@ -11,6 +11,7 @@
 #define KISGRADIENTGENERATORCONFIGURATION_H
 
 #include <QString>
+#include <klocalizedstring.h>
 
 #include <kis_filter_configuration.h>
 #include <kis_gradient_painter.h>

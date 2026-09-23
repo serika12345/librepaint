@@ -8,6 +8,7 @@
 
 
 #include "kis_motion_blur_filter.h"
+#include <klocalizedstring.h>
 #include "KoColorSpace.h"
 #include "kis_assert.h"
 #include "kis_config_widget.h"

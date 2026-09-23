@@ -5,6 +5,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "KisTagResourceModel.h"
+#include <klocalizedstring.h>
 #include "KisResourceStorage.h"
 #include "KisTag.h"
 #include "KoResource.h"

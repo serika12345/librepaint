@@ -32,6 +32,7 @@
 #include <KoColor.h>
 #include <KoStore.h>
 #include <KisResourceTypes.h>
+#include <klocalizedstring.h>
 #include <kis_annotation.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>

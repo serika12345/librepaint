@@ -7,6 +7,7 @@
 #define KIS_EDGE_DETECTION_FILTER_H
 
 #include "filter/kis_filter.h"
+#include <klocalizedstring.h>
 
 #include <Eigen/Core>
 

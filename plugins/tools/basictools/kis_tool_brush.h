@@ -8,6 +8,7 @@
 #define KIS_TOOL_BRUSH_H_
 
 #include "kis_tool_freehand.h"
+#include <klocalizedstring.h>
 
 #include <KisSignalMapper.h>
 

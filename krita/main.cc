@@ -16,6 +16,7 @@
 */
 
 #include <KLocalizedTranslator>
+#include <klocalizedstring.h>
 #include <QByteArray>
 #include <QDate>
 #include <QDir>

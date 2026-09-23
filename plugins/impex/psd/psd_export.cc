@@ -24,6 +24,7 @@
 #include "KisExportCheckBase.h"
 #include "KisImportExportErrorCode.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoColorModelStandardIds.h"
 #include "KoID.h"
 #include "kis_types.h"

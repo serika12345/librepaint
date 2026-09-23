@@ -6,6 +6,7 @@
 
 #include "kis_delayed_save_dialog.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoDialog.h"
 #include "kis_assert.h"
 #include "ui_kis_delayed_save_dialog.h"

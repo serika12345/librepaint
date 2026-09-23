@@ -5,6 +5,7 @@
  */
 
 #include "page_metadata_info.h"
+#include <klocalizedstring.h>
 #include "KoResourceBundle.h"
 #include "ui_pagemetadatainfo.h"
 #include <application/kis_config.h>

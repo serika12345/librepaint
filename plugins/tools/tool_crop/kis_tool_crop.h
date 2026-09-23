@@ -10,6 +10,7 @@
 #define KIS_TOOL_CROP_H_
 
 #include <QPoint>
+#include <klocalizedstring.h>
 #include <QPainterPath>
 
 #include <kis_icon.h>
@@ -237,4 +238,3 @@ public:
 
 
 #endif // KIS_TOOL_CROP_H_
-

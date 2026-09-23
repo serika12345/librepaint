@@ -5,6 +5,7 @@
  */
 
 #include "kis_sketch_paintop_settings_widget.h"
+#include <klocalizedstring.h>
 #include "KisBrushOptionWidgetFlags.h"
 #include "KisPaintingModeOptionData.h"
 #include "kis_brush_based_paintop_options_widget.h"
@@ -56,4 +57,3 @@ KisPropertiesConfigurationSP  KisSketchPaintOpSettingsWidget::configuration() co
     writeConfiguration(config);
     return config;
 }
-

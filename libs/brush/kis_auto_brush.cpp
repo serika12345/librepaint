@@ -7,6 +7,7 @@
  */
 
 #include "kis_auto_brush.h"
+#include <klocalizedstring.h>
 
 #include <cstring>
 #include <math.h>

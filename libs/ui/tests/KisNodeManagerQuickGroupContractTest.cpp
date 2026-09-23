@@ -4,6 +4,7 @@
  */
 
 #include <QHash>
+#include <klocalizedstring.h>
 #include <QObject>
 #include <QTest>
 

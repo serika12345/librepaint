@@ -5,6 +5,7 @@
  */
 
 #include "KisAnimTimelineFramesModel.h"
+#include <klocalizedstring.h>
 
 #include "KisQStringListFwd.h"
 #include "KisTimeBasedItemModel.h"

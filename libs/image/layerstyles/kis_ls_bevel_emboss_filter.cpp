@@ -8,6 +8,7 @@
  */
 
 #include "kis_ls_bevel_emboss_filter.h"
+#include <klocalizedstring.h>
 
 #include <cmath>
 #include <cstdlib>

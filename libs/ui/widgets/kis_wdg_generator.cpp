@@ -6,6 +6,7 @@
  */
 
 #include "widgets/kis_wdg_generator.h"
+#include <klocalizedstring.h>
 
 #include <QListWidget>
 #include <QListWidgetItem>

@@ -7,6 +7,7 @@
  */
 
 #include "kis_kra_save_visitor.h"
+#include <klocalizedstring.h>
 #include "KisPortingUtils.h"
 #include "KisQStringListFwd.h"
 #include "KoShape.h"

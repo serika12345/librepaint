@@ -33,6 +33,7 @@
 
 #include "KisResourceModel.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisSeExprScript.h"
 #include "SeExprExpressionContext.h"
 #include "generator.h"

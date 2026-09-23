@@ -6,6 +6,7 @@
  */
 
 #include "kis_heightmap_import.h"
+#include <klocalizedstring.h>
 
 
 #include <QApplication>

@@ -7,6 +7,7 @@
  */
 
 #include <cstddef>
+#include <klocalizedstring.h>
 #include <decode.h>
 #include <kpluginfactory.h>
 #include <mux_types.h>

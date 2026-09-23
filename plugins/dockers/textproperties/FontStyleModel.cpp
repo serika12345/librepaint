@@ -7,6 +7,7 @@
 #include "KisResourceTypes.h"
 #include "KoResource.h"
 #include "KoSvgText.h"
+#include <KLocalizedString>
 #include <QDebug>
 #include <algorithm>
 #include <optional>

@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "application/ui/workspace/KisWindowLayoutResource.h"
+#include <klocalizedstring.h>
 #include "KisPortingUtils.h"
 #include "KisQStringListFwd.h"
 #include "KoResource.h"

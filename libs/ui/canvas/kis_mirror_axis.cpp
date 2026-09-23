@@ -8,6 +8,7 @@
 #include "kis_mirror_axis.h"
 
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoConfig.h"
 #include <KoPointerEvent.h>
 

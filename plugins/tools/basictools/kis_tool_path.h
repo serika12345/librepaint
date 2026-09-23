@@ -8,6 +8,7 @@
 #define KIS_TOOL_PATH_H_
 
 #include <KoCreatePathTool.h>
+#include <klocalizedstring.h>
 #include <KoToolFactoryBase.h>
 
 #include "flake/kis_node_shape.h"

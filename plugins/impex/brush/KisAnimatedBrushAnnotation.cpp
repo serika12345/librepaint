@@ -7,6 +7,7 @@
  */
 #include "KisAnimatedBrushAnnotation.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "kis_annotation.h"
 
 #include <QByteArray>

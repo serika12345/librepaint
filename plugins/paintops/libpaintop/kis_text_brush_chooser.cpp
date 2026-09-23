@@ -17,6 +17,7 @@
 #include <qobjectdefs.h>
 
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisTextBrushModel.h"
 #include "KisWidgetConnectionUtils.h"
 
@@ -82,4 +83,3 @@ void KisTextBrushChooser::updateBrushPreview()
     lblFont->setText(QString(f.family() + ", %1").arg(f.pointSize()));
     lblFont->setFont(f);
 }
-

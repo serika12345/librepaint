@@ -8,6 +8,7 @@
 #include "KisBundleStorage.h"
 #include "KisResourceStorage.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoResourceBundle.h"
 #include "ui_pagetagchooser.h"
 #include "dlg_create_bundle.h"

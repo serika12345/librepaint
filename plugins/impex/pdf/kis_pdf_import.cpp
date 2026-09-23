@@ -6,6 +6,7 @@
  */
 
 #include "kis_pdf_import.h"
+#include <klocalizedstring.h>
 #include "KisImportExportFilter.h"
 #include "kis_global.h"
 #include "kis_types.h"

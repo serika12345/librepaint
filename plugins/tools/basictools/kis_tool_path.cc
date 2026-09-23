@@ -6,6 +6,7 @@
  */
 
 #include "kis_tool_path.h"
+#include <klocalizedstring.h>
 #include "KoCreatePathTool.h"
 #include "KoPointerEvent.h"
 #include "KoToolBase.h"

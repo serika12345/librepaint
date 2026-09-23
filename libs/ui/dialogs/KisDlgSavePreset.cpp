@@ -5,6 +5,7 @@
  */
 
 #include "dialogs/KisDlgSavePreset.h"
+#include <klocalizedstring.h>
 
 #include <QDebug>
 #include <QDate>

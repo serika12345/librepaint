@@ -9,6 +9,7 @@
  */
 
 #include <QAction>
+#include <klocalizedstring.h>
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QPainterPath>

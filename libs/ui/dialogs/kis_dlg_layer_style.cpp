@@ -26,6 +26,7 @@
 #include "KisResourceModel.h"
 #include "KisResourceStorage.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisResourcesInterface.h"
 #include "KoAbstractGradient.h"
 #include "KoDialog.h"

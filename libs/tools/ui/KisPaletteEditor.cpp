@@ -30,6 +30,7 @@
 #include "KisPaletteEditor.h"
 #include "KisResourceStorage.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisSwatch.h"
 #include "KoColor.h"
 #include <KisResourceUserOperations.h>

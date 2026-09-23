@@ -7,6 +7,7 @@
  */
 
 #include "kis_clipboard_brush_widget.h"
+#include <klocalizedstring.h>
 
 #include <QPixmap>
 #include <QPushButton>

@@ -6,6 +6,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "dlg_bundle_manager.h"
+#include <klocalizedstring.h>
 
 #include "KoDialog.h"
 #include "KoID.h"

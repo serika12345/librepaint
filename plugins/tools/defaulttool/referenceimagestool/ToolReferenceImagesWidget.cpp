@@ -8,6 +8,7 @@
 #include "ToolReferenceImagesWidget.h"
 
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "kis_assert.h"
 #include "kis_icon_utils.h"
 #include "kundo2stack.h"

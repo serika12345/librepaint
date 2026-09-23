@@ -7,6 +7,7 @@
  */
 
 #include "kis_unsharp_filter.h"
+#include <klocalizedstring.h>
 #include <QBitArray>
 
 #include <cstring>

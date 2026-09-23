@@ -41,6 +41,7 @@
 #include "KisResourceModel.h"
 #include "KisResourceStorage.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoAbstractGradient.h"
 
 class Q_DECL_HIDDEN KisGenericGradientEditor::Private

@@ -6,6 +6,7 @@
  */
 
 #include "kis_kra_load_visitor.h"
+#include <klocalizedstring.h>
 #include "KisQStringListFwd.h"
 #include "KoColorProfileConstants.h"
 #include "kis_assert.h"

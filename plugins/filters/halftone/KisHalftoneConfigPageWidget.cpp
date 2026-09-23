@@ -7,6 +7,7 @@
  */
 
 #include <generator/kis_generator.h>
+#include <klocalizedstring.h>
 #include <generator/kis_generator_registry.h>
 #include <KisGlobalResourcesInterface.h>
 #include <filter/kis_filter_configuration.h>

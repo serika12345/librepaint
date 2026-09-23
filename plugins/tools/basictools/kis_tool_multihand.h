@@ -9,6 +9,7 @@
 #define __KIS_TOOL_MULTIHAND_H
 
 #include "kis_tool_brush.h"
+#include <klocalizedstring.h>
 #include <kis_icon.h>
 #include "kis_tool_multihand_config.h"
 #include <QRandomGenerator>

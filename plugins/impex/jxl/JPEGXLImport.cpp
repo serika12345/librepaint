@@ -7,6 +7,7 @@
  */
 
 #include "JPEGXLImport.h"
+#include <klocalizedstring.h>
 #include "KisImportExportFilter.h"
 #include "KisQStringListFwd.h"
 #include "KoColorProfileConstants.h"

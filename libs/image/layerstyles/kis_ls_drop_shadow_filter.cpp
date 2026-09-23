@@ -5,6 +5,7 @@
  */
 
 #include "kis_ls_drop_shadow_filter.h"
+#include <klocalizedstring.h>
 
 #include <cstdlib>
 

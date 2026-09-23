@@ -7,6 +7,7 @@
  */
 
 #include <filter/kis_filter_configuration.h>
+#include <klocalizedstring.h>
 #include <kis_filter_registry.h>
 #include <KisGlobalResourcesInterface.h>
 #include <KoChannelInfo.h>

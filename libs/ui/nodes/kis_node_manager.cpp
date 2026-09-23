@@ -5,6 +5,7 @@
  */
 
 #include "nodes/kis_node_manager.h"
+#include <klocalizedstring.h>
 #include "KisQStringListFwd.h"
 #include "KoColorSpaceConstants.h"
 #include <KisPortingUtils.h>

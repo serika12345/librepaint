@@ -7,6 +7,7 @@
 #include "WGColorSelectorSettings.h"
 #include "KisColorSelectorConfiguration.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisVisualColorModel.h"
 #include "WGConfig.h"
 #include "kis_assert.h"

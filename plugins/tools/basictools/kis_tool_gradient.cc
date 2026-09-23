@@ -10,6 +10,7 @@
  */
 
 #include "kis_tool_gradient.h"
+#include <klocalizedstring.h>
 
 #include <cmath>
 

@@ -8,6 +8,7 @@
 #define KIS_TOOL_SELECT_SIMILAR_H_
 
 #include <KisSelectionToolFactoryBase.h>
+#include <klocalizedstring.h>
 #include <kis_icon.h>
 #include <kconfig.h>
 #include "kis_tool_select_ui_base.h"

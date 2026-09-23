@@ -5,6 +5,7 @@
  */
 
 #include "kis_ls_satin_filter.h"
+#include <klocalizedstring.h>
 
 #include <cstdlib>
 

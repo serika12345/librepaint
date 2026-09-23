@@ -10,6 +10,7 @@
 #define KIS_TOOL_POLYGON_H_
 
 #include "kis_tool_shape.h"
+#include <klocalizedstring.h>
 #include "flake/kis_node_shape.h"
 #include <kis_tool_polyline_base.h>
 #include <kis_icon.h>

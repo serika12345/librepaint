@@ -5,6 +5,7 @@
  */
 
 #include <QVector3D>
+#include <klocalizedstring.h>
 #include "kis_tool_transform_config_widget.h"
 
 #include <cmath>

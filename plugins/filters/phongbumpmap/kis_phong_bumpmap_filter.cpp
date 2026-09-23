@@ -6,6 +6,7 @@
 
 #include "kis_phong_bumpmap_filter.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoColorSpace.h"
 #include "kis_assert.h"
 #include "kis_filter.h"

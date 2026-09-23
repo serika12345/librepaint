@@ -9,6 +9,7 @@
 #include "palettize.h"
 #include "KisDitherWidget.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisResourceUiDescriptor.h"
 #include "KisSwatch.h"
 #include "KoColor.h"

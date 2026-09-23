@@ -9,6 +9,7 @@
  */
 
 #include "kis_tool_move.h"
+#include <klocalizedstring.h>
 
 #include <QPoint>
 #include <kconfiggroup.h>

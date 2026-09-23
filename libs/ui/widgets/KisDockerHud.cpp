@@ -5,6 +5,7 @@
  */
 
 #include "KisDockerHud.h"
+#include <klocalizedstring.h>
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>

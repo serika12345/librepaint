@@ -9,6 +9,7 @@
  */
 
 #include "kis_tool_select_elliptical.h"
+#include <klocalizedstring.h>
 
 #include <QVBoxLayout>
 

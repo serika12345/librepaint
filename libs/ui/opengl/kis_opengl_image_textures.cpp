@@ -7,6 +7,7 @@
 #include "opengl/kis_opengl_image_textures.h"
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoChannelInfo.h"
 #include "kis_assert.h"
 #include "kis_debug.h"

@@ -7,6 +7,7 @@
  */
 
 #include "kis_filter_selector_widget.h"
+#include <klocalizedstring.h>
 
 #include <QHeaderView>
 #include <QTreeView>

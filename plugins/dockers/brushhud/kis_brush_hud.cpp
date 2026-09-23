@@ -30,6 +30,7 @@
 #include <qwidget.h>
 
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoCanvasResourcesIds.h"
 #include "kis_assert.h"
 #include "kis_types.h"

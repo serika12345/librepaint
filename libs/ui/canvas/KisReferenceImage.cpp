@@ -6,6 +6,7 @@
 
 #include "canvas/KisReferenceImage.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoColor.h"
 #include "KoColorModelStandardIds.h"
 #include "KoColorProfile.h"

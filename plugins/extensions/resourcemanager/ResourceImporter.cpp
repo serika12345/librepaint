@@ -5,6 +5,7 @@
  */
 
 #include "ResourceImporter.h"
+#include <klocalizedstring.h>
 
 #include <QItemSelection>
 #include <QPainter>
@@ -378,7 +379,6 @@ void ResourceImporter::initialize()
         m_isInitialized = true;
     }
 }
-
 
 
 

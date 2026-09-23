@@ -53,6 +53,7 @@
 #include "KisImportExportErrorCode.h"
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "document/KisDocument.h"
 #include "KisImportExportManager.h"
 #include "application/ui/workspace/KisMainWindow.h"

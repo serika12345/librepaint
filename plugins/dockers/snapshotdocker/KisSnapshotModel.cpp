@@ -6,6 +6,7 @@
 
 #include "KisSnapshotModel.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 
 #include <QMap>
 #include <QList>

@@ -28,6 +28,7 @@
 #include "KisImportExportErrorCode.h"
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoBgrColorSpaceTraits.h"
 #include "kis_debug.h"
 #include "kis_iterator_ng.h"
@@ -422,4 +423,3 @@ void JP2Converter::addErrorString(const std::string &str) {
 		err += "\n";
 	err += str;
 }
-

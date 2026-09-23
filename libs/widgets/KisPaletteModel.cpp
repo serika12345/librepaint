@@ -7,6 +7,7 @@
 
 #include "KisPaletteModel.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisSwatch.h"
 #include "KisSwatchGroup.h"
 

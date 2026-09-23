@@ -22,6 +22,7 @@
 
 #include <KisGradientWidgetsUtils.h>
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoStopGradient.h"
 #include "kis_assert.h"
 #include "kis_global.h"

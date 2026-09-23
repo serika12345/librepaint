@@ -15,6 +15,7 @@ target_include_directories(kritaresourcestypesobjects
 target_link_libraries(kritaresourcestypesobjects
     PUBLIC
         Qt${QT_MAJOR_VERSION}::Core
+    PRIVATE
         KF${KF_MAJOR}::I18n
 )
 set_target_properties(kritaresourcestypesobjects PROPERTIES

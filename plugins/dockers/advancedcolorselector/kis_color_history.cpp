@@ -6,6 +6,7 @@
  */
 
 #include "kis_color_history.h"
+#include <klocalizedstring.h>
 #include "KisUniqueColorSet.h"
 #include "KoCompositeOpIds.h"
 #include "kis_assert.h"

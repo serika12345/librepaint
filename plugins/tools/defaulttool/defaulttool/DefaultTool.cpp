@@ -13,6 +13,7 @@
 #include "DefaultToolTabbedWidget.h"
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoCanvasResourcesIds.h"
 #include "KoFlake.h"
 #include "KoShapeAlignCommand.h"

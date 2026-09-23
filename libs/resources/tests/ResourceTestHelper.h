@@ -17,6 +17,7 @@
 #include <KisResourceLocator.h>
 #include <KisResourceCacheDb.h>
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include <DummyResource.h>
 #include <KisStoragePlugin.h>
 #include <simpletest.h>

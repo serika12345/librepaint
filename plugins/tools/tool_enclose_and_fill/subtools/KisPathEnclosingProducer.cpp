@@ -7,6 +7,7 @@
  */
 
 #include <kis_cursor.h>
+#include <klocalizedstring.h>
 #include <QMouseEvent>
 #include <QTabletEvent>
 #include <KoPathShape.h>

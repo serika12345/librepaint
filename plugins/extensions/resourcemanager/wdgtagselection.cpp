@@ -8,6 +8,7 @@
 #include "wdgtagselection.h"
 #include "KisResourceStorage.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisTag.h"
 #include "KisTagResourceModel.h"
 #include "KisTagSelectionWidget.h"
@@ -317,7 +318,6 @@ void KisWdgTagSelectionControllerBundleTags::setResourceType(const QString &reso
     m_resourceType = resourceType;
     updateView();
 }
-
 
 
 

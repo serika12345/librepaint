@@ -6,6 +6,7 @@
 
 #include "kis_color_selector_settings.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoID.h"
 #include "kis_assert.h"
 #include "kis_icon_utils.h"
@@ -584,5 +585,4 @@ KisColorSelectorSettingsDialog::KisColorSelectorSettingsDialog(QWidget *parent) 
     connect(buttonBox->button(QDialogButtonBox::RestoreDefaults),
             SIGNAL(clicked()),  m_widget, SLOT(loadDefaultPreferences()));
 }
-
 

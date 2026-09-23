@@ -6,6 +6,7 @@
 
 
 #include <QAction>
+#include <klocalizedstring.h>
 #include <QMouseEvent>
 #include <QPainterPath>
 #include <QTabletEvent>

@@ -5,6 +5,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisStorageModel.h"
+#include <klocalizedstring.h>
 #include "KisResourceStorage.h"
 
 #include <QBuffer>

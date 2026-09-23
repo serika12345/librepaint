@@ -9,6 +9,7 @@
 #define COLORSFILTERS_H
 
 #include <QObject>
+#include <klocalizedstring.h>
 #include <QVariant>
 #include "kis_perchannel_filter.h"
 #include "filter/kis_color_transformation_filter.h"

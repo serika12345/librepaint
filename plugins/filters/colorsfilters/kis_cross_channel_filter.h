@@ -12,6 +12,7 @@
 
 
 #include <filter/kis_color_transformation_filter.h>
+#include <klocalizedstring.h>
 #include <filter/kis_color_transformation_configuration.h>
 #include <kis_config_widget.h>
 #include <kis_paint_device.h>

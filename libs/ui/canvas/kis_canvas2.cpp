@@ -8,6 +8,7 @@
  */
 
 #include "kis_canvas2.h"
+#include <klocalizedstring.h>
 
 #include <functional>
 #include <numeric>

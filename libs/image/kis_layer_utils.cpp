@@ -5,6 +5,7 @@
  */
 
 #include "kis_layer_utils.h"
+#include <klocalizedstring.h>
 
 #include <QDebug>
 

@@ -9,6 +9,7 @@
  */
 
 #include "kis_duplicateop_settings_widget.h"
+#include <klocalizedstring.h>
 #include "KisBrushOptionWidgetFlags.h"
 #include "KisPaintopPropertiesBase.h"
 #include "kis_brush_based_paintop_options_widget.h"

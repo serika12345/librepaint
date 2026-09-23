@@ -8,6 +8,7 @@
  */
 
 #include "kis_shape_layer.h"
+#include <klocalizedstring.h>
 
 #include <QPainter>
 #include <QPainterPath>

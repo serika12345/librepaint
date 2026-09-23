@@ -5,6 +5,7 @@
  */
 
 #include "KisResourceModel.h"
+#include <klocalizedstring.h>
 
 #include <QBuffer>
 #include <QSqlError>

@@ -21,6 +21,7 @@
 #include <filter/kis_filter_category_ids.h>
 #include <filter/kis_filter_configuration.h>
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "kis_assert.h"
 #include "kis_config_widget.h"
 #include "kis_filter.h"

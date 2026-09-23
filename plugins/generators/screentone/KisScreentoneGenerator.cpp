@@ -7,6 +7,7 @@
  */
 
 #include <kpluginfactory.h>
+#include <klocalizedstring.h>
 #include <KoUpdater.h>
 #include <kis_processing_information.h>
 #include <kis_sequential_iterator.h>

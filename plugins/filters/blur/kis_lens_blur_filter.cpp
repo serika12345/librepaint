@@ -8,6 +8,7 @@
 
 
 #include "kis_lens_blur_filter.h"
+#include <klocalizedstring.h>
 #include "KoColorSpace.h"
 #include "KoIntegerMaths.h"
 #include "kis_assert.h"

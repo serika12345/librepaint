@@ -6,6 +6,7 @@
  */
 
 #include "kis_hatching_paintop_settings_widget.h"
+#include <klocalizedstring.h>
 
 #include "KisBrushModel.h"
 #include "KisBrushOptionWidgetFlags.h"

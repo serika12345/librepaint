@@ -6,6 +6,7 @@
  */
 
 #include "kis_paintop_presets_chooser_popup.h"
+#include <klocalizedstring.h>
 
 #include <QCompleter>
 #include <QMenu>

@@ -17,6 +17,7 @@
 #include <kstandardguiitem.h>
 
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisScreenColorSamplerBase.h"
 #include "KisVisualColorModel.h"
 #include "KoColorSpaceRegistry.h"

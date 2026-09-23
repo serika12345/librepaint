@@ -5,6 +5,7 @@
  */
 
 #include "KisUndoActionsUpdateManager.h"
+#include <klocalizedstring.h>
 #include "KoID.h"
 
 #include <QAction>
@@ -51,4 +52,3 @@ void KisUndoActionsUpdateManager::slotRedoTextChanged(const QString &text)
 {
     m_redoAction->setText(i18n("Redo %1", text));
 }
-

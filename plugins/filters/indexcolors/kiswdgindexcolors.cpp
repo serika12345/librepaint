@@ -5,6 +5,7 @@
  */
 
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "filter/kis_color_transformation_configuration.h"
 
 #include "kiswdgindexcolors.h"

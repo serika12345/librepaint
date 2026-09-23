@@ -7,6 +7,7 @@
  */
 
 #include "kis_wdg_multigrid_pattern.h"
+#include <klocalizedstring.h>
 
 #include <QLayout>
 #include <QDomDocument>
@@ -160,5 +161,4 @@ KisPropertiesConfigurationSP KisWdgMultigridPattern::configuration() const
 
     return config;
 }
-
 

@@ -10,6 +10,7 @@
 #define CONVOLUTIONFILTERS_H
 
 #include <QObject>
+#include <klocalizedstring.h>
 #include <QVariant>
 #include "kis_convolution_filter.h"
 

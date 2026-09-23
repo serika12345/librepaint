@@ -70,6 +70,7 @@ kis_add_test(
     LINK_LIBRARIES
         kritaresourcestypesobjects
         Qt${QT_MAJOR_VERSION}::Test
+        KF${KF_MAJOR}::I18n
 )
 target_compile_definitions(KisResourceTypesContractTest PRIVATE kritaresources_EXPORTS)
 

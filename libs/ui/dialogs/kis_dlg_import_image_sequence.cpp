@@ -5,6 +5,7 @@
  */
 
 #include "kis_dlg_import_image_sequence.h"
+#include <klocalizedstring.h>
 
 #include "KisQStringListFwd.h"
 #include "KoDialog.h"

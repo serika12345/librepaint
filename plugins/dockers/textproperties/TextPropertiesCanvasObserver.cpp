@@ -25,6 +25,7 @@
 #include "FlakeDebug.h"
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoCssStylePreset.h"
 #include "KoID.h"
 #include "KoResource.h"

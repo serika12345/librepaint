@@ -5,6 +5,7 @@
  */
 
 #include "kis_kra_loader.h"
+#include <klocalizedstring.h>
 
 #include <QApplication>
 #include <QDir>

@@ -10,6 +10,7 @@
 #define KIS_TOOL_MOVE_H_
 
 #include <KisToolPaintFactoryBase.h>
+#include <klocalizedstring.h>
 #include <kis_types.h>
 #include <kis_tool.h>
 #include <flake/kis_node_shape.h>
@@ -198,4 +199,3 @@ public:
 };
 
 #endif // KIS_TOOL_MOVE_H_
-

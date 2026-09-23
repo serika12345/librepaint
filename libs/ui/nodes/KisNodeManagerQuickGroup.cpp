@@ -4,6 +4,7 @@
  */
 
 #include "kis_node_manager.h"
+#include <klocalizedstring.h>
 #include "kis_types.h"
 
 #include <kundo2magicstring.h>

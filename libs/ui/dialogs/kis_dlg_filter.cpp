@@ -6,6 +6,7 @@
  */
 
 #include "kis_dlg_filter.h"
+#include <klocalizedstring.h>
 
 
 

@@ -23,6 +23,7 @@
 #include <application/kis_config.h>
 #include "KisPopupButton.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisResourceUiDescriptor.h"
 #include "KoGamutMask.h"
 #include "KoID.h"

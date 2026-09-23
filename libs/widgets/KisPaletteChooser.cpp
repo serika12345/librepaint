@@ -33,6 +33,7 @@
 #include "KisPaletteChooser.h"
 #include "KisPaletteChooser_p.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisResourceUiDescriptor.h"
 #include "KoColorSet.h"
 #include "KoID.h"

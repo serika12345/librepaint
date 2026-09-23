@@ -7,6 +7,7 @@
 #include "KisOnionSkinsDocker.h"
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoCanvasObserverBase.h"
 #include "ui_KisOnionSkinsDocker.h"
 

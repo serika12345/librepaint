@@ -6,6 +6,7 @@
 
 #include <cstdlib>
 
+#include <KLocalizedString>
 #include <QString>
 #include <QCommandLineParser>
 #include <QCommandLineOption>

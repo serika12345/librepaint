@@ -5,6 +5,7 @@
  */
 
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoDialog.h"
 #include "KoID.h"
 #include "kis_icon_utils.h"
@@ -148,5 +149,4 @@ void DlgEmbedTags::resourceTypeSelected(int idx)
     }
 
 }
-
 

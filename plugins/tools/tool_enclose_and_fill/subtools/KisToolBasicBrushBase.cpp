@@ -5,6 +5,7 @@
  */
 
 #include <QScreen>
+#include <klocalizedstring.h>
 
 #include <KoPointerEvent.h>
 #include <KoShapeController.h>

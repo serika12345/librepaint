@@ -51,6 +51,7 @@
 
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoCanvasResourcesIds.h"
 #include "KoCompositeOpIds.h"
 #include "KoInputDevice.h"

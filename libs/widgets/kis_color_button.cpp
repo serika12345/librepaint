@@ -7,6 +7,7 @@
 
 #include "kis_color_button.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 
 #include <QPointer>
 #include <QPainter>

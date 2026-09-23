@@ -8,6 +8,7 @@
  */
 
 #include <QStringList>
+#include <klocalizedstring.h>
 
 #include <filter/kis_filter_configuration.h>
 #include <KisGlobalResourcesInterface.h>

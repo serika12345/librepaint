@@ -22,6 +22,7 @@
 
 #include "KisResourceStorage.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "kis_assert.h"
 #include "kis_canvas2.h"
 #include "application/kis_config.h"

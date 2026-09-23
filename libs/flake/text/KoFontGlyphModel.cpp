@@ -7,6 +7,7 @@
 #include "KoFontLibraryResourceUtils.h"
 #include "KoOpenTypeFeatureInfoFactory.h"
 #include "data/KoUnicodeBlockData.h"
+#include <KLocalizedString>
 #include <QDebug>
 #include <algorithm>
 #include <freetype/freetype.h>

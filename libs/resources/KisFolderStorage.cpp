@@ -5,6 +5,7 @@
  */
 
 #include "KisFolderStorage.h"
+#include <klocalizedstring.h>
 #include "KisResourceStorage.h"
 #include "KisStoragePlugin.h"
 #include "KoID.h"

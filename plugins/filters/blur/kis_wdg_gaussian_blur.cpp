@@ -7,6 +7,7 @@
  */
 
 #include "kis_wdg_gaussian_blur.h"
+#include <klocalizedstring.h>
 #include <QLayout>
 
 #include <filter/kis_filter_configuration.h>
@@ -109,4 +110,3 @@ void KisWdgGaussianBlur::aspectLockChanged(bool v)
         m_widget->verticalRadius->setValue( m_widget->horizontalRadius->value() );
     }
 }
-

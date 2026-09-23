@@ -15,6 +15,7 @@
 #include <KoPathShape.h>
 
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisSelectionTags.h"
 #include "kis_icon_utils.h"
 #include "kis_layer.h"

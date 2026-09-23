@@ -7,6 +7,7 @@
  */
 
 #include "kis_blur_filter.h"
+#include <klocalizedstring.h>
 
 #include <KoCompositeOp.h>
 

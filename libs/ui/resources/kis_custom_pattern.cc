@@ -22,6 +22,7 @@
 #include <QMessageBox>
 
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoColorConversionTransformation.h"
 #include "document/KisDocument.h"
 #include "application/ui/workspace/KisViewManager.h"

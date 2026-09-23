@@ -8,6 +8,7 @@
 #include "CommentModel.h"
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "StoryboardView.h"
 #include "StoryboardUtils.h"
 #include <climits>

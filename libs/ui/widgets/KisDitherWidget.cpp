@@ -11,6 +11,7 @@
 #include <cstdlib>
 #include <kpluginfactory.h>
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisResourceUiDescriptor.h"
 #include "KoID.h"
 #include "kis_filter_configuration.h"

@@ -11,6 +11,7 @@
  */
 
 #include "kis_tool_select_rectangular.h"
+#include <klocalizedstring.h>
 
 #include "KisSelectionTags.h"
 #include "kis_cursor.h"

@@ -5,6 +5,7 @@
  */
 
 #include "kis_tool_rectangle_base.h"
+#include <klocalizedstring.h>
 
 #include <QPainterPath>
 #include <QKeyEvent>

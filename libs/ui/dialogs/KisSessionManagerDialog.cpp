@@ -9,6 +9,7 @@
 #include <application/ui/orchestration/KisPart.h>
 #include "KisSessionManagerDialog.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "ui_wdgsessionmanager.h"
 #include <KisResourceUserOperations.h>
 #include <KisResourceModel.h>

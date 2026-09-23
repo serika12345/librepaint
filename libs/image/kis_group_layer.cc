@@ -15,6 +15,7 @@
 
 
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoColorSpaceConstants.h"
 #include "KoCompositeOpIds.h"
 #include "kis_base_node.h"

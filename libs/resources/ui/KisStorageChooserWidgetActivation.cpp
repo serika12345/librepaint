@@ -14,6 +14,7 @@
 #include "KisResourceModel.h"
 #include "KisResourceStorage.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisStorageChooserWidget.h"
 #include "KisStorageChooserWidgetModelSource_p.h"
 #include "KisStorageFilterProxyModel.h"

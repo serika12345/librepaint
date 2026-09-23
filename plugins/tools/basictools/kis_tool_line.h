@@ -12,6 +12,7 @@
 #define KIS_TOOL_LINE_H_
 
 #include "kis_tool_shape.h"
+#include <klocalizedstring.h>
 
 #include <kconfig.h>
 #include <kconfiggroup.h>

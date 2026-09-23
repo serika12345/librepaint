@@ -7,6 +7,7 @@
  */
 
 #include "kis_wdg_lens_blur.h"
+#include <klocalizedstring.h>
 #include <QLayout>
 
 #include <filter/kis_filter_configuration.h>
@@ -79,4 +80,3 @@ void KisWdgLensBlur::setConfiguration(const KisPropertiesConfigurationSP config)
         m_widget->irisRotationSelector->setAngle(static_cast<qreal>(value.toInt()));
     }
 }
-

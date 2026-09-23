@@ -10,6 +10,7 @@
 #define MULTIGRID_PATTERN_GENERATOR_H
 
 #include <QObject>
+#include <klocalizedstring.h>
 #include <QVariant>
 #include "generator/kis_generator.h"
 

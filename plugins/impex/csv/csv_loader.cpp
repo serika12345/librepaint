@@ -5,6 +5,7 @@
  */
 
 #include "csv_loader.h"
+#include <klocalizedstring.h>
 
 #include <QDebug>
 #include <QApplication>

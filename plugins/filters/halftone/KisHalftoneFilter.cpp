@@ -7,6 +7,7 @@
  */
 
 #include <QHash>
+#include <klocalizedstring.h>
 
 #include <cstdlib>
 #include <half.h>

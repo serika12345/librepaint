@@ -12,6 +12,7 @@
 #define __KIS_TOOL_SELECT_CONTIGUOUS_H__
 
 #include "KisSelectionToolFactoryBase.h"
+#include <klocalizedstring.h>
 #include "kis_tool_select_ui_base.h"
 #include <kis_icon.h>
 #include <kconfig.h>

@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "document/kis_file_layer.h"
+#include <klocalizedstring.h>
 
 #include <QFile>
 #include <QFileInfo>
@@ -419,4 +420,3 @@ void KisFileLayer::setImage(KisImageWSP image)
         }
     }
 }
-

@@ -25,6 +25,7 @@
 #include "KisImportExportErrorCode.h"
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoColorSpaceConstants.h"
 #include "KoCompositeOpIds.h"
 #include "KoGrayColorSpaceTraits.h"

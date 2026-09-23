@@ -8,6 +8,7 @@
 #define KORGBU8COLORSPACE_H
 
 #include <QColor>
+#include <klocalizedstring.h>
 
 #include "KoSimpleColorSpace.h"
 #include "KoSimpleColorSpaceFactory.h"

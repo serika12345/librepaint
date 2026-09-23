@@ -33,6 +33,7 @@
 
 #include "KisImportExportErrorCode.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "kis_debug.h"
 #include "kis_kra_loader.h"
 #include "kis_kra_saver.h"

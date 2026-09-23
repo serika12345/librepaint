@@ -7,6 +7,7 @@
 
 #include "kis_tool_movetooloptionswidget.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "kis_tool_move.h"
 #include <ksharedconfig.h>
 #include <KoUnit.h>

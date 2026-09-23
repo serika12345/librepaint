@@ -13,6 +13,7 @@
 #include "KisImportExportErrorCode.h"
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoColorProfileConstants.h"
 #include "KoID.h"
 #include "kis_config_widget.h"

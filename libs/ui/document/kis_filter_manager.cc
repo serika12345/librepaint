@@ -6,6 +6,7 @@
  */
 
 #include "document/kis_filter_manager.h"
+#include <klocalizedstring.h>
 
 
 #include <QHash>

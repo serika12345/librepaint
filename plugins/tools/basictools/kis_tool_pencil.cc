@@ -6,6 +6,7 @@
  */
 
 #include "kis_tool_pencil.h"
+#include <klocalizedstring.h>
 #include "KisFigurePaintingOptions.h"
 #include "KoFlakeTypes.h"
 #include "KoPencilTool.h"

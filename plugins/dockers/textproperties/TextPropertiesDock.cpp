@@ -28,6 +28,7 @@
 #include <qvariant.h>
 
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "TextPropertiesCanvasObserver.h"
 
 struct TextPropertiesDock::Private

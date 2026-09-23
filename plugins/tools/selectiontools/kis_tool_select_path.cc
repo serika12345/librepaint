@@ -9,6 +9,7 @@
 #include <KoPathShape.h>
 
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisSelectionTags.h"
 #include "KoCreatePathTool.h"
 #include "KoPointerEvent.h"

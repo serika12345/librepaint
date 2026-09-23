@@ -8,6 +8,7 @@
  */
 
 #include <kpluginfactory.h>
+#include <klocalizedstring.h>
 #include <KoUpdater.h>
 #include <kis_processing_information.h>
 #include <filter/kis_filter_configuration.h>

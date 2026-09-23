@@ -9,6 +9,7 @@
 #include "dlg_create_bundle.h"
 #include "KisResourceModel.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisTag.h"
 #include "KisTagModel.h"
 #include "KoResourceBundle.h"

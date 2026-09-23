@@ -7,6 +7,7 @@
 
 #include "KisTagSelectionWidget.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "kis_assert.h"
 #include "kis_icon_utils.h"
 

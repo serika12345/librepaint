@@ -7,6 +7,7 @@
 #include "psd_layer_section.h"
 
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoColorSpaceConstants.h"
 #include "KoFlakeTypes.h"
 #include "KoSvgText.h"

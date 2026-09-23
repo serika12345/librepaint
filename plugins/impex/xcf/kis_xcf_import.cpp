@@ -29,6 +29,7 @@
 #include "KisImportExportFilter.h"
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoBgrColorSpaceTraits.h"
 #include "KoCompositeOpIds.h"
 #include "KoIntegerMaths.h"

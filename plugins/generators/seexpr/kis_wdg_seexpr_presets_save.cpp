@@ -28,6 +28,7 @@
 
 #include "KisResourceModel.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "kis_wdg_seexpr_presets_save.h"
 #include "kis_assert.h"
 #include "kis_default_bounds_base.h"

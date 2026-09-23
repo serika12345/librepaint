@@ -10,6 +10,7 @@
 #define KIS_TOOL_FILL_H_
 
 #include <QPoint>
+#include <klocalizedstring.h>
 #include <QList>
 #include <QKeySequence>
 #include <QVector>

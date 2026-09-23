@@ -7,6 +7,7 @@
 
 #include "KoDualColorButton.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoColor.h"
 #include "KoColorDisplayRendererInterface.h"
 #include <kcolormimedata.h>

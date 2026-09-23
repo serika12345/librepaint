@@ -18,6 +18,7 @@
 #include <KisSpinBoxI18nHelper.h>
 #include <KisTagFilterResourceProxyModel.h>
 #include <KisResourceTypes.h>
+#include <klocalizedstring.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include "KisQStringListFwd.h"
 #include "KisResourceModel.h"

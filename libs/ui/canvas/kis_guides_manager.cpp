@@ -5,6 +5,7 @@
  */
 
 #include "kis_guides_manager.h"
+#include <klocalizedstring.h>
 
 #include <QEnterEvent>
 #include <QMenu>

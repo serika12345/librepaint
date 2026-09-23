@@ -5,6 +5,7 @@
  */
 
 #include "kis_mimedata.h"
+#include <klocalizedstring.h>
 #include "KisDelayedUpdateNodeInterface.h"
 #include "KisQStringListFwd.h"
 #include "KisSwatch.h"

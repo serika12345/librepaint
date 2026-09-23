@@ -12,6 +12,7 @@
 #define KIS_TOOL_TRANSFORM_H_
 
 #include <kis_icon.h>
+#include <klocalizedstring.h>
 
 #include <QPoint>
 #include <QPointF>
@@ -398,4 +399,3 @@ private Q_SLOTS:
 
 
 #endif // KIS_TOOL_TRANSFORM_H_
-

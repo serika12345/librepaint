@@ -5,6 +5,7 @@
  */
 
 #include "KisPasteActionFactories.h"
+#include <klocalizedstring.h>
 
 #include "KoColorSpaceConstants.h"
 #include "kis_assert.h"

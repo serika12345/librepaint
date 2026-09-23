@@ -5,6 +5,7 @@
  */
 
 #include "nodes/kis_mask_manager.h"
+#include <klocalizedstring.h>
 
 #include <kactioncollection.h>
 

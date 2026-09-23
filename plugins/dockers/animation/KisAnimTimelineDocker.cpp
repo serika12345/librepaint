@@ -10,6 +10,7 @@
 
 #include <QPointer>
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoCanvasBase.h"
 #include "QHBoxLayout"
 #include "QVBoxLayout"

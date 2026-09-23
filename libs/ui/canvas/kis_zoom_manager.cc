@@ -6,6 +6,7 @@
  */
 
 #include "canvas/kis_zoom_manager.h"
+#include <klocalizedstring.h>
 
 
 #include <QGridLayout>

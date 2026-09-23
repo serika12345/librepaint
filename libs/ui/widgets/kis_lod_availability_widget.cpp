@@ -16,6 +16,7 @@
 #include <kis_slider_spin_box.h>
 #include "KisLodAvailabilityModel.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoID.h"
 #include "kis_image_config.h"
 #include <QWidgetAction>

@@ -21,6 +21,7 @@
 #include "KisGradientColorEditor.h"
 #include "KisGradientWidgetsUtils.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoColor.h"
 
 class Q_DECL_HIDDEN KisGradientColorEditor::Private

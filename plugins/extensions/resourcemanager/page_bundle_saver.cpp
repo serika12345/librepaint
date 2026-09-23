@@ -8,6 +8,7 @@
 #include "KisBundleStorage.h"
 #include "KisResourceStorage.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoID.h"
 #include "KoResourceBundle.h"
 #include "ui_pagebundlesaver.h"

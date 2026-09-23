@@ -31,6 +31,7 @@
 #include "KisResourceStorage.h"
 #include "KisResourceThumbnailCache.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisTag.h"
 #include "KoResource.h"
 #include "kis_assert.h"
@@ -306,4 +307,3 @@ QVariant KisResourceQueryMapper::variantFromResourceQuery(const QSqlQuery &query
 
     return QVariant();
 }
-

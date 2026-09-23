@@ -68,6 +68,7 @@
 #include <QImageWriter>
 
 #include <KisResourceTypes.h>
+#include <klocalizedstring.h>
 #include <KisResourceLoaderRegistry.h>
 #include <KisMimeDatabase.h>
 #include <KisResourceLoader.h>

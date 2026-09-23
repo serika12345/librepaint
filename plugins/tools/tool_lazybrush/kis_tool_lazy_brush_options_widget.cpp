@@ -5,6 +5,7 @@
  */
 
 #include "kis_tool_lazy_brush_options_widget.h"
+#include <klocalizedstring.h>
 
 #include "KisSwatchGroup.h"
 #include "kis_assert.h"

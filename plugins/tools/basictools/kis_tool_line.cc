@@ -11,6 +11,7 @@
  */
 
 #include "kis_tool_line.h"
+#include <klocalizedstring.h>
 
 #include <QCheckBox>
 #include <QPainterPath>

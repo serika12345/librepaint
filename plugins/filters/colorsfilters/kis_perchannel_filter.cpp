@@ -17,6 +17,7 @@
 
 #include "KisCurveWidgetControlsManager.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoChannelInfo.h"
 #include "KoColorModelStandardIds.h"
 #include "KoColorSpace.h"

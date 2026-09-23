@@ -7,6 +7,7 @@
  */
 
 #include "kis_multichannel_filter_base.h"
+#include <klocalizedstring.h>
 
 #include <Qt>
 #include <QLayout>

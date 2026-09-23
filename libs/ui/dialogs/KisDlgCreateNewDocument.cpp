@@ -7,6 +7,7 @@
 #include "KisDlgCreateNewDocument.h"
 #include "KisImportExportManager.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "application/ui/workspace/KisOpenPane.h"
 #include "dialogs/kis_dlg_preferences.h"
 #include "kis_custom_image_widget.h"

@@ -22,6 +22,7 @@
 #include <kis_time_span.h>
 #include "KisImportExportErrorCode.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include <qcontainerfwd.h>
 #include <qnamespace.h>
 #include <qobject.h>

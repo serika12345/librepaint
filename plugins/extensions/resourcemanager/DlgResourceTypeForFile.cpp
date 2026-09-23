@@ -15,6 +15,7 @@
 
 #include <KisResourceTypeModel.h>
 #include <KisResourceTypes.h>
+#include <klocalizedstring.h>
 #include <qboxlayout.h>
 #include <qcontainerfwd.h>
 #include <qlabel.h>
@@ -88,5 +89,4 @@ QString DlgResourceTypeForFile::getResourceTypeForMimetype(QString mimetype)
     KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(false, "");
     return "";
 }
-
 
