@@ -2,24 +2,29 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-23 17:02 JST
-- 状態: `in_progress`
-- 現在の検査段階: R1-G8c 曲線計算実装の局所化を完了し、継続範囲の中間点で停止
-- 関連TODO: R1-G1からR1-G8a、R1-G8cおよびR2-G19bmまで完了、R1-G8bはR1-G8eの統合検証待ち、R1-G8dとR1-G8eおよびR2-G19d-aは`planned`
+- 更新日時: 2026-09-23 22:43 JST
+- 状態: `planned`
+- 現在の検査段階: R2-G19d-a 移植済み契約試験の実行可能性確認
+- 関連TODO: R1-G1からR1-G8およびR2-G19bmまで完了、R2-G19d-aは`planned`
 - ブランチ: `develop`
-- 開始コミット: `b85033aced2ad5b25c285518f498de33117c132d`。R1-G8aとG8bのmacOS実装は`183107a06c`、G8bのiOS検証は`a10a3426bb`としてコミット済みである。
-- 目的: 曲線の点、評価、転送表、直列化という共有値契約を維持したまま、スプライン算法とEigenへの実装依存を公開ヘッダーから除き、算法変更が要求する再コンパイルを画像実装と専用試験へ局所化する。
-- 範囲固定: R1-G8cの製品変更は`KisCubicCurve`一単位、所有CMake対象の利用要件、既存契約試験の直接依存に限定した。新しい抽象、対象、公開API、クラス配置、保存形式、描画算法は追加または変更していない。
-- 構造移動: 起点`libs/image/kis_cubic_curve.h`から行先`libs/image/kis_cubic_curve.cpp`へ、`libs/image/kis_cubic_curve_spline.h`を必要とする関係を移した。スプライン実体は従来どおり`KisCubicCurve::Data`の私有キャッシュであり、ファイル自体と所有先`kritaimagecubiccurveobjects`および`kritaimage`は移動していない。
-- CMake境界: `libs/image/CMakeLists.txt`で`kritaimagecubiccurveobjects`の`Eigen3::Eigen`を公開利用要件から私有利用要件へ変更し、`libs/image/tests/CMakeLists.txt`で`KisCubicCurveContractTest`の明示的なEigen依存を除いた。Qt Coreと公開継承に必要なBoostは公開利用要件として維持した。
-- 初期契約: 変更前の`./scripts/run-test KisCubicCurveContractTest`は1/1件成功した。公開ヘッダーから私有取込みを除いた直後も同対象は構築と試験に成功し、利用元がスプライン型を公開契約として使用していないことを確認した。
-- 波及結果: `kis_cubic_curve_spline.h`への直接取込みを3ファイル（製品2・試験1）から2ファイル（製品1・試験1）、推移的コンパイルを1088工程（製品880・試験208）から2工程（製品1・試験1）、生成工程を114件から0件、影響対象を392件（製品219・試験173）から2件、直接リンク対象を331件（製品158・試験173）から1件の試験へ縮小した。再リンク閉包は507件から489件となり、私有実装を収容する`kritaimage`の必要なリンク波及は残る。
-- 得られた境界: 46ファイルが直接利用する`kis_cubic_curve.h`は曲線値契約だけを提供し、今後のスプラインテンプレートまたはEigen利用の変更は1086件の無関係な翻訳単位を再コンパイルしない。専用契約試験の直接依存はBoost、Qt Core、Qt Test、`kritaimagecubiccurveobjects`となり、実装ライブラリーを試験するためにEigenを重ねて公開する必要もなくなった。
-- 契約維持: 曲線点の座標と角、構築時の整列、編集後のキャッシュ無効化、複製と代入の値意味論、曲線評価、8/16ビットおよび浮動小数点転送表、直列化互換経路を既存`KisCubicCurveContractTest`で維持した。クラス宣言、データ配置、公開記号、直列化表現に変更はない。
-- macOS検証: `./scripts/verify`はパッケージ境界1752対象、スクリプト試験50件、方針・文書検査、CTest 879/879件を284.20秒で成功し、`verify: OK`となった。`KisCubicCurveContractTest`は完全検査内を含めて成功し、`build-incremental native plan KisCubicCurveContractTest`は作業なしとなった。
-- 中間点: R1-G8aの測定基準を入力とする継続範囲を、G8bの識別子翻訳格納、G8cの曲線計算、G8dの資源種別名、G8eの5構成統合という4作業単位に固定した。前半2単位の構造実装を完了したため、全体のおよそ50%で停止する。
-- 残るリスク: G8bはmacOSとiOS、G8cはmacOSで確認済みである。G8dの共通C++変更と、G8bからG8dまでのiOS、Linux、Windows、Android Qt 5の条件付き利用元、最終リンク、パッケージ境界検査は未実施である。各OSの実行時契約CTestはR2-G19d-aの範囲である。
-- 次の作業: R1-G8dで`libs/resources/KisResourceTypes.h`のKDE翻訳型依存を実装と実利用元へ局所化する。変更前値は直接取込み174ファイル、推移的コンパイル1355工程、生成100工程、影響568対象、直接リンク467対象、再リンク閉包655対象であり、既存`KisResourceTypesContractTest`と`KisResourceTypesCompatibilityTest`で表示名と保存済み資源キーを維持する。その後、R1-G8eで5構成を統合検証する。
+- 開始コミット: `b85033aced2ad5b25c285518f498de33117c132d`。実装は`183107a06c`、`a10a3426bb`、`f03078ea22`、`58a24eab42`、`9abd27a14e`としてコミット済みである。
+- 目的: 高頻度利用の公開ヘッダーが、識別子の格納、曲線のスプライン計算、資源表示名の翻訳という私有実装を全利用元へ到達させる問題を解消し、実装変更の再コンパイル波及を実際の所有者へ局所化する。
+- 範囲固定: R1-G8aの測定基準から、`KoID`の翻訳格納、`KisCubicCurve`の計算実装、`KisResourceTypes`の翻訳型、それらの5構成統合に限定した。公開API、ABI、保存形式、描画算法、新しい抽象とCMake対象は変更していない。
+- 構造移動: 起点`libs/global/KoID.h`の`TranslatedString`、`StorageType`、`KoIDPrivate`完全定義を、行先`libs/global/KoID.cpp`へ移した。起点`libs/image/kis_cubic_curve.h`の`kis_cubic_curve_spline.h`取込みを、行先`libs/image/kis_cubic_curve.cpp`へ移した。起点`libs/resources/KisResourceTypes.h`の`KLocalizedString`完全定義を、行先`libs/resources/KisResourceTypes.cpp`と`libs/resources/tests/KisResourceTypesContractTest.cpp`、および実利用元252ファイルの所有ヘッダーへ移した。
+- 利用要件: `libs/image/CMakeLists.txt`の`Eigen3::Eigen`と`libs/resources/CMakeLists.txt`の`KF${KF_MAJOR}::I18n`を各所有対象の私有利用要件にし、契約試験は実際に使う所有対象へだけ直接接続した。翻訳マクロを使う246ファイルと翻訳値のメソッドを使う6ファイルはKDE翻訳ヘッダーを直接取り込む。
+- 空構築境界: Linuxの空構築で公開利用元が輸出ヘッダーを解決できない問題を確認した。起点`build/<preset>/libs/ui/kritaui_export.h`から、行先`build/<preset>/libs/application/kritaui_export.h`を`kritaapplicationui`の正式な生成位置とし、分割UIオブジェクト向けの`libs/ui`にも同一ヘッダーを同期する。
+- 変更波及: `KisLazyStorage.h`経由の推移的コンパイルを2151工程から7工程、生成を252件から0件、直接リンク対象を571件から4件へ縮小した。`kis_cubic_curve_spline.h`経由は直接取込み3ファイルから2ファイル、推移的コンパイル1088工程から2工程、影響392対象から2対象、直接リンク331対象から1対象へ縮小し、必要な再リンク閉包489件は維持した。
+- 翻訳境界: `KisResourceTypes.h`経由の翻訳実装の再コンパイル経路を1355工程から0工程にし、252個の実利用元が翻訳所有者を明示する。資源キー契約自体の174直接利用元、467直接リンク対象、655再リンク閉包、43所有対象利用元は必要な波及として維持した。
+- 契約維持: `KoID`の識別子、遅延翻訳、値意味論、比較、デバッグ出力、`KisCubicCurve`の点、評価、転送表、直列化、資源種別の保存キーと表示名を既存契約試験と互換試験で維持した。
+- macOS検証: 最終状態の`./scripts/verify`はパッケージ境界1752対象、スクリプト試験50件、方針・文書検査、CTest 879/879件を426.24秒で成功し、`verify: OK`となった。
+- iOS検証: 最終変更の再構成11工程で`LibrePaint.app`をリンクし、静的依存資源監査は7保持群、253ファイル（画像248）、除外1群、未分類0件で成功した。パッケージ境界は1629対象、直後の増分計画は0工程である。
+- Linux検証: x86_64 Linuxで1766対象の境界を検査し、同じCMake File APIグラフから取得した233製品対象を構築して`krita`実行ファイルをリンクした。`build-incremental linux plan krita`は作業なしとなった。
+- Windows検証: x86_64 LinuxホストからWindowsの1670対象の境界を検査し、4155工程で`krita.exe`、`krita.com`、全共有部品をリンクした。増分計画の残りは翻訳生成2工程と既存のWebP出力再リンク1工程である。
+- Android Qt 5検証: x86_64 LinuxホストからAndroidの1642対象の境界を検査し、3903工程で`libkrita_arm64-v8a.so`と全製品部品をリンクした。増分計画の残りは既存の翻訳生成2工程である。
+- 構築環境: 遠隔ホストの共有試験実行環境を一度作成したとき、回収可能な`*-source`と`*-librepaint-source`は2経路・1,133,707,640バイトから4経路・2,265,998,344バイトへ増加した。以後のローカルflake評価を停止し、主worktreeのキャッシュ済み共有試験実行環境をLinux、Windows、Androidで再利用した。
+- 保持成果物: 遠隔検証worktree`/home/masato/Documents/librepaint-r1-g8`、各構成の構築木、主worktreeの共有実行環境とコンパイラーキャッシュは、R2-G19d-aの対象CTest構築と実行に再利用できる状態で保持した。
+- 残るリスク: macOSで全CTest、iOSで製品構築と監査、Linux、Windows、Android Qt 5でコンパイルと最終リンクを検査した。WindowsとAndroidの端末上実行、および各OSの移植済み契約CTestの実行はR2-G19d-aの範囲である。
+- 次の作業: R2-G19d-aでQt 5、Linux、Windows、Androidの実行環境と構築閉包を確定し、`KisCurveOptionDataTest`、`KisCurveOptionModelTest`、`KisStandardOptionDataCompatibilityTest`、`KisKritaSensorPackCompatibilityTest`、`KisMirrorOptionDataCompatibilityTest`、`KisBrushPresetDynamicsCompatibilityTest`、`TestTagFilterResourceProxyModel`を実行する。
 
 ## 直前の完了記録: R2-G19bm プラットフォーム構築による直接依存補正
 
