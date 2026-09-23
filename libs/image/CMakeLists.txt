@@ -976,6 +976,7 @@ target_link_libraries(kritaimagecubiccurveobjects
    PUBLIC
       Qt${QT_MAJOR_VERSION}::Core
       Boost::boost
+   PRIVATE
       Eigen3::Eigen
 )
 set_target_properties(kritaimagecubiccurveobjects PROPERTIES

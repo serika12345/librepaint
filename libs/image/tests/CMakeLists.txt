@@ -826,7 +826,6 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Test
         Boost::boost
-        Eigen3::Eigen
 )
 target_include_directories(KisCubicCurveContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
