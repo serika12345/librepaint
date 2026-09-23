@@ -180,7 +180,12 @@ endif()
 kis_add_library(kritaapplicationui SHARED ${kritaapplicationui_LIB_SRCS})
 generate_export_header(kritaapplicationui
     BASE_NAME kritaui
-    EXPORT_FILE_NAME ${CMAKE_BINARY_DIR}/libs/ui/kritaui_export.h
+    EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/kritaui_export.h
+)
+configure_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/kritaui_export.h
+    ${CMAKE_BINARY_DIR}/libs/ui/kritaui_export.h
+    COPYONLY
 )
 
 target_include_directories(kritaapplicationui
@@ -199,7 +204,6 @@ target_include_directories(kritaapplicationui
         ${CMAKE_SOURCE_DIR}/libs/ui/widgets
         ${CMAKE_SOURCE_DIR}/libs/ui/widgets/gradient
         ${CMAKE_SOURCE_DIR}/libs/input/ui/wintab
-        ${CMAKE_BINARY_DIR}/libs/ui
 )
 
 target_link_libraries(kritaapplicationui
