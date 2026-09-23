@@ -10,6 +10,9 @@
 #include <QLabel>
 #include <QList>
 #include <QSignalBlocker>
+
+#include <klocalizedstring.h>
+
 #include "KisVisualColorModel.h"
 #include "KoID.h"
 #include <qnamespace.h>

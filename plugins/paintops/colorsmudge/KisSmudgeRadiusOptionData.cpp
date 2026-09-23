@@ -9,6 +9,7 @@
 #include "KoID.h"
 #include "kis_properties_configuration.h"
 #include <KisSmudgeLengthOptionData.h>
+#include <klocalizedstring.h>
 #include <optional>
 #include <QtGlobal>
 #include <utility>

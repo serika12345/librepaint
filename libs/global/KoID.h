@@ -12,15 +12,12 @@
 
 #include <QDebug>
 #include <QMetaType>
+#include <QSharedPointer>
 #include <QString>
 
-#include <boost/optional.hpp>
-#include <utility>
-
-#include <klocalizedstring.h>
-#include <KisLazyStorage.h>
-
 #include "kritaglobal_export.h"
+
+class KLocalizedString;
 
 /**
  * A KoID is a combination of a user-visible string and a string that uniquely
@@ -29,25 +26,8 @@
 class KRITAGLOBAL_EXPORT KoID
 {
 private:
-    struct TranslatedString : public QString
-    {
-        TranslatedString(const boost::optional<KLocalizedString> &source);
-
-        TranslatedString(const QString &value);
-    };
-
-    using StorageType =
-        KisLazyStorage<TranslatedString,
-        boost::optional<KLocalizedString>>;
-
-    struct KoIDPrivate {
-        KoIDPrivate(QString _id, const KLocalizedString &_name);
-
-        KoIDPrivate(QString _id, const QString &_name);
-
-        QString id;
-        StorageType name;
-    };
+    struct TranslatedString;
+    struct KoIDPrivate;
 
 public:
     KoID();
@@ -97,7 +77,7 @@ Q_DECLARE_METATYPE(KoID)
 
 inline bool operator==(const KoID &v1, const KoID &v2)
 {
-    return v1.m_d == v2.m_d || v1.m_d->id == v2.m_d->id;
+    return v1.m_d == v2.m_d || v1.id() == v2.id();
 }
 
 inline bool operator!=(const KoID &v1, const KoID &v2)
@@ -107,12 +87,12 @@ inline bool operator!=(const KoID &v1, const KoID &v2)
 
 inline bool operator<(const KoID &v1, const KoID &v2)
 {
-    return v1.m_d->id < v2.m_d->id;
+    return v1.id() < v2.id();
 }
 
 inline bool operator>(const KoID &v1, const KoID &v2)
 {
-    return v1.m_d->id > v2.m_d->id;;
+    return v1.id() > v2.id();
 }
 
 inline QDebug operator<<(QDebug dbg, const KoID &id)

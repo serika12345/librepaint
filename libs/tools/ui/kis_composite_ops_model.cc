@@ -12,6 +12,7 @@
 #include <QApplication>
 #include <QStyle>
 #include <QStyleOptionButton>
+#include <klocalizedstring.h>
 #include <qabstractitemmodel.h>
 #include <QtGlobal>
 #include <qcontainerfwd.h>

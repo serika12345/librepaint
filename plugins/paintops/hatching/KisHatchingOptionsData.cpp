@@ -9,6 +9,7 @@
 #include "KoID.h"
 #include "kis_properties_configuration.h"
 #include <kis_paintop_lod_limitations.h>
+#include <klocalizedstring.h>
 #include <qhashfunctions.h>
 
 

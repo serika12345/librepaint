@@ -16,6 +16,7 @@
 #include <QPainter>
 #include <QHelpEvent>
 #include <QToolTip>
+#include <klocalizedstring.h>
 #include <qcoreevent.h>
 #include <QtGlobal>
 #include <qheaderview.h>

@@ -17,6 +17,7 @@
 
 #include <functional>
 #include <kis_paintop_lod_limitations.h>
+#include <klocalizedstring.h>
 #include <KisSmudgeOverlayModeOptionModel.h>
 #include <KisWidgetConnectionUtils.h>
 #include <lager/cursor.hpp>

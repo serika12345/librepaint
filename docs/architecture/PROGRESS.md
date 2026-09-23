@@ -2,10 +2,27 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-23 12:40 JST
-- 状態: `complete`
-- 現在の検査段階: R2-G19bm プラットフォーム構築による直接依存補正
-- 関連TODO: R2-G19aからR2-G19bmまで完了、R2-G19d-aは`planned`
+- 更新日時: 2026-09-23 15:44 JST
+- 状態: `in_progress`
+- 現在の検査段階: R1-G8b 最初の局所化実装
+- 関連TODO: R1-G1からR1-G8aおよびR2-G19bmまで完了、R1-G8bは他構成の検証待ち、R2-G19d-aは`planned`
+- ブランチ: `develop`
+- 開始コミット: `b85033aced2ad5b25c285518f498de33117c132d`。`origin/develop`と一致する。R1-G8b開始時点では、完了済みのR1-G8aに属する文書、測定入口、単体試験が未コミット状態で存在した。
+- 目的: 識別子と表示名の共有値契約を維持したまま、遅延翻訳の私有格納実装を公開ヘッダーから分離し、その内部依存の変更が要求する再コンパイルと再リンクを局所化する。
+- 範囲固定: R1-G8bの製品変更は`KoID`一単位と、公開ヘッダーから得ていた宣言を直接の所有ヘッダーへ接続する利用元に限定した。CMake対象、新しい抽象、公開API、保存形式、識別子は追加していない。
+- 構造移動: `libs/global/KoID.h`の`TranslatedString`、`StorageType`、`KoIDPrivate`の完全定義とBoost optional、KDE翻訳、`KisLazyStorage`への実装依存を`libs/global/KoID.cpp`へ移した。`KoID.h`には値契約、`KLocalizedString`の前方宣言、共有私有データの所有だけを残した。所有先は`kritaglobalidobjects`と最終共有ライブラリー`kritaglobal`のままである。
+- 直接依存: 構築診断で露出した37利用元へ`<klocalizedstring.h>`、`KoColor.h`へ`QMap`と`QVariant`、`KisLodAvailabilityModel.h`へ`QObject`を追加した。各利用元が使用する宣言を所有ヘッダーから直接取得する。
+- 初期診断: 私有型をヘッダーから除いた直後の`build-incremental native build KoIDContractTest`は、ヘッダー内比較演算子の`member access into incomplete type 'KoID::KoIDPrivate'`を先頭に19件のコンパイルエラーとなった。比較演算子を既存の`id()`契約へ接続し、私有型の完全定義を実装へ置くことで契約を回復した。
+- 波及結果: `KoID.h`は直接取込み245ファイル、推移的コンパイル2147工程、生成252工程、影響704対象、直接リンク570対象、再リンク閉包703対象の共有契約範囲を維持した。分離した`KisLazyStorage.h`は、直接取込み5ファイルを維持しながら、推移的コンパイルを2151工程（製品1702・試験449）から7工程（製品6・試験1）、生成工程を252件から0件、影響対象を704件から5件、直接リンク対象を571件から4件、再リンク閉包を704件（製品217・試験487）から625件（製品217・試験408）へ縮小した。
+- 契約維持: 公開クラス名、構築、複製、代入、`id()`、`name()`、比較、メタ型、デバッグ出力、`QSharedPointer`によるオブジェクト配置は維持した。変更後の共有ライブラリーは変更前と同じ`KoID`の公開および既存私有記号名を持ち、CMake所有と直接辺に変更はない。
+- macOS検証: `./scripts/verify`は構造・方針・文書検査と879/879件のCTestを366.51秒で成功し、`verify: OK`となった。`./scripts/run-test KoIDContractTest`は1/1件成功し、`build-incremental native plan KoIDContractTest`は作業なしとなった。`git diff --check`も成功した。測定入口の単体試験5件を含むスクリプト試験50件も成功した。
+- 構築状態: コンパイラーキャッシュは全期間集計で命中121483/161769件、75.10%である。macOSの完全構築後に同じ測定入口で変更後値を採取した。
+- 残るリスク: 共通C++実装のmacOS契約、構築、記号は確認済みである。iOSと、x86_64 Linux構築ホスト上のLinux、Windows、Android Qt 5では、条件付き利用元を含む製品構築とパッケージ境界検査が残る。各OSの実行時契約CTestはR2-G19d-aの範囲である。
+- 次の作業: 現在の未コミット差分を保ったまま、iOS製品構築を実行し、その後x86_64 Linux構築ホストでLinux、Windows、Android Qt 5の全製品構築と直接辺を検査する。5構成の成功後にR1-G8bを完了し、同じ測定で次候補へ展開するかを別の検査段階として判断する。
+
+## 直前の完了記録: R2-G19bm プラットフォーム構築による直接依存補正
+
+- 完了時刻: 2026-09-23 12:40 JST
 - ブランチ: `issue-44-direct-dependencies`
 - 開始コミット: `59f0b0722a`。作業開始時点の作業ツリーは変更なし。
 - 目的: 製品実装が集約ヘッダーと上位リンク閉包から型・記号・利用要件を偶然得る状態を、対応する全構成の実コンパイルで解消する。固定CTest、公開API、ABI、保存形式、プラグイン識別子、設定キー、描画結果は維持する。
@@ -15,7 +32,6 @@
 - 対象和集合: CMake File APIからmacOS 1752対象、iOS 1629対象、Linux 1766対象、Windows 1670対象、Android Qt 5 1642対象を再生成した。対象名の和集合は1789件であり、各構成のパッケージ境界、直接辺、製品対象循環を既存方針検査で確認した。
 - 検証: macOSの`./scripts/verify`は879/879件を272.73秒で成功し、方針検査45件、外部利用ヘッダー529件、プラグイン登録172件を含めて`verify: OK`となった。iOSは最終60段階を構築して`LibrePaint.app`をリンクし、静的依存資源監査は未分類0件で成功した。x86_64 Linuxの全製品対象、Windowsの全1670対象、Android Qt 5の全1642対象を構築した。`nix flake check --no-build --all-systems`と固定テスト差分検査も成功した。
 - 残るリスク: 実行可能なクロス構築でコンパイルと最終リンクまで確認した。WindowsとAndroidの端末上実行、および各OSの移植済み契約CTest実行は、実行時契約を扱うR2-G19d-aの範囲である。
-- 次の作業: R2-G19d-aでQt 5、Linux、Windows、Androidの構築閉包とCTest実行可能性を確定し、ブラシプリセット設定保存・復元6試験と資源管理プロキシ切替1試験を対象実行環境で検証する。
 - 目的: 設定UIから分離済みの`kritapaintopruntime`が、`kritalibbrush`と`kritapainting`の推移的な取込み・リンク閉包から実行に必要な型と記号を得る状態を解消する。`kritapaintopruntime_LIB_SRCS`の30実装と同対象のCMake依存を範囲とし、テストソース、公開API、描画結果、保存形式は変更しない。
 - 調査: `direnv exec . build-incremental native plan kritapaintopruntime`は変更なし計画とmacOSパッケージ境界1723対象の成功を確認した。変更前の直接依存は`kritalibbrush`、`kritapainting`、`kritapaintopsensordataobjects`、`kritapaintoptextureoptionioobjects`の4対象である。Clang 21の`misc-include-cleaner`を3実装へ試行し、Qt値型、共有ポインター型、安全検査マクロ、ダブ生成APIの所有ヘッダー不足と未使用取込みを再現した。
 - 完了: `kritapaintopruntime`の全30実装を`misc-include-cleaner`で監査した。センサー実装は曲線設定ヘッダー経由で得ていたデータ型を`KisSensorData.h`へ直接接続し、数学関数、Qt値型、検査マクロ、不透明度定数、合成ID、共有ポインター補助の所有ヘッダーを追加した。未使用・重複取込みを除去し、輪郭計算は`KisOpacityOption.h`経由で得ていた`KisSizeOption`を`KisStandardOptions.h`から直接得る。`KisNode`は`dynamic_cast`入力側の完全型に必要なため、検査の未使用診断よりコンパイラー診断を優先して実装取込みを維持した。

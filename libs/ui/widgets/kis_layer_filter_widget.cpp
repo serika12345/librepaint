@@ -19,6 +19,7 @@
 #include <QScreen>
 #include <QStylePainter>
 #include <QGraphicsDropShadowEffect>
+#include <klocalizedstring.h>
 #include <qbrush.h>
 #include <qcolor.h>
 #include <qguiapplication.h>

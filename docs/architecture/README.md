@@ -68,6 +68,11 @@
 登録だけは検査器内の限定された所有上書きへ対応させる。登録実装、JSON、サービス種別、
 CMake所有を変更したときは同じ直接検査で整合性を確認する。
 
+`libs/global/KoID.h`は識別子と表示名の共有値契約を所有し、遅延翻訳の格納実装は
+`libs/global/KoID.cpp`が所有する。`KLocalizedString`の生成や翻訳関数を使用する利用元は
+`<klocalizedstring.h>`を直接取り込み、`KoID.h`はBoost optional、`KisLazyStorage`、翻訳実装を
+利用元へ伝播させない。
+
 ### 責務別の所有先
 
 現在の10責務は、所有ディレクトリー、公開APIの名前空間、主CMakeターゲットを次のように

@@ -14,6 +14,7 @@
 
 #include <QMenu>
 #include <QActionGroup>
+#include <klocalizedstring.h>
 #include <qaction.h>
 #include <qobjectdefs.h>
 #include <QtGlobal>
@@ -98,4 +99,3 @@ void KisResourceItemViewer::slotViewDetails()
     }
     Q_EMIT onViewDetails();
 }
-

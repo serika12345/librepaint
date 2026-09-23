@@ -11,6 +11,7 @@
 
 #include <KoCompositeOp.h>
 #include <KoCompositeOpRegistry.h>
+#include <klocalizedstring.h>
 
 #include "KisSqueezedComboBox.h"
 #include "KoCompositeOpIds.h"

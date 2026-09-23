@@ -4,6 +4,8 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisSmudgeOverlayModeOptionData.h"
+
+#include <klocalizedstring.h>
 #include "KoID.h"
 
 #include <kis_properties_configuration.h>

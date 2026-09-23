@@ -11,6 +11,7 @@
 #include <KisLager.h>
 #include <KisPortingUtils.h>
 #include <KisZug.h>
+#include <klocalizedstring.h>
 
 #include <functional>
 #include <kis_display_color_converter.h>

@@ -20,6 +20,7 @@
 #include "opengl/kis_texture_tile.h"
 #include "ui/workspace/KisView.h"
 #include <cmath>
+#include <klocalizedstring.h>
 #include <qbitarray.h>
 #include <QDebug>
 #include <qlogging.h>

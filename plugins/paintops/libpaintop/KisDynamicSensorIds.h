@@ -6,6 +6,8 @@
 #ifndef KISDYNAMICSENSORIDS_H
 #define KISDYNAMICSENSORIDS_H
 
+#include <klocalizedstring.h>
+
 #include <KoID.h>
 
 const KoID FuzzyPerDabId("fuzzy", ki18nc("Context: dynamic sensors", "Fuzzy Dab")); ///< generate a random number

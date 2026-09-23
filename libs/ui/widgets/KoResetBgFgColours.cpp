@@ -11,6 +11,7 @@
 #include "ui/workspace/KisView.h"
 #include <QPainter>
 #include <QEvent>
+#include <klocalizedstring.h>
 #include <QtGlobal>
 #include <qwidget.h>
 

@@ -9,6 +9,7 @@
 #include <simpletest.h>
 
 #include <QDomElement>
+#include <klocalizedstring.h>
 
 #include "KoID.h"
 

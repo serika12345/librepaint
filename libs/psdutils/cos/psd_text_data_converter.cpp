@@ -10,6 +10,7 @@
 
 #include <cstddef>
 #include <freetype/config/ftheader.h>
+#include <klocalizedstring.h>
 #include <qcolor.h>
 #include <qcontainerfwd.h>
 #include <qdom.h>

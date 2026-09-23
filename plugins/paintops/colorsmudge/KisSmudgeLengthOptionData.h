@@ -10,6 +10,7 @@
 
 #include <KisOptionTuple.h>
 #include <KisPrefixedOptionDataWrapper.h>
+#include <klocalizedstring.h>
 
 struct KisSmudgeLengthOptionMixInImpl
     : boost::equality_comparable<KisSmudgeLengthOptionMixInImpl>

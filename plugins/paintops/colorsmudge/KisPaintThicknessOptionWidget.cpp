@@ -19,6 +19,7 @@
 #include <KisPaintThicknessOptionModel.h>
 #include <KisWidgetConnectionUtils.h>
 #include <functional>
+#include <klocalizedstring.h>
 #include <lager/cursor.hpp>
 #include <lager/reader.hpp>
 #include <qnamespace.h>

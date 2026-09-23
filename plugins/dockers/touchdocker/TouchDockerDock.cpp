@@ -9,6 +9,7 @@
 #include "KoCanvasBase.h"
 #include "KoID.h"
 #include "TouchDockerWidget.h"
+#include <klocalizedstring.h>
 #include <qdockwidget.h>
 
 TouchDockerDock::TouchDockerDock()

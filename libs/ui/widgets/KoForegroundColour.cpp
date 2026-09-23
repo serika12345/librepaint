@@ -12,6 +12,7 @@
 #include <QColorDialog>
 #include <QEvent>
 #include <kconfiggroup.h>
+#include <klocalizedstring.h>
 #include <ksharedconfig.h>
 #include <QtGlobal>
 #include <qwidget.h>

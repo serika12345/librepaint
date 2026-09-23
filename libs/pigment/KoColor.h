@@ -8,7 +8,9 @@
 #define KOCOLOR_H
 
 #include <QColor>
+#include <QMap>
 #include <QMetaType>
+#include <QVariant>
 #include <QtGlobal>
 #include "kritapigment_export.h"
 #include "KoColorConversionTransformation.h"

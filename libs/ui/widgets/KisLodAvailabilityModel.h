@@ -6,6 +6,8 @@
 #ifndef KISLODAVAILABILITYMODEL_H
 #define KISLODAVAILABILITYMODEL_H
 
+#include <QObject>
+
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>
 

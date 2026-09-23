@@ -139,6 +139,29 @@ CMakeの対象定義とFile API応答で直接依存を照合する。対象に�
 製品分割を`PROGRESS.md`へ記録する。実装後は対象指定構築で、変更したソース、自動生成、リンク以外の
 不要な再構築が発生していないことを確認する。
 
+### 公開ヘッダーの変更波及測定
+
+公開ヘッダーを軽量化する変更では、同期済みのNinja構築木を指定して変更前後を同じ入口で測定する。
+
+```sh
+./scripts/architecture/measure_change_impact.py \
+    "$(build-incremental native path)" \
+    libs/global/KoID.h \
+    --platform macos \
+    --owner-target kritaglobal \
+    --contract-target KoIDContractTest
+```
+
+この入口は、ソース上の直接取込み、`ninja -t deps`の推移的なコンパイル工程、
+`compile_commands.json`の翻訳単位、CMake File APIの対象と直接辺、契約対象の空構築コマンド閉包を
+一つの報告へまとめる。製品、試験、生成ソース、AUTOMOC、直接リンク対象、再リンク閉包を分け、
+古い依存記録とコンパイル以外の補助依存記録を集計から除外する。`--json`は同じ内容を機械可読形式で出力する。
+
+構築木は変更なしの`plan`と対象構築が成功した状態を使用する。レビュー可能な一変更について変更前後の
+値を`PROGRESS.md`へ記録し、リポジトリ全体の順位表は現在状態の参考値として扱う。構築時間と
+コンパイラーキャッシュは、同じ測定の前後で`time`と`build-incremental <platform> cache-stats`から
+記録する。
+
 | プラットフォーム | 永続構築木 | コンパイラーキャッシュ |
 | --- | --- | --- |
 | macOS | `build/tdd-macos` | `.cache/librepaint/ccache/native` |

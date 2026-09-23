@@ -7,6 +7,7 @@
 #define KISSKETCHSTANDARDOPTIONDATA_H
 
 #include <KisCurveOptionData.h>
+#include <klocalizedstring.h>
 
 struct KisOffsetScaleOptionData : KisCurveOptionData
 {

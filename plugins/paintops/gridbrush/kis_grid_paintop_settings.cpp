@@ -23,6 +23,7 @@
 #include <QPainterPath>
 #include <KisOptimizedBrushOutline.h>
 #include <cmath>
+#include <klocalizedstring.h>
 #include <qlist.h>
 #include <QtGlobal>
 #include <qnamespace.h>

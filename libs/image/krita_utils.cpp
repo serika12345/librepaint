@@ -14,6 +14,8 @@
 #include <QPen>
 #include <QPainter>
 
+#include <klocalizedstring.h>
+
 #include "KisQStringListFwd.h"
 #include "KoColorSpaceConstants.h"
 #include "KoID.h"

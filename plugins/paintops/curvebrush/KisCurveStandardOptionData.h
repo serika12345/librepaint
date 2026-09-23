@@ -7,6 +7,7 @@
 #define KISCURVESTANDARDOPTIONDATA_H
 
 #include <KisCurveOptionData.h>
+#include <klocalizedstring.h>
 
 struct KisLineWidthOptionData : KisCurveOptionData
 {
