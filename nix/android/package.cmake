@@ -20,6 +20,7 @@ find_package(Qt6 REQUIRED COMPONENTS
   Widgets
   Xml
 )
+qt_policy(SET QTP0002 NEW)
 
 add_library(krita MODULE IMPORTED GLOBAL)
 set_target_properties(krita PROPERTIES
@@ -53,6 +54,11 @@ if(ANDROID_EXTRA_LIBS)
 endif()
 
 qt_android_generate_deployment_settings(krita)
+# The native library is already complete and this packaging derivation owns
+# exactly one ABI. Qt's executable finalizer normally creates this multi-ABI
+# aggregation target before adding the APK targets; provide the empty
+# single-ABI equivalent for the imported application library.
+add_custom_target(krita_copy_apk_dependencies)
 qt_android_add_apk_target(krita)
 add_custom_target(create-apk-krita
   DEPENDS krita_make_apk

@@ -705,7 +705,8 @@ let
       androidExtraLibs=(
         "${qtdeclarative}/lib/libQt6QuickWidgets_${androidAbi}.so"
       )
-      test -d "${nativeBuild}/lib/mlt-7"
+      mltPluginDir="${applicationDependencies.mlt}/lib/mlt-7"
+      test -d "$mltPluginDir"
       mltExtraLibDir="$NIX_BUILD_TOP/android-extra-libs"
       mkdir -p "$mltExtraLibDir"
       mltPluginCount=0
@@ -716,7 +717,7 @@ let
         androidExtraLibs+=("$stagedPlugin")
         mltPluginCount=$((mltPluginCount + 1))
       done < <(
-        find "${nativeBuild}/lib/mlt-7" -maxdepth 1 -type f \
+        find "$mltPluginDir" -maxdepth 1 -type f \
           -name 'libmlt*.so' -print0 | sort -z
       )
       test "$mltPluginCount" -gt 0
@@ -746,23 +747,16 @@ let
         done
       done
       export KRITA_INSTALL_PREFIX="$gradleInstallPrefix"
-
-      mapfile -d "" kritaModulePlugins < <(
-        find "${nativeBuild}/lib" -maxdepth 1 -type f \
-          -name 'krita*_${androidAbi}.so' -print0 | sort -z
-      )
-      test "''${#kritaModulePlugins[@]}" -gt 0
-      (IFS=';'; printf '%s' "''${kritaModulePlugins[*]}") > module-plugins
       export GRADLE_OPTS="''${GRADLE_OPTS-} -Dhttp.proxyHost=$MITM_CACHE_HOST -Dhttp.proxyPort=$MITM_CACHE_PORT -Dhttps.proxyHost=$MITM_CACHE_HOST -Dhttps.proxyPort=$MITM_CACHE_PORT -Djavax.net.ssl.trustStore=$MITM_CACHE_KEYSTORE -Djavax.net.ssl.trustStorePassword=$MITM_CACHE_KS_PWD"
     '';
 
     buildPhase = ''
       runHook preBuild
-      if test -d krita/android-build; then
-        chmod -R u+w krita/android-build
+      if test -d android-build; then
+        chmod -R u+w android-build
       fi
       cmake --build . --target create-apk-krita
-      chmod -R u+w krita/android-build
+      chmod -R u+w android-build
       cmake --build . --target create-aab-krita
       runHook postBuild
     '';
@@ -770,13 +764,13 @@ let
     installPhase = ''
       runHook preInstall
       releaseApk="$(find "$NIX_BUILD_TOP" -type f \
-        -path '*/krita_build_apk/build/outputs/apk/release/*-release-unsigned.apk' \
+        -path '*/android-build/build/outputs/apk/release/*-release-unsigned.apk' \
         -print -quit)"
       test -n "$releaseApk"
       test -s "$releaseApk"
       install -m 0644 "$releaseApk" "$out/LibrePaint-${androidAbi}.apk"
       releaseAab="$(find "$NIX_BUILD_TOP" -type f \
-        -path '*/krita_build_apk/build/outputs/bundle/release/*.aab' \
+        -path '*/android-build/build/outputs/bundle/release/*.aab' \
         -print -quit)"
       test -n "$releaseAab"
       test -s "$releaseAab"
