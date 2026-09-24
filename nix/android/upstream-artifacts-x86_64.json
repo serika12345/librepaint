@@ -1,0 +1,317 @@
+{
+  "project": 17391,
+  "platform": "Android/x86_64/Qt5/Shared",
+  "dependencyRecipeRevision": "0fd95c4efca2e5b5024121bb0ccae5b353956cd9",
+  "packages": [
+    {
+      "name": "ext_boost",
+      "version": "master-1789741035",
+      "sha256": "5a5fc704c4e848da5e9c76dae2b7aa6ff1cbbe749b519d8cf5d3d969c67a5f04"
+    },
+    {
+      "name": "ext_brotli",
+      "version": "master-1789741049",
+      "sha256": "bbef10102957d7ac10e1484574e38a23a5a7ee551d8c94f78474dee21bf619e0"
+    },
+    {
+      "name": "ext_eigen3",
+      "version": "master-1789741052",
+      "sha256": "8b84f8d02793449e9b788c53e3c40c1c00eb6624a266b4a0092127c6d3a54a41"
+    },
+    {
+      "name": "ext_exiv2",
+      "version": "master-1789742042",
+      "sha256": "d276dcc6cc4b312a4c732c4fe1b054a162f4ab5f0be22a21bb4400dd2510eb61"
+    },
+    {
+      "name": "ext_expat",
+      "version": "master-1789741060",
+      "sha256": "18aac87108549f62a61a395ddcb66cd91b8a509714b56315d2736db33e1ab6fc"
+    },
+    {
+      "name": "ext_extra_cmake_modules",
+      "version": "master-1789741063",
+      "sha256": "75b72ca0b90161cf407104e5b547a889c38f7be713dcf9c24f8027548337986d"
+    },
+    {
+      "name": "ext_ffmpeg",
+      "version": "master-1789743012",
+      "sha256": "d3b6959ec21b4f47f4b27e0117ddbad7105c198f7c853c798e9ab373c891bf39"
+    },
+    {
+      "name": "ext_fftw3",
+      "version": "master-1789741080",
+      "sha256": "4fe9ac205287b56b04442277b83ae1114edf95761b448081140c650d4dc6e87e"
+    },
+    {
+      "name": "ext_flac",
+      "version": "master-1789742092",
+      "sha256": "b9eb6dd5d2f29ce34e7e8ffae95f30e8b97f2cbcd72bd3145c094ee2dcd0b90a"
+    },
+    {
+      "name": "ext_fontconfig",
+      "version": "master-1789743049",
+      "sha256": "38855a3a41cb7881ed8e529cbf6110d1cbc5a596bcfb04819ab0b97c5f46b279"
+    },
+    {
+      "name": "ext_freetype",
+      "version": "master-1789742253",
+      "sha256": "7fd0e6b5a859fb79fec1e330b98ad924f6884e76ad66b36d9a85c3d170fb2dc5"
+    },
+    {
+      "name": "ext_fribidi",
+      "version": "master-1789741086",
+      "sha256": "a4eaf5cca9f1588a16dc328a1153695611e3a4f89cf7de2ac6cbca72c294638a"
+    },
+    {
+      "name": "ext_gettext",
+      "version": "master-1789741907",
+      "sha256": "687125f1dae53adedcb3a17a3fc222b87e4400499ee2bb9e429b8b6573e48a45"
+    },
+    {
+      "name": "ext_giflib",
+      "version": "master-1789741089",
+      "sha256": "79eb0a1b8d467f74cf581428a8a5a54b442f72eac0da64bac47c132d4a883dc5"
+    },
+    {
+      "name": "ext_gsl",
+      "version": "master-1789741122",
+      "sha256": "967690a7c725dadf36f971b76e365bb7be677904bc6ff3d3563a5f3de7144aa8"
+    },
+    {
+      "name": "ext_highway",
+      "version": "master-1789741338",
+      "sha256": "8c6ee7f61e2cd386b8a9850c6b39e67771d506fe4c18e00d5e888201b67d4b1f"
+    },
+    {
+      "name": "ext_icu",
+      "version": "master-1789741418",
+      "sha256": "9bfc58eae079db585037b80b434bf789a0aa5aedc106f68ba06a332ede46d1e0"
+    },
+    {
+      "name": "ext_imath",
+      "version": "master-1789741423",
+      "sha256": "0ecf2945117b5072d72759846514ba525e014ead85f548bb8fde9a4b973009a4"
+    },
+    {
+      "name": "ext_immer",
+      "version": "master-1789741426",
+      "sha256": "ac50282cd9636305fcb8c53afc1a51853e35df1edc4491f202fe074e9df052e3"
+    },
+    {
+      "name": "ext_jpeg",
+      "version": "master-1789741433",
+      "sha256": "af2bfd2f7049aee43f9af36fde78ec454ff375bcb3065142a9d2f022502c4e31"
+    },
+    {
+      "name": "ext_jpegxl",
+      "version": "master-1789742323",
+      "sha256": "66f650ec7040b8bcc8072272523e9759b06d985b45d2ab502552671f29b09835"
+    },
+    {
+      "name": "ext_json_c",
+      "version": "master-1789741439",
+      "sha256": "11a44c1290a45c87c3be794b212cd5dee23a0a31ae4429c154eb8e7a3d53bfe2"
+    },
+    {
+      "name": "ext_karchive",
+      "version": "master-1789743057",
+      "sha256": "8d70f6f4f2755a6257c833d6b03816f756c77d77c75593c86223bbf6c6b35dcb"
+    },
+    {
+      "name": "ext_kcompletion",
+      "version": "master-1789743217",
+      "sha256": "733f8b7d0c456ac12cff964db3085ec04ca3047452819666ff1a53f8444135ab"
+    },
+    {
+      "name": "ext_kconfig",
+      "version": "master-1789743070",
+      "sha256": "3d8c0e8051d303a9abc3f92d59ab865dd1b9e8bb03be284a9ba36548f98903c6"
+    },
+    {
+      "name": "ext_kcoreaddons",
+      "version": "master-1789743084",
+      "sha256": "60c510788000ac562c922cef8e90feaa6015e6521157034250cf68d5e3b074c1"
+    },
+    {
+      "name": "ext_kguiaddons",
+      "version": "master-1789743093",
+      "sha256": "41c036b4e6d87e45ca0f9c500f7b6aad86835fe50ffa655bc867122a062066d6"
+    },
+    {
+      "name": "ext_ki18n",
+      "version": "master-1789743110",
+      "sha256": "9908d5e1a145c50e6c9ae5e31566f0a37be92c6b3d23ca5ca7b48911853a20ae"
+    },
+    {
+      "name": "ext_kimageformats",
+      "version": "master-1789743121",
+      "sha256": "c89bb97350b9117f741358cad66ac4bba8c08bb7db4d1c15042035eca15a7615"
+    },
+    {
+      "name": "ext_kitemmodels",
+      "version": "master-1789743133",
+      "sha256": "ae6cc913477f11ccfe273d7c52fa36c876bd005f85421f52ffe0b155ce195701"
+    },
+    {
+      "name": "ext_kitemviews",
+      "version": "master-1789743142",
+      "sha256": "b90a031c6fbaf8426a3357479db17bb0c22fdb61876997b44b95204ee1c30918"
+    },
+    {
+      "name": "ext_kwidgetsaddons",
+      "version": "master-1789743165",
+      "sha256": "51aaf21a859ba9528cfaa55772f9706295f51c9b3cccf7ebed15384f3419040f"
+    },
+    {
+      "name": "ext_kwindowsystem",
+      "version": "master-1789743179",
+      "sha256": "73b691adf7bd3c871b860b406ddd8667456c60acb23bf1ef9bb6f414293922c1"
+    },
+    {
+      "name": "ext_lager",
+      "version": "master-1789742049",
+      "sha256": "d2c4d580df4669b894707f78d60763797bcb143201c39a72e6a0aa89d64b365c"
+    },
+    {
+      "name": "ext_lame",
+      "version": "master-1789741512",
+      "sha256": "f0a4379dd9303a27ea886189e18c3d38dd5061c09f639649d464c7f70b3f014d"
+    },
+    {
+      "name": "ext_lcms2",
+      "version": "master-1789741444",
+      "sha256": "5ea19b81e808a37c437818ffdb45f408d4ef7820078b13310b999c05188cc70f"
+    },
+    {
+      "name": "ext_libaom",
+      "version": "master-1789741594",
+      "sha256": "b2048d7b4dc74a09ed111d83ad1bb3a92c635ad2cf6f989b1093b368e9c9fa38"
+    },
+    {
+      "name": "ext_libintl-lite",
+      "version": "master-1789741914",
+      "sha256": "11fb902565771d792359de4c4de3063f39d930d8e461d6e0be907acf5edce29e"
+    },
+    {
+      "name": "ext_libogg",
+      "version": "master-1789741515",
+      "sha256": "38ab14904a9f658341132ad8bd495690753ac21d48cbfab8cb7c39d23587f066"
+    },
+    {
+      "name": "ext_libtheora",
+      "version": "master-1789742104",
+      "sha256": "56ecc1e859faab036f5f091121bbe16bca07d325d61c51579d08c0e4e3d51cc2"
+    },
+    {
+      "name": "ext_libunwindstack-ndk",
+      "version": "master-1789741925",
+      "sha256": "1306bd4e941ed5aacd17f08c4a53ec0b84306a09d8232b4abe15a9ce06fa48bd"
+    },
+    {
+      "name": "ext_libvorbis",
+      "version": "master-1789741518",
+      "sha256": "66fbd1904d04b1f7ffcefb3b062d5f1b1694a8b242250ac07e6ebdec0321405a"
+    },
+    {
+      "name": "ext_mlt",
+      "version": "master-1789743193",
+      "sha256": "f2da8d5e415ece0aa539a3a80dd283182436ca3ac51140263cbecbdffbbc1b1f"
+    },
+    {
+      "name": "ext_mypaint",
+      "version": "master-1789741447",
+      "sha256": "826e5bdd24e1169708acb1844814c5d88d450988e971895734d9f14bdf75b1a9"
+    },
+    {
+      "name": "ext_nasm",
+      "version": "master-1789740929",
+      "sha256": "1be7e3d87bd3f0fef9041ea663b4641a08fdcb4d92107b5c50e338cb1deae2d9"
+    },
+    {
+      "name": "ext_openexr",
+      "version": "master-1789741485",
+      "sha256": "7c777427005e57ad852fc66aefc4f8daa9832db0d1364b7c58116bf8d7b5bd5f"
+    },
+    {
+      "name": "ext_openh264",
+      "version": "master-1789741525",
+      "sha256": "1c535a0814dd3baeffe0b8305d370bce798f09fc487ff4123cfd6991cefb23ce"
+    },
+    {
+      "name": "ext_openjpeg",
+      "version": "master-1789741494",
+      "sha256": "a01f8632c80f52abcc42714fd3e7b843daac6f6ce056b797491ddfa9ef4f9bfe"
+    },
+    {
+      "name": "ext_openssl",
+      "version": "master-1789742010",
+      "sha256": "7e4fa9a6ace61de18ba995ff50be1dc6b06f2257f24c624dea264013106aa78c"
+    },
+    {
+      "name": "ext_opus",
+      "version": "master-1789741535",
+      "sha256": "11141406d30eb20487e572ad0515c6d3f1c1e5e5a2f011ef3ad9e3aaeef37c47"
+    },
+    {
+      "name": "ext_png",
+      "version": "master-1789742054",
+      "sha256": "bcd904c3013150475cec1fa12169e23b0ea36fde2c500357aa0ef690ae6257bc"
+    },
+    {
+      "name": "ext_qt",
+      "version": "master-1789742895",
+      "sha256": "0afc16f07d97faaf2d5bfd0a8a07a14a0c5f5e0bb873cfc6885d63adbc794050"
+    },
+    {
+      "name": "ext_quazip",
+      "version": "master-1789742908",
+      "sha256": "f2daa6b87659fdd68393aaa46feab8e6fceda68b7b9dc3d88bad4fcfa32dfaca"
+    },
+    {
+      "name": "ext_sdl2",
+      "version": "master-1789741558",
+      "sha256": "58c4876b731461bc567ffef25ba6efba31c3daf3af865e3b4014475f156943a9"
+    },
+    {
+      "name": "ext_seexpr",
+      "version": "master-1789743207",
+      "sha256": "8862501e5a2300912d5f2fc44e2e52d1088c30d020ff550e6fda57183d6a8e03"
+    },
+    {
+      "name": "ext_tiff",
+      "version": "master-1789742068",
+      "sha256": "a42401c52e8ebbd2816721658d7e4f51b2f61dd10453713966358961c6e769ea"
+    },
+    {
+      "name": "ext_unibreak",
+      "version": "master-1789741498",
+      "sha256": "a1280799c7a0daf597fe3e7a69630d52a9251a4c18d0e0dbf409a493b5e50d07"
+    },
+    {
+      "name": "ext_vpx",
+      "version": "master-1789741572",
+      "sha256": "f462cfa10ba355760a603008f77aceac93b35727954dcc88201849551d64e641"
+    },
+    {
+      "name": "ext_webp",
+      "version": "master-1789742080",
+      "sha256": "a1d4b38229532278bd4b13a072b9b29a4715a043022fc9491b889a49d2a1f0f8"
+    },
+    {
+      "name": "ext_xsimd",
+      "version": "master-1789741500",
+      "sha256": "132495cae8c66e31bebe35443fefdeedacbecc8074f88b14dbd1ac3cf2cea770"
+    },
+    {
+      "name": "ext_zlib",
+      "version": "master-1789742015",
+      "sha256": "83baffafbb9fc66c130c675d8add0ddf06fdf6186177f9b09bd70b69110bbc48"
+    },
+    {
+      "name": "ext_zug",
+      "version": "master-1789741506",
+      "sha256": "dfa243a9afb6879bbfc707f0a60cfd3dcf83271ee11ed84031e5878b9e285bf7"
+    }
+  ]
+}

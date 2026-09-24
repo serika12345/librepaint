@@ -231,18 +231,18 @@
    "pom": "sha256-O7RSgN8d0clrmgFySmFFZrfWDTNFP81SwsdB+ZmcOk4="
   },
   "play-sdk/index/snapshot": {
-   "gz": "sha256-gfFmyXtNEs+9/nCx9jALEij+J/3O87dAoiM1p9EfVbQ="
+   "gz": "sha256-LKT05VpB4K5/V5qFl5vCDMGCQjP9N14iR8EqG5ee/eM="
   }
  },
  "https://maven.google.com": {
   "androidx/annotation/group-index": {
-   "xml": "sha256-x8E2CD3nUXjYLUytYfewsNNry7FfyhgvHrAAjPUmUMM="
+   "xml": "sha256-ZWnZ8+fISPEq46XpbjpevKMDwzykHuO2yMSMpzYckrA="
   },
   "com/android/tools/build/group-index": {
-   "xml": "sha256-Liq9C1hLk4qvOYHe7eqpa47x1VHYTnQhWxMLcbLVAKs="
+   "xml": "sha256-89k+iPssm6+SJq/g/aGpXqjL6i2jR0tTpKHArcSpDUE="
   },
   "master-index": {
-   "xml": "sha256-RE9n8mk4liYNj4dWFjRjrHjMsFE5yETce8NSmvsvhy4="
+   "xml": "sha256-g3pgwRb08TSHEO+jqm/M7Ck1iyMu/jcTNmxJnnwSfHs="
   }
  },
  "https://repo.maven.apache.org/maven2": {

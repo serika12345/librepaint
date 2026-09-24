@@ -12,6 +12,9 @@ operations:
   plan [target]        Print the Ninja work plan for all or one target.
   build [target]       Incrementally build all or one target.
   bootstrap [target]   Establish a complete baseline in the same build tree.
+  package-test <target> Build one Qt Test as a standard Android APK.
+  run-test <target> [adb-serial]
+                       Install, run, collect XML, and remove one Qt Test APK.
   cache-stats          Print Android compiler-cache statistics.
 EOF
     exit 2
@@ -19,6 +22,22 @@ EOF
 
 script_path="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/$(basename -- "${BASH_SOURCE[0]}")"
 repo_root="$(cd -- "$(dirname -- "$script_path")/../.." && pwd -P)"
+requested_profile="${LIBREPAINT_ANDROID_REQUESTED_PROFILE:-arm64-v8a}"
+
+case "$requested_profile" in
+    arm64-v8a)
+        environment_platform="android"
+        environment_shell="librepaint-android"
+        ;;
+    x86_64)
+        environment_platform="android-x86_64"
+        environment_shell="librepaint-android-x86_64"
+        ;;
+    *)
+        echo "unsupported Android profile: $requested_profile" >&2
+        exit 2
+        ;;
+esac
 
 if [[ "$(uname -s):$(uname -m)" != "Linux:x86_64" ]]; then
     echo "Android incremental builds run on the x86_64 Linux build host" >&2
@@ -27,26 +46,46 @@ fi
 
 if [[ "${LIBREPAINT_ANDROID_INCREMENTAL_SHELL:-}" != "1" ]]; then
     exec "$repo_root/scripts/platform/enter-incremental-environment" \
-        android librepaint-android LIBREPAINT_ANDROID_INCREMENTAL_SHELL \
+        "$environment_platform" "$environment_shell" \
+        LIBREPAINT_ANDROID_INCREMENTAL_SHELL \
         "$script_path" "$@"
 fi
 
 operation="${1:-}"
 [[ -n "$operation" ]] || usage
 shift
-(( $# <= 1 )) || usage
 
 : "${LIBREPAINT_ANDROID_CMAKE_FLAGS_FILE:?Android CMake flag contract is unavailable}"
 : "${LIBREPAINT_ANDROID_CONFIG_ID:?Android configuration identity is unavailable}"
 : "${LIBREPAINT_ANDROID_DEPENDENCY_PREFIX:?Android dependency prefix is unavailable}"
+: "${LIBREPAINT_ANDROID_PROFILE:?Android profile is unavailable}"
+: "${ANDROID_ABI:?Android ABI is unavailable}"
+
+if [[ "$LIBREPAINT_ANDROID_PROFILE" != "$requested_profile" \
+    || "$ANDROID_ABI" != "$requested_profile" ]]; then
+    echo "Android profile mismatch: requested=$requested_profile environment=$LIBREPAINT_ANDROID_PROFILE abi=$ANDROID_ABI" >&2
+    exit 1
+fi
 
 config_short="${LIBREPAINT_ANDROID_CONFIG_ID:0:16}"
-build_dir="${LIBREPAINT_ANDROID_BUILD_DIR:-$repo_root/build/android/arm64-v8a/$config_short}"
+build_dir="${LIBREPAINT_ANDROID_BUILD_DIR:-$repo_root/build/android/$ANDROID_ABI/$config_short}"
 install_dir="$build_dir/install"
 marker_path="$build_dir/.librepaint-incremental-config"
 cache_root="${LIBREPAINT_CACHE_ROOT:-$repo_root/.cache/librepaint}"
 target="${1:-all}"
 boundary_checker="$repo_root/scripts/architecture/check_package_boundaries.py"
+android_test_package="org.librepaint.tests"
+android_test_installed=0
+android_test_adb_command=()
+
+cleanup_android_test() {
+    if (( android_test_installed )); then
+        "${android_test_adb_command[@]}" shell am force-stop \
+            "$android_test_package" >/dev/null 2>&1 || true
+        "${android_test_adb_command[@]}" uninstall \
+            "$android_test_package" >/dev/null 2>&1 || true
+    fi
+}
 
 if [[ "$build_dir" != /* ]]; then
     build_dir="$repo_root/$build_dir"
@@ -61,7 +100,11 @@ fi
 prepare_environment() {
     export ANDROID_USER_HOME="$cache_root/android/user-home"
     export GRADLE_USER_HOME="$cache_root/android/gradle"
-    export CCACHE_DIR="$cache_root/ccache/android"
+    if [[ "$ANDROID_ABI" == "arm64-v8a" ]]; then
+        export CCACHE_DIR="$cache_root/ccache/android"
+    else
+        export CCACHE_DIR="$cache_root/ccache/android-$ANDROID_ABI"
+    fi
     export CCACHE_BASEDIR="$repo_root"
     export CCACHE_COMPILERCHECK=content
     export CCACHE_NOHASHDIR=true
@@ -99,14 +142,14 @@ configure_tree() {
     python3 "$boundary_checker" \
         --reply-directory "$build_dir/.cmake/api/v1/reply" \
         --platform android \
-        --build-profile android-arm64-v8a-incremental
+        --build-profile "android-$ANDROID_ABI-incremental"
 
     grep -Fq 'kritawebpimport' "$build_dir/build.ninja"
     grep -Fq 'kritawebpexport' "$build_dir/build.ninja"
     grep -Fxq '#define HAVE_JPEG_TURBO 1' "$build_dir/config-jpeg.h"
     {
         printf 'schema=1\n'
-        printf 'platform=android-arm64-v8a\n'
+        printf 'platform=android-%s\n' "$ANDROID_ABI"
         printf 'config=%s\n' "$LIBREPAINT_ANDROID_CONFIG_ID"
     } >"$marker_path.tmp"
     mv "$marker_path.tmp" "$marker_path"
@@ -121,6 +164,174 @@ ensure_tree() {
     fi
 }
 
+validate_test_target() {
+    local candidate="$1"
+    if [[ ! "$candidate" =~ ^[A-Za-z0-9][A-Za-z0-9_.+-]*$ ]]; then
+        echo "invalid Android test target: $candidate" >&2
+        exit 2
+    fi
+}
+
+package_android_test() {
+    local test_target="$1"
+    local test_library
+    local package_dir
+    local apk_template_dir
+    local apk_output
+    local test_data_dir
+    local test_data_path_file
+
+    validate_test_target "$test_target"
+    ensure_tree
+    cmake --build "$build_dir" --target "$test_target" --parallel
+
+    test_library="$(find "$build_dir/lib" -maxdepth 1 -type f \
+        -name "lib${test_target}_${ANDROID_ABI}.so" -print -quit)"
+    if [[ -z "$test_library" ]]; then
+        echo "Android test target is not a packageable shared library: $test_target" >&2
+        exit 1
+    fi
+
+    package_dir="$build_dir/test-apk/$test_target"
+    apk_template_dir="$package_dir/apk-template"
+    apk_output="$package_dir/out/librepaint_android_test-${ANDROID_ABI}.apk"
+    mkdir -p "$package_dir"
+    cmake -E remove_directory "$apk_template_dir"
+    mkdir -p "$apk_template_dir/libs" "$apk_template_dir/res/values" "$package_dir/out"
+    cp -a "$repo_root/packaging/android/testrunner/apk/." "$apk_template_dir/"
+    test_data_path_file="$build_dir/test-data/$test_target.path"
+    if [[ -f "$test_data_path_file" ]]; then
+        IFS= read -r test_data_dir <"$test_data_path_file"
+        if [[ -d "$test_data_dir" ]]; then
+            mkdir -p "$apk_template_dir/assets/data"
+            cp -a "$test_data_dir/." "$apk_template_dir/assets/data/"
+        fi
+    fi
+    install -m 0644 \
+        "$LIBREPAINT_ANDROID_DEPENDENCY_PREFIX/jar/SDL2Android.jar" \
+        "$apk_template_dir/libs/SDL2Android.jar"
+    install -m 0644 \
+        "$LIBREPAINT_ANDROID_DEPENDENCY_PREFIX/src/android/templates/res/values/libs.xml" \
+        "$apk_template_dir/res/values/libs.xml"
+    chmod 0755 "$apk_template_dir/gradlew"
+
+    mapfile -t cmake_args <"$LIBREPAINT_ANDROID_CMAKE_FLAGS_FILE"
+    cmake -S "$repo_root/packaging/android/testrunner" \
+        -B "$package_dir/build" -G Ninja \
+        "${cmake_args[@]}" \
+        -DANDROIDDEPLOYQT_EXTRA_ARGS:STRING= \
+        -DANDROID_APK_OUTPUT_DIR:PATH="$package_dir/out" \
+        -DANDROID_TEST_APK_DIR:PATH="$apk_template_dir" \
+        -DANDROID_TEST_LIBRARY:FILEPATH="$test_library" \
+        -DCMAKE_FIND_ROOT_PATH:PATH="$LIBREPAINT_ANDROID_DEPENDENCY_PREFIX;$build_dir" \
+        -DCMAKE_INSTALL_PREFIX:PATH="$build_dir" \
+        -DCMAKE_PREFIX_PATH:PATH="$LIBREPAINT_ANDROID_DEPENDENCY_PREFIX;$build_dir" \
+        -DECM_ADDITIONAL_FIND_ROOT_PATH:PATH="$build_dir;$LIBREPAINT_ANDROID_DEPENDENCY_PREFIX"
+    cmake --build "$package_dir/build" \
+        --target create-apk-librepaint_android_test --parallel
+
+    if [[ ! -s "$apk_output" ]]; then
+        echo "Android test APK was not produced: $apk_output" >&2
+        exit 1
+    fi
+    packaged_apk="$apk_output"
+}
+
+run_android_test() {
+    local test_target="$1"
+    local requested_serial="${2:-${ANDROID_SERIAL:-}}"
+    local device_abis
+    local result_stamp
+    local result_dir
+    local result_file
+    local log_file
+    local candidate_status
+    local device_status=""
+    local device_result_dir
+    local -a devices
+    local -a adb_command
+
+    package_android_test "$test_target"
+
+    if [[ -z "$requested_serial" ]]; then
+        mapfile -t devices < <(adb devices | awk 'NR > 1 && $2 == "device" { print $1 }')
+        if (( ${#devices[@]} != 1 )); then
+            echo "select one Android device with an adb serial; connected=${#devices[@]}" >&2
+            exit 1
+        fi
+        requested_serial="${devices[0]}"
+    fi
+    adb_command=(adb -s "$requested_serial")
+
+    device_abis="$("${adb_command[@]}" shell getprop ro.product.cpu.abilist | tr -d '\r')"
+    if [[ ",$device_abis," != *",$ANDROID_ABI,"* ]]; then
+        echo "Android ABI mismatch: package=$ANDROID_ABI device=$device_abis serial=$requested_serial" >&2
+        exit 1
+    fi
+
+    result_stamp="$(date -u +%Y%m%dT%H%M%SZ)"
+    result_dir="$build_dir/test-results/$test_target"
+    result_file="$result_dir/$test_target-$result_stamp.xml"
+    log_file="$result_dir/$test_target-$result_stamp.log"
+    mkdir -p "$result_dir"
+
+    android_test_adb_command=("${adb_command[@]}")
+    android_test_installed=0
+    trap cleanup_android_test EXIT
+
+    "${adb_command[@]}" install -r -t "$packaged_apk"
+    android_test_installed=1
+    device_result_dir="/sdcard/Android/data/$android_test_package/files"
+    "${adb_command[@]}" shell rm -f \
+        "$device_result_dir/result.xml" "$device_result_dir/status" || true
+    "${adb_command[@]}" logcat -c || true
+    "${adb_command[@]}" shell am start -W \
+        -n "$android_test_package/org.librepaint.tests.LibrePaintTestActivity"
+
+    for _attempt in $(seq 1 "${LIBREPAINT_ANDROID_TEST_POLL_LIMIT:-480}"); do
+        candidate_status="$("${adb_command[@]}" exec-out \
+            cat "$device_result_dir/status" 2>/dev/null || true)"
+        candidate_status="$(printf '%s' "$candidate_status" | tr -d '\r\n')"
+        if [[ "$candidate_status" =~ ^[0-9]+$ ]]; then
+            device_status="$candidate_status"
+            break
+        fi
+        sleep 0.25
+    done
+
+    "${adb_command[@]}" logcat -d >"$log_file" || true
+    if [[ -z "$device_status" ]]; then
+        echo "Android test did not report completion; log: $log_file" >&2
+        exit 1
+    fi
+    if ! "${adb_command[@]}" exec-out \
+        cat "$device_result_dir/result.xml" >"$result_file"; then
+        echo "Android test result could not be collected; log: $log_file" >&2
+        exit 1
+    fi
+
+    device_status="$(printf '%s' "$device_status" | tr -d '\r\n')"
+    if [[ ! "$device_status" =~ ^[0-9]+$ ]]; then
+        echo "Android test returned an invalid status: $device_status" >&2
+        exit 1
+    fi
+
+    "${adb_command[@]}" shell am force-stop "$android_test_package"
+    "${adb_command[@]}" uninstall "$android_test_package"
+    android_test_installed=0
+    trap - EXIT
+    if "${adb_command[@]}" shell pm list packages "$android_test_package" \
+        | tr -d '\r' | grep -Fxq "package:$android_test_package"; then
+        echo "Android test package remains installed: $android_test_package" >&2
+        return 1
+    fi
+    printf 'Android Qt Test result: %s\n' "$result_file"
+    if (( device_status != 0 )); then
+        echo "Android Qt Test failed with status $device_status; log: $log_file" >&2
+        return "$device_status"
+    fi
+}
+
 case "$operation" in
     path)
         (( $# == 0 )) || usage
@@ -131,16 +342,28 @@ case "$operation" in
         configure_tree
         ;;
     plan)
+        (( $# <= 1 )) || usage
         ensure_tree
         ninja -C "$build_dir" -n "$target"
         ;;
     build)
+        (( $# <= 1 )) || usage
         ensure_tree
         cmake --build "$build_dir" --target "$target" --parallel
         ;;
     bootstrap)
+        (( $# <= 1 )) || usage
         configure_tree
         cmake --build "$build_dir" --target "$target" --parallel
+        ;;
+    package-test)
+        (( $# == 1 )) || usage
+        package_android_test "$1"
+        printf '%s\n' "$packaged_apk"
+        ;;
+    run-test)
+        (( $# == 1 || $# == 2 )) || usage
+        run_android_test "$@"
         ;;
     cache-stats)
         (( $# == 0 )) || usage

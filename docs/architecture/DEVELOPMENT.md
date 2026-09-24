@@ -119,8 +119,27 @@ build-incremental native build krita
 build-incremental ios plan
 build-incremental ios build
 build-incremental android build krita
+build-incremental android-x86_64 build KisCurveOptionModelTest
 build-incremental windows build krita
 ```
+
+AndroidのQt TestはABIに対応する共有ライブラリーとして構築し、選択した一対象とその推移的な
+実行時ライブラリーを標準APKへ収める。`android`は`arm64-v8a`実機用、
+`android-x86_64`はx86_64実機およびWaydroid診断用であり、依存物固定表、Ninja木、
+構成指紋、コンパイラーキャッシュ、APKをABIごとに分離する。
+
+```sh
+build-incremental android-x86_64 package-test KisCurveOptionModelTest
+adb connect <Waydroidまたは実機の接続先>
+build-incremental android-x86_64 run-test KisCurveOptionModelTest [adb-serial]
+```
+
+`run-test`は標準ADBで接続先のABIを検査し、APKの導入、QtActivity経由の実行、
+xUnit XMLとlogcatの回収、強制停止、パッケージ削除を行う。結果は選択されたNinja木の
+`test-results/<target>/`へ保存する。WaydroidはAndroid診断のADB接続先として使用し、
+APKと実行入口はx86_64 Android実機でも共通である。対象の`data/`ディレクトリーはAPKの
+assetsへ収め、ActivityがAndroid標準のアプリ専用外部領域へ展開する。ネイティブ試験はその
+領域を作業ディレクトリーとして使うため、構築ホストの絶対パスや端末固有の共有パスを必要としない。
 
 ### 実装前の構築範囲監査
 
@@ -167,7 +186,8 @@ CMakeの対象定義とFile API応答で直接依存を照合する。対象に�
 | macOS | `build/tdd-macos` | `.cache/librepaint/ccache/native` |
 | Linux | `build/tdd-linux` | `.cache/librepaint/ccache/native` |
 | iOS | `build-ios/krita/device-incremental/<構成指紋>` | `.cache/librepaint/ccache/ios` |
-| Android | `build/android/arm64-v8a/<構成指紋>` | `.cache/librepaint/ccache/android` |
+| Android ARM64 | `build/android/arm64-v8a/<構成指紋>` | `.cache/librepaint/ccache/android` |
+| Android x86_64 | `build/android/x86_64/<構成指紋>` | `.cache/librepaint/ccache/android-x86_64` |
 | Windows | `build/windows/x86_64/<構成指紋>/ninja` | `.cache/librepaint/ccache/windows` |
 
 ネイティブの`configure`、`plan`、`build`、`bootstrap`は、ホスト用Ninja木の
@@ -192,6 +212,7 @@ nix build .#librepaint-macos
 nix build .#librepaint-linux
 nix build .#librepaint-ios-ipa
 nix build .#librepaint-android
+nix build .#librepaint-android-x86_64
 nix build .#librepaint-windows-archive
 ```
 

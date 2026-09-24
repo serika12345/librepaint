@@ -1,6 +1,11 @@
 {
   pkgs,
   source,
+  androidAbi ? "arm64-v8a",
+  artifactLockFile ? ./upstream-artifacts.json,
+  dependencyRecipeRevision ? "7830a5fdfd698ac6012dceca6a8ef7bf4916e67e",
+  dependencyRecipeHash ? "sha256-ABYJ44hFWPwq0Wx6ZcmrioRA+o1pnlp67++vx8TxkZk=",
+  packageName ? "librepaint-android",
 }:
 
 let
@@ -14,7 +19,6 @@ let
     };
   };
 
-  androidAbi = "arm64-v8a";
   sdkComposition = androidHost.androidenv.composeAndroidPackages {
     buildToolsVersions = [ "35.0.0" ];
     includeCmake = false;
@@ -34,6 +38,12 @@ let
     defaultJava = androidHost.jdk17_headless;
   };
   gradle = gradleUnwrapped.wrapped;
+  androidGradleCache = gradle.fetchDeps {
+    pkg = {
+      pname = "librepaint-android-gradle";
+    };
+    data = ./gradle-deps.json;
+  };
   gradleWrapper = androidHost.writeShellScript "librepaint-android-gradle" ''
     gradleProjectDir="$(dirname "$0")"
     chmod -R u+w "$gradleProjectDir"
@@ -44,8 +54,70 @@ let
       -Pandroid.aapt2FromMavenOverride=${androidSdkRoot}/build-tools/35.0.0/aapt2 \
       "$@"
   '';
+  androidTestGradleWrapper = androidHost.writeShellScript "librepaint-android-test-gradle" ''
+    set -euo pipefail
 
-  artifactLock = lib.importJSON ./upstream-artifacts.json;
+    cacheState="$(mktemp -d)"
+    cachePid=""
+    cleanup() {
+      if [[ -n "$cachePid" ]]; then
+        kill "$cachePid" 2>/dev/null || true
+        wait "$cachePid" 2>/dev/null || true
+      fi
+      rm -rf -- "$cacheState"
+    }
+    trap cleanup EXIT
+
+    ${androidHost.openssl}/bin/openssl genrsa -out "$cacheState/ca.key" 2048 >/dev/null 2>&1
+    ${androidHost.openssl}/bin/openssl req -x509 -new -nodes \
+      -key "$cacheState/ca.key" -sha256 -days 1 \
+      -out "$cacheState/ca.cer" \
+      -subj "/C=JP/ST=local/L=local/O=LibrePaint/OU=Android/CN=localhost"
+    cacheHost=127.0.0.1
+    cachePort="$(${androidHost.python3Packages.ephemeral-port-reserve}/bin/ephemeral-port-reserve "$cacheHost")"
+    ${androidHost.mitm-cache}/bin/mitm-cache \
+      -k "$cacheState/ca.key" -c "$cacheState/ca.cer" \
+      -l"$cacheHost:$cachePort" replay ${androidGradleCache} \
+      >"$cacheState/mitm-cache.log" 2>&1 &
+    cachePid=$!
+    cacheReady=0
+    for _attempt in $(seq 1 50); do
+      if ${androidHost.curl}/bin/curl --silent --output /dev/null \
+          "http://$cacheHost:$cachePort"; then
+        cacheReady=1
+        break
+      fi
+      if ! kill -0 "$cachePid" 2>/dev/null; then
+        cat "$cacheState/mitm-cache.log" >&2
+        exit 1
+      fi
+      sleep 0.1
+    done
+    if [[ "$cacheReady" != 1 ]]; then
+      cat "$cacheState/mitm-cache.log" >&2
+      exit 1
+    fi
+
+    keyStore="$cacheState/keystore"
+    keyStorePassword=librepaint
+    ${androidHost.jdk17_headless}/bin/keytool -importcert -noprompt \
+      -file "$cacheState/ca.cer" -alias librepaint \
+      -keystore "$keyStore" -storepass "$keyStorePassword" >/dev/null
+
+    execStatus=0
+    ${gradle}/bin/gradle \
+      --no-daemon \
+      --init-script ${pkgs.path}/pkgs/development/tools/build-managers/gradle/init-build.gradle \
+      -Pandroid.aapt2FromMavenOverride=${androidSdkRoot}/build-tools/35.0.0/aapt2 \
+      -Dhttp.proxyHost="$cacheHost" -Dhttp.proxyPort="$cachePort" \
+      -Dhttps.proxyHost="$cacheHost" -Dhttps.proxyPort="$cachePort" \
+      -Djavax.net.ssl.trustStore="$keyStore" \
+      -Djavax.net.ssl.trustStorePassword="$keyStorePassword" \
+      "$@" || execStatus=$?
+    exit "$execStatus"
+  '';
+
+  artifactLock = lib.importJSON artifactLockFile;
   artifactNames = map (artifact: artifact.name) artifactLock.packages;
   artifacts = map (
     artifact:
@@ -58,15 +130,18 @@ let
 
   dependencyPrefix =
     assert lib.assertMsg (
-      artifactLock.platform == "Android/arm64-v8a/Qt5/Shared"
-    ) "The Android artifact lock must select the upstream Qt 5 arm64 shared profile";
+      artifactLock.platform == "Android/${androidAbi}/Qt5/Shared"
+    ) "The Android artifact lock must select the requested upstream Qt 5 shared profile";
+    assert lib.assertMsg (
+      artifactLock.dependencyRecipeRevision == dependencyRecipeRevision
+    ) "The Android artifact lock and dependency recipe revision must match";
     assert lib.assertMsg (
       builtins.length artifacts == 62
     ) "The upstream Android profile must contain exactly 62 packages";
     assert lib.assertMsg (
       builtins.length artifactNames == builtins.length (lib.unique artifactNames)
     ) "The upstream Android artifact lock contains duplicate package names";
-    androidHost.runCommand "librepaint-android-qt5-dependencies"
+    androidHost.runCommand "librepaint-android-${androidAbi}-qt5-dependencies"
       {
         nativeBuildInputs = [
           androidHost.binutils
@@ -130,8 +205,8 @@ let
     domain = "invent.kde.org";
     owner = "packaging";
     repo = "krita-deps-management";
-    rev = "7830a5fdfd698ac6012dceca6a8ef7bf4916e67e";
-    hash = "sha256-ABYJ44hFWPwq0Wx6ZcmrioRA+o1pnlp67++vx8TxkZk=";
+    rev = dependencyRecipeRevision;
+    hash = dependencyRecipeHash;
   };
 
   requiredFeatures = [
@@ -163,7 +238,7 @@ let
   ];
 
   nativeBuild = pkgs.stdenv.mkDerivation {
-    pname = "librepaint-android-native";
+    pname = "${packageName}-native";
     version = "1.0.2";
     src = source;
 
@@ -281,21 +356,27 @@ let
     "postInstallCheck"
   ];
 
+  incrementalCmakeFlags = map (
+    flag:
+    if flag == "-DBUILD_TESTING:BOOL=OFF" then "-DBUILD_TESTING:BOOL=ON" else flag
+  ) nativeBuild.cmakeFlags;
   androidCmakeFlagsFile = androidHost.writeText "librepaint-android-cmake-flags" (
-    lib.concatStringsSep "\n" nativeBuild.cmakeFlags + "\n"
+    lib.concatStringsSep "\n" incrementalCmakeFlags + "\n"
   );
-  androidConfigIdentity = builtins.hashString "sha256" (builtins.toJSON {
-    inherit androidAbi androidNdkRoot androidSdkRoot;
-    dependencyPrefix = toString dependencyPrefix;
-    cmakeFlags = nativeBuild.cmakeFlags;
-  });
+  androidConfigIdentity = builtins.hashString "sha256" (
+    builtins.toJSON {
+      inherit androidAbi androidNdkRoot androidSdkRoot;
+      dependencyPrefix = toString dependencyPrefix;
+      cmakeFlags = incrementalCmakeFlags;
+    }
+  );
 
   # Keep the SDK, dependency prefix, native build tools, and CMake contract in
   # the Nix closure while source files remain in the persistent worktree build.
   incrementalEnv = nativeBuild.overrideAttrs (
     old:
     {
-      pname = "librepaint-android-incremental-env";
+      pname = "${packageName}-incremental-env";
       version = "1";
       src = null;
       patches = [ ];
@@ -312,7 +393,7 @@ let
 
   packagingCmake = androidHost.replaceVars ./package.cmake { inherit androidAbi; };
 
-  androidPackageSource = androidHost.runCommand "librepaint-android-package-source" { } ''
+  androidPackageSource = androidHost.runCommand "${packageName}-package-source" { } ''
     mkdir -p "$out"
     cp -a ${source}/packaging/android/apk "$out/apk"
     chmod -R u+w "$out/apk"
@@ -323,7 +404,7 @@ let
   '';
 
   librepaint = pkgs.stdenv.mkDerivation (finalAttrs: {
-    pname = "librepaint-android";
+    pname = packageName;
     version = "1.0.2";
     src = androidPackageSource;
 
@@ -492,7 +573,7 @@ let
     };
 
     meta = {
-      description = "LibrePaint Android APK built with the pinned upstream Qt 5 dependency snapshot";
+      description = "LibrePaint Android ${androidAbi} APK built with the pinned upstream Qt 5 dependency snapshot";
       platforms = [ "x86_64-linux" ];
       sourceProvenance = with lib.sourceTypes; [
         fromSource
@@ -503,6 +584,7 @@ let
   });
 
   devShell = androidHost.mkShell {
+    name = "${packageName}-development";
     inputsFrom = [ incrementalEnv ];
     packages = [
       androidHost.ccache
@@ -513,6 +595,8 @@ let
       export LIBREPAINT_ANDROID_CMAKE_FLAGS_FILE=${androidCmakeFlagsFile}
       export LIBREPAINT_ANDROID_CONFIG_ID=${androidConfigIdentity}
       export LIBREPAINT_ANDROID_DEPENDENCY_PREFIX=${dependencyPrefix}
+      export LIBREPAINT_ANDROID_GRADLE_WRAPPER=${androidTestGradleWrapper}
+      export LIBREPAINT_ANDROID_PROFILE=${androidAbi}
       export ANDROID_ABI=${androidAbi}
       export ANDROID_HOME=${androidSdkRoot}
       export ANDROID_NDK_HOME=${androidNdkRoot}
@@ -525,9 +609,11 @@ let
       export KDECI_ANDROID_ABI=${androidAbi}
       export KDECI_ANDROID_NDK_ROOT=${androidNdkRoot}
       export KDECI_ANDROID_SDK_ROOT=${androidSdkRoot}
-      export PATH=${dependencyPrefix}/bin:$PATH
-      echo "LibrePaint Android Qt 5 environment (arm64-v8a)"
-      echo "  build: build-incremental android build"
+      export PATH=${androidSdkRoot}/platform-tools:${dependencyPrefix}/bin:$PATH
+      echo "LibrePaint Android Qt 5 environment (${androidAbi})"
+      echo "  build: build-incremental ${
+        if androidAbi == "arm64-v8a" then "android" else "android-${androidAbi}"
+      } build"
     '';
   };
 in

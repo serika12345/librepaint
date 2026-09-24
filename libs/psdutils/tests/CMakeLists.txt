@@ -26,7 +26,7 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Test
         Qt${QT_MAJOR_VERSION}::Xml
-        KF6::I18n
+        KF${KF_MAJOR}::I18n
 )
 target_include_directories(PsdFormatValuesContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..

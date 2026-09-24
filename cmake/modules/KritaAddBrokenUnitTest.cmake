@@ -61,7 +61,19 @@ function(KRITA_ADD_UNIT_TEST)
   if(ARG_GUI)
       set(gui_args WIN32 MACOSX_BUNDLE)
   endif()
-  add_executable(${_targetname} ${gui_args} ${_sources})  
+  if(ANDROID)
+    add_library(${_targetname} SHARED
+      ${_sources}
+      ${CMAKE_SOURCE_DIR}/cmake/modules/KritaAndroidTestMain.cpp
+    )
+    target_compile_definitions(${_targetname} PRIVATE main=kis_qtest_main)
+    set_target_properties(${_targetname} PROPERTIES
+      CXX_VISIBILITY_PRESET default
+      VISIBILITY_INLINES_HIDDEN OFF
+    )
+  else()
+    add_executable(${_targetname} ${gui_args} ${_sources})
+  endif()
   set_test_sdk_compile_definitions(${_targetname})
 
   if (KRITA_ENABLE_PCH AND ARG_PCH_FILE)
@@ -69,7 +81,7 @@ function(KRITA_ADD_UNIT_TEST)
       target_precompile_headers(${_targetname} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/pch/${LOCAL_PCH_FILE}>")
   endif()
 
-  if(NOT ARG_GUI)
+  if(NOT ARG_GUI AND NOT ANDROID)
     ecm_mark_nongui_executable(${_targetname})
   endif()
 

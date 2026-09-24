@@ -482,7 +482,62 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
         result = self.run_build_script("haiku", "build")
 
         self.assertEqual(result.returncode, 2)
-        self.assertIn("native, macos, linux, ios, android, windows", result.stderr)
+        self.assertIn(
+            "native, macos, linux, ios, android, android-x86_64, windows",
+            result.stderr,
+        )
+
+    def test_android_x86_64_uses_an_abi_isolated_build_tree(self):
+        with tempfile.TemporaryDirectory() as temp_directory:
+            temp_root = pathlib.Path(temp_directory)
+            fake_bin = temp_root / "bin"
+            fake_bin.mkdir()
+            fake_uname = fake_bin / "uname"
+            fake_uname.write_text(
+                f"#!{BASH}\n"
+                "case \"${1:-}\" in\n"
+                "  -s) printf '%s\\n' Linux ;;\n"
+                "  -m) printf '%s\\n' x86_64 ;;\n"
+                "  *) printf '%s\\n' Linux ;;\n"
+                "esac\n",
+                encoding="utf-8",
+            )
+            fake_uname.chmod(0o755)
+            cmake_flags = temp_root / "android-cmake-flags"
+            cmake_flags.write_text("", encoding="utf-8")
+
+            environment = os.environ.copy()
+            environment.update(
+                {
+                    "ANDROID_ABI": "x86_64",
+                    "LIBREPAINT_ANDROID_CMAKE_FLAGS_FILE": str(cmake_flags),
+                    "LIBREPAINT_ANDROID_CONFIG_ID": "0123456789abcdef-full",
+                    "LIBREPAINT_ANDROID_DEPENDENCY_PREFIX": str(
+                        temp_root / "dependencies"
+                    ),
+                    "LIBREPAINT_ANDROID_INCREMENTAL_SHELL": "1",
+                    "LIBREPAINT_ANDROID_PROFILE": "x86_64",
+                    "PATH": f"{fake_bin}:{environment['PATH']}",
+                }
+            )
+
+            result = self.run_build_script(
+                "android-x86_64",
+                "path",
+                environment=environment,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(
+                result.stdout.strip(),
+                str(
+                    REPO_ROOT
+                    / "build"
+                    / "android"
+                    / "x86_64"
+                    / "0123456789abcdef"
+                ),
+            )
 
     def test_windows_source_preparer_runs_in_an_isolated_process(self):
         incremental_script = (
@@ -524,6 +579,79 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
 
         self.assertIn('"-DCMAKE_BUILD_TYPE:STRING=Release"', android_expression)
+
+    def test_android_x86_64_artifact_lock_is_complete_and_selected(self):
+        artifact_lock_path = (
+            REPO_ROOT / "nix/android/upstream-artifacts-x86_64.json"
+        )
+        artifact_lock = json.loads(artifact_lock_path.read_text(encoding="utf-8"))
+        packages = artifact_lock["packages"]
+        package_names = [package["name"] for package in packages]
+        flake_expression = (REPO_ROOT / "flake.nix").read_text(encoding="utf-8")
+
+        self.assertEqual(artifact_lock["platform"], "Android/x86_64/Qt5/Shared")
+        self.assertEqual(len(packages), 62)
+        self.assertEqual(len(package_names), len(set(package_names)))
+        self.assertTrue(all(len(package["sha256"]) == 64 for package in packages))
+        self.assertIn(
+            "artifactLockFile = ./nix/android/upstream-artifacts-x86_64.json;",
+            flake_expression,
+        )
+        self.assertIn(
+            'librepaint-android-x86_64 = linuxAndroidX86_64Packages.devShell;',
+            flake_expression,
+        )
+
+    def test_android_incremental_profile_builds_packageable_qt_tests(self):
+        android_expression = (
+            REPO_ROOT / "nix/android/default.nix"
+        ).read_text(encoding="utf-8")
+        test_helpers = (
+            REPO_ROOT / "cmake/modules/KritaAddBrokenUnitTest.cmake"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('"-DBUILD_TESTING:BOOL=ON"', android_expression)
+        self.assertIn("if(ANDROID)", test_helpers)
+        self.assertIn("add_library(${_targetname} SHARED", test_helpers)
+        self.assertIn("KritaAndroidTestMain.cpp", test_helpers)
+        self.assertIn("main=kis_qtest_main", test_helpers)
+
+    def test_android_test_runner_uses_only_standard_adb_device_contracts(self):
+        android_script = (
+            REPO_ROOT / "scripts/platform/build-android-incremental"
+        ).read_text(encoding="utf-8")
+        build_script = BUILD_SCRIPT.read_text(encoding="utf-8")
+
+        self.assertIn("package-test <target>", build_script)
+        self.assertIn("run-test <target> [adb-serial]", build_script)
+        self.assertIn('getprop ro.product.cpu.abilist', android_script)
+        self.assertIn('install -r -t', android_script)
+        self.assertIn('org.librepaint.tests.LibrePaintTestActivity', android_script)
+        self.assertIn('exec-out', android_script)
+        self.assertIn('uninstall', android_script)
+        self.assertNotIn("waydroid", android_script.lower())
+
+    def test_android_test_apk_carries_target_test_data(self):
+        test_suite = (
+            REPO_ROOT / "cmake/modules/KritaTestSuite.cmake"
+        ).read_text(encoding="utf-8")
+        android_main = (
+            REPO_ROOT / "cmake/modules/KritaAndroidTestMain.cpp"
+        ).read_text(encoding="utf-8")
+        android_script = (
+            REPO_ROOT / "scripts/platform/build-android-incremental"
+        ).read_text(encoding="utf-8")
+        activity = (
+            REPO_ROOT
+            / "packaging/android/testrunner/apk/src/org/librepaint/tests/LibrePaintTestActivity.java"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn('FILES_DATA_DIR="data/"', test_suite)
+        self.assertIn('test-data/${_tgt}.path', test_suite)
+        self.assertIn('QDir::setCurrent', android_main)
+        self.assertIn('test-data/$test_target.path', android_script)
+        self.assertIn('assets/data', android_script)
+        self.assertIn('copyAssetTree', activity)
 
 
 if __name__ == "__main__":

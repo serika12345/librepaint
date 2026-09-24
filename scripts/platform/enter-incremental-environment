@@ -15,7 +15,14 @@ shift 4
 
 script_dir="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 repo_root="$(cd -- "$script_dir/../.." && pwd -P)"
-configuration_root="$repo_root/nix/$platform"
+case "$platform" in
+    android-x86_64)
+        configuration_root="$repo_root/nix/android"
+        ;;
+    *)
+        configuration_root="$repo_root/nix/$platform"
+        ;;
+esac
 
 [[ -d "$configuration_root" ]] || {
     echo "platform Nix configuration is unavailable: $configuration_root" >&2

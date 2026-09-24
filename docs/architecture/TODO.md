@@ -1121,15 +1121,40 @@ R2-G13bと同じ値を使い、間隔以外の差を持ち込まない。
 目的は、R2-G19cでmacOS上に確立した利用者向け契約と、OS固有の公開操作を対応する実行環境で検証することである。
 対象ごとに実行環境、ソース同期手順、対象CTestの構築範囲を確定して開始する。
 
+#### R2-G19d-0 x86_64 Android Qt Testの端末実行基盤
+
+Android向けに構築したQt Testを、QtActivityとJNIを通る正規のアプリケーションとしてパッケージ化し、
+標準ADB接続先への導入、実行、結果回収、後片付けまで再現可能にする。x86_64成果物は
+Waydroid固有APIとホスト共有パスへ依存せず、Waydroidとx86_64 Android実機で同じAPKを使う。
+[Issue #47](https://github.com/serika12345/librepaint/issues/47)が実装と検証を追跡し、R2のAndroid診断には
+NixOS上のWaydroidを使用して、R2-G19d-aのAndroid実行より先に完了する。
+
+- [x] Nixで固定したJDK、Gradle、Android Gradle Plugin、build-toolsを相互に互換な組合せにし、
+      通常の実行でネットワーク取得と可変SDK状態を要求しない。
+- [x] `arm64-v8a`と`x86_64`を明示的な構築プロファイルにし、ABI別の依存物固定表、構築木、
+      コンパイラーキャッシュ、構成指紋、APKを分離する。
+- [x] 選択したQt Test対象だけをパッケージ化し、未構築の無関係なモジュールやAndroid依存物全体の
+      再構築を要求しない対象単位の構築経路を設ける。
+- [x] 試験実行物、推移的共有ライブラリー、試験データを端末用パッケージへ収め、構築ホストの
+      絶対ソースパス、Waydroid共有パス、Waydroid固有APIに依存せずQtActivity経由で実行する。
+- [x] 接続先のABIを標準ADBで検査し、対応するAPKの導入、Qt Test結果と異常終了の回収、
+      一時データの後片付けを一つの公開コマンドで行えるようにする。
+- [x] R2-G19d-aの7対象をWaydroid x86_64で3回連続実行し、x86_64 Android実機でも同じAPKと
+      ADB操作が成立するパッケージ内容を監査する。対象単位の構築計画、直接依存、端末側残留物、
+      `nix flake check --no-build --all-systems`、`verify-quick`を確認する。
+
 #### R2-G19d-a 移植済み契約試験の実行可能性確認
 
 Qt 5、Linux、Windows、Androidで、ブラシプリセット設定保存・復元の6試験と資源管理プロキシ切替の1試験を構築・実行する。
 
-- [ ] 各OSとQt 5の実行環境について、同一ソースリビジョンの構成、構築閉包、CTest実行可能性を確定する。
-- [ ] `KisCurveOptionDataTest`、`KisCurveOptionModelTest`、`KisStandardOptionDataCompatibilityTest`、
+Androidの実行判定はR2-G19d-0の完了後に行う。LinuxとWindowsで確認済みの結果は、同じソースリビジョンと
+試験実行物に影響する変更がない限り維持する。
+
+- [x] 各OSとQt 5の実行環境について、同一ソースリビジョンの構成、構築閉包、CTest実行可能性を確定する。
+- [x] `KisCurveOptionDataTest`、`KisCurveOptionModelTest`、`KisStandardOptionDataCompatibilityTest`、
       `KisKritaSensorPackCompatibilityTest`、`KisMirrorOptionDataCompatibilityTest`、
       `KisBrushPresetDynamicsCompatibilityTest`、`TestTagFilterResourceProxyModel`を実行し、保存・復元とタグ絞り込み切替の結果を確認する。
-- [ ] プラットフォーム差異の失敗について、利用者向け結果、再現環境、所有者、修正または基準更新の判断を記録する。
+- [x] プラットフォーム差異の失敗について、利用者向け結果、再現環境、所有者、修正または基準更新の判断を記録する。
 
 `check_test_contracts.py`は同一ソースリビジョンの構築ホストで実行し、各OSまたは端末では実行時契約を検証する。
 

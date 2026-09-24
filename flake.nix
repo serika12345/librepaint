@@ -931,6 +931,15 @@
         pkgs = linuxPkgs;
         source = linuxBuildSource;
       };
+      linuxAndroidX86_64Packages = import ./nix/android {
+        pkgs = linuxPkgs;
+        source = linuxBuildSource;
+        androidAbi = "x86_64";
+        artifactLockFile = ./nix/android/upstream-artifacts-x86_64.json;
+        dependencyRecipeRevision = "0fd95c4efca2e5b5024121bb0ccae5b353956cd9";
+        dependencyRecipeHash = "sha256-HdV3KRydtw94mtVn1ZXGmKPH5Qro33UZEj3KtPc1lj8=";
+        packageName = "librepaint-android-x86_64";
+      };
       windowsPackages = import ./nix/windows {
         pkgs = windowsPkgs;
         source = linuxBuildSource;
@@ -1163,6 +1172,8 @@
         linux-dependencies = linuxPackages.linuxDependencies;
         librepaint-android = linuxAndroidPackages.librepaint;
         android-dependencies = linuxAndroidPackages.androidDependencies;
+        librepaint-android-x86_64 = linuxAndroidX86_64Packages.librepaint;
+        android-x86_64-dependencies = linuxAndroidX86_64Packages.androidDependencies;
         librepaint-windows = windowsPackages.librepaint;
         librepaint-windows-archive = windowsPackages.librepaintArchive;
         librepaint-windows-unwrapped = windowsPackages.librepaintUnwrapped;
@@ -1316,6 +1327,7 @@
         librepaint-test = mkTestShell linuxPkgs linuxPackages.librepaintUnwrapped;
         test = mkTestShell linuxPkgs linuxPackages.librepaintUnwrapped;
         librepaint-android = linuxAndroidPackages.devShell;
+        librepaint-android-x86_64 = linuxAndroidX86_64Packages.devShell;
         librepaint-windows = windowsPackages.devShell;
       };
 

@@ -6,7 +6,7 @@ usage() {
     cat >&2 <<'EOF'
 usage: build-incremental <platform> <operation> [target]
 
-platforms: native, macos, linux, ios, android, windows
+platforms: native, macos, linux, ios, android, android-x86_64, windows
 
 native, macos, linux operations:
   path                 Print the persistent Ninja build tree.
@@ -20,7 +20,12 @@ native, macos, linux operations:
 ios operations:
   path, configure, plan, build, bootstrap, deploy
 
-android, windows operations:
+android, android-x86_64 operations:
+  path, configure, plan, build, bootstrap, cache-stats
+  package-test <target>             Build a reusable Qt Test APK.
+  run-test <target> [adb-serial]    Run the APK through QtActivity and collect XML.
+
+windows operations:
   path, configure, plan, build, bootstrap, cache-stats
 EOF
     exit 2
@@ -46,10 +51,10 @@ case "$platform" in
                 ;;
         esac
         ;;
-    macos | linux | ios | android | windows)
+    macos | linux | ios | android | android-x86_64 | windows)
         ;;
     *)
-        echo "supported platforms: native, macos, linux, ios, android, windows" >&2
+        echo "supported platforms: native, macos, linux, ios, android, android-x86_64, windows" >&2
         exit 2
         ;;
 esac
@@ -74,7 +79,13 @@ case "$platform" in
             "$operation" "$@"
         ;;
     android)
-        exec "$repo_root/scripts/platform/build-android-incremental" \
+        exec env LIBREPAINT_ANDROID_REQUESTED_PROFILE=arm64-v8a \
+            "$repo_root/scripts/platform/build-android-incremental" \
+            "$operation" "$@"
+        ;;
+    android-x86_64)
+        exec env LIBREPAINT_ANDROID_REQUESTED_PROFILE=x86_64 \
+            "$repo_root/scripts/platform/build-android-incremental" \
             "$operation" "$@"
         ;;
     windows)

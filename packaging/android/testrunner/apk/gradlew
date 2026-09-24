@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+set -eu
+
+: "${LIBREPAINT_ANDROID_GRADLE_WRAPPER:?Android Gradle wrapper is unavailable}"
+exec "$LIBREPAINT_ANDROID_GRADLE_WRAPPER" "$@"

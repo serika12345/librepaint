@@ -2,6 +2,32 @@
 
 ## 現在の作業スナップショット
 
+- 更新日時: 2026-09-24 14:09 JST
+- 状態: `complete`
+- 現在の検査段階: R2-G19d-0 x86_64 Android Qt Testの端末実行基盤、およびR2-G19d-a 移植済み契約試験の実行可能性確認
+- 関連TODO: R1-G1からR1-G8およびR2-G19bmまで完了。R2-G19d-0とR2-G19d-aを完了し、R2-G19d-bを次の検査段階とする
+- 追跡チケット: [Issue #47 Android Qt Testをx86_64端末とWaydroidで再現可能に実行する基盤を整備する](https://github.com/serika12345/librepaint/issues/47)
+- ブランチ: `develop`
+- 基準コミット: `90ca92f33bd919a1ad026532d84dc6b0cb8c10d3`。実装と記録は未コミットである。macOSの主作業ツリーとLinux検証worktree`/home/masato/Documents/librepaint-r1-g8`は同じ変更内容で検証し、Linux検証worktreeにある利用者所有の未追跡`a.exe`は保持している。
+- 目的: Android向けに構築済みのQt Test一件と対象ABIを入力とし、固定した環境でのパッケージ化、QtActivityとJNIを通る標準ADB接続先での実行、結果回収、後片付けまでを再現可能な一経路として確立する。x86_64成果物はWaydroid固有APIとホスト共有パスへ依存せず、Waydroidとx86_64 Android実機で同じAPKを使う。
+- 範囲固定: `arm64-v8a`と`x86_64`のNix依存物固定表、ABI別の構築木・コンパイラーキャッシュ・構成指紋、固定するJDK・Gradle・Android Gradle Plugin・build-tools、選択したQt Testだけのパッケージ作成、標準ADBによる導入・実行・結果回収・後片付けに限定する。R2のAndroid診断にはNixOS上のWaydroidを使用し、Android EmulatorとWaydroid固有の実行APIは導入しない。Windows端末は実行環境としてだけ扱う既存方針を維持する。
+- 段階分離: LibrePaint本体と試験のコンパイル、Android試験パッケージ作成、端末実行を変更頻度の異なる段階に分けた。ARM64実機用とx86_64診断用はABI別の依存物固定表、Ninja木、構成指紋、コンパイラーキャッシュ、APKを使う。JDK 17、Gradle 8.13、Android Gradle Plugin 8.12、build-tools/API 35を固定し、Gradle依存物は固定ハッシュの局所キャッシュから解決する。
+- Linux結果: 6個のpaint-op試験は`kritaimage`、`kritalibpaintop`、`kritatestsdk`へ、資源タグ試験は`kritaglobal`、`kritapigment`、`kritaplugin`、`kritaresources`、`kritawidgets`、`kritaversion`、KConfig、Qt SQL、`kritatestsdk`へ直接接続している。空の増分計画から各対象4工程、clean-treeコマンド閉包は前者各2220工程、後者841工程であった。対象別`run-test`と7対象をまとめた`ctest --preset tdd-linux --tests-regex ...`は7/7件成功し、パッケージ境界1766対象も成功した。
+- Windows構築: 既存の`BUILD_TESTING=OFF`製品木を保持し、`build/windows/x86_64/b2d2f97a2f282df2/test-ninja`を`BUILD_TESTING=ON`で構成した。パッケージ境界1766対象、6個のpaint-op試験各2179工程と資源タグ試験828工程のclean-treeコマンド閉包を確認し、2204工程で7対象を構築した。試験実行物とDLLだけを`C:\Users\masato\librepaint-r2-g19d-a\runtime`へ配置した。
+- Windows結果: 初回はSmart App Controlが`libiconv-2.dll`をCode Integrity事象3077、3033、3118で拒否し、全対象が試験本体へ入る前に`0xC0E90002`で終了した。実行端末のSmart App Controlを解除した再実行では、曲線データ8件、曲線モデル7件、標準値3件、旧センサー3件、ミラー4件、ブラシ動態7件、資源タグ13件の計45件が成功した。これは契約差ではなく端末実行方針による環境差である。
+- Android構築: `nix/android/upstream-artifacts.json`のARM64固定表を維持し、同じ依存レシピ版のx86_64 Qt 5共有成果物62件を`nix/android/upstream-artifacts-x86_64.json`へ固定した。`build/android/x86_64/c26ade72cba0e5c8`はパッケージ境界1738対象に成功した。6個のpaint-op試験は各2,190命令、資源タグ試験は835命令のコマンド閉包を持ち、対象構築後の実構築は`ninja: no work to do`となった。直接CMake依存は前者が`kritaimage`、`kritalibpaintop`、`kritatestsdk`、後者が資源所有ライブラリー群、KConfig、Qt SQL、`kritatestsdk`である。
+- Android端末: Waydroidの起動問題はNixOS設定で`pkgs.waydroid-nftables`へ切り替えて解消したが、端末ABIが`x86_64,x86`でARM64実行物には使えない。USB接続したPixel 10aはAndroid 17、`arm64-v8a`としてADB認証され、構築対象と一致する物理実行環境を確保した。
+- 構造変更: 起点`KRITA_ADD_UNIT_TEST`のAndroid試験実行形式を、行先`cmake/modules/KritaAndroidTestMain.cpp`を持つ対象別共有ライブラリーへ変換した。起点となる各試験の`data/`は、行先`packaging/android/testrunner/apk/assets/data/`を経てActivity取得のアプリ専用外部領域へ展開する。起点`packaging/android/testrunner/`の汎用QtActivityひな型は、行先`build/android/<ABI>/<構成指紋>/test-apk/<target>/out/`に対象別APKを生成する。`scripts/build-incremental android-x86_64 run-test`が構築、パッケージ作成、ABI検査、導入、実行、XML・logcat回収、強制停止、削除を一つの操作として所有する。
+- Waydroid結果: Android 13、ABI一覧`x86_64,x86`、標準ADB接続先`192.168.240.112:5555`で7対象を各3回実行した。1回につき曲線データ8件、曲線モデル7件、標準値3件、旧センサー3件、ミラー4件、ブラシ動態7件、資源タグ13件の計45件、3回合計135件がすべて`result=pass`かつ終了値0となった。資源タグ試験のQt 5 xUnit出力にある`errors=38`はDB初期化の`qInfo` 38行を数える書式上の値で、全13 testcaseの結果はpass、failuresは0である。
+- APK監査: 資源タグ試験APKは161,779,639バイト、application ID `org.librepaint.tests`、minSdk 24、targetSdk 35であり、ネイティブABIはx86_64だけである。試験共有ライブラリー、推移的共有ライブラリー、SDL Java実装、資源試験データを収め、公開された`LibrePaintTestActivity`をQtActivityとして起動する。DEXにWaydroid参照はなく、Android標準APIとADBだけを使う。同じAPKをx86_64実機へ導入できる構造を確認したが、利用可能なx86_64物理端末がないため実機実行自体は未実施である。
+- 後片付け: 各実行後に`org.librepaint.tests`は未導入となり、Waydroidの`/sdcard/Android/data`直下に同パッケージの項目は残らない。結果XMLとlogcatは構築ホストのABI別Ninja木だけへ保持する。
+- 検証: `python3 -m unittest scripts.tests.test_incremental_development`は22/22件成功し、`./scripts/verify-quick`は運用検査55/55件、パッケージ境界、公開契約、試験契約、文書検査を含めて成功した。`nix flake check --no-build --all-systems`はx86_64 Androidの製品、依存物、開発シェルを含む全出力の評価に成功した。`git diff --check`、shell構文検査、x86_64対象構築、ELF64・AMD x86-64・公開`main`の監査、APK解析、Waydroidの7対象各3回と後片付け検証1回の実行が成功した。
+- Nix保管状態: Linuxホストのdeadな`*-source`または`*-librepaint-source`は作業開始時19パス・3,979,161,592バイト、最終確認時7パス・3,968,509,000バイトであった。この作業ではガベージコレクションを実行せず、再利用するx86_64増分プロファイル、Ninja木、共通コンパイラーキャッシュを保持した。
+- 残る危険: x86_64物理端末での実行確認は端末入手時に同じ`run-test`で追加できる。Qt 5のxUnit出力は`qInfo`を`errors`属性へ含めるため、判定には各testcase結果とネイティブ終了値を使用する。Gradle 9への更新時は現行Android Gradle Pluginが出す非推奨警告を再評価する。
+- 次の作業: R2-G19d-bでAndroid crash handlerのcallback・unwindstack統合、Windows/MSVC互換操作、Linux DBus・colord構成を各実行環境で検証する。
+
+## 直前の完了記録: R1-G8 変更波及の局所化
+
 - 更新日時: 2026-09-23 22:43 JST
 - 状態: `planned`
 - 現在の検査段階: R2-G19d-a 移植済み契約試験の実行可能性確認
