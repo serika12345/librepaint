@@ -119,6 +119,7 @@ build-incremental native build krita
 build-incremental ios plan
 build-incremental ios build
 build-incremental android build krita
+build-incremental android package-product
 build-incremental android-x86_64 build KisCurveOptionModelTest
 build-incremental windows build krita
 ```
@@ -128,14 +129,44 @@ AndroidのQt TestはABIに対応する共有ライブラリーとして構築し
 `android-x86_64`はx86_64実機およびWaydroid診断用であり、依存物固定表、Ninja木、
 構成指紋、コンパイラーキャッシュ、APKをABIごとに分離する。
 
+Androidの両プロファイルはx86_64 Linuxホスト上で、固定Android SDK／NDKとソースから構築する
+Qt 6.11.1、KF 6.28.0、C／C++依存物を使用する。`android-source-dependencies`、
+`qtbase-android`、`android-kf6`、`android-application-dependencies`、
+`android-dependencies`の各Nix出力が変更頻度の異なる構築境界を所有し、x86_64版は対応する
+`android-x86_64-*`または`*-android-x86_64`出力を使用する。製品は次のコマンドでAPKとAABを
+生成し、ABI、ELF、16 KiBページ整列、C++実行時、Qt 6／KF6、プラグイン、資源、Manifest、SDK版を
+包装工程内で監査する。
+
+```sh
+nix build .#librepaint-android
+nix build .#librepaint-android-x86_64
+```
+
+通常構築のGradle通信は`nix/android/gradle-deps.json`の固定応答だけを再生する。依存版の更新時は
+固定応答とハッシュを更新し、通常構築をネットワークなしで再実行する。Nixバイナリーキャッシュは
+同一派生物の代替であり、LibrePaintまたはKritaの別構築が生成した依存成果物は入力にしない。
+固定した依存レシピから参照するパッチと構築フラグは構築メタデータとして扱い、ライブラリー、Qt配置、
+APKなど、別のLibrePaintまたはKrita構築が生成した成果物は入力にしない。
+
+Gradle固定応答は、製品と同じAndroid Gradle Plugin、AndroidX、SDK条件だけを持つ最小包装検査から更新する。
+この操作はリリースAPKを一つ組み立てて遅延解決される包装依存も記録するが、LibrePaint、Qt、KF6、C／C++
+依存物を構築しない。製品の隔離クリーン構築は増分構築、試験、端末操作、文書検査の完了後に一度行う。
+
+```sh
+gradle_update_script="$(nix build --no-link --print-out-paths \
+  path:.#librepaint-android.gradleDepsUpdate)"
+"$gradle_update_script"
+```
+
 ```sh
 build-incremental android-x86_64 package-test KisCurveOptionModelTest
 adb connect <Waydroidまたは実機の接続先>
 build-incremental android-x86_64 run-test KisCurveOptionModelTest [adb-serial]
 ```
 
-`run-test`は標準ADBで接続先のABIを検査し、APKの導入、QtActivity経由の実行、
-xUnit XMLとlogcatの回収、強制停止、パッケージ削除を行う。結果は選択されたNinja木の
+`run-test`は標準ADBで接続先のABIを検査し、監査済み無署名APKから試験専用鍵で実行用複製を
+署名して導入し、QtActivity経由の実行、xUnit XMLとlogcatの回収、強制停止、パッケージ削除を行う。
+無署名成果物は変更せず、試験鍵はリポジトリーのキャッシュ領域に保持する。結果は選択されたNinja木の
 `test-results/<target>/`へ保存する。WaydroidはAndroid診断のADB接続先として使用し、
 APKと実行入口はx86_64 Android実機でも共通である。対象の`data/`ディレクトリーはAPKの
 assetsへ収め、ActivityがAndroid標準のアプリ専用外部領域へ展開する。ネイティブ試験はその

@@ -62,9 +62,15 @@ function(KRITA_ADD_UNIT_TEST)
       set(gui_args WIN32 MACOSX_BUNDLE)
   endif()
   if(ANDROID)
-    add_library(${_targetname} SHARED
+    # Android packages one selected Qt Test at a time. Keep every test module
+    # available as an explicit target without adding all tests to the product
+    # build graph.
+    # Qt's Android deployment support treats every MODULE library in the build
+    # tree as a runtime plugin and makes the product APK depend on it.  Test
+    # entry points are ordinary shared libraries loaded by the dedicated test
+    # runner, so keep them out of both the default build and the product APK.
+    add_library(${_targetname} SHARED EXCLUDE_FROM_ALL
       ${_sources}
-      ${CMAKE_SOURCE_DIR}/cmake/modules/KritaAndroidTestMain.cpp
     )
     target_compile_definitions(${_targetname} PRIVATE main=kis_qtest_main)
     set_target_properties(${_targetname} PROPERTIES

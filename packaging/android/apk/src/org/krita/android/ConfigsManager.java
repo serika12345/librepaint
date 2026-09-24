@@ -22,9 +22,6 @@ import android.view.WindowManager;
 import android.util.Log;
 import android.widget.ProgressBar;
 
-import org.qtproject.qt5.android.QtNative;
-import org.qtproject.qt5.android.bindings.QtActivity;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -79,7 +76,7 @@ class ConfigsManager {
         // during it. The functions relating to that are all synchronized,
         // which means they take a mutex so that we don't end up with a race.
         setAssetsCopied(false);
-        QtNative.activity().runOnUiThread(() -> {
+        mActivity.runOnUiThread(() -> {
             try {
                 showDialog();
             } catch (Exception e) {
@@ -101,7 +98,7 @@ class ConfigsManager {
         }
 
         setAssetsCopied(true);
-        QtNative.activity().runOnUiThread(() -> {
+        mActivity.runOnUiThread(() -> {
             try {
                 dismissDialog();
             } catch (Exception e) {
@@ -272,4 +269,3 @@ class ConfigsManager {
         return mActivity.getFilesDir().getAbsolutePath();
     }
 }
-

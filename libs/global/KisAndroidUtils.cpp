@@ -8,15 +8,10 @@
 #include <QFile>
 #include <QTemporaryFile>
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QJniEnvironment>
 #include <QJniObject>
-#else
-#include <QAndroidJniEnvironment>
-#include <QAndroidJniObject>
-using QJniEnvironment = QAndroidJniEnvironment;
-using QJniObject = QAndroidJniObject;
-#endif
+
+#include <unistd.h>
 
 namespace KisAndroidUtils
 {
@@ -25,7 +20,7 @@ void performInitialSetup()
 {
     KisAndroidLogHandler::handler_init();
 
-    QJniObject activity = QJniObject::callStaticObjectMethod("org/qtproject/qt5/android/QtNative",
+    QJniObject activity = QJniObject::callStaticObjectMethod("org/qtproject/qt/android/QtNative",
                                                              "activity",
                                                              "()Landroid/app/Activity;");
     if (activity.isValid()) {
@@ -74,7 +69,7 @@ void clearJniException(const QString &location)
 
 bool isInFullScreen()
 {
-    QJniObject activity = QJniObject::callStaticObjectMethod("org/qtproject/qt5/android/QtNative",
+    QJniObject activity = QJniObject::callStaticObjectMethod("org/qtproject/qt/android/QtNative",
                                                              "activity",
                                                              "()Landroid/app/Activity;");
     KisAndroidUtils::clearJniException(QStringLiteral("getting activity in isInFullScreen"));
@@ -90,7 +85,7 @@ bool isInFullScreen()
 
 void setFullScreen(bool fullScreen)
 {
-    QJniObject activity = QJniObject::callStaticObjectMethod("org/qtproject/qt5/android/QtNative",
+    QJniObject activity = QJniObject::callStaticObjectMethod("org/qtproject/qt/android/QtNative",
                                                              "activity",
                                                              "()Landroid/app/Activity;");
     KisAndroidUtils::clearJniException(QStringLiteral("getting activity in setFullScreen"));
@@ -104,6 +99,124 @@ void setFullScreen(bool fullScreen)
 
 namespace
 {
+bool clearPendingJniException(const QString &location)
+{
+    QJniEnvironment env;
+    if (!env->ExceptionCheck()) {
+        return false;
+    }
+
+    warnKrita << "JNI exception occurred" << location;
+    env->ExceptionDescribe();
+    env->ExceptionClear();
+    return true;
+}
+
+QString androidDescriptorMode(QIODevice::OpenMode openMode)
+{
+    if (openMode.testFlag(QIODevice::Append)) {
+        return QStringLiteral("wa");
+    }
+    if (openMode.testFlag(QIODevice::WriteOnly) && openMode.testFlag(QIODevice::Truncate)) {
+        return QStringLiteral("rwt");
+    }
+    if (openMode.testFlag(QIODevice::ReadOnly) && openMode.testFlag(QIODevice::WriteOnly)) {
+        return QStringLiteral("rw");
+    }
+    if (openMode.testFlag(QIODevice::WriteOnly)) {
+        return QStringLiteral("w");
+    }
+    return QStringLiteral("r");
+}
+
+bool openFile(QFile &file,
+              const QString &path,
+              QIODevice::OpenMode openMode,
+              QString *outErrorMessage)
+{
+    file.setFileName(path);
+    if (!path.startsWith(QLatin1String("content://"))) {
+        if (file.open(openMode)) {
+            return true;
+        }
+        if (outErrorMessage) {
+            *outErrorMessage = QStringLiteral("failed to open file '%1': %2").arg(path).arg(file.errorString());
+        }
+        return false;
+    }
+
+    const QJniObject activity = QJniObject::callStaticObjectMethod(
+        "org/qtproject/qt/android/QtNative",
+        "activity",
+        "()Landroid/app/Activity;");
+    if (clearPendingJniException(QStringLiteral("getting activity to open an Android content URI"))
+        || !activity.isValid()) {
+        if (outErrorMessage) {
+            *outErrorMessage = QStringLiteral("failed to get the Android activity for '%1'").arg(path);
+        }
+        return false;
+    }
+
+    const QJniObject resolver = activity.callObjectMethod(
+        "getContentResolver",
+        "()Landroid/content/ContentResolver;");
+    if (clearPendingJniException(QStringLiteral("getting ContentResolver to open an Android content URI"))
+        || !resolver.isValid()) {
+        if (outErrorMessage) {
+            *outErrorMessage = QStringLiteral("failed to get Android ContentResolver for '%1'").arg(path);
+        }
+        return false;
+    }
+
+    const QJniObject javaPath = QJniObject::fromString(path);
+    const QJniObject uri = QJniObject::callStaticObjectMethod(
+        "android/net/Uri",
+        "parse",
+        "(Ljava/lang/String;)Landroid/net/Uri;",
+        javaPath.object<jstring>());
+    if (clearPendingJniException(QStringLiteral("parsing an Android content URI")) || !uri.isValid()) {
+        if (outErrorMessage) {
+            *outErrorMessage = QStringLiteral("failed to parse Android content URI '%1'").arg(path);
+        }
+        return false;
+    }
+
+    const QJniObject javaMode = QJniObject::fromString(androidDescriptorMode(openMode));
+    const QJniObject descriptor = resolver.callObjectMethod(
+        "openFileDescriptor",
+        "(Landroid/net/Uri;Ljava/lang/String;)Landroid/os/ParcelFileDescriptor;",
+        uri.object<jobject>(),
+        javaMode.object<jstring>());
+    if (clearPendingJniException(QStringLiteral("opening an Android content URI")) || !descriptor.isValid()) {
+        if (outErrorMessage) {
+            *outErrorMessage = QStringLiteral("failed to open Android content URI '%1'").arg(path);
+        }
+        return false;
+    }
+
+    const int fileDescriptor = descriptor.callMethod<jint>("detachFd", "()I");
+    if (clearPendingJniException(QStringLiteral("detaching an Android content URI file descriptor"))
+        || fileDescriptor < 0) {
+        if (outErrorMessage) {
+            *outErrorMessage = QStringLiteral("failed to acquire a file descriptor for Android content URI '%1'")
+                                   .arg(path);
+        }
+        return false;
+    }
+
+    if (!file.open(fileDescriptor, openMode, QFileDevice::AutoCloseHandle)) {
+        ::close(fileDescriptor);
+        if (outErrorMessage) {
+            *outErrorMessage = QStringLiteral("failed to attach the file descriptor for Android content URI '%1': %2")
+                                   .arg(path)
+                                   .arg(file.errorString());
+        }
+        return false;
+    }
+
+    return true;
+}
+
 bool copyFileContents(const QString &inputPath,
                       const QString &outputPath,
                       QFile &inputFile,
@@ -162,21 +275,13 @@ bool copyFileContents(const QString &inputPath,
 
 bool copyFile(const QString &inputPath, const QString &outputPath, QString *outErrorMessage)
 {
-    QFile inputFile(inputPath);
-    if (!inputFile.open(QIODevice::ReadOnly)) {
-        if (outErrorMessage) {
-            *outErrorMessage =
-                QStringLiteral("failed to open input file '%1': %2").arg(inputPath).arg(inputFile.errorString());
-        }
+    QFile inputFile;
+    if (!openFile(inputFile, inputPath, QIODevice::ReadOnly, outErrorMessage)) {
         return false;
     }
 
-    QFile outputFile(outputPath);
-    if (!outputFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        if (outErrorMessage) {
-            *outErrorMessage =
-                QStringLiteral("failed to open output file '%1': %2").arg(outputPath).arg(outputFile.errorString());
-        }
+    QFile outputFile;
+    if (!openFile(outputFile, outputPath, QIODevice::WriteOnly | QIODevice::Truncate, outErrorMessage)) {
         return false;
     }
 
@@ -185,12 +290,8 @@ bool copyFile(const QString &inputPath, const QString &outputPath, QString *outE
 
 bool copyFileToTemporary(const QString &inputPath, QTemporaryFile &outputFile, QString *outErrorMessage)
 {
-    QFile inputFile(inputPath);
-    if (!inputFile.open(QIODevice::ReadOnly)) {
-        if (outErrorMessage) {
-            *outErrorMessage =
-                QStringLiteral("failed to open input file '%1': %2").arg(inputPath).arg(inputFile.errorString());
-        }
+    QFile inputFile;
+    if (!openFile(inputFile, inputPath, QIODevice::ReadOnly, outErrorMessage)) {
         return false;
     }
 

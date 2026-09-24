@@ -1,34 +1,62 @@
 cmake_minimum_required(VERSION 3.19)
 project(LibrePaintAndroidPackage LANGUAGES CXX)
 
-find_package(ECM REQUIRED NO_MODULE)
-find_package(Qt5Core REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS
+  Concurrent
+  Core
+  Core5Compat
+  Gui
+  Network
+  OpenGL
+  OpenGLWidgets
+  PrintSupport
+  Qml
+  Quick
+  QuickControls2
+  QuickWidgets
+  Sql
+  Svg
+  SvgWidgets
+  Widgets
+  Xml
+)
 
-add_library(krita SHARED IMPORTED GLOBAL)
+add_library(krita MODULE IMPORTED GLOBAL)
 set_target_properties(krita PROPERTIES
   IMPORTED_LOCATION "${NATIVE_PREFIX}/lib/libkrita_@androidAbi@.so"
+  QT_ANDROID_PACKAGE_SOURCE_DIR "${CMAKE_SOURCE_DIR}/apk"
+)
+target_link_libraries(krita INTERFACE
+  Qt6::Concurrent
+  Qt6::Core
+  Qt6::Core5Compat
+  Qt6::Gui
+  Qt6::Network
+  Qt6::OpenGL
+  Qt6::OpenGLWidgets
+  Qt6::PrintSupport
+  Qt6::Qml
+  Qt6::Quick
+  Qt6::QuickControls2
+  Qt6::QuickWidgets
+  Qt6::Sql
+  Qt6::Svg
+  Qt6::SvgWidgets
+  Qt6::Widgets
+  Qt6::Xml
 )
 
-set(ANDROID_SDK_COMPILE_API "35")
-set(ANDROID_SYSROOT_PREFIX "${ANDROID_TOOLCHAIN_ROOT}/sysroot/usr" CACHE STRING "" FORCE)
-string(REGEX REPLACE "-(clang)?([0-9].[0-9])?$" "" ECM_ANDROID_STL_ARCH "${ANDROID_TOOLCHAIN_NAME}")
-
-if(NOT CMAKE_CXX_STANDARD_LIBRARIES MATCHES "[^ ]*c\\+\\+[^ ]*\\.so")
-  set(KRITA_ANDROID_STL_PATH
-    "${ANDROID_SYSROOT_PREFIX}/lib/${ECM_ANDROID_STL_ARCH}/lib${ANDROID_STL}.so")
-  if(NOT EXISTS "${KRITA_ANDROID_STL_PATH}")
-    message(FATAL_ERROR "Android shared STL was not found")
-  endif()
-  set(CMAKE_CXX_STANDARD_LIBRARIES
-    "${CMAKE_CXX_STANDARD_LIBRARIES} \"${KRITA_ANDROID_STL_PATH}\"" CACHE STRING "" FORCE)
+if(ANDROID_EXTRA_LIBS)
+  set_target_properties(krita PROPERTIES
+    QT_ANDROID_EXTRA_LIBS "${ANDROID_EXTRA_LIBS}"
+  )
 endif()
 
-set(_CMAKE_ANDROID_DIR "${ECM_DIR}/../toolchain")
-include("${_CMAKE_ANDROID_DIR}/ECMAndroidDeployQt.cmake")
-ecm_androiddeployqt(krita "${ECM_ADDITIONAL_FIND_ROOT_PATH}")
-set_target_properties(create-apk-krita PROPERTIES
-  ANDROID_APK_DIR "${CMAKE_SOURCE_DIR}/apk"
+qt_android_generate_deployment_settings(krita)
+qt_android_add_apk_target(krita)
+add_custom_target(create-apk-krita
+  DEPENDS krita_make_apk
 )
-
-file(WRITE "${CMAKE_BINARY_DIR}/stl" "\"${KRITA_ANDROID_STL_PATH}\"")
-file(WRITE "${CMAKE_BINARY_DIR}/ranlib" "${CMAKE_RANLIB}")
+add_custom_target(create-aab-krita
+  DEPENDS krita_make_aab
+)

@@ -71,7 +71,7 @@
 #endif
 
 #ifdef Q_OS_ANDROID
-#include <QtAndroid>
+#include <QJniObject>
 #include <KisAndroidCrashHandler.h>
 #include <KisAndroidUtils.h>
 #endif
@@ -431,7 +431,7 @@ Java_org_krita_android_JNIWrappers_openFileFromIntent(JNIEnv* /*env*/,
                                                       jobject /*obj*/,
                                                       jstring str)
 {
-    QAndroidJniObject jUri(str);
+    QJniObject jUri(str);
     if (jUri.isValid()) {
         QString uri = jUri.toString();
         QMetaObject::invokeMethod(KisApplication::instance(), "fileOpenRequested",
@@ -515,23 +515,11 @@ extern "C" MAIN_EXPORT int MAIN_FN(int argc, char **argv)
 #endif
 
 #ifdef Q_OS_ANDROID
-    const QString write_permission = "android.permission.WRITE_EXTERNAL_STORAGE";
-    const QStringList permissions = { write_permission };
-    const QtAndroid::PermissionResultMap resultHash =
-            QtAndroid::requestPermissionsSync(QStringList(permissions));
-
-    if (resultHash[write_permission] == QtAndroid::PermissionResult::Denied) {
-        // TODO: show a dialog and graciously exit
-        dbgKrita << "Permission denied by the user";
-    }
-    else {
-        dbgKrita << "Permission granted";
-    }
-
     KisAndroidCrashHandler::handler_init();
 
-    qputenv("FONTCONFIG_PATH",
-            QFile::encodeName(KoResourcePaths::getApplicationRoot()) + "/share/etc/fonts/");
+    const QByteArray fontConfigPath =
+        QFile::encodeName(KoResourcePaths::getApplicationRoot()) + "/share/etc/fonts/";
+    qputenv("FONTCONFIG_PATH", fontConfigPath);
     qputenv("XDG_CACHE_HOME",
             QFile::encodeName(QStandardPaths::writableLocation(QStandardPaths::CacheLocation)));
 #endif
@@ -808,12 +796,11 @@ if (!qEnvironmentVariableIsEmpty("KRITA_OPENGL_DEBUG")) {
         // QLocale::uiLanguages() fails on Android, so if the fallback locale is being
         // used we, try to fetch the device's default locale.
         if (locale.name() == QLocale::c().name()) {
-            QAndroidJniObject localeJniObj = QAndroidJniObject::callStaticObjectMethod(
+            QJniObject localeJniObj = QJniObject::callStaticObjectMethod(
                 "java/util/Locale", "getDefault", "()Ljava/util/Locale;");
 
             if (localeJniObj.isValid()) {
-                QAndroidJniObject tag = localeJniObj.callObjectMethod("toLanguageTag",
-                                                                      "()Ljava/lang/String;");
+                QJniObject tag = localeJniObj.callObjectMethod("toLanguageTag", "()Ljava/lang/String;");
                 if (tag.isValid()) {
                     locale = QLocale(tag.toString());
                 }

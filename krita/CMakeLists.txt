@@ -3,13 +3,6 @@ add_subdirectory( data )
 # Install the application icons following the freedesktop icon theme spec
 add_subdirectory( "pics/branding/${BRANDING}" )
 
-if (ANDROID)
-    if (QT_MAJOR_VERSION STREQUAL "5")
-        set (QtAndroidExtras_INCLUDE_DIRS ${Qt5AndroidExtras_INCLUDE_DIRS})
-        include_directories (${QtAndroidExtras_INCLUDE_DIRS})
-    endif()
-endif()
-
 set(krita_SRCS main.cc)
 set(KRITA_MACOS_BUNDLE_ICON_FILE "LibrePaint")
 
@@ -160,9 +153,8 @@ endif()
 
 qt_add_resources(krita_SRCS ${krita_QRCS})
 
-if (ANDROID AND QT_MAJOR_VERSION STREQUAL "5")
-    kis_add_library(krita SHARED ${krita_SRCS})
-    target_link_libraries(krita PRIVATE Qt5::AndroidExtras)
+if (ANDROID)
+    qt_add_executable(krita MANUAL_FINALIZATION ${krita_SRCS})
 elseif (WIN32)
     # Build the main implementation into a DLL to be called by a stub EXE.
     kis_add_library(krita SHARED ${krita_SRCS})
@@ -282,6 +274,8 @@ if(APPLE AND NOT IOS)
     install(TARGETS krita ${INSTALL_TARGETS_DEFAULT_ARGS} BUNDLE DESTINATION bin)
 elseif(IOS)
     install(TARGETS krita ${INSTALL_TARGETS_DEFAULT_ARGS} BUNDLE DESTINATION bin)
+elseif(ANDROID)
+    install(TARGETS krita LIBRARY DESTINATION ${KDE_INSTALL_LIBDIR})
 else()
     install(TARGETS krita ${INSTALL_TARGETS_DEFAULT_ARGS})
 endif()
@@ -361,4 +355,17 @@ endif (WIN32)
 
 if (BUILD_TESTING)
     add_subdirectory(tests)
+endif()
+
+if(ANDROID)
+    set_target_properties(krita PROPERTIES
+        PREFIX "lib"
+        QT_ANDROID_PACKAGE_SOURCE_DIR "${ANDROID_APK_DIR}"
+    )
+    if(ANDROID_EXTRA_LIBS)
+        set_target_properties(krita PROPERTIES
+            QT_ANDROID_EXTRA_LIBS "${ANDROID_EXTRA_LIBS}"
+        )
+    endif()
+    qt_finalize_executable(krita)
 endif()

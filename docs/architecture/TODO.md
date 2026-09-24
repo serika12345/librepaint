@@ -1196,17 +1196,17 @@ AndroidだけがQt 5.15、KF5、Qt 5 Android配備処理、Qt 5 Java Activityを
 
 完了条件は次のとおりとする。
 
-- [ ] Androidツールチェーンをx86_64 LinuxのNix入力と固定ハッシュから再現し、通常構築中のネットワーク取得を要求しない。
-- [ ] ベンダーSDKとNDK以外のQt 6、KF6、全C/C++依存物を固定ソースから再構築可能とし、両ABIで同じNDKとlibc++から構築する。Nixバイナリキャッシュは同じ派生物の代替にのみ使用する。
-- [ ] 依存物、LibrePaint、Qt Test、包装の派生物を分離し、アプリケーションソース変更でQtと外部依存物を再構築しない。
-- [ ] 全Android製品対象と選択可能なQt Testを、共通C++17基準のままQt 6で構築する。
-- [ ] QtActivity、JNI、プラグイン、資源、ファイル操作、入力、ライフサイクルをQt 6経路で初期化する。
+- [x] Androidツールチェーンをx86_64 LinuxのNix入力と固定ハッシュから再現し、通常構築中のネットワーク取得を要求しない。
+- [x] ベンダーSDKとNDK以外のQt 6、KF6、全C/C++依存物を固定ソースから再構築可能とし、両ABIで同じNDKとlibc++から構築する。Nixバイナリキャッシュは同じ派生物の代替にのみ使用する。
+- [x] 依存物、LibrePaint、Qt Test、包装の派生物を分離し、アプリケーションソース変更でQtと外部依存物を再構築しない。
+- [x] 全Android製品対象と選択可能なQt Testを、共通C++17基準のままQt 6で構築する。
+- [x] QtActivity、JNI、プラグイン、資源、ファイル操作、入力、ライフサイクルをQt 6経路で初期化する。
 - [ ] Waydroid x86_64とarm64物理端末で、既存Qt Testおよび起動、新規文書、描画、保存、書出し、
       回転、休止・復帰、終了の操作を完走する。
 - [ ] スタイラスと指入力の押下、移動、解放、筆圧、傾き、移動、拡大縮小、回転、誤接触除去を端末上で検査する。
-- [ ] APK／AABのABI、ELF依存、単一の`libc++_shared.so`、Qt 6、プラグイン、資源、Manifest、
+- [x] APK／AABのABI、ELF依存、単一の`libc++_shared.so`、Qt 6、プラグイン、資源、Manifest、
       minSdk、targetSdkを自動監査する。
-- [ ] Qt 5 Androidの固定依存物、構築プロファイル、配備分岐、`org.qtproject.qt5`参照を削除する。
+- [x] Qt 5 Androidの固定依存物、構築プロファイル、配備分岐、`org.qtproject.qt5`参照を削除する。
 - [ ] `verify-quick`、Android対象構築、Qt Test反復、Waydroid実行、arm64実機実行、Nix評価を成功させ、
       `PROGRESS.md`、`DEVELOPMENT.md`、Android文書を実際の構築・実行条件へ同期する。
 

@@ -27,7 +27,7 @@ class QString;
 class KRITACANVAS_EXPORT KisToolCanvas
 {
 public:
-    virtual ~KisToolCanvas() = default;
+    virtual ~KisToolCanvas();
 
     virtual const KisCoordinatesConverter *coordinatesConverter() const = 0;
     virtual KisImageWSP currentImage() const = 0;

@@ -25,7 +25,10 @@
 #include <qobject.h>
 #include <qopenglshaderprogram.h>
 #include <QtGlobal>
-#if !defined(QT_OPENGL_ES_2)
+#if defined(QT_OPENGL_ES_3)
+#include <GLES3/gl3.h>
+#endif
+#if !defined(QT_OPENGL_ES_2) && !defined(QT_OPENGL_ES_3)
 #include <QOpenGLFunctions_2_0>
 #include <QOpenGLFunctions_3_0>
 #include <QOpenGLFunctions_3_2_Core>
@@ -48,7 +51,7 @@
 #include <opengl/kis_opengl.h>
 #include <qsurface.h>
 
-#if defined(QT_OPENGL_ES_2)
+#if defined(QT_OPENGL_ES_2) || defined(QT_OPENGL_ES_3)
 #if QT_CONFIG(opengles3)
 #define GL_RGBA32F_ARB GL_RGBA32F
 #define GL_RGB32F_ARB GL_RGB32F
@@ -58,7 +61,7 @@
 #endif
 #endif
 
-#if defined(QT_OPENGL_ES_2) && !QT_CONFIG(opengles3)
+#if (defined(QT_OPENGL_ES_2) || defined(QT_OPENGL_ES_3)) && !QT_CONFIG(opengles3)
 #define GL_R32F GL_R32F_EXT
 #define GL_RED GL_RED_EXT
 #define GL_TEXTURE_WRAP_R GL_TEXTURE_WRAP_R_OES
@@ -398,7 +401,7 @@ bool OcioDisplayFilter::updateShader()
         }
 #endif
     }
-#if !defined(QT_OPENGL_ES_2)
+#if !defined(QT_OPENGL_ES_2) && !defined(QT_OPENGL_ES_3)
 #if (QT_VERSION < QT_VERSION_CHECK(6, 0, 0))
     QOpenGLFunctions_2_0 *f = QOpenGLContext::currentContext()->versionFunctions<QOpenGLFunctions_2_0>();
 #else

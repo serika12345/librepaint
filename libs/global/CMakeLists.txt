@@ -817,9 +817,6 @@ if (ANDROID)
         KisAndroidUtils.cpp
     )
     include_directories(${unwindstack_INCLUDE_DIR})
-    if (QT_MAJOR_VERSION STREQUAL "5")
-        include_directories(${Qt5AndroidExtras_INCLUDE_DIRS})
-    endif()
 endif()
 
 kis_add_library(kritaglobal SHARED
@@ -898,11 +895,7 @@ if (GSL_FOUND)
 endif ()
 
 if (ANDROID)
-    if (QT_MAJOR_VERSION STREQUAL "6")
-        target_link_libraries(kritaglobal PRIVATE ${unwindstack_LIBRARIES} log)
-    else()
-        target_link_libraries(kritaglobal PRIVATE ${unwindstack_LIBRARIES} Qt5::AndroidExtras log)
-    endif()
+    target_link_libraries(kritaglobal PRIVATE ${unwindstack_LIBRARIES} log)
 endif()
 
 if(APPLE AND NOT IOS)

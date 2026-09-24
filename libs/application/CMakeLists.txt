@@ -254,13 +254,6 @@ if (Mlt7_FOUND)
     target_link_libraries(kritaapplicationui PRIVATE SDL2::SDL2 Mlt7::mlt Mlt7::mlt++)
 endif()
 
-if (ANDROID)
-    target_link_libraries(kritaapplicationui
-        PRIVATE
-            Qt${QT_MAJOR_VERSION}::AndroidExtras
-    )
-endif()
-
 if(APPLE AND NOT IOS)
     target_link_libraries(kritaapplicationui
         PRIVATE

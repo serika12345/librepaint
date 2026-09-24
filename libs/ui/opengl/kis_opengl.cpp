@@ -554,7 +554,7 @@ QOpenGLContext::OpenGLModuleType determineOpenGLImplementation(const RendererInf
         return QOpenGLContext::LibGL;
 #else
     // https://invent.kde.org/szaman/qtbase/-/blob/krita/5.15/src/plugins/platforms/xcb/gl_integrations/xcb_glx/qglxintegration.cpp#L246
-#if defined(QT_OPENGL_ES_2)
+#if defined(QT_OPENGL_ES_2) || defined(QT_OPENGL_ES_3)
     return QOpenGLContext::LibGLES;
 #else
     return QOpenGLContext::LibGL;

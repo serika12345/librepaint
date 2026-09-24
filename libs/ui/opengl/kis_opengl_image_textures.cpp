@@ -27,12 +27,15 @@
 #include <qscopedpointer.h>
 #include <qstringview.h>
 
-#ifdef QT_OPENGL_ES_2
+#if defined(QT_OPENGL_ES_2) || defined(QT_OPENGL_ES_3)
 #include <qopengl.h>
+#if defined(QT_OPENGL_ES_3)
+#include <GLES3/gl3.h>
+#endif
 #include "KisOpenGLIOSCompat.h"
 #endif
 
-#ifndef QT_OPENGL_ES_2
+#if !defined(QT_OPENGL_ES_2) && !defined(QT_OPENGL_ES_3)
 #include <QOpenGLFunctions>
 #endif
 #include <QOpenGLContext>
@@ -582,7 +585,7 @@ void initializeRGBA16FTextures(QOpenGLContext *ctx, KisGLTexturesInfo &texturesI
 #endif
 
     if (haveBuiltInOpenExr && (KisOpenGL::hasOpenGLES() || KisOpenGL::hasOpenGL3())) {
-#ifndef QT_OPENGL_ES_2
+#if !defined(QT_OPENGL_ES_2) && !defined(QT_OPENGL_ES_3)
         texturesInfo.internalFormat = GL_RGBA16F;
         dbgUI << "Using half (GLES or GL3)";
         texturesInfo.type = GL_HALF_FLOAT;
@@ -660,7 +663,7 @@ void KisOpenGLImageTextures::updateTextureFormat()
     if (!(m_image && ctx)) return;
 
     if (!KisOpenGL::hasOpenGLES()) {
-#ifndef QT_OPENGL_ES_2
+#if !defined(QT_OPENGL_ES_2) && !defined(QT_OPENGL_ES_3)
         m_texturesInfo.internalFormat = GL_RGBA8;
         m_texturesInfo.type = GL_UNSIGNED_BYTE;
         m_texturesInfo.format = GL_BGRA;
@@ -669,7 +672,7 @@ void KisOpenGLImageTextures::updateTextureFormat()
                 "Unexpected KisOpenGL::hasOpenGLES returned false");
 #endif
     } else {
-#ifdef QT_OPENGL_ES_2
+#if defined(QT_OPENGL_ES_2) || defined(QT_OPENGL_ES_3)
         m_texturesInfo.internalFormat = GL_RGBA8;
         m_texturesInfo.type = GL_UNSIGNED_BYTE;
         m_texturesInfo.format = GL_RGBA;
@@ -702,7 +705,7 @@ void KisOpenGLImageTextures::updateTextureFormat()
         }
         else if (colorDepthId == Float32BitsColorDepthID) {
             if (KisOpenGL::hasOpenGLES() || KisOpenGL::hasOpenGL3()) {
-#ifndef QT_OPENGL_ES_2
+#if !defined(QT_OPENGL_ES_2) && !defined(QT_OPENGL_ES_3)
                 m_texturesInfo.internalFormat = GL_RGBA32F;
                 dbgUI << "Using float (GLES or GL3)";
                 m_texturesInfo.type = GL_FLOAT;
@@ -743,7 +746,7 @@ void KisOpenGLImageTextures::updateTextureFormat()
         }
         else if (colorDepthId == Integer16BitsColorDepthID) {
             if (!KisOpenGL::hasOpenGLES()) {
-#ifndef QT_OPENGL_ES_2
+#if !defined(QT_OPENGL_ES_2) && !defined(QT_OPENGL_ES_3)
                 m_texturesInfo.internalFormat = GL_RGBA16;
                 m_texturesInfo.type = GL_UNSIGNED_SHORT;
 
@@ -785,7 +788,7 @@ void KisOpenGLImageTextures::updateTextureFormat()
         // We will convert the colorspace to 16 bits rgba, instead of 8 bits
         if (colorDepthId == Integer16BitsColorDepthID) {
             if (!KisOpenGL::hasOpenGLES()) {
-#ifndef QT_OPENGL_ES_2
+#if !defined(QT_OPENGL_ES_2) && !defined(QT_OPENGL_ES_3)
                 m_texturesInfo.internalFormat = GL_RGBA16;
                 m_texturesInfo.type = GL_UNSIGNED_SHORT;
                 // On arm M1, GL_BGRA format is not aligned properly at the driver

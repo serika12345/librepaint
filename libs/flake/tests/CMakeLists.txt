@@ -236,6 +236,7 @@ kis_add_test(
     TestXsimdPainting.cpp
     LINK_LIBRARIES
         kritaflakeclipmaskpainterobjects
+        kritamultiarch
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_include_directories(TestXsimdPainting PRIVATE

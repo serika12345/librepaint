@@ -12,6 +12,7 @@ operations:
   plan [target]        Print the Ninja work plan for all or one target.
   build [target]       Incrementally build all or one target.
   bootstrap [target]   Establish a complete baseline in the same build tree.
+  package-product      Build, install, package, and audit the product APK/AAB.
   package-test <target> Build one Qt Test as a standard Android APK.
   run-test <target> [adb-serial]
                        Install, run, collect XML, and remove one Qt Test APK.
@@ -172,6 +173,58 @@ validate_test_target() {
     fi
 }
 
+package_android_product() {
+    local package_prefix="$build_dir/product-package-prefix"
+    local product_apk
+    local product_aab
+
+    ensure_tree
+    cmake --build "$build_dir" --target all --parallel
+    cmake --install "$build_dir"
+    cmake -E remove_directory "$package_prefix"
+    mkdir -p "$package_prefix"
+    for runtime_prefix in "$LIBREPAINT_ANDROID_DEPENDENCY_PREFIX" "$install_dir"; do
+        for runtime_tree in lib share etc translations jar plugins qml; do
+            if [[ -e "$runtime_prefix/$runtime_tree" ]]; then
+                mkdir -p "$package_prefix/$runtime_tree"
+                cp -aL --reflink=auto \
+                    "$runtime_prefix/$runtime_tree/." "$package_prefix/$runtime_tree/"
+                chmod -R u+w "$package_prefix/$runtime_tree"
+            fi
+        done
+    done
+    export KRITA_INSTALL_PREFIX="$package_prefix"
+    if [[ -d "$build_dir/krita/android-build" ]]; then
+        chmod -R u+w "$build_dir/krita/android-build"
+    fi
+    cmake --build "$build_dir" --target create-apk-krita --parallel
+    chmod -R u+w "$build_dir/krita/android-build"
+    cmake --build "$build_dir" --target create-aab-krita --parallel
+
+    product_apk="$(find "$build_dir/krita/android-build/build/outputs/apk/release" \
+        -type f -name '*-release-unsigned.apk' -print -quit)"
+    product_aab="$(find "$build_dir/krita/android-build/build/outputs/bundle/release" \
+        -type f -name '*.aab' -print -quit)"
+    if [[ ! -s "$product_apk" || ! -s "$product_aab" ]]; then
+        echo "Android product APK or AAB was not produced" >&2
+        exit 1
+    fi
+
+    "$repo_root/scripts/platform/audit-android-package" \
+        "$product_apk" \
+        "$ANDROID_ABI" \
+        "$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf" \
+        "$ANDROID_SDK_ROOT/build-tools/35.0.0/aapt2" \
+        product
+    "$repo_root/scripts/platform/audit-android-package" \
+        "$product_aab" \
+        "$ANDROID_ABI" \
+        "$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf" \
+        "$ANDROID_SDK_ROOT/build-tools/35.0.0/aapt2" \
+        product
+    printf '%s\n%s\n' "$product_apk" "$product_aab"
+}
+
 package_android_test() {
     local test_target="$1"
     local test_library
@@ -185,8 +238,10 @@ package_android_test() {
     ensure_tree
     cmake --build "$build_dir" --target "$test_target" --parallel
 
-    test_library="$(find "$build_dir/lib" -maxdepth 1 -type f \
-        -name "lib${test_target}_${ANDROID_ABI}.so" -print -quit)"
+    test_library="$build_dir/lib/lib${test_target}_${ANDROID_ABI}.so"
+    if [[ ! -s "$test_library" ]]; then
+        test_library="$build_dir/lib/lib${test_target}.so"
+    fi
     if [[ -z "$test_library" ]]; then
         echo "Android test target is not a packageable shared library: $test_target" >&2
         exit 1
@@ -220,7 +275,6 @@ package_android_test() {
         -B "$package_dir/build" -G Ninja \
         "${cmake_args[@]}" \
         -DANDROIDDEPLOYQT_EXTRA_ARGS:STRING= \
-        -DANDROID_APK_OUTPUT_DIR:PATH="$package_dir/out" \
         -DANDROID_TEST_APK_DIR:PATH="$apk_template_dir" \
         -DANDROID_TEST_LIBRARY:FILEPATH="$test_library" \
         -DCMAKE_FIND_ROOT_PATH:PATH="$LIBREPAINT_ANDROID_DEPENDENCY_PREFIX;$build_dir" \
@@ -230,11 +284,59 @@ package_android_test() {
     cmake --build "$package_dir/build" \
         --target create-apk-librepaint_android_test --parallel
 
+    install -m 0644 \
+        "$package_dir/build/android-build/librepaint_android_test.apk" \
+        "$apk_output"
+
     if [[ ! -s "$apk_output" ]]; then
         echo "Android test APK was not produced: $apk_output" >&2
         exit 1
     fi
+    "$repo_root/scripts/platform/audit-android-package" \
+        "$apk_output" \
+        "$ANDROID_ABI" \
+        "$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf" \
+        "$ANDROID_SDK_ROOT/build-tools/35.0.0/aapt2" \
+        test
     packaged_apk="$apk_output"
+}
+
+sign_android_apk_for_runtime() {
+    local unsigned_apk="$1"
+    local signed_apk="$2"
+    local signing_dir="$cache_root/android/signing"
+    local keystore="$signing_dir/librepaint-test.p12"
+    local keytool="$JAVA_HOME/bin/keytool"
+    local apksigner="$ANDROID_SDK_ROOT/build-tools/35.0.0/apksigner"
+
+    if [[ ! -x "$keytool" || ! -x "$apksigner" ]]; then
+        echo "Android runtime signing tools are unavailable" >&2
+        exit 1
+    fi
+
+    mkdir -p "$signing_dir" "$(dirname -- "$signed_apk")"
+    if [[ ! -s "$keystore" ]]; then
+        "$keytool" -genkeypair -noprompt \
+            -keystore "$keystore" \
+            -storetype PKCS12 \
+            -storepass android \
+            -keypass android \
+            -alias librepaint-test \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -dname "CN=LibrePaint Android Test, O=LibrePaint, C=JP"
+    fi
+
+    install -m 0644 "$unsigned_apk" "$signed_apk"
+    rm -f "$signed_apk.idsig"
+    "$apksigner" sign \
+        --ks "$keystore" \
+        --ks-key-alias librepaint-test \
+        --ks-pass pass:android \
+        --key-pass pass:android \
+        "$signed_apk"
+    "$apksigner" verify "$signed_apk"
 }
 
 run_android_test() {
@@ -245,6 +347,7 @@ run_android_test() {
     local result_dir
     local result_file
     local log_file
+    local runtime_apk
     local candidate_status
     local device_status=""
     local device_result_dir
@@ -252,6 +355,8 @@ run_android_test() {
     local -a adb_command
 
     package_android_test "$test_target"
+    runtime_apk="${packaged_apk%.apk}-runtime-signed.apk"
+    sign_android_apk_for_runtime "$packaged_apk" "$runtime_apk"
 
     if [[ -z "$requested_serial" ]]; then
         mapfile -t devices < <(adb devices | awk 'NR > 1 && $2 == "device" { print $1 }')
@@ -279,7 +384,7 @@ run_android_test() {
     android_test_installed=0
     trap cleanup_android_test EXIT
 
-    "${adb_command[@]}" install -r -t "$packaged_apk"
+    "${adb_command[@]}" install -r -t "$runtime_apk"
     android_test_installed=1
     device_result_dir="/sdcard/Android/data/$android_test_package/files"
     "${adb_command[@]}" shell rm -f \
@@ -355,6 +460,10 @@ case "$operation" in
         (( $# <= 1 )) || usage
         configure_tree
         cmake --build "$build_dir" --target "$target" --parallel
+        ;;
+    package-product)
+        (( $# == 0 )) || usage
+        package_android_product
         ;;
     package-test)
         (( $# == 1 )) || usage

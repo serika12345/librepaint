@@ -18,6 +18,9 @@ apply plugin: 'com.android.application'
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+    // Core 1.17 requires compile SDK 36. Version 1.15 provides the Qt 6
+    // FileProvider contract while preserving LibrePaint's API 35 toolchain.
+    implementation 'androidx.core:core:1.15.0'
 }
 
 ext {
@@ -55,6 +58,15 @@ tasks.register('writeConfig', WriteProperties) {
 // them to start with `lib_`
 tasks.register('copyLibs', Copy) {
     dependsOn('configure')
+    doFirst {
+        // androiddeployqt populates this directory with read-only copies before
+        // Gradle overlays the complete source-built runtime prefix.
+        fileTree("libs/$abi").matching { include '**/*.so' }.each {
+            if (!it.setWritable(true, true)) {
+                throw new GradleException("Could not make Android runtime library writable: $it")
+            }
+        }
+    }
     from "$installPrefix/lib"
     into "libs/$abi"
     exclude "mlt-7/**"
@@ -70,11 +82,11 @@ tasks.register('copyMltPlugins', Copy) {
     rename('^libmlt(.*).so$', 'lib_mltplugin_$1.so')
 }
 
-tasks.register('copySDLJar', Copy) {
+tasks.register('copyAndroidRuntimeJars', Copy) {
     dependsOn('configure')
     from "$installPrefix/jar"
     into 'libs/'
-    include 'SDL2Android.jar'
+    include 'Qt6Android*.jar', 'SDL2Android.jar'
 }
 
 tasks.register('copyFonts', Copy) {
@@ -129,10 +141,10 @@ def isPackagingAPK() {
 android {
     /**
      * We store the application ID in both, `namespace` tag and in the
-     * `package` attribute in the manifest, because androiddeployqt from Qt 5.15.x
-     * does not know how to fetch the package name from the Manifest
+     * `package` attribute in the manifest for the Android application identity.
      */
     namespace = "org.krita"
+    compileSdkVersion androidCompileSdkVersion
 
     ndkPath ndkpath
 
@@ -142,12 +154,17 @@ android {
         }
     }
 
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
     sourceSets {
         main {
             manifest.srcFile 'AndroidManifest.xml'
-            java.srcDirs = [qt5AndroidDir + '/src', 'src', 'java']
-            aidl.srcDirs = [qt5AndroidDir + '/src', 'src', 'aidl']
-            res.srcDirs = [qt5AndroidDir + '/res', 'res']
+            java.srcDirs = [qtAndroidDir + '/src', 'src', 'java']
+            aidl.srcDirs = [qtAndroidDir + '/src', 'src', 'aidl']
+            res.srcDirs = [qtAndroidDir + '/res', 'res']
             resources.srcDirs = ['src']
             renderscript.srcDirs = ['src']
             assets.srcDirs = ['assets']
@@ -190,8 +207,6 @@ android {
     def versionRelease  = 0
 
     defaultConfig {
-        compileSdk androidCompileSdkVersion.toInteger()
-
         // even though buildToolsVersion is deprecated,
         // we should still explicitly state it. Otherwise,
         // AGP will use the default one
@@ -200,11 +215,9 @@ android {
         ndkVersion "27.3.13750724"
 
         targetSdkVersion 35
-        minSdkVersion 24
+        minSdkVersion 28
         versionCode project.ext.constant * 1000000 + versionMajor * 10000 + versionMinor * 100 + versionRelease
         versionName "5.4.0-prealpha"
-        def unstableSuffix = System.getenv('KRITA_UNSTABLE_PACKAGE_SUFFIX')
-        archivesBaseName = "LibrePaint-$abi-$versionName$unstableSuffix"
     }
     buildFeatures {
         renderScript true
@@ -228,12 +241,12 @@ android {
     configure.finalizedBy(copyFonts)
     configure.finalizedBy(copyAssets)
     configure.finalizedBy(copyLocaleFiles)
-    configure.finalizedBy(copySDLJar)
+    configure.finalizedBy(copyAndroidRuntimeJars)
     configure.finalizedBy(copyExtraMltFiles)
     configure.finalizedBy(removeDuplicateAssets)
 
     preBuild.dependsOn(configure)
-    preBuild.dependsOn(copyLibs, copyMltPlugins, copyFonts, copyAssets, copyLocaleFiles, copySDLJar, copyExtraMltFiles, removeDuplicateAssets)
+    preBuild.dependsOn(copyLibs, copyMltPlugins, copyFonts, copyAssets, copyLocaleFiles, copyAndroidRuntimeJars, copyExtraMltFiles, removeDuplicateAssets)
 }
 
 dependencies {

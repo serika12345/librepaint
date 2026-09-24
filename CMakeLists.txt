@@ -570,16 +570,10 @@ find_package(Qt${QT_MAJOR_VERSION} ${MIN_QT_VERSION}
         ${KRITA_REQUIRED_QT_COMPONENTS}
 )
 
-if (ANDROID)
-    if (QT_MAJOR_VERSION STREQUAL "5")
-        find_package(Qt${QT_MAJOR_VERSION} ${MIN_QT_VERSION}
-            REQUIRED COMPONENTS
-            AndroidExtras
-        )
-    endif()
-endif()
-
 if (QT_MAJOR_VERSION STREQUAL "6")
+    if(ANDROID)
+        qt_policy(SET QTP0002 NEW)
+    endif()
     find_package(Qt${QT_MAJOR_VERSION} ${MIN_QT_VERSION}
         REQUIRED COMPONENTS
         Core5Compat
@@ -1812,10 +1806,6 @@ set_package_properties(HarfBuzz PROPERTIES
     TYPE REQUIRED
     PURPOSE "Needed for rendering text vector shapes."
 )
-if (HarfBuzz_FOUND)
-    list(APPEND ANDROID_EXTRA_LIBS ${HarfBuzz_LIBRARIES})
-endif()
-
 # Note: We now build a patched raqm from source with Krita.
 
 ##
@@ -1826,6 +1816,15 @@ set_package_properties(Fontconfig PROPERTIES
     TYPE REQUIRED
     PURPOSE "Needed for getting font file information."
 )
+if(ANDROID)
+    # These libraries are static in the reproducible Android dependency
+    # prefix. CMake's find modules do not expose their private link
+    # dependencies, so attach the complete target graph explicitly.
+    find_package(EXPAT REQUIRED)
+    target_link_libraries(Freetype::Freetype INTERFACE PNG::PNG ZLIB::ZLIB)
+    target_link_libraries(HarfBuzz::HarfBuzz INTERFACE Freetype::Freetype)
+    target_link_libraries(Fontconfig::Fontconfig INTERFACE Freetype::Freetype EXPAT::EXPAT)
+endif()
 
 ##
 ## Check for libunibreak
@@ -1898,7 +1897,22 @@ if(NOT IOS OR KRITA_IOS_BUILD_PLUGINS)
     add_subdirectory(plugins)
 endif()
 if (BUILD_TESTING)
-    add_subdirectory(benchmarks)
+    if(ANDROID)
+        add_subdirectory(benchmarks EXCLUDE_FROM_ALL)
+    else()
+        add_subdirectory(benchmarks)
+    endif()
+endif()
+if(ANDROID)
+    if(NOT QT_MAJOR_VERSION STREQUAL "6")
+        message(FATAL_ERROR "Android builds require Qt 6")
+    endif()
+    if(NOT ANDROID_APK_DIR)
+        set(ANDROID_APK_DIR "${CMAKE_SOURCE_DIR}/packaging/android/apk")
+    endif()
+    if(NOT EXISTS "${ANDROID_APK_DIR}/AndroidManifest.xml")
+        message(FATAL_ERROR "Android package source omits AndroidManifest.xml: ${ANDROID_APK_DIR}")
+    endif()
 endif()
 add_subdirectory(krita)
 
@@ -1922,48 +1936,10 @@ endif()
 
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
-if (ANDROID)
-  # ECM passes this to Qt, which was already capable of detecting it..
-  set (ANDROID_SDK_COMPILE_API "35")
-
-  # To assist stdcpp-path in deployment.json file
-  set(ANDROID_SYSROOT_PREFIX "${ANDROID_TOOLCHAIN_ROOT}/sysroot/usr" CACHE STRING "" FORCE)
-
-  # copied regex from ECM's toolchain
-  string(REGEX REPLACE "-(clang)?([0-9].[0-9])?$" "" ECM_ANDROID_STL_ARCH ${ANDROID_TOOLCHAIN_NAME})
-
-  if (NOT (CMAKE_CXX_STANDARD_LIBRARIES MATCHES "[^ ]*c\\+\\+[^ ]*\\.so"))
-
-    set (KRITA_ANDROID_STL_PATH "${ANDROID_TOOLCHAIN_ROOT}/sysroot/usr/lib/${ECM_ANDROID_STL_ARCH}/lib${ANDROID_STL}.so")
-    if (NOT EXISTS ${KRITA_ANDROID_STL_PATH})
-      message(FATAL_ERROR "STL does not exist at the right location, please use NDK r20+")
-    endif()
-
-    set (CMAKE_CXX_STANDARD_LIBRARIES "${CMAKE_CXX_STANDARD_LIBRARIES} \"${KRITA_ANDROID_STL_PATH}\"" CACHE STRING "" FORCE)
-  endif()
-endif()
-
-if(DEFINED QTANDROID_EXPORTED_TARGET AND NOT TARGET "create-apk")
-    set (_CMAKE_ANDROID_DIR "${ECM_DIR}/../toolchain")
-    list(LENGTH QTANDROID_EXPORTED_TARGET targetsCount)
-    include(${_CMAKE_ANDROID_DIR}/ECMAndroidDeployQt.cmake)
-
-    math(EXPR last "${targetsCount}-1")
-    foreach(idx RANGE 0 ${last})
-        list(GET QTANDROID_EXPORTED_TARGET ${idx} exportedTarget)
-        list(GET ANDROID_APK_DIR ${idx} APK_DIR)
-        if(APK_DIR AND NOT EXISTS "${ANDROID_APK_DIR}/AndroidManifest.xml" AND IS_ABSOLUTE ANDROID_APK_DIR)
-            message(FATAL_ERROR "Cannot find ${APK_DIR}/AndroidManifest.xml according to ANDROID_APK_DIR. ${ANDROID_APK_DIR} ${exportedTarget}")
-        elseif(NOT APK_DIR)
-            get_filename_component(_qt5Core_install_prefix "${Qt5Core_DIR}/../../../" ABSOLUTE)
-            set(APK_DIR "${_qt5Core_install_prefix}/src/android/templates/")
-        endif()
-
-        ecm_androiddeployqt("${exportedTarget}" "${ECM_ADDITIONAL_FIND_ROOT_PATH}")
-        set_target_properties(create-apk-${exportedTarget} PROPERTIES ANDROID_APK_DIR "${APK_DIR}")
-    endforeach()
-elseif(ANDROID)
-    message(STATUS "You can export a target by specifying -DQTANDROID_EXPORTED_TARGET=<targetname> and -DANDROID_APK_DIR=<paths>")
+if(ANDROID)
+    add_custom_target(create-apk-krita DEPENDS krita_make_apk)
+    add_custom_target(create-aab-krita DEPENDS krita_make_aab)
+    add_dependencies(create-aab-krita create-apk-krita)
 endif()
 
 ki18n_install(po)

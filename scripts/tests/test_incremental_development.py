@@ -580,26 +580,38 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
 
         self.assertIn('"-DCMAKE_BUILD_TYPE:STRING=Release"', android_expression)
 
-    def test_android_x86_64_artifact_lock_is_complete_and_selected(self):
-        artifact_lock_path = (
-            REPO_ROOT / "nix/android/upstream-artifacts-x86_64.json"
-        )
-        artifact_lock = json.loads(artifact_lock_path.read_text(encoding="utf-8"))
-        packages = artifact_lock["packages"]
-        package_names = [package["name"] for package in packages]
+    def test_android_profiles_use_the_source_built_qt6_dependency_graph(self):
+        android_expression = (
+            REPO_ROOT / "nix/android/default.nix"
+        ).read_text(encoding="utf-8")
         flake_expression = (REPO_ROOT / "flake.nix").read_text(encoding="utf-8")
 
-        self.assertEqual(artifact_lock["platform"], "Android/x86_64/Qt5/Shared")
-        self.assertEqual(len(packages), 62)
-        self.assertEqual(len(package_names), len(set(package_names)))
-        self.assertTrue(all(len(package["sha256"]) == 64 for package in packages))
+        self.assertFalse((REPO_ROOT / "nix/android/upstream-artifacts.json").exists())
+        self.assertFalse(
+            (REPO_ROOT / "nix/android/upstream-artifacts-x86_64.json").exists()
+        )
+        self.assertNotIn("artifactLockFile", android_expression)
+        self.assertNotIn("artifactLockFile", flake_expression)
+        self.assertIn('"-DBUILD_WITH_QT6:BOOL=ON"', android_expression)
+        self.assertIn('"-DHIDE_SAFE_ASSERTS:BOOL=ON"', android_expression)
+        self.assertIn("qtbase = import ./qtbase.nix", android_expression)
+        self.assertIn("sourceDependencies = import ./dependencies.nix", android_expression)
+        self.assertIn("kf6 = import ./kf6.nix", android_expression)
         self.assertIn(
-            "artifactLockFile = ./nix/android/upstream-artifacts-x86_64.json;",
-            flake_expression,
+            "applicationDependencies = import ./application-dependencies.nix",
+            android_expression,
         )
         self.assertIn(
             'librepaint-android-x86_64 = linuxAndroidX86_64Packages.devShell;',
             flake_expression,
+        )
+
+        application_dependencies = (
+            REPO_ROOT / "nix/android/application-dependencies.nix"
+        ).read_text(encoding="utf-8")
+        self.assertIn(
+            'lib.optionals (androidAbi == "x86_64") [ pkgs.nasm ]',
+            application_dependencies,
         )
 
     def test_android_incremental_profile_builds_packageable_qt_tests(self):
@@ -612,9 +624,30 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
 
         self.assertIn('"-DBUILD_TESTING:BOOL=ON"', android_expression)
         self.assertIn("if(ANDROID)", test_helpers)
-        self.assertIn("add_library(${_targetname} SHARED", test_helpers)
-        self.assertIn("KritaAndroidTestMain.cpp", test_helpers)
+        self.assertIn(
+            "add_library(${_targetname} SHARED EXCLUDE_FROM_ALL", test_helpers
+        )
         self.assertIn("main=kis_qtest_main", test_helpers)
+
+        test_runner = (
+            REPO_ROOT / "packaging/android/testrunner/CMakeLists.txt"
+        ).read_text(encoding="utf-8")
+        self.assertIn("KritaAndroidTestMain.cpp", test_runner)
+        self.assertIn("qt_add_executable(librepaint_android_test", test_runner)
+
+        for wrapper_path in (
+            "packaging/android/apk/gradlew",
+            "packaging/android/testrunner/apk/gradlew",
+        ):
+            wrapper = (REPO_ROOT / wrapper_path).read_text(encoding="utf-8")
+            self.assertIn("LIBREPAINT_ANDROID_GRADLE_WRAPPER", wrapper)
+            self.assertNotIn("GradleWrapperMain", wrapper)
+
+        product_gradle = (
+            REPO_ROOT / "packaging/android/apk/build.gradle"
+        ).read_text(encoding="utf-8")
+        self.assertIn("setWritable(true, true)", product_gradle)
+        self.assertIn("include 'Qt6Android*.jar', 'SDL2Android.jar'", product_gradle)
 
     def test_android_test_runner_uses_only_standard_adb_device_contracts(self):
         android_script = (
@@ -626,10 +659,28 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
         self.assertIn("run-test <target> [adb-serial]", build_script)
         self.assertIn('getprop ro.product.cpu.abilist', android_script)
         self.assertIn('install -r -t', android_script)
+        self.assertIn('apksigner" sign', android_script)
+        self.assertIn('keytool" -genkeypair', android_script)
         self.assertIn('org.librepaint.tests.LibrePaintTestActivity', android_script)
         self.assertIn('exec-out', android_script)
         self.assertIn('uninstall', android_script)
+        self.assertIn('package-product', android_script)
+        self.assertIn('create-aab-krita', android_script)
+        self.assertIn('audit-android-package', android_script)
         self.assertNotIn("waydroid", android_script.lower())
+
+    def test_android_package_audit_enforces_qt6_and_runtime_contracts(self):
+        audit_script = (
+            REPO_ROOT / "scripts/platform/audit-android-package"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("libQt6Core_", audit_script)
+        self.assertIn("libKF6ConfigCore(_${expected_abi})?", audit_script)
+        self.assertIn("libc[+][+]_shared", audit_script)
+        self.assertIn("org/qtproject/qt5", audit_script)
+        self.assertIn("0x4000", audit_script)
+        self.assertIn("minSdkVersion:'28'", audit_script)
+        self.assertIn("targetSdkVersion:'35'", audit_script)
 
     def test_android_test_apk_carries_target_test_data(self):
         test_suite = (

@@ -2,21 +2,28 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-24 15:46 JST
+- 更新日時: 2026-09-25 04:20 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19d-c Android製品・試験・配布のQt 6／KF6統一
-- 関連TODO: R1-G1からR1-G8、R2-G19bm、R2-G19d-0、R2-G19d-aを完了。利用者指定によりR2-G19d-cを開始し、独立したR2-G19d-bは`planned`のまま維持する
+- 関連TODO: R1-G1からR1-G8、R2-G19bm、R2-G19d-0、R2-G19d-aを完了。R2-G19d-cはソース移行、両ABI構築、Waydroid検証まで完了し、arm64物理端末検証を残す。独立したR2-G19d-bは`planned`のまま維持する
 - 追跡チケット: [Issue #50 Android製品・試験・配布をQt 6／KF6へ統一する](https://github.com/serika12345/librepaint/issues/50)
 - ブランチ: `issue-50-android-qt6`
 - 開始コミット: `5960761729d7d99462d1bb2d86ef97331225953c`。開始時の作業ツリーは変更なしであり、`develop`と`origin/develop`は一致している。
 - 目的: AndroidだけがQt 5.15、KF5、Qt 5 Android配備処理、Qt 5 Java Activityへ接続する状態を解消し、製品、Qt Test、外部依存物、APK／AABをデスクトップとiPadOSで使用中のQt 6／KF6境界へ統一する。
 - 範囲固定: `nix/android/`、`packaging/android/`、Android構成を所有するCMakeと増分構築入口、Android固有のActivity・JNI・資源・プラグイン・ファイル・入力・ライフサイクル接続、両ABIの構築と端末検証に限定する。構築ホストはx86_64 Linuxに固定する。共通C++17基準を維持し、C++23移行は[Issue #52](https://github.com/serika12345/librepaint/issues/52)が所有する。
 - 移行前基準: Issue #47完了時のAndroid Qt 5構成は、arm64-v8aとx86_64の各62依存物、NDK r27d、API／build-tools 35、JDK 17、Gradle 8.13、Android Gradle Plugin 8.12を使用する。Waydroid x86_64で7契約対象を各3回、計135件成功させ、APKのABI、内容、後片付けを確認済みである。
-- 構造境界: 固定したnixpkgsのソース定義からQt非依存物、Qt 6、KF6とQt依存物、LibrePaint本体、Qt Test、製品包装を変更頻度の異なるNix派生物に分ける。ベンダーSDKとNDK以外のC/C++依存物は固定ソースから再構築可能とし、対応するNixバイナリキャッシュは同じ派生物の代替としてのみ使用する。アプリケーションソース変更はQtと外部依存物を再構築せず、arm64-v8aとx86_64は同じ版、NDK、libc++、構築定義をABI別成果物へ適用する。
-- 端末境界: x86_64はNixOS上のWaydroid、arm64-v8aは物理端末を標準ADB接続先として使用する。Qt 5とQt 6へ同じ試験データと操作を与え、画素、保存結果、資源、プラグイン、入力列、文書状態、端末診断の差を分類してから旧経路を削除する。
-- 検証状態: 開始時点ではIssue #47のQt 5基準を再利用する。Qt 6依存物、CMake構成、製品・試験構築、APK／AAB、端末実行は未検証である。
-- 停止条件: Qt 6とKF6が両ABIで同じツールチェーンを使用しない、未分類の利用者向け差が残る、通常構築がネットワークへ依存する、製品または試験成果物にQt 5・KF5・旧Java参照が残る場合は旧経路を削除しない。ローカルflake再評価でdeadなソース世代が予期せず増えた場合は再評価を止める。
-- 次の作業: 固定たnixpkgsがx86_64 Linux上で提供するQt 6.11.1／KF 6.28.0 Android交差パッケージ集を両ABIに適用し、小さいQt Core・Gui・Widgets・Quick・MOC・QtActivity・JNI検査対象をC++17で構築する。SDLのAndroid構成が誤って要求するD-Bus／IBus経路を最小の上書きで閉じ、実装前に対象計画、直接CMake依存、空構築閉包を記録する。
+- 構造境界: `nix/android/upstream-artifacts{,-x86_64}.json`から既成のQt 5／KF5依存物を取り込む経路を削除し、行先を`nix/android/dependencies.nix`、`qtbase.nix`、`qt-module.nix`、`kf6.nix`、`application-dependencies.nix`の固定ソース派生物とした。Qt非依存物、Qt 6、KF6とQt依存物、LibrePaint本体、Qt Test、製品包装は変更頻度の異なる派生物であり、アプリケーションソース変更は外部依存物を再構築しない。
+- 配備境界: 起点のQt 5 ECM Android配備対象と`org.qtproject.qt5` Java接続を、行先のQt 6 CMake Android実行形式、`qt_finalize_executable()`、`androiddeployqt`、`org.qtproject.qt.android`接続へ移した。製品とQt Testは同じ固定SDK 35、NDK r27d、JDK 17、Gradle 8.13、Android Gradle Plugin 8.12、Qt 6.11.1、KF 6.28.0、C++17、共有libc++を使用する。
+- 実行時境界: Android資源の書込み先をアプリ専用データ領域へ置き、文書提供者の`content://` URIは`ContentResolver`から取得した記述子を一時ファイルへ複製して既存の入出力フィルターへ渡す。Qt 6 DSO間で利用する`KisToolCanvas`の仮想デストラクターは`libs/canvas/KisToolCanvas.cpp`へ実体を置き、型情報の所有を一意にした。構成変更後の新規IntentはLibrePaintのActivityが所有し、Qt側の失効済み待受先を呼ばない。
+- 契約追加: `libs/resources/tests/KoResourcePathsAndroidContractTest.cpp`は書込み可能な資源ルートを、`libs/global/tests/KisAndroidContentUriContractTest.cpp`は文書提供者を介したバイナリーデータの読書きを検査する。既存`KisToolProxyContractTest`はAndroid共有ライブラリー境界でも実行する。
+- 構築結果: x86_64 Linuxホストでarm64-v8aとx86_64の固定ソース依存物、全LibrePaint製品対象、製品APK／AAB、選択可能なQt Test APKをQt 6で構築した。両ABIの製品APK／AABはABI、ELF、16 KiB整列、単一libc++、Qt 6／KF6、プラグイン、資源、Manifest、minSdk 28、targetSdk 35の自動監査に成功した。通常のGradle解決は`nix/android/gradle-deps.json`の固定応答だけを使用する。
+- Qt Test結果: Waydroid x86_64でR2-G19d-aの7対象を各3回、計21回成功させた。追加した`KoResourcePathsAndroidContractTest`、Android上の`KisToolProxyContractTest`、`KisAndroidContentUriContractTest`も各3回成功し、標準`ContentResolver`へ確定した最終コードで内容URI契約を再実行して成功した。各実行はXMLとlogcatを回収し、試験パッケージを削除した。
+- Waydroid製品結果: 冷間起動、新規文書、合成タッチによる文書変更、MediaStore内容URIからのKRA読込、書込み権限付き内容URIへの上書き、回転、休止・復帰、終了を完走した。上書き後のKRAを端末から回収し、ZIP全項目の整合性を確認した。回転と休止・復帰ではPIDを維持し、異常終了記録は0件である。
+- Waydroid環境差: システム選択画面のExternalStorage DocumentsProviderは、MediaProviderへの代理読込時に呼出し元パッケージを失って`NullPointerException`となる。直接のMediaStore URIと試験用FileProviderでは同じLibrePaint読込経路が成功するため、Waydroid提供者の障害として分類した。物理端末では標準システム選択画面も検査対象に含める。
+- ネイティブ結果: 完全native検査は878/879件成功し、既知の並列競合`KisSafeDocumentLoaderTest`だけが失敗した。同対象の隔離実行は成功した。`KisToolCanvas`の共有実体追加後に`KisToolProxyContractTest`を再実行して成功した。
+- 残る検査: 物理arm64端末がないため、arm64上の起動、システム選択画面、書出し、回転、休止・復帰、終了、および指・スタイラスの筆圧、傾き、移動、拡大縮小、回転、誤接触除去は未実施である。arm64-v8a製品と試験APKは構築・監査済みであり、同じ`run-test`入口を使用できる。
+- 検証状態: 増分構築、対象契約、Waydroid製品操作、両ABI包装監査まで成功した。方針・Nix評価・文書検査を完了した後、同一ソースから両ABI製品を生成する隔離クリーン構築を一度だけ実行する。
+- 次の作業: `verify-quick`、`nix flake check --no-build --all-systems`、関連native契約を成功させ、両ABIの単一クリーン構築と成果物監査を行う。その結果を記録してPRを提出し、物理arm64端末を利用できる時点で残る端末検査を再開する。
 
 ## 直前の完了記録: R1-G8 変更波及の局所化
 

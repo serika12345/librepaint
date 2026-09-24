@@ -455,11 +455,6 @@ target_link_libraries(kritaimpexui
 )
 
 if(ANDROID)
-    target_link_libraries(kritaimpexui
-        PRIVATE
-            Qt${QT_MAJOR_VERSION}::AndroidExtras
-    )
-
     if(TARGET LibAV)
         target_link_libraries(kritaimpexui PRIVATE LibAV)
     endif()

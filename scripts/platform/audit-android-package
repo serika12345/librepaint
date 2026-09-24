@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if (( $# != 5 )); then
+    echo "usage: audit-android-package <apk-or-aab> <abi> <llvm-readelf> <aapt2> <product-or-test>" >&2
+    exit 2
+fi
+
+package_path="$1"
+expected_abi="$2"
+readelf_tool="$3"
+aapt2_tool="$4"
+package_scope="$5"
+
+if [[ "$package_scope" != product && "$package_scope" != test ]]; then
+    echo "unsupported Android package scope: $package_scope" >&2
+    exit 2
+fi
+
+case "$expected_abi" in
+    arm64-v8a)
+        expected_machine='AArch64'
+        ;;
+    x86_64)
+        expected_machine='Advanced Micro Devices X86-64'
+        ;;
+    *)
+        echo "unsupported Android ABI: $expected_abi" >&2
+        exit 2
+        ;;
+esac
+
+case "$package_path" in
+    *.apk)
+        library_prefix="lib"
+        ;;
+    *.aab)
+        library_prefix="base/lib"
+        ;;
+    *)
+        echo "unsupported Android package: $package_path" >&2
+        exit 2
+        ;;
+esac
+
+test -s "$package_path"
+test -x "$readelf_tool"
+
+audit_root="$(mktemp -d)"
+cleanup() {
+    rm -rf -- "$audit_root"
+}
+trap cleanup EXIT
+
+zipinfo -1 "$package_path" >"$audit_root/entries"
+mapfile -t packaged_abis < <(
+    awk -F/ -v prefix="$library_prefix" \
+        '$1 == prefix && $3 ~ /[.]so$/ { print $2 }
+         prefix == "base/lib" && $1 == "base" && $2 == "lib" && $4 ~ /[.]so$/ { print $3 }' \
+        "$audit_root/entries" | sort -u
+)
+if (( ${#packaged_abis[@]} != 1 )) || [[ "${packaged_abis[0]:-}" != "$expected_abi" ]]; then
+    printf 'unexpected packaged ABIs: %s\n' "${packaged_abis[*]:-none}" >&2
+    exit 1
+fi
+
+if grep -E '(^|/)(libQt5|libKF5)|org[.]qtproject[.]qt5' "$audit_root/entries"; then
+    echo "Android package contains a Qt 5 or KF5 entry" >&2
+    exit 1
+fi
+while IFS= read -r dex_entry; do
+    unzip -p "$package_path" "$dex_entry" >"$audit_root/current.dex"
+    if grep -a -E 'org/qtproject/qt5|libQt5|libKF5' "$audit_root/current.dex" >&2; then
+        echo "Android bytecode contains a Qt 5 or KF5 reference: $dex_entry" >&2
+        exit 1
+    fi
+done < <(grep -E '(^|/)classes[0-9]*[.]dex$' "$audit_root/entries")
+grep -Eq "(^|/)libQt6Core_${expected_abi}[.]so$" "$audit_root/entries"
+grep -Eq "(^|/)libplugins_platforms_qtforandroid_${expected_abi}[.]so$" "$audit_root/entries"
+if [[ "$package_scope" == product ]]; then
+    grep -Eq "(^|/)libKF6ConfigCore(_${expected_abi})?[.]so$" "$audit_root/entries"
+    grep -Eq '(^|/)assets/' "$audit_root/entries"
+fi
+
+libcxx_count="$(grep -Ec "^${library_prefix}/${expected_abi}/libc[+][+]_shared[.]so$" "$audit_root/entries" || true)"
+if [[ "$libcxx_count" != 1 ]]; then
+    echo "Android package must contain one libc++_shared.so; found $libcxx_count" >&2
+    exit 1
+fi
+
+unzip -qq "$package_path" '*.so' -d "$audit_root/unpacked"
+while IFS= read -r -d '' library; do
+    "$readelf_tool" -h "$library" | grep -Fq "$expected_machine"
+    if "$readelf_tool" -dW "$library" | grep -E 'Shared library: .*\[(libQt5|libKF5)' >&2; then
+        echo "Android ELF depends on Qt 5 or KF5: $library" >&2
+        exit 1
+    fi
+    if "$readelf_tool" -lW "$library" \
+        | awk 'BEGIN { bad = 0 } $1 == "LOAD" && strtonum($NF) < 0x4000 { bad = 1 } END { exit bad }'; then
+        :
+    else
+        echo "Android ELF has a load segment below 16 KiB alignment: $library" >&2
+        exit 1
+    fi
+done < <(find "$audit_root/unpacked" -type f -name '*.so' -print0)
+
+if [[ "$package_path" == *.apk ]]; then
+    test -x "$aapt2_tool"
+    "$aapt2_tool" dump badging "$package_path" >"$audit_root/badging"
+    grep -Fq "minSdkVersion:'28'" "$audit_root/badging"
+    grep -Fq "targetSdkVersion:'35'" "$audit_root/badging"
+fi
+
+echo "Android package audit passed: $package_path ($expected_abi)"
