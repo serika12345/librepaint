@@ -775,13 +775,13 @@ let
       test -n "$releaseAab"
       test -s "$releaseAab"
       install -m 0644 "$releaseAab" "$out/LibrePaint-${androidAbi}.aab"
-      ${source}/scripts/platform/audit-android-package \
+      ${androidHost.bash}/bin/bash ${source}/scripts/platform/audit-android-package \
         "$out/LibrePaint-${androidAbi}.apk" \
         ${androidAbi} \
         ${androidNdkRoot}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf \
         ${androidSdkRoot}/build-tools/35.0.0/aapt2 \
         product
-      ${source}/scripts/platform/audit-android-package \
+      ${androidHost.bash}/bin/bash ${source}/scripts/platform/audit-android-package \
         "$out/LibrePaint-${androidAbi}.aab" \
         ${androidAbi} \
         ${androidNdkRoot}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf \
