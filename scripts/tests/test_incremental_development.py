@@ -597,6 +597,8 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
         self.assertIn("qtbase = import ./qtbase.nix", android_expression)
         self.assertIn("sourceDependencies = import ./dependencies.nix", android_expression)
         self.assertIn("kf6 = import ./kf6.nix", android_expression)
+        self.assertIn('test -s "$out/lib/kritawebpimport.so"', android_expression)
+        self.assertIn('test -s "$out/lib/kritajpegimport.so"', android_expression)
         self.assertIn(
             "applicationDependencies = import ./application-dependencies.nix",
             android_expression,

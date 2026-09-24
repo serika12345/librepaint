@@ -563,8 +563,8 @@ let
 
     postInstall = ''
       test -s "$out/lib/libkrita_${androidAbi}.so"
-      test -s "$out/lib/kritawebpimport_${androidAbi}.so"
-      test -s "$out/lib/kritajpegimport_${androidAbi}.so"
+      test -s "$out/lib/kritawebpimport.so"
+      test -s "$out/lib/kritajpegimport.so"
     '';
 
     meta = {
