@@ -2,7 +2,7 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-25 21:47 JST
+- 更新日時: 2026-09-25 22:18 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19d-c Android製品・試験・配布のQt 6／KF6統一
 - 関連TODO: R1-G1からR1-G8、R2-G19bm、R2-G19d-0、R2-G19d-aを完了。R2-G19d-cはソース移行、両ABI構築、Waydroid検証、arm64物理端末の製品・Qt Test検証まで完了した。接続端末がスタイラス軸を持たないため、実スタイラスと複数指入力の端末検査を残す。独立したR2-G19d-bは`planned`のまま維持する
@@ -14,7 +14,7 @@
 - 移行前基準: Issue #47完了時のAndroid Qt 5構成は、arm64-v8aとx86_64の各62依存物、NDK r27d、API／build-tools 35、JDK 17、Gradle 8.13、Android Gradle Plugin 8.12を使用する。Waydroid x86_64で7契約対象を各3回、計135件成功させ、APKのABI、内容、後片付けを確認済みである。
 - 構造境界: `nix/android/upstream-artifacts{,-x86_64}.json`から既成のQt 5／KF5依存物を取り込む経路を削除し、行先を`nix/android/dependencies.nix`、`qtbase.nix`、`qt-module.nix`、`kf6.nix`、`application-dependencies.nix`の固定ソース派生物とした。Qt非依存物、Qt 6、KF6とQt依存物、LibrePaint本体、Qt Test、製品包装は変更頻度の異なる派生物であり、アプリケーションソース変更は外部依存物を再構築しない。
 - 配備境界: 起点のQt 5 ECM Android配備対象と`org.qtproject.qt5` Java接続を、行先のQt 6 CMake Android実行形式、`qt_finalize_executable()`、`androiddeployqt`、`org.qtproject.qt.android`接続へ移した。製品とQt Testは同じ固定SDK 35、NDK r27d、JDK 17、Gradle 8.13、Android Gradle Plugin 8.12、Qt 6.11.1、KF 6.28.0、C++17、共有libc++を使用する。
-- 実行時境界: Android資源の書込み先をアプリ専用データ領域へ置き、文書提供者の`content://` URIは`ContentResolver`から取得した記述子を一時ファイルへ複製して既存の入出力フィルターへ渡す。Qt 6 DSO間で利用する`KisToolCanvas`の仮想デストラクターは`libs/canvas/KisToolCanvas.cpp`へ実体を置き、型情報の所有を一意にした。構成変更後の新規IntentはLibrePaintのActivityが所有し、Qt側の失効済み待受先を呼ばない。Qt 6.11.1のAndroidアクセシビリティー接続が別の最上位OpenGL面作成と競合するため、ActivityはQt初期化前に`QT_ANDROID_DISABLE_ACCESSIBILITY=1`を設定する。R5のアクセシビリティー検査段階は、対応済みQtを最低版にした時点でこの互換設定を除去し、物理端末のダイアログとアクセシビリティーを再検査する。
+- 実行時境界: Android資源の書込み先をアプリ専用データ領域へ置き、文書提供者の`content://` URIは`ContentResolver`から取得した記述子を一時ファイルへ複製して既存の入出力フィルターへ渡す。Qt 6 DSO間で利用する`KisToolCanvas`の仮想デストラクターは`libs/canvas/KisToolCanvas.cpp`へ実体を置き、型情報の所有を一意にした。構成変更後の新規IntentはLibrePaintのActivityが所有し、Qt側の失効済み待受先を呼ばない。Qt 6.11.1のAndroidアクセシビリティー接続が別の最上位OpenGL面作成と競合するため、ActivityはQt初期化前に`QT_ANDROID_DISABLE_ACCESSIBILITY=1`を設定する。この異常終了はLibrePaintのダイアログ実装ではなくQt Androidプラットフォームライブラリーの不具合であり、未解決の根本問題は[QTBUG-140490](https://qt-project.atlassian.net/browse/QTBUG-140490)、先行経路の部分修正は[QTBUG-140674](https://qt-project.atlassian.net/browse/QTBUG-140674)、提案中の根本修正は[Qt Gerrit 735089](https://codereview.qt-project.org/c/qt/qtbase/+/735089)で追跡する。当面は現行の互換設定を維持してLibrePaint側の代替同期処理を設けない。R5のアクセシビリティー検査段階は、根本修正を含むQtを最低版にした時点でこの互換設定を除去し、物理端末のダイアログとアクセシビリティーを再検査する。
 - 契約追加: `libs/resources/tests/KoResourcePathsAndroidContractTest.cpp`は書込み可能な資源ルートを、`libs/global/tests/KisAndroidContentUriContractTest.cpp`は文書提供者を介したバイナリーデータの読書きを検査する。既存`KisToolProxyContractTest`はAndroid共有ライブラリー境界でも実行する。
 - 構築結果: x86_64 Linuxホストでarm64-v8aとx86_64の固定ソース依存物、全LibrePaint製品対象、製品APK／AAB、選択可能なQt Test APKをQt 6で構築した。実装コミット`bb631868fc`の隔離作業ツリーから両ABIを同時にNix構築し、ARM64は`/nix/store/hqc2pzf4idciyfy9fsvdabapjxvzj6ws-librepaint-android-1.0.2`、x86_64は`/nix/store/0k6fsfbxnl2zmqqv9hkx836y1bffxh0q-librepaint-android-x86_64-1.0.2`へ確定した。各出力のAPK／AABはABI、ELF、16 KiB整列、単一libc++、Qt 6／KF6、プラグイン、資源、Manifest、minSdk 28、targetSdk 35の自動監査に成功した。通常のGradle解決は`nix/android/gradle-deps.json`の固定応答だけを使用する。
 - 最終包装検証: コミット`f35b96bbf0`のActivityを、成功済みNixネイティブ出力`/nix/store/73js4nlxbj5bxdvkfj3skpdxqkkw5dmb-librepaint-android-native-1.0.2`と固定依存物から包装層だけ再生成した。`compileReleaseJavaWithJavac`を含むAPK、AAB生成と両製品監査が成功した。未署名APKは142,798,795バイト、AABは237,085,811バイトであり、`build/android/arm64-v8a/f8bf5f56201e0206/product-source-validation-f35b96bbf0-v3/`に保持する。C++、Qt、KF6、外部依存物の再構築は行っていない。

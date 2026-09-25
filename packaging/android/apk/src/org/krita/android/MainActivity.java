@@ -52,12 +52,13 @@ public class MainActivity extends QtActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        // Qt 6.11.1 can abort while creating a second OpenGL-backed top-level
-        // surface if its Android accessibility bridge is waiting for the Qt
-        // event loop. This must be set before QtActivity initializes the
-        // bridge. The R5 accessibility gate owns removal after the minimum Qt
-        // version supports multi-window surface creation with an active
-        // Android accessibility service.
+        // The Qt Android platform library can abort while creating a second
+        // OpenGL-backed top-level surface if its accessibility bridge is
+        // waiting for the Qt event loop. This upstream defect is tracked by
+        // QTBUG-140490; QTBUG-140674 addressed only an earlier path. Keep this
+        // workaround before QtActivity initializes the bridge. The R5
+        // accessibility gate owns removal after the root fix ships in the
+        // minimum Qt version and passes physical-device verification.
         try {
             Os.setenv("QT_ANDROID_DISABLE_ACCESSIBILITY", "1", true);
         } catch (ErrnoException error) {

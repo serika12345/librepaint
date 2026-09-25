@@ -166,7 +166,18 @@ retains the stable `krita` target name.
 The Android Activity sets `QT_ANDROID_DISABLE_ACCESSIBILITY=1` before Qt
 initialization. Qt 6.11.1 can otherwise abort when an accessibility query is
 waiting for the Qt event loop while a second OpenGL-backed top-level surface,
-such as the new-document dialog, is created. Keep this compatibility setting
-until the minimum Qt version supports Android accessibility together with
-multi-window surface creation. The R5 accessibility gate owns removal of the
-setting and the repeated physical-device dialog and accessibility checks.
+such as the new-document dialog, is created. This is a defect in the Qt Android
+platform library rather than LibrePaint's dialog code. The remaining root
+problem is tracked by [QTBUG-140490], after the earlier path tracked by
+[QTBUG-140674] received an incomplete fix. Qt's proposed root change is
+[Gerrit 735089].
+
+Keep this compatibility setting as the maintained workaround. The R5
+accessibility gate owns reevaluation after the root fix is released in the
+minimum Qt version, removal of the setting, and repeated physical-device dialog
+and accessibility checks. LibrePaint does not maintain a local replacement for
+the Qt surface and accessibility synchronization.
+
+[QTBUG-140490]: https://qt-project.atlassian.net/browse/QTBUG-140490
+[QTBUG-140674]: https://qt-project.atlassian.net/browse/QTBUG-140674
+[Gerrit 735089]: https://codereview.qt-project.org/c/qt/qtbase/+/735089
