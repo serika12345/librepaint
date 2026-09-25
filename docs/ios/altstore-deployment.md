@@ -227,3 +227,12 @@ contents and permissions, launched `local.librepaint.ipad.PUDY4GHY3Y`, and
 collected its startup log. The tester accepted shortcut selection and deletion,
 non-removable states, collapse behavior, persisted settings, and operation
 after rotation with no remaining issue.
+
+The physical-device run `20260925155427` installed the Apple Pencil interaction
+registration fix on the same iPad Pro through AltStore. The deployment
+validated the arm64 executable, 204 runtime data files, IPA contents and
+permissions, launched `local.librepaint.ipad.PUDY4GHY3Y`, and collected its
+startup log. The live console confirmed that the interaction attached to the
+active UIKit window after foreground activation. With the iPadOS Pencil
+preference set to switch to the eraser, the tester confirmed that a double tap
+changed LibrePaint to the eraser preset.

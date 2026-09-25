@@ -2,6 +2,26 @@
 
 ## 現在の作業スナップショット
 
+- 更新日時: 2026-09-26 00:58 JST
+- 状態: `complete`
+- 現在の検査段階: R2-G19d-f Apple Pencilダブルタップ登録契約
+- 関連TODO: R1-G1からR1-G8、R2-G19bm、R2-G19d-0、R2-G19d-a、R2-G19d-c、R2-G19d-d、R2-G19d-e、R2-G19d-fを完了。独立したR2-G19d-bは`planned`のまま維持する
+- 追跡: 利用者によるApple Pencilダブルタップ無反応の実機報告
+- ブランチ: `develop`
+- 開始コミット: `358f8fea075165f4beb8ba6deaaa1c478e149754`。開始時の作業ツリーは変更なしであり、`develop`と`origin/develop`は一致している。
+- 目的: iPadOS側でApple Pencilダブルタップを消しゴム切替へ設定しても、LibrePaintが操作を受け取らず何も起きない問題を解消する。
+- 範囲固定: 起点`krita/KisIOSPencilInteraction.mm`のUIKit登録寿命を、表示中のウィンドウへ追従する同ファイル内の処理へ置き換える。既存の`krita/main.cc`による`eraser_preset_action`／`previous_preset`接続、Pencil描画イベント、入力設定、他OSの動作は維持する。iOS設計・配備・進捗文書を結果へ同期する。
+- 原因: `main.cc`は`KisApplication::start()`直後かつ事象ループ開始前に一度だけQtのnative viewを取得し、取得できない場合は登録を終了していた。Qt 6.11.1のiOS実装は`main()`中に`UIWindowScene`が未接続の場合がある。実機のUIKit状態記録ではPencil入力がLibrePaintの`QUIWindow`へ届く一方、`_UIPencilEvent.registeredInteractions`にはシステムの`PKPencilInteraction`だけがあり、LibrePaintの`UIPencilInteraction`は存在しなかった。
+- 対象構築基準: 変更前のiOS増分計画は、直前変更の再構成を含む43工程であった。`krita`の既存UIKit・Qt依存を使用し、新しいCMake対象、公開API、直接依存は追加しない。
+- 実装結果: `KisIOSPencilInteraction.mm`は対話オブジェクトと弱参照delegateをプロセス寿命で保持し、即時登録できない場合は事象ループ開始後に再試行する。ウィンドウの可視化、キー化、アプリの前景復帰を主事象列で監視し、現在のキーウィンドウまたは表示ウィンドウへ重複なく登録し直す。OS設定の消しゴム切替と直前プリセット切替は既存アクションへ接続したままである。
+- 契約と初期診断: 自動試験では再現できないUIKitのscene接続時期と物理Pencil入力を実機契約とした。変更前はPencil入力を受信してもLibrePaintの対話オブジェクトが登録一覧に無く、ダブルタップで動作しなかった。変更後は起動コンソールに`Attached Apple Pencil double-tap interaction to the active window`が記録され、利用者操作で消しゴムへ切り替わった。
+- 検証状態: iOS arm64増分構築はObjective-C++の実コンパイルと`LibrePaint.app/LibrePaint`の最終リンクに成功し、静的依存資源は保持7群、253ファイル、除外1群、未分類0件である。ビルド番号`20260925155427`のIPAは27ディレクトリー、データ207ファイル、実行形式1ファイルの権限・内容監査に成功した。`verify-quick`は57/57件、方針、文書、リンク、図の検査に成功し、最終iOS増分計画は0工程である。
+- 実機受入れ: iPad Pro（11-inch、iPadOS 26.6）へAltStoreで同じバンドル識別子`local.librepaint.ipad.PUDY4GHY3Y`を更新し、既存データを保持して起動した。Apple Pencil 2と、iPadOSの「消しゴムに切り替え」設定で、利用者がダブルタップによるLibrePaintの消しゴム切替成功を確認した。診断用コンソールを終了した後は通常起動へ戻し、PID 1429で動作中である。
+- 残るリスク: 直前プリセット切替は同じdelegateと登録経路を使うが、この実機受入れではOS設定を変更していないため未確認である。ウィンドウ置換後の再登録は通知経路を実装・コンパイルしたが、複数scene操作は今回の単一scene端末検査に含めていない。
+- 次の作業: 変更をレビューし、必要ならiPadOS設定を「前回使用したツールに切り替え」へ変更して同じ実機契約を確認する。独立したR2-G19d-bは`planned`のまま維持する。
+
+## 直前の完了記録: R2-G19d-e タッチ操作による入力割当削除契約
+
 - 更新日時: 2026-09-26 00:18 JST
 - 状態: `complete`
 - 現在の検査段階: R2-G19d-e タッチ操作による入力割当削除契約
