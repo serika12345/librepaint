@@ -1171,6 +1171,51 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 
 実行環境を準備できない対象は、必要環境と再開条件を記録して保留する。
 
+#### R2-G19d-c Android製品・試験・配布のQt 6／KF6統一（完了）
+
+AndroidだけがQt 5.15、KF5、Qt 5 Android配備処理、Qt 5 Java Activityを使用する状態を解消し、
+製品、Qt Test、外部依存物、APK／AABを他の対応プラットフォームと同じQt 6／KF6境界へ統一する。
+[Issue #50](https://github.com/serika12345/librepaint/issues/50)が実装と検証を追跡する。
+状態は`complete`である。端末固有のペンと複数指による操作品質はR5が所有する。
+
+共通C++17基準、公開API、保存形式、描画結果、入力、文書状態を維持する。C++23への言語基準変更と
+機能検査は[Issue #52](https://github.com/serika12345/librepaint/issues/52)が所有し、この検査段階には含めない。
+
+実装は次の検査段階で進める。
+
+1. Issue #47の両ABI構築、Qt Test、APK内容、起動、後片付けをQt 5移行前基準として固定する。
+2. x86_64 Linux構築ホスト上でNDK、SDK、build-tools、Gradle、Android Gradle Plugin、JDK、CMake、Qt 6、KF6を固定し、
+   Qt Core、Gui、Widgets、Quick、MOC、QtActivity、JNIのC++17検査対象を両ABIで構築・実行する。
+3. Qt非依存物、Qt 6、KF6とQt依存物、LibrePaint、Qt Test、製品包装を変更頻度別のNix派生物に分け、
+   同じNDK、libc++、版、構築定義からarm64-v8aとx86_64を構築する。
+4. LibrePaintの全Android製品対象とQt TestをQt 6で構築し、Qt 6配備設定から試験APK、製品APK、
+   AABを生成する。
+5. Activity、JNI、`content://` URI、資源、プラグイン、タッチ・スタイラス入力、回転、休止・復帰を
+   Qt 6へ接続し、Qt 5と同じ入力に対する観測結果を分類する。
+6. 両ABIの構築、Waydroid x86_64、arm64物理端末、成果物監査が合格した後、Qt 5の固定依存物、
+   構築プロファイル、配備処理、Java参照、互換分岐を削除する。
+
+完了条件は次のとおりとする。
+
+- [x] Androidツールチェーンをx86_64 LinuxのNix入力と固定ハッシュから再現し、通常構築中のネットワーク取得を要求しない。
+- [x] ベンダーSDKとNDK以外のQt 6、KF6、全C/C++依存物を固定ソースから再構築可能とし、両ABIで同じNDKとlibc++から構築する。Nixバイナリキャッシュは同じ派生物の代替にのみ使用する。
+- [x] 依存物、LibrePaint、Qt Test、包装の派生物を分離し、アプリケーションソース変更でQtと外部依存物を再構築しない。
+- [x] 全Android製品対象と選択可能なQt Testを、共通C++17基準のままQt 6で構築する。
+- [x] QtActivity、JNI、プラグイン、資源、ファイル操作、入力、ライフサイクルをQt 6経路で初期化する。
+- [x] Waydroid x86_64とarm64物理端末で、既存Qt Testおよび起動、新規文書、描画、保存、書出し、
+      回転、休止・復帰、終了の操作を完走する。
+- [x] Android Qt 6経路で単一指と合成スタイラスの押下、移動、解放、筆圧、傾き、回転値を端末上で検査する。実スタイラスと複数指による操作品質はR5へ引き渡す。
+- [x] APK／AABのABI、ELF依存、単一の`libc++_shared.so`、Qt 6、プラグイン、資源、Manifest、
+      minSdk、targetSdkを自動監査する。
+- [x] Qt 5 Androidの固定依存物、構築プロファイル、配備分岐、`org.qtproject.qt5`参照を削除する。
+- [x] `verify-quick`、Android対象構築、Qt Test反復、Waydroid実行、arm64実機実行、Nix評価を成功させ、
+      `PROGRESS.md`、`DEVELOPMENT.md`、Android文書を実際の構築・実行条件へ同期する。
+
+arm64実機には10点の指入力を持つPixel 10aを使用した。この端末はスタイラス、筆圧、傾きの入力軸を
+公開しない。端末上の`KisToolProxyContractTest`では単一指とスタイラスの押下・移動・解放、筆圧、
+傾き、回転値を3回成功させた。実スタイラスと複数指の移動・拡大縮小・回転・誤接触除去は、対応する
+入力装置を持つarm64端末を使用するR5のモバイル入力検査で扱う。
+
 ### R2-G19e ブラシ設定試験の偽設定ストア撤去
 
 目的は、ブラシプリセット設定の残存試験を実設定の保存・復元結果へ集約し、製品ロジックを再実装する偽設定ストアを有限範囲で解消することである。
@@ -1910,6 +1955,7 @@ R2で固定した挙動を維持しながら、入力から画面表示までの
 - [ ] ファイルを開く、保存する、書き出す、共有する経路を各OSの文書モデルへ接続する。
 - [ ] 休止・復帰、メモリー圧迫、GPU再作成中も編集状態と操作の連続性を維持する。
 - [ ] アクセシビリティー、最小タップ領域、コントラスト、読み上げ順を自動・実機検査する。
+- [ ] Qt Androidプラットフォームライブラリーの[QTBUG-140490](https://qt-project.atlassian.net/browse/QTBUG-140490)の根本修正を含むQtを最低版にし、`QT_ANDROID_DISABLE_ACCESSIBILITY`を除去して複数画面とアクセシビリティーの実機検査を反復する。
 - [ ] 画面検査、入力再生、実機ログ収集に必要なツールをNix開発シェルへ固定する。
 
 ### 完了条件

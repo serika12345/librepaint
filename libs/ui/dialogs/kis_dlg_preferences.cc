@@ -129,7 +129,7 @@
 #include <KisWidgetConnectionUtils.h>
 #include <dialogs/KisFrameRateLimitModel.h>
 #include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
-#ifdef Q_OS_LINUX
+#if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <surfacecolormanagement/KisSurfaceColorimetry.h>
 
@@ -1677,7 +1677,7 @@ void ColorSettingsTab::updatePreferredSpaceGraphic()
     QVector<KoColorimetryUtils::xyY> colorants;
     KoColorimetryUtils::xyY whitePoint;
 
-#ifdef Q_OS_LINUX
+#if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     KisRootSurfaceInfoProxy proxy(mainWindow);
     std::optional<KisSurfaceColorimetry::SurfaceDescription> currentDescription = proxy.currentSurfaceDescription();

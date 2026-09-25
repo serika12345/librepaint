@@ -2,29 +2,31 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-24 14:09 JST
+- 更新日時: 2026-09-25 22:22 JST
 - 状態: `complete`
-- 現在の検査段階: R2-G19d-0 x86_64 Android Qt Testの端末実行基盤、およびR2-G19d-a 移植済み契約試験の実行可能性確認
-- 関連TODO: R1-G1からR1-G8およびR2-G19bmまで完了。R2-G19d-0とR2-G19d-aを完了し、R2-G19d-bを次の検査段階とする
-- 追跡チケット: [Issue #47 Android Qt Testをx86_64端末とWaydroidで再現可能に実行する基盤を整備する](https://github.com/serika12345/librepaint/issues/47)
-- ブランチ: `develop`
-- 基準コミット: `90ca92f33bd919a1ad026532d84dc6b0cb8c10d3`。実装と記録は未コミットである。macOSの主作業ツリーとLinux検証worktree`/home/masato/Documents/librepaint-r1-g8`は同じ変更内容で検証し、Linux検証worktreeにある利用者所有の未追跡`a.exe`は保持している。
-- 目的: Android向けに構築済みのQt Test一件と対象ABIを入力とし、固定した環境でのパッケージ化、QtActivityとJNIを通る標準ADB接続先での実行、結果回収、後片付けまでを再現可能な一経路として確立する。x86_64成果物はWaydroid固有APIとホスト共有パスへ依存せず、Waydroidとx86_64 Android実機で同じAPKを使う。
-- 範囲固定: `arm64-v8a`と`x86_64`のNix依存物固定表、ABI別の構築木・コンパイラーキャッシュ・構成指紋、固定するJDK・Gradle・Android Gradle Plugin・build-tools、選択したQt Testだけのパッケージ作成、標準ADBによる導入・実行・結果回収・後片付けに限定する。R2のAndroid診断にはNixOS上のWaydroidを使用し、Android EmulatorとWaydroid固有の実行APIは導入しない。Windows端末は実行環境としてだけ扱う既存方針を維持する。
-- 段階分離: LibrePaint本体と試験のコンパイル、Android試験パッケージ作成、端末実行を変更頻度の異なる段階に分けた。ARM64実機用とx86_64診断用はABI別の依存物固定表、Ninja木、構成指紋、コンパイラーキャッシュ、APKを使う。JDK 17、Gradle 8.13、Android Gradle Plugin 8.12、build-tools/API 35を固定し、Gradle依存物は固定ハッシュの局所キャッシュから解決する。
-- Linux結果: 6個のpaint-op試験は`kritaimage`、`kritalibpaintop`、`kritatestsdk`へ、資源タグ試験は`kritaglobal`、`kritapigment`、`kritaplugin`、`kritaresources`、`kritawidgets`、`kritaversion`、KConfig、Qt SQL、`kritatestsdk`へ直接接続している。空の増分計画から各対象4工程、clean-treeコマンド閉包は前者各2220工程、後者841工程であった。対象別`run-test`と7対象をまとめた`ctest --preset tdd-linux --tests-regex ...`は7/7件成功し、パッケージ境界1766対象も成功した。
-- Windows構築: 既存の`BUILD_TESTING=OFF`製品木を保持し、`build/windows/x86_64/b2d2f97a2f282df2/test-ninja`を`BUILD_TESTING=ON`で構成した。パッケージ境界1766対象、6個のpaint-op試験各2179工程と資源タグ試験828工程のclean-treeコマンド閉包を確認し、2204工程で7対象を構築した。試験実行物とDLLだけを`C:\Users\masato\librepaint-r2-g19d-a\runtime`へ配置した。
-- Windows結果: 初回はSmart App Controlが`libiconv-2.dll`をCode Integrity事象3077、3033、3118で拒否し、全対象が試験本体へ入る前に`0xC0E90002`で終了した。実行端末のSmart App Controlを解除した再実行では、曲線データ8件、曲線モデル7件、標準値3件、旧センサー3件、ミラー4件、ブラシ動態7件、資源タグ13件の計45件が成功した。これは契約差ではなく端末実行方針による環境差である。
-- Android構築: `nix/android/upstream-artifacts.json`のARM64固定表を維持し、同じ依存レシピ版のx86_64 Qt 5共有成果物62件を`nix/android/upstream-artifacts-x86_64.json`へ固定した。`build/android/x86_64/c26ade72cba0e5c8`はパッケージ境界1738対象に成功した。6個のpaint-op試験は各2,190命令、資源タグ試験は835命令のコマンド閉包を持ち、対象構築後の実構築は`ninja: no work to do`となった。直接CMake依存は前者が`kritaimage`、`kritalibpaintop`、`kritatestsdk`、後者が資源所有ライブラリー群、KConfig、Qt SQL、`kritatestsdk`である。
-- Android端末: Waydroidの起動問題はNixOS設定で`pkgs.waydroid-nftables`へ切り替えて解消したが、端末ABIが`x86_64,x86`でARM64実行物には使えない。USB接続したPixel 10aはAndroid 17、`arm64-v8a`としてADB認証され、構築対象と一致する物理実行環境を確保した。
-- 構造変更: 起点`KRITA_ADD_UNIT_TEST`のAndroid試験実行形式を、行先`cmake/modules/KritaAndroidTestMain.cpp`を持つ対象別共有ライブラリーへ変換した。起点となる各試験の`data/`は、行先`packaging/android/testrunner/apk/assets/data/`を経てActivity取得のアプリ専用外部領域へ展開する。起点`packaging/android/testrunner/`の汎用QtActivityひな型は、行先`build/android/<ABI>/<構成指紋>/test-apk/<target>/out/`に対象別APKを生成する。`scripts/build-incremental android-x86_64 run-test`が構築、パッケージ作成、ABI検査、導入、実行、XML・logcat回収、強制停止、削除を一つの操作として所有する。
-- Waydroid結果: Android 13、ABI一覧`x86_64,x86`、標準ADB接続先`192.168.240.112:5555`で7対象を各3回実行した。1回につき曲線データ8件、曲線モデル7件、標準値3件、旧センサー3件、ミラー4件、ブラシ動態7件、資源タグ13件の計45件、3回合計135件がすべて`result=pass`かつ終了値0となった。資源タグ試験のQt 5 xUnit出力にある`errors=38`はDB初期化の`qInfo` 38行を数える書式上の値で、全13 testcaseの結果はpass、failuresは0である。
-- APK監査: 資源タグ試験APKは161,779,639バイト、application ID `org.librepaint.tests`、minSdk 24、targetSdk 35であり、ネイティブABIはx86_64だけである。試験共有ライブラリー、推移的共有ライブラリー、SDL Java実装、資源試験データを収め、公開された`LibrePaintTestActivity`をQtActivityとして起動する。DEXにWaydroid参照はなく、Android標準APIとADBだけを使う。同じAPKをx86_64実機へ導入できる構造を確認したが、利用可能なx86_64物理端末がないため実機実行自体は未実施である。
-- 後片付け: 各実行後に`org.librepaint.tests`は未導入となり、Waydroidの`/sdcard/Android/data`直下に同パッケージの項目は残らない。結果XMLとlogcatは構築ホストのABI別Ninja木だけへ保持する。
-- 検証: `python3 -m unittest scripts.tests.test_incremental_development`は22/22件成功し、`./scripts/verify-quick`は運用検査55/55件、パッケージ境界、公開契約、試験契約、文書検査を含めて成功した。`nix flake check --no-build --all-systems`はx86_64 Androidの製品、依存物、開発シェルを含む全出力の評価に成功した。`git diff --check`、shell構文検査、x86_64対象構築、ELF64・AMD x86-64・公開`main`の監査、APK解析、Waydroidの7対象各3回と後片付け検証1回の実行が成功した。
-- Nix保管状態: Linuxホストのdeadな`*-source`または`*-librepaint-source`は作業開始時19パス・3,979,161,592バイト、最終確認時7パス・3,968,509,000バイトであった。この作業ではガベージコレクションを実行せず、再利用するx86_64増分プロファイル、Ninja木、共通コンパイラーキャッシュを保持した。
-- 残る危険: x86_64物理端末での実行確認は端末入手時に同じ`run-test`で追加できる。Qt 5のxUnit出力は`qInfo`を`errors`属性へ含めるため、判定には各testcase結果とネイティブ終了値を使用する。Gradle 9への更新時は現行Android Gradle Pluginが出す非推奨警告を再評価する。
-- 次の作業: R2-G19d-bでAndroid crash handlerのcallback・unwindstack統合、Windows/MSVC互換操作、Linux DBus・colord構成を各実行環境で検証する。
+- 現在の検査段階: R2-G19d-c Android製品・試験・配布のQt 6／KF6統一
+- 関連TODO: R1-G1からR1-G8、R2-G19bm、R2-G19d-0、R2-G19d-a、R2-G19d-cを完了。実スタイラスと複数指入力による操作品質の端末検査はR5へ引き渡した。独立したR2-G19d-bは`planned`のまま維持する
+- 追跡チケット: [Issue #50 Android製品・試験・配布をQt 6／KF6へ統一する](https://github.com/serika12345/librepaint/issues/50)
+- ブランチ: `issue-50-android-qt6`
+- 開始コミット: `5960761729d7d99462d1bb2d86ef97331225953c`。開始時の作業ツリーは変更なしであり、`develop`と`origin/develop`は一致している。
+- 目的: AndroidだけがQt 5.15、KF5、Qt 5 Android配備処理、Qt 5 Java Activityへ接続する状態を解消し、製品、Qt Test、外部依存物、APK／AABをデスクトップとiPadOSで使用中のQt 6／KF6境界へ統一する。
+- 範囲固定: `nix/android/`、`packaging/android/`、Android構成を所有するCMakeと増分構築入口、Android固有のActivity・JNI・資源・プラグイン・ファイル・入力・ライフサイクル接続、両ABIの構築と端末検証に限定する。構築ホストはx86_64 Linuxに固定する。共通C++17基準を維持し、C++23移行は[Issue #52](https://github.com/serika12345/librepaint/issues/52)が所有する。
+- 移行前基準: Issue #47完了時のAndroid Qt 5構成は、arm64-v8aとx86_64の各62依存物、NDK r27d、API／build-tools 35、JDK 17、Gradle 8.13、Android Gradle Plugin 8.12を使用する。Waydroid x86_64で7契約対象を各3回、計135件成功させ、APKのABI、内容、後片付けを確認済みである。
+- 構造境界: `nix/android/upstream-artifacts{,-x86_64}.json`から既成のQt 5／KF5依存物を取り込む経路を削除し、行先を`nix/android/dependencies.nix`、`qtbase.nix`、`qt-module.nix`、`kf6.nix`、`application-dependencies.nix`の固定ソース派生物とした。Qt非依存物、Qt 6、KF6とQt依存物、LibrePaint本体、Qt Test、製品包装は変更頻度の異なる派生物であり、アプリケーションソース変更は外部依存物を再構築しない。
+- 配備境界: 起点のQt 5 ECM Android配備対象と`org.qtproject.qt5` Java接続を、行先のQt 6 CMake Android実行形式、`qt_finalize_executable()`、`androiddeployqt`、`org.qtproject.qt.android`接続へ移した。製品とQt Testは同じ固定SDK 35、NDK r27d、JDK 17、Gradle 8.13、Android Gradle Plugin 8.12、Qt 6.11.1、KF 6.28.0、C++17、共有libc++を使用する。
+- 実行時境界: Android資源の書込み先をアプリ専用データ領域へ置き、文書提供者の`content://` URIは`ContentResolver`から取得した記述子を一時ファイルへ複製して既存の入出力フィルターへ渡す。Qt 6 DSO間で利用する`KisToolCanvas`の仮想デストラクターは`libs/canvas/KisToolCanvas.cpp`へ実体を置き、型情報の所有を一意にした。構成変更後の新規IntentはLibrePaintのActivityが所有し、Qt側の失効済み待受先を呼ばない。Qt 6.11.1のAndroidアクセシビリティー接続が別の最上位OpenGL面作成と競合するため、ActivityはQt初期化前に`QT_ANDROID_DISABLE_ACCESSIBILITY=1`を設定する。この異常終了はLibrePaintのダイアログ実装ではなくQt Androidプラットフォームライブラリーの不具合であり、未解決の根本問題は[QTBUG-140490](https://qt-project.atlassian.net/browse/QTBUG-140490)、先行経路の部分修正は[QTBUG-140674](https://qt-project.atlassian.net/browse/QTBUG-140674)、提案中の根本修正は[Qt Gerrit 735089](https://codereview.qt-project.org/c/qt/qtbase/+/735089)で追跡する。当面は現行の互換設定を維持してLibrePaint側の代替同期処理を設けない。R5のアクセシビリティー検査段階は、根本修正を含むQtを最低版にした時点でこの互換設定を除去し、物理端末のダイアログとアクセシビリティーを再検査する。
+- 契約追加: `libs/resources/tests/KoResourcePathsAndroidContractTest.cpp`は書込み可能な資源ルートを、`libs/global/tests/KisAndroidContentUriContractTest.cpp`は文書提供者を介したバイナリーデータの読書きを検査する。既存`KisToolProxyContractTest`はAndroid共有ライブラリー境界でも実行する。
+- 構築結果: x86_64 Linuxホストでarm64-v8aとx86_64の固定ソース依存物、全LibrePaint製品対象、製品APK／AAB、選択可能なQt Test APKをQt 6で構築した。実装コミット`bb631868fc`の隔離作業ツリーから両ABIを同時にNix構築し、ARM64は`/nix/store/hqc2pzf4idciyfy9fsvdabapjxvzj6ws-librepaint-android-1.0.2`、x86_64は`/nix/store/0k6fsfbxnl2zmqqv9hkx836y1bffxh0q-librepaint-android-x86_64-1.0.2`へ確定した。各出力のAPK／AABはABI、ELF、16 KiB整列、単一libc++、Qt 6／KF6、プラグイン、資源、Manifest、minSdk 28、targetSdk 35の自動監査に成功した。通常のGradle解決は`nix/android/gradle-deps.json`の固定応答だけを使用する。
+- 最終包装検証: コミット`f35b96bbf0`のActivityを、成功済みNixネイティブ出力`/nix/store/73js4nlxbj5bxdvkfj3skpdxqkkw5dmb-librepaint-android-native-1.0.2`と固定依存物から包装層だけ再生成した。`compileReleaseJavaWithJavac`を含むAPK、AAB生成と両製品監査が成功した。未署名APKは142,798,795バイト、AABは237,085,811バイトであり、`build/android/arm64-v8a/f8bf5f56201e0206/product-source-validation-f35b96bbf0-v3/`に保持する。C++、Qt、KF6、外部依存物の再構築は行っていない。
+- Qt Test結果: Waydroid x86_64でR2-G19d-aの7対象を各3回、計21回成功させた。追加した`KoResourcePathsAndroidContractTest`、Android上の`KisToolProxyContractTest`、`KisAndroidContentUriContractTest`も各3回成功し、標準`ContentResolver`へ確定した最終コードで内容URI契約を再実行して成功した。Pixel 10aのarm64-v8a実機では同じ10対象を各3回実行し、XML集計171件が失敗0・異常0で成功した。各実行はXMLとlogcatを回収し、試験パッケージを削除した。
+- Waydroid製品結果: 冷間起動、新規文書、合成タッチによる文書変更、MediaStore内容URIからのKRA読込、書込み権限付き内容URIへの上書き、回転、休止・復帰、終了を完走した。上書き後のKRAを端末から回収し、ZIP全項目の整合性を確認した。回転と休止・復帰ではPIDを維持し、異常終了記録は0件である。
+- arm64実機製品結果: Android 17のPixel 10aで、監査済みNix製品へActivityの互換設定と同等の処理を差分適用した診断用APKを使用した。Bitwardenのアクセシビリティーサービスを有効にしたまま、冷間起動、新規文書ダイアログ、2480×3508文書作成、Android標準DocumentsUIへのKRA保存、同じ`content://`文書の再読込、画面回転、ホーム移動・復帰、Android Backによる正常終了を完走した。保存したKRAは約190 KBであり、回転、休止・復帰、保存、再読込ではPIDを維持し、異常終了記録は0件である。検証用KRAと試験パッケージは削除し、表示密度、回転、画面消灯、常時点灯を開始値へ戻した。
+- 実機診断: 互換設定がないQt 6.11.1製品では、新規文書ダイアログ作成時に`QtAndroidAccessibility::runInObjectContext()`と`QAndroidPlatformOpenGLWindow::eglSurface()`が同じ保護区間を待ち、`Failed to acquire deadlock protector`でSIGABRTした。Activity初期化前の互換設定を適用した製品では同じ操作と全ライフサイクルを完走した。
+- Waydroid環境差: システム選択画面のExternalStorage DocumentsProviderは、MediaProviderへの代理読込時に呼出し元パッケージを失って`NullPointerException`となる。直接のMediaStore URIと試験用FileProviderでは同じLibrePaint読込経路が成功するため、Waydroid提供者の障害として分類した。物理端末では標準システム選択画面も検査対象に含める。
+- ネイティブ結果: 完全native検査は878/879件成功し、既知の並列競合`KisSafeDocumentLoaderTest`だけが失敗した。同対象の隔離実行は成功した。`KisToolCanvas`の共有実体追加後に`KisToolProxyContractTest`を再実行して成功した。
+- 後続引継ぎ: Pixel 10aの入力装置は10点の指入力だけを公開し、スタイラス、筆圧、傾きの軸を持たない。`KisToolProxyContractTest`はarm64端末上でマウス、単一指、合成スタイラスの押下・移動・解放と筆圧・傾き・回転値を各3回成功させた。実スタイラスと複数指による移動・拡大縮小・回転・誤接触除去は、入力装置に応じたモバイル操作品質を扱うR5で検査する。最終ソースのActivityはJavaコンパイル、APK／AAB生成、包装監査に成功し、同じ互換処理を持つ診断用APKは実機操作を完走したため、最終ソース署名APKの反復導入は移行完了条件に残さない。Qtアクセシビリティーは互換設定により無効であり、対応済みQtへの更新と再有効化はR5が所有する。
+- 検証状態: 増分構築、対象契約、Waydroid製品操作、arm64物理端末の10対象30回・171検査、製品操作、両ABI包装監査、方針試験を含む`verify-quick`、`nix flake check --no-build --all-systems`、同一ソースから両ABI製品を生成する隔離Nix構築が成功した。最終構築は成功済みのネイティブ層を再利用し、変更頻度を分離した包装派生物2件だけを生成した。ARM64のAPKは142,798,635バイト、AABは237,085,721バイト、x86_64のAPKは146,615,141バイト、AABは238,298,028バイトである。
+- 次の作業: R2-G19d-bのOS固有契約を、各実行環境と再開条件に従って進める。
 
 ## 直前の完了記録: R1-G8 変更波及の局所化
 

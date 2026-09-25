@@ -132,6 +132,7 @@ if (JPEGXL_LIBRARY AND NOT TARGET JPEGXL::jxl)
                     NAMES ${_JPEGXL_STATIC_LIBRARY}
                     HINTS ${PC_JPEGXL_STATIC_LIBRARY_DIRS}
                     NO_DEFAULT_PATH
+                    NO_CMAKE_FIND_ROOT_PATH
                 )
                 if(_JPEGXL_STATIC_LIBRARY_${_JPEGXL_STATIC_LIBRARY_ID})
                     list(APPEND _JPEGXL_LINK_LIBRARIES

@@ -54,6 +54,16 @@ target_include_directories(KisGlobalValuesContractTest PRIVATE
 )
 target_compile_definitions(KisGlobalValuesContractTest PRIVATE kritaglobal_EXPORTS)
 
+if (ANDROID)
+    kis_add_test(
+        KisAndroidContentUriContractTest.cpp
+        TEST_NAME KisAndroidContentUriContractTest
+        LINK_LIBRARIES
+            kritaglobal
+            Qt${QT_MAJOR_VERSION}::Test
+    )
+endif()
+
 if (UNIX AND NOT IOS)
     kis_add_test(
         KisCrashSignalHandlerSetupContractTest.cpp

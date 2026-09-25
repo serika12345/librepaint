@@ -8,7 +8,6 @@
 package org.krita.android;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.ApplicationExitInfo;
@@ -20,26 +19,30 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.system.ErrnoException;
+import android.system.Os;
 import android.util.Log;
-import android.view.InputDevice;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
+import android.view.View;
 import android.view.ViewConfiguration;
 
 import androidx.annotation.RequiresApi;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 
 import java.util.List;
 
 import org.krita.R;
 import org.libsdl.app.SDLAudioManager;
-import org.qtproject.qt5.android.QtNative;
-import org.qtproject.qt5.android.bindings.QtActivity;
+import org.qtproject.qt.android.bindings.QtActivity;
 
 import java.util.function.Consumer;
 
 public class MainActivity extends QtActivity {
 
     private static final String TAG = "krita.MainActivity";
+    private static volatile MainActivity currentActivity = null;
     private static boolean applicationLoaded = false;
     private static String applicationLoadingText = "";
     private boolean haveLibsLoaded = false;
@@ -48,9 +51,22 @@ public class MainActivity extends QtActivity {
     private SplashDialog mSplashDialog = null;
 
     @Override
-    @SuppressLint("MissingSuperCall")
     public void onCreate(Bundle savedInstanceState) {
-        super.QT_ANDROID_DEFAULT_THEME = "DefaultTheme";
+        // The Qt Android platform library can abort while creating a second
+        // OpenGL-backed top-level surface if its accessibility bridge is
+        // waiting for the Qt event loop. This upstream defect is tracked by
+        // QTBUG-140490; QTBUG-140674 addressed only an earlier path. Keep this
+        // workaround before QtActivity initializes the bridge. The R5
+        // accessibility gate owns removal after the root fix ships in the
+        // minimum Qt version and passes physical-device verification.
+        try {
+            Os.setenv("QT_ANDROID_DISABLE_ACCESSIBILITY", "1", true);
+        } catch (ErrnoException error) {
+            throw new IllegalStateException(
+                    "Unable to apply the Qt Android accessibility workaround", error);
+        }
+
+        currentActivity = this;
 
         // we have to do this before loading main()
         Intent i = getIntent();
@@ -88,14 +104,19 @@ public class MainActivity extends QtActivity {
         }
     }
 
+    @SuppressLint("MissingSuperCall")
     @Override
     protected void onNewIntent (Intent intent) {
+        // LibrePaint owns launcher and document intents. Keep the Activity's
+        // current intent in sync without forwarding it to Qt's native intent
+        // listeners, whose platform-service lifetime can end on an Activity
+        // configuration change.
+        setIntent(intent);
+
         String uri = getUri(intent);
         if (uri != null) {
             JNIWrappers.openFileFromIntent(uri);
         }
-
-        super.onNewIntent(intent);
     }
 
     private String getUri(Intent intent) {
@@ -161,6 +182,9 @@ public class MainActivity extends QtActivity {
         startServiceGeneric(DocumentSaverService.KILL_PROCESS);
 
         super.onDestroy();
+        if (currentActivity == this) {
+            currentActivity = null;
+        }
     }
 
     @Override
@@ -175,18 +199,6 @@ public class MainActivity extends QtActivity {
         }
 
         return super.onKeyUp(keyCode, event);
-    }
-
-    @Override
-    public boolean onGenericMotionEvent(MotionEvent event) {
-        // We manually pass these events to the QPA Android because,
-        // android doesn't send events of type other than SOURCE_CLASS_POINTER
-        // to the view which was just tapped. So, this view will never get to
-        // QtSurface, because it doesn't claim focus.
-        if (event.isFromSource(InputDevice.SOURCE_TOUCHPAD)) {
-            return QtNative.getInputEventDispatcher().sendGenericMotionEvent(event, event.getDeviceId());
-        }
-        return super.onGenericMotionEvent(event);
     }
 
     public void onUserInteraction() {
@@ -208,7 +220,18 @@ public class MainActivity extends QtActivity {
 
     private void trySetFullScreen(boolean fullScreen) {
         try {
-            setFullScreen(fullScreen);
+            View decorView = getWindow().getDecorView();
+            WindowInsetsControllerCompat controller =
+                    WindowCompat.getInsetsController(getWindow(), decorView);
+            if (fullScreen) {
+                WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+                controller.setSystemBarsBehavior(
+                        WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+                controller.hide(WindowInsetsCompat.Type.systemBars());
+            } else {
+                controller.show(WindowInsetsCompat.Type.systemBars());
+                WindowCompat.setDecorFitsSystemWindows(getWindow(), true);
+            }
             inFullScreen = fullScreen;
         } catch (Exception | UnsatisfiedLinkError e) {
             Log.e(TAG, "Failed to set fullscreen " + fullScreen, e);
@@ -217,7 +240,8 @@ public class MainActivity extends QtActivity {
 
     public static int getLongPressTimeout() {
         try {
-            return ViewConfiguration.get(QtNative.activity()).getLongPressTimeout();
+            MainActivity activity = currentActivity;
+            return activity == null ? 500 : ViewConfiguration.get(activity).getLongPressTimeout();
         } catch (Exception|UnsatisfiedLinkError e) {
             Log.e(TAG, "Exception getting long press timeout", e);
             return 500;
@@ -265,11 +289,11 @@ public class MainActivity extends QtActivity {
     public static void showSplashDialog(byte[] splashBytes, String splashVersion) {
         Log.d(TAG, "showSplashDialog");
         try {
-            Activity activity = QtNative.activity();
-            if (activity instanceof MainActivity) {
-                ((MainActivity) activity).showSplashDialogInternal(splashBytes, splashVersion);
+            MainActivity activity = currentActivity;
+            if (activity != null) {
+                activity.showSplashDialogInternal(splashBytes, splashVersion);
             } else {
-                Log.e(TAG, "showSplashDialog: QtNative.activity() is not a Krita MainActivity");
+                Log.e(TAG, "showSplashDialog: the LibrePaint activity is unavailable");
             }
         } catch (Exception e) {
             Log.e(TAG, "Exception dispatching splash dialog", e);
@@ -277,7 +301,7 @@ public class MainActivity extends QtActivity {
     }
 
     private void showSplashDialogInternal(byte[] splashBytes, String splashVersion) {
-        QtNative.activity().runOnUiThread(() -> {
+        runOnUiThread(() -> {
             if (mSplashDialog == null) {
                 try {
                     mSplashDialog = new SplashDialog(MainActivity.this);
@@ -375,11 +399,11 @@ public class MainActivity extends QtActivity {
 
     public static void doWithMainActivity(Consumer<MainActivity> consumer) {
         try {
-            Activity activity = QtNative.activity();
-            if (activity instanceof MainActivity) {
-                consumer.accept(((MainActivity) activity));
+            MainActivity activity = currentActivity;
+            if (activity != null) {
+                consumer.accept(activity);
             } else {
-                Log.e(TAG, "doWithMainActivity: QtNative.activity() is not a Krita MainActivity");
+                Log.e(TAG, "doWithMainActivity: the LibrePaint activity is unavailable");
             }
         } catch (Exception e) {
             Log.e(TAG, "Exception in doWithMainActivity", e);
@@ -387,7 +411,7 @@ public class MainActivity extends QtActivity {
     }
 
     public void showScalingDialog(double currentScale, double defaultScale, boolean showOnStartup, boolean canShowOnStartup) {
-        QtNative.activity().runOnUiThread(() -> {
+        runOnUiThread(() -> {
             ScalingDialog scalingDialog = new ScalingDialog(this, currentScale, defaultScale, showOnStartup, canShowOnStartup);
             scalingDialog.show();
         });

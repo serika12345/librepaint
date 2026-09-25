@@ -23,7 +23,7 @@
 #include <qobject.h>
 #include <qwidget.h>
 #ifdef Q_OS_ANDROID
-#include <QtAndroid>
+#include <QJniObject>
 #endif
 
 KisLongPressEventFilter::KisLongPressEventFilter(QObject *parent)
@@ -35,7 +35,7 @@ KisLongPressEventFilter::KisLongPressEventFilter(QObject *parent)
     connect(m_timer, &QTimer::timeout, this, &KisLongPressEventFilter::triggerLongPress);
 #ifdef Q_OS_ANDROID
     m_longPressTimeout =
-        QAndroidJniObject::callStaticMethod<jint>("org/krita/android/MainActivity", "getLongPressTimeout", "()I");
+        QJniObject::callStaticMethod<jint>("org/krita/android/MainActivity", "getLongPressTimeout", "()I");
 #endif
 }
 

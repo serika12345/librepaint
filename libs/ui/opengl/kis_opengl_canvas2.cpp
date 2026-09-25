@@ -22,6 +22,9 @@
 #include <qnumeric.h>
 #include <qobjectdefs.h>
 #include <qopengl.h>
+#if defined(QT_OPENGL_ES_3)
+#include <GLES3/gl3.h>
+#endif
 #include <qopenglwidget.h>
 #include <qpainter.h>
 #include <qscopedpointer.h>

@@ -1529,10 +1529,6 @@ if (ANDROID)
     # This is not needed for ARM GNU/Linux environments.
     add_definitions(-DQT_OPENGL_ES_3)
     target_compile_definitions(kritaapplicationui PRIVATE QT_OPENGL_ES_3)
-    if (QT_MAJOR_VERSION STREQUAL "5")
-        include_directories (${Qt5AndroidExtras_INCLUDE_DIRS})
-        target_include_directories(kritaapplicationui PRIVATE ${Qt5AndroidExtras_INCLUDE_DIRS})
-    endif()
 endif()
 
 add_library(kritauispinboxsplineunitconverterobjects OBJECT
@@ -2460,7 +2456,6 @@ endif()
 if (ANDROID)
     target_link_libraries(kritaapplicationui PRIVATE GLESv3)
     target_link_libraries(kritaapplicationui PUBLIC Qt${QT_MAJOR_VERSION}::Gui)
-    target_link_libraries(kritaapplicationui PRIVATE Qt${QT_MAJOR_VERSION}::AndroidExtras)
     if(TARGET LibAV)
         target_link_libraries(kritaapplicationui PRIVATE LibAV)
     endif()

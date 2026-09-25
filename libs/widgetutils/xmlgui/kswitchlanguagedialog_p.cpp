@@ -40,7 +40,7 @@
 #include <qset.h>
 #include <qstringview.h>
 
-// On Android, KF5I18n's loadMessageCatalog function is unbelievably,
+// On Android, KLocalizedString's loadMessageCatalog function is unbelievably,
 // unusably slow when setting a fallback language, causing Krita's startup
 // time to balloon several minutes long. Creating dialogs or other widgets
 // also ends up taking forever. Since it's non-functional anyway, we'll

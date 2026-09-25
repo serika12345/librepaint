@@ -2,9 +2,8 @@
   pkgs,
   source,
   androidAbi ? "arm64-v8a",
-  artifactLockFile ? ./upstream-artifacts.json,
-  dependencyRecipeRevision ? "7830a5fdfd698ac6012dceca6a8ef7bf4916e67e",
-  dependencyRecipeHash ? "sha256-ABYJ44hFWPwq0Wx6ZcmrioRA+o1pnlp67++vx8TxkZk=",
+  dependencyRecipeRevision ? "0fd95c4efca2e5b5024121bb0ccae5b353956cd9",
+  dependencyRecipeHash ? "sha256-HdV3KRydtw94mtVn1ZXGmKPH5Qro33UZEj3KtPc1lj8=",
   packageName ? "librepaint-android",
 }:
 
@@ -31,6 +30,254 @@ let
   androidSdk = sdkComposition.androidsdk;
   androidSdkRoot = "${androidSdk}/libexec/android-sdk";
   androidNdkRoot = "${androidSdkRoot}/ndk-bundle";
+  androidTriple =
+    if androidAbi == "arm64-v8a" then "aarch64-linux-android" else "x86_64-linux-android";
+  androidSysroot = "${androidNdkRoot}/toolchains/llvm/prebuilt/linux-x86_64/sysroot";
+  androidPlatformLibDir = "${androidSysroot}/usr/lib/${androidTriple}/28";
+
+  qtbase = import ./qtbase.nix {
+    inherit
+      androidAbi
+      androidNdkRoot
+      androidSdkRoot
+      ;
+    pkgs = androidHost;
+  };
+
+  qtsvg = import ./qt-module.nix {
+    inherit
+      androidAbi
+      androidNdkRoot
+      androidSdkRoot
+      qtbase
+      ;
+    dependencies = [ ];
+    moduleName = "qtsvg";
+    pkgs = androidHost;
+    requiredLibraries = [
+      "Svg"
+      "SvgWidgets"
+    ];
+    sourcePackage = androidHost.qt6.qtsvg;
+  };
+
+  qtshadertools = import ./qt-module.nix {
+    inherit
+      androidAbi
+      androidNdkRoot
+      androidSdkRoot
+      qtbase
+      ;
+    dependencies = [ ];
+    moduleName = "qtshadertools";
+    pkgs = androidHost;
+    requiredLibraries = [ "ShaderTools" ];
+    sourcePackage = androidHost.qt6.qtshadertools;
+  };
+
+  qtlanguageserver = import ./qt-module.nix {
+    inherit
+      androidAbi
+      androidNdkRoot
+      androidSdkRoot
+      qtbase
+      ;
+    dependencies = [ ];
+    moduleName = "qtlanguageserver";
+    pkgs = androidHost;
+    requiredLibraries = [ ];
+    requiredPaths = [ "lib/libQt6LanguageServer_${androidAbi}.a" ];
+    sourcePackage = androidHost.qt6.qtlanguageserver;
+  };
+
+  qtdeclarative = import ./qt-module.nix {
+    inherit
+      androidAbi
+      androidNdkRoot
+      androidSdkRoot
+      qtbase
+      ;
+    dependencies = [
+      qtlanguageserver
+      qtshadertools
+      qtsvg
+    ];
+    moduleName = "qtdeclarative";
+    pkgs = androidHost;
+    requiredLibraries = [
+      "Qml"
+      "Quick"
+      "QuickControls2"
+      "QuickWidgets"
+    ];
+    sourcePackage = androidHost.qt6.qtdeclarative;
+  };
+
+  qt5compat = import ./qt-module.nix {
+    inherit
+      androidAbi
+      androidNdkRoot
+      androidSdkRoot
+      qtbase
+      ;
+    dependencies = [
+      qtdeclarative
+      qtshadertools
+    ];
+    moduleName = "qt5compat";
+    pkgs = androidHost;
+    requiredLibraries = [ "Core5Compat" ];
+    sourcePackage = androidHost.qt6.qt5compat;
+  };
+
+  qtimageformats = import ./qt-module.nix {
+    inherit
+      androidAbi
+      androidNdkRoot
+      androidSdkRoot
+      qtbase
+      ;
+    dependencies = [ ];
+    moduleName = "qtimageformats";
+    pkgs = androidHost;
+    requiredLibraries = [ ];
+    requiredPaths = [ "plugins/imageformats/libplugins_imageformats_qwebp_${androidAbi}.so" ];
+    sourcePackage = androidHost.qt6.qtimageformats;
+  };
+
+  sourceDependencies = import ./dependencies.nix {
+    inherit
+      androidAbi
+      androidNdkRoot
+      qt5compat
+      qtbase
+      ;
+    manifestFile = ../../packaging/ios/deps/dependencies.json;
+    pkgs = androidHost;
+  };
+  sourceDependencyPrefix = androidHost.buildEnv {
+    name = "librepaint-android-${androidAbi}-source-dependencies";
+    paths = with sourceDependencies; [
+      boost
+      brotli
+      eigen
+      exiv2
+      expat
+      fftw
+      fontconfig
+      freetype
+      fribidi
+      giflib
+      glib
+      gsl
+      harfbuzz
+      imath
+      immer
+      json-c
+      lager
+      lcms2
+      libdeflate
+      libffi
+      libhwy
+      libintl
+      libjpeg-turbo
+      libjxl
+      libmypaint
+      libpng
+      libtiff
+      libunibreak
+      libwebp
+      openexr
+      openjpeg
+      pcre2
+      xsimd
+      zlib
+      zug
+    ];
+    pathsToLink = [
+      "/include"
+      "/lib"
+      "/share"
+    ];
+    ignoreCollisions = false;
+  };
+  kf6 = import ./kf6.nix {
+    inherit
+      androidAbi
+      androidNdkRoot
+      androidSdkRoot
+      sourceDependencies
+      qtbase
+      ;
+    frameworkManifestFile = ../../packaging/ios/frameworks/frameworks.json;
+    pkgs = androidHost;
+  };
+  kf6Prefix = androidHost.buildEnv {
+    name = "librepaint-android-${androidAbi}-kf6";
+    paths = builtins.attrValues kf6;
+    pathsToLink = [
+      "/include"
+      "/lib"
+      "/metatypes"
+      "/share"
+    ];
+    ignoreCollisions = false;
+  };
+  applicationDependencies = import ./application-dependencies.nix {
+    inherit
+      androidAbi
+      androidNdkRoot
+      androidSdkRoot
+      kf6
+      qtbase
+      ;
+    dependencyRecipes = depsManagement;
+    foundations = sourceDependencies;
+    pkgs = androidHost;
+  };
+  applicationDependencyPrefix = androidHost.buildEnv {
+    name = "librepaint-android-${androidAbi}-application-dependencies";
+    paths = builtins.attrValues applicationDependencies;
+    pathsToLink = [
+      "/include"
+      "/jar"
+      "/lib"
+      "/share"
+    ];
+    ignoreCollisions = false;
+  };
+  dependencyPrefix = androidHost.buildEnv {
+    name = "librepaint-android-${androidAbi}-qt6-dependencies";
+    paths = [
+      qtbase
+      qtsvg
+      qtshadertools
+      qtlanguageserver
+      qtdeclarative
+      qt5compat
+      qtimageformats
+      sourceDependencyPrefix
+      sourceDependencies.quazip
+      kf6Prefix
+      applicationDependencyPrefix
+    ];
+    pathsToLink = [
+      "/etc"
+      "/include"
+      "/jar"
+      "/lib"
+      "/libexec"
+      "/metatypes"
+      "/mkspecs"
+      "/modules"
+      "/plugins"
+      "/qml"
+      "/share"
+      "/src"
+      "/translations"
+    ];
+    ignoreCollisions = true;
+  };
 
   gradleUnwrapped = androidHost.gradle-packages.mkGradle {
     version = "8.13";
@@ -38,10 +285,66 @@ let
     defaultJava = androidHost.jdk17_headless;
   };
   gradle = gradleUnwrapped.wrapped;
+  gradleLockProject = androidHost.stdenvNoCC.mkDerivation {
+    pname = "librepaint-android-gradle-lock";
+    version = "1";
+    src = ./gradle-lock;
+
+    nativeBuildInputs = [
+      androidHost.jdk17_headless
+      gradle
+    ];
+
+    dontConfigure = true;
+
+    preBuild = ''
+      export ANDROID_HOME=${androidSdkRoot}
+      export ANDROID_SDK_ROOT=${androidSdkRoot}
+      export ANDROID_USER_HOME="$NIX_BUILD_TOP/android-home"
+      export GRADLE_USER_HOME="$NIX_BUILD_TOP/gradle-home"
+      export HOME="$NIX_BUILD_TOP/home"
+      export JAVA_HOME=${androidHost.jdk17_headless.home}
+      mkdir -p "$ANDROID_USER_HOME" "$GRADLE_USER_HOME" "$HOME"
+
+      if [[ -n "''${MITM_CACHE_HOST-}" ]]; then
+        gradleTrustStore="$NIX_BUILD_TOP/gradle-mitm-keystore"
+        gradleTrustStorePassword=librepaint
+        ${androidHost.jdk17_headless}/bin/keytool -importcert -noprompt \
+          -file "$MITM_CACHE_CA" -alias librepaint \
+          -keystore "$gradleTrustStore" \
+          -storepass "$gradleTrustStorePassword" >/dev/null
+        export GRADLE_OPTS="''${GRADLE_OPTS-} -Dhttp.proxyHost=$MITM_CACHE_HOST -Dhttp.proxyPort=$MITM_CACHE_PORT -Dhttps.proxyHost=$MITM_CACHE_HOST -Dhttps.proxyPort=$MITM_CACHE_PORT -Djavax.net.ssl.trustStore=$gradleTrustStore -Djavax.net.ssl.trustStorePassword=$gradleTrustStorePassword"
+      fi
+    '';
+
+    gradleUpdateScript = ''
+      runHook preBuild
+      gradle --no-daemon \
+        --init-script ${pkgs.path}/pkgs/development/tools/build-managers/gradle/init-build.gradle \
+        -Pandroid.aapt2FromMavenOverride=${androidSdkRoot}/build-tools/35.0.0/aapt2 \
+        assembleRelease
+    '';
+
+    buildPhase = ''
+      runHook preBuild
+      gradle --no-daemon \
+        --init-script ${pkgs.path}/pkgs/development/tools/build-managers/gradle/init-build.gradle \
+        -Pandroid.aapt2FromMavenOverride=${androidSdkRoot}/build-tools/35.0.0/aapt2 \
+        assembleRelease
+      runHook postBuild
+    '';
+
+    installPhase = ''
+      runHook preInstall
+      lockApk="$(find build/outputs/apk/release -type f \
+        -name '*-release-unsigned.apk' -print -quit)"
+      test -s "$lockApk"
+      install -Dm644 "$lockApk" "$out/gradle-lock.apk"
+      runHook postInstall
+    '';
+  };
   androidGradleCache = gradle.fetchDeps {
-    pkg = {
-      pname = "librepaint-android-gradle";
-    };
+    pkg = gradleLockProject;
     data = ./gradle-deps.json;
   };
   gradleWrapper = androidHost.writeShellScript "librepaint-android-gradle" ''
@@ -117,90 +420,6 @@ let
     exit "$execStatus"
   '';
 
-  artifactLock = lib.importJSON artifactLockFile;
-  artifactNames = map (artifact: artifact.name) artifactLock.packages;
-  artifacts = map (
-    artifact:
-    androidHost.fetchurl {
-      name = "${artifact.name}-${artifact.version}.tar";
-      url = "https://invent.kde.org/api/v4/projects/${toString artifactLock.project}/packages/generic/${artifact.name}/${artifact.version}/archive.tar";
-      inherit (artifact) sha256;
-    }
-  ) artifactLock.packages;
-
-  dependencyPrefix =
-    assert lib.assertMsg (
-      artifactLock.platform == "Android/${androidAbi}/Qt5/Shared"
-    ) "The Android artifact lock must select the requested upstream Qt 5 shared profile";
-    assert lib.assertMsg (
-      artifactLock.dependencyRecipeRevision == dependencyRecipeRevision
-    ) "The Android artifact lock and dependency recipe revision must match";
-    assert lib.assertMsg (
-      builtins.length artifacts == 62
-    ) "The upstream Android profile must contain exactly 62 packages";
-    assert lib.assertMsg (
-      builtins.length artifactNames == builtins.length (lib.unique artifactNames)
-    ) "The upstream Android artifact lock contains duplicate package names";
-    androidHost.runCommand "librepaint-android-${androidAbi}-qt5-dependencies"
-      {
-        nativeBuildInputs = [
-          androidHost.binutils
-          androidHost.gnutar
-          androidHost.patchelf
-        ];
-        dontPatchELF = true;
-        dontStrip = true;
-        passthru = {
-          inherit artifactLock artifacts;
-        };
-      }
-      ''
-        mkdir -p "$out"
-        for archive in ${lib.escapeShellArgs (map toString artifacts)}; do
-          tar --extract --file="$archive" --directory="$out" --no-same-owner
-        done
-
-        while IFS= read -r -d "" configFile; do
-          sed -i -E \
-            "s#/builds/packaging/krita-deps-management/ext_[^/[:space:]\"';]*/_install#$out#g" \
-            "$configFile"
-        done < <(grep -IRIlZ '/builds/packaging/krita-deps-management/ext_.*/_install' "$out")
-
-        # The registry contains Android libraries plus the Linux tools needed
-        # by qmake/androiddeployqt. Patch only dynamically linked x86_64 host
-        # executables; touching arm64 Android libraries would corrupt the APK.
-        while IFS= read -r -d "" candidate; do
-          if readelf -h "$candidate" 2>/dev/null \
-              | grep -q 'Machine:.*Advanced Micro Devices X86-64'; then
-            if patchelf --print-interpreter "$candidate" >/dev/null 2>&1; then
-              patchelf --set-interpreter ${pkgs.stdenv.cc.bintools.dynamicLinker} "$candidate"
-              patchelf --set-rpath ${lib.escapeShellArg "$ORIGIN/../lib:${lib.makeLibraryPath [ pkgs.stdenv.cc.cc ]}"} "$candidate"
-            elif patchelf --print-rpath "$candidate" >/dev/null 2>&1; then
-              patchelf --set-rpath ${lib.escapeShellArg "$ORIGIN:${lib.makeLibraryPath [ pkgs.stdenv.cc.cc ]}"} "$candidate"
-            fi
-          fi
-        done < <(find "$out/bin" "$out/libexec" "$out/lib" -type f -print0 2>/dev/null)
-        for hostToolDir in "$out/bin" "$out/libexec"; do
-          if [ -d "$hostToolDir" ]; then
-            patchShebangs "$hostToolDir"
-          fi
-        done
-
-        substituteInPlace "$out/mkspecs/qdevice.pri" \
-          --replace-fail '/opt/android-tooling/sdk' '${androidSdkRoot}' \
-          --replace-fail '/opt/android-tooling/android-ndk-r27d' '${androidNdkRoot}'
-        printf '[Paths]\nPrefix=..\n' > "$out/bin/qt.conf"
-        test "$("$out/bin/qmake" -query QT_INSTALL_PREFIX)" = "$out"
-        grep -Fq '${androidSdkRoot}' "$out/mkspecs/qdevice.pri"
-        grep -Fq '${androidNdkRoot}' "$out/mkspecs/qdevice.pri"
-        if grep -IRIl '/builds/packaging/krita-deps-management/ext_.*/_install' "$out"; then
-          echo "An upstream CI install prefix remains in the dependency configuration" >&2
-          exit 1
-        fi
-        test -x "$out/bin/androiddeployqt"
-        test -f "$out/lib/libQt5Core_${androidAbi}.so"
-      '';
-
   depsManagement = androidHost.fetchFromGitLab {
     domain = "invent.kde.org";
     owner = "packaging";
@@ -221,18 +440,18 @@ let
     "OpenEXR"
     "OpenJPEG"
     "QUAZIP"
-    "Qt5Quick"
-    "Qt5QuickControls2"
-    "Qt5QuickWidgets"
+    "Qt6Quick"
+    "Qt6QuickControls2"
+    "Qt6QuickWidgets"
     "TIFF"
   ];
 
   disabledFeatures = [
     "HEIF"
-    "KF5KDcraw"
+    "KDcrawQt6"
     "OpenColorIO"
     "Poppler"
-    "PyQt5"
+    "PyQt6"
     "PythonLibrary"
     "SIP"
   ];
@@ -249,10 +468,12 @@ let
     nativeBuildInputs = [
       androidHost.cmake
       androidHost.gettext
+      androidHost.gawk
       androidHost.jdk17_headless
       androidHost.ninja
       androidHost.pkg-config
       androidHost.python3
+      androidHost.unzip
     ];
 
     cmakeGenerator = "Ninja";
@@ -261,7 +482,7 @@ let
     cmakeFlags = [
       "-DBUILD_KRITA_QT_DESIGNER_PLUGINS:BOOL=OFF"
       "-DBUILD_TESTING:BOOL=OFF"
-      "-DBUILD_WITH_QT6:BOOL=OFF"
+      "-DBUILD_WITH_QT6:BOOL=ON"
       "-DANDROIDDEPLOYQT_EXTRA_ARGS:STRING=--release"
       "-DCMAKE_BUILD_TYPE:STRING=Release"
       "-DCMAKE_INSTALL_BINDIR:PATH=bin"
@@ -275,21 +496,39 @@ let
       "-DCMAKE_INSTALL_SBINDIR:PATH=sbin"
       "-DCMAKE_AR:FILEPATH=${androidNdkRoot}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
       "-DCMAKE_FIND_ROOT_PATH:PATH=${dependencyPrefix}"
+      "-DCMAKE_MODULE_LINKER_FLAGS:STRING=-Wl,-z,max-page-size=16384"
       "-DCMAKE_PREFIX_PATH:PATH=${dependencyPrefix}"
       "-DCMAKE_RANLIB:FILEPATH=${androidNdkRoot}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ranlib"
+      "-DCMAKE_SHARED_LINKER_FLAGS:STRING=-Wl,-z,max-page-size=16384"
       "-DCMAKE_STRIP:FILEPATH=${androidNdkRoot}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip"
-      "-DCMAKE_TOOLCHAIN_FILE:FILEPATH=${depsManagement}/tools/android-toolchain-krita.cmake"
+      "-DCMAKE_TOOLCHAIN_FILE:FILEPATH=${qtbase}/lib/cmake/Qt6/qt.toolchain.cmake"
       "-DECM_ADDITIONAL_FIND_ROOT_PATH:PATH=${dependencyPrefix}"
+      "-DECM_DIR:PATH=${androidHost.kdePackages.extra-cmake-modules}/share/ECM/cmake"
+      "-DEGL_INCLUDE_DIR:PATH=${androidSysroot}/usr/include"
+      "-DEGL_LIBRARY:FILEPATH=${androidPlatformLibDir}/libEGL.so"
+      "-DEXPAT_INCLUDE_DIR:PATH=${dependencyPrefix}/include"
+      "-DEXPAT_LIBRARY:FILEPATH=${dependencyPrefix}/lib/libexpat.a"
+      "-DFREETYPE_INCLUDE_DIR_freetype2:PATH=${dependencyPrefix}/include/freetype2"
+      "-DFREETYPE_INCLUDE_DIR_ft2build:PATH=${dependencyPrefix}/include/freetype2"
+      "-DFREETYPE_LIBRARY:FILEPATH=${dependencyPrefix}/lib/libfreetype.a"
+      "-DFriBidi_INCLUDE_DIR:PATH=${dependencyPrefix}/include"
+      "-DFriBidi_LIBRARY:FILEPATH=${dependencyPrefix}/lib/libfribidi.a"
       "-DGETTEXT_MSGFMT_EXECUTABLE:FILEPATH=${androidHost.gettext}/bin/msgfmt"
-      "-DHIDE_SAFE_ASSERTS:BOOL=OFF"
+      "-DGLESv2_INCLUDE_DIR:PATH=${androidSysroot}/usr/include"
+      "-DGLESv2_LIBRARY:FILEPATH=${androidPlatformLibDir}/libGLESv2.so"
+      "-DHarfBuzz_INCLUDE_DIR:PATH=${dependencyPrefix}/include/harfbuzz"
+      "-DHarfBuzz_LIBRARY:FILEPATH=${dependencyPrefix}/lib/libharfbuzz.a"
+      "-DHIDE_SAFE_ASSERTS:BOOL=ON"
+      "-DKF6_HOST_TOOLING:PATH=${lib.getDev androidHost.kdePackages.kconfig}/lib/cmake"
+      "-DQT_ADDITIONAL_PACKAGES_PREFIX_PATH:PATH=${dependencyPrefix}"
+      "-DQT_HOST_PATH:PATH=${qtbase.hostQt}"
+      "-DQT_NO_GLOBAL_APK_TARGET_PART_OF_ALL:BOOL=ON"
     ]
     ++ map (name: "-DCMAKE_REQUIRE_FIND_PACKAGE_${name}:BOOL=TRUE") requiredFeatures
     ++ map (name: "-DCMAKE_DISABLE_FIND_PACKAGE_${name}:BOOL=TRUE") disabledFeatures;
 
     preConfigure = ''
       export KRITA_INSTALL_PREFIX="$out"
-      cp -a ${dependencyPrefix} "$KRITA_INSTALL_PREFIX"
-      chmod -R u+w "$KRITA_INSTALL_PREFIX"
 
       export ANDROID_ABI=${androidAbi}
       export ANDROID_HOME=${androidSdkRoot}
@@ -304,13 +543,12 @@ let
       export KDECI_ANDROID_NDK_ROOT=${androidNdkRoot}
       export KDECI_ANDROID_SDK_ROOT=${androidSdkRoot}
       export KRITA_UNSTABLE_PACKAGE_SUFFIX=""
-      export PATH="$KRITA_INSTALL_PREFIX/bin:$PATH"
+      export QT_ADDITIONAL_HOST_PACKAGES_PREFIX_PATH='${qtdeclarative.hostQtModule};${qtlanguageserver.hostQtModule};${qtshadertools.hostQtModule};${qtsvg.hostQtModule}'
+      export PATH="${qtbase.hostQt}/bin:$PATH"
       mkdir -p "$ANDROID_USER_HOME" "$GRADLE_USER_HOME" "$HOME"
 
       appendToVar cmakeFlags "-DCMAKE_INSTALL_PREFIX:PATH=$KRITA_INSTALL_PREFIX"
-      appendToVar cmakeFlags "-DCMAKE_FIND_ROOT_PATH:PATH=$KRITA_INSTALL_PREFIX"
-      appendToVar cmakeFlags "-DCMAKE_PREFIX_PATH:PATH=$KRITA_INSTALL_PREFIX"
-      appendToVar cmakeFlags "-DECM_ADDITIONAL_FIND_ROOT_PATH:PATH=$KRITA_INSTALL_PREFIX"
+      appendToVar cmakeFlags "-DQT_ADDITIONAL_HOST_PACKAGES_PREFIX_PATH:PATH=$QT_ADDITIONAL_HOST_PACKAGES_PREFIX_PATH"
     '';
 
     # CMAKE_REQUIRE_FIND_PACKAGE for WebP and libjpeg-turbo also makes their
@@ -325,12 +563,12 @@ let
 
     postInstall = ''
       test -s "$out/lib/libkrita_${androidAbi}.so"
-      test -s "$out/lib/kritawebpimport_${androidAbi}.so"
-      test -s "$out/lib/kritajpegimport_${androidAbi}.so"
+      test -s "$out/lib/kritawebpimport.so"
+      test -s "$out/lib/kritajpegimport.so"
     '';
 
     meta = {
-      description = "LibrePaint Android native prefix built with the pinned upstream Qt 5 dependency snapshot";
+      description = "LibrePaint Android native libraries built from source with Qt 6";
       platforms = [ "x86_64-linux" ];
       sourceProvenance = with lib.sourceTypes; [
         fromSource
@@ -357,8 +595,7 @@ let
   ];
 
   incrementalCmakeFlags = map (
-    flag:
-    if flag == "-DBUILD_TESTING:BOOL=OFF" then "-DBUILD_TESTING:BOOL=ON" else flag
+    flag: if flag == "-DBUILD_TESTING:BOOL=OFF" then "-DBUILD_TESTING:BOOL=ON" else flag
   ) nativeBuild.cmakeFlags;
   androidCmakeFlagsFile = androidHost.writeText "librepaint-android-cmake-flags" (
     lib.concatStringsSep "\n" incrementalCmakeFlags + "\n"
@@ -399,7 +636,7 @@ let
     chmod -R u+w "$out/apk"
     install -m 0644 ${packagingCmake} "$out/CMakeLists.txt"
     install -m 0755 ${gradleWrapper} "$out/apk/gradlew"
-    install -m 0644 ${nativeBuild}/src/android/templates/res/values/libs.xml \
+    install -m 0644 ${qtbase}/src/android/templates/res/values/libs.xml \
       "$out/apk/res/values/libs.xml"
   '';
 
@@ -414,24 +651,15 @@ let
 
     nativeBuildInputs = [
       androidHost.cmake
+      androidHost.gawk
       androidHost.jdk17_headless
       androidHost.ninja
       androidHost.python3
+      androidHost.unzip
       gradle
     ];
 
-    mitmCache = gradle.fetchDeps {
-      pkg = finalAttrs.finalPackage;
-      data = ./gradle-deps.json;
-      bwrapFlags = ''--ro-bind "$PWD" "$PWD" --dir /bin --symlink ${androidHost.bash}/bin/bash /bin/sh'';
-    };
-
-    # The Android Gradle plugin resolves release lint tooling lazily, so the
-    # dependency updater must exercise the real release packaging target.
-    gradleUpdateScript = ''
-      runHook preBuild
-      cmake --build . --target create-apk-krita
-    '';
+    mitmCache = androidGradleCache;
 
     cmakeGenerator = "Ninja";
     cmakeBuildDir = "build";
@@ -439,14 +667,20 @@ let
     cmakeFlags = [
       "-DANDROIDDEPLOYQT_EXTRA_ARGS:STRING=--release"
       "-DCMAKE_AR:FILEPATH=${androidNdkRoot}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
-      "-DCMAKE_FIND_ROOT_PATH:PATH=${nativeBuild}"
+      "-DCMAKE_FIND_ROOT_PATH:PATH=${dependencyPrefix};${nativeBuild}"
       "-DCMAKE_INSTALL_PREFIX:PATH=${nativeBuild}"
-      "-DCMAKE_PREFIX_PATH:PATH=${nativeBuild}"
+      "-DCMAKE_PREFIX_PATH:PATH=${dependencyPrefix};${nativeBuild}"
       "-DCMAKE_RANLIB:FILEPATH=${androidNdkRoot}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ranlib"
       "-DCMAKE_STRIP:FILEPATH=${androidNdkRoot}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip"
-      "-DCMAKE_TOOLCHAIN_FILE:FILEPATH=${depsManagement}/tools/android-toolchain-krita.cmake"
-      "-DECM_ADDITIONAL_FIND_ROOT_PATH:PATH=${nativeBuild}"
+      "-DCMAKE_TOOLCHAIN_FILE:FILEPATH=${qtbase}/lib/cmake/Qt6/qt.toolchain.cmake"
+      "-DECM_ADDITIONAL_FIND_ROOT_PATH:PATH=${dependencyPrefix};${nativeBuild}"
+      "-DEGL_INCLUDE_DIR:PATH=${androidSysroot}/usr/include"
+      "-DEGL_LIBRARY:FILEPATH=${androidPlatformLibDir}/libEGL.so"
+      "-DGLESv2_INCLUDE_DIR:PATH=${androidSysroot}/usr/include"
+      "-DGLESv2_LIBRARY:FILEPATH=${androidPlatformLibDir}/libGLESv2.so"
       "-DNATIVE_PREFIX:PATH=${nativeBuild}"
+      "-DQT_ADDITIONAL_PACKAGES_PREFIX_PATH:PATH=${dependencyPrefix}"
+      "-DQT_HOST_PATH:PATH=${qtbase.hostQt}"
     ];
 
     preConfigure = ''
@@ -464,14 +698,15 @@ let
       export KDECI_ANDROID_SDK_ROOT=${androidSdkRoot}
       export KRITA_INSTALL_PREFIX=${nativeBuild}
       export KRITA_UNSTABLE_PACKAGE_SUFFIX=""
-      export PATH="${nativeBuild}/bin:$PATH"
+      export QT_ADDITIONAL_HOST_PACKAGES_PREFIX_PATH='${qtdeclarative.hostQtModule};${qtlanguageserver.hostQtModule};${qtshadertools.hostQtModule};${qtsvg.hostQtModule}'
+      export PATH="${qtbase.hostQt}/bin:$PATH"
       mkdir -p "$ANDROID_USER_HOME" "$GRADLE_USER_HOME" "$HOME"
 
       androidExtraLibs=(
-        "${nativeBuild}/lib/libQt5QuickWidgets_${androidAbi}.so"
-        "${nativeBuild}/lib/libharfbuzz.so"
+        "${qtdeclarative}/lib/libQt6QuickWidgets_${androidAbi}.so"
       )
-      test -d "${nativeBuild}/lib/mlt-7"
+      mltPluginDir="${applicationDependencies.mlt}/lib/mlt-7"
+      test -d "$mltPluginDir"
       mltExtraLibDir="$NIX_BUILD_TOP/android-extra-libs"
       mkdir -p "$mltExtraLibDir"
       mltPluginCount=0
@@ -482,7 +717,7 @@ let
         androidExtraLibs+=("$stagedPlugin")
         mltPluginCount=$((mltPluginCount + 1))
       done < <(
-        find "${nativeBuild}/lib/mlt-7" -maxdepth 1 -type f \
+        find "$mltPluginDir" -maxdepth 1 -type f \
           -name 'libmlt*.so' -print0 | sort -z
       )
       test "$mltPluginCount" -gt 0
@@ -496,73 +731,67 @@ let
       mkdir -p "$out"
       test -n "''${MITM_CACHE_CA-}"
 
-      # Upstream packages the application from a mutable install prefix.
-      # Recreate that boundary for Gradle without copying host tools and
-      # development files that are irrelevant to the APK.
+      # Gradle consumes one mutable runtime tree. Compose it from the immutable
+      # source-built dependency and application outputs without making the
+      # application derivation own or rebuild those dependencies.
       gradleInstallPrefix="$NIX_BUILD_TOP/gradle-install-prefix"
       mkdir -p "$gradleInstallPrefix"
-      for runtimeTree in lib share etc translations jar; do
-        cp -a --reflink=auto \
-          "${nativeBuild}/$runtimeTree" "$gradleInstallPrefix/"
+      for runtimePrefix in ${dependencyPrefix} ${nativeBuild}; do
+        for runtimeTree in lib share etc translations jar plugins qml; do
+          if test -e "$runtimePrefix/$runtimeTree"; then
+            mkdir -p "$gradleInstallPrefix/$runtimeTree"
+            cp -aL --reflink=auto \
+              "$runtimePrefix/$runtimeTree/." "$gradleInstallPrefix/$runtimeTree/"
+            chmod -R u+w "$gradleInstallPrefix/$runtimeTree"
+          fi
+        done
       done
-      chmod -R u+w "$gradleInstallPrefix"
-
-      # The shared prefix also carries a few x86_64 libraries for Linux host
-      # tools. Gradle copies every top-level .so, so keep those out of the
-      # arm64-v8a JNI directory while retaining every Android library.
-      hostRuntimeLibDir="$NIX_BUILD_TOP/host-runtime-libs"
-      mkdir -p "$hostRuntimeLibDir"
-      hostRuntimeLibCount=0
-      while IFS= read -r -d "" runtimeLibrary; do
-        if ${androidNdkRoot}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf \
-          -h "$runtimeLibrary" 2>/dev/null \
-          | grep -q 'Machine:.*Advanced Micro Devices X86-64'; then
-          mv "$runtimeLibrary" "$hostRuntimeLibDir/"
-          hostRuntimeLibCount=$((hostRuntimeLibCount + 1))
-        fi
-      done < <(
-        find "$gradleInstallPrefix/lib" -maxdepth 1 -type f \
-          -print0 | sort -z
-      )
-      test "$hostRuntimeLibCount" -gt 0
-      while IFS= read -r -d "" runtimeSymlink; do
-        if test ! -e "$runtimeSymlink"; then
-          mv "$runtimeSymlink" "$hostRuntimeLibDir/"
-        fi
-      done < <(
-        find "$gradleInstallPrefix/lib" -maxdepth 1 -type l \
-          -print0 | sort -z
-      )
       export KRITA_INSTALL_PREFIX="$gradleInstallPrefix"
-
-      mapfile -d "" kritaModulePlugins < <(
-        find "${nativeBuild}/lib" -maxdepth 1 -type f \
-          -name 'krita*_${androidAbi}.so' -print0 | sort -z
-      )
-      test "''${#kritaModulePlugins[@]}" -gt 0
-      (IFS=';'; printf '%s' "''${kritaModulePlugins[*]}") > module-plugins
       export GRADLE_OPTS="''${GRADLE_OPTS-} -Dhttp.proxyHost=$MITM_CACHE_HOST -Dhttp.proxyPort=$MITM_CACHE_PORT -Dhttps.proxyHost=$MITM_CACHE_HOST -Dhttps.proxyPort=$MITM_CACHE_PORT -Djavax.net.ssl.trustStore=$MITM_CACHE_KEYSTORE -Djavax.net.ssl.trustStorePassword=$MITM_CACHE_KS_PWD"
     '';
 
     buildPhase = ''
       runHook preBuild
+      if test -d android-build; then
+        chmod -R u+w android-build
+      fi
       cmake --build . --target create-apk-krita
+      chmod -R u+w android-build
+      cmake --build . --target create-aab-krita
       runHook postBuild
     '';
 
     installPhase = ''
       runHook preInstall
       releaseApk="$(find "$NIX_BUILD_TOP" -type f \
-        -path '*/krita_build_apk/build/outputs/apk/release/*-release-unsigned.apk' \
+        -path '*/android-build/build/outputs/apk/release/*-release-unsigned.apk' \
         -print -quit)"
       test -n "$releaseApk"
       test -s "$releaseApk"
       install -m 0644 "$releaseApk" "$out/LibrePaint-${androidAbi}.apk"
+      releaseAab="$(find "$NIX_BUILD_TOP" -type f \
+        -path '*/android-build/build/outputs/bundle/release/*.aab' \
+        -print -quit)"
+      test -n "$releaseAab"
+      test -s "$releaseAab"
+      install -m 0644 "$releaseAab" "$out/LibrePaint-${androidAbi}.aab"
+      ${androidHost.bash}/bin/bash ${source}/scripts/platform/audit-android-package \
+        "$out/LibrePaint-${androidAbi}.apk" \
+        ${androidAbi} \
+        ${androidNdkRoot}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf \
+        ${androidSdkRoot}/build-tools/35.0.0/aapt2 \
+        product
+      ${androidHost.bash}/bin/bash ${source}/scripts/platform/audit-android-package \
+        "$out/LibrePaint-${androidAbi}.aab" \
+        ${androidAbi} \
+        ${androidNdkRoot}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf \
+        ${androidSdkRoot}/build-tools/35.0.0/aapt2 \
+        product
       runHook postInstall
     '';
 
     passthru = {
-      gradleDepsUpdate = finalAttrs.mitmCache.updateScript;
+      gradleDepsUpdate = androidGradleCache.updateScript;
       inherit
         androidSdk
         dependencyPrefix
@@ -573,7 +802,7 @@ let
     };
 
     meta = {
-      description = "LibrePaint Android ${androidAbi} APK built with the pinned upstream Qt 5 dependency snapshot";
+      description = "LibrePaint Android ${androidAbi} APK and AAB built from source with Qt 6";
       platforms = [ "x86_64-linux" ];
       sourceProvenance = with lib.sourceTypes; [
         fromSource
@@ -609,8 +838,9 @@ let
       export KDECI_ANDROID_ABI=${androidAbi}
       export KDECI_ANDROID_NDK_ROOT=${androidNdkRoot}
       export KDECI_ANDROID_SDK_ROOT=${androidSdkRoot}
-      export PATH=${androidSdkRoot}/platform-tools:${dependencyPrefix}/bin:$PATH
-      echo "LibrePaint Android Qt 5 environment (${androidAbi})"
+      export QT_ADDITIONAL_HOST_PACKAGES_PREFIX_PATH='${qtdeclarative.hostQtModule};${qtlanguageserver.hostQtModule};${qtshadertools.hostQtModule};${qtsvg.hostQtModule}'
+      export PATH=${androidSdkRoot}/platform-tools:${qtbase.hostQt}/bin:$PATH
+      echo "LibrePaint Android Qt 6 environment (${androidAbi})"
       echo "  build: build-incremental ${
         if androidAbi == "arm64-v8a" then "android" else "android-${androidAbi}"
       } build"
@@ -619,5 +849,56 @@ let
 in
 {
   androidDependencies = dependencyPrefix;
-  inherit devShell incrementalEnv librepaint;
+  androidSourceDependencies = sourceDependencyPrefix;
+  androidKf6 = kf6Prefix;
+  androidApplicationDependencies = applicationDependencyPrefix;
+  inherit
+    devShell
+    incrementalEnv
+    librepaint
+    qt5compat
+    qtbase
+    qtdeclarative
+    qtimageformats
+    qtlanguageserver
+    qtshadertools
+    qtsvg
+    ;
+  inherit (sourceDependencies)
+    boost
+    eigen
+    exiv2
+    expat
+    fftw
+    fontconfig
+    freetype
+    fribidi
+    giflib
+    glib
+    gsl
+    harfbuzz
+    imath
+    immer
+    json-c
+    lager
+    lcms2
+    libdeflate
+    libffi
+    libhwy
+    libintl
+    libjpeg-turbo
+    libjxl
+    libmypaint
+    libpng
+    libtiff
+    libunibreak
+    libwebp
+    openexr
+    openjpeg
+    pcre2
+    quazip
+    xsimd
+    zlib
+    zug
+    ;
 }

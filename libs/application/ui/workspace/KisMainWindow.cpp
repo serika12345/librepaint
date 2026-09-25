@@ -135,7 +135,7 @@
 #include <KisStorageFilterProxyModel.h>
 
 #ifdef Q_OS_ANDROID
-#include <QtAndroid>
+#include <QJniObject>
 #include <KisAndroidUtils.h>
 #endif
 
@@ -663,7 +663,9 @@ KisMainWindow::KisMainWindow(QUuid uuid)
     setFixedSize(KisApplication::primaryScreen()->availableGeometry().size());
 
     QScreen *s = QGuiApplication::primaryScreen();
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     s->setOrientationUpdateMask(Qt::LandscapeOrientation|Qt::InvertedLandscapeOrientation|Qt::PortraitOrientation|Qt::InvertedPortraitOrientation);
+#endif
     connect(s, SIGNAL(orientationChanged(Qt::ScreenOrientation)), this, SLOT(orientationChanged()));
 
 #if KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
@@ -682,7 +684,7 @@ KisMainWindow::KisMainWindow(QUuid uuid)
     // When Krita starts, Java side sends an event to set applicationState() to active. But, before
     // the event could reach KisApplication's platform integration, it is cleared by KisOpenGLModeProber::probeFormat.
     // So, we send it manually when MainWindow shows up.
-    QAndroidJniObject::callStaticMethod<void>("org/qtproject/qt5/android/QtNative", "setApplicationState", "(I)V", Qt::ApplicationActive);
+    QJniObject::callStaticMethod<void>("org/qtproject/qt/android/QtNative", "setApplicationState", "(I)V", Qt::ApplicationActive);
 #endif
 
     setAcceptDrops(true);

@@ -138,9 +138,6 @@ target_link_libraries(kritakineticscrollerobjects
         Qt${QT_MAJOR_VERSION}::Widgets
         KF${KF_MAJOR}::ConfigCore
 )
-if(ANDROID AND TARGET Qt5::AndroidExtras)
-    target_link_libraries(kritakineticscrollerobjects PRIVATE Qt5::AndroidExtras)
-endif()
 set_target_properties(kritakineticscrollerobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 add_library(kritapopupbuttonobjects OBJECT
@@ -601,10 +598,6 @@ if (APPLE AND NOT IOS)
     )
     target_link_libraries(kritawidgetutils PRIVATE kritamacosutils)
 endif ()
-
-if (ANDROID)
-    target_link_libraries(kritawidgetutils PRIVATE Qt${QT_MAJOR_VERSION}::AndroidExtras)
-endif()
 
 target_link_libraries(kritawidgetutils
     PUBLIC

@@ -18,7 +18,7 @@
 #include <QtGlobal>
 #include <qwidget.h>
 #ifdef Q_OS_ANDROID
-#include <QtAndroid>
+#include <QJniObject>
 #else
 #include <QApplication>
 #include <QStyleHints>
@@ -137,7 +137,7 @@ QScroller* KisKineticScroller::createPreconfiguredScroller(QAbstractScrollArea *
         // long-presses. Cap the value there for consistency.
 #ifdef Q_OS_ANDROID
         int maxDelayMs =
-            QAndroidJniObject::callStaticMethod<jint>("org/krita/android/MainActivity", "getLongPressTimeout", "()I");
+            QJniObject::callStaticMethod<jint>("org/krita/android/MainActivity", "getLongPressTimeout", "()I");
 #else
         int maxDelayMs = qApp->styleHints()->mousePressAndHoldInterval();
 #endif

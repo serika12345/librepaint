@@ -13,12 +13,7 @@
 
 #include <qpa/qplatformscreen.h>
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QJniObject>
-#else
-#include <QAndroidJniObject>
-using QJniObject = QAndroidJniObject;
-#endif
 
 KisAndroidScaling::KisAndroidScaling(KisConfig &cfg, KisApplication *app)
     : QObject(app)
@@ -183,7 +178,7 @@ void KisAndroidScaling::maybeShowDialog(bool startup)
     bool haveTargetScale = cfg.androidScalingTargetScale() >= 1.0;
     bool askOnStartup = cfg.androidScalingAskOnStartup();
     if (!startup || askOnStartup) {
-        QJniObject activity = QJniObject::callStaticObjectMethod("org/qtproject/qt5/android/QtNative",
+        QJniObject activity = QJniObject::callStaticObjectMethod("org/qtproject/qt/android/QtNative",
                                                                  "activity",
                                                                  "()Landroid/app/Activity;");
         KisAndroidUtils::clearJniException(QStringLiteral("getting activity in KisAndroidScalingDialog"));

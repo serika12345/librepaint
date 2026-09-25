@@ -16,6 +16,15 @@ kis_add_tests(
     LINK_LIBRARIES kritaglobal kritapigment kritaplugin kritaresources kritawidgets kritaversion KF${KF_MAJOR}::ConfigCore Qt${QT_MAJOR_VERSION}::Sql kritatestsdk
     )
 
+if(ANDROID)
+    kis_add_test(
+        KoResourcePathsAndroidContractTest.cpp
+        LINK_LIBRARIES
+            kritaresources
+            Qt${QT_MAJOR_VERSION}::Test
+    )
+endif()
+
 kis_add_test(
     TestTag.cpp
     LINK_LIBRARIES

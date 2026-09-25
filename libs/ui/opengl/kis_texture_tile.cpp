@@ -10,6 +10,9 @@
 #include "opengl/kis_opengl.h"
 #include <cstring>
 #include <qopengl.h>
+#if defined(QT_OPENGL_ES_3)
+#include <GLES3/gl3.h>
+#endif
 #include <qpoint.h>
 #include <qsize.h>
 #include <qstringview.h>
@@ -19,7 +22,7 @@
 #include "kis_texture_tile_update_info.h"
 #include "KisOpenGLBufferCircularStorage.h"
 
-#if !defined(QT_OPENGL_ES)
+#if !defined(QT_OPENGL_ES) && !defined(QT_OPENGL_ES_2) && !defined(QT_OPENGL_ES_3)
 #include <QOpenGLBuffer>
 #endif
 
@@ -43,7 +46,7 @@ void KisTextureTile::setTextureParameters()
     f->glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, m_numMipmapLevels);
 
     if ((m_texturesInfo->internalFormat == GL_RGBA8 && m_texturesInfo->format == GL_RGBA)
-#ifndef QT_OPENGL_ES_2
+#if !defined(QT_OPENGL_ES_2) && !defined(QT_OPENGL_ES_3)
         || (m_texturesInfo->internalFormat == GL_RGBA16 && m_texturesInfo->format == GL_RGBA)
 #endif
         || (m_texturesInfo->internalFormat == GL_RGBA16_EXT && m_texturesInfo->format == GL_RGBA)
