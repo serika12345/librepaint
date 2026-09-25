@@ -160,3 +160,13 @@ adb logcat
 
 The application identifier is `org.krita`; the native application library
 retains the stable `krita` target name.
+
+## Qt accessibility compatibility
+
+The Android Activity sets `QT_ANDROID_DISABLE_ACCESSIBILITY=1` before Qt
+initialization. Qt 6.11.1 can otherwise abort when an accessibility query is
+waiting for the Qt event loop while a second OpenGL-backed top-level surface,
+such as the new-document dialog, is created. Keep this compatibility setting
+until the minimum Qt version supports Android accessibility together with
+multi-window surface creation, then remove the setting and repeat the physical
+device dialog and accessibility checks.

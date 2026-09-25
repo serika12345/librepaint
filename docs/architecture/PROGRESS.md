@@ -2,10 +2,10 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-25 07:39 JST
+- 更新日時: 2026-09-25 21:30 JST
 - 状態: `in_progress`
 - 現在の検査段階: R2-G19d-c Android製品・試験・配布のQt 6／KF6統一
-- 関連TODO: R1-G1からR1-G8、R2-G19bm、R2-G19d-0、R2-G19d-aを完了。R2-G19d-cはソース移行、両ABI構築、Waydroid検証まで完了し、arm64物理端末検証を残す。独立したR2-G19d-bは`planned`のまま維持する
+- 関連TODO: R1-G1からR1-G8、R2-G19bm、R2-G19d-0、R2-G19d-aを完了。R2-G19d-cはソース移行、両ABI構築、Waydroid検証、arm64物理端末の製品・Qt Test検証まで完了した。接続端末がスタイラス軸を持たないため、実スタイラスと複数指入力の端末検査を残す。独立したR2-G19d-bは`planned`のまま維持する
 - 追跡チケット: [Issue #50 Android製品・試験・配布をQt 6／KF6へ統一する](https://github.com/serika12345/librepaint/issues/50)
 - ブランチ: `issue-50-android-qt6`
 - 開始コミット: `5960761729d7d99462d1bb2d86ef97331225953c`。開始時の作業ツリーは変更なしであり、`develop`と`origin/develop`は一致している。
@@ -14,16 +14,18 @@
 - 移行前基準: Issue #47完了時のAndroid Qt 5構成は、arm64-v8aとx86_64の各62依存物、NDK r27d、API／build-tools 35、JDK 17、Gradle 8.13、Android Gradle Plugin 8.12を使用する。Waydroid x86_64で7契約対象を各3回、計135件成功させ、APKのABI、内容、後片付けを確認済みである。
 - 構造境界: `nix/android/upstream-artifacts{,-x86_64}.json`から既成のQt 5／KF5依存物を取り込む経路を削除し、行先を`nix/android/dependencies.nix`、`qtbase.nix`、`qt-module.nix`、`kf6.nix`、`application-dependencies.nix`の固定ソース派生物とした。Qt非依存物、Qt 6、KF6とQt依存物、LibrePaint本体、Qt Test、製品包装は変更頻度の異なる派生物であり、アプリケーションソース変更は外部依存物を再構築しない。
 - 配備境界: 起点のQt 5 ECM Android配備対象と`org.qtproject.qt5` Java接続を、行先のQt 6 CMake Android実行形式、`qt_finalize_executable()`、`androiddeployqt`、`org.qtproject.qt.android`接続へ移した。製品とQt Testは同じ固定SDK 35、NDK r27d、JDK 17、Gradle 8.13、Android Gradle Plugin 8.12、Qt 6.11.1、KF 6.28.0、C++17、共有libc++を使用する。
-- 実行時境界: Android資源の書込み先をアプリ専用データ領域へ置き、文書提供者の`content://` URIは`ContentResolver`から取得した記述子を一時ファイルへ複製して既存の入出力フィルターへ渡す。Qt 6 DSO間で利用する`KisToolCanvas`の仮想デストラクターは`libs/canvas/KisToolCanvas.cpp`へ実体を置き、型情報の所有を一意にした。構成変更後の新規IntentはLibrePaintのActivityが所有し、Qt側の失効済み待受先を呼ばない。
+- 実行時境界: Android資源の書込み先をアプリ専用データ領域へ置き、文書提供者の`content://` URIは`ContentResolver`から取得した記述子を一時ファイルへ複製して既存の入出力フィルターへ渡す。Qt 6 DSO間で利用する`KisToolCanvas`の仮想デストラクターは`libs/canvas/KisToolCanvas.cpp`へ実体を置き、型情報の所有を一意にした。構成変更後の新規IntentはLibrePaintのActivityが所有し、Qt側の失効済み待受先を呼ばない。Qt 6.11.1のAndroidアクセシビリティー接続が別の最上位OpenGL面作成と競合するため、ActivityはQt初期化前に`QT_ANDROID_DISABLE_ACCESSIBILITY=1`を設定する。この互換設定は対応済みQtを最低版にした時点で除去し、物理端末のダイアログとアクセシビリティーを再検査する。
 - 契約追加: `libs/resources/tests/KoResourcePathsAndroidContractTest.cpp`は書込み可能な資源ルートを、`libs/global/tests/KisAndroidContentUriContractTest.cpp`は文書提供者を介したバイナリーデータの読書きを検査する。既存`KisToolProxyContractTest`はAndroid共有ライブラリー境界でも実行する。
 - 構築結果: x86_64 Linuxホストでarm64-v8aとx86_64の固定ソース依存物、全LibrePaint製品対象、製品APK／AAB、選択可能なQt Test APKをQt 6で構築した。実装コミット`bb631868fc`の隔離作業ツリーから両ABIを同時にNix構築し、ARM64は`/nix/store/hqc2pzf4idciyfy9fsvdabapjxvzj6ws-librepaint-android-1.0.2`、x86_64は`/nix/store/0k6fsfbxnl2zmqqv9hkx836y1bffxh0q-librepaint-android-x86_64-1.0.2`へ確定した。各出力のAPK／AABはABI、ELF、16 KiB整列、単一libc++、Qt 6／KF6、プラグイン、資源、Manifest、minSdk 28、targetSdk 35の自動監査に成功した。通常のGradle解決は`nix/android/gradle-deps.json`の固定応答だけを使用する。
-- Qt Test結果: Waydroid x86_64でR2-G19d-aの7対象を各3回、計21回成功させた。追加した`KoResourcePathsAndroidContractTest`、Android上の`KisToolProxyContractTest`、`KisAndroidContentUriContractTest`も各3回成功し、標準`ContentResolver`へ確定した最終コードで内容URI契約を再実行して成功した。各実行はXMLとlogcatを回収し、試験パッケージを削除した。
+- Qt Test結果: Waydroid x86_64でR2-G19d-aの7対象を各3回、計21回成功させた。追加した`KoResourcePathsAndroidContractTest`、Android上の`KisToolProxyContractTest`、`KisAndroidContentUriContractTest`も各3回成功し、標準`ContentResolver`へ確定した最終コードで内容URI契約を再実行して成功した。Pixel 10aのarm64-v8a実機では同じ10対象を各3回実行し、XML集計171件が失敗0・異常0で成功した。各実行はXMLとlogcatを回収し、試験パッケージを削除した。
 - Waydroid製品結果: 冷間起動、新規文書、合成タッチによる文書変更、MediaStore内容URIからのKRA読込、書込み権限付き内容URIへの上書き、回転、休止・復帰、終了を完走した。上書き後のKRAを端末から回収し、ZIP全項目の整合性を確認した。回転と休止・復帰ではPIDを維持し、異常終了記録は0件である。
+- arm64実機製品結果: Android 17のPixel 10aでBitwardenのアクセシビリティーサービスを有効にしたまま、冷間起動、新規文書ダイアログ、2480×3508文書作成、Android標準DocumentsUIへのKRA保存、同じ`content://`文書の再読込、画面回転、ホーム移動・復帰、Android Backによる正常終了を完走した。保存したKRAは約190 KBであり、回転、休止・復帰、保存、再読込ではPIDを維持し、異常終了記録は0件である。検証用KRAと試験パッケージは削除し、表示密度、回転、画面消灯、常時点灯を開始値へ戻した。
+- 実機診断: 互換設定がないQt 6.11.1製品では、新規文書ダイアログ作成時に`QtAndroidAccessibility::runInObjectContext()`と`QAndroidPlatformOpenGLWindow::eglSurface()`が同じ保護区間を待ち、`Failed to acquire deadlock protector`でSIGABRTした。Activity初期化前の互換設定を適用した製品では同じ操作と全ライフサイクルを完走した。
 - Waydroid環境差: システム選択画面のExternalStorage DocumentsProviderは、MediaProviderへの代理読込時に呼出し元パッケージを失って`NullPointerException`となる。直接のMediaStore URIと試験用FileProviderでは同じLibrePaint読込経路が成功するため、Waydroid提供者の障害として分類した。物理端末では標準システム選択画面も検査対象に含める。
 - ネイティブ結果: 完全native検査は878/879件成功し、既知の並列競合`KisSafeDocumentLoaderTest`だけが失敗した。同対象の隔離実行は成功した。`KisToolCanvas`の共有実体追加後に`KisToolProxyContractTest`を再実行して成功した。
-- 残る検査: 物理arm64端末がないため、arm64上の起動、システム選択画面、書出し、回転、休止・復帰、終了、および指・スタイラスの筆圧、傾き、移動、拡大縮小、回転、誤接触除去は未実施である。arm64-v8a製品と試験APKは構築・監査済みであり、同じ`run-test`入口を使用できる。
-- 検証状態: 増分構築、対象契約、Waydroid製品操作、両ABI包装監査、56件の方針試験を含む`verify-quick`、`nix flake check --no-build --all-systems`、同一ソースから両ABI製品を生成する隔離Nix構築が成功した。最終構築は成功済みのネイティブ層を再利用し、変更頻度を分離した包装派生物2件だけを生成した。ARM64のAPKは142,798,635バイト、AABは237,085,721バイト、x86_64のAPKは146,615,141バイト、AABは238,298,028バイトである。
-- 次の作業: Issue #50へPRを提出し、構築・Waydroid検証済みのQt 6移行をレビュー可能にする。物理arm64端末を利用できる時点で、システム選択画面、書出し、ライフサイクル、指・スタイラス入力の残る端末検査を再開し、R2-G19d-cの未完了条件を閉じる。
+- 残る検査: Pixel 10aの入力装置は10点の指入力だけを公開し、スタイラス、筆圧、傾きの軸を持たない。`KisToolProxyContractTest`はarm64端末上でマウス、単一指、スタイラスの押下・移動・解放と筆圧・傾き・回転値を各3回成功させたが、実スタイラスと複数指による移動・拡大縮小・回転・誤接触除去は対応ハードウェアでの検査を残す。Qtアクセシビリティーは互換設定により無効であり、対応済みQtへの更新時に再有効化する。
+- 検証状態: 増分構築、対象契約、Waydroid製品操作、arm64物理端末の10対象30回・171検査、製品操作、両ABI包装監査、方針試験を含む`verify-quick`、`nix flake check --no-build --all-systems`、同一ソースから両ABI製品を生成する隔離Nix構築が成功した。最終構築は成功済みのネイティブ層を再利用し、変更頻度を分離した包装派生物2件だけを生成した。ARM64のAPKは142,798,635バイト、AABは237,085,721バイト、x86_64のAPKは146,615,141バイト、AABは238,298,028バイトである。
+- 次の作業: Issue #50のPRへarm64実機結果とQt 6.11.1互換設定を反映してレビュー可能にする。スタイラスと複数指入力を公開するarm64端末で残る入力条件を検査し、R2-G19d-cとIssue #50を閉じる。
 
 ## 直前の完了記録: R1-G8 変更波及の局所化
 

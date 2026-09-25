@@ -1201,14 +1201,19 @@ AndroidだけがQt 5.15、KF5、Qt 5 Android配備処理、Qt 5 Java Activityを
 - [x] 依存物、LibrePaint、Qt Test、包装の派生物を分離し、アプリケーションソース変更でQtと外部依存物を再構築しない。
 - [x] 全Android製品対象と選択可能なQt Testを、共通C++17基準のままQt 6で構築する。
 - [x] QtActivity、JNI、プラグイン、資源、ファイル操作、入力、ライフサイクルをQt 6経路で初期化する。
-- [ ] Waydroid x86_64とarm64物理端末で、既存Qt Testおよび起動、新規文書、描画、保存、書出し、
+- [x] Waydroid x86_64とarm64物理端末で、既存Qt Testおよび起動、新規文書、描画、保存、書出し、
       回転、休止・復帰、終了の操作を完走する。
 - [ ] スタイラスと指入力の押下、移動、解放、筆圧、傾き、移動、拡大縮小、回転、誤接触除去を端末上で検査する。
 - [x] APK／AABのABI、ELF依存、単一の`libc++_shared.so`、Qt 6、プラグイン、資源、Manifest、
       minSdk、targetSdkを自動監査する。
 - [x] Qt 5 Androidの固定依存物、構築プロファイル、配備分岐、`org.qtproject.qt5`参照を削除する。
-- [ ] `verify-quick`、Android対象構築、Qt Test反復、Waydroid実行、arm64実機実行、Nix評価を成功させ、
+- [x] `verify-quick`、Android対象構築、Qt Test反復、Waydroid実行、arm64実機実行、Nix評価を成功させ、
       `PROGRESS.md`、`DEVELOPMENT.md`、Android文書を実際の構築・実行条件へ同期する。
+
+arm64実機には10点の指入力を持つPixel 10aを使用した。この端末はスタイラス、筆圧、傾きの入力軸を
+公開しない。端末上の`KisToolProxyContractTest`では単一指とスタイラスの押下・移動・解放、筆圧、
+傾き、回転値を3回成功させた。実スタイラスと複数指の移動・拡大縮小・回転・誤接触除去は、対応する
+入力装置を持つarm64端末で検査して残る入力条件を完了する。
 
 ### R2-G19e ブラシ設定試験の偽設定ストア撤去
 

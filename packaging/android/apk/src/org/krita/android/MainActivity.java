@@ -19,6 +19,8 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.system.ErrnoException;
+import android.system.Os;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
@@ -50,6 +52,18 @@ public class MainActivity extends QtActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        // Qt 6.11.1 can abort while creating a second OpenGL-backed top-level
+        // surface if its Android accessibility bridge is waiting for the Qt
+        // event loop. This must be set before QtActivity initializes the
+        // bridge. Remove it after the minimum Qt version supports multi-window
+        // surface creation with an active Android accessibility service.
+        try {
+            Os.setenv("QT_ANDROID_DISABLE_ACCESSIBILITY", "1", true);
+        } catch (ErrnoException error) {
+            throw new IllegalStateException(
+                    "Unable to apply the Qt Android accessibility workaround", error);
+        }
+
         currentActivity = this;
 
         // we have to do this before loading main()

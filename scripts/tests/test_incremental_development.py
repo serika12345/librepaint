@@ -684,6 +684,16 @@ class IncrementalDevelopmentContractTests(unittest.TestCase):
         self.assertIn("minSdkVersion:'28'", audit_script)
         self.assertIn("targetSdkVersion:'35'", audit_script)
 
+    def test_android_product_applies_qt_accessibility_workaround_before_startup(self):
+        activity = (
+            REPO_ROOT
+            / "packaging/android/apk/src/org/krita/android/MainActivity.java"
+        ).read_text(encoding="utf-8")
+
+        workaround = 'Os.setenv("QT_ANDROID_DISABLE_ACCESSIBILITY", "1", true);'
+        self.assertIn(workaround, activity)
+        self.assertLess(activity.index(workaround), activity.index("super.onCreate"))
+
     def test_android_test_apk_carries_target_test_data(self):
         test_suite = (
             REPO_ROOT / "cmake/modules/KritaTestSuite.cmake"
