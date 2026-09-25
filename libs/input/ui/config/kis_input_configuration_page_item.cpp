@@ -18,13 +18,14 @@
 #include "ui_kis_input_configuration_page_item.h"
 
 #include <QAction>
+#include <QItemSelectionModel>
 #include <QMessageBox>
 #include <QToolTip>
+#include <QtGlobal>
 #include <qcursor.h>
 #include <qnamespace.h>
 #include <qobject.h>
 #include <qobjectdefs.h>
-#include <QtGlobal>
 
 KisInputConfigurationPageItem::KisInputConfigurationPageItem(QWidget *parent, Qt::WindowFlags f)
     : QWidget(parent, f)
@@ -53,10 +54,18 @@ KisInputConfigurationPageItem::KisInputConfigurationPageItem(QWidget *parent, Qt
         Q_EMIT inputConfigurationChanged();
     });
 
-    QAction *deleteAction = new QAction(KisIconUtils::loadIcon("edit-delete"), i18n("Delete Shortcut"), ui->shortcutsView);
-    connect(deleteAction, SIGNAL(triggered(bool)), SLOT(deleteShortcut()));
-    ui->shortcutsView->addAction(deleteAction);
+    m_deleteShortcutAction =
+        new QAction(KisIconUtils::loadIcon("edit-delete"), i18n("Delete Shortcut"), ui->shortcutsView);
+    connect(m_deleteShortcutAction, &QAction::triggered, this, &KisInputConfigurationPageItem::deleteShortcut);
+    ui->shortcutsView->addAction(m_deleteShortcutAction);
     ui->shortcutsView->setContextMenuPolicy(Qt::ActionsContextMenu);
+    ui->deleteShortcutButton->setIcon(m_deleteShortcutAction->icon());
+    connect(ui->deleteShortcutButton, &QPushButton::clicked, this, &KisInputConfigurationPageItem::deleteShortcut);
+    connect(ui->shortcutsView->selectionModel(),
+            &QItemSelectionModel::currentChanged,
+            this,
+            &KisInputConfigurationPageItem::updateDeleteShortcutActions);
+    updateDeleteShortcutActions();
 
     connect(ui->collapseButton, SIGNAL(clicked(bool)), SLOT(setExpanded(bool)));
 }
@@ -95,11 +104,13 @@ void KisInputConfigurationPageItem::setExpanded(bool expand)
     if (expand) {
         ui->descriptionLabel->setVisible(true);
         ui->shortcutsView->setVisible(true);
+        ui->deleteShortcutButton->setVisible(true);
         ui->collapseButton->setArrowType(Qt::DownArrow);
     }
     else {
         ui->descriptionLabel->setVisible(false);
         ui->shortcutsView->setVisible(false);
+        ui->deleteShortcutButton->setVisible(false);
         ui->collapseButton->setArrowType(Qt::RightArrow);
     }
 }
@@ -110,6 +121,7 @@ void KisInputConfigurationPageItem::deleteShortcut()
 
     if (m_shortcutsModel->canRemoveRow(row)) {
         m_shortcutsModel->removeRow(row, QModelIndex());
+        updateDeleteShortcutActions();
         Q_EMIT inputConfigurationChanged();
     } else {
         QMessageBox shortcutMessage;
@@ -117,4 +129,12 @@ void KisInputConfigurationPageItem::deleteShortcut()
         shortcutMessage.setInformativeText(i18n("It is not allowed to erase some default shortcuts. Modify it instead."));
         shortcutMessage.exec();
     }
+}
+
+void KisInputConfigurationPageItem::updateDeleteShortcutActions()
+{
+    const QModelIndex currentIndex = ui->shortcutsView->selectionModel()->currentIndex();
+    const bool canDelete = currentIndex.isValid() && m_shortcutsModel->canRemoveRow(currentIndex.row());
+    m_deleteShortcutAction->setEnabled(canDelete);
+    ui->deleteShortcutButton->setEnabled(canDelete);
 }

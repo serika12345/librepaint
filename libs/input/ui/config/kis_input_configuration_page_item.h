@@ -17,6 +17,8 @@ class KisInputConfigurationPageItem;
 
 class KisActionShortcutsModel;
 class KisAbstractInputAction;
+class QAction;
+
 /**
  * \brief A collapsible widget displaying an action, its description and associated shortcuts.
  *
@@ -42,11 +44,13 @@ public Q_SLOTS:
 
 private Q_SLOTS:
     void deleteShortcut();
+    void updateDeleteShortcutActions();
 
 private:
     Ui::KisInputConfigurationPageItem *ui {nullptr};
     KisAbstractInputAction *m_action {nullptr};
     KisActionShortcutsModel *m_shortcutsModel {nullptr};
+    QAction *m_deleteShortcutAction {nullptr};
 
     const QString m_defaultToolTipText;
 };

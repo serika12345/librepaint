@@ -2,6 +2,26 @@
 
 ## 現在の作業スナップショット
 
+- 更新日時: 2026-09-26 00:18 JST
+- 状態: `complete`
+- 現在の検査段階: R2-G19d-e タッチ操作による入力割当削除契約
+- 関連TODO: R1-G1からR1-G8、R2-G19bm、R2-G19d-0、R2-G19d-a、R2-G19d-c、R2-G19d-d、R2-G19d-eを完了。独立したR2-G19d-bは`planned`のまま維持する
+- 追跡チケット: [Issue #39 キャンバス入力設定のショートカットをiPadから削除できない](https://github.com/serika12345/librepaint/issues/39)
+- ブランチ: `issue-39-touch-shortcut-removal`
+- 開始コミット: `1379de347a35e879dff678187fbe981d45a6e38b`。開始時の作業ツリーは変更なしであり、`develop`と`origin/develop`は一致している。
+- 目的: キャンバス入力設定の削除操作が右クリックメニューだけに存在し、右クリックを持たないiPadから入力割当を削除できない問題を解消する。
+- 範囲固定: `libs/input/ui/config/`の共有設定表示、既存モデルの削除可否判定と削除操作への接続、`libs/input/ui/tests/`の契約試験とCMake、アーキテクチャ文書に限定する。入力プロファイル形式、操作識別子、入力解釈、モバイル画面全体の配置は維持する。
+- 対象構築基準: 変更前のnative `kritainputui`増分計画は版情報更新だけの3工程であり、既存の直接依存へ追加はない。新規`KisInputConfigurationPageContractTest`の空構築命令閉包は1394件で、最も近い`KisToolInvocationActionCompatibilityTest`と同数である。
+- 契約追加: 展開した入力操作で割当行を選択すると表示削除ボタンが有効になり、主操作で起動すると入力プロファイルと表示モデルから割当が消えることを検査する。最初の実行は`deleteShortcutButton`が存在せず、タッチ端末向けの表示削除操作が必要という診断で失敗した。
+- 実装結果: 展開領域へ`Delete Shortcut`ボタンを追加し、既存の`canRemoveRow()`と`removeRow()`へ接続した。既存の右クリックメニューは維持し、選択変更後にボタンとメニュー操作の有効状態を同じ判定から更新する。未選択、追加用行、削除不可の行では両操作が無効になる。
+- 検証状態: `KisInputConfigurationPageContractTest`は対象実行と20回反復で成功した。完全native検査は881/881件、`verify-quick`は57/57件成功した。iOS arm64製品は`LibrePaint.app/LibrePaint`へリンクし、静的依存資源253ファイル、保持7群、除外1群、未分類0件の監査に成功した。iOS再計画は0工程である。
+- 実機受入れ: iPad Pro（11-inch）へビルド番号`20260925151414`をAltStoreで導入し、`local.librepaint.ipad.PUDY4GHY3Y`の起動と活動状態を確認した。展開、割当選択、表示ボタンによる削除、削除不可状態、折畳み、設定保持、回転後の操作を利用者が確認し、問題なしとして受け入れた。
+- プラットフォーム方針: 通常変更はmacOSとiPadOSを優先する。Android検証はAndroidを所有する検査段階、リリース前、または問題発覚時に実施するため、本変更では実施していない。実装はプラットフォーム条件を追加しない共有Qt Widgets経路である。
+- 検証環境: `ssh nixos`の主作業ツリーは利用者指示に従って旧作業差分を破棄し、`develop`を`origin/develop`の`1379de347a`へ同期した。再利用可能な無視対象の`build/`と`.cache/`は保持し、作業ツリーはcleanである。
+- 次の作業: Issue #39の変更をレビューし、必要な受入れ確認後にコミットとPRを作成する。独立したR2-G19d-bは`planned`のまま維持する。
+
+## 直前の完了記録: R2-G19d-d iPadOS文書提供者の保存契約
+
 - 更新日時: 2026-09-25 23:17 JST
 - 状態: `complete`
 - 現在の検査段階: R2-G19d-d iPadOS文書提供者の保存契約

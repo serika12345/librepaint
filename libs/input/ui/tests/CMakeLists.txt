@@ -58,6 +58,14 @@ kis_add_test(
 )
 
 kis_add_test(
+    KisInputConfigurationPageContractTest.cpp
+    TEST_NAME KisInputConfigurationPageContractTest
+    LINK_LIBRARIES
+        kritainputui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+
+kis_add_test(
     KisExtendedModifiersMapperContractTest.cpp
     TEST_NAME KisExtendedModifiersMapperContractTest
     LINK_LIBRARIES
