@@ -219,3 +219,11 @@ validated the arm64 executable, 204 runtime data files, IPA contents and
 permissions, installed `local.librepaint.ipad.PUDY4GHY3Y`, launched LibrePaint,
 and collected its startup log. The tester accepted the document-provider save
 behavior after device validation and reported no remaining issue.
+
+The physical-device run `20260925151414` installed the Issue #39 touch-
+accessible shortcut deletion control on the same iPad Pro through AltStore.
+The deployment validated the arm64 executable, 204 runtime data files, IPA
+contents and permissions, launched `local.librepaint.ipad.PUDY4GHY3Y`, and
+collected its startup log. The tester accepted shortcut selection and deletion,
+non-removable states, collapse behavior, persisted settings, and operation
+after rotation with no remaining issue.
