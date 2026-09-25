@@ -116,6 +116,31 @@ updates use their bundle-name inventory independently of Krita's semantic
 version. The iOS resource locator imports newly packaged bundle names and
 preserves existing resources and user data.
 
+## Files document-provider saves
+
+The iOS document picker grants LibrePaint access to the selected file. A
+provider may withhold write access to the containing directory, so saving does
+not depend on creating an adjacent temporary file. LibrePaint completes the
+export in its application temporary directory, verifies that completed local
+file, and then writes its bytes through the selected file's own handle. The
+selected file remains in place so that its security-scoped grant remains
+applicable.
+
+Adjacent backup and autosave settings use LibrePaint's application recovery
+directory on iOS. The empty file created by the export picker is treated as a
+new destination, while a nonempty selected file is backed up before its
+contents are replaced. A failed final transfer retains the completed local
+export and records its path in the diagnostic log for recovery.
+
+After a pull request changes this path, physical-device acceptance covers KRA,
+ORA, PNG, and JPEG destinations in the LibrePaint folder and at least one
+external Files provider. For each format, save with backups enabled and
+disabled, reopen the result from Files, and confirm its document dimensions or
+decoded image contents. Repeat an existing-document save and confirm that the
+recovery directory contains its backup. Exercise autosave, background and
+foreground transitions, and a provider failure while preserving the local
+completed export.
+
 ## Validated result
 
 The physical-device run `20260802121956` completed the automated flow and
@@ -187,3 +212,10 @@ the connected iPad. The post-event iOS widget hooks also retain receivers with
 the `KisApplication::notify` invalid-pointer crash found in the superseded
 `20260802132041` run; the final build reached the main window and remained
 running before the input behavior was retested.
+
+The physical-device run `20260925140933` installed the Issue #40 document-
+provider save fix on an iPad Pro (11-inch) through AltStore. The deployment
+validated the arm64 executable, 204 runtime data files, IPA contents and
+permissions, installed `local.librepaint.ipad.PUDY4GHY3Y`, launched LibrePaint,
+and collected its startup log. The tester accepted the document-provider save
+behavior after device validation and reported no remaining issue.
