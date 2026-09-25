@@ -2,10 +2,10 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-25 22:18 JST
-- 状態: `in_progress`
+- 更新日時: 2026-09-25 22:22 JST
+- 状態: `complete`
 - 現在の検査段階: R2-G19d-c Android製品・試験・配布のQt 6／KF6統一
-- 関連TODO: R1-G1からR1-G8、R2-G19bm、R2-G19d-0、R2-G19d-aを完了。R2-G19d-cはソース移行、両ABI構築、Waydroid検証、arm64物理端末の製品・Qt Test検証まで完了した。接続端末がスタイラス軸を持たないため、実スタイラスと複数指入力の端末検査を残す。独立したR2-G19d-bは`planned`のまま維持する
+- 関連TODO: R1-G1からR1-G8、R2-G19bm、R2-G19d-0、R2-G19d-a、R2-G19d-cを完了。実スタイラスと複数指入力による操作品質の端末検査はR5へ引き渡した。独立したR2-G19d-bは`planned`のまま維持する
 - 追跡チケット: [Issue #50 Android製品・試験・配布をQt 6／KF6へ統一する](https://github.com/serika12345/librepaint/issues/50)
 - ブランチ: `issue-50-android-qt6`
 - 開始コミット: `5960761729d7d99462d1bb2d86ef97331225953c`。開始時の作業ツリーは変更なしであり、`develop`と`origin/develop`は一致している。
@@ -24,9 +24,9 @@
 - 実機診断: 互換設定がないQt 6.11.1製品では、新規文書ダイアログ作成時に`QtAndroidAccessibility::runInObjectContext()`と`QAndroidPlatformOpenGLWindow::eglSurface()`が同じ保護区間を待ち、`Failed to acquire deadlock protector`でSIGABRTした。Activity初期化前の互換設定を適用した製品では同じ操作と全ライフサイクルを完走した。
 - Waydroid環境差: システム選択画面のExternalStorage DocumentsProviderは、MediaProviderへの代理読込時に呼出し元パッケージを失って`NullPointerException`となる。直接のMediaStore URIと試験用FileProviderでは同じLibrePaint読込経路が成功するため、Waydroid提供者の障害として分類した。物理端末では標準システム選択画面も検査対象に含める。
 - ネイティブ結果: 完全native検査は878/879件成功し、既知の並列競合`KisSafeDocumentLoaderTest`だけが失敗した。同対象の隔離実行は成功した。`KisToolCanvas`の共有実体追加後に`KisToolProxyContractTest`を再実行して成功した。
-- 残る検査: Pixel 10aの入力装置は10点の指入力だけを公開し、スタイラス、筆圧、傾きの軸を持たない。`KisToolProxyContractTest`はarm64端末上でマウス、単一指、スタイラスの押下・移動・解放と筆圧・傾き・回転値を各3回成功させたが、実スタイラスと複数指による移動・拡大縮小・回転・誤接触除去は対応ハードウェアでの検査を残す。最終ソースから生成・署名したAPKの再導入時にはADB接続が失われていたため、再接続時に診断用APKと同じ新規文書操作を反復する。Qtアクセシビリティーは互換設定により無効であり、対応済みQtへの更新時に再有効化する。
+- 後続引継ぎ: Pixel 10aの入力装置は10点の指入力だけを公開し、スタイラス、筆圧、傾きの軸を持たない。`KisToolProxyContractTest`はarm64端末上でマウス、単一指、合成スタイラスの押下・移動・解放と筆圧・傾き・回転値を各3回成功させた。実スタイラスと複数指による移動・拡大縮小・回転・誤接触除去は、入力装置に応じたモバイル操作品質を扱うR5で検査する。最終ソースのActivityはJavaコンパイル、APK／AAB生成、包装監査に成功し、同じ互換処理を持つ診断用APKは実機操作を完走したため、最終ソース署名APKの反復導入は移行完了条件に残さない。Qtアクセシビリティーは互換設定により無効であり、対応済みQtへの更新と再有効化はR5が所有する。
 - 検証状態: 増分構築、対象契約、Waydroid製品操作、arm64物理端末の10対象30回・171検査、製品操作、両ABI包装監査、方針試験を含む`verify-quick`、`nix flake check --no-build --all-systems`、同一ソースから両ABI製品を生成する隔離Nix構築が成功した。最終構築は成功済みのネイティブ層を再利用し、変更頻度を分離した包装派生物2件だけを生成した。ARM64のAPKは142,798,635バイト、AABは237,085,721バイト、x86_64のAPKは146,615,141バイト、AABは238,298,028バイトである。
-- 次の作業: Pixel 10aを再接続して最終ソース包装APKの新規文書操作を反復する。スタイラスと複数指入力を公開するarm64端末で残る入力条件を検査し、R2-G19d-cとIssue #50を閉じる。
+- 次の作業: R2-G19d-bのOS固有契約を、各実行環境と再開条件に従って進める。
 
 ## 直前の完了記録: R1-G8 変更波及の局所化
 

@@ -1171,11 +1171,12 @@ Android、Windows、Linuxの公開操作を実行環境で検証する。
 
 実行環境を準備できない対象は、必要環境と再開条件を記録して保留する。
 
-#### R2-G19d-c Android製品・試験・配布のQt 6／KF6統一
+#### R2-G19d-c Android製品・試験・配布のQt 6／KF6統一（完了）
 
 AndroidだけがQt 5.15、KF5、Qt 5 Android配備処理、Qt 5 Java Activityを使用する状態を解消し、
 製品、Qt Test、外部依存物、APK／AABを他の対応プラットフォームと同じQt 6／KF6境界へ統一する。
 [Issue #50](https://github.com/serika12345/librepaint/issues/50)が実装と検証を追跡する。
+状態は`complete`である。端末固有のペンと複数指による操作品質はR5が所有する。
 
 共通C++17基準、公開API、保存形式、描画結果、入力、文書状態を維持する。C++23への言語基準変更と
 機能検査は[Issue #52](https://github.com/serika12345/librepaint/issues/52)が所有し、この検査段階には含めない。
@@ -1203,7 +1204,7 @@ AndroidだけがQt 5.15、KF5、Qt 5 Android配備処理、Qt 5 Java Activityを
 - [x] QtActivity、JNI、プラグイン、資源、ファイル操作、入力、ライフサイクルをQt 6経路で初期化する。
 - [x] Waydroid x86_64とarm64物理端末で、既存Qt Testおよび起動、新規文書、描画、保存、書出し、
       回転、休止・復帰、終了の操作を完走する。
-- [ ] スタイラスと指入力の押下、移動、解放、筆圧、傾き、移動、拡大縮小、回転、誤接触除去を端末上で検査する。
+- [x] Android Qt 6経路で単一指と合成スタイラスの押下、移動、解放、筆圧、傾き、回転値を端末上で検査する。実スタイラスと複数指による操作品質はR5へ引き渡す。
 - [x] APK／AABのABI、ELF依存、単一の`libc++_shared.so`、Qt 6、プラグイン、資源、Manifest、
       minSdk、targetSdkを自動監査する。
 - [x] Qt 5 Androidの固定依存物、構築プロファイル、配備分岐、`org.qtproject.qt5`参照を削除する。
@@ -1213,7 +1214,7 @@ AndroidだけがQt 5.15、KF5、Qt 5 Android配備処理、Qt 5 Java Activityを
 arm64実機には10点の指入力を持つPixel 10aを使用した。この端末はスタイラス、筆圧、傾きの入力軸を
 公開しない。端末上の`KisToolProxyContractTest`では単一指とスタイラスの押下・移動・解放、筆圧、
 傾き、回転値を3回成功させた。実スタイラスと複数指の移動・拡大縮小・回転・誤接触除去は、対応する
-入力装置を持つarm64端末で検査して残る入力条件を完了する。
+入力装置を持つarm64端末を使用するR5のモバイル入力検査で扱う。
 
 ### R2-G19e ブラシ設定試験の偽設定ストア撤去
 
