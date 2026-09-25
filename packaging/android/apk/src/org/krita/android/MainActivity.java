@@ -55,8 +55,9 @@ public class MainActivity extends QtActivity {
         // Qt 6.11.1 can abort while creating a second OpenGL-backed top-level
         // surface if its Android accessibility bridge is waiting for the Qt
         // event loop. This must be set before QtActivity initializes the
-        // bridge. Remove it after the minimum Qt version supports multi-window
-        // surface creation with an active Android accessibility service.
+        // bridge. The R5 accessibility gate owns removal after the minimum Qt
+        // version supports multi-window surface creation with an active
+        // Android accessibility service.
         try {
             Os.setenv("QT_ANDROID_DISABLE_ACCESSIBILITY", "1", true);
         } catch (ErrnoException error) {

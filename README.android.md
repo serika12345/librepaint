@@ -168,5 +168,5 @@ initialization. Qt 6.11.1 can otherwise abort when an accessibility query is
 waiting for the Qt event loop while a second OpenGL-backed top-level surface,
 such as the new-document dialog, is created. Keep this compatibility setting
 until the minimum Qt version supports Android accessibility together with
-multi-window surface creation, then remove the setting and repeat the physical
-device dialog and accessibility checks.
+multi-window surface creation. The R5 accessibility gate owns removal of the
+setting and the repeated physical-device dialog and accessibility checks.
