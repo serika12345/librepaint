@@ -2,6 +2,26 @@
 
 ## 現在の作業スナップショット
 
+- 更新日時: 2026-09-25 22:55 JST
+- 状態: `complete`
+- 現在の検査段階: R2-G19d-d iPadOS文書提供者の保存契約
+- 関連TODO: R1-G1からR1-G8、R2-G19bm、R2-G19d-0、R2-G19d-a、R2-G19d-c、R2-G19d-dを完了。独立したR2-G19d-bは`planned`のまま維持する
+- 追跡チケット: [Issue #40 iPadでLibrePaintフォルダ外に文書を保存できない](https://github.com/serika12345/librepaint/issues/40)
+- ブランチ: `issue-40-ios-file-provider-save`
+- 開始コミット: `fa32614610`。開始時の作業ツリーは変更なしであり、`develop`と`origin/develop`は一致している。
+- 目的: iPadOSの文書ピッカーが許可した単一ファイルへの保存が、隣接バックアップと同一ディレクトリーの安全保存用一時ファイルを要求して失敗する問題を解消する。
+- 範囲固定: `libs/document/files/`の文書ファイル交換・バックアップ・自動保存方針、`libs/impex/ui/KisImportExportManager.cpp`のiOS書出し接続、対応するCMakeと契約試験、iOS検証文書に限定する。保存形式、画像内容、公開操作、他OSの安全保存は維持する。
+- 原因: `UIDocumentPickerViewController`は選択した出力ファイルのセキュリティー保護付きURLを返すが、親ディレクトリーの書込み権限は与えない。現行は空の出力ファイルを既存文書と判定して隣接バックアップを作り、バックアップ無効時も`QSaveFile`が隣接一時ファイルを要求するため失敗する。
+- 対象構築基準: `kis_document_files_test`の変更前増分計画は18工程。`kritadocumentfiles`の既存直接依存はQt Core、`kritaglobal`、`kritaresourcestorage`であり、新しい依存対象は追加しない。責務をimport-exportへ確定した後の新規`kis_import_export_file_transfer_test`は空構築命令閉包7件であり、近接する`kis_import_export_error_code_test`の78件より狭い。製品オブジェクトはQt Core、試験は同オブジェクトとQt Testだけへ直接接続する。
+- 構造境界: 起点`libs/impex/ui/KisImportExportManager.cpp`のiOS向け`QSaveFile`経路を、行先`libs/impex/KisImportExportFileTransfer.{h,cpp}`の選択ファイル直接書込みへ移した。書出しフィルターはアプリ一時領域で完成物を生成・検証し、転送処理は選択ファイルを削除せず同じファイルハンドルから内容を置き換える。検証または反映の失敗時は完成物を残し、その場所を診断へ出力する。
+- 回復境界: 起点`libs/document/files/kis_document_backup_file.cpp`と`kis_document_autosave_files.cpp`の隣接ファイル経路を、iOSでは行先のアプリ回復領域へ切り替えた。`kis_document_save_target.cpp`は文書ピッカーが作成した空ファイルを新規保存先として扱い、内容を持つ既存文書だけをバックアップ対象にする。他OSの安全保存、保存形式、画像内容、文書状態は維持する。
+- 契約追加: `libs/impex/tests/kis_import_export_file_transfer_test.cpp`は既存ファイルの同一性を維持した内容置換、完成バイト列、転送元の保持、転送元を開けない場合の対象保全と診断を検査する。最初の実行は未実装ヘッダー`KisImportExportFileTransfer.h`の不足でコンパイルに失敗し、実装後は成功した。
+- 検証状態: `kis_import_export_file_transfer_test`と`kis_document_files_test`は各1/1件成功し、native製品対象`krita`のリンクとパッケージ境界監査が成功した。完全native検査は880/880件成功し、`verify-quick`も成功した。iOS arm64製品は`build-ios/krita/device-incremental/6ec524b4911b7992/bin/LibrePaint.app/LibrePaint`へリンクし、静的依存資源253ファイル、保持7群、除外1群、未分類0件の監査に成功した。再計画は0工程である。
+- 残存リスク: 文書提供者ごとの書込み挙動とクラウド同期は実機でのみ確定できる。PR後にKRA・ORA・PNG・JPEGをLibrePaintフォルダー外へ保存し、バックアップ有効・無効、既存文書上書き、自動保存、再読込み、提供者失敗時の回復物保持を受入れ検査する。
+- 次の作業: Issue #40のPRを提出し、上記のiPad実機受入れ検査を記録する。その後、独立したR2-G19d-bのOS固有契約を各実行環境と再開条件に従って進める。
+
+## 直前の完了記録: R2-G19d-c Android製品・試験・配布のQt 6／KF6統一
+
 - 更新日時: 2026-09-25 22:22 JST
 - 状態: `complete`
 - 現在の検査段階: R2-G19d-c Android製品・試験・配布のQt 6／KF6統一

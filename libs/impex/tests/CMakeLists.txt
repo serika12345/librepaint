@@ -152,6 +152,11 @@ kis_add_tests(
         kritaimpexfilterheaders
         Qt${QT_MAJOR_VERSION}::Test
 )
+
+kis_add_tests(
+    kis_import_export_file_transfer_test.cpp
+    LINK_LIBRARIES kritaimpexfiletransferobjects Qt${QT_MAJOR_VERSION}::Test
+)
 target_compile_definitions(kis_import_export_utils_values_test PRIVATE kritaapplicationui_EXPORTS)
 target_include_directories(kis_import_export_utils_values_test
     PRIVATE

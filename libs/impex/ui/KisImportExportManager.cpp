@@ -30,6 +30,7 @@
 
 #include <KisMimeDatabase.h>
 #include <application/ui/orchestration/KisPart.h>
+#include <KisImportExportFileTransfer.h>
 #include <KisPopupButton.h>
 #include <KisPreExportChecker.h>
 #include <KisImportExportFilterRegistry.h>
@@ -746,7 +747,7 @@ KisImportExportErrorCode KisImportExportManager::doExport(const QString &locatio
 //                    It can work if user gives access to the container dir, but
 //                    we cannot guarantee the user gave us permission.
 // 12-05-2025 update: Also Android because we gotta play in the sandbox.
-#if !(defined(Q_OS_WIN) || defined(Q_OS_MACOS) || defined(Q_OS_ANDROID))
+#if !(defined(Q_OS_WIN) || defined(Q_OS_MACOS) || defined(Q_OS_ANDROID) || defined(Q_OS_IOS))
 #define USE_QSAVEFILE
 #endif
 
@@ -813,6 +814,35 @@ KisImportExportErrorCode KisImportExportManager::doExportImpl(const QString &loc
                 qWarning() << copyErrorMessage;
                 return KisImportExportErrorCannotWrite(QFileDevice::CopyError);
             }
+#elif defined(Q_OS_IOS)
+            if (file.isOpen() && !file.flush()) {
+                file.setAutoRemove(false);
+                qWarning() << "Preserving failed iOS export at" << file.fileName();
+                return KisImportExportErrorCannotWrite(file.error());
+            }
+            file.close();
+
+            const QString verificationResult = filter->verify(file.fileName());
+            if (!verificationResult.isEmpty()) {
+                file.setAutoRemove(false);
+                m_document->setErrorMessage(verificationResult);
+                qWarning() << "Preserving invalid iOS export at" << file.fileName();
+                return KisImportExportErrorCode(ImportExportCodes::ErrorWhileWriting);
+            }
+
+            // UIDocumentPicker grants access to the selected file, not its
+            // containing directory. Keep the completed export in the app's
+            // temporary directory and replace the selected file through its
+            // own security-scoped file handle.
+            const auto transferResult =
+                Krita::ImportExport::KisImportExportFileTransfer::replaceFromLocalFile(
+                    file.fileName(), location);
+            if (!transferResult.success) {
+                file.setAutoRemove(false);
+                qWarning() << transferResult.errorMessage;
+                qWarning() << "Preserving failed iOS export at" << file.fileName();
+                return KisImportExportErrorCannotWrite(transferResult.error);
+            }
 #else
             file.flush();
             file.close();
@@ -829,12 +859,18 @@ KisImportExportErrorCode KisImportExportManager::doExportImpl(const QString &loc
         }
     }
 
-    if (status.isOk()) {
+#ifdef Q_OS_IOS
+    const bool requiresFinalVerification = !filter->supportsIO();
+#else
+    const bool requiresFinalVerification = true;
+#endif
+    if (status.isOk() && requiresFinalVerification) {
         // Do some minimal verification
 #ifdef Q_OS_ANDROID
         // The checked copy above writes the exact bytes from this temporary
         // file. Verify that local source while it is still available because
-        // some document providers do not permit reopening a newly written URI.
+        // some document providers do not permit reopening a newly written
+        // document.
         const QString verificationLocation = filter->supportsIO() ? file.fileName() : location;
 #else
         const QString &verificationLocation = location;

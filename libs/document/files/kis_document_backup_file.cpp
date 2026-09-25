@@ -19,7 +19,7 @@ KisDocumentBackupResult KisDocumentBackupFile::create(const QString &filePath,
                                                        const KisDocumentBackupOptions &options,
                                                        const QString &autoSaveDirectory)
 {
-#ifndef Q_OS_ANDROID
+#if !defined(Q_OS_ANDROID) && !defined(Q_OS_IOS)
     Q_UNUSED(autoSaveDirectory);
 #endif
 
@@ -36,7 +36,7 @@ KisDocumentBackupResult KisDocumentBackupFile::create(const QString &filePath,
         backupDirectory = QStandardPaths::writableLocation(QStandardPaths::TempLocation);
         break;
     case KisDocumentBackupLocation::Adjacent:
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) || defined(Q_OS_IOS)
         backupDirectory = autoSaveDirectory;
         QDir().mkpath(backupDirectory);
 #endif
