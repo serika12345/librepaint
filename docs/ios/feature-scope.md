@@ -7,6 +7,8 @@
 - Freehand/basic shape, selection, move, transform, crop, fill, and gradient tools.
 - Layer operations, undo/redo, canvas pan/zoom/rotate.
 - Layer, Brush Presets, Tool Options, Advanced Color Selector, and touch UI.
+- Canvas-only touch UI with a vertically scrolling named brush list and an
+  in-window color panel anchored below the top bar inside the safe area.
 - Apple Pencil pressure and separation of Pencil drawing from finger gestures.
 - Apple Pencil double tap follows the iPadOS preference for switching to the
   eraser or the previously used preset and remains registered across window

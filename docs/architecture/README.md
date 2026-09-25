@@ -574,7 +574,7 @@ Windowsでは共有ライブラリー、iOSでは静的ライブラリーとし�
 5. `KisPart`、セッション、`KisMainWindow`
 6. 自動保存の復旧と起動引数の文書
 
-iOSのライフサイクル、メモリー警告、Pencilダブルタップは`KisIOS*.mm`から`main.cc`へ通知されます。Pencilの対話オブジェクトはUIKitが`UIWindowScene`を接続した後の表示中のキーウィンドウへ登録し、ウィンドウの可視化、キー化、前景復帰で登録先を再確認します。タッチ向け画面は[plugins/extensions/iostouchui](../../plugins/extensions/iostouchui)にあり、OS通知の橋渡しと画面機能を分離しています。
+iOSのライフサイクル、メモリー警告、Pencilダブルタップは`KisIOS*.mm`から`main.cc`へ通知されます。Pencilの対話オブジェクトはUIKitが`UIWindowScene`を接続した後の表示中のキーウィンドウへ登録し、ウィンドウの可視化、キー化、前景復帰で登録先を再確認します。タッチ向け画面は[plugins/extensions/iostouchui](../../plugins/extensions/iostouchui)にあり、OS通知の橋渡しと画面機能を分離しています。キャンバスのみ表示のブラシ一覧は名前付きの縦一覧として右側に表示し、色選択は同じ画面の子パネルとして安全領域内の上部バー直下へ右寄せします。ブラシ、レイヤー、色の各パネルは一つずつ表示し、画面回転とキャンバス寸法変更で再配置します。
 
 ### 文書と画像モデル
 

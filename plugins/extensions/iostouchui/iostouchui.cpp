@@ -7,6 +7,8 @@
 #include "iostouchui.h"
 
 #include <KisDockerHud.h>
+#include <KisDlgInternalColorSelector.h>
+#include <KoColorDisplayRendererInterface.h>
 #include <application/ui/workspace/KisMainWindow.h>
 #include <input/ui/KisPopupWidgetInterface.h>
 #include <KisResourceModel.h>
@@ -28,9 +30,10 @@
 #include <kis_image_config.h>
 #include <input/ui/kis_input_manager.h>
 #include <tool/kis_paintop_box.h>
-#include <kis_paintop_presets_chooser_popup.h>
+#include <widgets/kis_preset_chooser.h>
 
 #include <QAction>
+#include <QDialog>
 #include <QEvent>
 #include <QFrame>
 #include <QGuiApplication>
@@ -44,6 +47,7 @@
 #include <QPixmap>
 #include <QPointer>
 #include <QSignalBlocker>
+#include <QSizePolicy>
 #include <QSlider>
 #include <QStringList>
 #include <QTimer>
@@ -76,7 +80,8 @@ const QString StartupHideControls = QStringLiteral("hide-controls");
 
 const QString PanelStyle = QStringLiteral(
     "QFrame#KisIOSTouchTopBar, QFrame#KisIOSTouchSideBar, "
-    "QFrame#KisIOSTouchBrushPanel, QFrame#KisIOSTouchLayerPanel {"
+    "QFrame#KisIOSTouchBrushPanel, QFrame#KisIOSTouchLayerPanel, "
+    "QDialog#KisIOSTouchColorPanel {"
     "  background-color: rgba(42, 42, 42, 242);"
     "  border: 1px solid rgba(255, 255, 255, 35);"
     "  border-radius: 12px;"
@@ -228,7 +233,8 @@ public:
         popupAdapter = new KisIOSTouchPopupAdapter(
             [this] {
                 return (brushPanel && brushPanel->isVisible())
-                    || (layerPanel && layerPanel->isVisible());
+                    || (layerPanel && layerPanel->isVisible())
+                    || (colorPanel && colorPanel->isVisible());
             },
             [this] {
                 hidePanels(false);
@@ -265,6 +271,7 @@ public:
 
         connect(viewManager, &KisViewManager::viewChanged, this, [this] {
             hideAllOverlays();
+            updateColorPanelDisplayRenderer();
             scheduleLayout();
         });
 
@@ -297,6 +304,7 @@ public:
         }
 
         delete restoreControlsButton.data();
+        delete colorPanel.data();
         delete brushPanel.data();
         delete layerPanel.data();
         delete sideBar.data();
@@ -507,10 +515,10 @@ private:
         layout->addWidget(layerButton);
 
         colorButton = createCustomButton(topBar, QString(), i18n("Foreground Color"));
+        colorButton->setCheckable(true);
         connect(colorButton, &QToolButton::clicked, this, [this] {
-            hidePanels();
             ensureStylusDevice();
-            triggerAction(QStringLiteral("chooseForegroundColor"));
+            toggleColorPanel();
         });
         layout->addWidget(colorButton);
 
@@ -607,10 +615,14 @@ private:
         });
         connect(provider, &KisCanvasResourceProvider::sigFGColorChanged, this, [this](const KoColor &color) {
             updateColorButton(color);
+            if (colorPanel) {
+                colorPanel->slotColorUpdated(color);
+            }
         });
         connect(provider, &KisCanvasResourceProvider::sigPaintOpPresetChanged, this, [this](const KisPaintOpPresetSP preset) {
             if (brushChooser) {
-                brushChooser->canvasResourceChanged(preset);
+                QSignalBlocker blocker(brushChooser);
+                brushChooser->setCurrentResource(preset);
             }
             rememberPreset(preset);
             syncToolButtons(preset);
@@ -658,27 +670,81 @@ private:
 
         auto *layout = new QVBoxLayout(brushPanel);
         layout->setContentsMargins(8, 8, 8, 8);
-        brushChooser = new KisPaintOpPresetsChooserPopup(brushPanel);
-        brushChooser->setResponsiveness(true);
+        brushChooser = new KisPresetChooser(brushPanel);
+        brushChooser->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+        brushChooser->setViewMode(KisPresetChooser::DETAIL);
+        brushChooser->showTaggingBar(true);
         layout->addWidget(brushChooser);
 
         connect(brushChooser,
-                &KisPaintOpPresetsChooserPopup::resourceSelected,
+                &KisPresetChooser::resourceSelected,
                 this,
                 [this](KoResourceSP resource) {
                     selectPreset(resource);
                 });
         connect(brushChooser,
-                &KisPaintOpPresetsChooserPopup::resourceClicked,
+                &KisPresetChooser::resourceClicked,
                 this,
                 [this](KoResourceSP resource) {
                     selectPreset(resource);
                 });
 
         if (KisPaintOpPresetSP preset = viewManager->canvasResourceProvider()->currentPreset()) {
-            brushChooser->canvasResourceChanged(preset);
+            brushChooser->setCurrentResource(preset);
         }
         brushPanel->hide();
+    }
+
+    void ensureColorPanel()
+    {
+        if (colorPanel || !mainWindow || !viewManager) {
+            return;
+        }
+
+        KisCanvasResourceProvider *provider = viewManager->canvasResourceProvider();
+        if (!provider) {
+            return;
+        }
+
+        KisDlgInternalColorSelector::Config config;
+        config.modal = false;
+        colorPanel = new KisDlgInternalColorSelector(mainWindow,
+                                                     provider->fgColor(),
+                                                     config,
+                                                     i18n("Foreground Color"),
+                                                     colorPanelDisplayRenderer());
+        colorPanel->setObjectName(QStringLiteral("KisIOSTouchColorPanel"));
+        colorPanel->setWindowFlags(Qt::Widget);
+        colorPanel->setAttribute(Qt::WA_StyledBackground, true);
+        colorPanel->setStyleSheet(PanelStyle);
+
+        connect(colorPanel,
+                &KisDlgInternalColorSelector::signalForegroundColorChosen,
+                provider,
+                &KisCanvasResourceProvider::slotSetFGColor);
+        connect(colorPanel, &QDialog::finished, this, [this] {
+            if (colorButton) {
+                colorButton->setChecked(false);
+            }
+            if (popupAdapter) {
+                popupAdapter->finish();
+            }
+        });
+        colorPanel->hide();
+    }
+
+    const KoColorDisplayRendererInterface *colorPanelDisplayRenderer() const
+    {
+        return viewManager && viewManager->canvasBase()
+            ? viewManager->canvasBase()->displayRendererInterface()
+            : KoDumbColorDisplayRenderer::instance();
+    }
+
+    void updateColorPanelDisplayRenderer()
+    {
+        if (colorPanel) {
+            colorPanel->setDisplayRenderer(colorPanelDisplayRenderer());
+        }
     }
 
     void ensureLayerPanel()
@@ -741,6 +807,31 @@ private:
         scheduleLayout();
     }
 
+    void toggleColorPanel()
+    {
+        ensureColorPanel();
+        if (!colorPanel) {
+            return;
+        }
+
+        if (colorPanel->isVisible()) {
+            hidePanels();
+            return;
+        }
+
+        hidePanels();
+        KisCanvasResourceProvider *provider = viewManager->canvasResourceProvider();
+        const KoColor color = provider->fgColor();
+        colorPanel->slotColorUpdated(color);
+        colorPanel->setPreviousColor(color);
+        updateColorPanelDisplayRenderer();
+        refreshCanvasAndLayout();
+        colorPanel->show();
+        colorPanel->raise();
+        colorButton->setChecked(true);
+        popupAdapter->registerWith(viewManager->inputManager());
+    }
+
     void hidePanels(bool finishPopup = true)
     {
         if (brushPanel) {
@@ -749,8 +840,14 @@ private:
         if (layerPanel) {
             layerPanel->hide();
         }
+        if (colorPanel) {
+            colorPanel->hide();
+        }
         if (layerButton) {
             layerButton->setChecked(false);
+        }
+        if (colorButton) {
+            colorButton->setChecked(false);
         }
         if (finishPopup && popupAdapter) {
             popupAdapter->finish();
@@ -1093,7 +1190,7 @@ private:
         }
 
         if (brushPanel) {
-            const int panelWidth = qMin(inner.width(), qMin(620, qMax(300, inner.width() * 3 / 5)));
+            const int panelWidth = qMin(inner.width(), qMin(480, qMax(340, inner.width() * 2 / 5)));
             const int panelHeight = qMin(650, qMax(0, sideHeight));
             brushPanel->setGeometry(inner.right() - panelWidth + 1,
                                     sideTop,
@@ -1104,6 +1201,15 @@ private:
             const int panelWidth = qMin(inner.width(), qMin(480, qMax(300, inner.width() / 2)));
             const int panelHeight = qMin(650, qMax(0, sideHeight));
             layerPanel->setGeometry(inner.right() - panelWidth + 1,
+                                    sideTop,
+                                    panelWidth,
+                                    panelHeight);
+        }
+        if (colorPanel) {
+            const QSize preferredSize = colorPanel->sizeHint().expandedTo(QSize(360, 420));
+            const int panelWidth = qMin(inner.width(), qMin(520, preferredSize.width()));
+            const int panelHeight = qMin(qMax(0, sideHeight), qMin(650, preferredSize.height()));
+            colorPanel->setGeometry(inner.right() - panelWidth + 1,
                                     sideTop,
                                     panelWidth,
                                     panelHeight);
@@ -1119,6 +1225,9 @@ private:
         }
         if (layerPanel && layerPanel->isVisible()) {
             layerPanel->raise();
+        }
+        if (colorPanel && colorPanel->isVisible()) {
+            colorPanel->raise();
         }
     }
 
@@ -1151,8 +1260,9 @@ private:
     QPointer<QFrame> sideBar;
     QPointer<QFrame> brushPanel;
     QPointer<QFrame> layerPanel;
-    QPointer<KisPaintOpPresetsChooserPopup> brushChooser;
+    QPointer<KisPresetChooser> brushChooser;
     QPointer<KisDockerHud> layerHud;
+    QPointer<KisDlgInternalColorSelector> colorPanel;
 
     QPointer<QToolButton> galleryButton;
     QPointer<QToolButton> hideControlsButton;

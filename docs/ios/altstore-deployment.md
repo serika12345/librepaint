@@ -236,3 +236,13 @@ startup log. The live console confirmed that the interaction attached to the
 active UIKit window after foreground activation. With the iPadOS Pencil
 preference set to switch to the eraser, the tester confirmed that a double tap
 changed LibrePaint to the eraser preset.
+
+The physical-device run `20260925161738` installed the canvas-only brush and
+color panel layout update on the same iPad Pro through AltStore. The deployment
+validated the arm64 executable, 204 runtime data files, IPA contents and
+permissions, launched `local.librepaint.ipad.PUDY4GHY3Y`, and reached the
+active application state without a new fatal diagnostic. Device acceptance
+covers the vertical brush list, touch scrolling, the safe-area color panel,
+OK and Cancel behavior, outside-tap dismissal, and both orientations. The
+tester accepted the resulting brush and color panel presentation with no
+remaining issue.
