@@ -212,3 +212,10 @@ the connected iPad. The post-event iOS widget hooks also retain receivers with
 the `KisApplication::notify` invalid-pointer crash found in the superseded
 `20260802132041` run; the final build reached the main window and remained
 running before the input behavior was retested.
+
+The physical-device run `20260925140933` installed the Issue #40 document-
+provider save fix on an iPad Pro (11-inch) through AltStore. The deployment
+validated the arm64 executable, 204 runtime data files, IPA contents and
+permissions, installed `local.librepaint.ipad.PUDY4GHY3Y`, launched LibrePaint,
+and collected its startup log. The tester accepted the document-provider save
+behavior after device validation and reported no remaining issue.
