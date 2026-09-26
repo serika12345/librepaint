@@ -285,3 +285,49 @@ files and the IPA contents and permissions, updated and launched
 reopened the existing document without a new fatal diagnostic. Device
 acceptance remains open for the 180-millisecond easing, landscape and portrait
 fits, interruption by a new touch, and the surrounding gesture cases.
+
+The physical-device run `20260926034310` installed the iPad canvas-only
+document-tab-bar update. The deployment compiled the main-window tab-bar
+ownership and canvas-only transition for arm64, linked LibrePaint, validated
+204 runtime data files and the IPA contents and permissions, updated and
+launched `local.librepaint.ipad.PUDY4GHY3Y`, and reached the active application
+state without a new fatal diagnostic. Device acceptance remains open for the
+canvas-only top edge, preservation of the drawing controls, rotation, and
+restoration of the previous document-tab-bar visibility on exit.
+
+Device feedback on `20260926034310` found that hiding the tab widget removed
+the document title but left QMdiArea's reserved tab-bar viewport margin as an
+empty strip. The corrective physical-device run `20260926034839` clears that
+margin while canvas-only presentation is active, resizes the maximized
+document into the reclaimed area, and reapplies the zero margin after window
+rotation. The arm64 build, static resource audit, IPA contents and permissions,
+AltStore update, and application launch succeeded. Acceptance remains open for
+the corrected top edge and restoration after leaving canvas-only presentation.
+
+Switching canvas-only presentation with `20260926034839` crashed twice. Both
+device crash reports recorded a main-thread stack exhaustion caused by
+recursive viewport-margin and QMdiArea tab-geometry updates. The corrective
+run `20260926035351` guards viewport adjustment against re-entry, compiled and
+linked the correction for arm64, passed the resource and IPA audits, updated
+and launched the signed app, and produced no new crash report during startup.
+Device acceptance remains open for repeated presentation switching, the
+reclaimed top edge, rotation, and normal-interface restoration.
+
+Device feedback on `20260926035351` found that the re-entry guard prevented an
+immediate crash but left repeated OpenGL canvas resize and repaint work. The
+scene-update watchdog terminated the unresponsive app after ten seconds. The
+replacement run `20260926040019` removes direct viewport-margin manipulation
+and uses QMdiArea's supported tabbed-to-subwindow transition, which removes the
+tab bar and its margin as one operation. The arm64 build, resource and IPA
+audits, AltStore update, launch, and active application state succeeded.
+Device acceptance remains open for responsive repeated switching, rotation,
+the reclaimed top edge, and restoration of the tabbed normal interface.
+
+Device feedback on `20260926040019` showed that SubWindowView removed the tab
+bar but exposed the maximized QMdiSubWindow title, icon, and window buttons.
+The corrective run `20260926040612` saves that subwindow's flags, applies a
+frameless flag during canvas-only presentation, and restores the exact flags
+before returning to the tabbed normal interface. The arm64 build, resource and
+IPA audits, AltStore update, and application launch succeeded. Device
+acceptance confirmed complete top-edge removal, responsive canvas-only
+switching, and restoration of the normal interface.

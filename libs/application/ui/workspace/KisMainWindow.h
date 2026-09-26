@@ -288,6 +288,13 @@ public Q_SLOTS:
     void viewFullscreen(bool fullScreen);
 
     /**
+     * Replace the tabbed document presentation with a frameless document while
+     * the iPad canvas-only presentation is active, restoring the previous
+     * document view mode and window flags when that presentation ends.
+     */
+    void setDocumentTabBarHiddenForCanvasOnly(bool hidden);
+
+    /**
      * @brief checkActiveStorages checks whether there is at least one bundle available and
      * at least one paintop preset.
      */

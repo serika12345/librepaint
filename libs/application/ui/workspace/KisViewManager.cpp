@@ -1196,6 +1196,16 @@ void KisViewManager::switchCanvasOnly(bool toggled)
     d->inCanvasOnlyMode = toggled;
     updateCanvasOnlyActionState();
 
+#ifdef Q_OS_IOS
+    main->setDocumentTabBarHiddenForCanvasOnly(toggled);
+    QPointer<KisMainWindow> guardedMain(main);
+    QTimer::singleShot(0, main, [guardedMain, toggled] {
+        if (guardedMain) {
+            guardedMain->setDocumentTabBarHiddenForCanvasOnly(toggled);
+        }
+    });
+#endif
+
     KisViewManagerPrivate::CanvasOnlyOptions options(cfg);
 
     if (toggled) {

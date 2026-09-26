@@ -345,6 +345,9 @@ public:
     KisSignalMapper *windowMapper {nullptr};
     KisSignalMapper *documentMapper {nullptr};
     KisCanvasWindow *canvasWindow {nullptr};
+    std::optional<QMdiArea::ViewMode> documentViewModeBeforeCanvasOnly;
+    QPointer<QMdiSubWindow> documentSubWindowInCanvasOnly;
+    std::optional<Qt::WindowFlags> documentSubWindowFlagsBeforeCanvasOnly;
 
     QByteArray lastExportedFormat;
     QScopedPointer<KisSignalCompressorWithParam<int> > tabSwitchCompressor;
@@ -2417,6 +2420,62 @@ void KisMainWindow::viewFullscreen(bool fullScreen)
     }
     d->fullScreenMode->setChecked(isFullScreen());
 #endif
+}
+
+void KisMainWindow::setDocumentTabBarHiddenForCanvasOnly(bool hidden)
+{
+    if (hidden) {
+        if (!d->documentViewModeBeforeCanvasOnly) {
+            if (d->mdiArea->viewMode() != QMdiArea::TabbedView) {
+                return;
+            }
+            d->documentViewModeBeforeCanvasOnly = d->mdiArea->viewMode();
+        }
+
+        d->mdiArea->setViewMode(QMdiArea::SubWindowView);
+        if (QMdiSubWindow *subWindow = d->mdiArea->currentSubWindow()) {
+            if (d->documentSubWindowInCanvasOnly != subWindow ||
+                !d->documentSubWindowFlagsBeforeCanvasOnly) {
+                d->documentSubWindowInCanvasOnly = subWindow;
+                d->documentSubWindowFlagsBeforeCanvasOnly = subWindow->windowFlags();
+            }
+            subWindow->setWindowFlag(Qt::FramelessWindowHint, true);
+            subWindow->showMaximized();
+        }
+        return;
+    }
+
+    if (!d->documentViewModeBeforeCanvasOnly) {
+        return;
+    }
+
+    const QMdiArea::ViewMode viewMode = *d->documentViewModeBeforeCanvasOnly;
+    d->documentViewModeBeforeCanvasOnly.reset();
+
+    if (d->documentSubWindowInCanvasOnly &&
+        d->documentSubWindowFlagsBeforeCanvasOnly) {
+        d->documentSubWindowInCanvasOnly->setWindowFlags(
+            *d->documentSubWindowFlagsBeforeCanvasOnly);
+        d->documentSubWindowInCanvasOnly->showMaximized();
+    }
+    d->documentSubWindowInCanvasOnly = nullptr;
+    d->documentSubWindowFlagsBeforeCanvasOnly.reset();
+
+    d->mdiArea->setViewMode(viewMode);
+
+    if (viewMode == QMdiArea::TabbedView) {
+        for (QMdiSubWindow *subWindow : d->mdiArea->subWindowList()) {
+            subWindow->setWindowState(Qt::WindowMaximized);
+        }
+
+        if (QTabBar *tabBar = d->findTabBarHACK()) {
+            tabBar->setElideMode(Qt::ElideRight);
+            customizeTabBar();
+            tabBar->setExpanding(true);
+            tabBar->setAcceptDrops(true);
+            tabBar->setChangeCurrentOnDrag(true);
+        }
+    }
 }
 
 QDockWidget* KisMainWindow::createDockWidget(KoDockFactoryBase* factory)

@@ -8,7 +8,10 @@
 - Layer operations, undo/redo, canvas pan/zoom/rotate.
 - Layer, Brush Presets, Tool Options, Advanced Color Selector, and touch UI.
 - Canvas-only touch UI with a vertically scrolling named brush list and an
-  in-window color panel anchored below the top bar inside the safe area.
+  in-window color panel anchored below the top bar inside the safe area. The
+  document presentation switches to a maximized frameless and tabless view in
+  canvas-only mode and restores its window flags and tabbed view in the normal
+  interface.
 - Apple Pencil pressure and separation of Pencil drawing from finger gestures.
 - A quick inward two-finger pinch snaps canvas rotation to the nearest quarter
   turn and eases rotation, zoom, and centering into that viewport fit on
