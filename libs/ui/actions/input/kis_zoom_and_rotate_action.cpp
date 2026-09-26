@@ -6,15 +6,23 @@
  */
 
 #include <QApplication>
+#include <QElapsedTimer>
+#include <QEasingCurve>
+#include <QLineF>
+#include <QPointer>
 #include <QTouchEvent>
+#include <QVariantAnimation>
 
+#include <algorithm>
 #include <cmath>
 #include <cstdlib>
+#include <optional>
 #include <klocalizedstring.h>
 #include <kis_canvas_controller.h>
 #include <kis_canvas2.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_algebra_2d.h>
+#include <KisQuickPinchRecognizer.h>
 
 #include "kis_zoom_and_rotate_action.h"
 #include "KisApplicationInputActions.h"
@@ -29,9 +37,63 @@
 #include <qnumeric.h>
 #include <QtGlobal>
 
+namespace
+{
+constexpr int FitAnimationDurationMilliseconds = 180;
+
+int touchPointCount(const QTouchEvent *event)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    return event->points().size();
+#else
+    return event->touchPoints().size();
+#endif
+}
+
+QPointF touchPosition(const QTouchEvent *event, int index)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    return event->points().at(index).position();
+#else
+    return event->touchPoints().at(index).pos();
+#endif
+}
+
+QPointF touchPressPosition(const QTouchEvent *event, int index)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    return event->points().at(index).pressPosition();
+#else
+    return event->touchPoints().at(index).startPos();
+#endif
+}
+
+quint64 latestTouchPressTimestamp(const QTouchEvent *event)
+{
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    return std::max(event->points().at(0).pressTimestamp(),
+                    event->points().at(1).pressTimestamp());
+#else
+    Q_UNUSED(event);
+    return 0;
+#endif
+}
+
+}
+
 class KisZoomAndRotateAction::Private {
 public:
     Private() {}
+
+    qint64 elapsedMilliseconds(const QTouchEvent *event) const
+    {
+        if (gestureStartTimestamp > 0 && event
+            && event->timestamp() >= gestureStartTimestamp) {
+            return static_cast<qint64>(event->timestamp() - gestureStartTimestamp);
+        }
+
+        return gestureTimer.isValid() ? gestureTimer.elapsed() : -1;
+    }
 
     int shortcutIndex {0};
     QPointF lastPosition {0, 0};
@@ -41,6 +103,14 @@ public:
     qreal accumRotationAngle {0.0};
 
     KoViewTransformStillPoint actionStillPoint;
+    QElapsedTimer gestureTimer;
+    quint64 gestureStartTimestamp {0};
+    KisQuickPinchRecognizer quickPinchRecognizer;
+
+    QVariantAnimation fitAnimation;
+    QPointer<KisCanvas2> fitCanvas;
+    std::optional<KisQuickPinchTransform> fitTransform;
+    QPointF fitDocumentCenter;
 };
 
 KisZoomAndRotateAction::KisZoomAndRotateAction()
@@ -52,6 +122,51 @@ KisZoomAndRotateAction::KisZoomAndRotateAction()
     shortcuts.insert(i18n("Rotate Mode"), ContinuousRotateMode);
     shortcuts.insert(i18n("Discrete Rotate Mode"), DiscreteRotateMode);
     setShortcutIndexes(shortcuts);
+
+    d->fitAnimation.setDuration(FitAnimationDurationMilliseconds);
+    d->fitAnimation.setStartValue(0.0);
+    d->fitAnimation.setEndValue(1.0);
+    d->fitAnimation.setEasingCurve(QEasingCurve::OutCubic);
+
+    QObject::connect(&d->fitAnimation, &QVariantAnimation::valueChanged,
+                     [this](const QVariant &value) {
+        KisCanvas2 *canvas = d->fitCanvas.data();
+        if (!canvas) {
+            d->fitAnimation.stop();
+            return;
+        }
+        if (!d->fitTransform) {
+            d->fitAnimation.stop();
+            return;
+        }
+
+        KisCanvasController *controller =
+            static_cast<KisCanvasController *>(canvas->canvasController());
+        const KisQuickPinchTransformFrame frame =
+            d->fitTransform->frameAt(value.toReal());
+        const KoViewTransformStillPoint stillPoint(d->fitDocumentCenter,
+                                                    frame.viewCenter);
+
+        controller->rotateCanvas(frame.rotation - controller->rotation(), stillPoint);
+        controller->setZoom(KoZoomMode::ZOOM_CONSTANT, frame.zoom, stillPoint);
+    });
+    QObject::connect(&d->fitAnimation, &QVariantAnimation::finished,
+                     [this]() {
+        KisCanvas2 *canvas = d->fitCanvas.data();
+        if (!canvas || !d->fitTransform) {
+            return;
+        }
+
+        KisCanvasController *controller =
+            static_cast<KisCanvasController *>(canvas->canvasController());
+        const KisQuickPinchTransformFrame frame = d->fitTransform->frameAt(1.0);
+        const KoViewTransformStillPoint stillPoint(d->fitDocumentCenter,
+                                                    frame.viewCenter);
+        controller->rotateCanvas(frame.rotation - controller->rotation(), stillPoint);
+        controller->setZoom(KoZoomMode::ZOOM_PAGE, 1.0);
+        d->fitCanvas.clear();
+        d->fitTransform.reset();
+    });
 }
 
 KisZoomAndRotateAction::~KisZoomAndRotateAction()
@@ -77,14 +192,74 @@ void KisZoomAndRotateAction::begin(int shortcut, QEvent *event)
 {
     QTouchEvent *touchEvent = dynamic_cast<QTouchEvent *>(event);
 
-    if (touchEvent && touchEvent->touchPoints().size() > 0) {
+    d->fitAnimation.stop();
+    d->fitCanvas.clear();
+    d->fitTransform.reset();
+    d->gestureTimer.invalidate();
+    d->gestureStartTimestamp = 0;
+    d->quickPinchRecognizer.cancel();
+
+    if (touchEvent && touchPointCount(touchEvent) == 2) {
         d->shortcutIndex = shortcut;
-        d->lastPosition = touchEvent->touchPoints().at(0).pos();
+        d->lastPosition = touchPosition(touchEvent, 0);
         d->lastDistance = 0;
         d->previousAngle = 0;
         d->initialReferenceAngle = 0;
         d->accumRotationAngle = 0;
         d->actionStillPoint = applicationInputCanvas(inputManager())->coordinatesConverter()->makeWidgetStillPoint(d->lastPosition);
+
+        const QPointF firstStartPosition = touchPressPosition(touchEvent, 0);
+        const QPointF secondStartPosition = touchPressPosition(touchEvent, 1);
+        if (QLineF(firstStartPosition, secondStartPosition).length() >= 40.0) {
+            d->quickPinchRecognizer.begin(firstStartPosition, secondStartPosition);
+        } else {
+            d->quickPinchRecognizer.begin(touchPosition(touchEvent, 0),
+                                          touchPosition(touchEvent, 1));
+        }
+        d->gestureStartTimestamp = latestTouchPressTimestamp(touchEvent);
+        d->gestureTimer.start();
+    }
+}
+
+void KisZoomAndRotateAction::end(QEvent *event)
+{
+    const QTouchEvent *touchEvent = dynamic_cast<QTouchEvent *>(event);
+    const bool endedByTwoFingerRelease = touchEvent
+        && touchPointCount(touchEvent) == 2
+        && (event->type() == QEvent::TouchEnd
+            || (touchEvent->touchPointStates() & Qt::TouchPointReleased));
+    const bool fitCanvas = endedByTwoFingerRelease
+        && d->quickPinchRecognizer.shouldFitOnRelease(
+            d->elapsedMilliseconds(touchEvent));
+
+    d->gestureTimer.invalidate();
+    d->gestureStartTimestamp = 0;
+    d->quickPinchRecognizer.cancel();
+
+    if (fitCanvas) {
+        KisCanvas2 *canvas = applicationInputCanvas(inputManager());
+        KisCanvasController *controller = static_cast<KisCanvasController *>(canvas->canvasController());
+        const KisCoordinatesConverter *converter = canvas->coordinatesConverter();
+
+        d->fitCanvas = canvas;
+        const qreal startRotation = controller->rotation();
+        const qreal targetRotation =
+            KisQuickPinchRecognizer::snappedCanvasRotation(startRotation);
+        const qreal startZoom = converter->zoom();
+        const qreal targetZoom = KisQuickPinchTransform::fittedZoom(
+            startZoom,
+            converter->imageSizeInFlakePixels(),
+            converter->getCanvasWidgetSize(),
+            converter->zoomMarginSize(),
+            targetRotation);
+        d->fitDocumentCenter = converter->imageRectInDocumentPixels().center();
+        d->fitTransform.emplace(startRotation,
+                                targetRotation,
+                                startZoom,
+                                targetZoom,
+                                converter->imageCenterInWidgetPixel(),
+                                converter->widgetCenterPoint());
+        d->fitAnimation.start();
     }
 }
 
@@ -106,10 +281,17 @@ void KisZoomAndRotateAction::inputEvent(QEvent *event)
     switch (event->type()) {
     case QEvent::TouchUpdate: {
         QTouchEvent *tevent = dynamic_cast<QTouchEvent *>(event);
-        if (tevent && tevent->touchPoints().size() > 1) {
+        if (tevent && touchPointCount(tevent) > 1) {
 
-            const QPointF p0 = tevent->touchPoints().at(0).pos();
-            const QPointF p1 = tevent->touchPoints().at(1).pos();
+            const QPointF p0 = touchPosition(tevent, 0);
+            const QPointF p1 = touchPosition(tevent, 1);
+
+            if (touchPointCount(tevent) != 2) {
+                d->quickPinchRecognizer.cancel();
+            } else {
+                d->quickPinchRecognizer.update(
+                    p0, p1, d->elapsedMilliseconds(tevent));
+            }
 
             const qreal rotationAngle = canvasRotationAngle(p0, p1);
             const float dist = QLineF(p0, p1).length();

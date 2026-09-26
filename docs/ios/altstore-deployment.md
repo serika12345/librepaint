@@ -246,3 +246,42 @@ covers the vertical brush list, touch scrolling, the safe-area color panel,
 OK and Cancel behavior, outside-tap dismissal, and both orientations. The
 tester accepted the resulting brush and color panel presentation with no
 remaining issue.
+
+The physical-device run `20260926030357` installed the quick-pinch canvas-fit
+implementation on the same iPad Pro through AltStore. The deployment validated
+the arm64 executable, 204 runtime data files, IPA contents and permissions,
+installed and launched `local.librepaint.ipad.PUDY4GHY3Y`, and recorded the
+database initialization and active application state without a new fatal
+diagnostic. Device testing found that quick pinch changed the zoom but retained
+an existing canvas rotation. Acceptance remains open for an upright canvas fit,
+ordinary pinch, rotation, cancellation, false activation, and both
+orientations.
+
+The follow-up physical-device run `20260926031010` installed the upright
+quick-pinch canvas-fit correction. The deployment rebuilt the shared canvas
+interaction for arm64, linked LibrePaint, validated 204 runtime data files and
+the IPA contents and permissions, updated and launched
+`local.librepaint.ipad.PUDY4GHY3Y`, and reached the active application state
+without a new fatal diagnostic. Follow-up feedback established that a canvas
+rotated toward portrait orientation must fit at the nearest quarter turn
+instead of always returning to zero degrees. Acceptance remains open for this
+orientation-aware fit and for the surrounding gesture cases.
+
+The follow-up physical-device run `20260926031654` installed the
+orientation-aware quick-pinch fit. The deployment compiled the quarter-turn
+selection and shared canvas interaction for arm64, linked LibrePaint, validated
+204 runtime data files and the IPA contents and permissions, updated and
+launched `local.librepaint.ipad.PUDY4GHY3Y`, and reached the active application
+state without a new fatal diagnostic. Follow-up feedback found that the fit
+transition completed instantaneously and required visible easing. Device
+acceptance remains open for the animated landscape/portrait fit,
+counterclockwise rotation, interruption, and the surrounding gesture cases.
+
+The follow-up physical-device run `20260926032639` installed the animated
+quick-pinch fit. The deployment compiled the transform interpolation and shared
+canvas interaction for arm64, linked LibrePaint, validated 204 runtime data
+files and the IPA contents and permissions, updated and launched
+`local.librepaint.ipad.PUDY4GHY3Y`, reached the active application state, and
+reopened the existing document without a new fatal diagnostic. Device
+acceptance remains open for the 180-millisecond easing, landscape and portrait
+fits, interruption by a new touch, and the surrounding gesture cases.

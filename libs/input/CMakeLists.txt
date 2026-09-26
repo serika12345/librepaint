@@ -61,6 +61,21 @@ target_include_directories(kritainputtimedsignalthresholdobjects
 target_link_libraries(kritainputtimedsignalthresholdobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
 set_target_properties(kritainputtimedsignalthresholdobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+add_library(kritainputquickpinchrecognizerobjects OBJECT
+    KisQuickPinchRecognizer.cpp
+)
+target_compile_definitions(kritainputquickpinchrecognizerobjects PRIVATE kritainput_EXPORTS)
+target_include_directories(kritainputquickpinchrecognizerobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritainputquickpinchrecognizerobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritainputquickpinchrecognizerobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritainputeventsuppressorobjects OBJECT
     KisInputEventSuppressor.cpp
 )
@@ -190,6 +205,7 @@ kis_add_library(kritainput SHARED
     $<TARGET_OBJECTS:kritainputprofileobjects>
     $<TARGET_OBJECTS:kritainputabstractshortcutobjects>
     $<TARGET_OBJECTS:kritainputtimedsignalthresholdobjects>
+    $<TARGET_OBJECTS:kritainputquickpinchrecognizerobjects>
     $<TARGET_OBJECTS:kritainputeventsuppressorobjects>
     $<TARGET_OBJECTS:kritainputnativegestureshortcutobjects>
     $<TARGET_OBJECTS:kritainputstrokeshortcutobjects>

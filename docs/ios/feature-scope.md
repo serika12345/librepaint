@@ -10,6 +10,10 @@
 - Canvas-only touch UI with a vertically scrolling named brush list and an
   in-window color panel anchored below the top bar inside the safe area.
 - Apple Pencil pressure and separation of Pencil drawing from finger gestures.
+- A quick inward two-finger pinch snaps canvas rotation to the nearest quarter
+  turn and eases rotation, zoom, and centering into that viewport fit on
+  release; ordinary pinch and pinch-twist continue to zoom and rotate
+  continuously, and a new touch interrupts the fit animation.
 - Apple Pencil double tap follows the iPadOS preference for switching to the
   eraser or the previously used preset and remains registered across window
   activation and foreground transitions.
