@@ -331,3 +331,13 @@ before returning to the tabbed normal interface. The arm64 build, resource and
 IPA audits, AltStore update, and application launch succeeded. Device
 acceptance confirmed complete top-edge removal, responsive canvas-only
 switching, and restoration of the normal interface.
+
+The physical-device run `20260926042055` installed the top-docked drawing
+toolbar and toolbar-aware quick-pinch fit on the same iPad Pro through
+AltStore. The deployment compiled the shared fit geometry, canvas interaction,
+and iPad touch UI for arm64, linked LibrePaint, validated 204 runtime data
+files and the IPA contents and permissions, updated and launched
+`local.librepaint.ipad.PUDY4GHY3Y`, and reached the active application state
+without a new fatal diagnostic. Device acceptance confirmed the flush toolbar
+geometry, quick-pinch fitting and centering below the toolbar, and restoration
+of full-viewport fitting while the drawing controls are hidden.

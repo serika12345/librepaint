@@ -163,7 +163,7 @@ KisZoomAndRotateAction::KisZoomAndRotateAction()
         const KoViewTransformStillPoint stillPoint(d->fitDocumentCenter,
                                                     frame.viewCenter);
         controller->rotateCanvas(frame.rotation - controller->rotation(), stillPoint);
-        controller->setZoom(KoZoomMode::ZOOM_PAGE, 1.0);
+        controller->setZoom(KoZoomMode::ZOOM_CONSTANT, frame.zoom, stillPoint);
         d->fitCanvas.clear();
         d->fitTransform.reset();
     });
@@ -246,19 +246,31 @@ void KisZoomAndRotateAction::end(QEvent *event)
         const qreal targetRotation =
             KisQuickPinchRecognizer::snappedCanvasRotation(startRotation);
         const qreal startZoom = converter->zoom();
-        const qreal targetZoom = KisQuickPinchTransform::fittedZoom(
+        QRectF availableViewport(QPointF(), converter->getCanvasWidgetSize());
+        if (QWidget *canvasWidget = canvas->canvasWidget()) {
+            const QVariant viewportProperty = canvasWidget->property(
+                KisQuickPinchTransform::availableViewportPropertyName());
+            if (viewportProperty.canConvert<QRectF>()) {
+                const QRectF requestedViewport = viewportProperty.toRectF()
+                    .intersected(availableViewport);
+                if (!requestedViewport.isEmpty()) {
+                    availableViewport = requestedViewport;
+                }
+            }
+        }
+        const KisQuickPinchFitTarget target = KisQuickPinchTransform::fittedTarget(
             startZoom,
             converter->imageSizeInFlakePixels(),
-            converter->getCanvasWidgetSize(),
+            availableViewport,
             converter->zoomMarginSize(),
             targetRotation);
         d->fitDocumentCenter = converter->imageRectInDocumentPixels().center();
         d->fitTransform.emplace(startRotation,
                                 targetRotation,
                                 startZoom,
-                                targetZoom,
+                                target.zoom,
                                 converter->imageCenterInWidgetPixel(),
-                                converter->widgetCenterPoint());
+                                target.viewCenter);
         d->fitAnimation.start();
     }
 }

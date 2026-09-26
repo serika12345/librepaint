@@ -11,6 +11,7 @@
 #include <KoColorDisplayRendererInterface.h>
 #include <application/ui/workspace/KisMainWindow.h>
 #include <input/ui/KisPopupWidgetInterface.h>
+#include <KisQuickPinchRecognizer.h>
 #include <KisResourceModel.h>
 #include <KisResourceTypes.h>
 #include <application/ui/workspace/KisViewManager.h>
@@ -83,6 +84,14 @@ const QString PanelStyle = QStringLiteral(
     "QFrame#KisIOSTouchBrushPanel, QFrame#KisIOSTouchLayerPanel, "
     "QDialog#KisIOSTouchColorPanel {"
     "  background-color: rgba(42, 42, 42, 242);"
+    "}"
+    "QFrame#KisIOSTouchTopBar {"
+    "  border: 0;"
+    "  border-bottom: 1px solid rgba(255, 255, 255, 35);"
+    "  border-radius: 0;"
+    "}"
+    "QFrame#KisIOSTouchSideBar, QFrame#KisIOSTouchBrushPanel, "
+    "QFrame#KisIOSTouchLayerPanel, QDialog#KisIOSTouchColorPanel {"
     "  border: 1px solid rgba(255, 255, 255, 35);"
     "  border-radius: 12px;"
     "}"
@@ -857,6 +866,7 @@ private:
     void hideAllOverlays()
     {
         hidePanels();
+        clearAvailableViewport();
         if (sideBar) {
             sideBar->hide();
         }
@@ -1088,6 +1098,7 @@ private:
         QWidget *newCanvas = viewManager ? viewManager->canvas() : nullptr;
         if (newCanvas != canvas) {
             if (canvas) {
+                clearAvailableViewport();
                 canvas->removeEventFilter(this);
             }
             canvas = newCanvas;
@@ -1152,6 +1163,7 @@ private:
         const bool controlsVisible = !touchUiAction || touchUiAction->isChecked();
         if (!controlsVisible) {
             hidePanels();
+            clearAvailableViewport();
             if (sideBar) {
                 sideBar->hide();
             }
@@ -1172,7 +1184,20 @@ private:
         if (restoreControlsButton) {
             restoreControlsButton->hide();
         }
-        topBar->setGeometry(inner.x(), inner.y(), inner.width(), TopBarHeight);
+        const QRect topBarGeometry(contentRect.x(),
+                                   contentRect.y(),
+                                   contentRect.width(),
+                                   TopBarHeight);
+        topBar->setGeometry(topBarGeometry);
+
+        QRect availableViewport = contentRect;
+        availableViewport.setTop(topBarGeometry.bottom() + 1);
+        const QRect localAvailableViewport(
+            canvas->mapFrom(mainWindow, availableViewport.topLeft()),
+            availableViewport.size());
+        canvas->setProperty(
+            KisQuickPinchTransform::availableViewportPropertyName(),
+            QRectF(localAvailableViewport.intersected(canvas->rect())));
 
         const bool showSecondary = inner.width() >= 720;
         galleryButton->show();
@@ -1180,7 +1205,7 @@ private:
             button->setVisible(showSecondary);
         }
 
-        const int sideTop = inner.y() + TopBarHeight + OverlayMargin;
+        const int sideTop = topBarGeometry.bottom() + 1 + OverlayMargin;
         const int sideHeight = inner.bottom() - sideTop + 1;
         sideBar->setGeometry(inner.x(), sideTop, SideBarWidth, qMax(0, sideHeight));
         sideBar->setVisible(sideHeight >= 260);
@@ -1238,6 +1263,15 @@ private:
 #else
         return true;
 #endif
+    }
+
+    void clearAvailableViewport()
+    {
+        if (canvas) {
+            canvas->setProperty(
+                KisQuickPinchTransform::availableViewportPropertyName(),
+                QVariant());
+        }
     }
 
     void invalidatePendingLayout()

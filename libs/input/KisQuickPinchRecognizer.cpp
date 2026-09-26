@@ -49,24 +49,47 @@ qreal KisQuickPinchTransform::fittedZoom(qreal currentZoom,
                                          qreal margin,
                                          qreal targetRotation)
 {
+    return fittedTarget(currentZoom,
+                        imageSizeAtCurrentZoom,
+                        QRectF(QPointF(), viewportSize),
+                        margin,
+                        targetRotation)
+        .zoom;
+}
+
+KisQuickPinchFitTarget KisQuickPinchTransform::fittedTarget(
+    qreal currentZoom,
+    QSizeF imageSizeAtCurrentZoom,
+    const QRectF &availableViewport,
+    qreal margin,
+    qreal targetRotation)
+{
+    KisQuickPinchFitTarget target {currentZoom, availableViewport.center()};
+
     const int quarterTurns = qRound(targetRotation / 90.0);
     if (std::abs(quarterTurns) % 2 == 1) {
         imageSizeAtCurrentZoom.transpose();
     }
 
-    if (imageSizeAtCurrentZoom.isEmpty() || viewportSize.isEmpty()) {
-        return currentZoom;
+    if (imageSizeAtCurrentZoom.isEmpty() || availableViewport.isEmpty()) {
+        return target;
     }
 
     const qreal availableWidth = std::max<qreal>(1.0,
-        viewportSize.width() - 2.0 * margin);
+        availableViewport.width() - 2.0 * margin);
     const qreal availableHeight = std::max<qreal>(1.0,
-        viewportSize.height() - 2.0 * margin);
+        availableViewport.height() - 2.0 * margin);
     const qreal scale = std::min(
         availableWidth / imageSizeAtCurrentZoom.width(),
         availableHeight / imageSizeAtCurrentZoom.height());
 
-    return currentZoom * scale;
+    target.zoom = currentZoom * scale;
+    return target;
+}
+
+const char *KisQuickPinchTransform::availableViewportPropertyName()
+{
+    return "kritaQuickPinchAvailableViewport";
 }
 
 KisQuickPinchTransformFrame KisQuickPinchTransform::frameAt(qreal progress) const

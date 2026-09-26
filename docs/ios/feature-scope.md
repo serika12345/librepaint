@@ -8,14 +8,15 @@
 - Layer operations, undo/redo, canvas pan/zoom/rotate.
 - Layer, Brush Presets, Tool Options, Advanced Color Selector, and touch UI.
 - Canvas-only touch UI with a vertically scrolling named brush list and an
-  in-window color panel anchored below the top bar inside the safe area. The
-  document presentation switches to a maximized frameless and tabless view in
-  canvas-only mode and restores its window flags and tabbed view in the normal
-  interface.
+  in-window color panel anchored below a drawing toolbar that is flush with
+  the safe area's top and side edges. The document presentation switches to a
+  maximized frameless and tabless view in canvas-only mode and restores its
+  window flags and tabbed view in the normal interface.
 - Apple Pencil pressure and separation of Pencil drawing from finger gestures.
 - A quick inward two-finger pinch snaps canvas rotation to the nearest quarter
-  turn and eases rotation, zoom, and centering into that viewport fit on
-  release; ordinary pinch and pinch-twist continue to zoom and rotate
+  turn and eases rotation, zoom, and centering into the visible viewport below
+  the drawing toolbar on release. Hiding the controls restores the full canvas
+  viewport. Ordinary pinch and pinch-twist continue to zoom and rotate
   continuously, and a new touch interrupts the fit animation.
 - Apple Pencil double tap follows the iPadOS preference for switching to the
   eraser or the previously used preset and remains registered across window

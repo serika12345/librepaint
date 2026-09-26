@@ -13,6 +13,7 @@ class KisQuickPinchRecognizerContractTest : public QObject
 
 private Q_SLOTS:
     void fitAnimationUsesTheSelectedOrientation();
+    void fitAnimationUsesTheVisibleViewportBelowAnOverlay();
     void fitAnimationInterpolatesOneContinuousTransform();
     void fitOrientationFollowsNearestQuarterTurn_data();
     void fitOrientationFollowsNearestQuarterTurn();
@@ -34,6 +35,19 @@ void KisQuickPinchRecognizerContractTest::fitAnimationUsesTheSelectedOrientation
 
     QVERIFY(qAbs(portraitZoom - 1.4) < 0.000001);
     QVERIFY(qAbs(landscapeZoom - (2.0 * 280.0 / 600.0)) < 0.000001);
+}
+
+void KisQuickPinchRecognizerContractTest::fitAnimationUsesTheVisibleViewportBelowAnOverlay()
+{
+    const KisQuickPinchFitTarget target = KisQuickPinchTransform::fittedTarget(
+        1.0,
+        QSizeF(1000.0, 1000.0),
+        QRectF(0.0, 60.0, 1000.0, 740.0),
+        20.0,
+        0.0);
+
+    QVERIFY(qAbs(target.zoom - 0.7) < 0.000001);
+    QCOMPARE(target.viewCenter, QPointF(500.0, 430.0));
 }
 
 void KisQuickPinchRecognizerContractTest::fitAnimationInterpolatesOneContinuousTransform()

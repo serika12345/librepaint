@@ -9,12 +9,19 @@
 #include <kritainput_export.h>
 
 #include <QPointF>
+#include <QRectF>
 #include <QSizeF>
 #include <QtGlobal>
 
 struct KRITAINPUT_EXPORT KisQuickPinchTransformFrame
 {
     qreal rotation {0.0};
+    qreal zoom {1.0};
+    QPointF viewCenter;
+};
+
+struct KRITAINPUT_EXPORT KisQuickPinchFitTarget
+{
     qreal zoom {1.0};
     QPointF viewCenter;
 };
@@ -34,6 +41,15 @@ public:
                             const QSizeF &viewportSize,
                             qreal margin,
                             qreal targetRotation);
+
+    static KisQuickPinchFitTarget fittedTarget(
+        qreal currentZoom,
+        QSizeF imageSizeAtCurrentZoom,
+        const QRectF &availableViewport,
+        qreal margin,
+        qreal targetRotation);
+
+    static const char *availableViewportPropertyName();
 
     KisQuickPinchTransformFrame frameAt(qreal progress) const;
 
