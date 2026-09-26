@@ -67,64 +67,31 @@ static void handlePencilTap()
 
 static KritaIOSPencilInteractionDelegate *s_delegate = nil;
 static UIPencilInteraction *s_interaction = nil;
+static UIView *s_applicationView = nil;
+static UIWindow *s_applicationWindow = nil;
 static id s_windowDidBecomeVisibleObserver = nil;
 static id s_windowDidBecomeKeyObserver = nil;
 static id s_applicationDidBecomeActiveObserver = nil;
 
-static UIWindow *activeApplicationWindow()
+static bool attachPencilInteraction()
 {
-    UIApplication *application = UIApplication.sharedApplication;
-
-    for (UIScene *scene in application.connectedScenes) {
-        if (![scene isKindOfClass:UIWindowScene.class]) {
-            continue;
-        }
-
-        UIWindowScene *windowScene = static_cast<UIWindowScene *>(scene);
-        if (windowScene.activationState != UISceneActivationStateForegroundActive
-            && windowScene.activationState != UISceneActivationStateForegroundInactive) {
-            continue;
-        }
-
-        for (UIWindow *window in windowScene.windows) {
-            if (window.isKeyWindow) {
-                return window;
-            }
-        }
-
-        for (UIWindow *window in windowScene.windows) {
-            if (!window.isHidden && window.alpha > 0.0) {
-                return window;
-            }
-        }
+    if (!s_applicationWindow && s_applicationView.window) {
+        s_applicationWindow = s_applicationView.window;
     }
-
-    return nil;
-}
-
-static bool attachPencilInteraction(UIView *candidateView)
-{
-    UIWindow *window = candidateView.window;
-    if (!window && [candidateView isKindOfClass:UIWindow.class]) {
-        window = static_cast<UIWindow *>(candidateView);
-    }
-    if (!window) {
-        window = activeApplicationWindow();
-    }
-    if (!window) {
+    if (!s_applicationWindow) {
         return false;
     }
 
     UIView *attachedView = s_interaction.view;
-    if (attachedView == window) {
+    if (attachedView == s_applicationWindow) {
         return true;
     }
     if (attachedView) {
         [attachedView removeInteraction:s_interaction];
     }
-    [window addInteraction:s_interaction];
+    [s_applicationWindow addInteraction:s_interaction];
 
-    qInfo() << "Attached Apple Pencil double-tap interaction to the active window";
+    qInfo() << "Attached Apple Pencil double-tap interaction to the main window";
     return true;
 }
 
@@ -132,6 +99,9 @@ void installKisIOSPencilInteraction(void *nativeView, KisIOSPencilTapHandler han
 {
     UIView *view = reinterpret_cast<UIView *>(nativeView);
     s_handler = handler;
+    if (view) {
+        s_applicationView = view;
+    }
 
     if (!s_interaction) {
         // UIPencilInteraction holds its delegate weakly. Keep both objects
@@ -148,31 +118,33 @@ void installKisIOSPencilInteraction(void *nativeView, KisIOSPencilTapHandler han
                         object:nil
                          queue:NSOperationQueue.mainQueue
                     usingBlock:^(NSNotification *notification) {
-                        attachPencilInteraction(static_cast<UIView *>(notification.object));
+                        Q_UNUSED(notification);
+                        attachPencilInteraction();
                     }];
         s_windowDidBecomeKeyObserver = [notificationCenter
             addObserverForName:UIWindowDidBecomeKeyNotification
                         object:nil
                          queue:NSOperationQueue.mainQueue
                     usingBlock:^(NSNotification *notification) {
-                        attachPencilInteraction(static_cast<UIView *>(notification.object));
+                        Q_UNUSED(notification);
+                        attachPencilInteraction();
                     }];
         s_applicationDidBecomeActiveObserver = [notificationCenter
             addObserverForName:UIApplicationDidBecomeActiveNotification
                         object:nil
                          queue:NSOperationQueue.mainQueue
                     usingBlock:^(NSNotification *) {
-                        attachPencilInteraction(nil);
+                        attachPencilInteraction();
                     }];
     }
 
-    if (!attachPencilInteraction(view)) {
+    if (!attachPencilInteraction()) {
         // Qt enters main() before UIKit connects its UIWindowScene. Retry once
         // the event loop starts; the observers above also cover later window
-        // replacement and foreground transitions.
+        // activation and foreground transitions without changing the target.
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (!attachPencilInteraction(nil)) {
-                qWarning() << "Could not attach Apple Pencil interaction to an active LibrePaint window";
+            if (!attachPencilInteraction()) {
+                qWarning() << "Could not attach Apple Pencil interaction to the LibrePaint main window";
             }
         });
     }

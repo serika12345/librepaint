@@ -19,8 +19,9 @@
   viewport. Ordinary pinch and pinch-twist continue to zoom and rotate
   continuously, and a new touch interrupts the fit animation.
 - Apple Pencil double tap follows the iPadOS preference for switching to the
-  eraser or the previously used preset and remains registered across window
-  activation and foreground transitions.
+  eraser or the previously used preset. The interaction remains owned by the
+  main UIKit window across foreground transitions and auxiliary keyboard
+  windows used by touch UI controls.
 - Files document picker, autosave recovery, background/foreground restoration.
 
 ## P1: after the first useful build

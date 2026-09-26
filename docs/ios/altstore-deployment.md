@@ -341,3 +341,17 @@ files and the IPA contents and permissions, updated and launched
 without a new fatal diagnostic. Device acceptance confirmed the flush toolbar
 geometry, quick-pinch fitting and centering below the toolbar, and restoration
 of full-viewport fitting while the drawing controls are hidden.
+
+The physical-device run `20260926055407` installed the Apple Pencil main-window
+ownership correction on the same iPad Pro through AltStore. Runtime logging
+had shown the previous registration move from LibrePaint's `QUIWindow` to an
+`UIRemoteKeyboardWindow` when the canvas-only brush list activated keyboard
+services. The correction resolves the main `QUIWindow` once from Qt's native
+main view and keeps the interaction there while visibility, key-window, and
+foreground notifications only retry that fixed target. The deployment
+compiled and linked the Objective-C++ change for arm64, retained 7 audited
+static resource groups with 253 files, and verified an IPA containing 27
+directories, 207 data files, and one executable. Device logging recorded one
+main-window attachment and eight successful `eraser_preset_action` deliveries
+across normal display, canvas-only display, brush selection, and restoration
+of the normal display. The tester accepted the complete sequence.
