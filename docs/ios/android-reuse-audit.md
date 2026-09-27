@@ -60,7 +60,7 @@ Krita基準revision
 現在の方針に適合する。
 
 | 対象 | 条件変更 | 状態 |
-|---|---|---|
+| --- | --- | --- |
 | Video Animation import | `!Q_OS_ANDROID`へ`!Q_OS_IOS`を追加 | 実装済み。両OSのprofileはprocess起動型FFmpeg機能を対象外とする。 |
 | Main Windowのdesktop widget style列挙 | `!Q_OS_ANDROID`へ`!Q_OS_IOS`を追加 | 実装済み。mobile profileはapplication側で選択したwidget styleを使う。 |
 | TabletRelease後のmouse event再許可 | macOS/Android条件へiOSを追加 | 実装済み。処理本体は共通。 |
@@ -92,7 +92,7 @@ Krita基準revision
 ## 判定3: platform固有実装が必要なもの
 
 | 対象 | Android側 | iOS側 | 判定 |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | Application pause/autosave通知 | Activity、JNI、foreground service | UIApplication通知、background task | native adapterをplatform別に維持し、保存処理には既存application APIを使う。 |
 | Native file picker | Storage Access Framework URI | UIDocumentPicker、security-scoped URL | iOS adapterがMIME selectorとsecurity-scoped URL lifecycleを担当する。 |
 | Plugin loading | ABI別`lib_krita*`動的load | 単一実行ファイルへの静的登録 | iOSは静的plugin registryを使う。 |
@@ -137,13 +137,13 @@ LibRawのheap化、plugin factory symbol、IPTC初期化、MyPaint登録、CMake
 4. 変更が条件行への`Q_OS_IOS`追加だけで完結する。
 5. iOS実機確認とAndroidの挙動同一性を検証できる。
 
-条件外の候補は専用adapterまたはdeferred項目として扱い、この文書と`TODO.md`へ
-理由を記録する。
+条件外の候補は専用adapterまたはdeferred項目として扱い、この文書へ設計上の理由を記録し、
+[Issue #67](https://github.com/serika12345/librepaint/issues/67)で作業を追跡する。
 
 ## 検証状態
 
 この棚卸しは実装境界を確定する。実機検証の状態は別に管理し、非同期Fill Layer、
-LUT Docker、SeExprの操作確認を引き続き`TODO.md`で追跡する。実機ビルド
+LUT Docker、SeExprの操作確認を[Issue #67](https://github.com/serika12345/librepaint/issues/67)で追跡する。実機ビルド
 `20260805102358`でnode creationのqueued connectionだけを除くと、Pencil release中の
 `QGestureManager::getState()`でクラッシュが再現した。したがって、queued connectionは
 node／UI変更をtablet/mouse配送完了後へ送るために必要であり、nested event loopを除く

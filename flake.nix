@@ -863,7 +863,6 @@
               ".github"
               ".gitlab"
               "AGENTS.md"
-              "TODO.md"
               "build-ios"
               "docs"
               "flake.lock"

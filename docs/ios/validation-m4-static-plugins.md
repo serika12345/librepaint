@@ -88,7 +88,7 @@ minimum profile.
 Configure-time options control each functional group independently:
 
 | CMake option | Static targets |
-|---|---|
+| --- | --- |
 | `KRITA_IOS_PLUGIN_KRA` | KRA import and export |
 | `KRITA_IOS_PLUGIN_PNG` | PNG import and export |
 | `KRITA_IOS_PLUGIN_DEFAULT_PAINTOPS` | Pixel Brush, eraser, and clone paint-ops |
@@ -122,4 +122,4 @@ Android-equivalent plugins. The current 162-target profile has passed final
 linking, IPA inspection, physical-device installation, and startup. It includes
 plugins declared with both `K_PLUGIN_CLASS_WITH_JSON` and
 `K_PLUGIN_FACTORY_WITH_JSON`; CMake gives both forms target-derived static
-symbols. Per-plugin UI and interaction validation remains tracked in `TODO.md`.
+symbols. Per-plugin UI and interaction validation remains tracked in [Issue #67](https://github.com/serika12345/librepaint/issues/67).

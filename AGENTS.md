@@ -80,9 +80,8 @@ and the local resumption snapshot. Begin each session with this sequence:
 
 Record task state and verification in the owning Issue. Keep the local snapshot
 synchronized with its Issue URL, JST timestamp, branch, starting commit, next
-operation, latest verification, and resumption conditions. The retained snapshot
-and historical sections remain available during the transition. Historical
-checkboxes in frozen TODO documents describe their migration-time state.
+operation, latest verification, and resumption conditions. Keep one current
+snapshot. Issues and Git history retain completed work and previous snapshots.
 
 Active work uses `in_progress`; the next ready action uses `planned`; paused
 work records its resumption condition. GitHub open/closed state records whether
@@ -133,7 +132,8 @@ Before and after a deliberate local-flake reevaluation during a large roadmap
 item, compare the dead `*-source` and `*-librepaint-source` path count and
 recoverable size. Unexpected growth stops further local-flake evaluation; the
 session resumes through the last valid cached profile and records the cause in
-`docs/architecture/PROGRESS.md`. Garbage collection is a separate storage
+the owning Issue. The snapshot links to that Issue and its resumption condition.
+Garbage collection is a separate storage
 operation: resolve exact dead paths, preserve active profiles and build caches,
 and obtain the authority required by the destructive-action rules before
 deleting them.
@@ -184,8 +184,9 @@ lanes. The coordinator records one base commit and gives every lane a task
 packet containing the exact public headers and API identifiers, allowed paths,
 owned CMake files and targets, nearest contract, platform scope, build
 permission, Git authority, integration order, and stop conditions. The active
-lane packets and their states are recorded in `docs/architecture/PROGRESS.md`
-before workers start. Two active lanes never share a production header,
+lane packets and their states are recorded in the owning Issue before workers
+start. The snapshot links to the active coordinator Issue. Two active lanes
+never share a production header,
 implementation file, test source, CMake file, or generated artifact.
 
 Each worker lane uses a dedicated Git worktree and a worktree-local Ninja
@@ -214,7 +215,7 @@ Workers follow the complete implementation workflow within their lane,
 including the unchanged build plan, direct dependencies, clean command
 closure, expected first diagnostic, target test, repetition, and platform
 result. A lane task packet is the worker's scoped continuation of the global
-progress snapshot; the worker does not select the coordinator's next action or
+Issue; the worker does not select the coordinator's next action or
 delegate further work unless its packet explicitly authorizes that action. A
 worker stops and reports when required work crosses its allowed paths, overlaps
 another lane, changes an unassigned public API, needs an unassigned dependency,
@@ -231,7 +232,7 @@ The coordinator removes obsolete generated storage as soon as its replacement
 is verified. Completed lane worktrees include their lane-local build trees in
 the same removal. Keep the reusable primary Ninja tree and shared compiler
 cache. Remove obsolete lane build artifacts after integrated tests succeed.
-Record retained storage and reclaimed lane storage in the progress snapshot.
+Record retained storage and reclaimed lane storage in the owning Issue.
 Preserve user-owned artifacts and do not
 discard the primary incremental tree or shared cache while they remain useful.
 
@@ -402,7 +403,6 @@ progress snapshot contains the current work and its next action.
 
 - GitHub Issues own tasks, state, prerequisites, acceptance, and verification.
 - `docs/architecture/ROADMAP.md` owns stage order and Issue entry points.
-- Legacy TODO documents retain migration-time plans and completion records.
 - `docs/architecture/PROGRESS.md` owns the current resumable work snapshot.
 - `docs/architecture/README.md` owns the stable architecture guide.
 - `docs/architecture/DEVELOPMENT.md` owns development and verification usage.
@@ -438,8 +438,8 @@ nix flake check --no-build --all-systems
 ```
 
 Platform-boundary changes run the matching build, artifact, simulator, device,
-or performance verification. The active progress snapshot records exact
-commands and results.
+or performance verification. The owning Issue records exact commands and results; the snapshot records
+the latest verification summary.
 
 ## Completion
 

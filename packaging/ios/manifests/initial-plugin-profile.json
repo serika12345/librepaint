@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "profile": "android-equivalent-ui",
-  "policy": "Static internal plugin set targeted by the iPadOS build. Build and real-device verification status is tracked separately in TODO.md; external extensions and unavailable platform dependencies remain excluded.",
+  "policy": "Static internal plugin set targeted by the iPadOS build. Build and real-device verification status is tracked in https://github.com/serika12345/librepaint/issues/67; external extensions and unavailable platform dependencies remain excluded.",
   "targets": [
     "kritakraimport",
     "kritakraexport",

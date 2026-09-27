@@ -13,7 +13,7 @@ GitHub Issuesを作業の目的、範囲、前提条件、状態、完了条件�
 
 | 段階 | 到達する状態 | 本実装の前提 | Issue |
 | --- | --- | --- | --- |
-| G0 | 再現可能な開発・検証と作業管理 | 起点 | [完了記録](TODO.md#g0-運用基盤) |
+| G0 | 再現可能な開発・検証と作業管理 | 起点 | [運用手順](DEVELOPMENT.md) |
 | R1 | 責務、パッケージ、依存方向の確立 | G0 | [#41](https://github.com/serika12345/librepaint/issues/41) |
 | R2 | 描画・入力・状態遷移・性能の基準契約 | R1 | [#61](https://github.com/serika12345/librepaint/issues/61) |
 | R3 | 基準契約を維持した描画最適化 | R2 | [#62](https://github.com/serika12345/librepaint/issues/62) |
@@ -51,8 +51,3 @@ R2の互換性契約を前提とする。共通言語基準の独立した移行
 個別の進捗、検証結果、保留理由、次の操作は対応Issueへ記録する。段階や対応先を
 変更したときは本書を更新する。Issueの運用形式は開発マニュアルの
 [Issueによる作業管理](DEVELOPMENT.md#issueによる作業管理)に従う。
-
-[旧アーキテクチャTODO](TODO.md)、[旧iPadOS TODO](../../TODO.md)、
-[旧Windows TODO](../windows/TODO.md)は、完了記録、既存の参照先、移行元の固定資料として
-保持する。未完了項目の以後の状態は対応Issueで更新する。固定資料の設計情報を各所有文書へ
-移し、参照元の切替を確認した時点で旧資料を整理する。

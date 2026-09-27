@@ -87,7 +87,6 @@ sync_source() {
         --exclude=/.github/
         --exclude=/.gitlab/
         --exclude=/AGENTS.md
-        --exclude=/TODO.md
         --exclude=/build-ios/
         --exclude=/build/
         --exclude=/docs/

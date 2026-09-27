@@ -1,5 +1,19 @@
 # Initial feature scope
 
+## Platform baseline
+
+The device baseline is arm64 on iPadOS 17 or later. Simulator builds support
+initial diagnostics. Qt 6 supplies the UI framework; Nix owns reproducible OSS
+dependencies and host tools, and Xcode supplies Apple Clang and the iOS SDK.
+Local deployment uses AltStore/AltServer or LiveContainer. The shared IPA targets
+iPhone and iPad; iPhone uses the existing iPad interface. Distribution channels
+and a dedicated iPhone layout have their own acceptance scope.
+
+Internal plugins are selected by the
+[initial plugin profile](../../packaging/ios/manifests/initial-plugin-profile.json).
+Plugin availability and device acceptance are tracked in
+[Issue #67](https://github.com/serika12345/librepaint/issues/67).
+
 ## P0: required for the first useful build
 
 - New/open/save/save-as for KRA, ORA, PNG, and JPEG.
@@ -46,13 +60,19 @@
 - Built-in updater and desktop integration.
 - App Store/marketplace distribution, notarization, and iPhone layouts.
 
+SVG Text Tool/Text Properties and Storyboard require product-side platform
+support and separation from PrintSupport before adoption. Qt Designer plugins,
+other operating systems' platform plugins, and features that launch external
+executables are outside this device profile because their runtime dependencies
+are unavailable in the iOS application sandbox.
+
 ## Android adaptations to reuse or generalize
 
 Generalization in this table is upstream-facing follow-up work. Current local
 reuse follows the one-line guard policy in `android-reuse-audit.md`.
 
 | Area | Existing code | iPadOS action |
-|---|---|---|
+| --- | --- | --- |
 | Touch scrolling/long press | `KisKineticScroller`, `KisLongPressEventFilter` | Generalize behind a mobile/touch capability |
 | Compact main window | `KisMainWindow`, `KisWelcomePageWidget` | Extract shared tablet policy |
 | File dialog behavior | `KoFileDialog`, recent files | Reuse UX policy; replace Android URI handling with UIDocumentPicker |
