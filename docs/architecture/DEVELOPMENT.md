@@ -5,8 +5,8 @@
 この文書は、LibrePaintの環境構築、ソース編集、ビルド、検証、配布物の作成、
 保守を行うための日本語マニュアルである。共通手順を本書にまとめ、OS固有の
 手順はプラットフォーム別の分冊で扱う。コマンドはリポジトリルートで実行する。
-運用規則の正本はルートの`AGENTS.md`、改造順序と完了条件の正本は
-`docs/architecture/TODO.md`、現在の再開地点の正本は
+運用規則の正本はルートの`AGENTS.md`、作業状態と完了条件の正本はGitHub Issuesとする。
+改造順序とIssueの入口は`docs/architecture/ROADMAP.md`、現在の再開地点は
 `docs/architecture/PROGRESS.md`とする。
 
 ## 利用する手順を選ぶ
@@ -25,14 +25,16 @@
 | 文書 | 所有する情報 |
 | --- | --- |
 | `AGENTS.md` | エージェントの作業順序、品質契約、必須検証 |
-| `docs/architecture/TODO.md` | 全プラットフォーム共通の段階、検査段階、完了条件 |
+| GitHub Issues | 作業の目的、範囲、前提、状態、完了条件、検証結果 |
+| `docs/architecture/ROADMAP.md` | 全プラットフォーム共通の段階、依存順序、Issueの入口 |
 | `docs/architecture/PROGRESS.md` | 現在の作業一件だけの状態と次の操作 |
 | `docs/architecture/README.md` | 安定した責務、実行経路、調査入口 |
 | `docs/development/` | OS別の日本語開発手順 |
 | `docs/<platform>/` | OS固有の設計、検証契約、実機検証記録 |
 
-作業完了時は、完了した事実をTODO、試験、成果物へ反映し、`PROGRESS.md`を
-次の作業を指す現在状態へ更新する。
+作業完了時は、検証結果と完了条件の達成を対応Issueへ記録し、試験と成果物を同期する。
+`PROGRESS.md`を次のIssueと具体的な操作を指す再開地点へ更新する。
+既存スナップショットと過去の記録は移行中の参照資料として保持する。
 
 ## 開発環境
 
@@ -413,7 +415,7 @@ Git作業ツリー、担当ブランチ、基準コミット、許可パスを�
 実装担当は担当票を現在作業の範囲として扱い、統合担当の次の操作を選び直さない。追加の
 エージェントへの委任は、担当票の`追加委任`が`authorized`の場合だけ行う。
 
-`AGENTS.md`、`docs/architecture/TODO.md`、`docs/architecture/PROGRESS.md`、
+`AGENTS.md`、`docs/architecture/ROADMAP.md`、`docs/architecture/PROGRESS.md`、
 `docs/architecture/README.md`、`docs/architecture/DEVELOPMENT.md`は統合担当が所有する。
 運用検査の共通処理も、担当票で明示的に移管した場合だけ実装担当が変更する。
 この中央所有により、現在の再開地点を一つの順序で更新できる。
@@ -477,8 +479,8 @@ Linux検証はLinux担当票を受けた担当だけが`ssh nixos`の実機で�
 引渡しコミットは統合後の文書と検証結果を含まないため、`develop`へ直接入れる完成変更ではない。
 
 統合担当は担当の差分が許可パス内に収まることと、基準コミット以後の統合済み変更との非重複を
-確認する。準備済みの担当を一つずつ現在の統合作業ツリーへ取り込み、README、TODO、
-PROGRESSの必要な更新を同じ差分へ追加する。その後、対象CTest、必要な隣接CTest、
+確認する。準備済みの担当を一つずつ現在の統合作業ツリーへ取り込み、対応Issueの結果と
+README、ROADMAP、PROGRESSの必要な更新を同期する。その後、対象CTest、必要な隣接CTest、
 `verify-quick`を実行する。一つの担当を一つのレビュー可能な変更として
 完了してから、次の担当を統合する。
 
@@ -537,6 +539,26 @@ build-incremental windows configure
 mark、ファイル先頭のUTF-8 BOMを扱う。検査はASCII制御文字と、表示順へ作用する
 双方向の埋め込み、上書き、分離文字を診断する。
 
+## Issueによる作業管理
+
+[GitHub Issues](https://github.com/serika12345/librepaint/issues)を作業管理の正本とする。
+起票前に既存Issueを検索し、同じ目的の項目へ集約する。各Issueは次を含める。
+
+- 目的と利用者が観測する結果
+- 対象範囲、所有ファイル、構造変更時の移動元と移動先
+- 親Issue、前提Issue、着手条件
+- 完了条件とプラットフォーム別の検証方法
+- 範囲を超えた場合の停止条件
+
+作業中は`planned`、`in_progress`、または再開条件を伴う`paused`／`blocked`を本文に記録する。
+検証には対象コミット、環境、コマンド、結果、残る条件を添える。完了条件の達成後にIssueを
+閉じる。大きい項目は親Issueに段階全体の条件を置き、子Issueを有限な実装・検証単位にする。
+親子と前提は本文のIssueリンクで示す。新しい作業にはGitHubの作業Issueテンプレートを使う。
+
+製品の設計と保守手順はリポジトリ文書へ反映する。旧TODOは移行元の固定資料として保持し、
+新しい作業状態はIssueへ記録する。Issueの更新にGitHub接続が必要な場合は、接続回復までの
+未反映内容と再開条件をスナップショットへ残す。
+
 ## 作業の再開と保守
 
 新しい作業セッションでは、最初に次を実行する。
@@ -546,9 +568,10 @@ git status --short --branch
 sed -n '1,240p' docs/architecture/PROGRESS.md
 ```
 
-`PROGRESS.md`の`次の操作`が現状と一致する場合は、その一件だけを進める。作業を
-開始したら状態を`in_progress`にし、終了時は次の作業を指す`planned`、または
-理由と再開条件を持つ`paused`／`blocked`へ更新する。
+`PROGRESS.md`が指すIssue本文、直近の検証結果、前提Issueを読み、次の操作を
+現在のブランチとファイルへ照合する。作業状態は対応Issueで更新し、スナップショットには
+IssueのURL、JST更新日時、ブランチ、開始コミット、次の操作、直近の検証、再開条件を記録する。
+Issueの状態と古いスナップショットが異なる場合は、実装と検証の証拠を確認して現在地を更新する。
 
 運用基盤を変更するときは、検査スクリプトの受理例と診断例の単体試験を先に更新し、
 この文書のコマンド、Nixシェル、実装を同じ変更で一致させる。

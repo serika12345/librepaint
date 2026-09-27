@@ -1,7 +1,7 @@
 # AGENTS.md
 
 This file defines the operational contract for coding agents working on
-LibrePaint. Use it with `docs/architecture/TODO.md`,
+LibrePaint. Use it with `docs/architecture/ROADMAP.md`,
 `docs/architecture/PROGRESS.md`, `docs/architecture/DEVELOPMENT.md`, and the
 platform documents relevant to the active task.
 
@@ -48,7 +48,7 @@ target, and test identifiers are unnecessary supporting detail.
 
 ## Roadmap Order
 
-LibrePaint follows the roadmap in `docs/architecture/TODO.md`.
+LibrePaint follows the roadmap in `docs/architecture/ROADMAP.md`.
 
 1. R1 establishes responsibilities, package boundaries, and dependency
    direction.
@@ -56,7 +56,8 @@ LibrePaint follows the roadmap in `docs/architecture/TODO.md`.
 3. R3 optimizes rendering against the R2 contracts.
 4. R4 introduces the Vulkan backend through the stable rendering boundaries.
 5. R5 optimizes the mobile UI through shared application boundaries.
-6. R6 completes C++20 adoption and repository-wide modernization.
+6. R6 completes the common language baseline and repository-wide modernization.
+   Issue #52 owns the independent C++23 baseline migration.
 
 Production integration enters each stage after its prerequisite completion
 criteria pass. Exploration for later stages records findings in the relevant
@@ -65,25 +66,31 @@ algorithms, execution order, scheduling, and synchronization.
 
 ## Resume Procedure
 
-Durable project state lives in the repository documents. Architecture,
-refactoring, test-foundation, and roadmap sessions begin with this sequence:
+GitHub Issues own task scope, prerequisites, completion criteria, state, and
+verification results. Repository documents own architecture, development usage,
+and the local resumption snapshot. Begin each session with this sequence:
 
 1. Read `docs/architecture/PROGRESS.md`.
-2. Read the active gate in `docs/architecture/TODO.md` and its linked design
-   or platform documents.
+2. Read the linked active Issue, its prerequisites, and the design or platform
+   documents it references. Use `docs/architecture/ROADMAP.md` to locate owners.
 3. Inspect the current branch and worktree.
-4. Validate the recorded next action against the current files.
-5. Continue that action, or select the earliest planned gate whose
-   prerequisites are complete.
+4. Validate the recorded next action against the Issue and current files.
+5. Continue that action, or select the earliest ready Issue whose prerequisites
+   are complete.
 
-Roadmap state changes update `docs/architecture/PROGRESS.md` in the same
-change. The snapshot records a JST timestamp, state, gate, purpose, completed
-work, next action, and verification status. Active work uses `in_progress`;
-the next ready action uses `planned`; paused work records its resumption
-condition.
+Record task state and verification in the owning Issue. Keep the local snapshot
+synchronized with its Issue URL, JST timestamp, branch, starting commit, next
+operation, latest verification, and resumption conditions. The retained snapshot
+and historical sections remain available during the transition. Historical
+checkboxes in frozen TODO documents describe their migration-time state.
 
-Large roadmap items use reviewable gates with an explicit purpose, scope
-boundary, completion criteria, verification tier, and stop condition.
+Active work uses `in_progress`; the next ready action uses `planned`; paused
+work records its resumption condition. GitHub open/closed state records whether
+the completion criteria have been accepted. An open Issue may be planned,
+in progress, or waiting for a recorded prerequisite.
+
+Large roadmap items use parent Issues and bounded child Issues with an explicit
+purpose, scope, completion criteria, verification tier, and stop condition.
 
 ## Development Environment
 
@@ -157,12 +164,13 @@ Every code, build, script, and policy change follows this sequence:
 7. Refactor while the relevant contract remains green.
 8. Audit responsibility, dependency direction, ownership, lifetime, public
    API, file growth, and platform impact.
-9. Synchronize TODO, progress, architecture, fixed test data, and baselines.
+9. Synchronize the owning Issue, snapshot, architecture, fixed test data,
+   and baselines.
 10. Run the verification tier required by the change scope.
 
 Compiler options, linters, architecture checks, image comparisons, and
 verification scripts retain or increase their enforcement strength. A reviewed
-exception records its reason, owner, tracked TODO, maximum scope, and removal
+exception records its reason, owner, tracked Issue, maximum scope, and removal
 condition.
 
 Each reviewable change groups one feature or one structural concern.
@@ -341,12 +349,12 @@ settings paths and keys, CMake target names, desktop IDs, serialized formats,
 and scripting APIs.
 
 Temporary forwarding headers, adapters, compatibility branches, and reviewed
-exceptions carry a deletion condition and tracked roadmap item.
+exceptions carry a deletion condition and tracked Issue.
 
 ## C++ and Qt
 
-Common builds use C++17 facilities through R6. The R6 gate records supported
-compilers, standard libraries, Qt versions, and platform constraints for the
+Common builds use C++17 facilities until Issue #52 passes. That Issue records
+supported compilers, standard libraries, Qt versions, and platform constraints for the
 language-standard transition.
 
 APIs express ownership, lifetime, nullability, and error behavior. Prefer value
@@ -392,7 +400,9 @@ execution order, and successful end states in affirmative form. Migration
 observations belong to implementation reports and repository history. The
 progress snapshot contains the current work and its next action.
 
-- `docs/architecture/TODO.md` owns the cross-platform roadmap and gate state.
+- GitHub Issues own tasks, state, prerequisites, acceptance, and verification.
+- `docs/architecture/ROADMAP.md` owns stage order and Issue entry points.
+- Legacy TODO documents retain migration-time plans and completion records.
 - `docs/architecture/PROGRESS.md` owns the current resumable work snapshot.
 - `docs/architecture/README.md` owns the stable architecture guide.
 - `docs/architecture/DEVELOPMENT.md` owns development and verification usage.
@@ -440,7 +450,7 @@ A completed task has:
 - successful required checks in the Nix environment;
 - an architecture and platform impact assessment;
 - justified baselines and reviewed exceptions;
-- synchronized TODO, progress, and architecture documents;
+- synchronized owning Issue, snapshot, roadmap links, and architecture documents;
 - current generated documentation artifacts;
 - preserved user-owned worktree changes.
 

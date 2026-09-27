@@ -256,12 +256,12 @@ Nix入力を保護します。空き容量が閾値未満の場合、または�
 試験時間を固定し、描画、保存と再読込、入力、画面回転、前景復帰を変更範囲に応じて確認します。
 署名、IPA権限、LiveContainerの復旧手順は
 [配備手順](../ios/altstore-deployment.md)、機能範囲は
-[機能定義](../ios/feature-scope.md)、残作業は[プラットフォームTODO](../../TODO.md)を参照します。
+[機能定義](../ios/feature-scope.md)、残作業は[#67](https://github.com/serika12345/librepaint/issues/67)を参照します。
 
 ### 機能別の操作検証
 
 以下は2026年8月9日時点の検証対象です。
-実施済み範囲と次の対象は[プラットフォームTODO](../../TODO.md)と
+実施済み範囲と次の対象は[#67](https://github.com/serika12345/librepaint/issues/67)と
 [現在の作業状況](../architecture/PROGRESS.md)で確認します。
 
 現在のiPadプロファイルは、162個の内部プラグインを静的に登録しています。arm64での最終リンク、IPA検査、実機へのインストールと起動まで確認済みです。次のユーザーインターフェースと操作を引き続き検証します。

@@ -1,5 +1,12 @@
 # LibrePaint iPadOS TODO
 
+## Issueへの移行
+
+この文書は2026-09-27時点の計画と完了記録を保持する固定資料である。
+作業状態、残作業、完了条件の更新先は[#67](https://github.com/serika12345/librepaint/issues/67)とその関連Issueである。
+段階と個別作業の対応は[ロードマップ](docs/architecture/ROADMAP.md)を参照する。
+以下のチェック欄と状態は移行時点の記録として参照する。
+
 ## Android build recipes
 
 - [x] x86_64 NixOSで、固定したQt 5 arm64-v8a依存セットから未署名のrelease APKを生成する。
@@ -39,7 +46,7 @@
 ## マイルストーン一覧
 
 | ID | マイルストーン | 成果物 | 目安 |
-|---|---|---|---:|
+| --- | --- | --- | ---: |
 | M0 | 方針固定とベースライン | 決定記録、機能表、既存ビルド確認 | 2～4日 |
 | M1 | 再現可能なビルド基盤 | `flake.nix`、toolchain、Xcode検査 | 5～10日 |
 | M2 | iOS向け最小依存セット | arm64/iOS静的ライブラリ群 | 10～20日 |

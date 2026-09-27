@@ -127,4 +127,4 @@ LIBREPAINT_DEPS_PATH=/absolute/path/to/dependencies packaging/linux/appimage/bui
 Nix定義を変更した場合は共通マニュアルのNix評価検査を実行し、該当する名前付き出力を
 構築します。配布前には対象OSで起動、描画、保存と再読込、プラグイン読込を確認し、
 署名・包装を変更した場合はその成果物を使って検証します。
-Windowsの依存構造と残作業は[Windows TODO](../windows/TODO.md)で管理します。
+Windowsの依存構造と残作業は[#68](https://github.com/serika12345/librepaint/issues/68)で管理します。
