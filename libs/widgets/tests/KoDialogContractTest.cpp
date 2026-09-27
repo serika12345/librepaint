@@ -20,6 +20,7 @@ private Q_SLOTS:
     void availableChoicesReflectDialogState();
     void buttonClicksDispatchSelections();
     void detailsButtonTogglesExtraContent();
+    void destructionCancelsDeferredPositionAdjustment();
 };
 
 void KoDialogContractTest::dialogDisplaysContentAndModifiedCaption()
@@ -165,6 +166,21 @@ void KoDialogContractTest::detailsButtonTogglesExtraContent()
     button->click();
     QVERIFY(!dialog.isDetailsWidgetVisible());
     QVERIFY(!details->isVisible());
+}
+
+void KoDialogContractTest::destructionCancelsDeferredPositionAdjustment()
+{
+    /*
+     * Consumer: Dialog owners that destroy a non-modal dialog immediately after showing it.
+     * Operation: Shows and destroys the dialog before its deferred position adjustment runs.
+     * Observable result: Processing the deferred event completes without accessing the destroyed dialog.
+     * Failure impact: Closing a newly shown dialog can crash the application while the event loop continues.
+     */
+    auto *dialog = new KoDialog;
+    dialog->show();
+    delete dialog;
+
+    QTest::qWait(20);
 }
 
 QTEST_MAIN(KoDialogContractTest)
