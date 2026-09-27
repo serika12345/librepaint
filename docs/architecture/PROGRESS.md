@@ -2,6 +2,23 @@
 
 ## 現在の作業スナップショット
 
+- 更新日時: 2026-09-27 20:59 JST
+- 状態: `complete`
+- 現在の検査段階: G0 日本語開発マニュアルと文書の責務整理
+- 目的: 環境構築、ソース編集、検証、OS別成果物作成、保守の手順を日本語マニュアルから参照できるようにする。
+- ブランチ: `develop`
+- 開始コミット: `2ef59958b37c0b4edfd23bb7825aa193ec3e79aa`。開始時の追跡済み作業ツリーは変更なし。
+- 範囲: 文書のみ。製品コード、Nix定義、CMake、検査スクリプト、生成図を維持する。
+- 構成: `docs/architecture/DEVELOPMENT.md`を共通入口とし、`docs/development/desktop.md`、`android.md`、`ios.md`をOS別手順の正本とする。
+- 移設元と移設先: `README.md`と`README.ja.md`の構築手順から`docs/development/desktop.md`と`docs/development/ios.md`へ、`README.android.md`から`docs/development/android.md`へ、`packaging/linux/appimage/README.md`から`docs/development/desktop.md`へ移設した。
+- 設計と手順: `docs/ios/README.md`の操作手順を`docs/development/ios.md`、依存物の契約を`docs/ios/dependency-design.md`へ分けた。`docs/architecture/README.md`の読む順序、調査手順、図の保守を`docs/architecture/DEVELOPMENT.md`へ移し、同書のAndroid固有手順を`docs/development/android.md`へ集約した。
+- 保守: READMEは製品概要または資料案内を所有する。OS固有の設計、検証記録、配備の詳細資料は各プラットフォーム文書が所有する。共通検証例は評価済みNix環境を再利用する。
+- 検査状態: macOSの評価済みNix環境で`./scripts/run-shared-test-env ./scripts/verify-quick`が成功（運用試験57件、責務境界、公開契約、テキスト、文書、リンク、生成図一致）。変更文書への`markdownlint-cli2`と`lychee --offline --include-fragments --no-progress`も問題0件で成功し、`git diff --check`も成功した。
+- 検証範囲: 文書の構成と参照を検査する。OS別の製品再構築、端末配備、外部URLの疎通は今回の対象外。掲載手順は既存のスクリプトと定義を参照する。
+- 次の作業: 文書検査を完了後、R2-G19d-hの通常ピンチ、回転、中断、誤発動の実機受入れ結果を確定する。独立したR2-G19d-bは`planned`を維持する。
+
+## 直前の完了記録: R2-G19d-k Apple Pencilメインウィンドウ所有契約
+
 - 更新日時: 2026-09-26 14:56 JST
 - 状態: `complete`
 - 現在の検査段階: R2-G19d-k Apple Pencilメインウィンドウ所有契約

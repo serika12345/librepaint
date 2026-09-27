@@ -5,7 +5,7 @@
 この文書は、変更内容から調査対象を絞り、LibrePaintの主要な設計境界と実行経路を把握するための入口です。設計判断に使う責務、経路、識別子を中心にまとめています。
 
 全プラットフォーム共通の長期改造計画は[LibrePaint全面改造TODO](TODO.md)で管理します。
-開発・検証コマンドは[LibrePaint開発・検証基盤](DEVELOPMENT.md)、現在の再開地点は
+開発・検証コマンドは[LibrePaint開発マニュアル](DEVELOPMENT.md)、現在の再開地点は
 [LibrePaintアーキテクチャ作業状況](PROGRESS.md)を正本とします。
 
 - 変更を共通コード、プラグイン、プラットフォーム統合、配布定義のどこへ置くか
@@ -15,16 +15,6 @@
 
 図は責務と主要な実行経路を示します。実際のリンク境界は各ディレクトリーの
 `CMakeLists.txt`を正本とします。
-
-## 最初の30分で読む順序
-
-1. [ルートのCMakeLists.txt](../../CMakeLists.txt)末尾で、`libs`、`qmlmodules`、`plugins`、`krita`の構成順とiOS条件を確認します。
-2. [libs/CMakeLists.txt](../../libs/CMakeLists.txt)と[plugins/CMakeLists.txt](../../plugins/CMakeLists.txt)で、常時リンクするライブラリーと機能単位のプラグインを分けます。
-3. [krita/CMakeLists.txt](../../krita/CMakeLists.txt)で実行形式、Qtリソース、OS別ソース、静的プラグインの最終リンクを確認します。
-4. [krita/main.cc](../../krita/main.cc)から`KisApplication::start()`を追い、[KisApplication.cpp](../../libs/application/ui/orchestration/KisApplication.cpp)でグローバル状態、プラグイン、リソース、メインウィンドウの初期化順を確認します。
-5. [KisDocument.h](../../libs/ui/document/KisDocument.h)と[kis_image.h](../../libs/image/kis_image.h)を読み、文書の寿命・入出力と、画像モデル・描画スケジューラーを分けて捉えます。
-6. 対象機能を[変更内容から見る場所](#変更内容から見る場所)で引き、近傍の`CMakeLists.txt`、プラグインJSON、テストまで範囲を広げます。
-7. 配布や依存関係の変更では、[flake.nix](../../flake.nix)を入口に、該当する`nix/<platform>/`と`packaging/<platform>/`を読みます。
 
 ## 全体構造
 
@@ -830,54 +820,3 @@ R2-G3で
 3. ランタイム組立、アーカイブ、署名、配備
 
 LinuxとWindowsでは依存関係出力をソースビルドから分離しています。LinuxのAppImage、WindowsのZIP、iOSのIPAは完成済みアプリケーションへ重ねる最終段階です。iOSはさらに、外部ライブラリーを個別のNix派生物として構築し、固定したXcode／SDK契約を検査します。Appleの署名、AltStoreへのインストール、端末操作は認証情報と外部状態を扱うため`packaging/ios`側に残ります。
-
-## 調査と設計判断の手順
-
-### 1. 実行時の所有者を決める
-
-現象を「プロセス」「文書」「画像」「プラグイン機能」「資産」「配布物」のどれが所有するか分類します。所有者が不明な場合は、公開クラス名より先に呼び出し経路を`rg`で追います。
-
-### 2. 構築時と実行時の境界を分ける
-
-`CMakeLists.txt`はコンパイル・リンク・インストールの関係を決めます。プラグインJSONとレジストリーは実行時の発見と選択を決めます。Nixはそのターゲットへ与える外部依存関係と成果物の組立を決めます。同じ機能でも三つすべてに変更が必要な場合があります。
-
-### 3. 共通実装を先に検討する
-
-描画、文書、ファイル形式、画面動作の共通処理は`libs`または`plugins`を所有者に
-します。OSのライフサイクル、ネイティブファイル選択、入力API、署名・配備との
-接続をプラットフォーム境界へ置くと、デスクトップとモバイルで同じ処理経路を
-検証できます。
-
-### 4. 安定識別子を確認する
-
-KRA MIME／UTI、設定ディレクトリー、CMakeターゲット、プラグインID、
-アクションID、デスクトップIDには互換性上の意味があります。変更時は参照元、
-移行方法、互換性試験を一組で扱います。
-
-### 5. 影響に比例した検証を選ぶ
-
-| 変更範囲 | 最低限の検証 |
-| --- | --- |
-| 文書と図のみ | `nix develop .#docs --command scripts/docs/check-architecture.sh` |
-| CMake／Nix評価 | `nix flake check --no-build --all-systems` |
-| ライブラリー内部 | 対象ディレクトリーの単体試験と該当プラットフォームの開発シェル |
-| プラグイン | 登録確認、対象機能の操作、該当形式なら往復試験 |
-| 入力・描画 | 押下・移動・解放、アンドゥ、投影更新、対象デバイス |
-| 配布定義 | 名前付き`nix build`出力、成果物検査、対象OSでの起動 |
-| iOS静的プロファイル | プラグイン目録、最終リンク、IPA検査、実機の対象操作 |
-
-## この文書と図の保守
-
-文書用の全ツールは`nix develop .#docs`にあります。図の生成元は
-`docs/architecture/*.d2`で、SVGはレビューと通常のMarkdown表示のために
-追跡します。図の変更はD2の生成元へ加え、SVGを再生成します。
-
-`nix develop .#docs --command scripts/docs/render-architecture.sh`
-
-文書、リンク、D2構文、生成済みSVGの一致をまとめて確認します。
-
-`nix develop .#docs --command scripts/docs/check-architecture.sh`
-
-新しい主要境界を追加した場合は、全体構造、変更内容から見る場所、該当する
-実行経路の三か所が整合するように更新します。プラットフォーム固有の詳細手順は
-`docs/<platform>/`または`packaging/<platform>/`の文書を正本にします。

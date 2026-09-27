@@ -1,12 +1,24 @@
-# LibrePaint開発・検証基盤
+# LibrePaint開発マニュアル
 
 ## 目的
 
-この文書は、LibrePaintのアーキテクチャ改造を、リポジトリに記録した
-作業順序、Nix開発環境、検査条件を使って再現するための利用手順を定める。
+この文書は、LibrePaintの環境構築、ソース編集、ビルド、検証、配布物の作成、
+保守を行うための日本語マニュアルである。共通手順を本書にまとめ、OS固有の
+手順はプラットフォーム別の分冊で扱う。コマンドはリポジトリルートで実行する。
 運用規則の正本はルートの`AGENTS.md`、改造順序と完了条件の正本は
 `docs/architecture/TODO.md`、現在の再開地点の正本は
 `docs/architecture/PROGRESS.md`とする。
+
+## 利用する手順を選ぶ
+
+| 作業 | 参照先 |
+| --- | --- |
+| 初回準備と日常のソース編集 | 本書の[開発環境](#開発環境)と[検証階層](#検証階層) |
+| macOS、Linux、Windowsの成果物作成 | [デスクトップ開発](../development/desktop.md) |
+| AndroidのAPK／AAB、端末試験 | [Android開発](../development/android.md) |
+| iOS／iPadOSの依存構築、IPA、実機配備 | [iOS／iPadOS開発](../development/ios.md) |
+| コードの調査と設計判断 | 本書の[読む順序](#最初の30分で読む順序)と[調査手順](#調査と設計判断の手順) |
+| 文書と図の更新 | 本書の[文書保守](#この文書と図の保守) |
 
 ## 文書と状態の構成
 
@@ -16,12 +28,18 @@
 | `docs/architecture/TODO.md` | 全プラットフォーム共通の段階、検査段階、完了条件 |
 | `docs/architecture/PROGRESS.md` | 現在の作業一件だけの状態と次の操作 |
 | `docs/architecture/README.md` | 安定した責務、実行経路、調査入口 |
-| `docs/<platform>/` | OS固有の設計、構築、実機検証 |
+| `docs/development/` | OS別の日本語開発手順 |
+| `docs/<platform>/` | OS固有の設計、検証契約、実機検証記録 |
 
 作業完了時は、完了した事実をTODO、試験、成果物へ反映し、`PROGRESS.md`を
 次の作業を指す現在状態へ更新する。
 
 ## 開発環境
+
+Nix（Flakes有効）とdirenvを用意し、シェルでdirenvの連携を有効にする。
+macOS／Linuxのネイティブ開発を基本とし、iOSにはApple Silicon Macと固定Xcode、
+Android／Windowsのクロス構築にはx86_64 Linuxを使用する。
+コンパイラー、CMake、NinjaなどはNix開発環境が供給する。
 
 初回にリポジトリルートでdirenvの構成を承認する。
 
@@ -124,53 +142,8 @@ build-incremental android-x86_64 build KisCurveOptionModelTest
 build-incremental windows build krita
 ```
 
-AndroidのQt TestはABIに対応する共有ライブラリーとして構築し、選択した一対象とその推移的な
-実行時ライブラリーを標準APKへ収める。`android`は`arm64-v8a`実機用、
-`android-x86_64`はx86_64実機およびWaydroid診断用であり、依存物固定表、Ninja木、
-構成指紋、コンパイラーキャッシュ、APKをABIごとに分離する。
-
-Androidの両プロファイルはx86_64 Linuxホスト上で、固定Android SDK／NDKとソースから構築する
-Qt 6.11.1、KF 6.28.0、C／C++依存物を使用する。`android-source-dependencies`、
-`qtbase-android`、`android-kf6`、`android-application-dependencies`、
-`android-dependencies`の各Nix出力が変更頻度の異なる構築境界を所有し、x86_64版は対応する
-`android-x86_64-*`または`*-android-x86_64`出力を使用する。製品は次のコマンドでAPKとAABを
-生成し、ABI、ELF、16 KiBページ整列、C++実行時、Qt 6／KF6、プラグイン、資源、Manifest、SDK版を
-包装工程内で監査する。
-
-```sh
-nix build .#librepaint-android
-nix build .#librepaint-android-x86_64
-```
-
-通常構築のGradle通信は`nix/android/gradle-deps.json`の固定応答だけを再生する。依存版の更新時は
-固定応答とハッシュを更新し、通常構築をネットワークなしで再実行する。Nixバイナリーキャッシュは
-同一派生物の代替であり、LibrePaintまたはKritaの別構築が生成した依存成果物は入力にしない。
-固定した依存レシピから参照するパッチと構築フラグは構築メタデータとして扱い、ライブラリー、Qt配置、
-APKなど、別のLibrePaintまたはKrita構築が生成した成果物は入力にしない。
-
-Gradle固定応答は、製品と同じAndroid Gradle Plugin、AndroidX、SDK条件だけを持つ最小包装検査から更新する。
-この操作はリリースAPKを一つ組み立てて遅延解決される包装依存も記録するが、LibrePaint、Qt、KF6、C／C++
-依存物を構築しない。製品の隔離クリーン構築は増分構築、試験、端末操作、文書検査の完了後に一度行う。
-
-```sh
-gradle_update_script="$(nix build --no-link --print-out-paths \
-  path:.#librepaint-android.gradleDepsUpdate)"
-"$gradle_update_script"
-```
-
-```sh
-build-incremental android-x86_64 package-test KisCurveOptionModelTest
-adb connect <Waydroidまたは実機の接続先>
-build-incremental android-x86_64 run-test KisCurveOptionModelTest [adb-serial]
-```
-
-`run-test`は標準ADBで接続先のABIを検査し、監査済み無署名APKから試験専用鍵で実行用複製を
-署名して導入し、QtActivity経由の実行、xUnit XMLとlogcatの回収、強制停止、パッケージ削除を行う。
-無署名成果物は変更せず、試験鍵はリポジトリーのキャッシュ領域に保持する。結果は選択されたNinja木の
-`test-results/<target>/`へ保存する。WaydroidはAndroid診断のADB接続先として使用し、
-APKと実行入口はx86_64 Android実機でも共通である。対象の`data/`ディレクトリーはAPKの
-assetsへ収め、ActivityがAndroid標準のアプリ専用外部領域へ展開する。ネイティブ試験はその
-領域を作業ディレクトリーとして使うため、構築ホストの絶対パスや端末固有の共有パスを必要としない。
+AndroidのABI別構成、APK／AAB、端末試験、Gradle依存物の更新は
+[Android開発マニュアル](../development/android.md)で扱う。
 
 ### 実装前の構築範囲監査
 
@@ -252,7 +225,7 @@ nix build .#librepaint-windows-archive
 ### 高速検査
 
 ```sh
-nix develop .#test --command ./scripts/verify-quick
+./scripts/run-shared-test-env ./scripts/verify-quick
 ```
 
 次を検査する。
@@ -268,7 +241,7 @@ nix develop .#test --command ./scripts/verify-quick
 ### 単一試験
 
 ```sh
-nix develop .#test --command ./scripts/run-test kis_strokes_queue_test
+./scripts/run-shared-test-env ./scripts/run-test kis_strokes_queue_test
 ```
 
 第1引数はCMakeの試験ターゲットである。CTest名を絞る必要がある場合は
@@ -278,23 +251,23 @@ nix develop .#test --command ./scripts/run-test kis_strokes_queue_test
 書庫保存境界とXML直列化境界は、次の二つの契約で検査する。
 
 ```sh
-nix develop .#test --command \
+./scripts/run-shared-test-env \
   ./scripts/run-test TestResourceStorageArchiveContract
-nix develop .#test --command \
+./scripts/run-shared-test-env \
   ./scripts/run-test TestXmlWriter
 ```
 
 リソース選択表示と描画設定表示は、次の契約で個別に検査する。
 
 ```sh
-nix develop .#test --command \
+./scripts/run-shared-test-env \
   ./scripts/run-test TestResourceUiContract
-nix develop .#test --command \
+./scripts/run-shared-test-env \
   ./scripts/run-test TestToolSettingsUiContract
 ```
 
 ```sh
-nix develop .#test --command \
+./scripts/run-shared-test-env \
   ./scripts/run-test kis_strokes_queue_test '^libs-image-kis_strokes_queue_test$'
 ```
 
@@ -312,7 +285,7 @@ Ninjaが`premature end of file; recovering`を報告し、変更のない対象�
 ```sh
 cp -p build/tdd-macos/.ninja_deps build/tdd-macos/.ninja_deps.backup
 cp -p build/tdd-macos/.ninja_log build/tdd-macos/.ninja_log.backup
-nix develop .#test --command ninja -C build/tdd-macos -t recompact
+./scripts/run-shared-test-env ninja -C build/tdd-macos -t recompact
 ```
 
 再圧縮直後の対象構築は不足した依存記録を一度再生成する。続く同一対象の構築で
@@ -321,7 +294,7 @@ nix develop .#test --command ninja -C build/tdd-macos -t recompact
 ### 全ネイティブ検査
 
 ```sh
-nix develop .#test --command ./scripts/verify
+./scripts/run-shared-test-env ./scripts/verify
 ```
 
 高速検査に続いて、ネイティブ試験構成の全ターゲットを構築し、登録済みの
@@ -373,9 +346,9 @@ nix build --no-link .#checks.x86_64-linux.governance
 高速検査は、手動で保守する最小の方針と現在の製品ソースを検査する。
 
 ```sh
-nix develop .#test --command \
+./scripts/run-shared-test-env \
   python3 scripts/architecture/check_package_boundaries.py
-nix develop .#test --command \
+./scripts/run-shared-test-env \
   python3 scripts/architecture/check_public_contracts.py
 ```
 
@@ -583,3 +556,64 @@ sed -n '1,240p' docs/architecture/PROGRESS.md
 運用文書は目的、責務、入力、出力、実行順、成功状態を肯定形で記述する。移行時の
 調査結果は変更報告とリポジトリ履歴が所有し、`PROGRESS.md`は現在の作業と次の操作を
 所有する。
+
+## 最初の30分で読む順序
+
+1. [ルートのCMakeLists.txt](../../CMakeLists.txt)末尾で、`libs`、`qmlmodules`、`plugins`、`krita`の構成順とiOS条件を確認します。
+2. [libs/CMakeLists.txt](../../libs/CMakeLists.txt)と[plugins/CMakeLists.txt](../../plugins/CMakeLists.txt)で、常時リンクするライブラリーと機能単位のプラグインを分けます。
+3. [krita/CMakeLists.txt](../../krita/CMakeLists.txt)で実行形式、Qtリソース、OS別ソース、静的プラグインの最終リンクを確認します。
+4. [krita/main.cc](../../krita/main.cc)から`KisApplication::start()`を追い、[KisApplication.cpp](../../libs/application/ui/orchestration/KisApplication.cpp)でグローバル状態、プラグイン、リソース、メインウィンドウの初期化順を確認します。
+5. [KisDocument.h](../../libs/ui/document/KisDocument.h)と[kis_image.h](../../libs/image/kis_image.h)を読み、文書の寿命・入出力と、画像モデル・描画スケジューラーを分けて捉えます。
+6. 対象機能を[変更内容から見る場所](README.md#変更内容から見る場所)で引き、近傍の`CMakeLists.txt`、プラグインJSON、テストまで範囲を広げます。
+7. 配布や依存関係の変更では、[flake.nix](../../flake.nix)を入口に、該当する`nix/<platform>/`と`packaging/<platform>/`を読みます。
+
+## 調査と設計判断の手順
+
+### 1. 実行時の所有者を決める
+
+現象を「プロセス」「文書」「画像」「プラグイン機能」「資産」「配布物」のどれが所有するか分類します。所有者が不明な場合は、公開クラス名より先に呼び出し経路を`rg`で追います。
+
+### 2. 構築時と実行時の境界を分ける
+
+`CMakeLists.txt`はコンパイル・リンク・インストールの関係を決めます。プラグインJSONとレジストリーは実行時の発見と選択を決めます。Nixはそのターゲットへ与える外部依存関係と成果物の組立を決めます。同じ機能でも三つすべてに変更が必要な場合があります。
+
+### 3. 共通実装を先に検討する
+
+描画、文書、ファイル形式、画面動作の共通処理は`libs`または`plugins`を所有者に
+します。OSのライフサイクル、ネイティブファイル選択、入力API、署名・配備との
+接続をプラットフォーム境界へ置くと、デスクトップとモバイルで同じ処理経路を
+検証できます。
+
+### 4. 安定識別子を確認する
+
+KRA MIME／UTI、設定ディレクトリー、CMakeターゲット、プラグインID、
+アクションID、デスクトップIDには互換性上の意味があります。変更時は参照元、
+移行方法、互換性試験を一組で扱います。
+
+### 5. 影響に比例した検証を選ぶ
+
+| 変更範囲 | 最低限の検証 |
+| --- | --- |
+| 文書と図のみ | `./scripts/run-shared-test-env ./scripts/verify-quick` |
+| CMake／Nix評価 | `nix flake check --no-build --all-systems` |
+| ライブラリー内部 | 対象ディレクトリーの単体試験と該当プラットフォームの開発シェル |
+| プラグイン | 登録確認、対象機能の操作、該当形式なら往復試験 |
+| 入力・描画 | 押下・移動・解放、アンドゥ、投影更新、対象デバイス |
+| 配布定義 | 名前付き`nix build`出力、成果物検査、対象OSでの起動 |
+| iOS静的プロファイル | プラグイン目録、最終リンク、IPA検査、実機の対象操作 |
+
+## この文書と図の保守
+
+文書用ツールは`test`と`docs`のNixシェルにあります。評価済み環境を再利用します。図の生成元は
+`docs/architecture/*.d2`で、SVGはレビューと通常のMarkdown表示のために
+追跡します。図の変更はD2の生成元へ加え、SVGを再生成します。
+
+`./scripts/run-shared-test-env scripts/docs/render-architecture.sh`
+
+文書、リンク、D2構文、生成済みSVGの一致をまとめて確認します。
+
+`./scripts/run-shared-test-env scripts/docs/check-architecture.sh`
+
+新しい主要境界を追加した場合は、全体構造、変更内容から見る場所、該当する
+実行経路の三か所が整合するように更新します。プラットフォーム固有の詳細手順は
+`docs/development/`の分冊へ記載し、設計と実機検証記録は`docs/<platform>/`へ記載します。
