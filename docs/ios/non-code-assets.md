@@ -7,12 +7,6 @@ while LibrePaint's asset provenance is reviewed. This document defines that
 build and packaging boundary. The source tree remains a GPL-licensed Krita
 derivative; component-specific terms and notices remain applicable.
 
-This boundary was installed and launched on a physical iPad on 2026-08-07.
-A QuickTime device capture confirmed that the restored toolbar, toolbox, color
-selector, and brush-preview assets render in the app. New changes to the
-available brushes, color resources, templates, or workspace defaults still
-require a focused device build before they are described as verified.
-
 ## Installed on iOS
 
 `krita/data/CMakeLists.txt` installs only these data groups on iOS:
@@ -147,11 +141,6 @@ distribution fallback. The definition and preview classifications remain
 separate, and the relevant license texts and provenance notice are installed
 with the app.
 
-The CC-BY-NC-ND-4.0 Netflix JPEG XL source fixtures, their derived expected
-results, and the tests dedicated to those files have been removed. The remaining
-JPEG XL tests cover import, export, animation, layers, multipage
-documents, and invalid or inaccessible input.
-
 ## Attribution and stable identifiers
 
 License text, copyright statements, credits, authorship, historical generator
@@ -166,18 +155,11 @@ compatibility migration changes them. This includes existing KRA format names,
 `application/x-krita` MIME identifiers, API namespaces, action IDs,
 configuration keys, and resource lookup paths.
 
-## Work still required
+## Maintenance
 
-This boundary covers the installed iOS data selected by CMake. Build
-`20260807134423` was installed and launched on a physical iPad, and a QuickTime
-capture confirmed the restored functional image groups. The current asset set
-and cross-platform LibrePaint icon unification still require a fresh build and
-focused device check.
-
-The complete source checkout still needs a source-wide asset inventory:
-
-- a complete REUSE/DEP5-style file-to-license inventory;
-- local provenance mappings for many source-only test and benchmark fixtures.
-
-Future cleanup should replace or remove an asset, or document its exact license
-and attribution. Existing legal notices retain their original wording.
+Build and device validation use the
+[development manual](../architecture/DEVELOPMENT.md#プラグインと実機検証).
+Update the relevant CMake install definitions, manifests, and attribution
+notices together when changing the selected assets. Preserve original license
+and provenance text. Asset inventory and device acceptance work is tracked in
+[Issue #67](https://github.com/serika12345/librepaint/issues/67).

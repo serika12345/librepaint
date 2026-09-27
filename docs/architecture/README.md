@@ -553,7 +553,7 @@ Windowsでは共有ライブラリー、iOSでは静的ライブラリーとし�
 5. `KisPart`、セッション、`KisMainWindow`
 6. 自動保存の復旧と起動引数の文書
 
-iOSのライフサイクル、メモリー警告、Pencilダブルタップは`KisIOS*.mm`から`main.cc`へ通知されます。Pencilの対話オブジェクトはUIKitが`UIWindowScene`を接続した後の表示中のキーウィンドウへ登録し、ウィンドウの可視化、キー化、前景復帰で登録先を再確認します。タッチ向け画面は[plugins/extensions/iostouchui](../../plugins/extensions/iostouchui)にあり、OS通知の橋渡しと画面機能を分離しています。キャンバスのみ表示のブラシ一覧は名前付きの縦一覧として右側に表示し、色選択は同じ画面の子パネルとして安全領域内の上部バー直下へ右寄せします。ブラシ、レイヤー、色の各パネルは一つずつ表示し、画面回転とキャンバス寸法変更で再配置します。
+iOSのライフサイクル、メモリー警告、Pencilダブルタップは`KisIOS*.mm`から`main.cc`へ通知されます。Pencilの対話オブジェクトはQtのメインビューが所有するUIKitウィンドウへ登録し、その所有先を維持します。ウィンドウの可視化、キー化、前景復帰は同じ登録先への再試行を起動します。タッチ向け画面は[plugins/extensions/iostouchui](../../plugins/extensions/iostouchui)にあり、OS通知の橋渡しと画面機能を分離しています。キャンバスのみ表示のブラシ一覧は名前付きの縦一覧として右側に表示し、色選択は同じ画面の子パネルとして安全領域内の上部バー直下へ右寄せします。ブラシ、レイヤー、色の各パネルは一つずつ表示し、画面回転とキャンバス寸法変更で再配置します。
 
 ### 文書と画像モデル
 
@@ -589,6 +589,9 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 `kis_add_library`が`MODULE`を静的ライブラリーへ変換し、
 `krita_ios_target_static_plugins`が実行形式へ登録・リンクします。組み込む対象の
 正本は[initial-plugin-profile.json](../../packaging/ios/manifests/initial-plugin-profile.json)です。
+CMakeはファクトリー名をターゲットごとに一意化し、実行形式へ直接リンクする生成コードから
+ファクトリーとQt資源の初期化関数を参照します。これにより不要コード除去後も登録とJSONを保持します。
+`inspect-static-resources.sh`は静的アーカイブ内の`qInitResources_*`と最終実行形式を照合します。
 
 機能を追加するときは、C++クラスと次の識別子を一組として確認します。
 
@@ -603,6 +606,33 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 [krita/krita.qrc](../../krita/krita.qrc)は、`kritarc`と`krita5.xmlgui`をQtリソースへ割り当てる小さな目録です。アプリ全体のQtリソース一覧は[krita/CMakeLists.txt](../../krita/CMakeLists.txt)の`krita_QRCS`にあります。アイコン、シェーダー、カーソル、スプラッシュ、既定プリセットなどはそこから実行形式へ組み込まれます。
 
 `install(FILES|DIRECTORY ...)`で配置する資産はQtリソースとは別です。特に`krita/data`、`pics`、`po`、プラグインJSON、バンドル資産を変更するときは、実行時参照方法がリソースURLかインストール先パスかを先に確認します。
+
+iOSのインストール資産と静的依存資源は[資産の採用・帰属資料](../ios/non-code-assets.md)に従います。
+製品とQt／KFのライセンス目録は`packaging/ios/manifests/`、同梱する帰属は
+`packaging/ios/notices/`が所有します。
+
+### モバイルの共通処理とOS境界
+
+描画、文書、形式変換、ブラシ、ツール、ドッカーの処理は共通の所有者に置きます。
+AndroidのActivity／JNIとiOSのUIKit通知は、各OSから既存のアプリケーション操作へ接続します。
+ファイル選択はAndroidの内容URI、iOSのsecurity-scoped URLの寿命と権限をそれぞれ扱います。
+Pencil／S Penの補助操作も各OSで受け、共通のアクションを実行します。
+共通化は現在の利用側と必要な依存方向に従い、具体的な所有者へ責務をまとめます。
+
+iOSのFiles保存は、アプリの一時領域で書出しを完成させ、選択されたファイル自身のハンドルを通じて
+転送します。これにより、提供元が親ディレクトリーへの書込みを許可しない場合も選択先への権限を使えます。
+バックアップと自動保存はアプリの回復領域へ置き、転送失敗時は完成済み一時ファイルと診断パスを保持します。
+
+iOSのメモリー予算は、既定を物理RAMの25%かつ最大1 GiB、手動設定上限を37.5%かつ最大1.5 GiBとします。
+UIKitの警告時にタイルとピックスマップのキャッシュを解放します。
+入力配送中のノード／UI変更はキュー接続で配送完了後へ送ります。
+塗りつぶしレイヤーの非同期ダイアログは、入れ子のイベントループによる再入を避ける別の境界です。
+
+キャンバスのみ表示はタブなし・枠なしの最大化表示を使い、終了時に元のウィンドウ属性とタブ表示を復元します。
+短い内向きピンチは最も近い90度単位の向きへ合わせ、描画ツールバー下の表示領域へ回転・拡大率・中心を
+補間します。通常のピンチ・回転は連続操作を維持し、新しいタッチは補間を中断します。
+画面の再設計は[Issue #64](https://github.com/serika12345/librepaint/issues/64)、
+機能の採用と実機受入れは[Issue #67](https://github.com/serika12345/librepaint/issues/67)が所有します。
 
 ## 実行時の主要経路
 
@@ -771,7 +801,7 @@ sRGB 8ビットの500×500画素画像、単一ペイントレイヤー、`autob
 | --- | --- | --- |
 | 起動順、引数、単一起動 | `krita/main.cc`、`libs/application/ui/orchestration/KisApplication.*` | `KisPart`、`KisMainWindow`、OS条件 |
 | Windowsの実行形式だけに関係する起動 | `krita/windows_stub_main.cpp`、`krita/CMakeLists.txt` | DLLの`krita_main`、配布ツリー |
-| iOSライフサイクル、Pencil、メモリー警告 | `krita/KisIOS*.mm`、`krita/main.cc` | `plugins/extensions/iostouchui`、iOS検証文書 |
+| iOSライフサイクル、Pencil、メモリー警告 | `krita/KisIOS*.mm`、`krita/main.cc` | `plugins/extensions/iostouchui`、開発マニュアルの実機検証 |
 | メニュー、ショートカット、アクション | `krita/krita.action`、`krita/krita5.xmlgui`、対象`KisViewManager`機能 | アクションID、プラグイン`*.action` |
 | Qtリソースの追加 | `krita/krita.qrc`、`krita/CMakeLists.txt`の`krita_QRCS` | リソースURL、`Q_INIT_RESOURCE`、iOS静的資産 |
 | ウィンドウ、ドッカー、キャンバス画面 | `libs/application/ui/workspace`、`libs/ui/canvas`、`plugins/dockers` | `KisMainWindow`、`KisViewManager`、`KisCanvas2` |
@@ -837,3 +867,56 @@ sRGB 8ビットの500×500画素画像、単一ペイントレイヤー、`autob
 3. ランタイム組立、アーカイブ、署名、配備
 
 LinuxとWindowsでは依存関係出力をソースビルドから分離しています。LinuxのAppImage、WindowsのZIP、iOSのIPAは完成済みアプリケーションへ重ねる最終段階です。iOSはさらに、外部ライブラリーを個別のNix派生物として構築し、固定したXcode／SDK契約を検査します。Appleの署名、AltStoreへのインストール、端末操作は認証情報と外部状態を扱うため`packaging/ios`側に残ります。
+
+### iOSの依存物とアプリ包装
+
+Nixは公開ソース、パッチ、ホストツールを固定し、外部ライブラリーをパッケージ単位の派生物へ分けます。
+[共通構築定義](../../nix/ios/default.nix)と`nix/ios/mk-ios-*.nix`が構築境界を、
+`nix/ios/packages/`が個別レシピを所有します。XcodeはApple ClangとSDKを供給し、
+`__impureHostDeps`を宣言する派生物だけが外部のXcodeを参照します。
+版はXcodeとSDKのplistから読み、固定値へ照合します。
+
+Xcode、SDK、Clangの版・ビルド識別子、対象OS、アーキテクチャはコンパイル済み依存物全体で一致させます。
+ホスト生成器はNixコンパイラー、対象ライブラリーはAppleコンパイラーで構築し、CMakeとpkg-configは
+宣言した対象依存物だけを検索します。純粋なヘッダーパッケージは`iosTargetIndependent = true`とし、
+ソースとヘッダー依存だけを入力に持ちます。伝播する依存は`nix-support/propagated-build-inputs`へ記録します。
+
+静的アーカイブは日時を正規化し、全要素のアーキテクチャ、Appleプラットフォーム、最小OS、SDK、
+重複名を検査します。出力のXcode絶対パスと一時構築パスの混入も検査します。
+個別依存の利用側検査は、公開するCMake対象から推移的なリンクが成立することを確認します。
+`ios-dependencies`が採用依存物を集約し、`kf6-consumer-check`がQt／KFを含む最終リンクを検証します。
+
+| 依存物 | 保持する契約 |
+| --- | --- |
+| libpng | `PNG::PNG`からzlibを含む利用側のリンクが成立する |
+| FreeType | `Freetype::Freetype`だけの指定からzlib／libpngを推移的に解決する |
+| HarfBuzz | FreeType接続と配置先に依存しないCoreText参照を維持する |
+| Fontconfig | ホスト検出はiPhoneOS SDKを外したNixコンパイラーを使い、利用側はXML、FreeType、生成設定を含む5アーカイブをリンクする |
+| Expat、Little CMS、Eigen、xsimd | インストール済みCMake対象を利用でき、xsimdはarm64 SIMDをコンパイルできる |
+| libunibreak | 製品の`Findlibunibreak.cmake`からUTF-8改行APIをリンクできる |
+| libjpeg-turbo | JPEG／TurboJPEGの静的公開対象を個別にリンクでき、arm64 NEONオブジェクトを含む |
+| Exiv2 | 監査済みライブラリー機能、JPEG／Exifと文字変換、zlib依存、SDKに依存しない`-liconv`指定を維持する |
+| Boost | Xcodeに依存しないヘッダー派生物と、Appleツールチェーンでの利用側検証を分離する |
+| Immer、Zug | 再配置可能なCMakeメタデータ、同一メジャー版の範囲照合、C++14要件を公開する。ZugはC++17の`std::variant`経路も検証する |
+| Lager | `lager`対象がBoost／ZugヘッダーとC++17を伝播し、state／cursor／watch／store APIを単独指定で利用できる。デバッガー用Immer／Cerealは任意ヘッダーが所有する |
+| libintl | `gettext-runtime/intl`のヘッダーと静的ライブラリーを対象出力とし、gettextツールをホスト側に置く。`Intl::Intl`からgettext／domain／pluralとiconv／CoreFoundationをリンクする |
+| FriBidi | Mesonのホスト／対象設定を分離し、7個の表生成器をmacOSで実行する。ヘッダー、`libfribidi.a`、`fribidi.pc`を公開し、製品の検出経路でbidi種別、括弧、段落APIを検証する |
+
+アプリ構築は製品ソースと静的プラグイン・資源を入力とし、IPA包装は完成済みアプリを入力とします。
+依存定義、製品コンパイル、包装の変更範囲を分けることで、文書や包装の変更時も依存物を再利用します。
+IPAは順序、日時、Unix権限を正規化し、シンボリックリンク、特殊ファイル、危険・重複パス、
+余分なZIPメタデータ、DOS読取り専用属性、作業用配置との目録差を診断します。
+Nix出力は未署名とし、AltStore署名・端末操作は配備用複製に対して行います。
+
+Apple由来の成果物は私有バイナリキャッシュで共有します。共有キャッシュの署名と
+アプリ署名は別の責務です。利用中の構築グラフから依存物・派生物・ソース・構築時入力を保護し、
+その保護を追加構築なしで更新できる状態でキャッシュを保守します。
+具体的なコマンドは[開発マニュアル](DEVELOPMENT.md#iosipados)に従います。
+
+### Windowsの依存供給
+
+共通CMakeは供給元の配置から独立した名前付き対象を利用し、ホストで実行する生成ツールと
+Windows向けヘッダー・ライブラリーを分離します。ホスト判定は`CMAKE_HOST_*`、対象判定は
+`WIN32`とツールチェーン情報が所有します。配布機能の必須依存は構成時に検査します。
+供給元固有の修正はパッケージ定義に置き、暫定回避策にはIssueと削除条件を付けます。
+構造の改善と受入れ条件は[Issue #68](https://github.com/serika12345/librepaint/issues/68)で管理します。

@@ -2,8 +2,8 @@
 
 This file defines the operational contract for coding agents working on
 LibrePaint. Use it with `docs/architecture/ROADMAP.md`,
-`docs/architecture/PROGRESS.md`, `docs/architecture/DEVELOPMENT.md`, and the
-platform documents relevant to the active task.
+`docs/architecture/PROGRESS.md`, and `docs/architecture/DEVELOPMENT.md` for
+development procedures. `docs/architecture/README.md` owns design boundaries.
 
 ## Communication
 
@@ -71,8 +71,9 @@ verification results. Repository documents own architecture, development usage,
 and the local resumption snapshot. Begin each session with this sequence:
 
 1. Read `docs/architecture/PROGRESS.md`.
-2. Read the linked active Issue, its prerequisites, and the design or platform
-   documents it references. Use `docs/architecture/ROADMAP.md` to locate owners.
+2. Read the linked active Issue, its prerequisites, and the relevant sections
+   of the development manual and architecture guide. Use
+   `docs/architecture/ROADMAP.md` to locate owners.
 3. Inspect the current branch and worktree.
 4. Validate the recorded next action against the Issue and current files.
 5. Continue that action, or select the earliest ready Issue whose prerequisites
@@ -404,9 +405,14 @@ progress snapshot contains the current work and its next action.
 - GitHub Issues own tasks, state, prerequisites, acceptance, and verification.
 - `docs/architecture/ROADMAP.md` owns stage order and Issue entry points.
 - `docs/architecture/PROGRESS.md` owns the current resumable work snapshot.
-- `docs/architecture/README.md` owns the stable architecture guide.
-- `docs/architecture/DEVELOPMENT.md` owns development and verification usage.
-- `docs/<platform>/` owns platform design and validation details.
+- `docs/architecture/README.md` owns shared and platform-specific design boundaries.
+- `docs/architecture/DEVELOPMENT.md` is the single development manual for all
+  platforms, including setup, builds, verification, deployment, and maintenance.
+- Asset manifests and attribution documents own license evidence and adopted scope.
+
+Update the relevant manual section for new procedures. Keep historical validation
+results and task lists in Issues and Git history. Link version and inventory
+information to its source definition.
 
 D2 sources own architecture diagrams. Diagram updates regenerate their SVG
 outputs through the documented render command.
@@ -416,19 +422,19 @@ outputs through the documented render command.
 Documentation and policy changes run:
 
 ```sh
-nix develop .#test --command ./scripts/verify-quick
+./scripts/run-shared-test-env ./scripts/verify-quick
 ```
 
 One native test target runs:
 
 ```sh
-nix develop .#test --command ./scripts/run-test <target> [ctest-regex]
+./scripts/run-shared-test-env ./scripts/run-test <target> [ctest-regex]
 ```
 
 The complete native gate runs:
 
 ```sh
-nix develop .#test --command ./scripts/verify
+./scripts/run-shared-test-env ./scripts/verify
 ```
 
 Nix output changes also run:
