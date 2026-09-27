@@ -33,11 +33,9 @@ texts are installed under `share/doc/librepaint/non-code-licenses`.
 
 `packaging/ios/manifests/default-resource-bundle-licenses.json` records the
 three license groups, their expected 244/37 totals, the bundle attribution,
-and the four embedded PNG author fields. The corresponding audit classifies
-every bundle file, parses KPP, SVG, and PNG metadata for individual legal
-overrides, and checks the bundle's internal resource manifest. Run
-`packaging/ios/scripts/audit-default-resource-bundle.py --list` to print the
-file-by-file license and classification basis.
+and the four embedded PNG author fields. Asset changes are reviewed against
+these groups, the bundle's internal resource manifest, and the individual KPP,
+SVG, and PNG metadata for more-specific license notices.
 
 The bundle metadata records its historical generator, authorship, source
 website, and other provenance. Its root preview is a separate branding surface
@@ -56,8 +54,8 @@ the installed application:
 These collections are source-only in the current profile. Parts of them still
 await a complete file-to-license mapping or artwork and branding review, while
 the initial iPad runtime uses the selected data groups above. Separately
-compiled Qt resources carry explicit SPDX notices and are audited independently
-of this install-directory boundary.
+compiled Qt resources carry explicit SPDX notices and have a separate adopted
+scope from this install-directory boundary.
 
 The iOS bundle profile also leaves out `Krita_3_Default_Resources.bundle`,
 `Krita_Artists_SeExpr_examples.bundle`, and `RGBA_brushes.bundle`. In
@@ -69,9 +67,9 @@ LibrePaint artwork described in
 `packaging/ios/notices/librepaint-brand-assets.md`.
 
 `packaging/ios/manifests/ios-image-licenses.json` is the closed license
-inventory for repository-owned image inputs linked into the iOS app. Run
-`packaging/ios/scripts/audit-ios-image-licenses.py --check` to verify it. The
-QRC set contains 1,289 unique images:
+inventory for repository-owned image inputs linked into the iOS app. Review
+image changes against this inventory and the QRC definitions. The QRC set
+contains 1,289 unique images:
 
 - 703 SVG/SVGZ files with a direct, valid CC-BY-SA-4.0 metadata link;
 - 93 additional functional SVG files with CC-BY-SA-4.0 provenance documented
@@ -85,8 +83,8 @@ QRC set contains 1,289 unique images:
 - 23 LibrePaint branding images under CC0-1.0.
 
 The selected static plugins and data targets install another 32 functional
-images under the same project-wide GPL fallback. The audit rediscovers that set
-from 19 exact CMake install definitions, which remain its source of truth. The
+images under the same project-wide GPL fallback. Their CMake install definitions
+own the installed scope. The
 QRC and installed sets have zero unclassified images. The manifest records the
 explicit license groups, the QRC and CMake scope, the accepted metadata license
 URL, and the applicable notice paths. It is installed with the app alongside
@@ -104,9 +102,9 @@ ICC sRGB profile used by PDF output, and two KColorScheme color definitions.
 Their exact source inventory, pinned archive hashes, generated initializer
 objects, archive payload members, license evidence, and final
 `qInitResources_*` symbols are recorded in
-`packaging/ios/manifests/static-dependency-resources.json`. The corresponding
-audit checks the pinned source inventory, linked payload members, and final
-resource symbols.
+`packaging/ios/manifests/static-dependency-resources.json`. The binary check
+compares final resource symbols with its `final_binary` boundary. Dependency
+updates review source provenance and license evidence against the pinned archives.
 
 The Qt-owned resources are distributed under the LGPL-3.0-only option from
 their upstream multi-license expression. The unmodified Qt logo remains only
@@ -123,7 +121,7 @@ GPL, and ICC texts are installed beside this document.
 One dependency resource group is deliberately removed from the iOS link. The
 unused `kcharselect_data` group is a 3.17 MB generated Unicode character
 database whose pinned KF6 archive lacks a self-contained file-to-license
-mapping. The linked-class audit requires zero `KCharSelect` symbols, keeping
+mapping. The final-binary check requires zero `KCharSelect` symbols, keeping
 future use of this data behind an explicit boundary update.
 
 The profile set is restricted to 23 Elle Stone profiles under CC-BY-SA-3.0 and

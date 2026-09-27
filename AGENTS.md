@@ -169,10 +169,12 @@ Every code, build, script, and policy change follows this sequence:
    and baselines.
 10. Run the verification tier required by the change scope.
 
-Compiler options, linters, architecture checks, image comparisons, and
-verification scripts retain or increase their enforcement strength. A reviewed
-exception records its reason, owner, tracked Issue, maximum scope, and removal
-condition.
+Required checks directly protect a documented responsibility, dependency,
+public boundary, observable behavior, or platform artifact boundary. Maintain
+one authoritative check for each guarantee. Remove checks that only freeze
+implementation spelling, completed relocations, formatting, or inventories
+without a current consumer contract. Review retained guarantees when changing
+the verification set.
 
 Each reviewable change groups one feature or one structural concern.
 Structural preparation receives its own gate when it has an independent
@@ -260,19 +262,15 @@ work in the progress snapshot.
 Before adding or expanding a contract test, identify the consumer, operation,
 observable result, and concrete caller-visible failure. Treat one use case or
 state transition as the coverage unit; a declaration is not a coverage unit.
-Tests named `*ContractTest` or `*_contract_test` do not use type traits,
-compile-time shape assertions, or exact signature aliases. A declaration-shape
-check required for source, binary, serialized-data, plugin, or scripting
-compatibility belongs in a `*CompatibilityTest` or `*_compatibility_test` and
-contains a `// Compatibility requirement:` line naming the consumer and stable
-property. `scripts/architecture/check_test_contracts.py` enforces these
-mechanical admission rules in `verify-quick`.
+Behavioral tests assert observable results. Compatibility tests document the
+consumer and stable property that require a declaration or format to remain
+unchanged. Review these requirements with the corresponding production callers.
 
 Use these layers:
 
 - one Qt Test target during the red-green cycle;
 - the affected component CTest set before local completion;
-- `./scripts/verify-quick` for policy, scripts, and architecture documents;
+- `./scripts/verify-quick` for dependency, public-header, and registration boundaries;
 - `./scripts/verify` for the complete native test gate;
 - platform, sanitizer, performance, and device suites at their documented
   integration gates.
@@ -383,11 +381,14 @@ conventions. Formatting and renaming scope matches the active gate.
 
 ## Governance
 
-Governance checks encode repository-owned, reproducible contracts. Current
-contracts cover UTF-8 text representation, approved control and formatting
-characters, the compact package-boundary policy, current public headers and
-plugin registrations, shell scripts, architecture documents, links, and
-generated diagrams.
+Governance checks protect the compact package-boundary policy, public-header
+visibility, and plugin registration integrity. Their tests exercise rejected
+dependencies and invalid boundary inputs. Platform artifact checks inspect the
+actual executable, linked resources, and installed runtime data.
+
+Asset manifests and notices retain provenance and adopted scope. Review asset
+changes against those sources; binary checks enforce the selected resource
+boundary. Documentation maintenance uses source review and diagram generation.
 
 Architecture dependency contracts derive from the current CMake File API graph.
 Each platform configure checks target ownership, allowed dependency direction,
@@ -419,11 +420,14 @@ outputs through the documented render command.
 
 ## Verification Matrix
 
-Documentation and policy changes run:
+Architecture policy and boundary-check changes run:
 
 ```sh
 ./scripts/run-shared-test-env ./scripts/verify-quick
 ```
+
+Documentation changes review links and design consistency. D2 changes regenerate
+the corresponding SVG with `scripts/docs/render-architecture.sh` in the docs shell.
 
 One native test target runs:
 

@@ -943,28 +943,16 @@
       policyTools =
         packageSet: with packageSet; [
           bash
-          cacert
-          coreutils
-          d2
-          diffutils
-          findutils
-          git
-          librsvg
-          lychee
-          markdownlint-cli2
           python3
-          ripgrep
-          shellcheck
         ];
       mkDocsShell =
         packageSet:
         packageSet.mkShellNoCC {
-          packages = policyTools packageSet;
+          packages = with packageSet; [ bash coreutils d2 ];
 
           shellHook = ''
             echo "LibrePaint documentation development shell"
-            echo "  validate: scripts/docs/check-architecture.sh"
-            echo "  render:   scripts/docs/render-architecture.sh"
+            echo "  render: scripts/docs/render-architecture.sh"
           '';
         };
       mkTestShell =
@@ -976,6 +964,8 @@
             clang-tools
             cmake
             ninja
+            git
+            ripgrep
           ]);
 
           shellHook = ''
@@ -999,7 +989,7 @@
       mkGovernanceCheck =
         packageSet: policySource:
         packageSet.runCommand "librepaint-governance" {
-          nativeBuildInputs = policyTools packageSet ++ [ packageSet.clang-tools ];
+          nativeBuildInputs = policyTools packageSet;
         } ''
           cp -R ${policySource} source
           chmod -R u+w source

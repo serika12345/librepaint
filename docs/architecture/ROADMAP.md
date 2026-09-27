@@ -39,6 +39,7 @@ R2の互換性契約を前提とする。共通言語基準の独立した移行
 | Windowsの依存構造 | [#68](https://github.com/serika12345/librepaint/issues/68) |
 | 機能要望 | [#42](https://github.com/serika12345/librepaint/issues/42) |
 | ドメイン処理と外部I/Oの境界 | [#48](https://github.com/serika12345/librepaint/issues/48) |
+| 設計境界に必要な検査への集約 | [#69](https://github.com/serika12345/librepaint/issues/69) |
 | 決定的計算の試験 | [#49](https://github.com/serika12345/librepaint/issues/49) |
 | 上流機能の要求からの再実装 | [#51](https://github.com/serika12345/librepaint/issues/51) |
 | 共通言語基準 | [#52](https://github.com/serika12345/librepaint/issues/52) |

@@ -49,14 +49,13 @@
 
 ### 公開ヘッダーとプラグイン登録
 
-`scripts/architecture/check_public_contracts.py`は、製品ソースとCMake定義を毎回直接調べる。
+`scripts/architecture/check_public_contracts.py`は、製品ソースと登録JSONを直接調べる。
 所有パッケージの外から利用されるヘッダーには、所有ターゲットの公開マクロまたは公開ヘッダー
 構築契約が必要である。
 
 製品プラグインは登録マクロと兄弟JSONを一対一で持ち、IDが一意で、既知のサービス種別を
-一つ宣言する。JSONのライブラリー名を所有ターゲットとして使用し、ライブラリー名を持たない
-登録だけは検査器内の限定された所有上書きへ対応させる。登録実装、JSON、サービス種別、
-CMake所有を変更したときは同じ直接検査で整合性を確認する。
+一つ宣言する。登録マクロ、JSONの存在、IDとサービス種別の整合性を直接検査する。
+ターゲットの所有とリンク方向はCMake構成に基づく依存検査が担当する。
 
 `libs/global/KoID.h`は識別子と表示名の共有値契約を所有し、遅延翻訳の格納実装は
 `libs/global/KoID.cpp`が所有する。`KLocalizedString`の生成や翻訳関数を使用する利用元は
@@ -591,7 +590,8 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 正本は[initial-plugin-profile.json](../../packaging/ios/manifests/initial-plugin-profile.json)です。
 CMakeはファクトリー名をターゲットごとに一意化し、実行形式へ直接リンクする生成コードから
 ファクトリーとQt資源の初期化関数を参照します。これにより不要コード除去後も登録とJSONを保持します。
-`inspect-static-resources.sh`は静的アーカイブ内の`qInitResources_*`と最終実行形式を照合します。
+`audit-static-dependency-resources.py`は最終実行形式の資源初期化・解放関数の集合と一意性を、
+静的資源マニフェストの`final_binary`に照合します。除外実装のシンボルも確認します。
 
 機能を追加するときは、C++クラスと次の識別子を一組として確認します。
 

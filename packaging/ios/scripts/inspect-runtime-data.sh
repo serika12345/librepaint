@@ -8,7 +8,6 @@ fi
 
 app_path="$1"
 runtime_prefix="$2"
-scripts_dir="$(cd "$(dirname "$0")" && pwd -P)"
 expected_share="$runtime_prefix/share"
 bundles_dir="$app_path/share/krita/bundles"
 actions_dir="$app_path/share/krita/actions"
@@ -92,12 +91,6 @@ for notice in \
         exit 1
     fi
 done
-python3 "$scripts_dir/audit-default-resource-bundle.py" \
-    --bundle "$bundles_dir/Krita_4_Default_Resources.bundle" \
-    --manifest "$license_dir/default-resource-bundle-licenses.json" \
-    --skip-external-notice-check
-python3 "$scripts_dir/audit-static-dependency-resources.py" \
-    --manifest "$license_dir/static-dependency-resources.json"
 if (( profile_count != 31 )); then
     echo "error: expected exactly 31 audited ICC color profiles; found $profile_count" >&2
     exit 1

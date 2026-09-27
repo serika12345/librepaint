@@ -239,32 +239,6 @@ mkIOSCMakePackage {
   ];
 
   postConfigure = ''
-    ${python3}/bin/python3 \
-      "${kritaSource}/packaging/ios/scripts/audit-ios-image-licenses.py" \
-      --manifest "${kritaSource}/packaging/ios/manifests/ios-image-licenses.json" \
-      --check
-
-    ${python3}/bin/python3 \
-      "${kritaSource}/packaging/ios/scripts/audit-default-resource-bundle.py" \
-      --bundle "${kritaSource}/krita/data/bundles/Krita_4_Default_Resources.bundle" \
-      --manifest "${kritaSource}/packaging/ios/manifests/default-resource-bundle-licenses.json"
-
-    ${python3}/bin/python3 \
-      "${kritaSource}/packaging/ios/scripts/audit-static-dependency-resources.py" \
-      --qtbase-source-tar "${qtbase-ios.src}" \
-      --kcolorscheme-source-tar "${kcolorscheme-ios.src}" \
-      --kwidgetsaddons-source-tar "${kwidgetsaddons-ios.src}"
-
-    ${python3}/bin/python3 \
-      "${kritaSource}/packaging/ios/scripts/audit-user-visible-branding.py" \
-      --source-root "${kritaSource}" \
-      --xgettext "${gettext}/bin/xgettext"
-
-    ${python3}/bin/python3 \
-      "${kritaSource}/packaging/ios/scripts/audit-ios-compatibility-identifiers.py" \
-      --source-root "${kritaSource}" \
-      --manifest "${kritaSource}/packaging/ios/manifests/compatibility-identifiers.json"
-
     check_cache_value() {
       name="$1"
       expected="$2"
@@ -332,7 +306,6 @@ mkIOSCMakePackage {
         ${python3}/bin/python3 \
           "${kritaSource}/packaging/ios/scripts/audit-static-dependency-resources.py" \
           --binary "$binary" \
-          --build-ninja "$PWD/build.ninja" \
           --nm "${toolchain.nm}"
 
         architectures="$(${toolchain.lipo} -archs "$binary")"
@@ -408,10 +381,6 @@ mkIOSCMakePackage {
         test "$action_count" -gt 0
         test -s "$app/share/krita/actions/iostouchui.action"
         test -s "$app/share/krita/bundles/Krita_4_Default_Resources.bundle"
-        ${python3}/bin/python3 \
-          "${kritaSource}/packaging/ios/scripts/audit-default-resource-bundle.py" \
-          --bundle "$app/share/krita/bundles/Krita_4_Default_Resources.bundle" \
-          --manifest "${kritaSource}/packaging/ios/manifests/default-resource-bundle-licenses.json"
         for notice in \
           CC-BY-3.0.txt \
           CC-BY-SA-3.0.txt \

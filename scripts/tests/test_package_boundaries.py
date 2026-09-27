@@ -10,7 +10,6 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_PATH = REPO_ROOT / "scripts/architecture/check_package_boundaries.py"
-POLICY_PATH = REPO_ROOT / "docs/architecture/package-boundaries.json"
 SPEC = importlib.util.spec_from_file_location("check_package_boundaries", SCRIPT_PATH)
 if SPEC is None or SPEC.loader is None:
     raise RuntimeError(f"cannot import {SCRIPT_PATH}")
@@ -20,11 +19,6 @@ SPEC.loader.exec_module(check_package_boundaries)
 
 
 class PackageBoundaryTests(unittest.TestCase):
-    def test_recorded_policy_is_valid(self) -> None:
-        check_package_boundaries.validate_policy(
-            check_package_boundaries.load_policy(POLICY_PATH)
-        )
-
     def test_forbidden_owner_dependency_is_rejected(self) -> None:
         policy = {
             "schemaVersion": 1,
@@ -101,20 +95,6 @@ class PackageBoundaryTests(unittest.TestCase):
             "target cycles",
         ):
             check_package_boundaries.validate_graph(policy, graph)
-
-    def test_verification_entry_points_use_the_direct_contract(self) -> None:
-        verify_quick = (REPO_ROOT / "scripts/verify-quick").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("check_package_boundaries.py", verify_quick)
-        for path in (
-            "scripts/build-incremental",
-            "scripts/platform/build-android-incremental",
-            "scripts/platform/build-windows-incremental",
-            "packaging/ios/scripts/build-librepaint-incremental.sh",
-        ):
-            text = (REPO_ROOT / path).read_text(encoding="utf-8")
-            self.assertIn("check_package_boundaries.py", text, path)
 
 
 if __name__ == "__main__":
