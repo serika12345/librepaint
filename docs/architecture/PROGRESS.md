@@ -2,19 +2,20 @@
 
 ## 現在の作業スナップショット
 
-- 更新日時: 2026-09-27 23:11 JST
+- 更新日時: 2026-09-27 23:21 JST
 - 状態: `planned`
-- 現在の作業: Issue #56のiPad実機受入れ再開
-- 目的: Issueへ集約した検証記録を基準に、残るクイックピンチ実機受入れを再開する。
-- 関連Issue: 再開先 [#56](https://github.com/serika12345/librepaint/issues/56)、全体 [#66](https://github.com/serika12345/librepaint/issues/66)、R2 [#61](https://github.com/serika12345/librepaint/issues/61)。
+- 現在の作業: Issue #61から次のR2作業を選定
+- 目的: 完了済みの実機受入れを基準に、前提条件を満たす次のR2作業を選ぶ。
+- 関連Issue: 受入れ完了 [#56](https://github.com/serika12345/librepaint/issues/56)、全体 [#66](https://github.com/serika12345/librepaint/issues/66)、R2 [#61](https://github.com/serika12345/librepaint/issues/61)。
 - ブランチ: `develop`
 - 文書移行の開始コミット: `3cc7062ca5c1d715a28a9479124b76432c285be8`。開始時の作業ツリーは変更なし。
 - 完了した作業: 未完了のアーキテクチャ項目とプラットフォーム項目をIssueへ移し、旧IDと移行元の固定コミットを対応付けた。
 - 移設元と移設先: `docs/architecture/TODO.md`の作業管理をIssue #56〜#66、段階案内を`docs/architecture/ROADMAP.md`へ分離した。`TODO.md`の残作業は[#67](https://github.com/serika12345/librepaint/issues/67)、`docs/windows/TODO.md`の残作業は[#68](https://github.com/serika12345/librepaint/issues/68)へ移した。
 - 保持する情報: 以下の既存スナップショットと記録、および旧TODOの本文は移行時点の参照資料として保持する。以後の作業状態はIssueで更新する。
-- 検証状態: macOSの評価済みNix環境で`./scripts/run-shared-test-env ./scripts/verify-quick`が成功（運用試験57件、責務境界、公開契約、テキスト、文書、リンク、生成図一致）。GitHubから13件の本文を再取得し、作成内容との一致を確認した。旧TODOの未完了246欄の対応と、既存PROGRESS本文の保持を確認した。クイックピンチの1欄は自動検査済みと実機受入れ待ちへ分けた。変更文書とIssueテンプレートの`markdownlint-cli2`、`lychee --offline --include-fragments --no-progress`は問題0件。`git diff --check`も成功。
-- 次の操作: Issue #56の実装・受入れ記録を現在のソースと導入済みiPadビルドへ照合し、通常ピンチ、回転、中断、誤発動を確認する。
-- 製品作業の再開地点: [#56](https://github.com/serika12345/librepaint/issues/56)で通常ピンチ、回転、中断、誤発動のiPad実機受入れを確定する。独立したOS固有契約は[#57](https://github.com/serika12345/librepaint/issues/57)。
+- 文書移行時の検証状態: macOSの評価済みNix環境で`./scripts/run-shared-test-env ./scripts/verify-quick`が成功（運用試験57件、責務境界、公開契約、テキスト、文書、リンク、生成図一致）。GitHubから13件の本文を再取得し、作成内容との一致を確認した。旧TODOの未完了246欄の対応と、既存PROGRESS本文の保持を確認した。クイックピンチの1欄は自動検査済みと実機受入れ待ちへ分けた。変更文書とIssueテンプレートの`markdownlint-cli2`、`lychee --offline --include-fragments --no-progress`は問題0件。`git diff --check`も成功。
+- 次の操作: Issue #61の子Issueと現在の実装を照合し、前提条件を満たす次の作業を選ぶ。
+- 製品作業の再開地点: [#61](https://github.com/serika12345/librepaint/issues/61)。独立したOS固有契約は[#57](https://github.com/serika12345/librepaint/issues/57)。
+- 受入れ完了: 利用者からIssue #56の実機確認済みとの申告を受け、残る受入れ欄を完了へ更新し、GitHubで`CLOSED`・`COMPLETED`を確認した。
 - 検証範囲: 今回は文書とIssue管理の変更。製品コード、構築境界、生成図は変更していない。OS別製品の再構築と実機操作は各Issueの検証時に行う。
 
 ## 移行時に保持した作業スナップショット
