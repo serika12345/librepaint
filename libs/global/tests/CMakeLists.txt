@@ -62,6 +62,15 @@ if (ANDROID)
             kritaglobal
             Qt${QT_MAJOR_VERSION}::Test
     )
+
+    kis_add_test(
+        KisAndroidCrashHandlerContractTest.cpp
+        TEST_NAME KisAndroidCrashHandlerContractTest
+        LINK_LIBRARIES
+            kritaglobal
+            Qt${QT_MAJOR_VERSION}::Gui
+            Qt${QT_MAJOR_VERSION}::Test
+    )
 endif()
 
 if (UNIX AND NOT IOS)
@@ -76,6 +85,9 @@ if (UNIX AND NOT IOS)
         ${CMAKE_CURRENT_BINARY_DIR}/..
     )
     target_compile_definitions(KisCrashSignalHandlerSetupContractTest PRIVATE kritaglobal_EXPORTS)
+    if (ANDROID)
+        target_link_libraries(KisCrashSignalHandlerSetupContractTest Qt${QT_MAJOR_VERSION}::Gui)
+    endif()
 endif()
 
 

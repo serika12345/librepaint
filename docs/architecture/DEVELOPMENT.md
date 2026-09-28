@@ -199,6 +199,11 @@ nix run .#librepaint-linux
 nix build .#librepaint-linux-appimage --out-link LibrePaint-x86_64.AppImage
 ```
 
+Linuxの色管理構成はQt DBusの検出結果から決まる。Qt DBusを検出した構成は
+`kritacolord`を組み込み、検出しない構成はダミー実装を組み込む。検出経路を変更した場合は、
+標準構成と`-DHAVE_DBUS=ON`を指定した構成の双方で`KisColorManagerPublicApiTest`と
+`KisColordPublicApiTest`を実行し、同じcolord実装を選択することを確認する。
+
 実行にはLinuxユーザー名前空間が必要。配布前に対象システムとGPUでOpenGL表示を確認する。
 NixOS以外ではnixGL形式のラッパーが必要になる場合がある。
 
@@ -232,6 +237,18 @@ nix build .#librepaint-windows-archive
 アプリ出力は`result/bin/LibrePaint.exe`を含む可搬ディレクトリー。
 アーカイブ出力は`result/LibrePaint-<version>-x86_64-windows.zip`。
 DLL、Qtプラグイン、QML、Python／PyQt、G'MIC、媒体処理、翻訳、フォント、`qt.conf`を同梱する。
+
+`winquirks/unistd.h`を変更した場合は、対象WindowsのVisual Studio開発者環境でMSVC契約を
+構築して実行する。
+
+```powershell
+cmake -S winquirks/tests -B build/winquirks-msvc -A x64
+cmake --build build/winquirks-msvc --config RelWithDebInfo
+ctest --test-dir build/winquirks-msvc -C RelWithDebInfo --output-on-failure
+```
+
+この契約はWindowsのプロセス・利用者・標準ストリーム識別子、`readlink()`の失敗条件、
+`sleep()`の待機時間を検査する。
 
 すべてのデスクトップ成果物で、起動、描画、保存・再読込、プラグイン読込を対象OS上で確認する。
 署名と包装を変更した場合は、その完成物で同じ操作を確認する。
@@ -282,6 +299,17 @@ ARM64では`build-incremental android run-test KisCurveOptionModelTest [adb-seri
 試験は対象と実行時依存物を専用APKに包装し、`data/`をアプリ専用外部領域へ展開して実行する。
 処理は端末ABI確認、試験用複製への署名、導入、Activity起動、結果回収、停止、試験パッケージ削除まで行う。
 xUnit XMLとlogcatは構築木の`test-results/<target>/`へ保存する。
+
+クラッシュ処理を変更した場合は、ARM64実機で実コールバックとバックトレース生成を検査する。
+
+```sh
+build-incremental android run-test KisAndroidCrashHandlerContractTest [adb-serial]
+build-incremental android run-test KisCrashSignalHandlerSetupContractTest [adb-serial]
+```
+
+前者は子プロセスで`handler_init()`を実行してSIGTERMを送信し、unwindstackが生成した
+先頭フレームを含むクラッシュ記録とシグナル終了を確認する。後者は代替シグナルスタック、
+コールバック設定、以前の動作の保存と復元を確認する。
 
 製品APKは構築後に配布・導入権限を持つ鍵で署名する。
 
