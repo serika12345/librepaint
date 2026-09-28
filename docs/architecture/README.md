@@ -543,6 +543,17 @@ Windowsでは共有ライブラリー、iOSでは静的ライブラリーとし�
 
 通常のOSでは[krita/main.cc](../../krita/main.cc)の`main`が入口です。Windowsでは[krita/windows_stub_main.cpp](../../krita/windows_stub_main.cpp)の小さな実行形式が、共有ライブラリー側の`krita_main`を呼びます。`krita_main`の実装本体はどちらも`main.cc`です。
 
+MSVC構築では[winquirks/unistd.h](../../winquirks/unistd.h)がPOSIX形式のプロセス・利用者・
+標準ストリーム識別子、`readlink()`、`sleep()`をWindows CRTとWin32 APIへ接続する。
+[winquirks/tests](../../winquirks/tests)はこの互換境界を実際のMSVC実行形式で検査する。
+
+Androidでは[libs/global/KisAndroidCrashHandler.cpp](../../libs/global/KisAndroidCrashHandler.cpp)の
+`handler_init()`が致命的シグナル用の代替スタックとコールバックを登録する。コールバックは
+unwindstackで現在プロセスのフレームを取得し、アプリケーションデータ領域の
+`kritacrashlog.txt`へ記録してから以前のシグナル動作を再実行する。
+[KisAndroidCrashHandlerContractTest.cpp](../../libs/global/tests/KisAndroidCrashHandlerContractTest.cpp)は
+ARM64実機の子プロセスでこの経路を実行し、バックトレースと終了シグナルを検査する。
+
 `KisApplication::start()`は、おおむね次の順で初期化します。
 
 1. グローバルなファクトリーと設定
@@ -879,6 +890,9 @@ SHA-256は`4f5b7f971268c853d893a2c6c25d805cb354eef8c1d6c26fffeaac5dafa4d219`で�
 3. ランタイム組立、アーカイブ、署名、配備
 
 LinuxとWindowsでは依存関係出力をソースビルドから分離しています。LinuxのAppImage、WindowsのZIP、iOSのIPAは完成済みアプリケーションへ重ねる最終段階です。iOSはさらに、外部ライブラリーを個別のNix派生物として構築し、固定したXcode／SDK契約を検査します。Appleの署名、AltStoreへのインストール、端末操作は認証情報と外部状態を扱うため`packaging/ios`側に残ります。
+
+Linuxの`libs/color`はQt DBusの検出結果を色管理バックエンドの選択条件とする。Qt DBusが
+利用できる構成は`kritacolord`へ依存し、利用できない構成はダミー実装を選択する。
 
 ### iOSの依存物とアプリ包装
 
