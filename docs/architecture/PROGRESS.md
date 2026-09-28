@@ -1,12 +1,12 @@
 # LibrePaint作業スナップショット
 
-- 更新日時: 2026-09-28 00:34 JST
+- 更新日時: 2026-09-28 09:11 JST
 - 状態: `in_progress`
-- 現在の作業: [Issue #69](https://github.com/serika12345/librepaint/issues/69)の検査削減。実装と手元の検証は完了。Nix環境・出力の再評価条件待ち。
-- ブランチ: `develop`
-- 開始コミット: `afe9992cde3de972a64e99c7d0f7d2be79651fde`。開始時の作業ツリーは変更なし。
-- 検証状態: 評価済みNix環境で`verify-quick`成功（設計境界の試験17件、10責務、531公開ヘッダー、172プラグイン登録）。macOSの既存CMakeグラフ1,757対象と既存iOSバイナリー2件の資源境界検査、変更シェルとNix定義の構文、`git diff --check`が成功。
-- 次の操作: Nix再評価の保守条件が解消したら、縮小した検査環境とiOS出力を評価・構築する。製品の次作業は[Issue #61](https://github.com/serika12345/librepaint/issues/61)から選ぶ。
-- 未実施: `nix flake check --no-build --all-systems`、変更後Nix出力の構築と各OSの実行試験。製品実装と採用資産は今回の変更対象外。
+- 現在の作業: [Issue #59](https://github.com/serika12345/librepaint/issues/59)の矩形選択描画契約。選択内の画素結果、投影一致、正確な描画領域と選択外不変を固定し、PR提出の準備が完了した。
+- ブランチ: `issue-59-selection-stroke-contract`
+- 開始コミット: `9bba5e336cc9557f3b7f20199ab275e4f919411b`。開始時の作業ツリーは変更なし。
+- 検証状態: 変更前の対象閉包2,181工程を画素ブラシ実行オブジェクトへ分離して1,309工程へ縮小。矩形選択の初回診断で`QRect(225, 225, 100, 100)`と画素ハッシュを採取した。固定後は自由描画契約20回、選択・投影の隣接CTest 3件、画素ブラシ・PaintOp共有ライブラリー・既定PaintOpプラグイン構築、`verify-quick`、`git diff --check`が成功。
+- 次の操作: Issue #59のPRをレビューする。続く製品作業は[Issue #58](https://github.com/serika12345/librepaint/issues/58)のブラシ設定試験8件を独立ブランチで再分類する。
+- 未実施: 共通の描画試験とCMake所有境界を変更したため、macOS以外の構成・製品構築と実機操作は実施していない。
 - 環境: 評価済みの`.direnv/flake-profile`、`build/tdd-macos`と共有コンパイラーキャッシュを継続利用する。
-- 再開条件: ローカルFlakeの追加評価停止を継続する。未使用ソース増加の詳細は[Issue #66](https://github.com/serika12345/librepaint/issues/66)、本変更の検証と残条件はIssue #69を参照する。
+- 再開条件: ローカルFlakeの追加評価停止を継続する。未使用ソース増加の詳細は[Issue #66](https://github.com/serika12345/librepaint/issues/66)を参照する。Issue #59の実装はレビュー可能な状態にある。
