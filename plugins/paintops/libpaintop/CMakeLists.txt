@@ -1782,6 +1782,7 @@ target_include_directories(kritapaintopruntime INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )
 target_sources(kritapaintopruntime INTERFACE
+    ${kritapaintopruntime_OBJECTS}
     $<TARGET_OBJECTS:kritapaintoptextureoptionioobjects>
     $<TARGET_OBJECTS:kritapaintopsensordataobjects>
 )
