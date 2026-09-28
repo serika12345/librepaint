@@ -76,3 +76,15 @@ kis_add_test(
 target_compile_definitions(KisExtendedModifiersMapperContractTest
     PRIVATE kritainputui_EXPORTS
 )
+
+kis_add_test(
+    KisInputEventSequenceContractTest.cpp
+    TEST_NAME KisInputEventSequenceContractTest
+    LINK_LIBRARIES
+        kritainputuieventsequenceobjects
+        Qt${QT_MAJOR_VERSION}::Gui
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisInputEventSequenceContractTest
+    PRIVATE kritainputui_EXPORTS
+)

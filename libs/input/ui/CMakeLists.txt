@@ -1,3 +1,24 @@
+add_library(kritainputuieventsequenceobjects OBJECT
+    KisInputEventSequence.cpp
+)
+target_compile_definitions(kritainputuieventsequenceobjects
+    PRIVATE kritainputui_EXPORTS
+)
+target_include_directories(kritainputuieventsequenceobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritainputuieventsequenceobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+        Qt${QT_MAJOR_VERSION}::Gui
+)
+set_target_properties(kritainputuieventsequenceobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritainputuiextendedmodifiersinterfaceobjects OBJECT
     KisExtendedModifiersMapperPluginInterface.cpp
 )
@@ -99,6 +120,7 @@ ki18n_wrap_ui(kritainputui_LIB_SRCS
 
 kis_add_library(kritainputui SHARED
     ${kritainputui_LIB_SRCS}
+    $<TARGET_OBJECTS:kritainputuieventsequenceobjects>
     $<TARGET_OBJECTS:kritainputuiextendedmodifiersinterfaceobjects>
     $<TARGET_OBJECTS:kritainputuiextendedmodifiersmapperobjects>
 )
