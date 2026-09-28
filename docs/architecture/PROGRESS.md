@@ -1,12 +1,12 @@
 # LibrePaint作業スナップショット
 
-- 更新日時: 2026-09-28 00:34 JST
-- 状態: `in_progress`
-- 現在の作業: [Issue #69](https://github.com/serika12345/librepaint/issues/69)の検査削減。実装と手元の検証は完了。Nix環境・出力の再評価条件待ち。
-- ブランチ: `develop`
-- 開始コミット: `afe9992cde3de972a64e99c7d0f7d2be79651fde`。開始時の作業ツリーは変更なし。
-- 検証状態: 評価済みNix環境で`verify-quick`成功（設計境界の試験17件、10責務、531公開ヘッダー、172プラグイン登録）。macOSの既存CMakeグラフ1,757対象と既存iOSバイナリー2件の資源境界検査、変更シェルとNix定義の構文、`git diff --check`が成功。
-- 次の操作: Nix再評価の保守条件が解消したら、縮小した検査環境とiOS出力を評価・構築する。製品の次作業は[Issue #61](https://github.com/serika12345/librepaint/issues/61)から選ぶ。
-- 未実施: `nix flake check --no-build --all-systems`、変更後Nix出力の構築と各OSの実行試験。製品実装と採用資産は今回の変更対象外。
+- 更新日時: 2026-09-28 09:39 JST
+- 状態: `review_ready`
+- 現在の作業: [Issue #58](https://github.com/serika12345/librepaint/issues/58)のブラシ設定契約。固定された8試験から製品設定処理の再実装を撤去し、実`KisPropertiesConfiguration`の保存・復元結果へ集約した。
+- ブランチ: `issue-58-brush-settings-contracts`
+- 開始コミット: `9bba5e336cc9557f3b7f20199ab275e4f919411b`。開始時の作業ツリーは変更なし。
+- 検証状態: 評価済みNix環境のmacOSで対象CTest 8件とブラシ設定互換性CTest 3件が成功。`kritaimage`、`kritalibpaintop`、設定クラス試験対象、互換性試験3対象の構築が成功。対象の構築範囲は375～376コマンドで、`kritaimage`全体の1,198コマンドより狭い。設定クラス自身の既存CTestは色空間初期化時にアプリケーションバンドルの配置を算出できず中断した。
+- 次の操作: Pull Requestの検査結果を確認し、Issue #58の完了条件をレビューする。
+- 未実施: macOS以外の実行試験。ローカルFlakeの追加評価を伴う検査は[Issue #66](https://github.com/serika12345/librepaint/issues/66)の保守条件に従い実施していない。
 - 環境: 評価済みの`.direnv/flake-profile`、`build/tdd-macos`と共有コンパイラーキャッシュを継続利用する。
-- 再開条件: ローカルFlakeの追加評価停止を継続する。未使用ソース増加の詳細は[Issue #66](https://github.com/serika12345/librepaint/issues/66)、本変更の検証と残条件はIssue #69を参照する。
+- 再開条件: Pull Requestの検査結果を確認し、Issue #58の完了条件をレビューする。ローカルFlakeの追加評価停止はIssue #66の解消まで継続する。

@@ -670,6 +670,12 @@ PaintOpの実行処理は`plugins/paintops/libpaintop`の`kritapaintopruntime`�
 既存の公開面とプラグイン登録は同じ製品経路を使います。PaintOp設定値の読書きを担い画面を所有しない
 `KisPaintopPropertiesBase`は`libs/image/brushengine`が所有します。
 
+ブラシ設定値の保存、復元、型変換、既定値処理は`libs/image/kis_properties_configuration.cc`が担い、
+`kritaimagepropertiesconfigurationobjects`がこの実装と直列化・曲線値の依存を所有します。
+`kritaimage`は同じオブジェクトを製品へ集約し、`plugins/paintops/libpaintop`の設定値契約試験は
+この所有対象を直接使います。設定値契約は製品と同じ保存結果を観測しながら、画像処理全体を
+試験対象へ含めない構築範囲を維持します。
+
 最初の維持契約は[FreehandStrokeContractTest.cpp](../../libs/ui/tests/FreehandStrokeContractTest.cpp)です。
 sRGB 8ビットの500×500画素画像、単一ペイントレイヤー、`autobrush_300px.kpp`、
 `(200, 200)`から`(300, 300)`までの2入力点、筆圧1、傾き・回転・接線方向筆圧・時刻・速度0、
