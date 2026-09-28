@@ -425,6 +425,12 @@ R1-G6gの最初の単位では、`libs/ui/input`のショートカット照合�
 アプリケーション入力アクションとの接続に同ライブラリーを利用し、`libs/input/ui/tests`が
 入力管理の統合契約を検査する。
 
+R2の入力再現用に、`libs/input/ui/KisInputEventSequence.{h,cpp}`がQt受信オブジェクトへ届く
+マウス、タブレット／スタイラス、単点タッチの事象を複製して受信順に保持する。再生は同じスレッドの
+Qt受信オブジェクトへ同期配送し、事象種別、座標、ボタン、修飾キー、時刻、合成元、筆圧、傾き、
+回転、タッチ点を維持する。記録列は事象を所有し、Qtの入力装置オブジェクトは再生完了まで呼出し側が
+維持する。`KisInputEventSequenceContractTest`はこの境界を製品UI全体から分離した対象で検査する。
+
 図形キャンバスへ渡す入力装置の識別値とQt分類変換は`libs/flake/KoInputDevice.{h,cpp}`が
 所有する。実装は`kritaflakeinputdeviceobjects`として限定構築でき、`kritaflake`が同じ生成物を
 製品へ集約する。`TestInputDevice`は装置・ポインター分類、タブレット事象変換、値意味論、
@@ -668,7 +674,7 @@ R2では、この経路を次の観測可能な契約へ分けます。
 
 | 段階 | 所有者と主要分岐 | 観測する状態と不変条件 | 現在の契約検査 |
 | --- | --- | --- | --- |
-| 入力受信と照合 | `libs/input`、`libs/input/ui`。マウス、タブレット、タッチ、ネイティブジェスチャー、合成マウス事象の抑止へ分岐する。 | 入力列、選択したアクション、開始・継続・終了・取消し、フォーカス喪失後の状態、アクション群マスクを観測する。一つの物理入力列から有効な命令列を一つ生成し、終了後に照合状態を残さない。 | `TestInputShortcutMatcher`、`TestInputEventSuppressor` |
+| 入力受信と照合 | `libs/input`、`libs/input/ui`。マウス、タブレット、タッチ、ネイティブジェスチャー、合成マウス事象の抑止へ分岐する。 | 入力列、選択したアクション、開始・継続・終了・取消し、フォーカス喪失後の状態、アクション群マスクを観測する。一つの物理入力列から有効な命令列を一つ生成し、終了後に照合状態を残さない。 | `KisInputEventSequenceContractTest`、`TestInputShortcutMatcher`、`TestInputEventSuppressor` |
 | ツール呼出しと描画入力値 | `libs/tools`、`libs/ui/tool`。平滑化なし、基本平滑化、加重平滑化、安定化、遅延描画へ分岐する。 | 座標、筆圧、傾き、回転、速度、時刻、入力順、完了と取消しを観測する。正規化済み入力値と順序をストローク生成まで保持する。 | `TestToolCoreContract`、`KisStabilizedEventsSamplerTest` |
 | ストローク実行 | `libs/painting/strokes`と`libs/image`のストロークキュー。開始、ジョブ追加、終了、取消し、アンドゥ、リドゥ、非同期更新へ分岐する。 | ジョブ順、アンドゥ命令、キュー完了、`KisImage::isIdle()`と`hasUpdatesRunning()`を観測する。終了後は全ジョブが完了し、取消しとアンドゥは開始前の状態を復元する。 | `FreehandStrokeContractTest`、`kis_strokes_queue_test` |
 | ブラシ画素生成 | `plugins/paintops`、`libs/brush`、`libs/painting`。プリセット、PaintOp、合成方法、間隔、筆圧・速度・乱数センサーへ分岐する。 | 対象ペイントデバイスの画素、変更範囲、乱数源を観測する。同じ固定入力と描画設定は定義した比較規則内で同じ画素結果を生成する。 | `FreehandStrokeContractTest`、PaintOp別試験 |
@@ -755,6 +761,11 @@ SHA-256は`4f5b7f971268c853d893a2c6c25d805cb354eef8c1d6c26fffeaac5dafa4d219`で�
 入力の照合と合成マウス事象の抑止は`TestInputShortcutMatcher`、`TestInputEventSuppressor`、
 入力管理器の試験が所有します。単一試験入口は指定試験と宣言済み依存だけを構築し、
 自由描画契約は具体的な画素ブラシを試験処理内で登録します。
+
+[KisInputEventSequenceContractTest.cpp](../../libs/input/ui/tests/KisInputEventSequenceContractTest.cpp)は、
+Qt受信経路でマウス、タブレット／スタイラス、単点タッチを記録して別の受信オブジェクトへ再生し、
+入力値と受信順を比較します。未対応事象は記録列へ入らず、記録中と無効な受信先への再生は失敗結果を
+返します。実装と試験は専用オブジェクト対象を共有し、入力UI全体を試験へリンクしません。
 
 ### 投影更新と表示画素の比較規則
 
