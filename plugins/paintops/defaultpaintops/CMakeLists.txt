@@ -26,7 +26,22 @@ set(kritadefaultpaintops_SOURCES
 
 ki18n_wrap_ui(kritadefaultpaintops_SOURCES duplicate/wdgduplicateop.ui )
 
-kis_add_library(kritapixelbrush STATIC ${kritapixelbrush_SOURCES})
+kis_add_library(kritapixelbrushobjects OBJECT ${kritapixelbrush_SOURCES})
+target_link_libraries(kritapixelbrushobjects
+    PUBLIC
+        kritaglobal
+        kritaimage
+        kritalibbrush
+        kritapaintopruntime
+        kritapainting
+        kritapigment
+        Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritapixelbrushobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+kis_add_library(kritapixelbrush STATIC
+    $<TARGET_OBJECTS:kritapixelbrushobjects>
+)
 target_link_libraries(kritapixelbrush
     PUBLIC
         kritaglobal
@@ -69,7 +84,10 @@ if (TARGET FreehandStrokeContractTest)
         ${CMAKE_CURRENT_SOURCE_DIR}/brush
         ${CMAKE_SOURCE_DIR}/plugins/paintops/libpaintop
     )
-    target_link_libraries(FreehandStrokeContractTest kritapixelbrush kritalibpaintop)
+    target_link_libraries(FreehandStrokeContractTest
+        kritapaintopruntime
+        kritapixelbrushobjects
+    )
 endif()
 
 install(TARGETS kritadefaultpaintops  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

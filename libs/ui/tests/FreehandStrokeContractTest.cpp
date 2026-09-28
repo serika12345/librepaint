@@ -26,6 +26,8 @@
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_paint_layer.h>
+#include <kis_pixel_selection.h>
+#include <kis_selection.h>
 #include <kis_undo_stores.h>
 #include <strokes/KisFreehandStrokeInfo.h>
 #include <strokes/freehand_stroke.h>
@@ -63,6 +65,8 @@ const QRect maintainedSpacing025Bounds(50, 50, 353, 353);
 const QByteArray maintainedSpacing025Digest("8bdf0e95ea7526b6289bf2393397c7bb005b69da6866891c2cb12bf991d7f210");
 const QRect maintainedSpeed05Bounds(125, 125, 235, 235);
 const QByteArray maintainedSpeed05Digest("3c7c2e19b4b91a27b8d1ddb1068db753012e01f98244eb9e6f688026db4f551a");
+const QRect rectangularSelectionBounds(225, 225, 100, 100);
+const QByteArray maintainedRectangularSelectionDigest("4f5b7f971268c853d893a2c6c25d805cb354eef8c1d6c26fffeaac5dafa4d219");
 
 KisPaintInformation
 fixedPaintInformation(const QPointF &position, qreal pressure = inputPressure, qreal speed = inputSpeed)
@@ -228,6 +232,13 @@ public:
                                           QStringLiteral("<!DOCTYPE params><params id=\"%1\"/>").arg(sensorId));
     }
 
+    void select(const QRect &bounds)
+    {
+        m_selection = new KisSelection();
+        m_selection->pixelSelection()->select(bounds);
+        m_selection->updateProjection();
+    }
+
     void runStroke(bool cancel,
                    qreal startPressure = inputPressure,
                    qreal endPressure = inputPressure,
@@ -241,7 +252,7 @@ public:
         resources->setBGColorOverride(KoColor(Qt::white, m_image->colorSpace()));
         resources->setOpacity(1.0);
         resources->setMirroring(false, false);
-        resources->setSelectionOverride(nullptr);
+        resources->setSelectionOverride(m_selection);
 
         auto *stroke = dabRandomSeed
             ? new FreehandStrokeStrategy(resources,
@@ -308,6 +319,7 @@ private:
     KisImageSP m_image;
     KisPaintLayerSP m_layer;
     KisPaintOpPresetSP m_preset;
+    KisSelectionSP m_selection;
     QString m_presetPath;
     bool m_presetLoaded{false};
 };
@@ -326,6 +338,7 @@ private Q_SLOTS:
     void fuzzyDabRandomSeedIsDeterministic();
     void brushSpacingProducesMaintainedPixels();
     void speedSensorProducesMaintainedPixels();
+    void rectangularSelectionClipsStrokePixels();
     void cancelledStrokeRestoresInitialImage();
     void undoRedoRestoresBothStates();
 };
@@ -634,6 +647,61 @@ void FreehandStrokeContractTest::speedSensorProducesMaintainedPixels()
         layer.save(QStringLiteral(FILES_OUTPUT_DIR) + QStringLiteral("/freehand-contract-speed-05-actual.png"));
     }
     QCOMPARE(digest, maintainedSpeed05Digest);
+}
+
+void FreehandStrokeContractTest::rectangularSelectionClipsStrokePixels()
+{
+    /*
+     * Consumer: A painter who draws while a rectangular selection is active.
+     * Operation: Runs the maintained freehand stroke through a fixed image-coordinate selection.
+     * Observable result: Layer and projection match inside the selection, and every pixel outside it stays unchanged.
+     * Failure impact: A brush stroke can alter artwork outside the area selected by the painter.
+     */
+    FreehandStrokeFixture fixture;
+    QVERIFY2(fixture.presetLoaded(), qPrintable(QStringLiteral("failed to load preset: %1").arg(fixture.presetPath())));
+    fixture.select(rectangularSelectionBounds);
+    const QImage initialLayer = fixture.layerImage();
+
+    fixture.runStroke(false);
+
+    const QImage layer = fixture.layerImage();
+    const QImage projection = fixture.projectionImage();
+    QVERIFY(layer != initialLayer);
+    QVERIFY(!fixture.image()->hasUpdatesRunning());
+    QVERIFY(fixture.image()->isIdle());
+    QCOMPARE(fixture.layerExactBounds(), rectangularSelectionBounds);
+    QCOMPARE(fixture.image()->projection()->exactBounds(), rectangularSelectionBounds);
+
+    QPoint mismatch;
+    QVERIFY2(compareImages(layer,
+                           projection,
+                           QStringLiteral("freehand-contract-rectangular-selection-projection-actual.png"),
+                           &mismatch),
+             qPrintable(QStringLiteral("selected stroke layer and projection differ at %1,%2")
+                            .arg(mismatch.x())
+                            .arg(mismatch.y())));
+
+    for (int y = 0; y < imageHeight; ++y) {
+        for (int x = 0; x < imageWidth; ++x) {
+            if (!rectangularSelectionBounds.contains(x, y)) {
+                QCOMPARE(layer.pixel(x, y), initialLayer.pixel(x, y));
+            }
+        }
+    }
+
+    const QByteArray digest = imageDigest(layer);
+    if (maintainedRectangularSelectionDigest.isEmpty()) {
+        QDir().mkpath(QStringLiteral(FILES_OUTPUT_DIR));
+        layer.save(QStringLiteral(FILES_OUTPUT_DIR)
+                   + QStringLiteral("/freehand-contract-rectangular-selection-actual.png"));
+        QFAIL(qPrintable(QStringLiteral("record rectangular selection bounds %1,%2 %3x%4 and RGBA8888 SHA-256 %5")
+                             .arg(fixture.layerExactBounds().x())
+                             .arg(fixture.layerExactBounds().y())
+                             .arg(fixture.layerExactBounds().width())
+                             .arg(fixture.layerExactBounds().height())
+                             .arg(QString::fromLatin1(digest))));
+    }
+    QCOMPARE(digest, maintainedRectangularSelectionDigest);
 }
 
 void FreehandStrokeContractTest::cancelledStrokeRestoresInitialImage()
