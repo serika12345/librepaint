@@ -12,6 +12,7 @@ expected_abi="$2"
 readelf_tool="$3"
 aapt2_tool="$4"
 package_scope="$5"
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 
 if [[ "$package_scope" != product && "$package_scope" != test ]]; then
     echo "unsupported Android package scope: $package_scope" >&2
@@ -81,6 +82,8 @@ grep -Eq "(^|/)libplugins_platforms_qtforandroid_${expected_abi}[.]so$" "$audit_
 if [[ "$package_scope" == product ]]; then
     grep -Eq "(^|/)libKF6ConfigCore(_${expected_abi})?[.]so$" "$audit_root/entries"
     grep -Eq '(^|/)assets/' "$audit_root/entries"
+    python3 "$repo_root/scripts/platform/audit-android-cross-library-rtti.py" \
+        "$package_path" "$expected_abi" "$readelf_tool"
 fi
 
 libcxx_count="$(grep -Ec "^${library_prefix}/${expected_abi}/libc[+][+]_shared[.]so$" "$audit_root/entries" || true)"

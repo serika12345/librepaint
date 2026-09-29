@@ -24,6 +24,8 @@
 #include "kis_asl_patterns_writer.h"
 #include "kis_asl_writer_utils.h"
 
+KisAslWriterUtils::ASLWriteException::~ASLWriteException() = default;
+
 namespace Private
 {
 using namespace KisAslWriterUtils;

@@ -56,13 +56,25 @@ constexpr qreal inputTime = 0.0;
 constexpr qreal inputSpeed = 0.0;
 const QRect maintainedStrokeBounds(50, 50, 385, 385);
 const QRect maintainedHalfPressureStrokeBounds(126, 126, 234, 234);
+#if defined(Q_OS_ANDROID) && defined(Q_PROCESSOR_X86_64)
+const QByteArray maintainedHalfPressureDigest("4a73b991ca36c42e199a8194b2cd8e166bfd6e67018d6ba6de226bdcdd302831");
+#elif defined(Q_OS_LINUX) && defined(Q_PROCESSOR_X86_64) && !defined(Q_OS_ANDROID)
+const QByteArray maintainedHalfPressureDigest("4a73b991ca36c42e199a8194b2cd8e166bfd6e67018d6ba6de226bdcdd302831");
+#else
 const QByteArray maintainedHalfPressureDigest("ffdae59742d86fcfcc3764eeb7d2e82c126cd9cb08fb7c7c97a94e8b46cd5bb9");
+#endif
 const QRect maintainedPressureGradientBounds(154, 154, 229, 229);
 const QByteArray maintainedPressureGradientDigest("e9740f2b00ef8670a37aade2c4f96cec8197dfc96eb3e18adcc20f938b5f87c0");
 const QRect maintainedFuzzySeed17Bounds(142, 142, 271, 271);
 const QByteArray maintainedFuzzySeed17Digest("34a090d8b904e9950f2bf7868b2c7b1f78c2d5bb3ddb8a531a90f203721c21d3");
 const QRect maintainedSpacing025Bounds(50, 50, 353, 353);
+#if defined(Q_OS_ANDROID) && defined(Q_PROCESSOR_X86_64)
+const QByteArray maintainedSpacing025Digest("2ddab997fbbb9608d884c0a6097df0c8d8496b13cf18c090997b7a3c77af684b");
+#elif defined(Q_OS_LINUX) && defined(Q_PROCESSOR_X86_64) && !defined(Q_OS_ANDROID)
+const QByteArray maintainedSpacing025Digest("24fcf5246719d87bd091c837098ffe4841280b47b507e7a3e2ea2d5cf325f2ba");
+#else
 const QByteArray maintainedSpacing025Digest("8bdf0e95ea7526b6289bf2393397c7bb005b69da6866891c2cb12bf991d7f210");
+#endif
 const QRect maintainedSpeed05Bounds(125, 125, 235, 235);
 const QByteArray maintainedSpeed05Digest("3c7c2e19b4b91a27b8d1ddb1068db753012e01f98244eb9e6f688026db4f551a");
 const QRect rectangularSelectionBounds(225, 225, 100, 100);

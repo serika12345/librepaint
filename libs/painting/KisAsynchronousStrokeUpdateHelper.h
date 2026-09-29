@@ -23,8 +23,9 @@ class KRITAPAINTING_EXPORT KisAsynchronousStrokeUpdateHelper : public QObject
 {
     Q_OBJECT
 public:
-    class UpdateData : public KisStrokeJobData {
+    class KRITAPAINTING_EXPORT UpdateData : public KisStrokeJobData {
     public:
+        ~UpdateData() override;
         UpdateData(bool _forceUpdate,
                    Sequentiality sequentiality = SEQUENTIAL,
                    Exclusivity exclusivity = NORMAL)

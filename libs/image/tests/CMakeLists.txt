@@ -1440,6 +1440,8 @@ target_compile_definitions(KisCropSavedExtraDataContractTest PRIVATE
 
 kis_add_test(
     KisAnnotationContractTest.cpp
+    ../kis_annotation.cpp
+    TEST_NAME KisAnnotationContractTest
     LINK_LIBRARIES
         kritaglobalsharedobjects
         Qt${QT_MAJOR_VERSION}::Core

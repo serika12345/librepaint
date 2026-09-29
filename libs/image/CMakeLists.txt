@@ -2067,6 +2067,7 @@ set_target_properties(kritaimagelazyfillfilteringoptionsobjects PROPERTIES
 )
 
 set(kritaimage_LIB_SRCS
+   kis_annotation.cpp
    tiles3/kis_tile.cc
    tiles3/kis_tile_data.cc
    tiles3/kis_tile_data_store.cc

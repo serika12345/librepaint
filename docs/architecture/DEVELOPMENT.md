@@ -282,6 +282,11 @@ nix build .#librepaint-android-x86_64
 
 各出力の`result/LibrePaint-<ABI>.apk`と`.aab`を使用する。構築時にABI、ELF、16 KiB整列、
 単一の共有C++実行時ライブラリー、Qt 6／KF6、プラグイン、資源、Manifest、SDK条件を監査する。
+製品成果物の監査は、ライブラリ間で型判定または例外捕捉に使うC++型情報が
+所有ライブラリに一意に定義されていることも確認する。
+共有ライブラリ間の`dynamic_cast`、`typeid`、例外捕捉を追加するときは、
+型情報の所有ライブラリを定め、`audit-android-cross-library-rtti.py`の監査対象に加える。
+仮想関数呼出しだけに使う型や、型判定が一つのライブラリ内で完結する型は監査対象外とする。
 
 依存物だけの診断・キャッシュ準備には、`android-source-dependencies`、`qtbase-android`、
 `android-kf6`、`android-application-dependencies`、`android-dependencies`のNix出力を使う。
@@ -300,6 +305,15 @@ ARM64では`build-incremental android run-test KisCurveOptionModelTest [adb-seri
 試験は対象と実行時依存物を専用APKに包装し、`data/`をアプリ専用外部領域へ展開して実行する。
 処理は端末ABI確認、試験用複製への署名、導入、Activity起動、結果回収、停止、試験パッケージ削除まで行う。
 xUnit XMLとlogcatは構築木の`test-results/<target>/`へ保存する。
+
+共有ライブラリ間のジョブ受け渡しは、対象ABIで次の契約を実行して確認する。
+
+```sh
+build-incremental android-x86_64 run-test FreehandStrokeContractTest [adb-serial]
+build-incremental android-x86_64 run-test FilterStrokeLibraryBoundaryContractTest [adb-serial]
+```
+
+ARM64では`android-x86_64`を`android`に置き換える。
 
 クラッシュ処理を変更した場合は、ARM64実機で実コールバックとバックトレース生成を検査する。
 

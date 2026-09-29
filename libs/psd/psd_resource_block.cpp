@@ -23,6 +23,11 @@ PSDResourceBlock::PSDResourceBlock()
 {
 }
 
+PSDResourceBlock::~PSDResourceBlock()
+{
+    delete resource;
+}
+
 bool PSDResourceBlock::read(QIODevice &io)
 {
     dbgFile << "Reading resource block";

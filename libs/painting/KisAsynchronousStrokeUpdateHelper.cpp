@@ -9,6 +9,8 @@
 #include "kis_image_interfaces.h"
 #include <qobjectdefs.h>
 
+KisAsynchronousStrokeUpdateHelper::UpdateData::~UpdateData() = default;
+
 KisAsynchronousStrokeUpdateHelper::KisAsynchronousStrokeUpdateHelper()
     : m_strokesFacade(0)
 {

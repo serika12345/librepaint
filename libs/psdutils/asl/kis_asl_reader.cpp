@@ -35,6 +35,8 @@
 #include "kis_asl_reader_utils.h"
 #include "kis_asl_writer_utils.h"
 
+KisAslReaderUtils::ASLParseException::~ASLParseException() = default;
+
 namespace Private
 {
 /**

@@ -171,6 +171,8 @@ void FreehandStrokeStrategy::finishStrokeCallback()
 }
 
 
+FreehandStrokeStrategy::Data::~Data() = default;
+
 void FreehandStrokeStrategy::doStrokeCallback(KisStrokeJobData *data)
 {
     if (KisAsynchronousStrokeUpdateHelper::UpdateData *d =

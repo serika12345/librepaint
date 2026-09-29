@@ -51,8 +51,10 @@ target_include_directories(PsdFormatValuesContractTest PRIVATE
 )
 target_compile_definitions(PsdFormatValuesContractTest PRIVATE
     kritapsdutils_EXPORTS
-    __clang_major__=9
 )
+if(CMAKE_CXX_COMPILER_ID MATCHES "^(Apple)?Clang$")
+    target_compile_definitions(PsdFormatValuesContractTest PRIVATE __clang_major__=9)
+endif()
 
 kis_add_test(
     PsdByteIoContractTest.cpp
@@ -70,6 +72,7 @@ target_compile_definitions(PsdByteIoContractTest PRIVATE kritapsdutils_EXPORTS)
 kis_add_test(
     KisAslWriterUtilsContractTest.cpp
     LINK_LIBRARIES
+        kritapsdutils
         kritaglobaldebugobjects
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Test
@@ -93,7 +96,6 @@ target_include_directories(KisAslWriterUtilsContractTest PRIVATE
 )
 target_compile_definitions(KisAslWriterUtilsContractTest PRIVATE
     kritaglobal_EXPORTS
-    kritapsdutils_EXPORTS
     kritaresources_EXPORTS
 )
 

@@ -28,6 +28,7 @@ namespace KisAslWriterUtils
  * Exception that is emitted when any write error appear.
  */
 struct KRITAPSDUTILS_EXPORT ASLWriteException : public std::runtime_error {
+    ~ASLWriteException() override;
     ASLWriteException(const QString &msg)
         : std::runtime_error(msg.toLatin1().data())
     {

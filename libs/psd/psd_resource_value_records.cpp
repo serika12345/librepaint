@@ -13,6 +13,8 @@
 #include <QBuffer>
 #include <QDataStream>
 
+PSDInterpretedResource::~PSDInterpretedResource() = default;
+
 bool RESN_INFO_1005::interpretBlock(QByteArray data)
 {
     dbgFile << "Reading RESN_INFO_1005";

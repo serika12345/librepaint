@@ -12,6 +12,13 @@ kis_add_test(
 )
 
 kis_add_test(
+    FilterStrokeLibraryBoundaryContractTest.cpp
+    LINK_LIBRARIES
+        kritapainting
+        Qt${QT_MAJOR_VERSION}::Test
+)
+
+kis_add_test(
     KisFigurePaintingOptionsContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )

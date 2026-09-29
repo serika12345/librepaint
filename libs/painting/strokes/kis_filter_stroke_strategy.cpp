@@ -142,6 +142,9 @@ private:
 
 using namespace KritaUtils;
 
+KisFilterStrokeStrategy::FilterJobData::~FilterJobData() = default;
+KisFilterStrokeStrategy::IdleBarrierData::~IdleBarrierData() = default;
+
 KisFilterStrokeStrategy::KisFilterStrokeStrategy(KisFilterSP filter, KisFilterConfigurationSP filterConfig, KisResourcesSnapshotSP resources)
     : KisFilterStrokeStrategy(filter, filterConfig, resources, toQShared(new ExternalCancelUpdatesStorage()))
 {
