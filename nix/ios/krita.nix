@@ -61,7 +61,7 @@
 }:
 
 let
-  librePaintVersion = "1.0.2";
+  librePaintVersion = "1.0.3";
   hostEcm = kfHostTooling.hostEcm;
   hostQt = kfHostTooling.hostQt;
   hostQtTools = kfHostTooling.hostQtTools;

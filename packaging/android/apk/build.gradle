@@ -139,10 +139,7 @@ def isPackagingAPK() {
 }
 
 android {
-    /**
-     * We store the application ID in both, `namespace` tag and in the
-     * `package` attribute in the manifest for the Android application identity.
-     */
+    // Java classes and generated R remain in the established code namespace.
     namespace = "org.krita"
     compileSdkVersion androidCompileSdkVersion
 
@@ -193,20 +190,8 @@ android {
         }
     }
 
-    project.ext.constant = 5
-
-    def versionMajor    = 5
-    def versionMinor    = 4
-
-    /**
-     * This version does **not** correspond to the patch version
-     * of Krita. Instead, it is just incremented for every public
-     * (including alpha and beta) release of versionMajor.versionMinor
-     * branch
-     */
-    def versionRelease  = 0
-
     defaultConfig {
+        applicationId "io.github.serika12345.librepaint"
         // even though buildToolsVersion is deprecated,
         // we should still explicitly state it. Otherwise,
         // AGP will use the default one
@@ -216,8 +201,8 @@ android {
 
         targetSdkVersion 35
         minSdkVersion 28
-        versionCode project.ext.constant * 1000000 + versionMajor * 10000 + versionMinor * 100 + versionRelease
-        versionName "5.4.0-prealpha"
+        versionCode project.hasProperty('librepaintUpdateBaseline') ? 1000002 : 1000003
+        versionName project.hasProperty('librepaintUpdateBaseline') ? "1.0.2-internal" : "1.0.3"
     }
     buildFeatures {
         renderScript true

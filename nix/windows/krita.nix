@@ -737,7 +737,7 @@ set(libjpeg-turbo_FIND_COMPONENTS "''${_krita_jpeg_turbo_components}")'
 in
 pkgs.stdenv.mkDerivation {
   pname = "librepaint-windows-unwrapped";
-  version = "1.0.2";
+  version = "1.0.3";
   src = source;
 
   strictDeps = true;

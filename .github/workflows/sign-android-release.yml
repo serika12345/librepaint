@@ -1,0 +1,49 @@
+name: Sign Android release APKs
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing draft release tag, such as v1.0.3
+        required: true
+        type: string
+      source_commit:
+        description: Full commit SHA referenced by the tag and APK build
+        required: true
+        type: string
+      version_code:
+        description: Android versionCode, such as 1000003
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  sign:
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-24.04
+    environment: android-release
+    concurrency:
+      group: android-release-${{ inputs.tag }}
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.source_commit }}
+          persist-credentials: false
+      - uses: cachix/install-nix-action@13d8dd58da0234aa297dedd986986ccb8e7f3e24 # v31
+      - name: Sign and inspect both release APKs
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ANDROID_RELEASE_KEYSTORE_BASE64: ${{ secrets.ANDROID_RELEASE_KEYSTORE_BASE64 }}
+          ANDROID_RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_RELEASE_STORE_PASSWORD }}
+          ANDROID_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_RELEASE_KEY_PASSWORD }}
+          ANDROID_RELEASE_CERT_SHA256: ${{ vars.ANDROID_RELEASE_CERT_SHA256 }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          SOURCE_COMMIT: ${{ inputs.source_commit }}
+          VERSION_CODE: ${{ inputs.version_code }}
+        run: |
+          nix develop .#android-release --command bash \
+            scripts/platform/sign-android-draft-release \
+            "$RELEASE_TAG" "$SOURCE_COMMIT" "$VERSION_CODE"

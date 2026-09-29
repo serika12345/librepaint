@@ -311,14 +311,141 @@ build-incremental android run-test KisCrashSignalHandlerSetupContractTest [adb-s
 先頭フレームを含むクラッシュ記録とシグナル終了を確認する。後者は代替シグナルスタック、
 コールバック設定、以前の動作の保存と復元を確認する。
 
-製品APKは構築後に配布・導入権限を持つ鍵で署名する。
+### GitHub Releases向けAPK
+
+公開版のアプリ識別子は`io.github.serika12345.librepaint`、表示名は`LibrePaint`。
+Javaの名前空間`org.krita`とネイティブ対象`krita`はコード内の名前として維持する。
+`v1.0.3`のAndroid版は`versionName=1.0.3`、`versionCode=1000003`、
+最小Android版は9（API 28）。公開するABIは`arm64-v8a`と`x86_64`で、
+利用者は対応する一方のAPKをGitHub Releasesから取得する。
+公開案内には操作を確認した端末・Android版を別に記載する。
+次の公開版ではこのアプリ識別子と配布証明書を維持し、Gradleの`versionName`を
+Releaseの版に合わせ、`versionCode`を前回より増やす。
+
+所有者は`librepaint-release`という別名のPKCS12配布鍵をリポジトリ外で生成し、
+原本と暗号化した復旧用コピーを別々に保管する。鍵の有効期間は25年以上にする。
+Linuxの署名用シェル、またはJDK 17を含むNix一時シェルで次を実行し、
+鍵のパスワードは対話入力で設定する。
 
 ```sh
-adb install -r <signed-apk>
-adb logcat
+keytool -genkeypair -keystore <リポジトリ外の場所>/librepaint-release.p12 \
+  -storetype PKCS12 -alias librepaint-release -keyalg RSA -keysize 4096 \
+  -validity 10000 -dname "CN=LibrePaint Android Release, O=LibrePaint, C=JP"
+keytool -list -v -keystore <リポジトリ外の場所>/librepaint-release.p12 \
+  -alias librepaint-release
 ```
 
-`org.krita`と`krita`はアプリ識別子とネイティブ対象の互換名として維持する。
+公開証明書のSHA-256指紋を記録し、GitHubの`android-release`環境に
+`ANDROID_RELEASE_CERT_SHA256`という変数として登録する。同環境を`develop`からの
+手動実行に限定し、所有者の承認を必要とする。鍵本体はbase64で
+`ANDROID_RELEASE_KEYSTORE_BASE64`、パスワードは
+`ANDROID_RELEASE_STORE_PASSWORD`と`ANDROID_RELEASE_KEY_PASSWORD`という
+環境の秘密情報に登録する。秘密情報の値、原本、復旧用コピーはIssue、ログ、
+リポジトリ、Nix storeに配置しない。
+
+固定したソースのタグ・コミットを確認し、NixOSで両ABIの未署名APKを構築する。
+`v1.0.3`では同じソースから`librepaintUpdateBaseline`のGradleプロパティを指定して
+内部更新試験用の`versionName=1.0.2-internal`、`versionCode=1000002`も包装する。
+この先行版は公開しない。両方のNix出力が同じABIのネイティブ成果物を再利用する。
+Release準備中はネイティブ中間出力を後続の包装でも再利用できるよう、
+現行作業ツリーの`build/nix-profiles`に一時的な参照を置く。
+下書きReleaseへの受け渡しと検査が済んだら、`result-*`とこの中間出力の参照を
+削除し、日常の増分構築木、開発環境、共有コンパイラキャッシュを保持する。
+
+```sh
+mkdir -p build/nix-profiles
+nix build .#librepaint-android-native \
+  --out-link build/nix-profiles/android-native-arm64
+nix build .#librepaint-android-x86_64-native \
+  --out-link build/nix-profiles/android-native-x86_64
+nix build .#librepaint-android --out-link result-android-arm64
+nix build .#librepaint-android-x86_64 --out-link result-android-x86_64
+nix build .#librepaint-android-update-baseline --out-link result-android-arm64-update-baseline
+nix build .#librepaint-android-x86_64-update-baseline --out-link result-android-x86_64-update-baseline
+```
+
+下書きReleaseへ次の4個の未署名APKと、そのSHA-256を列挙した
+`SHA256SUMS.android-unsigned`を添付する。基準版も同じ固定ソースから作る。
+
+```text
+LibrePaint-v1.0.3-arm64-v8a-unsigned.apk
+LibrePaint-v1.0.3-x86_64-unsigned.apk
+LibrePaint-v1.0.3-update-baseline-arm64-v8a-unsigned.apk
+LibrePaint-v1.0.3-update-baseline-x86_64-unsigned.apk
+```
+
+作業用ディレクトリーへ4個のAPKを上記の名前でコピーし、そのディレクトリーで
+`sha256sum *-unsigned.apk > SHA256SUMS.android-unsigned`を実行する。
+固定コミットを指すタグを用意して、変更点を記した説明文とともに下書きを作る。
+
+```sh
+gh release create v1.0.3 --draft --verify-tag \
+  --title "LibrePaint v1.0.3" --notes-file <説明文ファイル>
+gh release upload v1.0.3 <作業用ディレクトリー>/*-unsigned.apk \
+  <作業用ディレクトリー>/SHA256SUMS.android-unsigned
+gh workflow run sign-android-release.yml --ref develop \
+  -f tag=v1.0.3 -f source_commit=<タグのコミットSHA> -f version_code=1000003
+```
+
+`sign-android-release.yml`を`develop`から手動起動し、タグ、対応する40桁の
+コミットSHA、`1000003`を入力する。所有者が`android-release`環境の実行を承認すると、
+CIは入力コミットをチェックアウトし、下書きとタグ、入力ハッシュ、APKの識別子・版番号、ABI、資源、ELF、
+16 KiB整列を確認し、配布鍵で署名する。署名後にも同じ監査と証明書指紋を検査する。
+完成した両ABIのAPK、内部更新試験用APK、`SHA256SUMS.android`を下書きへ置き、
+未署名入力を下書きから除く。署名用ツールは`nix develop .#android-release`が供給する。
+
+下書きの完成APKをARM64実機とx86_64 Waydroidへそれぞれ新規導入し、起動、
+新規文書、描画、保存・再読込、書き出し、画面回転、休止・復帰、終了を確認する。
+別に内部更新試験用APKで作品を作成・保存してから完成APKで上書き更新し、
+作品データの保持と再読込を確認する。既存Kritaとの同時導入も確認する。
+導入前に対象端末の機種とAndroid版を取得し、各操作の結果とともにIssueへ記録する。
+
+```sh
+adb -s <端末番号> shell getprop ro.product.model
+adb -s <端末番号> shell getprop ro.build.version.release
+adb -s <端末番号> install <完成APK>
+adb -s <端末番号> logcat
+```
+
+更新試験は初期状態に戻した検証環境で行う。先行版で作品を保存した後に完成版を
+上書き導入し、版番号と作品の再読込を確認する。
+
+```sh
+adb -s <端末番号> install <内部更新試験用APK>
+adb -s <端末番号> install -r <完成APK>
+adb -s <端末番号> shell dumpsys package io.github.serika12345.librepaint
+```
+
+WindowsのZIP、LinuxのAppImage、iOSのIPAも`v1.0.3`で揃え、各成果物の
+対象プラットフォームの検査結果を確認する。WindowsとLinuxはx86_64 Linux、
+iOSはmacOSで構築する。各出力をアップロードする端末の同じ作業用ディレクトリーに集め、
+IPAはNix出力に版番号を付けた名前で添付する。
+
+```sh
+nix build .#librepaint-windows-archive --out-link result-windows-v1.0.3
+nix build .#librepaint-linux-appimage --out-link result-linux-v1.0.3
+nix build .#librepaint-ios-ipa --out-link result-ios-v1.0.3
+gh release upload v1.0.3 \
+  <作業用ディレクトリー>/LibrePaint-1.0.3-x86_64-windows.zip \
+  <作業用ディレクトリー>/LibrePaint-1.0.3-x86_64.AppImage \
+  <作業用ディレクトリー>/LibrePaint-iOS-v1.0.3-unsigned.ipa
+```
+
+内部更新試験用APKを下書きから削除し、
+公開対象が両ABIの完成APK、`SHA256SUMS.android`、他3平台の成果物だけであることを
+確認してから手動公開する。ReleaseにはABI、Android 9以降というManifest条件、
+実操作を確認したAndroid版、ADB導入方法、変更点、タグ・コミット、完成APKのSHA-256を記す。
+公開前と公開後には署名用シェルで次を実行し、両APKの再取得、
+`SHA256SUMS.android`、署名証明書、APK構成と他3平台の添付を照合する。
+
+```sh
+nix develop .#android-release --command bash \
+  scripts/platform/check-android-release-assets v1.0.3 1000003 <公開証明書のSHA-256>
+```
+
+公開操作は`gh release edit v1.0.3 --draft=false`。公開後に同じ検査を再実行する。
+
+端末、操作、コマンド、結果、残る制約をIssue #70に記録する。
 
 ### Android依存物の更新
 

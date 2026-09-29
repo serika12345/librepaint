@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<manifest package="org.krita" xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="auto">
 
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
@@ -111,7 +111,7 @@
             <meta-data android:name="android.app.lib_name" android:value="krita"/>
         </activity>
 
-        <service android:name=".android.DocumentSaverService"
+        <service android:name="org.krita.android.DocumentSaverService"
             android:foregroundServiceType="shortService"
             android:exported="false">
         </service>

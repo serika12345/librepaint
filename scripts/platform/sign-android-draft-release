@@ -1,0 +1,147 @@
+#!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: 2026 LibrePaint contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+set -euo pipefail
+
+if (( $# != 3 )); then
+    echo "usage: sign-android-draft-release <tag> <source-commit> <version-code>" >&2
+    exit 2
+fi
+
+release_tag="$1"
+source_commit="$2"
+version_code="$3"
+version_name="${release_tag#v}"
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+include_update_baseline=0
+if [[ "$release_tag" == v1.0.3 ]]; then
+    include_update_baseline=1
+fi
+
+if [[ ! "$release_tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ \
+    || ! "$source_commit" =~ ^[0-9a-f]{40}$ \
+    || ! "$version_code" =~ ^[1-9][0-9]*$ ]]; then
+    echo "release tag, commit, or version code is invalid" >&2
+    exit 2
+fi
+: "${GH_TOKEN:?GH_TOKEN is required}"
+: "${ANDROID_RELEASE_BUILD_TOOLS:?Android release tools are required}"
+: "${ANDROID_RELEASE_KEYSTORE_BASE64:?release keystore is required}"
+: "${ANDROID_RELEASE_STORE_PASSWORD:?keystore password is required}"
+: "${ANDROID_RELEASE_KEY_PASSWORD:?key password is required}"
+: "${ANDROID_RELEASE_CERT_SHA256:?certificate SHA-256 is required}"
+
+cd "$repo_root"
+checked_out_commit="$(git rev-parse HEAD)"
+if [[ "$checked_out_commit" != "$source_commit" ]]; then
+    echo "workflow checkout is $checked_out_commit instead of $source_commit" >&2
+    exit 1
+fi
+git fetch --no-tags origin "refs/tags/$release_tag:refs/tags/$release_tag"
+tag_commit="$(git rev-parse "refs/tags/$release_tag^{commit}")"
+if [[ "$tag_commit" != "$source_commit" ]]; then
+    echo "release tag points to $tag_commit instead of $source_commit" >&2
+    exit 1
+fi
+if [[ "$(gh release view "$release_tag" --json isDraft --jq .isDraft)" != true ]]; then
+    echo "release $release_tag must be a draft" >&2
+    exit 1
+fi
+
+release_dir="$(mktemp -d)"
+cleanup() {
+    rm -rf -- "$release_dir"
+}
+trap cleanup EXIT
+chmod 700 "$release_dir"
+
+unsigned_hashes="SHA256SUMS.android-unsigned"
+gh release download "$release_tag" -D "$release_dir" -p "$unsigned_hashes"
+unsigned_names=()
+for abi in arm64-v8a x86_64; do
+    unsigned_names+=("LibrePaint-${release_tag}-${abi}-unsigned.apk")
+    if (( include_update_baseline )); then
+        unsigned_names+=("LibrePaint-${release_tag}-update-baseline-${abi}-unsigned.apk")
+    fi
+done
+for unsigned_name in "${unsigned_names[@]}"; do
+    gh release download "$release_tag" -D "$release_dir" -p "$unsigned_name"
+done
+
+expected_names="$(printf '%s\n' "${unsigned_names[@]}" | sort)"
+recorded_names="$(awk '{print $2}' "$release_dir/$unsigned_hashes" | sort)"
+if [[ "$recorded_names" != "$expected_names" ]]; then
+    echo "unsigned APK checksum inventory does not match both release ABIs" >&2
+    exit 1
+fi
+(cd "$release_dir" && sha256sum --check --strict "$unsigned_hashes")
+
+keystore="$release_dir/release.p12"
+printf '%s' "$ANDROID_RELEASE_KEYSTORE_BASE64" | base64 --decode >"$keystore"
+chmod 600 "$keystore"
+
+signed_dir="$release_dir/signed"
+mkdir "$signed_dir"
+variants=(release)
+if (( include_update_baseline )); then
+    variants+=(update-baseline)
+fi
+for variant in "${variants[@]}"; do
+    for abi in arm64-v8a x86_64; do
+        if [[ "$variant" == release ]]; then
+            unsigned_apk="$release_dir/LibrePaint-${release_tag}-${abi}-unsigned.apk"
+            signed_apk="$signed_dir/LibrePaint-${release_tag}-${abi}.apk"
+            apk_version_name="$version_name"
+            apk_version_code="$version_code"
+        else
+            unsigned_apk="$release_dir/LibrePaint-${release_tag}-update-baseline-${abi}-unsigned.apk"
+            signed_apk="$signed_dir/LibrePaint-${release_tag}-update-baseline-${abi}.apk"
+            apk_version_name="1.0.2-internal"
+            apk_version_code=1000002
+        fi
+        "$repo_root/scripts/platform/audit-android-package" \
+            "$unsigned_apk" "$abi" "$(command -v readelf)" \
+            "$ANDROID_RELEASE_BUILD_TOOLS/aapt2" product
+        python3 "$repo_root/scripts/platform/verify-android-release-apk.py" \
+            "$unsigned_apk" --aapt2 "$ANDROID_RELEASE_BUILD_TOOLS/aapt2" \
+            --zipalign "$ANDROID_RELEASE_BUILD_TOOLS/zipalign" \
+            --version-name "$apk_version_name" --version-code "$apk_version_code"
+        "$ANDROID_RELEASE_BUILD_TOOLS/apksigner" sign \
+            --ks "$keystore" --ks-type PKCS12 --ks-key-alias librepaint-release \
+            --ks-pass env:ANDROID_RELEASE_STORE_PASSWORD \
+            --key-pass env:ANDROID_RELEASE_KEY_PASSWORD \
+            --out "$signed_apk" "$unsigned_apk"
+        "$repo_root/scripts/platform/audit-android-package" \
+            "$signed_apk" "$abi" "$(command -v readelf)" \
+            "$ANDROID_RELEASE_BUILD_TOOLS/aapt2" product
+        python3 "$repo_root/scripts/platform/verify-android-release-apk.py" \
+            "$signed_apk" --aapt2 "$ANDROID_RELEASE_BUILD_TOOLS/aapt2" \
+            --zipalign "$ANDROID_RELEASE_BUILD_TOOLS/zipalign" \
+            --version-name "$apk_version_name" --version-code "$apk_version_code" \
+            --apksigner "$ANDROID_RELEASE_BUILD_TOOLS/apksigner" \
+            --certificate-sha256 "$ANDROID_RELEASE_CERT_SHA256"
+    done
+done
+
+(cd "$signed_dir" && sha256sum \
+    "LibrePaint-${release_tag}-arm64-v8a.apk" \
+    "LibrePaint-${release_tag}-x86_64.apk" >SHA256SUMS.android)
+upload_paths=(
+    "$signed_dir/LibrePaint-${release_tag}-arm64-v8a.apk"
+    "$signed_dir/LibrePaint-${release_tag}-x86_64.apk"
+)
+if (( include_update_baseline )); then
+    upload_paths+=(
+        "$signed_dir/LibrePaint-${release_tag}-update-baseline-arm64-v8a.apk"
+        "$signed_dir/LibrePaint-${release_tag}-update-baseline-x86_64.apk"
+    )
+fi
+upload_paths+=("$signed_dir/SHA256SUMS.android")
+gh release upload "$release_tag" "${upload_paths[@]}"
+for unsigned_name in "${unsigned_names[@]}"; do
+    gh release delete-asset "$release_tag" "$unsigned_name" --yes
+done
+gh release delete-asset "$release_tag" "$unsigned_hashes" --yes
+echo "Signed APKs are ready for device verification in draft release $release_tag"

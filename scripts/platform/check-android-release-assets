@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: 2026 LibrePaint contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+set -euo pipefail
+
+if (( $# != 3 )); then
+    echo "usage: check-android-release-assets <tag> <version-code> <certificate-sha256>" >&2
+    exit 2
+fi
+
+release_tag="$1"
+version_code="$2"
+certificate_sha256="$3"
+version_name="${release_tag#v}"
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+: "${ANDROID_RELEASE_BUILD_TOOLS:?Android release tools are required}"
+
+asset_names="$(gh release view "$release_tag" --json assets --jq '.assets[].name')"
+required_assets=(
+    "LibrePaint-${release_tag}-arm64-v8a.apk"
+    "LibrePaint-${release_tag}-x86_64.apk"
+    "SHA256SUMS.android"
+    "LibrePaint-${version_name}-x86_64-windows.zip"
+    "LibrePaint-${version_name}-x86_64.AppImage"
+    "LibrePaint-iOS-${release_tag}-unsigned.ipa"
+)
+for asset in "${required_assets[@]}"; do
+    if ! grep -Fxq "$asset" <<<"$asset_names"; then
+        echo "release asset is missing: $asset" >&2
+        exit 1
+    fi
+done
+if grep -Eq 'update-baseline|unsigned[.]apk|SHA256SUMS[.]android-unsigned' <<<"$asset_names"; then
+    echo "release still contains an unsigned or internal Android APK" >&2
+    exit 1
+fi
+expected_assets="$(printf '%s\n' "${required_assets[@]}" | sort)"
+if [[ "$(sort <<<"$asset_names")" != "$expected_assets" ]]; then
+    echo "release asset inventory differs from the approved platform outputs" >&2
+    exit 1
+fi
+expected_apks="$(printf '%s\n' "${required_assets[@]:0:2}" | sort)"
+actual_apks="$(grep -E '[.]apk$' <<<"$asset_names" | sort)"
+if [[ "$actual_apks" != "$expected_apks" ]]; then
+    echo "release Android APK inventory differs from the two public ABIs" >&2
+    exit 1
+fi
+
+release_dir="$(mktemp -d)"
+trap 'rm -rf -- "$release_dir"' EXIT
+for asset in "${required_assets[@]}"; do
+    gh release download "$release_tag" -D "$release_dir" -p "$asset"
+done
+python3 - "$release_dir" "$version_name" <<'PY'
+from pathlib import Path
+import plistlib
+import sys
+import zipfile
+
+directory = Path(sys.argv[1])
+version = sys.argv[2]
+windows = directory / f"LibrePaint-{version}-x86_64-windows.zip"
+with zipfile.ZipFile(windows) as archive:
+    entries = {name.removeprefix("./") for name in archive.namelist()}
+    if "bin/LibrePaint.exe" not in entries or archive.testzip() is not None:
+        raise SystemExit("Windows release ZIP is incomplete or damaged")
+
+appimage = directory / f"LibrePaint-{version}-x86_64.AppImage"
+with appimage.open("rb") as stream:
+    if stream.read(4) != b"\x7fELF":
+        raise SystemExit("Linux release AppImage is not an ELF executable")
+
+ios = directory / f"LibrePaint-iOS-v{version}-unsigned.ipa"
+with zipfile.ZipFile(ios) as archive:
+    if archive.testzip() is not None:
+        raise SystemExit("iOS release IPA is damaged")
+    info = plistlib.loads(archive.read("Payload/LibrePaint.app/Info.plist"))
+    if info.get("CFBundleShortVersionString") != version:
+        raise SystemExit("iOS release IPA has the wrong version")
+PY
+recorded_apks="$(awk '{print $2}' "$release_dir/SHA256SUMS.android" | sort)"
+if [[ "$recorded_apks" != "$expected_apks" ]]; then
+    echo "Android checksum inventory differs from the two public ABIs" >&2
+    exit 1
+fi
+(cd "$release_dir" && sha256sum --check --strict SHA256SUMS.android)
+git -C "$repo_root" fetch --no-tags origin "refs/tags/$release_tag:refs/tags/$release_tag"
+tag_commit="$(git -C "$repo_root" rev-parse "refs/tags/$release_tag^{commit}")"
+release_notes="$(gh release view "$release_tag" --json body --jq .body)"
+if [[ "$release_notes" != *"$release_tag"* || "$release_notes" != *"$tag_commit"* ]]; then
+    echo "release description omits the source tag or commit" >&2
+    exit 1
+fi
+for abi in arm64-v8a x86_64; do
+    apk="$release_dir/LibrePaint-${release_tag}-${abi}.apk"
+    apk_hash="$(sha256sum "$apk" | awk '{print $1}')"
+    if [[ "$release_notes" != *"$abi"* || "$release_notes" != *"$apk_hash"* ]]; then
+        echo "release description omits $abi or its SHA-256" >&2
+        exit 1
+    fi
+    "$repo_root/scripts/platform/audit-android-package" \
+        "$apk" "$abi" "$(command -v readelf)" \
+        "$ANDROID_RELEASE_BUILD_TOOLS/aapt2" product
+    python3 "$repo_root/scripts/platform/verify-android-release-apk.py" \
+        "$apk" --aapt2 "$ANDROID_RELEASE_BUILD_TOOLS/aapt2" \
+        --zipalign "$ANDROID_RELEASE_BUILD_TOOLS/zipalign" \
+        --version-name "$version_name" --version-code "$version_code" \
+        --apksigner "$ANDROID_RELEASE_BUILD_TOOLS/apksigner" \
+        --certificate-sha256 "$certificate_sha256"
+done
+for asset in "${required_assets[@]:3}"; do
+    sha256sum "$release_dir/$asset"
+done
+echo "Release assets and signed Android APKs verified: $release_tag"

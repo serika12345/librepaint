@@ -79,7 +79,7 @@ let
 in
 pkgs.stdenv.mkDerivation {
   pname = "librepaint-macos";
-  version = "1.0.2";
+  version = "1.0.3";
 
   src = source;
   strictDeps = true;

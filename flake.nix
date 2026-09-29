@@ -846,7 +846,7 @@
         ];
       };
       mkLibrepaintBuildSource =
-        packageSet:
+        packageSet: excludeAndroidPackage:
         packageSet.lib.cleanSourceWith {
           name = "librepaint-source";
           src = ./.;
@@ -871,6 +871,16 @@
               "nix"
               "result"
             ])
+            && !(builtins.elem relativePath [
+              "scripts/platform/check-android-release-assets"
+              "scripts/platform/sign-android-draft-release"
+              "scripts/platform/verify-android-release-apk.py"
+              "scripts/tests/test_android_release_apk.py"
+            ])
+            && !(excludeAndroidPackage && (
+              relativePath == "packaging/android/apk"
+              || packageSet.lib.hasPrefix "packaging/android/apk/" relativePath
+            ))
             && !(packageSet.lib.hasPrefix "README" topLevel);
         };
       # Policy files use an independent source so policy-only edits preserve
@@ -897,8 +907,9 @@
             ])
             && !(packageSet.lib.hasPrefix "result-" topLevel);
         };
-      librepaintBuildSource = mkLibrepaintBuildSource pkgs;
-      linuxBuildSource = mkLibrepaintBuildSource linuxPkgs;
+      librepaintBuildSource = mkLibrepaintBuildSource pkgs false;
+      linuxBuildSource = mkLibrepaintBuildSource linuxPkgs false;
+      linuxAndroidCompileSource = mkLibrepaintBuildSource linuxPkgs true;
       librepaintPolicySource = mkLibrepaintPolicySource pkgs;
       linuxPolicySource = mkLibrepaintPolicySource linuxPkgs;
       linuxAppImageAppRun = import ./nix/linux/appimage-apprun.nix {
@@ -928,11 +939,11 @@
       };
       linuxAndroidPackages = import ./nix/android {
         pkgs = linuxPkgs;
-        source = linuxBuildSource;
+        source = linuxAndroidCompileSource;
       };
       linuxAndroidX86_64Packages = import ./nix/android {
         pkgs = linuxPkgs;
-        source = linuxBuildSource;
+        source = linuxAndroidCompileSource;
         androidAbi = "x86_64";
         packageName = "librepaint-android-x86_64";
       };
@@ -1157,6 +1168,8 @@
         librepaint-linux-appimage = linuxPackages.librepaintAppImage;
         linux-dependencies = linuxPackages.linuxDependencies;
         librepaint-android = linuxAndroidPackages.librepaint;
+        librepaint-android-native = linuxAndroidPackages.nativeBuild;
+        librepaint-android-update-baseline = linuxAndroidPackages.librepaintUpdateBaseline;
         android-application-dependencies = linuxAndroidPackages.androidApplicationDependencies;
         android-dependencies = linuxAndroidPackages.androidDependencies;
         android-kf6 = linuxAndroidPackages.androidKf6;
@@ -1170,6 +1183,8 @@
         qtsvg-android = linuxAndroidPackages.qtsvg;
         zlib-android = linuxAndroidPackages.zlib;
         librepaint-android-x86_64 = linuxAndroidX86_64Packages.librepaint;
+        librepaint-android-x86_64-native = linuxAndroidX86_64Packages.nativeBuild;
+        librepaint-android-x86_64-update-baseline = linuxAndroidX86_64Packages.librepaintUpdateBaseline;
         android-x86_64-application-dependencies = linuxAndroidX86_64Packages.androidApplicationDependencies;
         android-x86_64-dependencies = linuxAndroidX86_64Packages.androidDependencies;
         android-x86_64-kf6 = linuxAndroidX86_64Packages.androidKf6;
@@ -1331,6 +1346,7 @@
       devShells.${linuxSystem} = {
         default = linuxPackages.devShell;
         docs = mkDocsShell linuxPkgs;
+        android-release = import ./nix/android/release-shell.nix { pkgs = linuxPkgs; };
         librepaint-linux = linuxPackages.devShell;
         librepaint-test = mkTestShell linuxPkgs linuxPackages.librepaintUnwrapped;
         test = mkTestShell linuxPkgs linuxPackages.librepaintUnwrapped;

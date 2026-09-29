@@ -458,7 +458,7 @@ let
 
   nativeBuild = pkgs.stdenv.mkDerivation {
     pname = "${packageName}-native";
-    version = "1.0.2";
+    version = "1.0.3";
     src = source;
 
     strictDeps = true;
@@ -484,6 +484,7 @@ let
       "-DBUILD_TESTING:BOOL=OFF"
       "-DBUILD_WITH_QT6:BOOL=ON"
       "-DANDROIDDEPLOYQT_EXTRA_ARGS:STRING=--release"
+      "-DANDROID_APK_DIR:PATH=${qtbase}/src/android/templates"
       "-DCMAKE_BUILD_TYPE:STRING=Release"
       "-DCMAKE_INSTALL_BINDIR:PATH=bin"
       "-DCMAKE_INSTALL_DOCDIR:PATH=share/doc/krita"
@@ -632,7 +633,7 @@ let
 
   androidPackageSource = androidHost.runCommand "${packageName}-package-source" { } ''
     mkdir -p "$out"
-    cp -a ${source}/packaging/android/apk "$out/apk"
+    cp -a ${../../packaging/android/apk} "$out/apk"
     chmod -R u+w "$out/apk"
     install -m 0644 ${packagingCmake} "$out/CMakeLists.txt"
     install -m 0755 ${gradleWrapper} "$out/apk/gradlew"
@@ -642,7 +643,7 @@ let
 
   librepaint = pkgs.stdenv.mkDerivation (finalAttrs: {
     pname = packageName;
-    version = "1.0.2";
+    version = "1.0.3";
     src = androidPackageSource;
 
     strictDeps = true;
@@ -775,16 +776,18 @@ let
       test -n "$releaseAab"
       test -s "$releaseAab"
       install -m 0644 "$releaseAab" "$out/LibrePaint-${androidAbi}.aab"
+      # GNU readelf completes the short ELF header output before the auditor's
+      # machine-field check closes its pipe; the NDK reader can exit with 74.
       ${androidHost.bash}/bin/bash ${source}/scripts/platform/audit-android-package \
         "$out/LibrePaint-${androidAbi}.apk" \
         ${androidAbi} \
-        ${androidNdkRoot}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf \
+        ${androidHost.binutils}/bin/readelf \
         ${androidSdkRoot}/build-tools/35.0.0/aapt2 \
         product
       ${androidHost.bash}/bin/bash ${source}/scripts/platform/audit-android-package \
         "$out/LibrePaint-${androidAbi}.aab" \
         ${androidAbi} \
-        ${androidNdkRoot}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf \
+        ${androidHost.binutils}/bin/readelf \
         ${androidSdkRoot}/build-tools/35.0.0/aapt2 \
         product
       runHook postInstall
@@ -810,6 +813,13 @@ let
         binaryBytecode
       ];
     };
+  });
+
+  librepaintUpdateBaseline = librepaint.overrideAttrs (old: {
+    pname = "${packageName}-update-baseline";
+    preConfigure = old.preConfigure + ''
+      export ORG_GRADLE_PROJECT_librepaintUpdateBaseline=true
+    '';
   });
 
   devShell = androidHost.mkShell {
@@ -856,6 +866,8 @@ in
     devShell
     incrementalEnv
     librepaint
+    librepaintUpdateBaseline
+    nativeBuild
     qt5compat
     qtbase
     qtdeclarative
