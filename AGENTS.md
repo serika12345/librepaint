@@ -46,6 +46,26 @@ starting files or directories and their destination files or directories as a
 traceable mapping. File paths are required review entry points even when class,
 target, and test identifiers are unnecessary supporting detail.
 
+## Issue Approval and Sensitive Information
+
+Every Issue write requires an explicit user request, followed by presentation
+of the exact proposed text or change and the user's approval of that proposal.
+This includes creation, comments, body edits, metadata and state changes, and
+deletions. A task request, implementation approval, or repository synchronization
+requirement does not authorize an Issue write. Approval applies only to the
+presented change. This rule takes precedence over all Issue-recording and
+synchronization procedures in this repository, including completion reporting
+and correction of existing disclosures.
+
+Treat local work details and security operations as sensitive, even when secret
+values are absent. Keep actual key storage and recovery arrangements, credential
+configuration status, personal paths, host and device availability, and local
+storage inventories out of Issues and tracked documents, including
+`PROGRESS.md`. Discuss operational details in the conversation; use private
+storage only when the user designates it. Generic reproducible procedures and
+public software facts belong in repository documentation. Public reports use
+only the minimum project facts needed to describe behavior and verification.
+
 ## Roadmap Order
 
 LibrePaint follows the roadmap in `docs/architecture/ROADMAP.md`.
@@ -68,7 +88,7 @@ algorithms, execution order, scheduling, and synchronization.
 
 GitHub Issues own task scope, prerequisites, completion criteria, state, and
 verification results. Repository documents own architecture, development usage,
-and the local resumption snapshot. Begin each session with this sequence:
+and a public-safe project snapshot. Begin each session with this sequence:
 
 1. Read `docs/architecture/PROGRESS.md`.
 2. Read the linked active Issue, its prerequisites, and the relevant sections
@@ -79,10 +99,11 @@ and the local resumption snapshot. Begin each session with this sequence:
 5. Continue that action, or select the earliest ready Issue whose prerequisites
    are complete.
 
-Record task state and verification in the owning Issue. Keep the local snapshot
-synchronized with its Issue URL, JST timestamp, branch, starting commit, next
-operation, latest verification, and resumption conditions. Keep one current
-snapshot. Issues and Git history retain completed work and previous snapshots.
+Report task state and verification in the conversation. Update the owning Issue
+only through the Issue approval procedure above. Keep one public-safe snapshot
+with the Issue URL, project state, verification summary, and next project step.
+Keep private operational details in the conversation. Issues and Git history
+retain approved public records.
 
 Active work uses `in_progress`; the next ready action uses `planned`; paused
 work records its resumption condition. GitHub open/closed state records whether
@@ -132,8 +153,8 @@ relevant shell and receive one deliberate environment reevaluation.
 Before and after a deliberate local-flake reevaluation during a large roadmap
 item, compare the dead `*-source` and `*-librepaint-source` path count and
 recoverable size. Unexpected growth stops further local-flake evaluation; the
-session resumes through the last valid cached profile and records the cause in
-the owning Issue. The snapshot links to that Issue and its resumption condition.
+session resumes through the last valid cached profile and reports the cause in
+the conversation. Keep local storage measurements out of tracked snapshots.
 Garbage collection is a separate storage
 operation: resolve exact dead paths, preserve active profiles and build caches,
 and obtain the authority required by the destructive-action rules before
@@ -165,8 +186,8 @@ Every code, build, script, and policy change follows this sequence:
 7. Refactor while the relevant contract remains green.
 8. Audit responsibility, dependency direction, ownership, lifetime, public
    API, file growth, and platform impact.
-9. Synchronize the owning Issue, snapshot, architecture, fixed test data,
-   and baselines.
+9. Synchronize public-safe repository documentation, fixed test data, and
+   baselines. Apply the Issue approval procedure to any requested Issue update.
 10. Run the verification tier required by the change scope.
 
 Required checks directly protect a documented responsibility, dependency,
@@ -186,9 +207,9 @@ Parallel implementation uses one coordinator and non-overlapping worker
 lanes. The coordinator records one base commit and gives every lane a task
 packet containing the exact public headers and API identifiers, allowed paths,
 owned CMake files and targets, nearest contract, platform scope, build
-permission, Git authority, integration order, and stop conditions. The active
-lane packets and their states are recorded in the owning Issue before workers
-start. The snapshot links to the active coordinator Issue. Two active lanes
+permission, Git authority, integration order, and stop conditions. Share active
+lane packets and their states within the working conversation before workers
+start. The public-safe snapshot links to the coordinator Issue. Two active lanes
 never share a production header,
 implementation file, test source, CMake file, or generated artifact.
 
@@ -235,7 +256,7 @@ The coordinator removes obsolete generated storage as soon as its replacement
 is verified. Completed lane worktrees include their lane-local build trees in
 the same removal. Keep the reusable primary Ninja tree and shared compiler
 cache. Remove obsolete lane build artifacts after integrated tests succeed.
-Record retained storage and reclaimed lane storage in the owning Issue.
+Report retained storage and reclaimed lane storage in the conversation.
 Preserve user-owned artifacts and do not
 discard the primary incremental tree or shared cache while they remain useful.
 
@@ -401,18 +422,19 @@ Documents contain durable project state, design, commands, and maintenance
 instructions. Sentences describe purpose, ownership, inputs, outputs,
 execution order, and successful end states in affirmative form. Migration
 observations belong to implementation reports and repository history. The
-progress snapshot contains the current work and its next action.
+progress snapshot contains public-safe project state and its next step.
 
 - GitHub Issues own tasks, state, prerequisites, acceptance, and verification.
 - `docs/architecture/ROADMAP.md` owns stage order and Issue entry points.
-- `docs/architecture/PROGRESS.md` owns the current resumable work snapshot.
+- `docs/architecture/PROGRESS.md` owns the current public-safe project snapshot.
 - `docs/architecture/README.md` owns shared and platform-specific design boundaries.
 - `docs/architecture/DEVELOPMENT.md` is the single development manual for all
   platforms, including setup, builds, verification, deployment, and maintenance.
 - Asset manifests and attribution documents own license evidence and adopted scope.
 
-Update the relevant manual section for new procedures. Keep historical validation
-results and task lists in Issues and Git history. Link version and inventory
+Update the relevant manual section for new procedures. Issue records require
+the Issue approval procedure; Git history retains committed public changes.
+Link version and inventory
 information to its source definition.
 
 D2 sources own architecture diagrams. Diagram updates regenerate their SVG
@@ -448,8 +470,9 @@ nix flake check --no-build --all-systems
 ```
 
 Platform-boundary changes run the matching build, artifact, simulator, device,
-or performance verification. The owning Issue records exact commands and results; the snapshot records
-the latest verification summary.
+or performance verification. Report commands and results in the conversation.
+Requested Issue updates require approval of the exact public-safe text; the
+snapshot records a public-safe verification summary.
 
 ## Completion
 
@@ -460,7 +483,8 @@ A completed task has:
 - successful required checks in the Nix environment;
 - an architecture and platform impact assessment;
 - justified baselines and reviewed exceptions;
-- synchronized owning Issue, snapshot, roadmap links, and architecture documents;
+- synchronized public-safe snapshot, roadmap links, and architecture documents;
+- Issue updates only when explicitly requested and their exact changes approved;
 - current generated documentation artifacts;
 - preserved user-owned worktree changes.
 
