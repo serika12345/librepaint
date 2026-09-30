@@ -244,6 +244,12 @@ nix build .#librepaint-windows-archive
 アーカイブ出力は`result/LibrePaint-<version>-x86_64-windows.zip`。
 DLL、Qtプラグイン、QML、Python／PyQt、G'MIC、媒体処理、翻訳、フォント、`qt.conf`を同梱する。
 
+パッケージ構築は`scripts/platform/audit-windows-package.py`を実行し、全PEファイルが
+x86_64であること、DLLのベース名が一意であること、各インポートが同梱DLLまたは
+WindowsのシステムDLLとして解決することを確認する。PyQt6のSIP実行時モジュールと、
+製品実行時に不要な開発・試験用成果物の除外も同じ検査の契約とする。
+`scripts/platform/check-release-assets`はWindows ZIPを展開し、公開前と公開後にこの検査を再実行する。
+
 `winquirks/unistd.h`を変更した場合は、対象WindowsのVisual Studio開発者環境でMSVC契約を
 構築して実行する。
 

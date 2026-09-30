@@ -872,10 +872,12 @@
               "result"
             ])
             && !(builtins.elem relativePath [
+              "scripts/platform/audit-windows-package.py"
               "scripts/platform/check-release-assets"
               "scripts/platform/sign-android-draft-release"
               "scripts/platform/verify-android-release-apk.py"
               "scripts/tests/test_android_release_apk.py"
+              "scripts/tests/test_windows_release_package.py"
             ])
             && !(excludeAndroidPackage && (
               relativePath == "packaging/android/apk"
@@ -950,6 +952,7 @@
       windowsPackages = import ./nix/windows {
         pkgs = windowsPkgs;
         source = linuxBuildSource;
+        auditWindowsPackage = ./scripts/platform/audit-windows-package.py;
       };
       policyTools =
         packageSet: with packageSet; [

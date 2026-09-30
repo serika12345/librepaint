@@ -67,6 +67,7 @@ with zipfile.ZipFile(windows) as archive:
     entries = {name.removeprefix("./") for name in archive.namelist()}
     if "bin/LibrePaint.exe" not in entries or archive.testzip() is not None:
         raise SystemExit("Windows release ZIP is incomplete or damaged")
+    archive.extractall(directory / "windows")
 
 appimage = directory / f"LibrePaint-{version}-x86_64.AppImage"
 with appimage.open("rb") as stream:
@@ -87,6 +88,13 @@ with macos.open("rb") as stream:
     if stream.read(4) != b"koly":
         raise SystemExit("macOS release DMG is not a UDIF disk image")
 PY
+windows_objdump="${WINDOWS_OBJDUMP:-$(command -v objdump || true)}"
+if [[ -z "$windows_objdump" ]]; then
+    echo "Windows release inspection requires objdump or WINDOWS_OBJDUMP" >&2
+    exit 1
+fi
+python3 "$repo_root/scripts/platform/audit-windows-package.py" \
+    "$release_dir/windows" --objdump "$windows_objdump"
 if command -v hdiutil >/dev/null 2>&1; then
     hdiutil verify "$release_dir/LibrePaint-${version_name}-aarch64-macos.dmg" >/dev/null
 fi

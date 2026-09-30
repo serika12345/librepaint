@@ -1,6 +1,7 @@
 {
   pkgs,
   source,
+  auditWindowsPackage,
 }:
 
 let
@@ -69,12 +70,33 @@ let
   }).overrideAttrs (old: {
     buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.windows.pthreads ];
   });
+  windowsRuntimeLibjxl = pkgs.libjxl.overrideAttrs (old: {
+    # The MinGW AVX2 decoder corrupts its output buffer on Windows before the
+    # image reaches Krita. Keep the portable runtime on Highway's SSE path;
+    # the public libjxl ABI remains identical to the build-time dependency.
+    NIX_CFLAGS_COMPILE = lib.concatStringsSep " " [
+      (old.NIX_CFLAGS_COMPILE or "")
+      "-DHWY_DISABLED_TARGETS=HWY_AVX2"
+    ];
+  });
   pythonVersion = librepaintUnwrapped.windowsPython.pythonVersion;
   pythonCompactVersion = lib.replaceStrings [ "." ] [ "" ] pythonVersion;
   pythonSitePackages = librepaintUnwrapped.windowsPython.sitePackages;
   portableRuntimeDependencies =
     librepaintUnwrapped.windowsRuntimeDependencies
-    ++ [ librepaintGmic ];
+    ++ [
+      librepaintGmic
+      (lib.getBin pkgs.libjxl)
+      (lib.getLib pkgs.gdk-pixbuf)
+      (lib.getDev pkgs.gdk-pixbuf)
+      (lib.getLib pkgs.libebur128)
+      (lib.getLib pkgs.libexif)
+      (lib.getLib pkgs.libogg)
+      (lib.getLib pkgs.libsamplerate)
+      (lib.getLib pkgs.rnnoise)
+      (lib.getLib pkgs.rtaudio)
+      (lib.getLib pkgs.rubberband)
+    ];
 
   # Windows PE import tables retain DLL names rather than Nix store paths.
   # Keep the declared runtime inputs as closure roots, then copy their target
@@ -91,6 +113,7 @@ let
         buildPkgs.findutils
         buildPkgs.gnugrep
         buildPkgs.gnused
+        buildPkgs.python3
         buildPkgs.zip
       ];
     }
@@ -221,6 +244,12 @@ let
         )
       done < ${runtimeClosure}/store-paths
 
+      # Replace the generic MinGW libjxl runtime with the ABI-compatible build
+      # whose decoder avoids the corrupting AVX2 implementation above.
+      for dll in libjxl.dll libjxl_cms.dll libjxl_threads.dll; do
+        cp -f ${lib.getBin windowsRuntimeLibjxl}/bin/"$dll" "$out/bin/$dll"
+      done
+
       cp ${pkgs.ffmpeg}/bin/ffmpeg.exe "$out/bin/ffmpeg.exe"
       cp ${pkgs.ffmpeg}/bin/ffprobe.exe "$out/bin/ffprobe.exe"
 
@@ -230,12 +259,18 @@ let
         find . -type f \
           ! -path './site-packages/*' \
           ! -path './lib-dynload/*' \
+          ! -path './test/*' \
+          ! -path '*/test/*' \
+          ! -path '*/tests/*' \
           ! -iname '*.pyd' \
           -print \
           | LC_ALL=C sort \
           | zip -X -9 "$out/python/python${pythonCompactVersion}.zip" -@
       )
       while IFS= read -r -d "" extension; do
+        case "$(basename "$extension")" in
+          _test* | *_test.* | _xxtestfuzz.*) continue ;;
+        esac
         cp "$extension" "$out/python/$(basename "$extension")"
       done < <(
         find -L ${librepaintUnwrapped.windowsPython} -type f -iname '*.pyd' \
@@ -271,6 +306,36 @@ let
         rm -f "$out/etc/fonts/conf.d/README"
       fi
 
+      # Eigen's MinGW LAPACK helper imports eigen_blas.dll while the package
+      # installs the same binary with a Unix-style lib prefix. Publish runtime name.
+      if test -f "$out/bin/libeigen_blas.dll"; then
+        mv "$out/bin/libeigen_blas.dll" "$out/bin/eigen_blas.dll"
+      fi
+      if test -f "$out/bin/libogg.dll"; then
+        cp "$out/bin/libogg.dll" "$out/bin/ogg.dll"
+      fi
+
+      rm -rf \
+        "$out/bin/plugins/qmltooling" \
+        "$out/bin/qml/Qt/test" \
+        "$out/bin/qml/QtTest" \
+        "$out/include" \
+        "$out/installer"
+      rm -f \
+        "$out/MakeinstallerNsis.cmake" \
+        "$out/bin/Qt6QuickTest.dll" \
+        "$out/bin/Qt6Test.dll" \
+        "$out/bin/krita_version.exe" \
+        "$out/lib/site-packages/PyQt6/QtTest.pyd"
+      find "$out/bin" -maxdepth 1 -type f \
+        \( -iname '_test*.dll' -o -iname '_*_test*.dll' \
+           -o -iname '_xxtestfuzz*.dll' \) \
+        -delete
+      find "$out" -type f \
+        \( -iname '*.a' -o -iname '*.cmake' -o -iname '*.la' \
+           -o -iname '*.pc' -o -iname '*.prl' \) \
+        -delete
+
       cat > "$out/bin/qt.conf" <<'EOF'
       [Paths]
       Prefix=..
@@ -286,6 +351,8 @@ let
       test -d "$out/bin/plugins/platforms"
       test -f "$out/etc/fonts/fonts.conf"
       test -z "$(find "$out" -type l -print -quit)"
+      ${buildPkgs.python3}/bin/python3 ${auditWindowsPackage} "$out" \
+        --objdump ${pkgs.stdenv.cc.bintools.bintools}/bin/${pkgs.stdenv.cc.targetPrefix}objdump
     '';
 
   librepaintArchive = buildPkgs.runCommand "librepaint-windows-archive-${librepaintUnwrapped.version}"
