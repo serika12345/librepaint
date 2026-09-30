@@ -6,7 +6,7 @@
 set -euo pipefail
 
 if (( $# != 3 )); then
-    echo "usage: check-android-release-assets <tag> <version-code> <certificate-sha256>" >&2
+    echo "usage: check-release-assets <tag> <version-code> <certificate-sha256>" >&2
     exit 2
 fi
 
@@ -25,6 +25,7 @@ required_assets=(
     "LibrePaint-${version_name}-x86_64-windows.zip"
     "LibrePaint-${version_name}-x86_64.AppImage"
     "LibrePaint-iOS-${release_tag}-unsigned.ipa"
+    "LibrePaint-${version_name}-aarch64-macos.dmg"
 )
 for asset in "${required_assets[@]}"; do
     if ! grep -Fxq "$asset" <<<"$asset_names"; then
@@ -79,7 +80,16 @@ with zipfile.ZipFile(ios) as archive:
     info = plistlib.loads(archive.read("Payload/LibrePaint.app/Info.plist"))
     if info.get("CFBundleShortVersionString") != version:
         raise SystemExit("iOS release IPA has the wrong version")
+
+macos = directory / f"LibrePaint-{version}-aarch64-macos.dmg"
+with macos.open("rb") as stream:
+    stream.seek(-512, 2)
+    if stream.read(4) != b"koly":
+        raise SystemExit("macOS release DMG is not a UDIF disk image")
 PY
+if command -v hdiutil >/dev/null 2>&1; then
+    hdiutil verify "$release_dir/LibrePaint-${version_name}-aarch64-macos.dmg" >/dev/null
+fi
 recorded_apks="$(awk '{print $2}' "$release_dir/SHA256SUMS.android" | sort)"
 if [[ "$recorded_apks" != "$expected_apks" ]]; then
     echo "Android checksum inventory differs from the two public ABIs" >&2
@@ -111,6 +121,11 @@ for abi in arm64-v8a x86_64; do
         --certificate-sha256 "$certificate_sha256"
 done
 for asset in "${required_assets[@]:3}"; do
+    asset_hash="$(sha256sum "$release_dir/$asset" | awk '{print $1}')"
+    if [[ "$asset" == *.dmg ]] && [[ "$release_notes" != *"$asset_hash"* ]]; then
+        echo "release description omits the macOS DMG SHA-256" >&2
+        exit 1
+    fi
     sha256sum "$release_dir/$asset"
 done
-echo "Release assets and signed Android APKs verified: $release_tag"
+echo "Release assets verified: $release_tag"

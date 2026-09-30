@@ -182,6 +182,11 @@ open result/bin/LibrePaint.app
 出力は実行時ライブラリーをNixの依存集合に保持する開発用バンドル。
 配布にはスタンドアロン化、DMG生成、署名、公証を重ね、完成物で検証する。
 個別の依存環境を初回に開く入口は`nix develop .#librepaint-macos`。
+`v1.0.3`のApple Silicon用DMGはアドホック署名で配布する。
+通常のmacOS配布承認を受けた署名ではないため、導入時にmacOSの
+[「このまま開く」手順](https://support.apple.com/en-us/guide/mac-help/mh40616/mac)が必要になる場合がある。
+成果物は`hdiutil verify <DMG>`で検査し、マウントしたアプリで
+`codesign --verify --deep --strict <LibrePaint.app>`と起動・文書操作を確認する。
 
 ### Linux
 
@@ -444,10 +449,11 @@ adb -s <端末番号> install -r <完成APK>
 adb -s <端末番号> shell dumpsys package io.github.serika12345.librepaint
 ```
 
-WindowsのZIP、LinuxのAppImage、iOSのIPAも`v1.0.3`で揃え、各成果物の
-対象プラットフォームの検査結果を確認する。WindowsとLinuxはx86_64 Linux、
-iOSはmacOSで構築する。各出力をアップロードする端末の同じ作業用ディレクトリーに集め、
-IPAはNix出力に版番号を付けた名前で添付する。
+WindowsのZIP、LinuxのAppImage、iOSのIPA、macOSのDMGも`v1.0.3`で揃え、
+各成果物の対象プラットフォームの検査結果を確認する。WindowsとLinuxは
+x86_64 Linux、iOSとmacOSはApple SiliconのmacOSで構築する。
+各出力をアップロードする端末の同じ作業用ディレクトリーに集め、
+IPAとDMGは版番号を付けた名前で添付する。
 
 ```sh
 nix build .#librepaint-windows-archive --out-link result-windows-v1.0.3
@@ -456,19 +462,20 @@ nix build .#librepaint-ios-ipa --out-link result-ios-v1.0.3
 gh release upload v1.0.3 \
   <作業用ディレクトリー>/LibrePaint-1.0.3-x86_64-windows.zip \
   <作業用ディレクトリー>/LibrePaint-1.0.3-x86_64.AppImage \
-  <作業用ディレクトリー>/LibrePaint-iOS-v1.0.3-unsigned.ipa
+  <作業用ディレクトリー>/LibrePaint-iOS-v1.0.3-unsigned.ipa \
+  <作業用ディレクトリー>/LibrePaint-1.0.3-aarch64-macos.dmg
 ```
 
 内部更新試験用APKを下書きから削除し、
-公開対象が両ABIの完成APK、`SHA256SUMS.android`、他3平台の成果物だけであることを
+公開対象が両ABIの完成APK、`SHA256SUMS.android`、他4平台の成果物だけであることを
 確認してから手動公開する。ReleaseにはABI、Android 9以降というManifest条件、
 実操作を確認したAndroid版、ADB導入方法、変更点、タグ・コミット、完成APKのSHA-256を記す。
 公開前と公開後には署名用シェルで次を実行し、両APKの再取得、
-`SHA256SUMS.android`、署名証明書、APK構成と他3平台の添付を照合する。
+`SHA256SUMS.android`、署名証明書、APK構成と他4平台の添付を照合する。
 
 ```sh
 nix develop .#android-release --command bash \
-  scripts/platform/check-android-release-assets v1.0.3 1000003 <公開証明書のSHA-256>
+  scripts/platform/check-release-assets v1.0.3 1000003 <公開証明書のSHA-256>
 ```
 
 公開操作は`gh release edit v1.0.3 --draft=false`。公開後に同じ検査を再実行する。

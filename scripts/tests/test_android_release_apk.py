@@ -14,7 +14,7 @@ from unittest import mock
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "platform/verify-android-release-apk.py"
-ASSET_SCRIPT = Path(__file__).resolve().parents[1] / "platform/check-android-release-assets"
+ASSET_SCRIPT = Path(__file__).resolve().parents[1] / "platform/check-release-assets"
 SPEC = importlib.util.spec_from_file_location("android_release_apk", SCRIPT)
 if SPEC is None or SPEC.loader is None:
     raise RuntimeError(f"cannot import {SCRIPT}")
@@ -77,6 +77,7 @@ class AndroidReleaseApkTest(unittest.TestCase):
                 "'LibrePaint-1.0.3-x86_64-windows.zip' "
                 "'LibrePaint-1.0.3-x86_64.AppImage' "
                 "'LibrePaint-iOS-v1.0.3-unsigned.ipa' "
+                "'LibrePaint-1.0.3-aarch64-macos.dmg' "
                 f"'{extra_asset}'\n"
             )
             fake_gh.chmod(0o755)

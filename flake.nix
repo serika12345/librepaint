@@ -872,7 +872,7 @@
               "result"
             ])
             && !(builtins.elem relativePath [
-              "scripts/platform/check-android-release-assets"
+              "scripts/platform/check-release-assets"
               "scripts/platform/sign-android-draft-release"
               "scripts/platform/verify-android-release-apk.py"
               "scripts/tests/test_android_release_apk.py"
