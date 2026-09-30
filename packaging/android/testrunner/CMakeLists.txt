@@ -30,6 +30,10 @@ set_target_properties(librepaint_android_test PROPERTIES
     QT_ANDROID_PACKAGE_SOURCE_DIR "${ANDROID_TEST_APK_DIR}"
 )
 
+# Limit APK dependency discovery to the Android prefixes supplied by the test
+# packager. The Nix toolchain also adds host packages to the live variable.
+get_property(android_package_roots CACHE CMAKE_FIND_ROOT_PATH PROPERTY VALUE)
+set(CMAKE_FIND_ROOT_PATH "${android_package_roots}")
 qt_finalize_executable(librepaint_android_test)
 add_custom_target(create-apk-librepaint_android_test
     DEPENDS librepaint_android_test_make_apk

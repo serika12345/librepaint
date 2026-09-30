@@ -12,6 +12,7 @@
 #include <QStandardPaths>
 #include <QTemporaryFile>
 #include <QTest>
+#include <QUrl>
 
 class KisAndroidContentUriContractTest : public QObject
 {
@@ -31,7 +32,7 @@ void KisAndroidContentUriContractTest::copiesDocumentDataThroughContentResolver(
 
     const QString dataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     QVERIFY(QDir().mkpath(dataPath));
-    const QString targetPath = dataPath + QStringLiteral("/android-content-uri-contract.bin");
+    const QString targetPath = dataPath + QStringLiteral("/android content uri contract (1).bin");
 
     QFile target(targetPath);
     QVERIFY(target.open(QIODevice::WriteOnly | QIODevice::Truncate));
@@ -72,11 +73,14 @@ void KisAndroidContentUriContractTest::copiesDocumentDataThroughContentResolver(
     QVERIFY(source.flush());
 
     QString errorMessage;
-    QVERIFY2(KisAndroidUtils::copyFile(source.fileName(), uri.toString(), &errorMessage),
+    const QString pickerUri = QUrl(uri.toString()).toString();
+    QVERIFY(pickerUri.contains(QLatin1Char(' ')));
+    QCOMPARE(KisAndroidUtils::encodedContentUri(pickerUri), uri.toString());
+    QVERIFY2(KisAndroidUtils::copyFile(source.fileName(), pickerUri, &errorMessage),
              qPrintable(errorMessage));
 
     QTemporaryFile roundTrip;
-    QVERIFY2(KisAndroidUtils::copyFileToTemporary(uri.toString(), roundTrip, &errorMessage),
+    QVERIFY2(KisAndroidUtils::copyFileToTemporary(pickerUri, roundTrip, &errorMessage),
              qPrintable(errorMessage));
     QVERIFY(roundTrip.seek(0));
     QCOMPARE(roundTrip.readAll(), expected);

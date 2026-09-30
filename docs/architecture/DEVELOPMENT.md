@@ -315,6 +315,13 @@ build-incremental android-x86_64 run-test FilterStrokeLibraryBoundaryContractTes
 
 ARM64では`android-x86_64`を`android`に置き換える。
 
+Androidの文書選択画面を通る保存・読込経路を変更した場合は、次の契約で
+空白を含む文書名のURIと保存データの往復を確認する。
+
+```sh
+build-incremental android-x86_64 run-test KisAndroidContentUriContractTest [adb-serial]
+```
+
 クラッシュ処理を変更した場合は、ARM64実機で実コールバックとバックトレース生成を検査する。
 
 ```sh

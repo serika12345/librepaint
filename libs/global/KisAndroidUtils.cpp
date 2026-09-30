@@ -7,6 +7,7 @@
 
 #include <QFile>
 #include <QTemporaryFile>
+#include <QUrl>
 
 #include <QJniEnvironment>
 #include <QJniObject>
@@ -15,6 +16,11 @@
 
 namespace KisAndroidUtils
 {
+
+QString encodedContentUri(const QString &uri)
+{
+    return QUrl(uri).toString(QUrl::FullyEncoded);
+}
 
 void performInitialSetup()
 {
@@ -168,7 +174,7 @@ bool openFile(QFile &file,
         return false;
     }
 
-    const QJniObject javaPath = QJniObject::fromString(path);
+    const QJniObject javaPath = QJniObject::fromString(encodedContentUri(path));
     const QJniObject uri = QJniObject::callStaticObjectMethod(
         "android/net/Uri",
         "parse",
