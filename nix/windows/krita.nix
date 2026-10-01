@@ -118,6 +118,7 @@ let
       })
     else
       input;
+  targetPyQt6Sip = useTargetPythonHeaders targetPythonPackages."pyqt6-sip";
   drmingw = import ./drmingw.nix { inherit pkgs; };
   qt = pkgs.qt6Packages.overrideScope (final: previous: {
     # qtbase runs host tools while cross compiling.  Supply the lean host
@@ -835,6 +836,7 @@ pkgs.stdenv.mkDerivation {
     windowsDrMingw = drmingw;
     windowsPythonPackages = [
       targetPyQt6
+      targetPyQt6Sip
     ];
   };
 
