@@ -104,9 +104,8 @@ fi
 python3 "$repo_root/scripts/platform/audit-linux-appimage.py" \
     "$release_dir/LibrePaint-${version_name}-x86_64.AppImage" \
     --readelf "$linux_readelf" --unsquashfs "$linux_unsquashfs"
-if command -v hdiutil >/dev/null 2>&1; then
-    hdiutil verify "$release_dir/LibrePaint-${version_name}-aarch64-macos.dmg" >/dev/null
-fi
+"$repo_root/scripts/platform/check-macos-release-dmg" \
+    "$release_dir/LibrePaint-${version_name}-aarch64-macos.dmg"
 recorded_apks="$(awk '{print $2}' "$release_dir/SHA256SUMS.android" | sort)"
 if [[ "$recorded_apks" != "$expected_apks" ]]; then
     echo "Android checksum inventory differs from the two public ABIs" >&2

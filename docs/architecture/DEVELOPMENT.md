@@ -180,13 +180,55 @@ open result/bin/LibrePaint.app
 ```
 
 出力は実行時ライブラリーをNixの依存集合に保持する開発用バンドル。
-配布にはスタンドアロン化、DMG生成、署名、公証を重ね、完成物で検証する。
+配布用バンドルは、Nix出力から実行時部品をスタンドアロン配置し、選択した方式で
+署名した後にDMGへ収録する。`--output-dir`は処理開始時に再作成されるため、専用の
+作業ディレクトリーを指定する。
+
+```sh
+install_dir="$(nix build .#librepaint-macos --no-link --print-out-paths)"
+python3 packaging/macos/macos-deploy.py \
+  --install-dir "$install_dir" \
+  --output-dir <専用作業ディレクトリー>/standalone \
+  --source "$PWD"
+python3 scripts/platform/audit-macos-bundle.py \
+  <専用作業ディレクトリー>/standalone/LibrePaint.app
+```
+
+`macos-deploy.py`は既定でアドホック署名を使う。Developer IDなど別の署名方式を
+使用する場合は`--signing-identity <識別名>`または`MACOS_CODESIGN_IDENTITY`で指定する。
+実行時閉包の監査は署名前と署名後に自動実行され、署名の検証は署名後の成果物監査が
+担当する。全Mach-Oのarm64種別、アプリ内の
+依存解決、RPATH、インストール名の衝突、iconvのApple／GNU ABI、シンボリックリンク、
+開発・試験用部品の不在、Krita画像プラグイン、Python／PyQt、FFmpeg／MLT、frei0r、
+sdl2-compatが動的に読み込むSDL3、フォント、アイコン、翻訳、および最終署名を検査する。
+依存収集は元のMach-Oが参照する絶対パスからライブラリーをコピーし、同じ走査で
+参照先をバンドル内の相対パスへ変更する。別名リンクを実体へ解決し、追加した部品も
+同じ解析待ち集合へ登録する。解析済み数と残件数を表示する。
+同名で内容が異なる依存ライブラリーは別の内部ディレクトリーへ保持し、各利用側を
+元の部品へ結び付ける。Python利用側は同じ版の内蔵Frameworkを共有する。
+Apple iconvの参照はmacOS標準ライブラリーへ戻し、GNU iconvは同梱する。
+解決不能な依存や配置済み部品との不一致は対象パスを示して終了する。
+
+空のDMG作業ディレクトリーから次を実行する。生成物は同ディレクトリーの
+`_packaging`に保存される。
+
+```sh
+python3 <リポジトリー>/packaging/macos/macos-apptodmg.py \
+  <専用作業ディレクトリー>/standalone/LibrePaint.app \
+  --media-path <リポジトリー>/packaging/macos \
+  --dmg_name LibrePaint-1.0.3-aarch64-macos
+<リポジトリー>/scripts/platform/check-macos-release-dmg \
+  _packaging/LibrePaint-1.0.3-aarch64-macos.dmg
+```
+
+`check-macos-release-dmg`はUDIFを検証して読取り専用でマウントし、DMG内の単一Appへ
+同じ成果物監査を適用してからデバイスを取り外す。
 個別の依存環境を初回に開く入口は`nix develop .#librepaint-macos`。
 `v1.0.3`のApple Silicon用DMGはアドホック署名で配布する。
 通常のmacOS配布承認を受けた署名ではないため、導入時にmacOSの
 [「このまま開く」手順](https://support.apple.com/en-us/guide/mac-help/mh40616/mac)が必要になる場合がある。
-成果物は`hdiutil verify <DMG>`で検査し、マウントしたアプリで
-`codesign --verify --deep --strict <LibrePaint.app>`と起動・文書操作を確認する。
+自動検査後、マウントしたアプリで起動・終了、主要画像形式の読込・保存、Python
+プラグインと映像機能を確認する。
 
 ### Linux
 

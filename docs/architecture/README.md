@@ -891,6 +891,12 @@ SHA-256は`4f5b7f971268c853d893a2c6c25d805cb354eef8c1d6c26fffeaac5dafa4d219`で�
 
 LinuxとWindowsでは依存関係出力をソースビルドから分離しています。LinuxのAppImage、WindowsのZIP、iOSのIPAは完成済みアプリケーションへ重ねる最終段階です。iOSはさらに、外部ライブラリーを個別のNix派生物として構築し、固定したXcode／SDK契約を検査します。Appleの署名、AltStoreへのインストール、端末操作は認証情報と外部状態を扱うため`packaging/ios`側に残ります。
 
+macOSはPython／PyQtの実行時Frameworkをアプリケーションソースから独立したNix派生物で
+構築する。`packaging/macos`は完成済みNix出力のライブラリー、プラグイン、データを
+アプリ内へ配置し、元の依存先を保持したまま相対参照へ変更する。署名前後とDMG収録後の
+成果物検査は、配置結果、実行時機能、署名を確認する。配布処理のソースと監査手順は
+アプリケーションのコンパイル入力から分離する。
+
 Linuxの`libs/color`はQt DBusの検出結果を色管理バックエンドの選択条件とする。Qt DBusが
 利用できる構成は`kritacolord`へ依存し、利用できない構成はダミー実装を選択する。
 

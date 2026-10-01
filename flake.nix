@@ -872,13 +872,21 @@
               "result"
             ])
             && !(builtins.elem relativePath [
+              "packaging/macos/fonts.conf"
+              "packaging/macos/macos-apptodmg.py"
+              "packaging/macos/macos-bundle-launcher.c"
+              "packaging/macos/macos-deploy.py"
+              "packaging/macos/qt.conf"
               "scripts/platform/audit-linux-appimage.py"
+              "scripts/platform/audit-macos-bundle.py"
               "scripts/platform/audit-windows-package.py"
+              "scripts/platform/check-macos-release-dmg"
               "scripts/platform/check-release-assets"
               "scripts/platform/sign-android-draft-release"
               "scripts/platform/verify-android-release-apk.py"
               "scripts/tests/test_android_release_apk.py"
               "scripts/tests/test_linux_release_appimage.py"
+              "scripts/tests/test_macos_release_bundle.py"
               "scripts/tests/test_windows_release_package.py"
             ])
             && !(excludeAndroidPackage && (
