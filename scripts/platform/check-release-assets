@@ -95,6 +95,15 @@ if [[ -z "$windows_objdump" ]]; then
 fi
 python3 "$repo_root/scripts/platform/audit-windows-package.py" \
     "$release_dir/windows" --objdump "$windows_objdump"
+linux_readelf="${LINUX_READELF:-$(command -v readelf || true)}"
+linux_unsquashfs="${LINUX_UNSQUASHFS:-$(command -v unsquashfs || true)}"
+if [[ -z "$linux_readelf" || -z "$linux_unsquashfs" ]]; then
+    echo "Linux release inspection requires readelf and unsquashfs" >&2
+    exit 1
+fi
+python3 "$repo_root/scripts/platform/audit-linux-appimage.py" \
+    "$release_dir/LibrePaint-${version_name}-x86_64.AppImage" \
+    --readelf "$linux_readelf" --unsquashfs "$linux_unsquashfs"
 if command -v hdiutil >/dev/null 2>&1; then
     hdiutil verify "$release_dir/LibrePaint-${version_name}-aarch64-macos.dmg" >/dev/null
 fi
@@ -119,7 +128,7 @@ for abi in arm64-v8a x86_64; do
         exit 1
     fi
     "$repo_root/scripts/platform/audit-android-package" \
-        "$apk" "$abi" "$(command -v readelf)" \
+        "$apk" "$abi" "$linux_readelf" \
         "$ANDROID_RELEASE_BUILD_TOOLS/aapt2" product
     python3 "$repo_root/scripts/platform/verify-android-release-apk.py" \
         "$apk" --aapt2 "$ANDROID_RELEASE_BUILD_TOOLS/aapt2" \

@@ -205,6 +205,17 @@ nix run .#librepaint-linux
 nix build .#librepaint-linux-appimage --out-link LibrePaint-x86_64.AppImage
 ```
 
+AppImageの作成段階は`scripts/platform/audit-linux-appimage.py`を実行し、同梱した
+x86_64 ELFのインタープリター、共有ライブラリーと実行時探索パス、Nixストア参照、
+シンボリックリンクを検査する。Kritaのプラグイン、Python／PyQt、G'MIC、XCF、
+FFmpeg／MLT、Qt XCB／Wayland、Breezeアイコンとフォント構成を実行時契約として確認し、
+ヘッダー、静的ライブラリー、CMake／pkg-config／qmake／GObject／Valaの構築資料と
+構築用実行ファイルを拒否する。
+glibcが動的リンカー経由で既に読み込む共有物を共通実行時として扱い、
+`/run/opengl-driver/lib`と`/run/opengl-driver-32/lib`だけを描画ドライバーの
+明示したホスト境界として許可する。
+`scripts/platform/check-release-assets`は公開前後に同じ検査を完成AppImageへ再実行する。
+
 Linuxの色管理構成はQt DBusの検出結果から決まる。Qt DBusを検出した構成は
 `kritacolord`を組み込み、検出しない構成はダミー実装を組み込む。検出経路を変更した場合は、
 標準構成と`-DHAVE_DBUS=ON`を指定した構成の双方で`KisColorManagerPublicApiTest`と
