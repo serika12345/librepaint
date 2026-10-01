@@ -27,6 +27,7 @@ androidHost.mkShellNoCC {
     gh
     jdk17_headless
     python3
+    squashfsTools
     unzip
   ];
   shellHook = ''
