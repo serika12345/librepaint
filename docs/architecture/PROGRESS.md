@@ -1,6 +1,8 @@
 # LibrePaint作業スナップショット
 
 - 状態: `in_progress`
-- 現在の作業: [Issue #80](https://github.com/serika12345/librepaint/issues/80)で、Linux AppImageを製品機能から到達する実行時閉包へ限定し、成果物内部の依存と配布構成を検査可能にする。
-- 検証の要約: Linux AppImageは668,078,872バイト、440ストア項目、44,642通常ファイル、展開後2,116,112,089バイトとなり、v1.0.3成果物から35.4%縮小した。3,728個のELF、170個のKritaプラグイン、Python／PyQt、G'MIC、主要画像形式、FFmpeg／MLT、Qt XCB／Wayland、アイコン、フォントと翻訳を検査し、Qt WebEngine、開発資料、構築用実行ファイル、未参照ストア項目を除外した。隔離したx86_64 Linux環境で、版番号、XCB起動、SVGからKRAへの保存、KRAからPNG／JPEGへの書き出し、PyQt／DBus、G'MIC、Krita Python、FFmpeg／FFprobe、MLT FFmpegの読み込みを確認した。全システムNix評価と高速検査は成功した。完全なネイティブ検査は883件中882件が成功し、変更対象外の`KisSafeDocumentLoaderTest`が単独再実行でも通知数の不一致で失敗する。
-- 次の開発工程: Issue #80の変更をレビュー・統合し、[Issue #81](https://github.com/serika12345/librepaint/issues/81)でmacOSアプリバンドルの無効な参照と不要な実行時部品を除く。
+- 現在の作業: [Issue #81](https://github.com/serika12345/librepaint/issues/81)のmacOS arm64配布変更について、検証・起動確認・変更レビューを完了し、統合を準備する。
+- 配布構造: 元のMach-Oの参照先に基づいて同梱する部品を選択し、同名で内容が異なるライブラリーも元の利用側へ結び付ける。Python利用側は内蔵Frameworkを共有し、Apple／GNU iconvのABIを維持する。配布処理と監査のソースはアプリのコンパイル入力から独立している。成果物監査は実行時機能、依存解決、arm64種別、RPATH、インストール名、シンボリックリンク、配布構成、署名を検査する。
+- 検証の要約: macOS Nix出力からの新規配置、署名前後の監査、DMG生成、読取り専用マウント後の監査と厳格なアドホック署名検査が成功した。アプリは742,534,413バイトの通常ファイル6,812個、arm64 Mach-O 962個、Kritaプラグイン168個、MLTプラグイン27個、frei0rプラグイン157個を収録し、DMGは285,992,802バイト。Nix環境に依存しない実行試験でPython 3.14、PyQt6、PyKrita、Qt Quick、SDL2からSDL3への動的読込、MLT、frei0r、FFmpeg／FFprobeを確認し、PNG・JPEG・TIFF・WebP・KRAの保存と再読込、本体のPNGからJPEGへの書き出しと通常終了が成功した。配布契約38件、高速検査92件、単独での完全なネイティブ検査883/883件が成功した。macOS Nix出力の構築と、その固定入力による全システムNix評価が成功し、現在のNix定義とロックファイルは評価入力に一致する。
+- GUI確認・レビュー: スタンドアロン版の起動とウィンドウ表示の目視確認、および依存収集と成果物監査の変更レビューが完了した。署名処理と最終監査の組合せも実際のバンドルで検証した。
+- 次の開発工程: Issue #81の依存収集と成果物監査の変更を統合する。その後、親[Issue #78](https://github.com/serika12345/librepaint/issues/78)で3プラットフォームの完了条件と公開成果物検査を確定する。
