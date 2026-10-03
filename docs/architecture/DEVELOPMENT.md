@@ -253,10 +253,19 @@ x86_64 ELFのインタープリター、共有ライブラリーと実行時探�
 FFmpeg／MLT、Qt XCB／Wayland、Breezeアイコンとフォント構成を実行時契約として確認し、
 ヘッダー、静的ライブラリー、CMake／pkg-config／qmake／GObject／Valaの構築資料と
 構築用実行ファイルを拒否する。
-glibcが動的リンカー経由で既に読み込む共有物を共通実行時として扱い、
+動的リンカーは絶対パスで指定した同梱ファイルとして解決し、各実行時探索パスの
+有効性を確認する。同梱実行ファイルが選択するglibc動的リンカーの既定探索先を
+共有ライブラリーの解決に使用する。
+値全体が空のRPATH／RUNPATHタグは探索先を持たないものとして扱う。
+コロンで区切った探索パス内の空要素は現在のディレクトリーを参照するため拒否する。
 `/run/opengl-driver/lib`と`/run/opengl-driver-32/lib`だけを描画ドライバーの
 明示したホスト境界として許可する。
 `scripts/platform/check-release-assets`は公開前後に同じ検査を完成AppImageへ再実行する。
+
+LinuxのOpenColorIOは`flake.nix`の依存定義でインストール先のRPATHを指定する。
+`nix/linux/appimage.nix`はlibidn2とlibunistringの配布用コピーから、Nixの基礎依存構築で
+消去した参照を除去する。圧縮と成果物監査は別の派生物とし、監査の変更時は圧縮済み出力を再利用する。
+配布物のプラグイン集合は必要機能の収録で検査し、個数は監査結果として集計する。
 
 Linuxの色管理構成はQt DBusの検出結果から決まる。Qt DBusを検出した構成は
 `kritacolord`を組み込み、検出しない構成はダミー実装を組み込む。検出経路を変更した場合は、
@@ -299,9 +308,26 @@ DLL、Qtプラグイン、QML、Python／PyQt、G'MIC、媒体処理、翻訳、
 
 パッケージ構築は`scripts/platform/audit-windows-package.py`を実行し、全PEファイルが
 x86_64であること、DLLのベース名が一意であること、各インポートが同梱DLLまたは
-WindowsのシステムDLLとして解決することを確認する。PyQt6のSIP実行時モジュールと、
+WindowsのシステムDLLとして解決することを確認する。同梱DLLは製品の探索先である
+`bin`から解決する。Visual C++の実行時DLLも同梱依存として検査する。
+主要画像形式、Python／PyQt／SIP、G'MIC、FFmpeg／MLTの実行時部品の収録と、
 製品実行時に不要な開発・試験用成果物の除外も同じ検査の契約とする。
 `scripts/platform/check-release-assets`はWindows ZIPを展開し、公開前と公開後にこの検査を再実行する。
+
+WindowsのJPEG XL依存は`flake.nix`のMinGW向けlibjxl定義が所有する。
+構築、開発用依存集合、配布物は同じ定義を使用する。
+
+Windows実機でのコマンドライン検証はコンソール入口`bin/LibrePaint.com`を使う。
+JPEG XL依存の変更は、固定JXLのPNG書出しと、可逆設定のPNG→JXL→PNGの往復を
+実行し、基準画像との全画素一致を確認する。
+`--resource-location`は検証用のリソースとデータベースの保存先を指定する。
+アプリケーション設定はWindowsユーザーの設定先を使用する。
+
+```powershell
+.\bin\LibrePaint.com --version
+.\bin\LibrePaint.com --nosplash --resource-location <検証用リソース先> `
+  --export --export-filename <出力PNG> <固定JXL>
+```
 
 `winquirks/unistd.h`を変更した場合は、対象WindowsのVisual Studio開発者環境でMSVC契約を
 構築して実行する。

@@ -52,9 +52,9 @@ class LinuxReleaseAppImageTest(unittest.TestCase):
 
         plugin_dir = app / "lib/kritaplugins"
         plugin_dir.mkdir(parents=True)
-        for index in range(170):
-            (plugin_dir / f"plugin-{index}.so").write_bytes(elf_bytes())
         for name in (
+            "kritadefaultpaintops.so",
+            "kritadefaulttools.so",
             "kritaexrexport.so",
             "kritaexrimport.so",
             "kritaheifexport.so",
@@ -92,6 +92,7 @@ class LinuxReleaseAppImageTest(unittest.TestCase):
         (runtime / "lib/python3.14/site-packages/PyQt6/QtCore.abi3.so").write_bytes(
             elf_bytes()
         )
+        (runtime / "lib/python3.14/site-packages/PyQt6/sip.cpython-314-x86_64-linux-gnu.so").write_bytes(elf_bytes())
         (runtime / "bin").mkdir(parents=True)
         for name in ("ffmpeg", "ffprobe"):
             path = runtime / "bin" / name
@@ -120,7 +121,7 @@ class LinuxReleaseAppImageTest(unittest.TestCase):
             dynamic = f" (NEEDED) Shared library: [{needed}]\n" if needed else ""
             if interpreter:
                 dynamic += f" Requesting program interpreter: {interpreter}]\n"
-            if rpath:
+            if rpath is not None:
                 dynamic += f" Library runpath: [{rpath}]\n"
             return subprocess.CompletedProcess(command, 0, dynamic, "")
 
@@ -138,7 +139,6 @@ class LinuxReleaseAppImageTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             report = self.inspect(self.make_package(directory))
         self.assertEqual(report.store_items, 2)
-        self.assertGreaterEqual(report.krita_plugins, 170)
 
     def test_missing_store_reference_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -198,6 +198,19 @@ class LinuxReleaseAppImageTest(unittest.TestCase):
             with self.assertRaisesRegex(audit.AuditError, "JPEG import plugin"):
                 self.inspect(root)
 
+    def test_missing_basic_painting_or_python_binding_feature_is_rejected(self) -> None:
+        features = (
+            (APP_ITEM, "lib/kritaplugins/kritadefaultpaintops.so", "Pixel and clone brush engines"),
+            (APP_ITEM, "lib/kritaplugins/kritadefaulttools.so", "Basic canvas tools"),
+            (RUNTIME_ITEM, "lib/python3.14/site-packages/PyQt6/sip.cpython-314-x86_64-linux-gnu.so", "PyQt6 SIP runtime"),
+        )
+        for item, relative, label in features:
+            with self.subTest(feature=label), tempfile.TemporaryDirectory() as directory:
+                root = self.make_package(directory)
+                (root / "nix/store" / item / relative).unlink()
+                with self.assertRaisesRegex(audit.AuditError, label):
+                    self.inspect(root)
+
     def test_missing_krita_python_module_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = self.make_package(directory)
@@ -247,6 +260,19 @@ class LinuxReleaseAppImageTest(unittest.TestCase):
             with self.assertRaisesRegex(audit.AuditError, "missing ELF interpreters"):
                 self.inspect(root, interpreter=missing)
 
+    def test_missing_non_store_elf_interpreter_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.make_package(directory)
+            with self.assertRaisesRegex(audit.AuditError, "missing ELF interpreters"):
+                self.inspect(root, interpreter="/missing/ld-linux-x86-64.so.2")
+
+    def test_invalid_elf_interpreter_is_rejected(self) -> None:
+        for interpreter in ("relative-loader", "/nix/store", "/../../bin/sh"):
+            with self.subTest(interpreter=interpreter), tempfile.TemporaryDirectory() as directory:
+                root = self.make_package(directory)
+                with self.assertRaisesRegex(audit.AuditError, "missing ELF interpreters"):
+                    self.inspect(root, interpreter=interpreter)
+
     def test_missing_elf_runpath_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = self.make_package(directory)
@@ -260,17 +286,56 @@ class LinuxReleaseAppImageTest(unittest.TestCase):
             with self.assertRaisesRegex(audit.AuditError, "missing ELF RPATH directories"):
                 self.inspect(root, rpath="$ORIGIN/missing")
 
-    def test_redundant_missing_runpath_is_accepted(self) -> None:
+    def test_missing_runpath_alongside_valid_runpath_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = self.make_package(directory)
-            self.inspect(root, rpath="$ORIGIN:$ORIGIN/missing")
+            with self.assertRaisesRegex(audit.AuditError, "missing ELF RPATH directories"):
+                self.inspect(root, rpath="$ORIGIN:$ORIGIN/missing")
+
+    def test_absolute_runpath_cannot_escape_package(self) -> None:
+        for prefix in ("/nix/store/", "/usr/lib/"):
+            with self.subTest(prefix=prefix), tempfile.TemporaryDirectory() as directory, tempfile.TemporaryDirectory() as outside:
+                root = self.make_package(directory)
+                (root / prefix.lstrip("/")).mkdir(parents=True, exist_ok=True)
+                escaped = prefix + os.path.relpath(outside, root / prefix.lstrip("/"))
+                with self.assertRaisesRegex(audit.AuditError, "missing ELF RPATH directories"):
+                    self.inspect(root, rpath=escaped)
+
+    def test_parent_runpath_within_package_is_accepted(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.make_package(directory)
+            self.inspect(root, rpath=f"/nix/store/{RUNTIME_ITEM}/lib/../lib")
+
+    def test_erased_bootstrap_runpath_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.make_package(directory)
+            with self.assertRaisesRegex(audit.AuditError, "missing ELF RPATH directories"):
+                self.inspect(
+                    root,
+                    rpath="$ORIGIN:/nix/store/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-bootstrap/lib",
+                )
+
+    def test_empty_rpath_tags_have_no_search_directories(self) -> None:
+        for tag in ("rpath", "runpath"):
+            with self.subTest(tag=tag):
+                output = subprocess.CompletedProcess([], 0, f"Library {tag}: []\n", "")
+                with mock.patch.object(audit.subprocess, "run", return_value=output):
+                    record = audit._inspect_elf(Path("/package"), Path("/package/app"), "readelf")
+                self.assertEqual(record.rpaths, ())
+
+    def test_empty_runpath_entry_is_rejected(self) -> None:
+        for rpath in (":", ":$ORIGIN", "$ORIGIN:", "$ORIGIN::$ORIGIN"):
+            with self.subTest(rpath=rpath), tempfile.TemporaryDirectory() as directory:
+                root = self.make_package(directory)
+                with self.assertRaisesRegex(audit.AuditError, "missing ELF RPATH directories"):
+                    self.inspect(root, rpath=rpath)
 
     def test_allowed_graphics_driver_runpath_is_accepted(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = self.make_package(directory)
             self.inspect(root, rpath="/run/opengl-driver/lib")
 
-    def test_glibc_runtime_library_is_resolved_as_already_loaded(self) -> None:
+    def test_glibc_default_search_directory_resolves_runtime(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = self.make_package(directory)
             glibc_item = "5" * 32 + "-glibc-2.42"
@@ -280,7 +345,41 @@ class LinuxReleaseAppImageTest(unittest.TestCase):
             executable = root / "nix/store" / APP_ITEM / "bin/krita"
             with executable.open("ab") as stream:
                 stream.write(f"/nix/store/{glibc_item}/lib/libc.so.6".encode())
-            self.inspect(root, needed="libc.so.6", rpath="$ORIGIN")
+            (glibc / "ld-linux-x86-64.so.2").write_bytes(elf_bytes())
+            self.inspect(
+                root, needed="libc.so.6", rpath="$ORIGIN",
+                interpreter=f"/nix/store/{glibc_item}/lib/ld-linux-x86-64.so.2",
+            )
+
+    def test_unselected_glibc_cannot_satisfy_dependency(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.make_package(directory)
+            glibc_item = "5" * 32 + "-glibc-2.42"
+            glibc = root / "nix/store" / glibc_item / "lib"
+            glibc.mkdir(parents=True)
+            (glibc / "libc.so.6").write_bytes(elf_bytes())
+            executable = root / "nix/store" / APP_ITEM / "bin/krita"
+            with executable.open("ab") as stream:
+                stream.write(f"/nix/store/{glibc_item}/lib/libc.so.6".encode())
+            with self.assertRaisesRegex(audit.AuditError, "missing ELF dependencies"):
+                self.inspect(root, needed="libc.so.6", rpath="$ORIGIN")
+
+    def test_glibc_nested_directory_cannot_satisfy_dependency(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = self.make_package(directory)
+            glibc_item = "5" * 32 + "-glibc-2.42"
+            glibc = root / "nix/store" / glibc_item / "lib"
+            (glibc / "unused").mkdir(parents=True)
+            (glibc / "ld-linux-x86-64.so.2").write_bytes(elf_bytes())
+            (glibc / "unused/libmisplaced.so").write_bytes(elf_bytes())
+            executable = root / "nix/store" / APP_ITEM / "bin/krita"
+            with executable.open("ab") as stream:
+                stream.write(f"/nix/store/{glibc_item}/lib".encode())
+            with self.assertRaisesRegex(audit.AuditError, "libmisplaced[.]so"):
+                self.inspect(
+                    root, needed="libmisplaced.so", rpath="$ORIGIN",
+                    interpreter=f"/nix/store/{glibc_item}/lib/ld-linux-x86-64.so.2",
+                )
 
     def test_non_x86_64_elf_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

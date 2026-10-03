@@ -15,7 +15,22 @@
       system = "aarch64-darwin";
       pkgs = import nixpkgs { inherit system; };
       linuxSystem = "x86_64-linux";
-      linuxPkgs = import nixpkgs { system = linuxSystem; };
+      linuxPkgs = import nixpkgs {
+        system = linuxSystem;
+        overlays = [
+          (_final: previous: {
+            opencolorio = previous.opencolorio.overrideAttrs (old: {
+              # OpenColorIO prefixes an absolute CMAKE_INSTALL_LIBDIR with
+              # $ORIGIN/../. Supply the Nix runtime directory at construction.
+              # Remove this Issue #80 workaround when upstream supports an
+              # absolute install libdir in its default RPATH calculation.
+              cmakeFlags = (old.cmakeFlags or [ ]) ++ [
+                "-DCMAKE_INSTALL_RPATH=${placeholder "out"}/lib"
+              ];
+            });
+          })
+        ];
+      };
       # The current nixpkgs KDE/Qt MinGW graph is not marked as supported.
       # Keep the platform allowance local to the Windows cross set; all native
       # package outputs retain their normal platform checks.
@@ -325,6 +340,16 @@
             # with the complete JPEG XL codec.
             libjxl = previous.libjxl.overrideAttrs (old:
               previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
+                # MinGW's wide-SIMD decoder paths fail on Windows, including
+                # an AVX-512 aligned stack store. Highway orders AVX targets
+                # below AVX2's bit, so this mask keeps every consumer on SSE.
+                # Remove this Issue #79 workaround when the supplied codec's
+                # AVX2 and AVX-512 paths pass Windows decoding and round trips,
+                # including the regression tracked by Issue #68.
+                NIX_CFLAGS_COMPILE = previous.lib.concatStringsSep " " [
+                  (old.NIX_CFLAGS_COMPILE or "")
+                  "-DHWY_DISABLED_TARGETS=(HWY_AVX2|(HWY_AVX2-1))"
+                ];
                 postPatch = (old.postPatch or "") + ''
                   substituteInPlace plugins/gdk-pixbuf/CMakeLists.txt \
                     --replace-fail \
@@ -928,9 +953,6 @@
         nixAppImage = inputs.nix-appimage;
         pkgs = linuxPkgs;
       };
-      mkLinuxAppImage = inputs.nix-appimage.lib.${linuxSystem}.mkAppImage.override {
-        mkappimage-apprun = linuxAppImageAppRun;
-      };
       iosPackages = import ./nix/ios {
         inherit pkgs;
         versionsFile = ./packaging/ios/versions.env;
@@ -947,7 +969,9 @@
       linuxPackages = import ./nix/linux {
         pkgs = linuxPkgs;
         source = linuxBuildSource;
-        inherit mkLinuxAppImage;
+        appImageRuntime = inputs.nix-appimage.packages.${linuxSystem}.appimage-runtimes.appimage-type2-runtime;
+        appImageAppRun = linuxAppImageAppRun;
+        appImageExtraFiles = "${inputs.nix-appimage}/extra-files.sh";
         auditLinuxAppImage = ./scripts/platform/audit-linux-appimage.py;
       };
       linuxAndroidPackages = import ./nix/android {

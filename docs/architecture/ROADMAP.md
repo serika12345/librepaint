@@ -38,6 +38,7 @@ R2の互換性契約を前提とする。共通言語基準の独立した移行
 | iPadOSの機能・実機・配布条件 | [#67](https://github.com/serika12345/librepaint/issues/67) |
 | Androidの署名済みAPKとGitHub Releases配布 | [#70](https://github.com/serika12345/librepaint/issues/70) |
 | Windowsの依存構造 | [#68](https://github.com/serika12345/librepaint/issues/68) |
+| デスクトップ配布物の実行時依存と収録範囲 | [#78](https://github.com/serika12345/librepaint/issues/78) |
 | 機能要望 | [#42](https://github.com/serika12345/librepaint/issues/42) |
 | ドメイン処理と外部I/Oの境界 | [#48](https://github.com/serika12345/librepaint/issues/48) |
 | 設計境界に必要な検査への集約 | [#69](https://github.com/serika12345/librepaint/issues/69) |

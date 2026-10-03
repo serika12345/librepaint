@@ -77,6 +77,8 @@ FORBIDDEN_EXECUTABLES = frozenset(
 )
 REQUIRED_FEATURES = {
     "LibrePaint executable": "nix/store/*-librepaint-linux-unwrapped-*/bin/krita",
+    "Pixel and clone brush engines": "nix/store/*-librepaint-linux-unwrapped-*/lib/kritaplugins/kritadefaultpaintops.so",
+    "Basic canvas tools": "nix/store/*-librepaint-linux-unwrapped-*/lib/kritaplugins/kritadefaulttools.so",
     "Krita Python plugin": "nix/store/*-librepaint-linux-unwrapped-*/lib/kritaplugins/kritapykrita.so",
     "Krita Python module": "nix/store/*-librepaint-linux-unwrapped-*/lib/krita-python-libs/krita/__init__.py",
     "KRA import plugin": "nix/store/*-librepaint-linux-unwrapped-*/lib/kritaplugins/kritakraimport.so",
@@ -104,6 +106,7 @@ REQUIRED_FEATURES = {
     "G'MIC plugin": "nix/store/*/lib/kritaplugins/krita_gmic_qt.so",
     "G'MIC runtime data": "nix/store/*/share/gmic/gmic_cluts.gmz",
     "PyQt6 runtime": "nix/store/*/lib/python*/site-packages/PyQt6/QtCore.abi3.so",
+    "PyQt6 SIP runtime": "nix/store/*/lib/python*/site-packages/PyQt6/sip*.so",
     "FFmpeg": "nix/store/*/bin/ffmpeg",
     "FFprobe": "nix/store/*/bin/ffprobe",
     "MLT runtime": "nix/store/*/lib/libmlt*.so*",
@@ -148,17 +151,25 @@ def _store_target(root: Path, target: str) -> Path:
 
 def _packaged_search_directory(root: Path, origin: Path, value: str) -> Path | None:
     expanded = value.replace("${ORIGIN}", str(origin)).replace("$ORIGIN", str(origin))
-    if "/nix/store/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-" in expanded:
-        return None
-    if expanded.startswith("/nix/store/"):
-        return _store_target(root, expanded)
     root_text = str(root)
     if expanded == root_text or expanded.startswith(root_text + os.sep):
-        candidate = Path(os.path.normpath(expanded))
-        return candidate if candidate == root or root in candidate.parents else None
-    if expanded.startswith("/"):
-        return root / expanded.removeprefix("/")
-    return None
+        candidate = Path(expanded)
+    elif expanded.startswith("/"):
+        candidate = _store_target(root, expanded)
+    else:
+        return None
+    candidate = Path(os.path.normpath(candidate))
+    return candidate if candidate == root or root in candidate.parents else None
+
+
+def _packaged_interpreter(root: Path, value: str) -> Path | None:
+    if not value.startswith("/"):
+        return None
+    try:
+        candidate = _store_target(root, value).resolve()
+    except (OSError, RuntimeError):
+        return None
+    return candidate if root in candidate.parents and candidate.is_file() else None
 
 
 def _read_elf_header(root: Path, path: Path) -> tuple[int, int] | None:
@@ -184,11 +195,12 @@ def _inspect_elf(root: Path, path: Path, readelf: str) -> ElfRecord:
     if result.returncode != 0:
         diagnostic = result.stderr.strip() or result.stdout.strip()
         raise AuditError(f"readelf could not inspect {_relative(root, path)}: {diagnostic}")
+    # glibc ignores an empty tag; empty colon-separated entries search the cwd.
     rpaths = tuple(
         entry
         for match in RPATH_PATTERN.findall(result.stdout)
+        if match
         for entry in match.split(":")
-        if entry
     )
     interpreter_match = INTERPRETER_PATTERN.search(result.stdout)
     return ElfRecord(
@@ -376,10 +388,6 @@ def inspect_root(root: Path, readelf: str) -> PackageReport:
             "nix/store/*-librepaint-linux-unwrapped-*/lib/kritaplugins/*.so"
         )
     )
-    if len(plugins) < 170:
-        diagnostics.append(
-            f"Krita plugin set is incomplete: expected at least 170, found {len(plugins)}"
-        )
 
     rejected_payload = _development_payload(root, entries)
     if rejected_payload:
@@ -420,12 +428,17 @@ def inspect_root(root: Path, readelf: str) -> PackageReport:
         )
 
     elf_records = tuple(_inspect_elf(root, path, readelf) for path in elf_paths)
-    glibc_runtime_libraries = frozenset(
-        path.name
-        for item in store_items
-        if "-glibc-" in item.name
-        for path in item.rglob("*")
-        if path.is_symlink() or path.is_file()
+    # Nix glibc searches its own lib directory by default. Only interpreters
+    # actually selected by packaged executables establish this runtime path.
+    glibc_default_directories = frozenset(
+        interpreter.parent
+        for record in elf_records
+        if record.interpreter
+        and (interpreter := _packaged_interpreter(root, record.interpreter)) is not None
+        and interpreter.name == "ld-linux-x86-64.so.2"
+        and interpreter.parent.name == "lib"
+        and interpreter.parent.parent.parent == store
+        and "-glibc-" in interpreter.parent.parent.name
     )
     missing_interpreters: list[str] = []
     missing_rpaths: list[str] = []
@@ -439,8 +452,8 @@ def inspect_root(root: Path, readelf: str) -> PackageReport:
             is not None
             and directory.is_dir()
         )
-        if record.interpreter and record.interpreter.startswith("/nix/store/"):
-            if not _store_target(root, record.interpreter).exists():
+        if record.interpreter:
+            if _packaged_interpreter(root, record.interpreter) is None:
                 missing_interpreters.append(f"{relative}: {record.interpreter}")
         unusable_rpaths: list[str] = []
         for rpath in record.rpaths:
@@ -449,13 +462,11 @@ def inspect_root(root: Path, readelf: str) -> PackageReport:
             packaged_directory = _packaged_search_directory(
                 root, record.path.parent, rpath
             )
-            if "/nix/store/eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee-" in rpath:
-                continue
             if packaged_directory is None or not packaged_directory.is_dir():
                 unusable_rpaths.append(rpath)
-        if record.rpaths and not search_directories and unusable_rpaths:
+        if unusable_rpaths:
             missing_rpaths.extend(
-                f"{relative}: {rpath}" for rpath in unusable_rpaths
+                f"{relative}: {rpath or '<empty>'}" for rpath in unusable_rpaths
             )
         for needed in record.needed:
             if needed.startswith("/"):
@@ -469,8 +480,11 @@ def inspect_root(root: Path, readelf: str) -> PackageReport:
                     or (directory / needed).is_symlink()
                     for directory in search_directories
                 )
-                if not found and needed in glibc_runtime_libraries:
-                    found = True
+                if not found:
+                    found = any(
+                        (directory / needed).is_file()
+                        for directory in glibc_default_directories
+                    )
             if not found:
                 missing_libraries[needed].append(relative)
     if missing_interpreters:

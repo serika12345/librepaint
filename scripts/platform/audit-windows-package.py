@@ -109,8 +109,6 @@ SYSTEM_DLLS = frozenset(
 SYSTEM_DLL_PATTERNS = (
     re.compile(r"^api-ms-win-.*[.]dll$"),
     re.compile(r"^ext-ms-.*[.]dll$"),
-    re.compile(r"^msvcp[0-9_]*[.]dll$"),
-    re.compile(r"^vcruntime[0-9_]*[.]dll$"),
 )
 FORMAT_PATTERN = re.compile(r"file format\s+(\S+)")
 IMPORT_PATTERN = re.compile(r"^\s*DLL Name:\s*(\S+)\s*$", re.MULTILINE)
@@ -135,6 +133,42 @@ PYTHON_TEST_EXTENSION_PATTERN = re.compile(
     r"^(?:_.*_test|_test.*|_xxtestfuzz)[.]cpython-[^.]+[.]dll$",
     re.IGNORECASE,
 )
+
+
+# These are the runtime entry points used by the portable Windows distribution.
+# Their PE imports establish the remaining linked dependency requirements.
+REQUIRED_FEATURES = {
+    "LibrePaint executable": "bin/LibrePaint.exe",
+    "Default paint operations": "lib/kritaplugins/kritadefaultpaintops.dll",
+    "Default tools": "lib/kritaplugins/kritadefaulttools.dll",
+    "Qt Windows platform": "bin/plugins/platforms/qwindows.dll",
+    "FFmpeg": "bin/ffmpeg.exe",
+    "FFprobe": "bin/ffprobe.exe",
+    "Python runtime": "bin/libpython3.*.dll",
+    "Python standard library": "python/python3*.zip",
+    "Krita Python plugin": "lib/kritaplugins/kritapykrita.dll",
+    "Krita Python module": "lib/krita-python-libs/krita/__init__.py",
+    "PyQt6 core": "lib/site-packages/PyQt6/QtCore.pyd",
+    "PyQt6 GUI": "lib/site-packages/PyQt6/QtGui.pyd",
+    "PyQt6 widgets": "lib/site-packages/PyQt6/QtWidgets.pyd",
+    "G'MIC plugin": "lib/kritaplugins/krita_gmic_qt.dll",
+    "G'MIC runtime data": "share/gmic/gmic_cluts.gmz",
+    "MLT runtime": "bin/libmlt-7.dll",
+    "MLT core module": "bin/libmltcore.dll",
+    "MLT FFmpeg module": "bin/libmltavformat.dll",
+    "MLT SDL audio module": "bin/libmltsdl2.dll",
+    "SVG import plugin": "lib/kritaplugins/kritasvgimport.dll",
+    "XCF import plugin": "lib/kritaplugins/kritaxcfimport.dll",
+}
+for _format, _identifier in (
+    ("KRA", "kra"), ("PNG", "png"), ("JPEG", "jpeg"), ("OpenEXR", "exr"),
+    ("TIFF", "tiff"), ("PSD", "psd"), ("WebP", "webp"), ("HEIF", "heif"),
+    ("JPEG XL", "jxl"), ("OpenRaster", "ora"),
+):
+    for _operation in ("import", "export"):
+        REQUIRED_FEATURES[f"{_format} {_operation} plugin"] = (
+            f"lib/kritaplugins/krita{_identifier}{_operation}.dll"
+        )
 
 
 class AuditError(RuntimeError):
@@ -265,16 +299,25 @@ def inspect_package(root: Path, objdump: str) -> PackageReport:
             "development or test payload: " + ", ".join(rejected_payload)
         )
 
+    for feature, pattern in REQUIRED_FEATURES.items():
+        if not any(path.is_file() for path in root.glob(pattern)):
+            diagnostics.append(f"missing required Windows feature: {feature} ({pattern})")
+
     pyqt_directory = root / "lib/site-packages/PyQt6"
-    if (pyqt_directory / "QtCore.pyd").is_file() and not any(
-        pyqt_directory.glob("sip.cpython-*.dll")
-    ):
+    if not any(path.is_file() for path in pyqt_directory.glob("sip.cpython-*.dll")):
         diagnostics.append(
             "missing PyQt6 SIP runtime: lib/site-packages/PyQt6/sip.cpython-*.dll"
         )
 
     missing_consumers: dict[str, set[Path]] = defaultdict(set)
-    provided_names = frozenset(paths_by_basename)
+    # Packaging places shared DLL dependencies beside LibrePaint.exe and its
+    # helper executables. Plugin/module discovery paths do not add directories
+    # to the process DLL search path.
+    provided_names = frozenset(
+        record.path.name.casefold()
+        for record in records
+        if record.path.parent.as_posix().casefold() == "bin"
+    )
     for record in records:
         for imported_name in record.imports:
             if imported_name not in provided_names and not _is_system_dll(imported_name):

@@ -29,14 +29,41 @@ def pe_report(*imports: str, machine: str = "pei-x86-64") -> str:
     return f"sample.exe: file format {machine}\n{import_lines}\n"
 
 
+def complete_runtime() -> dict[str, str]:
+    paths = [
+        "bin/LibrePaint.exe", "bin/plugins/platforms/qwindows.dll",
+        "lib/kritaplugins/kritadefaultpaintops.dll",
+        "lib/kritaplugins/kritadefaulttools.dll",
+        "bin/ffmpeg.exe", "bin/ffprobe.exe", "bin/libpython3.11.dll",
+        "bin/libmlt-7.dll", "bin/libmltcore.dll", "bin/libmltavformat.dll",
+        "bin/libmltsdl2.dll", "lib/kritaplugins/kritapykrita.dll",
+        "lib/kritaplugins/krita_gmic_qt.dll", "share/gmic/gmic_cluts.gmz",
+        "lib/krita-python-libs/krita/__init__.py", "python/python311.zip",
+        "lib/site-packages/PyQt6/QtCore.pyd", "lib/site-packages/PyQt6/QtGui.pyd",
+        "lib/site-packages/PyQt6/QtWidgets.pyd", "lib/site-packages/PyQt6/sip.cpython-311.dll",
+    ]
+    for format_name in ("kra", "png", "jpeg", "exr", "tiff", "psd", "webp", "heif", "jxl", "ora"):
+        for operation in ("import", "export"):
+            paths.append(f"lib/kritaplugins/krita{format_name}{operation}.dll")
+    paths.extend(("lib/kritaplugins/kritasvgimport.dll", "lib/kritaplugins/kritaxcfimport.dll"))
+    return dict.fromkeys(paths, pe_report())
+
+
 class WindowsReleasePackageTest(unittest.TestCase):
-    def inspect(self, reports: dict[str, str]) -> audit.PackageReport:
+    def inspect(self, reports: dict[str, str], *, omitted: tuple[str, ...] = ()) -> audit.PackageReport:
+        reports = {**complete_runtime(), **reports}
+        for path in omitted:
+            reports.pop(path, None)
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory).resolve()
             for relative_path in reports:
                 path = root / relative_path
                 path.parent.mkdir(parents=True, exist_ok=True)
-                path.write_bytes(b"PE fixture")
+                if path.suffix == ".zip":
+                    with zipfile.ZipFile(path, "w") as archive:
+                        archive.writestr("encodings/__init__.py", "")
+                else:
+                    path.write_bytes(b"PE fixture")
 
             def tool_result(command: list[str], **_kwargs: object) -> subprocess.CompletedProcess[str]:
                 path = Path(command[-1])
@@ -54,7 +81,7 @@ class WindowsReleasePackageTest(unittest.TestCase):
             }
         )
 
-        self.assertEqual(report.pe_count, 3)
+        self.assertGreater(report.pe_count, 3)
         self.assertEqual(report.machine, "x86_64")
 
     def test_missing_non_system_import_reports_its_consumers(self) -> None:
@@ -68,6 +95,33 @@ class WindowsReleasePackageTest(unittest.TestCase):
                     "lib/kritaplugins/kritajxlexport.dll": pe_report("LIBJXL.DLL"),
                 }
             )
+
+    def test_dll_outside_application_search_directory_is_rejected(self) -> None:
+        with self.assertRaisesRegex(audit.AuditError, "helper[.]dll: bin/LibrePaint[.]exe"):
+            self.inspect({
+                "bin/LibrePaint.exe": pe_report("helper.dll"),
+                "unused/helper.dll": pe_report(),
+            })
+
+    def test_plugin_sibling_is_not_a_global_dll_search_directory(self) -> None:
+        with self.assertRaisesRegex(audit.AuditError, "helper[.]dll"):
+            self.inspect({
+                "lib/kritaplugins/custom.dll": pe_report("helper.dll"),
+                "lib/kritaplugins/helper.dll": pe_report(),
+            })
+
+    def test_visual_cpp_runtime_must_be_bundled(self) -> None:
+        for name in ("msvcp140.dll", "vcruntime140_1.dll"):
+            with self.subTest(name=name):
+                with self.assertRaisesRegex(audit.AuditError, name):
+                    self.inspect({"bin/LibrePaint.exe": pe_report(name)})
+                self.inspect({"bin/LibrePaint.exe": pe_report(name), f"bin/{name}": pe_report()})
+
+    def test_required_features_cannot_disappear_with_their_dependencies(self) -> None:
+        for path in complete_runtime():
+            with self.subTest(path=path):
+                with self.assertRaisesRegex(audit.AuditError, "missing .*runtime|missing required Windows feature"):
+                    self.inspect({}, omitted=(path,))
 
     def test_wrong_pe_architecture_is_rejected(self) -> None:
         with self.assertRaisesRegex(audit.AuditError, "pei-i386"):
@@ -91,7 +145,8 @@ class WindowsReleasePackageTest(unittest.TestCase):
                     "lib/site-packages/PyQt6/QtCore.pyd": pe_report(
                         "Qt6Core.dll"
                     ),
-                }
+                },
+                omitted=("lib/site-packages/PyQt6/sip.cpython-311.dll",),
             )
 
     def test_development_and_test_payload_is_rejected(self) -> None:

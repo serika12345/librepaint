@@ -70,15 +70,6 @@ let
   }).overrideAttrs (old: {
     buildInputs = (old.buildInputs or [ ]) ++ [ pkgs.windows.pthreads ];
   });
-  windowsRuntimeLibjxl = pkgs.libjxl.overrideAttrs (old: {
-    # The MinGW AVX2 decoder corrupts its output buffer on Windows before the
-    # image reaches Krita. Keep the portable runtime on Highway's SSE path;
-    # the public libjxl ABI remains identical to the build-time dependency.
-    NIX_CFLAGS_COMPILE = lib.concatStringsSep " " [
-      (old.NIX_CFLAGS_COMPILE or "")
-      "-DHWY_DISABLED_TARGETS=HWY_AVX2"
-    ];
-  });
   pythonVersion = librepaintUnwrapped.windowsPython.pythonVersion;
   pythonCompactVersion = lib.replaceStrings [ "." ] [ "" ] pythonVersion;
   pythonSitePackages = librepaintUnwrapped.windowsPython.sitePackages;
@@ -243,12 +234,6 @@ let
             -print0
         )
       done < ${runtimeClosure}/store-paths
-
-      # Replace the generic MinGW libjxl runtime with the ABI-compatible build
-      # whose decoder avoids the corrupting AVX2 implementation above.
-      for dll in libjxl.dll libjxl_cms.dll libjxl_threads.dll; do
-        cp -f ${lib.getBin windowsRuntimeLibjxl}/bin/"$dll" "$out/bin/$dll"
-      done
 
       cp ${pkgs.ffmpeg}/bin/ffmpeg.exe "$out/bin/ffmpeg.exe"
       cp ${pkgs.ffmpeg}/bin/ffprobe.exe "$out/bin/ffprobe.exe"
