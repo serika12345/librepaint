@@ -2,10 +2,10 @@
 
 ## Purpose
 
-The iOS build uses a deliberately restricted set of installed non-code data
-while LibrePaint's asset provenance is reviewed. This document defines that
-build and packaging boundary. The source tree remains a GPL-licensed Krita
-derivative; component-specific terms and notices remain applicable.
+The iOS build installs a selected set of non-code data with documented license
+and provenance evidence. This document defines that build and packaging boundary.
+The source tree remains a GPL-licensed Krita derivative; component-specific terms
+and notices remain applicable.
 
 ## Installed on iOS
 
@@ -51,11 +51,11 @@ the installed application:
 - `palettes`, `symbols`, `preset_icons`, and `gamutmasks`;
 - `seexpr_scripts` and `windowlayouts`.
 
-These collections are source-only in the current profile. Parts of them still
-await a complete file-to-license mapping or artwork and branding review, while
-the initial iPad runtime uses the selected data groups above. Separately
-compiled Qt resources carry explicit SPDX notices and have a separate adopted
-scope from this install-directory boundary.
+Inclusion in the iOS application requires a complete file-to-license mapping
+and an explicit artwork and branding scope. These collections remain source-only
+because they fall outside the adopted scope documented by the manifests below.
+Separately compiled Qt resources carry explicit SPDX notices and have a separate
+adopted scope from this install-directory boundary.
 
 The iOS bundle profile also leaves out `Krita_3_Default_Resources.bundle`,
 `Krita_Artists_SeExpr_examples.bundle`, and `RGBA_brushes.bundle`. In

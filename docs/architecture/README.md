@@ -24,7 +24,7 @@
 
 ### パッケージ境界
 
-[パッケージ境界方針](package-boundaries.json)は、現在の10責務、27の中核所有ターゲット、
+[パッケージ境界方針](package-boundaries.json)は、責務と中核所有ターゲット、
 責務間で許可する直接リンク方向だけを保持する。所有ターゲットは一つの責務へ一意に属し、
 許可方向は有向非巡回グラフを形成する。
 
@@ -64,7 +64,7 @@
 
 ### 責務別の所有先
 
-現在の10責務は、所有ディレクトリー、公開APIの名前空間、主CMakeターゲットを次のように
+各責務は、所有ディレクトリー、公開APIの名前空間、主CMakeターゲットを次のように
 対応付ける。新しい公開APIは対応する責務名前空間を使用し、所有ターゲットの公開面へ登録する。
 
 | 責務 | 所有ディレクトリー | 新しいAPIの名前空間 | 主ターゲット |
@@ -89,442 +89,151 @@
 新しいAPIは上表の責務名前空間を使用する。`kritaapplicationui`が生成する
 `KRITAUI_EXPORT`と生成ヘッダーの`kritaui`基底名は、既存ABIの公開名を維持する。
 
-最初の実装段階R1-G6aは、`libs/store`の書庫保存を`libs/resources/storage`の
-`kritaresourcestorage`へ、XML直列化を`libs/serialization/xml`の
-`kritaxmlserialization`へ分け、`libs/resourcewidgets`を`libs/resources/ui`へ移す。
-同時に`libs/ui`と`libs/ui/widgets`の描画設定表示を`libs/tools/ui`へ分離し、描画から
-入出力2件、リソースから入出力5件、リソースから描画40件の逆方向includeをゼロにする。
-保存領域の読込、書込、取消し、不正アーカイブ、リソース検索、表示接続の契約が、
-この段階の着手条件と完了判定になる。
+### 保存領域と描画実行
 
-保存境界と表示境界は実装済みである。`kritaresourcestorage`がZIPとディレクトリーの保存契約を所有し、
-`kritaxmlserialization`がXML名前空間と逐次書出しを所有する。実利用元は必要なターゲットへ
-直接リンクする。`libs/store`、`kritastore`、転送ヘッダーは存在しない。対象構成の
-CMake File API検査が保存ターゲットの存在と依存方向を継続確認する。両ターゲットは
-LibrePaint内の上位製品ターゲットへ依存せず、保存側はQt Core、KConfig、QuaZip、XML側はQt Coreを
-利用する。`kritaresourceui`は型付きリソース記述子と汎用の選択・タグ表示を所有し、
-`kritatoolsui`はパレット、合成方法、プリセット、描画設定の表示を所有する。旧
-`libs/resourcewidgets`、旧ターゲット、転送ヘッダーは存在しない。
+`libs/resources/storage`の`kritaresourcestorage`はZIPとディレクトリーの保存を、
+`libs/serialization/xml`の`kritaxmlserialization`はXML名前空間と逐次書出しを所有する。
+保存側はQt Core、KConfig、QuaZip、XML側はQt Coreを利用し、上位の製品所有者から独立する。
+`libs/resources/ui`は資源の選択・タグ表示を、`libs/tools/ui`は描画設定の表示を担当する。
 
-R1-G6bは、`libs/ui/tool/strokes`を`libs/painting/strokes`へ移し、同じUIツール領域に
-置かれていた資源スナップショット、非同期更新、互換性判定、速度計測を`libs/painting`へ
-移した。`libs/command`の画像・キャンバス向け取り消し処理は`libs/painting/undo`へ、
-`libs/metadata`の画像メタデータ実装は`libs/painting/metadata`へ移した。画像層から利用する
-取り消し処理とメタデータをそれぞれ`kritapaintingundo`、`kritapaintingmetadata`とし、画像層を
-利用するストローク実行を`kritapainting`とすることで、CMakeターゲットの循環を避けている。
-資源スナップショットはUIの具体的な資源提供者ではなく、`libs/resources`が所有する読出し
-接続面を保持する。旧ディレクトリーの転送ヘッダーと旧メタデータターゲットは存在しない。
+`libs/painting/strokes`はストローク実行、`libs/painting/undo`は画像・キャンバス向けの
+取り消し処理、`libs/painting/metadata`は画像メタデータを所有する。
+画像層が利用する`kritapaintingundo`と`kritapaintingmetadata`を、画像層を利用する
+`kritapainting`から分けることで、依存方向を一方向に保つ。
+資源スナップショットは`libs/resources`の読出し接続面を保持する。
 
-R1-G6cは、`libs/ui/KisImportExportManager.*`、`KisImportExportFilter.*`、
-`KisImportExportErrorCode.*`、`KisImportExportAdditionalChecks.*`、
-`KisImportUserFeedbackInterface.*`を起点として分割した。形式探索、MIME選択、結果分類、
-事前検査、変換フィルターは`libs/impex`の`kritaimpex`が所有する。文書変換の調整、
-利用者通知、クリップボード、ダイアログ、画像読込補助は`libs/impex/ui`、動画符号化調整は
-`libs/impex/animation`に置き、`kritaimpexui`が所有する。`kritaimpexui`は文書・画面型との
-現在のABI接続を保つオブジェクト所有単位として`kritaapplicationui`へ組み込む。旧`libs/ui`の入出力ヘッダーと
-転送ヘッダーは存在せず、利用元は正規の所有先を直接参照する。
+図形描画は`libs/painting/kis_figure_painting_stroke.{h,cpp}`が所有し、
+`KisFigurePaintingStroke`の寿命がストロークの開始、ジョブ追加、終了をまとめる。
+描線・塗り値は`KisFigurePaintingOptions.h`が定義し、列挙値の順序とスクリプトの
+スタイル名との対応を維持する。
+色採取は`libs/painting/KisColorSamplerStroke.{h,cpp}`が実行し、採取ジョブの後に
+完了ジョブとストローク終了を並べ、最後の採取色を一度だけ確定通知する。
+UI側は対象画像、参照画像、キャンバス色資源、カーソルとプレビューを接続する。
 
-R1-G6dの最初の独立単位は、`libs/ui/canvas/kis_coordinates_converter.*`と
-`libs/ui/canvas/KisCanvasState.*`を起点として分割した。座標変換と画面状態は
-`libs/canvas`の`kritacanvas`が所有し、`kritaapplicationui`は表示設定を明示的に渡して利用する。
-座標変換器は構築元の画像を保持せず、構築時に取り込んだ幾何情報と変換結果を画像の
-解放後も利用できる。旧配置と転送ヘッダーは存在せず、利用元と試験は新しい所有先を
-直接参照する。
+### 入出力と文書寿命
 
-同段階の次の独立単位は、`libs/ui/canvas/kis_prescaled_projection.*`を起点として分割した。
-表示用画像片、投影更新情報、投影取得接続面、拡大縮小済みフレームは`libs/canvas`の
-`kritacanvas`が所有する。更新処理は画面設定やUI固有の表示フィルターを直接取得せず、
-呼出し側が更新片の寸法、画面プロファイル、変換方法、画素フィルターを渡す。
-`libs/ui/canvas/kis_qpainter_projection_factory.*`はUI設定と具体的な画像投影実装を
-この接続面へ結び、`libs/ui/opengl/kis_opengl_update_info.*`はOpenGL固有の更新情報を
-UI側に保持する。汚れ領域の更新通知と、空の更新では直前の有効フレームを保持する契約を
-`libs/canvas/tests/kis_prescaled_projection_contract_test.*`が検査する。旧配置と転送
-ヘッダーは存在しない。
+`libs/impex`の`kritaimpex`は形式探索、MIME選択、結果分類、事前検査、変換フィルターを
+所有する。`libs/impex/ui`は文書変換の調整、利用者通知、クリップボード、ダイアログと
+画像読込補助を、`libs/impex/animation`は動画符号化の調整を所有する。
+これらのUI接続は`kritaimpexui`が担当する。
 
-表示色変換の独立単位は、`libs/ui/KisOcioConfiguration.*`、
-`libs/ui/KisSurfaceColorSpaceWrapper.h`、`libs/ui/canvas/kis_display_color_converter.*`を
-起点として分割した。表示色の設定値、Qt画面色空間との変換値、画素・画像の色変換本体、
-表示フィルター接続面は`libs/canvas/color`の`kritacanvas`が所有する。
-`libs/ui/canvas/kis_display_color_converter.*`はこの変換本体を保持し、現在ノード、設定通知、
-前景色、画面パレットとの接続を担当する。UIをリンクしない色変換・色空間値契約と、
-UI設定反映契約が同じ結果と通知回数を検査する。旧値型ファイルと転送ヘッダーは存在しない。
+[文書パッケージの責務境界](document-package-boundaries.md)に従い、文書状態は
+`libs/document/session`の`kritadocument`が所有する。公開依存はQt Coreである。
+`kritadocumentfiles`は文書ファイル、バックアップ、自動保存ファイル、回復ファイルを、
+`kritadocumentui`はダイアログ、状態表示、文書情報編集、取り消し履歴の接続と表示を所有する。
+形式処理と表示が共有する直列化対象の文書情報は`libs/impex/metadata`が所有する。
+`KisDocument`は文書全体の寿命、タイマー、通知、画像、保存・回復の実行を調整する。
 
-動画キャッシュの独立単位は、`libs/ui/kis_animation_frame_cache.*`、
-`libs/ui/kis_animation_cache_populator.*`、`libs/ui/KisFrameDataSerializer.*`、
-`libs/ui/KisFrameCacheStore.*`、`libs/ui/KisFrameCacheSwapper.*`を起点として分割した。
-フレーム範囲の判定と変更指示、差分保存、ディスク直列化、タイル転送バッファーは
-`libs/canvas/animation`と`libs/canvas/tiles`の`kritacanvas`が所有する。
-`libs/ui/animation`は現在画像と再生状態、生成時機、設定変更を調整し、
-`libs/ui/animation/cache`はOpenGL更新情報と保存値の変換を担当する。範囲管理、保存、
-直列化はUI型を参照せずに構築・検査できる。旧配置と転送ヘッダーは存在しない。
-`libs/ui/KisWidgetWithIdleTask.h`は表示部品として`libs/ui/canvas`へ移し、別ターゲットの
-ドッカーが利用する公開ヘッダーを構築契約で固定した。
+| 状態の所有者 | 維持する契約 |
+| --- | --- |
+| `Krita::Document::Identity` | 表示用パスと実ファイルパスを独立して保持する。同一パスの再設定では変更通知を要求せず、保存用スナップショットへ識別状態を複製する |
+| `Krita::Document::ModificationState` | 同じ変更済み値の再設定でも保存中と自動保存後の変更を記録する。未変更への遷移で取り消し不能変更を消去し、保存用複製では進行中の保存と自動保存の経過を初期化する |
+| `Krita::Document::AutoSaveState` | 自動保存の開始・終了と連続失敗を管理する。3回の連続失敗後は次の試行で複製経路を選び、通常間隔へ戻ると失敗履歴を消去する |
+| `Krita::Document::RecoveryAutoSaveState` | 未処理の要求を一度だけ完了する。保存開始から戻る前の完了は開始結果が確定するまで延期し、既存の背景保存から得た保存先を回復要求へ引き継ぐ |
+| `Krita::Document::RecoveryStatus` | 回復状態が変わる場合だけ通知を要求する。保存用スナップショットは通常文書状態から始まる |
 
-タイル転送領域の確保・返却と寸法別プールは
-`libs/canvas/tiles/kis_tile_data_pool.{h,cpp}`が所有し、所有バッファーは
-`libs/canvas/tiles/kis_tile_data_buffer.h`が領域、画素寸法、共有プールを一組で管理する。
-実装は`kritacanvastiledatapoolobjects`として限定構築でき、`kritacanvas`が同じ生成物を
-製品へ集約する。`KisTileDataPoolContractTest`は寸法、解放要求、寸法別共有、移動、交換、
-破棄を製品共有ライブラリーへ接続せずに検査する。
+文書UIは必要な下位所有者を直接利用する。履歴接続は非所有の借用寿命と同一スレッド上の
+同期通知を維持する。回復候補は値として表示し、保存先検査、候補探索、使用可否判定、消去は
+`libs/document/files`が担当する。
 
-R1-G6eの最初の独立単位は、`libs/ui/kis_document_undo_store.*`を起点として文書全体への
-参照を取り消し履歴の直接借用へ狭めた。R1-G6e-P1では、その接続を
-`libs/document/undo/kis_document_undo_store.*`から
-`libs/document/ui/undo/kis_document_undo_store.*`へ移し、履歴表示も
-`libs/command/{kundo2model,kundo2view}.*`から同じ所有先へ集約した。
-`kritadocumentui`が文書と履歴の接続、Qt Widgets用操作、履歴表示を所有し、`kritaapplicationui`が
-直接利用する。汎用状態だけを持つ`kritadocument`は`kritapaintingundo`への依存を除去し、
-Qt Coreだけで公開リンク閉包を構成する。履歴の現在位置、追加、取消し、マクロ、やり直し破棄、
-同一スレッド上の同期通知、非所有の借用寿命に加え、操作名、有効状態、履歴行、選択による
-履歴移動を専用契約で固定した。旧`kritacommand`、旧配置、転送ヘッダー、別名は存在しない。
-同じ一括移設で`libs/ui/KisAutoSaveRecoveryDialog.*`を
-`libs/document/ui/recovery/KisAutoSaveRecoveryDialog.*`へ移し、回復候補の初期選択と一括破棄を
-文書UI契約として固定した。`KisDocument`状態へ直接依存してAPI再構築を要する文書情報編集と
-保存処理は、機械的なファイル移動とは区別して後続の構造変更で扱う。
+文書UIと入出力の共有ライブラリーは、責務別の内部オブジェクトを集約する。
+契約試験は対象の内部実装を直接リンクし、画像を必要とする寸法・登録・書出し前分類だけが
+画像実装を利用する。公開ヘッダー、保存領域ライター、エラー分類の検査は、それぞれの
+利用側に必要な依存だけで構築する。構築対象と試験の対応は各所有先の`tests/CMakeLists.txt`を参照する。
 
-R1-G6eの第2の独立単位は、`libs/ui/KisDocument.cpp`に埋め込まれていた文書パス、
-入出力実装へ渡す実ファイルパス、現在のMIME形式、自動判定由来を起点とする。
-これらの文書識別状態は`libs/document/session/kis_document_identity.*`の
-`Krita::Document::Identity`が所有し、`KisDocument`は既存APIとパス変更通知を接続する。
-表示用パスと実ファイルパスを独立して保持し、同一パスの再設定では通知せず、文書の
-スナップショットには識別状態を複製する。設定後に読み取られていなかった書出しMIME状態は
-除去した。文書識別の実装はQt Core型だけを使用し、専用契約で検査できる。保存、
-自動保存、回復のI/O調整は`KisDocument`に残る。
+### キャンバス表示
 
-R1-G6eの第3の独立単位は、`libs/ui/KisDocument.cpp`に埋め込まれていた変更済み状態、
-自動保存チェックポイント後の変更、保存実行中の変更、取り消し履歴に現れない画像変更を
-起点とする。これらの文書変更状態は
-`libs/document/session/kis_document_modification_state.*`の
-`Krita::Document::ModificationState`が所有する。同じ変更済み値の再設定でも保存中と
-自動保存後の変更を記録し、未変更への遷移では取り消し不能変更を消去する。保存用複製は
-文書の変更状態を引き継ぎ、進行中の保存と自動保存の経過を初期化する。
-`KisDocument`は編集時刻、文書情報更新、自動保存タイマー、Qt通知、保存・回復処理の
-実行を接続し、既存の公開APIを維持する。変更状態の実装はQt型を使用せず、専用契約で
-検査できる。`kritadocument`全体は取り消し履歴ライブラリーを通じてQt Widgetsへ依存するため、
-Qt Widgets用アクション生成との分離要否はR1-G6eの後続単位で判定する。
+`libs/canvas`の`kritacanvas`は座標変換、画面状態、表示用画像片、投影更新情報、
+投影取得接続面、拡大縮小済みフレームを所有する。座標変換器は構築時に取り込んだ
+幾何情報を保持し、元画像の解放後も変換結果を利用できる。
 
-R1-G6eの第4の独立単位は、`libs/ui/KisDocument.cpp`に埋め込まれていた自動保存用複製の
-書出し状態と連続失敗回数を起点とする。これらの自動保存実行状態は
-`libs/document/session/kis_document_autosave_state.*`の
-`Krita::Document::AutoSaveState`が所有する。自動保存用複製の書出し開始から終了までを
-明示し、3回の連続失敗後は次の試行で複製経路を選ぶ既存の境界値を保持する。通常間隔へ
-戻ると失敗履歴を消去する。`KisDocument`はタイマー、設定、文書複製、ファイル出力、
-利用者通知、回復調整を引き続き接続する。実行状態の実装はQt型を使用せず、専用契約で
-検査できる。読み書きされていなかった旧失敗無視フラグは除去した。
+呼出し側は更新片の寸法、画面プロファイル、変換方法、画素フィルターを渡す。
+`libs/ui/canvas/kis_qpainter_projection_factory.*`がUI設定と画像投影実装を接続し、
+`libs/ui/opengl/kis_opengl_update_info.*`はOpenGL固有の更新情報を扱う。
+表示用投影は汚れ領域を通知し、空の更新では直前の有効フレームを保持する。
 
-R1-G6eの第5の独立単位は、`libs/ui/KisDocument.cpp`に埋め込まれていた回復用自動保存要求、
-保存開始中に同期完了した場合の延期結果、既存の背景保存へ合流した場合の保存先を起点とする。
-これらの要求調停状態は`libs/document/session/kis_document_recovery_autosave_state.*`の
-`Krita::Document::RecoveryAutoSaveState`が所有する。未処理の要求だけが一度完了し、保存開始が
-戻る前に届いた完了は開始結果が確定するまで延期する。既存の背景保存が利用可能な自動保存を
-生成した場合は、その保存先を同じ回復要求へ引き継ぐ。`KisDocument`はタイマー、背景保存の
-開始、変更状態、ファイルの存在と大きさの検証、完了通知を引き続き接続する。調停状態は
-Qt Coreの値だけを使用し、専用契約で検査できる。
+表示色の設定値、Qt画面色空間との変換値、画素・画像の色変換、表示フィルター接続面は
+`libs/canvas/color`が所有する。`libs/ui/canvas/kis_display_color_converter.*`は
+現在ノード、設定通知、前景色、画面パレットと変換本体を接続する。
 
-R1-G6eの第6の独立単位は、`libs/ui/KisDocument.cpp`に埋め込まれていた回復済み文書状態を
-起点とする。この文書状態は`libs/document/session/kis_document_recovery_status.*`の
-`Krita::Document::RecoveryStatus`が所有する。通常文書を初期状態とし、回復データから開いた
-文書への遷移と通常保存後の復帰について、実際に値が変わる場合だけ通知が必要であることを
-返す。`KisDocument`は回復データの探索と読込、保存後の回復ファイル消去、表示、
-`sigRecoveredChanged`通知を引き続き接続する。保存用スナップショットは回復元の作業文書では
-ないため、従来どおり通常文書状態から始まる。回復状態の実装はQt型を使用せず、専用契約で
-検査できる。
+`libs/canvas/animation`と`libs/canvas/tiles`はフレーム範囲、差分保存、ディスク直列化、
+タイル転送バッファーを所有する。`libs/ui/animation`は現在画像と再生状態、生成時機、
+設定変更を調整し、`libs/ui/animation/cache`はOpenGL更新情報と保存値を変換する。
+タイル転送領域は`kis_tile_data_pool.{h,cpp}`が確保・返却し、
+`kis_tile_data_buffer.h`が領域、画素寸法、共有プールを一組として管理する。
 
-[文書パッケージの責務境界](document-package-boundaries.md)に従い、
-文書状態は`kritadocument`が所有する。
-`kritadocumentfiles`は文書ファイル、バックアップ、自動保存ファイル、回復ファイル、
-`kritadocumentui`はダイアログ、状態表示、文書情報編集、取り消し履歴との接続と表示を所有する。
-形式処理と表示が共有する直列化対象の文書情報は`kritaimpex`が所有する。文書UIは必要な下位所有者を直接利用し、
-文書状態と具体的なファイル操作は表示から独立して利用できる。
+### ツール操作と入力解釈
 
-`kritadocumentui`の公開共有ライブラリーは、文書情報、入出力表示、自動保存回復、名前付き回復、
-取り消し履歴という5つの内部オブジェクト所有単位を集約する。`kritaimpex`もファイル属性検査、
-MIME集約とプラグイン探索、エラー表現、文書メタデータ、書き出し検査基底、組込み検査登録、
-書き出し前検査を内部オブジェクト所有単位として集約する。実フィルター生成はフィルター本体と
-同じ公開共有ライブラリーに残す。公開ライブラリー名とシンボル所有は維持し、責務別のCTestは
-対応する内部実装だけを直接リンクする。文書UIの挙動契約を追加するときは、
-`libs/document/ui/tests/CMakeLists.txt`の対応を保ち、一括した公開共有ライブラリーへのリンクへ
-戻さない。
-入出力エラー分類も`kis_import_export_error_code_test`がエラー表現の内部実装を直接検査し、
-ファイル事前条件とMIME選択を扱う`TestImportExportBoundary`から独立して反復する。
-書き出し検査基底は`kis_export_check_base_test`が画像実装を構築せずに識別子、対応水準、警告、
-層単位属性、仮想呼出しと破棄を検査する。画像状態と全組込み登録を必要とする寸法・登録・
-書き出し前分類は`kis_export_checks_test`へ集約し、画像依存を持つ対象だけで反復する。
-`TestImportExportPublicHeaders`は保存領域とQt Testだけをリンクし、画像側の抽象ライターは
-公開ヘッダー検索経路から構築する。ヘッダーの自己完結性だけを理由に画像実装をリンクしない。
-`kis_store_paintdevice_writer_test`は同じ軽量境界でメモリー上の保存領域へ実データを書き、
-画像実装を介さずに保存領域ライターの挙動を反復する。
+`libs/tools`の`kritatools`はツール命令、操作状態、描画入力値を所有する。
+キャンバスの借用契約は`libs/canvas/KisToolCanvas.h`が定義し、依存はツールから
+キャンバスへ向かう。`libs/ui/tool`は座標変換、編集可否の通知、輪郭表示、設定部品と
+画像・キャンバスの具体的な接続を担当する。
 
-最初の検査段階で、文書と取り消し履歴の接続および履歴表示を`kritadocumentui`へ移し、
-`kritadocument`の公開リンク閉包をQt Coreだけへ縮小した。第2段階では
-`libs/ui/KisDocument.cpp`の保存・読込ダイアログ、状態表示、Qt通知を
-`libs/document/ui/io`へ、文書情報編集と名前付き自動保存回復ダイアログを
-`libs/document/ui/info`と`libs/document/ui/recovery`へ集約した。`KoDocumentInfo`は
-`libs/impex/metadata`へ移し、入出力が上位の文書寿命へ依存する辺を作らずに、文書状態を
-明示値として受け取る。第3段階では`libs/ui/KisDocument.cpp`と自動保存回復UIにあった
-保存先検査、バックアップ、自動保存名、回復候補の探索と読込、使用可否判定、消去を
-`libs/document/files`へ集約した。文書UIは生成済みの回復候補値を表示し、形式選択と形式変換、
-直列化、非同期保存は既存の入出力所有と文書調整に維持する。第4段階では残る22クラスを
-文書構成、外部ファイル層、操作管理、ノード・選択操作接続、Qtモデルと表示状態へ分け、
-`KisDocument.cpp`の130メソッド定義を8関心へ分類した。R1-G6e開始時の25クラスすべてが
-具体的な所有先またはR1-G6f、R1-G6hを持つ。現在必要な保存I/O差し替え、複数実装、
-利用事例登録、追加の純粋計算はなく、文書境界だけを理由とする抽象は追加しない。
+| 所有先 | 操作と責務 |
+| --- | --- |
+| `libs/tools/kis_tool_paint_interaction.{h,cpp}` | ポインター追跡、ブラシ寸法・回転操作、輪郭状態と生成 |
+| `libs/tools/kis_rectangle_interaction.{h,cpp}` | 矩形制約、修飾キー、ドラッグ座標、回転、正方形化、移動、中央拡張 |
+| `libs/tools/kis_outline_interaction.{h,cpp}` | 自由形状の点列、継続入力、点の取り消し、完了・取消し |
+| `libs/tools/kis_polyline_interaction.{h,cpp}` | 多角線の点列、ドラッグ区間、閉路状態、点の取り消し、完了・取消し |
+| `libs/tools/kis_painting_information_builder.{h,cpp}` | 圧力曲線、速度、傾き、時刻、キャンバス状態から描画入力値を組み立てる |
+| `libs/tools/kis_speed_smoother.{h,cpp}` | 速度の平滑化 |
+| `libs/tools/kis_stabilized_events_sampler.{h,cpp}`、`KisStabilizerDelayedPaintHelper.{h,cpp}` | 入力の実時間標本化と遅延描画キュー |
+| `libs/tools/ui` | 選択設定、ツール設定ポップアップ、矩形制約の表示と設定通知 |
+| `libs/flake/KoBasicShapeFactory.{h,cpp}` | 登録済み図形ファクトリーを優先し、未登録時は同じ境界矩形のパス図形を生成する |
 
-ノード表示モデルは`KisNodeManager`と操作接続へ、外部ファイル層は`KisPart`へ直接依存する。
-R1-G6fの最初の単位では、`libs/ui/kis_node_commands_adapter.*`を
-`libs/image/commands/kis_node_commands_adapter.*`へ移し、ノード追加、移動、削除、属性変更の
-取り消し可能な命令を既存の画像命令へ集約した。命令はUI全体ではなく操作対象画像を弱参照し、
-長寿命の表示管理側が画面切替時に画像を明示的に結び直す。旧ファイル、転送ヘッダー、旧名の
-別名は存在しない。入出力、文書、アプリケーション、ツールが同じ命令を利用しているため、
-上位のツール所有へ置かず、既存の許可方向に従って画像命令を所有先とする。
+UI設定は`libs/ui/tool/kis_painting_information_builder_config_p.h`から値として渡し、
+座標変換と自由描画への接続は`kis_painting_information_builder_adapters.{h,cpp}`が担当する。
+`TestToolCoreContract`と`TestToolSettingsUiContract`は操作結果と設定の保存・再読込を検査する。
 
-次の単位では、`libs/ui/kis_node_juggler_compressed.*`を
-`libs/image/commands/kis_node_operation_batch.*`へ移し、ノードの連続した追加、移動、複製、
-削除と一つの取り消し履歴項目への集約を画像所有へ置いた。画像処理が借用していた
-`KisNodeManager`は除去し、選択復元に必要なアクティブノードを呼出し側が値として渡す。
-操作バッチの寿命構成と利用者操作の配線は`KisNodeManager`に残る。旧ファイル、転送ヘッダー、
-旧名の別名は存在せず、新しい汎用層も追加していない。
+画像グラフの変更は`libs/image/commands`が所有する。
+`kis_node_commands_adapter.*`は操作対象画像を弱参照し、ノード追加、移動、削除、属性変更の
+取り消し可能な命令を作る。`kis_node_operation_batch.*`は連続操作を一つの履歴項目へまとめ、
+選択復元に必要なアクティブノードを呼出し側から値として受け取る。
+`kis_node_group_operations.*`はグループ化と解除を担当する。
+`KisNodeManager`は画像を画面切替時に結び直し、編集可否、選択、互換性エラーと画面更新を接続する。
+ミラー処理の範囲、フレーム、並行ジョブ、履歴登録は`KisMirrorProcessingVisitor::applyToNodes()`が構成する。
 
-`KisNodeManager`から画像ノードを変更する場合、移動可能性と選択マスクのアクティブ状態は
-`KisNodeCommandsAdapter`が保証する。ミラー処理の再帰範囲、選択範囲、全フレーム処理、並行
-ジョブ、取り消し履歴への登録は`KisMirrorProcessingVisitor::applyToNodes()`が構成する。
-`KisNodeManager`は編集可否を利用者へ通知し、これらの画像処理を呼び出し、完了後の画面更新を
-通知する。
+`libs/input`の`kritainput`はショートカット照合、単発・ストローク入力、タッチと
+ネイティブジェスチャー判定を所有する。正規化済みの入力値から`KisInputAction`へ命令を通知し、
+入力管理器が所有する内部委譲オブジェクトがUIアクションへ接続する。
+プロファイルの永続値は`kis_input_profile.*`と`kis_shortcut_configuration.*`が保持し、
+UIが安定したアクション識別子を具体的なアクションへ解決する。
+`KisInputEventSuppressor`は事象種別、ボタン種別、合成元から抑止理由を決定する。
 
-クイックグループ化と解除の画像グラフ変更は
-`libs/image/commands/kis_node_operation_batch.*`と`kis_node_group_operations.*`が所有する。
-`KisNodeManager`は操作名、編集可否、選択更新、互換性エラーの表示だけを所有し、同ファイルは
-1798行から1739行へ縮小した。
+`libs/input/ui`の`kritainputui`はQt事象接続、設定表示、診断、プラットフォーム統合を所有する。
+macOS、Linux、Android、Windowsでは共有ライブラリー、iOSでは静的ライブラリーとして構築する。
+利用元は`input/ui/...`の公開ヘッダーと`kritainputui`への直接リンクを使う。
+入力装置の識別値とQt分類変換は`libs/flake/KoInputDevice.{h,cpp}`が所有する。
 
-R1-G6fのツール命令単位では、`libs/ui/tool`にあった基底ツール、起動方針、変更追跡、
-ファクトリー、平滑化設定、共通値処理を`libs/tools`へ移し、`kritatools`として独立構築する。
-キャンバス操作の借用契約は`libs/canvas/KisToolCanvas.h`を`kritacanvas`が所有し、依存方向を
-`kritatools`から`kritacanvas`へ固定する。画面固有の浮動メッセージと図形選択は
-`libs/ui/tool/kis_tool_canvas_utils.*`、`KisCanvas2`との接続は
-`libs/ui/canvas/kis_canvas_tool_support.cpp`が所有する。旧配置の転送ヘッダーは存在しない。
+### アプリケーションと画面の接続
 
-委譲ツールの入力フィルター接続と選択ツールの操作状態は`libs/tools`が所有する。
-`libs/ui/tool/kis_delegated_tool.h`は`libs/tools/kis_delegated_tool.h`へ移し、
-`libs/ui/tool/kis_tool_select_base.h`は操作を持つ`libs/tools/kis_tool_select_base.h`と、設定表示を
-持つ`libs/ui/tool/kis_tool_select_ui_base.h`へ分けた。修飾キー対応は
-`plugins/tools/selectiontools/kis_selection_modifier_mapper.*`から
-`libs/tools/kis_selection_modifier_mapping.*`へ移し、設定値をキャンバス借用契約から渡す。
-旧配置、転送ヘッダー、大域的な設定監視オブジェクトは存在しない。
+`libs/application`の`kritaapplication`は設定値、スナップ方針、プラットフォームの
+ファイル交換を所有する。`libs/application/ui`の`kritaapplicationui`はプロセス調整と
+作業空間を所有し、`kritaapplication`を直接利用する。
+`libs/ui/CMakeLists.txt`は画面側のソース、生成UI、プラットフォーム実装を
+`kritaapplicationui`へ集約し、`kritaui_export_instance.h`はテンプレートの公開記号設定を所有する。
 
-描画ツールの操作状態は`libs/tools/kis_tool_paint_interaction.{h,cpp}`が所有する。
-`libs/ui/tool/kis_tool_paint.{h,cc}`からポインター追跡、ブラシ寸法・回転操作、輪郭状態、
-輪郭生成を移し、UI側には色採取、ポップアップ、設定部品、設定に基づく輪郭表示、描画補助線の
-更新を残した。`kritatools`から`kritaapplicationui`への依存はなく、UI側が操作基盤を継承する方向となる。
+アプリケーション調整は各画面・文書の具体的な所有者を呼び出す。
 
-図形を描画装置へ反映する実行は`kritapainting`が所有する。
-`libs/ui/tool/kis_figure_painting_tool_helper.{h,cpp}`を
-`libs/painting/kis_figure_painting_stroke.{h,cpp}`へ移し、一つの描画ストロークの開始、ジョブ追加、
-終了を`KisFigurePaintingStroke`の寿命へまとめた。`libs/tools/KisToolShapeUtils.h`の描線・塗り値は
-`libs/painting/KisFigurePaintingOptions.h`へ移し、空だった同名実装ファイルを除去した。
-列挙値の順序とスクリプトのスタイル名対応は維持し、旧配置、転送ヘッダー、旧名の別名は存在しない。
+| 接続先 | 責務 |
+| --- | --- |
+| `libs/ui/dialogs/KisDlgPreferencesNotifications.cpp` | 設定確定通知 |
+| `libs/ui/nodes/KisNodeManagerImageState.cpp` | ノード表示、選択操作、活動ノードとマスクの状態 |
+| `libs/ui/document/KisDocumentImageState.cpp` | 画像名、動画範囲・フレーム率、投影待機、メモリー統計 |
+| `libs/impex/animation/KisAnimationRenderingOptions.cpp` | 動画書出し設定 |
+| `libs/ui/canvas/KisCanvasImageState.cpp` | キャンバスの画像信号接続と表示準備 |
+| `libs/ui/canvas/KisCanvasColorDrop.cpp` | 色ドロップによる塗りつぶしストローク |
+| `libs/ui/document/KisImageManagerDrop.cpp` | 画像・URL・参照画像の取込み |
+| `libs/ui/canvas/kis_canvas_resource_provider.{h,cpp}` | キャンバス資源の初期化と組込み描画資源登録 |
+| `libs/ui/canvas/KisDisplayConfig.{h,cpp}` | 表示色管理の初期化 |
+| `libs/ui/animation/kis_animation_cache_populator.{h,cpp}` | 文書画像追跡とキャッシュ生成通知 |
 
-矩形ツールの制約、修飾キー、ドラッグ座標、回転角と矩形計算は
-`libs/tools/kis_rectangle_interaction.{h,cpp}`が所有する。
-`libs/ui/tool/kis_tool_rectangle_base.{h,cpp}`にはポインター座標変換、編集可否の通知、寸法と位置の
-表示、輪郭描画、キャンバス更新、設定部品を残した。矩形、楕円、矩形選択、矩形囲み塗りは同じ
-操作状態を使用し、制約、固定寸法、正方形化、移動、中央拡張、回転の座標契約を
-`TestToolCoreContract`が固定する。
+状態接続の変更では、画像・ノードの共有寿命、進捗表示の借用寿命、画像信号と資源依存の
+登録順、ノード通知の直接接続、複製前の操作完了待機と読取障壁ロックを維持する。
+起動時は資源種別・MIME型・優先度に従って登録し、色管理と共有監視の生成・破棄を
+アプリケーションの寿命に合わせる。
 
-自由形状ツールの点列、入力中状態、Controlによる継続入力、継続点の取り消し、完了と取消しは
-`libs/tools/kis_outline_interaction.{h,cpp}`が所有する。
-`libs/ui/tool/KisToolOutlineBase.{h,cpp}`には入力座標変換、編集可否の通知、輪郭表示、再描画範囲、
-入力フィルターと操作アクションの接続を残した。自由選択と囲み塗りは同じ操作状態を使用し、通常入力、
-継続入力、点の取り消し、完了、取消しの契約を`TestToolCoreContract`が固定する。
-
-多角線ツールの点列、ドラッグ区間、閉路状態、点の取り消し、完了と取消しは
-`libs/tools/kis_polyline_interaction.{h,cpp}`が所有する。
-`libs/ui/tool/kis_tool_polyline_base.{h,cpp}`にはポインター座標変換、画面距離による始点スナップ判定、
-輪郭表示、再描画範囲、右クリックと操作アクションの接続を残した。多角形、多角線、多角形選択は
-同じ操作状態を使用し、単一点終了、複数点、閉路、点の取り消し、全取消しの契約を
-`TestToolCoreContract`が固定する。
-
-描画入力値の決定は`kritatools`が所有する。開始元の
-`libs/ui/tool/kis_speed_smoother.{h,cpp}`は`libs/tools/kis_speed_smoother.{h,cpp}`へ移した。
-`libs/ui/tool/kis_painting_information_builder.{h,cpp}`の圧力曲線、速度、傾き、時刻、キャンバス状態の
-組立ては`libs/tools/kis_painting_information_builder.{h,cpp}`へ、座標変換と自由描画ツールへの接続は
-`libs/ui/tool/kis_painting_information_builder_adapters.{h,cpp}`へ分けた。UI設定は
-`libs/ui/tool/kis_painting_information_builder_config_p.h`の内部接続から値として中核へ渡す。
-旧配置と転送ヘッダーは存在せず、設定変更通知、座標変換、圧力曲線、決定論的な速度平滑化、
-キャンバス回転・反転、傾き補正の契約を維持する。
-
-選択設定表示は`kritatoolsui`が所有する。`libs/ui/widgets/kis_selection_options.{h,cc}`と
-`libs/ui/tool/kis_selection_tool_config_widget_helper.{h,cpp}`を同名の`libs/tools/ui`へ移した。
-依存していた`libs/ui/widgets/kis_color_label_button.{h,cpp}`と
-`libs/ui/widgets/kis_color_label_selector_widget.{h,cpp}`は汎用表示部品として`libs/widgets`へ移し、
-レイヤーツリーの配色所有者を`kritaapplicationui`へ残した。選択方式、結合方法、アンチエイリアス、拡張、
-境界停止、ぼかし、参照レイヤー、色ラベルの保存と再読込は`TestToolSettingsUiContract`が固定する。
-
-ツール設定ポップアップは`kritatoolsui`が所有する。開始元の
-`libs/ui/widgets/kis_tool_options_popup.{h,cpp}`を同名の`libs/tools/ui`へ移し、設定部品の見出し、区切り、
-並び替え、退避を下位UIだけで構築できるようにした。ドック用フォントは`libs/ui/tool/kis_paintop_box.cc`が
-値として渡し、ポップアップボタン、キャンバス、操作アクションとの接続は`kritaapplicationui`に残る。
-
-矩形制約表示は`kritatoolsui`が所有する。開始元の
-`libs/ui/tool/kis_rectangle_constraint_widget.{h,cpp}`と`libs/ui/forms/wdgrectangleconstraints.ui`を
-同名の`libs/tools/ui`へ移し、ウィジェットは設定グループを受け取って制約値と角丸値を信号で返す。
-`libs/ui/tool/kis_tool_rectangle_base.cpp`が矩形状態、設定再読込、制約適用を接続し、下位UIは矩形ツールを
-参照しない。必要な汎用比率ロックは`libs/ui/kis_aspect_ratio_locker.{h,cpp}`から同名の`libs/widgets`へ
-移し、画像寸法、フィルター、描画設定の既存利用元も`kritawidgets`の公開面を使う。
-
-基本図形生成は`kritaflake`が所有する。開始元の`libs/ui/tool/kis_shape_tool_helper.{h,cpp}`を
-`libs/flake/KoBasicShapeFactory.{h,cpp}`へ移し、矩形と楕円は登録済み図形ファクトリーを優先して生成し、
-対応するプラグインがない構成では同じ境界矩形を持つパス図形を生成する。基本図形ツールと選択ツールは
-`kritaflake`へ直接依存し、旧UI補助クラスと転送ヘッダーは存在しない。
-
-入力の実時間標本化と遅延描画キューは`kritatools`が所有する。開始元の
-`libs/ui/tool/kis_stabilized_events_sampler.{h,cpp}`と
-`libs/ui/tool/KisStabilizerDelayedPaintHelper.{h,cpp}`を同名の`libs/tools`へ移し、標本化試験も
-`libs/ui/tests`から`libs/tools/tests`へ移した。`libs/ui/tool/kis_tool_freehand_helper.cpp`は自由描画線の生成と
-輪郭更新をコールバックで接続する。旧UI配置と転送ヘッダーは存在しない。
-
-色採取ストロークの実行は`kritapainting`が所有する。開始元の
-`libs/ui/tool/KisAsyncColorSamplerHelper.{h,cpp}`から、ストローク開始、採取ジョブ投入、完了ジョブと
-終了処理を`libs/painting/KisColorSamplerStroke.{h,cpp}`へ分離した。UI補助クラスには採取対象の解決、
-参照画像の優先、キャンバス色資源、カーソル、プレビュー配置と描画を残す。描画側の契約試験は、
-採取ジョブの後に完了ジョブとストローク終了が並び、最後の採取色を一度だけ確定通知することを固定する。
-旧`libs/painting/strokes/kis_color_sampler_stroke_strategy.h`は公開記号を除去し、描画パッケージの内部実装とする。
-
-R1-G6fの完了監査では、分類済み22クラスの移設とツール所有に割り当てた17件のUI内部参照除去を
-照合した。残る15クラスは入力解釈、ストローク生成、描画実行、表示接続の後続所有へ分類され、
-ツール命令所有境界の完了条件を満たす。
-
-R1-G6gの最初の単位では、`libs/ui/input`のショートカット照合、単発入力、ストローク入力、
-タッチ・ネイティブジェスチャー判定を`libs/input`の`kritainput`へ移した。入力パッケージは
-`KisInputAction`を借用して命令を通知し、入力管理器が所有する内部委譲オブジェクトが既存の
-`KisAbstractInputAction`へ接続する。公開UI基底の継承構造と仮想関数表は維持する。
-タッチ設定の列挙変換と設定読込はUI接続に残り、入力パッケージは正規化済みのジェスチャー種別と
-タッチ描画状態の問い合わせだけを受け取る。マウス入力の順序、フォーカス喪失時の取消し、
-入力アクション群マスクの復旧は`TestInputShortcutMatcher`が独立して固定する。
-
-入力プロファイルの永続値は`kritainput`が所有する。開始元の
-`libs/ui/input/kis_input_profile.{h,cpp}`を`libs/input/kis_input_profile.{h,cpp}`へ移し、
-`libs/ui/input/kis_shortcut_configuration.{h,cpp}`は、直列化される入力値を
-`libs/input/kis_shortcut_configuration.{h,cpp}`へ、翻訳済み表示文字列を
-`libs/ui/input/kis_shortcut_configuration_text.{h,cpp}`へ分けた。ショートカットはUIアクションの
-借用ポインターではなく安定識別子を保持し、UIのプロファイル管理器が表示と照合器への登録時だけ
-具体アクションへ解決する。保存形式と表示文言は維持され、`TestInputProfile`が固定保存列、往復、
-識別子索引を検査する。
-
-合成入力の抑止状態と判定は、`libs/ui/input/kis_input_manager_p.{h,cpp}`の内部`EventEater`から
-`libs/input/KisInputEventSuppressor.{h,cpp}`へ移した。入力パッケージは正規化済みの事象種別、
-ボタン種別、合成元情報から、連続マウス抑止、遅延左クリック1回、右・中ボタン代替、タッチ開始の
-抑止理由を決定する。UI入力管理器は設定値とプラットフォーム能力を構築時に渡し、Qt事象の正規化、
-タブレット診断、`TouchBegin`の無視、事象フィルター接続を維持する。既存のQt事象伝播、macOSの
-合成事象条件、Windowsの実行中ストローク保護は維持され、`TestInputEventSuppressor`がマウス、
-タブレット、タッチ列を入力パッケージ単独で固定する。
-
-入力のQt事象接続、設定表示、診断、プラットフォーム統合は`libs/input/ui`が所有する。
-`kritainputui`はmacOS、Linux、Android、Windowsで共有ライブラリー、iOSで製品へ静的統合する
-ライブラリーとして入力UIを一単位で構築する。公開クラスは`KRITAINPUTUI_EXPORT`を使い、利用元は
-`input/ui/...`の公開include経路と`kritainputui`への直接リンクを持つ。`kritaapplicationui`は
-アプリケーション入力アクションとの接続に同ライブラリーを利用し、`libs/input/ui/tests`が
-入力管理の統合契約を検査する。
-
-図形キャンバスへ渡す入力装置の識別値とQt分類変換は`libs/flake/KoInputDevice.{h,cpp}`が
-所有する。実装は`kritaflakeinputdeviceobjects`として限定構築でき、`kritaflake`が同じ生成物を
-製品へ集約する。`TestInputDevice`は装置・ポインター分類、タブレット事象変換、値意味論、
-標準装置、ハッシュ、診断表示を製品共有ライブラリーへ接続せずに検査する。
-
-R1-G6hは、アプリケーション設定、プロセス調整、作業空間、プラットフォーム接続を
-次の開始位置から正規所有先へ移した。
-
-- `libs/ui/application/kis_config.{h,cc}`から`libs/application/kis_config.{h,cc}`へ移した。
-- `libs/ui/canvas/kis_snap_config.{h,cpp}`から`libs/application/kis_snap_config.{h,cpp}`へ移した。
-- `libs/ui/application/KisAndroidFileProxy.{h,cpp}`から
-  `libs/application/platform-adapters/KisAndroidFileProxy.{h,cpp}`へ移した。
-- `libs/ui/application`の残る18ファイルを`libs/application/ui/orchestration`へ移した。
-- `libs/ui/workspace`の43ファイルを`libs/application/ui/workspace`へ移した。
-
-`kritaapplication`は設定、スナップ方針、プラットフォームのファイル交換を所有する。
-`kritaapplicationui`はアプリケーション調整と既存UI実装を所有し、macOS、Linux、Android、
-Windowsでは共有ライブラリー、iOSでは静的ライブラリーとして構築する。
-`kritaapplicationui`から`kritaapplication`への直接依存を5構成で持ち、逆方向依存と循環は0件である。
-
-`libs/ui`のrootは`CMakeLists.txt`と`kritaui_export_instance.h`を持つ。CMake定義は現在の
-`kritaapplicationui`へのソース、生成UI、条件付き実装の登録を所有し、公開記号設定ヘッダーは
-同ライブラリーのテンプレート記号設定を所有する。
-入出力表示は`impex`、Qt事象接続は`events`、フォントと配色は`theme`、macOS接続と資産は
-`platform`、資源表示は`resources`、図形選択接続は`flake`、履歴アクション接続は`actions`に
-配置する。公開ヘッダーの利用元は責務別の入れ子経路を使い、各翻訳単位とUI資産は
-`kritaapplicationui`のCMake定義へ接続する。
-
-共有ライブラリー記号を宣言しない別名、列挙、テンプレートを含む`kritaimage`の29ヘッダーは、
-`libs/painting/tests/TestPublicImageHeaders.cpp`で一つの翻訳単位として構築する。この構築契約を
-公開根拠として直接検査し、公開面を宣言せずに利用される内部ヘッダーとは区別する。
-
-依存検査は10責務と5構成の現行ターゲットから、
-逆方向依存、未確定射影、循環、内部参照が各0件であることを直接確認する。
-
-メインウィンドウの画像状態操作は、次の開始箇所と具体所有へ接続する。
-
-- `libs/application/ui/workspace/KisMainWindow.cpp`の画像設定通知から
-  `libs/ui/dialogs/KisDlgPreferencesNotifications.cpp`の設定確定通知。
-- 同ファイルのルートノード設定更新とノード選択アクション生成から
-  `libs/ui/nodes/KisNodeManagerImageState.cpp`の現在画像を受け取るノード表示操作。
-- 同ファイルの画像名、アニメーション範囲とフレーム率、投影更新待機から
-  `libs/ui/document/KisDocumentImageState.cpp`の文書画像状態操作。
-- 同ファイルの直前のアニメーション書出し設定読込から
-  `libs/impex/animation/KisAnimationRenderingOptions.cpp`の保存済み設定読込。
-
-設定変更通知、全ビューの走査条件、ノードアクション順、動画取込時の診断と範囲更新条件、
-投影完了待機、描画再実行の設定キーを維持する。clangd監査で直接利用0件を確認した
-`KisMainWindow.cpp`の`krita_utils.h`を除去し、同ファイルから描画所有ヘッダー6件への
-直接経路を解消する。
-
-作業ビューの画像状態接続とドロップ編集は、次の開始箇所と具体所有へ接続する。
-
-- `libs/application/ui/workspace/KisView.cpp`の画像信号接続、表示準備、浮動小数点色深度判定から
-  `libs/ui/canvas/KisCanvasImageState.cpp`と`libs/ui/canvas/kis_canvas2.h`のキャンバス画像状態。
-- 同ファイルの色ドロップルーティングから
-  `libs/ui/canvas/KisCanvasColorDrop.cpp`の塗りつぶしストローク。
-- 同ファイルの内部ノード、画像、URL、参照画像のドロップ処理から
-  `libs/ui/document/KisImageManagerDrop.cpp`と`libs/ui/document/kis_image_manager.{h,cc}`の
-  文書画像取込操作。
-- 同ファイルの現在レイヤー、マスク、選択範囲、ノード除去後の選択先取得から
-  `libs/ui/nodes/KisNodeManagerImageState.cpp`のノード・選択状態。
-- 同ファイルの画像メモリー統計取得と更新通知接続から
-  `libs/ui/document/KisDocumentImageState.cpp`の文書画像状態。
-
-ドロップ操作の選択肢、修飾キー、塗りつぶしジョブと取り消し命令の順序、画像とノードの
-共有寿命、ノード通知の直接接続、表示開始時の画像信号接続順、文書タイトルのメモリー表示を
-維持する。作業ビューのアプリケーション調整から描画への直接include 16件を解消する。
-
-作業ビュー管理の画像・資源状態は、次の開始箇所と具体所有へ接続する。
-
-- `libs/application/ui/workspace/KisViewManager.cpp`のキャンバス資源変換器、更新仲介、活動資源依存の
-  初期化から`libs/ui/canvas/kis_canvas_resource_provider.{h,cpp}`の資源管理初期化。
-- 同ファイルの画像進捗表示登録、画像取り消し接続取得、読取障壁ロック中の文書複製から
-  `libs/ui/document/KisDocument.h`と`libs/ui/document/KisDocumentImageState.cpp`の文書画像状態。
-- 同ファイルの活動ノード動画判定と活動レイヤー選択マスク編集可否判定から
-  `libs/ui/nodes/kis_node_manager.h`と`libs/ui/nodes/KisNodeManagerImageState.cpp`のノード・選択状態。
-
-資源変換器と依存の登録順、進捗表示の借用寿命、画像信号接続順、複製前の操作完了待機、
-読取障壁ロック、文書保管場所の作成、取り消し接続、活動選択の判定を維持する。作業ビュー管理の
-アプリケーション調整から描画への直接include 10件を解消する。
-
-起動資源登録と共有監視は、次の開始箇所と具体所有へ接続する。
-
-- `libs/application/ui/orchestration/KisApplication.cpp`のペイントプリセットとブラシローダー登録から
-  `libs/ui/canvas/kis_canvas_resource_provider.{h,cpp}`の組込み描画資源登録。
-- 同ファイルのPSDレイヤースタイルローダー登録から
-  `libs/ui/canvas/kis_canvas_resource_provider.{h,cpp}`のレイヤースタイル資源登録。
-- 同ファイルのブラシメタデータ修復登録から
-  `libs/ui/canvas/kis_canvas_resource_provider.{h,cpp}`のブラシキャッシュ修復登録。
-- `libs/application/ui/orchestration/KisPart.cpp`のシステム色管理初期化から
-  `libs/ui/canvas/KisDisplayConfig.{h,cpp}`の表示色管理初期化。
-- 同ファイルのアプリケーション単位アイドル監視から
-  `libs/ui/animation/kis_animation_cache_populator.{h,cpp}`の文書画像追跡とキャッシュ生成通知。
-
-組込みローダーと修復処理の登録位置、資源種別、MIME型、優先度、色管理singletonの生成時機、
-アイドル監視の生成・破棄順、文書画像追跡、メモリー統計通知、公開監視ポインターを維持する。
-アプリケーション調整から描画への直接include 5件を解消する。
-
-責務の中心は次の五つです。
+主要ディレクトリーの役割は次のとおりです。
 
 - `krita/`はプロセスの入口、アプリケーション資産、OSライフサイクルとの接続を持ちます。主要機能は`libs/`と`plugins/`が所有します。
 - `libs/input`の`kritainput`と`kritainputui`は入力列の解釈、Qt接続、設定表示、プラットフォーム統合をまとめます。
@@ -664,7 +373,7 @@ UIKitの警告時にタイルとピックスマップのキャッシュを解放
 
 入力の不具合はイベント受信から、ブラシ結果の不具合は`KisPaintOp`から、並列実行・アンドゥ・再描画の不具合はストローク戦略とスケジューラーから調べます。
 
-R2では、この経路を次の観測可能な契約へ分けます。
+この経路は次の観測可能な契約で検査します。
 
 | 段階 | 所有者と主要分岐 | 観測する状態と不変条件 | 現在の契約検査 |
 | --- | --- | --- | --- |
@@ -687,7 +396,7 @@ PaintOpの実行処理は`plugins/paintops/libpaintop`の`kritapaintopruntime`�
 この所有対象を直接使います。設定値契約は製品と同じ保存結果を観測しながら、画像処理全体を
 試験対象へ含めない構築範囲を維持します。
 
-最初の維持契約は[FreehandStrokeContractTest.cpp](../../libs/ui/tests/FreehandStrokeContractTest.cpp)です。
+自由描画の基準契約は[FreehandStrokeContractTest.cpp](../../libs/ui/tests/FreehandStrokeContractTest.cpp)です。
 sRGB 8ビットの500×500画素画像、単一ペイントレイヤー、`autobrush_300px.kpp`、
 `(200, 200)`から`(300, 300)`までの2入力点、筆圧1、傾き・回転・接線方向筆圧・時刻・速度0、
 遠近1、非ミラー、無選択、不透明度1、作業スレッド1本を固定します。プリセットは直径300、比率1、
@@ -727,7 +436,7 @@ sRGB 8ビットの500×500画素画像、単一ペイントレイヤー、`autob
 `3c7c2e19b4b91a27b8d1ddb1068db753012e01f98244eb9e6f688026db4f551a`です。速度0の既存入力と
 同じプリセットを使い、`KisPaintInformation`の速度値から寸法センサーの画素応答までを検査します。
 
-矩形選択の契約は最初の維持契約と同じ条件へ画像座標`QRect(225, 225, 100, 100)`の選択だけを
+矩形選択の契約は自由描画の基準契約と同じ条件へ画像座標`QRect(225, 225, 100, 100)`の選択だけを
 追加します。レイヤーと投影の正確な描画領域は選択範囲と一致し、RGBA8888へ正規化した全画素の
 SHA-256は`4f5b7f971268c853d893a2c6c25d805cb354eef8c1d6c26fffeaac5dafa4d219`です。
 選択外の全画素は描画前の状態との完全一致を要求します。契約対象は画素ブラシとPaintOp実行処理の

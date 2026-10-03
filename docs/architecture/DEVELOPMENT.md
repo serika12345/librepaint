@@ -613,7 +613,8 @@ Qt 6.11.1のアクセシビリティ照会とOpenGL画面作成の競合を避�
 [QTBUG-140490](https://qt-project.atlassian.net/browse/QTBUG-140490)、
 [QTBUG-140674](https://qt-project.atlassian.net/browse/QTBUG-140674)、
 [修正案735089](https://codereview.qt-project.org/c/qt/qtbase/+/735089)を参照する。
-R5で修正の取り込みを確認し、設定解除後のダイアログとアクセシビリティ操作を実機で反復検証する。
+依存Qtの更新時は修正の取り込みを確認し、設定解除後のダイアログとアクセシビリティ操作を
+実機で反復検証する。競合が解消されていることを確認して互換性設定を解除する。
 
 ## iOS／iPadOS
 
