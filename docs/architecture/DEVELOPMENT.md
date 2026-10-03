@@ -537,6 +537,34 @@ nix develop .#android-release --command bash \
   scripts/platform/check-release-assets v1.0.3 1000003 <公開証明書のSHA-256>
 ```
 
+添付前の公開候補は、同じ検査の第4引数へ候補ディレクトリーを渡して検証する。
+同ディレクトリーに7個の公開成果物と`RELEASE_NOTES.md`を配置する。説明文には
+タグ、対応コミット、APKとDMGのSHA-256を記載し、配布処理を更新した場合は、その
+ソースの対応コミットも記載する。検査は候補を入力として一時領域へ展開し、
+公開済み成果物と同じ依存、構成、署名、版番号、ハッシュの条件を適用する。
+
+```sh
+scripts/platform/check-release-assets v1.0.3 1000003 \
+  <公開証明書のSHA-256> <候補ディレクトリー>
+```
+
+macOSでLinux AppImageを検査するときは、大小文字を区別するファイルシステムの
+作業領域の絶対パスを`TMPDIR`へ指定する。Windowsの検査にはPEを解析できる`objdump`を
+`WINDOWS_OBJDUMP`へ指定する。次の例では検査後に一時ボリュームを取り外す。
+
+```sh
+hdiutil create -size 8g -fs 'Case-sensitive HFS+' -type SPARSEBUNDLE \
+  -volname LibrePaintReleaseInspection <作業領域>/inspection.sparsebundle
+mkdir -p <作業領域>/inspection-mount
+hdiutil attach -nobrowse -mountpoint <作業領域>/inspection-mount \
+  <作業領域>/inspection.sparsebundle
+mkdir -p <作業領域>/inspection-mount/tmp
+TMPDIR=<作業領域>/inspection-mount/tmp WINDOWS_OBJDUMP=<PE解析器> \
+  scripts/platform/check-release-assets v1.0.3 1000003 \
+  <公開証明書のSHA-256> <候補ディレクトリー>
+hdiutil detach <作業領域>/inspection-mount
+```
+
 公開操作は`gh release edit v1.0.3 --draft=false`。公開後に同じ検査を再実行する。
 
 検証結果は会話で報告する。Issue #70への反映は依頼と文面承認を経て行う。

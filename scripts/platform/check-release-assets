@@ -5,19 +5,33 @@
 
 set -euo pipefail
 
-if (( $# != 3 )); then
-    echo "usage: check-release-assets <tag> <version-code> <certificate-sha256>" >&2
+if (( $# < 3 || $# > 4 )); then
+    echo "usage: check-release-assets <tag> <version-code> <certificate-sha256> [candidate-directory]" >&2
     exit 2
 fi
 
 release_tag="$1"
 version_code="$2"
 certificate_sha256="$3"
+candidate_dir="${4:-}"
 version_name="${release_tag#v}"
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
 : "${ANDROID_RELEASE_BUILD_TOOLS:?Android release tools are required}"
 
-asset_names="$(gh release view "$release_tag" --json assets --jq '.assets[].name')"
+if [[ -n "$candidate_dir" ]]; then
+    candidate_dir="$(cd -- "$candidate_dir" && pwd)"
+    asset_names="$(python3 - "$candidate_dir" <<'PY'
+from pathlib import Path
+import sys
+
+for path in sorted(Path(sys.argv[1]).iterdir()):
+    if path.is_file() and path.name != "RELEASE_NOTES.md":
+        print(path.name)
+PY
+)"
+else
+    asset_names="$(gh release view "$release_tag" --json assets --jq '.assets[].name')"
+fi
 required_assets=(
     "LibrePaint-${release_tag}-arm64-v8a.apk"
     "LibrePaint-${release_tag}-x86_64.apk"
@@ -52,7 +66,11 @@ fi
 release_dir="$(mktemp -d)"
 trap 'rm -rf -- "$release_dir"' EXIT
 for asset in "${required_assets[@]}"; do
-    gh release download "$release_tag" -D "$release_dir" -p "$asset"
+    if [[ -n "$candidate_dir" ]]; then
+        ln -s "$candidate_dir/$asset" "$release_dir/$asset"
+    else
+        gh release download "$release_tag" -D "$release_dir" -p "$asset"
+    fi
 done
 python3 - "$release_dir" "$version_name" <<'PY'
 from pathlib import Path
@@ -112,9 +130,15 @@ if [[ "$recorded_apks" != "$expected_apks" ]]; then
     exit 1
 fi
 (cd "$release_dir" && sha256sum --check --strict SHA256SUMS.android)
-git -C "$repo_root" fetch --no-tags origin "refs/tags/$release_tag:refs/tags/$release_tag"
+if [[ -z "$candidate_dir" ]]; then
+    git -C "$repo_root" fetch --no-tags origin "refs/tags/$release_tag:refs/tags/$release_tag"
+fi
 tag_commit="$(git -C "$repo_root" rev-parse "refs/tags/$release_tag^{commit}")"
-release_notes="$(gh release view "$release_tag" --json body --jq .body)"
+if [[ -n "$candidate_dir" ]]; then
+    release_notes="$(cat "$candidate_dir/RELEASE_NOTES.md")"
+else
+    release_notes="$(gh release view "$release_tag" --json body --jq .body)"
+fi
 if [[ "$release_notes" != *"$release_tag"* || "$release_notes" != *"$tag_commit"* ]]; then
     echo "release description omits the source tag or commit" >&2
     exit 1
