@@ -216,17 +216,14 @@ Apple iconvの参照はmacOS標準ライブラリーへ戻し、GNU iconvは同�
 python3 <リポジトリー>/packaging/macos/macos-apptodmg.py \
   <専用作業ディレクトリー>/standalone/LibrePaint.app \
   --media-path <リポジトリー>/packaging/macos \
-  --dmg_name LibrePaint-1.0.3-aarch64-macos
+  --dmg_name LibrePaint-<版番号>-aarch64-macos
 <リポジトリー>/scripts/platform/check-macos-release-dmg \
-  _packaging/LibrePaint-1.0.3-aarch64-macos.dmg
+  _packaging/LibrePaint-<版番号>-aarch64-macos.dmg
 ```
 
 `check-macos-release-dmg`はUDIFを検証して読取り専用でマウントし、DMG内の単一Appへ
 同じ成果物監査を適用してからデバイスを取り外す。
 個別の依存環境を初回に開く入口は`nix develop .#librepaint-macos`。
-`v1.0.3`のApple Silicon用DMGはアドホック署名で配布する。
-通常のmacOS配布承認を受けた署名ではないため、導入時にmacOSの
-[「このまま開く」手順](https://support.apple.com/en-us/guide/mac-help/mh40616/mac)が必要になる場合がある。
 自動検査後、マウントしたアプリで起動・終了、主要画像形式の読込・保存、Python
 プラグインと映像機能を確認する。
 
@@ -316,6 +313,9 @@ WindowsのシステムDLLとして解決することを確認する。同梱DLL�
 
 WindowsのJPEG XL依存は`flake.nix`のMinGW向けlibjxl定義が所有する。
 構築、開発用依存集合、配布物は同じ定義を使用する。
+MinGW版は[Issue #68](https://github.com/serika12345/librepaint/issues/68)に対応する
+暫定設定でAVX2・AVX-512経路を無効化し、SSE経路を使用する。当該経路の復号と
+可逆往復がWindows実機で成功した時点で、この設定を除去する。
 
 Windows実機でのコマンドライン検証はコンソール入口`bin/LibrePaint.com`を使う。
 JPEG XL依存の変更は、固定JXLのPNG書出しと、可逆設定のPNG→JXL→PNGの往復を
@@ -427,8 +427,8 @@ build-incremental android run-test KisCrashSignalHandlerSetupContractTest [adb-s
 
 公開版のアプリ識別子は`io.github.serika12345.librepaint`、表示名は`LibrePaint`。
 Javaの名前空間`org.krita`とネイティブ対象`krita`はコード内の名前として維持する。
-`v1.0.3`のAndroid版は`versionName=1.0.3`、`versionCode=1000003`、
-最小Android版は9（API 28）。公開するABIは`arm64-v8a`と`x86_64`で、
+版番号と最小Android版は[Gradle定義](../../packaging/android/apk/build.gradle)が所有する。
+公開するABIは`arm64-v8a`と`x86_64`で、
 利用者は対応する一方のAPKをGitHub Releasesから取得する。
 公開案内には操作を確認した端末・Android版を別に記載する。
 次の公開版ではこのアプリ識別子と配布証明書を維持し、Gradleの`versionName`を
@@ -458,8 +458,8 @@ keytool -list -v -keystore <リポジトリ外の場所>/librepaint-release.p12 
 Issueや`PROGRESS.md`を含む追跡文書には一般化した手順だけを記載する。
 
 固定したソースのタグ・コミットを確認し、NixOSで両ABIの未署名APKを構築する。
-`v1.0.3`では同じソースから`librepaintUpdateBaseline`のGradleプロパティを指定して
-内部更新試験用の`versionName=1.0.2-internal`、`versionCode=1000002`も包装する。
+同じソースから`librepaintUpdateBaseline`のGradleプロパティを指定し、
+Gradle定義にある内部更新試験用の版も包装する。
 この先行版は公開しない。両方のNix出力が同じABIのネイティブ成果物を再利用する。
 Release準備中はネイティブ中間出力を後続の包装でも再利用できるよう、
 現行作業ツリーの`build/nix-profiles`に一時的な参照を置く。
@@ -482,30 +482,32 @@ nix build .#librepaint-android-x86_64-update-baseline --out-link result-android-
 `SHA256SUMS.android-unsigned`を添付する。基準版も同じ固定ソースから作る。
 
 ```text
-LibrePaint-v1.0.3-arm64-v8a-unsigned.apk
-LibrePaint-v1.0.3-x86_64-unsigned.apk
-LibrePaint-v1.0.3-update-baseline-arm64-v8a-unsigned.apk
-LibrePaint-v1.0.3-update-baseline-x86_64-unsigned.apk
+LibrePaint-<タグ>-arm64-v8a-unsigned.apk
+LibrePaint-<タグ>-x86_64-unsigned.apk
+LibrePaint-<タグ>-update-baseline-arm64-v8a-unsigned.apk
+LibrePaint-<タグ>-update-baseline-x86_64-unsigned.apk
 ```
 
 作業用ディレクトリーへ4個のAPKを上記の名前でコピーし、そのディレクトリーで
 `sha256sum *-unsigned.apk > SHA256SUMS.android-unsigned`を実行する。
 固定コミットを指すタグを用意して、変更点を記した説明文とともに下書きを作る。
+以下の`<タグ>`は`v`付きのリリースタグ、`<版番号>`は`v`を除いた版番号、
+`<version-code>`はGradle定義の公開版`versionCode`を指定する。
 
 ```sh
-gh release create v1.0.3 --draft --verify-tag \
-  --title "LibrePaint v1.0.3" --notes-file <説明文ファイル>
-gh release upload v1.0.3 <作業用ディレクトリー>/*-unsigned.apk \
+gh release create <タグ> --draft --verify-tag \
+  --title "LibrePaint <タグ>" --notes-file <説明文ファイル>
+gh release upload <タグ> <作業用ディレクトリー>/*-unsigned.apk \
   <作業用ディレクトリー>/SHA256SUMS.android-unsigned
 gh workflow run sign-android-release.yml --ref develop \
-  -f tag=v1.0.3 -f source_commit=<タグのコミットSHA> -f version_code=1000003
+  -f tag=<タグ> -f source_commit=<タグのコミットSHA> -f version_code=<version-code>
 ```
 
 GitHub Actionsの`workflow_dispatch`は[ワークフローが既定ブランチにも存在すること](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow)を要求する。
 リポジトリの既定ブランチ`master`にも同じ署名ワークフローを置き、
 ジョブの`develop`条件で署名の実行元を限定する。
 `sign-android-release.yml`を`develop`から手動起動し、タグ、対応する40桁の
-コミットSHA、`1000003`を入力する。所有者が`android-release`環境の実行を承認すると、
+コミットSHA、`<version-code>`を入力する。所有者が`android-release`環境の実行を承認すると、
 CIは入力コミットをチェックアウトし、下書きとタグ、入力ハッシュ、APKの識別子・版番号、ABI、資源、ELF、
 16 KiB整列を確認し、配布鍵で署名する。署名後にも同じ監査と証明書指紋を検査する。
 完成した両ABIのAPK、内部更新試験用APK、`SHA256SUMS.android`を下書きへ置き、
@@ -534,33 +536,33 @@ adb -s <端末番号> install -r <完成APK>
 adb -s <端末番号> shell dumpsys package io.github.serika12345.librepaint
 ```
 
-WindowsのZIP、LinuxのAppImage、iOSのIPA、macOSのDMGも`v1.0.3`で揃え、
+WindowsのZIP、LinuxのAppImage、iOSのIPA、macOSのDMGも同じ版番号で揃え、
 各成果物の対象プラットフォームの検査結果を確認する。WindowsとLinuxは
 x86_64 Linux、iOSとmacOSはApple SiliconのmacOSで構築する。
 各出力をアップロードする端末の同じ作業用ディレクトリーに集め、
 IPAとDMGは版番号を付けた名前で添付する。
 
 ```sh
-nix build .#librepaint-windows-archive --out-link result-windows-v1.0.3
-nix build .#librepaint-linux-appimage --out-link result-linux-v1.0.3
-nix build .#librepaint-ios-ipa --out-link result-ios-v1.0.3
-gh release upload v1.0.3 \
-  <作業用ディレクトリー>/LibrePaint-1.0.3-x86_64-windows.zip \
-  <作業用ディレクトリー>/LibrePaint-1.0.3-x86_64.AppImage \
-  <作業用ディレクトリー>/LibrePaint-iOS-v1.0.3-unsigned.ipa \
-  <作業用ディレクトリー>/LibrePaint-1.0.3-aarch64-macos.dmg
+nix build .#librepaint-windows-archive --out-link result-windows-release
+nix build .#librepaint-linux-appimage --out-link result-linux-release
+nix build .#librepaint-ios-ipa --out-link result-ios-release
+gh release upload <タグ> \
+  <作業用ディレクトリー>/LibrePaint-<版番号>-x86_64-windows.zip \
+  <作業用ディレクトリー>/LibrePaint-<版番号>-x86_64.AppImage \
+  <作業用ディレクトリー>/LibrePaint-iOS-<タグ>-unsigned.ipa \
+  <作業用ディレクトリー>/LibrePaint-<版番号>-aarch64-macos.dmg
 ```
 
 内部更新試験用APKを下書きから削除し、
 公開対象が両ABIの完成APK、`SHA256SUMS.android`、他4平台の成果物だけであることを
-確認してから手動公開する。ReleaseにはABI、Android 9以降というManifest条件、
+確認してから手動公開する。ReleaseにはABI、Manifestが定める最小Android版、
 実操作を確認したAndroid版、ADB導入方法、変更点、タグ・コミット、完成APKのSHA-256を記す。
 公開前と公開後には署名用シェルで次を実行し、両APKの再取得、
 `SHA256SUMS.android`、署名証明書、APK構成と他4平台の添付を照合する。
 
 ```sh
 nix develop .#android-release --command bash \
-  scripts/platform/check-release-assets v1.0.3 1000003 <公開証明書のSHA-256>
+  scripts/platform/check-release-assets <タグ> <version-code> <公開証明書のSHA-256>
 ```
 
 添付前の公開候補は、同じ検査の第4引数へ候補ディレクトリーを渡して検証する。
@@ -570,7 +572,7 @@ nix develop .#android-release --command bash \
 公開済み成果物と同じ依存、構成、署名、版番号、ハッシュの条件を適用する。
 
 ```sh
-scripts/platform/check-release-assets v1.0.3 1000003 \
+scripts/platform/check-release-assets <タグ> <version-code> \
   <公開証明書のSHA-256> <候補ディレクトリー>
 ```
 
@@ -586,12 +588,12 @@ hdiutil attach -nobrowse -mountpoint <作業領域>/inspection-mount \
   <作業領域>/inspection.sparsebundle
 mkdir -p <作業領域>/inspection-mount/tmp
 TMPDIR=<作業領域>/inspection-mount/tmp WINDOWS_OBJDUMP=<PE解析器> \
-  scripts/platform/check-release-assets v1.0.3 1000003 \
+  scripts/platform/check-release-assets <タグ> <version-code> \
   <公開証明書のSHA-256> <候補ディレクトリー>
 hdiutil detach <作業領域>/inspection-mount
 ```
 
-公開操作は`gh release edit v1.0.3 --draft=false`。公開後に同じ検査を再実行する。
+公開操作は`gh release edit <タグ> --draft=false`。公開後に同じ検査を再実行する。
 
 検証結果は会話で報告する。Issue #70への反映は依頼と文面承認を経て行う。
 

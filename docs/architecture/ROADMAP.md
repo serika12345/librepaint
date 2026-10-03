@@ -35,10 +35,14 @@ R2の互換性契約を前提とする。共通言語基準の独立した移行
 | R2-G19e ブラシ設定試験 | [#58](https://github.com/serika12345/librepaint/issues/58) |
 | R2-G20 矩形選択描画 | [#59](https://github.com/serika12345/librepaint/issues/59) |
 | R2-G19cから独立したダイアログ寿命 | [#60](https://github.com/serika12345/librepaint/issues/60) |
+| Qt受信経路の入力記録・再生 | [#75](https://github.com/serika12345/librepaint/issues/75) |
 | iPadOSの機能・実機・配布条件 | [#67](https://github.com/serika12345/librepaint/issues/67) |
 | Androidの署名済みAPKとGitHub Releases配布 | [#70](https://github.com/serika12345/librepaint/issues/70) |
 | Windowsの依存構造 | [#68](https://github.com/serika12345/librepaint/issues/68) |
 | デスクトップ配布物の実行時依存と収録範囲 | [#78](https://github.com/serika12345/librepaint/issues/78) |
+| Windows配布物のDLL依存解決 | [#79](https://github.com/serika12345/librepaint/issues/79) |
+| Linux AppImageの実行時収録範囲 | [#80](https://github.com/serika12345/librepaint/issues/80) |
+| macOSバンドルの依存解決と収録範囲 | [#81](https://github.com/serika12345/librepaint/issues/81) |
 | 機能要望 | [#42](https://github.com/serika12345/librepaint/issues/42) |
 | ドメイン処理と外部I/Oの境界 | [#48](https://github.com/serika12345/librepaint/issues/48) |
 | 設計境界に必要な検査への集約 | [#69](https://github.com/serika12345/librepaint/issues/69) |
