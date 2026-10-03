@@ -8,6 +8,10 @@
 #include "ui_KisRecoverNamedAutosaveDialog.h"
 
 #include <KLocalizedString>
+#include <qdialog.h>
+#include <qicon.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 KisRecoverNamedAutosaveDialog::KisRecoverNamedAutosaveDialog(QWidget *parent)
     : QDialog(parent),

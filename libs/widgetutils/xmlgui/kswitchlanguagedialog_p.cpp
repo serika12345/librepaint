@@ -21,11 +21,26 @@
 
 #include "kswitchlanguagedialog_p.h"
 
+#include <kguiitem.h>
 #include <klanguagebutton.h>
 #include <klocalizedstring.h>
 #include <kmessagebox.h>
+#include <kstandardguiitem.h>
+#include <qboxlayout.h>
+#include <qcontainerfwd.h>
+#include <qcoreapplication.h>
+#include <QtGlobal>
+#include <qgridlayout.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmessagebox.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qstringview.h>
 
-// On Android, KF5I18n's loadMessageCatalog function is unbelievably,
+// On Android, KLocalizedString's loadMessageCatalog function is unbelievably,
 // unusably slow when setting a fallback language, causing Krita's startup
 // time to balloon several minutes long. Creating dialogs or other widgets
 // also ends up taking forever. Since it's non-functional anyway, we'll

@@ -5,6 +5,7 @@
  */
 
 #include <KoShapeCreateCommand.h>
+#include <klocalizedstring.h>
 #include <KoShapeDeleteCommand.h>
 #include <KoKeepShapesSelectedCommand.h>
 #include <KoSelection.h>
@@ -12,12 +13,26 @@
 #include <kis_processing_visitor.h>
 #include <kis_shape_layer_canvas.h>
 
+#include "KisQStringListFwd.h"
+#include "KoColorConversionTransformation.h"
+#include "KoColorSpaceConstants.h"
+#include "kis_assert.h"
+#include "kis_command_utils.h"
 #include "kis_default_bounds.h"
+#include "kis_default_bounds_base.h"
 #include "kis_paint_device.h"
 #include "KisReferenceImagesLayer.h"
 #include "canvas/KisReferenceImage.h"
 #include "document/KisDocument.h"
+#include "kis_shape_layer.h"
+#include "kis_shared_ptr.h"
+#include "kis_signal_compressor.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 #include <KoViewConverter.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qobjectdefs.h>
 
 struct AddReferenceImagesCommand : KoShapeCreateCommand
 {

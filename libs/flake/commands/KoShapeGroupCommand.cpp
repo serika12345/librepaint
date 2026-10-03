@@ -6,13 +6,22 @@
  */
 
 #include "KoShapeGroupCommand.h"
+#include "KoFlake.h"
 #include "KoShape.h"
 #include "KoShapeGroup.h"
 #include "KoShapeContainer.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
+#include <algorithm>
 #include <commands/KoShapeReorderCommand.h>
 
 #include <klocalizedstring.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qpoint.h>
+#include <qscopedpointer.h>
+#include <qtransform.h>
 
 // static
 KoShapeGroupCommand * KoShapeGroupCommand::createCommand(KoShapeContainer *container, const QList<KoShape *> &shapes, bool shouldNormalize)

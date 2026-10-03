@@ -6,6 +6,7 @@
 #include "KisResourceItemChooserButtonSource_p.h"
 
 #include "KisResourceItemListView.h"
+#include "KoResource.h"
 
 #include <KisResourceLoaderRegistry.h>
 #include <KisResourceUserOperations.h>
@@ -16,6 +17,9 @@
 #include <QStandardPaths>
 
 #include <klocalizedstring.h>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
 
 namespace KisResourceItemChooserButtonSource
 {

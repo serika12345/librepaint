@@ -5,7 +5,14 @@
  */
 
 #include "kis_mimedata.h"
+#include <klocalizedstring.h>
+#include "KisDelayedUpdateNodeInterface.h"
+#include "KisQStringListFwd.h"
+#include "KisSwatch.h"
+#include "KoColorSpaceConstants.h"
 #include "application/kis_config.h"
+#include "kis_assert.h"
+#include "kis_generator.h"
 #include "kis_node.h"
 #include "kis_paint_device.h"
 #include "kis_shared_ptr.h"
@@ -27,17 +34,19 @@
 #include "kis_node_dummies_graph.h"
 #include "KisImportExportManager.h"
 #include "KisImageBarrierLock.h"
+#include "kis_types.h"
+#include <algorithm>
 #include <commands/kis_image_layer_add_command.h>
 #include <commands/kis_image_layer_move_command.h>
 #include <kis_processing_applicator.h>
 
 
 #include <KoProperties.h>
-#include <KoStore.h>
 #include <KoColorProfile.h>
 #include <KoColorSpaceRegistry.h>
 #include <canvas/KisDisplayConfig.h>
 #include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
+#include <mutex>
 #include <opengl/KisOpenGLModeProber.h>
 
 #include <QApplication>
@@ -48,6 +57,14 @@
 #include <QDomElement>
 #include <QScreen>
 #include <QDir>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qmimedata.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qpoint.h>
+#include <qscopedpointer.h>
+#include <qvariant.h>
 
 namespace {
 KisNodeSP safeCopyNode(KisNodeSP node, bool detachClones = true) {

@@ -13,6 +13,8 @@
 #include <QStandardPaths>
 #include <QStringList>
 #include <QTemporaryFile>
+#include <qcontainerfwd.h>
+#include <qlogging.h>
 
 #ifdef Q_OS_MACOS
 #include "KisMacosSecurityBookmarkManager.h"

@@ -26,6 +26,12 @@
 #include "kis_shortcut_configuration.h"
 #include "KisInputProfileMigrator.h"
 #include <kis_debug.h>
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qobject.h>
+#include <qset.h>
 
 
 class Q_DECL_HIDDEN KisInputProfileManager::Private

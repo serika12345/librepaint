@@ -5,8 +5,11 @@
  */
 
 #include "kis_zoom_button.h"
+#include "kis_draggable_tool_button.h"
 
 #include <QMouseEvent>
+#include <QtGlobal>
+#include <qwidget.h>
 
 
 KisZoomButton::KisZoomButton(QWidget *parent)

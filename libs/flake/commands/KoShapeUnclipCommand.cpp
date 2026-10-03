@@ -10,9 +10,13 @@
 #include "KoShapeContainer.h"
 #include "KoPathShape.h"
 #include "KoShapeControllerBase.h"
+#include "kundo2magicstring.h"
 #include <kis_assert.h>
 
 #include <klocalizedstring.h>
+#include <qalgorithms.h>
+#include <QtGlobal>
+#include <qlist.h>
 
 class KoShapeUnclipCommand::Private
 {

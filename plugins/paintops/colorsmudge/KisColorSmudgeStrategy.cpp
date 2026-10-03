@@ -5,6 +5,7 @@
  */
 
 #include "KisColorSmudgeStrategy.h"
+#include "KisOptimizedByteArray.h"
 
 KisColorSmudgeStrategy::KisColorSmudgeStrategy()
         : m_memoryAllocator(new KisOptimizedByteArray::PooledMemoryAllocator())

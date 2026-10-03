@@ -58,6 +58,10 @@ add_library(kritaimpexerrorobjects OBJECT
     KisImportExportErrorCode.cpp
 )
 
+add_library(kritaimpexfiletransferobjects OBJECT
+    KisImportExportFileTransfer.cpp
+)
+
 add_library(kritaimpexmetadataobjects OBJECT
     metadata/KoDocumentInfo.cpp
 )
@@ -77,6 +81,7 @@ set(kritaimpex_OBJECT_TARGETS
     kritaimpexadditionalchecksobjects
     kritaimpexfilterregistryobjects
     kritaimpexerrorobjects
+    kritaimpexfiletransferobjects
     kritaimpexmetadataobjects
 )
 
@@ -113,7 +118,12 @@ target_link_libraries(kritaimpexfilterheaders
         KF${KF_MAJOR}::I18n
 )
 
-target_link_libraries(kritaimpexfilterstateobjects PUBLIC kritaimpexfilterheaders)
+target_link_libraries(kritaimpexfilterstateobjects
+    PUBLIC
+        kritaimpexfilterheaders
+    PRIVATE
+        kritawidgetutilsprogressupdaterobjects
+)
 
 target_link_libraries(kritaimpexfilterprogressobjects
     PUBLIC
@@ -203,6 +213,11 @@ target_link_libraries(kritaimpexerrorobjects
         KF${KF_MAJOR}::I18n
 )
 
+target_link_libraries(kritaimpexfiletransferobjects
+    PUBLIC
+        Qt${QT_MAJOR_VERSION}::Core
+)
+
 target_link_libraries(kritaimpexmetadataobjects
     PUBLIC
         kritaresources
@@ -229,6 +244,7 @@ kis_add_library(kritaimpex SHARED
     $<TARGET_OBJECTS:kritaimpexadditionalchecksobjects>
     $<TARGET_OBJECTS:kritaimpexfilterregistryobjects>
     $<TARGET_OBJECTS:kritaimpexerrorobjects>
+    $<TARGET_OBJECTS:kritaimpexfiletransferobjects>
     $<TARGET_OBJECTS:kritaimpexmetadataobjects>
 )
 
@@ -450,11 +466,6 @@ target_link_libraries(kritaimpexui
 )
 
 if(ANDROID)
-    target_link_libraries(kritaimpexui
-        PRIVATE
-            Qt${QT_MAJOR_VERSION}::AndroidExtras
-    )
-
     if(TARGET LibAV)
         target_link_libraries(kritaimpexui PRIVATE LibAV)
     endif()

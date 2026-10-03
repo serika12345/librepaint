@@ -10,11 +10,22 @@
 #include <QMenu>
 #include <QProxyStyle>
 #include <QStyleFactory>
+#include <qabstractitemmodel.h>
+#include <qabstractitemview.h>
+#include <qcolor.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qstyleoption.h>
+#include <qwidget.h>
 
 #include "StoryboardView.h"
 #include "StoryboardModel.h"
 #include "StoryboardDelegate.h"
 #include "KisAddRemoveStoryboardCommand.h"
+#include "document/StoryboardItem.h"
+#include "kis_assert.h"
+#include "kundo2magicstring.h"
 
 class StoryboardStyle : public QProxyStyle
 {

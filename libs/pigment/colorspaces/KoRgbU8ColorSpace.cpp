@@ -8,12 +8,19 @@
 #include "KoRgbU8ColorSpace.h"
 
 #include <limits.h>
+#include <qhashfunctions.h>
+#include <qrgb.h>
+#include <QtGlobal>
 #include <stdlib.h>
 
 
 #include <klocalizedstring.h>
 
+#include "KisQStringListFwd.h"
 #include "KoChannelInfo.h"
+#include "KoColorModelStandardIds.h"
+#include "KoColorSpace.h"
+#include "colorspaces/KoSimpleColorSpace.h"
 #include "compositeops/KoCompositeOps.h"
 #include "dithering/KisRgbDitherOpFactory.h"
 

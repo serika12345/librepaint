@@ -5,13 +5,19 @@
  */
 
 #include "wdg_side.h"
+#include "KoResourceBundle.h"
+#include "kis_icon_utils.h"
 #include "ui_wdgside.h"
-#include <kis_icon.h>
 #include <QToolButton>
 #include <QPalette>
 
 #include <QVBoxLayout>
 #include <QApplication>
+#include <qcolor.h>
+#include <qcoreapplication.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qwidget.h>
 
 WdgSide::WdgSide(KoResourceBundleSP bundle, QWidget *parent) :
     QWidget(parent),

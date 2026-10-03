@@ -5,6 +5,11 @@
  */
 #include "KisAirbrushOptionModel.h"
 
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+
+#include "KisAirbrushOptionData.h"
+
 KisAirbrushOptionModel::KisAirbrushOptionModel(lager::cursor<KisAirbrushOptionData> optionData)
     : airbrushOptionData(optionData)
     , LAGER_QT(isChecked) {airbrushOptionData[&KisAirbrushOptionData::isChecked]}

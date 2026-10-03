@@ -11,6 +11,9 @@
 
 
 #include <brushengine/kis_paint_information.h>
+#include <math.h>
+#include <qlogging.h>
+#include <QtGlobal>
 #include "kis_liquify_transform_worker.h"
 #include "kis_algebra_2d.h"
 #include "kis_liquify_properties.h"

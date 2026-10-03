@@ -5,6 +5,12 @@
  */
 
 #include "kis_simple_stroke_strategy.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_stroke_strategy.h"
+#include "kundo2magicstring.h"
+#include <qhashfunctions.h>
+#include <QtGlobal>
+#include <qlogging.h>
 
 
 /***************************************************************/

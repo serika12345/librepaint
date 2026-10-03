@@ -9,6 +9,8 @@
 #include <QMessageBox>
 
 #include <klocalizedstring.h>
+#include <qobject.h>
+#include <qwidget.h>
 
 bool KisResourceUserOperations::userAllowsOverwrite(QWidget *widgetParent,
                                                      QString resourceFilepath)

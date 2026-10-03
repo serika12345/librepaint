@@ -7,8 +7,11 @@
 #include "kis_node_progress_proxy.h"
 
 #include <QApplication>
+#include <QtGlobal>
+#include <qobject.h>
 
 #include "kis_node.h"
+#include "kis_types.h"
 
 struct Q_DECL_HIDDEN KisNodeProgressProxy::Private {
     Private()

@@ -9,7 +9,15 @@
 
 #include <QListWidgetItem>
 
+#include <kguiitem.h>
 #include <kstandardguiitem.h>
+#include <qdialog.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
 
 struct KisDlgListPicker::Private

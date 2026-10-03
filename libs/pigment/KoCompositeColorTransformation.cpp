@@ -5,8 +5,12 @@
  */
 
 #include "KoCompositeColorTransformation.h"
+#include "KoColorTransformation.h"
 
 #include <QVector>
+#include <qalgorithms.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
 
 
 struct Q_DECL_HIDDEN KoCompositeColorTransformation::Private

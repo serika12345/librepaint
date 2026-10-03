@@ -15,19 +15,29 @@
 #include <KoStore.h>
 #include <KoStoreDevice.h>
 #include <KoUpdater.h>
-#include <KoColorSpaceRegistry.h>
 #include <metadata/KoDocumentInfo.h>
-#include <KoXmlWriter.h>
 
 #include <document/KisDocument.h>
 #include <KritaVersionWrapper.h>
 #include <kis_clone_layer.h>
-#include <kis_group_layer.h>
 #include <kis_image.h>
-#include <kis_paint_layer.h>
+#include <qcoreapplication.h>
+#include <qdebug.h>
+#include <QtGlobal>
+#include <qimage.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qpixmap.h>
+#include <qpointer.h>
 
+#include "KisImportExportErrorCode.h"
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
+#include "kis_debug.h"
 #include "kis_kra_loader.h"
 #include "kis_kra_saver.h"
+#include "kis_types.h"
 
 static const char CURRENT_DTD_VERSION[] = "2.0";
 

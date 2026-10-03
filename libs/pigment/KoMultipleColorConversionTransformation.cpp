@@ -5,10 +5,12 @@
  */
 
 #include "KoMultipleColorConversionTransformation.h"
+#include "KoColorConversionTransformation.h"
 
 #include <QList>
 
 #include <KoColorSpace.h>
+#include <QtGlobal>
 
 namespace
 {

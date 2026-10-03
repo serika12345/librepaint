@@ -8,13 +8,14 @@
 #include "kis_command_ids.h"
 
 #include "KoShape.h"
+#include "kundo2stack.h"
 #include "KoShapeTransformCommand.h"
 #include <KoShapeBulkActionLock.h>
 
 #include <QList>
 #include <QTransform>
 
-#include <FlakeDebug.h>
+#include <QtGlobal>
 
 namespace
 {

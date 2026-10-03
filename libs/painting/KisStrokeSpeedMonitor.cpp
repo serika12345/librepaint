@@ -11,6 +11,12 @@
 #include <QMutexLocker>
 
 #include <KisRollingMeanAccumulatorWrapper.h>
+#include "kis_debug.h"
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qstringview.h>
+#include <QtGlobal>
 #include "kis_paintop_preset.h"
 #include "kis_paintop_settings.h"
 

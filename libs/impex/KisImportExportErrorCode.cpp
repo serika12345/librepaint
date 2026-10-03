@@ -7,6 +7,8 @@
 #include "KisImportExportErrorCode.h"
 #include <KLocalizedString>
 #include <kis_assert.h>
+#include <qfiledevice.h>
+#include <qobject.h>
 
 
 

@@ -5,7 +5,6 @@
  */
 #include "TransformMask.h"
 #include <kis_transform_mask.h>
-#include <kis_image.h>
 #include <kis_transform_mask_params_interface.h>
 #include <QDomDocument>
 
@@ -14,9 +13,15 @@
 #include <commands_new/KisSimpleModifyTransformMaskCommand.h>
 #include "commands_new/KisLazyCreateTransformMaskKeyframesCommand.h"
 #include <kis_processing_applicator.h>
+#include <memory>
+#include <qobject.h>
 
 
+#include "kis_assert.h"
 #include "kis_transform_mask_params_interface.h"
+#include "kis_types.h"
+#include <kis_image.h>
+#include "kundo2stack.h"
 
 
 TransformMask::TransformMask(KisImageSP image, QString name, QObject *parent) :

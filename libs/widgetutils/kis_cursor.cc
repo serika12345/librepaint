@@ -13,6 +13,7 @@
 
 #include <QtGlobal>
 #include <QCursor>
+#include <qnamespace.h>
 
 #include "kis_cursor_cache.h"
 

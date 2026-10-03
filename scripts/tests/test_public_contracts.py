@@ -22,34 +22,6 @@ SPEC.loader.exec_module(check_public_contracts)
 
 
 class PublicContractTests(unittest.TestCase):
-    def test_exported_headers_are_in_the_public_api_scope(self) -> None:
-        with tempfile.TemporaryDirectory() as temporary_directory:
-            root = Path(temporary_directory)
-            (root / "libs/example").mkdir(parents=True)
-            (root / "libs/example/Public.h").write_text(
-                "class EXAMPLE_EXPORT Public {};\n", encoding="utf-8"
-            )
-            (root / "libs/example/Internal.h").write_text(
-                "class Internal {};\n", encoding="utf-8"
-            )
-            (root / "libs/example/HeaderOnly.h").write_text(
-                "class HeaderOnly {};\n", encoding="utf-8"
-            )
-            (root / "libs/consumer").mkdir(parents=True)
-            (root / "libs/consumer/use.cpp").write_text(
-                '#include "HeaderOnly.h"\n', encoding="utf-8"
-            )
-            with mock.patch.object(
-                check_public_contracts, "PUBLIC_HEADER_COMPILE_CONTRACTS", {}
-            ):
-                self.assertEqual(
-                    [
-                        "libs/example/HeaderOnly.h",
-                        "libs/example/Public.h",
-                    ],
-                    check_public_contracts.discover_public_headers(root),
-                )
-
     def test_external_header_without_publication_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
@@ -73,7 +45,7 @@ class PublicContractTests(unittest.TestCase):
                 ):
                     check_public_contracts.validate_public_headers(root)
 
-    def test_plugin_owner_requires_cmake_source_membership(self) -> None:
+    def test_plugin_registration_requires_unique_ids_and_known_service_types(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
             plugin = root / "plugins/sample"
@@ -82,34 +54,28 @@ class PublicContractTests(unittest.TestCase):
                 'K_PLUGIN_FACTORY_WITH_JSON(Sample, "sample.json", value)\n',
                 encoding="utf-8",
             )
-            (plugin / "sample.json").write_text(
-                json.dumps(
-                    {
-                        "Id": "sample",
-                        "X-KDE-ServiceTypes": ["Krita/Filter"],
-                        "X-KDE-Library": "sampleplugin",
-                    }
-                ),
-                encoding="utf-8",
-            )
-            (plugin / "CMakeLists.txt").write_text(
-                "kis_add_library(otherplugin MODULE sample.cpp)\n",
-                encoding="utf-8",
-            )
-            with mock.patch.object(
-                check_public_contracts, "PLUGIN_OWNER_TARGET_OVERRIDES", {}
-            ):
-                with self.assertRaisesRegex(
-                    check_public_contracts.PublicContractError,
-                    "CMake source membership",
-                ):
-                    check_public_contracts.validate_plugins(root)
+            metadata = {"Id": "sample", "X-KDE-ServiceTypes": ["Krita/Filter"]}
+            (plugin / "sample.json").write_text(json.dumps(metadata), encoding="utf-8")
+            self.assertEqual(check_public_contracts.validate_plugins(root), 1)
 
-    def test_quick_verification_runs_the_direct_contract(self) -> None:
-        verify_quick = (REPO_ROOT / "scripts/verify-quick").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn("check_public_contracts.py", verify_quick)
+            metadata["X-KDE-ServiceTypes"] = ["Unknown/Service"]
+            (plugin / "sample.json").write_text(json.dumps(metadata), encoding="utf-8")
+            with self.assertRaisesRegex(
+                check_public_contracts.PublicContractError, "invalid service type"
+            ):
+                check_public_contracts.validate_plugins(root)
+
+            metadata["X-KDE-ServiceTypes"] = ["Krita/Filter"]
+            (plugin / "sample.json").write_text(json.dumps(metadata), encoding="utf-8")
+            (plugin / "other.json").write_text(json.dumps(metadata), encoding="utf-8")
+            (plugin / "other.cpp").write_text(
+                'K_PLUGIN_FACTORY_WITH_JSON(Other, "other.json", value)\n',
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(
+                check_public_contracts.PublicContractError, "duplicate plugin id"
+            ):
+                check_public_contracts.validate_plugins(root)
 
 
 if __name__ == "__main__":

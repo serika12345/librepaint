@@ -5,6 +5,7 @@
  */
 
 #include "kis_do_nothing_processing_visitor.h"
+#include "kis_processing_visitor.h"
 
 #include <QtGlobal>
 

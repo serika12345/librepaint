@@ -11,6 +11,14 @@
 #include <QSqlError>
 
 #include <KisResourceLocator.h>
+#include "KisResourceStorage.h"
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
+#include "KoResource.h"
+#include "kis_assert.h"
+#include <qcontainerfwd.h>
+#include <QDebug>
+#include <qlogging.h>
 #include "kis_brush.h"
 
 

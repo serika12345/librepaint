@@ -10,6 +10,10 @@
 #include <QVariantList>
 #include <QDebug>
 #include <QRectF>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qhash.h>
+#include <qmap.h>
 
 QVariantHash uncompressColor(const QVariantHash object) {
     QVariantHash newObject;

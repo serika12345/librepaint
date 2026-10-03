@@ -5,6 +5,7 @@
  */
 
 #include "SvgInlineSizeChangeCommand.h"
+#include "KoFlake.h"
 #include "SvgInlineSizeHelper.h"
 
 #include <QRegularExpression>
@@ -18,6 +19,8 @@
 #include <KoShapeBulkActionLock.h>
 
 #include "kis_command_ids.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 SvgInlineSizeChangeCommand::SvgInlineSizeChangeCommand(KoSvgTextShape *shape, double inlineSize, KUndo2Command *parent)
     : SvgInlineSizeChangeCommand(shape, inlineSize, SvgInlineSizeHelper::getInlineSizePt(shape), 0, 0, QPointF(), QPointF(), parent)

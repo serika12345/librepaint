@@ -7,7 +7,12 @@
 #include "kis_constrained_rect.h"
 
 #include <cmath>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <QtGlobal>
 #include "kis_algebra_2d.h"
+#include "kis_assert.h"
 
 
 KisConstrainedRect::KisConstrainedRect()

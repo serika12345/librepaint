@@ -41,11 +41,24 @@
 #include <QStandardPaths>
 #include <QColorDialog>
 #include <QStyleOptionButton>
+#include <qcontainerfwd.h>
+#include <qcoreevent.h>
+#include <qdialog.h>
 #include <qdrawutil.h>
 
 // KDE includes
 
 #include <klocalizedstring.h>
+#include <qfiledialog.h>
+#include <QtGlobal>
+#include <qframe.h>
+#include <qlineedit.h>
+#include <qloggingcategory.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qurl.h>
 
 // Local includes
 

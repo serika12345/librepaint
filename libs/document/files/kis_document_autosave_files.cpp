@@ -15,6 +15,10 @@
 
 #include <KoStore.h>
 #include <KisUsageLogger.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <QtGlobal>
 
 namespace Krita::Document
 {
@@ -98,6 +102,11 @@ QString KisDocumentAutoSaveFiles::filePath(const QString &documentPath,
         targetDirectory = recoveryDirectory;
         QDir().mkpath(targetDirectory);
     }
+#elif defined(Q_OS_IOS)
+    // A document-picker grant covers the selected file, not a sibling
+    // autosave file. Keep recovery data in the app-owned directory.
+    targetDirectory = recoveryDirectory;
+    QDir().mkpath(targetDirectory);
 #endif
 
     if (documentPath.isEmpty() || hasAutoSaveName(fileInfo.fileName()) || !fileInfo.isWritable()) {

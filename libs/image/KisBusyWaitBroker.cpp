@@ -11,8 +11,12 @@
 
 #include <QThread>
 #include <QApplication>
+#include <functional>
+#include <qhash.h>
 
+#include "kis_assert.h"
 #include "kis_image.h"
+#include "kis_types.h"
 
 
 Q_GLOBAL_STATIC(KisBusyWaitBroker, s_instance)

@@ -7,6 +7,9 @@
 #include "KisSurfaceColorimetry.h"
 
 #include <QDebug>
+#include <cstdint>
+#include <QtGlobal>
+#include <variant>
 
 namespace KisSurfaceColorimetry {
 

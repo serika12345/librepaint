@@ -31,8 +31,9 @@ public:
     Q_DECLARE_FLAGS(Flags, Flag)
 
 public:
-    class Data : public KisStrokeJobData {
+    class KRITAPAINTING_EXPORT Data : public KisStrokeJobData {
     public:
+        ~Data() override;
         enum DabType {
             POINT,
             LINE,

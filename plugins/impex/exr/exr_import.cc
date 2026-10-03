@@ -11,9 +11,13 @@
 #include <KisImportExportManager.h>
 
 #include <document/KisDocument.h>
-#include <kis_image.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
+#include "KisImportExportErrorCode.h"
+#include "KisImportExportFilter.h"
 #include "exr_converter.h"
+#include "kis_types.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaExrImportFactory, "krita_exr_import.json", registerPlugin<exrImport>();)
 

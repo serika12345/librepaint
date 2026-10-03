@@ -1,0 +1,71 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.12.0'
+    }
+}
+
+repositories {
+    google()
+    mavenCentral()
+}
+
+apply plugin: 'com.android.application'
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'])
+    // Keep the test package on the same API 35-compatible provider runtime as
+    // the product package.
+    implementation 'androidx.core:core:1.15.0'
+    implementation 'androidx.annotation:annotation:1.10.0'
+}
+
+android {
+    namespace = "org.librepaint.tests"
+    compileSdkVersion androidCompileSdkVersion
+    buildToolsVersion "35.0.0"
+    ndkPath project.ext.properties['ndk.dir']
+
+    buildFeatures {
+        aidl = true
+    }
+
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging = true
+        }
+    }
+
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = [qtAndroidDir + '/src', 'src', 'java']
+            aidl.srcDirs = [qtAndroidDir + '/src', 'src', 'aidl']
+            res.srcDirs = [qtAndroidDir + '/res', 'res']
+            resources.srcDirs = ['src']
+            assets.srcDirs = ['assets']
+            jniLibs.srcDirs = ['libs', 'lib']
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    defaultConfig {
+        applicationId "org.librepaint.tests"
+        minSdkVersion 28
+        targetSdkVersion 35
+        versionCode 1
+        versionName "1.0"
+    }
+
+    lint {
+        abortOnError false
+    }
+}

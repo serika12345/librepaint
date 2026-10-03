@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "KisTag.h"
 #include "KisTagChooserWidgetAddSource_p.h"
 
 #include <QMessageBox>
@@ -11,8 +12,10 @@
 
 #include <KisTagModel.h>
 #include <KisTagResourceModel.h>
+#include <qcontainerfwd.h>
 
 #include "KisTagChooserWidget.h"
+#include "KoResource.h"
 
 namespace
 {

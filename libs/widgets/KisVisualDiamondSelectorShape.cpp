@@ -5,10 +5,17 @@
  */
 
 #include "KisVisualDiamondSelectorShape.h"
+#include "KisVisualColorSelectorShape.h"
 
 #include <QPainter>
 #include <QRect>
 #include <QtMath>
+#include <qcolor.h>
+#include <qimage.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qpoint.h>
+#include <qregion.h>
 
 
 KisVisualDiamondSelectorShape::KisVisualDiamondSelectorShape(KisVisualColorSelector *parent,

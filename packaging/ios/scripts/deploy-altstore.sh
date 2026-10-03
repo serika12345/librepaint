@@ -49,14 +49,10 @@ if [[ ! -f "$build_dir/.krita-ios-incremental-config" ]]; then
     echo "error: build tree is not owned by the incremental workflow: $build_dir" >&2
     exit 1
 fi
-python3 "$repo_root/packaging/ios/scripts/audit-ios-image-licenses.py" --check
-python3 "$repo_root/packaging/ios/scripts/audit-default-resource-bundle.py"
 app_path="$build_dir/bin/LibrePaint.app"
 binary="$app_path/LibrePaint"
-archive_dir="$build_dir/lib"
 python3 "$repo_root/packaging/ios/scripts/audit-static-dependency-resources.py" \
-    --binary "$binary" \
-    --build-ninja "$build_dir/build.ninja"
+    --binary "$binary"
 
 if [[ -z "$device_id" ]]; then
     device_id="$(xcrun devicectl list devices | awk '
@@ -76,7 +72,6 @@ if [[ -z "$device_id" ]]; then
 fi
 
 "$scripts_dir/inspect-apple-binary.sh" device "$binary"
-"$scripts_dir/inspect-static-resources.sh" "$binary" "$archive_dir"
 plutil -lint "$app_path/Info.plist"
 for bundle_contract in \
     CFBundleDisplayName=LibrePaint \

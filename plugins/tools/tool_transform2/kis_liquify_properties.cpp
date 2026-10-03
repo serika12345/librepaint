@@ -11,6 +11,8 @@
 #include <kconfig.h>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
+#include <qhashfunctions.h>
+#include <qlogging.h>
 
 #include "kis_debug.h"
 #include "kis_dom_utils.h"

@@ -5,6 +5,7 @@
  */
 
 #include "KoSelectedShapesProxy.h"
+#include <qobject.h>
 
 KoSelectedShapesProxy::KoSelectedShapesProxy(QObject *parent)
     : QObject(parent)

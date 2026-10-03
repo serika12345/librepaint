@@ -10,6 +10,9 @@
 #include <KConfigGroup>
 
 #include <QDebug>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qmap.h>
 
 #include "kis_abstract_input_action.h"
 #include "kis_input_profile_manager.h"

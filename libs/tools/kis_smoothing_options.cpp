@@ -10,6 +10,8 @@
 
 #include <KConfigGroup>
 #include <KSharedConfig>
+#include <qobjectdefs.h>
+#include <QtGlobal>
 
 namespace {
 

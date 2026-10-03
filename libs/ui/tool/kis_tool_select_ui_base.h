@@ -8,6 +8,7 @@
 #ifndef KIS_TOOL_SELECT_UI_BASE_H
 #define KIS_TOOL_SELECT_UI_BASE_H
 
+#include <QAction>
 #include <kis_assert.h>
 #include <kis_selection_options.h>
 #include <kis_selection_tool_config_widget_helper.h>
@@ -24,7 +25,11 @@ class KoShape;
  * Selection interaction remains in the lower-level KisToolSelectBase.
  */
 template <class BaseClass>
-class KRITAUI_EXPORT KisToolSelectUiBase : public KisToolSelectBase<BaseClass>
+class
+#ifndef _WIN32
+    KRITAUI_EXPORT
+#endif
+    KisToolSelectUiBase : public KisToolSelectBase<BaseClass>
 {
     using InteractionBase = KisToolSelectBase<BaseClass>;
 

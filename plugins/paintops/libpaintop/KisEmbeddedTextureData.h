@@ -6,12 +6,19 @@
 #ifndef KISEMBEDDEDTEXTUREDATA_H
 #define KISEMBEDDEDTEXTUREDATA_H
 
-#include "kis_types.h"
 #include <boost/operators.hpp>
 #include <kritapaintop_export.h>
-#include <KoPattern.h>
+
+#include <QSharedPointer>
+#include <QString>
 
 class KisPropertiesConfiguration;
+class KisResourcesInterface;
+class KoPattern;
+class KoResourceLoadResult;
+
+using KisResourcesInterfaceSP = QSharedPointer<KisResourcesInterface>;
+using KoPatternSP = QSharedPointer<KoPattern>;
 
 
 class PAINTOP_EXPORT KisEmbeddedTextureData : boost::equality_comparable<KisEmbeddedTextureData>

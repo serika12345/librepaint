@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "Document.h"
+#include <klocalizedstring.h>
 #include <QPointer>
 #include <QUrl>
 #include <QDomDocument>
@@ -28,19 +29,16 @@
 #include <kis_transparency_mask.h>
 #include <kis_selection_mask.h>
 #include <lazybrush/kis_colorize_mask.h>
-#include <kis_effect_mask.h>
 #include <kis_paint_layer.h>
 #include <kis_generator_layer.h>
 #include <kis_generator_registry.h>
 #include <kis_shape_layer.h>
 #include <kis_filter_configuration.h>
 #include <kis_filter_registry.h>
-#include <kis_selection.h>
 #include <KisMimeDatabase.h>
 #include <kis_filter_strategy.h>
 #include <kis_guides_config.h>
 #include <kis_grid_config.h>
-#include <kis_coordinates_converter.h>
 #include <kis_time_span.h>
 #include <KisImportExportErrorCode.h>
 #include <kis_types.h>
@@ -51,6 +49,7 @@
 #include <KoColorProfile.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorConversionTransformation.h>
+#include <KoUpdater.h>
 #include <metadata/KoDocumentInfo.h>
 #include <KisGlobalResourcesInterface.h>
 
@@ -59,15 +58,28 @@
 #include <Selection.h>
 #include <LibKisUtils.h>
 
+#include "GridConfig.h"
+#include "GuidesConfig.h"
+#include "KisQStringListFwd.h"
 #include "kis_animation_importer.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
 #include <kis_canvas2.h>
-#include <KoUpdater.h>
 #include <QMessageBox>
 
 #include <kis_image_animation_interface.h>
 #include <kis_layer_utils.h>
 #include <kis_undo_adapter.h>
 #include <commands/kis_set_global_selection_command.h>
+#include <qfileinfo.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qstringview.h>
+#include <qtransform.h>
 
 
 struct Document::Private {

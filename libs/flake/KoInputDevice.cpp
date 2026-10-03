@@ -5,6 +5,8 @@
  */
 
 #include "KoInputDevice.h"
+#include <qdebug.h>
+#include <QtGlobal>
 
 class Q_DECL_HIDDEN KoInputDevice::Private
 {

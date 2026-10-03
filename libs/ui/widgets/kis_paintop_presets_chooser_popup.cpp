@@ -6,6 +6,7 @@
  */
 
 #include "kis_paintop_presets_chooser_popup.h"
+#include <klocalizedstring.h>
 
 #include <QCompleter>
 #include <QMenu>
@@ -16,12 +17,17 @@
 #include <KoResource.h>
 #include <KisResourceItemChooser.h>
 
+#include <qaction.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 #include <ui_wdgpaintoppresets.h>
 #include <application/kis_config.h>
-#include <brushengine/kis_paintop_preset.h>
-#include <kis_icon.h>
-#include <brushengine/kis_paintop_settings.h>
 #include "KisPopupButton.h"
+#include "kis_icon_utils.h"
+#include "kis_preset_chooser.h"
+#include "kis_types.h"
 
 struct KisPaintOpPresetsChooserPopup::Private
 {

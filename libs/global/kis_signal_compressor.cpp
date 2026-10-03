@@ -30,6 +30,10 @@
 #include "kis_signal_compressor.h"
 
 #include <QTimer>
+#include <functional>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
 #include "kis_assert.h"
 
 

@@ -5,7 +5,9 @@
  */
 
 #include "KoGamutMask.h"
+#include "KoResource.h"
 
+#include <algorithm>
 #include <cstring>
 
 #include <QVector>
@@ -29,6 +31,13 @@
 #include <kis_assert.h>
 #include <QTransform>
 #include <KoMarker.h>
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qdebug.h>
+#include <qimage.h>
+#include <qmap.h>
+#include <qpoint.h>
+#include <QtGlobal>
 
 //#include <kis_debug.h>
 

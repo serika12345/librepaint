@@ -7,6 +7,9 @@
 #include "kis_undo_stores.h"
 
 #include <kundo2stack.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
 
 
 /*****************************************************************/

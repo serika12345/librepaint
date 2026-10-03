@@ -61,6 +61,7 @@ kis_add_test(
     KisAirbrushOptionDataContractTest.cpp
     LINK_LIBRARIES
         kritapaintopairbrushoptiondataobjects
+        kritaimagepropertiesconfigurationobjects
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(KisAirbrushOptionDataContractTest PRIVATE
@@ -73,6 +74,7 @@ kis_add_test(
     KisColorOptionDataContractTest.cpp
     LINK_LIBRARIES
         kritapaintopcoloroptiondataobjects
+        kritaimagepropertiesconfigurationobjects
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(KisColorOptionDataContractTest PRIVATE
@@ -85,6 +87,7 @@ kis_add_test(
     KisColorSourceOptionDataContractTest.cpp
     LINK_LIBRARIES
         kritapaintopcolorsourceoptiondataobjects
+        kritaimagepropertiesconfigurationobjects
         kritaglobalidobjects
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Test
@@ -99,6 +102,7 @@ kis_add_test(
     KisCompositeOpOptionDataContractTest.cpp
     LINK_LIBRARIES
         kritapaintopcompositeopoptiondataobjects
+        kritaimagepropertiesconfigurationobjects
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(KisCompositeOpOptionDataContractTest PRIVATE
@@ -111,6 +115,7 @@ kis_add_test(
     KisPaintingModeOptionDataContractTest.cpp
     LINK_LIBRARIES
         kritapaintoppaintingmodeoptiondataobjects
+        kritaimagepropertiesconfigurationobjects
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(KisPaintingModeOptionDataContractTest PRIVATE
@@ -123,6 +128,7 @@ kis_add_test(
     KisPrecisionOptionContractTest.cpp
     LINK_LIBRARIES
         kritapaintopprecisionoptionobjects
+        kritaimagepropertiesconfigurationobjects
         Boost::boost
         Eigen3::Eigen
         Imath::ImathConfig
@@ -139,6 +145,7 @@ kis_add_test(
     KisFilterOptionDataContractTest.cpp
     LINK_LIBRARIES
         kritapaintopfilteroptiondataobjects
+        kritaimagepropertiesconfigurationobjects
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(KisFilterOptionDataContractTest PRIVATE
@@ -214,6 +221,7 @@ kis_add_test(
     KisTextureOptionDataIOContractTest.cpp
     LINK_LIBRARIES
         kritapaintoptextureoptionioobjects
+        kritaimagepropertiesconfigurationobjects
         Qt${QT_MAJOR_VERSION}::Test
 )
 target_compile_definitions(KisTextureOptionDataIOContractTest PRIVATE

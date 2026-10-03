@@ -7,14 +7,21 @@
  */
 
 #include "kis_filters_model.h"
+#include "kis_types.h"
 
 #include <QPixmap>
 
+#include <algorithm>
 #include <filter/kis_filter.h>
 #include <filter/kis_filter_registry.h>
 #include <kis_paint_device.h>
-#include <kis_processing_information.h>
-#include <kis_selection.h>
+#include <qabstractitemmodel.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qflags.h>
+#include <qhash.h>
+#include <qlist.h>
+#include <qnamespace.h>
 
 struct KisFiltersModel::Private {
     struct Node {

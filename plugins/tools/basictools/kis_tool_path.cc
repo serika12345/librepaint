@@ -6,6 +6,14 @@
  */
 
 #include "kis_tool_path.h"
+#include <klocalizedstring.h>
+#include "KoCreatePathTool.h"
+#include "KoPointerEvent.h"
+#include "KoToolBase.h"
+#include "kis_icon.h"
+#include "kis_tool.h"
+#include "kundo2magicstring.h"
+#include "ui_wdggeometryoptions.h"
 
 #include <QMouseEvent>
 #include <QPainterPath>
@@ -17,6 +25,13 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
+#include <qcoreevent.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpainter.h>
+#include <QtGlobal>
 
 
 KisToolPath::KisToolPath(KoCanvasBase * canvas)

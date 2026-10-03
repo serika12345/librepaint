@@ -5,6 +5,7 @@
  */
 
 #include "kis_serializable_configuration.h"
+#include "kis_shared.h"
 
 #include <QDomElement>
 #include <QDomDocument>

@@ -6,8 +6,13 @@
 
 #include <KisSpinBoxI18nHelper.h>
 #include <kis_signal_compressor.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 #include "KisSelectionPropertySlider.h"
+#include "kis_slider_spin_box.h"
 
 template class KisSelectionPropertySlider<KoShape *>;
 

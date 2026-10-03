@@ -6,11 +6,15 @@
 
 #include "kis_paintop_utils.h"
 
+#include "kis_spacing_information.h"
+#include "kis_timing_information.h"
 #include "krita_utils.h"
 #include "krita_container_utils.h"
-#include <KisRenderedDab.h>
 
 #include <functional>
+#include <numeric>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
 
 namespace KisPaintOpUtils {
 

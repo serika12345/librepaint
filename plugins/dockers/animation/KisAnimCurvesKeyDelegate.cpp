@@ -9,8 +9,21 @@
 #include <QPainter>
 #include <QApplication>
 #include <QVector2D>
+#include <qabstractitemdelegate.h>
+#include <qabstractitemmodel.h>
+#include <qcolor.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qpaintdevice.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <qstyleoption.h>
 
 #include "KisAnimCurvesModel.h"
+#include "KisAnimCurvesValuesHeader.h"
+#include "KisAnimTimelineTimeHeader.h"
 #include "kis_scalar_keyframe_channel.h"
 
 const int NODE_RENDER_RADIUS = 4;

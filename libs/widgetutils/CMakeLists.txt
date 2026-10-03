@@ -1,4 +1,6 @@
-add_subdirectory(tests)
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()
 
 configure_file(xmlgui/config-xmlgui.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/config-xmlgui.h )
 
@@ -34,6 +36,8 @@ target_link_libraries(kritawidgetutilsintparsespinboxobjects
         kritaglobalpaintingtweaksobjects
         kritawidgetutilsnumericparserobjects
         Qt${QT_MAJOR_VERSION}::Widgets
+    PRIVATE
+        Boost::boost
 )
 set_target_properties(kritawidgetutilsintparsespinboxobjects PROPERTIES
     AUTOMOC ON
@@ -54,6 +58,8 @@ target_link_libraries(kritawidgetutilsdoubleparsespinboxobjects
         kritaglobalpaintingtweaksobjects
         kritawidgetutilsnumericparserobjects
         Qt${QT_MAJOR_VERSION}::Widgets
+    PRIVATE
+        Boost::boost
 )
 set_target_properties(kritawidgetutilsdoubleparsespinboxobjects PROPERTIES
     AUTOMOC ON
@@ -317,6 +323,7 @@ target_include_directories(kritawidgetutilstoolbarstatemodelobjects
 )
 target_link_libraries(kritawidgetutilstoolbarstatemodelobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
         lager
 )
@@ -591,10 +598,6 @@ if (APPLE AND NOT IOS)
     )
     target_link_libraries(kritawidgetutils PRIVATE kritamacosutils)
 endif ()
-
-if (ANDROID)
-    target_link_libraries(kritawidgetutils PRIVATE Qt${QT_MAJOR_VERSION}::AndroidExtras)
-endif()
 
 target_link_libraries(kritawidgetutils
     PUBLIC

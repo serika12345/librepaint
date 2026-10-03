@@ -4,17 +4,30 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisDynamicSensorFactoryDrawingAngle.h"
+
+#include <QDebug>
 #include "KisDynamicSensorIds.h"
 
 #include <QCheckBox>
 #include <QLabel>
-#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QWidget>
+#include <QtCore/qlogging.h>
+
+#include <KLocalizedString>
+
 #include <kis_slider_spin_box.h>
 #include <KisAngleSelector.h>
 
+#include <KisCurveOptionDataCommon.h>
 #include "KisDrawingAngleSensorModel.h"
-#include "KisWidgetConnectionUtils.h"
-#include "KisKritaSensorPack.h"
+#include <KisKritaSensorPack.h>
+#include <KisSensorData.h>
+#include <KisSimpleDynamicSensorFactory.h>
+#include <KisWidgetConnectionUtils.h>
+
+#include <lager/cursor.hpp>
+#include <lager/lenses.hpp>
 
 namespace {
     auto safeDereferenceDrawingAngleSensor = lager::lenses::getset(

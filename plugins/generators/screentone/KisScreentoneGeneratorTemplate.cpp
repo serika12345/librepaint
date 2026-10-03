@@ -7,10 +7,19 @@
  */
 
 #include <algorithm>
+#include <iterator>
 #include <limits>
 #include <cmath>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qsize.h>
 
+#include "KisScreentoneGeneratorConfiguration.h"
 #include "KisScreentoneScreentoneFunctions.h"
+#include "kis_global.h"
 #include "KisScreentoneGeneratorTemplate.h"
 
 KisScreentoneGeneratorTemplate::KisScreentoneGeneratorTemplate(const KisScreentoneGeneratorConfigurationSP config)

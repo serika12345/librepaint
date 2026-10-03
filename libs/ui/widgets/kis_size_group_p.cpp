@@ -5,6 +5,7 @@
  */
 
 #include "kis_size_group_p.h"
+#include "widgets/kis_size_group.h"
 
 #include <QEvent>
 #include <QTimer>
@@ -12,6 +13,11 @@
 #include <QLayout>
 #include <QGridLayout>
 #include <QFormLayout>
+#include <QtGlobal>
+#include <qboxlayout.h>
+#include <qlayoutitem.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 KisSizeGroupPrivate::KisSizeGroupPrivate(KisSizeGroup *q_ptr, KisSizeGroup::mode mode, bool ignoreHidden)
     : QObject()

@@ -7,13 +7,16 @@
 
 #include <klocalizedstring.h>
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
 #include <brushengine/kis_paintop_registry.h>
-#include <kis_fixed_paint_device.h>
+#include "kis_paintop_factory.h"
+#include <qcontainerfwd.h>
+#include <qobject.h>
 #include "kis_spray_paintop.h"
 #include "kis_simple_paintop_factory.h"
+#include "kis_spray_paintop_settings.h"
+#include "kis_spray_paintop_settings_widget.h"
 
 
 K_PLUGIN_FACTORY_WITH_JSON(SprayPaintOpPluginFactory, "kritaspraypaintop.json", registerPlugin<SprayPaintOpPlugin>();)

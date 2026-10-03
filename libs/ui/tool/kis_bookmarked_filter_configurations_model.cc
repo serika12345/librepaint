@@ -5,11 +5,15 @@
  */
 
 #include "tool/kis_bookmarked_filter_configurations_model.h"
+#include "kis_bookmarked_configurations_model.h"
+#include "kis_types.h"
+#include <kis_paint_device.h>
 
 #include <filter/kis_filter.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_paint_device.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qabstractitemmodel.h>
+#include <qvariant.h>
 
 struct KisBookmarkedFilterConfigurationsModel::Private {
     KisPaintDeviceSP thumb;
@@ -45,4 +49,3 @@ KisFilterConfigurationSP KisBookmarkedFilterConfigurationsModel::configuration(c
     if (config) return config;
     return d->filter->defaultConfiguration(KisGlobalResourcesInterface::instance());
 }
-

@@ -4,8 +4,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisSprayShapeDynamicsOptionModel.h"
+#include "KisSprayShapeDynamicsOptionData.h"
 
 #include <KisLager.h>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <QtGlobal>
 
 
 KisSprayShapeDynamicsOptionModel::KisSprayShapeDynamicsOptionModel(lager::cursor<KisSprayShapeDynamicsOptionData> _optionData)

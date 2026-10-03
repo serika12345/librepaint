@@ -20,12 +20,20 @@
  */
 
 #include "kis_gap_map.h"
-#include <qglobal.h>
+
+#include <QDebug>
+#include "KoAlwaysInline.h"
+#include "kis_assert.h"
+#include "kis_global.h"
+#include "kis_paint_device.h"
+#include <memory>
 #include <QtMath>
 #include <QMutex>
 #include <QMutexLocker>
 #include <KoColor.h>
 #include <KoColorSpaceRegistry.h>
+#include <QtGlobal>
+#include <qpoint.h>
 
 #if KIS_GAP_MAP_MEASURE_ELAPSED_TIME
 #include <QElapsedTimer>

@@ -11,16 +11,36 @@
 #include <QMap>
 #include <QRegularExpression>
 
-#include <fontconfig/fontconfig.h>
+#include <algorithm>
+#include <array>
+#include <cstddef>
 
 #include <SvgGraphicContext.h>
 #include <SvgLoadingContext.h>
 #include <SvgUtil.h>
+#include <iterator>
 #include <kis_dom_utils.h>
 #include <kis_global.h>
+#include <math.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qfont.h>
+#include <QtGlobal>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpaintdevice.h>
+#include <qsharedpointer.h>
+#include <qvariant.h>
 
+#include "KisQStringListFwd.h"
+#include "KoCSSFontInfo.h"
+#include "KoFlakeTypes.h"
 #include "KoSvgText.h"
 #include "KoFontRegistry.h"
+#include "kis_assert.h"
 
 struct KoSvgTextProperties::Private
 {

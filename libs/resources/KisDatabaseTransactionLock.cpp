@@ -10,6 +10,8 @@
 #include <QSqlError>
 
 #include <kis_assert.h>
+#include <qlogging.h>
+#include <qsqldatabase.h>
 
 
 namespace detail

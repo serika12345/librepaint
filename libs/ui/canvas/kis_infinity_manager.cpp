@@ -5,17 +5,19 @@
  */
 
 #include "kis_infinity_manager.h"
+#include "kis_assert.h"
+#include "kis_canvas_decoration.h"
 
 #include <QPainter>
 #include <QEvent>
 #include <QMouseEvent>
 #include <QTabletEvent>
 
+#include <cstddef>
 #include <klocalizedstring.h>
 
 #include <KoCanvasController.h>
 
-#include <kis_debug.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_canvas2.h>
 #include <application/kis_config.h>
@@ -25,6 +27,10 @@
 #include <application/ui/workspace/KisView.h>
 #include <kis_algebra_2d.h>
 #include <KoColorDisplayRendererInterface.h>
+#include <qcolor.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qpoint.h>
 
 KisInfinityManager::KisInfinityManager(QPointer<KisView>view, KisCanvas2 *canvas)
   : KisCanvasDecoration(INFINITY_DECORATION_ID, view),

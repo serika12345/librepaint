@@ -5,6 +5,7 @@
  */
 
 #include "KisRunnableStrokeJobDataBase.h"
+#include "kis_stroke_job_strategy.h"
 
 KisRunnableStrokeJobDataBase::KisRunnableStrokeJobDataBase(KisStrokeJobData::Sequentiality sequentiality, KisStrokeJobData::Exclusivity exclusivity)
     : KisStrokeJobData(sequentiality, exclusivity)

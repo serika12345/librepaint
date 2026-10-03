@@ -5,6 +5,11 @@
  */
 #include "KisSpacingOptionModel.h"
 
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+
+#include "KisSpacingOptionData.h"
+
 KisSpacingOptionModel::KisSpacingOptionModel(lager::cursor<KisSpacingOptionMixIn> optionData)
     : spacingOptionData(optionData)
     , LAGER_QT(useSpacingUpdates) {spacingOptionData[&KisSpacingOptionMixIn::useSpacingUpdates]}

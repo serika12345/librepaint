@@ -4,13 +4,19 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_cmb_gradient.h"
+#include "KisPopupButton.h"
 
 #include <QPainter>
 #include <QResizeEvent>
 #include <QStyleOptionComboBox>
 #include <QApplication>
 
-#include <KoResource.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <QtGlobal>
+#include <qpixmap.h>
+#include <qsize.h>
+#include <qwidget.h>
 #include <resources/KoAbstractGradient.h>
 
 #include <kis_signals_blocker.h>

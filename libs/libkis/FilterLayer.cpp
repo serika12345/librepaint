@@ -4,12 +4,13 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "FilterLayer.h"
-#include <kis_adjustment_layer.h>
+#include "kis_types.h"
 #include <kis_image.h>
+#include <kis_adjustment_layer.h>
 #include <kis_filter_configuration.h>
 #include <kis_filter_registry.h>
 #include <InfoObject.h>
-#include <kis_selection.h>
+#include <qobject.h>
 
 FilterLayer::FilterLayer(KisImageSP image, QString name, Filter &filter, Selection &selection, QObject *parent) :
     Node(image, new KisAdjustmentLayer(image, name, filter.filterConfig()->cloneWithResourcesSnapshot(), selection.selection()), parent)
@@ -51,4 +52,3 @@ Filter * FilterLayer::filter()
     filter->setConfiguration(new InfoObject(layer->filter()));
     return filter;
 }
-

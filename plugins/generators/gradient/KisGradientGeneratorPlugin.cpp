@@ -8,6 +8,8 @@
 
 #include <kpluginfactory.h>
 #include <generator/kis_generator_registry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 #include "KisGradientGenerator.h"
 #include "KisGradientGeneratorPlugin.h"

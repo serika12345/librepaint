@@ -7,6 +7,10 @@
 
 
 #include "KisCurveOptionData.h"
+#include "kis_slider_based_paintop_property.h"
+#include "kis_types.h"
+#include "kis_uniform_paintop_property.h"
+#include <qobject.h>
 
 KisCurveOptionDataUniformProperty::KisCurveOptionDataUniformProperty(const KisCurveOptionData &data, KisPaintOpSettingsRestrictedSP settings, QObject *parent)
     : KisCurveOptionDataUniformProperty(data, data.id, settings, parent)

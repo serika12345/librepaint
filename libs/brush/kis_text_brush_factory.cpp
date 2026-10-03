@@ -7,8 +7,13 @@
 
 #include <QFont>
 #include <kis_dom_utils.h>
+#include "KisBrushModel.h"
+#include "KisResourceTypes.h"
 #include "kis_text_brush.h"
 #include <KoResourceLoadResult.h>
+#include <optional>
+#include <qdom.h>
+#include <QtGlobal>
 
 
 KoResourceLoadResult KisTextBrushFactory::createBrush(const QDomElement& brushDefinition, KisResourcesInterfaceSP resourcesInterface)

@@ -6,6 +6,9 @@
 
 #include "kis_update_outline_job.h"
 #include "KisUpdateOutlineJobSelectionAccess_p.h"
+#include "kis_spontaneous_job.h"
+#include "kis_types.h"
+#include <qhashfunctions.h>
 
 KisUpdateOutlineJob::KisUpdateOutlineJob(KisSelectionSP selection, bool updateThumbnail, const QColor &maskColor)
     : m_selection(selection)

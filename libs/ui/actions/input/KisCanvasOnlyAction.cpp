@@ -5,11 +5,13 @@
  */
 
 #include "KisCanvasOnlyAction.h"
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
+#include "kis_abstract_input_action.h"
 #include <application/ui/orchestration/KisPart.h>
 #include <kactioncollection.h>
 #include <application/ui/workspace/KisMainWindow.h>
 #include <QAction>
-#include <kis_debug.h>
 
 KisCanvasOnlyAction::KisCanvasOnlyAction()
     : KisAbstractInputAction("Toggle Canvas Only")

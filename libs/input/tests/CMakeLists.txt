@@ -66,6 +66,15 @@ kis_add_test(
 target_compile_definitions(KisTimedSignalThresholdContractTest PRIVATE kritainput_EXPORTS)
 
 kis_add_test(
+    KisQuickPinchRecognizerContractTest.cpp
+    LINK_LIBRARIES
+        kritainputquickpinchrecognizerobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisQuickPinchRecognizerContractTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+target_compile_definitions(KisQuickPinchRecognizerContractTest PRIVATE kritainput_EXPORTS)
+
+kis_add_test(
     KisTouchGestureTypeContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Test
 )

@@ -5,6 +5,8 @@
  */
 
 #include "DebugPigment.h"
+#include <qlogging.h>
+#include <qloggingcategory.h>
 
 const QLoggingCategory &PIGMENT_log()
 {

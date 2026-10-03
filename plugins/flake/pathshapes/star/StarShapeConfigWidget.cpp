@@ -5,8 +5,13 @@
  */
 
 #include "StarShapeConfigWidget.h"
+#include "KoShape.h"
+#include "KoUnit.h"
 #include "StarShape.h"
 #include "StarShapeConfigCommand.h"
+#include "kundo2stack.h"
+#include <qnamespace.h>
+#include <qobjectdefs.h>
 
 
 StarShapeConfigWidget::StarShapeConfigWidget()

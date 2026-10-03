@@ -6,7 +6,11 @@
 #include "kis_selection_move_command2.h"
 
 //#include "kis_image_interfaces.h"
+#include "kis_move_command_common.h"
 #include "kis_selection.h"
+#include "kis_types.h"
+#include "kundo2stack.h"
+#include <qpoint.h>
 //#include "kis_node.h"
 
 KisSelectionMoveCommand2::KisSelectionMoveCommand2(KisSelectionSP object, const QPoint& oldPos, const QPoint& newPos, KUndo2Command *parent)

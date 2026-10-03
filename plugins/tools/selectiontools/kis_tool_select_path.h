@@ -9,6 +9,7 @@
 #define KIS_TOOL_SELECT_PATH_H_
 
 #include <KoCreatePathTool.h>
+#include <klocalizedstring.h>
 #include <KisSelectionToolFactoryBase.h>
 #include "kis_tool_select_ui_base.h"
 #include "kis_delegated_tool.h"

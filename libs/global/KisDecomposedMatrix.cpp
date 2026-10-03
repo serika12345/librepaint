@@ -5,12 +5,19 @@
  */
 
 #include "kis_algebra_2d.h"
+#include "kis_assert.h"
+#include "kis_global.h"
 
 #include <array>
 
 #include <Eigen/Core>
 
+#include <cmath>
 #include <kis_debug.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qnumeric.h>
+#include <QtGlobal>
 
 namespace
 {

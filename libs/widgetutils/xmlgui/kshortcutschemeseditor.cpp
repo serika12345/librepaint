@@ -21,6 +21,12 @@
 #include <kmessagebox.h>
 #include <ksharedconfig.h>
 #include <KoFileDialog.h>
+#include <kstandardguiitem.h>
+#include <qcontainerfwd.h>
+#include <qlogging.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
 
 #include "KisShortcutsDialog.h"
 #include "kshortcutschemeshelper_p.h"

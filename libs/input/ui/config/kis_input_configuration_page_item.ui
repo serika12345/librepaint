@@ -72,6 +72,36 @@
      </property>
     </widget>
    </item>
+   <item row="4" column="1" colspan="2">
+    <layout class="QHBoxLayout" name="shortcutActionsLayout">
+     <item>
+      <spacer name="shortcutActionsSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="deleteShortcutButton">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="toolTip">
+        <string>Delete the selected canvas input shortcut</string>
+       </property>
+       <property name="text">
+        <string>Delete Shortcut</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
    <item row="1" column="0" colspan="3">
     <layout class="QHBoxLayout" name="horizontalLayout">
      <item>

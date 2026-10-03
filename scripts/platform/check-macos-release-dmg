@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: 2026 LibrePaint contributors
+# SPDX-License-Identifier: GPL-3.0-or-later
+
+set -euo pipefail
+
+if (( $# != 1 )); then
+    echo "usage: check-macos-release-dmg <dmg>" >&2
+    exit 2
+fi
+if ! command -v hdiutil >/dev/null 2>&1; then
+    echo "macOS release inspection requires hdiutil" >&2
+    exit 1
+fi
+
+dmg="$(cd -- "$(dirname -- "$1")" && pwd)/$(basename -- "$1")"
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+auditor="${MACOS_BUNDLE_AUDITOR:-$repo_root/scripts/platform/audit-macos-bundle.py}"
+work_dir="$(mktemp -d)"
+mount_point="$work_dir/mount"
+device=""
+
+cleanup() {
+    status=$?
+    trap - EXIT INT TERM
+    if [[ -n "$device" ]]; then
+        hdiutil detach "$device" >/dev/null 2>&1 \
+            || hdiutil detach -force "$device" >/dev/null 2>&1 \
+            || true
+    fi
+    rm -rf -- "$work_dir"
+    exit "$status"
+}
+trap cleanup EXIT INT TERM
+
+hdiutil verify "$dmg" >/dev/null
+mkdir -p "$mount_point"
+mount_point="$(cd -- "$mount_point" && pwd -P)"
+attach_output="$(hdiutil attach -readonly -nobrowse -mountpoint "$mount_point" "$dmg")"
+device="$(awk -v mount="$mount_point" '$NF == mount { found = $1 } END { print found }' <<<"$attach_output")"
+if [[ -z "$device" ]]; then
+    echo "hdiutil did not report the mounted DMG device" >&2
+    exit 1
+fi
+
+shopt -s nullglob
+apps=("$mount_point"/*.app)
+if (( ${#apps[@]} != 1 )); then
+    echo "macOS release DMG must contain exactly one application bundle" >&2
+    exit 1
+fi
+python3 "$auditor" "${apps[0]}"
+
+hdiutil detach "$device" >/dev/null
+device=""

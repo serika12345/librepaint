@@ -8,6 +8,7 @@
 #include "kis_grid_paintop_settings.h"
 #include "KisGridShapeOptionWidget.h"
 #include "KisGridOpOptionWidget.h"
+#include "kis_types.h"
 
 
 #include <KisColorOptionWidget.h>
@@ -17,6 +18,7 @@
 #include <KisPaintOpOptionWidgetUtils.h>
 #include <klocalizedstring.h>
 #include <KisCompositeOpOptionWidget.h>
+#include <qwidget.h>
 
 KisGridPaintOpSettingsWidget:: KisGridPaintOpSettingsWidget(QWidget* parent)
     : KisPaintOpSettingsWidget(parent)

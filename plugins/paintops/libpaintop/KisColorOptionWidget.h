@@ -7,13 +7,14 @@
 #ifndef KIS_COLOR_OPTION_WIDGET_H
 #define KIS_COLOR_OPTION_WIDGET_H
 
+#include <QScopedPointer>
+
+#include <kis_types.h>
+#include <kritapaintop_export.h>
+
 #include <kis_paintop_option.h>
 #include <KisColorOptionData.h>
 #include <lager/cursor.hpp>
-
-class KisCurveWidget;
-
-struct KisColorOptionData;
 
 class PAINTOP_EXPORT KisColorOptionWidget : public KisPaintOpOption
 {

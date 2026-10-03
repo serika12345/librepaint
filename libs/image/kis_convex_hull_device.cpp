@@ -6,6 +6,8 @@
 #include "kis_convex_hull.h"
 
 #include "kis_convex_hull_p.h"
+#include "kis_types.h"
+#include <qpolygon.h>
 
 namespace KisConvexHull
 {

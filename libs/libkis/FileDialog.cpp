@@ -7,6 +7,11 @@
 #include "FileDialog.h"
 
 #include "KoFileDialog.h"
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qobject.h>
+#include <qurl.h>
+#include <qwidget.h>
 
 struct FileDialog::Private {
     Private() {}

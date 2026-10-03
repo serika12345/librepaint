@@ -21,6 +21,7 @@
 // Calligra
 
 // Flake
+#include "KoFlake.h"
 #include "KoShape.h"
 #include "KoShapeSavingContext.h"
 #include "KoPathShape.h"
@@ -29,8 +30,14 @@
 #include <KoPathSegment.h>
 #include <KoPathPoint.h>
 #include <cmath>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qpair.h>
 #include "KisQPainterStateSaver.h"
 
+#include "kis_assert.h"
 #include "kis_global.h"
 
 class Q_DECL_HIDDEN KoShapeStroke::Private

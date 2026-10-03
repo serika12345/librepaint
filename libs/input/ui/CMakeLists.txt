@@ -41,6 +41,8 @@ target_link_libraries(kritainputuiextendedmodifiersmapperobjects
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
         Qt${QT_MAJOR_VERSION}::Widgets
+    PRIVATE
+        KF${KF_MAJOR}::ConfigCore
 )
 if(APPLE AND NOT IOS)
     target_link_libraries(kritainputuiextendedmodifiersmapperobjects

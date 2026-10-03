@@ -6,10 +6,16 @@
 
 #include "kis_convert_color_space_processing_visitor.h"
 
+#include "KoColorModelStandardIds.h"
+#include "kis_assert.h"
 #include "kis_external_layer_iface.h"
 
 #include "kis_do_something_command.h"
+#include "kis_layer.h"
+#include "kis_node.h"
 #include "kis_paint_device.h"
+#include "kis_processing_visitor.h"
+#include "kis_simple_processing_visitor.h"
 #include "kis_undo_adapter.h"
 #include "kis_transform_mask.h"
 #include "lazybrush/kis_colorize_mask.h"

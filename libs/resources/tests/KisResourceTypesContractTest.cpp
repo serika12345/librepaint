@@ -5,6 +5,7 @@
 
 #include "KisResourceTypes.h"
 
+#include <KLocalizedString>
 #include <QTest>
 
 class KisResourceTypesContractTest : public QObject

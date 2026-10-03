@@ -10,6 +10,12 @@
 #include "./kactioncollection.h"
 
 #include "kis_debug.h"
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qmap.h>
+#include <qset.h>
 
 //#define ACTIONS_CHECKSUM_SANITY_CHECK
 

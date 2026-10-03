@@ -7,11 +7,18 @@
 
 #include "KisResourceThumbnailPainter.h"
 #include "KisResourceModel.h"
+#include "KisResourceTypes.h"
 
 #include <QPainter>
 #include <QDebug>
 
 #include <KisResourceThumbnailCache.h>
+#include <qimage.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpalette.h>
+#include <qsize.h>
 
 KisResourceThumbnailPainter::KisResourceThumbnailPainter(QObject *parent)
     : QObject(parent)

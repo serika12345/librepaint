@@ -11,12 +11,20 @@
  */
 
 #include "SvgStyleParser.h"
+#include "KisQStringListFwd.h"
 #include "SvgLoadingContext.h"
 #include "SvgGraphicContext.h"
 #include "SvgUtil.h"
 
 #include "kis_dom_utils.h"
 
+#include <qcontainerfwd.h>
+#include <qdom.h>
+#include <QtGlobal>
+#include <QDebug>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
 #include <text/KoSvgText.h>
 #include <text/KoSvgTextProperties.h>
 
@@ -152,7 +160,6 @@ void SvgStyleParser::parseFont(const SvgStyles &styles)
         parsePA(gc, command, params);
     }
 }
-#include <kis_debug.h>
 void SvgStyleParser::parsePA(SvgGraphicsContext *gc, const QString &command, const QString &params)
 {
     QColor fillcolor = gc->fillColor;

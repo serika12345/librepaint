@@ -6,6 +6,9 @@
  */
 
 #include "KisBezierUtils.h"
+#include "kis_global.h"
+#include <qpoint.h>
+#include <QtGlobal>
 
 namespace KisBezierUtils
 {

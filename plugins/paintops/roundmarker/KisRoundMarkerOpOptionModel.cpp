@@ -4,6 +4,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisRoundMarkerOpOptionModel.h"
+#include "KisRoundMarkerOpOptionData.h"
+#include "KisWidgetConnectionUtils.h"
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/with.hpp>
+#include <zug/transducer/map.hpp>
 
 using namespace KisWidgetConnectionUtils;
 

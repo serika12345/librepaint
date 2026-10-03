@@ -12,9 +12,18 @@
 #include <QDomElement>
 #include <KSharedConfig>
 #include <klocalizedstring.h>
-#include <KisShortcutsDialog.h>
 #include <KConfigGroup>
+#include <qcontainerfwd.h>
 #include <qdom.h>
+#include <QtGlobal>
+#include <qkeysequence.h>
+#include <qlist.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qset.h>
+#include <qstringview.h>
+#include <qvariant.h>
 
 #include "kis_debug.h"
 #include "KoResourcePaths.h"

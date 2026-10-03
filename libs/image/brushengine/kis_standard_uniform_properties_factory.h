@@ -7,6 +7,8 @@
 #ifndef __KIS_STANDARD_UNIFORM_PROPERTIES_FACTORY_H
 #define __KIS_STANDARD_UNIFORM_PROPERTIES_FACTORY_H
 
+#include <klocalizedstring.h>
+
 #include <KoID.h>
 
 #include "kis_image_export.h"

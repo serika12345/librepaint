@@ -8,7 +8,16 @@
 
 #include <QPainter>
 #include <QMouseEvent>
+#include <algorithm>
 #include <cmath>
+#include <math.h>
+#include <qcolor.h>
+#include <qcoreevent.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qwidget.h>
 
 #include "KisAngleGauge.h"
 

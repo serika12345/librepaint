@@ -8,6 +8,7 @@
 #define KIS_TOOL_SELECT_MAGNETIC_H_
 
 #include <KConfigGroup>
+#include <klocalizedstring.h>
 #include <QPoint>
 #include <QPainterPath>
 #include <KoShape.h>

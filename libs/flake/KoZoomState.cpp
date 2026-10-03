@@ -5,6 +5,7 @@
  */
 
 #include "KoZoomState.h"
+#include <qnumeric.h>
 
 bool KoZoomState::operator==(const KoZoomState &other) const {
     return mode == other.mode &&

@@ -6,9 +6,14 @@
  */
 #include "KisRoundMarkerOpOptionWidget.h"
 
+#include "KisWidgetConnectionUtils.h"
 #include "kis_image_config.h"
 
-#include <lager/constant.hpp>
+#include <functional>
+#include "kis_paintop_option.h"
+#include "kis_types.h"
+#include <lager/cursor.hpp>
+#include <qwidget.h>
 #include "ui_kis_roundmarker_option.h"
 
 #include "KisRoundMarkerOpOptionModel.h"

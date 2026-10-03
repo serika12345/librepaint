@@ -5,6 +5,12 @@
  */
 
 #include "kis_color_selector_settings.h"
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
+#include "KoID.h"
+#include "kis_assert.h"
+#include "kis_icon_utils.h"
+#include "ui/workspace/kis_preference_set_registry.h"
 #include "ui_wdg_color_selector_settings.h"
 
 #include <QVBoxLayout>
@@ -12,11 +18,18 @@
 #include <QComboBox>
 
 #include <kconfiggroup.h>
+#include <kguiitem.h>
 #include <ksharedconfig.h>
 #include <kstandardguiitem.h>
 
 
-#include <kis_icon.h>
+#include <qcolor.h>
+#include <qdialog.h>
+#include <qlayout.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
+#include <qwidget.h>
 #include "KoColorSpace.h"
 #include "KoColorSpaceRegistry.h"
 #include "KoColorProfile.h"
@@ -572,5 +585,4 @@ KisColorSelectorSettingsDialog::KisColorSelectorSettingsDialog(QWidget *parent) 
     connect(buttonBox->button(QDialogButtonBox::RestoreDefaults),
             SIGNAL(clicked()),  m_widget, SLOT(loadDefaultPreferences()));
 }
-
 

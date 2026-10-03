@@ -12,12 +12,18 @@
 #include <QFile>
 #include <QStandardPaths>
 
-#include <kis_debug.h>
-#include <kis_global.h>
 
+#include "KoDialog.h"
 #include "application/ui/workspace/kis_splash_screen.h"
 #include "ui_wdgaboutapplication.h"
 #include <KisPortingUtils.h>
+#include <QtGlobal>
+#include <qdebug.h>
+#include <qfiledevice.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qwidget.h>
 
 class Q_DECL_HIDDEN WdgAboutApplication : public QWidget, public Ui::WdgAboutApplication
 {

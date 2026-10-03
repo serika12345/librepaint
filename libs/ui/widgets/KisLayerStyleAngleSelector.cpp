@@ -5,8 +5,12 @@
  */
 
 #include <kis_signals_blocker.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 #include "KisLayerStyleAngleSelector.h"
+#include "ui_wdgKisLayerStyleAngleSelector.h"
 
 KisLayerStyleAngleSelector::KisLayerStyleAngleSelector(QWidget *parent)
     : QWidget(parent)

@@ -11,7 +11,10 @@
 #include <QLayout>
 #include <QSlider>
 
-#include <KoColor.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
+#include <qvariant.h>
+#include <qwidget.h>
 #include <resources/KoPattern.h>
 #include <KisGlobalResourcesInterface.h>
 #include <kis_generator_registry.h>
@@ -21,6 +24,11 @@
 #include <kis_signals_blocker.h>
 #include <KisSpinBoxI18nHelper.h>
 
+#include "KisAngleGauge.h"
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
+#include "kis_config_widget.h"
+#include "kis_types.h"
 #include "ui_wdgpatternoptions.h"
 
 KisWdgPattern::KisWdgPattern(QWidget* parent)
@@ -215,4 +223,3 @@ void KisWdgPattern::slot_sliderAlignToPixelGridY_valueChanged(int value)
         Q_EMIT sigConfigurationItemChanged();
     }
 }
-

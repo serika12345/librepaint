@@ -10,6 +10,7 @@
 #define KISTOOLENCLOSEANDFILLFACTORY_H
 
 #include <KisToolPaintFactoryBase.h>
+#include <klocalizedstring.h>
 
 #include "KisToolEncloseAndFill.h"
 

@@ -5,6 +5,8 @@
  */
 
 #include "kis_layer_composition.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
 #include "kis_image.h"
 #include "kis_node_visitor.h"
 #include "kis_group_layer.h"
@@ -17,11 +19,13 @@
 #include "kis_transform_mask.h"
 #include "kis_transparency_mask.h"
 #include "kis_selection_mask.h"
+#include "kis_types.h"
 #include "lazybrush/kis_colorize_mask.h"
 #include "kis_layer_utils.h"
 #include "kis_node_query_path.h"
 
 #include <QDomDocument>
+#include <qmap.h>
 
 class KisCompositionVisitor : public KisNodeVisitor {
 public:

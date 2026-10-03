@@ -118,6 +118,7 @@ let
       })
     else
       input;
+  targetPyQt6Sip = useTargetPythonHeaders targetPythonPackages."pyqt6-sip";
   drmingw = import ./drmingw.nix { inherit pkgs; };
   qt = pkgs.qt6Packages.overrideScope (final: previous: {
     # qtbase runs host tools while cross compiling.  Supply the lean host
@@ -737,7 +738,7 @@ set(libjpeg-turbo_FIND_COMPONENTS "''${_krita_jpeg_turbo_components}")'
 in
 pkgs.stdenv.mkDerivation {
   pname = "librepaint-windows-unwrapped";
-  version = "1.0.2";
+  version = "1.0.3";
   src = source;
 
   strictDeps = true;
@@ -835,6 +836,7 @@ pkgs.stdenv.mkDerivation {
     windowsDrMingw = drmingw;
     windowsPythonPackages = [
       targetPyQt6
+      targetPyQt6Sip
     ];
   };
 

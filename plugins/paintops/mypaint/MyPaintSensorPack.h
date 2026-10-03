@@ -8,6 +8,7 @@
 #define MYPAINTSENSORPACK_H
 
 #include <boost/operators.hpp>
+#include <klocalizedstring.h>
 
 #include <KisSensorData.h>
 #include <KisSensorPackInterface.h>

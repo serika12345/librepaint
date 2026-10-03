@@ -17,7 +17,12 @@
 
 #include <KoCanvasBase.h>
 #include <KoPointerEvent.h>
+#include <optional>
+#include <qobject.h>
+#include <qpoint.h>
+#include <qscopedpointer.h>
 
+#include "kis_abstract_input_action.h"
 #include "kis_tool_proxy.h"
 #include "kis_input_manager.h"
 

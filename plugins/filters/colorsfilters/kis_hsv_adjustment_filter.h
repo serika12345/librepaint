@@ -10,6 +10,7 @@
 
 
 #include "filter/kis_filter.h"
+#include <klocalizedstring.h>
 #include "kis_config_widget.h"
 #include "ui_wdg_hsv_adjustment.h"
 #include "filter/kis_color_transformation_filter.h"

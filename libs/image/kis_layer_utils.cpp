@@ -5,6 +5,9 @@
  */
 
 #include "kis_layer_utils.h"
+#include <klocalizedstring.h>
+
+#include <QDebug>
 
 #include <algorithm>
 
@@ -12,6 +15,14 @@
 #include <KoColorSpaceConstants.h>
 #include <KoProperties.h>
 
+#include "KisImageSignals.h"
+#include "KisQStringListFwd.h"
+#include "KisSelectionTags.h"
+#include "KoCompositeOpIds.h"
+#include "kis_assert.h"
+#include "kis_base_node.h"
+#include "kis_mask.h"
+#include "kis_paint_device.h"
 #include "kis_painter.h"
 #include "kis_image.h"
 #include "kis_node.h"
@@ -19,9 +30,12 @@
 #include "kis_paint_layer.h"
 #include "kis_clone_layer.h"
 #include "kis_group_layer.h"
+#include "kis_pointer_utils.h"
 #include "kis_selection.h"
 #include "kis_selection_mask.h"
 #include "kis_meta_data_merge_strategy.h"
+#include <functional>
+#include <future>
 #include <kundo2command.h>
 #include "commands/kis_image_layer_add_command.h"
 #include "commands/kis_image_layer_remove_command.h"
@@ -36,15 +50,28 @@
 #include "kis_raster_keyframe_channel.h"
 #include "kis_projection_leaf.h"
 #include "kis_scalar_keyframe_channel.h"
+#include "kis_stroke_job_strategy.h"
 #include "kis_time_span.h"
 #include "kis_command_utils.h"
 #include "commands_new/kis_change_projection_color_command.h"
 #include "kis_layer_properties_icons.h"
+#include "kis_types.h"
+#include "kis_undo_stores.h"
+#include "kundo2magicstring.h"
 #include "lazybrush/kis_colorize_mask.h"
 #include "commands/kis_node_property_list_command.h"
 #include "commands/kis_node_compositeop_command.h"
 #include <KisDelayedUpdateNodeInterface.h>
 #include <KisCroppedOriginalLayerInterface.h>
+#include <optional>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qregion.h>
+#include <qscopedpointer.h>
+#include <qset.h>
+#include <qsharedpointer.h>
 #include "krita_container_utils.h"
 #include "krita_utils.h"
 #include "kis_image_signal_router.h"

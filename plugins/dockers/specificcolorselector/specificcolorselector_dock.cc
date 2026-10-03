@@ -9,12 +9,11 @@
 #include <klocalizedstring.h>
 #include <QLayout>
 
-#include <kis_layer.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_canvas2.h>
 #include <canvas/kis_canvas_resource_provider.h>
-#include <kis_image.h>
-#include <kis_display_color_converter.h>
+#include <qdockwidget.h>
+#include <qobjectdefs.h>
 
 #include "kis_specific_color_selector_widget.h"
 

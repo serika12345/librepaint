@@ -5,6 +5,7 @@
  */
 
 #include "KisResourceModel.h"
+#include <klocalizedstring.h>
 
 #include <QBuffer>
 #include <QSqlError>
@@ -15,12 +16,24 @@
 
 #include <KisResourceModelProvider.h>
 #include <KisStorageModel.h>
-#include <KisTagModel.h>
-#include <KisResourceTypes.h>
 #include <kis_debug.h>
-#include <KisGlobalResourcesInterface.h>
+#include <qabstractitemmodel.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qsortfilterproxymodel.h>
+#include <qvariant.h>
 
 #include "KisResourceQueryMapper.h"
+#include "KisResourceStorage.h"
+#include "KisTag.h"
+#include "KoResource.h"
 
 struct KisAllResourcesModel::Private {
     QSqlQuery resourcesQuery;

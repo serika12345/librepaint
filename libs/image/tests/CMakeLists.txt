@@ -13,7 +13,11 @@ endif()
 
 set(KisRandomGenerator2DDemoSources KisRandomGenerator2DDemo.cpp kimageframe.cpp)
 ki18n_wrap_ui(KisRandomGenerator2DDemoSources KisRandomGenerator2DDemo.ui)
-add_executable(KisRandomGenerator2DDemo ${KisRandomGenerator2DDemoSources})
+if(ANDROID)
+    add_executable(KisRandomGenerator2DDemo EXCLUDE_FROM_ALL ${KisRandomGenerator2DDemoSources})
+else()
+    add_executable(KisRandomGenerator2DDemo ${KisRandomGenerator2DDemoSources})
+endif()
 target_link_libraries(KisRandomGenerator2DDemo kritaimage)
 ecm_mark_as_test(KisRandomGenerator2DDemo)
 
@@ -826,7 +830,6 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Test
         Boost::boost
-        Eigen3::Eigen
 )
 target_include_directories(KisCubicCurveContractTest PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/..
@@ -1437,6 +1440,8 @@ target_compile_definitions(KisCropSavedExtraDataContractTest PRIVATE
 
 kis_add_test(
     KisAnnotationContractTest.cpp
+    ../kis_annotation.cpp
+    TEST_NAME KisAnnotationContractTest
     LINK_LIBRARIES
         kritaglobalsharedobjects
         Qt${QT_MAJOR_VERSION}::Core

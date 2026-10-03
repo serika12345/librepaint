@@ -6,7 +6,17 @@
 
 #include "kis_stroke.h"
 
+#include "kis_assert.h"
+#include "kis_stroke_job.h"
 #include "kis_stroke_strategy.h"
+#include "kis_types.h"
+#include <algorithm>
+#include <functional>
+#include <qalgorithms.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qqueue.h>
 
 
 KisStroke::KisStroke(KisStrokeStrategy *strokeStrategy, Type type, int levelOfDetail)

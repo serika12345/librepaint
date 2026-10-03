@@ -5,6 +5,12 @@
  */
 
 #include "kis_acyclic_signal_connector.h"
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
 
 
 

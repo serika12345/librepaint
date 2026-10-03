@@ -7,16 +7,23 @@
  */
 
 #include <QPainter>
+#include <klocalizedstring.h>
 #include <QDoubleSpinBox>
 #include <QAction>
 #include <QDialog>
 #include <QMenu>
 
 #include <KoColorSpace.h>
+#include <qboxlayout.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
 #include <resources/KoSegmentGradient.h>
 
 
+#include "KisGradientWidgetsUtils.h"
 #include "KisSegmentGradientSlider.h"
+#include "ui_wdgsegmentgradienteditor.h"
 
 #include <KoCanvasResourcesIds.h>
 #include <KoCanvasResourcesInterface.h>

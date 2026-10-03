@@ -6,6 +6,9 @@
 
 #include "KisHandleStyle.h"
 #include "kis_painting_tweaks.h"
+#include <qcolor.h>
+#include <qnamespace.h>
+#include <qscopedpointer.h>
 
 namespace {
 void initDashedStyle(const QColor &baseColor, const QColor &handleFill, KisHandleStyle *style, const QColor &white = QColor(Qt::white)) {

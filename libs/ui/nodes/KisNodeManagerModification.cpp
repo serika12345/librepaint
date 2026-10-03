@@ -4,9 +4,11 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_types.h"
 #include "nodes/kis_node_manager.h"
 
 #include <KLocalizedString>
+#include <qobject.h>
 
 bool KisNodeManager::canModifyLayers(KisNodeList nodes, bool showWarning)
 {

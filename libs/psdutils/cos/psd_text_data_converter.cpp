@@ -4,10 +4,26 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "psd_text_data_converter.h"
+#include "KoFontLibraryResourceUtils.h"
+#include "KoID.h"
+#include "KoIntegerMaths.h"
 
-#include <ft2build.h>
+#include <cstddef>
+#include <freetype/config/ftheader.h>
+#include <klocalizedstring.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qdom.h>
+#include <qfont.h>
+#include <QtGlobal>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qscopedpointer.h>
+#include <vector>
 #include FT_FREETYPE_H
-#include FT_TRUETYPE_TABLES_H
 
 #include <KoCSSFontInfo.h>
 #include <KoSvgTextProperties.h>

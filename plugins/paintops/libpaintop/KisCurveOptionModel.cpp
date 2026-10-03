@@ -6,9 +6,29 @@
 
 #include "KisCurveOptionModel.h"
 
+#include <algorithm>
+#include <functional>
+#include <optional>
+#include <tuple>
+#include <vector>
+
+#include <QRectF>
+#include <QString>
+#include <QtGlobal>
+
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/lenses.hpp>
 #include <lager/lenses/tuple.hpp>
-#include <KisZug.h>
+#include <lager/reader.hpp>
+#include <lager/with.hpp>
+
+#include "KisCurveOptionDataCommon.h"
+#include "KisCurveRangeModelInterface.h"
 #include <KisLager.h>
+#include "KisSensorData.h"
+#include <KisZug.h>
+#include <kis_assert.h>
 
 auto activeCurveLens = lager::lenses::getset(
     [](const std::tuple<KisCurveOptionDataCommon, QString> &data) -> QString {

@@ -6,12 +6,18 @@
  */
 
 #include "KisWdgOptionsBrush.h"
+#include "KisQStringListFwd.h"
+#include "kis_config_widget.h"
+#include "kis_types.h"
 
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_image.h>
 #include <kis_node.h>
 #include <KoProperties.h>
 #include <document/KisDocument.h>
+#include <qlayoutitem.h>
+#include <qobjectdefs.h>
+#include <qvector.h>
 
 KisWdgOptionsBrush::KisWdgOptionsBrush(QWidget *parent)
     : KisConfigWidget(parent)

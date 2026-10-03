@@ -8,9 +8,14 @@
 
 #include "widgets/kis_cmb_idlist.h"
 
+#include <algorithm>
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 #include <KoID.h>
+#include <qcombobox.h>
+#include <qlist.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 KisCmbIDList::KisCmbIDList(QWidget * parent, const char * name)
     : QComboBox(parent)

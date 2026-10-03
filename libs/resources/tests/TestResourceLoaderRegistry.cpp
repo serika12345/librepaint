@@ -5,6 +5,7 @@
  */
 
 #include "TestResourceLoaderRegistry.h"
+#include <klocalizedstring.h>
 #include <simpletest.h>
 #include <QStandardPaths>
 #include <QDir>
@@ -34,4 +35,3 @@ void TestResourceLoaderRegistry::testRegistry()
 }
 
 SIMPLE_TEST_MAIN(TestResourceLoaderRegistry)
-

@@ -5,9 +5,12 @@
  */
 
 #include "SvgCreateTextStrategy.h"
+#include "KisHandleStyle.h"
+#include "KoFlake.h"
+#include "KoSvgText.h"
+#include "KoSvgTextProperties.h"
 #include "SvgTextTool.h"
 
-#include <KoFontRegistry.h>
 
 #include "KisHandlePainterHelper.h"
 #include "KoCanvasBase.h"
@@ -31,6 +34,13 @@
 
 #include <KoPathShape.h>
 #include <KoPathSegment.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpolygon.h>
 
 SvgCreateTextStrategy::SvgCreateTextStrategy(SvgTextTool *tool, const QPointF &clicked, KoShape *shape)
     : KoInteractionStrategy(tool)

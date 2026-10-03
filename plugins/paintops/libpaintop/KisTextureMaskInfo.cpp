@@ -7,8 +7,19 @@
 #include "KisTextureMaskInfo.h"
 
 #include <kis_paintop_settings.h>
+#include <qimage.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qrgb.h>
 #include <resources/KoPattern.h>
 #include "KisTextureOptionData.h"
+#include "KoColorSpaceConstants.h"
+#include "kis_paint_device.h"
+#include "kis_properties_configuration.h"
+#include "kis_types.h"
 #include <KoResourceLoadResult.h>
 
 #include <KoColorSpace.h>

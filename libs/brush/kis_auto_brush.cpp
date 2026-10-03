@@ -7,8 +7,9 @@
  */
 
 #include "kis_auto_brush.h"
+#include <klocalizedstring.h>
 
-#include <kis_debug.h>
+#include <cstring>
 #include <math.h>
 
 #include <QPainterPath>
@@ -25,12 +26,23 @@
 #include <kis_fixed_paint_device.h>
 #include <kis_paint_device.h>
 #include <brushengine/kis_paint_information.h>
-#include <kis_mask_generator.h>
-#include <kis_boundary.h>
 #include <brushengine/kis_paintop_lod_limitations.h>
 #include <kis_brush_mask_applicator_base.h>
+#include "KoID.h"
+#include "KoResource.h"
 #include "kis_algebra_2d.h"
+#include "kis_assert.h"
+#include "kis_base_mask_generator.h"
+#include "kis_brush.h"
+#include "kis_types.h"
 #include <KisOptimizedBrushOutline.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qscopedpointer.h>
+#include <qsize.h>
+#include <qthread.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <stdlib.h>

@@ -6,7 +6,15 @@
 #ifndef KISDYNAMICSENSORFACTORYFADE_H
 #define KISDYNAMICSENSORFACTORYFADE_H
 
-#include "KisSimpleDynamicSensorFactory.h"
+#include <QString>
+
+#include <KisCurveOptionDataCommon.h>
+#include <KisSimpleDynamicSensorFactory.h>
+#include <lager/cursor.hpp>
+
+#include <kritapaintop_export.h>
+
+class QWidget;
 
 class PAINTOP_EXPORT KisDynamicSensorFactoryFade : public KisSimpleDynamicSensorFactory
 {

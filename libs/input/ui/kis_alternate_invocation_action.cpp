@@ -13,7 +13,10 @@
 
 #include <kis_tool.h>
 #include <kis_tool_proxy.h>
+#include <qhash.h>
+#include <qnamespace.h>
 
+#include "kis_abstract_input_action.h"
 #include "kis_input_manager.h"
 
 namespace

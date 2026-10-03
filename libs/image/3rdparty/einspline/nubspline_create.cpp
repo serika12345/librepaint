@@ -19,6 +19,10 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include "nubspline_create.h"
+#include "bspline_base.h"
+#include "local_definitions.h"
+#include "nubasis.h"
+#include "nubspline_structs.h"
 #include <math.h>
 #include <assert.h>
 #ifndef _XOPEN_SOURCE

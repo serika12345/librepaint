@@ -7,9 +7,11 @@
 #define KISCOLORSOURCEOPTIONDATA_H
 
 
-#include "kis_types.h"
+#include <KoID.h>
 #include <boost/operators.hpp>
 #include <kritapaintop_export.h>
+
+#include <QVector>
 
 class KisPropertiesConfiguration;
 

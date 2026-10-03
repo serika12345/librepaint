@@ -9,9 +9,13 @@
 #include <kpluginfactory.h>
 
 #include <document/KisDocument.h>
-#include <kis_image.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
+#include "KisImportExportErrorCode.h"
+#include "KisImportExportFilter.h"
 #include "jp2_converter.h"
+#include "kis_types.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaJp2ImportFactory, "krita_jp2_import.json", registerPlugin<jp2Import>();)
 

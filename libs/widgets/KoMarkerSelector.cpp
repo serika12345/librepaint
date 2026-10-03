@@ -6,6 +6,7 @@
 
 #include "KoMarkerSelector.h"
 
+#include "KoFlake.h"
 #include "KoMarker.h"
 #include "KoMarkerModel.h"
 #include "KoMarkerItemDelegate.h"
@@ -13,6 +14,12 @@
 
 #include <QPainter>
 #include <QPainterPath>
+#include <qcombobox.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qpaintdevice.h>
+#include <qstyleoption.h>
+#include <qwidget.h>
 
 class KoMarkerSelector::Private
 {

@@ -8,8 +8,8 @@
 
 #include <klocalizedstring.h>
 
-#include <KoCanvasResourceProvider.h>
 #include <KoCanvasBase.h>
+#include <qdockwidget.h>
 
 #include "kis_brush_hud.h"
 #include "kis_canvas2.h"

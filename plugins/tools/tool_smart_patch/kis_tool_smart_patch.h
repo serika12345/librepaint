@@ -8,6 +8,7 @@
 #define KIS_TOOL_SMART_PATCH_H_
 
 #include <QScopedPointer>
+#include <klocalizedstring.h>
 #include <QPainterPath>
 
 #include "kis_tool_paint.h"

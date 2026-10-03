@@ -7,6 +7,8 @@
  */
 
 #include "KisScreentoneBrightnessContrastFunctions.h"
+#include <qnumeric.h>
+#include <QtGlobal>
 
 namespace KisScreentoneBrightnessContrastFunctions {
 

@@ -5,8 +5,17 @@
  */
 #include "KisSizeOptionWidget.h"
 
+#include <functional>
+
+#include <lager/cursor.hpp>
+#include <lager/reader.hpp>
+
+#include <KisCurveOptionDataCommon.h>
+#include <KisCurveOptionWidget.h>
 #include <KisLager.h>
+#include <KisSizeOptionData.h>
 #include <kis_paintop_lod_limitations.h>
+#include <kis_paintop_option.h>
 
 struct KisSizeOptionWidget::Private
 {

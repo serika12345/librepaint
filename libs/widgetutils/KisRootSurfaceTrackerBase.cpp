@@ -13,6 +13,8 @@
 #include <QWindow>
 
 #include <kis_assert.h>
+#include <QtGlobal>
+#include <qpointer.h>
 
 
 namespace {

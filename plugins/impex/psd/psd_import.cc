@@ -8,8 +8,12 @@
 #include <kpluginfactory.h>
 
 #include <document/KisDocument.h>
-#include <kis_image.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
+#include "KisImportExportErrorCode.h"
+#include "KisImportExportFilter.h"
+#include "kis_types.h"
 #include "psd_loader.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(KisPsdImportFactory, "krita_psd_import.json", registerPlugin<psdImport>();)

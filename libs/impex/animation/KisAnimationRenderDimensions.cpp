@@ -4,6 +4,7 @@
  */
 
 #include "KisAnimationRender.h"
+#include "KisAnimationRenderingOptions.h"
 
 namespace
 {

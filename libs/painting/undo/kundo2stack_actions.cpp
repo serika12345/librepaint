@@ -13,6 +13,7 @@
 #include <kactioncollection.h>
 #include <klocalizedstring.h>
 #include <kstandardaction.h>
+#include <kstandardshortcut.h>
 
 QAction *KUndo2Stack::createRedoAction(KisKActionCollection *actionCollection, const QString &actionName)
 {

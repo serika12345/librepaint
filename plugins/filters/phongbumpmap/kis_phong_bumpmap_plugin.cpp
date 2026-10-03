@@ -9,6 +9,8 @@
 
 #include <kpluginfactory.h>
 #include <filter/kis_filter_registry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(KisPhongBumpmapFactory, "kritaphongbumpmapfilter.json", registerPlugin<KisPhongBumpmapPlugin>();)
 

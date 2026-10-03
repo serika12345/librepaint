@@ -8,7 +8,14 @@
 #include "KoPathBreakAtPointCommand.h"
 
 #include "KoPathPoint.h"
+#include "KoPathPointData.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
+#include <algorithm>
 #include <klocalizedstring.h>
+#include <qalgorithms.h>
+#include <qlist.h>
+#include <qmap.h>
 
 /*
  * The algorithm to break a multiple open or closed subpaths is:

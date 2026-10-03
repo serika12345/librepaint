@@ -6,6 +6,14 @@
  */
 
 #include "kis_tool_pencil.h"
+#include <klocalizedstring.h>
+#include "KisFigurePaintingOptions.h"
+#include "KoFlakeTypes.h"
+#include "KoPencilTool.h"
+#include "kis_icon.h"
+#include "kis_tool.h"
+#include "kundo2magicstring.h"
+#include "ui_wdggeometryoptions.h"
 
 #include <QPainterPath>
 #include <KoPathShape.h>
@@ -18,6 +26,12 @@
 
 #include <kis_cursor.h>
 #include <kis_image.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
 
 KisToolPencil::KisToolPencil(KoCanvasBase * canvas)
     : DelegatedPencilTool(canvas, Qt::ArrowCursor,

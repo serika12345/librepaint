@@ -5,9 +5,12 @@
  */
 
 #include "kis_fill_interval_map.h"
+#include "kis_assert.h"
+#include "kis_fill_interval.h"
 #include "kis_fill_interval_map_p.h"
 
 #include "kis_fill_sanity_checks.h"
+#include <qstack.h>
 
 
 KisFillIntervalMap::KisFillIntervalMap()

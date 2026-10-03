@@ -212,8 +212,10 @@ kis_add_test(
         Qt${QT_MAJOR_VERSION}::Test
         Qt${QT_MAJOR_VERSION}::Gui
         KF${KF_MAJOR}::ConfigCore
-        KF${KF_MAJOR}::ColorScheme
 )
+if (QT_MAJOR_VERSION STREQUAL "6")
+    target_link_libraries(KColorSchemeThemeCompatibilityTest KF6::ColorScheme)
+endif()
 
 kis_add_test(
     KoCheckerBoardPainterContractTest.cpp

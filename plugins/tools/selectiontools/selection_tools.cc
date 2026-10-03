@@ -9,8 +9,9 @@
 #include "selection_tools.h"
 #include <klocalizedstring.h>
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 #include "KoToolRegistry.h"
 

@@ -6,6 +6,7 @@
 #include "KisRoundMarkerOpOptionData.h"
 
 #include "kis_properties_configuration.h"
+#include <qhashfunctions.h>
 
 
 const QString ROUNDMARKER_DIAMETER = "diameter";

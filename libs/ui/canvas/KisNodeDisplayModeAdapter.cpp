@@ -7,6 +7,9 @@
 #include "canvas/KisNodeDisplayModeAdapter.h"
 #include "application/kis_config.h"
 #include "kis_config_notifier.h"
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
 
 
 KisNodeDisplayModeAdapter::KisNodeDisplayModeAdapter(QObject *parent)

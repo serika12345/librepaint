@@ -6,10 +6,13 @@
  */
 
 #include "KoColorSpace.h"
+#include "KoBgrColorSpaceTraits.h"
+#include "KoColorSpaceConstants.h"
 #include "KoColorSpace_p.h"
 
 #include "KoChannelInfo.h"
 #include "DebugPigment.h"
+#include "KoColorimetryUtils.h"
 #include "KoCompositeOp.h"
 #include "KoColorTransformation.h"
 #include "KoColorTransformationFactory.h"
@@ -18,13 +21,13 @@
 #include "KoColorConversionSystem.h"
 #include "KoColorSpaceRegistry.h"
 #include "KoColorProfile.h"
+#include "KoCompositeOpIds.h"
 #include "KoCopyColorConversionTransformation.h"
 #include "KoFallBackColorTransformation.h"
 #include "KoMixColorsOp.h"
 #include "KoConvolutionOp.h"
 #include "KoCompositeOpRegistry.h"
 #include "KoColorSpaceEngine.h"
-#include <KoColorSpaceTraits.h>
 #include <KoColorSpacePreserveLightnessUtils.h>
 #include "KisDitherOp.h"
 
@@ -34,6 +37,16 @@
 #include <QBitArray>
 #include <QPolygonF>
 #include <QPointF>
+#include <cstring>
+#include <qalgorithms.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qlist.h>
+#include <qrgb.h>
+#include <qscopedpointer.h>
 
 
 KoColorSpace::KoColorSpace()

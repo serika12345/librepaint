@@ -9,6 +9,11 @@
 #include <QStringList>
 
 #include <kis_debug.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
 
 #include "kis_meta_data_entry.h"
 #include "kis_meta_data_filter.h"

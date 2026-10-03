@@ -10,6 +10,9 @@
 #include "kis_meta_data_entry.h"
 #include "kis_meta_data_schema.h"
 #include "kis_meta_data_type_info.h"
+#include <QtGlobal>
+#include <qlist.h>
+#include <qmap.h>
 
 using namespace KisMetaData;
 

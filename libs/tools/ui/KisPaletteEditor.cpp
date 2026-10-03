@@ -28,7 +28,24 @@
 #include <ResourceDebug.h>
 
 #include "KisPaletteEditor.h"
+#include "KisResourceStorage.h"
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
+#include "KisSwatch.h"
+#include "KoColor.h"
 #include <KisResourceUserOperations.h>
+#include <qabstractitemmodel.h>
+#include <QtGlobal>
+#include <qboxlayout.h>
+#include <qdir.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qset.h>
+#include <qvariant.h>
 
 namespace {
 

@@ -6,14 +6,13 @@
 #ifndef KISSENSORWITHLENGTHMODEL_H
 #define KISSENSORWITHLENGTHMODEL_H
 
-#include "kritapaintop_export.h"
-
 #include <QObject>
 
-#include <KisCurveOptionData.h>
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>
 
+#include "KisSensorData.h"
+#include "kritapaintop_export.h"
 
 class PAINTOP_EXPORT KisSensorWithLengthModel : public QObject
 {

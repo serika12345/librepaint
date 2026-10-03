@@ -8,6 +8,7 @@
 #include "KisResourceItemChooserSync.h"
 
 #include <QGlobalStatic>
+#include <QtGlobal>
 
 Q_GLOBAL_STATIC(KisResourceItemChooserSync, s_instance)
 

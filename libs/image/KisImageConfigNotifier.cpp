@@ -7,6 +7,8 @@
 #include "KisImageConfigNotifier.h"
 
 #include <QGlobalStatic>
+#include <qobjectdefs.h>
+#include <QtGlobal>
 
 #include "kis_signal_compressor.h"
 

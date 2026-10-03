@@ -13,6 +13,10 @@
 #include <canvas/kis_canvas_resource_provider.h>
 #include <kis_pattern_chooser.h>
 #include <application/ui/workspace/KisViewManager.h>
+#include <qdockwidget.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
 #include <resources/KoPattern.h>
 
 PatternDockerDock::PatternDockerDock( )

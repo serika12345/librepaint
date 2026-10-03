@@ -7,6 +7,10 @@
 #include "KisSnapPixelStrategy.h"
 
 #include <QPainterPath>
+#include "KoSnapStrategy.h"
+#include "kis_assert.h"
+#include <qsize.h>
+#include <QtGlobal>
 #include "kis_canvas2.h"
 #include "KoSnapProxy.h"
 

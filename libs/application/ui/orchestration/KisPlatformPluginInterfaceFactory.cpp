@@ -14,6 +14,9 @@
 #include <kis_assert.h>
 
 #include <input/ui/KisExtendedModifiersMapperPluginInterface.h>
+#include <qglobalstatic.h>
+#include <QtGlobal>
+#include <utility>
 
 #if KRITA_USE_SURFACE_COLOR_MANAGEMENT_API
 

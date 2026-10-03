@@ -6,7 +6,9 @@
 
 #include "KoColorProofingConversionTransformation.h"
 
+#include "KoColorConversionTransformation.h"
 #include "KoColorSpace.h"
+#include <QtGlobal>
 
 
 KoColorProofingConversionTransformation::KoColorProofingConversionTransformation(const KoColorSpace* srcCs,

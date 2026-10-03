@@ -4,6 +4,8 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGradientOption.h"
+#include "KisCurveOption.h"
+#include "sensors/KisDynamicSensor.h"
 
 #include <KisColorSmudgeStandardOptionData.h>
 #include <KoColor.h>

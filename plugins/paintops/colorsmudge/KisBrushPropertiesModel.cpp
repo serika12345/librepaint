@@ -6,6 +6,11 @@
 #include "KisBrushPropertiesModel.h"
 
 #include <KoResourceLoadResult.h>
+#include "KisBrushModel.h"
+#include "kis_assert.h"
+#include "kis_brush.h"
+#include <functional>
+#include <lager/reader.hpp>
 #include "kis_brush_registry.h"
 
 

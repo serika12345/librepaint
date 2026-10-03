@@ -15,6 +15,7 @@ target_include_directories(kritaresourcestypesobjects
 target_link_libraries(kritaresourcestypesobjects
     PUBLIC
         Qt${QT_MAJOR_VERSION}::Core
+    PRIVATE
         KF${KF_MAJOR}::I18n
 )
 set_target_properties(kritaresourcestypesobjects PROPERTIES
@@ -461,6 +462,7 @@ target_link_libraries(kritastoragefilterproxymodelobjects
     PUBLIC
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
         KF${KF_MAJOR}::I18n
 )
 set_target_properties(kritastoragefilterproxymodelobjects PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -480,6 +482,7 @@ target_link_libraries(kritastoragefilterproxymodelsourceobjects
     PUBLIC
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Gui
+        Boost::boost
         KF${KF_MAJOR}::I18n
 )
 set_target_properties(kritastoragefilterproxymodelsourceobjects PROPERTIES

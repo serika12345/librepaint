@@ -4,6 +4,7 @@
  */
 
 #include "KisSynchronousImportUserFeedback.h"
+#include "KisImportUserFeedbackInterface.h"
 
 #include <QWidget>
 

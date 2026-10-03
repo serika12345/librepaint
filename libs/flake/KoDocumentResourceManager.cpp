@@ -10,13 +10,15 @@
 
 #include <QVariant>
 #include <kundo2stack.h>
-#include <FlakeDebug.h>
 #include <KoColor.h>
 #include <KoUnit.h>
+#include <qobject.h>
+#include <QtGlobal>
 
 #include "KoShape.h"
 #include "KoShapeController.h"
 #include "KoResourceManager_p.h"
+#include "kis_assert.h"
 
 class Q_DECL_HIDDEN KoDocumentResourceManager::Private
 {

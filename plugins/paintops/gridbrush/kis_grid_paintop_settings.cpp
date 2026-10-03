@@ -10,10 +10,27 @@
 
 #include "KisGridShapeOptionData.h"
 #include "KisGridOpOptionData.h"
+#include "KisPaintopPropertiesBase.h"
+#include "KoID.h"
+#include "kis_current_outline_fetcher.h"
+#include "kis_outline_generation_policy.h"
+#include "kis_paint_information.h"
+#include "kis_paintop_settings.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
+#include "kis_uniform_paintop_property.h"
 
-#include <KisColorOptionData.h>
 #include <QPainterPath>
 #include <KisOptimizedBrushOutline.h>
+#include <cmath>
+#include <klocalizedstring.h>
+#include <qlist.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
 
 struct KisGridPaintOpSettings::Private
 {

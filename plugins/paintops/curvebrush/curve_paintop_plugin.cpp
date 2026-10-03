@@ -9,14 +9,16 @@
 #include "curve_paintop_plugin.h"
 #include <klocalizedstring.h>
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
 #include <brushengine/kis_paintop_registry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 #include "kis_curve_paintop_settings.h"
 #include "kis_curve_paintop.h"
 #include "kis_curve_paintop_settings_widget.h"
+#include "kis_paintop_factory.h"
 #include "kis_simple_paintop_factory.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(CurvePaintOpPluginFactory, "kritacurvepaintop.json", registerPlugin<CurvePaintOpPlugin>();)

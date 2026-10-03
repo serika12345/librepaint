@@ -6,9 +6,11 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 
+#include "KisSelectionTags.h"
 #include <kis_selection_modifier_mapping.h>
 
 #include <QKeyEvent>
+#include <qnamespace.h>
 
 SelectionAction mapSelectionToolModifiers(Qt::KeyboardModifiers modifiers,
                                           bool swapControlAndAlt)

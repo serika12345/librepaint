@@ -7,15 +7,23 @@
  */
 
 #include "kis_color_input.h"
+#include "KoColorDisplayRendererInterface.h"
 
 #include <KoConfig.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qgridlayout.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
 #ifdef HAVE_OPENEXR
 #include <half.h>
 #endif
 
 #include <cmath>
 
-#include <kis_debug.h>
 
 #include <QHBoxLayout>
 #include <QLabel>

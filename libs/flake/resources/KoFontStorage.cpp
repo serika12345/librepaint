@@ -4,11 +4,22 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KoFontStorage.h"
+#include "KisResourceStorage.h"
+#include "KisResourceTypes.h"
+#include "KisStoragePlugin.h"
+#include "KisTag.h"
+#include "KoFFWWSConverter.h"
 #include "KoFontFamily.h"
 #include "KoFontRegistry.h"
 #include "KisStaticInitializer.h"
-#include <KoMD5Generator.h>
+#include "KoResource.h"
 #include <optional>
+#include <qcontainerfwd.h>
+#include <qdatetime.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     KisStoragePluginRegistry::instance()->addStoragePluginFactory(KisResourceStorage::StorageType::FontStorage, new KisStoragePluginFactory<KoFontStorage>());

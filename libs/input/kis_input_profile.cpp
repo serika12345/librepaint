@@ -8,6 +8,10 @@
 #include "kis_input_profile.h"
 
 #include <QMultiHash>
+#include <qalgorithms.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qobject.h>
 
 #include "kis_shortcut_configuration.h"
 

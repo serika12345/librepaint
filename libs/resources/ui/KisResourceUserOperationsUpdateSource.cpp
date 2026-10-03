@@ -10,12 +10,16 @@
 #include <QMessageBox>
 
 #include <klocalizedstring.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qnamespace.h>
 
 #include "KisGlobalResourcesInterface.h"
 #include "KisResourceCacheDb.h"
 #include "KisResourceLocator.h"
 #include "KisResourceModel.h"
 #include "KisResourceUserOperations.h"
+#include "KoResource.h"
 
 KoResourceSP KisResourceUserOperations::prepareExternalResource(
     KoResourceSP resource)

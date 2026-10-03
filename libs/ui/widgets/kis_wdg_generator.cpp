@@ -6,6 +6,7 @@
  */
 
 #include "widgets/kis_wdg_generator.h"
+#include <klocalizedstring.h>
 
 #include <QListWidget>
 #include <QListWidgetItem>
@@ -22,7 +23,12 @@
 #include <filter/kis_filter_configuration.h>
 #include <KoColorSpaceRegistry.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
+#include "kis_types.h"
 #include "ui_wdggenerators.h"
 
 class KisGeneratorItem : public QListWidgetItem

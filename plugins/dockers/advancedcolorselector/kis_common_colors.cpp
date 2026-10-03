@@ -20,9 +20,15 @@
 
 #include <klocalizedstring.h>
 
-#include <kis_icon.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 #include "KoColor.h"
+#include "KoColorConversionTransformation.h"
 #include "kis_canvas2.h"
+#include "kis_color_patches.h"
+#include "kis_color_selector_base.h"
+#include "kis_icon_utils.h"
 #include "kis_image.h"
 #include "kis_paint_device.h"
 #include "application/kis_config.h"

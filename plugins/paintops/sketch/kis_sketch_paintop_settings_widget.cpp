@@ -5,9 +5,13 @@
  */
 
 #include "kis_sketch_paintop_settings_widget.h"
+#include <klocalizedstring.h>
+#include "KisBrushOptionWidgetFlags.h"
+#include "KisPaintingModeOptionData.h"
+#include "kis_brush_based_paintop_options_widget.h"
+#include "kis_paintop_option.h"
 #include "kis_sketch_paintop_settings.h"
 
-#include <kis_paintop_settings_widget.h>
 #include <KisPaintOpOptionWidgetUtils.h>
 
 #include "KisSketchOpOptionWidget.h"
@@ -15,8 +19,10 @@
 #include <KisStandardOptionData.h>
 #include "KisSizeOptionWidget.h"
 #include "KisSketchStandardOptionData.h"
+#include "kis_types.h"
 #include <KisAirbrushOptionWidget.h>
 #include <KisPaintingModeOptionWidget.h>
+#include <qwidget.h>
 
 
 KisSketchPaintOpSettingsWidget::KisSketchPaintOpSettingsWidget(QWidget* parent)
@@ -51,4 +57,3 @@ KisPropertiesConfigurationSP  KisSketchPaintOpSettingsWidget::configuration() co
     writeConfiguration(config);
     return config;
 }
-

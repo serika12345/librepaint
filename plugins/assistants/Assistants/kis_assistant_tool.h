@@ -9,6 +9,7 @@
 #define _KIS_ASSISTANT_TOOL_H_
 
 #include <QPointer>
+#include <klocalizedstring.h>
 
 #include <KoToolFactoryBase.h>
 #include <KoIcon.h>
@@ -204,4 +205,3 @@ public:
 
 
 #endif
-

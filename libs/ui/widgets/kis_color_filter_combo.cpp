@@ -8,7 +8,6 @@
 
 #include <klocalizedstring.h>
 #include <QStylePainter>
-#include <QtCore/qmath.h>
 #include <QApplication>
 #include <QProxyStyle>
 #include <QStyleOption>
@@ -18,9 +17,23 @@
 #include <QMouseEvent>
 
 #include <QStyleFactory>
+#include <qabstractitemmodel.h>
+#include <qalgorithms.h>
+#include <qbrush.h>
+#include <qcolor.h>
+#include <qcoreevent.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpalette.h>
+#include <qpixmap.h>
+#include <qset.h>
+#include <qwidget.h>
 
 
 
+#include "kis_types.h"
 #include "nodes/kis_node_view_color_scheme.h"
 #include "kis_icon_utils.h"
 #include "krita_utils.h"

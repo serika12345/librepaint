@@ -3,12 +3,19 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisQStringListFwd.h"
+#include "kis_base_node.h"
+#include "kis_types.h"
 #include "nodes/kis_multinode_property.h"
 
 #include <KoChannelInfo.h>
 #include <KoColorSpace.h>
 
 #include <kis_layer.h>
+#include <QtGlobal>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qobject.h>
 
 QString BaseAdapter::NodeAccess::compositeOpId(KisNodeSP node)
 {

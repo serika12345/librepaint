@@ -9,6 +9,10 @@
 #include <QSet>
 
 #include <KoJsonTrader.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
 
 namespace
 {

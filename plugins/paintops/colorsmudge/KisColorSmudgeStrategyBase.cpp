@@ -6,11 +6,19 @@
  */
 
 #include <KoCompositeOpRegistry.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qnumeric.h>
 #include "KisColorSmudgeStrategyBase.h"
+#include "KisColorSmudgeSource.h"
+#include "KoColorSpaceConstants.h"
+#include "KoCompositeOpIds.h"
+#include "kis_assert.h"
 #include "kis_painter.h"
 #include "kis_fixed_paint_device.h"
 #include "kis_paint_device.h"
 #include "KisColorSmudgeSampleUtils.h"
+#include "kis_types.h"
 
 /**********************************************************************************/
 /*                 DabColoringStrategyMask                                        */

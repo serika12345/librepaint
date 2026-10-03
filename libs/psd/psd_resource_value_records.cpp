@@ -4,10 +4,16 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_debug.h"
 #include "psd_resource_block.h"
+#include "psd_resource_section.h"
+#include "psd_types.h"
+#include "psd_utils.h"
 
 #include <QBuffer>
 #include <QDataStream>
+
+PSDInterpretedResource::~PSDInterpretedResource() = default;
 
 bool RESN_INFO_1005::interpretBlock(QByteArray data)
 {

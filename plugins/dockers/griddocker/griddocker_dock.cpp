@@ -13,10 +13,8 @@
 
 #include <kis_canvas2.h>
 #include <application/ui/workspace/KisViewManager.h>
-#include <canvas/kis_zoom_manager.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
-#include <kis_signal_compressor.h>
 #include <kis_grid_manager.h>
 #include <kis_grid_config.h>
 #include <kis_guides_manager.h>
@@ -24,7 +22,10 @@
 #include <application/ui/orchestration/kis_action.h>
 #include <application/ui/orchestration/kis_action_manager.h>
 #include <document/KisDocument.h>
+#include <qdockwidget.h>
+#include <qobjectdefs.h>
 
+#include "KoCanvasBase.h"
 #include "grid_config_widget.h"
 
 

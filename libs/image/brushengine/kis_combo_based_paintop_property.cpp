@@ -7,6 +7,13 @@
 #include "kis_combo_based_paintop_property.h"
 
 #include "QIcon"
+#include "kis_assert.h"
+#include "kis_callback_based_paintop_property.h"
+#include "kis_types.h"
+#include "kis_uniform_paintop_property.h"
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qobject.h>
 
 
 struct KisComboBasedPaintOpProperty::Private

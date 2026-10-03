@@ -290,11 +290,12 @@ inline QDebug operator<<(QDebug dbg, const KoResourceSP res)
         dbg.noquote() << "NULL Resource";
     }
     else {
+        const auto type = res->resourceType();
         dbg.nospace() << "[RESOURCE] Name: " << res->name()
                       << " Version: " << res->version()
                       << " Filename: " << res->filename()
                       << " MD5: " << res->md5Sum(false)
-                      << " Type: " << res->resourceType()
+                      << " Type: std::pair(" << type.first << ", " << type.second << ')'
                       << " Valid: " << res->valid()
                       << " Storage: " << res->storageLocation();
     }

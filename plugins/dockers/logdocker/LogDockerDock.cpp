@@ -25,6 +25,8 @@
 #include <KoIcon.h>
 #include <KoFileDialog.h>
 
+#include "KisQStringListFwd.h"
+#include "kis_assert.h"
 #include "kis_canvas2.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "application/ui/workspace/KisMainWindow.h"
@@ -35,6 +37,20 @@
 #include <QWaitCondition>
 #include <QGlobalStatic>
 #include <KisStaticInitializer.h>
+#include <memory>
+#include <qapplication.h>
+#include <qcolor.h>
+#include <qdir.h>
+#include <qfont.h>
+#include <QtGlobal>
+#include <qlogging.h>
+#include <qloggingcategory.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qtextcursor.h>
+#include <qtextformat.h>
+#include <utility>
 
 QTextCharFormat LogDockerDock::s_debug;
 QTextCharFormat LogDockerDock::s_info;

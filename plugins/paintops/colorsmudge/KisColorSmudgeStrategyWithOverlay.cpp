@@ -6,13 +6,18 @@
 
 #include "KisColorSmudgeStrategyWithOverlay.h"
 
-#include <KoCompositeOpRegistry.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
 
+#include "KisColorSmudgeSource.h"
+#include "KisColorSmudgeStrategyBase.h"
 #include "kis_image.h"
 #include "kis_paint_device.h"
 #include "kis_fixed_paint_device.h"
 
 #include "KisOverlayPaintDeviceWrapper.h"
+#include "kis_painter.h"
+#include "kis_types.h"
 
 KisColorSmudgeStrategyWithOverlay::KisColorSmudgeStrategyWithOverlay(KisPainter *painter, KisImageSP image,
                                                                      bool smearAlpha, bool useDullingMode,

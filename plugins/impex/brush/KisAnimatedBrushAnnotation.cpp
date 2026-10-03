@@ -6,6 +6,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisAnimatedBrushAnnotation.h"
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
+#include "kis_annotation.h"
 
 #include <QByteArray>
 #include <QBuffer>

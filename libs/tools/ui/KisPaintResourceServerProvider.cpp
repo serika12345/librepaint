@@ -4,6 +4,8 @@
  */
 
 #include "KisPaintResourceServerProvider.h"
+#include "KisResourceTypes.h"
+#include "KoResourceServer.h"
 
 #include <QGlobalStatic>
 

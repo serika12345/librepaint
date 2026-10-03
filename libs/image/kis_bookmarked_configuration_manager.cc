@@ -15,7 +15,10 @@
 #include <kconfiggroup.h>
 
 
-#include <KoID.h>
+#include <qdebug.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qmap.h>
 
 #include "kis_debug.h"
 #include "kis_serializable_configuration.h"

@@ -5,6 +5,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisSprayOpOption.h"
+#include "KisSprayOpOptionData.h"
 #include <KisPaintOpOptionUtils.h>
 
 namespace kpou = KisPaintOpOptionUtils;

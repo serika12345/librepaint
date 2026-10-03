@@ -9,8 +9,14 @@
 #include <cmath>
 
 #include <kis_histogram.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qnumeric.h>
 
 #include "KisAutoLevels.h"
+#include "KisLevelsCurve.h"
+#include "KoColor.h"
+#include "kis_types.h"
 
 namespace KisAutoLevels
 {

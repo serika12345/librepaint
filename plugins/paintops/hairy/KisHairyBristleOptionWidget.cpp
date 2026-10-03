@@ -5,13 +5,17 @@
  */
 #include "KisHairyBristleOptionWidget.h"
 
-#include <lager/constant.hpp>
+#include <functional>
+#include "KisWidgetConnectionUtils.h"
+#include "kis_paintop_option.h"
+#include "kis_types.h"
 #include "ui_wdgbristleoptions.h"
 
 #include "KisHairyBristleOptionModel.h"
 
 #include <KisSpinBoxI18nHelper.h>
-#include <kis_paintop_lod_limitations.h>
+#include <lager/cursor.hpp>
+#include <qwidget.h>
 
 namespace {
 

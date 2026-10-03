@@ -7,6 +7,7 @@
 #define KISCOLORSMUDGESTANDARDOPTIONDATA_H
 
 #include <KisCurveOptionData.h>
+#include <klocalizedstring.h>
 
 struct KisColorRateOptionData : KisCurveOptionData
 {

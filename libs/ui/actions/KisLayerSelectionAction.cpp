@@ -5,6 +5,7 @@
  */
 
 #include "KisLayerSelectionAction.h"
+#include "kis_types.h"
 
 #include <QAction>
 #include <QMenu>
@@ -17,6 +18,8 @@
 #include <nodes/kis_node_manager.h>
 #include <kis_painting_utils.h>
 #include <application/ui/workspace/KisViewManager.h>
+#include <qnamespace.h>
+#include <qobject.h>
 
 namespace
 {

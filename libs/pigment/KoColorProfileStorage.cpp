@@ -11,10 +11,15 @@
 #include <QHash>
 #include <QReadWriteLock>
 #include <QString>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnumeric.h>
 
+#include "KoColorProfileConstants.h"
 #include "KoColorSpaceFactory.h"
 #include "KoColorProfile.h"
 #include "KoColorProfileQuery.h"
+#include "KoColorimetryUtils.h"
 
 
 struct KoColorProfileStorage::Private {

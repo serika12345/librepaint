@@ -8,6 +8,7 @@
 #define KIS_TOOL_DYNA_H_
 
 #include "kis_tool_freehand.h"
+#include <klocalizedstring.h>
 
 #include "KisToolPaintFactoryBase.h"
 #include "KoPointerEvent.h"
@@ -154,4 +155,3 @@ public:
 
 
 #endif // KIS_TOOL_DYNA_H_
-

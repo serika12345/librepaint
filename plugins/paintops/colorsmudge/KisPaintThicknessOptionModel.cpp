@@ -4,6 +4,10 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisPaintThicknessOptionModel.h"
+#include "KisPaintThicknessOptionData.h"
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/lenses.hpp>
 
 namespace {
 

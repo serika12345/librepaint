@@ -16,6 +16,11 @@
 #include <QTimerEvent>
 #include <QToolTip>
 #include <QScreen>
+#include <qframe.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qsize.h>
+#include <qwidget.h>
 
 class Q_DECL_HIDDEN KoItemToolTip::Private
 {

@@ -34,6 +34,7 @@ namespace KisAslReaderUtils
  */
 
 struct KRITAPSDUTILS_EXPORT ASLParseException : public std::runtime_error {
+    ~ASLParseException() override;
     ASLParseException(const QString &msg)
         : std::runtime_error(msg.toLatin1().data())
     {

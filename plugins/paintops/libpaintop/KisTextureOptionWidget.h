@@ -6,6 +6,13 @@
 #ifndef KISTEXTUREOPTIONWIDGET_H
 #define KISTEXTUREOPTIONWIDGET_H
 
+#include <QScopedPointer>
+
+#include <KisResourcesInterface.h>
+
+#include <kis_types.h>
+#include <kritapaintop_export.h>
+
 #include <kis_paintop_option.h>
 #include <KisTextureOptionData.h>
 #include <lager/cursor.hpp>

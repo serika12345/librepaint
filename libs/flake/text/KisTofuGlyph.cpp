@@ -10,6 +10,7 @@
 #include <QPolygon>
 #include <QTransform>
 #include <QVector>
+#include <qpoint.h>
 
 namespace KisTofuGlyph
 {

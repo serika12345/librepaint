@@ -6,15 +6,27 @@
  */
 
 #include <QMutex>
+
+#include <QDebug>
 #include <QMutexLocker>
-#include <KoIcon.h>
+#include <KoUpdater.h>
 #include <kis_icon.h>
 #include <KoCompositeOpRegistry.h>
 
+#include "KisQStringListFwd.h"
+#include "KisRenderPassFlags.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_default_bounds.h"
+#include "kis_default_bounds_base.h"
+#include "kis_effect_mask.h"
+#include "kis_global.h"
+#include "kis_icon_utils.h"
 #include "kis_layer.h"
 #include "kis_transform_mask.h"
 #include <kis_group_layer.h>
 #include "kis_image.h"
+#include "kis_mask.h"
 #include "kis_paint_device.h"
 #include "filter/kis_filter_registry.h"
 #include "kis_node.h"
@@ -24,6 +36,7 @@
 
 #include "kis_busy_progress_indicator.h"
 #include "kis_perspectivetransform_worker.h"
+#include "kis_signal_compressor.h"
 #include "kis_transform_mask_params_interface.h"
 #include "kis_transform_mask_params_factory_registry.h"
 #include "kis_recalculate_transform_mask_job.h"
@@ -37,7 +50,13 @@
 #include "kis_lod_capable_layer_offset.h"
 
 #include <QReadWriteLock>
+#include <QtGlobal>
+#include <qicon.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
 #include "KisTransformMaskTestingInterface.h"
+#include "kis_types.h"
 
 //#include "kis_paint_device_debug_utils.h"
 //#define DEBUG_RENDERING

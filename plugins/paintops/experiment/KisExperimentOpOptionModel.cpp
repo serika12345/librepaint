@@ -4,8 +4,11 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisExperimentOpOptionModel.h"
+#include "KisExperimentOpOptionData.h"
 
 #include <KisLager.h>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
 
 
 KisExperimentOpOptionModel::KisExperimentOpOptionModel(lager::cursor<KisExperimentOpOptionData> _optionData)

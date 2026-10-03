@@ -8,6 +8,7 @@
 */
 
 #include "KoShapeManager.h"
+#include "KoFlake.h"
 #include "KoShapeManager_p.h"
 #include "KoSelection.h"
 #include "KoToolManager.h"
@@ -34,8 +35,21 @@
 #include <QMutexLocker>
 #include <FlakeDebug.h>
 
+#include "kis_assert.h"
 #include "kis_painting_tweaks.h"
 #include "KisForest.h"
+#include <algorithm>
+#include <functional>
+#include <iterator>
+#include <memory>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qhash.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qset.h>
 #include <unordered_set>
 
 

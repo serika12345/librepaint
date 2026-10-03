@@ -6,9 +6,17 @@
     SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
+#include "KoResource.h"
+#include <cstring>
+#include <QtGlobal>
+#include <qhashfunctions.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qnumeric.h>
+#include <qrgb.h>
+#include <qstringview.h>
 #include <resources/KoPattern.h>
 
-#include <sys/types.h>
 #include <QtEndian>
 
 #include <limits.h>
@@ -25,7 +33,6 @@
 #include <QFileInfo>
 #include <QImageReader>
 
-#include <DebugPigment.h>
 #include <klocalizedstring.h>
 #include <kis_pointer_utils.h>
 

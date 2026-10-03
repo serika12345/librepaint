@@ -6,13 +6,18 @@
  */
 
 #include "hatching_brush.h"
+#include "kis_debug.h"
+#include "kis_hatching_paintop_settings.h"
+#include "kis_types.h"
 
 #include <KoColor.h>
-#include <KoColorTransformation.h>
 
 #include <QVariant>
 
 #include <cmath>
+#include <math.h>
+#include <QtGlobal>
+#include <qnumeric.h>
 
 
 void inline myround(double *x)

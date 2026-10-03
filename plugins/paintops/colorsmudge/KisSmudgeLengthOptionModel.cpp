@@ -4,8 +4,14 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisSmudgeLengthOptionModel.h"
+#include "KisSmudgeLengthOptionData.h"
+#include "KisWidgetConnectionUtils.h"
 
 #include <KisLager.h>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/reader.hpp>
+#include <lager/with.hpp>
 
 namespace {
 CheckBoxState calcUseNewEngineState(bool useNewEngine, bool forceUseNewEngine) {

@@ -11,6 +11,10 @@
 #include <kis_meta_data_store.h>
 #include <kis_meta_data_entry.h>
 #include <kis_meta_data_value.h>
+#include <qabstractitemmodel.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobject.h>
 
 KisMetaDataModel::KisMetaDataModel(KisMetaData::Store* store) : m_store(store)
 {

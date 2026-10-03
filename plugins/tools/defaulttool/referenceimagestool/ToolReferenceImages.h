@@ -8,6 +8,7 @@
 #define TOOL_REFERENCE_IMAGES_H
 
 #include <QPointer>
+#include <klocalizedstring.h>
 
 #include <KoToolFactoryBase.h>
 #include <KoIcon.h>
@@ -113,4 +114,3 @@ public:
 
 
 #endif
-

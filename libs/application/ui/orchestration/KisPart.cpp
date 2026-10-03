@@ -18,6 +18,9 @@
 #include <KoCanvasBase.h>
 #include <KoResourceServerProvider.h>
 
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KoResourceServer.h"
 #include "application/ui/workspace/KisMainWindow.h"
 #include "document/KisDocument.h"
 #include "application/ui/workspace/KisView.h"
@@ -43,12 +46,22 @@
 #include <dialogs/KisSessionManagerDialog.h>
 
 #include "application/kis_config.h"
+#include "kis_assert.h"
 #include "kis_shape_controller.h"
 #include "application/ui/orchestration/KisResourceServerProvider.h"
 #include <animation/kis_animation_cache_populator.h>
 #include <canvas/KisDisplayConfig.h>
 
 #include <KisCursorOverrideLock.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qstandardpaths.h>
+#include <qurl.h>
+#include <quuid.h>
 #include "kis_action_registry.h"
 #include "application/ui/workspace/KisSessionResource.h"
 #include "dialogs/kis_delayed_save_dialog.h"

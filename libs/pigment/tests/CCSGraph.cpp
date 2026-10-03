@@ -17,6 +17,7 @@
 #include <iostream>
 #include <QCommandLineParser>
 #include <QCommandLineOption>
+#include <klocalizedstring.h>
 
 struct FriendOfColorSpaceRegistry {
 static QString toDot() {

@@ -6,13 +6,16 @@
 
 #include "KoPathSegment.h"
 #include "KoPathPoint.h"
-#include <FlakeDebug.h>
 #include <QPainterPath>
 #include <QTransform>
 #include <math.h>
 
 
 #include <KisBezierUtils.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnumeric.h>
 
 class Q_DECL_HIDDEN KoPathSegment::Private
 {

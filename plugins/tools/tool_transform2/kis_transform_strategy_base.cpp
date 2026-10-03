@@ -9,7 +9,10 @@
 #include <QImage>
 #include <QPainterPath>
 #include <QTransform>
+#include <QtGlobal>
 #include "KoPointerEvent.h"
+#include "KoToolBase.h"
+#include "kis_tool.h"
 
 
 struct KisTransformStrategyBase::Private

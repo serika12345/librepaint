@@ -7,6 +7,10 @@
  */
 
 #include "widgets/kis_image_from_clipboard_widget.h"
+#include <klocalizedstring.h>
+#include "KoColorSpaceConstants.h"
+#include "kis_assert.h"
+#include "kis_types.h"
 #include "widgets/kis_custom_image_widget.h"
 
 #include <QApplication>
@@ -18,24 +22,19 @@
 #include <QSlider>
 
 #include <application/ui/orchestration/KisPart.h>
-#include <KoColor.h>
-#include <KoColorModelStandardIds.h>
-#include <KoColorProfile.h>
-#include <KoCompositeOpRegistry.h>
-#include <KoID.h>
 #include <KisSqueezedComboBox.h>
 
-#include <kis_debug.h>
-#include <kis_fill_painter.h>
-#include <kis_group_layer.h>
-#include <kis_icon.h>
 #include <kis_image.h>
-#include <kis_layer.h>
 #include <kis_paint_device.h>
 #include <kis_paint_layer.h>
 #include <kis_painter.h>
 
 #include <KisCursorOverrideLock.h>
+#include <qdialogbuttonbox.h>
+#include <qnamespace.h>
+#include <qsize.h>
+#include <QtGlobal>
+#include <qwidget.h>
 #include "document/KisDocument.h"
 #include "kis_clipboard.h"
 #include "kis_import_catcher.h"

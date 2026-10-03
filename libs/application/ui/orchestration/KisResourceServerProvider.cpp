@@ -9,6 +9,7 @@
  */
 
 #include "application/ui/orchestration/KisResourceServerProvider.h"
+#include "KisResourceTypes.h"
 
 #include <QGlobalStatic>
 

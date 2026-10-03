@@ -21,6 +21,11 @@
 */
 
 #include "SvgStyleWriter.h"
+#include "KisPortingUtils.h"
+#include "KisQStringListFwd.h"
+#include "KoFlake.h"
+#include "KoFlakeTypes.h"
+#include "SvgMeshArray.h"
 #include "SvgSavingContext.h"
 #include "SvgUtil.h"
 
@@ -43,10 +48,20 @@
 #include <QLinearGradient>
 #include <QRadialGradient>
 #include <KisMimeDatabase.h>
+#include "kis_assert.h"
 #include "kis_dom_utils.h"
 #include "kis_algebra_2d.h"
+#include "kis_global.h"
 #include <SvgWriter.h>
 #include <KoFlakeCoordinateSystem.h>
+#include <array>
+#include <qalgorithms.h>
+#include <qdebug.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qsharedpointer.h>
+#include <qsize.h>
 
 
 void SvgStyleWriter::saveSvgStyle(KoShape *shape, SvgSavingContext &context)

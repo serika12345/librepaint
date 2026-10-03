@@ -9,9 +9,13 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoColorSpace.h>
 #include <KoColorProfile.h>
+#include "KisImageBarrierLock.h"
+#include "KisImportExportErrorCode.h"
+#include "kis_assert.h"
 #include "kis_image.h"
 #include "KisImportUserFeedbackInterface.h"
 #include "KisImportExportColorSpaceDialog.h"
+#include "kis_types.h"
 
 namespace KritaUtils {
 

@@ -4,12 +4,15 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "KisToolPaintFactoryBase.h"
+#include "KoToolFactoryBase.h"
 
 #include <QAction>
 
 #include <kis_action_registry.h>
 
 #include <klocalizedstring.h>
+#include <qlist.h>
+#include <qnamespace.h>
 
 KisToolPaintFactoryBase::KisToolPaintFactoryBase(const QString &id)
     : KoToolFactoryBase(id)

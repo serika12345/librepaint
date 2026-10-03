@@ -6,18 +6,29 @@
  */
 
 #include "kis_color_history.h"
+#include <klocalizedstring.h>
 #include "KisUniqueColorSet.h"
+#include "KoCompositeOpIds.h"
+#include "kis_assert.h"
 #include "kis_canvas2.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "canvas/kis_canvas_resource_provider.h"
 
-#include <KoCompositeOpRegistry.h>
 
 #include <QToolButton>
 #include <QList>
-#include <kis_icon.h>
+#include <memory>
+#include <qglobalstatic.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
 #include "document/KisDocument.h"
+#include "kis_color_patches.h"
+#include "kis_color_selector_base.h"
 #include "kis_config_notifier.h"
+#include "kis_icon_utils.h"
+#include "kundo2magicstring.h"
+#include "opengl/kis_opengl.h"
 
 Q_GLOBAL_STATIC(KisColorHistoryNotifier, s_color_history_change_notifier);
 

@@ -11,6 +11,10 @@
 
 #include "kis_control_frame.h"
 
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpainter.h>
+#include <qsizepolicy.h>
 #include <stdlib.h>
 
 #include <QApplication>
@@ -33,14 +37,16 @@
 #include <KoResetBgFgColours.h>
 
 #include <resources/KoAbstractGradient.h>
-#include <KoResourceServer.h>
-#include <KoResourceServerProvider.h>
-#include <KoColorSpaceRegistry.h>
 #include <kis_image.h>
 
 #include <resources/KoPattern.h>
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include "KoColorDisplayRendererInterface.h"
 #include "canvas/kis_canvas_resource_provider.h"
 
+#include "kis_assert.h"
+#include "kis_icon_utils.h"
 #include "widgets/kis_iconwidget.h"
 
 #include "widgets/gradient/KisGradientChooser.h"

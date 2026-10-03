@@ -7,9 +7,17 @@
 #include "kis_spin_box_unit_manager.h"
 
 #include "KoUnit.h"
+#include <cmath>
 #include <klocalizedstring.h>
 
 #include <QtMath>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
+#include <qvariant.h>
 
 static QString percentStr()
 {

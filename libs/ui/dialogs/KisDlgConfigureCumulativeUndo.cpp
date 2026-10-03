@@ -14,10 +14,15 @@
 #include <QLabel>
 #include <kis_double_parse_spin_box.h>
 #include <kis_int_parse_spin_box.h>
+#include <lager/tags.hpp>
+#include <qlayoutitem.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
 
 #include "KisCumulativeUndoModel.h"
 #include "KisWidgetConnectionUtils.h"
 
+#include "KoDialog.h"
 #include "application/kis_config.h"
 
 struct KisDlgConfigureCumulativeUndo::Private

@@ -5,7 +5,12 @@
  */
 #include "KisParticleOpOptionWidget.h"
 
-#include <lager/constant.hpp>
+#include <functional>
+#include "KisWidgetConnectionUtils.h"
+#include "kis_paintop_option.h"
+#include "kis_types.h"
+#include <lager/cursor.hpp>
+#include <qwidget.h>
 #include "ui_wdgparticleoptions.h"
 
 #include "KisParticleOpOptionModel.h"

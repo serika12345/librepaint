@@ -12,7 +12,22 @@
 #include <KoColorModelStandardIds.h>
 #include <KoColorProfileQuery.h>
 #include <kis_assert.h>
+#include <lcms2.h>
+#include <QtGlobal>
+#include <qhashfunctions.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qstringview.h>
 
+#include "DebugPigment.h"
+#include "IccColorProfile.h"
+#include "KoColorConversionTransformation.h"
+#include "KoColorProfile.h"
+#include "KoColorProfileConstants.h"
+#include "KoColorProofingConversionTransformation.h"
+#include "KoColorSpace.h"
+#include "KoColorSpaceEngine.h"
+#include "KoColorSpaceRegistry.h"
 #include "LcmsColorSpace.h"
 #include "RgbU8ColorSpace.h"
 

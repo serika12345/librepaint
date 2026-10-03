@@ -16,6 +16,11 @@
 #include <kis_painting_tweaks.h>
 
 #include <QDebug>
+#include <qlabel.h>
+#include <qnamespace.h>
+#include <qpoint.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 
 KisColorSamplerPreviewPreview::KisColorSamplerPreviewPreview(QWidget *parent)

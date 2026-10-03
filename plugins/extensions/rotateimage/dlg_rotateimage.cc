@@ -7,12 +7,16 @@
  */
 
 #include "dlg_rotateimage.h"
+#include "KisAngleGauge.h"
+#include "KoDialog.h"
+#include "kis_icon_utils.h"
 
 #include <math.h>
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
-#include <kis_icon.h>
+#include <QtGlobal>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 DlgRotateImage::DlgRotateImage(QWidget *  parent,
                                const char * name)

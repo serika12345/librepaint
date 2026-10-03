@@ -5,9 +5,17 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_pipebrush_parasite.h"
+#include "kis_imagepipe_brush.h"
 
 #include <KisPortingUtils.h>
+#include <cstring>
 #include <kis_debug.h>
+#include <qdebug.h>
+#include <qhashfunctions.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qstringview.h>
 
 KisPipeBrushParasite::KisPipeBrushParasite(QStringView source)
 {

@@ -9,7 +9,12 @@
  */
 
 #include <kis_slider_spin_box_p.h>
+#include <QtGlobal>
+#include <qsize.h>
+#include <qwidget.h>
 #include "kis_slider_spin_box.h"
+#include "kis_double_parse_spin_box.h"
+#include "kis_int_parse_spin_box.h"
 
 KisSliderSpinBox::KisSliderSpinBox(QWidget * parent)
     : KisIntParseSpinBox(parent)

@@ -6,12 +6,14 @@
  */
 
 #include "ShapeRotateStrategy.h"
+#include "KoFlake.h"
+#include "KoInteractionStrategy.h"
 #include "SelectionDecorator.h"
+#include "kundo2magicstring.h"
 
 #include <KoToolBase.h>
 #include <KoCanvasBase.h>
 #include <KoSelection.h>
-#include <KoPointerEvent.h>
 #include <KoShapeManager.h>
 #include <KoCanvasResourceProvider.h>
 #include <commands/KoShapeTransformCommand.h>
@@ -21,6 +23,12 @@
 #include <QPointF>
 #include <math.h>
 #include <klocalizedstring.h>
+#include <qbrush.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpen.h>
 
 ShapeRotateStrategy::ShapeRotateStrategy(KoToolBase *tool, KoSelection *selection, const QPointF &clicked, Qt::MouseButtons buttons)
     : KoInteractionStrategy(tool)

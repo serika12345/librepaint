@@ -5,7 +5,17 @@
  */
 
 #include "kis_meta_data_filter_registry_model.h"
+#include "KisQStringListFwd.h"
+#include "KoGenericRegistryModel.h"
+#include "kis_meta_data_filter.h"
+#include "kis_meta_data_filter_registry.h"
 #include <QStringList>
+#include <qabstractitemmodel.h>
+#include <QtGlobal>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qvariant.h>
 
 using namespace KisMetaData;
 

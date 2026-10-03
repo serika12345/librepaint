@@ -10,6 +10,21 @@
 #include <QStyleOption>
 #include <QMimeData>
 #include <QMouseEvent>
+#include <qabstractbutton.h>
+#include <qbuttongroup.h>
+#include <qcolor.h>
+#include <qcoreevent.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpaintdevice.h>
+#include <qpoint.h>
+#include <qset.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <qstyle.h>
+#include <qwidget.h>
 
 
 #include "kis_global.h"

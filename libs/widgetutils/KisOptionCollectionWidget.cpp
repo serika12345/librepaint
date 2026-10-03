@@ -13,6 +13,10 @@
 #include <QWidget>
 
 #include <kis_assert.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobject.h>
 
 #include "KisOptionCollectionWidget.h"
 

@@ -5,6 +5,12 @@
  */
 
 #include "nodes/kis_multinode_property.h"
+#include "kis_assert.h"
+#include <qcheckbox.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 /******************************************************************/
 /*               MultinodePropertyConnectorInterface              */

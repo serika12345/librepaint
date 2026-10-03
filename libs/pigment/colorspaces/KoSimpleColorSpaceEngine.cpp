@@ -9,10 +9,13 @@
 
 #include <klocalizedstring.h>
 
+#include "KoColorConversionTransformation.h"
 #include "KoColorSpace.h"
+#include "KoColorSpaceEngine.h"
 
 
 #include <QColor>
+#include <QtGlobal>
 
 // -- KoSimpleColorConversionTransformation --
 

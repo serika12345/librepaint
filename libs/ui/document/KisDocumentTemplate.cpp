@@ -6,10 +6,12 @@
  */
 
 #include "KisDocument.h"
+#include "kis_types.h"
 
 #include <KisTranslateLayerNamesVisitor.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
+#include <qmap.h>
 
 void KisDocument::translateTemplateRootLayerName(const QMap<QString, QString> &dictionary)
 {

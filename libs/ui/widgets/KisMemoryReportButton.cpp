@@ -9,6 +9,11 @@
 #include <QDebug>
 #include <QStyleOptionButton>
 #include <QStylePainter>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qpaintdevice.h>
+#include <qpushbutton.h>
+#include <qwidget.h>
 
 KisMemoryReportButton::KisMemoryReportButton(QWidget *parent) :
     QPushButton(parent)

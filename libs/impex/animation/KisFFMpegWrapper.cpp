@@ -20,8 +20,20 @@
 #include <QThread>
 
 #include <kis_debug.h>
+#include <qcontainerfwd.h>
+#include <qcoreapplication.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qprogressdialog.h>
+#include <qsharedpointer.h>
 
+#include "KisImportExportErrorCode.h"
+#include "KoColorProfileConstants.h"
 #include "application/kis_config.h"
+#include "kis_assert.h"
+#include "kis_pointer_utils.h"
 
 
 namespace

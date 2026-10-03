@@ -5,6 +5,14 @@
  */
 #include <QDebug>
 
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qhash.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qsortfilterproxymodel.h>
+#include <qstringview.h>
 #include <text/KoWritingSystemUtils.h>
 #include <KLocalizedString>
 #include <KConfigGroup>

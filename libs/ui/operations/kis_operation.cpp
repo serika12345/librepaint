@@ -5,9 +5,13 @@
  */
 
 #include "kis_operation.h"
+#include "KisImageSignals.h"
 #include "kis_processing_applicator.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_image.h"
+#include "operations/kis_operation_configuration.h"
+#include <QtGlobal>
+#include <qlogging.h>
 
 KisOperation::KisOperation(const QString &id)
     : m_id(id)

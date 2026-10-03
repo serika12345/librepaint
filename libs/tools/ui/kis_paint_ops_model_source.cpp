@@ -6,6 +6,7 @@
 #include "kis_paint_ops_model_source_p.h"
 
 #include <brushengine/kis_paintop_factory.h>
+#include <qhashfunctions.h>
 
 namespace KisPaintOpsModelSource
 {

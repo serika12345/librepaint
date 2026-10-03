@@ -10,6 +10,7 @@
 #include <cmath>
 
 #include <QtGlobal>
+#include <math.h>
 
 /**
  * A number of often-used conversions between color models

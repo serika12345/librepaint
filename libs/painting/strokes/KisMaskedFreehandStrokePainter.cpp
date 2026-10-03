@@ -10,6 +10,9 @@
 #include "kis_painter.h"
 #include "KisFreehandStrokeInfo.h"
 #include "kis_paintop.h"
+#include <algorithm>
+#include <qcontainerfwd.h>
+#include <utility>
 
 
 KisMaskedFreehandStrokePainter::KisMaskedFreehandStrokePainter(KisFreehandStrokeInfo *strokeData, KisFreehandStrokeInfo *maskData)

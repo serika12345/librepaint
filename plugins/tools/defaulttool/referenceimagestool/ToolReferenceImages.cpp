@@ -5,6 +5,7 @@
  */
 
 #include "ToolReferenceImages.h"
+#include <klocalizedstring.h>
 
 #include <QDesktopServices>
 #include <QFile>
@@ -21,7 +22,6 @@
 #include <KoFileDialog.h>
 #include "KisMimeDatabase.h"
 
-#include <kis_action_registry.h>
 #include <kis_canvas2.h>
 #include <canvas/KisReferenceImage.h>
 #include <canvas/kis_canvas_resource_provider.h>
@@ -29,12 +29,22 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <document/KisDocument.h>
 #include <KisReferenceImagesLayer.h>
-#include <kis_image.h>
+#include "KisNodeAdditionFlags.h"
+#include "KisQStringListFwd.h"
 #include "QClipboard"
 #include <KisCursorOverrideLock.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qset.h>
 
 #include "ToolReferenceImagesWidget.h"
 #include "KisReferenceImageCollection.h"
+#include "defaulttool/DefaultTool.h"
+#include "defaulttool/DefaultToolFactory.h"
+#include "kis_assert.h"
 
 ToolReferenceImages::ToolReferenceImages(KoCanvasBase * canvas)
     : DefaultTool(canvas, false)

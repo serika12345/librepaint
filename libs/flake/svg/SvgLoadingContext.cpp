@@ -16,11 +16,18 @@
 #include <KoDocumentResourceManager.h>
 
 #include <FlakeDebug.h>
+#include <qalgorithms.h>
+#include <QtGlobal>
+#include <qdom.h>
+#include <qhash.h>
+#include <qstringview.h>
 
+#include "KisQStringListFwd.h"
 #include "SvgGraphicContext.h"
 #include "SvgUtil.h"
 #include "SvgCssHelper.h"
 #include "SvgStyleParser.h"
+#include "kis_assert.h"
 #include "kis_debug.h"
 
 

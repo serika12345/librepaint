@@ -5,8 +5,14 @@
 */
 
 #include "KoSwapBgFgColours.h"
+#include "KoColorDisplayRendererInterface.h"
+#include "KoDualColorButton.h"
+#include "KoID.h"
 #include <QPainter>
 #include <QEvent>
+#include <klocalizedstring.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 
 

@@ -5,6 +5,13 @@
 */
 
 #include "KoDummyColorProfile.h"
+#include "KoColorProfile.h"
+#include "KoColorProfileConstants.h"
+#include "KoColorimetryUtils.h"
+#include <optional>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qstringview.h>
 
 KoDummyColorProfile::KoDummyColorProfile()
 {

@@ -9,6 +9,11 @@
 #include <QResizeEvent>
 #include <QStyle>
 #include <QStyleOptionToolButton>
+#include <qnamespace.h>
+#include <qsize.h>
+#include <QtGlobal>
+#include <qtoolbutton.h>
+#include <qwidget.h>
 
 
 KoColorPopupButton::KoColorPopupButton(QWidget *parent)

@@ -6,6 +6,10 @@
  */
 
 #include "kis_kra_savexml_visitor.h"
+#include "KisQStringListFwd.h"
+#include "KoShape.h"
+#include "kis_assert.h"
+#include "kis_external_layer_iface.h"
 #include "kis_kra_tags.h"
 #include "kis_kra_utils.h"
 #include "kis_layer_properties_icons.h"
@@ -37,7 +41,11 @@
 #include <kis_psd_layer_style.h>
 #include <canvas/KisReferenceImage.h>
 #include <KisReferenceImagesLayer.h>
+#include <QtGlobal>
+#include <qmap.h>
 #include "kis_dom_utils.h"
+#include "kis_node.h"
+#include "kis_types.h"
 
 using namespace KRA;
 

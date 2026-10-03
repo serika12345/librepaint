@@ -7,7 +7,7 @@
 #include "KoCompositeOp.h"
 
 #include <klocalizedstring.h>
-#include <KoID.h>
+#include <QtGlobal>
 
 #include "KoColorSpace.h"
 #include "KoCompositeOpRegistry.h"

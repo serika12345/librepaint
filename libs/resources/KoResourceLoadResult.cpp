@@ -4,7 +4,10 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KoResourceLoadResult.h"
+#include "KoEmbeddedResource.h"
+#include "KoResourceSignature.h"
 
+#include <qdebug.h>
 #include <variant>
 #include <KisMpl.h>
 

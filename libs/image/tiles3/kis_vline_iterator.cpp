@@ -6,6 +6,11 @@
  */
 
 #include "kis_vline_iterator.h"
+#include "kis_datamanager.h"
+#include "kis_iterator_complete_listener.h"
+#include "tiles3/kis_base_iterator.h"
+#include "tiles3/kis_tile_data_interface.h"
+#include <QtGlobal>
 
 
 KisVLineIterator2::KisVLineIterator2(KisDataManager *dataManager, qint32 x, qint32 y, qint32 h, qint32 offsetX, qint32 offsetY, bool writable, KisIteratorCompleteListener *completeListener)

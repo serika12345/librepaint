@@ -7,6 +7,7 @@
 #include <KoColorSpaceEngine.h>
 #include <QGlobalStatic>
 #include <QString>
+#include <QtGlobal>
 
 
 Q_GLOBAL_STATIC(KoColorSpaceEngineRegistry, s_instance)

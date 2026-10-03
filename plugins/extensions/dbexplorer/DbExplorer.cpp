@@ -8,12 +8,14 @@
 
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 #include <kpluginfactory.h>
-#include <kis_icon.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <application/ui/orchestration/kis_action.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 #include "DlgDbExplorer.h"
+#include "ui/orchestration/KisActionPlugin.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(DbExplorerFactory, "kritadbexplorer.json", registerPlugin<DbExplorer>();)
 

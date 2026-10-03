@@ -19,7 +19,15 @@
 #include <QMenu>
 
 #include "kis_global.h"
-#include <kis_debug.h>
+#include <qcoreevent.h>
+#include <qkeysequence.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <QtGlobal>
+#include <qtoolbutton.h>
+#include <qwidget.h>
 
 
 class KisPopupButtonFrame : public QFrame

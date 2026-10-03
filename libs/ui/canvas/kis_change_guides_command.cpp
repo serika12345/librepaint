@@ -8,10 +8,11 @@
 
 #include "kis_guides_config.h"
 #include "document/KisDocument.h"
-#include <kis_image.h>
+#include "kundo2magicstring.h"
 
 #include <QList>
 #include <QListIterator>
+#include <QtGlobal>
 
 struct KisChangeGuidesCommand::Private
 {

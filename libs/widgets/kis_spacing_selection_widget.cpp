@@ -8,6 +8,9 @@
 
 #include <QCheckBox>
 #include <QHBoxLayout>
+#include <qobjectdefs.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 #include "klocalizedstring.h"
 

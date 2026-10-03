@@ -5,6 +5,7 @@
  */
 
 #include "KoPencilTool.h"
+#include "KisHandleStyle.h"
 #include "KoCurveFit.h"
 
 #include <KoPathShape.h>
@@ -16,7 +17,6 @@
 #include <KoShapeManager.h>
 #include <KoSelection.h>
 #include <KoCanvasResourceProvider.h>
-#include <KoColor.h>
 #include <KoColorDisplayRendererInterface.h>
 #include <KoPathPoint.h>
 #include <KoPathPointData.h>
@@ -37,8 +37,18 @@
 #include <QKeyEvent>
 
 #include <math.h>
+#include <qcolor.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qset.h>
 
 #include "KoCreatePathTool_p.h"
+#include "KoFlakeTypes.h"
+#include "KoIntegerMaths.h"
+#include "KoToolBase.h"
 #include "kis_double_parse_spin_box.h"
 
 KoPencilTool::KoPencilTool(KoCanvasBase *canvas)

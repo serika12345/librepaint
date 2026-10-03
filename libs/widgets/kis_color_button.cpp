@@ -6,9 +6,12 @@
 */
 
 #include "kis_color_button.h"
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 
 #include <QPointer>
 #include <QPainter>
+#include <cstddef>
 #include <qdrawutil.h>
 #include <QApplication>
 #include <QColorDialog>
@@ -23,6 +26,12 @@
 #include <KisDlgInternalColorSelector.h>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpushbutton.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 class KisColorButton::KisColorButtonPrivate
 {

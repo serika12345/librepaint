@@ -5,6 +5,8 @@
  */
 
 #include "kis_dlg_file_layer.h"
+#include "KisQStringListFwd.h"
+#include "KoDialog.h"
 
 #include <QLineEdit>
 #include <QCheckBox>
@@ -12,16 +14,15 @@
 
 #include <klocalizedstring.h>
 
-#include <KoFileDialog.h>
 #include <application/ui/orchestration/KisApplication.h>
 #include <KisImportExportManager.h>
 #include <kis_file_name_requester.h>
-#include <kis_config_widget.h>
 #include <kis_paint_device.h>
-#include <kis_transaction.h>
-#include <kis_node.h>
 #include <document/kis_file_layer.h>
 #include <kis_filter_strategy.h>
+#include <qdir.h>
+#include <qfileinfo.h>
+#include <qobjectdefs.h>
 
 KisDlgFileLayer::KisDlgFileLayer(const QString &basePath, const QString & name, QWidget * parent)
     : KoDialog(parent)

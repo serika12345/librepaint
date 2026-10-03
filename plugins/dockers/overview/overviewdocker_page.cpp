@@ -5,6 +5,7 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "KisAngleGauge.h"
 #include "overviewdocker_dock.h"
 #include "overviewwidget.h"
 #include "overviewdocker_page.h"
@@ -18,11 +19,11 @@
 #include <QTouchEvent>
 
 #include <KisAngleSelector.h>
+#include <cmath>
 #include <klocalizedstring.h>
 #include "kis_canvas2.h"
 #include <application/ui/workspace/KisViewManager.h>
 #include <kactioncollection.h>
-#include <application/ui/orchestration/kis_action.h>
 #include <canvas/kis_zoom_manager.h>
 #include "kis_image.h"
 #include "kis_paint_device.h"
@@ -35,6 +36,14 @@
 
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
+#include <qcoreevent.h>
+#include <qeasingcurve.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
 
 OverviewDockerPage::OverviewDockerPage(QWidget *parent, const char *name, Qt::WindowFlags f)
     : QWidget(parent, f)

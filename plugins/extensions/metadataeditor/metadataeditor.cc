@@ -5,11 +5,13 @@
  */
 
 #include "metadataeditor.h"
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 #include <stdlib.h>
 
 #include <QVBoxLayout>
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 #include <klocalizedstring.h>
 
@@ -20,13 +22,12 @@
 #include "application/ui/workspace/KisViewManager.h"
 #include "application/ui/orchestration/kis_action.h"
 
-#include <kis_meta_data_store.h>
 #include <kis_meta_data_entry.h>
-#include <kis_meta_data_value.h>
 #include <kis_meta_data_schema.h>
 
 #include "kis_entry_editor.h"
 #include "kis_meta_data_editor.h"
+#include "ui/orchestration/KisActionPlugin.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(metadataeditorPluginFactory, "kritametadataeditor.json", registerPlugin<metadataeditorPlugin>();)
 

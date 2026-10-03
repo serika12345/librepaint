@@ -10,6 +10,8 @@
 #include "kis_signal_auto_connection.h"
 #include <KoShapeManager.h>
 #include <KoSelection.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
 
 
 struct KisSelectedShapesProxy::Private

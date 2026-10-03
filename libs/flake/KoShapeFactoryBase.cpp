@@ -11,6 +11,7 @@
 
 #include <QDebug>
 
+#include "KisQStringListFwd.h"
 #include "KoDocumentResourceManager.h"
 #include "KoDeferredShapeFactoryBase.h"
 #include "KoShape.h"
@@ -26,7 +27,10 @@
 #include <QPointer>
 
 
-#include <FlakeDebug.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qobjectdefs.h>
 
 class Q_DECL_HIDDEN KoShapeFactoryBase::Private
 {

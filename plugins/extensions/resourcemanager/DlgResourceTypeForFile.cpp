@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "DlgResourceTypeForFile.h"
+#include "KoDialog.h"
 
 
 #include <QRadioButton>
@@ -14,6 +15,13 @@
 
 #include <KisResourceTypeModel.h>
 #include <KisResourceTypes.h>
+#include <klocalizedstring.h>
+#include <qboxlayout.h>
+#include <qcontainerfwd.h>
+#include <qlabel.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qwidget.h>
 
 DlgResourceTypeForFile::DlgResourceTypeForFile(QWidget *parent, QMap<QString, QStringList> resourceTypesForMimetype)
     : KoDialog(parent)
@@ -81,5 +89,4 @@ QString DlgResourceTypeForFile::getResourceTypeForMimetype(QString mimetype)
     KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(false, "");
     return "";
 }
-
 

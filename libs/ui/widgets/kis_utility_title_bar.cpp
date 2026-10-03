@@ -13,6 +13,12 @@
 #include "qaction.h"
 #include <klocalizedstring.h>
 #include <KoIcon.h>
+#include <qicon.h>
+#include <qlayoutitem.h>
+#include <qmargins.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 #include "kis_assert.h"
 
 

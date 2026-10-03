@@ -13,11 +13,15 @@
 #include <KoCanvasResourceProvider.h>
 #include <KoCanvasBase.h>
 
+#include "KoCanvasResourcesIds.h"
 #include "kis_canvas2.h"
 #include "application/ui/workspace/KisViewManager.h"
+#include "kis_types.h"
 #include "tool/kis_paintop_box.h"
 #include "kis_paintop_presets_chooser_popup.h"
-#include <brushengine/kis_paintop_preset.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
 #include "application/ui/workspace/KisMainWindow.h"
 
 

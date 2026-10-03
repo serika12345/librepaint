@@ -6,8 +6,11 @@
 #ifndef KISRESOURCETYPES_H
 #define KISRESOURCETYPES_H
 
-#include <klocalizedstring.h>
+#include <QString>
+
 #include "kritaresources_export.h"
+
+class KLocalizedString;
 /**
  * These namespaces define the type keys and sub-type keys for resource types.
  * The type keys correspond to folders in the resource folder, the sub-type

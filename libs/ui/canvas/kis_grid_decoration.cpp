@@ -17,7 +17,14 @@
 #include <KoUnit.h>
 #include <KoColorDisplayRendererInterface.h>
 #include <kis_canvas2.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpaintdevice.h>
 
+#include "kis_canvas_decoration.h"
 #include "kis_grid_config.h"
 #include "kis_coordinates_converter.h"
 

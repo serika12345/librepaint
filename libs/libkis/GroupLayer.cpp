@@ -4,8 +4,12 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "GroupLayer.h"
-#include <kis_group_layer.h>
+#include "KoColorSpaceConstants.h"
+#include "kis_assert.h"
+#include "kis_types.h"
 #include <kis_image.h>
+#include <kis_group_layer.h>
+#include <qobject.h>
 
 GroupLayer::GroupLayer(KisImageSP image, QString name, QObject *parent) :
     Node(image, new KisGroupLayer(image, name, OPACITY_OPAQUE_U8), parent)

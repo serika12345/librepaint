@@ -6,13 +6,20 @@
 
 #include "KisResourceItemViewer.h"
 
+#include "KoID.h"
 #include "ResourceListViewModes.h"
 #include "KisPopupButton.h"
-#include <KoIcon.h>
+#include "kis_icon_utils.h"
 #include <application/kis_config.h>
 
 #include <QMenu>
 #include <QActionGroup>
+#include <klocalizedstring.h>
+#include <qaction.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
+#include <qtoolbutton.h>
+#include <qwidget.h>
 
 KisResourceItemViewer::KisResourceItemViewer(Viewer type, QWidget *parent) :
     KisPopupButton(parent),
@@ -92,4 +99,3 @@ void KisResourceItemViewer::slotViewDetails()
     }
     Q_EMIT onViewDetails();
 }
-

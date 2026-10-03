@@ -17,13 +17,23 @@
 #include <QSqlError>
 #include <QString>
 #include <QVariant>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qsqlquery.h>
 
 #include "KisResourceLocator.h"
 #include "KisResourceMetaDataModel.h"
 #include "KisResourceModel.h"
 #include "KisResourceModelProvider.h"
+#include "KisResourceStorage.h"
 #include "KisResourceThumbnailCache.h"
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisTag.h"
+#include "KoResource.h"
 #include "kis_assert.h"
 
 
@@ -297,4 +307,3 @@ QVariant KisResourceQueryMapper::variantFromResourceQuery(const QSqlQuery &query
 
     return QVariant();
 }
-

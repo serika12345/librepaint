@@ -40,6 +40,7 @@
 #include <QActionGroup>
 #include <QRegularExpression>
 
+#include <boost/operators.hpp>
 #include <kactioncollection.h>
 #include <KSharedConfig>
 #include <klocalizedstring.h>
@@ -57,6 +58,10 @@
 #include <KoColorSpaceRegistry.h>
 #include <KisResourceLocator.h>
 
+#include "KisQStringListFwd.h"
+#include "KisWraparoundAxis.h"
+#include "KoCanvasResourcesIds.h"
+#include "KoZoomMode.h"
 #include "input/ui/kis_input_manager.h"
 #include "canvas/kis_canvas2.h"
 #include "canvas/kis_canvas_controller.h"
@@ -68,7 +73,12 @@
 #include "canvas/kis_canvas_resource_provider.h"
 #include <KoProgressUpdater.h>
 #include "application/kis_config.h"
+#include "kis_assert.h"
 #include "kis_config_notifier.h"
+#include "kis_debug.h"
+#include "kis_global.h"
+#include "kis_pointer_utils.h"
+#include "kstandardaction.h"
 #include "resources/kis_control_frame.h"
 #include "document/KisDocument.h"
 #include "resources/kis_favorite_resource_manager.h"
@@ -103,6 +113,14 @@
 #include <KoToolDocker.h>
 #include <canvas/KisIdleTasksManager.h>
 #include <document/KisTextPropertiesManager.h>
+#include <optional>
+#include <QtGlobal>
+#include <qdialog.h>
+#include <qdir.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
 
 class BlockingUserInputEventFilter : public QObject
 {
@@ -1177,6 +1195,16 @@ void KisViewManager::switchCanvasOnly(bool toggled)
     cfg.writeEntry("CanvasOnlyActive", toggled);
     d->inCanvasOnlyMode = toggled;
     updateCanvasOnlyActionState();
+
+#ifdef Q_OS_IOS
+    main->setDocumentTabBarHiddenForCanvasOnly(toggled);
+    QPointer<KisMainWindow> guardedMain(main);
+    QTimer::singleShot(0, main, [guardedMain, toggled] {
+        if (guardedMain) {
+            guardedMain->setDocumentTabBarHiddenForCanvasOnly(toggled);
+        }
+    });
+#endif
 
     KisViewManagerPrivate::CanvasOnlyOptions options(cfg);
 

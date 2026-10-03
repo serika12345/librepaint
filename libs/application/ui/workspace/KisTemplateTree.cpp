@@ -7,11 +7,11 @@
 #include "application/ui/workspace/KisTemplateTree.h"
 
 #include <QDir>
+#include <QLocale>
 #include <QUrl>
 
 #include <kdesktopfile.h>
 #include <kconfig.h>
-#include <kis_debug.h>
 
 
 #include <KoResourcePaths.h>
@@ -21,6 +21,11 @@
 #include <application/ui/workspace/KisTemplate.h>
 #include <application/ui/workspace/KisTemplateGroup.h>
 #include <application/ui/workspace/KisTemplates.h>
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qfileinfo.h>
+#include <QtGlobal>
+#include <qlist.h>
 
 static QString currentLocale()
 {

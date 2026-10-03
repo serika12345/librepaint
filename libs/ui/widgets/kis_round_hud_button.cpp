@@ -8,6 +8,14 @@
 
 #include <QPaintEvent>
 #include <QPainter>
+#include <qabstractbutton.h>
+#include <qcoreevent.h>
+#include <qicon.h>
+#include <qpixmap.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 #include "kis_global.h"
 

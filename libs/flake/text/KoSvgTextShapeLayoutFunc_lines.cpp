@@ -5,11 +5,21 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisQStringListFwd.h"
+#include "KoSvgText.h"
 #include "KoSvgTextShapeLayoutFunc.h"
 
 #include "KoSvgTextProperties.h"
+#include "KoSvgTextShape_p.h"
 
 #include <FlakeDebug.h>
+#include <cstdlib>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qmap.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qvector.h>
 
 namespace KoSvgTextShapeLayoutFunc
 {

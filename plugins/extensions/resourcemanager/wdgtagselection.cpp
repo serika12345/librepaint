@@ -6,6 +6,14 @@
  */
 
 #include "wdgtagselection.h"
+#include "KisResourceStorage.h"
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
+#include "KisTag.h"
+#include "KisTagResourceModel.h"
+#include "KisTagSelectionWidget.h"
+#include "KoID.h"
+#include "kis_assert.h"
 
 #include <QProcessEnvironment>
 #include <QMessageBox>
@@ -18,16 +26,17 @@
 #include <QMouseEvent>
 #include <QPair>
 
-#include <KisImportExportManager.h>
-#include <metadata/KoDocumentInfo.h>
-#include <KoFileDialog.h>
-#include <kis_icon.h>
 #include <KoResource.h>
-#include <KoResourceServer.h>
-#include <KoResourceServerProvider.h>
 #include <KisTagModel.h>
 
-#include<KisWrappableHBoxLayout.h>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 
 
@@ -309,7 +318,6 @@ void KisWdgTagSelectionControllerBundleTags::setResourceType(const QString &reso
     m_resourceType = resourceType;
     updateView();
 }
-
 
 
 

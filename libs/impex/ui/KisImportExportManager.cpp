@@ -6,6 +6,7 @@
 
 #include "KisImportExportManager.h"
 
+#include <functional>
 #include <memory>
 
 #include <QDir>
@@ -26,10 +27,10 @@
 #include <QTemporaryFile>
 
 #include <klocalizedstring.h>
-#include <ksqueezedtextlabel.h>
 
 #include <KisMimeDatabase.h>
 #include <application/ui/orchestration/KisPart.h>
+#include <KisImportExportFileTransfer.h>
 #include <KisPopupButton.h>
 #include <KisPreExportChecker.h>
 #include <KisImportExportFilterRegistry.h>
@@ -38,18 +39,17 @@
 #include <KoColorProfileConstants.h>
 #include <KoDialog.h>
 #include <KoFileDialog.h>
-#include <KoProgressUpdater.h>
 #include <kis_assert.h>
 #include <kis_config_widget.h>
-#include <kis_debug.h>
 #include <kis_icon_utils.h>
 #include <kis_image.h>
-#include <kis_iterator_ng.h>
 #include <kis_layer_utils.h>
 #include <kis_paint_layer.h>
 #include <kis_paint_device.h>
 #include <kis_painter.h>
 
+#include "KisExportCheckBase.h"
+#include "KisQStringListFwd.h"
 #include "document/KisDocument.h"
 #include "KisImportExportAsyncFeedback.h"
 #include "KisImportExportErrorCode.h"
@@ -61,11 +61,30 @@
 #include <kis_image_config.h>
 #include "kis_grid_config.h"
 #include "kis_guides_config.h"
+#include "kis_layer.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
 #include <kis_adjustment_layer.h>
 #include <kis_filter_mask.h>
 
+#ifdef Q_OS_ANDROID
+#include <KisAndroidUtils.h>
+#endif
+
 #include <KisImportUserFeedbackInterface.h>
 #include <KisSynchronousImportUserFeedback.h>
+#include <qfiledevice.h>
+#include <QtGlobal>
+#include <qgenericatomic.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qsharedpointer.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <qthread.h>
+#include <qurl.h>
 
 class Q_DECL_HIDDEN KisImportExportManager::Private
 {
@@ -644,7 +663,22 @@ bool KisImportExportManager::askUserAboutExportConfiguration(
 
 KisImportExportErrorCode KisImportExportManager::doImport(const QString &location, QSharedPointer<KisImportExportFilter> filter)
 {
+#ifdef Q_OS_ANDROID
+    QTemporaryFile androidInputFile;
+    QString inputLocation = location;
+    if (location.startsWith(QLatin1String("content://"))) {
+        QString copyErrorMessage;
+        if (!KisAndroidUtils::copyFileToTemporary(location, androidInputFile, &copyErrorMessage)) {
+            qWarning() << copyErrorMessage;
+            return KisImportExportErrorCode(KisImportExportErrorCannotRead(QFileDevice::CopyError));
+        }
+        androidInputFile.close();
+        inputLocation = androidInputFile.fileName();
+    }
+    QFile file(inputLocation);
+#else
     QFile file(location);
+#endif
     if (!file.exists()) {
         return ImportExportCodes::FileNotExist;
     }
@@ -653,7 +687,19 @@ KisImportExportErrorCode KisImportExportManager::doImport(const QString &locatio
         return KisImportExportErrorCode(KisImportExportErrorCannotRead(file.error()));
     }
 
+#ifdef Q_OS_ANDROID
+    if (inputLocation != location) {
+        filter->setFilename(inputLocation);
+    }
+#endif
+
     KisImportExportErrorCode status = filter->convert(m_document, &file, KisPropertiesConfigurationSP());
+
+#ifdef Q_OS_ANDROID
+    if (inputLocation != location) {
+        filter->setFilename(location);
+    }
+#endif
 
     if (file.isOpen()) {
         file.close();
@@ -701,7 +747,7 @@ KisImportExportErrorCode KisImportExportManager::doExport(const QString &locatio
 //                    It can work if user gives access to the container dir, but
 //                    we cannot guarantee the user gave us permission.
 // 12-05-2025 update: Also Android because we gotta play in the sandbox.
-#if !(defined(Q_OS_WIN) || defined(Q_OS_MACOS) || defined(Q_OS_ANDROID))
+#if !(defined(Q_OS_WIN) || defined(Q_OS_MACOS) || defined(Q_OS_ANDROID) || defined(Q_OS_IOS))
 #define USE_QSAVEFILE
 #endif
 
@@ -755,73 +801,47 @@ KisImportExportErrorCode KisImportExportManager::doExportImpl(const QString &loc
                 status = KisImportExportErrorCannotWrite(file.error());
             }
 #elif defined(Q_OS_ANDROID)
-            // The Android file system is bananas, so it needs special handling.
-
-            // If the temporary file is still open, ensure it's fully written.
-            // If it got closed, open it again so that we can read from it.
-            if(file.isOpen()) {
-                if (!file.flush()) {
-                    return KisImportExportErrorCannotWrite(file.error());
-                }
-            } else if (!file.open()) {
-                return KisImportExportErrorCannotWrite(getFileOpenError(file));
-            }
-
-            // Grab the size we're expecting to write for later verification.
-            qint64 expectedSize = file.size();
-            if (expectedSize < 0 || !file.seek(0)) {
+            if (file.isOpen() && !file.flush()) {
                 return KisImportExportErrorCannotWrite(file.error());
             }
-
-            // Open the target file. We have to explicitly tell the file to
-            // truncate itself because unlike on every other system it doesn't
-            // do that on its own when opening a file for writing, it just
-            // leaves the old content laying around and you start overwriting
-            // it, potentially leaving old garbage at the end of the file.
-            QFile target(location);
-            if (!target.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-                return KisImportExportErrorCannotWrite(getFileOpenError(target));
-            }
-
-            // QFile::copy also doesn't work, so we gotta do it manually by
-            // alternately reading and writing BUFSIZ-sized chunks.
-            QByteArray buf;
-            buf.resize(BUFSIZ);
-            qint64 totalWritten = 0;
-            while (true) {
-                qint64 read = file.read(buf.data(), BUFSIZ);
-                if (read < 0) {
-                    // Read error.
-                    return KisImportExportErrorCannotWrite(file.error());
-                } else if (read == 0) {
-                    // End of file.
-                    break;
-                } else {
-                    // Successful read, try to write it.
-                    qint64 written = target.write(buf.constData(), read);
-                    if (written < 0) {
-                        // Write error.
-                        return KisImportExportErrorCannotWrite(target.error());
-                    }
-                    // We may not have written as much as we read, but we handle
-                    // that at the end.
-                    totalWritten += written;
-                }
-            }
-
-            // Finish up and make sure what we wrote is out to storage.
             file.close();
-            if (!target.flush()) {
-                return KisImportExportErrorCannotWrite(target.error());
-            }
-            target.close();
 
-            // Now check if we actually wrote as much as we wanted to. If not,
-            // raise an error. There's not much we can do about it though, since
-            // we already truncated the original file at this point and don't
-            // have permissions to create backup files in the sandbox.
-            if (totalWritten != expectedSize) {
+            // System file pickers return content URIs rather than filesystem
+            // paths. Copy through ContentResolver so document providers can
+            // grant access with a file descriptor instead of a shared path.
+            QString copyErrorMessage;
+            if (!KisAndroidUtils::copyFile(file.fileName(), location, &copyErrorMessage)) {
+                qWarning() << copyErrorMessage;
                 return KisImportExportErrorCannotWrite(QFileDevice::CopyError);
+            }
+#elif defined(Q_OS_IOS)
+            if (file.isOpen() && !file.flush()) {
+                file.setAutoRemove(false);
+                qWarning() << "Preserving failed iOS export at" << file.fileName();
+                return KisImportExportErrorCannotWrite(file.error());
+            }
+            file.close();
+
+            const QString verificationResult = filter->verify(file.fileName());
+            if (!verificationResult.isEmpty()) {
+                file.setAutoRemove(false);
+                m_document->setErrorMessage(verificationResult);
+                qWarning() << "Preserving invalid iOS export at" << file.fileName();
+                return KisImportExportErrorCode(ImportExportCodes::ErrorWhileWriting);
+            }
+
+            // UIDocumentPicker grants access to the selected file, not its
+            // containing directory. Keep the completed export in the app's
+            // temporary directory and replace the selected file through its
+            // own security-scoped file handle.
+            const auto transferResult =
+                Krita::ImportExport::KisImportExportFileTransfer::replaceFromLocalFile(
+                    file.fileName(), location);
+            if (!transferResult.success) {
+                file.setAutoRemove(false);
+                qWarning() << transferResult.errorMessage;
+                qWarning() << "Preserving failed iOS export at" << file.fileName();
+                return KisImportExportErrorCannotWrite(transferResult.error);
             }
 #else
             file.flush();
@@ -839,9 +859,23 @@ KisImportExportErrorCode KisImportExportManager::doExportImpl(const QString &loc
         }
     }
 
-    if (status.isOk()) {
+#ifdef Q_OS_IOS
+    const bool requiresFinalVerification = !filter->supportsIO();
+#else
+    const bool requiresFinalVerification = true;
+#endif
+    if (status.isOk() && requiresFinalVerification) {
         // Do some minimal verification
-        QString verificationResult = filter->verify(location);
+#ifdef Q_OS_ANDROID
+        // The checked copy above writes the exact bytes from this temporary
+        // file. Verify that local source while it is still available because
+        // some document providers do not permit reopening a newly written
+        // document.
+        const QString verificationLocation = filter->supportsIO() ? file.fileName() : location;
+#else
+        const QString &verificationLocation = location;
+#endif
+        QString verificationResult = filter->verify(verificationLocation);
         if (!verificationResult.isEmpty()) {
             status = KisImportExportErrorCode(ImportExportCodes::ErrorWhileWriting);
             m_document->setErrorMessage(verificationResult);

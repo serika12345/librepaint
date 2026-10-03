@@ -4,6 +4,9 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisSaveGroupVisitor.h"
+#include "kis_node.h"
+#include "kis_node_visitor.h"
+#include "kis_types.h"
 
 #include <document/KisDocument.h>
 #include <kis_group_layer.h>
@@ -13,6 +16,7 @@
 #include <kis_paint_device.h>
 #include <kis_paint_layer.h>
 #include <application/ui/orchestration/KisPart.h>
+#include <qobject.h>
 
 KisSaveGroupVisitor::KisSaveGroupVisitor(KisImageWSP image,
                                          bool saveInvisible,

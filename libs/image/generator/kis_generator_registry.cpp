@@ -14,7 +14,10 @@
 #include <klocalizedstring.h>
 
 #include <KoPluginLoader.h>
+#include <QtGlobal>
+#include <qobject.h>
 
+#include "KoGenericRegistry.h"
 #include "kis_debug.h"
 #include "kis_types.h"
 #include "kis_paint_device.h"

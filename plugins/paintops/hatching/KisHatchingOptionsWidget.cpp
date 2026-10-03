@@ -8,11 +8,18 @@
 
 #include <QButtonGroup>
 
-#include <lager/constant.hpp>
+#include <functional>
+#include "KisAngleGauge.h"
+#include "KisHatchingOptionsData.h"
+#include "KisWidgetConnectionUtils.h"
+#include "kis_paintop_option.h"
+#include "kis_types.h"
 #include "ui_wdghatchingoptions.h"
 
 #include "KisHatchingOptionsModel.h"
-#include <kis_paintop_lod_limitations.h>
+#include <lager/cursor.hpp>
+#include <qhashfunctions.h>
+#include <qwidget.h>
 
 namespace {
 

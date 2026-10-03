@@ -7,8 +7,20 @@
 #include "kis_liquify_transform_worker.h"
 
 #include <KoColorSpace.h>
+#include "kis_algebra_2d.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_global.h"
+#include <algorithm>
+#include <cmath>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qpoint.h>
 #include "kis_grid_interpolation_tools.h"
 #include "kis_dom_utils.h"
+#include "kis_painter.h"
+#include "kis_types.h"
 #include "krita_utils.h"
 #include "KisSpatialContainer.h"
 

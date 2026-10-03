@@ -5,6 +5,7 @@
  */
 
 #include "KoAbstractCanvasResourceInterface.h"
+#include <qobject.h>
 
 KoAbstractCanvasResourceInterface::KoAbstractCanvasResourceInterface(int key, const QString debugTag)
     : m_key(key)

@@ -5,11 +5,26 @@
  */
 #include "KisTextureOptionModel.h"
 
+#include <QDebug>
+
+#include "KisEmbeddedTextureData.h"
+#include "KisTextureOptionData.h"
+
+#include <functional>
+
 #include <kis_assert.h>
 #include <KisLager.h>
+#include <KisResourceTypes.h>
 
+#include <KoPattern.h>
 #include <KoResourceLoadResult.h>
 #include <KisResourcesInterface.h>
+
+#include <QtCore/qlogging.h>
+
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/lenses.hpp>
 
 namespace {
 

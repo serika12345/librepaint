@@ -11,6 +11,11 @@
 #include <KoJsonTrader.h>
 #include <kis_assert.h>
 #include <kis_debug.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
 
 #include "KisImportExportFilter.h"
 

@@ -13,7 +13,6 @@
 #include <KoIcon.h>
 #include <kis_icon_utils.h>
 
-#include <WidgetsDebug.h>
 #include <klocalizedstring.h>
 
 #include <QAbstractButton>
@@ -25,6 +24,13 @@
 #include <QStyleOptionFrame>
 
 #include <KSqueezedTextLabel>
+#include <qdockwidget.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qsize.h>
+#include <qwidget.h>
 
 static inline bool hasFeature(const QDockWidget *dockwidget, QDockWidget::DockWidgetFeature feature)
 {

@@ -9,6 +9,7 @@
  */
 
 #include <QAction>
+#include <klocalizedstring.h>
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QPainterPath>
@@ -23,8 +24,19 @@
 #include <kis_canvas2.h>
 #include <KisToolCanvas.h>
 #include <KisInputActionGroup.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <QtGlobal>
 
 #include "KisToolOutlineBase.h"
+#include "KoToolBase.h"
+#include "kis_assert.h"
+#include "kis_global.h"
+#include "kis_tool.h"
+#include "kis_tool_paint.h"
+#include "kis_tool_shape.h"
+#include "ui_wdggeometryoptions.h"
 
 KisToolOutlineBase::KisToolOutlineBase(KoCanvasBase * canvas, ToolType type, const QCursor & cursor)
     : KisToolShape(canvas, cursor)

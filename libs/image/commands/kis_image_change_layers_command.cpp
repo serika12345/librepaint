@@ -8,6 +8,9 @@
 #include "kis_image_change_layers_command.h"
 #include "kis_image.h"
 #include "kis_group_layer.h"
+#include "kis_image_command.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 
 #include <klocalizedstring.h>
 

@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
+#include "KoMultiArchBuildSupport.h"
 #include "KoOptimizedCompositeOpFactoryPerArch.h"
 #include "KoOptimizedCompositeOpFactory.h"
 

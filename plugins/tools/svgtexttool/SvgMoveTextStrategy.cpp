@@ -5,6 +5,7 @@
  */
 
 #include "SvgMoveTextStrategy.h"
+#include "KoInteractionStrategy.h"
 #include "SvgMoveTextCommand.h"
 
 #include "KoSvgTextShape.h"
@@ -13,6 +14,8 @@
 #include "KoSnapGuide.h"
 #include "KoToolBase.h"
 #include "kis_algebra_2d.h"
+#include "kis_global.h"
+#include <qnamespace.h>
 
 SvgMoveTextStrategy::SvgMoveTextStrategy(KoToolBase *tool, KoSvgTextShape *shape, const QPointF &clicked)
     : KoInteractionStrategy(tool)

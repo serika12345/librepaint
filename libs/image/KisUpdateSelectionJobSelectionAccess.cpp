@@ -8,6 +8,7 @@
 #include "kis_node.h"
 #include "kis_projection_leaf.h"
 #include "kis_selection.h"
+#include "kis_types.h"
 
 KisNodeSP KisUpdateSelectionJobSelectionAccess::parentNode(KisSelection *selection)
 {

@@ -7,7 +7,10 @@
  */
 
 #include <QHash>
+#include <klocalizedstring.h>
 
+#include <cstdlib>
+#include <half.h>
 #include <kpluginfactory.h>
 #include <kis_filter_registry.h>
 #include <filter/kis_filter_category_ids.h>
@@ -15,8 +18,6 @@
 #include <kis_filter_configuration.h>
 #include <generator/kis_generator.h>
 #include <generator/kis_generator_registry.h>
-#include <KisGlobalResourcesInterface.h>
-#include <KisSequentialIteratorProgress.h>
 #include <kis_sequential_iterator.h>
 #include <kis_processing_information.h>
 #include <kis_selection.h>
@@ -25,9 +26,20 @@
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorProfile.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qnumeric.h>
+#include <qobject.h>
 
 #include "KisHalftoneFilter.h"
 #include "KisHalftoneConfigWidget.h"
+#include "KisHalftoneFilterConfiguration.h"
+#include "KoCompositeOpIds.h"
+#include "kis_assert.h"
+#include "kis_filter.h"
+#include "kis_types.h"
+#include "ui_KisHalftoneConfigWidget.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(KritaHalftoneFactory, "KritaHalftone.json", registerPlugin<KritaHalftone>();)
 

@@ -11,11 +11,15 @@
 #include <KisImportExportManager.h>
 
 #include <document/KisDocument.h>
-#include <kis_image.h>
 
 #include <application/ui/workspace/KisViewManager.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
+#include "KisImportExportErrorCode.h"
+#include "KisImportExportFilter.h"
 #include "kis_png_converter.h"
+#include "kis_types.h"
 
 K_PLUGIN_CLASS_WITH_JSON(KisPNGImport, "krita_png_import.json")
 

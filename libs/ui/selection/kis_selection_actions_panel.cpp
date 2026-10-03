@@ -17,6 +17,11 @@
 #include <QTabletEvent>
 #include <QTouchEvent>
 #include <QWidget>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 namespace Source = KisSelectionActionsPanelSource;
 

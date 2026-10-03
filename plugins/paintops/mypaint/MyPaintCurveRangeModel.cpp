@@ -5,12 +5,24 @@
  */
 
 #include "MyPaintCurveRangeModel.h"
+
+#include <QDebug>
+#include "KisCurveRangeModelInterface.h"
+#include "KisWidgetConnectionUtils.h"
 #include "kis_cubic_curve.h"
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
 #include <lager/lenses.hpp>
 #include <lager/constant.hpp>
 #include <KisZug.h>
-#include <KisDynamicSensorFactoryRegistry.h>
 #include <KisCurveRangeModel.h>
+#include <lager/reader.hpp>
+#include <lager/with.hpp>
+#include <qlist.h>
+#include <QtGlobal>
+#include <qnumeric.h>
+#include <tuple>
+#include <utility>
 
 namespace {
     auto formatQRealAsString = [] (qreal value) {

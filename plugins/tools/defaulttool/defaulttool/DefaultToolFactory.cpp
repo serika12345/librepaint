@@ -7,11 +7,17 @@
 
 #include "DefaultToolFactory.h"
 #include "DefaultTool.h"
+#include "KoCanvasBase.h"
+#include "KoInteractionTool.h"
+#include "KoToolBase.h"
+#include "KoToolFactoryBase.h"
 
 #include <kis_action_registry.h>
 
 #include <KoIcon.h>
 #include <klocalizedstring.h>
+#include <qaction.h>
+#include <qlist.h>
 
 DefaultToolFactory::DefaultToolFactory()
     : KoToolFactoryBase(KoInteractionTool_ID)

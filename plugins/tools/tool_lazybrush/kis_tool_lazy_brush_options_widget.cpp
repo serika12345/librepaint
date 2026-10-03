@@ -5,7 +5,12 @@
  */
 
 #include "kis_tool_lazy_brush_options_widget.h"
+#include <klocalizedstring.h>
 
+#include "KisSwatchGroup.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_types.h"
 #include "ui_kis_tool_lazy_brush_options_widget.h"
 
 #include <QWheelEvent>
@@ -14,6 +19,15 @@
 #include <KisSpinBoxI18nHelper.h>
 
 #include "application/kis_config.h"
+#include <algorithm>
+#include <qabstractitemmodel.h>
+#include <qcoreevent.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qvariant.h>
+#include <qwidget.h>
 #include <resources/KoColorSet.h>
 #include "canvas/kis_canvas_resource_provider.h"
 #include "kis_signal_auto_connection.h"

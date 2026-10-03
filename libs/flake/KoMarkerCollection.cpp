@@ -21,6 +21,14 @@
 // WARNING: there is a bug in GCC! It doesn't warn that we are
 //          deleting an uninitialized type here!
 #include <KoShape.h>
+#include <qalgorithms.h>
+#include <qdebug.h>
+#include <qdom.h>
+#include <qfiledevice.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qobject.h>
+#include <qshareddata.h>
 
 
 class Q_DECL_HIDDEN KoMarkerCollection::Private

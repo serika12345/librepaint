@@ -7,7 +7,10 @@
 #include "RectangleShapeConfigCommand.h"
 #include "RectangleShape.h"
 #include <klocalizedstring.h>
+#include <QtGlobal>
 #include "kis_command_ids.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 
 RectangleShapeConfigCommand::RectangleShapeConfigCommand(RectangleShape *rectangle, qreal cornerRadiusX, qreal cornerRadiusY, KUndo2Command *parent)

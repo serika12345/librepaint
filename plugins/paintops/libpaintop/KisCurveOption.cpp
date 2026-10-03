@@ -8,14 +8,27 @@
 #include "KisCurveOption.h"
 #include "KisCurveOptionData.h"
 #include "KisDynamicSensorIds.h"
+#include "KisKritaSensorPack.h"
 #include "kis_algebra_2d.h"
+#include "kis_cubic_curve.h"
+#include "kis_paint_information.h"
+#include "sensors/KisDynamicSensor.h"
 
+#include <algorithm>
+#include <memory>
+#include <optional>
+#include <QtGlobal>
+#include <qlist.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qnumeric.h>
 #include <sensors/KisDynamicSensors.h>
 #include <sensors/KisDynamicSensorDrawingAngle.h>
 #include <sensors/KisDynamicSensorDistance.h>
 #include <sensors/KisDynamicSensorFade.h>
 #include <sensors/KisDynamicSensorTime.h>
 #include <sensors/KisDynamicSensorFuzzy.h>
+#include <vector>
 
 namespace {
 template <typename Sensor, typename Data, typename... Args>

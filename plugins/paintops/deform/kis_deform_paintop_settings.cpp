@@ -7,11 +7,23 @@
 #include <KisOptimizedBrushOutline.h>
 #include <QPainterPath>
 #include <kis_deform_paintop_settings.h>
-#include <kis_deform_paintop_settings_widget.h>
+#include <QtGlobal>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 #include "KisBrushSizeOptionData.h"
 
 #include "KisDeformOptionData.h"
+#include "KisPaintopPropertiesBase.h"
+#include "KoID.h"
+#include "kis_current_outline_fetcher.h"
+#include "kis_outline_generation_policy.h"
+#include "kis_paint_information.h"
+#include "kis_paintop_settings.h"
+#include "kis_pointer_utils.h"
+#include "kis_uniform_paintop_property.h"
 
 struct KisDeformPaintOpSettings::Private
 {

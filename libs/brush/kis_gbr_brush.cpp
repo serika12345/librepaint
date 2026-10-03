@@ -9,6 +9,13 @@
  *
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
+#include <cstring>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qrgb.h>
+#include <qstringview.h>
 #include <sys/types.h>
 #include <QtEndian>
 
@@ -25,9 +32,13 @@
 #include <KoColor.h>
 #include <KoColorSpaceRegistry.h>
 
+#include "KisColorfulBrush.h"
+#include "KoResource.h"
+#include "kis_brush.h"
 #include "kis_datamanager.h"
 #include "kis_paint_device.h"
 #include "kis_image.h"
+#include "kis_types.h"
 
 struct GimpBrushV1Header {
     quint32 header_size;  /*  header_size = sizeof (BrushHeader) + brush name  */

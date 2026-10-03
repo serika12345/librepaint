@@ -5,17 +5,26 @@
  */
 #include "KisScatterOptionWidget.h"
 
-#include <KisLager.h>
+#include <functional>
 
-#include <QWidget>
-#include <QLabel>
 #include <QCheckBox>
 #include <QHBoxLayout>
+#include <QLabel>
 #include <QVBoxLayout>
+#include <QWidget>
 
+#include <KLocalizedString>
+
+#include <kis_paintop_option.h>
+#include <kis_types.h>
+#include <KisCurveOptionDataCommon.h>
+#include <KisCurveOptionWidget.h>
+#include <KisLager.h>
+#include <KisScatterOptionData.h>
 #include <KisScatterOptionModel.h>
 #include <KisWidgetConnectionUtils.h>
 
+#include <lager/cursor.hpp>
 
 struct KisScatterOptionWidget::Private
 {

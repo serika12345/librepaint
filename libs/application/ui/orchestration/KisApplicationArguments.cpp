@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later
  */
 #include "application/ui/orchestration/KisApplicationArguments.h"
+#include "KisQStringListFwd.h"
 
 #include <QCommandLineParser>
 #include <QCommandLineOption>
@@ -19,6 +20,11 @@
 #include <klocalizedstring.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
+#include <qcolor.h>
+#include <QtGlobal>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qstringview.h>
 
 struct Q_DECL_HIDDEN KisApplicationArguments::Private
 {

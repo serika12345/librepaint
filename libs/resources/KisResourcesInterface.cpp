@@ -5,10 +5,20 @@
  */
 #include "KisResourcesInterface.h"
 
+#include <QDebug>
+
 
 #include <QReadLocker>
 #include <QString>
 #include <QWriteLocker>
+#include "KoResource.h"
+#include "KoResourceLoadResult.h"
+#include <algorithm>
+#include <memory>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qpair.h>
+#include <utility>
 #include "kis_assert.h"
 #include "KisResourcesInterface_p.h"
 

@@ -6,7 +6,7 @@
 
 #include "kis_widget_chooser.h"
 
-#include <kis_icon.h>
+#include <algorithm>
 
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -18,8 +18,17 @@
 #include <QButtonGroup>
 #include <QStylePainter>
 #include <QStyleOption>
+#include <qcoreevent.h>
+#include <qimage.h>
+#include <qlayout.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
+#include <qwidget.h>
 
 #include "application/kis_config.h"
+#include "kis_icon_utils.h"
 
 KisWidgetChooser::KisWidgetChooser(int id, QWidget* parent)
     : QFrame(parent)

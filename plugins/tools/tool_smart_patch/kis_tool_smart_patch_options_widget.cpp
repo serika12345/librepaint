@@ -8,10 +8,9 @@
 
 #include "ui_kis_tool_smart_patch_options_widget.h"
 
-#include <KoColorSpaceRegistry.h>
 
 #include "application/kis_config.h"
-#include <resources/KoColorSet.h>
+#include <qwidget.h>
 #include "canvas/kis_canvas_resource_provider.h"
 
 

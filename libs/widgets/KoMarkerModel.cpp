@@ -5,11 +5,19 @@
  */
 
 #include "KoMarkerModel.h"
+#include "KoFlake.h"
 
 // Calligra
 #include <KoMarker.h>
 // Qt
 #include <QSize>
+#include <qabstractitemmodel.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qshareddata.h>
+#include <qvariant.h>
 
 
 KoMarkerModel::KoMarkerModel(const QList<KoMarker*> markers, KoFlake::MarkerPosition position, QObject *parent)

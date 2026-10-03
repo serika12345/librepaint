@@ -11,11 +11,26 @@
 
 #include <KoCompositeOp.h>
 #include <KoCompositeOpRegistry.h>
+#include <klocalizedstring.h>
 
+#include "KisSqueezedComboBox.h"
+#include "KoCompositeOpIds.h"
+#include "KoID.h"
+#include "kis_categorized_list_view.h"
 #include "kis_composite_ops_model.h"
 #include "kis_categorized_item_delegate.h"
 #include <kis_debug.h>
 #include <QWheelEvent>
+#include <qabstractitemmodel.h>
+#include <qcombobox.h>
+#include <qlistview.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qstyleoption.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 //////////////////////////////////////////////////////////////////////////////////////////
 // ---- KisCompositeOpListWidget ------------------------------------------------------ //

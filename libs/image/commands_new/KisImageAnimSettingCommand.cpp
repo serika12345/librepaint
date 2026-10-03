@@ -7,8 +7,11 @@
 #include "KisImageAnimSettingCommand.h"
 #include "KisImageAnimSettingCommandAnimationAccess_p.h"
 
+#include "kis_assert.h"
 #include "kis_command_ids.h"
 #include "kis_time_span.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 KisImageAnimSettingCommand::KisImageAnimSettingCommand(KisImageAnimationInterface *const p_animInterface,
                                                        Settings p_after,

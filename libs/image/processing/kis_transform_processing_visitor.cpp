@@ -6,6 +6,9 @@
 
 #include "kis_transform_processing_visitor.h"
 
+#include "KisQStringListFwd.h"
+#include "kis_node.h"
+#include "kis_types.h"
 #include "klocalizedstring.h"
 
 #include <KoUpdater.h>
@@ -32,7 +35,10 @@
 #include "commands_new/kis_node_move_command2.h"
 
 #include "kis_do_something_command.h"
+#include <functional>
 #include <kis_transform_mask_params_interface.h>
+#include <QtGlobal>
+#include <qlist.h>
 
 #include "KisSimpleModifyTransformMaskCommand.h"
 

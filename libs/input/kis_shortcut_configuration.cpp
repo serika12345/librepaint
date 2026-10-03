@@ -8,6 +8,10 @@
 #include "kis_shortcut_configuration.h"
 
 #include <QStringList>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <QtGlobal>
 
 class KisShortcutConfiguration::Private
 {

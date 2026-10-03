@@ -12,13 +12,23 @@
 #include <QPointF>
 #include <QUuid>
 
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qpaintdevice.h>
+#include <qpolygon.h>
+#include <qstringview.h>
 #include <resources/KoPattern.h>
 #include <resources/KoSegmentGradient.h>
 #include <resources/KoStopGradient.h>
 
 #include <cfloat>
 
+#include "KoColor.h"
+#include "KoColorModelStandardIds.h"
 #include "kis_asl_writer_utils.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
 #include "kis_dom_utils.h"
 
 struct KisAslXmlWriter::Private {

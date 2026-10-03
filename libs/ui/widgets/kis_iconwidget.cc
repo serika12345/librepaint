@@ -6,12 +6,24 @@
  */
 
 #include "widgets/kis_iconwidget.h"
+#include "KisPopupButton.h"
 
 #include <QPainter>
 #include <QIcon>
 #include <QStylePainter>
 #include <QStyleOptionToolButton>
 #include <KoResource.h>
+#include <functional>
+#include <qcolor.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qpixmap.h>
+#include <qregion.h>
+#include <qsize.h>
+#include <qstyle.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 struct KisIconWidget::Private
 {

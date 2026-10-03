@@ -11,19 +11,25 @@
 #include <klocalizedstring.h>
 
 #include <KoColorSpace.h>
-#include <KoColorProfile.h>
-#include <KoColorSpaceRegistry.h>
 #include <KoColor.h>
 #include <kis_image.h>
 #include <kis_annotation.h>
 #include <application/kis_config.h>
 #include <kis_signal_compressor.h>
 #include <kis_image_config.h>
+#include "KisProofingOptionsWidget.h"
+#include "KoDialog.h"
+#include "kis_debug.h"
 #include "kis_layer_utils.h"
 #include <kis_display_color_converter.h>
 #include <KisWidgetConnectionUtils.h>
+#include <qdialog.h>
+#include <qhashfunctions.h>
+#include <qobjectdefs.h>
 
 #include "KisProofingConfigModel.h"
+#include "kis_types.h"
+#include <KoColorProfile.h>
 
 struct KisDlgImageProperties::Private {
     Private(KisDisplayColorConverter *colorConverter)
@@ -224,4 +230,3 @@ void KisDlgImageProperties::setAnnotation(const QString &type)
         m_page->txtAnnotation->clear();
     }
 }
-

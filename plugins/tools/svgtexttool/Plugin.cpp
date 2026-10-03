@@ -10,10 +10,12 @@
 
 #include <QQmlEngine>
 
-#include <KoShapeRegistry.h>
 #include <KoToolRegistry.h>
 
 #include <KisStaticInitializer.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qqml.h>
 #include "SvgTextToolFactory.h"
 
 #include "glyphpalette/GlyphPaletteProxyModel.h"

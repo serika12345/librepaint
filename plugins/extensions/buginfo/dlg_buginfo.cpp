@@ -5,9 +5,10 @@
  */
 
 #include "dlg_buginfo.h"
+#include "KisQStringListFwd.h"
+#include "KoDialog.h"
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 #include <opengl/kis_opengl.h>
 #include <KritaVersionWrapper.h>
 #include <QSysInfo>
@@ -26,9 +27,15 @@
 
 
 #include <KisPortingUtils.h>
+#include <QtGlobal>
+#include <qconfig.h>
+#include <qdebug.h>
+#include <qguiapplication.h>
+#include <qhashfunctions.h>
+#include <qwidget.h>
 
 #ifdef Q_OS_ANDROID
-#include <QtAndroid>
+#include <QJniObject>
 #endif
 
 DlgBugInfo::DlgBugInfo(QWidget *parent, KoDialog::ButtonCodes customButtons)
@@ -129,9 +136,9 @@ QString DlgBugInfo::basicSystemInformationReplacementText()
     info.append("\n  Product Version: ").append(QSysInfo::productVersion());
 #ifdef Q_OS_ANDROID
     QString manufacturer =
-        QAndroidJniObject::getStaticObjectField("android/os/Build", "MANUFACTURER", "Ljava/lang/String;").toString();
+        QJniObject::getStaticObjectField("android/os/Build", "MANUFACTURER", "Ljava/lang/String;").toString();
     const QString model =
-        QAndroidJniObject::getStaticObjectField("android/os/Build", "MODEL", "Ljava/lang/String;").toString();
+        QJniObject::getStaticObjectField("android/os/Build", "MODEL", "Ljava/lang/String;").toString();
     manufacturer[0] = manufacturer[0].toUpper();
     info.append("\n  Product Model: ").append(manufacturer + " " + model);
 #endif

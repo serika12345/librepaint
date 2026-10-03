@@ -14,6 +14,9 @@
 #include <QUrlQuery>
 #include <QStandardPaths>
 #include <QDesktopServices>
+#include <qcontainerfwd.h>
+#include <qdir.h>
+#include <QtGlobal>
 
 void KHelpClient::invokeHelp(const QString &anchor, const QString &_appname)
 {

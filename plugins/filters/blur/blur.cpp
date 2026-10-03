@@ -8,6 +8,8 @@
 
 #include "blur.h"
 #include <kpluginfactory.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 #include "kis_blur_filter.h"
 #include "kis_gaussian_blur_filter.h"

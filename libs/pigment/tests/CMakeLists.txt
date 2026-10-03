@@ -1,4 +1,8 @@
-add_executable(CCSGraph CCSGraph.cpp)
+if(ANDROID)
+    add_executable(CCSGraph EXCLUDE_FROM_ALL CCSGraph.cpp)
+else()
+    add_executable(CCSGraph CCSGraph.cpp)
+endif()
 target_link_libraries(CCSGraph kritapigment KF${KF_MAJOR}::I18n)
 ecm_mark_as_test(CCSGraph)
 

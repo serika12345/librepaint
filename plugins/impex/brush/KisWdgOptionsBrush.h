@@ -9,6 +9,7 @@
 #define KISWDGOPTIONSBRUSH_H
 
 #include <QVariant>
+#include <klocalizedstring.h>
 #include <QSpinBox>
 #include <QPainter>
 

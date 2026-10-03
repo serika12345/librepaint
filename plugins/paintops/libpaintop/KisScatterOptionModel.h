@@ -10,6 +10,7 @@
 #include <lager/extra/qt.hpp>
 
 #include <QObject>
+#include <QtGlobal>
 
 #include "KisScatterOptionData.h"
 

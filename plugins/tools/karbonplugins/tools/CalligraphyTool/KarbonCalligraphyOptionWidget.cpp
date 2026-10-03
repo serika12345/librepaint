@@ -11,7 +11,6 @@
 #include <klocalizedstring.h>
 #include <kcombobox.h>
 #include <kconfiggroup.h>
-#include <ksharedconfig.h>
 #include <kconfig.h>
 #include <QDebug>
 #include <KisAngleSelector.h>
@@ -23,6 +22,10 @@
 #include <QGridLayout>
 #include <QToolButton>
 #include <QMessageBox>
+#include <qalgorithms.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
 
 #include "kis_double_parse_spin_box.h"
 

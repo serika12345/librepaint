@@ -8,6 +8,10 @@
 #include "KisSnapshotModel.h"
 
 #include <kis_assert.h>
+#include <qabstractitemmodel.h>
+#include <qabstractitemview.h>
+#include <QtGlobal>
+#include <qlistview.h>
 
 struct KisSnapshotView::Private
 {

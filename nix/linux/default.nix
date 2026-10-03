@@ -1,5 +1,8 @@
 {
-  mkLinuxAppImage,
+  auditLinuxAppImage,
+  appImageRuntime,
+  appImageAppRun,
+  appImageExtraFiles,
   pkgs,
   source,
 }:
@@ -10,7 +13,13 @@ let
     inherit pkgs source;
   };
   librepaintAppImage = import ./appimage.nix {
-    inherit mkLinuxAppImage;
+    inherit
+      auditLinuxAppImage
+      appImageRuntime
+      appImageAppRun
+      appImageExtraFiles
+      pkgs
+      ;
     librepaint = krita.librepaint;
   };
 

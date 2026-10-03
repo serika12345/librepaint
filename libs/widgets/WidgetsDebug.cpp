@@ -5,6 +5,8 @@
  */
 
 #include "WidgetsDebug.h"
+#include <qlogging.h>
+#include <qloggingcategory.h>
 
 const QLoggingCategory &WIDGETS_LOG() \
 {

@@ -20,12 +20,21 @@
 #include <QElapsedTimer>
 
 
-#include <kis_debug.h>
 #include <KisPortingUtils.h>
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
+#include "KoResource.h"
+#include "kis_global.h"
 #include "kis_image_config.h"
+#include "kis_types.h"
 
 
 #include <brushengine/kis_paintop_preset.h>
+#include <qcontainerfwd.h>
+#include <qdebug.h>
+#include <qfiledevice.h>
+#include <QtGlobal>
+#include <qlogging.h>
 
 Q_GLOBAL_STATIC(KisUpdateTimeMonitor, s_instance)
 

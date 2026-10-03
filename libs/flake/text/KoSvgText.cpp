@@ -5,10 +5,19 @@
  */
 
 #include "KoSvgText.h"
+#include "KisQStringListFwd.h"
+#include "kis_assert.h"
+#include "kritaflake_export.h"
 
 #include <QDebug>
+#include <algorithm>
 #include <array>
 
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <iterator>
 #include <kis_dom_utils.h>
 
 #include <KoColorBackground.h>
@@ -20,6 +29,12 @@
 #include <SvgUtil.h>
 
 #include <KisStaticInitializer.h>
+#include <qdom.h>
+#include <qfont.h>
+#include <QtGlobal>
+#include <qnumeric.h>
+#include <qregion.h>
+#include <qtextoption.h>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KoSvgText::CssLengthPercentage>("KoSvgText::CssLengthPercentage");

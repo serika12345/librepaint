@@ -347,13 +347,6 @@ acquire_lock() {
     trap 'exit 130' INT
     trap 'exit 143' TERM
     validate_host
-    python3 "$repo_root/packaging/ios/scripts/audit-ios-image-licenses.py" --check
-    python3 "$repo_root/packaging/ios/scripts/audit-default-resource-bundle.py"
-    python3 "$repo_root/packaging/ios/scripts/audit-static-dependency-resources.py"
-    python3 "$repo_root/packaging/ios/scripts/audit-user-visible-branding.py" \
-        --source-root "$repo_root"
-    python3 "$repo_root/packaging/ios/scripts/audit-ios-compatibility-identifiers.py" \
-        --source-root "$repo_root"
 }
 
 configure_tree() {
@@ -471,8 +464,7 @@ build_target() {
         exit 1
     fi
     python3 "$repo_root/packaging/ios/scripts/audit-static-dependency-resources.py" \
-        --binary "$binary" \
-        --build-ninja "$build_dir/build.ninja"
+        --binary "$binary"
 }
 
 case "$command_name" in

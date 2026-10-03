@@ -6,14 +6,18 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisScatterOption.h"
+#include "KisCurveOption.h"
 
 #include <QVector2D>
 
+#include <cmath>
 #include <kis_properties_configuration.h>
 #include <kis_paint_information.h>
 #include <KisScatterOptionData.h>
 
 #include <KisPaintOpOptionUtils.h>
+#include <QtGlobal>
+#include <qpoint.h>
 namespace kpou = KisPaintOpOptionUtils;
 
 

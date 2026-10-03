@@ -7,11 +7,28 @@
 
 #include "kis_ls_utils.h"
 
+#include <cmath>
+#include <cstring>
+#include <math.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qlogging.h>
+#include <QtGlobal>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <qtransform.h>
 #include <resources/KoAbstractGradient.h>
 #include <KoColorSpace.h>
 #include <resources/KoPattern.h>
 
 
+#include "KoCompositeOpIds.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_filter_configuration.h"
+#include "kis_global.h"
+#include "kis_types.h"
 #include "psd.h"
 
 #include "kis_pixel_selection.h"
@@ -28,6 +45,7 @@
 #include "kis_selection_filters.h"
 #include "kis_multiple_projection.h"
 #include "kis_cached_paint_device.h"
+#include "psd_types.h"
 
 namespace KisLsUtils
 {

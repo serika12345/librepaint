@@ -4,12 +4,18 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <algorithm>
 #include <cmath>
 
+#include <cstddef>
 #include <kis_assert.h>
 #include <KisMpl.h>
+#include <math.h>
+#include <vector>
 
 #include "KisSprayRandomDistributions.h"
+#include "kis_cubic_curve.h"
+#include "kis_random_source.h"
 
 class KisSprayFunctionBasedDistribution::Private
 {

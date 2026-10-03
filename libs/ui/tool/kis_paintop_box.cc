@@ -29,11 +29,9 @@
 #include <kacceleratormanager.h>
 #include <QKeySequence>
 
-#include <kis_icon.h>
 #include <KoColorSpace.h>
 #include <KoCompositeOpRegistry.h>
 #include <KoToolManager.h>
-#include <KoColorSpaceRegistry.h>
 
 #include <KoResource.h>
 #include <KisDirtyStateSaver.h>
@@ -45,14 +43,22 @@
 #include <brushengine/kis_paintop_settings.h>
 #include <brushengine/kis_locked_properties_proxy.h>
 #include <brushengine/kis_locked_properties_server.h>
-#include <brushengine/KisPaintOpPresetUpdateProxy.h>
 #include <kis_config_widget.h>
 #include <kis_image.h>
 #include <kis_node.h>
 #include <brushengine/kis_paintop_config_widget.h>
 #include <application/ui/orchestration/kis_action.h>
 
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
+#include "KoCanvasResourcesIds.h"
+#include "KoCompositeOpIds.h"
+#include "KoInputDevice.h"
+#include "kis_assert.h"
 #include "kis_canvas2.h"
+#include "kis_icon_utils.h"
+#include "kundo2magicstring.h"
 #include "nodes/kis_node_manager.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "canvas/kis_canvas_resource_provider.h"
@@ -64,6 +70,15 @@
 #include "KisPopupButton.h"
 #include "widgets/kis_iconwidget.h"
 #include <kis_tool_options_popup.h>
+#include <qalgorithms.h>
+#include <QtGlobal>
+#include <qfileinfo.h>
+#include <qlist.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
 #include <theme/KisUiFont.h>
 #include "widgets/kis_paintop_presets_editor.h"
 #include "widgets/kis_paintop_presets_chooser_popup.h"

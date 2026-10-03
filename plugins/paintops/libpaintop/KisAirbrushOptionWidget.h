@@ -6,7 +6,12 @@
 #ifndef KISAIRBRUSHOPTIONWIDGET_H
 #define KISAIRBRUSHOPTIONWIDGET_H
 
+#include <QScopedPointer>
+
 #include <kis_paintop_option.h>
+#include <kis_types.h>
+#include <kritapaintop_export.h>
+
 #include <KisAirbrushOptionData.h>
 #include <lager/cursor.hpp>
 

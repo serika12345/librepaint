@@ -11,6 +11,8 @@
 #include <KoStopGradient.h>
 #include <KoSegmentGradient.h>
 #include <KoColorSpace.h>
+#include <cstdlib>
+#include <QtGlobal>
 
 #include "KisGradientMapFilterNearestCachedGradient.h"
 

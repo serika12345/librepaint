@@ -5,11 +5,17 @@
  */
 
 #include "kis_node_query_path.h"
+#include "KisQStringListFwd.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_types.h"
 
 #include <QStringList>
 #include <kis_node.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
+#include <QtGlobal>
+#include <qlist.h>
 
 struct PathElement {
     enum Type {

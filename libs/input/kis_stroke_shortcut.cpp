@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_abstract_shortcut.h"
 #include <kis_stroke_shortcut.h>
 
 #include <KisInputAction.h>
@@ -11,6 +12,9 @@
 #include <QMouseEvent>
 
 #include <cmath>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qset.h>
 
 class Q_DECL_HIDDEN KisStrokeShortcut::Private
 {

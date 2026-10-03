@@ -10,6 +10,12 @@
 #include <KoGroupButton.h>
 
 #include <kis_assert.h>
+#include <qicon.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <QtGlobal>
+#include <qsizepolicy.h>
+#include <qwidget.h>
 #include "KisOptionButtonStrip.h"
 
 class KisOptionButtonStrip::Private

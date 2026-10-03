@@ -5,9 +5,11 @@
  */
 
 #include "kis_tool_proxy.h"
+#include "kis_tool.h"
+#include "kis_types.h"
+#include <kis_image.h>
 
 #include <KisToolCanvas.h>
-#include <kis_image.h>
 #include <kis_coordinates_converter.h>
 
 #include <QMouseEvent>
@@ -17,6 +19,12 @@
 
 #include <KoCanvasBase.h>
 #include <KoToolProxy_p.h>
+#include <QtGlobal>
+#include <qcoreevent.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
 
 
 KisToolProxy::KisToolProxy(KoCanvasBase *canvas, QObject *parent)

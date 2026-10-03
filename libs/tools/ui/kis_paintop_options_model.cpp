@@ -6,10 +6,17 @@
  */
 
 #include "kis_paintop_options_model.h"
+#include "kis_paintop_option.h"
 #include "kis_paintop_options_model_source_p.h"
 
 #include <klocalizedstring.h>
 #include <kis_assert.h>
+#include <qabstractitemmodel.h>
+#include <QtGlobal>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qvariant.h>
 
 
 KisPaintOpOptionListModel::KisPaintOpOptionListModel(QObject *parent)

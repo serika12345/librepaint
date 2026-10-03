@@ -6,6 +6,7 @@
 
 #include "KisSpinBoxSplineUnitConverter.h"
 #include <QtMath>
+#include <qnumeric.h>
 
 double KisSpinBoxSplineUnitConverter::io2sp(int x, int min, int max)
 {

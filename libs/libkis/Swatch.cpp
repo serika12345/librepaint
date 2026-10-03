@@ -3,9 +3,10 @@
  */
 
 #include "Swatch.h"
+#include "ManagedColor.h"
 
 #include <KisSwatch.h>
-#include <KoColor.h>
+#include <qobject.h>
 
 struct Swatch::Private {
     KisSwatch swatch;

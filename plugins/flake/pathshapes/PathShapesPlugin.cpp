@@ -5,7 +5,6 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include <KoShapeRegistry.h>
-#include <KoShapeFactoryBase.h>
 
 #include "PathShapesPlugin.h"
 #include "star/StarShapeFactory.h"
@@ -13,6 +12,8 @@
 #include "ellipse/EllipseShapeFactory.h"
 #include "spiral/SpiralShapeFactory.h"
 #include <kpluginfactory.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(PathShapesPluginFactory, "calligra_shape_paths.json", registerPlugin<PathShapesPlugin>();)
 

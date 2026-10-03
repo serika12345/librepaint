@@ -6,16 +6,25 @@
 
 #include "KisSafeNodeProjectionStore.h"
 
+#include <QDebug>
+
 #include <QCoreApplication>
 #include <QMutex>
 #include <QMutexLocker>
 #include <QVector>
 #include <KoColorSpace.h>
+#include <QtGlobal>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
 
+#include "kis_assert.h"
 #include "kis_image.h"
 #include "kis_paint_device.h"
 #include "kis_selection.h"
 #include "KisRecycleProjectionsJob.h"
+#include "kis_shared.h"
+#include "kis_types.h"
 
 /**********************************************************************/
 /*     StoreImplementationInterface                                   */

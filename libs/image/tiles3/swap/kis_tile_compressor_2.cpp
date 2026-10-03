@@ -5,9 +5,17 @@
  */
 
 #include "kis_tile_compressor_2.h"
+#include "kis_debug.h"
 #include "kis_lzf_compression.h"
 #include <QIODevice>
+#include <cstring>
+#include <QtGlobal>
+#include <qhashfunctions.h>
+#include <qlist.h>
 #include "kis_paint_device_writer.h"
+#include "tiles3/kis_tile.h"
+#include "tiles3/kis_tile_data_interface.h"
+#include "tiles3/kis_tiled_data_manager.h"
 #define TILE_DATA_SIZE(pixelSize) ((pixelSize) * KisTileData::WIDTH * KisTileData::HEIGHT)
 
 const QString KisTileCompressor2::m_compressionName = "LZF";

@@ -5,8 +5,11 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <boost/optional/optional.hpp>
 #include <kis_distance_information.h>
 #include <brushengine/kis_paint_information.h>
+#include "kis_assert.h"
+#include "kis_global.h"
 #include "kis_spacing_information.h"
 #include "kis_timing_information.h"
 #include "kis_debug.h"
@@ -15,6 +18,9 @@
 #include <QDomElement>
 #include <QVector2D>
 #include <QTransform>
+#include <math.h>
+#include <QtGlobal>
+#include <qnumeric.h>
 #include "kis_algebra_2d.h"
 #include "kis_dom_utils.h"
 

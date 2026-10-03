@@ -10,6 +10,13 @@
 #include <QApplication>
 
 #include <KLocalizedString>
+#include <qabstractitemmodel.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qsize.h>
+#include <qstyleditemdelegate.h>
+#include <qstyleoption.h>
+#include <qwidget.h>
 
 #include "input/kis_input_profile.h"
 #include "input/kis_shortcut_configuration.h"

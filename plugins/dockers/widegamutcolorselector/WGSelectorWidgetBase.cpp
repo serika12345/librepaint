@@ -5,8 +5,13 @@
  */
 
 #include "WGSelectorWidgetBase.h"
+#include "KisVisualColorModel.h"
 
 #include <kis_display_color_converter.h>
+#include <qnamespace.h>
+#include <qpoint.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 const KisDisplayColorConverter *WGSelectorDisplayConfig::displayConverter() const
 {

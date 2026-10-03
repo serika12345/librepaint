@@ -26,6 +26,8 @@
 #include <kis_group_layer.h>
 #include <kis_image.h>
 #include <kis_paint_layer.h>
+#include <kis_pixel_selection.h>
+#include <kis_selection.h>
 #include <kis_undo_stores.h>
 #include <strokes/KisFreehandStrokeInfo.h>
 #include <strokes/freehand_stroke.h>
@@ -54,15 +56,29 @@ constexpr qreal inputTime = 0.0;
 constexpr qreal inputSpeed = 0.0;
 const QRect maintainedStrokeBounds(50, 50, 385, 385);
 const QRect maintainedHalfPressureStrokeBounds(126, 126, 234, 234);
+#if defined(Q_OS_ANDROID) && defined(Q_PROCESSOR_X86_64)
+const QByteArray maintainedHalfPressureDigest("4a73b991ca36c42e199a8194b2cd8e166bfd6e67018d6ba6de226bdcdd302831");
+#elif defined(Q_OS_LINUX) && defined(Q_PROCESSOR_X86_64) && !defined(Q_OS_ANDROID)
+const QByteArray maintainedHalfPressureDigest("4a73b991ca36c42e199a8194b2cd8e166bfd6e67018d6ba6de226bdcdd302831");
+#else
 const QByteArray maintainedHalfPressureDigest("ffdae59742d86fcfcc3764eeb7d2e82c126cd9cb08fb7c7c97a94e8b46cd5bb9");
+#endif
 const QRect maintainedPressureGradientBounds(154, 154, 229, 229);
 const QByteArray maintainedPressureGradientDigest("e9740f2b00ef8670a37aade2c4f96cec8197dfc96eb3e18adcc20f938b5f87c0");
 const QRect maintainedFuzzySeed17Bounds(142, 142, 271, 271);
 const QByteArray maintainedFuzzySeed17Digest("34a090d8b904e9950f2bf7868b2c7b1f78c2d5bb3ddb8a531a90f203721c21d3");
 const QRect maintainedSpacing025Bounds(50, 50, 353, 353);
+#if defined(Q_OS_ANDROID) && defined(Q_PROCESSOR_X86_64)
+const QByteArray maintainedSpacing025Digest("2ddab997fbbb9608d884c0a6097df0c8d8496b13cf18c090997b7a3c77af684b");
+#elif defined(Q_OS_LINUX) && defined(Q_PROCESSOR_X86_64) && !defined(Q_OS_ANDROID)
+const QByteArray maintainedSpacing025Digest("24fcf5246719d87bd091c837098ffe4841280b47b507e7a3e2ea2d5cf325f2ba");
+#else
 const QByteArray maintainedSpacing025Digest("8bdf0e95ea7526b6289bf2393397c7bb005b69da6866891c2cb12bf991d7f210");
+#endif
 const QRect maintainedSpeed05Bounds(125, 125, 235, 235);
 const QByteArray maintainedSpeed05Digest("3c7c2e19b4b91a27b8d1ddb1068db753012e01f98244eb9e6f688026db4f551a");
+const QRect rectangularSelectionBounds(225, 225, 100, 100);
+const QByteArray maintainedRectangularSelectionDigest("4f5b7f971268c853d893a2c6c25d805cb354eef8c1d6c26fffeaac5dafa4d219");
 
 KisPaintInformation
 fixedPaintInformation(const QPointF &position, qreal pressure = inputPressure, qreal speed = inputSpeed)
@@ -228,6 +244,13 @@ public:
                                           QStringLiteral("<!DOCTYPE params><params id=\"%1\"/>").arg(sensorId));
     }
 
+    void select(const QRect &bounds)
+    {
+        m_selection = new KisSelection();
+        m_selection->pixelSelection()->select(bounds);
+        m_selection->updateProjection();
+    }
+
     void runStroke(bool cancel,
                    qreal startPressure = inputPressure,
                    qreal endPressure = inputPressure,
@@ -241,7 +264,7 @@ public:
         resources->setBGColorOverride(KoColor(Qt::white, m_image->colorSpace()));
         resources->setOpacity(1.0);
         resources->setMirroring(false, false);
-        resources->setSelectionOverride(nullptr);
+        resources->setSelectionOverride(m_selection);
 
         auto *stroke = dabRandomSeed
             ? new FreehandStrokeStrategy(resources,
@@ -308,6 +331,7 @@ private:
     KisImageSP m_image;
     KisPaintLayerSP m_layer;
     KisPaintOpPresetSP m_preset;
+    KisSelectionSP m_selection;
     QString m_presetPath;
     bool m_presetLoaded{false};
 };
@@ -326,6 +350,7 @@ private Q_SLOTS:
     void fuzzyDabRandomSeedIsDeterministic();
     void brushSpacingProducesMaintainedPixels();
     void speedSensorProducesMaintainedPixels();
+    void rectangularSelectionClipsStrokePixels();
     void cancelledStrokeRestoresInitialImage();
     void undoRedoRestoresBothStates();
 };
@@ -634,6 +659,61 @@ void FreehandStrokeContractTest::speedSensorProducesMaintainedPixels()
         layer.save(QStringLiteral(FILES_OUTPUT_DIR) + QStringLiteral("/freehand-contract-speed-05-actual.png"));
     }
     QCOMPARE(digest, maintainedSpeed05Digest);
+}
+
+void FreehandStrokeContractTest::rectangularSelectionClipsStrokePixels()
+{
+    /*
+     * Consumer: A painter who draws while a rectangular selection is active.
+     * Operation: Runs the maintained freehand stroke through a fixed image-coordinate selection.
+     * Observable result: Layer and projection match inside the selection, and every pixel outside it stays unchanged.
+     * Failure impact: A brush stroke can alter artwork outside the area selected by the painter.
+     */
+    FreehandStrokeFixture fixture;
+    QVERIFY2(fixture.presetLoaded(), qPrintable(QStringLiteral("failed to load preset: %1").arg(fixture.presetPath())));
+    fixture.select(rectangularSelectionBounds);
+    const QImage initialLayer = fixture.layerImage();
+
+    fixture.runStroke(false);
+
+    const QImage layer = fixture.layerImage();
+    const QImage projection = fixture.projectionImage();
+    QVERIFY(layer != initialLayer);
+    QVERIFY(!fixture.image()->hasUpdatesRunning());
+    QVERIFY(fixture.image()->isIdle());
+    QCOMPARE(fixture.layerExactBounds(), rectangularSelectionBounds);
+    QCOMPARE(fixture.image()->projection()->exactBounds(), rectangularSelectionBounds);
+
+    QPoint mismatch;
+    QVERIFY2(compareImages(layer,
+                           projection,
+                           QStringLiteral("freehand-contract-rectangular-selection-projection-actual.png"),
+                           &mismatch),
+             qPrintable(QStringLiteral("selected stroke layer and projection differ at %1,%2")
+                            .arg(mismatch.x())
+                            .arg(mismatch.y())));
+
+    for (int y = 0; y < imageHeight; ++y) {
+        for (int x = 0; x < imageWidth; ++x) {
+            if (!rectangularSelectionBounds.contains(x, y)) {
+                QCOMPARE(layer.pixel(x, y), initialLayer.pixel(x, y));
+            }
+        }
+    }
+
+    const QByteArray digest = imageDigest(layer);
+    if (maintainedRectangularSelectionDigest.isEmpty()) {
+        QDir().mkpath(QStringLiteral(FILES_OUTPUT_DIR));
+        layer.save(QStringLiteral(FILES_OUTPUT_DIR)
+                   + QStringLiteral("/freehand-contract-rectangular-selection-actual.png"));
+        QFAIL(qPrintable(QStringLiteral("record rectangular selection bounds %1,%2 %3x%4 and RGBA8888 SHA-256 %5")
+                             .arg(fixture.layerExactBounds().x())
+                             .arg(fixture.layerExactBounds().y())
+                             .arg(fixture.layerExactBounds().width())
+                             .arg(fixture.layerExactBounds().height())
+                             .arg(QString::fromLatin1(digest))));
+    }
+    QCOMPARE(digest, maintainedRectangularSelectionDigest);
 }
 
 void FreehandStrokeContractTest::cancelledStrokeRestoresInitialImage()

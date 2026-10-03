@@ -10,6 +10,9 @@
 
 #include <KoDockFactoryBase.h>
 #include <KoDockRegistry.h>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
 
 #include "LogDockerDock.h"
 

@@ -10,6 +10,7 @@
 #define PALETTIZE_H
 
 #include "ui_palettize.h"
+#include <klocalizedstring.h>
 
 #include <kis_filter.h>
 #include <kis_config_widget.h>

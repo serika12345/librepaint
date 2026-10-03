@@ -8,6 +8,7 @@
 #include <QString>
 
 #include <kis_debug.h>
+#include <QtGlobal>
 
 #include "kis_meta_data_value.h"
 #include "kis_meta_data_schema.h"

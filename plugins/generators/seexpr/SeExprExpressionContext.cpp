@@ -7,6 +7,9 @@
  */
 
 #include "SeExprExpressionContext.h"
+#include <KSeExpr/Expression.h>
+#include <qhashfunctions.h>
+#include <string>
 
 SeExprExpressionContext::SeExprExpressionContext(const QString &expr)
     : KSeExpr::Expression(expr.toStdString())

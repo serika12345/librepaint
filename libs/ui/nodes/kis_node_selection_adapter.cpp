@@ -6,6 +6,7 @@
 
 #include "nodes/kis_node_selection_adapter.h"
 
+#include "kis_types.h"
 #include "nodes/kis_node_manager.h"
 
 struct KisNodeSelectionAdapter::Private

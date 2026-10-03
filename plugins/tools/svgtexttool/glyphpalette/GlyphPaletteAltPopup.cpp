@@ -8,9 +8,21 @@
 #include <QQmlEngine>
 #include <QQmlContext>
 #include <QQuickItem>
-#include <KoResourcePaths.h>
 #include <klocalizedstring.h>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qfont.h>
+#include <qframe.h>
+#include <qlayout.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qsizepolicy.h>
+#include <QtGlobal>
+#include <qvariant.h>
+#include <qwidget.h>
 #include "GlyphPaletteAltPopup.h"
+#include "KisQQuickWidget.h"
 
 GlyphPaletteAltPopup::GlyphPaletteAltPopup(QWidget *parent)
     : QFrame(parent)

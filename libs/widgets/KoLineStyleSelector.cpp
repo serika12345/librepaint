@@ -10,6 +10,13 @@
 
 #include <QPen>
 #include <QPainter>
+#include <qcombobox.h>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qpaintdevice.h>
+#include <qstyleoption.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 class Q_DECL_HIDDEN KoLineStyleSelector::Private
 {

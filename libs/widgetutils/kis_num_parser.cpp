@@ -6,6 +6,8 @@
 
 #include "kis_num_parser.h"
 
+#include <cmath>
+#include <qcontainerfwd.h>
 #include <qnumeric.h> // for qIsNaN
 #include <qmath.h>
 #include <QVector>

@@ -11,6 +11,7 @@
 #define KIS_TOOL_COLOR_SAMPLER_H_
 
 #include "KoToolFactoryBase.h"
+#include <klocalizedstring.h>
 #include "ui_wdgcolorsampler.h"
 #include "kis_tool.h"
 #include <kis_icon.h>

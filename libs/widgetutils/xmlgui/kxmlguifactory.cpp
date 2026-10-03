@@ -27,13 +27,19 @@
 #include <QStandardPaths>
 #include <QDebug>
 
-#include <ksharedconfig.h>
-#include <kconfiggroup.h>
 
 #include <kis_icon_utils.h>
 #include <WidgetUtilsDebug.h>
 
 #include <KisPortingUtils.h>
+#include <qfileinfo.h>
+#include <QtGlobal>
+#include <qkeysequence.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qstringview.h>
 
 Q_DECLARE_METATYPE(QList<QKeySequence>)
 

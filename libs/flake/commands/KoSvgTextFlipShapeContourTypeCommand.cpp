@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KoSvgTextFlipShapeContourTypeCommand.h"
+#include "kundo2stack.h"
 
 #include <KoShapeBulkActionLock.h>
 #include <KoSvgTextShape.h>

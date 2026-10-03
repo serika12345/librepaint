@@ -5,6 +5,7 @@
  */
 
 #include "KisOutputColorInfoInterface.h"
+#include <qobject.h>
 
 KisOutputColorInfoInterface::KisOutputColorInfoInterface(QObject *parent)
     : QObject(parent)

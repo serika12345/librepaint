@@ -7,6 +7,10 @@
  */
 
 #include <kis_parse_spin_box_p.h>
+#include <qobject.h>
+#include <qspinbox.h>
+#include <qvalidator.h>
+#include <qwidget.h>
 
 #include "kis_int_parse_spin_box.h"
 

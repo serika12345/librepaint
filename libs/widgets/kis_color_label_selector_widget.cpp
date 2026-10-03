@@ -22,6 +22,14 @@
 
 #include <kis_signals_blocker.h>
 #include <KisWrappableHBoxLayout.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qset.h>
+#include <qwidget.h>
 
 namespace {
 const QVector<QColor> &colorLabelPalette()

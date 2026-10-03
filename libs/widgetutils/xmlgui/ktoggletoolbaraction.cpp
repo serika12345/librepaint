@@ -20,6 +20,9 @@
 #include <QPointer>
 
 #include <klocalizedstring.h>
+#include <ktoggleaction.h>
+#include <qmainwindow.h>
+#include <qobject.h>
 
 #include "kmainwindow.h"
 #include "ktoolbar.h"

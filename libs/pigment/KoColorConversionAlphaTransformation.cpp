@@ -6,11 +6,17 @@
 
 #include "KoColorConversionAlphaTransformation.h"
 
+#include "KoColorConversionTransformation.h"
+#include "KoColorConversionTransformationFactory.h"
 #include "KoColorSpace.h"
 #include "KoIntegerMaths.h"
 #include "KoColorSpaceMaths.h"
 #include "KoColorModelStandardIds.h"
 #include "KoColorModelStandardIdsUtils.h"
+#include <cstdint>
+#include <half.h>
+#include <QtGlobal>
+#include <qhashfunctions.h>
 
 /**
  * Converter from the alpha color space to any color space

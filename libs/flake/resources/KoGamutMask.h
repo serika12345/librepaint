@@ -8,6 +8,7 @@
 #define KOGAMUTMASK_H
 
 #include <QPainter>
+#include <QObject>
 #include <QString>
 #include <QVector>
 #include <cmath>

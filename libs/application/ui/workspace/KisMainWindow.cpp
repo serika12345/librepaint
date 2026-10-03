@@ -27,6 +27,7 @@
 #include <QMutex>
 #include <QMutexLocker>
 #include <QPointer>
+#include <KoUpdater.h>
 #include <KisSignalMapper.h>
 #include <QTabBar>
 #include <QMoveEvent>
@@ -46,6 +47,9 @@
 #include <QScrollArea>
 #include <QActionGroup>
 
+#include <algorithm>
+#include <cstdlib>
+#include <functional>
 #include <kactioncollection.h>
 #include <kactionmenu.h>
 #include <kis_debug.h>
@@ -53,9 +57,47 @@
 #include <khelpmenu.h>
 #include <klocalizedstring.h>
 #include <kaboutdata.h>
+#include <ksharedconfig.h>
+#include <optional>
+#include <qalgorithms.h>
+#include <QtGlobal>
+#include <qcolor.h>
+#include <qdir.h>
+#include <qdom.h>
+#include <qfontmetrics.h>
+#include <qguiapplication.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
+#include <qsizepolicy.h>
+#include <qtimer.h>
+#include <qtoolbar.h>
+#include <quuid.h>
+#include <qwidget.h>
 #include <workspace/kis_workspace_resource.h>
 #include <input/ui/kis_input_manager.h>
+#include "KisImportExportErrorCode.h"
+#include <animation/KisPlaybackEngine.h>
+#include "KisImportExportMimeType.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceStorage.h"
+#include "KoCanvasObserverBase.h"
+#include "KoResourceServer.h"
 #include "dialogs/KisDlgCreateNewDocument.h"
+#include "kis_assert.h"
+#include "kis_global.h"
+#include "kis_signal_auto_connection.h"
+#include "kis_signal_compressor.h"
+#include "kis_types.h"
+#include "kstandardaction.h"
 #include "selection/kis_selection_manager.h"
 #include "kis_icon_utils.h"
 #include <krecentfilesaction.h>
@@ -84,7 +126,6 @@
 #include <KoDockRegistry.h>
 #include <KoPluginLoader.h>
 #include <KoColorSpaceEngine.h>
-#include <KoUpdater.h>
 #include <KisResourceModel.h>
 #include <KisResourceLoaderRegistry.h>
 #include <KisResourceIterator.h>
@@ -94,7 +135,7 @@
 #include <KisStorageFilterProxyModel.h>
 
 #ifdef Q_OS_ANDROID
-#include <QtAndroid>
+#include <QJniObject>
 #include <KisAndroidUtils.h>
 #endif
 
@@ -112,7 +153,6 @@
 #include "kis_custom_image_widget.h"
 #include <KisMpl.h>
 #include <KisUsageLogger.h>
-#include <animation/KisPlaybackEngine.h>
 #ifndef Q_OS_IOS
 #include <KisAnimationRender.h>
 #include <KisDlgAnimationRenderer.h>
@@ -305,6 +345,9 @@ public:
     KisSignalMapper *windowMapper {nullptr};
     KisSignalMapper *documentMapper {nullptr};
     KisCanvasWindow *canvasWindow {nullptr};
+    std::optional<QMdiArea::ViewMode> documentViewModeBeforeCanvasOnly;
+    QPointer<QMdiSubWindow> documentSubWindowInCanvasOnly;
+    std::optional<Qt::WindowFlags> documentSubWindowFlagsBeforeCanvasOnly;
 
     QByteArray lastExportedFormat;
     QScopedPointer<KisSignalCompressorWithParam<int> > tabSwitchCompressor;
@@ -623,7 +666,9 @@ KisMainWindow::KisMainWindow(QUuid uuid)
     setFixedSize(KisApplication::primaryScreen()->availableGeometry().size());
 
     QScreen *s = QGuiApplication::primaryScreen();
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     s->setOrientationUpdateMask(Qt::LandscapeOrientation|Qt::InvertedLandscapeOrientation|Qt::PortraitOrientation|Qt::InvertedPortraitOrientation);
+#endif
     connect(s, SIGNAL(orientationChanged(Qt::ScreenOrientation)), this, SLOT(orientationChanged()));
 
 #if KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
@@ -642,7 +687,7 @@ KisMainWindow::KisMainWindow(QUuid uuid)
     // When Krita starts, Java side sends an event to set applicationState() to active. But, before
     // the event could reach KisApplication's platform integration, it is cleared by KisOpenGLModeProber::probeFormat.
     // So, we send it manually when MainWindow shows up.
-    QAndroidJniObject::callStaticMethod<void>("org/qtproject/qt5/android/QtNative", "setApplicationState", "(I)V", Qt::ApplicationActive);
+    QJniObject::callStaticMethod<void>("org/qtproject/qt/android/QtNative", "setApplicationState", "(I)V", Qt::ApplicationActive);
 #endif
 
     setAcceptDrops(true);
@@ -2375,6 +2420,62 @@ void KisMainWindow::viewFullscreen(bool fullScreen)
     }
     d->fullScreenMode->setChecked(isFullScreen());
 #endif
+}
+
+void KisMainWindow::setDocumentTabBarHiddenForCanvasOnly(bool hidden)
+{
+    if (hidden) {
+        if (!d->documentViewModeBeforeCanvasOnly) {
+            if (d->mdiArea->viewMode() != QMdiArea::TabbedView) {
+                return;
+            }
+            d->documentViewModeBeforeCanvasOnly = d->mdiArea->viewMode();
+        }
+
+        d->mdiArea->setViewMode(QMdiArea::SubWindowView);
+        if (QMdiSubWindow *subWindow = d->mdiArea->currentSubWindow()) {
+            if (d->documentSubWindowInCanvasOnly != subWindow ||
+                !d->documentSubWindowFlagsBeforeCanvasOnly) {
+                d->documentSubWindowInCanvasOnly = subWindow;
+                d->documentSubWindowFlagsBeforeCanvasOnly = subWindow->windowFlags();
+            }
+            subWindow->setWindowFlag(Qt::FramelessWindowHint, true);
+            subWindow->showMaximized();
+        }
+        return;
+    }
+
+    if (!d->documentViewModeBeforeCanvasOnly) {
+        return;
+    }
+
+    const QMdiArea::ViewMode viewMode = *d->documentViewModeBeforeCanvasOnly;
+    d->documentViewModeBeforeCanvasOnly.reset();
+
+    if (d->documentSubWindowInCanvasOnly &&
+        d->documentSubWindowFlagsBeforeCanvasOnly) {
+        d->documentSubWindowInCanvasOnly->setWindowFlags(
+            *d->documentSubWindowFlagsBeforeCanvasOnly);
+        d->documentSubWindowInCanvasOnly->showMaximized();
+    }
+    d->documentSubWindowInCanvasOnly = nullptr;
+    d->documentSubWindowFlagsBeforeCanvasOnly.reset();
+
+    d->mdiArea->setViewMode(viewMode);
+
+    if (viewMode == QMdiArea::TabbedView) {
+        for (QMdiSubWindow *subWindow : d->mdiArea->subWindowList()) {
+            subWindow->setWindowState(Qt::WindowMaximized);
+        }
+
+        if (QTabBar *tabBar = d->findTabBarHACK()) {
+            tabBar->setElideMode(Qt::ElideRight);
+            customizeTabBar();
+            tabBar->setExpanding(true);
+            tabBar->setAcceptDrops(true);
+            tabBar->setChangeCurrentOnDrag(true);
+        }
+    }
 }
 
 QDockWidget* KisMainWindow::createDockWidget(KoDockFactoryBase* factory)

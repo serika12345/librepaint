@@ -4,16 +4,17 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "document/KisTextPropertiesManager.h"
-#include <KoSelectedShapesProxy.h>
+#include "KoSvgTextProperties.h"
 #include <canvas/kis_canvas_resource_provider.h>
 #include <KoSvgTextPropertyData.h>
-#include <KoSelection.h>
-#include <KoSvgTextShape.h>
 #include <KoSvgTextPropertiesInterface.h>
 
 #include <application/ui/workspace/KisView.h>
-#include <kis_canvas2.h>
 #include <kis_signal_auto_connection.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qset.h>
 
 
 struct KisTextPropertiesManager::Private {

@@ -11,6 +11,11 @@
 #include <QVariant>
 #include <QVariantList>
 #include <QBuffer>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <QDebug>
+#include <qlogging.h>
+#include <qmap.h>
 
 const QMap<char, char> escape = {
     // Turns out, Adobe text engine data only really escapes ( and ).

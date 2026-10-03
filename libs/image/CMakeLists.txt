@@ -609,6 +609,7 @@ target_include_directories(kritaimagenonuniformbsplineengineobjects
    PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/einspline>
 )
+target_link_libraries(kritaimagenonuniformbsplineengineobjects PRIVATE Boost::boost)
 set_target_properties(kritaimagenonuniformbsplineengineobjects PROPERTIES
    AUTOMOC OFF
    POSITION_INDEPENDENT_CODE ON
@@ -882,6 +883,7 @@ target_include_directories(kritaimageprojectionplaneobjects
 )
 target_link_libraries(kritaimageprojectionplaneobjects
    PUBLIC
+      Boost::boost
       Imath::Imath
       KF${KF_MAJOR}::I18n
       Qt${QT_MAJOR_VERSION}::Core
@@ -974,9 +976,45 @@ target_link_libraries(kritaimagecubiccurveobjects
    PUBLIC
       Qt${QT_MAJOR_VERSION}::Core
       Boost::boost
+   PRIVATE
       Eigen3::Eigen
 )
 set_target_properties(kritaimagecubiccurveobjects PROPERTIES
+   AUTOMOC OFF
+   POSITION_INDEPENDENT_CODE ON
+)
+
+add_library(kritaimagepropertiesconfigurationobjects OBJECT
+   kis_properties_configuration.cc
+)
+target_compile_definitions(kritaimagepropertiesconfigurationobjects PRIVATE
+   kritaglobal_EXPORTS
+   kritaimage_EXPORTS
+   kritapigment_EXPORTS
+)
+target_include_directories(kritaimagepropertiesconfigurationobjects
+   PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/global>
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/libs/pigment>
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/pigment>
+)
+target_sources(kritaimagepropertiesconfigurationobjects INTERFACE
+   $<TARGET_OBJECTS:kritaimageserializableconfigurationobjects>
+   $<TARGET_OBJECTS:kritaimagecubiccurveobjects>
+)
+target_link_libraries(kritaimagepropertiesconfigurationobjects
+   PUBLIC
+      kritaimageserializableconfigurationobjects
+      kritaimagecubiccurveobjects
+      kritapigment
+      Qt${QT_MAJOR_VERSION}::Core
+      Qt${QT_MAJOR_VERSION}::Gui
+      Qt${QT_MAJOR_VERSION}::Xml
+)
+set_target_properties(kritaimagepropertiesconfigurationobjects PROPERTIES
    AUTOMOC OFF
    POSITION_INDEPENDENT_CODE ON
 )
@@ -2029,6 +2067,7 @@ set_target_properties(kritaimagelazyfillfilteringoptionsobjects PROPERTIES
 )
 
 set(kritaimage_LIB_SRCS
+   kis_annotation.cpp
    tiles3/kis_tile.cc
    tiles3/kis_tile_data.cc
    tiles3/kis_tile_data_store.cc
@@ -2209,7 +2248,6 @@ set(kritaimage_LIB_SRCS
    kis_fixed_paint_device.cpp
    kis_paint_layer.cc
    kis_pixel_selection.cpp
-   kis_properties_configuration.cc
    kis_wrapped_random_accessor.cpp
    kis_selection.cc
    KisSelectionUpdateCompressor.cpp
@@ -2406,6 +2444,7 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimageoptimizedbytearrayobjects>
    $<TARGET_OBJECTS:kritaimagelevelscurveobjects>
    $<TARGET_OBJECTS:kritaimagecubiccurveobjects>
+   $<TARGET_OBJECTS:kritaimagepropertiesconfigurationobjects>
    $<TARGET_OBJECTS:kritaimageconvolutionkernelobjects>
    $<TARGET_OBJECTS:kritaimagespatialcontainerobjects>
    $<TARGET_OBJECTS:kritaimagestrokestrategyobjects>

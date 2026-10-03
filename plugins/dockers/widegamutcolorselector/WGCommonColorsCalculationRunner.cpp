@@ -14,11 +14,19 @@
  */
 
 #include <QImage>
+#include <cmath>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qrgb.h>
+#include <qset.h>
+#include <qsharedpointer.h>
 
 #include "kis_image.h"
 #include "kis_paint_device.h"
 #include "KoColor.h"
 #include "KoColorSpaceRegistry.h"
+#include "kis_types.h"
 
 namespace {
 

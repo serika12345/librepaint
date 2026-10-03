@@ -19,6 +19,7 @@
 #include "kis_brush_mask_applicator_factories.h"
 #include "kis_brush_mask_applicator_base.h"
 
+#include <QtGlobal>
 #include <qnumeric.h>
 
 KisRectangleMaskGenerator::KisRectangleMaskGenerator(qreal radius, qreal ratio, qreal fh, qreal fv, int spikes, bool antialiasEdges)

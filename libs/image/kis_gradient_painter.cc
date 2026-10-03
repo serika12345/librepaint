@@ -11,14 +11,22 @@
 #include <cfloat>
 
 #include <KoColorSpace.h>
+#include <cmath>
+#include <cstring>
+#include <math.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qsharedpointer.h>
 #include <resources/KoAbstractGradient.h>
-#include <KoUpdater.h>
 
 #include <KoColorModelStandardIds.h>
 #include <KoColorSpaceRegistry.h>
+#include "kis_assert.h"
 #include "kis_global.h"
 #include "kis_paint_device.h"
-#include <resources/KoPattern.h>
+#include "kis_painter.h"
+#include "kis_pointer_utils.h"
 #include "kis_selection.h"
 
 #include <KisSequentialIteratorProgress.h>
@@ -27,6 +35,8 @@
 #include "kis_gradient_shape_strategy.h"
 #include "kis_polygonal_gradient_shape_strategy.h"
 #include "kis_cached_gradient_shape_strategy.h"
+#include "kis_types.h"
+#include <KoUpdater.h>
 #include "krita_utils.h"
 #include "KoMixColorsOp.h"
 #include <KisDitherOp.h>

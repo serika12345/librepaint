@@ -16,6 +16,10 @@
 #include <KisResourceModel.h>
 #include <KisResourceThumbnailCache.h>
 #include <klocalizedstring.h>
+#include <qimage.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qsize.h>
 
 #include "KoCheckerBoardPainter.h"
 

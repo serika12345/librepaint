@@ -12,6 +12,14 @@
 #include <QList>
 #include <QSharedData>
 #include <QStringList>
+#include "kis_assert.h"
+#include "kis_cubic_curve_spline.h"
+#include <algorithm>
+#include <cmath>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qnumeric.h>
 #include "kis_dom_utils.h"
 #include "kis_algebra_2d.h"
 

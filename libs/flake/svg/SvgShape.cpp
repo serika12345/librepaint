@@ -5,6 +5,7 @@
  */
 
 #include "SvgShape.h"
+#include <qdom.h>
 
 
 SvgShape::~SvgShape()

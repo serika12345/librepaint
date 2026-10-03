@@ -7,18 +7,26 @@
 #include "kis_spinbox_color_selector.h"
 #include <QFormLayout>
 #include <QLabel>
+#include "KoColor.h"
+#include "KoColorSpace.h"
 #include "kis_double_parse_spin_box.h"
 #include "kis_int_parse_spin_box.h"
 
 #include <KoConfig.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
+#include <qwidget.h>
 #ifdef HAVE_OPENEXR
 #include <half.h>
 #endif
 #include <KoChannelInfo.h>
 #include <KoColorModelStandardIds.h>
-#include <KoColorSpaceTraits.h>
 #include <KoColorSpaceMaths.h>
-#include <KoColorSpaceRegistry.h>
 
 struct KisSpinboxColorSelector::Private
 {

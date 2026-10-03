@@ -20,6 +20,11 @@
 
 #include <QPainter>
 #include <QImage>
+#include <functional>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qscopedpointer.h>
 
 class SimpleCanvas : public KoCanvasBase
 {

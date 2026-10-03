@@ -6,10 +6,14 @@
 
 
 #include "kistoolcropconfigwidget.h"
+#include "kis_icon_utils.h"
 #include "kis_tool_crop.h"
-#include <kis_icon.h>
 #include <kis_acyclic_signal_connector.h>
 #include <QStandardItemModel>
+#include <qicon.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 
 KisToolCropConfigWidget::KisToolCropConfigWidget(QWidget* parent, KisToolCrop* cropTool)

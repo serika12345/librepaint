@@ -6,6 +6,10 @@
 
 #include <QMutex>
 #include <QSemaphore>
+#include <qatomic.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qthread.h>
 
 #include "tiles3/swap/kis_tile_data_swapper.h"
 #include "tiles3/swap/kis_tile_data_swapper_p.h"

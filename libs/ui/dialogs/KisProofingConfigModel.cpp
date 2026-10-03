@@ -4,13 +4,27 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisProofingConfigModel.h"
+#include "KisProofingConfiguration.h"
+#include "KisWidgetConnectionUtils.h"
+#include "KoColorConversionTransformation.h"
+#include "KoID.h"
 #include <KisLager.h>
-#include <KisZug.h>
 #include <KisPortingUtils.h>
+#include <KisZug.h>
+#include <klocalizedstring.h>
 
+#include <functional>
 #include <kis_display_color_converter.h>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/lenses.hpp>
 #include <lager/lenses/tuple.hpp>
 #include <lager/constant.hpp>
+#include <lager/watch.hpp>
+#include <lager/with.hpp>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 namespace {
 auto conversionFlag = [](KoColorConversionTransformation::ConversionFlag flag) {

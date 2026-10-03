@@ -5,6 +5,7 @@
  */
 
 #include "kis_abstract_compression.h"
+#include <QtGlobal>
 
 KisAbstractCompression::KisAbstractCompression()
 {

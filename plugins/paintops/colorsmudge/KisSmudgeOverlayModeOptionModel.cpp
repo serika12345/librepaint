@@ -4,6 +4,10 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisSmudgeOverlayModeOptionModel.h"
+#include "KisSmudgeOverlayModeOptionData.h"
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+#include <lager/reader.hpp>
 
 KisSmudgeOverlayModeOptionModel::KisSmudgeOverlayModeOptionModel(lager::cursor<KisSmudgeOverlayModeOptionData> _optionData,
                                                                  lager::reader<bool> _overlayModeAllowed)

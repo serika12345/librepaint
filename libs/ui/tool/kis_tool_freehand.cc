@@ -10,14 +10,15 @@
  */
 
 #include "kis_tool_freehand.h"
+#include <klocalizedstring.h>
 #include <QPainter>
 #include <QRect>
 #include <QThreadPool>
 #include <QApplication>
 #include <QScreen>
 
-#include <Eigen/Core>
 
+#include <functional>
 #include <kis_icon.h>
 #include <KoPointerEvent.h>
 #include <KoViewConverter.h>
@@ -28,27 +29,42 @@
 
 // Krita/image
 #include <kis_image.h>
-#include <kis_layer.h>
-#include <kis_paint_layer.h>
 #include <kis_painter.h>
 #include <brushengine/kis_paintop.h>
-#include <kis_selection.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <brushengine/KisOptimizedBrushOutline.h>
 
 
 // Krita/ui
+#include "KisPerStrokeRandomSource.h"
 #include "canvas/kis_abstract_perspective_grid.h"
 #include "application/kis_config.h"
+#include "kis_assert.h"
 #include "kis_config_notifier.h"
+#include "kis_global.h"
+#include <kis_layer.h>
 #include "kis_image_config.h"
 #include "canvas/kis_canvas2.h"
 #include "kis_cursor.h"
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_painting_assistants_decoration.h>
+#include <qcursor.h>
+#include <QtGlobal>
+#include <qguiapplication.h>
+#include <qhashfunctions.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
+#include <qset.h>
 #include "kis_painting_information_builder_adapters.h"
+#include "kis_random_source.h"
+#include "kis_tool.h"
 #include "kis_tool_freehand_helper.h"
+#include "kis_tool_paint.h"
 #include "kis_tool_utils.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 
 using namespace std::placeholders; // For _1 placeholder
 

@@ -5,7 +5,12 @@
  */
 
 
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnumeric.h>
+#include <qthread.h>
 #include <stdio.h>
+#include "kis_assert.h"
 #include "kis_tile_data_store.h"
 #include "kis_tile_data_store_iterators.h"
 #include "kis_debug.h"

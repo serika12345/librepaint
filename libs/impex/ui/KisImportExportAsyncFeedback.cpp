@@ -4,12 +4,16 @@
  */
 
 #include "KisImportExportAsyncFeedback.h"
+#include "KisImportExportErrorCode.h"
 
 #include <QApplication>
 #include <QEventLoop>
 #include <QFutureWatcher>
 #include <QProgressDialog>
 #include <QtConcurrentRun>
+#include <functional>
+#include <qfuture.h>
+#include <qnamespace.h>
 
 KisImportExportErrorCode runImportExportActionWithFeedback(
     const QString &message,

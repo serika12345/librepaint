@@ -8,12 +8,16 @@
 
 #include <klocalizedstring.h>
 
+#include "kis_abstract_input_action.h"
 #include "kis_input_manager.h"
+#include "kis_tool.h"
 #include "kis_tool_proxy.h"
 
 #include <QApplication>
 #include <QEvent>
 #include <QMouseEvent>
+#include <qhash.h>
+#include <qnamespace.h>
 
 
 

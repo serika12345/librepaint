@@ -3,8 +3,10 @@
  *
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
+#include "kis_paintop_option.h"
+#include "kis_paintop_settings_widget.h"
+#include "kis_types.h"
 #include <kis_curve_paintop_settings_widget.h>
-#include <kis_properties_configuration.h>
 #include <kis_curve_paintop_settings.h>
 
 #include <KisPaintingModeOptionWidget.h>
@@ -13,6 +15,7 @@
 #include <KisCompositeOpOptionWidget.h>
 #include <KisStandardOptionData.h>
 #include <KisCurveStandardOptionData.h>
+#include <qwidget.h>
 
 KisCurvePaintOpSettingsWidget:: KisCurvePaintOpSettingsWidget(QWidget* parent)
     : KisPaintOpSettingsWidget(parent)

@@ -10,6 +10,11 @@
 
 #include <QPaintEvent>
 #include <QPainter>
+#include <qcoreevent.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qsize.h>
+#include <qwidget.h>
 
 #include "../../kis_input_config.h"
 

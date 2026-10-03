@@ -15,9 +15,15 @@
 #include <application/ui/orchestration/kis_action.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <application/ui/orchestration/KisPart.h>
+#include <qapplication.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpointer.h>
 
 #include "dlg_bundle_manager.h"
 #include "DlgResourceManager.h"
+#include "ui/orchestration/KisActionPlugin.h"
 
 class ResourceManager::Private {
 public:

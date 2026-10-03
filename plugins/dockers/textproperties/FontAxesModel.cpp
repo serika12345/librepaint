@@ -4,8 +4,22 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "FontAxesModel.h"
+#include "KisResourceTypes.h"
+#include "KoResource.h"
+#include "KoSvgText.h"
 #include <klocalizedstring.h>
 #include <QDebug>
+#include <optional>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qhash.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qstringview.h>
+#include <qvariant.h>
 #include <resources/KoFontFamily.h>
 #include <KisResourceModel.h>
 #include <KoFontRegistry.h>

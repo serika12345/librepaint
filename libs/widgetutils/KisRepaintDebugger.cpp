@@ -9,6 +9,10 @@
 #include <QPaintDevice>
 #include <QPaintEvent>
 #include <QPainter>
+#include <cstddef>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
 
 bool KisRepaintDebugger::enabled()
 {

@@ -5,6 +5,17 @@
  */
 #include <KSharedConfig>
 #include <KConfigGroup>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qsortfilterproxymodel.h>
+#include <qstringview.h>
+#include <qvariant.h>
 
 #include "TextPropertyConfigModel.h"
 

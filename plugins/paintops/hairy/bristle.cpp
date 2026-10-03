@@ -5,6 +5,7 @@
  */
 
 #include "bristle.h"
+#include "KoColor.h"
 
 Bristle::Bristle(float x, float y, float length)
     : m_x(x)

@@ -9,7 +9,15 @@
 #include <QThread>
 #include <QThreadPool>
 #include <QMutexLocker>
+#include <mutex>
+#include <qalgorithms.h>
+#include <QtGlobal>
+#include <utility>
 
+#include "KisUpdaterContextSnapshotEx.h"
+#include "kis_assert.h"
+#include "kis_base_rects_walker.h"
+#include "kis_stroke_job_strategy.h"
 #include "kis_update_job_item.h"
 #include "kis_stroke_job.h"
 

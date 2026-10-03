@@ -38,6 +38,9 @@
 #include <klocalizedstring.h>
 
 #include <kis_icon_utils.h>
+#include <qnamespace.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 namespace KDcrawIface
 {

@@ -7,6 +7,7 @@
 #include "kis_post_execution_undo_adapter.h"
 
 #include "KisPostExecutionUndoAdapterDelivery_p.h"
+#include "kis_types.h"
 
 
 KisPostExecutionUndoAdapter::KisPostExecutionUndoAdapter(KisUndoStore *undoStore,

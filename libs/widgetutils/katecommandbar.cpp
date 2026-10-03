@@ -18,10 +18,24 @@
 #include <QVBoxLayout>
 #include <QDebug>
 
+#include <algorithm>
 #include <kactioncollection.h>
 #include <KLocalizedString>
 
 #include <kfts_fuzzy_match.h>
+#include <qabstractitemmodel.h>
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qcoreevent.h>
+#include <qhashfunctions.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qsize.h>
+#include <qstyle.h>
+#include <qstyleoption.h>
+#include <utility>
 
 class CommandBarFilterModel : public QSortFilterProxyModel
 {

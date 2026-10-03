@@ -13,9 +13,12 @@
 #include <KisImportExportManager.h>
 
 #include <document/KisDocument.h>
-#include <kis_image.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
+#include "KisImportExportErrorCode.h"
 #include "csv_loader.h"
+#include "kis_types.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(CSVImportFactory, "krita_csv_import.json", registerPlugin<KisCSVImport>();)
 

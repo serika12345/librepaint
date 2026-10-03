@@ -9,6 +9,8 @@
 
 #include <kpluginfactory.h>
 #include <kis_filter_registry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 #include "KisGradientMapFilter.h"
 #include "KisGradientMapFilterPlugin.h"

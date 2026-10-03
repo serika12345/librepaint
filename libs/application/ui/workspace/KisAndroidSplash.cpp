@@ -10,17 +10,10 @@
 #include <QCoreApplication>
 #include <QFile>
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QJniEnvironment>
 #include <QJniObject>
 using AndroidJniEnvironment = QJniEnvironment;
 using AndroidJniObject = QJniObject;
-#else
-#include <QAndroidJniEnvironment>
-#include <QAndroidJniObject>
-using AndroidJniEnvironment = QAndroidJniEnvironment;
-using AndroidJniObject = QAndroidJniObject;
-#endif
 
 KisAndroidSplash *KisAndroidSplash::instance()
 {

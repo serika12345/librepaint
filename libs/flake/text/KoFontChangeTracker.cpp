@@ -6,8 +6,11 @@
 #include "KoFontChangeTracker.h"
 
 #include <QFileSystemWatcher>
-#include <kis_signal_compressor.h>
 #include <QDebug>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
 
 struct KoFontChangeTracker::Private {
 

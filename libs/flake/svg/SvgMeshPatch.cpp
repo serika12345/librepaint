@@ -11,6 +11,16 @@
 #include <math.h>
 #include <QDebug>
 #include <kis_assert.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qlogging.h>
+#include <qpainterpath.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qsize.h>
+#include <qstringview.h>
+#include <QtGlobal>
+#include <qtransform.h>
 
 
 inline QPointF lerp(const QPointF& p1, const QPointF& p2, qreal t)

@@ -12,6 +12,7 @@
 #include <KoProperties.h>
 #include <KoShapeFactoryBase.h>
 #include <KoShapeRegistry.h>
+#include <QtGlobal>
 
 KoShape *KoBasicShapeFactory::createRectangle(const QRectF &rect,
                                               qreal roundCornersX,

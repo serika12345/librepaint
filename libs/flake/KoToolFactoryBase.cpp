@@ -6,6 +6,7 @@
 
 #include "KoToolFactoryBase.h"
 
+#include "KisQStringListFwd.h"
 #include "KoToolBase.h"
 #include <kactioncollection.h>
 
@@ -15,6 +16,10 @@
 #include <QKeySequence>
 #include <QAction>
 #include <QDebug>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qobjectdefs.h>
 
 class Q_DECL_HIDDEN KoToolFactoryBase::Private
 {

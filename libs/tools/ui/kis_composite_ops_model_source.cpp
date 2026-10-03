@@ -6,7 +6,9 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KoID.h"
 #include "kis_composite_ops_model_source_p.h"
+#include "kis_icon_utils.h"
 
 #include <QApplication>
 #include <QStyle>
@@ -15,7 +17,10 @@
 #include <KConfigGroup>
 #include <KSharedConfig>
 #include <KoCompositeOpRegistry.h>
-#include <kis_icon.h>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qpixmap.h>
+#include <qsize.h>
 
 namespace
 {

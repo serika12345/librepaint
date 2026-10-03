@@ -14,14 +14,16 @@
 
 #include <KoColor.h>
 #include <KoColorSpace.h>
-#include <KoPointerEvent.h>
 
 #include "kis_painter.h"
 
 #include "kis_image.h"
 #include "kis_paint_device.h"
-#include <brushengine/kis_paintop_preset.h>
 #include <brushengine/kis_paint_information.h>
+#include "kis_types.h"
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <utility>
 #include "kis_vec.h"
 #include "kis_perspective_math.h"
 #include "kis_fixed_paint_device.h"

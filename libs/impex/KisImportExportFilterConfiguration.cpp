@@ -4,6 +4,9 @@
  */
 
 #include "KisImportExportFilter.h"
+#include "kis_types.h"
+#include <qobject.h>
+#include <QtGlobal>
 
 KisPropertiesConfigurationSP KisImportExportFilter::defaultConfiguration(const QByteArray &from,
                                                                          const QByteArray &to) const

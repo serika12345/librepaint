@@ -15,8 +15,9 @@
 class KRITAPAINTING_EXPORT KisFilterStrokeStrategy : public KisStrokeStrategyUndoCommandBased
 {
 public:
-    class FilterJobData : public KisStrokeJobData {
+    class KRITAPAINTING_EXPORT FilterJobData : public KisStrokeJobData {
     public:
+        ~FilterJobData() override;
         FilterJobData(int frameTime = -1)
             : KisStrokeJobData(CONCURRENT),
               frameTime(frameTime)
@@ -37,8 +38,9 @@ public:
          }
     };
 
-    class IdleBarrierData : public KisStrokeJobData {
+    class KRITAPAINTING_EXPORT IdleBarrierData : public KisStrokeJobData {
     public:
+        ~IdleBarrierData() override;
         IdleBarrierData()
             : KisStrokeJobData(SEQUENTIAL),
               m_idleBarrierCookie(new std::tuple<>())

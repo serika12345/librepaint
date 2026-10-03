@@ -5,6 +5,13 @@
  */
 #include "KisSensorWithLengthModel.h"
 
+#include <QObject>
+
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
+
+#include "KisSensorData.h"
+
 KisSensorWithLengthModel::KisSensorWithLengthModel(lager::cursor<KisSensorWithLengthData> data, QObject *parent)
     : QObject(parent)
     , m_data(data)

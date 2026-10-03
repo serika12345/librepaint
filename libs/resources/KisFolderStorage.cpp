@@ -5,15 +5,27 @@
  */
 
 #include "KisFolderStorage.h"
+#include <klocalizedstring.h>
+#include "KisResourceStorage.h"
+#include "KisStoragePlugin.h"
+#include "KoID.h"
+#include "KoResource.h"
 
 #include <QDirIterator>
-#include <KisMimeDatabase.h>
-#include <kis_debug.h>
 #include <KisTag.h>
 #include <KisResourceLoaderRegistry.h>
 #include <KisGlobalResourcesInterface.h>
 #include <kis_pointer_utils.h>
 #include <KoMD5Generator.h>
+#include <qcontainerfwd.h>
+#include <qdir.h>
+#include <qfileinfo.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
+#include <QtGlobal>
+#include <qvariant.h>
 
 
 class FolderTagIterator : public KisResourceStorage::TagIterator

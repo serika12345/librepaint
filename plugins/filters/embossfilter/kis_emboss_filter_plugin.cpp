@@ -8,6 +8,8 @@
 #include "kis_emboss_filter_plugin.h"
 
 #include <kpluginfactory.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 #include "kis_emboss_filter.h"
 #include "filter/kis_filter_registry.h"

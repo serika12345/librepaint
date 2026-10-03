@@ -15,6 +15,7 @@ let
     pkgs.kdePackages.extra-cmake-modules
     pkgs.pkg-config
     pythonPackages.sip
+    pkgs.qt6.qttools
     pkgs.qt6.wrapQtAppsHook
   ];
 
@@ -47,7 +48,6 @@ let
     pkgs.zug
     pythonPackages.pyqt6
     pkgs.qt6.qtmultimedia
-    pkgs.qt6.qttools
   ]
   ++ (with pkgs.kdePackages; [
     breeze-icons
@@ -73,14 +73,32 @@ let
     pythonPackages.sip
     pythonPackages.setuptools
   ];
+  runtimePyQt = pythonPackages.pyqt6.override {
+    withLocation = false;
+    withMultimedia = false;
+    withPdf = false;
+    withSerialPort = false;
+    withSpeech = false;
+    withWebSockets = false;
+  };
+  runtimePythonPath = lib.makeSearchPath pythonPackages.python.sitePackages [
+    runtimePyQt
+    pythonPackages.pyqt6-sip
+    pythonPackages.dbus-python
+  ];
 
   librepaintUnwrapped = pkgs.stdenv.mkDerivation {
     pname = "librepaint-linux-unwrapped";
-    version = "1.0.2";
+    version = "1.0.3";
 
     src = source;
 
     inherit nativeBuildInputs buildInputs;
+    outputs = [
+      "out"
+      "dev"
+    ];
+    dontWrapQtApps = true;
 
     # Krita's CMake helpers replace PYTHONPATH while probing SIP.  Keep the
     # Nix Python modules visible, as in nixpkgs' krita-unwrapped recipe.
@@ -97,10 +115,14 @@ let
     cmakeBuildType = "RelWithDebInfo";
     cmakeFlags = [
       "-DALLOW_UNSTABLE=QT6"
-      "-DBUILD_KRITA_QT_DESIGNER_PLUGINS=ON"
+      "-DBUILD_KRITA_QT_DESIGNER_PLUGINS=OFF"
       "-DBUILD_WITH_QT6=ON"
       "-DENABLE_UPDATERS=OFF"
     ];
+
+    postInstall = ''
+      rm -f "$out/bin/krita_version" "$out/bin/kritarunner"
+    '';
 
     passthru.linuxDependencyMembers =
       nativeBuildInputs
@@ -136,13 +158,15 @@ in
       mainProgram = "LibrePaint";
     };
 
-    nativeBuildInputs = librepaintUnwrapped.nativeBuildInputs ++ [
+    nativeBuildInputs = [
+      pkgs.qt6.wrapQtAppsHook
       pkgs.wrapGAppsHook3
     ];
 
     paths = [
       librepaintUnwrapped
       librepaintGmic
+      (lib.getBin pkgs.ffmpeg)
     ];
 
     # This is intentionally the same runtime wrapper as nixpkgs' Krita
@@ -167,7 +191,8 @@ in
           gappsWrapperArgsHook
           wrapQtApp "$out/bin/LibrePaint" \
             "''${gappsWrapperArgs[@]}" \
-            --prefix PYTHONPATH : "$PYTHONPATH" \
+            --prefix PATH : "${lib.makeBinPath [ pkgs.ffmpeg ]}" \
+            --prefix PYTHONPATH : "${runtimePythonPath}" \
             --set FONTCONFIG_FILE "${pkgs.fontconfig.out}/etc/fonts/fonts.conf" \
             --set KRITA_PLUGIN_PATH "$out/lib/kritaplugins"
     '';

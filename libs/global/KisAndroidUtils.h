@@ -36,6 +36,9 @@ KRITAGLOBAL_EXPORT bool isInFullScreen();
 // Enters or exits immersive mode if we're not in that state already.
 KRITAGLOBAL_EXPORT void setFullScreen(bool fullScreen);
 
+// Preserve the encoded document URI used by Android's URI permission grant.
+KRITAGLOBAL_EXPORT QString encodedContentUri(const QString &uri);
+
 // QFile::copy doesn't work on sandboxed directories, use this instead. The
 // value placed in outErrorMessage is not translated, use it for logging or
 // present it to the user as an internal error. On success, it will be cleared.

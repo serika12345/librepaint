@@ -6,20 +6,29 @@
 
 #include "kis_polygonal_gradient_shape_strategy.h"
 
+#include "kis_assert.h"
 #include "kis_debug.h"
 
 #include "kis_algebra_2d.h"
+#include "kis_global.h"
 
+#include <cmath>
 #include <config-gsl.h>
+#include <cstddef>
+#include <QtGlobal>
+#include <qline.h>
+#include <qlist.h>
+#include <qnumeric.h>
 
 #ifdef HAVE_GSL
+#include <gsl/gsl_errno.h>
 #include <gsl/gsl_multimin.h>
+#include <gsl/gsl_vector_double.h>
 #endif /* HAVE_GSL */
 
 #include <QtCore/qmath.h>
 #include <limits>
 
-#include <boost/math/distributions/normal.hpp>
 
 #include <QPainterPath>
 #include "krita_utils.h"

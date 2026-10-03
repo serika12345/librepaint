@@ -44,6 +44,19 @@
 #include <QIntValidator>
 #include <QtDebug>
 #include <QDoubleSpinBox>
+#include <QtGlobal>
+#include <qcoreevent.h>
+#include <qflags.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qpalette.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <qstyleoption.h>
+#include <qwidget.h>
 
 namespace KDcrawIface
 {

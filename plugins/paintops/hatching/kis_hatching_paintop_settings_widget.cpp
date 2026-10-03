@@ -6,13 +6,17 @@
  */
 
 #include "kis_hatching_paintop_settings_widget.h"
+#include <klocalizedstring.h>
 
+#include "KisBrushModel.h"
+#include "KisBrushOptionWidgetFlags.h"
+#include "KisMirrorOptionData.h"
+#include "KisPaintopPropertiesBase.h"
+#include "kis_brush_based_paintop_options_widget.h"
 #include "kis_hatching_paintop_settings.h"
 
 #include "KisHatchingStandardOptionData.h"
 
-#include <kis_brush_option_widget.h>
-#include <kis_paintop_settings_widget.h>
 #include <KisPaintOpOptionWidgetUtils.h>
 
 #include "KisHatchingOptionsWidget.h"
@@ -22,7 +26,11 @@
 #include "KisSizeOptionWidget.h"
 #include "KisMirrorOptionWidget.h"
 #include <KisPaintingModeOptionWidget.h>
+#include <QtGlobal>
+#include <qwidget.h>
 #include "KisTextureOptionWidget.h"
+#include "kis_paintop_option.h"
+#include "kis_types.h"
 
 KisHatchingPaintOpSettingsWidget:: KisHatchingPaintOpSettingsWidget(QWidget* parent, KisResourcesInterfaceSP resourcesInterface, KoCanvasResourcesInterfaceSP canvasResourcesInterface)
     : KisBrushBasedPaintopOptionWidget(KisBrushOptionWidgetFlag::SupportsPrecision, parent)

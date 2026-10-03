@@ -4,6 +4,7 @@
  */
 
 #include "kis_node_model.h"
+#include <qabstractitemmodel.h>
 
 QModelIndex KisNodeModel::index(int row, int column, const QModelIndex &parent) const
 {

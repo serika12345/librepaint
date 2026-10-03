@@ -4,8 +4,18 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
 */
 #include "KoColorPatch.h"
+#include "KoColor.h"
+#include "KoColorDisplayRendererInterface.h"
 
 #include <QPainter>
+#include <qcolor.h>
+#include <qframe.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 KoColorPatch::KoColorPatch( QWidget *parent ) : QFrame( parent )
 {

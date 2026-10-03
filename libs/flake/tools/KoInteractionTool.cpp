@@ -6,9 +6,16 @@
 */
 
 #include <QKeyEvent>
+#include <algorithm>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
 
 #include "KoInteractionTool.h"
+#include "KoInteractionStrategyFactory.h"
 #include "KoInteractionTool_p.h"
+#include "KoToolBase.h"
 #include "KoToolBase_p.h"
 #include "KoPointerEvent.h"
 #include "KoCanvasBase.h"

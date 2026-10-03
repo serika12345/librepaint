@@ -9,6 +9,10 @@
 
 #include <QMutex>
 #include <QMutexLocker>
+#include <QtGlobal>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
 
 #include "KoColorProfile.h"
 #include "KoColorProfileQuery.h"

@@ -6,9 +6,17 @@
 
 #include "selection/kis_selection_actions_panel_handle.h"
 #include "kis_icon_utils.h"
+#include "selection/kis_selection_actions_panel.h"
 #include <qapplication.h>
 #include <KoColorDisplayRendererInterface.h>
+#include <qcursor.h>
 #include <qevent.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qpainter.h>
+#include <qpoint.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 struct KisSelectionActionsPanelHandle::Private
 {

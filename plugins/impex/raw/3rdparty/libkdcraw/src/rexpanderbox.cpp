@@ -28,6 +28,7 @@
  * ============================================================ */
 
 #include "rexpanderbox.h"
+#include "rwidgetutils.h"
 
 // Qt includes
 
@@ -44,6 +45,18 @@
 
 #include <kconfiggroup.h>
 #include <klocalizedstring.h>
+#include <qcoreevent.h>
+#include <qframe.h>
+#include <qlabel.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscrollarea.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 namespace KDcrawIface
 {

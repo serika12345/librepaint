@@ -9,6 +9,7 @@
 #define KIS_DESATURATE_FILTER_H
 
 #include <QObject>
+#include <klocalizedstring.h>
 #include <QVariant>
 
 #include <kis_config_widget.h>

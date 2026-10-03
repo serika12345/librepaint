@@ -54,6 +54,25 @@ target_include_directories(KisGlobalValuesContractTest PRIVATE
 )
 target_compile_definitions(KisGlobalValuesContractTest PRIVATE kritaglobal_EXPORTS)
 
+if (ANDROID)
+    kis_add_test(
+        KisAndroidContentUriContractTest.cpp
+        TEST_NAME KisAndroidContentUriContractTest
+        LINK_LIBRARIES
+            kritaglobal
+            Qt${QT_MAJOR_VERSION}::Test
+    )
+
+    kis_add_test(
+        KisAndroidCrashHandlerContractTest.cpp
+        TEST_NAME KisAndroidCrashHandlerContractTest
+        LINK_LIBRARIES
+            kritaglobal
+            Qt${QT_MAJOR_VERSION}::Gui
+            Qt${QT_MAJOR_VERSION}::Test
+    )
+endif()
+
 if (UNIX AND NOT IOS)
     kis_add_test(
         KisCrashSignalHandlerSetupContractTest.cpp
@@ -66,6 +85,9 @@ if (UNIX AND NOT IOS)
         ${CMAKE_CURRENT_BINARY_DIR}/..
     )
     target_compile_definitions(KisCrashSignalHandlerSetupContractTest PRIVATE kritaglobal_EXPORTS)
+    if (ANDROID)
+        target_link_libraries(KisCrashSignalHandlerSetupContractTest Qt${QT_MAJOR_VERSION}::Gui)
+    endif()
 endif()
 
 

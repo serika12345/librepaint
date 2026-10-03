@@ -15,13 +15,20 @@
 #include <QDrag>
 #include <QMimeData>
 
+#include <boost/optional/optional.hpp>
 #include <kconfig.h>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
+#include <qboxlayout.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qwidget.h>
 
 #include "kis_canvas2.h"
 #include "KoCanvasResourceProvider.h"
 #include "KisColorPatchesTableView.h"
+#include "kis_color_selector_base.h"
 #include "kis_display_color_converter.h"
 
 KisColorPatches::KisColorPatches(QString configPrefix, QWidget *parent)

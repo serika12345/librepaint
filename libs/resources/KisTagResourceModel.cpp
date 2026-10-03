@@ -5,6 +5,10 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "KisTagResourceModel.h"
+#include <klocalizedstring.h>
+#include "KisResourceStorage.h"
+#include "KisTag.h"
+#include "KoResource.h"
 
 #include <QFont>
 #include <QSqlError>
@@ -18,6 +22,17 @@
 #include <KisResourceQueryMapper.h>
 #include <KisStorageModel.h>
 #include <kis_assert.h>
+#include <qabstractitemmodel.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qhash.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsortfilterproxymodel.h>
+#include <qstringview.h>
 
 struct KisAllTagResourceModel::Private {
     QString resourceType;

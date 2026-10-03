@@ -8,12 +8,21 @@
 
 #include <QPainter>
 #include <QMouseEvent>
+#include <kconfiggroup.h>
 #include <ksharedconfig.h>
 
 #include <Eigen/Core>
 #include <cmath>
+#include <math.h>
+#include <QtGlobal>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qrgb.h>
 
+#include "KisColorSelectorConfiguration.h"
 #include "KoColor.h"
+#include "kis_color_selector.h"
+#include "kis_color_selector_component.h"
 #include "kis_display_color_converter.h"
 
 

@@ -3,11 +3,14 @@
   source,
   frameworks,
   kseexpr,
+  pythonRuntime,
 }:
 
 let
   inherit (pkgs) lib;
   qt = pkgs.qt6Packages;
+  pythonPackages = pkgs.python3Packages;
+  runtimePyQt = pythonRuntime.runtimePyQt;
   ffmpeg = pkgs.ffmpeg;
   mltOpenCV = pkgs.opencv4.override { ffmpeg-headless = ffmpeg; };
   frei0r = pkgs.frei0r.override { opencv = mltOpenCV; };
@@ -19,7 +22,7 @@ let
     pkgs.gettext
     pkgs.ninja
     pkgs.pkg-config
-    pkgs.python3
+    pythonPackages.sip
     pkgs.kdePackages.extra-cmake-modules
     qt.qttools
     qt.wrapQtAppsHook
@@ -56,6 +59,7 @@ let
     pkgs.xsimd
     pkgs.zlib
     pkgs.zug
+    runtimePyQt
     kseexpr
     mlt
     qt.poppler
@@ -76,10 +80,14 @@ let
     frameworks.kwidgetsaddons
   ];
   deploymentTarget = pkgs.stdenv.hostPlatform.darwinMinVersion;
+  pythonPath = pythonPackages.makePythonPath [
+    pythonPackages.setuptools
+    pythonPackages.sip
+  ];
 in
 pkgs.stdenv.mkDerivation {
   pname = "librepaint-macos";
-  version = "1.0.2";
+  version = "1.0.3";
 
   src = source;
   strictDeps = true;
@@ -87,6 +95,11 @@ pkgs.stdenv.mkDerivation {
   inherit nativeBuildInputs buildInputs;
 
   postPatch = ''
+    substituteInPlace cmake/modules/FindSIP.cmake \
+      --replace-fail 'PYTHONPATH=''${_pyqt5_python_path}' 'PYTHONPATH=${pythonPath}'
+    substituteInPlace cmake/modules/SIPMacros.cmake \
+      --replace-fail 'PYTHONPATH=''${_krita_python_path}' 'PYTHONPATH=${pythonPath}'
+
     substituteInPlace plugins/impex/jp2/jp2_converter.cc \
       --replace-fail '<openjpeg.h>' '<${pkgs.openjpeg.incDir}/openjpeg.h>'
   '';
@@ -96,10 +109,12 @@ pkgs.stdenv.mkDerivation {
     "-DBUILD_KRITA_QT_DESIGNER_PLUGINS=OFF"
     "-DBUILD_TESTING=OFF"
     "-DBUILD_WITH_QT6=ON"
-    "-DCMAKE_DISABLE_FIND_PACKAGE_PythonLibrary=TRUE"
     "-DCMAKE_DISABLE_FIND_PACKAGE_Qt6WaylandClient=TRUE"
     "-DCMAKE_OSX_DEPLOYMENT_TARGET=${deploymentTarget}"
     "-DCMAKE_REQUIRE_FIND_PACKAGE_Mlt7=TRUE"
+    "-DCMAKE_REQUIRE_FIND_PACKAGE_PyQt6=TRUE"
+    "-DCMAKE_REQUIRE_FIND_PACKAGE_PythonLibrary=TRUE"
+    "-DCMAKE_REQUIRE_FIND_PACKAGE_SIP=TRUE"
     "-DKRITA_MACOS_USE_XCODE_TOOLS=OFF"
     "-DMACOS_MINIMUM_VERSION=${deploymentTarget}"
   ];
@@ -153,6 +168,8 @@ pkgs.stdenv.mkDerivation {
 
   postFixup = ''
     app="$out/bin/LibrePaint.app"
+    mkdir -p "$out/lib"
+    ln -s ${pythonRuntime} "$out/lib/Python.framework"
     mkdir -p "$app/Contents/PlugIns"
     ln -s ${mlt}/lib/mlt "$app/Contents/PlugIns/mlt"
     ln -s ${frei0r}/lib/frei0r-1 "$app/Contents/PlugIns/frei0r-1"
@@ -169,7 +186,7 @@ pkgs.stdenv.mkDerivation {
 
   enableParallelBuilding = true;
 
-  passthru.macosDependencyMembers = nativeBuildInputs ++ buildInputs;
+  passthru.macosDependencyMembers = nativeBuildInputs ++ buildInputs ++ [ pythonRuntime ];
 
   meta = {
     description = "LibrePaint digital painting application for macOS";

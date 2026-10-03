@@ -5,7 +5,20 @@
 
 #include "kis_convex_hull.h"
 
-#include <boost/geometry.hpp>
+#include <boost/geometry/algorithms/detail/convex_hull/interface.hpp>
+#include <boost/geometry/core/access.hpp>
+#include <boost/geometry/core/coordinate_dimension.hpp>
+#include <boost/geometry/core/coordinate_system.hpp>
+#include <boost/geometry/core/coordinate_type.hpp>
+#include <boost/geometry/core/cs.hpp>
+#include <boost/geometry/core/tag.hpp>
+#include <boost/geometry/core/tags.hpp>
+#include <boost/mpl/int_fwd.hpp>
+#include <boost/range/const_iterator.hpp>
+#include <boost/range/iterator.hpp>
+#include <qcontainerfwd.h>
+#include <qpoint.h>
+#include <qpolygon.h>
 
 namespace boost
 {

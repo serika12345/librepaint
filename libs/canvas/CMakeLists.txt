@@ -161,6 +161,7 @@ set(kritacanvas_LIB_SRCS
     kis_projection_update_info.cpp
     kis_update_info.h
     KisToolCanvas.h
+    KisToolCanvas.cpp
 )
 
 kis_add_library(kritacanvas SHARED

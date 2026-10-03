@@ -7,7 +7,13 @@
 
 #include <QButtonGroup>
 
-#include <lager/constant.hpp>
+#include <functional>
+#include "KisDeformOptionData.h"
+#include "KisWidgetConnectionUtils.h"
+#include "kis_paintop_option.h"
+#include "kis_types.h"
+#include <lager/cursor.hpp>
+#include <qwidget.h>
 #include "ui_wdgdeformoptions.h"
 
 #include "KisDeformOptionModel.h"

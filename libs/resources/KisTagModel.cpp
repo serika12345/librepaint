@@ -5,6 +5,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisTagModel.h"
+#include "KoResource.h"
 
 #include <QSqlError>
 #include <QSqlQuery>
@@ -20,7 +21,14 @@
 #include <KisStorageModel.h>
 #include <QVector>
 
-#include <kis_assert.h>
+#include <qabstractitemmodel.h>
+#include <QtGlobal>
+#include <QDebug>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsortfilterproxymodel.h>
 
 static int s_fakeRowsCount {2};
 

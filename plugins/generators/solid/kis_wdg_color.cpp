@@ -13,7 +13,12 @@
 #include <KoColor.h>
 #include <filter/kis_filter_configuration.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qobjectdefs.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
+#include "kis_config_widget.h"
+#include "kis_types.h"
 #include "ui_wdgcoloroptions.h"
 
 KisWdgColor::KisWdgColor(QWidget* parent, const KoColorSpace *cs)

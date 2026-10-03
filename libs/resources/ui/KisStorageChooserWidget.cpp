@@ -6,10 +6,15 @@
 
 #include <QAbstractItemView>
 #include <QListView>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qwidget.h>
 
+#include "KisPopupButton.h"
 #include "KisResourceStorage.h"
 #include "KisResourceTypes.h"
 #include "KisStorageChooserWidget.h"
+#include "KisStorageChooserDelegate.h"
 #include "KisStorageChooserWidgetModelSource_p.h"
 #include "KisStorageFilterProxyModel.h"
 

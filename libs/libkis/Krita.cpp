@@ -9,6 +9,7 @@
 #include <QVariant>
 #include <QStringList>
 
+#include <algorithm>
 #include <ksharedconfig.h>
 #include <kconfiggroup.h>
 #include <klocalizedstring.h>
@@ -18,7 +19,6 @@
 #include <KoColorSpace.h>
 #include <KoDockRegistry.h>
 #include <KoColorSpaceEngine.h>
-#include <KoColorModelStandardIds.h>
 #include <KoID.h>
 #include <KoResourcePaths.h>
 
@@ -34,11 +34,17 @@
 #include <KritaVersionWrapper.h>
 #include <kis_filter_registry.h>
 #include <kis_filter.h>
-#include <kis_filter_configuration.h>
-#include <kis_properties_configuration.h>
 #include <application/kis_config.h>
-#include <workspace/kis_workspace_resource.h>
-#include <brushengine/kis_paintop_preset.h>
+#include <qalgorithms.h>
+#include <QtGlobal>
+#include <qcolor.h>
+#include <qimage.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qset.h>
 #include <KisBrushServerProvider.h>
 #include <KoResourceServerProvider.h>
 #include <application/ui/orchestration/KisResourceServerProvider.h>
@@ -50,6 +56,8 @@
 #include <KisResourceModel.h>
 #include <KisGlobalResourcesInterface.h>
 
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
 #include "View.h"
 #include "Document.h"
 #include "Window.h"
@@ -58,6 +66,8 @@
 #include "Filter.h"
 #include "InfoObject.h"
 #include "Resource.h"
+#include "kis_assert.h"
+#include "kis_types.h"
 
 Krita* Krita::s_instance = 0;
 

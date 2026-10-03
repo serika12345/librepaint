@@ -5,6 +5,15 @@
  */
 
 #include "kis_colorsmudgeop_settings.h"
+#include "KoID.h"
+#include "kis_brush_based_paintop_settings.h"
+#include "kis_paintop_settings.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
+#include "kis_uniform_paintop_property.h"
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 struct KisColorSmudgeOpSettings::Private
 {
@@ -21,7 +30,6 @@ KisColorSmudgeOpSettings::~KisColorSmudgeOpSettings()
 {
 }
 
-#include <brushengine/kis_slider_based_paintop_property.h>
 #include <brushengine/kis_combo_based_paintop_property.h>
 #include <qpointer.h>
 #include "KisPaintOpPresetUpdateProxy.h"

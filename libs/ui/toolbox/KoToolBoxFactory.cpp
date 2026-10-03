@@ -5,8 +5,11 @@
  */
 
 #include "KoToolBoxFactory.h"
+#include "KoDockFactoryBase.h"
 #include "KoToolBox_p.h"
 #include "KoToolBoxDocker_p.h"
+#include <qdockwidget.h>
+#include <QtGlobal>
 
 
 KoToolBoxFactory::KoToolBoxFactory()

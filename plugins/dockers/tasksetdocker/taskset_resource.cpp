@@ -5,14 +5,15 @@
  */
 
 #include "taskset_resource.h"
+#include "KoResource.h"
 
 #include <QFile>
 #include <QDomDocument>
 #include <QTextStream>
 #include <QBuffer>
 
-#include <kis_debug.h>
 #include <KisPortingUtils.h>
+#include <QtGlobal>
 
 #define TASKSET_VERSION 1
 

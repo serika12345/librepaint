@@ -12,15 +12,8 @@
 #include <QTemporaryFile>
 #include <memory>
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #include <QJniEnvironment>
 #include <QJniObject>
-#else
-#include <QAndroidJniEnvironment>
-#include <QAndroidJniObject>
-using QJniEnvironment = QAndroidJniEnvironment;
-using QJniObject = QAndroidJniObject;
-#endif
 
 #include <klocalizedstring.h>
 
@@ -747,7 +740,7 @@ KisMediaEncoderRunnable::EncodeResult KisAndroidMediaEncoderRunnable::encode(QSt
 
     // Start the encoding.
     {
-        QJniObject activity = QJniObject::callStaticObjectMethod("org/qtproject/qt5/android/QtNative",
+        QJniObject activity = QJniObject::callStaticObjectMethod("org/qtproject/qt/android/QtNative",
                                                                  "activity",
                                                                  "()Landroid/app/Activity;");
         if (ctx.checkObject(QStringLiteral("activity"), activity)) {
@@ -870,7 +863,7 @@ KisMediaEncoderRunnable::EncodeResult KisAndroidMediaEncoderRunnable::encode(QSt
             if (instances == 1) {
                 // Just a single frame, scale it into the native buffer.
                 const uint8_t *srcBuffers[] = {inputImage.bits(), nullptr, nullptr, nullptr};
-                const int srcLinesizes[] = {inputImage.bytesPerLine(), 0, 0, 0};
+                const int srcLinesizes[] = {static_cast<int>(inputImage.bytesPerLine()), 0, 0, 0};
                 sws_scale(swsContext, srcBuffers, srcLinesizes, 0, inputImage.height(), dstBuffers, dstLinesizes);
 
             } else {
@@ -886,7 +879,7 @@ KisMediaEncoderRunnable::EncodeResult KisAndroidMediaEncoderRunnable::encode(QSt
                     }
 
                     const uint8_t *srcBuffers[] = {inputImage.bits(), nullptr, nullptr, nullptr};
-                    const int srcLinesizes[] = {inputImage.bytesPerLine(), 0, 0, 0};
+                    const int srcLinesizes[] = {static_cast<int>(inputImage.bytesPerLine()), 0, 0, 0};
                     sws_scale(swsContext,
                               srcBuffers,
                               srcLinesizes,

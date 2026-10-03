@@ -6,10 +6,17 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "dlg_bundle_manager.h"
+#include <klocalizedstring.h>
 
+#include "KoDialog.h"
+#include "KoID.h"
+#include "KoResourceBundle.h"
 #include "KoResourcePaths.h"
+#include "kis_assert.h"
 #include "kis_debug.h"
 #include "dlg_create_bundle.h"
+#include "kis_global.h"
+#include "kis_icon_utils.h"
 
 #include <QPainter>
 #include <QPixmap>
@@ -18,9 +25,6 @@
 #include <QItemSelectionModel>
 #include <QStringLiteral>
 
-#include <kconfiggroup.h>
-#include <ksharedconfig.h>
-#include <KoIcon.h>
 #include <KoFileDialog.h>
 
 #include <kis_icon.h>
@@ -34,6 +38,26 @@
 
 #include <application/ui/workspace/KisMainWindow.h>
 #include <application/ui/orchestration/KisPart.h>
+#include <qabstractitemmodel.h>
+#include <qapplication.h>
+#include <QtGlobal>
+#include <qdir.h>
+#include <qfileinfo.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscroller.h>
+#include <qsharedpointer.h>
+#include <qsize.h>
+#include <qstandardpaths.h>
+#include <qstyle.h>
+#include <qstyleditemdelegate.h>
+#include <qstyleoption.h>
+#include <qtextoption.h>
 
 DlgBundleManager::ItemDelegate::ItemDelegate(QObject *parent, KisStorageFilterProxyModel* proxy)
     : QStyledItemDelegate(parent)

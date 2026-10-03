@@ -9,6 +9,7 @@
 #define KIS_TOOL_MEASURE_H_
 
 #include <QLabel>
+#include <klocalizedstring.h>
 
 #include <KoUnit.h>
 

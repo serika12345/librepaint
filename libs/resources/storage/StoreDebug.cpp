@@ -5,6 +5,8 @@
  */
 
 #include "StoreDebug.h"
+#include <qlogging.h>
+#include <qloggingcategory.h>
 
 const QLoggingCategory &STORE_LOG() \
 {

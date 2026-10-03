@@ -16,6 +16,7 @@
 #include <klocalizedstring.h>
 
 #include <kis_icon_utils.h>
+#include <QtGlobal>
 
 QAction *KisKUndoActions::createRedoAction(QUndoStack *undoStack, KisKActionCollection *actionCollection, const QString &actionName)
 {

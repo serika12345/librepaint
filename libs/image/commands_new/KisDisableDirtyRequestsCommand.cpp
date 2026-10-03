@@ -6,6 +6,7 @@
 
 #include "KisDisableDirtyRequestsCommand.h"
 
+#include "kis_command_utils.h"
 #include "kis_image_interfaces.h"
 
 KisDisableDirtyRequestsCommand::KisDisableDirtyRequestsCommand(KisUpdatesFacade *updatesFacade, State state)

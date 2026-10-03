@@ -12,6 +12,8 @@
 #include <KisKineticScroller.h>
 
 #include <QObject>
+#include <qobjectdefs.h>
+#include <qscroller.h>
 
 namespace KisResourceItemChooserInputSource
 {

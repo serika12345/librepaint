@@ -5,7 +5,9 @@
  */
 #include "KisSmudgeOverlayModeOptionData.h"
 
-#include <kis_paintop_settings.h>
+#include <klocalizedstring.h>
+#include "KoID.h"
+
 #include <kis_properties_configuration.h>
 #include <kis_paintop_lod_limitations.h>
 

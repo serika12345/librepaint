@@ -36,6 +36,17 @@
 #include <KoCanvasController.h>
 #include <KoShapeLayer.h>
 #include <KoToolManager.h>
+#include <qcoreevent.h>
+#include <qevent.h>
+#include <QtGlobal>
+#include <qguiapplication.h>
+#include <qlist.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 #define BUTTON_MARGIN 10
 

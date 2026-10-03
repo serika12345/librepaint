@@ -7,7 +7,8 @@
 #include "trajectory.h"
 #include <cmath>
 
-#include <kis_debug.h>
+#include <qpoint.h>
+#include <QtGlobal>
 
 Trajectory::Trajectory()
 {

@@ -7,6 +7,7 @@
 
 #include "KoJsonTrader.h"
 
+#include "kis_assert.h"
 #include "kis_debug.h"
 #include "kis_pointer_utils.h"
 
@@ -24,6 +25,14 @@
 #include <KPluginMetaData>
 
 #include <memory>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qobject.h>
+#include <qsharedpointer.h>
 
 struct KoJsonTrader::PluginCacheEntry
 {

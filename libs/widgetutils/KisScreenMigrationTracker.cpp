@@ -5,6 +5,7 @@
  */
 
 #include "KisScreenMigrationTracker.h"
+#include "KisRootSurfaceTrackerBase.h"
 
 #include <QGuiApplication>
 #include <QScreen>
@@ -12,6 +13,8 @@
 #include <QWindow>
 #include <kis_assert.h>
 #include <kis_signal_compressor.h>
+#include <qobject.h>
+#include <QtGlobal>
 
 KisScreenMigrationTracker::KisScreenMigrationTracker(QWidget *trackedWidget, QObject *parent)
     : KisRootSurfaceTrackerBase(trackedWidget, parent)

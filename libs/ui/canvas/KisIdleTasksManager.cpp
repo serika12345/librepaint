@@ -4,12 +4,21 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "canvas/KisIdleTasksManager.h"
+#include "KisIdleTaskStrokeStrategy.h"
+#include "kis_assert.h"
+#include "kis_types.h"
 
 #include <QQueue>
+#include <algorithm>
+#include <boost/none_t.hpp>
+#include <functional>
+#include <iterator>
 #include <kis_idle_watcher.h>
 #include <kis_image.h>
 #include <KisMpl.h>
-#include <boost/none.hpp>
+#include <qcontainerfwd.h>
+#include <qobjectdefs.h>
+#include <qsharedpointer.h>
 
 
 namespace {

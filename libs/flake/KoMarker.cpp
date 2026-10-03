@@ -6,7 +6,8 @@
 
 #include "KoMarker.h"
 
-#include <KoXmlNS.h>
+#include "KoFlake.h"
+#include "KoFlakeTypes.h"
 #include "KoPathShape.h"
 #include "KoPathShapeLoader.h"
 #include "KoShapeLoadingContext.h"
@@ -21,8 +22,17 @@
 #include <QUrl>
 #include <QPainterPath>
 #include <QPainter>
+#include <qalgorithms.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qscopedpointer.h>
+#include <qshareddata.h>
+#include <qsharedpointer.h>
 
 #include "kis_algebra_2d.h"
+#include "kis_assert.h"
+#include "kis_pointer_utils.h"
 
 class Q_DECL_HIDDEN KoMarker::Private
 {

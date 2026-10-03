@@ -7,6 +7,8 @@
 #include "smallcolorselector_dock.h"
 
 #include <klocalizedstring.h>
+#include "KoCanvasResourcesIds.h"
+#include "kis_assert.h"
 #include "kis_canvas2.h"
 
 #include "kis_small_color_widget.h"
@@ -15,6 +17,12 @@
 #include <KoColorSpaceRegistry.h>
 
 #include <QVBoxLayout>
+#include <qdockwidget.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
 SmallColorSelectorDock::SmallColorSelectorDock()
         : QDockWidget()

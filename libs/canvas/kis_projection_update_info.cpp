@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_projection_update_info.h"
+#include <qpainter.h>
 
 KisProjectionUpdateInfo::KisProjectionUpdateInfo(const QRect &dirtyImageRect)
     : m_dirtyImageRect(dirtyImageRect)

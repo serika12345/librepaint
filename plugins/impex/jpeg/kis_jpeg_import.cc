@@ -10,11 +10,15 @@
 #include <kpluginfactory.h>
 
 #include <document/KisDocument.h>
-#include <kis_image.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <KisImportExportManager.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
+#include "KisImportExportErrorCode.h"
+#include "KisImportExportFilter.h"
 #include "kis_jpeg_converter.h"
+#include "kis_types.h"
 
 K_PLUGIN_FACTORY_WITH_JSON(JPEGImportFactory, "krita_jpeg_import.json", registerPlugin<KisJPEGImport>();)
 

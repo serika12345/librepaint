@@ -9,7 +9,9 @@
 #include <KoColorModelStandardIdsUtils.h>
 #include <kis_assert.h>
 
+#include "KoAlphaMaskApplicatorBase.h"
 #include "KoAlphaMaskApplicatorFactoryImpl.h"
+#include "KoID.h"
 
 template <typename channels_type>
 struct CreateApplicator

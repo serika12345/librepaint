@@ -5,6 +5,8 @@
  */
 
 #include "KisStandardUniformPropertyDefinition.h"
+#include <optional>
+#include <QtGlobal>
 
 std::optional<KisStandardUniformPropertyDefinition> standardUniformPropertyDefinition(const QString &id)
 {

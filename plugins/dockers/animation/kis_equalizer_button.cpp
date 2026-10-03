@@ -11,6 +11,15 @@
 #include <QStyleOption>
 
 #include <QApplication>
+#include <qabstractbutton.h>
+#include <qcoreevent.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qpaintdevice.h>
+#include <qrgb.h>
+#include <qsizepolicy.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 
 #include "KisAnimTimelineColors.h"

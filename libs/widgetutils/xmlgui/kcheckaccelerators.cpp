@@ -8,6 +8,8 @@
 
 #include "kcheckaccelerators.h"
 
+#include <QDebug>
+
 #include <QApplication>
 #include <QCheckBox>
 #include <QDialog>
@@ -22,6 +24,16 @@
 #include <QComboBox>
 #include <QGroupBox>
 #include <QClipboard>
+#include <qboxlayout.h>
+#include <qcoreapplication.h>
+#include <qcoreevent.h>
+#include <qkeysequence.h>
+#include <qlist.h>
+#include <qmenu.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
 #ifndef Q_OS_IOS
 #include <QProcess>
 #endif

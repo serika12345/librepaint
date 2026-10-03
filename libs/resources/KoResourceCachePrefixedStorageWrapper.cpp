@@ -4,8 +4,10 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KoResourceCachePrefixedStorageWrapper.h"
+#include "KoResourceCacheInterface.h"
 
 #include <QVariant>
+#include <qhashfunctions.h>
 
 
 KoResourceCachePrefixedStorageWrapper::KoResourceCachePrefixedStorageWrapper(const QString &prefix, KoResourceCacheInterfaceSP baseInterface)

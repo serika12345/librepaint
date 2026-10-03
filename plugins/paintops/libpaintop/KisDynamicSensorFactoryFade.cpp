@@ -4,13 +4,26 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisDynamicSensorFactoryFade.h"
+
+#include <QDebug>
 #include "KisDynamicSensorIds.h"
+
+#include <QWidget>
+#include <QtCore/qlogging.h>
+
+#include <KLocalizedString>
 
 #include "ui_SensorFadeConfiguration.h"
 
+#include <KisCurveOptionDataCommon.h>
+#include <KisKritaSensorPack.h>
+#include <KisSensorData.h>
+#include <KisSimpleDynamicSensorFactory.h>
 #include <KisWidgetConnectionUtils.h>
 #include <KisSensorWithLengthModel.h>
-#include <KisKritaSensorPack.h>
+
+#include <lager/cursor.hpp>
+#include <lager/lenses.hpp>
 
 namespace {
     auto safeDereferenceFadeSensor = lager::lenses::getset(

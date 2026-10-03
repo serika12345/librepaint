@@ -6,9 +6,12 @@
 
 #include "kis_jpeg_source.h"
 
+#include <cstddef>
 #include <jerror.h>
 
 #include <QIODevice>
+#include <jpeglib.h>
+#include <QtGlobal>
 
 
 namespace

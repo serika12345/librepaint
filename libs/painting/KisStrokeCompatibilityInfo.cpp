@@ -6,6 +6,7 @@
 #include "KisStrokeCompatibilityInfo.h"
 
 #include <kis_resources_snapshot.h>
+#include <qnumeric.h>
 
 #include "kis_node.h"
 

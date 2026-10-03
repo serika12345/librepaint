@@ -4,6 +4,8 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisDynamicSensorFade.h"
+#include "kis_cubic_curve.h"
+#include "sensors/KisDynamicSensor.h"
 
 #include <QtGlobal>
 
@@ -11,6 +13,7 @@
 #include <KisSensorData.h>
 
 #include <kis_paint_information.h>
+#include <optional>
 
 
 KisDynamicSensorFade::KisDynamicSensorFade(const KisSensorWithLengthData &data, std::optional<KisCubicCurve> curveOverride)

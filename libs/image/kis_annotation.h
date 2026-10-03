@@ -58,7 +58,7 @@ public:
         , m_description(description)
         , m_annotation(data) {}
 
-    virtual ~KisAnnotation() {}
+    virtual ~KisAnnotation();
 
     virtual KisAnnotation* clone() const {
         return new KisAnnotation(*this);

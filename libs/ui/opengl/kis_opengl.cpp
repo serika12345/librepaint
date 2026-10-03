@@ -5,11 +5,24 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <algorithm>
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
+#include <optional>
+#include <qcoreapplication.h>
+#include <qdebug.h>
+#include <QtGlobal>
+#include <qguiapplication.h>
+#include <qhash.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qopengl.h>
+#include <qsize.h>
+#include <qstringview.h>
 #include <tuple>
 
-#include <boost/optional.hpp>
 
-#include <QtGlobal>
 
 #include <QOpenGLContext>
 #include <QOpenGLDebugLogger>
@@ -39,10 +52,14 @@
 
 #include <color/KisSurfaceColorSpaceWrapper.h>
 #include "KisOpenGLModeProber.h"
+#include "KisQStringListFwd.h"
+#include "KoIntegerMaths.h"
 #include "opengl/kis_opengl.h"
 
 #include <config-hdr.h>
 #include <config-use-surface-color-management-api.h>
+#include <utility>
+#include <vector>
 
 #ifndef GL_RENDERER
 #  define GL_RENDERER 0x1F01
@@ -537,7 +554,7 @@ QOpenGLContext::OpenGLModuleType determineOpenGLImplementation(const RendererInf
         return QOpenGLContext::LibGL;
 #else
     // https://invent.kde.org/szaman/qtbase/-/blob/krita/5.15/src/plugins/platforms/xcb/gl_integrations/xcb_glx/qglxintegration.cpp#L246
-#if defined(QT_OPENGL_ES_2)
+#if defined(QT_OPENGL_ES_2) || defined(QT_OPENGL_ES_3)
     return QOpenGLContext::LibGLES;
 #else
     return QOpenGLContext::LibGL;

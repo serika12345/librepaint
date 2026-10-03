@@ -4,7 +4,21 @@
  *  SPDX-FileCopyrightText: 2005..2022 Halla Rempt <halla@valdyas.org>
  *  SPDX-License-Identifier: LGPL-2.1-or-later
  */
-#include <sys/types.h>
+#include "KisPortingUtils.h"
+#include "KisSwatchGroup.h"
+#include "KoColorSpaceConstants.h"
+#include "KoResource.h"
+#include "kundo2stack.h"
+#include <cstring>
+#include <QtGlobal>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qset.h>
 
 #include <QFile>
 #include <QFileInfo>

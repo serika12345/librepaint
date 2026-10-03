@@ -5,6 +5,21 @@
  */
 #include "KisScatterOptionData.h"
 
+#include "KisCurveOptionData.h"
+#include "KisCurveOptionDataCommon.h"
+#include "KisOptionTuple.h"
+
+#include <optional>
+#include <utility>
+
+#include <KoID.h>
+
+#include <QString>
+
+#include <KLocalizedString>
+
+#include <kis_properties_configuration.h>
+
 const QString SCATTER_X = "Scattering/AxisX";
 const QString SCATTER_Y = "Scattering/AxisY";
 const QString SCATTER_AMOUNT = "Scattering/Amount";

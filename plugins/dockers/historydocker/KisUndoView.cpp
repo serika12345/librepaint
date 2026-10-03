@@ -44,8 +44,14 @@
 **
 ****************************************************************************/
 #include <kundo2qstack.h>
+#include <qlistview.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscroller.h>
+#include <qwidget.h>
 #include "KisUndoView.h"
 #include "KisUndoModel.h"
+#include "kis_canvas2.h"
 
 #ifndef QT_NO_UNDOVIEW
 

@@ -16,6 +16,13 @@
 #include <KisKineticScroller.h>
 
 #include <QtMath>
+#include <qabstractitemview.h>
+#include <qitemselectionmodel.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qstyleoption.h>
+#include <qtableview.h>
+#include <QtGlobal>
 
 KisResourceItemView::KisResourceItemView(QWidget *parent)
     : QTableView(parent)

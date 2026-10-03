@@ -5,7 +5,11 @@
  */
 #include "kis_node_move_command2.h"
 
+#include "kis_move_command_common.h"
 #include "kis_selection_mask.h"
+#include "kis_types.h"
+#include "kundo2stack.h"
+#include <qpoint.h>
 
 
 KisNodeMoveCommand2::KisNodeMoveCommand2(KisNodeSP object, const QPoint& oldPos, const QPoint& newPos, KUndo2Command *parent)

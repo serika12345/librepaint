@@ -5,8 +5,10 @@
  */
 
 #include "KisSimpleDynamicSensorFactory.h"
+#include "KisCurveOptionDataCommon.h"
 
 #include <QtGlobal>
+#include <lager/cursor.hpp>
 
 KisSimpleDynamicSensorFactory::KisSimpleDynamicSensorFactory(const QString &id,
                                                              int minimumValue,

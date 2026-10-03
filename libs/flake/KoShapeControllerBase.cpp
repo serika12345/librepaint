@@ -18,6 +18,9 @@
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
 #include <kundo2command.h>
+#include <QtGlobal>
+#include <qhashfunctions.h>
+#include <qlist.h>
 
 class KoshapeControllerBasePrivate
 {

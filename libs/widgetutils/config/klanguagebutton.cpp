@@ -7,6 +7,8 @@
 
 #include "klanguagebutton.h"
 
+#include <QDebug>
+
 #include <QMenu>
 #include <QLayout>
 #include <QPushButton>
@@ -17,6 +19,14 @@
 #include <klocalizedstring.h>
 #include <kconfig.h>
 #include <kconfiggroup.h>
+#include <QtGlobal>
+#include <qboxlayout.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qstandardpaths.h>
+#include <qwidget.h>
 
 static void checkInsertPos(QMenu *popup, const QString &str, int &index)
 {

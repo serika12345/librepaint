@@ -8,8 +8,11 @@
 
 
 #include <QDomDocument>
+#include <QtGlobal>
+#include <qnumeric.h>
 
 #include "kis_circle_mask_generator.h"
+#include "KoMultiArchBuildSupport.h"
 #include "kis_circle_mask_generator_p.h"
 #include "kis_base_mask_generator.h"
 #include "kis_brush_mask_applicator_factories.h"

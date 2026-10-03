@@ -13,6 +13,7 @@
 #define KIS_TOOL_SELECT_OUTLINE_H_
 
 #include <QPoint>
+#include <klocalizedstring.h>
 #include <KisSelectionToolFactoryBase.h>
 #include <KisToolOutlineBase.h>
 #include <kis_tool_select_ui_base.h>

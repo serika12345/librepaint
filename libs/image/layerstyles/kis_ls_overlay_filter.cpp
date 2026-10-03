@@ -5,15 +5,21 @@
  */
 
 #include "kis_ls_overlay_filter.h"
+#include <klocalizedstring.h>
 
 #include <cstdlib>
 
 #include <QBitArray>
 
-#include <resources/KoPattern.h>
+#include <qnumeric.h>
+#include <QtGlobal>
 
-#include <resources/KoAbstractGradient.h>
 
+#include "kis_assert.h"
+#include "kis_filter_configuration.h"
+#include "kis_layer_style_filter.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 #include "psd.h"
 
 #include "kis_gaussian_kernel.h"

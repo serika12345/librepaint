@@ -7,6 +7,7 @@
 #include <QDebug>
 
 #include <KoCanvasBase.h>
+#include <qdockwidget.h>
 
 #include "Canvas.h"
 

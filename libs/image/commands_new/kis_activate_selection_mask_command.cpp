@@ -8,6 +8,8 @@
 
 #include "kis_layer.h"
 #include "kis_selection_mask.h"
+#include "kis_types.h"
+#include <qobject.h>
 
 
 KisActivateSelectionMaskCommand::KisActivateSelectionMaskCommand(KisSelectionMaskSP selectionMask, bool value)

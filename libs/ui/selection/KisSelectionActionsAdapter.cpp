@@ -6,6 +6,8 @@
 
 #include "selection/KisSelectionActionsAdapter.h"
 
+#include "KisSelectionTags.h"
+#include "kis_assert.h"
 #include "selection/kis_selection_manager.h"
 
 

@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "KisQStringListFwd.h"
 #include "SvgUtil.h"
 
 #include <QRegularExpression>
@@ -11,6 +12,10 @@
 #include <QTransform>
 
 #include <math.h>
+#include <qnamespace.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <QtGlobal>
 
 double SvgUtil::fromUserSpace(double value)
 {

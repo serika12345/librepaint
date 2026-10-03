@@ -4,7 +4,10 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "TextTransformModel.h"
+#include "KoSvgText.h"
 #include <KisLager.h>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
 
 TextTransformModel::TextTransformModel(lager::cursor<KoSvgText::TextTransformInfo> _data)
     : data(_data)

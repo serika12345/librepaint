@@ -13,6 +13,7 @@
  * ============================================================ */
 
 #include "thememanager.h"
+#include "kis_icon_utils.h"
 // Qt includes
 
 #include <QStringList>
@@ -45,8 +46,16 @@
 #include <kconfiggroup.h>
 
 // Calligra
-#include <kis_icon.h>
 #include <kis_config_notifier.h>
+#include <ksharedconfig.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
 
 #ifdef __APPLE__
 #include <QStyle>

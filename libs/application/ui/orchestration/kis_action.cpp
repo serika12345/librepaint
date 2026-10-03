@@ -8,6 +8,13 @@
 #include "application/ui/orchestration/kis_action.h"
 #include "application/ui/orchestration/kis_action_manager.h"
 #include <QEvent>
+#include <qcontainerfwd.h>
+#include <qkeysequence.h>
+#include <qlist.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
+#include <qvariant.h>
+#include <qwidgetaction.h>
 
 class Q_DECL_HIDDEN KisAction::Private {
 

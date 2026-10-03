@@ -9,6 +9,8 @@
 #include "KoColorSpace.h"
 
 #include <KisStaticInitializer.h>
+#include <cstring>
+#include <QtGlobal>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KoColorConversionTransformation::Intent>();

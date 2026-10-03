@@ -6,14 +6,15 @@
 
 #include "kis_roundmarkerop_settings_widget.h"
 
-#include <kis_properties_configuration.h>
 #include <kis_paintop_settings_widget.h>
 #include "kis_roundmarkerop_settings.h"
 #include <KisRoundMarkerOpOptionWidget.h>
 #include <KisPaintOpOptionWidgetUtils.h>
 #include <KisCompositeOpOptionWidget.h>
+#include <qwidget.h>
 #include "KisSizeOptionWidget.h"
 #include "KisSpacingOptionWidget.h"
+#include "kis_types.h"
 
 
 KisRoundMarkerOpSettingsWidget::KisRoundMarkerOpSettingsWidget(QWidget* parent)

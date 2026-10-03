@@ -5,13 +5,19 @@
  */
 
 #include "CommentModel.h"
+#include "kis_icon_utils.h"
 
 #include <QDebug>
 #include <QMimeData>
 #include <QRegularExpression>
 #include <QIODevice>
 
-#include <kis_icon.h>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qvariant.h>
 
 StoryboardCommentModel::StoryboardCommentModel(QObject *parent)
         : QAbstractListModel(parent) 

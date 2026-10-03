@@ -6,11 +6,21 @@
  */
 
 #include "kis_composite_ops_model.h"
+#include "KoID.h"
 #include "kis_composite_ops_model_source_p.h"
 
 #include <QApplication>
 #include <QStyle>
 #include <QStyleOptionButton>
+#include <klocalizedstring.h>
+#include <qabstractitemmodel.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qsize.h>
+#include <qvariant.h>
 
 namespace {
 

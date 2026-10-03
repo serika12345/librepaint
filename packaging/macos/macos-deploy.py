@@ -3,12 +3,40 @@
 from __future__ import annotations
 
 import argparse
+from collections import deque
+import hashlib
 import os
 import plistlib
+import re
 import shutil
 import pathlib
 import stat
 import subprocess
+import sys
+
+
+MACH_O_MAGICS = frozenset(
+    {
+        b'\xca\xfe\xba\xbe',
+        b'\xbe\xba\xfe\xca',
+        b'\xca\xfe\xba\xbf',
+        b'\xbf\xba\xfe\xca',
+        b'\xce\xfa\xed\xfe',
+        b'\xcf\xfa\xed\xfe',
+        b'\xfe\xed\xfa\xce',
+        b'\xfe\xed\xfa\xcf',
+    }
+)
+ICONV_API_SYMBOLS = frozenset(
+    {
+        '_iconv',
+        '_iconv_close',
+        '_iconv_open',
+        '_libiconv',
+        '_libiconv_close',
+        '_libiconv_open',
+    }
+)
 
 
 def main():
@@ -21,6 +49,11 @@ def main():
     parser.add_argument('--output-dir', dest='output_dir', help="Destination path to place the app")
     parser.add_argument('--source', dest='source', help="source location of LibrePaint")
     parser.add_argument('--krita-source', dest='source', help=argparse.SUPPRESS)
+    parser.add_argument(
+        '--signing-identity',
+        default=os.getenv('MACOS_CODESIGN_IDENTITY', '-'),
+        help="codesign identity for the finished bundle (default: ad-hoc '-')",
+    )
     args = parser.parse_args()
 
     # --- Locations
@@ -48,7 +81,12 @@ def main():
         krita_dmg = pathlib.Path(args.output_dir).resolve()
 
 
-    kritaDeploy(krita_install_dir, krita_dmg, krita_source_dir)
+    kritaDeploy(
+        krita_install_dir,
+        krita_dmg,
+        krita_source_dir,
+        signing_identity=args.signing_identity,
+    )
 
 
 # --- helpers
@@ -64,14 +102,6 @@ def cmdLog(cmd: list):
     return
 
 
-# cmdline wrapper for install_name_tool
-def installNameTool(path: pathlib.Path, args: str, check=False):
-    cmd = ['install_name_tool'] + args.split() + [path]
-    cmdLog(cmd)
-    subprocess.run(cmd,check=check)
-    return
-
-
 def copyDirSub(src: pathlib.Path, dst: pathlib.Path, extra_args: list=None
                , only_contents: bool=True
                , capture_output=True):
@@ -83,118 +113,284 @@ def copyDirSub(src: pathlib.Path, dst: pathlib.Path, extra_args: list=None
     cmd.extend([src,dst])
     cmdLog(cmd)
     subprocess.run(cmd,text=True, check=True,capture_output=capture_output)
+    makeTreeOwnerWritable(pathlib.Path(dst))
 
 
-# avois using third party packages and rely on system utils
+def findNixQmlRuntimeRoots(install_dir: pathlib.Path) -> tuple[pathlib.Path, ...]:
+    """Find the QML trees carried by a Nix application's runtime closure."""
+    result = subprocess.run(
+        ['nix-store', '-qR', install_dir],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    application_root = install_dir.joinpath('lib', 'qt-6', 'qml').resolve()
+    roots = {
+        pathlib.Path(store_path).joinpath('lib', 'qt-6', 'qml').resolve()
+        for store_path in result.stdout.splitlines()
+        if pathlib.Path(store_path).joinpath('lib', 'qt-6', 'qml').is_dir()
+    }
+    roots = {
+        root for root in roots
+        if root == application_root
+        or (
+            root.joinpath('QtQml', 'qmldir').is_file()
+            and root.joinpath('QtQuick', 'qmldir').is_file()
+        )
+        or root.joinpath('Qt5Compat', 'GraphicalEffects', 'qmldir').is_file()
+    }
+    ordered = sorted(root for root in roots if root != application_root)
+    if application_root.is_dir():
+        ordered.append(application_root)
+    return tuple(ordered)
+
+
+def findNixQtPluginRoots(install_dir: pathlib.Path) -> tuple[pathlib.Path, ...]:
+    """Find the Qt platform and image plugin trees used by the application."""
+    result = subprocess.run(
+        ['nix-store', '-qR', install_dir],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    roots = {
+        pathlib.Path(store_path).joinpath('lib', 'qt-6', 'plugins').resolve()
+        for store_path in result.stdout.splitlines()
+        if pathlib.Path(store_path).joinpath('lib', 'qt-6', 'plugins').is_dir()
+    }
+    return tuple(sorted(
+        root for root in roots
+        if root.joinpath('platforms', 'libqcocoa.dylib').is_file()
+        or root.joinpath('imageformats', 'libqsvg.dylib').is_file()
+    ))
+
+
+def copyNixQtPlugins(
+        install_dir: pathlib.Path,
+        plugins: pathlib.Path,
+        ) -> tuple[pathlib.Path, ...]:
+    """Merge the required Qt platform, image, and icon plugins."""
+    roots = findNixQtPluginRoots(install_dir)
+    if not roots:
+        raise FileNotFoundError(
+            f'no Qt runtime plugins found in the closure of {install_dir}'
+        )
+    for root in roots:
+        copyDirSub(root, plugins)
+    return roots
+
+
+def installSdl3Runtime(
+        install_dir: pathlib.Path,
+        frameworks: pathlib.Path,
+        ) -> pathlib.Path:
+    """Install the SDL3 library loaded dynamically by sdl2-compat."""
+    result = subprocess.run(
+        ['nix-store', '-qR', install_dir],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+    candidates = {
+        pathlib.Path(store_path).joinpath('lib', 'libSDL3.dylib').resolve()
+        for store_path in result.stdout.splitlines()
+        if pathlib.Path(store_path).joinpath('lib', 'libSDL3.dylib').is_file()
+    }
+    if len(candidates) != 1:
+        diagnostic = ', '.join(map(str, sorted(candidates))) or 'missing'
+        raise RuntimeError(
+            f'expected one SDL3 runtime in {install_dir} closure: {diagnostic}'
+        )
+    destination = frameworks.joinpath('libSDL3.dylib')
+    shutil.copy2(next(iter(candidates)), destination)
+    destination.chmod(destination.stat().st_mode | stat.S_IWUSR)
+    return destination
+
+
+def copyNixQmlRuntime(
+        install_dir: pathlib.Path,
+        resources: pathlib.Path,
+        ) -> tuple[pathlib.Path, ...]:
+    """Merge the Qt and application QML runtimes into the bundle."""
+    roots = findNixQmlRuntimeRoots(install_dir)
+    if not roots:
+        raise FileNotFoundError(
+            f'no QML runtime found in the closure of {install_dir}'
+        )
+    destination = resources.joinpath('qml')
+    _removePath(destination)
+    destination.mkdir()
+    for root in roots:
+        copyDirSub(root, destination)
+    return roots
+
+
 def isBinary(file: pathlib.Path) -> bool:
-    # stderror is always empty
-    # print(f"f:{file}")
-    result = subprocess.run(['file', file], capture_output=True,text=True).stdout
-    if "Mach-O" in result:
-        return True
-    return False
+    try:
+        with pathlib.Path(file).open('rb') as stream:
+            return stream.read(4) in MACH_O_MAGICS
+    except OSError:
+        return False
 
 
-# get the base lib name to copy from
-# return either the framework dir base name or lib name
-def normalizeLibNames(lib: pathlib.Path) -> str:
-    norm_name: str = next((f.name for f in lib.parents if f.name.endswith(".framework")), lib.name)
-    return norm_name
-
-
-def getLinkedLibs(lib: pathlib.Path, full_path: pathlib.Path=None) -> list[pathlib.Path]:
+def getLinkedLibs(lib: pathlib.Path) -> list[pathlib.Path]:
     libsUsed = []
-    result = subprocess.run(['otool','-L',lib],capture_output=True,text=True)
+    result = subprocess.run(['otool','-L',lib],capture_output=True,text=True,check=True)
     libList = result.stdout.split("\n")
     for entry in libList[1:]:
         # on fat-binaries we do not want to search twice
         if "architecture" in entry or not entry:
             break
 
-        libEntry = entry.strip().split()[0]
-        # we add rpath entries, or absolute path (if any)
-        # absolute libpaths should have been fixed by fix-rpath script
-        rpaths = ['@', str(full_path)]
-
-        if libEntry.startswith(tuple(rpaths)):
-            libsUsed.append(pathlib.Path(libEntry))
+        libEntry = entry.strip().split(" (", 1)[0]
+        libsUsed.append(pathlib.Path(libEntry))
 
     return libsUsed
 
 
-def findMissingLibs(kisLib: list[str|pathlib.Path], location: pathlib.Path, search_path: pathlib.Path=None) -> list[str]:
-    libsFound = set()
-    for lib in kisLib:
-        if isBinary(lib):
-            # find dep libs with oTool
-            libsFound.update(getLinkedLibs(lib, search_path))
-
-    # We only need the name of the lib or Framework
-    libsFoundNorm = {normalizeLibNames(lib) for lib in libsFound}
-    # missingLibs = set()
-
-    # get all files from the dmg list missing files
-    kritaDmgFiles = [file.name for file in location.rglob("*")]
-    # findLibsNotInBundle
-    missingLibs = [lib for lib in libsFoundNorm if lib not in kritaDmgFiles]
-
-    return missingLibs
+def _iconvSymbols(
+        binary: pathlib.Path,
+        *,
+        undefined: bool,
+        ) -> frozenset[str]:
+    """Return the Apple or GNU iconv API symbols used by a Mach-O file."""
+    command = ['nm', '-u' if undefined else '-gU', binary]
+    result = subprocess.run(command, capture_output=True, text=True, check=True)
+    return frozenset(
+        fields[-1]
+        for line in result.stdout.splitlines()
+        if (fields := line.split()) and fields[-1] in ICONV_API_SYMBOLS
+    )
 
 
-# TODO: (low) make dstApp a locations object
-# src install_dir
-# dst .app dir, we send either to frameworks or plugins
-def copyMissingLibs(missingLib: list[str], src: pathlib.Path, dstApp: pathlib.Path):
-    copyFiles = []
-    for lib in missingLib:
-        libPath = pathlib.Path(os.path.join(src, "lib", lib))
-        if not libPath.exists():
-            print(f'{lib} not found in {libPath} searching in {src}')
-            libPath = next(src.rglob(lib), None)
+def _systemDependencyReplacement(dependency: pathlib.Path) -> str | None:
+    """Map Nix's Apple iconv shim back to the stable macOS system ABI."""
+    if dependency.name != 'libiconv.2.dylib' or not dependency.is_file():
+        return None
+    symbols = _iconvSymbols(dependency, undefined=False)
+    if '_iconv' in symbols and '_libiconv' not in symbols:
+        return '/usr/lib/libiconv.2.dylib'
+    return None
 
-        if not libPath:
-            print(f'could not find {lib}')
-            continue
-        # we can't shutil the entire framework dir
-        # BUG: https://github.com/python/cpython/issues/105919
-        # if "framework" in libPath.name:
-        #     copyFiles.extend(libPath.rglob("*"))
-        #     continue
 
-        copyFiles.append(libPath)
-        while libPath.is_symlink():
-            libPath = libPath.parent.joinpath(libPath.readlink())
-            copyFiles.append(libPath)
+def _dependencyFrameworkRoot(path: pathlib.Path) -> pathlib.Path | None:
+    return next(
+        (
+            candidate for candidate in (path, *path.parents)
+            if candidate.name.endswith('.framework')
+        ),
+        None,
+    )
 
-    newlibs = list()
-    locations = dict()
-    locations['plugins'] = dstApp.joinpath('Contents', 'PlugIns')
-    locations['frameworks'] = dstApp.joinpath('Contents', 'Frameworks')
 
-    for file in copyFiles:
-        print(f"Adding missing lib: {file}")
-        loc = 'plugins' if "plugin" in str(file) else 'frameworks'
-        if file.is_dir():
-            try:
-                # TODO: shutil error if symlink inside directory exist
-                # BUG: https://github.com/python/cpython/issues/105919
-                cmd = ['rsync','-prulq']
-                # Avoid mixing debug and release libraries in one bundle.
-                cmd.extend(['--exclude' ,f'**{file.stem}_debug', '--exclude', f'{file.stem}_debug.prl'])
-                cmd.extend([file,locations[loc]])
-                subprocess.run(cmd)
-                newlibs.extend([f for f in file.rglob('*') if isBinary(f)])
-                # shutil.copytree(file, locations[locations].joinpath(file.name), symlinks=True, dirs_exist_ok=True)
-            except Exception as e:
-                print(e)
-        else:
-            try:
-                shutil.copy2(file, locations[loc], follow_symlinks=False)
-                newlibs.append(file)
-            except Exception as e:
-                print(e)
+def copyNixStoreDependencyClosure(app: pathlib.Path) -> tuple[pathlib.Path, ...]:
+    """Copy original absolute dependencies and relocate each Mach-O once."""
+    contents = app.joinpath('Contents').resolve()
+    frameworks = contents.joinpath('Frameworks')
+    frameworks.mkdir(parents=True, exist_ok=True)
+    pending = deque()
+    original_hashes = {}
+    source_hashes = {}
+    destinations_by_source = {}
+    system_replacements = {}
+    copied = []
+    python_binary = frameworks.joinpath('Python.framework', 'Versions', 'Current', 'Python')
+    python_binary = python_binary.resolve() if python_binary.is_file() else None
 
-    return newlibs
+    def digest(path):
+        with path.open('rb') as stream:
+            return hashlib.file_digest(stream, 'sha256').digest()
+
+    def register(path):
+        if not path.is_file() or not isBinary(path):
+            return
+        real_path = path.resolve(strict=True)
+        if not real_path.is_relative_to(contents):
+            raise RuntimeError(f'runtime symlink escapes bundle: {path}')
+        if real_path not in original_hashes:
+            original_hashes[real_path] = digest(real_path)
+            pending.append(real_path)
+
+    def destination_for(dependency):
+        if dependency.is_absolute():
+            existing = destinations_by_source.get(dependency.resolve())
+            if existing is not None:
+                return existing
+        framework = _dependencyFrameworkRoot(dependency)
+        if framework is not None:
+            return frameworks.joinpath(framework.name, dependency.relative_to(framework))
+        return frameworks.joinpath(dependency.name)
+
+    for path in sorted(contents.rglob('*')):
+        register(path)
+    inspected = 0
+    print(f'Dependency closure: {len(pending)} Mach-O files queued', flush=True)
+    while pending:
+        binary = pending.popleft()
+        result = subprocess.run(['otool', '-D', binary], capture_output=True,
+                                text=True, check=True)
+        ids = [line.strip() for line in result.stdout.splitlines()[1:] if line.strip()]
+        install_name = ids[0] if ids else None
+        changes = []
+        if install_name:
+            new_id = '@rpath/' + os.path.relpath(binary, frameworks)
+            if new_id != install_name:
+                changes.extend(['-id', new_id])
+
+        for dependency in getLinkedLibs(binary):
+            reference = str(dependency)
+            if reference == install_name or not dependency.is_absolute():
+                continue
+            if reference.startswith(('/System/Library/', '/usr/lib/')):
+                continue
+            if not dependency.is_file() or not isBinary(dependency):
+                raise RuntimeError(f'unusable runtime dependency: {binary}: {dependency}')
+            source = dependency.resolve(strict=True)
+            if source not in system_replacements:
+                system_replacements[source] = _systemDependencyReplacement(dependency)
+            replacement = system_replacements[source]
+            if (python_binary is not None
+                    and dependency.name == f'libpython{python_binary.parent.name}.dylib'):
+                replacement = '@loader_path/' + os.path.relpath(python_binary, binary.parent)
+            if replacement is None:
+                destination = destination_for(dependency)
+                if source not in source_hashes:
+                    source_hashes[source] = digest(source)
+                if destination.is_file():
+                    real_destination = destination.resolve(strict=True)
+                    if original_hashes.get(real_destination) != source_hashes[source]:
+                        if (_dependencyFrameworkRoot(dependency) is not None
+                                or destination not in copied):
+                            raise RuntimeError(
+                                f'conflicting runtime dependency: {dependency} -> {destination}'
+                            )
+                        destination = frameworks.joinpath(source_hashes[source].hex(), dependency.name)
+                        if (destination.exists()
+                                and original_hashes.get(destination.resolve()) != source_hashes[source]):
+                            raise RuntimeError(f'conflicting runtime dependency: {dependency} -> {destination}')
+                if not destination.is_file():
+                    framework = _dependencyFrameworkRoot(dependency)
+                    if framework is not None:
+                        copyDirSub(framework, frameworks, only_contents=False)
+                        for path in sorted(frameworks.joinpath(framework.name).rglob('*')):
+                            register(path)
+                    else:
+                        destination.parent.mkdir(parents=True, exist_ok=True)
+                        shutil.copy2(source, destination)
+                        destination.chmod(destination.stat().st_mode | stat.S_IWUSR)
+                        register(destination)
+                    if not destination.is_file() or not isBinary(destination):
+                        raise RuntimeError(f'copied runtime dependency is unusable: {dependency}')
+                    copied.append(destination)
+                destinations_by_source[source] = destination
+                replacement = '@loader_path/' + os.path.relpath(destination, binary.parent)
+            changes.extend(['-change', reference, replacement])
+        if changes:
+            subprocess.run(['install_name_tool', *changes, binary], check=True)
+        inspected += 1
+        if inspected % 100 == 0 or not pending:
+            print(f'Dependency closure: inspected {inspected}, pending {len(pending)}', flush=True)
+    return tuple(copied)
 
 
 def kritaCreatePyKrita(src: pathlib.Path, dst: pathlib.Path, version: str):
@@ -248,6 +444,8 @@ def kritaStripPythonFramework(frameworkPath: pathlib.Path):
                             frameworkPath.joinpath('Versions','Current', 'lib','python3.10'))
     print(f'found frame_python_lib: {frame_python_lib}')
 
+    relocatePythonStandardLibrary(frame_python_lib)
+
     files_for_rm = list()
     files_for_rm.extend([file for file in frameworkPath.rglob("test*") if file.is_dir() and file.name in ['test', 'tests']])
     files_for_rm.extend([file for file in frameworkPath.joinpath('Versions','Current', 'bin').rglob("*")
@@ -259,6 +457,22 @@ def kritaStripPythonFramework(frameworkPath: pathlib.Path):
         files_for_rm.append(frame_python_lib.joinpath(name))
     for pattern in "pip* PyQt_builder* setuptools* sip* easy-install.pth".split():
         files_for_rm.extend(frame_python_lib.joinpath('site-packages').glob(pattern))
+
+    runtime_pyqt_modules = {
+        'QtCore',
+        'QtGui',
+        'QtNetwork',
+        'QtQml',
+        'QtWidgets',
+        'QtXml',
+        'sip',
+    }
+    pyqt_root = frame_python_lib.joinpath('site-packages', 'PyQt6')
+    files_for_rm.extend(
+        path
+        for path in pyqt_root.glob('*.so')
+        if path.name.split('.', 1)[0] not in runtime_pyqt_modules
+    )
 
     # removal of Python.app
     files_for_rm.append(frameworkPath.joinpath('Versions','Current', 'Resources','Python.app'))
@@ -275,65 +489,280 @@ def kritaStripPythonFramework(frameworkPath: pathlib.Path):
     return
 
 
-# Fix Python.Framework RPATH and links
-def kritaFixPython(pyframe: pathlib.Path):
-    # fix permissions
-    pyframe_current = pyframe.joinpath('Versions','Current')
-    pyframe_version = pyframe_current.readlink().name
-    filesTofix = list()
-    filesTofix.extend(pyframe.rglob("*.so"))
-    filesTofix.append(pyframe_current.joinpath('lib',f'python{pyframe_version}','pydoc.py'))
-
-    for file in filesTofix :
-        DeployCmd.achmod(file,0o111)
-
-    # fix rpath
-    pythonLib = pyframe.joinpath('Python')
-    installNameTool(pythonLib, f'-id {pythonLib.name}')
-    installNameTool(pythonLib, '-add_rpath @loader_path/../../../')
-    installNameTool(pythonLib, '-change @loader_path/../../../../libintl.9.dylib @loader_path/../../../libintl.9.dylib', check=True)
-
-    # Python.app fix
-    # pyframe_pyapp_python = pyframe_current.joinpath('Resources', 'Python.app','Contents','MacOS','Python')
-    # installNameTool(pyframe_pyapp_python,'-add_rpath @executable_path/../../../../../../../')
-    # installNameTool(pyframe_pyapp_python,f'-change "{krita_install_dir}/lib/Python.framework/Versions/{pyframe_version}/Python" @executable_path/../../../../../../Python')
-
-    installNameTool(pyframe_current.joinpath('bin', f'python{pyframe_version}'), '-add_rpath @executable_path/../../../../')
-
-    # this step is probably already achieved by deleteMissingRpath
-    # which is more general and cover all the cases here
-    # delete_install_rpath = lambda lib: subprocess.run([
-    #     'install_name_tool', '-delete_rpath', krita_install_dir.joinpath('lib'), lib])
-    #
-    # filesTofix.clear()
-    # filesTofix.append(pythonLib)
-    # filesTofix.extend([f for f in pyframe.rglob('*') if f.is_file() and stat.S_IMODE(f.stat().st_mode) == 0o755])
-    #
-    # pyframe_site_pyqt5 = pyframe_current.joinpath('bin',f'python{pyframe_version}','site-packages','PyQt5')
-    # filesTofix.extend([f for f in pyframe_site_pyqt5.glob('*.so') if f.is_file()])
-    #
-    # for file in filesTofix:
-    #     delete_install_rpath(file)
-
-    return
+def installPythonFrameworkInfo(framework: pathlib.Path) -> pathlib.Path:
+    """Install the metadata required to sign the bundled Python framework."""
+    version = framework.joinpath('Versions', 'Current').readlink().name
+    info_plist = framework.joinpath(
+        'Versions', version, 'Resources', 'Info.plist'
+    )
+    info_plist.parent.mkdir(parents=True, exist_ok=True)
+    with info_plist.open('wb') as handle:
+        plistlib.dump(
+            {
+                'CFBundleDevelopmentRegion': 'English',
+                'CFBundleExecutable': 'Python',
+                'CFBundleIdentifier': 'org.python.python',
+                'CFBundleInfoDictionaryVersion': '6.0',
+                'CFBundleName': 'Python',
+                'CFBundlePackageType': 'FMWK',
+                'CFBundleShortVersionString': version,
+                'CFBundleVersion': version,
+            },
+            handle,
+        )
+    return info_plist
 
 
-# Looks for RPATHS containing the rpath string,path and remove them
-def cleanMissingRpath(rpath: [str|pathlib.Path], libs:list[pathlib.Path]=None):
-    otool = lambda libin: subprocess.run(['otool','-l',libin],capture_output=True,text=True)
-    if libs is None:
-        libs = []
-    for lib in libs:
-        output = otool(lib)
-        paths = [line.strip().split()[1] for line in output.stdout.split('\n') if f"path {rpath}" in line.strip()]
-        for path in paths:
-            # print(f'{lib}:{path}')
-            installNameTool(lib, f'-delete_rpath {path}')
-    return
+def relocatePythonStandardLibrary(frame_python_lib: pathlib.Path):
+    """Replace Nix build-host paths that Python would use at runtime."""
+    replacements = {
+        frame_python_lib.joinpath('subprocess.py'): (
+            re.compile(r"/nix/store/[0-9a-z]+-[^/'\"\s]+/bin/sh"),
+            "/bin/sh",
+        ),
+        frame_python_lib.joinpath('mimetypes.py'): (
+            re.compile(
+                r"/nix/store/[0-9a-z]+-[^/'\"\s]+/etc/mime\.types"
+            ),
+            "/etc/apache2/mime.types",
+        ),
+    }
+    changed = []
+    for path, (pattern, replacement) in replacements.items():
+        if not path.is_file():
+            continue
+        contents = path.read_text()
+        relocated = pattern.sub(replacement, contents)
+        if relocated != contents:
+            path.write_text(relocated)
+            changed.append(path)
+    return tuple(changed)
+
+
+def installFontconfigConfiguration(
+        source: pathlib.Path,
+        resources: pathlib.Path,
+        ) -> pathlib.Path:
+    """Install the host-independent macOS font search contract."""
+    destination = resources.joinpath('fontconfig', 'fonts.conf')
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(
+        source.joinpath('packaging', 'macos', 'fonts.conf'),
+        destination,
+    )
+    return destination
+
+
+def installQtConfiguration(
+        source: pathlib.Path,
+        resources: pathlib.Path,
+        ) -> pathlib.Path:
+    """Install relocatable Qt plugin and QML search locations."""
+    destination = resources.joinpath('qt.conf')
+    shutil.copy2(
+        source.joinpath('packaging', 'macos', 'qt.conf'),
+        destination,
+    )
+    return destination
+
+
+def _removePath(path: pathlib.Path) -> bool:
+    if path.is_symlink() or path.is_file():
+        path.unlink()
+        return True
+    if path.is_dir():
+        shutil.rmtree(path)
+        return True
+    return False
+
+
+def makeTreeOwnerWritable(root: pathlib.Path) -> None:
+    """Allow deployment to transform files copied from an immutable Nix output."""
+    for path in (root, *root.rglob('*')):
+        if not path.is_symlink():
+            path.chmod(path.stat().st_mode | stat.S_IWUSR)
+
+
+def installBundleLauncher(
+        source: pathlib.Path,
+        macos: pathlib.Path,
+        executable_name: str,
+        wrapped_source: pathlib.Path | None = None,
+        ) -> pathlib.Path:
+    """Build a relocatable launcher for a bundled Mach-O executable."""
+    executable = macos.joinpath(executable_name)
+    wrapped = macos.joinpath(f'.{executable_name}-wrapped')
+    if wrapped_source is not None:
+        shutil.copy2(wrapped_source, wrapped)
+    if not wrapped.is_file():
+        raise FileNotFoundError(f"bundled executable is missing: {wrapped}")
+    wrapped.chmod(wrapped.stat().st_mode | stat.S_IWUSR | stat.S_IXUSR)
+    executable.unlink(missing_ok=True)
+    command = [
+        '/usr/bin/clang',
+        '-Os',
+        f'-DBUNDLED_EXECUTABLE="{wrapped.name}"',
+        source.joinpath('packaging', 'macos', 'macos-bundle-launcher.c'),
+        '-o',
+        executable,
+    ]
+    cmdLog(command)
+    subprocess.run(command, check=True)
+    return executable
+
+
+def removeDeploymentOnlyPayload(app: pathlib.Path) -> tuple[pathlib.Path, ...]:
+    """Remove development and test artifacts from the runtime payload."""
+    removable_paths = (
+        'Contents/Frameworks/QtQuickTest.framework',
+        'Contents/Frameworks/QtTest.framework',
+        'Contents/PlugIns/permissions',
+        'Contents/PlugIns/qmllint',
+        'Contents/PlugIns/qmlls',
+        'Contents/PlugIns/qmltooling',
+        'Contents/Resources/qml/Qt/test',
+        'Contents/Resources/qml/QtTest',
+    )
+    removed = []
+    for relative_path in removable_paths:
+        path = app.joinpath(relative_path)
+        if _removePath(path):
+            removed.append(path)
+
+    frameworks = app.joinpath('Contents', 'Frameworks')
+    header_paths = sorted(
+        (
+            path
+            for path in frameworks.rglob('Headers')
+            if path.is_dir() or path.is_symlink()
+        ),
+        key=lambda path: len(path.parts),
+        reverse=True,
+    )
+    for path in header_paths:
+        if _removePath(path):
+            removed.append(path)
+
+    python_framework = frameworks.joinpath('Python.framework', 'Versions')
+    pyqt_roots = set(
+        python_framework.glob('*/lib/python*/site-packages/PyQt6')
+    )
+    for pyqt_root in sorted(pyqt_roots):
+        python_development_paths = [
+            pyqt_root.joinpath('bindings'),
+            pyqt_root.joinpath('py.typed'),
+            *pyqt_root.glob('*.pyi'),
+            *pyqt_root.glob('QtTest*'),
+        ]
+        for path in python_development_paths:
+            if _removePath(path):
+                removed.append(path)
+
+    development_suffixes = ('.a', '.cmake', '.la', '.o', '.pc', '.prl')
+    for path in sorted(app.joinpath('Contents').rglob('*')):
+        if path.is_file() and path.name.casefold().endswith(development_suffixes):
+            path.unlink()
+            removed.append(path)
+
+    return tuple(sorted(removed))
+
+
+def _bundleRpathIsValid(
+        app: pathlib.Path, binary: pathlib.Path, rpath: str) -> bool:
+    if '/nix/store/' in rpath:
+        return False
+    if rpath.startswith((
+            '/System/Library/Frameworks/',
+            '/System/Library/PrivateFrameworks/',
+            '/usr/lib/',
+    )):
+        return True
+
+    token_bases = (
+        ('@loader_path', binary.parent),
+        ('@executable_path', app.joinpath('Contents', 'MacOS')),
+    )
+    expanded = None
+    for token, base in token_bases:
+        if rpath == token:
+            expanded = base
+            break
+        prefix = token + '/'
+        if rpath.startswith(prefix):
+            expanded = base.joinpath(rpath.removeprefix(prefix))
+            break
+    if expanded is None:
+        return False
+
+    app_root = app.resolve()
+    expanded = expanded.resolve(strict=False)
+    try:
+        expanded.relative_to(app_root)
+    except ValueError:
+        return False
+    return expanded.is_dir()
+
+
+def cleanInvalidBundleRpaths(
+        app: pathlib.Path,
+        binaries: list[pathlib.Path],
+        ) -> tuple[tuple[pathlib.Path, str], ...]:
+    """Delete RPATH entries that cannot resolve inside the deployed bundle."""
+    removed = []
+    for binary in binaries:
+        result = subprocess.run(
+            ['otool', '-l', binary], capture_output=True, text=True, check=True)
+        expecting_path = False
+        rpaths = []
+        for line in result.stdout.splitlines():
+            stripped = line.strip()
+            if stripped == 'cmd LC_RPATH':
+                expecting_path = True
+                continue
+            if expecting_path and stripped.startswith('path '):
+                rpaths.append(stripped.removeprefix('path ').rsplit(' (offset ', 1)[0])
+                expecting_path = False
+
+        for rpath in rpaths:
+            if _bundleRpathIsValid(app, binary, rpath):
+                continue
+            subprocess.run(['install_name_tool', '-delete_rpath', rpath, binary], check=True)
+            removed.append((binary, rpath))
+    return tuple(removed)
+
+
+def signAppBundle(app: pathlib.Path, signing_identity: str) -> None:
+    """Sign the completed bundle with the selected identity."""
+    subprocess.run(
+        ['codesign', '--force', '--deep', '--sign', signing_identity, app],
+        check=True,
+    )
+
+
+def auditAppBundle(
+        app: pathlib.Path,
+        source: pathlib.Path,
+        *,
+        verify_signature: bool,
+        ) -> None:
+    """Apply the release bundle contract before and after signing."""
+    command = [
+        sys.executable,
+        source.joinpath('scripts', 'platform', 'audit-macos-bundle.py'),
+        app,
+    ]
+    if not verify_signature:
+        command.append('--skip-signature')
+    subprocess.run(command, check=True)
 
 
 
-def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.Path):
+def kritaDeploy(
+        from_install: pathlib.Path,
+        dst: pathlib.Path,
+        source: pathlib.Path,
+        signing_identity: str = '-',
+        ):
 
     krita_dmg = dst
     krita_install_dir = from_install
@@ -347,31 +776,15 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
     krita_app['macos'] = pathlib.Path(os.path.join(krita_app['contents'], 'MacOS'))
     krita_app['resources'] = pathlib.Path(os.path.join(krita_app['contents'], 'Resources'))
 
-    # --- path for subprocess
-    kisenv = os.environ.copy()
-    kisenv['PATH'] = f"{os.path.join(krita_install_dir, 'bin')}:{kisenv['PATH']}"
-
-    # --- Qt version adjustments
-    # TODO: probably better to rely on qtdiag
-    try:
-        qt_version = subprocess.run(["qtpaths", "--qt-version"],
-                                    capture_output=True, text=True, env=kisenv).stdout
-    except FileNotFoundError:
-        print("Command not found, assuming Qt5!")
-        qt_version = 5
-
-    print(f"Found qt version: {qt_version}")
-    osx_deployment_target = "12" if qt_version[0] == 6 else "10.15"
-    kisenv['MACOSX_DEPLOYMENT_TARGET'] = osx_deployment_target
-    kisenv['QMAKE_MACOSX_DEPLOYMENT_TARGET'] = osx_deployment_target
-
     with krita_install_dir.joinpath('bin', 'LibrePaint.app', 'Contents', 'Info.plist').open('rb') as handle:
         bundle_info = plistlib.load(handle)
     bundle_version = bundle_info['CFBundleShortVersionString']
+    source_app = krita_install_dir.joinpath('bin', 'LibrePaint.app')
 
 
     if krita_dmg.exists():
         print(f"Deleting previous LibrePaint.app run in {krita_dmg}")
+        makeTreeOwnerWritable(krita_dmg)
         shutil.rmtree(krita_dmg)
 
     print(f"Preparing {krita_install_dir} for deployment")
@@ -382,7 +795,21 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
 
     print("copying LibrePaint.app...")
     copyDirSub(krita_install_dir.joinpath('bin', 'LibrePaint.app'), krita_app['root'], only_contents=True)
-    copyDirSub(krita_install_dir.joinpath('bin', 'kritarunner'), krita_app['macos'], only_contents=False)
+    makeTreeOwnerWritable(krita_app['root'])
+    installBundleLauncher(
+        krita_source_dir,
+        krita_app['macos'],
+        'LibrePaint',
+    )
+    runner_source = krita_install_dir.joinpath('bin', '.kritarunner-wrapped')
+    if not runner_source.is_file():
+        runner_source = krita_install_dir.joinpath('bin', 'kritarunner')
+    installBundleLauncher(
+        krita_source_dir,
+        krita_app['macos'],
+        'kritarunner',
+        runner_source,
+    )
 
     print("Copying share...")
     extra_args = [     '--delete'
@@ -407,12 +834,26 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
                        ,'--exclude', 'translations'
                        ,'--exclude', 'qml'
                         ]
-    copyDirSub(krita_install_dir.joinpath('share'), krita_app['resources'], extra_args=extra_args)
+    runtime_share = krita_app['resources'].joinpath('share')
+    runtime_share.mkdir()
+    copyDirSub(krita_install_dir.joinpath('share'), runtime_share, extra_args=extra_args)
+    installFontconfigConfiguration(krita_source_dir, krita_app['resources'])
+    installQtConfiguration(krita_source_dir, krita_app['resources'])
 
     print("Copying Qt translations...")
-    copyDirSub(krita_install_dir.joinpath('translations'), krita_app['contents'], only_contents=False)
+    qt_translations = krita_install_dir.joinpath('translations')
+    if qt_translations.is_dir():
+        copyDirSub(qt_translations, krita_app['contents'], only_contents=False)
+    else:
+        print(f"Optional Qt translations are not installed at {qt_translations}")
 
-    symlinks = [('share','Resources'),('lib','Frameworks'),('Resources/translations','translations')]
+    symlinks = [
+        ('share', 'Resources/share'),
+        ('lib', 'Frameworks'),
+        ('Resources/kritaplugins', '../PlugIns/kritaplugins'),
+    ]
+    if qt_translations.is_dir():
+        symlinks.append(('Resources/translations', '../translations'))
     for src,dst in symlinks:
         linkPath = krita_app['contents'].joinpath(src)
         if linkPath.is_symlink():
@@ -436,45 +877,76 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
         '--exclude', 'krita-thumbnailer.appex',
         '--exclude', 'krita-preview.appex',
     ]
-    copyDirSub(krita_install_dir.joinpath('plugins'), krita_app['plugins'], extra_args=extra_args)
+    qt_plugins = krita_install_dir.joinpath('plugins')
+    if qt_plugins.is_dir():
+        copyDirSub(qt_plugins, krita_app['plugins'], extra_args=extra_args)
+    else:
+        print(f"Qt plugins will be copied from the runtime closure; {qt_plugins} is absent")
 
     print("Copying kritaplugins...")
-    copyDirSub(krita_install_dir.joinpath('lib', 'kritaplugins'), krita_app['plugins'])
-    copyDirSub(krita_install_dir.joinpath('lib', 'mlt'), krita_app['plugins'], only_contents=False)
+    krita_plugins = krita_app['plugins'].joinpath('kritaplugins')
+    krita_plugins.mkdir()
+    copyDirSub(krita_install_dir.joinpath('lib', 'kritaplugins'), krita_plugins)
+
+    qt_plugin_roots = copyNixQtPlugins(krita_install_dir, krita_app['plugins'])
+    print(f"Copied {len(qt_plugin_roots)} Qt plugin roots")
+
+    qml_roots = copyNixQmlRuntime(krita_install_dir, krita_app['resources'])
+    print(f"Copied {len(qml_roots)} QML runtime roots")
+
+    runtime_plugin_sources = {
+        'mlt': source_app.joinpath('Contents', 'PlugIns', 'mlt'),
+        'frei0r-1': source_app.joinpath('Contents', 'PlugIns', 'frei0r-1'),
+    }
+    for name, source_path in runtime_plugin_sources.items():
+        destination = krita_app['plugins'].joinpath(name)
+        _removePath(destination)
+        destination.mkdir()
+        # Resolve the Nix output's outer symlink while preserving links owned
+        # by the runtime directory itself.
+        copyDirSub(
+            source_path.resolve(strict=True),
+            destination,
+            only_contents=True,
+        )
+
+    mlt_resources = krita_app['resources'].joinpath('mlt')
+    _removePath(mlt_resources)
+    mlt_resources.mkdir()
+    copyDirSub(
+        source_app.joinpath('Contents', 'Resources', 'mlt').resolve(strict=True),
+        mlt_resources,
+        only_contents=True,
+    )
 
     for name in ['ffmpeg', 'ffprobe']:
-        shutil.copy2(krita_install_dir.joinpath('bin', name), krita_app['macos'])
-        subprocess.run(f"install_name_tool -add_rpath @executable_path/../Frameworks/ "
-                       f"{krita_app['macos'].joinpath(name)}".split())
+        destination = krita_app['macos'].joinpath(name)
+        _removePath(destination)
+        shutil.copy2(
+            source_app.joinpath('Contents', 'MacOS', name).resolve(strict=True),
+            destination,
+        )
 
     print("Copying python...")
-    copyDirSub(krita_install_dir.joinpath('lib', 'Python.framework'),krita_app['frameworks'],only_contents=False)
+    python_framework = krita_app['frameworks'].joinpath('Python.framework')
+    python_framework.mkdir()
+    copyDirSub(
+        krita_install_dir.joinpath('lib', 'Python.framework').resolve(strict=True),
+        python_framework,
+        only_contents=True,
+    )
+    installPythonFrameworkInfo(python_framework)
     kritaCreatePyKrita(krita_install_dir, krita_app['frameworks'], bundle_version)
+
+    makeTreeOwnerWritable(krita_app['root'])
 
     DeployCmd.achmod(krita_app['frameworks'].joinpath('Python.framework','Python'), stat.S_IWRITE)
 
     kritaStripPythonFramework(krita_app['frameworks'].joinpath('Python.framework'))
-    kritaFixPython(krita_app['frameworks'].joinpath('Python.framework'))
     print("precompiling all python files")
-    cmd = f"python -m compileall {krita_app['contents']}".split()
+    cmd = [sys.executable, '-m', 'compileall', krita_app['contents']]
     cmdLog(cmd)
-    subprocess.run(cmd,env=kisenv)
-
-    # Remove unnecessary rpaths
-    installNameTool(krita_app['macos'].joinpath('kritarunner'), "-delete_rpath @executable_path/../lib")
-    installNameTool(krita_app['macos'].joinpath('LibrePaint'), "-delete_rpath @loader_path/../../../../lib")
-
-    fileToRemove = krita_app['plugins'].joinpath('kf5', 'org.kde.kwindowsystem.platforms')
-    if fileToRemove.exists():
-        shutil.rmtree(fileToRemove)
-
-    # remove permissions plugins folder, these persmissions are to
-    # be linked statically into the application and cannot be used on
-    # the runtime
-    # See: https://github.com/qt/qtbase/commit/f0a7d74e1dd2c1d802aa09d7b8c144599f4a54ce
-    fileToRemove = krita_app['plugins'].joinpath('permissions')
-    if fileToRemove.exists():
-        shutil.rmtree(fileToRemove)
+    subprocess.run(cmd, check=True)
 
     # Fix file permissions
     filesToFix = list()
@@ -487,70 +959,45 @@ def kritaDeploy(from_install: pathlib.Path, dst: pathlib.Path, source: pathlib.P
         DeployCmd.xchmod(f,0o111)
 
 
-    # Repair krita bundle
-    print("Searching for missing libraries...")
-    # Find binary files with execution flags
-    # or files name finishing in 'dylib' or 'so'
-    libs = [f for f in krita_app['contents'].rglob('*') if
-            (f.is_file() and (stat.S_IMODE(f.stat().st_mode) & 0o111) and f.suffix != '.py')
-            or f.suffix == '.dylib'
-            or f.suffix == '.so'
-            ]
-    libs = [f for f in libs if isBinary(f)]
-
-
-    missinglibs = findMissingLibs(libs, krita_app['contents'],krita_install_dir)
-    while len(missinglibs) != 0:
-        added_libs = copyMissingLibs(missinglibs, krita_install_dir, krita_app['root'])
-        missinglibs = findMissingLibs(added_libs, krita_app['contents'],krita_install_dir)
-
-
-    # Start run macdeployqt
-    # We call this last as it does not copy links but duplicates many libs
-    print("Looking for macdeployqt...\t", end="")
-    exec_path = shutil.which("macdeployqt", path=kisenv['PATH'])
-    if exec_path is not None:
-        print("Found!")
-        cmd = [exec_path
-            ,krita_app['root']
-            , '-verbose=0'
-            , f'-executable={krita_app["macos"].joinpath("LibrePaint")}'
-            , f'-libpath={krita_install_dir.joinpath("lib")}'
-            , f"-qmldir={krita_source_dir.joinpath('plugins', 'dockers', 'textproperties')}"
-               ]
-        cmdLog(cmd)
-        proc = subprocess.Popen(cmd, text=True, bufsize=1, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-
-        # TODO: remove filter after patching macdeploytqt or upgrading to qt6
-        for line in proc.stdout:
-            if not 'ERROR: Could not parse otool' in line:
-                print(f'{line}', end='')
-
-        proc.stdout.close()
-        proc.wait()
-    else:
-        print("Not Found!")
-        print("WARNING: continuing without running macdeployqt may result in an invalid app")
-    print("macdeployqt Done!")
-
-
+    sdl3_runtime = installSdl3Runtime(
+        krita_install_dir,
+        krita_app['frameworks'],
+    )
+    print(f"Installed SDL3 runtime at {sdl3_runtime}")
+    copied_nix = copyNixStoreDependencyClosure(krita_app['root'])
+    print(f"Copied and relocated {len(copied_nix)} runtime dependencies")
+    removed_payload = removeDeploymentOnlyPayload(krita_app['root'])
+    print(f"Removed {len(removed_payload)} deployment-only paths")
     # Remove broken symlinks if any
     filesToFix = [f for f in krita_app['contents'].rglob('*') if f.is_symlink() and not f.exists()]
     for f in filesToFix:
         f.unlink()
 
-    # Be extra paranoid about left over absolute paths
-    # this may not be needed as macos-fix-rpaths.sh should deliver clean binaries
+    # Keep only relocatable RPATH entries that resolve within the final bundle.
     filesToFix =[f for f in krita_app['contents'].rglob('*') if
                   (f.is_file() and (stat.S_IMODE(f.stat().st_mode) & 0o111) and f.suffix != '.py')
                   or f.suffix == '.dylib'
                   or f.suffix == '.so'
                   ]
-    cleanMissingRpath(krita_install_dir,filesToFix)
+    filesToFix = [f for f in filesToFix if isBinary(f)]
+    removed_rpaths = cleanInvalidBundleRpaths(krita_app['root'], filesToFix)
+    print(f"Removed {len(removed_rpaths)} invalid RPATH entries")
 
     # delete .DS_Store if any
     for f in krita_app['contents'].rglob('*.DS_Store'):
         f.unlink()
+
+    auditAppBundle(
+        krita_app['root'],
+        krita_source_dir,
+        verify_signature=False,
+    )
+    signAppBundle(krita_app['root'], signing_identity)
+    auditAppBundle(
+        krita_app['root'],
+        krita_source_dir,
+        verify_signature=True,
+    )
 
     print("## Finished preparing LibrePaint.app bundle!")
 

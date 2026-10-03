@@ -9,8 +9,11 @@
 #include "kis_random_sub_accessor.h"
 
 #include "KisRandomSubAccessorPaintDeviceAccess_p.h"
+#include "kis_types.h"
 
 #include <QtMath>
+#include <qnumeric.h>
+#include <QtGlobal>
 
 KisRandomSubAccessor::KisRandomSubAccessor(KisPaintDeviceSP device)
     : m_device(device)

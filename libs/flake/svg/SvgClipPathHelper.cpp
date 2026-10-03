@@ -5,6 +5,8 @@
  */
 
 #include "SvgClipPathHelper.h"
+#include "KoFlakeCoordinateSystem.h"
+#include <qlist.h>
 
 SvgClipPathHelper::SvgClipPathHelper()
     : m_clipPathUnits(KoFlake::UserSpaceOnUse) // default as per svg spec

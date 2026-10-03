@@ -10,7 +10,14 @@
 #include <QMutexLocker>
 #include <QMap>
 #include <QThread>
+#include "KoColorTransformation.h"
+#include <qalgorithms.h>
+#include <qhashfunctions.h>
+#include <QtGlobal>
+#include <qvariant.h>
 #include "filter/kis_color_transformation_filter.h"
+#include "kis_filter_configuration.h"
+#include "kis_types.h"
 
 struct Q_DECL_HIDDEN KisColorTransformationConfiguration::Private {
     Private()

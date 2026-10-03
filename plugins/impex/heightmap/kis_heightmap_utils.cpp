@@ -5,6 +5,7 @@
  */
 
 #include "kis_heightmap_utils.h"
+#include "KoID.h"
 
 #include <KoColorModelStandardIds.h>
 #include <QByteArray>

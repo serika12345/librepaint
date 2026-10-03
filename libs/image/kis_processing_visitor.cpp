@@ -8,6 +8,7 @@
 
 #include <KoUpdater.h>
 #include <KoProgressUpdater.h>
+#include "kis_assert.h"
 #include "kis_node_progress_proxy.h"
 #include "kis_node.h"
 #include <KLocalizedString>

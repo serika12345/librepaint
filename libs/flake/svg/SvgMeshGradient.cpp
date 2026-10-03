@@ -4,6 +4,11 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "SvgMeshGradient.h"
+#include "KoFlakeCoordinateSystem.h"
+#include "SvgMeshArray.h"
+#include <qpaintdevice.h>
+#include <qscopedpointer.h>
+#include <qtransform.h>
 
 SvgMeshGradient::SvgMeshGradient()
     : m_type(BILINEAR)

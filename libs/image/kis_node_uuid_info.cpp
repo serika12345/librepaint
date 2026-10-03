@@ -8,6 +8,8 @@
 #include "kis_node_uuid_info.h"
 
 #include "KisNodeUuidInfoNodeAccess_p.h"
+#include "kis_types.h"
+#include <quuid.h>
 
 KisNodeUuidInfo::KisNodeUuidInfo()
 {

@@ -6,6 +6,10 @@
  */
 
 #include "kis_hatching_paintop.h"
+#include "KisHatchingOptionsData.h"
+#include "hatching_brush.h"
+#include "kis_assert.h"
+#include "kis_dab_shape.h"
 #include "kis_hatching_paintop_settings.h"
 
 #include <cmath>
@@ -15,9 +19,7 @@
 #include <KoColorSpace.h>
 
 #include <kis_image.h>
-#include <kis_debug.h>
 
-#include <kis_global.h>
 #include <kis_paint_device.h>
 #include <kis_painter.h>
 #include <kis_types.h>
@@ -32,6 +34,8 @@
 
 
 #include <KoColorSpaceRegistry.h>
+#include <QtGlobal>
+#include <qnamespace.h>
 
 KisHatchingPaintOp::KisHatchingPaintOp(const KisPaintOpSettingsSP settings, KisPainter * painter, KisNodeSP node, KisImageSP /*image*/)
     : KisBrushBasedPaintOp(settings, painter)

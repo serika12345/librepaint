@@ -7,6 +7,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "canvas/kis_abstract_perspective_grid.h"
+#include <qobject.h>
 
 KisAbstractPerspectiveGrid::KisAbstractPerspectiveGrid(QObject *parent)
     : QObject(parent)

@@ -13,8 +13,15 @@
 #include <kis_assert.h>
 #include <KoCompositeColorTransformation.h>
 #include <kis_cubic_curve.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qhash.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qvariant.h>
 
 #include "../../color/colorspaceextensions/kis_hsv_adjustment.h"
+#include "virtual_channel_info.h"
 
 #include "kis_multichannel_utils.h"
 

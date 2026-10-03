@@ -12,6 +12,8 @@
 #include "kis_unsharp_filter.h"
 
 #include <filter/kis_filter_registry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(UnsharpPluginFactory, "kritaunsharpfilter.json", registerPlugin<UnsharpPlugin>();)
 

@@ -74,6 +74,7 @@ QString DlgColorManagementInfo::replacementWarningText()
     return "";
 }
 
+#include <QScreen>
 #include <QWindow>
 
 #include <application/ui/workspace/KisViewManager.h>

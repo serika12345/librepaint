@@ -5,6 +5,8 @@
  */
 
 #include "KoInsets.h"
+#include <qdebug.h>
+#include <QtGlobal>
 
 #ifndef QT_NO_DEBUG_STREAM
 QDebug operator<<(QDebug debug, const KoInsets &insets)

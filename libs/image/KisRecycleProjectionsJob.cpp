@@ -6,6 +6,7 @@
 #include "KisRecycleProjectionsJob.h"
 #include "KisSafeNodeProjectionStore.h"
 #include "kis_paint_device.h"
+#include "kis_spontaneous_job.h"
 
 KisRecycleProjectionsJob::KisRecycleProjectionsJob(KisSafeNodeProjectionStoreBaseWSP projectionStore)
     : m_projectionStore(projectionStore)

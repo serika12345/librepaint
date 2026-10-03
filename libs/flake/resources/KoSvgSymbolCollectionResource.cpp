@@ -5,6 +5,11 @@
 
    SPDX-License-Identifier: LGPL-2.1-or-later
  */
+#include <qalgorithms.h>
+#include <qcontainerfwd.h>
+#include <qdom.h>
+#include <QtGlobal>
+#include <qnamespace.h>
 #include <resources/KoSvgSymbolCollectionResource.h>
 
 #include <QDebug>
@@ -17,8 +22,9 @@
 
 #include <klocalizedstring.h>
 #include <KoMarker.h>
-#include <KoStore.h>
 #include <KoDocumentResourceManager.h>
+#include "KoResource.h"
+#include "kis_assert.h"
 #include "kis_debug.h"
 
 #include <KoShape.h>
@@ -27,7 +33,6 @@
 #include <SvgParser.h>
 #include <KoMD5Generator.h>
 
-#include <FlakeDebug.h>
 
 QImage KoSvgSymbol::icon(int size = 0)
 {

@@ -5,6 +5,9 @@
  */
 
 #include "KisImageSignals.h"
+#include "kis_types.h"
+#include <qpoint.h>
+#include <qsize.h>
 
 /*******************************************************************************/
 /*                       ComplexSizeChangedSignal                              */

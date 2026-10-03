@@ -9,7 +9,11 @@
 #include "KoParameterHandleMoveCommand.h"
 #include "KoParameterShape.h"
 #include <klocalizedstring.h>
+#include <qnamespace.h>
+#include <qpoint.h>
 #include "kis_command_ids.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 KoParameterHandleMoveCommand::KoParameterHandleMoveCommand(KoParameterShape *shape, int handleId, const QPointF &startPoint, const QPointF &endPoint, Qt::KeyboardModifiers keyModifiers, KUndo2Command *parent)
         : KUndo2Command(parent)

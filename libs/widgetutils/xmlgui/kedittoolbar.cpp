@@ -31,11 +31,11 @@
 #include <QLineEdit>
 #include <QDebug>
 
+#include <kguiitem.h>
 #include <klistwidgetsearchline.h>
 #include <klocalizedstring.h>
 #include <kmessagebox.h>
 #include <kseparator.h>
-#include <kconfig.h>
 
 #include "kactioncollection.h"
 #include "kxmlguifactory.h"
@@ -45,6 +45,20 @@
 #include "kis_action_registry.h"
 #include <KisKineticScroller.h>
 #include <kis_assert.h>
+#include <kstandardguiitem.h>
+#include <QtGlobal>
+#include <qboxlayout.h>
+#include <qcontainerfwd.h>
+#include <qfileinfo.h>
+#include <qglobalstatic.h>
+#include <qlist.h>
+#include <qlistview.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscroller.h>
+#include <qset.h>
 
 static const char separatorstring[] = QT_TRANSLATE_NOOP("KEditToolBar", "--- separator ---");
 

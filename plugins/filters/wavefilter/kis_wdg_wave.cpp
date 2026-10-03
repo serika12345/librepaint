@@ -10,9 +10,13 @@
 #include <QSpinBox>
 
 #include <filter/kis_filter_configuration.h>
-#include <kis_processing_information.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qobjectdefs.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
+#include "kis_config_widget.h"
+#include "kis_types.h"
 #include "ui_wdgwaveoptions.h"
 
 KisWdgWave::KisWdgWave(KisFilter* /*nfilter*/, QWidget* parent)

@@ -5,12 +5,33 @@
  */
 
 #include "kis_mesh_transform_strategy.h"
+#include "KisBezierMesh.h"
+#include "KisBezierTransformMesh.h"
+#include "KisBezierUtils.h"
+#include "KisHandleStyle.h"
 #include "KoColorDisplayRendererInterface.h"
+#include "KoIntegerMaths.h"
+#include "kis_algebra_2d.h"
+#include "kis_assert.h"
+#include "kis_global.h"
+#include "kis_simplified_action_policy_strategy.h"
 #include "tool_transform_args.h"
 
 #include <QPointF>
 #include <QPainter>
 #include <QPainterPath>
+#include <algorithm>
+#include <boost/optional/optional.hpp>
+#include <cstdlib>
+#include <limits>
+#include <qcursor.h>
+#include <QtGlobal>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qset.h>
+#include <qsize.h>
+#include <tuple>
 
 #include "kis_painting_tweaks.h"
 #include "kis_cursor.h"

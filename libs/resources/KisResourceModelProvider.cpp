@@ -15,6 +15,10 @@
 #include <optional>
 
 #include <QGlobalStatic>
+#include <qabstractitemmodel.h>
+#include <qalgorithms.h>
+#include <qhashfunctions.h>
+#include <qmap.h>
 
 Q_GLOBAL_STATIC(KisResourceModelProvider, s_instance)
 

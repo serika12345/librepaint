@@ -8,6 +8,10 @@
 
 #include <QVBoxLayout>
 #include <QApplication>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 
 #include "kis_equalizer_slider.h"

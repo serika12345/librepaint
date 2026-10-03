@@ -6,15 +6,18 @@
 */
 
 #include "StarShape.h"
+#include "KoPathShape.h"
 
 #include <KoParameterShape_p.h>
 #include <KoPathPoint.h>
 #include <KoShapeLoadingContext.h>
 #include <KoShapeSavingContext.h>
-#include <KoXmlNS.h>
-#include <KoXmlWriter.h>
 
 #include <math.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <QtGlobal>
 
 StarShape::StarShape()
     : m_cornerCount(5)

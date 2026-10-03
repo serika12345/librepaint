@@ -10,6 +10,10 @@
 #include <QMutexLocker>
 #include <QTimer>
 #include <KoProgressProxy.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
 
 
 struct Q_DECL_HIDDEN KisQueuesProgressUpdater::Private

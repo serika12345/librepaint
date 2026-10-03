@@ -17,8 +17,20 @@
 #include <QAction>
 #include <QColorDialog>
 
-#include <kis_debug.h>
+#include <cmath>
 #include <klocalizedstring.h>
+#include <limits>
+#include <qcoreevent.h>
+#include <qdialog.h>
+#include <qlist.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
 #include <resources/KoSegmentGradient.h>
 #include <KisGradientWidgetsUtils.h>
 #include <KisDlgInternalColorSelector.h>
@@ -27,6 +39,7 @@
 #include <ksharedconfig.h>
 
 #include "KisSegmentGradientSlider.h"
+#include "kis_global.h"
 
 #define MARGIN 5
 #define HANDLE_SIZE 10

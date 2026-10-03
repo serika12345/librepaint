@@ -5,6 +5,8 @@
 
 #include "KisTextureOptionData.h"
 
+#include <KLocalizedString>
+#include <KoID.h>
 #include <kis_paintop_lod_limitations.h>
 
 KisPaintopLodLimitations KisTextureOptionData::lodLimitations() const

@@ -5,6 +5,14 @@
  */
 
 #include "WGColorSelectorSettings.h"
+#include "KisColorSelectorConfiguration.h"
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
+#include "KisVisualColorModel.h"
+#include "WGConfig.h"
+#include "kis_assert.h"
+#include "kis_global.h"
+#include "ui/workspace/kis_preference_set_registry.h"
 #include "ui_WdgWGSelectorSettings.h"
 
 #include "WGConfigSelectorTypes.h"
@@ -19,6 +27,14 @@
 #include <QDialogButtonBox>
 #include <QPushButton>
 #include <QToolButton>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qlayout.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
+#include <utility>
 
 WGColorSelectorSettings::WGColorSelectorSettings(QWidget *parent)
     : KisPreferenceSet(parent)

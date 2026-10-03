@@ -6,11 +6,20 @@
 
 #include "WGShadeSelector.h"
 
+#include "KisVisualColorModel.h"
 #include "WGConfig.h"
+#include "WGSelectorWidgetBase.h"
 #include "WGShadeSlider.h"
 
 #include <QVBoxLayout>
 #include <QMouseEvent>
+#include <qcontainerfwd.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
+#include <qwidget.h>
+#include <utility>
 
 WGShadeSelector::WGShadeSelector(WGSelectorDisplayConfigSP displayConfig, KisVisualColorModelSP colorModel, QWidget *parent)
     : WGSelectorWidgetBase(displayConfig, parent)

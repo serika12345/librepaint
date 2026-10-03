@@ -19,6 +19,10 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include "bspline_create.h"
+#include "bspline_base.h"
+#include "bspline_structs.h"
+#include "local_definitions.h"
+#include <cstdint>
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 600
 #endif

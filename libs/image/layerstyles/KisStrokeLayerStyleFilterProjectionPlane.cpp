@@ -6,7 +6,11 @@
 
 #include "KisStrokeLayerStyleFilterProjectionPlane.h"
 
+#include "kis_layer.h"
+#include "kis_layer_style_filter_projection_plane.h"
 #include "kis_ls_stroke_filter.h"
+#include "kis_psd_layer_style.h"
+#include "krita_utils.h"
 
 KisStrokeLayerStyleFilterProjectionPlane::KisStrokeLayerStyleFilterProjectionPlane(KisLayer *sourceLayer)
     : KisLayerStyleFilterProjectionPlane(sourceLayer)

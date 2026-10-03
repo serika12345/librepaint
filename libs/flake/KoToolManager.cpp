@@ -9,6 +9,10 @@
  */
 // flake
 #include "KoToolManager.h"
+#include "KoAbstractCanvasResourceInterface.h"
+#include "KoDerivedResourceConverter.h"
+#include "KoInputDevice.h"
+#include "KoInteractionTool.h"
 #include "KoToolManager_p.h"
 #include "KoToolRegistry.h"
 #include "KoToolProxy.h"
@@ -27,7 +31,7 @@
 #include "kis_assert.h"
 #include "KoCanvasResourceProvider.h"
 
-#include <krita_container_utils.h>
+#include <climits>
 
 // Qt + kde
 #include <QWidget>
@@ -49,6 +53,19 @@
 #include <QStack>
 #include <QLabel>
 #include <QGlobalStatic>
+#include <qalgorithms.h>
+#include <QtGlobal>
+#include <qhash.h>
+#include <qlayoutitem.h>
+#include <qlist.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qset.h>
+#include <qsizepolicy.h>
 
 Q_GLOBAL_STATIC(KoToolManager, s_instance)
 

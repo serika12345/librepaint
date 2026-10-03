@@ -8,12 +8,14 @@
 
 #include <klocalizedstring.h>
 
-#include <kis_debug.h>
 #include <kpluginfactory.h>
 
 #include <brushengine/kis_paintop_registry.h>
 #include <kis_brush_based_paintop_settings.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
+#include "kis_paintop_factory.h"
 #include "kis_tangent_normal_paintop.h"
 #include "kis_tangent_normal_paintop_settings_widget.h"
 #include "kis_simple_paintop_factory.h"

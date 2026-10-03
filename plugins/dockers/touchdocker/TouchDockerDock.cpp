@@ -6,7 +6,11 @@
  */
 
 #include "TouchDockerDock.h"
+#include "KoCanvasBase.h"
+#include "KoID.h"
 #include "TouchDockerWidget.h"
+#include <klocalizedstring.h>
+#include <qdockwidget.h>
 
 TouchDockerDock::TouchDockerDock()
     : QDockWidget(i18n("Touch Docker"))

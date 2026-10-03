@@ -8,8 +8,10 @@
 
 #include <KoColorSpaceRegistry.h>
 
+#include "kis_assert.h"
 #include "kis_transaction.h"
 #include "kis_paint_device.h"
+#include "kis_types.h"
 
 KisColorSmudgeInterstrokeData::KisColorSmudgeInterstrokeData(KisPaintDeviceSP source)
         : KisInterstrokeData(source)

@@ -8,11 +8,15 @@
 
 #include <QBitArray>
 #include <KoColorSpace.h>
-#include <KoChannelInfo.h>
-#include <KoCompositeOpRegistry.h>
+#include "KisRenderPassFlags.h"
+#include "KoCompositeOpIds.h"
+#include "kis_layer.h"
+#include <qscopedpointer.h>
 #include "kis_painter.h"
 #include "kis_projection_leaf.h"
 #include "kis_cached_paint_device.h"
+#include "kis_types.h"
+#include "krita_utils.h"
 
 
 struct KisLayerProjectionPlane::Private

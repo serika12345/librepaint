@@ -16,12 +16,19 @@
 
 #include <KoColorSpaceRegistry.h>
 #include <KoColorConversions.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qpaintdevice.h>
+#include <qstringview.h>
+#include <QtGlobal>
 #include <resources/KoSegmentGradient.h>
 
+#include "KoColorSpaceConstants.h"
+#include "KoPattern.h"
+#include "kis_assert.h"
 #include "kis_dom_utils.h"
 
 #include "kis_debug.h"
-#include "psd_utils.h"
 
 #include "kis_asl_object_catcher.h"
 

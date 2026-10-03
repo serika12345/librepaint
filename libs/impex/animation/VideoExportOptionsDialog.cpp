@@ -5,13 +5,24 @@
  */
 
 #include "VideoExportOptionsDialog.h"
+#include "kis_assert.h"
+#include "kis_config_widget.h"
+#include "kis_properties_configuration.h"
+#include "kis_types.h"
 #include "ui_video_export_options_dialog.h"
 
 #include <KoID.h>
 #include <KisMpl.h>
 
-#include <ksharedconfig.h>
-#include <kconfiggroup.h>
+#include <algorithm>
+#include <iterator>
+#include <qcombobox.h>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 #include "VideoHDRMetadataOptionsDialog.h"
 #include "KisHDRMetadataOptions.h"
 

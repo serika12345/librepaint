@@ -6,6 +6,9 @@
 
 #include "KisLayerCollapseCommand.h"
 #include "KisLayerCollapseCommandNodeAccess_p.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 #include <kis_assert.h>
 

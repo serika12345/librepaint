@@ -5,7 +5,10 @@
  */
 
 #include "canvas/kis_image_view_converter.h"
+#include "KisClonableViewConverter.h"
+#include "KisImageResolutionProxy.h"
 #include "kis_pointer_utils.h"
+#include <QtGlobal>
 
 KisImageViewConverter::KisImageViewConverter()
     : KisImageViewConverter(KisImageWSP())

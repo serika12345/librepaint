@@ -4,6 +4,9 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisHairyInkOptionModel.h"
+#include "KisHairyInkOptionData.h"
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
 
 using namespace KisWidgetConnectionUtils;
 

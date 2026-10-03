@@ -7,14 +7,17 @@
  */
 
 #include "kis_minmax_filters.h"
+#include "KoColorSpace.h"
+#include "KoID.h"
+#include "KoIntegerMaths.h"
+#include "kis_filter.h"
+#include "kis_types.h"
 #include <KoUpdater.h>
 #include <KoChannelInfo.h>
 #include <filter/kis_filter_category_ids.h>
-#include <filter/kis_filter_configuration.h>
-#include <kis_selection.h>
 #include <kis_paint_device.h>
-#include <kis_processing_information.h>
 #include <KisSequentialIteratorProgress.h>
+#include <QtGlobal>
 
 
 typedef void (*funcMaxMin)(const quint8* , quint8* , uint);

@@ -8,8 +8,13 @@
  */
 
 #include "compression.h"
+#include "psd_types.h"
 
 #include <algorithm>
+#include <cstdint>
+#include <qlogging.h>
+#include <QtGlobal>
+#include <zconf.h>
 #include <zlib.h>
 
 #include <kis_debug.h>

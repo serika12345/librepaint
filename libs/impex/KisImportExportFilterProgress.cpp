@@ -3,9 +3,11 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "KisImportExportFilter.h"
 #include "KisImportExportFilter_p.h"
 
 #include <KoUpdater.h>
+#include <qpointer.h>
 
 KisImportExportFilter::~KisImportExportFilter()
 {

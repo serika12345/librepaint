@@ -6,20 +6,36 @@
 
 #include "kis_asl_reader.h"
 
+#include "KisResourceTypes.h"
+#include "KoPattern.h"
+#include "kis_debug.h"
 #include "kis_dom_utils.h"
 
 
 #include <QBuffer>
 #include <QDomDocument>
 #include <QIODevice>
+#include <qcontainerfwd.h>
+#include <qendian.h>
+#include <qimage.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qpaintdevice.h>
+#include <qpoint.h>
+#include <qrgb.h>
+#include <qstringview.h>
+#include <qtransform.h>
 
 #include "compression.h"
 #include "kis_offset_on_exit_verifier.h"
 #include "psd.h"
+#include "psd_types.h"
 #include "psd_utils.h"
 
 #include "kis_asl_reader_utils.h"
 #include "kis_asl_writer_utils.h"
+
+KisAslReaderUtils::ASLParseException::~ASLParseException() = default;
 
 namespace Private
 {

@@ -5,13 +5,14 @@
 */
 
 #include "application/ui/workspace/KisTemplate.h"
+#include "kis_icon_utils.h"
 
 #include <QImage>
 #include <QPixmap>
 #include <QFile>
 #include <kis_debug.h>
 #include <KoResourcePaths.h>
-#include <kis_icon.h>
+#include <qnamespace.h>
 
 
 KisTemplate::KisTemplate(const QString &name, const QString &description, const QString &file,

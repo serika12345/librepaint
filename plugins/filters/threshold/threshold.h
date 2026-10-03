@@ -10,6 +10,7 @@
 #define THRESHOLD_H
 
 #include <QObject>
+#include <klocalizedstring.h>
 #include <QVariant>
 #include <filter/kis_filter.h>
 #include <kis_filter_configuration.h>
@@ -76,4 +77,3 @@ protected:
 
 
 #endif
-

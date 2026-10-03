@@ -5,8 +5,13 @@
  */
 
 #include "StoryboardModel.h"
+#include "CommentModel.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "StoryboardView.h"
 #include "StoryboardUtils.h"
+#include <climits>
 #include <kis_image.h>
 #include <kis_image_animation_interface.h>
 #include <kis_keyframe_channel.h>
@@ -16,12 +21,25 @@
 #include <QMimeData>
 
 
-#include <kis_icon.h>
 #include <KoColorSpaceRegistry.h>
 #include <kis_layer_utils.h>
 #include <kis_pointer_utils.h>
 #include <kis_group_layer.h>
 #include <kis_post_execution_undo_adapter.h>
+#include "document/StoryboardItem.h"
+#include "kis_assert.h"
+#include "kis_stroke_job_strategy.h"
+#include <qabstractitemmodel.h>
+#include <QtGlobal>
+#include <qhash.h>
+#include <qitemselectionmodel.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpixmap.h>
+#include <qscopedpointer.h>
+#include <qsharedpointer.h>
+#include <qvariant.h>
 #include "kis_time_span.h"
 #include "commands_new/kis_switch_current_time_command.h"
 #include "kis_raster_keyframe_channel.h"
@@ -30,6 +48,7 @@
 #include "kis_processing_applicator.h"
 
 #include "application/kis_config.h"
+#include "kis_types.h"
 
 StoryboardModel::StoryboardModel(QObject *parent)
         : QAbstractItemModel(parent)

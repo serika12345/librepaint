@@ -12,7 +12,7 @@ iPadOS is currently the most thoroughly validated target. Reproducible arm64 dev
 ## Project Direction
 
 | Item | Policy |
-|---|---|
+| --- | --- |
 | Product scope | Develop and maintain LibrePaint as a complete application with shared and platform-specific components |
 | Platform goal | Windows, macOS, Linux, Android (including Android on ChromeOS), iOS/iPadOS, and additional targets that the Krita/Qt codebase can support |
 | Shared development | Implement features and UX in shared code when appropriate, with focused platform integrations where required |
@@ -24,29 +24,27 @@ The platform status below separates roadmap coverage from verified availability.
 ## Platform Status
 
 | Platform | Current repository state | Current validation |
-|---|---|---|
+| --- | --- | --- |
 | iOS / iPadOS | Pinned Nix/Xcode environment, universal unsigned IPA generation, and AltStore/LiveContainer deployment paths | IPA metadata and packaging cover arm64 iPhones and iPads running iOS/iPadOS 17 or later; detailed physical-device verification currently covers iPad |
-| Android / ChromeOS | LibrePaint APK configuration and a [local build guide](README.android.md) | Next gate: prepare the dependency prefix and complete end-to-end device validation |
-| Linux | Nix dependency, completed-build, and AppImage recipes, plus [local AppImage scripts and guide](packaging/linux/appimage/README.md) | Next gates: validate runtime behavior, publishing, and signing |
+| Android / ChromeOS | ARM64/x86_64 APK and AAB packages | Feature validation on target devices is ongoing |
+| Linux | Nix packages and AppImage | Next gates: validate runtime behavior, publishing, and signing |
 | macOS | Nix recipe for the LibrePaint app bundle, plus the existing DMG packaging path | Clean arm64 build and application startup verified with the nixpkgs LLVM toolchain and SDK; interactive UI and distribution validation follow |
-| Windows | Nix recipe for cross-compiling a portable 64-bit Windows directory and ZIP archive from x86_64 Linux; migration to standard packages is tracked in the [dependency architecture TODO](docs/windows/TODO.md) | Next gates: Windows runtime, installer, signing, and end-to-end validation |
+| Windows | Portable 64-bit Windows directory and ZIP archive | Next gates: Windows runtime, installer, signing, and end-to-end validation |
 
 The iOS application and IPA declare both iPhone and iPad support. The existing iPad-oriented UI is used unchanged on iPhone; iPhone UI adaptation is not part of the current installation path.
 
-Compatibility contracts retain the established CMake targets, configuration directories, KRA MIME/UTI identifiers, plugin IDs, and action IDs.
-
 ## Current iPadOS Status
 
-The following reflects the iPadOS workstream as of August 9, 2026. [`TODO.md`](TODO.md) is the authoritative source for iPadOS progress and physical-device verification results, while [`packaging/ios/manifests/initial-plugin-profile.json`](packaging/ios/manifests/initial-plugin-profile.json) is the authoritative source for statically included iPadOS functionality.
+The following records physical-device verification and feature coverage as of August 9, 2026.
 
 ### Verified on a Physical Device
 
 | Area | Verified coverage |
-|---|---|
+| --- | --- |
 | Launch and basic UI | Installation and launch through AltStore, fresh IPA import and launch through LiveContainer, the main window, portrait and landscape splash layouts, and the Configure LibrePaint dialog in the initial portrait orientation and after rotation |
 | Touch UI | Swipes handled as scrolling and taps handled as selection outside the canvas, tap confirmation in combo boxes, and text-entry focus that begins with explicit editing |
 | Apple Pencil | Press, move, and release events; pressure and tilt; and immediate drawing with the initially selected brush |
-| Pencil double tap | Switching between independent pen and eraser brush presets through `eraser_preset_action` |
+| Pencil double tap | Switching between independent pen and eraser brush presets |
 | Files | Native open and save through iPadOS Files, followed by saving, reloading, retrieving, and externally inspecting KRA, PNG, JPEG, and ORA files |
 | Brush engines | Pixel Brush, MyPaint preset registration, and drawing with Color Smudge, Spray, Hatching, and Filter Brush (Invert) |
 | Tools and dockers | Major tools displayed in the Toolbox, major dockers listed in the menu, and basic use of features including the Layer Docker |
@@ -59,37 +57,13 @@ The following reflects the iPadOS workstream as of August 9, 2026. [`TODO.md`](T
 ### File Formats
 
 | Status | Formats and verified coverage |
-|---|---|
+| --- | --- |
 | Basic round trip verified | KRA, PNG, JPEG, ORA |
 | Limited physical-device verification | WebP saving; PSD, GIF, HEIF, and JPEG XL saving and reloading; TIFF saving and reloading with JPEG compression |
 | Import verified | PDF; an NEF produced by a Nikon Z7, loaded as 8288×5520 16-bit RGBA |
 | Bundled; next validation set | CSV, SVG, XCF, QML, TGA, Heightmap, brush resources, Spriter, KRZ, RGBE, OpenEXR, JPEG 2000, Exif/IPTC/XMP, and others |
 
 The individual results in this table—including PDF and the tested RAW sample—cover the recorded samples and paths. Additional variants, compression methods, color spaces, metadata, and KRA filter configurations form the next test set.
-
-### Included Features Under Interaction Testing
-
-The current iPad profile statically registers 162 internal plugins. Final arm64 linking, IPA inspection, physical-device installation, and startup have been verified. UI and interaction testing continues in these areas:
-
-- The complete SeExpr generator and Fill Layer workflow
-- Displaying the LUT Docker and applying OpenColorIO LUTs
-- Bundle import and export through the Resource Manager
-- Detailed operation of the Colorize Tool and individual tools and dockers
-- OpenEXR round trips, JPEG 2000 import, and implemented import/export paths for other additional formats
-- The Pencil double-tap options for “previous preset,” “palette,” and “do nothing,” along with the settings UI for arbitrary actions
-- Complete interaction and regression testing for the iPad canvas-only touch UI, Brush Library, and Layer HUD
-
-### Next iPadOS Validation Work
-
-- Complete separation of Pencil drawing from finger gestures, plus systematic regression testing of undo/redo, pan, zoom, and rotation gestures
-- Safe Area behavior, Split View, Stage Manager, external displays, and compact-window geometry
-- Repeated background/foreground transitions, rotation and document-close boundaries while suspended, and recovery under failure or expiration paths
-- Pencil hover and external keyboards
-- Cold and warm launches from Files, recent documents, iCloud Drive, and autosave recovery after forced termination
-- Severe memory pressure, Jetsam, 2K/4K/8K canvas limits, one-hour continuous drawing sessions, and thermal and battery testing
-- Small touch targets and overlap between modal dialogs and the software keyboard
-
-The iOS memory policy sets the default tile-memory budget to 25% of physical RAM, capped at 1 GiB, and limits manual configuration to 37.5% of physical RAM, capped at 1.5 GiB. Purging tile and pixmap caches in response to memory warnings is implemented. The next physical-device gate covers recovery under severe memory pressure and preservation of unsaved data.
 
 ### Current iPadOS Profile
 
@@ -106,257 +80,9 @@ The self-contained build concentrates on drawing, bundled resources, and local f
 
 Animation UI is a possible low-priority iPadOS addition; multimedia export sits outside the current profile. Feature matrices for other LibrePaint platform builds will be maintained separately.
 
-## Build and Development
+## Documentation
 
-The standard macOS, Linux, and Windows Nix builds are defined in [`nix/macos/`](nix/macos/), [`nix/linux/`](nix/linux/), and [`nix/windows/`](nix/windows/). Android build instructions are in [`README.android.md`](README.android.md), and the local Linux AppImage path is documented in [`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md). Platform packaging is kept under [`packaging/`](packaging/).
-
-### macOS Nix Build
-
-The macOS package is the default flake output on Apple Silicon. Build the named output from the repository root:
-
-```sh
-nix build .#librepaint-macos
-```
-
-The application bundle is written to `result/bin/LibrePaint.app`. Launch it with:
-
-```sh
-open result/bin/LibrePaint.app
-```
-
-Open the matching development shell with:
-
-```sh
-nix develop .#librepaint-macos
-```
-
-The clean build has been verified with this locked toolchain:
-
-| Component | Verified value |
-|---|---|
-| Host | Apple Silicon macOS (`aarch64-darwin`) |
-| Compiler | LLVM Clang 21.1.8 from nixpkgs |
-| Linker and archive tools | cctools/ld64 from nixpkgs |
-| SDK | Apple SDK 14.4 from the Nix store |
-| Qt | 6.11.1 |
-| KDE Frameworks / ECM | 6.28.0 |
-| Deployment target | macOS 14.0 |
-| Architecture | arm64 |
-
-The locked Nix graph supplies the declared build toolchain and dependency set. Darwin tooling comes from the nixpkgs LLVM Clang, cctools, SDK, and open-source `xcbuild` packages.
-
-The native C++ desktop profile includes the drawing application, its dynamically loaded plugins, PDF import through Poppler, RAW import through LibRaw/KDcraw, KSeExpr generators, OpenColorIO, MLT/SDL audio-video support, FFmpeg/FFprobe, and the image-format libraries declared in [`nix/macos/krita.nix`](nix/macos/krita.nix).
-
-The next macOS dependency work adds the Python/PyQt scripting closure together with its embedded-runtime path integration.
-
-The Nix result is a reproducible development and checkpoint bundle whose runtime libraries remain in its Nix closure. A distribution recipe can layer standalone bundling, DMG generation, signing, and notarization onto this build.
-
-### Linux Nix Build
-
-The x86_64 Linux flake provides a source-independent dependency closure and the completed, wrapped LibrePaint build. Build the dependency closure first to populate the local or configured binary cache without making it sensitive to LibrePaint source changes:
-
-```sh
-nix build .#linux-dependencies --no-link
-```
-
-Build the application with the same dependency recipe:
-
-```sh
-nix build .#librepaint-linux
-```
-
-The result exposes `result/bin/LibrePaint`. It retains Krita-compatible desktop and MIME identifiers while presenting LibrePaint branding. The completed build follows nixpkgs' Krita unwrapped/wrapper structure, including the G'MIC plugin and Qt/GLib runtime wrapper. Open the matching development shell with:
-
-```sh
-nix develop .#librepaint-linux
-```
-
-Build a Type-2 AppImage as the final packaging stage with:
-
-```sh
-nix build .#librepaint-linux-appimage \
-  --out-link LibrePaint-1.0.2-x86_64.AppImage
-```
-
-The output symlink is a self-contained AppImage whose entry point is `LibrePaint`; it embeds the completed Nix closure rather than rebuilding the application. It requires Linux user namespaces.
-
-For development and local use on NixOS, use the normal Nix package rather than the AppImage:
-
-```sh
-nix run .#librepaint-linux
-```
-
-The AppImage is a distribution artifact. Its upstream Nix-closure runtime has a known OpenGL portability limitation on non-NixOS systems and may require a nixGL-style wrapper. Test it on every target system and GPU before distribution.
-
-### Windows Nix Cross Build
-
-The Windows recipe cross-compiles a 64-bit `x86_64-w64-mingw32` build from x86_64 Linux. It keeps the source-independent target dependency graph separate from the LibrePaint build, allowing binary caches to serve unchanged dependencies:
-
-```sh
-nix build .#windows-dependencies --no-link
-nix build .#librepaint-windows
-```
-
-The result is a portable directory with `result/bin/LibrePaint.exe`. The packaging stage places target DLLs, Qt plugins and QML modules, Python/PyQt, G'MIC, FFmpeg/FFprobe, MLT data, translations, Fontconfig configuration and fonts, and `qt.conf` beside the executable. Create the corresponding ZIP archive with:
-
-```sh
-nix build .#librepaint-windows-archive
-```
-
-The archive is written as `result/LibrePaint-1.0.2-x86_64-windows.zip`.
-
-The recipe enables the complete upstream Windows feature set, including Python/PyQt scripting, Qt Quick/QML interfaces, PDF import, G'MIC, KSeExpr, FFTW, OpenColorIO, MLT/SDL audio and video support, FFmpeg/FFprobe, DrMingw crash logs, HDR display information, and GIF, HEIF, JPEG XL, TIFF, and WebP workflows.
-
-### iOS/iPadOS Build and Local Deployment
-
-Run all commands from the repository root. For normal source development, use the incremental workflow, which reuses a pinned Nix environment and a persistent Ninja tree selected by fingerprint.
-
-#### Pinned Toolchain
-
-The exact pinned values are defined in [`packaging/ios/versions.env`](packaging/ios/versions.env).
-
-| Component | Pinned value |
-|---|---|
-| Krita base revision | `7173825999953623d28777a163a65b42a3f26f0a` |
-| Host | Apple Silicon macOS (`aarch64-darwin`) |
-| Nix | 2.31 or later |
-| Xcode | 26.6 (`17F113`) |
-| iPhoneOS SDK | 26.5 (`23F81a`) |
-| Apple Clang | 21.0.0 (`2100.1.1.101`) |
-| Qt | 6.11.1 |
-| KDE Frameworks / ECM | 6.28.0 |
-| Deployment target | iOS/iPadOS 17.0 |
-| Architecture | arm64 |
-
-The bundle targets both iPhone and iPad through Apple's `iPhoneOS` SDK. Keep the pinned values during normal development and treat version upgrades as separate validation work.
-
-#### Prerequisites
-
-- An Apple Silicon Mac with the Xcode version listed above installed at `/Applications/Xcode.app`
-- Nix 2.31 or later, with a Nix daemon configured to support Flakes
-- For automated AltStore deployment: an iPhone or iPad running iOS/iPadOS 17 or later, connected over USB, unlocked, trusted by the Mac, and in Developer Mode
-- For automated AltStore deployment: AltServer running on the Mac, AltStore configured on the device, the required local development-signing environment, and local-network connectivity between the Mac and device
-- For LiveContainer installation: LiveContainer installed and configured on the iPad; the verified iOS 26 configuration uses its JIT-Less mode
-
-Enable sandboxing in the Nix daemon, disable sandbox fallback, and allow only Xcode as an explicit impure host dependency. The following nix-darwin configuration has been verified:
-
-```nix
-nix.settings.sandbox = true;
-nix.settings.sandbox-fallback = false;
-nix.settings.extra-allowed-impure-host-deps = [
-  "/Applications/Xcode.app"
-];
-```
-
-Keep Xcode out of `sandbox-paths`. Check the environment with:
-
-```sh
-nix develop .#librepaint-ios --command packaging/ios/scripts/check-host.sh
-```
-
-This check validates the versions of Xcode, the SDK, Clang, Nix, CMake, and related tools, as well as the Nix daemon's sandbox policy.
-
-#### First Incremental Build
-
-For a new build configuration, create the baseline once:
-
-```sh
-packaging/ios/scripts/build-librepaint-incremental.sh path
-packaging/ios/scripts/build-librepaint-incremental.sh bootstrap
-```
-
-The wrapper creates and reuses a pinned, source-independent Nix profile. The initial baseline is a full build and may take some time.
-
-To validate only the dependency closure and the KF6 consumer link first, run:
-
-```sh
-nix build .#ios-dependencies --no-link
-nix build .#kf6-consumer-check --no-link
-```
-
-#### Normal Development Builds
-
-After making changes, inspect the work planned by Ninja, then run the incremental build:
-
-```sh
-packaging/ios/scripts/build-librepaint-incremental.sh plan
-packaging/ios/scripts/build-librepaint-incremental.sh build
-```
-
-`path` prints the currently selected build tree. By default, normal `build` and `deploy` operations reject plans larger than 200 Ninja steps so that an unintended full rebuild is caught before compilation starts. After an intentional broad configuration change, review the plan and use `bootstrap` to create a new baseline.
-
-The normal edit-build-test loop uses this wrapper. Direct `cmake --preset` and `nix build .#librepaint-ios-ipa` invocations are reserved for configuration work and clean checkpoints, respectively. The former `build-krita-incremental.sh` and `krita-ios-*` entry points remain compatibility aliases.
-
-#### Reproducible App and Unsigned IPA
-
-The app bundle and IPA used for clean checkpoints can be built with Nix:
-
-```sh
-nix build .#librepaint-ios-app \
-  --out-link build-ios/nix-results/librepaint-ios-app
-nix build .#librepaint-ios-ipa \
-  --out-link build-ios/nix-results/librepaint-ios-ipa
-```
-
-The resulting artifacts are placed at:
-
-- `build-ios/nix-results/librepaint-ios-app/LibrePaint.app`
-- `build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iOS-unsigned.ipa`
-
-Building `librepaint-ios-ipa` also builds the required app and dependencies automatically. The generated IPA is unsigned. Keep signing information, provisioning profiles, Apple IDs, and device credentials outside the repository.
-
-#### Deploying to a Physical Device with AltStore
-
-After satisfying the prerequisites and starting AltServer, run the following command to perform the incremental build, validate the binary, plugins, and runtime data, generate the IPA, sign and install it through AltStore, launch LibrePaint, and collect the startup log:
-
-```sh
-packaging/ios/scripts/build-librepaint-incremental.sh deploy [device-id]
-```
-
-If `device-id` is omitted, the first available CoreDevice is selected. List connected devices with:
-
-```sh
-xcrun devicectl list devices
-```
-
-Timestamped IPAs and collected `librepaint.log` files are stored under `build-ios/deploy/`. The workflow uses `packaging/ios/scripts/deploy-altstore.sh --skip-build` internally and supplies the exact current build tree.
-
-This workflow provides development signing for the author's local use.
-
-#### Installing with LiveContainer
-
-The reproducible unsigned IPA at `build-ios/nix-results/librepaint-ios-ipa/LibrePaint-iOS-unsigned.ipa` can also be imported into LiveContainer. The packaging workflow normalizes the archive permissions required for LiveContainer to patch, launch, and clean up the app bundle. A fresh import and launch have been verified on a physical iPad using LiveContainer's iOS 26 JIT-Less mode.
-
-An earlier failed import can leave a read-only temporary `Payload` inside LiveContainer. If that stale-state error occurs, preserve any required app data, clean up or reset the affected LiveContainer state, and import the corrected IPA. Physical-device verification of the exact cleanup UI is the next recovery step; see [`docs/ios/altstore-deployment.md`](docs/ios/altstore-deployment.md) for the current archive-permission and recovery notes.
-
-#### Simulator Smoke Test
-
-```sh
-nix develop .#librepaint-ios --command packaging/ios/scripts/build-smoke.sh simulator
-```
-
-This smoke test diagnoses the Objective-C++, UIKit, SDK, deployment-target, and bundle-metadata integration. Physical-device testing remains the runtime acceptance path.
-
-#### Maintainer Note for Dependency Recipe Changes
-
-`packaging/ios/scripts/bootstrap-ios-dependencies.sh --confirm-pinning-complete` is the dependency-recipe finalization procedure. Its execution boundary is after every dependency recipe has been pinned and committed, when existing unrooted cached outputs can be discarded. It releases known legacy GC roots, performs a **full Nix garbage collection**, and then rebuilds the final aggregate. Normal source development uses the incremental workflow above.
-
-## Documentation and Outputs
-
-| Path | Description |
-|---|---|
-| [`docs/architecture/README.md`](docs/architecture/README.md) | Architecture overview, runtime flows, code-reading order, and change-to-location guide |
-| [`TODO.md`](TODO.md) | Source of truth for the iPadOS milestones, remaining work, and physical-device validation results |
-| [`README.android.md`](README.android.md) | Current local Android build path and its dependency-prefix limitations |
-| [`packaging/linux/appimage/README.md`](packaging/linux/appimage/README.md) | Current local Linux AppImage build path and prerequisites |
-| [`docs/ios/README.md`](docs/ios/README.md) | Detailed toolchain, dependency-build, and cache design documentation |
-| [`docs/ios/altstore-deployment.md`](docs/ios/altstore-deployment.md) | Details of AltStore deployment, IPA permissions, and LiveContainer import caveats |
-| [`packaging/ios/versions.env`](packaging/ios/versions.env) | Pinned versions and deployment target |
-| [`packaging/ios/manifests/initial-plugin-profile.json`](packaging/ios/manifests/initial-plugin-profile.json) | Static plugin profile for iOS and iPadOS |
-| `build-ios/` | App and IPA artifacts, incremental build trees, and Nix profiles |
-| `logs/ios/` | Timestamped build logs |
-
-Keep local artifacts such as `build-ios/`, signed build products, credentials, and private cache keys out of Git.
+The [development manual (Japanese)](docs/architecture/DEVELOPMENT.md) covers environment setup, platform builds, testing, and maintenance.
 
 ## License and Upstream
 

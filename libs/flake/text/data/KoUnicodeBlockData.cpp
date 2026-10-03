@@ -8,6 +8,8 @@
 
 #include "KoUnicodeBlockData.h"
 #include <QVector>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
 
 struct Q_DECL_HIDDEN KoUnicodeBlockDataFactory::Private
 {

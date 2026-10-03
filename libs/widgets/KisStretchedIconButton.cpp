@@ -10,6 +10,9 @@
 #include <QHBoxLayout>
 #include <QIcon>
 #include <QLabel>
+#include <qnamespace.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 KisStretchedIconButton::KisStretchedIconButton(QWidget *parent)
     : QToolButton(parent)

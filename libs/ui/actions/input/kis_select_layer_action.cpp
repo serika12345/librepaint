@@ -19,6 +19,8 @@
 #include "kis_input_manager.h"
 
 #include <kis_assert.h>
+#include <qhash.h>
+#include <QtGlobal>
 
 class KisSelectLayerAction::Private
 {

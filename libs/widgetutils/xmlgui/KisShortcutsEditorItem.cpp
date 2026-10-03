@@ -11,11 +11,23 @@
 */
 
 #include "KisShortcutsDialog_p.h"
+
+#include <KLocalizedString>
+#include <QDebug>
 #include "KisShortcutsEditor_p.h"
+#include "ui_KisShortcutsDialog.h"
 
 #include <QAction>
 #include <QTreeWidgetItem>
+#include <kextendableitemdelegate.h>
 #include <kis_debug.h>
+#include <QtGlobal>
+#include <qfont.h>
+#include <qkeysequence.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qvariant.h>
 
 
 KisShortcutsEditorItem::KisShortcutsEditorItem(QTreeWidgetItem *parent, QAction *action)

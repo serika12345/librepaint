@@ -67,27 +67,85 @@ static void handlePencilTap()
 
 static KritaIOSPencilInteractionDelegate *s_delegate = nil;
 static UIPencilInteraction *s_interaction = nil;
+static UIView *s_applicationView = nil;
+static UIWindow *s_applicationWindow = nil;
+static id s_windowDidBecomeVisibleObserver = nil;
+static id s_windowDidBecomeKeyObserver = nil;
+static id s_applicationDidBecomeActiveObserver = nil;
+
+static bool attachPencilInteraction()
+{
+    if (!s_applicationWindow && s_applicationView.window) {
+        s_applicationWindow = s_applicationView.window;
+    }
+    if (!s_applicationWindow) {
+        return false;
+    }
+
+    UIView *attachedView = s_interaction.view;
+    if (attachedView == s_applicationWindow) {
+        return true;
+    }
+    if (attachedView) {
+        [attachedView removeInteraction:s_interaction];
+    }
+    [s_applicationWindow addInteraction:s_interaction];
+
+    qInfo() << "Attached Apple Pencil double-tap interaction to the main window";
+    return true;
+}
 
 void installKisIOSPencilInteraction(void *nativeView, KisIOSPencilTapHandler handler)
 {
-    if (s_interaction) {
-        return;
-    }
-
     UIView *view = reinterpret_cast<UIView *>(nativeView);
-    if (!view) {
-        qWarning() << "Could not attach Apple Pencil interaction to the LibrePaint window";
-        return;
+    s_handler = handler;
+    if (view) {
+        s_applicationView = view;
     }
 
-    s_handler = handler;
+    if (!s_interaction) {
+        // UIPencilInteraction holds its delegate weakly. Keep both objects
+        // alive for the process lifetime.
+        s_delegate = [[KritaIOSPencilInteractionDelegate alloc] init];
+        s_interaction = [[UIPencilInteraction alloc] init];
+        s_interaction.delegate = s_delegate;
+    }
 
-    // UIPencilInteraction holds its delegate weakly. Keep both objects alive
-    // for the process lifetime, matching the lifetime of Krita's main window.
-    s_delegate = [[KritaIOSPencilInteractionDelegate alloc] init];
-    s_interaction = [[UIPencilInteraction alloc] init];
-    s_interaction.delegate = s_delegate;
-    [view addInteraction:s_interaction];
+    if (!s_windowDidBecomeVisibleObserver) {
+        NSNotificationCenter *notificationCenter = NSNotificationCenter.defaultCenter;
+        s_windowDidBecomeVisibleObserver = [notificationCenter
+            addObserverForName:UIWindowDidBecomeVisibleNotification
+                        object:nil
+                         queue:NSOperationQueue.mainQueue
+                    usingBlock:^(NSNotification *notification) {
+                        Q_UNUSED(notification);
+                        attachPencilInteraction();
+                    }];
+        s_windowDidBecomeKeyObserver = [notificationCenter
+            addObserverForName:UIWindowDidBecomeKeyNotification
+                        object:nil
+                         queue:NSOperationQueue.mainQueue
+                    usingBlock:^(NSNotification *notification) {
+                        Q_UNUSED(notification);
+                        attachPencilInteraction();
+                    }];
+        s_applicationDidBecomeActiveObserver = [notificationCenter
+            addObserverForName:UIApplicationDidBecomeActiveNotification
+                        object:nil
+                         queue:NSOperationQueue.mainQueue
+                    usingBlock:^(NSNotification *) {
+                        attachPencilInteraction();
+                    }];
+    }
 
-    qInfo() << "Installed Apple Pencil double-tap interaction";
+    if (!attachPencilInteraction()) {
+        // Qt enters main() before UIKit connects its UIWindowScene. Retry once
+        // the event loop starts; the observers above also cover later window
+        // activation and foreground transitions without changing the target.
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (!attachPencilInteraction()) {
+                qWarning() << "Could not attach Apple Pencil interaction to the LibrePaint main window";
+            }
+        });
+    }
 }

@@ -8,7 +8,10 @@
 
 #include "KoPointerEvent.h"
 #include <KoSnapGuide.h>
+#include <qnamespace.h>
+#include <QtGlobal>
 #include "kis_coordinates_converter.h"
+#include "kis_tool.h"
 
 
 struct KisSimplifiedActionPolicyStrategy::Private

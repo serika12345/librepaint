@@ -6,13 +6,26 @@
 
 #include "WGShadeSlider.h"
 
+#include "KisVisualColorModel.h"
+#include "KoColor.h"
 #include "KoColorDisplayRendererInterface.h"
+#include "WGSelectorWidgetBase.h"
 
 #include <QImage>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QVector4D>
 #include <QtMath>
+#include <cmath>
+#include <cstring>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpaintdevice.h>
+#include <qpoint.h>
+#include <qscopedpointer.h>
+#include <qsize.h>
+#include <qwidget.h>
 
 struct WGShadeSlider::Private
 {

@@ -7,10 +7,14 @@
 #include <QAbstractItemModel>
 #include <QApplication>
 #include <QMessageBox>
+#include <qcontainerfwd.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
 
 #include "KisResourceModel.h"
 #include "KisResourceStorage.h"
 #include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KisStorageChooserWidget.h"
 #include "KisStorageChooserWidgetModelSource_p.h"
 #include "KisStorageFilterProxyModel.h"

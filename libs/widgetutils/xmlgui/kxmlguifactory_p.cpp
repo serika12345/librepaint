@@ -6,6 +6,7 @@
 
 #include "kxmlguifactory_p.h"
 
+#include "KisQStringListFwd.h"
 #include "kxmlguiclient.h"
 #include "kxmlguibuilder.h"
 #include "ktoolbar.h"
@@ -14,6 +15,13 @@
 #include <QDebug>
 
 #include <assert.h>
+#include <qalgorithms.h>
+#include <qdom.h>
+#include <QtGlobal>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qobject.h>
 
 using namespace KisKXMLGUI;
 

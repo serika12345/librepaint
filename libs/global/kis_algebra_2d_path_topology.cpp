@@ -5,10 +5,22 @@
  */
 
 #include "kis_algebra_2d.h"
+#include "kis_assert.h"
+#include "kis_global.h"
 
 #include <QDebug>
 #include <QPainterPath>
 #include <QtMath>
+#include <boost/optional/optional.hpp>
+#include <optional>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qline.h>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpoint.h>
 
 namespace KisAlgebra2D {
 

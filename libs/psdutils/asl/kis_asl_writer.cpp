@@ -9,15 +9,22 @@
 
 #include <QDomDocument>
 #include <QIODevice>
+#include <qpaintdevice.h>
+#include <qtransform.h>
+#include <QtGlobal>
 
+#include "KisResourceTypes.h"
+#include "kis_assert.h"
 #include "kis_dom_utils.h"
 
 #include "kis_debug.h"
 #include "psd.h"
-#include "psd_utils.h"
+#include "psd_types.h"
 
 #include "kis_asl_patterns_writer.h"
 #include "kis_asl_writer_utils.h"
+
+KisAslWriterUtils::ASLWriteException::~ASLWriteException() = default;
 
 namespace Private
 {

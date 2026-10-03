@@ -6,6 +6,7 @@
 
 #include "kis_gui_context_command_p.h"
 #include "kundo2command.h"
+#include <qobject.h>
 
 KisGuiContextCommandDelegate::KisGuiContextCommandDelegate(QObject *parent)
     : QObject(parent)

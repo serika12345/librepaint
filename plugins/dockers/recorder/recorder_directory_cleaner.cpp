@@ -9,6 +9,8 @@
 
 #include <QDebug>
 #include <QDir>
+#include <qcontainerfwd.h>
+#include <qlogging.h>
 
 
 RecorderDirectoryCleaner::RecorderDirectoryCleaner(const QStringList &directories_)

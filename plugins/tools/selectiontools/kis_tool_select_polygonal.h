@@ -13,6 +13,7 @@
 #define KIS_TOOL_SELECT_POLYGONAL_H_
 
 #include "KisSelectionToolFactoryBase.h"
+#include <klocalizedstring.h>
 #include "kis_tool_polyline_base.h"
 #include <kis_tool_select_ui_base.h>
 #include "kis_selection_tool_config_widget_helper.h"

@@ -4,6 +4,10 @@
  */
 
 #include "kis_node_model.h"
+#include "kis_types.h"
+#include <qabstractitemmodel.h>
+#include <QtGlobal>
+#include <qvariant.h>
 
 bool KisNodeModel::setData(const QModelIndex &index, const QVariant &value, int role)
 {

@@ -7,7 +7,14 @@
  */
 #include "KoAlphaColorSpace.h"
 
+#include <cstdint>
+#include <half.h>
 #include <limits.h>
+#include <QtGlobal>
+#include <qcolor.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qrgb.h>
 #include <stdlib.h>
 
 #include <QImage>
@@ -15,7 +22,16 @@
 
 #include <klocalizedstring.h>
 
+#include "KisQStringListFwd.h"
 #include "KoChannelInfo.h"
+#include "KoColorConversionTransformation.h"
+#include "KoColorConversionTransformationFactory.h"
+#include "KoColorModelStandardIds.h"
+#include "KoColorProfile.h"
+#include "KoColorSpace.h"
+#include "KoColorSpaceAbstract.h"
+#include "KoCompositeOp.h"
+#include "KoCompositeOpIds.h"
 #include "KoID.h"
 #include "KoIntegerMaths.h"
 #include "KoCompositeOpOver.h"
@@ -23,6 +39,7 @@
 #include "KoCompositeOpCopy2.h"
 #include "KoCompositeOpBase.h"
 #include "KoCompositeOps.h"
+#include "kritapigment_export_instance.h"
 #include <colorprofiles/KoDummyColorProfile.h>
 
 namespace {

@@ -22,11 +22,6 @@ ki18n_wrap_ui(kritabuginfo_SOURCES wdg_buginfo.ui )
 kis_add_library(kritabuginfo MODULE ${kritabuginfo_SOURCES})
 
 target_link_libraries(kritabuginfo kritaapplicationui)
-if (ANDROID)
-    if (QT_MAJOR_VERSION STREQUAL "5")
-        target_link_libraries(kritabuginfo Qt${QT_MAJOR_VERSION}::AndroidExtras)
-    endif()
-endif()
 
 if (KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)
     target_link_libraries(kritabuginfo kritasurfacecolormanagementapi)

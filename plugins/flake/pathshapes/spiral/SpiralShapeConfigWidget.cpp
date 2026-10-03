@@ -5,8 +5,12 @@
  */
 
 #include "SpiralShapeConfigWidget.h"
+#include "KoShape.h"
 #include "SpiralShapeConfigCommand.h"
+#include "kundo2stack.h"
+#include "spiral/SpiralShape.h"
 #include <klocalizedstring.h>
+#include <qobjectdefs.h>
 
 SpiralShapeConfigWidget::SpiralShapeConfigWidget()
 {

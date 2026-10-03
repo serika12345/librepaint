@@ -5,7 +5,8 @@
  */
 
 #include "kis_reselect_global_selection_command.h"
-#include "kis_selection_mask.h"
+#include "kis_assert.h"
+#include "kis_command_utils.h"
 
 #include <klocalizedstring.h>
 
@@ -16,6 +17,10 @@
 #include "kis_image_layer_remove_command.h"
 #include "kis_image_layer_add_command.h"
 #include "KisNotifySelectionChangedCommand.h"
+#include "kis_types.h"
+#include "kis_selection_mask.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 
 KisReselectGlobalSelectionCommand::KisReselectGlobalSelectionCommand(KisImageWSP image, KUndo2Command * parent)
@@ -48,4 +53,3 @@ void KisReselectGlobalSelectionCommand::populateChildCommands()
 
     addCommand(new KisNotifySelectionChangedCommand(image, KisNotifySelectionChangedCommand::FINALIZING));
 }
-

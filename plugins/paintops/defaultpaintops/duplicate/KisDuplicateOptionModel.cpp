@@ -5,6 +5,9 @@
  */
 
 #include "KisDuplicateOptionModel.h"
+#include "KisDuplicateOptionData.h"
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
 
 KisDuplicateOptionModel::KisDuplicateOptionModel(lager::cursor<KisDuplicateOptionData> optionData)
     : optionData(optionData)

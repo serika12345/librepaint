@@ -4,6 +4,9 @@
  */
 
 #include "kis_node_model.h"
+#include <qabstractitemmodel.h>
+#include <qnamespace.h>
+#include <qvariant.h>
 
 QVariant KisNodeModel::data(const QModelIndex &index, int role) const
 {

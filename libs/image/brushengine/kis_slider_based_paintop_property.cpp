@@ -5,6 +5,13 @@
  */
 
 #include "kis_slider_based_paintop_property.h"
+#include "kis_callback_based_paintop_property.h"
+#include "kis_image_export.h"
+#include "kis_types.h"
+#include "kis_uniform_paintop_property.h"
+#include <qlogging.h>
+#include <qobject.h>
+#include <QtGlobal>
 
 template<typename T>
 KisSliderBasedPaintOpProperty<T>::KisSliderBasedPaintOpProperty(Type type,

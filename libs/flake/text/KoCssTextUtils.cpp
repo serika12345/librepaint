@@ -4,9 +4,17 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KoCssTextUtils.h"
+#include "KoSvgText.h"
 #include "graphemebreak.h"
 #include <QChar>
-#include <kis_assert.h>
+#include <algorithm>
+#include <cstddef>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qlocale.h>
+#include <qmap.h>
+#include <qnumeric.h>
+#include <qpair.h>
 
 QVector<QPair<int, int>> positionDifference(QStringList a, QStringList b) {
     QVector<QPair<int, int>> positions;

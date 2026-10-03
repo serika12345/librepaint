@@ -15,7 +15,15 @@
 #include <kis_global.h>
 #include <KisVisualColorSelector.h>
 #include <WGSelectorWidgetBase.h>
-#include <WGShadeSelector.h>
+#include <qcoreevent.h>
+#include <qlayout.h>
+#include <qlayoutitem.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qtimer.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 WGSelectorPopup::WGSelectorPopup(QWidget *parent)
     : QWidget(parent, Qt::Popup | Qt::FramelessWindowHint), m_hideTimer(new QTimer(this))

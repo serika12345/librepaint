@@ -4,6 +4,8 @@
  */
 
 #include <KisImportExportResizeWidget.h>
+#include <memory>
+#include <qsize.h>
 
 #include "imagesize/wdg_imagesize.h"
 

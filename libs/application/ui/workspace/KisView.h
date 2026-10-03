@@ -14,6 +14,7 @@
 
 #include "kritaui_export.h"
 #include <KisNodeAdditionFlags.h>
+#include <kis_shared_ptr.h>
 
 #include "widgets/kis_floating_message.h"
 

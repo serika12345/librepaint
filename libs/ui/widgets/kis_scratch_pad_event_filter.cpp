@@ -12,6 +12,11 @@
 #include <QEvent>
 #include <QMouseEvent>
 #include <QTabletEvent>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
+#include <QtGlobal>
+#include <qtransform.h>
 
 KisScratchPadEventFilter::KisScratchPadEventFilter(QWidget *parent)
     : QObject(parent),

@@ -9,8 +9,15 @@
 #include "kis_image.h"
 
 #include <klocalizedstring.h>
+#include "kis_image_command.h"
+#include <QtGlobal>
+#include <qlist.h>
+#include <qobject.h>
 #include "kis_layer.h"
 #include "kis_clone_layer.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 struct Q_DECL_HIDDEN KisImageLayerRemoveCommandImpl::Private {
     Private(KisImageLayerRemoveCommandImpl *_q) : q(_q) {}

@@ -4,10 +4,14 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "document/kis_file_layer.h"
+#include <klocalizedstring.h>
 
 #include <QFile>
 #include <QFileInfo>
 
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_icon_utils.h"
 #include "kis_transform_worker.h"
 #include "kis_filter_strategy.h"
 #include "kis_node_visitor.h"
@@ -19,6 +23,12 @@
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
 #include <QDir>
+#include <QtGlobal>
+#include <QDebug>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
 
 
 KisFileLayer::KisFileLayer(KisImageWSP image, const QString &name, quint8 opacity)
@@ -410,4 +420,3 @@ void KisFileLayer::setImage(KisImageWSP image)
         }
     }
 }
-

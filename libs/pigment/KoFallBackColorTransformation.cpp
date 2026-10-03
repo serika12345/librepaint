@@ -11,6 +11,8 @@
 #include "KoColorTransformation.h"
 #include "KoColorConversionCache.h"
 #include "KoColorSpaceRegistry.h"
+#include <QtGlobal>
+#include <qlist.h>
 
 
 struct Q_DECL_HIDDEN KoFallBackColorTransformation::Private {

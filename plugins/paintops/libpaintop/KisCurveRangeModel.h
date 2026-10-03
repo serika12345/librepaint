@@ -7,8 +7,15 @@
 #ifndef KISCURVERANGEMODEL_H
 #define KISCURVERANGEMODEL_H
 
+#include <QString>
+#include <QtGlobal>
+
 #include <KisCurveRangeModelInterface.h>
 #include <lager/constant.hpp>
+#include <lager/cursor.hpp>
+#include <lager/reader.hpp>
+
+#include <kritapaintop_export.h>
 
 class PAINTOP_EXPORT KisCurveRangeModel : public KisCurveRangeModelInterface
 {

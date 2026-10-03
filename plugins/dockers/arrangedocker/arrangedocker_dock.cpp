@@ -14,6 +14,9 @@
 
 #include <KoToolProxy.h>
 #include <KoShapeManager.h>
+#include <qdockwidget.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 
 ArrangeDockerDock::ArrangeDockerDock( )

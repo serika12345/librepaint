@@ -4,6 +4,9 @@
  */
 
 #include "kis_node_model.h"
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qnamespace.h>
 
 Qt::DropActions KisNodeModel::supportedDragActions() const
 {

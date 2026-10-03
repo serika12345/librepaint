@@ -4,6 +4,7 @@
  */
 
 #include <kis_outline_interaction.h>
+#include <qpoint.h>
 
 bool KisOutlineInteraction::beginInput(const QPointF &position)
 {

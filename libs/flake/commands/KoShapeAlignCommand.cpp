@@ -8,8 +8,13 @@
 #include "KoShapeAlignCommand.h"
 #include "KoShape.h"
 #include "commands/KoShapeMoveCommand.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 #include <klocalizedstring.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qpoint.h>
 // #include <FlakeDebug.h>
 
 namespace

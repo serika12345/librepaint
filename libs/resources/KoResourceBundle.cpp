@@ -20,6 +20,10 @@
 #include <klocalizedstring.h>
 
 #include <KisMimeDatabase.h>
+#include "KisResourceLoader.h"
+#include "KisResourceStorage.h"
+#include "KisTag.h"
+#include "KoResource.h"
 #include "KoResourceBundleManifest.h"
 #include <KoMD5Generator.h>
 #include <KoResourcePaths.h>
@@ -27,14 +31,20 @@
 #include <KoXmlWriter.h>
 #include "KisStoragePlugin.h"
 #include "KisResourceLoaderRegistry.h"
-#include <KisResourceModelProvider.h>
 #include <KisResourceModel.h>
 #include <KoMD5Generator.h>
 
 #include <KritaVersionWrapper.h>
 
-#include <kis_debug.h>
 #include <KisGlobalResourcesInterface.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qdom.h>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qnamespace.h>
 
 
 KoResourceBundle::KoResourceBundle(QString const& fileName)

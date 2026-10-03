@@ -15,6 +15,7 @@
 #include "kactioncollection.h"
 #include "config-xmlgui.h"
 #include "kactioncategory.h"
+#include "kstandardaction.h"
 #include "kxmlguiclient.h"
 #include "kxmlguifactory.h"
 #include "kis_action_registry.h"
@@ -33,6 +34,13 @@
 #include <QTextStream>
 #include <QWidget>
 
+#include <qalgorithms.h>
+#include <QtGlobal>
+#include <qcoreapplication.h>
+#include <qkeysequence.h>
+#include <qlogging.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 #include <stdio.h>
 
 #if defined(KCONFIG_BEFORE_5_24)

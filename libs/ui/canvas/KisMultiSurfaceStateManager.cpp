@@ -5,6 +5,10 @@
  */
 
 #include "canvas/KisMultiSurfaceStateManager.h"
+#include "KisDisplayConfig.h"
+#include "KoColorConversionTransformation.h"
+#include "kis_assert.h"
+#include "kis_types.h"
 
 #include <application/ui/workspace/KisView.h>
 

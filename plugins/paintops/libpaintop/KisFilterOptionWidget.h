@@ -6,7 +6,15 @@
 #ifndef KISFILTEROPTIONWIDGET_H
 #define KISFILTEROPTIONWIDGET_H
 
+#include <QScopedPointer>
+#include <QString>
+#include <QtGlobal>
+
 #include <kis_paintop_option.h>
+#include <kis_types.h>
+#include <kritapaintop_export.h>
+
+#include <KoID.h>
 #include <KisFilterOptionData.h>
 #include <lager/cursor.hpp>
 

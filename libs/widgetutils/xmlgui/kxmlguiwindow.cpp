@@ -17,6 +17,11 @@
 
 #include "kmainwindow_p.h"
 #include "kactioncollection.h"
+#include <qalgorithms.h>
+#include <qhashfunctions.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
 #ifdef HAVE_DBUS
 #include "kmainwindowiface_p.h"
 #endif

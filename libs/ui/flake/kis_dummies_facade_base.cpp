@@ -8,9 +8,19 @@
 #include <QMutexLocker>
 #include "kis_dummies_facade_base.h"
 
+#include "KisNodeAdditionFlags.h"
+#include "kis_assert.h"
 #include "kis_image.h"
 #include "kis_node_dummies_graph.h"
+#include "kis_types.h"
 #include <KisSynchronizedConnection.h>
+#include <iterator>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
+#include <utility>
 
 struct KisDummiesFacadeBase::Private
 {

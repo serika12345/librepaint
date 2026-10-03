@@ -5,6 +5,7 @@
  */
 
 #include "KoFakeProgressProxy.h"
+#include "KoProgressProxy.h"
 
 #include <QtGlobal>
 #include <QGlobalStatic>

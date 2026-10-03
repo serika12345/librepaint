@@ -4,11 +4,13 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_types.h"
 #include "nodes/kis_node_manager.h"
 
 #include <kis_layer.h>
 #include <kis_node.h>
 #include <kis_selection_mask.h>
+#include <qobject.h>
 
 bool KisNodeManager::NodeStateAccess::isLayer(KisNodeSP node)
 {

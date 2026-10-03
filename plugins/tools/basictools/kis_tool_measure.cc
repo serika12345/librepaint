@@ -7,6 +7,7 @@
 
 #include "kis_tool_measure.h"
 
+#include <cmath>
 #include <math.h>
 
 #include <QPainter>
@@ -16,20 +17,29 @@
 #include <QPainterPath>
 #include <kcombobox.h>
 
-#include <kis_debug.h>
 #include <klocalizedstring.h>
 
 #include "kis_algebra_2d.h"
+#include "kis_global.h"
 #include "kis_image.h"
 #include "kis_cursor.h"
 #include "KoPointerEvent.h"
 #include "KoCanvasBase.h"
 #include <KoViewConverter.h>
+#include "kis_tool.h"
 #include "krita_utils.h"
 #include "kis_floating_message.h"
 #include "kis_canvas2.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include <KisOptimizedBrushOutline.h>
+#include <QtGlobal>
+#include <qgridlayout.h>
+#include <qlayoutitem.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
 
 #define INNER_RADIUS 50
 

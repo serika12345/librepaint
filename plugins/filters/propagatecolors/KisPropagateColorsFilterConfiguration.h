@@ -10,6 +10,7 @@
 #define KIS_PROPAGATE_COLORS_FILTER_CONFIGURATION_H
 
 #include <QString>
+#include <klocalizedstring.h>
 
 #include <kis_filter_configuration.h>
 #include <KoColorSpaceRegistry.h>

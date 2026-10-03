@@ -6,10 +6,10 @@
 #ifndef KISFILTEROPTIONDATA_H
 #define KISFILTEROPTIONDATA_H
 
-#include <QtGlobal>
 #include <boost/operators.hpp>
 #include <kritapaintop_export.h>
-#include <kis_filter_registry.h>
+
+#include <QString>
 
 class KisPropertiesConfiguration;
 

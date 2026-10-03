@@ -104,10 +104,12 @@ void SPenSettings::slotLoadSettings()
 
 void SPenSettings::slotTriggerPopupPalette()
 {
-    if (KisPart::instance()->currentInputManager()->canvas()) {
+    KoCanvasBase *canvas = KisPart::instance()->currentInputManager()->canvas();
+    KisCanvas2 *kritaCanvas = qobject_cast<KisCanvas2 *>(canvas);
+    if (kritaCanvas) {
         // determine the current location of cursor on the screen, for popup palette placement
-        QPoint cursorPosition = KisPart::instance()->currentInputManager()->canvas()->canvasWidget()->mapFromGlobal(QCursor::pos());
-        KisPopupPalette *popupPalette = KisPart::instance()->currentInputManager()->canvas()->popupPalette();
+        QPoint cursorPosition = canvas->canvasWidget()->mapFromGlobal(QCursor::pos());
+        KisPopupPalette *popupPalette = kritaCanvas->popupPalette();
         if (popupPalette) {
             if (popupPalette->isVisible()) {
                 popupPalette->dismiss();

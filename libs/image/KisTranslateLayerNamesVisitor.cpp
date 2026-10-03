@@ -20,6 +20,7 @@
 #include "generator/kis_generator_layer.h"
 
 #include <klocalizedstring.h>
+#include <qmap.h>
 
 KisTranslateLayerNamesVisitor::KisTranslateLayerNamesVisitor(QMap<QString, QString> dictionary)
     : m_dictionary(dictionary)

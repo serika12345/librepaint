@@ -15,10 +15,22 @@
 #include <QScrollBar>
 #include <QCompleter>
 #include <klocalizedstring.h>
-#include <kis_debug.h>
 #include <QPainter>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
+#include <qabstractitemdelegate.h>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qfont.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <qstyleditemdelegate.h>
+#include <qstyleoption.h>
 
 PinnedFontsSeparator::PinnedFontsSeparator(QAbstractItemDelegate *_default, QWidget *parent)
     : QStyledItemDelegate(parent)

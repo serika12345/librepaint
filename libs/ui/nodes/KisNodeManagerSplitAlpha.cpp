@@ -4,9 +4,11 @@
  */
 
 #include "kis_node_manager.h"
+#include "kis_types.h"
 
 #include <kis_assert.h>
 #include <klocalizedstring.h>
+#include <qobject.h>
 
 void KisNodeManager::slotSplitAlphaIntoMask()
 {

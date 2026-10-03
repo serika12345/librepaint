@@ -7,9 +7,22 @@
 
 #include "KisAbrStorage.h"
 #include "KisResourceStorage.h"
+#include "KisResourceTypes.h"
+#include "KisStoragePlugin.h"
+#include "KisTag.h"
+#include "KoResource.h"
+#include "kis_abr_brush.h"
+#include "kis_abr_brush_collection.h"
+#include "kis_assert.h"
 
 #include <QFileInfo>
 #include <KisStaticInitializer.h>
+#include <qcontainerfwd.h>
+#include <qdatetime.h>
+#include <QtGlobal>
+#include <qimage.h>
+#include <qmap.h>
+#include <qsharedpointer.h>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     KisStoragePluginRegistry::instance()->addStoragePluginFactory(KisResourceStorage::StorageType::AdobeBrushLibrary, new KisStoragePluginFactory<KisAbrStorage>());

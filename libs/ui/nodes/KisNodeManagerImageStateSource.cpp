@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "kis_types.h"
 #include "nodes/kis_node_manager.h"
 
 #include "nodes/KisNodeActivationActionCreatorVisitor.h"
@@ -11,9 +12,9 @@
 #include <kis_image.h>
 #include <kis_layer.h>
 #include <kis_mask.h>
-#include <kis_selection.h>
 #include <kis_selection_mask.h>
 #include <krita_utils.h>
+#include <qobject.h>
 
 KisNodeSP KisNodeManager::ImageStateAccess::nearestNodeAfterRemoval(KisNodeSP node)
 {

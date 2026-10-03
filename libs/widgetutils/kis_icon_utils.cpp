@@ -17,7 +17,12 @@
 #include <QPair>
 #include <QDebug>
 
-#include <KoIcon.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qmap.h>
+#include <qobject.h>
+#include <qset.h>
 #include "kis_assert.h"
 
 namespace KisIconUtils

@@ -10,6 +10,8 @@
 #include "kis_icon_utils.h"
 #include <QHBoxLayout>
 #include <QLabel>
+#include <qnamespace.h>
+#include <qwidget.h>
 
 
 KisWarningWidget::KisWarningWidget(QWidget *parent)

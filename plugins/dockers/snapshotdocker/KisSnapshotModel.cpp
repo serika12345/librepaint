@@ -5,6 +5,8 @@
  */
 
 #include "KisSnapshotModel.h"
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 
 #include <QMap>
 #include <QList>
@@ -18,6 +20,11 @@
 #include <nodes/kis_node_manager.h>
 #include <kis_name_server.h>
 #include <kis_image_signal_router.h>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qsharedpointer.h>
 
 struct KisSnapshotModel::Private
 {

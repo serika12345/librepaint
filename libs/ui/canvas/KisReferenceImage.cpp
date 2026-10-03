@@ -5,9 +5,16 @@
  */
 
 #include "canvas/KisReferenceImage.h"
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
 #include "KoColor.h"
+#include "KoColorModelStandardIds.h"
 #include "KoColorProfile.h"
 #include "KoColorSpaceRegistry.h"
+#include "KoShape.h"
+#include "kis_assert.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 #include <QImage>
 #include <QMessageBox>
 #include <QPainter>
@@ -33,6 +40,10 @@
 
 #include <document/KisDocument.h>
 #include <application/ui/orchestration/KisPart.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qsize.h>
 
 struct KisReferenceImage::Private : public QSharedData
 {

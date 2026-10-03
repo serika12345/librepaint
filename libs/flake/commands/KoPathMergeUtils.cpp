@@ -7,6 +7,7 @@
 #include "KoPathMergeUtils.h"
 
 #include "KoPathPoint.h"
+#include <boost/optional/optional.hpp>
 
 boost::optional<QPointF> KritaUtils::fetchControlPoint(KoPathPoint *pt, bool takeFirst)
 {

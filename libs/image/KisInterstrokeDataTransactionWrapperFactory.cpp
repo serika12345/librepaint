@@ -10,10 +10,12 @@
 
 #include "KisInterstrokeData.h"
 #include "KisInterstrokeDataFactory.h"
+#include "kis_types.h"
 
 #include <kis_paint_device.h>
 #include <kis_pointer_utils.h>
 #include <kis_command_utils.h>
+#include <qscopedpointer.h>
 
 
 namespace {

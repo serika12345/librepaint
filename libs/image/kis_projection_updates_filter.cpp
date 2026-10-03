@@ -5,10 +5,12 @@
  */
 
 #include "kis_projection_updates_filter.h"
+#include "KisProjectionUpdateFlags.h"
 
 
 #include <QtGlobal>
 #include <QRect>
+#include <qcontainerfwd.h>
 
 KisProjectionUpdatesFilter::~KisProjectionUpdatesFilter()
 {

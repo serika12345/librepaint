@@ -6,6 +6,9 @@
 #ifndef KISFILTEROPTIONMODEL_H
 #define KISFILTEROPTIONMODEL_H
 
+#include <tuple>
+
+#include <QString>
 #include <lager/cursor.hpp>
 #include <lager/extra/qt.hpp>
 

@@ -8,6 +8,7 @@
 
 #include "kis_categorized_item_delegate.h"
 #include "kis_categorized_list_model.h"
+#include "kis_icon_utils.h"
 
 #include <QPainter>
 #include <QStyle>
@@ -19,6 +20,16 @@
 #include <KoIcon.h>
 
 #include <kis_icon.h>
+#include <qabstractitemmodel.h>
+#include <qimage.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qpalette.h>
+#include <qpixmap.h>
+#include <qpolygon.h>
+#include <qstyleditemdelegate.h>
+#include <qtextoption.h>
 
 KisCategorizedItemDelegate::KisCategorizedItemDelegate(QObject *parent)
     : QStyledItemDelegate(parent),

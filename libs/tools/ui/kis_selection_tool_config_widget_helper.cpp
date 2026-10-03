@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisSelectionTags.h"
 #include <kis_selection_tool_config_widget_helper.h>
 
 #include <kis_selection_options.h>
@@ -11,6 +12,11 @@
 
 #include <KConfigGroup>
 #include <KSharedConfig>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
 
 KisSelectionToolConfigWidgetHelper::KisSelectionToolConfigWidgetHelper(
     const QString &windowTitle)

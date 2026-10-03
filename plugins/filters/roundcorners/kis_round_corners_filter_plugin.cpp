@@ -9,6 +9,8 @@
 #include "kis_round_corners_filter_plugin.h"
 
 #include <kpluginfactory.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 #include "kis_round_corners_filter.h"
 #include "filter/kis_filter_registry.h"

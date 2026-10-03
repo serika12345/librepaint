@@ -7,6 +7,7 @@
  */
 
 #include <kis_cursor.h>
+#include <klocalizedstring.h>
 #include <QMouseEvent>
 #include <QTabletEvent>
 #include <KoPathShape.h>
@@ -15,8 +16,24 @@
 #include <canvas/kis_canvas_resource_provider.h>
 #include <kis_image.h>
 #include <KoIcon.h>
+#include <qcoreevent.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpainter.h>
+#include <qpainterpath.h>
+#include <QtGlobal>
+#include <qtransform.h>
 
 #include "KisPathEnclosingProducer.h"
+#include "KoCreatePathTool.h"
+#include "KoPointerEvent.h"
+#include "KoToolBase.h"
+#include "kis_painter.h"
+#include "kis_pixel_selection.h"
+#include "kis_types.h"
+#include "subtools/KisDynamicDelegatedTool.h"
+#include "ui_wdggeometryoptions.h"
 
 KisToolPathLocalTool::KisToolPathLocalTool(KoCanvasBase * canvas, KisPathEnclosingProducer* parentTool)
     : KoCreatePathTool(canvas)

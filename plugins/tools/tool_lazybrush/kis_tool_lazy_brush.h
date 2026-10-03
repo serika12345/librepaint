@@ -8,6 +8,7 @@
 #define KIS_TOOL_LAZY_BRUSH_H_
 
 #include <QScopedPointer>
+#include <klocalizedstring.h>
 #include "kis_tool_freehand.h"
 
 #include "KisToolPaintFactoryBase.h"

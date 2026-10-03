@@ -11,7 +11,11 @@
 #include <QDebug>
 #include <QStack>
 #include <QTextStream>
+#include <cstring>
 #include <float.h>
+#include <QtGlobal>
+#include <qgenericatomic.h>
+#include <qlogging.h>
 
 namespace
 {

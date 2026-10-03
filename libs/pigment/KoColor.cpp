@@ -17,15 +17,27 @@
 
 #include "KoColorModelStandardIds.h"
 #include "KoColorProfile.h"
+#include "KoColorProfileConstants.h"
 #include "KoColorSpace.h"
 #include "KoColorSpaceRegistry.h"
 #include "KoChannelInfo.h"
+#include "KoColorSpaceTrait.h"
 #include "kis_assert.h"
 #include "kis_dom_utils.h"
 
 #include <QGlobalStatic>
 
 #include <KoConfig.h>
+#include <cstddef>
+#include <cstring>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qhash.h>
+#include <qlist.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
 #ifdef HAVE_OPENEXR
 #include <half.h>
 #endif

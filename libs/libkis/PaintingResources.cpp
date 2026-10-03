@@ -5,13 +5,18 @@
  */
 #include "PaintingResources.h"
 
+#include "KisQStringListFwd.h"
 #include "application/ui/workspace/KisView.h"
 #include "application/ui/orchestration/KisPart.h"
 #include "canvas/kis_canvas_resource_provider.h"
 #include "application/ui/workspace/KisViewManager.h"
 #include "application/ui/workspace/KisMainWindow.h"
+#include "kis_debug.h"
+#include "kis_figure_painting_stroke.h"
 #include "kis_image.h"
+#include "kundo2magicstring.h"
 #include <KisFigurePaintingOptions.h>
+#include <qhashfunctions.h>
 
 
 const QStringList StrokeStyle = {

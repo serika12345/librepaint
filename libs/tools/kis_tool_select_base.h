@@ -32,7 +32,11 @@
  * subclass through configuredSelectionAction().
  */
 template <class BaseClass>
-class KRITATOOLS_EXPORT KisToolSelectBase : public BaseClass
+class
+#ifndef _WIN32
+    KRITATOOLS_EXPORT
+#endif
+    KisToolSelectBase : public BaseClass
 {
 public:
     explicit KisToolSelectBase(KoCanvasBase *canvas)

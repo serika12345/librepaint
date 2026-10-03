@@ -13,6 +13,7 @@
 #include "KoCanvasResourceProvider.h"
 
 #include <kundo2command.h>
+#include <QtGlobal>
 
 KoInteractionStrategy::KoInteractionStrategy(KoToolBase *parent)
     : d_ptr(new KoInteractionStrategyPrivate(parent))

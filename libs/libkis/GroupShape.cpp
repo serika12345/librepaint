@@ -4,7 +4,12 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "GroupShape.h"
+#include "KoShape.h"
 #include <KoShapeGroup.h>
+#include <algorithm>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <qobject.h>
 
 GroupShape::GroupShape(QObject *parent) : Shape(new KoShapeGroup(), parent)
 {

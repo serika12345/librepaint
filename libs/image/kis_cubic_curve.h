@@ -14,8 +14,6 @@
 #include<QPointF>
 #include<QVariant>
 
-#include "kis_cubic_curve_spline.h"
-
 #include <kritaimage_export.h>
 
 const QString DEFAULT_CURVE_STRING = "0,0;1,1;";

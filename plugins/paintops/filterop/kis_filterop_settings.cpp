@@ -9,6 +9,7 @@
  */
 
 #include "kis_filterop_settings.h"
+#include "kis_brush_based_paintop_settings.h"
 
 #include <QDomDocument>
 
@@ -16,8 +17,6 @@
 #include <filter/kis_filter.h>
 #include <filter/kis_filter_registry.h>
 #include <filter/kis_filter_configuration.h>
-#include <kis_node.h>
-#include <kis_image.h>
 #include <kis_types.h>
 #include <kis_paint_device.h>
 

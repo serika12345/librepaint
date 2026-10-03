@@ -5,6 +5,7 @@
  */
 
 #include "KisSurfaceColorManagerInterface.h"
+#include <qobject.h>
 
 KisSurfaceColorManagerInterface::KisSurfaceColorManagerInterface(QWindow *window, QObject *parent)
     : QObject(parent)

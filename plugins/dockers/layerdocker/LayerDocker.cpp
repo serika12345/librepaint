@@ -9,8 +9,9 @@
 
 #include <kpluginfactory.h>
 
-#include <KoDockFactoryBase.h>
 #include <KoDockRegistry.h>
+#include <qcontainerfwd.h>
+#include <qobject.h>
 
 #include "LayerBox.h"
 

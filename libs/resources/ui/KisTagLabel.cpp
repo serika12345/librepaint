@@ -11,6 +11,9 @@
 #include <QApplication>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <qobject.h>
+#include <qsizepolicy.h>
+#include <qwidget.h>
 
 KisTagLabel::KisTagLabel(QString string, QWidget *parent) :
     QWidget(parent)

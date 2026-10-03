@@ -7,11 +7,14 @@
  */
 
 #include "dlg_shearimage.h"
+#include "KoDialog.h"
 
 #include <math.h>
 
 #include <klocalizedstring.h>
-#include <kis_debug.h>
+#include <QtGlobal>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 DlgShearImage::DlgShearImage(QWidget *  parent,
                              const char * name)

@@ -3,9 +3,13 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include "KisQStringListFwd.h"
+#include "kis_assert.h"
 #include "kis_node_manager.h"
+#include "kis_types.h"
 
 #include <QStringList>
+#include <qobject.h>
 
 void KisNodeManager::slotSomethingActivatedNodeImpl(KisNodeSP node)
 {

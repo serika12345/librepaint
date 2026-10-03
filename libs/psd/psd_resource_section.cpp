@@ -8,6 +8,7 @@
 #include <QBuffer>
 #include <QIODevice>
 #include <kis_debug.h>
+#include <QtGlobal>
 
 #include "psd_resource_block.h"
 #include "psd_utils.h"

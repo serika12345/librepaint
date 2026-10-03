@@ -6,7 +6,9 @@
 #include "KisResourceItemChooser.h"
 
 #include "KisResourceItemChooser_p.h"
+#include "KisResourceUiDescriptor.h"
 
+#include <qwidget.h>
 #include <utility>
 
 KisResourceItemChooser::KisResourceItemChooser(

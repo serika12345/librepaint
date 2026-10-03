@@ -18,6 +18,12 @@
 #include <QDoubleSpinBox>
 #include <QGroupBox>
 #include <QRadioButton>
+#include <QtGlobal>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qobject.h>
+#include <qvariant.h>
+#include <qwidget.h>
 
 #include "kis_int_parse_spin_box.h"
 #include "kis_double_parse_spin_box.h"

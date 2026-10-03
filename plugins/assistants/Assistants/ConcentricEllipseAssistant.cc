@@ -7,6 +7,9 @@
  */
 
 #include "ConcentricEllipseAssistant.h"
+#include "KoCanvasBase.h"
+#include "kis_painting_assistant.h"
+#include "kis_types.h"
 
 #include <QLineF>
 
@@ -20,6 +23,11 @@
 #include <kis_algebra_2d.h>
 
 #include <math.h>
+#include <QtGlobal>
+#include <qmap.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <tuple>
 
 ConcentricEllipseAssistant::ConcentricEllipseAssistant()
     : KisPaintingAssistant("concentric ellipse", i18n("Concentric Ellipse assistant"))

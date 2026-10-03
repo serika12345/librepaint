@@ -8,9 +8,11 @@
 
 #include <QReadLocker>
 #include <QWriteLocker>
+#include <qbitarray.h>
 
 #include "kis_global.h"
 #include "kis_lod_transform.h"
+#include "kis_update_info.h"
 
 KisOpenGLUpdateInfoBuilder::KisOpenGLUpdateInfoBuilder()
     : m_d(new Private)

@@ -11,6 +11,16 @@
 #include <kis_histogram.h>
 #include <KoColorSpace.h>
 #include <KisHistogramPainter.h>
+#include <qalgorithms.h>
+#include <QtGlobal>
+#include <qbrush.h>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
+#include <qimage.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpainter.h>
+#include <qwidget.h>
 
 #include "KisHistogramView.h"
 

@@ -21,11 +21,26 @@
 #include <QColorDialog>
 
 #include <KisGradientWidgetsUtils.h>
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
+#include "KoStopGradient.h"
+#include "kis_assert.h"
 #include "kis_global.h"
 #include <KoColor.h>
 #include <KisDlgInternalColorSelector.h>
+#include <cmath>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
+#include <qbrush.h>
+#include <qdialog.h>
+#include <qlist.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <qwidget.h>
 
 #include "KisStopGradientSlider.h"
 

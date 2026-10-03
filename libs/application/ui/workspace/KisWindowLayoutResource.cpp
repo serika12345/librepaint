@@ -4,7 +4,12 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "application/ui/workspace/KisWindowLayoutResource.h"
+#include <klocalizedstring.h>
+#include "KisPortingUtils.h"
+#include "KisQStringListFwd.h"
+#include "KoResource.h"
 #include "application/ui/workspace/KisWindowLayoutManager.h"
+#include "kis_assert.h"
 
 #include <QVector>
 #include <QList>
@@ -16,11 +21,21 @@
 #include <QWindow>
 #include <QScreen>
 
+#include <algorithm>
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
 #include <kis_dom_utils.h>
 #include <application/ui/workspace/KisMainWindow.h>
 #include <application/ui/workspace/KisView.h>
+#include <QtGlobal>
+#include <qguiapplication.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qpointer.h>
+#include <qstringview.h>
+#include <quuid.h>
+#include <utility>
 
 static const int WINDOW_LAYOUT_VERSION = 1;
 

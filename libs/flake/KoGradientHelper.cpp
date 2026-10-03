@@ -8,6 +8,8 @@
 
 #include <QGradient>
 #include <math.h>
+#include <qcolor.h>
+#include <QtGlobal>
 
 QGradient* KoGradientHelper::defaultGradient(QGradient::Type type, QGradient::Spread spread, const QGradientStops &stops)
 {

@@ -5,8 +5,10 @@
  */
 
 #include "KoSnapData.h"
+#include "KoPathSegment.h"
 
 #include <QPointF>
+#include <qlist.h>
 
 KoSnapData::KoSnapData()
 {

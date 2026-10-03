@@ -16,16 +16,27 @@
 #include <QInputDialog>
 #include <QMessageBox>
 
+#include <algorithm>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
 #include <klocalizedstring.h>
 #include <kstandardguiitem.h>
 
 #include <KisMimeDatabase.h>
-#include <KoJsonTrader.h>
 #include "WidgetUtilsDebug.h"
 
 #include <kis_assert.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qfileinfo.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
+#include <qstringview.h>
+#include <qwidget.h>
 
 #ifdef Q_OS_MACOS
 #include "KisMacosSecurityBookmarkManager.h"

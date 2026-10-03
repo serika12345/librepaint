@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "KoDeferredShapeFactoryBase.h"
+#include <qobject.h>
 
 KoDeferredShapeFactoryBase::KoDeferredShapeFactoryBase(QObject *parent)
     : QObject(parent)

@@ -5,11 +5,14 @@
 */
 
 #include "KoDirectoryStore.h"
+#include "KoStore.h"
 #include "KoStore_p.h"
 
 #include <QFile>
 #include <QDir>
 #include <StoreDebug.h>
+#include <QtGlobal>
+#include <qobject.h>
 
 // HMMM... I used QFile and QDir.... but maybe this should be made network transparent?
 

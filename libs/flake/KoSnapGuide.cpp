@@ -19,6 +19,11 @@
 #include <QPainterPath>
 
 #include <math.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <tuple>
 #include "kis_pointer_utils.h"
 
 class Q_DECL_HIDDEN KoSnapGuide::Private

@@ -15,6 +15,8 @@
 #include <QDebug>
 #include <QDir>
 #include <QFileInfo>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
 
 bool KisBackup::backupFile(const QString &qFilename, const QString &backupDir)
 {

@@ -4,6 +4,14 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "GlyphPaletteDialog.h"
+#include "KisQQuickWidget.h"
+#include "KisQStringListFwd.h"
+#include "KoDialog.h"
+#include "KoFontLibraryResourceUtils.h"
+#include "KoSvgTextProperties.h"
+#include "KoSvgTextShape.h"
+#include "glyphpalette/GlyphPaletteAltPopup.h"
+#include "glyphpalette/GlyphPaletteProxyModel.h"
 
 #include <QQmlEngine>
 #include <QQmlContext>
@@ -12,10 +20,21 @@
 
 #include <KLocalizedString>
 
-#include <KoResourcePaths.h>
 #include <KoFontGlyphModel.h>
 #include <KoFontRegistry.h>
 #include <KoSvgText.h>
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <QDebug>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
+#include <qvariant.h>
+#include <qwidget.h>
+#include <vector>
 
 GlyphPaletteDialog::GlyphPaletteDialog(QWidget *parent)
     : KoDialog(parent)

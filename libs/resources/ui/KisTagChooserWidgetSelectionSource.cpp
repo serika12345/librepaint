@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "KisTag.h"
 #include "KisTagChooserWidgetSelectionSource_p.h"
 
 #include <kconfiggroup.h>

@@ -17,6 +17,10 @@
 #include <klocalizedstring.h>
 
 #include <KisMessageBoxWrapper.h>
+#include <QtGlobal>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
 
 KisRemoteFileFetcher::KisRemoteFileFetcher(QObject *parent)
     : QObject(parent)

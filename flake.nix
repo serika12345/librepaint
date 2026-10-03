@@ -15,7 +15,22 @@
       system = "aarch64-darwin";
       pkgs = import nixpkgs { inherit system; };
       linuxSystem = "x86_64-linux";
-      linuxPkgs = import nixpkgs { system = linuxSystem; };
+      linuxPkgs = import nixpkgs {
+        system = linuxSystem;
+        overlays = [
+          (_final: previous: {
+            opencolorio = previous.opencolorio.overrideAttrs (old: {
+              # OpenColorIO prefixes an absolute CMAKE_INSTALL_LIBDIR with
+              # $ORIGIN/../. Supply the Nix runtime directory at construction.
+              # Remove this Issue #80 workaround when upstream supports an
+              # absolute install libdir in its default RPATH calculation.
+              cmakeFlags = (old.cmakeFlags or [ ]) ++ [
+                "-DCMAKE_INSTALL_RPATH=${placeholder "out"}/lib"
+              ];
+            });
+          })
+        ];
+      };
       # The current nixpkgs KDE/Qt MinGW graph is not marked as supported.
       # Keep the platform allowance local to the Windows cross set; all native
       # package outputs retain their normal platform checks.
@@ -325,6 +340,16 @@
             # with the complete JPEG XL codec.
             libjxl = previous.libjxl.overrideAttrs (old:
               previous.lib.optionalAttrs previous.stdenv.hostPlatform.isMinGW {
+                # MinGW's wide-SIMD decoder paths fail on Windows, including
+                # an AVX-512 aligned stack store. Highway orders AVX targets
+                # below AVX2's bit, so this mask keeps every consumer on SSE.
+                # Remove this Issue #79 workaround when the supplied codec's
+                # AVX2 and AVX-512 paths pass Windows decoding and round trips,
+                # including the regression tracked by Issue #68.
+                NIX_CFLAGS_COMPILE = previous.lib.concatStringsSep " " [
+                  (old.NIX_CFLAGS_COMPILE or "")
+                  "-DHWY_DISABLED_TARGETS=(HWY_AVX2|(HWY_AVX2-1))"
+                ];
                 postPatch = (old.postPatch or "") + ''
                   substituteInPlace plugins/gdk-pixbuf/CMakeLists.txt \
                     --replace-fail \
@@ -846,7 +871,7 @@
         ];
       };
       mkLibrepaintBuildSource =
-        packageSet:
+        packageSet: excludeAndroidPackage:
         packageSet.lib.cleanSourceWith {
           name = "librepaint-source";
           src = ./.;
@@ -863,7 +888,6 @@
               ".github"
               ".gitlab"
               "AGENTS.md"
-              "TODO.md"
               "build-ios"
               "docs"
               "flake.lock"
@@ -872,6 +896,28 @@
               "nix"
               "result"
             ])
+            && !(builtins.elem relativePath [
+              "packaging/macos/fonts.conf"
+              "packaging/macos/macos-apptodmg.py"
+              "packaging/macos/macos-bundle-launcher.c"
+              "packaging/macos/macos-deploy.py"
+              "packaging/macos/qt.conf"
+              "scripts/platform/audit-linux-appimage.py"
+              "scripts/platform/audit-macos-bundle.py"
+              "scripts/platform/audit-windows-package.py"
+              "scripts/platform/check-macos-release-dmg"
+              "scripts/platform/check-release-assets"
+              "scripts/platform/sign-android-draft-release"
+              "scripts/platform/verify-android-release-apk.py"
+              "scripts/tests/test_android_release_apk.py"
+              "scripts/tests/test_linux_release_appimage.py"
+              "scripts/tests/test_macos_release_bundle.py"
+              "scripts/tests/test_windows_release_package.py"
+            ])
+            && !(excludeAndroidPackage && (
+              relativePath == "packaging/android/apk"
+              || packageSet.lib.hasPrefix "packaging/android/apk/" relativePath
+            ))
             && !(packageSet.lib.hasPrefix "README" topLevel);
         };
       # Policy files use an independent source so policy-only edits preserve
@@ -898,16 +944,14 @@
             ])
             && !(packageSet.lib.hasPrefix "result-" topLevel);
         };
-      librepaintBuildSource = mkLibrepaintBuildSource pkgs;
-      linuxBuildSource = mkLibrepaintBuildSource linuxPkgs;
+      librepaintBuildSource = mkLibrepaintBuildSource pkgs false;
+      linuxBuildSource = mkLibrepaintBuildSource linuxPkgs false;
+      linuxAndroidCompileSource = mkLibrepaintBuildSource linuxPkgs true;
       librepaintPolicySource = mkLibrepaintPolicySource pkgs;
       linuxPolicySource = mkLibrepaintPolicySource linuxPkgs;
       linuxAppImageAppRun = import ./nix/linux/appimage-apprun.nix {
         nixAppImage = inputs.nix-appimage;
         pkgs = linuxPkgs;
-      };
-      mkLinuxAppImage = inputs.nix-appimage.lib.${linuxSystem}.mkAppImage.override {
-        mkappimage-apprun = linuxAppImageAppRun;
       };
       iosPackages = import ./nix/ios {
         inherit pkgs;
@@ -925,41 +969,39 @@
       linuxPackages = import ./nix/linux {
         pkgs = linuxPkgs;
         source = linuxBuildSource;
-        inherit mkLinuxAppImage;
+        appImageRuntime = inputs.nix-appimage.packages.${linuxSystem}.appimage-runtimes.appimage-type2-runtime;
+        appImageAppRun = linuxAppImageAppRun;
+        appImageExtraFiles = "${inputs.nix-appimage}/extra-files.sh";
+        auditLinuxAppImage = ./scripts/platform/audit-linux-appimage.py;
       };
       linuxAndroidPackages = import ./nix/android {
         pkgs = linuxPkgs;
-        source = linuxBuildSource;
+        source = linuxAndroidCompileSource;
+      };
+      linuxAndroidX86_64Packages = import ./nix/android {
+        pkgs = linuxPkgs;
+        source = linuxAndroidCompileSource;
+        androidAbi = "x86_64";
+        packageName = "librepaint-android-x86_64";
       };
       windowsPackages = import ./nix/windows {
         pkgs = windowsPkgs;
         source = linuxBuildSource;
+        auditWindowsPackage = ./scripts/platform/audit-windows-package.py;
       };
       policyTools =
         packageSet: with packageSet; [
           bash
-          cacert
-          coreutils
-          d2
-          diffutils
-          findutils
-          git
-          librsvg
-          lychee
-          markdownlint-cli2
           python3
-          ripgrep
-          shellcheck
         ];
       mkDocsShell =
         packageSet:
         packageSet.mkShellNoCC {
-          packages = policyTools packageSet;
+          packages = with packageSet; [ bash coreutils d2 ];
 
           shellHook = ''
             echo "LibrePaint documentation development shell"
-            echo "  validate: scripts/docs/check-architecture.sh"
-            echo "  render:   scripts/docs/render-architecture.sh"
+            echo "  render: scripts/docs/render-architecture.sh"
           '';
         };
       mkTestShell =
@@ -971,6 +1013,8 @@
             clang-tools
             cmake
             ninja
+            git
+            ripgrep
           ]);
 
           shellHook = ''
@@ -994,7 +1038,7 @@
       mkGovernanceCheck =
         packageSet: policySource:
         packageSet.runCommand "librepaint-governance" {
-          nativeBuildInputs = policyTools packageSet ++ [ packageSet.clang-tools ];
+          nativeBuildInputs = policyTools packageSet;
         } ''
           cp -R ${policySource} source
           chmod -R u+w source
@@ -1162,7 +1206,35 @@
         librepaint-linux-appimage = linuxPackages.librepaintAppImage;
         linux-dependencies = linuxPackages.linuxDependencies;
         librepaint-android = linuxAndroidPackages.librepaint;
+        librepaint-android-native = linuxAndroidPackages.nativeBuild;
+        librepaint-android-update-baseline = linuxAndroidPackages.librepaintUpdateBaseline;
+        android-application-dependencies = linuxAndroidPackages.androidApplicationDependencies;
         android-dependencies = linuxAndroidPackages.androidDependencies;
+        android-kf6 = linuxAndroidPackages.androidKf6;
+        android-source-dependencies = linuxAndroidPackages.androidSourceDependencies;
+        qtbase-android = linuxAndroidPackages.qtbase;
+        qt5compat-android = linuxAndroidPackages.qt5compat;
+        qtdeclarative-android = linuxAndroidPackages.qtdeclarative;
+        qtimageformats-android = linuxAndroidPackages.qtimageformats;
+        qtlanguageserver-android = linuxAndroidPackages.qtlanguageserver;
+        qtshadertools-android = linuxAndroidPackages.qtshadertools;
+        qtsvg-android = linuxAndroidPackages.qtsvg;
+        zlib-android = linuxAndroidPackages.zlib;
+        librepaint-android-x86_64 = linuxAndroidX86_64Packages.librepaint;
+        librepaint-android-x86_64-native = linuxAndroidX86_64Packages.nativeBuild;
+        librepaint-android-x86_64-update-baseline = linuxAndroidX86_64Packages.librepaintUpdateBaseline;
+        android-x86_64-application-dependencies = linuxAndroidX86_64Packages.androidApplicationDependencies;
+        android-x86_64-dependencies = linuxAndroidX86_64Packages.androidDependencies;
+        android-x86_64-kf6 = linuxAndroidX86_64Packages.androidKf6;
+        android-x86_64-source-dependencies = linuxAndroidX86_64Packages.androidSourceDependencies;
+        qtbase-android-x86_64 = linuxAndroidX86_64Packages.qtbase;
+        qt5compat-android-x86_64 = linuxAndroidX86_64Packages.qt5compat;
+        qtdeclarative-android-x86_64 = linuxAndroidX86_64Packages.qtdeclarative;
+        qtimageformats-android-x86_64 = linuxAndroidX86_64Packages.qtimageformats;
+        qtlanguageserver-android-x86_64 = linuxAndroidX86_64Packages.qtlanguageserver;
+        qtshadertools-android-x86_64 = linuxAndroidX86_64Packages.qtshadertools;
+        qtsvg-android-x86_64 = linuxAndroidX86_64Packages.qtsvg;
+        zlib-android-x86_64 = linuxAndroidX86_64Packages.zlib;
         librepaint-windows = windowsPackages.librepaint;
         librepaint-windows-archive = windowsPackages.librepaintArchive;
         librepaint-windows-unwrapped = windowsPackages.librepaintUnwrapped;
@@ -1312,10 +1384,12 @@
       devShells.${linuxSystem} = {
         default = linuxPackages.devShell;
         docs = mkDocsShell linuxPkgs;
+        android-release = import ./nix/android/release-shell.nix { pkgs = linuxPkgs; };
         librepaint-linux = linuxPackages.devShell;
         librepaint-test = mkTestShell linuxPkgs linuxPackages.librepaintUnwrapped;
         test = mkTestShell linuxPkgs linuxPackages.librepaintUnwrapped;
         librepaint-android = linuxAndroidPackages.devShell;
+        librepaint-android-x86_64 = linuxAndroidX86_64Packages.devShell;
         librepaint-windows = windowsPackages.devShell;
       };
 

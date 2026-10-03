@@ -27,9 +27,7 @@ class QIODevice;
 class KRITAPSD_EXPORT PSDInterpretedResource
 {
 public:
-    virtual ~PSDInterpretedResource()
-    {
-    }
+    virtual ~PSDInterpretedResource();
 
     virtual bool interpretBlock(QByteArray /*data*/)
     {
@@ -72,10 +70,7 @@ class KRITAPSD_EXPORT PSDResourceBlock : public KisAnnotation
 public:
     PSDResourceBlock();
 
-    ~PSDResourceBlock() override
-    {
-        delete resource;
-    }
+    ~PSDResourceBlock() override;
 
     KisAnnotation *clone() const Q_DECL_OVERRIDE
     {

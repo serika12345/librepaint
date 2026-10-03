@@ -4,8 +4,11 @@
  */
 
 #include "kis_node_manager.h"
+#include <klocalizedstring.h>
+#include "kis_types.h"
 
 #include <kundo2magicstring.h>
+#include <qobject.h>
 
 bool KisNodeManager::createQuickGroupImpl(KisNodeOperationBatch *batch,
                                           const QString &overrideGroupName,

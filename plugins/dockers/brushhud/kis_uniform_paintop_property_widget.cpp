@@ -10,11 +10,19 @@
 #include <QCheckBox>
 #include <QComboBox>
 
+#include "kis_assert.h"
 #include "kis_slider_spin_box.h"
 #include <KisAngleSelector.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpalette.h>
+#include <qwidget.h>
 #include "kis_acyclic_signal_connector.h"
 #include "kis_slider_based_paintop_property.h"
 #include "kis_combo_based_paintop_property.h"
+#include "kis_uniform_paintop_property.h"
 
 /****************************************************************/
 /*      KisUniformPaintOpPropertyWidget                         */

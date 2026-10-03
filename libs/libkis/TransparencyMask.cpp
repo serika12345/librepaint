@@ -8,8 +8,11 @@
 #include <kis_image.h>
 #include "Selection.h"
 #include <kis_selection.h>
-#include <kis_group_layer.h>
+#include "kis_assert.h"
+#include <qobject.h>
 #include "kis_layer.h"
+#include "kis_types.h"
+#include <kis_group_layer.h>
 
 TransparencyMask::TransparencyMask(KisImageSP image, QString name, QObject *parent) :
     Node(image, new KisTransparencyMask(image, name), parent)

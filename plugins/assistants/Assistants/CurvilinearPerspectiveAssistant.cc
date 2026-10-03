@@ -8,6 +8,9 @@
  */
 
 #include "CurvilinearPerspectiveAssistant.h"
+#include "kis_global.h"
+#include "kis_painting_assistant.h"
+#include "kis_types.h"
 
 #include <klocalizedstring.h>
 
@@ -22,6 +25,11 @@
 #include <KoColorDisplayRendererInterface.h>
 
 #include <math.h>
+#include <qcolor.h>
+#include <qline.h>
+#include <qmap.h>
+#include <qpoint.h>
+#include <QtGlobal>
 
 CurvilinearPerspectiveAssistant::CurvilinearPerspectiveAssistant()
     : KisPaintingAssistant("curvilinear-perspective", i18n("Curvilinear Perspective assistant"))

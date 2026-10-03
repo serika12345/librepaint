@@ -10,7 +10,9 @@
 
 #include <KoParameterShape_p.h>
 #include "KarbonSimplifyPath.h"
-#include <KoCurveFit.h>
+#include "KoPathShape.h"
+#include "KoShape.h"
+#include "KoShapeBackground.h"
 #include <KoColorBackground.h>
 
 #include <QDebug>
@@ -19,6 +21,15 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <iterator>
+#include <math.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qshareddata.h>
+#include <qsharedpointer.h>
+#include <qsize.h>
 
 #undef M_PI
 const qreal M_PI = 3.1415927;

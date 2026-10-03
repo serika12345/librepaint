@@ -8,13 +8,19 @@
 
 #include "kis_group_layer.h"
 
-#include <KoIcon.h>
 #include <kis_icon.h>
 #include <KoCompositeOpRegistry.h>
 #include <KoColorSpace.h>
 #include <KoColor.h>
 
 
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
+#include "KoColorSpaceConstants.h"
+#include "KoCompositeOpIds.h"
+#include "kis_base_node.h"
+#include "kis_icon_utils.h"
+#include "kis_layer.h"
 #include "kis_node_visitor.h"
 #include "kis_processing_visitor.h"
 #include "kis_image.h"
@@ -23,8 +29,14 @@
 #include "kis_clone_layer.h"
 #include "kis_selection_mask.h"
 #include "kis_layer_properties_icons.h"
+#include "kis_shared_ptr.h"
+#include "kis_types.h"
 #include <kis_projection_leaf.h>
 #include <kis_abstract_projection_plane.h>
+#include <QtGlobal>
+#include <qicon.h>
+#include <qobject.h>
+#include <tuple>
 
 void kisSharedPtrAddReference(KisGroupLayer *pointer)
 {

@@ -5,6 +5,7 @@
  */
 
 #include "kis_operation_ui_factory.h"
+#include <QtGlobal>
 
 class Q_DECL_HIDDEN KisOperationUIFactory::Private {
 

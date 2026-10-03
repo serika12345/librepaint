@@ -14,6 +14,11 @@
 #include <QWindow>
 
 #include <cmath>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qpoint.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 WGColorPreviewToolTip::WGColorPreviewToolTip(QWidget *parent)
     : QWidget(parent)

@@ -7,8 +7,12 @@
 #include "KisFilteredRollingMean.h"
 
 #include <algorithm>
+#include <functional>
 #include <numeric>
 #include <QtMath>
+#include <QtGlobal>
+#include <qnumeric.h>
+#include <vector>
 #include "kis_assert.h"
 
 

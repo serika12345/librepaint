@@ -6,8 +6,13 @@
     SPDX-License-Identifier: LGPL-2.1-or-later
  */
 
+#include <cstring>
+#include <qbrush.h>
+#include <qrgb.h>
+#include <QtGlobal>
 #include <resources/KoAbstractGradient.h>
 #include "KoColorSpaceRegistry.h"
+#include "KoResource.h"
 
 #include <KoColor.h>
 

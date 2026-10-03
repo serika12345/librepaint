@@ -6,9 +6,12 @@
 
 #include "kis_memory_leak_tracker.h"
 
+#include <QDebug>
+
 #include <QMutex>
 #include <QMutexLocker>
 #include <QGlobalStatic>
+#include <QtGlobal>
 
 
 // Those defines are used to ignore classes that are often leaked due to a KisPaintDevice leak

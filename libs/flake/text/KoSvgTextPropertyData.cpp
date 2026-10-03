@@ -7,6 +7,8 @@
 #include <QDebug>
 
 #include <KisStaticInitializer.h>
+#include <qtextoption.h>
+#include <QtGlobal>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KoSvgTextPropertyData>("KoSvgTextPropertyData");

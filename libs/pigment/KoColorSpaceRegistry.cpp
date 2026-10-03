@@ -14,6 +14,7 @@
 #include <QGlobalStatic>
 #include <QColorSpace>
 
+#include "KoColorProfileConstants.h"
 #include "KoPluginLoader.h"
 #include "KoGenericRegistry.h"
 #include "DebugPigment.h"
@@ -23,6 +24,7 @@
 #include "KoColorConversionSystem.h"
 #include "KoColorProfileQuery.h"
 
+#include "colorprofiles/KoDummyColorProfile.h"
 #include "colorspaces/KoAlphaColorSpace.h"
 #include "colorspaces/KoLabColorSpace.h"
 #include "colorspaces/KoRgbU16ColorSpace.h"
@@ -35,6 +37,16 @@
 #include <KisReadWriteLockPolicy.h>
 
 #include <KoColorModelStandardIds.h>
+#include <memory>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
 
 Q_GLOBAL_STATIC(KoColorSpaceRegistry, s_instance)
 

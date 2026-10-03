@@ -4,6 +4,9 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGridOpOptionModel.h"
+#include "KisGridOpOptionData.h"
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
 
 KisGridOpOptionModel::KisGridOpOptionModel(lager::cursor<KisGridOpOptionData> _optionData)
     : optionData(_optionData)

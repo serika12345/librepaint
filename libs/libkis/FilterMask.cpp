@@ -4,11 +4,14 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "FilterMask.h"
-#include <kis_filter_mask.h>
+#include "kis_assert.h"
+#include "kis_types.h"
 #include <kis_image.h>
+#include <kis_filter_mask.h>
 #include <kis_filter_configuration.h>
 #include <kis_filter_registry.h>
 #include <InfoObject.h>
+#include <qobject.h>
 
 FilterMask::FilterMask(KisImageSP image, QString name, Filter &filter, QObject *parent) :
     Node(image, new KisFilterMask(image, name), parent)
@@ -53,4 +56,3 @@ Filter * FilterMask::filter()
     filter->setConfiguration(new InfoObject(mask->filter()));
     return filter;
 }
-

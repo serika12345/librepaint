@@ -4,6 +4,7 @@
  */
 
 #include "KisTemporaryResourceStorageLocator.h"
+#include "KisResourceStorage.h"
 
 #include <KisResourceLocator.h>
 

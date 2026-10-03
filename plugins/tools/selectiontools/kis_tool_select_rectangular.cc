@@ -11,7 +11,10 @@
  */
 
 #include "kis_tool_select_rectangular.h"
+#include <klocalizedstring.h>
 
+#include "KisSelectionTags.h"
+#include "kis_cursor.h"
 #include "kis_painter.h"
 #include <brushengine/kis_paintop_registry.h>
 #include "kis_canvas2.h"
@@ -22,9 +25,18 @@
 #include <kis_default_bounds.h>
 
 #include "application/ui/workspace/KisViewManager.h"
+#include "kis_stroke_job_strategy.h"
+#include "kis_tool_rectangle_base.h"
+#include "kis_tool_select_ui_base.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
+#include "ui_wdggeometryoptions.h"
 #include <kis_command_utils.h>
 #include <kis_processing_applicator.h>
 #include <kis_selection_filters.h>
+#include <qmath.h>
+#include <qnamespace.h>
+#include <QtGlobal>
 
 __KisToolSelectRectangularLocal::__KisToolSelectRectangularLocal(KoCanvasBase * canvas)
     : KisToolRectangleBase(canvas, KisToolRectangleBase::SELECT,

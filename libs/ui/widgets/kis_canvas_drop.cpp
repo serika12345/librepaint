@@ -9,6 +9,8 @@
 #include <KLocalizedString>
 #include <QAction>
 #include <QUrl>
+#include <qmimedata.h>
+#include <qpoint.h>
 
 class KisCanvasDrop::Private
 {

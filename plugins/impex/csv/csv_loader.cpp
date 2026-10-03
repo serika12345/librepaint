@@ -5,6 +5,7 @@
  */
 
 #include "csv_loader.h"
+#include <klocalizedstring.h>
 
 #include <QDebug>
 #include <QApplication>
@@ -32,7 +33,16 @@
 #include <kis_raster_keyframe_channel.h>
 #include <kis_image_animation_interface.h>
 #include <kis_time_span.h>
+#include <qalgorithms.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qscopedpointer.h>
+#include <QtGlobal>
 
+#include "KisImportExportErrorCode.h"
+#include "KisQStringListFwd.h"
+#include "KoColorSpaceConstants.h"
+#include "KoCompositeOpIds.h"
 #include "csv_read_line.h"
 #include "csv_layer_record.h"
 

@@ -4,8 +4,12 @@
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "Preset.h"
+#include "kis_types.h"
 #include <QDomDocument>
 #include <kis_paintop_preset.h>
+#include <qhashfunctions.h>
+#include <QDebug>
+#include <qlogging.h>
 
 struct Preset::Private {
     KisPaintOpPresetSP preset {0};

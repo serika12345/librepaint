@@ -19,12 +19,12 @@
 /////////////////////////////////////////////////////////////////////////////
 
 #include "nugrid.h"
+#include <boost/math/special_functions/log1p.hpp>
+#include <boost/math/special_functions/expm1.hpp>
 #include <cmath>
 #include <stdlib.h>
 #include <assert.h>
 
-#include <boost/math/special_functions/log1p.hpp>
-#include <boost/math/special_functions/expm1.hpp>
 using namespace boost::math;
 
 

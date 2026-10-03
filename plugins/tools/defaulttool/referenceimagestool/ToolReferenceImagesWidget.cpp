@@ -7,6 +7,11 @@
 
 #include "ToolReferenceImagesWidget.h"
 
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
+#include "kis_assert.h"
+#include "kis_icon_utils.h"
+#include "kundo2stack.h"
 #include "ui_WdgToolOptions.h"
 
 #include <KoSelection.h>
@@ -21,6 +26,11 @@
 
 #include <QApplication>
 #include <QStandardItemModel>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 #include "ToolReferenceImages.h"
 

@@ -6,7 +6,12 @@
  */
 
 #include "SliderSpinBox.h"
+#include "DoubleParseSpinBox.h"
+#include "IntParseSpinBox.h"
 #include "kis_debug.h"
+#include "kis_slider_spin_box.h"
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 struct SliderSpinBox::Private {
     Private() {}

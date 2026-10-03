@@ -7,8 +7,13 @@
 #include "widgets/kis_meta_data_merge_strategy_chooser_widget.h"
 
 #include <KoDialog.h>
-#include <kis_debug.h>
 #include <kis_meta_data_merge_strategy_registry.h>
+#include <qdialog.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 #include "ui_wdgmetadatamergestrategychooser.h"
 

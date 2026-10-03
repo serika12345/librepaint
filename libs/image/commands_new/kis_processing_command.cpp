@@ -7,6 +7,8 @@
 #include "kis_processing_command.h"
 #include "kis_node.h"
 #include "kis_processing_visitor.h"
+#include "kis_types.h"
+#include "kundo2magicstring.h"
 
 
 KisProcessingCommand::KisProcessingCommand(KisProcessingVisitorSP visitor, KisNodeSP node, KUndo2Command *parent)

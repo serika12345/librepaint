@@ -5,6 +5,8 @@
  */
 
 #include "FlakeDebug.h"
+#include <qlogging.h>
+#include <qloggingcategory.h>
 
 const QLoggingCategory &FLAKE_LOG() \
 {

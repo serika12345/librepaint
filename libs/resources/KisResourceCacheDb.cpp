@@ -22,6 +22,9 @@
 
 #include <KritaVersionWrapper.h>
 
+#include <algorithm>
+#include <boost/operators.hpp>
+#include <iterator>
 #include <klocalizedstring.h>
 #include <KisBackup.h>
 
@@ -33,10 +36,25 @@
 #include "KisResourceLocator.h"
 #include "KisResourceLoaderRegistry.h"
 
+#include "KisResourceStorage.h"
+#include "KisResourceTypes.h"
+#include "KisTag.h"
+#include "KoResource.h"
 #include "ResourceDebug.h"
 #include <kis_assert.h>
 
-#include <KisCppQuirks.h>
+#include <limits>
+#include <optional>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qset.h>
+#include <qsharedpointer.h>
+#include <stdlib.h>
+#include <utility>
 
 const QString dbDriver = "QSQLITE";
 const QString METADATA_RESOURCES = "resources";

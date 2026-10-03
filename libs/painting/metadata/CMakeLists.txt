@@ -72,6 +72,7 @@ target_include_directories(kritapaintingmetadatatypeschemaobjects
 )
 target_link_libraries(kritapaintingmetadatatypeschemaobjects
     PUBLIC
+        Boost::boost
         Qt${QT_MAJOR_VERSION}::Core
         Qt${QT_MAJOR_VERSION}::Xml
 )

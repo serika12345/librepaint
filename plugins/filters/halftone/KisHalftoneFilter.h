@@ -10,6 +10,7 @@
 #define KIS_HALFTONE_FILTER_H
 
 #include <QObject>
+#include <klocalizedstring.h>
 #include <QVector>
 
 #include <filter/kis_filter.h>

@@ -8,7 +8,12 @@
 
 #include <QThread>
 #include <QCoreApplication>
+#include <functional>
 #include <kis_assert.h>
+#include <qcoreevent.h>
+#include <qeventloop.h>
+#include <qglobalstatic.h>
+#include <qobject.h>
 
 /**
  * @brief The KisSynchronizedConnectionEventTypeRegistrar is a simple

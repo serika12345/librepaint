@@ -7,8 +7,14 @@
 
 #include "KoSubpathJoinCommand.h"
 #include <klocalizedstring.h>
+#include "KoPathPointData.h"
+#include "KoPathShape.h"
+#include <qlist.h>
+#include <utility>
 #include "kis_assert.h"
 #include "KoPathMergeUtils.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 
 KoSubpathJoinCommand::KoSubpathJoinCommand(const KoPathPointData &pointData1, const KoPathPointData &pointData2, KUndo2Command *parent)

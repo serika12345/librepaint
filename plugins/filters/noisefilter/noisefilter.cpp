@@ -7,6 +7,11 @@
  */
 
 #include "noisefilter.h"
+#include <cstdlib>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qobject.h>
+#include <qrgb.h>
 #include <vector>
 
 #include <kpluginfactory.h>
@@ -17,6 +22,7 @@
 #include <KisRandomGenerator2D.h>
 #include <kis_paint_device.h>
 #include <kis_types.h>
+#include "KoColorSpace.h"
 #include "kis_random_accessor_ng.h"
 #include <filter/kis_filter_registry.h>
 #include <filter/kis_filter_category_ids.h>

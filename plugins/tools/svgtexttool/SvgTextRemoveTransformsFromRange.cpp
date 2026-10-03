@@ -5,6 +5,9 @@
  */
 
 #include "SvgTextRemoveTransformsFromRange.h"
+#include "KoSvgTextShape.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <KoShapeBulkActionLock.h>
 
 SvgTextRemoveTransformsFromRange::SvgTextRemoveTransformsFromRange(KoSvgTextShape *shape, int pos, int anchor, KUndo2Command *parent)

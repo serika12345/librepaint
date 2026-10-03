@@ -9,9 +9,13 @@
 #include <QTransform>
 #include <QLineF>
 #include <QPolygonF>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <QtGlobal>
 
 
 #include "kis_algebra_2d.h"
+#include "kis_assert.h"
 
 
 

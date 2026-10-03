@@ -18,7 +18,10 @@
 #include <application/ui/workspace/KisMainWindow.h>
 #include <KoShapeController.h>
 #include <KoSelection.h>
+#include <qpoint.h>
+#include <qpointer.h>
 
+#include "KoShape.h"
 #include "Krita.h"
 #include "Document.h"
 #include "GroupShape.h"

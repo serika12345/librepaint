@@ -4,16 +4,28 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <boost/optional/optional.hpp>
 #include <brushengine/kis_paint_information.h>
 
 #include <QDomElement>
-#include <boost/optional.hpp>
 
+#include "KisPerStrokeRandomSource.h"
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_global.h"
 #include "kis_paintop.h"
 #include "kis_algebra_2d.h"
 #include "kis_lod_transform.h"
+#include "kis_random_source.h"
 
+#include <cmath>
 #include <kis_dom_utils.h>
+#include <math.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <QtGlobal>
+#include <qnumeric.h>
+#include <utility>
 
 struct KisPaintInformation::Private {
     Private(const QPointF & pos_,

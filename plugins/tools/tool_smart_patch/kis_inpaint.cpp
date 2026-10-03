@@ -15,10 +15,22 @@
  * Code adopted from: David Chatting https://github.com/davidchatting/PatchMatch
  */
 
+#include <algorithm>
+
+#include <QDebug>
 #include <boost/multi_array.hpp>
+#include <boost/multi_array/base.hpp>
+#include <cassert>
+#include <cmath>
+#include <cstddef>
+#include <cstdlib>
 #include <functional>
 
 
+#include "KoColorSpaceMaths.h"
+#include "KoID.h"
+#include "KoRgbColorSpaceTraits.h"
+#include "kis_global.h"
 #include "kis_paint_device.h"
 #include "kis_painter.h"
 
@@ -35,7 +47,15 @@
 #include "KoMixColorsOp.h"
 #include "KoColorModelStandardIds.h"
 #include "KoColorSpaceRegistry.h"
+#include "kis_shared.h"
+#include "kis_shared_ptr.h"
+#include "kis_types.h"
 #include <KoUpdater.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qnumeric.h>
+#include <utility>
+#include <vector>
 
 const int MAX_DIST = 65535;
 const quint8 MASK_SET = 255;

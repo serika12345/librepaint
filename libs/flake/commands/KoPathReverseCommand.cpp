@@ -6,7 +6,11 @@
 
 #include "KoPathReverseCommand.h"
 #include "KoPathShape.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <klocalizedstring.h>
+#include <QtGlobal>
+#include <qlist.h>
 
 namespace
 {

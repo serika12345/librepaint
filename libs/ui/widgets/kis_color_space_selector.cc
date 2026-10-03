@@ -21,6 +21,7 @@
 #include <KoID.h>
 
 #include <KoConfig.h>
+#include <algorithm>
 #include <kis_icon.h>
 
 #include <QStandardPaths>
@@ -29,6 +30,14 @@
 
 
 #include <kis_debug.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qdialog.h>
+#include <qdir.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 #include "ui_wdgcolorspaceselector.h"
 

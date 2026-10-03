@@ -5,11 +5,23 @@
  */
 
 #include "kis_algebra_2d.h"
+#include "kis_global.h"
 
+#include <Eigen/Core>
+#include <Eigen/Eigenvalues>
+#include <boost/optional/optional.hpp>
 #include <cmath>
+#include <functional>
 #include <limits>
 
-#include <Eigen/Eigenvalues>
+#include <qcontainerfwd.h>
+#include <qline.h>
+#include <qlist.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qpoint.h>
+#include <qpolygon.h>
 
 namespace KisAlgebra2D {
 

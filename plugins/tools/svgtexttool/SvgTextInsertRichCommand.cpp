@@ -5,7 +5,10 @@
  */
 #include "SvgTextInsertRichCommand.h"
 #include "KoSvgTextShapeMarkupConverter.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <KoShapeBulkActionLock.h>
+#include <QtGlobal>
 
 SvgTextInsertRichCommand::SvgTextInsertRichCommand(KoSvgTextShape *shape, KoSvgTextShape *insert, int pos, int anchor, bool inheritPropertiesIfPossible, KUndo2Command *parent)
     : KUndo2Command(parent)

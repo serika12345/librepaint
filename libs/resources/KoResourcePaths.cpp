@@ -16,6 +16,10 @@
 #include <QCoreApplication>
 #include <QMutex>
 #include <QRegularExpression>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qlogging.h>
+#include <qnamespace.h>
 #include "kis_debug.h"
 #include "ksharedconfig.h"
 #include "kconfiggroup.h"
@@ -96,9 +100,6 @@ static const Qt::CaseSensitivity cs = Qt::CaseSensitive;
 #endif
 
 #ifdef Q_OS_MACOS
-#include <ApplicationServices/ApplicationServices.h>
-#include <CoreFoundation/CoreFoundation.h>
-#include <CoreServices/CoreServices.h>
 #endif
 
 QString getInstallationPrefix() {
@@ -150,10 +151,9 @@ QString getInstallationPrefix() {
 #elif defined(Q_OS_HAIKU)
 	return qApp->applicationDirPath() + "/";
 #elif defined(Q_OS_ANDROID)
-    // qApp->applicationDirPath() isn't writable and android system won't allow
-    // any files other than libraries
-    // NOTE the subscript [1]. It points to the internal location.
-    return QStandardPaths::standardLocations(QStandardPaths::AppDataLocation)[1] + "/";
+    // ConfigsManager extracts packaged assets into Activity.getFilesDir().
+    // Qt exposes that private directory as the writable AppDataLocation.
+    return QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + "/";
 #else
     return qApp->applicationDirPath() + "/../";
 #endif

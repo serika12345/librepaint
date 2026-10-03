@@ -5,6 +5,7 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 #include "KoShapeContainer.h"
+#include "KoShape.h"
 #include "KoShapeContainer_p.h"
 #include "KoShapeContainerModel.h"
 #include "KoShapeStrokeModel.h"
@@ -13,6 +14,8 @@
 
 #include <QPainter>
 #include <QPainterPath>
+#include <QtGlobal>
+#include <qlist.h>
 
 #include "kis_painting_tweaks.h"
 #include "kis_assert.h"

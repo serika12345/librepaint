@@ -5,7 +5,11 @@ kis_add_tests(
     LINK_LIBRARIES kritaresourcestorage Qt${QT_MAJOR_VERSION}::Test Qt${QT_MAJOR_VERSION}::Xml
 )
 
-add_executable(storedroptest storedroptest.cpp)
+if(ANDROID)
+    add_executable(storedroptest EXCLUDE_FROM_ALL storedroptest.cpp)
+else()
+    add_executable(storedroptest storedroptest.cpp)
+endif()
 target_link_libraries(storedroptest kritaresourcestorage Qt${QT_MAJOR_VERSION}::Widgets)
 ecm_mark_as_test(storedroptest)
 

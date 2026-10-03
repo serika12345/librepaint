@@ -3,10 +3,13 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "KisTag.h"
 #include "KisTagChooserWidget.h"
 
 #include "KisTagChooserWidgetAddSource_p.h"
 #include "KisTagChooserWidget_p.h"
+#include "KisTagModel.h"
+#include <qmessagebox.h>
 
 void KisTagChooserWidget::addTag(const QString &tag)
 {

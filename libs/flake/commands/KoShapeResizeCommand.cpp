@@ -6,9 +6,19 @@
 
 #include "KoShapeResizeCommand.h"
 
+#include "KoFlake.h"
 #include "kis_command_ids.h"
+#include "kis_command_utils.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <KoShape.h>
 #include <KoShapeBulkActionLock.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <qtransform.h>
 
 namespace
 {

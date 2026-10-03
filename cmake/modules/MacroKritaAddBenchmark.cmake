@@ -25,7 +25,12 @@ macro (KRITA_ADD_BENCHMARK _test_NAME)
         set(_nogui "NOGUI")
     endif()
 
-    add_executable( ${_test_NAME} ${_srcList} )
+    set(_exclude_from_all)
+    if(ANDROID)
+        set(_exclude_from_all EXCLUDE_FROM_ALL)
+    endif()
+    add_executable( ${_test_NAME} ${_exclude_from_all} ${_srcList} )
+    unset(_exclude_from_all)
     set_test_sdk_compile_definitions(${_test_NAME})
     ecm_mark_as_test(${_test_NAME})
 

@@ -4,8 +4,11 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisCumulativeUndoModel.h"
+#include "KisCumulativeUndoData.h"
 
 #include <KisLager.h>
+#include <lager/cursor.hpp>
+#include <lager/extra/qt.hpp>
 
 KisCumulativeUndoModel::KisCumulativeUndoModel(lager::cursor<KisCumulativeUndoData> _data)
     : data(_data)

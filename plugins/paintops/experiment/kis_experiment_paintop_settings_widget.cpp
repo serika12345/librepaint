@@ -6,12 +6,14 @@
 #include "kis_experiment_paintop_settings_widget.h"
 
 #include "kis_experiment_paintop_settings.h"
+#include "kis_types.h"
 
 #include <kis_paintop_settings_widget.h>
 
 #include <KisPaintOpOptionWidgetUtils.h>
 #include <KisCompositeOpOptionWidget.h>
 #include <KisExperimentOpOptionWidget.h>
+#include <qwidget.h>
 
 
 KisExperimentPaintOpSettingsWidget:: KisExperimentPaintOpSettingsWidget(QWidget* parent)

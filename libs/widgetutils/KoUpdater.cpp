@@ -9,6 +9,9 @@
 #include "KoUpdater.h"
 
 #include "KoUpdaterPrivate_p.h"
+#include <QtGlobal>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 KoUpdater::KoUpdater(KoUpdaterPrivate *_d)
     : m_progressPercent(0)

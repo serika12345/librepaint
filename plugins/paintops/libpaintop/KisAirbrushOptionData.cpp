@@ -5,8 +5,10 @@
  */
 #include "KisAirbrushOptionData.h"
 
-#include <kis_paintop_settings.h>
+#include <brushengine/kis_paintop_settings.h>
 #include <kis_properties_configuration.h>
+
+#include <QtGlobal>
 
 const qreal DEFAULT_RATE = 20.0;
 

@@ -29,7 +29,10 @@
 
 #include <kis_debug.h>
 
+#include "KoColorSpaceConstants.h"
+#include "kis_assert.h"
 #include "kis_config_notifier.h"
+#include "kis_global.h"
 #include "kis_snap_config.h"
 
 #include <config-ocio.h>
@@ -40,6 +43,11 @@
 #include <kis_cubic_curve.h>
 #include <KisTemporaryFileConfiguration.h>
 #include <QSurfaceFormat>
+#include <qcolor.h>
+#include <qguiapplication.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qpoint.h>
 
 #if defined Q_OS_WIN && QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 #  include <QtGui/private/qguiapplication_p.h>

@@ -12,6 +12,7 @@
 #include "KisResourceCacheDb.h"
 #include "KisResourceModel.h"
 #include "KisResourceUserOperations.h"
+#include "KoResource.h"
 
 bool KisResourceUserOperations::resourceFilenameIsAlreadyUsed(
     KoResourceSP resource,

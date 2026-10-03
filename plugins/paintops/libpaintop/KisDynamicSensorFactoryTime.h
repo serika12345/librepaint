@@ -6,7 +6,15 @@
 #ifndef KISDYNAMICSENSORFACTORYTIME_H
 #define KISDYNAMICSENSORFACTORYTIME_H
 
-#include "KisSimpleDynamicSensorFactory.h"
+#include <QString>
+
+#include <KisCurveOptionDataCommon.h>
+#include <KisSimpleDynamicSensorFactory.h>
+#include <lager/cursor.hpp>
+
+#include <kritapaintop_export.h>
+
+class QWidget;
 
 class PAINTOP_EXPORT KisDynamicSensorFactoryTime : public KisSimpleDynamicSensorFactory
 {

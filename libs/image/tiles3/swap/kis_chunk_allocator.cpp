@@ -5,6 +5,9 @@
  */
 
 #include "kis_debug.h"
+#include <QtGlobal>
+#include <QDebug>
+#include <qlogging.h>
 #include "kis_chunk_allocator.h"
 
 

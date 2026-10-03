@@ -6,16 +6,22 @@
 
 #include "kis_image_config.h"
 
+#include <cerrno>
+#include <cstddef>
+#include <cstdint>
+#include <cstring>
 #include <ksharedconfig.h>
 
 #include <KoConfig.h>
-#include <KoColorProfile.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorConversionTransformation.h>
 #include <kis_properties_configuration.h>
 
 #include <KisImageConfigNotifier.h>
 #include <KisTemporaryFileConfiguration.h>
+#include "KisProofingConfiguration.h"
+#include "KoColor.h"
+#include "kis_assert.h"
 #include "kis_debug.h"
 
 #include <QThread>
@@ -23,7 +29,12 @@
 #include <QColor>
 
 #include "kis_global.h"
+#include "kis_pointer_utils.h"
+#include "kis_types.h"
 #include <cmath>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qnumeric.h>
 
 KisImageConfig::KisImageConfig(bool readOnly)
     : m_config(KSharedConfig::openConfig()->group(QString()))

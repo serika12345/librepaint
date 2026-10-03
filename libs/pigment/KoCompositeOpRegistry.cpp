@@ -8,12 +8,16 @@
 
 #include <QGlobalStatic>
 
+#include <algorithm>
 #include <klocalizedstring.h>
 
 #include <KoID.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
 #include "KoCompositeOp.h"
 #include "KoColorSpace.h"
 
+#include "KoCompositeOpIds.h"
 #include "kis_assert.h"
 #include "DebugPigment.h"
 

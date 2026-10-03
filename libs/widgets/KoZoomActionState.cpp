@@ -5,10 +5,17 @@
  */
 
 #include "KoZoomActionState.h"
+#include "KoZoomMode.h"
+#include "KoZoomState.h"
 
 #include <QDebug>
 #include <QLocale>
+#include <algorithm>
+#include <iterator>
 #include <klocalizedstring.h>
+#include <qcontainerfwd.h>
+#include <QtGlobal>
+#include <qnumeric.h>
 
 namespace
 {

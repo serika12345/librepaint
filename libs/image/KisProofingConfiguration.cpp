@@ -5,8 +5,11 @@
  */
 
 #include "KisProofingConfiguration.h"
+#include "KoColor.h"
+#include "KoColorConversionTransformation.h"
 
 #include <KisStaticInitializer.h>
+#include <qnamespace.h>
 
 KIS_DECLARE_STATIC_INITIALIZER {
     qRegisterMetaType<KisProofingConfiguration::DisplayTransformState>();

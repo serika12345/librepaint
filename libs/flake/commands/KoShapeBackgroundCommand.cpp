@@ -10,8 +10,13 @@
 #include "KoShapeBackground.h"
 
 #include <klocalizedstring.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qsharedpointer.h>
 
 #include "kis_command_ids.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 namespace
 {

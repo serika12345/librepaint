@@ -10,7 +10,12 @@
 
 #include <KisDuplicateOptionModel.h>
 #include <KisWidgetConnectionUtils.h>
+#include <functional>
+#include <lager/cursor.hpp>
 
+#include "KisDuplicateOptionData.h"
+#include "kis_paintop_option.h"
+#include "kis_types.h"
 #include "ui_wdgduplicateop.h"
 
 struct KisDuplicateOptionWidget::Private {

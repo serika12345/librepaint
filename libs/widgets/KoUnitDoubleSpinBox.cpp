@@ -15,7 +15,14 @@
 #include <WidgetsDebug.h>
 
 #include <klocalizedstring.h>
+#include <QtGlobal>
+#include <qnamespace.h>
 #include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qspinbox.h>
+#include <qvalidator.h>
+#include <qwidget.h>
 
 // #define DEBUG_VALIDATOR
 // #define DEBUG_VALUEFROMTEXT

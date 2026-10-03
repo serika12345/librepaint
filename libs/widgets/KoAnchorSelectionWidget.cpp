@@ -11,6 +11,17 @@
 #include <QButtonGroup>
 #include <QGridLayout>
 #include <QFontMetrics>
+#include "KoFlake.h"
+#include <qcontainerfwd.h>
+#include <qicon.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qpaintdevice.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
+#include <qwidget.h>
 #include "kis_icon_utils.h"
 
 #include "kis_assert.h"

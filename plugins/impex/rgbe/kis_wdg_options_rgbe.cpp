@@ -5,8 +5,12 @@
  */
 
 #include <KoColor.h>
+#include <qnamespace.h>
+#include <qwidget.h>
 
 #include "kis_wdg_options_rgbe.h"
+#include "kis_config_widget.h"
+#include "kis_types.h"
 
 
 KisWdgOptionsRGBE::KisWdgOptionsRGBE(QWidget *parent)

@@ -10,6 +10,16 @@
 
 #include <ksharedconfig.h>
 #include <kconfiggroup.h>
+#include <qcolor.h>
+#include <qfont.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qregularexpression.h>
+#include <qsyntaxhighlighter.h>
+#include <qtextdocument.h>
+#include <qtextedit.h>
+#include <qtextformat.h>
 
 BasicXMLSyntaxHighlighter::BasicXMLSyntaxHighlighter(QObject * parent) :
     QSyntaxHighlighter(parent)

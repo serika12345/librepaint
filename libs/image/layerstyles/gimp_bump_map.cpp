@@ -13,9 +13,15 @@
 #include "gimp_bump_map.h"
 
 #include <QRect>
+#include "kis_assert.h"
+#include "kis_global.h"
 #include "kis_pixel_selection.h"
 
+#include <cmath>
+#include <math.h>
 #include <memory>
+#include <QtGlobal>
+#include <qscopedpointer.h>
 
 
 typedef int gint;

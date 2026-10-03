@@ -5,6 +5,9 @@
  */
 
 #include "KisStabilizerDelayedPaintHelper.h"
+#include "kis_paint_information.h"
+#include <qcontainerfwd.h>
+#include <qobjectdefs.h>
 
 constexpr int fixedPaintTimerInterval = 20;
 

@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: LGPL-2.0-or-later
  */
 
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
+#include "KoDialog.h"
+#include "KoID.h"
+#include "kis_icon_utils.h"
 #include "ui_wdgdlgembedtags.h"
 
 #include <QProcessEnvironment>
@@ -17,16 +22,15 @@
 
 #include <KisImportExportManager.h>
 #include <metadata/KoDocumentInfo.h>
-#include <KoFileDialog.h>
-#include <kis_icon.h>
-#include <KoResource.h>
-#include <KoResourceServer.h>
-#include <KoResourceServerProvider.h>
 #include <kstandardguiitem.h>
 #include <KisTagModel.h>
 
-#include <workspace/kis_workspace_resource.h>
-#include <brushengine/kis_paintop_preset.h>
+#include <qabstractitemmodel.h>
+#include <qabstractitemview.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
 #include <dlg_embed_tags.h>
 
 #include <application/kis_config.h>
@@ -145,5 +149,4 @@ void DlgEmbedTags::resourceTypeSelected(int idx)
     }
 
 }
-
 

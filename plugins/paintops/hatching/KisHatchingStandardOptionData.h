@@ -8,6 +8,7 @@
 #define KISHATCHINGSTANDARDOPTIONDATA_H
 
 #include <KisCurveOptionData.h>
+#include <klocalizedstring.h>
 
 struct KisAngleOptionData : KisCurveOptionData
 {

@@ -4,12 +4,14 @@
  */
 
 #include "KisColorSamplerStroke.h"
+#include "kis_types.h"
 
 #include <KoColor.h>
 
 #include <kis_assert.h>
 #include <kis_image_interfaces.h>
 #include <kis_paint_device.h>
+#include <qobject.h>
 #include <strokes/kis_color_sampler_stroke_strategy.h>
 
 struct KisColorSamplerStroke::Private

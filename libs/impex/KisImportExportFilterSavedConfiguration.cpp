@@ -4,8 +4,10 @@
  */
 
 #include "KisImportExportFilter.h"
+#include "kis_types.h"
 
 #include <kis_image_config.h>
+#include <qobject.h>
 
 KisPropertiesConfigurationSP KisImportExportFilter::lastSavedConfiguration(const QByteArray &from,
                                                                            const QByteArray &to) const

@@ -9,6 +9,33 @@
 
 #include "KoID.h"
 
+#include <boost/optional.hpp>
+#include <utility>
+
+#include <KisLazyStorage.h>
+#include <klocalizedstring.h>
+
+struct KoID::TranslatedString : public QString
+{
+    TranslatedString(const boost::optional<KLocalizedString> &source);
+
+    TranslatedString(const QString &value);
+};
+
+struct KoID::KoIDPrivate
+{
+    using StorageType =
+        KisLazyStorage<TranslatedString,
+                       boost::optional<KLocalizedString>>;
+
+    KoIDPrivate(QString _id, const KLocalizedString &_name);
+
+    KoIDPrivate(QString _id, const QString &_name);
+
+    QString id;
+    StorageType name;
+};
+
 KoID::TranslatedString::TranslatedString(
     const boost::optional<KLocalizedString> &source)
     : QString(!source->isEmpty() ? source->toString() : QString())

@@ -5,6 +5,11 @@
  */
 
 #include "MyPaintCurveOptionData.h"
+#include "KisCurveOptionDataCommon.h"
+#include "KoID.h"
+#include "MyPaintSensorPack.h"
+#include <qhashfunctions.h>
+#include <QtGlobal>
 
 MyPaintCurveOptionData::MyPaintCurveOptionData(const QString &prefix,
                                        const KoID &id,

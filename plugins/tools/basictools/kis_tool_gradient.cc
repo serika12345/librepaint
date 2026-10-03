@@ -10,6 +10,7 @@
  */
 
 #include "kis_tool_gradient.h"
+#include <klocalizedstring.h>
 
 #include <cmath>
 
@@ -39,10 +40,16 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_slider_spin_box.h>
 #include <kis_cursor.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qset.h>
 #include "kis_resources_snapshot.h"
 #include "kis_command_utils.h"
 #include "kis_processing_applicator.h"
 #include "kis_processing_visitor.h"
+#include "kis_tool.h"
+#include "kis_tool_paint.h"
 
 
 KisToolGradient::KisToolGradient(KoCanvasBase * canvas)

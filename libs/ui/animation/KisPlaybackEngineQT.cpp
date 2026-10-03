@@ -7,6 +7,9 @@
 
 #include "animation/KisPlaybackEngineQT.h"
 
+#include "KoCanvasBase.h"
+#include "animation/KisPlaybackEngine.h"
+#include "kis_assert.h"
 #include "kis_canvas2.h"
 #include "KisCanvasAnimationState.h"
 #include "kis_image.h"
@@ -14,6 +17,15 @@
 
 #include <QElapsedTimer>
 #include <QTimer>
+#include <boost/none.hpp>
+#include <boost/optional/optional.hpp>
+#include <cstdint>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qscopedpointer.h>
 #include "animation/KisFrameDisplayProxy.h"
 #include "KisRollingMeanAccumulatorWrapper.h"
 #include "KisRollingSumAccumulatorWrapper.h"

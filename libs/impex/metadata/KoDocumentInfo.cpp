@@ -16,6 +16,10 @@
 #include <kconfig.h>
 #include <kconfiggroup.h>
 #include <klocalizedstring.h>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qstringview.h>
 
 KoDocumentInfo::KoDocumentInfo(QObject *parent) : QObject(parent)
 {

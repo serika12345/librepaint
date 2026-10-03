@@ -4,7 +4,11 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "KoSvgTextPathInfoChangeCommand.h"
+#include "KoSvgText.h"
+#include "KoSvgTextShape.h"
 #include "kis_command_ids.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <KoShapeBulkActionLock.h>
 
 KoSvgTextPathInfoChangeCommand::KoSvgTextPathInfoChangeCommand(KoSvgTextShape *shape, int pos, KoSvgText::TextOnPathInfo textPathInfo, KUndo2Command *parent)

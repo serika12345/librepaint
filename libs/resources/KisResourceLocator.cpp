@@ -18,18 +18,16 @@
 #include <QSqlError>
 #include <QBuffer>
 
-#include <kconfig.h>
-#include <kconfiggroup.h>
-#include <ksharedconfig.h>
 #include <klocalizedstring.h>
 
 #include <KritaVersionWrapper.h>
 #include <KisMimeDatabase.h>
 #include <kis_assert.h>
 #include <kis_debug.h>
-#include <KisUsageLogger.h>
 #include <KisFileUtils.h>
 
+#include "KisResourceLoader.h"
+#include "KisTag.h"
 #include "KoResourcePaths.h"
 #include "KisResourceStorage.h"
 #include "KisResourceCacheDb.h"
@@ -39,7 +37,18 @@
 #include <KoMD5Generator.h>
 #include <KoResourceLoadResult.h>
 #include <KisResourceThumbnailCache.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qdatetime.h>
+#include <qhash.h>
+#include <qlogging.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qsharedpointer.h>
+#include <qstringview.h>
+#include <utility>
 #include "KisResourceThumbnailStorageLocation.h"
+#include "KoResourceSignature.h"
 
 QString KisResourceThumbnailStorageLocation::makeAbsolute(const QString &storageLocation)
 {

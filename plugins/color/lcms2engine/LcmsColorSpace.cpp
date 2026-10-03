@@ -7,9 +7,15 @@
 */
 
 #include "LcmsColorSpace.h"
+#include "IccColorProfile.h"
 #include "KoColorConversionTransformationFactory.h"
 
+#include "KoColorProfile.h"
 #include "QDebug"
+#include <lcms2.h>
+#include <qbitarray.h>
+#include <qlist.h>
+#include <qmap.h>
 
 cmsHPROFILE KoLcmsDefaultTransformations::s_RGBProfile = 0;
 QMap< QString, QMap< LcmsColorProfileContainer *, KoLcmsDefaultTransformations * > > KoLcmsDefaultTransformations::s_transformations;

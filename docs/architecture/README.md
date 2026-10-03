@@ -4,8 +4,8 @@
 
 この文書は、変更内容から調査対象を絞り、LibrePaintの主要な設計境界と実行経路を把握するための入口です。設計判断に使う責務、経路、識別子を中心にまとめています。
 
-全プラットフォーム共通の長期改造計画は[LibrePaint全面改造TODO](TODO.md)で管理します。
-開発・検証コマンドは[LibrePaint開発・検証基盤](DEVELOPMENT.md)、現在の再開地点は
+全プラットフォーム共通の長期改造計画は[LibrePaintロードマップ](ROADMAP.md)で管理します。
+開発・検証コマンドは[LibrePaint開発マニュアル](DEVELOPMENT.md)、現在の再開地点は
 [LibrePaintアーキテクチャ作業状況](PROGRESS.md)を正本とします。
 
 - 変更を共通コード、プラグイン、プラットフォーム統合、配布定義のどこへ置くか
@@ -15,16 +15,6 @@
 
 図は責務と主要な実行経路を示します。実際のリンク境界は各ディレクトリーの
 `CMakeLists.txt`を正本とします。
-
-## 最初の30分で読む順序
-
-1. [ルートのCMakeLists.txt](../../CMakeLists.txt)末尾で、`libs`、`qmlmodules`、`plugins`、`krita`の構成順とiOS条件を確認します。
-2. [libs/CMakeLists.txt](../../libs/CMakeLists.txt)と[plugins/CMakeLists.txt](../../plugins/CMakeLists.txt)で、常時リンクするライブラリーと機能単位のプラグインを分けます。
-3. [krita/CMakeLists.txt](../../krita/CMakeLists.txt)で実行形式、Qtリソース、OS別ソース、静的プラグインの最終リンクを確認します。
-4. [krita/main.cc](../../krita/main.cc)から`KisApplication::start()`を追い、[KisApplication.cpp](../../libs/application/ui/orchestration/KisApplication.cpp)でグローバル状態、プラグイン、リソース、メインウィンドウの初期化順を確認します。
-5. [KisDocument.h](../../libs/ui/document/KisDocument.h)と[kis_image.h](../../libs/image/kis_image.h)を読み、文書の寿命・入出力と、画像モデル・描画スケジューラーを分けて捉えます。
-6. 対象機能を[変更内容から見る場所](#変更内容から見る場所)で引き、近傍の`CMakeLists.txt`、プラグインJSON、テストまで範囲を広げます。
-7. 配布や依存関係の変更では、[flake.nix](../../flake.nix)を入口に、該当する`nix/<platform>/`と`packaging/<platform>/`を読みます。
 
 ## 全体構造
 
@@ -59,14 +49,18 @@
 
 ### 公開ヘッダーとプラグイン登録
 
-`scripts/architecture/check_public_contracts.py`は、製品ソースとCMake定義を毎回直接調べる。
+`scripts/architecture/check_public_contracts.py`は、製品ソースと登録JSONを直接調べる。
 所有パッケージの外から利用されるヘッダーには、所有ターゲットの公開マクロまたは公開ヘッダー
 構築契約が必要である。
 
 製品プラグインは登録マクロと兄弟JSONを一対一で持ち、IDが一意で、既知のサービス種別を
-一つ宣言する。JSONのライブラリー名を所有ターゲットとして使用し、ライブラリー名を持たない
-登録だけは検査器内の限定された所有上書きへ対応させる。登録実装、JSON、サービス種別、
-CMake所有を変更したときは同じ直接検査で整合性を確認する。
+一つ宣言する。登録マクロ、JSONの存在、IDとサービス種別の整合性を直接検査する。
+ターゲットの所有とリンク方向はCMake構成に基づく依存検査が担当する。
+
+`libs/global/KoID.h`は識別子と表示名の共有値契約を所有し、遅延翻訳の格納実装は
+`libs/global/KoID.cpp`が所有する。`KLocalizedString`の生成や翻訳関数を使用する利用元は
+`<klocalizedstring.h>`を直接取り込み、`KoID.h`はBoost optional、`KisLazyStorage`、翻訳実装を
+利用元へ伝播させない。
 
 ### 責務別の所有先
 
@@ -236,23 +230,12 @@ R1-G6eの第6の独立単位は、`libs/ui/KisDocument.cpp`に埋め込まれて
 ないため、従来どおり通常文書状態から始まる。回復状態の実装はQt型を使用せず、専用契約で
 検査できる。
 
-R1-G6e開始時の`document-state`分類は25クラスであり、最初の分割後にUI所有の分類は
-24クラスとなった。文書識別の抽出後も`KisDocument`自体はUI分類に残るため件数は24である。
-変更状態、自動保存実行状態、回復用自動保存調停状態、回復済み文書状態の抽出も同じ
-`KisDocument`内の埋込み状態を移すため、分類件数は24を維持する。
-文書表示の集約と2つの画像ノード命令分離により、`KoDocumentInfo`、`KoDocumentInfoDlg`、
-`KisNodeCommandsAdapter`、旧`KisNodeJugglerCompressed`（現`KisNodeOperationBatch`）が
-UI分類から外れ、現在は20クラスである。
-残る分類は文書寿命だけでなくノード操作、選択操作、表示モデルを含む。
-後続単位では各クラスの実依存から文書状態、文書表示、別機能の操作接続を
-判定し、文書寿命を所有するものだけを文書ターゲットへ移す。
-
-R1-G6e後半は[文書パッケージ境界計画](document-package-boundary-plan.md)に従い、依存経路の
-一方向化、具体的な命名、現存する関心領域ごとの分割と集約を行う。`kritadocument`は文書状態、
+[文書パッケージの責務境界](document-package-boundaries.md)に従い、
+文書状態は`kritadocument`が所有する。
 `kritadocumentfiles`は文書ファイル、バックアップ、自動保存ファイル、回復ファイル、
 `kritadocumentui`はダイアログ、状態表示、文書情報編集、取り消し履歴との接続と表示を所有する。
-形式処理と表示が共有する直列化対象の文書情報は`kritaimpex`が所有する。依存は文書UIから
-文書ファイル保存、文書ファイル保存から文書状態と入出力へ向ける。
+形式処理と表示が共有する直列化対象の文書情報は`kritaimpex`が所有する。文書UIは必要な下位所有者を直接利用し、
+文書状態と具体的なファイル操作は表示から独立して利用できる。
 
 `kritadocumentui`の公開共有ライブラリーは、文書情報、入出力表示、自動保存回復、名前付き回復、
 取り消し履歴という5つの内部オブジェクト所有単位を集約する。`kritaimpex`もファイル属性検査、
@@ -560,6 +543,17 @@ Windowsでは共有ライブラリー、iOSでは静的ライブラリーとし�
 
 通常のOSでは[krita/main.cc](../../krita/main.cc)の`main`が入口です。Windowsでは[krita/windows_stub_main.cpp](../../krita/windows_stub_main.cpp)の小さな実行形式が、共有ライブラリー側の`krita_main`を呼びます。`krita_main`の実装本体はどちらも`main.cc`です。
 
+MSVC構築では[winquirks/unistd.h](../../winquirks/unistd.h)がPOSIX形式のプロセス・利用者・
+標準ストリーム識別子、`readlink()`、`sleep()`をWindows CRTとWin32 APIへ接続する。
+[winquirks/tests](../../winquirks/tests)はこの互換境界を実際のMSVC実行形式で検査する。
+
+Androidでは[libs/global/KisAndroidCrashHandler.cpp](../../libs/global/KisAndroidCrashHandler.cpp)の
+`handler_init()`が致命的シグナル用の代替スタックとコールバックを登録する。コールバックは
+unwindstackで現在プロセスのフレームを取得し、アプリケーションデータ領域の
+`kritacrashlog.txt`へ記録してから以前のシグナル動作を再実行する。
+[KisAndroidCrashHandlerContractTest.cpp](../../libs/global/tests/KisAndroidCrashHandlerContractTest.cpp)は
+ARM64実機の子プロセスでこの経路を実行し、バックトレースと終了シグナルを検査する。
+
 `KisApplication::start()`は、おおむね次の順で初期化します。
 
 1. グローバルなファクトリーと設定
@@ -569,7 +563,7 @@ Windowsでは共有ライブラリー、iOSでは静的ライブラリーとし�
 5. `KisPart`、セッション、`KisMainWindow`
 6. 自動保存の復旧と起動引数の文書
 
-iOSのライフサイクル、メモリー警告、Pencilダブルタップは`KisIOS*.mm`から`main.cc`へ通知されます。タッチ向け画面は[plugins/extensions/iostouchui](../../plugins/extensions/iostouchui)にあり、OS通知の橋渡しと画面機能を分離しています。
+iOSのライフサイクル、メモリー警告、Pencilダブルタップは`KisIOS*.mm`から`main.cc`へ通知されます。Pencilの対話オブジェクトはQtのメインビューが所有するUIKitウィンドウへ登録し、その所有先を維持します。ウィンドウの可視化、キー化、前景復帰は同じ登録先への再試行を起動します。タッチ向け画面は[plugins/extensions/iostouchui](../../plugins/extensions/iostouchui)にあり、OS通知の橋渡しと画面機能を分離しています。キャンバスのみ表示のブラシ一覧は名前付きの縦一覧として右側に表示し、色選択は同じ画面の子パネルとして安全領域内の上部バー直下へ右寄せします。ブラシ、レイヤー、色の各パネルは一つずつ表示し、画面回転とキャンバス寸法変更で再配置します。
 
 ### 文書と画像モデル
 
@@ -605,6 +599,10 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 `kis_add_library`が`MODULE`を静的ライブラリーへ変換し、
 `krita_ios_target_static_plugins`が実行形式へ登録・リンクします。組み込む対象の
 正本は[initial-plugin-profile.json](../../packaging/ios/manifests/initial-plugin-profile.json)です。
+CMakeはファクトリー名をターゲットごとに一意化し、実行形式へ直接リンクする生成コードから
+ファクトリーとQt資源の初期化関数を参照します。これにより不要コード除去後も登録とJSONを保持します。
+`audit-static-dependency-resources.py`は最終実行形式の資源初期化・解放関数の集合と一意性を、
+静的資源マニフェストの`final_binary`に照合します。除外実装のシンボルも確認します。
 
 機能を追加するときは、C++クラスと次の識別子を一組として確認します。
 
@@ -619,6 +617,33 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 [krita/krita.qrc](../../krita/krita.qrc)は、`kritarc`と`krita5.xmlgui`をQtリソースへ割り当てる小さな目録です。アプリ全体のQtリソース一覧は[krita/CMakeLists.txt](../../krita/CMakeLists.txt)の`krita_QRCS`にあります。アイコン、シェーダー、カーソル、スプラッシュ、既定プリセットなどはそこから実行形式へ組み込まれます。
 
 `install(FILES|DIRECTORY ...)`で配置する資産はQtリソースとは別です。特に`krita/data`、`pics`、`po`、プラグインJSON、バンドル資産を変更するときは、実行時参照方法がリソースURLかインストール先パスかを先に確認します。
+
+iOSのインストール資産と静的依存資源は[資産の採用・帰属資料](../ios/non-code-assets.md)に従います。
+製品とQt／KFのライセンス目録は`packaging/ios/manifests/`、同梱する帰属は
+`packaging/ios/notices/`が所有します。
+
+### モバイルの共通処理とOS境界
+
+描画、文書、形式変換、ブラシ、ツール、ドッカーの処理は共通の所有者に置きます。
+AndroidのActivity／JNIとiOSのUIKit通知は、各OSから既存のアプリケーション操作へ接続します。
+ファイル選択はAndroidの内容URI、iOSのsecurity-scoped URLの寿命と権限をそれぞれ扱います。
+Pencil／S Penの補助操作も各OSで受け、共通のアクションを実行します。
+共通化は現在の利用側と必要な依存方向に従い、具体的な所有者へ責務をまとめます。
+
+iOSのFiles保存は、アプリの一時領域で書出しを完成させ、選択されたファイル自身のハンドルを通じて
+転送します。これにより、提供元が親ディレクトリーへの書込みを許可しない場合も選択先への権限を使えます。
+バックアップと自動保存はアプリの回復領域へ置き、転送失敗時は完成済み一時ファイルと診断パスを保持します。
+
+iOSのメモリー予算は、既定を物理RAMの25%かつ最大1 GiB、手動設定上限を37.5%かつ最大1.5 GiBとします。
+UIKitの警告時にタイルとピックスマップのキャッシュを解放します。
+入力配送中のノード／UI変更はキュー接続で配送完了後へ送ります。
+塗りつぶしレイヤーの非同期ダイアログは、入れ子のイベントループによる再入を避ける別の境界です。
+
+キャンバスのみ表示はタブなし・枠なしの最大化表示を使い、終了時に元のウィンドウ属性とタブ表示を復元します。
+短い内向きピンチは最も近い90度単位の向きへ合わせ、描画ツールバー下の表示領域へ回転・拡大率・中心を
+補間します。通常のピンチ・回転は連続操作を維持し、新しいタッチは補間を中断します。
+画面の再設計は[Issue #64](https://github.com/serika12345/librepaint/issues/64)、
+機能の採用と実機受入れは[Issue #67](https://github.com/serika12345/librepaint/issues/67)が所有します。
 
 ## 実行時の主要経路
 
@@ -655,6 +680,12 @@ PaintOpの実行処理は`plugins/paintops/libpaintop`の`kritapaintopruntime`�
 製品の`kritalibpaintop`共有ライブラリーと`kritadefaultpaintops`モジュールはこれらを集約するため、
 既存の公開面とプラグイン登録は同じ製品経路を使います。PaintOp設定値の読書きを担い画面を所有しない
 `KisPaintopPropertiesBase`は`libs/image/brushengine`が所有します。
+
+ブラシ設定値の保存、復元、型変換、既定値処理は`libs/image/kis_properties_configuration.cc`が担い、
+`kritaimagepropertiesconfigurationobjects`がこの実装と直列化・曲線値の依存を所有します。
+`kritaimage`は同じオブジェクトを製品へ集約し、`plugins/paintops/libpaintop`の設定値契約試験は
+この所有対象を直接使います。設定値契約は製品と同じ保存結果を観測しながら、画像処理全体を
+試験対象へ含めない構築範囲を維持します。
 
 最初の維持契約は[FreehandStrokeContractTest.cpp](../../libs/ui/tests/FreehandStrokeContractTest.cpp)です。
 sRGB 8ビットの500×500画素画像、単一ペイントレイヤー、`autobrush_300px.kpp`、
@@ -696,6 +727,12 @@ sRGB 8ビットの500×500画素画像、単一ペイントレイヤー、`autob
 `3c7c2e19b4b91a27b8d1ddb1068db753012e01f98244eb9e6f688026db4f551a`です。速度0の既存入力と
 同じプリセットを使い、`KisPaintInformation`の速度値から寸法センサーの画素応答までを検査します。
 
+矩形選択の契約は最初の維持契約と同じ条件へ画像座標`QRect(225, 225, 100, 100)`の選択だけを
+追加します。レイヤーと投影の正確な描画領域は選択範囲と一致し、RGBA8888へ正規化した全画素の
+SHA-256は`4f5b7f971268c853d893a2c6c25d805cb354eef8c1d6c26fffeaac5dafa4d219`です。
+選択外の全画素は描画前の状態との完全一致を要求します。契約対象は画素ブラシとPaintOp実行処理の
+オブジェクトを直接利用し、製品の`kritapixelbrush`は同じ画素ブラシ実装を集約します。
+
 ### 公開APIの振る舞い契約
 
 テストは、利用者から観測できる戻り値、状態変化、通知、副作用、失敗条件、状態遷移と
@@ -711,13 +748,41 @@ sRGB 8ビットの500×500画素画像、単一ペイントレイヤー、`autob
 実装詳細だけの固定は削除します。実装を模写する試験やAPIごとの対応表は、
 実装変更を不必要に制約するため作成しません。
 
-Qtの生入力事象から自由描画ツールへ渡る値と順序、および最終投影から実画面へ転送される
-フレームは、段階間を接続する後続契約の対象です。単一試験入口は、永続Ninja木で指定した
-試験と宣言済み依存だけを構築します。自由描画契約は画像・描画・ブラシ・試験資源の所有先へ
-直接リンクし、具体的な既定画素ブラシを試験処理内で登録して実行します。
-R2-G3で
-マウスの押下、移動、解放を記録・再生し、入力照合から自由描画ツールへ渡る正規化済み
-入力列を固定します。
+入力事象と画素生成は独立した契約で検査します。
+[KisToolProxyContractTest.cpp](../../libs/input/ui/tests/KisToolProxyContractTest.cpp)は、マウス、
+タブレット、単点タッチの開始・継続・終了、文書座標、筆圧、傾き、回転、時刻と入力種別を検査します。
+マウスの既定値は筆圧1、傾き・回転0です。開始をツールが受理しない場合は未受理結果を返します。
+入力の照合と合成マウス事象の抑止は`TestInputShortcutMatcher`、`TestInputEventSuppressor`、
+入力管理器の試験が所有します。単一試験入口は指定試験と宣言済み依存だけを構築し、
+自由描画契約は具体的な画素ブラシを試験処理内で登録します。
+
+### 投影更新と表示画素の比較規則
+
+[KisCanvasUpdatesCompressorContractTest.cpp](../../libs/ui/tests/KisCanvasUpdatesCompressorContractTest.cpp)は、
+空の更新領域の除外、保留列が空から非空になるときの起動要求、投入順の排出を検査します。
+新しい包含領域は、同じ詳細度の圧縮可能な旧更新だけを除去して列の末尾へ入ります。
+部分重複、異なる詳細度、一括更新マーカーは維持します。
+
+[kis_prescaled_projection_contract_test.cpp](../../libs/canvas/tests/kis_prescaled_projection_contract_test.cpp)は
+画像座標から表示用投影への拡大と更新領域を所有し、
+[KisQPainterCanvasDrawImageContractTest.cpp](../../libs/ui/tests/KisQPainterCanvasDrawImageContractTest.cpp)は
+表示用投影からウィジェットへの転送を検査します。製品と試験は同じ
+[kis_qpainter_canvas_draw_image.h](../../libs/ui/canvas/kis_qpainter_canvas_draw_image.h)を使います。
+
+| 固定条件 | 比較規則と分類 |
+| --- | --- |
+| 8×8、恒等変換、更新矩形 `(2, 3, 3, 2)` | 矩形内の対応画素は完全一致し、矩形外は元の背景色を維持する |
+| 8×8、1:1の水平鏡像・90度回転 | 不透明度は完全一致。位置を符号化した赤・緑は各1、青は2以内の差とする。一画素内側の採取を既知不具合として許容し、理想値への完全一致も受け入れる |
+| 16×16の描画先、中央8×8の不透明領域、17.3度回転 | 投影21×21、変換済み包含矩形11×11、非透明画素領域10×10の包含関係を検査する |
+| 同じ17.3度回転の境界 | 透明168〜184、半透明20〜36、不透明48〜64画素。半透明アルファ最小値1〜32、最大値160〜254とする |
+| 同じ17.3度回転の不透明内部 | 色から復元した元画像位置と逆変換位置のx・y誤差は各0.05以下、青成分誤差は1.1以下とする |
+
+水平鏡像と直交回転の既知不具合の上限を、任意角回転やGPU描画へ流用することは、
+補間と描画装置が異なるため適切ではありません。Qtや描画装置の更新で比較値が安定しない場合は、
+固定入力で差を採取し、幾何・包含関係と画素比較を分けて維持契約、既知不具合、未確定事項へ分類します。
+基準の変更は対応Issueに根拠を記録し、対象試験の20回反復と隣接契約で確認します。
+描画の最適化は[Issue #62](https://github.com/serika12345/librepaint/issues/62)、
+追加の観測契約は[Issue #61](https://github.com/serika12345/librepaint/issues/61)が所有します。
 
 ### ファイル入出力
 
@@ -759,7 +824,7 @@ R2-G3で
 | --- | --- | --- |
 | 起動順、引数、単一起動 | `krita/main.cc`、`libs/application/ui/orchestration/KisApplication.*` | `KisPart`、`KisMainWindow`、OS条件 |
 | Windowsの実行形式だけに関係する起動 | `krita/windows_stub_main.cpp`、`krita/CMakeLists.txt` | DLLの`krita_main`、配布ツリー |
-| iOSライフサイクル、Pencil、メモリー警告 | `krita/KisIOS*.mm`、`krita/main.cc` | `plugins/extensions/iostouchui`、iOS検証文書 |
+| iOSライフサイクル、Pencil、メモリー警告 | `krita/KisIOS*.mm`、`krita/main.cc` | `plugins/extensions/iostouchui`、開発マニュアルの実機検証 |
 | メニュー、ショートカット、アクション | `krita/krita.action`、`krita/krita5.xmlgui`、対象`KisViewManager`機能 | アクションID、プラグイン`*.action` |
 | Qtリソースの追加 | `krita/krita.qrc`、`krita/CMakeLists.txt`の`krita_QRCS` | リソースURL、`Q_INIT_RESOURCE`、iOS静的資産 |
 | ウィンドウ、ドッカー、キャンバス画面 | `libs/application/ui/workspace`、`libs/ui/canvas`、`plugins/dockers` | `KisMainWindow`、`KisViewManager`、`KisCanvas2` |
@@ -826,53 +891,71 @@ R2-G3で
 
 LinuxとWindowsでは依存関係出力をソースビルドから分離しています。LinuxのAppImage、WindowsのZIP、iOSのIPAは完成済みアプリケーションへ重ねる最終段階です。iOSはさらに、外部ライブラリーを個別のNix派生物として構築し、固定したXcode／SDK契約を検査します。Appleの署名、AltStoreへのインストール、端末操作は認証情報と外部状態を扱うため`packaging/ios`側に残ります。
 
-## 調査と設計判断の手順
+Linuxの配布処理は実行時ツリーを用意し、Nixの基礎依存構築で消去された参照を
+探索パスから取り除いてから圧縮する。OpenColorIOの探索パスは依存構築時に設定する。
+成果物監査は、各探索パスと動的リンカーの解決、必要機能の収録を確認する。
 
-### 1. 実行時の所有者を決める
+macOSはPython／PyQtの実行時Frameworkをアプリケーションソースから独立したNix派生物で
+構築する。`packaging/macos`は完成済みNix出力のライブラリー、プラグイン、データを
+アプリ内へ配置し、元の依存先を保持したまま相対参照へ変更する。署名前後とDMG収録後の
+成果物検査は、配置結果、実行時機能、署名を確認する。配布処理のソースと監査手順は
+アプリケーションのコンパイル入力から分離する。
 
-現象を「プロセス」「文書」「画像」「プラグイン機能」「資産」「配布物」のどれが所有するか分類します。所有者が不明な場合は、公開クラス名より先に呼び出し経路を`rg`で追います。
+Linuxの`libs/color`はQt DBusの検出結果を色管理バックエンドの選択条件とする。Qt DBusが
+利用できる構成は`kritacolord`へ依存し、利用できない構成はダミー実装を選択する。
 
-### 2. 構築時と実行時の境界を分ける
+### iOSの依存物とアプリ包装
 
-`CMakeLists.txt`はコンパイル・リンク・インストールの関係を決めます。プラグインJSONとレジストリーは実行時の発見と選択を決めます。Nixはそのターゲットへ与える外部依存関係と成果物の組立を決めます。同じ機能でも三つすべてに変更が必要な場合があります。
+Nixは公開ソース、パッチ、ホストツールを固定し、外部ライブラリーをパッケージ単位の派生物へ分けます。
+[共通構築定義](../../nix/ios/default.nix)と`nix/ios/mk-ios-*.nix`が構築境界を、
+`nix/ios/packages/`が個別レシピを所有します。XcodeはApple ClangとSDKを供給し、
+`__impureHostDeps`を宣言する派生物だけが外部のXcodeを参照します。
+版はXcodeとSDKのplistから読み、固定値へ照合します。
 
-### 3. 共通実装を先に検討する
+Xcode、SDK、Clangの版・ビルド識別子、対象OS、アーキテクチャはコンパイル済み依存物全体で一致させます。
+ホスト生成器はNixコンパイラー、対象ライブラリーはAppleコンパイラーで構築し、CMakeとpkg-configは
+宣言した対象依存物だけを検索します。純粋なヘッダーパッケージは`iosTargetIndependent = true`とし、
+ソースとヘッダー依存だけを入力に持ちます。伝播する依存は`nix-support/propagated-build-inputs`へ記録します。
 
-描画、文書、ファイル形式、画面動作の共通処理は`libs`または`plugins`を所有者に
-します。OSのライフサイクル、ネイティブファイル選択、入力API、署名・配備との
-接続をプラットフォーム境界へ置くと、デスクトップとモバイルで同じ処理経路を
-検証できます。
+静的アーカイブは日時を正規化し、全要素のアーキテクチャ、Appleプラットフォーム、最小OS、SDK、
+重複名を検査します。出力のXcode絶対パスと一時構築パスの混入も検査します。
+個別依存の利用側検査は、公開するCMake対象から推移的なリンクが成立することを確認します。
+`ios-dependencies`が採用依存物を集約し、`kf6-consumer-check`がQt／KFを含む最終リンクを検証します。
 
-### 4. 安定識別子を確認する
-
-KRA MIME／UTI、設定ディレクトリー、CMakeターゲット、プラグインID、
-アクションID、デスクトップIDには互換性上の意味があります。変更時は参照元、
-移行方法、互換性試験を一組で扱います。
-
-### 5. 影響に比例した検証を選ぶ
-
-| 変更範囲 | 最低限の検証 |
+| 依存物 | 保持する契約 |
 | --- | --- |
-| 文書と図のみ | `nix develop .#docs --command scripts/docs/check-architecture.sh` |
-| CMake／Nix評価 | `nix flake check --no-build --all-systems` |
-| ライブラリー内部 | 対象ディレクトリーの単体試験と該当プラットフォームの開発シェル |
-| プラグイン | 登録確認、対象機能の操作、該当形式なら往復試験 |
-| 入力・描画 | 押下・移動・解放、アンドゥ、投影更新、対象デバイス |
-| 配布定義 | 名前付き`nix build`出力、成果物検査、対象OSでの起動 |
-| iOS静的プロファイル | プラグイン目録、最終リンク、IPA検査、実機の対象操作 |
+| libpng | `PNG::PNG`からzlibを含む利用側のリンクが成立する |
+| FreeType | `Freetype::Freetype`だけの指定からzlib／libpngを推移的に解決する |
+| HarfBuzz | FreeType接続と配置先に依存しないCoreText参照を維持する |
+| Fontconfig | ホスト検出はiPhoneOS SDKを外したNixコンパイラーを使い、利用側はXML、FreeType、生成設定を含む5アーカイブをリンクする |
+| Expat、Little CMS、Eigen、xsimd | インストール済みCMake対象を利用でき、xsimdはarm64 SIMDをコンパイルできる |
+| libunibreak | 製品の`Findlibunibreak.cmake`からUTF-8改行APIをリンクできる |
+| libjpeg-turbo | JPEG／TurboJPEGの静的公開対象を個別にリンクでき、arm64 NEONオブジェクトを含む |
+| Exiv2 | 監査済みライブラリー機能、JPEG／Exifと文字変換、zlib依存、SDKに依存しない`-liconv`指定を維持する |
+| Boost | Xcodeに依存しないヘッダー派生物と、Appleツールチェーンでの利用側検証を分離する |
+| Immer、Zug | 再配置可能なCMakeメタデータ、同一メジャー版の範囲照合、C++14要件を公開する。ZugはC++17の`std::variant`経路も検証する |
+| Lager | `lager`対象がBoost／ZugヘッダーとC++17を伝播し、state／cursor／watch／store APIを単独指定で利用できる。デバッガー用Immer／Cerealは任意ヘッダーが所有する |
+| libintl | `gettext-runtime/intl`のヘッダーと静的ライブラリーを対象出力とし、gettextツールをホスト側に置く。`Intl::Intl`からgettext／domain／pluralとiconv／CoreFoundationをリンクする |
+| FriBidi | Mesonのホスト／対象設定を分離し、7個の表生成器をmacOSで実行する。ヘッダー、`libfribidi.a`、`fribidi.pc`を公開し、製品の検出経路でbidi種別、括弧、段落APIを検証する |
 
-## この文書と図の保守
+アプリ構築は製品ソースと静的プラグイン・資源を入力とし、IPA包装は完成済みアプリを入力とします。
+依存定義、製品コンパイル、包装の変更範囲を分けることで、文書や包装の変更時も依存物を再利用します。
+IPAは順序、日時、Unix権限を正規化し、シンボリックリンク、特殊ファイル、危険・重複パス、
+余分なZIPメタデータ、DOS読取り専用属性、作業用配置との目録差を診断します。
+Nix出力は未署名とし、AltStore署名・端末操作は配備用複製に対して行います。
 
-文書用の全ツールは`nix develop .#docs`にあります。図の生成元は
-`docs/architecture/*.d2`で、SVGはレビューと通常のMarkdown表示のために
-追跡します。図の変更はD2の生成元へ加え、SVGを再生成します。
+Apple由来の成果物は私有バイナリキャッシュで共有します。共有キャッシュの署名と
+アプリ署名は別の責務です。利用中の構築グラフから依存物・派生物・ソース・構築時入力を保護し、
+その保護を追加構築なしで更新できる状態でキャッシュを保守します。
+具体的なコマンドは[開発マニュアル](DEVELOPMENT.md#iosipados)に従います。
 
-`nix develop .#docs --command scripts/docs/render-architecture.sh`
+### Windowsの依存供給
 
-文書、リンク、D2構文、生成済みSVGの一致をまとめて確認します。
-
-`nix develop .#docs --command scripts/docs/check-architecture.sh`
-
-新しい主要境界を追加した場合は、全体構造、変更内容から見る場所、該当する
-実行経路の三か所が整合するように更新します。プラットフォーム固有の詳細手順は
-`docs/<platform>/`または`packaging/<platform>/`の文書を正本にします。
+共通CMakeは供給元の配置から独立した名前付き対象を利用し、ホストで実行する生成ツールと
+Windows向けヘッダー・ライブラリーを分離します。ホスト判定は`CMAKE_HOST_*`、対象判定は
+`WIN32`とツールチェーン情報が所有します。配布機能の必須依存は構成時に検査します。
+供給元固有の修正はパッケージ定義に置き、暫定回避策にはIssueと削除条件を付けます。
+MinGW向けlibjxlの構成は`flake.nix`の依存定義が所有し、本体の構築と配布物へ
+同じ実行時ライブラリーを供給します。Windowsの配布監査は、必須機能の収録と
+`bin`に集約したDLLによる依存解決をそれぞれ確認します。
+構造の改善と受入れ条件は[Issue #68](https://github.com/serika12345/librepaint/issues/68)で管理します。

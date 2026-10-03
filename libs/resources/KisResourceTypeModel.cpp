@@ -9,6 +9,10 @@
 #include <QSqlQuery>
 
 #include <KisResourceTypes.h>
+#include <qabstractitemmodel.h>
+#include <qlogging.h>
+#include <qnamespace.h>
+#include <qobject.h>
 
 struct KisResourceTypeModel::Private {
     int cachedRowCount {-1};

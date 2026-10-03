@@ -18,9 +18,17 @@
 #include <KoResourceServerProvider.h>
 #include <KisTagFilterResourceProxyModel.h>
 
+#include "KisResourceTypes.h"
+#include "KoResource.h"
+#include "KoResourceServer.h"
 #include "kis_signals_blocker.h"
 
 #include <application/kis_config.h>
+#include <qframe.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qsizepolicy.h>
+#include <qwidget.h>
 #include <resources/KoPattern.h>
 
 #include <ksqueezedtextlabel.h>

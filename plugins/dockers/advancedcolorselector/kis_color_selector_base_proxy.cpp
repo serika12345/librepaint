@@ -8,6 +8,7 @@
 
 #include "KoColorSpaceRegistry.h"
 
+#include "kis_acs_types.h"
 #include "kis_color_selector_base.h"
 #include "kis_display_color_converter.h"
 

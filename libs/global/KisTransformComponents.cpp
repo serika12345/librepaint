@@ -7,6 +7,7 @@
 #include <QDebug>
 #include <kis_algebra_2d.h>
 #include <KisTransformComponents.h>
+#include <qnumeric.h>
 
 namespace KisAlgebra2D {
 

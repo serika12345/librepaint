@@ -37,6 +37,13 @@
 #include <QKeyEvent>
 #include <QInputMethodEvent>
 #include <QFocusEvent>
+#include <qflags.h>
+#include <QtGlobal>
+#include <qhash.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qset.h>
 
 KoToolBase::KoToolBase(KoCanvasBase *canvas)
     : d_ptr(new KoToolBasePrivate(this, canvas))

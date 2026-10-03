@@ -5,6 +5,7 @@
  */
 
 #include "KoSimpleColorSpaceFactory.h"
+#include "KoColorProfile.h"
 
 #include <colorprofiles/KoDummyColorProfile.h>
 

@@ -5,6 +5,8 @@
  */
 
 #include "ResourceDebug.h"
+#include <qlogging.h>
+#include <qloggingcategory.h>
 
 const QLoggingCategory &RESOURCE_LOG() \
 {

@@ -8,6 +8,13 @@
 #include "kis_input_profile_model.h"
 
 #include "input/ui/kis_input_profile_manager.h"
+#include <qabstractitemmodel.h>
+#include <qhashfunctions.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qstringlistmodel.h>
+#include <qvariant.h>
 
 KisInputProfileModel::KisInputProfileModel(QObject *parent)
     : QStringListModel(parent)

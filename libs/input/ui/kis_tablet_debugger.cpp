@@ -17,6 +17,10 @@
 #include <QGlobalStatic>
 
 #include <klocalizedstring.h>
+#include <qdebug.h>
+#include <qevent.h>
+#include <QtGlobal>
+#include <qobject.h>
 
 Q_GLOBAL_STATIC(KisTabletDebugger, s_instance)
 

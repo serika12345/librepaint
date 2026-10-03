@@ -61,7 +61,25 @@ function(KRITA_ADD_UNIT_TEST)
   if(ARG_GUI)
       set(gui_args WIN32 MACOSX_BUNDLE)
   endif()
-  add_executable(${_targetname} ${gui_args} ${_sources})  
+  if(ANDROID)
+    # Android packages one selected Qt Test at a time. Keep every test module
+    # available as an explicit target without adding all tests to the product
+    # build graph.
+    # Qt's Android deployment support treats every MODULE library in the build
+    # tree as a runtime plugin and makes the product APK depend on it.  Test
+    # entry points are ordinary shared libraries loaded by the dedicated test
+    # runner, so keep them out of both the default build and the product APK.
+    add_library(${_targetname} SHARED EXCLUDE_FROM_ALL
+      ${_sources}
+    )
+    target_compile_definitions(${_targetname} PRIVATE main=kis_qtest_main)
+    set_target_properties(${_targetname} PROPERTIES
+      CXX_VISIBILITY_PRESET default
+      VISIBILITY_INLINES_HIDDEN OFF
+    )
+  else()
+    add_executable(${_targetname} ${gui_args} ${_sources})
+  endif()
   set_test_sdk_compile_definitions(${_targetname})
 
   if (KRITA_ENABLE_PCH AND ARG_PCH_FILE)
@@ -69,7 +87,7 @@ function(KRITA_ADD_UNIT_TEST)
       target_precompile_headers(${_targetname} PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/pch/${LOCAL_PCH_FILE}>")
   endif()
 
-  if(NOT ARG_GUI)
+  if(NOT ARG_GUI AND NOT ANDROID)
     ecm_mark_nongui_executable(${_targetname})
   endif()
 

@@ -5,7 +5,14 @@
  */
 #include "AngleSelector.h"
 
+#include "KisAngleGauge.h"
+#include "KisAngleSelector.h"
 #include "kis_debug.h"
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
 
 namespace

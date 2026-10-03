@@ -10,6 +10,11 @@
 #include <KoPathShape.h>
 #include <KoPathPoint.h>
 #include <QDebug>
+#include <qalgorithms.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qlogging.h>
+#include <qnumeric.h>
 
 /*
 the algorithm proceeds as following:

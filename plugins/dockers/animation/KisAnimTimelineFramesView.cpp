@@ -9,6 +9,9 @@
 #include "KisAnimTimelineFramesModel.h"
 #include "KisAnimTimelineTimeHeader.h"
 #include "KisAnimTimelineLayersHeader.h"
+#include "KisQStringListFwd.h"
+#include "kis_assert.h"
+#include "kundo2magicstring.h"
 #include "timeline_insert_keyframe_dialog.h"
 #include "KisAnimTimelineFrameDelegate.h"
 #include "animation/KisPlaybackEngine.h"
@@ -47,7 +50,28 @@
 #include "kis_image_config.h"
 #include "widgets/kis_zoom_scrollbar.h"
 #include "KisImportExportManager.h"
+#include <algorithm>
+#include <limits>
+#include <qabstractitemmodel.h>
+#include <qabstractitemview.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qcoreevent.h>
 #include <qdir.h>
+#include <qheaderview.h>
+#include <qitemselectionmodel.h>
+#include <qlist.h>
+#include <qmap.h>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qpair.h>
+#include <qset.h>
+#include <qstandardpaths.h>
+#include <qstyleoption.h>
+#include <qtableview.h>
+#include <qtoolbutton.h>
+#include <qwidgetaction.h>
 #include "KisIconToolTip.h"
 
 typedef QPair<QRect, QModelIndex> QItemViewPaintPair;

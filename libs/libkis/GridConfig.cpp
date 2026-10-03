@@ -7,6 +7,10 @@
 
 #include <QDomDocument>
 #include <QDomElement>
+#include <qcolor.h>
+#include <QtGlobal>
+#include <qobject.h>
+#include <qpoint.h>
 
 #include "kis_grid_config.h"
 

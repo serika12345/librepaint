@@ -51,8 +51,10 @@ void KisAnimationRenderDimensionsTest::videoFormatAndRenderModeDetermineRequirem
                                << true;
     QTest::newRow("matroska-video") << QStringLiteral("video/x-matroska")
                                     << KisAnimationRenderingOptions::RENDER_VIDEO_ONLY << true;
+#ifndef Q_OS_ANDROID
     QTest::newRow("mp4-frames-and-video")
         << QStringLiteral("video/mp4") << KisAnimationRenderingOptions::RENDER_FRAMES_AND_VIDEO << true;
+#endif
     QTest::newRow("mp4-frames-only") << QStringLiteral("video/mp4") << KisAnimationRenderingOptions::RENDER_FRAMES_ONLY
                                      << false;
     QTest::newRow("matroska-frames-only")

@@ -17,9 +17,15 @@
 #include <kis_debug.h>
 #include <klocalizedstring.h>
 #include <kpluginfactory.h>
-#include <kis_image.h>
+#include <qcontainerfwd.h>
+#include <qlist.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
+#include "kis_qmic_interface.h"
 #include "kis_qmic_plugin_interface.h"
+#include "ui/orchestration/KisActionPlugin.h"
+#include <kis_image.h>
 
 K_PLUGIN_FACTORY_WITH_JSON(QMicFactory, "kritaqmic.json", registerPlugin<QMic>();)
 

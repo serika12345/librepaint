@@ -12,9 +12,15 @@
 #include <cmath>
 
 #include <functional>
+#include <QtGlobal>
+#include <qpoint.h>
+#include <qscopedpointer.h>
 
 #include "kis_algebra_2d.h"
+#include "kis_assert.h"
+#include "kis_bspline.h"
 #include "kis_debug.h"
+#include "kis_gradient_shape_strategy.h"
 
 
 using namespace KisBSplines;

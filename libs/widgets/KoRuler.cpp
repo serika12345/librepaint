@@ -14,8 +14,8 @@
 #include <KoToolBase.h>
 #include <KoToolManager.h>
 
+#include <algorithm>
 #include <klocalizedstring.h>
-#include <WidgetsDebug.h>
 
 #include <QPainter>
 #include <QResizeEvent>
@@ -26,6 +26,17 @@
 #include <cmath>
 
 #include <KoViewConverter.h>
+#include <QtGlobal>
+#include <qfont.h>
+#include <qline.h>
+#include <qlist.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobjectdefs.h>
+#include <qpoint.h>
+#include <qpolygon.h>
+#include <qsize.h>
+#include <qtextoption.h>
 
 // the distance in pixels of a mouse position considered outside the rule
 static const int OutsideRulerThreshold = 20;

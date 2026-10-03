@@ -11,7 +11,7 @@
 
 #include <kis_debug.h>
 
-#include "psd.h"
+#include "kis_annotation.h"
 #include "psd_resource_section.h"
 #include "psd_utils.h"
 
@@ -21,6 +21,11 @@ PSDResourceBlock::PSDResourceBlock()
     , dataSize(0)
     , resource(0)
 {
+}
+
+PSDResourceBlock::~PSDResourceBlock()
+{
+    delete resource;
 }
 
 bool PSDResourceBlock::read(QIODevice &io)

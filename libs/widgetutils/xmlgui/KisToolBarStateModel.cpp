@@ -5,6 +5,7 @@
  */
 
 #include "KisToolBarStateModel.h"
+#include <lager/extra/qt.hpp>
 
 KisToolBarStateModel::KisToolBarStateModel()
     : m_toolBarsLocked{true}

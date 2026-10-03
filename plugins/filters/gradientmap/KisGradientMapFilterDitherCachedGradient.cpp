@@ -11,6 +11,7 @@
 #include <KoStopGradient.h>
 #include <KoSegmentGradient.h>
 #include <KoColorSpace.h>
+#include <QtGlobal>
 
 #include "KisGradientMapFilterDitherCachedGradient.h"
 

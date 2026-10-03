@@ -5,7 +5,9 @@
  */
 #include "kis_spray_paintop_settings_widget.h"
 
+#include "KisBrushOptionWidgetFlags.h"
 #include "kis_spray_paintop_settings.h"
+#include "kis_types.h"
 
 #include <KisColorOptionWidget.h>
 #include <kis_paintop_settings_widget.h>
@@ -21,6 +23,7 @@
 #include <KisSprayOpOptionWidget.h>
 #include <KisSprayShapeDynamicsOptionWidget.h>
 #include <KisSprayShapeOptionWidget.h>
+#include <qwidget.h>
 
 
 

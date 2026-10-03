@@ -18,6 +18,12 @@
 #include <klocalizedstring.h>
 
 #include <kis_filter_strategy.h>
+#include <QtGlobal>
+#include <qboxlayout.h>
+#include <qnamespace.h>
+#include <qnumeric.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
 
 #include "kis_aspect_ratio_locker.h"
 #include "kis_acyclic_signal_connector.h"

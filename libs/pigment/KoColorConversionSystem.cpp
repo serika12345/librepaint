@@ -5,17 +5,26 @@
 */
 
 #include "KoColorConversionSystem.h"
+#include "DebugPigment.h"
 #include "KoColorConversionSystem_p.h"
 
 #include <QHash>
 #include <QString>
+#include <algorithm>
+#include <iterator>
+#include <qalgorithms.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qlist.h>
 
 #include "KoColorConversionTransformation.h"
+#include "KoColorConversionTransformationFactory.h"
 #include "KoColorProfile.h"
 #include "KoColorProfileQuery.h"
 #include "KoColorSpace.h"
 #include "KoCopyColorConversionTransformation.h"
 #include "KoMultipleColorConversionTransformation.h"
+#include "kis_assert.h"
 
 
 KoColorConversionSystem::KoColorConversionSystem(RegistryInterface *registryInterface)

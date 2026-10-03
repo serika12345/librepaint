@@ -7,7 +7,15 @@
 #include "qgiflibhandler.h"
 #include <QDebug>
 #include <QVariant>
+#include <cstdlib>
 #include <gif_lib.h>
+#include <QtGlobal>
+#include <qcontainerfwd.h>
+#include <qimage.h>
+#include <qimageiohandler.h>
+#include <qlogging.h>
+#include <qobject.h>
+#include <qrgb.h>
 #include <string.h>		// memset
 #include <QPainter>
 

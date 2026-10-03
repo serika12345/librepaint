@@ -5,6 +5,8 @@
  */
 
 #include "nodes/kis_node_insertion_adapter.h"
+#include "kis_types.h"
+#include "nodes/kis_node_manager.h"
 
 struct KisNodeInsertionAdapter::Private
 {

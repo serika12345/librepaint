@@ -11,9 +11,12 @@
 #include "KoPathShape.h"
 #include <klocalizedstring.h>
 #include "kis_assert.h"
+#include "kundo2magicstring.h"
 #include <KoPathPointData.h>
 
 #include <QHash>
+#include <QtGlobal>
+#include <qlist.h>
 
 class Q_DECL_HIDDEN KoPathCombineCommand::Private
 {

@@ -8,7 +8,6 @@
 
 #include <algorithm>
 
-#include <QtSql>
 #include <QFile>
 #include <QRegularExpression>
 #include <QStringList>

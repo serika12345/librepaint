@@ -1,9 +1,9 @@
 # AGENTS.md
 
 This file defines the operational contract for coding agents working on
-LibrePaint. Use it with `docs/architecture/TODO.md`,
-`docs/architecture/PROGRESS.md`, `docs/architecture/DEVELOPMENT.md`, and the
-platform documents relevant to the active task.
+LibrePaint. Use it with `docs/architecture/ROADMAP.md`,
+`docs/architecture/PROGRESS.md`, and `docs/architecture/DEVELOPMENT.md` for
+development procedures. `docs/architecture/README.md` owns design boundaries.
 
 ## Communication
 
@@ -46,9 +46,29 @@ starting files or directories and their destination files or directories as a
 traceable mapping. File paths are required review entry points even when class,
 target, and test identifiers are unnecessary supporting detail.
 
+## Issue Approval and Sensitive Information
+
+Every Issue write requires an explicit user request, followed by presentation
+of the exact proposed text or change and the user's approval of that proposal.
+This includes creation, comments, body edits, metadata and state changes, and
+deletions. A task request, implementation approval, or repository synchronization
+requirement does not authorize an Issue write. Approval applies only to the
+presented change. This rule takes precedence over all Issue-recording and
+synchronization procedures in this repository, including completion reporting
+and correction of existing disclosures.
+
+Treat local work details and security operations as sensitive, even when secret
+values are absent. Keep actual key storage and recovery arrangements, credential
+configuration status, personal paths, host and device availability, and local
+storage inventories out of Issues and tracked documents, including
+`PROGRESS.md`. Discuss operational details in the conversation; use private
+storage only when the user designates it. Generic reproducible procedures and
+public software facts belong in repository documentation. Public reports use
+only the minimum project facts needed to describe behavior and verification.
+
 ## Roadmap Order
 
-LibrePaint follows the roadmap in `docs/architecture/TODO.md`.
+LibrePaint follows the roadmap in `docs/architecture/ROADMAP.md`.
 
 1. R1 establishes responsibilities, package boundaries, and dependency
    direction.
@@ -56,7 +76,8 @@ LibrePaint follows the roadmap in `docs/architecture/TODO.md`.
 3. R3 optimizes rendering against the R2 contracts.
 4. R4 introduces the Vulkan backend through the stable rendering boundaries.
 5. R5 optimizes the mobile UI through shared application boundaries.
-6. R6 completes C++20 adoption and repository-wide modernization.
+6. R6 completes the common language baseline and repository-wide modernization.
+   Issue #52 owns the independent C++23 baseline migration.
 
 Production integration enters each stage after its prerequisite completion
 criteria pass. Exploration for later stages records findings in the relevant
@@ -65,25 +86,32 @@ algorithms, execution order, scheduling, and synchronization.
 
 ## Resume Procedure
 
-Durable project state lives in the repository documents. Architecture,
-refactoring, test-foundation, and roadmap sessions begin with this sequence:
+GitHub Issues own task scope, prerequisites, completion criteria, state, and
+verification results. Repository documents own architecture, development usage,
+and a public-safe project snapshot. Begin each session with this sequence:
 
 1. Read `docs/architecture/PROGRESS.md`.
-2. Read the active gate in `docs/architecture/TODO.md` and its linked design
-   or platform documents.
+2. Read the linked active Issue, its prerequisites, and the relevant sections
+   of the development manual and architecture guide. Use
+   `docs/architecture/ROADMAP.md` to locate owners.
 3. Inspect the current branch and worktree.
-4. Validate the recorded next action against the current files.
-5. Continue that action, or select the earliest planned gate whose
-   prerequisites are complete.
+4. Validate the recorded next action against the Issue and current files.
+5. Continue that action, or select the earliest ready Issue whose prerequisites
+   are complete.
 
-Roadmap state changes update `docs/architecture/PROGRESS.md` in the same
-change. The snapshot records a JST timestamp, state, gate, purpose, completed
-work, next action, and verification status. Active work uses `in_progress`;
-the next ready action uses `planned`; paused work records its resumption
-condition.
+Report task state and verification in the conversation. Update the owning Issue
+only through the Issue approval procedure above. Keep one public-safe snapshot
+with the Issue URL, project state, verification summary, and next project step.
+Keep private operational details in the conversation. Issues and Git history
+retain approved public records.
 
-Large roadmap items use reviewable gates with an explicit purpose, scope
-boundary, completion criteria, verification tier, and stop condition.
+Active work uses `in_progress`; the next ready action uses `planned`; paused
+work records its resumption condition. GitHub open/closed state records whether
+the completion criteria have been accepted. An open Issue may be planned,
+in progress, or waiting for a recorded prerequisite.
+
+Large roadmap items use parent Issues and bounded child Issues with an explicit
+purpose, scope, completion criteria, verification tier, and stop condition.
 
 ## Development Environment
 
@@ -105,9 +133,32 @@ pinned device environment. Android and Windows use source-independent pinned
 profiles on the x86_64 Linux build host. `path`, `configure`, `plan`, `build`,
 `bootstrap`, and `cache-stats` expose each supported platform cycle.
 
-Direct Nix entry remains available through `nix develop .#test`.
-Documentation work may use `nix develop .#docs`. Required tool additions target
-the narrowest relevant shell.
+One evaluated development profile serves the complete source-iteration
+session. A shell already loaded by direnv runs the commands above directly.
+Automation or another process that does not inherit that shell uses
+`./scripts/run-shared-test-env <command> [arguments...]`, including in the
+primary worktree. The helper loads the stable `.direnv/flake-profile` through
+`nix print-dev-env`; it does not evaluate the current worktree as a new local
+flake input.
+
+Direct `nix develop .#test` and `nix develop .#docs` entry remains available
+for initial profile creation and after the corresponding development-shell,
+flake input, lock file, or source-filter definition changes. Do not wrap each
+source edit, target build, test, verification command, or per-target commit in
+`nix develop` or `direnv exec`: a distinct local-flake source state enters the
+immutable Nix store, and the application source filter can create a second
+near-complete source path. Required tool additions target the narrowest
+relevant shell and receive one deliberate environment reevaluation.
+
+Before and after a deliberate local-flake reevaluation during a large roadmap
+item, compare the dead `*-source` and `*-librepaint-source` path count and
+recoverable size. Unexpected growth stops further local-flake evaluation; the
+session resumes through the last valid cached profile and reports the cause in
+the conversation. Keep local storage measurements out of tracked snapshots.
+Garbage collection is a separate storage
+operation: resolve exact dead paths, preserve active profiles and build caches,
+and obtain the authority required by the destructive-action rules before
+deleting them.
 
 Nix expressions preserve small inputs and reusable cache boundaries.
 Source-independent dependencies, LibrePaint compilation, test execution,
@@ -135,13 +186,16 @@ Every code, build, script, and policy change follows this sequence:
 7. Refactor while the relevant contract remains green.
 8. Audit responsibility, dependency direction, ownership, lifetime, public
    API, file growth, and platform impact.
-9. Synchronize TODO, progress, architecture, fixed test data, and baselines.
+9. Synchronize public-safe repository documentation, fixed test data, and
+   baselines. Apply the Issue approval procedure to any requested Issue update.
 10. Run the verification tier required by the change scope.
 
-Compiler options, linters, architecture checks, image comparisons, and
-verification scripts retain or increase their enforcement strength. A reviewed
-exception records its reason, owner, tracked TODO, maximum scope, and removal
-condition.
+Required checks directly protect a documented responsibility, dependency,
+public boundary, observable behavior, or platform artifact boundary. Maintain
+one authoritative check for each guarantee. Remove checks that only freeze
+implementation spelling, completed relocations, formatting, or inventories
+without a current consumer contract. Review retained guarantees when changing
+the verification set.
 
 Each reviewable change groups one feature or one structural concern.
 Structural preparation receives its own gate when it has an independent
@@ -153,9 +207,10 @@ Parallel implementation uses one coordinator and non-overlapping worker
 lanes. The coordinator records one base commit and gives every lane a task
 packet containing the exact public headers and API identifiers, allowed paths,
 owned CMake files and targets, nearest contract, platform scope, build
-permission, Git authority, integration order, and stop conditions. The active
-lane packets and their states are recorded in `docs/architecture/PROGRESS.md`
-before workers start. Two active lanes never share a production header,
+permission, Git authority, integration order, and stop conditions. Share active
+lane packets and their states within the working conversation before workers
+start. The public-safe snapshot links to the coordinator Issue. Two active lanes
+never share a production header,
 implementation file, test source, CMake file, or generated artifact.
 
 Each worker lane uses a dedicated Git worktree and a worktree-local Ninja
@@ -184,7 +239,7 @@ Workers follow the complete implementation workflow within their lane,
 including the unchanged build plan, direct dependencies, clean command
 closure, expected first diagnostic, target test, repetition, and platform
 result. A lane task packet is the worker's scoped continuation of the global
-progress snapshot; the worker does not select the coordinator's next action or
+Issue; the worker does not select the coordinator's next action or
 delegate further work unless its packet explicitly authorizes that action. A
 worker stops and reports when required work crosses its allowed paths, overlaps
 another lane, changes an unassigned public API, needs an unassigned dependency,
@@ -201,7 +256,7 @@ The coordinator removes obsolete generated storage as soon as its replacement
 is verified. Completed lane worktrees include their lane-local build trees in
 the same removal. Keep the reusable primary Ninja tree and shared compiler
 cache. Remove obsolete lane build artifacts after integrated tests succeed.
-Record retained storage and reclaimed lane storage in the progress snapshot.
+Report retained storage and reclaimed lane storage in the conversation.
 Preserve user-owned artifacts and do not
 discard the primary incremental tree or shared cache while they remain useful.
 
@@ -228,19 +283,15 @@ work in the progress snapshot.
 Before adding or expanding a contract test, identify the consumer, operation,
 observable result, and concrete caller-visible failure. Treat one use case or
 state transition as the coverage unit; a declaration is not a coverage unit.
-Tests named `*ContractTest` or `*_contract_test` do not use type traits,
-compile-time shape assertions, or exact signature aliases. A declaration-shape
-check required for source, binary, serialized-data, plugin, or scripting
-compatibility belongs in a `*CompatibilityTest` or `*_compatibility_test` and
-contains a `// Compatibility requirement:` line naming the consumer and stable
-property. `scripts/architecture/check_test_contracts.py` enforces these
-mechanical admission rules in `verify-quick`.
+Behavioral tests assert observable results. Compatibility tests document the
+consumer and stable property that require a declaration or format to remain
+unchanged. Review these requirements with the corresponding production callers.
 
 Use these layers:
 
 - one Qt Test target during the red-green cycle;
 - the affected component CTest set before local completion;
-- `./scripts/verify-quick` for policy, scripts, and architecture documents;
+- `./scripts/verify-quick` for dependency, public-header, and registration boundaries;
 - `./scripts/verify` for the complete native test gate;
 - platform, sanitizer, performance, and device suites at their documented
   integration gates.
@@ -319,12 +370,12 @@ settings paths and keys, CMake target names, desktop IDs, serialized formats,
 and scripting APIs.
 
 Temporary forwarding headers, adapters, compatibility branches, and reviewed
-exceptions carry a deletion condition and tracked roadmap item.
+exceptions carry a deletion condition and tracked Issue.
 
 ## C++ and Qt
 
-Common builds use C++17 facilities through R6. The R6 gate records supported
-compilers, standard libraries, Qt versions, and platform constraints for the
+Common builds use C++17 facilities until Issue #52 passes. That Issue records
+supported compilers, standard libraries, Qt versions, and platform constraints for the
 language-standard transition.
 
 APIs express ownership, lifetime, nullability, and error behavior. Prefer value
@@ -351,11 +402,14 @@ conventions. Formatting and renaming scope matches the active gate.
 
 ## Governance
 
-Governance checks encode repository-owned, reproducible contracts. Current
-contracts cover UTF-8 text representation, approved control and formatting
-characters, the compact package-boundary policy, current public headers and
-plugin registrations, shell scripts, architecture documents, links, and
-generated diagrams.
+Governance checks protect the compact package-boundary policy, public-header
+visibility, and plugin registration integrity. Their tests exercise rejected
+dependencies and invalid boundary inputs. Platform artifact checks inspect the
+actual executable, linked resources, and installed runtime data.
+
+Asset manifests and notices retain provenance and adopted scope. Review asset
+changes against those sources; binary checks enforce the selected resource
+boundary. Documentation maintenance uses source review and diagram generation.
 
 Architecture dependency contracts derive from the current CMake File API graph.
 Each platform configure checks target ownership, allowed dependency direction,
@@ -368,35 +422,45 @@ Documents contain durable project state, design, commands, and maintenance
 instructions. Sentences describe purpose, ownership, inputs, outputs,
 execution order, and successful end states in affirmative form. Migration
 observations belong to implementation reports and repository history. The
-progress snapshot contains the current work and its next action.
+progress snapshot contains public-safe project state and its next step.
 
-- `docs/architecture/TODO.md` owns the cross-platform roadmap and gate state.
-- `docs/architecture/PROGRESS.md` owns the current resumable work snapshot.
-- `docs/architecture/README.md` owns the stable architecture guide.
-- `docs/architecture/DEVELOPMENT.md` owns development and verification usage.
-- `docs/<platform>/` owns platform design and validation details.
+- GitHub Issues own tasks, state, prerequisites, acceptance, and verification.
+- `docs/architecture/ROADMAP.md` owns stage order and Issue entry points.
+- `docs/architecture/PROGRESS.md` owns the current public-safe project snapshot.
+- `docs/architecture/README.md` owns shared and platform-specific design boundaries.
+- `docs/architecture/DEVELOPMENT.md` is the single development manual for all
+  platforms, including setup, builds, verification, deployment, and maintenance.
+- Asset manifests and attribution documents own license evidence and adopted scope.
+
+Update the relevant manual section for new procedures. Issue records require
+the Issue approval procedure; Git history retains committed public changes.
+Link version and inventory
+information to its source definition.
 
 D2 sources own architecture diagrams. Diagram updates regenerate their SVG
 outputs through the documented render command.
 
 ## Verification Matrix
 
-Documentation and policy changes run:
+Architecture policy and boundary-check changes run:
 
 ```sh
-nix develop .#test --command ./scripts/verify-quick
+./scripts/run-shared-test-env ./scripts/verify-quick
 ```
+
+Documentation changes review links and design consistency. D2 changes regenerate
+the corresponding SVG with `scripts/docs/render-architecture.sh` in the docs shell.
 
 One native test target runs:
 
 ```sh
-nix develop .#test --command ./scripts/run-test <target> [ctest-regex]
+./scripts/run-shared-test-env ./scripts/run-test <target> [ctest-regex]
 ```
 
 The complete native gate runs:
 
 ```sh
-nix develop .#test --command ./scripts/verify
+./scripts/run-shared-test-env ./scripts/verify
 ```
 
 Nix output changes also run:
@@ -406,8 +470,9 @@ nix flake check --no-build --all-systems
 ```
 
 Platform-boundary changes run the matching build, artifact, simulator, device,
-or performance verification. The active progress snapshot records exact
-commands and results.
+or performance verification. Report commands and results in the conversation.
+Requested Issue updates require approval of the exact public-safe text; the
+snapshot records a public-safe verification summary.
 
 ## Completion
 
@@ -418,7 +483,8 @@ A completed task has:
 - successful required checks in the Nix environment;
 - an architecture and platform impact assessment;
 - justified baselines and reviewed exceptions;
-- synchronized TODO, progress, and architecture documents;
+- synchronized public-safe snapshot, roadmap links, and architecture documents;
+- Issue updates only when explicitly requested and their exact changes approved;
 - current generated documentation artifacts;
 - preserved user-owned worktree changes.
 

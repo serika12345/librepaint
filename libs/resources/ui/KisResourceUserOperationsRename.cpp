@@ -8,6 +8,7 @@
 #include <kis_assert.h>
 
 #include "KisResourceUserOperationsRenameSource_p.h"
+#include "KoResource.h"
 
 bool KisResourceUserOperations::renameResourceWithUserInput(QWidget *widgetParent,
                                                              KoResourceSP resource,

@@ -11,6 +11,11 @@
 #include "KisBezierUtils.h"
 
 #include <QDebug>
+#include <qcontainerfwd.h>
+#include <qpoint.h>
+#include <qsize.h>
+#include <QtGlobal>
+#include <vector>
 
 QRectF KisBezierPatch::dstBoundingRect() const {
     QRectF result;

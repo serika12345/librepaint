@@ -3,6 +3,11 @@
 #include <QToolButton>
 #include <QHBoxLayout>
 #include <QAction>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qscopedpointer.h>
+#include <qsize.h>
+#include <qsizepolicy.h>
 
 
 struct KisCollapsibleButtonGroup::Private {

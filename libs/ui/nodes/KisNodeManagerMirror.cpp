@@ -4,8 +4,10 @@
  */
 
 #include "kis_node_manager.h"
+#include "kis_types.h"
 
 #include <kundo2magicstring.h>
+#include <qnamespace.h>
 
 void KisNodeManager::mirrorNodeX()
 {

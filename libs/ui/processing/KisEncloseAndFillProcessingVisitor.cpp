@@ -8,11 +8,17 @@
 
 #include <kis_node.h>
 #include <kis_image.h>
-#include <kis_wrapped_rect.h>
 #include <lazybrush/kis_colorize_mask.h>
-#include <KoCompositeOpRegistry.h>
+#include <QtGlobal>
+#include <qhashfunctions.h>
+#include <qsharedpointer.h>
 
 #include "KisEncloseAndFillProcessingVisitor.h"
+#include "KisEncloseAndFillPainter.h"
+#include "KisQStringListFwd.h"
+#include "kis_processing_visitor.h"
+#include "kis_resources_snapshot.h"
+#include "kis_types.h"
 
 KisEncloseAndFillProcessingVisitor::KisEncloseAndFillProcessingVisitor(KisPaintDeviceSP referencePaintDevice,
         KisPixelSelectionSP enclosingMask,

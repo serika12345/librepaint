@@ -14,6 +14,11 @@
 #include <KisResourceModel.h>
 
 #include <kis_assert.h>
+#include <qcontainerfwd.h>
+#include <qglobalstatic.h>
+#include <qhashfunctions.h>
+#include <qimage.h>
+#include <qnamespace.h>
 
 Q_GLOBAL_STATIC(KisResourceThumbnailCache, s_instance);
 

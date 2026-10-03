@@ -9,12 +9,14 @@
 
 #include <kis_paintop_settings_widget.h>
 #include "KisBrushSizeOptionWidget.h"
+#include "kis_types.h"
 
 #include <KisStandardOptionData.h>
 #include <KisSizeOptionWidget.h>
 #include <KisAirbrushOptionWidget.h>
 #include <KisPaintOpOptionWidgetUtils.h>
 #include <KisCompositeOpOptionWidget.h>
+#include <qwidget.h>
 
 KisDeformPaintOpSettingsWidget::KisDeformPaintOpSettingsWidget(QWidget* parent)
     : KisPaintOpSettingsWidget(parent)

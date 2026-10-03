@@ -5,10 +5,16 @@
  */
 #include "KisBrushSizeOptionWidget.h"
 
-#include <lager/constant.hpp>
+#include <functional>
+#include "KisWidgetConnectionUtils.h"
+#include "kis_paintop_option.h"
+#include "kis_types.h"
 #include "ui_wdgBrushSizeOptions.h"
 
 #include <KisSpinBoxI18nHelper.h>
+#include <lager/cursor.hpp>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 #include "KisBrushSizeOptionModel.h"
 
 namespace {

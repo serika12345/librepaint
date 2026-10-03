@@ -4,8 +4,8 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisPaintThicknessOptionData.h"
+#include "kis_properties_configuration.h"
 
-#include <kis_paintop_settings.h>
 
 
 bool KisPaintThicknessOptionMixInImpl::read(const KisPropertiesConfiguration *setting)

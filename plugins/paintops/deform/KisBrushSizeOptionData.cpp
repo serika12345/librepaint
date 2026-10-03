@@ -6,6 +6,7 @@
 #include "KisBrushSizeOptionData.h"
 
 #include "kis_properties_configuration.h"
+#include <qhashfunctions.h>
 
 
 const QString BRUSH_SHAPE = "Brush/shape";

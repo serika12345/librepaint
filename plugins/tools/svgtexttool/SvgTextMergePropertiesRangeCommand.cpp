@@ -7,7 +7,11 @@
 
 #include "KoSvgTextShape.h"
 #include "kis_command_ids.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 #include <KoShapeBulkActionLock.h>
+#include <QtGlobal>
+#include <qset.h>
 
 SvgTextMergePropertiesRangeCommand::SvgTextMergePropertiesRangeCommand(KoSvgTextShape *shape,
                                                                        const KoSvgTextProperties props,

@@ -5,10 +5,20 @@
  */
 
 #include "KisUniqueColorSet.h"
+#include "KoColor.h"
+#include "KoIntegerMaths.h"
+#include "kis_assert.h"
 
 #include <QHash>
+#include <cstddef>
 #include <deque>
 #include <algorithm>
+#include <QtGlobal>
+#include <qhashfunctions.h>
+#include <qlist.h>
+#include <QDebug>
+#include <qlogging.h>
+#include <qobject.h>
 
 uint qHash(const KoColor &color, uint seed = 0)
 {

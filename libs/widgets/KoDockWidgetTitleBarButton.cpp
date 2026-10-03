@@ -13,6 +13,11 @@
 #include <QStyle>
 #include <QStyleOptionFrame>
 #include <QStylePainter>
+#include <qnamespace.h>
+#include <qpainter.h>
+#include <qpixmap.h>
+#include <QtGlobal>
+#include <qwidget.h>
 
 class Q_DECL_HIDDEN KoDockWidgetTitleBarButton::Private
 {

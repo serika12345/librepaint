@@ -5,14 +5,19 @@
  */
 
 #include "indexcolorpalette.h"
+#include "KoColor.h"
 
+#include <limits>
+#include <QtGlobal>
+#include <qcolor.h>
+#include <qcontainerfwd.h>
 #include <qmath.h>
 #include <QThread>
 
 #include <KoColorSpaceMaths.h>
 #include <KoColorSpaceRegistry.h>
-#include <filter/kis_filter_configuration.h>
-#include <widgets/kis_multi_integer_filter_widget.h>
+#include <qnumeric.h>
+#include <qpair.h>
 
 float IndexColorPalette::similarity(LabColor c0, LabColor c1) const
 {

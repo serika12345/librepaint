@@ -11,6 +11,9 @@
 #include <QBuffer>
 #include <QVariant>
 #include <QDebug>
+#include <qcontainerfwd.h>
+#include <qlogging.h>
+#include <qmap.h>
 
 enum {
     Null = 0x00,

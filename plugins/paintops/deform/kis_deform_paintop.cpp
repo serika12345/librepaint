@@ -11,7 +11,6 @@
 #include <QRect>
 
 #include <kis_image.h>
-#include <kis_debug.h>
 
 #include "kis_paint_device.h"
 #include "kis_painter.h"
@@ -22,8 +21,10 @@
 #include "KisDeformOptionData.h"
 #include "KisBrushSizeOptionData.h"
 #include "kis_paintop_plugin_utils.h"
-#include <KoColorSpaceRegistry.h>
-#include <KoCompositeOp.h>
+#include "kis_spacing_information.h"
+#include "kis_timing_information.h"
+#include "kis_types.h"
+#include <qpoint.h>
 
 #ifdef Q_OS_WIN
 // quoting DRAND48(3) man-page:

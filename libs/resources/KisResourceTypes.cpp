@@ -4,11 +4,16 @@
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
 #include "KisResourceTypes.h"
+
+#include <KLocalizedString>
+
 #include <QCoreApplication>
 #include <QMap>
 #include <QDebug>
 
 #include <ResourceDebug.h>
+#include <QtGlobal>
+#include <qhashfunctions.h>
 
 namespace ResourceType {
     const QString PaintOpPresets {QStringLiteral("paintoppresets")};

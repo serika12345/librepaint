@@ -7,6 +7,7 @@
  */
 
 #include "kis_wdg_multigrid_pattern.h"
+#include <klocalizedstring.h>
 
 #include <QLayout>
 #include <QDomDocument>
@@ -15,8 +16,16 @@
 #include <KoColor.h>
 #include <filter/kis_filter_configuration.h>
 #include <KisGlobalResourcesInterface.h>
+#include <qbrush.h>
+#include <qnamespace.h>
+#include <qobjectdefs.h>
+#include <qwidget.h>
 
+#include "KoStopGradient.h"
+#include "kis_config_widget.h"
+#include "kis_types.h"
 #include "ui_wdgmultigridpatternoptions.h"
+#include "ui_wdgstopgradienteditor.h"
 
 KisWdgMultigridPattern::KisWdgMultigridPattern(QWidget* parent, const KoColorSpace *cs)
         : KisConfigWidget(parent)
@@ -152,5 +161,4 @@ KisPropertiesConfigurationSP KisWdgMultigridPattern::configuration() const
 
     return config;
 }
-
 

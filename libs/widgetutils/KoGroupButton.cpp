@@ -6,12 +6,20 @@
    SPDX-License-Identifier: LGPL-2.0-only
 */
 #include "KoGroupButton.h"
+#include "KisHighlightedToolButton.h"
 
 #include <QAction>
 #include <QStyleOptionToolButton>
 #include <QStylePainter>
 
 #include <KLocalizedString>
+#include <QtGlobal>
+#include <qcolor.h>
+#include <qpaintdevice.h>
+#include <qpalette.h>
+#include <qsizepolicy.h>
+#include <qstyle.h>
+#include <qwidget.h>
 
 class Q_DECL_HIDDEN KoGroupButton::Private
 {

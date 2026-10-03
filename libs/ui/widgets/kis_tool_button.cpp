@@ -8,6 +8,9 @@
 
 #include <QMouseEvent>
 #include <QStyleOptionToolButton>
+#include <qpaintdevice.h>
+#include <qtoolbutton.h>
+#include <qwidget.h>
 
 KisToolButton::KisToolButton(QWidget *parent) :
     QToolButton(parent)

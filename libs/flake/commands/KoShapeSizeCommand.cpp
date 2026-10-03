@@ -6,9 +6,14 @@
  */
 
 #include "KoShapeSizeCommand.h"
+#include "kundo2magicstring.h"
+#include "kundo2stack.h"
 
 #include <KoShape.h>
 #include <klocalizedstring.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qsize.h>
 
 namespace
 {

@@ -6,8 +6,17 @@
  */
 
 #include "lutdocker_dock.h"
+#include <OpenColorABI.h>
+#include <OpenColorIO.h>
+#include <OpenColorTypes.h>
 #include <config-hdr.h>
 
+#include <functional>
+#include <QtGlobal>
+#include <qnamespace.h>
+#include <qobject.h>
+#include <qobjectdefs.h>
+#include <qsharedpointer.h>
 #include <sstream>
 
 #include <QLayout>
@@ -26,10 +35,11 @@
 #include <KoFileDialog.h>
 #include <KoChannelInfo.h>
 #include <KoColorSpace.h>
-#include <KoColorSpaceFactory.h>
-#include <KoColorProfile.h>
 #include <KoColorModelStandardIds.h>
 
+#include "kis_assert.h"
+#include "kis_debug.h"
+#include "kis_floating_message.h"
 #include "kis_icon_utils.h"
 #include <application/ui/workspace/KisViewManager.h>
 #include <document/KisDocument.h>
@@ -39,14 +49,19 @@
 #include <kis_config_notifier.h>
 #include <kis_image.h>
 #include <KisSqueezedComboBox.h>
+#include "kis_signal_compressor_with_param.h"
 #include "kis_signals_blocker.h"
 #include "krita_utils.h"
 #include <color/KisOcioConfiguration.h>
-
-#include <opengl/KisOpenGLModeProber.h>
+#ifdef HAVE_HDR
 #include <color/KisSurfaceColorSpaceWrapper.h>
+#include <opengl/KisOpenGLModeProber.h>
+#endif
+
 
 #include "black_white_point_chooser.h"
+#include "ocio_display_filter_vfx2021.h"
+#include "opengl/kis_opengl.h"
 
 
 OCIO::ConstConfigRcPtr defaultRawProfile()

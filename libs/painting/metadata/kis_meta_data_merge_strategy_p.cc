@@ -6,6 +6,9 @@
 
 #include "kis_meta_data_merge_strategy_p.h"
 #include <klocalizedstring.h>
+#include <QtGlobal>
+#include <qlist.h>
+#include <qmap.h>
 
 #include "kis_debug.h"
 

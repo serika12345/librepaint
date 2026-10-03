@@ -6,7 +6,11 @@
 
 #include "KisUpdateCommandEx.h"
 
+#include "KisBatchNodeUpdate.h"
+#include "kis_command_utils.h"
 #include "kis_image_interfaces.h"
+#include <boost/none_t.hpp>
+#include <qsharedpointer.h>
 
 KisUpdateCommandEx::KisUpdateCommandEx(KisBatchNodeUpdateSP updateData,
                                        KisUpdatesFacade *updatesFacade,

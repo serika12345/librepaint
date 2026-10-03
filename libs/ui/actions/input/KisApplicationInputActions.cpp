@@ -12,6 +12,8 @@
 #include <input/ui/kis_input_manager.h>
 
 #include <canvas/kis_canvas2.h>
+#include <qlist.h>
+#include <qobject.h>
 
 #include "KisTouchGestureAction.h"
 #include "kis_change_frame_action.h"

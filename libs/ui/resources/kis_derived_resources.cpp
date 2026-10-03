@@ -6,11 +6,20 @@
 
 #include "kis_derived_resources.h"
 
+#include "KisResourceTypes.h"
+#include "KoDerivedResourceConverter.h"
+#include "KoResourceUpdateMediator.h"
 #include "kis_signal_auto_connection.h"
 #include "KoCanvasResourcesIds.h"
 #include "kis_paintop_preset.h"
 #include "kis_paintop_settings.h"
 #include "KisResourceModel.h"
+#include "kis_types.h"
+#include <qabstractitemmodel.h>
+#include <qcontainerfwd.h>
+#include <qobjectdefs.h>
+#include <QtGlobal>
+#include <qvariant.h>
 
 
 struct KisPresetUpdateMediator::Private

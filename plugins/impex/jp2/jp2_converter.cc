@@ -6,6 +6,8 @@
 
 #include "jp2_converter.h"
 
+#include <cstdint>
+#include <cstdio>
 #include <openjpeg.h>
 
 #include <QApplication>
@@ -13,7 +15,6 @@
 #include <QMessageBox>
 
 #include <KoColorSpaceRegistry.h>
-#include <KoColorSpaceTraits.h>
 #include <KoColorSpaceConstants.h>
 #include <KisImportExportManager.h>
 #include <KoColorSpace.h>
@@ -24,12 +25,20 @@
 #include <kis_group_layer.h>
 #include <kis_paint_layer.h>
 #include <kis_paint_device.h>
-#include <kis_transaction.h>
+#include "KisImportExportErrorCode.h"
+#include "KisQStringListFwd.h"
+#include "KisResourceTypes.h"
+#include <klocalizedstring.h>
+#include "KoBgrColorSpaceTraits.h"
+#include "kis_debug.h"
 #include "kis_iterator_ng.h"
+#include "kis_types.h"
 #include <QThread>
 #include <plugins/impex/xcf/3rdparty/xcftools/xcftools.h>
 
 #include <iostream>
+#include <QtGlobal>
+#include <qstringview.h>
 #include <sstream>
 #include <cstring>
 #include <list> 
@@ -414,4 +423,3 @@ void JP2Converter::addErrorString(const std::string &str) {
 		err += "\n";
 	err += str;
 }
-
