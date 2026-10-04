@@ -99,6 +99,13 @@ void KisQPainterCanvas::paintEvent(QPaintEvent * ev)
     QPainter gc(this);
     gc.setClipRegion(ev->region());
 
+    drawCanvasContents(gc, ev->rect());
+    gc.end();
+    m_d->repaintDbg.paint(this, ev);
+}
+
+void KisQPainterCanvas::drawCanvasContents(QPainter &gc, const QRect &updateWidgetRect) const
+{
     KisCoordinatesConverter *converter = coordinatesConverter();
 
     gc.save();
@@ -117,14 +124,11 @@ void KisQPainterCanvas::paintEvent(QPaintEvent * ev)
     gc.setTransform(checkersTransform);
     gc.drawPolygon(polygon);
 
-    drawImage(gc, ev->rect());
+    drawImage(gc, updateWidgetRect);
 
     gc.restore();
 
-    drawDecorations(gc, ev->rect());
-
-    gc.end();
-    m_d->repaintDbg.paint(this, ev);
+    drawDecorations(gc, updateWidgetRect);
 }
 
 void KisQPainterCanvas::drawImage(QPainter & gc, const QRect &updateWidgetRect) const

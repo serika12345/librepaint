@@ -12,6 +12,13 @@ message(STATUS "Using CMake version: ${CMAKE_VERSION}")
 # Select the Qt version we want to use
 # Qt5 is the default, set QT_MAJOR_VERSION to 6 to look for Qt6
 option(BUILD_WITH_QT6 "Build against Qt 6" OFF)
+option(LIBREPAINT_ENABLE_MOLTENVK_POC "Build the experimental macOS Vulkan canvas" OFF)
+if(LIBREPAINT_ENABLE_MOLTENVK_POC AND (NOT APPLE OR CMAKE_SYSTEM_NAME STREQUAL "iOS"))
+    message(FATAL_ERROR "The MoltenVK canvas PoC requires macOS")
+endif()
+if(LIBREPAINT_ENABLE_MOLTENVK_POC AND NOT BUILD_WITH_QT6)
+    message(FATAL_ERROR "The MoltenVK canvas PoC requires Qt 6")
+endif()
 
 if (BUILD_WITH_QT6)
 set(MIN_QT_VERSION 6.0.0)

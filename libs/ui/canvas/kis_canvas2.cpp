@@ -8,6 +8,9 @@
  */
 
 #include "kis_canvas2.h"
+#ifdef LIBREPAINT_ENABLE_MOLTENVK_POC
+#include "vulkan/KisVulkanCanvas.h"
+#endif
 #include <klocalizedstring.h>
 
 #include <functional>
@@ -235,6 +238,10 @@ public:
     KoShapeManager shapeManager;
     KisSelectedShapesProxy selectedShapesProxy;
     bool currentCanvasIsOpenGL = true;
+#ifdef LIBREPAINT_ENABLE_MOLTENVK_POC
+    bool currentCanvasIsVulkanPoc = false;
+    bool vulkanPocFailed = false;
+#endif
     std::optional<ShapeLifetimeWrapper> groupModeShapeWrapper;
 
     int openGLFilterMode = 0;
@@ -743,7 +750,33 @@ void KisCanvas2::createQPainterCanvas()
     m_d->multiSurfaceState =
         m_d->multiSurfaceSetupManager.createInitializingConfig(false, m_d->currentScreenId(), m_d->proofingConfig);
 
-    KisQPainterCanvas * canvasWidget = new KisQPainterCanvas(this, m_d->coordinatesConverter, m_d->view);
+    KisQPainterCanvas *canvasWidget = nullptr;
+#ifdef LIBREPAINT_ENABLE_MOLTENVK_POC
+    m_d->currentCanvasIsVulkanPoc = false;
+    if (!m_d->vulkanPocFailed && qEnvironmentVariable("LIBREPAINT_CANVAS_BACKEND") == "moltenvk-poc") {
+        auto *vulkanCanvas = new KisVulkanCanvas(this, m_d->coordinatesConverter, m_d->view);
+        if (vulkanCanvas->initializationError().isEmpty()) {
+            canvasWidget = vulkanCanvas;
+            m_d->currentCanvasIsVulkanPoc = true;
+            const QPointer<KisVulkanCanvas> failedCanvas(vulkanCanvas);
+            connect(vulkanCanvas, &KisVulkanCanvas::presentationFailed, this, [this, failedCanvas](const QString &message) {
+                if (!failedCanvas || m_d->canvasWidget->widget() != failedCanvas.data()) return;
+                qWarning() << "MoltenVK PoC not established; restoring configured canvas:" << message;
+                m_d->vulkanPocFailed = true;
+                createCanvas(KisConfig(true).useOpenGL());
+                connectCurrentCanvas();
+                updateCanvasWidgetImpl();
+            }, Qt::QueuedConnection);
+        } else {
+            qWarning() << "MoltenVK PoC not established:" << vulkanCanvas->initializationError();
+            m_d->vulkanPocFailed = true;
+            delete vulkanCanvas;
+        }
+    }
+#endif
+    if (!canvasWidget) {
+        canvasWidget = new KisQPainterCanvas(this, m_d->coordinatesConverter, m_d->view);
+    }
     m_d->prescaledProjection = new KisPrescaledProjection(createQPainterProjectionBackend(), qPainterProjectionUpdatePatchSize());
     m_d->prescaledProjection->setCoordinatesConverter(m_d->coordinatesConverter);
     const KisDisplayConfig displayConfig = m_d->multiSurfaceState->multiConfig.canvasDisplayConfig();
@@ -782,6 +815,12 @@ void KisCanvas2::createOpenGLCanvas()
 
 void KisCanvas2::createCanvas(bool useOpenGL)
 {
+#ifdef LIBREPAINT_ENABLE_MOLTENVK_POC
+    m_d->currentCanvasIsVulkanPoc = false;
+    if (!m_d->vulkanPocFailed && qEnvironmentVariable("LIBREPAINT_CANVAS_BACKEND") == "moltenvk-poc") {
+        useOpenGL = false;
+    }
+#endif
     // deinitialize previous canvas structures
     m_d->prescaledProjection = 0;
     m_d->frameCache = 0;
@@ -870,6 +909,11 @@ void KisCanvas2::connectCurrentCanvas()
 
 void KisCanvas2::resetCanvas(bool useOpenGL)
 {
+#ifdef LIBREPAINT_ENABLE_MOLTENVK_POC
+    if (!m_d->vulkanPocFailed && qEnvironmentVariable("LIBREPAINT_CANVAS_BACKEND") == "moltenvk-poc") {
+        useOpenGL = false;
+    }
+#endif
     // we cannot reset the canvas before it's created, but this method might be called,
     // for instance when setting the monitor profile.
     if (!m_d->canvasWidget) {
@@ -880,8 +924,11 @@ void KisCanvas2::resetCanvas(bool useOpenGL)
 
     const bool canvasHasNativeSurface = bool(m_d->canvasWidget->widget()->windowHandle());
     const bool canvasNeedsNativeSurface =
-        cfg.enableCanvasSurfaceColorSpaceManagement() &&
-        KisPlatformPluginInterfaceFactory::instance()->surfaceColorManagedByOS();
+#ifdef LIBREPAINT_ENABLE_MOLTENVK_POC
+        m_d->currentCanvasIsVulkanPoc ||
+#endif
+        (cfg.enableCanvasSurfaceColorSpaceManagement() &&
+         KisPlatformPluginInterfaceFactory::instance()->surfaceColorManagedByOS());
 
     bool needReset = (m_d->currentCanvasIsOpenGL != useOpenGL) ||
         (m_d->currentCanvasIsOpenGL &&
@@ -1227,7 +1274,14 @@ void KisCanvas2::slotDoCanvasUpdate()
             m_d->canvasWidget->updateCanvasDecorations(m_d->savedOverlayUpdateRect);
         }
     } else if (m_d->updateSceneRequested) {
-        m_d->canvasWidget->widget()->update();
+#ifdef LIBREPAINT_ENABLE_MOLTENVK_POC
+        if (m_d->currentCanvasIsVulkanPoc) {
+            m_d->canvasWidget->updateCanvasImage(m_d->canvasWidget->widget()->rect());
+        } else
+#endif
+        {
+            m_d->canvasWidget->widget()->update();
+        }
     }
 
     m_d->savedCanvasProjectionUpdateRect = QRect();

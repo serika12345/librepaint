@@ -37,6 +37,10 @@ set(kritauiselectionactionspanel_INCLUDE_DIRS
     $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/libs/widgets>
 )
 
+if(LIBREPAINT_ENABLE_MOLTENVK_POC)
+    add_subdirectory(vulkan)
+endif()
+
 add_library(kritauiselectionactionspanelobjects OBJECT
     selection/kis_selection_actions_panel.cpp
 )
@@ -2331,6 +2335,27 @@ target_sources(
         ${kritaui_HEADERS_MOC}
         ${kritaui_LIB_SRCS}
 )
+
+target_sources(kritaapplicationui PRIVATE vulkan/KisVulkanCanvas.h)
+# The opt-in bridge owns its generated meta-object independently of the UI aggregate.
+set_source_files_properties(vulkan/KisVulkanCanvas.h
+    TARGET_DIRECTORY kritaapplicationui PROPERTIES SKIP_AUTOMOC ON)
+if(LIBREPAINT_ENABLE_MOLTENVK_POC)
+    qt6_wrap_cpp(moltenvk_canvas_moc vulkan/KisVulkanCanvas.h TARGET kritaapplicationui)
+    set_source_files_properties(${moltenvk_canvas_moc}
+        TARGET_DIRECTORY kritaapplicationui PROPERTIES GENERATED TRUE SKIP_AUTOMOC ON)
+    target_sources(kritaapplicationui PRIVATE vulkan/KisVulkanCanvas.cpp)
+    set_source_files_properties(canvas/kis_canvas2.cpp
+        TARGET_DIRECTORY kritaapplicationui
+        PROPERTIES COMPILE_DEFINITIONS LIBREPAINT_ENABLE_MOLTENVK_POC)
+    set_source_files_properties(vulkan/KisVulkanCanvas.cpp
+        TARGET_DIRECTORY kritaapplicationui
+        PROPERTIES INCLUDE_DIRECTORIES "${moltenvk_poc_vulkan_headers}")
+    target_sources(kritaapplicationui PRIVATE $<TARGET_OBJECTS:kritauivulkanpresentationobjects>)
+    foreach(resource_target IN LISTS moltenvk_poc_resource_targets)
+        target_sources(kritaapplicationui PRIVATE $<TARGET_OBJECTS:${resource_target}>)
+    endforeach()
+endif()
 
 if(IOS)
     # Qt 6 exposes the GLES backend through QT_CONFIG(opengles2), while this

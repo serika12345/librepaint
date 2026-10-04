@@ -1008,14 +1008,27 @@
         packageSet: application:
         packageSet.mkShell {
           inputsFrom = [ application ];
-          packages = policyTools packageSet ++ (with packageSet; [
-            ccache
-            clang-tools
-            cmake
-            ninja
-            git
-            ripgrep
-          ]);
+          packages =
+            policyTools packageSet
+            ++ (with packageSet; [
+              ccache
+              clang-tools
+              cmake
+              ninja
+              git
+              ripgrep
+            ])
+            ++ packageSet.lib.optionals packageSet.stdenv.hostPlatform.isDarwin (
+              with packageSet;
+              [
+                moltenvk
+                vulkan-loader
+                vulkan-headers
+                vulkan-validation-layers
+                glslang
+                spirv-tools
+              ]
+            );
 
           shellHook = ''
             export LIBREPAINT_TEST_SHELL=1
@@ -1026,6 +1039,11 @@
             export CCACHE_BASEDIR="$PWD"
             export CCACHE_COMPILERCHECK=content
             export CCACHE_NOHASHDIR=true
+            ${packageSet.lib.optionalString packageSet.stdenv.hostPlatform.isDarwin ''
+              export QT_VULKAN_LIB="${packageSet.vulkan-loader}/lib/libvulkan.dylib"
+              export VK_DRIVER_FILES="${packageSet.moltenvk}/share/vulkan/icd.d/MoltenVK_icd.json"
+              export VK_LAYER_PATH="${packageSet.vulkan-validation-layers}/share/vulkan/explicit_layer.d"
+            ''}
             export NINJA_STATUS='[%f/%t] '
             mkdir -p "$CCACHE_DIR"
             echo "LibrePaint native test and policy shell"

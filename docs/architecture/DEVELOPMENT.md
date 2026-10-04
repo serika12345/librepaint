@@ -227,6 +227,64 @@ python3 <リポジトリー>/packaging/macos/macos-apptodmg.py \
 自動検査後、マウントしたアプリで起動・終了、主要画像形式の読込・保存、Python
 プラグインと映像機能を確認する。
 
+#### MoltenVK表示の成立試験
+
+Apple Silicon macOSの試験シェルには、`flake.lock`で固定したMoltenVK、Vulkan Loader、
+ヘッダー、検証層、glslang、SPIR-V検査ツールが含まれる。シェルはQtのLoaderと
+MoltenVKのドライバー、検証層の探索先を設定する。環境定義を更新した際は、
+評価済みプロファイルを一度更新し、その後は共有試験環境で増分構築する。
+
+試験用表示は構築時と起動時の両方で選択する。対象は8bit sRGB文書のマウス操作。
+構築設定の既定値は無効で、環境変数による選択は設定ファイルへ保存されない。
+
+```sh
+cmake --preset tdd-macos -DLIBREPAINT_ENABLE_MOLTENVK_POC=ON
+build-incremental native plan KisVulkanPresentationContractTest
+run-test KisVulkanPresentationContractTest '^KisVulkanPresentationContractTest$'
+build-incremental native build krita
+cmake --install "$(build-incremental native path)" --prefix <試作用の配置先>
+LIBREPAINT_CANVAS_BACKEND=moltenvk-poc LIBREPAINT_VULKAN_VALIDATION=1 \
+  QT_QPA_PLATFORM=cocoa <試作用の配置先>/bin/LibrePaint.app/Contents/MacOS/LibrePaint
+```
+
+製品の起動には配置済みアプリを使う。契約試験はQt・Vulkanの表示部品だけを構築し、
+`QT_QPA_PLATFORM=cocoa`で画面を使用する。GPU読み戻しでRGB各成分の8bit値の差が
+1以内、不透明度が一致することと、更新・サイズ変更・表示再開の20回反復後に
+検証層の警告・エラーが残らないことを確認する。入力試験は座標を維持した一度だけの
+配送を検査する。対象試験、影響範囲CTest、高速検査、完全なネイティブ検査を順に実行する。
+
+診断の`Canvas backend requested: moltenvk-poc`は試行開始、
+`Canvas backend selected: moltenvk-poc`は最初の描画提出を示す。
+描画提出とGPU完了、画面への表示完了は別の観測値として扱う。
+画面試験には表示中かつ画面ロックが解除されたセッションを使う。
+Waylandの更新配送は画面合成側のフレーム通知に依存するため、通知の到着と
+実際の描画提出回数を確認する。更新イベントの受信だけを描画成立の証拠にすると、
+非表示の画面で描画を省略した試行も成功と判定される。
+
+同期・表示待ちの原因調査では、Qt標準のクリア描画と製品の画像転送を比較し、
+埋め込みの有無、画面合成環境、表示用画像番号と同期資源の対応を確認する。
+macOSではCocoaの描画通知、Metalの表示トランザクション、Vulkanの描画提出を
+個別に観測する。MetalのAPI検証も使い、変換後の画像寸法とGPU資源の種類を確認する。
+画像読み戻し後の非表示・再表示は、描画中の同期と資源解放順を
+それぞれ検査する。検証用の依存ライブラリ変更は独立した構築対象で比較し、
+採用する依存修正の検証と製品キャンバスの成立確認を順に行う。
+初期化・転送処理の失敗通知を受けると既存キャンバスへ戻り、その試行は不成立となる。
+QtやドライバーがGUIスレッド内で停止した場合は、復帰処理も実行できないため、
+診断出力と停止位置を保った上で試験プロセスを終了する。
+
+実文書で描画、アンドゥ／リドゥ、拡大・移動、ブラシ輪郭、ポップアップ、
+サイズ変更、文書切替・終了、Retinaでの色成分・上下方向・色変換を確認する。
+表示待ちや未解決の検証診断、入力・装飾・フォーカスの問題が残る場合は、
+性能計測を開始せず、Qtの公開APIで成立する構成を再確認する。
+本番統合の前提成果は[#63](https://github.com/serika12345/librepaint/issues/63)が所有する。
+
+通常構成へ戻す際は、同じ構築木で次を実行する。
+
+```sh
+cmake --preset tdd-macos -DLIBREPAINT_ENABLE_MOLTENVK_POC=OFF
+build-incremental native build krita
+```
+
 ### Linux
 
 x86_64 Linux上で、依存物の準備、アプリ構築、起動を行う。
