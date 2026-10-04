@@ -4,9 +4,9 @@
 
 この文書は、変更内容から調査対象を絞り、LibrePaintの主要な設計境界と実行経路を把握するための入口です。設計判断に使う責務、経路、識別子を中心にまとめています。
 
-全プラットフォーム共通の長期改造計画は[LibrePaintロードマップ](ROADMAP.md)で管理します。
-開発・検証コマンドは[LibrePaint開発マニュアル](DEVELOPMENT.md)、現在の再開地点は
-[LibrePaintアーキテクチャ作業状況](PROGRESS.md)を正本とします。
+作業の目的、前提、完了条件と検証結果は[GitHub Issues](https://github.com/serika12345/librepaint/issues)、
+着手順と進行状態は[GitHub Projects](https://github.com/users/serika12345/projects/2)で管理します。
+開発・検証コマンドと作業管理の手順は[LibrePaint開発マニュアル](DEVELOPMENT.md)を参照します。
 
 - 変更を共通コード、プラグイン、プラットフォーム統合、配布定義のどこへ置くか
 - 起動、描画、ファイル入出力がどの境界を通るか

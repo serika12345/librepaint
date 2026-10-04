@@ -1,9 +1,9 @@
 # AGENTS.md
 
 This file defines the operational contract for coding agents working on
-LibrePaint. Use it with `docs/architecture/ROADMAP.md`,
-`docs/architecture/PROGRESS.md`, and `docs/architecture/DEVELOPMENT.md` for
-development procedures. `docs/architecture/README.md` owns design boundaries.
+LibrePaint. `docs/architecture/DEVELOPMENT.md` owns development procedures;
+`docs/architecture/README.md` owns design boundaries. GitHub Issues and Projects
+own task planning and progress.
 
 ## Communication
 
@@ -60,57 +60,54 @@ and correction of existing disclosures.
 Treat local work details and security operations as sensitive, even when secret
 values are absent. Keep actual key storage and recovery arrangements, credential
 configuration status, personal paths, host and device availability, and local
-storage inventories out of Issues and tracked documents, including
-`PROGRESS.md`. Discuss operational details in the conversation; use private
+storage inventories out of Issues, Projects, and tracked documents.
+Discuss operational details in the conversation; use private
 storage only when the user designates it. Generic reproducible procedures and
 public software facts belong in repository documentation. Public reports use
 only the minimum project facts needed to describe behavior and verification.
 
-## Roadmap Order
+## Work Planning
 
-LibrePaint follows the roadmap in `docs/architecture/ROADMAP.md`.
+Each Issue defines a concrete outcome, scope, prerequisites, completion
+criteria, verification, and stop conditions. Describe prerequisites as required
+results together with their owning Issue links. Use GitHub sub-issues for work
+decomposition and issue dependencies for work that requires another Issue to
+finish. Related work and partial prerequisites remain explicit in the body.
 
-1. R1 establishes responsibilities, package boundaries, and dependency
-   direction.
-2. R2 records behavioral, image, input, and performance contracts.
-3. R3 optimizes rendering against the R2 contracts.
-4. R4 introduces the Vulkan backend through the stable rendering boundaries.
-5. R5 optimizes the mobile UI through shared application boundaries.
-6. R6 completes the common language baseline and repository-wide modernization.
-   Issue #52 owns the independent C++23 baseline migration.
+GitHub Projects owns priority and workflow status. Issue open/closed state and
+the closure reason record the accepted disposition. Milestones group bounded
+deliverables or releases. Each Issue remains understandable from its own body;
+titles and acceptance criteria use concrete responsibilities and behavior.
 
-Production integration enters each stage after its prerequisite completion
-criteria pass. Exploration for later stages records findings in the relevant
-roadmap item. R2 compatibility contracts precede R3 changes to painting
-algorithms, execution order, scheduling, and synchronization.
+Production integration requires the prerequisites recorded in its Issue.
+Exploration records its findings in the relevant Issue. Behavioral, image,
+input, and performance contracts precede changes to painting algorithms,
+execution order, scheduling, and synchronization.
 
 ## Resume Procedure
 
-GitHub Issues own task scope, prerequisites, completion criteria, state, and
-verification results. Repository documents own architecture, development usage,
-and a public-safe project snapshot. Begin each session with this sequence:
+GitHub Issues own task scope, prerequisites, completion criteria, and
+verification results. Projects owns workflow status and priority. Repository
+documents own architecture and development usage. Begin each session with this
+sequence:
 
-1. Read `docs/architecture/PROGRESS.md`.
-2. Read the linked active Issue, its prerequisites, and the relevant sections
-   of the development manual and architecture guide. Use
-   `docs/architecture/ROADMAP.md` to locate owners.
+1. Inspect the repository's GitHub Project and open Issues for active work or
+   the earliest ready task.
+2. Read the selected Issue, its parent, dependencies, linked pull requests,
+   latest verification results, and relevant manual and architecture sections.
 3. Inspect the current branch and worktree.
 4. Validate the recorded next action against the Issue and current files.
 5. Continue that action, or select the earliest ready Issue whose prerequisites
    are complete.
 
-Report task state and verification in the conversation. Update the owning Issue
-only through the Issue approval procedure above. Keep one public-safe snapshot
-with the Issue URL, project state, verification summary, and next project step.
-Keep private operational details in the conversation. Issues and Git history
+Report task state, verification, and the next operation in the conversation.
+Issue updates, including relationship changes and closure, follow the Issue
+approval procedure above. Projects tracks workflow status; paused work records
+its resumption condition in the owning Issue. Keep public reports limited to
+project behavior and verification. Issues, pull requests, and Git history
 retain approved public records.
 
-Active work uses `in_progress`; the next ready action uses `planned`; paused
-work records its resumption condition. GitHub open/closed state records whether
-the completion criteria have been accepted. An open Issue may be planned,
-in progress, or waiting for a recorded prerequisite.
-
-Large roadmap items use parent Issues and bounded child Issues with an explicit
+Large tasks use parent Issues and bounded child Issues with an explicit
 purpose, scope, completion criteria, verification tier, and stop condition.
 
 ## Development Environment
@@ -150,11 +147,11 @@ immutable Nix store, and the application source filter can create a second
 near-complete source path. Required tool additions target the narrowest
 relevant shell and receive one deliberate environment reevaluation.
 
-Before and after a deliberate local-flake reevaluation during a large roadmap
-item, compare the dead `*-source` and `*-librepaint-source` path count and
+Before and after a deliberate local-flake reevaluation during a large task,
+compare the dead `*-source` and `*-librepaint-source` path count and
 recoverable size. Unexpected growth stops further local-flake evaluation; the
 session resumes through the last valid cached profile and reports the cause in
-the conversation. Keep local storage measurements out of tracked snapshots.
+the conversation. Keep local storage measurements in the conversation.
 Garbage collection is a separate storage
 operation: resolve exact dead paths, preserve active profiles and build caches,
 and obtain the authority required by the destructive-action rules before
@@ -172,7 +169,7 @@ worktree cycle succeeds.
 
 Every code, build, script, and policy change follows this sequence:
 
-1. Read the relevant implementation, tests, CMake target, and roadmap gate.
+1. Read the relevant implementation, tests, CMake target, and Issue criteria.
 2. Identify the smallest coherent change within the intended responsibility.
 3. Before editing implementation or contract code, inspect the target-scoped
    incremental work plan and direct CMake dependencies. For a new or expanded
@@ -209,7 +206,7 @@ packet containing the exact public headers and API identifiers, allowed paths,
 owned CMake files and targets, nearest contract, platform scope, build
 permission, Git authority, integration order, and stop conditions. Share active
 lane packets and their states within the working conversation before workers
-start. The public-safe snapshot links to the coordinator Issue. Two active lanes
+start. Each lane identifies its coordinator Issue. Two active lanes
 never share a production header,
 implementation file, test source, CMake file, or generated artifact.
 
@@ -228,8 +225,8 @@ its own full source tree because each distinct worktree revision would create
 another large Nix store source path. Work that changes the Nix development
 environment uses an explicitly assigned primary-worktree lane instead.
 
-The coordinator exclusively owns `AGENTS.md`, the architecture roadmap and
-progress documents, and shared generated artifacts unless a task packet
+The coordinator exclusively owns `AGENTS.md`, shared architecture documents,
+and shared generated artifacts unless a task packet
 explicitly transfers one of those files. A worker changes only its assigned
 production, test, fixture, and package-local CMake paths. It reports behavioral
 guarantees and documentation facts as structured handoff data instead of
@@ -277,8 +274,8 @@ Remove declaration-shape and implementation-detail assertions when they carry
 no public guarantee; add a behavioral test only for a required observable
 contract that existing tests do not cover. API inventories and declaration
 coverage quotas are not maintained because they encourage fixing incidental
-implementation structure. Record decisions in review descriptions and current
-work in the progress snapshot.
+implementation structure. Record decisions in review descriptions and report
+current work in the conversation. Approved Issue updates retain public results.
 
 Before adding or expanding a contract test, identify the consumer, operation,
 observable result, and concrete caller-visible failure. Treat one use case or
@@ -311,8 +308,9 @@ evidence.
 
 ## Architecture and Packaging
 
-R1 establishes the authoritative package map. During R1, current public
-boundaries remain stable while baseline contracts measure structural progress.
+The package-boundary policy defines ownership and allowed dependency direction.
+Structural changes preserve public boundaries through the corresponding
+compatibility contracts.
 
 ### Refactoring Order and YAGNI
 
@@ -374,9 +372,9 @@ exceptions carry a deletion condition and tracked Issue.
 
 ## C++ and Qt
 
-Common builds use C++17 facilities until Issue #52 passes. That Issue records
-supported compilers, standard libraries, Qt versions, and platform constraints for the
-language-standard transition.
+The common CMake configuration defines the language baseline. Language-standard
+changes verify supported compilers, standard libraries, Qt versions, generated
+code, and platform constraints before changing that baseline.
 
 APIs express ownership, lifetime, nullability, and error behavior. Prefer value
 types, RAII, scoped ownership, and established Krita shared-pointer types.
@@ -413,20 +411,19 @@ boundary. Documentation maintenance uses source review and diagram generation.
 
 Architecture dependency contracts derive from the current CMake File API graph.
 Each platform configure checks target ownership, allowed dependency direction,
-and product-target cycles against the compact policy. Generated inventories and
-historical source-size ceilings are not continuing contracts after R1.
+and product-target cycles against the compact policy. Generated inventories
+support source review; continuing checks protect current consumer contracts.
 
 ## Documentation
 
-Documents contain durable project state, design, commands, and maintenance
+Documents contain durable design, commands, and maintenance
 instructions. Sentences describe purpose, ownership, inputs, outputs,
 execution order, and successful end states in affirmative form. Migration
-observations belong to implementation reports and repository history. The
-progress snapshot contains public-safe project state and its next step.
+observations belong to implementation reports and repository history.
 
-- GitHub Issues own tasks, state, prerequisites, acceptance, and verification.
-- `docs/architecture/ROADMAP.md` owns stage order and Issue entry points.
-- `docs/architecture/PROGRESS.md` owns the current public-safe project snapshot.
+- GitHub Issues own task scope, prerequisites, acceptance, and verification.
+- GitHub Projects owns task priority and workflow status.
+- GitHub sub-issues and dependencies own task hierarchy and completion blockers.
 - `docs/architecture/README.md` owns shared and platform-specific design boundaries.
 - `docs/architecture/DEVELOPMENT.md` is the single development manual for all
   platforms, including setup, builds, verification, deployment, and maintenance.
@@ -471,8 +468,8 @@ nix flake check --no-build --all-systems
 
 Platform-boundary changes run the matching build, artifact, simulator, device,
 or performance verification. Report commands and results in the conversation.
-Requested Issue updates require approval of the exact public-safe text; the
-snapshot records a public-safe verification summary.
+Requested Issue updates require approval of the exact public-safe text or
+metadata change.
 
 ## Completion
 
@@ -483,7 +480,7 @@ A completed task has:
 - successful required checks in the Nix environment;
 - an architecture and platform impact assessment;
 - justified baselines and reviewed exceptions;
-- synchronized public-safe snapshot, roadmap links, and architecture documents;
+- synchronized architecture documents and development procedures;
 - Issue updates only when explicitly requested and their exact changes approved;
 - current generated documentation artifacts;
 - preserved user-owned worktree changes.

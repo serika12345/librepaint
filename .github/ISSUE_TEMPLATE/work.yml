@@ -1,0 +1,40 @@
+name: 作業Issue
+description: 目的、範囲、前提、完了条件と検証を定義する
+projects:
+  - serika12345/2
+body:
+  - type: textarea
+    id: outcome
+    attributes:
+      label: 目的と観測する結果
+      description: 利用者、操作、期待する結果と現状の問題を具体的に記載してください。
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: 範囲と所有者
+      description: 対象ファイル、プラットフォーム、構造変更時の移動元と移動先を記載してください。
+    validations:
+      required: true
+  - type: textarea
+    id: prerequisites
+    attributes:
+      label: 前提と関連Issue
+      description: 必要な成果と所有Issueを併記してください。前提がなければ、その旨を記載してください。
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 完了条件
+      description: 利用者から観測できる結果と、受入れに必要な条件を記載してください。
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: 検証方法と停止条件
+      description: 試験、コマンド、プラットフォーム別の検証範囲と、対象を超える条件を記載してください。
+    validations:
+      required: true
