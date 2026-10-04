@@ -79,6 +79,29 @@ the closure reason record the accepted disposition. Milestones group bounded
 deliverables or releases. Each Issue remains understandable from its own body;
 titles and acceptance criteria use concrete responsibilities and behavior.
 
+For substantial design and improvement Issues, organize the body in this order:
+
+1. Desired outcome and purpose: explain what users or maintainers gain.
+2. Current problems: describe the concrete behavior or structure motivating
+   the change.
+3. Approaches considered: compare relevant alternatives and their tradeoffs.
+4. Selected approach and rationale: explain the choice, responsibility
+   boundaries, dependency direction, and constraints requiring validation.
+5. Execution stages: define the progression, scope, prerequisites, and
+   reviewable implementation units.
+6. Completion criteria and verification: state observable success conditions
+   and the evidence required to accept the result.
+7. Stop conditions: identify findings that require reassessing the design,
+   selected approach, or scope before integration.
+
+Lead with the intended outcome and explain implementation choices after the
+problem is clear. Keep the comparison and selection rationale in the Issue
+body so it remains understandable on its own. Use tables for alternatives
+and responsibility mappings, numbered stages for execution order, and
+checkboxes for verifiable completion criteria. Scale the structure to the
+task: small fixes use only the applicable parts, with detail proportional to
+their scope. Sections may be combined when that makes the Issue easier to read.
+
 Production integration requires the prerequisites recorded in its Issue.
 Exploration records its findings in the relevant Issue. Behavioral, image,
 input, and performance contracts precede changes to painting algorithms,
