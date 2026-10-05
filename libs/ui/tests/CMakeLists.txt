@@ -136,6 +136,33 @@ kis_add_test( kis_selection_decoration_test.cpp ../../../sdk/tests/stroke_testin
     LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
+if(KRITA_ENABLE_WGPU_CANVAS_PROBE)
+    kis_add_test(KisCanvasPerformanceMeasurementTest.cpp
+        TEST_NAME KisCanvasPerformanceMeasurementTest
+        LINK_LIBRARIES Qt6::Core Qt6::Test)
+    kis_add_test(WgpuCanvasIntegrationTest.cpp CanvasPerformanceComparison.cpp CanvasNativePresentationObservation.cpp ../../../krita/krita.qrc
+        ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
+        ../../../krita/pics/Breeze-light/breeze-light-icons.qrc
+        ../../../krita/pics/layerbox/layerbox-icons.qrc
+        ../../../krita/pics/layers/layers-icons.qrc
+        ../../../krita/pics/misc-light/misc-light-icons.qrc
+        ../../../krita/pics/misc-dark/misc-dark-icons.qrc
+        ../../../krita/pics/paintops/paintops-icons.qrc
+        ../../../krita/pics/tools/SVG/16/tools-svg-16-icons.qrc
+        ../../../krita/pics/tool_transform/tool-transform-icons.qrc
+        ../../../krita/pics/svg/svg-icons.qrc
+        ../../../pics/icons.qrc
+        ../../../krita/data/cursors/cursors.qrc
+        ../../../krita/data/shaders/shaders.qrc
+        TEST_NAME WgpuCanvasIntegrationTest
+        LINK_LIBRARIES kritaapplicationui kritainputui kritatestsdk Qt6::OpenGLWidgets)
+    add_dependencies(WgpuCanvasIntegrationTest kritadefaultpaintops kritadefaulttools)
+    if(APPLE AND NOT IOS)
+        target_link_libraries(WgpuCanvasIntegrationTest "-framework OpenGL")
+    endif()
+    set_tests_properties(libs-ui-WgpuCanvasIntegrationTest PROPERTIES TIMEOUT 120 LABELS gpu-surface)
+endif()
+
 kis_add_test( FreehandStrokeContractTest.cpp
     TEST_NAME FreehandStrokeContractTest
     LINK_LIBRARIES kritapainting kritalibbrush kritatestsdk

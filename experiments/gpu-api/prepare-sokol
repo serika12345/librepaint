@@ -1,0 +1,8 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-or-later
+from pathlib import Path
+import urllib.request,json
+base=Path(__file__).resolve().parents[2]/'build/gpu-api-deps/sokol';base.mkdir(parents=True,exist_ok=True)
+rev='3d3dcbcb15edd54902f3b59472720a5bec78d74e'
+(base/'sokol_gfx.h').write_bytes(urllib.request.urlopen('https://raw.githubusercontent.com/floooh/sokol/'+rev+'/sokol_gfx.h').read())
+(base/'revision.json').write_text(json.dumps({'repository':'floooh/sokol','revision':rev},indent=2)+'\n')

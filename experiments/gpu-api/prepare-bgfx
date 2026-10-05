@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-or-later
+import urllib.request,tarfile,io,json,subprocess,hashlib
+from pathlib import Path
+root=Path(__file__).resolve().parents[2];base=root/'build/gpu-api-deps';base.mkdir(parents=True,exist_ok=True)
+revs={'bx':'daf09510c20435825bbb09afb323856b5570d53f','bimg':'101b5b5fd4670f82cfdec8e98aa1ab9ee93bb2a1','bgfx':'01e69a63074d4c103573ef8bc684ceec7e00b22e'}
+for name,rev in revs.items():
+ if not (base/name).exists():
+  print('fetch',name,rev,flush=True);b=urllib.request.urlopen('https://codeload.github.com/bkaradzic/'+name+'/tar.gz/'+rev).read()
+  with tarfile.open(fileobj=io.BytesIO(b)) as t:
+   members=t.getmembers();prefix=members[0].name.split('/')[0]
+   for m in members:m.name=name+m.name[len(prefix):]
+   t.extractall(base,members=members,filter='data')
+(base/'revisions.json').write_text(json.dumps(revs,indent=2)+'\n')
+p=base/'bgfx/src/renderer_mtl.cpp';s=p.read_text();original=p.with_suffix('.original.cpp')
+if not original.exists():original.write_text(s)
+s=original.read_text()
+hook=r'''
+// Experimental completion observation; does not alter rendering commands.
+#include <mutex>
+#include <condition_variable>
+#include <chrono>
+static double experimentNow() { return std::chrono::duration<double,std::nano>(std::chrono::steady_clock::now().time_since_epoch()).count(); }
+static std::mutex experimentMutex;
+static std::condition_variable experimentCV;
+static MTL::CommandBuffer* experimentBuffer = nullptr;
+static uint32_t experimentFrame = 0;
+static double experimentRenderBegin = 0, experimentAcquire = 0, experimentRenderWall = 0;
+static void experimentPublish(MTL::CommandBuffer* cb, uint32_t frame) {
+ std::lock_guard<std::mutex> lock(experimentMutex);
+ if(experimentBuffer) experimentBuffer->release();
+ experimentBuffer=cb;cb->retain();experimentFrame=frame;
+ experimentRenderWall=experimentNow()-experimentRenderBegin;
+ experimentCV.notify_all();
+}
+extern "C" int bgfxExperimentWait(uint32_t frame, double* gpu, double* renderReady, double* gpuWait, double* renderWall, double* acquire) {
+ double start=experimentNow();std::unique_lock<std::mutex> lock(experimentMutex);
+ if(!experimentCV.wait_for(lock,std::chrono::seconds(30),[&]{return experimentBuffer && experimentFrame>=frame;})) return 0;
+ MTL::CommandBuffer* cb=experimentBuffer;cb->retain();*renderReady=experimentNow()-start;*renderWall=experimentRenderWall;*acquire=experimentAcquire;lock.unlock();
+ start=experimentNow();cb->waitUntilCompleted();*gpuWait=experimentNow()-start;
+ *gpu=(cb->GPUEndTime()-cb->GPUStartTime())*1e9;
+ bool ok=cb->status()!=MTL::CommandBufferStatusError;cb->release();return ok;
+}
+extern "C" void bgfxExperimentReset() {
+ std::lock_guard<std::mutex> lock(experimentMutex);
+ if(experimentBuffer) experimentBuffer->release();experimentBuffer=nullptr;experimentFrame=0;
+}
+'''
+s=s.replace('#include "renderer_mtl.h"',hook+'\n#include "renderer_mtl.h"',1)
+s=s.replace('void RendererContextMtl::submit(Frame* _render, const ClearQuad& _clearQuad, const MipGen& /*_mipGen*/, TextVideoMemBlitter& _textVideoMemBlitter)\n\t{','void RendererContextMtl::submit(Frame* _render, const ClearQuad& _clearQuad, const MipGen& /*_mipGen*/, TextVideoMemBlitter& _textVideoMemBlitter)\n\t{\n        experimentRenderBegin=experimentNow(); experimentAcquire=0;',1)
+s=s.replace('m_drawable = occluded ? NULL : m_metalLayer->nextDrawable();','double acquireBegin=experimentNow();\n            m_drawable = occluded ? NULL : m_metalLayer->nextDrawable();\n            experimentAcquire+=experimentNow()-acquireBegin;',1)
+s=s.replace('m_cmd.kick(true, false);\n\t\t\tm_commandBuffer = NULL;', 'MTL::CommandBuffer* observed=m_commandBuffer;observed->retain();\n            m_cmd.kick(true, false);\n            experimentPublish(observed, _render->m_frameNum);observed->release();\n\t\t\tm_commandBuffer = NULL;',1)
+# Native texture readback is used only after the observed frame has completed.
+needle='\tvoid ShaderMtl::create(const Memory* _mem)'
+s=s.replace(needle,'extern "C" void* bgfxExperimentTexture(uint16_t index) { return s_renderMtl->m_textures[index].m_ptr; }\n\n'+needle,1)
+private_source=r'''
+// Called between frames after observed completion, for an allocation-policy control.
+extern "C" int bgfxExperimentPrivateSource(uint16_t index) {
+ auto& texture=s_renderMtl->m_textures[index];auto* old=texture.m_ptr;
+ auto* desc=MTL::TextureDescriptor::alloc()->init();
+ desc->setTextureType(MTL::TextureType2D);desc->setPixelFormat(old->pixelFormat());
+ desc->setWidth(old->width());desc->setHeight(old->height());desc->setDepth(1);
+ desc->setMipmapLevelCount(1);desc->setSampleCount(1);desc->setArrayLength(1);
+ desc->setStorageMode(MTL::StorageModePrivate);desc->setUsage(MTL::TextureUsageShaderRead);
+ auto* replacement=s_renderMtl->m_device->newTexture(desc);desc->release();
+ if(!replacement)return 0;
+ auto* queue=s_renderMtl->m_device->newCommandQueue();auto* cb=queue->commandBuffer();
+ auto* blit=cb->blitCommandEncoder();
+ blit->copyFromTexture(old,0,0,MTL::Origin::Make(0,0,0),MTL::Size::Make(old->width(),old->height(),1),replacement,0,0,MTL::Origin::Make(0,0,0));
+ blit->endEncoding();cb->commit();cb->waitUntilCompleted();
+ bool ok=cb->status()!=MTL::CommandBufferStatusError;queue->release();
+ if(!ok){replacement->release();return 0;}
+ texture.m_ptr=replacement;old->release();return 1;
+}
+'''
+s=s.replace(needle,private_source+'\n'+needle,1)
+assert 'experimentPublish(observed' in s
+if p.read_text()!=s:p.write_text(s)
+meta={'revisions':revs,'original_metal_sha256':hashlib.sha256(original.read_bytes()).hexdigest(),'instrumented_metal_sha256':hashlib.sha256(p.read_bytes()).hexdigest()}
+(base/'bgfx-observation.json').write_text(json.dumps(meta,indent=2)+'\n')
+bgfx=base/'bgfx';projects=bgfx/'.build/projects/gmake-osx-arm64'
+if not projects.exists():subprocess.run([str(base/'bx/tools/bin/darwin/genie'),'--gcc=osx-arm64','gmake'],cwd=bgfx,check=True)
+for target in ['bx','bimg','bgfx']:
+ plan=subprocess.run(['make','-n','config=release64',target],cwd=projects,capture_output=True,text=True);(base/f'{target}-plan.txt').write_text(plan.stdout+plan.stderr)
+ if plan.returncode:raise RuntimeError('build plan failed: '+plan.stderr)
+ subprocess.run(['make','-j4','config=release64',target],cwd=projects,check=True)
+print(bgfx/'.build/osx-arm64/bin')

@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-or-later
+import argparse,subprocess,json,shlex,os,hashlib,platform,sys
+from pathlib import Path
+root=Path(__file__).resolve().parents[2]
+parser=argparse.ArgumentParser()
+parser.add_argument('--controls',choices=['basic','target','all'],default='all',help='extra allocation/transfer controls')
+parser.add_argument('--present-order-control',action='store_true')
+parser.add_argument('--apis',help='comma-separated API filters');parser.add_argument('--with-sokol',action='store_true');parser.add_argument('--work',choices=['clear','triangle','texture','upload','draws']);parser.add_argument('--size',type=int);parser.add_argument('--with-bgfx',action='store_true');parser.add_argument('--pool',choices=['batch','frame'],default='batch');parser.add_argument('--mode',choices=['offscreen','fifo','immediate']);parser.add_argument('--api',choices=['gl','wgpu','metal','bgfx-single','bgfx-threaded','sokol']);parser.add_argument('--wait',choices=['block','spin'],default='block');parser.add_argument('--build-only',action='store_true');parser.add_argument('--suite',choices=['smoke','offscreen','timestamp','present'],default='smoke');parser.add_argument('--rounds',type=int,default=2);parser.add_argument('--frames',type=int,default=1000);parser.add_argument('--output',type=Path,default=root/'build/gpu-api-report.json')
+a=parser.parse_args();out=root/'build/gpu-api';out.mkdir(parents=True,exist_ok=True);source=Path(__file__).with_name('benchmark.mm');use_bgfx=a.with_bgfx or (a.api and a.api.startswith('bgfx'));use_sokol=a.with_sokol or a.api=='sokol';binary=out/('benchmark-libraries' if use_bgfx and use_sokol else 'benchmark-bgfx' if use_bgfx else 'benchmark-sokol' if use_sokol else 'benchmark');bgfx_source=source.with_name('bgfx-engine.inc.mm');deps=root/'build/gpu-api-deps';libout=deps/'bgfx/.build/osx-arm64/bin'
+if use_bgfx and not (libout/'libbgfxRelease.a').exists():subprocess.run([str(source.with_name('prepare-bgfx'))],check=True)
+sokol_source=source.with_name('sokol-engine.inc.mm');sokol_header=deps/'sokol/sokol_gfx.h'
+if use_sokol and not sokol_header.exists():subprocess.run([str(source.with_name('prepare-sokol'))],check=True)
+if not binary.exists() or source.stat().st_mtime>binary.stat().st_mtime or (use_bgfx and max(bgfx_source.stat().st_mtime,(libout/'libbgfxRelease.a').stat().st_mtime)>binary.stat().st_mtime) or (use_sokol and max(sokol_source.stat().st_mtime,sokol_header.stat().st_mtime)>binary.stat().st_mtime):
+ flags=shlex.split(os.environ.get('NIX_LDFLAGS',''));libdirs=[x[2:] for x in flags if x.startswith('-L')]
+ lib=next(Path(p)/'libwgpu_native.dylib' for p in libdirs if (Path(p)/'libwgpu_native.dylib').exists())
+ cmd=['clang++','-O3','-DNDEBUG','-std=c++17','-fobjc-arc','-Wno-deprecated-declarations',str(source),str(lib),'-framework','Cocoa','-framework','OpenGL','-framework','Metal','-framework','QuartzCore','-o',str(binary)]
+ if use_bgfx:cmd+=['-DLIBREPAINT_EXPERIMENT_BGFX=1','-DBX_CONFIG_DEBUG=0','-I'+str(deps/'bgfx/include'),'-I'+str(deps/'bx/include')]+[str(libout/('lib'+x+'Release.a')) for x in ['bgfx','bimg','bx']]+['-framework','IOKit','-framework','MetalKit','-framework','CoreVideo','-framework','CoreMedia','-framework','VideoToolbox']
+ if use_sokol:cmd+=['-DLIBREPAINT_EXPERIMENT_SOKOL=1','-I'+str(deps/'sokol')]
+ subprocess.run(cmd,check=True)
+if a.build_only:raise SystemExit(0)
+cases=[('gl',1,'direct'),('wgpu',1,'direct'),('wgpu',0,'direct'),('metal',0,'direct')]
+if use_bgfx:cases += [('bgfx-single',0,'direct'),('bgfx-threaded',0,'direct')]
+if use_sokol:cases += [('sokol',0,'direct')]
+workloads=[('clear',32,1),('triangle',32,1),('texture',1024,1),('texture',4096,1),('upload',1024,1),('draws',32,1000)]
+if a.suite=='smoke':workloads=[('triangle',32,1)];batches=[1];modes=['offscreen'];frames=20
+elif a.suite=='offscreen':batches=[1,3];modes=['offscreen'];frames=a.frames
+elif a.suite=='timestamp':batches=[1];modes=['offscreen'];frames=a.frames
+else:workloads=[('triangle',640,1),('texture',640,1)];batches=[3];modes=['fifo','immediate'];frames=min(a.frames,180)
+if a.work:workloads=[w for w in workloads if w[0]==a.work]
+if a.size:workloads=[w for w in workloads if w[1]==a.size]
+if not workloads:parser.error('selected workload is unavailable in this suite')
+selected_apis={a.api} if a.api else set(a.apis.split(',')) if a.apis else None
+if selected_apis:cases=[c for c in cases if c[0] in selected_apis]
+if not cases:parser.error('no requested API is enabled')
+if a.mode:modes=[m for m in modes if m==a.mode]
+if not modes:parser.error('selected presentation mode is unavailable in this suite')
+runs=[];report={'scope':'standalone, no product or Qt; complete rate includes batch completion wait; GPU probes are separate serial runs','command':sys.argv,'source_sha256':hashlib.sha256(source.read_bytes()).hexdigest(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'platform':platform.platform(),'suite':a.suite,'runs':runs};logs=a.output.parent/(a.output.stem+'-logs');logs.mkdir(parents=True,exist_ok=True)
+(logs/'benchmark.mm').write_bytes(source.read_bytes());(logs/'benchmark').write_bytes(binary.read_bytes())
+for script in ['run','prepare-bgfx','prepare-sokol']:(logs/script).write_bytes(source.with_name(script).read_bytes())
+if use_bgfx:
+ (logs/'bgfx-engine.inc.mm').write_bytes(bgfx_source.read_bytes());(logs/'bgfx-metal-observed.cpp').write_bytes((deps/'bgfx/src/renderer_mtl.cpp').read_bytes());report['bgfx_observation']=json.loads((deps/'bgfx-observation.json').read_text());report['bgfx_engine_sha256']=hashlib.sha256(bgfx_source.read_bytes()).hexdigest();report['bgfx_libraries_sha256']={x:hashlib.sha256((libout/('lib'+x+'Release.a')).read_bytes()).hexdigest() for x in ['bgfx','bimg','bx']}
+if use_sokol:
+ (logs/'sokol-engine.inc.mm').write_bytes(sokol_source.read_bytes());(logs/'sokol_gfx.h').write_bytes(sokol_header.read_bytes());report['sokol_revision']=json.loads((deps/'sokol/revision.json').read_text());report['sokol_engine_sha256']=hashlib.sha256(sokol_source.read_bytes()).hexdigest();report['sokol_header_sha256']=hashlib.sha256(sokol_header.read_bytes()).hexdigest()
+for round_index in range(a.rounds):
+ for work,size,draws in workloads:
+  cc=cases.copy()
+  if work=='draws':cc += [('wgpu',0,'bundle'),('gl',1,'instanced'),('wgpu',0,'instanced'),('metal',0,'instanced')]
+  if use_bgfx and work=='draws':cc += [('bgfx-single',0,'instanced'),('bgfx-threaded',0,'instanced')]
+  if use_bgfx and work=='upload':cc += [('bgfx-single',0,'upload-ref'),('bgfx-threaded',0,'upload-ref')]
+  if use_sokol and work=='draws':cc += [('sokol',0,'instanced')]
+  if use_bgfx and work=='texture' and a.suite!='present' and a.controls!='basic':cc += [('bgfx-single',0,'rt-private'),('bgfx-threaded',0,'rt-private')]
+  if use_bgfx and work=='texture' and a.suite!='present' and a.controls=='all':cc += [('bgfx-single',0,'source-private'),('bgfx-threaded',0,'source-private')]
+  if use_sokol and work=='texture' and a.suite!='present' and a.controls=='all':cc += [('sokol',0,'source-private')]
+  if use_sokol and work=='upload' and a.controls=='all':cc += [('sokol',0,'upload-staging')]
+  if a.suite=='present' and a.present_order_control:cc += [('metal',0,'split-present')]+([('bgfx-single',0,'flip-after-render'),('bgfx-threaded',0,'flip-after-render')] if use_bgfx else [])
+  if selected_apis:cc=[c for c in cc if c[0] in selected_apis]
+  cc=cc[round_index%len(cc):]+cc[:round_index%len(cc)]
+  for batch in batches:
+   for mode in modes:
+    for api,validation,strategy in cc:
+     label=f'{round_index+1}-{work}-{size}-{api}-v{validation}-{strategy}-b{batch}-{mode}'
+     print(label,flush=True)
+     cmd=[str(binary),'--api',api,'--pool',a.pool,'--wait',a.wait,'--work',work,'--size',str(size),'--draws',str(draws),'--strategy',strategy,'--batch',str(batch),'--present',mode,'--frames',str(frames),'--warmup',str(20 if a.suite=='smoke' else 100),'--validation',str(validation),'--timestamps',str(int(a.suite=='timestamp'))]
+     env=os.environ.copy();env.pop('MTL_DEBUG_LAYER',None)
+     p=subprocess.run(cmd,capture_output=True,text=True,env=env,timeout=120)
+     (logs/(label+'.log')).write_text(p.stdout+p.stderr)
+     if p.returncode:raise RuntimeError(label+' failed: '+p.stderr[-1500:])
+     r=json.loads(p.stdout);r.update(round=round_index+1,label=label);runs.append(r);a.output.write_text(json.dumps(report,indent=2)+'\n')
+print(a.output)

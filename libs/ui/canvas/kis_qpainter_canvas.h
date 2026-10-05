@@ -93,6 +93,8 @@ protected: // KisCanvasWidgetBase
     bool callFocusNextPrevChild(bool next) override;
 
 protected:
+    QImage canvasProjectionImage() const;
+    void paintCanvas(QPainter &gc, const QRect &updateWidgetRect) const;
     virtual void drawImage(QPainter & gc, const QRect &updateWidgetRect) const;
 
 private Q_SLOTS:

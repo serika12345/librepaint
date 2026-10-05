@@ -2324,6 +2324,14 @@ add_dependencies(
     kritaapplicationui_generated_ui_headers
 )
 
+if(KRITA_ENABLE_WGPU_CANVAS_PROBE)
+    add_subdirectory(canvas/wgpu)
+    target_sources(kritaapplicationui PRIVATE canvas/wgpu/WgpuCanvas.cpp)
+    target_link_libraries(kritaapplicationui PRIVATE kritacanvaswgpupresentation)
+    set_property(SOURCE canvas/kis_canvas2.cpp TARGET_DIRECTORY kritaapplicationui
+        APPEND PROPERTY COMPILE_DEFINITIONS KRITA_ENABLE_WGPU_CANVAS_PROBE)
+endif()
+
 target_sources(
     kritaapplicationui
     PRIVATE

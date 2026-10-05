@@ -216,4 +216,9 @@ target_link_libraries(kritaworkspacepresentation
         kritaresources
 )
 
+option(KRITA_ENABLE_WGPU_CANVAS_PROBE "Build the experimental wgpu-native canvas and its contracts" OFF)
+if(KRITA_ENABLE_WGPU_CANVAS_PROBE)
+    add_subdirectory(wgpu)
+endif()
+
 add_subdirectory(tests)

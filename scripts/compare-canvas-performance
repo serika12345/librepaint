@@ -1,0 +1,160 @@
+#!/usr/bin/env python3
+# SPDX-FileCopyrightText: 2026 LibrePaint contributors
+# SPDX-License-Identifier: GPL-2.0-or-later
+"""Run fixed native-Qt brush input through the canvas comparison consumer."""
+import argparse
+import json
+import math
+import os
+from pathlib import Path
+import platform
+import statistics
+import subprocess
+import sys
+
+
+def distribution(values):
+    ordered = sorted(values)
+    return {
+        "median": statistics.median(ordered),
+        "p95": ordered[math.ceil(len(ordered) * 0.95) - 1],
+        "min": ordered[0],
+        "max": ordered[-1],
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--samples", type=int, default=20)
+    parser.add_argument("--repeat", type=int, default=3)
+    parser.add_argument("--backends", default="qpainter,opengl,wgpu")
+    parser.add_argument("--present-mode", choices=("fifo", "immediate"), default="fifo")
+    parser.add_argument("--frame-interval-ms", type=int, default=0)
+    parser.add_argument("--wgpu-experiments", help="rotate presentation conditions, e.g. fifo:0,fifo:16,immediate:0; requires --backends wgpu")
+    parser.add_argument("--output", type=Path, default=Path("build/canvas-performance.json"))
+    args = parser.parse_args()
+    if sys.platform not in {"darwin", "linux"}:
+        parser.error("the current native canvas comparison supports macOS and Linux")
+    backends = args.backends.split(",")
+    if not 1 <= args.samples <= 200 or not 1 <= args.repeat <= 20:
+        parser.error("samples must be 1..200 and repeat must be 1..20")
+    if not 0 <= args.frame_interval_ms <= 1000:
+        parser.error("frame interval must be 0..1000 ms")
+    if not backends or len(set(backends)) != len(backends) or any(
+        item not in {"qpainter", "opengl", "wgpu"} for item in backends
+    ):
+        parser.error("backends must be unique members of qpainter,opengl,wgpu")
+    cases = [(backend, backend, args.present_mode, args.frame_interval_ms) for backend in backends]
+    if args.wgpu_experiments:
+        if backends != ["wgpu"]:
+            parser.error("wgpu experiments require --backends wgpu")
+        cases = []
+        for value in args.wgpu_experiments.split(","):
+            try:
+                mode, interval_text = value.split(":")
+                interval = int(interval_text)
+            except ValueError:
+                parser.error("each wgpu experiment requires mode:interval")
+            if mode not in {"fifo", "immediate"} or not 0 <= interval <= 1000:
+                parser.error("experiment mode must be fifo/immediate and interval 0..1000 ms")
+            cases.append((f"wgpu-{mode}-{interval}", "wgpu", mode, interval))
+        if len(set(cases)) != len(cases):
+            parser.error("wgpu experiments must be unique")
+    root = Path(__file__).resolve().parent.parent
+    build = Path(subprocess.check_output(
+        [str(root / "scripts/build-incremental"), "native", "path"], text=True, cwd=root
+    ).strip())
+    binary = build / "bin/WgpuCanvasIntegrationTest"
+    if not binary.is_file():
+        parser.error("build WgpuCanvasIntegrationTest before running the comparison")
+    output = args.output.resolve()
+    logs = output.parent / (output.stem + "-logs")
+    logs.mkdir(parents=True, exist_ok=True)
+    runs = []
+    for round_number in range(args.repeat):
+        # Rotate process order so every route occupies each position.
+        offset = round_number % len(cases)
+        order = cases[offset:] + cases[:offset]
+        for label, backend, mode, interval in order:
+            print(f"round {round_number + 1}/{args.repeat}: {label}", flush=True)
+            env = os.environ.copy()
+            env.pop("MTL_DEBUG_LAYER", None)
+            env["QT_QPA_PLATFORM"] = "cocoa" if sys.platform == "darwin" else "xcb"
+            env["KIS_TEST_PREFIX_PATH"] = str(build)
+            env["LIBREPAINT_CANVAS_PERFORMANCE"] = backend
+            env["LIBREPAINT_CANVAS_PERFORMANCE_SAMPLES"] = str(args.samples)
+            env["LIBREPAINT_CANVAS_PERFORMANCE_ARTIFACTS"] = str(logs)
+            env["LIBREPAINT_WGPU_PRESENT_MODE"] = mode
+            env["LIBREPAINT_WGPU_FRAME_INTERVAL_MS"] = str(interval)
+            log = logs / f"{round_number + 1}-{label}.log"
+            with log.open("w") as stream:
+                result = subprocess.run(
+                    [str(binary), "documentProjectionReachesNativeSurface"],
+                    cwd=root, env=env, stdout=stream, stderr=subprocess.STDOUT, timeout=180,
+                )
+            if result.returncode:
+                raise RuntimeError(f"{backend} comparison failed; inspect {log}")
+            lines = [line.partition("CANVAS_PERFORMANCE ")[2] for line in log.read_text().splitlines()
+                     if "CANVAS_PERFORMANCE " in line]
+            if len(lines) != 1:
+                raise RuntimeError(f"expected one comparison report; inspect {log}")
+            run = json.loads(lines[0])
+            if run["backend"] != backend or len(run["samples"]) != args.samples:
+                raise RuntimeError(f"comparison report does not match requested input: {log}")
+            run["round"] = round_number + 1
+            run["case"] = label
+            run["wgpu_configuration"] = {"present_mode": mode, "frame_interval_ms": interval,
+                                         "frame_scheduling": "since_last_presentation_return"}
+            runs.append(run)
+    stable_keys = ("document", "preset", "brush_size", "smoothing", "input_points",
+                   "input_interval_ms", "working_threads", "frame_limit_fps", "widget_width", "widget_height",
+                   "device_pixel_ratio", "pixel_sha256", "qt_version", "measurement_revision")
+    for run in runs[1:]:
+        if any(run[key] != runs[0][key] for key in stable_keys):
+            raise RuntimeError("input, viewport or document pixels differ across canvas routes")
+    summaries = {}
+    for label, backend, mode, interval in cases:
+        samples = [sample for run in runs if run["case"] == label for sample in run["samples"]]
+        stages = {}
+        for owner in ("widget_stages", "window_stages"):
+            names = sorted({name for sample in samples for name in sample[owner]})
+            for name in names:
+                values = [sample[owner].get(name, {}).get("total_ns", 0) / 1e6 for sample in samples]
+                stages[f"{owner}/{name}_cpu_ms"] = distribution(values)
+                stages[f"{owner}/{name}_calls"] = distribution([
+                    sample[owner].get(name, {}).get("count", 0) for sample in samples])
+        summary = {"samples": len(samples),
+                   "stroke_ms": distribution([sample["stroke_ms"] for sample in samples]),
+                   "input_span_ms": distribution([sample["input_span_ms"] for sample in samples]),
+                   "dispatch_lateness_ms_max": distribution([sample["dispatch_lateness_ms_max"] for sample in samples]),
+                   "release_to_frame_ms": distribution([sample["release_to_frame_ms"] for sample in samples]),
+                   "stages": stages}
+        summary["release_to_projection_ms"] = distribution([
+            (sample["widget_stages"]["projection"]["finish_ns"] - sample["input_release_ns"]) / 1e6
+            for sample in samples])
+        summary["release_to_document_idle_ms"] = distribution([
+            (sample["document_jobs_done_ns"] - sample["input_release_ns"]) / 1e6 for sample in samples])
+        if backend == "wgpu":
+            summary["uploaded_bytes"] = distribution([sample["uploaded_bytes"] for sample in samples])
+        summary["discarded_inputs"] = sum(len(run.get("discarded_inputs", [])) for run in runs if run["case"] == label)
+        summaries[label] = summary
+    report = {
+        "schema": 1, "platform": platform.system(), "architecture": platform.machine(),
+        "scope": "paced mouse stroke to CPU paint/draw-submit return; GPU/OS display completion unmeasured",
+        "wgpu_native_validation": True, "metal_api_debug_layer": False,
+        "configurations": [{"case": label, "present_mode": mode, "frame_interval_ms": interval,
+                            "frame_scheduling": "since_last_presentation_return"} for label, backend, mode, interval in cases],
+        "summary": summaries, "runs": runs,
+    }
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
+    print(json.dumps(summaries, ensure_ascii=False, indent=2))
+    print(f"report: {output}")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (OSError, RuntimeError, subprocess.SubprocessError) as error:
+        print(error, file=sys.stderr)
+        sys.exit(1)

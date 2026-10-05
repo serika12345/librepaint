@@ -1015,6 +1015,7 @@
             ninja
             git
             ripgrep
+            wgpu-native
           ]);
 
           shellHook = ''

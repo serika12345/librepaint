@@ -130,6 +130,7 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
     ),
     "libs/canvas": (
         "libs/ui/tests/TestApplicationWorkspaceToolUiPublicHeaders.cpp",
+        "libs/canvas/wgpu/WgpuImageRendererTest.cpp",
     ),
     "libs/document/ui": (
         "libs/document/ui/tests/kis_document_autosave_recovery_dialog_test.cpp",

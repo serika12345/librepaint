@@ -15,7 +15,8 @@
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "CRASH_ON_SAFE_ASSERTS": "ON",
         "KRITA_ENABLE_BROKEN_TESTS": "OFF",
-        "LIMIT_LONG_TESTS": "ON"
+        "LIMIT_LONG_TESTS": "ON",
+        "KRITA_ENABLE_WGPU_CANVAS_PROBE": "ON"
       }
     },
     {

@@ -47,6 +47,7 @@
 #include "opengl/kis_opengl_canvas_debugger.h"
 
 #include "canvas/kis_canvas2.h"
+#include "canvas/kis_canvas_performance_measurement_p.h"
 #include <kis_image.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include "application/kis_config.h"
@@ -400,6 +401,7 @@ void KisOpenGLCanvas2::paintGL()
 
     const QRect updateRect = d->updateRect ? *d->updateRect : QRect();
 
+    Krita::Canvas::Performance::Measurement measurement(*this, "submit");
     if (!OPENGL_SUCCESS) {
         KisConfig cfg(false);
         cfg.writeEntry("canvasState", "OPENGL_PAINT_STARTED");
@@ -432,6 +434,10 @@ void KisOpenGLCanvas2::paintGL()
     // outside of KisOpenGLRenderer allows the canvas widget to do extra
     // rendering, which a QtQuick2-based canvas will need.
     d->glSyncObject.reset(new KisOpenGLSync());
+    if (qEnvironmentVariableIntValue("LIBREPAINT_EXPERIMENT_GPU_COMPLETION")) {
+        Krita::Canvas::Performance::Measurement gpuWait(*this,"gpu_completion_wait");
+        QOpenGLContext::currentContext()->functions()->glFinish();
+    }
 
     if (!OPENGL_SUCCESS) {
         KisConfig cfg(false);

@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-or-later
+"""macOS prototype ablations; raw reports are saved after every process."""
+import argparse,json,os,platform,statistics,subprocess,sys,math,hashlib
+from pathlib import Path
+
+CASES = {
+ 'opengl': {'backend':'opengl'},
+ 'wgpu-raw': {},
+ 'wgpu-paced': {'mode':'immediate','interval':8},
+ 'wgpu-thread': {'thread':1},
+ 'wgpu-bgra': {'bgra':1},
+ 'wgpu-eager': {'eager':1},
+ 'wgpu-thread-bgra': {'thread':1,'bgra':1},
+ 'wgpu-thread-eager': {'thread':1,'eager':1},
+ 'wgpu-thread-borrow': {'thread':1,'borrow':1},
+ 'wgpu-thread-late': {'thread':1,'late':1},
+ 'wgpu-thread-immediate': {'thread':1,'mode':'immediate'},
+ 'wgpu-gpu-projection': {'projection':1,'bgra':1},
+ 'wgpu-late-projection': {'thread':1,'late':1,'projection':1,'bgra':1,'eager':1,'mode':'immediate'},
+ 'wgpu-coalesce': {'thread':1,'late':1,'bgra':1,'eager':1,'mode':'immediate','compose_interval':4},
+ 'wgpu-raster-ui': {'raster_ui':1},
+ 'wgpu-best-raster': {'thread':1,'bgra':1,'eager':1,'late':1,'mode':'immediate','raster_ui':1},
+ 'wgpu-lowlevel': {'thread':1,'bgra':1,'eager':1,'late':1,'mode':'immediate','raster_ui':1,'projection':1},
+ 'wgpu-raw-texture': {'thread':1,'bgra':1,'eager':1,'late':1,'mode':'immediate','raster_ui':1,'projection':1,'raw_projection':1},
+ 'wgpu-no-redraw': {'thread':1,'bgra':1,'eager':1,'late':1,'mode':'immediate','raster_ui':1,'projection':1,'raw_projection':1,'skip_redraw':1},
+ 'wgpu-no-eager': {'thread':1,'bgra':1,'late':1,'mode':'immediate','raster_ui':1,'projection':1,'raw_projection':1,'skip_redraw':1},
+ 'wgpu-no-redraw-4': {'thread':1,'bgra':1,'eager':1,'late':1,'mode':'immediate','raster_ui':1,'projection':1,'raw_projection':1,'skip_redraw':1,'compose_interval':4},
+ 'wgpu-latency1': {'thread':1,'bgra':1,'eager':1,'late':1,'mode':'immediate','raster_ui':1,'projection':1,'raw_projection':1,'skip_redraw':1,'frame_latency':1},
+ 'wgpu-optimized': {'thread':1,'bgra':1,'eager':1,'late':1,'mode':'immediate','raster_ui':1,'projection':1,'raw_projection':1,'skip_redraw':1,'frame_latency':1,'force_raster':1,'plain_ui':1,'static_cache':1},
+ 'wgpu-force-raster': {'thread':1,'bgra':1,'eager':1,'late':1,'mode':'immediate','raster_ui':1,'projection':1,'raw_projection':1,'skip_redraw':1,'frame_latency':1,'force_raster':1},
+ 'wgpu-force-plain': {'thread':1,'bgra':1,'eager':1,'late':1,'mode':'immediate','raster_ui':1,'projection':1,'raw_projection':1,'skip_redraw':1,'frame_latency':1,'force_raster':1,'plain_ui':1},
+ 'wgpu-plain-ui': {'thread':1,'bgra':1,'eager':1,'late':1,'mode':'immediate','raster_ui':1,'projection':1,'raw_projection':1,'skip_redraw':1,'plain_ui':1},
+ 'wgpu-static-cache': {'thread':1,'bgra':1,'eager':1,'late':1,'mode':'immediate','raster_ui':1,'projection':1,'raw_projection':1,'skip_redraw':1,'static_cache':1},
+ 'opengl-static-cache': {'backend':'opengl','static_cache':1},
+ 'wgpu-best': {'thread':1,'bgra':1,'eager':1,'late':1,'mode':'immediate'},
+}
+WORKLOADS = {
+ 'light': dict(dimension=1024,layers=1,brush=32,view_width=640,view_height=480),
+ 'brush': dict(dimension=1024,layers=1,brush=256,view_width=640,view_height=480),
+ 'resolution': dict(dimension=4096,layers=1,brush=512,view_width=1000,view_height=640),
+ 'layers': dict(dimension=2048,layers=24,brush=256,view_width=1000,view_height=640),
+ 'repaint': dict(dimension=1024,layers=1,brush=32,view_width=1000,view_height=640,full_repaint=1),
+ 'pan': dict(dimension=4096,layers=1,brush=32,view_width=1000,view_height=640,pan=1),
+ 'layers-control': dict(dimension=2048,layers=1,brush=256,view_width=1000,view_height=640),
+ 'stress-control': dict(dimension=4096,layers=1,brush=512,view_width=1000,view_height=640,full_repaint=1),
+ 'stress': dict(dimension=4096,layers=24,brush=512,view_width=1000,view_height=640,full_repaint=1),
+}
+def dist(values):
+ v=sorted(values); return dict(median=statistics.median(v),p95=v[math.ceil(len(v)*.95)-1],min=v[0],max=v[-1])
+def summarize(runs):
+ result={}
+ for w in sorted({r['workload'] for r in runs}):
+  for case in sorted({r['case'] for r in runs if r['workload']==w}):
+   rr=[r for r in runs if r['workload']==w and r['case']==case]; ss=[s for r in rr for s in r['samples']]
+   d={'samples':len(ss),'discarded_inputs':sum(len(r['discarded_inputs']) for r in rr)}
+   for key in ['stroke_ms','release_to_frame_ms','dispatch_lateness_ms_max','input_span_ms','process_cpu_ms','gui_cpu_ms']:
+    d[key]=dist([s[key] for s in ss])
+   d['pipeline_complete_ms']=dist([(max(s['frame_return_ns'],s['document_jobs_done_ns'],s['input_release_ns'])-s['input_begin_ns'])/1e6 for s in ss])
+   d['jobs_after_release_ms']=dist([(s['document_jobs_done_ns']-s['input_release_ns'])/1e6 for s in ss])
+   d['projection_after_release_ms']=dist([(s['widget_stages']['projection']['finish_ns']-s['input_release_ns'])/1e6 for s in ss])
+   d['stages']={}
+   for owner in ['widget_stages','window_stages']:
+    for stage in sorted({n for s in ss for n in s[owner]}):
+     for field,scale in [('total_ns',1e6),('count',1)]:
+      d['stages'][owner+'/'+stage+('/cpu_ms' if field=='total_ns' else '/calls')]=dist([s[owner].get(stage,{}).get(field,0)/scale for s in ss])
+   if 'uploaded_bytes' in ss[0]:d['uploaded_bytes']=dist([s['uploaded_bytes'] for s in ss])
+   result[w+'/'+case]=d
+ return result
+
+def main():
+ ap=argparse.ArgumentParser(description=__doc__)
+ ap.add_argument('--cases',default='opengl,wgpu-raw,wgpu-optimized')
+ ap.add_argument('--workloads',default='light,brush,resolution,layers,repaint,pan,stress')
+ ap.add_argument('--samples',type=int,default=10); ap.add_argument('--repeat',type=int,default=2)
+ ap.add_argument('--gpu-completion',action='store_true')
+ ap.add_argument('--threads',type=int,default=8); ap.add_argument('--output',type=Path,default=Path('build/wgpu-bottleneck-experiments.json'))
+ a=ap.parse_args(); cases=a.cases.split(','); workloads=a.workloads.split(',')
+ if sys.platform!='darwin':ap.error('this prototype measures macOS')
+ if set(cases)-CASES.keys() or set(workloads)-WORKLOADS.keys():ap.error('unknown condition')
+ root=Path(__file__).resolve().parent.parent
+ build=Path(subprocess.check_output([str(root/'scripts/build-incremental'),'native','path'],text=True,cwd=root).strip())
+ output=a.output.resolve(); logs=output.parent/(output.stem+'-logs'); logs.mkdir(parents=True,exist_ok=True)
+ runs=[]
+ report=dict(schema=2,platform=platform.platform(),gpu_completion_waited=a.gpu_completion,binary_sha256=hashlib.sha256((build/'bin/WgpuCanvasIntegrationTest').read_bytes()).hexdigest(),ui_library_sha256=hashlib.sha256((build/'bin/libkritaapplicationui.21.0.0.dylib').read_bytes()).hexdigest(),scope='CPU return after final projection/upload; process and GUI CPU measured through projection quiet interval; OS display completion unmeasured',workloads={w:dict(WORKLOADS[w],threads=a.threads) for w in workloads},configurations={c:CASES[c] for c in cases},runs=runs)
+ for round_index in range(a.repeat):
+  for w in workloads:
+   offset=round_index%len(cases)
+   for c in cases[offset:]+cases[:offset]:
+    config=CASES[c]; env=os.environ.copy();env.pop('MTL_DEBUG_LAYER',None)
+    env.update(QT_QPA_PLATFORM='cocoa',KIS_TEST_PREFIX_PATH=str(build),LIBREPAINT_CANVAS_PERFORMANCE=config.get('backend','wgpu'),LIBREPAINT_CANVAS_PERFORMANCE_SAMPLES=str(a.samples),LIBREPAINT_CANVAS_PERFORMANCE_ARTIFACTS=str(logs),LIBREPAINT_WGPU_PRESENT_MODE=config.get('mode','fifo'),LIBREPAINT_WGPU_FRAME_INTERVAL_MS=str(config.get('interval',0)),LIBREPAINT_WGPU_THREADED=str(config.get('thread',0)),LIBREPAINT_WGPU_DIRECT_BGRA=str(config.get('bgra',0)),LIBREPAINT_WGPU_EAGER_PROJECTION=str(config.get('eager',0)),LIBREPAINT_WGPU_BORROW_SNAPSHOT=str(config.get('borrow',0)),LIBREPAINT_WGPU_LATE_UPLOAD=str(config.get('late',0)),LIBREPAINT_WGPU_GPU_PROJECTION=str(config.get('projection',0)),LIBREPAINT_WGPU_COMPOSE_INTERVAL_MS=str(config.get('compose_interval',0)),LIBREPAINT_WGPU_RASTER_UI=str(config.get('raster_ui',0)),LIBREPAINT_WGPU_RAW_PROJECTION=str(config.get('raw_projection',0)),LIBREPAINT_WGPU_SKIP_REDUNDANT=str(config.get('skip_redraw',0)),LIBREPAINT_WGPU_PLAIN_UI=str(config.get('plain_ui',0)),LIBREPAINT_WGPU_FORCE_RASTER=str(config.get('force_raster',0)),LIBREPAINT_WGPU_FRAME_LATENCY=str(config.get('frame_latency',0)),LIBREPAINT_EXPERIMENT_LABEL=f'{round_index+1}-{w}-{c}',LIBREPAINT_EXPERIMENT_STATIC_CACHE=str(config.get('static_cache',0)))
+    for name,value in WORKLOADS[w].items():env['LIBREPAINT_EXPERIMENT_'+name.upper()]=str(value)
+    env['LIBREPAINT_EXPERIMENT_THREADS']=str(a.threads)
+    env['LIBREPAINT_EXPERIMENT_GPU_COMPLETION']=str(int(a.gpu_completion))
+    for key in ['FULL_REPAINT','PAN']:
+     env.setdefault('LIBREPAINT_EXPERIMENT_'+key,'0')
+    log=logs/f'{round_index+1}-{w}-{c}.log';print(f'round {round_index+1}/{a.repeat} {w}/{c}',flush=True)
+    with log.open('w') as stream:
+     p=subprocess.run([str(build/'bin/WgpuCanvasIntegrationTest'),'documentProjectionReachesNativeSurface','-maxwarnings','100000'],cwd=root,env=env,stdout=stream,stderr=subprocess.STDOUT,timeout=360)
+    if p.returncode:raise RuntimeError(f'failed: {log}')
+    lines=[s.partition('CANVAS_PERFORMANCE ')[2] for s in log.read_text().splitlines() if 'CANVAS_PERFORMANCE ' in s]
+    if len(lines)!=1:raise RuntimeError(f'report missing: {log}')
+    r=json.loads(lines[0]);r.update(case=c,workload=w,round=round_index+1,configuration=config)
+    prior=next((r0 for r0 in runs if r0['workload']==w),None)
+    if prior and r['pixel_sha256']!=prior['pixel_sha256']:raise RuntimeError(f'brush pixels differ: {log}')
+    runs.append(r); report['summary']=summarize(runs);output.write_text(json.dumps(report,indent=2)+'\n')
+ print('report:',output)
+ for key,s in report['summary'].items():print(key,'complete',s['pipeline_complete_ms'],'tail',s['release_to_frame_ms'],'dispatch',s['dispatch_lateness_ms_max'],'CPU',s['process_cpu_ms'])
+if __name__=='__main__':
+ try:main()
+ except (OSError,RuntimeError,subprocess.SubprocessError) as e:print(e,file=sys.stderr);sys.exit(1)

@@ -152,6 +152,30 @@ UI側は対象画像、参照画像、キャンバス色資源、カーソルと
 `libs/ui/opengl/kis_opengl_update_info.*`はOpenGL固有の更新情報を扱う。
 表示用投影は汚れ領域を通知し、空の更新では直前の有効フレームを保持する。
 
+実験用のwgpu-native表示は`libs/canvas/wgpu/WgpuImageRenderer.*`がGPU装置、
+再利用する8ビットRGBAテクスチャー、部分転送、描画命令、画素読み戻しを所有する。
+`libs/ui/canvas/wgpu/WgpuCanvasPresenter.*`が既存のQtネイティブ窓への表示と
+更新を合流する描画間隔制御を、
+`WgpuWindowSurface.*`がネイティブ表示面の接続と寿命を所有する。
+依存はUI表示からGPU描画へ向かい、GPU描画は文書とウィジェットを参照しない。
+入力とフォーカスはキャンバスウィジェットの通常のQt経路が所有する。
+`WgpuCanvas.*`は既存のCPU投影・色変換と`KisQPainterCanvas::paintCanvas`による
+画像・装飾合成を使い、変更した表示領域を物理画素単位で転送する。
+表示面の破棄ではGPU資源を先に解放し、再作成では保存した画像を転送する。
+初期検証はmacOSのMetalとLinuxのX11/Vulkan、8ビット表示を対象とする。
+HDR、OpenGL固有のアニメーションキャッシュ、折り返し表示は、表示形式と投影経路の
+追加契約を必要とするため、この実験経路の対象から除外する。
+通常表示への採用条件は[Issue #87](https://github.com/serika12345/librepaint/issues/87)が所有する。
+
+`libs/ui/canvas/kis_canvas_performance_measurement_p.h`は比較試験が有効にした
+キャンバスと窓ごとのCPU段階計測を所有する。
+UI側の投影反映、CPU合成、転送準備、描画命令送信をストローク識別子と結び付ける。
+wgpuの表示面取得、命令作成・送信、提示APIの時間はGPU描画の計測値を受け取る。
+`libs/ui/tests/CanvasPerformanceComparison.cpp`が固定ブラシ入力と文書画素・取り消しの比較を、
+`scripts/compare-canvas-performance`が経路ごとの反復と結果の集計を所有する。
+`libs/ui/tests/CanvasFrameReturnObservation.h`は最後の投影と転送を経た最初の描画復帰を選ぶ。
+CPU処理からの復帰、GPU実行完了、OS表示完了はそれぞれ異なる観測点として扱う。
+
 表示色の設定値、Qt画面色空間との変換値、画素・画像の色変換、表示フィルター接続面は
 `libs/canvas/color`が所有する。`libs/ui/canvas/kis_display_color_converter.*`は
 現在ノード、設定通知、前景色、画面パレットと変換本体を接続する。

@@ -169,6 +169,109 @@ Androidは構築費用が大きいため、この条件に沿って検証する�
 
 ## デスクトップ
 
+### 実験用GPUキャンバス
+
+ネイティブ試験プリセットは`KRITA_ENABLE_WGPU_CANVAS_PROBE=ON`で
+wgpu-native表示と対応する契約試験を構築する。Nixの`test`環境はロック済みの
+wgpu-nativeを提供する。一般の製品構成では、このCMakeオプションを明示して有効にする。
+`LIBREPAINT_CANVAS_BACKEND=wgpu`を指定して起動すると、文書のCPU投影と
+QPainterによる画像・装飾合成をGPU表示へ接続する。
+
+```sh
+./scripts/run-shared-test-env ./scripts/run-test WgpuImageRendererTest
+./scripts/run-shared-test-env ./scripts/build-incremental native build WgpuCanvasIntegrationTest
+./scripts/run-shared-test-env ./scripts/build-incremental native build WgpuCanvasPresenterTest
+```
+
+表示面の試験は実際のQt表示基盤を選んで実行する。macOSでは次のコマンドで
+MetalのAPI検証を有効にし、文書更新、取り消し・やり直し、拡大、サイズ変更、
+再表示、固定ブラシ入力、フォーカス喪失後の文書終了と表示画素を確認する。
+
+```sh
+./scripts/run-shared-test-env bash -c '
+  export QT_QPA_PLATFORM=cocoa MTL_DEBUG_LAYER=1
+  export KIS_TEST_PREFIX_PATH="$(./scripts/build-incremental native path)"
+  "$KIS_TEST_PREFIX_PATH/bin/WgpuCanvasPresenterTest"
+  "$KIS_TEST_PREFIX_PATH/bin/WgpuCanvasIntegrationTest"
+'
+```
+
+LinuxはX11表示セッションで`QT_QPA_PLATFORM=xcb`を選ぶ。
+`offscreen`と`minimal`ではネイティブ表示面の試験を省略し、GPU描画単体の試験を実行する。
+狭いGPU描画・表示面だけを構築する場合は、同じ`test`環境内で次を使う。
+
+```sh
+cmake -S libs/canvas/wgpu -B build/wgpu-probe -G Ninja
+cmake --build build/wgpu-probe
+QT_QPA_PLATFORM=cocoa build/wgpu-probe/bin/WgpuCanvasPresenterTest
+```
+
+8ビット画素の一致と転送範囲は`WgpuImageRendererTest`、表示面の復元と通常Qt入力経路の維持は`WgpuCanvasPresenterTest`、文書更新とブラシ入力の接続は`WgpuCanvasIntegrationTest`が検査する。
+性能比較ではCPU合成、GPU転送準備、描画命令送信、GPU実行完了、OS表示完了を区別する。
+GPU読み戻しを伴う画素試験の時間は、通常表示の入力遅延の評価から分離する。
+
+固定ブラシ入力による表示経路の比較は、次のコマンドで行う。
+比較試験はQPainter、OpenGL、wgpuを別プロセスで起動し、反復ごとに実行順を巡回する。
+macOSは製品と同じOpenGL表示形式の選択とQtの表示構成を使う。
+
+```sh
+./scripts/run-shared-test-env ./scripts/build-incremental native build WgpuCanvasIntegrationTest
+./scripts/run-shared-test-env ./scripts/compare-canvas-performance \
+  --samples 20 --repeat 3 --output build/canvas-performance.json
+```
+
+wgpuの提示方式と描画間隔だけを比較する場合は、次のように条件を指定する。
+各条件は別プロセスで実行し、反復ごとに順序を巡回する。
+
+```sh
+./scripts/run-shared-test-env ./scripts/compare-canvas-performance \
+  --backends wgpu --samples 20 --repeat 3 \
+  --wgpu-experiments fifo:0,fifo:8,fifo:17,immediate:0,immediate:8,immediate:17 \
+  --output build/wgpu-performance-experiments.json
+```
+
+`LIBREPAINT_WGPU_PRESENT_MODE=fifo|immediate`は表示面が対応する提示方式を選ぶ。
+`LIBREPAINT_WGPU_FRAME_INTERVAL_MS=0..1000`は直前の成功した提示処理から次の処理までの
+最小間隔を指定する。更新は期限まで合流し、期限を繰り延べずに最新画像を送る。
+既定値は`fifo`と`0`である。表示面の取得は呼び出しスレッドで待つ場合があるため、
+間隔制御の評価では入力配送遅れと描画終点までの時間を併せて確認する。
+
+入力条件は1024×1024の8ビットRGBA文書、白背景の1レイヤー、
+`sdk/tests/data/autobrush_300px.kpp`、ブラシ寸法32、平滑化なし、
+描画作業スレッド1本、詳細度切替なし、投影更新上限100fps、
+640×480のキャンバス管理ウィジェットと全体表示で固定する。
+比較試験はパネルを閉じた最大化文書ビューを使い、入力全点が実際の表示領域内にあることを検査する。
+試験窓を前面に保ち、指定外のポインター・キー入力を試験プロセスで除外して固定事象だけを配送する。
+入力区間のフォーカス喪失・窓の表示中断は集計から除外し、理由とストローク識別子を記録する。
+試験は初期画素へ戻して再配送し、1プロセスで中断が10回を超える場合に終了する。
+乱数を使うブラシ設定を含まないプリセットに25事象を4ms間隔で渡し、
+各経路の3ストロークの準備実行後に指定数を測定する。
+入力事象の時刻と座標を固定し、開始からの絶対時刻に従って配送する。
+実際の入力区間、最大配送遅れ、キャンバスの実寸法と画面倍率を結果へ記録する。
+各ストロークを取り消して初期画素へ戻し、反復と経路間で文書画素のSHA-256を比較する。
+
+計測は比較試験のキャンバスとネイティブ窓で有効になる。
+ストローク識別子ごとにUI側の投影反映、CPU画像・装飾合成、wgpuの転送準備、
+描画命令送信のCPU側経過時間と回数を記録する。wgpuでは表示面の取得、
+命令作成・送信、提示APIからの復帰も分けて記録する。経過時間にはAPI内の待機が含まれる。
+OpenGLの投影反映にはテクスチャー更新が含まれ、描画命令送信には装飾描画が含まれる。
+QPainterの終点はウィジェットの描画処理からの復帰、GPU経路の終点は描画命令送信からの復帰である。
+入力解放から、最後の投影反映を経た終点までの時間を比較する。
+文書の描画作業は通常のGUI事象処理を続けながら完了を観測する。
+UI側の投影反映が3更新区間静止した時点で、最後の投影を含む最初の描画復帰時刻を採用する。
+wgpuではその投影後の転送準備を経た最初の復帰を選び、古い画像の提示を終点に数えることを防ぐ。
+GPUの実行完了とOSによる表示完了は追加の観測を必要とするため、この値の対象から除外する。
+wgpuの転送量は実際に渡したRGBA画素数で記録し、他経路のGPU転送量は別の計測で扱う。
+GPU読み戻し、文書画素検査と取り消しは測定区間の後に実行する。
+
+JSON出力は条件、文書画素ハッシュ、各試行の記録、中央値・95パーセンタイルを保持する。
+段階別CPU時間の分布は、ストローク内の各段階の累積時間を比較する。
+隣接する`<出力名>-logs`ディレクトリーは試験の診断を保持する。
+反復の画素が異なる場合は、実際の画像と期待画像も同じディレクトリーへ保存する。
+成功条件は指定経路の選択、入力後の投影反映と終点の記録、
+固定入力の画素一致、取り消しによる初期画素への復帰である。
+性能値は対象環境の採用基準と比較する診断値として扱う。
+
 ### macOS
 
 Apple Silicon上で次を実行する。ツールチェーンと機能の定義は

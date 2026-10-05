@@ -57,6 +57,10 @@
 #include "kis_config_notifier.h"
 #include "kis_abstract_canvas_widget.h"
 #include "kis_qpainter_canvas.h"
+#include "kis_canvas_performance_measurement_p.h"
+#ifdef KRITA_ENABLE_WGPU_CANVAS_PROBE
+#include "wgpu/WgpuCanvas.h"
+#endif
 #include "kis_group_layer.h"
 #include "flake/kis_shape_controller.h"
 #include "kis_update_info.h"
@@ -358,6 +362,13 @@ KisCanvas2::KisCanvas2(KisCoordinatesConverter *coordConverter, KoCanvasResource
 
     m_d->frameRenderStartCompressor.setDelay(1000 / config.fpsLimit());
     m_d->frameRenderStartCompressor.setMode(KisSignalCompressor::FIRST_ACTIVE);
+#ifdef KRITA_ENABLE_WGPU_CANVAS_PROBE
+    if (qEnvironmentVariable("LIBREPAINT_CANVAS_BACKEND") == QStringLiteral("wgpu")
+        && qEnvironmentVariableIntValue("LIBREPAINT_WGPU_EAGER_PROJECTION")) {
+        m_d->frameRenderStartCompressor.setDelay(1);
+        m_d->canvasUpdateCompressor.setDelay(1);
+    }
+#endif
     snapGuide()->overrideSnapStrategy(KoSnapGuide::PixelSnapping, new KisSnapPixelStrategy());
 }
 
@@ -743,7 +754,15 @@ void KisCanvas2::createQPainterCanvas()
     m_d->multiSurfaceState =
         m_d->multiSurfaceSetupManager.createInitializingConfig(false, m_d->currentScreenId(), m_d->proofingConfig);
 
-    KisQPainterCanvas * canvasWidget = new KisQPainterCanvas(this, m_d->coordinatesConverter, m_d->view);
+    KisQPainterCanvas *canvasWidget = nullptr;
+#ifdef KRITA_ENABLE_WGPU_CANVAS_PROBE
+    if (qEnvironmentVariable("LIBREPAINT_CANVAS_BACKEND") == QStringLiteral("wgpu")) {
+        canvasWidget = new Krita::Canvas::WgpuCanvas(this, m_d->coordinatesConverter, m_d->view);
+    } else
+#endif
+    {
+        canvasWidget = new KisQPainterCanvas(this, m_d->coordinatesConverter, m_d->view);
+    }
     m_d->prescaledProjection = new KisPrescaledProjection(createQPainterProjectionBackend(), qPainterProjectionUpdatePatchSize());
     m_d->prescaledProjection->setCoordinatesConverter(m_d->coordinatesConverter);
     const KisDisplayConfig displayConfig = m_d->multiSurfaceState->multiConfig.canvasDisplayConfig();
@@ -782,6 +801,9 @@ void KisCanvas2::createOpenGLCanvas()
 
 void KisCanvas2::createCanvas(bool useOpenGL)
 {
+#ifdef KRITA_ENABLE_WGPU_CANVAS_PROBE
+    if (qEnvironmentVariable("LIBREPAINT_CANVAS_BACKEND") == QStringLiteral("wgpu")) useOpenGL = false;
+#endif
     // deinitialize previous canvas structures
     m_d->prescaledProjection = 0;
     m_d->frameCache = 0;
@@ -1089,7 +1111,11 @@ void KisCanvas2::updateCanvasProjection()
     };
 
     auto uploadData = [this, tryIssueCanvasUpdates](const QVector<KisUpdateInfoSP> &infoObjects) {
-        QVector<QRect> viewportRects = m_d->canvasWidget->updateCanvasProjection(infoObjects);
+        QVector<QRect> viewportRects;
+        {
+            Krita::Canvas::Performance::Measurement measurement(*m_d->canvasWidget->widget(), "projection");
+            viewportRects = m_d->canvasWidget->updateCanvasProjection(infoObjects);
+        }
         const QRect vRect = std::accumulate(viewportRects.constBegin(), viewportRects.constEnd(),
                                             QRect(), std::bit_or<QRect>());
 
@@ -1227,7 +1253,7 @@ void KisCanvas2::slotDoCanvasUpdate()
             m_d->canvasWidget->updateCanvasDecorations(m_d->savedOverlayUpdateRect);
         }
     } else if (m_d->updateSceneRequested) {
-        m_d->canvasWidget->widget()->update();
+        m_d->canvasWidget->updateCanvasImage(m_d->canvasWidget->widget()->rect());
     }
 
     m_d->savedCanvasProjectionUpdateRect = QRect();
@@ -1440,7 +1466,9 @@ void KisCanvas2::slotCanvasStateChanged()
     if (!m_d->currentCanvasIsOpenGL) {
         Q_ASSERT(m_d->prescaledProjection);
         auto state = KisCanvasState::fromConverter(*m_d->coordinatesConverter);
-        m_d->prescaledProjection->notifyCanvasStateChanged(state);
+        if (!(qEnvironmentVariable("LIBREPAINT_CANVAS_BACKEND")==QStringLiteral("wgpu")
+              && qEnvironmentVariableIntValue("LIBREPAINT_WGPU_RAW_PROJECTION")))
+            m_d->prescaledProjection->notifyCanvasStateChanged(state);
     }
 
     updateCanvas();

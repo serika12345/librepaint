@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-or-later
+import json,statistics as S,hashlib
+from pathlib import Path
+root=Path(__file__).resolve().parents[2];build=root/'build'
+names=['offscreen','offscreen-spin','timestamps-valid','present','present-release']
+data={n:json.loads((build/f'gpu-api-{n}.json').read_text()) for n in names}
+for n,d in data.items():
+ logs=build/f'gpu-api-{n}-logs'
+ for key,file in [('source_sha256','benchmark.mm'),('binary_sha256','benchmark')]:
+  assert hashlib.sha256((logs/file).read_bytes()).hexdigest()==d[key],(n,key)
+runs={n:d['runs'] for n,d in data.items()}
+def select(n,w,z,api='wgpu',v=True,s='direct',b=3,p='offscreen'):
+ return [x for x in runs[n] if (x['work'],x['size'],x['api'],x['validation'],x['strategy'],x['batch'],x['present'])==(w,z,api,v,s,b,p)]
+def metric(xs,key,stat='median'):return S.median(x['metrics_ms'][key][stat] for x in xs)
+def joint(xs):return S.median(S.median((a[2]+a[3])/1e6 for a in x['samples_ns']) for x in xs)
+def cpu(xs):return S.median(x['process_cpu_ms']/x['frames'] for x in xs)
+lines=[]
+def say(s=''):lines.append(s)
+say('OpenGL / wgpu-native 単独性能実験')
+say('目的: 製品コードとQtの処理を除き、API経路、転送、命令発行、GPU実行、完了待ち、画面提示の制約を切り分ける。')
+say('条件: Apple M2 / macOS、OpenGL 4.1 Core、wgpu-native 27.0.4.0 Metal経路、Metal直接呼び出し。Cocoaの独立ウィンドウ。最適化付きビルド。')
+say('通常測定: 各条件100フレーム準備後1000フレーム、順序を回転して3回反復。各APIは同じ寸法、RGBA8、三角形と最近傍サンプリングを使用する。')
+say('提示なしはGPU完了まで待つ。batch=1は直列の完了時間、batch=3は3枚を発行して完了するまでの時間を3で割った処理量の指標。batch=3は個々のフレーム遅延を表さない。')
+say('表示値は反復ごとの中央値をさらに中央値で集計。P95も反復ごとの値の中央値。CPU時間は全スレッドの実働時間の合計で、壁時計時間とは異なる。')
+say('初期化、シェーダー作成、初期転送、代表1画素の読み戻しは通常測定の外。提示なしの全条件で代表画素を検査。画面提示測定は表示画像の読み戻しを実施していない。')
+say('validationはInstanceFlag_Validationの切替で、下位APIの診断設定を指す。wgpu-coreの入力検査全体を無効化する試験ではない。')
+say('blockはwgpuDevicePoll(true)、spinはwgpuDevicePoll(false)がQueueEmptyを返すまで反復。OpenGLはglFinish、MetalはwaitUntilCompleted。spinは原因を切り分ける試験で、CPUを消費する。')
+say()
+work=[('clear',32,'消去のみ32²'),('triangle',32,'三角形1個32²'),('texture',1024,'画像描画1024²'),('texture',4096,'画像描画4096²'),('upload',1024,'4MiB転送+描画'),('draws',32,'描画命令1000個/1画素領域')]
+for b in [1,3]:
+ say(f'完了待ち込み ms/枚: batch={b}')
+ say('処理 | OpenGL | wgpu通常(block) | wgpu待ち改善(spin) | Metal直接 | wgpu改善P95')
+ for w,z,label in work:
+  gl=select('offscreen-spin',w,z,'gl',True,b=b);wg=select('offscreen',w,z,b=b);opt=select('offscreen-spin',w,z,b=b);mt=select('offscreen-spin',w,z,'metal',False,b=b)
+  say(f'{label} | {metric(gl,"batch_complete_per_frame"):.4f} | {metric(wg,"batch_complete_per_frame"):.4f} | {metric(opt,"batch_complete_per_frame"):.4f} | {metric(mt,"batch_complete_per_frame"):.4f} | {metric(opt,"batch_complete_per_frame","p95"):.4f}')
+ say()
+say('CPU側の発行・転送 (spin条件、batch=3)')
+say('処理 | API | 発行+送信の壁時計ms/枚 | 転送API壁時計ms/枚 | 全スレッドCPU実働ms/枚')
+for w,z,label in work:
+ for api,v in [('gl',True),('wgpu',True),('metal',False)]:
+  xs=select('offscreen-spin',w,z,api,v)
+  say(f'{label} | {api} | {joint(xs):.4f} | {metric(xs,"upload"):.4f} | {cpu(xs):.4f}')
+say()
+say('描画命令1000個の対照 (spin、batch=3)')
+say('API / 発行方法 | 完了待ち込みms/枚 | 命令記録ms/枚 | 発行+送信ms/枚 | CPU実働ms/枚')
+for api,v,s in [('gl',True,'direct'),('wgpu',False,'direct'),('wgpu',False,'bundle'),('gl',True,'instanced'),('wgpu',False,'instanced'),('metal',False,'instanced')]:
+ xs=select('offscreen-spin','draws',32,api,v,s)
+ say(f'{api} / {s} | {metric(xs,"batch_complete_per_frame"):.4f} | {metric(xs,"encode"):.4f} | {joint(xs):.4f} | {cpu(xs):.4f}')
+say('bundleは1000個の命令を事前記録して再生。instancedは同じ三角形を1000回描く命令へまとめる。双方で同じ最適化を行う対照を含む。')
+say()
+say('下位APIの診断フラグ切替 (spin、batch=3): on / off の完了待ち込みms/枚')
+for w,z,label in work:
+ on=select('offscreen-spin',w,z,v=True);off=select('offscreen-spin',w,z,v=False)
+ say(f'{label} | {metric(on,"batch_complete_per_frame"):.4f} / {metric(off,"batch_complete_per_frame"):.4f}')
+say()
+say('GPU時刻の別測定: 500フレーム×3回、batch=1、GPU計測を追加した独立試行')
+say('OpenGLとwgpuは描画範囲、Metalは命令全体を測定するため、転送試験では測定範囲が異なる。GPU計測自体と命令の区切りが通常測定とは異なり、通常測定のCPU待ち時間からGPU時間を差し引く用途には使わない。')
+say('処理 | API | GPU時刻中央値ms | 無効な時刻の回数/測定数')
+for w,z,label in work:
+ for api,v in [('gl',True),('wgpu',True),('metal',False)]:
+  xs=select('timestamps-valid',w,z,api,v,b=1);gs=[x['metrics_ms']['gpu']['median'] for x in xs if 'gpu' in x['metrics_ms']]
+  g=f'{S.median(gs):.6f}' if gs else '取得不可'
+  bad=sum(x['invalid_gpu_timestamp_samples'] for x in xs);total=sum(x['frames'] for x in xs)
+  say(f'{label} | {api} | {g} | {bad}/{total}')
+say('消去だけのOpenGLはゼロ、wgpuは終点が始点以前となる時刻を返し、比較から除外した。OpenGLの小負荷にはゼロの計測も含まれ、掲載値は有効値だけの中央値。')
+say()
+say('画面提示: 640²、100フレーム準備後180フレーム×2回、batch=3、spin')
+say('処理 | API | 提示設定 | API処理回数/秒(各反復) | 取得待ち中央値ms | 提示関数中央値ms | 読み戻した同期設定')
+for w in ['triangle','texture']:
+ for mode in ['fifo','immediate']:
+  for api,v in [('gl',True),('wgpu',True),('wgpu',False),('metal',False)]:
+   xs=select('present',w,640,api,v,p=mode)
+   rate='/'.join(f'{x["fps"]:.1f}' for x in xs);sync='/'.join(str(x.get('actual_display_sync',x.get('actual_swap_interval'))) for x in xs)
+   say(f'{w} | {api}, flag={int(v)} | {mode} | {rate} | {metric(xs,"acquire"):.3f} | {metric(xs,"present"):.3f} | {sync}')
+say('回数/秒はAPI呼び出しを完了した回数で、画面に実際に表示された枚数ではない。GLの取得処理は提示関数やドライバー内部に含まれ、取得待ち=0は待ちが存在しないことを意味しない。')
+say()
+say('描画済み画像の解放対照: Immediate、毎フレームのautoreleasepool解放、Metalの完了済み命令の参照も解放')
+for w in ['triangle','texture']:
+ for api,v in [('gl',True),('wgpu',True),('wgpu',False),('metal',False)]:
+  xs=select('present-release',w,640,api,v,p='immediate')
+  say(f'{w} | {api}, flag={int(v)} | FPS '+ '/'.join(f'{x["fps"]:.1f}' for x in xs)+f' | 取得待ち {metric(xs,"acquire"):.3f}ms')
+say()
+say('特定したボトルネックと次の実装対象')
+say('1. 強制的なGPU完了待ち: Metal経路の待ち実装に1msの休止がある。最小描画の約1.3msはGPU計算時間ではない。短い描画ごとにこの待ちを入れる測定と実装は、描画性能より休止を測ることになる。通常実装では非同期完了確認と発行数制限を使い、CPUを回す試験の改善量を低CPU負荷でも保てる待ち方法を実装対象とする。')
+say('2. 高精細描画: この独立描画では、完了待ちを改善したwgpuの処理量がOpenGLを上回る。製品のレイヤー合成やQtの効果を含まない、API/ドライバー経路の実測差である。')
+say('3. 画像転送: wgpuの転送呼び出しはMetalの再利用した共有バッファへのコピーより時間を使う。次はwgpu側の再利用転送バッファと領域転送を同じ転送量で比較する。')
+say('4. 命令1000個: 事前記録はCPUの記録時間を減らすが、実際の1000回のGPU描画は残る。命令をまとめると双方で改善するため、最適化したOpenGLを含む比較が必要になる。')
+say('5. 診断フラグ: on/offは全面的な改善を示さず、wgpu-coreの検査全体を除く試験とも異なる。')
+say('6. 画面提示: 下位APIに同様の上限が現れる場合、wgpuの命令発行最適化だけでは上限を解消できない。提示なしのGPU性能と画面用画像の取得待ちは独立の実装対象として扱う。')
+say('この結果は最小描画での全面的優位を示さない。全負荷での優位という目標は未達。測定対象は単純な不透明描画であり、多数の異なるレイヤーの合成性能やブラシ入力の体感遅延は別途測定する。')
+say('出典: wgpu-hal 27.0.4 crate (Cargo.lockのSHA256を検証) の src/metal/device.rs、wait内でthread::sleep(Duration::from_millis(1))。')
+say('https://github.com/gfx-rs/wgpu/blob/af91efa93da2af9366b252ed7b9a089175f4874e/wgpu-hal/src/metal/device.rs')
+say('https://github.com/gfx-rs/wgpu-native/blob/v27.0.4.0/Cargo.lock')
+say('https://github.com/gfx-rs/wgpu/blob/v27.0.1/wgpu-types/src/instance.rs')
+say()
+say('利用方法')
+say('./scripts/run-shared-test-env ./experiments/gpu-api/run --suite offscreen --wait block --frames 1000 --rounds 3 --output build/gpu-api-offscreen.json')
+say('./scripts/run-shared-test-env ./experiments/gpu-api/run --suite offscreen --wait spin --frames 1000 --rounds 3 --output build/gpu-api-offscreen-spin.json')
+say('./scripts/run-shared-test-env ./experiments/gpu-api/run --suite timestamp --wait spin --frames 500 --rounds 3 --output build/gpu-api-timestamps-valid.json')
+say('./scripts/run-shared-test-env ./experiments/gpu-api/run --suite present --wait spin --frames 180 --rounds 2 --output build/gpu-api-present.json')
+say('./scripts/run-shared-test-env ./experiments/gpu-api/run --suite present --pool frame --mode immediate --wait spin --frames 180 --rounds 2 --output build/gpu-api-present-release.json')
+say('./experiments/gpu-api/summarize')
+say('各JSONに生データ、設定、測定分布、ソースと実行ファイルのハッシュを記録。対応する-logsディレクトリに各試行の出力、実行時のソースと実行ファイルを保存する。初期GPU試行gpu-api-timestamps.jsonは不正時刻を含み、結果の比較にはtimestamps-validを用いる。')
+say(f'集計済み試行数: '+', '.join(f'{n}={len(runs[n])}' for n in names))
+output=build/'gpu-api-results.txt';output.write_text('\n'.join(lines)+'\n');print(output)

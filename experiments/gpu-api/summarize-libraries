@@ -1,0 +1,149 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-or-later
+import hashlib,json,statistics as S
+from pathlib import Path
+root=Path(__file__).resolve().parents[2];build=root/'build'
+names={'main':'libraries-offscreen','target':'bgfx-storage','gpu':'libraries-timestamps','source':'libraries-source-storage','source_gpu':'libraries-source-timestamps','upload':'libraries-upload-staging','present':'libraries-present','order':'libraries-present-order'}
+data={k:json.loads((build/f'gpu-api-{n}.json').read_text()) for k,n in names.items()}
+expected={'main':306,'target':24,'gpu':165,'source':54,'source_gpu':27,'upload':30,'present':24,'order':12}
+for key,d in data.items():
+ assert len(d['runs'])==expected[key],(key,len(d['runs']))
+ logs=build/f'gpu-api-{names[key]}-logs'
+ for field,file in [('source_sha256','benchmark.mm'),('binary_sha256','benchmark'),('bgfx_engine_sha256','bgfx-engine.inc.mm'),('sokol_engine_sha256','sokol-engine.inc.mm'),('sokol_header_sha256','sokol_gfx.h')]:
+  if field in d:assert hashlib.sha256((logs/file).read_bytes()).hexdigest()==d[field],(key,field)
+ if 'bgfx_observation' in d:assert hashlib.sha256((logs/'bgfx-metal-observed.cpp').read_bytes()).hexdigest()==d['bgfx_observation']['instrumented_metal_sha256'],key
+ for x in d['runs']:
+  assert len(x['samples_ns'])==x['frames'],x['label']
+  if x['present']=='offscreen':
+   assert x['pixel_verified'],x['label']
+   if x['work']=='upload':assert x['upload_change_verified'],x['label']
+  if x['api'].startswith('bgfx') and x['work']!='clear':
+   assert x['bgfx_num_triangles']==x['draws'],x['label']
+   assert x['bgfx_num_draw_calls']==(1 if x['strategy']=='instanced' else x['draws']),x['label']
+def select(k,w,z,a,s='direct',b=3,p='offscreen',v=False):
+ return [x for x in data[k]['runs'] if (x['work'],x['size'],x['api'],x['strategy'],x['batch'],x['present'])==(w,z,a,s,b,p) and (a!='wgpu' or x['validation']==v)]
+def wall(xs):return S.median(x['elapsed_ms']/x['frames'] for x in xs)
+def cpu(xs):return S.median(x['process_cpu_ms']/x['frames'] for x in xs)
+def metric(xs,k,stat='median'):return S.median(x['metrics_ms'][k][stat] for x in xs)
+def joint(xs):return S.median(S.median((s[2]+s[3])/1e6 for s in x['samples_ns']) for x in xs)
+lines=[]
+def say(s=''):lines.append(s)
+apis=['gl','wgpu','metal','bgfx-single','bgfx-threaded','sokol']
+work=[('clear',32,'消去32²'),('triangle',32,'三角形1個32²'),('texture',1024,'画像描画1024²'),('texture',4096,'画像描画4096²'),('upload',1024,'4MiB転送＋描画'),('draws',32,'描画命令1000個・1画素領域')]
+say('描画ライブラリ単独比較: OpenGL / wgpu-native / bgfx / sokol_gfx / Metal')
+say('目的: 製品の画像合成やQtの処理から独立した描画で、命令発行、画像転送、画像の割当、GPU実行、提示待ちを比較する。')
+say('条件: Apple M2 / macOS、OpenGL 4.1 Core、wgpu-native 27.0.4.0、bgfxおよびsokol_gfxのMetal経路、Metal直接呼び出し。最適化付きビルド。RGBA8、同寸法、最近傍サンプリング、深度・ブレンドなし。')
+say('bgfxは呼び出しスレッドで描画処理を行うsingleと、既定の専用描画スレッドを使うthreadedを比較。sokol_gfxは描画API部分を既存のCocoa/Metal初期化へ接続する。')
+say('通常測定: 100フレーム準備＋1000フレームを3回。実行順序を巡回。主表は各反復の測定区間全体の時間/枚をさらに中央値で集計し、外れ値を含む全フレームを数える。')
+say('batch=1: 各枚のGPU完了を待つ。batch=3: 3回発行して最後のGPU完了を待つ処理量の指標。個々のフレーム遅延ではない。sokolの内部発行上限は2枚であり、batch=3でも実際の同時発行数は他経路と同一ではない。')
+say('提示なしの完了待ち: GLはglFinish、Metal/sokol/bgfxは実際のMetal命令のwaitUntilCompleted。bgfx::frameの復帰だけを完了と数えず、描画スレッドの送信とGPU完了を追加観測する。')
+say('wgpuはwgpuDevicePoll(false)を完了まで反復する。前回特定したblocking pollの1ms休止を避ける比較条件。CPU実働にはこの反復と全スレッドの処理が含まれるため、ライブラリ自身のCPU費用とは区別する。')
+say('wgpuの主表は下位APIの診断フラグoff。wgpu-coreの入力検査全体を無効にする設定ではない。onの対照も生データへ保存。')
+say('初期化、シェーダー作成、静的画像の初期転送、代表画素の読み戻しは時間計測の外。提示なしの全試行で代表画素を検査し、転送試験では値を変更して反映を検査する。これは画像全体の一致検査ではない。')
+say()
+for b in [1,3]:
+ say(f'基本比較: 完了待ち込みの区間全体 ms/枚、batch={b}')
+ say('処理 | OpenGL | wgpu | Metal | bgfx single | bgfx threaded | sokol')
+ for w,z,label in work:say(label+' | '+' | '.join(f'{wall(select("main",w,z,a,b=b)):.4f}' for a in apis))
+ say()
+say('基本比較のばらつき: batch=1、区間全体ms/枚の各反復 / 完了待ち分布P95の反復中央値')
+for w,z,label in work:
+ for a in apis:
+  xs=select('main',w,z,a,b=1);say(f'{label} | {a} | '+ '/'.join(f'{x["elapsed_ms"]/x["frames"]:.4f}' for x in xs)+f' | P95 {metric(xs,"batch_complete_per_frame","p95"):.4f}')
+say()
+say('CPU側の実測: batch=3、ms/枚')
+say('処理 | API | 命令記録＋送信の壁時計中央値 | 転送API壁時計中央値 | 全スレッドCPU実働')
+for w,z,label in work:
+ for a in apis:
+  xs=select('main',w,z,a);say(f'{label} | {a} | {joint(xs):.4f} | {metric(xs,"upload"):.4f} | {cpu(xs):.4f}')
+say('bgfx threadedのAPI時間はCPU側の命令記録・受け渡しで、描画スレッドの処理を含まない。singleのframe内には描画と転送処理が入る。全スレッドCPU実働とGPU完了までの区間を合わせて判断する。')
+say()
+say('推測項目1: 画像の割当設定 (4096²、同じ静的画像、各1000枚×3回)')
+say('source-privateは読取画像をGPU専用メモリへ変更。bgfxは試験用に初期転送後の内側のMetal画像を置き換え、sokolは公開APIのcopy_dst画像＋再利用転送バッファで作成する。描画コードと描画先は各経路の既定条件を維持。')
+say('rt-privateはbgfxの描画先だけをBGFX_TEXTURE_RT_WRITE_ONLYへ変更する対照。sourceとtargetを区別して実測する。')
+say('batch | API | 条件 | 全体ms/枚 | CPU実働ms/枚 | 反復ごとの全体ms/枚 | 読取画像/描画先のstorageMode')
+for b in [1,3]:
+ for a in ['metal','bgfx-single','bgfx-threaded','sokol']:
+  for s in ['direct','rt-private','source-private']:
+   xs=select('source','texture',4096,a,s,b)
+   if not xs:continue
+   x=xs[0];storage=str(x.get('bgfx_source_storage_mode',x.get('sokol_source_storage_mode','private')))+'/'+str(x.get('bgfx_target_storage_mode','private'))
+   say(f'{b} | {a} | {s} | {wall(xs):.4f} | {cpu(xs):.4f} | '+ '/'.join(f'{x["elapsed_ms"]/x["frames"]:.4f}' for x in xs)+' | '+storage)
+say('storageMode: 0=Shared、1=Managed、2=Private。既定のbgfx読取画像はManaged、sokolはShared。GPU専用画像への変更は保存形式・配置を含む割当の対照であり、物理配置の個別要因までは分離していない。')
+say('独立した描画先だけの対照 (batch=3、direct / rt-private のms/枚):')
+for a in ['bgfx-single','bgfx-threaded']:say(f'{a} | {wall(select("target","texture",4096,a)):.4f} / {wall(select("target","texture",4096,a,"rt-private")):.4f}')
+say('GPU命令の別測定: source-private対照、batch=1、500枚×3回、GPU時刻中央値ms')
+for a in ['metal','bgfx-single','bgfx-threaded','sokol']:
+ for s in ['direct','rt-private','source-private']:
+  xs=select('source_gpu','texture',4096,a,s,1)
+  if xs:say(f'{a} | {s} | {metric(xs,"gpu"):.6f} | invalid '+str(sum(x['invalid_gpu_timestamp_samples'] for x in xs)))
+say('判定: 読取画像のGPU専用化でbgfx/sokolの高解像度描画は約2倍の処理量へ改善し、Metal直接実装に近づく。描画先だけの変更では同様の改善を得られない。GPU時間にも差が現れるため、単純なCPU呼び出し費用だけを原因とする説明は成立しない。')
+say()
+say('推測項目2: CPUコピーと転送経路')
+say('bgfx upload-refはAPI側の追加コピーを参照渡しへ変更。読取元データはGPU完了まで保持。描画スレッド内部の画像割当・コピーは残る。')
+say('batch | API | 方法 | 全体ms/枚 | API転送壁時計ms/枚 | 全スレッドCPU実働ms/枚')
+for b in [1,3]:
+ for a in ['bgfx-single','bgfx-threaded']:
+  for s in ['direct','upload-ref']:
+   xs=select('main','upload',1024,a,s,b);say(f'{b} | {a} | {s} | {wall(xs):.4f} | {metric(xs,"upload"):.4f} | {cpu(xs):.4f}')
+ for a in ['wgpu','metal','sokol']:
+  for s in ['direct','upload-staging'] if a=='sokol' else ['direct']:
+   xs=select('upload','upload',1024,a,s,b);say(f'{b} | {a} | {s} | {wall(xs):.4f} | {metric(xs,"upload"):.4f} | {cpu(xs):.4f}')
+say('sokol upload-stagingは再利用転送バッファへ書き、GPU専用の読取画像へコピーする。4MiBの転送量は維持。転送経路・画像保存先の複合対照である。')
+say('判定: bgfxの参照渡しだけでは高い転送費用が残る。sokolの転送先と再利用バッファの対照が、単なるライブラリ交換に加えて検討すべき実装項目となる。')
+say()
+say('推測項目3: 1000回の命令発行 (1000個の三角形、同じ1画素領域)')
+say('API | 発行方法 | batch=1全体ms/枚 | batch=3全体ms/枚 | batch=3CPU実働ms/枚')
+for a in apis:
+ for s in ['direct','bundle','instanced'] if a=='wgpu' else ['direct','instanced']:
+  xs=select('main','draws',32,a,s);say(f'{a} | {s} | {wall(select("main","draws",32,a,s,1)):.4f} | {wall(xs):.4f} | {cpu(xs):.4f}')
+say('bundleは1000命令を事前記録して再生、instancedは1000個を1命令へまとめる。bgfxの描画統計でdirect=1000命令/1000三角形、instanced=1命令/1000三角形を確認。これは同一画像を描く対照であり、異なる1000レイヤーの合成を表さない。')
+say('判定: 命令をまとめる効果は各経路にある。ライブラリの既定状態だけの順位から、最適化後の順位は決められない。')
+say()
+say('GPU時刻の独立測定: 基本条件、500枚×3回、batch=1')
+say('処理 | API | GPU中央値ms | 無効な時刻/測定数')
+for w,z,label in work:
+ for a in apis:
+  xs=select('gpu',w,z,a,b=1);valid=[x['metrics_ms']['gpu']['median'] for x in xs if 'gpu' in x['metrics_ms']];g=f'{S.median(valid):.6f}' if valid else '取得不可';say(f'{label} | {a} | {g} | {sum(x["invalid_gpu_timestamp_samples"] for x in xs)}/{sum(x["frames"] for x in xs)}')
+say('Metal/bgfx/sokolは命令全体を測り、GL/wgpuは描画範囲だけを測るため、転送試験のGPU値は直接比較できない。計測追加は通常測定の処理を変えるため、その値を通常測定の壁時計値から引く用途には使わない。GLの小負荷のゼロ時刻とwgpuの消去だけの逆転時刻を除外し、無効数を残す。')
+say()
+say('推測項目4: 提示待ち (640²、100枚準備＋180枚×2回、batch=3)')
+say('処理 | API | 設定 | API処理回数/秒(各反復) | 画像取得中央値ms | 実際のdisplaySync設定')
+for w in ['triangle','texture']:
+ for a in ['bgfx-single','bgfx-threaded','sokol']:
+  for p in ['fifo','immediate']:
+   xs=select('present',w,640,a,p=p);acquire=S.median(x['bgfx_metrics_ms']['drawable_acquire']['median'] if a.startswith('bgfx') else x['metrics_ms']['acquire']['median'] for x in xs);say(f'{w} | {a} | {p} | '+ '/'.join(f'{x["fps"]:.2f}' for x in xs)+f' | {acquire:.3f} | '+ '/'.join(str(x['actual_display_sync']) for x in xs))
+say('この回数は描画API処理が完了した回数で、画面へ実際に表示された枚数ではない。bgfxは既定で前フレームの提示処理を行う。提示なしの数千枚/秒との比較で、提示経路の律速を区別する。')
+say('提示順序の対照: 三角形640²、Immediate、180枚×2回、batch=3')
+say('API | 方法 | API処理回数/秒(各反復) | 取得待ち中央値ms')
+for a in ['metal','bgfx-single','bgfx-threaded']:
+ for s in ['direct','split-present'] if a=='metal' else ['direct','flip-after-render']:
+  xs=select('order','triangle',640,a,s,p='immediate');acquire=S.median(x['bgfx_metrics_ms']['drawable_acquire']['median'] if a.startswith('bgfx') else x['metrics_ms']['acquire']['median'] for x in xs);say(f'{a} | {s} | '+ '/'.join(f'{x["fps"]:.2f}' for x in xs)+f' | {acquire:.3f}')
+say('bgfxは公開設定のBGFX_RESET_FLIP_AFTER_RENDERで当該フレームの描画後へ提示を移動。Metalは提示用の命令を描画用から分離して送信。完了待ちは描画用命令が対象で、OSの表示完了を待つ計測ではない。')
+say('判定: FIFOはbgfx/sokolとも約60回/秒、Immediateではbgfxが約120回/秒、sokol/Metal直接が約60回/秒。提示順序の変更とMetal提示命令の分離だけでは差は解消しない。取得待ちの律速は確認できるが、提示設定・解放・OS側のどの要因が上限を作るかは未特定。')
+say()
+say('結論と次の実装対象')
+say('小負荷: 各枚GPU完了待ちでは約0.2ms前後の差となり、ライブラリを替えれば常に最速という証拠は得られない。別スレッドへの受け渡しも単純描画では必ずしも改善しない。')
+say('高解像度: bgfx/sokol既定値の遅さには読取画像の割当が大きく寄与する。GPU専用画像の対照を含めると、ライブラリ自身の呼び出し費用という解釈が変わる。')
+say('転送・多命令: 画像保存先、再利用転送バッファ、描画命令の統合を実装要件として分けて測る。CPU合成済み画像を毎回転送する製品実装では、描画APIだけの変更で取り除けないCPU処理も別途残る。')
+say('次の対象: wgpuの非同期完了観測＋再利用転送バッファを実装し、最適化したOpenGL/bgfx/sokolと同じ画像転送・合成負荷で比較する。単純な不透明描画の結果から多数レイヤーやブラシ入力の体感性能を推定しない。')
+say()
+say('構成と再実行')
+say('benchmark.mmが共通処理・OpenGL・wgpu・Metalを所有。bgfx-engine.inc.mmとsokol-engine.inc.mmが各ライブラリの描画と完了観測を所有。prepare-bgfx/prepare-sokolは固定リビジョンの依存物を用意する。runが条件を別プロセスで巡回し、summarize-librariesが集計と成果物の整合を確認する。')
+base='./scripts/run-shared-test-env ./experiments/gpu-api/run --with-bgfx --with-sokol --wait spin'
+say(base+' --controls basic --suite offscreen --frames 1000 --rounds 3 --output build/gpu-api-libraries-offscreen.json')
+say(base+' --controls target --apis bgfx-single,bgfx-threaded --suite offscreen --work texture --size 4096 --frames 1000 --rounds 3 --output build/gpu-api-bgfx-storage.json')
+say(base+' --controls target --suite timestamp --frames 500 --rounds 3 --output build/gpu-api-libraries-timestamps.json')
+say(base+' --apis metal,bgfx-single,bgfx-threaded,sokol --suite offscreen --work texture --size 4096 --frames 1000 --rounds 3 --output build/gpu-api-libraries-source-storage.json')
+say(base+' --apis metal,bgfx-single,bgfx-threaded,sokol --suite timestamp --work texture --size 4096 --frames 500 --rounds 3 --output build/gpu-api-libraries-source-timestamps.json')
+say(base+' --apis wgpu,metal,sokol --suite offscreen --work upload --frames 1000 --rounds 3 --output build/gpu-api-libraries-upload-staging.json')
+say(base+' --apis bgfx-single,bgfx-threaded,sokol --suite present --frames 180 --rounds 2 --output build/gpu-api-libraries-present.json')
+say(base+' --apis metal,bgfx-single,bgfx-threaded --suite present --work triangle --mode immediate --present-order-control --frames 180 --rounds 2 --output build/gpu-api-libraries-present-order.json')
+say('./scripts/run-shared-test-env python3 ./experiments/gpu-api/summarize-libraries')
+say('各JSONは個々の測定値、分布、設定とSHA-256を持つ。隣接する-logsディレクトリは実行時ソース、実行ファイルと試行ログを保持。固定リビジョンはJSONのbgfx_observationおよびsokol_revisionを参照する。実測値はこのmacOS/Apple M2環境に対する値。')
+say('主要ソース: https://github.com/bkaradzic/bgfx/blob/01e69a63074d4c103573ef8bc684ceec7e00b22e/src/renderer_mtl.cpp')
+say('https://github.com/floooh/sokol/blob/3d3dcbcb15edd54902f3b59472720a5bec78d74e/sokol_gfx.h')
+say('bgfx frame/thread semantics: https://bkaradzic.github.io/bgfx/bgfx.html')
+say('試行数: '+', '.join(f'{names[k]}={len(d["runs"])}' for k,d in data.items()))
+say('整合確認: 採用した全JSONと対応ソース・実行ファイルのSHA-256、サンプル件数、提示なしの代表画素、転送変化、bgfx三角形数。')
+path=build/'gpu-api-libraries-results.txt';path.write_text('\n'.join(lines)+'\n');print(path)

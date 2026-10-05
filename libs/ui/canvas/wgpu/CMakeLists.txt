@@ -1,0 +1,27 @@
+# SPDX-FileCopyrightText: 2026 LibrePaint contributors
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+add_library(kritacanvaswgpupresentation STATIC WgpuCanvasPresenter.cpp)
+if(APPLE)
+    target_sources(kritacanvaswgpupresentation PRIVATE WgpuWindowSurface.mm)
+    find_library(WGPU_QUARTZCORE_FRAMEWORK QuartzCore REQUIRED)
+    if(IOS)
+        find_library(WGPU_WINDOW_FRAMEWORK UIKit REQUIRED)
+    else()
+        find_library(WGPU_WINDOW_FRAMEWORK AppKit REQUIRED)
+    endif()
+    target_link_libraries(kritacanvaswgpupresentation PRIVATE ${WGPU_QUARTZCORE_FRAMEWORK} ${WGPU_WINDOW_FRAMEWORK})
+else()
+    target_sources(kritacanvaswgpupresentation PRIVATE WgpuWindowSurface.cpp)
+endif()
+target_include_directories(kritacanvaswgpupresentation PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(kritacanvaswgpupresentation PUBLIC Qt6::Widgets PRIVATE kritacanvaswgpuimage)
+set_target_properties(kritacanvaswgpupresentation PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
+
+if(BUILD_TESTING)
+    add_executable(WgpuCanvasPresenterTest WgpuCanvasPresenterTest.cpp)
+    target_link_libraries(WgpuCanvasPresenterTest PRIVATE kritacanvaswgpupresentation Qt6::Test)
+    set_target_properties(WgpuCanvasPresenterTest PROPERTIES AUTOMOC ON MACOSX_BUNDLE OFF)
+    add_test(NAME libs-ui-canvas-wgpu-WgpuCanvasPresenterTest COMMAND WgpuCanvasPresenterTest)
+    set_tests_properties(libs-ui-canvas-wgpu-WgpuCanvasPresenterTest PROPERTIES TIMEOUT 60 LABELS gpu-surface)
+endif()

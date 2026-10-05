@@ -6,6 +6,7 @@
  */
 
 #include "kis_qpainter_canvas.h"
+#include "kis_canvas_performance_measurement_p.h"
 
 
 #include <QPaintEvent>
@@ -94,11 +95,18 @@ void KisQPainterCanvas::paintEvent(QPaintEvent * ev)
     KisImageWSP image = canvas()->image();
     if (image == 0) return;
 
+    Krita::Canvas::Performance::Measurement measurement(*this, "compose");
     setAutoFillBackground(false);
 
     QPainter gc(this);
     gc.setClipRegion(ev->region());
+    paintCanvas(gc, ev->rect());
+    gc.end();
+    m_d->repaintDbg.paint(this, ev);
+}
 
+void KisQPainterCanvas::paintCanvas(QPainter &gc, const QRect &updateWidgetRect) const
+{
     KisCoordinatesConverter *converter = coordinatesConverter();
 
     gc.save();
@@ -117,14 +125,11 @@ void KisQPainterCanvas::paintEvent(QPaintEvent * ev)
     gc.setTransform(checkersTransform);
     gc.drawPolygon(polygon);
 
-    drawImage(gc, ev->rect());
+    drawImage(gc, updateWidgetRect);
 
     gc.restore();
 
-    drawDecorations(gc, ev->rect());
-
-    gc.end();
-    m_d->repaintDbg.paint(this, ev);
+    drawDecorations(gc, updateWidgetRect);
 }
 
 void KisQPainterCanvas::drawImage(QPainter & gc, const QRect &updateWidgetRect) const
@@ -134,6 +139,8 @@ void KisQPainterCanvas::drawImage(QPainter & gc, const QRect &updateWidgetRect) 
                                  m_d->prescaledProjection->prescaledQImage(),
                                  updateWidgetRect);
 }
+
+QImage KisQPainterCanvas::canvasProjectionImage() const { return m_d->prescaledProjection->prescaledQImage(); }
 
 QVariant KisQPainterCanvas::inputMethodQuery(Qt::InputMethodQuery query) const
 {
