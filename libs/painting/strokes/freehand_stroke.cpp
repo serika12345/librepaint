@@ -80,7 +80,8 @@ struct FreehandStrokeStrategy::Private
     KisStrokeEfficiencyMeasurer efficiencyMeasurer;
 
     QElapsedTimer timeSinceLastUpdate;
-    int currentUpdatePeriod = 40;
+    int currentUpdatePeriod = qEnvironmentVariableIntValue("LIBREPAINT_EXPERIMENT_STROKE_PERIOD_MS")>0
+        ? qEnvironmentVariableIntValue("LIBREPAINT_EXPERIMENT_STROKE_PERIOD_MS") : 40;
 
     const bool needsAsynchronousUpdates = false;
     std::mutex updateEntryMutex;

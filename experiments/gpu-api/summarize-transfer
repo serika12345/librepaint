@@ -1,0 +1,122 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-or-later
+import hashlib,json,statistics as S
+from collections import defaultdict
+from pathlib import Path
+
+build=Path(__file__).resolve().parents[2]/'build'
+names={k:'gpu-api-'+k+'-next' for k in ['transfer','wait','partial','allocation','allocation-phases','progress','highres','highres-compare']}
+names['gpu']='gpu-api-transfer-gpu-next'
+counts={'transfer':54,'wait':96,'partial':162,'allocation':36,'allocation-phases':36,'progress':102,'highres':90,'highres-compare':54,'gpu':24}
+data={k:json.loads((build/(n+'.json')).read_text()) for k,n in names.items()}
+for k,d in data.items():
+ assert len(d['runs'])==counts[k],(k,len(d['runs']))
+ logs=build/(names[k]+'-logs')
+ for field,file in [('source_sha256','benchmark.mm'),('binary_sha256','benchmark')]:
+  assert hashlib.sha256((logs/file).read_bytes()).hexdigest()==d[field],(k,field)
+ for r in d['runs']:
+  assert len(r['samples_ns'])==r['frames'] and r['pixel_verified'],r['label']
+  assert r['present']=='offscreen' and not r['validation'],r['label']
+  assert r['transferred_bytes_per_frame']==(r['update_size']**2*4 if r['work']=='upload' else 0),r['label']
+  if r['work']=='upload':assert r['upload_change_verified'],r['label']
+  if r['api']=='wgpu' and r['strategy']=='staging-map':
+   assert r['wgpu_remap_requests']==(r['frames'] if r['work']=='upload' else 0),r['label']
+  if k=='gpu':assert r['gpu_timestamp_supported'] and r['invalid_gpu_timestamp_samples']==0,r['label']
+
+def groups(key):
+ g=defaultdict(list)
+ for r in data[key]['runs']:
+  g[(r['work'],r['size'],r['update_size'],r['batch'],r['api'],r['strategy'],r['wait_mode'],r['poll_us'])].append(r)
+ assert all(len(rs)==3 for rs in g.values()),key
+ return g
+def mean_frame(rs,key):return S.median(r[key]/r['frames'] for r in rs)
+def metric(rs,key,stat='median'):return S.median(r['metrics_ms'][key][stat] for r in rs)
+def phase(rs,i):return S.median(r['wgpu_upload_phase_ms'][i]/r['frames'] for r in rs)
+def repetitions(rs):return '/'.join(f'{r["elapsed_ms"]/r["frames"]:.4f}' for r in rs)
+def select(key,work,size,update,batch,api,strategy,wait):
+ return [r for r in data[key]['runs'] if (r['work'],r['size'],r['update_size'],r['batch'],r['api'],r['strategy'],r['wait_mode'])==(work,size,update,batch,api,strategy,wait)]
+lines=[]
+def say(t=''):lines.append(t)
+def table(key):
+ say('処理 | 描画寸法 | 更新幅 | batch | API | 転送方式 | 完了確認 | 間隔us | 全体ms/枚 | 全スレッドCPU実働ms/枚 | 転送処理壁時計中央値ms/枚 | 全体の3反復 | 完了待ち込みP95中央値ms/枚')
+ for k,rs in groups(key).items():
+  say(' | '.join(map(str,k))+f' | {mean_frame(rs,"elapsed_ms"):.4f} | {mean_frame(rs,"process_cpu_ms"):.4f} | {metric(rs,"upload"):.4f} | {repetitions(rs)} | {metric(rs,"batch_complete_per_frame","p95"):.4f}')
+ say()
+
+say('wgpu-native転送・バッファ作成・完了待ち・更新領域の実装付き比較')
+say('目的: 製品処理から独立した描画で、転送の割当、コピー、完了確認、更新量を分けて測り、OpenGLと最適化前後のwgpu経路を比較する。')
+say('条件: macOS / Apple M2、OpenGL 4.1 Core、wgpu-native 27.0.4.0 Metal経路、Metal直接実装。RGBA8、最近傍、ブレンド・深度なし、描画先3枚を再利用。')
+say('通常測定は100枚準備＋1000枚×3反復、GPU時刻は500枚×3反復。各条件を別プロセスで実行し、反復ごとに方式の順序を巡回する。GPU負荷のある試行は順番に実行する。')
+say('全体ms/枚は各反復の区間全体/枚数を3反復の中央値で集計。CPU実働はプロセス内全スレッドのuser+system時間/枚数。CPU実働と転送処理の壁時計時間を区別する。')
+say('batch=1は毎枚GPU完了を待つ遅延指標。batch=3は3枚発行後のGPU完了を待つ処理量指標で、個々のフレーム遅延ではない。最後の不完全な組も全体時間へ含む。')
+say('全試行は画面への提示なし。画面の垂直同期と描画面取得の待ちは今回の測定区間に入らない。初期化、初期画像転送、シェーダー作成、画素読み戻しも計測外。')
+say('wgpuは下位APIの診断フラグoff。wgpu-coreの入力検査は残る。初期化時の転送値変更と、描画後の代表画素で経路を検査する。画像全体の同一性は別の検査範囲。')
+say('転送データは固定画像を毎枚明示的に書き込む。部分更新は原点の正方形を行ごとに詰めて転送し、全画像を毎枚描画する。更新外の画像は初期転送の内容を保つ。')
+say()
+say('方式の構成')
+say('OpenGL direct: glTexSubImage2DへCPU配列を渡す。pbo: 3個の転送バッファを循環し、map/invalidate、memcpy、unmapを経て画像へ転送。')
+say('wgpu direct: QueueWriteTexture。staging-write: 転送先バッファ3個を再利用しQueueWriteBuffer＋CopyBufferToTexture。staging-fresh: 毎枚mappedAtCreationのMapWriteバッファを作りmemcpy/unmapして転送。staging-map: MapWriteバッファ3個を循環し、GPU利用後のMapAsync完了を待って再利用。')
+say('Metal: Shared転送バッファ3個を再利用し、memcpy＋blitでPrivate画像へコピーして描画。')
+say('block: DevicePoll(true)。spin: DevicePoll(false)を休止なしで反復。sleep: 呼出側がpoll後に指定間隔休止。callback: 別スレッドが定期pollしQueueOnSubmittedWorkDone完了を通知。callback-idle: GPUの仕事がない間は確認スレッドを休止。callback各方式もGPUの仕事がある間は定期確認を使う。')
+say()
+say('推測項目1: 転送APIの追加費用と再利用経路')
+table('transfer')
+say('判定: 転送先だけを再利用してQueueWriteBufferを呼ぶ方式では大きな改善が得られない。MapWriteバッファの直接コピーと再利用で転送処理が短くなる。OpenGLのPBO対照も改善し、比較相手の最適化を含めると優位幅は小さくなる。')
+say()
+say('推測項目2: 毎枚のバッファ作成')
+table('allocation-phases')
+say('batch | 転送方式 | 完了確認 | 作成ms/枚 | memcpy ms/枚 | unmap ms/枚 | QueueWrite API ms/枚 | MapAsync完了待ちms/枚')
+for k,rs in groups('allocation-phases').items():
+ say(f'{k[3]} | {k[5]} | {k[6]} | '+' | '.join(f'{phase(rs,i):.6f}' for i in range(4))+f' | {mean_frame(rs,"wgpu_remap_wait_ms"):.6f}')
+say('各工程は測定区間内で合計した壁時計時間/枚数の反復中央値。独立した中央値の合計は全体時間と一致する必要がない。バッファ作成はAPI呼び出し内の確保・初期化等をまとめた値で、内側の処理までは分離していない。')
+say('判定: 毎枚作成する対照では作成時間がmemcpyより大きい。初期3個の再利用でこの費用を測定区間から除ける。QueueWriteTexture内部の全費用が作成だけという断定はできない。')
+say('工程計測を加える前の独立反復:')
+table('allocation')
+say('推測項目3: GPU完了待ちとCPU消費')
+table('wait')
+say('OpenGL/Metal対照と、確認スレッドの休止条件:')
+table('progress')
+say('処理 | batch | 転送方式 | 完了確認 | poll回数/枚')
+for k,rs in groups('progress').items():
+ if k[4]=='wgpu':say(f'{k[0]} | {k[3]} | {k[5]} | {k[6]} | {mean_frame(rs,"wgpu_poll_calls"):.2f}')
+say('判定: 1ms単位のblocking pollを避ける効果は小負荷で大きい。休止なしの反復確認は全スレッドCPU時間を押し上げる。間隔を置く確認でCPU費用を減らせるが、小負荷・毎枚完了待ちには遅延との交換条件がある。callback-idleの効果は転送中の不要な確認の削減に限られ、全条件で最速にはならない。')
+say('この版のwgpu-nativeはQueueOnSubmittedWorkDone/MapAsyncでNULL_FUTUREを返し、InstanceWaitAnyは未実装。完了通知だけでOSから直接起床する経路は、この試験の公開APIで利用していない。')
+say()
+say('推測項目4: 更新領域と転送量')
+table('partial')
+say('1024²、256²、64²の転送量は4MiB、256KiB、16KiB。描画先と毎枚描く画像は同じ1024²。')
+say('判定: 更新部分だけの転送はCPUコピーとAPI費用を下げる。更新が小さいとmap、送信、完了確認の固定費用が支配し、バッファ再利用方式が常に最速という結果にはならない。転送幅・待ち方・同時発行数の組み合わせを実測で選ぶ必要がある。')
+say()
+say('推測項目5: 高解像度で残る描画費用')
+table('highres')
+say('OpenGL・最適化前wgpu・最適化後wgpuの独立した順序巡回対照:')
+table('highres-compare')
+say('描画画像4096²を保って転送量を減らす。CPU転送を短くしても画像全体の描画とGPU完了待ちは残る。高解像度での差と小負荷の固定費用を分けて扱う。')
+say('別試行のGPU時刻 (API間の範囲を明記):')
+say('処理 | 描画寸法 | 更新幅 | API | GPU時間中央値ms | GPU時間P95中央値ms | 測定範囲')
+for k,rs in groups('gpu').items():say(f'{k[0]} | {k[1]} | {k[2]} | {k[4]} | {metric(rs,"gpu"):.6f} | {metric(rs,"gpu","p95"):.6f} | {rs[0]["gpu_scope"]}')
+say('wgpu時刻はrender passのみでアップロードのコピー命令を除く。Metalはcommand buffer全体でコピー命令を含む。静的texture描画が範囲の近い対照。時刻読み戻しが毎枚同期を増やすため、この別試行の全体時間を通常試行と混ぜない。')
+say()
+say('適用範囲と次の試験対象')
+say('今回の試験実装は製品コードから独立。製品のCPU合成、更新領域計算、Qt表示、ブラシ入力、多数レイヤーの合成は別の処理。単純転送の改善率を製品全体の改善率として扱う根拠は得られていない。')
+say('次の対象: 製品の更新画像転送へMapWriteバッファ循環を入れた対照、更新量に応じた転送方式の選択、入力スレッドを止めない完了確認、多数レイヤーのGPU合成。小負荷も含めてwgpuが常に速いという目標の達成条件は残る。')
+say('主要対照の集計:')
+for key,size,update in [('progress',1024,1024),('highres-compare',4096,1024),('highres-compare',4096,64)]:
+ for batch in [1,3]:
+  gl=select(key,'upload',size,update,batch,'gl','direct','native')
+  old=select(key,'upload',size,update,batch,'wgpu','direct','spin')
+  new=select(key,'upload',size,update,batch,'wgpu','staging-map','callback-idle')
+  say(f'{size}²描画、更新{update}²、batch={batch}: GL {mean_frame(gl,"elapsed_ms"):.4f} → wgpu転送・待ち最適化前 {mean_frame(old,"elapsed_ms"):.4f} → 最適化後 {mean_frame(new,"elapsed_ms"):.4f} ms/枚。wgpu CPU {mean_frame(old,"process_cpu_ms"):.4f} → {mean_frame(new,"process_cpu_ms"):.4f} ms/枚。')
+say('最適化前のwgpuもblockからspinへ変更済みで、今回比較する最適化は転送バッファ再利用と確認間隔調整。製品の現行OpenGLとは独立した試験経路である。')
+say()
+say('構成・利用・結果の確認')
+say('benchmark.mmが転送方式と完了観測を所有。runが共通ビルド、run-transferが独立プロセスの順序巡回と実行時ソース・実行ファイルの固定コピー、summarize-transferが集計を行う。')
+for k,d in data.items():say('./scripts/run-shared-test-env ./experiments/gpu-api/run-transfer '+' '.join(d['command'][1:]))
+say('./scripts/run-shared-test-env python3 ./experiments/gpu-api/summarize-transfer')
+say('結果JSONの隣の-logsには実行時ソース、実行ファイル、各試行ログを保存。条件を変えるときは別の出力名を使い、実測結果と実行時ファイルを対応させる。')
+say('固定版のAPI実装: https://github.com/gfx-rs/wgpu-native/blob/v27.0.4.0/src/lib.rs')
+say('未実装API: https://github.com/gfx-rs/wgpu-native/blob/v27.0.4.0/src/unimplemented.rs')
+say('MetalのMapWrite割当設定: https://github.com/gfx-rs/wgpu/blob/af91efa93da2af9366b252ed7b9a089175f4874e/wgpu-hal/src/metal/device.rs')
+say('試行数: '+', '.join(f'{k}={len(d["runs"])}' for k,d in data.items())+f'; 合計{sum(len(d["runs"]) for d in data.values())}')
+say('整合確認: 全試行の実行時ソース・実行ファイルSHA-256、3反復、サンプル件数、代表画素、転送値変更、転送量、循環バッファの再map件数、GPU時刻の有効性。')
+path=build/'gpu-api-transfer-results.txt';path.write_text('\n'.join(lines)+'\n');print(path)

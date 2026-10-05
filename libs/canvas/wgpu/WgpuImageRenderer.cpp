@@ -10,6 +10,8 @@
 #include <atomic>
 #include <chrono>
 #include <cstring>
+#include <thread>
+#include <vector>
 #include <webgpu/wgpu.h>
 
 namespace Krita::Canvas
@@ -94,6 +96,9 @@ struct WgpuImageRenderer::Private
     uint64_t maxBufferSize = 0;
     bool directBgra = qEnvironmentVariableIntValue("LIBREPAINT_WGPU_DIRECT_BGRA");
     bool gpuProjection = qEnvironmentVariableIntValue("LIBREPAINT_WGPU_GPU_PROJECTION");
+    bool stagingPool = qEnvironmentVariableIntValue("LIBREPAINT_WGPU_STAGING_POOL");
+    bool stagingBatch = qEnvironmentVariableIntValue("LIBREPAINT_WGPU_STAGING_BATCH");
+    int stagingMinBytes = qMax(0, qEnvironmentVariableIntValue("LIBREPAINT_WGPU_STAGING_MIN_BYTES"));
 
     // Reverse destruction releases image/pipeline resources before their device.
     GpuHandle<WGPUInstance, wgpuInstanceRelease> instance;
@@ -111,6 +116,79 @@ struct WgpuImageRenderer::Private
     GpuHandle<WGPUTextureView, wgpuTextureViewRelease> imageView;
     GpuHandle<WGPUBindGroup, wgpuBindGroupRelease> bindings;
     GpuHandle<WGPUBuffer, wgpuBufferRelease> geometryBuffer;
+    GpuHandle<WGPUTexture, wgpuTextureRelease> layerTexture;
+    GpuHandle<WGPUComputePipeline, wgpuComputePipelineRelease> layerPipeline;
+    GpuHandle<WGPUBindGroup, wgpuBindGroupRelease> layerBindings;
+    GpuHandle<WGPUBuffer, wgpuBufferRelease> layerRegion;
+    QRect layerDirty;
+    struct UploadBuffer {
+        GpuHandle<WGPUBuffer, wgpuBufferRelease> buffer;
+        size_t capacity = 0;
+        std::atomic<bool> ready{true};
+    };
+    std::array<UploadBuffer, 3> uploadBuffers;
+    size_t nextUpload = 0;
+    struct PendingCopy { size_t offset; uint32_t rowBytes; QRect rect; WGPUTexture texture; uint32_t layer; };
+    std::vector<PendingCopy> pendingCopies;
+    size_t pendingBytes = 0;
+
+    bool waitUploadBuffer(UploadBuffer &slot)
+    {
+        const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(30);
+        while (!slot.ready.load()) {
+            wgpuDevicePoll(device, false, nullptr);
+            if (!healthy()) return false;
+            if (std::chrono::steady_clock::now() > deadline) return fail(QStringLiteral("Upload buffer map timeout"));
+            if (!slot.ready.load()) std::this_thread::sleep_for(std::chrono::microseconds(50));
+        }
+        return healthy();
+    }
+
+    void remapUploadBuffer(UploadBuffer &slot)
+    {
+        WGPUBufferMapCallbackInfo callback = {};
+        callback.mode = WGPUCallbackMode_AllowSpontaneous;
+        callback.userdata1 = &slot;
+        callback.userdata2 = this;
+        callback.callback = [](WGPUMapAsyncStatus status, WGPUStringView, void *data, void *owner) {
+            auto *d = static_cast<Private *>(owner);
+            if (status != WGPUMapAsyncStatus_Success) {
+                QMutexLocker lock(&d->errorMutex);
+                d->gpuError = QStringLiteral("Upload buffer remapping failed");
+            }
+            static_cast<UploadBuffer *>(data)->ready.store(true);
+        };
+        wgpuBufferMapAsync(slot.buffer, WGPUMapMode_Write, 0, slot.capacity, callback);
+        wgpuDevicePoll(device, false, nullptr);
+    }
+
+    bool flushUploads()
+    {
+        if (pendingCopies.empty()) return true;
+        auto &slot = uploadBuffers[nextUpload++ % uploadBuffers.size()];
+        slot.ready.store(false);
+        wgpuBufferUnmap(slot.buffer);
+        GpuHandle<WGPUCommandEncoder, wgpuCommandEncoderRelease> encoder(wgpuDeviceCreateCommandEncoder(device, nullptr));
+        for (const auto &copy : pendingCopies) {
+            WGPUTexelCopyBufferInfo source = {};
+            source.buffer = slot.buffer;
+            source.layout.offset = copy.offset;
+            source.layout.bytesPerRow = copy.rowBytes;
+            source.layout.rowsPerImage = uint32_t(copy.rect.height());
+            WGPUTexelCopyTextureInfo destination = {};
+            destination.texture = copy.texture;
+            destination.origin = {uint32_t(copy.rect.x()), uint32_t(copy.rect.y()), copy.layer};
+            const WGPUExtent3D extent = {uint32_t(copy.rect.width()), uint32_t(copy.rect.height()), 1};
+            wgpuCommandEncoderCopyBufferToTexture(encoder, &source, &destination, &extent);
+        }
+        GpuHandle<WGPUCommandBuffer, wgpuCommandBufferRelease> command(wgpuCommandEncoderFinish(encoder, nullptr));
+        WGPUCommandBuffer submitted = command;
+        wgpuQueueSubmit(queue, 1, &submitted);
+        pendingCopies.clear();
+        pendingBytes = 0;
+        remapUploadBuffer(slot);
+        return healthy();
+    }
 
     ~Private()
     {
@@ -158,6 +236,84 @@ struct WgpuImageRenderer::Private
 
     QImage readPixels(WGPUTexture texture, WGPURenderPipeline pipeline, QSize size);
 
+    bool writeImage(const uchar *pixels, uint32_t sourceRowBytes, const QRect &rect, WGPUTexture texture = nullptr, uint32_t layer = 0)
+    {
+        WGPUTexelCopyTextureInfo destination = {};
+        destination.texture = texture ? texture : WGPUTexture(imageTexture);
+        destination.origin = {uint32_t(rect.x()), uint32_t(rect.y()), layer};
+        destination.aspect = WGPUTextureAspect_All;
+        const WGPUExtent3D extent = {uint32_t(rect.width()), uint32_t(rect.height()), 1};
+        const size_t pixelBytes = size_t(rect.width()) * rect.height() * 4;
+        if (!stagingPool || pixelBytes < size_t(stagingMinBytes)) {
+            if (!flushUploads()) return false;
+            WGPUTexelCopyBufferLayout layout = {};
+            layout.bytesPerRow = sourceRowBytes;
+            layout.rowsPerImage = uint32_t(rect.height());
+            const size_t bytes = size_t(rect.height()-1) * sourceRowBytes + size_t(rect.width()) * 4;
+            wgpuQueueWriteTexture(queue, &destination, pixels, bytes, &layout, &extent);
+        } else {
+            const uint32_t rowBytes = (uint32_t(rect.width()) * 4 + 255) & ~uint32_t(255);
+            const size_t bytes = size_t(rowBytes) * rect.height();
+            if (bytes > maxBufferSize) return fail(QStringLiteral("Upload buffer exceeds GPU limits"));
+            if (stagingBatch) {
+                if (!pendingCopies.empty() && pendingBytes + bytes > uploadBuffers[nextUpload % uploadBuffers.size()].capacity) {
+                    if (!flushUploads()) return false;
+                }
+                auto &slot = uploadBuffers[nextUpload % uploadBuffers.size()];
+                if (pendingCopies.empty()) {
+                    if (!waitUploadBuffer(slot)) return false;
+                    if (slot.capacity < bytes) {
+                        WGPUBufferDescriptor desc = {};
+                        desc.size = qMin<uint64_t>(maxBufferSize, qMax<size_t>(bytes, 16 * 1024 * 1024));
+                        desc.usage = WGPUBufferUsage_MapWrite | WGPUBufferUsage_CopySrc;
+                        desc.mappedAtCreation = true;
+                        slot.buffer.reset(wgpuDeviceCreateBuffer(device, &desc));
+                        slot.capacity = desc.size;
+                    }
+                }
+                auto *mapped = static_cast<uchar *>(wgpuBufferGetMappedRange(slot.buffer, 0, slot.capacity));
+                if (!mapped) return fail(QStringLiteral("Batched upload buffer mapping failed"));
+                for (int y = 0; y < rect.height(); ++y) {
+                    memcpy(mapped + pendingBytes + size_t(y) * rowBytes, pixels + size_t(y) * sourceRowBytes, size_t(rect.width()) * 4);
+                }
+                pendingCopies.push_back({pendingBytes, rowBytes, rect, destination.texture, layer});
+                pendingBytes += bytes;
+                uploadedBytes += pixelBytes;
+                return healthy();
+            }
+            auto &slot = uploadBuffers[nextUpload++ % uploadBuffers.size()];
+            if (!waitUploadBuffer(slot)) return false;
+            if (slot.capacity < bytes) {
+                WGPUBufferDescriptor desc = {};
+                desc.size = bytes;
+                desc.usage = WGPUBufferUsage_MapWrite | WGPUBufferUsage_CopySrc;
+                desc.mappedAtCreation = true;
+                slot.buffer.reset(wgpuDeviceCreateBuffer(device, &desc));
+                slot.capacity = bytes;
+            }
+            auto *mapped = static_cast<uchar *>(wgpuBufferGetMappedRange(slot.buffer, 0, bytes));
+            if (!mapped) return fail(QStringLiteral("Upload buffer mapping failed"));
+            for (int y = 0; y < rect.height(); ++y) {
+                memcpy(mapped + size_t(y) * rowBytes, pixels + size_t(y) * sourceRowBytes, size_t(rect.width()) * 4);
+            }
+            slot.ready.store(false);
+            wgpuBufferUnmap(slot.buffer);
+            GpuHandle<WGPUCommandEncoder, wgpuCommandEncoderRelease> encoder(wgpuDeviceCreateCommandEncoder(device, nullptr));
+            WGPUTexelCopyBufferInfo source = {};
+            source.buffer = slot.buffer;
+            source.layout.bytesPerRow = rowBytes;
+            source.layout.rowsPerImage = uint32_t(rect.height());
+            wgpuCommandEncoderCopyBufferToTexture(encoder, &source, &destination, &extent);
+            GpuHandle<WGPUCommandBuffer, wgpuCommandBufferRelease> command(wgpuCommandEncoderFinish(encoder, nullptr));
+            WGPUCommandBuffer submitted = command;
+            wgpuQueueSubmit(queue, 1, &submitted);
+            remapUploadBuffer(slot);
+        }
+        if (!healthy()) return false;
+        uploadedBytes += pixelBytes;
+        return true;
+    }
+
     WGPURenderPipeline makePipeline(WGPUTextureFormat format)
     {
         WGPUColorTargetState target = {};
@@ -181,6 +337,16 @@ struct WgpuImageRenderer::Private
 
     void draw(WGPUCommandEncoder encoder, WGPUTextureView target, WGPURenderPipeline pipeline)
     {
+        if (layerPipeline && !layerDirty.isEmpty()) {
+            const std::array<uint32_t,4> region = {uint32_t(layerDirty.x()),uint32_t(layerDirty.y()),uint32_t(layerDirty.width()),uint32_t(layerDirty.height())};
+            wgpuQueueWriteBuffer(queue,layerRegion,0,region.data(),sizeof(region));
+            GpuHandle<WGPUComputePassEncoder,wgpuComputePassEncoderRelease> compute(wgpuCommandEncoderBeginComputePass(encoder,nullptr));
+            wgpuComputePassEncoderSetPipeline(compute,layerPipeline);
+            wgpuComputePassEncoderSetBindGroup(compute,0,layerBindings,0,nullptr);
+            wgpuComputePassEncoderDispatchWorkgroups(compute,(layerDirty.width()+7)/8,(layerDirty.height()+7)/8,1);
+            wgpuComputePassEncoderEnd(compute);
+            layerDirty = {};
+        }
         WGPURenderPassColorAttachment attachment = {};
         attachment.view = target;
         attachment.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
@@ -332,6 +498,7 @@ bool WgpuImageRenderer::upload(const QImage &image, const QRect &dirty)
     if (dirty.isEmpty()) return true;
     if (image.size() != m_d->imageSize) {
         if (dirty != image.rect()) return m_d->fail(QStringLiteral("A new image requires a complete initial update"));
+        if (!m_d->flushUploads()) return false;
         WGPUTextureDescriptor desc = {};
         desc.size = {uint32_t(image.width()), uint32_t(image.height()), 1};
         desc.mipLevelCount = 1;
@@ -362,19 +529,59 @@ bool WgpuImageRenderer::upload(const QImage &image, const QRect &dirty)
     const bool direct = m_d->directBgra && (image.format() == QImage::Format_ARGB32_Premultiplied || image.format() == QImage::Format_ARGB32);
     const QImage patch = direct ? image : image.copy(dirty).convertToFormat(m_d->directBgra ? QImage::Format_ARGB32 : QImage::Format_RGBA8888);
     const uchar *data = patch.constBits() + (direct ? dirty.y()*patch.bytesPerLine() + dirty.x()*4 : 0);
-    const size_t dataSize = size_t(dirty.height()-1)*patch.bytesPerLine() + size_t(dirty.width())*4;
-    WGPUTexelCopyTextureInfo destination = {};
-    destination.texture = m_d->imageTexture;
-    destination.origin = {uint32_t(dirty.x()), uint32_t(dirty.y()), 0};
-    destination.aspect = WGPUTextureAspect_All;
-    WGPUTexelCopyBufferLayout layout = {};
-    layout.bytesPerRow = uint32_t(patch.bytesPerLine());
-    layout.rowsPerImage = uint32_t(dirty.height());
-    const WGPUExtent3D extent = {uint32_t(dirty.width()), uint32_t(dirty.height()), 1};
-    wgpuQueueWriteTexture(m_d->queue, &destination, data, dataSize, &layout, &extent);
-    if (!m_d->healthy()) return false;
-    m_d->uploadedBytes += quint64(dirty.width()) * dirty.height() * 4;
-    return true;
+    return m_d->writeImage(data, uint32_t(patch.bytesPerLine()), dirty);
+}
+
+bool WgpuImageRenderer::initializeLayers(const QVector<quint8> &opacities)
+{
+    if (!m_d->ready() || m_d->imageSize.isEmpty() || opacities.isEmpty() || !m_d->flushUploads()) return false;
+    WGPUTextureDescriptor td = {};
+    td.size = {uint32_t(m_d->imageSize.width()),uint32_t(m_d->imageSize.height()),uint32_t(opacities.size())};
+    td.dimension=WGPUTextureDimension_2D;td.mipLevelCount=1;td.sampleCount=1;
+    td.format=WGPUTextureFormat_RGBA8Unorm;td.usage=WGPUTextureUsage_TextureBinding|WGPUTextureUsage_CopyDst;
+    m_d->layerTexture.reset(wgpuDeviceCreateTexture(m_d->device,&td));
+    WGPUTextureViewDescriptor vd={};vd.dimension=WGPUTextureViewDimension_2DArray;vd.arrayLayerCount=opacities.size();vd.mipLevelCount=1;
+    GpuHandle<WGPUTextureView,wgpuTextureViewRelease> inputView(wgpuTextureCreateView(m_d->layerTexture,&vd));
+    td.size.depthOrArrayLayers=1;td.usage=WGPUTextureUsage_TextureBinding|WGPUTextureUsage_StorageBinding;
+    m_d->bindings.reset();m_d->imageView.reset();m_d->imageTexture.reset(wgpuDeviceCreateTexture(m_d->device,&td));
+    m_d->imageView.reset(wgpuTextureCreateView(m_d->imageTexture,nullptr));
+    WGPUBindGroupEntry render[3]={};render[0].textureView=m_d->imageView;render[1].binding=1;render[1].sampler=m_d->sampler;
+    render[2].binding=2;render[2].buffer=m_d->geometryBuffer;render[2].size=64;
+    WGPUBindGroupDescriptor rd={};rd.layout=m_d->bindingLayout;rd.entryCount=m_d->gpuProjection?3:2;rd.entries=render;
+    m_d->bindings.reset(wgpuDeviceCreateBindGroup(m_d->device,&rd));
+    QByteArray code=R"WGSL(
+@group(0) @binding(0) var layers:texture_2d_array<f32>;
+@group(0) @binding(1) var result:texture_storage_2d<rgba8unorm,write>;
+@group(0) @binding(2) var<uniform> region:vec4u;
+@compute @workgroup_size(8,8) fn compose(@builtin(global_invocation_id) id:vec3u) {
+ if(any(id.xy>=region.zw)){return;} let xy=vec2i(id.xy+region.xy);var c=vec4f(0.);
+)WGSL";
+    for(int i=0;i<opacities.size();++i) {
+        code += "{let s=textureLoad(layers,xy,"+QByteArray::number(i)+",0)*"+QByteArray::number(double(opacities[i])/255,'f',9)+";c=round((s+c*(1.-s.a))*255.)/255.;}\n";
+    }
+    code += "textureStore(result,xy,c);}";
+    WGPUShaderSourceWGSL source={};source.chain.sType=WGPUSType_ShaderSourceWGSL;source.code={code.constData(),size_t(code.size())};
+    WGPUShaderModuleDescriptor sd={};sd.nextInChain=&source.chain;
+    GpuHandle<WGPUShaderModule,wgpuShaderModuleRelease> module(wgpuDeviceCreateShaderModule(m_d->device,&sd));
+    WGPUComputePipelineDescriptor pd={};pd.compute.module=module;pd.compute.entryPoint={"compose",WGPU_STRLEN};
+    m_d->layerPipeline.reset(wgpuDeviceCreateComputePipeline(m_d->device,&pd));
+    WGPUBufferDescriptor bd={};bd.size=16;bd.usage=WGPUBufferUsage_Uniform|WGPUBufferUsage_CopyDst;
+    m_d->layerRegion.reset(wgpuDeviceCreateBuffer(m_d->device,&bd));
+    GpuHandle<WGPUBindGroupLayout,wgpuBindGroupLayoutRelease> layout(wgpuComputePipelineGetBindGroupLayout(m_d->layerPipeline,0));
+    WGPUBindGroupEntry entries[3]={};entries[0].textureView=inputView;entries[1].binding=1;entries[1].textureView=m_d->imageView;
+    entries[2].binding=2;entries[2].buffer=m_d->layerRegion;entries[2].size=16;
+    WGPUBindGroupDescriptor gd={};gd.layout=layout;gd.entryCount=3;gd.entries=entries;
+    m_d->layerBindings.reset(wgpuDeviceCreateBindGroup(m_d->device,&gd));
+    m_d->layerDirty=QRect(QPoint(),m_d->imageSize);
+    return m_d->healthy();
+}
+
+bool WgpuImageRenderer::uploadLayerPatch(int layer,const QImage &image,const QRect &rect)
+{
+    if (!m_d->ready() || !m_d->layerTexture || image.size()!=rect.size()) return false;
+    const QImage patch=image.convertToFormat(QImage::Format_RGBA8888_Premultiplied);
+    m_d->layerDirty |= rect;
+    return m_d->writeImage(patch.constBits(),patch.bytesPerLine(),rect,m_d->layerTexture,uint32_t(layer));
 }
 
 void WgpuImageRenderer::setProjectionGeometry(const std::array<float,16> &geometry)
@@ -387,16 +594,7 @@ bool WgpuImageRenderer::uploadPatch(const QImage &image, const QRect &rect)
     if (!m_d->ready() || !m_d->bindings || image.size()!=rect.size()
         || !QRect(QPoint(),m_d->imageSize).contains(rect)) return false;
     const QImage patch = image.convertToFormat(m_d->directBgra ? QImage::Format_ARGB32 : QImage::Format_RGBA8888);
-    WGPUTexelCopyTextureInfo dst = {};
-    dst.texture = m_d->imageTexture;
-    dst.origin = {uint32_t(rect.x()),uint32_t(rect.y()),0};
-    dst.aspect = WGPUTextureAspect_All;
-    WGPUTexelCopyBufferLayout layout = {};
-    layout.bytesPerRow = patch.bytesPerLine(); layout.rowsPerImage = patch.height();
-    WGPUExtent3D extent = {uint32_t(patch.width()),uint32_t(patch.height()),1};
-    wgpuQueueWriteTexture(m_d->queue,&dst,patch.constBits(),patch.sizeInBytes(),&layout,&extent);
-    m_d->uploadedBytes += quint64(patch.width())*patch.height()*4;
-    return m_d->healthy();
+    return m_d->writeImage(patch.constBits(), uint32_t(patch.bytesPerLine()), rect);
 }
 
 QImage WgpuImageRenderer::readback(QSize size)
@@ -422,6 +620,7 @@ QImage WgpuImageRenderer::readback(QSize size)
 
 QImage WgpuImageRenderer::Private::readPixels(WGPUTexture texture, WGPURenderPipeline pipeline, QSize size)
 {
+    if (!flushUploads()) return {};
     GpuHandle<WGPUTextureView, wgpuTextureViewRelease> view(wgpuTextureCreateView(texture, nullptr));
     const WGPUExtent3D extent = {uint32_t(size.width()), uint32_t(size.height()), 1};
     const uint32_t rowBytes = (uint32_t(size.width()) * 4 + 255) & ~uint32_t(255);
@@ -536,6 +735,7 @@ bool WgpuImageRenderer::present(PresentationTiming *timing, const std::function<
     }
     if (beforeDraw && !beforeDraw()) return false;
     if (timing) timing->beforeDrawEndNs = nowNs();
+    if (!m_d->flushUploads()) return false;
     GpuHandle<WGPUTextureView, wgpuTextureViewRelease> view(wgpuTextureCreateView(texture, nullptr));
     GpuHandle<WGPUCommandEncoder, wgpuCommandEncoderRelease> encoder(wgpuDeviceCreateCommandEncoder(m_d->device, nullptr));
     m_d->draw(encoder, view, m_d->surfacePipeline);
@@ -545,7 +745,14 @@ bool WgpuImageRenderer::present(PresentationTiming *timing, const std::function<
     if (timing) timing->submitEndNs = nowNs();
     const auto result = wgpuSurfacePresent(m_d->surface);
     if (timing) timing->presentEndNs = nowNs();
-    wgpuDevicePoll(m_d->device, qEnvironmentVariableIntValue("LIBREPAINT_EXPERIMENT_GPU_COMPLETION"), nullptr);
+    if (qEnvironmentVariableIntValue("LIBREPAINT_EXPERIMENT_GPU_COMPLETION")) {
+        const auto deadline=std::chrono::steady_clock::now()+std::chrono::seconds(30);
+        while (!wgpuDevicePoll(m_d->device,false,nullptr)) {
+            if (!m_d->healthy()) return false;
+            if (std::chrono::steady_clock::now()>deadline) return m_d->fail(QStringLiteral("GPU completion timeout"));
+            std::this_thread::sleep_for(std::chrono::microseconds(50));
+        }
+    } else wgpuDevicePoll(m_d->device,false,nullptr);
     if (timing) timing->gpuCompletionEndNs = nowNs();
     return result == WGPUStatus_Success && m_d->healthy();
 }

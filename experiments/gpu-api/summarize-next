@@ -1,0 +1,113 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-or-later
+import hashlib,json,statistics as S
+from collections import defaultdict
+from pathlib import Path
+
+root=Path(__file__).resolve().parents[2];build=root/'build'
+products={n:json.loads((build/(n+'.json')).read_text()) for n in ['wgpu-staging-product-pilot','wgpu-staging-product-next','wgpu-staging-adaptive-retry-next']}
+layers={n:json.loads((build/(n+'.json')).read_text()) for n in ['wgpu-layer-composition-pilot','wgpu-layer-composition-next','wgpu-layer-regions-next','wgpu-layer-precomputed-next']}
+expected={'wgpu-staging-product-pilot':15,'wgpu-staging-product-next':54,'wgpu-staging-adaptive-retry-next':36,'wgpu-layer-composition-pilot':8,'wgpu-layer-composition-next':192,'wgpu-layer-regions-next':126,'wgpu-layer-precomputed-next':126}
+for name,d in {**products,**layers}.items():
+ assert len(d['runs'])==expected[name],(name,len(d['runs']))
+ logs=build/(name+'-logs')
+ for file,digest in d['source_sha256'].items():
+  path=logs/'source'/file if name in products else logs/file
+  assert hashlib.sha256(path.read_bytes()).hexdigest()==digest,(name,file)
+ if name in layers:
+  assert hashlib.sha256((logs/'layers').read_bytes()).hexdigest()==d['binary_sha256'],name
+  assert all(r['image_verified'] and r['max_channel_error']<=2 for r in d['runs']),name
+ else:
+  hashes={}
+  for r in d['runs']:
+   assert len(r['samples'])==(3 if 'pilot' in name else 6 if name=='wgpu-staging-product-next' else 10),name
+   prior=hashes.setdefault(r['workload'],r['pixel_sha256']);assert r['pixel_sha256']==prior,name
+   assert not r['gpu_completion_waited'],name
+
+lines=[]
+def say(t=''):lines.append(t)
+def groups(data,fields):
+ g=defaultdict(list)
+ for r in data['runs']:g[tuple(r[f] for f in fields)].append(r)
+ return g
+def layer_value(rs,key):return S.median(r[key]/r['frames'] for r in rs)
+def product_table(name):
+ say('処理 | 方式 | 解放から描画復帰ms 中央値/P95 | 入力開始から処理完了ms | 全スレッドCPU実働ms/ストローク | GUI CPU実働ms | 投影反映/合成/転送準備/命令記録・送信/表示面取得ms | 最大入力配送遅れms | 反復ごとの解放から描画中央値ms')
+ d=products[name]
+ for (w,c),rs in groups(d,['workload','case']).items():
+  ss=[s for r in rs for s in r['samples']];summary=d['summary'][w+'/'+c];med=lambda k:summary[k]['median'];stages=summary['stages'];phase=lambda k:stages.get(k,{}).get('median',0)
+  times=[phase(k) for k in ['widget_stages/projection/cpu_ms','widget_stages/compose/cpu_ms','window_stages/upload/cpu_ms','window_stages/gpu_encode_submit/cpu_ms','window_stages/surface_acquire/cpu_ms']]
+  say(f'{w} | {c} | {med("release_to_frame_ms"):.3f}/{summary["release_to_frame_ms"]["p95"]:.3f} | {med("pipeline_complete_ms"):.3f} | {med("process_cpu_ms"):.3f} | {med("gui_cpu_ms"):.3f} | '+ '/'.join(f'{t:.3f}' for t in times)+f' | {med("dispatch_lateness_ms_max"):.3f} | '+ '/'.join(f'{S.median(s["release_to_frame_ms"] for s in r["samples"]):.3f}' for r in rs))
+ say()
+def layer_table(name):
+ say('寸法 | 層数 | 更新幅 | API | 合成方式 | 完了待ち込みms/枚 | 全スレッドCPU実働ms/枚 | CPU合成/転送準備/入力画像生成ms/枚 | 全体時間の3反復 | 最大画素差')
+ for k,rs in groups(layers[name],['size','layers','update','api','mode']).items():
+  values=[layer_value(rs,f) for f in ['cpu_compose_ms','prepare_ms','input_update_ms']]
+  say(' | '.join(map(str,k))+f' | {layer_value(rs,"elapsed_ms"):.4f} | {layer_value(rs,"process_cpu_ms"):.4f} | '+ '/'.join(f'{t:.4f}' for t in values)+' | '+ '/'.join(f'{r["elapsed_ms"]/r["frames"]:.4f}' for r in rs)+f' | {max(r["max_channel_error"] for r in rs)}')
+ say()
+
+say('wgpu製品転送経路と多数レイヤー合成: 実装付き調査')
+say('目的: 再利用転送バッファの効果を製品の固定入力で確認し、CPU合成、転送、GPU合成、変更領域、静止内容の再利用を分けて測る。')
+say('条件: macOS / Apple M2、wgpu-native 27.0.4.0 Metal経路。小負荷の1ms単位の遅延増加を避ける条件を優先し、さらに小さい差は後続の最適化対象とする。')
+say()
+say('推測項目1: 製品の転送APIとバッファの再利用')
+say('WgpuImageRenderer.cppにMapWriteバッファ3個の再利用を追加。既定のQueueWriteTexture経路と環境変数で切替。行を256バイト境界へ詰め、元画像の行幅と更新先の座標を維持する。')
+say('個別再利用は更新画像ごとにGPUへ送信。まとめた転送は複数更新を1個のバッファへ詰め、描画前にまとめてコピー命令を送る。収まらない場合は現在の転送を送り次のバッファを使う。directへの切替と画像サイズ変更では先行転送を先に送る。')
+say('更新画像ごとに送る方式は、3個を使い切った途中の再利用待ちで単純転送試験と異なる挙動になる。まとめる方式では待ちと送信回数を減らす。転送送信は描画命令とは別の送信である。')
+say('起動変数: LIBREPAINT_WGPU_STAGING_POOL=1、LIBREPAINT_WGPU_STAGING_BATCH=1、LIBREPAINT_WGPU_STAGING_MIN_BYTES=<画素バイト数>。MIN_BYTES未満はQueueWriteTextureを使う。16MiBを最小容量として転送バッファを確保し、必要な大きさへ拡張する試作構成。')
+say('この試験実装の経路ではCPU文書投影を維持する。GPUレイヤー合成の追加は独立試験であり、製品のブラシ・レイヤー算法の置換には至っていない。')
+say()
+say('製品試験の条件')
+say('light: 1024²文書・1レイヤー・ブラシ32。resolution: 4096²文書・1レイヤー・ブラシ512。stress: 4096²文書・24レイヤー・ブラシ512・毎入力で全描画要求。固定ブラシに25事象を4ms間隔、約96msの入力列。描画作業スレッド8本、投影更新上限100fps。')
+say('各条件は独立プロセス、3ストローク準備後に6または10ストローク×3反復。起動順を反復ごとに巡回。初期化、取り消し、文書画素検査と表示読み戻しは計測外。CPU実働は最終投影の静止確認区間まで含む。')
+say('終点は最後の投影を含む描画・提示APIからのCPU復帰。GPU実行完了とOSの実表示完了はこの製品試験の対象外。表示面取得待ちは転送準備の費用と分けて記録。段階名のcpu_msは既存計測の壁時計時間で、API内の待ちを含む。全スレッドCPU実働は別のgetrusage値。')
+say('wgpu-rawはCPU投影・QPainter合成を残す従来の表示試作。wgpu-optimizedは既存の描画スレッド、遅い時点での最新更新取得、直接BGRA、GPU表示変換、描画合流、静止レイヤーCPU合成の再利用等を使う。staging系はこの同じoptimized条件に転送方式だけを追加。')
+say('各データのconfigurationsが正確な設定を所有する。optimizedとraw間の差は転送変更単独の効果ではない。')
+product_table('wgpu-staging-product-next')
+say('判定: まとめた転送は転送準備を短くするが、ストローク全体のCPU時間や入力解放後の遅延には同じ割合の改善が出ない。個別再利用の退行と、まとめた転送の改善を分けて採否を判断する。')
+say()
+say('推測項目2: 小負荷での転送方式の切替')
+say('wgpu-staging-batch-largeは256KiB以上、wgpu-staging-adaptiveは1MiB以上の更新をまとめた再利用転送へ切り替える。更新画素量以外のoptimized設定を固定する。')
+product_table('wgpu-staging-adaptive-retry-next')
+say('小負荷の判定: 解放から描画復帰の中央値差が1ms以上なら許容済みとは扱わない。反復ごとの差とP95も併記し、1ms未満の差とばらつきを分ける。約96msの固定入力区間を含む総時間だけで小さな退行を隠さない。')
+say('採否: 小負荷のまとめた転送とOpenGLの中央値差は、6入力×3反復の組で約+1.17ms、10入力×3反復の再測定で約-1.00ms。今回の差は約1msの境界付近で変動し、安定した上限の保証には至っていない。1MiB閾値は高負荷でも転送準備の費用を残すため、重負荷では閾値なしのまとめた転送を優先する。表示単位の合計更新量で選ぶ方式は次の対照となる。')
+say()
+say('推測項目3: CPU合成とGPU合成の責務')
+say('独立試験は異なるRGBA8の通常合成レイヤー8/24層。最上層だけを更新し、1024²/2048²の画像全体を毎枚描画する。初期画像・シェーダー作成・静止内容の合成・読戻しは計測外。深度・画面提示・表示色変換を除いた範囲を測る。')
+say('CPU合成はレイヤーごとの連続走査、再利用したfloat32作業配列、1回のRGBA8変換を使う最適化付き単一スレッドの試験実装。GPUは同じsource-over計算を1回のGPU計算段階で行い、RGBA8画像へ書き込む。製品の色変換、合成モード、マスクやブラシ互換性は別の契約となる。')
+say('cpu-full: 全画素・全レイヤーをCPUで合成して全転送。cpu-dirty: 更新領域だけを全レイヤーで合成・部分転送。cpu-cache: 静止レイヤーの初期合成を再利用し、最上層だけをCPUで合成・部分転送。GPU側も同じ静止内容のキャッシュを対照にする。')
+say('GPU方式では各レイヤーの画像を初期転送し、毎枚の最上層の変更領域だけを再利用バッファで転送。gpu-allは全レイヤー・全画素を再合成。gpu-cacheは最上層＋静止合成画像の2枚を全画素で再合成。')
+say('batch=3、3枚発行後にGPU完了を待つ。各条件3枚準備＋12枚×3反復。各反復の区間全体/枚数を中央値で集計する処理量指標。少数フレームの探索測定であり、長時間の温度・クロック安定性の判断は別の範囲。')
+layer_table('wgpu-layer-composition-next')
+say('判定: CPU合成を残して描画APIだけを変更する対照では、合成負荷が残る。静止レイヤーの再利用はOpenGL側にも有効。全画素のGPU合成は、小さい更新領域でCPU部分合成に負ける条件がある。')
+say()
+say('推測項目4: GPUの合成領域を限定する')
+say('gpu-dirtyは全レイヤーを変更領域だけ再合成。gpu-cache-dirtyは最上層＋静止画像2枚を変更領域だけ再合成。初期画像全体は1回合成し、更新外のGPU合成画像を保持する。毎枚の描画は全画素を維持する。')
+layer_table('wgpu-layer-regions-next')
+say('判定: 変更領域の縮小はCPU転送だけでなくGPU合成にも必要。静止レイヤーの再利用とGPUの部分合成は異なる費用を下げるため、独立した対照として評価する。')
+say()
+say('推測項目5: 入力画像を生成するCPU処理')
+say('上の独立試験は測定区間内で最上層の色を生成する。全画素更新ではこの共通CPU処理がGPU合成後の全体時間に占める割合を増やす。そこで入力画像2枚を測定外で準備し、同じ変更領域を交互に切り替える対照を追加した。合成・実際の転送・描画・GPU完了待ちは測定区間内を維持する。')
+layer_table('wgpu-layer-precomputed-next')
+say('入力生成を含む値を製品のブラシ速度として解釈しない。生成を除いた対照は合成・転送・描画の性能を比較する値であり、製品の総遅延ではない。')
+say()
+say('観測結果の要点')
+for name in ['wgpu-staging-product-next','wgpu-staging-adaptive-retry-next']:
+ for w in ['light','resolution','stress']:
+  d=products[name]['summary'];gl=d[w+'/opengl'];key='wgpu-staging-batch' if name.endswith('product-next') else 'wgpu-staging-adaptive';new=d[w+'/'+key];delta=new['release_to_frame_ms']['median']-gl['release_to_frame_ms']['median']
+  say(f'{name}/{w}: OpenGL {gl["release_to_frame_ms"]["median"]:.3f} → {key} {new["release_to_frame_ms"]["median"]:.3f} ms、差 {delta:+.3f} ms。')
+say('次の試験対象: 製品のCPU投影に届く変更領域と静止合成の依存関係を接続し、通常合成の限定範囲でGPU部分合成を試す。表示・変換だけの改善と文書の合成移行の効果を分け、同じ固定入力で比較する。')
+say()
+say('構成と再実行')
+say('製品の転送経路: libs/canvas/wgpu/WgpuImageRenderer.cpp。既存経路と個別再利用・まとめた再利用・更新量の切替を保持。scripts/experiment-wgpu-bottlenecksが固定入力と反復を所有。')
+say('独立合成: experiments/gpu-api/layers.mmが入力画像・CPU/GPU合成・全画像検査を所有。benchmark.mmの描画と完了観測を利用。run-layersが実行時ソースと実行ファイルを固定コピーして順序巡回する。')
+say('./scripts/run-shared-test-env ./scripts/build-incremental native build WgpuCanvasIntegrationTest')
+say('./scripts/run-shared-test-env ./scripts/experiment-wgpu-bottlenecks --cases opengl,wgpu-optimized,wgpu-staging-batch,wgpu-staging-adaptive --workloads light,resolution,stress --samples 10 --repeat 3 --output build/wgpu-staging-adaptive-retry-next.json')
+for name,d in layers.items():say('./scripts/run-shared-test-env ./experiments/gpu-api/run-layers '+' '.join(d['command'][1:]))
+say('./scripts/run-shared-test-env python3 ./experiments/gpu-api/summarize-next')
+say('各JSONと隣接-logsが実行時ソースSHA-256、実行ファイルSHA-256、各試行の設定・診断・結果を保持。製品試験は実行ファイルとUIライブラリのSHA-256を試行ごとに再確認して、途中の構築変更を検出する。')
+say('検査: WgpuImageRendererTestの既存固定画像・部分更新・不正更新の5項目が個別再利用とまとめた再利用で通過。製品固定入力の文書画素SHA-256は同じ負荷の経路間で一致。GPU表示変換では既存の表示差を結果JSONへ記録。独立合成は測定後の全画像をCPU参照と比較し、各チャンネル差2以下を確認。')
+say('追加試行数: '+', '.join(f'{n}={len(d["runs"])}' for n,d in {**products,**layers}.items()))
+say('小負荷の切替方式の最初の試行は試験窓の非表示で中断。wgpu-staging-adaptive-next.jsonと対応ログを保持し、最初の3プロセスは主表の集計から除外。上記の再実行結果を独立した巡回比較として採用する。')
+say(f'製品ストローク数: {sum(len(r["samples"]) for d in products.values() for r in d["runs"])}。独立合成の測定枚数: {sum(r["frames"] for d in layers.values() for r in d["runs"])}。')
+path=build/'wgpu-next-results.txt';path.write_text('\n'.join(lines)+'\n');print(path)

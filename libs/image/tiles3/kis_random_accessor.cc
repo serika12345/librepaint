@@ -4,6 +4,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisExperimentCpuProfile.h>
 #include "kis_random_accessor.h"
 #include "kis_iterator_complete_listener.h"
 #include "tiles3/kis_tile_data_interface.h"
@@ -49,6 +50,7 @@ KisRandomAccessor2::~KisRandomAccessor2()
 
 void KisRandomAccessor2::moveTo(qint32 x, qint32 y)
 {
+    KisExperimentCpuProfile::Scope profile(KisExperimentCpuProfile::TileAccess, 0);
     m_lastX = x;
     m_lastY = y;
 

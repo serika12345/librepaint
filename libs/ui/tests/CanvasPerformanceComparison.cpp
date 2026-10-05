@@ -18,6 +18,8 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoColor.h>
 #include <kis_image.h>
+#include <KisExperimentCpuProfile.h>
+#include <kis_projection_updates_filter.h>
 #include <kis_group_layer.h>
 #include <kis_paint_layer.h>
 #include <kis_paint_device.h>
@@ -38,6 +40,9 @@
 #include <KoTestConfig.h>
 #include <sys/resource.h>
 #include <time.h>
+#include <optional>
+#include <mach/mach.h>
+#include <mach/thread_info.h>
 
 namespace Perf = Krita::Canvas::Performance;
 namespace
@@ -98,6 +103,26 @@ qint64 processCpuNs() {
     return (usage.ru_utime.tv_sec+usage.ru_stime.tv_sec)*1000000000LL
         + (usage.ru_utime.tv_usec+usage.ru_stime.tv_usec)*1000LL;
 }
+struct CpuThread { qint64 cpuNs=0; QString name; };
+QHash<quint64,CpuThread> cpuThreadSnapshot() {
+    thread_act_array_t list=nullptr; mach_msg_type_number_t length=0;
+    QHash<quint64,CpuThread> result;
+    if(task_threads(mach_task_self(),&list,&length)!=KERN_SUCCESS) return result;
+    for(mach_msg_type_number_t i=0;i<length;++i) {
+        thread_basic_info_data_t basic{};thread_identifier_info_data_t ident{};thread_extended_info_data_t extended{};
+        mach_msg_type_number_t nb=THREAD_BASIC_INFO_COUNT,ni=THREAD_IDENTIFIER_INFO_COUNT,ne=THREAD_EXTENDED_INFO_COUNT;
+        const bool ok=thread_info(list[i],THREAD_BASIC_INFO,reinterpret_cast<thread_info_t>(&basic),&nb)==KERN_SUCCESS
+            && thread_info(list[i],THREAD_IDENTIFIER_INFO,reinterpret_cast<thread_info_t>(&ident),&ni)==KERN_SUCCESS;
+        if(ok) {
+            thread_info(list[i],THREAD_EXTENDED_INFO,reinterpret_cast<thread_info_t>(&extended),&ne);
+            result.insert(ident.thread_id,{(basic.user_time.seconds+basic.system_time.seconds)*1000000000LL
+                +(basic.user_time.microseconds+basic.system_time.microseconds)*1000LL,QString::fromUtf8(extended.pth_name)});
+        }
+        mach_port_deallocate(mach_task_self(),list[i]);
+    }
+    vm_deallocate(mach_task_self(),reinterpret_cast<vm_address_t>(list),length*sizeof(thread_t));
+    return result;
+}
 qint64 guiCpuNs() {
     timespec stamp{}; clock_gettime(CLOCK_THREAD_CPUTIME_ID, &stamp);
     return stamp.tv_sec*1000000000LL+stamp.tv_nsec;
@@ -107,6 +132,18 @@ qint64 guiCpuNs() {
 /** Fixed, paced native-Qt input; observation is CPU return after the last
  * document projection update. GPU readback and undo run outside measurement.
  */
+class GpuLayerUpdatesFilter final : public KisProjectionUpdatesFilter
+{
+public:
+    bool filter(KisImage *image,KisNode *,const QVector<QRect> &rects,KisProjectionUpdateFlags) override {
+        for (const auto &rect : rects) image->notifyProjectionUpdated(rect);
+        return true;
+    }
+    bool filterRefreshGraph(KisImage *image,KisNode *node,const QVector<QRect> &rects,const QRect &,KisProjectionUpdateFlags flags) override {
+        return filter(image,node,rects,flags);
+    }
+};
+
 void compareCanvasPerformance(KisView &view, KisDocument &document)
 {
     const QString backend = qEnvironmentVariable("LIBREPAINT_CANVAS_PERFORMANCE");
@@ -163,6 +200,8 @@ void compareCanvasPerformance(KisView &view, KisDocument &document)
     });
     const QImage blank = documentPixels(*layer);
     QImage expected;
+    QHash<int,QImage> expectedVariants;
+    const bool varyBrush=qEnvironmentVariableIntValue("LIBREPAINT_EXPERIMENT_VARY_BRUSH");
     QJsonArray results;
     QJsonArray discardedInputs;
     QJsonObject displayDifference;
@@ -170,14 +209,30 @@ void compareCanvasPerformance(KisView &view, KisDocument &document)
     const int requested = qEnvironmentVariableIntValue("LIBREPAINT_CANVAS_PERFORMANCE_SAMPLES");
     const int samples = requested > 0 ? requested : 20;
     QVERIFY(samples <= 200);
+    KisProjectionUpdatesFilterSP layerFilter;
+    KisProjectionUpdatesFilterCookie layerFilterCookie=nullptr;
+    if (qEnvironmentVariableIntValue("LIBREPAINT_EXPERIMENT_SKIP_CPU_COMPOSE")) {
+        QVERIFY(gpu && qEnvironmentVariableIntValue("LIBREPAINT_WGPU_LAYER_COMPOSE"));
+        layerFilter=KisProjectionUpdatesFilterSP(new GpuLayerUpdatesFilter);
+        layerFilterCookie=document.image()->addProjectionUpdatesFilter(layerFilter);
+    }
+    auto removeLayerFilter=qScopeGuard([&] {
+        document.image()->waitForDone();
+        if (layerFilterCookie) document.image()->removeProjectionUpdatesFilter(layerFilterCookie);
+    });
+    const int intervalRequest=qEnvironmentVariableIntValue("LIBREPAINT_EXPERIMENT_INPUT_INTERVAL_MS");
+    const int inputInterval=intervalRequest>0 ? intervalRequest : 4;
+    const bool cpuProfile=qEnvironmentVariableIntValue("LIBREPAINT_EXPERIMENT_CPU_PROFILE");
     constexpr int warmup = 3;
     for (int iteration = 0; iteration < samples + warmup; ++iteration) {
+        const int actualBrush=varyBrush ? (brush>0 ? brush : 32)*(8-iteration%3)/8 : (brush>0 ? brush : 32);
+        if(varyBrush) view.resourceProvider()->setSize(actualBrush);
         widget->window()->raise();
         widget->window()->activateWindow();
         QVERIFY(QTest::qWaitForWindowActive(widget->window()->windowHandle()));
         document.image()->waitForDone();
         QTest::qWait(100);
-        QVERIFY(window->isExposed());
+        QTRY_VERIFY2_WITH_TIMEOUT(window->isExposed(),qPrintable(QStringLiteral("Window exposure lost before input %1").arg(iteration)),3000);
         const qint64 id = ++attemptedInputs;
         widget->setProperty(Perf::samplesProperty, QVariantMap());
         window->setProperty(Perf::samplesProperty, QVariantMap());
@@ -210,12 +265,15 @@ void compareCanvasPerformance(KisView &view, KisDocument &document)
         sendInputEvent(enter);
         externalInput.interruption.clear();
         externalInput.tracking = true;
+        const auto threadsBefore=cpuProfile ? cpuThreadSnapshot() : QHash<quint64,CpuThread>();
+        std::optional<KisExperimentCpuProfile::Scope> guiProfile;
+        if (cpuProfile) { KisExperimentCpuProfile::start(); guiProfile.emplace(KisExperimentCpuProfile::GuiLoop); }
         const qint64 begin = Perf::nowNs();
         const qint64 processCpuBegin = processCpuNs(), guiCpuBegin = guiCpuNs();
         qint64 release = begin;
         qint64 dispatchLateness = 0;
         for (int index = 0; index <= 24; ++index) {
-            const qint64 deadline = begin + index * 4000000LL;
+            const qint64 deadline = begin + index * inputInterval * 1000000LL;
             while (Perf::nowNs() < deadline) {
                 QCoreApplication::processEvents(QEventLoop::AllEvents, 1);
                 if (deadline - Perf::nowNs() > 1000000) QThread::msleep(1);
@@ -227,7 +285,7 @@ void compareCanvasPerformance(KisView &view, KisDocument &document)
             QMouseEvent event(type, windowPoint(local), widget->mapToGlobal(local),
                               type == QEvent::MouseMove ? Qt::NoButton : Qt::LeftButton,
                               type == QEvent::MouseButtonRelease ? Qt::NoButton : Qt::LeftButton, Qt::NoModifier);
-            event.setTimestamp(1000 + id * 1000 + index * 4);
+            event.setTimestamp(1000 + id * 1000 + index * inputInterval);
             if (type == QEvent::MouseButtonRelease) release = Perf::nowNs();
             sendInputEvent(event);
             if (qEnvironmentVariableIntValue("LIBREPAINT_EXPERIMENT_FULL_REPAINT")) widget->update();
@@ -243,6 +301,8 @@ void compareCanvasPerformance(KisView &view, KisDocument &document)
         const auto discardInterrupted = [&] {
             if (!window->isExposed()) externalInput.interruption = QStringLiteral("native window became unexposed");
             if (externalInput.interruption.isEmpty()) return false;
+            guiProfile.reset();
+            if (cpuProfile) KisExperimentCpuProfile::stop();
             externalInput.tracking = false;
             discardedInputs.append(QJsonObject{{QStringLiteral("input"), double(id)},
                 {QStringLiteral("reason"), externalInput.interruption}});
@@ -309,22 +369,30 @@ void compareCanvasPerformance(KisView &view, KisDocument &document)
         const qint64 drawn = gpu ? frames.firstReturnContaining(widget->property("librepaintCanvasProjectionGeneration").toULongLong())
                                 : frames.firstReturnAtOrAfter(ready);
         const qint64 end = gl ? nativePresent.firstReturnAtOrAfter(drawn) : drawn;
+        guiProfile.reset();
         const qint64 processCpuEnd = processCpuNs(), guiCpuEnd = guiCpuNs();
+        const auto cpuStages=cpuProfile ? KisExperimentCpuProfile::stop() : KisExperimentCpuProfile::Snapshot{};
+        const auto threadsAfter=cpuProfile ? cpuThreadSnapshot() : QHash<quint64,CpuThread>();
+        const auto scopedThreads=cpuProfile ? KisExperimentCpuProfile::threadCpu() : KisExperimentCpuProfile::ThreadCpu();
+        if(cpuProfile) qInfo()<<"CPU_PROFILE_INPUT"<<iteration<<"threads"<<threadsAfter.size()<<"process_cpu_ms"<<(processCpuEnd-processCpuBegin)/1e6;
         externalInput.tracking = false;
-        const bool inspectPixels = expected.isNull() || iteration == samples + warmup - 1;
+        const bool inspectDisplay=expected.isNull() || iteration == samples + warmup - 1;
+        const bool inspectPixels=inspectDisplay || varyBrush;
         const QImage pixels = inspectPixels ? documentPixels(*layer) : QImage();
         if (inspectPixels) QVERIFY(pixels != blank);
-        if (expected.isNull()) expected = pixels;
-        else if (inspectPixels && pixels != expected) {
+        const QImage expectedForBrush=expectedVariants.value(actualBrush);
+        if(inspectPixels && expectedForBrush.isNull()) { expectedVariants.insert(actualBrush,pixels); if(expected.isNull()) expected=pixels; }
+        else if (inspectPixels && pixels != expectedForBrush) {
             const QString directory = qEnvironmentVariable("LIBREPAINT_CANVAS_PERFORMANCE_ARTIFACTS", QDir::tempPath());
             const QString prefix = directory + QStringLiteral("/canvas-%1-%2").arg(backend).arg(iteration);
             pixels.save(prefix + QStringLiteral("-actual.png"));
-            expected.save(prefix + QStringLiteral("-expected.png"));
+            expectedForBrush.save(prefix + QStringLiteral("-expected.png"));
             QFAIL(qPrintable(QStringLiteral("Repeated input produced different pixels; inspect %1-{actual,expected}.png (brush size %2, interruption %3)")
                 .arg(prefix).arg(view.resourceProvider()->size()).arg(externalInput.interruption)));
         }
         if (iteration >= warmup) {
             QJsonObject sample{
+                {QStringLiteral("actual_brush_size"),actualBrush},
                 {QStringLiteral("input"), double(id)},
                 {QStringLiteral("input_begin_ns"), double(begin)},
                 {QStringLiteral("input_release_ns"), double(release)},
@@ -340,12 +408,37 @@ void compareCanvasPerformance(KisView &view, KisDocument &document)
                 {QStringLiteral("widget_stages"), QJsonObject::fromVariantMap(widget->property(Perf::samplesProperty).toMap())},
                 {QStringLiteral("window_stages"), QJsonObject::fromVariantMap(window->property(Perf::samplesProperty).toMap())}};
             if (gpu) sample[QStringLiteral("uploaded_bytes")] = double(gpu->uploadedBytes() - bytesBefore);
+            if (cpuProfile) {
+                const char *names[]={"dab_generation","brush_apply","brush_composite","tile_access","tile_allocate","tile_copy","device_blend","image_extract","read_pixels","write_pixels","worker_loop","stroke_jobs","projection_jobs","gpu_frame","gui_loop","dab_raster","dab_cache_lookup","dab_cache_hit"};
+                QJsonObject stages;
+                for(int i=0;i<KisExperimentCpuProfile::Count;++i) {
+                    const auto &v=cpuStages[i];
+                    stages[QString::fromLatin1(names[i])]=QJsonObject{{"cpu_ms",v.cpu/1e6},{"exclusive_cpu_ms",v.exclusiveCpu/1e6},{"wall_ms",v.wall/1e6},{"calls",double(v.calls)},{"units",double(v.units)},{"peak_units",double(v.peakUnits)}};
+                }
+                sample["cpu_profile"]=stages;
+                QJsonArray cpuThreads;
+                for(auto it=threadsAfter.cbegin();it!=threadsAfter.cend();++it) {
+                    const qint64 cpu=it.value().cpuNs-threadsBefore.value(it.key()).cpuNs;
+                    if(cpu<=0) continue;
+                    auto scoped=scopedThreads.find(it.key());
+                    const qint64 tracked=scoped==scopedThreads.end() ? 0 : scoped->second;
+                    cpuThreads.append(QJsonObject{{"id",QString::number(it.key())},{"name",it.value().name},{"cpu_ms",cpu/1e6},{"scoped_cpu_ms",tracked/1e6},{"unscoped_cpu_ms",(cpu-tracked)/1e6}});
+                }
+                sample["cpu_threads"]=cpuThreads;
+            }
             results.append(sample);
         }
-        if (gpu && inspectPixels) {
+        if (gpu && inspectDisplay) {
             QVERIFY2(gpu->presentationError().isEmpty(), qPrintable(gpu->presentationError()));
             const QImage actual = gpu->capturedFrame().convertToFormat(QImage::Format_RGBA8888);
+            if (layerFilterCookie) {
+                document.image()->removeProjectionUpdatesFilter(layerFilterCookie);
+                layerFilterCookie=nullptr;
+                document.image()->refreshGraphAsync();
+                document.image()->waitForDone();
+            }
             const QImage reference = gpu->composedFrame().convertToFormat(QImage::Format_RGBA8888);
+            if (layerFilter) layerFilterCookie=document.image()->addProjectionUpdatesFilter(layerFilter);
             QCOMPARE(actual.size(), reference.size());
             if (qEnvironmentVariableIntValue("LIBREPAINT_WGPU_GPU_PROJECTION")) {
                 quint64 changed=0,total=0; int maximum=0;
@@ -367,15 +460,21 @@ void compareCanvasPerformance(KisView &view, KisDocument &document)
     }
     const QByteArray hash = QCryptographicHash::hash(
         QByteArrayView(reinterpret_cast<const char *>(expected.constBits()), expected.sizeInBytes()), QCryptographicHash::Sha256).toHex();
+    QJsonObject variantHashes;
+    for(auto it=expectedVariants.cbegin();it!=expectedVariants.cend();++it) {
+        const auto &image=it.value();
+        variantHashes[QString::number(it.key())]=QString::fromLatin1(QCryptographicHash::hash(QByteArrayView(reinterpret_cast<const char*>(image.constBits()),image.sizeInBytes()),QCryptographicHash::Sha256).toHex());
+    }
     const QJsonObject report{
         {QStringLiteral("schema"), 3}, {QStringLiteral("measurement_revision"), 3}, {QStringLiteral("backend"), backend},
         {QStringLiteral("gpu_completion_waited"), bool(qEnvironmentVariableIntValue("LIBREPAINT_EXPERIMENT_GPU_COMPLETION"))},
         {QStringLiteral("endpoint"), gl || gpu ? "native_present_cpu_return" : "cpu_paint_return"},
         {QStringLiteral("endpoint_selection"), gpu ? "first_return_containing_final_projection_generation" : "first_return_after_final_projection"},
         {QStringLiteral("document"), QStringLiteral("%1x%2/RGBA8/%3-layers").arg(document.image()->width()).arg(document.image()->height()).arg(qMax(1,qEnvironmentVariableIntValue("LIBREPAINT_EXPERIMENT_LAYERS")))},
+        {QStringLiteral("brush_variant_sha256"),variantHashes},
         {QStringLiteral("preset"), "sdk/tests/data/autobrush_300px.kpp"},
         {QStringLiteral("brush_size"), brush > 0 ? brush : 32}, {QStringLiteral("smoothing"), "none"},
-        {QStringLiteral("input_points"), 25}, {QStringLiteral("input_interval_ms"), 4},
+        {QStringLiteral("input_points"), 25}, {QStringLiteral("input_interval_ms"), inputInterval},
         {QStringLiteral("working_threads"), threads > 0 ? threads : 1}, {QStringLiteral("warmup_strokes"), warmup},
         {QStringLiteral("full_repaint"), bool(qEnvironmentVariableIntValue("LIBREPAINT_EXPERIMENT_FULL_REPAINT"))},
         {QStringLiteral("frame_limit_fps"), 100},

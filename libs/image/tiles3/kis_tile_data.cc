@@ -6,6 +6,7 @@
  */
 
 
+#include <KisExperimentCpuProfile.h>
 #include "kis_tile_data.h"
 #include "kis_tile_data_store.h"
 
@@ -102,6 +103,7 @@ KisTileData::KisTileData(const KisTileData& rhs, bool checkFreeMemory)
     }
     m_data = allocateData(m_pixelSize);
 
+    KisExperimentCpuProfile::Scope profile(KisExperimentCpuProfile::TileCopy, qint64(m_pixelSize)*WIDTH*HEIGHT);
     memcpy(m_data, rhs.data(), m_pixelSize * WIDTH * HEIGHT);
 }
 
@@ -143,6 +145,7 @@ void KisTileData::allocateMemory()
 
 quint8* KisTileData::allocateData(const qint32 pixelSize)
 {
+    KisExperimentCpuProfile::Scope profile(KisExperimentCpuProfile::TileAllocate, qint64(pixelSize)*WIDTH*HEIGHT);
     quint8 *ptr = 0;
 
     if (!m_cache.pop(pixelSize, ptr)) {

@@ -4,9 +4,15 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisExperimentCpuProfile.h>
 #include "KisDabRenderingJob.h"
 
 #include <QElapsedTimer>
+#include <QDataStream>
+#include <QIODevice>
+#include <QDomDocument>
+#include <kis_auto_brush.h>
+#include <kis_fixed_paint_device.h>
 
 #include <KisRunnableStrokeJobsInterface.h>
 #include <KisRunnableStrokeJobData.h>
@@ -88,6 +94,7 @@ int KisDabRenderingJobRunner::executeOneJob(KisDabRenderingJob *job,
                                             KisDabRenderingQueue *parentQueue)
 {
     using namespace KisDabCacheUtils;
+    KisExperimentCpuProfile::Scope profile(KisExperimentCpuProfile::Dab, 0);
 
     KIS_SAFE_ASSERT_RECOVER_NOOP(job->type == KisDabRenderingJob::Dab ||
                                  job->type == KisDabRenderingJob::Postprocess);
@@ -99,9 +106,29 @@ int KisDabRenderingJobRunner::executeOneJob(KisDabRenderingJob *job,
 
     if (job->type == KisDabRenderingJob::Dab) {
         // TODO: thing about better interface for the reverse queue link
-        job->originalDevice = parentQueue->fetchCachedPaintDevice();
-
-        generateDab(job->generationInfo, resources, &job->originalDevice);
+        static const bool cacheEnabled=qEnvironmentVariableIntValue("LIBREPAINT_EXPERIMENT_DAB_CACHE")>0;
+        const auto &di=job->generationInfo;
+        auto *autoBrush=dynamic_cast<KisAutoBrush*>(resources->brush.data());
+        QByteArray key;
+        // Deterministic auto-brush generation ignores absolute position and time.
+        if(cacheEnabled && autoBrush && autoBrush->supportsCaching() && di.solidColorFill
+            && !di.needsPostprocessing && di.mirrorProperties.isEmpty()) {
+            QDomDocument config;
+            QDomElement element=config.createElement("Brush");
+            autoBrush->toXML(config,element);config.appendChild(element);
+            QDataStream stream(&key,QIODevice::WriteOnly);
+            stream<<config.toByteArray()<<quint64(reinterpret_cast<quintptr>(di.paintColor.colorSpace()))
+                  <<QByteArray(reinterpret_cast<const char*>(di.paintColor.data()),di.paintColor.colorSpace()->pixelSize())
+                  <<di.shape.scale()<<di.shape.ratio()<<di.shape.rotation()<<di.dstDabRect.size()<<di.subPixel
+                  <<di.softnessFactor<<di.lightnessStrength;
+            job->originalDevice=parentQueue->experimentFindGeneratedDab(key);
+        }
+        if(!job->originalDevice) {
+            job->originalDevice = parentQueue->fetchCachedPaintDevice();
+            { KisExperimentCpuProfile::Scope raster(KisExperimentCpuProfile::DabRaster);
+              generateDab(job->generationInfo, resources, &job->originalDevice); }
+            if(!key.isEmpty()) parentQueue->experimentStoreGeneratedDab(key,job->originalDevice);
+        }
     }
 
     // by now the original device should be already prepared

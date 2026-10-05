@@ -40,6 +40,8 @@ public:
     bool initialize(const WGPUChainedStruct *surfaceSource = nullptr);
     bool upload(const QImage &image, const QRect &dirty);
     bool uploadPatch(const QImage &patch, const QRect &destination);
+    bool initializeLayers(const QVector<quint8> &opacities);
+    bool uploadLayerPatch(int layer, const QImage &patch, const QRect &destination);
     void setProjectionGeometry(const std::array<float,16> &geometry);
     QImage readback(QSize size = {});
     bool configureSurface(QSize size, WGPUPresentMode mode = WGPUPresentMode_Fifo);

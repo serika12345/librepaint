@@ -34,6 +34,7 @@ public:
     QRect updateCanvasProjection(KisUpdateInfoSP info) override;
 
 private:
+    KisUpdateInfoSP captureProjection(const QRect &rect,bool forceCapture);
     void scheduleFrame(const QRect &rect);
     void compose();
     struct Private;

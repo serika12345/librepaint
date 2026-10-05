@@ -8,6 +8,7 @@
 #define __KIS_UPDATE_JOB_ITEM_H
 
 #include <atomic>
+#include "KisExperimentCpuProfile.h"
 
 #include <QRunnable>
 #include <QReadWriteLock>
@@ -46,6 +47,7 @@ public:
     }
 
     void run() override {
+        KisExperimentCpuProfile::Scope profile(KisExperimentCpuProfile::WorkerLoop);
         runImpl();
 
         // notify that the job is exiting and wake everybody
@@ -81,6 +83,7 @@ private:
             }
 
             if(m_atomicType == Type::MERGE) {
+                KisExperimentCpuProfile::Scope payload(KisExperimentCpuProfile::ProjectionJob);
                 runMergeJob();
             } else {
                 KIS_ASSERT(m_atomicType == Type::STROKE ||
@@ -97,6 +100,7 @@ private:
                     }
 #endif
 
+                    KisExperimentCpuProfile::Scope payload(KisExperimentCpuProfile::StrokeJob);
                     m_runnableJob->run();
                 }
             }

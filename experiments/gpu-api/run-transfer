@@ -1,0 +1,34 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-or-later
+import argparse,hashlib,json,os,platform,subprocess,sys
+from pathlib import Path
+root=Path(__file__).resolve().parents[2];here=Path(__file__).resolve().parent
+p=argparse.ArgumentParser();p.add_argument('--suite',choices=['transfer','wait','partial','highres','highres-compare','allocation','progress','gpu'],default='transfer');p.add_argument('--frames',type=int,default=1000);p.add_argument('--rounds',type=int,default=3);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
+subprocess.run([str(here/'run'),'--build-only'],check=True)
+logs=a.output.parent/(a.output.stem+'-logs');logs.mkdir(parents=True,exist_ok=True)
+for name in ['benchmark.mm','run','run-transfer']:(logs/name).write_bytes((here/name).read_bytes())
+binary=logs/'benchmark';binary.write_bytes((root/'build/gpu-api/benchmark').read_bytes());binary.chmod(0o755)
+report={'command':sys.argv,'suite':a.suite,'platform':platform.platform(),'source_sha256':hashlib.sha256((logs/'benchmark.mm').read_bytes()).hexdigest(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'scope':'standalone OpenGL/wgpu/Metal; exact GPU completion at each batch; whole-process CPU includes all progress work','runs':[]}
+cases=[('gl','direct','native',50),('gl','pbo','native',50),('metal','direct','native',50)]+[('wgpu',s,w,50) for s in ['direct','staging-write','staging-map'] for w in ['spin','callback']]
+if a.suite=='wait':cases=[('wgpu','direct',w,u) for w,u in [('block',50),('spin',50),('sleep',10),('sleep',50),('callback',10),('callback',25),('callback',50),('callback',100)]];workloads=[('triangle',32,0),('upload',1024,0)]
+elif a.suite=='progress':cases=[('gl','direct','native',50),('gl','pbo','native',50),('metal','direct','native',50)]+[('wgpu',z,w,50) for z in ['direct','staging-map'] for w in ['spin','sleep','callback','callback-idle']];workloads=[('triangle',32,0),('upload',1024,0)]
+elif a.suite=='allocation':cases=[('wgpu',z,w,50) for z in ['staging-write','staging-fresh','staging-map'] for w in ['spin','callback']];workloads=[('upload',1024,0)]
+elif a.suite=='partial':workloads=[('upload',1024,z) for z in [1024,256,64]]
+elif a.suite=='highres':cases=[('gl','direct','native',50),('gl','pbo','native',50),('metal','direct','native',50),('wgpu','staging-map','spin',50),('wgpu','staging-map','callback-idle',50)];workloads=[('upload',4096,z) for z in [1024,256,64]]
+elif a.suite=='highres-compare':cases=[('gl','direct','native',50),('wgpu','direct','spin',50),('wgpu','staging-map','callback-idle',50)];workloads=[('upload',4096,z) for z in [1024,256,64]]
+elif a.suite=='gpu':cases=[('metal','direct','native',50),('wgpu','staging-map','callback-idle',50)];workloads=[('texture',1024,0),('texture',4096,0),('upload',4096,1024),('upload',4096,64)]
+else:workloads=[('upload',1024,0)]
+for r in range(a.rounds):
+ for work,size,update in workloads:
+  for batch in ([1] if a.suite=='gpu' else [1,3]):
+   cc=[c for c in cases if work!='triangle' or c[1]=='direct'];ordered=cc[r%len(cc):]+cc[:r%len(cc)]
+   for api,strategy,wait,poll in ordered:
+    label=f'{r+1}-{work}-{size}-u{update or size}-{api}-{strategy}-{wait}-us{poll}-b{batch}'
+    cmd=[str(binary),'--api',api,'--work',work,'--size',str(size),'--update-size',str(update),'--strategy',strategy,'--wait','block' if wait=='native' else wait,'--poll-us',str(poll),'--frames',str(a.frames),'--warmup','100','--batch',str(batch),'--validation','0']
+    if a.suite=='gpu':cmd+=['--timestamps','1']
+    print(label,flush=True);env=os.environ.copy();env.pop('MTL_DEBUG_LAYER',None)
+    result=subprocess.run(cmd,capture_output=True,text=True,env=env,timeout=120)
+    (logs/(label+'.log')).write_text(result.stdout+result.stderr)
+    if result.returncode:raise RuntimeError(label+': '+result.stderr[-1500:])
+    run=json.loads(result.stdout);run.update(round=r+1,label=label);report['runs'].append(run);a.output.write_text(json.dumps(report,indent=2)+'\n')
+print(a.output)

@@ -6,6 +6,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisExperimentCpuProfile.h>
 #include "kis_paint_device.h"
 
 #include "KisProcessingInformationPaintDeviceOwnership_p.h"
@@ -1700,6 +1701,7 @@ QImage KisPaintDevice::convertToQImage(const KoColorProfile *dstProfile,
 
 QImage KisPaintDevice::convertToQImage(const KoColorProfile *dstProfile, qint32 x1, qint32 y1, qint32 w, qint32 h, KoColorConversionTransformation::Intent renderingIntent, KoColorConversionTransformation::ConversionFlags conversionFlags) const
 {
+    KisExperimentCpuProfile::Scope profile(KisExperimentCpuProfile::ImageExtract, qint64(w)*h*pixelSize());
 
     if (w < 0)
         return QImage();
@@ -2051,6 +2053,7 @@ void KisPaintDevice::readBytes(quint8 * data, qint32 x, qint32 y, qint32 w, qint
 
 void KisPaintDevice::readBytes(quint8 *data, const QRect &rect) const
 {
+    KisExperimentCpuProfile::Scope profile(KisExperimentCpuProfile::ReadPixels, qint64(rect.width())*rect.height()*pixelSize());
     m_d->currentStrategy()->readBytes(data, rect);
 }
 
@@ -2061,6 +2064,7 @@ void KisPaintDevice::writeBytes(const quint8 *data, qint32 x, qint32 y, qint32 w
 
 void KisPaintDevice::writeBytes(const quint8 *data, const QRect &rect)
 {
+    KisExperimentCpuProfile::Scope profile(KisExperimentCpuProfile::WritePixels, qint64(rect.width())*rect.height()*pixelSize());
     m_d->currentStrategy()->writeBytes(data, rect);
 }
 

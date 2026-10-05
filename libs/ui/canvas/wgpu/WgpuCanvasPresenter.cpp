@@ -16,6 +16,7 @@
 #include <QThread>
 #include <QMutex>
 #include <QMutexLocker>
+#include <QRegion>
 
 namespace Krita::Canvas
 {
@@ -48,10 +49,17 @@ struct WgpuCanvasPresenter::Private
     std::array<float,16> geometry{};
     bool rawProjection = qEnvironmentVariableIntValue("LIBREPAINT_WGPU_RAW_PROJECTION");
     QVector<QPair<QImage,QRect>> patches;
+    std::function<QVector<LayerPatch>(const QRect &)> layerCapture;
+    QRect layerDirty;
+    QRegion layerRegions;
+    bool regionCapture=qEnvironmentVariableIntValue("LIBREPAINT_WGPU_LAYER_REGIONS");
+    QVector<LayerPatch> layerPatches;
+    QVector<quint8> layerOpacities;
     quint64 generation = 0, latestGeneration = 0;
     // The renderer must release its GPU surface before the native layer.
     std::unique_ptr<WgpuWindowSurface> native;
     std::unique_ptr<WgpuImageRenderer> renderer;
+    std::function<std::shared_ptr<void>()> frameScopeFactory;
 };
 
 WgpuCanvasPresenter::WgpuCanvasPresenter(QWindow &window) : m_d(new Private(window))
@@ -99,6 +107,26 @@ void WgpuCanvasPresenter::queueProjectionPatch(const QImage &patch, const QRect 
 {
     QMutexLocker lock(&m_d->latestMutex);
     m_d->patches.append(qMakePair(patch,destination));
+}
+void WgpuCanvasPresenter::setLayerCapture(const std::function<QVector<LayerPatch>(const QRect &)> &capture)
+{
+    m_d->layerCapture=capture;
+}
+void WgpuCanvasPresenter::setFrameScopeFactory(std::function<std::shared_ptr<void>()> factory)
+{
+    m_d->frameScopeFactory=std::move(factory);
+}
+void WgpuCanvasPresenter::queueLayerDirty(const QRect &rect)
+{
+    QMutexLocker lock(&m_d->latestMutex);
+    m_d->layerDirty |= rect;
+    if (m_d->regionCapture) m_d->layerRegions |= rect;
+}
+void WgpuCanvasPresenter::queueLayerPatches(const QVector<LayerPatch> &patches,const QVector<quint8> &opacities)
+{
+    QMutexLocker lock(&m_d->latestMutex);
+    m_d->layerPatches += patches;
+    if (!opacities.isEmpty()) m_d->layerOpacities=opacities;
 }
 void WgpuCanvasPresenter::setProjectionGeneration(quint64 generation) { m_d->generation=generation; }
 
@@ -179,6 +207,7 @@ void WgpuCanvasPresenter::render()
         const quint64 generation = m_d->generation;
         m_d->busy = true;
         QMetaObject::invokeMethod(m_d->worker, [this, source, pixels, image, dirty, input, enabled, geometry, generation] {
+            const auto profile=m_d->frameScopeFactory ? m_d->frameScopeFactory() : nullptr;
             const qint64 start = Performance::nowNs();
             bool ok = true;
             if (!m_d->renderer) {
@@ -189,6 +218,7 @@ void WgpuCanvasPresenter::render()
             qint64 usedInput = input;
             quint64 usedGeneration = generation;
             qint64 uploadCpu = uploaded-start;
+            qint64 layerCaptureNs=0;
             if (ok && m_d->surfaceSize != pixels) {
                 ok = m_d->renderer->configureSurface(pixels, m_d->presentMode);
                 m_d->surfaceSize = pixels;
@@ -200,6 +230,10 @@ void WgpuCanvasPresenter::render()
                 QRect latestDirty;
                 std::array<float,16> latestGeometry;
                 QVector<QPair<QImage,QRect>> patches;
+                QRect layerDirty;
+                QRegion layerRegions;
+                QVector<LayerPatch> layerPatches;
+                QVector<quint8> layerOpacities;
                 {
                     QMutexLocker lock(&m_d->latestMutex);
                     latest = m_d->latestImage;
@@ -209,9 +243,22 @@ void WgpuCanvasPresenter::render()
                     usedGeneration = m_d->latestGeneration;
                     latestGeometry = m_d->geometry;
                     patches.swap(m_d->patches);
+                    layerPatches.swap(m_d->layerPatches);
+                    layerDirty=m_d->layerDirty;m_d->layerDirty={};
+                    layerRegions.swap(m_d->layerRegions);
+                    layerOpacities.swap(m_d->layerOpacities);
                 }
+                const qint64 captureStart=Performance::nowNs();
+                if (m_d->layerCapture && !layerDirty.isEmpty()) {
+                    if (m_d->regionCapture) {
+                        for (const auto &rect : layerRegions) layerPatches += m_d->layerCapture(rect);
+                    } else layerPatches += m_d->layerCapture(layerDirty);
+                }
+                layerCaptureNs += Performance::nowNs()-captureStart;
                 const qint64 uploadStart = Performance::nowNs();
                 bool result = m_d->rawProjection || latest.isNull() || latestDirty.isEmpty() || m_d->renderer->upload(latest, latestDirty);
+                if (!layerOpacities.isEmpty()) result=m_d->renderer->initializeLayers(layerOpacities) && result;
+                for (const auto &patch : layerPatches) result=m_d->renderer->uploadLayerPatch(patch.layer,patch.pixels,patch.destination) && result;
                 for (const auto &patch : patches) result = m_d->renderer->uploadPatch(patch.first,patch.second) && result;
                 m_d->renderer->setProjectionGeometry(latestGeometry);
                 uploaded = Performance::nowNs();
@@ -223,13 +270,14 @@ void WgpuCanvasPresenter::render()
             const qint64 finish = Performance::nowNs();
             const QString error = ok ? QString() : m_d->renderer->error();
             const quint64 bytes = m_d->renderer->uploadedBytes();
-            QMetaObject::invokeMethod(this, [this, start, uploaded, uploadCpu, finish, timing, usedInput, usedGeneration, enabled, error, bytes] {
+            QMetaObject::invokeMethod(this, [this, start, uploaded, uploadCpu, layerCaptureNs, finish, timing, usedInput, usedGeneration, enabled, error, bytes] {
                 m_d->busy = false;
                 m_d->error = error;
                 m_d->completedUploadBytes = bytes;
                 if (error.isEmpty()) { ++m_d->frames; m_d->lastFrame.start(); }
                 if (enabled && m_d->window) {
                     m_d->window->setProperty("librepaintCanvasPresentedGeneration",qulonglong(usedGeneration));
+                    Performance::record(*m_d->window, QStringLiteral("layer_capture_late"),layerCaptureNs,usedInput,uploaded);
                     Performance::record(*m_d->window, QStringLiteral("upload"), uploadCpu, usedInput, uploaded);
                     if (timing.presentEndNs) {
                         Performance::record(*m_d->window, QStringLiteral("surface_acquire"), timing.acquireEndNs-timing.acquireStartNs, usedInput, timing.acquireEndNs);

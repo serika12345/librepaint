@@ -1,0 +1,53 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-or-later
+"""Validate frozen product-composition trials and summarize measured ablations."""
+import argparse,hashlib,json,statistics
+from pathlib import Path
+
+def main():
+    ap=argparse.ArgumentParser(description=__doc__)
+    ap.add_argument('reports',type=Path,nargs='+')
+    ap.add_argument('--output',type=Path,default=Path('build/wgpu-product-layers-results.txt'))
+    ap.add_argument('--quiet',action='store_true')
+    args=ap.parse_args()
+    lines=['製品経路でのGPUレイヤー合成実験','計測終点: 最終更新を含む描画送信のCPU復帰。GPU完了待ちの対照は描画GPU処理の完了も含む。OSの実表示完了は測定範囲外。','CPU実働: 全スレッドの合計。入力開始から更新が静まるまで。アンドゥ・基準画像作成・読み戻しは測定区間外。','画像準備: 画像化・ロック待ちを含む経過時間。CPU実働時間とは区別する。','']
+    for path in args.reports:
+        report=json.loads(path.read_text());runs=report['runs'];logs=path.parent/(path.stem+'-logs')
+        assert runs
+        expected={(w,c) for w in report['workloads'] for c in report['configurations']}
+        assert {(r['workload'],r['case']) for r in runs}==expected
+        rounds=report.get('repetitions',max(r['round'] for r in runs))
+        assert all({r['round'] for r in runs if (r['workload'],r['case'])==key}==set(range(1,rounds+1)) for key in expected)
+        for name,digest in report['source_sha256'].items():
+            assert hashlib.sha256((logs/'source'/name).read_bytes()).hexdigest()==digest
+        for run in runs:
+            assert len(run['samples'])==report.get('samples_per_process',len(run['samples']))>0
+            if run['configuration'].get('gpu_layers'):
+                assert run['display_difference']['max_channel_error']<=2
+        for workload in sorted({r['workload'] for r in runs}):
+            peers=[r for r in runs if r['workload']==workload]
+            assert len({r['pixel_sha256'] for r in peers})==1
+        lines += [str(path),f"GPU completion waited: {report['gpu_completion_waited']}; wgpu wait: {report.get('wgpu_completion_wait','see frozen renderer source')}",f"Processes: {len(runs)}; measured strokes: {sum(len(r['samples']) for r in runs)}; discarded inputs: {sum(len(r['discarded_inputs']) for r in runs)}",'条件 | プロセス数/入力数 | 全工程中央値/P95 ms | 入力終了後の中央値/P95 ms | CPU実働中央値 ms | 画像準備経過時間中央値 ms | 転送API経過時間中央値 ms | 要求画素MiB中央値 | プロセス別入力終了後中央値の最小..最大 ms']
+        for key,summary in sorted(report['summary'].items()):
+            workload,case=key.split('/');rr=[r for r in runs if r['workload']==workload and r['case']==case]
+            stage='widget_stages/'+('layer_capture' if rr[0]['configuration'].get('gpu_layers') else 'projection_capture')+'/cpu_ms'
+            capture=summary['stages'].get(stage,{}).get('median',0)+summary['stages'].get('window_stages/layer_capture_late/cpu_ms',{}).get('median',0)
+            upload=summary['stages'].get('window_stages/upload/cpu_ms',{}).get('median',0)
+            mib=summary.get('uploaded_bytes',{}).get('median',0)/1048576
+            medians=[statistics.median(s['release_to_frame_ms'] for s in r['samples']) for r in rr]
+            lines += [f"{key} | {len(rr)}/{summary['samples']} | {summary['pipeline_complete_ms']['median']:.3f}/{summary['pipeline_complete_ms']['p95']:.3f} | {summary['release_to_frame_ms']['median']:.3f}/{summary['release_to_frame_ms']['p95']:.3f} | {summary['process_cpu_ms']['median']:.3f} | {capture:.3f} | {upload:.3f} | {mib:.3f} | {min(medians):.3f}..{max(medians):.3f}"]
+        for title,workload,before,after,metric in [
+            ('CPU投影の省略','stress','wgpu-layers','wgpu-layers-offload','process_cpu_ms'),
+            ('ブラシ一時画像のGPU合成','stress','wgpu-layers-offload','wgpu-layers-indirect','widget_stages/layer_capture/cpu_ms'),
+            ('変更領域通知の集約','stress-burst','wgpu-layers-indirect','wgpu-layers-late','pipeline_complete_ms')]:
+            left=report['summary'].get(workload+'/'+before);right=report['summary'].get(workload+'/'+after)
+            if left and right:
+                a=(left['stages'][metric] if '/' in metric else left[metric])['median']
+                b=(right['stages'][metric] if '/' in metric else right[metric])['median']
+                lines += [f"{title}: {before} -> {after}; {metric} {a:.3f} -> {b:.3f} ms (-{(1-b/a)*100:.1f}%)."]
+                if metric=='pipeline_complete_ms':
+                    lines += [f"要求画素のバイト数: {left['uploaded_bytes']['median']/1048576:.3f} -> {right['uploaded_bytes']['median']/1048576:.3f} MiB."]
+        lines += ['','GPU合成: RGBA8の通常合成レイヤー。不透明度と順序を固定し、変更されない画像をGPUに保持する。','CPU投影省略: 比較用実行側の更新フィルターが変更通知を直接キャンバスへ送り、CPUでの投影合成を省く。','一時画像GPU合成: 不透明なアクティブレイヤーへブラシ一時画像を別途転送してGPUで重ねる。対照ではCPU上で重ねてから転送する。ブラシ画素計算と文書への確定はCPUで実行する。','直前画像化: 描画面の取得後に、集約した変更領域を画像化する。領域の形を保持する対照は、全体を囲む長方形に含まれる余分な画素を除く。',
+        'CPU基準投影の再作成は、測定終点とGPU読み戻しの後に実行する。','']
+    args.output.write_text('\n'.join(lines)+'\n');print('report:',args.output) if args.quiet else print('\n'.join(lines))
+if __name__=='__main__':main()

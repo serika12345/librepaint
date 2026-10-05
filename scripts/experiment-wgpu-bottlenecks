@@ -46,6 +46,40 @@ WORKLOADS = {
  'stress-control': dict(dimension=4096,layers=1,brush=512,view_width=1000,view_height=640,full_repaint=1),
  'stress': dict(dimension=4096,layers=24,brush=512,view_width=1000,view_height=640,full_repaint=1),
 }
+CASES['wgpu-staging']=dict(CASES['wgpu-optimized'],staging=1)
+CASES['wgpu-staging-large']=dict(CASES['wgpu-optimized'],staging=1,staging_min=262144)
+CASES['wgpu-staging-raw']=dict(staging=1)
+CASES['wgpu-staging-batch']=dict(CASES['wgpu-optimized'],staging=1,staging_batch=1)
+CASES['wgpu-staging-batch-large']=dict(CASES['wgpu-optimized'],staging=1,staging_batch=1,staging_min=262144)
+CASES['wgpu-staging-adaptive']=dict(CASES['wgpu-optimized'],staging=1,staging_batch=1,staging_min=1048576)
+CASES['wgpu-layers']=dict(CASES['wgpu-staging-batch'],gpu_layers=1,static_cache=0)
+CASES['wgpu-cpu-layers']=dict(CASES['wgpu-staging-batch'],static_cache=0)
+CASES['wgpu-layers-offload']=dict(CASES['wgpu-layers'],skip_cpu_compose=1)
+CASES['wgpu-layers-indirect']=dict(CASES['wgpu-layers-offload'],gpu_indirect=1)
+WORKLOADS['layers-burst']=dict(WORKLOADS['layers'],input_interval_ms=1)
+WORKLOADS['stress-burst']=dict(WORKLOADS['stress'],input_interval_ms=1)
+WORKLOADS['stress-vary-brush']=dict(WORKLOADS['stress-burst'],vary_brush=1)
+CASES['wgpu-layers-late']=dict(CASES['wgpu-layers-indirect'],late_layer_capture=1)
+CASES['wgpu-layers-regions']=dict(CASES['wgpu-layers-late'],layer_regions=1)
+CASES['wgpu-layers-tile-order']=dict(CASES['wgpu-layers-late'],brush_tile_order=1)
+CASES['wgpu-layers-packed']=dict(CASES['wgpu-layers-late'],brush_packed=1)
+CASES['wgpu-dab-stroke-cache']=dict(CASES['wgpu-layers-late'],dab_cache=1)
+CASES['wgpu-dab-warm-cache']=dict(CASES['wgpu-layers-late'],dab_cache=2)
+CASES['wgpu-dab-warm-packed']=dict(CASES['wgpu-layers-packed'],dab_cache=2)
+CASES['wgpu-brush-period1']=dict(CASES['wgpu-layers-late'],brush_period=1)
+CASES['wgpu-dab-warm-period1']=dict(CASES['wgpu-dab-warm-cache'],brush_period=1)
+CASES['wgpu-dab-warm-packed-period1']=dict(CASES['wgpu-dab-warm-packed'],brush_period=1)
+CASES['wgpu-direct-widget']=dict(CASES['wgpu-layers-late'],direct_widget=1)
+CASES['wgpu-dab-warm-direct']=dict(CASES['wgpu-dab-warm-cache'],direct_widget=1)
+CASES['wgpu-dab-warm-packed-direct']=dict(CASES['wgpu-dab-warm-packed'],direct_widget=1)
+CASES['wgpu-direct-early']=dict(CASES['wgpu-direct-widget'],stroke_period=1,brush_period=1)
+CASES['wgpu-direct-initial1']=dict(CASES['wgpu-direct-widget'],stroke_period=1)
+CASES['wgpu-direct-brush1']=dict(CASES['wgpu-direct-widget'],brush_period=1)
+CASES['wgpu-dab-warm-early']=dict(CASES['wgpu-dab-warm-direct'],stroke_period=1,brush_period=1)
+CASES['wgpu-dab-warm-packed-early']=dict(CASES['wgpu-dab-warm-packed-direct'],stroke_period=1,brush_period=1)
+for period in [2,4]:
+ CASES[f'wgpu-early-{period}']=dict(CASES['wgpu-direct-widget'],stroke_period=1,brush_period=period)
+ CASES[f'wgpu-early-{period}-warm']=dict(CASES['wgpu-dab-warm-direct'],stroke_period=1,brush_period=period)
 def dist(values):
  v=sorted(values); return dict(median=statistics.median(v),p95=v[math.ceil(len(v)*.95)-1],min=v[0],max=v[-1])
 def summarize(runs):
@@ -74,6 +108,7 @@ def main():
  ap.add_argument('--workloads',default='light,brush,resolution,layers,repaint,pan,stress')
  ap.add_argument('--samples',type=int,default=10); ap.add_argument('--repeat',type=int,default=2)
  ap.add_argument('--gpu-completion',action='store_true')
+ ap.add_argument('--cpu-profile',action='store_true')
  ap.add_argument('--threads',type=int,default=8); ap.add_argument('--output',type=Path,default=Path('build/wgpu-bottleneck-experiments.json'))
  a=ap.parse_args(); cases=a.cases.split(','); workloads=a.workloads.split(',')
  if sys.platform!='darwin':ap.error('this prototype measures macOS')
@@ -82,14 +117,35 @@ def main():
  build=Path(subprocess.check_output([str(root/'scripts/build-incremental'),'native','path'],text=True,cwd=root).strip())
  output=a.output.resolve(); logs=output.parent/(output.stem+'-logs'); logs.mkdir(parents=True,exist_ok=True)
  runs=[]
- report=dict(schema=2,platform=platform.platform(),gpu_completion_waited=a.gpu_completion,binary_sha256=hashlib.sha256((build/'bin/WgpuCanvasIntegrationTest').read_bytes()).hexdigest(),ui_library_sha256=hashlib.sha256((build/'bin/libkritaapplicationui.21.0.0.dylib').read_bytes()).hexdigest(),scope='CPU return after final projection/upload; process and GUI CPU measured through projection quiet interval; OS display completion unmeasured',workloads={w:dict(WORKLOADS[w],threads=a.threads) for w in workloads},configurations={c:CASES[c] for c in cases},runs=runs)
+ source_files=['libs/canvas/wgpu/WgpuImageRenderer.cpp','libs/ui/canvas/wgpu/WgpuCanvasPresenter.cpp','libs/ui/canvas/wgpu/WgpuCanvas.cpp','libs/ui/tests/CanvasPerformanceComparison.cpp','scripts/experiment-wgpu-bottlenecks','libs/canvas/wgpu/WgpuImageRenderer.h','libs/ui/canvas/wgpu/WgpuCanvasPresenter.h','libs/ui/tests/WgpuCanvasIntegrationTest.cpp','libs/ui/canvas/wgpu/WgpuCanvas.h']
+ source_files += ['libs/image/KisExperimentCpuProfile.h','libs/image/kis_painter_blt_multi_fixed.cpp','libs/image/kis_painter.cc','libs/image/kis_paint_device.cc','libs/image/tiles3/kis_random_accessor.cc','libs/image/tiles3/kis_tile_data.cc','plugins/paintops/defaultpaintops/brush/KisDabRenderingJob.cpp']
+ source_files += ['libs/image/kis_update_job_item.h','plugins/paintops/defaultpaintops/brush/KisDabRenderingQueue.cpp','plugins/paintops/defaultpaintops/brush/KisDabRenderingQueue.h','plugins/paintops/libpaintop/KisDabCacheUtils.cpp','libs/brush/kis_auto_brush.cpp']
+ source_files += ['plugins/paintops/defaultpaintops/brush/kis_brushop.cpp','libs/painting/strokes/freehand_stroke.cpp']
+ source_hashes={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in source_files}
+ for name in source_files:
+  destination=logs/'source'/name;destination.parent.mkdir(parents=True,exist_ok=True);destination.write_bytes((root/name).read_bytes())
+ report=dict(schema=2,repetitions=a.repeat,samples_per_process=a.samples,wgpu_completion_wait='poll_false_50us' if a.gpu_completion else 'none',platform=platform.platform(),gpu_completion_waited=a.gpu_completion,binary_sha256=hashlib.sha256((build/'bin/WgpuCanvasIntegrationTest').read_bytes()).hexdigest(),ui_library_sha256=hashlib.sha256((build/'bin/libkritaapplicationui.21.0.0.dylib').read_bytes()).hexdigest(),scope='CPU return after final projection/upload; process and GUI CPU measured through projection quiet interval; OS display completion unmeasured',workloads={w:dict(WORKLOADS[w],threads=a.threads) for w in workloads},configurations={c:CASES[c] for c in cases},runs=runs)
+ report['image_library_sha256']=hashlib.sha256((build/'bin/libkritaimage.21.0.0.dylib').read_bytes()).hexdigest()
+ report['brush_module_sha256']=hashlib.sha256((build/'bin/kritadefaultpaintops.so').read_bytes()).hexdigest()
+ report['painting_library_sha256']=hashlib.sha256((build/'bin/libkritapainting.21.0.0.dylib').read_bytes()).hexdigest()
+ report['cpu_profile']=a.cpu_profile
+ report['source_sha256']=source_hashes
  for round_index in range(a.repeat):
   for w in workloads:
    offset=round_index%len(cases)
    for c in cases[offset:]+cases[:offset]:
     config=CASES[c]; env=os.environ.copy();env.pop('MTL_DEBUG_LAYER',None)
+    env.update(LIBREPAINT_WGPU_LAYER_REGIONS=str(config.get('layer_regions',0)),LIBREPAINT_WGPU_LATE_LAYER_CAPTURE=str(config.get('late_layer_capture',0)),LIBREPAINT_WGPU_INDIRECT_COMPOSE=str(config.get('gpu_indirect',0)),LIBREPAINT_EXPERIMENT_INPUT_INTERVAL_MS='4',LIBREPAINT_EXPERIMENT_SKIP_CPU_COMPOSE=str(config.get('skip_cpu_compose',0)),LIBREPAINT_WGPU_LAYER_COMPOSE=str(config.get('gpu_layers',0)),LIBREPAINT_WGPU_STAGING_POOL=str(config.get('staging',0)),LIBREPAINT_WGPU_STAGING_MIN_BYTES=str(config.get('staging_min',0)),LIBREPAINT_WGPU_STAGING_BATCH=str(config.get('staging_batch',0)))
     env.update(QT_QPA_PLATFORM='cocoa',KIS_TEST_PREFIX_PATH=str(build),LIBREPAINT_CANVAS_PERFORMANCE=config.get('backend','wgpu'),LIBREPAINT_CANVAS_PERFORMANCE_SAMPLES=str(a.samples),LIBREPAINT_CANVAS_PERFORMANCE_ARTIFACTS=str(logs),LIBREPAINT_WGPU_PRESENT_MODE=config.get('mode','fifo'),LIBREPAINT_WGPU_FRAME_INTERVAL_MS=str(config.get('interval',0)),LIBREPAINT_WGPU_THREADED=str(config.get('thread',0)),LIBREPAINT_WGPU_DIRECT_BGRA=str(config.get('bgra',0)),LIBREPAINT_WGPU_EAGER_PROJECTION=str(config.get('eager',0)),LIBREPAINT_WGPU_BORROW_SNAPSHOT=str(config.get('borrow',0)),LIBREPAINT_WGPU_LATE_UPLOAD=str(config.get('late',0)),LIBREPAINT_WGPU_GPU_PROJECTION=str(config.get('projection',0)),LIBREPAINT_WGPU_COMPOSE_INTERVAL_MS=str(config.get('compose_interval',0)),LIBREPAINT_WGPU_RASTER_UI=str(config.get('raster_ui',0)),LIBREPAINT_WGPU_RAW_PROJECTION=str(config.get('raw_projection',0)),LIBREPAINT_WGPU_SKIP_REDUNDANT=str(config.get('skip_redraw',0)),LIBREPAINT_WGPU_PLAIN_UI=str(config.get('plain_ui',0)),LIBREPAINT_WGPU_FORCE_RASTER=str(config.get('force_raster',0)),LIBREPAINT_WGPU_FRAME_LATENCY=str(config.get('frame_latency',0)),LIBREPAINT_EXPERIMENT_LABEL=f'{round_index+1}-{w}-{c}',LIBREPAINT_EXPERIMENT_STATIC_CACHE=str(config.get('static_cache',0)))
+    env['LIBREPAINT_EXPERIMENT_VARY_BRUSH']='0'
     for name,value in WORKLOADS[w].items():env['LIBREPAINT_EXPERIMENT_'+name.upper()]=str(value)
+    env['LIBREPAINT_EXPERIMENT_BRUSH_PERIOD_MS']=str(config.get('brush_period',0))
+    env['LIBREPAINT_WGPU_DIRECT_WIDGET']=str(config.get('direct_widget',0))
+    env['LIBREPAINT_EXPERIMENT_STROKE_PERIOD_MS']=str(config.get('stroke_period',0))
+    env['LIBREPAINT_EXPERIMENT_DAB_CACHE']=str(config.get('dab_cache',0))
+    env['LIBREPAINT_EXPERIMENT_BRUSH_PACKED']=str(config.get('brush_packed',0))
+    env['LIBREPAINT_EXPERIMENT_BRUSH_TILE_ORDER']=str(config.get('brush_tile_order',0))
+    env['LIBREPAINT_EXPERIMENT_CPU_PROFILE']=str(int(a.cpu_profile))
     env['LIBREPAINT_EXPERIMENT_THREADS']=str(a.threads)
     env['LIBREPAINT_EXPERIMENT_GPU_COMPLETION']=str(int(a.gpu_completion))
     for key in ['FULL_REPAINT','PAN']:
@@ -98,11 +154,16 @@ def main():
     with log.open('w') as stream:
      p=subprocess.run([str(build/'bin/WgpuCanvasIntegrationTest'),'documentProjectionReachesNativeSurface','-maxwarnings','100000'],cwd=root,env=env,stdout=stream,stderr=subprocess.STDOUT,timeout=360)
     if p.returncode:raise RuntimeError(f'failed: {log}')
+    for field,name in [('binary_sha256','WgpuCanvasIntegrationTest'),('ui_library_sha256','libkritaapplicationui.21.0.0.dylib'),('image_library_sha256','libkritaimage.21.0.0.dylib'),('brush_module_sha256','kritadefaultpaintops.so'),('painting_library_sha256','libkritapainting.21.0.0.dylib')]:
+     if hashlib.sha256((build/'bin'/name).read_bytes()).hexdigest()!=report[field]:raise RuntimeError('benchmark binary changed during measurement')
     lines=[s.partition('CANVAS_PERFORMANCE ')[2] for s in log.read_text().splitlines() if 'CANVAS_PERFORMANCE ' in s]
     if len(lines)!=1:raise RuntimeError(f'report missing: {log}')
-    r=json.loads(lines[0]);r.update(case=c,workload=w,round=round_index+1,configuration=config)
+    r=json.loads(lines[0])
+    if config.get('gpu_layers') and r['display_difference'].get('max_channel_error',255)>2:raise RuntimeError(f'layer composition pixels differ: {log}')
+    r.update(case=c,workload=w,round=round_index+1,configuration=config)
     prior=next((r0 for r0 in runs if r0['workload']==w),None)
     if prior and r['pixel_sha256']!=prior['pixel_sha256']:raise RuntimeError(f'brush pixels differ: {log}')
+    if prior and r.get('brush_variant_sha256')!=prior.get('brush_variant_sha256'):raise RuntimeError(f'brush variant pixels differ: {log}')
     runs.append(r); report['summary']=summarize(runs);output.write_text(json.dumps(report,indent=2)+'\n')
  print('report:',output)
  for key,s in report['summary'].items():print(key,'complete',s['pipeline_complete_ms'],'tail',s['release_to_frame_ms'],'dispatch',s['dispatch_lateness_ms_max'],'CPU',s['process_cpu_ms'])

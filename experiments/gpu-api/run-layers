@@ -1,0 +1,25 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-or-later
+import argparse,hashlib,json,os,platform,shlex,subprocess,sys
+from pathlib import Path
+
+root=Path(__file__).resolve().parents[2];here=Path(__file__).resolve().parent
+p=argparse.ArgumentParser();p.add_argument('--suite',choices=['pilot','matrix','regions'],default='matrix');p.add_argument('--input-mode',choices=['generated','precomputed'],default='generated');p.add_argument('--frames',type=int,default=12);p.add_argument('--rounds',type=int,default=3);p.add_argument('--output',type=Path,required=True);a=p.parse_args()
+logs=a.output.parent/(a.output.stem+'-logs');logs.mkdir(parents=True,exist_ok=True)
+for name in ['layers.mm','benchmark.mm','run-layers']:(logs/name).write_bytes((here/name).read_bytes())
+flags=shlex.split(os.environ.get('NIX_LDFLAGS',''));lib=next(Path(x[2:])/'libwgpu_native.dylib' for x in flags if x.startswith('-L') and (Path(x[2:])/'libwgpu_native.dylib').exists())
+binary=logs/'layers';cmd=['clang++','-O3','-DNDEBUG','-std=c++17','-fobjc-arc','-Wno-deprecated-declarations',str(logs/'layers.mm'),str(lib),'-framework','Cocoa','-framework','OpenGL','-framework','Metal','-framework','QuartzCore','-o',str(binary)];subprocess.run(cmd,check=True)
+report={'command':sys.argv,'platform':platform.platform(),'suite':a.suite,'source_sha256':{n:hashlib.sha256((logs/n).read_bytes()).hexdigest() for n in ['layers.mm','benchmark.mm','run-layers']},'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'scope':'synthetic normal premultiplied RGBA8 layers; changes in top layer; CPU/GPU composition, transfer, whole-image render, exact completion; OS presentation excluded','runs':[]}
+cases=[('gl',m) for m in ['cpu-full','cpu-dirty','cpu-cache']]+[('wgpu',m) for m in ['cpu-full','cpu-dirty','cpu-cache','gpu-all','gpu-cache']]
+conditions=[(s,n,u) for s in [1024,2048] for n in [8,24] for u in [256,s]] if a.suite=='matrix' else [(1024,8,256)]
+if a.suite=='regions':cases=[('gl','cpu-dirty'),('gl','cpu-cache')]+[('wgpu',m) for m in ['cpu-dirty','gpu-all','gpu-dirty','gpu-cache','gpu-cache-dirty']];conditions=[(s,24,u) for s in [1024,2048] for u in [64,256,s]]
+for r in range(a.rounds):
+ for size,layers,update in conditions:
+  for api,mode in cases[r%len(cases):]+cases[:r%len(cases)]:
+   label=f'{r+1}-{size}-l{layers}-u{update}-{api}-{mode}';print(label,flush=True)
+   cmd=[str(binary),'--api',api,'--mode',mode,'--size',str(size),'--layers',str(layers),'--update',str(update),'--frames',str(a.frames),'--batch','3','--precomputed',str(int(a.input_mode=='precomputed'))]
+   env=os.environ.copy();env.pop('MTL_DEBUG_LAYER',None);result=subprocess.run(cmd,text=True,capture_output=True,env=env,timeout=120)
+   (logs/(label+'.log')).write_text(result.stdout+result.stderr)
+   if result.returncode:raise RuntimeError(label+': '+result.stderr[-1600:])
+   run=json.loads(result.stdout);run.update(round=r+1,label=label);report['runs'].append(run);a.output.write_text(json.dumps(report,indent=2)+'\n')
+print(a.output)

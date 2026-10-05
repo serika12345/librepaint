@@ -5,6 +5,8 @@
  */
 
 #include "KisDabRenderingQueue.h"
+#include <KisExperimentCpuProfile.h>
+#include <QHash>
 
 #include <algorithm>
 #include <limits>
@@ -29,6 +31,15 @@
 #include <qsharedpointer.h>
 
 #include "kis_algebra_2d.h"
+
+namespace {
+struct GeneratedDabCache {
+    QMutex mutex;
+    QHash<QByteArray,KisFixedPaintDeviceSP> devices;
+    qint64 bytes=0;
+};
+GeneratedDabCache crossStrokeCache;
+}
 
 struct KisDabRenderingQueue::Private
 {
@@ -91,6 +102,7 @@ struct KisDabRenderingQueue::Private
     QSharedPointer<KisOptimizedByteArray::MemoryAllocator> paintDeviceAllocator;
 
     QMutex mutex;
+    GeneratedDabCache generatedDabs;
 
     KisRollingMeanAccumulatorWrapper avgExecutionTime;
     KisRollingMeanAccumulatorWrapper avgDabSize;
@@ -383,6 +395,27 @@ KisFixedPaintDeviceSP KisDabRenderingQueue::fetchCachedPaintDevice()
      * uses a custom allocator for better efficiency.
      */
     return new KisFixedPaintDevice(m_d->colorSpace, m_d->paintDeviceAllocator);
+}
+
+KisFixedPaintDeviceSP KisDabRenderingQueue::experimentFindGeneratedDab(const QByteArray &key)
+{
+    static const bool global=qEnvironmentVariableIntValue("LIBREPAINT_EXPERIMENT_DAB_CACHE")==2;
+    auto &cache=global ? crossStrokeCache : m_d->generatedDabs;
+    QMutexLocker lock(&cache.mutex);
+    KisExperimentCpuProfile::Scope lookup(KisExperimentCpuProfile::DabCacheLookup,cache.bytes);
+    auto device=cache.devices.value(key);
+    if(device) { KisExperimentCpuProfile::Scope hit(KisExperimentCpuProfile::DabCacheHit); }
+    return device;
+}
+void KisDabRenderingQueue::experimentStoreGeneratedDab(const QByteArray &key,KisFixedPaintDeviceSP device)
+{
+    static const bool global=qEnvironmentVariableIntValue("LIBREPAINT_EXPERIMENT_DAB_CACHE")==2;
+    auto &cache=global ? crossStrokeCache : m_d->generatedDabs;
+    QMutexLocker lock(&cache.mutex);
+    if(cache.devices.contains(key)) return;
+    const qint64 bytes=qint64(device->bounds().width())*device->bounds().height()*device->colorSpace()->pixelSize();
+    if(cache.bytes+bytes>256LL*1024*1024) {cache.devices.clear();cache.bytes=0;}
+    cache.devices.insert(key,device);cache.bytes+=bytes;
 }
 
 qreal KisDabRenderingQueue::averageExecutionTime() const

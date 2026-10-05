@@ -51,6 +51,8 @@ public:
     void setCacheInterface(CacheInterface *interface);
 
     KisFixedPaintDeviceSP fetchCachedPaintDevice();
+    KisFixedPaintDeviceSP experimentFindGeneratedDab(const QByteArray &key);
+    void experimentStoreGeneratedDab(const QByteArray &key, KisFixedPaintDeviceSP device);
 
     void putResourcesToCache(KisDabCacheUtils::DabRenderingResources *resources);
     KisDabCacheUtils::DabRenderingResources* fetchResourcesFromCache();

@@ -272,6 +272,38 @@ JSON出力は条件、文書画素ハッシュ、各試行の記録、中央値�
 固定入力の画素一致、取り消しによる初期画素への復帰である。
 性能値は対象環境の採用基準と比較する診断値として扱う。
 
+macOSの実装付き性能調査は`scripts/experiment-wgpu-bottlenecks`を使う。
+`--workloads`は文書寸法、レイヤー数、ブラシ寸法、入力間隔を選び、
+`--cases`は転送、GPUレイヤー合成、画面転送、更新間隔、ブラシ形状再利用の条件を選ぶ。
+比較条件の定義はスクリプト内の`WORKLOADS`と`CASES`が所有する。
+
+```sh
+./scripts/run-shared-test-env ./scripts/experiment-wgpu-bottlenecks \
+  --cases opengl,wgpu-raw,wgpu-layers-late,wgpu-early-4,wgpu-early-4-warm \
+  --workloads stress-burst,stress-vary-brush,light \
+  --samples 8 --repeat 3 --threads 8 --gpu-completion \
+  --output build/wgpu-comparison.json
+./scripts/run-shared-test-env ./scripts/experiment-wgpu-bottlenecks \
+  --cases wgpu-layers-late,wgpu-early-4,wgpu-early-4-warm \
+  --workloads stress-burst,stress-vary-brush,light \
+  --samples 6 --repeat 2 --threads 8 --gpu-completion --cpu-profile \
+  --output build/wgpu-cpu-profile.json
+./scripts/run-shared-test-env ./experiments/gpu-api/summarize-cpu-profile \
+  build/wgpu-comparison.json build/wgpu-cpu-profile.json \
+  --output build/wgpu-comparison-results.txt
+```
+
+`--gpu-completion`はOpenGLとwgpuのGPU完了を観測し、経路完了を入力解放、
+文書ジョブ完了、最終描画完了の最大時刻として集計する。OSの実表示時刻は別の観測を要する。
+`--cpu-profile`は作業スレッドのCPU区間、包含・排他的時間、呼出し数、処理量と
+OSのスレッド別CPU時間を記録する。時計取得と集計の負荷を分離するため、
+速度比較とCPU区間分析は別の試行で実行する。
+`stress-vary-brush`はブラシ寸法512・448・384を巡回し、寸法ごとに文書画素を照合する。
+ログ隣接の`source`は使用ソースを保持し、JSONはソースと関連バイナリの識別値を記録する。
+GPUレイヤー合成は固定RGBA8・通常合成を対象とし、比較試験の更新フィルターでCPU投影を抑止する。
+形状再利用は乱数・後処理・ミラーのない単色自動ブラシを対象とし、
+完全一致のキーと256MiBの保持上限を使う。上限超過時は保持画素を消去する。
+
 ### macOS
 
 Apple Silicon上で次を実行する。ツールチェーンと機能の定義は

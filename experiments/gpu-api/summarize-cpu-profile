@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+# SPDX-License-Identifier: GPL-2.0-or-later
+"""Summarize Issue #87 CPU scopes and layout experiments."""
+import argparse, json, statistics, hashlib
+from pathlib import Path
+ap=argparse.ArgumentParser(description=__doc__)
+ap.add_argument('reports',type=Path,nargs='+');ap.add_argument('--output',type=Path,required=True)
+a=ap.parse_args()
+labels={'wgpu-dab-stroke-cache':'ストローク内の形状再利用','wgpu-dab-warm-cache':'ストローク間の形状再利用','wgpu-dab-warm-packed':'形状再利用＋連続作業領域','wgpu-brush-period1':'更新間隔1ms','wgpu-dab-warm-period1':'形状再利用＋更新間隔1ms','wgpu-dab-warm-packed-period1':'形状再利用＋連続作業領域＋更新間隔1ms','opengl':'現行OpenGL','wgpu-raw':'未最適化wgpu','wgpu-layers-late':'GPU合成・遅延取得wgpu','wgpu-layers-tile-order':'上記＋タイル順','wgpu-layers-packed':'上記＋連続作業領域'}
+labels.update({'wgpu-direct-widget':'画面転送コピー除去','wgpu-direct-initial1':'コピー除去＋初回更新1ms','wgpu-direct-brush1':'コピー除去＋ブラシ更新1ms','wgpu-direct-early':'コピー除去＋初回・ブラシ更新1ms','wgpu-dab-warm-direct':'コピー除去＋形状再利用','wgpu-dab-warm-early':'コピー除去＋形状再利用＋初回・ブラシ更新1ms','wgpu-dab-warm-packed-direct':'コピー除去＋形状再利用＋連続作業領域','wgpu-dab-warm-packed-early':'コピー除去＋形状再利用＋連続作業領域＋更新1ms'})
+stages={'dab_generation':'ブラシ形状生成','brush_apply':'ブラシ適用全体','brush_composite':'ブラシ画素合成','tile_access':'タイル参照','tile_allocate':'タイル画素領域確保','tile_copy':'タイル複製の画素コピー','device_blend':'画像間合成・コピー','image_extract':'表示画像抽出','read_pixels':'タイルから画素取得','write_pixels':'タイルへ画素反映','worker_loop':'文書作業スレッドの実行全体','stroke_jobs':'ストロークジョブ本体','projection_jobs':'CPU投影ジョブ本体','gpu_frame':'GPU表示スレッドのフレーム処理','gui_loop':'GUIイベントループ','dab_raster':'ブラシ画素の実生成','dab_cache_lookup':'形状再利用の検索','dab_cache_hit':'形状再利用の成立'}
+median=statistics.median
+labels.update({'wgpu-early-2':'コピー除去＋初回1ms・ブラシ更新2ms','wgpu-early-2-warm':'上記＋形状再利用','wgpu-early-4':'コピー除去＋初回1ms・ブラシ更新4ms','wgpu-early-4-warm':'上記＋形状再利用'})
+lines=['Issue #87 CPU支配要因・形状再利用・更新間隔実験','',
+'目的: GPU合成後に残るCPU実働を測定し、メモリ配置、形状再利用、画面転送経路、更新間隔の効果を比較する。',
+'条件: macOS/Apple M2、固定RGBA8ブラシ、通常合成、固定入力25点。GPU完了待ち有効。OSの実表示完了は対象外。',
+'CPU値は全スレッドの実働合計。経過時間は休止・待ちを含む。CPU区間の経過時間は複数スレッドの和であり、ストロークの経過時間ではない。',
+'区間計測ありでは時計取得・カウンター更新の負荷が加わる。速度比較は区間計測なしの別試行を使用する。',
+'包含CPUは子処理を含む。排他的CPUは計測対象の子処理を差し引く。各区間の中央値同士は加算できない。',
+'タイル順は画素ごとのブラシ適用順を保ち、書込先タイルを外側のループへ移す。',
+'連続作業領域は非重複の処理領域ごとに画素取得→同じ合成演算→画素反映を行う。確保・往復コピーも測定に含む。',
+'連続化と合成呼出し数削減を同時に変更するため、物理メモリ配置だけの効果とは解釈できない。',
+'形状再利用は乱数なし・固体色・後処理なしの自動ブラシに限定する。キーはブラシ定義・色空間・色・形状寸法・小数位置・柔らかさ等の完全一致。',
+'ストローク内方式は毎回空の状態から開始する。ストローク間方式は3回の準備入力で保持した形状を再利用する。画素保持上限256MiB、超過時に全消去。',
+'再利用検索の最大単位数は保持画素バイト数の最大値。実生成と再利用成立の呼出し数で再利用率を確認する。',
+'可変寸法条件は512/448/384を巡回し、各寸法の全入力で文書画素を照合する。通常条件は初回と最終入力を照合する。','']
+lines += ['画面転送コピー除去はwgpuのネイティブ画面にWA_PaintOnScreen/WA_NoSystemBackground/WA_OpaquePaintEventを設定する試作。',
+ '初回更新はFreehandStrokeStrategyの初期40msを1msへ変更する。ブラシ更新はKisBrushOpの初期20ms・適応最小10msの返却間隔を1msへ変更する。',
+ 'CPU実働の観測窓は最終投影の30ms安定待ちまで含む。経路完了は記録済み最終GPU処理戻りと文書ジョブ完了と入力解放の最大時刻。','']
+for path in a.reports:
+ r=json.loads(path.read_text());logs=path.parent/(path.stem+'-logs')
+ for name,digest in r.get('source_sha256',{}).items():
+  assert hashlib.sha256((logs/'source'/name).read_bytes()).hexdigest()==digest,(path,name)
+ lines += [str(path),'区間計測: '+str(r.get('cpu_profile',False)),f"プロセス数: {len(r['runs'])} / 有効入力数: {sum(len(run['samples']) for run in r['runs'])} / 除外入力数: {sum(len(run['discarded_inputs']) for run in r['runs'])}"]
+ grouped={}
+ for run in r['runs']:grouped.setdefault((run['workload'],run['case']),[]).append(run)
+ for (w,c),runs in grouped.items():
+  ss=[s for run in runs for s in run['samples']]
+  assert len({run['pixel_sha256'] for run in runs})==1
+  assert all(run['display_difference'].get('max_channel_error',0)<=2 for run in runs)
+  work=r['workloads'][w]
+  complete=median((max(s['frame_return_ns'],s['document_jobs_done_ns'],s['input_release_ns'])-s['input_begin_ns'])/1e6 for s in ss)
+  lines += ['',f"{w} / {labels.get(c,c)} / CPU作業スレッド上限 {work['threads']} / {len(ss)}入力",f"経路完了中央値 {complete:.3f}ms / P95 {r['summary'][w+'/'+c]['pipeline_complete_ms']['p95']:.3f}ms / CPU実働 {median(s['process_cpu_ms'] for s in ss):.3f}ms / GUI CPU実働 {median(s['gui_cpu_ms'] for s in ss):.3f}ms",'各プロセスの経路完了中央値: '+', '.join(f"{median((max(s['frame_return_ns'],s['document_jobs_done_ns'],s['input_release_ns'])-s['input_begin_ns'])/1e6 for s in run['samples']):.3f}" for run in runs)]
+  lines += [f"入力開始→文書ジョブ完了 {median((s['document_jobs_done_ns']-s['input_begin_ns'])/1e6 for s in ss):.3f}ms / 文書ジョブ完了→最終GPU描画戻り {median((s['frame_return_ns']-s['document_jobs_done_ns'])/1e6 for s in ss):.3f}ms"]
+  for stage in ['gpu_completion_wait','layer_capture_late','upload','surface_acquire']:
+   if any(stage in s['window_stages'] for s in ss):
+    lines += [f"表示側 {stage} の経過時間合計中央値: {median(s['window_stages'].get(stage,{}).get('total_ns',0)/1e6 for s in ss):.3f}ms（CPU実働ではない）"]
+  if 'cpu_profile' in ss[0]:
+   lines+=['区間 | 包含CPU ms | 排他的CPU ms | 経過時間合計 ms | 呼出し数 | 処理単位数 | 最大単位数']
+   for stage,label in stages.items():
+    if stage not in ss[0]['cpu_profile']:continue
+    vals=[s['cpu_profile'][stage] for s in ss]
+    lines += [label+' | '+' | '.join(f'{median(v.get(f,0) for v in vals):.3f}' for f in ['cpu_ms','exclusive_cpu_ms','wall_ms','calls','units','peak_units'])]
+   covered=median(sum(v['exclusive_cpu_ms'] for v in s['cpu_profile'].values()) for s in ss)
+   frac=median(sum(v['exclusive_cpu_ms'] for v in s['cpu_profile'].values())/s['process_cpu_ms']*100 for s in ss)
+   lines += [f'計測区間で説明できたCPU: {covered:.3f}ms / 同じ入力のCPU実働に対する割合中央値 {frac:.1f}%', '単位数: 合成は画素訪問数、取得・反映・タイル確保・複製はバイト数。他は0。']
+  if 'cpu_threads' in ss[0]:
+   names=sorted({t['name'] or '名称未設定' for s in ss for t in s['cpu_threads']})
+   lines+=['OSが記録する生存スレッドCPUの合計中央値: '+f"{median(sum(t['cpu_ms'] for t in s['cpu_threads']) for s in ss):.3f}ms", 'スレッド名 | OS CPU ms | 計測区間 CPU ms | 未分離差 ms（入力ごとに同名を合算した中央値）']
+   for name in names:
+    values=[{f:sum(t[f] for t in s['cpu_threads'] if (t['name'] or '名称未設定')==name) for f in ['cpu_ms','scoped_cpu_ms','unscoped_cpu_ms']} for s in ss]
+    if median(v['cpu_ms'] for v in values)<0.1:continue
+    lines += [name+' | '+' | '.join(f"{median(v[f] for v in values):.3f}" for f in ['cpu_ms','scoped_cpu_ms','unscoped_cpu_ms'])]
+ for w in r['workloads']:
+  assert len({run['pixel_sha256'] for run in r['runs'] if run['workload']==w})==1,(path,w)
+ lines+=['']
+a.output.write_text('\n'.join(lines)+'\n');print(a.output)

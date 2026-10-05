@@ -11,6 +11,7 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 
+#include <KisExperimentCpuProfile.h>
 #include "kis_painter.h"
 #include "KisFakeRunnableStrokeJobsExecutor.h"
 #include "KisPerStrokeRandomSource.h"
@@ -533,6 +534,7 @@ void KisPainter::bitBltWithFixedSelection(qint32 dstX, qint32 dstY,
 {
     // TODO: get selX and selY working as intended
 
+    KisExperimentCpuProfile::Scope profile(KisExperimentCpuProfile::DeviceBlend);
     /* This check for nonsense ought to be a Q_ASSERT. However, when paintops are just
     initializing they perform some dummy passes with those parameters, and it must not crash */
     if (srcWidth == 0 || srcHeight == 0) return;
@@ -677,6 +679,7 @@ void KisPainter::bitBltImpl(qint32 dstX, qint32 dstY,
                             qint32 srcX, qint32 srcY,
                             qint32 srcWidth, qint32 srcHeight)
 {
+    KisExperimentCpuProfile::Scope profile(KisExperimentCpuProfile::DeviceBlend);
     /* This check for nonsense ought to be a Q_ASSERT. However, when paintops are just
     initializing they perform some dummy passes with those parameters, and it must not crash */
     if (srcWidth == 0 || srcHeight == 0) return;
@@ -867,6 +870,7 @@ void KisPainter::bitBltOldData(const QPoint & pos, const KisPaintDeviceSP srcDev
 
 void KisPainter::fill(qint32 x, qint32 y, qint32 width, qint32 height, const KoColor& color)
 {
+    KisExperimentCpuProfile::Scope profile(KisExperimentCpuProfile::DeviceBlend);
     /* This check for nonsense ought to be a Q_ASSERT. However, when paintops are just
      * initializing they perform some dummy passes with those parameters, and it must not crash */
     if(width == 0 || height == 0 || d->device.isNull())
@@ -969,6 +973,7 @@ void KisPainter::bltFixed(qint32 dstX, qint32 dstY,
                           qint32 srcX, qint32 srcY,
                           qint32 srcWidth, qint32 srcHeight)
 {
+    KisExperimentCpuProfile::Scope profile(KisExperimentCpuProfile::DeviceBlend);
     /* This check for nonsense ought to be a Q_ASSERT. However, when paintops are just
     initializing they perform some dummy passes with those parameters, and it must not crash */
     if (srcWidth == 0 || srcHeight == 0) return;
@@ -1050,6 +1055,7 @@ void KisPainter::bltFixedWithFixedSelection(qint32 dstX, qint32 dstY,
 {
     // TODO: get selX and selY working as intended
 
+    KisExperimentCpuProfile::Scope profile(KisExperimentCpuProfile::DeviceBlend);
     /* This check for nonsense ought to be a Q_ASSERT. However, when paintops are just
     initializing they perform some dummy passes with those parameters, and it must not crash */
     if (srcWidth == 0 || srcHeight == 0) return;

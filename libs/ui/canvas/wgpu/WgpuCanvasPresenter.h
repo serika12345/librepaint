@@ -9,6 +9,7 @@
 #include <QObject>
 #include <memory>
 #include <array>
+#include <functional>
 
 class QWindow;
 namespace Krita::Canvas
@@ -25,6 +26,11 @@ public:
     bool setImage(const QImage &image, const QRect &dirty);
     void setProjectionGeometry(const std::array<float,16> &geometry);
     void setProjectionGeneration(quint64 generation);
+    struct LayerPatch { int layer; QImage pixels; QRect destination; };
+    void setLayerCapture(const std::function<QVector<LayerPatch>(const QRect &)> &capture);
+    void setFrameScopeFactory(std::function<std::shared_ptr<void>()> factory);
+    void queueLayerDirty(const QRect &rect);
+    void queueLayerPatches(const QVector<LayerPatch> &patches, const QVector<quint8> &opacities);
     void queueProjectionPatch(const QImage &patch, const QRect &destination);
     QImage readback();
     quint64 submittedFrames() const;

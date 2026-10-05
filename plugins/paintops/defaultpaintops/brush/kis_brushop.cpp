@@ -72,6 +72,8 @@ KisBrushOp::KisBrushOp(const KisPaintOpSettingsSP settings, KisPainter *painter,
     , m_minUpdatePeriod(10)
     , m_maxUpdatePeriod(100)
 {
+    const int experimentPeriod=qEnvironmentVariableIntValue("LIBREPAINT_EXPERIMENT_BRUSH_PERIOD_MS");
+    if(experimentPeriod>0) m_currentUpdatePeriod=experimentPeriod;
     Q_UNUSED(image);
     Q_ASSERT(settings);
 
@@ -375,7 +377,8 @@ std::pair<int, bool> KisBrushOp::doAsynchronousUpdate(QVector<KisRunnableStrokeJ
         someDabsAreStillInQueue = true;
     }
 
-    return std::make_pair(m_currentUpdatePeriod, someDabsAreStillInQueue);
+    const int experimentPeriod=qEnvironmentVariableIntValue("LIBREPAINT_EXPERIMENT_BRUSH_PERIOD_MS");
+    return std::make_pair(experimentPeriod>0 ? experimentPeriod : m_currentUpdatePeriod, someDabsAreStillInQueue);
 }
 
 KisSpacingInformation KisBrushOp::updateSpacingImpl(const KisPaintInformation &info) const
