@@ -109,6 +109,7 @@ public:
     void bufferTouchEvent(QTouchEvent *event);
     void flushBufferedTouchEvents();
     void clearBufferedTouchEvents();
+    void notifyTouchDuringStroke(QTouchEvent *event);
 
     template <class Event, bool useBlocking>
     void debugEvent(QEvent *event)

@@ -76,6 +76,14 @@ struct KisResourcesSnapshot::Private {
     KoCanvasResourcesInterfaceSP globalCanvasResourcesInterface;
 };
 
+KisResourcesSnapshot::KisResourcesSnapshot(const KisResourcesSnapshot &other)
+    : m_d(new Private(*other.m_d))
+{
+    if (m_d->currentPaintOpPreset) {
+        m_d->currentPaintOpPreset = m_d->currentPaintOpPreset->clone().dynamicCast<KisPaintOpPreset>();
+    }
+}
+
 KisResourcesSnapshot::KisResourcesSnapshot(KisImageSP image, KisNodeSP currentNode, KoCanvasResourcesInterfaceSP resources, KisDefaultBoundsBaseSP bounds, KisNodeList selectedNodes, KisPaintOpPresetSP presetOverride)
     : m_d(new Private())
 {

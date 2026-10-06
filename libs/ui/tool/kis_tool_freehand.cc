@@ -14,12 +14,22 @@
 #include <QPainter>
 #include <QRect>
 #include <QThreadPool>
+#include <QThread>
 #include <QApplication>
 #include <QScreen>
+#include <QRandomGenerator>
+#include <QtConcurrentRun>
+#include <kis_coordinates_converter.h>
+#include "canvas/kis_canvas_widget_base.h"
+#include "canvas/KisDisplayConfig.h"
+#include <color/kis_display_color_transform.h>
 
 
 #include <functional>
+#include <cmath>
 #include <kis_icon.h>
+#include <KoCanvasBase.h>
+#include <KoCanvasResourcesIds.h>
 #include <KoPointerEvent.h>
 #include <KoViewConverter.h>
 #include <KoCanvasController.h>
@@ -29,6 +39,7 @@
 
 // Krita/image
 #include <kis_image.h>
+#include <kis_figure_painting_stroke.h>
 #include <kis_painter.h>
 #include <brushengine/kis_paintop.h>
 #include <brushengine/kis_paintop_preset.h>
@@ -45,6 +56,8 @@
 #include <kis_layer.h>
 #include "kis_image_config.h"
 #include "canvas/kis_canvas2.h"
+#include "canvas/kis_display_color_converter.h"
+#include "KisQuickShapePreview.h"
 #include "kis_cursor.h"
 #include <application/ui/workspace/KisViewManager.h>
 #include <canvas/kis_painting_assistants_decoration.h>
@@ -58,6 +71,7 @@
 #include <qpointer.h>
 #include <qset.h>
 #include "kis_painting_information_builder_adapters.h"
+#include "kis_quick_shape.h"
 #include "kis_random_source.h"
 #include "kis_tool.h"
 #include "kis_tool_freehand_helper.h"
@@ -68,14 +82,34 @@
 
 using namespace std::placeholders; // For _1 placeholder
 
+namespace {
+
+// How long the pointer must stay inside the hold slop before the gesture is
+// treated as a request for a snapped shape.
+const int kQuickShapeHoldDelayMs = 500;
+
+// Pointer movement that restarts the hold delay, measured in canvas widget
+// pixels and converted to image pixels for the current zoom.
+const qreal kQuickShapeHoldSlopWidgetPixels = 3.0;
+
+}
+
 
 KisToolFreehand::KisToolFreehand(KoCanvasBase * canvas, const QCursor & cursor,
                                  const KUndo2MagicString &transactionText, bool useSavedSmoothing)
     : KisToolPaint(canvas, cursor),
-      m_brushResizeCompressor(200, std::bind(&KisToolFreehand::slotDoResizeBrush, this, _1))
+      m_brushResizeCompressor(200, std::bind(&KisToolFreehand::slotDoResizeBrush, this, _1)),
+      m_quickShapeTracker(new KisQuickShapeTracker()),
+      m_quickShapePreview(new KisQuickShapePreview())
 {
 
     setSupportOutline(true);
+
+    m_quickShapeHoldTimer.setSingleShot(true);
+    connect(&m_quickShapeHoldTimer, SIGNAL(timeout()), SLOT(slotQuickShapeHoldTimeout()));
+    connect(&m_quickShapeSampleWatcher, &QFutureWatcher<std::tuple<QImage, QLineF, qreal>>::finished,
+            this, &KisToolFreehand::finishQuickShapePreviewPreparation);
+
     updateMaskSyntheticEventsFromTouch();
     connect(KisConfigNotifier::instance(), SIGNAL(touchPaintingChanged()),
             SLOT(updateMaskSyntheticEventsFromTouch()));
@@ -98,6 +132,7 @@ KisToolFreehand::KisToolFreehand(KoCanvasBase * canvas, const QCursor & cursor,
 
 KisToolFreehand::~KisToolFreehand()
 {
+    resetQuickShapeTracking();
     delete m_helper;
     delete m_infoBuilder;
 }
@@ -184,7 +219,11 @@ void KisToolFreehand::activate(const QSet<KoShape*> &shapes)
 void KisToolFreehand::deactivate()
 {
     if (mode() == PAINT_MODE) {
-        endStroke();
+        if (m_quickShapeActive) {
+            abortQuickShape();
+        } else {
+            endStroke();
+        }
         setMode(KisTool::HOVER_MODE);
     }
     KisToolPaint::deactivate();
@@ -192,11 +231,19 @@ void KisToolFreehand::deactivate()
 
 void KisToolFreehand::initStroke(KoPointerEvent *event)
 {
+    resetQuickShapeTracking();
+
+    const QPointF pixelCoords = convertToPixelCoord(event);
+
     m_helper->initPaint(event,
-                        convertToPixelCoord(event),
+                        pixelCoords,
                         image(),
                         currentNode(),
                         image().data());
+
+    m_quickShapeTracker->setHoldSlop(kQuickShapeHoldSlopWidgetPixels / canvasZoom());
+    m_quickShapeTracker->begin(pixelCoords);
+    m_quickShapeHoldTimer.start(kQuickShapeHoldDelayMs);
 }
 
 void KisToolFreehand::doStroke(KoPointerEvent *event)
@@ -206,6 +253,8 @@ void KisToolFreehand::doStroke(KoPointerEvent *event)
 
 void KisToolFreehand::endStroke()
 {
+    resetQuickShapeTracking();
+
     m_helper->endPaint();
     bool paintOpIgnoredEvent = currentPaintOpPreset()->settings()->mouseReleaseEvent();
     Q_UNUSED(paintOpIgnoredEvent);
@@ -259,6 +308,24 @@ void KisToolFreehand::continuePrimaryAction(KoPointerEvent *event)
 
     requestUpdateOutline(event->point, event);
 
+    if (m_quickShapeActive) {
+        /**
+         * The recognized shape has replaced the freehand stroke. The pointer
+         * stays pressed so that the user can move the line endpoint or resize
+         * and rotate the ellipse, request a circle with a second touch point, and release to
+         * commit the shape.
+         */
+        if (m_quickShapeTracker->adjustTo(convertToPixelCoord(event))) {
+            updateQuickShapePreview();
+        }
+        return;
+    }
+
+    if (m_quickShapeTracker->isTracking()
+        && m_quickShapeTracker->extend(convertToPixelCoord(event))) {
+        m_quickShapeHoldTimer.start(kQuickShapeHoldDelayMs);
+    }
+
     /**
      * Actual painting
      */
@@ -267,10 +334,17 @@ void KisToolFreehand::continuePrimaryAction(KoPointerEvent *event)
 
 void KisToolFreehand::endPrimaryAction(KoPointerEvent *event)
 {
-    Q_UNUSED(event);
     CHECK_MODE_SANITY_OR_RETURN(KisTool::PAINT_MODE);
 
-    endStroke();
+    if (m_quickShapeActive) {
+        if (m_quickShapeTracker->shape().type() == KisQuickShape::Line
+            && m_quickShapeTracker->adjustTo(convertToPixelCoord(event))) {
+            updateQuickShapePreview();
+        }
+        commitQuickShape();
+    } else {
+        endStroke();
+    }
 
     if (m_assistant && static_cast<KisCanvas2*>(canvas())->paintingAssistantsDecoration()) {
         static_cast<KisCanvas2*>(canvas())->paintingAssistantsDecoration()->endStroke();
@@ -492,6 +566,172 @@ qreal KisToolFreehand::calculatePerspective(const QPointF &documentPoint)
 void KisToolFreehand::updateMaskSyntheticEventsFromTouch()
 {
     setMaskSyntheticEvents(KisConfig(true).disableTouchOnCanvas());
+}
+
+void KisToolFreehand::touchDuringStroke(const QPointF &documentPoint)
+{
+    Q_UNUSED(documentPoint);
+
+    if (!m_quickShapeActive) {
+        return;
+    }
+
+    if (!m_quickShapeTracker->toggleCircle()) {
+        return;
+    }
+
+    updateQuickShapePreview();
+}
+
+void KisToolFreehand::slotQuickShapeHoldTimeout()
+{
+    if (m_quickShapeActive || !m_helper->isRunning()) {
+        return;
+    }
+
+    if (!m_quickShapeTracker->recognize()) {
+        return;
+    }
+
+    m_quickShapeActive = true;
+    m_quickShapePaintInformation = m_helper->currentPaintInformation();
+    m_quickShapeResources = m_helper->currentResourcesSnapshot();
+    m_quickShapeRandomSeed = int(QRandomGenerator::global()->generate());
+
+    /**
+     * Drop the freehand stroke so that the snapped shape replaces it instead
+     * of being painted over it.
+     */
+    m_helper->cancelPaint();
+
+    updateQuickShapePreview();
+    prepareQuickShapePreview();
+}
+
+void KisToolFreehand::paint(QPainter &gc, const KoViewConverter &converter)
+{
+    const auto *canvas2 = static_cast<KisCanvas2 *>(canvas());
+    gc.save();
+    gc.setTransform(QTransform());
+    m_quickShapePreview->paint(gc, canvas2->coordinatesConverter()->imageToWidgetTransform(),
+                               canvas2->canvasWidget()->rect());
+    gc.restore();
+
+    KisToolPaint::paint(gc, converter);
+}
+
+void KisToolFreehand::updateQuickShapePreview()
+{
+    if (m_quickShapeActive) {
+        updateQuickShapeCanvas(m_quickShapePreview->update(m_quickShapeTracker->shape()));
+    } else {
+        updateQuickShapeCanvas(m_quickShapePreview->clear());
+    }
+}
+
+void KisToolFreehand::updateQuickShapeCanvas(const QRectF &dirty)
+{
+    if (!dirty.isEmpty()) {
+        const qreal margin = 8.0 / canvasZoom();
+        canvas()->updateCanvas(convertToPt(dirty.adjusted(-margin, -margin, margin, margin)));
+    }
+}
+
+void KisToolFreehand::prepareQuickShapePreview()
+{
+    if (!m_quickShapeActive || m_quickShapeSamplePending) return;
+    // Prepare one small brush material after cancellation. Shape edits only
+    // update the display owner; they never enter this preparation path.
+    if (!m_quickShapeResources->image()->isIdle()) {
+        const quint64 generation = m_quickShapeGeneration;
+        QTimer::singleShot(16, this, [this, generation] {
+            if (generation == m_quickShapeGeneration) prepareQuickShapePreview();
+        });
+        return;
+    }
+    m_quickShapeSampleGeneration = m_quickShapeGeneration;
+    m_quickShapeSamplePending = true;
+    const auto resources = m_quickShapeResources;
+    const auto information = m_quickShapePaintInformation;
+    const int seed = m_quickShapeRandomSeed;
+    const auto displayConfig = static_cast<KisCanvas2 *>(canvas())->displayColorConverter()->multiSurfaceDisplayConfig();
+    m_quickShapeSampleWatcher.setFuture(QtConcurrent::run([resources, information, seed, displayConfig] {
+        const auto sample = KisFigurePaintingStroke::createPreviewSample(*resources, information, seed);
+        KisDisplayColorTransform transform;
+        transform.setInputColorSpace(sample.device->colorSpace());
+        transform.setDisplayConfiguration(displayConfig.uiProfile, displayConfig.canvasProfile,
+                                          displayConfig.intent, displayConfig.conversionFlags);
+        return std::make_tuple(transform.convertImageToDisplayColorSpace(sample.device, sample.bounds),
+                               sample.line, sample.imageUnitsPerPixel);
+    }));
+}
+
+void KisToolFreehand::finishQuickShapePreviewPreparation()
+{
+    m_quickShapeSamplePending = false;
+    if (!m_quickShapeActive) return;
+    if (m_quickShapeSampleGeneration != m_quickShapeGeneration) {
+        prepareQuickShapePreview();
+        return;
+    }
+    const auto sample = m_quickShapeSampleWatcher.result();
+    updateQuickShapeCanvas(m_quickShapePreview->setStrokeSample(std::get<0>(sample), std::get<1>(sample),
+                                                               std::get<2>(sample)));
+}
+
+void KisToolFreehand::retireQuickShapePreview(quint64 generation)
+{
+    if (generation != m_quickShapeGeneration || m_quickShapeActive) return;
+    if (!image()->isIdle()) {
+        QTimer::singleShot(16, this, [this, generation] { retireQuickShapePreview(generation); });
+        return;
+    }
+    updateQuickShapeCanvas(m_quickShapePreview->clear());
+}
+
+void KisToolFreehand::commitQuickShape()
+{
+    const QPainterPath path = m_quickShapePreview->path();
+    m_quickShapeActive = false;
+    m_quickShapeHoldTimer.stop();
+
+    if (!path.isEmpty()) {
+        KisFigurePaintingStroke stroke(kundo2_i18n("Draw Shape"), *m_quickShapeResources, m_quickShapeRandomSeed);
+        stroke.paintStrokePath(path, m_quickShapePaintInformation);
+    }
+
+    m_quickShapeTracker->reset();
+    m_quickShapeResources.clear();
+    retireQuickShapePreview(m_quickShapeGeneration);
+}
+
+void KisToolFreehand::abortQuickShape()
+{
+    m_quickShapeActive = false;
+    updateQuickShapePreview();
+    resetQuickShapeTracking();
+}
+
+void KisToolFreehand::resetQuickShapeTracking()
+{
+    m_quickShapeActive = false;
+    m_quickShapeHoldTimer.stop();
+    ++m_quickShapeGeneration;
+    updateQuickShapeCanvas(m_quickShapePreview->clear());
+    m_quickShapeTracker->reset();
+    m_quickShapeResources.clear();
+    m_quickShapePaintInformation = KisPaintInformation();
+}
+
+qreal KisToolFreehand::canvasZoom() const
+{
+    KoCanvasResourceProvider *provider = canvas()->resourceManager();
+    if (!provider) {
+        return 1.0;
+    }
+
+    const qreal zoom = provider->resource(KoCanvasResource::EffectiveZoom).toReal();
+    return zoom > 0.01 ? zoom : 1.0;
 }
 
 void KisToolFreehand::explicitUpdateOutline()

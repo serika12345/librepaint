@@ -136,10 +136,20 @@ kis_add_test( kis_selection_decoration_test.cpp ../../../sdk/tests/stroke_testin
     LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
+kis_add_test(
+    KisQuickShapePreviewContractTest.cpp
+    LINK_LIBRARIES
+        kritauiquickshapepreviewobjects
+        kritatoolsquickshapeobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+
 kis_add_test( FreehandStrokeContractTest.cpp
     TEST_NAME FreehandStrokeContractTest
     LINK_LIBRARIES kritapainting kritalibbrush kritatestsdk
+        kritauiquickshapepreviewobjects kritatoolsquickshapeobjects
     )
+target_compile_definitions(FreehandStrokeContractTest PRIVATE kritatools_EXPORTS)
 
 kis_add_test(
     KisCanvasUpdatesCompressorContractTest.cpp

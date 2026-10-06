@@ -214,6 +214,17 @@ bool KisInputManager::eventFilter(QObject* object, QEvent* event)
 {
     if (object != d->eventsReceiver) return false;
 
+    /**
+     * Report a touch point that lands while an input action is already
+     * running, for example a finger tapping the canvas while the user paints
+     * with a stylus. Touch events are suppressed in that state, so the
+     * notification has to happen before the suppression check. The active
+     * tool decides whether the touch carries a meaning.
+     */
+    if (event->type() == QEvent::TouchBegin) {
+        d->notifyTouchDuringStroke(static_cast<QTouchEvent *>(event));
+    }
+
     if (d->filterSuppressedEvent(event)) return false;
 
     if (!d->matcher.hasRunningShortcut()) {

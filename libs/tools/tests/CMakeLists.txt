@@ -101,6 +101,14 @@ kis_add_test(
 target_compile_definitions(KisRectangleInteractionContractTest PRIVATE kritatools_EXPORTS)
 
 kis_add_test(
+    KisQuickShapeContractTest.cpp
+    LINK_LIBRARIES
+        kritatoolsquickshapeobjects
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisQuickShapeContractTest PRIVATE kritatools_EXPORTS)
+
+kis_add_test(
     KisSmoothingOptionsRemainderContractTest.cpp
     LINK_LIBRARIES
         kritatoolssmoothingoptionsobjects

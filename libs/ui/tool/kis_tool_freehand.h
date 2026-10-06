@@ -10,6 +10,16 @@
 #include <brushengine/kis_paint_information.h>
 #include <brushengine/kis_paintop_settings.h>
 #include <kis_distance_information.h>
+#include <kis_resources_snapshot.h>
+#include <kis_figure_painting_stroke.h>
+
+#include <memory>
+#include <tuple>
+#include <QLineF>
+
+#include <QTimer>
+#include <QFutureWatcher>
+#include <QImage>
 
 #include "kis_types.h"
 #include "kis_tool_paint.h"
@@ -25,6 +35,8 @@ class KUndo2MagicString;
 
 class KisPaintingInformationBuilder;
 class KisToolFreehandHelper;
+class KisQuickShapeTracker;
+class KisQuickShapePreview;
 
 
 class KRITAUI_EXPORT KisToolFreehand : public KisToolPaint
@@ -38,7 +50,8 @@ public:
     ~KisToolFreehand() override;
     int flags() const override;
     void mouseMoveEvent(KoPointerEvent *event) override;
-    
+
+    void touchDuringStroke(const QPointF &documentPoint) override;
 
 public Q_SLOTS:
     void activate(const QSet<KoShape*> &shapes) override;
@@ -51,6 +64,8 @@ protected:
     void beginPrimaryAction(KoPointerEvent *event) override;
     void continuePrimaryAction(KoPointerEvent *event) override;
     void endPrimaryAction(KoPointerEvent *event) override;
+
+    void paint(QPainter &gc, const KoViewConverter &converter) override;
 
     void activateAlternateAction(AlternateAction action) override;
     void deactivateAlternateAction(AlternateAction action) override;
@@ -102,8 +117,19 @@ private:
      */
     qreal calculatePerspective(const QPointF &documentPoint);
 
+    void abortQuickShape();
+    void commitQuickShape();
+    void resetQuickShapeTracking();
+    void prepareQuickShapePreview();
+    void finishQuickShapePreviewPreparation();
+    void updateQuickShapeCanvas(const QRectF &dirty);
+    void retireQuickShapePreview(quint64 generation);
+    void updateQuickShapePreview();
+    qreal canvasZoom() const;
+
 private Q_SLOTS:
     void updateMaskSyntheticEventsFromTouch();
+    void slotQuickShapeHoldTimeout();
 
 protected:
     friend class KisViewManager;
@@ -127,6 +153,18 @@ private:
     KisSignalCompressorWithParam<qreal> m_brushResizeCompressor;
 
     std::optional<KoPointerEventWrapper> m_beginAlternateActionEvent;
+
+    QTimer m_quickShapeHoldTimer;
+    std::unique_ptr<KisQuickShapeTracker> m_quickShapeTracker;
+    std::unique_ptr<KisQuickShapePreview> m_quickShapePreview;
+    KisPaintInformation m_quickShapePaintInformation;
+    KisResourcesSnapshotSP m_quickShapeResources;
+    QFutureWatcher<std::tuple<QImage, QLineF, qreal>> m_quickShapeSampleWatcher;
+    quint64 m_quickShapeGeneration {0};
+    quint64 m_quickShapeSampleGeneration {0};
+    int m_quickShapeRandomSeed {0};
+    bool m_quickShapeSamplePending {false};
+    bool m_quickShapeActive {false};
 };
 
 
