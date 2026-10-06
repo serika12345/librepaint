@@ -166,6 +166,14 @@ public:
     virtual bool alternateActionSupportsHiResEvents(AlternateAction action) const;
     virtual bool supportsPaintingAssistants() const;
 
+    /**
+     * Called when an additional touch point lands on the canvas while the
+     * primary action is running, for example when a finger taps the canvas
+     * while the user paints with a stylus. The base implementation does
+     * nothing.
+     */
+    virtual void touchDuringStroke(const QPointF &documentPoint);
+
     void mousePressEvent(KoPointerEvent *event) override;
     void mouseDoubleClickEvent(KoPointerEvent *event) override;
     void mouseTripleClickEvent(KoPointerEvent *event) override;

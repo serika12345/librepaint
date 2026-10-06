@@ -19,6 +19,23 @@
 #include "KisAsynchronousStrokeUpdateHelper.h"
 #include "kis_stroke_strategy.h"
 #include "kis_types.h"
+#include "kis_node.h"
+#include "kis_paint_device.h"
+#include "kis_undo_stores.h"
+#include "kundo2magicstring.h"
+#include <KisFakeRunnableStrokeJobsExecutor.h>
+#include <KisRunnableStrokeJobData.h>
+#include <kis_selection.h>
+#include <kis_pixel_selection.h>
+#include <kis_random_source.h>
+#include <brushengine/kis_stroke_random_source.h>
+#include <memory>
+#include <strokes/KisMaskedFreehandStrokePainter.h>
+#include <strokes/KisMaskingBrushRenderer.h>
+#include <brushengine/kis_paintop_preset.h>
+#include <brushengine/kis_paintop_settings.h>
+#include <brushengine/kis_paintop.h>
+#include <KoCompositeOpIds.h>
 
 
 KisFigurePaintingStroke::KisFigurePaintingStroke(
@@ -30,21 +47,94 @@ KisFigurePaintingStroke::KisFigurePaintingStroke(
     KisFigurePaintingOptions::FillStyle fillStyle,
     QTransform fillTransform)
 {
-    m_strokesFacade = image.data();
-
-    m_resources =
-        new KisResourcesSnapshot(image,
-                                 currentNode,
-                                 resourceManager->canvasResourcesInterface());
-
+    m_resources = new KisResourcesSnapshot(image, currentNode,
+                                           resourceManager->canvasResourcesInterface());
     setupPaintStyles(m_resources, strokeStyle, fillStyle, fillTransform);
+    startStroke(name);
+}
 
+KisFigurePaintingStroke::KisFigurePaintingStroke(
+    const KUndo2MagicString &name,
+    const KisResourcesSnapshot &resources,
+    std::optional<int> dabRandomSeed)
+{
+    m_resources = new KisResourcesSnapshot(resources);
+    startStroke(name, dabRandomSeed);
+}
+
+void KisFigurePaintingStroke::startStroke(const KUndo2MagicString &name, std::optional<int> dabRandomSeed)
+{
+    m_strokesFacade = m_resources->image().data();
     KisFreehandStrokeInfo *strokeInfo = new KisFreehandStrokeInfo();
 
-    KisStrokeStrategy *stroke =
-        new FreehandStrokeStrategy(m_resources, strokeInfo, name);
+    KisStrokeStrategy *stroke = dabRandomSeed
+        ? new FreehandStrokeStrategy(m_resources, strokeInfo, name, FreehandStrokeStrategy::None, *dabRandomSeed)
+        : new FreehandStrokeStrategy(m_resources, strokeInfo, name);
 
     m_strokeId = m_strokesFacade->startStroke(stroke);
+}
+
+KisFigurePaintingStroke::PreviewSample KisFigurePaintingStroke::createPreviewSample(
+    const KisResourcesSnapshot &resources, const KisPaintInformation &information, int randomSeed)
+{
+    KisResourcesSnapshot captured(resources);
+    const qreal originalSize = qMax(qreal(1.0), captured.currentPaintOpPreset()->settings()->paintOpSize());
+    const qreal size = qMin(originalSize, qreal(64));
+    captured.currentPaintOpPreset()->settings()->setPaintOpSize(size);
+    KisPaintDeviceSP device = new KisPaintDevice(resources.currentNode()->paintDevice()->colorSpace());
+    KisSelectionSP clip = new KisSelection();
+    clip->pixelSelection()->select(QRect(0, 0, 256, 256));
+    clip->updateProjection();
+    KisFakeRunnableStrokeJobsExecutor executor;
+    const bool indirect = captured.needsIndirectPainting();
+    std::unique_ptr<KisMaskingBrushRenderer> masking;
+    if (captured.needsMaskingBrushRendering()) {
+        masking.reset(new KisMaskingBrushRenderer(device,
+            captured.currentPaintOpPreset()->settings()->maskingBrushCompositeOp()));
+    }
+    KisFreehandStrokeInfo strokeInfo;
+    KisFreehandStrokeInfo maskInfo;
+    strokeInfo.painter->begin(masking ? masking->strokeDevice() : device, clip);
+    strokeInfo.painter->setRunnableStrokeJobsInterface(&executor);
+    captured.setupPainter(strokeInfo.painter);
+    // The sample captures the brush material. Document selection, mirroring,
+    // channel locks and compositing are applied once by the released stroke.
+    strokeInfo.painter->setMirrorInformation(QPointF(), false, false);
+    strokeInfo.painter->setChannelFlags(QBitArray());
+    strokeInfo.painter->setCompositeOpId(indirect ? captured.indirectPaintingCompositeOp() : COMPOSITE_OVER);
+    if (indirect) strokeInfo.painter->setOpacityToUnit();
+    if (masking) {
+        maskInfo.painter->begin(masking->maskDevice(), clip);
+        maskInfo.painter->setRunnableStrokeJobsInterface(&executor);
+        captured.setupMaskingBrushPainter(maskInfo.painter);
+        maskInfo.painter->setMirrorInformation(QPointF(), false, false);
+    }
+    KisMaskedFreehandStrokePainter painter(&strokeInfo, masking ? &maskInfo : nullptr);
+    KisPaintInformation start(information), end(information);
+    KisStrokeRandomSource randomSources(randomSeed);
+    KisRandomSourceSP random = randomSources.source();
+    KisPerStrokeRandomSourceSP perStroke = randomSources.perStrokeSource();
+    start.setPos(QPointF(64, 128));
+    end.setPos(QPointF(192, 128));
+    start.setRandomSource(random); end.setRandomSource(random);
+    start.setPerStrokeRandomSource(perStroke); end.setPerStrokeRandomSource(perStroke);
+    painter.paintLine(start, end);
+    bool pending;
+    do {
+        QVector<KisRunnableStrokeJobData *> jobs;
+        pending = painter.doAsynchronousUpdate(jobs).second;
+        strokeInfo.painter->runnableStrokeJobsInterface()->addRunnableJobs(jobs);
+    } while (pending);
+    if (masking) masking->updateProjection(QRect(0, 0, 256, 256));
+    const QRect pixels = device->exactBounds();
+    const int radius = qBound(2, qMax(128 - pixels.top(), pixels.bottom() - 128) + 2, 63);
+    const QRect crop(64 - radius, 128 - radius, 128 + 2 * radius + 1, 2 * radius + 1);
+    KisPaintDeviceSP sample = new KisPaintDevice(device->colorSpace());
+    KisPainter composite(sample);
+    if (indirect) composite.setOpacityF(captured.opacity());
+    composite.bitBlt(QPoint(), device, crop);
+    return {sample, QRect(QPoint(), crop.size()),
+            QLineF(radius, radius, radius + 128, radius), originalSize / size};
 }
 
 void KisFigurePaintingStroke::setupPaintStyles(
@@ -151,6 +241,32 @@ void KisFigurePaintingStroke::paintPainterPath(const QPainterPath &path)
         new FreehandStrokeStrategy::Data(0,
                                          FreehandStrokeStrategy::Data::PAINTER_PATH,
                                          path));
+}
+
+void KisFigurePaintingStroke::paintStrokePath(const QPainterPath &path, const KisPaintInformation &information)
+{
+    KisPaintInformation previous = information;
+    for (int i = 0; i < path.elementCount(); ++i) {
+        const QPainterPath::Element element = path.elementAt(i);
+        if (element.type == QPainterPath::MoveToElement) {
+            previous.setPos(QPointF(element.x, element.y));
+        } else if (element.type == QPainterPath::LineToElement) {
+            KisPaintInformation next = information;
+            next.setPos(QPointF(element.x, element.y));
+            paintLine(previous, next);
+            previous = next;
+        } else if (element.type == QPainterPath::CurveToElement) {
+            const QPainterPath::Element control2 = path.elementAt(i + 1);
+            const QPainterPath::Element end = path.elementAt(i + 2);
+            KisPaintInformation next = information;
+            next.setPos(QPointF(end.x, end.y));
+            m_strokesFacade->addJob(m_strokeId,
+                new FreehandStrokeStrategy::Data(0, previous,
+                    QPointF(element.x, element.y), QPointF(control2.x, control2.y), next));
+            previous = next;
+            i += 2;
+        }
+    }
 }
 
 void KisFigurePaintingStroke::setFGColorOverride(const KoColor &color)

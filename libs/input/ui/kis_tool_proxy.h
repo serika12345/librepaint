@@ -41,6 +41,12 @@ public:
     bool primaryActionSupportsHiResEvents() const;
     bool alternateActionSupportsHiResEvents(KisTool::AlternateAction action) const;
 
+    /**
+     * Reports a touch point that arrives while the primary action is running.
+     * \p widgetPoint uses canvas widget coordinates.
+     */
+    void touchDuringStroke(const QPointF &widgetPoint);
+
     void setActiveTool(KoToolBase *tool) override;
 
     void activateToolAction(KisTool::ToolAction action);

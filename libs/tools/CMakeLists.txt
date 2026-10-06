@@ -40,6 +40,23 @@ set_target_properties(kritatoolsrectangleinteractionobjects PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
+add_library(kritatoolsquickshapeobjects OBJECT
+    kis_quick_shape.cpp
+)
+target_compile_definitions(kritatoolsquickshapeobjects PRIVATE kritatools_EXPORTS)
+target_include_directories(kritatoolsquickshapeobjects
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+)
+target_link_libraries(kritatoolsquickshapeobjects
+    PUBLIC Qt${QT_MAJOR_VERSION}::Core
+)
+set_target_properties(kritatoolsquickshapeobjects PROPERTIES
+    AUTOMOC OFF
+    POSITION_INDEPENDENT_CODE ON
+)
+
 add_library(kritatoolactionmappingobjects OBJECT
     kis_tool_action_mapping.cpp
 )
@@ -184,6 +201,7 @@ kis_add_library(kritatools SHARED
     ${kritatools_LIB_SRCS}
     $<TARGET_OBJECTS:kritatoolsspeedsmootherobjects>
     $<TARGET_OBJECTS:kritatoolsrectangleinteractionobjects>
+    $<TARGET_OBJECTS:kritatoolsquickshapeobjects>
     $<TARGET_OBJECTS:kritatoolactionmappingobjects>
     $<TARGET_OBJECTS:kritatoolsdelegatedtoolpolicyobjects>
     $<TARGET_OBJECTS:kritatoolssmoothingoptionsobjects>

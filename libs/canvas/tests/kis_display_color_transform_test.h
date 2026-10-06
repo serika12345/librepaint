@@ -14,6 +14,8 @@ class KisDisplayColorTransformTest : public QObject
 private Q_SLOTS:
     void testStandardDisplayConversionWithoutUi();
     void testDisplayFilterParticipatesInConversion();
+    void testDisplayImagePreservesPixelsWithinRequestedPatch();
+    void testDisplayImagePreservesPixelsWithinRequestedPatch_data();
 };
 
 #endif
