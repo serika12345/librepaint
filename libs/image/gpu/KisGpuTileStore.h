@@ -9,6 +9,7 @@
 #include <QByteArray>
 #include <QRect>
 #include <QVector>
+#include <QSizeF>
 #include <memory>
 #include <webgpu/wgpu.h>
 
@@ -26,11 +27,22 @@ class KisGpuTileStore
 public:
     static constexpr quint64 TileBytes = 64 * 64 * 4;
     enum class Status { Pending, Succeeded, Failed };
-    enum class Error { None, InvalidVersion, BudgetExceeded };
+    enum class Error { None, InvalidVersion, BudgetExceeded, InvalidCommand };
     enum class CompositeOp { Over, Erase };
 
     struct PaintCommand {
         QRect rectangle;
+        quint32 rgba = 0;
+        CompositeOp operation = CompositeOp::Over;
+        quint8 opacity = 255;
+        quint8 coverage = 255;
+    };
+
+    /** Default two-spike circle mask, unrotated, without edge supersampling. */
+    struct DabCommand {
+        QPointF center;
+        QSizeF diameter;
+        QSizeF fade = QSizeF(1, 1);
         quint32 rgba = 0;
         CompositeOp operation = CompositeOp::Over;
         quint8 opacity = 255;
@@ -106,6 +118,8 @@ public:
                CompositeOp operation = CompositeOp::Over, quint8 opacity = 255, quint8 coverage = 255);
     /** Apply commands in order in one version/submission, copying each changed tile once. */
     Edit paint(const Version &base, const QVector<PaintCommand> &commands);
+    /** Generate ordered ellipse dabs on the GPU. Diameter > 0, fade in (0,1], finite values. */
+    Edit paintDabs(const Version &base, const QVector<DabCommand> &commands, QRect clip);
     /** Composite source pixels at matching canvas coordinates; missing source tiles are transparent. */
     Edit composite(const Version &base, const Version &source, QRect rectangle,
                    CompositeOp operation = CompositeOp::Over, quint8 opacity = 255, quint8 coverage = 255);
@@ -120,12 +134,14 @@ public:
     Statistics statistics() const;
 
 private:
-    enum class UpdateKind { Fill, Over, Erase };
+    enum class UpdateKind { Fill, Over, Erase, DabOver, DabErase };
     struct UpdateCommand {
         QRect rectangle;
         quint32 rgba;
         UpdateKind kind;
         quint8 opacity, coverage;
+        QPointF center;
+        QSizeF diameter, fade;
     };
     Edit update(const Version &base, const QVector<UpdateCommand> &commands);
     struct Private;

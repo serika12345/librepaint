@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "provenance": "KisCircleMaskGenerator::valueAt and KisBrushMaskScalarApplicator; default circle, spikes 2, antialiasEdges false, softness 1, rotation 0, density 1, randomness 0, integer pixel samples. Maintained RGBA8 mask contract; GPU float generation allows 1/255 per channel.",
+  "cases": [
+    {
+      "id": "hard-circle",
+      "bounds": [
+        0,
+        0,
+        17,
+        17
+      ],
+      "center": [
+        8.25,
+        8.25
+      ],
+      "diameter": [
+        15,
+        15
+      ],
+      "fade": [
+        1,
+        1
+      ],
+      "alphaRows": [
+        "0000000000000000000000000000000000",
+        "00000000000000ffffffff000000000000",
+        "0000000000ffffffffffffffff00000000",
+        "000000ffffffffffffffffffffff000000",
+        "000000ffffffffffffffffffffffff0000",
+        "0000ffffffffffffffffffffffffffff00",
+        "0000ffffffffffffffffffffffffffff00",
+        "00ffffffffffffffffffffffffffffff00",
+        "00ffffffffffffffffffffffffffffff00",
+        "00ffffffffffffffffffffffffffffff00",
+        "00ffffffffffffffffffffffffffffff00",
+        "0000ffffffffffffffffffffffffffff00",
+        "0000ffffffffffffffffffffffffff0000",
+        "000000ffffffffffffffffffffffff0000",
+        "00000000ffffffffffffffffffff000000",
+        "0000000000ffffffffffffff0000000000",
+        "0000000000000000000000000000000000"
+      ]
+    },
+    {
+      "id": "soft-ellipse",
+      "bounds": [
+        0,
+        0,
+        17,
+        11
+      ],
+      "center": [
+        8.25,
+        5.25
+      ],
+      "diameter": [
+        15,
+        9
+      ],
+      "fade": [
+        0.5,
+        0.75
+      ],
+      "alphaRows": [
+        "0000000000000000000000000000000000",
+        "0000000000000a2d3f391d000000000000",
+        "000000004181bdf4ffffda9f6220000000",
+        "00001560a4e3ffffffffffffc3833c0000",
+        "00005098d6fffffffffffffff1b8752800",
+        "001667ade7ffffffffffffffffcb8c4000",
+        "000d60a6e1fffffffffffffffbc5843800",
+        "00003781c2fdffffffffffffe0a25d0e00",
+        "000000347abafaffffffffda9a580f0000",
+        "0000000000376d99b1a985521900000000",
+        "0000000000000000000000000000000000"
+      ]
+    },
+    {
+      "id": "small-soft-circle",
+      "bounds": [
+        0,
+        0,
+        9,
+        9
+      ],
+      "center": [
+        4.25,
+        4.25
+      ],
+      "diameter": [
+        6,
+        6
+      ],
+      "fade": [
+        0.5,
+        0.5
+      ],
+      "alphaRows": [
+        "000000000000000000",
+        "000000000000000000",
+        "0000005a9380220000",
+        "00005adeffffa60000",
+        "000093ffffffde3400",
+        "000080ffffffcc2200",
+        "000022a6decc6d0000",
+        "000000003422000000",
+        "000000000000000000"
+      ]
+    }
+  ]
+}

@@ -9,6 +9,7 @@
 #include <array>
 #include <atomic>
 #include <cstring>
+#include <cmath>
 #include <limits>
 #include <map>
 #include <stdexcept>
@@ -70,6 +71,12 @@ struct TileCommand {
     quint32 left, top, right, bottom, color, operation, opacity, coverage;
 };
 static_assert(sizeof(TileCommand) == 32);
+// A dab has one raster command followed by one equally sized shape record.
+struct DabParameters {
+    float centerX, centerY, xcoef, ycoef, fadeX, fadeY;
+    quint32 padding[2];
+};
+static_assert(sizeof(DabParameters) == sizeof(TileCommand));
 struct TileParameters {
     quint32 firstCommand, commandCount, padding[2];
 };
@@ -307,7 +314,7 @@ KisGpuTileStore::Version KisGpuTileStore::emptyVersion() const
 
 KisGpuTileStore::Edit KisGpuTileStore::fill(const Version &base, QRect rectangle, quint32 rgba)
 {
-    return update(base, {{rectangle, rgba, UpdateKind::Fill, 255, 255}});
+    return update(base, {{rectangle, rgba, UpdateKind::Fill, 255, 255, {}, {}, {}}});
 }
 
 KisGpuTileStore::Edit KisGpuTileStore::paint(const Version &base, QRect rectangle, quint32 rgba,
@@ -323,7 +330,38 @@ KisGpuTileStore::Edit KisGpuTileStore::paint(const Version &base, const QVector<
     for (const auto &command : commands) {
         updates.push_back({command.rectangle, command.rgba,
                            command.operation == CompositeOp::Erase ? UpdateKind::Erase : UpdateKind::Over,
-                           command.opacity, command.coverage});
+                           command.opacity, command.coverage, {}, {}, {}});
+    }
+    return update(base, updates);
+}
+
+KisGpuTileStore::Edit KisGpuTileStore::paintDabs(const Version &base, const QVector<DabCommand> &commands, QRect clip)
+{
+    if (!base.d || base.d->owner != d->state) return {Error::InvalidVersion, {}, {}};
+    QVector<UpdateCommand> updates;
+    updates.reserve(commands.size());
+    for (const auto &command : commands) {
+        const double cx = command.center.x(), cy = command.center.y();
+        const double dx = command.diameter.width(), dy = command.diameter.height();
+        const double fx = command.fade.width(), fy = command.fade.height();
+        if (!std::isfinite(cx) || !std::isfinite(cy) || !std::isfinite(dx) || !std::isfinite(dy)
+            || !std::isfinite(fx) || !std::isfinite(fy) || dx <= 0 || dy <= 0 || fx <= 0 || fy <= 0
+            || fx > 1 || fy > 1 || std::abs(cx) > std::numeric_limits<int>::max()
+            || std::abs(cy) > std::numeric_limits<int>::max()
+            || dx > std::numeric_limits<int>::max() || dy > std::numeric_limits<int>::max()
+            || !std::isfinite(float(2 / dx / fx))
+            || !std::isfinite(float(2 / dy / fy))) {
+            return {Error::InvalidCommand, {}, {}};
+        }
+        if (clip.isEmpty()) continue;
+        const qint64 left = std::max(qint64(clip.x()), qint64(std::floor(cx - dx / 2)));
+        const qint64 top = std::max(qint64(clip.y()), qint64(std::floor(cy - dy / 2)));
+        const qint64 right = std::min(qint64(clip.x()) + clip.width(), qint64(std::ceil(cx + dx / 2)) + 1);
+        const qint64 bottom = std::min(qint64(clip.y()) + clip.height(), qint64(std::ceil(cy + dy / 2)) + 1);
+        if (left >= right || top >= bottom) continue;
+        updates.push_back({QRect(int(left), int(top), int(right - left), int(bottom - top)), command.rgba,
+            command.operation == CompositeOp::Erase ? UpdateKind::DabErase : UpdateKind::DabOver,
+            command.opacity, command.coverage, command.center, command.diameter, command.fade});
     }
     return update(base, updates);
 }
@@ -365,14 +403,17 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
         const int firstX = tileCoordinate(left), lastX = tileCoordinate(right - 1);
         const int firstY = tileCoordinate(top), lastY = tileCoordinate(bottom - 1);
         const quint64 count = quint64(lastX - firstX + 1) * quint64(lastY - firstY + 1);
-        if (count > available / TileBytes || count > maximumCommands - commandCount) {
+        const bool dab = command.kind == UpdateKind::DabOver || command.kind == UpdateKind::DabErase;
+        const quint64 records = dab ? 2 : 1;
+        if (count > available / TileBytes || count > (maximumCommands - commandCount) / records) {
             result.error = Error::BudgetExceeded;
             return result;
         }
         for (int y = firstY; y <= lastY; ++y) {
             for (int x = firstX; x <= lastX; ++x) {
                 auto &list = tileCommands[{x, y}];
-                if (!fits(tileCommands.size(), ++commandCount)) {
+                commandCount += records;
+                if (!fits(tileCommands.size(), commandCount)) {
                     result.error = Error::BudgetExceeded;
                     return result;
                 }
@@ -384,6 +425,15 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
                     quint32(std::min(bottom, tileTop + 64) - tileTop),
                     command.rgba, quint32(command.kind), command.opacity, command.coverage
                 });
+                if (dab) {
+                    const DabParameters shape {float(command.center.x() - tileLeft), float(command.center.y() - tileTop),
+                        float(2 / command.diameter.width()), float(2 / command.diameter.height()),
+                        float(2 / command.diameter.width() / command.fade.width()),
+                        float(2 / command.diameter.height() / command.fade.height()), {0, 0}};
+                    TileCommand record;
+                    std::memcpy(&record, &shape, sizeof(record));
+                    list.push_back(record);
+                }
             }
         }
     }

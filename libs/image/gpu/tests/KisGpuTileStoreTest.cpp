@@ -9,6 +9,7 @@
 #include <memory>
 #include <set>
 #include <stdexcept>
+#include <limits>
 #include "KisGpuTestDevice.h"
 
 namespace {
@@ -77,6 +78,8 @@ private Q_SLOTS:
     void readbackPinsVersionAndReleasesStaging();
     void readbackRejectionIsAtomic();
     void readbackOutlivesStore();
+    void generatedDabsMatchBrushMasks();
+    void generatedDabsPreserveOrderAndRejectInvalidInput();
     void compositing_data();
     void compositing();
 private:
@@ -158,6 +161,80 @@ void KisGpuTileStoreTest::readbackOutlivesStore()
     }
     QCOMPARE(read.completion.status(), KisGpuTileStore::Status::Succeeded);
     QCOMPARE(read.bytes(), expected(bounds, {{bounds, 0xFFABCDEF}}));
+}
+
+void KisGpuTileStoreTest::generatedDabsMatchBrushMasks()
+{
+    QFile file(QFileInfo(QStringLiteral(RASTER_EDIT_FIXTURE)).dir().filePath("brush_mask_contract.json"));
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto cases = QJsonDocument::fromJson(file.readAll()).object()["cases"].toArray();
+    QVERIFY(!cases.isEmpty());
+    for (const auto &value : cases) {
+        const auto entry = value.toObject();
+        const auto center = entry["center"].toArray();
+        const auto diameter = entry["diameter"].toArray();
+        const auto fade = entry["fade"].toArray();
+        const auto bounds = entry["bounds"].toArray();
+        const auto rows = entry["alphaRows"].toArray();
+        for (const QPoint offset : {QPoint(-67, -3), QPoint(60, 61)}) {
+            const QRect clip(offset, QSize(bounds[2].toInt(), bounds[3].toInt()));
+            KisGpuTileStore store(m_gpu->device, 32 * KisGpuTileStore::TileBytes);
+            KisGpuTileStore::DabCommand dab;
+            dab.center = QPointF(center[0].toDouble(), center[1].toDouble()) + offset;
+            dab.diameter = QSizeF(diameter[0].toDouble(), diameter[1].toDouble());
+            dab.fade = QSizeF(fade[0].toDouble(), fade[1].toDouble());
+            dab.rgba = 0xFF204080;
+            const auto edit = store.paintDabs(store.emptyVersion(), {dab}, clip);
+            QCOMPARE(edit.error, KisGpuTileStore::Error::None);
+            QVERIFY(finish(store, edit.completion));
+            const auto actual = m_gpu->read(edit.version, clip.adjusted(-1, -1, 1, 1));
+            const int stride = (clip.width() + 2) * 4;
+            for (int y = -1; y <= clip.height(); ++y) {
+                const auto mask = y >= 0 && y < rows.size() ? QByteArray::fromHex(rows[y].toString().toLatin1()) : QByteArray();
+                for (int x = -1; x <= clip.width(); ++x) {
+                    const int alpha = x >= 0 && x < mask.size() ? quint8(mask[x]) : 0;
+                    const int index = (y + 1) * stride + (x + 1) * 4;
+                    const quint32 color = alpha ? (dab.rgba & 0xFFFFFF) | quint32(alpha) << 24 : 0;
+                    for (int c = 0; c < 4; ++c) {
+                        QVERIFY2(qAbs(int(quint8(actual[index + c])) - int((color >> (c * 8)) & 255)) <= 1,
+                            qPrintable(QStringLiteral("%1 (%2,%3) channel %4").arg(entry["id"].toString()).arg(x).arg(y).arg(c)));
+                    }
+                }
+            }
+            QCOMPARE(store.statistics().submissions, quint64(1));
+            QCOMPARE(store.statistics().pixelReadbackBytes, quint64(0));
+        }
+    }
+}
+
+void KisGpuTileStoreTest::generatedDabsPreserveOrderAndRejectInvalidInput()
+{
+    KisGpuTileStore store(m_gpu->device, 64 * KisGpuTileStore::TileBytes);
+    const QRect clip(-64, -64, 128, 128);
+    KisGpuTileStore::DabCommand red, erase;
+    red.center = QPointF(-.25, .25);
+    red.diameter = QSizeF(33, 21);
+    red.fade = QSizeF(.5, .75);
+    red.rgba = 0x80FFFFFF;
+    red.opacity = 192;
+    red.coverage = 128;
+    erase = red;
+    erase.center += QPointF(3, 2);
+    erase.operation = KisGpuTileStore::CompositeOp::Erase;
+    const auto first = store.paintDabs(store.emptyVersion(), {red}, clip);
+    const auto sequential = store.paintDabs(first.version, {erase}, clip);
+    const auto batch = store.paintDabs(store.emptyVersion(), {red, erase}, clip);
+    QVERIFY(finish(store, batch.completion));
+    QCOMPARE(m_gpu->read(batch.version, clip), m_gpu->read(sequential.version, clip));
+    const auto before = store.statistics();
+    auto invalid = red;
+    invalid.center.setX(std::numeric_limits<double>::quiet_NaN());
+    QCOMPARE(store.paintDabs(batch.version, {red, invalid}, clip).error, KisGpuTileStore::Error::InvalidCommand);
+    invalid = red;
+    invalid.diameter.setWidth(-1);
+    QCOMPARE(store.paintDabs(batch.version, {invalid}, clip).error, KisGpuTileStore::Error::InvalidCommand);
+    QCOMPARE(store.statistics().submissions, before.submissions);
+    QCOMPARE(store.statistics().residentBytes, before.residentBytes);
 }
 
 void KisGpuTileStoreTest::sparseSignedCoordinates()

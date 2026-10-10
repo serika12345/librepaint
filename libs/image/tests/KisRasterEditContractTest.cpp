@@ -22,6 +22,7 @@
 #include "kis_selection.h"
 #include "kis_surrogate_undo_adapter.h"
 #include "kis_transaction.h"
+#include "kis_circle_mask_generator.h"
 
 namespace {
 QByteArray bgra(const QJsonArray &rgba)
@@ -91,6 +92,7 @@ private Q_SLOTS:
     void historyRestoresPixels();
     void replacementEditRestoresOldFootprint();
     void layerOrder();
+    void brushMasks();
 
 private:
     const KoColorSpace *m_colorSpace = nullptr;
@@ -117,6 +119,31 @@ void KisRasterEditContractTest::initTestCase()
     QCOMPARE(m_colorSpace->pixelSize(), quint32(4));
     const KoColor red(Qt::red, m_colorSpace);
     QCOMPARE(QByteArray(reinterpret_cast<const char *>(red.data()), 4), bgra({255, 0, 0, 255}));
+}
+
+void KisRasterEditContractTest::brushMasks()
+{
+    QFile file(QStringLiteral(FILES_DATA_DIR "brush_mask_contract.json"));
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto fixture = QJsonDocument::fromJson(file.readAll()).object();
+    QCOMPARE(fixture["schema"].toInt(), 1);
+    for (const auto &value : fixture["cases"].toArray()) {
+        const auto entry = value.toObject();
+        const auto center = entry["center"].toArray();
+        const auto diameter = entry["diameter"].toArray();
+        const auto fade = entry["fade"].toArray();
+        const auto rows = entry["alphaRows"].toArray();
+        KisCircleMaskGenerator mask(diameter[0].toDouble(), diameter[1].toDouble() / diameter[0].toDouble(),
+                                    fade[0].toDouble(), fade[1].toDouble(), 2, false);
+        for (int y = 0; y < rows.size(); ++y) {
+            const QByteArray expected = QByteArray::fromHex(rows[y].toString().toLatin1());
+            for (int x = 0; x < expected.size(); ++x) {
+                const int actual = 255 - mask.valueAt(x - center[0].toDouble(), y - center[1].toDouble());
+                QVERIFY2(actual == quint8(expected[x]), qPrintable(QStringLiteral("%1 (%2,%3): %4 != %5")
+                    .arg(entry["id"].toString()).arg(x).arg(y).arg(actual).arg(quint8(expected[x]))));
+            }
+        }
+    }
 }
 
 void KisRasterEditContractTest::compositing_data()

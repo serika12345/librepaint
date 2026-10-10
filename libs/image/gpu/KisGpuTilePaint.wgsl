@@ -50,6 +50,18 @@ fn pack(pixel: vec4<u32>) -> u32 {
     return pixel.r | (pixel.g << 8u) | (pixel.b << 16u) | (pixel.a << 24u);
 }
 
+fn dabAlpha(position: vec2<u32>, shape: TileCommand) -> u32 {
+    let delta = vec2<f32>(position) - bitcast<vec2<f32>>(shape.lower);
+    let normalized = delta * bitcast<vec2<f32>>(shape.upper);
+    let n = dot(normalized, normalized);
+    if (n > 1.0) { return 0u; }
+    let faded = delta * bitcast<vec2<f32>>(vec2<u32>(shape.color, shape.operation));
+    let nf = dot(faded, faded);
+    if (nf <= 1.0) { return 255u; }
+    // Scalar brush masks truncate the inverse coverage before subtracting it.
+    return 255u - u32(clamp(255.0 * n * (nf - 1.0) / (nf - n), 0.0, 255.0));
+}
+
 @compute @workgroup_size(8, 8)
 fn paint(@builtin(global_invocation_id) position: vec3<u32>) {
     let index = position.z * 4096u + position.y * 64u + position.x;
@@ -57,12 +69,18 @@ fn paint(@builtin(global_invocation_id) position: vec3<u32>) {
     var pixel = pixels[index];
     for (var i = tile.firstCommand; i < tile.firstCommand + tile.commandCount; i++) {
         let command = commands[i];
+        var source = unpack(command.color);
+        var operation = command.operation;
+        if (operation >= 3u) {
+            i++;
+            source.a = multiply8(source.a, dabAlpha(position.xy, commands[i]));
+            operation = select(1u, 2u, operation == 4u);
+        }
         if (all(position.xy >= command.lower) && all(position.xy < command.upper)) {
             if (command.operation == 0u) {
                 pixel = command.color;
             } else {
-                let source = unpack(command.color);
-                pixel = pack(blend(source, unpack(pixel), command.operation, command.opacity, command.coverage));
+                pixel = pack(blend(source, unpack(pixel), operation, command.opacity, command.coverage));
             }
         }
     }
