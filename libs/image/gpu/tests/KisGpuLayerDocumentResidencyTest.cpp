@@ -43,6 +43,8 @@ class KisGpuLayerDocumentResidencyTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void evictionReleasesOnlyUnneededVersions();
+    void evictionPreservesActiveInput_data();
+    void evictionPreservesActiveInput();
     void evictedUndoKeepsCurrentFrame_data();
     void evictedUndoKeepsCurrentFrame();
     void recoveryLoadsOnlyTheSelectedFrame();
@@ -78,7 +80,7 @@ void KisGpuLayerDocumentResidencyTest::evictionReleasesOnlyUnneededVersions()
     retained = {};
     QCOMPARE(store->statistics().residentBytes, Store::TileBytes);
     const auto edit = document.begin(id);
-    QCOMPARE(document.evictHistory(), Document::Result::Busy);
+    QCOMPARE(document.evictHistory(), Document::Result::Accepted);
     QCOMPARE(document.cancel(edit.token), Document::Result::Accepted);
     QCOMPARE(gpu.owner.errorCount(), 0);
 }
@@ -88,6 +90,91 @@ void KisGpuLayerDocumentResidencyTest::evictedUndoKeepsCurrentFrame_data()
     QTest::addColumn<bool>("mask");
     QTest::newRow("pixels") << false;
     QTest::newRow("mask") << true;
+}
+
+void KisGpuLayerDocumentResidencyTest::evictionPreservesActiveInput_data()
+{
+    QTest::addColumn<bool>("mask");
+    QTest::addColumn<bool>("committing");
+    QTest::newRow("pixels-editing") << false << false;
+    QTest::newRow("mask-editing") << true << false;
+    QTest::newRow("pixels-committing") << false << true;
+    QTest::newRow("mask-committing") << true << true;
+}
+
+void KisGpuLayerDocumentResidencyTest::evictionPreservesActiveInput()
+{
+    QFETCH(bool, mask);
+    QFETCH(bool, committing);
+    KisGpuTestDevice gpu;
+    auto store = std::make_shared<Store>(gpu.owner, 8 * Store::TileBytes);
+    Document document(store, 8);
+    const auto id = document.addLayer(QStringLiteral("Paint")).id;
+    QVERIFY(paint(document, id, 0xFF112233));
+    QVERIFY(paint(document, id, 0xFF445566));
+    const auto expectedEarlier = gpu.read(document.layers()[0].paint.pixels, Bounds);
+    QVERIFY(paint(document, id, 0xFF778899));
+    if (mask) QVERIFY(paint(document, id, 0x80123456, Document::Target::Mask));
+    const auto edit = document.begin(id, mask ? Document::Target::Mask : Document::Target::Pixels);
+    QCOMPARE(edit.result, Document::Result::Accepted);
+    Store::DabCommand command;
+    command.center = {20, 20}; command.diameter = {5, 5}; command.rgba = 0xCC99AABB;
+    QCOMPARE(edit.session->append(edit.token, {command}, Bounds), Session::Result::Accepted);
+    wgpuDevicePoll(gpu.device, true, nullptr);
+    document.poll();
+    const auto preview = edit.session->preview();
+    const auto expectedPreview = gpu.read(preview, Bounds);
+    const QRect firstFootprint(18, 18, 3, 3);
+    const auto expectedFirstFootprint = gpu.read(preview, firstFootprint);
+    const auto cursor = document.recovery().cursor;
+    const auto history = document.historySize();
+    const auto cpuBytes = document.recoveryBytes();
+    auto occupied = gpu.owner.reserveMemory(gpu.owner.availableMemory());
+    if (committing) {
+        QCOMPARE(document.commit(edit.token), Document::Result::Accepted);
+        QCOMPARE(document.state(), Document::State::Committing);
+    } else {
+        QCOMPARE(edit.session->append(edit.token, {command}, Bounds), Session::Result::GpuRejected);
+        QCOMPARE(edit.session->lastGpuError(), Store::Error::BudgetExceeded);
+        QCOMPARE(document.state(), Document::State::Editing);
+    }
+    const auto before = store->statistics();
+    QCOMPARE(document.evictHistory(), Document::Result::Accepted);
+    QCOMPARE(store->statistics().residentBytes, before.residentBytes - 2 * Store::TileBytes);
+    QCOMPARE(store->statistics().submissions, before.submissions);
+    QCOMPARE(store->statistics().pixelUploadBytes, before.pixelUploadBytes);
+    QCOMPARE(store->statistics().pixelReadbackBytes, before.pixelReadbackBytes);
+    QCOMPARE(document.historySize(), history);
+    QCOMPARE(document.recovery().cursor, cursor);
+    QCOMPARE(document.recoveryBytes(), cpuBytes);
+    QVERIFY(document.currentEditing().token == edit.token);
+    QVERIFY(edit.session->preview() == preview);
+    const auto projection = document.projectionLayers()[0];
+    QVERIFY((mask ? projection.mask : projection.pixels) == preview);
+    if (!committing) {
+        command.center = {24, 24}; command.rgba = 0xFFBBCCDD;
+        QCOMPARE(edit.session->append(edit.token, {command}, Bounds), Session::Result::Accepted);
+        QCOMPARE(document.commit(edit.token), Document::Result::Accepted);
+    }
+    QVERIFY(settle(document));
+    occupied = {};
+    QCOMPARE(document.historySize(), history + 1);
+    QCOMPARE(document.recovery().cursor, cursor + 1);
+    QCOMPARE(store->statistics().pixelUploadBytes, before.pixelUploadBytes);
+    QCOMPARE(store->statistics().pixelReadbackBytes, before.pixelReadbackBytes);
+    if (committing) QCOMPARE(gpu.read(target(document, mask), Bounds), expectedPreview);
+    else {
+        QVERIFY(gpu.read(target(document, mask), Bounds) != expectedPreview);
+        QCOMPARE(gpu.read(target(document, mask), firstFootprint), expectedFirstFootprint);
+    }
+    QVERIFY(document.undo());
+    QVERIFY(settle(document));
+    if (mask) { QVERIFY(document.undo()); QVERIFY(settle(document)); }
+    QVERIFY(document.undo());
+    QCOMPARE(document.state(), Document::State::Restoring);
+    QVERIFY(settle(document));
+    QCOMPARE(gpu.read(document.layers()[0].paint.pixels, Bounds), expectedEarlier);
+    QCOMPARE(gpu.owner.errorCount(), 0);
 }
 
 void KisGpuLayerDocumentResidencyTest::evictedUndoKeepsCurrentFrame()

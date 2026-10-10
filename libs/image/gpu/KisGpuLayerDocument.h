@@ -90,7 +90,7 @@ public:
     bool redo();
     /** Preserves an active edit while releasing the document's other retained frames. */
     bool clearHistory();
-    /** Release GPU versions outside the current frame, retaining all CPU history. */
+    /** Release GPU versions outside the current frame, retaining CPU history and active input. */
     Result evictHistory();
     /** Keep CPU history and accepted working input while releasing this document's GPU ownership. */
     Result suspend();

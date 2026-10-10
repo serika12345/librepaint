@@ -38,8 +38,9 @@ KisGpuLayerDocument::Result KisGpuLayerDocument::resume(std::shared_ptr<KisGpuTi
 
 KisGpuLayerDocument::Result KisGpuLayerDocument::evictHistory()
 {
-    const auto ready = readiness();
-    if (ready != Result::Accepted) return ready;
+    const auto current = state();
+    if (current != State::Idle && current != State::Editing && current != State::Committing)
+        return current == State::Failed ? Result::GpuRejected : Result::Busy;
     std::set<const KisGpuEditSession::Recovery *> retained;
     for (const auto &record : m_history[m_cursor]) {
         retained.insert(record->pixels.get());

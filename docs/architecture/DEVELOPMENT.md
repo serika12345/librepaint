@@ -255,7 +255,8 @@ macOSの試験はMetal、Linuxの試験はVulkanを使用する。実GPUへア�
 `KisGpuRecoveryCompactionTest`は回復命令の疎なチェックポイントへの集約を検査する。
 編集中の履歴と識別子、CPU予算の予約、読取り失敗時の元データ、別デバイスへの復元を確認する。
 `KisGpuLayerDocumentResidencyTest`はCPU履歴を保ったGPU過去版の解放と、退避済み版への
-非同期Undo/Redoを検査する。復元中の表示維持、予算超過・取消し・GPU交換も確認する。
+非同期Undo/Redoを検査する。描画中・確定待ちの画素とマスクを維持した過去版の解放、
+容量不足後の同じ入力識別子での再試行、復元中の表示維持、予算超過・取消し・GPU交換も確認する。
 `KisGpuLayerDocumentSuspendTest`はCPU回復値を保持したGPU資源の一時解放、同じ文書での
 再開、未確定入力と履歴、GPU喪失・復元失敗後の再試行を検査する。
 レイヤーの表示状態と描画ロックは、文書履歴・一時解放・固定版読取りとKRA保存・読込で照合する。
