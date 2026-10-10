@@ -21,6 +21,7 @@ using namespace KisGpuTileStorage;
 NativeDevice::NativeDevice(quint64 storageBindingLimit) {
     try {
         if (wgpuGetVersion() != 0x1b000400) throw std::runtime_error("GPU document requires wgpu-native 27.0.4.0");
+        if (wgpuLibrePaintRecoveryRevision() != 1) throw std::runtime_error("GPU document requires recovery revision 1");
         WGPUInstanceExtras extras{};
         extras.chain.sType = static_cast<WGPUSType>(WGPUSType_InstanceExtras);
 #ifdef __APPLE__

@@ -11,6 +11,10 @@ kis_add_test(KisGpuEditSessionTest.cpp
 target_sources(KisGpuEditSessionTest PRIVATE KisGpuTestDevice.cpp)
 set_tests_properties(libs-image-gpu-KisGpuEditSessionTest PROPERTIES TIMEOUT 30 LABELS gpu)
 
+kis_add_test(KisGpuNativeFailureTest.cpp
+    LINK_LIBRARIES kritaimagegpudocument Qt${QT_MAJOR_VERSION}::Test)
+set_tests_properties(libs-image-gpu-KisGpuNativeFailureTest PROPERTIES TIMEOUT 60 LABELS gpu)
+
 add_executable(KisGpuPaintBenchmark EXCLUDE_FROM_ALL KisGpuPaintBenchmark.cpp KisGpuTestDevice.cpp)
 target_link_libraries(KisGpuPaintBenchmark PRIVATE kritaimagegpudocument)
 set_target_properties(KisGpuPaintBenchmark PROPERTIES AUTOMOC OFF MACOSX_BUNDLE OFF)

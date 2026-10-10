@@ -23,6 +23,7 @@ wgpu-native 27.0.4.0を直接利用する。画像モデル、ブラシ、履歴
 | `libs/image/gpu/tests/KisGpuTestDevice.*` | 製品用デバイスを利用する試験用のCPU読み戻し |
 | `libs/image/gpu/tests/KisGpuPaintBenchmark.cpp` | 固定入力による逐次発行と一括発行の実測 |
 | `scripts/configure-gpu-document` | 固定Nix依存の取得とネイティブ構築の設定 |
+| `nix/gpu` | GPU依存だけの構築、失敗処理の修正とVulkanローダーの実行時参照 |
 
 `LIBREPAINT_BUILD_GPU_DOCUMENT=ON`でこの構築単位と試験を有効にする。
 製品接続の受入れ前に資源契約を独立して検証するため、標準のアプリケーション経路との
@@ -181,6 +182,21 @@ GPUからの通知は完了値を記録する。発行側は全通知と入力�
 操作が保持する資源は、マッピングを含む全通知が届いた後に回収する。
 完了済みのCPU読取り結果は成功状態と画素を保持する。
 GPU喪失後の文書回復と再作成は、保存・回復の契約を加えて受け入れる。
+
+### ネイティブAPIの失敗境界
+
+依存は`flake.lock`のnixpkgsが固定するwgpu-native 27.0.4.0を使用し、
+`nix/gpu/recover-device-loss.patch`で送信、完了待機、画素マッピングの失敗を
+エラー通知と失敗値へ変換する。元の実装はこれらの失敗でプロセスを終了するため、
+文書の失効を呼出し側で処理するためにこの修正を適用する。
+`KisGpuDevice`は依存の版と`wgpuLibrePaintRecoveryRevision()`の値1を検査する。
+失敗した送信は番号0、無効なマッピングはヌルを返し、全描画先を失効させる。
+
+`KisGpuNativeFailureTest`は子プロセスで、GPU喪失後の通常送信・番号付き送信と、
+破棄済みバッファーの読取り・書込みマッピングを検査する。
+この修正の所有課題は[#89](https://github.com/serika12345/librepaint/issues/89)とし、
+依存更新時に同じ失敗契約がMetalとVulkanで成立した時点で独自パッチと版関数を除去する。
+表示面の取得・設定は、表示用APIの失敗契約を検証する段階で受け入れる。
 
 ## 予算と失敗
 
