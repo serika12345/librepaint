@@ -18,7 +18,7 @@ class KisGpuLayerDocument
 public:
     using LayerId = quint64;
     enum class Result { Accepted, Busy, Stale, InvalidLayer, InvalidInput, RecoveryBudgetExceeded, GpuRejected };
-    enum class State { Idle, Editing, Committing, Failed, Restoring };
+    enum class State { Idle, Editing, Committing, Failed, Restoring, Compacting };
     enum class Target { Pixels, Mask };
     struct Layer {
         LayerId id = 0;
@@ -90,6 +90,10 @@ public:
     Result evictHistory();
     /** Cancel a queued Undo/Redo restoration and keep the previously displayed frame. */
     bool cancelHistoryRestore();
+    /** Explicit maintenance of one current target. History and GPU versions stay stable. */
+    Result compactRecovery(LayerId id, Target target = Target::Pixels);
+    std::optional<KisGpuTileStore::Status> recoveryCompactionStatus() const;
+    KisGpuTileStore::Error recoveryCompactionError() const;
     State state() const;
     Result lastPublicationResult() const { return m_lastResult; }
     QVector<Layer> layers() const;
@@ -107,6 +111,11 @@ private:
         Target target;
         KisGpuEditSession::Token token;
     };
+    struct Compaction {
+        RasterRecovery source;
+        std::shared_ptr<KisGpuEditSession> session;
+        quint64 reservedBytes = 0;
+    };
     struct Restoration {
         Recovery request;
         QVector<std::shared_ptr<const RecoveryLayer>> records;
@@ -117,6 +126,7 @@ private:
         KisGpuTileStore::Error error = KisGpuTileStore::Error::None;
     };
     void pollRecovery();
+    void pollRecoveryCompaction();
     bool requestHistoryCursor(qsizetype cursor);
     static quint64 recoveryBytes(const Recovery &recovery);
     static std::optional<quint64> workingMaximum(const Recovery &recovery, quint64 maximumRecoveryBytes);
@@ -137,6 +147,9 @@ private:
     std::optional<Active> m_active;
     std::shared_ptr<KisGpuEditSession> m_session;
     std::optional<Restoration> m_restoring;
+    std::optional<Compaction> m_compacting;
+    std::optional<KisGpuTileStore::Status> m_compactionStatus;
+    KisGpuTileStore::Error m_compactionError = KisGpuTileStore::Error::None;
     Result m_lastResult = Result::Accepted;
 };
 

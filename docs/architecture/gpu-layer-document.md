@@ -40,6 +40,28 @@ Undo/Redoは保持済みのGPU版を即時に採用する。この場合、GPU�
 その要求を再開できる。復元の失敗時も直前の表示とCPU履歴を維持する。
 `cancelHistoryRestore()`は履歴移動の復元要求と途中の結果を解放し、直前の履歴位置へ戻す。
 
+## 回復命令のチェックポイント集約
+
+`KisGpuLayerDocumentCompaction.cpp`は、現在の画素またはマスクの回復命令を、配置済み
+タイルのCPUチェックポイントへまとめる。読取りとチェックポイント生成は、既存の
+`KisGpuEditSession`と`KisGpuRecoveryCompaction.cpp`の非同期処理を利用する。
+
+利用側は`compactRecovery(id, target)`を明示的な保守操作として呼び、`poll()`を進める。
+処理中の状態は`Compacting`で、表示とCPU回復値は元の状態を保つ。編集開始、構造変更、
+履歴移動と退避は`Busy`、`clearHistory()`は`false`を返す。存在する画素・マスクが対象であり、
+対象のないマスクは`InvalidInput`を返す。既に命令が空の対象は直ちに成功する。
+
+`recoveryCompactionStatus()`は受付前の空値、`Pending`、`Succeeded`、`Failed`を返し、
+失敗の原因は`recoveryCompactionError()`で取得する。読取りは一回の`poll()`につき
+最大一タイルである。すべての読取りに成功した後、同じ回復値を参照する各履歴記録を、
+一つの不変チェックポイントへ置き換える。GPU版、他の画素対象、履歴位置・順序・属性は維持する。
+次の描画はチェックポイントを下地として命令を追加する。利用側が先に固定したCPU回復値も維持する。
+
+CPU予算は元の履歴、処理中の回復値、チェックポイントと採用用の履歴記録を合わせて
+発行前に検査する。`recoveryBytes()`は処理中の予約量も含む。GPU予算不足や読取り途中の
+GPU喪失では候補を解放し、元のCPU値を維持する。容量を確保した後に再試行できる。
+この操作は通常描画から独立した明示的な画素読取りである。
+
 ## 編集と表示の利用方法
 
 1. `addLayer()`でレイヤーを作り、返した識別子を保持する。
@@ -116,6 +138,10 @@ CPU値の不正、部分復元中の予算超過・GPU喪失、資源解放と�
 `libs/image/gpu/tests/KisGpuLayerDocumentResidencyTest.cpp`は、GPU過去版の解放と
 利用側が保持する旧版の寿命、画素・マスクの遅延Undo/Redo、現在位置だけの回復、
 復元中の表示維持、予算超過・取消し・GPU交換後の再試行を検査する。
+
+`libs/image/gpu/tests/KisGpuLayerDocumentCompactionTest.cpp`は、画素・マスクの
+疎なチェックポイント、GPU版・履歴・固定済みCPU値の維持、新しい編集の継続と別GPUへの
+回復、CPU発行前検査、GPU予算不足・部分読取り中の喪失を検査する。
 
 `libs/canvas/gpu/tests/KisGpuCanvasRendererTest.cpp`は、文書から作業版、確定、
 Undo/Redo、別文書の投影とキャンバス描画までを連結し、通常操作の画素転送0を検査する。

@@ -26,6 +26,7 @@ KisGpuLayerDocument::State KisGpuLayerDocument::state() const
 {
     if (m_restoring) return m_restoring->failed || !m_store->deviceAvailable() ? State::Failed : State::Restoring;
     if (!m_store->deviceAvailable() || (m_session && m_session->state() == KisGpuEditSession::State::Failed)) return State::Failed;
+    if (m_compacting) return State::Compacting;
     if (!m_active) return State::Idle;
     return m_session->state() == KisGpuEditSession::State::Editing ? State::Editing : State::Committing;
 }
@@ -93,7 +94,8 @@ quint64 KisGpuLayerDocument::recoveryBytes() const
 {
     if (m_restoring) return recoveryBytes(m_restoring->request);
     const auto working = m_session ? m_session->recovery() : std::nullopt;
-    return historyBytes(m_history) + (working ? sizeof(KisGpuEditSession::Recovery) + KisGpuEditSession::ReplayState::recoveryBytes(*working) : 0);
+    return historyBytes(m_history) + (working ? sizeof(KisGpuEditSession::Recovery) + KisGpuEditSession::ReplayState::recoveryBytes(*working) : 0)
+        + (m_compacting ? m_compacting->reservedBytes : 0);
 }
 
 KisGpuLayerDocument::Result KisGpuLayerDocument::publish(Frame frame)
@@ -249,6 +251,7 @@ void KisGpuLayerDocument::poll()
 {
     m_store->poll();
     if (m_restoring) { pollRecovery(); return; }
+    if (m_compacting) { pollRecoveryCompaction(); return; }
     if (!m_active) return;
     m_session->poll();
     if (m_session->state() != KisGpuEditSession::State::Idle) return;
@@ -295,7 +298,7 @@ QVector<KisGpuTileStore::Layer> KisGpuLayerDocument::projectionLayers(bool inclu
 
 bool KisGpuLayerDocument::clearHistory()
 {
-    if (m_restoring) return false;
+    if (m_restoring || m_compacting) return false;
     m_history = {m_history[m_cursor]};
     m_cursor = 0;
     pruneRasterVersions();
