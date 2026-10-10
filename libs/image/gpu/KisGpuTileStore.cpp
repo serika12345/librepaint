@@ -161,7 +161,7 @@ struct KisGpuTileStore::Private {
             || limits.minStorageBufferOffsetAlignment == 0 || limits.maxComputeWorkgroupsPerDimension < 8) {
             throw std::runtime_error("GPU device cannot bind a document tile");
         }
-        tilesPerAllocation = std::min({quint64(64), limits.maxStorageBufferBindingSize / TileBytes,
+        tilesPerAllocation = std::min<quint64>({quint64(64), limits.maxStorageBufferBindingSize / TileBytes,
             limits.maxBufferSize / TileBytes, quint64(limits.maxComputeWorkgroupsPerDimension)});
         WGPUBindGroupLayoutEntry entries[3]{};
         entries[0].binding = 0;
@@ -343,7 +343,7 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
     auto parameterSize = [&](quint64 tiles) {
         return (tiles - 1) / capacity * parameterStride + ((tiles - 1) % capacity + 1) * sizeof(TileParameters);
     };
-    const quint64 maximumCommands = std::min({d->limits.maxBufferSize,
+    const quint64 maximumCommands = std::min<quint64>({d->limits.maxBufferSize,
         d->limits.maxStorageBufferBindingSize, quint64(std::numeric_limits<quint32>::max())}) / sizeof(TileCommand);
     quint64 commandCount = 0;
     std::map<Coordinate, std::vector<TileCommand>> tileCommands;
@@ -613,7 +613,8 @@ KisGpuTileStore::Readback KisGpuTileStore::readback(const Version &source, QRect
     const quint64 byteCount = quint64(bounds.width()) * quint64(bounds.height()) * 4;
     const quint64 resident = d->state->residentBytes.load();
     const quint64 available = resident <= d->budget ? d->budget - resident : 0;
-    if (byteCount > available || byteCount > d->limits.maxBufferSize || byteCount > quint64(INT_MAX)) {
+    if (byteCount > available || byteCount > d->limits.maxBufferSize
+        || byteCount > quint64(std::numeric_limits<int>::max())) {
         result.error = Error::BudgetExceeded;
         return result;
     }
