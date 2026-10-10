@@ -201,9 +201,12 @@ KRAライターへ渡し、既存パーサーで再読込して照合する。GP
 
 ```sh
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuKraSaveJobTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuKraLoadJobTest
 ```
 
-形式処理を変更した場合は既存の`kis_kra_saver_test`と`kis_kra_loader_test`も実行する。
+[KRAからGPU文書への復元](gpu-kra-load.md)は、保存後のGPU画像完全一致、疎な座標と
+復元後の編集を検査する。形式処理を変更した場合は既存の`kis_kra_saver_test`と
+`kis_kra_loader_test`も実行する。
 GPU統合画像と既存投影の比較は、製品統合の画像契約で扱う。
 
 ### GPU文書タイルの検証

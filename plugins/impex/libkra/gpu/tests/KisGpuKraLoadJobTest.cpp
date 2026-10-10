@@ -1,0 +1,293 @@
+/*
+ * SPDX-FileCopyrightText: 2026 LibrePaint contributors
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+#include "KisGpuKraLoadJob.h"
+#include "KisGpuKraSaveJob.h"
+#include "KisGpuTestDevice.h"
+#include <testui.h>
+#include <application/ui/orchestration/KisPart.h>
+#include <document/KisDocument.h>
+#include <KoColor.h>
+#include <KoColorSpaceRegistry.h>
+#include <KoCompositeOpRegistry.h>
+#include <kis_image.h>
+#include <kis_group_layer.h>
+#include <kis_paint_layer.h>
+#include <kis_paint_device.h>
+#include <kis_transparency_mask.h>
+#include <QElapsedTimer>
+#include <QTemporaryDir>
+
+namespace {
+using Store = KisGpuTileStore;
+using Document = KisGpuLayerDocument;
+using Session = KisGpuEditSession;
+using Load = KisGpuKraLoadJob;
+using Save = KisGpuKraSaveJob;
+const QRect Bounds(0, 0, 32, 32);
+template<class Job> bool finish(Job &job)
+{
+    QElapsedTimer timer; timer.start();
+    while (job.state() != Job::State::Succeeded && job.state() != Job::State::Failed
+           && timer.elapsed() < 5000) { job.poll(); QTest::qWait(1); }
+    return job.state() == Job::State::Succeeded;
+}
+bool paint(Document &document, Document::LayerId id, quint32 rgba,
+           Document::Target target = Document::Target::Pixels)
+{
+    const auto edit = document.begin(id, target);
+    Store::DabCommand command;
+    command.center = {8, 8}; command.diameter = {12, 12}; command.rgba = rgba;
+    if (edit.result != Document::Result::Accepted
+        || edit.session->append(edit.token, {command}, Bounds) != Session::Result::Accepted
+        || document.commit(edit.token) != Document::Result::Accepted) return false;
+    QElapsedTimer timer; timer.start();
+    while (document.state() == Document::State::Committing && timer.elapsed() < 5000) {
+        document.poll(); QTest::qWait(1);
+    }
+    return document.state() == Document::State::Idle;
+}
+bool nativeFixture(const QString &path, int variant = 0)
+{
+    auto registry = KoColorSpaceRegistry::instance();
+    const auto cs = variant == 4 ? registry->rgb16(registry->p709SRGBProfile())
+                                : registry->rgb8(registry->p709SRGBProfile());
+    KisImageSP image = new KisImage(nullptr, Bounds.width(), Bounds.height(), cs, QStringLiteral("Native"));
+    KisPaintLayerSP layer = new KisPaintLayer(image, QStringLiteral("Paint"), 255);
+    layer->paintDevice()->fill(Bounds, KoColor(Qt::red, cs));
+    image->addNode(layer, image->root());
+    if (variant == 1) layer->setCompositeOpId(COMPOSITE_MULT);
+    if (variant == 2) image->addNode(new KisGroupLayer(image, QStringLiteral("Group"), 255), image->root());
+    if (variant == 3) layer->setVisible(false);
+    if (variant == 5) {
+        KisTransparencyMaskSP mask = new KisTransparencyMask(image, QStringLiteral("Mask"));
+        mask->initSelection(layer);
+        image->addNode(mask, layer);
+    }
+    if (variant == 6) image->setDefaultProjectionColor(KoColor(Qt::white, cs));
+    if (variant == 7) layer->setAlphaLocked(true);
+    if (variant == 8) {
+        QBitArray channels(4, true);
+        channels.setBit(0, false);
+        layer->setChannelLockFlags(channels);
+    }
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    document->setCurrentImage(image);
+    image->waitForDone();
+    const bool saved = document->exportDocumentSync(path, "application/x-krita");
+    image.clear();
+    return saved;
+}
+}
+
+class KisGpuKraLoadJobTest : public QObject
+{
+    Q_OBJECT
+private Q_SLOTS:
+    void restoresFrozenNativePixels();
+    void unsupportedNativeContentIsRefusedBeforeGpuWork();
+    void readAndBudgetFailuresPublishNoDocument();
+    void lostDeviceCanReloadOnAnotherDevice();
+    void preservesSparseCoordinatesAndEmptyDocuments();
+};
+void KisGpuKraLoadJobTest::restoresFrozenNativePixels()
+{
+    QTemporaryDir directory;
+    const auto path = directory.filePath(QStringLiteral("snapshot.kra"));
+    QByteArray expectedFirst, expectedSecond, expectedProjection;
+    {
+        KisGpuTestDevice gpu;
+        auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
+        Document document(store, 8);
+        document.addLayer(QStringLiteral("Paint 雪🖌"));
+        document.addLayer(QStringLiteral("Top"));
+        QVERIFY(paint(document, 1, 0xCC112233));
+        QVERIFY(paint(document, 1, 0x80123456, Document::Target::Mask));
+        QVERIFY(paint(document, 2, 0xFF778899));
+        document.setLayerProperties(1, 177, Store::CompositeOp::Over);
+        document.setLayerProperties(2, 77, Store::CompositeOp::Erase);
+        expectedFirst = gpu.read(document.layers()[0].paint.pixels, Bounds);
+        expectedSecond = gpu.read(document.layers()[1].paint.pixels, Bounds);
+        const auto projection = store->project(store->emptyVersion(), document.projectionLayers(false), Bounds);
+        expectedProjection = gpu.read(projection.version, Bounds);
+        Save save(store, document.layers(), 3, {Bounds.size(), QStringLiteral("Snapshot"), 1.25, 1.5}, path);
+        QVERIFY(finish(save));
+    }
+    KisGpuTestDevice gpu;
+    auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
+    Load load(store, path, 8);
+    QVERIFY(!load.takeDocument());
+    QVERIFY(!load.metadata());
+    QVERIFY(finish(load));
+    QCOMPARE(load.error(), Load::Error::None);
+    QCOMPARE(load.metadata()->canvasSize, Bounds.size());
+    QCOMPARE(load.metadata()->xResolution, 1.25);
+    QCOMPARE(load.metadata()->yResolution, 1.5);
+    auto document = load.takeDocument();
+    QVERIFY(document);
+    QVERIFY(!load.takeDocument());
+    QCOMPARE(document->historySize(), qsizetype(1));
+    const auto layers = document->layers();
+    QCOMPARE(layers.size(), qsizetype(2));
+    QCOMPARE(layers[0].name, QStringLiteral("Paint 雪🖌"));
+    QCOMPARE(layers[1].name, QStringLiteral("Top"));
+    QCOMPARE(layers[0].paint.opacity, quint8(177));
+    QCOMPARE(layers[1].paint.operation, Store::CompositeOp::Erase);
+    QCOMPARE(gpu.read(layers[0].paint.pixels, Bounds), expectedFirst);
+    QCOMPARE(gpu.read(layers[1].paint.pixels, Bounds), expectedSecond);
+    const auto projection = store->project(store->emptyVersion(), document->projectionLayers(false), Bounds);
+    QCOMPARE(gpu.read(projection.version, Bounds), expectedProjection);
+    const auto recovery = document->recovery();
+    for (const auto &record : recovery.history[0]) {
+        QVERIFY(record->pixels->edits.isEmpty());
+        if (record->mask) QVERIFY(record->mask->edits.isEmpty());
+    }
+    const auto before = store->statistics();
+    QVERIFY(paint(*document, layers[0].id, 0xFF0099AA));
+    QVERIFY(document->undo());
+    QCOMPARE(store->statistics().pixelUploadBytes, before.pixelUploadBytes);
+    QCOMPARE(store->statistics().pixelReadbackBytes, before.pixelReadbackBytes);
+    QCOMPARE(gpu.read(document->layers()[0].paint.pixels, Bounds), expectedFirst);
+    QCOMPARE(document->addLayer(QStringLiteral("New")).id, quint64(3));
+    QCOMPARE(gpu.owner.errorCount(), 0);
+}
+
+void KisGpuKraLoadJobTest::unsupportedNativeContentIsRefusedBeforeGpuWork()
+{
+    QTemporaryDir directory;
+    KisGpuTestDevice gpu;
+    auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
+    const auto before = store->statistics();
+    for (int variant = 1; variant <= 8; ++variant) {
+        const auto path = directory.filePath(QString::number(variant) + QStringLiteral(".kra"));
+        QVERIFY(nativeFixture(path, variant));
+        Load load(store, path, 8);
+        QVERIFY(!finish(load));
+        QCOMPARE(load.state(), Load::State::Failed);
+        QCOMPARE(load.error(), Load::Error::UnsupportedDocument);
+        QVERIFY(!load.takeDocument());
+        QVERIFY(!load.metadata());
+        QCOMPARE(store->statistics().submissions, before.submissions);
+        QCOMPARE(store->statistics().pixelUploadBytes, before.pixelUploadBytes);
+        QScopedPointer<KisDocument> original(KisPart::instance()->createDocument());
+        original->setFileBatchMode(true);
+        QVERIFY(original->loadNativeFormat(path));
+    }
+}
+
+void KisGpuKraLoadJobTest::readAndBudgetFailuresPublishNoDocument()
+{
+    QTemporaryDir directory;
+    const auto path = directory.filePath(QStringLiteral("snapshot.kra"));
+    QVERIFY(nativeFixture(path));
+    KisGpuTestDevice gpu;
+    auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
+    Load invalid({}, path, 8);
+    QCOMPARE(invalid.error(), Load::Error::InvalidInput);
+    Load missing(store, directory.filePath(QStringLiteral("missing.kra")), 8);
+    QVERIFY(!finish(missing));
+    QCOMPARE(missing.error(), Load::Error::LoadFailed);
+    Load small(store, path, 8, 1024);
+    QVERIFY(!finish(small));
+    QCOMPARE(small.error(), Load::Error::SnapshotBudgetExceeded);
+    QVERIFY(!small.takeDocument());
+    QCOMPARE(store->statistics().submissions, quint64(0));
+    QCOMPARE(store->statistics().pixelUploadBytes, quint64(0));
+    auto tight = std::make_shared<Store>(gpu.owner, 4096);
+    Load refused(tight, path, 8);
+    QVERIFY(!finish(refused));
+    QCOMPARE(refused.error(), Load::Error::GpuRejected);
+    QCOMPARE(refused.gpuError(), Store::Error::BudgetExceeded);
+    QVERIFY(!refused.takeDocument());
+    QCOMPARE(tight->statistics().residentBytes, quint64(0));
+    Load retry(store, path, 8);
+    QVERIFY(finish(retry));
+    QVERIFY(retry.takeDocument());
+}
+
+void KisGpuKraLoadJobTest::lostDeviceCanReloadOnAnotherDevice()
+{
+    QTemporaryDir directory;
+    const auto path = directory.filePath(QStringLiteral("snapshot.kra"));
+    QVERIFY(nativeFixture(path));
+    {
+        KisGpuTestDevice gpu;
+        auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
+        Load load(store, path, 8);
+        load.poll();
+        QCOMPARE(load.state(), Load::State::Restoring);
+        gpu.owner.destroy();
+        QVERIFY(!finish(load));
+        QCOMPARE(load.error(), Load::Error::GpuRejected);
+        QCOMPARE(load.gpuError(), Store::Error::DeviceLost);
+        QVERIFY(!load.takeDocument());
+    }
+    KisGpuTestDevice gpu;
+    auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
+    Load retry(store, path, 8);
+    QVERIFY(finish(retry));
+    auto document = retry.takeDocument();
+    QVERIFY(document);
+    const auto pixels = gpu.read(document->layers()[0].paint.pixels, Bounds);
+    QCOMPARE(pixels.size(), Bounds.width() * Bounds.height() * 4);
+    QCOMPARE(pixels.left(4), QByteArray::fromHex("ff0000ff"));
+}
+
+void KisGpuKraLoadJobTest::preservesSparseCoordinatesAndEmptyDocuments()
+{
+    QTemporaryDir directory;
+    const auto path = directory.filePath(QStringLiteral("sparse.kra"));
+    const QRect comparison(-64, -64, 256, 256);
+    {
+        QScopedPointer<KisDocument> native(KisPart::instance()->createDocument());
+        native->setFileBatchMode(true);
+        auto cs = KoColorSpaceRegistry::instance()->rgb8(KoColorSpaceRegistry::instance()->p709SRGBProfile());
+        KisImageSP image = new KisImage(nullptr, 128, 128, cs, QStringLiteral("Sparse"));
+        KisPaintLayerSP layer = new KisPaintLayer(image, QStringLiteral("Paint"), 255);
+        auto device = layer->paintDevice();
+        device->setX(7); device->setY(9);
+        const auto raw = QByteArray::fromHex("11223300445566ff");
+        for (const auto point : {QPoint(-1, -1), QPoint(0, 0), QPoint(63, 63), QPoint(64, 64), QPoint(117, 122)}) {
+            device->writeBytes(reinterpret_cast<const quint8 *>(raw.constData()), point.x(), point.y(), 2, 1);
+        }
+        image->addNode(layer, image->root());
+        native->setCurrentImage(image);
+        image->waitForDone();
+        QVERIFY(native->exportDocumentSync(path, "application/x-krita"));
+    }
+    QByteArray expected(comparison.width() * comparison.height() * 4, '\0');
+    {
+        QScopedPointer<KisDocument> native(KisPart::instance()->createDocument());
+        native->setFileBatchMode(true);
+        QVERIFY(native->loadNativeFormat(path));
+        native->image()->waitForDone();
+        auto layer = dynamic_cast<KisPaintLayer *>(native->image()->root()->at(0).data());
+        QVERIFY(layer);
+        layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(expected.data()), comparison);
+        for (qsizetype i = 0; i < expected.size(); i += 4) std::swap(expected[i], expected[i + 2]);
+    }
+    KisGpuTestDevice gpu;
+    auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
+    Load load(store, path, 8);
+    QVERIFY(finish(load));
+    auto document = load.takeDocument();
+    QVERIFY(document);
+    QCOMPARE(gpu.read(document->layers()[0].paint.pixels, comparison), expected);
+    const auto emptyPath = directory.filePath(QStringLiteral("empty.kra"));
+    const auto before = store->statistics();
+    Save save(store, {}, 1, {Bounds.size(), QStringLiteral("Empty")}, emptyPath);
+    QVERIFY(finish(save));
+    Load empty(store, emptyPath, 8);
+    QVERIFY(finish(empty));
+    auto emptyDocument = empty.takeDocument();
+    QVERIFY(emptyDocument);
+    QVERIFY(emptyDocument->layers().isEmpty());
+    QCOMPARE(emptyDocument->historySize(), qsizetype(1));
+    QCOMPARE(store->statistics().submissions, before.submissions);
+    QCOMPARE(store->statistics().pixelUploadBytes, before.pixelUploadBytes);
+    QCOMPARE(store->statistics().pixelReadbackBytes, before.pixelReadbackBytes);
+}
+KISTEST_MAIN(KisGpuKraLoadJobTest)
+#include "KisGpuKraLoadJobTest.moc"

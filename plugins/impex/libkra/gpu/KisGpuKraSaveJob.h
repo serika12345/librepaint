@@ -5,6 +5,7 @@
 #ifndef KIS_GPU_KRA_SAVE_JOB_H
 #define KIS_GPU_KRA_SAVE_JOB_H
 #include "KisGpuDocumentReadback.h"
+#include "KisGpuKraMetadata.h"
 
 /** Frozen GPU layers saved through the existing native KRA writer.
  * Construction, polling and destruction use the GUI/submitting thread.
@@ -13,11 +14,7 @@
 class KisGpuKraSaveJob
 {
 public:
-    struct Metadata {
-        QSize canvasSize;
-        QString name;
-        double xResolution = 1, yResolution = 1;
-    };
+    using Metadata = KisGpuKraMetadata;
     enum class State { Reading, Preparing, Writing, Succeeded, Failed };
     enum class Error { None, InvalidInput, ReadbackFailed, SaveFailed };
     /** Snapshot budget covers readback CPU values; native image/export allocations have existing owners.
