@@ -21,9 +21,11 @@ def main():
     root = Path(__file__).resolve().parents[1]
     revision = json.loads((root / "flake.lock").read_text())["nodes"]["nixpkgs"]["locked"]["rev"]
     package = f"github:NixOS/nixpkgs/{revision}#wgpu-native"
+    dependency_root = root / "build/nix-profiles/gpu-document"
+    dependency_root.parent.mkdir(parents=True, exist_ok=True)
     # The remote input contains dependencies only; application edits reuse the same output.
     paths = subprocess.run(
-        ["nix", "build", "--no-link", "--print-out-paths", package, package + ".dev"],
+        ["nix", "build", "--out-link", str(dependency_root), "--print-out-paths", package, package + ".dev"],
         check=True, text=True, stdout=subprocess.PIPE,
     ).stdout.splitlines()
     include = next(Path(path) / "include" for path in paths

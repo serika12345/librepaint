@@ -195,6 +195,8 @@ GPU内複製、操作完了と予算超過を検査する。評価済みのテ�
 設定コマンドは`flake.lock`のnixpkgs固定版からwgpu-native本体と開発用ヘッダーを取得し、
 ネイティブのCMakeプリセットで`LIBREPAINT_BUILD_GPU_DOCUMENT=ON`にする。
 依存の取得はソースを含まないリモート入力を使い、アプリケーションの編集で同じ出力を再利用する。
+取得した依存は`build/nix-profiles/gpu-document*`を通じてNixの保持対象に登録し、
+構築・検証が参照する本体とヘッダーの寿命を維持する。
 以後は通常の`run-test`と`build-incremental`を使用する。
 
 macOSの試験はMetal、Linuxの試験はVulkanを使用する。実GPUへアクセスできる実行環境が
