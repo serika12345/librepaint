@@ -74,6 +74,8 @@ public:
     Editing begin(LayerId id, Target target = Target::Pixels);
     Editing currentEditing() const;
     Recovery recovery() const;
+    /** CPU-only structural validation, usable before persistence or GPU creation. */
+    static bool validRecovery(const Recovery &recovery, qsizetype retainedEdits, quint64 maximumRecoveryBytes);
     /** Failure of the current restoration; None after successful adoption. */
     KisGpuTileStore::Error recoveryError() const;
     Result commit(const KisGpuEditSession::Token &token);
@@ -115,9 +117,8 @@ private:
         KisGpuTileStore::Error error = KisGpuTileStore::Error::None;
     };
     void pollRecovery();
-    bool validRecovery(const Recovery &recovery) const;
-    quint64 recoveryBytes(const Recovery &recovery) const;
-    std::optional<quint64> workingMaximum(const Recovery &recovery) const;
+    static quint64 recoveryBytes(const Recovery &recovery);
+    static std::optional<quint64> workingMaximum(const Recovery &recovery, quint64 maximumRecoveryBytes);
     qsizetype indexOf(LayerId id) const;
     quint64 recordMetadataBytes(const LayerState &record) const;
     quint64 historyBytes(const QVector<Frame> &history) const;

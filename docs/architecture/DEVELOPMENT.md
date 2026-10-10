@@ -181,6 +181,18 @@ Androidは構築費用が大きいため、この条件に沿って検証する�
 同じ入力を新しい描画方式へ渡し、定めた画素規則と編集前後の全画素で比較する。
 ブラシや色変換などの対象を広げるときは、対応する画像契約と比較精度を追加する。
 
+### GPU文書回復ファイルの検証
+
+[GPU文書回復ファイル](gpu-document-recovery-file.md)の固定形式、背景保存、再読込と
+GPU上での編集再開は、評価済みのテスト環境で次を実行する。
+
+```sh
+./scripts/run-shared-test-env ./scripts/run-test KisGpuDocumentRecoveryFileTest
+```
+
+画像側の回復規則を変える場合は`KisGpuLayerDocumentRecoveryTest`と関連するGPU契約も実行する。
+形式を更新する場合は、既存バージョンの固定試験データと画像を維持し、新しい形式の互換検査を追加する。
+
 ### GPU文書タイルの検証
 
 [GPU文書タイルと版の契約](gpu-document-tiles.md)は、疎な割当、版の共有、

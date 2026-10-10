@@ -9,6 +9,7 @@
 | --- | --- | --- |
 | `libs/document/session` | `kritadocument` | 文書識別、変更状態、自動保存状態、回復状態 |
 | `libs/document/files` | `kritadocumentfiles` | 保存先検査、バックアップ、自動保存名、回復候補の探索・読込・消去 |
+| `libs/document/files/gpu` | `kritadocumentgpurecovery` | GPU文書のCPU回復値の保存・再読込 |
 | `libs/document/ui` | `kritadocumentui` | 履歴接続と表示、文書情報編集、読込・保存の表示と通知、回復候補の表示 |
 | `libs/impex/metadata` | `kritaimpex` | 形式処理と文書表示が共有する直列化対象の文書情報 |
 
@@ -18,6 +19,9 @@
 [ファイル操作のCMake定義](../../libs/document/files/CMakeLists.txt)はQt Coreを公開し、
 全体基盤と資源ストレージを私有依存とする。文書状態とファイル操作は、表示部品を所有する
 [文書UI](../../libs/document/ui/CMakeLists.txt)から独立して利用できる。
+`LIBREPAINT_BUILD_GPU_DOCUMENT`が有効な構成では、GPU回復ファイルの具体的な所有者が
+Qt Coreと画像側のCPU回復値へ直接依存する。GPU資源の再作成は画像側が所有する。
+[GPU文書回復ファイル](gpu-document-recovery-file.md)が形式・寿命・予算を定義する。
 UIの各実装単位は、実際に利用する入出力エラー、メタデータ、取り消し履歴、Qt部品へ直接依存する。
 
 形式選択と形式変換は既存の入出力パッケージが所有する。文書情報の直列化は形式処理と共有し、

@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuTileStore_p.h"
+#include "KisGpuPaintInputValidation_p.h"
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -58,14 +59,7 @@ KisGpuTileStore::Edit KisGpuTileStore::paintDabCommands(const Version &base, con
     for (const auto &command : commands) {
         const double cx = command.center.x(), cy = command.center.y();
         const double dx = command.diameter.width(), dy = command.diameter.height();
-        const double fx = command.fade.width(), fy = command.fade.height();
-        if (!std::isfinite(cx) || !std::isfinite(cy) || !std::isfinite(dx) || !std::isfinite(dy)
-            || !std::isfinite(fx) || !std::isfinite(fy) || dx <= 0 || dy <= 0 || fx <= 0 || fy <= 0
-            || fx > 1 || fy > 1 || std::abs(cx) > std::numeric_limits<int>::max()
-            || std::abs(cy) > std::numeric_limits<int>::max()
-            || dx > std::numeric_limits<int>::max() || dy > std::numeric_limits<int>::max()
-            || !std::isfinite(float(2 / dx / fx))
-            || !std::isfinite(float(2 / dy / fy))) {
+        if (!validDabCommand(command)) {
             return {Error::InvalidCommand, {}, {}};
         }
         if (clip.isEmpty() || (texture && !command.textureStrength)) continue;

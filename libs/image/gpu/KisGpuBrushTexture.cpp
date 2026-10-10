@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuTileStore_p.h"
+#include "KisGpuPaintInputValidation_p.h"
 #include <algorithm>
 #include <limits>
 
@@ -12,7 +13,7 @@ KisGpuTileStore::BrushTextureResult KisGpuTileStore::uploadBrushTexture(QSize si
 {
     if (!deviceAvailable()) return {Error::DeviceLost, {}, {}};
     const qint64 count = qint64(size.width()) * size.height();
-    if (size.width() <= 0 || size.height() <= 0 || count != alpha.size()) return {Error::InvalidCommand, {}, {}};
+    if (!validBrushTexture(size, alpha)) return {Error::InvalidCommand, {}, {}};
     const quint64 bytes = (quint64(count) + 3) / 4 * 4;
     if (bytes > std::min<quint64>({d->availableForOperation(0), d->limits.maxBufferSize,
         d->limits.maxStorageBufferBindingSize, quint64(std::numeric_limits<quint32>::max())})) {

@@ -29,3 +29,7 @@ set_target_properties(kritadocumentfiles PROPERTIES
 install(TARGETS kritadocumentfiles ${INSTALL_TARGETS_DEFAULT_ARGS})
 
 add_subdirectory(tests)
+
+if(LIBREPAINT_BUILD_GPU_DOCUMENT)
+    add_subdirectory(gpu)
+endif()

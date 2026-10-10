@@ -104,6 +104,8 @@
 `KisGpuLayerDocument`は、レイヤーの画素・マスク・属性と文書全体のUndo/Redoを所有する。
 各履歴状態のGPU版とCPU回復値を対応付け、編集時に既存の版を直接採用する。
 [GPUレイヤー文書と編集履歴](gpu-layer-document.md)が編集セッションの寿命、入力拒否と予算を定義する。
+文書ファイル側の`libs/document/files/gpu`は、固定したCPU回復値の保存・再読込を所有する。
+[GPU文書回復ファイル](gpu-document-recovery-file.md)が形式、背景実行と予算を定義する。
 
 `libs/image/dabspacing`はCPU描画とGPU向け入力生成で距離間隔を共用する。
 `libs/painting/gpu`は位置と筆圧からブラシ印を作り、GPU編集セッションへ渡す。

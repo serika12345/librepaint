@@ -11,7 +11,7 @@ KisGpuLayerDocument::KisGpuLayerDocument(std::shared_ptr<KisGpuTileStore> store,
                                        Recovery request, quint64 maximum)
     : KisGpuLayerDocument(std::move(store), retained, maximum)
 {
-    if (!validRecovery(request)) throw std::invalid_argument("Invalid GPU layer document recovery history or CPU payload budget");
+    if (!validRecovery(request, m_retainedEdits, maximum)) throw std::invalid_argument("Invalid GPU layer document recovery history or CPU payload budget");
     m_restoring.emplace();
     m_restoring->request = std::move(request);
     std::set<const RecoveryLayer *> counted;
@@ -22,7 +22,7 @@ KisGpuLayerDocument::KisGpuLayerDocument(std::shared_ptr<KisGpuTileStore> store,
     }
 }
 
-quint64 KisGpuLayerDocument::recoveryBytes(const Recovery &request) const
+quint64 KisGpuLayerDocument::recoveryBytes(const Recovery &request)
 {
     quint64 bytes = quint64(request.history.size()) * sizeof(Frame);
     std::set<const RecoveryLayer *> counted;
@@ -34,34 +34,34 @@ quint64 KisGpuLayerDocument::recoveryBytes(const Recovery &request) const
                 bytes += sizeof(LayerState) + quint64(record->name.size()) * sizeof(QChar);
                 for (const auto &raster : {record->pixels, record->mask}) {
                     if (raster && rasters.insert(raster.get()).second)
-                        bytes += KisGpuEditSession::ReplayState::recoveryBytes(*raster);
+                        bytes += sizeof(KisGpuEditSession::Recovery) + KisGpuEditSession::ReplayState::recoveryBytes(*raster);
                 }
             }
         }
     }
-    if (request.working) bytes += KisGpuEditSession::ReplayState::recoveryBytes(request.working->data);
+    if (request.working) bytes += sizeof(KisGpuEditSession::Recovery) + KisGpuEditSession::ReplayState::recoveryBytes(request.working->data);
     return bytes;
 }
 
-std::optional<quint64> KisGpuLayerDocument::workingMaximum(const Recovery &request) const
+std::optional<quint64> KisGpuLayerDocument::workingMaximum(const Recovery &request, quint64 maximum)
 {
     const auto &work = *request.working;
     const auto &base = *work.base;
-    const auto working = KisGpuEditSession::ReplayState::recoveryBytes(work.data);
+    const auto working = sizeof(KisGpuEditSession::Recovery) + KisGpuEditSession::ReplayState::recoveryBytes(work.data);
     const auto existing = recoveryBytes(request) - working;
-    const auto extra = sizeof(LayerState) + quint64(base.name.size()) * sizeof(QChar)
+    const auto extra = sizeof(LayerState) + sizeof(KisGpuEditSession::Recovery) + quint64(base.name.size()) * sizeof(QChar)
         + sizeof(Frame) + quint64(request.history[request.cursor].size()) * sizeof(Record);
-    return existing > m_maximumRecoveryBytes || extra > m_maximumRecoveryBytes - existing
-        ? std::nullopt : std::optional<quint64>(m_maximumRecoveryBytes - existing - extra);
+    return existing > maximum || extra > maximum - existing
+        ? std::nullopt : std::optional<quint64>(maximum - existing - extra);
 }
 
-bool KisGpuLayerDocument::validRecovery(const Recovery &request) const
+bool KisGpuLayerDocument::validRecovery(const Recovery &request, qsizetype retained, quint64 maximum)
 {
     using Session = KisGpuEditSession;
-    if (request.history.isEmpty() || request.history.size() - 1 > m_retainedEdits
+    if (request.history.isEmpty() || request.history.size() - 1 > qMax(qsizetype(0), retained)
         || request.cursor < 0 || request.cursor >= request.history.size() || !request.nextId) return false;
     const auto completed = [&](const Session::Recovery &data) {
-        return Session::ReplayState::validRecovery(data, 0, m_maximumRecoveryBytes)
+        return Session::ReplayState::validRecovery(data, 0, maximum)
             && data.cursor == data.edits.size() && !data.working;
     };
     LayerId highest = 0;
@@ -82,13 +82,13 @@ bool KisGpuLayerDocument::validRecovery(const Recovery &request) const
         const auto &work = *request.working;
         const auto &frame = request.history[request.cursor];
         if (!work.base || !frame.contains(work.base) || (work.target != Target::Pixels && work.target != Target::Mask)
-            || !Session::ReplayState::validRecovery(work.data, 0, m_maximumRecoveryBytes)
+            || !Session::ReplayState::validRecovery(work.data, 0, maximum)
             || work.data.cursor != work.data.edits.size()
             || (work.completed ? !completed(work.data) : !work.data.working.has_value())
-            || !workingMaximum(request)
-            || Session::ReplayState::recoveryBytes(work.data) > *workingMaximum(request)) return false;
+            || !workingMaximum(request, maximum)
+            || Session::ReplayState::recoveryBytes(work.data) > *workingMaximum(request, maximum)) return false;
     }
-    return recoveryBytes(request) <= m_maximumRecoveryBytes;
+    return recoveryBytes(request) <= maximum;
 }
 
 KisGpuLayerDocument::Recovery KisGpuLayerDocument::recovery() const
@@ -187,8 +187,8 @@ void KisGpuLayerDocument::pollRecovery()
                 : (base.mask ? base.layer.paint.mask : m_store->emptyVersion());
             try {
                 restore.session = std::shared_ptr<Session>(work.completed
-                    ? new Session(*m_store, 0, work.data, *workingMaximum(restore.request))
-                    : new Session(*m_store, version, work.data, *workingMaximum(restore.request)),
+                    ? new Session(*m_store, 0, work.data, *workingMaximum(restore.request, m_maximumRecoveryBytes))
+                    : new Session(*m_store, version, work.data, *workingMaximum(restore.request, m_maximumRecoveryBytes)),
                     [store = m_store](Session *value) { delete value; });
             } catch (const std::invalid_argument &) {
                 if (!m_store->deviceAvailable()) { fail(); return; }

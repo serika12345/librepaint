@@ -59,7 +59,7 @@ quint64 KisGpuLayerDocument::historyBytes(const QVector<Frame> &history) const
             bytes += recordMetadataBytes(*record);
             for (const auto &raster : {record->pixels, record->mask}) {
                 if (raster && rasters.insert(raster.get()).second)
-                    bytes += KisGpuEditSession::ReplayState::recoveryBytes(*raster);
+                    bytes += sizeof(KisGpuEditSession::Recovery) + KisGpuEditSession::ReplayState::recoveryBytes(*raster);
             }
         }
     }
@@ -70,7 +70,7 @@ quint64 KisGpuLayerDocument::recoveryBytes() const
 {
     if (m_restoring) return recoveryBytes(m_restoring->request);
     const auto working = m_session ? m_session->recovery() : std::nullopt;
-    return historyBytes(m_history) + (working ? KisGpuEditSession::ReplayState::recoveryBytes(*working) : 0);
+    return historyBytes(m_history) + (working ? sizeof(KisGpuEditSession::Recovery) + KisGpuEditSession::ReplayState::recoveryBytes(*working) : 0);
 }
 
 KisGpuLayerDocument::Result KisGpuLayerDocument::publish(Frame frame)
@@ -181,7 +181,7 @@ KisGpuLayerDocument::Editing KisGpuLayerDocument::begin(LayerId id, Target targe
     const auto version = target == Target::Pixels ? record.layer.paint.pixels
         : (record.mask ? record.layer.paint.mask : m_store->emptyVersion());
     const auto existing = historyBytes(m_history);
-    const auto extra = recordMetadataBytes(record) + sizeof(Frame) + quint64(m_history[m_cursor].size()) * sizeof(Record);
+    const auto extra = recordMetadataBytes(record) + sizeof(KisGpuEditSession::Recovery) + sizeof(Frame) + quint64(m_history[m_cursor].size()) * sizeof(Record);
     if (extra > m_maximumRecoveryBytes - existing
         || KisGpuEditSession::ReplayState::recoveryBytes(recovery) > m_maximumRecoveryBytes - existing - extra) {
         return {Result::RecoveryBudgetExceeded, {}, {}};
