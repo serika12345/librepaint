@@ -11,6 +11,8 @@
 #include <QCryptographicHash>
 #include <QElapsedTimer>
 #include <QFile>
+#include <QDir>
+#include <QSaveFile>
 #include <QGuiApplication>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -70,7 +72,7 @@ struct Run {
 };
 
 Run execute(KisGpuTestDevice &gpu, QWindow &window, Surface &surface,
-            bool high, bool replace, bool reuseImage, int sampleCount)
+            bool high, bool replace, bool reuseImage, int sampleCount, const QString &imageDirectory)
 {
     const QRect bounds(0, 0, high ? 4096 : 128, high ? 4096 : 128);
     const QRect occupied = high ? QRect(1536, 1536, 1024, 1024) : bounds;
@@ -249,6 +251,18 @@ Run execute(KisGpuTestDevice &gpu, QWindow &window, Surface &surface,
         {"finalImageSha256", QString::fromLatin1(QCryptographicHash::hash(pixels, QCryptographicHash::Sha256).toHex())},
         {"samples", samples}, {"summary", summary}
     };
+    if (!imageDirectory.isEmpty()) {
+        const auto name = QStringLiteral("%1-%2.rgba.zlib")
+            .arg(high ? QStringLiteral("layer-projection") : QStringLiteral("small"),
+                 replace ? QStringLiteral("replace") : QStringLiteral("append"));
+        const auto compressed = qCompress(pixels, 1);
+        QSaveFile file(QDir(imageDirectory).filePath(name));
+        require(compressed.size() > 4 && file.open(QIODevice::WriteOnly), "Cannot create verification image");
+        // Remove Qt's uncompressed-length prefix, leaving a standard zlib stream of RGBA8 bytes.
+        require(file.write(compressed.constData() + 4, compressed.size() - 4) == compressed.size() - 4
+                    && file.commit(), "Cannot save verification image");
+        result.report.insert(QStringLiteral("verificationImage"), name);
+    }
     require(document.cancel(edit.token) == Document::Result::Accepted, "Cannot close measured input");
     return result;
 }
@@ -264,7 +278,8 @@ int main(int argc, char **argv)
     const QCommandLineOption workload(QStringLiteral("workload"), QStringLiteral("small, layer-projection or all"), QStringLiteral("name"), QStringLiteral("all"));
     const QCommandLineOption mode(QStringLiteral("mode"), QStringLiteral("append, replace or all"), QStringLiteral("name"), QStringLiteral("all"));
     const QCommandLineOption snapshot(QStringLiteral("snapshot-policy"), QStringLiteral("fresh or reuse"), QStringLiteral("name"), QStringLiteral("reuse"));
-    parser.addOptions({samples, workload, mode, snapshot});
+    const QCommandLineOption images(QStringLiteral("image-directory"), QStringLiteral("Save final RGBA8 verification images outside measurement"), QStringLiteral("directory"));
+    parser.addOptions({samples, workload, mode, snapshot, images});
     if (!parser.parse(application.arguments())) {
         std::fprintf(stderr, "%s\n", qPrintable(parser.errorText()));
         return 2;
@@ -277,11 +292,14 @@ int main(int argc, char **argv)
         || (selectedWorkload != "small" && selectedWorkload != "layer-projection" && selectedWorkload != "all")
         || (selectedMode != "append" && selectedMode != "replace" && selectedMode != "all")
         || (selectedSnapshot != "fresh" && selectedSnapshot != "reuse")
+        || (parser.isSet(images) && parser.value(images).isEmpty())
         || !parser.positionalArguments().isEmpty()) {
-        std::fputs("Expected --samples 1..1000, --workload small|layer-projection|all, --mode append|replace|all, --snapshot-policy fresh|reuse\n", stderr);
+        std::fputs("Expected --samples 1..1000, --workload small|layer-projection|all, --mode append|replace|all, --snapshot-policy fresh|reuse, --image-directory nonempty-directory\n", stderr);
         return 2;
     }
     try {
+        const auto imageDirectory = parser.value(images);
+        require(imageDirectory.isEmpty() || QDir().mkpath(imageDirectory), "Cannot create verification image directory");
         KisGpuTestDevice gpu;
         QWindow window;
         Surface::prepareWindow(window);
@@ -294,7 +312,7 @@ int main(int argc, char **argv)
         for (const bool high : {false, true}) for (const bool replace : {false, true}) {
             if (selectedWorkload != "all" && selectedWorkload != (high ? "layer-projection" : "small")) continue;
             if (selectedMode != "all" && selectedMode != (replace ? "replace" : "append")) continue;
-            const auto run = execute(gpu, window, surface, high, replace, selectedSnapshot == "reuse", count);
+            const auto run = execute(gpu, window, surface, high, replace, selectedSnapshot == "reuse", count, imageDirectory);
             runs.append(run.report);
             displayedEverySample &= run.displayedEverySample;
         }
