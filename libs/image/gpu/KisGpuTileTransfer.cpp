@@ -48,8 +48,7 @@ KisGpuTileStore::Edit KisGpuTileStore::upload(const Version &base, QRect bounds,
     const int x0 = tileCoordinate(left), x1 = tileCoordinate(right - 1);
     const int y0 = tileCoordinate(top), y1 = tileCoordinate(bottom - 1);
     const quint64 tileCount = quint64(x1 - x0 + 1) * quint64(y1 - y0 + 1);
-    const quint64 resident = d->state->residentBytes.load();
-    const quint64 available = resident <= d->budget ? d->budget - resident : 0;
+    const quint64 available = d->availableForOperation(0);
     if (byteCount > d->limits.maxBufferSize || tileCount > available / TileBytes
         || byteCount > available - tileCount * TileBytes) {
         result.error = Error::BudgetExceeded;
@@ -119,8 +118,7 @@ KisGpuTileStore::Readback KisGpuTileStore::readback(const Version &source, QRect
         return result;
     }
     const quint64 byteCount = quint64(bounds.width()) * quint64(bounds.height()) * 4;
-    const quint64 resident = d->state->residentBytes.load();
-    const quint64 available = resident <= d->budget ? d->budget - resident : 0;
+    const quint64 available = d->availableForOperation(0);
     if (byteCount > available || byteCount > d->limits.maxBufferSize
         || byteCount > quint64(std::numeric_limits<int>::max())) {
         result.error = Error::BudgetExceeded;

@@ -18,6 +18,42 @@ bool finish(Store &store, const Store::Completion &completion) {
 class KisGpuDeviceBudgetTest : public QObject {
     Q_OBJECT
 private Q_SLOTS:
+    void explicitTransfersPreflightSharedCapacity_data() {
+        QTest::addColumn<bool>("reading");
+        QTest::newRow("readback") << true;
+        QTest::newRow("upload") << false;
+    }
+    void explicitTransfersPreflightSharedCapacity() {
+        QFETCH(bool, reading);
+        KisGpuTestDevice gpu(0, false, 2 * Store::TileBytes + 64);
+        Store store(gpu.owner, 8 * Store::TileBytes);
+        auto base = store.fill(store.emptyVersion(), {0, 0, 1, 1}, 0xFF332211);
+        QVERIFY(finish(store, base.completion));
+        auto occupied = gpu.owner.reserveMemory(gpu.owner.availableMemory() - 3);
+        const auto before = store.statistics();
+        const auto reserved = gpu.owner.memoryStatistics().reservedBytes;
+        const auto error = reading ? store.readback(base.version, {0, 0, 1, 1}).error
+                                  : store.upload(base.version, {0, 0, 1, 1}, QByteArray::fromHex("aabbccff")).error;
+        QCOMPARE(error, Store::Error::BudgetExceeded);
+        QCOMPARE(store.statistics().submissions, before.submissions);
+        QCOMPARE(store.statistics().pixelReadbackBytes, before.pixelReadbackBytes);
+        QCOMPARE(store.statistics().pixelUploadBytes, before.pixelUploadBytes);
+        QCOMPARE(gpu.owner.memoryStatistics().reservedBytes, reserved);
+        occupied = {};
+        if (reading) {
+            const auto retried = store.readback(base.version, {0, 0, 1, 1});
+            QCOMPARE(retried.error, Store::Error::None);
+            QVERIFY(finish(store, retried.completion));
+            QCOMPARE(retried.bytes(), QByteArray::fromHex("112233ff"));
+        } else {
+            const auto retried = store.upload(base.version, {0, 0, 1, 1}, QByteArray::fromHex("aabbccff"));
+            QCOMPARE(retried.error, Store::Error::None);
+            QVERIFY(finish(store, retried.completion));
+            QCOMPARE(gpu.read(retried.version, {0, 0, 1, 1}), QByteArray::fromHex("aabbccff"));
+            QCOMPARE(gpu.read(base.version, {0, 0, 1, 1}), QByteArray::fromHex("112233ff"));
+        }
+        QCOMPARE(gpu.owner.errorCount(), 0);
+    }
     void pendingWorkAndRetainedVersionsShareOneLimit() {
         KisGpuTestDevice gpu(0, false, 2 * Store::TileBytes + 64);
         Store first(gpu.owner, 8 * Store::TileBytes), second(gpu.owner, 8 * Store::TileBytes);
