@@ -2,7 +2,7 @@
  * SPDX-FileCopyrightText: 2026 LibrePaint contributors
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
-#include "KisGpuTileStore.h"
+#include "KisGpuTileStore_p.h"
 
 #include <QFile>
 #include <algorithm>
@@ -25,296 +25,138 @@ static void initializeGpuTileResources()
     Q_UNUSED(initialized);
 }
 
-namespace {
-template<typename T, void (*Release)(T)>
-struct Handle {
-    T value;
-    explicit Handle(T handle) : value(handle) {
-        if (!value) throw std::runtime_error("Cannot create GPU tile resource");
-    }
-    ~Handle() { if (value) Release(value); }
-    Handle(const Handle &) = delete;
-    Handle &operator=(const Handle &) = delete;
-};
+using namespace KisGpuTileStorage;
 
-struct Availability {
-    std::mutex mapping;
-    std::atomic<bool> available{true};
-};
-
-struct DeviceState {
-    WGPUDevice device;
-    WGPUQueue queue;
-    std::atomic<quint64> residentBytes{0};
-    std::shared_ptr<Availability> availability = std::make_shared<Availability>();
-    explicit DeviceState(WGPUDevice value) : device(value), queue(wgpuDeviceGetQueue(value)) {
-        wgpuDeviceAddRef(device);
+KisGpuTileStore::Private::Private(WGPUDevice device, quint64 bytes, quint32 maximum) : budget(bytes), maximumPending(maximum) {
+    if (!device || !maximum || wgpuGetVersion() != 0x1b000400) {
+        throw std::runtime_error("GPU tiles require a device from wgpu-native 27.0.4.0");
     }
-    ~DeviceState() { wgpuQueueRelease(queue); wgpuDeviceRelease(device); }
-};
-
-struct Allocation {
-    std::shared_ptr<DeviceState> owner;
-    WGPUBuffer buffer;
-    quint64 bytes;
-    Allocation(std::shared_ptr<DeviceState> state, quint64 size, WGPUBufferUsage usage)
-        : owner(std::move(state)), bytes(size) {
-        WGPUBufferDescriptor descriptor{};
-        descriptor.size = bytes;
-        descriptor.usage = usage;
-        buffer = wgpuDeviceCreateBuffer(owner->device, &descriptor);
-        if (!buffer) throw std::runtime_error("Cannot allocate GPU tile buffer");
-        owner->residentBytes.fetch_add(bytes);
+    state = std::make_shared<DeviceState>(device);
+    if (wgpuDeviceGetLimits(device, &limits) != WGPUStatus_Success
+        || limits.maxStorageBufferBindingSize < TileBytes || limits.maxBufferSize < TileBytes
+        || limits.minStorageBufferOffsetAlignment == 0 || limits.maxComputeWorkgroupsPerDimension < 8) {
+        throw std::runtime_error("GPU device cannot bind a document tile");
     }
-    ~Allocation() {
-        wgpuBufferRelease(buffer);
-        owner->residentBytes.fetch_sub(bytes);
+    tilesPerAllocation = std::min<quint64>({quint64(64), limits.maxStorageBufferBindingSize / TileBytes,
+        limits.maxBufferSize / TileBytes, quint64(limits.maxComputeWorkgroupsPerDimension)});
+    WGPUBindGroupLayoutEntry entries[3]{};
+    entries[0].binding = 0;
+    entries[0].visibility = WGPUShaderStage_Compute;
+    entries[0].buffer.type = WGPUBufferBindingType_Storage;
+    entries[0].buffer.minBindingSize = TileBytes;
+    entries[1].binding = 1;
+    entries[1].visibility = WGPUShaderStage_Compute;
+    entries[1].buffer.type = WGPUBufferBindingType_ReadOnlyStorage;
+    entries[1].buffer.minBindingSize = sizeof(TileParameters);
+    entries[2].binding = 2;
+    entries[2].visibility = WGPUShaderStage_Compute;
+    entries[2].buffer.type = WGPUBufferBindingType_ReadOnlyStorage;
+    entries[2].buffer.minBindingSize = sizeof(TileCommand);
+    WGPUBindGroupLayoutDescriptor layoutDescriptor{};
+    layoutDescriptor.entryCount = 3;
+    layoutDescriptor.entries = entries;
+    Handle<WGPUBindGroupLayout, wgpuBindGroupLayoutRelease> groupLayout(
+        wgpuDeviceCreateBindGroupLayout(device, &layoutDescriptor));
+    WGPUPipelineLayoutDescriptor pipelineLayoutDescriptor{};
+    pipelineLayoutDescriptor.bindGroupLayoutCount = 1;
+    pipelineLayoutDescriptor.bindGroupLayouts = &groupLayout.value;
+    Handle<WGPUPipelineLayout, wgpuPipelineLayoutRelease> pipelineLayout(
+        wgpuDeviceCreatePipelineLayout(device, &pipelineLayoutDescriptor));
+    WGPUShaderSourceWGSL source{};
+    source.chain.sType = WGPUSType_ShaderSourceWGSL;
+    initializeGpuTileResources();
+    QFile shaderFile(QStringLiteral(":/librepaint/gpu/KisGpuTilePaint.wgsl"));
+    if (!shaderFile.open(QIODevice::ReadOnly)) {
+        throw std::runtime_error("Cannot load GPU tile shader resource");
     }
-};
-
-using Coordinate = std::pair<int, int>;
-int tileCoordinate(qint64 pixel) { return int(pixel >= 0 ? pixel / 64 : (pixel + 1) / 64 - 1); }
-struct TileCommand {
-    quint32 left, top, right, bottom, color, operation, opacity, coverage;
-};
-static_assert(sizeof(TileCommand) == 32);
-// A dab has one raster command followed by one equally sized shape record.
-struct DabParameters {
-    float centerX, centerY, xcoef, ycoef, fadeX, fadeY;
-    quint32 padding[2];
-};
-static_assert(sizeof(DabParameters) == sizeof(TileCommand));
-struct TileParameters {
-    quint32 firstCommand, commandCount, padding[2];
-};
-static_assert(sizeof(TileParameters) == 16);
-struct CompositeParameters {
-    quint32 sourceTile, destinationTile, left, top, right, bottom, operation, opacity, coverage, padding;
-};
-static_assert(sizeof(CompositeParameters) == 40);
+    const QByteArray shaderCode = shaderFile.readAll();
+    source.code = {shaderCode.constData(), size_t(shaderCode.size())};
+    WGPUShaderModuleDescriptor shaderDescriptor{};
+    shaderDescriptor.nextInChain = &source.chain;
+    Handle<WGPUShaderModule, wgpuShaderModuleRelease> shader(
+        wgpuDeviceCreateShaderModule(device, &shaderDescriptor));
+    WGPUComputePipelineDescriptor descriptor{};
+    descriptor.layout = pipelineLayout.value;
+    descriptor.compute.module = shader.value;
+    descriptor.compute.entryPoint = {"paint", WGPU_STRLEN};
+    Handle<WGPUComputePipeline, wgpuComputePipelineRelease> fillPipeline(
+        wgpuDeviceCreateComputePipeline(device, &descriptor));
+    entries[1].binding = 3;
+    entries[1].buffer.minBindingSize = TileBytes;
+    entries[2].binding = 4;
+    entries[2].buffer.minBindingSize = sizeof(CompositeParameters);
+    Handle<WGPUBindGroupLayout, wgpuBindGroupLayoutRelease> imageLayout(
+        wgpuDeviceCreateBindGroupLayout(device, &layoutDescriptor));
+    pipelineLayoutDescriptor.bindGroupLayouts = &imageLayout.value;
+    Handle<WGPUPipelineLayout, wgpuPipelineLayoutRelease> imagePipelineLayout(
+        wgpuDeviceCreatePipelineLayout(device, &pipelineLayoutDescriptor));
+    descriptor.layout = imagePipelineLayout.value;
+    descriptor.compute.entryPoint = {"composite", WGPU_STRLEN};
+    Handle<WGPUComputePipeline, wgpuComputePipelineRelease> imagePipeline(
+        wgpuDeviceCreateComputePipeline(device, &descriptor));
+    layout = groupLayout.value;
+    groupLayout.value = nullptr;
+    pipeline = fillPipeline.value;
+    fillPipeline.value = nullptr;
+    compositeLayout = imageLayout.value;
+    imageLayout.value = nullptr;
+    compositePipeline = imagePipeline.value;
+    imagePipeline.value = nullptr;
 }
 
-struct KisGpuTileStore::VersionData {
-    std::shared_ptr<DeviceState> owner;
-    std::shared_ptr<CompletionData> completion;
-    struct Tile {
-        std::shared_ptr<Allocation> allocation;
-        quint64 offset;
+void KisGpuTileStore::Private::submit(Pending operation, WGPUCommandBuffer commandBuffer, const std::vector<char> &parameters,
+            const std::vector<TileCommand> &commands, quint64 copiedBytes, quint64 dispatches) {
+    const auto completion = operation.completion;
+    if (operation.source.d) completion->dependencies.push_back(operation.source.d->completion);
+    if (operation.input.d && !(operation.input == operation.source)) {
+        completion->dependencies.push_back(operation.input.d->completion);
+    }
+    completion->sequence = statistics.submissions + 1;
+    auto callbackData = std::make_unique<std::shared_ptr<CompletionData>>(completion);
+    pending.push_back(std::move(operation));
+    const auto &resources = pending.back();
+    if (!parameters.empty()) {
+        wgpuQueueWriteBuffer(state->queue, resources.parameters->buffer, 0, parameters.data(), parameters.size());
+    }
+    if (!commands.empty()) {
+        wgpuQueueWriteBuffer(state->queue, resources.commands->buffer, 0,
+                             commands.data(), commands.size() * sizeof(TileCommand));
+    }
+    lastSubmission = wgpuQueueSubmitForIndex(state->queue, 1, &commandBuffer);
+    WGPUQueueWorkDoneCallbackInfo callback{};
+    callback.mode = WGPUCallbackMode_AllowSpontaneous;
+    callback.userdata1 = callbackData.release();
+    callback.callback = [](WGPUQueueWorkDoneStatus status, void *data, void *) {
+        // Spontaneous callbacks only publish a value; GPU references are released by poll().
+        std::unique_ptr<std::shared_ptr<CompletionData>> completion(
+            static_cast<std::shared_ptr<CompletionData> *>(data));
+        (*completion)->complete(status == WGPUQueueWorkDoneStatus_Success);
     };
-    std::map<Coordinate, Tile> tiles;
-};
+    wgpuQueueOnSubmittedWorkDone(state->queue, callback);
+    ++statistics.submissions;
+    statistics.computeDispatches += dispatches;
+    statistics.commandUploadBytes += parameters.size() + commands.size() * sizeof(TileCommand);
+    statistics.tileCopyBytes += copiedBytes;
+}
 
-struct KisGpuTileStore::CompletionData {
-    std::atomic<Status> status{Status::Pending};
-    std::atomic<unsigned> remaining{3};
-    std::atomic<bool> failed{false};
-    quint64 sequence = 0;
-    std::vector<std::shared_ptr<CompletionData>> dependencies;
-    std::shared_ptr<Availability> availability;
-    explicit CompletionData(std::shared_ptr<Availability> value) : availability(std::move(value)) {}
-    Status currentStatus() const {
-        const auto current = status.load();
-        return current == Status::Pending && !availability->available.load() ? Status::Failed : current;
-    }
-    void complete(bool success) {
-        if (!success) failed.store(true);
-        remaining.fetch_sub(1);
-    }
-    void publish() {
-        if (remaining.load() != 0) return;
-        if (!availability->available.load()) failed.store(true);
-        for (const auto &dependency : dependencies) {
-            const auto state = dependency->currentStatus();
-            if (state == Status::Pending && !failed.load()) return;
-            if (state == Status::Failed) failed.store(true);
-        }
-        status.store(failed.load() ? Status::Failed : Status::Succeeded);
-        dependencies.clear();
-    }
-};
+void KisGpuTileStore::Private::collect() {
+    // Submission order is also dependency order. Publish results on the owning thread.
+    for (auto &operation : pending) operation.completion->publish();
+    pending.erase(std::remove_if(pending.begin(), pending.end(), [](const Pending &operation) {
+        return operation.completion->remaining.load() == 0
+            && operation.completion->status.load() != Status::Pending;
+    }), pending.end());
+}
 
-struct KisGpuTileStore::ReadbackData {
-    QByteArray bytes;
-};
-
-struct KisGpuTileStore::Private {
-    struct ErrorScopes {
-        WGPUDevice device;
-        std::shared_ptr<CompletionData> completion;
-        std::array<std::unique_ptr<std::shared_ptr<CompletionData>>, 2> callbacks;
-        bool submitted = false;
-        ErrorScopes(WGPUDevice value, std::shared_ptr<CompletionData> operation)
-            : device(value), completion(std::move(operation)) {
-            for (auto &callback : callbacks) callback = std::make_unique<std::shared_ptr<CompletionData>>(completion);
-            for (auto filter : {WGPUErrorFilter_Validation, WGPUErrorFilter_OutOfMemory}) {
-                wgpuDevicePushErrorScope(device, filter);
-            }
-        }
-        ~ErrorScopes() {
-            for (auto &data : callbacks) {
-                WGPUPopErrorScopeCallbackInfo callback{};
-                callback.mode = WGPUCallbackMode_AllowSpontaneous;
-                callback.userdata1 = data.release();
-                callback.callback = [](WGPUPopErrorScopeStatus status, WGPUErrorType error, WGPUStringView, void *data, void *) {
-                    std::unique_ptr<std::shared_ptr<CompletionData>> completion(
-                        static_cast<std::shared_ptr<CompletionData> *>(data));
-                    (*completion)->complete(status == WGPUPopErrorScopeStatus_Success && error == WGPUErrorType_NoError);
-                };
-                wgpuDevicePopErrorScope(device, callback);
-            }
-            if (!submitted) completion->complete(false);
-        }
-    };
-    struct Pending {
-        std::shared_ptr<CompletionData> completion;
-        Version source, result;
-        std::shared_ptr<Allocation> parameters, commands;
-        Version input;
-    };
-    std::shared_ptr<DeviceState> state;
-    quint64 budget;
-    quint32 maximumPending;
-    WGPULimits limits{};
-    quint64 tilesPerAllocation = 0;
-    WGPUBindGroupLayout layout = nullptr;
-    WGPUComputePipeline pipeline = nullptr;
-    WGPUBindGroupLayout compositeLayout = nullptr;
-    WGPUComputePipeline compositePipeline = nullptr;
-    WGPUSubmissionIndex lastSubmission = 0;
-    Statistics statistics;
-    std::vector<Pending> pending;
-
-    Private(WGPUDevice device, quint64 bytes, quint32 maximum) : budget(bytes), maximumPending(maximum) {
-        if (!device || !maximum || wgpuGetVersion() != 0x1b000400) {
-            throw std::runtime_error("GPU tiles require a device from wgpu-native 27.0.4.0");
-        }
-        state = std::make_shared<DeviceState>(device);
-        if (wgpuDeviceGetLimits(device, &limits) != WGPUStatus_Success
-            || limits.maxStorageBufferBindingSize < TileBytes || limits.maxBufferSize < TileBytes
-            || limits.minStorageBufferOffsetAlignment == 0 || limits.maxComputeWorkgroupsPerDimension < 8) {
-            throw std::runtime_error("GPU device cannot bind a document tile");
-        }
-        tilesPerAllocation = std::min<quint64>({quint64(64), limits.maxStorageBufferBindingSize / TileBytes,
-            limits.maxBufferSize / TileBytes, quint64(limits.maxComputeWorkgroupsPerDimension)});
-        WGPUBindGroupLayoutEntry entries[3]{};
-        entries[0].binding = 0;
-        entries[0].visibility = WGPUShaderStage_Compute;
-        entries[0].buffer.type = WGPUBufferBindingType_Storage;
-        entries[0].buffer.minBindingSize = TileBytes;
-        entries[1].binding = 1;
-        entries[1].visibility = WGPUShaderStage_Compute;
-        entries[1].buffer.type = WGPUBufferBindingType_ReadOnlyStorage;
-        entries[1].buffer.minBindingSize = sizeof(TileParameters);
-        entries[2].binding = 2;
-        entries[2].visibility = WGPUShaderStage_Compute;
-        entries[2].buffer.type = WGPUBufferBindingType_ReadOnlyStorage;
-        entries[2].buffer.minBindingSize = sizeof(TileCommand);
-        WGPUBindGroupLayoutDescriptor layoutDescriptor{};
-        layoutDescriptor.entryCount = 3;
-        layoutDescriptor.entries = entries;
-        Handle<WGPUBindGroupLayout, wgpuBindGroupLayoutRelease> groupLayout(
-            wgpuDeviceCreateBindGroupLayout(device, &layoutDescriptor));
-        WGPUPipelineLayoutDescriptor pipelineLayoutDescriptor{};
-        pipelineLayoutDescriptor.bindGroupLayoutCount = 1;
-        pipelineLayoutDescriptor.bindGroupLayouts = &groupLayout.value;
-        Handle<WGPUPipelineLayout, wgpuPipelineLayoutRelease> pipelineLayout(
-            wgpuDeviceCreatePipelineLayout(device, &pipelineLayoutDescriptor));
-        WGPUShaderSourceWGSL source{};
-        source.chain.sType = WGPUSType_ShaderSourceWGSL;
-        initializeGpuTileResources();
-        QFile shaderFile(QStringLiteral(":/librepaint/gpu/KisGpuTilePaint.wgsl"));
-        if (!shaderFile.open(QIODevice::ReadOnly)) {
-            throw std::runtime_error("Cannot load GPU tile shader resource");
-        }
-        const QByteArray shaderCode = shaderFile.readAll();
-        source.code = {shaderCode.constData(), size_t(shaderCode.size())};
-        WGPUShaderModuleDescriptor shaderDescriptor{};
-        shaderDescriptor.nextInChain = &source.chain;
-        Handle<WGPUShaderModule, wgpuShaderModuleRelease> shader(
-            wgpuDeviceCreateShaderModule(device, &shaderDescriptor));
-        WGPUComputePipelineDescriptor descriptor{};
-        descriptor.layout = pipelineLayout.value;
-        descriptor.compute.module = shader.value;
-        descriptor.compute.entryPoint = {"paint", WGPU_STRLEN};
-        Handle<WGPUComputePipeline, wgpuComputePipelineRelease> fillPipeline(
-            wgpuDeviceCreateComputePipeline(device, &descriptor));
-        entries[1].binding = 3;
-        entries[1].buffer.minBindingSize = TileBytes;
-        entries[2].binding = 4;
-        entries[2].buffer.minBindingSize = sizeof(CompositeParameters);
-        Handle<WGPUBindGroupLayout, wgpuBindGroupLayoutRelease> imageLayout(
-            wgpuDeviceCreateBindGroupLayout(device, &layoutDescriptor));
-        pipelineLayoutDescriptor.bindGroupLayouts = &imageLayout.value;
-        Handle<WGPUPipelineLayout, wgpuPipelineLayoutRelease> imagePipelineLayout(
-            wgpuDeviceCreatePipelineLayout(device, &pipelineLayoutDescriptor));
-        descriptor.layout = imagePipelineLayout.value;
-        descriptor.compute.entryPoint = {"composite", WGPU_STRLEN};
-        Handle<WGPUComputePipeline, wgpuComputePipelineRelease> imagePipeline(
-            wgpuDeviceCreateComputePipeline(device, &descriptor));
-        layout = groupLayout.value;
-        groupLayout.value = nullptr;
-        pipeline = fillPipeline.value;
-        fillPipeline.value = nullptr;
-        compositeLayout = imageLayout.value;
-        imageLayout.value = nullptr;
-        compositePipeline = imagePipeline.value;
-        imagePipeline.value = nullptr;
-    }
-
-    void submit(Pending operation, WGPUCommandBuffer commandBuffer, const std::vector<char> &parameters,
-                const std::vector<TileCommand> &commands, quint64 copiedBytes, quint64 dispatches) {
-        const auto completion = operation.completion;
-        if (operation.source.d) completion->dependencies.push_back(operation.source.d->completion);
-        if (operation.input.d && !(operation.input == operation.source)) {
-            completion->dependencies.push_back(operation.input.d->completion);
-        }
-        completion->sequence = statistics.submissions + 1;
-        auto callbackData = std::make_unique<std::shared_ptr<CompletionData>>(completion);
-        pending.push_back(std::move(operation));
-        const auto &resources = pending.back();
-        if (!parameters.empty()) {
-            wgpuQueueWriteBuffer(state->queue, resources.parameters->buffer, 0, parameters.data(), parameters.size());
-        }
-        if (!commands.empty()) {
-            wgpuQueueWriteBuffer(state->queue, resources.commands->buffer, 0,
-                                 commands.data(), commands.size() * sizeof(TileCommand));
-        }
-        lastSubmission = wgpuQueueSubmitForIndex(state->queue, 1, &commandBuffer);
-        WGPUQueueWorkDoneCallbackInfo callback{};
-        callback.mode = WGPUCallbackMode_AllowSpontaneous;
-        callback.userdata1 = callbackData.release();
-        callback.callback = [](WGPUQueueWorkDoneStatus status, void *data, void *) {
-            // Spontaneous callbacks only publish a value; GPU references are released by poll().
-            std::unique_ptr<std::shared_ptr<CompletionData>> completion(
-                static_cast<std::shared_ptr<CompletionData> *>(data));
-            (*completion)->complete(status == WGPUQueueWorkDoneStatus_Success);
-        };
-        wgpuQueueOnSubmittedWorkDone(state->queue, callback);
-        ++statistics.submissions;
-        statistics.computeDispatches += dispatches;
-        statistics.commandUploadBytes += parameters.size() + commands.size() * sizeof(TileCommand);
-        statistics.tileCopyBytes += copiedBytes;
-    }
-
-    void collect() {
-        // Submission order is also dependency order. Publish results on the owning thread.
-        for (auto &operation : pending) operation.completion->publish();
-        pending.erase(std::remove_if(pending.begin(), pending.end(), [](const Pending &operation) {
-            return operation.completion->remaining.load() == 0
-                && operation.completion->status.load() != Status::Pending;
-        }), pending.end());
-    }
-
-    ~Private() {
-        if (lastSubmission) wgpuDevicePoll(state->device, true, &lastSubmission);
-        collect();
-        pending.clear();
-        wgpuComputePipelineRelease(pipeline);
-        wgpuBindGroupLayoutRelease(layout);
-        wgpuComputePipelineRelease(compositePipeline);
-        wgpuBindGroupLayoutRelease(compositeLayout);
-    }
-};
+KisGpuTileStore::Private::~Private() {
+    if (lastSubmission) wgpuDevicePoll(state->device, true, &lastSubmission);
+    collect();
+    pending.clear();
+    wgpuComputePipelineRelease(pipeline);
+    wgpuBindGroupLayoutRelease(layout);
+    wgpuComputePipelineRelease(compositePipeline);
+    wgpuBindGroupLayoutRelease(compositeLayout);
+}
 
 KisGpuTileStore::KisGpuTileStore(WGPUDevice device, quint64 budgetBytes, quint32 maximumPending)
     : d(new Private(device, budgetBytes, maximumPending)) {}
@@ -335,11 +177,6 @@ KisGpuTileStore::Status KisGpuTileStore::Completion::status() const
 }
 
 quint64 KisGpuTileStore::Completion::sequence() const { return d ? d->sequence : 0; }
-
-QByteArray KisGpuTileStore::Readback::bytes() const
-{
-    return d && completion.status() == Status::Succeeded ? d->bytes : QByteArray();
-}
 
 KisGpuTileStore::Version KisGpuTileStore::emptyVersion() const
 {
@@ -703,89 +540,6 @@ KisGpuTileStore::Edit KisGpuTileStore::composite(const Version &base, const Vers
     result.version.d = std::move(data);
     d->submit({result.completion.d, base, result.version, parameters, {}, source}, commandBuffer.value,
               packedParameters, {}, copiedBytes, groups.size());
-    errors.submitted = true;
-    return result;
-}
-
-KisGpuTileStore::Readback KisGpuTileStore::readback(const Version &source, QRect bounds)
-{
-    Readback result;
-    if (!source.d || source.d->owner != d->state) {
-        result.error = Error::InvalidVersion;
-        return result;
-    }
-    if (!deviceAvailable()) {
-        result.error = Error::DeviceLost;
-        return result;
-    }
-    if (bounds.isEmpty()) {
-        result.completion.d = source.d->completion;
-        return result;
-    }
-    if (d->pending.size() >= d->maximumPending) {
-        result.error = Error::QueueFull;
-        return result;
-    }
-    const quint64 byteCount = quint64(bounds.width()) * quint64(bounds.height()) * 4;
-    const quint64 resident = d->state->residentBytes.load();
-    const quint64 available = resident <= d->budget ? d->budget - resident : 0;
-    if (byteCount > available || byteCount > d->limits.maxBufferSize
-        || byteCount > quint64(std::numeric_limits<int>::max())) {
-        result.error = Error::BudgetExceeded;
-        return result;
-    }
-    result.d = std::make_shared<ReadbackData>();
-    result.d->bytes = QByteArray(int(byteCount), '\0');
-    result.completion.d = std::make_shared<CompletionData>(d->state->availability);
-    result.completion.d->remaining.store(4); // validation, allocation, submission, mapping
-    Private::ErrorScopes errors(d->state->device, result.completion.d);
-    auto staging = std::make_shared<Allocation>(d->state, byteCount,
-        WGPUBufferUsage_MapRead | WGPUBufferUsage_CopyDst);
-    Handle<WGPUCommandEncoder, wgpuCommandEncoderRelease> encoder(
-        wgpuDeviceCreateCommandEncoder(d->state->device, nullptr));
-    const qint64 left = bounds.x(), top = bounds.y();
-    const qint64 right = left + bounds.width(), bottom = top + bounds.height();
-    for (const auto &entry : source.d->tiles) {
-        const qint64 tileLeft = qint64(entry.first.first) * 64, tileTop = qint64(entry.first.second) * 64;
-        const qint64 x0 = std::max(left, tileLeft), y0 = std::max(top, tileTop);
-        const qint64 x1 = std::min(right, tileLeft + 64), y1 = std::min(bottom, tileTop + 64);
-        if (x0 >= x1 || y0 >= y1) continue;
-        for (qint64 y = y0; y < y1; ++y) {
-            const quint64 sourceOffset = entry.second.offset + ((y - tileTop) * 64 + x0 - tileLeft) * 4;
-            const quint64 targetOffset = ((y - top) * bounds.width() + x0 - left) * 4;
-            wgpuCommandEncoderCopyBufferToBuffer(encoder.value, entry.second.allocation->buffer, sourceOffset,
-                staging->buffer, targetOffset, (x1 - x0) * 4);
-        }
-    }
-    Handle<WGPUCommandBuffer, wgpuCommandBufferRelease> commands(
-        wgpuCommandEncoderFinish(encoder.value, nullptr));
-    struct MapResult {
-        std::shared_ptr<ReadbackData> data;
-        std::shared_ptr<CompletionData> completion;
-        WGPUBuffer buffer;
-        quint64 size;
-        std::shared_ptr<Availability> availability;
-    };
-    auto callbackData = std::make_unique<MapResult>(MapResult{
-        result.d, result.completion.d, staging->buffer, byteCount, d->state->availability});
-    d->submit({result.completion.d, source, {}, staging, {}, {}}, commands.value, {}, {}, 0, 0);
-    WGPUBufferMapCallbackInfo callback{};
-    callback.mode = WGPUCallbackMode_AllowSpontaneous;
-    callback.userdata1 = callbackData.release();
-    callback.callback = [](WGPUMapAsyncStatus status, WGPUStringView, void *data, void *) {
-        std::unique_ptr<MapResult> result(static_cast<MapResult *>(data));
-        std::lock_guard<std::mutex> lock(result->availability->mapping);
-        bool success = status == WGPUMapAsyncStatus_Success && result->availability->available.load();
-        if (success) {
-            const void *mapped = wgpuBufferGetConstMappedRange(result->buffer, 0, result->size);
-            success = mapped != nullptr;
-            if (success) std::memcpy(result->data->bytes.data(), mapped, size_t(result->size));
-            wgpuBufferUnmap(result->buffer);
-        }
-        result->completion->complete(success);
-    };
-    wgpuBufferMapAsync(staging->buffer, WGPUMapMode_Read, 0, byteCount, callback);
-    d->statistics.pixelReadbackBytes += byteCount;
     errors.submitted = true;
     return result;
 }

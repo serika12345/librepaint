@@ -11,6 +11,8 @@ wgpu-native 27.0.4.0を直接利用する。画像モデル、ブラシ、履歴
 | --- | --- |
 | `libs/image/gpu/KisGpuTileStore.h` | 版、単色描画、画素合成、非同期読取り、操作完了、予算と統計の内部API |
 | `libs/image/gpu/KisGpuTileStore.cpp` | GPUバッファーの寿命、タイル共有、GPU内複製、計算命令と完了観測 |
+| `libs/image/gpu/KisGpuTileTransfer.cpp` | 保存用の非同期読取りとマッピング |
+| `libs/image/gpu/KisGpuTileStore_p.h` | 所有者内部の割当、版、完了と発行中資源の表現 |
 | `libs/image/gpu/KisGpuTilePaint.wgsl` | GPU上の画素演算。Qtリソースとしてライブラリーへ組み込む |
 | `libs/image/gpu/KisGpuEditSession.*` | 作業版の追加・差し替え、非同期確定、取消しと有限の履歴 |
 | `libs/image/gpu/tests/KisGpuTileStoreTest.cpp` | 実GPUによる画素、版、予算、資源解放の契約 |
