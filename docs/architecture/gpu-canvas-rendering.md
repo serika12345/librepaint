@@ -20,6 +20,7 @@ macOSではAppKitとQuartzCore、LinuxのX11ではXlibをOS接続に利用する
 | `libs/canvas/gpu/GpuWindowSurface_x11.cpp` | X11ウィンドウの表示面と実寸法の検査 |
 | `libs/canvas/gpu/tests/KisGpuSurfaceRendererTest.cpp` | 実ウィンドウの提示、サイズ変更、寿命とネイティブ失敗の契約 |
 | `libs/canvas/gpu/tests/KisGpuSurfaceLifetimeTest.cpp` | Qtの表示面破棄・再作成とGPU喪失時の表示予約解放 |
+| `libs/canvas/gpu/tests/KisGpuInputToDisplayBenchmark.cpp` | 生成した位置・筆圧からブラシ・投影・GPU描画・実表示までの計測 |
 
 `LIBREPAINT_BUILD_GPU_DOCUMENT=ON`で構築する。
 `Krita::Canvas::GpuRenderer`は、成功した`TextureSnapshot`を直接読み、指定したGPU描画先へ描く。
@@ -146,3 +147,6 @@ Metalでは実表示時刻が発行前後のホスト時刻内にあること、
 表示面の寿命契約は、同じQtウィンドウの破棄・寸法変更・再作成を反復し、表示予約と未回収数の
 解放、描画連番と累積値の維持、追加の文書画素転送0、GPU喪失後の終了を検査する。
 この資源寿命の検査と、実表示時刻を要求する検査を区別する。
+入力から表示までの計測は開発マニュアルの
+[生成入力からGPU描画と実表示までの計測](DEVELOPMENT.md#生成入力からgpu描画と実表示までの計測)に従う。
+実表示の未観測を空値と終了値3で表し、GPU描画完了の時刻から分離する。

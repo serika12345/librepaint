@@ -1,0 +1,302 @@
+/*
+ * SPDX-FileCopyrightText: 2026 LibrePaint contributors
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+#include "SurfaceRenderer.h"
+#include "KisGpuBrushStroke.h"
+#include "KisGpuLayerDocument.h"
+#include "KisGpuLayerProjection.h"
+#include "KisGpuTestDevice.h"
+#include <QCommandLineParser>
+#include <QCryptographicHash>
+#include <QElapsedTimer>
+#include <QFile>
+#include <QGuiApplication>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QWindow>
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <cstdio>
+#include <ctime>
+#include <stdexcept>
+#include <thread>
+
+namespace {
+using Store = KisGpuTileStore;
+using Document = KisGpuLayerDocument;
+using Session = KisGpuEditSession;
+using Brush = KisGpuBrushStroke;
+using Surface = Krita::Canvas::SurfaceRenderer;
+
+template<typename Predicate>
+void until(Predicate ready)
+{
+    QElapsedTimer timeout; timeout.start();
+    while (!ready()) {
+        if (timeout.elapsed() > 5000) throw std::runtime_error("Input/display completion timed out");
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 1);
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+}
+
+void require(bool valid, const char *diagnostic)
+{
+    if (!valid) throw std::runtime_error(diagnostic);
+}
+
+QJsonValue distribution(const QJsonArray &samples, const QString &metric)
+{
+    QVector<double> values;
+    for (const auto &sample : samples) {
+        const auto value = sample.toObject().value(metric);
+        if (value.isDouble()) values.push_back(value.toDouble());
+    }
+    if (values.isEmpty()) return QJsonValue::Null;
+    std::sort(values.begin(), values.end());
+    const auto middle = values.size() / 2;
+    return QJsonObject {
+        {"count", values.size()},
+        {"median", values.size() % 2 ? values[middle] : (values[middle - 1] + values[middle]) / 2},
+        {"p95", values[qsizetype(std::ceil(values.size() * .95)) - 1]}
+    };
+}
+
+struct Run {
+    QJsonObject report;
+    bool displayedEverySample = true;
+};
+
+Run execute(KisGpuTestDevice &gpu, QWindow &window, Surface &surface,
+            bool high, bool replace, int sampleCount)
+{
+    const QRect bounds(0, 0, high ? 4096 : 128, high ? 4096 : 128);
+    const QRect occupied = high ? QRect(1536, 1536, 1024, 1024) : bounds;
+    const int layerCount = high ? 24 : 1;
+    auto store = std::make_shared<Store>(gpu.owner, 384 * 1024 * 1024);
+    Document document(store, 8);
+    Document::LayerId target = 0;
+    for (int i = 0; i < layerCount; ++i) {
+        const auto added = document.addLayer(QStringLiteral("Layer %1").arg(i));
+        require(added.result == Document::Result::Accepted, "Cannot add benchmark layer");
+        target = added.id;
+        const auto edit = document.begin(target);
+        require(edit.result == Document::Result::Accepted, "Cannot seed benchmark layer");
+        Store::DabCommand seed;
+        seed.center = occupied.center();
+        seed.diameter = QSizeF(occupied.width() * 4, occupied.height() * 4);
+        seed.rgba = (quint32(i ? 128 : 255) << 24) | quint32((17 + i * 13) % 256)
+            | (quint32((34 + i * 7) % 256) << 8) | (quint32((51 + i * 3) % 256) << 16);
+        require(edit.session->append(edit.token, {seed}, occupied) == Session::Result::Accepted,
+                "Cannot paint benchmark layer");
+        require(document.commit(edit.token) == Document::Result::Accepted, "Cannot commit benchmark layer");
+        until([&] {
+            document.poll();
+            require(document.state() != Document::State::Failed, "Benchmark layer failed");
+            return document.state() == Document::State::Idle;
+        });
+    }
+    KisGpuLayerProjection projection(*store, bounds);
+    const auto edit = document.begin(target);
+    require(edit.result == Document::Result::Accepted, "Cannot begin measured input");
+    Brush::Settings settings;
+    settings.diameter = high ? QSizeF(512, 512) : QSizeF(16, 16);
+    settings.fade = {.8, .8};
+    settings.rgba = 0xCC3366EE;
+    Brush brush(*edit.session, edit.token, settings, bounds);
+    Krita::Canvas::GpuRenderer::View view;
+    const auto physicalWidth = qRound(window.width() * window.devicePixelRatio());
+    const auto physicalHeight = qRound(window.height() * window.devicePixelRatio());
+    view.canvasToTarget.scale(double(physicalWidth) / bounds.width(), double(physicalHeight) / bounds.height());
+    Store::TextureSnapshot image;
+    QJsonArray samples;
+    Run result;
+    const bool presentationTimingAvailable = Surface::presentationClockNanoseconds().has_value();
+    quint64 maximumObservedBytes = gpu.owner.memoryStatistics().reservedBytes;
+    const auto observeMemory = [&] {
+        maximumObservedBytes = std::max(maximumObservedBytes, gpu.owner.memoryStatistics().reservedBytes);
+    };
+    for (int iteration = 0; iteration < sampleCount + 2; ++iteration) {
+        const auto before = store->statistics();
+        const auto beforeDisplay = surface.statistics();
+        const auto cpuStart = std::clock();
+        QElapsedTimer elapsed; elapsed.start();
+        const auto inputTime = Surface::presentationClockNanoseconds();
+        QVector<Brush::Sample> input;
+        const double pi = std::acos(-1.0);
+        const double radius = occupied.width() * (replace ? .22 : .4);
+        const QPointF center = occupied.center();
+        for (int k = 0; k < (replace ? 9 : 1); ++k) {
+            const double angle = replace ? k * pi / 4 + iteration * .03 : iteration * pi / 8;
+            input.push_back({center + QPointF(std::cos(angle) * radius, std::sin(angle) * radius), 1});
+        }
+        const auto update = replace ? brush.replace(input) : brush.append(input);
+        require(update.result == Brush::Result::Accepted, "Measured brush input was rejected");
+        observeMemory();
+        require(projection.setLayers(document.projectionLayers()) == Store::Error::None,
+                "Measured projection was rejected");
+        observeMemory();
+        until([&] {
+            document.poll(); projection.poll();
+            require(projection.status() != Store::Status::Failed, "Measured projection failed");
+            return projection.status() == Store::Status::Succeeded;
+        });
+        const double projectionMs = elapsed.nsecsElapsed() / 1.0e6;
+        // Each frame uses the production immutable snapshot, including its full-canvas allocation.
+        image = store->textureSnapshot(projection.snapshot().pixels, bounds);
+        require(image.error == Store::Error::None, "Measured texture snapshot was rejected");
+        observeMemory();
+        until([&] {
+            store->poll();
+            require(image.completion.status() != Store::Status::Failed, "Measured texture snapshot failed");
+            return image.completion.status() == Store::Status::Succeeded;
+        });
+        const double textureMs = elapsed.nsecsElapsed() / 1.0e6;
+        Surface::Frame frame;
+        int retries = 0;
+        until([&] {
+            surface.poll();
+            frame = surface.present(image, view);
+            if (frame.accepted()) return true;
+            require(frame.error == Surface::Error::ResizePending || frame.error == Surface::Error::QueueFull,
+                    "Measured presentation was rejected");
+            ++retries;
+            return false;
+        });
+        observeMemory();
+        until([&] {
+            surface.poll();
+            require(frame.rendering.status() != Store::Status::Failed, "Measured canvas rendering failed");
+            return frame.rendering.status() == Store::Status::Succeeded;
+        });
+        const double renderingMs = elapsed.nsecsElapsed() / 1.0e6;
+        until([&] {
+            surface.poll();
+            return frame.presentation.status() != Surface::Presentation::Status::Pending;
+        });
+        surface.poll();
+        const double terminalMs = elapsed.nsecsElapsed() / 1.0e6;
+        const double cpuMs = double(std::clock() - cpuStart) * 1000 / CLOCKS_PER_SEC;
+        const auto after = store->statistics();
+        const auto afterDisplay = surface.statistics();
+        require(after.pixelUploadBytes == before.pixelUploadBytes
+                && after.pixelReadbackBytes == before.pixelReadbackBytes, "Measured drawing transferred CPU pixels");
+        const auto displayedTime = frame.presentation.hostTimeNanoseconds();
+        const auto observedTime = Surface::presentationClockNanoseconds();
+        const bool displayed = frame.presentation.status() == Surface::Presentation::Status::Presented;
+        if (displayed) require(inputTime && displayedTime && observedTime
+                               && *displayedTime >= *inputTime && *displayedTime <= *observedTime,
+                               "Presentation timestamp is outside the input/observation interval");
+        if (iteration < 2) continue;
+        result.displayedEverySample &= displayed;
+        const auto status = frame.presentation.status();
+        const QString statusName = status == Surface::Presentation::Status::Presented ? QStringLiteral("presented")
+            : status == Surface::Presentation::Status::Skipped ? QStringLiteral("skipped")
+            : status == Surface::Presentation::Status::Abandoned ? QStringLiteral("abandoned")
+            : QStringLiteral("unavailable");
+        samples.append(QJsonObject {
+            {"inputSamples", input.size()}, {"inputToProjectionMs", projectionMs},
+            {"inputToTextureReadyMs", textureMs}, {"inputToRenderCompletionMs", renderingMs},
+            {"inputToPresentationMs", displayed ? QJsonValue(double(*displayedTime - *inputTime) / 1.0e6) : QJsonValue(QJsonValue::Null)},
+            {"inputToTerminalNotificationMs", terminalMs}, {"cpuMs", cpuMs},
+            {"presentationStatus", statusName}, {"presentationRetries", retries},
+            {"submissions", qint64(after.submissions - before.submissions)},
+            {"computeDispatches", qint64(after.computeDispatches - before.computeDispatches)},
+            {"commandUploadBytes", qint64(after.commandUploadBytes - before.commandUploadBytes)},
+            {"pixelUploadBytes", qint64(after.pixelUploadBytes - before.pixelUploadBytes)},
+            {"pixelReadbackBytes", qint64(after.pixelReadbackBytes - before.pixelReadbackBytes)},
+            {"tileCopyBytes", qint64(after.tileCopyBytes - before.tileCopyBytes)},
+            {"textureCopyBytes", qint64(after.textureCopyBytes - before.textureCopyBytes)},
+            {"canvasSubmissions", qint64(afterDisplay.rendering.submissions - beforeDisplay.rendering.submissions)},
+            {"canvasParameterUploadBytes", qint64(afterDisplay.rendering.parameterUploadBytes - beforeDisplay.rendering.parameterUploadBytes)},
+            {"deviceReservedBytes", qint64(gpu.owner.memoryStatistics().reservedBytes)},
+            {"storeResidentBytes", qint64(after.residentBytes)}, {"cpuRecoveryBytes", qint64(document.recoveryBytes())}
+        });
+    }
+    // The sole verification read is outside every measured interval and counter delta.
+    const auto pixels = gpu.read(image.texture(), bounds.size());
+    require(pixels.size() == bounds.width() * bounds.height() * 4, "Cannot identify the measured final image");
+    QJsonObject summary;
+    for (const auto &metric : {"inputToProjectionMs", "inputToTextureReadyMs", "inputToRenderCompletionMs",
+                               "inputToPresentationMs", "inputToTerminalNotificationMs", "cpuMs"}) {
+        summary.insert(QString::fromLatin1(metric), distribution(samples, QString::fromLatin1(metric)));
+    }
+    result.report = {
+        {"workload", high ? "layer-projection" : "small"}, {"mode", replace ? "replace" : "append"},
+        {"canvasSize", QJsonArray{bounds.width(), bounds.height()}},
+        {"initialOccupiedBounds", QJsonArray{occupied.x(), occupied.y(), occupied.width(), occupied.height()}},
+        {"layerCount", layerCount}, {"brushDiameter", settings.diameter.width()}, {"brushSpacing", settings.spacing},
+        {"physicalTargetSize", QJsonArray{physicalWidth, physicalHeight}},
+        {"presentationTimingAvailable", presentationTimingAvailable}, {"displayedEverySample", result.displayedEverySample},
+        {"maximumObservedDeviceReservedBytes", qint64(maximumObservedBytes)},
+        {"finalImageSha256", QString::fromLatin1(QCryptographicHash::hash(pixels, QCryptographicHash::Sha256).toHex())},
+        {"samples", samples}, {"summary", summary}
+    };
+    require(document.cancel(edit.token) == Document::Result::Accepted, "Cannot close measured input");
+    return result;
+}
+}
+
+int main(int argc, char **argv)
+{
+    QGuiApplication application(argc, argv);
+    QCommandLineParser parser;
+    parser.setApplicationDescription(QStringLiteral("Generated brush input through GPU document, projection and native display"));
+    parser.addHelpOption();
+    const QCommandLineOption samples(QStringLiteral("samples"), QStringLiteral("Measured updates after two warmups (1..1000)"), QStringLiteral("count"), QStringLiteral("15"));
+    const QCommandLineOption workload(QStringLiteral("workload"), QStringLiteral("small, layer-projection or all"), QStringLiteral("name"), QStringLiteral("all"));
+    const QCommandLineOption mode(QStringLiteral("mode"), QStringLiteral("append, replace or all"), QStringLiteral("name"), QStringLiteral("all"));
+    parser.addOptions({samples, workload, mode});
+    if (!parser.parse(application.arguments())) {
+        std::fprintf(stderr, "%s\n", qPrintable(parser.errorText()));
+        return 2;
+    }
+    if (parser.isSet(QStringLiteral("help"))) parser.showHelp();
+    bool validCount = false;
+    const int count = parser.value(samples).toInt(&validCount);
+    const auto selectedWorkload = parser.value(workload), selectedMode = parser.value(mode);
+    if (!validCount || count < 1 || count > 1000
+        || (selectedWorkload != "small" && selectedWorkload != "layer-projection" && selectedWorkload != "all")
+        || (selectedMode != "append" && selectedMode != "replace" && selectedMode != "all")
+        || !parser.positionalArguments().isEmpty()) {
+        std::fputs("Expected --samples 1..1000, --workload small|layer-projection|all, --mode append|replace|all\n", stderr);
+        return 2;
+    }
+    try {
+        KisGpuTestDevice gpu;
+        QWindow window;
+        Surface::prepareWindow(window);
+        window.resize(512, 512);
+        window.show();
+        until([&] { return window.isExposed(); });
+        Surface surface(gpu.owner, window);
+        QJsonArray runs;
+        bool displayedEverySample = true;
+        for (const bool high : {false, true}) for (const bool replace : {false, true}) {
+            if (selectedWorkload != "all" && selectedWorkload != (high ? "layer-projection" : "small")) continue;
+            if (selectedMode != "all" && selectedMode != (replace ? "replace" : "append")) continue;
+            const auto run = execute(gpu, window, surface, high, replace, count);
+            runs.append(run.report);
+            displayedEverySample &= run.displayedEverySample;
+        }
+        require(gpu.owner.errorCount() == 0, "Uncaptured GPU validation errors");
+        QFile executable(QCoreApplication::applicationFilePath());
+        require(executable.open(QIODevice::ReadOnly), "Cannot identify measurement executable");
+        const QJsonDocument report(QJsonObject {
+            {"schemaVersion", 1}, {"adapter", gpu.name}, {"gpuDependencyVersion", "27.0.4.0"},
+            {"executableSha256", QString::fromLatin1(QCryptographicHash::hash(executable.readAll(), QCryptographicHash::Sha256).toHex())},
+            {"inputSource", "generated normalized position and pressure"},
+            {"scheduling", "one update at a time; event and GPU polling with 1 ms sleeps"},
+            {"colorSpace", "RGBA8 sRGB; Over"}, {"memoryAccounting", "logical reservations; physical driver memory excluded"},
+            {"samplesPerRun", count}, {"warmupsPerRun", 2}, {"displayedEverySample", displayedEverySample}, {"runs", runs}
+        });
+        const auto json = report.toJson();
+        require(std::fwrite(json.constData(), 1, size_t(json.size()), stdout) == size_t(json.size()), "Cannot write measurement JSON");
+        return displayedEverySample ? 0 : 3;
+    } catch (const std::exception &error) {
+        std::fprintf(stderr, "%s\n", error.what());
+        return 1;
+    }
+}
