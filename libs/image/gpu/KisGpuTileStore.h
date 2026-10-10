@@ -11,6 +11,7 @@
 #include <QVector>
 #include <QSizeF>
 #include <memory>
+#include <optional>
 #include <webgpu/wgpu.h>
 
 class KisGpuDevice;
@@ -73,7 +74,7 @@ public:
     /** One input in bottom-to-top projection order; an uninitialized mask means unmasked. */
     struct Layer {
         Version pixels;
-        Version mask;
+        Version mask{};
         quint8 opacity = 255;
         CompositeOp operation = CompositeOp::Over;
     };
@@ -83,6 +84,8 @@ public:
         Completion() = default;
         Status status() const;
         quint64 sequence() const;
+        /** GPU compute-pass duration after success, when the device was created with timestamps enabled. */
+        std::optional<quint64> gpuComputeNanoseconds() const;
     private:
         friend class KisGpuTileStore;
         std::shared_ptr<CompletionData> d;
@@ -110,6 +113,7 @@ public:
         quint64 computeDispatches = 0;
         quint64 pixelReadbackBytes = 0;
         quint64 pixelUploadBytes = 0;
+        quint64 timingReadbackBytes = 0;
     };
 
     /**

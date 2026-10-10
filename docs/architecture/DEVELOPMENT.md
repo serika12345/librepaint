@@ -209,12 +209,14 @@ macOSの試験はMetal、Linuxの試験はVulkanを使用する。実GPUへア�
 
 ### GPU描画の一括発行計測
 
-`KisGpuPaintBenchmark`は、一個ずつ発行する描画と一括発行する描画を比較する。
+`KisGpuPaintBenchmark`は、一個ずつ発行する描画と一括発行する描画、
+個別のレイヤー合成と変更領域を一回で処理する投影を比較する。
 評価済みのテスト環境でGPU文書タイルを有効にした後、次を実行する。
 
 ```sh
 build-incremental native build KisGpuPaintBenchmark
 "$(build-incremental native path)/bin/KisGpuPaintBenchmark" --samples 15 > build/gpu-paint-benchmark.json
+"$(build-incremental native path)/bin/KisGpuPaintBenchmark" --samples 15 --gpu-timing > build/gpu-paint-timing.json
 ```
 
 | 固定入力 | 初期領域 | 印の数と配置 |
@@ -222,6 +224,7 @@ build-incremental native build KisGpuPaintBenchmark
 | `small` | 128×128 | 8×8の印を一個 |
 | `overlapping` | 128×128 | 一枚のタイル内で重なる32×32の印を128個 |
 | `scattered` | 2048×1024 | 四枚のタイルにまたがる64×64の印を128個、相互に離して配置 |
+| `layer-projection` | 4096×4096の疎な領域 | 中央の1024×1024に半透明レイヤー24枚を重ねる |
 
 通常合成と消去、不透明度と一定被覆率を固定する。初期タイルとパイプラインの準備、
 最終画像の完全一致検査とCPU読み戻しは計測区間外で行う。
@@ -234,8 +237,15 @@ JSONは全試行、経過時間・CPU実働・発行処理時間の中央値とP
 完了処理と資源解放を含める。メモリー量はタイル所有者の計上範囲を対象とする。
 結果には実行ファイルと最終画像のSHA-256を含める。
 
+JSONの形式は版2で、`gpuTimingEnabled`が時刻計測の有無を表す。
+`--gpu-timing`は各計算区間のGPU実行時間を加算し、`gpuComputeMs`の中央値とP95を追加する。
+GPU内の画素複製、CPUでの発行・待機と実表示の遅延は、この値と分けて評価する。
+時刻値だけのCPU転送を`timingReadbackBytes`へ記録し、画素転送へ加算しない。
+計測処理の費用が加わるため、通常の経過時間とCPU実働の比較には時刻計測を無効にした結果を使う。
+初期レイヤーの生成と全4096×4096画素の一致検査も計測区間外で行う。
+
 この計測はGPUタイル更新の発行方式を評価する。製品統合ではブラシ生成、レイヤー合成、
-表示、色変換を含めた入力から実表示までの遅延と、GPU処理時間を別途測定する。
+表示、色変換を含めた入力から実表示までの遅延を別途測定する。
 GPU検査を有効にした条件で比較し、異なる実装の結果は実行ファイル識別値とともに保持する。
 
 ## デスクトップ

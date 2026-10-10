@@ -90,6 +90,7 @@ struct KisGpuTileStore::VersionData {
 };
 
 struct KisGpuTileStore::CompletionData {
+    std::optional<quint64> gpuNanoseconds;
     std::atomic<Status> status{Status::Pending};
     std::atomic<unsigned> remaining{3};
     std::atomic<bool> failed{false};
@@ -123,6 +124,33 @@ struct KisGpuTileStore::ReadbackData {
 };
 
 struct KisGpuTileStore::Private {
+    struct Timing {
+        std::shared_ptr<KisGpuTileStorage::NativeDevice> owner;
+        std::shared_ptr<KisGpuTileStorage::Allocation> resolved, staging;
+        WGPUQuerySet queries = nullptr;
+        quint32 passes, firstQuery;
+        Timing(const std::shared_ptr<KisGpuTileStorage::DeviceState> &state, quint32 passes);
+        ~Timing();
+        Timing(const Timing &) = delete;
+        Timing &operator=(const Timing &) = delete;
+    };
+    struct TimingReadbackData {
+        std::shared_ptr<CompletionData> completion;
+        WGPUBuffer buffer;
+        float period;
+        quint32 passes;
+    };
+    struct Recording {
+        WGPUCommandEncoder value;
+        std::shared_ptr<Timing> timing;
+        quint32 nextPass = 0;
+        Recording(const std::shared_ptr<KisGpuTileStorage::DeviceState> &state, quint32 passes);
+        ~Recording();
+        Recording(const Recording &) = delete;
+        Recording &operator=(const Recording &) = delete;
+        WGPUComputePassEncoder beginComputePass();
+        WGPUCommandBuffer finish();
+    };
     struct ErrorScopes {
         WGPUDevice device;
         std::shared_ptr<CompletionData> completion;
@@ -155,10 +183,12 @@ struct KisGpuTileStore::Private {
         Version source, result;
         std::shared_ptr<KisGpuTileStorage::Allocation> parameters, commands;
         QVector<Version> inputs;
+        std::shared_ptr<Timing> timing = {};
     };
     std::shared_ptr<KisGpuTileStorage::DeviceState> state;
     quint64 budget;
     quint32 maximumPending;
+    bool timestamps = false;
     WGPULimits limits{};
     quint64 tilesPerAllocation = 0;
     WGPUBindGroupLayout layout = nullptr;
@@ -170,10 +200,12 @@ struct KisGpuTileStore::Private {
     std::vector<Pending> pending;
 
     Private(std::shared_ptr<KisGpuTileStorage::NativeDevice> nativeOwner, quint64 bytes, quint32 maximum);
+    quint64 availableForOperation(quint32 passes = 1) const;
+    void mapTiming(std::unique_ptr<TimingReadbackData> result);
 
     void submit(Pending operation, WGPUCommandBuffer commandBuffer, const std::vector<char> &parameters,
                 const std::vector<KisGpuTileStorage::TileCommand> &commands, quint64 copiedBytes, quint64 dispatches,
-                const QByteArray &pixelInput = {});
+                const QByteArray &pixelInput = {}, std::shared_ptr<Timing> timing = {});
 
     void collect();
 

@@ -35,6 +35,7 @@ KisGpuTileStore::Private::Private(std::shared_ptr<NativeDevice> nativeOwner, qui
     }
     state = std::make_shared<DeviceState>(std::move(nativeOwner));
     const auto device = state->device;
+    timestamps = wgpuDeviceHasFeature(device, WGPUFeatureName_TimestampQuery);
     if (wgpuDeviceGetLimits(device, &limits) != WGPUStatus_Success
         || limits.maxStorageBufferBindingSize < TileBytes || limits.maxBufferSize < TileBytes
         || limits.minStorageBufferOffsetAlignment == 0 || limits.maxComputeWorkgroupsPerDimension < 8) {
@@ -113,8 +114,16 @@ KisGpuTileStore::Private::Private(std::shared_ptr<NativeDevice> nativeOwner, qui
 }
 
 void KisGpuTileStore::Private::submit(Pending operation, WGPUCommandBuffer commandBuffer, const std::vector<char> &parameters,
-            const std::vector<TileCommand> &commands, quint64 copiedBytes, quint64 dispatches, const QByteArray &pixelInput) {
+            const std::vector<TileCommand> &commands, quint64 copiedBytes, quint64 dispatches, const QByteArray &pixelInput, std::shared_ptr<Timing> timing) {
     const auto completion = operation.completion;
+    // Prepare notification storage before any command can reach the queue.
+    std::unique_ptr<TimingReadbackData> timingResult;
+    if (timing) {
+        timingResult = std::make_unique<TimingReadbackData>(TimingReadbackData{
+            completion, timing->staging->buffer, wgpuQueueGetTimestampPeriod(state->queue), timing->passes});
+        completion->remaining.fetch_add(1);
+        operation.timing = timing;
+    }
     if (operation.source.d) completion->dependencies.push_back(operation.source.d->completion);
     for (const auto &input : operation.inputs) {
         if (input.d && !(input == operation.source)) completion->dependencies.push_back(input.d->completion);
@@ -144,6 +153,7 @@ void KisGpuTileStore::Private::submit(Pending operation, WGPUCommandBuffer comma
         (*completion)->complete(status == WGPUQueueWorkDoneStatus_Success);
     };
     wgpuQueueOnSubmittedWorkDone(state->queue, callback);
+    if (timingResult) mapTiming(std::move(timingResult));
     ++statistics.submissions;
     statistics.computeDispatches += dispatches;
     statistics.commandUploadBytes += parameters.size() + commands.size() * sizeof(TileCommand);
@@ -268,8 +278,7 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
         result.error = Error::DeviceLost;
         return result;
     }
-    const quint64 resident = d->state->residentBytes.load();
-    const quint64 available = resident <= d->budget ? d->budget - resident : 0;
+    const quint64 available = d->availableForOperation();
     const quint64 alignment = d->limits.minStorageBufferOffsetAlignment;
     const quint64 capacity = d->tilesPerAllocation;
     const quint64 parameterStride = (capacity * sizeof(TileParameters) + alignment - 1) / alignment * alignment;
@@ -337,7 +346,8 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
         result.completion.d = base.d->completion;
         return result;
     }
-    if (d->pending.size() >= d->maximumPending) {
+    if (d->pending.size() >= d->maximumPending
+        || (d->timestamps && !d->state->nativeOwner->queriesAvailable(2))) {
         result.error = Error::QueueFull;
         return result;
     }
@@ -355,8 +365,7 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
     std::vector<std::shared_ptr<Allocation>> allocations;
     std::vector<TileCommand> packedCommands;
     packedCommands.reserve(size_t(commandCount));
-    Handle<WGPUCommandEncoder, wgpuCommandEncoderRelease> encoder(
-        wgpuDeviceCreateCommandEncoder(d->state->device, nullptr));
+    Private::Recording encoder(d->state, d->timestamps);
     quint64 copiedBytes = 0;
     quint32 index = 0;
     for (const auto &entry : tileCommands) {
@@ -385,7 +394,7 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
     }
     {
         Handle<WGPUComputePassEncoder, wgpuComputePassEncoderRelease> pass(
-            wgpuCommandEncoderBeginComputePass(encoder.value, nullptr));
+            encoder.beginComputePass());
         wgpuComputePassEncoderSetPipeline(pass.value, d->pipeline);
         for (size_t groupIndex = 0; groupIndex < allocations.size(); ++groupIndex) {
             const auto &allocation = allocations[groupIndex];
@@ -413,10 +422,10 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
         wgpuComputePassEncoderEnd(pass.value);
     }
     Handle<WGPUCommandBuffer, wgpuCommandBufferRelease> commandBuffer(
-        wgpuCommandEncoderFinish(encoder.value, nullptr));
+        encoder.finish());
     result.version.d = std::move(data);
     d->submit({result.completion.d, base, result.version, parameters, commandStorage, {}}, commandBuffer.value,
-              packedParameters, packedCommands, copiedBytes, allocations.size());
+              packedParameters, packedCommands, copiedBytes, allocations.size(), {}, encoder.timing);
     errors.submitted = true;
     return result;
 }

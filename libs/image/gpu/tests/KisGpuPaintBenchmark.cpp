@@ -25,6 +25,7 @@ struct Workload {
     QString name;
     QRect bounds;
     QVector<KisGpuTileStore::PaintCommand> commands;
+    int layerCount = 0;
 };
 
 QVector<Workload> workloads()
@@ -41,6 +42,7 @@ QVector<Workload> workloads()
         result[1].commands.push_back({QRect(5 + i * 7 % 24, 7 + i * 11 % 24, 32, 32), color, operation, 192, 128});
         result[2].commands.push_back({QRect(i % 16 * 128 + 5, i / 16 * 128 + 7, 64, 64), color, operation, 192, 128});
     }
+    result.push_back({QStringLiteral("layer-projection"), QRect(0, 0, 4096, 4096), {}, 24});
     return result;
 }
 
@@ -67,22 +69,32 @@ void wait(KisGpuTestDevice &gpu, KisGpuTileStore &store, const QVector<KisGpuTil
 }
 
 Run execute(KisGpuTestDevice &gpu, KisGpuTileStore &store, const KisGpuTileStore::Version &base,
-            const Workload &workload, bool batched)
+            const Workload &workload, const QVector<KisGpuTileStore::Layer> &layers, bool batched)
 {
     Run result;
     result.version = base;
     QVector<KisGpuTileStore::Completion> completions;
-    completions.reserve(batched ? 1 : workload.commands.size());
+    completions.reserve(batched ? 1 : layers.isEmpty() ? workload.commands.size() : layers.size());
     const auto before = store.statistics();
     const std::clock_t cpuStart = std::clock();
     QElapsedTimer elapsed;
     elapsed.start();
     auto retain = [&](const KisGpuTileStore::Edit &edit) {
-        if (edit.error != KisGpuTileStore::Error::None) throw std::runtime_error("GPU edit was rejected");
+        if (edit.error != KisGpuTileStore::Error::None) {
+            throw std::runtime_error(QStringLiteral("GPU update rejected: workload=%1 mode=%2 error=%3 resident=%4 diagnostic=%5")
+                .arg(workload.name, batched ? QStringLiteral("batched") : QStringLiteral("individual"))
+                .arg(int(edit.error)).arg(store.statistics().residentBytes).arg(gpu.owner.lastError()).toStdString());
+        }
         result.version = edit.version;
         completions.push_back(edit.completion);
     };
-    if (batched) {
+    if (!layers.isEmpty() && batched) {
+        retain(store.project(base, layers, workload.bounds));
+    } else if (!layers.isEmpty()) {
+        for (const auto &layer : layers) {
+            retain(store.composite(result.version, layer.pixels, workload.bounds, layer.operation, layer.opacity));
+        }
+    } else if (batched) {
         retain(store.paint(base, workload.commands));
     } else {
         for (const auto &command : workload.commands) {
@@ -108,13 +120,25 @@ Run execute(KisGpuTestDevice &gpu, KisGpuTileStore &store, const KisGpuTileStore
         {"submissions", qint64(after.submissions - before.submissions)},
         {"computeDispatches", qint64(after.computeDispatches - before.computeDispatches)}
     };
+    if (!completions.isEmpty() && completions.front().gpuComputeNanoseconds()) {
+        quint64 total = 0;
+        for (const auto &completion : completions) {
+            const auto time = completion.gpuComputeNanoseconds();
+            if (!time) throw std::runtime_error("Missing GPU compute duration");
+            total += *time;
+        }
+        result.measurement.insert(QStringLiteral("gpuComputeMs"), double(total) / 1e6);
+    }
+    result.measurement.insert(QStringLiteral("timingReadbackBytes"), qint64(after.timingReadbackBytes - before.timingReadbackBytes));
     return result;
 }
 
 QJsonObject summarize(const char *mode, const QJsonArray &samples)
 {
     QJsonObject result {{"mode", mode}, {"samples", samples}};
-    for (const QString &metric : {QStringLiteral("wallMs"), QStringLiteral("cpuMs"), QStringLiteral("enqueueMs")}) {
+    QStringList metrics {QStringLiteral("wallMs"), QStringLiteral("cpuMs"), QStringLiteral("enqueueMs")};
+    if (!samples.isEmpty() && samples.first().toObject().contains(QStringLiteral("gpuComputeMs"))) metrics << QStringLiteral("gpuComputeMs");
+    for (const QString &metric : metrics) {
         QVector<double> values;
         for (const auto &sample : samples) values.push_back(sample.toObject()[metric].toDouble());
         std::sort(values.begin(), values.end());
@@ -135,6 +159,8 @@ int main(int argc, char **argv)
     QCommandLineOption sampleOption(QStringLiteral("samples"), QStringLiteral("Samples per mode after two warmups"),
                                    QStringLiteral("count"), QStringLiteral("15"));
     parser.addOption(sampleOption);
+    QCommandLineOption timingOption(QStringLiteral("gpu-timing"), QStringLiteral("Measure GPU compute passes in a separate profiling run"));
+    parser.addOption(timingOption);
     parser.process(application);
     bool valid = false;
     const int sampleCount = parser.value(sampleOption).toInt(&valid);
@@ -143,17 +169,27 @@ int main(int argc, char **argv)
         return 2;
     }
     try {
-        KisGpuTestDevice gpu;
+        KisGpuTestDevice gpu(0, parser.isSet(timingOption));
         QJsonArray reports;
         for (const auto &workload : workloads()) {
             KisGpuTileStore store(gpu.owner, BudgetBytes);
-            const auto base = store.fill(store.emptyVersion(), workload.bounds, 0xC0102030);
+            const auto base = workload.layerCount
+                ? store.paint(store.emptyVersion(), QVector<KisGpuTileStore::PaintCommand>())
+                : store.fill(store.emptyVersion(), workload.bounds, 0xC0102030);
             if (base.error != KisGpuTileStore::Error::None) throw std::runtime_error("Cannot initialize benchmark tiles");
             wait(gpu, store, {base.completion});
+            QVector<KisGpuTileStore::Layer> layers;
+            const QRect layerBounds(1536, 1536, 1024, 1024);
+            for (int i = 0; i < workload.layerCount; ++i) {
+                const auto layer = store.fill(store.emptyVersion(), layerBounds, 0x80000000 | (quint32(i * 123457) & 0x00FFFFFF));
+                if (layer.error != KisGpuTileStore::Error::None) throw std::runtime_error("Cannot initialize benchmark layers");
+                wait(gpu, store, {layer.completion});
+                layers.push_back({layer.version});
+            }
             QByteArray digest;
             {
-                const auto individual = execute(gpu, store, base.version, workload, false);
-                const auto batch = execute(gpu, store, base.version, workload, true);
+                const auto individual = execute(gpu, store, base.version, workload, layers, false);
+                const auto batch = execute(gpu, store, base.version, workload, layers, true);
                 const QByteArray image = gpu.read(batch.version, workload.bounds);
                 if (image.size() != workload.bounds.width() * workload.bounds.height() * 4
                     || image != gpu.read(individual.version, workload.bounds)) {
@@ -166,7 +202,7 @@ int main(int argc, char **argv)
                 // Alternate which mode runs first to balance order and warmup effects.
                 for (int mode = 0; mode < 2; ++mode) {
                     const bool batched = (i + mode) % 2 == 0;
-                    auto run = execute(gpu, store, base.version, workload, batched);
+                    auto run = execute(gpu, store, base.version, workload, layers, batched);
                     if (i >= 0) {
                         run.measurement.insert(QStringLiteral("iteration"), i);
                         (batched ? batchSamples : individualSamples).append(run.measurement);
@@ -175,7 +211,9 @@ int main(int argc, char **argv)
             }
             reports.append(QJsonObject {
                 {"workload", workload.name}, {"width", workload.bounds.width()}, {"height", workload.bounds.height()},
-                {"commands", workload.commands.size()}, {"baseTiles", base.version.tileCount()},
+                {"commands", layers.isEmpty() ? workload.commands.size() : layers.size()},
+                {"baseTiles", base.version.tileCount()}, {"layers", layers.size()},
+                {"layerBounds", workload.layerCount ? QJsonArray{layerBounds.x(), layerBounds.y(), layerBounds.width(), layerBounds.height()} : QJsonArray{}},
                 {"imageSha256", QString::fromLatin1(digest)},
                 {"modes", QJsonArray {summarize("individual", individualSamples), summarize("batched", batchSamples)}}
             });
@@ -185,7 +223,8 @@ int main(int argc, char **argv)
         if (!executable.open(QIODevice::ReadOnly)) throw std::runtime_error("Cannot identify benchmark executable");
         const QByteArray executableDigest = QCryptographicHash::hash(executable.readAll(), QCryptographicHash::Sha256).toHex();
         const QJsonDocument report(QJsonObject {
-            {"schema", 1}, {"adapter", gpu.name}, {"wgpuNativeVersion", QString::number(wgpuGetVersion(), 16)},
+            {"schema", 2}, {"adapter", gpu.name}, {"wgpuNativeVersion", QString::number(wgpuGetVersion(), 16)},
+            {"gpuTimingEnabled", parser.isSet(timingOption)},
             {"executableSha256", QString::fromLatin1(executableDigest)},
             {"validationEnabled", true}, {"budgetBytes", qint64(BudgetBytes)},
             {"samplesPerMode", sampleCount}, {"warmupsPerMode", 2}, {"workloads", reports}

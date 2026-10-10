@@ -32,8 +32,7 @@ KisGpuTileStore::Edit KisGpuTileStore::project(const Version &previous, const QV
         const qint64 x = qint64(coordinate.first) * 64, y = qint64(coordinate.second) * 64;
         return x < right && x + 64 > left && y < bottom && y + 64 > top;
     };
-    const quint64 resident = d->state->residentBytes.load();
-    const quint64 available = resident <= d->budget ? d->budget - resident : 0;
+    const quint64 available = d->availableForOperation();
     std::set<Coordinate> affected;
     const auto include = [&](Coordinate coordinate) {
         affected.insert(coordinate);
@@ -106,9 +105,19 @@ KisGpuTileStore::Edit KisGpuTileStore::project(const Version &previous, const QV
         entry.second.parameterOffset = align(parameterBytes);
         parameterBytes = entry.second.parameterOffset + entry.second.parameters.size() * sizeof(CompositeParameters);
     }
+    quint32 passes = 1;
+    qsizetype lastLayer = -1;
+    for (const auto &entry : groups) {
+        if (entry.second.layer != lastLayer) { ++passes; lastLayer = entry.second.layer; }
+    }
+    // Bound timestamped recording before native command-buffer allocation.
+    if (d->timestamps && passes > NativeDevice::MaximumTimedPasses) return {Error::BudgetExceeded, {}, {}};
+    if (d->timestamps && !d->state->nativeOwner->queriesAvailable(passes * 2)) return {Error::QueueFull, {}, {}};
+    const quint64 timingExtra = d->timestamps ? quint64(passes - 1) * 32 : 0;
     const quint64 remaining = available - count * TileBytes;
     if (commandBytes > d->limits.maxStorageBufferBindingSize || commandBytes > d->limits.maxBufferSize
-        || parameterBytes > d->limits.maxBufferSize || parameterBytes > remaining || commandBytes > remaining - parameterBytes) {
+        || parameterBytes > d->limits.maxBufferSize || parameterBytes > remaining || commandBytes > remaining - parameterBytes
+        || timingExtra > remaining - parameterBytes - commandBytes) {
         return {Error::BudgetExceeded, {}, {}};
     }
     packedParameters.resize(size_t(parameterBytes), 0);
@@ -119,7 +128,7 @@ KisGpuTileStore::Edit KisGpuTileStore::project(const Version &previous, const QV
     auto parameters = std::make_shared<Allocation>(d->state, parameterBytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
     auto commands = std::make_shared<Allocation>(d->state, commandBytes, WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
     std::vector<std::shared_ptr<Allocation>> allocations;
-    Handle<WGPUCommandEncoder, wgpuCommandEncoderRelease> encoder(wgpuDeviceCreateCommandEncoder(d->state->device, nullptr));
+    Private::Recording encoder(d->state, d->timestamps ? passes : 0);
     quint64 copiedBytes = 0;
     index = 0;
     for (const auto &coordinate : affected) {
@@ -140,7 +149,7 @@ KisGpuTileStore::Edit KisGpuTileStore::project(const Version &previous, const QV
         ++index;
     }
     {
-        Handle<WGPUComputePassEncoder, wgpuComputePassEncoderRelease> pass(wgpuCommandEncoderBeginComputePass(encoder.value, nullptr));
+        Handle<WGPUComputePassEncoder, wgpuComputePassEncoderRelease> pass(encoder.beginComputePass());
         wgpuComputePassEncoderSetPipeline(pass.value, d->pipeline);
         for (quint64 i = 0; i < allocationCount; ++i) {
             WGPUBindGroupEntry entries[3]{};
@@ -159,7 +168,7 @@ KisGpuTileStore::Edit KisGpuTileStore::project(const Version &previous, const QV
     auto entry = groups.begin();
     while (entry != groups.end()) {
         const qsizetype layer = entry->second.layer;
-        Handle<WGPUComputePassEncoder, wgpuComputePassEncoderRelease> pass(wgpuCommandEncoderBeginComputePass(encoder.value, nullptr));
+        Handle<WGPUComputePassEncoder, wgpuComputePassEncoderRelease> pass(encoder.beginComputePass());
         wgpuComputePassEncoderSetPipeline(pass.value, d->compositePipeline);
         do {
             const auto &group = entry->second;
@@ -180,7 +189,7 @@ KisGpuTileStore::Edit KisGpuTileStore::project(const Version &previous, const QV
         } while (entry != groups.end() && entry->second.layer == layer);
         wgpuComputePassEncoderEnd(pass.value);
     }
-    Handle<WGPUCommandBuffer, wgpuCommandBufferRelease> commandBuffer(wgpuCommandEncoderFinish(encoder.value, nullptr));
+    Handle<WGPUCommandBuffer, wgpuCommandBufferRelease> commandBuffer(encoder.finish());
     QVector<Version> inputs;
     for (const auto &layer : layers) {
         inputs.push_back(layer.pixels);
@@ -188,7 +197,7 @@ KisGpuTileStore::Edit KisGpuTileStore::project(const Version &previous, const QV
     }
     result.version.d = std::move(data);
     d->submit({result.completion.d, previous, result.version, parameters, commands, inputs}, commandBuffer.value,
-              packedParameters, clearCommands, copiedBytes, allocationCount + groups.size());
+              packedParameters, clearCommands, copiedBytes, allocationCount + groups.size(), {}, encoder.timing);
     errors.submitted = true;
     return result;
 }

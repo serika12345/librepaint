@@ -41,8 +41,7 @@ KisGpuTileStore::Edit KisGpuTileStore::compositePixels(const Version &base, cons
         return result;
     };
     if (rectangle.isEmpty() || opacity == 0 || coverage == 0) return unchanged();
-    const quint64 resident = d->state->residentBytes.load();
-    const quint64 available = resident <= d->budget ? d->budget - resident : 0;
+    const quint64 available = d->availableForOperation();
     const quint64 capacity = d->tilesPerAllocation;
     const qint64 left = rectangle.x(), top = rectangle.y();
     const qint64 right = left + rectangle.width(), bottom = top + rectangle.height();
@@ -85,7 +84,8 @@ KisGpuTileStore::Edit KisGpuTileStore::compositePixels(const Version &base, cons
         coordinates.push_back(entry.first);
     }
     if (coordinates.empty()) return unchanged();
-    if (d->pending.size() >= d->maximumPending) {
+    if (d->pending.size() >= d->maximumPending
+        || (d->timestamps && !d->state->nativeOwner->queriesAvailable(2))) {
         result.error = Error::QueueFull;
         return result;
     }
@@ -108,8 +108,7 @@ KisGpuTileStore::Edit KisGpuTileStore::compositePixels(const Version &base, cons
         WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
     std::vector<char> packedParameters(size_t(parameterBytes), 0);
     std::vector<std::shared_ptr<Allocation>> allocations;
-    Handle<WGPUCommandEncoder, wgpuCommandEncoderRelease> encoder(
-        wgpuDeviceCreateCommandEncoder(d->state->device, nullptr));
+    Private::Recording encoder(d->state, d->timestamps);
     quint64 copiedBytes = 0;
     for (quint64 index = 0; index < coordinates.size(); ++index) {
         if (index % capacity == 0) {
@@ -129,7 +128,7 @@ KisGpuTileStore::Edit KisGpuTileStore::compositePixels(const Version &base, cons
     }
     {
         Handle<WGPUComputePassEncoder, wgpuComputePassEncoderRelease> pass(
-            wgpuCommandEncoderBeginComputePass(encoder.value, nullptr));
+            encoder.beginComputePass());
         wgpuComputePassEncoderSetPipeline(pass.value, d->compositePipeline);
         for (const auto &entry : groups) {
             const auto &group = entry.second;
@@ -162,10 +161,10 @@ KisGpuTileStore::Edit KisGpuTileStore::compositePixels(const Version &base, cons
         wgpuComputePassEncoderEnd(pass.value);
     }
     Handle<WGPUCommandBuffer, wgpuCommandBufferRelease> commandBuffer(
-        wgpuCommandEncoderFinish(encoder.value, nullptr));
+        encoder.finish());
     result.version.d = std::move(data);
     d->submit({result.completion.d, base, result.version, parameters, {}, mask ? QVector<Version>{source, *mask} : QVector<Version>{source}}, commandBuffer.value,
-              packedParameters, {}, copiedBytes, groups.size());
+              packedParameters, {}, copiedBytes, groups.size(), {}, encoder.timing);
     errors.submitted = true;
     return result;
 }

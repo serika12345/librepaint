@@ -4,6 +4,7 @@
  */
 #include "KisGpuDevice.h"
 #include "KisGpuDevice_p.h"
+#include <algorithm>
 #include <cstring>
 #include <future>
 #include <stdexcept>
@@ -18,7 +19,7 @@ QString message(WGPUStringView value)
 
 using namespace KisGpuTileStorage;
 
-NativeDevice::NativeDevice(quint64 storageBindingLimit) {
+NativeDevice::NativeDevice(quint64 storageBindingLimit, bool timestamps) {
     try {
         if (wgpuGetVersion() != 0x1b000400) throw std::runtime_error("GPU document requires wgpu-native 27.0.4.0");
         if (wgpuLibrePaintRecoveryRevision() != 1) throw std::runtime_error("GPU document requires recovery revision 1");
@@ -60,6 +61,12 @@ NativeDevice::NativeDevice(quint64 storageBindingLimit) {
             requestedLimits.maxStorageBufferBindingSize = storageBindingLimit;
         }
         WGPUDeviceDescriptor descriptor{};
+        const WGPUFeatureName timingFeature = WGPUFeatureName_TimestampQuery;
+        if (timestamps) {
+            if (!wgpuAdapterHasFeature(adapter, timingFeature)) throw std::runtime_error("GPU timestamp profiling is unsupported");
+            descriptor.requiredFeatureCount = 1;
+            descriptor.requiredFeatures = &timingFeature;
+        }
         if (storageBindingLimit) descriptor.requiredLimits = &requestedLimits;
         descriptor.deviceLostCallbackInfo.mode = WGPUCallbackMode_AllowSpontaneous;
         descriptor.deviceLostCallbackInfo.userdata1 = this;
@@ -90,6 +97,13 @@ NativeDevice::NativeDevice(quint64 storageBindingLimit) {
         wgpuAdapterRequestDevice(adapter, &descriptor, deviceCallback);
         device = deviceFuture.get();
         if (!device) throw std::runtime_error("Cannot create GPU device");
+        if (timestamps) {
+            WGPUQuerySetDescriptor queries{};
+            queries.type = WGPUQueryType_Timestamp;
+            queries.count = TimestampQueryCount; // wgpu-types 27.0.1 QUERY_SET_MAX_QUERIES
+            timestampQueries = wgpuDeviceCreateQuerySet(device, &queries);
+            if (!timestampQueries || !availability->available.load()) throw std::runtime_error("Cannot create GPU timestamp storage");
+        }
     } catch (...) {
         release();
         throw;
@@ -108,13 +122,41 @@ void NativeDevice::destroy() {
 }
 void NativeDevice::release() {
     destroy();
+    if (timestampQueries) wgpuQuerySetRelease(timestampQueries);
     if (device) wgpuDeviceRelease(device);
     if (adapter) wgpuAdapterRelease(adapter);
     if (instance) wgpuInstanceRelease(instance);
 }
 NativeDevice::~NativeDevice() { release(); }
 
-KisGpuDevice::KisGpuDevice(quint64 storageBindingLimit) : d(std::make_shared<NativeDevice>(storageBindingLimit)) {}
+bool NativeDevice::queriesAvailable(quint32 count) const
+{
+    return timestampQueries && availableQueryStart(count) < TimestampQueryCount;
+}
+quint32 NativeDevice::availableQueryStart(quint32 count) const
+{
+    if (!count || count > TimestampQueryCount) return TimestampQueryCount;
+    quint32 available = 0;
+    for (quint32 i = 0; i < TimestampQueryCount; ++i) {
+        available = occupiedQueries[i] ? 0 : available + 1;
+        if (available == count) return i + 1 - count;
+    }
+    return TimestampQueryCount;
+}
+quint32 NativeDevice::acquireQueries(quint32 count)
+{
+    const auto first = availableQueryStart(count);
+    if (first == TimestampQueryCount) throw std::runtime_error("GPU timestamp slots were not reserved before submission");
+    std::fill(occupiedQueries.begin() + first, occupiedQueries.begin() + first + count, true);
+    return first;
+}
+void NativeDevice::releaseQueries(quint32 first, quint32 count)
+{
+    std::fill(occupiedQueries.begin() + first, occupiedQueries.begin() + first + count, false);
+}
+
+KisGpuDevice::KisGpuDevice(quint64 storageBindingLimit, bool timestamps)
+    : d(std::make_shared<NativeDevice>(storageBindingLimit, timestamps)) {}
 KisGpuDevice::~KisGpuDevice() { d->destroy(); }
 WGPUDevice KisGpuDevice::device() const { return d->device; }
 QString KisGpuDevice::adapterName() const { return d->name; }

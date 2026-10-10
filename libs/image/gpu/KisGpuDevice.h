@@ -22,8 +22,11 @@ namespace KisGpuTileStorage { struct NativeDevice; }
 class KisGpuDevice
 {
 public:
-    /** Zero uses default limits; a positive storage limit requests the adapter's other limits. */
-    explicit KisGpuDevice(quint64 storageBindingLimit = 0);
+    /**
+     * Zero uses default limits; a positive storage limit requests the adapter's other limits.
+     * Timestamps enable compute profiling; unsupported hardware throws std::runtime_error.
+     */
+    explicit KisGpuDevice(quint64 storageBindingLimit = 0, bool timestamps = false);
     ~KisGpuDevice();
     KisGpuDevice(const KisGpuDevice &) = delete;
     KisGpuDevice &operator=(const KisGpuDevice &) = delete;
