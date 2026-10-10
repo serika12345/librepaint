@@ -66,12 +66,14 @@ struct Allocation {
 
 using Coordinate = std::pair<int, int>;
 int tileCoordinate(qint64 pixel) { return int(pixel >= 0 ? pixel / 64 : (pixel + 1) / 64 - 1); }
-struct FillParameters {
+struct TileCommand {
     quint32 left, top, right, bottom, color, operation, opacity, coverage;
 };
-static_assert(sizeof(FillParameters) == 32);
-
-
+static_assert(sizeof(TileCommand) == 32);
+struct TileParameters {
+    quint32 firstCommand, commandCount, padding[2];
+};
+static_assert(sizeof(TileParameters) == 16);
 }
 
 struct KisGpuTileStore::VersionData {
@@ -122,7 +124,7 @@ struct KisGpuTileStore::Private {
     struct Pending {
         std::shared_ptr<CompletionData> completion;
         Version source, result;
-        std::shared_ptr<Allocation> parameters;
+        std::shared_ptr<Allocation> parameters, commands;
     };
     std::shared_ptr<DeviceState> state;
     quint64 budget;
@@ -139,10 +141,10 @@ struct KisGpuTileStore::Private {
         }
         state = std::make_shared<DeviceState>(device);
         if (wgpuDeviceGetLimits(device, &limits) != WGPUStatus_Success
-            || limits.maxStorageBufferBindingSize < TileBytes) {
+            || limits.maxStorageBufferBindingSize < TileBytes || limits.minUniformBufferOffsetAlignment == 0) {
             throw std::runtime_error("GPU device cannot bind a document tile");
         }
-        WGPUBindGroupLayoutEntry entries[2]{};
+        WGPUBindGroupLayoutEntry entries[3]{};
         entries[0].binding = 0;
         entries[0].visibility = WGPUShaderStage_Compute;
         entries[0].buffer.type = WGPUBufferBindingType_Storage;
@@ -151,9 +153,13 @@ struct KisGpuTileStore::Private {
         entries[1].visibility = WGPUShaderStage_Compute;
         entries[1].buffer.type = WGPUBufferBindingType_Uniform;
         entries[1].buffer.hasDynamicOffset = true;
-        entries[1].buffer.minBindingSize = sizeof(FillParameters);
+        entries[1].buffer.minBindingSize = sizeof(TileParameters);
+        entries[2].binding = 2;
+        entries[2].visibility = WGPUShaderStage_Compute;
+        entries[2].buffer.type = WGPUBufferBindingType_ReadOnlyStorage;
+        entries[2].buffer.minBindingSize = sizeof(TileCommand);
         WGPUBindGroupLayoutDescriptor layoutDescriptor{};
-        layoutDescriptor.entryCount = 2;
+        layoutDescriptor.entryCount = 3;
         layoutDescriptor.entries = entries;
         Handle<WGPUBindGroupLayout, wgpuBindGroupLayoutRelease> groupLayout(
             wgpuDeviceCreateBindGroupLayout(device, &layoutDescriptor));
@@ -178,7 +184,7 @@ struct KisGpuTileStore::Private {
         WGPUComputePipelineDescriptor descriptor{};
         descriptor.layout = pipelineLayout.value;
         descriptor.compute.module = shader.value;
-        descriptor.compute.entryPoint = {"fill", WGPU_STRLEN};
+        descriptor.compute.entryPoint = {"paint", WGPU_STRLEN};
         Handle<WGPUComputePipeline, wgpuComputePipelineRelease> fillPipeline(
             wgpuDeviceCreateComputePipeline(device, &descriptor));
         layout = groupLayout.value;
@@ -228,105 +234,156 @@ KisGpuTileStore::Version KisGpuTileStore::emptyVersion() const
 
 KisGpuTileStore::Edit KisGpuTileStore::fill(const Version &base, QRect rectangle, quint32 rgba)
 {
-    return update(base, rectangle, rgba, UpdateKind::Fill, 255, 255);
+    return update(base, {{rectangle, rgba, UpdateKind::Fill, 255, 255}});
 }
 
 KisGpuTileStore::Edit KisGpuTileStore::paint(const Version &base, QRect rectangle, quint32 rgba,
                                           CompositeOp operation, quint8 opacity, quint8 coverage)
 {
-    return update(base, rectangle, rgba, operation == CompositeOp::Erase ? UpdateKind::Erase : UpdateKind::Over,
-                  opacity, coverage);
+    return paint(base, {{rectangle, rgba, operation, opacity, coverage}});
 }
 
-KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, QRect rectangle, quint32 rgba,
-                                           UpdateKind kind, quint8 opacity, quint8 coverage)
+KisGpuTileStore::Edit KisGpuTileStore::paint(const Version &base, const QVector<PaintCommand> &commands)
+{
+    QVector<UpdateCommand> updates;
+    updates.reserve(commands.size());
+    for (const auto &command : commands) {
+        updates.push_back({command.rectangle, command.rgba,
+                           command.operation == CompositeOp::Erase ? UpdateKind::Erase : UpdateKind::Over,
+                           command.opacity, command.coverage});
+    }
+    return update(base, updates);
+}
+
+KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector<UpdateCommand> &commands)
 {
     Edit result;
     if (!base.d || base.d->owner != d->state) {
         result.error = Error::InvalidVersion;
         return result;
     }
-    if (rectangle.isEmpty() || (kind != UpdateKind::Fill && (opacity == 0 || coverage == 0 || (rgba >> 24) == 0))) {
+    const quint64 resident = d->state->residentBytes.load();
+    const quint64 available = resident <= d->budget ? d->budget - resident : 0;
+    const quint64 alignment = d->limits.minUniformBufferOffsetAlignment;
+    const quint64 maximumCommands = std::min({d->limits.maxBufferSize,
+        d->limits.maxStorageBufferBindingSize, quint64(std::numeric_limits<quint32>::max())}) / sizeof(TileCommand);
+    quint64 commandCount = 0;
+    std::map<Coordinate, std::vector<TileCommand>> tileCommands;
+    auto fits = [&](quint64 tiles, quint64 count) {
+        if (tiles > available / TileBytes || count > maximumCommands
+            || tiles - 1 > (std::numeric_limits<quint32>::max() - sizeof(TileParameters)) / alignment) return false;
+        const quint64 uniformBytes = (tiles - 1) * alignment + sizeof(TileParameters);
+        const quint64 storageBytes = count * sizeof(TileCommand);
+        const quint64 remaining = available - tiles * TileBytes;
+        return uniformBytes <= d->limits.maxBufferSize && uniformBytes <= std::numeric_limits<quint32>::max()
+            && uniformBytes <= remaining && storageBytes <= remaining - uniformBytes;
+    };
+    for (const auto &command : commands) {
+        const QRect rectangle = command.rectangle;
+        if (rectangle.isEmpty() || (command.kind != UpdateKind::Fill
+            && (command.opacity == 0 || command.coverage == 0 || (command.rgba >> 24) == 0))) continue;
+        // Widen before adding: QRect's inclusive right/bottom can overflow int.
+        const qint64 left = rectangle.x(), top = rectangle.y();
+        const qint64 right = left + rectangle.width(), bottom = top + rectangle.height();
+        const int firstX = tileCoordinate(left), lastX = tileCoordinate(right - 1);
+        const int firstY = tileCoordinate(top), lastY = tileCoordinate(bottom - 1);
+        const quint64 count = quint64(lastX - firstX + 1) * quint64(lastY - firstY + 1);
+        if (count > available / TileBytes || count > maximumCommands - commandCount) {
+            result.error = Error::BudgetExceeded;
+            return result;
+        }
+        for (int y = firstY; y <= lastY; ++y) {
+            for (int x = firstX; x <= lastX; ++x) {
+                auto &list = tileCommands[{x, y}];
+                if (!fits(tileCommands.size(), ++commandCount)) {
+                    result.error = Error::BudgetExceeded;
+                    return result;
+                }
+                const qint64 tileLeft = qint64(x) * 64, tileTop = qint64(y) * 64;
+                list.push_back({
+                    quint32(std::max(left, tileLeft) - tileLeft),
+                    quint32(std::max(top, tileTop) - tileTop),
+                    quint32(std::min(right, tileLeft + 64) - tileLeft),
+                    quint32(std::min(bottom, tileTop + 64) - tileTop),
+                    command.rgba, quint32(command.kind), command.opacity, command.coverage
+                });
+            }
+        }
+    }
+    if (tileCommands.empty()) {
         result.version = base;
         result.completion.d = base.d->completion;
         return result;
     }
-
-    // Widen before adding: QRect's inclusive right/bottom can overflow int.
-    const qint64 left = rectangle.x(), top = rectangle.y();
-    const qint64 right = left + rectangle.width(), bottom = top + rectangle.height();
-    const int firstX = tileCoordinate(left), lastX = tileCoordinate(right - 1);
-    const int firstY = tileCoordinate(top), lastY = tileCoordinate(bottom - 1);
-    const quint64 count = quint64(lastX - firstX + 1) * quint64(lastY - firstY + 1);
-    const quint64 alignment = d->limits.minUniformBufferOffsetAlignment;
-    const quint64 commandBytes = (count - 1) * alignment + sizeof(FillParameters);
-    const quint64 resident = d->state->residentBytes.load();
-    if (commandBytes > d->limits.maxBufferSize || commandBytes > std::numeric_limits<quint32>::max()
-        || resident > d->budget || commandBytes > d->budget - resident
-        || count > (d->budget - resident - commandBytes) / TileBytes) {
-        result.error = Error::BudgetExceeded;
-        return result;
-    }
-
+    const quint64 uniformBytes = (tileCommands.size() - 1) * alignment + sizeof(TileParameters);
+    const quint64 storageBytes = commandCount * sizeof(TileCommand);
     result.completion.d = std::make_shared<CompletionData>();
     Private::ErrorScopes errors(d->state->device, result.completion.d);
     auto data = std::make_shared<VersionData>(*base.d);
     data->completion = result.completion.d;
-    auto parameters = std::make_shared<Allocation>(d->state, commandBytes,
+    auto parameters = std::make_shared<Allocation>(d->state, uniformBytes,
         WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
-    std::vector<char> commands(size_t(commandBytes), 0);
+    auto commandStorage = std::make_shared<Allocation>(d->state, storageBytes,
+        WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
+    std::vector<char> uniforms(size_t(uniformBytes), 0);
+    std::vector<TileCommand> packedCommands;
+    packedCommands.reserve(size_t(commandCount));
     Handle<WGPUCommandEncoder, wgpuCommandEncoderRelease> encoder(
         wgpuDeviceCreateCommandEncoder(d->state->device, nullptr));
     quint64 copiedBytes = 0;
     quint32 index = 0;
-    for (int y = firstY; y <= lastY; ++y) {
-        for (int x = firstX; x <= lastX; ++x, ++index) {
-            const qint64 tileLeft = qint64(x) * 64, tileTop = qint64(y) * 64;
-            const FillParameters fill {
-                quint32(std::max(left, tileLeft) - tileLeft),
-                quint32(std::max(top, tileTop) - tileTop),
-                quint32(std::min(right, tileLeft + 64) - tileLeft),
-                quint32(std::min(bottom, tileTop + 64) - tileTop), rgba, quint32(kind), opacity, coverage
-            };
-            std::memcpy(commands.data() + index * alignment, &fill, sizeof(fill));
-            auto tile = std::make_shared<Allocation>(d->state, TileBytes,
-                WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
-            const auto oldTile = base.d->tiles.find({x, y});
-            if (oldTile != base.d->tiles.end()
-                && (kind != UpdateKind::Fill || fill.left != 0 || fill.top != 0 || fill.right != 64 || fill.bottom != 64)) {
-                wgpuCommandEncoderCopyBufferToBuffer(encoder.value, oldTile->second->buffer, 0, tile->buffer, 0, TileBytes);
-                copiedBytes += TileBytes;
-            }
-            data->tiles[{x, y}] = tile;
-            WGPUBindGroupEntry entries[2]{};
+    for (const auto &entry : tileCommands) {
+        const TileParameters tileParameters {quint32(packedCommands.size()), quint32(entry.second.size()), {0, 0}};
+        std::memcpy(uniforms.data() + index++ * alignment, &tileParameters, sizeof(tileParameters));
+        packedCommands.insert(packedCommands.end(), entry.second.begin(), entry.second.end());
+        auto tile = std::make_shared<Allocation>(d->state, TileBytes,
+            WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
+        const auto oldTile = base.d->tiles.find(entry.first);
+        const auto &first = entry.second.front();
+        if (oldTile != base.d->tiles.end()
+            && (first.operation != quint32(UpdateKind::Fill)
+                || first.left != 0 || first.top != 0 || first.right != 64 || first.bottom != 64)) {
+            wgpuCommandEncoderCopyBufferToBuffer(encoder.value, oldTile->second->buffer, 0, tile->buffer, 0, TileBytes);
+            copiedBytes += TileBytes;
+        }
+        data->tiles[entry.first] = std::move(tile);
+    }
+    {
+        Handle<WGPUComputePassEncoder, wgpuComputePassEncoderRelease> pass(
+            wgpuCommandEncoderBeginComputePass(encoder.value, nullptr));
+        wgpuComputePassEncoderSetPipeline(pass.value, d->pipeline);
+        index = 0;
+        for (const auto &entry : tileCommands) {
+            WGPUBindGroupEntry entries[3]{};
             entries[0].binding = 0;
-            entries[0].buffer = tile->buffer;
+            entries[0].buffer = data->tiles.at(entry.first)->buffer;
             entries[0].size = TileBytes;
             entries[1].binding = 1;
             entries[1].buffer = parameters->buffer;
-            entries[1].size = sizeof(FillParameters);
+            entries[1].size = sizeof(TileParameters);
+            entries[2].binding = 2;
+            entries[2].buffer = commandStorage->buffer;
+            entries[2].size = storageBytes;
             WGPUBindGroupDescriptor descriptor{};
             descriptor.layout = d->layout;
-            descriptor.entryCount = 2;
+            descriptor.entryCount = 3;
             descriptor.entries = entries;
             Handle<WGPUBindGroup, wgpuBindGroupRelease> group(
                 wgpuDeviceCreateBindGroup(d->state->device, &descriptor));
-            Handle<WGPUComputePassEncoder, wgpuComputePassEncoderRelease> pass(
-                wgpuCommandEncoderBeginComputePass(encoder.value, nullptr));
-            wgpuComputePassEncoderSetPipeline(pass.value, d->pipeline);
-            const quint32 offset = quint32(index * alignment);
+            const quint32 offset = quint32(index++ * alignment);
             wgpuComputePassEncoderSetBindGroup(pass.value, 0, group.value, 1, &offset);
             wgpuComputePassEncoderDispatchWorkgroups(pass.value, 8, 8, 1);
-            wgpuComputePassEncoderEnd(pass.value);
         }
+        wgpuComputePassEncoderEnd(pass.value);
     }
     Handle<WGPUCommandBuffer, wgpuCommandBufferRelease> commandBuffer(
         wgpuCommandEncoderFinish(encoder.value, nullptr));
     result.version.d = std::move(data);
     result.completion.d->sequence = d->statistics.submissions + 1;
     auto callbackData = std::make_unique<std::shared_ptr<CompletionData>>(result.completion.d);
-    d->pending.push_back({result.completion.d, base, result.version, parameters});
-    wgpuQueueWriteBuffer(d->state->queue, parameters->buffer, 0, commands.data(), commands.size());
+    d->pending.push_back({result.completion.d, base, result.version, parameters, commandStorage});
+    wgpuQueueWriteBuffer(d->state->queue, parameters->buffer, 0, uniforms.data(), uniforms.size());
+    wgpuQueueWriteBuffer(d->state->queue, commandStorage->buffer, 0, packedCommands.data(), storageBytes);
     d->lastSubmission = wgpuQueueSubmitForIndex(d->state->queue, 1, &commandBuffer.value);
     WGPUQueueWorkDoneCallbackInfo callback{};
     callback.mode = WGPUCallbackMode_AllowSpontaneous;
@@ -340,7 +397,7 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, QRect rectang
     wgpuQueueOnSubmittedWorkDone(d->state->queue, callback);
     errors.submitted = true;
     ++d->statistics.submissions;
-    d->statistics.commandUploadBytes += commandBytes;
+    d->statistics.commandUploadBytes += uniformBytes + storageBytes;
     d->statistics.tileCopyBytes += copiedBytes;
     return result;
 }

@@ -67,6 +67,10 @@ private Q_SLOTS:
     void emptyEditInheritsSourceCompletion();
     void versionOutlivesStore();
     void repeatedEditsReleaseOldVersions();
+    void batchedPaintPreservesOrderAndCopiesTilesOnce();
+    void batchFitsOneCopyBudget();
+    void batchRejectionIsAtomic();
+    void emptyBatchInheritsSourceCompletion();
     void compositing_data();
     void compositing();
 private:
@@ -346,6 +350,108 @@ void KisGpuTileStoreTest::repeatedEditsReleaseOldVersions()
     }
     QCOMPARE(read(version, QRect(0, 0, 64, 64)), expected(QRect(0, 0, 64, 64), {{QRect(1, 1, 2, 2), 64}}));
     QCOMPARE(store.statistics().submissions, quint64(64));
+}
+
+void KisGpuTileStoreTest::batchedPaintPreservesOrderAndCopiesTilesOnce()
+{
+    KisGpuTileStore store(m_device, 32 * KisGpuTileStore::TileBytes);
+    const QRect bounds(-64, -64, 128, 128);
+    const auto base = store.fill(store.emptyVersion(), bounds, 0xFF102030);
+    QVERIFY(finish(store, base.completion));
+    using Op = KisGpuTileStore::CompositeOp;
+    const QVector<KisGpuTileStore::PaintCommand> commands {
+        {QRect(-5, -5, 11, 11), 0x800000FF, Op::Over},
+        {QRect(-2, -2, 5, 5), 0xC0FF0000, Op::Over, 192, 128},
+        {QRect(0, -1, 3, 5), 0x80000000, Op::Erase, 128, 128},
+        {QRect(-63, -63, 1, 1), 0xFFABCDEF, Op::Over},
+        {QRect(58, 58, 5, 5), 0xFF00FF00, Op::Over}
+    };
+    auto sequential = base.version;
+    for (const auto &command : commands) {
+        const auto edit = store.paint(sequential, command.rectangle, command.rgba, command.operation,
+                                      command.opacity, command.coverage);
+        QVERIFY(finish(store, edit.completion));
+        sequential = edit.version;
+    }
+    const auto before = store.statistics();
+    const auto batch = store.paint(base.version, commands);
+    QCOMPARE(batch.error, KisGpuTileStore::Error::None);
+    QVERIFY(finish(store, batch.completion));
+    QCOMPARE(read(batch.version, bounds), read(sequential, bounds));
+    QCOMPARE(read(base.version, bounds), expected(bounds, {{bounds, 0xFF102030}}));
+    QCOMPARE(store.statistics().submissions - before.submissions, quint64(1));
+    QCOMPARE(store.statistics().tileCopyBytes - before.tileCopyBytes, 4 * KisGpuTileStore::TileBytes);
+}
+
+void KisGpuTileStoreTest::batchFitsOneCopyBudget()
+{
+    // A stroke has room for the original tile, one changed tile and compact commands.
+    KisGpuTileStore store(m_device, 2 * KisGpuTileStore::TileBytes + 8192);
+    const QRect bounds(0, 0, 64, 64), area(2, 3, 4, 5);
+    const auto base = store.fill(store.emptyVersion(), bounds, 0xFF102030);
+    QVERIFY(finish(store, base.completion));
+    QVector<KisGpuTileStore::PaintCommand> commands;
+    for (quint32 i = 0; i < 128; ++i) commands.push_back({area, 0xFF000000 | i});
+    const auto before = store.statistics();
+    const auto batch = store.paint(base.version, commands);
+    QCOMPARE(batch.error, KisGpuTileStore::Error::None);
+    QVERIFY(store.statistics().residentBytes <= 2 * KisGpuTileStore::TileBytes + 8192);
+    QVERIFY(finish(store, batch.completion));
+    QCOMPARE(read(batch.version, bounds), expected(bounds, {{bounds, 0xFF102030}, {area, 0xFF00007F}}));
+    QCOMPARE(read(base.version, bounds), expected(bounds, {{bounds, 0xFF102030}}));
+    QCOMPARE(store.statistics().residentBytes, 2 * KisGpuTileStore::TileBytes);
+    QCOMPARE(store.statistics().submissions - before.submissions, quint64(1));
+    QCOMPARE(store.statistics().tileCopyBytes - before.tileCopyBytes, KisGpuTileStore::TileBytes);
+    QVERIFY(store.statistics().commandUploadBytes - before.commandUploadBytes <= 8192);
+}
+
+void KisGpuTileStoreTest::batchRejectionIsAtomic()
+{
+    KisGpuTileStore store(m_device, 3 * KisGpuTileStore::TileBytes + 256);
+    const auto base = store.fill(store.emptyVersion(), QRect(0, 0, 1, 1), 0xFF123456);
+    QVERIFY(finish(store, base.completion));
+    const auto before = store.statistics();
+    const QVector<QVector<KisGpuTileStore::PaintCommand>> rejectedCommands {
+        {{QRect(0, 0, 1, 1), 0xFFABCDEF}, {QRect(64, 0, 128, 1), 0xFF112233}},
+        {{QRect(0, 0, 1, 1), 0xFFABCDEF}, {QRect(-1000000000, -1000000000, 2000000000, 2000000000), 0xFF000000}},
+        QVector<KisGpuTileStore::PaintCommand>(1024, {QRect(0, 0, 1, 1), 0xFFABCDEF})
+    };
+    for (const auto &commands : rejectedCommands) {
+        const auto rejected = store.paint(base.version, commands);
+        QCOMPARE(rejected.error, KisGpuTileStore::Error::BudgetExceeded);
+        QCOMPARE(rejected.version.tileCount(), qsizetype(0));
+        QCOMPARE(store.statistics().residentBytes, before.residentBytes);
+        QCOMPARE(store.statistics().submissions, before.submissions);
+        QCOMPARE(store.statistics().commandUploadBytes, before.commandUploadBytes);
+        QCOMPARE(store.statistics().tileCopyBytes, before.tileCopyBytes);
+    }
+    QCOMPARE(read(base.version, QRect(0, 0, 64, 64)),
+             expected(QRect(0, 0, 64, 64), {{QRect(0, 0, 1, 1), 0xFF123456}}));
+    QCOMPARE(store.paint({}, rejectedCommands[0]).error, KisGpuTileStore::Error::InvalidVersion);
+    KisGpuTileStore other(m_device, 0);
+    QCOMPARE(store.paint(other.emptyVersion(), rejectedCommands[0]).error, KisGpuTileStore::Error::InvalidVersion);
+}
+
+void KisGpuTileStoreTest::emptyBatchInheritsSourceCompletion()
+{
+    KisGpuTileStore store(m_device, KisGpuTileStore::TileBytes + 256);
+    const auto source = store.fill(store.emptyVersion(), QRect(1, 1, 2, 2), 0xFF123456);
+    const QRect huge(-1000000000, -1000000000, 2000000000, 2000000000);
+    using Op = KisGpuTileStore::CompositeOp;
+    const QVector<QVector<KisGpuTileStore::PaintCommand>> batches {
+        {}, {{QRect(), 0xFF000000}, {huge, 0xFF000000, Op::Over, 0},
+             {huge, 0xFF000000, Op::Erase, 255, 0}, {huge, 0x000000FF}}
+    };
+    for (const auto &commands : batches) {
+        const auto empty = store.paint(source.version, commands);
+        QCOMPARE(empty.error, KisGpuTileStore::Error::None);
+        QCOMPARE(empty.completion.sequence(), source.completion.sequence());
+        QVERIFY(finish(store, empty.completion));
+        QCOMPARE(read(empty.version, QRect(0, 0, 64, 64)),
+                 expected(QRect(0, 0, 64, 64), {{QRect(1, 1, 2, 2), 0xFF123456}}));
+    }
+    QCOMPARE(store.statistics().submissions, quint64(1));
+    QCOMPARE(store.statistics().residentBytes, KisGpuTileStore::TileBytes);
 }
 
 void KisGpuTileStoreTest::compositing_data()

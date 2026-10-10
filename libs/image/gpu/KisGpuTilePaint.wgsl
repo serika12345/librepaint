@@ -1,12 +1,16 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-struct FillParameters {
+struct TileCommand {
     lower: vec2<u32>, upper: vec2<u32>, color: u32,
     operation: u32, opacity: u32, coverage: u32,
 }
+struct TileParameters {
+    firstCommand: u32, commandCount: u32, padding: vec2<u32>,
+}
 @group(0) @binding(0) var<storage, read_write> pixels: array<u32>;
-@group(0) @binding(1) var<uniform> parameters: FillParameters;
+@group(0) @binding(1) var<uniform> parameters: TileParameters;
+@group(0) @binding(2) var<storage, read> commands: array<TileCommand>;
 
 fn multiply8(a: u32, b: u32) -> u32 {
     let product = a * b + 128u;
@@ -24,9 +28,9 @@ fn quantize(value: f32) -> u32 {
     return lower + select(0u, 1u, fraction > 0.5 || (fraction == 0.5 && (lower & 1u) != 0u));
 }
 
-fn over(source: vec4<u32>, destination: vec4<u32>) -> vec4<u32> {
-    var alpha = f32(source.a) * (f32(parameters.opacity) * (1.0 / 255.0));
-    alpha *= f32(parameters.coverage) * (1.0 / 255.0);
+fn over(source: vec4<u32>, destination: vec4<u32>, opacity: u32, coverage: u32) -> vec4<u32> {
+    var alpha = f32(source.a) * (f32(opacity) * (1.0 / 255.0));
+    alpha *= f32(coverage) * (1.0 / 255.0);
     if (alpha == 0.0) { return destination; }
     let resultAlpha = f32(destination.a) + (255.0 - f32(destination.a)) * alpha * (1.0 / 255.0);
     let blend = alpha / resultAlpha;
@@ -35,21 +39,26 @@ fn over(source: vec4<u32>, destination: vec4<u32>) -> vec4<u32> {
 }
 
 @compute @workgroup_size(8, 8)
-fn fill(@builtin(global_invocation_id) position: vec3<u32>) {
-    if (all(position.xy >= parameters.lower) && all(position.xy < parameters.upper)) {
-        let index = position.y * 64u + position.x;
-        if (parameters.operation == 0u) {
-            pixels[index] = parameters.color;
-        } else {
-            let source = unpack(parameters.color);
-            var destination = unpack(pixels[index]);
-            if (parameters.operation == 2u) {
-                let alpha = multiply8(multiply8(source.a, parameters.coverage), parameters.opacity);
-                destination.a = multiply8(destination.a, 255u - alpha);
+fn paint(@builtin(global_invocation_id) position: vec3<u32>) {
+    let index = position.y * 64u + position.x;
+    var pixel = pixels[index];
+    for (var i = parameters.firstCommand; i < parameters.firstCommand + parameters.commandCount; i++) {
+        let command = commands[i];
+        if (all(position.xy >= command.lower) && all(position.xy < command.upper)) {
+            if (command.operation == 0u) {
+                pixel = command.color;
             } else {
-                destination = over(source, destination);
+                let source = unpack(command.color);
+                var destination = unpack(pixel);
+                if (command.operation == 2u) {
+                    let alpha = multiply8(multiply8(source.a, command.coverage), command.opacity);
+                    destination.a = multiply8(destination.a, 255u - alpha);
+                } else {
+                    destination = over(source, destination, command.opacity, command.coverage);
+                }
+                pixel = destination.r | (destination.g << 8u) | (destination.b << 16u) | (destination.a << 24u);
             }
-            pixels[index] = destination.r | (destination.g << 8u) | (destination.b << 16u) | (destination.a << 24u);
         }
     }
+    pixels[index] = pixel;
 }

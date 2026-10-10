@@ -7,6 +7,7 @@
 
 #include <QPoint>
 #include <QRect>
+#include <QVector>
 #include <memory>
 #include <webgpu/wgpu.h>
 
@@ -25,6 +26,14 @@ public:
     enum class Status { Pending, Succeeded, Failed };
     enum class Error { None, InvalidVersion, BudgetExceeded };
     enum class CompositeOp { Over, Erase };
+
+    struct PaintCommand {
+        QRect rectangle;
+        quint32 rgba = 0;
+        CompositeOp operation = CompositeOp::Over;
+        quint8 opacity = 255;
+        quint8 coverage = 255;
+    };
 
     class Version {
     public:
@@ -76,14 +85,21 @@ public:
     /** Composite a constant source with uniform opacity and selection coverage. */
     Edit paint(const Version &base, QRect rectangle, quint32 rgba,
                CompositeOp operation = CompositeOp::Over, quint8 opacity = 255, quint8 coverage = 255);
+    /** Apply commands in order in one version/submission, copying each changed tile once. */
+    Edit paint(const Version &base, const QVector<PaintCommand> &commands);
     /** Dispatch completion callbacks and release finished submissions; never waits. */
     void poll();
     Statistics statistics() const;
 
 private:
     enum class UpdateKind { Fill, Over, Erase };
-    Edit update(const Version &base, QRect rectangle, quint32 rgba,
-                UpdateKind kind, quint8 opacity, quint8 coverage);
+    struct UpdateCommand {
+        QRect rectangle;
+        quint32 rgba;
+        UpdateKind kind;
+        quint8 opacity, coverage;
+    };
+    Edit update(const Version &base, const QVector<UpdateCommand> &commands);
     struct Private;
     std::unique_ptr<Private> d;
 };
