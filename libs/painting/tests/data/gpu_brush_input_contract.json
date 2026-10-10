@@ -1,12 +1,12 @@
 {
   "schema": 1,
-  "provenance": "RGBA8 sRGB GPU brush/projection image contract captured on Metal at 5a279090413c9d070eca0ea953299126ea58f520. Generated input, seed colors, layer order and geometry use KisGpuBrushInputWorkload. Standard Over, default brush spacing 0.25, pressure 1, fade 0.8, no random inputs. The final projected straight RGBA8 pixels are compared by SHA-256 after two warmups and fifteen samples. Classification: maintained Metal document-image contract; Vulkan must produce identical pixels.",
+  "provenance": "RGBA8 sRGB GPU brush/projection image contract. Input and initial images originate at 5a279090413c9d070eca0ea953299126ea58f520 and use KisGpuBrushInputWorkload. Standard Over, default brush spacing 0.25, pressure 1, fade 0.8, no random inputs. Shape squared sums use an explicit y fused multiply-add after the x product. Inverse coverage truncates the quotient of the rounded numerator and denominator, correcting approximate division at integer boundaries with a fused residual. Expected images are captured on Metal with those rules; Vulkan must produce identical pixels. The final projected straight RGBA8 pixels are compared by SHA-256 after two warmups and fifteen samples. Classification: maintained GPU document-image contract.",
   "samples": 15,
   "warmups": 2,
   "images": {
     "small-append": "a405dd2557902c52acfd9d8c1c42fd7b484145827ba9f130dae7c9d919cdfc73",
     "small-replace": "d92cec6baaa17ba9fda7cdf05aa31b5874683e26a01a0a61da54e369c9f6412f",
-    "layer-projection-append": "76f1a1b39df8c62272b817b76401ffd20a13a3efdd0aedab7d5ca74f9ec6f794",
+    "layer-projection-append": "d4476b298b2e230c9f5bcfbb378fd40e22f6a556a29583799961dcba4ece815f",
     "layer-projection-replace": "c90247db7f4346a391c7dbe8d23906ff3e81187c7f5cb9e7a37d76c269117e63"
   }
 }

@@ -9,6 +9,7 @@
 #include <QCryptographicHash>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSaveFile>
 #include <QtTest>
 
 /** Brush consumers require the same document pixels after append and replacement on Metal and Vulkan. */
@@ -62,6 +63,15 @@ private Q_SLOTS:
         const auto pixels = gpu.read(projection.snapshot().pixels, workload.bounds);
         const auto key = QStringLiteral("%1-%2").arg(high ? "layer-projection" : "small", replace ? "replace" : "append");
         const auto actual = QCryptographicHash::hash(pixels, QCryptographicHash::Sha256).toHex();
+        const auto artifacts = qEnvironmentVariable("KIS_GPU_IMAGE_ARTIFACT_DIRECTORY");
+        if (!artifacts.isEmpty()) {
+            QVERIFY(QDir().mkpath(artifacts));
+            QSaveFile output(QDir(artifacts).filePath(key + QStringLiteral(".rgba.zlib")));
+            QVERIFY(output.open(QIODevice::WriteOnly));
+            const auto compressed = qCompress(pixels, 6).sliced(4);
+            QCOMPARE(output.write(compressed), compressed.size());
+            QVERIFY(output.commit());
+        }
         QCOMPARE(actual, fixture["images"].toObject()[key].toString().toLatin1());
         QCOMPARE(gpu.owner.errorCount(), 0);
     }

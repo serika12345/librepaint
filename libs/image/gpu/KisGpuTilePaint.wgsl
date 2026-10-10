@@ -25,7 +25,13 @@ fn dabAlpha(position: vec2<u32>, shape: TileCommand) -> u32 {
     let nf = fma(faded.y, faded.y, faded.x * faded.x);
     if (nf <= 1.0) { return 255u; }
     // Scalar brush masks truncate the inverse coverage before subtracting it.
-    return 255u - u32(clamp(255.0 * n * (nf - 1.0) / (nf - n), 0.0, 255.0));
+    let numerator = 255.0 * n * (nf - 1.0);
+    let denominator = nf - n;
+    var inverse = u32(clamp(numerator / denominator, 0.0, 255.0));
+    let residual = fma(-f32(inverse), denominator, numerator);
+    if (residual < 0.0 && inverse > 0u) { inverse--; }
+    if (residual >= denominator && inverse < 255u) { inverse++; }
+    return 255u - inverse;
 }
 
 fn textureMultiply8(alpha: u32, texture: u32, strength: u32) -> u32 {

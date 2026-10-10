@@ -244,6 +244,10 @@ GPU内複製、操作完了と予算超過を検査する。評価済みのテ�
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuSurfaceRendererTest
 ```
 
+画像契約の実測画素を調べる場合は、`KIS_GPU_IMAGE_ARTIFACT_DIRECTORY`へ保存先を指定して
+`KisGpuLayerBrushImageTest`を実行する。各条件の結果を密なRGBA8のzlib圧縮として
+`<条件>.rgba.zlib`へ保存する。検査時の明示的な読み取りを使い、通常描画の転送統計から分離する。
+
 設定コマンドは`flake.lock`のnixpkgs固定版と`nix/gpu`からwgpu-native本体と開発用ヘッダーを構築し、
 ネイティブのCMakeプリセットで`LIBREPAINT_BUILD_GPU_DOCUMENT=ON`にする。
 依存定義と修正パッチだけをローカル入力とし、アプリケーションの編集で同じ出力を再利用する。
