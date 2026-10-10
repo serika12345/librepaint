@@ -11,6 +11,12 @@ else()
     set (HAVE_FAILING_CMAKE FALSE)
 endif()
 
+kis_add_test(
+    KisRasterEditContractTest.cpp
+    LINK_LIBRARIES kritaimage Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisRasterEditContractTest PRIVATE ${CMAKE_SOURCE_DIR}/sdk/tests)
+
 set(KisRandomGenerator2DDemoSources KisRandomGenerator2DDemo.cpp kimageframe.cpp)
 ki18n_wrap_ui(KisRandomGenerator2DDemoSources KisRandomGenerator2DDemo.ui)
 if(ANDROID)

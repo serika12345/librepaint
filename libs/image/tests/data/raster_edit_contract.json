@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "profile": "sRGB-elle-V2-srgbtrc.icc",
+  "cases": [
+    {"id": "opaque-over", "op": "normal", "dst": [0, 0, 255, 255], "src": [255, 0, 0, 255], "opacity": 255, "mask": -1, "expected": [255, 0, 0, 255]},
+    {"id": "transparent-source", "op": "normal", "dst": [20, 60, 100, 192], "src": [255, 0, 0, 0], "opacity": 255, "mask": -1, "expected": [20, 60, 100, 192]},
+    {"id": "transparent-destination", "op": "normal", "dst": [0, 0, 0, 0], "src": [255, 0, 0, 128], "opacity": 255, "mask": -1, "expected": [255, 0, 0, 128]},
+    {"id": "half-over-opaque", "op": "normal", "dst": [0, 0, 255, 255], "src": [255, 0, 0, 128], "opacity": 255, "mask": -1, "expected": [128, 0, 127, 255]},
+    {"id": "half-over-half", "op": "normal", "dst": [0, 0, 255, 128], "src": [255, 0, 0, 128], "opacity": 255, "mask": -1, "expected": [170, 0, 85, 192]},
+    {"id": "zero-opacity", "op": "normal", "dst": [20, 60, 100, 192], "src": [255, 0, 0, 255], "opacity": 0, "mask": -1, "expected": [20, 60, 100, 192]},
+    {"id": "paint-opacity", "op": "normal", "dst": [0, 0, 255, 255], "src": [255, 0, 0, 128], "opacity": 128, "mask": -1, "expected": [64, 0, 191, 255]},
+    {"id": "soft-selection", "op": "normal", "dst": [0, 0, 255, 255], "src": [255, 0, 0, 128], "opacity": 255, "mask": 128, "expected": [64, 0, 191, 255]},
+    {"id": "selection-and-opacity", "op": "normal", "dst": [0, 0, 255, 255], "src": [255, 0, 0, 128], "opacity": 128, "mask": 128, "expected": [32, 0, 223, 255]},
+    {"id": "empty-selection", "op": "normal", "dst": [20, 60, 100, 192], "src": [255, 0, 0, 255], "opacity": 255, "mask": 0, "expected": [20, 60, 100, 192]},
+    {"id": "partial-erase", "op": "erase", "dst": [20, 60, 100, 255], "src": [255, 0, 0, 128], "opacity": 255, "mask": -1, "expected": [20, 60, 100, 127]},
+    {"id": "masked-erase", "op": "erase", "dst": [20, 60, 100, 192], "src": [255, 0, 0, 128], "opacity": 128, "mask": 128, "expected": [20, 60, 100, 168]},
+    {"id": "full-erase-retains-color", "op": "erase", "dst": [20, 60, 100, 192], "src": [255, 0, 0, 255], "opacity": 255, "mask": -1, "expected": [20, 60, 100, 0]}
+  ]
+}

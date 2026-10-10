@@ -91,4 +91,8 @@ if (TARGET kis_display_color_transform_test)
     add_dependencies(kis_display_color_transform_test kritalcmsengine)
 endif()
 
+if (TARGET KisRasterEditContractTest)
+    add_dependencies(KisRasterEditContractTest kritalcmsengine)
+endif()
+
 install(TARGETS kritalcmsengine DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})

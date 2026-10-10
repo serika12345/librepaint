@@ -286,6 +286,11 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 - `KisUpdateScheduler`、`KisStrokesQueue`、更新キュー
 - アンドゥ可能なストロークと画像変更通知
 
+[ラスター編集の比較契約](raster-edit-contract.md)は、通常合成、消去、選択範囲、
+描画順序、取消し、Undo／Redo、未確定描画の差し替えに対する画素結果を定義する。
+`KisRasterEditContractTest`と共通の固定入力が、文書画素と描画処理を置き換える際の
+比較基準を所有する。
+
 レベル補正の数値状態と転送表は`libs/image/KisLevelsCurve.{h,cpp}`が所有する。実装は
 `kritaimagelevelscurveobjects`として限定構築でき、`kritaimage`が同じ生成物を製品へ集約する。
 `KisLevelsCurveContractTest`は恒等写像、入出力点とガンマ、値意味論、転送表、文字列表現を
