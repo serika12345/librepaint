@@ -127,22 +127,37 @@ SPDX-License-Identifier: MIT
          }
      }
  }
-@@ -4681,3 +4691,8 @@
+@@ -4681,3 +4691,22 @@
          ),
      }
  }
 +
 +#[no_mangle]
 +pub extern "C" fn wgpuLibrePaintRecoveryRevision() -> u32 {
-+    1
++    2
++}
++
++#[no_mangle]
++pub unsafe extern "C" fn wgpuLibrePaintTextureUsesDevice(
++    texture: native::WGPUTexture,
++    device: native::WGPUDevice,
++) -> native::WGPUBool {
++    match (texture.as_ref(), device.as_ref()) {
++        (Some(texture), Some(device)) => {
++            (Arc::ptr_eq(&texture.context, &device.context)
++                && Arc::ptr_eq(&texture.error_sink, &device.error_sink)) as native::WGPUBool
++        }
++        _ => 0,
++    }
 +}
 --- a/ffi/wgpu.h
 +++ b/ffi/wgpu.h
-@@ -326,6 +326,7 @@
+@@ -326,6 +326,8 @@
  void wgpuSetLogLevel(WGPULogLevel level);
  
  uint32_t wgpuGetVersion(void);
 +uint32_t wgpuLibrePaintRecoveryRevision(void);
++WGPUBool wgpuLibrePaintTextureUsesDevice(WGPUTexture texture, WGPUDevice device);
  
  void wgpuRenderPassEncoderSetPushConstants(WGPURenderPassEncoder encoder, WGPUShaderStage stages, uint32_t offset, uint32_t sizeBytes, void const * data);
  void wgpuComputePassEncoderSetPushConstants(WGPUComputePassEncoder encoder, uint32_t offset, uint32_t sizeBytes, void const * data);

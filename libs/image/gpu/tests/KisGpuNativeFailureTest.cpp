@@ -13,6 +13,23 @@ namespace {
 int failureCase(const QString &name)
 {
     KisGpuDevice device;
+    if (name == QStringLiteral("texture-owner")) {
+        KisGpuDevice other;
+        WGPUTextureDescriptor descriptor{};
+        descriptor.dimension = WGPUTextureDimension_2D;
+        descriptor.size = {1, 1, 1};
+        descriptor.format = WGPUTextureFormat_RGBA8Unorm;
+        descriptor.mipLevelCount = 1;
+        descriptor.sampleCount = 1;
+        descriptor.usage = WGPUTextureUsage_RenderAttachment;
+        const auto texture = wgpuDeviceCreateTexture(device.device(), &descriptor);
+        const bool correct = wgpuLibrePaintTextureUsesDevice(texture, device.device())
+            && !wgpuLibrePaintTextureUsesDevice(texture, other.device())
+            && !wgpuLibrePaintTextureUsesDevice(nullptr, device.device())
+            && !wgpuLibrePaintTextureUsesDevice(texture, nullptr);
+        wgpuTextureRelease(texture);
+        return correct && device.available() && other.available() ? 0 : 1;
+    }
     if (name.startsWith(QStringLiteral("submit"))) {
         const auto queue = wgpuDeviceGetQueue(device.device());
         const auto encoder = wgpuDeviceCreateCommandEncoder(device.device(), nullptr);
@@ -65,7 +82,7 @@ class KisGpuNativeFailureTest : public QObject
 private Q_SLOTS:
     void nativeFailureReturnsToTheCaller_data() {
         QTest::addColumn<QString>("operation");
-        for (const auto *name : {"submit-index", "submit", "read-map", "write-map"}) {
+        for (const auto *name : {"submit-index", "submit", "read-map", "write-map", "texture-owner"}) {
             QTest::newRow(name) << QString::fromLatin1(name);
         }
     }

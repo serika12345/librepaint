@@ -192,6 +192,7 @@ GPU内複製、操作完了と予算超過を検査する。評価済みのテ�
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTileTextureTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuEditSessionTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuNativeFailureTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuCanvasRendererTest
 ```
 
 設定コマンドは`flake.lock`のnixpkgs固定版と`nix/gpu`からwgpu-native本体と開発用ヘッダーを構築し、
@@ -207,6 +208,8 @@ macOSの試験はMetal、Linuxの試験はVulkanを使用する。実GPUへア�
 画素の完全一致とGPU検査エラーの有無を確認する。
 送信失敗と無効なマッピングの検査は別プロセスで実行し、ネイティブAPIがエラー通知と
 失敗値を返すことを確認する。
+キャンバス描画はGPU画像を直接読み、座標変換、透明画素の補間と背景合成を検査する。
+描画先の所有元を発行前に検査し、別デバイスの資源を拒否する。
 
 ### GPU描画の一括発行計測
 

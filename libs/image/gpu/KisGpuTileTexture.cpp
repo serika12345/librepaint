@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuTileStore_p.h"
+#include "KisGpuDevice.h"
 #include <algorithm>
 
 using namespace KisGpuTileStorage;
@@ -31,6 +32,10 @@ KisGpuTileStore::TextureData::~TextureData()
 
 WGPUTexture KisGpuTileStore::TextureSnapshot::texture() const { return d ? d->texture : nullptr; }
 QRect KisGpuTileStore::TextureSnapshot::bounds() const { return d ? d->bounds : QRect(); }
+bool KisGpuTileStore::TextureSnapshot::usesDevice(const KisGpuDevice &device) const
+{
+    return d && d->owner->nativeOwner == device.d;
+}
 
 KisGpuTileStore::TextureSnapshot KisGpuTileStore::textureSnapshot(const Version &source, QRect bounds)
 {

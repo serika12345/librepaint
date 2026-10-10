@@ -96,6 +96,10 @@
 画素・版・寿命の契約を検証する。利用側へ渡す版とGPU資源の借用条件は
 [GPU文書タイルと版の契約](gpu-document-tiles.md)が定義する。
 
+`libs/canvas/gpu`の`kritacanvasgpurenderer`は、GPU文書が生成した画像を直接読み、
+座標変換、補間と背景合成をGPU上で実行する。表示側からGPU文書所有者とQt Guiへ依存する。
+[GPUキャンバス画像の描画](gpu-canvas-rendering.md)が画素と非同期資源保持の契約を定義する。
+
 `libs/resources/storage`の`kritaresourcestorage`はZIPとディレクトリーの保存を、
 `libs/serialization/xml`の`kritaxmlserialization`はXML名前空間と逐次書出しを所有する。
 保存側はQt Core、KConfig、QuaZip、XML側はQt Coreを利用し、上位の製品所有者から独立する。

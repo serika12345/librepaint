@@ -112,6 +112,8 @@ public:
         /** Borrowed read-only straight RGBA8 texture. Retain this snapshot through every GPU consumer. */
         WGPUTexture texture() const;
         QRect bounds() const;
+        /** True when this image can be consumed on the given device. */
+        bool usesDevice(const KisGpuDevice &device) const;
     private:
         friend class KisGpuTileStore;
         std::shared_ptr<TextureData> d;
