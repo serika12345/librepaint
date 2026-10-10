@@ -56,6 +56,9 @@ void KisGpuSurfaceLifetimeTest::nativeWindowRecreationRetainsImageAndSequence()
         }
         const auto frame = renderer.present(input, view);
         QVERIFY(frame.accepted());
+        const auto submitted = renderer.statistics();
+        QVERIFY(submitted.acquireCallNanoseconds > 0);
+        QVERIFY(submitted.nativePresentCallNanoseconds > 0);
         QVERIFY(frame.rendering.sequence() > sequence);
         sequence = frame.rendering.sequence();
         window.destroy();
@@ -67,6 +70,8 @@ void KisGpuSurfaceLifetimeTest::nativeWindowRecreationRetainsImageAndSequence()
         QCOMPARE(gpu.owner.memoryStatistics().reservedBytes, imageBytes);
         QCOMPARE(renderer.statistics().presentationRequests, quint64(i + 1));
         QCOMPARE(renderer.statistics().rendering.submissions, quint64(i + 1));
+        QCOMPARE(renderer.statistics().acquireCallNanoseconds, submitted.acquireCallNanoseconds);
+        QCOMPARE(renderer.statistics().nativePresentCallNanoseconds, submitted.nativePresentCallNanoseconds);
         QCOMPARE(renderer.present(input, view).error, Renderer::Error::WindowUnavailable);
     }
     QCOMPARE(store.statistics().submissions, before.submissions);

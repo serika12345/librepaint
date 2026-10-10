@@ -4,6 +4,7 @@
  */
 #include "SurfaceRenderer.h"
 #include "GpuWindowSurface_p.h"
+#include <QElapsedTimer>
 #include <QPlatformSurfaceEvent>
 #include <QWindow>
 #include <algorithm>
@@ -39,6 +40,7 @@ struct SurfaceRenderer::Private : QObject {
     quint64 requests = 0;
     QVector<Presentation> presentations;
     quint64 displayed = 0, skipped = 0, abandoned = 0;
+    quint64 acquireCallNs = 0, nativePresentCallNs = 0;
     ~Private() {
         window.removeEventFilter(this);
         for (auto &presentation : presentations) presentation.abandon();
@@ -170,7 +172,10 @@ SurfaceRenderer::Frame SurfaceRenderer::present(const KisGpuTileStore::TextureSn
         || d->presentations.size() >= d->maximumPending) { frame.error = Error::QueueFull; return frame; }
     if (d->owner.availableMemory() < GpuRenderer::frameMemoryBytes()) { frame.error = Error::BudgetExceeded; return frame; }
     WGPUSurfaceTexture current{};
+    QElapsedTimer elapsed;
+    elapsed.start();
     wgpuSurfaceGetCurrentTexture(d->surface->surface(), &current);
+    d->acquireCallNs += quint64(elapsed.nsecsElapsed());
     if (!current.texture) {
         if (current.status == WGPUSurfaceGetCurrentTextureStatus_Outdated
             || current.status == WGPUSurfaceGetCurrentTextureStatus_Lost) d->needsConfigure = true;
@@ -182,12 +187,17 @@ SurfaceRenderer::Frame SurfaceRenderer::present(const KisGpuTileStore::TextureSn
     if (frame.rendering.error != GpuRenderer::Error::None) {
         frame.error = frame.rendering.error == GpuRenderer::Error::DeviceLost ? Error::DeviceLost
                     : frame.rendering.error == GpuRenderer::Error::BudgetExceeded ? Error::BudgetExceeded : Error::ImageRejected;
-    } else if (wgpuSurfacePresent(d->surface->surface()) != WGPUStatus_Success) {
-        frame.error = Error::PresentFailed;
-        d->needsConfigure = true;
     } else {
-        ++d->requests;
-        if (frame.presentation.status() != Presentation::Status::Unavailable) d->presentations.push_back(frame.presentation);
+        elapsed.start();
+        const auto status = wgpuSurfacePresent(d->surface->surface());
+        d->nativePresentCallNs += quint64(elapsed.nsecsElapsed());
+        if (status != WGPUStatus_Success) {
+            frame.error = Error::PresentFailed;
+            d->needsConfigure = true;
+        } else {
+            ++d->requests;
+            if (frame.presentation.status() != Presentation::Status::Unavailable) d->presentations.push_back(frame.presentation);
+        }
     }
     if (frame.error != Error::None) frame.presentation.abandon();
     wgpuTextureRelease(current.texture);
@@ -196,6 +206,7 @@ SurfaceRenderer::Frame SurfaceRenderer::present(const KisGpuTileStore::TextureSn
 void SurfaceRenderer::poll() { d->renderer->poll(); d->collectPresentations(); }
 SurfaceRenderer::Statistics SurfaceRenderer::statistics() const {
     return {d->requests, d->surfaceMemory.bytes(), d->size, d->renderer->statistics(),
-            d->displayed, d->skipped, d->abandoned, quint32(d->presentations.size())};
+            d->displayed, d->skipped, d->abandoned, quint32(d->presentations.size()),
+            d->acquireCallNs, d->nativePresentCallNs};
 }
 }

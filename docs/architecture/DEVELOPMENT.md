@@ -361,6 +361,8 @@ RGBA8 sRGB、通常合成を利用する。追加は一入力点、差し替え�
 `imageTextureAllocationBytes`は計測更新中に新しく確保した表示用画像の累積容量を記録する。
 `inputToSubmissionMs`は表示要求の受理後に採取する。`surfacePresentCallMs`と`surfacePollCallMs`は
 表示要求と完了回収の呼出しに費やしたCPU側の経過時間を累積し、途中の再試行も含める。
+`surfaceAcquireCallMs`と`surfaceNativePresentCallMs`は、表示要求の呼出し内にある
+表示画像の取得とOSへの提示要求の経過時間を分ける。この二値は`surfacePresentCallMs`の内数である。
 描画完了時刻は完了を観測した時刻であり、これらの呼出しで生じた待機とGPU実行時間を区別する。
 論理予約量の最大観測値は処理段階の境目で採取し、ドライバーを含む物理メモリーの最大値とは区別する。
 初期レイヤー生成、最終画像の識別用読取りは計測区間外とし、通常更新のCPU画素転送0を必須とする。

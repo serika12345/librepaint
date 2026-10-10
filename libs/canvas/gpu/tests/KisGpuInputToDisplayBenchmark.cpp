@@ -213,6 +213,8 @@ Run execute(KisGpuTestDevice &gpu, QWindow &window, Surface &surface,
             {"inputSamples", input.size()}, {"inputToProjectionMs", projectionMs},
             {"inputToTextureReadyMs", textureMs}, {"inputToSubmissionMs", submissionMs},
             {"surfacePresentCallMs", presentCallNs / 1.0e6}, {"surfacePollCallMs", pollCallNs / 1.0e6},
+            {"surfaceAcquireCallMs", (afterDisplay.acquireCallNanoseconds - beforeDisplay.acquireCallNanoseconds) / 1.0e6},
+            {"surfaceNativePresentCallMs", (afterDisplay.nativePresentCallNanoseconds - beforeDisplay.nativePresentCallNanoseconds) / 1.0e6},
             {"inputToRenderCompletionMs", renderingMs},
             {"inputToPresentationMs", displayed ? QJsonValue(double(*displayedTime - *inputTime) / 1.0e6) : QJsonValue(QJsonValue::Null)},
             {"inputToTerminalNotificationMs", terminalMs}, {"cpuMs", cpuMs},
@@ -236,7 +238,8 @@ Run execute(KisGpuTestDevice &gpu, QWindow &window, Surface &surface,
     require(pixels.size() == bounds.width() * bounds.height() * 4, "Cannot identify the measured final image");
     QJsonObject summary;
     for (const auto &metric : {"inputToProjectionMs", "inputToTextureReadyMs", "inputToSubmissionMs",
-                               "surfacePresentCallMs", "surfacePollCallMs", "inputToRenderCompletionMs",
+                               "surfacePresentCallMs", "surfacePollCallMs", "surfaceAcquireCallMs",
+                               "surfaceNativePresentCallMs", "inputToRenderCompletionMs",
                                "inputToPresentationMs", "inputToTerminalNotificationMs", "cpuMs"}) {
         summary.insert(QString::fromLatin1(metric), distribution(samples, QString::fromLatin1(metric)));
     }

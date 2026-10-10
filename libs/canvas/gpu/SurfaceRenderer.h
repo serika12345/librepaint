@@ -48,6 +48,8 @@ public:
         GpuRenderer::Statistics rendering;
         quint64 displayedFrames = 0, skippedFrames = 0, abandonedFrames = 0;
         quint32 pendingPresentations = 0;
+        /** Cumulative CPU elapsed time inside native image acquisition and presentation, including failed calls. */
+        quint64 acquireCallNanoseconds = 0, nativePresentCallNanoseconds = 0;
     };
     /** Call before the dedicated window acquires a native handle. */
     static void prepareWindow(QWindow &window);

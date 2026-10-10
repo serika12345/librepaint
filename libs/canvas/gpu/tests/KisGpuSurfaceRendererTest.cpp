@@ -315,14 +315,28 @@ private Q_SLOTS:
         expose(window);
         SurfaceRenderer renderer(gpu.owner, window);
         QCOMPARE(renderer.present({}, {}).error, SurfaceRenderer::Error::ImageRejected);
+        QCOMPARE(renderer.statistics().acquireCallNanoseconds, quint64(0));
+        QCOMPARE(renderer.statistics().nativePresentCallNanoseconds, quint64(0));
+        QElapsedTimer elapsed;
+        elapsed.start();
         GpuRenderer::View singular;
         singular.canvasToTarget.scale(0, 1);
         QCOMPARE(renderer.present(input, singular).error, SurfaceRenderer::Error::ImageRejected);
+        const auto rejected = renderer.statistics();
+        QVERIFY(rejected.acquireCallNanoseconds > 0);
+        QCOMPARE(rejected.nativePresentCallNanoseconds, quint64(0));
         auto frame = renderer.present(input, {});
+        const auto totalNs = quint64(elapsed.nsecsElapsed());
         QVERIFY(frame.accepted());
+        const auto submitted = renderer.statistics();
+        QVERIFY(submitted.acquireCallNanoseconds > rejected.acquireCallNanoseconds);
+        QVERIFY(submitted.nativePresentCallNanoseconds > 0);
+        QVERIFY(submitted.acquireCallNanoseconds + submitted.nativePresentCallNanoseconds <= totalNs);
         QTRY_VERIFY_WITH_TIMEOUT((renderer.poll(), frame.rendering.status() != GpuRenderer::Status::Pending), 3000);
         QCOMPARE(frame.rendering.status(), GpuRenderer::Status::Succeeded);
         QCOMPARE(renderer.statistics().presentationRequests, quint64(1));
+        QCOMPARE(renderer.statistics().acquireCallNanoseconds, submitted.acquireCallNanoseconds);
+        QCOMPARE(renderer.statistics().nativePresentCallNanoseconds, submitted.nativePresentCallNanoseconds);
     }
     void framesFinishAfterOwnerDestructionAndDeviceLoss() {
         KisGpuTestDevice gpu;
