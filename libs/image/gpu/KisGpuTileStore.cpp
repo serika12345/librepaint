@@ -57,21 +57,61 @@ struct Allocation {
 using Coordinate = std::pair<int, int>;
 int tileCoordinate(qint64 pixel) { return int(pixel >= 0 ? pixel / 64 : (pixel + 1) / 64 - 1); }
 struct FillParameters {
-    quint32 left, top, right, bottom, color, padding[3];
+    quint32 left, top, right, bottom, color, operation, opacity, coverage;
 };
 static_assert(sizeof(FillParameters) == 32);
 
 constexpr char FillShader[] = R"(
 struct FillParameters {
     lower: vec2<u32>, upper: vec2<u32>, color: u32,
-    padding0: u32, padding1: u32, padding2: u32,
+    operation: u32, opacity: u32, coverage: u32,
 }
 @group(0) @binding(0) var<storage, read_write> pixels: array<u32>;
 @group(0) @binding(1) var<uniform> parameters: FillParameters;
+
+fn multiply8(a: u32, b: u32) -> u32 {
+    let product = a * b + 128u;
+    return (product + (product >> 8u)) >> 8u;
+}
+
+fn unpack(pixel: u32) -> vec4<u32> {
+    return vec4<u32>(pixel, pixel >> 8u, pixel >> 16u, pixel >> 24u) & vec4<u32>(255u);
+}
+
+fn quantize(value: f32) -> u32 {
+    let bounded = clamp(value, 0.0, 255.0);
+    let lower = u32(floor(bounded));
+    let fraction = bounded - f32(lower);
+    return lower + select(0u, 1u, fraction > 0.5 || (fraction == 0.5 && (lower & 1u) != 0u));
+}
+
+fn over(source: vec4<u32>, destination: vec4<u32>) -> vec4<u32> {
+    var alpha = f32(source.a) * (f32(parameters.opacity) * (1.0 / 255.0));
+    alpha *= f32(parameters.coverage) * (1.0 / 255.0);
+    if (alpha == 0.0) { return destination; }
+    let resultAlpha = f32(destination.a) + (255.0 - f32(destination.a)) * alpha * (1.0 / 255.0);
+    let blend = alpha / resultAlpha;
+    let color = blend * (vec3<f32>(source.rgb) - vec3<f32>(destination.rgb)) + vec3<f32>(destination.rgb);
+    return vec4<u32>(quantize(color.r), quantize(color.g), quantize(color.b), quantize(resultAlpha));
+}
+
 @compute @workgroup_size(8, 8)
 fn fill(@builtin(global_invocation_id) position: vec3<u32>) {
     if (all(position.xy >= parameters.lower) && all(position.xy < parameters.upper)) {
-        pixels[position.y * 64u + position.x] = parameters.color;
+        let index = position.y * 64u + position.x;
+        if (parameters.operation == 0u) {
+            pixels[index] = parameters.color;
+        } else {
+            let source = unpack(parameters.color);
+            var destination = unpack(pixels[index]);
+            if (parameters.operation == 2u) {
+                let alpha = multiply8(multiply8(source.a, parameters.coverage), parameters.opacity);
+                destination.a = multiply8(destination.a, 255u - alpha);
+            } else {
+                destination = over(source, destination);
+            }
+            pixels[index] = destination.r | (destination.g << 8u) | (destination.b << 16u) | (destination.a << 24u);
+        }
     }
 }
 )";
@@ -225,12 +265,25 @@ KisGpuTileStore::Version KisGpuTileStore::emptyVersion() const
 
 KisGpuTileStore::Edit KisGpuTileStore::fill(const Version &base, QRect rectangle, quint32 rgba)
 {
+    return update(base, rectangle, rgba, UpdateKind::Fill, 255, 255);
+}
+
+KisGpuTileStore::Edit KisGpuTileStore::paint(const Version &base, QRect rectangle, quint32 rgba,
+                                          CompositeOp operation, quint8 opacity, quint8 coverage)
+{
+    return update(base, rectangle, rgba, operation == CompositeOp::Erase ? UpdateKind::Erase : UpdateKind::Over,
+                  opacity, coverage);
+}
+
+KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, QRect rectangle, quint32 rgba,
+                                           UpdateKind kind, quint8 opacity, quint8 coverage)
+{
     Edit result;
     if (!base.d || base.d->owner != d->state) {
         result.error = Error::InvalidVersion;
         return result;
     }
-    if (rectangle.isEmpty()) {
+    if (rectangle.isEmpty() || (kind != UpdateKind::Fill && (opacity == 0 || coverage == 0 || (rgba >> 24) == 0))) {
         result.version = base;
         result.completion.d = base.d->completion;
         return result;
@@ -270,14 +323,14 @@ KisGpuTileStore::Edit KisGpuTileStore::fill(const Version &base, QRect rectangle
                 quint32(std::max(left, tileLeft) - tileLeft),
                 quint32(std::max(top, tileTop) - tileTop),
                 quint32(std::min(right, tileLeft + 64) - tileLeft),
-                quint32(std::min(bottom, tileTop + 64) - tileTop), rgba, {0, 0, 0}
+                quint32(std::min(bottom, tileTop + 64) - tileTop), rgba, quint32(kind), opacity, coverage
             };
             std::memcpy(commands.data() + index * alignment, &fill, sizeof(fill));
             auto tile = std::make_shared<Allocation>(d->state, TileBytes,
                 WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
             const auto oldTile = base.d->tiles.find({x, y});
             if (oldTile != base.d->tiles.end()
-                && (fill.left != 0 || fill.top != 0 || fill.right != 64 || fill.bottom != 64)) {
+                && (kind != UpdateKind::Fill || fill.left != 0 || fill.top != 0 || fill.right != 64 || fill.bottom != 64)) {
                 wgpuCommandEncoderCopyBufferToBuffer(encoder.value, oldTile->second->buffer, 0, tile->buffer, 0, TileBytes);
                 copiedBytes += TileBytes;
             }

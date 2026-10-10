@@ -24,6 +24,7 @@ public:
     static constexpr quint64 TileBytes = 64 * 64 * 4;
     enum class Status { Pending, Succeeded, Failed };
     enum class Error { None, InvalidVersion, BudgetExceeded };
+    enum class CompositeOp { Over, Erase };
 
     class Version {
     public:
@@ -72,11 +73,17 @@ public:
      * A version is accepted only after its completion succeeds.
      */
     Edit fill(const Version &base, QRect rectangle, quint32 rgba);
+    /** Composite a constant source with uniform opacity and selection coverage. */
+    Edit paint(const Version &base, QRect rectangle, quint32 rgba,
+               CompositeOp operation = CompositeOp::Over, quint8 opacity = 255, quint8 coverage = 255);
     /** Dispatch completion callbacks and release finished submissions; never waits. */
     void poll();
     Statistics statistics() const;
 
 private:
+    enum class UpdateKind { Fill, Over, Erase };
+    Edit update(const Version &base, QRect rectangle, quint32 rgba,
+                UpdateKind kind, quint8 opacity, quint8 coverage);
     struct Private;
     std::unique_ptr<Private> d;
 };

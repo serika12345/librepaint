@@ -11,6 +11,10 @@
 基準入力は `libs/image/tests/data/raster_edit_contract.json` が所有する。
 実行方式を置き換える側は同じ入力と期待値を使用する。
 
+`libs/image/gpu/tests/KisGpuTileStoreTest.cpp`は同じJSONをGPUの単色描画へ渡し、
+通常合成、消去、不透明度、一定被覆率を、領域外と元の版の保持を含めて比較する。
+GPU資源と版の契約は[GPU文書タイルと版の契約](gpu-document-tiles.md)が所有する。
+
 ## 画素と入力
 
 - 色空間は RGBA・各成分8ビット整数、プロファイルは同梱の

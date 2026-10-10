@@ -3,6 +3,9 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include <QtTest>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <atomic>
 #include <future>
 #include <map>
@@ -10,6 +13,13 @@
 
 namespace {
 int tileCoordinate(int pixel) { return pixel >= 0 ? pixel / 64 : (pixel + 1) / 64 - 1; }
+
+quint32 rgba(const QJsonArray &values)
+{
+    quint32 pixel = 0;
+    for (int c = 0; c < 4; ++c) pixel |= quint32(values[c].toInt()) << (c * 8);
+    return pixel;
+}
 
 QByteArray expected(QRect bounds, const QList<QPair<QRect, quint32>> &fills)
 {
@@ -57,6 +67,8 @@ private Q_SLOTS:
     void emptyEditInheritsSourceCompletion();
     void versionOutlivesStore();
     void repeatedEditsReleaseOldVersions();
+    void compositing_data();
+    void compositing();
 private:
     QByteArray read(const KisGpuTileStore::Version &version, QRect bounds);
     WGPUInstance m_instance = nullptr;
@@ -334,6 +346,58 @@ void KisGpuTileStoreTest::repeatedEditsReleaseOldVersions()
     }
     QCOMPARE(read(version, QRect(0, 0, 64, 64)), expected(QRect(0, 0, 64, 64), {{QRect(1, 1, 2, 2), 64}}));
     QCOMPARE(store.statistics().submissions, quint64(64));
+}
+
+void KisGpuTileStoreTest::compositing_data()
+{
+    QFile file(QStringLiteral(RASTER_EDIT_FIXTURE));
+    QVERIFY2(file.open(QIODevice::ReadOnly), qPrintable(file.errorString()));
+    QJsonParseError error;
+    const auto fixture = QJsonDocument::fromJson(file.readAll(), &error).object();
+    QCOMPARE(error.error, QJsonParseError::NoError);
+    QCOMPARE(fixture["schema"].toInt(), 1);
+    QCOMPARE(fixture["profile"].toString(), QStringLiteral("sRGB-elle-V2-srgbtrc.icc"));
+    QTest::addColumn<QJsonObject>("input");
+    QTest::addColumn<QRect>("rectangle");
+    const QList<QRect> rectangles {QRect(-1, -1, 1, 1), QRect(-2, -2, 67, 67), QRect(62, 62, 131, 3)};
+    const auto cases = fixture["cases"].toArray();
+    QVERIFY(!cases.isEmpty());
+    for (const auto &entry : cases) {
+        const auto input = entry.toObject();
+        for (int i = 0; i < rectangles.size(); ++i) {
+            const QByteArray name = input["id"].toString().toUtf8() + '-' + QByteArray::number(i);
+            QTest::newRow(name.constData()) << input << rectangles[i];
+        }
+    }
+}
+
+void KisGpuTileStoreTest::compositing()
+{
+    QFETCH(QJsonObject, input);
+    QFETCH(QRect, rectangle);
+    KisGpuTileStore store(m_device, 128 * KisGpuTileStore::TileBytes);
+    const QRect bounds = rectangle.adjusted(-2, -2, 2, 2);
+    const quint32 destination = rgba(input["dst"].toArray());
+    const auto base = store.fill(store.emptyVersion(), bounds, destination);
+    QRect paintedRect = rectangle;
+    const int mask = input["mask"].toInt();
+    if (mask >= 0 && rectangle.width() > 2 && rectangle.height() > 2) paintedRect.adjust(1, 1, -1, -1);
+    const auto operation = input["op"].toString() == "erase"
+        ? KisGpuTileStore::CompositeOp::Erase : KisGpuTileStore::CompositeOp::Over;
+    const auto edit = store.paint(base.version, paintedRect, rgba(input["src"].toArray()),
+                                  operation, quint8(input["opacity"].toInt()), quint8(mask < 0 ? 255 : mask));
+    QCOMPARE(edit.error, KisGpuTileStore::Error::None);
+    QVERIFY(finish(store, edit.completion));
+    const QByteArray actual = read(edit.version, bounds);
+    const QByteArray wanted = expected(bounds, {{bounds, destination}, {paintedRect, rgba(input["expected"].toArray())}});
+    QCOMPARE(actual.size(), wanted.size());
+    for (int offset = 0; offset < actual.size(); offset += 4) {
+        QVERIFY2(actual.mid(offset, 4) == wanted.mid(offset, 4),
+                 qPrintable(QStringLiteral("(%1,%2): expected RGBA %3, actual %4")
+                     .arg(bounds.x() + offset / 4 % bounds.width()).arg(bounds.y() + offset / 4 / bounds.width())
+                     .arg(QString::fromLatin1(wanted.mid(offset, 4).toHex()), QString::fromLatin1(actual.mid(offset, 4).toHex()))));
+    }
+    QCOMPARE(read(base.version, bounds), expected(bounds, {{bounds, destination}}));
 }
 
 QTEST_GUILESS_MAIN(KisGpuTileStoreTest)
