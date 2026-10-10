@@ -193,6 +193,7 @@ GPU内複製、操作完了と予算超過を検査する。評価済みのテ�
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTileTextureTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuEditSessionTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuSelectionSessionTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuBrushStrokeTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuNativeFailureTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuCanvasRendererTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuSurfaceRendererTest
@@ -209,6 +210,8 @@ Rust依存の取得は固定パッケージのキャッシュを共用する。
 macOSの試験はMetal、Linuxの試験はVulkanを使用する。実GPUへアクセスできる実行環境が
 必要であり、取得できない場合は試験を失敗させる。試験用のCPU読み戻しを描画操作から分け、
 画素の完全一致とGPU検査エラーの有無を確認する。
+筆圧・間隔の配置データは`kis_distance_information_test`でCPUの補間・距離管理を検査し、
+`KisGpuBrushStrokeTest`で同じ配置の画素、要求拒否後の再試行、選択付き差し替えと回復を検査する。
 送信失敗と無効なマッピングの検査は別プロセスで実行し、ネイティブAPIがエラー通知と
 失敗値を返すことを確認する。
 キャンバス描画はGPU画像を直接読み、座標変換、透明画素の補間と背景合成を検査する。

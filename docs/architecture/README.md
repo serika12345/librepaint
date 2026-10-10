@@ -96,6 +96,10 @@
 画素・版・寿命の契約を検証する。利用側へ渡す版とGPU資源の借用条件は
 [GPU文書タイルと版の契約](gpu-document-tiles.md)が定義する。
 
+`libs/image/dabspacing`はCPU描画とGPU向け入力生成で距離間隔を共用する。
+`libs/painting/gpu`は位置と筆圧からブラシ印を作り、GPU編集セッションへ渡す。
+[筆圧と間隔からのGPUブラシ命令生成](gpu-brush-input.md)が配置、入力の進行と再試行の契約を定義する。
+
 `libs/canvas/gpu`の`kritacanvasgpurenderer`は、GPU文書が生成した画像を直接読み、
 座標変換、補間と背景合成をGPU上で実行する。表示側からGPU文書所有者とQt Guiへ依存する。
 [GPUキャンバス画像の描画](gpu-canvas-rendering.md)が画素と非同期資源保持の契約を定義する。

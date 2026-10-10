@@ -139,6 +139,7 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
     ),
     "libs/image": (
         "libs/canvas/gpu/tests/KisGpuCanvasRendererTest.cpp",
+        "libs/painting/gpu/tests/KisGpuBrushStrokeTest.cpp",
         "libs/painting/tests/TestPublicImageHeaders.cpp",
     ),
     "libs/impex": ("libs/impex/tests/TestImportExportPublicHeaders.cpp",),

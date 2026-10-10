@@ -1,0 +1,50 @@
+{
+  "schema": 1,
+  "provenance": "KisDistanceInformation isotropic distance spacing and KisPaintInformation::mix, LoD 0, distance spacing enabled, timing disabled, no fan corners. Size is constant or linear pressure; diameters below 0.01 produce no dab. Maintained placement contract; centers and diameters allow absolute error 0.00001.",
+  "cases": [
+    {
+      "id": "pressure-ramp", "diameter": [20, 12], "spacing": 0.25, "pressureSize": true,
+      "samples": [[0, 0, 0.5], [10, 0, 1]],
+      "dabs": [[0, 0, 10, 6], [2.5, 0, 12.5, 7.5], [5.625, 0, 15.625, 9.375], [9.53125, 0, 19.53125, 11.71875]]
+    },
+    {
+      "id": "split-pressure-ramp", "diameter": [20, 12], "spacing": 0.25, "pressureSize": true,
+      "samples": [[0, 0, 0.5], [2, 0, 0.6], [4, 0, 0.7], [8, 0, 0.9], [10, 0, 1]],
+      "dabs": [[0, 0, 10, 6], [2.5, 0, 12.5, 7.5], [5.625, 0, 15.625, 9.375], [9.53125, 0, 19.53125, 11.71875]]
+    },
+    {
+      "id": "corner-carry", "diameter": [20, 20], "spacing": 0.25, "pressureSize": false,
+      "samples": [[0, 0, 1], [3, 0, 0.5], [3, 4, 0.75], [8, 4, 1]],
+      "dabs": [[0, 0, 20, 20], [3, 2, 20, 20], [6, 4, 20, 20]]
+    },
+    {
+      "id": "negative-tile-boundary", "diameter": [16, 16], "spacing": 0.25, "pressureSize": false,
+      "samples": [[-67, -65, 1], [-61, -65, 1], [-59, -65, 1]],
+      "dabs": [[-67, -65, 16, 16], [-63, -65, 16, 16], [-59, -65, 16, 16]]
+    },
+    {
+      "id": "stationary-pressure", "diameter": [20, 20], "spacing": 0.25, "pressureSize": true,
+      "samples": [[0, 0, 0.5], [0, 0, 1], [5, 0, 1]],
+      "dabs": [[0, 0, 10, 10], [2.5, 0, 20, 20]]
+    },
+    {
+      "id": "zero-pressure-start", "diameter": [20, 20], "spacing": 0.25, "pressureSize": true,
+      "samples": [[0, 0, 0], [2, 0, 1]],
+      "dabs": [[0.5, 0, 5, 5], [1.75, 0, 17.5, 17.5]]
+    },
+    {
+      "id": "minimum-spacing", "diameter": [1, 1], "spacing": 0.01, "pressureSize": false,
+      "samples": [[0, 0, 1], [2, 0, 1]],
+      "dabs": [[0, 0, 1, 1], [0.5, 0, 1, 1], [1, 0, 1, 1], [1.5, 0, 1, 1], [2, 0, 1, 1]]
+    },
+    {
+      "id": "zero-spacing", "diameter": [1, 1], "spacing": 0, "pressureSize": false,
+      "samples": [[0, 0, 1], [2, 0, 1]],
+      "dabs": [[0, 0, 1, 1], [0.5, 0, 1, 1], [1, 0, 1, 1], [1.5, 0, 1, 1], [2, 0, 1, 1]]
+    },
+    {
+      "id": "empty-input", "diameter": [20, 20], "spacing": 0.25, "pressureSize": true,
+      "samples": [], "dabs": []
+    }
+  ]
+}
