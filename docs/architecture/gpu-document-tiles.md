@@ -23,7 +23,8 @@ wgpu-native 27.0.4.0を直接利用する。画像モデル、ブラシ、履歴
 | `libs/image/gpu/KisGpuTileTransfer.cpp` | 保存用の非同期読取り、マッピングと画素の取込み |
 | `libs/image/gpu/KisGpuTileTexture.cpp` | 指定領域をGPU表示用画像へ複製し、画像の寿命と予算を管理 |
 | `libs/image/gpu/KisGpuTileStore_p.h` | 所有者内部の割当、版、完了と発行中資源の表現 |
-| `libs/image/gpu/KisGpuTilePaint.wgsl` | GPU上の画素演算。Qtリソースとしてライブラリーへ組み込む |
+| `libs/image/gpu/KisGpuPixelBlend.wgsl` | 描画と合成で共有する8ビット画素の演算・丸め規則 |
+| `libs/image/gpu/KisGpuTilePaint.wgsl` | 単色・ブラシ印と画像版のGPU処理。共有演算とともにQtリソースへ組み込む |
 | `libs/image/gpu/KisGpuEditSession.*` | 作業版の追加・差し替え、非同期確定、取消しと有限の履歴 |
 | `libs/image/gpu/KisGpuEditRecovery.cpp` | CPUの読込み画素と受理済み命令から編集状態を再作成 |
 | `libs/image/gpu/KisGpuEditReplay_p.h` | 編集履歴と回復処理が共有する命令記録と再実行状態 |

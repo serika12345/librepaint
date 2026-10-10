@@ -66,11 +66,12 @@ KisGpuTileStore::Private::Private(std::shared_ptr<NativeDevice> nativeOwner, qui
     WGPUShaderSourceWGSL source{};
     source.chain.sType = WGPUSType_ShaderSourceWGSL;
     initializeGpuTileResources();
+    QFile blendFile(QStringLiteral(":/librepaint/gpu/KisGpuPixelBlend.wgsl"));
     QFile shaderFile(QStringLiteral(":/librepaint/gpu/KisGpuTilePaint.wgsl"));
-    if (!shaderFile.open(QIODevice::ReadOnly)) {
+    if (!blendFile.open(QIODevice::ReadOnly) || !shaderFile.open(QIODevice::ReadOnly)) {
         throw std::runtime_error("Cannot load GPU tile shader resource");
     }
-    const QByteArray shaderCode = shaderFile.readAll();
+    const QByteArray shaderCode = blendFile.readAll() + shaderFile.readAll();
     source.code = {shaderCode.constData(), size_t(shaderCode.size())};
     WGPUShaderModuleDescriptor shaderDescriptor{};
     shaderDescriptor.nextInChain = &source.chain;
