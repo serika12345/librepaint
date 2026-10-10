@@ -16,6 +16,8 @@
 #include <kis_paint_layer.h>
 #include <kis_paint_device.h>
 #include <kis_transparency_mask.h>
+#include <kis_selection.h>
+#include <kis_pixel_selection.h>
 #include <QElapsedTimer>
 #include <QTemporaryDir>
 
@@ -60,9 +62,16 @@ bool nativeFixture(const QString &path, int variant = 0)
     if (variant == 1) layer->setCompositeOpId(COMPOSITE_MULT);
     if (variant == 2) image->addNode(new KisGroupLayer(image, QStringLiteral("Group"), 255), image->root());
     if (variant == 3) layer->setVisible(false);
-    if (variant == 5) {
+    if (variant == 5 || variant == 10 || variant == 11) {
         KisTransparencyMaskSP mask = new KisTransparencyMask(image, QStringLiteral("Mask"));
         mask->initSelection(layer);
+        if (variant != 5) {
+            auto selection = mask->selection()->pixelSelection();
+            selection->setDefaultPixel(KoColor::createTransparent(selection->colorSpace()));
+            selection->select(Bounds);
+            if (variant == 10) mask->setVisible(false);
+            else mask->setUserLocked(true);
+        }
         image->addNode(mask, layer);
     }
     if (variant == 6) image->setDefaultProjectionColor(KoColor(Qt::white, cs));
@@ -72,6 +81,7 @@ bool nativeFixture(const QString &path, int variant = 0)
         channels.setBit(0, false);
         layer->setChannelLockFlags(channels);
     }
+    if (variant == 9) layer->setUserLocked(true);
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
     document->setFileBatchMode(true);
     document->setCurrentImage(image);
@@ -91,6 +101,8 @@ private Q_SLOTS:
     void readAndBudgetFailuresPublishNoDocument();
     void lostDeviceCanReloadOnAnotherDevice();
     void preservesSparseCoordinatesAndEmptyDocuments();
+    void preservesNativeVisibilityAndLock_data();
+    void preservesNativeVisibilityAndLock();
 };
 void KisGpuKraLoadJobTest::restoresFrozenNativePixels()
 {
@@ -108,6 +120,8 @@ void KisGpuKraLoadJobTest::restoresFrozenNativePixels()
         QVERIFY(paint(document, 2, 0xFF778899));
         document.setLayerProperties(1, 177, Store::CompositeOp::Over);
         document.setLayerProperties(2, 77, Store::CompositeOp::Erase);
+        document.setLayerLocked(1, true);
+        document.setLayerVisible(2, false);
         expectedFirst = gpu.read(document.layers()[0].paint.pixels, Bounds);
         expectedSecond = gpu.read(document.layers()[1].paint.pixels, Bounds);
         const auto projection = store->project(store->emptyVersion(), document.projectionLayers(false), Bounds);
@@ -135,6 +149,8 @@ void KisGpuKraLoadJobTest::restoresFrozenNativePixels()
     QCOMPARE(layers[1].name, QStringLiteral("Top"));
     QCOMPARE(layers[0].paint.opacity, quint8(177));
     QCOMPARE(layers[1].paint.operation, Store::CompositeOp::Erase);
+    QVERIFY(layers[0].locked);
+    QVERIFY(!layers[1].visible);
     QCOMPARE(gpu.read(layers[0].paint.pixels, Bounds), expectedFirst);
     QCOMPARE(gpu.read(layers[1].paint.pixels, Bounds), expectedSecond);
     const auto projection = store->project(store->emptyVersion(), document->projectionLayers(false), Bounds);
@@ -145,6 +161,7 @@ void KisGpuKraLoadJobTest::restoresFrozenNativePixels()
         if (record->mask) QVERIFY(record->mask->edits.isEmpty());
     }
     const auto before = store->statistics();
+    QCOMPARE(document->setLayerLocked(layers[0].id, false), Document::Result::Accepted);
     QVERIFY(paint(*document, layers[0].id, 0xFF0099AA));
     QVERIFY(document->undo());
     QCOMPARE(store->statistics().pixelUploadBytes, before.pixelUploadBytes);
@@ -160,7 +177,7 @@ void KisGpuKraLoadJobTest::unsupportedNativeContentIsRefusedBeforeGpuWork()
     KisGpuTestDevice gpu;
     auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
     const auto before = store->statistics();
-    for (int variant = 1; variant <= 8; ++variant) {
+    for (int variant : {1, 2, 4, 5, 6, 7, 8, 10, 11}) {
         const auto path = directory.filePath(QString::number(variant) + QStringLiteral(".kra"));
         QVERIFY(nativeFixture(path, variant));
         Load load(store, path, 8);
@@ -175,6 +192,44 @@ void KisGpuKraLoadJobTest::unsupportedNativeContentIsRefusedBeforeGpuWork()
         original->setFileBatchMode(true);
         QVERIFY(original->loadNativeFormat(path));
     }
+}
+
+void KisGpuKraLoadJobTest::preservesNativeVisibilityAndLock_data()
+{
+    QTest::addColumn<int>("variant");
+    QTest::newRow("hidden") << 3;
+    QTest::newRow("locked") << 9;
+}
+
+void KisGpuKraLoadJobTest::preservesNativeVisibilityAndLock()
+{
+    QFETCH(int, variant);
+    QTemporaryDir directory;
+    const auto path = directory.filePath(QStringLiteral("flags.kra"));
+    QVERIFY(nativeFixture(path, variant));
+    KisGpuTestDevice gpu;
+    auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
+    Load load(store, path, 8);
+    QVERIFY(finish(load));
+    auto document = load.takeDocument();
+    QVERIFY(document);
+    QCOMPARE(document->layers().size(), 1);
+    QCOMPARE(document->layers()[0].visible, variant != 3);
+    QCOMPARE(document->layers()[0].locked, variant == 9);
+    QCOMPARE(document->projectionLayers().size(), variant == 3 ? 0 : 1);
+    QCOMPARE(document->begin(1).result, Document::Result::LayerNotEditable);
+    QCOMPARE(document->begin(1, Document::Target::Mask).result, Document::Result::LayerNotEditable);
+    QCOMPARE(gpu.read(document->layers()[0].paint.pixels, {0, 0, 1, 1}), QByteArray::fromHex("ff0000ff"));
+    const auto before = store->statistics();
+    QCOMPARE(document->setLayerVisible(1, true), Document::Result::Accepted);
+    QCOMPARE(document->setLayerLocked(1, false), Document::Result::Accepted);
+    const auto edit = document->begin(1);
+    QCOMPARE(edit.result, Document::Result::Accepted);
+    QCOMPARE(document->cancel(edit.token), Document::Result::Accepted);
+    QCOMPARE(store->statistics().submissions, before.submissions);
+    QCOMPARE(store->statistics().pixelUploadBytes, before.pixelUploadBytes);
+    QCOMPARE(store->statistics().pixelReadbackBytes, before.pixelReadbackBytes);
+    QCOMPARE(gpu.owner.errorCount(), 0);
 }
 
 void KisGpuKraLoadJobTest::readAndBudgetFailuresPublishNoDocument()

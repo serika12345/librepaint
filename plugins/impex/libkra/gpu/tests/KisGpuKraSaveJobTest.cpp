@@ -93,6 +93,8 @@ void KisGpuKraSaveJobTest::savesFrozenLayersAndMaskAfterGpuClose()
     QVERIFY(paint(*document, first, 0x80123456, Document::Target::Mask));
     QVERIFY(paint(*document, second, 0xFF778899));
     document->setLayerProperties(first, 77, Store::CompositeOp::Erase);
+    document->setLayerLocked(first, true);
+    document->setLayerVisible(second, false);
     const auto expectedFirst = gpu.read(document->layers()[0].paint.pixels, Bounds);
     const auto expectedMask = alpha(gpu.read(document->layers()[0].paint.mask, Bounds));
     const auto expectedSecond = gpu.read(document->layers()[1].paint.pixels, Bounds);
@@ -127,6 +129,10 @@ void KisGpuKraSaveJobTest::savesFrozenLayersAndMaskAfterGpuClose()
     QCOMPARE(firstLayer->opacity(), quint8(77));
     QCOMPARE(firstLayer->compositeOpId(), QString(COMPOSITE_ERASE));
     QCOMPARE(secondLayer->name(), QStringLiteral("Top"));
+    QVERIFY(firstLayer->userLocked());
+    QVERIFY(firstLayer->visible());
+    QVERIFY(!secondLayer->visible());
+    QVERIFY(!secondLayer->userLocked());
     QCOMPARE(rgba(firstLayer->paintDevice()), expectedFirst);
     QCOMPARE(rgba(secondLayer->paintDevice()), expectedSecond);
     QCOMPARE(firstLayer->childCount(), quint32(1));

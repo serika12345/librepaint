@@ -48,6 +48,7 @@ private Q_SLOTS:
     void closingDocumentInvalidatesInputAndLeaseKeepsStoreAlive();
     void deviceLossPreservesTheCompletedDocument();
     void undoKeepsTheRecoverySourceForEachLayerAndMask();
+    void visibilityAndLockPreservePixelsAndHistory();
 };
 
 void KisGpuLayerDocumentTest::differentLayersShareOneUndoSequence()
@@ -373,6 +374,63 @@ void KisGpuLayerDocumentTest::undoKeepsTheRecoverySourceForEachLayerAndMask()
     QVERIFY(document.redo());
     QCOMPARE(gpu.read(document.layers()[0].paint.pixels, {8, 0, 1, 1}), QByteArray::fromHex("00ff00ff"));
     QCOMPARE(replacement.owner.errorCount(), 0);
+    QCOMPARE(gpu.owner.errorCount(), 0);
+}
+
+void KisGpuLayerDocumentTest::visibilityAndLockPreservePixelsAndHistory()
+{
+    KisGpuTestDevice gpu;
+    auto store = std::make_shared<Store>(gpu.owner, 128 * Store::TileBytes);
+    Document document(store, 16);
+    const auto bottom = document.addLayer(QStringLiteral("Bottom")).id;
+    const auto top = document.addLayer(QStringLiteral("Top")).id;
+    for (const auto id : {bottom, top}) {
+        const auto edit = document.begin(id);
+        QCOMPARE(edit.session->append(edit.token, {dab({0, 0}, id == bottom ? 0xFF0000FF : 0xFFFF0000)}, Bounds),
+                 Session::Result::Accepted);
+        document.commit(edit.token);
+        QVERIFY(finish(gpu, document));
+    }
+    const auto pixels = document.layers()[1].paint.pixels;
+    const auto before = store->statistics();
+    QCOMPARE(document.setLayerVisible(top, false), Document::Result::Accepted);
+    QVERIFY(!document.layers()[1].visible);
+    QVERIFY(document.layers()[1].paint.pixels == pixels);
+    QCOMPARE(document.projectionLayers().size(), 1);
+    QCOMPARE(document.begin(top).result, Document::Result::LayerNotEditable);
+    QCOMPARE(document.begin(top, Document::Target::Mask).result, Document::Result::LayerNotEditable);
+    QCOMPARE(document.setLayerLocked(top, true), Document::Result::Accepted);
+    QCOMPARE(document.setLayerVisible(top, true), Document::Result::Accepted);
+    QVERIFY(document.layers()[1].visible);
+    QVERIFY(document.layers()[1].locked);
+    QCOMPARE(document.projectionLayers().size(), 2);
+    QCOMPARE(document.begin(top).result, Document::Result::LayerNotEditable);
+    const auto history = document.historySize();
+    QCOMPARE(document.setLayerVisible(top, true), Document::Result::Accepted);
+    QCOMPARE(document.setLayerLocked(top, true), Document::Result::Accepted);
+    QCOMPARE(document.setLayerLocked(0, true), Document::Result::InvalidLayer);
+    QCOMPARE(document.setLayerVisible(0, true), Document::Result::InvalidLayer);
+    QCOMPARE(document.historySize(), history);
+    QVERIFY(document.undo());
+    QVERIFY(!document.layers()[1].visible);
+    QVERIFY(document.undo());
+    QVERIFY(!document.layers()[1].locked);
+    QVERIFY(document.undo());
+    QVERIFY(document.layers()[1].visible);
+    QVERIFY(document.redo()); QVERIFY(document.redo()); QVERIFY(document.redo());
+    QCOMPARE(store->statistics().submissions, before.submissions);
+    QCOMPARE(store->statistics().pixelUploadBytes, before.pixelUploadBytes);
+    QCOMPARE(store->statistics().pixelReadbackBytes, before.pixelReadbackBytes);
+    const auto hiddenProjection = store->project(store->emptyVersion(), {document.projectionLayers()[0]}, Bounds);
+    const auto visibleProjection = store->project(store->emptyVersion(), document.projectionLayers(), Bounds);
+    QCOMPARE(gpu.read(hiddenProjection.version, {0, 0, 1, 1}), QByteArray::fromHex("ff0000ff"));
+    QCOMPARE(gpu.read(visibleProjection.version, {0, 0, 1, 1}), QByteArray::fromHex("0000ffff"));
+    QCOMPARE(document.setLayerLocked(top, false), Document::Result::Accepted);
+    const auto edit = document.begin(top);
+    QCOMPARE(edit.result, Document::Result::Accepted);
+    QCOMPARE(document.setLayerVisible(top, false), Document::Result::Busy);
+    QCOMPARE(document.setLayerLocked(top, true), Document::Result::Busy);
+    QCOMPARE(document.cancel(edit.token), Document::Result::Accepted);
     QCOMPARE(gpu.owner.errorCount(), 0);
 }
 

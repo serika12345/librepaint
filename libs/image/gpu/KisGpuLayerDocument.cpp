@@ -52,7 +52,8 @@ KisGpuTileStore::Version KisGpuLayerDocument::rasterVersion(const RasterRecovery
 
 KisGpuLayerDocument::Layer KisGpuLayerDocument::layerValue(const LayerState &record) const
 {
-    return {record.id, record.name, {rasterVersion(record.pixels), rasterVersion(record.mask), record.opacity, record.operation}};
+    return {record.id, record.name, {rasterVersion(record.pixels), rasterVersion(record.mask), record.opacity, record.operation},
+            record.visible, record.locked};
 }
 
 void KisGpuLayerDocument::pruneRasterVersions()
@@ -184,6 +185,34 @@ KisGpuLayerDocument::Result KisGpuLayerDocument::setLayerProperties(LayerId id, 
     return publish(std::move(frame));
 }
 
+KisGpuLayerDocument::Result KisGpuLayerDocument::setLayerVisible(LayerId id, bool visible)
+{
+    const auto ready = readiness();
+    if (ready != Result::Accepted) return ready;
+    const auto index = indexOf(id);
+    if (index < 0) return Result::InvalidLayer;
+    auto frame = m_history[m_cursor];
+    if (frame[index]->visible == visible) return Result::Accepted;
+    auto record = std::make_shared<LayerState>(*frame[index]);
+    record->visible = visible;
+    frame[index] = std::move(record);
+    return publish(std::move(frame));
+}
+
+KisGpuLayerDocument::Result KisGpuLayerDocument::setLayerLocked(LayerId id, bool locked)
+{
+    const auto ready = readiness();
+    if (ready != Result::Accepted) return ready;
+    const auto index = indexOf(id);
+    if (index < 0) return Result::InvalidLayer;
+    auto frame = m_history[m_cursor];
+    if (frame[index]->locked == locked) return Result::Accepted;
+    auto record = std::make_shared<LayerState>(*frame[index]);
+    record->locked = locked;
+    frame[index] = std::move(record);
+    return publish(std::move(frame));
+}
+
 KisGpuLayerDocument::Result KisGpuLayerDocument::clearMask(LayerId id)
 {
     const auto ready = readiness();
@@ -206,6 +235,7 @@ KisGpuLayerDocument::Editing KisGpuLayerDocument::begin(LayerId id, Target targe
     if (index < 0) return {Result::InvalidLayer, {}, {}};
     if (target != Target::Pixels && target != Target::Mask) return {Result::InvalidInput, {}, {}};
     const auto &record = *m_history[m_cursor][index];
+    if (!record.visible || record.locked) return {Result::LayerNotEditable, {}, {}};
     const auto recovery = target == Target::Pixels ? *record.pixels : (record.mask ? *record.mask : KisGpuEditSession::Recovery{});
     const auto version = target == Target::Pixels ? rasterVersion(record.pixels)
         : (record.mask ? rasterVersion(record.mask) : m_store->emptyVersion());
@@ -290,6 +320,7 @@ QVector<KisGpuTileStore::Layer> KisGpuLayerDocument::projectionLayers(bool inclu
     QVector<KisGpuTileStore::Layer> result;
     if (!m_store || (m_restoring && m_restoring->initial)) return result;
     for (const auto &record : m_history[m_cursor]) {
+        if (!record->visible) continue;
         auto layer = layerValue(*record).paint;
         if (includePreview && m_active && record->id == m_active->id) {
             if (m_active->target == Target::Pixels) layer.pixels = m_session->preview();

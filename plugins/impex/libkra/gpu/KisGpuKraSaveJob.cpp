@@ -86,6 +86,8 @@ struct KisGpuKraSaveJob::Private {
             KisPaintLayerSP layer = new KisPaintLayer(image, record->name, record->opacity);
             layer->setCompositeOpId(record->operation == KisGpuTileStore::CompositeOp::Erase
                                         ? COMPOSITE_ERASE : COMPOSITE_OVER);
+            layer->setVisible(record->visible, true);
+            layer->setUserLocked(record->locked);
             writeTiles(layer->paintDevice(), *record->pixels, false);
             image->addNode(layer, image->root());
             if (record->mask) {

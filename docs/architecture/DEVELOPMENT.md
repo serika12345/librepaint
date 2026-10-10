@@ -257,6 +257,8 @@ macOSの試験はMetal、Linuxの試験はVulkanを使用する。実GPUへア�
 非同期Undo/Redoを検査する。復元中の表示維持、予算超過・取消し・GPU交換も確認する。
 `KisGpuLayerDocumentSuspendTest`はCPU回復値を保持したGPU資源の一時解放、同じ文書での
 再開、未確定入力と履歴、GPU喪失・復元失敗後の再試行を検査する。
+レイヤーの表示状態と描画ロックは、文書履歴・一時解放・固定版読取りとKRA保存・読込で照合する。
+回復ファイルはバージョン1と2の固定値から同じ画像を復元し、バージョン2のRedo先の両属性も確認する。
 `KisGpuLayerDocumentCompactionTest`は文書の画素・マスク回復命令を明示的に集約し、
 履歴・GPU版の維持、CPU予約、別GPUでの回復と読取り失敗を検査する。
 `KisGpuDocumentReadbackTest`は[文書全体の固定版読取り](gpu-document-readback.md)を検査する。

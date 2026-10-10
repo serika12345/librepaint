@@ -56,6 +56,8 @@ void KisGpuLayerDocumentSuspendTest::preservesDocumentAcrossDeviceReplacement()
     QVERIFY(paint(document, 1, 0x80123456, Document::Target::Mask));
     QVERIFY(paint(document, 2, 0xCC778899));
     document.setLayerProperties(1, 177, Store::CompositeOp::Erase);
+    document.setLayerLocked(1, true);
+    document.setLayerVisible(2, false);
     document.renameLayer(1, QStringLiteral("Later"));
     QVERIFY(document.undo());
     const auto expectedPixels = gpu.read(document.layers()[0].paint.pixels, Bounds);
@@ -92,6 +94,10 @@ void KisGpuLayerDocumentSuspendTest::preservesDocumentAcrossDeviceReplacement()
     QCOMPARE(document.layers()[0].name, QStringLiteral("Paint"));
     QCOMPARE(document.layers()[0].paint.opacity, quint8(177));
     QCOMPARE(document.layers()[0].paint.operation, Store::CompositeOp::Erase);
+    QVERIFY(document.layers()[0].locked);
+    QVERIFY(!document.layers()[1].visible);
+    QCOMPARE(document.projectionLayers().size(), 1);
+    QCOMPARE(document.begin(1).result, Document::Result::LayerNotEditable);
     QCOMPARE(replacement.read(document.layers()[0].paint.pixels, Bounds), expectedPixels);
     QCOMPARE(replacement.read(document.layers()[0].paint.mask, Bounds), expectedMask);
     QVERIFY(document.redo());

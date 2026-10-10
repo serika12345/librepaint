@@ -17,13 +17,14 @@ class KisGpuLayerDocument
 {
 public:
     using LayerId = quint64;
-    enum class Result { Accepted, Busy, Stale, InvalidLayer, InvalidInput, RecoveryBudgetExceeded, GpuRejected };
+    enum class Result { Accepted, Busy, Stale, InvalidLayer, InvalidInput, RecoveryBudgetExceeded, GpuRejected, LayerNotEditable };
     enum class State { Idle, Editing, Committing, Failed, Restoring, Compacting, Suspended };
     enum class Target { Pixels, Mask };
     struct Layer {
         LayerId id = 0;
         QString name;
         KisGpuTileStore::Layer paint;
+        bool visible = true, locked = false;
     };
     struct LayerResult { Result result = Result::InvalidInput; LayerId id = 0; };
     struct Editing {
@@ -39,6 +40,7 @@ public:
         KisGpuTileStore::CompositeOp operation = KisGpuTileStore::CompositeOp::Over;
         RasterRecovery pixels = std::make_shared<const KisGpuEditSession::Recovery>();
         RasterRecovery mask;
+        bool visible = true, locked = false;
     };
     using RecoveryFrame = QVector<std::shared_ptr<const RecoveryLayer>>;
     struct RecoveryWorking {
@@ -69,6 +71,8 @@ public:
     Result moveLayer(LayerId id, qsizetype index);
     Result renameLayer(LayerId id, QString name);
     Result setLayerProperties(LayerId id, quint8 opacity, KisGpuTileStore::CompositeOp operation);
+    Result setLayerVisible(LayerId id, bool visible);
+    Result setLayerLocked(LayerId id, bool locked);
     Result clearMask(LayerId id);
     /** One edit at a time; adopts the existing GPU head and CPU record without transfer or replay. */
     Editing begin(LayerId id, Target target = Target::Pixels);

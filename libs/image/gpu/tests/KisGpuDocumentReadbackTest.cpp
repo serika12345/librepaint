@@ -68,6 +68,8 @@ void KisGpuDocumentReadbackTest::frozenLayersSurviveEditingAndDocumentClose()
     QVERIFY(paint(*document, first, 0x80123456, Document::Target::Mask));
     QVERIFY(paint(*document, second, 0xFF778899));
     document->setLayerProperties(first, 77, Store::CompositeOp::Erase);
+    document->setLayerVisible(second, false);
+    document->setLayerLocked(second, true);
     auto layers = document->layers();
     const auto expectedFirst = pixels(gpu, layers[0].paint.pixels);
     const auto expectedMask = pixels(gpu, layers[0].paint.mask);
@@ -122,6 +124,10 @@ void KisGpuDocumentReadbackTest::frozenLayersSurviveEditingAndDocumentClose()
     QCOMPARE(actual[0].paint.operation, Store::CompositeOp::Erase);
     QCOMPARE(actual[1].id, second);
     QCOMPARE(actual[1].name, QStringLiteral("Top"));
+    QVERIFY(!actual[1].visible);
+    QVERIFY(actual[1].locked);
+    QCOMPARE(restored.projectionLayers().size(), 1);
+    QCOMPARE(restored.begin(second).result, Document::Result::LayerNotEditable);
     QVERIFY(actual[1].paint.mask == Store::Version{});
     QCOMPARE(pixels(replacement, actual[0].paint.pixels), expectedFirst);
     QCOMPARE(pixels(replacement, actual[0].paint.mask), expectedMask);

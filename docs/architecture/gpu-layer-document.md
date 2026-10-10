@@ -3,7 +3,7 @@
 ## 目的と構成
 
 `libs/image/gpu/KisGpuLayerDocument.*`は、レイヤー列、画素とマスクの版、名前、
-不透明度、合成方式と、文書全体で一つのUndo/Redo履歴を所有する。
+不透明度、合成方式、表示状態、描画ロックと、文書全体で一つのUndo/Redo履歴を所有する。
 描画とレイヤーの追加・削除・並べ替え・属性変更を同じ操作順で扱う。
 `KisGpuEditSession`が一回のラスター編集と回復値を、`KisGpuLayerDocument`が
 レイヤーへの採用と文書履歴を所有する。構築単位は`kritaimagegpudocument`で、
@@ -27,6 +27,13 @@
 その状態だけが利用するGPU版は保持表からも除く。
 Undo/Redoは保持済みのGPU版を即時に採用する。この場合、GPUの再描画と画素転送を伴わない。
 同じ名前・層順・属性を指定した場合は履歴を追加しない。
+
+`setLayerVisible()`と`setLayerLocked()`は表示状態と描画ロックを同じ文書履歴へ記録する。
+画素・マスクの版を共有し、変更自体のGPU発行と画素転送は0である。
+`layers()`は非表示レイヤーも含めた全記録を返し、`projectionLayers()`は表示中の層だけを返す。
+非表示またはロック中の層への`begin()`は、画素・マスクとも`LayerNotEditable`を返す。
+描画中の属性変更は`Busy`を返し、受理済みの入力と作業版を維持する。
+CPU回復値、固定版読取り、GPUの一時解放・再開は両属性を保持する。
 
 `KisGpuLayerDocumentResidency.cpp`はGPU履歴の保持と退避済み状態への移動を所有する。
 `evictHistory()`は、現在のレイヤーとマスク以外のGPU版を保持表から解放し、CPU履歴と

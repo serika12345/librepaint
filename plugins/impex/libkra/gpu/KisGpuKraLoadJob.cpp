@@ -45,7 +45,7 @@ bool zeroDefault(KisPaintDeviceSP device)
 }
 bool supportedNode(KisNodeSP node)
 {
-    return node->visible() && !node->userLocked() && node->keyframeChannels().isEmpty()
+    return node->keyframeChannels().isEmpty()
         && node->colorLabelIndex() == 0;
 }
 }
@@ -148,13 +148,15 @@ struct KisGpuKraLoadJob::Private {
             record->id = recovery.nextId++;
             record->name = layer->name();
             record->opacity = layer->opacity();
+            record->visible = layer->visible();
+            record->locked = layer->userLocked();
             record->operation = layer->compositeOpId() == COMPOSITE_ERASE
                 ? KisGpuTileStore::CompositeOp::Erase : KisGpuTileStore::CompositeOp::Over;
             record->pixels = readRaster(layer->paintDevice(), false);
             if (!record->pixels) return {};
             if (layer->childCount()) {
                 auto mask = dynamic_cast<KisTransparencyMask *>(layer->firstChild().data());
-                if (!mask || !supportedNode(mask) || mask->opacity() != 255
+                if (!mask || !supportedNode(mask) || !mask->visible() || mask->userLocked() || mask->opacity() != 255
                     || !mask->selection() || mask->selection()->hasShapeSelection()) {
                     fail(Error::UnsupportedDocument); return {};
                 }

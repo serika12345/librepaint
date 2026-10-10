@@ -19,6 +19,7 @@ using Store = KisGpuTileStore;
 using Error = File::Error;
 constexpr quint32 Absent = std::numeric_limits<quint32>::max();
 constexpr qsizetype HeaderBytes = 52;
+constexpr quint32 CurrentVersion = 2;
 struct Failure { Error error; };
 void require(bool condition, Error error = Error::InvalidData) { if (!condition) throw Failure{error}; }
 
@@ -295,6 +296,7 @@ QByteArray encode(const Document::Recovery &data, quint64 maximum)
     out.count(tables.layers.values.size());
     for (const auto &layer : tables.layers.values) {
         out.number(layer->id); out.name(layer->name); out.number(layer->opacity); out.number(quint8(layer->operation == Store::CompositeOp::Erase ? 1 : 0));
+        out.number(quint8(layer->visible)); out.number(quint8(layer->locked));
         out.number(tables.rasters.index(layer->pixels)); out.number(tables.rasters.index(layer->mask));
     }
     out.count(data.history.size());
@@ -309,7 +311,7 @@ QByteArray encode(const Document::Recovery &data, quint64 maximum)
     }
     return out.bytes;
 }
-Document::Recovery decode(const QByteArray &bytes, quint64 maximum)
+Document::Recovery decode(const QByteArray &bytes, quint64 maximum, quint32 version)
 {
     Reader in{bytes, {maximum}};
     Tables tables(Document::Recovery{});
@@ -333,13 +335,14 @@ Document::Recovery decode(const QByteArray &bytes, quint64 maximum)
     const auto rasters = in.count(50, sizeof(Session::Recovery) + sizeof(Document::RasterRecovery));
     tables.rasters.values.reserve(rasters);
     for (quint32 i = 0; i < rasters; ++i) tables.rasters.values.push_back(std::make_shared<const Session::Recovery>(readRaster(in, tables)));
-    const auto layers = in.count(22, sizeof(Document::RecoveryLayer) + sizeof(std::shared_ptr<const Document::RecoveryLayer>));
+    const auto layers = in.count(version == 1 ? 22 : 24, sizeof(Document::RecoveryLayer) + sizeof(std::shared_ptr<const Document::RecoveryLayer>));
     tables.layers.values.reserve(layers);
     for (quint32 i = 0; i < layers; ++i) {
         auto value = std::make_shared<Document::RecoveryLayer>();
         value->id = in.number<quint64>(); value->name = in.name(); value->opacity = in.number<quint8>();
         const auto operation = in.number<quint8>(); require(operation <= 1);
         value->operation = operation ? Store::CompositeOp::Erase : Store::CompositeOp::Over;
+        if (version >= 2) { value->visible = in.boolean(); value->locked = in.boolean(); }
         value->pixels = reference(in, tables.rasters.values, false); value->mask = reference(in, tables.rasters.values);
         tables.layers.values.push_back(std::move(value));
     }
@@ -375,7 +378,7 @@ File::Error File::write(const QString &path, const Document::Recovery &data, qui
     try {
         const auto payload = encode(data, maximum);
         Writer header{{}, HeaderBytes};
-        header.put("LPGPUREC", 8); header.number(quint32(1)); header.number(quint64(payload.size()));
+        header.put("LPGPUREC", 8); header.number(CurrentVersion); header.number(quint64(payload.size()));
         const auto digest = QCryptographicHash::hash(payload, QCryptographicHash::Sha256);
         header.put(digest.constData(), digest.size());
         QSaveFile file(path);
@@ -396,12 +399,13 @@ File::ReadResult File::read(const QString &path, quint64 maximum)
         require(header.size() == HeaderBytes, file.error() == QFile::NoError ? Error::InvalidData : Error::Io);
         require(header.first(8) == QByteArray("LPGPUREC", 8));
         Reader input{header, {HeaderBytes}}; input.position = 8;
-        require(input.number<quint32>() == 1, Error::UnsupportedVersion);
+        const auto version = input.number<quint32>();
+        require(version >= 1 && version <= CurrentVersion, Error::UnsupportedVersion);
         const auto size = input.number<quint64>();
         require(size == quint64(file.size() - HeaderBytes));
         const auto payload = file.read(qint64(size));
         require(quint64(payload.size()) == size, file.error() == QFile::NoError ? Error::InvalidData : Error::Io);
         require(QCryptographicHash::hash(payload, QCryptographicHash::Sha256) == header.mid(20, 32));
-        return {Error::None, decode(payload, maximum)};
+        return {Error::None, decode(payload, maximum, version)};
     } catch (const Failure &failure) { return {failure.error, {}}; }
 }

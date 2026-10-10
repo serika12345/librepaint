@@ -76,7 +76,8 @@ bool KisGpuLayerDocument::validRecovery(const Recovery &request, qsizetype retai
     if (request.working) {
         const auto &work = *request.working;
         const auto &frame = request.history[request.cursor];
-        if (!work.base || !frame.contains(work.base) || (work.target != Target::Pixels && work.target != Target::Mask)
+        if (!work.base || !frame.contains(work.base) || !work.base->visible || work.base->locked
+            || (work.target != Target::Pixels && work.target != Target::Mask)
             || !Session::ReplayState::validRecovery(work.data, 0, maximum)
             || work.data.cursor != work.data.edits.size()
             || (work.completed ? !completed(work.data) : !work.data.working.has_value())

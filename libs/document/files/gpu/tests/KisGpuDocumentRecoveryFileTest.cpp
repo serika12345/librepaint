@@ -38,7 +38,8 @@ private Q_SLOTS:
     void emptyDocumentHasStableVersionedBytes();
     void backgroundSnapshotRestoresUnfinishedEditing_data();
     void backgroundSnapshotRestoresUnfinishedEditing();
-    void versionOneFilePreservesRecordedImages();
+    void versionedFilesPreserveRecordedImages_data();
+    void versionedFilesPreserveRecordedImages();
     void frozenGpuPixelsPersistWithoutReplayCommands();
     void damagedFilesAndOversizedCountsAreRejected();
     void failedWritesPreserveThePreviousFile();
@@ -56,12 +57,12 @@ void KisGpuDocumentRecoveryFileTest::emptyDocumentHasStableVersionedBytes()
     QFile file(path);
     QVERIFY(file.open(QIODevice::ReadOnly));
     const auto actual = file.readAll();
-    // Version 1: empty asset/raster/layer tables and one empty history frame.
+    // Version 2: empty asset/raster/layer tables and one empty history frame.
     const auto payload = QByteArray::fromHex(
         "000000000000000000000000000000000000000100000000"
         "0000000000000000000000000000000100");
     QByteArray expected("LPGPUREC", 8);
-    expected += QByteArray::fromHex("000000010000000000000029");
+    expected += QByteArray::fromHex("000000020000000000000029");
     expected += QCryptographicHash::hash(payload, QCryptographicHash::Sha256);
     expected += payload;
     QCOMPARE(actual, expected);
@@ -235,7 +236,7 @@ void KisGpuDocumentRecoveryFileTest::damagedFilesAndOversizedCountsAreRejected()
         QVERIFY(!loaded.recovery);
     };
     auto bad = good; bad[0] = '!'; reject(bad);
-    bad = good; bad[11] = 2; reject(bad, File::Error::UnsupportedVersion);
+    bad = good; bad[11] = 3; reject(bad, File::Error::UnsupportedVersion);
     bad = good; bad[19] = 40; reject(bad);
     bad = good; bad[20] ^= 1; reject(bad);
     for (const auto length : {0, 8, 51, 52, int(good.size() - 1)}) reject(good.first(length));
@@ -289,6 +290,17 @@ void KisGpuDocumentRecoveryFileTest::failedWritesPreserveThePreviousFile()
     auto texture = std::make_shared<Session::ReplayTexture>();
     texture->size = {3, 2}; texture->alpha = QByteArray(1, '\0');
     raster->edits[0][0].texture = texture;
+    QCOMPARE(File::write(path, saved), File::Error::InvalidData);
+    QCOMPARE(contents(), good);
+    raster->edits.clear(); raster->cursor = raster->firstRetained = 0;
+    Session::Recovery working;
+    working.working = Session::ReplayEdit{};
+    saved.working = Document::RecoveryWorking{layer, Document::Target::Pixels, working, false};
+    layer->visible = false;
+    QCOMPARE(File::write(path, saved), File::Error::InvalidData);
+    QCOMPARE(contents(), good);
+    layer->visible = true;
+    layer->locked = true;
     QCOMPARE(File::write(path, saved), File::Error::InvalidData);
     QCOMPARE(contents(), good);
 }
@@ -354,8 +366,16 @@ void KisGpuDocumentRecoveryFileTest::successfulWriteFitsTheReadBudget()
 }
 
 
-void KisGpuDocumentRecoveryFileTest::versionOneFilePreservesRecordedImages()
+void KisGpuDocumentRecoveryFileTest::versionedFilesPreserveRecordedImages_data()
 {
+    QTest::addColumn<int>("format");
+    QTest::newRow("version-1") << 1;
+    QTest::newRow("version-2") << 2;
+}
+
+void KisGpuDocumentRecoveryFileTest::versionedFilesPreserveRecordedImages()
+{
+    QFETCH(int, format);
     auto selection = std::make_shared<Session::ReplaySelection>();
     Store::DabCommand select;
     select.center = {8, 8}; select.diameter = {32, 32}; select.rgba = 0x80000000;
@@ -382,6 +402,7 @@ void KisGpuDocumentRecoveryFileTest::versionOneFilePreservesRecordedImages()
     laterPixels->edits.push_back({{{command}, {0, 0, 16, 16}, selection, texture}});
     laterPixels->cursor = laterPixels->firstRetained = 2;
     later->name = QStringLiteral("Future"); later->pixels = laterPixels;
+    if (format == 2) { later->visible = false; later->locked = true; }
     Document::Recovery saved;
     saved.history = {{layer}, {later}}; saved.nextId = 2;
     auto working = *first;
@@ -390,15 +411,20 @@ void KisGpuDocumentRecoveryFileTest::versionOneFilePreservesRecordedImages()
     saved.working = Document::RecoveryWorking{layer, Document::Target::Pixels, working, false};
     QTemporaryDir directory;
     const auto path = directory.filePath(QStringLiteral("recovery"));
-    QCOMPARE(File::write(path, saved), File::Error::None);
-    QFile actual(path);
-    QVERIFY(actual.open(QIODevice::ReadOnly));
-    const auto bytes = actual.readAll();
-    const auto fixturePath = QFINDTESTDATA("data/gpu_recovery_v1.bin");
+    QByteArray bytes;
+    if (format == 2) {
+        QCOMPARE(File::write(path, saved), File::Error::None);
+        QFile actual(path);
+        QVERIFY(actual.open(QIODevice::ReadOnly));
+        bytes = actual.readAll();
+        QCOMPARE(qFromBigEndian<quint32>(bytes.constData() + 8), quint32(2));
+    }
+    const auto fixturePath = format == 1 ? QFINDTESTDATA("data/gpu_recovery_v1.bin")
+                                         : QFINDTESTDATA("data/gpu_recovery_v2.bin");
     QVERIFY(!fixturePath.isEmpty());
     QFile fixture(fixturePath);
     QVERIFY(fixture.open(QIODevice::ReadOnly));
-    QCOMPARE(bytes, fixture.readAll());
+    if (format == 2) QCOMPARE(bytes, fixture.readAll());
     const auto loaded = File::read(fixturePath);
     QCOMPARE(loaded.error, File::Error::None);
     QVERIFY(loaded.recovery);
@@ -418,6 +444,9 @@ void KisGpuDocumentRecoveryFileTest::versionOneFilePreservesRecordedImages()
     restored.cancel(edit.token);
     QVERIFY(restored.redo());
     QVERIFY(settle(restored));
+    QCOMPARE(restored.layers()[0].visible, format == 1);
+    QCOMPARE(restored.layers()[0].locked, format == 2);
+    QCOMPARE(restored.projectionLayers().size(), format == 1 ? 1 : 0);
     QCOMPARE(hash(restored.layers()[0].paint.pixels), QByteArray("5b88c2b7ef9bfaaf63b525b05df072b82ac04f33504eaff83a8309a8e8501050"));
     QCOMPARE(gpu.owner.errorCount(), 0);
 }

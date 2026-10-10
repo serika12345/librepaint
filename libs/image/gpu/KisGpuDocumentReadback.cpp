@@ -68,7 +68,8 @@ KisGpuDocumentReadback::KisGpuDocumentReadback(std::shared_ptr<KisGpuTileStore> 
         const auto [pixels, mask] = references[i];
         frame.push_back(std::make_shared<const Document::RecoveryLayer>(Document::RecoveryLayer{
             layer.id, layer.name, layer.paint.opacity, layer.paint.operation,
-            m_sources[pixels].checkpoint, mask < 0 ? Document::RasterRecovery{} : m_sources[mask].checkpoint}));
+            m_sources[pixels].checkpoint, mask < 0 ? Document::RasterRecovery{} : m_sources[mask].checkpoint,
+            layer.visible, layer.locked}));
     }
 }
 
