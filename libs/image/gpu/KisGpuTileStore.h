@@ -27,6 +27,7 @@ class KisGpuTileStore
     struct VersionData;
     struct CompletionData;
     struct ReadbackData;
+    struct TextureData;
 public:
     static constexpr quint64 TileBytes = 64 * 64 * 4;
     enum class Status { Pending, Succeeded, Failed };
@@ -105,6 +106,16 @@ public:
         friend class KisGpuTileStore;
         std::shared_ptr<ReadbackData> d;
     };
+    struct TextureSnapshot {
+        Error error = Error::None;
+        Completion completion;
+        /** Borrowed read-only straight RGBA8 texture. Retain this snapshot through every GPU consumer. */
+        WGPUTexture texture() const;
+        QRect bounds() const;
+    private:
+        friend class KisGpuTileStore;
+        std::shared_ptr<TextureData> d;
+    };
     struct Statistics {
         quint64 residentBytes = 0;
         quint64 commandUploadBytes = 0;
@@ -114,6 +125,7 @@ public:
         quint64 pixelReadbackBytes = 0;
         quint64 pixelUploadBytes = 0;
         quint64 timingReadbackBytes = 0;
+        quint64 textureCopyBytes = 0;
     };
 
     /**
@@ -154,6 +166,13 @@ public:
      * Call on the submitting thread; after success the CPU result may outlive the store.
      */
     Readback readback(const Version &source, QRect bounds);
+    /**
+     * Copy a nonempty canvas rectangle to an immutable GPU texture, clearing absent pixels.
+     * Pins pending source pixels through completion. The texture counts against this store's
+     * budget, may outlive the store, and supports sampling and explicit copying as an input.
+     * Adopt only after completion succeeds; submission and collection use the owning thread.
+     */
+    TextureSnapshot textureSnapshot(const Version &source, QRect bounds);
     /** Import tightly packed RGBA8 pixels into a new version; CPU input may be released on return. */
     Edit upload(const Version &base, QRect bounds, const QByteArray &pixels);
     /**

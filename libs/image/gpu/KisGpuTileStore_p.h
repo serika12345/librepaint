@@ -123,6 +123,17 @@ struct KisGpuTileStore::ReadbackData {
     QByteArray bytes;
 };
 
+struct KisGpuTileStore::TextureData {
+    std::shared_ptr<KisGpuTileStorage::DeviceState> owner;
+    WGPUTexture texture;
+    QRect bounds;
+    quint64 bytes;
+    TextureData(std::shared_ptr<KisGpuTileStorage::DeviceState> state, QRect rectangle);
+    ~TextureData();
+    TextureData(const TextureData &) = delete;
+    TextureData &operator=(const TextureData &) = delete;
+};
+
 struct KisGpuTileStore::Private {
     struct Timing {
         std::shared_ptr<KisGpuTileStorage::NativeDevice> owner;
@@ -184,6 +195,7 @@ struct KisGpuTileStore::Private {
         std::shared_ptr<KisGpuTileStorage::Allocation> parameters, commands;
         QVector<Version> inputs;
         std::shared_ptr<Timing> timing = {};
+        std::shared_ptr<TextureData> texture = {};
     };
     std::shared_ptr<KisGpuTileStorage::DeviceState> state;
     quint64 budget;

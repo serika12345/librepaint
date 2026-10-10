@@ -17,12 +17,14 @@ wgpu-native 27.0.4.0を直接利用する。画像モデル、ブラシ、履歴
 | `libs/image/gpu/KisGpuSubmissionTiming.cpp` | 計算処理の時刻記録、有限の時刻領域の借用と非同期読取り |
 | `libs/image/gpu/KisGpuProjection.cpp` | レイヤー列から変更領域だけを一回で合成する投影生成 |
 | `libs/image/gpu/KisGpuTileTransfer.cpp` | 保存用の非同期読取り、マッピングと画素の取込み |
+| `libs/image/gpu/KisGpuTileTexture.cpp` | 指定領域をGPU表示用画像へ複製し、画像の寿命と予算を管理 |
 | `libs/image/gpu/KisGpuTileStore_p.h` | 所有者内部の割当、版、完了と発行中資源の表現 |
 | `libs/image/gpu/KisGpuTilePaint.wgsl` | GPU上の画素演算。Qtリソースとしてライブラリーへ組み込む |
 | `libs/image/gpu/KisGpuEditSession.*` | 作業版の追加・差し替え、非同期確定、取消しと有限の履歴 |
 | `libs/image/gpu/KisGpuEditRecovery.cpp` | CPUの読込み画素と受理済み命令から編集状態を再作成 |
 | `libs/image/gpu/KisGpuEditReplay_p.h` | 編集履歴と回復処理が共有する命令記録と再実行状態 |
 | `libs/image/gpu/tests/KisGpuTileStoreTest.cpp` | 実GPUによる画素、版、予算、資源解放の契約 |
+| `libs/image/gpu/tests/KisGpuTileTextureTest.cpp` | 表示用GPU画像の画素、寿命、予算と拒否の契約 |
 | `libs/image/gpu/tests/KisGpuTestDevice.*` | 製品用デバイスを利用する試験用のCPU読み戻し |
 | `libs/image/gpu/tests/KisGpuPaintBenchmark.cpp` | 固定入力による逐次発行と一括発行の実測 |
 | `scripts/configure-gpu-document` | 固定Nix依存の取得とネイティブ構築の設定 |
@@ -174,6 +176,24 @@ GPUの版と一時領域は完了後の`poll()`で解放する。CPU結果は文
 完了した読取り結果は元のデバイスの破棄後も保持でき、別デバイスへ取り込んで編集を再開できる。
 保存形式への接続と未保存の編集の自動回復は、利用側の保存・回復契約を加えて受け入れる。
 
+## 表示用GPU画像
+
+`textureSnapshot()`は版と空でないキャンバス領域を受け取り、その領域をRGBA8の
+GPUテクスチャへ複製する。画像の原点は指定領域の左上で、`bounds()`がキャンバス座標を返す。
+未配置の画素をGPU上で透明な黒へ消去し、配置済みのタイルから交差部分をGPU内で複製する。
+RGBはアルファと独立して保持する。CPUとの画素転送は伴わない。
+
+入力版は未完了でも指定でき、操作完了まで保持する。後続編集は生成した画像へ影響しない。
+成功した完了状態を確認してから、`texture()`の読取り専用の借用ハンドルをサンプリングや
+明示的なコピーの入力に利用する。利用側は自身のGPU処理が完了するまで`TextureSnapshot`を保持する。
+画像はストアより長く保持でき、デバイス所有者の破棄は共有する利用可否を無効にする。
+
+領域の幅×高さ×4バイトを文書の予算へ計上する。呼出し側が処理途中の結果を手放しても、
+ストアは完了通知の回収まで画像を保持する。予算とデバイスの二次元画像上限を超える要求は
+`BudgetExceeded`、空の領域は`InvalidCommand`として確保・発行前に拒否する。
+表示側は必要な領域を指定する。この操作は毎回独立した画像を生成するため、継続表示の
+画像再利用と変更領域の更新は表示側の実装と性能検証で扱う。
+
 ## 操作順序と寿命
 
 `KisGpuDevice`はMetalまたはVulkanの実GPUを生成し、CPU描画装置を拒否する。
@@ -242,7 +262,8 @@ GPU検査で失敗した操作は`Failed`として採用を止める。
 
 `commandUploadBytes`は命令バッファーの転送量、`tileCopyBytes`はGPU内のタイル複製量、
 `submissions`は操作の発行数、`computeDispatches`は計算発行数、
-`pixelReadbackBytes`は明示的なCPU読取り量、`pixelUploadBytes`は明示的な取込み量を累積する。予算と画像結果の検査を維持し、
+`pixelReadbackBytes`は明示的なCPU読取り量、`pixelUploadBytes`は明示的な取込み量、
+`textureCopyBytes`は表示用GPU画像へ複製した配置済み画素の量を累積する。予算と画像結果の検査を維持し、
 タイルの確保方式や命令のまとめ方を変更する。
 
 ## GPU実行時間の計測
@@ -284,6 +305,8 @@ GPUからCPUへ読み取る時刻値は区間ごとに16バイトで、`timingRe
 検証用のCPU読み戻しは試験側の資源で実行する。
 製品用の明示的読取りは、未完了の版の固定、後続編集との独立性、疎な画素と負座標、
 拒否の原子性、GPU領域の解放、所有者破棄後のCPU結果を検査する。
+表示用GPU画像は透明画素のRGB、疎な領域、座標端、後続編集との独立性、ストア破棄後の
+利用、早期解放時の保持、予算・発行数・デバイス喪失による拒否を検査する。
 画素の取込みはCPU入力の解放、透明画素のRGB、旧版の独立性、拒否の原子性、
 新しいデバイスへの復元と編集・Undoの再開を検査する。
 デバイス喪失は未完了の描画・依存する操作・読取りの失敗、確定の抑止、

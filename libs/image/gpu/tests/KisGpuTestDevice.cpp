@@ -74,3 +74,48 @@ QByteArray KisGpuTestDevice::read(const KisGpuTileStore::Version &version, QRect
     }
     return result;
 }
+
+QByteArray KisGpuTestDevice::read(WGPUTexture texture, QSize size)
+{
+    const quint32 stride = (size.width() * 4 + 255) / 256 * 256;
+    WGPUBufferDescriptor descriptor{};
+    descriptor.size = quint64(stride) * size.height();
+    descriptor.usage = WGPUBufferUsage_MapRead | WGPUBufferUsage_CopyDst;
+    const auto staging = wgpuDeviceCreateBuffer(device, &descriptor);
+    const auto encoder = wgpuDeviceCreateCommandEncoder(device, nullptr);
+    WGPUTexelCopyTextureInfo source{};
+    source.texture = texture;
+    source.aspect = WGPUTextureAspect_All;
+    WGPUTexelCopyBufferInfo destination{};
+    destination.buffer = staging;
+    destination.layout.bytesPerRow = stride;
+    destination.layout.rowsPerImage = size.height();
+    const WGPUExtent3D extent{quint32(size.width()), quint32(size.height()), 1};
+    wgpuCommandEncoderCopyTextureToBuffer(encoder, &source, &destination, &extent);
+    const auto commands = wgpuCommandEncoderFinish(encoder, nullptr);
+    wgpuQueueSubmit(queue, 1, &commands);
+    wgpuCommandBufferRelease(commands);
+    wgpuCommandEncoderRelease(encoder);
+    std::promise<WGPUMapAsyncStatus> promise;
+    auto future = promise.get_future();
+    WGPUBufferMapCallbackInfo callback{};
+    callback.mode = WGPUCallbackMode_AllowSpontaneous;
+    callback.userdata1 = &promise;
+    callback.callback = [](WGPUMapAsyncStatus status, WGPUStringView, void *data, void *) {
+        static_cast<std::promise<WGPUMapAsyncStatus> *>(data)->set_value(status);
+    };
+    wgpuBufferMapAsync(staging, WGPUMapMode_Read, 0, descriptor.size, callback);
+    wgpuDevicePoll(device, true, nullptr);
+    const auto status = future.get();
+    QByteArray result;
+    if (status == WGPUMapAsyncStatus_Success) {
+        const auto mapped = static_cast<const char *>(wgpuBufferGetConstMappedRange(staging, 0, descriptor.size));
+        result.resize(size.width() * size.height() * 4);
+        for (int y = 0; y < size.height(); ++y) {
+            std::memcpy(result.data() + y * size.width() * 4, mapped + y * stride, size.width() * 4);
+        }
+        wgpuBufferUnmap(staging);
+    }
+    wgpuBufferRelease(staging);
+    return result;
+}

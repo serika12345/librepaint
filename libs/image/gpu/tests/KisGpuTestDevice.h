@@ -18,6 +18,7 @@ struct KisGpuTestDevice {
     KisGpuTestDevice &operator=(const KisGpuTestDevice &) = delete;
 
     QByteArray read(const KisGpuTileStore::Version &version, QRect bounds);
+    QByteArray read(WGPUTexture texture, QSize size);
     KisGpuDevice owner;
     WGPUDevice device;
     WGPUQueue queue;
