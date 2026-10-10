@@ -169,4 +169,3 @@ KisGpuTileStore::Edit KisGpuTileStore::compositePixels(const Version &base, cons
     errors.submitted = true;
     return result;
 }
-
