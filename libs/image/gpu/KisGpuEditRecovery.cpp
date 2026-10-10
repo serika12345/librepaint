@@ -4,6 +4,7 @@
  */
 #include "KisGpuEditReplay_p.h"
 #include <set>
+#include <limits>
 #include <stdexcept>
 
 namespace {
@@ -23,16 +24,25 @@ quint64 editBytes(const Session::ReplayEdit &edit, std::set<const Session::Repla
     }
     return bytes;
 }
-quint64 recoveryBytes(const Session::Recovery &data, const Session::ReplayEdit *working = nullptr)
+}
+quint64 KisGpuEditSession::ReplayState::recoveryBytes(const Recovery &data, const ReplayEdit *working)
 {
     std::set<const Session::ReplaySelection *> selections;
     std::set<const Session::ReplayTexture *> textures;
     quint64 bytes = data.pixels.size();
+    for (const auto &tile : data.tiles) bytes += sizeof(RecoveryTile) + quint64(tile.pixels.size());
     for (const auto &edit : data.edits) bytes += editBytes(edit, selections, textures);
     if (data.working) bytes += editBytes(*data.working, selections, textures);
     if (working) bytes += editBytes(*working, selections, textures);
     return bytes;
 }
+
+std::optional<QRect> KisGpuEditSession::ReplayState::tileBounds(QPoint coordinate)
+{
+    const auto x = qint64(coordinate.x()) * 64, y = qint64(coordinate.y()) * 64;
+    if (x < std::numeric_limits<int>::min() || x + 63 > std::numeric_limits<int>::max()
+        || y < std::numeric_limits<int>::min() || y + 63 > std::numeric_limits<int>::max()) return {};
+    return QRect(int(x), int(y), 64, 64);
 }
 
 KisGpuEditSession::~KisGpuEditSession() = default;
@@ -41,12 +51,19 @@ KisGpuEditSession::KisGpuEditSession(KisGpuTileStore &store, qsizetype retained,
 {
     const qint64 width = recovery.bounds.width(), height = recovery.bounds.height();
     const bool empty = recovery.bounds.isEmpty();
+    std::set<std::pair<int, int>> coordinates;
+    bool validTiles = recovery.pixels.isEmpty() || recovery.tiles.isEmpty();
+    for (const auto &tile : recovery.tiles) {
+        validTiles = validTiles && tile.pixels.size() == KisGpuTileStore::TileBytes
+            && ReplayState::tileBounds(tile.coordinate).has_value()
+            && coordinates.insert({tile.coordinate.x(), tile.coordinate.y()}).second;
+    }
     if (recovery.firstRetained < 0 || recovery.cursor < recovery.firstRetained
         || recovery.cursor > recovery.edits.size()
         || recovery.edits.size() - recovery.firstRetained > m_retainedEdits
         || (empty ? !recovery.pixels.isEmpty()
                   : width * height > (qint64(1) << 29) - 1 || width * height * 4 != recovery.pixels.size())
-        || (!recovery.working && recovery.commitRequested) || recoveryBytes(recovery) > maximum) {
+        || !validTiles || (!recovery.working && recovery.commitRequested) || ReplayState::recoveryBytes(recovery) > maximum) {
         throw std::invalid_argument("Invalid GPU recovery checkpoint, history or CPU payload budget");
     }
     m_replay->restoring = std::move(recovery);
@@ -79,7 +96,8 @@ bool KisGpuEditSession::canRecord(const ReplayBatch &batch, bool replace) const
     if (!m_replay->data || batch.commands.isEmpty() || batch.clip.isEmpty()) return true;
     ReplayEdit working = replace ? ReplayEdit{} : m_replay->working;
     working.push_back(batch);
-    return recoveryBytes(*m_replay->data, &working) <= m_replay->maximumBytes;
+    const auto reserved = m_replay->compacting ? m_replay->compacting->reservedBytes : 0;
+    return ReplayState::recoveryBytes(*m_replay->data, &working) <= m_replay->maximumBytes - reserved;
 }
 
 void KisGpuEditSession::record(ReplayBatch batch, bool replace)
@@ -159,8 +177,19 @@ void KisGpuEditSession::pollRecovery()
         }
     };
     if (!state.initialized) {
-        state.replay = m_store.emptyVersion();
-        if (!request.pixels.isEmpty() && !submit(m_store.upload(state.replay, request.bounds, request.pixels))) return;
+        if (!state.initialPixelsReady) {
+            state.replay = m_store.emptyVersion();
+            if (!request.pixels.isEmpty()) {
+                if (submit(m_store.upload(state.replay, request.bounds, request.pixels))) state.initialPixelsReady = true;
+                return;
+            }
+            state.initialPixelsReady = true;
+        }
+        if (state.tile < request.tiles.size()) {
+            const auto &tile = request.tiles[state.tile];
+            if (submit(m_store.upload(state.replay, *ReplayState::tileBounds(tile.coordinate), tile.pixels))) ++state.tile;
+            return;
+        }
         state.initialized = true;
         if (!request.firstRetained) state.frames.push_back(state.replay);
         if (state.waiting) return;

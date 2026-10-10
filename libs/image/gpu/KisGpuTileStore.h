@@ -66,6 +66,8 @@ public:
         /** Identity of the immutable version, independent of pixel equality. */
         bool operator==(const Version &other) const { return d == other.d; }
         qsizetype tileCount() const;
+        /** Coordinates of allocated tiles; metadata only, with no pixel transfer. */
+        QVector<QPoint> tileCoordinates() const;
         /** Retain this version through completion of any GPU read of the returned range. */
         TileView tile(QPoint coordinate) const;
     private:

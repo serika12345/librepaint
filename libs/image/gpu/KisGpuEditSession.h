@@ -37,10 +37,15 @@ public:
         std::shared_ptr<const ReplayTexture> texture;
     };
     using ReplayEdit = QVector<ReplayBatch>;
+    struct RecoveryTile {
+        QPoint coordinate;
+        QByteArray pixels;
+    };
     /** CPU checkpoint and accepted input values; independent of GPU handles and session tokens. */
     struct Recovery {
         QRect bounds;
         QByteArray pixels;
+        QVector<RecoveryTile> tiles;
         QVector<ReplayEdit> edits;
         qsizetype firstRetained = 0, cursor = 0;
         std::optional<ReplayEdit> working;
@@ -105,6 +110,12 @@ public:
     Token currentToken() const;
     /** Loaded GPU-only initial versions need their CPU checkpoint supplied at construction. */
     std::optional<Recovery> recovery() const;
+    /** Explicit asynchronous maintenance: fold discarded commands into sparse RGBA8 tiles.
+     * Editing and retained Undo/Redo continue. Adoption is atomic after every read succeeds.
+     * CPU preflight includes both the existing recovery values and the pending checkpoint.
+     */
+    Result compactRecovery();
+    std::optional<KisGpuTileStore::Status> recoveryCompactionStatus() const;
     /** Rasterizes a new mask from empty on the session's store; earlier masks stay immutable. */
     SelectionResult createSelection(const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip);
     TextureResult createTexture(QSize size, const QByteArray &alpha, QPoint origin = {});
@@ -140,6 +151,7 @@ private:
     void releaseWorkingEdit();
     struct ReplayState;
     void pollRecovery();
+    void pollRecoveryCompaction();
     bool canRecord(const ReplayBatch &batch, bool replace) const;
     void record(ReplayBatch batch, bool replace);
     void publishRecovery();

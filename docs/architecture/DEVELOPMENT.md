@@ -189,6 +189,7 @@ GPU内複製、操作完了と予算超過を検査する。評価済みのテ�
 ```sh
 ./scripts/run-shared-test-env ./scripts/configure-gpu-document
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuDeviceBudgetTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuRecoveryCompactionTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTileStoreTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuDabSelectionTest
 ./scripts/run-shared-test-env ./scripts/run-test KisBrushTextureContractTest
@@ -216,6 +217,8 @@ macOSの試験はMetal、Linuxの試験はVulkanを使用する。実GPUへア�
 `KisGpuDeviceBudgetTest`は複数の描画先、旧版、表示用画像、模様、計測領域の共有予算と
 解放後の再試行を検査する。キャンバス・実表示の試験は命令領域と提示画像の合算、
 容量不足での拒否、サイズ変更と所有者終了時の解放を検査する。
+`KisGpuRecoveryCompactionTest`は回復命令の疎なチェックポイントへの集約を検査する。
+編集中の履歴と識別子、CPU予算の予約、読取り失敗時の元データ、別デバイスへの復元を確認する。
 筆圧・間隔の配置データは`kis_distance_information_test`でCPUの補間・距離管理を検査し、
 `KisGpuBrushStrokeTest`で同じ配置の画素、要求拒否後の再試行、選択付き差し替えと回復を検査する。
 質感は`KisBrushTextureContractTest`で既存CPUの本番乗算を確認し、`KisGpuBrushTextureTest`で

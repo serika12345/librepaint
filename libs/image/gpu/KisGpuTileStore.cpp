@@ -206,6 +206,16 @@ KisGpuTileStore::~KisGpuTileStore() = default;
 
 qsizetype KisGpuTileStore::Version::tileCount() const { return d ? qsizetype(d->tiles.size()) : 0; }
 
+QVector<QPoint> KisGpuTileStore::Version::tileCoordinates() const
+{
+    QVector<QPoint> result;
+    if (d) {
+        result.reserve(qsizetype(d->tiles.size()));
+        for (const auto &tile : d->tiles) result.push_back({tile.first.first, tile.first.second});
+    }
+    return result;
+}
+
 KisGpuTileStore::TileView KisGpuTileStore::Version::tile(QPoint coordinate) const
 {
     if (!d) return {};

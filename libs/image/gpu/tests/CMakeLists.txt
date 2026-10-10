@@ -1,8 +1,12 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
 kis_add_test(KisGpuDeviceBudgetTest.cpp LINK_LIBRARIES kritaimagegpudocument Qt${QT_MAJOR_VERSION}::Test)
 target_sources(KisGpuDeviceBudgetTest PRIVATE KisGpuTestDevice.cpp)
 set_tests_properties(libs-image-gpu-KisGpuDeviceBudgetTest PROPERTIES TIMEOUT 30 LABELS gpu)
 
-# SPDX-License-Identifier: GPL-2.0-or-later
+kis_add_test(KisGpuRecoveryCompactionTest.cpp LINK_LIBRARIES kritaimagegpudocument Qt${QT_MAJOR_VERSION}::Test)
+target_sources(KisGpuRecoveryCompactionTest PRIVATE KisGpuTestDevice.cpp)
+set_tests_properties(libs-image-gpu-KisGpuRecoveryCompactionTest PROPERTIES TIMEOUT 30 LABELS gpu)
+
 kis_add_test(KisGpuBrushTextureTest.cpp
     LINK_LIBRARIES kritaimagegpudocument Qt${QT_MAJOR_VERSION}::Test)
 target_sources(KisGpuBrushTextureTest PRIVATE KisGpuTestDevice.cpp)

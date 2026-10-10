@@ -163,6 +163,7 @@ KisGpuEditSession::Result KisGpuEditSession::cancel(const Token &token)
 void KisGpuEditSession::poll()
 {
     m_store.poll();
+    if (m_replay->compacting) pollRecoveryCompaction();
     if (m_state == State::Restoring) { pollRecovery(); return; }
     if (m_state != State::Editing && m_state != State::Committing) return;
     if (!m_store.deviceAvailable()) {
