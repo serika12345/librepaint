@@ -5,6 +5,8 @@
 #include "KisGpuKraSaveJob.h"
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
+#include <metadata/KoDocumentInfo.h>
+#include <QDomDocument>
 #include <KoColor.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
@@ -128,10 +130,25 @@ KisGpuKraSaveJob::KisGpuKraSaveJob(std::shared_ptr<KisGpuTileStore> store,
             return;
         }
     }
+    const quint64 metadataBytes = metadata.documentInfoXml.size();
+    if (metadataBytes > maximumSnapshotBytes) {
+        d->readbackError = KisGpuDocumentReadback::Error::BudgetExceeded;
+        d->fail(Error::ReadbackFailed, QStringLiteral("The document information exceeds the CPU snapshot budget."));
+        return;
+    }
+    if (!metadata.documentInfoXml.isEmpty()) {
+        QDomDocument xml;
+        KoDocumentInfo information;
+        if (!xml.setContent(metadata.documentInfoXml)
+            || xml.documentElement().tagName() != QStringLiteral("document-info") || !information.load(xml)) {
+            d->fail(Error::InvalidInput, QStringLiteral("Invalid native document information."));
+            return;
+        }
+    }
     d->metadata = std::move(metadata);
     d->path = std::move(path);
     d->readback = std::make_unique<KisGpuDocumentReadback>(std::move(store), std::move(layers),
-                                                         nextId, maximumSnapshotBytes);
+                                                         nextId, maximumSnapshotBytes - metadataBytes);
     if (d->readback->status() == KisGpuTileStore::Status::Failed) {
         d->readbackError = d->readback->error();
         d->fail(Error::ReadbackFailed, QStringLiteral("The frozen GPU document could not be read."));
@@ -159,6 +176,15 @@ void KisGpuKraSaveJob::poll()
         d->prepare(snapshot);
     }
     if (d->state == State::Preparing && d->document->image()->isIdle()) {
+        if (!d->metadata.documentInfoXml.isEmpty()) {
+            QDomDocument xml;
+            if (!xml.setContent(d->metadata.documentInfoXml) || !d->document->documentInfo()->load(xml)) {
+                d->fail(Error::InvalidInput, QStringLiteral("Invalid native document information."));
+                return;
+            }
+            // The frozen information supplies the author; the native writer updates save dates and cycles.
+            d->document->setModified(false);
+        }
         d->completion = QObject::connect(d->document.get(), &KisDocument::sigCompleteBackgroundSaving,
             d->document.get(), [state = d.get()](const KritaUtils::ExportFileJob &,
                 KisImportExportErrorCode result, const QString &message, const QString &) {

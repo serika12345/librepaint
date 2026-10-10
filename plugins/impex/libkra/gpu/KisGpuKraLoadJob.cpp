@@ -5,6 +5,8 @@
 #include "KisGpuKraLoadJob.h"
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
+#include <metadata/KoDocumentInfo.h>
+#include <QDomDocument>
 #include <KoColor.h>
 #include <KoColorProfile.h>
 #include <KoColorSpace.h>
@@ -129,6 +131,10 @@ struct KisGpuKraLoadJob::Private {
             || image->defaultProjectionColor().opacityU8() || image->globalSelection()) {
             fail(Error::UnsupportedDocument); return {};
         }
+        auto info = KisDocument::createDomDocument(QStringLiteral("document-info"),
+            QStringLiteral("document-info"), QStringLiteral("1.1"));
+        const auto infoXml = native->documentInfo()->save(info, true, false).toByteArray();
+        if (!reserve(quint64(infoXml.size()), 1)) return {};
         Document::Recovery recovery;
         if (!reserve(1, sizeof(Document::RecoveryFrame))) return {};
         recovery.history.append(Document::RecoveryFrame{});
@@ -169,10 +175,10 @@ struct KisGpuKraLoadJob::Private {
             }
             recovery.history[0].append(std::move(record));
         }
-        if (!Document::validRecovery(recovery, retainedEdits, maximumBytes)) {
+        if (!Document::validRecovery(recovery, retainedEdits, maximumBytes - quint64(infoXml.size()))) {
             fail(Error::SnapshotBudgetExceeded); return {};
         }
-        metadata = KisGpuKraMetadata{image->size(), image->objectName(), image->xRes(), image->yRes()};
+        metadata = KisGpuKraMetadata{image->size(), image->objectName(), image->xRes(), image->yRes(), infoXml};
         return recovery;
     }
 };
@@ -192,7 +198,8 @@ void KisGpuKraLoadJob::poll()
     if (d->state == State::Reading) {
         auto recovery = d->readNative();
         if (!recovery) return;
-        d->document = std::make_unique<Document>(d->store, d->retainedEdits, std::move(*recovery), d->maximumBytes);
+        d->document = std::make_unique<Document>(d->store, d->retainedEdits, std::move(*recovery),
+            d->maximumBytes - quint64(d->metadata->documentInfoXml.size()));
         d->state = State::Restoring;
         return;
     }

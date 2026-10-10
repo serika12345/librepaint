@@ -17,8 +17,8 @@ public:
     using Metadata = KisGpuKraMetadata;
     enum class State { Reading, Preparing, Writing, Succeeded, Failed };
     enum class Error { None, InvalidInput, ReadbackFailed, SaveFailed };
-    /** Snapshot budget covers readback CPU values; native image/export allocations have existing owners.
-     * Invalid dimensions, resolution, path or XML text fail before GPU readback.
+    /** Snapshot budget covers document-info XML and readback CPU values; native allocations have existing owners.
+     * Invalid dimensions, resolution, path, XML text or document information fail before GPU readback.
      */
     KisGpuKraSaveJob(std::shared_ptr<KisGpuTileStore> store,
                     QVector<KisGpuLayerDocument::Layer> layers,

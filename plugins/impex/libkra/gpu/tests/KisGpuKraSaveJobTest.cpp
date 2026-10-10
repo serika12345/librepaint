@@ -8,6 +8,7 @@
 #include <testui.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
+#include <metadata/KoDocumentInfo.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorProfile.h>
@@ -77,6 +78,7 @@ private Q_SLOTS:
     void savesFrozenLayersAndMaskAfterGpuClose();
     void invalidInputAndSnapshotRefusalPreserveExistingFile();
     void unrepresentableNamesAreRejectedBeforeTransfer();
+    void invalidDocumentInformationPreservesDestination();
     void deviceLossPreservesDestinationAndWritingDrainsOnClose();
 };
 
@@ -98,8 +100,14 @@ void KisGpuKraSaveJobTest::savesFrozenLayersAndMaskAfterGpuClose()
     const auto expectedFirst = gpu.read(document->layers()[0].paint.pixels, Bounds);
     const auto expectedMask = alpha(gpu.read(document->layers()[0].paint.mask, Bounds));
     const auto expectedSecond = gpu.read(document->layers()[1].paint.pixels, Bounds);
-    Save save(store, document->layers(), document->recovery().nextId,
-              {Bounds.size(), QStringLiteral("GPU snapshot"), 1.25, 1.5}, path);
+    Save::Metadata metadata{Bounds.size(), QStringLiteral("GPU snapshot"), 1.25, 1.5};
+    metadata.documentInfoXml = QByteArray(R"(<document-info><about>
+        <title>Fixture title 雪🖌</title><abstract><![CDATA[<p>Fixture & description</p>]]></abstract>
+        <license>CC0</license><creation-date>2001-02-03T04:05:06</creation-date>
+        <editing-cycles>7</editing-cycles></about><author><full-name>Fixture Artist</full-name>
+        <contact type="email">fixture@example.test</contact></author></document-info>)");
+    Save save(store, document->layers(), document->recovery().nextId, metadata, path);
+    metadata.documentInfoXml.fill('X');
     document->renameLayer(first, QStringLiteral("Changed"));
     document->removeLayer(second);
     document.reset();
@@ -121,6 +129,13 @@ void KisGpuKraSaveJobTest::savesFrozenLayersAndMaskAfterGpuClose()
     QCOMPARE(image->xRes(), 1.25);
     QCOMPARE(image->yRes(), 1.5);
     QCOMPARE(image->colorSpace()->profile()->rawData(), KoColorSpaceRegistry::instance()->p709SRGBProfile()->rawData());
+    QCOMPARE(loaded->documentInfo()->aboutInfo("title"), QStringLiteral("Fixture title 雪🖌"));
+    QCOMPARE(loaded->documentInfo()->aboutInfo("abstract"), QStringLiteral("<p>Fixture & description</p>"));
+    QCOMPARE(loaded->documentInfo()->aboutInfo("license"), QStringLiteral("CC0"));
+    QCOMPARE(loaded->documentInfo()->aboutInfo("creation-date"), QStringLiteral("2001-02-03T04:05:06"));
+    QCOMPARE(loaded->documentInfo()->aboutInfo("editing-cycles"), QStringLiteral("8"));
+    QCOMPARE(loaded->documentInfo()->authorInfo("creator"), QStringLiteral("Fixture Artist"));
+    QCOMPARE(loaded->documentInfo()->authorContactInfo(), QStringList{QStringLiteral("fixture@example.test")});
     QCOMPARE(image->root()->childCount(), quint32(2));
     const auto firstLayer = dynamic_cast<KisPaintLayer *>(image->root()->at(0).data());
     const auto secondLayer = dynamic_cast<KisPaintLayer *>(image->root()->at(1).data());
@@ -197,6 +212,47 @@ void KisGpuKraSaveJobTest::unrepresentableNamesAreRejectedBeforeTransfer()
     }
     Save invalidTitle(store, {}, 1, {Bounds.size(), QStringLiteral("Invalid") + QChar(0)}, path);
     QCOMPARE(invalidTitle.error(), Save::Error::InvalidInput);
+    QCOMPARE(store->statistics().submissions, before.submissions);
+    QCOMPARE(store->statistics().pixelReadbackBytes, before.pixelReadbackBytes);
+    QVERIFY(original.open(QIODevice::ReadOnly));
+    QCOMPARE(original.readAll(), QByteArray("KEEP"));
+}
+
+void KisGpuKraSaveJobTest::invalidDocumentInformationPreservesDestination()
+{
+    QTemporaryDir directory;
+    const auto path = directory.filePath(QStringLiteral("existing.kra"));
+    QFile original(path);
+    QVERIFY(original.open(QIODevice::WriteOnly));
+    QCOMPARE(original.write("KEEP"), qint64(4));
+    original.close();
+    KisGpuTestDevice gpu;
+    auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
+    Document document(store, 2);
+    document.addLayer(QStringLiteral("Paint"));
+    QVERIFY(paint(document, 1, 0xFF112233));
+    const auto before = store->statistics();
+    for (const QByteArray &xml : {QByteArray("<document-info>"),
+            QByteArray("<document-info><about/></document-info>"),
+            QByteArray("<other><about/><author/></other>"),
+            QByteArray("<document-info><about><title>&#0;</title></about><author/></document-info>")}) {
+        Save::Metadata metadata{Bounds.size(), QStringLiteral("Snapshot")};
+        metadata.documentInfoXml = xml;
+        Save save(store, document.layers(), 2, metadata, path);
+        QCOMPARE(save.state(), Save::State::Failed);
+        QCOMPARE(save.error(), Save::Error::InvalidInput);
+    }
+    Save::Metadata metadata{Bounds.size(), QStringLiteral("Snapshot")};
+    metadata.documentInfoXml = "<document-info><about/><author/></document-info>";
+    Save tooSmall(store, document.layers(), 2, metadata, path, metadata.documentInfoXml.size() - 1);
+    QCOMPARE(tooSmall.state(), Save::State::Failed);
+    QCOMPARE(tooSmall.error(), Save::Error::ReadbackFailed);
+    QCOMPARE(tooSmall.readbackError(), KisGpuDocumentReadback::Error::BudgetExceeded);
+    KisGpuDocumentReadback probe(store, document.layers(), 2);
+    const auto imageBudget = probe.reservedRecoveryBytes();
+    Save combined(store, document.layers(), 2, metadata, path, imageBudget);
+    QCOMPARE(combined.state(), Save::State::Failed);
+    QCOMPARE(combined.readbackError(), KisGpuDocumentReadback::Error::BudgetExceeded);
     QCOMPARE(store->statistics().submissions, before.submissions);
     QCOMPARE(store->statistics().pixelReadbackBytes, before.pixelReadbackBytes);
     QVERIFY(original.open(QIODevice::ReadOnly));

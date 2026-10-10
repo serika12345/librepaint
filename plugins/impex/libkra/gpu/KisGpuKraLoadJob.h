@@ -17,6 +17,7 @@ class KisGpuKraLoadJob
 public:
     enum class State { Reading, Restoring, Succeeded, Failed };
     enum class Error { None, InvalidInput, LoadFailed, UnsupportedDocument, SnapshotBudgetExceeded, GpuRejected };
+    /** CPU budget includes the frozen document-info XML and raster recovery values. */
     KisGpuKraLoadJob(std::shared_ptr<KisGpuTileStore> store, QString path, qsizetype retainedEdits,
                     quint64 maximumRecoveryBytes = 64 * 1024 * 1024);
     ~KisGpuKraLoadJob();

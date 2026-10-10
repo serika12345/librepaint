@@ -8,6 +8,8 @@
 #include <testui.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
+#include <metadata/KoDocumentInfo.h>
+#include <QDomDocument>
 #include <KoColor.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoCompositeOpRegistry.h>
@@ -103,7 +105,81 @@ private Q_SLOTS:
     void preservesSparseCoordinatesAndEmptyDocuments();
     void preservesNativeVisibilityAndLock_data();
     void preservesNativeVisibilityAndLock();
+    void documentInformationSurvivesGpuRoundTrip();
 };
+void KisGpuKraLoadJobTest::documentInformationSurvivesGpuRoundTrip()
+{
+    QTemporaryDir directory;
+    const auto path = directory.filePath(QStringLiteral("metadata.kra"));
+    const auto savedPath = directory.filePath(QStringLiteral("roundtrip.kra"));
+    KisGpuTestDevice gpu;
+    auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
+    Document source(store, 8);
+    source.addLayer(QStringLiteral("Paint"));
+    QVERIFY(paint(source, 1, 0xCC112233));
+    const auto expected = gpu.read(source.layers()[0].paint.pixels, Bounds);
+    KisGpuKraMetadata metadata{Bounds.size(), QStringLiteral("Snapshot"), 1.25, 1.5};
+    metadata.documentInfoXml = QByteArray(R"(<document-info><about><title>Fixture title 雪🖌</title>
+        <abstract><![CDATA[<p>Fixture & description</p>]]></abstract><license>CC0</license>
+        <creation-date>2001-02-03T04:05:06</creation-date><editing-cycles>7</editing-cycles>
+        </about><author><full-name>Fixture Artist</full-name>
+        <contact type="email">fixture@example.test</contact></author></document-info>)");
+    {
+        Save save(store, source.layers(), 2, metadata, path);
+        QVERIFY2(finish(save), qPrintable(save.errorMessage()));
+    }
+    std::unique_ptr<Document> restored;
+    {
+        Load load(store, path, 8);
+        QVERIFY(finish(load));
+        metadata = *load.metadata();
+        QVERIFY(!metadata.documentInfoXml.isEmpty());
+        QDomDocument xml;
+        QVERIFY(xml.setContent(metadata.documentInfoXml));
+        KoDocumentInfo info;
+        QVERIFY(info.load(xml));
+        QCOMPARE(info.aboutInfo("title"), QStringLiteral("Fixture title 雪🖌"));
+        QCOMPARE(info.aboutInfo("editing-cycles"), QStringLiteral("8"));
+        restored = load.takeDocument();
+    }
+    QCOMPARE(gpu.read(restored->layers()[0].paint.pixels, Bounds), expected);
+    const auto before = store->statistics();
+    for (const quint64 budget : {quint64(metadata.documentInfoXml.size() - 1),
+                                quint64(metadata.documentInfoXml.size()) + Store::TileBytes}) {
+        Load tooSmall(store, path, 8, budget);
+        QVERIFY(!finish(tooSmall));
+        QCOMPARE(tooSmall.error(), Load::Error::SnapshotBudgetExceeded);
+        QVERIFY(!tooSmall.metadata());
+        QVERIFY(!tooSmall.takeDocument());
+    }
+    QCOMPARE(store->statistics().submissions, before.submissions);
+    QCOMPARE(store->statistics().pixelUploadBytes, before.pixelUploadBytes);
+    {
+        Save save(store, restored->layers(), restored->recovery().nextId, metadata, savedPath);
+        restored.reset();
+        metadata.documentInfoXml.clear();
+        QVERIFY2(finish(save), qPrintable(save.errorMessage()));
+    }
+    QScopedPointer<KisDocument> native(KisPart::instance()->createDocument());
+    native->setFileBatchMode(true);
+    QVERIFY(native->loadNativeFormat(savedPath));
+    native->image()->waitForDone();
+    const auto info = native->documentInfo();
+    QCOMPARE(info->aboutInfo("title"), QStringLiteral("Fixture title 雪🖌"));
+    QCOMPARE(info->aboutInfo("abstract"), QStringLiteral("<p>Fixture & description</p>"));
+    QCOMPARE(info->aboutInfo("license"), QStringLiteral("CC0"));
+    QCOMPARE(info->aboutInfo("creation-date"), QStringLiteral("2001-02-03T04:05:06"));
+    QCOMPARE(info->aboutInfo("editing-cycles"), QStringLiteral("9"));
+    QCOMPARE(info->authorInfo("creator"), QStringLiteral("Fixture Artist"));
+    QCOMPARE(info->authorContactInfo(), QStringList{QStringLiteral("fixture@example.test")});
+    auto layer = dynamic_cast<KisPaintLayer *>(native->image()->root()->at(0).data());
+    QVERIFY(layer);
+    QByteArray actual(expected.size(), '\0');
+    layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), Bounds);
+    for (qsizetype i = 0; i < actual.size(); i += 4) std::swap(actual[i], actual[i + 2]);
+    QCOMPARE(actual, expected);
+}
+
 void KisGpuKraLoadJobTest::restoresFrozenNativePixels()
 {
     QTemporaryDir directory;
