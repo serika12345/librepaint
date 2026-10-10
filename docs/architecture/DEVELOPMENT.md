@@ -206,6 +206,7 @@ GPU内複製、操作完了と予算超過を検査する。評価済みのテ�
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuLayerDocumentRecoveryTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuLayerDocumentResidencyTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuLayerDocumentCompactionTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuDocumentReadbackTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTileStoreTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuDabSelectionTest
 ./scripts/run-shared-test-env ./scripts/run-test KisBrushTextureContractTest
@@ -239,6 +240,8 @@ macOSの試験はMetal、Linuxの試験はVulkanを使用する。実GPUへア�
 非同期Undo/Redoを検査する。復元中の表示維持、予算超過・取消し・GPU交換も確認する。
 `KisGpuLayerDocumentCompactionTest`は文書の画素・マスク回復命令を明示的に集約し、
 履歴・GPU版の維持、CPU予約、別GPUでの回復と読取り失敗を検査する。
+`KisGpuDocumentReadbackTest`は[文書全体の固定版読取り](gpu-document-readback.md)を検査する。
+保存中の編集・文書終了、共有版、CPU/GPU予算と部分失敗後の結果公開を確認する。
 筆圧・間隔の配置データは`kis_distance_information_test`でCPUの補間・距離管理を検査し、
 `KisGpuBrushStrokeTest`で同じ配置の画素、要求拒否後の再試行、選択付き差し替えと回復を検査する。
 質感は`KisBrushTextureContractTest`で既存CPUの本番乗算を確認し、`KisGpuBrushTextureTest`で

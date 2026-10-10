@@ -4,8 +4,8 @@
  */
 #include "KisGpuEditReplay_p.h"
 #include "KisGpuPaintInputValidation_p.h"
+#include "KisGpuTileGeometry_p.h"
 #include <set>
-#include <limits>
 #include <stdexcept>
 
 namespace {
@@ -38,14 +38,6 @@ quint64 KisGpuEditSession::ReplayState::recoveryBytes(const Recovery &data, cons
     return bytes;
 }
 
-std::optional<QRect> KisGpuEditSession::ReplayState::tileBounds(QPoint coordinate)
-{
-    const auto x = qint64(coordinate.x()) * 64, y = qint64(coordinate.y()) * 64;
-    if (x < std::numeric_limits<int>::min() || x + 63 > std::numeric_limits<int>::max()
-        || y < std::numeric_limits<int>::min() || y + 63 > std::numeric_limits<int>::max()) return {};
-    return QRect(int(x), int(y), 64, 64);
-}
-
 KisGpuEditSession::~KisGpuEditSession() = default;
 bool KisGpuEditSession::ReplayState::validRecovery(const Recovery &recovery, qsizetype retained, quint64 maximum)
 {
@@ -55,7 +47,7 @@ bool KisGpuEditSession::ReplayState::validRecovery(const Recovery &recovery, qsi
     bool validTiles = recovery.pixels.isEmpty() || recovery.tiles.isEmpty();
     for (const auto &tile : recovery.tiles) {
         validTiles = validTiles && tile.pixels.size() == KisGpuTileStore::TileBytes
-            && ReplayState::tileBounds(tile.coordinate).has_value()
+            && KisGpuTileStorage::tileBounds(tile.coordinate).has_value()
             && coordinates.insert({tile.coordinate.x(), tile.coordinate.y()}).second;
     }
     if (recovery.firstRetained < 0 || recovery.cursor < recovery.firstRetained
@@ -235,7 +227,7 @@ void KisGpuEditSession::pollRecovery()
         }
         if (state.tile < request.tiles.size()) {
             const auto &tile = request.tiles[state.tile];
-            if (submit(m_store.upload(state.replay, *ReplayState::tileBounds(tile.coordinate), tile.pixels))) ++state.tile;
+            if (submit(m_store.upload(state.replay, *KisGpuTileStorage::tileBounds(tile.coordinate), tile.pixels))) ++state.tile;
             return;
         }
         state.initialized = true;

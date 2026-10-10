@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuEditReplay_p.h"
+#include "KisGpuTileGeometry_p.h"
 
 KisGpuEditSession::Result KisGpuEditSession::compactRecovery()
 {
@@ -16,7 +17,7 @@ KisGpuEditSession::Result KisGpuEditSession::compactRecovery()
     job.source = m_history.front();
     job.coordinates = job.source.tileCoordinates();
     for (const auto coordinate : job.coordinates) {
-        if (!ReplayState::tileBounds(coordinate)) { m_lastGpuError = KisGpuTileStore::Error::InvalidCommand; return Result::GpuRejected; }
+        if (!KisGpuTileStorage::tileBounds(coordinate)) { m_lastGpuError = KisGpuTileStore::Error::InvalidCommand; return Result::GpuRejected; }
     }
     job.tiles.reserve(job.coordinates.size());
     job.firstRetained = m_replay->data->firstRetained;
@@ -50,7 +51,7 @@ void KisGpuEditSession::pollRecoveryCompaction()
     }
     if (job.tiles.size() < job.coordinates.size()) {
         const auto coordinate = job.coordinates[job.tiles.size()];
-        job.latest = m_store.readback(job.source, *ReplayState::tileBounds(coordinate));
+        job.latest = m_store.readback(job.source, *KisGpuTileStorage::tileBounds(coordinate));
         if (job.latest.error == KisGpuTileStore::Error::QueueFull) return;
         if (job.latest.error != KisGpuTileStore::Error::None) { m_lastGpuError = job.latest.error; fail(); return; }
         job.waiting = true;

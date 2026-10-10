@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuDocumentRecoveryFile.h"
+#include "KisGpuDocumentReadback.h"
 #include "KisGpuTestDevice.h"
 #include <QtTest>
 #include <future>
@@ -38,6 +39,7 @@ private Q_SLOTS:
     void backgroundSnapshotRestoresUnfinishedEditing_data();
     void backgroundSnapshotRestoresUnfinishedEditing();
     void versionOneFilePreservesRecordedImages();
+    void frozenGpuPixelsPersistWithoutReplayCommands();
     void damagedFilesAndOversizedCountsAreRejected();
     void failedWritesPreserveThePreviousFile();
     void sharedCheckpointHistoryFitsTheOriginalGpuBudget();
@@ -162,6 +164,56 @@ void KisGpuDocumentRecoveryFileTest::backgroundSnapshotRestoresUnfinishedEditing
     QCOMPARE(gpu.owner.errorCount(), 0);
 }
 
+
+void KisGpuDocumentRecoveryFileTest::frozenGpuPixelsPersistWithoutReplayCommands()
+{
+    QTemporaryDir directory;
+    const auto path = directory.filePath(QStringLiteral("snapshot"));
+    QByteArray expectedPixels, expectedMask;
+    {
+        KisGpuTestDevice gpu;
+        auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
+        Document document(store, 8);
+        const auto id = document.addLayer(QStringLiteral("Frozen")).id;
+        Store::DabCommand command;
+        command.center = {0, 0}; command.diameter = {13, 11}; command.rgba = 0xCC552211;
+        for (const auto target : {Document::Target::Pixels, Document::Target::Mask}) {
+            const auto edit = document.begin(id, target);
+            QCOMPARE(edit.session->append(edit.token, {command}, Bounds), Session::Result::Accepted);
+            document.commit(edit.token);
+            QVERIFY(settle(document));
+        }
+        expectedPixels = gpu.read(document.layers()[0].paint.pixels, Bounds);
+        expectedMask = gpu.read(document.layers()[0].paint.mask, Bounds);
+        KisGpuDocumentReadback readback(store, document.layers(), document.recovery().nextId);
+        QElapsedTimer timer; timer.start();
+        while (readback.status() == Store::Status::Pending && timer.elapsed() < 5000) {
+            readback.poll(); QTest::qWait(1);
+        }
+        QCOMPARE(readback.status(), Store::Status::Succeeded);
+        const auto saved = *readback.result();
+        QVERIFY(saved.history[0][0]->pixels->edits.isEmpty());
+        QVERIFY(saved.history[0][0]->mask->edits.isEmpty());
+        const auto before = store->statistics();
+        auto writing = std::async(std::launch::async, [path, saved] { return File::write(path, saved); });
+        document.renameLayer(id, QStringLiteral("Changed"));
+        document.removeLayer(id);
+        QCOMPARE(writing.get(), File::Error::None);
+        QCOMPARE(store->statistics().submissions, before.submissions);
+        QCOMPARE(store->statistics().pixelReadbackBytes, before.pixelReadbackBytes);
+    }
+    const auto loaded = File::read(path);
+    QCOMPARE(loaded.error, File::Error::None);
+    QVERIFY(loaded.recovery);
+    KisGpuTestDevice gpu;
+    auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
+    Document restored(store, 0, *loaded.recovery);
+    QVERIFY(settle(restored));
+    QCOMPARE(restored.layers()[0].name, QStringLiteral("Frozen"));
+    QCOMPARE(gpu.read(restored.layers()[0].paint.pixels, Bounds), expectedPixels);
+    QCOMPARE(gpu.read(restored.layers()[0].paint.mask, Bounds), expectedMask);
+    QCOMPARE(gpu.owner.errorCount(), 0);
+}
 
 void KisGpuDocumentRecoveryFileTest::damagedFilesAndOversizedCountsAreRejected()
 {
