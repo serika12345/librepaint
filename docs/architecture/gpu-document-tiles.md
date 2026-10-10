@@ -12,6 +12,7 @@ wgpu-native 27.0.4.0を直接利用する。画像モデル、ブラシ、履歴
 | `libs/image/gpu/KisGpuTileStore.h` | 版、単色描画、画素合成、非同期読取り、操作完了、予算と統計の内部API |
 | `libs/image/gpu/KisGpuTileStore.cpp` | GPUバッファーの寿命、タイル共有、GPU内複製、計算命令と完了観測 |
 | `libs/image/gpu/KisGpuTilePaint.wgsl` | GPU上の画素演算。Qtリソースとしてライブラリーへ組み込む |
+| `libs/image/gpu/KisGpuEditSession.*` | 作業版の追加・差し替え、非同期確定、取消しと有限の履歴 |
 | `libs/image/gpu/tests/KisGpuTileStoreTest.cpp` | 実GPUによる画素、版、予算、資源解放の契約 |
 | `libs/image/gpu/tests/KisGpuTestDevice.*` | 試験と計測が所有する実GPUと明示的なCPU読み戻し |
 | `libs/image/gpu/tests/KisGpuPaintBenchmark.cpp` | 固定入力による逐次発行と一括発行の実測 |
@@ -76,6 +77,27 @@ CPUとGPUは`libs/image/tests/data/raster_edit_contract.json`を共用する。
 版は不変の値である。未確定の版を捨てると取消しになり、保持した前後の版は
 Undo／Redoの復元先として利用できる。履歴項目の登録と採用判断は利用側が所有する。
 タイル対応表はCPUで保持し、変更時に複製する。画素の正本はGPUバッファーが所有する。
+
+## 作業版と履歴
+
+`KisGpuEditSession`は一つのラスター描画先に対する作業版と履歴を所有する。
+タイル所有者を借用し、その発行スレッドで利用する。
+`begin()`は確定済みの版を起点として操作識別子を返す。
+識別子はセッションの寿命と操作番号を含み、取消し済みの操作、別文書、閉じた文書からの
+入力を`Stale`として拒否する。識別子の保持はGPU資源の寿命へ影響しない。
+
+`append()`は直前の作業版へブラシ印を追加し、`replace()`は確定済みの起点から
+全ブラシ印を描き直す。図形編集の利用側は後者で前の形状の占有領域を取り除く。
+`poll()`は最新の処理の成功後に表示用の作業版を採用する。
+確定要求後は同じ版の処理完了を待ち、画素を再描画せず履歴へ登録する。
+GPUが処理を拒否した場合は直前の作業版を維持する。
+非同期処理の失敗は`Failed`として確定を止め、確定済みの版を表示する。
+
+取消しは作業版の参照を解放し、保持済みのRedo先を維持する。
+Undo／Redoは確定済みの版を選び直す。新しい編集の確定はRedo先を置き換え、
+空の編集の確定は履歴を維持する。履歴は構築時に指定した編集数と現在の版を保持する。
+上限を超えた古い版の解放と`clearHistory()`で、参照のなくなったGPU割当を解放する。
+作業版・履歴の切替は画素のCPU読取りとアップロードを伴わない。
 
 ## 明示的なCPU読取り
 

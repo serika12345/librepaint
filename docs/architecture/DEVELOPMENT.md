@@ -189,6 +189,7 @@ GPU内複製、操作完了と予算超過を検査する。評価済みのテ�
 ```sh
 ./scripts/run-shared-test-env ./scripts/configure-gpu-document
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTileStoreTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuEditSessionTest
 ```
 
 設定コマンドは`flake.lock`のnixpkgs固定版からwgpu-native本体と開発用ヘッダーを取得し、

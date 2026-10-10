@@ -58,6 +58,8 @@ public:
     class Version {
     public:
         Version() = default;
+        /** Identity of the immutable version, independent of pixel equality. */
+        bool operator==(const Version &other) const { return d == other.d; }
         qsizetype tileCount() const;
         /** Retain this version through completion of any GPU read of the returned range. */
         TileView tile(QPoint coordinate) const;

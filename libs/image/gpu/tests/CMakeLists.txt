@@ -6,6 +6,11 @@ set_tests_properties(libs-image-gpu-KisGpuTileStoreTest PROPERTIES TIMEOUT 30 LA
 target_compile_definitions(KisGpuTileStoreTest PRIVATE
     RASTER_EDIT_FIXTURE="${CMAKE_SOURCE_DIR}/libs/image/tests/data/raster_edit_contract.json")
 
+kis_add_test(KisGpuEditSessionTest.cpp
+    LINK_LIBRARIES kritaimagegpudocument Qt${QT_MAJOR_VERSION}::Test)
+target_sources(KisGpuEditSessionTest PRIVATE KisGpuTestDevice.cpp)
+set_tests_properties(libs-image-gpu-KisGpuEditSessionTest PROPERTIES TIMEOUT 30 LABELS gpu)
+
 add_executable(KisGpuPaintBenchmark EXCLUDE_FROM_ALL KisGpuPaintBenchmark.cpp KisGpuTestDevice.cpp)
 target_link_libraries(KisGpuPaintBenchmark PRIVATE kritaimagegpudocument)
 set_target_properties(KisGpuPaintBenchmark PROPERTIES AUTOMOC OFF MACOSX_BUNDLE OFF)
