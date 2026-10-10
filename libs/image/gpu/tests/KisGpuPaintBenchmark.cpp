@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuTestDevice.h"
+#include "KisGpuPaintWorkloads.h"
 
 #include <QCommandLineParser>
 #include <QCoreApplication>
@@ -19,32 +20,8 @@
 #include <stdexcept>
 
 namespace {
-constexpr quint64 BudgetBytes = 256 * 1024 * 1024;
+using namespace KisGpuPaintMeasurements;
 
-struct Workload {
-    QString name;
-    QRect bounds;
-    QVector<KisGpuTileStore::PaintCommand> commands;
-    int layerCount = 0;
-};
-
-QVector<Workload> workloads()
-{
-    using Op = KisGpuTileStore::CompositeOp;
-    QVector<Workload> result {
-        {QStringLiteral("small"), QRect(0, 0, 128, 128), {{QRect(5, 7, 8, 8), 0x800000FF}}},
-        {QStringLiteral("overlapping"), QRect(0, 0, 128, 128), {}},
-        {QStringLiteral("scattered"), QRect(0, 0, 2048, 1024), {}}
-    };
-    for (int i = 0; i < 128; ++i) {
-        const quint32 color = 0x80000000 | (quint32(i * 123457) & 0x00FFFFFF);
-        const Op operation = i % 7 == 0 ? Op::Erase : Op::Over;
-        result[1].commands.push_back({QRect(5 + i * 7 % 24, 7 + i * 11 % 24, 32, 32), color, operation, 192, 128});
-        result[2].commands.push_back({QRect(i % 16 * 128 + 5, i / 16 * 128 + 7, 64, 64), color, operation, 192, 128});
-    }
-    result.push_back({QStringLiteral("layer-projection"), QRect(0, 0, 4096, 4096), {}, 24});
-    return result;
-}
 
 struct Run {
     KisGpuTileStore::Version version;
@@ -175,13 +152,13 @@ int main(int argc, char **argv)
             KisGpuTileStore store(gpu.owner, BudgetBytes);
             const auto base = workload.layerCount
                 ? store.paint(store.emptyVersion(), QVector<KisGpuTileStore::PaintCommand>())
-                : store.fill(store.emptyVersion(), workload.bounds, 0xC0102030);
+                : store.fill(store.emptyVersion(), workload.bounds, BaseColor);
             if (base.error != KisGpuTileStore::Error::None) throw std::runtime_error("Cannot initialize benchmark tiles");
             wait(gpu, store, {base.completion});
             QVector<KisGpuTileStore::Layer> layers;
-            const QRect layerBounds(1536, 1536, 1024, 1024);
+            const QRect layerBounds = workload.layerBounds;
             for (int i = 0; i < workload.layerCount; ++i) {
-                const auto layer = store.fill(store.emptyVersion(), layerBounds, 0x80000000 | (quint32(i * 123457) & 0x00FFFFFF));
+                const auto layer = store.fill(store.emptyVersion(), layerBounds, layerColor(i));
                 if (layer.error != KisGpuTileStore::Error::None) throw std::runtime_error("Cannot initialize benchmark layers");
                 wait(gpu, store, {layer.completion});
                 layers.push_back({layer.version});

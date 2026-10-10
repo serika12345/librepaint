@@ -37,6 +37,8 @@ wgpu-native 27.0.4.0を直接利用する。計算段階で8個のGPUバッフ�
 | `libs/image/gpu/tests/KisGpuTileTextureTest.cpp` | 表示用GPU画像の画素、寿命、予算と拒否の契約 |
 | `libs/image/gpu/tests/KisGpuTestDevice.*` | 製品用デバイスを利用する試験用のCPU読み戻し |
 | `libs/image/gpu/tests/KisGpuPaintBenchmark.cpp` | 固定入力による逐次発行と一括発行の実測 |
+| `libs/image/gpu/tests/KisGpuPaintWorkloads.h` | GPU方式内と本番CPU対照の計測で共用する4固定入力 |
+| `libs/image/tests/KisGpuCpuPaintBenchmark.cpp` | 本番CPUの1本・4本の作業スレッドとGPU処理の画像・速度対照 |
 | `scripts/configure-gpu-document` | 固定Nix依存の取得とネイティブ構築の設定 |
 | `nix/gpu` | GPU依存だけの構築、失敗処理の修正とVulkanローダーの実行時参照 |
 

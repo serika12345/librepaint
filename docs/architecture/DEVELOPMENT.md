@@ -276,6 +276,45 @@ GPU内の画素複製、CPUでの発行・待機と実表示の遅延は、こ�
 表示、色変換を含めた入力から実表示までの遅延を別途測定する。
 GPU検査を有効にした条件で比較し、異なる実装の結果は実行ファイル識別値とともに保持する。
 
+### 本番CPU描画との対照計測
+
+`KisGpuCpuPaintBenchmark`は、既存の`KisPainter::bitBlt()`とGPU一括処理を
+同じ4固定入力で比較する。GPU方式内の比較と本番CPU対照は
+`libs/image/gpu/tests/KisGpuPaintWorkloads.h`の入力値を共有する。
+CPU対照だけが本番の画像所有者へ直接依存し、GPUだけの計測の構築範囲を保つ。
+
+```sh
+build-incremental native build KisGpuCpuPaintBenchmark
+KIS_TEST_PREFIX_PATH="$(build-incremental native path)" QT_QPA_PLATFORM=offscreen \
+  "$(build-incremental native path)/bin/KisGpuCpuPaintBenchmark" --samples 15 > build/cpu-gpu-paint.json
+KIS_TEST_PREFIX_PATH="$(build-incremental native path)" QT_QPA_PLATFORM=offscreen \
+  "$(build-incremental native path)/bin/KisGpuCpuPaintBenchmark" --samples 15 --gpu-timing > build/cpu-gpu-timing.json
+```
+
+`--workload layer-projection`などで一つの入力を選べる。
+CPUは同じ不変の初期画像を複製し、64画素高の行を1本または4本の作業スレッドへ分ける。
+各行の命令順を保ち、描画と通知が終わってから完了を知らせる。作業スレッド群は試行間で共有する。
+GPUは同じ初期版から一回発行し、画素をCPUへ戻さず操作完了まで待つ。
+測定前にCPUの1本・4本の最終画像が一致することを要求し、GPUとも全成分を比較する。
+各方式を二回準備実行し、試行ごとに三方式の実行順を循環させる。
+
+| 区間 | 処理 |
+| --- | --- |
+| 計測前の準備 | 初期画素、単色の入力デバイス、選択、不変のGPUレイヤーと実行資源を生成 |
+| CPUの計測 | 初期画像の複製、仕事の配分、画素合成、描画通知と完了待ち |
+| GPUの計測 | 変更版・命令情報の確保、命令発行、合成と完了回収 |
+| 計測外の検証 | 最終画素の読取り、RGBA順への並替え、画像比較と識別値の計算 |
+
+JSONはCPU作業スレッド数、色プロファイル、GPU依存の版、実行ファイルと両画像のSHA-256、
+全試行、中央値・P95、CPU実働、GPU文書所有者の保持量と各転送量を保持する。
+画像差は画素数、各成分の最大差、最初の座標と実際のRGBA値を記録する。
+完全一致時は終了値0、画像差を含む結果の出力時は3、実行失敗時は1、入力不正時は2を返す。
+画像差がある結果は終了値3として保持し、受入れは画像契約に従って判断する。
+
+この対照は準備済みの画素演算を切り出すため、ブラシ形状生成、文書全体のキュー、
+表示用転送、色変換、実表示を計測区間から分ける。製品統合の受入れでは、
+これらを含む入力から実表示までの比較を追加する。GPU時刻の取得と通常速度は別試行とする。
+
 ## デスクトップ
 
 ### macOS
