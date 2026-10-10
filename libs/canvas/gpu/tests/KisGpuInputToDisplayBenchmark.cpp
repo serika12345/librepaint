@@ -123,6 +123,12 @@ Run execute(KisGpuTestDevice &gpu, QWindow &window, Surface &surface,
         const auto beforeDisplay = surface.statistics();
         const auto cpuStart = std::clock();
         QElapsedTimer elapsed; elapsed.start();
+        qint64 presentCallNs = 0, pollCallNs = 0;
+        const auto pollSurface = [&] {
+            const auto start = elapsed.nsecsElapsed();
+            surface.poll();
+            pollCallNs += elapsed.nsecsElapsed() - start;
+        };
         const auto inputTime = Surface::presentationClockNanoseconds();
         QVector<Brush::Sample> input;
         const double pi = std::acos(-1.0);
@@ -159,26 +165,29 @@ Run execute(KisGpuTestDevice &gpu, QWindow &window, Surface &surface,
         Surface::Frame frame;
         int retries = 0;
         until([&] {
-            surface.poll();
+            pollSurface();
+            const auto start = elapsed.nsecsElapsed();
             frame = surface.present(image, view);
+            presentCallNs += elapsed.nsecsElapsed() - start;
             if (frame.accepted()) return true;
             require(frame.error == Surface::Error::ResizePending || frame.error == Surface::Error::QueueFull,
                     "Measured presentation was rejected");
             ++retries;
             return false;
         });
+        const double submissionMs = elapsed.nsecsElapsed() / 1.0e6;
         observeMemory();
         until([&] {
-            surface.poll();
+            pollSurface();
             require(frame.rendering.status() != Store::Status::Failed, "Measured canvas rendering failed");
             return frame.rendering.status() == Store::Status::Succeeded;
         });
         const double renderingMs = elapsed.nsecsElapsed() / 1.0e6;
         until([&] {
-            surface.poll();
+            pollSurface();
             return frame.presentation.status() != Surface::Presentation::Status::Pending;
         });
-        surface.poll();
+        pollSurface();
         const double terminalMs = elapsed.nsecsElapsed() / 1.0e6;
         const double cpuMs = double(std::clock() - cpuStart) * 1000 / CLOCKS_PER_SEC;
         const auto after = store->statistics();
@@ -200,7 +209,9 @@ Run execute(KisGpuTestDevice &gpu, QWindow &window, Surface &surface,
             : QStringLiteral("unavailable");
         samples.append(QJsonObject {
             {"inputSamples", input.size()}, {"inputToProjectionMs", projectionMs},
-            {"inputToTextureReadyMs", textureMs}, {"inputToRenderCompletionMs", renderingMs},
+            {"inputToTextureReadyMs", textureMs}, {"inputToSubmissionMs", submissionMs},
+            {"surfacePresentCallMs", presentCallNs / 1.0e6}, {"surfacePollCallMs", pollCallNs / 1.0e6},
+            {"inputToRenderCompletionMs", renderingMs},
             {"inputToPresentationMs", displayed ? QJsonValue(double(*displayedTime - *inputTime) / 1.0e6) : QJsonValue(QJsonValue::Null)},
             {"inputToTerminalNotificationMs", terminalMs}, {"cpuMs", cpuMs},
             {"presentationStatus", statusName}, {"presentationRetries", retries},
@@ -222,7 +233,8 @@ Run execute(KisGpuTestDevice &gpu, QWindow &window, Surface &surface,
     const auto pixels = gpu.read(image.texture(), bounds.size());
     require(pixels.size() == bounds.width() * bounds.height() * 4, "Cannot identify the measured final image");
     QJsonObject summary;
-    for (const auto &metric : {"inputToProjectionMs", "inputToTextureReadyMs", "inputToRenderCompletionMs",
+    for (const auto &metric : {"inputToProjectionMs", "inputToTextureReadyMs", "inputToSubmissionMs",
+                               "surfacePresentCallMs", "surfacePollCallMs", "inputToRenderCompletionMs",
                                "inputToPresentationMs", "inputToTerminalNotificationMs", "cpuMs"}) {
         summary.insert(QString::fromLatin1(metric), distribution(samples, QString::fromLatin1(metric)));
     }
