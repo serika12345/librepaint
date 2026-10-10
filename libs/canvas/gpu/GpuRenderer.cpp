@@ -53,6 +53,7 @@ struct GpuRenderer::Private {
         KisGpuTileStore::TextureSnapshot image;
         Resource<WGPUTexture, wgpuTextureRelease> target;
         Resource<WGPUTextureView, wgpuTextureViewRelease> inputView, targetView;
+        KisGpuDevice::MemoryReservation memory;
         Resource<WGPUBuffer, wgpuBufferRelease> parameters;
         Resource<WGPUBindGroup, wgpuBindGroupRelease> bindings;
         Pending(std::shared_ptr<CompletionData> state, const KisGpuTileStore::TextureSnapshot &input, WGPUTexture output)
@@ -179,6 +180,7 @@ struct GpuRenderer::Private {
 GpuRenderer::GpuRenderer(KisGpuDevice &device, WGPUTextureFormat format, quint32 maximum)
     : d(new Private(device, format, maximum)) {}
 GpuRenderer::~GpuRenderer() = default;
+quint64 GpuRenderer::frameMemoryBytes() { return sizeof(Parameters); }
 GpuRenderer::Status GpuRenderer::Frame::status() const { return d ? d->status.load() : Status::Failed; }
 quint64 GpuRenderer::Frame::sequence() const { return d ? d->sequence : 0; }
 
@@ -223,10 +225,13 @@ GpuRenderer::Frame GpuRenderer::render(const KisGpuTileStore::TextureSnapshot &i
         result.error = Error::QueueFull;
         return result;
     }
+    auto memory = d->owner.reserveMemory(sizeof(Parameters));
+    if (!memory) { result.error = Error::BudgetExceeded; return result; }
     for (int c = 0; c < 4; ++c) parameters.background[c] = float((view.backgroundRgba >> (c * 8)) & 255) / 255;
     result.d = std::make_shared<CompletionData>();
     Private::ErrorScopes errors(d->owner.device(), result.d);
     auto operation = std::make_unique<Private::Pending>(result.d, image, target);
+    operation->memory = std::move(memory);
     operation->inputView.reset(wgpuTextureCreateView(image.texture(), nullptr));
     WGPUTextureViewDescriptor targetView{};
     targetView.format = d->format;

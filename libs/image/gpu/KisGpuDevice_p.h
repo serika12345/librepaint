@@ -4,6 +4,7 @@
  */
 #ifndef KIS_GPU_DEVICE_P_H
 #define KIS_GPU_DEVICE_P_H
+#include "KisGpuDevice.h"
 #include <QString>
 #include <array>
 #include <atomic>
@@ -32,7 +33,11 @@ struct NativeDevice {
     std::atomic<int> errors{0};
     std::shared_ptr<Availability> availability = std::make_shared<Availability>();
     bool destroyed = false;
-    explicit NativeDevice(quint64 storageBindingLimit, bool timestamps);
+    const quint64 maximumResidentBytes;
+    std::atomic<quint64> reservedBytes{0};
+    static KisGpuDevice::MemoryReservation reserveMemory(std::shared_ptr<NativeDevice> owner, quint64 bytes);
+    quint64 availableMemory() const;
+    explicit NativeDevice(quint64 storageBindingLimit, bool timestamps, quint64 maximumBytes);
     void destroy();
     void release();
     bool queriesAvailable(quint32 count) const;

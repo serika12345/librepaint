@@ -28,6 +28,7 @@ struct SurfaceRenderer::Private {
     WId windowId;
     quint64 budget;
     quint32 maximumPending;
+    KisGpuDevice::MemoryReservation surfaceMemory;
     GpuWindowSurface surface;
     std::unique_ptr<GpuRenderer> renderer;
     WGPUTextureFormat format;
@@ -74,7 +75,21 @@ struct SurfaceRenderer::Private {
         if (quint32(wanted.width()) > maximumDimension || quint32(wanted.height()) > maximumDimension
             || quint64(wanted.width()) * wanted.height() > budget / 12) return Error::BudgetExceeded;
         if (renderer->statistics().pendingFrames || !presentations.isEmpty()) return Error::ResizePending;
-        if (!surface.resize(wanted)) return Error::ResizePending;
+        const auto previousBytes = surfaceMemory.bytes();
+        const auto wantedBytes = quint64(wanted.width()) * wanted.height() * 12;
+        const auto growth = wantedBytes > previousBytes ? wantedBytes - previousBytes : 0;
+        const auto available = owner.availableMemory();
+        if (growth > available || GpuRenderer::frameMemoryBytes() > available - growth) return Error::BudgetExceeded;
+        if (surfaceMemory) {
+            if (!surfaceMemory.tryResize(std::max(previousBytes, wantedBytes))) return Error::BudgetExceeded;
+        } else {
+            surfaceMemory = owner.reserveMemory(wantedBytes);
+            if (!surfaceMemory) return Error::BudgetExceeded;
+        }
+        if (!surface.resize(wanted)) {
+            surfaceMemory.tryResize(previousBytes);
+            return Error::ResizePending;
+        }
         WGPUSurfaceConfigurationExtras extras{};
         extras.chain.sType = WGPUSType(WGPUSType_SurfaceConfigurationExtras);
         extras.desiredMaximumFrameLatency = 2;
@@ -91,6 +106,7 @@ struct SurfaceRenderer::Private {
         wgpuSurfaceConfigure(surface.surface(), &configuration);
         if (!owner.available()) return Error::DeviceLost;
         if (owner.errorCount() != errors) return Error::SurfaceUnavailable;
+        surfaceMemory.tryResize(wantedBytes);
         size = wanted;
         needsConfigure = false;
         return Error::None;
@@ -121,6 +137,7 @@ SurfaceRenderer::Frame SurfaceRenderer::present(const KisGpuTileStore::TextureSn
     }
     if (d->renderer->statistics().pendingFrames >= d->maximumPending
         || d->presentations.size() >= d->maximumPending) { frame.error = Error::QueueFull; return frame; }
+    if (d->owner.availableMemory() < GpuRenderer::frameMemoryBytes()) { frame.error = Error::BudgetExceeded; return frame; }
     WGPUSurfaceTexture current{};
     wgpuSurfaceGetCurrentTexture(d->surface.surface(), &current);
     if (!current.texture) {
@@ -132,7 +149,8 @@ SurfaceRenderer::Frame SurfaceRenderer::present(const KisGpuTileStore::TextureSn
     frame.presentation = d->surface.presentation();
     frame.rendering = d->renderer->render(image, current.texture, view);
     if (frame.rendering.error != GpuRenderer::Error::None) {
-        frame.error = frame.rendering.error == GpuRenderer::Error::DeviceLost ? Error::DeviceLost : Error::ImageRejected;
+        frame.error = frame.rendering.error == GpuRenderer::Error::DeviceLost ? Error::DeviceLost
+                    : frame.rendering.error == GpuRenderer::Error::BudgetExceeded ? Error::BudgetExceeded : Error::ImageRejected;
     } else if (wgpuSurfacePresent(d->surface.surface()) != WGPUStatus_Success) {
         frame.error = Error::PresentFailed;
         d->needsConfigure = true;
@@ -146,7 +164,7 @@ SurfaceRenderer::Frame SurfaceRenderer::present(const KisGpuTileStore::TextureSn
 }
 void SurfaceRenderer::poll() { d->renderer->poll(); d->collectPresentations(); }
 SurfaceRenderer::Statistics SurfaceRenderer::statistics() const {
-    return {d->requests, quint64(d->size.width()) * d->size.height() * 12, d->size, d->renderer->statistics(),
+    return {d->requests, d->surfaceMemory.bytes(), d->size, d->renderer->statistics(),
             d->displayed, d->skipped, d->abandoned, quint32(d->presentations.size())};
 }
 }

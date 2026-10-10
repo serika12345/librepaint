@@ -60,6 +60,7 @@ class KisGpuCanvasRendererTest : public QObject
 private Q_SLOTS:
     void initTestCase();
     void cleanup();
+    void globalBudgetRefusalCanBeRetried();
     void transformedPixels_data();
     void transformedPixels();
     void interpolationKeepsTransparentColorsOutOfVisiblePixels();
@@ -85,6 +86,31 @@ void KisGpuCanvasRendererTest::cleanup()
 {
     wgpuDevicePoll(m_gpu->device, true, nullptr);
     QCOMPARE(m_gpu->owner.errorCount(), 0);
+}
+
+void KisGpuCanvasRendererTest::globalBudgetRefusalCanBeRetried()
+{
+    KisGpuTestDevice gpu(0, false, 4 * Store::TileBytes);
+    Store store(gpu.owner, 8 * Store::TileBytes);
+    auto source = image(store, {0, 0, 1, 1}, QByteArray::fromHex("ff0000ff"));
+    Target target(gpu, {1, 1});
+    Renderer renderer(gpu.owner, WGPUTextureFormat_RGBA8Unorm);
+    const auto baseline = gpu.owner.memoryStatistics().reservedBytes;
+    auto occupied = gpu.owner.reserveMemory(gpu.owner.availableMemory());
+    QVERIFY(bool(occupied));
+    const auto refused = renderer.render(source, target.texture, {});
+    QCOMPARE(refused.error, Renderer::Error::BudgetExceeded);
+    QCOMPARE(renderer.statistics().submissions, quint64(0));
+    QCOMPARE(renderer.statistics().residentParameterBytes, quint64(0));
+    occupied = {};
+    auto accepted = renderer.render(source, target.texture, {});
+    QCOMPARE(accepted.error, Renderer::Error::None);
+    QCOMPARE(gpu.owner.memoryStatistics().reservedBytes, baseline + 48);
+    QVERIFY(finish(renderer, accepted));
+    QCOMPARE(gpu.owner.memoryStatistics().reservedBytes, baseline);
+    source = {};
+    QCOMPARE(gpu.owner.memoryStatistics().reservedBytes, quint64(0));
+    QCOMPARE(gpu.owner.errorCount(), 0);
 }
 
 void KisGpuCanvasRendererTest::transformedPixels_data()

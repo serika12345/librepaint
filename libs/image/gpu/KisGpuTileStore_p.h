@@ -39,11 +39,14 @@ struct DeviceState {
 };
 
 struct Allocation {
+    KisGpuDevice::MemoryReservation memory;
     std::shared_ptr<DeviceState> owner;
     WGPUBuffer buffer;
     quint64 bytes;
     Allocation(std::shared_ptr<DeviceState> state, quint64 size, WGPUBufferUsage usage)
         : owner(std::move(state)), bytes(size) {
+        memory = NativeDevice::reserveMemory(owner->nativeOwner, bytes);
+        if (!memory) throw std::runtime_error("GPU buffer budget was not reserved before allocation");
         WGPUBufferDescriptor descriptor{};
         descriptor.size = bytes;
         descriptor.usage = usage;
@@ -125,6 +128,7 @@ struct KisGpuTileStore::ReadbackData {
 };
 
 struct KisGpuTileStore::TextureData {
+    KisGpuDevice::MemoryReservation memory;
     std::shared_ptr<KisGpuTileStorage::DeviceState> owner;
     WGPUTexture texture;
     QRect bounds;

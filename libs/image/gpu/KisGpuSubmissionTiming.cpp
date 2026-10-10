@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuTileStore_p.h"
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <limits>
@@ -63,7 +64,7 @@ WGPUCommandBuffer KisGpuTileStore::Private::Recording::finish()
 quint64 KisGpuTileStore::Private::availableForOperation(quint32 passes) const
 {
     const quint64 resident = state->residentBytes.load(), overhead = timestamps ? 32 * quint64(passes) : 0;
-    const quint64 free = resident <= budget ? budget - resident : 0;
+    const quint64 free = std::min(resident <= budget ? budget - resident : 0, state->nativeOwner->availableMemory());
     return free >= overhead ? free - overhead : 0;
 }
 

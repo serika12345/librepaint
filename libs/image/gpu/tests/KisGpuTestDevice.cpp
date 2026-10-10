@@ -14,8 +14,8 @@ namespace {
 int tileCoordinate(int pixel) { return pixel >= 0 ? pixel / 64 : (pixel + 1) / 64 - 1; }
 }
 
-KisGpuTestDevice::KisGpuTestDevice(quint64 storageBindingLimit, bool timestamps)
-    : owner(storageBindingLimit, timestamps), device(owner.device()), queue(wgpuDeviceGetQueue(device)), name(owner.adapterName())
+KisGpuTestDevice::KisGpuTestDevice(quint64 storageBindingLimit, bool timestamps, quint64 maximumResidentBytes)
+    : owner(storageBindingLimit, timestamps, maximumResidentBytes), device(owner.device()), queue(wgpuDeviceGetQueue(device)), name(owner.adapterName())
 {
     if (!queue) throw std::runtime_error("Cannot get GPU queue");
 }

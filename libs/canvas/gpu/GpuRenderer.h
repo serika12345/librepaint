@@ -21,7 +21,7 @@ class GpuRenderer
     struct CompletionData;
 public:
     using Status = KisGpuTileStore::Status;
-    enum class Error { None, InvalidImage, ImagePending, InvalidTarget, InvalidTransform, QueueFull, DeviceLost };
+    enum class Error { None, InvalidImage, ImagePending, InvalidTarget, InvalidTransform, QueueFull, BudgetExceeded, DeviceLost };
     enum class Sampling { Nearest, Linear };
     struct View {
         QTransform canvasToTarget;
@@ -56,6 +56,8 @@ public:
     void poll();
     Statistics statistics() const;
 private:
+    friend class SurfaceRenderer;
+    static quint64 frameMemoryBytes();
     struct Private;
     std::unique_ptr<Private> d;
 };

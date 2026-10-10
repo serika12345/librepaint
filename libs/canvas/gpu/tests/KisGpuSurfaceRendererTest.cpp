@@ -249,6 +249,50 @@ private Q_SLOTS:
         QCOMPARE(renderer.statistics().pendingPresentations, quint32(0));
 #endif
     }
+    void globalBudgetCoversPresentationAndResize() {
+        KisGpuTestDevice gpu(0, false, 4 * 1024 * 1024);
+        KisGpuTileStore store(gpu.owner, 8 * 1024 * 1024);
+        auto input = image(store);
+        const auto baseline = gpu.owner.memoryStatistics().reservedBytes;
+        QWindow window; expose(window);
+        {
+            SurfaceRenderer renderer(gpu.owner, window);
+            auto occupied = gpu.owner.reserveMemory(gpu.owner.availableMemory());
+            QCOMPARE(renderer.present(input, {}).error, SurfaceRenderer::Error::BudgetExceeded);
+            QCOMPARE(renderer.statistics().reservedSurfaceBytes, quint64(0));
+            QCOMPARE(renderer.statistics().presentationRequests, quint64(0));
+            const auto surfaceBytes = quint64(qRound(window.width() * window.devicePixelRatio()))
+                * qRound(window.height() * window.devicePixelRatio()) * 12;
+            QVERIFY(occupied.tryResize(occupied.bytes() - surfaceBytes));
+            const auto before = gpu.owner.memoryStatistics().reservedBytes;
+            QCOMPARE(renderer.present(input, {}).error, SurfaceRenderer::Error::BudgetExceeded);
+            QCOMPARE(renderer.statistics().reservedSurfaceBytes, quint64(0));
+            QCOMPARE(gpu.owner.memoryStatistics().reservedBytes, before);
+            occupied = {};
+            auto frame = renderer.present(input, {});
+            QVERIFY(frame.accepted());
+            const auto initial = renderer.statistics().reservedSurfaceBytes;
+            QCOMPARE(gpu.owner.memoryStatistics().reservedBytes, baseline + initial + 48);
+            QTRY_VERIFY_WITH_TIMEOUT((renderer.poll(), renderer.statistics().rendering.pendingFrames == 0
+                && renderer.statistics().pendingPresentations == 0), 3000);
+            QCOMPARE(gpu.owner.memoryStatistics().reservedBytes, baseline + initial);
+            occupied = gpu.owner.reserveMemory(gpu.owner.availableMemory());
+            window.resize(128, 128);
+            QTRY_VERIFY_WITH_TIMEOUT(window.size() == QSize(128, 128), 3000);
+            QCOMPARE(renderer.present(input, {}).error, SurfaceRenderer::Error::BudgetExceeded);
+            QCOMPARE(renderer.statistics().reservedSurfaceBytes, initial);
+            occupied = {};
+            QTRY_VERIFY_WITH_TIMEOUT((renderer.poll(), frame = renderer.present(input, {}),
+                frame.error != SurfaceRenderer::Error::ResizePending), 3000);
+            QVERIFY(frame.accepted());
+            QCOMPARE(renderer.statistics().reservedSurfaceBytes, initial * 4);
+            QTRY_VERIFY_WITH_TIMEOUT((renderer.poll(), renderer.statistics().rendering.pendingFrames == 0
+                && renderer.statistics().pendingPresentations == 0), 3000);
+            QCOMPARE(gpu.owner.memoryStatistics().reservedBytes, baseline + initial * 4);
+        }
+        QCOMPARE(gpu.owner.memoryStatistics().reservedBytes, baseline);
+        QCOMPARE(gpu.owner.errorCount(), 0);
+    }
     void hiddenWindowAndBudgetLeaveQueueUnchanged() {
         KisGpuTestDevice gpu;
         KisGpuTileStore store(gpu.owner, 4 * 1024 * 1024);

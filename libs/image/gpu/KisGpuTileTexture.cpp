@@ -11,6 +11,8 @@ using namespace KisGpuTileStorage;
 KisGpuTileStore::TextureData::TextureData(std::shared_ptr<DeviceState> state, QRect rectangle)
     : owner(std::move(state)), bounds(rectangle), bytes(quint64(bounds.width()) * bounds.height() * 4)
 {
+    memory = NativeDevice::reserveMemory(owner->nativeOwner, bytes);
+    if (!memory) throw std::runtime_error("GPU texture budget was not reserved before allocation");
     WGPUTextureDescriptor descriptor{};
     descriptor.size = {quint32(bounds.width()), quint32(bounds.height()), 1};
     descriptor.dimension = WGPUTextureDimension_2D;

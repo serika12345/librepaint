@@ -19,7 +19,8 @@ QString message(WGPUStringView value)
 
 using namespace KisGpuTileStorage;
 
-NativeDevice::NativeDevice(quint64 storageBindingLimit, bool timestamps) {
+NativeDevice::NativeDevice(quint64 storageBindingLimit, bool timestamps, quint64 maximumBytes)
+    : maximumResidentBytes(maximumBytes) {
     try {
         if (wgpuGetVersion() != 0x1b000400) throw std::runtime_error("GPU document requires wgpu-native 27.0.4.0");
         if (wgpuLibrePaintRecoveryRevision() != 3) throw std::runtime_error("GPU document requires recovery revision 3");
@@ -155,8 +156,8 @@ void NativeDevice::releaseQueries(quint32 first, quint32 count)
     std::fill(occupiedQueries.begin() + first, occupiedQueries.begin() + first + count, false);
 }
 
-KisGpuDevice::KisGpuDevice(quint64 storageBindingLimit, bool timestamps)
-    : d(std::make_shared<NativeDevice>(storageBindingLimit, timestamps)) {}
+KisGpuDevice::KisGpuDevice(quint64 storageBindingLimit, bool timestamps, quint64 maximumResidentBytes)
+    : d(std::make_shared<NativeDevice>(storageBindingLimit, timestamps, maximumResidentBytes)) {}
 KisGpuDevice::~KisGpuDevice() { d->destroy(); }
 WGPUInstance KisGpuDevice::instance() const { return d->instance; }
 WGPUAdapter KisGpuDevice::adapter() const { return d->adapter; }

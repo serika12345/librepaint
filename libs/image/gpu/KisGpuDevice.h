@@ -10,7 +10,7 @@
 #include <webgpu/wgpu.h>
 
 class KisGpuTileStore;
-namespace KisGpuTileStorage { struct NativeDevice; }
+namespace KisGpuTileStorage { struct NativeDevice; struct MemoryReservationData; }
 
 /**
  * Owns a hardware Metal/Vulkan device and its loss notifications. Creation,
@@ -22,11 +22,33 @@ namespace KisGpuTileStorage { struct NativeDevice; }
 class KisGpuDevice
 {
 public:
+    struct MemoryStatistics { quint64 limitBytes, reservedBytes; };
+    /** Move-only logical GPU memory reservation. Creation, resize and destruction use the submitting thread.
+     * Retain through the resource lifetime; shrinking and destruction return capacity, including after device loss.
+     * Covers owned buffers, textures and the estimated presentation images, excluding driver bookkeeping.
+     */
+    class MemoryReservation {
+    public:
+        MemoryReservation() noexcept;
+        ~MemoryReservation();
+        MemoryReservation(MemoryReservation &&) noexcept;
+        MemoryReservation &operator=(MemoryReservation &&) noexcept;
+        MemoryReservation(const MemoryReservation &) = delete;
+        MemoryReservation &operator=(const MemoryReservation &) = delete;
+        explicit operator bool() const;
+        quint64 bytes() const;
+        /** Rejects growth beyond the device limit without changing this reservation. */
+        bool tryResize(quint64 bytes);
+    private:
+        friend struct KisGpuTileStorage::NativeDevice;
+        std::unique_ptr<KisGpuTileStorage::MemoryReservationData> d;
+    };
     /**
      * Zero uses default limits; a positive storage limit requests the adapter's other limits.
      * Timestamps enable compute profiling; unsupported hardware throws std::runtime_error.
      */
-    explicit KisGpuDevice(quint64 storageBindingLimit = 0, bool timestamps = false);
+    explicit KisGpuDevice(quint64 storageBindingLimit = 0, bool timestamps = false,
+                          quint64 maximumResidentBytes = 512 * 1024 * 1024);
     ~KisGpuDevice();
     KisGpuDevice(const KisGpuDevice &) = delete;
     KisGpuDevice &operator=(const KisGpuDevice &) = delete;
@@ -39,6 +61,10 @@ public:
     bool available() const;
     int errorCount() const;
     QString lastError() const;
+    /** Reserves bytes across all document and canvas owners; empty on zero, loss or insufficient capacity. */
+    MemoryReservation reserveMemory(quint64 bytes);
+    MemoryStatistics memoryStatistics() const;
+    quint64 availableMemory() const;
     void destroy();
 
 private:

@@ -93,7 +93,8 @@
 
 `libs/image/gpu`はGPU文書のタイル、版、命令発行と資源予算を所有する。
 `kritaimagegpudocument`はwgpu-nativeとQt Coreへ直接依存し、独立した構築設定で
-画素・版・寿命の契約を検証する。利用側へ渡す版とGPU資源の借用条件は
+画素・版・寿命の契約を検証する。デバイス所有者は全描画先と表示資源の論理予約量を合算し、
+各描画先の予算と合わせて発行前に容量を検査する。利用側へ渡す版とGPU資源の借用条件は
 [GPU文書タイルと版の契約](gpu-document-tiles.md)が定義する。
 
 `libs/image/dabspacing`はCPU描画とGPU向け入力生成で距離間隔を共用する。

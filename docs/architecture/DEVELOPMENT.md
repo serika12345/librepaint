@@ -188,6 +188,7 @@ GPU内複製、操作完了と予算超過を検査する。評価済みのテ�
 
 ```sh
 ./scripts/run-shared-test-env ./scripts/configure-gpu-document
+./scripts/run-shared-test-env ./scripts/run-test KisGpuDeviceBudgetTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTileStoreTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuDabSelectionTest
 ./scripts/run-shared-test-env ./scripts/run-test KisBrushTextureContractTest
@@ -212,6 +213,9 @@ Rust依存の取得は固定パッケージのキャッシュを共用する。
 macOSの試験はMetal、Linuxの試験はVulkanを使用する。実GPUへアクセスできる実行環境が
 必要であり、取得できない場合は試験を失敗させる。試験用のCPU読み戻しを描画操作から分け、
 画素の完全一致とGPU検査エラーの有無を確認する。
+`KisGpuDeviceBudgetTest`は複数の描画先、旧版、表示用画像、模様、計測領域の共有予算と
+解放後の再試行を検査する。キャンバス・実表示の試験は命令領域と提示画像の合算、
+容量不足での拒否、サイズ変更と所有者終了時の解放を検査する。
 筆圧・間隔の配置データは`kis_distance_information_test`でCPUの補間・距離管理を検査し、
 `KisGpuBrushStrokeTest`で同じ配置の画素、要求拒否後の再試行、選択付き差し替えと回復を検査する。
 質感は`KisBrushTextureContractTest`で既存CPUの本番乗算を確認し、`KisGpuBrushTextureTest`で
@@ -220,7 +224,7 @@ macOSの試験はMetal、Linuxの試験はVulkanを使用する。実GPUへア�
 失敗値を返すことを確認する。
 キャンバス描画はGPU画像を直接読み、座標変換、透明画素の補間と背景合成を検査する。
 描画先の所有元を発行前に検査し、別デバイスの資源を拒否する。
-実表示の試験は、利用可能なデスクトップで実行する。CTestがmacOSでは`cocoa`、Linuxでは
+実表示の試験は、画面ロックが解除された表示中のデスクトップで実行する。CTestがmacOSでは`cocoa`、Linuxでは
 `xcb`を指定し、`gpu-display`ラベルで識別する。Linuxでは実行環境の表示接続を引き継ぐ。
 連続フレーム、ウィンドウ寸法変更、予算とGPU喪失を検査し、子プロセスで表示面と画像の
 破棄順序、未設定状態、喪失後の取得・設定が異常終了を生じないことを確認する。
