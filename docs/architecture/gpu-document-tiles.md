@@ -11,6 +11,7 @@ wgpu-native 27.0.4.0を直接利用する。画像モデル、ブラシ、履歴
 | --- | --- |
 | `libs/image/gpu/KisGpuTileStore.h` | 版、単色描画、操作完了、予算と統計の内部API |
 | `libs/image/gpu/KisGpuTileStore.cpp` | GPUバッファーの寿命、タイル共有、GPU内複製、計算命令と完了観測 |
+| `libs/image/gpu/KisGpuTilePaint.wgsl` | GPU上の画素演算。Qtリソースとしてライブラリーへ組み込む |
 | `libs/image/gpu/tests/KisGpuTileStoreTest.cpp` | 実GPUによる画素、版、予算、資源解放の契約 |
 | `scripts/configure-gpu-document` | 固定Nix依存の取得とネイティブ構築の設定 |
 

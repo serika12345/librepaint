@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/librepaint/gpu">
+        <file>KisGpuTilePaint.wgsl</file>
+    </qresource>
+</RCC>
