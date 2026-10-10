@@ -6,6 +6,7 @@
 #define KIS_GPU_EDIT_SESSION_H
 
 #include "KisGpuTileStore.h"
+#include <optional>
 
 /**
  * Tentative raster edits and bounded immutable Undo/Redo history. The borrowed
@@ -17,8 +18,22 @@ class KisGpuEditSession
 {
     struct Identity {};
 public:
-    enum class State { Idle, Editing, Committing, Failed };
-    enum class Result { Accepted, Busy, Stale, GpuRejected };
+    enum class State { Idle, Editing, Committing, Failed, Restoring };
+    enum class Result { Accepted, Busy, Stale, GpuRejected, RecoveryBudgetExceeded };
+    struct ReplayBatch {
+        QVector<KisGpuTileStore::DabCommand> commands;
+        QRect clip;
+    };
+    using ReplayEdit = QVector<ReplayBatch>;
+    /** CPU checkpoint and accepted input values; independent of GPU handles and session tokens. */
+    struct Recovery {
+        QRect bounds;
+        QByteArray pixels;
+        QVector<ReplayEdit> edits;
+        qsizetype firstRetained = 0, cursor = 0;
+        std::optional<ReplayEdit> working;
+        bool commitRequested = false;
+    };
     class Token {
     public:
         Token() = default;
@@ -36,11 +51,19 @@ public:
     explicit KisGpuEditSession(KisGpuTileStore &store, qsizetype retainedEdits);
     /** Initial version must belong to store and have succeeded; otherwise throws std::invalid_argument. */
     KisGpuEditSession(KisGpuTileStore &store, qsizetype retainedEdits, const KisGpuTileStore::Version &initial);
+    /** Replays asynchronously in poll(); invalid indices, checkpoint or CPU budget throw std::invalid_argument. */
+    KisGpuEditSession(KisGpuTileStore &store, qsizetype retainedEdits, Recovery recovery,
+                      quint64 maximumRecoveryBytes = 64 * 1024 * 1024);
+    ~KisGpuEditSession();
     KisGpuEditSession(const KisGpuEditSession &) = delete;
     KisGpuEditSession &operator=(const KisGpuEditSession &) = delete;
 
     /** Returns an empty token while another edit is active. Tokens may outlive the session. */
     Token begin();
+    /** Current token after restoring an unfinished edit; old session tokens remain stale. */
+    Token currentToken() const;
+    /** Loaded GPU-only initial versions need their CPU checkpoint supplied at construction. */
+    std::optional<Recovery> recovery() const;
     Result append(const Token &token, const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip);
     /** Redraw from the committed starting version; previous tentative footprints disappear. */
     Result replace(const Token &token, const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip);
@@ -62,6 +85,12 @@ private:
     bool matches(const Token &token) const;
     Result paint(const Token &token, const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip, bool replace);
     void releaseWorkingEdit();
+    struct ReplayState;
+    void pollRecovery();
+    bool canRecord(const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip, bool replace) const;
+    void record(const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip, bool replace);
+    void publishRecovery();
+    std::unique_ptr<ReplayState> m_replay;
     KisGpuTileStore &m_store;
     qsizetype m_retainedEdits;
     QVector<KisGpuTileStore::Version> m_history;

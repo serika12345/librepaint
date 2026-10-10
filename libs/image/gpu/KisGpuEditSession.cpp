@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuEditSession.h"
+#include "KisGpuEditReplay_p.h"
 #include <limits>
 #include <stdexcept>
 
@@ -13,13 +14,14 @@ KisGpuEditSession::KisGpuEditSession(KisGpuTileStore &store, qsizetype retainedE
 
 KisGpuEditSession::KisGpuEditSession(KisGpuTileStore &store, qsizetype retainedEdits,
                                    const KisGpuTileStore::Version &initial)
-    : m_store(store), m_retainedEdits(qMax(qsizetype(0), retainedEdits)), m_history{initial}
+    : m_replay(new ReplayState), m_store(store), m_retainedEdits(qMax(qsizetype(0), retainedEdits)), m_history{initial}
     , m_preview(m_history.front())
 {
     const auto checked = store.paint(initial, QVector<KisGpuTileStore::PaintCommand>());
     if (checked.error != KisGpuTileStore::Error::None || checked.completion.status() != KisGpuTileStore::Status::Succeeded) {
         throw std::invalid_argument("GPU editing requires a successful version from its tile store");
     }
+    if (!initial.tileCount()) m_replay->data = Recovery{};
 }
 
 KisGpuEditSession::Token KisGpuEditSession::begin()
@@ -30,6 +32,8 @@ KisGpuEditSession::Token KisGpuEditSession::begin()
     m_base = head();
     m_preview = m_base;
     m_state = State::Editing;
+    m_replay->working.clear();
+    m_replay->commitRequested = false;
     Token token;
     token.generation = m_token;
     token.owner = m_identity;
@@ -59,10 +63,12 @@ KisGpuEditSession::Result KisGpuEditSession::paint(const Token &token,
     if (!matches(token)) return Result::Stale;
     if (m_state != State::Editing) return Result::Busy;
     if (m_hasLatest && m_latest.completion.status() == KisGpuTileStore::Status::Failed) return Result::Busy;
+    if (!canRecord(commands, clip, replace)) return Result::RecoveryBudgetExceeded;
     const auto &source = replace || !m_hasLatest ? m_base : m_latest.version;
     auto edit = m_store.paintDabs(source, commands, clip);
     m_lastGpuError = edit.error;
     if (edit.error != KisGpuTileStore::Error::None) return Result::GpuRejected;
+    record(commands, clip, replace);
     m_latest = std::move(edit);
     m_hasLatest = true;
     return Result::Accepted;
@@ -73,6 +79,7 @@ KisGpuEditSession::Result KisGpuEditSession::commit(const Token &token)
     if (!matches(token)) return Result::Stale;
     if (m_state != State::Editing) return Result::Busy;
     m_state = State::Committing;
+    m_replay->commitRequested = true;
     return Result::Accepted;
 }
 
@@ -84,6 +91,8 @@ void KisGpuEditSession::releaseWorkingEdit()
     m_hasLatest = false;
     m_preview = head();
     m_state = State::Idle;
+    m_replay->working.clear();
+    m_replay->commitRequested = false;
 }
 
 KisGpuEditSession::Result KisGpuEditSession::cancel(const Token &token)
@@ -96,6 +105,7 @@ KisGpuEditSession::Result KisGpuEditSession::cancel(const Token &token)
 void KisGpuEditSession::poll()
 {
     m_store.poll();
+    if (m_state == State::Restoring) { pollRecovery(); return; }
     if (m_state != State::Editing && m_state != State::Committing) return;
     if (!m_store.deviceAvailable()) {
         m_preview = m_base;
@@ -118,6 +128,7 @@ void KisGpuEditSession::poll()
         m_history.push_back(m_latest.version);
         if (m_history.size() - 1 > m_retainedEdits) m_history.remove(0, m_history.size() - 1 - m_retainedEdits);
         m_cursor = m_history.size() - 1;
+        publishRecovery();
     }
     releaseWorkingEdit();
 }
@@ -126,6 +137,7 @@ bool KisGpuEditSession::undo()
 {
     if (m_state != State::Idle || !m_cursor) return false;
     m_preview = m_history[--m_cursor];
+    if (m_replay->data) --m_replay->data->cursor;
     return true;
 }
 
@@ -133,6 +145,7 @@ bool KisGpuEditSession::redo()
 {
     if (m_state != State::Idle || m_cursor + 1 >= m_history.size()) return false;
     m_preview = m_history[++m_cursor];
+    if (m_replay->data) ++m_replay->data->cursor;
     return true;
 }
 
@@ -141,5 +154,9 @@ bool KisGpuEditSession::clearHistory()
     if (m_state != State::Idle) return false;
     m_history = {head()};
     m_cursor = 0;
+    if (m_replay->data) {
+        m_replay->data->edits.resize(m_replay->data->cursor);
+        m_replay->data->firstRetained = m_replay->data->cursor;
+    }
     return true;
 }
