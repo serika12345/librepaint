@@ -5,6 +5,37 @@
 #include "KisGpuLayerDocument.h"
 #include <set>
 
+KisGpuLayerDocument::Result KisGpuLayerDocument::suspend()
+{
+    if (!m_store) return Result::Accepted;
+    auto request = recovery();
+    if (!validRecovery(request, m_retainedEdits, m_maximumRecoveryBytes)) return Result::RecoveryBudgetExceeded;
+    if (m_active) m_session->cancel(m_active->token);
+    m_active.reset();
+    m_session.reset();
+    m_compacting.reset();
+    m_compactionStatus.reset();
+    m_compactionError = KisGpuTileStore::Error::None;
+    m_restoring.emplace();
+    m_restoring->request = std::move(request);
+    m_restoring->records = m_restoring->request.history[m_restoring->request.cursor];
+    m_history = m_restoring->request.history;
+    m_cursor = m_restoring->request.cursor;
+    m_nextId = m_restoring->request.nextId;
+    m_rasterVersions.clear();
+    m_store.reset();
+    return Result::Accepted;
+}
+
+KisGpuLayerDocument::Result KisGpuLayerDocument::resume(std::shared_ptr<KisGpuTileStore> store)
+{
+    if (m_store) return Result::Busy;
+    if (!store) return Result::InvalidInput;
+    if (!store->deviceAvailable()) return Result::GpuRejected;
+    m_store = std::move(store);
+    return Result::Accepted;
+}
+
 KisGpuLayerDocument::Result KisGpuLayerDocument::evictHistory()
 {
     const auto ready = readiness();

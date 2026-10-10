@@ -113,7 +113,7 @@ KisGpuLayerDocument::Editing KisGpuLayerDocument::currentEditing() const
 
 KisGpuTileStore::Error KisGpuLayerDocument::recoveryError() const
 {
-    if (!m_restoring) return KisGpuTileStore::Error::None;
+    if (!m_restoring || !m_store) return KisGpuTileStore::Error::None;
     return !m_store->deviceAvailable() ? KisGpuTileStore::Error::DeviceLost : m_restoring->error;
 }
 

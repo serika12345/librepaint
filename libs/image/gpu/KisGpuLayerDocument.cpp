@@ -24,6 +24,7 @@ KisGpuLayerDocument::~KisGpuLayerDocument()
 
 KisGpuLayerDocument::State KisGpuLayerDocument::state() const
 {
+    if (!m_store) return State::Suspended;
     if (m_restoring) return m_restoring->failed || !m_store->deviceAvailable() ? State::Failed : State::Restoring;
     if (!m_store->deviceAvailable() || (m_session && m_session->state() == KisGpuEditSession::State::Failed)) return State::Failed;
     if (m_compacting) return State::Compacting;
@@ -249,6 +250,7 @@ KisGpuLayerDocument::Result KisGpuLayerDocument::cancel(const KisGpuEditSession:
 
 void KisGpuLayerDocument::poll()
 {
+    if (!m_store) return;
     m_store->poll();
     if (m_restoring) { pollRecovery(); return; }
     if (m_compacting) { pollRecoveryCompaction(); return; }
@@ -278,6 +280,7 @@ void KisGpuLayerDocument::poll()
 QVector<KisGpuLayerDocument::Layer> KisGpuLayerDocument::layers() const
 {
     QVector<Layer> result;
+    if (!m_store || (m_restoring && m_restoring->initial)) return result;
     for (const auto &record : m_history[m_cursor]) result.push_back(layerValue(*record));
     return result;
 }
@@ -285,6 +288,7 @@ QVector<KisGpuLayerDocument::Layer> KisGpuLayerDocument::layers() const
 QVector<KisGpuTileStore::Layer> KisGpuLayerDocument::projectionLayers(bool includePreview) const
 {
     QVector<KisGpuTileStore::Layer> result;
+    if (!m_store || (m_restoring && m_restoring->initial)) return result;
     for (const auto &record : m_history[m_cursor]) {
         auto layer = layerValue(*record).paint;
         if (includePreview && m_active && record->id == m_active->id) {

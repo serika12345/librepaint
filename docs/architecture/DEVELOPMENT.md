@@ -221,6 +221,7 @@ GPU内複製、操作完了と予算超過を検査する。評価済みのテ�
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuLayerDocumentTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuLayerDocumentRecoveryTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuLayerDocumentResidencyTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuLayerDocumentSuspendTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuLayerDocumentCompactionTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuDocumentReadbackTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTileStoreTest
@@ -254,6 +255,8 @@ macOSの試験はMetal、Linuxの試験はVulkanを使用する。実GPUへア�
 編集中の履歴と識別子、CPU予算の予約、読取り失敗時の元データ、別デバイスへの復元を確認する。
 `KisGpuLayerDocumentResidencyTest`はCPU履歴を保ったGPU過去版の解放と、退避済み版への
 非同期Undo/Redoを検査する。復元中の表示維持、予算超過・取消し・GPU交換も確認する。
+`KisGpuLayerDocumentSuspendTest`はCPU回復値を保持したGPU資源の一時解放、同じ文書での
+再開、未確定入力と履歴、GPU喪失・復元失敗後の再試行を検査する。
 `KisGpuLayerDocumentCompactionTest`は文書の画素・マスク回復命令を明示的に集約し、
 履歴・GPU版の維持、CPU予約、別GPUでの回復と読取り失敗を検査する。
 `KisGpuDocumentReadbackTest`は[文書全体の固定版読取り](gpu-document-readback.md)を検査する。

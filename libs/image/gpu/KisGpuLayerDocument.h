@@ -18,7 +18,7 @@ class KisGpuLayerDocument
 public:
     using LayerId = quint64;
     enum class Result { Accepted, Busy, Stale, InvalidLayer, InvalidInput, RecoveryBudgetExceeded, GpuRejected };
-    enum class State { Idle, Editing, Committing, Failed, Restoring, Compacting };
+    enum class State { Idle, Editing, Committing, Failed, Restoring, Compacting, Suspended };
     enum class Target { Pixels, Mask };
     struct Layer {
         LayerId id = 0;
@@ -88,6 +88,10 @@ public:
     bool clearHistory();
     /** Release GPU versions outside the current frame, retaining all CPU history. */
     Result evictHistory();
+    /** Keep CPU history and accepted working input while releasing this document's GPU ownership. */
+    Result suspend();
+    /** Recreate a suspended document on a new concrete store through poll(). */
+    Result resume(std::shared_ptr<KisGpuTileStore> store);
     /** Cancel a queued Undo/Redo restoration and keep the previously displayed frame. */
     bool cancelHistoryRestore();
     /** Explicit maintenance of one current target. History and GPU versions stay stable. */
