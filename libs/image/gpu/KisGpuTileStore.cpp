@@ -101,6 +101,10 @@ struct KisGpuTileStore::CompletionData {
     }
 };
 
+struct KisGpuTileStore::ReadbackData {
+    QByteArray bytes;
+};
+
 struct KisGpuTileStore::Private {
     struct ErrorScopes {
         WGPUDevice device;
@@ -231,7 +235,9 @@ struct KisGpuTileStore::Private {
         auto callbackData = std::make_unique<std::shared_ptr<CompletionData>>(completion);
         pending.push_back(std::move(operation));
         const auto &resources = pending.back();
-        wgpuQueueWriteBuffer(state->queue, resources.parameters->buffer, 0, parameters.data(), parameters.size());
+        if (!parameters.empty()) {
+            wgpuQueueWriteBuffer(state->queue, resources.parameters->buffer, 0, parameters.data(), parameters.size());
+        }
         if (!commands.empty()) {
             wgpuQueueWriteBuffer(state->queue, resources.commands->buffer, 0,
                                  commands.data(), commands.size() * sizeof(TileCommand));
@@ -282,6 +288,11 @@ KisGpuTileStore::Status KisGpuTileStore::Completion::status() const
 }
 
 quint64 KisGpuTileStore::Completion::sequence() const { return d ? d->sequence : 0; }
+
+QByteArray KisGpuTileStore::Readback::bytes() const
+{
+    return d && completion.status() == Status::Succeeded ? d->bytes : QByteArray();
+}
 
 KisGpuTileStore::Version KisGpuTileStore::emptyVersion() const
 {
@@ -584,6 +595,77 @@ KisGpuTileStore::Edit KisGpuTileStore::composite(const Version &base, const Vers
     result.version.d = std::move(data);
     d->submit({result.completion.d, base, result.version, parameters, {}, source}, commandBuffer.value,
               packedParameters, {}, copiedBytes, groups.size());
+    errors.submitted = true;
+    return result;
+}
+
+KisGpuTileStore::Readback KisGpuTileStore::readback(const Version &source, QRect bounds)
+{
+    Readback result;
+    if (!source.d || source.d->owner != d->state) {
+        result.error = Error::InvalidVersion;
+        return result;
+    }
+    if (bounds.isEmpty()) {
+        result.completion.d = source.d->completion;
+        return result;
+    }
+    const quint64 byteCount = quint64(bounds.width()) * quint64(bounds.height()) * 4;
+    const quint64 resident = d->state->residentBytes.load();
+    const quint64 available = resident <= d->budget ? d->budget - resident : 0;
+    if (byteCount > available || byteCount > d->limits.maxBufferSize || byteCount > quint64(INT_MAX)) {
+        result.error = Error::BudgetExceeded;
+        return result;
+    }
+    result.d = std::make_shared<ReadbackData>();
+    result.d->bytes = QByteArray(int(byteCount), '\0');
+    result.completion.d = std::make_shared<CompletionData>();
+    result.completion.d->remaining.store(4); // validation, allocation, submission, mapping
+    Private::ErrorScopes errors(d->state->device, result.completion.d);
+    auto staging = std::make_shared<Allocation>(d->state, byteCount,
+        WGPUBufferUsage_MapRead | WGPUBufferUsage_CopyDst);
+    Handle<WGPUCommandEncoder, wgpuCommandEncoderRelease> encoder(
+        wgpuDeviceCreateCommandEncoder(d->state->device, nullptr));
+    const qint64 left = bounds.x(), top = bounds.y();
+    const qint64 right = left + bounds.width(), bottom = top + bounds.height();
+    for (const auto &entry : source.d->tiles) {
+        const qint64 tileLeft = qint64(entry.first.first) * 64, tileTop = qint64(entry.first.second) * 64;
+        const qint64 x0 = std::max(left, tileLeft), y0 = std::max(top, tileTop);
+        const qint64 x1 = std::min(right, tileLeft + 64), y1 = std::min(bottom, tileTop + 64);
+        if (x0 >= x1 || y0 >= y1) continue;
+        for (qint64 y = y0; y < y1; ++y) {
+            const quint64 sourceOffset = entry.second.offset + ((y - tileTop) * 64 + x0 - tileLeft) * 4;
+            const quint64 targetOffset = ((y - top) * bounds.width() + x0 - left) * 4;
+            wgpuCommandEncoderCopyBufferToBuffer(encoder.value, entry.second.allocation->buffer, sourceOffset,
+                staging->buffer, targetOffset, (x1 - x0) * 4);
+        }
+    }
+    Handle<WGPUCommandBuffer, wgpuCommandBufferRelease> commands(
+        wgpuCommandEncoderFinish(encoder.value, nullptr));
+    struct MapResult {
+        std::shared_ptr<ReadbackData> data;
+        std::shared_ptr<CompletionData> completion;
+        WGPUBuffer buffer;
+        quint64 size;
+    };
+    auto callbackData = std::make_unique<MapResult>(MapResult{result.d, result.completion.d, staging->buffer, byteCount});
+    d->submit({result.completion.d, source, {}, staging, {}, {}}, commands.value, {}, {}, 0, 0);
+    WGPUBufferMapCallbackInfo callback{};
+    callback.mode = WGPUCallbackMode_AllowSpontaneous;
+    callback.userdata1 = callbackData.release();
+    callback.callback = [](WGPUMapAsyncStatus status, WGPUStringView, void *data, void *) {
+        std::unique_ptr<MapResult> result(static_cast<MapResult *>(data));
+        bool success = status == WGPUMapAsyncStatus_Success;
+        if (success) {
+            const void *mapped = wgpuBufferGetConstMappedRange(result->buffer, 0, result->size);
+            success = mapped != nullptr;
+            if (success) std::memcpy(result->data->bytes.data(), mapped, size_t(result->size));
+            wgpuBufferUnmap(result->buffer);
+        }
+        result->completion->complete(success);
+    };
+    wgpuBufferMapAsync(staging->buffer, WGPUMapMode_Read, 0, byteCount, callback);
+    d->statistics.pixelReadbackBytes += byteCount;
     errors.submitted = true;
     return result;
 }

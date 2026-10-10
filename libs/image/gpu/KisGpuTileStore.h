@@ -6,6 +6,7 @@
 #define KIS_GPU_TILE_STORE_H
 
 #include <QPoint>
+#include <QByteArray>
 #include <QRect>
 #include <QVector>
 #include <memory>
@@ -21,6 +22,7 @@ class KisGpuTileStore
 {
     struct VersionData;
     struct CompletionData;
+    struct ReadbackData;
 public:
     static constexpr quint64 TileBytes = 64 * 64 * 4;
     enum class Status { Pending, Succeeded, Failed };
@@ -67,12 +69,22 @@ public:
         Version version;
         Completion completion;
     };
+    struct Readback {
+        Error error = Error::None;
+        Completion completion;
+        /** Tightly packed straight RGBA8; available only after successful completion. */
+        QByteArray bytes() const;
+    private:
+        friend class KisGpuTileStore;
+        std::shared_ptr<ReadbackData> d;
+    };
     struct Statistics {
         quint64 residentBytes = 0;
         quint64 commandUploadBytes = 0;
         quint64 tileCopyBytes = 0;
         quint64 submissions = 0;
         quint64 computeDispatches = 0;
+        quint64 pixelReadbackBytes = 0;
     };
 
     /** Null device/resources or API/limits mismatch throw std::runtime_error; requires wgpu-native 27.0.4.0. */
@@ -97,6 +109,12 @@ public:
     /** Composite source pixels at matching canvas coordinates; missing source tiles are transparent. */
     Edit composite(const Version &base, const Version &source, QRect rectangle,
                    CompositeOp operation = CompositeOp::Over, quint8 opacity = 255, quint8 coverage = 255);
+    /**
+     * Explicit asynchronous CPU read. Pins source through completion, including pending edits.
+     * Staging counts against the store budget and is released by poll(). Missing pixels are zero.
+     * Call on the submitting thread; after success the CPU result may outlive the store.
+     */
+    Readback readback(const Version &source, QRect bounds);
     /** Dispatch completion callbacks and release finished submissions; never waits. */
     void poll();
     Statistics statistics() const;
