@@ -231,6 +231,8 @@ macOSの試験はMetal、Linuxの試験はVulkanを使用する。実GPUへア�
 容量不足での拒否、サイズ変更と所有者終了時の解放を検査する。
 `KisGpuRecoveryCompactionTest`は回復命令の疎なチェックポイントへの集約を検査する。
 編集中の履歴と識別子、CPU予算の予約、読取り失敗時の元データ、別デバイスへの復元を確認する。
+`KisGpuLayerDocumentResidencyTest`はCPU履歴を保ったGPU過去版の解放と、退避済み版への
+非同期Undo/Redoを検査する。復元中の表示維持、予算超過・取消し・GPU交換も確認する。
 筆圧・間隔の配置データは`kis_distance_information_test`でCPUの補間・距離管理を検査し、
 `KisGpuBrushStrokeTest`で同じ配置の画素、要求拒否後の再試行、選択付き差し替えと回復を検査する。
 質感は`KisBrushTextureContractTest`で既存CPUの本番乗算を確認し、`KisGpuBrushTextureTest`で

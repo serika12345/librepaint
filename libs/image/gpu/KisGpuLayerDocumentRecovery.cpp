@@ -14,12 +14,7 @@ KisGpuLayerDocument::KisGpuLayerDocument(std::shared_ptr<KisGpuTileStore> store,
     if (!validRecovery(request, m_retainedEdits, maximum)) throw std::invalid_argument("Invalid GPU layer document recovery history or CPU payload budget");
     m_restoring.emplace();
     m_restoring->request = std::move(request);
-    std::set<const RecoveryLayer *> counted;
-    for (const auto &frame : m_restoring->request.history) {
-        for (const auto &record : frame) {
-            if (counted.insert(record.get()).second) m_restoring->records.push_back(record);
-        }
-    }
+    m_restoring->records = m_restoring->request.history[m_restoring->request.cursor];
 }
 
 quint64 KisGpuLayerDocument::recoveryBytes(const Recovery &request)
@@ -193,9 +188,13 @@ void KisGpuLayerDocument::pollRecovery()
         m_session = restore.session;
         m_active = Active{work.base->id, work.target, m_session->currentToken()};
     }
-    m_history = restore.request.history;
-    m_rasterVersions = std::move(restore.rasters);
+    if (restore.initial) {
+        m_history = restore.request.history;
+        m_rasterVersions = std::move(restore.rasters);
+        m_nextId = restore.request.nextId;
+    } else {
+        m_rasterVersions.merge(restore.rasters);
+    }
     m_cursor = restore.request.cursor;
-    m_nextId = restore.request.nextId;
     m_restoring.reset();
 }

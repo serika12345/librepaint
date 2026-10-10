@@ -365,6 +365,7 @@ void KisGpuDocumentRecoveryFileTest::versionOneFilePreservesRecordedImages()
     QCOMPARE(hash(restored.layers()[0].paint.mask), QByteArray("f3c6cce210c3cfd5e76fbd5014aa949feaf976d4a8aae8c239bf72f9bc250bfd"));
     restored.cancel(edit.token);
     QVERIFY(restored.redo());
+    QVERIFY(settle(restored));
     QCOMPARE(hash(restored.layers()[0].paint.pixels), QByteArray("5b88c2b7ef9bfaaf63b525b05df072b82ac04f33504eaff83a8309a8e8501050"));
     QCOMPARE(gpu.owner.errorCount(), 0);
 }

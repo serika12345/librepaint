@@ -293,20 +293,6 @@ QVector<KisGpuTileStore::Layer> KisGpuLayerDocument::projectionLayers(bool inclu
     return result;
 }
 
-bool KisGpuLayerDocument::undo()
-{
-    if (readiness() != Result::Accepted || !m_cursor) return false;
-    --m_cursor;
-    return true;
-}
-
-bool KisGpuLayerDocument::redo()
-{
-    if (readiness() != Result::Accepted || m_cursor + 1 >= m_history.size()) return false;
-    ++m_cursor;
-    return true;
-}
-
 bool KisGpuLayerDocument::clearHistory()
 {
     if (m_restoring) return false;

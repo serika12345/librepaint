@@ -81,10 +81,15 @@ public:
     Result commit(const KisGpuEditSession::Token &token);
     Result cancel(const KisGpuEditSession::Token &token);
     void poll();
+    /** Accepts a history step; evicted targets complete asynchronously through poll(). */
     bool undo();
     bool redo();
     /** Preserves an active edit while releasing the document's other retained frames. */
     bool clearHistory();
+    /** Release GPU versions outside the current frame, retaining all CPU history. */
+    Result evictHistory();
+    /** Cancel a queued Undo/Redo restoration and keep the previously displayed frame. */
+    bool cancelHistoryRestore();
     State state() const;
     Result lastPublicationResult() const { return m_lastResult; }
     QVector<Layer> layers() const;
@@ -108,10 +113,11 @@ private:
         qsizetype index = 0;
         std::map<const KisGpuEditSession::Recovery *, KisGpuTileStore::Version> rasters;
         std::shared_ptr<KisGpuEditSession> session;
-        bool maskPhase = false, failed = false;
+        bool initial = true, maskPhase = false, failed = false;
         KisGpuTileStore::Error error = KisGpuTileStore::Error::None;
     };
     void pollRecovery();
+    bool requestHistoryCursor(qsizetype cursor);
     static quint64 recoveryBytes(const Recovery &recovery);
     static std::optional<quint64> workingMaximum(const Recovery &recovery, quint64 maximumRecoveryBytes);
     qsizetype indexOf(LayerId id) const;
