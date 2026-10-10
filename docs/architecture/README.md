@@ -99,6 +99,9 @@
 `libs/canvas/gpu`の`kritacanvasgpurenderer`は、GPU文書が生成した画像を直接読み、
 座標変換、補間と背景合成をGPU上で実行する。表示側からGPU文書所有者とQt Guiへ依存する。
 [GPUキャンバス画像の描画](gpu-canvas-rendering.md)が画素と非同期資源保持の契約を定義する。
+同じ所有者の`kritacanvasgpusurface`が専用ウィンドウへの表示面の取得、有限の提示、
+サイズ変更と破棄を調整する。OS固有の資源は`GpuWindowSurface_mac.mm`と
+`GpuWindowSurface_x11.cpp`が所有し、文書側のQt Coreへの依存を維持する。
 
 `libs/resources/storage`の`kritaresourcestorage`はZIPとディレクトリーの保存を、
 `libs/serialization/xml`の`kritaxmlserialization`はXML名前空間と逐次書出しを所有する。

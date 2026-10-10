@@ -31,6 +31,9 @@ public:
     KisGpuDevice(const KisGpuDevice &) = delete;
     KisGpuDevice &operator=(const KisGpuDevice &) = delete;
 
+    /** Borrowed handles for native presentation; this owner controls their lifetime. */
+    WGPUInstance instance() const;
+    WGPUAdapter adapter() const;
     WGPUDevice device() const;
     QString adapterName() const;
     bool available() const;

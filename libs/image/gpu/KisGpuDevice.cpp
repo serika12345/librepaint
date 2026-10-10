@@ -22,7 +22,7 @@ using namespace KisGpuTileStorage;
 NativeDevice::NativeDevice(quint64 storageBindingLimit, bool timestamps) {
     try {
         if (wgpuGetVersion() != 0x1b000400) throw std::runtime_error("GPU document requires wgpu-native 27.0.4.0");
-        if (wgpuLibrePaintRecoveryRevision() != 2) throw std::runtime_error("GPU document requires recovery revision 2");
+        if (wgpuLibrePaintRecoveryRevision() != 3) throw std::runtime_error("GPU document requires recovery revision 3");
         WGPUInstanceExtras extras{};
         extras.chain.sType = static_cast<WGPUSType>(WGPUSType_InstanceExtras);
 #ifdef __APPLE__
@@ -158,6 +158,8 @@ void NativeDevice::releaseQueries(quint32 first, quint32 count)
 KisGpuDevice::KisGpuDevice(quint64 storageBindingLimit, bool timestamps)
     : d(std::make_shared<NativeDevice>(storageBindingLimit, timestamps)) {}
 KisGpuDevice::~KisGpuDevice() { d->destroy(); }
+WGPUInstance KisGpuDevice::instance() const { return d->instance; }
+WGPUAdapter KisGpuDevice::adapter() const { return d->adapter; }
 WGPUDevice KisGpuDevice::device() const { return d->device; }
 QString KisGpuDevice::adapterName() const { return d->name; }
 bool KisGpuDevice::available() const { return d->availability->available.load(); }
