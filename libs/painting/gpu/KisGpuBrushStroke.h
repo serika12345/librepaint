@@ -17,6 +17,16 @@ public:
         QPointF position;
         qreal pressure = 1;
     };
+    /** CPU-only accepted input progress; copy together with the matching edit and brush settings. */
+    class Progress {
+    public:
+        Progress() = default;
+    private:
+        friend class KisGpuBrushStroke;
+        Sample previous;
+        qreal accumulated = 0, spacing = 0;
+        bool started = false;
+    };
     struct Settings {
         QSizeF diameter = QSizeF(20, 20), fade = QSizeF(1, 1);
         qreal spacing = .25;
@@ -35,17 +45,16 @@ public:
     /** Throws std::invalid_argument for invalid brush settings or nonpositive generation limit. */
     KisGpuBrushStroke(KisGpuEditSession &session, KisGpuEditSession::Token token,
                       Settings settings, QRect clip, qsizetype maximumSteps = 4096);
+    /** Continue a restored edit with the same settings and resources prepared on its session. */
+    KisGpuBrushStroke(KisGpuEditSession &session, KisGpuEditSession::Token token,
+                      Settings settings, QRect clip, Progress progress, qsizetype maximumSteps = 4096);
+    Progress progress() const { return m_cursor; }
     Update append(const QVector<Sample> &samples,
                   const std::optional<KisGpuEditSession::Selection> &selection = {});
     /** Reconstruct the whole stroke from its first sample and replace the working raster version. */
     Update replace(const QVector<Sample> &samples,
                    const std::optional<KisGpuEditSession::Selection> &selection = {});
 private:
-    struct Cursor {
-        Sample previous;
-        qreal accumulated = 0, spacing = 0;
-        bool started = false;
-    };
     Update paint(const QVector<Sample> &samples, bool replace,
                  const std::optional<KisGpuEditSession::Selection> &selection);
     KisGpuEditSession &m_session;
@@ -53,6 +62,6 @@ private:
     Settings m_settings;
     QRect m_clip;
     qsizetype m_maximumSteps;
-    Cursor m_cursor;
+    Progress m_cursor;
 };
 #endif

@@ -263,6 +263,8 @@ macOSの試験はMetal、Linuxの試験はVulkanを使用する。実GPUへア�
 保存中の編集・文書終了、共有版、CPU/GPU予算と部分失敗後の結果公開を確認する。
 筆圧・間隔の配置データは`kis_distance_information_test`でCPUの補間・距離管理を検査し、
 `KisGpuBrushStrokeTest`で同じ配置の画素、要求拒否後の再試行、選択付き差し替えと回復を検査する。
+CPU側の入力進行を保持したGPU交換では、追加・差し替え・質感・選択を含む描画の完全一致と、
+再開後の通常描画で画素転送が増えないことを確認する。
 質感は`KisBrushTextureContractTest`で既存CPUの本番乗算を確認し、`KisGpuBrushTextureTest`で
 同じ固定値、負座標の繰り返し、選択・消去、初期転送後の再利用、資源寿命と回復を検査する。
 送信失敗と無効なマッピングの検査は別プロセスで実行し、ネイティブAPIがエラー通知と

@@ -19,6 +19,13 @@ bool validSample(const KisGpuBrushStroke::Sample &sample)
 }
 
 KisGpuBrushStroke::KisGpuBrushStroke(KisGpuEditSession &session, KisGpuEditSession::Token token,
+                                    Settings settings, QRect clip, Progress progress, qsizetype maximumSteps)
+    : KisGpuBrushStroke(session, std::move(token), std::move(settings), clip, maximumSteps)
+{
+    m_cursor = progress;
+}
+
+KisGpuBrushStroke::KisGpuBrushStroke(KisGpuEditSession &session, KisGpuEditSession::Token token,
                                     Settings settings, QRect clip, qsizetype maximumSteps)
     : m_session(session), m_token(std::move(token)), m_settings(settings), m_clip(clip), m_maximumSteps(maximumSteps)
 {
@@ -47,7 +54,7 @@ KisGpuBrushStroke::Update KisGpuBrushStroke::paint(const QVector<Sample> &sample
 {
     if (samples.size() > m_maximumSteps) return {Result::InputLimitExceeded};
     for (const auto &sample : samples) if (!validSample(sample)) return {Result::InvalidInput};
-    Cursor cursor = replace ? Cursor{} : m_cursor;
+    Progress cursor = replace ? Progress{} : m_cursor;
     QVector<KisGpuTileStore::DabCommand> commands;
     qsizetype steps = 0;
     const auto place = [&](const Sample &sample) {
