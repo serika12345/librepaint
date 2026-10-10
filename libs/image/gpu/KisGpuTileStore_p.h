@@ -157,7 +157,7 @@ struct KisGpuTileStore::Private {
         std::shared_ptr<CompletionData> completion;
         Version source, result;
         std::shared_ptr<KisGpuTileStorage::Allocation> parameters, commands;
-        Version input, mask;
+        QVector<Version> inputs;
     };
     std::shared_ptr<KisGpuTileStorage::DeviceState> state;
     quint64 budget;

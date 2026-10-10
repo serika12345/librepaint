@@ -113,10 +113,9 @@ void KisGpuTileStore::Private::submit(Pending operation, WGPUCommandBuffer comma
             const std::vector<TileCommand> &commands, quint64 copiedBytes, quint64 dispatches, const QByteArray &pixelInput) {
     const auto completion = operation.completion;
     if (operation.source.d) completion->dependencies.push_back(operation.source.d->completion);
-    if (operation.input.d && !(operation.input == operation.source)) {
-        completion->dependencies.push_back(operation.input.d->completion);
+    for (const auto &input : operation.inputs) {
+        if (input.d && !(input == operation.source)) completion->dependencies.push_back(input.d->completion);
     }
-    if (operation.mask.d) completion->dependencies.push_back(operation.mask.d->completion);
     completion->sequence = statistics.submissions + 1;
     auto callbackData = std::make_unique<std::shared_ptr<CompletionData>>(completion);
     pending.push_back(std::move(operation));

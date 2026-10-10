@@ -68,6 +68,14 @@ public:
         std::shared_ptr<const VersionData> d;
     };
 
+    /** One input in bottom-to-top projection order; an uninitialized mask means unmasked. */
+    struct Layer {
+        Version pixels;
+        Version mask;
+        quint8 opacity = 255;
+        CompositeOp operation = CompositeOp::Over;
+    };
+
     class Completion {
     public:
         Completion() = default;
@@ -126,6 +134,8 @@ public:
     /** Composite source pixels at matching canvas coordinates; missing source tiles are transparent. */
     Edit composite(const Version &base, const Version &source, QRect rectangle,
                    CompositeOp operation = CompositeOp::Over, quint8 opacity = 255, quint8 coverage = 255);
+    /** Recompose damaged canvas pixels from layers, sharing the rest of previous, in one submission. */
+    Edit project(const Version &previous, const QVector<Layer> &layers, QRect damage);
     /** Composite using the alpha channel of a GPU mask; absent mask tiles have zero coverage. */
     Edit compositeMasked(const Version &base, const Version &source, const Version &mask, QRect rectangle,
                          CompositeOp operation = CompositeOp::Over, quint8 opacity = 255);
@@ -140,7 +150,6 @@ public:
     /**
      * Device owner reports loss from any thread while this store lives, before explicit destruction.
      * Synchronizes with mapped CPU reads; adoption and resource collection remain in poll().
-     * Explicit native destruction belongs to the submitting thread.
      */
     void invalidateDevice();
     bool deviceAvailable() const;

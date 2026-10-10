@@ -164,7 +164,7 @@ KisGpuTileStore::Edit KisGpuTileStore::compositePixels(const Version &base, cons
     Handle<WGPUCommandBuffer, wgpuCommandBufferRelease> commandBuffer(
         wgpuCommandEncoderFinish(encoder.value, nullptr));
     result.version.d = std::move(data);
-    d->submit({result.completion.d, base, result.version, parameters, {}, source, mask ? *mask : Version{}}, commandBuffer.value,
+    d->submit({result.completion.d, base, result.version, parameters, {}, mask ? QVector<Version>{source, *mask} : QVector<Version>{source}}, commandBuffer.value,
               packedParameters, {}, copiedBytes, groups.size());
     errors.submitted = true;
     return result;
