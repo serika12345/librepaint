@@ -7,6 +7,7 @@
 
 #include "KisGpuEditSession.h"
 #include <QString>
+#include <map>
 
 /** Ordered raster layers and one bounded document-wide Undo/Redo sequence.
  * Calls and destruction use the store's submitting thread. Editing leases keep
@@ -17,7 +18,7 @@ class KisGpuLayerDocument
 public:
     using LayerId = quint64;
     enum class Result { Accepted, Busy, Stale, InvalidLayer, InvalidInput, RecoveryBudgetExceeded, GpuRejected };
-    enum class State { Idle, Editing, Committing, Failed };
+    enum class State { Idle, Editing, Committing, Failed, Restoring };
     enum class Target { Pixels, Mask };
     struct Layer {
         LayerId id = 0;
@@ -30,8 +31,34 @@ public:
         std::shared_ptr<KisGpuEditSession> session;
         KisGpuEditSession::Token token;
     };
+    using RasterRecovery = std::shared_ptr<const KisGpuEditSession::Recovery>;
+    struct RecoveryLayer {
+        LayerId id = 0;
+        QString name;
+        quint8 opacity = 255;
+        KisGpuTileStore::CompositeOp operation = KisGpuTileStore::CompositeOp::Over;
+        RasterRecovery pixels = std::make_shared<const KisGpuEditSession::Recovery>();
+        RasterRecovery mask;
+    };
+    using RecoveryFrame = QVector<std::shared_ptr<const RecoveryLayer>>;
+    struct RecoveryWorking {
+        std::shared_ptr<const RecoveryLayer> base;
+        Target target = Target::Pixels;
+        KisGpuEditSession::Recovery data;
+        bool completed = false;
+    };
+    /** CPU-only immutable layer records, global history and optional unfinished edit. */
+    struct Recovery {
+        QVector<RecoveryFrame> history;
+        qsizetype cursor = 0;
+        LayerId nextId = 1;
+        std::optional<RecoveryWorking> working;
+    };
     /** Null store or a budget too small for the empty history throws std::invalid_argument. */
     KisGpuLayerDocument(std::shared_ptr<KisGpuTileStore> store, qsizetype retainedEdits,
+                        quint64 maximumRecoveryBytes = 64 * 1024 * 1024);
+    /** Restores asynchronously; malformed history or CPU budget throws std::invalid_argument. */
+    KisGpuLayerDocument(std::shared_ptr<KisGpuTileStore> store, qsizetype retainedEdits, Recovery recovery,
                         quint64 maximumRecoveryBytes = 64 * 1024 * 1024);
     ~KisGpuLayerDocument();
     KisGpuLayerDocument(const KisGpuLayerDocument &) = delete;
@@ -45,13 +72,17 @@ public:
     Result clearMask(LayerId id);
     /** One edit at a time; adopts the existing GPU head and CPU record without transfer or replay. */
     Editing begin(LayerId id, Target target = Target::Pixels);
+    Editing currentEditing() const;
+    Recovery recovery() const;
+    /** Failure of the current restoration; None after successful adoption. */
+    KisGpuTileStore::Error recoveryError() const;
     Result commit(const KisGpuEditSession::Token &token);
     Result cancel(const KisGpuEditSession::Token &token);
     void poll();
     bool undo();
     bool redo();
     /** Preserves an active edit while releasing the document's other retained frames. */
-    void clearHistory();
+    bool clearHistory();
     State state() const;
     Result lastPublicationResult() const { return m_lastResult; }
     QVector<Layer> layers() const;
@@ -63,8 +94,8 @@ public:
 private:
     struct LayerState {
         Layer layer;
-        KisGpuEditSession::Recovery pixels;
-        std::optional<KisGpuEditSession::Recovery> mask;
+        RasterRecovery pixels = std::make_shared<const KisGpuEditSession::Recovery>();
+        RasterRecovery mask;
     };
     using Record = std::shared_ptr<const LayerState>;
     using Frame = QVector<Record>;
@@ -73,8 +104,22 @@ private:
         Target target;
         KisGpuEditSession::Token token;
     };
+    struct Restoration {
+        Recovery request;
+        QVector<std::shared_ptr<const RecoveryLayer>> records;
+        std::map<const RecoveryLayer *, Record> restored;
+        qsizetype index = 0;
+        std::map<const KisGpuEditSession::Recovery *, KisGpuTileStore::Version> rasters;
+        std::shared_ptr<KisGpuEditSession> session;
+        bool maskPhase = false, failed = false;
+        KisGpuTileStore::Error error = KisGpuTileStore::Error::None;
+    };
+    void pollRecovery();
+    bool validRecovery(const Recovery &recovery) const;
+    quint64 recoveryBytes(const Recovery &recovery) const;
+    std::optional<quint64> workingMaximum(const Recovery &recovery) const;
     qsizetype indexOf(LayerId id) const;
-    quint64 recordBytes(const LayerState &record) const;
+    quint64 recordMetadataBytes(const LayerState &record) const;
     quint64 historyBytes(const QVector<Frame> &history) const;
     Result publish(Frame frame);
     Result readiness() const;
@@ -85,6 +130,7 @@ private:
     QVector<Frame> m_history;
     std::optional<Active> m_active;
     std::shared_ptr<KisGpuEditSession> m_session;
+    std::optional<Restoration> m_restoring;
     Result m_lastResult = Result::Accepted;
 };
 

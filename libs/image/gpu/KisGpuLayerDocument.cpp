@@ -24,6 +24,7 @@ KisGpuLayerDocument::~KisGpuLayerDocument()
 
 KisGpuLayerDocument::State KisGpuLayerDocument::state() const
 {
+    if (m_restoring) return m_restoring->failed || !m_store->deviceAvailable() ? State::Failed : State::Restoring;
     if (!m_store->deviceAvailable() || (m_session && m_session->state() == KisGpuEditSession::State::Failed)) return State::Failed;
     if (!m_active) return State::Idle;
     return m_session->state() == KisGpuEditSession::State::Editing ? State::Editing : State::Committing;
@@ -42,26 +43,32 @@ qsizetype KisGpuLayerDocument::indexOf(LayerId id) const
     return -1;
 }
 
-quint64 KisGpuLayerDocument::recordBytes(const LayerState &record) const
+quint64 KisGpuLayerDocument::recordMetadataBytes(const LayerState &record) const
 {
-    return sizeof(LayerState) + quint64(record.layer.name.size()) * sizeof(QChar)
-        + KisGpuEditSession::ReplayState::recoveryBytes(record.pixels)
-        + (record.mask ? KisGpuEditSession::ReplayState::recoveryBytes(*record.mask) : 0);
+    return sizeof(LayerState) + quint64(record.layer.name.size()) * sizeof(QChar);
 }
 
 quint64 KisGpuLayerDocument::historyBytes(const QVector<Frame> &history) const
 {
     std::set<const LayerState *> counted;
+    std::set<const KisGpuEditSession::Recovery *> rasters;
     quint64 bytes = quint64(history.size()) * sizeof(Frame);
     for (const auto &frame : history) {
         bytes += quint64(frame.size()) * sizeof(Record);
-        for (const auto &record : frame) if (counted.insert(record.get()).second) bytes += recordBytes(*record);
+        for (const auto &record : frame) if (counted.insert(record.get()).second) {
+            bytes += recordMetadataBytes(*record);
+            for (const auto &raster : {record->pixels, record->mask}) {
+                if (raster && rasters.insert(raster.get()).second)
+                    bytes += KisGpuEditSession::ReplayState::recoveryBytes(*raster);
+            }
+        }
     }
     return bytes;
 }
 
 quint64 KisGpuLayerDocument::recoveryBytes() const
 {
+    if (m_restoring) return recoveryBytes(m_restoring->request);
     const auto working = m_session ? m_session->recovery() : std::nullopt;
     return historyBytes(m_history) + (working ? KisGpuEditSession::ReplayState::recoveryBytes(*working) : 0);
 }
@@ -170,12 +177,11 @@ KisGpuLayerDocument::Editing KisGpuLayerDocument::begin(LayerId id, Target targe
     if (index < 0) return {Result::InvalidLayer, {}, {}};
     if (target != Target::Pixels && target != Target::Mask) return {Result::InvalidInput, {}, {}};
     const auto &record = *m_history[m_cursor][index];
-    const auto recovery = target == Target::Pixels ? record.pixels : record.mask.value_or(KisGpuEditSession::Recovery{});
+    const auto recovery = target == Target::Pixels ? *record.pixels : (record.mask ? *record.mask : KisGpuEditSession::Recovery{});
     const auto version = target == Target::Pixels ? record.layer.paint.pixels
         : (record.mask ? record.layer.paint.mask : m_store->emptyVersion());
     const auto existing = historyBytes(m_history);
-    const auto extra = recordBytes(record) - KisGpuEditSession::ReplayState::recoveryBytes(recovery)
-        + sizeof(Frame) + quint64(m_history[m_cursor].size()) * sizeof(Record);
+    const auto extra = recordMetadataBytes(record) + sizeof(Frame) + quint64(m_history[m_cursor].size()) * sizeof(Record);
     if (extra > m_maximumRecoveryBytes - existing
         || KisGpuEditSession::ReplayState::recoveryBytes(recovery) > m_maximumRecoveryBytes - existing - extra) {
         return {Result::RecoveryBudgetExceeded, {}, {}};
@@ -216,6 +222,7 @@ KisGpuLayerDocument::Result KisGpuLayerDocument::cancel(const KisGpuEditSession:
 void KisGpuLayerDocument::poll()
 {
     m_store->poll();
+    if (m_restoring) { pollRecovery(); return; }
     if (!m_active) return;
     m_session->poll();
     if (m_session->state() != KisGpuEditSession::State::Idle) return;
@@ -227,10 +234,10 @@ void KisGpuLayerDocument::poll()
         auto record = std::make_shared<LayerState>(previous);
         if (m_active->target == Target::Pixels) {
             record->layer.paint.pixels = m_session->head();
-            record->pixels = *m_session->recovery();
+            record->pixels = std::make_shared<const KisGpuEditSession::Recovery>(*m_session->recovery());
         } else {
             record->layer.paint.mask = m_session->head();
-            record->mask = *m_session->recovery();
+            record->mask = std::make_shared<const KisGpuEditSession::Recovery>(*m_session->recovery());
         }
         frame[index] = std::move(record);
         if (publish(std::move(frame)) != Result::Accepted) return;
@@ -274,8 +281,10 @@ bool KisGpuLayerDocument::redo()
     return true;
 }
 
-void KisGpuLayerDocument::clearHistory()
+bool KisGpuLayerDocument::clearHistory()
 {
+    if (m_restoring) return false;
     m_history = {m_history[m_cursor]};
     m_cursor = 0;
+    return true;
 }

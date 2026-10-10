@@ -83,12 +83,22 @@ KisGpuEditSession::KisGpuEditSession(KisGpuTileStore &store, const KisGpuTileSto
                                    Recovery recovery, quint64 maximum)
     : KisGpuEditSession(store, 0, head)
 {
-    if (!ReplayState::validRecovery(recovery, 0, maximum) || recovery.working
+    if (!ReplayState::validRecovery(recovery, 0, maximum)
         || recovery.cursor != recovery.edits.size()) {
-        throw std::invalid_argument("GPU document editing requires recovery values for one completed head");
+        throw std::invalid_argument("GPU document editing requires recovery values for its committed head");
     }
-    m_replay->data = std::move(recovery);
     m_replay->maximumBytes = maximum;
+    if (recovery.working) {
+        // The document already reconstructed this head. Replay only the unfinished
+        // input, even when its CPU checkpoint differs from the layer's record.
+        m_replay->initialized = m_replay->initialPixelsReady = true;
+        m_replay->edit = recovery.edits.size();
+        m_replay->frames = {head};
+        m_replay->restoring = std::move(recovery);
+        m_state = State::Restoring;
+    } else {
+        m_replay->data = std::move(recovery);
+    }
 }
 
 KisGpuEditSession::Token KisGpuEditSession::currentToken() const
