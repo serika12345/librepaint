@@ -1,0 +1,181 @@
+SPDX-FileCopyrightText: 2026 LibrePaint contributors
+SPDX-License-Identifier: MIT
+
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -336,8 +336,7 @@
+     context: Arc<Context>,
+     id: id::SurfaceId,
+     data: Mutex<Option<SurfaceData>>,
+-    // Shared bool between Texture & Surface to track surface_present calls
+-    has_surface_presented: Arc<atomic::AtomicBool>,
++    presentation: Mutex<Option<Arc<atomic::AtomicBool>>>,
+ }
+ impl Drop for WGPUSurfaceImpl {
+     fn drop(&mut self) {
+@@ -362,8 +361,8 @@
+     id: id::TextureId,
+     error_sink: ErrorSink,
+     data: TextureData,
+-    surface_id: Option<id::SurfaceId>,
+-    // Shared bool between Texture & Surface to track surface_present calls
++    surface_owner: Option<Arc<WGPUSurfaceImpl>>,
++    // Presentation state belongs to this acquisition.
+     has_surface_presented: Arc<atomic::AtomicBool>,
+ }
+ impl Drop for WGPUTextureImpl {
+@@ -371,11 +370,11 @@
+         if thread::panicking() {
+             return;
+         }
+-        if let Some(surface_id) = self.surface_id {
++        if let Some(surface) = self.surface_owner.as_ref() {
+             if !self.has_surface_presented.load(atomic::Ordering::SeqCst) {
+-                match self.context.surface_texture_discard(surface_id) {
++                match self.context.surface_texture_discard(surface.id) {
+                     Ok(_) => (),
+-                    Err(cause) => handle_error_fatal(cause, "wgpuTextureRelease"),
++                    Err(cause) => handle_error(&self.error_sink, cause, None, "wgpuTextureRelease"),
+                 }
+             }
+         }
+@@ -2462,7 +2461,7 @@
+         context: context.clone(),
+         id: texture_id,
+         error_sink: error_sink.clone(),
+-        surface_id: None,
++        surface_owner: None,
+         has_surface_presented: Arc::default(),
+         data: TextureData {
+             usage: descriptor.usage,
+@@ -2686,7 +2685,7 @@
+         context: context.clone(),
+         id: surface_id,
+         data: Mutex::default(),
+-        has_surface_presented: Arc::default(),
++        presentation: Mutex::default(),
+     }))
+ }
+ 
+@@ -3882,7 +3881,7 @@
+     ));
+ 
+     match context.surface_configure(surface.id, device.id, &surface_config) {
+-        Some(cause) => handle_error_fatal(cause, "wgpuSurfaceConfigure"),
++        Some(cause) => handle_error(&device.error_sink, cause, None, "wgpuSurfaceConfigure"),
+         None => {
+             let mut surface_data_guard = surface.data.lock();
+             *surface_data_guard = Some(SurfaceData {
+@@ -3900,9 +3899,7 @@
+                     sample_count: 1,
+                 },
+             });
+-            surface
+-                .has_surface_presented
+-                .store(false, atomic::Ordering::SeqCst);
++            surface.presentation.lock().take();
+         }
+     };
+ }
+@@ -3993,6 +3990,7 @@
+     surface: native::WGPUSurface,
+     surface_texture: Option<&mut native::WGPUSurfaceTexture>,
+ ) {
++    let surface_handle = surface;
+     let surface = surface.as_ref().expect("invalid surface");
+     let context = &surface.context;
+     let surface_texture = surface_texture.expect("invalid return pointer \"surface_texture\"");
+@@ -4000,17 +3998,16 @@
+     let surface_data_guard = surface.data.lock();
+     let surface_data = match surface_data_guard.as_ref() {
+         Some(surface_data) => surface_data,
+-        None => handle_error_fatal(
+-            wgc::present::SurfaceError::NotConfigured,
+-            "wgpuSurfaceGetCurrentTexture",
+-        ),
++        None => {
++            surface_texture.status = native::WGPUSurfaceGetCurrentTextureStatus_Error;
++            surface_texture.texture = std::ptr::null_mut();
++            return;
++        }
+     };
+ 
+     match context.surface_get_current_texture(surface.id, None) {
+         Ok(wgc::present::SurfaceOutput { status, texture }) => {
+-            surface
+-                .has_surface_presented
+-                .store(false, atomic::Ordering::SeqCst);
++
+             surface_texture.status = match status {
+                 wgt::SurfaceStatus::Good => {
+                     native::WGPUSurfaceGetCurrentTextureStatus_SuccessOptimal
+@@ -4025,18 +4022,27 @@
+                 wgt::SurfaceStatus::Unknown => native::WGPUSurfaceGetCurrentTextureStatus_Error,
+             };
+             surface_texture.texture = match texture {
+-                Some(texture_id) => Arc::into_raw(Arc::new(WGPUTextureImpl {
+-                    context: context.clone(),
+-                    id: texture_id,
+-                    error_sink: surface_data.error_sink.clone(),
+-                    data: surface_data.texture_data,
+-                    surface_id: Some(surface.id),
+-                    has_surface_presented: surface.has_surface_presented.clone(),
+-                })),
++                Some(texture_id) => {
++                    let presented = Arc::new(atomic::AtomicBool::new(false));
++                    *surface.presentation.lock() = Some(presented.clone());
++                    Arc::increment_strong_count(surface_handle);
++                    Arc::into_raw(Arc::new(WGPUTextureImpl {
++                        context: context.clone(),
++                        id: texture_id,
++                        error_sink: surface_data.error_sink.clone(),
++                        data: surface_data.texture_data,
++                        surface_owner: Some(Arc::from_raw(surface_handle)),
++                        has_surface_presented: presented,
++                    }))
++                },
+                 None => std::ptr::null_mut(),
+             };
+         }
+-        Err(cause) => handle_error_fatal(cause, "wgpuSurfaceGetCurrentTexture"),
++        Err(cause) => {
++            surface_texture.status = native::WGPUSurfaceGetCurrentTextureStatus_Error;
++            surface_texture.texture = std::ptr::null_mut();
++            handle_error(&surface_data.error_sink, cause, None, "wgpuSurfaceGetCurrentTexture");
++        }
+     };
+ }
+ 
+@@ -4053,9 +4059,9 @@
+         }
+     };
+ 
+-    surface
+-        .has_surface_presented
+-        .store(true, atomic::Ordering::SeqCst);
++    if let Some(presented) = surface.presentation.lock().as_ref() {
++        presented.store(true, atomic::Ordering::SeqCst);
++    }
+ 
+     native::WGPUStatus_Success
+ }
+@@ -4065,9 +4071,7 @@
+     let surface = surface.as_ref().expect("invalid surface");
+     let mut surface_data_guard = surface.data.lock();
+     let _ = surface_data_guard.take(); // drop SurfaceData
+-    surface
+-        .has_surface_presented
+-        .store(false, atomic::Ordering::SeqCst);
++    surface.presentation.lock().take();
+ }
+ 
+ #[no_mangle]
+@@ -4694,7 +4698,7 @@
+ 
+ #[no_mangle]
+ pub extern "C" fn wgpuLibrePaintRecoveryRevision() -> u32 {
+-    2
++    3
+ }
+ 
+ #[no_mangle]

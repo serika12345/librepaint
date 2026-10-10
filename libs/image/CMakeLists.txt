@@ -1,6 +1,12 @@
 add_subdirectory( tests )
 
 add_subdirectory( tiles3 )
+add_subdirectory(dabspacing)
+
+option(LIBREPAINT_BUILD_GPU_DOCUMENT "Build the GPU document contracts" OFF)
+if(LIBREPAINT_BUILD_GPU_DOCUMENT)
+    add_subdirectory(gpu)
+endif()
 
 include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}
@@ -2521,6 +2527,7 @@ if(OpenEXR_FOUND)
 endif()
 
 target_link_libraries(kritaimage PRIVATE ${FFTW3_LIBRARIES})
+target_link_libraries(kritaimage PRIVATE kritaimagedabspacing)
 
 if(APPLE AND NOT IOS)
     target_link_libraries(kritaimage PRIVATE kritamacosutils)

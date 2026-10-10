@@ -9,12 +9,83 @@
 #include <QDomElement>
 #include <QPointF>
 #include <QtMath>
+#include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 #include "kis_algebra_2d.h"
 #include "kis_distance_information.h"
 #include "kis_spacing_information.h"
 #include "kis_timing_information.h"
 #include "kis_paint_information.h"
+
+void KisDistanceInformationTest::testBrushPlacementContract()
+{
+    QFile file(QStringLiteral(FILES_DATA_DIR "brush_spacing_contract.json"));
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto root = QJsonDocument::fromJson(file.readAll()).object();
+    QCOMPARE(root.value("schema").toInt(), 1);
+    for (const auto &value : root.value("cases").toArray()) {
+        const auto data = value.toObject();
+        const auto diameter = data.value("diameter").toArray();
+        struct Recorder {
+            QSizeF diameter;
+            qreal spacing;
+            bool pressureSize;
+            QVector<QVector<qreal>> dabs;
+            KisSpacingInformation paintAt(const KisPaintInformation &info) {
+                const auto size = diameter * (pressureSize ? info.pressure() : 1.0);
+                if (size.width() < .01 || size.height() < .01) return KisSpacingInformation();
+                dabs.push_back({info.pos().x(), info.pos().y(), size.width(), size.height()});
+                return KisSpacingInformation(qMax(size.width(), size.height()) * spacing);
+            }
+            KisTimingInformation updateTimingImpl(const KisPaintInformation &) { return KisTimingInformation(); }
+        } recorder{QSizeF(diameter[0].toDouble(), diameter[1].toDouble()), data.value("spacing").toDouble(),
+                   data.value("pressureSize").toBool(), {}};
+        KisDistanceInformation distance;
+        KisPaintInformation previous;
+        bool started = false;
+        for (const auto &entry : data.value("samples").toArray()) {
+            const auto sample = entry.toArray();
+            KisPaintInformation current(QPointF(sample[0].toDouble(), sample[1].toDouble()), sample[2].toDouble());
+            if (!started) {
+                current.paintAt(recorder, &distance);
+                started = true;
+            } else {
+                auto point = previous;
+                qreal t;
+                while ((t = distance.getNextPointPosition(point.pos(), current.pos(), 0, 0)) >= 0) {
+                    point = KisPaintInformation::mix(t, point, current);
+                    point.paintAt(recorder, &distance);
+                }
+            }
+            previous = current;
+        }
+        const auto expected = data.value("dabs").toArray();
+        QCOMPARE(recorder.dabs.size(), expected.size());
+        for (qsizetype i = 0; i < expected.size(); ++i) {
+            for (qsizetype c = 0; c < 4; ++c) {
+                const auto actual = recorder.dabs[i][c];
+                const auto wanted = expected[i].toArray()[c].toDouble();
+                QVERIFY2(qAbs(actual - wanted) <= .00001,
+                         qPrintable(QString("%1 dab %2 component %3: actual %4, expected %5")
+                                    .arg(data.value("id").toString()).arg(i).arg(c).arg(actual, 0, 'g', 17).arg(wanted, 0, 'g', 17)));
+            }
+        }
+    }
+}
+
+void KisDistanceInformationTest::testReducedSpacingPaintsImmediately()
+{
+    KisDistanceInformation distance;
+    distance.updateSpacing(KisSpacingInformation(10));
+    QCOMPARE(distance.getNextPointPosition(QPointF(0, 0), QPointF(7, 0), 0, 0), qreal(-1));
+    distance.updateSpacing(KisSpacingInformation(5));
+    QCOMPARE(distance.getNextPointPosition(QPointF(7, 0), QPointF(8, 0), 0, 0), qreal(0));
+    QCOMPARE(distance.getNextPointPosition(QPointF(7, 0), QPointF(8, 0), 0, 0), qreal(-1));
+    QCOMPARE(distance.getNextPointPosition(QPointF(8, 0), QPointF(12, 0), 0, 0), qreal(1));
+}
 
 void KisDistanceInformationTest::testInitInfo()
 {

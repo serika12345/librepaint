@@ -11,6 +11,7 @@
 #include "kis_assert.h"
 #include "kis_global.h"
 #include "kis_spacing_information.h"
+#include "dabspacing/KisDabSpacing.h"
 #include "kis_timing_information.h"
 #include "kis_debug.h"
 #include <QtCore/qmath.h>
@@ -468,32 +469,8 @@ qreal KisDistanceInformation::getTimingUpdateInterval() const
 qreal KisDistanceInformation::getNextPointPositionIsotropic(const QPointF &start,
                                                             const QPointF &end)
 {
-    qreal distance = m_d->accumDistance.x();
-    qreal spacing = qMax(MIN_DISTANCE_SPACING, m_d->spacing.distanceSpacing().x());
-
-    if (start == end) {
-        return -1;
-    }
-
-    qreal dragVecLength = QVector2D(end - start).length();
-    qreal nextPointDistance = spacing - distance;
-
-    qreal t;
-
-    // nextPointDistance can sometimes be negative if the spacing info has been modified since the
-    // last interpolation attempt. In that case, have a point painted immediately.
-    if (nextPointDistance <= 0.0) {
-        resetAccumulators();
-        t = 0.0;
-    }
-    else if (nextPointDistance <= dragVecLength) {
-        t = nextPointDistance / dragVecLength;
-        resetAccumulators();
-    } else {
-        t = -1;
-        m_d->accumDistance.rx() += dragVecLength;
-    }
-
+    const qreal t = KisDabSpacing::nextIsotropic(start, end, m_d->spacing.distanceSpacing().x(), m_d->accumDistance.rx());
+    if (t >= 0) resetAccumulators();
     return t;
 }
 

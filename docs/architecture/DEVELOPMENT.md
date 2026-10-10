@@ -167,6 +167,154 @@ macOSは`tdd-macos`、Linuxは`tdd-linux`のCMakeプリセットを使う。
 他OSを所有する作業、リリース前、そのOSでの問題発覚時は該当OSを追加検証する。
 Androidは構築費用が大きいため、この条件に沿って検証する。
 
+### ラスター編集の比較
+
+画素の保持場所、通常合成、消去、選択範囲、編集履歴を変更するときは、
+[ラスター編集の比較契約](raster-edit-contract.md)を使用する。
+固定プロファイル、単色入力、完全一致の期待値を共通のJSONに保持する。
+
+```sh
+./scripts/run-shared-test-env ./scripts/run-test KisRasterEditContractTest
+```
+
+画素差分では試験が示す入力、座標、期待値と実際の値を確認する。
+同じ入力を新しい描画方式へ渡し、定めた画素規則と編集前後の全画素で比較する。
+ブラシや色変換などの対象を広げるときは、対応する画像契約と比較精度を追加する。
+
+### GPU文書タイルの検証
+
+[GPU文書タイルと版の契約](gpu-document-tiles.md)は、疎な割当、版の共有、
+GPU内複製、操作完了と予算超過を検査する。評価済みのテスト環境から次を実行する。
+
+```sh
+./scripts/run-shared-test-env ./scripts/configure-gpu-document
+./scripts/run-shared-test-env ./scripts/run-test KisGpuDeviceBudgetTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuRecoveryCompactionTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuTileStoreTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuDabSelectionTest
+./scripts/run-shared-test-env ./scripts/run-test KisBrushTextureContractTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuBrushTextureTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuTileTextureTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuEditSessionTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuSelectionSessionTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuBrushStrokeTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuNativeFailureTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuCanvasRendererTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuSurfaceRendererTest
+```
+
+設定コマンドは`flake.lock`のnixpkgs固定版と`nix/gpu`からwgpu-native本体と開発用ヘッダーを構築し、
+ネイティブのCMakeプリセットで`LIBREPAINT_BUILD_GPU_DOCUMENT=ON`にする。
+依存定義と修正パッチだけをローカル入力とし、アプリケーションの編集で同じ出力を再利用する。
+Rust依存の取得は固定パッケージのキャッシュを共用する。
+取得した依存は`build/nix-profiles/gpu-document*`を通じてNixの保持対象に登録し、
+構築・検証が参照する本体とヘッダーの寿命を維持する。
+以後は通常の`run-test`と`build-incremental`を使用する。
+
+macOSの試験はMetal、Linuxの試験はVulkanを使用する。実GPUへアクセスできる実行環境が
+必要であり、取得できない場合は試験を失敗させる。試験用のCPU読み戻しを描画操作から分け、
+画素の完全一致とGPU検査エラーの有無を確認する。
+`KisGpuDeviceBudgetTest`は複数の描画先、旧版、表示用画像、模様、計測領域の共有予算と
+解放後の再試行を検査する。キャンバス・実表示の試験は命令領域と提示画像の合算、
+容量不足での拒否、サイズ変更と所有者終了時の解放を検査する。
+`KisGpuRecoveryCompactionTest`は回復命令の疎なチェックポイントへの集約を検査する。
+編集中の履歴と識別子、CPU予算の予約、読取り失敗時の元データ、別デバイスへの復元を確認する。
+筆圧・間隔の配置データは`kis_distance_information_test`でCPUの補間・距離管理を検査し、
+`KisGpuBrushStrokeTest`で同じ配置の画素、要求拒否後の再試行、選択付き差し替えと回復を検査する。
+質感は`KisBrushTextureContractTest`で既存CPUの本番乗算を確認し、`KisGpuBrushTextureTest`で
+同じ固定値、負座標の繰り返し、選択・消去、初期転送後の再利用、資源寿命と回復を検査する。
+送信失敗と無効なマッピングの検査は別プロセスで実行し、ネイティブAPIがエラー通知と
+失敗値を返すことを確認する。
+キャンバス描画はGPU画像を直接読み、座標変換、透明画素の補間と背景合成を検査する。
+描画先の所有元を発行前に検査し、別デバイスの資源を拒否する。
+実表示の試験は、画面ロックが解除された表示中のデスクトップで実行する。CTestがmacOSでは`cocoa`、Linuxでは
+`xcb`を指定し、`gpu-display`ラベルで識別する。Linuxでは実行環境の表示接続を引き継ぐ。
+連続フレーム、ウィンドウ寸法変更、予算とGPU喪失を検査し、子プロセスで表示面と画像の
+破棄順序、未設定状態、喪失後の取得・設定が異常終了を生じないことを確認する。
+Metalでは実表示と表示前の破棄を区別し、表示時刻を同じホスト時計の発行前後と照合する。
+描画と表示通知を独立して回収し、両方へ発行数上限を適用する。X11の実表示時刻は
+取得不能として扱い、GPU完了と提示要求の受付だけを測定する。
+
+### GPU描画の一括発行計測
+
+`KisGpuPaintBenchmark`は、一個ずつ発行する描画と一括発行する描画、
+個別のレイヤー合成と変更領域を一回で処理する投影を比較する。
+評価済みのテスト環境でGPU文書タイルを有効にした後、次を実行する。
+
+```sh
+build-incremental native build KisGpuPaintBenchmark
+"$(build-incremental native path)/bin/KisGpuPaintBenchmark" --samples 15 > build/gpu-paint-benchmark.json
+"$(build-incremental native path)/bin/KisGpuPaintBenchmark" --samples 15 --gpu-timing > build/gpu-paint-timing.json
+```
+
+| 固定入力 | 初期領域 | 印の数と配置 |
+| --- | --- | --- |
+| `small` | 128×128 | 8×8の印を一個 |
+| `overlapping` | 128×128 | 一枚のタイル内で重なる32×32の印を128個 |
+| `scattered` | 2048×1024 | 四枚のタイルにまたがる64×64の印を128個、相互に離して配置 |
+| `layer-projection` | 4096×4096の疎な領域 | 中央の1024×1024に半透明レイヤー24枚を重ねる |
+
+通常合成と消去、不透明度と一定被覆率を固定する。初期タイルとパイプラインの準備、
+最終画像の完全一致検査とCPU読み戻しは計測区間外で行う。
+両方式とも全命令の発行後に一回完了を待ち、途中の完了待ちは設けない。
+方式ごとに二回の準備実行を行い、各試行の実行順を交互に入れ替える。
+
+JSONは全試行、経過時間・CPU実働・発行処理時間の中央値とP95、命令転送量、画素転送量、GPU内複製量、
+キューと計算の発行回数、完了待ち前後の確保量を記録する。P95は昇順で95%に達する最初の試行、
+偶数個の中央値は中央二個の平均である。CPU実働はプロセス全体を対象とし、
+完了処理と資源解放を含める。メモリー量はタイル所有者の計上範囲を対象とする。
+結果には実行ファイルと最終画像のSHA-256を含める。
+
+JSONの形式は版2で、`gpuTimingEnabled`が時刻計測の有無を表す。
+`--gpu-timing`は各計算区間のGPU実行時間を加算し、`gpuComputeMs`の中央値とP95を追加する。
+GPU内の画素複製、CPUでの発行・待機と実表示の遅延は、この値と分けて評価する。
+時刻値だけのCPU転送を`timingReadbackBytes`へ記録し、画素転送へ加算しない。
+計測処理の費用が加わるため、通常の経過時間とCPU実働の比較には時刻計測を無効にした結果を使う。
+初期レイヤーの生成と全4096×4096画素の一致検査も計測区間外で行う。
+
+この計測はGPUタイル更新の発行方式を評価する。製品統合ではブラシ生成、レイヤー合成、
+表示、色変換を含めた入力から実表示までの遅延を別途測定する。
+GPU検査を有効にした条件で比較し、異なる実装の結果は実行ファイル識別値とともに保持する。
+
+### 本番CPU描画との対照計測
+
+`KisGpuCpuPaintBenchmark`は、既存の`KisPainter::bitBlt()`とGPU一括処理を
+同じ4固定入力で比較する。GPU方式内の比較と本番CPU対照は
+`libs/image/gpu/tests/KisGpuPaintWorkloads.h`の入力値を共有する。
+CPU対照だけが本番の画像所有者へ直接依存し、GPUだけの計測の構築範囲を保つ。
+
+```sh
+build-incremental native build KisGpuCpuPaintBenchmark
+KIS_TEST_PREFIX_PATH="$(build-incremental native path)" QT_QPA_PLATFORM=offscreen \
+  "$(build-incremental native path)/bin/KisGpuCpuPaintBenchmark" --samples 15 > build/cpu-gpu-paint.json
+KIS_TEST_PREFIX_PATH="$(build-incremental native path)" QT_QPA_PLATFORM=offscreen \
+  "$(build-incremental native path)/bin/KisGpuCpuPaintBenchmark" --samples 15 --gpu-timing > build/cpu-gpu-timing.json
+```
+
+`--workload layer-projection`などで一つの入力を選べる。
+CPUは同じ不変の初期画像を複製し、64画素高の行を1本または4本の作業スレッドへ分ける。
+各行の命令順を保ち、描画と通知が終わってから完了を知らせる。作業スレッド群は試行間で共有する。
+GPUは同じ初期版から一回発行し、画素をCPUへ戻さず操作完了まで待つ。
+測定前にCPUの1本・4本の最終画像が一致することを要求し、GPUとも全成分を比較する。
+各方式を二回準備実行し、試行ごとに三方式の実行順を循環させる。
+
+| 区間 | 処理 |
+| --- | --- |
+| 計測前の準備 | 初期画素、単色の入力デバイス、選択、不変のGPUレイヤーと実行資源を生成 |
+| CPUの計測 | 初期画像の複製、仕事の配分、画素合成、描画通知と完了待ち |
+| GPUの計測 | 変更版・命令情報の確保、命令発行、合成と完了回収 |
+| 計測外の検証 | 最終画素の読取り、RGBA順への並替え、画像比較と識別値の計算 |
+
+JSONはCPU作業スレッド数、色プロファイル、GPU依存の版、実行ファイルと両画像のSHA-256、
+全試行、中央値・P95、CPU実働、GPU文書所有者の保持量と各転送量を保持する。
+画像差は画素数、各成分の最大差、最初の座標と実際のRGBA値を記録する。
+完全一致時は終了値0、画像差を含む結果の出力時は3、実行失敗時は1、入力不正時は2を返す。
+画像差がある結果は終了値3として保持し、受入れは画像契約に従って判断する。
+
+この対照は準備済みの画素演算を切り出すため、ブラシ形状生成、文書全体のキュー、
+表示用転送、色変換、実表示を計測区間から分ける。製品統合の受入れでは、
+これらを含む入力から実表示までの比較を追加する。GPU時刻の取得と通常速度は別試行とする。
+
 ## デスクトップ
 
 ### macOS

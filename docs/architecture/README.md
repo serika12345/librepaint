@@ -91,6 +91,31 @@
 
 ### 保存領域と描画実行
 
+`libs/image/gpu`はGPU文書のタイル、版、命令発行と資源予算を所有する。
+`kritaimagegpudocument`はwgpu-nativeとQt Coreへ直接依存し、独立した構築設定で
+画素・版・寿命の契約を検証する。デバイス所有者は全描画先と表示資源の論理予約量を合算し、
+各描画先の予算と合わせて発行前に容量を検査する。利用側へ渡す版とGPU資源の借用条件は
+[GPU文書タイルと版の契約](gpu-document-tiles.md)が定義する。
+編集履歴の所有者は、Undo対象より前の命令を配置済み画素へ集約する非同期チェックポイントも所有する。
+集約中の編集と履歴を維持し、成功後に回復記録を採用する。
+画像側の`KisGpuLayerProjection`はGPUタイルの共有状態から変更領域を求め、
+レイヤー列と成功済み投影を一緒に公開する。
+[GPUレイヤー列と完成済み投影の管理](gpu-layer-projection.md)が最新要求の採用と文書ごとの分離を定義する。
+`KisGpuLayerDocument`は、レイヤーの画素・マスク・属性と文書全体のUndo/Redoを所有する。
+各履歴状態のGPU版とCPU回復値を対応付け、編集時に既存の版を直接採用する。
+[GPUレイヤー文書と編集履歴](gpu-layer-document.md)が編集セッションの寿命、入力拒否と予算を定義する。
+
+`libs/image/dabspacing`はCPU描画とGPU向け入力生成で距離間隔を共用する。
+`libs/painting/gpu`は位置と筆圧からブラシ印を作り、GPU編集セッションへ渡す。
+[筆圧と間隔からのGPUブラシ命令生成](gpu-brush-input.md)が配置、入力の進行と再試行の契約を定義する。
+
+`libs/canvas/gpu`の`kritacanvasgpurenderer`は、GPU文書が生成した画像を直接読み、
+座標変換、補間と背景合成をGPU上で実行する。表示側からGPU文書所有者とQt Guiへ依存する。
+[GPUキャンバス画像の描画](gpu-canvas-rendering.md)が画素と非同期資源保持の契約を定義する。
+同じ所有者の`kritacanvasgpusurface`が専用ウィンドウへの表示面の取得、有限の提示、
+サイズ変更と破棄を調整する。OS固有の資源は`GpuWindowSurface_mac.mm`と
+`GpuWindowSurface_x11.cpp`が所有し、文書側のQt Coreへの依存を維持する。
+
 `libs/resources/storage`の`kritaresourcestorage`はZIPとディレクトリーの保存を、
 `libs/serialization/xml`の`kritaxmlserialization`はXML名前空間と逐次書出しを所有する。
 保存側はQt Core、KConfig、QuaZip、XML側はQt Coreを利用し、上位の製品所有者から独立する。
@@ -285,6 +310,11 @@ iOSのライフサイクル、メモリー警告、Pencilダブルタップは`K
 - 合成結果である投影
 - `KisUpdateScheduler`、`KisStrokesQueue`、更新キュー
 - アンドゥ可能なストロークと画像変更通知
+
+[ラスター編集の比較契約](raster-edit-contract.md)は、通常合成、消去、選択範囲、
+描画順序、取消し、Undo／Redo、未確定描画の差し替えに対する画素結果を定義する。
+`KisRasterEditContractTest`と共通の固定入力が、文書画素と描画処理を置き換える際の
+比較基準を所有する。
 
 レベル補正の数値状態と転送表は`libs/image/KisLevelsCurve.{h,cpp}`が所有する。実装は
 `kritaimagelevelscurveobjects`として限定構築でき、`kritaimage`が同じ生成物を製品へ集約する。

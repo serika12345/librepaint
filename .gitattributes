@@ -8,3 +8,6 @@
 # Patch files must be checked out in CRLF on Windows for patch to work
 *.patch text=auto
 *.diff text=auto
+
+# Unified dependency patches encode empty context lines with a space marker.
+nix/gpu/*.patch whitespace=-blank-at-eol

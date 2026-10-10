@@ -4,6 +4,19 @@ kis_add_tests(
     LINK_LIBRARIES kritapainting kritatestsdk
 )
 
+kis_add_test(KisBrushTextureContractTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Gui Qt${QT_MAJOR_VERSION}::Test Boost::boost Eigen3::Eigen Imath::Imath)
+target_include_directories(KisBrushTextureContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/pigment/compositeops
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global)
+target_compile_definitions(KisBrushTextureContractTest PRIVATE
+    TEXTURE_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/data/brush_texture_contract.json")
+
 kis_add_test(
     KisAsynchronousStrokeUpdateHelperContractTest.cpp
     LINK_LIBRARIES

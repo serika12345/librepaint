@@ -1,0 +1,163 @@
+SPDX-FileCopyrightText: 2026 LibrePaint contributors
+SPDX-License-Identifier: MIT
+
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -190,7 +190,7 @@
+             // pre v27 this would wait for 60 seconds instead of waiting indefinitely
+             match context.device_poll(self.id, wgt::PollType::wait_indefinitely()) {
+                 Ok(_) => (),
+-                Err(err) => handle_error_fatal(err, "WGPUDeviceImpl::drop"),
++                Err(err) => handle_error(&self.error_sink, err, None, "WGPUDeviceImpl::drop"),
+             }
+ 
+             context.device_drop(self.id);
+@@ -916,9 +916,9 @@
+     offset: usize,
+     size: usize,
+ ) -> *const u8 {
+-    let (buffer_id, context) = {
++    let (buffer_id, context, error_sink) = {
+         let buffer = buffer.as_ref().expect("invalid buffer");
+-        (buffer.id, &buffer.context)
++        (buffer.id, &buffer.context, &buffer.error_sink)
+     };
+ 
+     let buf = match context.buffer_get_mapped_range(
+@@ -930,7 +930,10 @@
+         },
+     ) {
+         Ok((ptr, _)) => ptr,
+-        Err(err) => handle_error_fatal(err, "wgpuBufferGetConstMappedRange"),
++        Err(err) => {
++            handle_error(error_sink, err, None, "wgpuBufferGetConstMappedRange");
++            return std::ptr::null();
++        }
+     };
+ 
+     buf.as_ptr()
+@@ -942,9 +945,9 @@
+     offset: usize,
+     size: usize,
+ ) -> *mut u8 {
+-    let (buffer_id, context) = {
++    let (buffer_id, context, error_sink) = {
+         let buffer = buffer.as_ref().expect("invalid buffer");
+-        (buffer.id, &buffer.context)
++        (buffer.id, &buffer.context, &buffer.error_sink)
+     };
+ 
+     let buf = match context.buffer_get_mapped_range(
+@@ -956,7 +959,10 @@
+         },
+     ) {
+         Ok((ptr, _)) => ptr,
+-        Err(err) => handle_error_fatal(err, "wgpuBufferGetMappedRange"),
++        Err(err) => {
++            handle_error(error_sink, err, None, "wgpuBufferGetMappedRange");
++            return std::ptr::null_mut();
++        }
+     };
+ 
+     buf.as_ptr()
+@@ -2919,9 +2925,9 @@
+     command_count: usize,
+     commands: *const native::WGPUCommandBuffer,
+ ) {
+-    let (queue_id, context) = {
++    let (queue_id, context, error_sink) = {
+         let queue = queue.as_ref().expect("invalid queue");
+-        (queue.queue.id, &queue.queue.context)
++        (queue.queue.id, &queue.queue.context, &queue.error_sink)
+     };
+ 
+     let command_buffers = make_slice(commands, command_count)
+@@ -2934,7 +2940,7 @@
+         .collect::<SmallVec<[_; 4]>>();
+ 
+     if let Err(cause) = context.queue_submit(queue_id, &command_buffers) {
+-        handle_error_fatal(cause.1, "wgpuQueueSubmit");
++        handle_error(error_sink, cause.1, None, "wgpuQueueSubmit");
+     }
+ }
+ 
+@@ -4260,9 +4266,9 @@
+     command_count: usize,
+     commands: *const native::WGPUCommandBuffer,
+ ) -> native::WGPUSubmissionIndex {
+-    let (queue_id, context) = {
++    let (queue_id, context, error_sink) = {
+         let queue = queue.as_ref().expect("invalid queue");
+-        (queue.queue.id, &queue.queue.context)
++        (queue.queue.id, &queue.queue.context, &queue.error_sink)
+     };
+ 
+     let command_buffers = make_slice(commands, command_count)
+@@ -4276,7 +4282,10 @@
+ 
+     match context.queue_submit(queue_id, &command_buffers) {
+         Ok(submission_index) => submission_index,
+-        Err(cause) => handle_error_fatal(cause.1, "wgpuQueueSubmitForIndex"),
++        Err(cause) => {
++            handle_error(error_sink, cause.1, None, "wgpuQueueSubmitForIndex");
++            0
++        }
+     }
+ }
+ 
+@@ -4287,9 +4296,9 @@
+     wait: bool,
+     submission_index: Option<&native::WGPUSubmissionIndex>,
+ ) -> bool {
+-    let (device_id, context) = {
++    let (device_id, context, error_sink) = {
+         let device = device.as_ref().expect("invalid device");
+-        (device.id, &device.context)
++        (device.id, &device.context, &device.error_sink)
+     };
+ 
+     let maintain = match wait {
+@@ -4307,7 +4316,8 @@
+         Ok(wgt::PollStatus::QueueEmpty) => true,
+         Ok(_) => false,
+         Err(cause) => {
+-            handle_error_fatal(cause, "wgpuDevicePoll");
++            handle_error(error_sink, cause, None, "wgpuDevicePoll");
++            false
+         }
+     }
+ }
+@@ -4681,3 +4691,22 @@
+         ),
+     }
+ }
++
++#[no_mangle]
++pub extern "C" fn wgpuLibrePaintRecoveryRevision() -> u32 {
++    2
++}
++
++#[no_mangle]
++pub unsafe extern "C" fn wgpuLibrePaintTextureUsesDevice(
++    texture: native::WGPUTexture,
++    device: native::WGPUDevice,
++) -> native::WGPUBool {
++    match (texture.as_ref(), device.as_ref()) {
++        (Some(texture), Some(device)) => {
++            (Arc::ptr_eq(&texture.context, &device.context)
++                && Arc::ptr_eq(&texture.error_sink, &device.error_sink)) as native::WGPUBool
++        }
++        _ => 0,
++    }
++}
+--- a/ffi/wgpu.h
++++ b/ffi/wgpu.h
+@@ -326,6 +326,8 @@
+ void wgpuSetLogLevel(WGPULogLevel level);
+ 
+ uint32_t wgpuGetVersion(void);
++uint32_t wgpuLibrePaintRecoveryRevision(void);
++WGPUBool wgpuLibrePaintTextureUsesDevice(WGPUTexture texture, WGPUDevice device);
+ 
+ void wgpuRenderPassEncoderSetPushConstants(WGPURenderPassEncoder encoder, WGPUShaderStage stages, uint32_t offset, uint32_t sizeBytes, void const * data);
+ void wgpuComputePassEncoderSetPushConstants(WGPUComputePassEncoder encoder, uint32_t offset, uint32_t sizeBytes, void const * data);

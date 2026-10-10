@@ -216,4 +216,8 @@ target_link_libraries(kritaworkspacepresentation
         kritaresources
 )
 
+if(TARGET kritaimagegpudocument)
+    add_subdirectory(gpu)
+endif()
+
 add_subdirectory(tests)

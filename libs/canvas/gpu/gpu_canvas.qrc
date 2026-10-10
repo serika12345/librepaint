@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/librepaint/canvas">
+        <file>GpuRenderer.wgsl</file>
+    </qresource>
+</RCC>

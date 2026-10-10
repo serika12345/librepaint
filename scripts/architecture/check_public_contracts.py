@@ -130,13 +130,18 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
     ),
     "libs/canvas": (
         "libs/ui/tests/TestApplicationWorkspaceToolUiPublicHeaders.cpp",
+        "libs/canvas/gpu/tests/KisGpuSurfaceRendererTest.cpp",
     ),
     "libs/document/ui": (
         "libs/document/ui/tests/kis_document_autosave_recovery_dialog_test.cpp",
         "libs/document/ui/tests/kis_document_undo_store_test.cpp",
         "libs/document/ui/tests/kis_document_undo_ui_test.cpp",
     ),
-    "libs/image": ("libs/painting/tests/TestPublicImageHeaders.cpp",),
+    "libs/image": (
+        "libs/canvas/gpu/tests/KisGpuCanvasRendererTest.cpp",
+        "libs/painting/gpu/tests/KisGpuBrushStrokeTest.cpp",
+        "libs/painting/tests/TestPublicImageHeaders.cpp",
+    ),
     "libs/impex": ("libs/impex/tests/TestImportExportPublicHeaders.cpp",),
     "libs/input": ("libs/input/tests/TestInputShortcutMatcher.cpp",),
     "libs/painting": ("libs/painting/tests/TestPaintingBoundary.cpp",),

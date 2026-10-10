@@ -17,6 +17,8 @@ class KisDistanceInformationTest : public QObject
 private Q_SLOTS:
     void testInitInfo();
     void testInterpolation();
+    void testBrushPlacementContract();
+    void testReducedSpacingPaintsImmediately();
 
 private:
     void testInitInfoEquality() const;

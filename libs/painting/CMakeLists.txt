@@ -1,5 +1,8 @@
 add_subdirectory(undo)
 add_subdirectory(metadata)
+if(LIBREPAINT_BUILD_GPU_DOCUMENT)
+    add_subdirectory(gpu)
+endif()
 
 set(kritapainting_LIB_SRCS
     KisColorSamplerStroke.cpp

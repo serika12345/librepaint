@@ -11,6 +11,20 @@ else()
     set (HAVE_FAILING_CMAKE FALSE)
 endif()
 
+kis_add_test(
+    KisRasterEditContractTest.cpp
+    LINK_LIBRARIES kritaimage Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KisRasterEditContractTest PRIVATE ${CMAKE_SOURCE_DIR}/sdk/tests)
+
+if(LIBREPAINT_BUILD_GPU_DOCUMENT)
+    add_executable(KisGpuCpuPaintBenchmark EXCLUDE_FROM_ALL
+        KisGpuCpuPaintBenchmark.cpp ../gpu/tests/KisGpuTestDevice.cpp)
+    target_include_directories(KisGpuCpuPaintBenchmark PRIVATE ../gpu/tests ${CMAKE_SOURCE_DIR}/sdk/tests)
+    target_link_libraries(KisGpuCpuPaintBenchmark PRIVATE kritaimage kritaimagegpudocument Qt${QT_MAJOR_VERSION}::Widgets)
+    set_target_properties(KisGpuCpuPaintBenchmark PROPERTIES AUTOMOC OFF MACOSX_BUNDLE OFF)
+endif()
+
 set(KisRandomGenerator2DDemoSources KisRandomGenerator2DDemo.cpp kimageframe.cpp)
 ki18n_wrap_ui(KisRandomGenerator2DDemoSources KisRandomGenerator2DDemo.ui)
 if(ANDROID)
