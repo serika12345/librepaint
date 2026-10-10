@@ -27,7 +27,7 @@ class KisGpuTileStore
 public:
     static constexpr quint64 TileBytes = 64 * 64 * 4;
     enum class Status { Pending, Succeeded, Failed };
-    enum class Error { None, InvalidVersion, BudgetExceeded, InvalidCommand };
+    enum class Error { None, InvalidVersion, BudgetExceeded, InvalidCommand, QueueFull };
     enum class CompositeOp { Over, Erase };
 
     struct PaintCommand {
@@ -100,7 +100,7 @@ public:
     };
 
     /** Null device/resources or API/limits mismatch throw std::runtime_error; requires wgpu-native 27.0.4.0. */
-    KisGpuTileStore(WGPUDevice device, quint64 budgetBytes);
+    KisGpuTileStore(WGPUDevice device, quint64 budgetBytes, quint32 maximumPending = 256);
     ~KisGpuTileStore();
     KisGpuTileStore(const KisGpuTileStore &) = delete;
     KisGpuTileStore &operator=(const KisGpuTileStore &) = delete;

@@ -80,6 +80,7 @@ private Q_SLOTS:
     void readbackOutlivesStore();
     void generatedDabsMatchBrushMasks();
     void generatedDabsPreserveOrderAndRejectInvalidInput();
+    void boundedSubmissionsResumeAfterPoll();
     void compositing_data();
     void compositing();
 private:
@@ -235,6 +236,30 @@ void KisGpuTileStoreTest::generatedDabsPreserveOrderAndRejectInvalidInput()
     QCOMPARE(store.paintDabs(batch.version, {invalid}, clip).error, KisGpuTileStore::Error::InvalidCommand);
     QCOMPARE(store.statistics().submissions, before.submissions);
     QCOMPARE(store.statistics().residentBytes, before.residentBytes);
+}
+
+void KisGpuTileStoreTest::boundedSubmissionsResumeAfterPoll()
+{
+    KisGpuTileStore store(m_gpu->device, 32 * KisGpuTileStore::TileBytes, 1);
+    const auto first = store.fill(store.emptyVersion(), QRect(0, 0, 64, 64), 0xFF123456);
+    QCOMPARE(first.error, KisGpuTileStore::Error::None);
+    const auto before = store.statistics();
+    QCOMPARE(store.fill(first.version, QRect(0, 0, 1, 1), 0xFFABCDEF).error,
+             KisGpuTileStore::Error::QueueFull);
+    QCOMPARE(store.readback(first.version, QRect(0, 0, 1, 1)).error, KisGpuTileStore::Error::QueueFull);
+    QCOMPARE(store.composite(first.version, first.version, QRect(0, 0, 1, 1)).error,
+             KisGpuTileStore::Error::QueueFull);
+    const auto empty = store.paint(first.version, QRect(), 0xFFFFFFFF);
+    QCOMPARE(empty.error, KisGpuTileStore::Error::None);
+    QCOMPARE(empty.completion.sequence(), first.completion.sequence());
+    QCOMPARE(store.statistics().submissions, before.submissions);
+    QCOMPARE(store.statistics().residentBytes, before.residentBytes);
+    QVERIFY(finish(store, first.completion));
+    const auto second = store.fill(first.version, QRect(0, 0, 1, 1), 0xFFABCDEF);
+    QCOMPARE(second.error, KisGpuTileStore::Error::None);
+    QVERIFY(finish(store, second.completion));
+    QCOMPARE(m_gpu->read(second.version, QRect(0, 0, 2, 1)),
+             expected(QRect(0, 0, 2, 1), {{QRect(0, 0, 2, 1), 0xFF123456}, {QRect(0, 0, 1, 1), 0xFFABCDEF}}));
 }
 
 void KisGpuTileStoreTest::sparseSignedCoordinates()

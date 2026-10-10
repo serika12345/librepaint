@@ -148,6 +148,7 @@ struct KisGpuTileStore::Private {
     };
     std::shared_ptr<DeviceState> state;
     quint64 budget;
+    quint32 maximumPending;
     WGPULimits limits{};
     quint64 tilesPerAllocation = 0;
     WGPUBindGroupLayout layout = nullptr;
@@ -158,8 +159,8 @@ struct KisGpuTileStore::Private {
     Statistics statistics;
     std::vector<Pending> pending;
 
-    Private(WGPUDevice device, quint64 bytes) : budget(bytes) {
-        if (!device || wgpuGetVersion() != 0x1b000400) {
+    Private(WGPUDevice device, quint64 bytes, quint32 maximum) : budget(bytes), maximumPending(maximum) {
+        if (!device || !maximum || wgpuGetVersion() != 0x1b000400) {
             throw std::runtime_error("GPU tiles require a device from wgpu-native 27.0.4.0");
         }
         state = std::make_shared<DeviceState>(device);
@@ -276,8 +277,8 @@ struct KisGpuTileStore::Private {
     }
 };
 
-KisGpuTileStore::KisGpuTileStore(WGPUDevice device, quint64 budgetBytes)
-    : d(new Private(device, budgetBytes)) {}
+KisGpuTileStore::KisGpuTileStore(WGPUDevice device, quint64 budgetBytes, quint32 maximumPending)
+    : d(new Private(device, budgetBytes, maximumPending)) {}
 KisGpuTileStore::~KisGpuTileStore() = default;
 
 qsizetype KisGpuTileStore::Version::tileCount() const { return d ? qsizetype(d->tiles.size()) : 0; }
@@ -442,6 +443,10 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
         result.completion.d = base.d->completion;
         return result;
     }
+    if (d->pending.size() >= d->maximumPending) {
+        result.error = Error::QueueFull;
+        return result;
+    }
     const quint64 parameterBytes = parameterSize(tileCommands.size());
     const quint64 storageBytes = commandCount * sizeof(TileCommand);
     result.completion.d = std::make_shared<CompletionData>();
@@ -571,6 +576,10 @@ KisGpuTileStore::Edit KisGpuTileStore::composite(const Version &base, const Vers
         coordinates.push_back(entry.first);
     }
     if (coordinates.empty()) return unchanged();
+    if (d->pending.size() >= d->maximumPending) {
+        result.error = Error::QueueFull;
+        return result;
+    }
     quint64 parameterBytes = 0;
     const quint64 alignment = d->limits.minStorageBufferOffsetAlignment;
     for (auto &entry : groups) {
@@ -658,6 +667,10 @@ KisGpuTileStore::Readback KisGpuTileStore::readback(const Version &source, QRect
     }
     if (bounds.isEmpty()) {
         result.completion.d = source.d->completion;
+        return result;
+    }
+    if (d->pending.size() >= d->maximumPending) {
+        result.error = Error::QueueFull;
         return result;
     }
     const quint64 byteCount = quint64(bounds.width()) * quint64(bounds.height()) * 4;
