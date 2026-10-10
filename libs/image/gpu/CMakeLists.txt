@@ -8,7 +8,7 @@ set_target_properties(LibrePaintWgpuNative PROPERTIES
 )
 
 qt_add_resources(gpu_document_resources gpu_document.qrc)
-add_library(kritaimagegpudocument STATIC KisGpuDevice.cpp KisGpuTileStore.cpp KisGpuTilePaint.cpp KisGpuBrushTexture.cpp KisGpuTileTransfer.cpp KisGpuTileTexture.cpp KisGpuTileComposite.cpp KisGpuProjection.cpp KisGpuEditSession.cpp KisGpuEditRecovery.cpp KisGpuSubmissionTiming.cpp ${gpu_document_resources})
+add_library(kritaimagegpudocument STATIC KisGpuDabPipelines.cpp KisGpuDevice.cpp KisGpuTileStore.cpp KisGpuTilePaint.cpp KisGpuBrushTexture.cpp KisGpuTileTransfer.cpp KisGpuTileTexture.cpp KisGpuTileComposite.cpp KisGpuProjection.cpp KisGpuEditSession.cpp KisGpuEditRecovery.cpp KisGpuSubmissionTiming.cpp ${gpu_document_resources})
 target_include_directories(kritaimagegpudocument PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(kritaimagegpudocument PUBLIC Qt${QT_MAJOR_VERSION}::Core LibrePaintWgpuNative)
 set_target_properties(kritaimagegpudocument PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)

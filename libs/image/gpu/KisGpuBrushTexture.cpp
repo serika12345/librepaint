@@ -5,7 +5,6 @@
 #include "KisGpuTileStore_p.h"
 #include <algorithm>
 #include <limits>
-#include <utility>
 
 using namespace KisGpuTileStorage;
 
@@ -35,41 +34,4 @@ KisGpuTileStore::BrushTextureResult KisGpuTileStore::uploadBrushTexture(QSize si
     result.texture.d = std::move(data);
     errors.submitted = true;
     return result;
-}
-
-void KisGpuTileStore::Private::initializeBrushTexturePipelines(WGPUShaderModule shader)
-{
-    // Both current consumers use the same prepared pattern; selection adds one concrete input.
-    std::array<std::unique_ptr<Handle<WGPUBindGroupLayout, wgpuBindGroupLayoutRelease>>, 2> layouts;
-    std::array<std::unique_ptr<Handle<WGPUComputePipeline, wgpuComputePipelineRelease>>, 2> pipelines;
-    for (int selected = 0; selected < 2; ++selected) {
-        WGPUBindGroupLayoutEntry entries[5]{};
-        const quint32 bindings[] = {0, 1, 2, 6, 5};
-        const quint64 sizes[] = {TileBytes, sizeof(TileParameters), sizeof(TileCommand), 4, TileBytes};
-        for (int i = 0; i < 4 + selected; ++i) {
-            entries[i].binding = bindings[i];
-            entries[i].visibility = WGPUShaderStage_Compute;
-            entries[i].buffer.type = i ? WGPUBufferBindingType_ReadOnlyStorage : WGPUBufferBindingType_Storage;
-            entries[i].buffer.minBindingSize = sizes[i];
-        }
-        WGPUBindGroupLayoutDescriptor groupDescriptor{};
-        groupDescriptor.entryCount = 4 + selected;
-        groupDescriptor.entries = entries;
-        layouts[selected] = std::make_unique<Handle<WGPUBindGroupLayout, wgpuBindGroupLayoutRelease>>(
-            wgpuDeviceCreateBindGroupLayout(state->device, &groupDescriptor));
-        WGPUPipelineLayoutDescriptor layoutDescriptor{};
-        layoutDescriptor.bindGroupLayoutCount = 1;
-        layoutDescriptor.bindGroupLayouts = &layouts[selected]->value;
-        Handle<WGPUPipelineLayout, wgpuPipelineLayoutRelease> pipelineLayout(wgpuDeviceCreatePipelineLayout(state->device, &layoutDescriptor));
-        WGPUComputePipelineDescriptor descriptor{};
-        descriptor.layout = pipelineLayout.value;
-        descriptor.compute.module = shader;
-        descriptor.compute.entryPoint = {selected ? "paintSelectedTextured" : "paintTextured", WGPU_STRLEN};
-        pipelines[selected] = std::make_unique<Handle<WGPUComputePipeline, wgpuComputePipelineRelease>>(
-            wgpuDeviceCreateComputePipeline(state->device, &descriptor));
-    }
-    dabTextureLayout = std::exchange(layouts[0]->value, nullptr);
-    dabSelectedTextureLayout = std::exchange(layouts[1]->value, nullptr);
-    dabTexturePipeline = std::exchange(pipelines[0]->value, nullptr);
-    dabSelectedTexturePipeline = std::exchange(pipelines[1]->value, nullptr);
 }

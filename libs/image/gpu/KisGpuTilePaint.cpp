@@ -237,9 +237,9 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
     {
         Handle<WGPUComputePassEncoder, wgpuComputePassEncoderRelease> pass(
             encoder.beginComputePass());
-        const auto pipeline = texture ? (selection ? d->dabSelectedTexturePipeline : d->dabTexturePipeline)
+        const auto pipeline = texture ? d->texturePipelines->pipelines[bool(selection)]
                                       : (selection ? d->dabSelectionPipeline : d->pipeline);
-        const auto layout = texture ? (selection ? d->dabSelectedTextureLayout : d->dabTextureLayout)
+        const auto layout = texture ? d->texturePipelines->layouts[bool(selection)]
                                     : (selection ? d->dabSelectionLayout : d->layout);
         wgpuComputePassEncoderSetPipeline(pass.value, pipeline);
         for (size_t groupIndex = 0; groupIndex < allocations.size(); ++groupIndex) {

@@ -215,8 +215,15 @@ struct KisGpuTileStore::Private {
     WGPUComputePipeline pipeline = nullptr;
     WGPUBindGroupLayout dabSelectionLayout = nullptr;
     WGPUComputePipeline dabSelectionPipeline = nullptr;
-    WGPUBindGroupLayout dabTextureLayout = nullptr, dabSelectedTextureLayout = nullptr;
-    WGPUComputePipeline dabTexturePipeline = nullptr, dabSelectedTexturePipeline = nullptr;
+    struct DabPipelines {
+        std::array<WGPUBindGroupLayout, 2> layouts{};
+        std::array<WGPUComputePipeline, 2> pipelines{};
+        ~DabPipelines();
+        DabPipelines() = default;
+        DabPipelines(const DabPipelines &) = delete;
+        DabPipelines &operator=(const DabPipelines &) = delete;
+    };
+    std::unique_ptr<DabPipelines> texturePipelines;
     WGPUBindGroupLayout compositeLayout = nullptr;
     WGPUComputePipeline compositePipeline = nullptr;
     WGPUSubmissionIndex lastSubmission = 0;
@@ -224,7 +231,8 @@ struct KisGpuTileStore::Private {
     std::vector<Pending> pending;
 
     Private(std::shared_ptr<KisGpuTileStorage::NativeDevice> nativeOwner, quint64 bytes, quint32 maximum);
-    void initializeBrushTexturePipelines(WGPUShaderModule shader);
+    std::unique_ptr<DabPipelines> createDabPipelines(WGPUShaderModule shader, quint32 inputBinding,
+                                                   const char *entryPoint, const char *selectedEntryPoint);
     quint64 availableForOperation(quint32 passes = 1) const;
     void mapTiming(std::unique_ptr<TimingReadbackData> result);
 

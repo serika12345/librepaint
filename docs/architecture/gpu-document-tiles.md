@@ -14,7 +14,8 @@ wgpu-native 27.0.4.0を直接利用する。画像モデル、ブラシ、履歴
 | `libs/image/gpu/KisGpuTileStore.h` | 版、単色描画、画素合成、明示的な転送、操作完了、予算と統計の内部API |
 | `libs/image/gpu/KisGpuTileStore.cpp` | GPU実行資源の生成、版の共有、命令送信と完了回収 |
 | `libs/image/gpu/KisGpuTilePaint.cpp` | 単色とブラシ印の検査、変更タイルのGPU内複製と描画命令の記録 |
-| `libs/image/gpu/KisGpuBrushTexture.cpp` | 不変の質感マスクの取込み、予算と質感用のGPU実行資源 |
+| `libs/image/gpu/KisGpuBrushTexture.cpp` | 不変の質感マスクの取込みと予算 |
+| `libs/image/gpu/KisGpuDabPipelines.cpp` | ブラシ入力と選択の組合せに対応するGPU実行資源の生成と所有 |
 | `libs/image/gpu/KisGpuTileComposite.cpp` | 画像版と選択マスクを読むGPU内合成 |
 | `libs/image/gpu/KisGpuSubmissionTiming.cpp` | 計算処理の時刻記録、有限の時刻領域の借用と非同期読取り |
 | `libs/image/gpu/KisGpuProjection.cpp` | レイヤー列から変更領域だけを一回で合成する投影生成 |

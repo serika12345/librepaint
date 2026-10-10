@@ -114,7 +114,7 @@ KisGpuTileStore::Private::Private(std::shared_ptr<NativeDevice> nativeOwner, qui
     descriptor.compute.entryPoint = {"composite", WGPU_STRLEN};
     Handle<WGPUComputePipeline, wgpuComputePipelineRelease> imagePipeline(
         wgpuDeviceCreateComputePipeline(device, &descriptor));
-    initializeBrushTexturePipelines(shader.value);
+    texturePipelines = createDabPipelines(shader.value, 6, "paintTextured", "paintSelectedTextured");
     layout = groupLayout.value;
     groupLayout.value = nullptr;
     pipeline = fillPipeline.value;
@@ -196,10 +196,6 @@ KisGpuTileStore::Private::~Private() {
     wgpuBindGroupLayoutRelease(layout);
     wgpuComputePipelineRelease(dabSelectionPipeline);
     wgpuBindGroupLayoutRelease(dabSelectionLayout);
-    wgpuComputePipelineRelease(dabTexturePipeline);
-    wgpuBindGroupLayoutRelease(dabTextureLayout);
-    wgpuComputePipelineRelease(dabSelectedTexturePipeline);
-    wgpuBindGroupLayoutRelease(dabSelectedTextureLayout);
     wgpuComputePipelineRelease(compositePipeline);
     wgpuBindGroupLayoutRelease(compositeLayout);
 }
