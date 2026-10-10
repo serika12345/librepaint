@@ -10,7 +10,8 @@ if(TARGET kritacanvasgpusurface)
     add_executable(KisGpuInputToDisplayBenchmark EXCLUDE_FROM_ALL KisGpuInputToDisplayBenchmark.cpp
         ${CMAKE_SOURCE_DIR}/libs/image/gpu/tests/KisGpuTestDevice.cpp)
     target_link_libraries(KisGpuInputToDisplayBenchmark PRIVATE kritacanvasgpusurface kritapaintinggpubrushstroke)
-    target_include_directories(KisGpuInputToDisplayBenchmark PRIVATE ${CMAKE_SOURCE_DIR}/libs/image/gpu/tests)
+    target_include_directories(KisGpuInputToDisplayBenchmark PRIVATE ${CMAKE_SOURCE_DIR}/libs/image/gpu/tests
+        ${CMAKE_SOURCE_DIR}/libs/painting/gpu/tests)
     set_target_properties(KisGpuInputToDisplayBenchmark PROPERTIES AUTOMOC OFF MACOSX_BUNDLE OFF)
     kis_add_test(KisGpuSurfaceLifetimeTest.cpp
         LINK_LIBRARIES kritacanvasgpusurface Qt${QT_MAJOR_VERSION}::Test)

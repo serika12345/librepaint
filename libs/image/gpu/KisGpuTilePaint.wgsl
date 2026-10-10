@@ -18,10 +18,11 @@ struct TileParameters {
 fn dabAlpha(position: vec2<u32>, shape: TileCommand) -> u32 {
     let delta = vec2<f32>(position) - bitcast<vec2<f32>>(shape.lower);
     let normalized = delta * bitcast<vec2<f32>>(shape.upper);
-    let n = dot(normalized, normalized);
+    // Keep the x product and the y fused multiply-add in the same rounding order on each backend.
+    let n = fma(normalized.y, normalized.y, normalized.x * normalized.x);
     if (n > 1.0) { return 0u; }
     let faded = delta * bitcast<vec2<f32>>(vec2<u32>(shape.color, shape.operation));
-    let nf = dot(faded, faded);
+    let nf = fma(faded.y, faded.y, faded.x * faded.x);
     if (nf <= 1.0) { return 255u; }
     // Scalar brush masks truncate the inverse coverage before subtracting it.
     return 255u - u32(clamp(255.0 * n * (nf - 1.0) / (nf - n), 0.0, 255.0));

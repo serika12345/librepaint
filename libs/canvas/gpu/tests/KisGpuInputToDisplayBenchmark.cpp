@@ -4,6 +4,7 @@
  */
 #include "SurfaceRenderer.h"
 #include "KisGpuBrushStroke.h"
+#include "KisGpuBrushInputWorkloads.h"
 #include "KisGpuLayerDocument.h"
 #include "KisGpuLayerProjection.h"
 #include "KisGpuTestDevice.h"
@@ -74,9 +75,9 @@ struct Run {
 Run execute(KisGpuTestDevice &gpu, QWindow &window, Surface &surface,
             bool high, bool replace, bool reuseImage, int sampleCount, const QString &imageDirectory)
 {
-    const QRect bounds(0, 0, high ? 4096 : 128, high ? 4096 : 128);
-    const QRect occupied = high ? QRect(1536, 1536, 1024, 1024) : bounds;
-    const int layerCount = high ? 24 : 1;
+    const KisGpuBrushInputWorkload workload(high);
+    const auto bounds = workload.bounds, occupied = workload.occupied;
+    const auto layerCount = workload.layerCount;
     auto store = std::make_shared<Store>(gpu.owner, 384 * 1024 * 1024);
     Document document(store, 8);
     Document::LayerId target = 0;
@@ -86,12 +87,7 @@ Run execute(KisGpuTestDevice &gpu, QWindow &window, Surface &surface,
         target = added.id;
         const auto edit = document.begin(target);
         require(edit.result == Document::Result::Accepted, "Cannot seed benchmark layer");
-        Store::DabCommand seed;
-        seed.center = occupied.center();
-        seed.diameter = QSizeF(occupied.width() * 4, occupied.height() * 4);
-        seed.rgba = (quint32(i ? 128 : 255) << 24) | quint32((17 + i * 13) % 256)
-            | (quint32((34 + i * 7) % 256) << 8) | (quint32((51 + i * 3) % 256) << 16);
-        require(edit.session->append(edit.token, {seed}, occupied) == Session::Result::Accepted,
+        require(edit.session->append(edit.token, {workload.seed(i)}, occupied) == Session::Result::Accepted,
                 "Cannot paint benchmark layer");
         require(document.commit(edit.token) == Document::Result::Accepted, "Cannot commit benchmark layer");
         until([&] {
@@ -103,10 +99,7 @@ Run execute(KisGpuTestDevice &gpu, QWindow &window, Surface &surface,
     KisGpuLayerProjection projection(*store, bounds);
     const auto edit = document.begin(target);
     require(edit.result == Document::Result::Accepted, "Cannot begin measured input");
-    Brush::Settings settings;
-    settings.diameter = high ? QSizeF(512, 512) : QSizeF(16, 16);
-    settings.fade = {.8, .8};
-    settings.rgba = 0xCC3366EE;
+    const auto settings = workload.settings();
     Brush brush(*edit.session, edit.token, settings, bounds);
     Krita::Canvas::GpuRenderer::View view;
     const auto physicalWidth = qRound(window.width() * window.devicePixelRatio());
@@ -132,14 +125,7 @@ Run execute(KisGpuTestDevice &gpu, QWindow &window, Surface &surface,
             pollCallNs += elapsed.nsecsElapsed() - start;
         };
         const auto inputTime = Surface::presentationClockNanoseconds();
-        QVector<Brush::Sample> input;
-        const double pi = std::acos(-1.0);
-        const double radius = occupied.width() * (replace ? .22 : .4);
-        const QPointF center = occupied.center();
-        for (int k = 0; k < (replace ? 9 : 1); ++k) {
-            const double angle = replace ? k * pi / 4 + iteration * .03 : iteration * pi / 8;
-            input.push_back({center + QPointF(std::cos(angle) * radius, std::sin(angle) * radius), 1});
-        }
+        const auto input = workload.samples(iteration, replace);
         const auto update = replace ? brush.replace(input) : brush.append(input);
         require(update.result == Brush::Result::Accepted, "Measured brush input was rejected");
         observeMemory();
