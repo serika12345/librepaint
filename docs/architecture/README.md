@@ -98,6 +98,9 @@
 [GPU文書タイルと版の契約](gpu-document-tiles.md)が定義する。
 編集履歴の所有者は、Undo対象より前の命令を配置済み画素へ集約する非同期チェックポイントも所有する。
 集約中の編集と履歴を維持し、成功後に回復記録を採用する。
+画像側の`KisGpuLayerProjection`はGPUタイルの共有状態から変更領域を求め、
+レイヤー列と成功済み投影を一緒に公開する。
+[GPUレイヤー列と完成済み投影の管理](gpu-layer-projection.md)が最新要求の採用と文書ごとの分離を定義する。
 
 `libs/image/dabspacing`はCPU描画とGPU向け入力生成で距離間隔を共用する。
 `libs/painting/gpu`は位置と筆圧からブラシ印を作り、GPU編集セッションへ渡す。

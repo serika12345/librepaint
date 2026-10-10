@@ -11,7 +11,7 @@
 #include <stdexcept>
 
 namespace {
-int tileCoordinate(int pixel) { return pixel >= 0 ? pixel / 64 : (pixel + 1) / 64 - 1; }
+int tileCoordinate(qint64 pixel) { return int(pixel >= 0 ? pixel / 64 : (pixel + 1) / 64 - 1); }
 }
 
 KisGpuTestDevice::KisGpuTestDevice(quint64 storageBindingLimit, bool timestamps, quint64 maximumResidentBytes)
@@ -30,8 +30,8 @@ QByteArray KisGpuTestDevice::read(const KisGpuTileStore::Version &version, QRect
 {
     std::map<std::pair<int, int>, QByteArray> tiles;
     QByteArray result(bounds.width() * bounds.height() * 4, '\0');
-    for (int y = bounds.top(); y <= bounds.bottom(); ++y) {
-        for (int x = bounds.left(); x <= bounds.right(); ++x) {
+    for (qint64 y = bounds.y(); y < qint64(bounds.y()) + bounds.height(); ++y) {
+        for (qint64 x = bounds.x(); x < qint64(bounds.x()) + bounds.width(); ++x) {
             const auto coordinate = std::make_pair(tileCoordinate(x), tileCoordinate(y));
             const auto source = version.tile(QPoint(coordinate.first, coordinate.second));
             if (!source.buffer) continue;

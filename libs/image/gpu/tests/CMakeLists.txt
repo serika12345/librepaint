@@ -1,4 +1,9 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
+kis_add_test(KisGpuLayerProjectionTest.cpp LINK_LIBRARIES kritaimagegpudocument Qt${QT_MAJOR_VERSION}::Test)
+target_sources(KisGpuLayerProjectionTest PRIVATE KisGpuTestDevice.cpp)
+set_tests_properties(libs-image-gpu-KisGpuLayerProjectionTest PROPERTIES
+    TIMEOUT 30 LABELS gpu FAIL_REGULAR_EXPRESSION "Validation Error;VUID-")
+
 kis_add_test(KisGpuDeviceBudgetTest.cpp LINK_LIBRARIES kritaimagegpudocument Qt${QT_MAJOR_VERSION}::Test)
 target_sources(KisGpuDeviceBudgetTest PRIVATE KisGpuTestDevice.cpp)
 set_tests_properties(libs-image-gpu-KisGpuDeviceBudgetTest PROPERTIES TIMEOUT 30 LABELS gpu)

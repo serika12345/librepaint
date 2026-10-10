@@ -22,6 +22,7 @@ wgpu-native 27.0.4.0を直接利用する。計算段階で8個のGPUバッフ�
 | `libs/image/gpu/KisGpuSubmissionTiming.cpp` | 計算処理の時刻記録、有限の時刻領域の借用と非同期読取り |
 | `libs/image/gpu/KisGpuProjection.cpp` | レイヤー列の変更領域と入力割当をまとめ、投影用GPU資源と発行を所有 |
 | `libs/image/gpu/KisGpuProjection.wgsl` | 3層ずつのGPU合成。各層の8ビット丸めを維持 |
+| `libs/image/gpu/KisGpuLayerProjection.*` | レイヤー列の変更領域、最新要求と完成済み投影の公開 |
 | `libs/image/gpu/KisGpuTileTransfer.cpp` | 保存用の非同期読取り、マッピングと画素の取込み |
 | `libs/image/gpu/KisGpuTileTexture.cpp` | 指定領域をGPU表示用画像へ複製し、画像の寿命と予算を管理 |
 | `libs/image/gpu/KisGpuTileStore_p.h` | 所有者内部の割当、版、完了と発行中資源の表現 |
@@ -150,6 +151,10 @@ CPUの本番演算とGPUの結果を完全一致で検査する。円・楕円�
 旧投影と表示レイヤーのタイルから対象を求め、疎な画像の空白領域は割り当てない。
 必要量は全レイヤーを含めて発行前に検査し、拒否時は旧投影を維持する。
 入力版とマスクは完了まで保持する。変更矩形の決定は画像モデルが所有する。
+
+画像側は`KisGpuLayerProjection`へレイヤー列を渡し、GPUタイルの共有状態から変更領域を
+求める。最新要求の成功後に入力列と投影版を一緒に公開し、表示側が完成済みの画素を読む。
+保持、拒否と文書ごとの分離は[GPUレイヤー列と完成済み投影の管理](gpu-layer-projection.md)が定義する。
 
 投影のGPU計算は、透明へ戻す段階と、下から3層ずつを合成する段階で構成する。
 各段階を独立した計算区間として記録し、前段階の結果を後段階が読む順序を保持する。

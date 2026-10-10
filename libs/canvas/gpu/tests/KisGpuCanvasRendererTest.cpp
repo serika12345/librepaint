@@ -5,6 +5,8 @@
 #include "GpuRenderer.h"
 #include "KisGpuDevice.h"
 #include "KisGpuTileStore.h"
+#include "KisGpuEditSession.h"
+#include "KisGpuLayerProjection.h"
 #include "KisGpuTestDevice.h"
 #include <QtTest>
 #include <cmath>
@@ -61,6 +63,7 @@ private Q_SLOTS:
     void initTestCase();
     void cleanup();
     void globalBudgetRefusalCanBeRetried();
+    void layerProjectionFollowsPreviewHistoryAndDocumentSwitch();
     void transformedPixels_data();
     void transformedPixels();
     void interpolationKeepsTransparentColorsOutOfVisiblePixels();
@@ -75,6 +78,81 @@ private Q_SLOTS:
 private:
     std::unique_ptr<KisGpuTestDevice> m_gpu;
 };
+
+void KisGpuCanvasRendererTest::layerProjectionFollowsPreviewHistoryAndDocumentSwitch()
+{
+    using Session = KisGpuEditSession;
+    using Projection = KisGpuLayerProjection;
+    const QRect bounds(0, 0, 2, 2);
+    Store store(m_gpu->owner, 128 * Store::TileBytes);
+    Session edit(store, 2);
+    Projection document(store, bounds), anotherDocument(store, bounds);
+    const auto background = store.fill(store.emptyVersion(), bounds, 0xFFFF0000);
+    Store::DabCommand dab;
+    dab.center = QPointF(0, 0);
+    dab.diameter = QSizeF(.5, .5);
+    dab.rgba = 0xFF0000FF;
+    const auto token = edit.begin();
+    QCOMPARE(edit.append(token, {dab}, bounds), Session::Result::Accepted);
+    wgpuDevicePoll(m_gpu->device, true, nullptr);
+    edit.poll();
+    QCOMPARE(document.setLayers({{background.version}, {edit.preview()}}), Store::Error::None);
+    QCOMPARE(anotherDocument.setLayers({{background.version}}), Store::Error::None);
+    wgpuDevicePoll(m_gpu->device, true, nullptr);
+    document.poll();
+    anotherDocument.poll();
+    const auto oldImage = store.textureSnapshot(document.snapshot().pixels, bounds);
+    QVERIFY(finish(store, oldImage.completion));
+    Renderer renderer(m_gpu->owner, WGPUTextureFormat_RGBA8Unorm);
+    Renderer::View view;
+    view.sampling = Renderer::Sampling::Nearest;
+    Target oldTarget(*m_gpu, bounds.size()), newTarget(*m_gpu, bounds.size()), otherTarget(*m_gpu, bounds.size());
+    const auto oldFrame = renderer.render(oldImage, oldTarget.texture, view);
+    QCOMPARE(oldFrame.error, Renderer::Error::None);
+    dab.center = QPointF(1, 1);
+    dab.rgba = 0xFF00FF00;
+    QCOMPARE(edit.replace(token, {dab}, bounds), Session::Result::Accepted);
+    wgpuDevicePoll(m_gpu->device, true, nullptr);
+    edit.poll();
+    const auto preview = edit.preview();
+    QCOMPARE(document.setLayers({{background.version}, {preview}}), Store::Error::None);
+    wgpuDevicePoll(m_gpu->device, true, nullptr);
+    document.poll();
+    const auto replacementImage = store.textureSnapshot(document.snapshot().pixels, bounds);
+    const auto otherImage = store.textureSnapshot(anotherDocument.snapshot().pixels, bounds);
+    QVERIFY(finish(store, otherImage.completion));
+    const auto newFrame = renderer.render(replacementImage, newTarget.texture, view);
+    const auto otherFrame = renderer.render(otherImage, otherTarget.texture, view);
+    QVERIFY(finish(renderer, oldFrame));
+    QVERIFY(finish(renderer, newFrame));
+    QVERIFY(finish(renderer, otherFrame));
+    const QByteArray blue = QByteArray::fromHex("0000ffff");
+    QCOMPARE(m_gpu->read(oldTarget.texture, bounds.size()), QByteArray::fromHex("ff0000ff") + blue.repeated(3));
+    QCOMPARE(m_gpu->read(newTarget.texture, bounds.size()), blue.repeated(3) + QByteArray::fromHex("00ff00ff"));
+    QCOMPARE(m_gpu->read(otherTarget.texture, bounds.size()), blue.repeated(4));
+    QCOMPARE(edit.commit(token), Session::Result::Accepted);
+    edit.poll();
+    QCOMPARE(edit.state(), Session::State::Idle);
+    const auto beforeCommitProjection = store.statistics();
+    QCOMPARE(document.setLayers({{background.version}, {edit.head()}}), Store::Error::None);
+    document.poll();
+    QCOMPARE(store.statistics().submissions, beforeCommitProjection.submissions);
+    QVERIFY(edit.undo());
+    QCOMPARE(document.setLayers({{background.version}, {edit.head()}}), Store::Error::None);
+    wgpuDevicePoll(m_gpu->device, true, nullptr);
+    document.poll();
+    const auto undoImage = store.textureSnapshot(document.snapshot().pixels, bounds);
+    QVERIFY(finish(store, undoImage.completion));
+    QVERIFY(finish(renderer, renderer.render(undoImage, newTarget.texture, view)));
+    QCOMPARE(m_gpu->read(newTarget.texture, bounds.size()), blue.repeated(4));
+    QVERIFY(edit.redo());
+    QCOMPARE(document.setLayers({{background.version}, {edit.head()}}), Store::Error::None);
+    wgpuDevicePoll(m_gpu->device, true, nullptr);
+    document.poll();
+    QVERIFY(document.snapshot().layers[1].pixels == preview);
+    QCOMPARE(store.statistics().pixelReadbackBytes, quint64(0));
+    QCOMPARE(store.statistics().pixelUploadBytes, quint64(0));
+}
 
 void KisGpuCanvasRendererTest::initTestCase()
 {
