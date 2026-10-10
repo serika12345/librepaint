@@ -107,6 +107,7 @@
 文書ファイル側の`libs/document/files/gpu`は、固定したCPU回復値の保存・再読込を所有する。
 [GPU文書回復ファイル](gpu-document-recovery-file.md)が形式、背景実行と予算を定義する。
 [GPU文書の固定版読取り](gpu-document-readback.md)が保存対象の版の固定、非同期画素取得とCPU結果の寿命を定義する。
+[GPU文書のKRA保存](gpu-kra-save.md)が固定した画素と既存の標準形式ライターの接続を定義する。
 
 `libs/image/dabspacing`はCPU描画とGPU向け入力生成で距離間隔を共用する。
 `libs/painting/gpu`は位置と筆圧からブラシ印を作り、GPU編集セッションへ渡す。

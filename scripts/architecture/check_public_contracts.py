@@ -141,6 +141,7 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
         "libs/canvas/gpu/tests/KisGpuCanvasRendererTest.cpp",
         "libs/painting/gpu/tests/KisGpuBrushStrokeTest.cpp",
         "libs/painting/tests/TestPublicImageHeaders.cpp",
+        "plugins/impex/libkra/gpu/tests/KisGpuKraSaveJobTest.cpp",
     ),
     "libs/impex": ("libs/impex/tests/TestImportExportPublicHeaders.cpp",),
     "libs/input": ("libs/input/tests/TestInputShortcutMatcher.cpp",),

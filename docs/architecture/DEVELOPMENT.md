@@ -193,6 +193,19 @@ GPU上での編集再開は、評価済みのテスト環境で次を実行す�
 画像側の回復規則を変える場合は`KisGpuLayerDocumentRecoveryTest`と関連するGPU契約も実行する。
 形式を更新する場合は、既存バージョンの固定試験データと画像を維持し、新しい形式の互換検査を追加する。
 
+### GPU文書のKRA保存の検証
+
+[GPU文書のKRA保存](gpu-kra-save.md)は、固定したレイヤー画素とマスクを既存の
+KRAライターへ渡し、既存パーサーで再読込して照合する。GPU文書を有効にした
+評価済みのテスト環境で次を実行する。
+
+```sh
+./scripts/run-shared-test-env ./scripts/run-test KisGpuKraSaveJobTest
+```
+
+形式処理を変更した場合は既存の`kis_kra_saver_test`と`kis_kra_loader_test`も実行する。
+GPU統合画像と既存投影の比較は、製品統合の画像契約で扱う。
+
 ### GPU文書タイルの検証
 
 [GPU文書タイルと版の契約](gpu-document-tiles.md)は、疎な割当、版の共有、
