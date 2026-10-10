@@ -12,7 +12,8 @@ wgpu-native 27.0.4.0を直接利用する。画像モデル、ブラシ、履歴
 | `libs/image/gpu/KisGpuDevice.*` | 実GPUの生成、喪失通知と同期した破棄 |
 | `libs/image/gpu/KisGpuDevice_p.h` | ネイティブデバイスと全描画先で共有する利用可否 |
 | `libs/image/gpu/KisGpuTileStore.h` | 版、単色描画、画素合成、明示的な転送、操作完了、予算と統計の内部API |
-| `libs/image/gpu/KisGpuTileStore.cpp` | GPUバッファーの寿命、タイル共有、GPU内複製、計算命令と完了観測 |
+| `libs/image/gpu/KisGpuTileStore.cpp` | GPU実行資源の生成、版の共有、命令送信と完了回収 |
+| `libs/image/gpu/KisGpuTilePaint.cpp` | 単色とブラシ印の検査、変更タイルのGPU内複製と描画命令の記録 |
 | `libs/image/gpu/KisGpuTileComposite.cpp` | 画像版と選択マスクを読むGPU内合成 |
 | `libs/image/gpu/KisGpuSubmissionTiming.cpp` | 計算処理の時刻記録、有限の時刻領域の借用と非同期読取り |
 | `libs/image/gpu/KisGpuProjection.cpp` | レイヤー列から変更領域だけを一回で合成する投影生成 |
