@@ -14,6 +14,8 @@ bool positiveFloat(qreal value) { return finiteFloat(value) && value > 0; }
 bool validSample(const KisGpuBrushStroke::Sample &sample)
 {
     return finiteFloat(sample.position.x()) && finiteFloat(sample.position.y())
+        && qAbs(sample.position.x()) <= std::numeric_limits<int>::max()
+        && qAbs(sample.position.y()) <= std::numeric_limits<int>::max()
         && std::isfinite(sample.pressure) && sample.pressure >= 0 && sample.pressure <= 1;
 }
 }
@@ -34,6 +36,7 @@ KisGpuBrushStroke::KisGpuBrushStroke(KisGpuEditSession &session, KisGpuEditSessi
         || settings.fade.width() > 1 || settings.fade.height() > 1 || !finiteFloat(settings.spacing) || settings.spacing < 0
         || !std::isfinite(qMax(settings.diameter.width(), settings.diameter.height()) * settings.spacing)
         || (settings.operation != KisGpuTileStore::CompositeOp::Over && settings.operation != KisGpuTileStore::CompositeOp::Erase)
+        || (settings.smudgeRate && (settings.texture || settings.operation != KisGpuTileStore::CompositeOp::Over))
         || maximumSteps <= 0) throw std::invalid_argument("Invalid GPU brush size, fade, spacing, operation or generation limit");
 }
 
@@ -58,7 +61,7 @@ KisGpuBrushStroke::Update KisGpuBrushStroke::paint(const QVector<Sample> &sample
     QVector<KisGpuTileStore::DabCommand> commands;
     qsizetype steps = 0;
     const auto place = [&](const Sample &sample) {
-        if (steps == m_maximumSteps) return false;
+        if (steps == m_maximumSteps || (m_settings.smudgeRate && commands.size() == 16)) return false;
         ++steps;
         const auto size = m_settings.diameter * (m_settings.pressureSize ? sample.pressure : 1.0);
         const bool tooSmall = size.width() < .01 || size.height() < .01;
@@ -73,6 +76,11 @@ KisGpuBrushStroke::Update KisGpuBrushStroke::paint(const QVector<Sample> &sample
         command.opacity = m_settings.opacity;
         command.coverage = m_settings.coverage;
         command.textureStrength = m_settings.textureStrength;
+        if (m_settings.smudgeRate) {
+            const QPoint pixel(int(std::floor(sample.position.x())), int(std::floor(sample.position.y())));
+            command.pickup = KisGpuTileStore::DabCommand::Pickup{cursor.previousDab.value_or(pixel), *m_settings.smudgeRate};
+            cursor.previousDab = pixel;
+        }
         commands.push_back(command);
         return true;
     };

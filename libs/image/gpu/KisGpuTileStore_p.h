@@ -213,6 +213,7 @@ struct KisGpuTileStore::Private {
         std::shared_ptr<Timing> timing = {};
         std::shared_ptr<TextureData> texture = {};
         std::shared_ptr<BrushTextureData> brushTexture = {};
+        std::shared_ptr<KisGpuTileStorage::Allocation> pickup = {};
     };
     std::shared_ptr<KisGpuTileStorage::DeviceState> state;
     quint64 budget;
@@ -233,6 +234,7 @@ struct KisGpuTileStore::Private {
         DabPipelines &operator=(const DabPipelines &) = delete;
     };
     std::unique_ptr<DabPipelines> texturePipelines;
+    std::unique_ptr<DabPipelines> mixingPipelines;
     struct ProjectionPipelines {
         WGPUBindGroupLayout layout = nullptr;
         WGPUComputePipeline pipeline = nullptr;

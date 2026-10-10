@@ -19,7 +19,7 @@ using Store = KisGpuTileStore;
 using Error = File::Error;
 constexpr quint32 Absent = std::numeric_limits<quint32>::max();
 constexpr qsizetype HeaderBytes = 52;
-constexpr quint32 CurrentVersion = 2;
+constexpr quint32 CurrentVersion = 3;
 struct Failure { Error error; };
 void require(bool condition, Error error = Error::InvalidData) { if (!condition) throw Failure{error}; }
 
@@ -66,6 +66,7 @@ struct Reader {
     const QByteArray &bytes;
     MemoryBudget memory;
     qsizetype position = 0;
+    quint32 version = CurrentVersion;
     quint64 remaining() const { return quint64(bytes.size() - position); }
     template<typename T> T number() {
         require(remaining() >= sizeof(T));
@@ -147,11 +148,16 @@ void writeCommands(Writer &out, const QVector<Store::DabCommand> &commands)
         out.real(command.fade.width()); out.real(command.fade.height());
         out.number(command.rgba); out.number(quint8(command.operation == Store::CompositeOp::Erase ? 1 : 0));
         out.number(command.opacity); out.number(command.coverage); out.number(command.textureStrength);
+        out.number(quint8(command.pickup.has_value()));
+        if (command.pickup) {
+            out.number(qint32(command.pickup->pixel.x())); out.number(qint32(command.pickup->pixel.y()));
+            out.number(command.pickup->rate);
+        }
     }
 }
 QVector<Store::DabCommand> readCommands(Reader &in)
 {
-    const auto count = in.count(56, sizeof(Store::DabCommand));
+    const auto count = in.count(in.version >= 3 ? 57 : 56, sizeof(Store::DabCommand));
     QVector<Store::DabCommand> result;
     result.reserve(count);
     for (quint32 i = 0; i < count; ++i) {
@@ -168,6 +174,10 @@ QVector<Store::DabCommand> readCommands(Reader &in)
         command.operation = operation ? Store::CompositeOp::Erase : Store::CompositeOp::Over;
         command.opacity = in.number<quint8>(); command.coverage = in.number<quint8>();
         command.textureStrength = in.number<quint8>();
+        if (in.version >= 3 && in.boolean()) {
+            const auto px = in.number<qint32>(), py = in.number<qint32>();
+            command.pickup = Store::DabCommand::Pickup{{px, py}, in.number<quint8>()};
+        }
         result.push_back(command);
     }
     return result;
@@ -313,7 +323,7 @@ QByteArray encode(const Document::Recovery &data, quint64 maximum)
 }
 Document::Recovery decode(const QByteArray &bytes, quint64 maximum, quint32 version)
 {
-    Reader in{bytes, {maximum}};
+    Reader in{bytes, {maximum}, 0, version};
     Tables tables(Document::Recovery{});
     const auto selections = in.count(20, sizeof(Session::ReplaySelection) + sizeof(std::shared_ptr<const Session::ReplaySelection>));
     tables.selections.values.reserve(selections);

@@ -54,6 +54,9 @@ public:
         quint8 coverage = 255;
         /** Prepared texture multiplication strength; 255 is full strength. */
         quint8 textureStrength = 255;
+        /** Center-sample dulling from this version after preceding dabs, with unlocked alpha. */
+        struct Pickup { QPoint pixel; quint8 rate = 255; };
+        std::optional<Pickup> pickup;
     };
 
     /** Borrowed read-only TileBytes range; a null buffer denotes an absent tile. */
@@ -134,6 +137,7 @@ public:
         quint64 timingReadbackBytes = 0;
         quint64 textureCopyBytes = 0;
         quint64 imageTextureAllocationBytes = 0;
+        quint64 pickupCopyBytes = 0;
     };
 
     /** Immutable prepared alpha8 pattern on this store; may outlive its owner. */
@@ -221,7 +225,7 @@ public:
     Statistics statistics() const;
 
 private:
-    enum class UpdateKind { Fill, Over, Erase, DabOver, DabErase };
+    enum class UpdateKind { Fill, Over, Erase, DabOver, DabErase, DabMix };
     struct UpdateCommand {
         QRect rectangle;
         quint32 rgba;
@@ -230,6 +234,7 @@ private:
         QPointF center;
         QSizeF diameter, fade;
         quint8 textureStrength = 255;
+        std::optional<DabCommand::Pickup> pickup;
     };
     Edit compositePixels(const Version &base, const Version &source, const Version *mask, QRect rectangle,
                          CompositeOp operation, quint8 opacity, quint8 coverage);
@@ -237,6 +242,7 @@ private:
                           const BrushTexture *texture = nullptr, QPoint origin = {});
     Edit update(const Version &base, const QVector<UpdateCommand> &commands, const Version *selection = nullptr,
                 const BrushTexture *texture = nullptr, QPoint origin = {});
+    Edit mixDabs(const Version &base, const QVector<UpdateCommand> &commands, const Version *selection);
     struct Private;
     std::unique_ptr<Private> d;
 };

@@ -58,6 +58,7 @@ private Q_SLOTS:
     void queueRejectionPreservesInputProgress();
     void invalidInputAndGenerationLimitAreAtomic();
     void textureStrengthMatchesDirectDab();
+    void mixingProgressAndReplacementPreservePickup();
     void selectedReplacementAndRecoveryUseIdenticalDabs_data();
     void selectedReplacementAndRecoveryUseIdenticalDabs();
     void deviceReplacementContinuesAcceptedInput_data();
@@ -65,6 +66,38 @@ private Q_SLOTS:
 private:
     std::unique_ptr<KisGpuTestDevice> m_gpu;
 };
+
+void KisGpuBrushStrokeTest::mixingProgressAndReplacementPreservePickup()
+{
+    const QRect bounds(-2, 0, 6, 1);
+    Store store(m_gpu->owner, 64 * Store::TileBytes);
+    Session session(store, 2);
+    auto token = session.begin();
+    Stroke::Settings solid;
+    solid.diameter = {.5, .5}; solid.rgba = 0xFF0000FF;
+    QCOMPARE(session.append(token, {dab(solid, {-1, 0}, solid.diameter)}, bounds), Session::Result::Accepted);
+    session.commit(token); settle(session);
+    token = session.begin();
+    auto mixed = solid; mixed.spacing = 2; mixed.smudgeRate = 255;
+    Stroke stroke(session, token, mixed, bounds);
+    QCOMPARE(stroke.append({{{-1, 0}, 1}, {{0, 0}, 1}}).result, Stroke::Result::Accepted);
+    const auto progress = stroke.progress();
+    QCOMPARE(stroke.append({{{1, 0}, -1}}).result, Stroke::Result::InvalidInput);
+    Stroke resumed(session, token, mixed, bounds, progress);
+    QCOMPARE(resumed.append({{{1, 0}, 1}}).result, Stroke::Result::Accepted);
+    session.commit(token); settle(session);
+    QCOMPARE(m_gpu->read(session.head(), bounds), QByteArray::fromHex("00000000ff0000ffff0000ccff0000a30000000000000000"));
+    const auto accepted = session.head();
+    QVERIFY(session.undo());
+    token = session.begin();
+    Stroke replacement(session, token, mixed, bounds);
+    QCOMPARE(replacement.append({{{2, 0}, 1}, {{3, 0}, 1}}).result, Stroke::Result::Accepted);
+    QCOMPARE(replacement.replace({{{-1, 0}, 1}, {{0, 0}, 1}, {{1, 0}, 1}}).result, Stroke::Result::Accepted);
+    session.commit(token); settle(session);
+    QCOMPARE(m_gpu->read(session.head(), bounds), m_gpu->read(accepted, bounds));
+    QCOMPARE(store.statistics().pixelReadbackBytes, quint64(0));
+    QCOMPARE(store.statistics().pixelUploadBytes, quint64(0));
+}
 
 void KisGpuBrushStrokeTest::placementMatchesCpuContract()
 {
@@ -231,16 +264,20 @@ void KisGpuBrushStrokeTest::deviceReplacementContinuesAcceptedInput_data()
 {
     QTest::addColumn<bool>("textured");
     QTest::addColumn<bool>("replace");
-    QTest::newRow("append-solid") << false << false;
-    QTest::newRow("append-textured") << true << false;
-    QTest::newRow("replace-solid") << false << true;
-    QTest::newRow("replace-textured") << true << true;
+    QTest::addColumn<bool>("mixed");
+    QTest::newRow("append-solid") << false << false << false;
+    QTest::newRow("append-textured") << true << false << false;
+    QTest::newRow("replace-solid") << false << true << false;
+    QTest::newRow("replace-textured") << true << true << false;
+    QTest::newRow("append-mixed") << false << false << true;
+    QTest::newRow("replace-mixed") << false << true << true;
 }
 
 void KisGpuBrushStrokeTest::deviceReplacementContinuesAcceptedInput()
 {
     QFETCH(bool, textured);
     QFETCH(bool, replace);
+    QFETCH(bool, mixed);
     using Document = KisGpuLayerDocument;
     const QVector<Stroke::Sample> prefix{{{-14.25, 4.75}, .23}, {{-5.6, 11.1}, .82}, {{3.13, 11.43}, .57}};
     const QVector<Stroke::Sample> suffix{{{8.4, 22.6}, .31}, {{23.75, 29.15}, .93}, {{19.2, 40.63}, .46}};
@@ -248,6 +285,7 @@ void KisGpuBrushStrokeTest::deviceReplacementContinuesAcceptedInput()
         Stroke::Settings settings;
         settings.diameter = {18, 13}; settings.fade = {.7, .9}; settings.spacing = .43;
         settings.rgba = 0xBE746852; settings.opacity = 203; settings.coverage = 181;
+        if (mixed) { settings.smudgeRate = 213; settings.spacing = .8; }
         if (textured) {
             settings.textureStrength = 77;
             settings.texture = session.createTexture({3, 2}, QByteArray::fromHex("0080ff0140fe"), {-2, 3}).texture;
@@ -259,10 +297,16 @@ void KisGpuBrushStrokeTest::deviceReplacementContinuesAcceptedInput()
         settings.rgba = 0xCC000000;
         return session.createSelection({dab(settings, {5, 17}, {80, 70})}, clip).selection;
     };
+    Stroke::Settings red, blue;
+    red.rgba = 0xCC0000FF; blue.rgba = 0xFFFF0000;
+    const QVector<Store::DabCommand> seed{dab(red, {0, 0}, {80, 80}), dab(blue, {30, 30}, {25, 25})};
     QByteArray expected;
     {
         Store store(m_gpu->owner, 128 * Store::TileBytes);
         Session session(store, 2);
+        auto preparation = session.begin();
+        QCOMPARE(session.append(preparation, seed, clip), Session::Result::Accepted);
+        session.commit(preparation); settle(session);
         const auto settings = settingsFor(session);
         const auto selection = selectionFor(session);
         QVERIFY(selection);
@@ -281,6 +325,12 @@ void KisGpuBrushStrokeTest::deviceReplacementContinuesAcceptedInput()
     auto store = std::make_shared<Store>(original.owner, 128 * Store::TileBytes);
     Document document(store, 8);
     QCOMPARE(document.addLayer(QStringLiteral("Paint")).result, Document::Result::Accepted);
+    {
+        const auto preparation = document.begin(1);
+        QCOMPARE(preparation.session->append(preparation.token, seed, clip), Session::Result::Accepted);
+        document.commit(preparation.token);
+        QTRY_COMPARE_WITH_TIMEOUT((document.poll(), document.state()), Document::State::Idle, 5000);
+    }
     Stroke::Progress progress;
     {
         auto edit = document.begin(1);

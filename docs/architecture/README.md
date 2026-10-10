@@ -113,6 +113,7 @@
 `libs/image/dabspacing`はCPU描画とGPU向け入力生成で距離間隔を共用する。
 `libs/painting/gpu`は位置と筆圧からブラシ印を作り、GPU編集セッションへ渡す。
 [筆圧と間隔からのGPUブラシ命令生成](gpu-brush-input.md)が配置、入力の進行と再試行の契約を定義する。
+[GPUブラシの下地採取](gpu-brush-mixing.md)がGPU内の採取順序、混色と履歴への保持を定義する。
 
 `libs/canvas/gpu`の`kritacanvasgpurenderer`は、GPU文書が生成した画像を直接読み、
 座標変換、補間と背景合成をGPU上で実行する。表示側からGPU文書所有者とQt Guiへ依存する。

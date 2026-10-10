@@ -117,6 +117,7 @@ KisGpuTileStore::Private::Private(std::shared_ptr<NativeDevice> nativeOwner, qui
     Handle<WGPUComputePipeline, wgpuComputePipelineRelease> imagePipeline(
         wgpuDeviceCreateComputePipeline(device, &descriptor));
     texturePipelines = createDabPipelines(shader.value, 6, "paintTextured", "paintSelectedTextured");
+    mixingPipelines = createDabPipelines(shader.value, 7, "paintMixed", "paintSelectedMixed");
     projectionPipelines = createProjectionPipelines(pixelOperators);
     layout = groupLayout.value;
     groupLayout.value = nullptr;

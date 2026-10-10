@@ -20,11 +20,21 @@ inline bool validDabCommand(const KisGpuTileStore::DabCommand &command)
         && std::abs(cy) <= std::numeric_limits<int>::max()
         && dx <= std::numeric_limits<int>::max() && dy <= std::numeric_limits<int>::max()
         && std::isfinite(float(2 / dx / fx)) && std::isfinite(float(2 / dy / fy))
+        && (!command.pickup || command.operation == KisGpuTileStore::CompositeOp::Over)
         && (command.operation == KisGpuTileStore::CompositeOp::Over || command.operation == KisGpuTileStore::CompositeOp::Erase);
 }
 inline bool validBrushTexture(QSize size, const QByteArray &alpha)
 {
     return size.width() > 0 && size.height() > 0 && qint64(size.width()) * size.height() == alpha.size();
+}
+inline bool validDabBatch(const QVector<KisGpuTileStore::DabCommand> &commands, bool textured = false)
+{
+    bool mixing = false;
+    for (const auto &command : commands) {
+        if (!validDabCommand(command)) return false;
+        mixing = mixing || command.pickup.has_value();
+    }
+    return !mixing || (!textured && commands.size() <= 16);
 }
 }
 #endif

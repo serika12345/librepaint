@@ -54,6 +54,8 @@ KisGpuTileStore::Edit KisGpuTileStore::paintDabCommands(const Version &base, con
     if (selection && (!selection->d || selection->d->owner != d->state)) return {Error::InvalidVersion, {}, {}};
     if (!base.d || base.d->owner != d->state) return {Error::InvalidVersion, {}, {}};
     if (!deviceAvailable()) return {Error::DeviceLost, {}, {}};
+    const bool mixing = std::any_of(commands.begin(), commands.end(), [](const DabCommand &command) { return command.pickup.has_value(); });
+    if (!validDabBatch(commands, bool(texture))) return {Error::InvalidCommand, {}, {}};
     QVector<UpdateCommand> updates;
     updates.reserve(commands.size());
     for (const auto &command : commands) {
@@ -69,9 +71,10 @@ KisGpuTileStore::Edit KisGpuTileStore::paintDabCommands(const Version &base, con
         const qint64 bottom = std::min(qint64(clip.y()) + clip.height(), qint64(std::ceil(cy + dy / 2)) + 1);
         if (left >= right || top >= bottom) continue;
         updates.push_back({QRect(int(left), int(top), int(right - left), int(bottom - top)), command.rgba,
-            command.operation == CompositeOp::Erase ? UpdateKind::DabErase : UpdateKind::DabOver,
-            command.opacity, command.coverage, command.center, command.diameter, command.fade, command.textureStrength});
+            command.pickup ? UpdateKind::DabMix : command.operation == CompositeOp::Erase ? UpdateKind::DabErase : UpdateKind::DabOver,
+            command.opacity, command.coverage, command.center, command.diameter, command.fade, command.textureStrength, command.pickup});
     }
+    if (mixing) return mixDabs(base, updates, selection);
     return update(base, updates, selection, texture, origin);
 }
 

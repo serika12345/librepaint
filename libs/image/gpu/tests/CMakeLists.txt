@@ -1,4 +1,11 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
+kis_add_test(KisGpuDabMixingTest.cpp LINK_LIBRARIES kritaimagegpudocument Qt${QT_MAJOR_VERSION}::Test)
+target_sources(KisGpuDabMixingTest PRIVATE KisGpuTestDevice.cpp)
+target_compile_definitions(KisGpuDabMixingTest PRIVATE
+    MIXING_FIXTURE="${CMAKE_SOURCE_DIR}/libs/painting/tests/data/brush_mixing_contract.json")
+set_tests_properties(libs-image-gpu-KisGpuDabMixingTest PROPERTIES
+    TIMEOUT 60 LABELS gpu FAIL_REGULAR_EXPRESSION "Validation Error;VUID-")
+
 kis_add_test(KisGpuLayerDocumentSuspendTest.cpp LINK_LIBRARIES kritaimagegpudocument Qt${QT_MAJOR_VERSION}::Test)
 target_sources(KisGpuLayerDocumentSuspendTest PRIVATE KisGpuTestDevice.cpp)
 set_tests_properties(libs-image-gpu-KisGpuLayerDocumentSuspendTest PROPERTIES

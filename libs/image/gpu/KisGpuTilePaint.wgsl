@@ -88,6 +88,66 @@ fn paintSelectedTextured(@builtin(global_invocation_id) position: vec3<u32>) {
     paintPixel(position, maskPixels[offset] >> 24u, textureAlpha(position), true);
 }
 
+@group(0) @binding(7) var<storage, read> pickupPixel: array<u32>;
+
+fn dulling(source: vec4<u32>, destination: vec4<u32>, opacity: f32) -> vec4<u32> {
+    let alpha = f32(source.a) * opacity;
+    if (alpha == 0.0) { return destination; }
+    var resultAlpha = f32(destination.a);
+    var blend = alpha * (1.0 / 255.0);
+    if (destination.a == 0u) {
+        resultAlpha = alpha;
+        blend = 1.0;
+    } else if (destination.a != 255u) {
+        resultAlpha += (255.0 - resultAlpha) * alpha * (1.0 / 255.0);
+        blend = alpha / resultAlpha;
+    }
+    let color = fma(vec3<f32>(blend), vec3<f32>(source.rgb) - vec3<f32>(destination.rgb), vec3<f32>(destination.rgb));
+    return vec4<u32>(quantize(color.r), quantize(color.g), quantize(color.b), quantize(resultAlpha));
+}
+
+fn lerp8(destination: u32, source: u32, opacity: u32) -> u32 {
+    let product = (i32(source) - i32(destination)) * i32(opacity) + 128;
+    return u32(i32(destination) + (((product >> 8u) + product) >> 8u));
+}
+
+fn maskedCopy(source: vec4<u32>, destination: vec4<u32>, coverage: u32) -> vec4<u32> {
+    if (coverage == 0u) { return destination; }
+    if (coverage == 255u) { return source; }
+    let alpha = lerp8(destination.a, source.a, coverage);
+    if (alpha == 0u) { return vec4<u32>(destination.rgb, 0u); }
+    var color: vec3<u32>;
+    for (var channel = 0u; channel < 3u; channel++) {
+        let premultiplied = lerp8(multiply8(destination[channel], destination.a), multiply8(source[channel], source.a), coverage);
+        color[channel] = min(255u, (premultiplied * 255u + alpha / 2u) / alpha);
+    }
+    return vec4<u32>(color, alpha);
+}
+
+fn paintMixedPixel(position: vec3<u32>, selection: u32) {
+    let tile = parameters[0];
+    let command = commands[tile.firstCommand];
+    if (command.operation != 5u) { paintPixel(position, selection, 255u, false); return; }
+    if (all(position.xy >= command.lower) && all(position.xy < command.upper)) {
+        let index = position.y * 64u + position.x;
+        let destination = unpack(pixels[index]);
+        let source = dulling(unpack(pickupPixel[0]), destination, bitcast<f32>(tile.reserved));
+        let mask = multiply8(multiply8(dabAlpha(position.xy, commands[tile.firstCommand + 1u]), command.coverage), selection);
+        pixels[index] = pack(maskedCopy(source, destination, mask));
+    }
+}
+
+@compute @workgroup_size(8, 8)
+fn paintMixed(@builtin(global_invocation_id) position: vec3<u32>) {
+    paintMixedPixel(position, 255u);
+}
+
+@compute @workgroup_size(8, 8)
+fn paintSelectedMixed(@builtin(global_invocation_id) position: vec3<u32>) {
+    let offset = parameters[0].selectionOffset + position.y * 64u + position.x;
+    paintMixedPixel(position, maskPixels[offset] >> 24u);
+}
+
 struct CompositeParameters {
     sourceTile: u32, destinationTile: u32, lower: vec2<u32>, upper: vec2<u32>,
     operation: u32, opacity: u32, coverage: u32, maskTile: u32,

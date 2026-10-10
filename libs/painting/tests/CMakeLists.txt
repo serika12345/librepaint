@@ -4,6 +4,21 @@ kis_add_tests(
     LINK_LIBRARIES kritapainting kritatestsdk
 )
 
+kis_add_test(KisBrushMixingContractTest.cpp
+    LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Gui Qt${QT_MAJOR_VERSION}::Test Boost::boost Eigen3::Eigen Imath::Imath xsimd)
+target_sources(KisBrushMixingContractTest PRIVATE ${CMAKE_SOURCE_DIR}/libs/pigment/KoCompositeOpParameterInfo.cpp)
+target_include_directories(KisBrushMixingContractTest PRIVATE
+    ${CMAKE_SOURCE_DIR}/libs/pigment
+    ${CMAKE_BINARY_DIR}/libs/pigment
+    ${CMAKE_SOURCE_DIR}/libs/pigment/compositeops
+    ${CMAKE_SOURCE_DIR}/libs/global
+    ${CMAKE_BINARY_DIR}/libs/global
+    ${CMAKE_SOURCE_DIR}/libs/multiarch
+    ${CMAKE_BINARY_DIR}/libs/multiarch)
+target_compile_definitions(KisBrushMixingContractTest PRIVATE
+    kritapigment_EXPORTS
+    MIXING_FIXTURE="${CMAKE_CURRENT_SOURCE_DIR}/data/brush_mixing_contract.json")
+
 kis_add_test(KisBrushTextureContractTest.cpp
     LINK_LIBRARIES Qt${QT_MAJOR_VERSION}::Gui Qt${QT_MAJOR_VERSION}::Test Boost::boost Eigen3::Eigen Imath::Imath)
 target_include_directories(KisBrushTextureContractTest PRIVATE

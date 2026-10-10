@@ -60,15 +60,11 @@ bool KisGpuEditSession::ReplayState::validRecovery(const Recovery &recovery, qsi
     }
     std::set<const ReplaySelection *> selections;
     std::set<const ReplayTexture *> textures;
-    const auto commandsValid = [](const QVector<KisGpuTileStore::DabCommand> &commands) {
-        for (const auto &command : commands) if (!KisGpuTileStorage::validDabCommand(command)) return false;
-        return true;
-    };
     const auto editValid = [&](const ReplayEdit &edit) {
         for (const auto &batch : edit) {
-            if (!commandsValid(batch.commands)) return false;
+            if (!KisGpuTileStorage::validDabBatch(batch.commands, bool(batch.texture))) return false;
             if (batch.selection && selections.insert(batch.selection.get()).second
-                && !commandsValid(batch.selection->commands)) return false;
+                && !KisGpuTileStorage::validDabBatch(batch.selection->commands)) return false;
             if (batch.texture && textures.insert(batch.texture.get()).second
                 && !KisGpuTileStorage::validBrushTexture(batch.texture->size, batch.texture->alpha)) return false;
         }

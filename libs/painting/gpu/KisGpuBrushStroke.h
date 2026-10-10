@@ -26,6 +26,7 @@ public:
         Sample previous;
         qreal accumulated = 0, spacing = 0;
         bool started = false;
+        std::optional<QPoint> previousDab;
     };
     struct Settings {
         QSizeF diameter = QSizeF(20, 20), fade = QSizeF(1, 1);
@@ -36,6 +37,8 @@ public:
         quint8 opacity = 255, coverage = 255;
         std::optional<KisGpuEditSession::Texture> texture;
         quint8 textureStrength = 255;
+        /** Uncolored center-sample dulling; each dab picks up the preceding dab center. */
+        std::optional<quint8> smudgeRate;
     };
     enum class Result { Accepted, InvalidInput, InputLimitExceeded, EditRejected };
     struct Update {

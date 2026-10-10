@@ -45,7 +45,45 @@ private Q_SLOTS:
     void failedWritesPreserveThePreviousFile();
     void sharedCheckpointHistoryFitsTheOriginalGpuBudget();
     void successfulWriteFitsTheReadBudget();
+    void mixedHistoryAndUnfinishedPickupSurviveFileRoundTrip();
 };
+
+void KisGpuDocumentRecoveryFileTest::mixedHistoryAndUnfinishedPickupSurviveFileRoundTrip()
+{
+    Store::DabCommand solid;
+    solid.center = {-1, 0}; solid.diameter = {.5, .5}; solid.rgba = 0xFF0000FF;
+    auto first = solid; first.center = {0, 0}; first.pickup = Store::DabCommand::Pickup{{-1, 0}, 255};
+    auto second = first; second.center = {1, 0}; second.pickup = Store::DabCommand::Pickup{{0, 0}, 128};
+    auto working = first; working.center = {2, 0}; working.pickup = Store::DabCommand::Pickup{{1, 0}, 255};
+    auto raster = std::make_shared<Session::Recovery>();
+    const QRect bounds(-1, 0, 4, 1);
+    raster->edits = {{{{solid}, bounds, {}, {}}}, {{{first, second}, bounds, {}, {}}}};
+    raster->cursor = raster->firstRetained = 2;
+    auto layer = std::make_shared<Document::RecoveryLayer>();
+    layer->id = 1; layer->pixels = raster;
+    Document::Recovery saved;
+    saved.history = {{layer}}; saved.nextId = 2;
+    auto pending = *raster;
+    pending.working = Session::ReplayEdit{{{working}, bounds, {}, {}}};
+    saved.working = Document::RecoveryWorking{layer, Document::Target::Pixels, pending, false};
+    QTemporaryDir directory;
+    const auto path = directory.filePath(QStringLiteral("mixed-recovery"));
+    QCOMPARE(File::write(path, saved), File::Error::None);
+    const auto loaded = File::read(path);
+    QCOMPARE(loaded.error, File::Error::None);
+    QVERIFY(loaded.recovery);
+    KisGpuTestDevice gpu;
+    auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
+    Document restored(store, 0, *loaded.recovery);
+    QVERIFY(settle(restored));
+    QCOMPARE(restored.state(), Document::State::Editing);
+    const auto edit = restored.currentEditing();
+    QCOMPARE(gpu.read(edit.session->head(), bounds), QByteArray::fromHex("ff0000ffff0000ccff00005200000000"));
+    QCOMPARE(gpu.read(edit.session->preview(), bounds), QByteArray::fromHex("ff0000ffff0000ccff000052ff000042"));
+    QCOMPARE(gpu.owner.errorCount(), 0);
+    QCOMPARE(store->statistics().pixelUploadBytes, quint64(0));
+    QCOMPARE(store->statistics().pixelReadbackBytes, quint64(0));
+}
 
 void KisGpuDocumentRecoveryFileTest::emptyDocumentHasStableVersionedBytes()
 {
@@ -57,12 +95,12 @@ void KisGpuDocumentRecoveryFileTest::emptyDocumentHasStableVersionedBytes()
     QFile file(path);
     QVERIFY(file.open(QIODevice::ReadOnly));
     const auto actual = file.readAll();
-    // Version 2: empty asset/raster/layer tables and one empty history frame.
+    // Version 3: empty asset/raster/layer tables and one empty history frame.
     const auto payload = QByteArray::fromHex(
         "000000000000000000000000000000000000000100000000"
         "0000000000000000000000000000000100");
     QByteArray expected("LPGPUREC", 8);
-    expected += QByteArray::fromHex("000000020000000000000029");
+    expected += QByteArray::fromHex("000000030000000000000029");
     expected += QCryptographicHash::hash(payload, QCryptographicHash::Sha256);
     expected += payload;
     QCOMPARE(actual, expected);
@@ -236,7 +274,7 @@ void KisGpuDocumentRecoveryFileTest::damagedFilesAndOversizedCountsAreRejected()
         QVERIFY(!loaded.recovery);
     };
     auto bad = good; bad[0] = '!'; reject(bad);
-    bad = good; bad[11] = 3; reject(bad, File::Error::UnsupportedVersion);
+    bad = good; bad[11] = 4; reject(bad, File::Error::UnsupportedVersion);
     bad = good; bad[19] = 40; reject(bad);
     bad = good; bad[20] ^= 1; reject(bad);
     for (const auto length : {0, 8, 51, 52, int(good.size() - 1)}) reject(good.first(length));
@@ -376,55 +414,12 @@ void KisGpuDocumentRecoveryFileTest::versionedFilesPreserveRecordedImages_data()
 void KisGpuDocumentRecoveryFileTest::versionedFilesPreserveRecordedImages()
 {
     QFETCH(int, format);
-    auto selection = std::make_shared<Session::ReplaySelection>();
-    Store::DabCommand select;
-    select.center = {8, 8}; select.diameter = {32, 32}; select.rgba = 0x80000000;
-    selection->commands = {select}; selection->clip = {0, 0, 16, 16};
-    auto texture = std::make_shared<Session::ReplayTexture>();
-    texture->size = {3, 2}; texture->origin = {-2, 3}; texture->alpha = QByteArray::fromHex("0080ff0140fe");
-    Store::DabCommand command;
-    command.center = {4.5, 4.5}; command.diameter = {5, 7}; command.fade = {.7, .8};
-    command.rgba = 0xFF3399CC; command.opacity = 191; command.coverage = 127; command.textureStrength = 77;
-    auto first = std::make_shared<Session::Recovery>();
-    first->bounds = {0, 0, 1, 1}; first->pixels = QByteArray::fromHex("11223344");
-    first->edits = {{{{command}, {0, 0, 16, 16}, selection, texture}}};
-    first->cursor = first->firstRetained = 1;
-    auto mask = std::make_shared<Session::Recovery>();
-    mask->tiles.push_back({{0, 0}, QByteArray(Store::TileBytes, char(0xFF))});
-    mask->tiles[0].pixels.replace(0, 4, QByteArray::fromHex("11223300"));
-    auto layer = std::make_shared<Document::RecoveryLayer>();
-    layer->id = 1; layer->name = QStringLiteral("雪") + QChar(0xD800) + QChar(0);
-    layer->opacity = 77; layer->operation = Store::CompositeOp::Erase;
-    layer->pixels = first; layer->mask = mask;
-    auto later = std::make_shared<Document::RecoveryLayer>(*layer);
-    auto laterPixels = std::make_shared<Session::Recovery>(*first);
-    command.center = {4.5, 4.5}; command.operation = Store::CompositeOp::Erase;
-    laterPixels->edits.push_back({{{command}, {0, 0, 16, 16}, selection, texture}});
-    laterPixels->cursor = laterPixels->firstRetained = 2;
-    later->name = QStringLiteral("Future"); later->pixels = laterPixels;
-    if (format == 2) { later->visible = false; later->locked = true; }
-    Document::Recovery saved;
-    saved.history = {{layer}, {later}}; saved.nextId = 2;
-    auto working = *first;
-    command.center = {11.5, 2.5}; command.operation = Store::CompositeOp::Over;
-    working.working = Session::ReplayEdit{{{command}, {0, 0, 16, 16}, selection, texture}};
-    saved.working = Document::RecoveryWorking{layer, Document::Target::Pixels, working, false};
-    QTemporaryDir directory;
-    const auto path = directory.filePath(QStringLiteral("recovery"));
-    QByteArray bytes;
-    if (format == 2) {
-        QCOMPARE(File::write(path, saved), File::Error::None);
-        QFile actual(path);
-        QVERIFY(actual.open(QIODevice::ReadOnly));
-        bytes = actual.readAll();
-        QCOMPARE(qFromBigEndian<quint32>(bytes.constData() + 8), quint32(2));
-    }
+    const auto expectedName = QStringLiteral("雪") + QChar(0xD800) + QChar(0);
     const auto fixturePath = format == 1 ? QFINDTESTDATA("data/gpu_recovery_v1.bin")
                                          : QFINDTESTDATA("data/gpu_recovery_v2.bin");
     QVERIFY(!fixturePath.isEmpty());
     QFile fixture(fixturePath);
     QVERIFY(fixture.open(QIODevice::ReadOnly));
-    if (format == 2) QCOMPARE(bytes, fixture.readAll());
     const auto loaded = File::read(fixturePath);
     QCOMPARE(loaded.error, File::Error::None);
     QVERIFY(loaded.recovery);
@@ -433,7 +428,7 @@ void KisGpuDocumentRecoveryFileTest::versionedFilesPreserveRecordedImages()
     Document restored(store, 1, *loaded.recovery);
     QVERIFY(settle(restored));
     QCOMPARE(restored.state(), Document::State::Editing);
-    QCOMPARE(restored.layers()[0].name, layer->name);
+    QCOMPARE(restored.layers()[0].name, expectedName);
     const auto edit = restored.currentEditing();
     const auto hash = [&](const Store::Version &version) {
         return QCryptographicHash::hash(gpu.read(version, {0, 0, 16, 16}), QCryptographicHash::Sha256).toHex();
