@@ -94,11 +94,7 @@ public:
     quint64 recoveryBytes() const;
 
 private:
-    struct LayerState {
-        Layer layer;
-        RasterRecovery pixels = std::make_shared<const KisGpuEditSession::Recovery>();
-        RasterRecovery mask;
-    };
+    using LayerState = RecoveryLayer;
     using Record = std::shared_ptr<const LayerState>;
     using Frame = QVector<Record>;
     struct Active {
@@ -109,7 +105,6 @@ private:
     struct Restoration {
         Recovery request;
         QVector<std::shared_ptr<const RecoveryLayer>> records;
-        std::map<const RecoveryLayer *, Record> restored;
         qsizetype index = 0;
         std::map<const KisGpuEditSession::Recovery *, KisGpuTileStore::Version> rasters;
         std::shared_ptr<KisGpuEditSession> session;
@@ -120,6 +115,9 @@ private:
     static quint64 recoveryBytes(const Recovery &recovery);
     static std::optional<quint64> workingMaximum(const Recovery &recovery, quint64 maximumRecoveryBytes);
     qsizetype indexOf(LayerId id) const;
+    KisGpuTileStore::Version rasterVersion(const RasterRecovery &raster) const;
+    Layer layerValue(const LayerState &record) const;
+    void pruneRasterVersions();
     quint64 recordMetadataBytes(const LayerState &record) const;
     quint64 historyBytes(const QVector<Frame> &history) const;
     Result publish(Frame frame);
@@ -129,6 +127,7 @@ private:
     quint64 m_maximumRecoveryBytes;
     LayerId m_nextId = 1;
     QVector<Frame> m_history;
+    std::map<const KisGpuEditSession::Recovery *, KisGpuTileStore::Version> m_rasterVersions;
     std::optional<Active> m_active;
     std::shared_ptr<KisGpuEditSession> m_session;
     std::optional<Restoration> m_restoring;

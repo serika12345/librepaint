@@ -39,13 +39,36 @@ KisGpuLayerDocument::Result KisGpuLayerDocument::readiness() const
 qsizetype KisGpuLayerDocument::indexOf(LayerId id) const
 {
     const auto &frame = m_history[m_cursor];
-    for (qsizetype i = 0; i < frame.size(); ++i) if (frame[i]->layer.id == id) return i;
+    for (qsizetype i = 0; i < frame.size(); ++i) if (frame[i]->id == id) return i;
     return -1;
+}
+
+KisGpuTileStore::Version KisGpuLayerDocument::rasterVersion(const RasterRecovery &raster) const
+{
+    return raster ? m_rasterVersions.at(raster.get()) : KisGpuTileStore::Version{};
+}
+
+KisGpuLayerDocument::Layer KisGpuLayerDocument::layerValue(const LayerState &record) const
+{
+    return {record.id, record.name, {rasterVersion(record.pixels), rasterVersion(record.mask), record.opacity, record.operation}};
+}
+
+void KisGpuLayerDocument::pruneRasterVersions()
+{
+    std::set<const KisGpuEditSession::Recovery *> retained;
+    for (const auto &frame : m_history) for (const auto &record : frame) {
+        retained.insert(record->pixels.get());
+        if (record->mask) retained.insert(record->mask.get());
+    }
+    for (auto i = m_rasterVersions.begin(); i != m_rasterVersions.end();) {
+        if (!retained.count(i->first)) i = m_rasterVersions.erase(i);
+        else ++i;
+    }
 }
 
 quint64 KisGpuLayerDocument::recordMetadataBytes(const LayerState &record) const
 {
-    return sizeof(LayerState) + quint64(record.layer.name.size()) * sizeof(QChar);
+    return sizeof(LayerState) + quint64(record.name.size()) * sizeof(QChar);
 }
 
 quint64 KisGpuLayerDocument::historyBytes(const QVector<Frame> &history) const
@@ -82,6 +105,7 @@ KisGpuLayerDocument::Result KisGpuLayerDocument::publish(Frame frame)
     if (historyBytes(history) > m_maximumRecoveryBytes) return m_lastResult = Result::RecoveryBudgetExceeded;
     m_history = std::move(history);
     m_cursor = m_history.size() - 1;
+    pruneRasterVersions();
     return m_lastResult = Result::Accepted;
 }
 
@@ -93,9 +117,12 @@ KisGpuLayerDocument::LayerResult KisGpuLayerDocument::addLayer(QString name, qsi
     if (index == -1) index = frame.size();
     if (index < 0 || index > frame.size() || m_nextId == std::numeric_limits<LayerId>::max()) return {};
     auto record = std::make_shared<LayerState>();
-    record->layer = {m_nextId, std::move(name), {m_store->emptyVersion()}};
+    record->id = m_nextId;
+    record->name = std::move(name);
+    const auto pixels = record->pixels;
     frame.insert(index, std::move(record));
     const auto result = publish(std::move(frame));
+    if (result == Result::Accepted) m_rasterVersions[pixels.get()] = m_store->emptyVersion();
     return {result, result == Result::Accepted ? m_nextId++ : 0};
 }
 
@@ -131,9 +158,9 @@ KisGpuLayerDocument::Result KisGpuLayerDocument::renameLayer(LayerId id, QString
     const auto index = indexOf(id);
     if (index < 0) return Result::InvalidLayer;
     auto frame = m_history[m_cursor];
-    if (frame[index]->layer.name == name) return Result::Accepted;
+    if (frame[index]->name == name) return Result::Accepted;
     auto record = std::make_shared<LayerState>(*frame[index]);
-    record->layer.name = std::move(name);
+    record->name = std::move(name);
     frame[index] = std::move(record);
     return publish(std::move(frame));
 }
@@ -146,10 +173,10 @@ KisGpuLayerDocument::Result KisGpuLayerDocument::setLayerProperties(LayerId id, 
     if (index < 0) return Result::InvalidLayer;
     if (operation != KisGpuTileStore::CompositeOp::Over && operation != KisGpuTileStore::CompositeOp::Erase) return Result::InvalidInput;
     auto frame = m_history[m_cursor];
-    if (frame[index]->layer.paint.opacity == opacity && frame[index]->layer.paint.operation == operation) return Result::Accepted;
+    if (frame[index]->opacity == opacity && frame[index]->operation == operation) return Result::Accepted;
     auto record = std::make_shared<LayerState>(*frame[index]);
-    record->layer.paint.opacity = opacity;
-    record->layer.paint.operation = operation;
+    record->opacity = opacity;
+    record->operation = operation;
     frame[index] = std::move(record);
     return publish(std::move(frame));
 }
@@ -163,7 +190,6 @@ KisGpuLayerDocument::Result KisGpuLayerDocument::clearMask(LayerId id)
     auto frame = m_history[m_cursor];
     if (!frame[index]->mask) return Result::Accepted;
     auto record = std::make_shared<LayerState>(*frame[index]);
-    record->layer.paint.mask = {};
     record->mask.reset();
     frame[index] = std::move(record);
     return publish(std::move(frame));
@@ -178,8 +204,8 @@ KisGpuLayerDocument::Editing KisGpuLayerDocument::begin(LayerId id, Target targe
     if (target != Target::Pixels && target != Target::Mask) return {Result::InvalidInput, {}, {}};
     const auto &record = *m_history[m_cursor][index];
     const auto recovery = target == Target::Pixels ? *record.pixels : (record.mask ? *record.mask : KisGpuEditSession::Recovery{});
-    const auto version = target == Target::Pixels ? record.layer.paint.pixels
-        : (record.mask ? record.layer.paint.mask : m_store->emptyVersion());
+    const auto version = target == Target::Pixels ? rasterVersion(record.pixels)
+        : (record.mask ? rasterVersion(record.mask) : m_store->emptyVersion());
     const auto existing = historyBytes(m_history);
     const auto extra = recordMetadataBytes(record) + sizeof(KisGpuEditSession::Recovery) + sizeof(Frame) + quint64(m_history[m_cursor].size()) * sizeof(Record);
     if (extra > m_maximumRecoveryBytes - existing
@@ -229,18 +255,18 @@ void KisGpuLayerDocument::poll()
     const auto index = indexOf(m_active->id);
     auto frame = m_history[m_cursor];
     const auto &previous = *frame[index];
-    const auto before = m_active->target == Target::Pixels ? previous.layer.paint.pixels : previous.layer.paint.mask;
+    const auto before = rasterVersion(m_active->target == Target::Pixels ? previous.pixels : previous.mask);
     if (!(m_session->head() == before) && (m_active->target == Target::Pixels || m_session->head().tileCount() || previous.mask)) {
         auto record = std::make_shared<LayerState>(previous);
         if (m_active->target == Target::Pixels) {
-            record->layer.paint.pixels = m_session->head();
             record->pixels = std::make_shared<const KisGpuEditSession::Recovery>(*m_session->recovery());
         } else {
-            record->layer.paint.mask = m_session->head();
             record->mask = std::make_shared<const KisGpuEditSession::Recovery>(*m_session->recovery());
         }
+        const auto raster = m_active->target == Target::Pixels ? record->pixels : record->mask;
         frame[index] = std::move(record);
         if (publish(std::move(frame)) != Result::Accepted) return;
+        m_rasterVersions[raster.get()] = m_session->head();
     }
     m_active.reset();
     m_session.reset();
@@ -249,7 +275,7 @@ void KisGpuLayerDocument::poll()
 QVector<KisGpuLayerDocument::Layer> KisGpuLayerDocument::layers() const
 {
     QVector<Layer> result;
-    for (const auto &record : m_history[m_cursor]) result.push_back(record->layer);
+    for (const auto &record : m_history[m_cursor]) result.push_back(layerValue(*record));
     return result;
 }
 
@@ -257,8 +283,8 @@ QVector<KisGpuTileStore::Layer> KisGpuLayerDocument::projectionLayers(bool inclu
 {
     QVector<KisGpuTileStore::Layer> result;
     for (const auto &record : m_history[m_cursor]) {
-        auto layer = record->layer.paint;
-        if (includePreview && m_active && record->layer.id == m_active->id) {
+        auto layer = layerValue(*record).paint;
+        if (includePreview && m_active && record->id == m_active->id) {
             if (m_active->target == Target::Pixels) layer.pixels = m_session->preview();
             else if (record->mask || m_session->preview().tileCount()) layer.mask = m_session->preview();
         }
@@ -286,5 +312,6 @@ bool KisGpuLayerDocument::clearHistory()
     if (m_restoring) return false;
     m_history = {m_history[m_cursor]};
     m_cursor = 0;
+    pruneRasterVersions();
     return true;
 }

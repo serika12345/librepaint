@@ -97,27 +97,16 @@ KisGpuLayerDocument::Recovery KisGpuLayerDocument::recovery() const
     Recovery result;
     result.cursor = m_cursor;
     result.nextId = m_nextId;
-    std::map<const LayerState *, std::shared_ptr<const RecoveryLayer>> records;
-    for (const auto &frame : m_history) {
-        RecoveryFrame output;
-        for (const auto &record : frame) {
-            auto &cpu = records[record.get()];
-            if (!cpu) cpu = std::make_shared<const RecoveryLayer>(RecoveryLayer{
-                record->layer.id, record->layer.name, record->layer.paint.opacity, record->layer.paint.operation,
-                record->pixels, record->mask});
-            output.push_back(cpu);
-        }
-        result.history.push_back(std::move(output));
-    }
+    result.history = m_history;
     if (m_active) {
         const auto &record = m_history[m_cursor][indexOf(m_active->id)];
         auto data = *m_session->recovery();
-        const auto before = m_active->target == Target::Pixels ? record->layer.paint.pixels : record->layer.paint.mask;
+        const auto before = rasterVersion(m_active->target == Target::Pixels ? record->pixels : record->mask);
         const bool completed = !(m_session->head() == before)
             && (m_active->target == Target::Pixels || m_session->head().tileCount() || record->mask);
         if (completed) { data.working.reset(); data.commitRequested = false; }
         if (completed || data.working) result.working = RecoveryWorking{
-            records.at(record.get()), m_active->target, std::move(data), completed};
+            record, m_active->target, std::move(data), completed};
     }
     return result;
 }
@@ -143,7 +132,6 @@ void KisGpuLayerDocument::pollRecovery()
         restore.error = error;
         restore.session.reset();
         restore.rasters.clear();
-        restore.restored.clear();
     };
     if (!m_store->deviceAvailable()) { fail(); return; }
     const auto replay = [&](const Session::Recovery &data) {
@@ -171,10 +159,6 @@ void KisGpuLayerDocument::pollRecovery()
             restore.maskPhase = true;
             return;
         }
-        const auto mask = source->mask ? restore.rasters.at(source->mask.get()) : KisGpuTileStore::Version{};
-        restore.restored[source.get()] = std::make_shared<const LayerState>(LayerState{
-            {source->id, source->name, {restore.rasters.at(source->pixels.get()), mask, source->opacity, source->operation}},
-            source->pixels, source->mask});
         restore.maskPhase = false;
         ++restore.index;
         return;
@@ -182,9 +166,9 @@ void KisGpuLayerDocument::pollRecovery()
     if (restore.request.working) {
         const auto &work = *restore.request.working;
         if (!restore.session) {
-            const auto &base = *restore.restored.at(work.base.get());
-            const auto version = work.target == Target::Pixels ? base.layer.paint.pixels
-                : (base.mask ? base.layer.paint.mask : m_store->emptyVersion());
+            const auto &base = *work.base;
+            const auto version = work.target == Target::Pixels ? restore.rasters.at(base.pixels.get())
+                : (base.mask ? restore.rasters.at(base.mask.get()) : m_store->emptyVersion());
             try {
                 restore.session = std::shared_ptr<Session>(work.completed
                     ? new Session(*m_store, 0, work.data, *workingMaximum(restore.request, m_maximumRecoveryBytes))
@@ -209,13 +193,8 @@ void KisGpuLayerDocument::pollRecovery()
         m_session = restore.session;
         m_active = Active{work.base->id, work.target, m_session->currentToken()};
     }
-    QVector<Frame> history;
-    for (const auto &frame : restore.request.history) {
-        Frame output;
-        for (const auto &record : frame) output.push_back(restore.restored.at(record.get()));
-        history.push_back(std::move(output));
-    }
-    m_history = std::move(history);
+    m_history = restore.request.history;
+    m_rasterVersions = std::move(restore.rasters);
     m_cursor = restore.request.cursor;
     m_nextId = restore.request.nextId;
     m_restoring.reset();
