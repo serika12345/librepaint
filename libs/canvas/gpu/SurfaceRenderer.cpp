@@ -9,6 +9,19 @@
 #include <limits>
 #include <stdexcept>
 namespace Krita::Canvas {
+SurfaceRenderer::Presentation::Status SurfaceRenderer::Presentation::status() const {
+    return d ? d->status.load(std::memory_order_acquire) : Status::Unavailable;
+}
+std::optional<quint64> SurfaceRenderer::Presentation::hostTimeNanoseconds() const {
+    if (status() != Status::Presented) return {};
+    return d->hostTime.load(std::memory_order_relaxed);
+}
+void SurfaceRenderer::Presentation::abandon() {
+    if (d) d->abandon();
+}
+std::optional<quint64> SurfaceRenderer::presentationClockNanoseconds() {
+    return GpuWindowSurface::presentationClockNanoseconds();
+}
 struct SurfaceRenderer::Private {
     KisGpuDevice &owner;
     QWindow &window;
@@ -22,6 +35,20 @@ struct SurfaceRenderer::Private {
     QSize size{0, 0};
     bool needsConfigure = true;
     quint64 requests = 0;
+    QVector<Presentation> presentations;
+    quint64 displayed = 0, skipped = 0, abandoned = 0;
+    ~Private() { for (auto &presentation : presentations) presentation.abandon(); }
+    void collectPresentations() {
+        for (auto it = presentations.begin(); it != presentations.end();) {
+            if (!owner.available()) it->abandon();
+            const auto status = it->status();
+            if (status == Presentation::Status::Pending) { ++it; continue; }
+            if (status == Presentation::Status::Presented) ++displayed;
+            else if (status == Presentation::Status::Skipped) ++skipped;
+            else if (status == Presentation::Status::Abandoned) ++abandoned;
+            it = presentations.erase(it);
+        }
+    }
     Private(KisGpuDevice &device, QWindow &target, quint64 limit, quint32 maximum)
         : owner(device), window(target), windowId(target.winId()), budget(limit), maximumPending(maximum), surface(device, target) {
         WGPUSurfaceCapabilities capabilities{};
@@ -46,7 +73,7 @@ struct SurfaceRenderer::Private {
     Error configure(QSize wanted) {
         if (quint32(wanted.width()) > maximumDimension || quint32(wanted.height()) > maximumDimension
             || quint64(wanted.width()) * wanted.height() > budget / 12) return Error::BudgetExceeded;
-        if (renderer->statistics().pendingFrames) return Error::ResizePending;
+        if (renderer->statistics().pendingFrames || !presentations.isEmpty()) return Error::ResizePending;
         if (!surface.resize(wanted)) return Error::ResizePending;
         WGPUSurfaceConfigurationExtras extras{};
         extras.chain.sType = WGPUSType(WGPUSType_SurfaceConfigurationExtras);
@@ -92,7 +119,8 @@ SurfaceRenderer::Frame SurfaceRenderer::present(const KisGpuTileStore::TextureSn
         frame.error = d->configure(wanted);
         if (frame.error != Error::None) return frame;
     }
-    if (d->renderer->statistics().pendingFrames >= d->maximumPending) { frame.error = Error::QueueFull; return frame; }
+    if (d->renderer->statistics().pendingFrames >= d->maximumPending
+        || d->presentations.size() >= d->maximumPending) { frame.error = Error::QueueFull; return frame; }
     WGPUSurfaceTexture current{};
     wgpuSurfaceGetCurrentTexture(d->surface.surface(), &current);
     if (!current.texture) {
@@ -101,6 +129,7 @@ SurfaceRenderer::Frame SurfaceRenderer::present(const KisGpuTileStore::TextureSn
         frame.error = d->owner.available() ? Error::SurfaceUnavailable : Error::DeviceLost;
         return frame;
     }
+    frame.presentation = d->surface.presentation();
     frame.rendering = d->renderer->render(image, current.texture, view);
     if (frame.rendering.error != GpuRenderer::Error::None) {
         frame.error = frame.rendering.error == GpuRenderer::Error::DeviceLost ? Error::DeviceLost : Error::ImageRejected;
@@ -109,12 +138,15 @@ SurfaceRenderer::Frame SurfaceRenderer::present(const KisGpuTileStore::TextureSn
         d->needsConfigure = true;
     } else {
         ++d->requests;
+        if (frame.presentation.status() != Presentation::Status::Unavailable) d->presentations.push_back(frame.presentation);
     }
+    if (frame.error != Error::None) frame.presentation.abandon();
     wgpuTextureRelease(current.texture);
     return frame;
 }
-void SurfaceRenderer::poll() { d->renderer->poll(); }
+void SurfaceRenderer::poll() { d->renderer->poll(); d->collectPresentations(); }
 SurfaceRenderer::Statistics SurfaceRenderer::statistics() const {
-    return {d->requests, quint64(d->size.width()) * d->size.height() * 12, d->size, d->renderer->statistics()};
+    return {d->requests, quint64(d->size.width()) * d->size.height() * 12, d->size, d->renderer->statistics(),
+            d->displayed, d->skipped, d->abandoned, quint32(d->presentations.size())};
 }
 }

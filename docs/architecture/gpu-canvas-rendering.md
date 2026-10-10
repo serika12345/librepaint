@@ -16,7 +16,7 @@ macOSではAppKitとQuartzCore、LinuxのX11ではXlibをOS接続に利用する
 | `libs/canvas/gpu/tests/KisGpuCanvasRendererTest.cpp` | 実GPUの画素、拒否、寿命と喪失の契約 |
 | `libs/canvas/gpu/SurfaceRenderer.h`、`libs/canvas/gpu/SurfaceRenderer.cpp` | 表示条件、表示面の設定、有限のフレーム提示 |
 | `libs/canvas/gpu/GpuWindowSurface_p.h` | 表示側内部のOS資源所有者 |
-| `libs/canvas/gpu/GpuWindowSurface_mac.mm` | CocoaウィンドウのsRGB Metalレイヤー |
+| `libs/canvas/gpu/GpuWindowSurface_mac.mm` | CocoaウィンドウのsRGB Metalレイヤーと実表示通知 |
 | `libs/canvas/gpu/GpuWindowSurface_x11.cpp` | X11ウィンドウの表示面と実寸法の検査 |
 | `libs/canvas/gpu/tests/KisGpuSurfaceRendererTest.cpp` | 実ウィンドウの提示、サイズ変更、寿命とネイティブ失敗の契約 |
 
@@ -61,7 +61,25 @@ OSへ提示を要求する。ウィンドウの論理寸法に画素比を乗じ
 サイズ超過は設定と発行前に`BudgetExceeded`として拒否する。
 再設定に失敗しても、前に確保した表示面の予約量を保持する。
 `presentationRequests`はOSが受理した提示要求数、`rendering`はGPU描画の完了と命令転送量を返す。
-実表示時刻と入力から表示までの遅延は、OSの表示完了通知と連結する計測単位で受け入れる。
+
+### 実表示の完了と時刻
+
+`Frame::presentation`は描画完了と独立した表示結果を保持する。Metalでは
+`MTLDrawable::addPresentedHandler`から、画面へ表示した画像を`Presented`、表示前に破棄した
+画像を`Skipped`へ確定する。`Presented`だけが`presentedTime`をナノ秒へ換算した時刻を持つ。
+入力の採取時に`presentationClockNanoseconds()`を呼ぶと、同じホスト時計で表示遅延を計算できる。
+時刻の取得は[Metalの表示通知](https://developer.apple.com/documentation/metal/mtldrawable/addpresentedhandler(_:))
+に従う。表示レイヤーの設定変更は最初の画像取得前にCore Animationへ反映する。
+
+`poll()`は表示結果を回収し、`displayedFrames`、`skippedFrames`、`abandonedFrames`を更新する。
+Metalでは表示通知の未回収数にもフレーム上限を適用し、GPU描画が先に終わる場合も有限に保つ。
+サイズ変更は描画と表示の両方を回収してから適用する。所有者の終了とデバイス喪失は、
+残る通知待ちを`Abandoned`へ確定する。この状態は計測の終了を表し、画像が画面へ出なかった証明とは区別する。
+通知は独立した値だけを保持し、外へ渡した表示結果は所有者の破棄後も参照できる。
+
+X11経路は実表示時刻を取得できないため`Unavailable`を返し、時計も空値とする。
+GPU完了、提示要求の受付、ウィンドウサーバーへのコピーを実表示時刻へ代用すると、
+画面同期と合成による遅延を除外するためである。X11の提示要求数とGPU描画時間は引き続き計測できる。
 
 非表示、利用不能、別のネイティブ資源へ変わったウィンドウは`WindowUnavailable`とする。
 未完了・失敗・別デバイスの画像は`ImageRejected`、発行数超過は`QueueFull`とする。
@@ -107,5 +125,7 @@ GPU検査や描画先の破棄による発行失敗は`Failed`として採用を
 拒否の原子性、別デバイス・破棄済み描画先、デバイス喪失と描画側破棄後の完了を検査する。
 試験側だけが結果をCPUへ読み戻す。実表示では同じ描画側を専用ウィンドウへ接続し、
 連続した提示、サイズ変更、予算超過、拒否後の再試行、破棄とGPU喪失を検査する。
+Metalでは実表示時刻が発行前後のホスト時刻内にあること、表示された画像と破棄された画像の区別、
+表示通知の発行数制限と所有者の終了後に通知待ちが残らないことを検査する。
 子プロセスでは画像を保持したまま次の画像を取得する操作、表示面の先行破棄、未設定状態、
 喪失後の取得・設定と未対応のQt環境を検査し、通常終了と失敗値を確認する。

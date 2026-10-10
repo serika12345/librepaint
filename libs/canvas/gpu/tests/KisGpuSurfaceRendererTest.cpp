@@ -159,6 +159,7 @@ private Q_SLOTS:
             auto frame = renderer.present(input, view);
             if (frame.error == SurfaceRenderer::Error::QueueFull) {
                 renderer.poll();
+                QTest::qWait(1);
                 --i;
                 continue;
             }
@@ -188,11 +189,65 @@ private Q_SLOTS:
         QElapsedTimer resizeDeadline;
         resizeDeadline.start();
         do {
+            renderer.poll();
             after = renderer.present(input, {});
             if (after.error == SurfaceRenderer::Error::ResizePending) QTest::qWait(1);
         } while (after.error == SurfaceRenderer::Error::ResizePending && resizeDeadline.elapsed() < 3000);
         QVERIFY(after.accepted());
         QCOMPARE(renderer.statistics().physicalSize, QSize(qRound(80 * window.devicePixelRatio()), qRound(48 * window.devicePixelRatio())));
+    }
+    void presentationDistinguishesDisplayFromRenderingCompletion() {
+        KisGpuTestDevice gpu;
+        KisGpuTileStore store(gpu.owner, 4 * 1024 * 1024);
+        const auto input = image(store);
+        QWindow window;
+        expose(window);
+        SurfaceRenderer renderer(gpu.owner, window, 4 * 1024 * 1024, 1);
+        using Status = SurfaceRenderer::Presentation::Status;
+#ifdef Q_OS_MACOS
+        QVERIFY(SurfaceRenderer::presentationClockNanoseconds().has_value());
+        quint64 displayed = 0, skipped = 0;
+        for (int i = 0; i < 10; ++i) {
+            const auto before = *SurfaceRenderer::presentationClockNanoseconds();
+            auto frame = renderer.present(input, {});
+            QVERIFY(frame.accepted());
+            wgpuDevicePoll(gpu.device, true, nullptr);
+            const auto submitted = renderer.statistics().rendering.submissions;
+            QCOMPARE(renderer.present(input, {}).error, SurfaceRenderer::Error::QueueFull);
+            QCOMPARE(renderer.statistics().rendering.submissions, submitted);
+            renderer.poll();
+            QCOMPARE(frame.rendering.status(), GpuRenderer::Status::Succeeded);
+            if (frame.presentation.status() == Status::Pending) {
+                const auto submissions = renderer.statistics().rendering.submissions;
+                QCOMPARE(renderer.present(input, {}).error, SurfaceRenderer::Error::QueueFull);
+                QCOMPARE(renderer.statistics().rendering.submissions, submissions);
+            }
+            QTRY_VERIFY_WITH_TIMEOUT((renderer.poll(), frame.presentation.status() != Status::Pending), 3000);
+            const auto actual = frame.presentation.hostTimeNanoseconds();
+            if (frame.presentation.status() == Status::Presented) {
+                QVERIFY(actual.has_value());
+                QVERIFY(*actual >= before);
+                QVERIFY(*actual <= *SurfaceRenderer::presentationClockNanoseconds());
+                ++displayed;
+            } else {
+                QCOMPARE(frame.presentation.status(), Status::Skipped);
+                QVERIFY(!actual.has_value());
+                ++skipped;
+            }
+        }
+        QVERIFY(displayed > 0);
+        QCOMPARE(renderer.statistics().displayedFrames, displayed);
+        QCOMPARE(renderer.statistics().skippedFrames, skipped);
+        QCOMPARE(renderer.statistics().pendingPresentations, quint32(0));
+        QCOMPARE(renderer.statistics().presentationRequests, displayed + skipped);
+#else
+        QVERIFY(!SurfaceRenderer::presentationClockNanoseconds().has_value());
+        const auto frame = renderer.present(input, {});
+        QVERIFY(frame.accepted());
+        QCOMPARE(frame.presentation.status(), Status::Unavailable);
+        QVERIFY(!frame.presentation.hostTimeNanoseconds().has_value());
+        QCOMPARE(renderer.statistics().pendingPresentations, quint32(0));
+#endif
     }
     void hiddenWindowAndBudgetLeaveQueueUnchanged() {
         KisGpuTestDevice gpu;
@@ -238,12 +293,14 @@ private Q_SLOTS:
             QVERIFY(frame.accepted());
         }
         QCOMPARE(frame.rendering.status(), GpuRenderer::Status::Succeeded);
+        QVERIFY(frame.presentation.status() != SurfaceRenderer::Presentation::Status::Pending);
         SurfaceRenderer renderer(gpu.owner, window);
         frame = renderer.present(input, {});
         QVERIFY(frame.accepted());
         gpu.owner.destroy();
         renderer.poll();
         QCOMPARE(frame.rendering.status(), GpuRenderer::Status::Failed);
+        QVERIFY(frame.presentation.status() != SurfaceRenderer::Presentation::Status::Pending);
         QCOMPARE(renderer.present(input, {}).error, SurfaceRenderer::Error::DeviceLost);
     }
     void invalidConstructionIsReported() {

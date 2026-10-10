@@ -39,6 +39,8 @@ void SurfaceRenderer::prepareWindow(QWindow &) {}
 GpuWindowSurface::GpuWindowSurface(KisGpuDevice &device, QWindow &window) : d(new Private(device, window)) {}
 GpuWindowSurface::~GpuWindowSurface() = default;
 WGPUSurface GpuWindowSurface::surface() const { return d->surface; }
+SurfaceRenderer::Presentation GpuWindowSurface::presentation() const { return {}; }
+std::optional<quint64> GpuWindowSurface::presentationClockNanoseconds() { return {}; }
 bool GpuWindowSurface::resize(QSize size) {
     XWindowAttributes attributes{};
     return XGetWindowAttributes(d->display, d->windowId, &attributes)
