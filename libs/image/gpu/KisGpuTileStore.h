@@ -35,12 +35,18 @@ public:
         quint8 coverage = 255;
     };
 
+    /** Borrowed read-only TileBytes range; a null buffer denotes an absent tile. */
+    struct TileView {
+        WGPUBuffer buffer = nullptr;
+        quint64 offset = 0;
+    };
+
     class Version {
     public:
         Version() = default;
         qsizetype tileCount() const;
-        /** Borrowed for read-only GPU use; retain this version through completion. */
-        WGPUBuffer tile(QPoint coordinate) const;
+        /** Retain this version through completion of any GPU read of the returned range. */
+        TileView tile(QPoint coordinate) const;
     private:
         friend class KisGpuTileStore;
         std::shared_ptr<const VersionData> d;
@@ -66,6 +72,7 @@ public:
         quint64 commandUploadBytes = 0;
         quint64 tileCopyBytes = 0;
         quint64 submissions = 0;
+        quint64 computeDispatches = 0;
     };
 
     /** Null device/resources or API/limits mismatch throw std::runtime_error; requires wgpu-native 27.0.4.0. */
@@ -79,7 +86,7 @@ public:
      * Replace a rectangle with straight RGBA8 (R in the low byte) on the GPU.
      * The returned version shares untouched tiles with base. Empty rectangles
      * retain base's completion without submission. Rejection leaves base and the queue unchanged.
-     * A version is accepted only after its completion succeeds.
+     * Callers adopt the returned version only after its completion succeeds.
      */
     Edit fill(const Version &base, QRect rectangle, quint32 rgba);
     /** Composite a constant source with uniform opacity and selection coverage. */

@@ -79,7 +79,11 @@ static_assert(sizeof(TileParameters) == 16);
 struct KisGpuTileStore::VersionData {
     std::shared_ptr<DeviceState> owner;
     std::shared_ptr<CompletionData> completion;
-    std::map<Coordinate, std::shared_ptr<Allocation>> tiles;
+    struct Tile {
+        std::shared_ptr<Allocation> allocation;
+        quint64 offset;
+    };
+    std::map<Coordinate, Tile> tiles;
 };
 
 struct KisGpuTileStore::CompletionData {
@@ -129,6 +133,7 @@ struct KisGpuTileStore::Private {
     std::shared_ptr<DeviceState> state;
     quint64 budget;
     WGPULimits limits{};
+    quint64 tilesPerAllocation = 0;
     WGPUBindGroupLayout layout = nullptr;
     WGPUComputePipeline pipeline = nullptr;
     WGPUSubmissionIndex lastSubmission = 0;
@@ -141,9 +146,12 @@ struct KisGpuTileStore::Private {
         }
         state = std::make_shared<DeviceState>(device);
         if (wgpuDeviceGetLimits(device, &limits) != WGPUStatus_Success
-            || limits.maxStorageBufferBindingSize < TileBytes || limits.minUniformBufferOffsetAlignment == 0) {
+            || limits.maxStorageBufferBindingSize < TileBytes || limits.maxBufferSize < TileBytes
+            || limits.minStorageBufferOffsetAlignment == 0 || limits.maxComputeWorkgroupsPerDimension < 8) {
             throw std::runtime_error("GPU device cannot bind a document tile");
         }
+        tilesPerAllocation = std::min({quint64(64), limits.maxStorageBufferBindingSize / TileBytes,
+            limits.maxBufferSize / TileBytes, quint64(limits.maxComputeWorkgroupsPerDimension)});
         WGPUBindGroupLayoutEntry entries[3]{};
         entries[0].binding = 0;
         entries[0].visibility = WGPUShaderStage_Compute;
@@ -151,8 +159,7 @@ struct KisGpuTileStore::Private {
         entries[0].buffer.minBindingSize = TileBytes;
         entries[1].binding = 1;
         entries[1].visibility = WGPUShaderStage_Compute;
-        entries[1].buffer.type = WGPUBufferBindingType_Uniform;
-        entries[1].buffer.hasDynamicOffset = true;
+        entries[1].buffer.type = WGPUBufferBindingType_ReadOnlyStorage;
         entries[1].buffer.minBindingSize = sizeof(TileParameters);
         entries[2].binding = 2;
         entries[2].visibility = WGPUShaderStage_Compute;
@@ -207,11 +214,11 @@ KisGpuTileStore::~KisGpuTileStore() = default;
 
 qsizetype KisGpuTileStore::Version::tileCount() const { return d ? qsizetype(d->tiles.size()) : 0; }
 
-WGPUBuffer KisGpuTileStore::Version::tile(QPoint coordinate) const
+KisGpuTileStore::TileView KisGpuTileStore::Version::tile(QPoint coordinate) const
 {
-    if (!d) return nullptr;
+    if (!d) return {};
     const auto found = d->tiles.find({coordinate.x(), coordinate.y()});
-    return found == d->tiles.end() ? nullptr : found->second->buffer;
+    return found == d->tiles.end() ? TileView{} : TileView{found->second.allocation->buffer, found->second.offset};
 }
 
 KisGpuTileStore::Status KisGpuTileStore::Completion::status() const
@@ -264,19 +271,23 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
     }
     const quint64 resident = d->state->residentBytes.load();
     const quint64 available = resident <= d->budget ? d->budget - resident : 0;
-    const quint64 alignment = d->limits.minUniformBufferOffsetAlignment;
+    const quint64 alignment = d->limits.minStorageBufferOffsetAlignment;
+    const quint64 capacity = d->tilesPerAllocation;
+    const quint64 parameterStride = (capacity * sizeof(TileParameters) + alignment - 1) / alignment * alignment;
+    auto parameterSize = [&](quint64 tiles) {
+        return (tiles - 1) / capacity * parameterStride + ((tiles - 1) % capacity + 1) * sizeof(TileParameters);
+    };
     const quint64 maximumCommands = std::min({d->limits.maxBufferSize,
         d->limits.maxStorageBufferBindingSize, quint64(std::numeric_limits<quint32>::max())}) / sizeof(TileCommand);
     quint64 commandCount = 0;
     std::map<Coordinate, std::vector<TileCommand>> tileCommands;
     auto fits = [&](quint64 tiles, quint64 count) {
-        if (tiles > available / TileBytes || count > maximumCommands
-            || tiles - 1 > (std::numeric_limits<quint32>::max() - sizeof(TileParameters)) / alignment) return false;
-        const quint64 uniformBytes = (tiles - 1) * alignment + sizeof(TileParameters);
+        if (tiles > available / TileBytes || count > maximumCommands) return false;
+        const quint64 parameterBytes = parameterSize(tiles);
         const quint64 storageBytes = count * sizeof(TileCommand);
         const quint64 remaining = available - tiles * TileBytes;
-        return uniformBytes <= d->limits.maxBufferSize && uniformBytes <= std::numeric_limits<quint32>::max()
-            && uniformBytes <= remaining && storageBytes <= remaining - uniformBytes;
+        return parameterBytes <= d->limits.maxBufferSize
+            && parameterBytes <= remaining && storageBytes <= remaining - parameterBytes;
     };
     for (const auto &command : commands) {
         const QRect rectangle = command.rectangle;
@@ -315,17 +326,18 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
         result.completion.d = base.d->completion;
         return result;
     }
-    const quint64 uniformBytes = (tileCommands.size() - 1) * alignment + sizeof(TileParameters);
+    const quint64 parameterBytes = parameterSize(tileCommands.size());
     const quint64 storageBytes = commandCount * sizeof(TileCommand);
     result.completion.d = std::make_shared<CompletionData>();
     Private::ErrorScopes errors(d->state->device, result.completion.d);
     auto data = std::make_shared<VersionData>(*base.d);
     data->completion = result.completion.d;
-    auto parameters = std::make_shared<Allocation>(d->state, uniformBytes,
-        WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
+    auto parameters = std::make_shared<Allocation>(d->state, parameterBytes,
+        WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
     auto commandStorage = std::make_shared<Allocation>(d->state, storageBytes,
         WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);
-    std::vector<char> uniforms(size_t(uniformBytes), 0);
+    std::vector<char> packedParameters(size_t(parameterBytes), 0);
+    std::vector<std::shared_ptr<Allocation>> allocations;
     std::vector<TileCommand> packedCommands;
     packedCommands.reserve(size_t(commandCount));
     Handle<WGPUCommandEncoder, wgpuCommandEncoderRelease> encoder(
@@ -334,33 +346,43 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
     quint32 index = 0;
     for (const auto &entry : tileCommands) {
         const TileParameters tileParameters {quint32(packedCommands.size()), quint32(entry.second.size()), {0, 0}};
-        std::memcpy(uniforms.data() + index++ * alignment, &tileParameters, sizeof(tileParameters));
+        const quint64 parameterOffset = index / capacity * parameterStride + index % capacity * sizeof(TileParameters);
+        std::memcpy(packedParameters.data() + parameterOffset, &tileParameters, sizeof(tileParameters));
         packedCommands.insert(packedCommands.end(), entry.second.begin(), entry.second.end());
-        auto tile = std::make_shared<Allocation>(d->state, TileBytes,
-            WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
+        if (index % capacity == 0) {
+            const quint64 count = std::min(capacity, quint64(tileCommands.size()) - index);
+            allocations.push_back(std::make_shared<Allocation>(d->state, count * TileBytes,
+                WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst));
+        }
+        const auto &allocation = allocations.back();
+        const quint64 tileOffset = index % capacity * TileBytes;
         const auto oldTile = base.d->tiles.find(entry.first);
         const auto &first = entry.second.front();
         if (oldTile != base.d->tiles.end()
             && (first.operation != quint32(UpdateKind::Fill)
                 || first.left != 0 || first.top != 0 || first.right != 64 || first.bottom != 64)) {
-            wgpuCommandEncoderCopyBufferToBuffer(encoder.value, oldTile->second->buffer, 0, tile->buffer, 0, TileBytes);
+            wgpuCommandEncoderCopyBufferToBuffer(encoder.value, oldTile->second.allocation->buffer, oldTile->second.offset,
+                                                 allocation->buffer, tileOffset, TileBytes);
             copiedBytes += TileBytes;
         }
-        data->tiles[entry.first] = std::move(tile);
+        data->tiles[entry.first] = {allocation, tileOffset};
+        ++index;
     }
     {
         Handle<WGPUComputePassEncoder, wgpuComputePassEncoderRelease> pass(
             wgpuCommandEncoderBeginComputePass(encoder.value, nullptr));
         wgpuComputePassEncoderSetPipeline(pass.value, d->pipeline);
-        index = 0;
-        for (const auto &entry : tileCommands) {
+        for (size_t groupIndex = 0; groupIndex < allocations.size(); ++groupIndex) {
+            const auto &allocation = allocations[groupIndex];
+            const quint64 count = allocation->bytes / TileBytes;
             WGPUBindGroupEntry entries[3]{};
             entries[0].binding = 0;
-            entries[0].buffer = data->tiles.at(entry.first)->buffer;
-            entries[0].size = TileBytes;
+            entries[0].buffer = allocation->buffer;
+            entries[0].size = allocation->bytes;
             entries[1].binding = 1;
             entries[1].buffer = parameters->buffer;
-            entries[1].size = sizeof(TileParameters);
+            entries[1].offset = groupIndex * parameterStride;
+            entries[1].size = count * sizeof(TileParameters);
             entries[2].binding = 2;
             entries[2].buffer = commandStorage->buffer;
             entries[2].size = storageBytes;
@@ -370,9 +392,8 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
             descriptor.entries = entries;
             Handle<WGPUBindGroup, wgpuBindGroupRelease> group(
                 wgpuDeviceCreateBindGroup(d->state->device, &descriptor));
-            const quint32 offset = quint32(index++ * alignment);
-            wgpuComputePassEncoderSetBindGroup(pass.value, 0, group.value, 1, &offset);
-            wgpuComputePassEncoderDispatchWorkgroups(pass.value, 8, 8, 1);
+            wgpuComputePassEncoderSetBindGroup(pass.value, 0, group.value, 0, nullptr);
+            wgpuComputePassEncoderDispatchWorkgroups(pass.value, 8, 8, quint32(count));
         }
         wgpuComputePassEncoderEnd(pass.value);
     }
@@ -382,7 +403,7 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
     result.completion.d->sequence = d->statistics.submissions + 1;
     auto callbackData = std::make_unique<std::shared_ptr<CompletionData>>(result.completion.d);
     d->pending.push_back({result.completion.d, base, result.version, parameters, commandStorage});
-    wgpuQueueWriteBuffer(d->state->queue, parameters->buffer, 0, uniforms.data(), uniforms.size());
+    wgpuQueueWriteBuffer(d->state->queue, parameters->buffer, 0, packedParameters.data(), packedParameters.size());
     wgpuQueueWriteBuffer(d->state->queue, commandStorage->buffer, 0, packedCommands.data(), storageBytes);
     d->lastSubmission = wgpuQueueSubmitForIndex(d->state->queue, 1, &commandBuffer.value);
     WGPUQueueWorkDoneCallbackInfo callback{};
@@ -397,7 +418,8 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
     wgpuQueueOnSubmittedWorkDone(d->state->queue, callback);
     errors.submitted = true;
     ++d->statistics.submissions;
-    d->statistics.commandUploadBytes += uniformBytes + storageBytes;
+    d->statistics.computeDispatches += allocations.size();
+    d->statistics.commandUploadBytes += parameterBytes + storageBytes;
     d->statistics.tileCopyBytes += copiedBytes;
     return result;
 }

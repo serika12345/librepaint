@@ -103,7 +103,8 @@ Run execute(KisGpuTestDevice &gpu, KisGpuTileStore &store, const KisGpuTileStore
         {"residentBytesAfterWait", qint64(after.residentBytes)},
         {"commandUploadBytes", qint64(after.commandUploadBytes - before.commandUploadBytes)},
         {"tileCopyBytes", qint64(after.tileCopyBytes - before.tileCopyBytes)},
-        {"submissions", qint64(after.submissions - before.submissions)}
+        {"submissions", qint64(after.submissions - before.submissions)},
+        {"computeDispatches", qint64(after.computeDispatches - before.computeDispatches)}
     };
     return result;
 }

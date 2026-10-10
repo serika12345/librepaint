@@ -14,7 +14,7 @@ namespace {
 int tileCoordinate(int pixel) { return pixel >= 0 ? pixel / 64 : (pixel + 1) / 64 - 1; }
 }
 
-KisGpuTestDevice::KisGpuTestDevice()
+KisGpuTestDevice::KisGpuTestDevice(quint64 storageBindingLimit)
 {
     try {
         WGPUInstanceExtras extras{};
@@ -57,7 +57,15 @@ KisGpuTestDevice::KisGpuTestDevice()
         deviceCallback.callback = [](WGPURequestDeviceStatus, WGPUDevice device, WGPUStringView, void *data, void *) {
             static_cast<std::promise<WGPUDevice> *>(data)->set_value(device);
         };
+        WGPULimits requestedLimits{};
+        if (storageBindingLimit) {
+            if (wgpuAdapterGetLimits(adapter, &requestedLimits) != WGPUStatus_Success) {
+                throw std::runtime_error("Cannot query GPU limits");
+            }
+            requestedLimits.maxStorageBufferBindingSize = storageBindingLimit;
+        }
         WGPUDeviceDescriptor descriptor{};
+        if (storageBindingLimit) descriptor.requiredLimits = &requestedLimits;
         descriptor.uncapturedErrorCallbackInfo.userdata1 = &errors;
         descriptor.uncapturedErrorCallbackInfo.callback = [](const WGPUDevice *, WGPUErrorType, WGPUStringView message, void *data, void *) {
             static_cast<std::atomic<int> *>(data)->fetch_add(1);
@@ -92,8 +100,8 @@ QByteArray KisGpuTestDevice::read(const KisGpuTileStore::Version &version, QRect
     for (int y = bounds.top(); y <= bounds.bottom(); ++y) {
         for (int x = bounds.left(); x <= bounds.right(); ++x) {
             const auto coordinate = std::make_pair(tileCoordinate(x), tileCoordinate(y));
-            const WGPUBuffer source = version.tile(QPoint(coordinate.first, coordinate.second));
-            if (!source) continue;
+            const auto source = version.tile(QPoint(coordinate.first, coordinate.second));
+            if (!source.buffer) continue;
             auto found = tiles.find(coordinate);
             if (found == tiles.end()) {
                 WGPUBufferDescriptor descriptor{};
@@ -101,7 +109,7 @@ QByteArray KisGpuTestDevice::read(const KisGpuTileStore::Version &version, QRect
                 descriptor.usage = WGPUBufferUsage_MapRead | WGPUBufferUsage_CopyDst;
                 const auto staging = wgpuDeviceCreateBuffer(device, &descriptor);
                 const auto encoder = wgpuDeviceCreateCommandEncoder(device, nullptr);
-                wgpuCommandEncoderCopyBufferToBuffer(encoder, source, 0, staging, 0, descriptor.size);
+                wgpuCommandEncoderCopyBufferToBuffer(encoder, source.buffer, source.offset, staging, 0, descriptor.size);
                 const auto commands = wgpuCommandEncoderFinish(encoder, nullptr);
                 wgpuQueueSubmit(queue, 1, &commands);
                 wgpuCommandBufferRelease(commands);

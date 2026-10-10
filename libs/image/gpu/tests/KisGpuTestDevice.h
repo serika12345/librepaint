@@ -12,7 +12,7 @@
 
 /** Hardware device and explicit readback owned by GPU tests and measurements. */
 struct KisGpuTestDevice {
-    KisGpuTestDevice();
+    explicit KisGpuTestDevice(quint64 storageBindingLimit = 0);
     ~KisGpuTestDevice();
     KisGpuTestDevice(const KisGpuTestDevice &) = delete;
     KisGpuTestDevice &operator=(const KisGpuTestDevice &) = delete;

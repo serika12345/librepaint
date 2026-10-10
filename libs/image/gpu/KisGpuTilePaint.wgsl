@@ -9,7 +9,7 @@ struct TileParameters {
     firstCommand: u32, commandCount: u32, padding: vec2<u32>,
 }
 @group(0) @binding(0) var<storage, read_write> pixels: array<u32>;
-@group(0) @binding(1) var<uniform> parameters: TileParameters;
+@group(0) @binding(1) var<storage, read> parameters: array<TileParameters>;
 @group(0) @binding(2) var<storage, read> commands: array<TileCommand>;
 
 fn multiply8(a: u32, b: u32) -> u32 {
@@ -40,9 +40,10 @@ fn over(source: vec4<u32>, destination: vec4<u32>, opacity: u32, coverage: u32) 
 
 @compute @workgroup_size(8, 8)
 fn paint(@builtin(global_invocation_id) position: vec3<u32>) {
-    let index = position.y * 64u + position.x;
+    let index = position.z * 4096u + position.y * 64u + position.x;
+    let tile = parameters[position.z];
     var pixel = pixels[index];
-    for (var i = parameters.firstCommand; i < parameters.firstCommand + parameters.commandCount; i++) {
+    for (var i = tile.firstCommand; i < tile.firstCommand + tile.commandCount; i++) {
         let command = commands[i];
         if (all(position.xy >= command.lower) && all(position.xy < command.upper)) {
             if (command.operation == 0u) {

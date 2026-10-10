@@ -7,6 +7,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <memory>
+#include <set>
 #include <stdexcept>
 #include "KisGpuTestDevice.h"
 
@@ -68,6 +69,8 @@ private Q_SLOTS:
     void batchFitsOneCopyBudget();
     void batchRejectionIsAtomic();
     void emptyBatchInheritsSourceCompletion();
+    void groupedTilesRespectDeviceLimits();
+    void sharedAllocationsStayBudgeted();
     void compositing_data();
     void compositing();
 private:
@@ -275,6 +278,7 @@ void KisGpuTileStoreTest::batchedPaintPreservesOrderAndCopiesTilesOnce()
     QCOMPARE(m_gpu->read(batch.version, bounds), m_gpu->read(sequential, bounds));
     QCOMPARE(m_gpu->read(base.version, bounds), expected(bounds, {{bounds, 0xFF102030}}));
     QCOMPARE(store.statistics().submissions - before.submissions, quint64(1));
+    QCOMPARE(store.statistics().computeDispatches - before.computeDispatches, quint64(1));
     QCOMPARE(store.statistics().tileCopyBytes - before.tileCopyBytes, 4 * KisGpuTileStore::TileBytes);
 }
 
@@ -347,6 +351,49 @@ void KisGpuTileStoreTest::emptyBatchInheritsSourceCompletion()
     }
     QCOMPARE(store.statistics().submissions, quint64(1));
     QCOMPARE(store.statistics().residentBytes, KisGpuTileStore::TileBytes);
+}
+
+void KisGpuTileStoreTest::groupedTilesRespectDeviceLimits()
+{
+    KisGpuTestDevice gpu(2 * KisGpuTileStore::TileBytes);
+    KisGpuTileStore store(gpu.device, 16 * KisGpuTileStore::TileBytes);
+    const QRect bounds(-64, 0, 320, 64);
+    const auto base = store.fill(store.emptyVersion(), bounds, 0xFF123456);
+    QVERIFY(finish(store, base.completion));
+    const auto before = store.statistics();
+    const auto batch = store.paint(base.version, {{bounds, 0xFFABCDEF}});
+    QCOMPARE(batch.error, KisGpuTileStore::Error::None);
+    QVERIFY(finish(store, batch.completion));
+    QCOMPARE(gpu.read(batch.version, bounds), expected(bounds, {{bounds, 0xFFABCDEF}}));
+    QCOMPARE(gpu.read(base.version, bounds), expected(bounds, {{bounds, 0xFF123456}}));
+    QCOMPARE(store.statistics().computeDispatches - before.computeDispatches, quint64(3));
+    QCOMPARE(store.statistics().tileCopyBytes - before.tileCopyBytes, 5 * KisGpuTileStore::TileBytes);
+    QCOMPARE(gpu.errors.load(), 0);
+}
+
+void KisGpuTileStoreTest::sharedAllocationsStayBudgeted()
+{
+    KisGpuTileStore store(m_gpu->device, 8 * KisGpuTileStore::TileBytes);
+    const QRect bounds(0, 0, 192, 64);
+    auto version = store.emptyVersion();
+    {
+        const auto base = store.fill(version, bounds, 0xFF123456);
+        QVERIFY(finish(store, base.completion));
+        version = base.version;
+    }
+    for (int x = 0; x < 3; ++x) {
+        const auto edit = store.fill(version, QRect(x * 64, 0, 64, 64), 0xFFABCDEF);
+        QVERIFY(finish(store, edit.completion));
+        version = edit.version;
+        // A shared GPU buffer remains fully budgeted while any live tile uses it.
+        std::set<WGPUBuffer> buffers;
+        for (int i = 0; i < 3; ++i) buffers.insert(version.tile(QPoint(i, 0)).buffer);
+        quint64 allocated = 0;
+        for (const auto buffer : buffers) allocated += wgpuBufferGetSize(buffer);
+        QCOMPARE(store.statistics().residentBytes, allocated);
+    }
+    QCOMPARE(store.statistics().residentBytes, 3 * KisGpuTileStore::TileBytes);
+    QCOMPARE(m_gpu->read(version, bounds), expected(bounds, {{bounds, 0xFFABCDEF}}));
 }
 
 void KisGpuTileStoreTest::compositing_data()
