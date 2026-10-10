@@ -23,7 +23,7 @@ fn over(source: vec4<u32>, destination: vec4<u32>, opacity: u32, coverage: u32) 
     if (alpha == 0.0) { return destination; }
     let resultAlpha = f32(destination.a) + (255.0 - f32(destination.a)) * alpha * (1.0 / 255.0);
     let blend = alpha / resultAlpha;
-    let color = blend * (vec3<f32>(source.rgb) - vec3<f32>(destination.rgb)) + vec3<f32>(destination.rgb);
+    let color = fma(vec3<f32>(blend), vec3<f32>(source.rgb) - vec3<f32>(destination.rgb), vec3<f32>(destination.rgb));
     return vec4<u32>(quantize(color.r), quantize(color.g), quantize(color.b), quantize(resultAlpha));
 }
 
