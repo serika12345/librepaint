@@ -126,6 +126,9 @@ public:
     /** Composite source pixels at matching canvas coordinates; missing source tiles are transparent. */
     Edit composite(const Version &base, const Version &source, QRect rectangle,
                    CompositeOp operation = CompositeOp::Over, quint8 opacity = 255, quint8 coverage = 255);
+    /** Composite using the alpha channel of a GPU mask; absent mask tiles have zero coverage. */
+    Edit compositeMasked(const Version &base, const Version &source, const Version &mask, QRect rectangle,
+                         CompositeOp operation = CompositeOp::Over, quint8 opacity = 255);
     /**
      * Explicit asynchronous CPU read. Pins source through completion, including pending edits.
      * Staging counts against the store budget and is released by poll(). Missing pixels are zero.
@@ -155,6 +158,8 @@ private:
         QPointF center;
         QSizeF diameter, fade;
     };
+    Edit compositePixels(const Version &base, const Version &source, const Version *mask, QRect rectangle,
+                         CompositeOp operation, quint8 opacity, quint8 coverage);
     Edit update(const Version &base, const QVector<UpdateCommand> &commands);
     struct Private;
     std::unique_ptr<Private> d;

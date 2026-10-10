@@ -15,6 +15,7 @@
 #include <mutex>
 #include <stdexcept>
 #include <vector>
+#include <tuple>
 
 static void initializeGpuTileResources()
 {
@@ -39,7 +40,7 @@ KisGpuTileStore::Private::Private(WGPUDevice device, quint64 bytes, quint32 maxi
     }
     tilesPerAllocation = std::min<quint64>({quint64(64), limits.maxStorageBufferBindingSize / TileBytes,
         limits.maxBufferSize / TileBytes, quint64(limits.maxComputeWorkgroupsPerDimension)});
-    WGPUBindGroupLayoutEntry entries[3]{};
+    WGPUBindGroupLayoutEntry entries[4]{};
     entries[0].binding = 0;
     entries[0].visibility = WGPUShaderStage_Compute;
     entries[0].buffer.type = WGPUBufferBindingType_Storage;
@@ -85,6 +86,11 @@ KisGpuTileStore::Private::Private(WGPUDevice device, quint64 bytes, quint32 maxi
     entries[1].buffer.minBindingSize = TileBytes;
     entries[2].binding = 4;
     entries[2].buffer.minBindingSize = sizeof(CompositeParameters);
+    entries[3].binding = 5;
+    entries[3].visibility = WGPUShaderStage_Compute;
+    entries[3].buffer.type = WGPUBufferBindingType_ReadOnlyStorage;
+    entries[3].buffer.minBindingSize = TileBytes;
+    layoutDescriptor.entryCount = 4;
     Handle<WGPUBindGroupLayout, wgpuBindGroupLayoutRelease> imageLayout(
         wgpuDeviceCreateBindGroupLayout(device, &layoutDescriptor));
     pipelineLayoutDescriptor.bindGroupLayouts = &imageLayout.value;
@@ -111,6 +117,7 @@ void KisGpuTileStore::Private::submit(Pending operation, WGPUCommandBuffer comma
     if (operation.input.d && !(operation.input == operation.source)) {
         completion->dependencies.push_back(operation.input.d->completion);
     }
+    if (operation.mask.d) completion->dependencies.push_back(operation.mask.d->completion);
     completion->sequence = statistics.submissions + 1;
     auto callbackData = std::make_unique<std::shared_ptr<CompletionData>>(completion);
     pending.push_back(std::move(operation));
@@ -416,8 +423,21 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
 KisGpuTileStore::Edit KisGpuTileStore::composite(const Version &base, const Version &source, QRect rectangle,
                                                CompositeOp operation, quint8 opacity, quint8 coverage)
 {
+    return compositePixels(base, source, nullptr, rectangle, operation, opacity, coverage);
+}
+
+KisGpuTileStore::Edit KisGpuTileStore::compositeMasked(const Version &base, const Version &source,
+    const Version &mask, QRect rectangle, CompositeOp operation, quint8 opacity)
+{
+    return compositePixels(base, source, &mask, rectangle, operation, opacity, 255);
+}
+
+KisGpuTileStore::Edit KisGpuTileStore::compositePixels(const Version &base, const Version &source,
+    const Version *mask, QRect rectangle, CompositeOp operation, quint8 opacity, quint8 coverage)
+{
     Edit result;
-    if (!base.d || !source.d || base.d->owner != d->state || source.d->owner != d->state) {
+    if (!base.d || !source.d || base.d->owner != d->state || source.d->owner != d->state
+        || (mask && (!mask->d || mask->d->owner != d->state))) {
         result.error = Error::InvalidVersion;
         return result;
     }
@@ -437,31 +457,40 @@ KisGpuTileStore::Edit KisGpuTileStore::composite(const Version &base, const Vers
     const qint64 left = rectangle.x(), top = rectangle.y();
     const qint64 right = left + rectangle.width(), bottom = top + rectangle.height();
     struct Group {
-        std::shared_ptr<Allocation> source;
+        std::shared_ptr<Allocation> source, mask;
         quint64 destinationAllocation = 0;
         quint64 parameterOffset = 0;
         std::vector<CompositeParameters> parameters;
     };
-    std::map<std::pair<quintptr, quint64>, Group> groups;
+    std::map<std::tuple<quintptr, quintptr, quint64>, Group> groups;
     std::vector<Coordinate> coordinates;
     for (const auto &entry : source.d->tiles) {
         const qint64 tileLeft = qint64(entry.first.first) * 64, tileTop = qint64(entry.first.second) * 64;
         const qint64 clippedLeft = std::max(left, tileLeft), clippedTop = std::max(top, tileTop);
         const qint64 clippedRight = std::min(right, tileLeft + 64), clippedBottom = std::min(bottom, tileTop + 64);
         if (clippedLeft >= clippedRight || clippedTop >= clippedBottom) continue;
+        VersionData::Tile maskTile;
+        if (mask) {
+            const auto found = mask->d->tiles.find(entry.first);
+            if (found == mask->d->tiles.end()) continue;
+            maskTile = found->second;
+        }
         if (coordinates.size() >= available / TileBytes) {
             result.error = Error::BudgetExceeded;
             return result;
         }
         const quint64 index = coordinates.size();
-        auto &group = groups[{quintptr(entry.second.allocation->buffer), index / capacity}];
+        auto &group = groups[{quintptr(entry.second.allocation->buffer),
+            mask ? quintptr(maskTile.allocation->buffer) : 0, index / capacity}];
         group.source = entry.second.allocation;
+        group.mask = mask ? maskTile.allocation : group.source;
         group.destinationAllocation = index / capacity;
         group.parameters.push_back({
             quint32(entry.second.offset / TileBytes), quint32(index % capacity),
             quint32(clippedLeft - tileLeft), quint32(clippedTop - tileTop),
             quint32(clippedRight - tileLeft), quint32(clippedBottom - tileTop),
-            quint32(operation == CompositeOp::Erase ? UpdateKind::Erase : UpdateKind::Over), opacity, coverage, 0
+            quint32(operation == CompositeOp::Erase ? UpdateKind::Erase : UpdateKind::Over), opacity, coverage,
+            mask ? quint32(maskTile.offset / TileBytes) : std::numeric_limits<quint32>::max()
         });
         coordinates.push_back(entry.first);
     }
@@ -517,7 +546,7 @@ KisGpuTileStore::Edit KisGpuTileStore::composite(const Version &base, const Vers
             const auto &allocation = allocations[group.destinationAllocation];
             const quint64 bytes = group.parameters.size() * sizeof(CompositeParameters);
             std::memcpy(packedParameters.data() + group.parameterOffset, group.parameters.data(), bytes);
-            WGPUBindGroupEntry entries[3]{};
+            WGPUBindGroupEntry entries[4]{};
             entries[0].binding = 0;
             entries[0].buffer = allocation->buffer;
             entries[0].size = allocation->bytes;
@@ -528,9 +557,12 @@ KisGpuTileStore::Edit KisGpuTileStore::composite(const Version &base, const Vers
             entries[2].buffer = parameters->buffer;
             entries[2].offset = group.parameterOffset;
             entries[2].size = bytes;
+            entries[3].binding = 5;
+            entries[3].buffer = group.mask->buffer;
+            entries[3].size = group.mask->bytes;
             WGPUBindGroupDescriptor descriptor{};
             descriptor.layout = d->compositeLayout;
-            descriptor.entryCount = 3;
+            descriptor.entryCount = 4;
             descriptor.entries = entries;
             Handle<WGPUBindGroup, wgpuBindGroupRelease> bindGroup(
                 wgpuDeviceCreateBindGroup(d->state->device, &descriptor));
@@ -542,7 +574,7 @@ KisGpuTileStore::Edit KisGpuTileStore::composite(const Version &base, const Vers
     Handle<WGPUCommandBuffer, wgpuCommandBufferRelease> commandBuffer(
         wgpuCommandEncoderFinish(encoder.value, nullptr));
     result.version.d = std::move(data);
-    d->submit({result.completion.d, base, result.version, parameters, {}, source}, commandBuffer.value,
+    d->submit({result.completion.d, base, result.version, parameters, {}, source, mask ? *mask : Version{}}, commandBuffer.value,
               packedParameters, {}, copiedBytes, groups.size());
     errors.submitted = true;
     return result;

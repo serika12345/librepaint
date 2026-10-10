@@ -77,7 +77,7 @@ struct TileParameters {
 };
 static_assert(sizeof(TileParameters) == 16);
 struct CompositeParameters {
-    quint32 sourceTile, destinationTile, left, top, right, bottom, operation, opacity, coverage, padding;
+    quint32 sourceTile, destinationTile, left, top, right, bottom, operation, opacity, coverage, maskTile;
 };
 static_assert(sizeof(CompositeParameters) == 40);
 }
@@ -157,7 +157,7 @@ struct KisGpuTileStore::Private {
         std::shared_ptr<CompletionData> completion;
         Version source, result;
         std::shared_ptr<KisGpuTileStorage::Allocation> parameters, commands;
-        Version input;
+        Version input, mask;
     };
     std::shared_ptr<KisGpuTileStorage::DeviceState> state;
     quint64 budget;

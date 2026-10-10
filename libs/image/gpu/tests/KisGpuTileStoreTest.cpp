@@ -87,6 +87,8 @@ private Q_SLOTS:
     void uploadPreservesPixelsAndSourceVersions();
     void uploadRejectionIsAtomic();
     void savedPixelsRestoreOnAnotherDevice();
+    void maskedCompositeUsesCoveragePixels();
+    void maskedCompositeRejectsForeignMasks();
     void compositing_data();
     void compositing();
 private:
@@ -778,6 +780,55 @@ void KisGpuTileStoreTest::compositeRetainsPendingSource()
     QCOMPARE(m_gpu->read(version, QRect(-64, 0, 64, 64)), expected(QRect(-64, 0, 64, 64), {{area, 0xFF123456}}));
 }
 
+
+void KisGpuTileStoreTest::maskedCompositeUsesCoveragePixels()
+{
+    KisGpuTileStore store(m_gpu->device, 32 * KisGpuTileStore::TileBytes);
+    const QRect bounds(-2, -1, 132, 3), selected(-1, 0, 66, 1), opaque(63, 0, 2, 1);
+    auto base = store.fill(store.emptyVersion(), bounds, 0xFFFF0000);
+    auto source = store.fill(store.emptyVersion(), bounds, 0x800000FF);
+    auto mask = store.fill(store.emptyVersion(), selected, 0x807F3F1F);
+    mask = store.fill(mask.version, opaque, 0xFF112233);
+    const auto before = store.statistics();
+    auto result = store.compositeMasked(base.version, source.version, mask.version, bounds);
+    QCOMPARE(result.error, KisGpuTileStore::Error::None);
+    source = {};
+    mask = {};
+    QVERIFY(finish(store, result.completion));
+    QCOMPARE(m_gpu->read(result.version, bounds),
+             expected(bounds, {{bounds, 0xFFFF0000}, {selected, 0xFFBF0040}, {opaque, 0xFF7F0080}}));
+    QCOMPARE(m_gpu->read(base.version, bounds), expected(bounds, {{bounds, 0xFFFF0000}}));
+    const auto after = store.statistics();
+    QCOMPARE(after.pixelReadbackBytes, before.pixelReadbackBytes);
+    QCOMPARE(after.pixelUploadBytes, before.pixelUploadBytes);
+    QCOMPARE(after.submissions, before.submissions + 1);
+    result = {};
+    base = {};
+    store.poll();
+    QCOMPARE(store.statistics().residentBytes, quint64(0));
+}
+
+void KisGpuTileStoreTest::maskedCompositeRejectsForeignMasks()
+{
+    KisGpuTileStore store(m_gpu->device, 32 * KisGpuTileStore::TileBytes, 1);
+    KisGpuTileStore other(m_gpu->device, 0);
+    const QRect bounds(0, 0, 1, 1);
+    const auto base = store.fill(store.emptyVersion(), bounds, 0xFF123456);
+    const auto before = store.statistics();
+    QCOMPARE(store.compositeMasked(base.version, base.version, other.emptyVersion(), bounds).error,
+             KisGpuTileStore::Error::InvalidVersion);
+    QCOMPARE(store.compositeMasked(base.version, base.version, {}, bounds).error,
+             KisGpuTileStore::Error::InvalidVersion);
+    QCOMPARE(store.compositeMasked(base.version, base.version, base.version, bounds).error,
+             KisGpuTileStore::Error::QueueFull);
+    const auto empty = store.compositeMasked(base.version, base.version, store.emptyVersion(), bounds);
+    QCOMPARE(empty.error, KisGpuTileStore::Error::None);
+    QVERIFY(empty.version == base.version);
+    QCOMPARE(empty.completion.sequence(), base.completion.sequence());
+    QCOMPARE(store.statistics().submissions, before.submissions);
+    QCOMPARE(store.statistics().residentBytes, before.residentBytes);
+}
+
 void KisGpuTileStoreTest::compositing_data()
 {
     QFile file(QStringLiteral(RASTER_EDIT_FIXTURE));
@@ -789,7 +840,7 @@ void KisGpuTileStoreTest::compositing_data()
     QCOMPARE(fixture["profile"].toString(), QStringLiteral("sRGB-elle-V2-srgbtrc.icc"));
     QTest::addColumn<QJsonObject>("input");
     QTest::addColumn<QRect>("rectangle");
-    QTest::addColumn<bool>("imageSource");
+    QTest::addColumn<int>("sourceKind");
     const QList<QRect> rectangles {QRect(-1, -1, 1, 1), QRect(-2, -2, 67, 67), QRect(62, 62, 131, 3)};
     const auto cases = fixture["cases"].toArray();
     QVERIFY(!cases.isEmpty());
@@ -798,8 +849,10 @@ void KisGpuTileStoreTest::compositing_data()
         for (int i = 0; i < rectangles.size(); ++i) {
             const QByteArray name = input["id"].toString().toUtf8() + '-' + QByteArray::number(i);
             const QByteArray solidName = name + "-solid", imageName = name + "-image";
-            QTest::newRow(solidName.constData()) << input << rectangles[i] << false;
-            QTest::newRow(imageName.constData()) << input << rectangles[i] << true;
+            QTest::newRow(solidName.constData()) << input << rectangles[i] << 0;
+            QTest::newRow(imageName.constData()) << input << rectangles[i] << 1;
+            const QByteArray maskedName = name + "-masked";
+            QTest::newRow(maskedName.constData()) << input << rectangles[i] << 2;
         }
     }
 }
@@ -808,7 +861,7 @@ void KisGpuTileStoreTest::compositing()
 {
     QFETCH(QJsonObject, input);
     QFETCH(QRect, rectangle);
-    QFETCH(bool, imageSource);
+    QFETCH(int, sourceKind);
     KisGpuTileStore store(m_gpu->device, 128 * KisGpuTileStore::TileBytes);
     const QRect bounds = rectangle.adjusted(-2, -2, 2, 2);
     const quint32 destination = rgba(input["dst"].toArray());
@@ -819,10 +872,16 @@ void KisGpuTileStoreTest::compositing()
     const auto operation = input["op"].toString() == "erase"
         ? KisGpuTileStore::CompositeOp::Erase : KisGpuTileStore::CompositeOp::Over;
     KisGpuTileStore::Edit edit;
-    if (imageSource) {
+    if (sourceKind) {
         const auto source = store.fill(store.emptyVersion(), paintedRect, rgba(input["src"].toArray()));
-        edit = store.composite(base.version, source.version, paintedRect,
-                               operation, quint8(input["opacity"].toInt()), quint8(mask < 0 ? 255 : mask));
+        if (sourceKind == 2) {
+            const auto coverage = store.fill(store.emptyVersion(), paintedRect, quint32(mask < 0 ? 255 : mask) << 24);
+            edit = store.compositeMasked(base.version, source.version, coverage.version, rectangle,
+                                         operation, quint8(input["opacity"].toInt()));
+        } else {
+            edit = store.composite(base.version, source.version, paintedRect,
+                                   operation, quint8(input["opacity"].toInt()), quint8(mask < 0 ? 255 : mask));
+        }
     } else {
         edit = store.paint(base.version, paintedRect, rgba(input["src"].toArray()),
                            operation, quint8(input["opacity"].toInt()), quint8(mask < 0 ? 255 : mask));

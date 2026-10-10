@@ -89,10 +89,12 @@ fn paint(@builtin(global_invocation_id) position: vec3<u32>) {
 
 struct CompositeParameters {
     sourceTile: u32, destinationTile: u32, lower: vec2<u32>, upper: vec2<u32>,
-    operation: u32, opacity: u32, coverage: u32, padding: u32,
+    operation: u32, opacity: u32, coverage: u32, maskTile: u32,
 }
 @group(0) @binding(3) var<storage, read> sourcePixels: array<u32>;
 @group(0) @binding(4) var<storage, read> compositeParameters: array<CompositeParameters>;
+
+@group(0) @binding(5) var<storage, read> maskPixels: array<u32>;
 
 @compute @workgroup_size(8, 8)
 fn composite(@builtin(global_invocation_id) position: vec3<u32>) {
@@ -101,7 +103,11 @@ fn composite(@builtin(global_invocation_id) position: vec3<u32>) {
         let localIndex = position.y * 64u + position.x;
         let destinationIndex = parameters.destinationTile * 4096u + localIndex;
         let source = unpack(sourcePixels[parameters.sourceTile * 4096u + localIndex]);
+        var coverage = parameters.coverage;
+        if (parameters.maskTile != 0xFFFFFFFFu) {
+            coverage = multiply8(coverage, maskPixels[parameters.maskTile * 4096u + localIndex] >> 24u);
+        }
         pixels[destinationIndex] = pack(blend(source, unpack(pixels[destinationIndex]),
-            parameters.operation, parameters.opacity, parameters.coverage));
+            parameters.operation, parameters.opacity, coverage));
     }
 }
