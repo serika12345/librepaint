@@ -47,8 +47,9 @@ KisGpuTileStore::Edit KisGpuTileStore::paintDabs(const Version &base, const QVec
 }
 
 KisGpuTileStore::Edit KisGpuTileStore::paintDabCommands(const Version &base, const QVector<DabCommand> &commands, QRect clip,
-                                                     const Version *selection)
+                                                     const Version *selection, const BrushTexture *texture, QPoint origin)
 {
+    if (texture && (!texture->d || texture->d->allocation->owner != d->state)) return {Error::InvalidVersion, {}, {}};
     if (selection && (!selection->d || selection->d->owner != d->state)) return {Error::InvalidVersion, {}, {}};
     if (!base.d || base.d->owner != d->state) return {Error::InvalidVersion, {}, {}};
     if (!deviceAvailable()) return {Error::DeviceLost, {}, {}};
@@ -77,10 +78,17 @@ KisGpuTileStore::Edit KisGpuTileStore::paintDabCommands(const Version &base, con
             command.operation == CompositeOp::Erase ? UpdateKind::DabErase : UpdateKind::DabOver,
             command.opacity, command.coverage, command.center, command.diameter, command.fade});
     }
-    return update(base, updates, selection);
+    return update(base, updates, selection, texture, origin);
 }
 
-KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector<UpdateCommand> &commands, const Version *selection)
+KisGpuTileStore::Edit KisGpuTileStore::paintDabs(const Version &base, const QVector<DabCommand> &commands, QRect clip,
+                                              const BrushTexture &texture, QPoint origin, const Version *selection)
+{
+    return paintDabCommands(base, commands, clip, selection, &texture, origin);
+}
+
+KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector<UpdateCommand> &commands,
+                                           const Version *selection, const BrushTexture *texture, QPoint origin)
 {
     Edit result;
     if (!base.d || base.d->owner != d->state) {
@@ -193,8 +201,16 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
     quint32 index = 0;
     for (const auto &entry : tileCommands) {
         const auto maskTile = selection ? selection->d->tiles.at(entry.first) : VersionData::Tile{};
-        const TileParameters tileParameters {quint32(packedCommands.size()), quint32(entry.second.size()),
-                                              quint32(maskTile.offset / sizeof(quint32)), 0};
+        TileParameters tileParameters {quint32(packedCommands.size()), quint32(entry.second.size()),
+                                       quint32(maskTile.offset / sizeof(quint32)), 0, 0, 0, 0, 0};
+        if (texture) {
+            const auto size = texture->d->size;
+            const auto wrap = [](qint64 value, int period) { return quint32((value % period + period) % period); };
+            tileParameters.textureX = wrap(qint64(entry.first.first) * 64 - origin.x(), size.width());
+            tileParameters.textureY = wrap(qint64(entry.first.second) * 64 - origin.y(), size.height());
+            tileParameters.textureWidth = size.width();
+            tileParameters.textureHeight = size.height();
+        }
         if (selection) selectionTiles.push_back(maskTile);
         const quint64 parameterOffset = index / capacity * parameterStride + index % capacity * sizeof(TileParameters);
         std::memcpy(packedParameters.data() + parameterOffset, &tileParameters, sizeof(tileParameters));
@@ -221,11 +237,15 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
     {
         Handle<WGPUComputePassEncoder, wgpuComputePassEncoderRelease> pass(
             encoder.beginComputePass());
-        wgpuComputePassEncoderSetPipeline(pass.value, selection ? d->dabSelectionPipeline : d->pipeline);
+        const auto pipeline = texture ? (selection ? d->dabSelectedTexturePipeline : d->dabTexturePipeline)
+                                      : (selection ? d->dabSelectionPipeline : d->pipeline);
+        const auto layout = texture ? (selection ? d->dabSelectedTextureLayout : d->dabTextureLayout)
+                                    : (selection ? d->dabSelectionLayout : d->layout);
+        wgpuComputePassEncoderSetPipeline(pass.value, pipeline);
         for (size_t groupIndex = 0; groupIndex < allocations.size(); ++groupIndex) {
             const auto &allocation = allocations[groupIndex];
             const quint64 count = allocation->bytes / TileBytes;
-            WGPUBindGroupEntry entries[4]{};
+            WGPUBindGroupEntry entries[5]{};
             entries[0].binding = 0;
             entries[0].buffer = allocation->buffer;
             entries[0].size = allocation->bytes;
@@ -241,9 +261,15 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
                 entries[3].buffer = selectionTiles[groupIndex].allocation->buffer;
                 entries[3].size = selectionTiles[groupIndex].allocation->bytes;
             }
+            if (texture) {
+                auto &entry = entries[selection ? 4 : 3];
+                entry.binding = 6;
+                entry.buffer = texture->d->allocation->buffer;
+                entry.size = texture->d->allocation->bytes;
+            }
             WGPUBindGroupDescriptor descriptor{};
-            descriptor.layout = selection ? d->dabSelectionLayout : d->layout;
-            descriptor.entryCount = selection ? 4 : 3;
+            descriptor.layout = layout;
+            descriptor.entryCount = 3 + bool(selection) + bool(texture);
             descriptor.entries = entries;
             Handle<WGPUBindGroup, wgpuBindGroupRelease> group(
                 wgpuDeviceCreateBindGroup(d->state->device, &descriptor));
@@ -255,8 +281,10 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
     Handle<WGPUCommandBuffer, wgpuCommandBufferRelease> commandBuffer(
         encoder.finish());
     result.version.d = std::move(data);
-    d->submit({result.completion.d, base, result.version, parameters, commandStorage,
-               selection ? QVector<Version>{*selection} : QVector<Version>{}}, commandBuffer.value,
+    Private::Pending pending{result.completion.d, base, result.version, parameters, commandStorage,
+                             selection ? QVector<Version>{*selection} : QVector<Version>{}};
+    pending.brushTexture = texture ? texture->d : nullptr;
+    d->submit(std::move(pending), commandBuffer.value,
               packedParameters, packedCommands, copiedBytes, allocations.size(), {}, encoder.timing);
     errors.submitted = true;
     return result;

@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "provenance": "Maintained RGBA8 alpha contract: KisTextureOption MULTIPLY, strength 1, soft texturing disabled, prepared alpha mask, LoD 0. The production KisMaskingBrushCompositeOp validates every product, including the UINT8_MULT3 approximation. Texture applies to source alpha before paint opacity and selection coverage.",
+  "alpha": [
+    0,
+    1,
+    2,
+    15,
+    31,
+    63,
+    64,
+    85,
+    127,
+    128,
+    170,
+    191,
+    192,
+    223,
+    254,
+    255
+  ],
+  "products": [
+    "00000000000000000000000000000000",
+    "00000000000000000001010101010101",
+    "00000000000001010101010102020202",
+    "000000010204040507080a0b0b0d0f0f",
+    "000000020408080a0f101517171b1f1f",
+    "00000004081010151f202a2f2f373f3f",
+    "000001040810101520202b3030384040",
+    "000001050a15151c2a2b3940404a5555",
+    "000001070f1f202a3f40555f606f7e7f",
+    "000101081020202b4040556060707f80",
+    "0001010a152a2b395555717f8095a9aa",
+    "0001010b172f30405f607f8f90a7bebf",
+    "0001020b172f30406060809091a8bfc0",
+    "0001020d1b37384a6f7095a7a8c3dedf",
+    "0001020f1f3f40557e7fa9bebfdefdfe",
+    "0001020f1f3f40557f80aabfc0dffeff"
+  ]
+}

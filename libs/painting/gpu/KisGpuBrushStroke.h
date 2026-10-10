@@ -24,6 +24,7 @@ public:
         quint32 rgba = 0xFF000000;
         KisGpuTileStore::CompositeOp operation = KisGpuTileStore::CompositeOp::Over;
         quint8 opacity = 255, coverage = 255;
+        std::optional<KisGpuEditSession::Texture> texture;
     };
     enum class Result { Accepted, InvalidInput, InputLimitExceeded, EditRejected };
     struct Update {

@@ -88,7 +88,10 @@ KisGpuBrushStroke::Update KisGpuBrushStroke::paint(const QVector<Sample> &sample
         }
         cursor.previous = sample;
     }
-    const auto result = selection
+    const auto result = m_settings.texture
+        ? (replace ? m_session.replace(m_token, commands, m_clip, *m_settings.texture, selection)
+                   : m_session.append(m_token, commands, m_clip, *m_settings.texture, selection))
+        : selection
         ? (replace ? m_session.replace(m_token, commands, m_clip, *selection) : m_session.append(m_token, commands, m_clip, *selection))
         : (replace ? m_session.replace(m_token, commands, m_clip) : m_session.append(m_token, commands, m_clip));
     if (result != KisGpuEditSession::Result::Accepted) return {Result::EditRejected, result};

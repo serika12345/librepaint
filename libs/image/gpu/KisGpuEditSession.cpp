@@ -69,6 +69,30 @@ KisGpuEditSession::Result KisGpuEditSession::replace(const Token &token,
     return paint(token, commands, clip, true, &selection);
 }
 
+KisGpuEditSession::Result KisGpuEditSession::append(const Token &token,
+    const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip, const Texture &texture, const std::optional<Selection> &selection)
+{
+    return paint(token, commands, clip, false, selection ? &*selection : nullptr, &texture);
+}
+
+KisGpuEditSession::Result KisGpuEditSession::replace(const Token &token,
+    const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip, const Texture &texture, const std::optional<Selection> &selection)
+{
+    return paint(token, commands, clip, true, selection ? &*selection : nullptr, &texture);
+}
+
+KisGpuEditSession::TextureResult KisGpuEditSession::createTexture(QSize size, const QByteArray &alpha, QPoint origin)
+{
+    if (sizeof(ReplayTexture) + quint64(alpha.size()) > m_replay->maximumBytes) return {Result::RecoveryBudgetExceeded, {}};
+    const auto uploaded = m_store.uploadBrushTexture(size, alpha);
+    m_lastGpuError = uploaded.error;
+    if (uploaded.error != KisGpuTileStore::Error::None) return {};
+    Texture texture;
+    texture.pattern = uploaded.texture;
+    texture.source = std::make_shared<const ReplayTexture>(ReplayTexture{size, alpha, origin});
+    return {Result::Accepted, std::move(texture)};
+}
+
 KisGpuEditSession::SelectionResult KisGpuEditSession::createSelection(
     const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip)
 {
@@ -84,20 +108,22 @@ KisGpuEditSession::SelectionResult KisGpuEditSession::createSelection(
 }
 
 KisGpuEditSession::Result KisGpuEditSession::paint(const Token &token,
-    const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip, bool replace, const Selection *selection)
+    const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip, bool replace, const Selection *selection, const Texture *texture)
 {
     if (!matches(token)) return Result::Stale;
     if (m_state != State::Editing) return Result::Busy;
     if (m_hasLatest && m_latest.completion.status() == KisGpuTileStore::Status::Failed) return Result::Busy;
-    if (selection && !*selection) {
+    if ((selection && !*selection) || (texture && !*texture)) {
         m_lastGpuError = KisGpuTileStore::Error::InvalidVersion;
         return Result::GpuRejected;
     }
-    ReplayBatch batch{commands, clip, selection ? selection->source : nullptr};
+    ReplayBatch batch{commands, clip, selection ? selection->source : nullptr, texture ? texture->source : nullptr};
     if (!canRecord(batch, replace)) return Result::RecoveryBudgetExceeded;
     const auto &source = replace || !m_hasLatest ? m_base : m_latest.version;
-    auto edit = selection ? m_store.paintDabs(source, commands, clip, selection->version)
-                          : m_store.paintDabs(source, commands, clip);
+    auto edit = texture ? m_store.paintDabs(source, commands, clip, texture->pattern, texture->source->origin,
+                                           selection ? &selection->version : nullptr)
+                       : (selection ? m_store.paintDabs(source, commands, clip, selection->version)
+                                    : m_store.paintDabs(source, commands, clip));
     m_lastGpuError = edit.error;
     if (edit.error != KisGpuTileStore::Error::None) return Result::GpuRejected;
     record(std::move(batch), replace);

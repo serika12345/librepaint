@@ -54,7 +54,7 @@ KisGpuTileStore::Edit KisGpuTileStore::project(const Version &previous, const QV
     const quint64 count = affected.size(), allocationCount = (count + capacity - 1) / capacity;
     const quint64 alignment = d->limits.minStorageBufferOffsetAlignment;
     const auto align = [alignment](quint64 offset) { return (offset + alignment - 1) / alignment * alignment; };
-    const quint64 clearStride = align(capacity * sizeof(TileParameters));
+    const quint64 clearStride = align(std::min(capacity, count) * sizeof(TileParameters));
     quint64 parameterBytes = allocationCount * clearStride;
     const quint64 commandBytes = count * sizeof(TileCommand);
     struct Group {
@@ -74,7 +74,7 @@ KisGpuTileStore::Edit KisGpuTileStore::project(const Version &previous, const QV
         const quint32 x0 = quint32(std::max(left, x) - x), y0 = quint32(std::max(top, y) - y);
         const quint32 x1 = quint32(std::min(right, x + 64) - x), y1 = quint32(std::min(bottom, y + 64) - y);
         clearCommands.push_back({x0, y0, x1, y1, 0, 0, 255, 255});
-        const TileParameters clear{quint32(index), 1, 0, 0};
+        const TileParameters clear{quint32(index), 1, 0, 0, 0, 0, 0, 0};
         std::memcpy(packedParameters.data() + index / capacity * clearStride + index % capacity * sizeof(clear),
                     &clear, sizeof(clear));
         for (qsizetype i = 0; i < layers.size(); ++i) {

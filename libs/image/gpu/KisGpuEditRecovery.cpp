@@ -8,7 +8,8 @@
 
 namespace {
 using Session = KisGpuEditSession;
-quint64 editBytes(const Session::ReplayEdit &edit, std::set<const Session::ReplaySelection *> &selections)
+quint64 editBytes(const Session::ReplayEdit &edit, std::set<const Session::ReplaySelection *> &selections,
+                  std::set<const Session::ReplayTexture *> &textures)
 {
     quint64 bytes = sizeof(Session::ReplayEdit);
     for (const auto &batch : edit) {
@@ -17,16 +18,19 @@ quint64 editBytes(const Session::ReplayEdit &edit, std::set<const Session::Repla
             bytes += sizeof(Session::ReplaySelection)
                 + quint64(batch.selection->commands.size()) * sizeof(KisGpuTileStore::DabCommand);
         }
+        if (batch.texture && textures.insert(batch.texture.get()).second)
+            bytes += sizeof(Session::ReplayTexture) + quint64(batch.texture->alpha.size());
     }
     return bytes;
 }
 quint64 recoveryBytes(const Session::Recovery &data, const Session::ReplayEdit *working = nullptr)
 {
     std::set<const Session::ReplaySelection *> selections;
+    std::set<const Session::ReplayTexture *> textures;
     quint64 bytes = data.pixels.size();
-    for (const auto &edit : data.edits) bytes += editBytes(edit, selections);
-    if (data.working) bytes += editBytes(*data.working, selections);
-    if (working) bytes += editBytes(*working, selections);
+    for (const auto &edit : data.edits) bytes += editBytes(edit, selections, textures);
+    if (data.working) bytes += editBytes(*data.working, selections, textures);
+    if (working) bytes += editBytes(*working, selections, textures);
     return bytes;
 }
 }
@@ -125,6 +129,14 @@ void KisGpuEditSession::pollRecovery()
         return true;
     };
     const auto replayBatch = [&](const ReplayBatch &batch) {
+        if (batch.texture && !state.textureReady) {
+            const auto texture = m_store.uploadBrushTexture(batch.texture->size, batch.texture->alpha);
+            if (wait({texture.error, {}, texture.completion})) {
+                state.texture = texture.texture;
+                state.textureReady = true;
+            }
+            return;
+        }
         if (batch.selection && !state.selectionReady) {
             auto mask = m_store.paintDabs(m_store.emptyVersion(), batch.selection->commands, batch.selection->clip);
             const auto version = mask.version;
@@ -134,12 +146,16 @@ void KisGpuEditSession::pollRecovery()
             }
             return;
         }
-        auto edit = batch.selection ? m_store.paintDabs(state.replay, batch.commands, batch.clip, state.selection)
-                                    : m_store.paintDabs(state.replay, batch.commands, batch.clip);
+        auto edit = batch.texture ? m_store.paintDabs(state.replay, batch.commands, batch.clip, state.texture,
+                                                      batch.texture->origin, batch.selection ? &state.selection : nullptr)
+                                  : (batch.selection ? m_store.paintDabs(state.replay, batch.commands, batch.clip, state.selection)
+                                                     : m_store.paintDabs(state.replay, batch.commands, batch.clip));
         if (submit(std::move(edit))) {
             ++state.batch;
             state.selection = {};
             state.selectionReady = false;
+            state.texture = {};
+            state.textureReady = false;
         }
     };
     if (!state.initialized) {

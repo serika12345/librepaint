@@ -7,11 +7,13 @@ struct TileCommand {
 }
 struct TileParameters {
     firstCommand: u32, commandCount: u32, selectionOffset: u32, reserved: u32,
+    textureOrigin: vec2<u32>, textureSize: vec2<u32>,
 }
 @group(0) @binding(0) var<storage, read_write> pixels: array<u32>;
 @group(0) @binding(1) var<storage, read> parameters: array<TileParameters>;
 @group(0) @binding(2) var<storage, read> commands: array<TileCommand>;
 @group(0) @binding(5) var<storage, read> maskPixels: array<u32>;
+@group(0) @binding(6) var<storage, read> texturePixels: array<u32>;
 
 fn multiply8(a: u32, b: u32) -> u32 {
     let product = a * b + 128u;
@@ -63,7 +65,13 @@ fn dabAlpha(position: vec2<u32>, shape: TileCommand) -> u32 {
     return 255u - u32(clamp(255.0 * n * (nf - 1.0) / (nf - n), 0.0, 255.0));
 }
 
-fn paintPixel(position: vec3<u32>, selection: u32) {
+fn textureMultiply8(alpha: u32, texture: u32) -> u32 {
+    // Match the CPU texture option's three-factor approximation at full strength.
+    let product = alpha * texture * 255u + 0x7F5Bu;
+    return ((product >> 7u) + product) >> 16u;
+}
+
+fn paintPixel(position: vec3<u32>, selection: u32, texture: u32, textured: bool) {
     let index = position.z * 4096u + position.y * 64u + position.x;
     let tile = parameters[position.z];
     var pixel = pixels[index];
@@ -74,6 +82,7 @@ fn paintPixel(position: vec3<u32>, selection: u32) {
         if (operation >= 3u) {
             i++;
             source.a = multiply8(source.a, dabAlpha(position.xy, commands[i]));
+            if (textured) { source.a = textureMultiply8(source.a, texture); }
             operation = select(1u, 2u, operation == 4u);
         }
         if (all(position.xy >= command.lower) && all(position.xy < command.upper)) {
@@ -89,13 +98,31 @@ fn paintPixel(position: vec3<u32>, selection: u32) {
 
 @compute @workgroup_size(8, 8)
 fn paint(@builtin(global_invocation_id) position: vec3<u32>) {
-    paintPixel(position, 255u);
+    paintPixel(position, 255u, 255u, false);
 }
 
 @compute @workgroup_size(8, 8)
 fn paintSelected(@builtin(global_invocation_id) position: vec3<u32>) {
     let offset = parameters[position.z].selectionOffset + position.y * 64u + position.x;
-    paintPixel(position, maskPixels[offset] >> 24u);
+    paintPixel(position, maskPixels[offset] >> 24u, 255u, false);
+}
+
+fn textureAlpha(position: vec3<u32>) -> u32 {
+    let tile = parameters[position.z];
+    let pixel = (tile.textureOrigin + position.xy) % tile.textureSize;
+    let offset = pixel.y * tile.textureSize.x + pixel.x;
+    return (texturePixels[offset / 4u] >> ((offset % 4u) * 8u)) & 255u;
+}
+
+@compute @workgroup_size(8, 8)
+fn paintTextured(@builtin(global_invocation_id) position: vec3<u32>) {
+    paintPixel(position, 255u, textureAlpha(position), true);
+}
+
+@compute @workgroup_size(8, 8)
+fn paintSelectedTextured(@builtin(global_invocation_id) position: vec3<u32>) {
+    let offset = parameters[position.z].selectionOffset + position.y * 64u + position.x;
+    paintPixel(position, maskPixels[offset] >> 24u, textureAlpha(position), true);
 }
 
 struct CompositeParameters {

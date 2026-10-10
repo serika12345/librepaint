@@ -28,6 +28,7 @@ class KisGpuTileStore
     struct CompletionData;
     struct ReadbackData;
     struct TextureData;
+    struct BrushTextureData;
 public:
     static constexpr quint64 TileBytes = 64 * 64 * 4;
     enum class Status { Pending, Succeeded, Failed };
@@ -130,6 +131,21 @@ public:
         quint64 textureCopyBytes = 0;
     };
 
+    /** Immutable prepared alpha8 pattern on this store; may outlive its owner. */
+    class BrushTexture {
+    public:
+        BrushTexture() = default;
+        explicit operator bool() const { return bool(d); }
+    private:
+        friend class KisGpuTileStore;
+        std::shared_ptr<BrushTextureData> d;
+    };
+    struct BrushTextureResult {
+        Error error = Error::None;
+        Completion completion;
+        BrushTexture texture;
+    };
+
     /**
      * Shares the device owner's loss state; stores may outlive that owner but become unavailable.
      * Unavailable device, unsupported limits, or zero pending limit throw std::runtime_error.
@@ -156,6 +172,11 @@ public:
     Edit paintDabs(const Version &base, const QVector<DabCommand> &commands, QRect clip);
     /** Apply the alpha of an immutable GPU selection to each dab; absent selection tiles have zero coverage. */
     Edit paintDabs(const Version &base, const QVector<DabCommand> &commands, QRect clip, const Version &selection);
+    /** Repeat the prepared pattern at integer canvas coordinates before opacity/selection blending. */
+    Edit paintDabs(const Version &base, const QVector<DabCommand> &commands, QRect clip,
+                   const BrushTexture &texture, QPoint origin, const Version *selection = nullptr);
+    /** Explicit one-time pattern upload, padded to four bytes; counts against pixel transfer and resident budgets. */
+    BrushTextureResult uploadBrushTexture(QSize size, const QByteArray &alpha);
     /** Composite source pixels at matching canvas coordinates; missing source tiles are transparent. */
     Edit composite(const Version &base, const Version &source, QRect rectangle,
                    CompositeOp operation = CompositeOp::Over, quint8 opacity = 255, quint8 coverage = 255);
@@ -201,8 +222,10 @@ private:
     };
     Edit compositePixels(const Version &base, const Version &source, const Version *mask, QRect rectangle,
                          CompositeOp operation, quint8 opacity, quint8 coverage);
-    Edit paintDabCommands(const Version &base, const QVector<DabCommand> &commands, QRect clip, const Version *selection);
-    Edit update(const Version &base, const QVector<UpdateCommand> &commands, const Version *selection = nullptr);
+    Edit paintDabCommands(const Version &base, const QVector<DabCommand> &commands, QRect clip, const Version *selection,
+                          const BrushTexture *texture = nullptr, QPoint origin = {});
+    Edit update(const Version &base, const QVector<UpdateCommand> &commands, const Version *selection = nullptr,
+                const BrushTexture *texture = nullptr, QPoint origin = {});
     struct Private;
     std::unique_ptr<Private> d;
 };

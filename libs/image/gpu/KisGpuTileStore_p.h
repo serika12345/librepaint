@@ -71,8 +71,9 @@ struct DabParameters {
 static_assert(sizeof(DabParameters) == sizeof(TileCommand));
 struct TileParameters {
     quint32 firstCommand, commandCount, selectionOffset, reserved;
+    quint32 textureX, textureY, textureWidth, textureHeight;
 };
-static_assert(sizeof(TileParameters) == 16);
+static_assert(sizeof(TileParameters) == 32);
 struct CompositeParameters {
     quint32 sourceTile, destinationTile, left, top, right, bottom, operation, opacity, coverage, maskTile;
 };
@@ -132,6 +133,12 @@ struct KisGpuTileStore::TextureData {
     ~TextureData();
     TextureData(const TextureData &) = delete;
     TextureData &operator=(const TextureData &) = delete;
+};
+
+struct KisGpuTileStore::BrushTextureData {
+    std::shared_ptr<KisGpuTileStorage::Allocation> allocation;
+    std::shared_ptr<CompletionData> completion;
+    QSize size;
 };
 
 struct KisGpuTileStore::Private {
@@ -196,6 +203,7 @@ struct KisGpuTileStore::Private {
         QVector<Version> inputs;
         std::shared_ptr<Timing> timing = {};
         std::shared_ptr<TextureData> texture = {};
+        std::shared_ptr<BrushTextureData> brushTexture = {};
     };
     std::shared_ptr<KisGpuTileStorage::DeviceState> state;
     quint64 budget;
@@ -207,6 +215,8 @@ struct KisGpuTileStore::Private {
     WGPUComputePipeline pipeline = nullptr;
     WGPUBindGroupLayout dabSelectionLayout = nullptr;
     WGPUComputePipeline dabSelectionPipeline = nullptr;
+    WGPUBindGroupLayout dabTextureLayout = nullptr, dabSelectedTextureLayout = nullptr;
+    WGPUComputePipeline dabTexturePipeline = nullptr, dabSelectedTexturePipeline = nullptr;
     WGPUBindGroupLayout compositeLayout = nullptr;
     WGPUComputePipeline compositePipeline = nullptr;
     WGPUSubmissionIndex lastSubmission = 0;
@@ -214,6 +224,7 @@ struct KisGpuTileStore::Private {
     std::vector<Pending> pending;
 
     Private(std::shared_ptr<KisGpuTileStorage::NativeDevice> nativeOwner, quint64 bytes, quint32 maximum);
+    void initializeBrushTexturePipelines(WGPUShaderModule shader);
     quint64 availableForOperation(quint32 passes = 1) const;
     void mapTiming(std::unique_ptr<TimingReadbackData> result);
 

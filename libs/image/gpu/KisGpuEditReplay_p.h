@@ -14,6 +14,8 @@ struct KisGpuEditSession::ReplayState {
     KisGpuTileStore::Version replay;
     KisGpuTileStore::Version selection;
     bool selectionReady = false;
+    KisGpuTileStore::BrushTexture texture;
+    bool textureReady = false;
     KisGpuTileStore::Edit latest;
     QVector<KisGpuTileStore::Version> frames;
     qsizetype edit = 0, batch = 0;

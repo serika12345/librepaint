@@ -1,4 +1,11 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
+kis_add_test(KisGpuBrushTextureTest.cpp
+    LINK_LIBRARIES kritaimagegpudocument Qt${QT_MAJOR_VERSION}::Test)
+target_sources(KisGpuBrushTextureTest PRIVATE KisGpuTestDevice.cpp)
+target_compile_definitions(KisGpuBrushTextureTest PRIVATE
+    TEXTURE_FIXTURE="${CMAKE_SOURCE_DIR}/libs/painting/tests/data/brush_texture_contract.json")
+set_tests_properties(libs-image-gpu-KisGpuBrushTextureTest PROPERTIES TIMEOUT 30 LABELS gpu)
+
 kis_add_test(KisGpuSelectionSessionTest.cpp
     LINK_LIBRARIES kritaimagegpudocument Qt${QT_MAJOR_VERSION}::Test)
 target_sources(KisGpuSelectionSessionTest PRIVATE KisGpuTestDevice.cpp)

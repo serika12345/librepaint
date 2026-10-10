@@ -25,10 +25,16 @@ public:
         QVector<KisGpuTileStore::DabCommand> commands;
         QRect clip;
     };
+    struct ReplayTexture {
+        QSize size;
+        QByteArray alpha;
+        QPoint origin;
+    };
     struct ReplayBatch {
         QVector<KisGpuTileStore::DabCommand> commands;
         QRect clip;
         std::shared_ptr<const ReplaySelection> selection;
+        std::shared_ptr<const ReplayTexture> texture;
     };
     using ReplayEdit = QVector<ReplayBatch>;
     /** CPU checkpoint and accepted input values; independent of GPU handles and session tokens. */
@@ -54,6 +60,20 @@ public:
     struct SelectionResult {
         Result result = Result::GpuRejected;
         Selection selection;
+    };
+    /** Prepared immutable pattern and its CPU recovery source. */
+    class Texture {
+    public:
+        Texture() = default;
+        explicit operator bool() const { return bool(source); }
+    private:
+        friend class KisGpuEditSession;
+        KisGpuTileStore::BrushTexture pattern;
+        std::shared_ptr<const ReplayTexture> source;
+    };
+    struct TextureResult {
+        Result result = Result::GpuRejected;
+        Texture texture;
     };
     class Token {
     public:
@@ -87,13 +107,18 @@ public:
     std::optional<Recovery> recovery() const;
     /** Rasterizes a new mask from empty on the session's store; earlier masks stay immutable. */
     SelectionResult createSelection(const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip);
+    TextureResult createTexture(QSize size, const QByteArray &alpha, QPoint origin = {});
     Result append(const Token &token, const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip);
     Result append(const Token &token, const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip,
                   const Selection &selection);
+    Result append(const Token &token, const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip,
+                  const Texture &texture, const std::optional<Selection> &selection = {});
     /** Redraw from the committed starting version; previous tentative footprints disappear. */
     Result replace(const Token &token, const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip);
     Result replace(const Token &token, const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip,
                    const Selection &selection);
+    Result replace(const Token &token, const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip,
+                   const Texture &texture, const std::optional<Selection> &selection = {});
     /** Adoption occurs in poll() after successful completion; no second raster pass. */
     Result commit(const Token &token);
     Result cancel(const Token &token);
@@ -111,7 +136,7 @@ public:
 private:
     bool matches(const Token &token) const;
     Result paint(const Token &token, const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip, bool replace,
-                 const Selection *selection = nullptr);
+                 const Selection *selection = nullptr, const Texture *texture = nullptr);
     void releaseWorkingEdit();
     struct ReplayState;
     void pollRecovery();

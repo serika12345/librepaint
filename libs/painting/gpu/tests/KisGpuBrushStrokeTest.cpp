@@ -55,6 +55,7 @@ private Q_SLOTS:
     void placementMatchesCpuContract();
     void queueRejectionPreservesInputProgress();
     void invalidInputAndGenerationLimitAreAtomic();
+    void selectedReplacementAndRecoveryUseIdenticalDabs_data();
     void selectedReplacementAndRecoveryUseIdenticalDabs();
 private:
     std::unique_ptr<KisGpuTestDevice> m_gpu;
@@ -158,13 +159,22 @@ void KisGpuBrushStrokeTest::invalidInputAndGenerationLimitAreAtomic()
     QVERIFY_THROWS_EXCEPTION(std::invalid_argument, Stroke(session, token, settings, clip));
 }
 
+void KisGpuBrushStrokeTest::selectedReplacementAndRecoveryUseIdenticalDabs_data()
+{
+    QTest::addColumn<bool>("textured");
+    QTest::newRow("solid") << false;
+    QTest::newRow("prepared-pattern") << true;
+}
+
 void KisGpuBrushStrokeTest::selectedReplacementAndRecoveryUseIdenticalDabs()
 {
+    QFETCH(bool, textured);
     Store store(m_gpu->owner, 128 * Store::TileBytes);
     Session session(store, 2);
     Stroke::Settings settings;
     settings.diameter = QSizeF(20, 16);
     settings.rgba = 0x800000FF;
+    if (textured) settings.texture = session.createTexture({3, 2}, QByteArray::fromHex("0080ff0140fe"), {-2, 3}).texture;
     const auto selection = session.createSelection({dab(settings, QPointF(0, 0), QSizeF(60, 60))}, clip).selection;
     const auto token = session.begin();
     Stroke stroke(session, token, settings, clip);
@@ -182,9 +192,9 @@ void KisGpuBrushStrokeTest::selectedReplacementAndRecoveryUseIdenticalDabs()
     settle(restored);
     QCOMPARE(restored.state(), Session::State::Idle);
     QCOMPARE(m_gpu->read(restored.head(), clip), pixels);
-    QCOMPARE(store.statistics().pixelUploadBytes, quint64(0));
+    QCOMPARE(store.statistics().pixelUploadBytes, quint64(textured ? 8 : 0));
     QCOMPARE(store.statistics().pixelReadbackBytes, quint64(0));
-    QCOMPARE(destination.statistics().pixelUploadBytes, quint64(0));
+    QCOMPARE(destination.statistics().pixelUploadBytes, quint64(textured ? 8 : 0));
     QCOMPARE(destination.statistics().pixelReadbackBytes, quint64(0));
 }
 

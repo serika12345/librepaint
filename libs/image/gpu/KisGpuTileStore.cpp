@@ -34,6 +34,7 @@ KisGpuTileStore::Private::Private(std::shared_ptr<NativeDevice> nativeOwner, qui
     timestamps = wgpuDeviceHasFeature(device, WGPUFeatureName_TimestampQuery);
     if (wgpuDeviceGetLimits(device, &limits) != WGPUStatus_Success
         || limits.maxStorageBufferBindingSize < TileBytes || limits.maxBufferSize < TileBytes
+        || limits.maxStorageBuffersPerShaderStage < 5
         || limits.minStorageBufferOffsetAlignment == 0 || limits.maxComputeWorkgroupsPerDimension < 8) {
         throw std::runtime_error("GPU device cannot bind a document tile");
     }
@@ -113,6 +114,7 @@ KisGpuTileStore::Private::Private(std::shared_ptr<NativeDevice> nativeOwner, qui
     descriptor.compute.entryPoint = {"composite", WGPU_STRLEN};
     Handle<WGPUComputePipeline, wgpuComputePipelineRelease> imagePipeline(
         wgpuDeviceCreateComputePipeline(device, &descriptor));
+    initializeBrushTexturePipelines(shader.value);
     layout = groupLayout.value;
     groupLayout.value = nullptr;
     pipeline = fillPipeline.value;
@@ -139,6 +141,8 @@ void KisGpuTileStore::Private::submit(Pending operation, WGPUCommandBuffer comma
         operation.timing = timing;
     }
     if (operation.source.d) completion->dependencies.push_back(operation.source.d->completion);
+    if (operation.brushTexture && operation.brushTexture->completion != completion)
+        completion->dependencies.push_back(operation.brushTexture->completion);
     for (const auto &input : operation.inputs) {
         if (input.d && !(input == operation.source)) completion->dependencies.push_back(input.d->completion);
     }
@@ -192,6 +196,10 @@ KisGpuTileStore::Private::~Private() {
     wgpuBindGroupLayoutRelease(layout);
     wgpuComputePipelineRelease(dabSelectionPipeline);
     wgpuBindGroupLayoutRelease(dabSelectionLayout);
+    wgpuComputePipelineRelease(dabTexturePipeline);
+    wgpuBindGroupLayoutRelease(dabTextureLayout);
+    wgpuComputePipelineRelease(dabSelectedTexturePipeline);
+    wgpuBindGroupLayoutRelease(dabSelectedTextureLayout);
     wgpuComputePipelineRelease(compositePipeline);
     wgpuBindGroupLayoutRelease(compositeLayout);
 }

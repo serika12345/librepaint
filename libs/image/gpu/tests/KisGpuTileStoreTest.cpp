@@ -889,12 +889,12 @@ void KisGpuTileStoreTest::timestampsMeasureExecutionWithoutReadingPixels()
     QVERIFY(!uploaded.completion.gpuComputeNanoseconds().has_value());
     QCOMPARE(gpu.read(uploaded.version, bounds), read.bytes());
     QVERIFY(store.statistics().timingReadbackBytes > 0);
-    KisGpuTileStore limited(gpu.owner, KisGpuTileStore::TileBytes + 48);
+    KisGpuTileStore limited(gpu.owner, KisGpuTileStore::TileBytes + 64);
     QCOMPARE(limited.fill(limited.emptyVersion(), QRect(0, 0, 64, 64), 0xFFFFFFFF).error,
              KisGpuTileStore::Error::BudgetExceeded);
     QCOMPARE(limited.statistics().residentBytes, quint64(0));
     QCOMPARE(limited.statistics().submissions, quint64(0));
-    KisGpuTileStore ordinary(m_gpu->owner, KisGpuTileStore::TileBytes + 48);
+    KisGpuTileStore ordinary(m_gpu->owner, KisGpuTileStore::TileBytes + 64);
     const auto plain = ordinary.fill(ordinary.emptyVersion(), QRect(0, 0, 64, 64), 0xFFFFFFFF);
     QVERIFY(finish(ordinary, plain.completion));
     QVERIFY(!plain.completion.gpuComputeNanoseconds().has_value());
