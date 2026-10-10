@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuTileStore_p.h"
+#include <QFile>
 #include <algorithm>
 #include <cstring>
 #include <limits>
@@ -10,6 +11,63 @@
 #include <tuple>
 
 using namespace KisGpuTileStorage;
+
+namespace {
+constexpr quint32 LayersPerPass = 3;
+constexpr quint32 MissingTile = std::numeric_limits<quint32>::max();
+struct LayerParameters {
+    quint32 sourceTile = MissingTile, maskTile = MissingTile, operation = 0, opacity = 0;
+};
+struct ProjectionParameters {
+    quint32 left, top, right, bottom, destinationTile, reserved;
+    std::array<LayerParameters, LayersPerPass> layers;
+};
+static_assert(sizeof(ProjectionParameters) == 72);
+}
+
+KisGpuTileStore::Private::ProjectionPipelines::~ProjectionPipelines()
+{
+    if (pipeline) wgpuComputePipelineRelease(pipeline);
+    if (layout) wgpuBindGroupLayoutRelease(layout);
+}
+
+std::unique_ptr<KisGpuTileStore::Private::ProjectionPipelines>
+KisGpuTileStore::Private::createProjectionPipelines(const QByteArray &pixelOperators)
+{
+    auto result = std::make_unique<ProjectionPipelines>();
+    WGPUBindGroupLayoutEntry entries[8]{};
+    for (quint32 i = 0; i < 8; ++i) {
+        entries[i].binding = i;
+        entries[i].visibility = WGPUShaderStage_Compute;
+        entries[i].buffer.type = i ? WGPUBufferBindingType_ReadOnlyStorage : WGPUBufferBindingType_Storage;
+        entries[i].buffer.minBindingSize = i == 1 ? sizeof(ProjectionParameters) : TileBytes;
+    }
+    WGPUBindGroupLayoutDescriptor groupDescriptor{};
+    groupDescriptor.entryCount = 8;
+    groupDescriptor.entries = entries;
+    result->layout = wgpuDeviceCreateBindGroupLayout(state->device, &groupDescriptor);
+    if (!result->layout) throw std::runtime_error("Cannot create GPU projection layout");
+    WGPUPipelineLayoutDescriptor layoutDescriptor{};
+    layoutDescriptor.bindGroupLayoutCount = 1;
+    layoutDescriptor.bindGroupLayouts = &result->layout;
+    Handle<WGPUPipelineLayout, wgpuPipelineLayoutRelease> layout(wgpuDeviceCreatePipelineLayout(state->device, &layoutDescriptor));
+    QFile shaderFile(QStringLiteral(":/librepaint/gpu/KisGpuProjection.wgsl"));
+    if (!shaderFile.open(QIODevice::ReadOnly)) throw std::runtime_error("Cannot load GPU projection shader resource");
+    const QByteArray code = pixelOperators + shaderFile.readAll();
+    WGPUShaderSourceWGSL source{};
+    source.chain.sType = WGPUSType_ShaderSourceWGSL;
+    source.code = {code.constData(), size_t(code.size())};
+    WGPUShaderModuleDescriptor shaderDescriptor{};
+    shaderDescriptor.nextInChain = &source.chain;
+    Handle<WGPUShaderModule, wgpuShaderModuleRelease> shader(wgpuDeviceCreateShaderModule(state->device, &shaderDescriptor));
+    WGPUComputePipelineDescriptor descriptor{};
+    descriptor.layout = layout.value;
+    descriptor.compute.module = shader.value;
+    descriptor.compute.entryPoint = {"project", WGPU_STRLEN};
+    result->pipeline = wgpuDeviceCreateComputePipeline(state->device, &descriptor);
+    if (!result->pipeline) throw std::runtime_error("Cannot create GPU projection pipeline");
+    return result;
+}
 
 KisGpuTileStore::Edit KisGpuTileStore::project(const Version &previous, const QVector<Layer> &layers, QRect damage)
 {
@@ -58,12 +116,12 @@ KisGpuTileStore::Edit KisGpuTileStore::project(const Version &previous, const QV
     quint64 parameterBytes = allocationCount * clearStride;
     const quint64 commandBytes = count * sizeof(TileCommand);
     struct Group {
-        qsizetype layer;
+        qsizetype batch;
         quint64 destinationAllocation, parameterOffset = 0;
-        std::shared_ptr<Allocation> source, mask;
-        std::vector<CompositeParameters> parameters;
+        std::array<std::shared_ptr<Allocation>, LayersPerPass> sources, masks;
+        std::vector<ProjectionParameters> parameters;
     };
-    using GroupKey = std::tuple<qsizetype, quint64, quintptr, quintptr>;
+    using GroupKey = std::tuple<qsizetype, quint64, std::array<quintptr, LayersPerPass * 2>>;
     std::map<GroupKey, Group> groups;
     std::vector<TileCommand> clearCommands;
     std::vector<char> packedParameters(size_t(parameterBytes), 0);
@@ -77,38 +135,53 @@ KisGpuTileStore::Edit KisGpuTileStore::project(const Version &previous, const QV
         const TileParameters clear{quint32(index), 1, 0, 0, 0, 0, 0, 0};
         std::memcpy(packedParameters.data() + index / capacity * clearStride + index % capacity * sizeof(clear),
                     &clear, sizeof(clear));
-        for (qsizetype i = 0; i < layers.size(); ++i) {
-            const auto &layer = layers[i];
-            if (!layer.opacity) continue;
-            const auto source = layer.pixels.d->tiles.find(coordinate);
-            if (source == layer.pixels.d->tiles.end()) continue;
-            const VersionData::Tile *mask = nullptr;
-            if (layer.mask.d) {
-                const auto found = layer.mask.d->tiles.find(coordinate);
-                if (found == layer.mask.d->tiles.end()) continue;
-                mask = &found->second;
+        const qsizetype batches = layers.size() / LayersPerPass + (layers.size() % LayersPerPass != 0);
+        for (qsizetype batch = 0; batch < batches; ++batch) {
+            const quint32 layerCount = quint32(std::min<qsizetype>(LayersPerPass, layers.size() - batch * LayersPerPass));
+            ProjectionParameters tile{x0, y0, x1, y1, quint32(index % capacity), 0, {}};
+            std::array<std::shared_ptr<Allocation>, LayersPerPass> sources{}, masks{};
+            std::array<quintptr, LayersPerPass * 2> buffers{};
+            std::shared_ptr<Allocation> fallback;
+            for (quint32 slot = 0; slot < layerCount; ++slot) {
+                const auto &layer = layers[batch * LayersPerPass + slot];
+                if (!layer.opacity) continue;
+                const auto source = layer.pixels.d->tiles.find(coordinate);
+                if (source == layer.pixels.d->tiles.end()) continue;
+                const VersionData::Tile *mask = nullptr;
+                if (layer.mask.d) {
+                    const auto found = layer.mask.d->tiles.find(coordinate);
+                    if (found == layer.mask.d->tiles.end()) continue;
+                    mask = &found->second;
+                }
+                sources[slot] = source->second.allocation;
+                masks[slot] = mask ? mask->allocation : sources[slot];
+                buffers[slot] = quintptr(sources[slot]->buffer);
+                buffers[slot + LayersPerPass] = quintptr(masks[slot]->buffer);
+                fallback = sources[slot];
+                tile.layers[slot] = {quint32(source->second.offset / TileBytes),
+                    mask ? quint32(mask->offset / TileBytes) : MissingTile,
+                    quint32(layer.operation == CompositeOp::Erase ? UpdateKind::Erase : UpdateKind::Over), layer.opacity};
             }
-            auto &group = groups[{i, index / capacity, quintptr(source->second.allocation->buffer),
-                mask ? quintptr(mask->allocation->buffer) : 0}];
-            group.layer = i;
+            if (!fallback) continue;
+            auto &group = groups[{batch, index / capacity, buffers}];
+            group.batch = batch;
             group.destinationAllocation = index / capacity;
-            group.source = source->second.allocation;
-            group.mask = mask ? mask->allocation : group.source;
-            group.parameters.push_back({quint32(source->second.offset / TileBytes), quint32(index % capacity),
-                x0, y0, x1, y1,
-                quint32(layer.operation == CompositeOp::Erase ? UpdateKind::Erase : UpdateKind::Over),
-                layer.opacity, 255, mask ? quint32(mask->offset / TileBytes) : std::numeric_limits<quint32>::max()});
+            for (quint32 slot = 0; slot < LayersPerPass; ++slot) {
+                group.sources[slot] = sources[slot] ? sources[slot] : fallback;
+                group.masks[slot] = masks[slot] ? masks[slot] : fallback;
+            }
+            group.parameters.push_back(tile);
         }
         ++index;
     }
     for (auto &entry : groups) {
         entry.second.parameterOffset = align(parameterBytes);
-        parameterBytes = entry.second.parameterOffset + entry.second.parameters.size() * sizeof(CompositeParameters);
+        parameterBytes = entry.second.parameterOffset + entry.second.parameters.size() * sizeof(ProjectionParameters);
     }
     quint32 passes = 1;
-    qsizetype lastLayer = -1;
+    qsizetype lastBatch = -1;
     for (const auto &entry : groups) {
-        if (entry.second.layer != lastLayer) { ++passes; lastLayer = entry.second.layer; }
+        if (entry.second.batch != lastBatch) { ++passes; lastBatch = entry.second.batch; }
     }
     // Bound timestamped recording before native command-buffer allocation.
     if (d->timestamps && passes > NativeDevice::MaximumTimedPasses) return {Error::BudgetExceeded, {}, {}};
@@ -167,26 +240,30 @@ KisGpuTileStore::Edit KisGpuTileStore::project(const Version &previous, const QV
     }
     auto entry = groups.begin();
     while (entry != groups.end()) {
-        const qsizetype layer = entry->second.layer;
+        const qsizetype batch = entry->second.batch;
         Handle<WGPUComputePassEncoder, wgpuComputePassEncoderRelease> pass(encoder.beginComputePass());
-        wgpuComputePassEncoderSetPipeline(pass.value, d->compositePipeline);
+        wgpuComputePassEncoderSetPipeline(pass.value, d->projectionPipelines->pipeline);
         do {
             const auto &group = entry->second;
-            const quint64 bytes = group.parameters.size() * sizeof(CompositeParameters);
+            const quint64 bytes = group.parameters.size() * sizeof(ProjectionParameters);
             std::memcpy(packedParameters.data() + group.parameterOffset, group.parameters.data(), bytes);
             const auto &allocation = allocations[group.destinationAllocation];
-            WGPUBindGroupEntry entries[4]{};
+            WGPUBindGroupEntry entries[8]{};
             entries[0].binding = 0; entries[0].buffer = allocation->buffer; entries[0].size = allocation->bytes;
-            entries[1].binding = 3; entries[1].buffer = group.source->buffer; entries[1].size = group.source->bytes;
-            entries[2].binding = 4; entries[2].buffer = parameters->buffer; entries[2].offset = group.parameterOffset; entries[2].size = bytes;
-            entries[3].binding = 5; entries[3].buffer = group.mask->buffer; entries[3].size = group.mask->bytes;
+            entries[1].binding = 1; entries[1].buffer = parameters->buffer; entries[1].offset = group.parameterOffset; entries[1].size = bytes;
+            for (quint32 slot = 0; slot < LayersPerPass; ++slot) {
+                entries[2 + slot].binding = 2 + slot;
+                entries[2 + slot].buffer = group.sources[slot]->buffer; entries[2 + slot].size = group.sources[slot]->bytes;
+                entries[5 + slot].binding = 5 + slot;
+                entries[5 + slot].buffer = group.masks[slot]->buffer; entries[5 + slot].size = group.masks[slot]->bytes;
+            }
             WGPUBindGroupDescriptor descriptor{};
-            descriptor.layout = d->compositeLayout; descriptor.entryCount = 4; descriptor.entries = entries;
+            descriptor.layout = d->projectionPipelines->layout; descriptor.entryCount = 8; descriptor.entries = entries;
             Handle<WGPUBindGroup, wgpuBindGroupRelease> binding(wgpuDeviceCreateBindGroup(d->state->device, &descriptor));
             wgpuComputePassEncoderSetBindGroup(pass.value, 0, binding.value, 0, nullptr);
             wgpuComputePassEncoderDispatchWorkgroups(pass.value, 8, 8, quint32(group.parameters.size()));
             ++entry;
-        } while (entry != groups.end() && entry->second.layer == layer);
+        } while (entry != groups.end() && entry->second.batch == batch);
         wgpuComputePassEncoderEnd(pass.value);
     }
     Handle<WGPUCommandBuffer, wgpuCommandBufferRelease> commandBuffer(encoder.finish());

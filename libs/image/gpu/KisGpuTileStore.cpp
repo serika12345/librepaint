@@ -34,7 +34,7 @@ KisGpuTileStore::Private::Private(std::shared_ptr<NativeDevice> nativeOwner, qui
     timestamps = wgpuDeviceHasFeature(device, WGPUFeatureName_TimestampQuery);
     if (wgpuDeviceGetLimits(device, &limits) != WGPUStatus_Success
         || limits.maxStorageBufferBindingSize < TileBytes || limits.maxBufferSize < TileBytes
-        || limits.maxStorageBuffersPerShaderStage < 5
+        || limits.maxStorageBuffersPerShaderStage < 8
         || limits.minStorageBufferOffsetAlignment == 0 || limits.maxComputeWorkgroupsPerDimension < 8) {
         throw std::runtime_error("GPU device cannot bind a document tile");
     }
@@ -71,7 +71,8 @@ KisGpuTileStore::Private::Private(std::shared_ptr<NativeDevice> nativeOwner, qui
     if (!blendFile.open(QIODevice::ReadOnly) || !shaderFile.open(QIODevice::ReadOnly)) {
         throw std::runtime_error("Cannot load GPU tile shader resource");
     }
-    const QByteArray shaderCode = blendFile.readAll() + shaderFile.readAll();
+    const QByteArray pixelOperators = blendFile.readAll();
+    const QByteArray shaderCode = pixelOperators + shaderFile.readAll();
     source.code = {shaderCode.constData(), size_t(shaderCode.size())};
     WGPUShaderModuleDescriptor shaderDescriptor{};
     shaderDescriptor.nextInChain = &source.chain;
@@ -116,6 +117,7 @@ KisGpuTileStore::Private::Private(std::shared_ptr<NativeDevice> nativeOwner, qui
     Handle<WGPUComputePipeline, wgpuComputePipelineRelease> imagePipeline(
         wgpuDeviceCreateComputePipeline(device, &descriptor));
     texturePipelines = createDabPipelines(shader.value, 6, "paintTextured", "paintSelectedTextured");
+    projectionPipelines = createProjectionPipelines(pixelOperators);
     layout = groupLayout.value;
     groupLayout.value = nullptr;
     pipeline = fillPipeline.value;

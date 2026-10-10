@@ -228,6 +228,15 @@ struct KisGpuTileStore::Private {
         DabPipelines &operator=(const DabPipelines &) = delete;
     };
     std::unique_ptr<DabPipelines> texturePipelines;
+    struct ProjectionPipelines {
+        WGPUBindGroupLayout layout = nullptr;
+        WGPUComputePipeline pipeline = nullptr;
+        ~ProjectionPipelines();
+        ProjectionPipelines() = default;
+        ProjectionPipelines(const ProjectionPipelines &) = delete;
+        ProjectionPipelines &operator=(const ProjectionPipelines &) = delete;
+    };
+    std::unique_ptr<ProjectionPipelines> projectionPipelines;
     WGPUBindGroupLayout compositeLayout = nullptr;
     WGPUComputePipeline compositePipeline = nullptr;
     WGPUSubmissionIndex lastSubmission = 0;
@@ -237,6 +246,7 @@ struct KisGpuTileStore::Private {
     Private(std::shared_ptr<KisGpuTileStorage::NativeDevice> nativeOwner, quint64 bytes, quint32 maximum);
     std::unique_ptr<DabPipelines> createDabPipelines(WGPUShaderModule shader, quint32 inputBinding,
                                                    const char *entryPoint, const char *selectedEntryPoint);
+    std::unique_ptr<ProjectionPipelines> createProjectionPipelines(const QByteArray &pixelOperators);
     quint64 availableForOperation(quint32 passes = 1) const;
     void mapTiming(std::unique_ptr<TimingReadbackData> result);
 
