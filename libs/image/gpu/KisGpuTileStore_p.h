@@ -128,11 +128,16 @@ struct KisGpuTileStore::ReadbackData {
 };
 
 struct KisGpuTileStore::TextureData {
+    struct SourceTile {
+        std::weak_ptr<KisGpuTileStorage::Allocation> allocation;
+        quint64 offset;
+    };
     KisGpuDevice::MemoryReservation memory;
     std::shared_ptr<KisGpuTileStorage::DeviceState> owner;
     WGPUTexture texture;
     QRect bounds;
     quint64 bytes;
+    std::map<KisGpuTileStorage::Coordinate, SourceTile> sources;
     TextureData(std::shared_ptr<KisGpuTileStorage::DeviceState> state, QRect rectangle);
     ~TextureData();
     TextureData(const TextureData &) = delete;

@@ -70,7 +70,7 @@ struct Run {
 };
 
 Run execute(KisGpuTestDevice &gpu, QWindow &window, Surface &surface,
-            bool high, bool replace, int sampleCount)
+            bool high, bool replace, bool reuseImage, int sampleCount)
 {
     const QRect bounds(0, 0, high ? 4096 : 128, high ? 4096 : 128);
     const QRect occupied = high ? QRect(1536, 1536, 1024, 1024) : bounds;
@@ -144,9 +144,11 @@ Run execute(KisGpuTestDevice &gpu, QWindow &window, Surface &surface,
             return projection.status() == Store::Status::Succeeded;
         });
         const double projectionMs = elapsed.nsecsElapsed() / 1.0e6;
-        // Each frame uses the production immutable snapshot, including its full-canvas allocation.
-        image = store->textureSnapshot(projection.snapshot().pixels, bounds);
-        require(image.error == Store::Error::None, "Measured texture snapshot was rejected");
+        auto nextImage = reuseImage
+            ? store->textureSnapshot(projection.snapshot().pixels, bounds, std::move(image))
+            : store->textureSnapshot(projection.snapshot().pixels, bounds);
+        require(nextImage.error == Store::Error::None, "Measured texture snapshot was rejected");
+        image = std::move(nextImage);
         observeMemory();
         until([&] {
             store->poll();
@@ -209,6 +211,7 @@ Run execute(KisGpuTestDevice &gpu, QWindow &window, Surface &surface,
             {"pixelReadbackBytes", qint64(after.pixelReadbackBytes - before.pixelReadbackBytes)},
             {"tileCopyBytes", qint64(after.tileCopyBytes - before.tileCopyBytes)},
             {"textureCopyBytes", qint64(after.textureCopyBytes - before.textureCopyBytes)},
+            {"imageTextureAllocationBytes", qint64(after.imageTextureAllocationBytes - before.imageTextureAllocationBytes)},
             {"canvasSubmissions", qint64(afterDisplay.rendering.submissions - beforeDisplay.rendering.submissions)},
             {"canvasParameterUploadBytes", qint64(afterDisplay.rendering.parameterUploadBytes - beforeDisplay.rendering.parameterUploadBytes)},
             {"deviceReservedBytes", qint64(gpu.owner.memoryStatistics().reservedBytes)},
@@ -248,7 +251,8 @@ int main(int argc, char **argv)
     const QCommandLineOption samples(QStringLiteral("samples"), QStringLiteral("Measured updates after two warmups (1..1000)"), QStringLiteral("count"), QStringLiteral("15"));
     const QCommandLineOption workload(QStringLiteral("workload"), QStringLiteral("small, layer-projection or all"), QStringLiteral("name"), QStringLiteral("all"));
     const QCommandLineOption mode(QStringLiteral("mode"), QStringLiteral("append, replace or all"), QStringLiteral("name"), QStringLiteral("all"));
-    parser.addOptions({samples, workload, mode});
+    const QCommandLineOption snapshot(QStringLiteral("snapshot-policy"), QStringLiteral("fresh or reuse"), QStringLiteral("name"), QStringLiteral("reuse"));
+    parser.addOptions({samples, workload, mode, snapshot});
     if (!parser.parse(application.arguments())) {
         std::fprintf(stderr, "%s\n", qPrintable(parser.errorText()));
         return 2;
@@ -256,12 +260,13 @@ int main(int argc, char **argv)
     if (parser.isSet(QStringLiteral("help"))) parser.showHelp();
     bool validCount = false;
     const int count = parser.value(samples).toInt(&validCount);
-    const auto selectedWorkload = parser.value(workload), selectedMode = parser.value(mode);
+    const auto selectedWorkload = parser.value(workload), selectedMode = parser.value(mode), selectedSnapshot = parser.value(snapshot);
     if (!validCount || count < 1 || count > 1000
         || (selectedWorkload != "small" && selectedWorkload != "layer-projection" && selectedWorkload != "all")
         || (selectedMode != "append" && selectedMode != "replace" && selectedMode != "all")
+        || (selectedSnapshot != "fresh" && selectedSnapshot != "reuse")
         || !parser.positionalArguments().isEmpty()) {
-        std::fputs("Expected --samples 1..1000, --workload small|layer-projection|all, --mode append|replace|all\n", stderr);
+        std::fputs("Expected --samples 1..1000, --workload small|layer-projection|all, --mode append|replace|all, --snapshot-policy fresh|reuse\n", stderr);
         return 2;
     }
     try {
@@ -277,7 +282,7 @@ int main(int argc, char **argv)
         for (const bool high : {false, true}) for (const bool replace : {false, true}) {
             if (selectedWorkload != "all" && selectedWorkload != (high ? "layer-projection" : "small")) continue;
             if (selectedMode != "all" && selectedMode != (replace ? "replace" : "append")) continue;
-            const auto run = execute(gpu, window, surface, high, replace, count);
+            const auto run = execute(gpu, window, surface, high, replace, selectedSnapshot == "reuse", count);
             runs.append(run.report);
             displayedEverySample &= run.displayedEverySample;
         }
@@ -289,6 +294,7 @@ int main(int argc, char **argv)
             {"executableSha256", QString::fromLatin1(QCryptographicHash::hash(executable.readAll(), QCryptographicHash::Sha256).toHex())},
             {"inputSource", "generated normalized position and pressure"},
             {"scheduling", "one update at a time; event and GPU polling with 1 ms sleeps"},
+            {"snapshotPolicy", selectedSnapshot},
             {"colorSpace", "RGBA8 sRGB; Over"}, {"memoryAccounting", "logical reservations; physical driver memory excluded"},
             {"samplesPerRun", count}, {"warmupsPerRun", 2}, {"displayedEverySample", displayedEverySample}, {"runs", runs}
         });

@@ -133,6 +133,7 @@ public:
         quint64 pixelUploadBytes = 0;
         quint64 timingReadbackBytes = 0;
         quint64 textureCopyBytes = 0;
+        quint64 imageTextureAllocationBytes = 0;
     };
 
     /** Immutable prepared alpha8 pattern on this store; may outlive its owner. */
@@ -202,6 +203,11 @@ public:
      * Adopt only after completion succeeds; submission and collection use the owning thread.
      */
     TextureSnapshot textureSnapshot(const Version &source, QRect bounds);
+    /** Reuse a completed, exclusively held image of the same bounds, copying only changed tiles.
+     * Shared or pending images use a fresh immutable snapshot. Accepted requests consume previous;
+     * validation, queue and budget rejection leave it intact.
+     */
+    TextureSnapshot textureSnapshot(const Version &source, QRect bounds, TextureSnapshot &&previous);
     /** Import tightly packed RGBA8 pixels into a new version; CPU input may be released on return. */
     Edit upload(const Version &base, QRect bounds, const QByteArray &pixels);
     /**

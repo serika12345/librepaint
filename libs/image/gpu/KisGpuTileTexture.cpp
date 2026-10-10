@@ -8,6 +8,39 @@
 
 using namespace KisGpuTileStorage;
 
+namespace {
+struct TextureCopy {
+    WGPUTexelCopyBufferInfo input{};
+    WGPUOrigin3D origin{};
+    WGPUExtent3D extent{};
+    quint64 bytes() const { return quint64(extent.width) * extent.height * 4; }
+    void encode(WGPUCommandEncoder encoder, WGPUTexture texture) const {
+        WGPUTexelCopyTextureInfo output{};
+        output.texture = texture;
+        output.aspect = WGPUTextureAspect_All;
+        output.origin = origin;
+        wgpuCommandEncoderCopyBufferToTexture(encoder, &input, &output, &extent);
+    }
+};
+
+std::optional<TextureCopy> textureCopy(QRect bounds, Coordinate coordinate, KisGpuTileStore::TileView source)
+{
+    const qint64 tileLeft = qint64(coordinate.first) * 64, tileTop = qint64(coordinate.second) * 64;
+    const qint64 x0 = std::max(qint64(bounds.x()), tileLeft), y0 = std::max(qint64(bounds.y()), tileTop);
+    const qint64 x1 = std::min(qint64(bounds.x()) + bounds.width(), tileLeft + 64);
+    const qint64 y1 = std::min(qint64(bounds.y()) + bounds.height(), tileTop + 64);
+    if (x0 >= x1 || y0 >= y1) return {};
+    TextureCopy result;
+    result.input.buffer = source.buffer;
+    result.input.layout.offset = source.offset + ((y0 - tileTop) * 64 + x0 - tileLeft) * 4;
+    result.input.layout.bytesPerRow = 64 * 4;
+    result.input.layout.rowsPerImage = 64;
+    result.origin = {quint32(x0 - bounds.x()), quint32(y0 - bounds.y()), 0};
+    result.extent = {quint32(x1 - x0), quint32(y1 - y0), 1};
+    return result;
+}
+}
+
 KisGpuTileStore::TextureData::TextureData(std::shared_ptr<DeviceState> state, QRect rectangle)
     : owner(std::move(state)), bounds(rectangle), bytes(quint64(bounds.width()) * bounds.height() * 4)
 {
@@ -39,6 +72,63 @@ bool KisGpuTileStore::TextureSnapshot::usesDevice(const KisGpuDevice &device) co
     return d && d->owner->nativeOwner == device.d;
 }
 
+KisGpuTileStore::TextureSnapshot KisGpuTileStore::textureSnapshot(const Version &source, QRect bounds, TextureSnapshot &&previous)
+{
+    const auto fresh = [&] {
+        auto result = textureSnapshot(source, bounds);
+        if (result.error == Error::None) previous = {};
+        return result;
+    };
+    if (!previous.d || previous.d->owner != d->state || previous.bounds() != bounds
+        || previous.completion.status() != Status::Succeeded) return fresh();
+    TextureSnapshot result;
+    if (!source.d || source.d->owner != d->state) { result.error = Error::InvalidVersion; return result; }
+    if (!deviceAvailable()) { result.error = Error::DeviceLost; return result; }
+    decltype(previous.d->sources) sources;
+    std::vector<TextureCopy> copies;
+    bool clearing = false;
+    for (const auto &entry : source.d->tiles) {
+        const auto copy = textureCopy(bounds, entry.first, {entry.second.allocation->buffer, entry.second.offset});
+        if (!copy) continue;
+        sources.emplace(entry.first, TextureData::SourceTile{entry.second.allocation, entry.second.offset});
+        const auto old = previous.d->sources.find(entry.first);
+        if (old == previous.d->sources.end() || old->second.allocation.lock() != entry.second.allocation
+            || old->second.offset != entry.second.offset) copies.push_back(*copy);
+    }
+    for (const auto &entry : previous.d->sources) if (!sources.count(entry.first)) {
+        copies.push_back(*textureCopy(bounds, entry.first, {}));
+        clearing = true;
+    }
+    if (copies.empty()) return std::move(previous);
+    if (previous.d.use_count() != 1) return fresh();
+    if (d->pending.size() >= d->maximumPending) { result.error = Error::QueueFull; return result; }
+    if ((clearing ? TileBytes : 0) > d->availableForOperation(0)) { result.error = Error::BudgetExceeded; return result; }
+    result.completion.d = std::make_shared<CompletionData>(d->state->availability);
+    Private::ErrorScopes errors(d->state->device, result.completion.d);
+    std::shared_ptr<Allocation> zero;
+    Handle<WGPUCommandEncoder, wgpuCommandEncoderRelease> encoder(wgpuDeviceCreateCommandEncoder(d->state->device, nullptr));
+    if (clearing) {
+        zero = std::make_shared<Allocation>(d->state, TileBytes, WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
+        wgpuCommandEncoderClearBuffer(encoder.value, zero->buffer, 0, TileBytes);
+    }
+    quint64 copiedBytes = 0;
+    for (auto &copy : copies) {
+        if (!copy.input.buffer) copy.input.buffer = zero->buffer;
+        copy.encode(encoder.value, previous.d->texture);
+        copiedBytes += copy.bytes();
+    }
+    Handle<WGPUCommandBuffer, wgpuCommandBufferRelease> commands(wgpuCommandEncoderFinish(encoder.value, nullptr));
+    result.d = std::move(previous.d);
+    previous = {};
+    result.d->sources = std::move(sources);
+    Private::Pending pending{result.completion.d, source, {}, zero, {}, {}};
+    pending.texture = result.d;
+    d->submit(std::move(pending), commands.value, {}, {}, 0, 0);
+    d->statistics.textureCopyBytes += copiedBytes;
+    errors.submitted = true;
+    return result;
+}
+
 KisGpuTileStore::TextureSnapshot KisGpuTileStore::textureSnapshot(const Version &source, QRect bounds)
 {
     TextureSnapshot result;
@@ -67,6 +157,7 @@ KisGpuTileStore::TextureSnapshot KisGpuTileStore::textureSnapshot(const Version 
     result.completion.d = std::make_shared<CompletionData>(d->state->availability);
     Private::ErrorScopes errors(d->state->device, result.completion.d);
     result.d = std::make_shared<TextureData>(d->state, bounds);
+    d->statistics.imageTextureAllocationBytes += bytes;
     Handle<WGPUCommandEncoder, wgpuCommandEncoderRelease> encoder(
         wgpuDeviceCreateCommandEncoder(d->state->device, nullptr));
     Handle<WGPUTextureView, wgpuTextureViewRelease> view(wgpuTextureCreateView(result.d->texture, nullptr));
@@ -83,26 +174,13 @@ KisGpuTileStore::TextureSnapshot KisGpuTileStore::textureSnapshot(const Version 
             wgpuCommandEncoderBeginRenderPass(encoder.value, &clear));
         wgpuRenderPassEncoderEnd(pass.value);
     }
-    const qint64 left = bounds.x(), top = bounds.y();
-    const qint64 right = left + bounds.width(), bottom = top + bounds.height();
     quint64 copiedBytes = 0;
     for (const auto &entry : source.d->tiles) {
-        const qint64 tileLeft = qint64(entry.first.first) * 64, tileTop = qint64(entry.first.second) * 64;
-        const qint64 x0 = std::max(left, tileLeft), y0 = std::max(top, tileTop);
-        const qint64 x1 = std::min(right, tileLeft + 64), y1 = std::min(bottom, tileTop + 64);
-        if (x0 >= x1 || y0 >= y1) continue;
-        WGPUTexelCopyBufferInfo input{};
-        input.buffer = entry.second.allocation->buffer;
-        input.layout.offset = entry.second.offset + ((y0 - tileTop) * 64 + x0 - tileLeft) * 4;
-        input.layout.bytesPerRow = 64 * 4;
-        input.layout.rowsPerImage = 64;
-        WGPUTexelCopyTextureInfo output{};
-        output.texture = result.d->texture;
-        output.aspect = WGPUTextureAspect_All;
-        output.origin = {quint32(x0 - left), quint32(y0 - top), 0};
-        const WGPUExtent3D extent{quint32(x1 - x0), quint32(y1 - y0), 1};
-        wgpuCommandEncoderCopyBufferToTexture(encoder.value, &input, &output, &extent);
-        copiedBytes += quint64(x1 - x0) * (y1 - y0) * 4;
+        const auto copy = textureCopy(bounds, entry.first, {entry.second.allocation->buffer, entry.second.offset});
+        if (!copy) continue;
+        copy->encode(encoder.value, result.d->texture);
+        result.d->sources.emplace(entry.first, TextureData::SourceTile{entry.second.allocation, entry.second.offset});
+        copiedBytes += copy->bytes();
     }
     Handle<WGPUCommandBuffer, wgpuCommandBufferRelease> commands(
         wgpuCommandEncoderFinish(encoder.value, nullptr));
