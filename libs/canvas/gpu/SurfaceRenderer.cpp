@@ -4,6 +4,7 @@
  */
 #include "SurfaceRenderer.h"
 #include "GpuWindowSurface_p.h"
+#include <QPlatformSurfaceEvent>
 #include <QWindow>
 #include <algorithm>
 #include <limits>
@@ -22,14 +23,14 @@ void SurfaceRenderer::Presentation::abandon() {
 std::optional<quint64> SurfaceRenderer::presentationClockNanoseconds() {
     return GpuWindowSurface::presentationClockNanoseconds();
 }
-struct SurfaceRenderer::Private {
+struct SurfaceRenderer::Private : QObject {
     KisGpuDevice &owner;
     QWindow &window;
-    WId windowId;
+    WId windowId = 0;
     quint64 budget;
     quint32 maximumPending;
     KisGpuDevice::MemoryReservation surfaceMemory;
-    GpuWindowSurface surface;
+    std::unique_ptr<GpuWindowSurface> surface;
     std::unique_ptr<GpuRenderer> renderer;
     WGPUTextureFormat format;
     quint32 maximumDimension = 0;
@@ -38,7 +39,24 @@ struct SurfaceRenderer::Private {
     quint64 requests = 0;
     QVector<Presentation> presentations;
     quint64 displayed = 0, skipped = 0, abandoned = 0;
-    ~Private() { for (auto &presentation : presentations) presentation.abandon(); }
+    ~Private() {
+        window.removeEventFilter(this);
+        for (auto &presentation : presentations) presentation.abandon();
+    }
+    bool eventFilter(QObject *watched, QEvent *event) override {
+        if (watched == &window && event->type() == QEvent::PlatformSurface
+            && static_cast<QPlatformSurfaceEvent *>(event)->surfaceEventType() == QPlatformSurfaceEvent::SurfaceAboutToBeDestroyed) {
+            for (auto &presentation : presentations) presentation.abandon();
+            renderer->drain();
+            collectPresentations();
+            surface.reset();
+            surfaceMemory = {};
+            size = {0, 0};
+            windowId = 0;
+            needsConfigure = true;
+        }
+        return QObject::eventFilter(watched, event);
+    }
     void collectPresentations() {
         for (auto it = presentations.begin(); it != presentations.end();) {
             if (!owner.available()) it->abandon();
@@ -51,25 +69,34 @@ struct SurfaceRenderer::Private {
         }
     }
     Private(KisGpuDevice &device, QWindow &target, quint64 limit, quint32 maximum)
-        : owner(device), window(target), windowId(target.winId()), budget(limit), maximumPending(maximum), surface(device, target) {
+        : owner(device), window(target), budget(limit), maximumPending(maximum) {
+        createSurface();
+        WGPULimits limits{};
+        if (wgpuDeviceGetLimits(owner.device(), &limits) != WGPUStatus_Success) throw std::runtime_error("Cannot read GPU window limits");
+        maximumDimension = limits.maxTextureDimension2D;
+        renderer = std::make_unique<GpuRenderer>(owner, format, maximum);
+        window.installEventFilter(this);
+    }
+    void createSurface() {
+        auto candidate = std::make_unique<GpuWindowSurface>(owner, window);
         WGPUSurfaceCapabilities capabilities{};
-        const auto result = wgpuSurfaceGetCapabilities(surface.surface(), owner.adapter(), &capabilities);
+        const auto result = wgpuSurfaceGetCapabilities(candidate->surface(), owner.adapter(), &capabilities);
         const auto supports = [](const auto *begin, size_t count, auto value) {
             return count && std::find(begin, begin + count, value) != begin + count;
         };
-        format = supports(capabilities.formats, capabilities.formatCount, WGPUTextureFormat_BGRA8Unorm)
-            ? WGPUTextureFormat_BGRA8Unorm : WGPUTextureFormat_RGBA8Unorm;
+        const auto nextFormat = renderer ? format
+            : supports(capabilities.formats, capabilities.formatCount, WGPUTextureFormat_BGRA8Unorm)
+                ? WGPUTextureFormat_BGRA8Unorm : WGPUTextureFormat_RGBA8Unorm;
         const bool compatible = result == WGPUStatus_Success
-            && supports(capabilities.formats, capabilities.formatCount, format)
+            && supports(capabilities.formats, capabilities.formatCount, nextFormat)
             && supports(capabilities.presentModes, capabilities.presentModeCount, WGPUPresentMode_Fifo)
             && supports(capabilities.alphaModes, capabilities.alphaModeCount, WGPUCompositeAlphaMode_Opaque)
             && (capabilities.usages & WGPUTextureUsage_RenderAttachment);
         wgpuSurfaceCapabilitiesFreeMembers(capabilities);
         if (!compatible) throw std::runtime_error("GPU window has no supported presentation format");
-        WGPULimits limits{};
-        if (wgpuDeviceGetLimits(owner.device(), &limits) != WGPUStatus_Success) throw std::runtime_error("Cannot read GPU window limits");
-        maximumDimension = limits.maxTextureDimension2D;
-        renderer = std::make_unique<GpuRenderer>(owner, format, maximum);
+        format = nextFormat;
+        windowId = window.winId();
+        surface = std::move(candidate);
     }
     Error configure(QSize wanted) {
         if (quint32(wanted.width()) > maximumDimension || quint32(wanted.height()) > maximumDimension
@@ -86,7 +113,7 @@ struct SurfaceRenderer::Private {
             surfaceMemory = owner.reserveMemory(wantedBytes);
             if (!surfaceMemory) return Error::BudgetExceeded;
         }
-        if (!surface.resize(wanted)) {
+        if (!surface->resize(wanted)) {
             surfaceMemory.tryResize(previousBytes);
             return Error::ResizePending;
         }
@@ -103,7 +130,7 @@ struct SurfaceRenderer::Private {
         configuration.presentMode = WGPUPresentMode_Fifo;
         configuration.alphaMode = WGPUCompositeAlphaMode_Opaque;
         const auto errors = owner.errorCount();
-        wgpuSurfaceConfigure(surface.surface(), &configuration);
+        wgpuSurfaceConfigure(surface->surface(), &configuration);
         if (!owner.available()) return Error::DeviceLost;
         if (owner.errorCount() != errors) return Error::SurfaceUnavailable;
         surfaceMemory.tryResize(wantedBytes);
@@ -123,12 +150,16 @@ SurfaceRenderer::Frame SurfaceRenderer::present(const KisGpuTileStore::TextureSn
     if (!d->owner.available()) { frame.error = Error::DeviceLost; return frame; }
     const auto ratio = d->window.devicePixelRatio();
     const auto width = d->window.width() * ratio, height = d->window.height() * ratio;
-    if (!d->window.isVisible() || !d->window.isExposed() || d->window.winId() != d->windowId || width <= 0 || height <= 0
+    if (!d->window.isVisible() || !d->window.isExposed() || (d->surface && d->window.winId() != d->windowId) || width <= 0 || height <= 0
         || width > std::numeric_limits<int>::max() || height > std::numeric_limits<int>::max()) {
         frame.error = Error::WindowUnavailable; return frame;
     }
     if (!image.texture() || !image.usesDevice(d->owner) || image.completion.status() != GpuRenderer::Status::Succeeded) {
         frame.error = Error::ImageRejected; return frame;
+    }
+    if (!d->surface) {
+        try { d->createSurface(); }
+        catch (const std::runtime_error &) { frame.error = Error::SurfaceUnavailable; return frame; }
     }
     const QSize wanted(qRound(width), qRound(height));
     if (wanted != d->size || d->needsConfigure) {
@@ -139,19 +170,19 @@ SurfaceRenderer::Frame SurfaceRenderer::present(const KisGpuTileStore::TextureSn
         || d->presentations.size() >= d->maximumPending) { frame.error = Error::QueueFull; return frame; }
     if (d->owner.availableMemory() < GpuRenderer::frameMemoryBytes()) { frame.error = Error::BudgetExceeded; return frame; }
     WGPUSurfaceTexture current{};
-    wgpuSurfaceGetCurrentTexture(d->surface.surface(), &current);
+    wgpuSurfaceGetCurrentTexture(d->surface->surface(), &current);
     if (!current.texture) {
         if (current.status == WGPUSurfaceGetCurrentTextureStatus_Outdated
             || current.status == WGPUSurfaceGetCurrentTextureStatus_Lost) d->needsConfigure = true;
         frame.error = d->owner.available() ? Error::SurfaceUnavailable : Error::DeviceLost;
         return frame;
     }
-    frame.presentation = d->surface.presentation();
+    frame.presentation = d->surface->presentation();
     frame.rendering = d->renderer->render(image, current.texture, view);
     if (frame.rendering.error != GpuRenderer::Error::None) {
         frame.error = frame.rendering.error == GpuRenderer::Error::DeviceLost ? Error::DeviceLost
                     : frame.rendering.error == GpuRenderer::Error::BudgetExceeded ? Error::BudgetExceeded : Error::ImageRejected;
-    } else if (wgpuSurfacePresent(d->surface.surface()) != WGPUStatus_Success) {
+    } else if (wgpuSurfacePresent(d->surface->surface()) != WGPUStatus_Success) {
         frame.error = Error::PresentFailed;
         d->needsConfigure = true;
     } else {

@@ -171,15 +171,17 @@ struct GpuRenderer::Private {
             return operation->completion->remaining.load() == 0;
         }), pending.end());
     }
-    ~Private() {
+    void drain() {
         if (!pending.empty()) wgpuDevicePoll(owner.device(), true, lastSubmission ? &lastSubmission : nullptr);
         collect();
     }
+    ~Private() { drain(); }
 };
 
 GpuRenderer::GpuRenderer(KisGpuDevice &device, WGPUTextureFormat format, quint32 maximum)
     : d(new Private(device, format, maximum)) {}
 GpuRenderer::~GpuRenderer() = default;
+void GpuRenderer::drain() { d->drain(); }
 quint64 GpuRenderer::frameMemoryBytes() { return sizeof(Parameters); }
 GpuRenderer::Status GpuRenderer::Frame::status() const { return d ? d->status.load() : Status::Failed; }
 quint64 GpuRenderer::Frame::sequence() const { return d ? d->sequence : 0; }

@@ -13,6 +13,8 @@ struct GpuPresentationData;
 /** Owns the native presentation surface of a dedicated QWindow.
  * The window and device outlive this owner. All operations share the GUI/submitting
  * thread. Polling collects rendering and presentation callbacks; presenting does not wait for the GPU.
+ * Native window destruction drains pending rendering and releases its presentation surface;
+ * the next presentation recreates it while preserving rendering sequences and statistics.
  */
 class SurfaceRenderer
 {

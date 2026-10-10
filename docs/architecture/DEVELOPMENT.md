@@ -234,6 +234,7 @@ GPU内複製、操作完了と予算超過を検査する。評価済みのテ�
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuBrushStrokeTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuNativeFailureTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuCanvasRendererTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuSurfaceLifetimeTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuSurfaceRendererTest
 ```
 
@@ -272,6 +273,9 @@ CPU側の入力進行を保持したGPU交換では、追加・差し替え・�
 送信失敗と無効なマッピングの検査は別プロセスで実行し、ネイティブAPIがエラー通知と
 失敗値を返すことを確認する。
 キャンバス描画はGPU画像を直接読み、座標変換、透明画素の補間と背景合成を検査する。
+`KisGpuSurfaceLifetimeTest`はQtの実ウィンドウを破棄・再作成し、同じ文書画像の提示再開、
+表示予約と未回収フレームの解放、GPU喪失時の終了を検査する。
+実ウィンドウを使用する二つのGPU契約はCTestの共有資源予約で直列に実行し、互いの画面提示を保つ。
 描画先の所有元を発行前に検査し、別デバイスの資源を拒否する。
 実表示の試験は、画面ロックが解除された表示中のデスクトップで実行する。CTestがmacOSでは`cocoa`、Linuxでは
 `xcb`を指定し、`gpu-display`ラベルで識別する。Linuxでは実行環境の表示接続を引き継ぐ。

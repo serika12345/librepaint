@@ -58,6 +58,7 @@ public:
 private:
     friend class SurfaceRenderer;
     static quint64 frameMemoryBytes();
+    void drain();
     struct Private;
     std::unique_ptr<Private> d;
 };
