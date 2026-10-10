@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuTileStore_p.h"
+#include "KisGpuDevice.h"
 
 #include <QFile>
 #include <algorithm>
@@ -27,11 +28,13 @@ static void initializeGpuTileResources()
 
 using namespace KisGpuTileStorage;
 
-KisGpuTileStore::Private::Private(WGPUDevice device, quint64 bytes, quint32 maximum) : budget(bytes), maximumPending(maximum) {
-    if (!device || !maximum || wgpuGetVersion() != 0x1b000400) {
-        throw std::runtime_error("GPU tiles require a device from wgpu-native 27.0.4.0");
+KisGpuTileStore::Private::Private(std::shared_ptr<NativeDevice> nativeOwner, quint64 bytes, quint32 maximum)
+    : budget(bytes), maximumPending(maximum) {
+    if (!nativeOwner || !nativeOwner->availability->available.load() || !maximum) {
+        throw std::runtime_error("GPU tiles require an available device and a nonzero pending limit");
     }
-    state = std::make_shared<DeviceState>(device);
+    state = std::make_shared<DeviceState>(std::move(nativeOwner));
+    const auto device = state->device;
     if (wgpuDeviceGetLimits(device, &limits) != WGPUStatus_Success
         || limits.maxStorageBufferBindingSize < TileBytes || limits.maxBufferSize < TileBytes
         || limits.minStorageBufferOffsetAlignment == 0 || limits.maxComputeWorkgroupsPerDimension < 8) {
@@ -167,8 +170,8 @@ KisGpuTileStore::Private::~Private() {
     wgpuBindGroupLayoutRelease(compositeLayout);
 }
 
-KisGpuTileStore::KisGpuTileStore(WGPUDevice device, quint64 budgetBytes, quint32 maximumPending)
-    : d(new Private(device, budgetBytes, maximumPending)) {}
+KisGpuTileStore::KisGpuTileStore(KisGpuDevice &device, quint64 budgetBytes, quint32 maximumPending)
+    : d(new Private(device.d, budgetBytes, maximumPending)) {}
 KisGpuTileStore::~KisGpuTileStore() = default;
 
 qsizetype KisGpuTileStore::Version::tileCount() const { return d ? qsizetype(d->tiles.size()) : 0; }

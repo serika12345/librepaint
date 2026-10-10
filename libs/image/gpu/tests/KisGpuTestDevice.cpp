@@ -15,82 +15,15 @@ int tileCoordinate(int pixel) { return pixel >= 0 ? pixel / 64 : (pixel + 1) / 6
 }
 
 KisGpuTestDevice::KisGpuTestDevice(quint64 storageBindingLimit)
+    : owner(storageBindingLimit), device(owner.device()), queue(wgpuDeviceGetQueue(device)), name(owner.adapterName())
 {
-    try {
-        WGPUInstanceExtras extras{};
-        extras.chain.sType = static_cast<WGPUSType>(WGPUSType_InstanceExtras);
-#ifdef __APPLE__
-        extras.backends = WGPUInstanceBackend_Metal;
-#else
-        extras.backends = WGPUInstanceBackend_Vulkan;
-#endif
-        extras.flags = WGPUInstanceFlag_Validation;
-        WGPUInstanceDescriptor instanceDescriptor{};
-        instanceDescriptor.nextInChain = &extras.chain;
-        instance = wgpuCreateInstance(&instanceDescriptor);
-        if (!instance) throw std::runtime_error("Cannot create GPU instance");
-
-        std::promise<WGPUAdapter> adapterPromise;
-        auto adapterFuture = adapterPromise.get_future();
-        WGPURequestAdapterCallbackInfo adapterCallback{};
-        adapterCallback.mode = WGPUCallbackMode_AllowSpontaneous;
-        adapterCallback.userdata1 = &adapterPromise;
-        adapterCallback.callback = [](WGPURequestAdapterStatus, WGPUAdapter adapter, WGPUStringView, void *data, void *) {
-            static_cast<std::promise<WGPUAdapter> *>(data)->set_value(adapter);
-        };
-        WGPURequestAdapterOptions options{};
-        wgpuInstanceRequestAdapter(instance, &options, adapterCallback);
-        adapter = adapterFuture.get();
-        if (!adapter) throw std::runtime_error("A hardware Metal/Vulkan adapter is required");
-        WGPUAdapterInfo info{};
-        wgpuAdapterGetInfo(adapter, &info);
-        const auto adapterType = info.adapterType;
-        name = QString::fromUtf8(info.device.data, qsizetype(info.device.length));
-        wgpuAdapterInfoFreeMembers(info);
-        if (adapterType == WGPUAdapterType_CPU) throw std::runtime_error("A hardware GPU is required");
-
-        std::promise<WGPUDevice> devicePromise;
-        auto deviceFuture = devicePromise.get_future();
-        WGPURequestDeviceCallbackInfo deviceCallback{};
-        deviceCallback.mode = WGPUCallbackMode_AllowSpontaneous;
-        deviceCallback.userdata1 = &devicePromise;
-        deviceCallback.callback = [](WGPURequestDeviceStatus, WGPUDevice device, WGPUStringView, void *data, void *) {
-            static_cast<std::promise<WGPUDevice> *>(data)->set_value(device);
-        };
-        WGPULimits requestedLimits{};
-        if (storageBindingLimit) {
-            if (wgpuAdapterGetLimits(adapter, &requestedLimits) != WGPUStatus_Success) {
-                throw std::runtime_error("Cannot query GPU limits");
-            }
-            requestedLimits.maxStorageBufferBindingSize = storageBindingLimit;
-        }
-        WGPUDeviceDescriptor descriptor{};
-        if (storageBindingLimit) descriptor.requiredLimits = &requestedLimits;
-        descriptor.uncapturedErrorCallbackInfo.userdata1 = &errors;
-        descriptor.uncapturedErrorCallbackInfo.callback = [](const WGPUDevice *, WGPUErrorType, WGPUStringView message, void *data, void *) {
-            static_cast<std::atomic<int> *>(data)->fetch_add(1);
-            qWarning() << "GPU validation:" << QByteArray(message.data, qsizetype(message.length));
-        };
-        wgpuAdapterRequestDevice(adapter, &descriptor, deviceCallback);
-        device = deviceFuture.get();
-        if (!device) throw std::runtime_error("Cannot create GPU device");
-        queue = wgpuDeviceGetQueue(device);
-        if (!queue) throw std::runtime_error("Cannot get GPU queue");
-    } catch (...) {
-        release();
-        throw;
-    }
+    if (!queue) throw std::runtime_error("Cannot get GPU queue");
 }
 
-KisGpuTestDevice::~KisGpuTestDevice() { release(); }
-
-void KisGpuTestDevice::release()
+KisGpuTestDevice::~KisGpuTestDevice()
 {
-    if (device) wgpuDevicePoll(device, true, nullptr);
-    if (queue) wgpuQueueRelease(queue);
-    if (device) wgpuDeviceRelease(device);
-    if (adapter) wgpuAdapterRelease(adapter);
-    if (instance) wgpuInstanceRelease(instance);
+    wgpuDevicePoll(device, true, nullptr);
+    wgpuQueueRelease(queue);
 }
 
 QByteArray KisGpuTestDevice::read(const KisGpuTileStore::Version &version, QRect bounds)
@@ -141,4 +74,3 @@ QByteArray KisGpuTestDevice::read(const KisGpuTileStore::Version &version, QRect
     }
     return result;
 }
-

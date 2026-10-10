@@ -1,0 +1,123 @@
+/*
+ * SPDX-FileCopyrightText: 2026 LibrePaint contributors
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+#include "KisGpuDevice.h"
+#include "KisGpuDevice_p.h"
+#include <cstring>
+#include <future>
+#include <stdexcept>
+
+namespace {
+QString message(WGPUStringView value)
+{
+    return value.data ? QString::fromUtf8(value.data,
+        value.length == WGPU_STRLEN ? qsizetype(std::strlen(value.data)) : qsizetype(value.length)) : QString();
+}
+}
+
+using namespace KisGpuTileStorage;
+
+NativeDevice::NativeDevice(quint64 storageBindingLimit) {
+    try {
+        if (wgpuGetVersion() != 0x1b000400) throw std::runtime_error("GPU document requires wgpu-native 27.0.4.0");
+        WGPUInstanceExtras extras{};
+        extras.chain.sType = static_cast<WGPUSType>(WGPUSType_InstanceExtras);
+#ifdef __APPLE__
+        extras.backends = WGPUInstanceBackend_Metal;
+#else
+        extras.backends = WGPUInstanceBackend_Vulkan;
+#endif
+        extras.flags = WGPUInstanceFlag_Validation;
+        WGPUInstanceDescriptor instanceDescriptor{};
+        instanceDescriptor.nextInChain = &extras.chain;
+        instance = wgpuCreateInstance(&instanceDescriptor);
+        if (!instance) throw std::runtime_error("Cannot create GPU instance");
+        std::promise<WGPUAdapter> adapterPromise;
+        auto adapterFuture = adapterPromise.get_future();
+        WGPURequestAdapterCallbackInfo adapterCallback{};
+        adapterCallback.mode = WGPUCallbackMode_AllowSpontaneous;
+        adapterCallback.userdata1 = &adapterPromise;
+        adapterCallback.callback = [](WGPURequestAdapterStatus, WGPUAdapter adapter, WGPUStringView, void *data, void *) {
+            static_cast<std::promise<WGPUAdapter> *>(data)->set_value(adapter);
+        };
+        WGPURequestAdapterOptions options{};
+        wgpuInstanceRequestAdapter(instance, &options, adapterCallback);
+        adapter = adapterFuture.get();
+        if (!adapter) throw std::runtime_error("A hardware Metal/Vulkan adapter is required");
+        WGPUAdapterInfo info{};
+        wgpuAdapterGetInfo(adapter, &info);
+        const auto adapterType = info.adapterType;
+        name = message(info.device);
+        wgpuAdapterInfoFreeMembers(info);
+        if (adapterType == WGPUAdapterType_CPU) throw std::runtime_error("A hardware GPU is required");
+        WGPULimits requestedLimits{};
+        if (storageBindingLimit) {
+            if (wgpuAdapterGetLimits(adapter, &requestedLimits) != WGPUStatus_Success) {
+                throw std::runtime_error("Cannot query GPU limits");
+            }
+            requestedLimits.maxStorageBufferBindingSize = storageBindingLimit;
+        }
+        WGPUDeviceDescriptor descriptor{};
+        if (storageBindingLimit) descriptor.requiredLimits = &requestedLimits;
+        descriptor.deviceLostCallbackInfo.mode = WGPUCallbackMode_AllowSpontaneous;
+        descriptor.deviceLostCallbackInfo.userdata1 = this;
+        descriptor.deviceLostCallbackInfo.callback = [](const WGPUDevice *, WGPUDeviceLostReason,
+            WGPUStringView value, void *data, void *) {
+            auto &state = *static_cast<NativeDevice *>(data);
+            state.availability->available.store(false);
+            std::lock_guard<std::mutex> lock(state.diagnostics);
+            state.error = message(value);
+        };
+        descriptor.uncapturedErrorCallbackInfo.userdata1 = this;
+        descriptor.uncapturedErrorCallbackInfo.callback = [](const WGPUDevice *, WGPUErrorType,
+            WGPUStringView value, void *data, void *) {
+            auto &state = *static_cast<NativeDevice *>(data);
+            state.errors.fetch_add(1);
+            state.availability->available.store(false);
+            std::lock_guard<std::mutex> lock(state.diagnostics);
+            state.error = message(value);
+        };
+        std::promise<WGPUDevice> devicePromise;
+        auto deviceFuture = devicePromise.get_future();
+        WGPURequestDeviceCallbackInfo deviceCallback{};
+        deviceCallback.mode = WGPUCallbackMode_AllowSpontaneous;
+        deviceCallback.userdata1 = &devicePromise;
+        deviceCallback.callback = [](WGPURequestDeviceStatus, WGPUDevice device, WGPUStringView, void *data, void *) {
+            static_cast<std::promise<WGPUDevice> *>(data)->set_value(device);
+        };
+        wgpuAdapterRequestDevice(adapter, &descriptor, deviceCallback);
+        device = deviceFuture.get();
+        if (!device) throw std::runtime_error("Cannot create GPU device");
+    } catch (...) {
+        release();
+        throw;
+    }
+}
+
+void NativeDevice::destroy() {
+    if (!device || destroyed) return;
+    {
+        std::lock_guard<std::mutex> lock(availability->mapping);
+        availability->available.store(false);
+    }
+    destroyed = true;
+    wgpuDeviceDestroy(device);
+    wgpuDevicePoll(device, true, nullptr);
+}
+void NativeDevice::release() {
+    destroy();
+    if (device) wgpuDeviceRelease(device);
+    if (adapter) wgpuAdapterRelease(adapter);
+    if (instance) wgpuInstanceRelease(instance);
+}
+NativeDevice::~NativeDevice() { release(); }
+
+KisGpuDevice::KisGpuDevice(quint64 storageBindingLimit) : d(std::make_shared<NativeDevice>(storageBindingLimit)) {}
+KisGpuDevice::~KisGpuDevice() { d->destroy(); }
+WGPUDevice KisGpuDevice::device() const { return d->device; }
+QString KisGpuDevice::adapterName() const { return d->name; }
+bool KisGpuDevice::available() const { return d->availability->available.load(); }
+int KisGpuDevice::errorCount() const { return d->errors.load(); }
+QString KisGpuDevice::lastError() const { std::lock_guard<std::mutex> lock(d->diagnostics); return d->error; }
+void KisGpuDevice::destroy() { d->destroy(); }

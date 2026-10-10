@@ -52,12 +52,12 @@ void KisGpuEditSessionTest::initTestCase() { m_gpu = std::make_unique<KisGpuTest
 void KisGpuEditSessionTest::cleanup()
 {
     wgpuDevicePoll(m_gpu->device, true, nullptr);
-    QCOMPARE(m_gpu->errors.load(), 0);
+    QCOMPARE(m_gpu->owner.errorCount(), 0);
 }
 
 void KisGpuEditSessionTest::replacementCommitsExactlyThePreview()
 {
-    KisGpuTileStore store(m_gpu->device, 32 * KisGpuTileStore::TileBytes);
+    KisGpuTileStore store(m_gpu->owner, 32 * KisGpuTileStore::TileBytes);
     KisGpuEditSession session(store, 8);
     const QRect clip(-64, -64, 128, 128);
     const auto old = dab(QPointF(-20.25, -10.25), 0x80FFFFFF);
@@ -85,7 +85,7 @@ void KisGpuEditSessionTest::replacementCommitsExactlyThePreview()
 
 void KisGpuEditSessionTest::cancellationPreservesRedoAndRejectsStaleInput()
 {
-    KisGpuTileStore store(m_gpu->device, 64 * KisGpuTileStore::TileBytes);
+    KisGpuTileStore store(m_gpu->owner, 64 * KisGpuTileStore::TileBytes);
     KisGpuEditSession session(store, 8);
     const QRect clip(0, 0, 128, 64);
     for (const auto center : {QPointF(16.25, 16.25), QPointF(80.25, 16.25)}) {
@@ -121,7 +121,7 @@ void KisGpuEditSessionTest::cancellationPreservesRedoAndRejectsStaleInput()
 
 void KisGpuEditSessionTest::historyLimitReleasesGpuVersions()
 {
-    KisGpuTileStore store(m_gpu->device, 16 * KisGpuTileStore::TileBytes);
+    KisGpuTileStore store(m_gpu->owner, 16 * KisGpuTileStore::TileBytes);
     KisGpuEditSession session(store, 2);
     const QRect clip(0, 0, 64, 64);
     for (int i = 0; i < 10; ++i) {
@@ -143,7 +143,7 @@ void KisGpuEditSessionTest::historyLimitReleasesGpuVersions()
 
 void KisGpuEditSessionTest::rejectedUpdatesPreserveTheWorkingEdit()
 {
-    KisGpuTileStore store(m_gpu->device, 8 * KisGpuTileStore::TileBytes, 1);
+    KisGpuTileStore store(m_gpu->owner, 8 * KisGpuTileStore::TileBytes, 1);
     KisGpuEditSession session(store, 8);
     const QRect clip(0, 0, 64, 64);
     const auto token = session.begin();
@@ -164,7 +164,7 @@ void KisGpuEditSessionTest::rejectedUpdatesPreserveTheWorkingEdit()
 
 void KisGpuEditSessionTest::inputFromAnotherDocumentIsRejected()
 {
-    KisGpuTileStore store(m_gpu->device, 16 * KisGpuTileStore::TileBytes);
+    KisGpuTileStore store(m_gpu->owner, 16 * KisGpuTileStore::TileBytes);
     KisGpuEditSession first(store, 8), second(store, 8);
     const auto oldDocument = first.begin();
     const auto currentDocument = second.begin();
@@ -187,7 +187,8 @@ void KisGpuEditSessionTest::inputFromAnotherDocumentIsRejected()
 
 void KisGpuEditSessionTest::deviceLossNeverCommitsTentativePixels()
 {
-    KisGpuTileStore store(m_gpu->device, 16 * KisGpuTileStore::TileBytes);
+    KisGpuTestDevice isolatedGpu;
+    KisGpuTileStore store(isolatedGpu.owner, 16 * KisGpuTileStore::TileBytes);
     KisGpuEditSession session(store, 8);
     const QRect clip(0, 0, 64, 64);
     const auto token = session.begin();
@@ -205,7 +206,7 @@ void KisGpuEditSessionTest::deviceLossNeverCommitsTentativePixels()
 
 void KisGpuEditSessionTest::importedVersionStartsAnEditableDocument()
 {
-    KisGpuTileStore store(m_gpu->device, 16 * KisGpuTileStore::TileBytes);
+    KisGpuTileStore store(m_gpu->owner, 16 * KisGpuTileStore::TileBytes);
     const QRect bounds(0, 0, 64, 64);
     const QByteArray original(64 * 64 * 4, '\xFF');
     const auto loaded = store.upload(store.emptyVersion(), bounds, original);
@@ -224,7 +225,7 @@ void KisGpuEditSessionTest::importedVersionStartsAnEditableDocument()
     QVERIFY(session.undo());
     QCOMPARE(m_gpu->read(session.head(), bounds), original);
     QVERIFY(!session.undo());
-    KisGpuTileStore foreign(m_gpu->device, 16 * KisGpuTileStore::TileBytes);
+    KisGpuTileStore foreign(m_gpu->owner, 16 * KisGpuTileStore::TileBytes);
     QVERIFY_EXCEPTION_THROWN(KisGpuEditSession(store, 2, foreign.emptyVersion()), std::invalid_argument);
 }
 

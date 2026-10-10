@@ -146,7 +146,7 @@ int main(int argc, char **argv)
         KisGpuTestDevice gpu;
         QJsonArray reports;
         for (const auto &workload : workloads()) {
-            KisGpuTileStore store(gpu.device, BudgetBytes);
+            KisGpuTileStore store(gpu.owner, BudgetBytes);
             const auto base = store.fill(store.emptyVersion(), workload.bounds, 0xC0102030);
             if (base.error != KisGpuTileStore::Error::None) throw std::runtime_error("Cannot initialize benchmark tiles");
             wait(gpu, store, {base.completion});
@@ -180,7 +180,7 @@ int main(int argc, char **argv)
                 {"modes", QJsonArray {summarize("individual", individualSamples), summarize("batched", batchSamples)}}
             });
         }
-        if (gpu.errors.load() != 0) throw std::runtime_error("Uncaptured GPU validation errors");
+        if (gpu.owner.errorCount() != 0) throw std::runtime_error("Uncaptured GPU validation errors");
         QFile executable(QCoreApplication::applicationFilePath());
         if (!executable.open(QIODevice::ReadOnly)) throw std::runtime_error("Cannot identify benchmark executable");
         const QByteArray executableDigest = QCryptographicHash::hash(executable.readAll(), QCryptographicHash::Sha256).toHex();

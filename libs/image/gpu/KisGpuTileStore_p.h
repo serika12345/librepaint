@@ -6,6 +6,7 @@
 #define KIS_GPU_TILE_STORE_P_H
 
 #include "KisGpuTileStore.h"
+#include "KisGpuDevice_p.h"
 #include <array>
 #include <atomic>
 #include <map>
@@ -25,20 +26,16 @@ struct Handle {
     Handle &operator=(const Handle &) = delete;
 };
 
-struct Availability {
-    std::mutex mapping;
-    std::atomic<bool> available{true};
-};
-
 struct DeviceState {
     WGPUDevice device;
     WGPUQueue queue;
     std::atomic<quint64> residentBytes{0};
-    std::shared_ptr<Availability> availability = std::make_shared<Availability>();
-    explicit DeviceState(WGPUDevice value) : device(value), queue(wgpuDeviceGetQueue(value)) {
-        wgpuDeviceAddRef(device);
-    }
-    ~DeviceState() { wgpuQueueRelease(queue); wgpuDeviceRelease(device); }
+    std::shared_ptr<Availability> availability;
+    std::shared_ptr<NativeDevice> nativeOwner;
+    explicit DeviceState(std::shared_ptr<NativeDevice> native)
+        : device(native->device), queue(wgpuDeviceGetQueue(device)), availability(native->availability),
+          nativeOwner(std::move(native)) {}
+    ~DeviceState() { wgpuQueueRelease(queue); }
 };
 
 struct Allocation {
@@ -172,7 +169,7 @@ struct KisGpuTileStore::Private {
     Statistics statistics;
     std::vector<Pending> pending;
 
-    Private(WGPUDevice device, quint64 bytes, quint32 maximum);
+    Private(std::shared_ptr<KisGpuTileStorage::NativeDevice> nativeOwner, quint64 bytes, quint32 maximum);
 
     void submit(Pending operation, WGPUCommandBuffer commandBuffer, const std::vector<char> &parameters,
                 const std::vector<KisGpuTileStorage::TileCommand> &commands, quint64 copiedBytes, quint64 dispatches,

@@ -13,6 +13,8 @@
 #include <memory>
 #include <webgpu/wgpu.h>
 
+class KisGpuDevice;
+
 /**
  * Immutable sparse RGBA8 tiles on one externally created GPU device. Calls,
  * including poll(), belong to the device's submitting thread. The store keeps
@@ -110,8 +112,11 @@ public:
         quint64 pixelUploadBytes = 0;
     };
 
-    /** Null device/resources or API/limits mismatch throw std::runtime_error; requires wgpu-native 27.0.4.0. */
-    KisGpuTileStore(WGPUDevice device, quint64 budgetBytes, quint32 maximumPending = 256);
+    /**
+     * Shares the device owner's loss state; stores may outlive that owner but become unavailable.
+     * Unavailable device, unsupported limits, or zero pending limit throw std::runtime_error.
+     */
+    KisGpuTileStore(KisGpuDevice &device, quint64 budgetBytes, quint32 maximumPending = 256);
     ~KisGpuTileStore();
     KisGpuTileStore(const KisGpuTileStore &) = delete;
     KisGpuTileStore &operator=(const KisGpuTileStore &) = delete;

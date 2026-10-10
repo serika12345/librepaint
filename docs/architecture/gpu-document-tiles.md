@@ -9,6 +9,8 @@ wgpu-native 27.0.4.0を直接利用する。画像モデル、ブラシ、履歴
 
 | ファイル | 所有内容 |
 | --- | --- |
+| `libs/image/gpu/KisGpuDevice.*` | 実GPUの生成、喪失通知と同期した破棄 |
+| `libs/image/gpu/KisGpuDevice_p.h` | ネイティブデバイスと全描画先で共有する利用可否 |
 | `libs/image/gpu/KisGpuTileStore.h` | 版、単色描画、画素合成、明示的な転送、操作完了、予算と統計の内部API |
 | `libs/image/gpu/KisGpuTileStore.cpp` | GPUバッファーの寿命、タイル共有、GPU内複製、計算命令と完了観測 |
 | `libs/image/gpu/KisGpuTileComposite.cpp` | 画像版と選択マスクを読むGPU内合成 |
@@ -18,7 +20,7 @@ wgpu-native 27.0.4.0を直接利用する。画像モデル、ブラシ、履歴
 | `libs/image/gpu/KisGpuTilePaint.wgsl` | GPU上の画素演算。Qtリソースとしてライブラリーへ組み込む |
 | `libs/image/gpu/KisGpuEditSession.*` | 作業版の追加・差し替え、非同期確定、取消しと有限の履歴 |
 | `libs/image/gpu/tests/KisGpuTileStoreTest.cpp` | 実GPUによる画素、版、予算、資源解放の契約 |
-| `libs/image/gpu/tests/KisGpuTestDevice.*` | 試験と計測が所有する実GPUと明示的なCPU読み戻し |
+| `libs/image/gpu/tests/KisGpuTestDevice.*` | 製品用デバイスを利用する試験用のCPU読み戻し |
 | `libs/image/gpu/tests/KisGpuPaintBenchmark.cpp` | 固定入力による逐次発行と一括発行の実測 |
 | `scripts/configure-gpu-document` | 固定Nix依存の取得とネイティブ構築の設定 |
 
@@ -145,7 +147,9 @@ GPUの版と一時領域は完了後の`poll()`で解放する。CPU結果は文
 
 ## 操作順序と寿命
 
-利用側が作ったデバイスを`KisGpuTileStore`へ渡す。所有者はデバイスの参照を取得し、
+`KisGpuDevice`はMetalまたはVulkanの実GPUを生成し、CPU描画装置を拒否する。
+生成、命令発行、明示的な破棄は同じスレッドで実行する。
+利用側はこのデバイス所有者を`KisGpuTileStore`へ渡す。タイル所有者は内部状態を共有し、
 同じキューへ操作を入力順に発行する。次の操作は、先の操作の版を完了待ち前に参照できる。
 操作には発行順の番号と`Pending`、`Succeeded`、`Failed`の完了状態がある。
 キュー上の完了とGPU検査・メモリー不足の検査結果を合わせて操作の成功を判断する。
@@ -164,10 +168,13 @@ GPUからの通知は完了値を記録する。発行側は全通知と入力�
 空のバッファーは未配置のタイルを表す。
 
 所有者の破棄時は最後に発行した操作の完了を待つ。版が所有者より長く生きる場合は、
-版がタイルとデバイスの参照を保持する。
+版がタイルとネイティブデバイスの内部状態を保持する。
+デバイス所有者が先に破棄された場合も通知先の内部状態を保持し、失効したGPU資源を安全に解放する。
+失効済みデバイスからのタイル所有者の新規生成は、GPU命令の前に拒否する。
 
-デバイス所有者は喪失時に`invalidateDevice()`を通知する。通知は所有者の生存中に
-任意のスレッドから行え、明示的なネイティブデバイスの破棄は発行スレッドで通知後に行う。
+ネイティブの喪失通知と捕捉されなかったGPUエラーは、同じデバイスの全タイル所有者を失効させる。
+`KisGpuDevice::destroy()`は全所有者を失効させてからネイティブ資源を破棄し、通知を回収する。
+`invalidateDevice()`による個別通知も所有者の生存中に任意のスレッドから行える。
 通知はCPUへのマッピングと同期し、破棄後のバッファーから画素を取得することを防ぐ。
 以後の描画・合成・読取りは`DeviceLost`として発行前に拒否する。
 未完了の操作は直ちに`Failed`を返し、後続の通知でも成功へ戻らない。
