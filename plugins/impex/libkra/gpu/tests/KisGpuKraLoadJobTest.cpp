@@ -9,6 +9,9 @@
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
 #include <metadata/KoDocumentInfo.h>
+#include <canvas/kis_grid_config.h>
+#include <canvas/kis_guides_config.h>
+#include <canvas/KisMirrorAxisConfig.h>
 #include <QDomDocument>
 #include <KoColor.h>
 #include <KoColorSpaceRegistry.h>
@@ -87,6 +90,23 @@ bool nativeFixture(const QString &path, int variant = 0)
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
     document->setFileBatchMode(true);
     document->setCurrentImage(image);
+    if (variant == 12) {
+        auto grid = document->gridConfig();
+        grid.setShowGrid(true);
+        grid.setSpacing({17, 19});
+        document->setGridConfig(grid);
+    }
+    if (variant == 13) {
+        auto guides = document->guidesConfig();
+        guides.setVerticalGuideLines({8.5, 21.25});
+        document->setGuidesConfig(guides);
+    }
+    if (variant == 14) {
+        auto mirror = document->mirrorAxisConfig();
+        mirror.setMirrorHorizontal(true);
+        mirror.setAxisPosition({7.5, 11.25});
+        document->setMirrorAxisConfig(mirror);
+    }
     image->waitForDone();
     const bool saved = document->exportDocumentSync(path, "application/x-krita");
     image.clear();
@@ -253,9 +273,22 @@ void KisGpuKraLoadJobTest::unsupportedNativeContentIsRefusedBeforeGpuWork()
     KisGpuTestDevice gpu;
     auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
     const auto before = store->statistics();
-    for (int variant : {1, 2, 4, 5, 6, 7, 8, 10, 11}) {
+    for (int variant : {1, 2, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14}) {
         const auto path = directory.filePath(QString::number(variant) + QStringLiteral(".kra"));
         QVERIFY(nativeFixture(path, variant));
+        QScopedPointer<KisDocument> original(KisPart::instance()->createDocument());
+        original->setFileBatchMode(true);
+        QVERIFY(original->loadNativeFormat(path));
+        original->image()->waitForDone();
+        if (variant == 12) {
+            QVERIFY(original->gridConfig().showGrid());
+            QCOMPARE(original->gridConfig().spacing(), QPoint(17, 19));
+        }
+        if (variant == 13) QCOMPARE(original->guidesConfig().verticalGuideLines(), QList<qreal>({8.5, 21.25}));
+        if (variant == 14) {
+            QVERIFY(original->mirrorAxisConfig().mirrorHorizontal());
+            QCOMPARE(original->mirrorAxisConfig().axisPosition(), QPointF(7.5, 11.25));
+        }
         Load load(store, path, 8);
         QVERIFY(!finish(load));
         QCOMPARE(load.state(), Load::State::Failed);
@@ -264,9 +297,6 @@ void KisGpuKraLoadJobTest::unsupportedNativeContentIsRefusedBeforeGpuWork()
         QVERIFY(!load.metadata());
         QCOMPARE(store->statistics().submissions, before.submissions);
         QCOMPARE(store->statistics().pixelUploadBytes, before.pixelUploadBytes);
-        QScopedPointer<KisDocument> original(KisPart::instance()->createDocument());
-        original->setFileBatchMode(true);
-        QVERIFY(original->loadNativeFormat(path));
     }
 }
 

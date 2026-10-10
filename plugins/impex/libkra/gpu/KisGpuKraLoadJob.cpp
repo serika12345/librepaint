@@ -6,6 +6,9 @@
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
 #include <metadata/KoDocumentInfo.h>
+#include <canvas/kis_grid_config.h>
+#include <canvas/kis_guides_config.h>
+#include <canvas/KisMirrorAxisConfig.h>
 #include <QDomDocument>
 #include <KoColor.h>
 #include <KoColorProfile.h>
@@ -128,7 +131,9 @@ struct KisGpuKraLoadJob::Private {
         if (!supportedColorSpace(image->colorSpace()) || image->width() <= 0 || image->height() <= 0
             || !std::isfinite(image->xRes()) || image->xRes() <= 0
             || !std::isfinite(image->yRes()) || image->yRes() <= 0
-            || image->defaultProjectionColor().opacityU8() || image->globalSelection()) {
+            || image->defaultProjectionColor().opacityU8() || image->globalSelection()
+            || !native->gridConfig().isDefault() || !native->guidesConfig().isDefault()
+            || !native->mirrorAxisConfig().isDefault()) {
             fail(Error::UnsupportedDocument); return {};
         }
         auto info = KisDocument::createDomDocument(QStringLiteral("document-info"),
