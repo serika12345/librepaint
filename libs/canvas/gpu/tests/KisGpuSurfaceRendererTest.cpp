@@ -282,9 +282,12 @@ private Q_SLOTS:
             QCOMPARE(renderer.present(input, {}).error, SurfaceRenderer::Error::BudgetExceeded);
             QCOMPARE(renderer.statistics().reservedSurfaceBytes, initial);
             occupied = {};
-            QTRY_VERIFY_WITH_TIMEOUT((renderer.poll(), frame = renderer.present(input, {}),
+            frame.error = SurfaceRenderer::Error::ResizePending;
+            QTRY_VERIFY_WITH_TIMEOUT((renderer.poll(),
+                frame.error == SurfaceRenderer::Error::ResizePending ? frame = renderer.present(input, {}) : frame,
                 frame.error != SurfaceRenderer::Error::ResizePending), 3000);
-            QVERIFY(frame.accepted());
+            QVERIFY2(frame.accepted(), qPrintable(QStringLiteral("presentation error %1").arg(int(frame.error))));
+            QCOMPARE(renderer.statistics().presentationRequests, quint64(2));
             QCOMPARE(renderer.statistics().reservedSurfaceBytes, initial * 4);
             QTRY_VERIFY_WITH_TIMEOUT((renderer.poll(), renderer.statistics().rendering.pendingFrames == 0
                 && renderer.statistics().pendingPresentations == 0), 3000);
