@@ -14,6 +14,7 @@ wgpu-native 27.0.4.0を直接利用する。画像モデル、ブラシ、履歴
 | `libs/image/gpu/KisGpuTilePaint.wgsl` | GPU上の画素演算。Qtリソースとしてライブラリーへ組み込む |
 | `libs/image/gpu/tests/KisGpuTileStoreTest.cpp` | 実GPUによる画素、版、予算、資源解放の契約 |
 | `libs/image/gpu/tests/KisGpuTestDevice.*` | 試験と計測が所有する実GPUと明示的なCPU読み戻し |
+| `libs/image/gpu/tests/KisGpuPaintBenchmark.cpp` | 固定入力による逐次発行と一括発行の実測 |
 | `scripts/configure-gpu-document` | 固定Nix依存の取得とネイティブ構築の設定 |
 
 `LIBREPAINT_BUILD_GPU_DOCUMENT=ON`でこの構築単位と試験を有効にする。
@@ -95,3 +96,6 @@ GPU検査で失敗した操作は`Failed`として採用を止める。
 一括描画は逐次描画との画素一致、タイルごと一回の複製、一回の発行、
 命令も含めた予算と一括拒否を検査する。
 検証用のCPU読み戻しは試験側の資源で実行する。
+
+逐次発行と一括発行の比較は開発マニュアルの
+[GPU描画の一括発行計測](DEVELOPMENT.md#gpu描画の一括発行計測)を参照する。

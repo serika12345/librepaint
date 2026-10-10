@@ -5,3 +5,7 @@ target_sources(KisGpuTileStoreTest PRIVATE KisGpuTestDevice.cpp)
 set_tests_properties(libs-image-gpu-KisGpuTileStoreTest PROPERTIES TIMEOUT 30 LABELS gpu)
 target_compile_definitions(KisGpuTileStoreTest PRIVATE
     RASTER_EDIT_FIXTURE="${CMAKE_SOURCE_DIR}/libs/image/tests/data/raster_edit_contract.json")
+
+add_executable(KisGpuPaintBenchmark EXCLUDE_FROM_ALL KisGpuPaintBenchmark.cpp KisGpuTestDevice.cpp)
+target_link_libraries(KisGpuPaintBenchmark PRIVATE kritaimagegpudocument)
+set_target_properties(KisGpuPaintBenchmark PROPERTIES AUTOMOC OFF MACOSX_BUNDLE OFF)
