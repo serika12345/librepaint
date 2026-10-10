@@ -65,6 +65,7 @@ KisGpuBrushStroke::Update KisGpuBrushStroke::paint(const QVector<Sample> &sample
         command.operation = m_settings.operation;
         command.opacity = m_settings.opacity;
         command.coverage = m_settings.coverage;
+        command.textureStrength = m_settings.textureStrength;
         commands.push_back(command);
         return true;
     };

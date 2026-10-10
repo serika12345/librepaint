@@ -27,9 +27,9 @@ fn dabAlpha(position: vec2<u32>, shape: TileCommand) -> u32 {
     return 255u - u32(clamp(255.0 * n * (nf - 1.0) / (nf - n), 0.0, 255.0));
 }
 
-fn textureMultiply8(alpha: u32, texture: u32) -> u32 {
-    // Match the CPU texture option's three-factor approximation at full strength.
-    let product = alpha * texture * 255u + 0x7F5Bu;
+fn textureMultiply8(alpha: u32, texture: u32, strength: u32) -> u32 {
+    // Match the CPU texture option's three-factor approximation.
+    let product = alpha * texture * strength + 0x7F5Bu;
     return ((product >> 7u) + product) >> 16u;
 }
 
@@ -44,7 +44,7 @@ fn paintPixel(position: vec3<u32>, selection: u32, texture: u32, textured: bool)
         if (operation >= 3u) {
             i++;
             source.a = multiply8(source.a, dabAlpha(position.xy, commands[i]));
-            if (textured) { source.a = textureMultiply8(source.a, texture); }
+            if (textured) { source.a = textureMultiply8(source.a, texture, commands[i].opacity); }
             operation = select(1u, 2u, operation == 4u);
         }
         if (all(position.xy >= command.lower) && all(position.xy < command.upper)) {

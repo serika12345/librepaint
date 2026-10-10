@@ -17,20 +17,24 @@ private Q_SLOTS:
         QFile file(QStringLiteral(TEXTURE_FIXTURE));
         QVERIFY(file.open(QIODevice::ReadOnly));
         const auto fixture = QJsonDocument::fromJson(file.readAll()).object();
-        QCOMPARE(fixture["schema"].toInt(), 1);
+        QCOMPARE(fixture["schema"].toInt(), 2);
         const auto alpha = fixture["alpha"].toArray();
-        const auto products = fixture["products"].toArray();
-        KisMaskingBrushCompositeOp<quint8, KIS_MASKING_BRUSH_COMPOSITE_MULT, true, true, false> operation(4, 3, 1);
-        for (int row = 0; row < alpha.size(); ++row) {
-            const auto expected = QByteArray::fromHex(products[row].toString().toLatin1());
-            for (int column = 0; column < alpha.size(); ++column) {
-                const quint8 mask = alpha[column].toInt();
-                quint8 pixel[] = {17, 83, 199, quint8(alpha[row].toInt())};
-                operation.composite(&mask, 1, pixel, 4, 1, 1);
-                QCOMPARE(pixel[3], quint8(expected[column]));
-                QCOMPARE(pixel[0], quint8(17));
-                QCOMPARE(pixel[1], quint8(83));
-                QCOMPARE(pixel[2], quint8(199));
+        for (const auto value : fixture["strengths"].toArray()) {
+            const auto strength = value.toObject();
+            const auto products = strength["products"].toArray();
+            KisMaskingBrushCompositeOp<quint8, KIS_MASKING_BRUSH_COMPOSITE_MULT, true, true, false> operation(
+                4, 3, double(strength["strengthByte"].toInt()) / 255);
+            for (int row = 0; row < alpha.size(); ++row) {
+                const auto expected = QByteArray::fromHex(products[row].toString().toLatin1());
+                for (int column = 0; column < alpha.size(); ++column) {
+                    const quint8 mask = alpha[column].toInt();
+                    quint8 pixel[] = {17, 83, 199, quint8(alpha[row].toInt())};
+                    operation.composite(&mask, 1, pixel, 4, 1, 1);
+                    QCOMPARE(pixel[3], quint8(expected[column]));
+                    QCOMPARE(pixel[0], quint8(17));
+                    QCOMPARE(pixel[1], quint8(83));
+                    QCOMPARE(pixel[2], quint8(199));
+                }
             }
         }
     }

@@ -52,6 +52,8 @@ public:
         CompositeOp operation = CompositeOp::Over;
         quint8 opacity = 255;
         quint8 coverage = 255;
+        /** Prepared texture multiplication strength; 255 is full strength. */
+        quint8 textureStrength = 255;
     };
 
     /** Borrowed read-only TileBytes range; a null buffer denotes an absent tile. */
@@ -221,6 +223,7 @@ private:
         quint8 opacity, coverage;
         QPointF center;
         QSizeF diameter, fade;
+        quint8 textureStrength = 255;
     };
     Edit compositePixels(const Version &base, const Version &source, const Version *mask, QRect rectangle,
                          CompositeOp operation, quint8 opacity, quint8 coverage);

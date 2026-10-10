@@ -69,7 +69,7 @@ static_assert(sizeof(TileCommand) == 32);
 // A dab has one raster command followed by one equally sized shape record.
 struct DabParameters {
     float centerX, centerY, xcoef, ycoef, fadeX, fadeY;
-    quint32 padding[2];
+    quint32 textureStrength, reserved;
 };
 static_assert(sizeof(DabParameters) == sizeof(TileCommand));
 struct TileParameters {

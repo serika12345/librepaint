@@ -38,6 +38,7 @@ Store::DabCommand dab(const Stroke::Settings &settings, QPointF position, QSizeF
     command.operation = settings.operation;
     command.opacity = settings.opacity;
     command.coverage = settings.coverage;
+    command.textureStrength = settings.textureStrength;
     return command;
 }
 }
@@ -55,6 +56,7 @@ private Q_SLOTS:
     void placementMatchesCpuContract();
     void queueRejectionPreservesInputProgress();
     void invalidInputAndGenerationLimitAreAtomic();
+    void textureStrengthMatchesDirectDab();
     void selectedReplacementAndRecoveryUseIdenticalDabs_data();
     void selectedReplacementAndRecoveryUseIdenticalDabs();
 private:
@@ -159,6 +161,28 @@ void KisGpuBrushStrokeTest::invalidInputAndGenerationLimitAreAtomic()
     QVERIFY_THROWS_EXCEPTION(std::invalid_argument, Stroke(session, token, settings, clip));
 }
 
+void KisGpuBrushStrokeTest::textureStrengthMatchesDirectDab()
+{
+    Store store(m_gpu->owner, 128 * Store::TileBytes);
+    Session session(store, 2);
+    Stroke::Settings settings;
+    settings.diameter = QSizeF(20, 16);
+    settings.rgba = 0x800000FF;
+    settings.textureStrength = 77;
+    settings.texture = session.createTexture({3, 2}, QByteArray::fromHex("0080ff0140fe"), {-2, 3}).texture;
+    const auto token = session.begin();
+    Stroke stroke(session, token, settings, clip);
+    QCOMPARE(stroke.append({{{0, 0}, 1}}).result, Stroke::Result::Accepted);
+    wgpuDevicePoll(m_gpu->device, true, nullptr);
+    session.poll();
+    const auto fromInput = m_gpu->read(session.preview(), clip);
+    QCOMPARE(session.replace(token, {dab(settings, QPointF(0, 0), settings.diameter)}, clip, *settings.texture),
+             Session::Result::Accepted);
+    wgpuDevicePoll(m_gpu->device, true, nullptr);
+    session.poll();
+    QCOMPARE(m_gpu->read(session.preview(), clip), fromInput);
+}
+
 void KisGpuBrushStrokeTest::selectedReplacementAndRecoveryUseIdenticalDabs_data()
 {
     QTest::addColumn<bool>("textured");
@@ -174,6 +198,7 @@ void KisGpuBrushStrokeTest::selectedReplacementAndRecoveryUseIdenticalDabs()
     Stroke::Settings settings;
     settings.diameter = QSizeF(20, 16);
     settings.rgba = 0x800000FF;
+    if (textured) settings.textureStrength = 77;
     if (textured) settings.texture = session.createTexture({3, 2}, QByteArray::fromHex("0080ff0140fe"), {-2, 3}).texture;
     const auto selection = session.createSelection({dab(settings, QPointF(0, 0), QSizeF(60, 60))}, clip).selection;
     const auto token = session.begin();

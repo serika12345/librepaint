@@ -68,7 +68,7 @@ KisGpuTileStore::Edit KisGpuTileStore::paintDabCommands(const Version &base, con
             || !std::isfinite(float(2 / dy / fy))) {
             return {Error::InvalidCommand, {}, {}};
         }
-        if (clip.isEmpty()) continue;
+        if (clip.isEmpty() || (texture && !command.textureStrength)) continue;
         const qint64 left = std::max(qint64(clip.x()), qint64(std::floor(cx - dx / 2)));
         const qint64 top = std::max(qint64(clip.y()), qint64(std::floor(cy - dy / 2)));
         const qint64 right = std::min(qint64(clip.x()) + clip.width(), qint64(std::ceil(cx + dx / 2)) + 1);
@@ -76,7 +76,7 @@ KisGpuTileStore::Edit KisGpuTileStore::paintDabCommands(const Version &base, con
         if (left >= right || top >= bottom) continue;
         updates.push_back({QRect(int(left), int(top), int(right - left), int(bottom - top)), command.rgba,
             command.operation == CompositeOp::Erase ? UpdateKind::DabErase : UpdateKind::DabOver,
-            command.opacity, command.coverage, command.center, command.diameter, command.fade});
+            command.opacity, command.coverage, command.center, command.diameter, command.fade, command.textureStrength});
     }
     return update(base, updates, selection, texture, origin);
 }
@@ -150,7 +150,7 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
                 const DabParameters shape {float(command.center.x() - tileLeft), float(command.center.y() - tileTop),
                     float(2 / command.diameter.width()), float(2 / command.diameter.height()),
                     float(2 / command.diameter.width() / command.fade.width()),
-                    float(2 / command.diameter.height() / command.fade.height()), {0, 0}};
+                    float(2 / command.diameter.height() / command.fade.height()), command.textureStrength, 0};
                 TileCommand record;
                 std::memcpy(&record, &shape, sizeof(record));
                 list.push_back(record);

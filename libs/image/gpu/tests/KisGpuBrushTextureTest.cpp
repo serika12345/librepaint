@@ -47,24 +47,36 @@ private Q_SLOTS:
         QVERIFY(file.open(QIODevice::ReadOnly));
         const auto fixture = QJsonDocument::fromJson(file.readAll()).object();
         const auto alpha = fixture["alpha"].toArray();
-        const auto products = fixture["products"].toArray();
+        QCOMPARE(fixture["schema"].toInt(), 2);
         QByteArray mask;
         for (const auto &value : alpha) mask.append(char(value.toInt()));
         Store store(gpu->owner, 4 * 1024 * 1024);
         const auto texture = store.uploadBrushTexture({int(alpha.size()), 1}, mask);
         QCOMPARE(texture.error, Store::Error::None);
         // A pending asset is accepted in queue order, with no CPU wait or reupload.
-        for (int row = 0; row < alpha.size(); ++row) {
-            const QRect bounds(0, 0, int(alpha.size()), 1);
-            const auto edit = store.paintDabs(store.emptyVersion(), {dab((quint32(alpha[row].toInt()) << 24) | 0xC75311)},
-                                              bounds, texture.texture, {});
-            QCOMPARE(edit.error, Store::Error::None);
-            QVERIFY(finish(store, edit.completion));
-            const auto pixels = gpu->read(edit.version, bounds);
-            const auto expected = QByteArray::fromHex(products[row].toString().toLatin1());
-            for (int x = 0; x < expected.size(); ++x) {
-                QCOMPARE(quint8(pixels[x * 4 + 3]), quint8(expected[x]));
-                QCOMPARE(pixels.mid(x * 4, 3), expected[x] ? QByteArray::fromHex("1153c7") : QByteArray(3, '\0'));
+        for (const auto value : fixture["strengths"].toArray()) {
+            const auto strength = value.toObject();
+            const auto products = strength["products"].toArray();
+            for (int row = 0; row < alpha.size(); ++row) {
+                const QRect bounds(0, 0, int(alpha.size()), 1);
+                auto command = dab((quint32(alpha[row].toInt()) << 24) | 0xC75311);
+                command.textureStrength = quint8(strength["strengthByte"].toInt());
+                const auto base = store.emptyVersion();
+                const auto before = store.statistics();
+                const auto edit = store.paintDabs(base, {command}, bounds, texture.texture, {});
+                if (!command.textureStrength) {
+                    QVERIFY(edit.version == base);
+                    QCOMPARE(store.statistics().submissions, before.submissions);
+                    QCOMPARE(store.statistics().residentBytes, before.residentBytes);
+                }
+                QCOMPARE(edit.error, Store::Error::None);
+                QVERIFY(finish(store, edit.completion));
+                const auto pixels = gpu->read(edit.version, bounds);
+                const auto expected = QByteArray::fromHex(products[row].toString().toLatin1());
+                for (int x = 0; x < expected.size(); ++x) {
+                    QCOMPARE(quint8(pixels[x * 4 + 3]), quint8(expected[x]));
+                    QCOMPARE(pixels.mid(x * 4, 3), expected[x] ? QByteArray::fromHex("1153c7") : QByteArray(3, '\0'));
+                }
             }
         }
         QCOMPARE(store.statistics().pixelUploadBytes, quint64(mask.size()));
@@ -82,6 +94,8 @@ private Q_SLOTS:
             red.operation = blue.operation = operation;
             red.opacity = blue.opacity = 155;
             red.coverage = blue.coverage = 201;
+            red.textureStrength = 64;
+            blue.textureStrength = 191;
             const auto before = store.statistics();
             const auto actual = store.paintDabs(base.version, {red, blue}, bounds, texture.texture, origin, &selection.version);
             QVERIFY(finish(store, actual.completion));
@@ -92,13 +106,14 @@ private Q_SLOTS:
                 for (int x = bounds.x(); x < bounds.x() + bounds.width(); ++x) {
                     const int tx = ((x - origin.x()) % 3 + 3) % 3, ty = ((y - origin.y()) % 2 + 2) % 2;
                     const quint32 mask = quint8(QByteArray::fromHex("0080ff0140fe")[ty * 3 + tx]);
-                    const quint32 p = 193 * mask * 255 + 0x7F5B, alpha = ((p >> 7) + p) >> 16;
-                    red.rgba = (alpha << 24) | 0xFF;
-                    blue.rgba = (alpha << 24) | 0xFF0000;
-                    red.center = blue.center = QPointF(x, y);
-                    red.diameter = blue.diameter = QSizeF(.5, .5);
-                    expectedCommands.append(red);
-                    expectedCommands.append(blue);
+                    for (auto command : {red, blue}) {
+                        const quint32 product = 193 * mask * command.textureStrength + 0x7F5B;
+                        const quint32 alpha = ((product >> 7) + product) >> 16;
+                        command.rgba = (alpha << 24) | (command.rgba & 0xFFFFFF);
+                        command.center = QPointF(x, y);
+                        command.diameter = QSizeF(.5, .5);
+                        expectedCommands.append(command);
+                    }
                 }
             }
             const auto expected = store.paintDabs(base.version, expectedCommands, bounds, selection.version);
@@ -194,8 +209,11 @@ private Q_SLOTS:
             QCOMPARE(texture.result, Session::Result::Accepted);
             const auto selection = session.createSelection({dab(0x80123456)}, bounds);
             const auto token = session.begin();
-            QCOMPARE(session.append(token, {dab(0xFF0000FF)}, bounds, texture.texture, selection.selection), Session::Result::Accepted);
-            QCOMPARE(session.replace(token, {dab(0xFFFF0000)}, bounds, texture.texture, selection.selection), Session::Result::Accepted);
+            auto red = dab(0xFF0000FF), blue = dab(0xFFFF0000);
+            red.textureStrength = 64;
+            blue.textureStrength = 191;
+            QCOMPARE(session.append(token, {red}, bounds, texture.texture, selection.selection), Session::Result::Accepted);
+            QCOMPARE(session.replace(token, {blue}, bounds, texture.texture, selection.selection), Session::Result::Accepted);
             texture = {};
             session.commit(token);
             settle(session);
