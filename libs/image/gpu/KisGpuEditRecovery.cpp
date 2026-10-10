@@ -3,22 +3,30 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuEditReplay_p.h"
+#include <set>
 #include <stdexcept>
 
 namespace {
 using Session = KisGpuEditSession;
-quint64 editBytes(const Session::ReplayEdit &edit)
+quint64 editBytes(const Session::ReplayEdit &edit, std::set<const Session::ReplaySelection *> &selections)
 {
     quint64 bytes = sizeof(Session::ReplayEdit);
-    for (const auto &batch : edit) bytes += sizeof(Session::ReplayBatch)
-        + quint64(batch.commands.size()) * sizeof(KisGpuTileStore::DabCommand);
+    for (const auto &batch : edit) {
+        bytes += sizeof(Session::ReplayBatch) + quint64(batch.commands.size()) * sizeof(KisGpuTileStore::DabCommand);
+        if (batch.selection && selections.insert(batch.selection.get()).second) {
+            bytes += sizeof(Session::ReplaySelection)
+                + quint64(batch.selection->commands.size()) * sizeof(KisGpuTileStore::DabCommand);
+        }
+    }
     return bytes;
 }
-quint64 recoveryBytes(const Session::Recovery &data)
+quint64 recoveryBytes(const Session::Recovery &data, const Session::ReplayEdit *working = nullptr)
 {
+    std::set<const Session::ReplaySelection *> selections;
     quint64 bytes = data.pixels.size();
-    for (const auto &edit : data.edits) bytes += editBytes(edit);
-    if (data.working) bytes += editBytes(*data.working);
+    for (const auto &edit : data.edits) bytes += editBytes(edit, selections);
+    if (data.working) bytes += editBytes(*data.working, selections);
+    if (working) bytes += editBytes(*working, selections);
     return bytes;
 }
 }
@@ -62,20 +70,19 @@ std::optional<KisGpuEditSession::Recovery> KisGpuEditSession::recovery() const
     return result;
 }
 
-bool KisGpuEditSession::canRecord(const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip, bool replace) const
+bool KisGpuEditSession::canRecord(const ReplayBatch &batch, bool replace) const
 {
-    if (!m_replay->data || commands.isEmpty() || clip.isEmpty()) return true;
-    const quint64 used = recoveryBytes(*m_replay->data)
-        + (replace ? sizeof(ReplayEdit) : editBytes(m_replay->working));
-    const quint64 extra = sizeof(ReplayBatch) + quint64(commands.size()) * sizeof(KisGpuTileStore::DabCommand);
-    return used <= m_replay->maximumBytes && extra <= m_replay->maximumBytes - used;
+    if (!m_replay->data || batch.commands.isEmpty() || batch.clip.isEmpty()) return true;
+    ReplayEdit working = replace ? ReplayEdit{} : m_replay->working;
+    working.push_back(batch);
+    return recoveryBytes(*m_replay->data, &working) <= m_replay->maximumBytes;
 }
 
-void KisGpuEditSession::record(const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip, bool replace)
+void KisGpuEditSession::record(ReplayBatch batch, bool replace)
 {
     if (!m_replay->data) return;
     if (replace) m_replay->working.clear();
-    if (!commands.isEmpty() && !clip.isEmpty()) m_replay->working.push_back({commands, clip});
+    if (!batch.commands.isEmpty() && !batch.clip.isEmpty()) m_replay->working.push_back(std::move(batch));
 }
 
 void KisGpuEditSession::publishRecovery()
@@ -99,7 +106,7 @@ void KisGpuEditSession::pollRecovery()
         if (status == KisGpuTileStore::Status::Failed) { m_state = State::Failed; return; }
         state.waiting = false;
     }
-    const auto submit = [&](KisGpuTileStore::Edit edit) {
+    const auto wait = [&](KisGpuTileStore::Edit edit) {
         if (edit.error != KisGpuTileStore::Error::None) {
             if (edit.error != KisGpuTileStore::Error::QueueFull) {
                 m_lastGpuError = edit.error;
@@ -107,10 +114,33 @@ void KisGpuEditSession::pollRecovery()
             }
             return false;
         }
-        state.replay = edit.version;
         state.latest = std::move(edit);
         state.waiting = true;
         return true;
+    };
+    const auto submit = [&](KisGpuTileStore::Edit edit) {
+        const auto version = edit.version;
+        if (!wait(std::move(edit))) return false;
+        state.replay = version;
+        return true;
+    };
+    const auto replayBatch = [&](const ReplayBatch &batch) {
+        if (batch.selection && !state.selectionReady) {
+            auto mask = m_store.paintDabs(m_store.emptyVersion(), batch.selection->commands, batch.selection->clip);
+            const auto version = mask.version;
+            if (wait(std::move(mask))) {
+                state.selection = version;
+                state.selectionReady = true;
+            }
+            return;
+        }
+        auto edit = batch.selection ? m_store.paintDabs(state.replay, batch.commands, batch.clip, state.selection)
+                                    : m_store.paintDabs(state.replay, batch.commands, batch.clip);
+        if (submit(std::move(edit))) {
+            ++state.batch;
+            state.selection = {};
+            state.selectionReady = false;
+        }
     };
     if (!state.initialized) {
         state.replay = m_store.emptyVersion();
@@ -124,7 +154,7 @@ void KisGpuEditSession::pollRecovery()
         const auto &edit = request.edits[state.edit];
         if (state.batch < edit.size()) {
             const auto &batch = edit[state.batch];
-            if (submit(m_store.paintDabs(state.replay, batch.commands, batch.clip))) ++state.batch;
+            replayBatch(batch);
             return;
         }
         ++state.edit;
@@ -138,7 +168,7 @@ void KisGpuEditSession::pollRecovery()
     }
     if (request.working && state.batch < request.working->size()) {
         const auto &batch = (*request.working)[state.batch];
-        if (submit(m_store.paintDabs(state.replay, batch.commands, batch.clip))) ++state.batch;
+        replayBatch(batch);
         return;
     }
     m_history = state.frames;
