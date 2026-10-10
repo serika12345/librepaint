@@ -71,6 +71,9 @@ private Q_SLOTS:
     void emptyBatchInheritsSourceCompletion();
     void groupedTilesRespectDeviceLimits();
     void sharedAllocationsStayBudgeted();
+    void compositeVersionsPreservesLayerOrder();
+    void imageCompositeRejectionAndEmptySource();
+    void compositeRetainsPendingSource();
     void compositing_data();
     void compositing();
 private:
@@ -368,6 +371,11 @@ void KisGpuTileStoreTest::groupedTilesRespectDeviceLimits()
     QCOMPARE(gpu.read(base.version, bounds), expected(bounds, {{bounds, 0xFF123456}}));
     QCOMPARE(store.statistics().computeDispatches - before.computeDispatches, quint64(3));
     QCOMPARE(store.statistics().tileCopyBytes - before.tileCopyBytes, 5 * KisGpuTileStore::TileBytes);
+    const auto composed = store.composite(base.version, batch.version, bounds);
+    QCOMPARE(composed.error, KisGpuTileStore::Error::None);
+    QVERIFY(finish(store, composed.completion));
+    QCOMPARE(gpu.read(composed.version, bounds), expected(bounds, {{bounds, 0xFFABCDEF}}));
+    QCOMPARE(store.statistics().computeDispatches - before.computeDispatches, quint64(6));
     QCOMPARE(gpu.errors.load(), 0);
 }
 
@@ -396,6 +404,93 @@ void KisGpuTileStoreTest::sharedAllocationsStayBudgeted()
     QCOMPARE(m_gpu->read(version, bounds), expected(bounds, {{bounds, 0xFFABCDEF}}));
 }
 
+void KisGpuTileStoreTest::compositeVersionsPreservesLayerOrder()
+{
+    KisGpuTileStore store(m_gpu->device, 128 * KisGpuTileStore::TileBytes);
+    const QRect bounds(-65, -65, 194, 194), redArea(-1, -1, 66, 66), patch(63, 63, 2, 2), greenArea(0, 0, 4, 4);
+    const auto base = store.fill(store.emptyVersion(), bounds, 0xFFFF0000);
+    const auto red = store.fill(store.emptyVersion(), redArea, 0xFF0000FF);
+    const auto patched = store.fill(red.version, patch, 0xFF00FF00);
+    const auto green = store.fill(store.emptyVersion(), greenArea, 0xFF00FF00);
+    const auto first = store.composite(base.version, patched.version, bounds);
+    const auto front = store.composite(first.version, green.version, bounds);
+    const auto reverseFirst = store.composite(base.version, green.version, bounds);
+    const auto reverse = store.composite(reverseFirst.version, patched.version, bounds);
+    QVERIFY(finish(store, front.completion));
+    QVERIFY(finish(store, reverse.completion));
+    QCOMPARE(m_gpu->read(first.version, bounds),
+             expected(bounds, {{bounds, 0xFFFF0000}, {redArea, 0xFF0000FF}, {patch, 0xFF00FF00}}));
+    QCOMPARE(m_gpu->read(front.version, bounds),
+             expected(bounds, {{bounds, 0xFFFF0000}, {redArea, 0xFF0000FF}, {patch, 0xFF00FF00}, {greenArea, 0xFF00FF00}}));
+    QCOMPARE(m_gpu->read(reverse.version, bounds), m_gpu->read(first.version, bounds));
+    QCOMPARE(m_gpu->read(base.version, bounds), expected(bounds, {{bounds, 0xFFFF0000}}));
+    QCOMPARE(m_gpu->read(red.version, bounds), expected(bounds, {{redArea, 0xFF0000FF}}));
+    const QRect clip(0, 0, 2, 3);
+    const auto clipped = store.composite(base.version, patched.version, clip);
+    QVERIFY(finish(store, clipped.completion));
+    QCOMPARE(m_gpu->read(clipped.version, bounds), expected(bounds, {{bounds, 0xFFFF0000}, {clip, 0xFF0000FF}}));
+
+    // Same half-transparent layer stack and fixed pixels as the CPU raster contract.
+    const QRect area(-2, -2, 67, 67);
+    const auto halfRed = store.fill(store.emptyVersion(), area, 0x800000FF);
+    const auto halfGreen = store.fill(store.emptyVersion(), area, 0x8000FF00);
+    const auto redFirst = store.composite(base.version, halfRed.version, area);
+    const auto greenFront = store.composite(redFirst.version, halfGreen.version, area);
+    const auto greenFirst = store.composite(base.version, halfGreen.version, area);
+    const auto redFront = store.composite(greenFirst.version, halfRed.version, area);
+    QVERIFY(finish(store, greenFront.completion));
+    QVERIFY(finish(store, redFront.completion));
+    QCOMPARE(m_gpu->read(greenFront.version, bounds), expected(bounds, {{bounds, 0xFFFF0000}, {area, 0xFF3F8040}}));
+    QCOMPARE(m_gpu->read(redFront.version, bounds), expected(bounds, {{bounds, 0xFFFF0000}, {area, 0xFF3F4080}}));
+}
+
+void KisGpuTileStoreTest::imageCompositeRejectionAndEmptySource()
+{
+    KisGpuTileStore store(m_gpu->device, 4 * KisGpuTileStore::TileBytes + 256);
+    const auto base = store.fill(store.emptyVersion(), QRect(0, 0, 1, 1), 0xFF123456);
+    const auto source = store.fill(store.emptyVersion(), QRect(0, 0, 128, 1), 0xFFABCDEF);
+    QVERIFY(finish(store, source.completion));
+    const auto before = store.statistics();
+    const auto rejected = store.composite(base.version, source.version, QRect(0, 0, 128, 1));
+    QCOMPARE(rejected.error, KisGpuTileStore::Error::BudgetExceeded);
+    QCOMPARE(store.statistics().residentBytes, before.residentBytes);
+    QCOMPARE(store.statistics().submissions, before.submissions);
+    QCOMPARE(store.statistics().commandUploadBytes, before.commandUploadBytes);
+    QCOMPARE(store.statistics().tileCopyBytes, before.tileCopyBytes);
+    const QRect huge(-1000000000, -1000000000, 2000000000, 2000000000);
+    const auto empty = store.composite(base.version, store.emptyVersion(), huge);
+    QCOMPARE(empty.error, KisGpuTileStore::Error::None);
+    QCOMPARE(empty.completion.sequence(), base.completion.sequence());
+    QCOMPARE(store.statistics().submissions, before.submissions);
+    const auto invisible = store.composite(base.version, source.version, huge, KisGpuTileStore::CompositeOp::Over, 0);
+    QCOMPARE(invisible.error, KisGpuTileStore::Error::None);
+    QCOMPARE(invisible.completion.sequence(), base.completion.sequence());
+    QCOMPARE(store.composite(base.version, {}, QRect()).error, KisGpuTileStore::Error::InvalidVersion);
+    KisGpuTileStore other(m_gpu->device, 0);
+    QCOMPARE(store.composite(base.version, other.emptyVersion(), QRect()).error, KisGpuTileStore::Error::InvalidVersion);
+    QCOMPARE(store.composite(other.emptyVersion(), source.version, QRect()).error, KisGpuTileStore::Error::InvalidVersion);
+    QCOMPARE(m_gpu->read(base.version, QRect(0, 0, 64, 64)),
+             expected(QRect(0, 0, 64, 64), {{QRect(0, 0, 1, 1), 0xFF123456}}));
+}
+
+void KisGpuTileStoreTest::compositeRetainsPendingSource()
+{
+    KisGpuTileStore store(m_gpu->device, 5 * KisGpuTileStore::TileBytes);
+    KisGpuTileStore::Version version;
+    KisGpuTileStore::Completion completion;
+    const QRect area(-1, 1, 1, 1);
+    {
+        const auto source = store.fill(store.emptyVersion(), area, 0xFF123456);
+        const auto edit = store.composite(store.emptyVersion(), source.version, area);
+        QCOMPARE(edit.error, KisGpuTileStore::Error::None);
+        version = edit.version;
+        completion = edit.completion;
+    }
+    QVERIFY(finish(store, completion));
+    QCOMPARE(store.statistics().residentBytes, KisGpuTileStore::TileBytes);
+    QCOMPARE(m_gpu->read(version, QRect(-64, 0, 64, 64)), expected(QRect(-64, 0, 64, 64), {{area, 0xFF123456}}));
+}
+
 void KisGpuTileStoreTest::compositing_data()
 {
     QFile file(QStringLiteral(RASTER_EDIT_FIXTURE));
@@ -407,6 +502,7 @@ void KisGpuTileStoreTest::compositing_data()
     QCOMPARE(fixture["profile"].toString(), QStringLiteral("sRGB-elle-V2-srgbtrc.icc"));
     QTest::addColumn<QJsonObject>("input");
     QTest::addColumn<QRect>("rectangle");
+    QTest::addColumn<bool>("imageSource");
     const QList<QRect> rectangles {QRect(-1, -1, 1, 1), QRect(-2, -2, 67, 67), QRect(62, 62, 131, 3)};
     const auto cases = fixture["cases"].toArray();
     QVERIFY(!cases.isEmpty());
@@ -414,7 +510,9 @@ void KisGpuTileStoreTest::compositing_data()
         const auto input = entry.toObject();
         for (int i = 0; i < rectangles.size(); ++i) {
             const QByteArray name = input["id"].toString().toUtf8() + '-' + QByteArray::number(i);
-            QTest::newRow(name.constData()) << input << rectangles[i];
+            const QByteArray solidName = name + "-solid", imageName = name + "-image";
+            QTest::newRow(solidName.constData()) << input << rectangles[i] << false;
+            QTest::newRow(imageName.constData()) << input << rectangles[i] << true;
         }
     }
 }
@@ -423,6 +521,7 @@ void KisGpuTileStoreTest::compositing()
 {
     QFETCH(QJsonObject, input);
     QFETCH(QRect, rectangle);
+    QFETCH(bool, imageSource);
     KisGpuTileStore store(m_gpu->device, 128 * KisGpuTileStore::TileBytes);
     const QRect bounds = rectangle.adjusted(-2, -2, 2, 2);
     const quint32 destination = rgba(input["dst"].toArray());
@@ -432,8 +531,15 @@ void KisGpuTileStoreTest::compositing()
     if (mask >= 0 && rectangle.width() > 2 && rectangle.height() > 2) paintedRect.adjust(1, 1, -1, -1);
     const auto operation = input["op"].toString() == "erase"
         ? KisGpuTileStore::CompositeOp::Erase : KisGpuTileStore::CompositeOp::Over;
-    const auto edit = store.paint(base.version, paintedRect, rgba(input["src"].toArray()),
-                                  operation, quint8(input["opacity"].toInt()), quint8(mask < 0 ? 255 : mask));
+    KisGpuTileStore::Edit edit;
+    if (imageSource) {
+        const auto source = store.fill(store.emptyVersion(), paintedRect, rgba(input["src"].toArray()));
+        edit = store.composite(base.version, source.version, paintedRect,
+                               operation, quint8(input["opacity"].toInt()), quint8(mask < 0 ? 255 : mask));
+    } else {
+        edit = store.paint(base.version, paintedRect, rgba(input["src"].toArray()),
+                           operation, quint8(input["opacity"].toInt()), quint8(mask < 0 ? 255 : mask));
+    }
     QCOMPARE(edit.error, KisGpuTileStore::Error::None);
     QVERIFY(finish(store, edit.completion));
     const QByteArray actual = m_gpu->read(edit.version, bounds);

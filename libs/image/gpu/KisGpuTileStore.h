@@ -94,6 +94,9 @@ public:
                CompositeOp operation = CompositeOp::Over, quint8 opacity = 255, quint8 coverage = 255);
     /** Apply commands in order in one version/submission, copying each changed tile once. */
     Edit paint(const Version &base, const QVector<PaintCommand> &commands);
+    /** Composite source pixels at matching canvas coordinates; missing source tiles are transparent. */
+    Edit composite(const Version &base, const Version &source, QRect rectangle,
+                   CompositeOp operation = CompositeOp::Over, quint8 opacity = 255, quint8 coverage = 255);
     /** Dispatch completion callbacks and release finished submissions; never waits. */
     void poll();
     Statistics statistics() const;

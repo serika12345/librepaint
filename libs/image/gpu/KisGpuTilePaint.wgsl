@@ -38,6 +38,18 @@ fn over(source: vec4<u32>, destination: vec4<u32>, opacity: u32, coverage: u32) 
     return vec4<u32>(quantize(color.r), quantize(color.g), quantize(color.b), quantize(resultAlpha));
 }
 
+fn blend(source: vec4<u32>, destination: vec4<u32>, operation: u32, opacity: u32, coverage: u32) -> vec4<u32> {
+    if (operation == 2u) {
+        let alpha = multiply8(multiply8(source.a, coverage), opacity);
+        return vec4<u32>(destination.rgb, multiply8(destination.a, 255u - alpha));
+    }
+    return over(source, destination, opacity, coverage);
+}
+
+fn pack(pixel: vec4<u32>) -> u32 {
+    return pixel.r | (pixel.g << 8u) | (pixel.b << 16u) | (pixel.a << 24u);
+}
+
 @compute @workgroup_size(8, 8)
 fn paint(@builtin(global_invocation_id) position: vec3<u32>) {
     let index = position.z * 4096u + position.y * 64u + position.x;
@@ -50,16 +62,28 @@ fn paint(@builtin(global_invocation_id) position: vec3<u32>) {
                 pixel = command.color;
             } else {
                 let source = unpack(command.color);
-                var destination = unpack(pixel);
-                if (command.operation == 2u) {
-                    let alpha = multiply8(multiply8(source.a, command.coverage), command.opacity);
-                    destination.a = multiply8(destination.a, 255u - alpha);
-                } else {
-                    destination = over(source, destination, command.opacity, command.coverage);
-                }
-                pixel = destination.r | (destination.g << 8u) | (destination.b << 16u) | (destination.a << 24u);
+                pixel = pack(blend(source, unpack(pixel), command.operation, command.opacity, command.coverage));
             }
         }
     }
     pixels[index] = pixel;
+}
+
+struct CompositeParameters {
+    sourceTile: u32, destinationTile: u32, lower: vec2<u32>, upper: vec2<u32>,
+    operation: u32, opacity: u32, coverage: u32, padding: u32,
+}
+@group(0) @binding(3) var<storage, read> sourcePixels: array<u32>;
+@group(0) @binding(4) var<storage, read> compositeParameters: array<CompositeParameters>;
+
+@compute @workgroup_size(8, 8)
+fn composite(@builtin(global_invocation_id) position: vec3<u32>) {
+    let parameters = compositeParameters[position.z];
+    if (all(position.xy >= parameters.lower) && all(position.xy < parameters.upper)) {
+        let localIndex = position.y * 64u + position.x;
+        let destinationIndex = parameters.destinationTile * 4096u + localIndex;
+        let source = unpack(sourcePixels[parameters.sourceTile * 4096u + localIndex]);
+        pixels[destinationIndex] = pack(blend(source, unpack(pixels[destinationIndex]),
+            parameters.operation, parameters.opacity, parameters.coverage));
+    }
 }
