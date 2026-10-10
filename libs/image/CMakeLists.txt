@@ -2,6 +2,11 @@ add_subdirectory( tests )
 
 add_subdirectory( tiles3 )
 
+option(LIBREPAINT_BUILD_GPU_DOCUMENT "Build the GPU document contracts" OFF)
+if(LIBREPAINT_BUILD_GPU_DOCUMENT)
+    add_subdirectory(gpu)
+endif()
+
 include_directories(
     ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/3rdparty

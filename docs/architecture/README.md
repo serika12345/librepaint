@@ -91,6 +91,11 @@
 
 ### 保存領域と描画実行
 
+`libs/image/gpu`はGPU文書のタイル、版、命令発行と資源予算を所有する。
+`kritaimagegpudocument`はwgpu-nativeとQt Coreへ直接依存し、独立した構築設定で
+画素・版・寿命の契約を検証する。利用側へ渡す版とGPU資源の借用条件は
+[GPU文書タイルと版の契約](gpu-document-tiles.md)が定義する。
+
 `libs/resources/storage`の`kritaresourcestorage`はZIPとディレクトリーの保存を、
 `libs/serialization/xml`の`kritaxmlserialization`はXML名前空間と逐次書出しを所有する。
 保存側はQt Core、KConfig、QuaZip、XML側はQt Coreを利用し、上位の製品所有者から独立する。

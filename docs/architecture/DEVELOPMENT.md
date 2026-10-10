@@ -181,6 +181,25 @@ Androidは構築費用が大きいため、この条件に沿って検証する�
 同じ入力を新しい描画方式へ渡し、定めた画素規則と編集前後の全画素で比較する。
 ブラシや色変換などの対象を広げるときは、対応する画像契約と比較精度を追加する。
 
+### GPU文書タイルの検証
+
+[GPU文書タイルと版の契約](gpu-document-tiles.md)は、疎な割当、版の共有、
+GPU内複製、操作完了と予算超過を検査する。評価済みのテスト環境から次を実行する。
+
+```sh
+./scripts/run-shared-test-env ./scripts/configure-gpu-document
+./scripts/run-shared-test-env ./scripts/run-test KisGpuTileStoreTest
+```
+
+設定コマンドは`flake.lock`のnixpkgs固定版からwgpu-native本体と開発用ヘッダーを取得し、
+ネイティブのCMakeプリセットで`LIBREPAINT_BUILD_GPU_DOCUMENT=ON`にする。
+依存の取得はソースを含まないリモート入力を使い、アプリケーションの編集で同じ出力を再利用する。
+以後は通常の`run-test`と`build-incremental`を使用する。
+
+macOSの試験はMetal、Linuxの試験はVulkanを使用する。実GPUへアクセスできる実行環境が
+必要であり、取得できない場合は試験を失敗させる。試験用のCPU読み戻しを描画操作から分け、
+画素の完全一致とGPU検査エラーの有無を確認する。
+
 ## デスクトップ
 
 ### macOS
