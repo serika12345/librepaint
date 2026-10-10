@@ -6,11 +6,12 @@ struct TileCommand {
     operation: u32, opacity: u32, coverage: u32,
 }
 struct TileParameters {
-    firstCommand: u32, commandCount: u32, padding: vec2<u32>,
+    firstCommand: u32, commandCount: u32, selectionOffset: u32, reserved: u32,
 }
 @group(0) @binding(0) var<storage, read_write> pixels: array<u32>;
 @group(0) @binding(1) var<storage, read> parameters: array<TileParameters>;
 @group(0) @binding(2) var<storage, read> commands: array<TileCommand>;
+@group(0) @binding(5) var<storage, read> maskPixels: array<u32>;
 
 fn multiply8(a: u32, b: u32) -> u32 {
     let product = a * b + 128u;
@@ -62,8 +63,7 @@ fn dabAlpha(position: vec2<u32>, shape: TileCommand) -> u32 {
     return 255u - u32(clamp(255.0 * n * (nf - 1.0) / (nf - n), 0.0, 255.0));
 }
 
-@compute @workgroup_size(8, 8)
-fn paint(@builtin(global_invocation_id) position: vec3<u32>) {
+fn paintPixel(position: vec3<u32>, selection: u32) {
     let index = position.z * 4096u + position.y * 64u + position.x;
     let tile = parameters[position.z];
     var pixel = pixels[index];
@@ -80,11 +80,22 @@ fn paint(@builtin(global_invocation_id) position: vec3<u32>) {
             if (command.operation == 0u) {
                 pixel = command.color;
             } else {
-                pixel = pack(blend(source, unpack(pixel), operation, command.opacity, command.coverage));
+                pixel = pack(blend(source, unpack(pixel), operation, command.opacity, multiply8(command.coverage, selection)));
             }
         }
     }
     pixels[index] = pixel;
+}
+
+@compute @workgroup_size(8, 8)
+fn paint(@builtin(global_invocation_id) position: vec3<u32>) {
+    paintPixel(position, 255u);
+}
+
+@compute @workgroup_size(8, 8)
+fn paintSelected(@builtin(global_invocation_id) position: vec3<u32>) {
+    let offset = parameters[position.z].selectionOffset + position.y * 64u + position.x;
+    paintPixel(position, maskPixels[offset] >> 24u);
 }
 
 struct CompositeParameters {
@@ -93,8 +104,6 @@ struct CompositeParameters {
 }
 @group(0) @binding(3) var<storage, read> sourcePixels: array<u32>;
 @group(0) @binding(4) var<storage, read> compositeParameters: array<CompositeParameters>;
-
-@group(0) @binding(5) var<storage, read> maskPixels: array<u32>;
 
 @compute @workgroup_size(8, 8)
 fn composite(@builtin(global_invocation_id) position: vec3<u32>) {

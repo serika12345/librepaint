@@ -81,6 +81,20 @@ KisGpuTileStore::Private::Private(std::shared_ptr<NativeDevice> nativeOwner, qui
     descriptor.compute.entryPoint = {"paint", WGPU_STRLEN};
     Handle<WGPUComputePipeline, wgpuComputePipelineRelease> fillPipeline(
         wgpuDeviceCreateComputePipeline(device, &descriptor));
+    entries[3].binding = 5;
+    entries[3].visibility = WGPUShaderStage_Compute;
+    entries[3].buffer.type = WGPUBufferBindingType_ReadOnlyStorage;
+    entries[3].buffer.minBindingSize = TileBytes;
+    layoutDescriptor.entryCount = 4;
+    Handle<WGPUBindGroupLayout, wgpuBindGroupLayoutRelease> selectedLayout(
+        wgpuDeviceCreateBindGroupLayout(device, &layoutDescriptor));
+    pipelineLayoutDescriptor.bindGroupLayouts = &selectedLayout.value;
+    Handle<WGPUPipelineLayout, wgpuPipelineLayoutRelease> selectedPipelineLayout(
+        wgpuDeviceCreatePipelineLayout(device, &pipelineLayoutDescriptor));
+    descriptor.layout = selectedPipelineLayout.value;
+    descriptor.compute.entryPoint = {"paintSelected", WGPU_STRLEN};
+    Handle<WGPUComputePipeline, wgpuComputePipelineRelease> selectedPipeline(
+        wgpuDeviceCreateComputePipeline(device, &descriptor));
     entries[1].binding = 3;
     entries[1].buffer.minBindingSize = TileBytes;
     entries[2].binding = 4;
@@ -103,6 +117,10 @@ KisGpuTileStore::Private::Private(std::shared_ptr<NativeDevice> nativeOwner, qui
     groupLayout.value = nullptr;
     pipeline = fillPipeline.value;
     fillPipeline.value = nullptr;
+    dabSelectionLayout = selectedLayout.value;
+    selectedLayout.value = nullptr;
+    dabSelectionPipeline = selectedPipeline.value;
+    selectedPipeline.value = nullptr;
     compositeLayout = imageLayout.value;
     imageLayout.value = nullptr;
     compositePipeline = imagePipeline.value;
@@ -172,6 +190,8 @@ KisGpuTileStore::Private::~Private() {
     pending.clear();
     wgpuComputePipelineRelease(pipeline);
     wgpuBindGroupLayoutRelease(layout);
+    wgpuComputePipelineRelease(dabSelectionPipeline);
+    wgpuBindGroupLayoutRelease(dabSelectionLayout);
     wgpuComputePipelineRelease(compositePipeline);
     wgpuBindGroupLayoutRelease(compositeLayout);
 }

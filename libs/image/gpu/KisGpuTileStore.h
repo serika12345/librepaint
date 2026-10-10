@@ -154,6 +154,8 @@ public:
     Edit paint(const Version &base, const QVector<PaintCommand> &commands);
     /** Generate ordered ellipse dabs on the GPU. Diameter > 0, fade in (0,1], finite values. */
     Edit paintDabs(const Version &base, const QVector<DabCommand> &commands, QRect clip);
+    /** Apply the alpha of an immutable GPU selection to each dab; absent selection tiles have zero coverage. */
+    Edit paintDabs(const Version &base, const QVector<DabCommand> &commands, QRect clip, const Version &selection);
     /** Composite source pixels at matching canvas coordinates; missing source tiles are transparent. */
     Edit composite(const Version &base, const Version &source, QRect rectangle,
                    CompositeOp operation = CompositeOp::Over, quint8 opacity = 255, quint8 coverage = 255);
@@ -199,7 +201,8 @@ private:
     };
     Edit compositePixels(const Version &base, const Version &source, const Version *mask, QRect rectangle,
                          CompositeOp operation, quint8 opacity, quint8 coverage);
-    Edit update(const Version &base, const QVector<UpdateCommand> &commands);
+    Edit paintDabCommands(const Version &base, const QVector<DabCommand> &commands, QRect clip, const Version *selection);
+    Edit update(const Version &base, const QVector<UpdateCommand> &commands, const Version *selection = nullptr);
     struct Private;
     std::unique_ptr<Private> d;
 };

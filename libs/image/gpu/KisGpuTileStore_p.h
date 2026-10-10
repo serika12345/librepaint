@@ -70,7 +70,7 @@ struct DabParameters {
 };
 static_assert(sizeof(DabParameters) == sizeof(TileCommand));
 struct TileParameters {
-    quint32 firstCommand, commandCount, padding[2];
+    quint32 firstCommand, commandCount, selectionOffset, reserved;
 };
 static_assert(sizeof(TileParameters) == 16);
 struct CompositeParameters {
@@ -205,6 +205,8 @@ struct KisGpuTileStore::Private {
     quint64 tilesPerAllocation = 0;
     WGPUBindGroupLayout layout = nullptr;
     WGPUComputePipeline pipeline = nullptr;
+    WGPUBindGroupLayout dabSelectionLayout = nullptr;
+    WGPUComputePipeline dabSelectionPipeline = nullptr;
     WGPUBindGroupLayout compositeLayout = nullptr;
     WGPUComputePipeline compositePipeline = nullptr;
     WGPUSubmissionIndex lastSubmission = 0;

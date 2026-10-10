@@ -37,6 +37,19 @@ KisGpuTileStore::Edit KisGpuTileStore::paint(const Version &base, const QVector<
 
 KisGpuTileStore::Edit KisGpuTileStore::paintDabs(const Version &base, const QVector<DabCommand> &commands, QRect clip)
 {
+    return paintDabCommands(base, commands, clip, nullptr);
+}
+
+KisGpuTileStore::Edit KisGpuTileStore::paintDabs(const Version &base, const QVector<DabCommand> &commands, QRect clip,
+                                              const Version &selection)
+{
+    return paintDabCommands(base, commands, clip, &selection);
+}
+
+KisGpuTileStore::Edit KisGpuTileStore::paintDabCommands(const Version &base, const QVector<DabCommand> &commands, QRect clip,
+                                                     const Version *selection)
+{
+    if (selection && (!selection->d || selection->d->owner != d->state)) return {Error::InvalidVersion, {}, {}};
     if (!base.d || base.d->owner != d->state) return {Error::InvalidVersion, {}, {}};
     if (!deviceAvailable()) return {Error::DeviceLost, {}, {}};
     QVector<UpdateCommand> updates;
@@ -64,10 +77,10 @@ KisGpuTileStore::Edit KisGpuTileStore::paintDabs(const Version &base, const QVec
             command.operation == CompositeOp::Erase ? UpdateKind::DabErase : UpdateKind::DabOver,
             command.opacity, command.coverage, command.center, command.diameter, command.fade});
     }
-    return update(base, updates);
+    return update(base, updates, selection);
 }
 
-KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector<UpdateCommand> &commands)
+KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector<UpdateCommand> &commands, const Version *selection)
 {
     Edit result;
     if (!base.d || base.d->owner != d->state) {
@@ -80,7 +93,7 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
     }
     const quint64 available = d->availableForOperation();
     const quint64 alignment = d->limits.minStorageBufferOffsetAlignment;
-    const quint64 capacity = d->tilesPerAllocation;
+    const quint64 capacity = selection ? 1 : d->tilesPerAllocation;
     const quint64 parameterStride = (capacity * sizeof(TileParameters) + alignment - 1) / alignment * alignment;
     auto parameterSize = [&](quint64 tiles) {
         return (tiles - 1) / capacity * parameterStride + ((tiles - 1) % capacity + 1) * sizeof(TileParameters);
@@ -109,34 +122,43 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
         const quint64 count = quint64(lastX - firstX + 1) * quint64(lastY - firstY + 1);
         const bool dab = command.kind == UpdateKind::DabOver || command.kind == UpdateKind::DabErase;
         const quint64 records = dab ? 2 : 1;
-        if (count > available / TileBytes || count > (maximumCommands - commandCount) / records) {
+        if (!selection && (count > available / TileBytes || count > (maximumCommands - commandCount) / records)) {
             result.error = Error::BudgetExceeded;
             return result;
         }
-        for (int y = firstY; y <= lastY; ++y) {
-            for (int x = firstX; x <= lastX; ++x) {
-                auto &list = tileCommands[{x, y}];
-                commandCount += records;
-                if (!fits(tileCommands.size(), commandCount)) {
-                    result.error = Error::BudgetExceeded;
-                    return result;
-                }
-                const qint64 tileLeft = qint64(x) * 64, tileTop = qint64(y) * 64;
-                list.push_back({
-                    quint32(std::max(left, tileLeft) - tileLeft),
-                    quint32(std::max(top, tileTop) - tileTop),
-                    quint32(std::min(right, tileLeft + 64) - tileLeft),
-                    quint32(std::min(bottom, tileTop + 64) - tileTop),
-                    command.rgba, quint32(command.kind), command.opacity, command.coverage
-                });
-                if (dab) {
-                    const DabParameters shape {float(command.center.x() - tileLeft), float(command.center.y() - tileTop),
-                        float(2 / command.diameter.width()), float(2 / command.diameter.height()),
-                        float(2 / command.diameter.width() / command.fade.width()),
-                        float(2 / command.diameter.height() / command.fade.height()), {0, 0}};
-                    TileCommand record;
-                    std::memcpy(&record, &shape, sizeof(record));
-                    list.push_back(record);
+        const auto addTile = [&](int x, int y) {
+            auto &list = tileCommands[{x, y}];
+            commandCount += records;
+            if (!fits(tileCommands.size(), commandCount)) return false;
+            const qint64 tileLeft = qint64(x) * 64, tileTop = qint64(y) * 64;
+            list.push_back({
+                quint32(std::max(left, tileLeft) - tileLeft),
+                quint32(std::max(top, tileTop) - tileTop),
+                quint32(std::min(right, tileLeft + 64) - tileLeft),
+                quint32(std::min(bottom, tileTop + 64) - tileTop),
+                command.rgba, quint32(command.kind), command.opacity, command.coverage
+            });
+            if (dab) {
+                const DabParameters shape {float(command.center.x() - tileLeft), float(command.center.y() - tileTop),
+                    float(2 / command.diameter.width()), float(2 / command.diameter.height()),
+                    float(2 / command.diameter.width() / command.fade.width()),
+                    float(2 / command.diameter.height() / command.fade.height()), {0, 0}};
+                TileCommand record;
+                std::memcpy(&record, &shape, sizeof(record));
+                list.push_back(record);
+            }
+            return true;
+        };
+        if (selection) {
+            auto tile = selection->d->tiles.lower_bound({firstX, std::numeric_limits<int>::min()});
+            for (; tile != selection->d->tiles.end() && tile->first.first <= lastX; ++tile) {
+                const auto [x, y] = tile->first;
+                if (y >= firstY && y <= lastY && !addTile(x, y)) return {Error::BudgetExceeded, {}, {}};
+            }
+        } else {
+            for (int y = firstY; y <= lastY; ++y) {
+                for (int x = firstX; x <= lastX; ++x) {
+                    if (!addTile(x, y)) return {Error::BudgetExceeded, {}, {}};
                 }
             }
         }
@@ -164,12 +186,16 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
     std::vector<char> packedParameters(size_t(parameterBytes), 0);
     std::vector<std::shared_ptr<Allocation>> allocations;
     std::vector<TileCommand> packedCommands;
+    std::vector<VersionData::Tile> selectionTiles;
     packedCommands.reserve(size_t(commandCount));
     Private::Recording encoder(d->state, d->timestamps);
     quint64 copiedBytes = 0;
     quint32 index = 0;
     for (const auto &entry : tileCommands) {
-        const TileParameters tileParameters {quint32(packedCommands.size()), quint32(entry.second.size()), {0, 0}};
+        const auto maskTile = selection ? selection->d->tiles.at(entry.first) : VersionData::Tile{};
+        const TileParameters tileParameters {quint32(packedCommands.size()), quint32(entry.second.size()),
+                                              quint32(maskTile.offset / sizeof(quint32)), 0};
+        if (selection) selectionTiles.push_back(maskTile);
         const quint64 parameterOffset = index / capacity * parameterStride + index % capacity * sizeof(TileParameters);
         std::memcpy(packedParameters.data() + parameterOffset, &tileParameters, sizeof(tileParameters));
         packedCommands.insert(packedCommands.end(), entry.second.begin(), entry.second.end());
@@ -195,11 +221,11 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
     {
         Handle<WGPUComputePassEncoder, wgpuComputePassEncoderRelease> pass(
             encoder.beginComputePass());
-        wgpuComputePassEncoderSetPipeline(pass.value, d->pipeline);
+        wgpuComputePassEncoderSetPipeline(pass.value, selection ? d->dabSelectionPipeline : d->pipeline);
         for (size_t groupIndex = 0; groupIndex < allocations.size(); ++groupIndex) {
             const auto &allocation = allocations[groupIndex];
             const quint64 count = allocation->bytes / TileBytes;
-            WGPUBindGroupEntry entries[3]{};
+            WGPUBindGroupEntry entries[4]{};
             entries[0].binding = 0;
             entries[0].buffer = allocation->buffer;
             entries[0].size = allocation->bytes;
@@ -210,9 +236,14 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
             entries[2].binding = 2;
             entries[2].buffer = commandStorage->buffer;
             entries[2].size = storageBytes;
+            if (selection) {
+                entries[3].binding = 5;
+                entries[3].buffer = selectionTiles[groupIndex].allocation->buffer;
+                entries[3].size = selectionTiles[groupIndex].allocation->bytes;
+            }
             WGPUBindGroupDescriptor descriptor{};
-            descriptor.layout = d->layout;
-            descriptor.entryCount = 3;
+            descriptor.layout = selection ? d->dabSelectionLayout : d->layout;
+            descriptor.entryCount = selection ? 4 : 3;
             descriptor.entries = entries;
             Handle<WGPUBindGroup, wgpuBindGroupRelease> group(
                 wgpuDeviceCreateBindGroup(d->state->device, &descriptor));
@@ -224,9 +255,9 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
     Handle<WGPUCommandBuffer, wgpuCommandBufferRelease> commandBuffer(
         encoder.finish());
     result.version.d = std::move(data);
-    d->submit({result.completion.d, base, result.version, parameters, commandStorage, {}}, commandBuffer.value,
+    d->submit({result.completion.d, base, result.version, parameters, commandStorage,
+               selection ? QVector<Version>{*selection} : QVector<Version>{}}, commandBuffer.value,
               packedParameters, packedCommands, copiedBytes, allocations.size(), {}, encoder.timing);
     errors.submitted = true;
     return result;
 }
-
