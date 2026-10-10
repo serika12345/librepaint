@@ -4,11 +4,22 @@
  */
 #include "KisGpuEditSession.h"
 #include <limits>
+#include <stdexcept>
 
 KisGpuEditSession::KisGpuEditSession(KisGpuTileStore &store, qsizetype retainedEdits)
-    : m_store(store), m_retainedEdits(qMax(qsizetype(0), retainedEdits)), m_history{store.emptyVersion()}
+    : KisGpuEditSession(store, retainedEdits, store.emptyVersion())
+{
+}
+
+KisGpuEditSession::KisGpuEditSession(KisGpuTileStore &store, qsizetype retainedEdits,
+                                   const KisGpuTileStore::Version &initial)
+    : m_store(store), m_retainedEdits(qMax(qsizetype(0), retainedEdits)), m_history{initial}
     , m_preview(m_history.front())
 {
+    const auto checked = store.paint(initial, QVector<KisGpuTileStore::PaintCommand>());
+    if (checked.error != KisGpuTileStore::Error::None || checked.completion.status() != KisGpuTileStore::Status::Succeeded) {
+        throw std::invalid_argument("GPU editing requires a successful version from its tile store");
+    }
 }
 
 KisGpuEditSession::Token KisGpuEditSession::begin()

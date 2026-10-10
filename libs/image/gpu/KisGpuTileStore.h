@@ -99,6 +99,7 @@ public:
         quint64 submissions = 0;
         quint64 computeDispatches = 0;
         quint64 pixelReadbackBytes = 0;
+        quint64 pixelUploadBytes = 0;
     };
 
     /** Null device/resources or API/limits mismatch throw std::runtime_error; requires wgpu-native 27.0.4.0. */
@@ -131,6 +132,8 @@ public:
      * Call on the submitting thread; after success the CPU result may outlive the store.
      */
     Readback readback(const Version &source, QRect bounds);
+    /** Import tightly packed RGBA8 pixels into a new version; CPU input may be released on return. */
+    Edit upload(const Version &base, QRect bounds, const QByteArray &pixels);
     /**
      * Device owner reports loss from any thread while this store lives, before explicit destruction.
      * Synchronizes with mapped CPU reads; adoption and resource collection remain in poll().

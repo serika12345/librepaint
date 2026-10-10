@@ -105,7 +105,7 @@ KisGpuTileStore::Private::Private(WGPUDevice device, quint64 bytes, quint32 maxi
 }
 
 void KisGpuTileStore::Private::submit(Pending operation, WGPUCommandBuffer commandBuffer, const std::vector<char> &parameters,
-            const std::vector<TileCommand> &commands, quint64 copiedBytes, quint64 dispatches) {
+            const std::vector<TileCommand> &commands, quint64 copiedBytes, quint64 dispatches, const QByteArray &pixelInput) {
     const auto completion = operation.completion;
     if (operation.source.d) completion->dependencies.push_back(operation.source.d->completion);
     if (operation.input.d && !(operation.input == operation.source)) {
@@ -117,6 +117,9 @@ void KisGpuTileStore::Private::submit(Pending operation, WGPUCommandBuffer comma
     const auto &resources = pending.back();
     if (!parameters.empty()) {
         wgpuQueueWriteBuffer(state->queue, resources.parameters->buffer, 0, parameters.data(), parameters.size());
+    }
+    if (!pixelInput.isEmpty()) {
+        wgpuQueueWriteBuffer(state->queue, resources.parameters->buffer, 0, pixelInput.constData(), pixelInput.size());
     }
     if (!commands.empty()) {
         wgpuQueueWriteBuffer(state->queue, resources.commands->buffer, 0,
@@ -137,6 +140,7 @@ void KisGpuTileStore::Private::submit(Pending operation, WGPUCommandBuffer comma
     statistics.computeDispatches += dispatches;
     statistics.commandUploadBytes += parameters.size() + commands.size() * sizeof(TileCommand);
     statistics.tileCopyBytes += copiedBytes;
+    statistics.pixelUploadBytes += pixelInput.size();
 }
 
 void KisGpuTileStore::Private::collect() {

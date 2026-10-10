@@ -5,6 +5,7 @@
 #include <QtTest>
 #include "KisGpuTestDevice.h"
 #include "KisGpuEditSession.h"
+#include <stdexcept>
 
 namespace {
 KisGpuTileStore::DabCommand dab(QPointF center, quint32 color)
@@ -42,6 +43,7 @@ private Q_SLOTS:
     void rejectedUpdatesPreserveTheWorkingEdit();
     void inputFromAnotherDocumentIsRejected();
     void deviceLossNeverCommitsTentativePixels();
+    void importedVersionStartsAnEditableDocument();
 private:
     std::unique_ptr<KisGpuTestDevice> m_gpu;
 };
@@ -78,6 +80,7 @@ void KisGpuEditSessionTest::replacementCommitsExactlyThePreview()
     QVERIFY(session.redo());
     QCOMPARE(m_gpu->read(session.head(), clip), accepted);
     QCOMPARE(store.statistics().pixelReadbackBytes, quint64(0));
+    QCOMPARE(store.statistics().pixelUploadBytes, quint64(0));
 }
 
 void KisGpuEditSessionTest::cancellationPreservesRedoAndRejectsStaleInput()
@@ -198,6 +201,31 @@ void KisGpuEditSessionTest::deviceLossNeverCommitsTentativePixels()
     QCOMPARE(session.historySize(), qsizetype(1));
     QCOMPARE(session.cancel(token), KisGpuEditSession::Result::Accepted);
     QVERIFY(!session.begin());
+}
+
+void KisGpuEditSessionTest::importedVersionStartsAnEditableDocument()
+{
+    KisGpuTileStore store(m_gpu->device, 16 * KisGpuTileStore::TileBytes);
+    const QRect bounds(0, 0, 64, 64);
+    const QByteArray original(64 * 64 * 4, '\xFF');
+    const auto loaded = store.upload(store.emptyVersion(), bounds, original);
+    QCOMPARE(loaded.error, KisGpuTileStore::Error::None);
+    QVERIFY_EXCEPTION_THROWN(KisGpuEditSession(store, 2, loaded.version), std::invalid_argument);
+    wgpuDevicePoll(m_gpu->device, true, nullptr);
+    store.poll();
+    KisGpuEditSession session(store, 2, loaded.version);
+    QCOMPARE(m_gpu->read(session.head(), bounds), original);
+    QVERIFY(!session.undo());
+    const auto token = session.begin();
+    QCOMPARE(session.append(token, {dab(QPointF(16.25, 16.25), 0xFF123456)}, bounds), KisGpuEditSession::Result::Accepted);
+    QCOMPARE(session.commit(token), KisGpuEditSession::Result::Accepted);
+    QVERIFY(settle(session));
+    QVERIFY(m_gpu->read(session.head(), bounds) != original);
+    QVERIFY(session.undo());
+    QCOMPARE(m_gpu->read(session.head(), bounds), original);
+    QVERIFY(!session.undo());
+    KisGpuTileStore foreign(m_gpu->device, 16 * KisGpuTileStore::TileBytes);
+    QVERIFY_EXCEPTION_THROWN(KisGpuEditSession(store, 2, foreign.emptyVersion()), std::invalid_argument);
 }
 
 QTEST_GUILESS_MAIN(KisGpuEditSessionTest)

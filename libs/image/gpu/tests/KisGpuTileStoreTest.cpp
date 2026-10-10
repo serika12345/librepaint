@@ -10,6 +10,7 @@
 #include <set>
 #include <stdexcept>
 #include <limits>
+#include <cstring>
 #include "KisGpuTestDevice.h"
 
 namespace {
@@ -83,6 +84,9 @@ private Q_SLOTS:
     void boundedSubmissionsResumeAfterPoll();
     void deviceLossRejectsReadsAndEditsWithoutPrematureRelease();
     void destroyedDeviceReleasesPendingReadback();
+    void uploadPreservesPixelsAndSourceVersions();
+    void uploadRejectionIsAtomic();
+    void savedPixelsRestoreOnAnotherDevice();
     void compositing_data();
     void compositing();
 private:
@@ -206,6 +210,7 @@ void KisGpuTileStoreTest::generatedDabsMatchBrushMasks()
             }
             QCOMPARE(store.statistics().submissions, quint64(1));
             QCOMPARE(store.statistics().pixelReadbackBytes, quint64(0));
+            QCOMPARE(store.statistics().pixelUploadBytes, quint64(0));
         }
     }
 }
@@ -309,6 +314,77 @@ void KisGpuTileStoreTest::destroyedDeviceReleasesPendingReadback()
     QVERIFY(read.bytes().isEmpty());
     QCOMPARE(store.statistics().residentBytes, quint64(0));
     QCOMPARE(gpu.errors.load(), 0);
+}
+
+void KisGpuTileStoreTest::uploadPreservesPixelsAndSourceVersions()
+{
+    KisGpuTileStore store(m_gpu->device, 32 * KisGpuTileStore::TileBytes);
+    const QRect canvas(-64, -64, 192, 192), bounds(-3, -2, 70, 67);
+    const auto base = store.fill(store.emptyVersion(), canvas, 0xFF102030);
+    QByteArray pixels(bounds.width() * bounds.height() * 4, '\0');
+    for (int i = 0; i < pixels.size(); ++i) pixels[i] = char(i * 37 % 256);
+    for (int i = 0; i < pixels.size() / 4; i += 17) pixels[i * 4 + 3] = '\0';
+    const QByteArray original = pixels;
+    const auto before = store.statistics();
+    const auto imported = store.upload(base.version, bounds, pixels);
+    QCOMPARE(imported.error, KisGpuTileStore::Error::None);
+    pixels.fill('\0');
+    QVERIFY(finish(store, imported.completion));
+    auto wanted = expected(canvas, {{canvas, 0xFF102030}});
+    for (int y = 0; y < bounds.height(); ++y) {
+        std::memcpy(wanted.data() + ((bounds.y() + y - canvas.y()) * canvas.width() + bounds.x() - canvas.x()) * 4,
+                    original.constData() + y * bounds.width() * 4, bounds.width() * 4);
+    }
+    QCOMPARE(m_gpu->read(imported.version, canvas), wanted);
+    QCOMPARE(m_gpu->read(base.version, canvas), expected(canvas, {{canvas, 0xFF102030}}));
+    QCOMPARE(store.statistics().pixelUploadBytes - before.pixelUploadBytes, quint64(original.size()));
+    QCOMPARE(store.statistics().commandUploadBytes, before.commandUploadBytes);
+    QCOMPARE(store.statistics().submissions - before.submissions, quint64(1));
+}
+
+void KisGpuTileStoreTest::uploadRejectionIsAtomic()
+{
+    KisGpuTileStore store(m_gpu->device, 2 * KisGpuTileStore::TileBytes, 1);
+    auto base = store.fill(store.emptyVersion(), QRect(0, 0, 1, 1), 0xFF123456);
+    const auto before = store.statistics();
+    QCOMPARE(store.upload(base.version, QRect(0, 0, 1, 1), QByteArray(4, '\xFF')).error, KisGpuTileStore::Error::QueueFull);
+    QVERIFY(finish(store, base.completion));
+    QCOMPARE(store.upload(base.version, QRect(0, 0, 1, 1), QByteArray(3, '\0')).error, KisGpuTileStore::Error::InvalidCommand);
+    QCOMPARE(store.upload(base.version, QRect(0, 0, 128, 128), QByteArray(128 * 128 * 4, '\0')).error,
+             KisGpuTileStore::Error::BudgetExceeded);
+    QCOMPARE(store.upload({}, QRect(0, 0, 1, 1), QByteArray(4, '\0')).error, KisGpuTileStore::Error::InvalidVersion);
+    const auto empty = store.upload(base.version, {}, {});
+    QVERIFY(finish(store, empty.completion));
+    QCOMPARE(store.statistics().submissions, before.submissions);
+    QCOMPARE(store.statistics().pixelUploadBytes, quint64(0));
+    QCOMPARE(store.statistics().residentBytes, KisGpuTileStore::TileBytes);
+}
+
+void KisGpuTileStoreTest::savedPixelsRestoreOnAnotherDevice()
+{
+    const QRect bounds(-3, -2, 70, 67);
+    KisGpuTileStore::Readback saved;
+    {
+        KisGpuTestDevice gpu;
+        KisGpuTileStore store(gpu.device, 32 * KisGpuTileStore::TileBytes);
+        const auto base = store.fill(store.emptyVersion(), bounds, 0x80402010);
+        const auto edited = store.paint(base.version, QRect(-1, -1, 3, 3), 0xFF123456);
+        saved = store.readback(edited.version, bounds);
+        QVERIFY(finish(store, saved.completion));
+        store.invalidateDevice();
+        wgpuDeviceDestroy(gpu.device);
+    }
+    QCOMPARE(saved.completion.status(), KisGpuTileStore::Status::Succeeded);
+    const auto pixels = saved.bytes();
+    QVERIFY(!pixels.isEmpty());
+    KisGpuTestDevice nextGpu;
+    KisGpuTileStore restored(nextGpu.device, 32 * KisGpuTileStore::TileBytes);
+    const auto loaded = restored.upload(restored.emptyVersion(), bounds, pixels);
+    QCOMPARE(loaded.error, KisGpuTileStore::Error::None);
+    QVERIFY(finish(restored, loaded.completion));
+    QCOMPARE(nextGpu.read(loaded.version, bounds), pixels);
+    QCOMPARE(restored.statistics().pixelUploadBytes, quint64(pixels.size()));
+    QCOMPARE(nextGpu.errors.load(), 0);
 }
 
 void KisGpuTileStoreTest::sparseSignedCoordinates()

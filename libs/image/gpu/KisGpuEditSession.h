@@ -34,6 +34,8 @@ public:
     };
 
     explicit KisGpuEditSession(KisGpuTileStore &store, qsizetype retainedEdits);
+    /** Initial version must belong to store and have succeeded; otherwise throws std::invalid_argument. */
+    KisGpuEditSession(KisGpuTileStore &store, qsizetype retainedEdits, const KisGpuTileStore::Version &initial);
     KisGpuEditSession(const KisGpuEditSession &) = delete;
     KisGpuEditSession &operator=(const KisGpuEditSession &) = delete;
 

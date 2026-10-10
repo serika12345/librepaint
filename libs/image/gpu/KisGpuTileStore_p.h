@@ -175,7 +175,8 @@ struct KisGpuTileStore::Private {
     Private(WGPUDevice device, quint64 bytes, quint32 maximum);
 
     void submit(Pending operation, WGPUCommandBuffer commandBuffer, const std::vector<char> &parameters,
-                const std::vector<KisGpuTileStorage::TileCommand> &commands, quint64 copiedBytes, quint64 dispatches);
+                const std::vector<KisGpuTileStorage::TileCommand> &commands, quint64 copiedBytes, quint64 dispatches,
+                const QByteArray &pixelInput = {});
 
     void collect();
 
