@@ -41,6 +41,7 @@ private Q_SLOTS:
     void historyLimitReleasesGpuVersions();
     void rejectedUpdatesPreserveTheWorkingEdit();
     void inputFromAnotherDocumentIsRejected();
+    void deviceLossNeverCommitsTentativePixels();
 private:
     std::unique_ptr<KisGpuTestDevice> m_gpu;
 };
@@ -179,6 +180,24 @@ void KisGpuEditSessionTest::inputFromAnotherDocumentIsRejected()
     const auto reopened = second.begin();
     QCOMPARE(second.commit(expired), KisGpuEditSession::Result::Stale);
     QCOMPARE(second.cancel(reopened), KisGpuEditSession::Result::Accepted);
+}
+
+void KisGpuEditSessionTest::deviceLossNeverCommitsTentativePixels()
+{
+    KisGpuTileStore store(m_gpu->device, 16 * KisGpuTileStore::TileBytes);
+    KisGpuEditSession session(store, 8);
+    const QRect clip(0, 0, 64, 64);
+    const auto token = session.begin();
+    QCOMPARE(session.append(token, {dab(QPointF(16, 16), 0xFFABCDEF)}, clip), KisGpuEditSession::Result::Accepted);
+    QCOMPARE(session.commit(token), KisGpuEditSession::Result::Accepted);
+    store.invalidateDevice();
+    session.poll();
+    QCOMPARE(session.state(), KisGpuEditSession::State::Failed);
+    QCOMPARE(session.head().tileCount(), qsizetype(0));
+    QCOMPARE(session.preview().tileCount(), qsizetype(0));
+    QCOMPARE(session.historySize(), qsizetype(1));
+    QCOMPARE(session.cancel(token), KisGpuEditSession::Result::Accepted);
+    QVERIFY(!session.begin());
 }
 
 QTEST_GUILESS_MAIN(KisGpuEditSessionTest)

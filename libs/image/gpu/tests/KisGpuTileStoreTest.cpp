@@ -81,6 +81,8 @@ private Q_SLOTS:
     void generatedDabsMatchBrushMasks();
     void generatedDabsPreserveOrderAndRejectInvalidInput();
     void boundedSubmissionsResumeAfterPoll();
+    void deviceLossRejectsReadsAndEditsWithoutPrematureRelease();
+    void destroyedDeviceReleasesPendingReadback();
     void compositing_data();
     void compositing();
 private:
@@ -260,6 +262,53 @@ void KisGpuTileStoreTest::boundedSubmissionsResumeAfterPoll()
     QVERIFY(finish(store, second.completion));
     QCOMPARE(m_gpu->read(second.version, QRect(0, 0, 2, 1)),
              expected(QRect(0, 0, 2, 1), {{QRect(0, 0, 2, 1), 0xFF123456}, {QRect(0, 0, 1, 1), 0xFFABCDEF}}));
+}
+
+void KisGpuTileStoreTest::deviceLossRejectsReadsAndEditsWithoutPrematureRelease()
+{
+    KisGpuTileStore store(m_gpu->device, 32 * KisGpuTileStore::TileBytes);
+    auto pending = store.fill(store.emptyVersion(), QRect(-1, -1, 2, 2), 0xFFABCDEF);
+    auto dependent = store.paint(pending.version, QRect(0, 0, 1, 1), 0x80FFFFFF);
+    const auto read = store.readback(dependent.version, QRect(-2, -2, 4, 4));
+    const auto before = store.statistics();
+    store.invalidateDevice();
+    QVERIFY(!store.deviceAvailable());
+    QCOMPARE(pending.completion.status(), KisGpuTileStore::Status::Failed);
+    QCOMPARE(dependent.completion.status(), KisGpuTileStore::Status::Failed);
+    QCOMPARE(read.completion.status(), KisGpuTileStore::Status::Failed);
+    QVERIFY(read.bytes().isEmpty());
+    QCOMPARE(store.fill(pending.version, QRect(0, 0, 1, 1), 0xFFFFFFFF).error, KisGpuTileStore::Error::DeviceLost);
+    QCOMPARE(store.readback(pending.version, QRect(0, 0, 1, 1)).error, KisGpuTileStore::Error::DeviceLost);
+    QCOMPARE(store.statistics().submissions, before.submissions);
+    QCOMPARE(store.statistics().residentBytes, before.residentBytes);
+    const auto firstCompletion = pending.completion;
+    pending = {};
+    dependent = {};
+    wgpuDevicePoll(m_gpu->device, true, nullptr);
+    store.poll();
+    QCOMPARE(firstCompletion.status(), KisGpuTileStore::Status::Failed);
+    QCOMPARE(read.completion.status(), KisGpuTileStore::Status::Failed);
+    QCOMPARE(store.statistics().residentBytes, quint64(0));
+    store.invalidateDevice();
+    QCOMPARE(store.statistics().residentBytes, quint64(0));
+}
+
+void KisGpuTileStoreTest::destroyedDeviceReleasesPendingReadback()
+{
+    KisGpuTestDevice gpu;
+    KisGpuTileStore store(gpu.device, 64 * KisGpuTileStore::TileBytes);
+    auto edit = store.fill(store.emptyVersion(), QRect(0, 0, 256, 256), 0xFFABCDEF);
+    const auto read = store.readback(edit.version, QRect(0, 0, 256, 256));
+    QCOMPARE(read.error, KisGpuTileStore::Error::None);
+    store.invalidateDevice();
+    wgpuDeviceDestroy(gpu.device);
+    edit = {};
+    wgpuDevicePoll(gpu.device, true, nullptr);
+    store.poll();
+    QCOMPARE(read.completion.status(), KisGpuTileStore::Status::Failed);
+    QVERIFY(read.bytes().isEmpty());
+    QCOMPARE(store.statistics().residentBytes, quint64(0));
+    QCOMPARE(gpu.errors.load(), 0);
 }
 
 void KisGpuTileStoreTest::sparseSignedCoordinates()

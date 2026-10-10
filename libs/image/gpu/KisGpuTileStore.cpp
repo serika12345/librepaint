@@ -12,6 +12,7 @@
 #include <cmath>
 #include <limits>
 #include <map>
+#include <mutex>
 #include <stdexcept>
 #include <vector>
 
@@ -36,10 +37,16 @@ struct Handle {
     Handle &operator=(const Handle &) = delete;
 };
 
+struct Availability {
+    std::mutex mapping;
+    std::atomic<bool> available{true};
+};
+
 struct DeviceState {
     WGPUDevice device;
     WGPUQueue queue;
     std::atomic<quint64> residentBytes{0};
+    std::shared_ptr<Availability> availability = std::make_shared<Availability>();
     explicit DeviceState(WGPUDevice value) : device(value), queue(wgpuDeviceGetQueue(value)) {
         wgpuDeviceAddRef(device);
     }
@@ -102,9 +109,27 @@ struct KisGpuTileStore::CompletionData {
     std::atomic<unsigned> remaining{3};
     std::atomic<bool> failed{false};
     quint64 sequence = 0;
+    std::vector<std::shared_ptr<CompletionData>> dependencies;
+    std::shared_ptr<Availability> availability;
+    explicit CompletionData(std::shared_ptr<Availability> value) : availability(std::move(value)) {}
+    Status currentStatus() const {
+        const auto current = status.load();
+        return current == Status::Pending && !availability->available.load() ? Status::Failed : current;
+    }
     void complete(bool success) {
         if (!success) failed.store(true);
-        if (remaining.fetch_sub(1) == 1) status.store(failed.load() ? Status::Failed : Status::Succeeded);
+        remaining.fetch_sub(1);
+    }
+    void publish() {
+        if (remaining.load() != 0) return;
+        if (!availability->available.load()) failed.store(true);
+        for (const auto &dependency : dependencies) {
+            const auto state = dependency->currentStatus();
+            if (state == Status::Pending && !failed.load()) return;
+            if (state == Status::Failed) failed.store(true);
+        }
+        status.store(failed.load() ? Status::Failed : Status::Succeeded);
+        dependencies.clear();
     }
 };
 
@@ -239,6 +264,10 @@ struct KisGpuTileStore::Private {
     void submit(Pending operation, WGPUCommandBuffer commandBuffer, const std::vector<char> &parameters,
                 const std::vector<TileCommand> &commands, quint64 copiedBytes, quint64 dispatches) {
         const auto completion = operation.completion;
+        if (operation.source.d) completion->dependencies.push_back(operation.source.d->completion);
+        if (operation.input.d && !(operation.input == operation.source)) {
+            completion->dependencies.push_back(operation.input.d->completion);
+        }
         completion->sequence = statistics.submissions + 1;
         auto callbackData = std::make_unique<std::shared_ptr<CompletionData>>(completion);
         pending.push_back(std::move(operation));
@@ -267,8 +296,18 @@ struct KisGpuTileStore::Private {
         statistics.tileCopyBytes += copiedBytes;
     }
 
+    void collect() {
+        // Submission order is also dependency order. Publish results on the owning thread.
+        for (auto &operation : pending) operation.completion->publish();
+        pending.erase(std::remove_if(pending.begin(), pending.end(), [](const Pending &operation) {
+            return operation.completion->remaining.load() == 0
+                && operation.completion->status.load() != Status::Pending;
+        }), pending.end());
+    }
+
     ~Private() {
         if (lastSubmission) wgpuDevicePoll(state->device, true, &lastSubmission);
+        collect();
         pending.clear();
         wgpuComputePipelineRelease(pipeline);
         wgpuBindGroupLayoutRelease(layout);
@@ -292,7 +331,7 @@ KisGpuTileStore::TileView KisGpuTileStore::Version::tile(QPoint coordinate) cons
 
 KisGpuTileStore::Status KisGpuTileStore::Completion::status() const
 {
-    return d ? d->status.load() : Status::Failed;
+    return d ? d->currentStatus() : Status::Failed;
 }
 
 quint64 KisGpuTileStore::Completion::sequence() const { return d ? d->sequence : 0; }
@@ -307,7 +346,8 @@ KisGpuTileStore::Version KisGpuTileStore::emptyVersion() const
     Version result;
     auto data = std::make_shared<VersionData>();
     data->owner = d->state;
-    data->completion = std::make_shared<CompletionData>();
+    data->completion = std::make_shared<CompletionData>(d->state->availability);
+    data->completion->remaining.store(0);
     data->completion->status.store(Status::Succeeded);
     result.d = std::move(data);
     return result;
@@ -339,6 +379,7 @@ KisGpuTileStore::Edit KisGpuTileStore::paint(const Version &base, const QVector<
 KisGpuTileStore::Edit KisGpuTileStore::paintDabs(const Version &base, const QVector<DabCommand> &commands, QRect clip)
 {
     if (!base.d || base.d->owner != d->state) return {Error::InvalidVersion, {}, {}};
+    if (!deviceAvailable()) return {Error::DeviceLost, {}, {}};
     QVector<UpdateCommand> updates;
     updates.reserve(commands.size());
     for (const auto &command : commands) {
@@ -372,6 +413,10 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
     Edit result;
     if (!base.d || base.d->owner != d->state) {
         result.error = Error::InvalidVersion;
+        return result;
+    }
+    if (!deviceAvailable()) {
+        result.error = Error::DeviceLost;
         return result;
     }
     const quint64 resident = d->state->residentBytes.load();
@@ -449,7 +494,7 @@ KisGpuTileStore::Edit KisGpuTileStore::update(const Version &base, const QVector
     }
     const quint64 parameterBytes = parameterSize(tileCommands.size());
     const quint64 storageBytes = commandCount * sizeof(TileCommand);
-    result.completion.d = std::make_shared<CompletionData>();
+    result.completion.d = std::make_shared<CompletionData>(d->state->availability);
     Private::ErrorScopes errors(d->state->device, result.completion.d);
     auto data = std::make_shared<VersionData>(*base.d);
     data->completion = result.completion.d;
@@ -535,6 +580,10 @@ KisGpuTileStore::Edit KisGpuTileStore::composite(const Version &base, const Vers
         result.error = Error::InvalidVersion;
         return result;
     }
+    if (!deviceAvailable()) {
+        result.error = Error::DeviceLost;
+        return result;
+    }
     auto unchanged = [&] {
         result.version = base;
         result.completion.d = base.d->completion;
@@ -591,7 +640,7 @@ KisGpuTileStore::Edit KisGpuTileStore::composite(const Version &base, const Vers
         result.error = Error::BudgetExceeded;
         return result;
     }
-    result.completion.d = std::make_shared<CompletionData>();
+    result.completion.d = std::make_shared<CompletionData>(d->state->availability);
     Private::ErrorScopes errors(d->state->device, result.completion.d);
     auto data = std::make_shared<VersionData>(*base.d);
     data->completion = result.completion.d;
@@ -665,6 +714,10 @@ KisGpuTileStore::Readback KisGpuTileStore::readback(const Version &source, QRect
         result.error = Error::InvalidVersion;
         return result;
     }
+    if (!deviceAvailable()) {
+        result.error = Error::DeviceLost;
+        return result;
+    }
     if (bounds.isEmpty()) {
         result.completion.d = source.d->completion;
         return result;
@@ -683,7 +736,7 @@ KisGpuTileStore::Readback KisGpuTileStore::readback(const Version &source, QRect
     }
     result.d = std::make_shared<ReadbackData>();
     result.d->bytes = QByteArray(int(byteCount), '\0');
-    result.completion.d = std::make_shared<CompletionData>();
+    result.completion.d = std::make_shared<CompletionData>(d->state->availability);
     result.completion.d->remaining.store(4); // validation, allocation, submission, mapping
     Private::ErrorScopes errors(d->state->device, result.completion.d);
     auto staging = std::make_shared<Allocation>(d->state, byteCount,
@@ -711,15 +764,18 @@ KisGpuTileStore::Readback KisGpuTileStore::readback(const Version &source, QRect
         std::shared_ptr<CompletionData> completion;
         WGPUBuffer buffer;
         quint64 size;
+        std::shared_ptr<Availability> availability;
     };
-    auto callbackData = std::make_unique<MapResult>(MapResult{result.d, result.completion.d, staging->buffer, byteCount});
+    auto callbackData = std::make_unique<MapResult>(MapResult{
+        result.d, result.completion.d, staging->buffer, byteCount, d->state->availability});
     d->submit({result.completion.d, source, {}, staging, {}, {}}, commands.value, {}, {}, 0, 0);
     WGPUBufferMapCallbackInfo callback{};
     callback.mode = WGPUCallbackMode_AllowSpontaneous;
     callback.userdata1 = callbackData.release();
     callback.callback = [](WGPUMapAsyncStatus status, WGPUStringView, void *data, void *) {
         std::unique_ptr<MapResult> result(static_cast<MapResult *>(data));
-        bool success = status == WGPUMapAsyncStatus_Success;
+        std::lock_guard<std::mutex> lock(result->availability->mapping);
+        bool success = status == WGPUMapAsyncStatus_Success && result->availability->available.load();
         if (success) {
             const void *mapped = wgpuBufferGetConstMappedRange(result->buffer, 0, result->size);
             success = mapped != nullptr;
@@ -737,10 +793,16 @@ KisGpuTileStore::Readback KisGpuTileStore::readback(const Version &source, QRect
 void KisGpuTileStore::poll()
 {
     wgpuDevicePoll(d->state->device, false, nullptr);
-    d->pending.erase(std::remove_if(d->pending.begin(), d->pending.end(), [](const Private::Pending &operation) {
-        return operation.completion->status.load() != Status::Pending;
-    }), d->pending.end());
+    d->collect();
 }
+
+void KisGpuTileStore::invalidateDevice()
+{
+    std::lock_guard<std::mutex> lock(d->state->availability->mapping);
+    d->state->availability->available.store(false);
+}
+
+bool KisGpuTileStore::deviceAvailable() const { return d->state->availability->available.load(); }
 
 KisGpuTileStore::Statistics KisGpuTileStore::statistics() const
 {

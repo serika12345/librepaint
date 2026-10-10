@@ -13,7 +13,8 @@ KisGpuEditSession::KisGpuEditSession(KisGpuTileStore &store, qsizetype retainedE
 
 KisGpuEditSession::Token KisGpuEditSession::begin()
 {
-    if (m_state != State::Idle || m_generation == std::numeric_limits<quint64>::max()) return {};
+    if (m_state != State::Idle || !m_store.deviceAvailable()
+        || m_generation == std::numeric_limits<quint64>::max()) return {};
     m_token = ++m_generation;
     m_base = head();
     m_preview = m_base;
@@ -85,6 +86,11 @@ void KisGpuEditSession::poll()
 {
     m_store.poll();
     if (m_state != State::Editing && m_state != State::Committing) return;
+    if (!m_store.deviceAvailable()) {
+        m_preview = m_base;
+        m_state = State::Failed;
+        return;
+    }
     if (m_hasLatest) {
         const auto status = m_latest.completion.status();
         if (status == KisGpuTileStore::Status::Pending) return;

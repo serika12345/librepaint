@@ -27,7 +27,7 @@ class KisGpuTileStore
 public:
     static constexpr quint64 TileBytes = 64 * 64 * 4;
     enum class Status { Pending, Succeeded, Failed };
-    enum class Error { None, InvalidVersion, BudgetExceeded, InvalidCommand, QueueFull };
+    enum class Error { None, InvalidVersion, BudgetExceeded, InvalidCommand, QueueFull, DeviceLost };
     enum class CompositeOp { Over, Erase };
 
     struct PaintCommand {
@@ -131,6 +131,13 @@ public:
      * Call on the submitting thread; after success the CPU result may outlive the store.
      */
     Readback readback(const Version &source, QRect bounds);
+    /**
+     * Device owner reports loss from any thread while this store lives, before explicit destruction.
+     * Synchronizes with mapped CPU reads; adoption and resource collection remain in poll().
+     * Explicit native destruction belongs to the submitting thread.
+     */
+    void invalidateDevice();
+    bool deviceAvailable() const;
     /** Dispatch completion callbacks and release finished submissions; never waits. */
     void poll();
     Statistics statistics() const;
