@@ -23,6 +23,7 @@ wgpu-native 27.0.4.0を直接利用する。計算段階で8個のGPUバッフ�
 | `libs/image/gpu/KisGpuProjection.cpp` | レイヤー列の変更領域と入力割当をまとめ、投影用GPU資源と発行を所有 |
 | `libs/image/gpu/KisGpuProjection.wgsl` | 3層ずつのGPU合成。各層の8ビット丸めを維持 |
 | `libs/image/gpu/KisGpuLayerProjection.*` | レイヤー列の変更領域、最新要求と完成済み投影の公開 |
+| `libs/image/gpu/KisGpuLayerDocument.*` | レイヤー画素・マスク・属性と文書全体のUndo/Redo、対応するCPU回復値 |
 | `libs/image/gpu/KisGpuTileTransfer.cpp` | 保存用の非同期読取り、マッピングと画素の取込み |
 | `libs/image/gpu/KisGpuTileTexture.cpp` | 指定領域をGPU表示用画像へ複製し、画像の寿命と予算を管理 |
 | `libs/image/gpu/KisGpuTileStore_p.h` | 所有者内部の割当、版、完了と発行中資源の表現 |

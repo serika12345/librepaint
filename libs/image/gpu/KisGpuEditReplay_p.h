@@ -32,6 +32,7 @@ struct KisGpuEditSession::ReplayState {
     qsizetype edit = 0, batch = 0, tile = 0;
     bool initialized = false, initialPixelsReady = false, workingPhase = false, waiting = false;
     static quint64 recoveryBytes(const Recovery &data, const ReplayEdit *working = nullptr);
+    static bool validRecovery(const Recovery &data, qsizetype retainedEdits, quint64 maximumBytes);
     static std::optional<QRect> tileBounds(QPoint coordinate);
 };
 #endif

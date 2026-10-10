@@ -101,6 +101,9 @@
 画像側の`KisGpuLayerProjection`はGPUタイルの共有状態から変更領域を求め、
 レイヤー列と成功済み投影を一緒に公開する。
 [GPUレイヤー列と完成済み投影の管理](gpu-layer-projection.md)が最新要求の採用と文書ごとの分離を定義する。
+`KisGpuLayerDocument`は、レイヤーの画素・マスク・属性と文書全体のUndo/Redoを所有する。
+各履歴状態のGPU版とCPU回復値を対応付け、編集時に既存の版を直接採用する。
+[GPUレイヤー文書と編集履歴](gpu-layer-document.md)が編集セッションの寿命、入力拒否と予算を定義する。
 
 `libs/image/dabspacing`はCPU描画とGPU向け入力生成で距離間隔を共用する。
 `libs/painting/gpu`は位置と筆圧からブラシ印を作り、GPU編集セッションへ渡す。

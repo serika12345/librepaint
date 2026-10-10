@@ -46,8 +46,7 @@ std::optional<QRect> KisGpuEditSession::ReplayState::tileBounds(QPoint coordinat
 }
 
 KisGpuEditSession::~KisGpuEditSession() = default;
-KisGpuEditSession::KisGpuEditSession(KisGpuTileStore &store, qsizetype retained, Recovery recovery, quint64 maximum)
-    : KisGpuEditSession(store, retained)
+bool KisGpuEditSession::ReplayState::validRecovery(const Recovery &recovery, qsizetype retained, quint64 maximum)
 {
     const qint64 width = recovery.bounds.width(), height = recovery.bounds.height();
     const bool empty = recovery.bounds.isEmpty();
@@ -60,15 +59,36 @@ KisGpuEditSession::KisGpuEditSession(KisGpuTileStore &store, qsizetype retained,
     }
     if (recovery.firstRetained < 0 || recovery.cursor < recovery.firstRetained
         || recovery.cursor > recovery.edits.size()
-        || recovery.edits.size() - recovery.firstRetained > m_retainedEdits
+        || recovery.edits.size() - recovery.firstRetained > retained
         || (empty ? !recovery.pixels.isEmpty()
                   : width * height > (qint64(1) << 29) - 1 || width * height * 4 != recovery.pixels.size())
         || !validTiles || (!recovery.working && recovery.commitRequested) || ReplayState::recoveryBytes(recovery) > maximum) {
+        return false;
+    }
+    return true;
+}
+
+KisGpuEditSession::KisGpuEditSession(KisGpuTileStore &store, qsizetype retained, Recovery recovery, quint64 maximum)
+    : KisGpuEditSession(store, retained)
+{
+    if (!ReplayState::validRecovery(recovery, m_retainedEdits, maximum)) {
         throw std::invalid_argument("Invalid GPU recovery checkpoint, history or CPU payload budget");
     }
     m_replay->restoring = std::move(recovery);
     m_replay->maximumBytes = maximum;
     m_state = State::Restoring;
+}
+
+KisGpuEditSession::KisGpuEditSession(KisGpuTileStore &store, const KisGpuTileStore::Version &head,
+                                   Recovery recovery, quint64 maximum)
+    : KisGpuEditSession(store, 0, head)
+{
+    if (!ReplayState::validRecovery(recovery, 0, maximum) || recovery.working
+        || recovery.cursor != recovery.edits.size()) {
+        throw std::invalid_argument("GPU document editing requires recovery values for one completed head");
+    }
+    m_replay->data = std::move(recovery);
+    m_replay->maximumBytes = maximum;
 }
 
 KisGpuEditSession::Token KisGpuEditSession::currentToken() const

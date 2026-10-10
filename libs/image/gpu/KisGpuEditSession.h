@@ -145,6 +145,10 @@ public:
     qsizetype historySize() const { return m_history.size(); }
 
 private:
+    friend class KisGpuLayerDocument;
+    /** The document owns the association between this successful head and its CPU recovery values. */
+    KisGpuEditSession(KisGpuTileStore &store, const KisGpuTileStore::Version &head,
+                      Recovery recovery, quint64 maximumRecoveryBytes);
     bool matches(const Token &token) const;
     Result paint(const Token &token, const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip, bool replace,
                  const Selection *selection = nullptr, const Texture *texture = nullptr);

@@ -7,6 +7,7 @@
 #include "KisGpuTileStore.h"
 #include "KisGpuEditSession.h"
 #include "KisGpuLayerProjection.h"
+#include "KisGpuLayerDocument.h"
 #include "KisGpuTestDevice.h"
 #include <QtTest>
 #include <cmath>
@@ -83,21 +84,38 @@ void KisGpuCanvasRendererTest::layerProjectionFollowsPreviewHistoryAndDocumentSw
 {
     using Session = KisGpuEditSession;
     using Projection = KisGpuLayerProjection;
+    using Document = KisGpuLayerDocument;
     const QRect bounds(0, 0, 2, 2);
-    Store store(m_gpu->owner, 128 * Store::TileBytes);
-    Session edit(store, 2);
+    auto ownedStore = std::make_shared<Store>(m_gpu->owner, 128 * Store::TileBytes);
+    auto &store = *ownedStore;
+    Document model(ownedStore, 4), otherModel(ownedStore, 4);
     Projection document(store, bounds), anotherDocument(store, bounds);
-    const auto background = store.fill(store.emptyVersion(), bounds, 0xFFFF0000);
+    for (auto *imageModel : {&model, &otherModel}) {
+        const auto background = imageModel->addLayer(QStringLiteral("Background"));
+        const auto filling = imageModel->begin(background.id);
+        Store::DabCommand blue;
+        blue.center = QPointF(0, 0);
+        blue.diameter = QSizeF(100, 100);
+        blue.rgba = 0xFFFF0000;
+        QCOMPARE(filling.session->append(filling.token, {blue}, bounds), Session::Result::Accepted);
+        imageModel->commit(filling.token);
+        wgpuDevicePoll(m_gpu->device, true, nullptr);
+        imageModel->poll();
+        QCOMPARE(imageModel->state(), Document::State::Idle);
+    }
+    const auto foreground = model.addLayer(QStringLiteral("Foreground"));
+    const auto editing = model.begin(foreground.id);
+    auto &edit = *editing.session;
     Store::DabCommand dab;
     dab.center = QPointF(0, 0);
     dab.diameter = QSizeF(.5, .5);
     dab.rgba = 0xFF0000FF;
-    const auto token = edit.begin();
+    const auto token = editing.token;
     QCOMPARE(edit.append(token, {dab}, bounds), Session::Result::Accepted);
     wgpuDevicePoll(m_gpu->device, true, nullptr);
-    edit.poll();
-    QCOMPARE(document.setLayers({{background.version}, {edit.preview()}}), Store::Error::None);
-    QCOMPARE(anotherDocument.setLayers({{background.version}}), Store::Error::None);
+    model.poll();
+    QCOMPARE(document.setLayers(model.projectionLayers()), Store::Error::None);
+    QCOMPARE(anotherDocument.setLayers(otherModel.projectionLayers()), Store::Error::None);
     wgpuDevicePoll(m_gpu->device, true, nullptr);
     document.poll();
     anotherDocument.poll();
@@ -113,9 +131,9 @@ void KisGpuCanvasRendererTest::layerProjectionFollowsPreviewHistoryAndDocumentSw
     dab.rgba = 0xFF00FF00;
     QCOMPARE(edit.replace(token, {dab}, bounds), Session::Result::Accepted);
     wgpuDevicePoll(m_gpu->device, true, nullptr);
-    edit.poll();
+    model.poll();
     const auto preview = edit.preview();
-    QCOMPARE(document.setLayers({{background.version}, {preview}}), Store::Error::None);
+    QCOMPARE(document.setLayers(model.projectionLayers()), Store::Error::None);
     wgpuDevicePoll(m_gpu->device, true, nullptr);
     document.poll();
     const auto replacementImage = store.textureSnapshot(document.snapshot().pixels, bounds);
@@ -130,23 +148,23 @@ void KisGpuCanvasRendererTest::layerProjectionFollowsPreviewHistoryAndDocumentSw
     QCOMPARE(m_gpu->read(oldTarget.texture, bounds.size()), QByteArray::fromHex("ff0000ff") + blue.repeated(3));
     QCOMPARE(m_gpu->read(newTarget.texture, bounds.size()), blue.repeated(3) + QByteArray::fromHex("00ff00ff"));
     QCOMPARE(m_gpu->read(otherTarget.texture, bounds.size()), blue.repeated(4));
-    QCOMPARE(edit.commit(token), Session::Result::Accepted);
-    edit.poll();
-    QCOMPARE(edit.state(), Session::State::Idle);
+    QCOMPARE(model.commit(token), Document::Result::Accepted);
+    model.poll();
+    QCOMPARE(model.state(), Document::State::Idle);
     const auto beforeCommitProjection = store.statistics();
-    QCOMPARE(document.setLayers({{background.version}, {edit.head()}}), Store::Error::None);
+    QCOMPARE(document.setLayers(model.projectionLayers()), Store::Error::None);
     document.poll();
     QCOMPARE(store.statistics().submissions, beforeCommitProjection.submissions);
-    QVERIFY(edit.undo());
-    QCOMPARE(document.setLayers({{background.version}, {edit.head()}}), Store::Error::None);
+    QVERIFY(model.undo());
+    QCOMPARE(document.setLayers(model.projectionLayers()), Store::Error::None);
     wgpuDevicePoll(m_gpu->device, true, nullptr);
     document.poll();
     const auto undoImage = store.textureSnapshot(document.snapshot().pixels, bounds);
     QVERIFY(finish(store, undoImage.completion));
     QVERIFY(finish(renderer, renderer.render(undoImage, newTarget.texture, view)));
     QCOMPARE(m_gpu->read(newTarget.texture, bounds.size()), blue.repeated(4));
-    QVERIFY(edit.redo());
-    QCOMPARE(document.setLayers({{background.version}, {edit.head()}}), Store::Error::None);
+    QVERIFY(model.redo());
+    QCOMPARE(document.setLayers(model.projectionLayers()), Store::Error::None);
     wgpuDevicePoll(m_gpu->device, true, nullptr);
     document.poll();
     QVERIFY(document.snapshot().layers[1].pixels == preview);
