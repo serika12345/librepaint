@@ -3,7 +3,7 @@ add_subdirectory( tests )
 add_subdirectory( tiles3 )
 add_subdirectory(dabspacing)
 
-option(LIBREPAINT_BUILD_GPU_DOCUMENT "Build the GPU document contracts" OFF)
+option(LIBREPAINT_BUILD_GPU_DOCUMENT "Build the GPU document engine and supported product entry points" OFF)
 if(LIBREPAINT_BUILD_GPU_DOCUMENT)
     add_subdirectory(gpu)
 endif()

@@ -7,7 +7,8 @@ set_target_properties(kritagpucanvaswindow PROPERTIES POSITION_INDEPENDENT_CODE 
 install(TARGETS kritagpucanvaswindow ${INSTALL_TARGETS_DEFAULT_ARGS})
 add_library(kritagpucanvasdisplaycolor STATIC KisGpuDisplayColor.cpp KisGpuDisplayColor.h)
 target_include_directories(kritagpucanvasdisplaycolor PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(kritagpucanvasdisplaycolor PUBLIC kritagpucanvaswindow kritapigment PRIVATE kritacanvasrgb8displaylookup)
+target_link_libraries(kritagpucanvasdisplaycolor PUBLIC kritapigment Qt${QT_MAJOR_VERSION}::Core
+    PRIVATE kritagpucanvaswindow kritacanvasrgb8displaylookup)
 set_target_properties(kritagpucanvasdisplaycolor PROPERTIES POSITION_INDEPENDENT_CODE ON)
 add_library(kritagpucanvasworkspace STATIC KisGpuCanvasWorkspace.cpp KisGpuCanvasWorkspace.h)
 target_include_directories(kritagpucanvasworkspace PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

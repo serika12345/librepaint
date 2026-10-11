@@ -91,6 +91,14 @@
 
 ### 保存領域と描画実行
 
+GPU文書機能は`LIBREPAINT_BUILD_GPU_DOCUMENT=ON`で構築する独立した製品入口を持つ。
+既定値はOFFであり、既存のCPU文書・描画とOpenGL表示は従来の編集画面を担当する。
+GPU入口はRGBA8・標準sRGBの対応するラスター文書を扱い、KRA読込みでは
+[対応内容の検査](gpu-kra-load.md)を通過した文書を公開する。
+入力から表示まではGPU文書の版を渡し、CPU画素の取得は保存対象の固定版読取りと
+回復記録のチェックポイント集約が所有する。読込みとGPU交換後の復元は、CPU上の
+チェックポイントをGPUへ転送し、保持した描画命令を再実行する。
+
 `libs/image/gpu`はGPU文書のタイル、版、命令発行と資源予算を所有する。
 `kritaimagegpudocument`はwgpu-nativeとQt Coreへ直接依存し、独立した構築設定で
 画素・版・寿命の契約を検証する。デバイス所有者は全描画先と表示資源の論理予約量を合算し、
@@ -130,6 +138,8 @@ GPUのポインター入力はこの形状値を同じ編集の差し替えへ�
 表示側からGPU文書所有者とQt Guiへ依存する。
 `kritacanvasrgb8displaylookup`は既存の色変換からRGB8の表示表を生成し、`kritapigment`へ依存する。
 製品画面の`KisGpuDisplayColor`が生成と最新設定の採用を管理し、描画所有者へ完成した表を渡す。
+表示色所有者の公開依存は色変換型とQt Coreであり、編集ウィンドウと変換表生成は
+実装側の依存とする。ウィンドウを直接操作する利用側は、その所有者へ直接依存する。
 [GPUキャンバス画像の描画](gpu-canvas-rendering.md)が画素と非同期資源保持の契約を定義する。
 同じ所有者の`kritacanvasgpusurface`が専用ウィンドウへの表示面の取得、有限の提示、
 サイズ変更と破棄を調整する。OS固有の資源は`GpuWindowSurface_mac.mm`と

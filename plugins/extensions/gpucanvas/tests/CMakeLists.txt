@@ -1,4 +1,4 @@
-kis_add_test(KisGpuDisplayColorTest.cpp LINK_LIBRARIES kritagpucanvasdisplaycolor kritacanvasrgb8displaylookup Qt${QT_MAJOR_VERSION}::Test)
+kis_add_test(KisGpuDisplayColorTest.cpp LINK_LIBRARIES kritagpucanvasdisplaycolor kritagpucanvaswindow kritacanvasrgb8displaylookup Qt${QT_MAJOR_VERSION}::Test)
 target_sources(KisGpuDisplayColorTest PRIVATE ${CMAKE_SOURCE_DIR}/libs/image/gpu/tests/KisGpuTestDevice.cpp)
 target_include_directories(KisGpuDisplayColorTest PRIVATE ${CMAKE_SOURCE_DIR}/libs/image/gpu/tests ${CMAKE_SOURCE_DIR}/libs/canvas/gpu/tests)
 add_dependencies(KisGpuDisplayColorTest kritalcmsengine)
