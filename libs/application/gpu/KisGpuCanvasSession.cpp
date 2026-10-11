@@ -122,6 +122,7 @@ KisGpuCanvasSession::Result KisGpuCanvasSession::poll()
     if (state == Document::State::Failed) return Result::GpuRejected;
     auto *device = m_documents.device();
     if (!device || !device->available()) return Result::DeviceLost;
+    auto display = Canvas::Result::WindowUnavailable;
     if (!m_canvas && m_window.isExposed()) {
         try {
             m_canvas = std::make_unique<Canvas>(*device, m_documents.store(m_id), m_model, m_window, m_bounds);
@@ -129,10 +130,10 @@ KisGpuCanvasSession::Result KisGpuCanvasSession::poll()
             m_error.clear();
         } catch (const std::exception &error) {
             m_error = QString::fromUtf8(error.what());
-            return Result::GpuRejected;
+            display = Canvas::Result::GpuRejected;
         }
     }
-    const auto display = m_window.isExposed() && m_canvas ? m_canvas->poll() : Canvas::Result::WindowUnavailable;
+    if (m_window.isExposed() && m_canvas) display = m_canvas->poll();
     const auto input = m_input->poll();
     updatePolling();
     if (input == Input::Result::GpuRejected || input == Input::Result::RecoveryBudgetExceeded) return Result::GpuRejected;

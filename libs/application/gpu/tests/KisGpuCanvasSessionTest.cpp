@@ -28,6 +28,44 @@ void expose(QWindow &window) {
 class KisGpuCanvasSessionTest : public QObject {
     Q_OBJECT
 private Q_SLOTS:
+    void displayAllocationRefusalDoesNotBlockAcceptedCommit() {
+        KisGpuDocumentDevice documents;
+        KisGpuApplicationState application(documents);
+        KisGpuDocumentDevice::Limits limits;
+        limits.documentBytes = 2 * Store::TileBytes + 1024;
+        const auto id = documents.createDocument(limits);
+        QVERIFY(id);
+        auto model = documents.document(id);
+        model->addLayer(QStringLiteral("Paint"));
+        auto seed = model->begin(1);
+        Store::DabCommand dab; dab.center = {16, 16}; dab.diameter = {8, 8}; dab.rgba = 0xFF123456;
+        QCOMPARE(seed.session->append(seed.token, {dab}, Bounds), KisGpuEditSession::Result::Accepted);
+        QCOMPARE(model->commit(seed.token), Document::Result::Accepted);
+        QTRY_COMPARE((model->poll(), model->state()), Document::State::Idle);
+        const auto base = model->layers().first().paint.pixels;
+        QWindow window;
+        Krita::Canvas::SurfaceRenderer::prepareWindow(window); window.resize(64, 64);
+        application.applicationStateChanged(Qt::ApplicationActive);
+        Session canvas(documents, application, id, window, Bounds);
+        const auto started = canvas.begin(1, configuration());
+        QCOMPARE(started.result, Input::Result::Accepted);
+        QCOMPARE(canvas.append(started.token, {{{32, 32}, 1}}), Input::Result::Accepted);
+        canvas.poll();
+        QTRY_VERIFY((model->poll(), !(model->currentEditing().session->preview() == base)));
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window, 3000));
+        QTRY_VERIFY(!canvas.lastError().isEmpty());
+        QVERIFY(!canvas.lastFrame().accepted());
+        auto held = documents.device()->reserveMemory(documents.device()->availableMemory());
+        QVERIFY(held);
+        QCOMPARE(canvas.commit(started.token), Input::Result::Accepted);
+        QTRY_COMPARE(canvas.inputState(), Input::State::Finished);
+        QCOMPARE(model->state(), Document::State::Idle);
+        QVERIFY(!(model->layers().first().paint.pixels == base));
+        QCOMPARE(documents.store(id)->statistics().pixelUploadBytes, quint64(0));
+        QCOMPARE(documents.store(id)->statistics().pixelReadbackBytes, quint64(0));
+        QCOMPARE(documents.device()->errorCount(), 0);
+    }
     void twoViewsAndQueuedInputSurvivePressureAndFinishIdentically() {
         KisGpuDocumentDevice documents;
         KisGpuApplicationState application(documents);
