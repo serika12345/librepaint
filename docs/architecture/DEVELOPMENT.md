@@ -245,6 +245,7 @@ GPU内複製、操作完了と予算超過を検査する。評価済みのテ�
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuCanvasRendererTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuSurfaceLifetimeTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuSurfaceRendererTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuDocumentCanvasTest
 ```
 
 画像契約の実測画素を調べる場合は、`KIS_GPU_IMAGE_ARTIFACT_DIRECTORY`へ保存先を指定して

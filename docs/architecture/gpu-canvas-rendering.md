@@ -5,6 +5,8 @@
 `libs/canvas/gpu`はGPU文書から受け取った画像の座標変換、画素の補間と背景合成を所有する。
 `kritacanvasgpurenderer`は`kritaimagegpudocument`とQt Guiを利用する。
 `kritacanvasgpusurface`はこの描画側を利用し、専用のQtウィンドウへの提示を所有する。
+`kritacanvasgpudocument`は文書の変更、投影、表示画像、提示を一つの回収順序へ接続する。
+文書と表示面を借用するアプリケーション側が、この所有者の寿命を管理する。
 macOSではAppKitとQuartzCore、LinuxのX11ではXlibをOS接続に利用する。
 文書の画素・版・予算は[GPU文書所有者](gpu-document-tiles.md)に属し、表示側から依存する。
 
@@ -15,6 +17,8 @@ macOSではAppKitとQuartzCore、LinuxのX11ではXlibをOS接続に利用する
 | `libs/canvas/gpu/GpuRenderer.wgsl` | 座標変換、透明画素の補間と背景合成 |
 | `libs/canvas/gpu/tests/KisGpuCanvasRendererTest.cpp` | 実GPUの画素、拒否、寿命と喪失の契約 |
 | `libs/canvas/gpu/SurfaceRenderer.h`、`libs/canvas/gpu/SurfaceRenderer.cpp` | 表示条件、表示面の設定、有限のフレーム提示 |
+| `libs/canvas/gpu/DocumentCanvas.h`、`libs/canvas/gpu/DocumentCanvas.cpp` | 文書変更の集約、投影と表示画像の保持、提示の再試行 |
+| `libs/canvas/gpu/tests/KisGpuDocumentCanvasTest.cpp` | 連続入力の表示、形状差し替えと確定、静止時の発行抑制、予算回復とウィンドウ再作成 |
 | `libs/canvas/gpu/GpuWindowSurface_p.h` | 表示側内部のOS資源所有者 |
 | `libs/canvas/gpu/GpuWindowSurface_mac.mm` | CocoaウィンドウのsRGB Metalレイヤーと実表示通知 |
 | `libs/canvas/gpu/GpuWindowSurface_x11.cpp` | X11ウィンドウの表示面と実寸法の検査 |
@@ -25,6 +29,25 @@ macOSではAppKitとQuartzCore、LinuxのX11ではXlibをOS接続に利用する
 `LIBREPAINT_BUILD_GPU_DOCUMENT=ON`で構築する。
 `Krita::Canvas::GpuRenderer`は、成功した`TextureSnapshot`を直接読み、指定したGPU描画先へ描く。
 CPUへ渡す値は変換行列、背景色と補間方式の48バイトである。
+
+## 文書更新と表示の接続
+
+`DocumentCanvas`は同じGPUに属する文書とタイル所有者、表示可能な専用ウィンドウを受け取る。
+GUIスレッドから`poll()`を進め、文書処理、投影、描画の完了を回収する。
+完了した投影をGPU内で表示画像へコピーし、提示した後で次の文書変更を投影へ渡す。
+これによりタイル所有者の未回収発行数が一つの場合も、連続する入力の合間に表示を進める。
+投影中の文書変更は最新のレイヤー群へ集約し、古い途中結果の表示待ちを増やさない。
+
+差し替え可能な未確定版も通常の文書変更と同じ経路で描画する。
+確定が同じ画素版を採用する場合は追加の投影・コピー・提示を省く。
+静止中の`poll()`も追加の発行を伴わない。変換の変更と`requestRepaint()`は、
+保持した表示画像を再利用して提示する。ウィンドウの再表示・再作成時は呼出し側が
+`requestRepaint()`を指定する。描画中の画像は保持し、描画完了後に排他的な画像を再利用する。
+
+予算と発行数による拒否は直前の成功した表示を維持し、次の`poll()`で再試行する。
+`displayedSnapshot()`は最後に受理した表示と対応する投影・レイヤーの不変版を返す。
+外へ保持した版もGPU予算を使用するため、共有GPUの解放通知でこの所有者と併せて解放する。
+文書を共有GPUへ復元した後は、新しいタイル所有者とデバイスで表示所有者を作り直す。
 
 ## 画素と座標
 

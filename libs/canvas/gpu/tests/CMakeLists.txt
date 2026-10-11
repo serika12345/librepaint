@@ -7,6 +7,17 @@ set_tests_properties(libs-canvas-gpu-KisGpuCanvasRendererTest PROPERTIES
     TIMEOUT 30 LABELS gpu FAIL_REGULAR_EXPRESSION "Validation Error;VUID-")
 
 if(TARGET kritacanvasgpusurface)
+    kis_add_test(KisGpuDocumentCanvasTest.cpp LINK_LIBRARIES kritacanvasgpudocument Qt${QT_MAJOR_VERSION}::Test)
+    target_sources(KisGpuDocumentCanvasTest PRIVATE ${CMAKE_SOURCE_DIR}/libs/image/gpu/tests/KisGpuTestDevice.cpp)
+    target_include_directories(KisGpuDocumentCanvasTest PRIVATE ${CMAKE_SOURCE_DIR}/libs/image/gpu/tests)
+    set_tests_properties(libs-canvas-gpu-KisGpuDocumentCanvasTest PROPERTIES
+        TIMEOUT 60 LABELS "gpu;gpu-display" RESOURCE_LOCK gpu_native_window
+        FAIL_REGULAR_EXPRESSION "Validation Error;VUID-")
+    if(APPLE)
+        set_tests_properties(libs-canvas-gpu-KisGpuDocumentCanvasTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")
+    else()
+        set_tests_properties(libs-canvas-gpu-KisGpuDocumentCanvasTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
+    endif()
     add_executable(KisGpuInputToDisplayBenchmark EXCLUDE_FROM_ALL KisGpuInputToDisplayBenchmark.cpp
         ${CMAKE_SOURCE_DIR}/libs/image/gpu/tests/KisGpuTestDevice.cpp)
     target_link_libraries(KisGpuInputToDisplayBenchmark PRIVATE kritacanvasgpusurface kritapaintinggpubrushstroke)
