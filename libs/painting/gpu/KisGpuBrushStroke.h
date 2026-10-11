@@ -44,6 +44,7 @@ public:
     struct Update {
         Result result = Result::Accepted;
         KisGpuEditSession::Result editResult = KisGpuEditSession::Result::Accepted;
+        bool sampleComplete = true;
     };
     /** Throws std::invalid_argument for invalid brush settings or nonpositive generation limit. */
     KisGpuBrushStroke(KisGpuEditSession &session, KisGpuEditSession::Token token,
@@ -54,12 +55,17 @@ public:
     Progress progress() const { return m_cursor; }
     Update append(const QVector<Sample> &samples,
                   const std::optional<KisGpuEditSession::Selection> &selection = {});
+    /** Accept a bounded prefix; repeat the same sample until sampleComplete is true.
+     * Refusal keeps the prior progress, including the unfinished segment.
+     */
+    Update appendPartial(const Sample &sample,
+                         const std::optional<KisGpuEditSession::Selection> &selection = {});
     /** Reconstruct the whole stroke from its first sample and replace the working raster version. */
     Update replace(const QVector<Sample> &samples,
                    const std::optional<KisGpuEditSession::Selection> &selection = {});
 private:
     Update paint(const QVector<Sample> &samples, bool replace,
-                 const std::optional<KisGpuEditSession::Selection> &selection);
+                 const std::optional<KisGpuEditSession::Selection> &selection, bool partial = false);
     KisGpuEditSession &m_session;
     KisGpuEditSession::Token m_token;
     Settings m_settings;

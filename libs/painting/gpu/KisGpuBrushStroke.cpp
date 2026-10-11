@@ -52,14 +52,21 @@ KisGpuBrushStroke::Update KisGpuBrushStroke::replace(const QVector<Sample> &samp
     return paint(samples, true, selection);
 }
 
-KisGpuBrushStroke::Update KisGpuBrushStroke::paint(const QVector<Sample> &samples, bool replace,
+KisGpuBrushStroke::Update KisGpuBrushStroke::appendPartial(const Sample &sample,
     const std::optional<KisGpuEditSession::Selection> &selection)
+{
+    return paint({sample}, false, selection, true);
+}
+
+KisGpuBrushStroke::Update KisGpuBrushStroke::paint(const QVector<Sample> &samples, bool replace,
+    const std::optional<KisGpuEditSession::Selection> &selection, bool partial)
 {
     if (samples.size() > m_maximumSteps) return {Result::InputLimitExceeded};
     for (const auto &sample : samples) if (!validSample(sample)) return {Result::InvalidInput};
     Progress cursor = replace ? Progress{} : m_cursor;
     QVector<KisGpuTileStore::DabCommand> commands;
     qsizetype steps = 0;
+    bool sampleComplete = true;
     const auto place = [&](const Sample &sample) {
         if (steps == m_maximumSteps || (m_settings.smudgeRate && commands.size() == 16)) return false;
         ++steps;
@@ -98,10 +105,17 @@ KisGpuBrushStroke::Update KisGpuBrushStroke::paint(const QVector<Sample> &sample
                 Sample next{(1 - t) * point.position + t * sample.position,
                             (1 - t) * point.pressure + t * sample.pressure};
                 if (!validSample(next) || (t > 0 && next.position == point.position)) return {Result::InvalidInput};
-                if (!place(next)) return {Result::InputLimitExceeded};
+                if (!place(next)) {
+                    if (!partial) return {Result::InputLimitExceeded};
+                    cursor.accumulated = accumulated;
+                    cursor.previous = point;
+                    sampleComplete = false;
+                    break;
+                }
                 point = next;
             }
         }
+        if (!sampleComplete) break;
         cursor.previous = sample;
     }
     const auto result = m_settings.texture
@@ -112,5 +126,5 @@ KisGpuBrushStroke::Update KisGpuBrushStroke::paint(const QVector<Sample> &sample
         : (replace ? m_session.replace(m_token, commands, m_clip) : m_session.append(m_token, commands, m_clip));
     if (result != KisGpuEditSession::Result::Accepted) return {Result::EditRejected, result};
     m_cursor = cursor;
-    return {};
+    return {Result::Accepted, KisGpuEditSession::Result::Accepted, sampleComplete};
 }

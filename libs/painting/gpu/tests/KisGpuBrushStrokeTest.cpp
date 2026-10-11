@@ -12,6 +12,7 @@
 #include "KisDabSpacing.h"
 #include "KisGpuTestDevice.h"
 #include <limits>
+#include <cmath>
 #include <stdexcept>
 
 namespace {
@@ -59,6 +60,8 @@ private Q_SLOTS:
     void invalidInputAndGenerationLimitAreAtomic();
     void textureStrengthMatchesDirectDab();
     void mixingProgressAndReplacementPreservePickup();
+    void boundedInputContinuesAfterRefusal_data();
+    void boundedInputContinuesAfterRefusal();
     void selectedReplacementAndRecoveryUseIdenticalDabs_data();
     void selectedReplacementAndRecoveryUseIdenticalDabs();
     void deviceReplacementContinuesAcceptedInput_data();
@@ -66,6 +69,86 @@ private Q_SLOTS:
 private:
     std::unique_ptr<KisGpuTestDevice> m_gpu;
 };
+
+void KisGpuBrushStrokeTest::boundedInputContinuesAfterRefusal_data()
+{
+    QTest::addColumn<bool>("mixed");
+    QTest::newRow("solid") << false;
+    QTest::newRow("mixed") << true;
+}
+
+void KisGpuBrushStrokeTest::boundedInputContinuesAfterRefusal()
+{
+    QFETCH(bool, mixed);
+    Store store(m_gpu->owner, 128 * Store::TileBytes, 1);
+    Stroke::Settings settings;
+    settings.diameter = {9, 7}; settings.spacing = .31;
+    settings.rgba = 0xCC746852;
+    const QVector<Stroke::Sample> samples{{{-61.25, 7.13}, .23}, {{36.8, 29.75}, .91}, {{64.3, -11.4}, .37}};
+    Session generation(store, 0);
+    auto token = generation.begin();
+    Stroke unbounded(generation, token, settings, clip);
+    QCOMPARE(unbounded.append(samples).result, Stroke::Result::Accepted);
+    QVector<Store::DabCommand> expected;
+    for (const auto &batch : *generation.recovery()->working) expected += batch.commands;
+    generation.cancel(token);
+    wgpuDevicePoll(m_gpu->device, true, nullptr); store.poll();
+    if (mixed) {
+        settings.smudgeRate = 213;
+        std::optional<QPoint> previous;
+        for (auto &command : expected) {
+            const QPoint pixel(int(std::floor(command.center.x())), int(std::floor(command.center.y())));
+            command.pickup = Store::DabCommand::Pickup{previous.value_or(pixel), *settings.smudgeRate};
+            previous = pixel;
+        }
+    }
+    Session actual(store, 0);
+    token = actual.begin();
+    Stroke stroke(actual, token, settings, clip, mixed ? 4096 : 7);
+    const auto first = stroke.appendPartial(samples.first());
+    QCOMPARE(first.result, Stroke::Result::Accepted);
+    QVERIFY(first.sampleComplete);
+    QCOMPARE(stroke.appendPartial(samples[1]).result, Stroke::Result::EditRejected);
+    wgpuDevicePoll(m_gpu->device, true, nullptr); actual.poll();
+    auto progress = stroke.progress();
+    int partials = 0;
+    for (qsizetype i = 1; i < samples.size(); ++i) {
+        bool complete = false;
+        for (int attempt = 0; !complete && attempt < 100; ++attempt) {
+            Stroke resumed(actual, token, settings, clip, progress, mixed ? 4096 : 7);
+            const auto update = resumed.appendPartial(samples[i]);
+            QCOMPARE(update.result, Stroke::Result::Accepted);
+            complete = update.sampleComplete;
+            if (!complete) ++partials;
+            progress = resumed.progress();
+            wgpuDevicePoll(m_gpu->device, true, nullptr); actual.poll();
+        }
+        QVERIFY(complete);
+    }
+    QVERIFY(partials > 1);
+    QVector<Store::DabCommand> generated;
+    for (const auto &batch : *actual.recovery()->working) {
+        QVERIFY(batch.commands.size() <= (mixed ? 16 : 7));
+        generated += batch.commands;
+    }
+    QCOMPARE(generated.size(), expected.size());
+    for (qsizetype i = 0; i < expected.size(); ++i) {
+        QCOMPARE(generated[i].center, expected[i].center);
+        QCOMPARE(generated[i].diameter, expected[i].diameter);
+        if (mixed) QCOMPARE(generated[i].pickup->pixel, expected[i].pickup->pixel);
+    }
+    QCOMPARE(actual.commit(token), Session::Result::Accepted); settle(actual);
+    Session reference(store, 0);
+    const auto referenceToken = reference.begin();
+    for (qsizetype i = 0; i < expected.size(); i += 16) {
+        QCOMPARE(reference.append(referenceToken, expected.mid(i, 16), clip), Session::Result::Accepted);
+        wgpuDevicePoll(m_gpu->device, true, nullptr); reference.poll();
+    }
+    QCOMPARE(reference.commit(referenceToken), Session::Result::Accepted); settle(reference);
+    QCOMPARE(m_gpu->read(actual.head(), clip), m_gpu->read(reference.head(), clip));
+    QCOMPARE(store.statistics().pixelUploadBytes, quint64(0));
+    QCOMPARE(store.statistics().pixelReadbackBytes, quint64(0));
+}
 
 void KisGpuBrushStrokeTest::mixingProgressAndReplacementPreservePickup()
 {
