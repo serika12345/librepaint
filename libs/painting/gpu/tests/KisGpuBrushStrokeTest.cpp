@@ -105,26 +105,27 @@ void KisGpuBrushStrokeTest::boundedInputContinuesAfterRefusal()
     Session actual(store, 0);
     token = actual.begin();
     Stroke stroke(actual, token, settings, clip, mixed ? 4096 : 7);
-    const auto first = stroke.appendPartial(samples.first());
+    const auto first = stroke.appendPartial({samples.first()});
     QCOMPARE(first.result, Stroke::Result::Accepted);
     QVERIFY(first.sampleComplete);
-    QCOMPARE(stroke.appendPartial(samples[1]).result, Stroke::Result::EditRejected);
+    QCOMPARE(first.completedSamples, qsizetype(1));
+    QCOMPARE(stroke.appendPartial(samples.mid(1)).result, Stroke::Result::EditRejected);
     wgpuDevicePoll(m_gpu->device, true, nullptr); actual.poll();
     auto progress = stroke.progress();
     int partials = 0;
-    for (qsizetype i = 1; i < samples.size(); ++i) {
-        bool complete = false;
-        for (int attempt = 0; !complete && attempt < 100; ++attempt) {
-            Stroke resumed(actual, token, settings, clip, progress, mixed ? 4096 : 7);
-            const auto update = resumed.appendPartial(samples[i]);
-            QCOMPARE(update.result, Stroke::Result::Accepted);
-            complete = update.sampleComplete;
-            if (!complete) ++partials;
-            progress = resumed.progress();
-            wgpuDevicePoll(m_gpu->device, true, nullptr); actual.poll();
-        }
-        QVERIFY(complete);
+    qsizetype consumed = 1;
+    for (int attempt = 0; consumed < samples.size() && attempt < 100; ++attempt) {
+        Stroke resumed(actual, token, settings, clip, progress, mixed ? 4096 : 7);
+        const auto update = resumed.appendPartial(samples.mid(consumed));
+        QCOMPARE(update.result, Stroke::Result::Accepted);
+        QVERIFY(update.completedSamples >= 0 && update.completedSamples <= samples.size() - consumed);
+        QCOMPARE(update.sampleComplete, update.completedSamples == samples.size() - consumed);
+        consumed += update.completedSamples;
+        if (!update.sampleComplete) ++partials;
+        progress = resumed.progress();
+        wgpuDevicePoll(m_gpu->device, true, nullptr); actual.poll();
     }
+    QCOMPARE(consumed, samples.size());
     QVERIFY(partials > 1);
     QVector<Store::DabCommand> generated;
     for (const auto &batch : *actual.recovery()->working) {

@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuStrokeInput.h"
+#include <algorithm>
 #include <stdexcept>
 
 namespace {
@@ -176,15 +177,21 @@ KisGpuStrokeInput::Result KisGpuStrokeInput::poll()
     const auto prepared = prepare();
     if (prepared != Result::Accepted) return prepared;
     if (m_replace || !m_queue.empty()) {
+        QVector<Brush::Sample> samples;
+        samples.reserve(std::min<qsizetype>(64, pendingSamples()));
+        for (const auto &sample : m_queue) {
+            if (samples.size() == 64) break;
+            samples.append(sample);
+        }
         const auto update = m_replace
-            ? m_brush->replace(m_queue.empty() ? QVector<Brush::Sample>{} : QVector<Brush::Sample>{m_queue.front()}, m_selection)
-            : m_brush->appendPartial(m_queue.front(), m_selection);
+            ? m_brush->replacePartial(samples, m_selection)
+            : m_brush->appendPartial(samples, m_selection);
         if (update.result != Brush::Result::Accepted) {
             m_gpuError = m_edit.session->lastGpuError();
             return update.editResult == Session::Result::RecoveryBudgetExceeded ? Result::RecoveryBudgetExceeded : Result::GpuRejected;
         }
         m_progress = m_brush->progress();
-        if (update.sampleComplete && !m_queue.empty()) m_queue.pop_front();
+        for (qsizetype i = 0; i < update.completedSamples; ++i) m_queue.pop_front();
         m_replace = false;
         m_gpuError = KisGpuTileStore::Error::None;
     }

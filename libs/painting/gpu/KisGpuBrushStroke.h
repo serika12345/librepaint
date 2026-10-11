@@ -45,6 +45,7 @@ public:
         Result result = Result::Accepted;
         KisGpuEditSession::Result editResult = KisGpuEditSession::Result::Accepted;
         bool sampleComplete = true;
+        qsizetype completedSamples = 0;
     };
     static bool validSample(const Sample &sample);
     static bool validSettings(const Settings &settings);
@@ -57,11 +58,13 @@ public:
     Progress progress() const { return m_cursor; }
     Update append(const QVector<Sample> &samples,
                   const std::optional<KisGpuEditSession::Selection> &selection = {});
-    /** Accept a bounded prefix; repeat the same sample until sampleComplete is true.
-     * Refusal keeps the prior progress, including the unfinished segment.
+    /** Accept a bounded prefix; remove completedSamples and repeat the unfinished tail.
+     * sampleComplete denotes the whole supplied batch. Refusal keeps all prior progress.
      */
-    Update appendPartial(const Sample &sample,
+    Update appendPartial(const QVector<Sample> &samples,
                          const std::optional<KisGpuEditSession::Selection> &selection = {});
+    Update replacePartial(const QVector<Sample> &samples,
+                          const std::optional<KisGpuEditSession::Selection> &selection = {});
     /** Reconstruct the whole stroke from its first sample and replace the working raster version. */
     Update replace(const QVector<Sample> &samples,
                    const std::optional<KisGpuEditSession::Selection> &selection = {});

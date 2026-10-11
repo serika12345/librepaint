@@ -57,10 +57,16 @@ KisGpuBrushStroke::Update KisGpuBrushStroke::replace(const QVector<Sample> &samp
     return paint(samples, true, selection);
 }
 
-KisGpuBrushStroke::Update KisGpuBrushStroke::appendPartial(const Sample &sample,
+KisGpuBrushStroke::Update KisGpuBrushStroke::appendPartial(const QVector<Sample> &samples,
     const std::optional<KisGpuEditSession::Selection> &selection)
 {
-    return paint({sample}, false, selection, true);
+    return paint(samples, false, selection, true);
+}
+
+KisGpuBrushStroke::Update KisGpuBrushStroke::replacePartial(const QVector<Sample> &samples,
+    const std::optional<KisGpuEditSession::Selection> &selection)
+{
+    return paint(samples, true, selection, true);
 }
 
 KisGpuBrushStroke::Update KisGpuBrushStroke::paint(const QVector<Sample> &samples, bool replace,
@@ -72,6 +78,7 @@ KisGpuBrushStroke::Update KisGpuBrushStroke::paint(const QVector<Sample> &sample
     QVector<KisGpuTileStore::DabCommand> commands;
     qsizetype steps = 0;
     bool sampleComplete = true;
+    qsizetype completedSamples = 0;
     const auto place = [&](const Sample &sample) {
         if (steps == m_maximumSteps || (m_settings.smudgeRate && commands.size() == 16)) return false;
         ++steps;
@@ -122,6 +129,7 @@ KisGpuBrushStroke::Update KisGpuBrushStroke::paint(const QVector<Sample> &sample
         }
         if (!sampleComplete) break;
         cursor.previous = sample;
+        ++completedSamples;
     }
     const auto result = m_settings.texture
         ? (replace ? m_session.replace(m_token, commands, m_clip, *m_settings.texture, selection)
@@ -131,5 +139,5 @@ KisGpuBrushStroke::Update KisGpuBrushStroke::paint(const QVector<Sample> &sample
         : (replace ? m_session.replace(m_token, commands, m_clip) : m_session.append(m_token, commands, m_clip));
     if (result != KisGpuEditSession::Result::Accepted) return {Result::EditRejected, result};
     m_cursor = cursor;
-    return {Result::Accepted, KisGpuEditSession::Result::Accepted, sampleComplete};
+    return {Result::Accepted, KisGpuEditSession::Result::Accepted, sampleComplete, completedSamples};
 }

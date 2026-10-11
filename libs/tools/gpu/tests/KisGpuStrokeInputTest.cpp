@@ -50,7 +50,7 @@ QByteArray directImage(KisGpuTestDevice &gpu, Store &store, const Input::Configu
         bool complete = false;
         for (int attempt = 0; !complete && attempt < 100; ++attempt) {
             store.poll(); session.poll();
-            const auto update = brush.appendPartial(sample, selection);
+            const auto update = brush.appendPartial({sample}, selection);
             if (update.result == Brush::Result::Accepted) complete = update.sampleComplete;
             else if (update.result != Brush::Result::EditRejected) return {};
             wgpuDevicePoll(gpu.device, true, nullptr); session.poll();
@@ -70,6 +70,30 @@ QByteArray directImage(KisGpuTestDevice &gpu, Store &store, const Input::Configu
 class KisGpuStrokeInputTest : public QObject {
     Q_OBJECT
 private Q_SLOTS:
+    void highFrequencyInputUsesOneBoundedSubmission() {
+        KisGpuTestDevice gpu;
+        auto store = std::make_shared<Store>(gpu.owner, 128 * Store::TileBytes);
+        auto document = std::make_shared<Document>(store, 16);
+        document->addLayer(QStringLiteral("Paint"));
+        Input input(document, 256);
+        auto config = configuration(); config.selection.reset();
+        QVector<Brush::Sample> samples;
+        for (int i = 0; i < 130; ++i) samples.append({{qreal(i % 64) / 4 - 8, qreal(i % 19) / 4 - 2}, .5 + qreal(i % 7) / 20});
+        const auto started = input.begin(1, config);
+        QCOMPARE(started.result, Input::Result::Accepted);
+        QCOMPARE(input.append(started.token, samples), Input::Result::Accepted);
+        const auto before = store->statistics();
+        QCOMPARE(input.poll(), Input::Result::Accepted);
+        QCOMPARE(input.pendingSamples(), qsizetype(66));
+        QCOMPARE(store->statistics().submissions, before.submissions + 1);
+        QCOMPARE(input.commit(started.token), Input::Result::Accepted);
+        QVERIFY(drain(input, true));
+        QCOMPARE(store->statistics().submissions, before.submissions + 3);
+        QCOMPARE(gpu.read(document->layers().first().paint.pixels, Bounds), directImage(gpu, *store, config, samples));
+        QCOMPARE(store->statistics().pixelUploadBytes, quint64(0));
+        QCOMPARE(store->statistics().pixelReadbackBytes, quint64(0));
+        QCOMPARE(gpu.owner.errorCount(), 0);
+    }
     void refusedGpuInputStaysQueuedUntilCapacityReturns() {
         KisGpuTestDevice gpu;
         auto store = std::make_shared<Store>(gpu.owner, 128 * Store::TileBytes);
@@ -79,9 +103,10 @@ private Q_SLOTS:
         auto config = configuration(); config.selection.reset();
         const auto started = input.begin(1, config);
         QCOMPARE(started.result, Input::Result::Accepted);
-        QCOMPARE(input.append(started.token, Path), Input::Result::Accepted);
+        QCOMPARE(input.append(started.token, {Path.first()}), Input::Result::Accepted);
         QCOMPARE(input.poll(), Input::Result::Accepted);
         wgpuDevicePoll(gpu.device, true, nullptr); document->poll();
+        QCOMPARE(input.append(started.token, Path.mid(1)), Input::Result::Accepted);
         const auto pending = input.pendingSamples();
         const auto working = document->recovery().working->data.working->size();
         const auto before = store->statistics();
@@ -154,6 +179,8 @@ private Q_SLOTS:
         QCOMPARE(started.result, Input::Result::Accepted);
         QCOMPARE(input.append(started.token, Path), Input::Result::Accepted);
         input.poll(); input.poll();
+        const Brush::Sample queued{{-12.25, 14.75}, .8};
+        QCOMPARE(input.append(started.token, {queued}), Input::Result::Accepted);
         QVERIFY(input.pendingSamples());
         input.releaseGpu();
         QCOMPARE(document->suspend(), Document::Result::Accepted);
@@ -163,7 +190,8 @@ private Q_SLOTS:
         QCOMPARE(document->resume(nextStore), Document::Result::Accepted);
         QCOMPARE(input.commit(started.token), Input::Result::Accepted);
         QVERIFY(drain(input, true));
-        QCOMPARE(replacement.read(document->layers().first().paint.pixels, Bounds), directImage(replacement, *nextStore, config, Path));
+        auto expected = Path; expected.append(queued);
+        QCOMPARE(replacement.read(document->layers().first().paint.pixels, Bounds), directImage(replacement, *nextStore, config, expected));
         QCOMPARE(nextStore->statistics().pixelReadbackBytes, quint64(0));
         QCOMPARE(replacement.owner.errorCount(), 0);
     }
