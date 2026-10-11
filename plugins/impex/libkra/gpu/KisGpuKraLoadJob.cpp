@@ -14,6 +14,7 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoColorModelStandardIds.h>
 #include <KoCompositeOpRegistry.h>
+#include <KoResourceLoadResult.h>
 #include <kis_image.h>
 #include <kis_group_layer.h>
 #include <kis_paint_layer.h>
@@ -130,7 +131,10 @@ struct KisGpuKraLoadJob::Private {
             || !std::isfinite(image->xRes()) || image->xRes() <= 0
             || !std::isfinite(image->yRes()) || image->yRes() <= 0
             || image->defaultProjectionColor().opacityU8() || image->globalSelection()
-            || !native->assistants().isEmpty()) {
+            || !native->assistants().isEmpty() || !native->getAudioTracks().isEmpty()
+            || !native->getStoryboardItemList().isEmpty() || !native->getStoryboardCommentsList().isEmpty()
+            || !native->linkedDocumentResources().isEmpty() || !image->compositions().isEmpty()
+            || image->proofingConfiguration() || image->beginAnnotations() != image->endAnnotations()) {
             fail(Error::UnsupportedDocument); return {};
         }
         auto info = KisDocument::createDomDocument(QStringLiteral("document-info"),

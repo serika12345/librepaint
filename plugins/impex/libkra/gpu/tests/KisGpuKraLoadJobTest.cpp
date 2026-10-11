@@ -24,6 +24,14 @@
 #include <kis_transparency_mask.h>
 #include <kis_selection.h>
 #include <kis_pixel_selection.h>
+#include <kis_layer_composition.h>
+#include <kis_annotation.h>
+#include <KisProofingConfiguration.h>
+#include <KoColorProfile.h>
+#include <KoResourceLoadResult.h>
+#include <resources/KoColorSet.h>
+#include <QFile>
+#include <QDir>
 #include <QElapsedTimer>
 #include <QTemporaryDir>
 
@@ -108,6 +116,50 @@ bool nativeFixture(const QString &path, int variant = 0)
         mirror.setAxisPosition({7.5, 11.25});
         document->setMirrorAxisConfig(mirror);
     }
+
+    if (variant == 16) {
+        KisLayerCompositionSP composition(new KisLayerComposition(image, QStringLiteral("Saved visibility")));
+        composition->store();
+        image->addComposition(composition);
+    }
+    if (variant == 17 || variant == 18)
+        image->addAnnotation(new KisAnnotation(variant == 17 ? QStringLiteral("fixture-data") : QStringLiteral("exif"),
+            QStringLiteral("Fixture annotation"), QByteArray("preserved native payload")));
+    if (variant == 19) {
+        KisProofingConfigurationSP proofing(new KisProofingConfiguration);
+        proofing->proofingProfile = registry->rgb8("sRGB-elle-V2-srgbtrc.icc")->profile()->name();
+        proofing->proofingModel = cs->colorModelId().id();
+        proofing->proofingDepth = cs->colorDepthId().id();
+        image->setProofingConfiguration(proofing);
+    }
+    if (variant == 20) {
+        QFile audio(QFileInfo(path).dir().filePath(QStringLiteral("sound.wav")));
+        if (!audio.open(QIODevice::WriteOnly)) return false;
+        audio.write("fixture audio");
+        audio.close();
+        document->setAudioTracks({QFileInfo(audio)});
+    }
+    if (variant == 21) {
+        auto item = QSharedPointer<StoryboardItem>::create();
+        ThumbnailData thumbnail;
+        thumbnail.frameNum = 3;
+        item->appendChild(QVariant::fromValue(thumbnail));
+        item->appendChild(QStringLiteral("Fixture scene"));
+        item->appendChild(2);
+        item->appendChild(4);
+        StoryboardComment comment;
+        comment.name = QStringLiteral("Fixture notes");
+        item->appendChild(QVariant::fromValue(CommentBox{}));
+        document->setStoryboardItemList({item});
+        document->setStoryboardCommentList({comment});
+    }
+    if (variant == 22) {
+        KoColorSetSP palette(new KoColorSet(QStringLiteral("fixture.kpl")));
+        palette->setName(QStringLiteral("Fixture palette"));
+        palette->addSwatch(KisSwatch(KoColor(Qt::cyan, cs), QStringLiteral("Cyan")));
+        palette->setValid(true);
+        document->setPaletteList({palette});
+    }
     image->waitForDone();
     const bool saved = document->exportDocumentSync(path, "application/x-krita");
     image.clear();
@@ -122,6 +174,8 @@ private Q_SLOTS:
     void registeredDocumentSurvivesSuspensionDuringLoad();
     void restoresFrozenNativePixels();
     void unsupportedNativeContentIsRefusedBeforeGpuWork();
+    void unsupportedNativeAttachmentsAreRefusedBeforeGpuWork_data();
+    void unsupportedNativeAttachmentsAreRefusedBeforeGpuWork();
     void readAndBudgetFailuresPublishNoDocument();
     void lostDeviceCanReloadOnAnotherDevice();
     void preservesSparseCoordinatesAndEmptyDocuments();
@@ -300,6 +354,63 @@ void KisGpuKraLoadJobTest::restoresFrozenNativePixels()
     QCOMPARE(store->statistics().pixelReadbackBytes, before.pixelReadbackBytes);
     QCOMPARE(gpu.read(document->layers()[0].paint.pixels, Bounds), expectedFirst);
     QCOMPARE(document->addLayer(QStringLiteral("New")).id, quint64(3));
+    QCOMPARE(gpu.owner.errorCount(), 0);
+}
+
+
+void KisGpuKraLoadJobTest::unsupportedNativeAttachmentsAreRefusedBeforeGpuWork_data()
+{
+    QTest::addColumn<int>("variant");
+    QTest::newRow("saved-layer-visibility") << 16;
+    QTest::newRow("custom-annotation") << 17;
+    QTest::newRow("exif") << 18;
+    QTest::newRow("proofing") << 19;
+    QTest::newRow("audio") << 20;
+    QTest::newRow("storyboard") << 21;
+    QTest::newRow("embedded-palette") << 22;
+}
+
+void KisGpuKraLoadJobTest::unsupportedNativeAttachmentsAreRefusedBeforeGpuWork()
+{
+    QFETCH(int, variant);
+    QTemporaryDir directory;
+    const auto path = directory.filePath(QStringLiteral("attachments.kra"));
+    QVERIFY(nativeFixture(path, variant));
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto originalBytes = file.readAll();
+    file.close();
+    QScopedPointer<KisDocument> original(KisPart::instance()->createDocument());
+    original->setFileBatchMode(true);
+    QVERIFY(original->loadNativeFormat(path));
+    original->image()->waitForDone();
+    if (variant == 16) QCOMPARE(original->image()->compositions().size(), 1);
+    if (variant == 17 || variant == 18) {
+        const auto annotation = original->image()->annotation(variant == 17 ? QStringLiteral("fixture-data") : QStringLiteral("exif"));
+        QVERIFY(annotation);
+        QCOMPARE(annotation->annotation(), QByteArray("preserved native payload"));
+    }
+    if (variant == 19) QVERIFY(original->image()->proofingConfiguration());
+    if (variant == 20) QCOMPARE(original->getAudioTracks().size(), 1);
+    if (variant == 21) {
+        QCOMPARE(original->getStoryboardItemList().size(), 1);
+        QCOMPARE(original->getStoryboardCommentsList().size(), 1);
+    }
+    if (variant == 22) QVERIFY(!original->linkedDocumentResources().isEmpty());
+    KisGpuTestDevice gpu;
+    auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
+    auto document = std::make_shared<Document>(store, 8);
+    const auto before = store->statistics();
+    Load load(document, path);
+    QVERIFY(!finish(load));
+    QCOMPARE(load.error(), Load::Error::UnsupportedDocument);
+    QVERIFY(document->layers().isEmpty());
+    QVERIFY(!load.metadata());
+    QCOMPARE(document->historySize(), qsizetype(1));
+    QCOMPARE(store->statistics().submissions, before.submissions);
+    QCOMPARE(store->statistics().pixelUploadBytes, before.pixelUploadBytes);
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    QCOMPARE(file.readAll(), originalBytes);
     QCOMPARE(gpu.owner.errorCount(), 0);
 }
 
