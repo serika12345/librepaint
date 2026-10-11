@@ -84,8 +84,15 @@ int main(int argc, char **argv)
     Q_INIT_RESOURCE(krita);
     KisOpenGL::setDefaultSurfaceConfig(KisOpenGL::RendererConfig());
     registerResources();
+    const auto bundlePath = QStringLiteral(GPU_DEFAULT_RESOURCE_BUNDLE);
+    auto *resources = KisResourceLocator::instance();
+    auto bundle = KisResourceStorageSP::create(bundlePath);
+    if (!bundle->valid() || !resources->addStorage(bundlePath, bundle))
+        qFatal("Cannot register the default brush bundle for the product menu test");
     KoResourcePaths::addAssetDir(QStringLiteral("kis_actions"), QStringLiteral(GPU_ACTION_DIRECTORY));
     KisGpuCanvasEntryTest test;
-    return QTest::qExec(&test, argc, argv);
+    const auto result = QTest::qExec(&test, argc, argv);
+    resources->removeStorage(bundlePath);
+    return result;
 }
 #include "KisGpuCanvasEntryTest.moc"
