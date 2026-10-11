@@ -88,7 +88,8 @@ int main(int argc, char **argv)
     auto *resources = KisResourceLocator::instance();
     const auto bundlePath = resources->resourceLocationBase() + QStringLiteral("gpu-menu-default.bundle");
     if (!QFile::link(QStringLiteral(GPU_DEFAULT_RESOURCE_BUNDLE), bundlePath)
-        || !resources->synchronizeDb() || !resources->hasStorage(bundlePath))
+        || resources->initialize(resources->resourceLocationBase()) != KisResourceLocator::LocatorError::Ok
+        || !resources->hasStorage(bundlePath))
         qFatal("Cannot register the default brush bundle for the product menu test");
     KoResourcePaths::addAssetDir(QStringLiteral("kis_actions"), QStringLiteral(GPU_ACTION_DIRECTORY));
     KisGpuCanvasEntryTest test;
