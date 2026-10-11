@@ -46,6 +46,8 @@ public:
         KisGpuEditSession::Result editResult = KisGpuEditSession::Result::Accepted;
         bool sampleComplete = true;
     };
+    static bool validSample(const Sample &sample);
+    static bool validSettings(const Settings &settings);
     /** Throws std::invalid_argument for invalid brush settings or nonpositive generation limit. */
     KisGpuBrushStroke(KisGpuEditSession &session, KisGpuEditSession::Token token,
                       Settings settings, QRect clip, qsizetype maximumSteps = 4096);

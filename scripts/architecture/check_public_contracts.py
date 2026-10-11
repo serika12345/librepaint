@@ -147,7 +147,10 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
     ),
     "libs/impex": ("libs/impex/tests/TestImportExportPublicHeaders.cpp",),
     "libs/input": ("libs/input/tests/TestInputShortcutMatcher.cpp",),
-    "libs/painting": ("libs/painting/tests/TestPaintingBoundary.cpp",),
+    "libs/painting": (
+        "libs/painting/tests/TestPaintingBoundary.cpp",
+        "libs/tools/gpu/tests/KisGpuStrokeInputTest.cpp",
+    ),
     "libs/tools": ("libs/tools/tests/TestToolCoreContract.cpp",),
 }
 

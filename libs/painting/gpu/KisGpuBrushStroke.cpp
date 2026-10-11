@@ -11,13 +11,23 @@
 namespace {
 bool finiteFloat(qreal value) { return std::isfinite(value) && qAbs(value) <= std::numeric_limits<float>::max(); }
 bool positiveFloat(qreal value) { return finiteFloat(value) && value > 0; }
-bool validSample(const KisGpuBrushStroke::Sample &sample)
+}
+bool KisGpuBrushStroke::validSample(const Sample &sample)
 {
     return finiteFloat(sample.position.x()) && finiteFloat(sample.position.y())
         && qAbs(sample.position.x()) <= std::numeric_limits<int>::max()
         && qAbs(sample.position.y()) <= std::numeric_limits<int>::max()
         && std::isfinite(sample.pressure) && sample.pressure >= 0 && sample.pressure <= 1;
 }
+
+bool KisGpuBrushStroke::validSettings(const Settings &settings)
+{
+    return positiveFloat(settings.diameter.width()) && positiveFloat(settings.diameter.height())
+        && positiveFloat(settings.fade.width()) && positiveFloat(settings.fade.height())
+        && settings.fade.width() <= 1 && settings.fade.height() <= 1 && finiteFloat(settings.spacing) && settings.spacing >= 0
+        && std::isfinite(qMax(settings.diameter.width(), settings.diameter.height()) * settings.spacing)
+        && (settings.operation == KisGpuTileStore::CompositeOp::Over || settings.operation == KisGpuTileStore::CompositeOp::Erase)
+        && !(settings.smudgeRate && (settings.texture || settings.operation != KisGpuTileStore::CompositeOp::Over));
 }
 
 KisGpuBrushStroke::KisGpuBrushStroke(KisGpuEditSession &session, KisGpuEditSession::Token token,
@@ -31,13 +41,8 @@ KisGpuBrushStroke::KisGpuBrushStroke(KisGpuEditSession &session, KisGpuEditSessi
                                     Settings settings, QRect clip, qsizetype maximumSteps)
     : m_session(session), m_token(std::move(token)), m_settings(settings), m_clip(clip), m_maximumSteps(maximumSteps)
 {
-    if (!positiveFloat(settings.diameter.width()) || !positiveFloat(settings.diameter.height())
-        || !positiveFloat(settings.fade.width()) || !positiveFloat(settings.fade.height())
-        || settings.fade.width() > 1 || settings.fade.height() > 1 || !finiteFloat(settings.spacing) || settings.spacing < 0
-        || !std::isfinite(qMax(settings.diameter.width(), settings.diameter.height()) * settings.spacing)
-        || (settings.operation != KisGpuTileStore::CompositeOp::Over && settings.operation != KisGpuTileStore::CompositeOp::Erase)
-        || (settings.smudgeRate && (settings.texture || settings.operation != KisGpuTileStore::CompositeOp::Over))
-        || maximumSteps <= 0) throw std::invalid_argument("Invalid GPU brush size, fade, spacing, operation or generation limit");
+    if (!validSettings(settings) || maximumSteps <= 0)
+        throw std::invalid_argument("Invalid GPU brush size, fade, spacing, operation or generation limit");
 }
 
 KisGpuBrushStroke::Update KisGpuBrushStroke::append(const QVector<Sample> &samples,

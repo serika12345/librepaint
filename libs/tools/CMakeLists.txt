@@ -224,3 +224,6 @@ install(TARGETS kritatools ${INSTALL_TARGETS_DEFAULT_ARGS})
 
 add_subdirectory(tests)
 add_subdirectory(ui)
+if(LIBREPAINT_BUILD_GPU_DOCUMENT)
+    add_subdirectory(gpu)
+endif()
