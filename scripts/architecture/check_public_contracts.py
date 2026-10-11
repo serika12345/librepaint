@@ -123,6 +123,7 @@ PUBLIC_HEADER_OWNERS = (
 PUBLIC_HEADER_COMPILE_CONTRACTS = {
     "libs/application": (
         "libs/application/gpu/tests/KisGpuApplicationStateTest.cpp",
+        "libs/application/gpu/tests/KisGpuCanvasSessionTest.cpp",
         "libs/application/tests/TestApplicationConfiguration.cpp",
         "libs/ui/tests/TestApplicationWorkspaceToolUiPublicHeaders.cpp",
         "libs/ui/tests/TestCanvasUiPublicHeaders.cpp",
