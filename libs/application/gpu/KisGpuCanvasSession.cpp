@@ -44,8 +44,6 @@ KisGpuCanvasSession::KisGpuCanvasSession(KisGpuDocumentDevice &documents, KisGpu
     m_poll.setInterval(16);
     m_poll.setTimerType(Qt::PreciseTimer);
     connect(&m_poll, &QTimer::timeout, this, [this] { poll(); });
-    m_inputPoll.setTimerType(Qt::PreciseTimer);
-    connect(&m_inputPoll, &QTimer::timeout, this, [this] { advanceInput(); updatePolling(); });
     updatePolling();
 }
 
@@ -60,7 +58,7 @@ KisGpuCanvasSession::~KisGpuCanvasSession()
 void KisGpuCanvasSession::releaseGpu()
 {
     m_poll.stop();
-    m_inputPoll.stop();
+    m_displayPending = true;
     m_canvas.reset();
     if (m_input) m_input->releaseGpu();
 }
@@ -68,19 +66,17 @@ void KisGpuCanvasSession::releaseGpu()
 void KisGpuCanvasSession::updatePolling()
 {
     const auto input = inputState();
+    const bool pending = m_input && (m_input->hasPendingWork()
+        || (m_pointer && m_pointer->hasPendingWork()));
+    const bool fast = (pending && !m_inputBackoff) || (m_window.isExposed() && m_displayPending);
+    const int interval = fast ? 1 : 16;
+    if (m_poll.interval() != interval) m_poll.setInterval(interval);
     if (m_model && !m_documents.isSuspended()
         && (m_window.isExposed() || (m_pointer && m_pointer->active())
             || input == Input::State::Drawing || input == Input::State::Finishing)) {
         if (!m_poll.isActive()) m_poll.start();
     }
     else m_poll.stop();
-    const bool pending = m_input && (m_input->pendingSamples() || input == Input::State::Finishing
-        || (m_pointer && m_pointer->hasPendingWork()));
-    if (m_poll.isActive() && pending) {
-        const int interval = m_inputBackoff ? 16 : 1;
-        if (m_inputPoll.interval() != interval) m_inputPoll.setInterval(interval);
-        if (!m_inputPoll.isActive()) m_inputPoll.start();
-    } else m_inputPoll.stop();
 }
 
 bool KisGpuCanvasSession::eventFilter(QObject *object, QEvent *event)
@@ -128,6 +124,8 @@ bool KisGpuCanvasSession::setView(const Krita::Canvas::GpuRenderer::View &view)
     if (!m_pointer || !invertible || !m_pointer->setWindowToCanvas(QTransform::fromScale(ratio, ratio) * inverse)) return false;
     m_view = view;
     if (m_canvas) m_canvas->setView(view);
+    m_displayPending = true;
+    updatePolling();
     return true;
 }
 
@@ -212,7 +210,13 @@ KisGpuCanvasSession::Result KisGpuCanvasSession::poll()
         }
     }
     if (m_window.isExposed() && m_canvas) display = m_canvas->poll();
+    const auto displayStatistics = statistics();
+    m_displayPending = display == Canvas::Result::Busy || display == Canvas::Result::Updated
+        || displayStatistics.rendering.pendingFrames || displayStatistics.pendingPresentations;
+    const bool inputPending = m_input->hasPendingWork() || m_pointer->hasPendingWork();
     const auto input = advanceInput();
+    // Input publication follows display collection; observe its new version on the next fast pass.
+    if (inputPending && input == Result::Idle) m_displayPending = true;
     updatePolling();
     if (input == Result::GpuRejected || input == Result::DeviceLost) return input;
     switch (display) {

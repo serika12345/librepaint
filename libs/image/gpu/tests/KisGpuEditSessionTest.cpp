@@ -38,6 +38,7 @@ class KisGpuEditSessionTest : public QObject
 private Q_SLOTS:
     void initTestCase();
     void cleanup();
+    void pendingWorkEndsAfterPublication();
     void replacementCommitsExactlyThePreview();
     void replacementBudgetIncludesPublishedAndUnpublishedCommands();
     void cancellationPreservesRedoAndRejectsStaleInput();
@@ -55,6 +56,38 @@ private:
 };
 
 void KisGpuEditSessionTest::initTestCase() { m_gpu = std::make_unique<KisGpuTestDevice>(); }
+
+void KisGpuEditSessionTest::pendingWorkEndsAfterPublication()
+{
+    using Session = KisGpuEditSession;
+    KisGpuTileStore store(m_gpu->owner, 32 * KisGpuTileStore::TileBytes);
+    Session session(store, 2);
+    QVERIFY(!session.hasPendingWork());
+    const auto token = session.begin();
+    QVERIFY(!session.hasPendingWork());
+    const QRect clip(-32, -32, 64, 64);
+    QCOMPARE(session.append(token, {dab({0, 0}, 0xFF123456)}, clip), Session::Result::Accepted);
+    QVERIFY(session.hasPendingWork());
+    wgpuDevicePoll(m_gpu->device, true, nullptr);
+    // Completed GPU work still needs publication by the submitting owner.
+    QVERIFY(session.hasPendingWork());
+    session.poll();
+    QVERIFY(!session.hasPendingWork());
+    const auto previous = session.preview();
+    QCOMPARE(session.beginReplacement(token), Session::Result::Accepted);
+    QVERIFY(session.hasPendingWork());
+    QCOMPARE(session.append(token, {dab({10, 0}, 0xFFABCDEF)}, clip), Session::Result::Accepted);
+    wgpuDevicePoll(m_gpu->device, true, nullptr); session.poll();
+    QVERIFY(session.hasPendingWork());
+    QCOMPARE(session.preview(), previous);
+    QCOMPARE(session.publishReplacement(token), Session::Result::Accepted);
+    QVERIFY(!session.hasPendingWork());
+    QVERIFY(!(session.preview() == previous));
+    QCOMPARE(session.commit(token), Session::Result::Accepted);
+    QVERIFY(session.hasPendingWork());
+    QVERIFY(settle(session));
+    QVERIFY(!session.hasPendingWork());
+}
 
 void KisGpuEditSessionTest::replacementBudgetIncludesPublishedAndUnpublishedCommands()
 {

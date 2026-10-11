@@ -312,7 +312,24 @@ build-incremental native build KisGpuCanvasInputBenchmark
 
 257点の楕円を差し替え、2回の準備更新後の中央値・P95、観測タイマーを含むプロセスCPU時間、
 通常画素転送量と最終画像のSHA-256を出力する。同じ更新数で画像識別値と遅延を比較する。
-検証用読み戻しは計測後に実行し、転送量を別に記録する。実画面への提示は表示計測器で確認する。
+検証用読み戻しは計測後に実行し、転送量を別に記録する。
+正規化済み入力から製品の自動回収を通した実画面計測には`--display`を追加する。
+
+```sh
+QT_QPA_PLATFORM=cocoa "$(build-incremental native path)/bin/KisGpuCanvasInputBenchmark" --display --samples 30 --output /tmp/gpu-product-shape.json
+QT_QPA_PLATFORM=cocoa "$(build-incremental native path)/bin/KisGpuCanvasInputBenchmark" --display --workload layer-projection --mode replace --samples 15 --output /tmp/gpu-product-layers.json
+```
+
+Linuxの表示基盤は`QT_QPA_PLATFORM=xcb`を使う。`--workload small|layer-projection`と
+`--mode append|replace`は後述の生成入力計測と同じ入力値を使用する。高負荷は4096×4096・
+24レイヤー・中央1024×1024の下地、直径512のブラシであり、各レイヤー全面の占有とは区別する。
+ウィンドウは形状条件で64×64、その他で640×640の論理画素とし、文書全体を物理画素へ縮尺表示する。
+初回表示を回収し、各更新の完成プレビュー、GPU描画完了と実表示の通知を順に観測する。
+計測中は外部から`poll()`を呼ばず、製品のタイマーで進める。CPU時間は観測タイマーを含む。
+JSONは全試行、中央値・P95、実行ファイルと対象レイヤー画像のSHA-256、表示画像の追加確保、
+GPU全体の観測済み論理保持量と通常画素転送量を記録する。実表示時刻は全更新で取得した場合に
+終了値0とし、取得不能・未表示の結果も出力して3を返す。入力不正と実行失敗は2を返す。
+OSの提示呼出し内の待機は`native_present_call_ms`として実表示遅延と分けて扱う。
 
 `KisGpuEditSessionTest`は公開中と作成中の回復命令を同じCPU予算へ計上し、拒否時の従来の作業版を確認する。
 表示色変換の表生成は`run-test KisRgb8DisplayLookupTest`、GPU画素と製品画面への接続は

@@ -77,6 +77,71 @@ QByteArray directImage(KisGpuTestDevice &gpu, Store &store, const Input::Configu
 class KisGpuStrokeInputTest : public QObject {
     Q_OBJECT
 private Q_SLOTS:
+    void externallyCancelledInputNeedsCleanupAndPreservesTheNextEdit() {
+        KisGpuTestDevice gpu;
+        auto store = std::make_shared<Store>(gpu.owner, 128 * Store::TileBytes);
+        auto document = std::make_shared<Document>(store, 8);
+        document->addLayer(QStringLiteral("Paint"));
+        for (bool staged : {false, true}) {
+            Input input(document);
+            const auto started = input.begin(1, configuration());
+            QCOMPARE(started.result, Input::Result::Accepted);
+            if (staged) {
+                QCOMPARE(input.replace(started.token, longShape()), Input::Result::Accepted);
+                input.poll();
+            } else {
+                QCOMPARE(input.append(started.token, {Path.first()}), Input::Result::Accepted);
+                input.poll();
+                wgpuDevicePoll(gpu.device, true, nullptr); input.poll();
+                QVERIFY(!input.hasPendingWork());
+            }
+            const auto old = document->currentEditing();
+            QCOMPARE(document->cancel(old.token), Document::Result::Accepted);
+            const auto next = document->begin(1);
+            QCOMPARE(next.result, Document::Result::Accepted);
+            QVERIFY(input.hasPendingWork());
+            QCOMPARE(next.session->beginReplacement(next.token), Session::Result::Accepted);
+            input.poll();
+            QCOMPARE(input.state(), Input::State::Cancelled);
+            QVERIFY(!input.hasPendingWork());
+            QCOMPARE(next.session->publishReplacement(next.token), Session::Result::Accepted);
+            QCOMPARE(document->currentEditing().token, next.token);
+            QCOMPARE(document->cancel(next.token), Document::Result::Accepted);
+        }
+        QCOMPARE(gpu.owner.errorCount(), 0);
+    }
+    void pendingWorkIncludesGpuPublicationAndEmptyReplacement() {
+        KisGpuTestDevice gpu;
+        auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
+        auto document = std::make_shared<Document>(store, 8);
+        document->addLayer(QStringLiteral("Paint"));
+        Input input(document);
+        const auto started = input.begin(1, configuration());
+        QCOMPARE(started.result, Input::Result::Accepted);
+        QVERIFY(!input.hasPendingWork());
+        const auto base = document->currentEditing().session->preview();
+        QCOMPARE(input.append(started.token, {Path.first()}), Input::Result::Accepted);
+        QVERIFY(input.hasPendingWork());
+        QCOMPARE(input.poll(), Input::Result::Accepted);
+        QCOMPARE(input.pendingSamples(), qsizetype(0));
+        QVERIFY(input.hasPendingWork());
+        wgpuDevicePoll(gpu.device, true, nullptr);
+        QVERIFY(input.hasPendingWork());
+        input.poll();
+        QVERIFY(!input.hasPendingWork());
+        QVERIFY(!(document->currentEditing().session->preview() == base));
+        QCOMPARE(input.replace(started.token, {}), Input::Result::Accepted);
+        QCOMPARE(input.pendingSamples(), qsizetype(0));
+        QVERIFY(input.hasPendingWork());
+        input.poll();
+        QVERIFY(!input.hasPendingWork());
+        QCOMPARE(document->currentEditing().session->preview(), base);
+        QCOMPARE(input.commit(started.token), Input::Result::Accepted);
+        QVERIFY(input.hasPendingWork());
+        QVERIFY(drain(input, true));
+        QVERIFY(!input.hasPendingWork());
+        QCOMPARE(gpu.owner.errorCount(), 0);
+    }
     void continuousReplacementPublishesWhileNewShapesArrive_data() {
         longReplacementPublishesOnlyWholeShapes_data();
     }

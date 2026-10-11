@@ -49,6 +49,8 @@ public:
     /** Advance restoration and at most one generated batch; refused input remains queued. */
     Result poll();
     State state() const { return m_state; }
+    /** Accepted input, unpublished GPU results, empty replacement or commit still needs polling. */
+    bool hasPendingWork() const;
     qsizetype maximumSamples() const { return m_maximumSamples; }
     qsizetype pendingSamples() const {
         return qsizetype(m_queue.size()) + (m_nextReplacement ? qsizetype(m_nextReplacement->samples.size()) : 0);
@@ -61,6 +63,7 @@ private:
     Result prepare();
     void finish(State state);
     void promoteReplacement();
+    void discardCurrentReplacement();
     std::shared_ptr<KisGpuLayerDocument> m_document;
     const qsizetype m_maximumSamples;
     const quint64 m_maximumResourceBytes;

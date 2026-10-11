@@ -200,6 +200,15 @@ KisGpuEditSession::Result KisGpuEditSession::cancel(const Token &token)
     return Result::Accepted;
 }
 
+bool KisGpuEditSession::hasPendingWork() const
+{
+    if (m_state == State::Committing || m_state == State::Restoring) return true;
+    if (m_state != State::Editing) return false;
+    return m_replay->replacement.has_value() || m_replay->compacting.has_value()
+        || (m_hasLatest && (!(m_latest.version == m_preview)
+            || m_latest.completion.status() == KisGpuTileStore::Status::Pending));
+}
+
 void KisGpuEditSession::poll()
 {
     m_store.poll();

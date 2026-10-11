@@ -9,7 +9,8 @@ set_tests_properties(libs-application-gpu-KisGpuApplicationStateTest PROPERTIES
 if(TARGET kritaapplicationgpucanvas)
     add_executable(KisGpuCanvasInputBenchmark EXCLUDE_FROM_ALL KisGpuCanvasInputBenchmark.cpp)
     target_link_libraries(KisGpuCanvasInputBenchmark PRIVATE kritaapplicationgpucanvas)
-    target_include_directories(KisGpuCanvasInputBenchmark PRIVATE ${CMAKE_SOURCE_DIR}/libs/canvas/gpu/tests)
+    target_include_directories(KisGpuCanvasInputBenchmark PRIVATE
+        ${CMAKE_SOURCE_DIR}/libs/canvas/gpu/tests ${CMAKE_SOURCE_DIR}/libs/painting/gpu/tests)
     set_target_properties(KisGpuCanvasInputBenchmark PROPERTIES AUTOMOC OFF MACOSX_BUNDLE OFF)
     kis_add_test(KisGpuCanvasSessionTest.cpp LINK_LIBRARIES kritaapplicationgpucanvas Qt${QT_MAJOR_VERSION}::Test)
     set_tests_properties(libs-application-gpu-KisGpuCanvasSessionTest PROPERTIES

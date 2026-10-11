@@ -104,7 +104,7 @@ KisGpuStrokeInput::Result KisGpuStrokeInput::replace(const Token &token, const Q
         return Result::Accepted;
     }
     m_brush.reset();
-    if (m_edit.session && m_replacementStarted) m_edit.session->discardReplacement(m_edit.token);
+    discardCurrentReplacement();
     m_nextReplacement.reset();
     m_progress = {};
     m_queue.swap(next);
@@ -133,11 +133,19 @@ KisGpuStrokeInput::Result KisGpuStrokeInput::cancel(const Token &token)
     return translated(result);
 }
 
+void KisGpuStrokeInput::discardCurrentReplacement()
+{
+    if (!m_replacementStarted) return;
+    const auto current = m_document->currentEditing();
+    if (current.result == Document::Result::Accepted && current.token == m_edit.token)
+        current.session->discardReplacement(current.token);
+}
+
 void KisGpuStrokeInput::releaseGpu()
 {
     if (m_brush && !m_replace) m_progress = m_brush->progress();
     m_brush.reset();
-    if (m_edit.session && m_replacementStarted) m_edit.session->discardReplacement(m_edit.token);
+    discardCurrentReplacement();
     promoteReplacement();
     if (m_replace) m_progress = {};
     m_replacementStarted = false;
@@ -200,6 +208,15 @@ KisGpuStrokeInput::Result KisGpuStrokeInput::prepare()
     settings.texture = m_texture;
     m_brush = std::make_unique<Brush>(*m_edit.session, m_edit.token, settings, m_configuration.clip, m_progress);
     return Result::Accepted;
+}
+
+bool KisGpuStrokeInput::hasPendingWork() const
+{
+    if (m_state == State::Finishing) return true;
+    if (m_state != State::Drawing) return false;
+    if (pendingSamples() || m_replace || !matches(m_token)) return true;
+    const auto current = m_document->currentEditing();
+    return current.result == Document::Result::Accepted && current.session->hasPendingWork();
 }
 
 KisGpuStrokeInput::Result KisGpuStrokeInput::poll()

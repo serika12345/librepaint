@@ -150,6 +150,8 @@ public:
     void poll();
 
     State state() const { return m_state; }
+    /** Work whose GPU completion or atomic publication still needs the submitting owner. */
+    bool hasPendingWork() const;
     KisGpuTileStore::Error lastGpuError() const { return m_lastGpuError; }
     KisGpuTileStore::Version head() const { return m_history[m_cursor]; }
     KisGpuTileStore::Version preview() const { return m_preview; }

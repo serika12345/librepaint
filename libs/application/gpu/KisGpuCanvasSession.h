@@ -45,7 +45,7 @@ public:
                         KisGpuLayerDocument::Target target = KisGpuLayerDocument::Target::Pixels);
     /** Invalid transforms preserve the input mapping and displayed view. */
     bool setView(const Krita::Canvas::GpuRenderer::View &view);
-    /** Display collection runs every 16ms; pending input advances independently every 1ms. */
+    /** Pending input/display advances every 1ms; idle observation and refusal retry use 16ms. */
     Result poll();
     Krita::Canvas::SurfaceRenderer::Frame lastFrame() const;
     /** Statistics belong to the current GPU lifetime. */
@@ -70,8 +70,8 @@ private:
     std::unique_ptr<KisGpuPointerInput> m_pointer;
     std::unique_ptr<Krita::Canvas::DocumentCanvas> m_canvas;
     Krita::Canvas::GpuRenderer::View m_view;
-    QTimer m_poll, m_inputPoll;
-    bool m_inputBackoff = false;
+    QTimer m_poll;
+    bool m_inputBackoff = false, m_displayPending = true;
     QString m_error;
 };
 #endif
