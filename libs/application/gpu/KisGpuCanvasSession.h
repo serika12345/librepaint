@@ -9,6 +9,7 @@
 #include "KisGpuStrokeInput.h"
 #include "DocumentCanvas.h"
 #include <QTimer>
+class KisGpuPointerInput;
 
 /** Application ownership of one window's GPU input and display resources.
  * The shared document owner, application notifications and window outlive this
@@ -35,7 +36,10 @@ public:
     KisGpuStrokeInput::Result commit(const KisGpuStrokeInput::Token &token);
     KisGpuStrokeInput::Result cancel(const KisGpuStrokeInput::Token &token);
     KisGpuStrokeInput::State inputState() const;
-    void setView(const Krita::Canvas::GpuRenderer::View &view);
+    bool setPointerTool(KisGpuLayerDocument::LayerId layer, KisGpuStrokeInput::Configuration configuration,
+                        KisGpuLayerDocument::Target target = KisGpuLayerDocument::Target::Pixels);
+    /** Invalid transforms preserve the input mapping and displayed view. */
+    bool setView(const Krita::Canvas::GpuRenderer::View &view);
     /** The exposed window also advances automatically through a 16ms GUI timer. */
     Result poll();
     Krita::Canvas::SurfaceRenderer::Frame lastFrame() const;
@@ -44,6 +48,7 @@ public:
     QString lastError() const { return m_error; }
 Q_SIGNALS:
     void documentClosed();
+    void inputRejected(KisGpuStrokeInput::Result result);
 protected:
     bool eventFilter(QObject *object, QEvent *event) override;
 private:
@@ -56,6 +61,7 @@ private:
     const QRect m_bounds;
     std::shared_ptr<KisGpuLayerDocument> m_model;
     std::unique_ptr<KisGpuStrokeInput> m_input;
+    std::unique_ptr<KisGpuPointerInput> m_pointer;
     std::unique_ptr<Krita::Canvas::DocumentCanvas> m_canvas;
     Krita::Canvas::GpuRenderer::View m_view;
     QTimer m_poll;
