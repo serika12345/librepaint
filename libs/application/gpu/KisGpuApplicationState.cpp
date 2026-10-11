@@ -135,8 +135,9 @@ bool KisGpuApplicationState::resumeForInput()
 
 void KisGpuApplicationState::poll()
 {
+    if (m_stopped) return;
     m_documents.poll();
-    if (m_documents.isSuspended() && !m_critical && m_applicationState == Qt::ApplicationActive)
+    if (m_documents.isSuspended() && !m_resumeFailed && !m_critical && m_applicationState == Qt::ApplicationActive)
         m_resumeFailed = !m_documents.resume();
     updatePolling();
 }

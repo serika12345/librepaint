@@ -127,6 +127,8 @@ private Q_SLOTS:
         QTRY_COMPARE(model->state(), KisGpuLayerDocument::State::Idle);
         state.shutdown();
         QVERIFY(documents.isSuspended());
+        state.poll();
+        QVERIFY(documents.isSuspended());
         QVERIFY(!state.resumeForInput());
         state.applicationStateChanged(Qt::ApplicationActive);
         QVERIFY(documents.isSuspended());

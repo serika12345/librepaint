@@ -21,6 +21,8 @@ public:
     explicit KisGpuApplicationState(KisGpuDocumentDevice &documents, QObject *parent = nullptr);
     ~KisGpuApplicationState() override;
     bool resumeForInput();
+    /** Nonblocking collection and loss recovery; canvas consumers use this same owner. */
+    void poll();
     bool isPolling() const { return m_poll.isActive(); }
 public Q_SLOTS:
     void applicationStateChanged(Qt::ApplicationState state);
@@ -30,7 +32,6 @@ public Q_SLOTS:
 private:
     struct MemoryNotifications;
     void updatePolling();
-    void poll();
     KisGpuDocumentDevice &m_documents;
     QTimer m_poll;
     std::unique_ptr<MemoryNotifications> m_memory;

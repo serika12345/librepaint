@@ -5,6 +5,7 @@
 #include "DocumentCanvas.h"
 #include "KisGpuLayerDocument.h"
 #include "KisGpuTestDevice.h"
+#include "KisGpuWindowTestEventLoop.h"
 #include <QWindow>
 #include <QtTest>
 
@@ -32,7 +33,8 @@ private Q_SLOTS:
         auto store = std::make_shared<Store>(gpu.owner, 128 * Store::TileBytes, 1);
         auto document = std::make_shared<Document>(store, 16);
         document->addLayer(QStringLiteral("Paint"));
-        QWindow window; Surface::prepareWindow(window); window.resize(64, 64); window.show();
+        QWindow window; window.setFlag(Qt::WindowStaysOnTopHint);
+        Surface::prepareWindow(window); window.resize(64, 64); window.show();
         QVERIFY(QTest::qWaitForWindowExposed(&window, 3000));
         Canvas canvas(gpu.owner, store, document, window, Bounds);
         auto edit = document->begin(1);
@@ -45,9 +47,17 @@ private Q_SLOTS:
         QVERIFY(canvas.statistics().presentationRequests > 1);
         wgpuDevicePoll(gpu.device, true, nullptr); document->poll();
         const auto preview = edit.session->preview();
-        QTRY_VERIFY((canvas.poll(), canvas.displayedSnapshot().layers.size() == 1
-            && canvas.displayedSnapshot().layers.first().pixels == preview
-            && canvas.lastFrame().rendering.status() == Store::Status::Succeeded));
+        Canvas::Result result = Canvas::Result::Idle;
+        QVERIFY2(waitForGpuWindow([&] {
+            result = canvas.poll();
+            return canvas.displayedSnapshot().layers.size() == 1
+                && canvas.displayedSnapshot().layers.first().pixels == preview
+                && canvas.lastFrame().rendering.status() == Store::Status::Succeeded;
+        }),
+            qPrintable(QStringLiteral("result=%1 gpu=%2 surface=%3 frames=%4 presentations=%5 accepted=%6 visible=%7 exposed=%8")
+                .arg(int(result)).arg(int(canvas.lastGpuError())).arg(int(canvas.lastSurfaceError()))
+                .arg(canvas.statistics().rendering.pendingFrames).arg(canvas.statistics().pendingPresentations)
+                .arg(canvas.statistics().presentationRequests).arg(window.isVisible()).arg(window.isExposed())));
         QCOMPARE(store->statistics().pixelUploadBytes, quint64(0));
         QCOMPARE(store->statistics().pixelReadbackBytes, quint64(0));
         QCOMPARE(gpu.owner.errorCount(), 0);

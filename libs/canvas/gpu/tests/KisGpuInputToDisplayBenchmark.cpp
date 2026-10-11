@@ -19,7 +19,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QWindow>
-#include <QEventLoop>
+#include "KisGpuWindowTestEventLoop.h"
 #include <QTimer>
 #include <algorithm>
 #include <cmath>
@@ -38,24 +38,7 @@ using Surface = Krita::Canvas::SurfaceRenderer;
 template<typename Predicate>
 void until(Predicate ready)
 {
-    if (ready()) return;
-    QElapsedTimer timeout; timeout.start();
-    QEventLoop loop;
-    QTimer poll;
-    poll.setTimerType(Qt::PreciseTimer);
-    bool completed = false;
-    std::exception_ptr failure;
-    QObject::connect(&poll, &QTimer::timeout, &loop, [&] {
-        try {
-            completed = ready();
-            if (completed) loop.quit();
-            else if (timeout.elapsed() > 5000) throw std::runtime_error("Input/display completion timed out");
-        } catch (...) { failure = std::current_exception(); loop.quit(); }
-    });
-    poll.start(1);
-    loop.exec();
-    if (failure) std::rethrow_exception(failure);
-    if (!completed) throw std::runtime_error("Input/display event loop interrupted");
+    if (!waitForGpuWindow(ready)) throw std::runtime_error("Input/display completion timed out or interrupted");
 }
 
 void require(bool valid, const char *diagnostic)

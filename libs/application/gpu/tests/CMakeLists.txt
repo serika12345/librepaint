@@ -6,3 +6,14 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND TARGET Qt${QT_MAJOR_VERSION}::DBus)
 endif()
 set_tests_properties(libs-application-gpu-KisGpuApplicationStateTest PROPERTIES
     TIMEOUT 60 LABELS gpu FAIL_REGULAR_EXPRESSION "Validation Error;VUID-")
+if(TARGET kritaapplicationgpucanvas)
+    kis_add_test(KisGpuCanvasSessionTest.cpp LINK_LIBRARIES kritaapplicationgpucanvas Qt${QT_MAJOR_VERSION}::Test)
+    set_tests_properties(libs-application-gpu-KisGpuCanvasSessionTest PROPERTIES
+        TIMEOUT 60 LABELS "gpu;gpu-display" RESOURCE_LOCK gpu_native_window
+        FAIL_REGULAR_EXPRESSION "Validation Error;VUID-")
+    if(APPLE)
+        set_tests_properties(libs-application-gpu-KisGpuCanvasSessionTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")
+    else()
+        set_tests_properties(libs-application-gpu-KisGpuCanvasSessionTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
+    endif()
+endif()

@@ -132,6 +132,7 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
     "libs/canvas": (
         "libs/ui/tests/TestApplicationWorkspaceToolUiPublicHeaders.cpp",
         "libs/canvas/gpu/tests/KisGpuSurfaceRendererTest.cpp",
+        "libs/application/gpu/tests/KisGpuCanvasSessionTest.cpp",
     ),
     "libs/document": ("libs/application/gpu/tests/KisGpuApplicationStateTest.cpp",),
     "libs/document/ui": (
@@ -151,7 +152,10 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
         "libs/painting/tests/TestPaintingBoundary.cpp",
         "libs/tools/gpu/tests/KisGpuStrokeInputTest.cpp",
     ),
-    "libs/tools": ("libs/tools/tests/TestToolCoreContract.cpp",),
+    "libs/tools": (
+        "libs/tools/tests/TestToolCoreContract.cpp",
+        "libs/application/gpu/tests/KisGpuCanvasSessionTest.cpp",
+    ),
 }
 
 PLUGIN_SERVICE_TYPES = frozenset(

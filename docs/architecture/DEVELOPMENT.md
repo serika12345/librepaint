@@ -227,6 +227,7 @@ GPU内複製、操作完了と予算超過を検査する。評価済みのテ�
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuLayerDocumentSuspendTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuDocumentDeviceTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuApplicationStateTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuCanvasSessionTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuLayerDocumentCompactionTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuDocumentReadbackTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTileStoreTest
@@ -263,6 +264,9 @@ Rust依存の取得は固定パッケージのキャッシュを共用する。
 macOSの試験はMetal、Linuxの試験はVulkanを使用する。実GPUへアクセスできる実行環境が
 必要であり、取得できない場合は試験を失敗させる。試験用のCPU読み戻しを描画操作から分け、
 画素の完全一致とGPU検査エラーの有無を確認する。
+連続したネイティブ提示の試験と表示計測は`KisGpuWindowTestEventLoop.h`の
+`waitForGpuWindow()`でQtのイベントループへ入り、実表示通知も回収する。
+GUIイベントを手動で処理する待機と、OSの表示通知を受けるイベントループの実行を区別する。
 `KisGpuDeviceBudgetTest`は複数の描画先、旧版、表示用画像、模様、計測領域の共有予算と
 解放後の再試行を検査する。キャンバス・実表示の試験は命令領域と提示画像の合算、
 容量不足での拒否、サイズ変更と所有者終了時の解放を検査する。
