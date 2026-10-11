@@ -35,9 +35,10 @@ public:
                   KisGpuLayerDocument::Target target = KisGpuLayerDocument::Target::Pixels);
     /** Acceptance retains normalized CPU input; poll() performs bounded GPU work. */
     Result append(const Token &token, const QVector<KisGpuBrushStroke::Sample> &samples);
-    /** Supersede queued input and stage a whole shape from the committed base.
+    /** Stage a whole shape from the committed base, coalescing later candidates.
      * The previous preview stays visible until all replacement batches succeed.
-     * Retained replacement samples count against the CPU queue limit until publication.
+     * An active candidate finishes while at most one latest candidate is retained.
+     * Both candidates count against the CPU queue limit until publication.
      */
     Result replace(const Token &token, const QVector<KisGpuBrushStroke::Sample> &samples);
     /** Drain accepted input before committing; later append/replace calls are stale. */
@@ -48,7 +49,9 @@ public:
     /** Advance restoration and at most one generated batch; refused input remains queued. */
     Result poll();
     State state() const { return m_state; }
-    qsizetype pendingSamples() const { return qsizetype(m_queue.size()); }
+    qsizetype pendingSamples() const {
+        return qsizetype(m_queue.size()) + (m_nextReplacement ? qsizetype(m_nextReplacement->samples.size()) : 0);
+    }
     KisGpuTileStore::Error lastGpuError() const { return m_gpuError; }
     /** CPU-only configuration and resource-size validation before retaining GUI input. */
     bool validConfiguration(const Configuration &configuration) const;
@@ -56,6 +59,7 @@ private:
     bool matches(const Token &token) const;
     Result prepare();
     void finish(State state);
+    void promoteReplacement();
     std::shared_ptr<KisGpuLayerDocument> m_document;
     const qsizetype m_maximumSamples;
     const quint64 m_maximumResourceBytes;
@@ -67,6 +71,11 @@ private:
     std::optional<KisGpuEditSession::Selection> m_selection;
     std::unique_ptr<KisGpuBrushStroke> m_brush;
     std::deque<KisGpuBrushStroke::Sample> m_queue;
+    struct ReplacementInput {
+        std::deque<KisGpuBrushStroke::Sample> samples;
+        qsizetype shapeSamples = 0;
+    };
+    std::optional<ReplacementInput> m_nextReplacement;
     qsizetype m_replacementSamples = 0, m_stagedSamples = 0;
     State m_state = State::Idle;
     bool m_replace = false, m_replacementStarted = false, m_commitSent = false;

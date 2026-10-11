@@ -85,7 +85,8 @@ KisGpuStrokeInput::Result KisGpuStrokeInput::append(const Token &token, const QV
     if (m_state != State::Drawing || !matches(token)) return Result::Stale;
     if (samples.size() > m_maximumSamples - pendingSamples()) return Result::QueueFull;
     for (const auto &sample : samples) if (!Brush::validSample(sample)) return Result::InvalidInput;
-    m_queue.insert(m_queue.end(), samples.begin(), samples.end());
+    auto &queue = m_nextReplacement ? m_nextReplacement->samples : m_queue;
+    queue.insert(queue.end(), samples.begin(), samples.end());
     return Result::Accepted;
 }
 
@@ -93,10 +94,18 @@ KisGpuStrokeInput::Result KisGpuStrokeInput::replace(const Token &token, const Q
 {
     if (m_state != State::Drawing || !matches(token)) return Result::Stale;
     if (samples.size() > m_maximumSamples) return Result::QueueFull;
+    const bool coalesce = m_replacementStarted && !samples.isEmpty();
+    if (coalesce && samples.size() > m_maximumSamples - m_replacementSamples) return Result::QueueFull;
     for (const auto &sample : samples) if (!Brush::validSample(sample)) return Result::InvalidInput;
     std::deque<Brush::Sample> next(samples.begin(), samples.end());
+    if (coalesce) {
+        m_queue.resize(size_t(m_replacementSamples));
+        m_nextReplacement = ReplacementInput{std::move(next), samples.size()};
+        return Result::Accepted;
+    }
     m_brush.reset();
     if (m_edit.session && m_replacementStarted) m_edit.session->discardReplacement(m_edit.token);
+    m_nextReplacement.reset();
     m_progress = {};
     m_queue.swap(next);
     m_replace = true;
@@ -129,6 +138,7 @@ void KisGpuStrokeInput::releaseGpu()
     if (m_brush && !m_replace) m_progress = m_brush->progress();
     m_brush.reset();
     if (m_edit.session && m_replacementStarted) m_edit.session->discardReplacement(m_edit.token);
+    promoteReplacement();
     if (m_replace) m_progress = {};
     m_replacementStarted = false;
     m_stagedSamples = 0;
@@ -141,6 +151,7 @@ void KisGpuStrokeInput::finish(State state)
 {
     releaseGpu();
     m_queue.clear();
+    m_nextReplacement.reset();
     m_token = {};
     m_configuration = {};
     m_progress = {};
@@ -148,6 +159,19 @@ void KisGpuStrokeInput::finish(State state)
     m_replacementStarted = false;
     m_replacementSamples = m_stagedSamples = 0;
     m_state = state;
+}
+
+void KisGpuStrokeInput::promoteReplacement()
+{
+    if (!m_nextReplacement) return;
+    m_queue = std::move(m_nextReplacement->samples);
+    m_replacementSamples = m_nextReplacement->shapeSamples;
+    m_nextReplacement.reset();
+    m_brush.reset();
+    m_progress = {};
+    m_stagedSamples = 0;
+    m_replace = true;
+    m_replacementStarted = false;
 }
 
 KisGpuStrokeInput::Result KisGpuStrokeInput::prepare()
@@ -203,7 +227,7 @@ KisGpuStrokeInput::Result KisGpuStrokeInput::poll()
     if ((m_replace && m_stagedSamples < m_replacementSamples) || (!m_replace && !m_queue.empty())) {
         QVector<Brush::Sample> samples;
         const qsizetype first = m_replace ? m_stagedSamples : 0;
-        const qsizetype last = m_replace ? m_replacementSamples : pendingSamples();
+        const qsizetype last = m_replace ? m_replacementSamples : qsizetype(m_queue.size());
         samples.reserve(std::min<qsizetype>(64, last - first));
         for (qsizetype i = first; i < last && samples.size() < 64; ++i) samples.append(m_queue[size_t(i)]);
         const auto update = m_brush->appendPartial(samples, m_selection);
@@ -224,6 +248,7 @@ KisGpuStrokeInput::Result KisGpuStrokeInput::poll()
         m_replacementSamples = m_stagedSamples = 0;
         m_replace = m_replacementStarted = false;
         m_gpuError = KisGpuTileStore::Error::None;
+        promoteReplacement();
     }
     if (m_state == State::Finishing && m_queue.empty() && !m_replace) {
         const auto result = m_document->commit(m_edit.token);

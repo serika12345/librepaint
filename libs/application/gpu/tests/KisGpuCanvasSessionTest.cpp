@@ -35,6 +35,58 @@ void mouse(QWindow &window, QEvent::Type type, QPointF point, Qt::MouseButton bu
 class KisGpuCanvasSessionTest : public QObject {
     Q_OBJECT
 private Q_SLOTS:
+    void continuousShapeChangesPublishBeforeInputStops() {
+        KisGpuDocumentDevice documents;
+        KisGpuApplicationState application(documents);
+        const auto id = documents.createDocument({});
+        auto model = documents.document(id); model->addLayer(QStringLiteral("Paint"));
+        QWindow window;
+        Krita::Canvas::SurfaceRenderer::prepareWindow(window); window.resize(64, 64);
+        application.applicationStateChanged(Qt::ApplicationActive);
+        Session canvas(documents, application, id, window, Bounds);
+        const auto started = canvas.begin(1, configuration());
+        QCOMPARE(started.result, Input::Result::Accepted);
+        auto previous = model->currentEditing().session->preview();
+        int count = 0, published = 0;
+        bool accepted = true;
+        QVector<KisGpuBrushStroke::Sample> latest;
+        QEventLoop loop;
+        QTimer stream;
+        QObject::connect(&stream, &QTimer::timeout, &loop, [&] {
+            latest.clear();
+            for (int i = 0; i < 130; ++i)
+                latest.append({{4.0 + (i % 26) * 2.0 + count % 3, 8.0 + (i / 26) * 8.0}, .7});
+            accepted = canvas.replace(started.token, latest) == Input::Result::Accepted;
+            if (!accepted) { stream.stop(); loop.quit(); return; }
+            const auto preview = model->currentEditing().session->preview();
+            if (!(preview == previous)) { ++published; previous = preview; }
+            if (++count >= 60 && published >= 2) { stream.stop(); loop.quit(); }
+        });
+        stream.start(2);
+        QTimer::singleShot(3000, &loop, &QEventLoop::quit);
+        loop.exec(); stream.stop();
+        QVERIFY(accepted);
+        QVERIFY(count >= 60);
+        QVERIFY2(published >= 2, "The GUI timer must publish complete shapes while replacements keep arriving");
+        QCOMPARE(canvas.commit(started.token), Input::Result::Accepted);
+        QTRY_COMPARE(canvas.inputState(), Input::State::Finished);
+        auto store = documents.store(id);
+        QCOMPARE(store->statistics().pixelUploadBytes, quint64(0));
+        QCOMPARE(store->statistics().pixelReadbackBytes, quint64(0));
+        auto reference = std::make_shared<Document>(store, 16);
+        reference->addLayer(QStringLiteral("Reference"));
+        const auto expected = reference->begin(1);
+        KisGpuBrushStroke brush(*expected.session, expected.token, configuration().brush, Bounds);
+        QCOMPARE(brush.append(latest).result, KisGpuBrushStroke::Result::Accepted);
+        QCOMPARE(reference->commit(expected.token), Document::Result::Accepted);
+        QTRY_COMPARE((reference->poll(), reference->state()), Document::State::Idle);
+        const auto actual = store->readback(model->layers().first().paint.pixels, Bounds);
+        const auto desired = store->readback(reference->layers().first().paint.pixels, Bounds);
+        QTRY_VERIFY((store->poll(), actual.completion.status() == Store::Status::Succeeded
+            && desired.completion.status() == Store::Status::Succeeded));
+        QCOMPARE(actual.bytes(), desired.bytes());
+        QCOMPARE(documents.device()->errorCount(), 0);
+    }
     void pointerInputContinuesWhileHiddenAndDisplaysAfterResume() {
         KisGpuDocumentDevice documents;
         KisGpuApplicationState application(documents);
