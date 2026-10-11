@@ -63,9 +63,13 @@ private Q_SLOTS:
             const QPointF position(8 + count % 32, 8 + count % 16);
             samples.append({position * .5, 1});
             mouse(window, QEvent::MouseMove, position, Qt::NoButton, Qt::LeftButton);
-            if (++count == 60) {
+            // Keep producing input until recovery has published a working version.
+            // The deadline protects progress without depending on GPU startup speed.
+            if (++count >= 60) {
                 const auto layers = model->projectionLayers();
-                progressedDuringInput = !layers.empty() && layers.first().pixels.tileCount() > 0;
+                progressedDuringInput = canvas.inputState() == Input::State::Drawing
+                    && !layers.empty() && layers.first().pixels.tileCount() > 0;
+                if (!progressedDuringInput) return;
                 samples.append({position * .5, 1});
                 mouse(window, QEvent::MouseButtonRelease, position, Qt::LeftButton, Qt::NoButton);
                 stream.stop(); loop.quit();
@@ -74,7 +78,7 @@ private Q_SLOTS:
         stream.start(2);
         QTimer::singleShot(3000, &loop, &QEventLoop::quit);
         loop.exec();
-        QCOMPARE(count, 60);
+        QVERIFY(count >= 60);
         QVERIFY(progressedDuringInput);
         QTRY_COMPARE(canvas.inputState(), Input::State::Finished);
         window.show();
