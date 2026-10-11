@@ -15,13 +15,11 @@ QString message(WGPUStringView value)
     return value.data ? QString::fromUtf8(value.data,
         value.length == WGPU_STRLEN ? qsizetype(std::strlen(value.data)) : qsizetype(value.length)) : QString();
 }
-}
 
-using namespace KisGpuTileStorage;
-
-NativeDevice::NativeDevice(quint64 storageBindingLimit, bool timestamps, quint64 maximumBytes)
-    : maximumResidentBytes(maximumBytes) {
-    try {
+/** API initialization outlives replaceable GPU devices and their driver resources. */
+struct ProcessInstance {
+    WGPUInstance instance = nullptr;
+    ProcessInstance() {
         if (wgpuGetVersion() != 0x1b000400) throw std::runtime_error("GPU document requires wgpu-native 27.0.4.0");
         if (wgpuLibrePaintRecoveryRevision() != 3) throw std::runtime_error("GPU document requires recovery revision 3");
         WGPUInstanceExtras extras{};
@@ -32,10 +30,27 @@ NativeDevice::NativeDevice(quint64 storageBindingLimit, bool timestamps, quint64
         extras.backends = WGPUInstanceBackend_Vulkan;
 #endif
         extras.flags = WGPUInstanceFlag_Validation;
-        WGPUInstanceDescriptor instanceDescriptor{};
-        instanceDescriptor.nextInChain = &extras.chain;
-        instance = wgpuCreateInstance(&instanceDescriptor);
+        WGPUInstanceDescriptor descriptor{};
+        descriptor.nextInChain = &extras.chain;
+        instance = wgpuCreateInstance(&descriptor);
         if (!instance) throw std::runtime_error("Cannot create GPU instance");
+    }
+    ~ProcessInstance() { wgpuInstanceRelease(instance); }
+};
+
+WGPUInstance processInstance()
+{
+    static ProcessInstance owner;
+    return owner.instance;
+}
+}
+
+using namespace KisGpuTileStorage;
+
+NativeDevice::NativeDevice(quint64 storageBindingLimit, bool timestamps, quint64 maximumBytes)
+    : maximumResidentBytes(maximumBytes) {
+    try {
+        instance = processInstance();
         std::promise<WGPUAdapter> adapterPromise;
         auto adapterFuture = adapterPromise.get_future();
         WGPURequestAdapterCallbackInfo adapterCallback{};
@@ -126,7 +141,6 @@ void NativeDevice::release() {
     if (timestampQueries) wgpuQuerySetRelease(timestampQueries);
     if (device) wgpuDeviceRelease(device);
     if (adapter) wgpuAdapterRelease(adapter);
-    if (instance) wgpuInstanceRelease(instance);
 }
 NativeDevice::~NativeDevice() { release(); }
 

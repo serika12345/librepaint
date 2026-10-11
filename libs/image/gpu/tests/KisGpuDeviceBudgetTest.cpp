@@ -18,6 +18,30 @@ bool finish(Store &store, const Store::Completion &completion) {
 class KisGpuDeviceBudgetTest : public QObject {
     Q_OBJECT
 private Q_SLOTS:
+    void repeatedGpuReplacementReturnsEveryDeviceReservation() {
+        for (int generation = 0; generation < 48; ++generation) {
+            KisGpuTestDevice gpu(0, false, 4 * Store::TileBytes);
+            {
+                Store store(gpu.owner, 4 * Store::TileBytes);
+                const auto painted = store.fill(store.emptyVersion(), {0, 0, 1, 1}, 0xFF000000u | quint32(generation));
+                QCOMPARE(painted.error, Store::Error::None);
+                QVERIFY(finish(store, painted.completion));
+                QByteArray expected(4, char(0)); expected[0] = char(generation); expected[3] = char(255);
+                QCOMPARE(gpu.read(painted.version, {0, 0, 1, 1}), expected);
+                QCOMPARE(store.statistics().pixelUploadBytes, quint64(0));
+                QCOMPARE(store.statistics().pixelReadbackBytes, quint64(0));
+            }
+            QCOMPARE(gpu.owner.memoryStatistics().reservedBytes, quint64(0));
+            auto memory = gpu.owner.reserveMemory(16);
+            QVERIFY(memory);
+            gpu.owner.destroy();
+            QVERIFY(!gpu.owner.available());
+            QVERIFY(!memory.tryResize(17));
+            QVERIFY(memory.tryResize(0));
+            QCOMPARE(gpu.owner.memoryStatistics().reservedBytes, quint64(0));
+            QCOMPARE(gpu.owner.errorCount(), 0);
+        }
+    }
     void explicitTransfersPreflightSharedCapacity_data() {
         QTest::addColumn<bool>("reading");
         QTest::newRow("readback") << true;

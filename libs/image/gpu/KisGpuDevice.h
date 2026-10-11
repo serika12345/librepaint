@@ -18,6 +18,8 @@ namespace KisGpuTileStorage { struct NativeDevice; struct MemoryReservationData;
  * and share its availability. Destruction invalidates every store before
  * destroying native resources and draining callbacks. Borrowed device handles
  * are used for GPU commands; this owner controls their destruction.
+ * Process-wide API initialization remains alive across device replacement;
+ * device availability, reservations and resources belong to each device.
  */
 class KisGpuDevice
 {

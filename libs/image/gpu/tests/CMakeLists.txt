@@ -43,7 +43,7 @@ set_tests_properties(libs-image-gpu-KisGpuLayerProjectionTest PROPERTIES
 
 kis_add_test(KisGpuDeviceBudgetTest.cpp LINK_LIBRARIES kritaimagegpudocument Qt${QT_MAJOR_VERSION}::Test)
 target_sources(KisGpuDeviceBudgetTest PRIVATE KisGpuTestDevice.cpp)
-set_tests_properties(libs-image-gpu-KisGpuDeviceBudgetTest PROPERTIES TIMEOUT 30 LABELS gpu)
+set_tests_properties(libs-image-gpu-KisGpuDeviceBudgetTest PROPERTIES TIMEOUT 60 LABELS gpu)
 
 kis_add_test(KisGpuRecoveryCompactionTest.cpp LINK_LIBRARIES kritaimagegpudocument Qt${QT_MAJOR_VERSION}::Test)
 target_sources(KisGpuRecoveryCompactionTest PRIVATE KisGpuTestDevice.cpp)
