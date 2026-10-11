@@ -56,21 +56,21 @@ bool supportedNode(KisNodeSP node)
 }
 
 struct KisGpuKraLoadJob::Private {
-    std::shared_ptr<KisGpuTileStore> store;
     QString path;
-    qsizetype retainedEdits = 0;
     quint64 maximumBytes = 0, usedBytes = 0;
     State state = State::Reading;
     Error error = Error::None;
     KisGpuTileStore::Error gpuError = KisGpuTileStore::Error::None;
     std::optional<KisGpuKraMetadata> metadata;
-    std::unique_ptr<Document> document;
+    std::shared_ptr<Document> document;
+    std::optional<Document::Recovery> pendingRecovery;
 
     void fail(Error reason)
     {
         state = State::Failed;
         error = reason;
         metadata.reset();
+        pendingRecovery.reset();
         document.reset();
     }
     bool reserve(quint64 count, quint64 stride)
@@ -180,7 +180,7 @@ struct KisGpuKraLoadJob::Private {
             }
             recovery.history[0].append(std::move(record));
         }
-        if (!Document::validRecovery(recovery, retainedEdits, maximumBytes - quint64(infoXml.size()))) {
+        if (!Document::validRecovery(recovery, 0, maximumBytes - quint64(infoXml.size()))) {
             fail(Error::SnapshotBudgetExceeded); return {};
         }
         metadata = KisGpuKraMetadata{image->size(), image->objectName(), image->xRes(), image->yRes(), infoXml};
@@ -188,27 +188,38 @@ struct KisGpuKraLoadJob::Private {
     }
 };
 
-KisGpuKraLoadJob::KisGpuKraLoadJob(std::shared_ptr<KisGpuTileStore> store, QString path,
-    qsizetype retainedEdits, quint64 maximumRecoveryBytes) : d(std::make_unique<Private>())
+KisGpuKraLoadJob::KisGpuKraLoadJob(std::shared_ptr<Document> document, QString path,
+    quint64 maximumRecoveryBytes) : d(std::make_unique<Private>())
 {
-    if (!store || path.isEmpty() || retainedEdits < 0) { d->fail(Error::InvalidInput); return; }
-    d->store = std::move(store);
+    if (!document || path.isEmpty() || document->state() != Document::State::Idle
+        || document->historySize() != 1 || !document->layers().empty()
+        || document->recovery().nextId != 1) { d->fail(Error::InvalidInput); return; }
+    d->document = std::move(document);
     d->path = std::move(path);
-    d->retainedEdits = retainedEdits;
     d->maximumBytes = maximumRecoveryBytes;
 }
 KisGpuKraLoadJob::~KisGpuKraLoadJob() = default;
 void KisGpuKraLoadJob::poll()
 {
     if (d->state == State::Reading) {
+        if (d->document->state() == Document::State::Suspended || d->document->state() == Document::State::Restoring) return;
         auto recovery = d->readNative();
         if (!recovery) return;
-        d->document = std::make_unique<Document>(d->store, d->retainedEdits, std::move(*recovery),
-            d->maximumBytes - quint64(d->metadata->documentInfoXml.size()));
+        d->pendingRecovery = std::move(*recovery);
         d->state = State::Restoring;
-        return;
     }
     if (d->state == State::Restoring) {
+        if (d->document->state() == Document::State::Suspended) return;
+        if (d->pendingRecovery) {
+            if (d->document->state() == Document::State::Restoring) return;
+            const auto result = d->document->restoreInitial(std::move(*d->pendingRecovery));
+            d->pendingRecovery.reset();
+            if (result != Document::Result::Accepted) {
+                d->gpuError = d->document->recoveryError();
+                d->fail(result == Document::Result::GpuRejected ? Error::GpuRejected : Error::InvalidInput);
+            }
+            return;
+        }
         d->document->poll();
         if (d->document->state() == Document::State::Failed) {
             d->gpuError = d->document->recoveryError();
@@ -224,8 +235,4 @@ KisGpuTileStore::Error KisGpuKraLoadJob::gpuError() const { return d->gpuError; 
 std::optional<KisGpuKraMetadata> KisGpuKraLoadJob::metadata() const
 {
     return d->state == State::Succeeded ? d->metadata : std::nullopt;
-}
-std::unique_ptr<KisGpuLayerDocument> KisGpuKraLoadJob::takeDocument()
-{
-    return d->state == State::Succeeded ? std::move(d->document) : nullptr;
 }

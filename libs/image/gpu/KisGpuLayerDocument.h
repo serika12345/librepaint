@@ -96,6 +96,10 @@ public:
     Recovery recovery() const;
     /** CPU-only structural validation, usable before persistence or GPU creation. */
     static bool validRecovery(const Recovery &recovery, qsizetype retainedEdits, quint64 maximumRecoveryBytes);
+    /** Asynchronously initialize an unused empty model without replacing its registered identity.
+     * Validation and refusal preserve the empty document and issue no GPU work.
+     */
+    Result restoreInitial(Recovery recovery);
     /** Failure of the current restoration; None after successful adoption. */
     KisGpuTileStore::Error recoveryError() const;
     Result commit(const KisGpuEditSession::Token &token);
@@ -151,6 +155,7 @@ private:
         bool initial = true, maskPhase = false, failed = false;
         KisGpuTileStore::Error error = KisGpuTileStore::Error::None;
     };
+    void initializeRecovery(Recovery request);
     void pollRecovery();
     void pollRecoveryCompaction();
     bool requestHistoryCursor(qsizetype cursor);

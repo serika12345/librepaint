@@ -39,6 +39,7 @@ class KisGpuLayerDocumentRecoveryTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void initialRecoveryKeepsTheRegisteredModelAndRejectsOverwrites();
     void recoveryRestoresLayerStructureAndGlobalHistory();
     void unfinishedEditing_data();
     void unfinishedEditing();
@@ -47,6 +48,37 @@ private Q_SLOTS:
     void lostDeviceCanRetryTheWholeDocument();
     void metadataHistorySharesRebuiltPixelsAndMasks();
 };
+
+void KisGpuLayerDocumentRecoveryTest::initialRecoveryKeepsTheRegisteredModelAndRejectsOverwrites()
+{
+    KisGpuTestDevice gpu;
+    auto store = std::make_shared<Store>(gpu.owner, 256 * Store::TileBytes);
+    Document source(store, 16);
+    source.addLayer(QStringLiteral("Imported"));
+    const auto edit = source.begin(1);
+    QCOMPARE(edit.session->append(edit.token, {dab({0, 0}, 0xFF112233)}, Bounds), Session::Result::Accepted);
+    QCOMPARE(source.commit(edit.token), Document::Result::Accepted);
+    QVERIFY(finish(gpu, source));
+    const auto expected = gpu.read(source.layers().first().paint.pixels, Bounds);
+    const auto request = source.recovery();
+    auto target = std::make_shared<Document>(store, 16);
+    const auto registered = target;
+    const auto before = store->statistics();
+    QCOMPARE(target->restoreInitial(Document::Recovery{}), Document::Result::InvalidInput);
+    QCOMPARE(target->state(), Document::State::Idle);
+    QVERIFY(target->layers().isEmpty());
+    QCOMPARE(target->restoreInitial(request), Document::Result::Accepted);
+    QCOMPARE(target, registered);
+    QCOMPARE(target->state(), Document::State::Restoring);
+    QVERIFY(target->layers().isEmpty());
+    QCOMPARE(store->statistics().submissions, before.submissions);
+    QCOMPARE(target->restoreInitial(request), Document::Result::Busy);
+    QTRY_COMPARE((target->poll(), target->state()), Document::State::Idle);
+    QCOMPARE(gpu.read(target->layers().first().paint.pixels, Bounds), expected);
+    QCOMPARE(target->restoreInitial(request), Document::Result::InvalidInput);
+    QCOMPARE(gpu.read(target->layers().first().paint.pixels, Bounds), expected);
+    QCOMPARE(gpu.owner.errorCount(), 0);
+}
 
 void KisGpuLayerDocumentRecoveryTest::recoveryRestoresLayerStructureAndGlobalHistory()
 {

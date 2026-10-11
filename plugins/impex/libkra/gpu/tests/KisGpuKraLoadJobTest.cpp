@@ -4,6 +4,7 @@
  */
 #include "KisGpuKraLoadJob.h"
 #include "KisGpuKraSaveJob.h"
+#include "KisGpuDocumentDevice.h"
 #include "KisGpuTestDevice.h"
 #include <testui.h>
 #include <application/ui/orchestration/KisPart.h>
@@ -118,6 +119,7 @@ class KisGpuKraLoadJobTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void registeredDocumentSurvivesSuspensionDuringLoad();
     void restoresFrozenNativePixels();
     void unsupportedNativeContentIsRefusedBeforeGpuWork();
     void readAndBudgetFailuresPublishNoDocument();
@@ -127,6 +129,39 @@ private Q_SLOTS:
     void preservesNativeVisibilityAndLock();
     void documentInformationSurvivesGpuRoundTrip();
 };
+
+void KisGpuKraLoadJobTest::registeredDocumentSurvivesSuspensionDuringLoad()
+{
+    QTemporaryDir directory;
+    const auto path = directory.filePath(QStringLiteral("registered.kra"));
+    QVERIFY(nativeFixture(path));
+    KisGpuDocumentDevice owner;
+    const auto id = owner.createDocument({});
+    auto document = owner.document(id);
+    Load load(document, path);
+    load.poll();
+    QCOMPARE(load.state(), Load::State::Restoring);
+    QVERIFY(document->layers().isEmpty());
+    QCOMPARE(owner.store(id)->statistics().pixelUploadBytes, quint64(0));
+    QVERIFY(owner.suspend());
+    load.poll();
+    QCOMPARE(load.state(), Load::State::Restoring);
+    QVERIFY(!load.metadata());
+    QVERIFY(owner.resume());
+    QVERIFY(finish(load));
+    QCOMPARE(owner.document(id), document);
+    auto store = owner.store(id);
+    QCOMPARE(store->statistics().pixelUploadBytes, Store::TileBytes);
+    auto pixels = store->readback(document->layers().first().paint.pixels, Bounds);
+    QTRY_COMPARE((store->poll(), pixels.completion.status()), Store::Status::Succeeded);
+    QCOMPARE(pixels.bytes().left(4), QByteArray::fromHex("ff0000ff"));
+    const auto before = store->statistics();
+    Load overwrite(document, path);
+    QCOMPARE(overwrite.error(), Load::Error::InvalidInput);
+    QCOMPARE(document->layers().size(), qsizetype(1));
+    QCOMPARE(store->statistics().submissions, before.submissions);
+    QCOMPARE(owner.device()->errorCount(), 0);
+}
 void KisGpuKraLoadJobTest::documentInformationSurvivesGpuRoundTrip()
 {
     QTemporaryDir directory;
@@ -148,9 +183,10 @@ void KisGpuKraLoadJobTest::documentInformationSurvivesGpuRoundTrip()
         Save save(store, source.layers(), 2, metadata, path);
         QVERIFY2(finish(save), qPrintable(save.errorMessage()));
     }
-    std::unique_ptr<Document> restored;
+    std::shared_ptr<Document> restored;
     {
-        Load load(store, path, 8);
+        restored = std::make_shared<Document>(store, 8);
+        Load load(restored, path);
         QVERIFY(finish(load));
         metadata = *load.metadata();
         QVERIFY(!metadata.documentInfoXml.isEmpty());
@@ -160,17 +196,17 @@ void KisGpuKraLoadJobTest::documentInformationSurvivesGpuRoundTrip()
         QVERIFY(info.load(xml));
         QCOMPARE(info.aboutInfo("title"), QStringLiteral("Fixture title 雪🖌"));
         QCOMPARE(info.aboutInfo("editing-cycles"), QStringLiteral("8"));
-        restored = load.takeDocument();
     }
     QCOMPARE(gpu.read(restored->layers()[0].paint.pixels, Bounds), expected);
     const auto before = store->statistics();
     for (const quint64 budget : {quint64(metadata.documentInfoXml.size() - 1),
                                 quint64(metadata.documentInfoXml.size()) + Store::TileBytes}) {
-        Load tooSmall(store, path, 8, budget);
+        auto target = std::make_shared<Document>(store, 8);
+        Load tooSmall(target, path, budget);
         QVERIFY(!finish(tooSmall));
         QCOMPARE(tooSmall.error(), Load::Error::SnapshotBudgetExceeded);
         QVERIFY(!tooSmall.metadata());
-        QVERIFY(!tooSmall.takeDocument());
+        QVERIFY(target->layers().isEmpty());
     }
     QCOMPARE(store->statistics().submissions, before.submissions);
     QCOMPARE(store->statistics().pixelUploadBytes, before.pixelUploadBytes);
@@ -227,17 +263,15 @@ void KisGpuKraLoadJobTest::restoresFrozenNativePixels()
     }
     KisGpuTestDevice gpu;
     auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
-    Load load(store, path, 8);
-    QVERIFY(!load.takeDocument());
+    auto document = std::make_shared<Document>(store, 8);
+    Load load(document, path);
+    QVERIFY(document->layers().isEmpty());
     QVERIFY(!load.metadata());
     QVERIFY(finish(load));
     QCOMPARE(load.error(), Load::Error::None);
     QCOMPARE(load.metadata()->canvasSize, Bounds.size());
     QCOMPARE(load.metadata()->xResolution, 1.25);
     QCOMPARE(load.metadata()->yResolution, 1.5);
-    auto document = load.takeDocument();
-    QVERIFY(document);
-    QVERIFY(!load.takeDocument());
     QCOMPARE(document->historySize(), qsizetype(1));
     const auto layers = document->layers();
     QCOMPARE(layers.size(), qsizetype(2));
@@ -289,11 +323,12 @@ void KisGpuKraLoadJobTest::unsupportedNativeContentIsRefusedBeforeGpuWork()
             QVERIFY(original->mirrorAxisConfig().mirrorHorizontal());
             QCOMPARE(original->mirrorAxisConfig().axisPosition(), QPointF(7.5, 11.25));
         }
-        Load load(store, path, 8);
+        auto document = std::make_shared<Document>(store, 8);
+        Load load(document, path);
         QVERIFY(!finish(load));
         QCOMPARE(load.state(), Load::State::Failed);
         QCOMPARE(load.error(), Load::Error::UnsupportedDocument);
-        QVERIFY(!load.takeDocument());
+        QVERIFY(document->layers().isEmpty());
         QVERIFY(!load.metadata());
         QCOMPARE(store->statistics().submissions, before.submissions);
         QCOMPARE(store->statistics().pixelUploadBytes, before.pixelUploadBytes);
@@ -315,10 +350,9 @@ void KisGpuKraLoadJobTest::preservesNativeVisibilityAndLock()
     QVERIFY(nativeFixture(path, variant));
     KisGpuTestDevice gpu;
     auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
-    Load load(store, path, 8);
+    auto document = std::make_shared<Document>(store, 8);
+    Load load(document, path);
     QVERIFY(finish(load));
-    auto document = load.takeDocument();
-    QVERIFY(document);
     QCOMPARE(document->layers().size(), 1);
     QCOMPARE(document->layers()[0].visible, variant != 3);
     QCOMPARE(document->layers()[0].locked, variant == 9);
@@ -345,27 +379,31 @@ void KisGpuKraLoadJobTest::readAndBudgetFailuresPublishNoDocument()
     QVERIFY(nativeFixture(path));
     KisGpuTestDevice gpu;
     auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
-    Load invalid({}, path, 8);
+    Load invalid({}, path);
     QCOMPARE(invalid.error(), Load::Error::InvalidInput);
-    Load missing(store, directory.filePath(QStringLiteral("missing.kra")), 8);
+    auto missingTarget = std::make_shared<Document>(store, 8);
+    Load missing(missingTarget, directory.filePath(QStringLiteral("missing.kra")));
     QVERIFY(!finish(missing));
     QCOMPARE(missing.error(), Load::Error::LoadFailed);
-    Load small(store, path, 8, 1024);
+    auto smallTarget = std::make_shared<Document>(store, 8);
+    Load small(smallTarget, path, 1024);
     QVERIFY(!finish(small));
     QCOMPARE(small.error(), Load::Error::SnapshotBudgetExceeded);
-    QVERIFY(!small.takeDocument());
+    QVERIFY(smallTarget->layers().isEmpty());
     QCOMPARE(store->statistics().submissions, quint64(0));
     QCOMPARE(store->statistics().pixelUploadBytes, quint64(0));
     auto tight = std::make_shared<Store>(gpu.owner, 4096);
-    Load refused(tight, path, 8);
+    auto refusedTarget = std::make_shared<Document>(tight, 8);
+    Load refused(refusedTarget, path);
     QVERIFY(!finish(refused));
     QCOMPARE(refused.error(), Load::Error::GpuRejected);
     QCOMPARE(refused.gpuError(), Store::Error::BudgetExceeded);
-    QVERIFY(!refused.takeDocument());
+    QVERIFY(refusedTarget->layers().isEmpty());
     QCOMPARE(tight->statistics().residentBytes, quint64(0));
-    Load retry(store, path, 8);
+    auto retryTarget = std::make_shared<Document>(store, 8);
+    Load retry(retryTarget, path);
     QVERIFY(finish(retry));
-    QVERIFY(retry.takeDocument());
+    QCOMPARE(retryTarget->layers().size(), qsizetype(1));
 }
 
 void KisGpuKraLoadJobTest::lostDeviceCanReloadOnAnotherDevice()
@@ -376,21 +414,21 @@ void KisGpuKraLoadJobTest::lostDeviceCanReloadOnAnotherDevice()
     {
         KisGpuTestDevice gpu;
         auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
-        Load load(store, path, 8);
+        auto document = std::make_shared<Document>(store, 8);
+        Load load(document, path);
         load.poll();
         QCOMPARE(load.state(), Load::State::Restoring);
         gpu.owner.destroy();
         QVERIFY(!finish(load));
         QCOMPARE(load.error(), Load::Error::GpuRejected);
         QCOMPARE(load.gpuError(), Store::Error::DeviceLost);
-        QVERIFY(!load.takeDocument());
+        QVERIFY(document->layers().isEmpty());
     }
     KisGpuTestDevice gpu;
     auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
-    Load retry(store, path, 8);
+    auto document = std::make_shared<Document>(store, 8);
+    Load retry(document, path);
     QVERIFY(finish(retry));
-    auto document = retry.takeDocument();
-    QVERIFY(document);
     const auto pixels = gpu.read(document->layers()[0].paint.pixels, Bounds);
     QCOMPARE(pixels.size(), Bounds.width() * Bounds.height() * 4);
     QCOMPARE(pixels.left(4), QByteArray::fromHex("ff0000ff"));
@@ -431,19 +469,17 @@ void KisGpuKraLoadJobTest::preservesSparseCoordinatesAndEmptyDocuments()
     }
     KisGpuTestDevice gpu;
     auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
-    Load load(store, path, 8);
+    auto document = std::make_shared<Document>(store, 8);
+    Load load(document, path);
     QVERIFY(finish(load));
-    auto document = load.takeDocument();
-    QVERIFY(document);
     QCOMPARE(gpu.read(document->layers()[0].paint.pixels, comparison), expected);
     const auto emptyPath = directory.filePath(QStringLiteral("empty.kra"));
     const auto before = store->statistics();
     Save save(store, {}, 1, {Bounds.size(), QStringLiteral("Empty")}, emptyPath);
     QVERIFY(finish(save));
-    Load empty(store, emptyPath, 8);
+    auto emptyDocument = std::make_shared<Document>(store, 8);
+    Load empty(emptyDocument, emptyPath);
     QVERIFY(finish(empty));
-    auto emptyDocument = empty.takeDocument();
-    QVERIFY(emptyDocument);
     QVERIFY(emptyDocument->layers().isEmpty());
     QCOMPARE(emptyDocument->historySize(), qsizetype(1));
     QCOMPARE(store->statistics().submissions, before.submissions);
