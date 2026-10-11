@@ -5,9 +5,12 @@
 #include "KisGpuDocumentWindow.h"
 #include <QAction>
 #include <QColorDialog>
+#include <QCloseEvent>
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QEvent>
+#include <QFileInfo>
+#include <QMessageBox>
 #include <QSignalBlocker>
 #include <QStatusBar>
 #include <QToolBar>
@@ -18,7 +21,7 @@ KisGpuDocumentWindow::KisGpuDocumentWindow(KisGpuDocumentDevice &documents, KisG
     KisGpuDocumentDevice::DocumentId id, QRect bounds, QWidget *parent)
     : QMainWindow(parent, Qt::Window), m_documents(documents), m_id(id), m_bounds(bounds)
 {
-    setWindowTitle(tr("GPU Canvas"));
+    setWindowTitle(tr("Untitled[*] — GPU Canvas"));
     resize(800, 700);
     m_window = new QWindow;
     m_window->setObjectName(QStringLiteral("gpuDocumentCanvas-%1").arg(id));
@@ -36,6 +39,14 @@ KisGpuDocumentWindow::KisGpuDocumentWindow(KisGpuDocumentDevice &documents, KisG
         statusBar()->showMessage(tr("The drawing could not be accepted. Try again after freeing document memory."));
     });
     auto *toolbar = addToolBar(tr("Painting"));
+    auto *save = toolbar->addAction(tr("Save"));
+    save->setObjectName(QStringLiteral("gpuSave"));
+    save->setShortcuts(QKeySequence::Save);
+    connect(save, &QAction::triggered, this, [this] { requestSave(false); });
+    auto *saveAs = toolbar->addAction(tr("Save As"));
+    saveAs->setShortcuts(QKeySequence::SaveAs);
+    connect(saveAs, &QAction::triggered, this, [this] { requestSave(true); });
+    toolbar->addSeparator();
     auto *undo = toolbar->addAction(tr("Undo"));
     undo->setObjectName(QStringLiteral("gpuUndo"));
     undo->setShortcuts(QKeySequence::Undo);
@@ -81,12 +92,71 @@ KisGpuDocumentWindow::KisGpuDocumentWindow(KisGpuDocumentDevice &documents, KisG
     });
     updateLayers();
     updateView();
+    revision();
     m_refresh.setInterval(100);
     connect(&m_refresh, &QTimer::timeout, this, [this] {
         updateLayers();
+        revision();
+        const auto model = m_documents.document(m_id);
+        if (m_savePending && !m_canvas->hasPendingInput() && model && model->state() == KisGpuLayerDocument::State::Idle) {
+            m_savePending = false;
+            Q_EMIT saveRequested(m_saveAs);
+        }
         if (!m_canvas->lastError().isEmpty()) statusBar()->showMessage(tr("Waiting for drawing resources."));
     });
     m_refresh.start();
+}
+
+quint64 KisGpuDocumentWindow::revision()
+{
+    const auto model = m_documents.document(m_id);
+    if (!model) return m_revision;
+    const auto recovery = model->recovery();
+    const auto &frame = recovery.history[recovery.cursor];
+    bool same = m_observedFrame.size() == frame.size();
+    for (qsizetype i = 0; same && i < frame.size(); ++i) same = m_observedFrame[i].lock() == frame[i];
+    if (m_observed && !same) { ++m_revision; setWindowModified(true); }
+    m_observedFrame.clear();
+    for (const auto &record : frame) m_observedFrame.append(record);
+    m_observed = true;
+    return m_revision;
+}
+
+void KisGpuDocumentWindow::requestSave(bool saveAs)
+{
+    m_canvas->finishPointerInput();
+    m_savePending = true;
+    m_saveAs = saveAs;
+    statusBar()->showMessage(tr("Preparing to save…"));
+}
+
+void KisGpuDocumentWindow::saveSucceeded(quint64 savedRevision, const QString &path)
+{
+    const bool current = revision() == savedRevision && !m_canvas->hasPendingInput();
+    if (current) setWindowModified(false);
+    setWindowTitle(tr("%1[*] — GPU Canvas").arg(QFileInfo(path).fileName()));
+    statusBar()->showMessage(current ? tr("Saved.") : tr("Saved. Newer changes remain unsaved."));
+    const bool closeSaved = m_closeAfterSave && current;
+    m_closeAfterSave = false;
+    if (closeSaved) close();
+}
+
+void KisGpuDocumentWindow::saveFailed(const QString &message)
+{
+    m_closeAfterSave = false;
+    m_savePending = false;
+    if (!message.isEmpty()) statusBar()->showMessage(message);
+}
+
+void KisGpuDocumentWindow::closeEvent(QCloseEvent *event)
+{
+    revision();
+    if (!m_id || (!isWindowModified() && !m_canvas->hasPendingInput())) { event->accept(); return; }
+    const auto answer = QMessageBox::warning(this, tr("GPU Canvas"), tr("Save changes before closing?"),
+        QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel, QMessageBox::Save);
+    if (answer == QMessageBox::Discard) { event->accept(); return; }
+    if (answer == QMessageBox::Save) { m_closeAfterSave = true; requestSave(false); }
+    event->ignore();
 }
 
 KisGpuDocumentWindow::~KisGpuDocumentWindow()

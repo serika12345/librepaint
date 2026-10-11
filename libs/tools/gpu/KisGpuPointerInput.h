@@ -27,6 +27,8 @@ public:
     bool setWindowToCanvas(const QTransform &transform);
     KisGpuStrokeInput::Result poll();
     KisGpuStrokeInput::Result cancel();
+    /** Finish accepted input before a document command such as save. */
+    void requestCommit();
     bool active() const { return m_active; }
 Q_SIGNALS:
     /** Start and further input allow the application owner to resume its GPU and timers. */

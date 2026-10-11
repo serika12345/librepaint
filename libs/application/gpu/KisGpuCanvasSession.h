@@ -36,6 +36,8 @@ public:
     KisGpuStrokeInput::Result commit(const KisGpuStrokeInput::Token &token);
     KisGpuStrokeInput::Result cancel(const KisGpuStrokeInput::Token &token);
     KisGpuStrokeInput::State inputState() const;
+    bool hasPendingInput() const;
+    void finishPointerInput();
     bool setPointerTool(KisGpuLayerDocument::LayerId layer, KisGpuStrokeInput::Configuration configuration,
                         KisGpuLayerDocument::Target target = KisGpuLayerDocument::Target::Pixels);
     /** Invalid transforms preserve the input mapping and displayed view. */

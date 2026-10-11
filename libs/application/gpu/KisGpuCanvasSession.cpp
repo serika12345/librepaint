@@ -90,6 +90,16 @@ bool KisGpuCanvasSession::setPointerTool(Document::LayerId layer, Input::Configu
     return true;
 }
 
+bool KisGpuCanvasSession::hasPendingInput() const
+{
+    return (m_pointer && m_pointer->active()) || inputState() == Input::State::Drawing || inputState() == Input::State::Finishing;
+}
+
+void KisGpuCanvasSession::finishPointerInput()
+{
+    if (m_pointer) m_pointer->requestCommit();
+}
+
 bool KisGpuCanvasSession::setView(const Krita::Canvas::GpuRenderer::View &view)
 {
     bool invertible = false;

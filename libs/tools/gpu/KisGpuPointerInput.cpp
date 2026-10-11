@@ -51,6 +51,14 @@ void KisGpuPointerInput::finish()
     m_active = m_started = m_released = m_committed = false;
 }
 
+void KisGpuPointerInput::requestCommit()
+{
+    if (m_active && !m_released) {
+        m_released = true;
+        Q_EMIT inputReady();
+    }
+}
+
 Input::Result KisGpuPointerInput::cancel()
 {
     if (!m_active) return Input::Result::Accepted;
@@ -90,9 +98,7 @@ bool KisGpuPointerInput::eventFilter(QObject *object, QEvent *event)
     if (event->type() == QEvent::KeyPress && static_cast<QKeyEvent *>(event)->key() == Qt::Key_Escape && m_active) {
         cancel(); event->accept(); return true;
     }
-    if (event->type() == QEvent::WindowDeactivate && m_active && !m_released) {
-        m_released = true; Q_EMIT inputReady();
-    }
+    if (event->type() == QEvent::WindowDeactivate) requestCommit();
     if (event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseMove
         || event->type() == QEvent::MouseButtonRelease) {
         const auto mouse = static_cast<QMouseEvent *>(event);

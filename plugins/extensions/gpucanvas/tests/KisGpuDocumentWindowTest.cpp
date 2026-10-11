@@ -6,6 +6,7 @@
 #include "KisGpuCanvasSession.h"
 #include <QAction>
 #include <QMouseEvent>
+#include <QMessageBox>
 #include <QWindow>
 #include <QtTest>
 
@@ -27,6 +28,41 @@ QWindow *drawingWindow(quint64 id)
 class KisGpuDocumentWindowTest : public QObject {
     Q_OBJECT
 private Q_SLOTS:
+    void savingFinishesInputAndKeepsNewerChangesDirty() {
+        KisGpuDocumentDevice documents;
+        KisGpuApplicationState application(documents);
+        const auto id = documents.createDocument({});
+        auto model = documents.document(id);
+        model->addLayer(QStringLiteral("Paint"));
+        KisGpuDocumentWindow editor(documents, application, id, QRect(0, 0, 64, 64));
+        editor.show();
+        auto *window = drawingWindow(id);
+        QVERIFY(window && QTest::qWaitForWindowExposed(window));
+        application.applicationStateChanged(Qt::ApplicationActive);
+        QSignalSpy saves(&editor, &KisGpuDocumentWindow::saveRequested);
+        mouse(*window, QEvent::MouseButtonPress, {window->width() / 2.0, window->height() / 2.0}, Qt::LeftButton, Qt::LeftButton);
+        auto *save = editor.findChild<QAction *>(QStringLiteral("gpuSave"));
+        QVERIFY(save);
+        save->trigger();
+        QTRY_COMPARE(saves.count(), 1);
+        QVERIFY(!editor.findChild<KisGpuCanvasSession *>()->hasPendingInput());
+        QVERIFY(model->layers().first().paint.pixels.tileCount() > 0);
+        QVERIFY(editor.isWindowModified());
+        const auto saved = editor.revision();
+        QCOMPARE(model->addLayer(QStringLiteral("Newer")).result, KisGpuLayerDocument::Result::Accepted);
+        editor.saveSucceeded(saved, QStringLiteral("saved.kra"));
+        QVERIFY(editor.isWindowModified());
+        QTimer::singleShot(0, [] {
+            for (auto *widget : QApplication::topLevelWidgets())
+                if (auto *question = qobject_cast<QMessageBox *>(widget)) question->done(QMessageBox::Cancel);
+        });
+        QVERIFY(!editor.close());
+        QVERIFY(editor.isVisible());
+        QVERIFY(documents.document(id));
+        editor.saveSucceeded(editor.revision(), QStringLiteral("saved.kra"));
+        QVERIFY(!editor.isWindowModified());
+        QVERIFY(editor.close());
+    }
     void drawingUndoRedoAndWindowOwnership() {
         KisGpuDocumentDevice documents;
         KisGpuApplicationState application(documents);

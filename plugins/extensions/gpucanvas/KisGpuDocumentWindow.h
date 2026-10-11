@@ -21,9 +21,18 @@ public:
     KisGpuDocumentWindow(KisGpuDocumentDevice &documents, KisGpuApplicationState &application,
                          KisGpuDocumentDevice::DocumentId id, QRect bounds, QWidget *parent = nullptr);
     ~KisGpuDocumentWindow() override;
+    KisGpuDocumentDevice::DocumentId documentId() const { return m_id; }
+    QRect canvasBounds() const { return m_bounds; }
+    quint64 revision();
+    void saveSucceeded(quint64 revision, const QString &path);
+    void saveFailed(const QString &message = {});
+Q_SIGNALS:
+    void saveRequested(bool saveAs);
 protected:
     bool eventFilter(QObject *object, QEvent *event) override;
+    void closeEvent(QCloseEvent *event) override;
 private:
+    void requestSave(bool saveAs);
     void updateView();
     void updateLayers();
     void updateTool();
@@ -37,5 +46,8 @@ private:
     QColor m_color{Qt::black};
     std::unique_ptr<KisGpuCanvasSession> m_canvas;
     QTimer m_refresh;
+    QVector<std::weak_ptr<const KisGpuLayerDocument::RecoveryLayer>> m_observedFrame;
+    quint64 m_revision = 0;
+    bool m_observed = false, m_savePending = false, m_saveAs = false, m_closeAfterSave = false;
 };
 #endif
