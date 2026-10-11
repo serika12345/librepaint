@@ -315,6 +315,11 @@ build-incremental native build KisGpuCanvasInputBenchmark
 検証用読み戻しは計測後に実行し、転送量を別に記録する。実画面への提示は表示計測器で確認する。
 
 `KisGpuEditSessionTest`は公開中と作成中の回復命令を同じCPU予算へ計上し、拒否時の従来の作業版を確認する。
+表示色変換の表生成は`run-test KisRgb8DisplayLookupTest`、GPU画素と製品画面への接続は
+`run-test KisGpuDisplayColorTest`で検証する。固定ICC値は`krita/data/profiles/elles-icc-profiles`を使い、
+ClayRGB、Rec2020と異なるsRGBガンマの変換を既存の色変換器と完全一致で比較する。
+GPU検査は部分透明のRGBA8も比較し、通常の文書画素転送、表の再利用、最新設定の採用、
+GUIイベントの進行と画面終了時の背景処理の取消しを確認する。
 質感は`KisBrushTextureContractTest`で既存CPUの本番乗算を確認し、`KisGpuBrushTextureTest`で
 同じ固定値、負座標の繰り返し、選択・消去、初期転送後の再利用、資源寿命と回復を検査する。
 送信失敗と無効なマッピングの検査は別プロセスで実行し、ネイティブAPIがエラー通知と

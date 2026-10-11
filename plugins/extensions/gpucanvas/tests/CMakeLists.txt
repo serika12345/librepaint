@@ -1,3 +1,15 @@
+kis_add_test(KisGpuDisplayColorTest.cpp LINK_LIBRARIES kritagpucanvasdisplaycolor kritacanvasrgb8displaylookup Qt${QT_MAJOR_VERSION}::Test)
+target_sources(KisGpuDisplayColorTest PRIVATE ${CMAKE_SOURCE_DIR}/libs/image/gpu/tests/KisGpuTestDevice.cpp)
+target_include_directories(KisGpuDisplayColorTest PRIVATE ${CMAKE_SOURCE_DIR}/libs/image/gpu/tests ${CMAKE_SOURCE_DIR}/libs/canvas/gpu/tests)
+add_dependencies(KisGpuDisplayColorTest kritalcmsengine)
+set_tests_properties(plugins-extensions-gpucanvas-KisGpuDisplayColorTest PROPERTIES
+    TIMEOUT 120 LABELS "gpu;gpu-display" RESOURCE_LOCK gpu_native_window
+    FAIL_REGULAR_EXPRESSION "Validation Error;VUID-")
+if(APPLE)
+    set_tests_properties(plugins-extensions-gpucanvas-KisGpuDisplayColorTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")
+else()
+    set_tests_properties(plugins-extensions-gpucanvas-KisGpuDisplayColorTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
+endif()
 # SPDX-License-Identifier: GPL-2.0-or-later
 kis_add_test(KisGpuDocumentWindowTest.cpp LINK_LIBRARIES kritagpucanvaswindow Qt${QT_MAJOR_VERSION}::Test)
 set_tests_properties(plugins-extensions-gpucanvas-KisGpuDocumentWindowTest PROPERTIES

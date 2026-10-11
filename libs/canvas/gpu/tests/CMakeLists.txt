@@ -1,3 +1,8 @@
+kis_add_test(KisRgb8DisplayLookupTest.cpp
+    LINK_LIBRARIES kritacanvasrgb8displaylookup Qt${QT_MAJOR_VERSION}::Test)
+add_dependencies(KisRgb8DisplayLookupTest kritalcmsengine)
+set_tests_properties(libs-canvas-gpu-KisRgb8DisplayLookupTest PROPERTIES TIMEOUT 120)
+
 # SPDX-License-Identifier: GPL-2.0-or-later
 kis_add_test(KisGpuCanvasRendererTest.cpp
     LINK_LIBRARIES kritacanvasgpurenderer Qt${QT_MAJOR_VERSION}::Test)

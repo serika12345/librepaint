@@ -186,12 +186,21 @@ bool KisGpuDocumentWindow::eventFilter(QObject *object, QEvent *event)
     return QMainWindow::eventFilter(object, event);
 }
 
+bool KisGpuDocumentWindow::setDisplayLookup(std::shared_ptr<const QByteArray> values)
+{
+    if (values && values->size() != Krita::Canvas::GpuRenderer::DisplayLookupBytes) return false;
+    m_displayLookup = std::move(values);
+    updateView();
+    return true;
+}
+
 void KisGpuDocumentWindow::updateView()
 {
     if (!m_canvas || !m_window->width() || !m_window->height()) return;
     const qreal ratio = m_window->devicePixelRatio();
     const qreal scale = std::min(qreal(m_window->width()) / m_bounds.width(), qreal(m_window->height()) / m_bounds.height()) * ratio;
     Krita::Canvas::GpuRenderer::View view;
+    view.displayLookup = m_displayLookup;
     view.canvasToTarget.translate((m_window->width() * ratio - m_bounds.width() * scale) / 2,
                                  (m_window->height() * ratio - m_bounds.height() * scale) / 2);
     view.canvasToTarget.scale(scale, scale);

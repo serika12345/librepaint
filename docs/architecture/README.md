@@ -128,6 +128,8 @@ GPUのポインター入力はこの形状値を同じ編集の差し替えへ�
 `libs/canvas/gpu`の`kritacanvasgpurenderer`は、GPU文書が生成した画像を直接読み、
 座標変換、補間、背景合成とRGB8の表示色変換をGPU上で実行する。
 表示側からGPU文書所有者とQt Guiへ依存する。
+`kritacanvasrgb8displaylookup`は既存の色変換からRGB8の表示表を生成し、`kritapigment`へ依存する。
+製品画面の`KisGpuDisplayColor`が生成と最新設定の採用を管理し、描画所有者へ完成した表を渡す。
 [GPUキャンバス画像の描画](gpu-canvas-rendering.md)が画素と非同期資源保持の契約を定義する。
 同じ所有者の`kritacanvasgpusurface`が専用ウィンドウへの表示面の取得、有限の提示、
 サイズ変更と破棄を調整する。OS固有の資源は`GpuWindowSurface_mac.mm`と

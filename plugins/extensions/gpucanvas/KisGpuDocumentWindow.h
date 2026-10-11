@@ -25,6 +25,7 @@ public:
     KisGpuDocumentDevice::DocumentId documentId() const { return m_id; }
     QRect canvasBounds() const { return m_bounds; }
     quint64 revision();
+    bool setDisplayLookup(std::shared_ptr<const QByteArray> values);
     void saveSucceeded(quint64 revision, const QString &path);
     void saveFailed(const QString &message = {});
 Q_SIGNALS:
@@ -46,6 +47,7 @@ private:
     QAction *m_eraser = nullptr;
     QColor m_color{Qt::black};
     std::unique_ptr<KisGpuCanvasSession> m_canvas;
+    std::shared_ptr<const QByteArray> m_displayLookup;
     QTimer m_refresh;
     QVector<std::weak_ptr<const KisGpuLayerDocument::RecoveryLayer>> m_observedFrame;
     quint64 m_revision = 0;

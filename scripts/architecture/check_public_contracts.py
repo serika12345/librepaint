@@ -134,6 +134,7 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
         "libs/ui/tests/TestApplicationWorkspaceToolUiPublicHeaders.cpp",
         "libs/canvas/gpu/tests/KisGpuSurfaceRendererTest.cpp",
         "libs/application/gpu/tests/KisGpuCanvasSessionTest.cpp",
+        "plugins/extensions/gpucanvas/tests/KisGpuDisplayColorTest.cpp",
     ),
     "libs/document": ("libs/application/gpu/tests/KisGpuApplicationStateTest.cpp",),
     "libs/document/ui": (

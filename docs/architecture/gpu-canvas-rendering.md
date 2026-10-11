@@ -16,6 +16,10 @@ macOSではAppKitとQuartzCore、LinuxのX11ではXlibをOS接続に利用する
 | `libs/canvas/gpu/GpuRenderer.cpp` | 描画先の検査、有限の発行、資源保持と完了回収 |
 | `libs/canvas/gpu/GpuRenderer.wgsl` | 座標変換、透明画素の補間と背景合成 |
 | `libs/canvas/gpu/tests/KisGpuCanvasRendererTest.cpp` | 実GPUの画素、拒否、寿命と喪失の契約 |
+| `libs/canvas/gpu/KisRgb8DisplayLookup.*` | 既存の色変換から全RGB8値の表示表を生成する独立したCPU処理 |
+| `libs/canvas/gpu/tests/KisRgb8DisplayLookupTest.cpp` | 固定ICCプロファイルと既存変換の完全一致、取消しと恒等変換 |
+| `plugins/extensions/gpucanvas/KisGpuDisplayColor.*` | 一つの画面の背景生成、最新要求の採用と終了時の取消し |
+| `plugins/extensions/gpucanvas/tests/KisGpuDisplayColorTest.cpp` | ICC変換後のGPU画素、画面設定変更と背景処理の寿命 |
 | `libs/canvas/gpu/SurfaceRenderer.h`、`libs/canvas/gpu/SurfaceRenderer.cpp` | 表示条件、表示面の設定、有限のフレーム提示 |
 | `libs/canvas/gpu/DocumentCanvas.h`、`libs/canvas/gpu/DocumentCanvas.cpp` | 文書変更の集約、投影と表示画像の保持、提示の再試行 |
 | `libs/canvas/gpu/tests/KisGpuDocumentCanvasTest.cpp` | 連続入力の表示、形状差し替えと確定、静止時の発行抑制、予算回復とウィンドウ再作成 |
@@ -71,6 +75,17 @@ GPUは逆変換で画素中心を入力画像の座標へ戻す。移動、拡�
 全RGB8値を保持することで、変換表の粗い補間による色差を除く。ICCプロファイルと変換条件から
 表を作る責務は利用側が所有し、描画側は指定された値をそのまま適用する。
 
+`KisRgb8DisplayLookup::build()`は既存のBGRA8色空間から専用の変換器を生成し、青の各段階ごとに
+256×256色を変換してRGBA順へ揃える。変換器は呼出しスレッドだけで使用する。
+同じ色空間と全RGB値が恒等変換になる結果は、表を省略する。
+取消しは各段階と完成前に検査し、完成した結果だけを返す。対象はRGBA8であり、
+高ビット深度は別の画像契約が必要になるため、生成前に拒否する。
+
+製品画面は標準sRGBの文書色空間を入力とし、`KisGpuDisplayColor`が一つの背景処理と
+最新の一要求で表の生成を管理する。設定変更は進行中の処理へ取消しを伝え、古い結果の採用を防ぐ。
+画面は完成したCPU表を保持して寸法変更とGPU再作成へ渡し、表の生成失敗では以前の表示条件を維持する。
+画面終了時は背景処理を取消して完了を待つ。借用する色空間はアプリケーションの色空間登録所有者が保持する。
+
 同じ共有値の再表示はGPU上の表を再利用する。表の切替時も、未完了フレームが読む旧表を
 完了回収までGPU上で保持する。CPU値は発行中だけ借用し、GPU所有者は旧CPU表を保持しない。
 表本体の64MiBと転送中の64MiBをデバイス全体の予算から予約し、
@@ -84,6 +99,9 @@ GPUは逆変換で画素中心を入力画像の座標へ戻す。移動、拡�
 `DocumentCanvas::setView()`は表の変更で保持した表示画像を再提示し、文書画素・投影・画像確保を維持する。
 macOSのsRGB MetalレイヤーではOSの表示変換を使う。利用側が異なる表示色を指定する場合は、
 表示面に設定した色空間との対応を検証し、色変換の重複を防ぐ。
+製品のmacOS画面はOSによるsRGBから画面色への変換を利用する。X11画面は既存の
+`KisDisplayConfig`から画面プロファイル、変換目的と変換条件を取得し、GPUの変換表へ渡す。
+画面の移動と設定変更は同じ生成所有者へ最新条件を渡す。X11のプロファイル未取得時は標準sRGBを使う。
 
 ## 実ウィンドウへの提示
 

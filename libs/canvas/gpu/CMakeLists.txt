@@ -26,6 +26,11 @@ if((APPLE AND NOT IOS) OR CMAKE_SYSTEM_NAME STREQUAL "Linux")
     endif()
 endif()
 
+add_library(kritacanvasrgb8displaylookup STATIC KisRgb8DisplayLookup.cpp)
+target_include_directories(kritacanvasrgb8displaylookup PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(kritacanvasrgb8displaylookup PUBLIC kritapigment)
+set_target_properties(kritacanvasrgb8displaylookup PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
+
 if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()
