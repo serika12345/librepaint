@@ -259,6 +259,15 @@ GPU内複製、操作完了と予算超過を検査する。評価済みのテ�
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuDocumentCanvasTest
 ```
 
+Linuxのネイティブメモリー通知は、専用D-Busで一つの契約を実行する。
+同じバスを共有する製品の保存・休止の契約にも検査用通知が届くため、
+全GPU契約は通常の通知環境で実行する。
+
+```sh
+./scripts/run-shared-test-env dbus-run-session -- sh -c \
+  'DBUS_SYSTEM_BUS_ADDRESS="$DBUS_SESSION_BUS_ADDRESS" KIS_GPU_TEST_ISOLATED_BUS=1 ctest --preset tdd-linux --tests-regex "^libs-application-gpu-KisGpuApplicationStateTest$"'
+```
+
 画像契約の実測画素を調べる場合は、`KIS_GPU_IMAGE_ARTIFACT_DIRECTORY`へ保存先を指定して
 `KisGpuLayerBrushImageTest`を実行する。各条件の結果を密なRGBA8のzlib圧縮として
 `<条件>.rgba.zlib`へ保存する。検査時の明示的な読み取りを使い、通常描画の転送統計から分離する。
