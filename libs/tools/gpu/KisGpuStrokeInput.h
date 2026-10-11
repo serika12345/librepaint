@@ -47,9 +47,10 @@ public:
     State state() const { return m_state; }
     qsizetype pendingSamples() const { return qsizetype(m_queue.size()); }
     KisGpuTileStore::Error lastGpuError() const { return m_gpuError; }
+    /** CPU-only configuration and resource-size validation before retaining GUI input. */
+    bool validConfiguration(const Configuration &configuration) const;
 private:
     bool matches(const Token &token) const;
-    bool validConfiguration(const Configuration &configuration) const;
     Result prepare();
     void finish(State state);
     std::shared_ptr<KisGpuLayerDocument> m_document;
