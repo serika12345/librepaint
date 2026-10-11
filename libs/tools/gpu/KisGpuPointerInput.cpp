@@ -3,20 +3,30 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuPointerInput.h"
+#include "kis_quick_shape.h"
 #include <QKeyEvent>
 #include <QMouseEvent>
 #include <QPointingDevice>
 #include <QTabletEvent>
 #include <QWindow>
+#include <algorithm>
 #include <cmath>
 #include <stdexcept>
 
-namespace { using Input = KisGpuStrokeInput; }
+namespace {
+using Input = KisGpuStrokeInput;
+constexpr int EllipseSegments = 256;
+}
 
 KisGpuPointerInput::KisGpuPointerInput(Input &input, QWindow &window, qsizetype maximum, QObject *parent)
-    : QObject(parent), m_input(input), m_window(window), m_maximumSamples(maximum)
+    : QObject(parent), m_input(input), m_window(window), m_maximumSamples(maximum),
+      m_quickShape(std::make_unique<KisQuickShapeTracker>())
 {
     if (maximum <= 0) throw std::invalid_argument("Pointer input requires a positive CPU sample limit");
+    m_hold.setSingleShot(true);
+    m_hold.setInterval(500);
+    m_hold.setTimerType(Qt::PreciseTimer);
+    connect(&m_hold, &QTimer::timeout, this, &KisGpuPointerInput::recognizeQuickShape);
     m_window.installEventFilter(this);
 }
 
@@ -40,12 +50,57 @@ bool KisGpuPointerInput::setWindowToCanvas(const QTransform &transform)
         || !std::isfinite(transform.m11()) || !std::isfinite(transform.m12())
         || !std::isfinite(transform.m21()) || !std::isfinite(transform.m22())
         || !std::isfinite(transform.dx()) || !std::isfinite(transform.dy())) return false;
+    const qreal slop = KisQuickShapeTracker::DefaultHoldSlop * std::max(
+        std::hypot(transform.m11(), transform.m12()), std::hypot(transform.m21(), transform.m22()));
+    if (!std::isfinite(slop)) return false;
+    m_quickShape->setHoldSlop(slop);
     m_transform = transform;
     return true;
 }
 
+bool KisGpuPointerInput::setQuickShapeEnabled(bool enabled)
+{
+    if (enabled == m_quickShapeEnabled) return true;
+    if (cancel() == Input::Result::Busy) return false;
+    m_quickShapeEnabled = enabled;
+    return true;
+}
+
+bool KisGpuPointerInput::quickShapeActive() const { return m_quickShape->shape().isValid(); }
+
+void KisGpuPointerInput::recognizeQuickShape()
+{
+    if (!m_active || m_released || !m_quickShapeEnabled || !m_quickShape->recognize()) return;
+    const auto required = m_quickShape->shape().type() == KisQuickShape::Line ? 2 : EllipseSegments + 1;
+    if (required > m_input.maximumSamples()) {
+        m_quickShape->reset();
+        return;
+    }
+    m_queue.clear();
+    m_shapePending = true;
+    Q_EMIT inputReady();
+}
+
+QVector<KisGpuBrushStroke::Sample> KisGpuPointerInput::quickShapeSamples() const
+{
+    const auto &shape = m_quickShape->shape();
+    if (shape.type() == KisQuickShape::Line) return {{shape.lineStart(), m_shapePressure}, {shape.lineEnd(), m_shapePressure}};
+    QVector<KisGpuBrushStroke::Sample> samples;
+    samples.reserve(EllipseSegments + 1);
+    const QPointF axis(std::cos(shape.rotation()), std::sin(shape.rotation()));
+    const QPointF perpendicular(-axis.y(), axis.x());
+    for (int i = 0; i < EllipseSegments; ++i) {
+        const qreal angle = 2 * M_PI * i / EllipseSegments;
+        samples.append({shape.center() + axis * (shape.radiusX() * std::cos(angle))
+            + perpendicular * (shape.radiusY() * std::sin(angle)), m_shapePressure});
+    }
+    samples.append(samples.first());
+    return samples;
+}
+
 void KisGpuPointerInput::finish()
 {
+    m_hold.stop(); m_quickShape->reset(); m_shapePending = false;
     m_queue.clear(); m_token = {}; m_frozen = {};
     m_source = Source::None;
     m_active = m_started = m_released = m_committed = false;
@@ -54,6 +109,7 @@ void KisGpuPointerInput::finish()
 void KisGpuPointerInput::requestCommit()
 {
     if (m_active && !m_released) {
+        m_hold.stop();
         m_released = true;
         Q_EMIT inputReady();
     }
@@ -81,12 +137,30 @@ void KisGpuPointerInput::start(KisGpuBrushStroke::Sample sample, Source source, 
     if (eraser) m_frozen.configuration.brush.operation = KisGpuTileStore::CompositeOp::Erase;
     m_source = source; m_active = true;
     queue(sample);
+    if (m_active && m_quickShapeEnabled) {
+        m_shapePressure = sample.pressure;
+        m_quickShape->begin(sample.position);
+        m_hold.start();
+    }
 }
 
 void KisGpuPointerInput::queue(KisGpuBrushStroke::Sample sample)
 {
     if (!m_active || m_released) return;
     if (!KisGpuBrushStroke::validSample(sample)) { reject(Input::Result::InvalidInput); return; }
+    if (quickShapeActive()) {
+        if (m_quickShape->adjustTo(sample.position)) m_shapePending = true;
+        Q_EMIT inputReady();
+        return;
+    }
+    if (m_quickShape->isTracking()) {
+        if (m_quickShape->pointCount() >= m_maximumSamples) {
+            m_quickShape->reset(); m_hold.stop();
+        } else {
+            m_shapePressure = sample.pressure;
+            if (m_quickShape->extend(sample.position)) m_hold.start();
+        }
+    }
     if (qsizetype(m_queue.size()) >= m_maximumSamples) { reject(Input::Result::QueueFull); return; }
     m_queue.push_back(sample);
     Q_EMIT inputReady();
@@ -98,6 +172,10 @@ bool KisGpuPointerInput::eventFilter(QObject *object, QEvent *event)
     if (event->type() == QEvent::KeyPress && static_cast<QKeyEvent *>(event)->key() == Qt::Key_Escape && m_active) {
         cancel(); event->accept(); return true;
     }
+    if (event->type() == QEvent::KeyPress && static_cast<QKeyEvent *>(event)->key() == Qt::Key_Shift
+        && !static_cast<QKeyEvent *>(event)->isAutoRepeat() && quickShapeActive() && m_quickShape->toggleCircle()) {
+        m_shapePending = true; Q_EMIT inputReady(); event->accept(); return true;
+    }
     if (event->type() == QEvent::WindowDeactivate) requestCommit();
     if (event->type() == QEvent::MouseButtonPress || event->type() == QEvent::MouseMove
         || event->type() == QEvent::MouseButtonRelease) {
@@ -107,7 +185,7 @@ bool KisGpuPointerInput::eventFilter(QObject *object, QEvent *event)
         if (event->type() == QEvent::MouseButtonPress && mouse->button() == Qt::LeftButton) start(sample, Source::Mouse);
         else if (m_source == Source::Mouse && event->type() == QEvent::MouseMove && (mouse->buttons() & Qt::LeftButton)) queue(sample);
         else if (m_source == Source::Mouse && event->type() == QEvent::MouseButtonRelease && mouse->button() == Qt::LeftButton) {
-            queue(sample); m_released = m_active; Q_EMIT inputReady();
+            queue(sample); requestCommit();
         } else return false;
         event->accept(); return true;
     }
@@ -119,7 +197,7 @@ bool KisGpuPointerInput::eventFilter(QObject *object, QEvent *event)
                 && tablet->pointingDevice()->pointerType() == QPointingDevice::PointerType::Eraser);
         } else if (m_source == Source::Tablet && event->type() == QEvent::TabletMove) queue(sample);
         else if (m_source == Source::Tablet && event->type() == QEvent::TabletRelease) {
-            queue(sample); m_released = m_active; Q_EMIT inputReady();
+            queue(sample); requestCommit();
         } else return false;
         event->accept(); return true;
     }
@@ -142,6 +220,12 @@ Input::Result KisGpuPointerInput::poll()
     }
     if (m_input.state() == Input::State::Finished || m_input.state() == Input::State::Cancelled) {
         finish(); return Input::Result::Accepted;
+    }
+    if (m_shapePending) {
+        const auto accepted = m_input.replace(m_token, quickShapeSamples());
+        if (accepted == Input::Result::QueueFull) return Input::Result::Busy;
+        if (accepted != Input::Result::Accepted) { reject(accepted); return accepted; }
+        m_shapePending = false;
     }
     for (int count = 0; count < 64 && !m_queue.empty(); ++count) {
         const auto accepted = m_input.append(m_token, {m_queue.front()});

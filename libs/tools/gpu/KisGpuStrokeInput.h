@@ -49,6 +49,7 @@ public:
     /** Advance restoration and at most one generated batch; refused input remains queued. */
     Result poll();
     State state() const { return m_state; }
+    qsizetype maximumSamples() const { return m_maximumSamples; }
     qsizetype pendingSamples() const {
         return qsizetype(m_queue.size()) + (m_nextReplacement ? qsizetype(m_nextReplacement->samples.size()) : 0);
     }

@@ -7,7 +7,9 @@
 #include "KisGpuStrokeInput.h"
 #include <QObject>
 #include <QTransform>
+#include <QTimer>
 class QWindow;
+class KisQuickShapeTracker;
 
 /** Mouse and tablet interpretation with bounded CPU waiting before an edit begins.
  * The window and stroke input outlive this object on the GUI/submitting thread.
@@ -25,6 +27,9 @@ public:
                  KisGpuLayerDocument::Target target = KisGpuLayerDocument::Target::Pixels);
     /** Finite, invertible affine mapping from logical window coordinates to canvas coordinates. */
     bool setWindowToCanvas(const QTransform &transform);
+    /** A mode change cancels unfinished input; a committing operation preserves the mode. */
+    bool setQuickShapeEnabled(bool enabled);
+    bool quickShapeActive() const;
     KisGpuStrokeInput::Result poll();
     KisGpuStrokeInput::Result cancel();
     /** Finish accepted input before a document command such as save. */
@@ -47,6 +52,8 @@ private:
     void queue(KisGpuBrushStroke::Sample sample);
     void finish();
     void reject(KisGpuStrokeInput::Result result);
+    void recognizeQuickShape();
+    QVector<KisGpuBrushStroke::Sample> quickShapeSamples() const;
     KisGpuStrokeInput &m_input;
     QWindow &m_window;
     const qsizetype m_maximumSamples;
@@ -54,6 +61,10 @@ private:
     Tool m_tool, m_frozen;
     KisGpuStrokeInput::Token m_token;
     std::deque<KisGpuBrushStroke::Sample> m_queue;
+    std::unique_ptr<KisQuickShapeTracker> m_quickShape;
+    QTimer m_hold;
+    qreal m_shapePressure = 1;
+    bool m_quickShapeEnabled = false, m_shapePending = false;
     Source m_source = Source::None;
     bool m_active = false, m_started = false, m_released = false, m_committed = false;
 };

@@ -95,6 +95,15 @@ bool KisGpuCanvasSession::hasPendingInput() const
     return (m_pointer && m_pointer->active()) || inputState() == Input::State::Drawing || inputState() == Input::State::Finishing;
 }
 
+bool KisGpuCanvasSession::setQuickShapeEnabled(bool enabled)
+{
+    if (!m_pointer || !m_pointer->setQuickShapeEnabled(enabled)) return false;
+    updatePolling();
+    return true;
+}
+
+bool KisGpuCanvasSession::quickShapeActive() const { return m_pointer && m_pointer->quickShapeActive(); }
+
 void KisGpuCanvasSession::finishPointerInput()
 {
     if (m_pointer) m_pointer->requestCommit();

@@ -295,6 +295,10 @@ CPU側の入力進行を保持したGPU交換では、追加・差し替え・�
 再開後の通常描画で画素転送が増えないことを確認する。
 長い形状の差し替えは`KisGpuStrokeInputTest`で単色・質感・混色の途中版の非公開、
 完成版の一括採用と再描画なしの確定、GPU交換後の全入力再生成、容量不足・再差し替え・取消しを検査する。
+連続変更は作成中・最新候補の容量合算、入力中の完成形状公開と最新画像の採用を検査する。
+形状認識の単独検査は`run-test KisQuickShapeContractTest`で実行する。
+`KisGpuPointerInputTest`は保持操作、正円化、筆圧、拡大率とGPU交換後の形状調整を
+正規化入力の画像と照合する。製品画面の切替・取消し・保存は`KisGpuDocumentWindowTest`で確認する。
 `KisGpuEditSessionTest`は公開中と作成中の回復命令を同じCPU予算へ計上し、拒否時の従来の作業版を確認する。
 質感は`KisBrushTextureContractTest`で既存CPUの本番乗算を確認し、`KisGpuBrushTextureTest`で
 同じ固定値、負座標の繰り返し、選択・消去、初期転送後の再利用、資源寿命と回復を検査する。

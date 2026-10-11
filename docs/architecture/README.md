@@ -122,6 +122,8 @@
 [GPUブラシの下地採取](gpu-brush-mixing.md)がGPU内の採取順序、混色と履歴への保持を定義する。
 [GPU描画ツールの入力待ち列と寿命](gpu-stroke-input.md)が長い入力の分割、形状差し替え、
 確定待ち、取消しとGPU交換後の継続を定義する。
+`libs/tools/kis_quick_shape.*`の形状認識・調整はQt Coreへ依存する`kritatoolsquickshape`が所有する。
+GPUのポインター入力はこの形状値を同じ編集の差し替えへ渡し、製品画面の保持操作・正円化・保存へ接続する。
 
 `libs/canvas/gpu`の`kritacanvasgpurenderer`は、GPU文書が生成した画像を直接読み、
 座標変換、補間と背景合成をGPU上で実行する。表示側からGPU文書所有者とQt Guiへ依存する。

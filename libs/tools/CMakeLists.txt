@@ -1,3 +1,10 @@
+kis_add_library(kritatoolsquickshape SHARED kis_quick_shape.cpp)
+generate_export_header(kritatoolsquickshape)
+target_include_directories(kritatoolsquickshape PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(kritatoolsquickshape PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+set_target_properties(kritatoolsquickshape PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
+install(TARGETS kritatoolsquickshape ${INSTALL_TARGETS_DEFAULT_ARGS})
+
 add_library(kritatoolsspeedsmootherobjects OBJECT
     kis_speed_smoother.cpp
 )

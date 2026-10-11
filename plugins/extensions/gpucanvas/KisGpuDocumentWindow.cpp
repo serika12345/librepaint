@@ -75,6 +75,18 @@ KisGpuDocumentWindow::KisGpuDocumentWindow(KisGpuDocumentDevice &documents, KisG
     m_eraser = toolbar->addAction(tr("Eraser"));
     m_eraser->setCheckable(true);
     connect(m_eraser, &QAction::toggled, this, &KisGpuDocumentWindow::updateTool);
+    auto *shape = toolbar->addAction(tr("Quick Shape"));
+    shape->setObjectName(QStringLiteral("gpuQuickShape"));
+    shape->setCheckable(true);
+    shape->setChecked(true);
+    shape->setToolTip(tr("Hold the pointer to form a line or ellipse. Press Shift to toggle a circle."));
+    m_canvas->setQuickShapeEnabled(true);
+    connect(shape, &QAction::toggled, this, [this, shape](bool enabled) {
+        if (m_canvas->setQuickShapeEnabled(enabled)) return;
+        const QSignalBlocker blocker(shape);
+        shape->setChecked(!enabled);
+        statusBar()->showMessage(tr("Finish drawing before changing Quick Shape."));
+    });
     toolbar->addSeparator();
     m_layers = new QComboBox(toolbar);
     m_layers->setAccessibleName(tr("Paint layer"));

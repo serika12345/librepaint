@@ -28,6 +28,46 @@ QWindow *drawingWindow(quint64 id)
 class KisGpuDocumentWindowTest : public QObject {
     Q_OBJECT
 private Q_SLOTS:
+    void quickShapeActionCancelsAndSaveFinishesTheHeldShape() {
+        KisGpuDocumentDevice documents;
+        KisGpuApplicationState application(documents);
+        const auto id = documents.createDocument({});
+        auto model = documents.document(id); model->addLayer(QStringLiteral("Paint"));
+        KisGpuDocumentWindow editor(documents, application, id, QRect(0, 0, 64, 64));
+        editor.show();
+        auto *window = drawingWindow(id);
+        QVERIFY(window && QTest::qWaitForWindowExposed(window));
+        application.applicationStateChanged(Qt::ApplicationActive);
+        auto *canvas = editor.findChild<KisGpuCanvasSession *>();
+        auto *shape = editor.findChild<QAction *>(QStringLiteral("gpuQuickShape"));
+        auto *save = editor.findChild<QAction *>(QStringLiteral("gpuSave"));
+        QVERIFY(canvas && shape && shape->isCheckable() && shape->isChecked() && save);
+        const QPointF start(window->width() * .25, window->height() * .5);
+        const QPointF end(window->width() * .75, window->height() * .5);
+        mouse(*window, QEvent::MouseButtonPress, start, Qt::LeftButton, Qt::LeftButton);
+        mouse(*window, QEvent::MouseMove, end, Qt::NoButton, Qt::LeftButton);
+        QTRY_VERIFY(canvas->quickShapeActive());
+        shape->setChecked(false);
+        QVERIFY(!canvas->hasPendingInput());
+        QVERIFY(!canvas->quickShapeActive());
+        QCOMPARE(model->state(), KisGpuLayerDocument::State::Idle);
+        QCOMPARE(model->layers().first().paint.pixels.tileCount(), qsizetype(0));
+        shape->setChecked(true);
+        mouse(*window, QEvent::MouseButtonPress, start, Qt::LeftButton, Qt::LeftButton);
+        mouse(*window, QEvent::MouseMove, end, Qt::NoButton, Qt::LeftButton);
+        QTRY_VERIFY(canvas->quickShapeActive());
+        QSignalSpy saves(&editor, &KisGpuDocumentWindow::saveRequested);
+        save->trigger();
+        QTRY_COMPARE(saves.count(), 1);
+        QVERIFY(!canvas->hasPendingInput());
+        QVERIFY(!canvas->quickShapeActive());
+        QVERIFY(model->layers().first().paint.pixels.tileCount() > 0);
+        QCOMPARE(documents.store(id)->statistics().pixelUploadBytes, quint64(0));
+        QCOMPARE(documents.store(id)->statistics().pixelReadbackBytes, quint64(0));
+        QCOMPARE(documents.device()->errorCount(), 0);
+        editor.saveSucceeded(editor.revision(), QStringLiteral("shape.kra"));
+        QVERIFY(editor.close());
+    }
     void savingFinishesInputAndKeepsNewerChangesDirty() {
         KisGpuDocumentDevice documents;
         KisGpuApplicationState application(documents);

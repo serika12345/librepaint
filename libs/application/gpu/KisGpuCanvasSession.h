@@ -38,6 +38,8 @@ public:
     KisGpuStrokeInput::Result cancel(const KisGpuStrokeInput::Token &token);
     KisGpuStrokeInput::State inputState() const;
     bool hasPendingInput() const;
+    bool setQuickShapeEnabled(bool enabled);
+    bool quickShapeActive() const;
     void finishPointerInput();
     bool setPointerTool(KisGpuLayerDocument::LayerId layer, KisGpuStrokeInput::Configuration configuration,
                         KisGpuLayerDocument::Target target = KisGpuLayerDocument::Target::Pixels);
