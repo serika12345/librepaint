@@ -12,6 +12,7 @@
 #include <opengl/kis_opengl.h>
 #include <testui.h>
 #include <KLocalizedString>
+#include <QFile>
 #include <QMenu>
 #include <QWindow>
 
@@ -84,15 +85,16 @@ int main(int argc, char **argv)
     Q_INIT_RESOURCE(krita);
     KisOpenGL::setDefaultSurfaceConfig(KisOpenGL::RendererConfig());
     registerResources();
-    const auto bundlePath = QStringLiteral(GPU_DEFAULT_RESOURCE_BUNDLE);
     auto *resources = KisResourceLocator::instance();
-    auto bundle = KisResourceStorageSP::create(bundlePath);
-    if (!bundle->valid() || !resources->addStorage(bundlePath, bundle))
+    const auto bundlePath = resources->resourceLocationBase() + QStringLiteral("gpu-menu-default.bundle");
+    if (!QFile::link(QStringLiteral(GPU_DEFAULT_RESOURCE_BUNDLE), bundlePath)
+        || !resources->synchronizeDb() || !resources->hasStorage(bundlePath))
         qFatal("Cannot register the default brush bundle for the product menu test");
     KoResourcePaths::addAssetDir(QStringLiteral("kis_actions"), QStringLiteral(GPU_ACTION_DIRECTORY));
     KisGpuCanvasEntryTest test;
     const auto result = QTest::qExec(&test, argc, argv);
     resources->removeStorage(bundlePath);
+    QFile::remove(bundlePath);
     return result;
 }
 #include "KisGpuCanvasEntryTest.moc"
