@@ -324,14 +324,16 @@ build-incremental native build KisGpuCanvasInputBenchmark
 257点の楕円を差し替え、2回の準備更新後の中央値・P95、観測タイマーを含むプロセスCPU時間、
 通常画素転送量と最終画像のSHA-256を出力する。同じ更新数で画像識別値と遅延を比較する。
 検証用読み戻しは計測後に実行し、転送量を別に記録する。
-正規化済み入力から製品の自動回収を通した実画面計測には`--display`を追加する。
+正規化済み入力から製品の自動回収を通した実画面計測には`--show-window`を追加する。
 
 ```sh
-QT_QPA_PLATFORM=cocoa "$(build-incremental native path)/bin/KisGpuCanvasInputBenchmark" --display --samples 30 --output /tmp/gpu-product-shape.json
-QT_QPA_PLATFORM=cocoa "$(build-incremental native path)/bin/KisGpuCanvasInputBenchmark" --display --workload layer-projection --mode replace --samples 15 --output /tmp/gpu-product-layers.json
+QT_QPA_PLATFORM=cocoa "$(build-incremental native path)/bin/KisGpuCanvasInputBenchmark" --show-window --samples 30 --output /tmp/gpu-product-shape.json
+QT_QPA_PLATFORM=cocoa "$(build-incremental native path)/bin/KisGpuCanvasInputBenchmark" --show-window --workload layer-projection --mode replace --samples 15 --output /tmp/gpu-product-layers.json
 ```
 
-Linuxの表示基盤は`QT_QPA_PLATFORM=xcb`を使う。`--workload small|layer-projection`と
+Linuxの実表示計測は`QT_QPA_PLATFORM=wayland`を使う。
+Qtの`--display`はX11接続先の指定に使われるため、計測用の表示切替には`--show-window`を使う。
+X11の描画・提示要求の診断は`QT_QPA_PLATFORM=xcb`を使う。`--workload small|layer-projection`と
 `--mode append|replace`は後述の生成入力計測と同じ入力値を使用する。高負荷は4096×4096・
 24レイヤー・中央1024×1024の下地、直径512のブラシであり、各レイヤー全面の占有とは区別する。
 ウィンドウは形状条件で64×64、その他で640×640の論理画素とし、文書全体を物理画素へ縮尺表示する。
@@ -363,8 +365,21 @@ GUIイベントの進行と画面終了時の背景処理の取消しを確認�
 連続フレーム、ウィンドウ寸法変更、予算とGPU喪失を検査し、子プロセスで表示面と画像の
 破棄順序、未設定状態、喪失後の取得・設定が異常終了を生じないことを確認する。
 Metalでは実表示と表示前の破棄を区別し、表示時刻を同じホスト時計の発行前後と照合する。
-描画と表示通知を独立して回収し、両方へ発行数上限を適用する。X11の実表示時刻は
+描画と表示通知を独立して回収し、両方へ発行数上限を適用する。
+Linuxの`KisGpuSurfaceRendererWaylandTest`はWayland接続で同じ寿命・拒否・表示時刻の契約を検査する。
+Waylandの実表示計測には`presentation-time`プロトコルと表示中のデスクトップを使用する。X11の実表示時刻は
 取得不能として扱い、GPU完了と提示要求の受付だけを測定する。
+
+Linuxで両表示接続の契約を実行する。
+
+```sh
+./scripts/run-shared-test-env ./scripts/run-test KisGpuSurfaceRendererTest 'KisGpuSurfaceRenderer(Wayland)?Test$'
+```
+
+Waylandの製品統合では、表示面の寿命、文書キャンバス、入力接続、色管理、
+製品入口、編集ウィンドウ、読込・保存の各契約も`QT_QPA_PLATFORM=wayland`で実行する。
+CTestに登録された実行ファイル・作業ディレクトリーと表示方式以外の環境値を使い、
+標準のX11検証に加えて、子表示面の入力配送・終了・GPU交換・保存を確認する。
 
 製品メニューの検査は、実アプリケーション、登録済みの画面プラグインと標準ブラシ資源を
 使用する。標準バンドルは検査専用の資源保存先へリンクし、資源データベースの再同期で
@@ -418,7 +433,7 @@ GPU検査を有効にした条件で比較し、異なる実装の結果は実�
 
 `KisGpuInputToDisplayBenchmark`は、正規化した位置・筆圧の生成から既存のGPUブラシ、
 文書作業版、レイヤー投影、表示用テクスチャ、実ウィンドウへの提示までを連結する。
-GPU文書を有効にしたCocoaまたはX11の構成で、評価済みのテスト環境から実行する。
+GPU文書を有効にしたCocoa、WaylandまたはX11の構成で、評価済みのテスト環境から実行する。
 
 ```sh
 build-incremental native build KisGpuInputToDisplayBenchmark
@@ -426,7 +441,8 @@ QT_QPA_PLATFORM=cocoa "$(build-incremental native path)/bin/KisGpuInputToDisplay
   --samples 15 > build/gpu-input-display.json
 ```
 
-LinuxのX11では`QT_QPA_PLATFORM=xcb`を指定する。`--workload small|layer-projection|all`と
+Linuxの実表示計測は`QT_QPA_PLATFORM=wayland`、X11の診断は`QT_QPA_PLATFORM=xcb`を指定する。
+`--workload small|layer-projection|all`と
 `--mode append|replace|all`で対象を絞る。各実行は2回の準備更新と指定した計測更新を行う。
 `--snapshot-policy fresh|reuse`で毎回の新規確保と、完了済み画像の再利用を同じ実行ファイルで比較する。
 既定は`reuse`とする。
@@ -461,7 +477,7 @@ RGBA8 sRGB、通常合成を利用する。追加は一入力点、差し替え�
 保存先は検証専用に用意し、同じ負荷・操作の再実行では対応するファイルを置き換える。
 バックエンド間の不一致は画素・チャンネル・領域を抽出して画像契約と照合する。
 
-Metalの`Presented`だけが`inputToPresentationMs`を持つ。`Skipped`、`Abandoned`、
+MetalとWaylandの`Presented`が`inputToPresentationMs`を持つ。`Skipped`、`Abandoned`、
 X11の`Unavailable`は空値を出し、実表示の統計へ含めない。
 全計測試行の実表示を観測した場合は終了値0、実表示が未観測の試行を含むJSONは3、
 実行失敗は1、入力不正は2を返す。終了値3の結果も描画区間と転送量の診断に利用できる。

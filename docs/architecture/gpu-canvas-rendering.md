@@ -7,7 +7,7 @@
 `kritacanvasgpusurface`はこの描画側を利用し、専用のQtウィンドウへの提示を所有する。
 `kritacanvasgpudocument`は文書の変更、投影、表示画像、提示を一つの回収順序へ接続する。
 文書と表示面を借用するアプリケーション側が、この所有者の寿命を管理する。
-macOSではAppKitとQuartzCore、LinuxのX11ではXlibをOS接続に利用する。
+macOSではAppKitとQuartzCore、LinuxではXlibとWaylandをOS接続に利用する。
 文書の画素・版・予算は[GPU文書所有者](gpu-document-tiles.md)に属し、表示側から依存する。
 
 | ファイル | 所有内容 |
@@ -25,7 +25,7 @@ macOSではAppKitとQuartzCore、LinuxのX11ではXlibをOS接続に利用する
 | `libs/canvas/gpu/tests/KisGpuDocumentCanvasTest.cpp` | 連続入力の表示、形状差し替えと確定、静止時の発行抑制、予算回復とウィンドウ再作成 |
 | `libs/canvas/gpu/GpuWindowSurface_p.h` | 表示側内部のOS資源所有者 |
 | `libs/canvas/gpu/GpuWindowSurface_mac.mm` | CocoaウィンドウのsRGB Metalレイヤーと実表示通知 |
-| `libs/canvas/gpu/GpuWindowSurface_x11.cpp` | X11ウィンドウの表示面と実寸法の検査 |
+| `libs/canvas/gpu/GpuWindowSurface_linux.cpp` | X11の表示面・実寸法とWaylandの表示面・実表示通知 |
 | `libs/canvas/gpu/tests/KisGpuSurfaceRendererTest.cpp` | 実ウィンドウの提示、サイズ変更、寿命とネイティブ失敗の契約 |
 | `libs/canvas/gpu/tests/KisGpuSurfaceLifetimeTest.cpp` | Qtの表示面破棄・再作成とGPU喪失時の表示予約解放 |
 | `libs/canvas/gpu/tests/KisGpuInputToDisplayBenchmark.cpp` | 生成した位置・筆圧からブラシ・投影・GPU描画・実表示までの計測 |
@@ -99,9 +99,16 @@ GPUは逆変換で画素中心を入力画像の座標へ戻す。移動、拡�
 `DocumentCanvas::setView()`は表の変更で保持した表示画像を再提示し、文書画素・投影・画像確保を維持する。
 macOSのsRGB MetalレイヤーではOSの表示変換を使う。利用側が異なる表示色を指定する場合は、
 表示面に設定した色空間との対応を検証し、色変換の重複を防ぐ。
-製品のmacOS画面はOSによるsRGBから画面色への変換を利用する。X11画面は既存の
+製品のmacOS画面はOSによるsRGBから画面色への変換を利用する。
+Waylandの製品画面も標準sRGB値を渡し、画面色への変換をコンポジターへ委ねる。
+この経路の対象は、未指定の表示色を標準sRGBとして扱うコンポジターとする。
+未指定時の扱いは[Waylandの色管理プロトコル](https://gitlab.freedesktop.org/wayland/wayland-protocols/-/blob/main/staging/color-management/color-management-v1.xml)を参照する。
+明示的な広色域・HDRの色空間指定は、表示面の色管理接続と画像検証を必要とするため対象から除く。
+X11画面は既存の
 `KisDisplayConfig`から画面プロファイル、変換目的と変換条件を取得し、GPUの変換表へ渡す。
 画面の移動と設定変更は同じ生成所有者へ最新条件を渡す。X11のプロファイル未取得時は標準sRGBを使う。
+製品入口の契約は異なる画面プロファイルを設定し、設定変更後の新しい表示フレームで、
+X11の変換表転送とmacOS・Waylandの標準sRGB出力を検査する。
 
 ## 実ウィンドウへの提示
 
@@ -120,7 +127,10 @@ OSのウィンドウ破棄前に解放する。この終了処理だけは発行
 
 `present()`は成功済みのGPU画像を取得した表示用テクスチャへ描き、同じキューへの発行後に
 OSへ提示を要求する。ウィンドウの論理寸法に画素比を乗じた物理寸法を使う。
-対応形式は`BGRA8Unorm`を優先し、`RGBA8Unorm`を代替とする。FIFOと不透明な表示面を使用し、
+対応形式は`BGRA8Unorm`を優先し、`RGBA8Unorm`を代替とする。
+MetalとX11はFIFO、WaylandはMailboxの提示方式とし、対応方式を構築時に検査する。
+Waylandは最新の完成画像を優先し、表示前に置き換わった画像を破棄通知として回収する。
+不透明なGPU表示面を使用し、
 アルファを背景へ合成した画像を提示する。MetalレイヤーにはsRGB色空間を指定する。
 
 未回収フレーム数の上限は1または2とする。サイズ変更は前のフレームを全て回収した後に
@@ -151,10 +161,26 @@ OSへ提示を要求する。ウィンドウの論理寸法に画素比を乗じ
 に従う。表示レイヤーの設定変更は最初の画像取得前にCore Animationへ反映する。
 
 `poll()`は表示結果を回収し、`displayedFrames`、`skippedFrames`、`abandonedFrames`を更新する。
-Metalでは表示通知の未回収数にもフレーム上限を適用し、GPU描画が先に終わる場合も有限に保つ。
+MetalとWaylandでは表示通知の未回収数にもフレーム上限を適用し、GPU描画が先に終わる場合も有限に保つ。
 サイズ変更は描画と表示の両方を回収してから適用する。所有者の終了とデバイス喪失は、
 残る通知待ちを`Abandoned`へ確定する。この状態は計測の終了を表し、画像が画面へ出なかった証明とは区別する。
 通知は独立した値だけを保持し、外へ渡した表示結果は所有者の破棄後も参照できる。
+
+WaylandではQtから表示接続と親表示面を借用し、専用の子表示面を作ってwgpu-nativeへ渡す。
+Qtは親の画像・入力を所有し、Vulkanは子のGPU画像を所有する。子の入力領域を空にして
+Qtへの入力配送を維持し、表示領域の指定で整数・小数の画素比を論理寸法へ合わせる。
+透明な親を子の上に配置して、Qtのフレーム通知と表示状態の判定を維持する。
+親の透明画像は作成・寸法変更時に用意し、通常描画のフレームはGPUの子だけを更新する。
+`presentation-time`の通知を次の内容更新へ結び付け、`presented`を`Presented`、
+`discarded`を`Skipped`へ確定する。通知された時計の`clock_gettime()`値と表示時刻を
+同じナノ秒単位で比較する。通知の受信時刻と表示時刻を区別する。
+時計の識別子は表示面の所有者とは独立に接続から取得し、表示面を作る前から入力の時刻を記録できる。
+専用のイベント待ち列を`poll()`で回収し、Qtのイベントを消費する処理と所有を分ける。
+表示面の破棄で残る通知を終了し、外へ渡した結果だけが存続する。
+プロトコルまたは時計を取得できない接続は`Unavailable`を返す。
+構築には`wayland-client`、`wayland-protocols`と`wayland-scanner`を使い、
+固定版Qtの内部表示面APIへの依存をLinuxのOS接続内に閉じる。
+通知の意味と時計は[Waylandの表示時刻プロトコル](https://gitlab.freedesktop.org/wayland/wayland-protocols/-/blob/main/stable/presentation-time/presentation-time.xml)に従う。
 
 X11経路は実表示時刻を取得できないため`Unavailable`を返し、時計も空値とする。
 GPU完了、提示要求の受付、ウィンドウサーバーへのコピーを実表示時刻へ代用すると、
@@ -166,8 +192,8 @@ GPU完了、提示要求の受付、ウィンドウサーバーへのコピー�
 古い表示面や喪失した表示面は次の要求で再設定する。デバイス喪失は新規要求を拒否し、
 未完了の描画結果を失敗へ確定する。これらの失敗を受けた呼出し側は結果の採用を止める。
 
-対応するQt表示環境はmacOSのCocoaとLinuxのX11とし、他の環境は構築時に例外で拒否する。
-Wayland固有の表示接続は、ネイティブ資源の所有と提示完了の検証を伴う別の受入れ単位とする。
+対応するQt表示環境はmacOSのCocoaとLinuxのX11、およびQtのWayland構成があるLinuxのWaylandとする。
+他の環境は構築時に例外で拒否する。
 OS接続には[QtのネイティブAPI](https://doc.qt.io/qt-6/qnativeinterface-qx11application.html)と
 [CAMetalLayer](https://developer.apple.com/documentation/quartzcore/cametallayer)を利用する。
 

@@ -52,5 +52,11 @@ if(TARGET kritacanvasgpusurface)
         set_tests_properties(libs-canvas-gpu-KisGpuSurfaceRendererTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")
     else()
         set_tests_properties(libs-canvas-gpu-KisGpuSurfaceRendererTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
+        if(TARGET Qt6::WaylandClient)
+            add_test(NAME libs-canvas-gpu-KisGpuSurfaceRendererWaylandTest COMMAND KisGpuSurfaceRendererTest)
+            set_tests_properties(libs-canvas-gpu-KisGpuSurfaceRendererWaylandTest PROPERTIES
+                ENVIRONMENT "QT_QPA_PLATFORM=wayland" TIMEOUT 90 LABELS "gpu;gpu-display"
+                RESOURCE_LOCK gpu_native_window FAIL_REGULAR_EXPRESSION "Validation Error;VUID-")
+        endif()
     endif()
 endif()

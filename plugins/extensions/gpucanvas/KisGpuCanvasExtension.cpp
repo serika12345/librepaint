@@ -58,12 +58,12 @@ private:
             const KisConfig config(true);
             const auto options = KisDisplayConfig::optionsFromKisConfig(config);
             const auto *destination = source;
-#ifndef Q_OS_MACOS
-            KisDisplayConfig::initializeSystemColorManager();
-            const int screen = QGuiApplication::screens().indexOf(editingWindow->screen());
-            if (const auto *profile = KisDisplayConfig::profileForScreen(screen))
-                destination = KoColorSpaceRegistry::instance()->rgb8(profile);
-#endif
+            if (QGuiApplication::platformName() == QStringLiteral("xcb")) {
+                KisDisplayConfig::initializeSystemColorManager();
+                const int screen = QGuiApplication::screens().indexOf(editingWindow->screen());
+                if (const auto *profile = KisDisplayConfig::profileForScreen(screen))
+                    destination = KoColorSpaceRegistry::instance()->rgb8(profile);
+            }
             if (!color->request(destination, options.first, options.second))
                 editingWindow->statusBar()->showMessage(tr("The display color profile could not be used."));
         };

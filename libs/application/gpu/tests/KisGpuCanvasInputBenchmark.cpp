@@ -47,7 +47,7 @@ int main(int argc, char **argv)
     parser.addHelpOption();
     parser.addOption({"output", "Write measurement results as JSON.", "path"});
     parser.addOption({"samples", "Number of measured replacements after two warmups.", "count", "30"});
-    parser.addOption({"display", "Measure the exposed product canvas through native presentation."});
+    parser.addOption({"show-window", "Measure the exposed product canvas through native presentation."});
     parser.addOption({"workload", "Input workload: shape, small or layer-projection.", "name", "shape"});
     parser.addOption({"mode", "Input operation: append or replace (shape requires replace).", "name", "replace"});
     parser.process(app);
@@ -61,13 +61,14 @@ int main(int argc, char **argv)
     const bool shapeWorkload = workloadName == QStringLiteral("shape");
     const bool high = workloadName == QStringLiteral("layer-projection");
     const bool replace = mode == QStringLiteral("replace");
-    const bool display = parser.isSet("display");
+    const bool display = parser.isSet("show-window");
     if ((!shapeWorkload && !high && workloadName != QStringLiteral("small"))
         || (!replace && mode != QStringLiteral("append")) || (shapeWorkload && !replace)) {
         std::fprintf(stderr, "Invalid --workload or --mode combination\n");
         return 2;
     }
     try {
+        if (display) Surface::presentationClockNanoseconds();
         KisGpuDocumentDevice documents;
         KisGpuApplicationState activity(documents);
         activity.applicationStateChanged(Qt::ApplicationActive);
@@ -163,10 +164,17 @@ int main(int argc, char **argv)
                 }, 10000), "Product rendering timed out");
                 renderingMilliseconds = elapsed.nsecsElapsed() / 1e6;
                 const auto frame = canvas.lastFrame();
-                require(waitForGpuWindow([&] {
+                const bool presentationFinished = waitForGpuWindow([&] {
                     return frame.presentation.status() != Surface::Presentation::Status::Pending
                         && !canvas.statistics().rendering.pendingFrames && !canvas.statistics().pendingPresentations;
-                }, 10000), "Product presentation timed out");
+                }, 10000);
+                if (!presentationFinished) {
+                    const auto pending = canvas.statistics();
+                    std::fprintf(stderr, "Presentation wait: exposed=%d, rendering=%u, presentation=%u, status=%d\n",
+                        int(window.isExposed()), pending.rendering.pendingFrames, pending.pendingPresentations,
+                        int(frame.presentation.status()));
+                }
+                require(presentationFinished, "Product presentation timed out");
                 const auto status = frame.presentation.status();
                 displayed = status == Surface::Presentation::Status::Presented;
                 presentationStatus = displayed ? QStringLiteral("presented")
@@ -176,8 +184,13 @@ int main(int argc, char **argv)
                 if (displayed) {
                     const auto time = frame.presentation.hostTimeNanoseconds();
                     const auto observed = Surface::presentationClockNanoseconds();
-                    require(inputTime && time && observed && *time >= *inputTime && *time <= *observed,
-                        "Product presentation timestamp outside input/observation interval");
+                    const bool validTime = inputTime && time && observed && *time >= *inputTime && *time <= *observed;
+                    if (!validTime)
+                        std::fprintf(stderr, "Presentation clocks: input=%llu, display=%llu, observed=%llu\n",
+                            static_cast<unsigned long long>(inputTime.value_or(0)),
+                            static_cast<unsigned long long>(time.value_or(0)),
+                            static_cast<unsigned long long>(observed.value_or(0)));
+                    require(validTime, "Product presentation timestamp outside input/observation interval");
                     presentationMilliseconds = double(*time - *inputTime) / 1e6;
                 }
             }

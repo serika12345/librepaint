@@ -34,7 +34,9 @@ public:
     GpuWindowSurface(KisGpuDevice &device, QWindow &window);
     ~GpuWindowSurface();
     WGPUSurface surface() const;
+    WGPUPresentMode presentationMode() const;
     bool resize(QSize physicalSize);
+    void poll();
     SurfaceRenderer::Presentation presentation() const;
     static std::optional<quint64> presentationClockNanoseconds();
 private:

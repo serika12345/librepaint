@@ -34,6 +34,7 @@ struct SurfaceRenderer::Private : QObject {
     std::unique_ptr<GpuWindowSurface> surface;
     std::unique_ptr<GpuRenderer> renderer;
     WGPUTextureFormat format;
+    WGPUPresentMode presentMode;
     quint32 maximumDimension = 0;
     QSize size{0, 0};
     bool needsConfigure = true;
@@ -89,14 +90,16 @@ struct SurfaceRenderer::Private : QObject {
         const auto nextFormat = renderer ? format
             : supports(capabilities.formats, capabilities.formatCount, WGPUTextureFormat_BGRA8Unorm)
                 ? WGPUTextureFormat_BGRA8Unorm : WGPUTextureFormat_RGBA8Unorm;
+        const auto nextPresentMode = candidate->presentationMode();
         const bool compatible = result == WGPUStatus_Success
             && supports(capabilities.formats, capabilities.formatCount, nextFormat)
-            && supports(capabilities.presentModes, capabilities.presentModeCount, WGPUPresentMode_Fifo)
+            && supports(capabilities.presentModes, capabilities.presentModeCount, nextPresentMode)
             && supports(capabilities.alphaModes, capabilities.alphaModeCount, WGPUCompositeAlphaMode_Opaque)
             && (capabilities.usages & WGPUTextureUsage_RenderAttachment);
         wgpuSurfaceCapabilitiesFreeMembers(capabilities);
         if (!compatible) throw std::runtime_error("GPU window has no supported presentation format");
         format = nextFormat;
+        presentMode = nextPresentMode;
         windowId = window.winId();
         surface = std::move(candidate);
     }
@@ -129,7 +132,7 @@ struct SurfaceRenderer::Private : QObject {
         configuration.usage = WGPUTextureUsage_RenderAttachment;
         configuration.width = wanted.width();
         configuration.height = wanted.height();
-        configuration.presentMode = WGPUPresentMode_Fifo;
+        configuration.presentMode = presentMode;
         configuration.alphaMode = WGPUCompositeAlphaMode_Opaque;
         const auto errors = owner.errorCount();
         wgpuSurfaceConfigure(surface->surface(), &configuration);
@@ -203,7 +206,11 @@ SurfaceRenderer::Frame SurfaceRenderer::present(const KisGpuTileStore::TextureSn
     wgpuTextureRelease(current.texture);
     return frame;
 }
-void SurfaceRenderer::poll() { d->renderer->poll(); d->collectPresentations(); }
+void SurfaceRenderer::poll() {
+    d->renderer->poll();
+    if (d->surface) d->surface->poll();
+    d->collectPresentations();
+}
 SurfaceRenderer::Statistics SurfaceRenderer::statistics() const {
     return {d->requests, d->surfaceMemory.bytes(), d->size, d->renderer->statistics(),
             d->displayed, d->skipped, d->abandoned, quint32(d->presentations.size()),

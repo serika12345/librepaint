@@ -83,6 +83,8 @@ void SurfaceRenderer::prepareWindow(QWindow &window) { window.setSurfaceType(QSu
 GpuWindowSurface::GpuWindowSurface(KisGpuDevice &device, QWindow &window) : d(new Private(device, window)) {}
 GpuWindowSurface::~GpuWindowSurface() = default;
 WGPUSurface GpuWindowSurface::surface() const { return d->surface; }
+WGPUPresentMode GpuWindowSurface::presentationMode() const { return WGPUPresentMode_Fifo; }
+void GpuWindowSurface::poll() {}
 SurfaceRenderer::Presentation GpuWindowSurface::presentation() const {
     return SurfaceRenderer::Presentation(d->layer->latestPresentation);
 }

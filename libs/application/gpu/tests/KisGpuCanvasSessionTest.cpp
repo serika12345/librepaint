@@ -29,6 +29,12 @@ void mouse(QWindow &window, QEvent::Type type, QPointF point, Qt::MouseButton bu
     QMouseEvent event(type, point, point, button, buttons, Qt::NoModifier);
     QCoreApplication::sendEvent(&window, &event);
 }
+void activateForInput(KisGpuApplicationState &application) {
+    // These input contracts supply activity explicitly; OS delivery has its own lifecycle contract.
+    QObject::disconnect(qGuiApp, &QGuiApplication::applicationStateChanged,
+        &application, &KisGpuApplicationState::applicationStateChanged);
+    application.applicationStateChanged(Qt::ApplicationActive);
+}
 }
 
 /** Application consumers retain input across shared GPU replacement and release closed documents. */
@@ -42,7 +48,7 @@ private Q_SLOTS:
         auto model = documents.document(id); model->addLayer(QStringLiteral("Paint"));
         QWindow window;
         Krita::Canvas::SurfaceRenderer::prepareWindow(window); window.resize(64, 64);
-        application.applicationStateChanged(Qt::ApplicationActive);
+        activateForInput(application);
         Session canvas(documents, application, id, window, Bounds);
         const auto started = canvas.begin(1, configuration());
         QCOMPARE(started.result, Input::Result::Accepted);
@@ -93,10 +99,9 @@ private Q_SLOTS:
         const auto id = documents.createDocument({});
         auto model = documents.document(id); model->addLayer(QStringLiteral("Paint"));
         QWindow window;
-        expose(window);
-        QVERIFY(QTest::qWaitForWindowExposed(&window, 3000));
-        window.hide();
-        application.applicationStateChanged(Qt::ApplicationActive);
+        // Start hidden so a pending OS deactivation cannot commit the simulated stroke.
+        Krita::Canvas::SurfaceRenderer::prepareWindow(window); window.resize(64, 64);
+        activateForInput(application);
         Session canvas(documents, application, id, window, Bounds);
         QVERIFY(canvas.setPointerTool(1, configuration()));
         Krita::Canvas::GpuRenderer::View view;
@@ -131,7 +136,9 @@ private Q_SLOTS:
         QTimer::singleShot(3000, &loop, &QEventLoop::quit);
         loop.exec();
         QVERIFY(count >= 60);
-        QVERIFY(progressedDuringInput);
+        QVERIFY2(progressedDuringInput, qPrintable(QStringLiteral("activity=%1 suspended=%2 input=%3 document=%4 samples=%5")
+            .arg(int(qGuiApp->applicationState())).arg(documents.isSuspended()).arg(int(canvas.inputState()))
+            .arg(int(model->state())).arg(count)));
         QTRY_COMPARE(canvas.inputState(), Input::State::Finished);
         window.show();
         QVERIFY(QTest::qWaitForWindowExposed(&window, 3000));
@@ -170,7 +177,7 @@ private Q_SLOTS:
         const auto base = model->layers().first().paint.pixels;
         QWindow window;
         Krita::Canvas::SurfaceRenderer::prepareWindow(window); window.resize(64, 64);
-        application.applicationStateChanged(Qt::ApplicationActive);
+        activateForInput(application);
         Session canvas(documents, application, id, window, Bounds);
         const auto started = canvas.begin(1, configuration());
         QCOMPARE(started.result, Input::Result::Accepted);
@@ -204,7 +211,7 @@ private Q_SLOTS:
         QVERIFY(QTest::qWaitForWindowExposed(&first, 3000));
         QVERIFY(QTest::qWaitForWindowExposed(&second, 3000));
         QVERIFY(QTest::qWaitForWindowExposed(&referenceWindow, 3000));
-        application.applicationStateChanged(Qt::ApplicationActive);
+        activateForInput(application);
         Session drawing(documents, application, id, first, Bounds);
         Session mirror(documents, application, id, second, Bounds);
         Session control(documents, application, referenceId, referenceWindow, Bounds);
@@ -257,7 +264,7 @@ private Q_SLOTS:
         QWindow window, otherWindow; expose(window); expose(otherWindow);
         QVERIFY(QTest::qWaitForWindowExposed(&window, 3000));
         QVERIFY(QTest::qWaitForWindowExposed(&otherWindow, 3000));
-        application.applicationStateChanged(Qt::ApplicationActive);
+        activateForInput(application);
         Session canvas(documents, application, id, window, Bounds);
         Session retained(documents, application, otherId, otherWindow, Bounds);
         QTRY_VERIFY(canvas.lastFrame().accepted() && retained.lastFrame().accepted());
@@ -269,7 +276,7 @@ private Q_SLOTS:
         QTRY_VERIFY(canvas.statistics().presentationRequests > presentations);
         QCOMPARE(store->statistics().submissions, before.submissions);
         QCOMPARE(store->statistics().imageTextureAllocationBytes, before.imageTextureAllocationBytes);
-        application.applicationStateChanged(Qt::ApplicationActive);
+        activateForInput(application);
         auto started = canvas.begin(1, configuration());
         QCOMPARE(started.result, Input::Result::Accepted);
         QCOMPARE(canvas.append(started.token, {{{8, 8}, 1}, {{48, 48}, 0.5}}), Input::Result::Accepted);
@@ -294,7 +301,7 @@ private Q_SLOTS:
         auto model = documents.document(id); model->addLayer(QStringLiteral("Paint"));
         QWindow window; expose(window);
         QVERIFY(QTest::qWaitForWindowExposed(&window, 3000));
-        application.applicationStateChanged(Qt::ApplicationActive);
+        activateForInput(application);
         {
             Session canvas(documents, application, id, window, Bounds);
             auto started = canvas.begin(1, configuration());
@@ -308,7 +315,7 @@ private Q_SLOTS:
         const auto pixels = model->layers().first().paint.pixels;
         {
             Session cancelled(documents, application, id, window, Bounds);
-            application.applicationStateChanged(Qt::ApplicationActive);
+            activateForInput(application);
             auto started = cancelled.begin(1, configuration());
             QCOMPARE(started.result, Input::Result::Accepted);
             QCOMPARE(cancelled.replace(started.token, {{{32, 16}, 1}}), Input::Result::Accepted);
