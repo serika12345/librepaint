@@ -55,6 +55,7 @@ private Q_SLOTS:
         state->applicationStateChanged(Qt::ApplicationActive);
         const auto model = documents->document(id);
         QVERIFY(model);
+        QTRY_COMPARE(model->state(), KisGpuLayerDocument::State::Idle);
         QCOMPARE(model->layers().size(), qsizetype(1));
         QCOMPARE(documents->store(id)->statistics().pixelUploadBytes, quint64(0));
         QCOMPARE(documents->store(id)->statistics().pixelReadbackBytes, quint64(0));
