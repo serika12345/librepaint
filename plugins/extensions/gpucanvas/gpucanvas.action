@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ActionCollection version="2" name="LibrePaint">
+  <Actions category="Tools">
+    <text>Tools</text>
+    <Action name="gpu_canvas_new">
+      <text>New GPU Canvas</text>
+      <toolTip>Create an RGBA8 sRGB canvas</toolTip>
+      <activationFlags>0</activationFlags>
+      <activationConditions>0</activationConditions>
+      <isCheckable>false</isCheckable>
+    </Action>
+    <Action name="gpu_canvas_open">
+      <text>Open GPU Canvas...</text>
+      <toolTip>Open an RGBA8 sRGB KRA canvas</toolTip>
+      <activationFlags>0</activationFlags>
+      <activationConditions>0</activationConditions>
+      <isCheckable>false</isCheckable>
+    </Action>
+  </Actions>
+</ActionCollection>

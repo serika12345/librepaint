@@ -21,6 +21,7 @@ class KisExtendedModifiersMapperPluginInterface;
 class KisAndroidSplash;
 class KisAndroidScaling;
 class KisGpuDocumentDevice;
+class KisGpuApplicationState;
 
 /**
  *  @brief Base class for the %Krita app
@@ -100,6 +101,8 @@ public:
 
     /** Borrowed GUI-thread owner; null when GPU document support is disabled. */
     KisGpuDocumentDevice *gpuDocuments() const;
+    /** Borrowed GUI-thread notification owner; null when GPU support is disabled. */
+    KisGpuApplicationState *gpuApplicationState() const;
     /** Retry suspended GPU documents before submitting fresh user input. */
     bool resumeGpuDocumentsForInput();
 

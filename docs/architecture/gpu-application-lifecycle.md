@@ -9,6 +9,7 @@
 `KisApplication`はGPU文書機能を有効にした構成で共有GPU所有者と通知所有者を保持する。
 通知所有者を先に破棄し、文書所有者を後に破棄する。GPUの作成は最初の文書まで遅延する。
 `gpuDocuments()`はGUIスレッドで借用する文書所有者を返し、機能無効時は空を返す。
+`gpuApplicationState()`は同じ寿命の通知所有者を返し、編集画面が入力による再開と回収を共有する。
 
 ## 通知と再開
 
@@ -101,6 +102,28 @@ CPUへ取得済みの保存はGPUの寿命から独立して完了する。
 画面の親が閉じる際は各文書の未保存確認を行い、取消された親画面を維持する。
 アプリケーション終了時は文書所有者の寿命内で編集画面と保存処理を解放する。
 
+`plugins/extensions/gpucanvas/KisGpuCanvasExtension.cpp`は標準の画面プラグインとして
+主画面の操作管理へ新規作成とKRA読込を登録し、作成・保存所有者を保持する。
+`krita/krita5.xmlgui`の「Tools → GPU Canvas」から呼び出す。
+新規作成は1024×1024のRGBA8 sRGB文書を開き、保存は編集画面の操作から実行する。
+GPU文書機能を有効にしたmacOS・Linux構成で利用する。
+画面・保存・メニューはプラグイン側から具体的なアプリケーション所有者へ依存し、
+標準アプリケーション所有者は画面プラグインへ依存しない。
+
+プラグインとの境界で共有するQtの所有者・画面は、次のライブラリーが公開する。
+各クラスの型情報と通知定義を一つの実体から利用し、借用したQObjectの型識別と
+画面からの描画セッション取得を同じ契約に揃える。
+
+| 定義の所有ファイル | 公開するライブラリー |
+| --- | --- |
+| `libs/document/gpu/KisGpuDocumentDevice.*` | `kritadocumentgpudevice` |
+| `libs/application/gpu/KisGpuApplicationState.*` | `kritaapplicationgpustate` |
+| `libs/application/gpu/KisGpuCanvasSession.*` | `kritaapplicationgpucanvas` |
+| `plugins/extensions/gpucanvas/KisGpuDocumentWindow.*` | `kritagpucanvaswindow` |
+
+デスクトップ構成は共有ライブラリーと生成した公開宣言を使用し、製品とともに配置する。
+iOS構成は共通の`kis_add_library`が定める静的配置を使用する。
+
 ## OSとの接続
 
 - Appleプラットフォームはメインキュー上の`DISPATCH_SOURCE_TYPE_MEMORYPRESSURE`を使用し、
@@ -128,6 +151,10 @@ OS全体へのメモリー圧迫は起こさず、通知された値を同じ受
 対象文書だけの終了と外部からの文書終了による画面の切離しを検査する。
 `KisGpuCanvasWorkspaceTest`は固定版の保存・再読込、連続保存の編集回数、
 GPU解放後の再保存、読込失敗と所有者終了時の未公開文書の回収を検査する。
+`KisGpuCanvasEntryTest`は実際の`KisApplication`と登録プラグインを使用し、
+旧方式の画像が空の主画面からメニュー操作でGPU文書を作成する。
+共有所有者の利用、GPU休止・復元後の同じ文書と親画面終了時の解放を検査する。
+借用するQt所有者の型識別と、プラグインが作成した画面からの描画セッション取得も検査する。
 Linuxの通知接続は、専用D-Busのアドレスを`DBUS_SYSTEM_BUS_ADDRESS`に設定し、
 `KIS_GPU_TEST_ISOLATED_BUS=1`で同じテストを実行する。テストが専用バス上で
 通知サービスを登録し、実際の`LowMemoryWarning(y)`による休止と再開を検査する。

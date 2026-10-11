@@ -2,7 +2,7 @@
 <kpartgui xmlns="http://www.kde.org/standards/kxmlgui/1.0"
 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 name="Krita"
-version="544"
+version="545"
 xsi:schemaLocation="http://www.kde.org/standards/kxmlgui/1.0  http://www.kde.org/standards/kxmlgui/1.0/kxmlgui.xsd">
   <MenuBar>
     <Menu name="file">
@@ -380,6 +380,11 @@ xsi:schemaLocation="http://www.kde.org/standards/kxmlgui/1.0  http://www.kde.org
     </Menu>
     <Menu name="tools">
       <text>&amp;Tools</text>
+      <Menu name="gpu_canvas">
+        <text>GPU Canvas</text>
+        <Action name="gpu_canvas_new"/>
+        <Action name="gpu_canvas_open"/>
+      </Menu>
       <Menu name="scripts"><text>Scripts</text></Menu>
     </Menu>
     <Menu name="settings">

@@ -108,6 +108,8 @@
 [複数文書のGPU寿命管理](gpu-document-device.md)が通知、再接続とCPU記録の保持を定義する。
 [GPU文書とアプリケーションの寿命](gpu-application-lifecycle.md)がOSの圧迫・休止・活動通知、
 共有GPUの再作成と完了回収を定義する。
+`plugins/extensions/gpucanvas`はGPU文書の編集画面、作成・保存・再読込と
+主画面のメニュー操作を所有する。画面側から具体的な文書・入力・表示・KRA所有者へ依存する。
 文書ファイル側の`libs/document/files/gpu`は、固定したCPU回復値の保存・再読込を所有する。
 [GPU文書回復ファイル](gpu-document-recovery-file.md)が形式、背景実行と予算を定義する。
 [GPU文書の固定版読取り](gpu-document-readback.md)が保存対象の版の固定、非同期画素取得とCPU結果の寿命を定義する。

@@ -242,6 +242,7 @@ GPU内複製、操作完了と予算超過を検査する。評価済みのテ�
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuPointerInputTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuDocumentWindowTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuCanvasWorkspaceTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuCanvasEntryTest
 ./scripts/run-shared-test-env ./scripts/run-test KisBrushMixingContractTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuDabMixingTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuLayerBrushImageTest

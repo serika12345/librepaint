@@ -965,6 +965,15 @@ bool KisApplication::resumeGpuDocumentsForInput()
 #endif
 }
 
+KisGpuApplicationState *KisApplication::gpuApplicationState() const
+{
+#ifdef LIBREPAINT_BUILD_GPU_DOCUMENT
+    return d->gpuState.data();
+#else
+    return nullptr;
+#endif
+}
+
 void KisApplication::setWidgetStyle(const QString &styleName)
 {
     QStyle *newStyle = QStyleFactory::create(styleName);

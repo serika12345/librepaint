@@ -4,6 +4,7 @@
  */
 #ifndef KIS_GPU_DOCUMENT_WINDOW_H
 #define KIS_GPU_DOCUMENT_WINDOW_H
+#include "kritagpucanvaswindow_export.h"
 #include "KisGpuCanvasSession.h"
 #include <QColor>
 #include <QMainWindow>
@@ -15,7 +16,7 @@ class QDoubleSpinBox;
  * Successful construction transfers document-close responsibility to this window.
  * The borrowed document and application owners outlive the window on the GUI thread.
  */
-class KisGpuDocumentWindow : public QMainWindow {
+class KRITAGPUCANVASWINDOW_EXPORT KisGpuDocumentWindow : public QMainWindow {
     Q_OBJECT
 public:
     KisGpuDocumentWindow(KisGpuDocumentDevice &documents, KisGpuApplicationState &application,

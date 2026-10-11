@@ -4,6 +4,7 @@
  */
 #ifndef KIS_GPU_CANVAS_SESSION_H
 #define KIS_GPU_CANVAS_SESSION_H
+#include "kritaapplicationgpucanvas_export.h"
 #include "KisGpuApplicationState.h"
 #include "KisGpuDocumentDevice.h"
 #include "KisGpuStrokeInput.h"
@@ -16,7 +17,7 @@ class KisGpuPointerInput;
  * session. Calls and destruction use their GUI/submitting thread. Closing the
  * session cancels its unfinished input; closing the document detaches all views.
  */
-class KisGpuCanvasSession : public QObject
+class KRITAAPPLICATIONGPUCANVAS_EXPORT KisGpuCanvasSession : public QObject
 {
     Q_OBJECT
 public:

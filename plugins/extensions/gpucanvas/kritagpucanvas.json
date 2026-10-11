@@ -1,0 +1,7 @@
+{
+    "Id": "GPU Canvas",
+    "Type": "Service",
+    "X-KDE-Library": "kritagpucanvas",
+    "X-KDE-ServiceTypes": ["Krita/ViewPlugin"],
+    "X-Krita-Version": "28"
+}

@@ -4,6 +4,7 @@
  */
 #ifndef KIS_GPU_APPLICATION_STATE_H
 #define KIS_GPU_APPLICATION_STATE_H
+#include "kritaapplicationgpustate_export.h"
 #include <QObject>
 #include <QTimer>
 #include <memory>
@@ -14,7 +15,7 @@ class KisGpuDocumentDevice;
  * Native memory notifications are disconnected before this object is destroyed.
  * Input consumers call resumeForInput() before retrying after critical pressure.
  */
-class KisGpuApplicationState : public QObject
+class KRITAAPPLICATIONGPUSTATE_EXPORT KisGpuApplicationState : public QObject
 {
     Q_OBJECT
 public:

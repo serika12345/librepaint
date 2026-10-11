@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0-or-later
-add_library(kritadocumentgpudevice STATIC KisGpuDocumentDevice.cpp KisGpuDocumentDevice.h)
-target_include_directories(kritadocumentgpudevice PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+kis_add_library(kritadocumentgpudevice SHARED KisGpuDocumentDevice.cpp KisGpuDocumentDevice.h)
+generate_export_header(kritadocumentgpudevice)
+target_include_directories(kritadocumentgpudevice PUBLIC ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(kritadocumentgpudevice PUBLIC kritaimagegpudocument Qt${QT_MAJOR_VERSION}::Core)
 set_target_properties(kritadocumentgpudevice PROPERTIES POSITION_INDEPENDENT_CODE ON)
+install(TARGETS kritadocumentgpudevice ${INSTALL_TARGETS_DEFAULT_ARGS})
 if(BUILD_TESTING)
     add_subdirectory(tests)
 endif()

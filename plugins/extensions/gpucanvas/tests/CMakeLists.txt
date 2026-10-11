@@ -9,6 +9,22 @@ else()
     set_tests_properties(plugins-extensions-gpucanvas-KisGpuDocumentWindowTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
 endif()
 
+kis_add_test(KisGpuCanvasEntryTest.cpp ${CMAKE_SOURCE_DIR}/krita/krita.qrc
+    ${CMAKE_SOURCE_DIR}/krita/pics/Breeze-dark/breeze-dark-icons.qrc
+    ${CMAKE_SOURCE_DIR}/krita/pics/Breeze-light/breeze-light-icons.qrc
+    TEST_NAME KisGpuCanvasEntryTest
+    LINK_LIBRARIES kritagpucanvaswindow kritaapplicationui kritatestsdk KF${KF_MAJOR}::I18n)
+add_dependencies(KisGpuCanvasEntryTest kritagpucanvas)
+target_compile_definitions(KisGpuCanvasEntryTest PRIVATE GPU_ACTION_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/..")
+set_tests_properties(plugins-extensions-gpucanvas-KisGpuCanvasEntryTest PROPERTIES
+    TIMEOUT 90 LABELS "gpu;gpu-display" RESOURCE_LOCK gpu_native_window
+    FAIL_REGULAR_EXPRESSION "Validation Error;VUID-")
+if(APPLE)
+    set_tests_properties(plugins-extensions-gpucanvas-KisGpuCanvasEntryTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")
+else()
+    set_tests_properties(plugins-extensions-gpucanvas-KisGpuCanvasEntryTest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
+endif()
+
 kis_add_test(KisGpuCanvasWorkspaceTest.cpp LINK_LIBRARIES kritagpucanvasworkspace kritaapplicationui kritatestsdk)
 add_dependencies(KisGpuCanvasWorkspaceTest kritakraexport)
 set_tests_properties(plugins-extensions-gpucanvas-KisGpuCanvasWorkspaceTest PROPERTIES

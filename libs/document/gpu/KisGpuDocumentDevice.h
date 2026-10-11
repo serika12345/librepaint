@@ -4,6 +4,7 @@
  */
 #ifndef KIS_GPU_DOCUMENT_DEVICE_H
 #define KIS_GPU_DOCUMENT_DEVICE_H
+#include "kritadocumentgpudevice_export.h"
 #include "KisGpuDevice.h"
 #include "KisGpuLayerDocument.h"
 #include <QObject>
@@ -16,7 +17,7 @@
  * direct aboutToReleaseGpu notification, before device() becomes invalid.
  * Document models survive suspension and may outlive this owner as CPU values.
  */
-class KisGpuDocumentDevice : public QObject
+class KRITADOCUMENTGPUDEVICE_EXPORT KisGpuDocumentDevice : public QObject
 {
     Q_OBJECT
 public:
