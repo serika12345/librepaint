@@ -19,13 +19,14 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QWindow>
+#include <QEventLoop>
+#include <QTimer>
 #include <algorithm>
-#include <chrono>
 #include <cmath>
 #include <cstdio>
 #include <ctime>
 #include <stdexcept>
-#include <thread>
+#include <exception>
 
 namespace {
 using Store = KisGpuTileStore;
@@ -37,12 +38,24 @@ using Surface = Krita::Canvas::SurfaceRenderer;
 template<typename Predicate>
 void until(Predicate ready)
 {
+    if (ready()) return;
     QElapsedTimer timeout; timeout.start();
-    while (!ready()) {
-        if (timeout.elapsed() > 5000) throw std::runtime_error("Input/display completion timed out");
-        QCoreApplication::processEvents(QEventLoop::AllEvents, 1);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    }
+    QEventLoop loop;
+    QTimer poll;
+    poll.setTimerType(Qt::PreciseTimer);
+    bool completed = false;
+    std::exception_ptr failure;
+    QObject::connect(&poll, &QTimer::timeout, &loop, [&] {
+        try {
+            completed = ready();
+            if (completed) loop.quit();
+            else if (timeout.elapsed() > 5000) throw std::runtime_error("Input/display completion timed out");
+        } catch (...) { failure = std::current_exception(); loop.quit(); }
+    });
+    poll.start(1);
+    loop.exec();
+    if (failure) std::rethrow_exception(failure);
+    if (!completed) throw std::runtime_error("Input/display event loop interrupted");
 }
 
 void require(bool valid, const char *diagnostic)
@@ -312,7 +325,7 @@ int main(int argc, char **argv)
             {"schemaVersion", 1}, {"adapter", gpu.name}, {"gpuDependencyVersion", "27.0.4.0"},
             {"executableSha256", QString::fromLatin1(QCryptographicHash::hash(executable.readAll(), QCryptographicHash::Sha256).toHex())},
             {"inputSource", "generated normalized position and pressure"},
-            {"scheduling", "one update at a time; event and GPU polling with 1 ms sleeps"},
+            {"scheduling", "one update at a time; Qt event loop with 1 ms GPU polling"},
             {"snapshotPolicy", selectedSnapshot},
             {"colorSpace", "RGBA8 sRGB; Over"}, {"memoryAccounting", "logical reservations; physical driver memory excluded"},
             {"samplesPerRun", count}, {"warmupsPerRun", 2}, {"displayedEverySample", displayedEverySample}, {"runs", runs}
