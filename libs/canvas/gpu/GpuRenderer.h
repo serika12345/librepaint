@@ -7,6 +7,7 @@
 
 #include "KisGpuDevice.h"
 #include "KisGpuTileStore.h"
+#include <QByteArray>
 #include <QTransform>
 #include <memory>
 
@@ -21,12 +22,19 @@ class GpuRenderer
     struct CompletionData;
 public:
     using Status = KisGpuTileStore::Status;
-    enum class Error { None, InvalidImage, ImagePending, InvalidTarget, InvalidTransform, QueueFull, BudgetExceeded, DeviceLost };
+    enum class Error { None, InvalidImage, ImagePending, InvalidTarget, InvalidTransform, QueueFull, BudgetExceeded, DeviceLost, InvalidDisplayLookup };
     enum class Sampling { Nearest, Linear };
+    static constexpr qsizetype DisplayLookupBytes = 256 * 256 * 256 * 4;
     struct View {
         QTransform canvasToTarget;
         quint32 backgroundRgba = 0xFFFFFFFF;
         Sampling sampling = Sampling::Linear;
+        /** Immutable RGB8 display mapping: RGBA entries at r + 256*g + 65536*b.
+         * Exactly DisplayLookupBytes; null keeps sRGB output without allocation.
+         * Mapping follows interpolation and background composition. Entry alpha is ignored.
+         * CPU values are borrowed during render(); pending frames retain the GPU buffer.
+         */
+        std::shared_ptr<const QByteArray> displayLookup;
     };
     struct Frame {
         Error error = Error::None;
@@ -41,6 +49,8 @@ public:
         quint64 parameterUploadBytes = 0;
         quint64 residentParameterBytes = 0;
         quint32 pendingFrames = 0;
+        quint64 displayLookupUploadBytes = 0;
+        quint64 residentDisplayLookupBytes = 0;
     };
     /** Unsupported format, unavailable device or zero pending limit throw std::runtime_error. */
     GpuRenderer(KisGpuDevice &device, WGPUTextureFormat targetFormat, quint32 maximumPending = 3);

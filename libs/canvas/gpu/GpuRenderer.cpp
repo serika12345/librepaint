@@ -48,12 +48,19 @@ struct GpuRenderer::CompletionData {
 };
 
 struct GpuRenderer::Private {
+    struct DisplayLookup {
+        std::weak_ptr<const QByteArray> values;
+        KisGpuDevice::MemoryReservation memory;
+        Resource<WGPUBuffer, wgpuBufferRelease> buffer;
+    };
     struct Pending {
         std::shared_ptr<CompletionData> completion;
         KisGpuTileStore::TextureSnapshot image;
         Resource<WGPUTexture, wgpuTextureRelease> target;
         Resource<WGPUTextureView, wgpuTextureViewRelease> inputView, targetView;
         KisGpuDevice::MemoryReservation memory;
+        std::shared_ptr<DisplayLookup> displayLookup;
+        KisGpuDevice::MemoryReservation lookupUploadMemory;
         Resource<WGPUBuffer, wgpuBufferRelease> parameters;
         Resource<WGPUBindGroup, wgpuBindGroupRelease> bindings;
         Pending(std::shared_ptr<CompletionData> state, const KisGpuTileStore::TextureSnapshot &input, WGPUTexture output)
@@ -93,6 +100,9 @@ struct GpuRenderer::Private {
     Resource<WGPUQueue, wgpuQueueRelease> queue;
     Resource<WGPUBindGroupLayout, wgpuBindGroupLayoutRelease> layout;
     Resource<WGPURenderPipeline, wgpuRenderPipelineRelease> pipeline;
+    Resource<WGPUBindGroupLayout, wgpuBindGroupLayoutRelease> displayLayout;
+    Resource<WGPURenderPipeline, wgpuRenderPipelineRelease> displayPipeline;
+    std::shared_ptr<DisplayLookup> displayLookup;
     std::vector<std::unique_ptr<Pending>> pending;
     WGPUSubmissionIndex lastSubmission = 0;
     Statistics statistics;
@@ -104,7 +114,13 @@ struct GpuRenderer::Private {
         }
         pending.reserve(maximum);
         queue.reset(wgpuDeviceGetQueue(owner.device()));
-        WGPUBindGroupLayoutEntry entries[2]{};
+        initializeGpuCanvasResources();
+        createPipeline(false);
+    }
+    void createPipeline(bool display) {
+        auto &selectedLayout = display ? displayLayout : layout;
+        auto &selectedPipeline = display ? displayPipeline : pipeline;
+        WGPUBindGroupLayoutEntry entries[3]{};
         entries[0].binding = 0;
         entries[0].visibility = WGPUShaderStage_Fragment;
         entries[0].buffer.type = WGPUBufferBindingType_Uniform;
@@ -114,15 +130,18 @@ struct GpuRenderer::Private {
         entries[1].texture.sampleType = WGPUTextureSampleType_Float;
         entries[1].texture.viewDimension = WGPUTextureViewDimension_2D;
         WGPUBindGroupLayoutDescriptor bindings{};
-        bindings.entryCount = 2;
+        entries[2].binding = 2;
+        entries[2].visibility = WGPUShaderStage_Fragment;
+        entries[2].buffer.type = WGPUBufferBindingType_ReadOnlyStorage;
+        entries[2].buffer.minBindingSize = DisplayLookupBytes;
+        bindings.entryCount = display ? 3 : 2;
         bindings.entries = entries;
-        layout.reset(wgpuDeviceCreateBindGroupLayout(owner.device(), &bindings));
+        selectedLayout.reset(wgpuDeviceCreateBindGroupLayout(owner.device(), &bindings));
         WGPUPipelineLayoutDescriptor pipelineBindings{};
         pipelineBindings.bindGroupLayoutCount = 1;
-        pipelineBindings.bindGroupLayouts = &layout.value;
+        pipelineBindings.bindGroupLayouts = &selectedLayout.value;
         Resource<WGPUPipelineLayout, wgpuPipelineLayoutRelease> pipelineLayout(
             wgpuDeviceCreatePipelineLayout(owner.device(), &pipelineBindings));
-        initializeGpuCanvasResources();
         QFile file(QStringLiteral(":/librepaint/canvas/GpuRenderer.wgsl"));
         if (!file.open(QIODevice::ReadOnly)) throw std::runtime_error("Cannot load GPU canvas shader");
         const auto code = file.readAll();
@@ -138,7 +157,7 @@ struct GpuRenderer::Private {
         target.writeMask = WGPUColorWriteMask_All;
         WGPUFragmentState fragment{};
         fragment.module = shader.value;
-        fragment.entryPoint = {"fragment", WGPU_STRLEN};
+        fragment.entryPoint = {display ? "fragmentDisplay" : "fragment", WGPU_STRLEN};
         fragment.targetCount = 1;
         fragment.targets = &target;
         WGPURenderPipelineDescriptor descriptor{};
@@ -151,8 +170,8 @@ struct GpuRenderer::Private {
         descriptor.multisample.count = 1;
         descriptor.multisample.mask = ~quint32(0);
         descriptor.fragment = &fragment;
-        pipeline.reset(wgpuDeviceCreateRenderPipeline(owner.device(), &descriptor));
-        if (!queue.value || !layout.value || !pipeline.value || !owner.available()) {
+        selectedPipeline.reset(wgpuDeviceCreateRenderPipeline(owner.device(), &descriptor));
+        if (!queue.value || !selectedLayout.value || !selectedPipeline.value || !owner.available()) {
             throw std::runtime_error("Cannot create GPU canvas pipeline");
         }
     }
@@ -223,17 +242,49 @@ GpuRenderer::Frame GpuRenderer::render(const KisGpuTileStore::TextureSnapshot &i
         result.error = Error::InvalidTransform;
         return result;
     }
+    if (view.displayLookup && view.displayLookup->size() != DisplayLookupBytes) {
+        result.error = Error::InvalidDisplayLookup;
+        return result;
+    }
     if (d->pending.size() >= d->maximumPending) {
         result.error = Error::QueueFull;
         return result;
     }
     auto memory = d->owner.reserveMemory(sizeof(Parameters));
     if (!memory) { result.error = Error::BudgetExceeded; return result; }
+    const bool uploadLookup = view.displayLookup
+        && (!d->displayLookup || d->displayLookup->values.lock() != view.displayLookup);
+    KisGpuDevice::MemoryReservation lookupMemory, lookupUploadMemory;
+    if (uploadLookup) {
+        WGPULimits limits{};
+        if (wgpuDeviceGetLimits(d->owner.device(), &limits) != WGPUStatus_Success
+            || limits.maxStorageBufferBindingSize < quint64(DisplayLookupBytes)
+            || limits.maxBufferSize < quint64(DisplayLookupBytes)) {
+            result.error = Error::InvalidDisplayLookup;
+            return result;
+        }
+        lookupMemory = d->owner.reserveMemory(DisplayLookupBytes);
+        lookupUploadMemory = d->owner.reserveMemory(DisplayLookupBytes);
+        if (!lookupMemory || !lookupUploadMemory) { result.error = Error::BudgetExceeded; return result; }
+    }
     for (int c = 0; c < 4; ++c) parameters.background[c] = float((view.backgroundRgba >> (c * 8)) & 255) / 255;
     result.d = std::make_shared<CompletionData>();
     Private::ErrorScopes errors(d->owner.device(), result.d);
+    auto lookup = view.displayLookup ? d->displayLookup : nullptr;
+    if (uploadLookup) {
+        if (!d->displayPipeline.value) d->createPipeline(true);
+        lookup = std::make_shared<Private::DisplayLookup>();
+        lookup->values = view.displayLookup;
+        lookup->memory = std::move(lookupMemory);
+        WGPUBufferDescriptor descriptor{};
+        descriptor.size = DisplayLookupBytes;
+        descriptor.usage = WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst;
+        lookup->buffer.reset(wgpuDeviceCreateBuffer(d->owner.device(), &descriptor));
+    }
     auto operation = std::make_unique<Private::Pending>(result.d, image, target);
     operation->memory = std::move(memory);
+    operation->displayLookup = lookup;
+    operation->lookupUploadMemory = std::move(lookupUploadMemory);
     operation->inputView.reset(wgpuTextureCreateView(image.texture(), nullptr));
     WGPUTextureViewDescriptor targetView{};
     targetView.format = d->format;
@@ -246,15 +297,20 @@ GpuRenderer::Frame GpuRenderer::render(const KisGpuTileStore::TextureSnapshot &i
     parameterDescriptor.size = sizeof(Parameters);
     parameterDescriptor.usage = WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst;
     operation->parameters.reset(wgpuDeviceCreateBuffer(d->owner.device(), &parameterDescriptor));
-    WGPUBindGroupEntry bindings[2]{};
+    WGPUBindGroupEntry bindings[3]{};
     bindings[0].binding = 0;
     bindings[0].buffer = operation->parameters.value;
     bindings[0].size = sizeof(Parameters);
     bindings[1].binding = 1;
     bindings[1].textureView = operation->inputView.value;
+    if (lookup) {
+        bindings[2].binding = 2;
+        bindings[2].buffer = lookup->buffer.value;
+        bindings[2].size = DisplayLookupBytes;
+    }
     WGPUBindGroupDescriptor bindingDescriptor{};
-    bindingDescriptor.layout = d->layout.value;
-    bindingDescriptor.entryCount = 2;
+    bindingDescriptor.layout = lookup ? d->displayLayout.value : d->layout.value;
+    bindingDescriptor.entryCount = lookup ? 3 : 2;
     bindingDescriptor.entries = bindings;
     operation->bindings.reset(wgpuDeviceCreateBindGroup(d->owner.device(), &bindingDescriptor));
     Resource<WGPUCommandEncoder, wgpuCommandEncoderRelease> encoder(
@@ -270,7 +326,7 @@ GpuRenderer::Frame GpuRenderer::render(const KisGpuTileStore::TextureSnapshot &i
     {
         Resource<WGPURenderPassEncoder, wgpuRenderPassEncoderRelease> pass(
             wgpuCommandEncoderBeginRenderPass(encoder.value, &passDescriptor));
-        wgpuRenderPassEncoderSetPipeline(pass.value, d->pipeline.value);
+        wgpuRenderPassEncoderSetPipeline(pass.value, lookup ? d->displayPipeline.value : d->pipeline.value);
         wgpuRenderPassEncoderSetBindGroup(pass.value, 0, operation->bindings.value, 0, nullptr);
         wgpuRenderPassEncoderDraw(pass.value, 3, 1, 0, 0);
         wgpuRenderPassEncoderEnd(pass.value);
@@ -279,6 +335,11 @@ GpuRenderer::Frame GpuRenderer::render(const KisGpuTileStore::TextureSnapshot &i
     auto callbackData = std::make_unique<std::shared_ptr<CompletionData>>(result.d);
     result.d->sequence = d->statistics.submissions + 1;
     d->pending.push_back(std::move(operation));
+    if (uploadLookup) {
+        wgpuQueueWriteBuffer(d->queue.value, lookup->buffer.value, 0, view.displayLookup->constData(), DisplayLookupBytes);
+        d->statistics.displayLookupUploadBytes += DisplayLookupBytes;
+    }
+    d->displayLookup = std::move(lookup);
     wgpuQueueWriteBuffer(d->queue.value, d->pending.back()->parameters.value, 0, &parameters, sizeof(parameters));
     d->lastSubmission = wgpuQueueSubmitForIndex(d->queue.value, 1, &commands.value);
     WGPUQueueWorkDoneCallbackInfo callback{};
@@ -305,6 +366,13 @@ GpuRenderer::Statistics GpuRenderer::statistics() const
     auto result = d->statistics;
     result.pendingFrames = quint32(d->pending.size());
     result.residentParameterBytes = d->pending.size() * sizeof(Parameters);
+    std::vector<const Private::DisplayLookup *> lookups;
+    if (d->displayLookup) lookups.push_back(d->displayLookup.get());
+    for (const auto &operation : d->pending) {
+        const auto *lookup = operation->displayLookup.get();
+        if (lookup && std::find(lookups.begin(), lookups.end(), lookup) == lookups.end()) lookups.push_back(lookup);
+    }
+    result.residentDisplayLookupBytes = lookups.size() * DisplayLookupBytes;
     return result;
 }
 }

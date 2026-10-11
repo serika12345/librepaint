@@ -65,6 +65,8 @@ private Q_SLOTS:
     void cleanup();
     void globalBudgetRefusalCanBeRetried();
     void layerProjectionFollowsPreviewHistoryAndDocumentSwitch();
+    void displayLookupMapsPixelsAndRetainsPendingProfiles();
+    void displayLookupRefusalPreservesTheQueue();
     void transformedPixels_data();
     void transformedPixels();
     void interpolationKeepsTransparentColorsOutOfVisiblePixels();
@@ -170,6 +172,86 @@ void KisGpuCanvasRendererTest::layerProjectionFollowsPreviewHistoryAndDocumentSw
     QVERIFY(document.snapshot().layers[1].pixels == preview);
     QCOMPARE(store.statistics().pixelReadbackBytes, quint64(0));
     QCOMPARE(store.statistics().pixelUploadBytes, quint64(0));
+}
+
+void KisGpuCanvasRendererTest::displayLookupMapsPixelsAndRetainsPendingProfiles()
+{
+    Store store(m_gpu->owner, 8 * Store::TileBytes);
+    const QRect bounds(0, 0, 2, 1);
+    const auto source = image(store, bounds, QByteArray::fromHex("8040208000000000"));
+    Target first(*m_gpu, bounds.size()), second(*m_gpu, bounds.size());
+    const auto baseline = m_gpu->owner.memoryStatistics().reservedBytes;
+    {
+        Renderer renderer(m_gpu->owner, WGPUTextureFormat_RGBA8Unorm);
+        Renderer::View view;
+        view.sampling = Renderer::Sampling::Nearest;
+        view.backgroundRgba = 0;
+        const auto makeLookup = [](QByteArray pixel) {
+            QByteArray table(Renderer::DisplayLookupBytes, 0);
+            const qsizetype offset = (128 + 64 * 256 + 32 * 65536) * 4;
+            std::copy(pixel.begin(), pixel.end(), table.begin() + offset);
+            return std::make_shared<const QByteArray>(std::move(table));
+        };
+        view.displayLookup = makeLookup(QByteArray::fromHex("123456ff"));
+        const std::weak_ptr<const QByteArray> oldValues = view.displayLookup;
+        const auto oldFrame = renderer.render(source, first.texture, view);
+        QCOMPARE(oldFrame.error, Renderer::Error::None);
+        view.displayLookup = makeLookup(QByteArray::fromHex("abcdef00"));
+        QVERIFY(oldValues.expired());
+        const auto newFrame = renderer.render(source, second.texture, view);
+        QCOMPARE(newFrame.error, Renderer::Error::None);
+        QCOMPARE(renderer.statistics().residentDisplayLookupBytes, quint64(2 * Renderer::DisplayLookupBytes));
+        QCOMPARE(m_gpu->owner.memoryStatistics().reservedBytes, baseline + 4 * Renderer::DisplayLookupBytes + 96);
+        view.displayLookup.reset();
+        QVERIFY(finish(renderer, oldFrame));
+        QVERIFY(finish(renderer, newFrame));
+        QCOMPARE(m_gpu->read(first.texture, bounds.size()), QByteArray::fromHex("1234568000000000"));
+        QCOMPARE(m_gpu->read(second.texture, bounds.size()), QByteArray::fromHex("abcdef8000000000"));
+        QCOMPARE(renderer.statistics().displayLookupUploadBytes, quint64(2 * Renderer::DisplayLookupBytes));
+        QCOMPARE(renderer.statistics().residentDisplayLookupBytes, quint64(Renderer::DisplayLookupBytes));
+        QCOMPARE(m_gpu->owner.memoryStatistics().reservedBytes, baseline + Renderer::DisplayLookupBytes);
+
+        view.displayLookup = makeLookup(QByteArray::fromHex("aabbcc00"));
+        QVERIFY(finish(renderer, renderer.render(source, first.texture, view)));
+        const auto uploads = renderer.statistics().displayLookupUploadBytes;
+        QVERIFY(finish(renderer, renderer.render(source, first.texture, view)));
+        QCOMPARE(renderer.statistics().displayLookupUploadBytes, uploads);
+        QCOMPARE(m_gpu->read(first.texture, bounds.size()), QByteArray::fromHex("aabbcc8000000000"));
+        view.backgroundRgba = 0xFF204080;
+        QVERIFY(finish(renderer, renderer.render(source, first.texture, view)));
+        QCOMPARE(m_gpu->read(first.texture, bounds.size()), QByteArray::fromHex("aabbccffaabbccff"));
+        QCOMPARE(renderer.statistics().displayLookupUploadBytes, uploads);
+        view.backgroundRgba = 0;
+        view.displayLookup.reset();
+        QVERIFY(finish(renderer, renderer.render(source, first.texture, view)));
+        QCOMPARE(m_gpu->read(first.texture, bounds.size()), QByteArray::fromHex("8040208000000000"));
+        QCOMPARE(renderer.statistics().residentDisplayLookupBytes, quint64(0));
+        QCOMPARE(m_gpu->owner.memoryStatistics().reservedBytes, baseline);
+        QCOMPARE(store.statistics().pixelReadbackBytes, quint64(0));
+    }
+    QCOMPARE(m_gpu->owner.memoryStatistics().reservedBytes, baseline);
+}
+
+void KisGpuCanvasRendererTest::displayLookupRefusalPreservesTheQueue()
+{
+    KisGpuTestDevice gpu(0, false, 4 * Store::TileBytes);
+    Store store(gpu.owner, 8 * Store::TileBytes);
+    const auto source = image(store, {0, 0, 1, 1}, QByteArray::fromHex("ff0000ff"));
+    Target target(gpu, {1, 1});
+    Renderer renderer(gpu.owner, WGPUTextureFormat_RGBA8Unorm);
+    Renderer::View view;
+    view.displayLookup = std::make_shared<const QByteArray>("invalid");
+    QCOMPARE(renderer.render(source, target.texture, view).error, Renderer::Error::InvalidDisplayLookup);
+    view.displayLookup = std::make_shared<const QByteArray>(Renderer::DisplayLookupBytes, 0);
+    const auto baseline = gpu.owner.memoryStatistics().reservedBytes;
+    QCOMPARE(renderer.render(source, target.texture, view).error, Renderer::Error::BudgetExceeded);
+    QCOMPARE(renderer.statistics().submissions, quint64(0));
+    QCOMPARE(renderer.statistics().displayLookupUploadBytes, quint64(0));
+    QCOMPARE(gpu.owner.memoryStatistics().reservedBytes, baseline);
+    view.displayLookup.reset();
+    QVERIFY(finish(renderer, renderer.render(source, target.texture, view)));
+    QCOMPARE(gpu.read(target.texture, {1, 1}), QByteArray::fromHex("ff0000ff"));
+    QCOMPARE(gpu.owner.errorCount(), 0);
 }
 
 void KisGpuCanvasRendererTest::initTestCase()

@@ -39,7 +39,7 @@ DocumentCanvas::~DocumentCanvas() = default;
 void DocumentCanvas::setView(const GpuRenderer::View &view)
 {
     if (view.canvasToTarget != m_view.canvasToTarget || view.backgroundRgba != m_view.backgroundRgba
-        || view.sampling != m_view.sampling) {
+        || view.sampling != m_view.sampling || view.displayLookup != m_view.displayLookup) {
         m_view = view;
         m_repaint = true;
     }

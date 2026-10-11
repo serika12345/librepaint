@@ -28,6 +28,44 @@ Store::DabCommand dab(QPointF position, quint32 rgba)
 class KisGpuDocumentCanvasTest : public QObject {
     Q_OBJECT
 private Q_SLOTS:
+    void displayProfileChangeRepaintsWithoutChangingDocumentPixels() {
+        KisGpuTestDevice gpu;
+        auto store = std::make_shared<Store>(gpu.owner, 128 * Store::TileBytes);
+        auto document = std::make_shared<Document>(store, 16);
+        document->addLayer(QStringLiteral("Paint"));
+        QWindow window;
+        Surface::prepareWindow(window); window.resize(64, 64); window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window, 3000));
+        Canvas canvas(gpu.owner, store, document, window, Bounds);
+        const auto complete = [&] {
+            canvas.poll();
+            return canvas.lastFrame().accepted() && canvas.lastFrame().rendering.status() == Store::Status::Succeeded;
+        };
+        QVERIFY(waitForGpuWindow(complete));
+        const auto before = store->statistics();
+        const auto original = document->layers().first().paint.pixels;
+        const auto requests = canvas.statistics().presentationRequests;
+        Krita::Canvas::GpuRenderer::View view;
+        view.displayLookup = std::make_shared<const QByteArray>(Krita::Canvas::GpuRenderer::DisplayLookupBytes, 0);
+        canvas.setView(view);
+        QVERIFY(waitForGpuWindow([&] { return complete() && canvas.statistics().presentationRequests > requests; }));
+        QCOMPARE(canvas.statistics().rendering.displayLookupUploadBytes,
+            quint64(Krita::Canvas::GpuRenderer::DisplayLookupBytes));
+        const auto colorRequests = canvas.statistics().presentationRequests;
+        canvas.setView(view);
+        for (int i = 0; i < 10; ++i) { canvas.poll(); QTest::qWait(1); }
+        QCOMPARE(canvas.statistics().presentationRequests, colorRequests);
+        view.displayLookup.reset();
+        canvas.setView(view);
+        QVERIFY(waitForGpuWindow([&] { return complete() && canvas.statistics().presentationRequests > colorRequests; }));
+        QCOMPARE(canvas.statistics().rendering.residentDisplayLookupBytes, quint64(0));
+        QCOMPARE(document->layers().first().paint.pixels, original);
+        QCOMPARE(store->statistics().submissions, before.submissions);
+        QCOMPARE(store->statistics().imageTextureAllocationBytes, before.imageTextureAllocationBytes);
+        QCOMPARE(store->statistics().pixelUploadBytes, quint64(0));
+        QCOMPARE(store->statistics().pixelReadbackBytes, quint64(0));
+        QCOMPARE(gpu.owner.errorCount(), 0);
+    }
     void continuousInputPresentsWithOnePendingStoreSubmission() {
         KisGpuTestDevice gpu;
         auto store = std::make_shared<Store>(gpu.owner, 128 * Store::TileBytes, 1);

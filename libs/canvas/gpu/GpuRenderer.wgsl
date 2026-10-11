@@ -6,6 +6,7 @@ struct Parameters {
 }
 @group(0) @binding(0) var<uniform> parameters: Parameters;
 @group(0) @binding(1) var image: texture_2d<f32>;
+@group(0) @binding(2) var<storage, read> displayLookup: array<u32>;
 
 @vertex
 fn vertex(@builtin(vertex_index) index: u32) -> @builtin(position) vec4<f32> {
@@ -39,8 +40,7 @@ fn sampleImage(position: vec2<f32>) -> vec4<f32> {
     return mix(top, bottom, fraction.y);
 }
 
-@fragment
-fn fragment(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
+fn outputColor(position: vec4<f32>) -> vec4<f32> {
     let coordinate = vec2(dot(parameters.rowX.xyz, vec3(position.xy, 1.0)),
                           dot(parameters.rowY.xyz, vec3(position.xy, 1.0)));
     let source = sampleImage(coordinate);
@@ -48,4 +48,18 @@ fn fragment(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
     if (result.a == 0.0) { return vec4(0.0); }
     let straight = vec4(result.rgb / result.a, result.a);
     return round(clamp(straight, vec4(0.0), vec4(1.0)) * 255.0) / 255.0;
+}
+
+@fragment
+fn fragment(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
+    return outputColor(position);
+}
+
+@fragment
+fn fragmentDisplay(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
+    let color = outputColor(position);
+    if (color.a == 0.0) { return vec4(0.0); }
+    let rgb = vec3<u32>(round(color.rgb * 255.0));
+    let mapped = unpack4x8unorm(displayLookup[rgb.r + 256u * rgb.g + 65536u * rgb.b]);
+    return vec4(mapped.rgb, color.a);
 }
