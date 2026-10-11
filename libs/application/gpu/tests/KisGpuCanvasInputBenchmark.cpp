@@ -13,6 +13,7 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QSysInfo>
 #include <QWindow>
 #include <algorithm>
 #include <cmath>
@@ -217,6 +218,10 @@ int main(int argc, char **argv)
         require(image.completion.status() == Store::Status::Succeeded, "Verification readback failed");
         const auto imageHash = QString::fromLatin1(QCryptographicHash::hash(image.bytes(), QCryptographicHash::Sha256).toHex());
         QJsonObject report{{"source", "product KisGpuCanvasSession, automatic GUI timers"},
+            {"cpu_build_architecture", QSysInfo::buildCpuArchitecture()},
+            {"cpu_runtime_architecture", QSysInfo::currentCpuArchitecture()},
+            {"kernel_type", QSysInfo::kernelType()}, {"adapter", documents.device()->adapterName()},
+            {"wgpu_native_version", QString::number(wgpuGetVersion(), 16)},
             {"window", display ? "exposed; automatic product presentation" : "hidden; no presentation"},
             {"workload", workloadName}, {"mode", mode}, {"layer_count", model->layers().size()},
             {"canvas_size", QJsonArray{bounds.width(), bounds.height()}},

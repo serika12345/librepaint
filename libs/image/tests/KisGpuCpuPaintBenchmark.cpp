@@ -8,6 +8,7 @@
 #include "KoColorProfile.h"
 #include "KoColorSpace.h"
 #include "KoColorSpaceRegistry.h"
+#include "KoCompositeOp.h"
 #include "KoCompositeOpRegistry.h"
 #include "KoTestConfig.h"
 #include "kis_paint_device.h"
@@ -25,6 +26,7 @@
 #include <QRunnable>
 #include <QSemaphore>
 #include <QStandardPaths>
+#include <QSysInfo>
 #include <QThreadPool>
 #include <algorithm>
 #include <cmath>
@@ -32,6 +34,7 @@
 #include <ctime>
 #include <memory>
 #include <stdexcept>
+#include <typeinfo>
 
 namespace {
 using Store = KisGpuTileStore;
@@ -212,6 +215,10 @@ int main(int argc, char **argv)
         const auto *space = KoColorSpaceRegistry::instance()->rgb8("sRGB-elle-V2-srgbtrc.icc");
         if (!space || !space->profile() || space->profile()->name() != "sRGB-elle-V2-srgbtrc.icc")
             throw std::runtime_error("Required CPU color profile unavailable");
+        const auto *cpuOver = space->compositeOp(COMPOSITE_OVER);
+        const auto *cpuErase = space->compositeOp(COMPOSITE_ERASE);
+        if (!cpuOver || !cpuErase)
+            throw std::runtime_error("Required CPU composite operations unavailable");
         KisGpuTestDevice gpu(0, parser.isSet("gpu-timing"));
         QThreadPool pool;
         pool.setMaxThreadCount(4);
@@ -299,6 +306,11 @@ int main(int argc, char **argv)
                 { "wgpuNativeVersion", QString::number(wgpuGetVersion(), 16) }, { "validationEnabled", true },
                 { "samplesPerMode", count }, { "warmupsPerMode", 2 }, { "cpuWorkers", QJsonArray{ 1, 4 } },
                 { "colorProfile", QStringLiteral("sRGB-elle-V2-srgbtrc.icc") },
+                { "cpuBuildArchitecture", QSysInfo::buildCpuArchitecture() },
+                { "cpuRuntimeArchitecture", QSysInfo::currentCpuArchitecture() },
+                { "kernelType", QSysInfo::kernelType() },
+                { "cpuCompositeOverImplementation", QString::fromLatin1(typeid(*cpuOver).name()) },
+                { "cpuCompositeEraseImplementation", QString::fromLatin1(typeid(*cpuErase).name()) },
                 { "gpuBudgetBytes", qint64(BudgetBytes) },
                 { "cpuOperation", "KisPainter::bitBlt; immutable KisPaintDevice copy" }, { "cpuStripeHeight", 64 },
                 { "preparedSourcesOutsideTiming", true }, { "includesDisplay", false },
