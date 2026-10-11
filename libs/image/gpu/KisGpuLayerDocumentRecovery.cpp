@@ -12,6 +12,7 @@ KisGpuLayerDocument::KisGpuLayerDocument(std::shared_ptr<KisGpuTileStore> store,
     : KisGpuLayerDocument(std::move(store), retained, maximum)
 {
     if (!validRecovery(request, m_retainedEdits, maximum)) throw std::invalid_argument("Invalid GPU layer document recovery history or CPU payload budget");
+    if (request.working) ++m_editGeneration;
     m_restoring.emplace();
     m_restoring->request = std::move(request);
     m_restoring->records = m_restoring->request.history[m_restoring->request.cursor];
@@ -110,6 +111,16 @@ KisGpuLayerDocument::Recovery KisGpuLayerDocument::recovery() const
 KisGpuLayerDocument::Editing KisGpuLayerDocument::currentEditing() const
 {
     return m_active ? Editing{Result::Accepted, m_session, m_active->token} : Editing{};
+}
+
+KisGpuLayerDocument::EditLease KisGpuLayerDocument::currentEditLease() const
+{
+    EditLease lease;
+    if (m_active || (m_restoring && m_restoring->request.working)) {
+        lease.generation = m_editGeneration;
+        lease.owner = m_editIdentity;
+    }
+    return lease;
 }
 
 KisGpuTileStore::Error KisGpuLayerDocument::recoveryError() const

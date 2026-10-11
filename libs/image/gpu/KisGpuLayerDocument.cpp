@@ -234,6 +234,7 @@ KisGpuLayerDocument::Editing KisGpuLayerDocument::begin(LayerId id, Target targe
     const auto index = indexOf(id);
     if (index < 0) return {Result::InvalidLayer, {}, {}};
     if (target != Target::Pixels && target != Target::Mask) return {Result::InvalidInput, {}, {}};
+    if (m_editGeneration == std::numeric_limits<quint64>::max()) return {Result::InvalidInput, {}, {}};
     const auto &record = *m_history[m_cursor][index];
     if (!record.visible || record.locked) return {Result::LayerNotEditable, {}, {}};
     const auto recovery = target == Target::Pixels ? *record.pixels : (record.mask ? *record.mask : KisGpuEditSession::Recovery{});
@@ -259,6 +260,7 @@ KisGpuLayerDocument::Editing KisGpuLayerDocument::begin(LayerId id, Target targe
     if (!token) return {Result::GpuRejected, {}, {}};
     m_session = std::move(session);
     m_active = Active{id, target, token};
+    ++m_editGeneration;
     m_lastResult = Result::Accepted;
     return {Result::Accepted, m_session, token};
 }

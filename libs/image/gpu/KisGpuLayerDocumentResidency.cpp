@@ -36,6 +36,18 @@ KisGpuLayerDocument::Result KisGpuLayerDocument::resume(std::shared_ptr<KisGpuTi
     return Result::Accepted;
 }
 
+KisGpuLayerDocument::Result KisGpuLayerDocument::discardRecoveringEdit(const EditLease &lease)
+{
+    if (!lease || lease != currentEditLease()) return Result::Stale;
+    if (!m_restoring) return m_store ? Result::Busy : Result::Stale;
+    if (!m_restoring->request.working) return Result::Stale;
+    const auto &work = *m_restoring->request.working;
+    if (work.completed || work.data.commitRequested) return Result::Busy;
+    if (m_restoring->index == m_restoring->records.size()) m_restoring->session.reset();
+    m_restoring->request.working.reset();
+    return Result::Accepted;
+}
+
 KisGpuLayerDocument::Result KisGpuLayerDocument::evictHistory()
 {
     const auto current = state();

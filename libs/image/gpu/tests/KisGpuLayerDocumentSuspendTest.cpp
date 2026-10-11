@@ -42,6 +42,8 @@ private Q_SLOTS:
     void preservesDocumentAcrossDeviceReplacement();
     void unfinishedInput_data();
     void unfinishedInput();
+    void cancellationWhileSuspended_data();
+    void cancellationWhileSuspended();
     void pendingUndoAndFailedResumeKeepCpuState();
     void suspensionCancelsMaintenanceAndSurvivesLoss();
 };
@@ -130,6 +132,8 @@ void KisGpuLayerDocumentSuspendTest::unfinishedInput()
     QVERIFY(paint(document, 1, 0xFF112233, target));
     const auto committed = gpu.read(mask ? document.layers()[0].paint.mask : document.layers()[0].paint.pixels, Bounds);
     auto edit = document.begin(1, target);
+    const auto lease = document.currentEditLease();
+    QVERIFY(lease);
     QCOMPARE(edit.session->append(edit.token, {dab(0x80123456)}, Bounds), Session::Result::Accepted);
     wgpuDevicePoll(gpu.device, true, nullptr);
     edit.session->poll();
@@ -153,6 +157,8 @@ void KisGpuLayerDocumentSuspendTest::unfinishedInput()
     QCOMPARE(store->statistics().submissions, before.submissions);
     QCOMPARE(store->statistics().pixelReadbackBytes, before.pixelReadbackBytes);
     QCOMPARE(document.recovery().working->completed, recovery.working->completed);
+    QCOMPARE(document.currentEditLease(), lease);
+    if (phase) QCOMPARE(document.discardRecoveringEdit(lease), Document::Result::Busy);
     edit.session.reset();
     gpu.owner.destroy();
     KisGpuTestDevice replacement;
@@ -160,12 +166,14 @@ void KisGpuLayerDocumentSuspendTest::unfinishedInput()
     QCOMPARE(document.resume(nextStore), Document::Result::Accepted);
     QVERIFY(settle(document));
     if (!phase) {
+        QCOMPARE(document.currentEditLease(), lease);
         QCOMPARE(document.state(), Document::State::Editing);
         const auto current = document.currentEditing();
         QVERIFY(current.token != edit.token);
         QCOMPARE(replacement.read(current.session->head(), Bounds), committed);
         QCOMPARE(replacement.read(current.session->preview(), Bounds), preview);
         QCOMPARE(document.cancel(current.token), Document::Result::Accepted);
+        QVERIFY(!document.currentEditLease());
     } else {
         QCOMPARE(document.state(), Document::State::Idle);
         QCOMPARE(replacement.read(mask ? document.layers()[0].paint.mask : document.layers()[0].paint.pixels, Bounds), preview);
@@ -173,6 +181,83 @@ void KisGpuLayerDocumentSuspendTest::unfinishedInput()
         QVERIFY(settle(document));
     }
     QCOMPARE(replacement.read(mask ? document.layers()[0].paint.mask : document.layers()[0].paint.pixels, Bounds), committed);
+    QCOMPARE(replacement.owner.errorCount(), 0);
+}
+
+void KisGpuLayerDocumentSuspendTest::cancellationWhileSuspended_data()
+{
+    QTest::addColumn<bool>("mask");
+    QTest::addColumn<bool>("restoring");
+    QTest::newRow("pixels-suspended") << false << false;
+    QTest::newRow("mask-suspended") << true << false;
+    QTest::newRow("pixels-restoring") << false << true;
+    QTest::newRow("mask-restoring") << true << true;
+}
+
+void KisGpuLayerDocumentSuspendTest::cancellationWhileSuspended()
+{
+    QFETCH(bool, mask);
+    QFETCH(bool, restoring);
+    KisGpuTestDevice gpu;
+    auto store = std::make_shared<Store>(gpu.owner, 128 * Store::TileBytes);
+    Document document(store, 16);
+    document.addLayer(QStringLiteral("Paint"));
+    const auto target = mask ? Document::Target::Mask : Document::Target::Pixels;
+    QCOMPARE(document.discardRecoveringEdit({}), Document::Result::Stale);
+    QVERIFY(paint(document, 1, 0xFFFF0000, target));
+    const auto earlier = gpu.read(mask ? document.layers()[0].paint.mask : document.layers()[0].paint.pixels, Bounds);
+    QVERIFY(paint(document, 1, 0xFF00FF00, target));
+    const auto later = gpu.read(mask ? document.layers()[0].paint.mask : document.layers()[0].paint.pixels, Bounds);
+    QVERIFY(document.undo());
+    QVERIFY(settle(document));
+    auto edit = document.begin(1, target);
+    const auto lease = document.currentEditLease();
+    QCOMPARE(document.discardRecoveringEdit(lease), Document::Result::Busy);
+    for (int i = 0; i < 16; ++i)
+        QCOMPARE(edit.session->append(edit.token, {dab(0xFF0000FF)}, Bounds), Session::Result::Accepted);
+    QCOMPARE(document.suspend(), Document::Result::Accepted);
+    const auto retained = document.recovery();
+    QVERIFY(retained.working);
+    if (restoring) {
+        QCOMPARE(document.resume(store), Document::Result::Accepted);
+        for (int i = 0; i < 8; ++i) { document.poll(); wgpuDevicePoll(gpu.device, true, nullptr); }
+        QCOMPARE(document.state(), Document::State::Restoring);
+    }
+    const auto before = store->statistics();
+    QCOMPARE(document.discardRecoveringEdit({}), Document::Result::Stale);
+    QCOMPARE(document.discardRecoveringEdit(lease), Document::Result::Accepted);
+    QCOMPARE(document.discardRecoveringEdit(lease), Document::Result::Stale);
+    QVERIFY(!document.currentEditLease());
+    QVERIFY(!document.recovery().working);
+    QCOMPARE(document.recovery().history, retained.history);
+    QCOMPARE(document.recovery().cursor, retained.cursor);
+    QCOMPARE(document.recovery().nextId, retained.nextId);
+    QCOMPARE(store->statistics().submissions, before.submissions);
+    QCOMPARE(store->statistics().pixelReadbackBytes, before.pixelReadbackBytes);
+    QCOMPARE(store->statistics().pixelUploadBytes, before.pixelUploadBytes);
+    if (restoring) {
+        QVERIFY(settle(document));
+        QCOMPARE(document.state(), Document::State::Idle);
+        QCOMPARE(gpu.read(mask ? document.layers()[0].paint.mask : document.layers()[0].paint.pixels, Bounds), earlier);
+        QCOMPARE(document.suspend(), Document::Result::Accepted);
+    }
+    edit.session.reset();
+    gpu.owner.destroy();
+    KisGpuTestDevice replacement;
+    auto nextStore = std::make_shared<Store>(replacement.owner, 128 * Store::TileBytes);
+    QCOMPARE(document.resume(nextStore), Document::Result::Accepted);
+    QVERIFY(settle(document));
+    QCOMPARE(document.state(), Document::State::Idle);
+    QCOMPARE(replacement.read(mask ? document.layers()[0].paint.mask : document.layers()[0].paint.pixels, Bounds), earlier);
+    QVERIFY(document.redo());
+    QVERIFY(settle(document));
+    QCOMPARE(replacement.read(mask ? document.layers()[0].paint.mask : document.layers()[0].paint.pixels, Bounds), later);
+    const auto next = document.begin(1, target);
+    QVERIFY(document.currentEditLease() != lease);
+    QCOMPARE(document.suspend(), Document::Result::Accepted);
+    QCOMPARE(document.discardRecoveringEdit(lease), Document::Result::Stale);
+    QCOMPARE(document.discardRecoveringEdit(document.currentEditLease()), Document::Result::Accepted);
+    QVERIFY(next.token != edit.token);
     QCOMPARE(replacement.owner.errorCount(), 0);
 }
 

@@ -15,11 +15,26 @@
  */
 class KisGpuLayerDocument
 {
+    struct EditIdentity {};
 public:
     using LayerId = quint64;
     enum class Result { Accepted, Busy, Stale, InvalidLayer, InvalidInput, RecoveryBudgetExceeded, GpuRejected, LayerNotEditable };
     enum class State { Idle, Editing, Committing, Failed, Restoring, Compacting, Suspended };
     enum class Target { Pixels, Mask };
+    /** CPU operation ownership survives GPU replacement and expires with this document. */
+    class EditLease {
+    public:
+        EditLease() = default;
+        explicit operator bool() const { return generation && !owner.expired(); }
+        bool operator==(const EditLease &other) const {
+            return generation == other.generation && !owner.owner_before(other.owner) && !other.owner.owner_before(owner);
+        }
+        bool operator!=(const EditLease &other) const { return !(*this == other); }
+    private:
+        friend class KisGpuLayerDocument;
+        quint64 generation = 0;
+        std::weak_ptr<const EditIdentity> owner;
+    };
     struct Layer {
         LayerId id = 0;
         QString name;
@@ -77,6 +92,7 @@ public:
     /** One edit at a time; adopts the existing GPU head and CPU record without transfer or replay. */
     Editing begin(LayerId id, Target target = Target::Pixels);
     Editing currentEditing() const;
+    EditLease currentEditLease() const;
     Recovery recovery() const;
     /** CPU-only structural validation, usable before persistence or GPU creation. */
     static bool validRecovery(const Recovery &recovery, qsizetype retainedEdits, quint64 maximumRecoveryBytes);
@@ -94,6 +110,8 @@ public:
     Result evictHistory();
     /** Keep CPU history and accepted working input while releasing this document's GPU ownership. */
     Result suspend();
+    /** Discard unfinished CPU working input during suspension or recovery; accepted commits stay durable. */
+    Result discardRecoveringEdit(const EditLease &lease);
     /** Recreate a suspended document on a new concrete store through poll(). */
     Result resume(std::shared_ptr<KisGpuTileStore> store);
     /** Cancel a queued Undo/Redo restoration and keep the previously displayed frame. */
@@ -150,6 +168,8 @@ private:
     qsizetype m_retainedEdits, m_cursor = 0;
     quint64 m_maximumRecoveryBytes;
     LayerId m_nextId = 1;
+    quint64 m_editGeneration = 0;
+    std::shared_ptr<const EditIdentity> m_editIdentity = std::make_shared<const EditIdentity>();
     QVector<Frame> m_history;
     std::map<const KisGpuEditSession::Recovery *, KisGpuTileStore::Version> m_rasterVersions;
     std::optional<Active> m_active;
