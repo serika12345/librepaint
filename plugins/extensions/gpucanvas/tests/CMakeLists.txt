@@ -14,7 +14,7 @@ kis_add_test(KisGpuCanvasEntryTest.cpp ${CMAKE_SOURCE_DIR}/krita/krita.qrc
     ${CMAKE_SOURCE_DIR}/krita/pics/Breeze-light/breeze-light-icons.qrc
     TEST_NAME KisGpuCanvasEntryTest
     LINK_LIBRARIES kritagpucanvaswindow kritaapplicationui kritatestsdk KF${KF_MAJOR}::I18n)
-add_dependencies(KisGpuCanvasEntryTest kritagpucanvas)
+add_dependencies(KisGpuCanvasEntryTest kritagpucanvas kritalcmsengine krita_shape_image krita_shape_paths)
 target_compile_definitions(KisGpuCanvasEntryTest PRIVATE GPU_ACTION_DIRECTORY="${CMAKE_CURRENT_SOURCE_DIR}/..")
 set_tests_properties(plugins-extensions-gpucanvas-KisGpuCanvasEntryTest PROPERTIES
     TIMEOUT 90 LABELS "gpu;gpu-display" RESOURCE_LOCK gpu_native_window
@@ -26,7 +26,7 @@ else()
 endif()
 
 kis_add_test(KisGpuCanvasWorkspaceTest.cpp LINK_LIBRARIES kritagpucanvasworkspace kritaapplicationui kritatestsdk)
-add_dependencies(KisGpuCanvasWorkspaceTest kritakraexport)
+add_dependencies(KisGpuCanvasWorkspaceTest kritakraexport kritalcmsengine krita_shape_image krita_shape_paths)
 set_tests_properties(plugins-extensions-gpucanvas-KisGpuCanvasWorkspaceTest PROPERTIES
     TIMEOUT 90 LABELS "gpu;gpu-display" RESOURCE_LOCK gpu_native_window
     FAIL_REGULAR_EXPRESSION "Validation Error;VUID-")
