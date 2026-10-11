@@ -43,6 +43,22 @@ QByteArray read(Host &host, Host::DocumentId id, const Store::Version &version) 
 class KisGpuDocumentDeviceTest : public QObject {
     Q_OBJECT
 private Q_SLOTS:
+    void registeredAndIndependentDevicesShareInitializationAndKeepIndependentLifetimes() {
+        Host host;
+        const auto id = host.createDocument({});
+        QVERIFY(id);
+        KisGpuDevice independent;
+        QCOMPARE(host.device()->instance(), independent.instance());
+        QVERIFY(host.device()->device() != independent.device());
+        const auto instance = independent.instance();
+        QVERIFY(host.suspend());
+        QVERIFY(independent.available());
+        QVERIFY(host.resume());
+        QCOMPARE(host.device()->instance(), instance);
+        independent.destroy();
+        QVERIFY(host.device()->available());
+        QCOMPARE(host.device()->errorCount(), 0);
+    }
     void emptyLifecycleAndInvalidValuesKeepDeviceCreationLazy() {
         Host host;
         QVERIFY(!host.device());

@@ -7,12 +7,20 @@ set_target_properties(LibrePaintWgpuNative PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${LIBREPAINT_WGPU_NATIVE_INCLUDE_DIR}"
 )
 
+kis_add_library(kritaimagegpuinstance SHARED KisGpuInstance.cpp KisGpuInstance_p.h)
+generate_export_header(kritaimagegpuinstance)
+target_include_directories(kritaimagegpuinstance PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_link_libraries(kritaimagegpuinstance PUBLIC LibrePaintWgpuNative)
+set_target_properties(kritaimagegpuinstance PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
+install(TARGETS kritaimagegpuinstance ${INSTALL_TARGETS_DEFAULT_ARGS})
+
 qt_add_resources(gpu_document_resources gpu_document.qrc)
 add_library(kritaimagegpudocument STATIC KisGpuDeviceMemory.cpp KisGpuDabPipelines.cpp KisGpuDevice.cpp KisGpuTileStore.cpp KisGpuTilePaint.cpp KisGpuBrushTexture.cpp KisGpuTileTransfer.cpp KisGpuTileTexture.cpp KisGpuTileComposite.cpp KisGpuProjection.cpp KisGpuLayerProjection.cpp KisGpuEditSession.cpp KisGpuEditRecovery.cpp KisGpuRecoveryCompaction.cpp KisGpuSubmissionTiming.cpp ${gpu_document_resources})
 target_include_directories(kritaimagegpudocument PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(kritaimagegpudocument PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 target_sources(kritaimagegpudocument PRIVATE KisGpuLayerDocument.cpp KisGpuLayerDocumentRecovery.cpp KisGpuLayerDocumentResidency.cpp KisGpuLayerDocumentCompaction.cpp KisGpuDocumentReadback.cpp)
 target_sources(kritaimagegpudocument PRIVATE KisGpuDabMixing.cpp)
-target_link_libraries(kritaimagegpudocument PUBLIC Qt${QT_MAJOR_VERSION}::Core LibrePaintWgpuNative)
+target_link_libraries(kritaimagegpudocument PUBLIC Qt${QT_MAJOR_VERSION}::Core LibrePaintWgpuNative PRIVATE kritaimagegpuinstance)
 set_target_properties(kritaimagegpudocument PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 
 if(BUILD_TESTING)

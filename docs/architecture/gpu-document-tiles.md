@@ -320,7 +320,9 @@ RGBはアルファと独立して保持する。CPUとの画素転送は伴わ�
 ## 操作順序と寿命
 
 `KisGpuDevice`はMetalまたはVulkanの実GPUを生成し、CPU描画装置を拒否する。
-`KisGpuDevice.cpp`のAPI初期化は同じファイルの`ProcessInstance`がプロセス単位で保持する。
+`KisGpuDevice.cpp`から呼び出すAPI初期化は、`KisGpuInstance.cpp`を所有する共有ライブラリー
+`kritaimagegpuinstance`がプロセス単位で保持する。実行ファイルと文書・表示のプラグインは、
+この一つの初期化所有者へ依存する。iOSでは同じ所有者をアプリケーションへ静的に結び付ける。
 最初のGPU要求で初期化し、プロセス終了時に解放する。アダプター、デバイス、割当予約と
 利用可否は個々のGPU所有者に属する。GPU交換でAPI初期化とドライバーを繰り返し読み込む
 費用・内部資源の増加を避けながら、GPU画素・表示資源は各所有者の寿命で解放する。
