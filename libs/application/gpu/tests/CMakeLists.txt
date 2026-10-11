@@ -7,6 +7,10 @@ endif()
 set_tests_properties(libs-application-gpu-KisGpuApplicationStateTest PROPERTIES
     TIMEOUT 60 LABELS gpu FAIL_REGULAR_EXPRESSION "Validation Error;VUID-")
 if(TARGET kritaapplicationgpucanvas)
+    add_executable(KisGpuCanvasInputBenchmark EXCLUDE_FROM_ALL KisGpuCanvasInputBenchmark.cpp)
+    target_link_libraries(KisGpuCanvasInputBenchmark PRIVATE kritaapplicationgpucanvas)
+    target_include_directories(KisGpuCanvasInputBenchmark PRIVATE ${CMAKE_SOURCE_DIR}/libs/canvas/gpu/tests)
+    set_target_properties(KisGpuCanvasInputBenchmark PROPERTIES AUTOMOC OFF MACOSX_BUNDLE OFF)
     kis_add_test(KisGpuCanvasSessionTest.cpp LINK_LIBRARIES kritaapplicationgpucanvas Qt${QT_MAJOR_VERSION}::Test)
     set_tests_properties(libs-application-gpu-KisGpuCanvasSessionTest PROPERTIES
         TIMEOUT 60 LABELS "gpu;gpu-display" RESOURCE_LOCK gpu_native_window

@@ -28,6 +28,7 @@ KisGpuCanvasSession::KisGpuCanvasSession(KisGpuDocumentDevice &documents, KisGpu
     m_pointer = std::make_unique<KisGpuPointerInput>(*m_input, m_window, 1024, this);
     connect(m_pointer.get(), &KisGpuPointerInput::inputReady, this, [this] {
         if (m_documents.isSuspended()) m_application.resumeForInput();
+        m_inputBackoff = false;
         updatePolling();
     });
     connect(m_pointer.get(), &KisGpuPointerInput::inputRejected, this, &KisGpuCanvasSession::inputRejected);
@@ -43,6 +44,8 @@ KisGpuCanvasSession::KisGpuCanvasSession(KisGpuDocumentDevice &documents, KisGpu
     m_poll.setInterval(16);
     m_poll.setTimerType(Qt::PreciseTimer);
     connect(&m_poll, &QTimer::timeout, this, [this] { poll(); });
+    m_inputPoll.setTimerType(Qt::PreciseTimer);
+    connect(&m_inputPoll, &QTimer::timeout, this, [this] { advanceInput(); updatePolling(); });
     updatePolling();
 }
 
@@ -57,6 +60,7 @@ KisGpuCanvasSession::~KisGpuCanvasSession()
 void KisGpuCanvasSession::releaseGpu()
 {
     m_poll.stop();
+    m_inputPoll.stop();
     m_canvas.reset();
     if (m_input) m_input->releaseGpu();
 }
@@ -70,6 +74,13 @@ void KisGpuCanvasSession::updatePolling()
         if (!m_poll.isActive()) m_poll.start();
     }
     else m_poll.stop();
+    const bool pending = m_input && (m_input->pendingSamples() || input == Input::State::Finishing
+        || (m_pointer && m_pointer->hasPendingWork()));
+    if (m_poll.isActive() && pending) {
+        const int interval = m_inputBackoff ? 16 : 1;
+        if (m_inputPoll.interval() != interval) m_inputPoll.setInterval(interval);
+        if (!m_inputPoll.isActive()) m_inputPoll.start();
+    } else m_inputPoll.stop();
 }
 
 bool KisGpuCanvasSession::eventFilter(QObject *object, QEvent *event)
@@ -133,29 +144,52 @@ Input::Result KisGpuCanvasSession::append(const Input::Token &token, const QVect
 {
     if (!m_input) return Input::Result::Stale;
     if (m_documents.isSuspended()) m_application.resumeForInput();
-    return m_input->append(token, samples);
+    const auto result = m_input->append(token, samples);
+    updatePolling();
+    return result;
 }
 
 Input::Result KisGpuCanvasSession::replace(const Input::Token &token, const QVector<KisGpuBrushStroke::Sample> &samples)
 {
     if (!m_input) return Input::Result::Stale;
     if (m_documents.isSuspended()) m_application.resumeForInput();
-    return m_input->replace(token, samples);
+    const auto result = m_input->replace(token, samples);
+    updatePolling();
+    return result;
 }
 
 Input::Result KisGpuCanvasSession::commit(const Input::Token &token)
 {
-    return m_input ? m_input->commit(token) : Input::Result::Stale;
+    const auto result = m_input ? m_input->commit(token) : Input::Result::Stale;
+    updatePolling();
+    return result;
 }
 
 Input::Result KisGpuCanvasSession::cancel(const Input::Token &token)
 {
-    return m_input ? m_input->cancel(token) : Input::Result::Stale;
+    const auto result = m_input ? m_input->cancel(token) : Input::Result::Stale;
+    updatePolling();
+    return result;
 }
 
 Input::State KisGpuCanvasSession::inputState() const { return m_input ? m_input->state() : Input::State::Cancelled; }
 Krita::Canvas::SurfaceRenderer::Frame KisGpuCanvasSession::lastFrame() const { return m_canvas ? m_canvas->lastFrame() : Krita::Canvas::SurfaceRenderer::Frame{}; }
 Krita::Canvas::SurfaceRenderer::Statistics KisGpuCanvasSession::statistics() const { return m_canvas ? m_canvas->statistics() : Krita::Canvas::SurfaceRenderer::Statistics{}; }
+
+KisGpuCanvasSession::Result KisGpuCanvasSession::advanceInput()
+{
+    if (!m_input) return Result::Closed;
+    const auto state = m_model->state();
+    if (m_documents.isSuspended() || state == Document::State::Restoring) return Result::Busy;
+    if (state == Document::State::Failed) { m_inputBackoff = true; return Result::GpuRejected; }
+    auto *device = m_documents.device();
+    if (!device || !device->available()) { m_inputBackoff = true; return Result::DeviceLost; }
+    const auto pointer = m_pointer->poll();
+    const auto input = m_input->poll();
+    m_inputBackoff = pointer == Input::Result::GpuRejected || pointer == Input::Result::RecoveryBudgetExceeded
+        || input == Input::Result::GpuRejected || input == Input::Result::RecoveryBudgetExceeded;
+    return m_inputBackoff ? Result::GpuRejected : Result::Idle;
+}
 
 KisGpuCanvasSession::Result KisGpuCanvasSession::poll()
 {
@@ -178,11 +212,9 @@ KisGpuCanvasSession::Result KisGpuCanvasSession::poll()
         }
     }
     if (m_window.isExposed() && m_canvas) display = m_canvas->poll();
-    const auto pointer = m_pointer->poll();
-    const auto input = m_input->poll();
+    const auto input = advanceInput();
     updatePolling();
-    if (pointer == Input::Result::GpuRejected || pointer == Input::Result::RecoveryBudgetExceeded
-        || input == Input::Result::GpuRejected || input == Input::Result::RecoveryBudgetExceeded) return Result::GpuRejected;
+    if (input == Result::GpuRejected || input == Result::DeviceLost) return input;
     switch (display) {
     case Canvas::Result::Updated: return Result::Updated;
     case Canvas::Result::Busy: return Result::Busy;

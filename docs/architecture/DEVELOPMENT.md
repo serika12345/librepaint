@@ -159,6 +159,10 @@ ctest --test-dir "$(build-incremental native path)" \
 
 `verify`は高速検査、ネイティブ全ターゲットの構築、通常CTestを実行する。
 macOSは`tdd-macos`、Linuxは`tdd-linux`のCMakeプリセットを使う。
+macOSの構築木は対象CPUを`CMAKE_OSX_ARCHITECTURES`へ記録し、再構成でも同じ指定を保つ。
+ネイティブCPUの指定は、評価済みのテスト環境で
+`cmake --preset tdd-macos -DCMAKE_OSX_ARCHITECTURES="$(uname -m)"`を実行する。
+CPU自動判定の実行環境による変化を除き、同じコンパイル命令とキャッシュを再利用する。
 両方とも`BUILD_TESTING=ON`、`KRITA_ENABLE_BROKEN_TESTS=OFF`、
 `LIMIT_LONG_TESTS=ON`、`CRASH_ON_SAFE_ASSERTS=ON`。隔離した試験は原因・決定性・比較規則を
 確認し、一件ずつ通常検査へ戻す。
@@ -299,6 +303,17 @@ CPU側の入力進行を保持したGPU交換では、追加・差し替え・�
 形状認識の単独検査は`run-test KisQuickShapeContractTest`で実行する。
 `KisGpuPointerInputTest`は保持操作、正円化、筆圧、拡大率とGPU交換後の形状調整を
 正規化入力の画像と照合する。製品画面の切替・取消し・保存は`KisGpuDocumentWindowTest`で確認する。
+製品入力の受付から完成版の公開までは、非表示のウィンドウで次を計測する。
+
+```sh
+build-incremental native build KisGpuCanvasInputBenchmark
+"$(build-incremental native path)/bin/KisGpuCanvasInputBenchmark" --samples 30 --output /tmp/gpu-input-latency.json
+```
+
+257点の楕円を差し替え、2回の準備更新後の中央値・P95、観測タイマーを含むプロセスCPU時間、
+通常画素転送量と最終画像のSHA-256を出力する。同じ更新数で画像識別値と遅延を比較する。
+検証用読み戻しは計測後に実行し、転送量を別に記録する。実画面への提示は表示計測器で確認する。
+
 `KisGpuEditSessionTest`は公開中と作成中の回復命令を同じCPU予算へ計上し、拒否時の従来の作業版を確認する。
 質感は`KisBrushTextureContractTest`で既存CPUの本番乗算を確認し、`KisGpuBrushTextureTest`で
 同じ固定値、負座標の繰り返し、選択・消去、初期転送後の再利用、資源寿命と回復を検査する。

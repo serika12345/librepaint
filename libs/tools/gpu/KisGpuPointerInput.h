@@ -35,6 +35,10 @@ public:
     /** Finish accepted input before a document command such as save. */
     void requestCommit();
     bool active() const { return m_active; }
+    /** Queued events or completion that the input scheduler must advance. */
+    bool hasPendingWork() const {
+        return m_active && (!m_started || !m_queue.empty() || m_shapePending || m_released);
+    }
 Q_SIGNALS:
     /** Start and further input allow the application owner to resume its GPU and timers. */
     void inputReady();
