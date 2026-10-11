@@ -3,12 +3,10 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuKraLoadJob.h"
+#include "KisGpuKraDocumentSettings_p.h"
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
 #include <metadata/KoDocumentInfo.h>
-#include <canvas/kis_grid_config.h>
-#include <canvas/kis_guides_config.h>
-#include <canvas/KisMirrorAxisConfig.h>
 #include <QDomDocument>
 #include <KoColor.h>
 #include <KoColorProfile.h>
@@ -132,18 +130,21 @@ struct KisGpuKraLoadJob::Private {
             || !std::isfinite(image->xRes()) || image->xRes() <= 0
             || !std::isfinite(image->yRes()) || image->yRes() <= 0
             || image->defaultProjectionColor().opacityU8() || image->globalSelection()
-            || !native->gridConfig().isDefault() || !native->guidesConfig().isDefault()
-            || !native->mirrorAxisConfig().isDefault()) {
+            || !native->assistants().isEmpty()) {
             fail(Error::UnsupportedDocument); return {};
         }
         auto info = KisDocument::createDomDocument(QStringLiteral("document-info"),
             QStringLiteral("document-info"), QStringLiteral("1.1"));
         const auto infoXml = native->documentInfo()->save(info, true, false).toByteArray();
-        if (!reserve(quint64(infoXml.size()), 1)) return {};
+        const auto settingsXml = KisGpuKraDocumentSettings::capture(*native);
+        const auto metadataBytes = quint64(infoXml.size()) + quint64(settingsXml.size());
+        if (!reserve(metadataBytes, 1)) return {};
         Document::Recovery recovery;
         if (!reserve(1, sizeof(Document::RecoveryFrame))) return {};
         recovery.history.append(Document::RecoveryFrame{});
         for (KisNodeSP node = image->root()->firstChild(); node; node = node->nextSibling()) {
+            // The native document reconstructs this non-pixel node from the captured settings.
+            if (node->isFakeNode() && node->inherits("KisDecorationsWrapperLayer")) continue;
             auto layer = dynamic_cast<KisPaintLayer *>(node.data());
             if (!layer || !supportedNode(node) || layer->channelLockFlags().count(false)
                 || layer->channelFlags().count(false) || layer->onionSkinEnabled()
@@ -180,10 +181,10 @@ struct KisGpuKraLoadJob::Private {
             }
             recovery.history[0].append(std::move(record));
         }
-        if (!Document::validRecovery(recovery, 0, maximumBytes - quint64(infoXml.size()))) {
+        if (!Document::validRecovery(recovery, 0, maximumBytes - metadataBytes)) {
             fail(Error::SnapshotBudgetExceeded); return {};
         }
-        metadata = KisGpuKraMetadata{image->size(), image->objectName(), image->xRes(), image->yRes(), infoXml};
+        metadata = KisGpuKraMetadata{image->size(), image->objectName(), image->xRes(), image->yRes(), infoXml, settingsXml};
         return recovery;
     }
 };

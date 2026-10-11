@@ -15,5 +15,7 @@ struct KisGpuKraMetadata {
     double xResolution = 1, yResolution = 1;
     /** Optional native document-info XML; empty uses the writer's default information. */
     QByteArray documentInfoXml = {};
+    /** Optional native grid, guides and mirror-axis values captured independently of pixels. */
+    QByteArray documentSettingsXml = {};
 };
 #endif

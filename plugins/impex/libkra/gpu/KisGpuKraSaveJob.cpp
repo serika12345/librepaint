@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuKraSaveJob.h"
+#include "KisGpuKraDocumentSettings_p.h"
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
 #include <metadata/KoDocumentInfo.h>
@@ -56,6 +57,7 @@ void writeTiles(KisPaintDeviceSP destination, const KisGpuEditSession::Recovery 
 
 struct KisGpuKraSaveJob::Private {
     Metadata metadata;
+    KisGpuKraDocumentSettings::Values settings;
     QString path, message;
     State state = State::Reading;
     Error error = Error::None;
@@ -104,6 +106,7 @@ struct KisGpuKraSaveJob::Private {
         document.reset(KisPart::instance()->createDocument());
         document->setFileBatchMode(true);
         document->setCurrentImage(image, false);
+        settings.apply(*document);
         image->initialRefreshGraph();
         state = State::Preparing;
     }
@@ -130,10 +133,10 @@ KisGpuKraSaveJob::KisGpuKraSaveJob(std::shared_ptr<KisGpuTileStore> store,
             return;
         }
     }
-    const quint64 metadataBytes = metadata.documentInfoXml.size();
+    const auto metadataBytes = quint64(metadata.documentInfoXml.size()) + quint64(metadata.documentSettingsXml.size());
     if (metadataBytes > maximumSnapshotBytes) {
         d->readbackError = KisGpuDocumentReadback::Error::BudgetExceeded;
-        d->fail(Error::ReadbackFailed, QStringLiteral("The document information exceeds the CPU snapshot budget."));
+        d->fail(Error::ReadbackFailed, QStringLiteral("The document metadata exceeds the CPU snapshot budget."));
         return;
     }
     if (!metadata.documentInfoXml.isEmpty()) {
@@ -145,6 +148,12 @@ KisGpuKraSaveJob::KisGpuKraSaveJob(std::shared_ptr<KisGpuTileStore> store,
             return;
         }
     }
+    const auto settings = KisGpuKraDocumentSettings::parse(metadata.documentSettingsXml);
+    if (!settings) {
+        d->fail(Error::InvalidInput, QStringLiteral("Invalid native grid, guides or mirror-axis settings."));
+        return;
+    }
+    d->settings = *settings;
     d->metadata = std::move(metadata);
     d->path = std::move(path);
     d->readback = std::make_unique<KisGpuDocumentReadback>(std::move(store), std::move(layers),

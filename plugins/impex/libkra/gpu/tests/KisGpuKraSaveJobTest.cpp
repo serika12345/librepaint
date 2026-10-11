@@ -9,6 +9,7 @@
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
 #include <metadata/KoDocumentInfo.h>
+#include <canvas/kis_grid_config.h>
 #include <KoColorSpace.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorProfile.h>
@@ -79,6 +80,7 @@ private Q_SLOTS:
     void invalidInputAndSnapshotRefusalPreserveExistingFile();
     void unrepresentableNamesAreRejectedBeforeTransfer();
     void invalidDocumentInformationPreservesDestination();
+    void invalidDocumentSettingsPreserveDestination();
     void deviceLossPreservesDestinationAndWritingDrainsOnClose();
 };
 
@@ -252,6 +254,52 @@ void KisGpuKraSaveJobTest::invalidDocumentInformationPreservesDestination()
     const auto imageBudget = probe.reservedRecoveryBytes();
     Save combined(store, document.layers(), 2, metadata, path, imageBudget);
     QCOMPARE(combined.state(), Save::State::Failed);
+    QCOMPARE(combined.readbackError(), KisGpuDocumentReadback::Error::BudgetExceeded);
+    QCOMPARE(store->statistics().submissions, before.submissions);
+    QCOMPARE(store->statistics().pixelReadbackBytes, before.pixelReadbackBytes);
+    QVERIFY(original.open(QIODevice::ReadOnly));
+    QCOMPARE(original.readAll(), QByteArray("KEEP"));
+}
+
+void KisGpuKraSaveJobTest::invalidDocumentSettingsPreserveDestination()
+{
+    QTemporaryDir directory;
+    const auto path = directory.filePath(QStringLiteral("settings.kra"));
+    QFile original(path);
+    QVERIFY(original.open(QIODevice::WriteOnly));
+    QCOMPARE(original.write("KEEP"), qint64(4));
+    original.close();
+    KisGpuTestDevice gpu;
+    auto store = std::make_shared<Store>(gpu.owner, 64 * Store::TileBytes);
+    Document document(store, 2);
+    document.addLayer(QStringLiteral("Paint"));
+    QVERIFY(paint(document, 1, 0xFF112233));
+    const auto before = store->statistics();
+    QDomDocument xml;
+    auto root = xml.createElement(QStringLiteral("document-settings"));
+    xml.appendChild(root);
+    KisGridConfig grid;
+    grid.setShowGrid(true);
+    root.appendChild(grid.saveDynamicDataToXml(xml, QStringLiteral("grid")));
+    const auto valid = xml.toByteArray();
+    root.appendChild(root.firstChildElement().cloneNode(true));
+    for (const auto &invalid : {QByteArray("<document-settings>"), QByteArray("<other/>"),
+            QByteArray("<document-settings><unknown/></document-settings>"),
+            QByteArray("<document-settings><grid/></document-settings>"), xml.toByteArray()}) {
+        Save::Metadata metadata{Bounds.size(), QStringLiteral("Snapshot")};
+        metadata.documentSettingsXml = invalid;
+        Save save(store, document.layers(), 2, metadata, path);
+        QCOMPARE(save.state(), Save::State::Failed);
+        QCOMPARE(save.error(), Save::Error::InvalidInput);
+    }
+    Save::Metadata metadata{Bounds.size(), QStringLiteral("Snapshot")};
+    metadata.documentSettingsXml = valid;
+    Save tooSmall(store, document.layers(), 2, metadata, path, valid.size() - 1);
+    QCOMPARE(tooSmall.error(), Save::Error::ReadbackFailed);
+    QCOMPARE(tooSmall.readbackError(), KisGpuDocumentReadback::Error::BudgetExceeded);
+    KisGpuDocumentReadback probe(store, document.layers(), 2);
+    Save combined(store, document.layers(), 2, metadata, path, probe.reservedRecoveryBytes() + valid.size() - 1);
+    QCOMPARE(combined.error(), Save::Error::ReadbackFailed);
     QCOMPARE(combined.readbackError(), KisGpuDocumentReadback::Error::BudgetExceeded);
     QCOMPARE(store->statistics().submissions, before.submissions);
     QCOMPARE(store->statistics().pixelReadbackBytes, before.pixelReadbackBytes);
