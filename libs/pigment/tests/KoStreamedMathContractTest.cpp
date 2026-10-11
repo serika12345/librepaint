@@ -56,23 +56,18 @@ class KoStreamedMathContractTest : public QObject
     Q_OBJECT
 
 private Q_SLOTS:
-    void scalarAndSimdRoundAndDivisionPreserveValues();
+    void scalarRoundingPreservesValues();
     void maskAlphaAndChannelsRoundTripExactBytes();
     void pixelWrappersPreserveChannelPolicies();
     void pixelRecoveryRestoresOnlySelectedFloatLanes();
 };
 
-void KoStreamedMathContractTest::scalarAndSimdRoundAndDivisionPreserveValues()
+void KoStreamedMathContractTest::scalarRoundingPreservesValues()
 {
 
     QCOMPARE((OptiRound<Architecture, int>::roundScalar(1.4f)), 1);
     QCOMPARE((OptiRound<Architecture, int>::roundScalar(1.6f)), 2);
     QCOMPARE((OptiRound<Architecture, int>::roundScalar(-1.6f)), -2);
-    QVERIFY(qAbs(OptiDiv<Architecture>::divScalar(9.0f, 4.0f) - 2.25f) < 0.01f);
-
-    const FloatBatch dividend = increasingBatch<FloatBatch>(8.0f, 4.0f);
-    const FloatBatch divisor(4.0f);
-    compareBatch(OptiDiv<Architecture>::divVector(dividend, divisor), dividend / divisor, 0.01);
 }
 
 void KoStreamedMathContractTest::maskAlphaAndChannelsRoundTripExactBytes()

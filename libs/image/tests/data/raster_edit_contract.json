@@ -7,6 +7,8 @@
     {"id": "transparent-destination", "op": "normal", "dst": [0, 0, 0, 0], "src": [255, 0, 0, 128], "opacity": 255, "mask": -1, "expected": [255, 0, 0, 128]},
     {"id": "half-over-opaque", "op": "normal", "dst": [0, 0, 255, 255], "src": [255, 0, 0, 128], "opacity": 255, "mask": -1, "expected": [128, 0, 127, 255]},
     {"id": "half-over-half", "op": "normal", "dst": [0, 0, 255, 128], "src": [255, 0, 0, 128], "opacity": 255, "mask": -1, "expected": [170, 0, 85, 192]},
+    {"id": "rounding-below-half", "op": "normal", "dst": [48, 32, 16, 192], "src": [255, 0, 0, 128], "opacity": 255, "mask": -1, "expected": [166, 14, 7, 224]},
+    {"id": "masked-rounding-above-half", "op": "normal", "dst": [48, 32, 16, 192], "src": [8, 18, 15, 128], "opacity": 192, "mask": 128, "expected": [39, 29, 16, 204]},
     {"id": "zero-opacity", "op": "normal", "dst": [20, 60, 100, 192], "src": [255, 0, 0, 255], "opacity": 0, "mask": -1, "expected": [20, 60, 100, 192]},
     {"id": "paint-opacity", "op": "normal", "dst": [0, 0, 255, 255], "src": [255, 0, 0, 128], "opacity": 128, "mask": -1, "expected": [64, 0, 191, 255]},
     {"id": "soft-selection", "op": "normal", "dst": [0, 0, 255, 255], "src": [255, 0, 0, 128], "opacity": 255, "mask": 128, "expected": [64, 0, 191, 255]},
