@@ -53,6 +53,7 @@ KisGpuDocumentDevice::DocumentId KisGpuDocumentDevice::open(Limits limits,
         if (candidate) m_device = std::move(candidate);
         ++m_nextId;
         m_error.clear();
+        Q_EMIT documentsChanged();
         return id;
     } catch (const std::exception &error) {
         m_error = QString::fromUtf8(error.what());
@@ -87,6 +88,13 @@ bool KisGpuDocumentDevice::closeDocument(DocumentId id)
     Q_EMIT documentAboutToClose(id);
     if (found->second.model->suspend() != KisGpuLayerDocument::Result::Accepted) return false;
     m_documents.erase(found);
+    if (m_documents.empty() && m_device) {
+        Q_EMIT aboutToReleaseGpu();
+        m_device->destroy();
+        m_device.reset();
+        m_evictRequested = false;
+    }
+    Q_EMIT documentsChanged();
     return true;
 }
 

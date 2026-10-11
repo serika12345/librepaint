@@ -20,6 +20,7 @@ class KisAutoSaveRecoveryDialog;
 class KisExtendedModifiersMapperPluginInterface;
 class KisAndroidSplash;
 class KisAndroidScaling;
+class KisGpuDocumentDevice;
 
 /**
  *  @brief Base class for the %Krita app
@@ -96,6 +97,11 @@ public:
     static void setWidgetStyle(const QString &styleName);
 
     KisExtendedModifiersMapperPluginInterface* extendedModifiersPluginInterface();
+
+    /** Borrowed GUI-thread owner; null when GPU document support is disabled. */
+    KisGpuDocumentDevice *gpuDocuments() const;
+    /** Retry suspended GPU documents before submitting fresh user input. */
+    bool resumeGpuDocumentsForInput();
 
 #ifdef Q_OS_ANDROID
     KisAndroidSplash *androidSplash();

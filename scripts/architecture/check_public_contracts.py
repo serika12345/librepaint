@@ -122,6 +122,7 @@ PUBLIC_HEADER_OWNERS = (
 
 PUBLIC_HEADER_COMPILE_CONTRACTS = {
     "libs/application": (
+        "libs/application/gpu/tests/KisGpuApplicationStateTest.cpp",
         "libs/application/tests/TestApplicationConfiguration.cpp",
         "libs/ui/tests/TestApplicationWorkspaceToolUiPublicHeaders.cpp",
         "libs/ui/tests/TestCanvasUiPublicHeaders.cpp",
@@ -132,6 +133,7 @@ PUBLIC_HEADER_COMPILE_CONTRACTS = {
         "libs/ui/tests/TestApplicationWorkspaceToolUiPublicHeaders.cpp",
         "libs/canvas/gpu/tests/KisGpuSurfaceRendererTest.cpp",
     ),
+    "libs/document": ("libs/application/gpu/tests/KisGpuApplicationStateTest.cpp",),
     "libs/document/ui": (
         "libs/document/ui/tests/kis_document_autosave_recovery_dialog_test.cpp",
         "libs/document/ui/tests/kis_document_undo_store_test.cpp",

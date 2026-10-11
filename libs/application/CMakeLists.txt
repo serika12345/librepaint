@@ -1,3 +1,7 @@
+if(LIBREPAINT_BUILD_GPU_DOCUMENT)
+    add_subdirectory(gpu)
+endif()
+
 if(APPLE AND NOT IOS)
     find_library(FOUNDATION_LIBRARY Foundation)
     find_library(APPKIT_LIBRARY AppKit)
@@ -236,6 +240,11 @@ target_link_libraries(kritaapplicationui
         kritawidgetutils
         kritaxmlserialization
 )
+
+if(LIBREPAINT_BUILD_GPU_DOCUMENT)
+    target_link_libraries(kritaapplicationui PRIVATE kritaapplicationgpustate)
+    target_compile_definitions(kritaapplicationui PRIVATE LIBREPAINT_BUILD_GPU_DOCUMENT)
+endif()
 
 if (KRITA_USE_SURFACE_COLOR_MANAGEMENT_API)
     target_link_libraries(kritaapplicationui PRIVATE kritasurfacecolormanagementapi)

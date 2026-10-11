@@ -226,6 +226,7 @@ GPU内複製、操作完了と予算超過を検査する。評価済みのテ�
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuLayerDocumentResidencyTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuLayerDocumentSuspendTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuDocumentDeviceTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuApplicationStateTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuLayerDocumentCompactionTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuDocumentReadbackTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTileStoreTest

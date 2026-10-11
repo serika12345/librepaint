@@ -1,0 +1,12 @@
+# SPDX-License-Identifier: GPL-2.0-or-later
+add_library(kritaapplicationgpustate STATIC KisGpuApplicationState.cpp KisGpuApplicationState.h)
+target_include_directories(kritaapplicationgpustate PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(kritaapplicationgpustate PUBLIC kritadocumentgpudevice Qt${QT_MAJOR_VERSION}::Gui)
+set_target_properties(kritaapplicationgpustate PROPERTIES POSITION_INDEPENDENT_CODE ON)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND TARGET Qt${QT_MAJOR_VERSION}::DBus)
+    target_link_libraries(kritaapplicationgpustate PRIVATE Qt${QT_MAJOR_VERSION}::DBus)
+    target_compile_definitions(kritaapplicationgpustate PRIVATE KIS_GPU_MEMORY_DBUS)
+endif()
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

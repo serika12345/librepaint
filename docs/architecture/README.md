@@ -106,6 +106,8 @@
 [GPUレイヤー文書と編集履歴](gpu-layer-document.md)が編集セッションの寿命、入力拒否と予算を定義する。
 文書側の`libs/document/gpu`は複数文書が共有するGPUの寿命、休止・再開と終了を所有する。
 [複数文書のGPU寿命管理](gpu-document-device.md)が通知、再接続とCPU記録の保持を定義する。
+[GPU文書とアプリケーションの寿命](gpu-application-lifecycle.md)がOSの圧迫・休止・活動通知、
+共有GPUの再作成と完了回収を定義する。
 文書ファイル側の`libs/document/files/gpu`は、固定したCPU回復値の保存・再読込を所有する。
 [GPU文書回復ファイル](gpu-document-recovery-file.md)が形式、背景実行と予算を定義する。
 [GPU文書の固定版読取り](gpu-document-readback.md)が保存対象の版の固定、非同期画素取得とCPU結果の寿命を定義する。

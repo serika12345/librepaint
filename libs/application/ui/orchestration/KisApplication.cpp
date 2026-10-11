@@ -6,6 +6,10 @@
  */
 
 #include "application/ui/orchestration/KisApplication.h"
+#ifdef LIBREPAINT_BUILD_GPU_DOCUMENT
+#include "KisGpuApplicationState.h"
+#include "KisGpuDocumentDevice.h"
+#endif
 #include "KisQStringListFwd.h"
 #include "KisResourceTypes.h"
 #include "KoColorSpaceConstants.h"
@@ -257,6 +261,10 @@ public:
     QVector<QByteArray> earlyRemoteArguments;
     QVector<QString> earlyFileOpenEvents;
     QScopedPointer<KisExtendedModifiersMapperPluginInterface> extendedModifiersPluginInterface;
+#ifdef LIBREPAINT_BUILD_GPU_DOCUMENT
+    QScopedPointer<KisGpuDocumentDevice> gpuDocuments;
+    QScopedPointer<KisGpuApplicationState> gpuState;
+#endif
 #ifdef Q_OS_ANDROID
     KisAndroidSplash *androidSplash {nullptr};
 #if KRITA_QT_HAS_ANDROID_QPLATFORMSCREEN_DENSITY_ADJUSTMENT
@@ -290,6 +298,10 @@ KisApplication::KisApplication(const QString &key, int &argc, char **argv)
     : QtSingleApplication(key, argc, argv)
     , d(new Private)
 {
+#ifdef LIBREPAINT_BUILD_GPU_DOCUMENT
+    d->gpuDocuments.reset(new KisGpuDocumentDevice);
+    d->gpuState.reset(new KisGpuApplicationState(*d->gpuDocuments));
+#endif
 #ifdef Q_OS_ANDROID
     // The hardware renderer backend on Android doesn't support proper stacking,
     // causing windows with QtQuick widgets to always stack behind everything
@@ -926,10 +938,31 @@ bool KisApplication::start(const KisApplicationArguments &args)
 
 KisApplication::~KisApplication()
 {
+#ifdef LIBREPAINT_BUILD_GPU_DOCUMENT
+    d->gpuState->shutdown();
+#endif
     if (!isRunning()) {
         KisResourceCacheDb::deleteTemporaryResources();
         KisResourceCacheDb::performHouseKeepingOnExit();
     }
+}
+
+KisGpuDocumentDevice *KisApplication::gpuDocuments() const
+{
+#ifdef LIBREPAINT_BUILD_GPU_DOCUMENT
+    return d->gpuDocuments.data();
+#else
+    return nullptr;
+#endif
+}
+
+bool KisApplication::resumeGpuDocumentsForInput()
+{
+#ifdef LIBREPAINT_BUILD_GPU_DOCUMENT
+    return d->gpuState->resumeForInput();
+#else
+    return false;
+#endif
 }
 
 void KisApplication::setWidgetStyle(const QString &styleName)

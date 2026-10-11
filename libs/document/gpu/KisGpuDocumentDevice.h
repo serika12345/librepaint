@@ -37,6 +37,7 @@ public:
     /** Release borrowed GPU ownership before suspension; old stores become unavailable. */
     std::shared_ptr<KisGpuTileStore> store(DocumentId id) const;
     KisGpuDevice *device() const { return m_device.get(); }
+    bool hasDocuments() const { return !m_documents.empty(); }
     bool isSuspended() const { return m_suspended; }
     QString lastError() const { return m_error; }
     /** CPU history and accepted working commands are preserved for every document. */
@@ -52,6 +53,7 @@ Q_SIGNALS:
     void aboutToReleaseGpu();
     void documentAboutToClose(DocumentId id);
     void gpuRestored();
+    void documentsChanged();
 private:
     struct Entry {
         Limits limits;
