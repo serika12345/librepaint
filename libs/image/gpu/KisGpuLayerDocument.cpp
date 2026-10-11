@@ -95,8 +95,7 @@ quint64 KisGpuLayerDocument::historyBytes(const QVector<Frame> &history) const
 quint64 KisGpuLayerDocument::recoveryBytes() const
 {
     if (m_restoring) return recoveryBytes(m_restoring->request);
-    const auto working = m_session ? m_session->recovery() : std::nullopt;
-    return historyBytes(m_history) + (working ? sizeof(KisGpuEditSession::Recovery) + KisGpuEditSession::ReplayState::recoveryBytes(*working) : 0)
+    return historyBytes(m_history) + (m_session ? sizeof(KisGpuEditSession::Recovery) + m_session->recoveryBytes() : 0)
         + (m_compacting ? m_compacting->reservedBytes : 0);
 }
 

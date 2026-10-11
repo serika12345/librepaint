@@ -17,6 +17,12 @@ struct KisGpuEditSession::ReplayState {
     };
     std::optional<Recovery> data;
     ReplayEdit working;
+    struct Replacement {
+        ReplayEdit working;
+        KisGpuTileStore::Edit latest;
+        bool hasLatest = false;
+    };
+    std::optional<Replacement> replacement;
     quint64 maximumBytes = 64 * 1024 * 1024;
     bool commitRequested = false;
     std::optional<Compaction> compacting;
@@ -31,7 +37,8 @@ struct KisGpuEditSession::ReplayState {
     QVector<KisGpuTileStore::Version> frames;
     qsizetype edit = 0, batch = 0, tile = 0;
     bool initialized = false, initialPixelsReady = false, workingPhase = false, waiting = false;
-    static quint64 recoveryBytes(const Recovery &data, const ReplayEdit *working = nullptr);
+    static quint64 recoveryBytes(const Recovery &data, const ReplayEdit *working = nullptr,
+                                 const ReplayEdit *replacement = nullptr);
     static bool validRecovery(const Recovery &data, qsizetype retainedEdits, quint64 maximumBytes);
 };
 #endif

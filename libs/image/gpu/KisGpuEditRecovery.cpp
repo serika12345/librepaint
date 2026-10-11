@@ -26,7 +26,8 @@ quint64 editBytes(const Session::ReplayEdit &edit, std::set<const Session::Repla
     return bytes;
 }
 }
-quint64 KisGpuEditSession::ReplayState::recoveryBytes(const Recovery &data, const ReplayEdit *working)
+quint64 KisGpuEditSession::ReplayState::recoveryBytes(const Recovery &data, const ReplayEdit *working,
+                                                    const ReplayEdit *replacement)
 {
     std::set<const Session::ReplaySelection *> selections;
     std::set<const Session::ReplayTexture *> textures;
@@ -35,6 +36,7 @@ quint64 KisGpuEditSession::ReplayState::recoveryBytes(const Recovery &data, cons
     for (const auto &edit : data.edits) bytes += editBytes(edit, selections, textures);
     if (data.working) bytes += editBytes(*data.working, selections, textures);
     if (working) bytes += editBytes(*working, selections, textures);
+    if (replacement) bytes += editBytes(*replacement, selections, textures);
     return bytes;
 }
 
@@ -130,17 +132,31 @@ std::optional<KisGpuEditSession::Recovery> KisGpuEditSession::recovery() const
 bool KisGpuEditSession::canRecord(const ReplayBatch &batch, bool replace) const
 {
     if (!m_replay->data || batch.commands.isEmpty() || batch.clip.isEmpty()) return true;
-    ReplayEdit working = replace ? ReplayEdit{} : m_replay->working;
+    const auto &current = m_replay->replacement ? m_replay->replacement->working : m_replay->working;
+    ReplayEdit working = replace ? ReplayEdit{} : current;
     working.push_back(batch);
     const auto reserved = m_replay->compacting ? m_replay->compacting->reservedBytes : 0;
-    return ReplayState::recoveryBytes(*m_replay->data, &working) <= m_replay->maximumBytes - reserved;
+    return ReplayState::recoveryBytes(*m_replay->data,
+        m_replay->replacement ? &m_replay->working : &working,
+        m_replay->replacement ? &working : nullptr) <= m_replay->maximumBytes - reserved;
 }
 
 void KisGpuEditSession::record(ReplayBatch batch, bool replace)
 {
     if (!m_replay->data) return;
-    if (replace) m_replay->working.clear();
-    if (!batch.commands.isEmpty() && !batch.clip.isEmpty()) m_replay->working.push_back(std::move(batch));
+    auto &working = m_replay->replacement ? m_replay->replacement->working : m_replay->working;
+    if (replace) working.clear();
+    if (!batch.commands.isEmpty() && !batch.clip.isEmpty()) working.push_back(std::move(batch));
+}
+
+quint64 KisGpuEditSession::recoveryBytes() const
+{
+    if (m_replay->restoring) return ReplayState::recoveryBytes(*m_replay->restoring);
+    if (!m_replay->data) return 0;
+    const auto staged = m_replay->replacement && !m_replay->replacement->working.isEmpty()
+        ? &m_replay->replacement->working : nullptr;
+    return ReplayState::recoveryBytes(*m_replay->data, m_token ? &m_replay->working : nullptr, staged)
+        + (m_replay->compacting ? m_replay->compacting->reservedBytes : 0);
 }
 
 void KisGpuEditSession::publishRecovery()

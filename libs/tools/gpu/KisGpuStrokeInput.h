@@ -35,7 +35,10 @@ public:
                   KisGpuLayerDocument::Target target = KisGpuLayerDocument::Target::Pixels);
     /** Acceptance retains normalized CPU input; poll() performs bounded GPU work. */
     Result append(const Token &token, const QVector<KisGpuBrushStroke::Sample> &samples);
-    /** Supersede queued input and redraw from the operation's committed base. */
+    /** Supersede queued input and stage a whole shape from the committed base.
+     * The previous preview stays visible until all replacement batches succeed.
+     * Retained replacement samples count against the CPU queue limit until publication.
+     */
     Result replace(const Token &token, const QVector<KisGpuBrushStroke::Sample> &samples);
     /** Drain accepted input before committing; later append/replace calls are stale. */
     Result commit(const Token &token);
@@ -64,8 +67,9 @@ private:
     std::optional<KisGpuEditSession::Selection> m_selection;
     std::unique_ptr<KisGpuBrushStroke> m_brush;
     std::deque<KisGpuBrushStroke::Sample> m_queue;
+    qsizetype m_replacementSamples = 0, m_stagedSamples = 0;
     State m_state = State::Idle;
-    bool m_replace = false, m_commitSent = false;
+    bool m_replace = false, m_replacementStarted = false, m_commitSent = false;
     KisGpuTileStore::Error m_gpuError = KisGpuTileStore::Error::None;
 };
 #endif

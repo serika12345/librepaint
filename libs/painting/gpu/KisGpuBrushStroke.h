@@ -63,8 +63,6 @@ public:
      */
     Update appendPartial(const QVector<Sample> &samples,
                          const std::optional<KisGpuEditSession::Selection> &selection = {});
-    Update replacePartial(const QVector<Sample> &samples,
-                          const std::optional<KisGpuEditSession::Selection> &selection = {});
     /** Reconstruct the whole stroke from its first sample and replace the working raster version. */
     Update replace(const QVector<Sample> &samples,
                    const std::optional<KisGpuEditSession::Selection> &selection = {});

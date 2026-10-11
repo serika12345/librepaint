@@ -33,6 +33,7 @@ KisGpuEditSession::Token KisGpuEditSession::begin()
     m_preview = m_base;
     m_state = State::Editing;
     m_replay->working.clear();
+    m_replay->replacement.reset();
     m_replay->commitRequested = false;
     Token token;
     token.generation = m_token;
@@ -112,14 +113,17 @@ KisGpuEditSession::Result KisGpuEditSession::paint(const Token &token,
 {
     if (!matches(token)) return Result::Stale;
     if (m_state != State::Editing) return Result::Busy;
-    if (m_hasLatest && m_latest.completion.status() == KisGpuTileStore::Status::Failed) return Result::Busy;
+    if (replace && m_replay->replacement) return Result::Busy;
+    auto &latest = m_replay->replacement ? m_replay->replacement->latest : m_latest;
+    auto &hasLatest = m_replay->replacement ? m_replay->replacement->hasLatest : m_hasLatest;
+    if (hasLatest && latest.completion.status() == KisGpuTileStore::Status::Failed) return Result::Busy;
     if ((selection && !*selection) || (texture && !*texture)) {
         m_lastGpuError = KisGpuTileStore::Error::InvalidVersion;
         return Result::GpuRejected;
     }
     ReplayBatch batch{commands, clip, selection ? selection->source : nullptr, texture ? texture->source : nullptr};
     if (!canRecord(batch, replace)) return Result::RecoveryBudgetExceeded;
-    const auto &source = replace || !m_hasLatest ? m_base : m_latest.version;
+    const auto &source = replace || !hasLatest ? m_base : latest.version;
     auto edit = texture ? m_store.paintDabs(source, commands, clip, texture->pattern, texture->source->origin,
                                            selection ? &selection->version : nullptr)
                        : (selection ? m_store.paintDabs(source, commands, clip, selection->version)
@@ -127,15 +131,50 @@ KisGpuEditSession::Result KisGpuEditSession::paint(const Token &token,
     m_lastGpuError = edit.error;
     if (edit.error != KisGpuTileStore::Error::None) return Result::GpuRejected;
     record(std::move(batch), replace);
-    m_latest = std::move(edit);
-    m_hasLatest = true;
+    latest = std::move(edit);
+    hasLatest = true;
+    return Result::Accepted;
+}
+
+KisGpuEditSession::Result KisGpuEditSession::beginReplacement(const Token &token)
+{
+    if (!matches(token)) return Result::Stale;
+    if (m_state != State::Editing || m_replay->replacement || m_replay->compacting) return Result::Busy;
+    if (!m_store.deviceAvailable()) { m_lastGpuError = KisGpuTileStore::Error::DeviceLost; return Result::GpuRejected; }
+    m_replay->replacement.emplace();
+    return Result::Accepted;
+}
+
+KisGpuEditSession::Result KisGpuEditSession::publishReplacement(const Token &token)
+{
+    if (!matches(token)) return Result::Stale;
+    if (m_state != State::Editing || !m_replay->replacement) return Result::Busy;
+    auto &replacement = *m_replay->replacement;
+    if (replacement.hasLatest) {
+        const auto status = replacement.latest.completion.status();
+        if (status == KisGpuTileStore::Status::Pending) return Result::Busy;
+        if (status == KisGpuTileStore::Status::Failed) return Result::GpuRejected;
+    }
+    m_latest = std::move(replacement.latest);
+    m_hasLatest = replacement.hasLatest;
+    m_preview = m_hasLatest ? m_latest.version : m_base;
+    m_replay->working = std::move(replacement.working);
+    m_replay->replacement.reset();
+    return Result::Accepted;
+}
+
+KisGpuEditSession::Result KisGpuEditSession::discardReplacement(const Token &token)
+{
+    if (!matches(token)) return Result::Stale;
+    if (m_state == State::Committing) return Result::Busy;
+    m_replay->replacement.reset();
     return Result::Accepted;
 }
 
 KisGpuEditSession::Result KisGpuEditSession::commit(const Token &token)
 {
     if (!matches(token)) return Result::Stale;
-    if (m_state != State::Editing) return Result::Busy;
+    if (m_state != State::Editing || m_replay->replacement) return Result::Busy;
     m_state = State::Committing;
     m_replay->commitRequested = true;
     return Result::Accepted;
@@ -150,6 +189,7 @@ void KisGpuEditSession::releaseWorkingEdit()
     m_preview = head();
     m_state = State::Idle;
     m_replay->working.clear();
+    m_replay->replacement.reset();
     m_replay->commitRequested = false;
 }
 

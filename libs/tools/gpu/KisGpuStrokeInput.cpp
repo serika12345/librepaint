@@ -71,6 +71,8 @@ KisGpuStrokeInput::Started KisGpuStrokeInput::begin(Document::LayerId layer, Con
     m_configuration = std::move(config);
     m_progress = {};
     m_replace = m_commitSent = false;
+    m_replacementStarted = false;
+    m_replacementSamples = m_stagedSamples = 0;
     m_gpuError = KisGpuTileStore::Error::None;
     m_state = State::Drawing;
     const auto result = prepare();
@@ -93,8 +95,14 @@ KisGpuStrokeInput::Result KisGpuStrokeInput::replace(const Token &token, const Q
     if (samples.size() > m_maximumSamples) return Result::QueueFull;
     for (const auto &sample : samples) if (!Brush::validSample(sample)) return Result::InvalidInput;
     std::deque<Brush::Sample> next(samples.begin(), samples.end());
+    m_brush.reset();
+    if (m_edit.session && m_replacementStarted) m_edit.session->discardReplacement(m_edit.token);
+    m_progress = {};
     m_queue.swap(next);
     m_replace = true;
+    m_replacementStarted = false;
+    m_replacementSamples = samples.size();
+    m_stagedSamples = 0;
     return Result::Accepted;
 }
 
@@ -118,8 +126,12 @@ KisGpuStrokeInput::Result KisGpuStrokeInput::cancel(const Token &token)
 
 void KisGpuStrokeInput::releaseGpu()
 {
-    if (m_brush) m_progress = m_brush->progress();
+    if (m_brush && !m_replace) m_progress = m_brush->progress();
     m_brush.reset();
+    if (m_edit.session && m_replacementStarted) m_edit.session->discardReplacement(m_edit.token);
+    if (m_replace) m_progress = {};
+    m_replacementStarted = false;
+    m_stagedSamples = 0;
     m_selection.reset();
     m_texture.reset();
     m_edit = {};
@@ -133,6 +145,8 @@ void KisGpuStrokeInput::finish(State state)
     m_configuration = {};
     m_progress = {};
     m_replace = m_commitSent = false;
+    m_replacementStarted = false;
+    m_replacementSamples = m_stagedSamples = 0;
     m_state = state;
 }
 
@@ -176,23 +190,39 @@ KisGpuStrokeInput::Result KisGpuStrokeInput::poll()
     if (m_commitSent) return Result::Busy;
     const auto prepared = prepare();
     if (prepared != Result::Accepted) return prepared;
-    if (m_replace || !m_queue.empty()) {
+    const auto rejected = [&](Session::Result result) {
+        m_gpuError = m_edit.session->lastGpuError();
+        if (result == Session::Result::Busy) return Result::Busy;
+        return result == Session::Result::RecoveryBudgetExceeded ? Result::RecoveryBudgetExceeded : Result::GpuRejected;
+    };
+    if (m_replace && !m_replacementStarted) {
+        const auto result = m_edit.session->beginReplacement(m_edit.token);
+        if (result != Session::Result::Accepted) return rejected(result);
+        m_replacementStarted = true;
+    }
+    if ((m_replace && m_stagedSamples < m_replacementSamples) || (!m_replace && !m_queue.empty())) {
         QVector<Brush::Sample> samples;
-        samples.reserve(std::min<qsizetype>(64, pendingSamples()));
-        for (const auto &sample : m_queue) {
-            if (samples.size() == 64) break;
-            samples.append(sample);
-        }
-        const auto update = m_replace
-            ? m_brush->replacePartial(samples, m_selection)
-            : m_brush->appendPartial(samples, m_selection);
+        const qsizetype first = m_replace ? m_stagedSamples : 0;
+        const qsizetype last = m_replace ? m_replacementSamples : pendingSamples();
+        samples.reserve(std::min<qsizetype>(64, last - first));
+        for (qsizetype i = first; i < last && samples.size() < 64; ++i) samples.append(m_queue[size_t(i)]);
+        const auto update = m_brush->appendPartial(samples, m_selection);
         if (update.result != Brush::Result::Accepted) {
             m_gpuError = m_edit.session->lastGpuError();
             return update.editResult == Session::Result::RecoveryBudgetExceeded ? Result::RecoveryBudgetExceeded : Result::GpuRejected;
         }
         m_progress = m_brush->progress();
-        for (qsizetype i = 0; i < update.completedSamples; ++i) m_queue.pop_front();
-        m_replace = false;
+        if (m_replace) m_stagedSamples += update.completedSamples;
+        else for (qsizetype i = 0; i < update.completedSamples; ++i) m_queue.pop_front();
+        m_gpuError = KisGpuTileStore::Error::None;
+    }
+    if (m_replace && m_stagedSamples == m_replacementSamples) {
+        const auto result = m_edit.session->publishReplacement(m_edit.token);
+        if (result == Session::Result::Busy) return Result::Accepted;
+        if (result != Session::Result::Accepted) return rejected(result);
+        for (qsizetype i = 0; i < m_replacementSamples; ++i) m_queue.pop_front();
+        m_replacementSamples = m_stagedSamples = 0;
+        m_replace = m_replacementStarted = false;
         m_gpuError = KisGpuTileStore::Error::None;
     }
     if (m_state == State::Finishing && m_queue.empty() && !m_replace) {

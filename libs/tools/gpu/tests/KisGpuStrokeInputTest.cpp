@@ -16,6 +16,13 @@ using Store = KisGpuTileStore;
 using Session = KisGpuEditSession;
 const QRect Bounds(-64, -64, 128, 128);
 const QVector<Brush::Sample> Path{{{-31.25, 2.5}, .3}, {{32.75, 17.5}, .9}, {{17.25, -29.5}, .5}};
+QVector<Brush::Sample> longShape()
+{
+    QVector<Brush::Sample> result;
+    for (int i = 0; i < 130; ++i)
+        result.append({{-45.0 + (i % 26) * 3.0, 24.0 + (i / 26) * 3.0}, .5 + (i % 7) / 20.0});
+    return result;
+}
 bool drain(Input &input, bool finish = false)
 {
     QElapsedTimer timer; timer.start();
@@ -70,6 +77,171 @@ QByteArray directImage(KisGpuTestDevice &gpu, Store &store, const Input::Configu
 class KisGpuStrokeInputTest : public QObject {
     Q_OBJECT
 private Q_SLOTS:
+    void longReplacementPublishesOnlyWholeShapes_data() {
+        QTest::addColumn<bool>("texture"); QTest::addColumn<bool>("mixed");
+        QTest::newRow("solid-selected") << false << false;
+        QTest::newRow("textured-selected") << true << false;
+        QTest::newRow("mixed-selected") << false << true;
+    }
+    void longReplacementPublishesOnlyWholeShapes() {
+        QFETCH(bool, texture); QFETCH(bool, mixed);
+        KisGpuTestDevice gpu;
+        auto store = std::make_shared<Store>(gpu.owner, 256 * Store::TileBytes);
+        auto document = std::make_shared<Document>(store, 16);
+        document->addLayer(QStringLiteral("Paint"));
+        Input input(document, 256);
+        const auto config = configuration(texture, mixed);
+        const auto started = input.begin(1, config);
+        QCOMPARE(started.result, Input::Result::Accepted);
+        QCOMPARE(input.append(started.token, Path), Input::Result::Accepted);
+        QVERIFY(drain(input));
+        wgpuDevicePoll(gpu.device, true, nullptr); document->poll();
+        const auto previous = document->currentEditing().session->preview();
+        const auto shape = longShape();
+        const auto before = store->statistics();
+        QCOMPARE(input.replace(started.token, shape), Input::Result::Accepted);
+        QCOMPARE(input.poll(), Input::Result::Accepted);
+        QVERIFY(input.pendingSamples());
+        wgpuDevicePoll(gpu.device, true, nullptr); document->poll();
+        QCOMPARE(document->currentEditing().session->preview(), previous);
+        QVERIFY(drain(input));
+        const auto preview = document->currentEditing().session->preview();
+        QCOMPARE(store->statistics().pixelUploadBytes, before.pixelUploadBytes);
+        QCOMPARE(store->statistics().pixelReadbackBytes, before.pixelReadbackBytes);
+        const auto pixels = gpu.read(preview, Bounds);
+        QCOMPARE(pixels, directImage(gpu, *store, config, shape));
+        const auto ready = store->statistics();
+        QCOMPARE(input.commit(started.token), Input::Result::Accepted);
+        QVERIFY(drain(input, true));
+        QCOMPARE(document->layers().first().paint.pixels, preview);
+        QCOMPARE(store->statistics().submissions, ready.submissions);
+        QVERIFY(document->undo());
+        QCOMPARE(document->layers().first().paint.pixels.tileCount(), qsizetype(0));
+        QVERIFY(document->redo());
+        QCOMPARE(gpu.read(document->layers().first().paint.pixels, Bounds), pixels);
+        QCOMPARE(gpu.owner.errorCount(), 0);
+    }
+    void unpublishedReplacementRestartsAfterGpuRelease_data() {
+        longReplacementPublishesOnlyWholeShapes_data();
+    }
+    void unpublishedReplacementRestartsAfterGpuRelease() {
+        QFETCH(bool, texture); QFETCH(bool, mixed);
+        KisGpuTestDevice gpu;
+        auto store = std::make_shared<Store>(gpu.owner, 256 * Store::TileBytes);
+        auto document = std::make_shared<Document>(store, 16);
+        document->addLayer(QStringLiteral("Paint"));
+        Input input(document, 256);
+        const auto config = configuration(texture, mixed);
+        const auto started = input.begin(1, config);
+        QCOMPARE(started.result, Input::Result::Accepted);
+        QCOMPARE(input.append(started.token, Path), Input::Result::Accepted);
+        QVERIFY(drain(input));
+        wgpuDevicePoll(gpu.device, true, nullptr); document->poll();
+        const auto previous = gpu.read(document->currentEditing().session->preview(), Bounds);
+        const auto shape = longShape();
+        QCOMPARE(input.replace(started.token, shape), Input::Result::Accepted);
+        QCOMPARE(input.poll(), Input::Result::Accepted);
+        QVERIFY(input.pendingSamples());
+        input.releaseGpu();
+        QCOMPARE(document->suspend(), Document::Result::Accepted);
+        gpu.owner.destroy();
+        KisGpuTestDevice replacement;
+        auto nextStore = std::make_shared<Store>(replacement.owner, 256 * Store::TileBytes);
+        QCOMPARE(document->resume(nextStore), Document::Result::Accepted);
+        QElapsedTimer timer; timer.start();
+        while (document->state() == Document::State::Restoring && timer.elapsed() < 5000) {
+            document->poll(); QTest::qWait(1);
+        }
+        QCOMPARE(document->state(), Document::State::Editing);
+        QCOMPARE(replacement.read(document->currentEditing().session->preview(), Bounds), previous);
+        QCOMPARE(input.commit(started.token), Input::Result::Accepted);
+        QVERIFY(drain(input, true));
+        QCOMPARE(replacement.read(document->layers().first().paint.pixels, Bounds),
+                 directImage(replacement, *nextStore, config, shape));
+        QCOMPARE(nextStore->statistics().pixelReadbackBytes, quint64(0));
+        QCOMPARE(replacement.owner.errorCount(), 0);
+    }
+    void replacementRefusalKeepsWholeInputAndPriorPreview() {
+        KisGpuTestDevice gpu;
+        auto store = std::make_shared<Store>(gpu.owner, 256 * Store::TileBytes);
+        auto document = std::make_shared<Document>(store, 16);
+        document->addLayer(QStringLiteral("Paint"));
+        Input input(document, 256);
+        auto config = configuration(); config.selection.reset();
+        const auto started = input.begin(1, config);
+        QCOMPARE(input.append(started.token, Path), Input::Result::Accepted);
+        QVERIFY(drain(input));
+        wgpuDevicePoll(gpu.device, true, nullptr); document->poll();
+        const auto previous = document->currentEditing().session->preview();
+        auto shape = longShape();
+        QCOMPARE(input.replace(started.token, shape), Input::Result::Accepted);
+        QCOMPARE(input.poll(), Input::Result::Accepted);
+        wgpuDevicePoll(gpu.device, true, nullptr); document->poll();
+        QCOMPARE(input.pendingSamples(), shape.size());
+        const auto before = store->statistics();
+        auto held = gpu.owner.reserveMemory(gpu.owner.availableMemory());
+        QVERIFY(held);
+        QCOMPARE(input.poll(), Input::Result::GpuRejected);
+        QCOMPARE(input.lastGpuError(), Store::Error::BudgetExceeded);
+        QCOMPARE(input.pendingSamples(), shape.size());
+        QCOMPARE(document->currentEditing().session->preview(), previous);
+        QCOMPARE(store->statistics().submissions, before.submissions);
+        held = {};
+        const Brush::Sample tail{{45, -24}, .7};
+        QCOMPARE(input.append(started.token, {tail}), Input::Result::Accepted);
+        shape.append(tail);
+        QCOMPARE(input.commit(started.token), Input::Result::Accepted);
+        QVERIFY(drain(input, true));
+        QCOMPARE(gpu.read(document->layers().first().paint.pixels, Bounds), directImage(gpu, *store, config, shape));
+        QCOMPARE(store->statistics().pixelUploadBytes, quint64(0));
+        QCOMPARE(store->statistics().pixelReadbackBytes, quint64(0));
+    }
+    void newerShapeSupersedesStagingAndCancellationKeepsBase() {
+        KisGpuTestDevice gpu;
+        auto store = std::make_shared<Store>(gpu.owner, 256 * Store::TileBytes);
+        auto document = std::make_shared<Document>(store, 16);
+        document->addLayer(QStringLiteral("Paint"));
+        Input input(document, 256);
+        auto config = configuration(); config.selection.reset();
+        const auto started = input.begin(1, config);
+        QCOMPARE(input.append(started.token, Path), Input::Result::Accepted);
+        QVERIFY(drain(input));
+        QCOMPARE(input.replace(started.token, longShape()), Input::Result::Accepted);
+        QCOMPARE(input.poll(), Input::Result::Accepted);
+        auto next = Path;
+        for (auto &sample : next) sample.position += QPointF(0, 9);
+        QCOMPARE(input.replace(started.token, next), Input::Result::Accepted);
+        QVERIFY(drain(input));
+        QCOMPARE(gpu.read(document->currentEditing().session->preview(), Bounds), directImage(gpu, *store, config, next));
+        QCOMPARE(input.replace(started.token, longShape()), Input::Result::Accepted);
+        QCOMPARE(input.poll(), Input::Result::Accepted);
+        QCOMPARE(input.cancel(started.token), Input::Result::Accepted);
+        wgpuDevicePoll(gpu.device, true, nullptr); document->poll();
+        QCOMPARE(document->state(), Document::State::Idle);
+        QCOMPARE(document->layers().first().paint.pixels.tileCount(), qsizetype(0));
+        QCOMPARE(input.pendingSamples(), qsizetype(0));
+        QCOMPARE(input.append(started.token, next), Input::Result::Stale);
+        QCOMPARE(gpu.owner.errorCount(), 0);
+    }
+    void emptyReplacementReturnsToBaseWithoutAnotherRasterPass() {
+        KisGpuTestDevice gpu;
+        auto store = std::make_shared<Store>(gpu.owner, 256 * Store::TileBytes);
+        auto document = std::make_shared<Document>(store, 16);
+        document->addLayer(QStringLiteral("Paint"));
+        Input input(document);
+        auto config = configuration(); config.selection.reset();
+        const auto started = input.begin(1, config);
+        QCOMPARE(input.append(started.token, Path), Input::Result::Accepted);
+        QVERIFY(drain(input));
+        wgpuDevicePoll(gpu.device, true, nullptr); document->poll();
+        const auto before = store->statistics();
+        QCOMPARE(input.replace(started.token, {}), Input::Result::Accepted);
+        QCOMPARE(input.commit(started.token), Input::Result::Accepted);
+        QVERIFY(drain(input, true));
+        QCOMPARE(document->layers().first().paint.pixels.tileCount(), qsizetype(0));
+        QCOMPARE(store->statistics().submissions, before.submissions);
+        QCOMPARE(gpu.owner.errorCount(), 0);
+    }
     void highFrequencyInputUsesOneBoundedSubmission() {
         KisGpuTestDevice gpu;
         auto store = std::make_shared<Store>(gpu.owner, 128 * Store::TileBytes);

@@ -63,12 +63,6 @@ KisGpuBrushStroke::Update KisGpuBrushStroke::appendPartial(const QVector<Sample>
     return paint(samples, false, selection, true);
 }
 
-KisGpuBrushStroke::Update KisGpuBrushStroke::replacePartial(const QVector<Sample> &samples,
-    const std::optional<KisGpuEditSession::Selection> &selection)
-{
-    return paint(samples, true, selection, true);
-}
-
 KisGpuBrushStroke::Update KisGpuBrushStroke::paint(const QVector<Sample> &samples, bool replace,
     const std::optional<KisGpuEditSession::Selection> &selection, bool partial)
 {

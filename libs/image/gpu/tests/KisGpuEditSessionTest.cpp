@@ -39,6 +39,7 @@ private Q_SLOTS:
     void initTestCase();
     void cleanup();
     void replacementCommitsExactlyThePreview();
+    void replacementBudgetIncludesPublishedAndUnpublishedCommands();
     void cancellationPreservesRedoAndRejectsStaleInput();
     void historyLimitReleasesGpuVersions();
     void rejectedUpdatesPreserveTheWorkingEdit();
@@ -54,6 +55,36 @@ private:
 };
 
 void KisGpuEditSessionTest::initTestCase() { m_gpu = std::make_unique<KisGpuTestDevice>(); }
+
+void KisGpuEditSessionTest::replacementBudgetIncludesPublishedAndUnpublishedCommands()
+{
+    using Session = KisGpuEditSession;
+    const quint64 oneEditBytes = sizeof(Session::ReplayEdit) + sizeof(Session::ReplayBatch)
+        + sizeof(KisGpuTileStore::DabCommand);
+    KisGpuTileStore store(m_gpu->owner, 32 * KisGpuTileStore::TileBytes);
+    Session session(store, 0, Session::Recovery{}, 2 * oneEditBytes - 1);
+    QVERIFY(settle(session));
+    const QRect clip(-32, -32, 64, 64);
+    const auto token = session.begin();
+    const auto previous = dab({-10, 0}, 0xFF123456);
+    QCOMPARE(session.append(token, {previous}, clip), Session::Result::Accepted);
+    wgpuDevicePoll(m_gpu->device, true, nullptr); session.poll();
+    const auto preview = session.preview();
+    QCOMPARE(session.recoveryBytes(), oneEditBytes);
+    QCOMPARE(session.beginReplacement(token), Session::Result::Accepted);
+    const auto before = store.statistics();
+    QCOMPARE(session.append(token, {dab({10, 0}, 0xFFABCDEF)}, clip), Session::Result::RecoveryBudgetExceeded);
+    QCOMPARE(store.statistics().submissions, before.submissions);
+    QCOMPARE(session.preview(), preview);
+    QCOMPARE(session.recoveryBytes(), oneEditBytes);
+    QCOMPARE(session.recovery()->working->first().commands.first().center, previous.center);
+    QCOMPARE(session.compactRecovery(), Session::Result::Busy);
+    QCOMPARE(session.commit(token), Session::Result::Busy);
+    QCOMPARE(session.discardReplacement(token), Session::Result::Accepted);
+    QCOMPARE(session.commit(token), Session::Result::Accepted);
+    QVERIFY(settle(session));
+    QCOMPARE(session.head(), preview);
+}
 
 void KisGpuEditSessionTest::replayRestoresPrunedHistoryAndTentativeReplacement()
 {

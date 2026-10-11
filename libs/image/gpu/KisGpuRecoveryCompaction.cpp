@@ -7,7 +7,7 @@
 
 KisGpuEditSession::Result KisGpuEditSession::compactRecovery()
 {
-    if (m_replay->compacting || m_state == State::Restoring || m_state == State::Failed) return Result::Busy;
+    if (m_replay->compacting || m_replay->replacement || m_state == State::Restoring || m_state == State::Failed) return Result::Busy;
     if (!m_replay->data) { m_lastGpuError = KisGpuTileStore::Error::InvalidVersion; return Result::GpuRejected; }
     if (!m_store.deviceAvailable()) { m_lastGpuError = KisGpuTileStore::Error::DeviceLost; return Result::GpuRejected; }
     const auto bytes = quint64(m_history.front().tileCount()) * (KisGpuTileStore::TileBytes + sizeof(RecoveryTile));

@@ -110,6 +110,8 @@ public:
     Token currentToken() const;
     /** Loaded GPU-only initial versions need their CPU checkpoint supplied at construction. */
     std::optional<Recovery> recovery() const;
+    /** CPU recovery payload and reservations, including an unpublished replacement. */
+    quint64 recoveryBytes() const;
     /** Explicit asynchronous maintenance: fold discarded commands into sparse RGBA8 tiles.
      * Editing and retained Undo/Redo continue. Adoption is atomic after every read succeeds.
      * CPU preflight includes both the existing recovery values and the pending checkpoint.
@@ -130,6 +132,15 @@ public:
                    const Selection &selection);
     Result replace(const Token &token, const QVector<KisGpuTileStore::DabCommand> &commands, QRect clip,
                    const Texture &texture, const std::optional<Selection> &selection = {});
+    /** Build a whole replacement from the committed base across bounded append() calls.
+     * Preview and recovery keep the previous working edit until publishReplacement()
+     * succeeds. Commit and recovery compaction wait for publication or discard.
+     * The tool retains normalized input and restarts this unpublished work after GPU release.
+     */
+    Result beginReplacement(const Token &token);
+    /** Atomically adopts successful staged pixels and their recovery commands; pending work returns Busy. */
+    Result publishReplacement(const Token &token);
+    Result discardReplacement(const Token &token);
     /** Adoption occurs in poll() after successful completion; no second raster pass. */
     Result commit(const Token &token);
     Result cancel(const Token &token);
