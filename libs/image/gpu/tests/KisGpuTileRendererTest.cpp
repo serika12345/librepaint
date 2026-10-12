@@ -24,11 +24,17 @@ private Q_SLOTS:
     void longDiagonalUsesOnlyIntersectingTiles();
     void shapesUndoAndRecoveryRestoreTheSamePixels();
     void versionsOutliveTheRendererAndRejectAnotherDeviceOwner();
+    void visibleLayersComposeOnTheGpuAndReuseUnchangedTiles();
+    void compositionPreservesOrderAlphaAndExistingVersionsAtCapacity();
+    void paintingAndCompositionShareOneSubmission();
 
 private:
     RenderedSnapshot render(TileRenderer &renderer, const Snapshot &snapshot,
                             const RenderedSnapshot &base = {});
     QByteArray readTile(const RenderedSnapshot &version, LayerId layer, QPoint coordinate);
+    QByteArray readBuffer(QRhiBuffer *pixels);
+    ProjectedSnapshot project(TileRenderer &renderer, const RenderedSnapshot &version,
+                              QRect visible, const ProjectedSnapshot &base = {});
 #if QT_CONFIG(vulkan)
     QVulkanInstance m_vulkan;
 #endif
@@ -68,16 +74,32 @@ QByteArray KisGpuTileRendererTest::readTile(const RenderedSnapshot &version, Lay
 {
     for (const auto &tile : version->tiles(layer)) {
         if (tile.coordinate != coordinate) continue;
-        QRhiCommandBuffer *commands = nullptr;
-        if (m_rhi->beginOffscreenFrame(&commands) != QRhi::FrameOpSuccess) return {};
-        QRhiReadbackResult readback;
-        auto updates = m_rhi->nextResourceUpdateBatch();
-        updates->readBackBuffer(tile.pixels, 0, TileRenderer::TileBytes, &readback);
-        commands->resourceUpdate(updates);
-        m_rhi->endOffscreenFrame();
-        return readback.data;
+        return readBuffer(tile.pixels);
     }
     return {};
+}
+
+QByteArray KisGpuTileRendererTest::readBuffer(QRhiBuffer *pixels)
+{
+    QRhiCommandBuffer *commands = nullptr;
+    if (m_rhi->beginOffscreenFrame(&commands) != QRhi::FrameOpSuccess) return {};
+    QRhiReadbackResult readback;
+    auto updates = m_rhi->nextResourceUpdateBatch();
+    updates->readBackBuffer(pixels, 0, TileRenderer::TileBytes, &readback);
+    commands->resourceUpdate(updates);
+    m_rhi->endOffscreenFrame();
+    return readback.data;
+}
+
+ProjectedSnapshot KisGpuTileRendererTest::project(TileRenderer &renderer, const RenderedSnapshot &version,
+                                                 QRect visible, const ProjectedSnapshot &base)
+{
+    QRhiCommandBuffer *commands = nullptr;
+    if (m_rhi->beginOffscreenFrame(&commands) != QRhi::FrameOpSuccess) return {};
+    const auto result = renderer.compose(*commands, version, visible, base);
+    const auto submitted = m_rhi->endOffscreenFrame();
+    if (result.code != RenderOutcome::Recorded) qWarning() << result.diagnostic;
+    return submitted == QRhi::FrameOpSuccess ? result.version : ProjectedSnapshot{};
 }
 
 void KisGpuTileRendererTest::roundBrushProducesRgbaPixelsOnTheGpu()
@@ -248,6 +270,106 @@ void KisGpuTileRendererTest::versionsOutliveTheRendererAndRejectAnotherDeviceOwn
     QCOMPARE(replacement.record(*commands, document.preview(), retained).code, RenderOutcome::InvalidVersion);
     QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
     QVERIFY(render(replacement, document.preview()));
+}
+
+void KisGpuTileRendererTest::visibleLayersComposeOnTheGpuAndReuseUnchangedTiles()
+{
+    OperationDocument document({1024, 1024});
+    Brush brush;
+    brush.rgba = {255, 0, 0, 255};
+    brush.diameter = 16;
+    auto stroke = document.beginStroke(document.activeLayer(), brush, 0);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    const auto top = document.addLayer(QStringLiteral("Blue"));
+    brush.rgba = {0, 0, 255, 128};
+    stroke = document.beginStroke(top, brush, 0);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    TileRenderer renderer(*m_rhi);
+    const auto layers = render(renderer, document.snapshot());
+    QVERIFY(layers);
+    const auto composed = project(renderer, layers, {0, 0, 256, 256});
+    QVERIFY(composed);
+    QCOMPARE(composed->tiles().size(), 1);
+    const auto pixels = readBuffer(composed->tiles().first().pixels);
+    QCOMPARE(pixels.mid((32 * TileRenderer::TileSize + 32) * 4, 4), QByteArray::fromHex("7f0080ff"));
+    const auto outside = project(renderer, layers, {512, 512, 256, 256});
+    QVERIFY(outside);
+    QVERIFY(outside->tiles().isEmpty());
+    QVERIFY(document.addLayer(QStringLiteral("Empty")));
+    const auto expanded = render(renderer, document.snapshot(), layers);
+    QVERIFY(expanded);
+    const auto reused = project(renderer, expanded, {0, 0, 256, 256}, composed);
+    QVERIFY(reused);
+    QCOMPARE(reused->tiles().first().pixels, composed->tiles().first().pixels);
+    QCOMPARE(document.setLayerVisible(top, false), Result::Success);
+    const auto hidden = render(renderer, document.snapshot(), expanded);
+    const auto red = project(renderer, hidden, {0, 0, 256, 256}, reused);
+    QVERIFY(red);
+    QCOMPARE(readBuffer(red->tiles().first().pixels).mid((32 * TileRenderer::TileSize + 32) * 4, 4), QByteArray::fromHex("ff0000ff"));
+    QCOMPARE(readBuffer(composed->tiles().first().pixels), pixels);
+}
+
+void KisGpuTileRendererTest::compositionPreservesOrderAlphaAndExistingVersionsAtCapacity()
+{
+    OperationDocument document({64, 64});
+    const QList<std::array<quint8, 4>> colors{{255, 0, 0, 255}, {0, 0, 255, 128}, {0, 255, 0, 64}, {255, 255, 255, 128}};
+    LayerId green = 0;
+    for (qsizetype i = 0; i < colors.size(); ++i) {
+        const auto layer = i == 0 ? document.activeLayer() : document.addLayer(QString::number(i));
+        if (i == 2) green = layer;
+        Brush brush;
+        brush.rgba = colors[i];
+        brush.diameter = 16;
+        const auto stroke = document.beginStroke(layer, brush, 0);
+        QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+        QCOMPARE(document.commitStroke(stroke), Result::Success);
+    }
+    TileRenderer renderer(*m_rhi, 6 * TileRenderer::TileBytes);
+    const auto layers = render(renderer, document.snapshot());
+    QVERIFY(layers);
+    auto composed = project(renderer, layers, {0, 0, 64, 64});
+    QVERIFY(composed);
+    const auto original = readBuffer(composed->tiles().first().pixels);
+    QCOMPARE(original.mid((32 * TileRenderer::TileSize + 32) * 4, 4), QByteArray::fromHex("afa0b0ff"));
+    QCOMPARE(renderer.residentBytes(), 5 * TileRenderer::TileBytes);
+    QCOMPARE(document.setLayerVisible(green, false), Result::Success);
+    const auto hidden = render(renderer, document.snapshot(), layers);
+    QVERIFY(hidden);
+    QVERIFY(!project(renderer, hidden, {0, 0, 64, 64}, composed));
+    QCOMPARE(readBuffer(composed->tiles().first().pixels), original);
+    composed.clear();
+    const auto reduced = project(renderer, hidden, {0, 0, 64, 64});
+    QVERIFY(reduced);
+    QCOMPARE(readBuffer(reduced->tiles().first().pixels).mid((32 * TileRenderer::TileSize + 32) * 4, 4), QByteArray::fromHex("bf80c0ff"));
+}
+
+void KisGpuTileRendererTest::paintingAndCompositionShareOneSubmission()
+{
+    OperationDocument document({64, 64});
+    for (const auto &color : QList<std::array<quint8, 4>>{{255, 0, 0, 128}, {0, 0, 255, 128}}) {
+        if (!document.snapshot()->layers.first().operations.isEmpty()) QVERIFY(document.addLayer(QStringLiteral("Top")));
+        Brush brush;
+        brush.rgba = color;
+        brush.diameter = 16;
+        const auto stroke = document.beginStroke(document.activeLayer(), brush, 0);
+        QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+        QCOMPARE(document.commitStroke(stroke), Result::Success);
+    }
+    TileRenderer renderer(*m_rhi);
+    QRhiCommandBuffer *commands = nullptr;
+    QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
+    const auto layers = renderer.record(*commands, document.snapshot());
+    QCOMPARE(layers.code, RenderOutcome::Recorded);
+    const auto projection = renderer.compose(*commands, layers.version, {0, 0, 64, 64});
+    QCOMPARE(projection.code, RenderOutcome::Recorded);
+    QRhiReadbackResult readback;
+    auto updates = m_rhi->nextResourceUpdateBatch();
+    updates->readBackBuffer(projection.version->tiles().first().pixels, 0, TileRenderer::TileBytes, &readback);
+    commands->resourceUpdate(updates);
+    QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
+    QCOMPARE(readback.data.mid((32 * TileRenderer::TileSize + 32) * 4, 4), QByteArray::fromHex("5500aac0"));
 }
 
 int main(int argc, char **argv)

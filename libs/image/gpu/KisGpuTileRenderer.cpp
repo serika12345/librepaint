@@ -4,6 +4,7 @@
  */
 
 #include "KisGpuTileRenderer.h"
+#include "KisGpuTileStorage_p.h"
 
 #include <QFile>
 #include <QMap>
@@ -16,35 +17,8 @@
 #include <vector>
 
 namespace Krita::Image::Gpu {
+using namespace Detail;
 namespace {
-struct Budget { qsizetype limit = 0; qsizetype used = 0; };
-
-template<class T> struct ResourceDeleter
-{
-    QRhi *rhi = nullptr;
-    void operator()(T *resource) const
-    {
-        if (!resource) return;
-        if (rhi->isRecordingFrame()) resource->deleteLater();
-        else delete resource;
-    }
-};
-template<class T> using Resource = std::unique_ptr<T, ResourceDeleter<T>>;
-template<class T> Resource<T> own(QRhi &rhi, T *resource) { return {resource, {&rhi}}; }
-
-struct Tile
-{
-    Resource<QRhiBuffer> pixels;
-    std::shared_ptr<Budget> budget;
-    Tile(Resource<QRhiBuffer> pixels, std::shared_ptr<Budget> budget)
-        : pixels(std::move(pixels)), budget(std::move(budget))
-    { this->budget->used += TileRenderer::TileBytes; }
-    ~Tile() { budget->used -= TileRenderer::TileBytes; }
-};
-using Tiles = QMap<quint64, std::shared_ptr<Tile>>;
-quint64 key(int x, int y) { return (quint64(quint32(y)) << 32) | quint32(x); }
-QPoint coordinate(quint64 key) { return {int(quint32(key)), int(quint32(key >> 32))}; }
-
 struct Segment
 {
     qint32 ax, ay, bx, by;
@@ -136,58 +110,40 @@ struct Job
 };
 }
 
-struct RenderedVersion::Data
+TileRenderer::Private::Private(QRhi &rhi, qsizetype byteBudget)
+    : rhi(rhi), budget(std::make_shared<Budget>(Budget{byteBudget})),
+      zero(own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, TileBytes))),
+      layoutParameters(own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::UniformBuffer, sizeof(Parameters)))),
+      layout(own(rhi, rhi.newShaderResourceBindings())), pipeline(own(rhi, rhi.newComputePipeline()))
 {
-    Snapshot document;
-    std::shared_ptr<Budget> owner;
-    QMap<LayerId, Tiles> layers;
-};
+    if (!rhi.isFeatureSupported(QRhi::Compute) || !zero->create() || !layoutParameters->create()) {
+        error = QStringLiteral("GPU storage buffers and compute are required");
+        return;
+    }
+    // The pipeline's layout is independent of each tile's actual bindings.
+    layout->setBindings({
+        QRhiShaderResourceBinding::uniformBuffer(0, QRhiShaderResourceBinding::ComputeStage, layoutParameters.get()),
+        QRhiShaderResourceBinding::bufferLoad(1, QRhiShaderResourceBinding::ComputeStage, zero.get()),
+        QRhiShaderResourceBinding::bufferLoad(2, QRhiShaderResourceBinding::ComputeStage, zero.get()),
+        QRhiShaderResourceBinding::bufferStore(3, QRhiShaderResourceBinding::ComputeStage, zero.get())
+    });
+    QFile shader(QStringLiteral(":/librepaint/gpu/shaders/paint.comp.qsb"));
+    if (!layout->create() || !shader.open(QIODevice::ReadOnly)) {
+        error = QStringLiteral("GPU paint resources could not be initialized");
+        return;
+    }
+    pipeline->setShaderStage({QRhiShaderStage::Compute, QShader::fromSerialized(shader.readAll())});
+    pipeline->setShaderResourceBindings(layout.get());
+    if (!pipeline->create()) error = QStringLiteral("GPU paint pipeline could not be created");
+    if (error.isEmpty()) initializeProjection();
+}
 
-struct TileRenderer::Private
+std::shared_ptr<Tile> TileRenderer::Private::allocateTile()
 {
-    QRhi &rhi;
-    std::shared_ptr<Budget> budget;
-    Resource<QRhiBuffer> zero;
-    Resource<QRhiBuffer> layoutParameters;
-    Resource<QRhiShaderResourceBindings> layout;
-    Resource<QRhiComputePipeline> pipeline;
-    bool zeroUploaded = false;
-    QString error;
-
-    Private(QRhi &rhi, qsizetype byteBudget)
-        : rhi(rhi), budget(std::make_shared<Budget>(Budget{byteBudget})),
-          zero(own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, TileBytes))),
-          layoutParameters(own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::UniformBuffer, sizeof(Parameters)))),
-          layout(own(rhi, rhi.newShaderResourceBindings())), pipeline(own(rhi, rhi.newComputePipeline()))
-    {
-        if (!rhi.isFeatureSupported(QRhi::Compute) || !zero->create() || !layoutParameters->create()) {
-            error = QStringLiteral("GPU storage buffers and compute are required");
-            return;
-        }
-        // The pipeline's layout is independent of each tile's actual bindings.
-        layout->setBindings({
-            QRhiShaderResourceBinding::uniformBuffer(0, QRhiShaderResourceBinding::ComputeStage, layoutParameters.get()),
-            QRhiShaderResourceBinding::bufferLoad(1, QRhiShaderResourceBinding::ComputeStage, zero.get()),
-            QRhiShaderResourceBinding::bufferLoad(2, QRhiShaderResourceBinding::ComputeStage, zero.get()),
-            QRhiShaderResourceBinding::bufferStore(3, QRhiShaderResourceBinding::ComputeStage, zero.get())
-        });
-        QFile shader(QStringLiteral(":/librepaint/gpu/shaders/paint.comp.qsb"));
-        if (!layout->create() || !shader.open(QIODevice::ReadOnly)) {
-            error = QStringLiteral("GPU paint resources could not be initialized");
-            return;
-        }
-        pipeline->setShaderStage({QRhiShaderStage::Compute, QShader::fromSerialized(shader.readAll())});
-        pipeline->setShaderResourceBindings(layout.get());
-        if (!pipeline->create()) error = QStringLiteral("GPU paint pipeline could not be created");
-    }
-
-    std::shared_ptr<Tile> allocateTile()
-    {
-        auto pixels = own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, TileBytes));
-        if (!pixels->create()) return {};
-        return std::make_shared<Tile>(std::move(pixels), budget);
-    }
-};
+    auto pixels = own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, TileBytes));
+    if (!pixels->create()) return {};
+    return std::make_shared<Tile>(std::move(pixels), budget);
+}
 
 RenderedVersion::RenderedVersion(std::shared_ptr<Data> data) : m_data(std::move(data)) {}
 Snapshot RenderedVersion::document() const { return m_data->document; }

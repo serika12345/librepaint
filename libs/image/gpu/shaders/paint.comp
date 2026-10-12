@@ -1,6 +1,8 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
 #version 440
+#extension GL_GOOGLE_include_directive : require
+#include "rgba.glsl"
 layout(local_size_x = 8, local_size_y = 8) in;
 layout(std140, binding = 0) uniform Parameters {
     ivec4 tile; // document origin, document width and height
@@ -52,9 +54,6 @@ bool inside(ivec2 point, ivec2 center, uint radius) {
     if (any(greaterThan(delta, uvec2(radius)))) return false;
     return lessEqual64(add64(product(delta.x, delta.x), product(delta.y, delta.y)), product(radius, radius));
 }
-uint mul255(uint a, uint b) { return (a * b + 127u) / 255u; }
-uvec4 unpackPixel(uint pixel) { return (uvec4(pixel) >> uvec4(0, 8, 16, 24)) & 255u; }
-uint packPixel(uvec4 pixel) { return pixel.x | (pixel.y << 8u) | (pixel.z << 16u) | (pixel.w << 24u); }
 
 void main() {
     uvec2 local = gl_GlobalInvocationID.xy;
@@ -110,11 +109,8 @@ void main() {
         destination.w = mul255(destination.w, 255u - alpha);
         if (destination.w == 0u) destination.xyz = uvec3(0);
     } else {
-        uint denominator = alpha * 255u + destination.w * (255u - alpha);
-        if (denominator != 0u) {
-            destination.xyz = (source.xyz * alpha * 255u + destination.xyz * destination.w * (255u - alpha) + denominator / 2u) / denominator;
-        }
-        destination.w = (denominator + 127u) / 255u;
+        source.w = alpha;
+        destination = over(destination, source);
     }
     outputPixels[index] = packPixel(destination);
 }

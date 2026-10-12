@@ -7,6 +7,7 @@
 #define KIS_GPU_TILE_RENDERER_H
 
 #include "KisGpuOperationDocument.h"
+#include <QRect>
 #include <memory>
 
 class QRhi;
@@ -45,6 +46,30 @@ struct RenderOutcome
     QString diagnostic;
 };
 
+/** Immutable merged tiles for a pinned document version and requested region. */
+class KRITAIMAGE_EXPORT ProjectedVersion
+{
+public:
+    Snapshot document() const;
+    QRect region() const;
+    QList<TileView> tiles() const;
+
+private:
+    friend class TileRenderer;
+    struct Data;
+    explicit ProjectedVersion(std::shared_ptr<Data> data);
+    std::shared_ptr<const Data> m_data;
+};
+
+using ProjectedSnapshot = QSharedPointer<const ProjectedVersion>;
+
+struct ProjectionOutcome
+{
+    RenderOutcome::Code code = RenderOutcome::DeviceFailure;
+    ProjectedSnapshot version;
+    QString diagnostic;
+};
+
 /**
  * Generates sparse layer pixels from retained operations on a borrowed QRhi.
  * The QRhi and this owner share one thread. Release versions on that thread
@@ -69,6 +94,9 @@ public:
 
     RenderOutcome record(QRhiCommandBuffer &commands, const Snapshot &document,
                          const RenderedSnapshot &base = {});
+    /** Merges visible layers in document order; shares unchanged projected tiles. */
+    ProjectionOutcome compose(QRhiCommandBuffer &commands, const RenderedSnapshot &document,
+                              QRect region, const ProjectedSnapshot &base = {});
     qsizetype residentBytes() const;
 
 private:
