@@ -15,6 +15,7 @@ namespace Krita::Image::Gpu {
 
 using DocumentHandle = quint64;
 enum class ExecutionCode { Success, InvalidRequest, CapacityExceeded, Busy, DeviceFailure, SurfaceOutOfDate };
+enum class PixelReadArea { Canvas, LayerCoordinates };
 
 struct ExecutionOutcome
 {
@@ -94,13 +95,15 @@ public:
      * Synchronous external read of a retained version belonging to an attached
      * document. Preserves newer requests and publication. Reads selected layers,
      * including hidden ones, and optionally the visible projection. Returns full
-     * sparse tiles intersecting the document-clipped region; absent tiles are
-     * transparent. The byte limit counts distinct transferred tile buffers.
+     * sparse tiles intersecting the document-clipped region by default.
+     * LayerCoordinates preserves off-canvas layer tiles; the projection remains
+     * clipped to the canvas. Absent layer tiles use the pinned layer's defaultPixel.
+     * The byte limit counts distinct transferred tile buffers.
      * Rejection returns no partial pixels. CPU values outlive the device.
      */
     PixelReadbackOutcome readPixels(DocumentHandle handle, const Snapshot &document,
                                    QRect region, const QList<LayerId> &layers = {},
-                                   bool includeProjection = true);
+                                   bool includeProjection = true, PixelReadArea area = PixelReadArea::Canvas);
 
     /** Rebuilds accepted documents lazily on a new device; active frames reject replacement. */
     ExecutionOutcome replaceDevice(DevicePtr device);

@@ -25,10 +25,12 @@ ExecutionCode executionCode(RenderOutcome::Code code)
 }
 
 PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot &pinned,
-                                         QRect region, const QList<LayerId> &layers, bool includeProjection)
+                                         QRect region, const QList<LayerId> &layers, bool includeProjection, PixelReadArea area)
 {
     auto &d = *m_d;
-    if (!d.onThread() || !pinned) return failure(ExecutionCode::InvalidRequest, QStringLiteral("Pixel read requires a document on the GPU thread"));
+    if (!d.onThread() || !pinned || (area != PixelReadArea::Canvas && area != PixelReadArea::LayerCoordinates)) {
+        return failure(ExecutionCode::InvalidRequest, QStringLiteral("Pixel read requires a document, valid area and the GPU thread"));
+    }
     if (d.active || d.device->rhi().isRecordingFrame()) return failure(ExecutionCode::Busy, QStringLiteral("Pixel read requires submitted frames"));
     if (d.device->readbackPending()) return failure(ExecutionCode::Busy, QStringLiteral("The native GPU still retains a previous readback"));
     retireCompletedReadback();
@@ -51,7 +53,7 @@ PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot
     PixelReadbackOutcome outcome;
     outcome.document = pinned;
     outcome.generation = d.generation;
-    outcome.region = region.intersected(QRect(QPoint(0, 0), pinned->size));
+    outcome.region = area == PixelReadArea::Canvas ? region.intersected(QRect(QPoint(0, 0), pinned->size)) : region;
     if (outcome.region.isEmpty() || (layers.isEmpty() && !includeProjection)) {
         outcome.code = ExecutionCode::Success;
         return outcome;

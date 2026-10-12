@@ -7,7 +7,7 @@ layout(local_size_x = 8, local_size_y = 8) in;
 layout(std140, binding = 0) uniform Parameters {
     ivec4 tile; // document origin, document width and height
     uvec4 brush; // packed RGBA, opacity, erase, spacing in 1/16 pixel units
-    uvec4 counts; // segments, diameter in 1/16 pixel units, reserved
+    uvec4 counts; // segments, diameter in 1/16 pixel units, uniform fill, reserved
 } parameters;
 struct Segment { ivec4 endpoints; uvec4 values; }; // pressures, phase, length
 layout(std430, binding = 1) readonly buffer Segments { Segment segments[]; };
@@ -59,6 +59,7 @@ void main() {
     uvec2 local = gl_GlobalInvocationID.xy;
     if (any(greaterThanEqual(local, uvec2(256)))) return;
     uint index = local.y * 256u + local.x;
+    if (parameters.counts.z != 0u) { outputPixels[index] = parameters.brush.x; return; }
     ivec2 pixel = parameters.tile.xy + ivec2(local);
     if (any(greaterThanEqual(pixel, parameters.tile.zw))) { outputPixels[index] = basePixels[index]; return; }
     ivec2 center = pixel * 16 + ivec2(8);

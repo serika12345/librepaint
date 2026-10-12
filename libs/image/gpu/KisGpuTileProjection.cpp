@@ -6,6 +6,7 @@
 #include "KisGpuTileStorage_p.h"
 #include <QFile>
 #include <QThread>
+#include <QSet>
 #include <vector>
 
 namespace Krita::Image::Gpu {
@@ -64,13 +65,36 @@ ProjectionOutcome TileRenderer::compose(QRhiCommandBuffer &commands, const Rende
     auto data = std::make_shared<ProjectedVersion::Data>();
     data->source = document;
     data->region = region.intersected(QRect(QPoint(0, 0), document->document()->size));
+    QSet<quint64> coordinates;
+    bool implicit = false;
     for (const auto &layer : document->document()->layers) {
         if (!layer.visible) continue;
+        implicit = implicit || bool(document->m_data->defaults.value(layer.id));
         const auto &tiles = document->m_data->layers[layer.id];
         for (auto tile = tiles.cbegin(); tile != tiles.cend(); ++tile) {
             if (data->region.intersects(QRect(coordinate(tile.key()) * TileSize, QSize(TileSize, TileSize)))) {
-                data->inputs[tile.key()].append(tile.value());
+                coordinates.insert(tile.key());
             }
+        }
+    }
+    if (implicit && !data->region.isEmpty()) {
+        const int left = data->region.left() / TileSize, right = data->region.right() / TileSize;
+        const int top = data->region.top() / TileSize, bottom = data->region.bottom() / TileSize;
+        // Bound derived coordinate bookkeeping before expanding a uniform region.
+        if (quint64(right - left + 1) * quint64(bottom - top + 1) > quint64(d.budget->limit / TileBytes)) {
+            return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU projection coordinate capacity exceeded")};
+        }
+        for (int y = top; y <= bottom; ++y) {
+            for (int x = left; x <= right; ++x) coordinates.insert(key(x, y));
+        }
+    }
+    for (const auto &layer : document->document()->layers) {
+        if (!layer.visible) continue;
+        const auto fallback = document->m_data->defaults.value(layer.id);
+        const auto &tiles = document->m_data->layers[layer.id];
+        for (const auto coordinate : coordinates) {
+            const auto pixels = tiles.value(coordinate, fallback);
+            if (pixels) data->inputs[coordinate].append(pixels);
         }
     }
     qsizetype required = 0;

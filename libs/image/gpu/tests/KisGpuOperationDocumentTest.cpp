@@ -41,6 +41,7 @@ RasterImage rasterImage()
         {QStringLiteral("Hidden blue"), false, QUuid(QStringLiteral("{11121314-1516-1718-191a-1b1c1d1e1f20}")),
          {{{1, -1}, QByteArray::fromHex("0000ff80").repeated(RgbaTile::ByteCount / 4)}}}
     };
+    image.layers[0].defaultPixel = {12, 34, 56, 78};
     return image;
 }
 }
@@ -387,7 +388,7 @@ void KisGpuOperationDocumentTest::checkedRecoveryRejectsInvalidCountsAndValues()
     QVERIFY(!paint(document, {sample(1, 2)}).isNull());
     const auto original = document.snapshot();
     const auto good = document.recoveryData();
-    // Format 2's paint-only header ends at byte 54; pressure follows the
+    // Format 3's paint-only header ends at byte 54; pressure follows the
     // operation tag, 99-byte paint record and two 64-bit coordinates.
     for (const bool invalidCount : {true, false}) {
         auto payload = good.first(good.size() - 32);
@@ -420,6 +421,7 @@ void KisGpuOperationDocumentTest::importedPixelsPreserveLayersAndStartWithoutUnd
     QVERIFY(!document.isModified());
     QCOMPARE(frozen->rasterBytes, qsizetype(2 * RgbaTile::ByteCount));
     QCOMPARE(frozen->layers[0].uuid, input.layers[0].uuid);
+    QCOMPARE(frozen->layers[0].defaultPixel, input.layers[0].defaultPixel);
     QCOMPARE(frozen->layers[1].uuid, input.layers[1].uuid);
     QVERIFY(!frozen->layers[1].visible);
     QCOMPARE(frozen->layers[1].name, input.layers[1].name);
@@ -505,6 +507,7 @@ void KisGpuOperationDocumentTest::rasterRecoveryPreservesPixelsIdentityAndPendin
     QCOMPARE(restored.recoveryData(), bytes);
     QCOMPARE(restored.snapshot()->rasterBytes, replaced->rasterBytes);
     QCOMPARE(restored.snapshot()->layers[0].uuid, image.layers[0].uuid);
+    QCOMPARE(restored.snapshot()->layers[0].defaultPixel, image.layers[0].defaultPixel);
     QCOMPARE(restored.snapshot()->layers[1].uuid, image.layers[1].uuid);
     const auto initial = std::get<TileWriteSnapshot>(restored.snapshot()->layers[1].operations.first());
     QCOMPARE(initial->tiles.first()->rgba(), image.layers[1].tiles.first().rgba);
@@ -531,7 +534,7 @@ void KisGpuOperationDocumentTest::damagedRasterRecoveryPreservesTheLiveDocument(
     QBuffer reader;
     reader.setData(originalPayload);
     QVERIFY(reader.open(QIODevice::ReadOnly));
-    QVERIFY(reader.seek(50)); // Format 2's fixed header includes the tile count.
+    QVERIFY(reader.seek(50)); // Format 3's fixed header includes the tile count.
     QDataStream input(&reader);
     input.setVersion(QDataStream::Qt_5_15);
     input.setByteOrder(QDataStream::BigEndian);

@@ -97,7 +97,7 @@ struct Parameters
 {
     qint32 x, y, width, height;
     quint32 color, opacity, erase, step;
-    quint32 count, diameter, reserved0 = 0, reserved1 = 0;
+    quint32 count, diameter, uniformFill = 0, reserved = 0;
 };
 static_assert(sizeof(Parameters) == 48);
 
@@ -107,8 +107,33 @@ struct Job
     Resource<QRhiBuffer> samples, parameters;
     Resource<QRhiShaderResourceBindings> bindings;
     QList<Segment> geometry;
-    Parameters values;
+    Parameters values{};
 };
+
+quint32 packed(const std::array<quint8, 4> &rgba)
+{
+    return quint32(rgba[0]) | quint32(rgba[1]) << 8 | quint32(rgba[2]) << 16 | quint32(rgba[3]) << 24;
+}
+
+bool prepareJob(QRhi &rhi, Job &job, QRhiBuffer *zero)
+{
+    if (!job.output) return false;
+    if (!job.geometry.isEmpty()) {
+        job.samples = own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer,
+                                            quint32(job.geometry.size() * sizeof(Segment))));
+        if (!job.samples->create()) return false;
+    }
+    job.parameters = own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::UniformBuffer, sizeof(Parameters)));
+    job.bindings = own(rhi, rhi.newShaderResourceBindings());
+    if (!job.parameters->create()) return false;
+    job.bindings->setBindings({
+        QRhiShaderResourceBinding::uniformBuffer(0, QRhiShaderResourceBinding::ComputeStage, job.parameters.get()),
+        QRhiShaderResourceBinding::bufferLoad(1, QRhiShaderResourceBinding::ComputeStage, job.samples ? job.samples.get() : zero),
+        QRhiShaderResourceBinding::bufferLoad(2, QRhiShaderResourceBinding::ComputeStage, job.input ? job.input->pixels.get() : zero),
+        QRhiShaderResourceBinding::bufferStore(3, QRhiShaderResourceBinding::ComputeStage, job.output->pixels.get())
+    });
+    return job.bindings->create();
+}
 }
 
 TileRenderer::Private::Private(DevicePtr device, qsizetype byteBudget)
@@ -189,7 +214,10 @@ RenderOutcome TileRenderer::record(QRhiCommandBuffer &commands, const Snapshot &
         qsizetype prefix = 0;
         if (base) {
             for (const auto &old : base->document()->layers) {
-                if (old.id != layer.id || old.operations.size() > layer.operations.size()) continue;
+                if (old.id != layer.id) continue;
+                if (old.defaultPixel != layer.defaultPixel) break;
+                data->defaults[layer.id] = base->m_data->defaults.value(layer.id);
+                if (old.operations.size() > layer.operations.size()) break;
                 bool matches = true;
                 for (qsizetype i = 0; i < old.operations.size(); ++i) {
                     if (old.operations[i] != layer.operations[i]) { matches = false; break; }
@@ -200,6 +228,20 @@ RenderOutcome TileRenderer::record(QRhiCommandBuffer &commands, const Snapshot &
                 }
                 break;
             }
+        }
+        if (packed(layer.defaultPixel) && !data->defaults.value(layer.id)) {
+            if (d.budget->used > d.budget->limit - TileBytes) {
+                return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU default pixel tile budget exhausted")};
+            }
+            Job fill;
+            fill.output = d.allocateTile();
+            fill.values.color = packed(layer.defaultPixel);
+            fill.values.uniformFill = 1;
+            if (!prepareJob(d.rhi, fill, d.zero.get())) {
+                return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU default pixel allocation failed")};
+            }
+            data->defaults[layer.id] = fill.output;
+            jobs.push_back(std::move(fill));
         }
         auto &tiles = data->layers[layer.id];
         QMap<quint64, std::array<std::shared_ptr<Tile>, 2>> writable;
@@ -285,30 +327,17 @@ RenderOutcome TileRenderer::record(QRhiCommandBuffer &commands, const Snapshot &
                     return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU operation buffer limit exceeded")};
                 }
                 Job job;
-                job.input = tiles.value(tile.key());
+                job.input = tiles.value(tile.key(), data->defaults.value(layer.id));
                 auto &pool = writable[tile.key()];
                 auto &output = pool[pool[0] && job.input == pool[0] ? 1 : 0];
                 if (!output) output = d.allocateTile();
                 job.output = output;
-                job.samples = own(d.rhi, d.rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, quint32(bytes)));
-                job.parameters = own(d.rhi, d.rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::UniformBuffer, sizeof(Parameters)));
-                job.bindings = own(d.rhi, d.rhi.newShaderResourceBindings());
-                if (!job.output || !job.samples->create() || !job.parameters->create()) {
-                    return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
-                }
                 job.geometry = tile.value();
                 const auto point = coordinate(tile.key()) * TileSize;
-                const auto &rgba = operation.brush.rgba;
                 job.values = {point.x(), point.y(), document->size.width(), document->size.height(),
-                              quint32(rgba[0]) | quint32(rgba[1]) << 8 | quint32(rgba[2]) << 16 | quint32(rgba[3]) << 24,
+                              packed(operation.brush.rgba),
                               operation.brush.opacity, quint32(operation.brush.erase), step, quint32(tile.value().size()), diameter};
-                job.bindings->setBindings({
-                    QRhiShaderResourceBinding::uniformBuffer(0, QRhiShaderResourceBinding::ComputeStage, job.parameters.get()),
-                    QRhiShaderResourceBinding::bufferLoad(1, QRhiShaderResourceBinding::ComputeStage, job.samples.get()),
-                    QRhiShaderResourceBinding::bufferLoad(2, QRhiShaderResourceBinding::ComputeStage, job.input ? job.input->pixels.get() : d.zero.get()),
-                    QRhiShaderResourceBinding::bufferStore(3, QRhiShaderResourceBinding::ComputeStage, job.output->pixels.get())
-                });
-                if (!job.bindings->create()) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint binding failed")};
+                if (!prepareJob(d.rhi, job, d.zero.get())) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
                 tiles[tile.key()] = job.output;
                 jobs.push_back(std::move(job));
             }
@@ -333,7 +362,7 @@ RenderOutcome TileRenderer::record(QRhiCommandBuffer &commands, const Snapshot &
     }
     for (const auto &job : jobs) {
         auto updates = d.rhi.nextResourceUpdateBatch();
-        updates->uploadStaticBuffer(job.samples.get(), job.geometry.constData());
+        if (job.samples) updates->uploadStaticBuffer(job.samples.get(), job.geometry.constData());
         updates->uploadStaticBuffer(job.parameters.get(), &job.values);
         commands.beginComputePass(updates);
         commands.setComputePipeline(d.pipeline.get());

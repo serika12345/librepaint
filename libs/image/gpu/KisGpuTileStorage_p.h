@@ -46,6 +46,7 @@ struct RenderedVersion::Data
     Snapshot document;
     std::shared_ptr<Detail::Budget> owner;
     QMap<LayerId, Detail::Tiles> layers;
+    QMap<LayerId, std::shared_ptr<Detail::Tile>> defaults;
 };
 
 struct ProjectedVersion::Data

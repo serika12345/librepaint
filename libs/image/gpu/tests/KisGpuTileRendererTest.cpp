@@ -34,6 +34,9 @@ private Q_SLOTS:
     void rasterCheckpointsPreservePixelsThroughPaintingUndoAndRecovery();
     void overwrittenTileHistoryRebuildsWithinTwoBuffers();
     void tileWritesPreservePaintingOnOtherCoordinates();
+    void implicitLayerPixelsStaySparseThroughEditsAndProjection_data();
+    void implicitLayerPixelsStaySparseThroughEditsAndProjection();
+    void implicitLayersRespectCompositionAndCapacity();
 
 private:
     RenderedSnapshot render(TileRenderer &renderer, const Snapshot &snapshot,
@@ -560,6 +563,96 @@ void KisGpuTileRendererTest::tileWritesPreservePaintingOnOtherCoordinates()
     const auto right = readTile(rendered, layer, {1, 0});
     QCOMPARE(right.mid((32 * 256 + 8) * 4, 4), QByteArray::fromHex("0000ffff"));
     QCOMPARE(right.mid((32 * 256 + 44) * 4, 4), QByteArray::fromHex("ff0000ff"));
+}
+
+void KisGpuTileRendererTest::implicitLayerPixelsStaySparseThroughEditsAndProjection_data()
+{
+    QTest::addColumn<QByteArray>("defaultRgba");
+    QTest::newRow("opaque-white") << QByteArray::fromHex("ffffffff");
+    QTest::newRow("transparent-rgb") << QByteArray::fromHex("11171f00");
+}
+
+void KisGpuTileRendererTest::implicitLayerPixelsStaySparseThroughEditsAndProjection()
+{
+    QFETCH(QByteArray, defaultRgba);
+    RasterImage image;
+    image.size = {4096, 4096};
+    image.layers = {{QStringLiteral("White"), true, {}, {}}};
+    for (int i = 0; i < 4; ++i) image.layers[0].defaultPixel[i] = quint8(defaultRgba[i]);
+    OperationDocument document(image);
+    const auto layer = document.activeLayer();
+    TileRenderer renderer(m_device, 6 * TileRenderer::TileBytes);
+    const auto original = render(renderer, document.snapshot());
+    QVERIFY(original);
+    QVERIFY(original->tiles(layer).isEmpty());
+    QCOMPARE(renderer.residentBytes(), qsizetype(TileRenderer::TileBytes));
+    const auto corner = project(renderer, original, {4000, 4000, 96, 96});
+    QVERIFY(corner);
+    QCOMPARE(corner->tiles().size(), 1);
+    QCOMPARE(corner->tiles().first().coordinate, QPoint(15, 15));
+    QCOMPARE(readBuffer(corner->tiles().first().pixels), defaultRgba.repeated(RgbaTile::ByteCount / 4));
+    Brush brush;
+    brush.rgba = {0, 0, 255, 255};
+    const auto stroke = document.beginStroke(layer, brush, 0);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    const auto painted = render(renderer, document.snapshot(), original);
+    QVERIFY(painted);
+    QCOMPARE(painted->tiles(layer).size(), 1);
+    const auto pixels = readTile(painted, layer, {0, 0});
+    QCOMPARE(pixels.first(4), defaultRgba);
+    QCOMPARE(pixels.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("0000ffff"));
+    const auto visible = project(renderer, painted, {0, 0, 512, 256});
+    QVERIFY(visible);
+    QCOMPARE(visible->tiles().size(), 2);
+    QCOMPARE(visible->tiles()[1].pixels, corner->tiles().first().pixels);
+    QCOMPARE(readBuffer(corner->tiles().first().pixels).first(4), defaultRgba);
+    QCOMPARE(document.undo(), Result::Success);
+    const auto undone = render(renderer, document.snapshot(), painted);
+    QVERIFY(undone);
+    QVERIFY(undone->tiles(layer).isEmpty());
+    QCOMPARE(renderer.residentBytes(), qsizetype(2 * TileRenderer::TileBytes));
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.redo(), Result::Success);
+    TileRenderer rebuilt(m_device, 2 * TileRenderer::TileBytes);
+    const auto restored = render(rebuilt, recovered.snapshot());
+    QVERIFY(restored);
+    QCOMPARE(readTile(restored, layer, {0, 0}), pixels);
+}
+
+void KisGpuTileRendererTest::implicitLayersRespectCompositionAndCapacity()
+{
+    RasterImage image;
+    image.size = {512, 256};
+    image.layers = {{QStringLiteral("Red"), true, {}, {}}, {QStringLiteral("Blue"), true, {}, {}}};
+    image.layers[0].defaultPixel = {255, 0, 0, 255};
+    image.layers[1].defaultPixel = {0, 0, 255, 128};
+    OperationDocument document(image);
+    TileRenderer renderer(m_device, 4 * TileRenderer::TileBytes);
+    const auto both = render(renderer, document.snapshot());
+    QVERIFY(both);
+    const auto merged = project(renderer, both, {0, 0, 512, 256});
+    QVERIFY(merged);
+    QCOMPARE(merged->tiles().size(), 2);
+    for (const auto &tile : merged->tiles()) QCOMPARE(readBuffer(tile.pixels).first(4), QByteArray::fromHex("7f0080ff"));
+    QCOMPARE(document.setLayerVisible(2, false), Result::Success);
+    const auto hidden = render(renderer, document.snapshot(), both);
+    QVERIFY(hidden);
+    const auto red = project(renderer, hidden, {0, 0, 512, 256}, merged);
+    QVERIFY(red);
+    QCOMPARE(red->tiles().size(), 2);
+    for (const auto &tile : red->tiles()) QCOMPARE(readBuffer(tile.pixels).first(4), QByteArray::fromHex("ff0000ff"));
+    TileRenderer small(m_device, TileRenderer::TileBytes);
+    QVERIFY(!render(small, document.snapshot()));
+    QCOMPARE(small.residentBytes(), qsizetype(0));
+    image.size = {4096, 4096};
+    image.layers.removeLast();
+    OperationDocument large(image);
+    const auto sparse = render(small, large.snapshot());
+    QVERIFY(sparse);
+    QVERIFY(!project(small, sparse, {0, 0, 4096, 4096}));
+    QCOMPARE(small.residentBytes(), qsizetype(TileRenderer::TileBytes));
 }
 
 int main(int argc, char **argv)

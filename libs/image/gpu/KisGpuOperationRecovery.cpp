@@ -18,7 +18,7 @@ namespace Krita::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 2;
+constexpr quint16 FormatVersion = 3;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -129,10 +129,12 @@ QByteArray OperationDocument::recoveryData() const
         if (!withinLimit()) return {};
         for (const auto &layer : state->layers) {
             const auto name = layer.name.toUtf8();
-            if (name.size() > m_limits.recoveryBytes - DigestSize - bytes.size() - 33) return {};
+            if (name.size() > m_limits.recoveryBytes - DigestSize - bytes.size() - 37) return {};
             stream << layer.id << quint32(name.size());
             stream.writeRawData(name.constData(), int(name.size()));
-            stream << quint8(layer.visible) << layer.uuid << quint32(layer.operations.size());
+            stream << quint8(layer.visible) << layer.uuid;
+            for (const auto component : layer.defaultPixel) stream << component;
+            stream << quint32(layer.operations.size());
             if (!withinLimit() || layer.operations.size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 4) return {};
             for (const auto &operation : layer.operations) stream << indices.value(operationPointer(operation));
         }
@@ -259,7 +261,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         quint32 layerCount = 0;
         stream >> state->m_revision >> state->activeLayer >> layerCount;
         if (state->revision() > nextRevision || (i > 0 && state->revision() <= previousRevision) ||
-            layerCount == 0 || !readableCount(stream, layerCount, m_limits.layerCount, 33)) return Result::InvalidRecovery;
+            layerCount == 0 || !readableCount(stream, layerCount, m_limits.layerCount, 37)) return Result::InvalidRecovery;
         previousRevision = state->revision();
         QSet<LayerId> layers;
         for (quint32 j = 0; j < layerCount; ++j) {
@@ -273,7 +275,9 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
             if (stream.readRawData(name.data(), nameSize) != int(nameSize)) return Result::InvalidRecovery;
             layer.name = QString::fromUtf8(name);
             if (layer.name.toUtf8() != name) return Result::InvalidRecovery;
-            stream >> visible >> layer.uuid >> count;
+            stream >> visible >> layer.uuid;
+            for (auto &component : layer.defaultPixel) stream >> component;
+            stream >> count;
             if (visible > 1 || layer.uuid.isNull() ||
                 (layerIdentities.contains(layer.id) && layerIdentities.value(layer.id) != layer.uuid) ||
                 (identityOwners.contains(layer.uuid) && identityOwners.value(layer.uuid) != layer.id) ||

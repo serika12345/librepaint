@@ -20,6 +20,7 @@ private Q_SLOTS:
     void boundedReadsRejectAtomicallyAndRecover();
     void closedDocumentsAndDeviceGenerationsGuardReads();
     void cpuPixelsOutliveExecutionAndDevices();
+    void savingReadsOffCanvasTilesAndRetainsImplicitPixels();
 private:
     DevicePtr m_device;
 };
@@ -207,6 +208,50 @@ void KisGpuPixelReadbackTest::cpuPixelsOutliveExecutionAndDevices()
     QVERIFY(owner.expired());
     QVERIFY(cpu.document);
     QCOMPARE(pixel(cpu, 0, {8, 12}), QByteArray::fromHex("ff0000ff"));
+}
+
+void KisGpuPixelReadbackTest::savingReadsOffCanvasTilesAndRetainsImplicitPixels()
+{
+    RasterImage image;
+    image.size = {64, 64};
+    image.layers = {{QStringLiteral("Imported"), true, {},
+                     {{{-1, 0}, QByteArray::fromHex("11171f00").repeated(RgbaTile::ByteCount / 4)}}}};
+    image.layers[0].defaultPixel = {255, 255, 255, 255};
+    OperationDocument document(image);
+    dot(document, {8, 12}, {255, 0, 0, 255});
+    const auto pinned = document.snapshot();
+    const auto layer = document.activeLayer();
+    Execution execution(m_device, 8 * TileRenderer::TileBytes, 16, 2 * TileRenderer::TileBytes);
+    const auto handle = execution.open(pinned).handle;
+    QCOMPARE(document.replaceTiles(layer, {{{-1, 0}, QByteArray::fromHex("00ff00ff").repeated(RgbaTile::ByteCount / 4)}}), Result::Success);
+    const auto latest = document.snapshot();
+    QCOMPARE(execution.request(handle, latest).code, ExecutionCode::Success);
+    const QRect area(-256, 0, 512, 256);
+    const auto clipped = execution.readPixels(handle, pinned, area, {layer});
+    QCOMPARE(clipped.code, ExecutionCode::Success);
+    QCOMPARE(clipped.region, QRect(0, 0, 64, 64));
+    QCOMPARE(clipped.tiles.size(), 2);
+    const auto all = execution.readPixels(handle, pinned, area, {layer}, true, PixelReadArea::LayerCoordinates);
+    QCOMPARE(all.code, ExecutionCode::Success);
+    QCOMPARE(all.region, area);
+    QCOMPARE(all.tiles.size(), 3);
+    QCOMPARE(pixel(all, layer, {-10, 12}), QByteArray::fromHex("11171f00"));
+    QCOMPARE(pixel(all, layer, {8, 12}), QByteArray::fromHex("ff0000ff"));
+    QCOMPARE(pixel(all, layer, {1, 1}), QByteArray::fromHex("ffffffff"));
+    QCOMPARE(pixel(all, 0, {8, 12}), QByteArray::fromHex("ff0000ff"));
+    QVERIFY(pixel(all, 0, {-10, 12}).isEmpty());
+    QCOMPARE(all.document->layers.first().defaultPixel, image.layers.first().defaultPixel);
+    QCOMPARE(execution.requested(handle), latest);
+    QVERIFY(!execution.published(handle));
+    const auto outside = execution.readPixels(handle, pinned, {-256, 0, 256, 256}, {layer}, true, PixelReadArea::LayerCoordinates);
+    QCOMPARE(outside.code, ExecutionCode::Success);
+    QCOMPARE(outside.tiles.size(), 1);
+    QCOMPARE(pixel(outside, layer, {-10, 12}), QByteArray::fromHex("11171f00"));
+    const auto invalid = execution.readPixels(handle, pinned, area, {layer}, false, PixelReadArea(99));
+    QCOMPARE(invalid.code, ExecutionCode::InvalidRequest);
+    QVERIFY(invalid.tiles.isEmpty());
+    QCOMPARE(document.markSaved(pinned), Result::Success);
+    QVERIFY(document.isModified());
 }
 
 int main(int argc, char **argv)

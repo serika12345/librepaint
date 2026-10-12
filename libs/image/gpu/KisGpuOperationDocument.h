@@ -113,6 +113,7 @@ struct RasterLayer
     bool visible = true;
     QUuid uuid;
     QList<RgbaTile> tiles;
+    std::array<quint8, 4> defaultPixel{};
 };
 struct RasterImage
 {
@@ -128,6 +129,7 @@ struct Layer
     bool visible = true;
     QList<LayerOperation> operations;
     QUuid uuid;
+    std::array<quint8, 4> defaultPixel{};
 };
 
 /** Immutable logical document version; all layers are flat RGBA8/sRGB paint layers. */
