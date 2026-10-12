@@ -15,6 +15,8 @@
 #include <QString>
 #include <QUuid>
 #include <kritaimage_export.h>
+#include "KisGpuRasterPixels.h"
+#include <variant>
 
 namespace Krita::Image::Gpu {
 
@@ -93,12 +95,39 @@ struct KRITAIMAGE_EXPORT PaintOperation
     QList<InputSample> inputSamples() const;
 };
 
+/** Whole-tile replacement; retained compressed pixels preserve external results. */
+struct TileWriteOperation
+{
+    OperationId id;
+    quint64 version = 0;
+    LayerId layer = 0;
+    QList<QSharedPointer<const RasterTile>> tiles;
+};
+using PaintSnapshot = QSharedPointer<const PaintOperation>;
+using TileWriteSnapshot = QSharedPointer<const TileWriteOperation>;
+using LayerOperation = std::variant<PaintSnapshot, TileWriteSnapshot>;
+
+struct RasterLayer
+{
+    QString name;
+    bool visible = true;
+    QUuid uuid;
+    QList<RgbaTile> tiles;
+};
+struct RasterImage
+{
+    QSize size;
+    QList<RasterLayer> layers;
+    qsizetype activeLayer = 0;
+};
+
 struct Layer
 {
     LayerId id = 0;
     QString name;
     bool visible = true;
-    QList<QSharedPointer<const PaintOperation>> operations;
+    QList<LayerOperation> operations;
+    QUuid uuid;
 };
 
 /** Immutable logical document version; all layers are flat RGBA8/sRGB paint layers. */
@@ -111,6 +140,7 @@ public:
     QList<Layer> layers;
     LayerId activeLayer = 0;
     qsizetype sampleCount = 0;
+    qsizetype rasterBytes = 0;
 
 private:
     friend class OperationDocument;
@@ -145,6 +175,7 @@ struct Limits
     qsizetype samplesPerDocument = 4 * 1024 * 1024;
     qsizetype layerCount = 4096;
     qsizetype recoveryBytes = 512 * 1024 * 1024;
+    qsizetype rasterBytes = 256 * 1024 * 1024;
 };
 
 /**
@@ -164,9 +195,11 @@ class KRITAIMAGE_EXPORT OperationDocument
 {
 public:
     static constexpr int HistoryLimit = 250;
-    static constexpr qreal CoordinateLimit = 8388608;
+    static constexpr qreal CoordinateLimit = RgbaTile::CoordinateLimit;
 
     explicit OperationDocument(QSize size, Limits limits = {});
+    /** Validated flat raster import starts saved, with preserved layer UUIDs and empty history. */
+    explicit OperationDocument(const RasterImage &image, Limits limits = {});
     OperationDocument(const OperationDocument &) = delete;
     OperationDocument &operator=(const OperationDocument &) = delete;
 
@@ -185,6 +218,8 @@ public:
     Result updateShape(OperationId id, const Shape &shape);
     Result commitStroke(OperationId id);
     Result cancelStroke(OperationId id);
+    /** Replaces full tiles, including hidden layers, in one history entry. */
+    Result replaceTiles(LayerId layer, const QList<RgbaTile> &tiles);
 
     /** Adds and selects a layer in one history entry; returns zero on rejection. */
     LayerId addLayer(const QString &name);

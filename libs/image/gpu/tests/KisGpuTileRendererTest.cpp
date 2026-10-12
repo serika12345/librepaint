@@ -31,6 +31,9 @@ private Q_SLOTS:
     void longDocumentRebuildUsesBoundedTileStorage();
     void retainedPixelsOwnTheNativeDeviceUntilTheirLastReader();
     void nativeDeviceCreationRequiresTheApplicationThread();
+    void rasterCheckpointsPreservePixelsThroughPaintingUndoAndRecovery();
+    void overwrittenTileHistoryRebuildsWithinTwoBuffers();
+    void tileWritesPreservePaintingOnOtherCoordinates();
 
 private:
     RenderedSnapshot render(TileRenderer &renderer, const Snapshot &snapshot,
@@ -453,6 +456,110 @@ void KisGpuTileRendererTest::nativeDeviceCreationRequiresTheApplicationThread()
     QVERIFY(worker->wait(2000));
     QVERIFY(!device);
     QVERIFY(!diagnostic.isEmpty());
+}
+
+void KisGpuTileRendererTest::rasterCheckpointsPreservePixelsThroughPaintingUndoAndRecovery()
+{
+    RasterImage image;
+    image.size = {510, 255};
+    const QByteArray invisible = QByteArray::fromHex("120a2700").repeated(RgbaTile::ByteCount / 4);
+    const QByteArray blue = QByteArray::fromHex("0000ff80").repeated(RgbaTile::ByteCount / 4);
+    const QByteArray outside = QByteArray::fromHex("00ff0040").repeated(RgbaTile::ByteCount / 4);
+    image.layers = {{QStringLiteral("Imported"), true, {}, {{{0, 0}, invisible}, {{1, 0}, blue}, {{-1, 0}, outside}}}};
+    OperationDocument document(image);
+    const auto layer = document.activeLayer();
+    TileRenderer renderer(m_device, 8 * TileRenderer::TileBytes);
+    const auto imported = render(renderer, document.snapshot());
+    QVERIFY(imported);
+    QCOMPARE(imported->tiles(layer).size(), 3);
+    QCOMPARE(readTile(imported, layer, {0, 0}), invisible);
+    QCOMPARE(readTile(imported, layer, {1, 0}), blue);
+    QCOMPARE(readTile(imported, layer, {-1, 0}), outside);
+    Brush brush;
+    brush.rgba = {255, 0, 0, 255};
+    const auto stroke = document.beginStroke(layer, brush, 0);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    const auto painted = render(renderer, document.snapshot(), imported);
+    QVERIFY(painted);
+    const auto pixels = readTile(painted, layer, {0, 0});
+    QCOMPARE(pixels.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("ff0000ff"));
+    QCOMPARE(pixels.first(4), QByteArray::fromHex("120a2700"));
+    QCOMPARE(pixels.last(4), QByteArray::fromHex("120a2700"));
+    QCOMPARE(readTile(imported, layer, {0, 0}), invisible);
+    for (const auto &tile : painted->tiles(layer)) {
+        if (tile.coordinate == QPoint(0, 0)) continue;
+        for (const auto &old : imported->tiles(layer)) {
+            if (old.coordinate == tile.coordinate) QCOMPARE(tile.pixels, old.pixels);
+        }
+    }
+    QCOMPARE(document.undo(), Result::Success);
+    const auto undone = render(renderer, document.snapshot(), painted);
+    QVERIFY(undone);
+    QCOMPARE(readTile(undone, layer, {0, 0}), invisible);
+    QCOMPARE(document.redo(), Result::Success);
+    const auto redone = render(renderer, document.snapshot(), undone);
+    QVERIFY(redone);
+    QCOMPARE(readTile(redone, layer, {0, 0}), pixels);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    TileRenderer rebuilt(m_device, 4 * TileRenderer::TileBytes);
+    const auto restored = render(rebuilt, recovered.snapshot());
+    QVERIFY(restored);
+    QCOMPARE(readTile(restored, layer, {0, 0}), pixels);
+    QCOMPARE(readTile(restored, layer, {-1, 0}), outside);
+}
+
+void KisGpuTileRendererTest::overwrittenTileHistoryRebuildsWithinTwoBuffers()
+{
+    OperationDocument document({256, 256});
+    const auto layer = document.activeLayer();
+    Brush blue;
+    blue.rgba = {0, 0, 255, 255};
+    for (int i = 0; i < 250; ++i) {
+        const auto color = i % 2 ? QByteArray::fromHex("00ff00ff") : QByteArray::fromHex("ff0000ff");
+        QCOMPARE(document.replaceTiles(layer, {{{0, 0}, color.repeated(RgbaTile::ByteCount / 4)}}), Result::Success);
+        const auto stroke = document.beginStroke(layer, blue, 0);
+        QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+        QCOMPARE(document.commitStroke(stroke), Result::Success);
+    }
+    QCOMPARE(document.undoCount(), 250);
+    TileRenderer renderer(m_device, 2 * TileRenderer::TileBytes);
+    const auto original = render(renderer, document.snapshot());
+    QVERIFY(original);
+    const auto pixels = readTile(original, layer, {0, 0});
+    QCOMPARE(pixels.first(4), QByteArray::fromHex("00ff00ff"));
+    QCOMPARE(pixels.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("0000ffff"));
+    const auto invisible = QByteArray::fromHex("0a141e00").repeated(RgbaTile::ByteCount / 4);
+    QCOMPARE(document.replaceTiles(layer, {{{0, 0}, invisible}}), Result::Success);
+    const auto replaced = render(renderer, document.snapshot(), original);
+    QVERIFY(replaced);
+    QCOMPARE(readTile(replaced, layer, {0, 0}), invisible);
+    QCOMPARE(readTile(original, layer, {0, 0}), pixels);
+}
+
+void KisGpuTileRendererTest::tileWritesPreservePaintingOnOtherCoordinates()
+{
+    OperationDocument document({512, 256});
+    const auto layer = document.activeLayer();
+    Brush brush;
+    brush.rgba = {255, 0, 0, 255};
+    auto stroke = document.beginStroke(layer, brush, 0);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}, {{400, 32}, 1}}), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    const auto green = QByteArray::fromHex("00ff00ff").repeated(RgbaTile::ByteCount / 4);
+    QCOMPARE(document.replaceTiles(layer, {{{0, 0}, green}}), Result::Success);
+    brush.rgba = {0, 0, 255, 255};
+    stroke = document.beginStroke(layer, brush, 0);
+    QCOMPARE(document.appendSamples(stroke, {{{264, 32}, 1}}), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    TileRenderer renderer(m_device, 3 * TileRenderer::TileBytes);
+    const auto rendered = render(renderer, document.snapshot());
+    QVERIFY(rendered);
+    QCOMPARE(readTile(rendered, layer, {0, 0}), green);
+    const auto right = readTile(rendered, layer, {1, 0});
+    QCOMPARE(right.mid((32 * 256 + 8) * 4, 4), QByteArray::fromHex("0000ffff"));
+    QCOMPARE(right.mid((32 * 256 + 44) * 4, 4), QByteArray::fromHex("ff0000ff"));
 }
 
 int main(int argc, char **argv)

@@ -60,7 +60,7 @@ void main() {
     if (any(greaterThanEqual(local, uvec2(256)))) return;
     uint index = local.y * 256u + local.x;
     ivec2 pixel = parameters.tile.xy + ivec2(local);
-    if (any(greaterThanEqual(pixel, parameters.tile.zw))) { outputPixels[index] = 0u; return; }
+    if (any(greaterThanEqual(pixel, parameters.tile.zw))) { outputPixels[index] = basePixels[index]; return; }
     ivec2 center = pixel * 16 + ivec2(8);
     uint mask = 0u;
     for (uint s = 0u; s < parameters.counts.x && mask != 65535u; ++s) {
@@ -105,6 +105,7 @@ void main() {
     uvec4 destination = unpackPixel(basePixels[index]);
     uvec4 source = unpackPixel(parameters.brush.x);
     uint alpha = (mul255(source.w, parameters.brush.y) * uint(bitCount(mask)) + 8u) / 16u;
+    if (alpha == 0u) { outputPixels[index] = basePixels[index]; return; }
     if (parameters.brush.z != 0u) {
         destination.w = mul255(destination.w, 255u - alpha);
         if (destination.w == 0u) destination.xyz = uvec3(0);

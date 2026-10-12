@@ -85,8 +85,8 @@ struct ProjectionOutcome
 class KRITAIMAGE_EXPORT TileRenderer
 {
 public:
-    static constexpr int TileSize = 256;
-    static constexpr int TileBytes = TileSize * TileSize * 4;
+    static constexpr int TileSize = RgbaTile::Size;
+    static constexpr int TileBytes = RgbaTile::ByteCount;
 
     explicit TileRenderer(DevicePtr device, qsizetype byteBudget = 128 * 1024 * 1024);
     ~TileRenderer();

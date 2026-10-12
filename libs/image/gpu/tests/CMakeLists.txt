@@ -3,6 +3,11 @@ kis_add_test(KisGpuOperationDocumentTest.cpp
 )
 target_compile_definitions(KisGpuOperationDocumentTest PRIVATE kritaimage_EXPORTS)
 
+kis_add_test(KisGpuRasterPixelsTest.cpp
+    LINK_LIBRARIES kritaimagegpuoperations Qt${QT_MAJOR_VERSION}::Test
+)
+target_compile_definitions(KisGpuRasterPixelsTest PRIVATE kritaimage_EXPORTS)
+
 kis_add_test(KisGpuTileRendererTest.cpp
     TEST_NAME_VAR gpu_tile_renderer_test
     LINK_LIBRARIES kritaimagegputiles kritaimagegpuoperations Qt6::GuiPrivate Qt6::Test

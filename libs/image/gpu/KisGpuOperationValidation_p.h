@@ -12,6 +12,13 @@
 namespace Krita::Image::Gpu::Detail {
 constexpr qsizetype LayerNameByteLimit = 65536;
 
+inline bool validLayerName(const QString &name)
+{
+    if (name.size() > LayerNameByteLimit) return false;
+    const auto bytes = name.toUtf8();
+    return bytes.size() <= LayerNameByteLimit && QString::fromUtf8(bytes) == name;
+}
+
 inline bool validPoint(const QPointF &point)
 {
     return std::isfinite(point.x()) && std::isfinite(point.y()) &&

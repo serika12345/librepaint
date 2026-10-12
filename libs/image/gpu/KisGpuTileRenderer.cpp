@@ -182,6 +182,9 @@ RenderOutcome TileRenderer::record(QRhiCommandBuffer &commands, const Snapshot &
     data->document = document;
     data->owner = d.budget;
     std::vector<Job> jobs;
+    struct Checkpoint { qsizetype operation = 0; QSharedPointer<const RasterTile> pixels; };
+    struct Upload { std::shared_ptr<Tile> tile; QByteArray rgba; };
+    std::vector<Upload> uploads;
     for (const auto &layer : document->layers) {
         qsizetype prefix = 0;
         if (base) {
@@ -200,8 +203,36 @@ RenderOutcome TileRenderer::record(QRhiCommandBuffer &commands, const Snapshot &
         }
         auto &tiles = data->layers[layer.id];
         QMap<quint64, std::array<std::shared_ptr<Tile>, 2>> writable;
+        QMap<quint64, Checkpoint> checkpoints;
         for (qsizetype op = prefix; op < layer.operations.size(); ++op) {
-            const auto &operation = *layer.operations[op];
+            const auto write = std::get_if<TileWriteSnapshot>(&layer.operations[op]);
+            if (!write) continue;
+            for (const auto &tile : (*write)->tiles) {
+                const auto point = tile->coordinate();
+                checkpoints[key(point.x(), point.y())] = {op, tile};
+                if (checkpoints.size() > d.budget->limit / TileBytes) {
+                    return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU checkpoint tile budget exhausted")};
+                }
+            }
+        }
+        if (checkpoints.size() > (d.budget->limit - d.budget->used) / TileBytes) {
+            return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU checkpoint tile budget exhausted")};
+        }
+        // Each coordinate starts at its last whole-tile write. Later pixel-local
+        // paint operations alternate the two writable buffers in operation order.
+        for (auto checkpoint = checkpoints.cbegin(); checkpoint != checkpoints.cend(); ++checkpoint) {
+            const auto pixels = checkpoint->pixels->rgba();
+            if (pixels.size() != TileBytes) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("CPU raster checkpoint is incomplete")};
+            const auto output = d.allocateTile();
+            if (!output) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU checkpoint allocation failed")};
+            tiles[checkpoint.key()] = output;
+            writable[checkpoint.key()][0] = output;
+            uploads.push_back({output, pixels});
+        }
+        for (qsizetype op = prefix; op < layer.operations.size(); ++op) {
+            const auto paint = std::get_if<PaintSnapshot>(&layer.operations[op]);
+            if (!paint) continue;
+            const auto &operation = **paint;
             const auto diameter = quint32(std::max<qint64>(1, std::llround(operation.brush.diameter * 16)));
             const auto step = quint32(std::max<qint64>(1, std::llround(operation.brush.diameter * operation.brush.spacing * 16)));
             const auto segments = geometry(operation, step);
@@ -229,7 +260,10 @@ RenderOutcome TileRenderer::record(QRhiCommandBuffer &commands, const Snapshot &
                     const int rowLeft = std::max(left, int(std::floor(std::min(a, b) - radius - 1)));
                     const int rowRight = std::min(right, int(std::ceil(std::max(a, b) + radius + 1)));
                     for (int x = rowLeft / TileSize; x <= rowRight / TileSize; ++x) {
-                        affected[key(x, y)].append(segment);
+                        const auto coordinate = key(x, y);
+                        const auto checkpoint = checkpoints.constFind(coordinate);
+                        if (checkpoint != checkpoints.cend() && op < checkpoint->operation) continue;
+                        affected[coordinate].append(segment);
                         if (affected.size() > d.budget->limit / TileBytes) {
                             return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU tile budget exhausted")};
                         }
@@ -285,6 +319,17 @@ RenderOutcome TileRenderer::record(QRhiCommandBuffer &commands, const Snapshot &
         updates->uploadStaticBuffer(d.zero.get(), QByteArray(TileBytes, '\0'));
         commands.resourceUpdate(updates);
         d.zeroUploaded = true;
+    }
+    if (!uploads.empty()) {
+        auto updates = d.rhi.nextResourceUpdateBatch();
+        for (const auto &upload : uploads) {
+            updates->uploadStaticBuffer(upload.tile->pixels.get(), upload.rgba);
+            if (!updates->hasOptimalCapacity()) {
+                commands.resourceUpdate(updates);
+                updates = d.rhi.nextResourceUpdateBatch();
+            }
+        }
+        commands.resourceUpdate(updates);
     }
     for (const auto &job : jobs) {
         auto updates = d.rhi.nextResourceUpdateBatch();

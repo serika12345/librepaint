@@ -5,6 +5,7 @@
 
 #include "KisGpuOperationDocument.h"
 #include "KisGpuOperationValidation_p.h"
+#include "KisGpuOperationValues_p.h"
 
 #include <QCryptographicHash>
 #include <QDataStream>
@@ -14,9 +15,10 @@
 #include <limits>
 
 namespace Krita::Image::Gpu {
+using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 1;
+constexpr quint16 FormatVersion = 2;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -26,26 +28,22 @@ void configure(QDataStream &stream)
     stream.setByteOrder(QDataStream::BigEndian);
     stream.setFloatingPointPrecision(QDataStream::DoublePrecision);
 }
-
 QByteArray digest(const QByteArray &data, qsizetype length)
 {
     QCryptographicHash hash(QCryptographicHash::Sha256);
     hash.addData(QByteArrayView(data.constData(), length));
     return hash.result();
 }
-
 bool readableCount(QDataStream &stream, quint32 count, qsizetype limit, qsizetype minimumBytes)
 {
     return stream.status() == QDataStream::Ok && count <= quint64(limit) &&
         count <= quint64(stream.device()->bytesAvailable() / minimumBytes);
 }
-
 void writeSample(QDataStream &stream, const InputSample &sample)
 {
     stream << sample.position.x() << sample.position.y() << sample.pressure
            << sample.xTilt << sample.yTilt << sample.rotation << sample.timestamp;
 }
-
 InputSample readSample(QDataStream &stream)
 {
     InputSample sample;
@@ -59,12 +57,22 @@ InputSample readSample(QDataStream &stream)
 
 QByteArray OperationDocument::recoveryData() const
 {
-    QList<QSharedPointer<const PaintOperation>> operations;
-    QHash<const PaintOperation *, quint32> indices;
-    const auto registerOperation = [&](const QSharedPointer<const PaintOperation> &operation) {
-        if (!indices.contains(operation.data())) {
-            indices.insert(operation.data(), quint32(operations.size()));
-            operations.append(operation);
+    QList<LayerOperation> operations;
+    QHash<const void *, quint32> indices;
+    QList<QSharedPointer<const RasterTile>> tiles;
+    QHash<const RasterTile *, quint32> tileIndices;
+    const auto registerOperation = [&](const LayerOperation &operation) {
+        const auto pointer = operationPointer(operation);
+        if (indices.contains(pointer)) return;
+        indices.insert(pointer, quint32(operations.size()));
+        operations.append(operation);
+        if (const auto write = std::get_if<TileWriteSnapshot>(&operation)) {
+            for (const auto &tile : (*write)->tiles) {
+                if (!tileIndices.contains(tile.data())) {
+                    tileIndices.insert(tile.data(), quint32(tiles.size()));
+                    tiles.append(tile);
+                }
+            }
         }
     };
     for (const auto &state : m_history) {
@@ -73,8 +81,7 @@ QByteArray OperationDocument::recoveryData() const
         }
     }
     if (m_edit) registerOperation(m_edit);
-    if (quint64(operations.size()) >= NoOperation) return {};
-
+    if (quint64(operations.size()) >= NoOperation || quint64(tiles.size()) >= NoOperation) return {};
     QByteArray bytes;
     QDataStream stream(&bytes, QIODevice::WriteOnly);
     configure(stream);
@@ -82,21 +89,37 @@ QByteArray OperationDocument::recoveryData() const
         return stream.status() == QDataStream::Ok && bytes.size() <= m_limits.recoveryBytes - DigestSize;
     };
     stream << Magic << FormatVersion << qint32(snapshot()->size.width()) << qint32(snapshot()->size.height())
-           << m_nextRevision << m_nextOperation << m_nextLayer << m_savedRevision
-           << quint32(operations.size());
+           << m_nextRevision << m_nextOperation << m_nextLayer << m_savedRevision << quint32(tiles.size());
     if (!withinLimit()) return {};
-    for (const auto &operation : operations) {
-        stream << operation->id.sequence << operation->version << operation->layer;
-        for (auto component : operation->brush.rgba) stream << component;
-        stream << operation->brush.diameter << operation->brush.spacing << operation->brush.opacity
-               << quint8(operation->brush.erase) << operation->randomSeed << quint8(operation->shape.kind)
-               << operation->shape.first.x() << operation->shape.first.y()
-               << operation->shape.second.x() << operation->shape.second.y() << operation->shape.rotation
-               << quint32(operation->sampleCount);
-        if (!withinLimit()) return {};
-        for (const auto &block : operation->sampleBlocks) {
-            if (block->size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 56) return {};
-            for (const auto &sample : *block) writeSample(stream, sample);
+    for (const auto &tile : tiles) {
+        const auto data = tile->compressedData();
+        if (data.size() > m_limits.recoveryBytes - DigestSize - bytes.size() - 12) return {};
+        stream << qint32(tile->coordinate().x()) << qint32(tile->coordinate().y()) << quint32(data.size());
+        stream.writeRawData(data.constData(), int(data.size()));
+    }
+    stream << quint32(operations.size());
+    if (!withinLimit()) return {};
+    for (const auto &value : operations) {
+        const auto paint = std::get_if<PaintSnapshot>(&value);
+        stream << quint8(paint ? 0 : 1) << operationId(value).sequence << operationVersion(value) << operationLayer(value);
+        if (paint) {
+            const auto &operation = **paint;
+            for (const auto component : operation.brush.rgba) stream << component;
+            stream << operation.brush.diameter << operation.brush.spacing << operation.brush.opacity
+                   << quint8(operation.brush.erase) << operation.randomSeed << quint8(operation.shape.kind)
+                   << operation.shape.first.x() << operation.shape.first.y()
+                   << operation.shape.second.x() << operation.shape.second.y() << operation.shape.rotation
+                   << quint32(operation.sampleCount);
+            if (!withinLimit()) return {};
+            for (const auto &block : operation.sampleBlocks) {
+                if (block->size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 56) return {};
+                for (const auto &sample : *block) writeSample(stream, sample);
+            }
+        } else {
+            const auto &write = *std::get<TileWriteSnapshot>(value);
+            stream << quint32(write.tiles.size());
+            if (!withinLimit() || write.tiles.size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 4) return {};
+            for (const auto &tile : write.tiles) stream << tileIndices.value(tile.data());
         }
         if (!withinLimit()) return {};
     }
@@ -106,13 +129,12 @@ QByteArray OperationDocument::recoveryData() const
         if (!withinLimit()) return {};
         for (const auto &layer : state->layers) {
             const auto name = layer.name.toUtf8();
-            if (name.size() > m_limits.recoveryBytes - DigestSize - bytes.size() - 17) return {};
+            if (name.size() > m_limits.recoveryBytes - DigestSize - bytes.size() - 33) return {};
             stream << layer.id << quint32(name.size());
             stream.writeRawData(name.constData(), int(name.size()));
-            stream << quint8(layer.visible) << quint32(layer.operations.size());
-            if (!withinLimit() ||
-                layer.operations.size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 4) return {};
-            for (const auto &operation : layer.operations) stream << indices.value(operation.data());
+            stream << quint8(layer.visible) << layer.uuid << quint32(layer.operations.size());
+            if (!withinLimit() || layer.operations.size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 4) return {};
+            for (const auto &operation : layer.operations) stream << indices.value(operationPointer(operation));
         }
         if (!withinLimit()) return {};
     }
@@ -127,32 +149,71 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
 {
     if (m_closed) return Result::Closed;
     if (data.size() > m_limits.recoveryBytes) return Result::CapacityExceeded;
-    if (data.size() <= DigestSize || data.right(DigestSize) != digest(data, data.size() - DigestSize)) {
-        return Result::InvalidRecovery;
-    }
+    if (data.size() <= DigestSize || data.right(DigestSize) != digest(data, data.size() - DigestSize)) return Result::InvalidRecovery;
     const auto payload = QByteArray::fromRawData(data.constData(), data.size() - DigestSize);
     QDataStream stream(payload);
     configure(stream);
-    quint32 magic = 0, operationCount = 0;
+    quint32 magic = 0, tileCount = 0;
     quint16 format = 0;
     qint32 width = 0, height = 0;
     quint64 nextRevision = 0, nextOperation = 0, nextLayer = 0, savedRevision = 0;
-    stream >> magic >> format >> width >> height >> nextRevision >> nextOperation >> nextLayer >> savedRevision
-           >> operationCount;
+    stream >> magic >> format >> width >> height >> nextRevision >> nextOperation >> nextLayer >> savedRevision >> tileCount;
     if (magic != Magic || format != FormatVersion || width <= 0 || height <= 0 ||
         width > CoordinateLimit || height > CoordinateLimit || savedRevision > nextRevision || nextLayer == 0 ||
-        !readableCount(stream, operationCount, payload.size(), 99)) {
-        return Result::InvalidRecovery;
+        !readableCount(stream, tileCount, payload.size(), 12)) return Result::InvalidRecovery;
+    if (tileCount > quint64(m_limits.rasterBytes / RgbaTile::ByteCount)) return Result::CapacityExceeded;
+    QList<QSharedPointer<const RasterTile>> tiles;
+    for (quint32 i = 0; i < tileCount; ++i) {
+        qint32 x = 0, y = 0;
+        quint32 size = 0;
+        stream >> x >> y >> size;
+        if (!readableCount(stream, size, RasterTile::maximumCompressedBytes(), 1)) return Result::InvalidRecovery;
+        QByteArray compressed(size, Qt::Uninitialized);
+        if (stream.readRawData(compressed.data(), size) != int(size)) return Result::InvalidRecovery;
+        const auto tile = RasterTile::fromCompressed({x, y}, compressed);
+        if (!tile) return Result::InvalidRecovery;
+        tiles.append(tile);
     }
-
+    quint32 operationCount = 0;
+    stream >> operationCount;
+    if (!readableCount(stream, operationCount, payload.size(), 29)) return Result::InvalidRecovery;
     const QUuid identity = QUuid::createUuid();
-    QList<QSharedPointer<const PaintOperation>> operations;
+    QList<LayerOperation> operations;
     QSet<quint64> operationIds;
+    QSet<quint32> referencedTiles;
     qsizetype retainedSamples = 0;
     for (quint32 i = 0; i < operationCount; ++i) {
-        QSharedPointer<PaintOperation> operation(new PaintOperation);
-        operation->id.document = identity;
-        stream >> operation->id.sequence >> operation->version >> operation->layer;
+        quint8 kind = 0;
+        quint64 sequence = 0, version = 0;
+        LayerId layer = 0;
+        stream >> kind >> sequence >> version >> layer;
+        if (kind > 1 || sequence == 0 || sequence > nextOperation || operationIds.contains(sequence) ||
+            layer == 0 || layer > nextLayer || version > nextRevision) return Result::InvalidRecovery;
+        operationIds.insert(sequence);
+        if (kind == 1) {
+            auto operation = QSharedPointer<TileWriteOperation>::create();
+            operation->id = {identity, sequence};
+            operation->version = version;
+            operation->layer = layer;
+            quint32 count = 0;
+            stream >> count;
+            if (version > 1 || count == 0 || !readableCount(stream, count, tileCount, 4)) return Result::InvalidRecovery;
+            QSet<QPoint> coordinates;
+            for (quint32 j = 0; j < count; ++j) {
+                quint32 index = 0;
+                stream >> index;
+                if (index >= tileCount || coordinates.contains(tiles[index]->coordinate())) return Result::InvalidRecovery;
+                operation->tiles.append(tiles[index]);
+                coordinates.insert(tiles[index]->coordinate());
+                referencedTiles.insert(index);
+            }
+            operations.append(TileWriteSnapshot(operation));
+            continue;
+        }
+        auto operation = QSharedPointer<PaintOperation>::create();
+        operation->id = {identity, sequence};
+        operation->version = version;
+        operation->layer = layer;
         for (auto &component : operation->brush.rgba) stream >> component;
         quint8 erase = 0, shape = 0;
         qreal x1 = 0, y1 = 0, x2 = 0, y2 = 0;
@@ -163,38 +224,32 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         operation->shape.kind = static_cast<ShapeKind>(shape);
         operation->shape.first = {x1, y1};
         operation->shape.second = {x2, y2};
-        if (operation->id.sequence == 0 || operation->id.sequence > nextOperation ||
-            operationIds.contains(operation->id.sequence) || operation->layer == 0 || operation->layer > nextLayer ||
-            operation->version > nextRevision || erase > 1 || !Detail::validBrush(operation->brush) ||
-            !Detail::validShape(operation->shape) || (sampleCount == 0) != (operation->version == 0) ||
-            !readableCount(stream, sampleCount, m_limits.samplesPerStroke, 56)) {
-            return Result::InvalidRecovery;
-        }
-        // Current/redo versions share their prefix. A pending branch can add one stroke.
+        if (erase > 1 || !validBrush(operation->brush) || !validShape(operation->shape) ||
+            (sampleCount == 0) != (version == 0) || !readableCount(stream, sampleCount, m_limits.samplesPerStroke, 56)) return Result::InvalidRecovery;
         const quint64 totalLimit = quint64(m_limits.samplesPerDocument) + quint64(m_limits.samplesPerStroke);
         if (quint64(retainedSamples) + sampleCount > totalLimit) return Result::CapacityExceeded;
         retainedSamples += sampleCount;
-        QSharedPointer<QList<InputSample>> samples(new QList<InputSample>);
+        auto samples = QSharedPointer<QList<InputSample>>::create();
         samples->reserve(sampleCount);
         quint64 time = 0;
         for (quint32 j = 0; j < sampleCount; ++j) {
             const auto sample = readSample(stream);
-            if (!Detail::validSample(sample) || sample.timestamp < time) return Result::InvalidRecovery;
+            if (!validSample(sample) || sample.timestamp < time) return Result::InvalidRecovery;
             time = sample.timestamp;
             samples->append(sample);
         }
-        if (sampleCount != 0) operation->sampleBlocks.append(samples);
+        if (sampleCount) operation->sampleBlocks.append(samples);
         operation->sampleCount = sampleCount;
-        operationIds.insert(operation->id.sequence);
-        operations.append(operation);
+        operations.append(PaintSnapshot(operation));
     }
-
+    if (referencedTiles.size() != tiles.size()) return Result::InvalidRecovery;
     quint32 stateCount = 0, currentIndex = 0;
     stream >> stateCount >> currentIndex;
-    if (stateCount == 0 || currentIndex >= stateCount ||
-        !readableCount(stream, stateCount, HistoryLimit + 1, 20)) return Result::InvalidRecovery;
+    if (stateCount == 0 || currentIndex >= stateCount || !readableCount(stream, stateCount, HistoryLimit + 1, 20)) return Result::InvalidRecovery;
     QList<Snapshot> history;
     QSet<quint32> referencedOperations;
+    QHash<LayerId, QUuid> layerIdentities;
+    QHash<QUuid, LayerId> identityOwners;
     quint64 previousRevision = 0;
     for (quint32 i = 0; i < stateCount; ++i) {
         QSharedPointer<DocumentVersion> state(new DocumentVersion);
@@ -204,7 +259,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         quint32 layerCount = 0;
         stream >> state->m_revision >> state->activeLayer >> layerCount;
         if (state->revision() > nextRevision || (i > 0 && state->revision() <= previousRevision) ||
-            layerCount == 0 || !readableCount(stream, layerCount, m_limits.layerCount, 17)) return Result::InvalidRecovery;
+            layerCount == 0 || !readableCount(stream, layerCount, m_limits.layerCount, 33)) return Result::InvalidRecovery;
         previousRevision = state->revision();
         QSet<LayerId> layers;
         for (quint32 j = 0; j < layerCount; ++j) {
@@ -213,13 +268,18 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
             quint8 visible = 0;
             stream >> layer.id >> nameSize;
             if (layer.id == 0 || layer.id > nextLayer || layers.contains(layer.id) ||
-                !readableCount(stream, nameSize, Detail::LayerNameByteLimit, 1)) return Result::InvalidRecovery;
+                !readableCount(stream, nameSize, LayerNameByteLimit, 1)) return Result::InvalidRecovery;
             QByteArray name(nameSize, Qt::Uninitialized);
             if (stream.readRawData(name.data(), nameSize) != int(nameSize)) return Result::InvalidRecovery;
             layer.name = QString::fromUtf8(name);
             if (layer.name.toUtf8() != name) return Result::InvalidRecovery;
-            stream >> visible >> count;
-            if (visible > 1 || !readableCount(stream, count, operationCount, 4)) return Result::InvalidRecovery;
+            stream >> visible >> layer.uuid >> count;
+            if (visible > 1 || layer.uuid.isNull() ||
+                (layerIdentities.contains(layer.id) && layerIdentities.value(layer.id) != layer.uuid) ||
+                (identityOwners.contains(layer.uuid) && identityOwners.value(layer.uuid) != layer.id) ||
+                !readableCount(stream, count, operationCount, 4)) return Result::InvalidRecovery;
+            layerIdentities.insert(layer.id, layer.uuid);
+            identityOwners.insert(layer.uuid, layer.id);
             layer.visible = visible;
             quint64 previousOperation = 0;
             for (quint32 k = 0; k < count; ++k) {
@@ -227,13 +287,14 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
                 stream >> index;
                 if (index >= operationCount) return Result::InvalidRecovery;
                 const auto &operation = operations[index];
-                if (operation->layer != layer.id || operation->sampleCount == 0 ||
-                    operation->id.sequence <= previousOperation ||
-                    operation->sampleCount > m_limits.samplesPerDocument - state->sampleCount) {
-                    return Result::InvalidRecovery;
-                }
-                previousOperation = operation->id.sequence;
-                state->sampleCount += operation->sampleCount;
+                const auto samples = operationSamples(operation);
+                const auto pixels = operationRasterBytes(operation);
+                if (operationLayer(operation) != layer.id || (std::holds_alternative<PaintSnapshot>(operation) && samples == 0) ||
+                    operationId(operation).sequence <= previousOperation) return Result::InvalidRecovery;
+                if (samples > m_limits.samplesPerDocument - state->sampleCount || pixels > m_limits.rasterBytes - state->rasterBytes) return Result::CapacityExceeded;
+                previousOperation = operationId(operation).sequence;
+                state->sampleCount += samples;
+                state->rasterBytes += pixels;
                 layer.operations.append(operation);
                 referencedOperations.insert(index);
             }
@@ -243,42 +304,35 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         if (!layers.contains(state->activeLayer)) return Result::InvalidRecovery;
         history.append(state);
     }
-
     quint32 pendingIndex = NoOperation;
     quint64 previewRevision = 0;
     stream >> pendingIndex >> previewRevision;
     if (stream.status() != QDataStream::Ok || !stream.atEnd()) return Result::InvalidRecovery;
-    QSharedPointer<const PaintOperation> edit;
+    PaintSnapshot edit;
     Snapshot preview;
     if (pendingIndex != NoOperation) {
         if (pendingIndex >= operationCount || referencedOperations.contains(pendingIndex)) return Result::InvalidRecovery;
-        edit = operations[pendingIndex];
+        const auto paint = std::get_if<PaintSnapshot>(&operations[pendingIndex]);
+        if (!paint) return Result::InvalidRecovery;
+        edit = *paint;
         const auto &base = history[currentIndex];
         qsizetype index = -1;
         for (qsizetype i = 0; i < base->layers.size(); ++i) {
             if (base->layers[i].id == edit->layer) index = i;
         }
-        if (index < 0 || !base->layers[index].visible ||
-            edit->sampleCount > m_limits.samplesPerDocument - base->sampleCount) return Result::InvalidRecovery;
+        if (index < 0 || !base->layers[index].visible || edit->sampleCount > m_limits.samplesPerDocument - base->sampleCount) return Result::InvalidRecovery;
         if (edit->sampleCount > 0) {
-            if (previewRevision <= previousRevision || previewRevision > nextRevision || previewRevision == savedRevision) {
-                return Result::InvalidRecovery;
-            }
+            if (previewRevision <= previousRevision || previewRevision > nextRevision || previewRevision == savedRevision) return Result::InvalidRecovery;
             QSharedPointer<DocumentVersion> value(new DocumentVersion(*base));
             value->m_committed = false;
             value->m_revision = previewRevision;
             value->layers[index].operations.append(edit);
             value->sampleCount += edit->sampleCount;
             preview = value;
-        } else if (previewRevision != 0 || edit->shape.kind != ShapeKind::Freehand) {
-            return Result::InvalidRecovery;
-        }
+        } else if (previewRevision != 0 || edit->shape.kind != ShapeKind::Freehand) return Result::InvalidRecovery;
         referencedOperations.insert(pendingIndex);
-    } else if (previewRevision != 0) {
-        return Result::InvalidRecovery;
-    }
+    } else if (previewRevision != 0) return Result::InvalidRecovery;
     if (referencedOperations.size() != operations.size()) return Result::InvalidRecovery;
-
     m_identity = identity;
     m_history = history;
     m_index = currentIndex;

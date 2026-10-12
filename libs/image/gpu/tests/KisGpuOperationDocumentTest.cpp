@@ -29,6 +29,20 @@ OperationId paint(OperationDocument &document, const QList<InputSample> &samples
     }
     return id;
 }
+
+RasterImage rasterImage()
+{
+    RasterImage image;
+    image.size = {320, 180};
+    image.activeLayer = 1;
+    image.layers = {
+        {QStringLiteral("Red"), true, QUuid(QStringLiteral("{01020304-0506-0708-090a-0b0c0d0e0f10}")),
+         {{{0, 0}, QByteArray::fromHex("ff0000ff").repeated(RgbaTile::ByteCount / 4)}}},
+        {QStringLiteral("Hidden blue"), false, QUuid(QStringLiteral("{11121314-1516-1718-191a-1b1c1d1e1f20}")),
+         {{{1, -1}, QByteArray::fromHex("0000ff80").repeated(RgbaTile::ByteCount / 4)}}}
+    };
+    return image;
+}
 }
 
 class KisGpuOperationDocumentTest : public QObject
@@ -50,6 +64,10 @@ private Q_SLOTS:
     void recoveryPreservesHistoryAndUncommittedIntent();
     void invalidRecoveryLeavesTheLiveDocumentUntouched();
     void checkedRecoveryRejectsInvalidCountsAndValues();
+    void importedPixelsPreserveLayersAndStartWithoutUndo();
+    void tileReplacementSharesHistoryAndRejectsWholeRequests();
+    void rasterRecoveryPreservesPixelsIdentityAndPendingInput();
+    void damagedRasterRecoveryPreservesTheLiveDocument();
 };
 
 void KisGpuOperationDocumentTest::inputChunksRetainTheSameOperation()
@@ -68,8 +86,8 @@ void KisGpuOperationDocumentTest::inputChunksRetainTheSameOperation()
     }
     QCOMPARE(one.commitStroke(a), Result::Success);
     QCOMPARE(chunks.commitStroke(b), Result::Success);
-    const auto left = one.snapshot()->layers.front().operations.back();
-    const auto right = chunks.snapshot()->layers.front().operations.back();
+    const auto left = std::get<PaintSnapshot>(one.snapshot()->layers.front().operations.back());
+    const auto right = std::get<PaintSnapshot>(chunks.snapshot()->layers.front().operations.back());
     QCOMPARE(left->inputSamples(), right->inputSamples());
     QCOMPARE(left->inputSamples(), input);
     QCOMPARE(left->brush, right->brush);
@@ -93,10 +111,10 @@ void KisGpuOperationDocumentTest::shapePreviewCommitsAsOneHistoryEntry()
     QCOMPARE(document.commitStroke(id), Result::Success);
     QCOMPARE(document.snapshot(), preview);
     QCOMPARE(document.undoCount(), 1);
-    const auto operation = preview->layers.front().operations.back();
+    const auto operation = std::get<PaintSnapshot>(preview->layers.front().operations.back());
     QCOMPARE(operation->shape.kind, ShapeKind::Ellipse);
     QCOMPARE(operation->inputSamples().size(), 2);
-    QCOMPARE(freehand->layers.front().operations.back()->shape.kind, ShapeKind::Freehand);
+    QCOMPARE(std::get<PaintSnapshot>(freehand->layers.front().operations.back())->shape.kind, ShapeKind::Freehand);
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), original);
     QCOMPARE(document.redo(), Result::Success);
@@ -220,9 +238,9 @@ void KisGpuOperationDocumentTest::frozenOperationsOutliveTheDocument()
         frozen = document.preview();
         QCOMPARE(document.commitStroke(id), Result::Success);
     }
-    QCOMPARE(frozen->layers.front().operations.back()->brush.rgba[0], 12);
-    QCOMPARE(frozen->layers.front().operations.back()->randomSeed, quint64(123));
-    QCOMPARE(frozen->layers.front().operations.back()->inputSamples().front().pressure, qreal(0.5));
+    QCOMPARE(std::get<PaintSnapshot>(frozen->layers.front().operations.back())->brush.rgba[0], 12);
+    QCOMPARE(std::get<PaintSnapshot>(frozen->layers.front().operations.back())->randomSeed, quint64(123));
+    QCOMPARE(std::get<PaintSnapshot>(frozen->layers.front().operations.back())->inputSamples().front().pressure, qreal(0.5));
 }
 
 void KisGpuOperationDocumentTest::limitsRejectWholeRequests()
@@ -320,17 +338,17 @@ void KisGpuOperationDocumentTest::recoveryPreservesHistoryAndUncommittedIntent()
     QCOMPARE(restored.undoCount(), source.undoCount());
     QCOMPARE(restored.redoCount(), source.redoCount());
     QCOMPARE(restored.snapshot()->layers.back().name, QStringLiteral("線画 🖌"));
-    QCOMPARE(restored.preview()->layers.back().operations.back()->shape.kind, ShapeKind::Ellipse);
-    QCOMPARE(restored.preview()->layers.back().operations.back()->randomSeed, quint64(903));
-    QCOMPARE(restored.preview()->layers.back().operations.back()->inputSamples(),
-             source.preview()->layers.back().operations.back()->inputSamples());
+    QCOMPARE(std::get<PaintSnapshot>(restored.preview()->layers.back().operations.back())->shape.kind, ShapeKind::Ellipse);
+    QCOMPARE(std::get<PaintSnapshot>(restored.preview()->layers.back().operations.back())->randomSeed, quint64(903));
+    QCOMPARE(std::get<PaintSnapshot>(restored.preview()->layers.back().operations.back())->inputSamples(),
+             std::get<PaintSnapshot>(source.preview()->layers.back().operations.back())->inputSamples());
     QCOMPARE(restored.appendSamples(previous, {sample(0, 0)}), Result::StaleOperation);
     QCOMPARE(restored.appendSamples(pending, {sample(0, 0)}), Result::StaleOperation);
     const auto recoveredEdit = restored.activeOperation();
     QVERIFY(!recoveredEdit.isNull());
     QCOMPARE(restored.cancelStroke(recoveredEdit), Result::Success);
     QCOMPARE(restored.redo(), Result::Success);
-    QCOMPARE(restored.snapshot()->layers.back().operations.back()->inputSamples(), QList<InputSample>{sample(7, 8)});
+    QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers.back().operations.back())->inputSamples(), QList<InputSample>{sample(7, 8)});
     QCOMPARE(restored.undo(), Result::Success);
     QCOMPARE(restored.undo(), Result::Success);
     QVERIFY(!restored.isModified());
@@ -369,13 +387,13 @@ void KisGpuOperationDocumentTest::checkedRecoveryRejectsInvalidCountsAndValues()
     QVERIFY(!paint(document, {sample(1, 2)}).isNull());
     const auto original = document.snapshot();
     const auto good = document.recoveryData();
-    // Format 1's fixed header ends at byte 50; a sample's pressure follows
-    // the 99-byte operation record and its two 64-bit coordinates.
+    // Format 2's paint-only header ends at byte 54; pressure follows the
+    // operation tag, 99-byte paint record and two 64-bit coordinates.
     for (const bool invalidCount : {true, false}) {
         auto payload = good.first(good.size() - 32);
         QBuffer buffer(&payload);
         QVERIFY(buffer.open(QIODevice::ReadWrite));
-        QVERIFY(buffer.seek(invalidCount ? 46 : 165));
+        QVERIFY(buffer.seek(invalidCount ? 50 : 170));
         QDataStream stream(&buffer);
         stream.setVersion(QDataStream::Qt_5_15);
         stream.setByteOrder(QDataStream::BigEndian);
@@ -387,6 +405,185 @@ void KisGpuOperationDocumentTest::checkedRecoveryRejectsInvalidCountsAndValues()
         QCOMPARE(document.restoreRecovery(payload), Result::InvalidRecovery);
         QCOMPARE(document.snapshot(), original);
     }
+}
+
+void KisGpuOperationDocumentTest::importedPixelsPreserveLayersAndStartWithoutUndo()
+{
+    auto input = rasterImage();
+    OperationDocument document(input);
+    const auto frozen = document.snapshot();
+    QCOMPARE(frozen->size, input.size);
+    QCOMPARE(frozen->layers.size(), 2);
+    QCOMPARE(document.activeLayer(), LayerId(2));
+    QCOMPARE(document.undoCount(), 0);
+    QCOMPARE(document.redoCount(), 0);
+    QVERIFY(!document.isModified());
+    QCOMPARE(frozen->rasterBytes, qsizetype(2 * RgbaTile::ByteCount));
+    QCOMPARE(frozen->layers[0].uuid, input.layers[0].uuid);
+    QCOMPARE(frozen->layers[1].uuid, input.layers[1].uuid);
+    QVERIFY(!frozen->layers[1].visible);
+    QCOMPARE(frozen->layers[1].name, input.layers[1].name);
+    const auto checkpoint = std::get<TileWriteSnapshot>(frozen->layers[1].operations.first());
+    QCOMPARE(checkpoint->tiles.first()->coordinate(), QPoint(1, -1));
+    QCOMPARE(checkpoint->tiles.first()->rgba(), input.layers[1].tiles.first().rgba);
+    input.layers[1].tiles[0].rgba.fill('\0');
+    QCOMPARE(checkpoint->tiles.first()->rgba(), QByteArray::fromHex("0000ff80").repeated(RgbaTile::ByteCount / 4));
+
+    for (int invalid = 0; invalid < 5; ++invalid) {
+        auto image = rasterImage();
+        if (invalid == 0) image.layers.clear();
+        if (invalid == 1) image.activeLayer = 2;
+        if (invalid == 2) image.layers[1].uuid = image.layers[0].uuid;
+        if (invalid == 3) image.layers[0].tiles.append(image.layers[0].tiles.first());
+        if (invalid == 4) image.layers[0].name = QString(QChar(0xd800));
+        QVERIFY_THROWS_EXCEPTION(std::invalid_argument, OperationDocument{image});
+    }
+    QCOMPARE(document.addLayer(QString(QChar(0xd800))), LayerId(0));
+    QCOMPARE(document.snapshot(), frozen);
+    const auto added = document.addLayer(QStringLiteral("New"));
+    QVERIFY(added);
+    QVERIFY(!document.snapshot()->layers.last().uuid.isNull());
+    QVERIFY(document.snapshot()->layers.last().uuid != frozen->layers.first().uuid);
+}
+
+void KisGpuOperationDocumentTest::tileReplacementSharesHistoryAndRejectsWholeRequests()
+{
+    Limits limits;
+    limits.rasterBytes = 3 * RgbaTile::ByteCount;
+    OperationDocument document({512, 64}, limits);
+    const auto layer = document.activeLayer();
+    const RgbaTile red{{0, 0}, QByteArray::fromHex("ff0000ff").repeated(RgbaTile::ByteCount / 4)};
+    QCOMPARE(document.replaceTiles(layer, {red}), Result::Success);
+    QVERIFY(!paint(document, {sample(8, 12)}).isNull());
+    QCOMPARE(document.undo(), Result::Success);
+    const auto original = document.snapshot();
+    QCOMPARE(document.redoCount(), 1);
+    QCOMPARE(document.replaceTiles(layer, {red, red}), Result::InvalidInput);
+    QCOMPARE(document.replaceTiles(layer, {{{0, 0}, QByteArrayLiteral("short")}}), Result::InvalidInput);
+    QCOMPARE(document.replaceTiles(layer, {}), Result::EmptyOperation);
+    QCOMPARE(document.replaceTiles(999, {red}), Result::LayerUnavailable);
+    QCOMPARE(document.replaceTiles(layer, {red, {{1, 0}, red.rgba}, {{2, 0}, red.rgba}}), Result::CapacityExceeded);
+    QCOMPARE(document.snapshot(), original);
+    QCOMPARE(document.redoCount(), 1);
+    const auto stroke = document.beginStroke(layer, Brush{}, 0);
+    QCOMPARE(document.replaceTiles(layer, {red}), Result::EditInProgress);
+    QCOMPARE(document.cancelStroke(stroke), Result::Success);
+    auto blue = red;
+    blue.rgba = QByteArray::fromHex("0000ff80").repeated(RgbaTile::ByteCount / 4);
+    QCOMPARE(document.replaceTiles(layer, {blue}), Result::Success);
+    const auto replaced = document.snapshot();
+    blue.rgba.fill('\0');
+    QCOMPARE(std::get<TileWriteSnapshot>(replaced->layers.first().operations.last())->tiles.first()->rgba(),
+             QByteArray::fromHex("0000ff80").repeated(RgbaTile::ByteCount / 4));
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(document.redoCount(), 0);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), original);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), replaced);
+    document.close();
+    QCOMPARE(document.replaceTiles(layer, {red}), Result::Closed);
+}
+
+void KisGpuOperationDocumentTest::rasterRecoveryPreservesPixelsIdentityAndPendingInput()
+{
+    const auto image = rasterImage();
+    OperationDocument document(image);
+    QCOMPARE(document.selectLayer(1), Result::Success);
+    const RgbaTile green{{0, 0}, QByteArray::fromHex("00ff00ff").repeated(RgbaTile::ByteCount / 4)};
+    QCOMPARE(document.replaceTiles(1, {green}), Result::Success);
+    const auto replaced = document.snapshot();
+    QCOMPARE(document.markSaved(replaced), Result::Success);
+    QVERIFY(!paint(document, {sample(8, 12)}).isNull());
+    QCOMPARE(document.undo(), Result::Success);
+    const auto pending = document.beginStroke(1, Brush{}, 17);
+    QCOMPARE(document.appendSamples(pending, {sample(10, 20)}), Result::Success);
+    const auto bytes = document.recoveryData();
+    QVERIFY(!bytes.isEmpty());
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
+    QCOMPARE(restored.recoveryData(), bytes);
+    QCOMPARE(restored.snapshot()->rasterBytes, replaced->rasterBytes);
+    QCOMPARE(restored.snapshot()->layers[0].uuid, image.layers[0].uuid);
+    QCOMPARE(restored.snapshot()->layers[1].uuid, image.layers[1].uuid);
+    const auto initial = std::get<TileWriteSnapshot>(restored.snapshot()->layers[1].operations.first());
+    QCOMPARE(initial->tiles.first()->rgba(), image.layers[1].tiles.first().rgba);
+    const auto current = std::get<TileWriteSnapshot>(restored.snapshot()->layers[0].operations.last());
+    QCOMPARE(current->tiles.first()->rgba(), green.rgba);
+    QVERIFY(!restored.isModified());
+    QCOMPARE(restored.undoCount(), 1);
+    QCOMPARE(restored.redoCount(), 1);
+    QCOMPARE(restored.cancelStroke(restored.activeOperation()), Result::Success);
+    QCOMPARE(restored.undo(), Result::Success);
+    const auto old = std::get<TileWriteSnapshot>(restored.snapshot()->layers[0].operations.first());
+    QCOMPARE(old->tiles.first()->rgba(), image.layers[0].tiles.first().rgba);
+    QCOMPARE(restored.redo(), Result::Success);
+    QCOMPARE(restored.redo(), Result::Success);
+    QCOMPARE(restored.snapshot()->sampleCount, qsizetype(1));
+    qInfo() << "raster recovery SHA-256:" << QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex();
+}
+
+void KisGpuOperationDocumentTest::damagedRasterRecoveryPreservesTheLiveDocument()
+{
+    OperationDocument source(rasterImage());
+    const auto good = source.recoveryData();
+    const auto originalPayload = good.first(good.size() - 32);
+    QBuffer reader;
+    reader.setData(originalPayload);
+    QVERIFY(reader.open(QIODevice::ReadOnly));
+    QVERIFY(reader.seek(50)); // Format 2's fixed header includes the tile count.
+    QDataStream input(&reader);
+    input.setVersion(QDataStream::Qt_5_15);
+    input.setByteOrder(QDataStream::BigEndian);
+    for (int i = 0; i < 2; ++i) {
+        qint32 x = 0, y = 0;
+        quint32 size = 0;
+        input >> x >> y >> size;
+        QVERIFY(reader.seek(reader.pos() + size));
+    }
+    const auto firstTileReference = reader.pos() + 4 + 25 + 4;
+    OperationDocument live({64, 64});
+    QVERIFY(!paint(live, {sample(3, 4)}).isNull());
+    const auto pending = live.beginStroke(live.activeLayer(), Brush{}, 23);
+    QCOMPARE(live.appendSamples(pending, {sample(10, 12)}), Result::Success);
+    const auto committed = live.snapshot();
+    const auto preview = live.preview();
+    const auto recovery = live.recoveryData();
+    for (int damage = 0; damage < 4; ++damage) {
+        auto payload = originalPayload;
+        QBuffer buffer(&payload);
+        QVERIFY(buffer.open(QIODevice::ReadWrite));
+        QDataStream output(&buffer);
+        output.setVersion(QDataStream::Qt_5_15);
+        output.setByteOrder(QDataStream::BigEndian);
+        if (damage == 0) {
+            QVERIFY(buffer.seek(58));
+            output << quint32(RasterTile::maximumCompressedBytes() + 1);
+        } else if (damage == 1) {
+            payload[62] ^= char(0xff); // Invalid zlib header with a valid outer digest.
+        } else if (damage == 2) {
+            QVERIFY(buffer.seek(firstTileReference));
+            output << quint32(2); // Out-of-range index in the first tile-write operation.
+        } else {
+            const auto uuid = rasterImage().layers[1].uuid.toRfc4122();
+            const auto offset = payload.indexOf(uuid);
+            QVERIFY(offset >= 0);
+            payload.replace(offset, uuid.size(), rasterImage().layers[0].uuid.toRfc4122());
+        }
+        buffer.close();
+        payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
+        QCOMPARE(live.restoreRecovery(payload), Result::InvalidRecovery);
+        QCOMPARE(live.snapshot(), committed);
+        QCOMPARE(live.preview(), preview);
+        QCOMPARE(live.activeOperation(), pending);
+        QCOMPARE(live.recoveryData(), recovery);
+    }
+    Limits limits;
+    limits.rasterBytes = RgbaTile::ByteCount;
+    OperationDocument small({64, 64}, limits);
+    const auto unchanged = small.snapshot();
+    QCOMPARE(small.restoreRecovery(good), Result::CapacityExceeded);
+    QCOMPARE(small.snapshot(), unchanged);
 }
 
 QTEST_GUILESS_MAIN(KisGpuOperationDocumentTest)

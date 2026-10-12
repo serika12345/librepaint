@@ -24,23 +24,7 @@ QList<InputSample> PaintOperation::inputSamples() const
 }
 
 OperationDocument::OperationDocument(QSize size, Limits limits)
-    : m_limits(limits)
-    , m_identity(QUuid::createUuid())
-{
-    if (size.width() <= 0 || size.height() <= 0 ||
-        size.width() > CoordinateLimit || size.height() > CoordinateLimit ||
-        limits.samplesPerStroke <= 0 || limits.samplesPerDocument <= 0 || limits.layerCount <= 0 ||
-        limits.recoveryBytes <= 0 || limits.recoveryBytes > std::numeric_limits<int>::max()) {
-        throw std::invalid_argument("invalid operation document dimensions or limits");
-    }
-    QSharedPointer<DocumentVersion> initial(new DocumentVersion);
-    initial->m_document = m_identity;
-    initial->m_committed = true;
-    initial->size = size;
-    initial->layers.append({1, QStringLiteral("Paint Layer 1"), true, {}});
-    initial->activeLayer = 1;
-    m_history.append(initial);
-}
+    : OperationDocument(RasterImage{size, {{QStringLiteral("Paint Layer 1"), true, {}, {}}}, 0}, limits) {}
 
 Snapshot OperationDocument::snapshot() const { return m_history[m_index]; }
 Snapshot OperationDocument::preview() const { return m_preview ? m_preview : snapshot(); }
@@ -194,14 +178,14 @@ Result OperationDocument::cancelStroke(OperationId id)
 LayerId OperationDocument::addLayer(const QString &name)
 {
     if (checkMutation() != Result::Success || snapshot()->layers.size() >= m_limits.layerCount ||
-        name.size() > LayerNameByteLimit || name.toUtf8().size() > LayerNameByteLimit ||
+        !validLayerName(name) ||
         m_nextLayer == std::numeric_limits<quint64>::max() ||
         m_nextRevision == std::numeric_limits<quint64>::max()) {
         return 0;
     }
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     const LayerId layer = ++m_nextLayer;
-    version->layers.append({layer, name, true, {}});
+    version->layers.append({layer, name, true, {}, QUuid::createUuid()});
     version->activeLayer = layer;
     version->m_revision = ++m_nextRevision;
     commitVersion(version);
