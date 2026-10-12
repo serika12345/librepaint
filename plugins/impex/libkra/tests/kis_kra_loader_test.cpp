@@ -28,6 +28,10 @@
 #include <filestest.h>
 
 #include <testui.h>
+#include <kra/KisKraRasterCodec.h>
+#include <QBuffer>
+#include <QTemporaryDir>
+#include <QColorSpace>
 
 const QString KraMimetype = "application/x-krita";
 
@@ -101,6 +105,84 @@ void KisKraLoaderTest::testObligeSingleChild()
 void KisKraLoaderTest::testObligeSingleChildNonTranspPixel()
 {
     testObligeSingleChildImpl(false);
+}
+
+void KisKraLoaderTest::testDirectRasterCompatibility()
+{
+    namespace Kra = Krita::ImportExport::Kra;
+    for (const auto &name : {QStringLiteral("single_layer_no_channel_flags_transp_def_pixel.kra"),
+                             QStringLiteral("single_layer_no_channel_flags_nontransp_def_pixel.kra")}) {
+        const auto path = QStringLiteral(FILES_DATA_DIR) + QLatin1Char('/') + name;
+        QFile input(path);
+        QVERIFY(input.open(QIODevice::ReadOnly));
+        const auto imported = Kra::RasterCodec::read(input);
+        QVERIFY2(imported.code == Kra::Status::Success, qPrintable(imported.diagnostic));
+        QScopedPointer<KisDocument> existing(KisPart::instance()->createDocument());
+        QVERIFY(existing->loadNativeFormat(path));
+        existing->image()->waitForDone();
+        const auto pixels = existing->image()->root()->firstChild()->paintDevice();
+        QVERIFY(pixels);
+        const auto &layer = imported.document.image.layers.first();
+        for (const auto &tile : layer.tiles) {
+            QByteArray bgra(tile.rgba.size(), Qt::Uninitialized);
+            pixels->readBytes(reinterpret_cast<quint8 *>(bgra.data()), tile.coordinate.x() * 256, tile.coordinate.y() * 256, 256, 256);
+            for (qsizetype i = 0; i < bgra.size(); i += 4) {
+                std::swap(bgra[i], bgra[i + 2]);
+            }
+            QCOMPARE(bgra, tile.rgba);
+        }
+        const auto deviceDefault = pixels->defaultPixel();
+        QCOMPARE(deviceDefault.data()[0], layer.defaultPixel[2]);
+        QCOMPARE(deviceDefault.data()[1], layer.defaultPixel[1]);
+        QCOMPARE(deviceDefault.data()[2], layer.defaultPixel[0]);
+        QCOMPARE(deviceDefault.data()[3], layer.defaultPixel[3]);
+    }
+
+    Kra::Document source;
+    source.image.size = {100, 100};
+    source.image.activeLayer = 1;
+    using Krita::Image::Gpu::RgbaTile;
+    source.image.layers = {
+        {QStringLiteral("Lower"), true, QUuid::createUuid(), {{{-1, 0}, QByteArray::fromHex("120a2700").repeated(RgbaTile::ByteCount / 4)}}},
+        {QStringLiteral("Hidden"), false, QUuid::createUuid(), {{{0, 0}, QByteArray::fromHex("197fafe0").repeated(RgbaTile::ByteCount / 4)}}}
+    };
+    source.image.layers[0].defaultPixel = {17, 23, 31, 0};
+    source.image.layers[1].defaultPixel = {255, 255, 255, 255};
+    QImage projection(source.image.size, QImage::Format_RGBA8888);
+    projection.fill(Qt::transparent);
+    projection.setColorSpace(QColorSpace::SRgb);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("direct.kra"));
+    QFile output(path);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    const auto result = Kra::RasterCodec::write(output, source, projection);
+    QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
+    output.close();
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    QVERIFY(reopened->loadNativeFormat(path));
+    reopened->image()->waitForDone();
+    auto node = reopened->image()->root()->firstChild();
+    for (const auto &layer : source.image.layers) {
+        QVERIFY(node);
+        QCOMPARE(node->name(), layer.name);
+        QCOMPARE(node->visible(), layer.visible);
+        QCOMPARE(node->uuid(), layer.uuid);
+        const auto pixels = node->paintDevice();
+        QVERIFY(pixels);
+        const auto tile = layer.tiles.first();
+        QByteArray raw(tile.rgba.size(), Qt::Uninitialized);
+        pixels->readBytes(reinterpret_cast<quint8 *>(raw.data()), tile.coordinate.x() * 256, tile.coordinate.y() * 256, 256, 256);
+        for (qsizetype i = 0; i < raw.size(); i += 4) std::swap(raw[i], raw[i + 2]);
+        QCOMPARE(raw, tile.rgba);
+        const auto fallback = pixels->defaultPixel();
+        QCOMPARE(fallback.data()[0], layer.defaultPixel[2]);
+        QCOMPARE(fallback.data()[1], layer.defaultPixel[1]);
+        QCOMPARE(fallback.data()[2], layer.defaultPixel[0]);
+        QCOMPARE(fallback.data()[3], layer.defaultPixel[3]);
+        node = node->nextSibling();
+    }
+    QVERIFY(!node);
 }
 
 void KisKraLoaderTest::testLoadAnimated()

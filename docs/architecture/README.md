@@ -626,6 +626,18 @@ SHA-256は`4f5b7f971268c853d893a2c6c25d805cb354eef8c1d6c26fffeaac5dafa4d219`で�
 
 ### ファイル入出力
 
+`libs/impex/kra/KisKraRasterCodec.{h,cpp}`は、固定したRGBA8・sRGBのラスター値とKRA形式を
+直接接続する。`KisKraRgbaTiles.cpp`は64×64のBGRAタイルと256×256のRGBAタイルの変換、
+LZF展開、レイヤー位置の適用を所有する。文書構造、画素、GPU実行はそれぞれの所有者が扱い、
+この形式処理はQtの入出力装置から値を読み書きする。
+
+読込みはZIPの名前・重複・展開量・CRC、XML、色プロファイル、レイヤー識別子とタイルを
+検査してから一つの文書値を返す。レイヤー順、選択と表示、UUID、既定画素、透明画素のRGB、
+キャンバス外の画素、ICC、文書XMLと付属ファイルを保持する。現在の画素条件を超える色空間、
+合成、マスクや階層は、画素の意味を保つため`UnsupportedData`として明示する。
+書出しは同じ固定版のGPU合成画像を受け取り、画素と付属情報を符号化し、容量内のZIPを完成
+させてから空の出力装置へ書く。呼出し側はファイルの原子的置換と保存済み版の更新を所有する。
+
 `KisDocument`は`libs/impex/ui`の`KisImportExportManager`へ処理を委譲します。
 `libs/impex`の`KisImportExportFilterRegistry`が`Krita/FileFilter`プラグインをMIME型で選び、
 管理クラスが`KisImportExportFilter::convert()`を呼びます。

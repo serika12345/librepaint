@@ -475,4 +475,6 @@ if(ANDROID)
     endif()
 endif()
 
+add_subdirectory(kra)
+target_link_libraries(kritaimpex PRIVATE kritaimpexkra)
 add_subdirectory(tests)

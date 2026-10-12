@@ -18,6 +18,7 @@ private Q_SLOTS:
     void testLoading();
     void testObligeSingleChild();
     void testObligeSingleChildNonTranspPixel();
+    void testDirectRasterCompatibility();
 
     void testLoadAnimated();
 

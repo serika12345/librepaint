@@ -194,6 +194,19 @@ Qt Core、Qt Test、zlibで構築し、GPUやウィンドウを必要とする�
 圧縮画素の試験は全RGBA成分、負のタイル座標、固定版の寿命、壊れた圧縮入力、
 展開長の過不足と末尾データの拒否を検査する。
 
+### 固定ラスター値とKRAの互換契約
+
+```sh
+./scripts/run-shared-test-env ./scripts/run-test TestKraRasterCodec
+./scripts/run-shared-test-env ./scripts/run-test kis_kra_loader_test
+```
+
+形式処理の試験は既存KRAと新しい書出しの往復、非表示レイヤー、キャンバス外と透明画素のRGB、
+既定画素、レイヤー位置、UUID、文書XML、ICCと付属ファイルを検査する。
+容量超過、不正な圧縮入力、重複タイル、不正なパスやプロファイルでは完全な文書値の公開を保留する。
+対応する旧読込み試験は、両処理のレイヤー画素を全成分で比較し、新しい出力を旧処理で開いて照合する。
+形式処理の対象はQt Core・Gui・Xml、QuaZip、操作値、LZF展開へ依存し、画面と旧CPU文書の構築を必要としない。
+
 ### GPUタイルの画素契約
 
 MetalまたはVulkanで操作から実際のRGBA8画素を生成し、次の試験で検証する。
