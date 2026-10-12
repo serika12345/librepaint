@@ -25,7 +25,7 @@ struct PresentationOutcome
 
 /**
  * Draws borrowed immutable tiles on their owning GPU thread and queue.
- * The QRhi outlives this owner. record() joins an active frame and clears the
+ * Display resources keep the shared device alive. record() joins an active frame and clears the
  * target before drawing, without submission, completion waits or CPU pixels.
  * The transform maps document coordinates to physical target pixels.
  * Retain the projection through frame submission. Invalid input and resource
@@ -34,7 +34,7 @@ struct PresentationOutcome
 class KRITACANVAS_EXPORT TilePresentation
 {
 public:
-    explicit TilePresentation(QRhi &rhi, qsizetype maximumTiles = 1024);
+    explicit TilePresentation(Image::Gpu::DevicePtr device, qsizetype maximumTiles = 1024);
     ~TilePresentation();
     TilePresentation(const TilePresentation &) = delete;
     TilePresentation &operator=(const TilePresentation &) = delete;

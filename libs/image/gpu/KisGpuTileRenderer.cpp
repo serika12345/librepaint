@@ -111,8 +111,9 @@ struct Job
 };
 }
 
-TileRenderer::Private::Private(QRhi &rhi, qsizetype byteBudget)
-    : rhi(rhi), budget(std::make_shared<Budget>(Budget{byteBudget})),
+TileRenderer::Private::Private(DevicePtr device, qsizetype byteBudget)
+    : device(std::move(device)), rhi(this->device->rhi()),
+      budget(std::make_shared<Budget>(Budget{this->device, byteBudget})),
       zero(own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, TileBytes))),
       layoutParameters(own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::UniformBuffer, sizeof(Parameters)))),
       layout(own(rhi, rhi.newShaderResourceBindings())), pipeline(own(rhi, rhi.newComputePipeline()))
@@ -158,12 +159,12 @@ QList<TileView> RenderedVersion::tiles(LayerId layer) const
     return result;
 }
 
-TileRenderer::TileRenderer(QRhi &rhi, qsizetype byteBudget)
+TileRenderer::TileRenderer(DevicePtr device, qsizetype byteBudget)
 {
-    if (rhi.thread() != QThread::currentThread() || byteBudget < TileBytes) {
+    if (!device || device->rhi().thread() != QThread::currentThread() || byteBudget < TileBytes) {
         throw std::invalid_argument("invalid GPU owner thread or tile budget");
     }
-    m_d = std::make_unique<Private>(rhi, byteBudget);
+    m_d = std::make_unique<Private>(std::move(device), byteBudget);
 }
 TileRenderer::~TileRenderer() = default;
 qsizetype TileRenderer::residentBytes() const { return m_d->budget->used; }

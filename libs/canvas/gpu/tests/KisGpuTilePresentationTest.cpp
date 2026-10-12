@@ -7,7 +7,6 @@
 #include <QTest>
 #include <QTransform>
 #include <rhi/qrhi.h>
-#include <rhi/qrhi_platform.h>
 #include <gpu/KisGpuTilePresentation.h>
 #include <gpu/KisGpuTileRenderer.h>
 #include <limits>
@@ -24,12 +23,11 @@ private Q_SLOTS:
     void clippedTilesKeepTheirIndependentTransforms();
     void rejectedPresentationPreservesTheTarget();
     void projectionCannotCrossDevices();
+    void displayResourcesRetainTheirNativeDevice();
 
 private:
-#if QT_CONFIG(vulkan)
-    QVulkanInstance m_vulkan;
-#endif
-    std::unique_ptr<QRhi> m_rhi;
+    DevicePtr m_device;
+    QRhi *m_rhi = nullptr;
 };
 
 namespace {
@@ -64,16 +62,10 @@ void dot(OperationDocument &document, QPointF point, std::array<quint8, 4> color
 
 void KisGpuTilePresentationTest::initTestCase()
 {
-#if QT_CONFIG(metal)
-    QRhiMetalInitParams params;
-    m_rhi.reset(QRhi::create(QRhi::Metal, &params));
-#elif QT_CONFIG(vulkan)
-    m_vulkan.setExtensions(QRhiVulkanInitParams::preferredInstanceExtensions());
-    QVERIFY(m_vulkan.create());
-    QRhiVulkanInitParams params;
-    params.inst = &m_vulkan;
-    m_rhi.reset(QRhi::create(QRhi::Vulkan, &params));
-#endif
+    QString diagnostic;
+    m_device = Device::createNative(diagnostic);
+    QVERIFY2(m_device, qPrintable(diagnostic));
+    m_rhi = &m_device->rhi();
     QVERIFY(m_rhi);
     qInfo() << "GPU backend:" << m_rhi->backendName();
 }
@@ -99,8 +91,8 @@ void KisGpuTilePresentationTest::panZoomAndTransparencyUseThePaintingQueue()
     std::unique_ptr<QRhiRenderPassDescriptor> pass(target->newCompatibleRenderPassDescriptor());
     target->setRenderPassDescriptor(pass.get());
     QVERIFY(target->create());
-    TileRenderer renderer(*m_rhi);
-    TilePresentation presentation(*m_rhi);
+    TileRenderer renderer(m_device);
+    TilePresentation presentation(m_device);
     QRhiCommandBuffer *commands = nullptr;
     QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
     const auto layers = renderer.record(*commands, document.snapshot());
@@ -139,8 +131,8 @@ void KisGpuTilePresentationTest::clippedTilesKeepTheirIndependentTransforms()
     dot(document, {8, 12}, {255, 0, 0, 255});
     dot(document, {264, 12}, {0, 255, 0, 255});
     dot(document, {8, 30}, {0, 0, 255, 255});
-    TileRenderer renderer(*m_rhi);
-    TilePresentation presentation(*m_rhi);
+    TileRenderer renderer(m_device);
+    TilePresentation presentation(m_device);
     Surface surface(*m_rhi, {512, 64});
     QVERIFY(surface.ready);
     QRhiCommandBuffer *commands = nullptr;
@@ -167,7 +159,7 @@ void KisGpuTilePresentationTest::clippedTilesKeepTheirIndependentTransforms()
 
     Surface rotated(*m_rhi, {64, 64});
     QVERIFY(rotated.ready);
-    TilePresentation oneVisibleTile(*m_rhi, 1);
+    TilePresentation oneVisibleTile(m_device, 1);
     QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
     const auto rotatedDraw = oneVisibleTile.record(*commands, projection.version, *rotated.target,
         QTransform(0, 1, -1, 0, 64, 0), Qt::transparent);
@@ -186,8 +178,8 @@ void KisGpuTilePresentationTest::rejectedPresentationPreservesTheTarget()
     OperationDocument document({512, 64});
     dot(document, {8, 12}, {255, 0, 0, 255});
     dot(document, {264, 12}, {0, 255, 0, 255});
-    TileRenderer renderer(*m_rhi);
-    TilePresentation presentation(*m_rhi, 1);
+    TileRenderer renderer(m_device);
+    TilePresentation presentation(m_device, 1);
     Surface surface(*m_rhi, {512, 64});
     QVERIFY(surface.ready);
     QRhiCommandBuffer *commands = nullptr;
@@ -215,7 +207,7 @@ void KisGpuTilePresentationTest::projectionCannotCrossDevices()
 {
     OperationDocument document({64, 64});
     dot(document, {8, 12}, {255, 0, 0, 255});
-    TileRenderer renderer(*m_rhi);
+    TileRenderer renderer(m_device);
     QRhiCommandBuffer *commands = nullptr;
     QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
     const auto layers = renderer.record(*commands, document.snapshot());
@@ -223,31 +215,38 @@ void KisGpuTilePresentationTest::projectionCannotCrossDevices()
     const auto projection = renderer.compose(*commands, layers.version, {0, 0, 64, 64});
     QCOMPARE(projection.code, RenderOutcome::Recorded);
     QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
-    std::unique_ptr<QRhi> other;
-#if QT_CONFIG(metal)
-    QRhiMetalInitParams params;
-    other.reset(QRhi::create(QRhi::Metal, &params));
-#elif QT_CONFIG(vulkan)
-    QRhiVulkanInitParams params;
-    params.inst = &m_vulkan;
-    other.reset(QRhi::create(QRhi::Vulkan, &params));
-#endif
-    QVERIFY(other);
-    TilePresentation presentation(*other);
-    Surface surface(*other, {64, 64});
+    QString diagnostic;
+    const auto other = Device::createNative(diagnostic);
+    QVERIFY2(other, qPrintable(diagnostic));
+    QRhi &otherRhi = other->rhi();
+    TilePresentation presentation(other);
+    Surface surface(otherRhi, {64, 64});
     QVERIFY(surface.ready);
-    QCOMPARE(other->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
+    QCOMPARE(otherRhi.beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
     commands->beginPass(surface.target.get(), Qt::white, {1, 0});
     commands->endPass();
     const auto drawn = presentation.record(*commands, projection.version, *surface.target, {}, Qt::transparent);
     QVERIFY(!drawn.recorded);
     QVERIFY(!drawn.diagnostic.isEmpty());
     QRhiReadbackResult readback;
-    auto updates = other->nextResourceUpdateBatch();
+    auto updates = otherRhi.nextResourceUpdateBatch();
     updates->readBackTexture({surface.texture.get()}, &readback);
     commands->resourceUpdate(updates);
-    QCOMPARE(other->endOffscreenFrame(), QRhi::FrameOpSuccess);
+    QCOMPARE(otherRhi.endOffscreenFrame(), QRhi::FrameOpSuccess);
     QCOMPARE(readback.data, QByteArray::fromHex("ffffffff").repeated(64 * 64));
+}
+
+void KisGpuTilePresentationTest::displayResourcesRetainTheirNativeDevice()
+{
+    QString diagnostic;
+    auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    std::weak_ptr<Device> lifetime = device;
+    auto presentation = std::make_unique<TilePresentation>(device);
+    device.reset();
+    QVERIFY(!lifetime.expired());
+    presentation.reset();
+    QVERIFY(lifetime.expired());
 }
 
 int main(int argc, char **argv)

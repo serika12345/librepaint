@@ -7,6 +7,7 @@
 #define KIS_GPU_TILE_RENDERER_H
 
 #include "KisGpuOperationDocument.h"
+#include "KisGpuDevice.h"
 #include <QRect>
 #include <memory>
 
@@ -71,9 +72,9 @@ struct ProjectionOutcome
 };
 
 /**
- * Generates sparse layer pixels from retained operations on a borrowed QRhi.
- * The QRhi and this owner share one thread. Release versions on that thread
- * before destroying the QRhi. A version can outlive this renderer.
+ * Generates sparse layer pixels from retained operations on a shared device.
+ * The device, renderer and versions share one thread. A version can outlive
+ * this renderer and keeps the device alive through its own last reader.
  *
  * record() joins the caller's active frame; it submits no commands, reads no
  * pixels and waits for no completion. Readers and presentation use that same
@@ -87,7 +88,7 @@ public:
     static constexpr int TileSize = 256;
     static constexpr int TileBytes = TileSize * TileSize * 4;
 
-    explicit TileRenderer(QRhi &rhi, qsizetype byteBudget = 128 * 1024 * 1024);
+    explicit TileRenderer(DevicePtr device, qsizetype byteBudget = 128 * 1024 * 1024);
     ~TileRenderer();
     TileRenderer(const TileRenderer &) = delete;
     TileRenderer &operator=(const TileRenderer &) = delete;

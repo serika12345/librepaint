@@ -6,9 +6,10 @@
 #include <QGuiApplication>
 #include <QTest>
 #include <QCryptographicHash>
+#include <QThread>
 #include <rhi/qrhi.h>
-#include <rhi/qrhi_platform.h>
 #include <gpu/KisGpuTileRenderer.h>
+#include <gpu/KisGpuDevice.h>
 
 using namespace Krita::Image::Gpu;
 
@@ -28,6 +29,8 @@ private Q_SLOTS:
     void compositionPreservesOrderAlphaAndExistingVersionsAtCapacity();
     void paintingAndCompositionShareOneSubmission();
     void longDocumentRebuildUsesBoundedTileStorage();
+    void retainedPixelsOwnTheNativeDeviceUntilTheirLastReader();
+    void nativeDeviceCreationRequiresTheApplicationThread();
 
 private:
     RenderedSnapshot render(TileRenderer &renderer, const Snapshot &snapshot,
@@ -36,24 +39,16 @@ private:
     QByteArray readBuffer(QRhiBuffer *pixels);
     ProjectedSnapshot project(TileRenderer &renderer, const RenderedSnapshot &version,
                               QRect visible, const ProjectedSnapshot &base = {});
-#if QT_CONFIG(vulkan)
-    QVulkanInstance m_vulkan;
-#endif
-    std::unique_ptr<QRhi> m_rhi;
+    DevicePtr m_device;
+    QRhi *m_rhi = nullptr;
 };
 
 void KisGpuTileRendererTest::initTestCase()
 {
-#if QT_CONFIG(metal)
-    QRhiMetalInitParams params;
-    m_rhi.reset(QRhi::create(QRhi::Metal, &params));
-#elif QT_CONFIG(vulkan)
-    m_vulkan.setExtensions(QRhiVulkanInitParams::preferredInstanceExtensions());
-    QVERIFY(m_vulkan.create());
-    QRhiVulkanInitParams params;
-    params.inst = &m_vulkan;
-    m_rhi.reset(QRhi::create(QRhi::Vulkan, &params));
-#endif
+    QString diagnostic;
+    m_device = Device::createNative(diagnostic);
+    QVERIFY2(m_device, qPrintable(diagnostic));
+    m_rhi = &m_device->rhi();
     QVERIFY2(m_rhi != nullptr, "The native Metal/Vulkan device is required by this contract");
     QVERIFY(m_rhi->isFeatureSupported(QRhi::Compute));
     qInfo() << "GPU backend:" << m_rhi->backendName();
@@ -111,7 +106,7 @@ void KisGpuTileRendererTest::roundBrushProducesRgbaPixelsOnTheGpu()
     brush.diameter = 16;
     const auto stroke = document.beginStroke(document.activeLayer(), brush, 0);
     QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
-    TileRenderer renderer(*m_rhi);
+    TileRenderer renderer(m_device);
     const auto preview = render(renderer, document.preview());
     QVERIFY(preview);
     const auto bytes = readTile(preview, document.activeLayer(), {0, 0});
@@ -137,7 +132,7 @@ void KisGpuTileRendererTest::inputPartitionsAndPreviewProduceTheSamePixels()
     const auto b = chunks.beginStroke(chunks.activeLayer(), brush, 123);
     QCOMPARE(single.appendSamples(a, samples), Result::Success);
     for (const auto &sample : samples) QCOMPARE(chunks.appendSamples(b, {sample}), Result::Success);
-    TileRenderer renderer(*m_rhi);
+    TileRenderer renderer(m_device);
     const auto left = render(renderer, single.preview());
     const auto right = render(renderer, chunks.preview());
     QVERIFY(left && right);
@@ -152,7 +147,7 @@ void KisGpuTileRendererTest::inputPartitionsAndPreviewProduceTheSamePixels()
 void KisGpuTileRendererTest::unchangedTilesAreSharedAndBudgetsRejectAtomically()
 {
     OperationDocument document({1024, 1024});
-    TileRenderer renderer(*m_rhi, 2 * TileRenderer::TileBytes);
+    TileRenderer renderer(m_device, 2 * TileRenderer::TileBytes);
     const auto stroke = document.beginStroke(document.activeLayer(), Brush{}, 0);
     QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
     QCOMPARE(document.commitStroke(stroke), Result::Success);
@@ -181,7 +176,7 @@ void KisGpuTileRendererTest::erasingAndLayerVisibilityPreservePixelMeaning()
     auto stroke = document.beginStroke(document.activeLayer(), brush, 0);
     QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
     QCOMPARE(document.commitStroke(stroke), Result::Success);
-    TileRenderer renderer(*m_rhi);
+    TileRenderer renderer(m_device);
     const auto painted = render(renderer, document.snapshot());
     QVERIFY(painted);
     brush.erase = true;
@@ -206,7 +201,7 @@ void KisGpuTileRendererTest::longDiagonalUsesOnlyIntersectingTiles()
     brush.diameter = 4;
     const auto stroke = document.beginStroke(document.activeLayer(), brush, 0);
     QCOMPARE(document.appendSamples(stroke, {{{4, 4}, 1}, {{4092, 4092}, 1}}), Result::Success);
-    TileRenderer renderer(*m_rhi, 64 * TileRenderer::TileBytes);
+    TileRenderer renderer(m_device, 64 * TileRenderer::TileBytes);
     const auto version = render(renderer, document.preview());
     QVERIFY2(version, "A sparse diagonal must fit without allocating its bounding rectangle");
     QVERIFY(version->tiles(document.activeLayer()).size() <= 64);
@@ -221,7 +216,7 @@ void KisGpuTileRendererTest::shapesUndoAndRecoveryRestoreTheSamePixels()
     brush.diameter = 13.75;
     const auto stroke = document.beginStroke(document.activeLayer(), brush, 7);
     QCOMPARE(document.appendSamples(stroke, {{{10, 20}, 0.75}, {{180, 140}, 0.5}}), Result::Success);
-    TileRenderer renderer(*m_rhi);
+    TileRenderer renderer(m_device);
     const auto freehand = render(renderer, document.preview());
     QVERIFY(freehand);
     QCOMPARE(document.updateShape(stroke, {ShapeKind::Line, {60, 80}, {200, 140}, 0}), Result::Success);
@@ -260,12 +255,12 @@ void KisGpuTileRendererTest::versionsOutliveTheRendererAndRejectAnotherDeviceOwn
     QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
     RenderedSnapshot retained;
     {
-        TileRenderer owner(*m_rhi);
+        TileRenderer owner(m_device);
         retained = render(owner, document.preview());
         QVERIFY(retained);
     }
     QCOMPARE(readTile(retained, document.activeLayer(), {0, 0}).size(), TileRenderer::TileBytes);
-    TileRenderer replacement(*m_rhi);
+    TileRenderer replacement(m_device);
     QRhiCommandBuffer *commands = nullptr;
     QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
     QCOMPARE(replacement.record(*commands, document.preview(), retained).code, RenderOutcome::InvalidVersion);
@@ -287,7 +282,7 @@ void KisGpuTileRendererTest::visibleLayersComposeOnTheGpuAndReuseUnchangedTiles(
     stroke = document.beginStroke(top, brush, 0);
     QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
     QCOMPARE(document.commitStroke(stroke), Result::Success);
-    TileRenderer renderer(*m_rhi);
+    TileRenderer renderer(m_device);
     const auto layers = render(renderer, document.snapshot());
     QVERIFY(layers);
     const auto composed = project(renderer, layers, {0, 0, 256, 256});
@@ -327,7 +322,7 @@ void KisGpuTileRendererTest::compositionPreservesOrderAlphaAndExistingVersionsAt
         QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
         QCOMPARE(document.commitStroke(stroke), Result::Success);
     }
-    TileRenderer renderer(*m_rhi, 6 * TileRenderer::TileBytes);
+    TileRenderer renderer(m_device, 6 * TileRenderer::TileBytes);
     const auto layers = render(renderer, document.snapshot());
     QVERIFY(layers);
     auto composed = project(renderer, layers, {0, 0, 64, 64});
@@ -358,7 +353,7 @@ void KisGpuTileRendererTest::paintingAndCompositionShareOneSubmission()
         QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
         QCOMPARE(document.commitStroke(stroke), Result::Success);
     }
-    TileRenderer renderer(*m_rhi);
+    TileRenderer renderer(m_device);
     QRhiCommandBuffer *commands = nullptr;
     QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
     const auto layers = renderer.record(*commands, document.snapshot());
@@ -387,7 +382,7 @@ void KisGpuTileRendererTest::longDocumentRebuildUsesBoundedTileStorage()
         if (i == 0) initial = document.snapshot();
     }
     QCOMPARE(document.undoCount(), OperationDocument::HistoryLimit);
-    TileRenderer reference(*m_rhi);
+    TileRenderer reference(m_device);
     const auto first = render(reference, initial);
     QVERIFY(first);
     const auto firstPixels = readTile(first, document.activeLayer(), {0, 0});
@@ -400,11 +395,64 @@ void KisGpuTileRendererTest::longDocumentRebuildUsesBoundedTileStorage()
         QByteArray("9ddc5af102159e58474239292756c24b2ec8a1813a88d33181b19b2dab66bdf7"));
     OperationDocument restored({1, 1});
     QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
-    TileRenderer bounded(*m_rhi, 2 * TileRenderer::TileBytes);
+    TileRenderer bounded(m_device, 2 * TileRenderer::TileBytes);
     const auto rebuilt = render(bounded, restored.snapshot());
     QVERIFY2(rebuilt, "A retained 250-operation document must rebuild with two writable tiles per coordinate");
     QCOMPARE(readTile(rebuilt, restored.activeLayer(), {0, 0}), pixels);
     QCOMPARE(bounded.residentBytes(), TileRenderer::TileBytes);
+}
+
+void KisGpuTileRendererTest::retainedPixelsOwnTheNativeDeviceUntilTheirLastReader()
+{
+    QString diagnostic;
+    auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    std::weak_ptr<Device> lifetime = device;
+    RenderedSnapshot retained;
+    ProjectedSnapshot projected;
+    OperationDocument document({64, 64});
+    const auto stroke = document.beginStroke(document.activeLayer(), Brush{}, 0);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+    {
+        TileRenderer renderer(device);
+        QRhiCommandBuffer *commands = nullptr;
+        QCOMPARE(device->rhi().beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
+        const auto result = renderer.record(*commands, document.preview());
+        QCOMPARE(result.code, RenderOutcome::Recorded);
+        retained = result.version;
+        const auto merged = renderer.compose(*commands, retained, {0, 0, 64, 64});
+        QCOMPARE(merged.code, RenderOutcome::Recorded);
+        projected = merged.version;
+        QCOMPARE(device->rhi().endOffscreenFrame(), QRhi::FrameOpSuccess);
+    }
+    device.reset();
+    QVERIFY(!lifetime.expired());
+    retained.clear();
+    QVERIFY(!lifetime.expired());
+    {
+        const auto reader = lifetime.lock();
+        QRhiCommandBuffer *commands = nullptr;
+        QCOMPARE(reader->rhi().beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
+        QRhiReadbackResult pixels;
+        auto updates = reader->rhi().nextResourceUpdateBatch();
+        updates->readBackBuffer(projected->tiles().first().pixels, 0, TileRenderer::TileBytes, &pixels);
+        commands->resourceUpdate(updates);
+        QCOMPARE(reader->rhi().endOffscreenFrame(), QRhi::FrameOpSuccess);
+        QCOMPARE(pixels.data.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("000000ff"));
+    }
+    projected.clear();
+    QVERIFY(lifetime.expired());
+}
+
+void KisGpuTileRendererTest::nativeDeviceCreationRequiresTheApplicationThread()
+{
+    DevicePtr device;
+    QString diagnostic;
+    std::unique_ptr<QThread> worker(QThread::create([&] { device = Device::createNative(diagnostic); }));
+    worker->start();
+    QVERIFY(worker->wait(2000));
+    QVERIFY(!device);
+    QVERIFY(!diagnostic.isEmpty());
 }
 
 int main(int argc, char **argv)

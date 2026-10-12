@@ -11,7 +11,7 @@
 #include <rhi/qrhi.h>
 
 namespace Krita::Image::Gpu::Detail {
-struct Budget { qsizetype limit = 0; qsizetype used = 0; };
+struct Budget { DevicePtr device; qsizetype limit = 0; qsizetype used = 0; };
 
 template<class T> struct ResourceDeleter
 {
@@ -28,10 +28,10 @@ template<class T> Resource<T> own(QRhi &rhi, T *resource) { return {resource, {&
 
 struct Tile
 {
-    Resource<QRhiBuffer> pixels;
     std::shared_ptr<Budget> budget;
+    Resource<QRhiBuffer> pixels;
     Tile(Resource<QRhiBuffer> pixels, std::shared_ptr<Budget> budget)
-        : pixels(std::move(pixels)), budget(std::move(budget))
+        : budget(std::move(budget)), pixels(std::move(pixels))
     { this->budget->used += TileRenderer::TileBytes; }
     ~Tile() { budget->used -= TileRenderer::TileBytes; }
 };
@@ -58,6 +58,7 @@ struct ProjectedVersion::Data
 
 struct TileRenderer::Private
 {
+    DevicePtr device;
     QRhi &rhi;
     std::shared_ptr<Detail::Budget> budget;
     Detail::Resource<QRhiBuffer> zero;
@@ -69,7 +70,7 @@ struct TileRenderer::Private
     bool zeroUploaded = false;
     QString error;
 
-    Private(QRhi &rhi, qsizetype byteBudget);
+    Private(DevicePtr device, qsizetype byteBudget);
     void initializeProjection();
     std::shared_ptr<Detail::Tile> allocateTile();
 };

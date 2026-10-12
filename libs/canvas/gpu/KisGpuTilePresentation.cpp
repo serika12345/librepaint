@@ -45,6 +45,7 @@ struct Draw
 
 struct TilePresentation::Private
 {
+    Image::Gpu::DevicePtr device;
     QRhi &rhi;
     qsizetype maximumTiles;
     Resource<QRhiBuffer> layoutUniform, layoutPixels;
@@ -54,8 +55,8 @@ struct TilePresentation::Private
     QShader vertex, fragment;
     QString error;
 
-    Private(QRhi &rhi, qsizetype maximumTiles)
-        : rhi(rhi), maximumTiles(maximumTiles),
+    Private(Image::Gpu::DevicePtr device, qsizetype maximumTiles)
+        : device(std::move(device)), rhi(this->device->rhi()), maximumTiles(maximumTiles),
           layoutUniform(own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::UniformBuffer, sizeof(Uniforms)))),
           layoutPixels(own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, sizeof(quint32)))),
           layout(own(rhi, rhi.newShaderResourceBindings())),
@@ -94,12 +95,12 @@ struct TilePresentation::Private
     }
 };
 
-TilePresentation::TilePresentation(QRhi &rhi, qsizetype maximumTiles)
+TilePresentation::TilePresentation(Image::Gpu::DevicePtr device, qsizetype maximumTiles)
 {
-    if (rhi.thread() != QThread::currentThread() || maximumTiles <= 0) {
+    if (!device || device->rhi().thread() != QThread::currentThread() || maximumTiles <= 0) {
         throw std::invalid_argument("invalid GPU presentation owner or tile limit");
     }
-    m_d = std::make_unique<Private>(rhi, maximumTiles);
+    m_d = std::make_unique<Private>(std::move(device), maximumTiles);
 }
 TilePresentation::~TilePresentation() = default;
 
