@@ -27,6 +27,7 @@ private Q_SLOTS:
     void visibleLayersComposeOnTheGpuAndReuseUnchangedTiles();
     void compositionPreservesOrderAlphaAndExistingVersionsAtCapacity();
     void paintingAndCompositionShareOneSubmission();
+    void longDocumentRebuildUsesBoundedTileStorage();
 
 private:
     RenderedSnapshot render(TileRenderer &renderer, const Snapshot &snapshot,
@@ -370,6 +371,40 @@ void KisGpuTileRendererTest::paintingAndCompositionShareOneSubmission()
     commands->resourceUpdate(updates);
     QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
     QCOMPARE(readback.data.mid((32 * TileRenderer::TileSize + 32) * 4, 4), QByteArray::fromHex("5500aac0"));
+}
+
+void KisGpuTileRendererTest::longDocumentRebuildUsesBoundedTileStorage()
+{
+    OperationDocument document({64, 64});
+    Brush brush;
+    brush.diameter = 8;
+    brush.rgba = {71, 139, 211, 128};
+    Snapshot initial;
+    for (int i = 0; i < OperationDocument::HistoryLimit; ++i) {
+        const auto stroke = document.beginStroke(document.activeLayer(), brush, i);
+        QCOMPARE(document.appendSamples(stroke, {{{qreal(8 + i % 48), 32}, 1}}), Result::Success);
+        QCOMPARE(document.commitStroke(stroke), Result::Success);
+        if (i == 0) initial = document.snapshot();
+    }
+    QCOMPARE(document.undoCount(), OperationDocument::HistoryLimit);
+    TileRenderer reference(*m_rhi);
+    const auto first = render(reference, initial);
+    QVERIFY(first);
+    const auto firstPixels = readTile(first, document.activeLayer(), {0, 0});
+    const auto expected = render(reference, document.snapshot(), first);
+    QVERIFY(expected);
+    QCOMPARE(readTile(first, document.activeLayer(), {0, 0}), firstPixels);
+    const auto pixels = readTile(expected, document.activeLayer(), {0, 0});
+    // Algorithm 1: retained image contract for the fixed 250-stroke sequence.
+    QCOMPARE(QCryptographicHash::hash(pixels, QCryptographicHash::Sha256).toHex(),
+        QByteArray("9ddc5af102159e58474239292756c24b2ec8a1813a88d33181b19b2dab66bdf7"));
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    TileRenderer bounded(*m_rhi, 2 * TileRenderer::TileBytes);
+    const auto rebuilt = render(bounded, restored.snapshot());
+    QVERIFY2(rebuilt, "A retained 250-operation document must rebuild with two writable tiles per coordinate");
+    QCOMPARE(readTile(rebuilt, restored.activeLayer(), {0, 0}), pixels);
+    QCOMPARE(bounded.residentBytes(), TileRenderer::TileBytes);
 }
 
 int main(int argc, char **argv)

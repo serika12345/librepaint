@@ -11,6 +11,7 @@
 #include <QThread>
 #include <rhi/qrhi.h>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
@@ -197,6 +198,7 @@ RenderOutcome TileRenderer::record(QRhiCommandBuffer &commands, const Snapshot &
             }
         }
         auto &tiles = data->layers[layer.id];
+        QMap<quint64, std::array<std::shared_ptr<Tile>, 2>> writable;
         for (qsizetype op = prefix; op < layer.operations.size(); ++op) {
             const auto &operation = *layer.operations[op];
             const auto diameter = quint32(std::max<qint64>(1, std::llround(operation.brush.diameter * 16)));
@@ -227,13 +229,19 @@ RenderOutcome TileRenderer::record(QRhiCommandBuffer &commands, const Snapshot &
                     const int rowRight = std::min(right, int(std::ceil(std::max(a, b) + radius + 1)));
                     for (int x = rowLeft / TileSize; x <= rowRight / TileSize; ++x) {
                         affected[key(x, y)].append(segment);
-                        if (affected.size() > (d.budget->limit - d.budget->used) / TileBytes) {
+                        if (affected.size() > d.budget->limit / TileBytes) {
                             return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU tile budget exhausted")};
                         }
                     }
                 }
             }
-            if (affected.size() > (d.budget->limit - d.budget->used) / TileBytes) {
+            qsizetype required = 0;
+            for (auto tile = affected.cbegin(); tile != affected.cend(); ++tile) {
+                const auto pool = writable.value(tile.key());
+                const int next = pool[0] && tiles.value(tile.key()) == pool[0] ? 1 : 0;
+                if (!pool[next]) ++required;
+            }
+            if (required > (d.budget->limit - d.budget->used) / TileBytes) {
                 return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU tile budget exhausted")};
             }
             for (auto tile = affected.cbegin(); tile != affected.cend(); ++tile) {
@@ -243,7 +251,10 @@ RenderOutcome TileRenderer::record(QRhiCommandBuffer &commands, const Snapshot &
                 }
                 Job job;
                 job.input = tiles.value(tile.key());
-                job.output = d.allocateTile();
+                auto &pool = writable[tile.key()];
+                auto &output = pool[pool[0] && job.input == pool[0] ? 1 : 0];
+                if (!output) output = d.allocateTile();
+                job.output = output;
                 job.samples = own(d.rhi, d.rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, quint32(bytes)));
                 job.parameters = own(d.rhi, d.rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::UniformBuffer, sizeof(Parameters)));
                 job.bindings = own(d.rhi, d.rhi.newShaderResourceBindings());
