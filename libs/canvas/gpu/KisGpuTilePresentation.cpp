@@ -4,30 +4,20 @@
  */
 
 #include "KisGpuTilePresentation.h"
+#include "KisGpuPresentationResources_p.h"
+#include "KisGpuViewTransform_p.h"
 #include <QFile>
 #include <QMatrix4x4>
 #include <QThread>
 #include <rhi/qrhi.h>
 #include <algorithm>
-#include <cmath>
 #include <stdexcept>
 #include <vector>
 
 namespace Krita::Canvas::Gpu {
+using Detail::Resource;
+using Detail::own;
 namespace {
-template<class T> struct ResourceDeleter
-{
-    QRhi *rhi;
-    void operator()(T *value) const
-    {
-        if (!value) return;
-        if (rhi->isRecordingFrame()) value->deleteLater();
-        else delete value;
-    }
-};
-template<class T> using Resource = std::unique_ptr<T, ResourceDeleter<T>>;
-template<class T> Resource<T> own(QRhi &rhi, T *value) { return {value, {&rhi}}; }
-
 QShader shader(const QString &path)
 {
     QFile file(path);
@@ -112,13 +102,8 @@ PresentationOutcome TilePresentation::record(QRhiCommandBuffer &commands,
     if (d.rhi.thread() != QThread::currentThread() || !d.rhi.isRecordingFrame() ||
         commands.rhi() != &d.rhi || target.rhi() != &d.rhi || !projection ||
         !target.renderPassDescriptor() || target.pixelSize().isEmpty() ||
-        !transform.isAffine() || !transform.isInvertible() || !clearColor.isValid()) {
+        !Detail::validDocumentTransform(transform) || !clearColor.isValid()) {
         return {false, QStringLiteral("Presentation requires an owning GPU frame and an invertible affine transform"), 0};
-    }
-    for (const double value : {transform.m11(), transform.m12(), transform.m21(), transform.m22(), transform.dx(), transform.dy()}) {
-        if (!std::isfinite(value) || std::abs(value) > 8388608) {
-            return {false, QStringLiteral("Presentation transform is outside the supported finite range"), 0};
-        }
     }
     if (!d.error.isEmpty() || d.rhi.isDeviceLost()) return {false, d.error.isEmpty() ? QStringLiteral("GPU device lost") : d.error, 0};
 

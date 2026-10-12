@@ -188,6 +188,7 @@ MetalまたはVulkanで操作から実際のRGBA8画素を生成し、次の試�
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTileRendererTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuExecutionTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTilePresentationTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuCanvasWindowTest
 ```
 
 試験は円形ブラシ、筆圧、消去、入力分割、直線・楕円の変更、取消し、Undo／Redo、
@@ -204,6 +205,10 @@ MetalまたはVulkanで操作から実際のRGBA8画素を生成し、次の試�
 取消し・文書終了による旧要求の無効化、文書間の共有容量と再試行、デバイス交換後の再生成を検査する。
 実ウィンドウへの送信にはmacOSのCocoa、LinuxのX11画面プラグインを試験ごとに指定する。
 未作成の表示面と別GPUの表示面はネイティブ送信前に拒否する。
+表示ウィンドウ試験は、連続更新の集約、パン・ズームとサイズ変更後の可視領域、
+文書終了後の遅延更新、表示中と非表示のウィンドウのデバイス交換を検査する。
+容量不足時は操作と公開版を維持し、識別子を伴う失敗通知と次の要求での再試行を検査する。
+進行中のフレームは表示面の再作成を拒否し、ネイティブウィンドウの破棄までデバイスを保持する。
 固定した入力とブラシ設定の照合値は試験ソースが所有し、MetalとVulkanで同じ値を要求する。
 Linuxの実行にはVulkanに対応するQt画面プラグインを使う。画面を持たない検証は
 独立したXvfbのX11画面を用意して`QT_QPA_PLATFORM=xcb`で実行する。
