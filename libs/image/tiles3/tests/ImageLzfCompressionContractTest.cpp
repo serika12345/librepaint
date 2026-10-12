@@ -94,6 +94,10 @@ private Q_SLOTS:
     void abstractInterfaceDispatchesAndUsesDefaultAdjustment();
     void colorLinearizationRoundTripsComponentPlanes();
     void lzfCompressionIsDeterministicBoundedAndReversible();
+    void malformedLzfStreamsAreRejected_data();
+    void malformedLzfStreamsAreRejected();
+    void literalAndOverlappingReferencesPreserveFormat();
+    void invalidBufferArgumentsAreRejected();
 };
 
 void ImageLzfCompressionContractTest::abstractInterfaceDispatchesAndUsesDefaultAdjustment()
@@ -191,6 +195,73 @@ void ImageLzfCompressionContractTest::lzfCompressionIsDeterministicBoundedAndRev
     }
 
     QVERIFY(destroyed);
+}
+
+void ImageLzfCompressionContractTest::malformedLzfStreamsAreRejected_data()
+{
+    QTest::addColumn<QByteArray>("input");
+    QTest::addColumn<int>("capacity");
+    QTest::newRow("empty") << QByteArray() << 64;
+    QTest::newRow("trailing-literal-control") << QByteArray::fromHex("006100") << 64;
+    QTest::newRow("truncated-literals") << QByteArray::fromHex("036162") << 64;
+    QTest::newRow("maximum-truncated-literals") << QByteArray::fromHex("1f61") << 64;
+    QTest::newRow("missing-reference-offset") << QByteArray::fromHex("006120") << 64;
+    QTest::newRow("missing-extended-length") << QByteArray::fromHex("0061e0") << 64;
+    QTest::newRow("missing-extended-offset") << QByteArray::fromHex("0061e000") << 64;
+    QTest::newRow("reference-before-output") << QByteArray::fromHex("2000") << 64;
+    QTest::newRow("literal-overflow") << QByteArray::fromHex("02616263") << 2;
+    QTest::newRow("reference-overflow") << QByteArray::fromHex("00612000") << 3;
+    QTest::newRow("extended-reference-overflow") << QByteArray::fromHex("0061e0ff00") << 64;
+}
+
+void ImageLzfCompressionContractTest::malformedLzfStreamsAreRejected()
+{
+    // Consumer: KRA import and tile storage decoding untrusted compressed pixels.
+    // A malformed or overflowing stream returns zero; callers discard its output.
+    QFETCH(QByteArray, input);
+    QFETCH(int, capacity);
+    KisLzfCompression compression;
+    QByteArray output(capacity + 16, char(0x5a));
+    QCOMPARE(compression.decompress(bytes(input), input.size(), bytes(output), capacity), 0);
+    QCOMPARE(output.mid(capacity), QByteArray(16, char(0x5a)));
+}
+
+void ImageLzfCompressionContractTest::literalAndOverlappingReferencesPreserveFormat()
+{
+    KisLzfCompression compression;
+    QList<QPair<QByteArray, QByteArray>> cases{
+        {QByteArray::fromHex("02616263"), QByteArrayLiteral("abc")},
+        {QByteArray::fromHex("00612000"), QByteArray(4, 'a')},
+        {QByteArray::fromHex("0061e0ff00"), QByteArray(265, 'a')}
+    };
+    QByteArray initial;
+    for (int i = 0; i < 8192; ++i) initial.append(char(i % 251));
+    QByteArray encoded;
+    for (int i = 0; i < initial.size(); i += 32) {
+        encoded.append(char(31));
+        encoded.append(initial.mid(i, 32));
+    }
+    encoded.append(QByteArray::fromHex("3fff")); // Three bytes at LZF's maximum distance, 8192.
+    cases.append({encoded, initial + initial.first(3)});
+    for (const auto &sample : cases) {
+        QByteArray output(sample.second.size(), Qt::Uninitialized);
+        QCOMPARE(compression.decompress(bytes(sample.first), sample.first.size(), bytes(output), output.size()),
+                 sample.second.size());
+        QCOMPARE(output, sample.second);
+    }
+}
+
+void ImageLzfCompressionContractTest::invalidBufferArgumentsAreRejected()
+{
+    KisLzfCompression compression;
+    const auto input = QByteArray::fromHex("0061");
+    QByteArray output(16, char(0x5a));
+    QCOMPARE(compression.decompress(nullptr, 2, bytes(output), output.size()), 0);
+    QCOMPARE(compression.decompress(bytes(input), 2, nullptr, 16), 0);
+    QCOMPARE(compression.decompress(bytes(input), -1, bytes(output), output.size()), 0);
+    QCOMPARE(compression.decompress(bytes(input), 2, bytes(output), 0), 0);
+    QCOMPARE(compression.decompress(bytes(input), 2, bytes(output), -1), 0);
+    QCOMPARE(output, QByteArray(16, char(0x5a)));
 }
 
 QTEST_GUILESS_MAIN(ImageLzfCompressionContractTest)

@@ -7,6 +7,7 @@
 
 #include "kis_lzf_compression.h"
 #include <QtGlobal>
+#include <cstring>
 
 
 #define HASH_LOG  12
@@ -172,67 +173,34 @@ int lzff_compress(const void* input, int length, void* output, int /*maxout*/)
 
 int lzff_decompress(const void* input, int length, void* output, int maxout)
 {
-    const quint8* ip = (const quint8*) input;
-    const quint8* ip_limit  = ip + length - 1;
-    quint8* op = (quint8*) output;
-    quint8* op_limit = op + maxout;
-    quint8* ref;
-
-    while (ip < ip_limit) {
-        quint32 ctrl = (*ip) + 1;
-        quint32 ofs = ((*ip) & 31) << 8;
-        quint32 len = (*ip++) >> 5;
-
-        if (ctrl < 33) {
-            /* literal copy */
-            if (op + ctrl > op_limit)
-                return 0;
-
-            /* crazy unrolling */
-            if (ctrl) {
-                *op++ = *ip++;
-                ctrl--;
-
-                if (ctrl) {
-                    *op++ = *ip++;
-                    ctrl--;
-
-                    if (ctrl) {
-                        *op++ = *ip++;
-                        ctrl--;
-
-                        for (; ctrl; ctrl--)
-                            *op++ = *ip++;
-                    }
-                }
-            }
+    if (!input || !output || length <= 0 || maxout <= 0) return 0;
+    const auto source = static_cast<const quint8 *>(input);
+    const auto destination = static_cast<quint8 *>(output);
+    int read = 0, written = 0;
+    while (read < length) {
+        const quint8 control = source[read++];
+        if (control < 32) {
+            const int count = control + 1;
+            if (count > length - read || count > maxout - written) return 0;
+            std::memcpy(destination + written, source + read, count);
+            read += count;
+            written += count;
         } else {
-            /* back reference */
-            len--;
-            ref = op - ofs;
-            ref--;
-
-            if (len == 7 - 1)
-                len += *ip++;
-
-            ref -= *ip++;
-
-            if (op + len + 3 > op_limit)
-                return 0;
-
-            if (ref < (quint8 *)output)
-                return 0;
-
-            *op++ = *ref++;
-            *op++ = *ref++;
-            *op++ = *ref++;
-            if (len)
-                for (; len; --len)
-                    *op++ = *ref++;
+            int count = control >> 5;
+            if (count == 7) {
+                if (read == length) return 0;
+                count += source[read++];
+            }
+            if (read == length) return 0;
+            const int distance = ((control & 31) << 8) + source[read++] + 1;
+            count += 2;
+            if (distance > written || count > maxout - written) return 0;
+            int reference = written - distance;
+            // LZF permits overlap: newly written bytes become the next source.
+            for (int i = 0; i < count; ++i) destination[written++] = destination[reference++];
         }
     }
-
-    return op - (quint8*)output;
+    return written;
 }
 
 
