@@ -6,16 +6,25 @@
 
 #include "config-limit-long-tests.h"
 #include "kis_safe_document_loader.h"
+#include <kis_paint_device.h>
 
 namespace {
-void writeToFile(QFile &file, QColor /*color*/)
+void checkLoadedColor(const QSignalSpy &spy, const QColor &expected)
 {
-    file.reset();
-    file.resize(0);
+    QVERIFY(!spy.isEmpty());
+    const auto device = spy.last().first().value<KisPaintDeviceSP>();
+    QVERIFY(device);
+    QColor actual;
+    QVERIFY(device->pixel(0, 0, &actual));
+    QCOMPARE(actual, expected);
+}
+
+bool writeToFile(QFile &file, const QColor &color)
+{
+    if (!file.reset() || !file.resize(0)) return false;
     QImage img(10,10,QImage::Format_ARGB32);
-    img.fill(Qt::black);
-    img.save(&file, "PNG");
-    file.flush();
+    img.fill(color);
+    return img.save(&file, "PNG") && file.flush();
 }
 
 }
@@ -24,8 +33,8 @@ void KisSafeDocumentLoaderTest::test()
 {
     QTemporaryFile file("safe_loader_test_XXXXXX.png");
 
-    KIS_ASSERT(file.open());
-    writeToFile(file, Qt::black);
+    QVERIFY(file.open());
+    QVERIFY(writeToFile(file, Qt::black));
 
     KisSafeDocumentLoader loader(file.fileName());
 
@@ -36,24 +45,24 @@ void KisSafeDocumentLoaderTest::test()
     loader.reloadImage();
     QCOMPARE(spy.size(), 1);
     QCOMPARE(spyFailed.size(), 0);
+    checkLoadedColor(spy, Qt::black);
 
-    writeToFile(file, Qt::white);
+    QVERIFY(writeToFile(file, Qt::white));
 
-    spy.wait(1500);
-    QCOMPARE(spy.size(), 2);
+    QTRY_COMPARE_WITH_TIMEOUT(spy.size(), 2, 6000);
     QCOMPARE(spyFailed.size(), 0);
+    checkLoadedColor(spy, Qt::white);
 
     spy.clear();
 
-    file.reset();
-    file.resize(0);
-    file.write("blah-blah-try-read-me");
-    file.flush();
+    QVERIFY(file.reset());
+    QVERIFY(file.resize(0));
+    const auto corrupt = QByteArrayLiteral("blah-blah-try-read-me");
+    QCOMPARE(file.write(corrupt), corrupt.size());
+    QVERIFY(file.flush());
 
-    spyFailed.wait(6000);
-
+    QTRY_COMPARE_WITH_TIMEOUT(spyFailed.size(), 1, 6000);
     QCOMPARE(spy.size(), 0);
-    QCOMPARE(spyFailed.size(), 1);
 
 }
 
@@ -61,8 +70,8 @@ void KisSafeDocumentLoaderTest::testFileLost()
 {
     QTemporaryFile file("safe_loader_test_XXXXXX.png");
 
-    KIS_ASSERT(file.open());
-    writeToFile(file, Qt::black);
+    QVERIFY(file.open());
+    QVERIFY(writeToFile(file, Qt::black));
 
     KisSafeDocumentLoader loader(file.fileName());
 
@@ -75,39 +84,37 @@ void KisSafeDocumentLoaderTest::testFileLost()
     QCOMPARE(spy.size(), 1);
     QCOMPARE(spyFailed.size(), 0);
     QCOMPARE(spyExistsState.size(), 0);
+    checkLoadedColor(spy, Qt::black);
 
     spy.clear();
 
     file.close();
-    file.remove();
+    QVERIFY(file.remove());
 
-    spyExistsState.wait(15000);
-    QCOMPARE(spyExistsState.size(), 1);
+    QTRY_COMPARE_WITH_TIMEOUT(spyExistsState.size(), 1, 15000);
     QCOMPARE(spyExistsState[0][0].toBool(), false);
     spyExistsState.clear();
 
-    KIS_ASSERT(file.open());
-    writeToFile(file, Qt::white);
+    QVERIFY(file.open());
+    QVERIFY(writeToFile(file, Qt::white));
 
-    spyExistsState.wait(3500);
-    QCOMPARE(spy.size(), 0);
+    QTRY_COMPARE_WITH_TIMEOUT(spyExistsState.size(), 1, 3500);
     QCOMPARE(spyFailed.size(), 0);
-    QCOMPARE(spyExistsState.size(), 1);
     QCOMPARE(spyExistsState[0][0].toBool(), true);
     spyExistsState.clear();
 
-    spy.wait(1500);
-    QCOMPARE(spy.size(), 1);
+    QTRY_COMPARE_WITH_TIMEOUT(spy.size(), 1, 6000);
     QCOMPARE(spyFailed.size(), 0);
     QCOMPARE(spyExistsState.size(), 0);
+    checkLoadedColor(spy, Qt::white);
     spy.clear();
 
 
-    writeToFile(file, Qt::yellow);
-    spy.wait(1500);
-    QCOMPARE(spy.size(), 1);
+    QVERIFY(writeToFile(file, Qt::yellow));
+    QTRY_COMPARE_WITH_TIMEOUT(spy.size(), 1, 6000);
     QCOMPARE(spyFailed.size(), 0);
     QCOMPARE(spyExistsState.size(), 0);
+    checkLoadedColor(spy, Qt::yellow);
 }
 
 KISTEST_MAIN(KisSafeDocumentLoaderTest)
