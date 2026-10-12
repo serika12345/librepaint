@@ -1,3 +1,5 @@
+add_subdirectory(gpu)
+
 add_library(kritacanvasinputactiongroupobjects OBJECT
     KisInputActionGroup.cpp
 )
@@ -176,6 +178,8 @@ kis_add_library(kritacanvas SHARED
 generate_export_header(kritacanvas BASE_NAME kritacanvas)
 
 target_link_libraries(kritacanvas
+    PRIVATE
+        kritacanvasgputilepresentation
     PUBLIC
         Boost::boost
         Qt${QT_MAJOR_VERSION}::Core

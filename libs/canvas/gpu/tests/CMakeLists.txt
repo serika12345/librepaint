@@ -1,0 +1,4 @@
+kis_add_test(KisGpuTilePresentationTest.cpp
+    LINK_LIBRARIES kritacanvasgputilepresentation kritaimagegputiles kritaimagegpuoperations Qt6::GuiPrivate Qt6::Test
+)
+target_compile_definitions(KisGpuTilePresentationTest PRIVATE kritacanvas_EXPORTS kritaimage_EXPORTS)
