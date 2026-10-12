@@ -11,6 +11,7 @@
 #include <memory>
 
 class QRhi;
+class QVulkanInstance;
 
 namespace Krita::Image::Gpu {
 class Device;
@@ -33,6 +34,8 @@ public:
 
     /** Borrowed native device; all frame operations use its owning thread. */
     QRhi &rhi() const;
+    /** Borrowed platform connection for a Vulkan QWindow; null on Metal. */
+    QVulkanInstance *vulkanInstance() const;
 
 private:
     struct Private;

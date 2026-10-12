@@ -186,6 +186,7 @@ MetalまたはVulkanで操作から実際のRGBA8画素を生成し、次の試�
 
 ```sh
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTileRendererTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuExecutionTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTilePresentationTest
 ```
 
@@ -199,6 +200,10 @@ MetalまたはVulkanで操作から実際のRGBA8画素を生成し、次の試�
 表示試験は同じ命令列の計算結果を描画先へ出力し、パン・ズーム・回転、タイルごとの変換、
 文書領域と可視範囲の切出し、半透明色と背景色の合成を検査する。
 表示上限、不正な変換、別GPUの版を拒否した後も描画先の画素を維持することを検査する。
+共有実行試験は、240回の要求集約後の全入力と末尾画素、送信前の公開保留、
+取消し・文書終了による旧要求の無効化、文書間の共有容量と再試行、デバイス交換後の再生成を検査する。
+実ウィンドウへの送信にはmacOSのCocoa、LinuxのX11画面プラグインを試験ごとに指定する。
+未作成の表示面と別GPUの表示面はネイティブ送信前に拒否する。
 固定した入力とブラシ設定の照合値は試験ソースが所有し、MetalとVulkanで同じ値を要求する。
 Linuxの実行にはVulkanに対応するQt画面プラグインを使う。画面を持たない検証は
 独立したXvfbのX11画面を用意して`QT_QPA_PLATFORM=xcb`で実行する。

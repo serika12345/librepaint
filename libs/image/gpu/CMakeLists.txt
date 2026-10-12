@@ -15,7 +15,12 @@ set_target_properties(kritaimagegpuoperations PROPERTIES
 
 find_package(Qt6 6.6 REQUIRED COMPONENTS GuiPrivate)
 find_package(Qt6ShaderToolsTools ${Qt6_VERSION} EXACT REQUIRED)
-add_library(kritaimagegputiles OBJECT KisGpuDevice.cpp KisGpuTileRenderer.cpp KisGpuTileProjection.cpp)
+add_library(kritaimagegputiles OBJECT
+    KisGpuDevice.cpp
+    KisGpuExecution.cpp
+    KisGpuTileRenderer.cpp
+    KisGpuTileProjection.cpp
+)
 target_compile_definitions(kritaimagegputiles PRIVATE kritaimage_EXPORTS)
 target_link_libraries(kritaimagegputiles PUBLIC kritaimagegpuoperations PRIVATE Qt6::GuiPrivate)
 set_target_properties(kritaimagegputiles PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)

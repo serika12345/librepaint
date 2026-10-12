@@ -25,6 +25,14 @@ Device::~Device()
     Q_ASSERT(!m_d->rhi->isRecordingFrame());
 }
 QRhi &Device::rhi() const { return *m_d->rhi; }
+QVulkanInstance *Device::vulkanInstance() const
+{
+#if QT_CONFIG(vulkan)
+    return m_d->rhi->backend() == QRhi::Vulkan ? &m_d->vulkan : nullptr;
+#else
+    return nullptr;
+#endif
+}
 
 DevicePtr Device::createNative(QString &diagnostic)
 {
