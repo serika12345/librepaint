@@ -3,10 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "KisGpuExecution.h"
-#include <QHash>
-#include <QThread>
-#include <rhi/qrhi.h>
+#include "KisGpuExecution_p.h"
 #include <limits>
 #include <stdexcept>
 
@@ -22,55 +19,30 @@ ExecutionCode code(QRhi::FrameOpResult result)
 }
 }
 
-struct Execution::Private
-{
-    struct Document
-    {
-        Snapshot requested, published;
-        quint64 serial = 1;
-        RenderedSnapshot rendered;
-        ProjectedSnapshot projected;
-    };
-    struct Stage
-    {
-        DocumentHandle handle = 0;
-        quint64 serial = 0, generation = 0;
-        RenderedSnapshot rendered;
-        ProjectedSnapshot projected;
-    };
-    DevicePtr device;
-    qsizetype byteBudget, maximumDocuments;
-    std::unique_ptr<TileRenderer> renderer;
-    QHash<DocumentHandle, Document> documents;
-    quint64 nextHandle = 0, generation = 1;
-    QRhiSwapChain *surface = nullptr;
-    QRhiCommandBuffer *commands = nullptr;
-    bool active = false, attempted = false;
-    Stage stage;
-
-    Private(DevicePtr device, qsizetype bytes, qsizetype documents)
-        : device(std::move(device)), byteBudget(bytes), maximumDocuments(documents),
-          renderer(std::make_unique<TileRenderer>(this->device, bytes)) {}
-    bool onThread() const { return device->rhi().thread() == QThread::currentThread(); }
-    bool isCurrent(const Stage &value) const
-    {
-        const auto document = documents.constFind(value.handle);
-        return value.handle && document != documents.cend() && document->serial == value.serial &&
-            value.generation == generation;
-    }
-};
-
-Execution::Execution(DevicePtr device, qsizetype bytes, qsizetype documents)
+Execution::Execution(DevicePtr device, qsizetype bytes, qsizetype documents, qsizetype readbackBytes)
 {
     if (!device || device->rhi().thread() != QThread::currentThread() ||
-        bytes < TileRenderer::TileBytes || documents <= 0) {
+        bytes < TileRenderer::TileBytes || documents <= 0 || readbackBytes <= 0 ||
+        readbackBytes > std::numeric_limits<int>::max()) {
         throw std::invalid_argument("invalid GPU execution owner or capacity");
     }
-    m_d = std::make_unique<Private>(std::move(device), bytes, documents);
+    m_d = std::make_unique<Private>(std::move(device), bytes, documents, readbackBytes);
 }
 Execution::~Execution()
 {
     if (m_d->active) cancelFrame();
+    if (m_d->device->readbackPending()) m_d->device->rhi().finish();
+    retireCompletedReadback();
+}
+
+void Execution::retireCompletedReadback()
+{
+    auto &d = *m_d;
+    if (!d.device->readbackPending()) {
+        d.readbackProjected.clear();
+        d.readbackRendered.clear();
+        d.device->releaseCompletedReadback();
+    }
 }
 
 DocumentAdmission Execution::open(const Snapshot &snapshot)
@@ -190,6 +162,7 @@ ExecutionOutcome Execution::endFrame(bool publish)
     d.attempted = false;
     d.surface = nullptr;
     d.commands = nullptr;
+    retireCompletedReadback();
     if (result != QRhi::FrameOpSuccess) return {code(result), QStringLiteral("GPU frame submission failed")};
     if (publish && stage.handle) {
         if (!d.isCurrent(stage)) return {ExecutionCode::InvalidRequest, QStringLiteral("GPU frame was superseded or its document closed")};
@@ -210,6 +183,10 @@ ExecutionOutcome Execution::replaceDevice(DevicePtr device)
     if (d.active || d.device->rhi().isRecordingFrame() || device->rhi().isRecordingFrame()) return {ExecutionCode::Busy, QStringLiteral("GPU replacement requires submitted frames")};
     if (d.generation == std::numeric_limits<quint64>::max()) return {ExecutionCode::CapacityExceeded, QStringLiteral("GPU generation exhausted")};
     auto renderer = std::make_unique<TileRenderer>(device, d.byteBudget);
+    if (d.device->readbackPending()) d.device->rhi().finish();
+    d.device->releaseCompletedReadback();
+    d.readbackProjected.clear();
+    d.readbackRendered.clear();
     for (auto &document : d.documents) {
         document.projected.clear();
         document.rendered.clear();

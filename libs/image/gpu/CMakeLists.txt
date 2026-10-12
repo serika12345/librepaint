@@ -18,6 +18,7 @@ find_package(Qt6ShaderToolsTools ${Qt6_VERSION} EXACT REQUIRED)
 add_library(kritaimagegputiles OBJECT
     KisGpuDevice.cpp
     KisGpuExecution.cpp
+    KisGpuPixelReadback.cpp
     KisGpuTileRenderer.cpp
     KisGpuTileProjection.cpp
 )

@@ -15,9 +15,15 @@ kis_add_test(KisGpuExecutionTest.cpp
 )
 target_compile_definitions(KisGpuExecutionTest PRIVATE kritaimage_EXPORTS)
 
+kis_add_test(KisGpuPixelReadbackTest.cpp
+    TEST_NAME_VAR gpu_pixel_readback_test
+    LINK_LIBRARIES kritaimagegputiles kritaimagegpuoperations Qt6::GuiPrivate Qt6::Test
+)
+target_compile_definitions(KisGpuPixelReadbackTest PRIVATE kritaimage_EXPORTS)
+
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_tests_properties(${gpu_execution_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set_tests_properties(${gpu_tile_renderer_test} ${gpu_execution_test}
+    set_tests_properties(${gpu_tile_renderer_test} ${gpu_execution_test} ${gpu_pixel_readback_test}
         PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
 endif()

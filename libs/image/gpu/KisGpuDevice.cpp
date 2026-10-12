@@ -4,6 +4,7 @@
  */
 
 #include "KisGpuDevice.h"
+#include "KisGpuReadbackBatch_p.h"
 #include <QGuiApplication>
 #include <QThread>
 #include <rhi/qrhi.h>
@@ -15,6 +16,8 @@ struct Device::Private
 #if QT_CONFIG(vulkan)
     QVulkanInstance vulkan;
 #endif
+    // Results remain valid through native cleanup, including failed submissions.
+    std::shared_ptr<Detail::ReadbackBatch> readback;
     std::unique_ptr<QRhi> rhi;
 };
 
@@ -25,6 +28,29 @@ Device::~Device()
     Q_ASSERT(!m_d->rhi->isRecordingFrame());
 }
 QRhi &Device::rhi() const { return *m_d->rhi; }
+bool Device::readbackPending() const { return m_d->readback && m_d->readback->remaining > 0; }
+void Device::releaseCompletedReadback()
+{
+    if (!readbackPending()) m_d->readback.reset();
+}
+
+std::shared_ptr<Detail::ReadbackBatch> Detail::ReadbackBatch::create(Device &device, qsizetype count)
+{
+    if (device.rhi().thread() != QThread::currentThread() || count <= 0 || device.readbackPending()) return {};
+    auto batch = std::make_shared<ReadbackBatch>();
+    batch->remaining = count;
+    batch->results.reserve(count);
+    for (qsizetype i = 0; i < count; ++i) {
+        auto result = std::make_unique<QRhiReadbackResult>();
+        result->completed = [owner = std::weak_ptr<ReadbackBatch>(batch)] {
+            if (const auto batch = owner.lock()) --batch->remaining;
+        };
+        batch->results.push_back(std::move(result));
+    }
+    device.m_d->readback = batch;
+    return batch;
+}
+
 QVulkanInstance *Device::vulkanInstance() const
 {
 #if QT_CONFIG(vulkan)

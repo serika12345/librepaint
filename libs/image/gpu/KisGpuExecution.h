@@ -35,6 +35,23 @@ struct FrameOutcome
     QString diagnostic;
 };
 
+/** Full tile bytes in straight, byte-ordered RGBA8; layer zero denotes the projection. */
+struct PixelTile
+{
+    LayerId layer = 0;
+    QPoint coordinate;
+    QByteArray rgba;
+};
+struct PixelReadbackOutcome
+{
+    ExecutionCode code = ExecutionCode::InvalidRequest;
+    Snapshot document;
+    quint64 generation = 0;
+    QRect region;
+    QList<PixelTile> tiles;
+    QString diagnostic;
+};
+
 /**
  * Owns the bounded document requests and frame submission on one GPU queue.
  * All calls and destruction use the device thread. Each attached document has
@@ -53,7 +70,8 @@ class KRITAIMAGE_EXPORT Execution
 {
 public:
     explicit Execution(DevicePtr device, qsizetype byteBudget = 128 * 1024 * 1024,
-                       qsizetype maximumDocuments = 16);
+                       qsizetype maximumDocuments = 16,
+                       qsizetype maximumReadbackBytes = 64 * 1024 * 1024);
     ~Execution();
     Execution(const Execution &) = delete;
     Execution &operator=(const Execution &) = delete;
@@ -72,6 +90,18 @@ public:
     ExecutionOutcome submitFrame();
     ExecutionOutcome cancelFrame();
 
+    /**
+     * Synchronous external read of a retained version belonging to an attached
+     * document. Preserves newer requests and publication. Reads selected layers,
+     * including hidden ones, and optionally the visible projection. Returns full
+     * sparse tiles intersecting the document-clipped region; absent tiles are
+     * transparent. The byte limit counts distinct transferred tile buffers.
+     * Rejection returns no partial pixels. CPU values outlive the device.
+     */
+    PixelReadbackOutcome readPixels(DocumentHandle handle, const Snapshot &document,
+                                   QRect region, const QList<LayerId> &layers = {},
+                                   bool includeProjection = true);
+
     /** Rebuilds accepted documents lazily on a new device; active frames reject replacement. */
     ExecutionOutcome replaceDevice(DevicePtr device);
     DevicePtr device() const;
@@ -83,6 +113,7 @@ private:
     std::unique_ptr<Private> m_d;
     FrameOutcome beginFrame(QRhiSwapChain *surface);
     ExecutionOutcome endFrame(bool publish);
+    void retireCompletedReadback();
 };
 }
 #endif

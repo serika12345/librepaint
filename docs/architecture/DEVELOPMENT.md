@@ -187,6 +187,7 @@ MetalまたはVulkanで操作から実際のRGBA8画素を生成し、次の試�
 ```sh
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTileRendererTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuExecutionTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuPixelReadbackTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTilePresentationTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuCanvasWindowTest
 ```
@@ -205,6 +206,12 @@ MetalまたはVulkanで操作から実際のRGBA8画素を生成し、次の試�
 取消し・文書終了による旧要求の無効化、文書間の共有容量と再試行、デバイス交換後の再生成を検査する。
 実ウィンドウへの送信にはmacOSのCocoa、LinuxのX11画面プラグインを試験ごとに指定する。
 未作成の表示面と別GPUの表示面はネイティブ送信前に拒否する。
+固定版の読取り試験は、後続編集と公開版の保持、非表示レイヤーと表示用合成の区別、
+領域ごとの疎な画素取得、転送容量の上限と原子的な拒否を検査する。
+進行中のフレームと終了した文書の読取りを拒否し、デバイス交換後の同一画素と
+GPUの終了後も利用できるCPU画素の寿命を検査する。
+利用側が読取り結果を手放した後も、ネイティブの完了通知とデバイス終了時の後処理まで
+格納先を保持することを、実ウィンドウへ送信した読取りで検査する。
 表示ウィンドウ試験は、連続更新の集約、パン・ズームとサイズ変更後の可視領域、
 文書終了後の遅延更新、表示中と非表示のウィンドウのデバイス交換を検査する。
 容量不足時は操作と公開版を維持し、識別子を伴う失敗通知と次の要求での再試行を検査する。

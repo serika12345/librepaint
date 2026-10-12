@@ -14,6 +14,7 @@ class QRhi;
 class QVulkanInstance;
 
 namespace Krita::Image::Gpu {
+namespace Detail { struct ReadbackBatch; }
 class Device;
 using DevicePtr = std::shared_ptr<Device>;
 
@@ -38,8 +39,12 @@ public:
     QVulkanInstance *vulkanInstance() const;
 
 private:
+    friend class Execution;
+    friend struct Detail::ReadbackBatch;
     struct Private;
     explicit Device(std::unique_ptr<Private> data);
+    bool readbackPending() const;
+    void releaseCompletedReadback();
     std::unique_ptr<Private> m_d;
 };
 }

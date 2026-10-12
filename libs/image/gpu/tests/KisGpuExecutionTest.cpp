@@ -8,6 +8,7 @@
 #include <QWindow>
 #include <rhi/qrhi.h>
 #include <gpu/KisGpuExecution.h>
+#include "../KisGpuReadbackBatch_p.h"
 
 using namespace Krita::Image::Gpu;
 
@@ -22,6 +23,8 @@ private Q_SLOTS:
     void documentsShareTheTileBudgetAndKeepPublishedPixelsOnFailure();
     void presentationFramesSubmitThroughTheOwningWindow();
     void unconfiguredSurfacesAreRejectedBeforeNativeSubmission();
+    void abandonedReadbackResultsRemainValidThroughNativeCleanup();
+    void abandonedReadbackResultsRemainValidThroughNativeCleanup_data();
 private:
     DevicePtr m_device;
 };
@@ -241,6 +244,81 @@ void KisGpuExecutionTest::unconfiguredSurfacesAreRejectedBeforeNativeSubmission(
     std::unique_ptr<QRhiSwapChain> surface(m_device->rhi().newSwapChain());
     QCOMPARE(execution.beginPresentationFrame(*surface).code, ExecutionCode::SurfaceOutOfDate);
     QVERIFY(!m_device->rhi().isRecordingFrame());
+}
+
+void KisGpuExecutionTest::abandonedReadbackResultsRemainValidThroughNativeCleanup()
+{
+    QFETCH(bool, replaceDevice);
+    QString diagnostic;
+    auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    std::weak_ptr<Device> nativeOwner = device;
+    std::weak_ptr<Detail::ReadbackBatch> resultOwner;
+    QByteArray observed;
+    int completions = 0;
+    {
+        Execution execution(device);
+        OperationDocument document({64, 64});
+        dot(document, {32, 32});
+        const auto handle = execution.open(document.snapshot()).handle;
+        QWindow window;
+        if (device->vulkanInstance()) {
+            window.setSurfaceType(QSurface::VulkanSurface);
+            window.setVulkanInstance(device->vulkanInstance());
+        } else window.setSurfaceType(QSurface::MetalSurface);
+        window.resize(128, 128);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        std::unique_ptr<QRhiSwapChain> surface(device->rhi().newSwapChain());
+        surface->setWindow(&window);
+        std::unique_ptr<QRhiRenderPassDescriptor> pass(surface->newCompatibleRenderPassDescriptor());
+        surface->setRenderPassDescriptor(pass.get());
+        QVERIFY(surface->createOrResize());
+        const auto frame = execution.beginPresentationFrame(*surface);
+        QCOMPARE(frame.code, ExecutionCode::Success);
+        const auto projection = execution.project(handle, {0, 0, 64, 64});
+        QCOMPARE(projection.code, RenderOutcome::Recorded);
+        auto batch = Detail::ReadbackBatch::create(*device, 1);
+        QVERIFY(batch);
+        resultOwner = batch;
+        QVERIFY(!Detail::ReadbackBatch::create(*device, 1));
+        auto result = batch->results.front().get();
+        result->completed = [original = result->completed, result, &observed, &completions] {
+            original();
+            observed = result->data;
+            ++completions;
+        };
+        auto updates = device->rhi().nextResourceUpdateBatch();
+        updates->readBackBuffer(projection.version->tiles().first().pixels, 0, TileRenderer::TileBytes, result);
+        frame.commands->resourceUpdate(updates);
+        frame.commands->beginPass(frame.target, Qt::white, {1, 0});
+        frame.commands->endPass();
+        batch.reset();
+        QVERIFY(!resultOwner.expired());
+        QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
+        if (replaceDevice) {
+            const auto replacement = Device::createNative(diagnostic);
+            QVERIFY2(replacement, qPrintable(diagnostic));
+            QCOMPARE(execution.replaceDevice(replacement).code, ExecutionCode::Success);
+            QVERIFY(resultOwner.expired());
+        }
+        surface.reset();
+        pass.reset();
+        window.destroy();
+    }
+    QVERIFY(resultOwner.expired());
+    device.reset();
+    QVERIFY(nativeOwner.expired());
+    QVERIFY(resultOwner.expired());
+    QCOMPARE(completions, 1);
+    QCOMPARE(observed.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("000000ff"));
+}
+
+void KisGpuExecutionTest::abandonedReadbackResultsRemainValidThroughNativeCleanup_data()
+{
+    QTest::addColumn<bool>("replaceDevice");
+    QTest::newRow("execution-close") << false;
+    QTest::newRow("device-replacement") << true;
 }
 
 int main(int argc, char **argv)
