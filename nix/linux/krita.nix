@@ -16,6 +16,7 @@ let
     pkgs.pkg-config
     pythonPackages.sip
     pkgs.qt6.qttools
+    pkgs.qt6.qtshadertools
     pkgs.qt6.wrapQtAppsHook
   ];
 

@@ -1,0 +1,120 @@
+// SPDX-FileCopyrightText: 2026 LibrePaint contributors
+// SPDX-License-Identifier: GPL-2.0-or-later
+#version 440
+layout(local_size_x = 8, local_size_y = 8) in;
+layout(std140, binding = 0) uniform Parameters {
+    ivec4 tile; // document origin, document width and height
+    uvec4 brush; // packed RGBA, opacity, erase, spacing in 1/16 pixel units
+    uvec4 counts; // segments, diameter in 1/16 pixel units, reserved
+} parameters;
+struct Segment { ivec4 endpoints; uvec4 values; }; // pressures, phase, length
+layout(std430, binding = 1) readonly buffer Segments { Segment segments[]; };
+layout(std430, binding = 2) readonly buffer Base { uint basePixels[]; };
+layout(std430, binding = 3) writeonly buffer Output { uint outputPixels[]; };
+
+// Low word first. Explicit integer arithmetic gives the same coverage on
+// Metal and Vulkan, including coordinates whose squared distances exceed 32 bits.
+uvec2 product(uint a, uint b) {
+    uint high, low;
+    umulExtended(a, b, high, low);
+    return uvec2(low, high);
+}
+uvec2 add64(uvec2 a, uvec2 b) {
+    uint low = a.x + b.x;
+    return uvec2(low, a.y + b.y + uint(low < a.x));
+}
+uvec2 negate64(uvec2 a) { return add64(~a, uvec2(1, 0)); }
+uvec2 signedProduct(int a, int b) {
+    uvec2 value = product(uint(abs(a)), uint(abs(b)));
+    return (a < 0) != (b < 0) ? negate64(value) : value;
+}
+bool lessEqual64(uvec2 a, uvec2 b) {
+    return a.y < b.y || (a.y == b.y && a.x <= b.x);
+}
+uint divide64(uvec2 n, uint d) {
+    if (n.y == 0u) return n.x / d;
+    uint remainder = n.y, result = 0u;
+    for (int bit = 31; bit >= 0; --bit) {
+        remainder = (remainder << 1u) | ((n.x >> uint(bit)) & 1u);
+        if (remainder >= d) {
+            remainder -= d;
+            result |= 1u << uint(bit);
+        }
+    }
+    return result;
+}
+int interpolate(int start, int delta, uint along, uint length) {
+    uint offset = divide64(product(uint(abs(delta)), along), length);
+    return start + (delta < 0 ? -int(offset) : int(offset));
+}
+bool inside(ivec2 point, ivec2 center, uint radius) {
+    uvec2 delta = uvec2(abs(point - center));
+    if (any(greaterThan(delta, uvec2(radius)))) return false;
+    return lessEqual64(add64(product(delta.x, delta.x), product(delta.y, delta.y)), product(radius, radius));
+}
+uint mul255(uint a, uint b) { return (a * b + 127u) / 255u; }
+uvec4 unpackPixel(uint pixel) { return (uvec4(pixel) >> uvec4(0, 8, 16, 24)) & 255u; }
+uint packPixel(uvec4 pixel) { return pixel.x | (pixel.y << 8u) | (pixel.z << 16u) | (pixel.w << 24u); }
+
+void main() {
+    uvec2 local = gl_GlobalInvocationID.xy;
+    if (any(greaterThanEqual(local, uvec2(256)))) return;
+    uint index = local.y * 256u + local.x;
+    ivec2 pixel = parameters.tile.xy + ivec2(local);
+    if (any(greaterThanEqual(pixel, parameters.tile.zw))) { outputPixels[index] = 0u; return; }
+    ivec2 center = pixel * 16 + ivec2(8);
+    uint mask = 0u;
+    for (uint s = 0u; s < parameters.counts.x && mask != 65535u; ++s) {
+        Segment segment = segments[s];
+        ivec2 delta = segment.endpoints.zw - segment.endpoints.xy;
+        uint length = segment.values.w;
+        uint step = parameters.brush.w;
+        uint first = (step - segment.values.z) % step;
+        uint low = 0u, high = 0u;
+        if (length != 0u) {
+            ivec2 relative = center - segment.endpoints.xy;
+            uvec2 dotValue = add64(signedProduct(relative.x, delta.x), signedProduct(relative.y, delta.y));
+            uint projection = int(dotValue.y) < 0 ? 0u :
+                (lessEqual64(product(length, length), dotValue) ? length : divide64(dotValue, length));
+            uint reach = parameters.counts.y / 2u + 32u;
+            low = projection > reach + first ? (projection - reach - first) / step : 0u;
+            high = min(length, projection + reach);
+            if (high < first) continue;
+            high = (high - first) / step;
+        }
+        for (uint dab = low; dab <= high; ++dab) {
+            uint along = first + dab * step;
+            if (length == 0u) along = 0u;
+            if (along > length) break;
+            ivec2 position = segment.endpoints.xy;
+            uint pressure = segment.values.x;
+            if (length != 0u) {
+                position.x = interpolate(position.x, delta.x, along, length);
+                position.y = interpolate(position.y, delta.y, along, length);
+                pressure = uint(interpolate(int(pressure), int(segment.values.y) - int(pressure), along, length));
+            }
+            uint radius = divide64(product(parameters.counts.y, pressure), 131070u);
+            if (radius == 0u) continue;
+            for (uint y = 0u; y < 4u; ++y) {
+                for (uint x = 0u; x < 4u; ++x) {
+                    uint bit = 1u << (y * 4u + x);
+                    if ((mask & bit) == 0u && inside(pixel * 16 + ivec2(x * 4u + 2u, y * 4u + 2u), position, radius)) mask |= bit;
+                }
+            }
+        }
+    }
+    uvec4 destination = unpackPixel(basePixels[index]);
+    uvec4 source = unpackPixel(parameters.brush.x);
+    uint alpha = (mul255(source.w, parameters.brush.y) * uint(bitCount(mask)) + 8u) / 16u;
+    if (parameters.brush.z != 0u) {
+        destination.w = mul255(destination.w, 255u - alpha);
+        if (destination.w == 0u) destination.xyz = uvec3(0);
+    } else {
+        uint denominator = alpha * 255u + destination.w * (255u - alpha);
+        if (denominator != 0u) {
+            destination.xyz = (source.xyz * alpha * 255u + destination.xyz * destination.w * (255u - alpha) + denominator / 2u) / denominator;
+        }
+        destination.w = (denominator + 127u) / 255u;
+    }
+    outputPixels[index] = packPixel(destination);
+}

@@ -18,6 +18,7 @@
   mkIOSCMakePackage,
   pkg-config,
   python3,
+  qt6Packages,
   qt5compat-ios,
   qtXcrunShim,
   qtbase-ios,
@@ -145,6 +146,7 @@ mkIOSCMakePackage {
     gnugrep
     pkg-config
     python3
+    qt6Packages.qtshadertools
   ];
   nativeInstallCheckInputs = [
     diffutils
@@ -198,6 +200,7 @@ mkIOSCMakePackage {
     "-DQT_APPLE_SDK:STRING=iphoneos"
     "-DQT_HOST_PATH:PATH=${hostQt}"
     "-DQT_HOST_PATH_CMAKE_DIR:PATH=${hostQt}/lib/cmake"
+    "-DQt6ShaderToolsTools_DIR:PATH=${qt6Packages.qtshadertools}/lib/cmake/Qt6ShaderToolsTools"
     "-DQT_XCRUN:FILEPATH=${qtXcrunShim}/bin/xcrun"
     "-DQuaZip-Qt6_DIR:PATH=${quazip-ios}/lib/cmake/QuaZip-Qt6-1.5"
     "-DQt6Core5Compat_DIR:PATH=${qt5compat-ios}/lib/cmake/Qt6Core5Compat"

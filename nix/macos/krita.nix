@@ -25,6 +25,7 @@ let
     pythonPackages.sip
     pkgs.kdePackages.extra-cmake-modules
     qt.qttools
+    qt.qtshadertools
     qt.wrapQtAppsHook
   ];
   buildInputs = [
