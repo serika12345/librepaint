@@ -1,3 +1,4 @@
+add_subdirectory(gpu)
 add_subdirectory( tests )
 
 add_subdirectory( tiles3 )
@@ -2492,6 +2493,8 @@ kis_add_library(kritaimage SHARED
 )
 
 generate_export_header(kritaimage BASE_NAME kritaimage)
+
+target_link_libraries(kritaimage PRIVATE kritaimagegpuoperations)
 
 target_link_libraries(kritaimage 
     PUBLIC

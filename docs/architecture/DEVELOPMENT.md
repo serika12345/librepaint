@@ -167,6 +167,18 @@ macOSは`tdd-macos`、Linuxは`tdd-linux`のCMakeプリセットを使う。
 他OSを所有する作業、リリース前、そのOSでの問題発覚時は該当OSを追加検証する。
 Androidは構築費用が大きいため、この条件に沿って検証する。
 
+### 描画操作・履歴・復旧の値契約
+
+円形ブラシの入力保持、形状変更、文書全体の250操作履歴、保存対象版、復旧の検証は次で実行する。
+Qt CoreとQt Testだけで構築し、GPUやウィンドウを必要とする検証は対応する描画・表示所有者で行う。
+
+```sh
+./scripts/run-shared-test-env ./scripts/run-test KisGpuOperationDocumentTest
+```
+
+試験は入力の分割、未確定操作の確定・取消し、Redo分岐、レイヤー変更、保存中の編集、
+固定版の寿命、容量不足、不正な復旧記録の原子的な拒否を検査する。
+
 ## デスクトップ
 
 ### macOS
