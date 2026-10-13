@@ -10,6 +10,7 @@
 #include "KisGpuDevice.h"
 #include <QRect>
 #include <memory>
+#include <optional>
 
 class QRhi;
 class QRhiBuffer;
@@ -95,6 +96,10 @@ public:
 
     RenderOutcome record(QRhiCommandBuffer &commands, const Snapshot &document,
                          const RenderedSnapshot &base = {});
+    /** Generates complete tiles intersecting the region for exactly these layers. */
+    RenderOutcome recordRegion(QRhiCommandBuffer &commands, const Snapshot &document,
+                               QRect region, const QList<LayerId> &layers,
+                               const RenderedSnapshot &base = {});
     /** Merges visible layers in document order; shares unchanged projected tiles. */
     ProjectionOutcome compose(QRhiCommandBuffer &commands, const RenderedSnapshot &document,
                               QRect region, const ProjectedSnapshot &base = {});
@@ -103,6 +108,9 @@ public:
 private:
     struct Private;
     std::unique_ptr<Private> m_d;
+    RenderOutcome recordImpl(QRhiCommandBuffer &commands, const Snapshot &document,
+                             const RenderedSnapshot &base, std::optional<QRect> region,
+                             const QList<LayerId> &layers);
 };
 }
 #endif

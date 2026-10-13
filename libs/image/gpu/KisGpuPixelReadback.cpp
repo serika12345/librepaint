@@ -50,6 +50,15 @@ PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot
         if (!available.contains(layer) || selected.contains(layer)) return failure(ExecutionCode::InvalidRequest, QStringLiteral("Pixel read layer is unavailable or repeated"));
         selected.insert(layer);
     }
+    QList<LayerId> generatedLayers = layers;
+    if (includeProjection) {
+        for (const auto &layer : pinned->layers) {
+            if (layer.visible && !selected.contains(layer.id)) {
+                generatedLayers.append(layer.id);
+                selected.insert(layer.id);
+            }
+        }
+    }
     PixelReadbackOutcome outcome;
     outcome.document = pinned;
     outcome.generation = d.generation;
@@ -72,7 +81,7 @@ PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot
         const auto frame = beginReadbackFrame();
         if (frame.code != ExecutionCode::Success) return failure(frame.code, frame.diagnostic);
         begun = true;
-        const auto paint = d.renderer->record(*frame.commands, pinned, base);
+        const auto paint = d.renderer->recordRegion(*frame.commands, pinned, outcome.region, generatedLayers, base);
         if (paint.code != RenderOutcome::Recorded) {
             cancelFrame();
             begun = false;

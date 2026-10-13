@@ -21,6 +21,7 @@ private Q_SLOTS:
     void closedDocumentsAndDeviceGenerationsGuardReads();
     void cpuPixelsOutliveExecutionAndDevices();
     void savingReadsOffCanvasTilesAndRetainsImplicitPixels();
+    void selectedReadsFitWithoutGeneratingUnrequestedPixels();
 private:
     DevicePtr m_device;
 };
@@ -55,6 +56,39 @@ void KisGpuPixelReadbackTest::initTestCase()
     m_device = Device::createNative(diagnostic);
     QVERIFY2(m_device, qPrintable(diagnostic));
     qInfo() << "GPU backend:" << m_device->rhi().backendName();
+}
+
+void KisGpuPixelReadbackTest::selectedReadsFitWithoutGeneratingUnrequestedPixels()
+{
+    RasterImage image;
+    image.size = {9 * RgbaTile::Size, 64};
+    image.layers = {{QStringLiteral("Visible"), true, {}, {}}, {QStringLiteral("Hidden"), false, {}, {}}};
+    for (int tile = -1; tile < 9; ++tile) {
+        image.layers[0].tiles.append({{tile, 0}, QByteArray::fromHex("001234ff").repeated(RgbaTile::ByteCount / 4)});
+        image.layers[1].tiles.append({{tile, 0}, QByteArray::fromHex("ab567880").repeated(RgbaTile::ByteCount / 4)});
+    }
+    OperationDocument document(image);
+    Execution execution(m_device, 3 * TileRenderer::TileBytes, 1, 2 * TileRenderer::TileBytes);
+    const auto handle = execution.open(document.snapshot()).handle;
+    const auto visible = document.snapshot()->layers[0].id;
+    const auto hidden = document.snapshot()->layers[1].id;
+    for (const int tile : {0, 8, 0}) {
+        const QPoint point(tile * 256 + 8, 12);
+        const auto read = execution.readPixels(handle, document.snapshot(), QRect(point, QSize(1, 1)), {hidden});
+        QVERIFY2(read.code == ExecutionCode::Success, qPrintable(read.diagnostic));
+        QCOMPARE(read.tiles.size(), 2);
+        QCOMPARE(pixel(read, hidden, point), QByteArray::fromHex("ab567880"));
+        QCOMPARE(pixel(read, 0, point), QByteArray::fromHex("001234ff"));
+        QVERIFY(pixel(read, visible, point).isEmpty());
+        QVERIFY(!execution.published(handle));
+        QCOMPARE(execution.requested(handle), document.snapshot());
+    }
+    const auto raw = execution.readPixels(handle, document.snapshot(), {-1, 12, 1, 1}, {hidden}, false,
+                                          PixelReadArea::LayerCoordinates);
+    QCOMPARE(raw.code, ExecutionCode::Success);
+    QCOMPARE(raw.tiles.size(), 1);
+    QCOMPARE(raw.tiles[0].coordinate, QPoint(-1, 0));
+    QCOMPARE(pixel(raw, hidden, {-1, 12}), QByteArray::fromHex("ab567880"));
 }
 
 void KisGpuPixelReadbackTest::pinnedPixelsKeepNewerRequestsAndPublishedState()

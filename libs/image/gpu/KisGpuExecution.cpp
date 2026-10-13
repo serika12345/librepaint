@@ -161,7 +161,11 @@ ProjectionOutcome Execution::project(DocumentHandle handle, QRect region)
     const auto document = d.documents.constFind(handle);
     if (document == d.documents.cend()) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Document handle is no longer active")};
     d.attempted = true;
-    const auto rendered = d.renderer->record(*d.commands, document->requested, document->rendered);
+    QList<LayerId> layers;
+    for (const auto &layer : document->requested->layers) if (layer.visible) layers.append(layer.id);
+    const auto rendered = d.renderer->recordRegion(*d.commands, document->requested,
+                                                   region.intersected(QRect(QPoint(0, 0), document->requested->size)),
+                                                   layers, document->rendered);
     if (rendered.code != RenderOutcome::Recorded) return {rendered.code, {}, rendered.diagnostic};
     const auto projected = d.renderer->compose(*d.commands, rendered.version, region, document->projected);
     if (projected.code != RenderOutcome::Recorded) return projected;

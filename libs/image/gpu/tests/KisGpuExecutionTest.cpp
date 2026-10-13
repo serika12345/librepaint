@@ -26,6 +26,7 @@ private Q_SLOTS:
     void unconfiguredSurfacesAreRejectedBeforeNativeSubmission();
     void abandonedReadbackResultsRemainValidThroughNativeCleanup();
     void abandonedReadbackResultsRemainValidThroughNativeCleanup_data();
+    void viewportsGenerateOnlyVisibleTilesAndLayers();
 private:
     DevicePtr m_device;
 };
@@ -45,6 +46,32 @@ void KisGpuExecutionTest::initTestCase()
     m_device = Device::createNative(diagnostic);
     QVERIFY2(m_device, qPrintable(diagnostic));
     qInfo() << "GPU backend:" << m_device->rhi().backendName();
+}
+
+void KisGpuExecutionTest::viewportsGenerateOnlyVisibleTilesAndLayers()
+{
+    OperationDocument document(QSize(9 * TileRenderer::TileSize, 64));
+    for (int tile = 0; tile < 9; ++tile) dot(document, {qreal(tile * 256 + 8), 12});
+    const auto hidden = document.addLayer(QStringLiteral("Hidden"));
+    dot(document, {8, 12});
+    QCOMPARE(document.setLayerVisible(hidden, false), Result::Success);
+    Execution execution(m_device, 4 * TileRenderer::TileBytes);
+    const auto handle = execution.open(document.snapshot()).handle;
+    for (const int tile : {0, 8, 0}) {
+        QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+        const auto projected = execution.project(handle, {tile * 256 + 8, 12, 1, 1});
+        QVERIFY2(projected.code == RenderOutcome::Recorded, qPrintable(projected.diagnostic));
+        QCOMPARE(projected.version->tiles().size(), 1);
+        QCOMPARE(projected.version->tiles()[0].coordinate, QPoint(tile, 0));
+        QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
+        QCOMPARE(execution.published(handle), document.snapshot());
+        QVERIFY(execution.residentBytes() <= 4 * TileRenderer::TileBytes);
+    }
+    QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+    const auto empty = execution.project(handle, {-10, -10, 1, 1});
+    QCOMPARE(empty.code, RenderOutcome::Recorded);
+    QVERIFY(empty.version->tiles().isEmpty());
+    QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
 }
 
 void KisGpuExecutionTest::latestRequestsRetainInputAndPublishAfterSubmission()

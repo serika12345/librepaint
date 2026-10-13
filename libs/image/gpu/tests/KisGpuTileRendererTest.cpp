@@ -37,6 +37,7 @@ private Q_SLOTS:
     void implicitLayerPixelsStaySparseThroughEditsAndProjection_data();
     void implicitLayerPixelsStaySparseThroughEditsAndProjection();
     void implicitLayersRespectCompositionAndCapacity();
+    void partialRenderingMatchesFullTilesAndRejectsIncompleteComposition();
 
 private:
     RenderedSnapshot render(TileRenderer &renderer, const Snapshot &snapshot,
@@ -58,6 +59,78 @@ void KisGpuTileRendererTest::initTestCase()
     QVERIFY2(m_rhi != nullptr, "The native Metal/Vulkan device is required by this contract");
     QVERIFY(m_rhi->isFeatureSupported(QRhi::Compute));
     qInfo() << "GPU backend:" << m_rhi->backendName();
+}
+
+void KisGpuTileRendererTest::partialRenderingMatchesFullTilesAndRejectsIncompleteComposition()
+{
+    OperationDocument document(QSize(1024, 512));
+    const auto layer = document.activeLayer();
+    Brush brush;
+    brush.rgba = {42, 88, 203, 139};
+    brush.diameter = 29.25;
+    const auto stroke = document.beginStroke(layer, brush, 123);
+    QCOMPARE(document.appendSamples(stroke, {{{20, 70}, 0.5}, {{800, 300}, 1}}), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    const auto hidden = document.addLayer(QStringLiteral("Hidden"));
+    QCOMPARE(document.setLayerVisible(hidden, false), Result::Success);
+    const RgbaTile offCanvas{{-1, -1}, QByteArray::fromHex("12345678").repeated(RgbaTile::ByteCount / 4)};
+    QCOMPARE(document.replaceTiles(hidden, {offCanvas}), Result::Success);
+    TileRenderer fullRenderer(m_device);
+    const auto full = render(fullRenderer, document.snapshot());
+    QVERIFY(full);
+    TileRenderer partialRenderer(m_device, 3 * TileRenderer::TileBytes);
+    const QRect region(263, 130, 1, 1);
+    QRhiCommandBuffer *commands = nullptr;
+    QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
+    const auto partial = partialRenderer.recordRegion(*commands, document.snapshot(), region, {layer});
+    QCOMPARE(partial.code, RenderOutcome::Recorded);
+    const auto composed = partialRenderer.compose(*commands, partial.version, region);
+    QCOMPARE(composed.code, RenderOutcome::Recorded);
+    QCOMPARE(partialRenderer.compose(*commands, partial.version, {0, 0, 1024, 512}).code, RenderOutcome::InvalidVersion);
+    QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
+    QCOMPARE(partial.version->tiles(layer).size(), 1);
+    QVERIFY(partial.version->tiles(hidden).isEmpty());
+    QCOMPARE(partial.version->tiles(layer)[0].coordinate, QPoint(1, 0));
+    QCOMPARE(readTile(partial.version, layer, {1, 0}), readTile(full, layer, {1, 0}));
+    QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
+    const auto reused = partialRenderer.recordRegion(*commands, document.snapshot(), region, {layer}, partial.version);
+    QCOMPARE(reused.version, partial.version);
+    const auto shifted = partialRenderer.recordRegion(*commands, document.snapshot(), {280, 140, 1, 1}, {layer}, partial.version);
+    QCOMPARE(shifted.code, RenderOutcome::Recorded);
+    QCOMPARE(partialRenderer.residentBytes(), qsizetype(TileRenderer::TileBytes));
+    auto expanded = partialRenderer.recordRegion(*commands, document.snapshot(), {256, 0, 512, 256}, {layer}, partial.version);
+    QCOMPARE(expanded.code, RenderOutcome::Recorded);
+    QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
+    QCOMPARE(expanded.version->tiles(layer).size(), 2);
+    QCOMPARE(partialRenderer.residentBytes(), qsizetype(2 * TileRenderer::TileBytes));
+    QCOMPARE(readTile(expanded.version, layer, {1, 0}), readTile(full, layer, {1, 0}));
+    QCOMPARE(readTile(expanded.version, layer, {2, 0}), readTile(full, layer, {2, 0}));
+    expanded.version.clear();
+    const auto edit = document.beginStroke(layer, brush, 456);
+    QCOMPARE(document.appendSamples(edit, {{{300, 140}, 0.75}}), Result::Success);
+    QCOMPARE(document.commitStroke(edit), Result::Success);
+    const auto editedFull = render(fullRenderer, document.snapshot(), full);
+    QVERIFY(editedFull);
+    QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
+    auto edited = partialRenderer.recordRegion(*commands, document.snapshot(), {256, 0, 512, 256}, {layer}, partial.version);
+    QCOMPARE(edited.code, RenderOutcome::Recorded);
+    QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
+    QCOMPARE(readTile(edited.version, layer, {1, 0}), readTile(editedFull, layer, {1, 0}));
+    QCOMPARE(readTile(edited.version, layer, {2, 0}), readTile(editedFull, layer, {2, 0}));
+    QCOMPARE(readTile(partial.version, layer, {1, 0}), readTile(full, layer, {1, 0}));
+    edited.version.clear();
+    QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
+    const auto raw = partialRenderer.recordRegion(*commands, document.snapshot(), {-1, -1, 1, 1}, {hidden}, partial.version);
+    QCOMPARE(raw.code, RenderOutcome::Recorded);
+    QCOMPARE(partialRenderer.compose(*commands, raw.version, {0, 0, 1, 1}).code, RenderOutcome::InvalidVersion);
+    const auto incomplete = partialRenderer.recordRegion(*commands, document.snapshot(), {0, 0, 1, 1}, {hidden});
+    QCOMPARE(incomplete.code, RenderOutcome::Recorded);
+    QCOMPARE(partialRenderer.compose(*commands, incomplete.version, {0, 0, 1, 1}).code, RenderOutcome::InvalidVersion);
+    QCOMPARE(partialRenderer.recordRegion(*commands, document.snapshot(), region, {layer, layer}).code, RenderOutcome::InvalidVersion);
+    QCOMPARE(partialRenderer.recordRegion(*commands, document.snapshot(), region, {999}).code, RenderOutcome::InvalidVersion);
+    QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
+    QCOMPARE(raw.version->tiles(hidden).size(), 1);
+    QCOMPARE(readTile(raw.version, hidden, {-1, -1}), offCanvas.rgba);
 }
 
 RenderedSnapshot KisGpuTileRendererTest::render(TileRenderer &renderer, const Snapshot &snapshot,

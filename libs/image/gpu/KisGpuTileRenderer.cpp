@@ -196,35 +196,83 @@ qsizetype TileRenderer::residentBytes() const { return m_d->budget->used; }
 
 RenderOutcome TileRenderer::record(QRhiCommandBuffer &commands, const Snapshot &document, const RenderedSnapshot &base)
 {
+    QList<LayerId> layers;
+    if (document) for (const auto &layer : document->layers) layers.append(layer.id);
+    return recordImpl(commands, document, base, std::nullopt, layers);
+}
+
+RenderOutcome TileRenderer::recordRegion(QRhiCommandBuffer &commands, const Snapshot &document,
+                                        QRect region, const QList<LayerId> &layers, const RenderedSnapshot &base)
+{
+    constexpr qint64 limit = qint64(OperationDocument::CoordinateLimit);
+    if (region.width() < 0 || region.height() < 0 || region.x() < -limit || region.y() < -limit ||
+        qint64(region.x()) + region.width() > limit || qint64(region.y()) + region.height() > limit) {
+        return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU tile region is outside the supported range")};
+    }
+    if (region.isEmpty()) return recordImpl(commands, document, base, QRect{}, layers);
+    const int left = int(std::floor(qreal(region.left()) / TileSize));
+    const int top = int(std::floor(qreal(region.top()) / TileSize));
+    const int right = int(std::floor(qreal(region.right()) / TileSize));
+    const int bottom = int(std::floor(qreal(region.bottom()) / TileSize));
+    return recordImpl(commands, document, base,
+                      QRect(left * TileSize, top * TileSize, (right - left + 1) * TileSize, (bottom - top + 1) * TileSize), layers);
+}
+
+RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapshot &document,
+                                      const RenderedSnapshot &base, std::optional<QRect> region,
+                                      const QList<LayerId> &layers)
+{
     auto &d = *m_d;
     if (d.rhi.thread() != QThread::currentThread() || !d.rhi.isRecordingFrame() || !document ||
         (base && (base->m_data->owner != d.budget || base->document()->documentId() != document->documentId()))) {
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU versions require their owning device and document")};
     }
     if (!d.error.isEmpty() || d.rhi.isDeviceLost()) return {RenderOutcome::DeviceFailure, {}, d.error};
-    if (base && base->document() == document) return {RenderOutcome::Recorded, base, {}};
+    QSet<LayerId> available, selected;
+    for (const auto &layer : document->layers) available.insert(layer.id);
+    for (const auto layer : layers) {
+        if (!available.contains(layer) || selected.contains(layer)) {
+            return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU tile layer is unavailable or repeated")};
+        }
+        selected.insert(layer);
+    }
+    if (base && base->document() == document && base->m_data->region == region && base->m_data->selected == selected)
+        return {RenderOutcome::Recorded, base, {}};
     auto data = std::make_shared<RenderedVersion::Data>();
     data->document = document;
     data->owner = d.budget;
+    data->region = region;
+    data->selected = selected;
+    const QRect canvas(QPoint(0, 0), document->size);
+    const QRect paintRegion = region ? region->intersected(canvas) : canvas;
     std::vector<Job> jobs;
     struct Checkpoint { qsizetype operation = 0; QSharedPointer<const RasterTile> pixels; };
     struct Upload { std::shared_ptr<Tile> tile; QByteArray rgba; };
     std::vector<Upload> uploads;
     for (const auto &layer : document->layers) {
+        if (!selected.contains(layer.id) || (region && region->isEmpty())) continue;
         qsizetype prefix = 0;
+        qsizetype reusedPrefix = 0;
+        QSet<quint64> reusedCoordinates;
         if (base) {
             for (const auto &old : base->document()->layers) {
                 if (old.id != layer.id) continue;
                 if (old.defaultPixel != layer.defaultPixel) break;
                 data->defaults[layer.id] = base->m_data->defaults.value(layer.id);
-                if (old.operations.size() > layer.operations.size()) break;
+                if (old.operations.size() > layer.operations.size() || !base->m_data->selected.contains(layer.id)) break;
                 bool matches = true;
                 for (qsizetype i = 0; i < old.operations.size(); ++i) {
                     if (old.operations[i] != layer.operations[i]) { matches = false; break; }
                 }
                 if (matches) {
-                    data->layers[layer.id] = base->m_data->layers.value(layer.id);
-                    prefix = old.operations.size();
+                    const auto &oldTiles = base->m_data->layers[layer.id];
+                    for (auto tile = oldTiles.cbegin(); tile != oldTiles.cend(); ++tile) {
+                        if (region && !region->intersects(QRect(coordinate(tile.key()) * TileSize, QSize(TileSize, TileSize)))) continue;
+                        data->layers[layer.id][tile.key()] = tile.value();
+                        reusedCoordinates.insert(tile.key());
+                    }
+                    reusedPrefix = old.operations.size();
+                    if (!base->m_data->region || (region && base->m_data->region->contains(*region))) prefix = reusedPrefix;
                 }
                 break;
             }
@@ -251,7 +299,10 @@ RenderOutcome TileRenderer::record(QRhiCommandBuffer &commands, const Snapshot &
             if (!write) continue;
             for (const auto &tile : (*write)->tiles) {
                 const auto point = tile->coordinate();
-                checkpoints[key(point.x(), point.y())] = {op, tile};
+                if (region && !region->intersects(QRect(point * TileSize, QSize(TileSize, TileSize)))) continue;
+                const auto coordinate = key(point.x(), point.y());
+                if (op < reusedPrefix && reusedCoordinates.contains(coordinate)) continue;
+                checkpoints[coordinate] = {op, tile};
                 if (checkpoints.size() > d.budget->limit / TileBytes) {
                     return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU checkpoint tile budget exhausted")};
                 }
@@ -273,7 +324,7 @@ RenderOutcome TileRenderer::record(QRhiCommandBuffer &commands, const Snapshot &
         }
         for (qsizetype op = prefix; op < layer.operations.size(); ++op) {
             const auto paint = std::get_if<PaintSnapshot>(&layer.operations[op]);
-            if (!paint) continue;
+            if (!paint || paintRegion.isEmpty()) continue;
             const auto &operation = **paint;
             const auto diameter = quint32(std::max<qint64>(1, std::llround(operation.brush.diameter * 16)));
             const auto step = quint32(std::max<qint64>(1, std::llround(operation.brush.diameter * operation.brush.spacing * 16)));
@@ -281,10 +332,10 @@ RenderOutcome TileRenderer::record(QRhiCommandBuffer &commands, const Snapshot &
             QMap<quint64, QList<Segment>> affected;
             const qint64 radius = (diameter + 31) / 32;
             for (const auto &segment : segments) {
-                const int left = int(std::max<qint64>(0, (std::min(segment.ax, segment.bx) / 16) - radius));
-                const int top = int(std::max<qint64>(0, (std::min(segment.ay, segment.by) / 16) - radius));
-                const int right = int(std::min<qint64>(document->size.width() - 1, (std::max(segment.ax, segment.bx) / 16) + radius));
-                const int bottom = int(std::min<qint64>(document->size.height() - 1, (std::max(segment.ay, segment.by) / 16) + radius));
+                const int left = int(std::max<qint64>(paintRegion.left() / TileSize * TileSize, (std::min(segment.ax, segment.bx) / 16) - radius));
+                const int top = int(std::max<qint64>(paintRegion.top() / TileSize * TileSize, (std::min(segment.ay, segment.by) / 16) - radius));
+                const int right = int(std::min<qint64>(qMin(document->size.width() - 1, (paintRegion.right() / TileSize + 1) * TileSize - 1), (std::max(segment.ax, segment.bx) / 16) + radius));
+                const int bottom = int(std::min<qint64>(qMin(document->size.height() - 1, (paintRegion.bottom() / TileSize + 1) * TileSize - 1), (std::max(segment.ay, segment.by) / 16) + radius));
                 if (right < left || bottom < top) continue;
                 for (int y = top / TileSize; y <= bottom / TileSize; ++y) {
                     qreal first = 0, last = 1;
@@ -303,6 +354,7 @@ RenderOutcome TileRenderer::record(QRhiCommandBuffer &commands, const Snapshot &
                     const int rowRight = std::min(right, int(std::ceil(std::max(a, b) + radius + 1)));
                     for (int x = rowLeft / TileSize; x <= rowRight / TileSize; ++x) {
                         const auto coordinate = key(x, y);
+                        if (op < reusedPrefix && reusedCoordinates.contains(coordinate)) continue;
                         const auto checkpoint = checkpoints.constFind(coordinate);
                         if (checkpoint != checkpoints.cend() && op < checkpoint->operation) continue;
                         affected[coordinate].append(segment);

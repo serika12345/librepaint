@@ -8,6 +8,7 @@
 
 #include "KisGpuTileRenderer.h"
 #include <QMap>
+#include <QSet>
 #include <rhi/qrhi.h>
 
 namespace Krita::Image::Gpu::Detail {
@@ -47,6 +48,8 @@ struct RenderedVersion::Data
     std::shared_ptr<Detail::Budget> owner;
     QMap<LayerId, Detail::Tiles> layers;
     QMap<LayerId, std::shared_ptr<Detail::Tile>> defaults;
+    std::optional<QRect> region;
+    QSet<LayerId> selected;
 };
 
 struct ProjectedVersion::Data

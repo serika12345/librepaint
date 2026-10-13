@@ -65,10 +65,16 @@ ProjectionOutcome TileRenderer::compose(QRhiCommandBuffer &commands, const Rende
     auto data = std::make_shared<ProjectedVersion::Data>();
     data->source = document;
     data->region = region.intersected(QRect(QPoint(0, 0), document->document()->size));
+    if (document->m_data->region && !data->region.isEmpty() && !document->m_data->region->contains(data->region)) {
+        return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Projection extends outside the generated GPU region")};
+    }
     QSet<quint64> coordinates;
     bool implicit = false;
     for (const auto &layer : document->document()->layers) {
         if (!layer.visible) continue;
+        if (!document->m_data->selected.contains(layer.id)) {
+            return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Projection requires every visible GPU layer")};
+        }
         implicit = implicit || bool(document->m_data->defaults.value(layer.id));
         const auto &tiles = document->m_data->layers[layer.id];
         for (auto tile = tiles.cbegin(); tile != tiles.cend(); ++tile) {
