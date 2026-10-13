@@ -313,6 +313,33 @@ GPUの終了後も利用できるCPU画素の寿命を検査する。
 固定した入力とブラシ設定の照合値は試験ソースが所有し、MetalとVulkanで同じ値を要求する。
 Linuxの実行にはVulkanに対応するQt画面プラグインを使う。画面を持たない検証は
 独立したXvfbのX11画面を用意して`QT_QPA_PLATFORM=xcb`で実行する。
+
+### GPU連続入力の処理時間
+
+`KisGpuInteractiveFrameBenchmark`は、250筆の背景を持つ2048×2048文書の
+512×512表示領域へ、筆圧の変化する入力を追加して処理時間を測る。
+対象を明示して構築し、macOSでは次のように実行する。
+
+```sh
+./scripts/run-shared-test-env ./scripts/build-incremental native build KisGpuInteractiveFrameBenchmark
+./scripts/run-shared-test-env env QT_QPA_PLATFORM=cocoa \
+  build/tdd-macos/bin/KisGpuInteractiveFrameBenchmark.app/Contents/MacOS/KisGpuInteractiveFrameBenchmark \
+  --output gpu-frame.json --maximum-p95-ms 8.3
+```
+
+Linuxでは対応する実行ファイル`build/tdd-linux/bin/KisGpuInteractiveFrameBenchmark`を
+`QT_QPA_PLATFORM=xcb`で実行する。既定値は予備32フレームと測定240フレームで、
+`--warmup`、`--frames`、`--history-strokes`で変更できる。
+JSONには実際のGPU、表示面の画素数、CPUの入力処理から描画送信までの各測定値、
+最後に完了したGPUフレームの時間、各P95、タイル保持量と最終合成画像のSHA-256を記録する。
+同じ設定の改善前後では最終画像の照合値を一致させる。
+
+垂直同期を解除し、イベント処理と最終画像の読取りを測定区間の外へ置く。
+GPU時間は[Qtの完了済みフレームの測定](https://doc.qt.io/qt-6/qrhicommandbuffer.html#lastCompletedGpuTime)
+を使うため、現在のCPU測定と同じフレームとは限らない。
+上限指定時はCPUまたはGPUのP95超過、GPU測定値の欠落で終了値2を返す。
+これは処理費用の比較用であり、通常画面の240Hz入力、60Hz／120Hz表示、
+入力から実表示までの受入れ検証は、対象機器で別途実施する。
 試験の画面外フレームは画素の読取り完了を保証する。通常表示は表示フレームの命令列へ計算を連結する。
 
 ## デスクトップ
