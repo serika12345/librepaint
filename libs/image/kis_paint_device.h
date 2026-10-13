@@ -74,6 +74,7 @@ class KRITAIMAGE_EXPORT KisPaintDevice
 public:
 
     /** Creates a GUI-thread RGBA8/sRGB view for native byte pixel access.
+     * Layer zero provides the read-only image projection.
      * Retains the shared GPU image until the last device reference is released.
      * Invalid or closed images and unavailable layers throw std::invalid_argument.
      */

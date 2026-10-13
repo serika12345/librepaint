@@ -20,8 +20,8 @@
 #include <KisGlobalResourcesInterface.h>
 #include <kis_default_bounds.h>
 #include <kis_image.h>
+#include <kis_node.h>
 #include <kis_paint_device.h>
-#include <kis_paint_layer.h>
 #include <Krita.h>
 #include <Node.h>
 
@@ -58,9 +58,8 @@ private Q_SLOTS:
         auto image = Gpu::PaintImageSP::create(execution, QSize(64, 64));
         const auto layerId = image->operations().activeLayer();
         const QRect transferRegion(0, 0, Gpu::RgbaTile::Size, Gpu::RgbaTile::Size);
-        auto gpuPixels = KisPaintDevice::fromGpuImage(image, layerId);
-        KisNodeSP layer = new KisPaintLayer(KisImageWSP(), QStringLiteral("External pixels"), 255, gpuPixels);
-        NodeSP node(Node::createNode(KisImageSP(), layer));
+        auto publicImage = KisImage::fromGpuImage(image, QStringLiteral("External image"));
+        NodeSP node(Node::createNode(publicImage, publicImage->root()->firstChild()));
         auto originalBgra = original;
         for (qsizetype i = 0; i < originalBgra.size(); i += 4) std::swap(originalBgra[i], originalBgra[i + 2]);
         QVERIFY(node->setPixelData(originalBgra, 0, 0, Gpu::RgbaTile::Size, Gpu::RgbaTile::Size));

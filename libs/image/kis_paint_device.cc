@@ -1120,7 +1120,7 @@ KisPaintDeviceSP KisPaintDevice::fromGpuImage(LibrePaint::Image::Gpu::PaintImage
 {
     if (!image || !image->handle() || QThread::currentThread() != image->thread())
         throw std::invalid_argument("GPU paint-device construction requires an open image on its owning thread");
-    bool found = false;
+    bool found = layer == 0;
     for (const auto &value : image->operations().snapshot()->layers) found |= value.id == layer;
     if (!found) throw std::invalid_argument("GPU paint-device layer is unavailable");
     return new KisPaintDevice(std::move(image), layer, name);
@@ -1605,6 +1605,10 @@ void KisPaintDevice::setDefaultPixel(const KoColor &defPixel)
 {
     KoColor color(defPixel);
     color.convertTo(colorSpace());
+    if (m_d->gpuImage) {
+        if (color == defaultPixel()) return;
+        throw std::logic_error("Default pixel changes are unavailable for this GPU pixel view");
+    }
 
     m_d->dataManager()->setDefaultPixel(color.data());
     m_d->cache()->invalidate();
@@ -1613,6 +1617,7 @@ void KisPaintDevice::setDefaultPixel(const KoColor &defPixel)
 KoColor KisPaintDevice::defaultPixel() const
 {
     if (m_d->gpuImage) {
+        if (!m_d->gpuLayer) return KoColor::createTransparent(colorSpace());
         for (const auto &layer : m_d->gpuImage->operations().snapshot()->layers) {
             if (layer.id != m_d->gpuLayer) continue;
             const auto &rgba = layer.defaultPixel;
@@ -2131,6 +2136,7 @@ void KisPaintDevice::writeBytes(const quint8 *data, const QRect &rect)
 {
     if (m_d->gpuImage) {
         if (rect.isEmpty()) return;
+        if (!m_d->gpuLayer) throw std::logic_error("GPU image projection is read-only");
         const auto count = gpuPixelByteCount(rect);
         QByteArray rgba(reinterpret_cast<const char *>(data), qsizetype(count));
         for (qsizetype i = 0; i < rgba.size(); i += 4) std::swap(rgba[i], rgba[i + 2]);

@@ -79,6 +79,8 @@
 
 #include "kis_image_config.h"
 #include "kis_update_scheduler.h"
+#include "gpu/KisGpuPaintImage.h"
+#include <stdexcept>
 #include "kis_image_signal_router.h"
 #include "kis_image_animation_interface.h"
 #include "kis_keyframe_channel.h"
@@ -158,7 +160,8 @@ public:
     KisImagePrivate(KisImage *_q, qint32 w, qint32 h,
                     const KoColorSpace *c,
                     KisUndoStore *undo,
-                    KisImageAnimationInterface *_animationInterface)
+                    KisImageAnimationInterface *_animationInterface,
+                    LibrePaint::Image::Gpu::PaintImageSP gpu = {})
         : q(_q)
         , lockedForReadOnly(false)
         , width(w)
@@ -172,24 +175,25 @@ public:
         , postExecutionUndoAdapter(undoStore.data(), _q)
         , signalRouter(_q)
         , animationInterface(_animationInterface)
-        , scheduler(_q, _q)
+        , gpuImage(std::move(gpu))
+        , scheduler(gpuImage ? nullptr : new KisUpdateScheduler(_q, _q))
         , axesCenter(QPointF(0.5, 0.5))
     {
-        {
+        if (scheduler) {
             KisImageConfig cfg(true);
             if (cfg.enableProgressReporting()) {
-                scheduler.setProgressProxy(&compositeProgressProxy);
+                cpuScheduler().setProgressProxy(&compositeProgressProxy);
             }
 
             // Each of these lambdas defines a new factory function.
-            scheduler.setLod0ToNStrokeStrategyFactory(
+            cpuScheduler().setLod0ToNStrokeStrategyFactory(
                 [=](bool forgettable) {
                     return KisLodSyncPair(
                         new KisSyncLodCacheStrokeStrategy(KisImageWSP(q), forgettable),
                         KisSyncLodCacheStrokeStrategy::createJobsData(KisImageWSP(q)));
                 });
 
-            scheduler.setSuspendResumeUpdatesStrokeStrategyFactory(
+            cpuScheduler().setSuspendResumeUpdatesStrokeStrategyFactory(
                 [=]() {
                     KisSuspendProjectionUpdatesStrokeStrategy::SharedDataSP data = KisSuspendProjectionUpdatesStrokeStrategy::createSharedData();
 
@@ -201,12 +205,12 @@ public:
                     return std::make_pair(suspend, resume);
                 });
 
-            scheduler.setPurgeRedoStateCallback(
+            cpuScheduler().setPurgeRedoStateCallback(
                         [this] () {
                 undoStore->purgeRedoState();
             });
 
-            scheduler.setPostSyncLod0GUIPlaneRequestForResumeCallback(
+            cpuScheduler().setPostSyncLod0GUIPlaneRequestForResumeCallback(
                         [this] () {
 
                 KIS_SAFE_ASSERT_RECOVER_NOOP(q->currentLevelOfDetail() == 0);
@@ -308,7 +312,13 @@ public:
     QStack<KisProjectionUpdatesFilterCookie> disabledUpdatesCookies;
     KisImageSignalRouter signalRouter;
     KisImageAnimationInterface *animationInterface;
-    KisUpdateScheduler scheduler;
+    LibrePaint::Image::Gpu::PaintImageSP gpuImage;
+    std::unique_ptr<KisUpdateScheduler> scheduler;
+    KisUpdateScheduler &cpuScheduler() const
+    {
+        if (!scheduler) throw std::logic_error("CPU stroke execution is unavailable for this GPU image view");
+        return *scheduler;
+    }
     QAtomicInt disableDirtyRequests;
 
     KisCompositeProgressProxy compositeProgressProxy;
@@ -372,6 +382,21 @@ KisImage::~KisImage()
 
     delete m_d;
     disconnect(); // in case Qt gets confused
+}
+
+KisImage::KisImage(LibrePaint::Image::Gpu::PaintImageSP image, const QString &name)
+    : m_d(new KisImagePrivate(this, image->operations().snapshot()->size.width(),
+                              image->operations().snapshot()->size.height(),
+                              KoColorSpaceRegistry::instance()->rgb8(), nullptr,
+                              new KisImageAnimationInterface(this), image))
+{
+    setObjectName(name);
+    setRootLayer(new KisGroupLayer(this, QStringLiteral("root"), OPACITY_OPAQUE_U8));
+}
+
+LibrePaint::Image::Gpu::PaintImageSP KisImage::gpuImage() const
+{
+    return m_d->gpuImage;
 }
 
 KisImageSP KisImage::fromQImage(const QImage &image, KisUndoStore *undoStore)
@@ -794,7 +819,7 @@ void KisImage::barrierLock(bool readOnly)
     if (!locked()) {
         requestStrokeEnd();
         KisBusyWaitBroker::instance()->notifyWaitOnImageStarted(this);
-        m_d->scheduler.barrierLock();
+        if (m_d->scheduler) m_d->cpuScheduler().barrierLock();
         KisBusyWaitBroker::instance()->notifyWaitOnImageEnded(this);
         m_d->lockedForReadOnly = readOnly;
     } else {
@@ -809,7 +834,7 @@ bool KisImage::tryBarrierLock(bool readOnly)
     bool result = true;
 
     if (!locked()) {
-        result = m_d->scheduler.tryBarrierLock();
+        result = !m_d->scheduler || m_d->cpuScheduler().tryBarrierLock();
         m_d->lockedForReadOnly = readOnly;
     }
 
@@ -823,7 +848,8 @@ bool KisImage::tryBarrierLock(bool readOnly)
 
 bool KisImage::isIdle(bool allowLocked)
 {
-    return (allowLocked || !locked()) && m_d->scheduler.isIdle();
+    return (allowLocked || !locked()) && (m_d->gpuImage ?
+        !m_d->gpuImage->operations().hasActiveStroke() : m_d->cpuScheduler().isIdle());
 }
 
 void KisImage::immediateLockForReadOnly()
@@ -831,7 +857,7 @@ void KisImage::immediateLockForReadOnly()
     if (!locked()) {
         requestStrokeEnd();
         KisBusyWaitBroker::instance()->notifyWaitOnImageStarted(this);
-        m_d->scheduler.immediateLockForReadOnly();
+        if (m_d->scheduler) m_d->cpuScheduler().immediateLockForReadOnly();
         KisBusyWaitBroker::instance()->notifyWaitOnImageEnded(this);
     }
     m_d->lockCount++;
@@ -846,19 +872,19 @@ void KisImage::unlock()
         m_d->lockCount--;
 
         if (m_d->lockCount == 0) {
-            m_d->scheduler.unlock(!m_d->lockedForReadOnly);
+            if (m_d->scheduler) m_d->cpuScheduler().unlock(!m_d->lockedForReadOnly);
         }
     }
 }
 
 void KisImage::blockUpdates()
 {
-    m_d->scheduler.blockUpdates();
+    if (m_d->scheduler) m_d->cpuScheduler().blockUpdates();
 }
 
 void KisImage::unblockUpdates()
 {
-    m_d->scheduler.unblockUpdates();
+    if (m_d->scheduler) m_d->cpuScheduler().unblockUpdates();
 }
 
 void KisImage::setSize(const QSize& size)
@@ -1852,7 +1878,7 @@ KisPostExecutionUndoAdapter* KisImage::postExecutionUndoAdapter() const
 {
     const int lod = currentLevelOfDetail();
     return lod > 0 ?
-        m_d->scheduler.lodNPostExecutionUndoAdapter() :
+        m_d->cpuScheduler().lodNPostExecutionUndoAdapter() :
         &m_d->postExecutionUndoAdapter;
 }
 
@@ -1990,7 +2016,7 @@ void KisImage::waitForDone()
 {
     requestStrokeEnd();
     KisBusyWaitBroker::instance()->notifyWaitOnImageStarted(this);
-    m_d->scheduler.waitForDone();
+    if (m_d->scheduler) m_d->cpuScheduler().waitForDone();
     KisBusyWaitBroker::instance()->notifyWaitOnImageEnded(this);
 }
 
@@ -2007,7 +2033,7 @@ KisStrokeId KisImage::startStroke(KisStrokeStrategy *strokeStrategy)
         requestStrokeEnd();
     }
 
-    return m_d->scheduler.startStroke(strokeStrategy);
+    return m_d->cpuScheduler().startStroke(strokeStrategy);
 }
 
 void KisImage::KisImagePrivate::notifyProjectionUpdatedInPatches(const QRect &rc, QVector<KisRunnableStrokeJobData*> &jobs)
@@ -2192,22 +2218,22 @@ bool KisImage::isIsolatingGroup() const
 void KisImage::addJob(KisStrokeId id, KisStrokeJobData *data)
 {
     KisUpdateTimeMonitor::instance()->reportJobStarted(data);
-    m_d->scheduler.addJob(id, data);
+    m_d->cpuScheduler().addJob(id, data);
 }
 
 void KisImage::endStroke(KisStrokeId id)
 {
-    m_d->scheduler.endStroke(id);
+    m_d->cpuScheduler().endStroke(id);
 }
 
 bool KisImage::cancelStroke(KisStrokeId id)
 {
-    return m_d->scheduler.cancelStroke(id);
+    return m_d->cpuScheduler().cancelStroke(id);
 }
 
 bool KisImage::KisImagePrivate::tryCancelCurrentStrokeAsync()
 {
-    return scheduler.tryCancelCurrentStrokeAsync();
+    return scheduler && cpuScheduler().tryCancelCurrentStrokeAsync();
 }
 
 void KisImage::requestUndoDuringStroke()
@@ -2229,7 +2255,7 @@ void KisImage::requestStrokeCancellation()
 
 UndoResult KisImage::tryUndoUnfinishedLod0Stroke()
 {
-    return m_d->scheduler.tryUndoLastStrokeAsync();
+    return m_d->scheduler ? m_d->cpuScheduler().tryUndoLastStrokeAsync() : UNDO_FAIL;
 }
 
 void KisImage::requestStrokeEnd()
@@ -2256,6 +2282,10 @@ void KisImage::initialRefreshGraph()
 
 void KisImage::refreshGraphAsync(KisNodeSP root, const QVector<QRect> &rects, const QRect &cropRect, KisProjectionUpdateFlags flags)
 {
+    if (m_d->gpuImage) {
+        for (const auto &rect : rects) notifyProjectionUpdated(rect);
+        return;
+    }
     if (!root) root = m_d->rootLayer;
 
     QVector<QRect> requestedRects = rects;
@@ -2309,17 +2339,17 @@ void KisImage::refreshGraphAsync(KisNodeSP root, const QVector<QRect> &rects, co
         m_d->animationInterface->notifyNodeChanged(root.data(), requestedRects, true);
     }
 
-    m_d->scheduler.fullRefreshAsync(root, requestedRects, cropRect, flags);
+    m_d->cpuScheduler().fullRefreshAsync(root, requestedRects, cropRect, flags);
 }
 
 void KisImage::addSpontaneousJob(KisSpontaneousJob *spontaneousJob)
 {
-    m_d->scheduler.addSpontaneousJob(spontaneousJob);
+    m_d->cpuScheduler().addSpontaneousJob(spontaneousJob);
 }
 
 bool KisImage::hasUpdatesRunning() const
 {
-    return m_d->scheduler.hasUpdatesRunning();
+    return m_d->scheduler && m_d->cpuScheduler().hasUpdatesRunning();
 }
 
 KisProjectionUpdatesFilterCookie KisImage::addProjectionUpdatesFilter(KisProjectionUpdatesFilterSP filter)
@@ -2417,12 +2447,12 @@ void KisImage::notifyProjectionUpdated(const QRect &rc)
 
 void KisImage::setWorkingThreadsLimit(int value)
 {
-    m_d->scheduler.setThreadsLimit(value);
+    if (m_d->scheduler) m_d->cpuScheduler().setThreadsLimit(value);
 }
 
 int KisImage::workingThreadsLimit() const
 {
-    return m_d->scheduler.threadsLimit();
+    return m_d->scheduler ? m_d->cpuScheduler().threadsLimit() : 1;
 }
 
 void KisImage::notifySelectionChanged()
@@ -2454,7 +2484,11 @@ void KisImage::KisImagePrivate::
 {
     if (rects.isEmpty()) return;
 
-    scheduler.updateProjection(node, rects, cropRect, flags);
+    if (gpuImage) {
+        for (const auto &rect : rects) q->notifyProjectionUpdated(rect);
+        return;
+    }
+    cpuScheduler().updateProjection(node, rects, cropRect, flags);
 }
 
 void KisImage::requestProjectionUpdate(KisNode *node, const QVector<QRect> &rects, KisProjectionUpdateFlags flags)
@@ -2633,32 +2667,33 @@ bool KisImage::wrapAroundModePermitted() const
 
 bool KisImage::wrapAroundModeActive() const
 {
-    return m_d->wrapAroundModePermitted &&
-        m_d->scheduler.wrapAroundModeSupported();
+    return m_d->scheduler && m_d->wrapAroundModePermitted &&
+        m_d->cpuScheduler().wrapAroundModeSupported();
 }
 
 int KisImage::currentLevelOfDetail() const
 {
-    return m_d->scheduler.currentLevelOfDetail();
+    return m_d->scheduler ? m_d->cpuScheduler().currentLevelOfDetail() : 0;
 }
 
 void KisImage::explicitRegenerateLevelOfDetail()
 {
-    const KisLodPreferences pref = m_d->scheduler.lodPreferences();
+    if (!m_d->scheduler) return;
+    const KisLodPreferences pref = m_d->cpuScheduler().lodPreferences();
 
     if (pref.lodSupported() && pref.lodPreferred()) {
-        m_d->scheduler.explicitRegenerateLevelOfDetail();
+        m_d->cpuScheduler().explicitRegenerateLevelOfDetail();
     }
 }
 
 void KisImage::setLodPreferences(const KisLodPreferences &value)
 {
-    m_d->scheduler.setLodPreferences(value);
+    if (m_d->scheduler) m_d->cpuScheduler().setLodPreferences(value);
 }
 
 KisLodPreferences KisImage::lodPreferences() const
 {
-    return m_d->scheduler.lodPreferences();
+    return m_d->scheduler ? m_d->cpuScheduler().lodPreferences() : KisLodPreferences{};
 }
 
 void KisImage::nodeCollapsedChanged(KisNode * node)

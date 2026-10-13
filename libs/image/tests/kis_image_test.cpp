@@ -7,6 +7,7 @@
 #include "kis_image_test.h"
 #include <QApplication>
 #include <QSignalSpy>
+#include <QPointer>
 
 #include <simpletest.h>
 
@@ -18,6 +19,8 @@
 #include "filter/kis_filter_registry.h"
 
 #include "kis_image.h"
+#include "gpu/KisGpuPaintImage.h"
+#include "gpu/KisGpuExecution.h"
 #include "kis_paint_layer.h"
 #include "kis_group_layer.h"
 #include "kis_adjustment_layer.h"
@@ -41,6 +44,114 @@
 
 #define IMAGE_WIDTH 128
 #define IMAGE_HEIGHT 128
+
+void KisImageTest::testGpuImageNotificationLifetime_data()
+{
+    QTest::addColumn<int>("notification");
+    QTest::newRow("layer-added") << 0;
+    QTest::newRow("modified") << 1;
+    QTest::newRow("projection-updated") << 2;
+}
+
+void KisImageTest::testGpuImageNotificationLifetime()
+{
+    QFETCH(int, notification);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(16, 16));
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Notification lifetime"));
+    QPointer<KisImage> guard(image.data());
+    bool retainedDuringDelivery = false;
+    const auto release = [&] {
+        image.clear();
+        retainedDuringDelivery = bool(guard);
+    };
+    if (notification == 0) connect(image.data(), &KisImage::sigNodeAddedAsync, this, release);
+    if (notification == 1) connect(image.data(), &KisImage::sigImageModified, this, release);
+    if (notification == 2) connect(image.data(), &KisImage::sigImageUpdated, this, release);
+    QVERIFY(owner->addLayer(QStringLiteral("Added")));
+    QVERIFY(retainedDuringDelivery);
+    QVERIFY(image.isNull());
+    QVERIFY(!guard);
+    QVERIFY(execution.requested(owner->handle()));
+}
+
+void KisImageTest::testGpuImagePublishesLayersProjectionAndSharedLifetime()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 32));
+    const auto handle = owner->handle();
+    const auto bottomId = owner->operations().activeLayer();
+    QCOMPARE(owner->writeRgbaPixels(bottomId, QRect(8, 12, 1, 1), QByteArray::fromHex("115bcbff")), Gpu::Result::Success);
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("GPU image"));
+    QCOMPARE(image->bounds(), QRect(0, 0, 64, 32));
+    QCOMPARE(image->colorSpace(), KoColorSpaceRegistry::instance()->rgb8());
+    QCOMPARE(image->gpuImage(), owner);
+    QCOMPARE(image->root()->childCount(), 1U);
+    KisNodeSP bottom = image->root()->firstChild();
+    QCOMPARE(bottom->uuid(), owner->operations().snapshot()->layers.front().uuid);
+    QByteArray pixel(4, Qt::Uninitialized);
+    image->projection()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 8, 12, 1, 1);
+    QCOMPARE(pixel, QByteArray::fromHex("cb5b11ff"));
+    QSignalSpy nodeChanges(image.data(), &KisImage::sigNodeChanged);
+    const auto stroke = owner->beginStroke(bottomId, Gpu::Brush{}, 7);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(owner->appendSamples(stroke, {{{20, 20}, 1}}), Gpu::Result::Success);
+    QVERIFY(!image->isIdle());
+    QCOMPARE(owner->cancelStroke(stroke), Gpu::Result::Success);
+    QVERIFY(nodeChanges.isEmpty());
+    QSignalSpy updates(image.data(), &KisImage::sigImageUpdated);
+    const auto topId = owner->addLayer(QStringLiteral("Top"));
+    QVERIFY(topId);
+    QCOMPARE(image->root()->childCount(), 2U);
+    QCOMPARE(image->root()->lastChild()->name(), QStringLiteral("Top"));
+    QCOMPARE(owner->replaceRgbaPixels(topId, QRect(8, 12, 1, 1), QByteArray::fromHex("ed2713ff")), Gpu::Result::Success);
+    image->projection()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 8, 12, 1, 1);
+    QCOMPARE(pixel, QByteArray::fromHex("1327edff"));
+    QCOMPARE(owner->setLayerVisible(topId, false), Gpu::Result::Success);
+    QVERIFY(!image->root()->lastChild()->visible());
+    image->refreshGraphAsync();
+    image->waitForDone();
+    image->projection()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 8, 12, 1, 1);
+    QCOMPARE(pixel, QByteArray::fromHex("cb5b11ff"));
+    QCOMPARE(owner->renameLayer(bottomId, QStringLiteral("Bottom")), Gpu::Result::Success);
+    QCOMPARE(image->root()->firstChild(), bottom);
+    QCOMPARE(bottom->name(), QStringLiteral("Bottom"));
+    QCOMPARE(owner->moveLayer(bottomId, 1), Gpu::Result::Success);
+    QCOMPARE(image->root()->lastChild(), bottom);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(image->root()->firstChild(), bottom);
+    QVERIFY(!updates.isEmpty());
+    image->barrierLock();
+    QVERIFY(image->locked());
+    QVERIFY(image->tryBarrierLock());
+    image->unlock();
+    QVERIFY(image->locked());
+    image->unlock();
+    QVERIFY(image->isIdle());
+    QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+    QSignalSpy modifications(image.data(), &KisImage::sigImageModified);
+    nodeChanges.clear();
+    QCOMPARE(owner->replaceRgbaPixels(bottomId, QRect(5, 5, 1, 1), QByteArray::fromHex("010203ff")), Gpu::Result::Success);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QVERIFY(!owner->operations().isModified());
+    QCOMPARE(modifications.size(), 2);
+    QVERIFY(nodeChanges.isEmpty());
+    owner.clear();
+    image.clear();
+    QVERIFY(execution.requested(handle));
+    bottom->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 8, 12, 1, 1);
+    QCOMPARE(pixel, QByteArray::fromHex("cb5b11ff"));
+    bottom.clear();
+    QVERIFY(!execution.requested(handle));
+}
 
 void KisImageTest::layerTests()
 {

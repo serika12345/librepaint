@@ -210,6 +210,12 @@ void KisGroupLayer::fillMergedLayerTemplate(KisLayerSP dstLayer, KisLayerSP prev
 
 void KisGroupLayer::resetCache(const KoColorSpace *colorSpace)
 {
+    if (const auto owner = image() ? image()->gpuImage() : nullptr) {
+        m_d->paintDevice = KisPaintDevice::fromGpuImage(owner, 0);
+        m_d->paintDevice->setDefaultBounds(new KisDefaultBounds(image()));
+        m_d->paintDevice->setProjectionDevice(true);
+        return;
+    }
     if (!colorSpace)
         colorSpace = image()->colorSpace();
 
@@ -281,6 +287,7 @@ KisPaintDeviceSP KisGroupLayer::tryObligeChild() const
 
 std::tuple<KisPaintDeviceSP, bool> KisGroupLayer::originalImpl() const
 {
+    if (image() && image()->gpuImage()) return {m_d->paintDevice, true};
     /**
      * We are too lazy! Let's our children work for us.
      * Try to use children's paintDevice if it's the only

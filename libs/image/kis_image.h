@@ -42,6 +42,7 @@ class KUndo2MagicString;
 class KisProofingConfiguration;
 class KisPaintDevice;
 class KisImageGlobalSelectionManagementInterface;
+namespace LibrePaint::Image::Gpu { class PaintImage; }
 
 namespace KisMetaData
 {
@@ -71,6 +72,12 @@ public:
     ~KisImage() override;
 
     static KisImageSP fromQImage(const QImage &image, KisUndoStore *undoStore);
+    /** GUI-thread image view of shared RGBA8/sRGB layers and GPU projection.
+     * The execution owner outlives this image and retained pixel devices.
+     * Invalid or closed images throw std::invalid_argument.
+     */
+    static KisImageSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name);
+    QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuImage() const;
 
 public: // KisNodeGraphListener implementation
 
@@ -1244,6 +1251,8 @@ public Q_SLOTS:
 
 private:
 
+    KisImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name);
+    void synchronizeGpuNodes();
     KisImage(const KisImage& rhs, KisUndoStore *undoStore, bool exactCopy);
     KisImage& operator=(const KisImage& rhs);
 

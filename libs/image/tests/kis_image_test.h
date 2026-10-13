@@ -17,6 +17,9 @@ class KisImageTest : public QObject
 private Q_SLOTS:
 
     void layerTests();
+    void testGpuImagePublishesLayersProjectionAndSharedLifetime();
+    void testGpuImageNotificationLifetime_data();
+    void testGpuImageNotificationLifetime();
     void benchmarkCreation();
     void testBlockLevelOfDetail();
     void testConvertImageColorSpace();

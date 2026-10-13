@@ -129,6 +129,9 @@ kis_add_tests(
     LINK_LIBRARIES kritaimage kritatestsdk kritaresourcestorage
     )
 
+# Color conversion contracts use a registered blur adjustment layer.
+add_dependencies(kis_image_test kritablurfilter)
+
 kis_add_test(
     KisTimeSpanContractTest.cpp
     LINK_LIBRARIES
