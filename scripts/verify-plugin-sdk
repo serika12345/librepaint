@@ -37,8 +37,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--build", required=True, type=Path)
     parser.add_argument("--work", type=Path)
+    parser.add_argument("--tool", type=Path, default=ROOT / "scripts/plugin-sdk")
     arguments = parser.parse_args()
     build = arguments.build.resolve()
+    tool = str(arguments.tool.resolve())
+    sdk_environment = {key: value for key, value in os.environ.items()
+                       if not key.startswith(("NIX_CFLAGS_COMPILE", "NIX_LDFLAGS"))}
     work = arguments.work.resolve() if arguments.work else Path(tempfile.mkdtemp(prefix="librepaint-sdk-contract-"))
     if work.is_relative_to(ROOT) or work.is_relative_to(build):
         raise RuntimeError("SDK verification uses a work directory outside the application source and build trees")
@@ -55,7 +59,7 @@ def main() -> None:
     ]
     before = {str(path): (path.stat().st_mtime_ns, digest(path)) for path in application_libraries}
     sdk = work / "sdk"
-    run([str(ROOT / "scripts/plugin-sdk"), "package", "--build", str(build), "--output", str(sdk)], work / "package.log")
+    run([tool, "package", "--build", str(build), "--output", str(sdk)], work / "package.log", env=sdk_environment)
     for header in (sdk / "include").rglob("*.h"):
         data = header.read_bytes()
         if str(ROOT).encode() in data or str(build).encode() in data:
@@ -69,14 +73,14 @@ def main() -> None:
         source = work / category / "source"
         shutil.copytree(ROOT / relative, source)
         original = {path.relative_to(source).as_posix(): digest(path) for path in source.rglob("*") if path.is_file()}
-        run([str(ROOT / "scripts/plugin-sdk"), "build", "--sdk", str(sdk), "--source", str(source),
-             "--build", str(work / category / "build"), "--output", str(work / category / "output")], work / f"{category}-build.log")
+        run([tool, "build", "--sdk", str(sdk), "--source", str(source),
+             "--build", str(work / category / "build"), "--output", str(work / category / "output")], work / f"{category}-build.log", env=sdk_environment)
         if any(digest(source / relative) != expected for relative, expected in original.items()):
             raise RuntimeError(f"Rebuilding modified the {category} plugin sources")
         commands = json.loads((work / category / "build/compile_commands.json").read_text())
         if any(str(ROOT) in entry["command"] or str(build) in entry["command"] for entry in commands):
             raise RuntimeError(f"The {category} plugin still depends on the application's source or build tree")
-        run([str(ROOT / "scripts/plugin-sdk"), "check", "--sdk", str(sdk), "--output", str(work / category / "output")], work / f"{category}-check.log")
+        run([tool, "check", "--sdk", str(sdk), "--output", str(work / category / "output")], work / f"{category}-check.log", env=sdk_environment)
         print(f"Unchanged {category} plugin rebuilt with the standalone SDK", flush=True)
     contract_source = work / "contract/source"
     shutil.copytree(ROOT / "sdk/contracts/filter", contract_source)
@@ -84,8 +88,8 @@ def main() -> None:
     contract_build = work / "contract/build"
     run(["cmake", "-S", str(contract_source), "-B", str(contract_build), "-G", "Ninja",
          "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON", "-DLibrePaintSDK_DIR=" + str(config),
-         "-DCMAKE_TOOLCHAIN_FILE=" + str(config / "LibrePaintSDKToolchain.cmake")], work / "contract-configure.log")
-    run(["cmake", "--build", str(contract_build), "--parallel", "2"], work / "contract-build.log")
+         "-DCMAKE_TOOLCHAIN_FILE=" + str(config / "LibrePaintSDKToolchain.cmake")], work / "contract-configure.log", env=sdk_environment)
+    run(["cmake", "--build", str(contract_build), "--parallel", "2"], work / "contract-build.log", env=sdk_environment)
     plugin = work / "filter/output/lib/librepaint/plugins/kritaroundcornersfilter.so"
     environment = os.environ | {
         "QT_QPA_PLATFORM": "cocoa" if platform.system() == "Darwin" else "xcb",
@@ -100,9 +104,9 @@ def main() -> None:
     edited_source = work / "filter/source/kis_round_corners_filter.cpp"
     edited_source.write_bytes(edited_source.read_bytes() + b"\n")
     edited_output = work / "filter/output-edited"
-    run([str(ROOT / "scripts/plugin-sdk"), "build", "--sdk", str(sdk), "--source", str(edited_source.parent),
-         "--build", str(work / "filter/build"), "--output", str(edited_output)], work / "filter-edited-build.log")
-    run([str(ROOT / "scripts/plugin-sdk"), "check", "--sdk", str(sdk), "--output", str(edited_output)], work / "filter-edited-check.log")
+    run([tool, "build", "--sdk", str(sdk), "--source", str(edited_source.parent),
+         "--build", str(work / "filter/build"), "--output", str(edited_output)], work / "filter-edited-build.log", env=sdk_environment)
+    run([tool, "check", "--sdk", str(sdk), "--output", str(edited_output)], work / "filter-edited-check.log", env=sdk_environment)
     after = {str(path): (path.stat().st_mtime_ns, digest(path)) for path in application_libraries}
     if before != after:
         raise RuntimeError("Plugin rebuilding changed the built application libraries")

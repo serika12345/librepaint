@@ -16,6 +16,7 @@ let
   };
   commands = [
     pkgs.cmake
+    pkgs.gettext
     pkgs.ninja
   ]
   ++ lib.optional pkgs.stdenv.hostPlatform.isDarwin pkgs.darwin.cctools

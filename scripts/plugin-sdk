@@ -92,6 +92,14 @@ def package(build: Path, output: Path) -> None:
         raise SdkError("Desktop SDK packaging currently requires a native macOS or Linux build")
     if output.exists() or output.is_symlink():
         raise SdkError("SDK output already exists; choose a new versioned output directory")
+    compiler_text = (system_file.parent / "CMakeCXXCompiler.cmake").read_text()
+    implicit_includes = re.search(r'set\(CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES "([^"\n]*)"\)', compiler_text)
+    if not implicit_includes:
+        raise SdkError("Reconfigure the application to record its compiler include directories")
+    compiler_includes = [Path(path) for path in implicit_includes[1].split(";") if path]
+    if any(not path.is_relative_to(Path("/nix/store")) for path in compiler_includes):
+        raise SdkError("SDK compiler include directories must come from the pinned Nix environment")
+    compiler_includes = [path for path in compiler_includes if path.is_dir()]
     libraries = {
         name: target for name, target in targets.items()
         if ((target["type"] == "SHARED_LIBRARY" and
@@ -214,7 +222,7 @@ def package(build: Path, output: Path) -> None:
             groups = [group for group in target.get("compileGroups", []) if group["language"] == "CXX"]
             if not groups:
                 groups = target.get("compileGroups", [])
-            includes, defines, options, links = [], [], ["-fno-operator-names"], []
+            includes, defines, options, links = [str(path) for path in compiler_includes], [], ["-fno-operator-names"], []
             for group in groups:
                 includes.extend(filter(None, (mapped_path(Path(item["path"]).resolve()) for item in group.get("includes", []))))
                 defines.extend(item["define"] for item in group.get("defines", [])
