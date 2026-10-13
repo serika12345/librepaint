@@ -12,6 +12,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QSaveFile>
+#include <QScreen>
 #include <QTest>
 #include <QTextStream>
 #include <QWindow>
@@ -52,6 +53,7 @@ int main(int argc, char **argv)
     QCommandLineParser parser;
     parser.setApplicationDescription(QStringLiteral("Measure native GPU input, painting, composition and presentation"));
     parser.addHelpOption();
+    parser.addOption({QStringLiteral("offscreen"), "Measure rendering to a texture without native presentation waits"});
     parser.addOptions({
         {QStringLiteral("frames"), "Measured input frames", "count", "240"},
         {QStringLiteral("warmup"), "Input frames before measurement", "count", "32"},
@@ -74,6 +76,7 @@ int main(int argc, char **argv)
         const double maximum = parser.value(QStringLiteral("maximum-p95-ms")).toDouble(&validBudget);
         require(!parser.isSet(QStringLiteral("maximum-p95-ms")) || (validBudget && std::isfinite(maximum) && maximum > 0),
                 QStringLiteral("The P95 budget must be a finite positive number"));
+        const bool offscreen = parser.isSet(QStringLiteral("offscreen"));
         QString diagnostic;
         const auto device = Device::createNative(diagnostic);
         require(bool(device), diagnostic);
@@ -84,8 +87,10 @@ int main(int argc, char **argv)
         window.setVulkanInstance(device->vulkanInstance());
 #endif
         window.resize(512, 512);
-        window.show();
-        require(QTest::qWaitForWindowExposed(&window), QStringLiteral("The native benchmark window must be exposed"));
+        if (!offscreen) {
+            window.show();
+            require(QTest::qWaitForWindowExposed(&window), QStringLiteral("The native benchmark window must be exposed"));
+        }
         OperationDocument document(QSize(2048, 2048));
         Brush brush;
         brush.rgba = {20, 80, 160, 128};
@@ -101,13 +106,26 @@ int main(int argc, char **argv)
         const auto admitted = execution.open(document.snapshot());
         require(admitted.code == ExecutionCode::Success, admitted.diagnostic);
         TilePresentation presentation(device);
+        std::unique_ptr<QRhiTexture> texture;
         std::unique_ptr<QRhiRenderPassDescriptor> pass;
-        std::unique_ptr<QRhiSwapChain> surface(rhi.newSwapChain());
-        surface->setWindow(&window);
-        surface->setFlags(QRhiSwapChain::NoVSync | QRhiSwapChain::SurfaceHasPreMulAlpha);
-        pass.reset(surface->newCompatibleRenderPassDescriptor());
-        surface->setRenderPassDescriptor(pass.get());
-        require(surface->createOrResize(), QStringLiteral("Native benchmark surface creation failed"));
+        std::unique_ptr<QRhiSwapChain> surface;
+        std::unique_ptr<QRhiTextureRenderTarget> textureTarget;
+        if (offscreen) {
+            const int side = qRound(512 * window.devicePixelRatio());
+            texture.reset(rhi.newTexture(QRhiTexture::RGBA8, {side, side}, 1, QRhiTexture::RenderTarget));
+            require(texture->create(), QStringLiteral("Benchmark texture allocation failed"));
+            textureTarget.reset(rhi.newTextureRenderTarget({texture.get()}));
+            pass.reset(textureTarget->newCompatibleRenderPassDescriptor());
+            textureTarget->setRenderPassDescriptor(pass.get());
+            require(textureTarget->create(), QStringLiteral("Benchmark texture target creation failed"));
+        } else {
+            surface.reset(rhi.newSwapChain());
+            surface->setWindow(&window);
+            surface->setFlags(QRhiSwapChain::NoVSync | QRhiSwapChain::SurfaceHasPreMulAlpha);
+            pass.reset(surface->newCompatibleRenderPassDescriptor());
+            surface->setRenderPassDescriptor(pass.get());
+            require(surface->createOrResize(), QStringLiteral("Native benchmark surface creation failed"));
+        }
         const auto stroke = document.beginStroke(document.activeLayer(), brush, quint64(history + 1));
         QList<double> cpu, gpu, inputTimes, acquireTimes, recordTimes, submitTimes;
         const QRect viewport(0, 0, 512, 512);
@@ -119,19 +137,21 @@ int main(int argc, char **argv)
             const auto requested = execution.request(admitted.handle, document.preview());
             require(requested.code == ExecutionCode::Success, requested.diagnostic);
             const auto inputFinished = timer.nsecsElapsed();
-            const auto frame = execution.beginPresentationFrame(*surface);
+            const auto frame = offscreen ? execution.beginReadbackFrame() : execution.beginPresentationFrame(*surface);
             require(frame.code == ExecutionCode::Success, frame.diagnostic);
             const auto acquired = timer.nsecsElapsed();
             try {
                 const double completedGpuMs = frame.commands->lastCompletedGpuTime() * 1000;
                 const auto projected = execution.project(admitted.handle, viewport);
                 require(projected.code == RenderOutcome::Recorded, projected.diagnostic);
-                const auto drawn = presentation.record(*frame.commands, projected.version, *frame.target,
+                const auto target = offscreen ? static_cast<QRhiRenderTarget *>(textureTarget.get()) : frame.target;
+                const auto drawn = presentation.record(*frame.commands, projected.version, *target,
                                                        QTransform::fromScale(window.devicePixelRatio(), window.devicePixelRatio()), Qt::white);
                 require(drawn.recorded, drawn.diagnostic);
                 const auto recorded = timer.nsecsElapsed();
                 const auto submitted = execution.submitFrame();
                 require(submitted.code == ExecutionCode::Success, submitted.diagnostic);
+                if (offscreen) rhi.finish();
                 if (i >= warmup) {
                     cpu.append(timer.nsecsElapsed() / 1e6);
                     inputTimes.append(inputFinished / 1e6);
@@ -157,16 +177,20 @@ int main(int argc, char **argv)
             stream.writeRawData(tile.rgba.constData(), int(tile.rgba.size()));
         }
         const auto driver = rhi.driverInfo();
+        const auto targetSize = offscreen ? textureTarget->pixelSize() : surface->currentPixelSize();
         const QJsonObject result{
-            {"schemaVersion", 1}, {"backend", QString::fromLatin1(rhi.backendName())},
+            {"schemaVersion", 1}, {"target", offscreen ? "texture" : "window"},
+            {"completionSynchronized", offscreen},
+            {"displayRefreshRateHz", window.screen() ? window.screen()->refreshRate() : 0}, {"backend", QString::fromLatin1(rhi.backendName())},
             {"deviceName", QString::fromUtf8(driver.deviceName)}, {"deviceType", int(driver.deviceType)},
             {"documentSize", QJsonArray{2048, 2048}}, {"viewport", QJsonArray{0, 0, 512, 512}},
-            {"surfaceSize", QJsonArray{surface->currentPixelSize().width(), surface->currentPixelSize().height()}},
+            {"surfaceSize", QJsonArray{targetSize.width(), targetSize.height()}},
             {"historyStrokes", history}, {"frames", frames}, {"warmupFrames", warmup},
             {"cpuSubmissionMs", array(cpu)}, {"completedGpuMs", array(gpu)},
             {"inputMs", array(inputTimes)}, {"acquireMs", array(acquireTimes)},
             {"recordMs", array(recordTimes)}, {"submitMs", array(submitTimes)},
-            {"cpuSubmissionP95Ms", percentile95(cpu)}, {"gpuP95Ms", percentile95(gpu)},
+            {"cpuSubmissionP95Ms", percentile95(cpu)},
+            {"gpuP95Ms", gpu.isEmpty() ? QJsonValue(QJsonValue::Null) : QJsonValue(percentile95(gpu))},
             {"residentTileBytes", qint64(execution.residentBytes())},
             {"projectionSha256", QString::fromLatin1(QCryptographicHash::hash(image, QCryptographicHash::Sha256).toHex())}
         };
@@ -178,8 +202,8 @@ int main(int argc, char **argv)
         } else QTextStream(stdout) << json;
         rhi.finish();
         if (parser.isSet(QStringLiteral("maximum-p95-ms")) &&
-            (gpu.isEmpty() || percentile95(cpu) > maximum || percentile95(gpu) > maximum)) {
-            QTextStream(stderr) << "Native GPU frame P95 exceeds the requested budget or GPU timestamps are unavailable\n";
+            ((!offscreen && gpu.isEmpty()) || percentile95(cpu) > maximum || percentile95(gpu) > maximum)) {
+            QTextStream(stderr) << "Frame P95 exceeds the requested budget or window GPU timestamps are unavailable\n";
             return 2;
         }
         return 0;
