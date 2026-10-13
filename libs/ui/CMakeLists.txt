@@ -2124,6 +2124,7 @@ set(kritaui_LIB_SRCS
     canvas/kis_abstract_perspective_grid.cpp
 
     document/KisDocument.cpp
+    document/KisDocumentUndoStack.cpp
     document/KisDocumentImageState.cpp
     document/KisImageManagerDrop.cpp
     document/KisDocumentTemplate.cpp

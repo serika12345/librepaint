@@ -666,6 +666,8 @@ GPU画像の画素と履歴は共有所有者が保持し、公開画像はCPU�
 `KisDocument::setCurrentImage()`はこの画像を公開文書へ接続し、`Document::pixelData()`が
 同期的にGPUの合成結果を返す。文書の変更済み状態はGPU画像の保存済み版と比較し、直接画素書込みでは
 編集通知を増やさない。公開ノードが保持する画素は、文書を破棄した後も参照できる。
+`libs/ui/document/KisDocumentUndoStack.cpp`は文書所有のUndo／Redoと履歴位置の移動を扱う。
+再入した履歴操作を順序付け、CPU画像では描画処理と画像ロックを調整する。
 `KisPaintDevice::fromGpuImage()`は共有したGPU画像のレイヤーを、直接バイトアクセスへ接続する。
 レイヤー識別子0は読取り専用の画像合成結果を表す。
 画素デバイスの`readBytes()`と`writeBytes()`が、公開APIのBGRA8と内部のRGBA8を変換する。
