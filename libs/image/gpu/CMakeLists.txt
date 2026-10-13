@@ -23,6 +23,7 @@ add_library(kritaimagegputiles OBJECT
     KisGpuDevice.cpp
     KisGpuExecution.cpp
     KisGpuPixelReadback.cpp
+    KisGpuPaintJob.cpp
     KisGpuTileRenderer.cpp
     KisGpuTileProjection.cpp
 )

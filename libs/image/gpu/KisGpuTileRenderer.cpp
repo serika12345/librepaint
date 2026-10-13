@@ -4,14 +4,13 @@
  */
 
 #include "KisGpuTileRenderer.h"
-#include "KisGpuTileStorage_p.h"
+#include "KisGpuPaintJob_p.h"
 
 #include <QFile>
 #include <QMap>
 #include <QThread>
 #include <rhi/qrhi.h>
 #include <algorithm>
-#include <array>
 #include <cmath>
 #include <limits>
 #include <stdexcept>
@@ -19,128 +18,12 @@
 
 namespace Krita::Image::Gpu {
 using namespace Detail;
-namespace {
-struct Segment
-{
-    qint32 ax, ay, bx, by;
-    quint32 p0, p1, phase, length;
-};
-static_assert(sizeof(Segment) == 32);
-
-quint32 integerRoot(quint64 value)
-{
-    quint64 root = 0, bit = quint64(1) << 62;
-    while (bit > value) bit >>= 2;
-    while (bit != 0) {
-        if (value >= root + bit) {
-            value -= root + bit;
-            root = (root >> 1) + bit;
-        } else root >>= 1;
-        bit >>= 2;
-    }
-    return quint32(root);
-}
-qint32 fixed(qreal value) { return qint32(std::llround(value * 16)); }
-quint32 pressure(qreal value) { return quint32(std::llround(value * 65535)); }
-
-QList<Segment> geometry(const PaintOperation &operation, quint32 step)
-{
-    const auto input = operation.inputSamples();
-    QList<InputSample> points;
-    switch (operation.shape.kind) {
-    case ShapeKind::Freehand:
-        points = input;
-        break;
-    case ShapeKind::Line:
-        points = {input.front(), input.back()};
-        points.front().position = operation.shape.first;
-        points.back().position = operation.shape.second;
-        break;
-    case ShapeKind::Ellipse: {
-        const auto &shape = operation.shape;
-        const auto center = (shape.first + shape.second) / 2;
-        const qreal rx = std::abs(shape.second.x() - shape.first.x()) / 2;
-        const qreal ry = std::abs(shape.second.y() - shape.first.y()) / 2;
-        constexpr qreal pi = 3.14159265358979323846;
-        const int count = std::clamp(int(std::ceil(pi * std::sqrt(std::max(rx, ry) / 0.125))), 16, 65536);
-        const qreal cosine = std::cos(shape.rotation), sine = std::sin(shape.rotation);
-        points.reserve(count + 1);
-        for (int i = 0; i < count; ++i) {
-            const qreal angle = qreal(i) * 2 * pi / count;
-            const qreal x = rx * std::cos(angle), y = ry * std::sin(angle);
-            auto point = input.front();
-            point.position = center + QPointF(x * cosine - y * sine, x * sine + y * cosine);
-            points.append(point);
-        }
-        points.append(points.front());
-        break;
-    }
-    }
-    QList<Segment> result;
-    result.reserve(points.size());
-    quint32 phase = 0;
-    for (qsizetype i = 0; i < points.size(); ++i) {
-        if (i == 0 && points.size() > 1) continue;
-        const auto &a = points[i == 0 ? 0 : i - 1];
-        const auto &b = points[i];
-        const qint32 ax = fixed(a.position.x()), ay = fixed(a.position.y());
-        const qint32 bx = fixed(b.position.x()), by = fixed(b.position.y());
-        const qint64 dx = qint64(bx) - ax, dy = qint64(by) - ay;
-        const quint32 length = integerRoot(quint64(dx * dx) + quint64(dy * dy));
-        result.append({ax, ay, bx, by, pressure(a.pressure), pressure(b.pressure), phase, length});
-        phase = (quint64(phase) + length) % step;
-    }
-    return result;
-}
-
-struct Parameters
-{
-    qint32 x, y, width, height;
-    quint32 color, opacity, erase, step;
-    quint32 count, diameter, uniformFill = 0, reserved = 0;
-};
-static_assert(sizeof(Parameters) == 48);
-
-struct Job
-{
-    std::shared_ptr<Tile> input, output;
-    Resource<QRhiBuffer> samples, parameters;
-    Resource<QRhiShaderResourceBindings> bindings;
-    QList<Segment> geometry;
-    Parameters values{};
-};
-
-quint32 packed(const std::array<quint8, 4> &rgba)
-{
-    return quint32(rgba[0]) | quint32(rgba[1]) << 8 | quint32(rgba[2]) << 16 | quint32(rgba[3]) << 24;
-}
-
-bool prepareJob(QRhi &rhi, Job &job, QRhiBuffer *zero)
-{
-    if (!job.output) return false;
-    if (!job.geometry.isEmpty()) {
-        job.samples = own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer,
-                                            quint32(job.geometry.size() * sizeof(Segment))));
-        if (!job.samples->create()) return false;
-    }
-    job.parameters = own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::UniformBuffer, sizeof(Parameters)));
-    job.bindings = own(rhi, rhi.newShaderResourceBindings());
-    if (!job.parameters->create()) return false;
-    job.bindings->setBindings({
-        QRhiShaderResourceBinding::uniformBuffer(0, QRhiShaderResourceBinding::ComputeStage, job.parameters.get()),
-        QRhiShaderResourceBinding::bufferLoad(1, QRhiShaderResourceBinding::ComputeStage, job.samples ? job.samples.get() : zero),
-        QRhiShaderResourceBinding::bufferLoad(2, QRhiShaderResourceBinding::ComputeStage, job.input ? job.input->pixels.get() : zero),
-        QRhiShaderResourceBinding::bufferStore(3, QRhiShaderResourceBinding::ComputeStage, job.output->pixels.get())
-    });
-    return job.bindings->create();
-}
-}
 
 TileRenderer::Private::Private(DevicePtr device, qsizetype byteBudget)
     : device(std::move(device)), rhi(this->device->rhi()),
       budget(std::make_shared<Budget>(Budget{this->device, byteBudget})),
       zero(own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, TileBytes))),
-      layoutParameters(own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::UniformBuffer, sizeof(Parameters)))),
+      layoutParameters(own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::UniformBuffer, sizeof(PaintParameters)))),
       layout(own(rhi, rhi.newShaderResourceBindings())), pipeline(own(rhi, rhi.newComputePipeline()))
 {
     if (!rhi.isFeatureSupported(QRhi::Compute) || !zero->create() || !layoutParameters->create()) {
@@ -245,7 +128,7 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
     data->selected = selected;
     const QRect canvas(QPoint(0, 0), document->size);
     const QRect paintRegion = region ? region->intersected(canvas) : canvas;
-    std::vector<Job> jobs;
+    std::vector<PaintJob> jobs;
     struct Checkpoint { qsizetype operation = 0; QSharedPointer<const RasterTile> pixels; };
     struct Upload { std::shared_ptr<Tile> tile; QByteArray rgba; };
     std::vector<Upload> uploads;
@@ -303,15 +186,15 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
                 break;
             }
         }
-        if (packed(layer.defaultPixel) && !data->defaults.value(layer.id)) {
+        if (packedPixel(layer.defaultPixel) && !data->defaults.value(layer.id)) {
             if (d.budget->used > d.budget->limit - TileBytes) {
                 return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU default pixel tile budget exhausted")};
             }
-            Job fill;
+            PaintJob fill;
             fill.output = d.allocateTile();
-            fill.values.color = packed(layer.defaultPixel);
+            fill.values.color = packedPixel(layer.defaultPixel);
             fill.values.uniformFill = 1;
-            if (!prepareJob(d.rhi, fill, d.zero.get())) {
+            if (!preparePaintJob(d.rhi, fill, d.zero.get())) {
                 return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU default pixel allocation failed")};
             }
             data->defaults[layer.id] = fill.output;
@@ -356,8 +239,8 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
             if (pending) data->strokeInputs[layer.id];
             const auto diameter = quint32(std::max<qint64>(1, std::llround(operation.brush.diameter * 16)));
             const auto step = quint32(std::max<qint64>(1, std::llround(operation.brush.diameter * operation.brush.spacing * 16)));
-            const auto segments = geometry(operation, step);
-            QMap<quint64, QList<Segment>> affected;
+            const auto segments = paintGeometry(operation, step);
+            QMap<quint64, QList<PaintSegment>> affected;
             const qint64 radius = (diameter + 31) / 32;
             for (const auto &segment : segments) {
                 const int left = int(std::max<qint64>(paintRegion.left() / TileSize * TileSize, (std::min(segment.ax, segment.bx) / 16) - radius));
@@ -402,11 +285,11 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
                 return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU tile budget exhausted")};
             }
             for (auto tile = affected.cbegin(); tile != affected.cend(); ++tile) {
-                const auto bytes = quint64(tile.value().size()) * sizeof(Segment);
+                const auto bytes = quint64(tile.value().size()) * sizeof(PaintSegment);
                 if (bytes > std::numeric_limits<quint32>::max()) {
                     return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU operation buffer limit exceeded")};
                 }
-                Job job;
+                PaintJob job;
                 job.input = tiles.value(tile.key(), data->defaults.value(layer.id));
                 if (pending) data->strokeInputs[layer.id][tile.key()] = job.input;
                 auto &pool = writable[tile.key()];
@@ -416,9 +299,9 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
                 job.geometry = tile.value();
                 const auto point = coordinate(tile.key()) * TileSize;
                 job.values = {point.x(), point.y(), document->size.width(), document->size.height(),
-                              packed(operation.brush.rgba),
+                              packedPixel(operation.brush.rgba),
                               operation.brush.opacity, quint32(operation.brush.erase), step, quint32(tile.value().size()), diameter};
-                if (!prepareJob(d.rhi, job, d.zero.get())) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
+                if (!preparePaintJob(d.rhi, job, d.zero.get())) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
                 tiles[tile.key()] = job.output;
                 jobs.push_back(std::move(job));
             }
