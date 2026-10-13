@@ -223,6 +223,10 @@ public:
     LayerId activeLayer() const;
     int undoCount() const;
     int redoCount() const;
+    /** Shared immutable versions for the public history display, oldest first. */
+    QList<Snapshot> historyVersions() const;
+    /** -1 when the saved version has left the retained history. */
+    int savedHistoryIndex() const;
     bool isModified() const;
     bool hasActiveStroke() const;
     OperationId activeOperation() const;
@@ -248,6 +252,8 @@ public:
     Result removeLayer(LayerId layer);
     Result undo();
     Result redo();
+    /** Selects one retained history state without executing intermediate edits. */
+    Result setHistoryIndex(int index);
 
     /** Call after successful atomic saving of this snapshot, including an older pinned version. */
     Result markSaved(const Snapshot &saved);

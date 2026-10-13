@@ -268,7 +268,7 @@ public:
 
     int autoSaveDelay = 300; // in seconds, 0 to disable.
 
-    KUndo2Stack *undoStack = 0;
+    KisDocumentUndoStack *undoStack = 0;
 
     KisGuidesConfig guidesConfig;
     KisMirrorAxisConfig mirrorAxisConfig;
@@ -2820,6 +2820,7 @@ KisImageSP KisDocument::savingImage() const
 
 void KisDocument::setCurrentImage(KisImageSP image, bool forceInitialUpdate, KisNodeSP preActivatedNode)
 {
+    d->undoStack->setImage(nullptr);
     if (d->image) {
         // Disconnect existing sig/slot connections
         d->image->setUndoStore(new KisDumbUndoStore());
@@ -2839,6 +2840,7 @@ void KisDocument::setCurrentImage(KisImageSP image, bool forceInitialUpdate, Kis
     d->shapeController->setImage(image, preActivatedNode);
     d->image->setMirrorAxesCenter(KisAlgebra2D::absoluteToRelative(d->mirrorAxisConfig.axisPosition(), image->bounds()));
     setModified(false);
+    d->undoStack->setImage(image);
     connect(d->image, SIGNAL(sigImageModified()), this, SLOT(setImageModified()), Qt::UniqueConnection);
     connect(d->image, SIGNAL(sigImageModifiedWithoutUndo()), this, SLOT(setImageModifiedWithoutUndo()), Qt::UniqueConnection);
     connect(d->image, SIGNAL(sigLayersChangedAsync()), this, SLOT(slotImageRootChanged()));

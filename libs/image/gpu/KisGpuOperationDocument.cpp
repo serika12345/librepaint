@@ -32,6 +32,13 @@ Snapshot OperationDocument::preview() const { return m_preview ? m_preview : sna
 LayerId OperationDocument::activeLayer() const { return snapshot()->activeLayer; }
 int OperationDocument::undoCount() const { return m_index; }
 int OperationDocument::redoCount() const { return m_history.size() - m_index - 1; }
+QList<Snapshot> OperationDocument::historyVersions() const { return m_history; }
+int OperationDocument::savedHistoryIndex() const
+{
+    for (int index = 0; index < m_history.size(); ++index)
+        if (m_history[index]->m_modifiedRevision == m_savedRevision) return index;
+    return -1;
+}
 bool OperationDocument::isModified() const { return snapshot()->m_modifiedRevision != m_savedRevision; }
 bool OperationDocument::hasActiveStroke() const { return !m_edit.isNull(); }
 OperationId OperationDocument::activeOperation() const { return m_edit ? m_edit->id : OperationId{}; }
@@ -297,6 +304,15 @@ Result OperationDocument::markSaved(const Snapshot &saved)
     if (m_closed) return Result::Closed;
     if (!saved || saved->documentId() != m_identity || !saved->m_committed) return Result::StaleVersion;
     m_savedRevision = saved->m_modifiedRevision;
+    return Result::Success;
+}
+
+Result OperationDocument::setHistoryIndex(int index)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    if (index < 0 || index >= m_history.size()) return Result::InvalidInput;
+    m_index = index;
     return Result::Success;
 }
 

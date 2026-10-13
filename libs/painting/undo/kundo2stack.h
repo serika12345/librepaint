@@ -219,6 +219,13 @@ Q_SIGNALS:
 
 protected:
     virtual void notifySetIndexChangedOneCommand();
+    /** Projects document-owned history without executing commands.
+     * Takes ownership of new commands, retains reused commands and deletes
+     * removed commands. The subclass owns navigation of these history states.
+     * Indices are validated before adoption; cleanIndex -1 denotes an expired
+     * saved state. Returns false without taking ownership on invalid input.
+     */
+    bool synchronizeCommands(QList<KUndo2Command *> commands, int index, int cleanIndex);
 
 private:
     // from QUndoStackPrivate

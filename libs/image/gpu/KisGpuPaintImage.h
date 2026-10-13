@@ -60,6 +60,7 @@ public:
     Result removeLayer(LayerId layer);
     Result undo();
     Result redo();
+    Result setHistoryIndex(int index);
     /** Records completed file saving; file owners publish their metadata changes. */
     Result markSaved(const Snapshot &version);
     /** Adopts validated logical recovery on the same attachment and notifies readers. */
@@ -68,6 +69,8 @@ public:
 
 Q_SIGNALS:
     void changed();
+    /** Saving changes history cleanliness without changing pixels or GPU requests. */
+    void savedStateChanged();
 
 private:
     PaintImage(Execution &execution, std::unique_ptr<OperationDocument> document, Limits limits);

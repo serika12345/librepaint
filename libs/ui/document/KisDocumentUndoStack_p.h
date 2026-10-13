@@ -8,15 +8,21 @@
 
 #include <kundo2stack.h>
 #include <kis_types.h>
+#include <gpu/KisGpuPaintImage.h>
+#include <QHash>
 #include <QQueue>
 
 class KisDocument;
 
-/** Document-owned history navigation with serialized reentrant requests. */
+/** Document-owned history navigation with serialized reentrant requests.
+ * GPU command objects describe retained versions; navigation selects those
+ * versions through the image owner without executing plugin effects again.
+ */
 class KisDocumentUndoStack final : public KUndo2Stack
 {
 public:
     explicit KisDocumentUndoStack(KisDocument *document);
+    void setImage(KisImageSP image);
     void setIndex(int index) override;
     void undo() override;
     void redo() override;
@@ -30,6 +36,7 @@ private:
     void undoImpl();
     void redoImpl();
     void processPostponedJobs();
+    void synchronizeGpuHistory();
 
     struct PostponedJob {
         enum Type { Undo, Redo, SetIndex };
@@ -39,5 +46,11 @@ private:
     int m_recursionCounter = 0;
     QQueue<PostponedJob> m_postponedJobs;
     KisDocument *m_document;
+    LibrePaint::Image::Gpu::PaintImageSP m_gpuImage;
+    QMetaObject::Connection m_gpuChanges;
+    QMetaObject::Connection m_gpuSaved;
+    QHash<quint64, KUndo2Command *> m_gpuCommands;
+    QUuid m_gpuIdentity;
+    quint64 m_gpuRevision = 0;
 };
 #endif

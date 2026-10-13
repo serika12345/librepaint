@@ -74,6 +74,12 @@ struct CommandState {
     QStringList calls;
 };
 
+class DocumentHistoryStack : public KUndo2Stack
+{
+public:
+    using KUndo2Stack::synchronizeCommands;
+};
+
 class RecordingCommand : public KUndo2Command
 {
 public:
@@ -234,7 +240,47 @@ private Q_SLOTS:
     void activeStateFollowsTheOwningGroup();
     void cumulativeUndoConfigurationRoundTrips();
     void specializedActionsRegisterNamesIconsAndShortcuts();
+    void documentHistoryAdoptionPreservesEffectsOwnershipAndSignals();
 };
+
+void KUndo2StackContractTest::documentHistoryAdoptionPreservesEffectsOwnershipAndSignals()
+{
+    CommandState state;
+    DocumentHistoryStack stack;
+    QSignalSpy indices(&stack, &KUndo2Stack::indexChanged);
+    QSignalSpy cleanliness(&stack, &KUndo2Stack::cleanChanged);
+    auto *one = new RecordingCommand(&state, QStringLiteral("one"), 1);
+    auto *two = new RecordingCommand(&state, QStringLiteral("two"), 2);
+    QVERIFY(stack.synchronizeCommands({one, two}, 1, 0));
+    QCOMPARE(state.value, 0);
+    QVERIFY(state.calls.isEmpty());
+    QCOMPARE(stack.count(), 2);
+    QCOMPARE(stack.index(), 1);
+    QCOMPARE(stack.command(0), one);
+    QCOMPARE(stack.undoText(), QStringLiteral("one"));
+    QCOMPARE(stack.redoText(), QStringLiteral("two"));
+    QVERIFY(stack.canUndo());
+    QVERIFY(stack.canRedo());
+    QVERIFY(!stack.isClean());
+    QCOMPARE(indices.size(), 1);
+    QCOMPARE(cleanliness.size(), 1);
+    QVERIFY(!stack.synchronizeCommands({one, one}, 0, 0));
+    QVERIFY(!stack.synchronizeCommands({one, two}, 3, 0));
+    QCOMPARE(indices.size(), 1);
+    QCOMPARE(state.destructions, 0);
+    QVERIFY(stack.synchronizeCommands({one, two}, 0, 0));
+    QVERIFY(stack.isClean());
+    auto *three = new RecordingCommand(&state, QStringLiteral("three"), 3);
+    QVERIFY(stack.synchronizeCommands({one, three}, 2, -1));
+    QCOMPARE(state.value, 0);
+    QCOMPARE(state.destructions, 1);
+    QCOMPARE(stack.command(0), one);
+    QVERIFY(!stack.isClean());
+    QVERIFY(!stack.canRedo());
+    QVERIFY(stack.synchronizeCommands({}, 0, 0));
+    QCOMPARE(state.destructions, 3);
+    QVERIFY(stack.isClean());
+}
 
 void KUndo2StackContractTest::commandDefaultsHierarchyAndLifetime()
 {

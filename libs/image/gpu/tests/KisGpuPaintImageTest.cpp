@@ -26,7 +26,49 @@ private Q_SLOTS:
     void rectangularWritesValidateBeforeMutationAndCrossTileBoundaries();
     void rectangularHistoryEditsPreserveIndependentUntrackedPixels();
     void damagedPixelSharingRecoveryPreservesTheLiveImage();
+    void historyNavigationPublishesOneVersionAndPreservesSavedState();
 };
+
+void KisGpuPaintImageTest::historyNavigationPublishesOneVersionAndPreservesSavedState()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    PaintImage image(execution, QSize(64, 64));
+    const auto layer = image.addLayer(QStringLiteral("Second layer"));
+    QVERIFY(layer);
+    QCOMPARE(image.renameLayer(layer, QStringLiteral("Saved layer")), Result::Success);
+    QSignalSpy saved(&image, &PaintImage::savedStateChanged);
+    QCOMPARE(image.markSaved(image.operations().snapshot()), Result::Success);
+    QCOMPARE(saved.size(), 1);
+    QCOMPARE(image.renameLayer(layer, QStringLiteral("Later layer")), Result::Success);
+    const auto versions = image.operations().historyVersions();
+    QCOMPARE(versions.size(), 4);
+    QCOMPARE(image.operations().savedHistoryIndex(), 2);
+    QSignalSpy changed(&image, &PaintImage::changed);
+    QCOMPARE(image.setHistoryIndex(0), Result::Success);
+    QCOMPARE(changed.size(), 1);
+    QCOMPARE(execution.requested(image.handle()), versions[0]);
+    QCOMPARE(image.operations().redoCount(), 3);
+    QVERIFY(image.operations().isModified());
+    QCOMPARE(image.setHistoryIndex(-1), Result::InvalidInput);
+    QCOMPARE(image.setHistoryIndex(4), Result::InvalidInput);
+    QCOMPARE(changed.size(), 1);
+    QCOMPARE(image.setHistoryIndex(2), Result::Success);
+    QVERIFY(!image.operations().isModified());
+    QCOMPARE(image.operations().historyVersions(), versions);
+    const auto stroke = image.beginStroke(layer, {}, 17);
+    QCOMPARE(image.appendSamples(stroke, {{{12, 12}, 1}}), Result::Success);
+    const auto pending = image.operations().preview();
+    const int notifications = changed.size();
+    QCOMPARE(image.setHistoryIndex(0), Result::EditInProgress);
+    QCOMPARE(image.operations().preview(), pending);
+    QCOMPARE(changed.size(), notifications);
+    QCOMPARE(image.cancelStroke(stroke), Result::Success);
+    QCOMPARE(image.setHistoryIndex(3), Result::Success);
+    QVERIFY(image.operations().isModified());
+}
 
 void KisGpuPaintImageTest::sharedEditsPublishBeforeNotificationAndReleaseTheLastAttachment()
 {

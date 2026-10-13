@@ -46,7 +46,10 @@
 ****************************************************************************/
 
 #include <QDebug>
+#include <QPointer>
+#include <QSet>
 #include <iterator>
+#include <utility>
 #include <klocalizedstring.h>
 #include "kundo2stack.h"
 #include "kundo2commandextradata.h"
@@ -677,6 +680,41 @@ KUndo2QStack::~KUndo2QStack()
 
     \sa KUndo2QStack()
 */
+
+bool KUndo2QStack::synchronizeCommands(QList<KUndo2Command *> commands, int index, int cleanIndex)
+{
+    if (!m_macro_stack.isEmpty() || index < 0 || index > commands.size() ||
+        cleanIndex < -1 || cleanIndex > commands.size()) return false;
+    QSet<KUndo2Command *> retained;
+    for (auto *command : commands) {
+        if (!command || command->hasParent() || retained.contains(command)) return false;
+        retained.insert(command);
+    }
+    const bool changed = commands != m_command_list || index != m_index;
+    const bool wasClean = isClean();
+    const auto previous = std::move(m_command_list);
+    m_command_list = std::move(commands);
+    m_index = index;
+    m_clean_index = cleanIndex;
+    for (auto *command : previous)
+        if (!retained.contains(command)) delete command;
+
+    QPointer<KUndo2QStack> guard(this);
+    if (changed) {
+        Q_EMIT indexChanged(m_index);
+        if (!guard) return true;
+        Q_EMIT canUndoChanged(canUndo());
+        if (!guard) return true;
+        Q_EMIT undoTextChanged(undoText());
+        if (!guard) return true;
+        Q_EMIT canRedoChanged(canRedo());
+        if (!guard) return true;
+        Q_EMIT redoTextChanged(redoText());
+        if (!guard) return true;
+    }
+    if (wasClean != isClean()) Q_EMIT cleanChanged(isClean());
+    return true;
+}
 
 void KUndo2QStack::clear()
 {

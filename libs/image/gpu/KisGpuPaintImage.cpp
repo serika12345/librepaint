@@ -86,6 +86,8 @@ Result PaintImage::removeLayer(LayerId layer)
 { return onThread() ? publish(m_d->document->removeLayer(layer)) : Result::InvalidInput; }
 Result PaintImage::undo() { return onThread() ? publish(m_d->document->undo()) : Result::InvalidInput; }
 Result PaintImage::redo() { return onThread() ? publish(m_d->document->redo()) : Result::InvalidInput; }
+Result PaintImage::setHistoryIndex(int index)
+{ return onThread() ? publish(m_d->document->setHistoryIndex(index)) : Result::InvalidInput; }
 void PaintImage::close()
 {
     if (!onThread() || !m_d->handle) return;
@@ -95,7 +97,12 @@ void PaintImage::close()
     Q_EMIT changed();
 }
 Result PaintImage::markSaved(const Snapshot &version)
-{ return onThread() ? m_d->document->markSaved(version) : Result::InvalidInput; }
+{
+    if (!onThread()) return Result::InvalidInput;
+    const auto result = m_d->document->markSaved(version);
+    if (result == Result::Success) Q_EMIT savedStateChanged();
+    return result;
+}
 
 Result PaintImage::restoreRecovery(const QByteArray &data)
 {

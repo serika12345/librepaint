@@ -4,7 +4,11 @@
  */
 #include <QApplication>
 #include <QDockWidget>
+#include <QListView>
+#include <QItemSelectionModel>
 #include <QPointer>
+#include <QSignalSpy>
+#include <QScopeGuard>
 #include <KLocalizedString>
 #include <KisGlobalResourcesInterface.h>
 #include <KisResourceLocator.h>
@@ -21,6 +25,7 @@
 #include <gpu/KisGpuPaintImage.h>
 #include <kis_image.h>
 #include <kis_canvas2.h>
+#include <kundo2stack.h>
 #include <brushengine/kis_paintop_registry.h>
 #include <opengl/kis_opengl.h>
 #include <testui.h>
@@ -76,6 +81,17 @@ void KisGpuDocumentViewTest::presentsEditsAndReleasesTheClosedTab()
     }
     QVERIFY(view);
     QPointer<KisDocument> documentLifetime(document.release());
+    const auto releaseWindow = qScopeGuard([&] {
+        if (documentLifetime) {
+            documentLifetime->setModified(false);
+            if (window) {
+                auto *close = window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"));
+                if (close) close->trigger();
+            }
+        }
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
     window->viewManager()->setCurrentView(view);
     window->show();
     QVERIFY(view->canvasBase()->canvasWidget());
@@ -88,12 +104,72 @@ void KisGpuDocumentViewTest::presentsEditsAndReleasesTheClosedTab()
     QVERIFY(preview);
     QVERIFY(!preview->isEnabled());
     QVERIFY(!preview->toolTip().isEmpty());
+    auto *undoAction = window->viewManager()->actionManager()->actionByName(QStringLiteral("edit_undo"));
+    auto *redoAction = window->viewManager()->actionManager()->actionByName(QStringLiteral("edit_redo"));
+    QVERIFY(undoAction);
+    QVERIFY(redoAction);
+    auto *history = documentLifetime->undoStack();
+    auto *historyDock = window->findChild<QDockWidget*>(QStringLiteral("History"));
+    QVERIFY(historyDock);
+    auto *historyView = qobject_cast<QListView*>(historyDock->widget());
+    QVERIFY(historyView);
+    QCOMPARE(historyView->model()->rowCount(), 1);
+    QSignalSpy historyChanges(history, &KUndo2Stack::indexChanged);
+    QCOMPARE(history->count(), 0);
+    const auto initial = owner->operations().snapshot();
+    const auto firstStroke = owner->beginStroke(owner->operations().activeLayer(), {}, 17);
+    QCOMPARE(owner->appendSamples(firstStroke, {{{24, 24}, 1}}), Gpu::Result::Success);
+    QTRY_VERIFY(undoAction->isEnabled());
+    undoAction->trigger();
+    QVERIFY(!owner->operations().hasActiveStroke());
+    QCOMPARE(owner->operations().snapshot(), initial);
+    QCOMPARE(history->count(), 0);
     window->resize(1000, 700);
     QCOMPARE(owner->replaceRgbaPixels(owner->operations().activeLayer(), QRect(8, 12, 1, 1),
                                       QByteArray::fromHex("1181f1ff")), Gpu::Result::Success);
     QTRY_COMPARE(execution.published(handle), owner->operations().snapshot());
-    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(history->count(), 1);
+    QCOMPARE(history->index(), 1);
+    QCOMPARE(historyView->model()->rowCount(), 2);
+    QCOMPARE(historyView->selectionModel()->currentIndex().row(), 1);
+    QVERIFY(history->canUndo());
+    QVERIFY(!history->canRedo());
+    QVERIFY(!history->isClean());
+    QVERIFY(history->command(0));
+    QVERIFY(!history->command(0)->text().toString().isEmpty());
+    QTRY_VERIFY(undoAction->isEnabled());
+    undoAction->trigger();
+    QCOMPARE(owner->operations().undoCount(), 0);
+    QCOMPARE(history->index(), 0);
+    QCOMPARE(historyView->selectionModel()->currentIndex().row(), 0);
+    QVERIFY(history->isClean());
+    QVERIFY(!documentLifetime->isModified());
     QTRY_COMPARE(execution.published(handle), owner->operations().snapshot());
+    QTRY_VERIFY(redoAction->isEnabled());
+    redoAction->trigger();
+    QCOMPARE(owner->operations().undoCount(), 1);
+    QVERIFY(!history->isClean());
+    QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(8, 12, 1, 1), 4).bytes,
+             QByteArray::fromHex("1181f1ff"));
+    QCOMPARE(historyChanges.size(), 3);
+    historyChanges.clear();
+    historyView->selectionModel()->setCurrentIndex(historyView->model()->index(0, 0), QItemSelectionModel::ClearAndSelect);
+    QCOMPARE(owner->operations().undoCount(), 0);
+    QCOMPARE(historyChanges.size(), 1);
+    history->setIndex(1);
+    QCOMPARE(owner->operations().undoCount(), 1);
+    const auto saved = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
+    QVERIFY(history->isClean());
+    QVERIFY(!documentLifetime->isModified());
+    const auto stroke = owner->beginStroke(owner->operations().activeLayer(), {}, 17);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(owner->appendSamples(stroke, {{{16, 16}, 1}}), Gpu::Result::Success);
+    undoAction->trigger();
+    QVERIFY(!owner->operations().hasActiveStroke());
+    QCOMPARE(owner->operations().snapshot(), saved);
+    QCOMPARE(history->count(), 1);
+    QTRY_COMPARE(execution.published(handle), saved);
     QPointer<KisView> retainedView(view);
     QPointer<QWidget> retainedCanvas(view->canvasBase()->canvasWidget());
     documentLifetime->setModified(false);
