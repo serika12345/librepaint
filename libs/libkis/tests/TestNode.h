@@ -17,6 +17,7 @@ private Q_SLOTS:
     void testPixelData();
     void testRawPixelWritesPreserveFormatHistoryAndFailures();
     void testRawPixelWritesPreserveOtherLayerHistoryAndRedo();
+    void testGpuPixelDataPreservesFormatHistoryAndSharedLifetime();
     void testPixelCopiesAndNodesOutliveTheImageOwner();
     void testLayerAndDocumentProjectionsRemainDistinct();
     void testProjectionPixelData();

@@ -8,7 +8,7 @@
 #include "KisGpuPaintImage.h"
 #include "KisGpuExecution.h"
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 struct PaintImage::Private
 {
     Execution &execution;

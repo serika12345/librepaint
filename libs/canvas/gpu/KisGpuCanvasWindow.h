@@ -11,7 +11,7 @@
 #include <QTransform>
 #include <QWindow>
 
-namespace Krita::Canvas::Gpu {
+namespace LibrePaint::Canvas::Gpu {
 /**
  * Presents a document using the borrowed shared execution owner, which must
  * outlive this window. All operations and destruction use the GUI/GPU thread.
@@ -41,7 +41,7 @@ public:
 Q_SIGNALS:
     void frameSubmitted(quint64 handle, quint64 revision, quint64 generation);
     void renderingFailed(quint64 handle, quint64 generation,
-                         Krita::Image::Gpu::ExecutionCode code, const QString &diagnostic);
+                         LibrePaint::Image::Gpu::ExecutionCode code, const QString &diagnostic);
 
 protected:
     bool event(QEvent *event) override;

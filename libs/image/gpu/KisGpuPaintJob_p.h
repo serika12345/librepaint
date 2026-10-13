@@ -10,7 +10,7 @@
 #include "KisGpuPaintGeometry_p.h"
 #include <array>
 
-namespace Krita::Image::Gpu::Detail {
+namespace LibrePaint::Image::Gpu::Detail {
 struct PaintParameters
 {
     qint32 x, y, width, height;

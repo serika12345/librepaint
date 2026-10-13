@@ -9,7 +9,7 @@
 #include <limits>
 #include <stdexcept>
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     : m_limits(limits), m_identity(QUuid::createUuid())
 {

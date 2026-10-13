@@ -12,7 +12,7 @@
 class QIODevice;
 class QImage;
 
-namespace Krita::ImportExport::Kra {
+namespace LibrePaint::ImportExport::Kra {
 enum class Status { Success, InvalidData, UnsupportedData, CapacityExceeded, IoFailure };
 struct Limits
 {

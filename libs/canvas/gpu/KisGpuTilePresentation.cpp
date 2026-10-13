@@ -14,7 +14,7 @@
 #include <stdexcept>
 #include <vector>
 
-namespace Krita::Canvas::Gpu {
+namespace LibrePaint::Canvas::Gpu {
 using Detail::Resource;
 using Detail::own;
 namespace {

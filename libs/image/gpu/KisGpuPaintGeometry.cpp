@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <cmath>
 
-namespace Krita::Image::Gpu::Detail {
+namespace LibrePaint::Image::Gpu::Detail {
 namespace {
 quint32 integerRoot(quint64 value)
 {

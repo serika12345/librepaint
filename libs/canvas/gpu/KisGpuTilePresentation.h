@@ -14,7 +14,7 @@
 
 class QRhiRenderTarget;
 
-namespace Krita::Canvas::Gpu {
+namespace LibrePaint::Canvas::Gpu {
 
 struct PresentationOutcome
 {

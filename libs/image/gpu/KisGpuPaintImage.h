@@ -11,9 +11,10 @@
 #include <QRect>
 #include <memory>
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 class Execution;
 struct ExecutionOutcome;
+struct PixelBytesOutcome;
 
 /** Shared editable image, history, notifications and GPU attachment.
  * Calls and destruction use the GUI/device thread. The borrowed execution
@@ -33,6 +34,8 @@ public:
     const OperationDocument &operations() const;
     quint64 handle() const;
     ExecutionOutcome lastRequestOutcome() const;
+    /** Synchronous canonical pixels from the current committed image version. */
+    PixelBytesOutcome readRgbaPixels(LayerId layer, QRect region, qsizetype maximumBytes) const;
 
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 seed);
     Result appendSamples(OperationId id, const QList<InputSample> &samples);

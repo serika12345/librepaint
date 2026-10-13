@@ -16,7 +16,7 @@ class QRhi;
 class QRhiBuffer;
 class QRhiCommandBuffer;
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 
 struct TileView
 {

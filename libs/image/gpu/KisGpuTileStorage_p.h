@@ -12,7 +12,7 @@
 #include <QSet>
 #include <rhi/qrhi.h>
 
-namespace Krita::Image::Gpu::Detail {
+namespace LibrePaint::Image::Gpu::Detail {
 struct Budget { DevicePtr device; qsizetype limit = 0; qsizetype used = 0; };
 
 template<class T> struct ResourceDeleter
@@ -40,7 +40,7 @@ struct Tile
 using Tiles = QMap<quint64, std::shared_ptr<Tile>>;
 }
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 struct RenderedVersion::Data
 {
     Snapshot document;

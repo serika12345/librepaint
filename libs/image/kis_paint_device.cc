@@ -11,6 +11,8 @@
 #include "KisProcessingInformationPaintDeviceOwnership_p.h"
 #include "KisQStringListFwd.h"
 #include "KisRandomSubAccessorPaintDeviceAccess_p.h"
+#include "gpu/KisGpuPaintImage.h"
+#include "gpu/KisGpuExecution.h"
 
 #include <QRect>
 #include <QImage>
@@ -22,6 +24,10 @@
 #include <algorithm>
 #include <cstring>
 #include <new>
+#include <limits>
+#include <string>
+#include <stdexcept>
+#include <QThread>
 #include <QtGlobal>
 #include <KisRegion.h>
 
@@ -114,6 +120,17 @@ void kisRandomSubAccessorMixColors(const KisPaintDevice *device,
     device->colorSpace()->mixColorsOp()->mixColors(pixels, weights, numColors, destination, weightSum);
 }
 
+namespace {
+qsizetype gpuPixelByteCount(const QRect &rect)
+{
+    const qsizetype width = rect.width();
+    const qsizetype height = rect.height();
+    if (height && width > std::numeric_limits<qsizetype>::max() / 4 / height)
+        throw std::length_error("GPU pixel capacity exceeded");
+    return width * height * 4;
+}
+}
+
 struct KisPaintDevice::Private
 {
     /**
@@ -130,10 +147,13 @@ public:
     class DeviceChangeProfileCommand;
     class DeviceChangeColorSpaceCommand;
 
-    Private(KisPaintDevice *paintDevice);
+    Private(KisPaintDevice *paintDevice, LibrePaint::Image::Gpu::PaintImageSP image = {}, quint64 layer = 0);
     ~Private();
 
     KisPaintDevice *q;
+    LibrePaint::Image::Gpu::PaintImageSP gpuImage;
+    quint64 gpuLayer = 0;
+    const KoColorSpace *gpuColorSpace = nullptr;
     KisNodeWSP parent;
     QScopedPointer<KisRasterKeyframeChannel> contentChannel;
     KisDefaultBoundsBaseSP defaultBounds;
@@ -160,6 +180,7 @@ public:
 
     inline const KoColorSpace* colorSpace() const
     {
+        if (gpuImage) return gpuColorSpace;
         return currentData()->colorSpace();
     }
     inline KisDataManagerSP dataManager() const
@@ -540,6 +561,7 @@ private:
 
     inline Data* currentNonLodData() const
     {
+        if (gpuImage) throw std::logic_error("This GPU pixel view supports native byte access");
         Data *data = m_data.data();
 
         if (contentChannel) {
@@ -617,6 +639,7 @@ private:
 
     QList<Data*> allDataObjects() const
     {
+        if (gpuImage) throw std::logic_error("Color conversion is unavailable for this GPU pixel view");
         QList<Data*> dataObjects;
 
         if (m_frames.isEmpty()) {
@@ -655,12 +678,14 @@ const KisDefaultBoundsSP KisPaintDevice::Private::transitionalDefaultBounds = ne
 
 #include "kis_paint_device_strategies.h"
 
-KisPaintDevice::Private::Private(KisPaintDevice *paintDevice)
+KisPaintDevice::Private::Private(KisPaintDevice *paintDevice, LibrePaint::Image::Gpu::PaintImageSP image, quint64 layer)
     : q(paintDevice),
-      basicStrategy(new KisPaintDeviceStrategy(paintDevice, this)),
+      gpuImage(std::move(image)),
+      gpuLayer(layer),
+      basicStrategy(gpuImage ? nullptr : new KisPaintDeviceStrategy(paintDevice, this)),
       isProjectionDevice(false),
       supportsWrapAroundMode(false),
-      m_data(new Data(paintDevice)),
+      m_data(gpuImage ? nullptr : new Data(paintDevice)),
       m_nextFreeFrameId(0)
 {
 }
@@ -673,6 +698,7 @@ KisPaintDevice::Private::~Private()
 
 KisPaintDevice::Private::KisPaintDeviceStrategy* KisPaintDevice::Private::currentStrategy()
 {
+    if (gpuImage) throw std::logic_error("This GPU pixel view supports native byte access");
     if (!supportsWrapAroundMode || !defaultBounds->wrapAroundMode()) {
         return basicStrategy.data();
     }
@@ -1090,6 +1116,25 @@ void KisPaintDevice::Private::init(const KoColorSpace *cs, const quint8 *default
     }
 }
 
+KisPaintDeviceSP KisPaintDevice::fromGpuImage(LibrePaint::Image::Gpu::PaintImageSP image, quint64 layer, const QString &name)
+{
+    if (!image || !image->handle() || QThread::currentThread() != image->thread())
+        throw std::invalid_argument("GPU paint-device construction requires an open image on its owning thread");
+    bool found = false;
+    for (const auto &value : image->operations().snapshot()->layers) found |= value.id == layer;
+    if (!found) throw std::invalid_argument("GPU paint-device layer is unavailable");
+    return new KisPaintDevice(std::move(image), layer, name);
+}
+
+KisPaintDevice::KisPaintDevice(LibrePaint::Image::Gpu::PaintImageSP image, quint64 layer, const QString &name)
+    : QObject(nullptr)
+    , m_d(new Private(this, std::move(image), layer))
+{
+    setObjectName(name);
+    m_d->gpuColorSpace = KoColorSpaceRegistry::instance()->rgb8();
+    m_d->defaultBounds = new KisDefaultBounds();
+}
+
 KisPaintDevice::KisPaintDevice(const KoColorSpace * colorSpace, const QString& name)
     : QObject(0)
     , m_d(new Private(this))
@@ -1256,7 +1301,7 @@ KisNodeWSP KisPaintDevice::parentNode() const
 void KisPaintDevice::setDefaultBounds(KisDefaultBoundsBaseSP defaultBounds)
 {
     m_d->defaultBounds = defaultBounds;
-    m_d->cache()->invalidate();
+    if (!m_d->gpuImage) m_d->cache()->invalidate();
 }
 
 KisDefaultBoundsBaseSP KisPaintDevice::defaultBounds() const
@@ -1567,6 +1612,15 @@ void KisPaintDevice::setDefaultPixel(const KoColor &defPixel)
 
 KoColor KisPaintDevice::defaultPixel() const
 {
+    if (m_d->gpuImage) {
+        for (const auto &layer : m_d->gpuImage->operations().snapshot()->layers) {
+            if (layer.id != m_d->gpuLayer) continue;
+            const auto &rgba = layer.defaultPixel;
+            const quint8 bgra[] = {rgba[2], rgba[1], rgba[0], rgba[3]};
+            return KoColor(bgra, colorSpace());
+        }
+        throw std::runtime_error("GPU paint-device layer is unavailable");
+    }
     return KoColor(m_d->dataManager()->defaultPixel(), colorSpace());
 }
 
@@ -2051,6 +2105,20 @@ void KisPaintDevice::readBytes(quint8 * data, qint32 x, qint32 y, qint32 w, qint
 
 void KisPaintDevice::readBytes(quint8 *data, const QRect &rect) const
 {
+    if (m_d->gpuImage) {
+        if (rect.isEmpty()) return;
+        const auto count = gpuPixelByteCount(rect);
+        const auto pixels = m_d->gpuImage->readRgbaPixels(m_d->gpuLayer, rect, count);
+        if (pixels.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
+            throw std::runtime_error(pixels.diagnostic.toStdString());
+        for (qsizetype i = 0; i < pixels.bytes.size(); i += 4) {
+            data[i] = quint8(pixels.bytes[i + 2]);
+            data[i + 1] = quint8(pixels.bytes[i + 1]);
+            data[i + 2] = quint8(pixels.bytes[i]);
+            data[i + 3] = quint8(pixels.bytes[i + 3]);
+        }
+        return;
+    }
     m_d->currentStrategy()->readBytes(data, rect);
 }
 
@@ -2061,6 +2129,16 @@ void KisPaintDevice::writeBytes(const quint8 *data, qint32 x, qint32 y, qint32 w
 
 void KisPaintDevice::writeBytes(const quint8 *data, const QRect &rect)
 {
+    if (m_d->gpuImage) {
+        if (rect.isEmpty()) return;
+        const auto count = gpuPixelByteCount(rect);
+        QByteArray rgba(reinterpret_cast<const char *>(data), qsizetype(count));
+        for (qsizetype i = 0; i < rgba.size(); i += 4) std::swap(rgba[i], rgba[i + 2]);
+        const auto result = m_d->gpuImage->writeRgbaPixels(m_d->gpuLayer, rect, rgba);
+        if (result != LibrePaint::Image::Gpu::Result::Success)
+            throw std::runtime_error("GPU pixel write failed: " + std::to_string(int(result)));
+        return;
+    }
     m_d->currentStrategy()->writeBytes(data, rect);
 }
 

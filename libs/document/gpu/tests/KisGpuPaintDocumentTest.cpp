@@ -20,9 +20,9 @@
 #include <quazipfile.h>
 #include <cstring>
 
-using namespace Krita::Image::Gpu;
-using namespace Krita::Document::Gpu;
-namespace Kra = Krita::ImportExport::Kra;
+using namespace LibrePaint::Image::Gpu;
+using namespace LibrePaint::Document::Gpu;
+namespace Kra = LibrePaint::ImportExport::Kra;
 
 namespace {
 void dot(PaintImage &image, QPointF position, std::array<quint8, 4> color)

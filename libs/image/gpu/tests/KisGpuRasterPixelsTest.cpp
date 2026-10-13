@@ -7,7 +7,7 @@
 #include <gpu/KisGpuRasterPixels.h>
 #include <limits>
 
-using namespace Krita::Image::Gpu;
+using namespace LibrePaint::Image::Gpu;
 
 class KisGpuRasterPixelsTest : public QObject
 {

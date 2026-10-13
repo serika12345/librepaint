@@ -5,7 +5,7 @@
 
 #include "KisGpuPaintJob_p.h"
 
-namespace Krita::Image::Gpu::Detail {
+namespace LibrePaint::Image::Gpu::Detail {
 quint32 packedPixel(const std::array<quint8, 4> &rgba)
 {
     return quint32(rgba[0]) | quint32(rgba[1]) << 8 | quint32(rgba[2]) << 16 | quint32(rgba[3]) << 24;

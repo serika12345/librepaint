@@ -109,7 +109,7 @@ void KisKraLoaderTest::testObligeSingleChildNonTranspPixel()
 
 void KisKraLoaderTest::testDirectRasterCompatibility()
 {
-    namespace Kra = Krita::ImportExport::Kra;
+    namespace Kra = LibrePaint::ImportExport::Kra;
     for (const auto &name : {QStringLiteral("single_layer_no_channel_flags_transp_def_pixel.kra"),
                              QStringLiteral("single_layer_no_channel_flags_nontransp_def_pixel.kra")}) {
         const auto path = QStringLiteral(FILES_DATA_DIR) + QLatin1Char('/') + name;
@@ -141,7 +141,7 @@ void KisKraLoaderTest::testDirectRasterCompatibility()
     Kra::Document source;
     source.image.size = {100, 100};
     source.image.activeLayer = 1;
-    using Krita::Image::Gpu::RgbaTile;
+    using LibrePaint::Image::Gpu::RgbaTile;
     source.image.layers = {
         {QStringLiteral("Lower"), true, QUuid::createUuid(), {{{-1, 0}, QByteArray::fromHex("120a2700").repeated(RgbaTile::ByteCount / 4)}}},
         {QStringLiteral("Hidden"), false, QUuid::createUuid(), {{{0, 0}, QByteArray::fromHex("197fafe0").repeated(RgbaTile::ByteCount / 4)}}}

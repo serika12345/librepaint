@@ -12,7 +12,7 @@
 class QRhiRenderTarget;
 class QRhiSwapChain;
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 
 using DocumentHandle = quint64;
 enum class ExecutionCode { Success, InvalidRequest, CapacityExceeded, Busy, DeviceFailure, SurfaceOutOfDate };

@@ -8,7 +8,7 @@
 #include <new>
 #include <stdexcept>
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 PaintImage::PaintImage(Execution &execution, QSize size, Limits limits)
     : PaintImage(execution, std::make_unique<OperationDocument>(size, limits), limits) {}
 PaintImage::PaintImage(Execution &execution, const RasterImage &image, Limits limits)
@@ -28,6 +28,15 @@ PaintImage::~PaintImage()
 const OperationDocument &PaintImage::operations() const { return *m_d->document; }
 quint64 PaintImage::handle() const { return m_d->handle; }
 ExecutionOutcome PaintImage::lastRequestOutcome() const { return m_d->lastRequest; }
+PixelBytesOutcome PaintImage::readRgbaPixels(LayerId layer, QRect region, qsizetype maximumBytes) const
+{
+    if (!onThread()) {
+        PixelBytesOutcome outcome;
+        outcome.diagnostic = QStringLiteral("Image pixel reads require the owning thread");
+        return outcome;
+    }
+    return m_d->execution.readRgbaPixels(m_d->handle, m_d->document->snapshot(), region, layer, maximumBytes);
+}
 bool PaintImage::onThread() const { return QThread::currentThread() == thread(); }
 void PaintImage::requestCurrentVersion()
 {

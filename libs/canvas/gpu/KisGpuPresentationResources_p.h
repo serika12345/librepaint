@@ -9,7 +9,7 @@
 #include <rhi/qrhi.h>
 #include <memory>
 
-namespace Krita::Canvas::Gpu::Detail {
+namespace LibrePaint::Canvas::Gpu::Detail {
 template<class T> struct ResourceDeleter
 {
     QRhi *rhi;

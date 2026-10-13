@@ -7,7 +7,7 @@
 #include <zlib.h>
 #include <utility>
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 namespace {
 bool validCoordinate(QPoint coordinate)
 {

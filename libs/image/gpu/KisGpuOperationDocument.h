@@ -19,7 +19,7 @@
 #include "KisGpuRasterPixels.h"
 #include <variant>
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 
 using LayerId = quint64;
 

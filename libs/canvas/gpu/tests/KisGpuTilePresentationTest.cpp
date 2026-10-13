@@ -11,8 +11,8 @@
 #include <gpu/KisGpuTileRenderer.h>
 #include <limits>
 
-using namespace Krita::Image::Gpu;
-using namespace Krita::Canvas::Gpu;
+using namespace LibrePaint::Image::Gpu;
+using namespace LibrePaint::Canvas::Gpu;
 
 class KisGpuTilePresentationTest : public QObject
 {

@@ -121,7 +121,7 @@ UI側は対象画像、参照画像、キャンバス色資源、カーソルと
 
 #### 保持する描画操作と文書版
 
-`libs/image/gpu/KisGpuOperationDocument.{h,cpp}`は、`Krita::Image::Gpu`の
+`libs/image/gpu/KisGpuOperationDocument.{h,cpp}`は、`LibrePaint::Image::Gpu`の
 `OperationDocument`として、円形ブラシの設定、乱数種、筆圧・傾き・回転・時刻を含む入力、
 自由描画・直線・楕円の形状、平坦なレイヤー列をCPU値として保持する。
 `kritaimagegpuoperations`はQt Coreとzlibに依存する内部オブジェクトであり、`kritaimage`へ集約する。
@@ -653,6 +653,14 @@ SHA-256は`4f5b7f971268c853d893a2c6c25d805cb354eef8c1d6c26fffeaac5dafa4d219`で�
 互換性検査は、明示したソース互換性・バイナリー互換性などの要件と適用範囲を根拠に維持します。
 型や宣言形状、内部構造の検査は、公開契約としての意味を確認して整理します。
 重要な状態を観測するgetterや、利用側に必要な通知順序・所有期間も振る舞い契約の対象です。
+
+`LibrePaint::Image::Gpu`は新しい画像実装の名前空間を所有し、公開されたスクリプト入口の
+`Krita`クラスと同じ翻訳単位で利用できる。
+`KisPaintDevice::fromGpuImage()`は共有したGPU画像のレイヤーを、直接バイトアクセスへ接続する。
+画素デバイスの`readBytes()`と`writeBytes()`が、公開APIのBGRA8と内部のRGBA8を変換する。
+この接続はGUIスレッドで利用し、画素デバイスの最後の参照まで画像を保持する。
+色空間、画素サイズと既定画素は画像の値を参照する。対応する公開呼出しを直接画素アクセスに
+限定し、イテレーターや色変換などの他の操作は、CPU投影の再構築を避けるため利用不可の診断を返す。
 
 `libs/libkis/tests/TestNode.cpp`は、RGBA8の公開画素操作を利用するスクリプトと拡張を支える。
 整数RGBA8の受渡し順序はBGRAで、透明画素のRGBとキャンバス外の画素を保持する。

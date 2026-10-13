@@ -10,7 +10,7 @@
 #include <gpu/KisGpuExecution.h>
 #include "../KisGpuReadbackBatch_p.h"
 
-using namespace Krita::Image::Gpu;
+using namespace LibrePaint::Image::Gpu;
 
 class KisGpuExecutionTest : public QObject
 {

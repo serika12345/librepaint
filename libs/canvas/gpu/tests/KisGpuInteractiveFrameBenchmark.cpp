@@ -23,8 +23,8 @@
 #include <cmath>
 #include <stdexcept>
 
-using namespace Krita::Image::Gpu;
-using Krita::Canvas::Gpu::TilePresentation;
+using namespace LibrePaint::Image::Gpu;
+using LibrePaint::Canvas::Gpu::TilePresentation;
 
 namespace {
 void require(bool accepted, const QString &diagnostic)

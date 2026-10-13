@@ -7,6 +7,7 @@
 #include <QJsonObject>
 #include <QPluginLoader>
 #include <QTest>
+#include <QStandardPaths>
 #include <gpu/KisGpuExecution.h>
 #include <gpu/KisGpuPaintImage.h>
 #include <filter/kis_filter.h>
@@ -18,9 +19,13 @@
 #include <KoUpdater.h>
 #include <KisGlobalResourcesInterface.h>
 #include <kis_default_bounds.h>
+#include <kis_image.h>
 #include <kis_paint_device.h>
+#include <kis_paint_layer.h>
+#include <Krita.h>
+#include <Node.h>
 
-namespace Gpu = Krita::Image::Gpu;
+namespace Gpu = LibrePaint::Image::Gpu;
 
 class CanvasBounds final : public KisDefaultBounds
 {
@@ -50,20 +55,24 @@ private Q_SLOTS:
         QVERIFY2(device, qPrintable(diagnostic));
         Gpu::Execution execution(device);
         const auto original = QByteArray::fromHex("316ac2ff").repeated(Gpu::RgbaTile::Size * Gpu::RgbaTile::Size);
-        Gpu::PaintImage image(execution, QSize(64, 64));
-        const auto layerId = image.operations().activeLayer();
+        auto image = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+        const auto layerId = image->operations().activeLayer();
         const QRect transferRegion(0, 0, Gpu::RgbaTile::Size, Gpu::RgbaTile::Size);
-        QCOMPARE(image.writeRgbaPixels(layerId, transferRegion, original), Gpu::Result::Success);
-        QCOMPARE(image.operations().undoCount(), 0);
-        QVERIFY(!image.operations().isModified());
-        const auto before = image.operations().snapshot();
-        auto pixels = execution.readRgbaPixels(image.handle(), before, transferRegion, layerId, Gpu::RgbaTile::ByteCount);
+        auto gpuPixels = KisPaintDevice::fromGpuImage(image, layerId);
+        KisNodeSP layer = new KisPaintLayer(KisImageWSP(), QStringLiteral("External pixels"), 255, gpuPixels);
+        NodeSP node(Node::createNode(KisImageSP(), layer));
+        auto originalBgra = original;
+        for (qsizetype i = 0; i < originalBgra.size(); i += 4) std::swap(originalBgra[i], originalBgra[i + 2]);
+        QVERIFY(node->setPixelData(originalBgra, 0, 0, Gpu::RgbaTile::Size, Gpu::RgbaTile::Size));
+        QCOMPARE(image->operations().undoCount(), 0);
+        QVERIFY(!image->operations().isModified());
+        auto pixels = image->readRgbaPixels(layerId, transferRegion, Gpu::RgbaTile::ByteCount);
         QCOMPARE(pixels.code, Gpu::ExecutionCode::Success);
         QCOMPARE(pixels.bytes.size(), Gpu::RgbaTile::ByteCount);
         QCOMPARE(pixels.bytes, original);
 
-        QByteArray bgra = pixels.bytes;
-        for (qsizetype i = 0; i < bgra.size(); i += 4) std::swap(bgra[i], bgra[i + 2]);
+        const auto bgra = node->pixelData(0, 0, Gpu::RgbaTile::Size, Gpu::RgbaTile::Size);
+        QCOMPARE(bgra, originalBgra);
         KisPaintDeviceSP cpu = new KisPaintDevice(KoColorSpaceRegistry::instance()->rgb8());
         cpu->setDefaultBounds(new CanvasBounds);
         cpu->writeBytes(reinterpret_cast<const quint8 *>(bgra.constData()), 0, 0, Gpu::RgbaTile::Size, Gpu::RgbaTile::Size);
@@ -78,24 +87,30 @@ private Q_SLOTS:
         for (qsizetype i = 0; i < edited.size(); i += 4) std::swap(edited[i], edited[i + 2]);
         auto expected = original;
         for (int y = 0; y < 64; ++y) expected.replace(y * Gpu::RgbaTile::Size * 4, 64 * 4, edited.mid(y * 64 * 4, 64 * 4));
-        QCOMPARE(image.replaceRgbaPixels(layerId, QRect(0, 0, 64, 64), edited), Gpu::Result::Success);
-        QCOMPARE(image.operations().undoCount(), 1);
-        pixels = execution.readRgbaPixels(image.handle(), image.operations().snapshot(), transferRegion, layerId, Gpu::RgbaTile::ByteCount);
+        QCOMPARE(image->replaceRgbaPixels(layerId, QRect(0, 0, 64, 64), edited), Gpu::Result::Success);
+        QCOMPARE(image->operations().undoCount(), 1);
+        pixels = image->readRgbaPixels(layerId, transferRegion, Gpu::RgbaTile::ByteCount);
         QCOMPARE(pixels.code, Gpu::ExecutionCode::Success);
         QCOMPARE(pixels.bytes, expected);
         QCOMPARE(pixels.bytes.first(4), QByteArray::fromHex("316ac200"));
         QCOMPARE(pixels.bytes.mid((32 * Gpu::RgbaTile::Size + 32) * 4, 4), QByteArray::fromHex("316ac2ff"));
         QCOMPARE(pixels.bytes.mid((100 * Gpu::RgbaTile::Size + 100) * 4, 4), QByteArray::fromHex("316ac2ff"));
-        QCOMPARE(image.undo(), Gpu::Result::Success);
-        pixels = execution.readRgbaPixels(image.handle(), image.operations().snapshot(), transferRegion, layerId, Gpu::RgbaTile::ByteCount);
+        QCOMPARE(image->undo(), Gpu::Result::Success);
+        pixels = image->readRgbaPixels(layerId, transferRegion, Gpu::RgbaTile::ByteCount);
         QCOMPARE(pixels.code, Gpu::ExecutionCode::Success);
         QCOMPARE(pixels.bytes, original);
-        QCOMPARE(image.redo(), Gpu::Result::Success);
-        pixels = execution.readRgbaPixels(image.handle(), image.operations().snapshot(), transferRegion, layerId, Gpu::RgbaTile::ByteCount);
+        QCOMPARE(image->redo(), Gpu::Result::Success);
+        pixels = image->readRgbaPixels(layerId, transferRegion, Gpu::RgbaTile::ByteCount);
         QCOMPARE(pixels.code, Gpu::ExecutionCode::Success);
         QCOMPARE(pixels.bytes, expected);
     }
 };
 
-QTEST_MAIN(ExternalFilterContract)
+int main(int argc, char **argv)
+{
+    QStandardPaths::setTestModeEnabled(true);
+    QApplication application(argc, argv);
+    ExternalFilterContract test;
+    return QTest::qExec(&test, argc, argv);
+}
 #include "ExternalFilterContract.moc"

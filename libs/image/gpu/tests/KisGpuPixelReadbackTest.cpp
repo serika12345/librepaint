@@ -9,7 +9,7 @@
 #include <rhi/qrhi.h>
 #include <gpu/KisGpuExecution.h>
 
-using namespace Krita::Image::Gpu;
+using namespace LibrePaint::Image::Gpu;
 
 class KisGpuPixelReadbackTest : public QObject
 {

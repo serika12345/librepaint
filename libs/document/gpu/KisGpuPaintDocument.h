@@ -10,7 +10,7 @@
 #include <memory>
 #include <kritadocumentpainting_export.h>
 
-namespace Krita::Document::Gpu {
+namespace LibrePaint::Document::Gpu {
 namespace Paint = Image::Gpu;
 enum class FileCode { Success, InvalidData, UnsupportedData, CapacityExceeded, IoFailure, Busy, DeviceFailure, Closed };
 struct FileOutcome

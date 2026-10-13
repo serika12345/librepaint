@@ -11,7 +11,7 @@
 #include <QPoint>
 #include <QSharedPointer>
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 /** Full tile pixels in straight, byte-ordered RGBA8. Coordinates identify tiles. */
 struct RgbaTile
 {

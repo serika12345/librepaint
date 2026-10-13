@@ -13,7 +13,7 @@
 class QRhi;
 class QVulkanInstance;
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 namespace Detail { struct ReadbackBatch; }
 class Device;
 using DevicePtr = std::shared_ptr<Device>;

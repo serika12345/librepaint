@@ -9,7 +9,7 @@
 #include <QSaveFile>
 #include <stdexcept>
 
-namespace Krita::Document::Gpu {
+namespace LibrePaint::Document::Gpu {
 using namespace Image::Gpu;
 namespace Kra = ImportExport::Kra;
 namespace {

@@ -6,7 +6,7 @@
 #define KIS_KRA_RGBA_TILES_P_H
 #include "KisKraRasterCodec.h"
 
-namespace Krita::ImportExport::Kra::Detail {
+namespace LibrePaint::ImportExport::Kra::Detail {
 QByteArray rgba(const std::array<quint8, 4> &pixel);
 QByteArray bgra(const std::array<quint8, 4> &pixel);
 Outcome readTiles(const QByteArray &data, const std::array<quint8, 4> &defaultPixel,

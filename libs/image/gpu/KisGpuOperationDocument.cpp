@@ -11,7 +11,7 @@
 #include <algorithm>
 #include <stdexcept>
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 
 QList<InputSample> PaintOperation::inputSamples() const

@@ -10,7 +10,7 @@
 #include <rhi/qrhi.h>
 #include <rhi/qrhi_platform.h>
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 struct Device::Private
 {
 #if QT_CONFIG(vulkan)

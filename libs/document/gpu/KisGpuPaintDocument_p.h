@@ -9,7 +9,7 @@
 #include <kra/KisKraRasterCodec.h>
 #include <QMap>
 
-namespace Krita::Document::Gpu {
+namespace LibrePaint::Document::Gpu {
 struct PaintDocument::Private
 {
     Paint::Execution &execution;

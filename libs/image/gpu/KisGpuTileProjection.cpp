@@ -9,7 +9,7 @@
 #include <QSet>
 #include <vector>
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 struct CompositeJob

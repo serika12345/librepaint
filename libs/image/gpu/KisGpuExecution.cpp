@@ -7,7 +7,7 @@
 #include <limits>
 #include <stdexcept>
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 namespace {
 ExecutionCode code(QRhi::FrameOpResult result)
 {

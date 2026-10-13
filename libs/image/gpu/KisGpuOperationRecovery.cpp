@@ -14,7 +14,7 @@
 #include <QSet>
 #include <limits>
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR

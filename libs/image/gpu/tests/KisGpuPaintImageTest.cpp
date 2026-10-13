@@ -13,7 +13,7 @@
 #include <QTest>
 #include <limits>
 
-using namespace Krita::Image::Gpu;
+using namespace LibrePaint::Image::Gpu;
 
 class KisGpuPaintImageTest : public QObject
 {

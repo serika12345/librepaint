@@ -11,7 +11,7 @@
 #include <cstring>
 #include <new>
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 namespace {
 using Lineage = QList<QPair<quint64, quint64>>;
 using GeometryCache = QHash<const PaintOperation *, QList<Detail::PaintSegment>>;

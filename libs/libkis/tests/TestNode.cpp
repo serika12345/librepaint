@@ -7,6 +7,9 @@
 #include <QColor>
 #include <QDataStream>
 #include <kundo2stack.h>
+#include <QSignalSpy>
+#include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuExecution.h>
 
 #include <KritaVersionWrapper.h>
 #include <Node.h>
@@ -186,6 +189,49 @@ void TestNode::testRawPixelWritesPreserveOtherLayerHistoryAndRedo()
     QCOMPARE(editedNode->pixelData(96, 96, 1, 1), external);
     QCOMPARE(importedNode->pixelData(-1, -1, 1, 1), external);
     KisPart::instance()->removeDocument(owner.data(), false);
+}
+
+void TestNode::testGpuPixelDataPreservesFormatHistoryAndSharedLifetime()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    auto image = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto handle = image->handle();
+    QSignalSpy changed(image.data(), &Gpu::PaintImage::changed);
+    auto pixels = KisPaintDevice::fromGpuImage(image, image->operations().activeLayer());
+    KisNodeSP layer = new KisPaintLayer(KisImageWSP(), QStringLiteral("GPU pixels"), 255, pixels);
+    NodeSP node(Node::createNode(KisImageSP(), layer));
+    const auto raw = QByteArray::fromHex("120a2700197fafe00000ffffff000080");
+    QVERIFY(node->setPixelData(raw + QByteArrayLiteral("ignored suffix"), -1, -1, 2, 2));
+    QCOMPARE(node->pixelData(-1, -1, 2, 2), raw);
+    QCOMPARE(node->pixelData(20, 20, 2, 2), QByteArray(16, '\0'));
+    QVERIFY(!node->setPixelData(raw.first(15), -1, -1, 2, 2));
+    QVERIFY(node->setPixelData({}, 0, 0, 0, 0));
+    QCOMPARE(node->pixelData(-1, -1, 2, 2), raw);
+    node->setVisible(false);
+    QCOMPARE(node->projectionPixelData(-1, -1, 2, 2), raw);
+    QCOMPARE(image->operations().undoCount(), 0);
+    QCOMPARE(image->operations().redoCount(), 0);
+    QVERIFY(!image->operations().isModified());
+    QVERIFY(changed.isEmpty());
+    const auto native = execution.readRgbaPixels(handle, image->operations().snapshot(), {-1, -1, 2, 2}, 1, 16);
+    QCOMPARE(native.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(native.bytes, QByteArray::fromHex("270a1200af7f19e0ff0000ff0000ff80"));
+    const auto retained = node->pixelData(-1, -1, 2, 2);
+    const auto after = QByteArray::fromHex("01020304");
+    image.clear();
+    pixels.clear();
+    layer.clear();
+    QVERIFY(execution.requested(handle));
+    QVERIFY(node->setPixelData(after, 0, 0, 1, 1));
+    QCOMPARE(node->pixelData(0, 0, 1, 1), after);
+    QCOMPARE(retained, raw);
+    node.clear();
+    QVERIFY(!execution.requested(handle));
+    QCOMPARE(execution.pendingDocuments(), qsizetype(0));
 }
 
 void TestNode::testPixelCopiesAndNodesOutliveTheImageOwner()

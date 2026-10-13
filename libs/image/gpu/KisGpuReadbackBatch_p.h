@@ -10,7 +10,7 @@
 #include <rhi/qrhi.h>
 #include <vector>
 
-namespace Krita::Image::Gpu::Detail {
+namespace LibrePaint::Image::Gpu::Detail {
 /** Native callbacks retain borrowed result addresses even after a submission error. */
 struct ReadbackBatch
 {

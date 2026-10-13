@@ -12,7 +12,7 @@
 
 #include <gpu/KisGpuOperationDocument.h>
 
-using namespace Krita::Image::Gpu;
+using namespace LibrePaint::Image::Gpu;
 
 namespace {
 InputSample sample(qreal x, qreal y, qreal pressure = 1, quint64 time = 0)

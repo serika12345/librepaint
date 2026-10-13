@@ -16,7 +16,7 @@
 #include <stdexcept>
 #include <vector>
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 
 TileRenderer::Private::Private(DevicePtr device, qsizetype byteBudget)

@@ -9,7 +9,7 @@
 #include <QTransform>
 #include <cmath>
 
-namespace Krita::Canvas::Gpu::Detail {
+namespace LibrePaint::Canvas::Gpu::Detail {
 inline bool validDocumentTransform(const QTransform &transform)
 {
     if (!transform.isAffine() || !transform.isInvertible()) return false;

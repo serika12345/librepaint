@@ -11,7 +11,7 @@
 #include <QThread>
 #include <stdexcept>
 
-namespace Krita::Canvas::Gpu {
+namespace LibrePaint::Canvas::Gpu {
 using namespace Image::Gpu;
 
 struct CanvasWindow::Private

@@ -11,7 +11,7 @@
 #include <QSet>
 #include <cmath>
 
-namespace Krita::Image::Gpu::Detail {
+namespace LibrePaint::Image::Gpu::Detail {
 constexpr qsizetype LayerNameByteLimit = 65536;
 
 inline bool validPixelWriteArea(qint32 x, qint32 y, qint32 width, qint32 height)

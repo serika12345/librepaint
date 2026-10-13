@@ -15,7 +15,7 @@
 #include <quazipnewinfo.h>
 #include <limits>
 
-namespace Krita::ImportExport::Kra {
+namespace LibrePaint::ImportExport::Kra {
 using namespace Image::Gpu;
 namespace {
 Outcome invalid(const QString &detail) { return {Status::InvalidData, detail}; }

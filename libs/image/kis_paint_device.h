@@ -11,6 +11,7 @@
 #include <QObject>
 #include <QRect>
 #include <QVector>
+#include <QSharedPointer>
 
 #include "kis_debug.h"
 
@@ -41,6 +42,7 @@ class KisKeyframe;
 class KisRasterKeyframeChannel;
 
 class KisPaintDeviceFramesInterface;
+namespace LibrePaint::Image::Gpu { class PaintImage; }
 
 class KisInterstrokeData;
 using KisInterstrokeDataSP = QSharedPointer<KisInterstrokeData>;
@@ -70,6 +72,13 @@ class KRITAIMAGE_EXPORT KisPaintDevice
     Q_OBJECT
 
 public:
+
+    /** Creates a GUI-thread RGBA8/sRGB view for native byte pixel access.
+     * Retains the shared GPU image until the last device reference is released.
+     * Invalid or closed images and unavailable layers throw std::invalid_argument.
+     */
+    static KisPaintDeviceSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image,
+                                        quint64 layer, const QString &name = QString());
 
     /**
      * Create a new paint device with the specified colorspace.
@@ -960,6 +969,7 @@ protected:
 
 private:
     struct Private;
+    KisPaintDevice(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, quint64 layer, const QString &name);
     Private * const m_d;
 };
 

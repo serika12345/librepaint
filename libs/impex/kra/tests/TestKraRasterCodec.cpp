@@ -14,8 +14,8 @@
 #include <quazipfile.h>
 #include <quazipnewinfo.h>
 
-namespace Kra = Krita::ImportExport::Kra;
-using namespace Krita::Image::Gpu;
+namespace Kra = LibrePaint::ImportExport::Kra;
+using namespace LibrePaint::Image::Gpu;
 
 namespace {
 QMap<QString, QByteArray> entries(const QByteArray &bytes)

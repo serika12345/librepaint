@@ -8,7 +8,7 @@
 
 #include "KisGpuOperationDocument.h"
 
-namespace Krita::Image::Gpu::Detail {
+namespace LibrePaint::Image::Gpu::Detail {
 inline OperationId operationId(const LayerOperation &value)
 { return std::visit([](const auto &operation) { return operation->id; }, value); }
 inline LayerId operationLayer(const LayerOperation &value)

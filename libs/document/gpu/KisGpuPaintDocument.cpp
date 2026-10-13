@@ -6,7 +6,7 @@
 #include "KisGpuPaintDocument_p.h"
 #include <QThread>
 
-namespace Krita::Document::Gpu {
+namespace LibrePaint::Document::Gpu {
 using namespace Image::Gpu;
 PaintDocument::PaintDocument(Execution &execution, QSize size, Limits limits)
     : PaintDocument(execution, PaintImageSP::create(execution, size, limits), limits) {}

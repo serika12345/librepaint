@@ -9,7 +9,7 @@
 #include <QRect>
 #include <optional>
 
-namespace Krita::Image::Gpu::Detail {
+namespace LibrePaint::Image::Gpu::Detail {
 constexpr int PixelHistoryBlockSize = 64;
 inline int pixelTileIndex(int value, int size)
 { return value >= 0 ? value / size : (value - size + 1) / size; }

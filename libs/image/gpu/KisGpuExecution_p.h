@@ -11,7 +11,7 @@
 #include <QThread>
 #include <rhi/qrhi.h>
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 struct Execution::Private
 {
     struct Document

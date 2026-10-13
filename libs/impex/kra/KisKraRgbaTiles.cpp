@@ -10,7 +10,7 @@
 #include <cstring>
 #include <limits>
 
-namespace Krita::ImportExport::Kra::Detail {
+namespace LibrePaint::ImportExport::Kra::Detail {
 using namespace Image::Gpu;
 namespace {
 constexpr int FileTileSize = 64;

@@ -15,7 +15,7 @@
 #include <limits>
 #include <new>
 
-namespace Krita::Image::Gpu {
+namespace LibrePaint::Image::Gpu {
 namespace {
 PixelReadbackOutcome failure(ExecutionCode code, const QString &diagnostic)
 {
