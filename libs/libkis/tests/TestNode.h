@@ -16,6 +16,7 @@ private Q_SLOTS:
     void testSetColorProfile();
     void testPixelData();
     void testRawPixelWritesPreserveFormatHistoryAndFailures();
+    void testRawPixelWritesPreserveOtherLayerHistoryAndRedo();
     void testPixelCopiesAndNodesOutliveTheImageOwner();
     void testLayerAndDocumentProjectionsRemainDistinct();
     void testProjectionPixelData();

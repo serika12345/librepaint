@@ -21,6 +21,7 @@
 #include <kis_fill_painter.h>
 #include <kis_paint_layer.h>
 #include <kis_group_layer.h>
+#include <kis_transaction.h>
 #include <kis_shape_layer.h>
 #include <document/KisDocument.h>
 #include <application/ui/orchestration/KisPart.h>
@@ -138,6 +139,50 @@ void TestNode::testRawPixelWritesPreserveFormatHistoryAndFailures()
     NodeSP group(Node::createNode(image, image->rootLayer()));
     QVERIFY(!group->setPixelData(raw, 0, 0, 2, 2));
     KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void TestNode::testRawPixelWritesPreserveOtherLayerHistoryAndRedo()
+{
+    QScopedPointer<KisDocument> owner(KisPart::instance()->createDocument());
+    KisImageSP image = new KisImage(owner->createUndoStore(), 128, 128, KoColorSpaceRegistry::instance()->rgb8(), "test");
+    KisNodeSP edited = new KisPaintLayer(image, "Recorded edit", 255);
+    KisNodeSP imported = new KisPaintLayer(image, "External pixels", 255);
+    image->addNode(edited);
+    image->addNode(imported);
+    owner->setCurrentImage(image);
+    NodeSP editedNode(Node::createNode(image, edited));
+    NodeSP importedNode(Node::createNode(image, imported));
+    const auto before = QByteArray::fromHex("0000ffff");
+    const auto after = QByteArray::fromHex("ff0000ff");
+    const auto external = QByteArray::fromHex("120a2700");
+    QVERIFY(editedNode->setPixelData(before, 8, 12, 1, 1));
+    {
+        KisTransaction transaction(edited->paintDevice());
+        QVERIFY(editedNode->setPixelData(after, 8, 12, 1, 1));
+        transaction.commit(image->undoAdapter());
+    }
+    image->waitForDone();
+    QCOMPARE(owner->undoStack()->count(), 1);
+    owner->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(editedNode->pixelData(8, 12, 1, 1), before);
+    const auto modified = owner->isModified();
+    QVERIFY(importedNode->setPixelData(external, -1, -1, 1, 1));
+    QCOMPARE(owner->undoStack()->index(), 0);
+    QCOMPARE(owner->undoStack()->count(), 1);
+    QVERIFY(owner->undoStack()->canRedo());
+    QCOMPARE(owner->isModified(), modified);
+    QVERIFY(editedNode->setPixelData(external, 8, 12, 1, 1));
+    QCOMPARE(editedNode->pixelData(8, 12, 1, 1), external);
+    owner->undoStack()->redo();
+    image->waitForDone();
+    QCOMPARE(editedNode->pixelData(8, 12, 1, 1), after);
+    QCOMPARE(importedNode->pixelData(-1, -1, 1, 1), external);
+    owner->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(editedNode->pixelData(8, 12, 1, 1), external);
+    QCOMPARE(importedNode->pixelData(-1, -1, 1, 1), external);
+    KisPart::instance()->removeDocument(owner.data(), false);
 }
 
 void TestNode::testPixelCopiesAndNodesOutliveTheImageOwner()
