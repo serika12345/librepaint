@@ -18,6 +18,7 @@
 #include <rhi/qrhi.h>
 #include <quazip.h>
 #include <quazipfile.h>
+#include <cstring>
 
 using namespace Krita::Image::Gpu;
 using namespace Krita::Document::Gpu;
@@ -71,9 +72,88 @@ private Q_SLOTS:
     void recoveryKeepsHistoryPendingInputAndAssociatedFiles();
     void invalidRecoveryPreservesTheAttachedDocument();
     void layerStructureAndEmptyDocumentsRoundTripWithUnifiedHistory();
+    void savingStreamsPixelsWithinTheGpuAndTransferBudgets();
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPaintDocumentTest::savingStreamsPixelsWithinTheGpuAndTransferBudgets()
+{
+    RasterImage image;
+    image.size = {512, 256};
+    image.layers = {
+        {QStringLiteral("Bottom"), true, QUuid::createUuid(),
+         {{{0, 0}, QByteArray::fromHex("ff0000ff").repeated(RgbaTile::ByteCount / 4)},
+          {{1, 0}, QByteArray::fromHex("ff0000ff").repeated(RgbaTile::ByteCount / 4)}}},
+        {QStringLiteral("Upper"), true, QUuid::createUuid(),
+         {{{0, 0}, QByteArray::fromHex("0000ff80").repeated(RgbaTile::ByteCount / 4)},
+          {{1, 0}, QByteArray::fromHex("0000ff80").repeated(RgbaTile::ByteCount / 4)}}},
+        {QStringLiteral("Hidden"), false, QUuid::createUuid(),
+         {{{-1, 0}, QByteArray::fromHex("09080700").repeated(RgbaTile::ByteCount / 4)},
+          {{2, 0}, QByteArray::fromHex("09080700").repeated(RgbaTile::ByteCount / 4)}}, {12, 34, 56, 0}}
+    };
+    Execution execution(m_device, 4 * TileRenderer::TileBytes, 16, TileRenderer::TileBytes);
+    PaintDocument document(execution, image);
+    dot(document, {270, 100}, {0, 255, 0, 128});
+    const auto pinned = document.operations().snapshot();
+    const auto history = document.operations().undoCount();
+    Execution oracle(m_device);
+    const auto admitted = oracle.open(pinned);
+    QCOMPARE(admitted.code, ExecutionCode::Success);
+    const auto expected = oracle.readPixels(admitted.handle, pinned,
+        {-8388608, -8388608, 16777216, 16777216}, {1, 2, 3}, false, PixelReadArea::LayerCoordinates);
+    QCOMPARE(expected.code, ExecutionCode::Success);
+    const auto projection = oracle.readPixels(admitted.handle, pinned, {0, 0, 512, 256});
+    QCOMPARE(projection.code, ExecutionCode::Success);
+    {
+        const auto frame = execution.beginReadbackFrame();
+        QCOMPARE(frame.code, ExecutionCode::Success);
+        const auto displayed = execution.project(document.handle(), {0, 0, 256, 256});
+        QCOMPARE(displayed.code, RenderOutcome::Recorded);
+        QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
+    }
+    QCOMPARE(execution.published(document.handle()), pinned);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("bounded.kra"));
+    const auto saved = document.saveKra(path);
+    QVERIFY2(saved.code == FileCode::Success, qPrintable(saved.diagnostic));
+    QCOMPARE(execution.requested(document.handle()), pinned);
+    QCOMPARE(execution.published(document.handle()), pinned);
+    QCOMPARE(document.operations().undoCount(), history);
+    QVERIFY(!document.operations().isModified());
+    QFile input(path);
+    QVERIFY(input.open(QIODevice::ReadOnly));
+    const auto loaded = Kra::RasterCodec::read(input);
+    QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
+    QCOMPARE(loaded.document.image.layers.size(), image.layers.size());
+    for (qsizetype i = 0; i < image.layers.size(); ++i) {
+        const auto &layer = loaded.document.image.layers[i];
+        QCOMPARE(layer.name, image.layers[i].name);
+        QCOMPARE(layer.uuid, image.layers[i].uuid);
+        QCOMPARE(layer.visible, image.layers[i].visible);
+        QVERIFY(layer.defaultPixel == image.layers[i].defaultPixel);
+        QCOMPARE(layer.tiles.size(), image.layers[i].tiles.size());
+        for (const auto &tile : layer.tiles) {
+            bool found = false;
+            for (const auto &pixels : expected.tiles) {
+                if (pixels.layer != LayerId(i + 1) || pixels.coordinate != tile.coordinate) continue;
+                QCOMPARE(tile.rgba, pixels.rgba);
+                found = true;
+            }
+            QVERIFY(found);
+        }
+    }
+    QImage frame(image.size, QImage::Format_RGBA8888);
+    frame.fill(Qt::transparent);
+    frame.setColorSpace(QColorSpace::SRgb);
+    for (const auto &tile : projection.tiles) {
+        for (int y = 0; y < RgbaTile::Size; ++y)
+            std::memcpy(frame.scanLine(y) + tile.coordinate.x() * RgbaTile::Size * 4,
+                        tile.rgba.constData() + y * RgbaTile::Size * 4, RgbaTile::Size * 4);
+    }
+    QCOMPARE(mergedImage(path).convertToFormat(QImage::Format_RGBA8888), frame);
+}
 
 void KisGpuPaintDocumentTest::layerStructureAndEmptyDocumentsRoundTripWithUnifiedHistory()
 {

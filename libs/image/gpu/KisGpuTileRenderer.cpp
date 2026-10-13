@@ -254,40 +254,18 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
             const auto segments = paintGeometry(operation, step);
             QMap<quint64, QList<PaintSegment>> affected;
             QSet<quint64> changedCoordinates;
-            const qint64 radius = (diameter + 31) / 32;
             for (qsizetype index = 0; index < segments.size(); ++index) {
                 const auto &segment = segments[index];
-                const int left = int(std::max<qint64>(paintRegion.left() / TileSize * TileSize, (std::min(segment.ax, segment.bx) / 16) - radius));
-                const int top = int(std::max<qint64>(paintRegion.top() / TileSize * TileSize, (std::min(segment.ay, segment.by) / 16) - radius));
-                const int right = int(std::min<qint64>(qMin(document->size.width() - 1, (paintRegion.right() / TileSize + 1) * TileSize - 1), (std::max(segment.ax, segment.bx) / 16) + radius));
-                const int bottom = int(std::min<qint64>(qMin(document->size.height() - 1, (paintRegion.bottom() / TileSize + 1) * TileSize - 1), (std::max(segment.ay, segment.by) / 16) + radius));
-                if (right < left || bottom < top) continue;
-                for (int y = top / TileSize; y <= bottom / TileSize; ++y) {
-                    qreal first = 0, last = 1;
-                    if (segment.ay != segment.by) {
-                        const qreal lower = qreal(y * TileSize - radius - 1) * 16;
-                        const qreal upper = qreal((y + 1) * TileSize + radius + 1) * 16;
-                        const qreal dy = qreal(segment.by) - segment.ay;
-                        const qreal a = (lower - segment.ay) / dy, b = (upper - segment.ay) / dy;
-                        first = std::max<qreal>(0, std::min(a, b));
-                        last = std::min<qreal>(1, std::max(a, b));
-                        if (first > last) continue;
-                    }
-                    const qreal a = (segment.ax + (qreal(segment.bx) - segment.ax) * first) / 16;
-                    const qreal b = (segment.ax + (qreal(segment.bx) - segment.ax) * last) / 16;
-                    const int rowLeft = std::max(left, int(std::floor(std::min(a, b) - radius - 1)));
-                    const int rowRight = std::min(right, int(std::ceil(std::max(a, b) + radius + 1)));
-                    for (int x = rowLeft / TileSize; x <= rowRight / TileSize; ++x) {
-                        const auto coordinate = key(x, y);
-                        if (op < reusedPrefix && reusedCoordinates.contains(coordinate)) continue;
-                        const auto checkpoint = checkpoints.constFind(coordinate);
-                        if (checkpoint != checkpoints.cend() && op < checkpoint->operation) continue;
-                        affected[coordinate].append(segment);
-                        if (extending && index >= *appendedFrom) changedCoordinates.insert(coordinate);
-                        if (affected.size() > d.budget->limit / TileBytes) {
-                            return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU tile budget exhausted")};
-                        }
-                    }
+                const auto coordinates = paintSegmentTiles(segment, diameter, paintRegion, document->size, d.budget->limit / TileBytes);
+                if (!coordinates) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU tile budget exhausted")};
+                for (const auto coordinate : *coordinates) {
+                    if (op < reusedPrefix && reusedCoordinates.contains(coordinate)) continue;
+                    const auto checkpoint = checkpoints.constFind(coordinate);
+                    if (checkpoint != checkpoints.cend() && op < checkpoint->operation) continue;
+                    affected[coordinate].append(segment);
+                    if (extending && index >= *appendedFrom) changedCoordinates.insert(coordinate);
+                    if (affected.size() > d.budget->limit / TileBytes)
+                        return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU tile budget exhausted")};
                 }
             }
             if (extending) {

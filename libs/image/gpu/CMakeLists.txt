@@ -28,7 +28,7 @@ add_library(kritaimagegputiles OBJECT
     KisGpuTileProjection.cpp
 )
 target_compile_definitions(kritaimagegputiles PRIVATE kritaimage_EXPORTS)
-target_link_libraries(kritaimagegputiles PUBLIC kritaimagegpuoperations PRIVATE Qt6::GuiPrivate)
+target_link_libraries(kritaimagegputiles PUBLIC kritaimagegpuoperations Qt6::Gui PRIVATE Qt6::GuiPrivate)
 set_target_properties(kritaimagegputiles PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 qt6_add_shaders(kritaimagegputiles krita_gpu_tiles
     PREFIX "/librepaint/gpu"

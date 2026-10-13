@@ -5,6 +5,7 @@
 
 #include <QGuiApplication>
 #include <QTest>
+#include <QColorSpace>
 #include <rhi/qrhi.h>
 #include <gpu/KisGpuExecution.h>
 
@@ -22,9 +23,62 @@ private Q_SLOTS:
     void cpuPixelsOutliveExecutionAndDevices();
     void savingReadsOffCanvasTilesAndRetainsImplicitPixels();
     void selectedReadsFitWithoutGeneratingUnrequestedPixels();
+    void completeImagesStreamThinCanvasesAndOutliveTheirDevice();
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPixelReadbackTest::completeImagesStreamThinCanvasesAndOutliveTheirDevice()
+{
+    ImageReadbackOutcome retained;
+    std::weak_ptr<Device> deviceLifetime;
+    {
+        QString diagnostic;
+        const auto device = Device::createNative(diagnostic);
+        QVERIFY2(device, qPrintable(diagnostic));
+        deviceLifetime = device;
+        RasterImage image;
+        image.size = {1, 513};
+        image.layers = {{QStringLiteral("Implicit"), true, {}, {}, {20, 80, 160, 128}}};
+        OperationDocument document(image);
+        const auto pinned = document.snapshot();
+        Execution execution(device, 2 * TileRenderer::TileBytes, 1, TileRenderer::TileBytes);
+        const auto handle = execution.open(pinned).handle;
+        QVERIFY(handle);
+        {
+            QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+            const auto displayed = execution.project(handle, {0, 0, 1, 1});
+            QCOMPARE(displayed.code, RenderOutcome::Recorded);
+            QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
+        }
+        QCOMPARE(document.renameLayer(document.activeLayer(), QStringLiteral("Latest")), Result::Success);
+        const auto latest = document.snapshot();
+        QCOMPARE(execution.request(handle, latest).code, ExecutionCode::Success);
+        const auto rejected = execution.readProjectionImage(handle, pinned, 1 * 513 * 4 - 1);
+        QCOMPARE(rejected.code, ExecutionCode::CapacityExceeded);
+        QVERIFY(rejected.image.isNull());
+        retained = execution.readProjectionImage(handle, pinned, 1 * 513 * 4);
+        QVERIFY2(retained.code == ExecutionCode::Success, qPrintable(retained.diagnostic));
+        QCOMPARE(retained.document, pinned);
+        QCOMPARE(retained.generation, execution.generation());
+        QCOMPARE(retained.image.size(), image.size);
+        QCOMPARE(retained.image.colorSpace(), QColorSpace(QColorSpace::SRgb));
+        for (int y = 0; y < retained.image.height(); ++y)
+            QCOMPARE(QByteArray(reinterpret_cast<const char *>(retained.image.constScanLine(y)), 4), QByteArray::fromHex("1450a080"));
+        QCOMPARE(execution.requested(handle), latest);
+        QCOMPARE(execution.published(handle), pinned);
+        const auto sparse = execution.readLayerPixels(handle, pinned, document.activeLayer(), 0);
+        QCOMPARE(sparse.code, ExecutionCode::Success);
+        QVERIFY(sparse.tiles.isEmpty());
+        QVERIFY(sparse.document->layers.front().defaultPixel == image.layers.front().defaultPixel);
+        QCOMPARE(execution.close(handle).code, ExecutionCode::Success);
+        const auto closed = execution.readProjectionImage(handle, pinned, 1 * 513 * 4);
+        QCOMPARE(closed.code, ExecutionCode::InvalidRequest);
+        QVERIFY(closed.image.isNull());
+    }
+    QVERIFY(deviceLifetime.expired());
+    QCOMPARE(QByteArray(reinterpret_cast<const char *>(retained.image.constScanLine(512)), 4), QByteArray::fromHex("1450a080"));
+}
 
 namespace {
 void dot(OperationDocument &document, QPointF point, std::array<quint8, 4> rgba)

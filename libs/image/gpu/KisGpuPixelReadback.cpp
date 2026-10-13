@@ -5,7 +5,12 @@
 
 #include "KisGpuExecution_p.h"
 #include "KisGpuReadbackBatch_p.h"
+#include "KisGpuPaintJob_p.h"
+#include <QColorSpace>
 #include <QSet>
+#include <algorithm>
+#include <cmath>
+#include <cstring>
 #include <exception>
 
 namespace Krita::Image::Gpu {
@@ -22,6 +27,131 @@ ExecutionCode executionCode(RenderOutcome::Code code)
     return code == RenderOutcome::CapacityExceeded ? ExecutionCode::CapacityExceeded :
         code == RenderOutcome::InvalidVersion ? ExecutionCode::InvalidRequest : ExecutionCode::DeviceFailure;
 }
+
+std::optional<QList<quint64>> layerCoordinates(const Layer &layer, QSize size, QRect region, qsizetype maximum)
+{
+    QSet<quint64> coordinates;
+    const QRect canvas(QPoint(0, 0), size);
+    for (const auto &operation : layer.operations) {
+        if (const auto write = std::get_if<TileWriteSnapshot>(&operation)) {
+            for (const auto &tile : (*write)->tiles) {
+                if (!region.intersects(QRect(tile->coordinate() * TileRenderer::TileSize,
+                                             QSize(TileRenderer::TileSize, TileRenderer::TileSize)))) continue;
+                coordinates.insert(Detail::key(tile->coordinate().x(), tile->coordinate().y()));
+                if (coordinates.size() > maximum) return std::nullopt;
+            }
+        } else {
+            const auto &paint = **std::get_if<PaintSnapshot>(&operation);
+            const auto diameter = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * 16)));
+            const auto step = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * paint.brush.spacing * 16)));
+            for (const auto &segment : Detail::paintGeometry(paint, step)) {
+                const auto tiles = Detail::paintSegmentTiles(segment, diameter, region.intersected(canvas), size, maximum);
+                if (!tiles) return std::nullopt;
+                for (const auto tile : *tiles) {
+                    coordinates.insert(tile);
+                    if (coordinates.size() > maximum) return std::nullopt;
+                }
+            }
+        }
+    }
+    auto result = coordinates.values();
+    std::sort(result.begin(), result.end());
+    return result;
+}
+}
+
+ExecutionOutcome Execution::retireDisplayCaches()
+{
+    auto &d = *m_d;
+    if (d.device->rhi().finish() != QRhi::FrameOpSuccess)
+        return {ExecutionCode::DeviceFailure, QStringLiteral("GPU completion failed before pixel streaming")};
+    retireCompletedReadback();
+    for (auto &document : d.documents) {
+        document.projected.clear();
+        document.rendered.clear();
+    }
+    return {ExecutionCode::Success, {}};
+}
+
+PixelReadbackOutcome Execution::readLayerPixels(DocumentHandle handle, const Snapshot &pinned,
+                                               LayerId layer, qsizetype maximumBytes)
+{
+    if (!layer || maximumBytes < 0) return failure(ExecutionCode::InvalidRequest, QStringLiteral("Layer pixel capacity and identity are invalid"));
+    auto outcome = readPixels(handle, pinned, {}, {layer}, false, PixelReadArea::LayerCoordinates);
+    if (outcome.code != ExecutionCode::Success) return outcome;
+    constexpr int limit = RgbaTile::CoordinateLimit;
+    outcome.region = {-limit, -limit, 2 * limit, 2 * limit};
+    const Layer *selected = nullptr;
+    for (const auto &value : pinned->layers) if (value.id == layer) selected = &value;
+    const auto coordinates = layerCoordinates(*selected, pinned->size, outcome.region, maximumBytes / TileRenderer::TileBytes);
+    if (!coordinates) return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Complete layer pixel capacity exceeded"));
+    if (coordinates->isEmpty()) return outcome;
+    const auto retired = retireDisplayCaches();
+    if (retired.code != ExecutionCode::Success) return failure(retired.code, retired.diagnostic);
+    for (const auto coordinate : *coordinates) {
+        const QRect region(Detail::coordinate(coordinate) * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize));
+        const auto pixels = readPixels(handle, pinned, region, {layer}, false, PixelReadArea::LayerCoordinates);
+        if (pixels.code != ExecutionCode::Success) return failure(pixels.code, pixels.diagnostic);
+        outcome.tiles.append(pixels.tiles);
+    }
+    return outcome;
+}
+
+ImageReadbackOutcome Execution::readProjectionImage(DocumentHandle handle, const Snapshot &pinned, qsizetype maximumBytes)
+{
+    const auto rejected = [](ExecutionCode code, const QString &diagnostic) {
+        return ImageReadbackOutcome{code, {}, 0, {}, diagnostic};
+    };
+    if (maximumBytes < 0) return rejected(ExecutionCode::InvalidRequest, QStringLiteral("Projection pixel capacity is invalid"));
+    const auto checked = readPixels(handle, pinned, {}, {}, true);
+    if (checked.code != ExecutionCode::Success) return rejected(checked.code, checked.diagnostic);
+    if (qint64(pinned->size.width()) * pinned->size.height() * 4 > maximumBytes)
+        return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Complete projection pixel capacity exceeded"));
+    const QRect canvas(QPoint(0, 0), pinned->size);
+    constexpr int size = TileRenderer::TileSize;
+    const qsizetype columns = (pinned->size.width() + size - 1) / size;
+    const qsizetype rows = (pinned->size.height() + size - 1) / size;
+    QSet<quint64> coordinates;
+    bool uniform = false;
+    for (const auto &layer : pinned->layers) {
+        if (!layer.visible) continue;
+        uniform |= Detail::packedPixel(layer.defaultPixel) != 0;
+        const auto tiles = layerCoordinates(layer, pinned->size, canvas, columns * rows);
+        if (!tiles) return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Projection tile coordinates exceed the canvas"));
+        for (const auto tile : *tiles) coordinates.insert(tile);
+    }
+    if (uniform) {
+        for (int y = 0; y < rows; ++y)
+            for (int x = 0; x < columns; ++x) coordinates.insert(Detail::key(x, y));
+    }
+    ImageReadbackOutcome outcome;
+    outcome.document = pinned;
+    outcome.generation = checked.generation;
+    outcome.image = QImage(pinned->size, QImage::Format_RGBA8888);
+    if (outcome.image.isNull()) return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Projection image allocation failed"));
+    outcome.image.fill(Qt::transparent);
+    outcome.image.setColorSpace(QColorSpace::SRgb);
+    if (!coordinates.isEmpty()) {
+        const auto retired = retireDisplayCaches();
+        if (retired.code != ExecutionCode::Success) return rejected(retired.code, retired.diagnostic);
+    }
+    auto ordered = coordinates.values();
+    std::sort(ordered.begin(), ordered.end());
+    for (const auto coordinate : ordered) {
+        const QRect region(Detail::coordinate(coordinate) * size, QSize(size, size));
+        const auto pixels = readPixels(handle, pinned, region);
+        if (pixels.code != ExecutionCode::Success) return rejected(pixels.code, pixels.diagnostic);
+        for (const auto &tile : pixels.tiles) {
+            const auto origin = tile.coordinate * size;
+            const auto clipped = QRect(origin, QSize(size, size)).intersected(canvas);
+            for (int y = clipped.top(); y <= clipped.bottom(); ++y) {
+                const auto source = tile.rgba.constData() + ((y - origin.y()) * size + clipped.x() - origin.x()) * 4;
+                std::memcpy(outcome.image.scanLine(y) + clipped.x() * 4, source, size_t(clipped.width()) * 4);
+            }
+        }
+    }
+    outcome.code = ExecutionCode::Success;
+    return outcome;
 }
 
 PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot &pinned,

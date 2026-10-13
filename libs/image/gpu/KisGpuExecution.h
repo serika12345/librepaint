@@ -7,6 +7,7 @@
 #define KIS_GPU_EXECUTION_H
 
 #include "KisGpuTileRenderer.h"
+#include <QImage>
 
 class QRhiRenderTarget;
 class QRhiSwapChain;
@@ -52,6 +53,14 @@ struct PixelReadbackOutcome
     QList<PixelTile> tiles;
     QString diagnostic;
 };
+struct ImageReadbackOutcome
+{
+    ExecutionCode code = ExecutionCode::InvalidRequest;
+    Snapshot document;
+    quint64 generation = 0;
+    QImage image;
+    QString diagnostic;
+};
 
 /**
  * Owns the bounded document requests and frame submission on one GPU queue.
@@ -61,7 +70,7 @@ struct PixelReadbackOutcome
  *
  * Presentation frames join drawing, composition and display without CPU pixel
  * transfers or completion waits. Readback frames serve synchronous external
- * reads and finish at submission. Command buffers and presentation targets are
+ * reads; submission completes their requested CPU transfers. Command buffers and presentation targets are
  * borrowed until submitFrame()/cancelFrame(); keep the swap chain valid then.
  * A frame publishes its GPU version only after successful native submission
  * while its document handle and request remain current. Superseded and closed
@@ -110,6 +119,21 @@ public:
                                    QRect region, const QList<LayerId> &layers = {},
                                    bool includeProjection = true, PixelReadArea area = PixelReadArea::Canvas);
 
+    /** Complete sparse layer pixels, including hidden and off-canvas tiles.
+     * Implicit pixels stay in the returned document's layer defaultPixel.
+     * The output byte limit bounds CPU tiles; each transfer uses one tile.
+     * Complete reads retire derived display caches after GPU completion while
+     * preserving requests and publication. External GPU pins count against the
+     * shared capacity. Rejection returns no partial result.
+     */
+    PixelReadbackOutcome readLayerPixels(DocumentHandle handle, const Snapshot &document,
+                                        LayerId layer, qsizetype maximumBytes);
+    /** Complete straight RGBA8/sRGB projection, streamed into a bounded CPU image.
+     * Uses the same cache retirement and publication rules as readLayerPixels().
+     */
+    ImageReadbackOutcome readProjectionImage(DocumentHandle handle, const Snapshot &document,
+                                            qsizetype maximumBytes);
+
     /** Rebuilds accepted documents lazily on a new device; active frames reject replacement. */
     ExecutionOutcome replaceDevice(DevicePtr device);
     DevicePtr device() const;
@@ -122,6 +146,7 @@ private:
     FrameOutcome beginFrame(QRhiSwapChain *surface);
     ExecutionOutcome endFrame(bool publish);
     void retireCompletedReadback();
+    ExecutionOutcome retireDisplayCaches();
 };
 }
 #endif

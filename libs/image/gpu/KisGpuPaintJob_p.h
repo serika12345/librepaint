@@ -8,6 +8,7 @@
 
 #include "KisGpuTileStorage_p.h"
 #include <array>
+#include <optional>
 
 namespace Krita::Image::Gpu::Detail {
 struct PaintSegment
@@ -35,6 +36,8 @@ struct PaintJob
 };
 
 QList<PaintSegment> paintGeometry(const PaintOperation &operation, quint32 step);
+std::optional<QList<quint64>> paintSegmentTiles(const PaintSegment &segment, quint32 diameter,
+                                               QRect region, QSize canvas, qsizetype maximumCoordinates);
 quint32 packedPixel(const std::array<quint8, 4> &rgba);
 bool preparePaintJob(QRhi &rhi, PaintJob &job, QRhiBuffer *zero);
 }

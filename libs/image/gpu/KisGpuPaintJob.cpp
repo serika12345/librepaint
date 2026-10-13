@@ -77,6 +77,43 @@ QList<PaintSegment> paintGeometry(const PaintOperation &operation, quint32 step)
 }
 
 
+std::optional<QList<quint64>> paintSegmentTiles(const PaintSegment &segment, quint32 diameter,
+                                               QRect region, QSize canvas, qsizetype maximumCoordinates)
+{
+    QList<quint64> result;
+    if (region.isEmpty()) return result;
+    constexpr int size = TileRenderer::TileSize;
+    const qint64 radius = (diameter + 31) / 32;
+    const int left = int(std::max<qint64>(region.left() / size * size, std::min(segment.ax, segment.bx) / 16 - radius));
+    const int top = int(std::max<qint64>(region.top() / size * size, std::min(segment.ay, segment.by) / 16 - radius));
+    const int right = int(std::min<qint64>(qMin(canvas.width() - 1, (region.right() / size + 1) * size - 1),
+                                          std::max(segment.ax, segment.bx) / 16 + radius));
+    const int bottom = int(std::min<qint64>(qMin(canvas.height() - 1, (region.bottom() / size + 1) * size - 1),
+                                           std::max(segment.ay, segment.by) / 16 + radius));
+    if (right < left || bottom < top) return result;
+    for (int y = top / size; y <= bottom / size; ++y) {
+        qreal first = 0, last = 1;
+        if (segment.ay != segment.by) {
+            const qreal lower = qreal(y * size - radius - 1) * 16;
+            const qreal upper = qreal((y + 1) * size + radius + 1) * 16;
+            const qreal dy = qreal(segment.by) - segment.ay;
+            const qreal a = (lower - segment.ay) / dy, b = (upper - segment.ay) / dy;
+            first = std::max<qreal>(0, std::min(a, b));
+            last = std::min<qreal>(1, std::max(a, b));
+            if (first > last) continue;
+        }
+        const qreal a = (segment.ax + (qreal(segment.bx) - segment.ax) * first) / 16;
+        const qreal b = (segment.ax + (qreal(segment.bx) - segment.ax) * last) / 16;
+        const int rowLeft = std::max(left, int(std::floor(std::min(a, b) - radius - 1)));
+        const int rowRight = std::min(right, int(std::ceil(std::max(a, b) + radius + 1)));
+        for (int x = rowLeft / size; x <= rowRight / size; ++x) {
+            if (result.size() >= maximumCoordinates) return std::nullopt;
+            result.append(key(x, y));
+        }
+    }
+    return result;
+}
+
 quint32 packedPixel(const std::array<quint8, 4> &rgba)
 {
     return quint32(rgba[0]) | quint32(rgba[1]) << 8 | quint32(rgba[2]) << 16 | quint32(rgba[3]) << 24;

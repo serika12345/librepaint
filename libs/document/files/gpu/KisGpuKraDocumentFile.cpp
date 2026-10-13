@@ -5,11 +5,8 @@
 
 #include "../../gpu/KisGpuPaintDocument_p.h"
 #include <kra/KisKraRasterCodec.h>
-#include <QColorSpace>
 #include <QFile>
-#include <QImage>
 #include <QSaveFile>
-#include <cstring>
 #include <stdexcept>
 
 namespace Krita::Document::Gpu {
@@ -71,41 +68,27 @@ FileOutcome PaintDocument::saveKra(const QString &path, const Snapshot &version)
     const auto limits = Private::formatLimits(d.limits);
     if (qint64(pinned->size.width()) * pinned->size.height() * 4 > limits.archiveBytes)
         return {FileCode::CapacityExceeded, {}, QStringLiteral("KRA projection pixel capacity exceeded")};
-    QList<LayerId> ids;
-    for (const auto &layer : pinned->layers) ids.append(layer.id);
-    constexpr int limit = RgbaTile::CoordinateLimit;
-    const auto layers = d.execution.readPixels(d.handle, pinned, {-limit, -limit, 2 * limit, 2 * limit},
-                                               ids, false, PixelReadArea::LayerCoordinates);
-    if (layers.code != ExecutionCode::Success) return {fileCode(layers.code), {}, layers.diagnostic};
-    const auto projected = d.execution.readPixels(d.handle, pinned, QRect(QPoint(0, 0), pinned->size));
-    if (projected.code != ExecutionCode::Success) return {fileCode(projected.code), {}, projected.diagnostic};
     Kra::Document output;
     output.description = d.description;
     output.files = d.files;
     output.image.size = pinned->size;
-    QHash<LayerId, qsizetype> indices;
+    qsizetype rasterBytes = 0;
     for (const auto &layer : pinned->layers) {
-        indices.insert(layer.id, output.image.layers.size());
+        const auto pixels = d.execution.readLayerPixels(d.handle, pinned, layer.id, limits.rasterBytes - rasterBytes);
+        if (pixels.code != ExecutionCode::Success) return {fileCode(pixels.code), {}, pixels.diagnostic};
         if (pinned->activeLayer == layer.id) output.image.activeLayer = output.image.layers.size();
-        output.image.layers.append({layer.name, layer.visible, layer.uuid, {}, layer.defaultPixel});
-    }
-    for (const auto &tile : layers.tiles) output.image.layers[indices.value(tile.layer)].tiles.append({tile.coordinate, tile.rgba});
-    QImage projection(pinned->size, QImage::Format_RGBA8888);
-    if (projection.isNull()) return {FileCode::CapacityExceeded, {}, QStringLiteral("KRA projection allocation failed")};
-    projection.fill(Qt::transparent);
-    projection.setColorSpace(QColorSpace::SRgb);
-    const QRect canvas(QPoint(0, 0), pinned->size);
-    for (const auto &tile : projected.tiles) {
-        const auto origin = tile.coordinate * RgbaTile::Size;
-        const auto region = QRect(origin, QSize(RgbaTile::Size, RgbaTile::Size)).intersected(canvas);
-        for (int y = region.top(); y <= region.bottom(); ++y) {
-            const auto source = tile.rgba.constData() + ((y - origin.y()) * RgbaTile::Size + region.x() - origin.x()) * 4;
-            std::memcpy(projection.scanLine(y) + region.x() * 4, source, size_t(region.width()) * 4);
+        RasterLayer saved{layer.name, layer.visible, layer.uuid, {}, layer.defaultPixel};
+        for (const auto &tile : pixels.tiles) {
+            saved.tiles.append({tile.coordinate, tile.rgba});
+            rasterBytes += tile.rgba.size();
         }
+        output.image.layers.append(std::move(saved));
     }
+    const auto projection = d.execution.readProjectionImage(d.handle, pinned, limits.archiveBytes);
+    if (projection.code != ExecutionCode::Success) return {fileCode(projection.code), {}, projection.diagnostic};
     QSaveFile file(path);
     if (!file.open(QIODevice::WriteOnly)) return {FileCode::IoFailure, {}, file.errorString()};
-    const auto written = Kra::RasterCodec::write(file, output, projection, limits);
+    const auto written = Kra::RasterCodec::write(file, output, projection.image, limits);
     if (written.code != Kra::Status::Success) { file.cancelWriting(); return {fileCode(written.code), {}, written.diagnostic}; }
     if (!file.commit()) return {FileCode::IoFailure, {}, file.errorString()};
     d.document->markSaved(pinned);
