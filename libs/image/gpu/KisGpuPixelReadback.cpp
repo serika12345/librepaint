@@ -12,6 +12,8 @@
 #include <cmath>
 #include <cstring>
 #include <exception>
+#include <limits>
+#include <new>
 
 namespace Krita::Image::Gpu {
 namespace {
@@ -26,6 +28,15 @@ ExecutionCode executionCode(RenderOutcome::Code code)
 {
     return code == RenderOutcome::CapacityExceeded ? ExecutionCode::CapacityExceeded :
         code == RenderOutcome::InvalidVersion ? ExecutionCode::InvalidRequest : ExecutionCode::DeviceFailure;
+}
+
+bool validPixelRegion(QRect region)
+{
+    constexpr qint64 limit = qint64(OperationDocument::CoordinateLimit);
+    return region.width() >= 0 && region.height() >= 0 &&
+        region.x() >= -limit && region.y() >= -limit &&
+        qint64(region.x()) + region.width() <= limit &&
+        qint64(region.y()) + region.height() <= limit;
 }
 
 std::optional<QList<quint64>> layerCoordinates(const Layer &layer, QSize size, QRect region, qsizetype maximum)
@@ -154,6 +165,77 @@ ImageReadbackOutcome Execution::readProjectionImage(DocumentHandle handle, const
     return outcome;
 }
 
+PixelBytesOutcome Execution::readRgbaPixels(DocumentHandle handle, const Snapshot &pinned,
+                                           QRect region, LayerId layer, qsizetype maximumBytes)
+{
+    const auto rejected = [](ExecutionCode code, const QString &diagnostic) {
+        PixelBytesOutcome outcome;
+        outcome.code = code;
+        outcome.diagnostic = diagnostic;
+        return outcome;
+    };
+    if (!validPixelRegion(region) || maximumBytes < 0)
+        return rejected(ExecutionCode::InvalidRequest, QStringLiteral("Packed pixel region or capacity is invalid"));
+    const QList<LayerId> layers = layer ? QList<LayerId>{layer} : QList<LayerId>{};
+    const auto checked = readPixels(handle, pinned, {}, layers, !layer, PixelReadArea::LayerCoordinates);
+    if (checked.code != ExecutionCode::Success) return rejected(checked.code, checked.diagnostic);
+    const qint64 byteCount = qint64(region.width()) * region.height() * 4;
+    if (byteCount > maximumBytes)
+        return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Packed pixel output capacity exceeded"));
+    const auto clipped = layer ? region : region.intersected(QRect(QPoint(), pinned->size));
+    constexpr int size = TileRenderer::TileSize;
+    QSet<quint64> coordinates;
+    std::array<quint8, 4> defaultPixel{};
+    bool uniformProjection = false;
+    for (const auto &value : pinned->layers) {
+        if (layer ? value.id != layer : !value.visible) continue;
+        if (layer) defaultPixel = value.defaultPixel;
+        else uniformProjection |= Detail::packedPixel(value.defaultPixel) != 0;
+        const auto tiles = layerCoordinates(value, pinned->size, clipped, std::numeric_limits<qsizetype>::max());
+        if (!tiles) return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Packed pixel coordinates exceed capacity"));
+        for (const auto tile : *tiles) coordinates.insert(tile);
+    }
+    if (uniformProjection && !clipped.isEmpty()) {
+        for (int y = clipped.top() / size; y <= clipped.bottom() / size; ++y)
+            for (int x = clipped.left() / size; x <= clipped.right() / size; ++x)
+                coordinates.insert(Detail::key(x, y));
+    }
+    PixelBytesOutcome outcome;
+    outcome.document = pinned;
+    outcome.generation = checked.generation;
+    outcome.region = region;
+    try {
+        outcome.bytes.resize(qsizetype(byteCount));
+    } catch (const std::bad_alloc &) {
+        return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Packed pixel allocation failed"));
+    }
+    if (Detail::packedPixel(defaultPixel) == 0) outcome.bytes.fill('\0');
+    else for (qsizetype offset = 0; offset < outcome.bytes.size(); offset += 4)
+        std::memcpy(outcome.bytes.data() + offset, defaultPixel.data(), 4);
+    if (!coordinates.isEmpty()) {
+        const auto retired = retireDisplayCaches();
+        if (retired.code != ExecutionCode::Success) return rejected(retired.code, retired.diagnostic);
+    }
+    auto ordered = coordinates.values();
+    std::sort(ordered.begin(), ordered.end());
+    for (const auto coordinate : ordered) {
+        const QRect tileRegion(Detail::coordinate(coordinate) * size, QSize(size, size));
+        const auto pixels = readPixels(handle, pinned, tileRegion, layers, !layer, PixelReadArea::LayerCoordinates);
+        if (pixels.code != ExecutionCode::Success) return rejected(pixels.code, pixels.diagnostic);
+        for (const auto &tile : pixels.tiles) {
+            const auto origin = tile.coordinate * size;
+            const auto portion = QRect(origin, QSize(size, size)).intersected(clipped);
+            for (int y = portion.top(); y <= portion.bottom(); ++y) {
+                const auto source = tile.rgba.constData() + ((y - origin.y()) * size + portion.x() - origin.x()) * 4;
+                const qsizetype destination = (qsizetype(y - region.y()) * region.width() + portion.x() - region.x()) * 4;
+                std::memcpy(outcome.bytes.data() + destination, source, size_t(portion.width()) * 4);
+            }
+        }
+    }
+    outcome.code = ExecutionCode::Success;
+    return outcome;
+}
+
 PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot &pinned,
                                          QRect region, const QList<LayerId> &layers, bool includeProjection, PixelReadArea area)
 {
@@ -168,10 +250,7 @@ PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot
     if (document == d.documents.cend() || document->requested->documentId() != pinned->documentId()) {
         return failure(ExecutionCode::InvalidRequest, QStringLiteral("Pixel read document is no longer attached or belongs to another handle"));
     }
-    constexpr qint64 limit = qint64(OperationDocument::CoordinateLimit);
-    if (region.width() < 0 || region.height() < 0 ||
-        region.x() < -limit || region.y() < -limit ||
-        qint64(region.x()) + region.width() > limit || qint64(region.y()) + region.height() > limit) {
+    if (!validPixelRegion(region)) {
         return failure(ExecutionCode::InvalidRequest, QStringLiteral("Pixel read region is outside the supported range"));
     }
     QSet<LayerId> available, selected;

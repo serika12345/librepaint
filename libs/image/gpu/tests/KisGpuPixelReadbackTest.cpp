@@ -24,9 +24,64 @@ private Q_SLOTS:
     void savingReadsOffCanvasTilesAndRetainsImplicitPixels();
     void selectedReadsFitWithoutGeneratingUnrequestedPixels();
     void completeImagesStreamThinCanvasesAndOutliveTheirDevice();
+    void rectangularPixelsStreamDefaultsHiddenLayersAndCanvasClipping_data();
+    void rectangularPixelsStreamDefaultsHiddenLayersAndCanvasClipping();
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPixelReadbackTest::rectangularPixelsStreamDefaultsHiddenLayersAndCanvasClipping_data()
+{
+    QTest::addColumn<bool>("projection");
+    QTest::newRow("hidden layer coordinates") << false;
+    QTest::newRow("visible clipped projection") << true;
+}
+
+void KisGpuPixelReadbackTest::rectangularPixelsStreamDefaultsHiddenLayersAndCanvasClipping()
+{
+    QFETCH(bool, projection);
+    RasterImage image;
+    image.size = {1, 513};
+    image.layers = {{QStringLiteral("Visible"), true, {}, {}, {20, 80, 160, 128}},
+                    {QStringLiteral("Hidden"), false, {},
+                     {{{-1, -1}, QByteArray::fromHex("137fafe0").repeated(RgbaTile::ByteCount / 4)}}, {7, 11, 13, 0}}};
+    OperationDocument document(image);
+    const auto pinned = document.snapshot();
+    Execution execution(m_device, 3 * TileRenderer::TileBytes, 1, TileRenderer::TileBytes);
+    const auto handle = execution.open(pinned).handle;
+    const LayerId layer = projection ? 0 : pinned->layers.last().id;
+    const QRect region(-1, -1, 2, 515);
+    const qsizetype bytes = region.width() * region.height() * 4;
+    QCOMPARE(document.renameLayer(document.activeLayer(), QStringLiteral("Latest")), Result::Success);
+    const auto latest = document.snapshot();
+    QCOMPARE(execution.request(handle, latest).code, ExecutionCode::Success);
+    const auto rejected = execution.readRgbaPixels(handle, pinned, region, layer, bytes - 1);
+    QCOMPARE(rejected.code, ExecutionCode::CapacityExceeded);
+    QVERIFY(rejected.bytes.isEmpty());
+    const auto read = execution.readRgbaPixels(handle, pinned, region, layer, bytes);
+    QVERIFY2(read.code == ExecutionCode::Success, qPrintable(read.diagnostic));
+    QCOMPARE(read.document, pinned);
+    QCOMPARE(read.generation, execution.generation());
+    QCOMPARE(read.region, region);
+    QByteArray expected = projection ? QByteArray(bytes, '\0') : QByteArray::fromHex("070b0d00").repeated(bytes / 4);
+    if (projection) {
+        for (int y = 0; y < 513; ++y) expected.replace(((y + 1) * 2 + 1) * 4, 4, QByteArray::fromHex("1450a080"));
+    } else {
+        expected.replace(0, 4, QByteArray::fromHex("137fafe0"));
+    }
+    QCOMPARE(read.bytes, expected);
+    QCOMPARE(execution.requested(handle), latest);
+    QVERIFY(!execution.published(handle));
+    const auto empty = execution.readRgbaPixels(handle, pinned, {0, 0, 0, 0}, layer, 0);
+    QCOMPARE(empty.code, ExecutionCode::Success);
+    QVERIFY(empty.bytes.isEmpty());
+    const auto invalid = execution.readRgbaPixels(handle, pinned, {0, 0, -1, 1}, layer, bytes);
+    QCOMPARE(invalid.code, ExecutionCode::InvalidRequest);
+    QVERIFY(invalid.bytes.isEmpty());
+    QCOMPARE(execution.close(handle).code, ExecutionCode::Success);
+    QCOMPARE(execution.readRgbaPixels(handle, pinned, region, layer, bytes).code, ExecutionCode::InvalidRequest);
+    QCOMPARE(read.bytes, expected);
+}
 
 void KisGpuPixelReadbackTest::completeImagesStreamThinCanvasesAndOutliveTheirDevice()
 {
@@ -243,6 +298,9 @@ void KisGpuPixelReadbackTest::boundedReadsRejectAtomicallyAndRecover()
     QCOMPARE(execution.readPixels(handle, pinned, {0, 0, -1, 64}).code, ExecutionCode::InvalidRequest);
     QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
     QCOMPARE(execution.readPixels(handle, pinned, {0, 0, 64, 64}).code, ExecutionCode::Busy);
+    const auto busy = execution.readRgbaPixels(handle, pinned, {0, 0, 1, 1}, layer, 4);
+    QCOMPARE(busy.code, ExecutionCode::Busy);
+    QVERIFY(busy.bytes.isEmpty());
     QCOMPARE(execution.project(handle, {0, 0, 512, 64}).code, RenderOutcome::Recorded);
     QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
     QCOMPARE(execution.published(handle), pinned);
@@ -278,6 +336,7 @@ void KisGpuPixelReadbackTest::closedDocumentsAndDeviceGenerationsGuardReads()
 void KisGpuPixelReadbackTest::cpuPixelsOutliveExecutionAndDevices()
 {
     PixelReadbackOutcome cpu;
+    PixelBytesOutcome cpuBytes;
     std::weak_ptr<Device> owner;
     {
         QString diagnostic;
@@ -290,12 +349,15 @@ void KisGpuPixelReadbackTest::cpuPixelsOutliveExecutionAndDevices()
         const auto handle = execution.open(document.snapshot()).handle;
         cpu = execution.readPixels(handle, document.snapshot(), {0, 0, 64, 64});
         QCOMPARE(cpu.code, ExecutionCode::Success);
+        cpuBytes = execution.readRgbaPixels(handle, document.snapshot(), {8, 12, 1, 1}, 0, 4);
+        QCOMPARE(cpuBytes.code, ExecutionCode::Success);
         device.reset();
         QVERIFY(!owner.expired());
     }
     QVERIFY(owner.expired());
     QVERIFY(cpu.document);
     QCOMPARE(pixel(cpu, 0, {8, 12}), QByteArray::fromHex("ff0000ff"));
+    QCOMPARE(cpuBytes.bytes, QByteArray::fromHex("ff0000ff"));
 }
 
 void KisGpuPixelReadbackTest::savingReadsOffCanvasTilesAndRetainsImplicitPixels()

@@ -56,12 +56,13 @@ private Q_SLOTS:
         QCOMPARE(image.operations().undoCount(), 0);
         QVERIFY(!image.operations().isModified());
         const auto before = image.operations().snapshot();
-        auto pixels = execution.readPixels(image.handle(), before, QRect(0, 0, 64, 64), {layerId}, false);
+        const QRect transferRegion(0, 0, Gpu::RgbaTile::Size, Gpu::RgbaTile::Size);
+        auto pixels = execution.readRgbaPixels(image.handle(), before, transferRegion, layerId, Gpu::RgbaTile::ByteCount);
         QCOMPARE(pixels.code, Gpu::ExecutionCode::Success);
-        QCOMPARE(pixels.tiles.size(), 1);
-        QCOMPARE(pixels.tiles.first().rgba, original);
+        QCOMPARE(pixels.bytes.size(), Gpu::RgbaTile::ByteCount);
+        QCOMPARE(pixels.bytes, original);
 
-        QByteArray bgra = pixels.tiles.first().rgba;
+        QByteArray bgra = pixels.bytes;
         for (qsizetype i = 0; i < bgra.size(); i += 4) std::swap(bgra[i], bgra[i + 2]);
         KisPaintDeviceSP cpu = new KisPaintDevice(KoColorSpaceRegistry::instance()->rgb8());
         cpu->setDefaultBounds(new CanvasBounds);
@@ -76,20 +77,20 @@ private Q_SLOTS:
         for (qsizetype i = 0; i < bgra.size(); i += 4) std::swap(bgra[i], bgra[i + 2]);
         QCOMPARE(image.replaceTiles(layerId, {{QPoint(), bgra}}), Gpu::Result::Success);
         QCOMPARE(image.operations().undoCount(), 1);
-        pixels = execution.readPixels(image.handle(), image.operations().snapshot(), QRect(0, 0, 64, 64), {layerId}, false);
+        pixels = execution.readRgbaPixels(image.handle(), image.operations().snapshot(), transferRegion, layerId, Gpu::RgbaTile::ByteCount);
         QCOMPARE(pixels.code, Gpu::ExecutionCode::Success);
-        QCOMPARE(pixels.tiles.first().rgba, bgra);
-        QCOMPARE(pixels.tiles.first().rgba.first(4), QByteArray::fromHex("316ac200"));
-        QCOMPARE(pixels.tiles.first().rgba.mid((32 * Gpu::RgbaTile::Size + 32) * 4, 4), QByteArray::fromHex("316ac2ff"));
-        QCOMPARE(pixels.tiles.first().rgba.mid((100 * Gpu::RgbaTile::Size + 100) * 4, 4), QByteArray::fromHex("316ac2ff"));
+        QCOMPARE(pixels.bytes, bgra);
+        QCOMPARE(pixels.bytes.first(4), QByteArray::fromHex("316ac200"));
+        QCOMPARE(pixels.bytes.mid((32 * Gpu::RgbaTile::Size + 32) * 4, 4), QByteArray::fromHex("316ac2ff"));
+        QCOMPARE(pixels.bytes.mid((100 * Gpu::RgbaTile::Size + 100) * 4, 4), QByteArray::fromHex("316ac2ff"));
         QCOMPARE(image.undo(), Gpu::Result::Success);
-        pixels = execution.readPixels(image.handle(), image.operations().snapshot(), QRect(0, 0, 64, 64), {layerId}, false);
+        pixels = execution.readRgbaPixels(image.handle(), image.operations().snapshot(), transferRegion, layerId, Gpu::RgbaTile::ByteCount);
         QCOMPARE(pixels.code, Gpu::ExecutionCode::Success);
-        QCOMPARE(pixels.tiles.first().rgba, original);
+        QCOMPARE(pixels.bytes, original);
         QCOMPARE(image.redo(), Gpu::Result::Success);
-        pixels = execution.readPixels(image.handle(), image.operations().snapshot(), QRect(0, 0, 64, 64), {layerId}, false);
+        pixels = execution.readRgbaPixels(image.handle(), image.operations().snapshot(), transferRegion, layerId, Gpu::RgbaTile::ByteCount);
         QCOMPARE(pixels.code, Gpu::ExecutionCode::Success);
-        QCOMPARE(pixels.tiles.first().rgba, bgra);
+        QCOMPARE(pixels.bytes, bgra);
     }
 };
 

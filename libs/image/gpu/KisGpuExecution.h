@@ -61,6 +61,15 @@ struct ImageReadbackOutcome
     QImage image;
     QString diagnostic;
 };
+struct PixelBytesOutcome
+{
+    ExecutionCode code = ExecutionCode::InvalidRequest;
+    Snapshot document;
+    quint64 generation = 0;
+    QRect region;
+    QByteArray bytes;
+    QString diagnostic;
+};
 
 /**
  * Owns the bounded document requests and frame submission on one GPU queue.
@@ -118,6 +127,15 @@ public:
     PixelReadbackOutcome readPixels(DocumentHandle handle, const Snapshot &document,
                                    QRect region, const QList<LayerId> &layers = {},
                                    bool includeProjection = true, PixelReadArea area = PixelReadArea::Canvas);
+
+    /** Packed straight RGBA8 rows for the exact requested rectangle.
+     * Layer zero reads the visible projection, with transparent pixels outside
+     * the canvas. Other layers preserve hidden, off-canvas and implicit pixels.
+     * The byte limit counts output pixels; transfers use one tile at a time.
+     * Rejection returns no partial bytes. Requests and publication stay current.
+     */
+    PixelBytesOutcome readRgbaPixels(DocumentHandle handle, const Snapshot &document,
+                                     QRect region, LayerId layer, qsizetype maximumBytes);
 
     /** Complete sparse layer pixels, including hidden and off-canvas tiles.
      * Implicit pixels stay in the returned document's layer defaultPixel.
