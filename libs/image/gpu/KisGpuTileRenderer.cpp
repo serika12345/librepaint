@@ -137,19 +137,27 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
         qsizetype prefix = 0;
         qsizetype reusedPrefix = 0;
         QSet<quint64> reusedCoordinates;
+        std::optional<qsizetype> appendedFrom;
+        Tiles strokeInputs;
         if (base) {
             for (const auto &old : base->document()->layers) {
                 if (old.id != layer.id) continue;
                 if (old.defaultPixel != layer.defaultPixel) break;
                 data->defaults[layer.id] = base->m_data->defaults.value(layer.id);
-                if (old.operations.size() > layer.operations.size() || !base->m_data->selected.contains(layer.id)) break;
-                qsizetype shared = old.operations.size();
+                const bool droppingStroke = old.operations.size() == layer.operations.size() + 1 &&
+                    base->m_data->strokeInputs.contains(layer.id);
+                if ((old.operations.size() > layer.operations.size() && !droppingStroke) || !base->m_data->selected.contains(layer.id)) break;
+                qsizetype shared = droppingStroke ? layer.operations.size() : old.operations.size();
                 bool changingStroke = false;
+                qsizetype previousSamples = -1;
                 if (shared > 0 && shared == layer.operations.size() && base->m_data->strokeInputs.contains(layer.id)) {
                     const auto previous = std::get_if<PaintSnapshot>(&old.operations.back());
                     const auto current = std::get_if<PaintSnapshot>(&layer.operations.back());
                     changingStroke = previous && current && *previous != *current && (*previous)->id == (*current)->id &&
                         (*previous)->brush == (*current)->brush;
+                    if (changingStroke && (*previous)->shape.kind == ShapeKind::Freehand &&
+                        (*current)->shape.kind == ShapeKind::Freehand && (*current)->sampleCount >= (*previous)->sampleCount)
+                        previousSamples = (*previous)->sampleCount;
                     if (changingStroke) --shared;
                 }
                 bool matches = true;
@@ -163,11 +171,13 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
                         data->layers[layer.id][tile.key()] = tile.value();
                         reusedCoordinates.insert(tile.key());
                     }
-                    if (changingStroke) {
+                    if (changingStroke || droppingStroke) {
+                        if (previousSamples >= 0) appendedFrom = std::max<qsizetype>(0, previousSamples - 1);
                         const auto &inputs = base->m_data->strokeInputs[layer.id];
                         for (auto input = inputs.cbegin(); input != inputs.cend(); ++input) {
                             if (!reusedCoordinates.contains(input.key())) continue;
-                            if (input.value() && input.value() != data->defaults.value(layer.id))
+                            if (appendedFrom) strokeInputs[input.key()] = input.value();
+                            else if (input.value() && input.value() != data->defaults.value(layer.id))
                                 data->layers[layer.id][input.key()] = input.value();
                             else data->layers[layer.id].remove(input.key());
                         }
@@ -236,13 +246,17 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
             if (!paint || paintRegion.isEmpty()) continue;
             const auto &operation = **paint;
             const bool pending = document->pendingOperation() == operation.id;
+            const bool extending = appendedFrom && op == layer.operations.size() - 1;
             if (pending) data->strokeInputs[layer.id];
+            if (pending && extending) data->strokeInputs[layer.id] = strokeInputs;
             const auto diameter = quint32(std::max<qint64>(1, std::llround(operation.brush.diameter * 16)));
             const auto step = quint32(std::max<qint64>(1, std::llround(operation.brush.diameter * operation.brush.spacing * 16)));
             const auto segments = paintGeometry(operation, step);
             QMap<quint64, QList<PaintSegment>> affected;
+            QSet<quint64> changedCoordinates;
             const qint64 radius = (diameter + 31) / 32;
-            for (const auto &segment : segments) {
+            for (qsizetype index = 0; index < segments.size(); ++index) {
+                const auto &segment = segments[index];
                 const int left = int(std::max<qint64>(paintRegion.left() / TileSize * TileSize, (std::min(segment.ax, segment.bx) / 16) - radius));
                 const int top = int(std::max<qint64>(paintRegion.top() / TileSize * TileSize, (std::min(segment.ay, segment.by) / 16) - radius));
                 const int right = int(std::min<qint64>(qMin(document->size.width() - 1, (paintRegion.right() / TileSize + 1) * TileSize - 1), (std::max(segment.ax, segment.bx) / 16) + radius));
@@ -269,10 +283,17 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
                         const auto checkpoint = checkpoints.constFind(coordinate);
                         if (checkpoint != checkpoints.cend() && op < checkpoint->operation) continue;
                         affected[coordinate].append(segment);
+                        if (extending && index >= *appendedFrom) changedCoordinates.insert(coordinate);
                         if (affected.size() > d.budget->limit / TileBytes) {
                             return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU tile budget exhausted")};
                         }
                     }
+                }
+            }
+            if (extending) {
+                for (auto tile = affected.begin(); tile != affected.end();) {
+                    if (strokeInputs.contains(tile.key()) && !changedCoordinates.contains(tile.key())) tile = affected.erase(tile);
+                    else ++tile;
                 }
             }
             qsizetype required = 0;
@@ -290,7 +311,8 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
                     return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU operation buffer limit exceeded")};
                 }
                 PaintJob job;
-                job.input = tiles.value(tile.key(), data->defaults.value(layer.id));
+                job.input = extending && strokeInputs.contains(tile.key()) ? strokeInputs.value(tile.key()) :
+                    tiles.value(tile.key(), data->defaults.value(layer.id));
                 if (pending) data->strokeInputs[layer.id][tile.key()] = job.input;
                 auto &pool = writable[tile.key()];
                 auto &output = pool[pool[0] && job.input == pool[0] ? 1 : 0];

@@ -39,6 +39,7 @@ private Q_SLOTS:
     void implicitLayersRespectCompositionAndCapacity();
     void partialRenderingMatchesFullTilesAndRejectsIncompleteComposition();
     void changingPreviewReusesItsBackgroundWithinThreeTiles();
+    void appendedInputPreservesPixelsOutsideItsChangedTiles();
 
 private:
     RenderedSnapshot render(TileRenderer &renderer, const Snapshot &snapshot,
@@ -50,6 +51,56 @@ private:
     DevicePtr m_device;
     QRhi *m_rhi = nullptr;
 };
+
+void KisGpuTileRendererTest::appendedInputPreservesPixelsOutsideItsChangedTiles()
+{
+    OperationDocument document({512, 256});
+    const auto layer = document.activeLayer();
+    Brush brush;
+    brush.rgba = {42, 88, 203, 139};
+    brush.diameter = 12;
+    const auto stroke = document.beginStroke(layer, brush, 123);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 0.5}, {{280, 32}, 1}}), Result::Success);
+    TileRenderer renderer(m_device, 3 * TileRenderer::TileBytes), oracle(m_device);
+    auto current = render(renderer, document.preview());
+    QVERIFY(current);
+    QCOMPARE(current->tiles(layer).size(), 2);
+    const auto unchanged = readTile(current, layer, {0, 0});
+    const auto previous = readTile(current, layer, {1, 0});
+    QCOMPARE(document.appendSamples(stroke, {{{300, 32}, 0.75}}), Result::Success);
+    auto updated = render(renderer, document.preview(), current);
+    QVERIFY2(updated, "Extending one tile must retain the two-tile preview within a three-tile budget");
+    QCOMPARE(readTile(current, layer, {0, 0}), unchanged);
+    QCOMPARE(readTile(current, layer, {1, 0}), previous);
+    QCOMPARE(readTile(updated, layer, {0, 0}), unchanged);
+    QCOMPARE(readTile(updated, layer, {1, 0}), readTile(render(oracle, document.preview()), layer, {1, 0}));
+    current = updated;
+    updated.clear();
+    QCOMPARE(document.appendSamples(stroke, {{{350, 32}, 0.25}}), Result::Success);
+    updated = render(renderer, document.preview(), current);
+    QVERIFY(updated);
+    QCOMPARE(readTile(updated, layer, {0, 0}), unchanged);
+    QCOMPARE(readTile(updated, layer, {1, 0}), readTile(render(oracle, document.preview()), layer, {1, 0}));
+    current = updated;
+    updated.clear();
+    QCOMPARE(document.updateShape(stroke, {ShapeKind::Line, {32, 180}, {100, 180}, 0}), Result::Success);
+    updated = render(renderer, document.preview(), current);
+    QVERIFY(updated);
+    QCOMPARE(updated->tiles(layer).size(), 1);
+    const auto shaped = readTile(updated, layer, {0, 0});
+    QCOMPARE(shaped, readTile(render(oracle, document.preview()), layer, {0, 0}));
+    current = updated;
+    updated.clear();
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    const auto undone = render(renderer, document.snapshot(), current);
+    QVERIFY(undone);
+    QVERIFY(undone->tiles(layer).isEmpty());
+    QCOMPARE(document.redo(), Result::Success);
+    const auto redone = render(renderer, document.snapshot(), undone);
+    QVERIFY(redone);
+    QCOMPARE(readTile(redone, layer, {0, 0}), shaped);
+}
 
 void KisGpuTileRendererTest::changingPreviewReusesItsBackgroundWithinThreeTiles()
 {
@@ -91,10 +142,10 @@ void KisGpuTileRendererTest::changingPreviewReusesItsBackgroundWithinThreeTiles(
     }
     const auto recovery = document.recoveryData();
     QCOMPARE(document.cancelStroke(stroke), Result::Success);
-    preview.clear();
-    const auto cancelled = render(renderer, document.snapshot(), background);
+    auto cancelled = render(renderer, document.snapshot(), preview);
     QVERIFY(cancelled);
     QCOMPARE(readTile(cancelled, layer, {0, 0}), backgroundPixels);
+    preview.clear();
     QCOMPARE(renderer.residentBytes(), qsizetype(TileRenderer::TileBytes));
     OperationDocument restored({1, 1});
     QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
