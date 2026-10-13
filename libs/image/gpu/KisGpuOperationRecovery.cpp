@@ -18,7 +18,7 @@ namespace Krita::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 3;
+constexpr quint16 FormatVersion = 4;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -125,7 +125,7 @@ QByteArray OperationDocument::recoveryData() const
     }
     stream << quint32(m_history.size()) << quint32(m_index);
     for (const auto &state : m_history) {
-        stream << state->revision() << state->activeLayer << quint32(state->layers.size());
+        stream << state->revision() << state->m_modifiedRevision << state->activeLayer << quint32(state->layers.size());
         if (!withinLimit()) return {};
         for (const auto &layer : state->layers) {
             const auto name = layer.name.toUtf8();
@@ -250,22 +250,28 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
     if (referencedTiles.size() != tiles.size()) return Result::InvalidRecovery;
     quint32 stateCount = 0, currentIndex = 0;
     stream >> stateCount >> currentIndex;
-    if (stateCount == 0 || currentIndex >= stateCount || !readableCount(stream, stateCount, HistoryLimit + 1, 20)) return Result::InvalidRecovery;
+    if (stateCount == 0 || currentIndex >= stateCount || !readableCount(stream, stateCount, HistoryLimit + 1, 28)) return Result::InvalidRecovery;
     QList<Snapshot> history;
     QSet<quint32> referencedOperations;
     QHash<LayerId, QUuid> layerIdentities;
     QHash<QUuid, LayerId> identityOwners;
     quint64 previousRevision = 0;
+    quint64 previousModifiedRevision = 0;
+    QSet<quint64> stateRevisions;
     for (quint32 i = 0; i < stateCount; ++i) {
         QSharedPointer<DocumentVersion> state(new DocumentVersion);
         state->m_document = identity;
         state->m_committed = true;
         state->size = {width, height};
         quint32 layerCount = 0;
-        stream >> state->m_revision >> state->activeLayer >> layerCount;
-        if (state->revision() > nextRevision || (i > 0 && state->revision() <= previousRevision) ||
+        stream >> state->m_revision >> state->m_modifiedRevision >> state->activeLayer >> layerCount;
+        if (state->revision() > nextRevision || state->m_modifiedRevision > state->revision() ||
+            stateRevisions.contains(state->revision()) ||
+            (i > 0 && state->m_modifiedRevision <= previousModifiedRevision) ||
             !readableCount(stream, layerCount, m_limits.layerCount, 37)) return Result::InvalidRecovery;
-        previousRevision = state->revision();
+        stateRevisions.insert(state->revision());
+        previousRevision = qMax(previousRevision, state->revision());
+        previousModifiedRevision = state->m_modifiedRevision;
         QSet<LayerId> layers;
         for (quint32 j = 0; j < layerCount; ++j) {
             Layer layer;
@@ -333,7 +339,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
             QSharedPointer<DocumentVersion> value(new DocumentVersion(*base));
             value->m_committed = false;
             value->m_pendingOperation = edit->id;
-            value->m_revision = previewRevision;
+            value->m_modifiedRevision = value->m_revision = previewRevision;
             value->layers[index].operations.append(edit);
             value->sampleCount += edit->sampleCount;
             preview = value;

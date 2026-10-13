@@ -63,6 +63,12 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
 }
 
 Result OperationDocument::replaceTiles(LayerId layer, const QList<RgbaTile> &tiles)
+{ return applyTiles(layer, tiles, true); }
+
+Result OperationDocument::writeTiles(LayerId layer, const QList<RgbaTile> &tiles)
+{ return applyTiles(layer, tiles, false); }
+
+Result OperationDocument::applyTiles(LayerId layer, const QList<RgbaTile> &tiles, bool recordHistory)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
@@ -72,6 +78,24 @@ Result OperationDocument::replaceTiles(LayerId layer, const QList<RgbaTile> &til
     if (tiles.size() > (m_limits.rasterBytes - snapshot()->rasterBytes) / RgbaTile::ByteCount ||
         m_nextOperation == std::numeric_limits<quint64>::max() ||
         m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    QList<QPair<int, int>> affected;
+    if (!recordHistory) {
+        const auto &current = snapshot()->layers[index];
+        for (int i = 0; i < m_history.size(); ++i) {
+            const auto &state = m_history[i];
+            for (int j = 0; j < state->layers.size(); ++j) {
+                const auto &candidate = state->layers[j];
+                if (candidate.id == layer && candidate.operations == current.operations &&
+                    candidate.defaultPixel == current.defaultPixel) {
+                    if (tiles.size() > (m_limits.rasterBytes - state->rasterBytes) / RgbaTile::ByteCount)
+                        return Result::CapacityExceeded;
+                    affected.append({i, j});
+                }
+            }
+        }
+        if (quint64(affected.size()) > std::numeric_limits<quint64>::max() - m_nextRevision)
+            return Result::CapacityExceeded;
+    }
     QSet<QPoint> coordinates;
     auto operation = QSharedPointer<TileWriteOperation>::create();
     for (const auto &pixels : tiles) {
@@ -81,14 +105,24 @@ Result OperationDocument::replaceTiles(LayerId layer, const QList<RgbaTile> &til
         coordinates.insert(pixels.coordinate);
         operation->tiles.append(tile);
     }
-    QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     operation->id = {m_identity, ++m_nextOperation};
     operation->version = 1;
     operation->layer = layer;
-    version->layers[index].operations.append(TileWriteSnapshot(operation));
-    version->rasterBytes += tiles.size() * RgbaTile::ByteCount;
-    version->m_revision = ++m_nextRevision;
-    commitVersion(version);
+    if (recordHistory) {
+        QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
+        version->layers[index].operations.append(TileWriteSnapshot(operation));
+        version->rasterBytes += tiles.size() * RgbaTile::ByteCount;
+        version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+        commitVersion(version);
+    } else {
+        for (const auto &[historyIndex, layerIndex] : affected) {
+            QSharedPointer<DocumentVersion> version(new DocumentVersion(*m_history[historyIndex]));
+            version->layers[layerIndex].operations.append(TileWriteSnapshot(operation));
+            version->rasterBytes += tiles.size() * RgbaTile::ByteCount;
+            version->m_revision = ++m_nextRevision;
+            m_history[historyIndex] = version;
+        }
+    }
     return Result::Success;
 }
 }

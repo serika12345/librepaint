@@ -32,7 +32,7 @@ Snapshot OperationDocument::preview() const { return m_preview ? m_preview : sna
 LayerId OperationDocument::activeLayer() const { return snapshot()->activeLayer; }
 int OperationDocument::undoCount() const { return m_index; }
 int OperationDocument::redoCount() const { return m_history.size() - m_index - 1; }
-bool OperationDocument::isModified() const { return snapshot()->revision() != m_savedRevision; }
+bool OperationDocument::isModified() const { return snapshot()->m_modifiedRevision != m_savedRevision; }
 bool OperationDocument::hasActiveStroke() const { return !m_edit.isNull(); }
 OperationId OperationDocument::activeOperation() const { return m_edit ? m_edit->id : OperationId{}; }
 
@@ -135,7 +135,7 @@ void OperationDocument::replacePreview(const QSharedPointer<const PaintOperation
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     version->layers[layerIndex(operation->layer)].operations.append(operation);
     version->sampleCount += operation->sampleCount;
-    version->m_revision = ++m_nextRevision;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     version->m_committed = false;
     version->m_pendingOperation = operation->id;
     m_edit = operation;
@@ -189,7 +189,7 @@ LayerId OperationDocument::addLayer(const QString &name)
     const LayerId layer = ++m_nextLayer;
     version->layers.append({layer, name, true, {}, QUuid::createUuid()});
     version->activeLayer = layer;
-    version->m_revision = ++m_nextRevision;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     commitVersion(version);
     return layer;
 }
@@ -216,7 +216,7 @@ Result OperationDocument::setLayerVisible(LayerId layer, bool visible)
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     version->layers[index].visible = visible;
-    version->m_revision = ++m_nextRevision;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     commitVersion(version);
     return Result::Success;
 }
@@ -232,7 +232,7 @@ Result OperationDocument::renameLayer(LayerId layer, const QString &name)
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     version->layers[index].name = name;
-    version->m_revision = ++m_nextRevision;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     commitVersion(version);
     return Result::Success;
 }
@@ -248,7 +248,7 @@ Result OperationDocument::moveLayer(LayerId layer, qsizetype index)
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     version->layers.move(previous, index);
-    version->m_revision = ++m_nextRevision;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     commitVersion(version);
     return Result::Success;
 }
@@ -269,7 +269,7 @@ Result OperationDocument::removeLayer(LayerId layer)
     if (version->activeLayer == layer) {
         version->activeLayer = version->layers.isEmpty() ? 0 : version->layers[qMin(index, version->layers.size() - 1)].id;
     }
-    version->m_revision = ++m_nextRevision;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     commitVersion(version);
     return Result::Success;
 }
@@ -296,7 +296,7 @@ Result OperationDocument::markSaved(const Snapshot &saved)
 {
     if (m_closed) return Result::Closed;
     if (!saved || saved->documentId() != m_identity || !saved->m_committed) return Result::StaleVersion;
-    m_savedRevision = saved->revision();
+    m_savedRevision = saved->m_modifiedRevision;
     return Result::Success;
 }
 

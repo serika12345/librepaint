@@ -154,6 +154,7 @@ private:
     DocumentVersion(const DocumentVersion &) = default;
     QUuid m_document;
     quint64 m_revision = 0;
+    quint64 m_modifiedRevision = 0;
     // Admission is owned by OperationDocument's thread; snapshot content is immutable.
     mutable bool m_committed = false;
     OperationId m_pendingOperation;
@@ -227,6 +228,10 @@ public:
     Result cancelStroke(OperationId id);
     /** Replaces full tiles, including hidden layers, in one history entry. */
     Result replaceTiles(LayerId layer, const QList<RgbaTile> &tiles);
+    /** Direct external writes retain the history branch and modified state.
+     * Shared layer pixel versions receive the same immutable write.
+     */
+    Result writeTiles(LayerId layer, const QList<RgbaTile> &tiles);
 
     /** Adds and selects a layer in one history entry; returns zero on rejection. */
     LayerId addLayer(const QString &name);
@@ -256,6 +261,7 @@ private:
     qsizetype layerIndex(LayerId layer) const;
     void replacePreview(const QSharedPointer<const PaintOperation> &operation);
     void commitVersion(const Snapshot &version);
+    Result applyTiles(LayerId layer, const QList<RgbaTile> &tiles, bool recordHistory);
 
     Limits m_limits;
     QUuid m_identity;

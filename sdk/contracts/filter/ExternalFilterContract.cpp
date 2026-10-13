@@ -50,14 +50,11 @@ private Q_SLOTS:
         QVERIFY2(device, qPrintable(diagnostic));
         Gpu::Execution execution(device);
         const auto original = QByteArray::fromHex("316ac2ff").repeated(Gpu::RgbaTile::Size * Gpu::RgbaTile::Size);
-        Gpu::RasterImage definition;
-        definition.size = QSize(64, 64);
-        Gpu::RasterLayer layer;
-        layer.name = QStringLiteral("External filter");
-        layer.tiles.append({QPoint(), original});
-        definition.layers.append(layer);
-        Gpu::PaintImage image(execution, definition);
+        Gpu::PaintImage image(execution, QSize(64, 64));
         const auto layerId = image.operations().activeLayer();
+        QCOMPARE(image.writeTiles(layerId, {{QPoint(), original}}), Gpu::Result::Success);
+        QCOMPARE(image.operations().undoCount(), 0);
+        QVERIFY(!image.operations().isModified());
         const auto before = image.operations().snapshot();
         auto pixels = execution.readPixels(image.handle(), before, QRect(0, 0, 64, 64), {layerId}, false);
         QCOMPARE(pixels.code, Gpu::ExecutionCode::Success);

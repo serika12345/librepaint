@@ -17,6 +17,7 @@ class KisGpuPaintImageTest : public QObject
 private Q_SLOTS:
     void sharedEditsPublishBeforeNotificationAndReleaseTheLastAttachment();
     void recoveryPreservesPendingInputAndRedoOnTheSameAttachment();
+    void directPixelsReachGpuWithoutEditingNotificationsOrHistory();
 };
 
 void KisGpuPaintImageTest::sharedEditsPublishBeforeNotificationAndReleaseTheLastAttachment()
@@ -105,6 +106,36 @@ void KisGpuPaintImageTest::recoveryPreservesPendingInputAndRedoOnTheSameAttachme
     QCOMPARE(image.handle(), quint64(0));
     QVERIFY(!execution.requested(handle));
     QCOMPARE(image.undo(), Result::Closed);
+}
+
+void KisGpuPaintImageTest::directPixelsReachGpuWithoutEditingNotificationsOrHistory()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    PaintImage image(execution, QSize(64, 64));
+    QSignalSpy changed(&image, &PaintImage::changed);
+    const auto layer = image.operations().activeLayer();
+    const auto before = image.operations().snapshot();
+    const RgbaTile pixels{{-1, -1}, QByteArray::fromHex("120a2700").repeated(RgbaTile::ByteCount / 4)};
+    QCOMPARE(image.writeTiles(layer, {pixels}), Result::Success);
+    QVERIFY(changed.isEmpty());
+    QCOMPARE(image.operations().undoCount(), 0);
+    QCOMPARE(image.operations().redoCount(), 0);
+    QVERIFY(!image.operations().isModified());
+    QCOMPARE(execution.requested(image.handle()), image.operations().snapshot());
+    const auto read = execution.readPixels(image.handle(), image.operations().snapshot(), {-1, -1, 1, 1},
+                                           {layer}, false, PixelReadArea::LayerCoordinates);
+    QCOMPARE(read.code, ExecutionCode::Success);
+    QCOMPARE(read.tiles.size(), 1);
+    QCOMPARE(read.tiles.first().rgba, pixels.rgba);
+    const auto old = execution.readPixels(image.handle(), before, {-1, -1, 1, 1},
+                                          {layer}, false, PixelReadArea::LayerCoordinates);
+    QCOMPARE(old.code, ExecutionCode::Success);
+    QVERIFY(old.tiles.isEmpty());
+    image.close();
+    QCOMPARE(image.writeTiles(layer, {pixels}), Result::Closed);
 }
 
 int main(int argc, char **argv)

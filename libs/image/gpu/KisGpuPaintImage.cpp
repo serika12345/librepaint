@@ -57,6 +57,14 @@ Result PaintImage::cancelStroke(OperationId id)
 { return onThread() ? publish(m_d->document->cancelStroke(id)) : Result::InvalidInput; }
 Result PaintImage::replaceTiles(LayerId layer, const QList<RgbaTile> &tiles)
 { return onThread() ? publish(m_d->document->replaceTiles(layer, tiles)) : Result::InvalidInput; }
+Result PaintImage::writeTiles(LayerId layer, const QList<RgbaTile> &tiles)
+{
+    if (!onThread()) return Result::InvalidInput;
+    const auto result = m_d->document->writeTiles(layer, tiles);
+    if (result == Result::Success)
+        m_d->lastRequest = m_d->execution.request(m_d->handle, m_d->document->snapshot());
+    return result;
+}
 LayerId PaintImage::addLayer(const QString &name)
 {
     if (!onThread()) return 0;

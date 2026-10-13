@@ -39,6 +39,8 @@ public:
     Result commitStroke(OperationId id);
     Result cancelStroke(OperationId id);
     Result replaceTiles(LayerId layer, const QList<RgbaTile> &tiles);
+    /** Direct external writes publish pixels without editing notifications or history. */
+    Result writeTiles(LayerId layer, const QList<RgbaTile> &tiles);
     LayerId addLayer(const QString &name);
     Result selectLayer(LayerId layer);
     Result setLayerVisible(LayerId layer, bool visible);
