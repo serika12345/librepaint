@@ -63,12 +63,6 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
 }
 
 Result OperationDocument::replaceTiles(LayerId layer, const QList<RgbaTile> &tiles)
-{ return applyTiles(layer, tiles, true); }
-
-Result OperationDocument::writeTiles(LayerId layer, const QList<RgbaTile> &tiles)
-{ return applyTiles(layer, tiles, false); }
-
-Result OperationDocument::applyTiles(LayerId layer, const QList<RgbaTile> &tiles, bool recordHistory)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
@@ -78,24 +72,6 @@ Result OperationDocument::applyTiles(LayerId layer, const QList<RgbaTile> &tiles
     if (tiles.size() > (m_limits.rasterBytes - snapshot()->rasterBytes) / RgbaTile::ByteCount ||
         m_nextOperation == std::numeric_limits<quint64>::max() ||
         m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
-    QList<QPair<int, int>> affected;
-    if (!recordHistory) {
-        const auto &current = snapshot()->layers[index];
-        for (int i = 0; i < m_history.size(); ++i) {
-            const auto &state = m_history[i];
-            for (int j = 0; j < state->layers.size(); ++j) {
-                const auto &candidate = state->layers[j];
-                if (candidate.id == layer && candidate.operations == current.operations &&
-                    candidate.defaultPixel == current.defaultPixel) {
-                    if (tiles.size() > (m_limits.rasterBytes - state->rasterBytes) / RgbaTile::ByteCount)
-                        return Result::CapacityExceeded;
-                    affected.append({i, j});
-                }
-            }
-        }
-        if (quint64(affected.size()) > std::numeric_limits<quint64>::max() - m_nextRevision)
-            return Result::CapacityExceeded;
-    }
     QSet<QPoint> coordinates;
     auto operation = QSharedPointer<TileWriteOperation>::create();
     for (const auto &pixels : tiles) {
@@ -108,21 +84,63 @@ Result OperationDocument::applyTiles(LayerId layer, const QList<RgbaTile> &tiles
     operation->id = {m_identity, ++m_nextOperation};
     operation->version = 1;
     operation->layer = layer;
-    if (recordHistory) {
-        QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
-        version->layers[index].operations.append(TileWriteSnapshot(operation));
-        version->rasterBytes += tiles.size() * RgbaTile::ByteCount;
-        version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
-        commitVersion(version);
-    } else {
-        for (const auto &[historyIndex, layerIndex] : affected) {
-            QSharedPointer<DocumentVersion> version(new DocumentVersion(*m_history[historyIndex]));
-            version->layers[layerIndex].operations.append(TileWriteSnapshot(operation));
-            version->rasterBytes += tiles.size() * RgbaTile::ByteCount;
-            version->m_revision = ++m_nextRevision;
-            m_history[historyIndex] = version;
+    QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
+    version->layers[index].operations.append(TileWriteSnapshot(operation));
+    version->rasterBytes += tiles.size() * RgbaTile::ByteCount;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    commitVersion(version);
+    return Result::Success;
+}
+
+Result OperationDocument::applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    if (writes.isEmpty() || writes.size() > m_history.size()) return Result::InvalidInput;
+    if (recordHistory && (writes.size() != 1 || writes.first().before != snapshot())) return Result::StaleVersion;
+    if (quint64(writes.size()) > std::numeric_limits<quint64>::max() - m_nextOperation ||
+        quint64(writes.size()) > std::numeric_limits<quint64>::max() - m_nextRevision)
+        return Result::CapacityExceeded;
+    auto history = m_history;
+    auto nextOperation = m_nextOperation;
+    auto nextRevision = m_nextRevision;
+    const auto group = nextOperation + 1;
+    QSet<const DocumentVersion *> updated;
+    for (const auto &write : writes) {
+        const auto index = m_history.indexOf(write.before);
+        if (index < 0 || updated.contains(write.before.data())) return Result::StaleVersion;
+        if (write.layer != writes.first().layer || write.tiles.isEmpty()) return Result::InvalidInput;
+        qsizetype layerIndex = -1;
+        for (qsizetype i = 0; i < write.before->layers.size(); ++i)
+            if (write.before->layers[i].id == write.layer) layerIndex = i;
+        if (layerIndex < 0) return Result::LayerUnavailable;
+        if (write.tiles.size() > (m_limits.rasterBytes - write.before->rasterBytes) / RgbaTile::ByteCount)
+            return Result::CapacityExceeded;
+        auto operation = QSharedPointer<TileWriteOperation>::create();
+        operation->id = {m_identity, ++nextOperation};
+        operation->version = 1;
+        operation->layer = write.layer;
+        operation->writeGroup = group;
+        operation->writtenAreas = write.areas;
+        QSet<QPoint> coordinates;
+        for (const auto &tile : write.tiles) {
+            if (!tile || coordinates.contains(tile->coordinate())) return Result::InvalidInput;
+            coordinates.insert(tile->coordinate());
+            operation->tiles.append(tile);
         }
+        if (!Detail::validWrittenAreas(*operation)) return Result::InvalidInput;
+        QSharedPointer<DocumentVersion> version(new DocumentVersion(*write.before));
+        version->layers[layerIndex].operations.append(TileWriteSnapshot(operation));
+        version->rasterBytes += write.tiles.size() * RgbaTile::ByteCount;
+        version->m_revision = ++nextRevision;
+        if (recordHistory) version->m_modifiedRevision = version->m_revision;
+        history[index] = version;
+        updated.insert(write.before.data());
     }
+    if (recordHistory) commitVersion(history[m_index]);
+    else m_history.swap(history);
+    m_nextOperation = nextOperation;
+    m_nextRevision = nextRevision;
     return Result::Success;
 }
 }

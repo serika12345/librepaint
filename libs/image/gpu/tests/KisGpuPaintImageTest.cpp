@@ -7,7 +7,11 @@
 #include <gpu/KisGpuExecution.h>
 #include <QGuiApplication>
 #include <QSignalSpy>
+#include <QBuffer>
+#include <QCryptographicHash>
+#include <QDataStream>
 #include <QTest>
+#include <limits>
 
 using namespace Krita::Image::Gpu;
 
@@ -18,6 +22,10 @@ private Q_SLOTS:
     void sharedEditsPublishBeforeNotificationAndReleaseTheLastAttachment();
     void recoveryPreservesPendingInputAndRedoOnTheSameAttachment();
     void directPixelsReachGpuWithoutEditingNotificationsOrHistory();
+    void rectangularWritesPreserveOtherRegionsAcrossHistoryAndRecovery();
+    void rectangularWritesValidateBeforeMutationAndCrossTileBoundaries();
+    void rectangularHistoryEditsPreserveIndependentUntrackedPixels();
+    void damagedPixelSharingRecoveryPreservesTheLiveImage();
 };
 
 void KisGpuPaintImageTest::sharedEditsPublishBeforeNotificationAndReleaseTheLastAttachment()
@@ -119,7 +127,7 @@ void KisGpuPaintImageTest::directPixelsReachGpuWithoutEditingNotificationsOrHist
     const auto layer = image.operations().activeLayer();
     const auto before = image.operations().snapshot();
     const RgbaTile pixels{{-1, -1}, QByteArray::fromHex("120a2700").repeated(RgbaTile::ByteCount / 4)};
-    QCOMPARE(image.writeTiles(layer, {pixels}), Result::Success);
+    QCOMPARE(image.writeRgbaPixels(layer, {-256, -256, 256, 256}, pixels.rgba), Result::Success);
     QVERIFY(changed.isEmpty());
     QCOMPARE(image.operations().undoCount(), 0);
     QCOMPARE(image.operations().redoCount(), 0);
@@ -135,7 +143,186 @@ void KisGpuPaintImageTest::directPixelsReachGpuWithoutEditingNotificationsOrHist
     QCOMPARE(old.code, ExecutionCode::Success);
     QVERIFY(old.tiles.isEmpty());
     image.close();
-    QCOMPARE(image.writeTiles(layer, {pixels}), Result::Closed);
+    QCOMPARE(image.writeRgbaPixels(layer, {-256, -256, 256, 256}, pixels.rgba), Result::Closed);
+}
+
+void KisGpuPaintImageTest::rectangularWritesPreserveOtherRegionsAcrossHistoryAndRecovery()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    RasterImage definition;
+    definition.size = {128, 128};
+    definition.layers = {{QStringLiteral("Edited"), true, {},
+                          {{{0, 0}, QByteArray::fromHex("ff0000ff").repeated(RgbaTile::ByteCount / 4)}}},
+                         {QStringLiteral("Imported"), true, {}, {}}};
+    PaintImage image(execution, definition);
+    QSignalSpy changed(&image, &PaintImage::changed);
+    const auto pinned = image.operations().snapshot();
+    Brush brush;
+    brush.rgba = {0, 0, 255, 255};
+    brush.diameter = 6;
+    const auto stroke = image.beginStroke(1, brush, 0);
+    QCOMPARE(image.appendSamples(stroke, {{{8, 12}, 1}}), Result::Success);
+    QCOMPARE(image.commitStroke(stroke), Result::Success);
+    QCOMPARE(image.undo(), Result::Success);
+    const auto notifications = changed.size();
+    const auto raw = QByteArray::fromHex("120a2700");
+    const auto green = QByteArray::fromHex("00ff00ff");
+    QCOMPARE(image.writeRgbaPixels(2, {-1, -1, 1, 1}, raw), Result::Success);
+    QCOMPARE(image.writeRgbaPixels(1, {8, 12, 1, 1}, raw), Result::Success);
+    QCOMPARE(image.writeRgbaPixels(1, {96, 96, 1, 1}, raw), Result::Success);
+    QCOMPARE(changed.size(), notifications);
+    QCOMPARE(image.operations().undoCount(), 0);
+    QCOMPARE(image.operations().redoCount(), 1);
+    QVERIFY(!image.operations().isModified());
+    QCOMPARE(execution.readRgbaPixels(image.handle(), pinned, {8, 12, 1, 1}, 1, 4).bytes, QByteArray::fromHex("ff0000ff"));
+    QCOMPARE(image.writeRgbaPixels(1, {96, 96, 1, 1}, green), Result::Success);
+    PaintImage restored(execution, QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(image.operations().recoveryData()), Result::Success);
+    for (auto *owner : {&image, &restored}) {
+        QCOMPARE(owner->redo(), Result::Success);
+        QCOMPARE(execution.readRgbaPixels(owner->handle(), owner->operations().snapshot(), {8, 12, 1, 1}, 1, 4).bytes,
+                 QByteArray::fromHex("0000ffff"));
+        QCOMPARE(execution.readRgbaPixels(owner->handle(), owner->operations().snapshot(), {96, 96, 1, 1}, 1, 4).bytes, green);
+        QCOMPARE(execution.readRgbaPixels(owner->handle(), owner->operations().snapshot(), {-1, -1, 1, 1}, 2, 4).bytes, raw);
+        QCOMPARE(owner->undo(), Result::Success);
+        QCOMPARE(execution.readRgbaPixels(owner->handle(), owner->operations().snapshot(), {8, 12, 1, 1}, 1, 4).bytes, raw);
+        const auto yellow = QByteArray::fromHex("ffff00ff");
+        QCOMPARE(owner->writeRgbaPixels(1, {96, 96, 1, 1}, yellow), Result::Success);
+        QCOMPARE(owner->redo(), Result::Success);
+        QCOMPARE(execution.readRgbaPixels(owner->handle(), owner->operations().snapshot(), {96, 96, 1, 1}, 1, 4).bytes, yellow);
+        QCOMPARE(owner->undo(), Result::Success);
+        QVERIFY(!owner->operations().isModified());
+    }
+}
+
+void KisGpuPaintImageTest::rectangularWritesValidateBeforeMutationAndCrossTileBoundaries()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device, 3 * TileRenderer::TileBytes, 1, TileRenderer::TileBytes);
+    PaintImage image(execution, QSize(64, 64));
+    QSignalSpy changed(&image, &PaintImage::changed);
+    const auto layer = image.operations().activeLayer();
+    const auto before = image.operations().snapshot();
+    const QRect region(-1, -1, 2, 2);
+    const auto pixels = QByteArray::fromHex("120a2700197fafe00000ffffff000080");
+    QCOMPARE(image.writeRgbaPixels(layer, region, pixels.first(15)), Result::InvalidInput);
+    QCOMPARE(image.writeRgbaPixels(layer, {0, 0, -1, 2}, pixels), Result::InvalidInput);
+    QCOMPARE(image.writeRgbaPixels(99, region, pixels), Result::LayerUnavailable);
+    QCOMPARE(image.writeRgbaPixels(layer, {0, 0, 0, 0}, {}), Result::Success);
+    QCOMPARE(image.operations().snapshot(), before);
+    QCOMPARE(execution.requested(image.handle()), before);
+    QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+    QCOMPARE(image.writeRgbaPixels(layer, region, pixels), Result::Busy);
+    QCOMPARE(image.operations().snapshot(), before);
+    QCOMPARE(execution.cancelFrame().code, ExecutionCode::Success);
+    QCOMPARE(image.writeRgbaPixels(layer, region, pixels + QByteArrayLiteral("ignored suffix")), Result::Success);
+    const auto read = execution.readRgbaPixels(image.handle(), image.operations().snapshot(), region, layer, pixels.size());
+    QCOMPARE(read.code, ExecutionCode::Success);
+    QCOMPARE(read.bytes, pixels);
+    QCOMPARE(image.operations().undoCount(), 0);
+    QVERIFY(!image.operations().isModified());
+    QVERIFY(changed.isEmpty());
+    image.close();
+    QCOMPARE(image.writeRgbaPixels(layer, region, pixels), Result::Closed);
+}
+
+void KisGpuPaintImageTest::rectangularHistoryEditsPreserveIndependentUntrackedPixels()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    RasterImage definition;
+    definition.size = {128, 128};
+    definition.layers = {{QStringLiteral("Edited"), true, {},
+                          {{{0, 0}, QByteArray::fromHex("ff0000ff").repeated(RgbaTile::ByteCount / 4)}}}};
+    PaintImage image(execution, definition);
+    QSignalSpy changed(&image, &PaintImage::changed);
+    const auto blue = QByteArray::fromHex("0000ffff");
+    const auto raw = QByteArray::fromHex("120a2700");
+    QCOMPARE(image.replaceRgbaPixels(1, {8, 12, 1, 1}, blue), Result::Success);
+    QCOMPARE(image.operations().undoCount(), 1);
+    QVERIFY(image.operations().isModified());
+    QCOMPARE(changed.size(), 1);
+    QCOMPARE(image.undo(), Result::Success);
+    QCOMPARE(image.writeRgbaPixels(1, {96, 96, 1, 1}, raw), Result::Success);
+    QCOMPARE(image.redo(), Result::Success);
+    QCOMPARE(execution.readRgbaPixels(image.handle(), image.operations().snapshot(), {8, 12, 1, 1}, 1, 4).bytes, blue);
+    QCOMPARE(execution.readRgbaPixels(image.handle(), image.operations().snapshot(), {96, 96, 1, 1}, 1, 4).bytes, raw);
+    QCOMPARE(image.undo(), Result::Success);
+    QCOMPARE(execution.readRgbaPixels(image.handle(), image.operations().snapshot(), {8, 12, 1, 1}, 1, 4).bytes,
+             QByteArray::fromHex("ff0000ff"));
+    QCOMPARE(execution.readRgbaPixels(image.handle(), image.operations().snapshot(), {96, 96, 1, 1}, 1, 4).bytes, raw);
+    QVERIFY(!image.operations().isModified());
+}
+
+void KisGpuPaintImageTest::damagedPixelSharingRecoveryPreservesTheLiveImage()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    PaintImage image(execution, QSize(64, 64));
+    QCOMPARE(image.writeRgbaPixels(1, {8, 12, 1, 1}, QByteArray::fromHex("120a2700")), Result::Success);
+    const auto before = image.operations().snapshot();
+    const auto record = image.operations().recoveryData();
+    QVERIFY(!record.isEmpty());
+    QBuffer input;
+    input.setData(record);
+    QVERIFY(input.open(QIODevice::ReadOnly));
+    QVERIFY(input.seek(46));
+    QDataStream reader(&input);
+    reader.setVersion(QDataStream::Qt_5_15);
+    reader.setByteOrder(QDataStream::BigEndian);
+    quint32 tileCount = 0;
+    reader >> tileCount;
+    for (quint32 i = 0; i < tileCount; ++i) {
+        qint32 x = 0, y = 0;
+        quint32 size = 0;
+        reader >> x >> y >> size;
+        QVERIFY(input.seek(input.pos() + size));
+    }
+    quint32 operationCount = 0, count = 0;
+    quint8 kind = 0;
+    quint64 sequence = 0, version = 0, layer = 0;
+    reader >> operationCount >> kind >> sequence >> version >> layer >> count;
+    QCOMPARE(operationCount, quint32(1));
+    QCOMPARE(kind, quint8(1));
+    for (quint32 i = 0; i < count; ++i) { quint32 index = 0; reader >> index; }
+    const auto groupPosition = input.pos();
+    quint64 group = 0;
+    quint32 areas = 0;
+    reader >> group >> areas;
+    QCOMPARE(areas, quint32(1));
+    const auto areaPosition = input.pos();
+    QSignalSpy changed(&image, &PaintImage::changed);
+    for (int damage = 0; damage < 5; ++damage) {
+        auto payload = record.first(record.size() - 32);
+        QBuffer output(&payload);
+        QVERIFY(output.open(QIODevice::ReadWrite));
+        QVERIFY(output.seek(damage == 0 ? groupPosition : damage == 4 ? groupPosition + 8 : areaPosition));
+        QDataStream writer(&output);
+        writer.setVersion(QDataStream::Qt_5_15);
+        writer.setByteOrder(QDataStream::BigEndian);
+        if (damage == 0) writer << quint64(sequence + 1);
+        if (damage == 1) writer << qint32(63) << qint32(12) << qint32(2) << qint32(1);
+        if (damage == 2) writer << std::numeric_limits<qint32>::max() << std::numeric_limits<qint32>::max()
+                                << std::numeric_limits<qint32>::max() << std::numeric_limits<qint32>::max();
+        if (damage == 3) writer << qint32(256) << qint32(0) << qint32(1) << qint32(1);
+        if (damage == 4) writer << std::numeric_limits<quint32>::max();
+        output.close();
+        payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
+        QCOMPARE(image.restoreRecovery(payload), Result::InvalidRecovery);
+        QCOMPARE(image.operations().snapshot(), before);
+        QCOMPARE(execution.requested(image.handle()), before);
+        QCOMPARE(image.operations().recoveryData(), record);
+        QVERIFY(changed.isEmpty());
+    }
 }
 
 int main(int argc, char **argv)

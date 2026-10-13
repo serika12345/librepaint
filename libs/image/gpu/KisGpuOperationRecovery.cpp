@@ -18,7 +18,7 @@ namespace Krita::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 4;
+constexpr quint16 FormatVersion = 5;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -120,6 +120,10 @@ QByteArray OperationDocument::recoveryData() const
             stream << quint32(write.tiles.size());
             if (!withinLimit() || write.tiles.size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 4) return {};
             for (const auto &tile : write.tiles) stream << tileIndices.value(tile.data());
+            stream << write.writeGroup << quint32(write.writtenAreas.size());
+            if (!withinLimit() || write.writtenAreas.size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 16) return {};
+            for (const auto &area : write.writtenAreas)
+                stream << qint32(area.x()) << qint32(area.y()) << qint32(area.width()) << qint32(area.height());
         }
         if (!withinLimit()) return {};
     }
@@ -182,7 +186,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
     if (!readableCount(stream, operationCount, payload.size(), 29)) return Result::InvalidRecovery;
     const QUuid identity = QUuid::createUuid();
     QList<LayerOperation> operations;
-    QSet<quint64> operationIds;
+    QHash<quint64, quint32> operationIndices;
     QSet<quint32> referencedTiles;
     qsizetype retainedSamples = 0;
     const quint64 payloadSamples = quint64(payload.size() / 56);
@@ -193,9 +197,9 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         quint64 sequence = 0, version = 0;
         LayerId layer = 0;
         stream >> kind >> sequence >> version >> layer;
-        if (kind > 1 || sequence == 0 || sequence > nextOperation || operationIds.contains(sequence) ||
+        if (kind > 1 || sequence == 0 || sequence > nextOperation || operationIndices.contains(sequence) ||
             layer == 0 || layer > nextLayer || version > nextRevision) return Result::InvalidRecovery;
-        operationIds.insert(sequence);
+        operationIndices.insert(sequence, quint32(operations.size()));
         if (kind == 1) {
             auto operation = QSharedPointer<TileWriteOperation>::create();
             operation->id = {identity, sequence};
@@ -213,6 +217,16 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
                 coordinates.insert(tiles[index]->coordinate());
                 referencedTiles.insert(index);
             }
+            quint32 areaCount = 0;
+            stream >> operation->writeGroup >> areaCount;
+            if (!readableCount(stream, areaCount, quint64(count) * 16, 16)) return Result::InvalidRecovery;
+            for (quint32 j = 0; j < areaCount; ++j) {
+                qint32 x = 0, y = 0, width = 0, height = 0;
+                stream >> x >> y >> width >> height;
+                if (stream.status() != QDataStream::Ok || !validPixelWriteArea(x, y, width, height)) return Result::InvalidRecovery;
+                operation->writtenAreas.append({x, y, width, height});
+            }
+            if (!validWrittenAreas(*operation)) return Result::InvalidRecovery;
             operations.append(TileWriteSnapshot(operation));
             continue;
         }
@@ -246,6 +260,15 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         if (sampleCount) operation->sampleBlocks.append(samples);
         operation->sampleCount = sampleCount;
         operations.append(PaintSnapshot(operation));
+    }
+    for (const auto &value : operations) {
+        const auto write = std::get_if<TileWriteSnapshot>(&value);
+        if (!write || !(*write)->writeGroup) continue;
+        const auto root = operationIndices.constFind((*write)->writeGroup);
+        if (root == operationIndices.cend()) continue;
+        const auto first = std::get_if<TileWriteSnapshot>(&operations[*root]);
+        if (!first || (*first)->layer != (*write)->layer || (*first)->writeGroup != (*write)->writeGroup)
+            return Result::InvalidRecovery;
     }
     if (referencedTiles.size() != tiles.size()) return Result::InvalidRecovery;
     quint32 stateCount = 0, currentIndex = 0;

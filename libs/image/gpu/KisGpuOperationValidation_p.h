@@ -7,10 +7,39 @@
 #define KIS_GPU_OPERATION_VALIDATION_P_H
 
 #include "KisGpuOperationDocument.h"
+#include "KisGpuPaintGeometry_p.h"
+#include <QSet>
 #include <cmath>
 
 namespace Krita::Image::Gpu::Detail {
 constexpr qsizetype LayerNameByteLimit = 65536;
+
+inline bool validPixelWriteArea(qint32 x, qint32 y, qint32 width, qint32 height)
+{
+    if (width <= 0 || height <= 0 || width > PixelHistoryBlockSize || height > PixelHistoryBlockSize ||
+        x < -RgbaTile::CoordinateLimit || y < -RgbaTile::CoordinateLimit ||
+        qint64(x) + width > RgbaTile::CoordinateLimit || qint64(y) + height > RgbaTile::CoordinateLimit) return false;
+    return pixelTileIndex(x, PixelHistoryBlockSize) == pixelTileIndex(x + width - 1, PixelHistoryBlockSize) &&
+        pixelTileIndex(y, PixelHistoryBlockSize) == pixelTileIndex(y + height - 1, PixelHistoryBlockSize);
+}
+
+inline bool validWrittenAreas(const TileWriteOperation &write)
+{
+    if (write.writtenAreas.isEmpty()) return write.writeGroup == 0;
+    if (!write.writeGroup || write.writeGroup > write.id.sequence ||
+        write.writtenAreas.size() > write.tiles.size() * 16) return false;
+    QSet<QPoint> tiles, blocks, referencedTiles;
+    for (const auto &tile : write.tiles) tiles.insert(tile->coordinate());
+    for (const auto &area : write.writtenAreas) {
+        if (!validPixelWriteArea(area.x(), area.y(), area.width(), area.height())) return false;
+        const QPoint block(pixelTileIndex(area.left(), PixelHistoryBlockSize), pixelTileIndex(area.top(), PixelHistoryBlockSize));
+        if (blocks.contains(block) ||
+            !tiles.contains({pixelTileIndex(area.left(), RgbaTile::Size), pixelTileIndex(area.top(), RgbaTile::Size)})) return false;
+        blocks.insert(block);
+        referencedTiles.insert({pixelTileIndex(area.left(), RgbaTile::Size), pixelTileIndex(area.top(), RgbaTile::Size)});
+    }
+    return referencedTiles == tiles;
+}
 
 inline bool validLayerName(const QString &name)
 {

@@ -78,11 +78,12 @@ QList<PaintSegment> paintGeometry(const PaintOperation &operation, quint32 step)
 
 
 std::optional<QList<quint64>> paintSegmentTiles(const PaintSegment &segment, quint32 diameter,
-                                               QRect region, QSize canvas, qsizetype maximumCoordinates)
+                                               QRect region, QSize canvas, qsizetype maximumCoordinates, int tileSize)
 {
     QList<quint64> result;
     if (region.isEmpty()) return result;
-    constexpr int size = RgbaTile::Size;
+    if (tileSize <= 0) return std::nullopt;
+    const int size = tileSize;
     const qint64 radius = (diameter + 31) / 32;
     const int left = int(std::max<qint64>(region.left() / size * size, std::min(segment.ax, segment.bx) / 16 - radius));
     const int top = int(std::max<qint64>(region.top() / size * size, std::min(segment.ay, segment.by) / 16 - radius));

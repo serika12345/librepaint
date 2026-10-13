@@ -10,6 +10,7 @@
 #include <QByteArray>
 #include <QList>
 #include <QPointF>
+#include <QRect>
 #include <QSharedPointer>
 #include <QSize>
 #include <QString>
@@ -102,6 +103,10 @@ struct TileWriteOperation
     quint64 version = 0;
     LayerId layer = 0;
     QList<QSharedPointer<const RasterTile>> tiles;
+    /** One external write can preserve different neighbouring history pixels. */
+    quint64 writeGroup = 0;
+    /** Empty denotes complete tiles; otherwise these areas identify changed pixel blocks. */
+    QList<QRect> writtenAreas;
 };
 using PaintSnapshot = QSharedPointer<const PaintOperation>;
 using TileWriteSnapshot = QSharedPointer<const TileWriteOperation>;
@@ -174,7 +179,9 @@ enum class Result {
     NothingToUndo,
     NothingToRedo,
     Closed,
-    InvalidRecovery
+    InvalidRecovery,
+    Busy,
+    DeviceFailure
 };
 
 struct Limits
@@ -228,10 +235,6 @@ public:
     Result cancelStroke(OperationId id);
     /** Replaces full tiles, including hidden layers, in one history entry. */
     Result replaceTiles(LayerId layer, const QList<RgbaTile> &tiles);
-    /** Direct external writes retain the history branch and modified state.
-     * Shared layer pixel versions receive the same immutable write.
-     */
-    Result writeTiles(LayerId layer, const QList<RgbaTile> &tiles);
 
     /** Adds and selects a layer in one history entry; returns zero on rejection. */
     LayerId addLayer(const QString &name);
@@ -256,12 +259,20 @@ public:
     void close();
 
 private:
+    friend class PaintImage;
+    struct VersionPixelWrite
+    {
+        Snapshot before;
+        LayerId layer = 0;
+        QList<QSharedPointer<const RasterTile>> tiles;
+        QList<QRect> areas;
+    };
+    Result applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory);
     Result checkOperation(OperationId id) const;
     Result checkMutation() const;
     qsizetype layerIndex(LayerId layer) const;
     void replacePreview(const QSharedPointer<const PaintOperation> &operation);
     void commitVersion(const Snapshot &version);
-    Result applyTiles(LayerId layer, const QList<RgbaTile> &tiles, bool recordHistory);
 
     Limits m_limits;
     QUuid m_identity;

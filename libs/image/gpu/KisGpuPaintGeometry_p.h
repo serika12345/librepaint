@@ -10,6 +10,9 @@
 #include <optional>
 
 namespace Krita::Image::Gpu::Detail {
+constexpr int PixelHistoryBlockSize = 64;
+inline int pixelTileIndex(int value, int size)
+{ return value >= 0 ? value / size : (value - size + 1) / size; }
 struct PaintSegment
 {
     qint32 ax, ay, bx, by;
@@ -22,6 +25,7 @@ inline QPoint coordinate(quint64 key) { return {int(quint32(key)), int(quint32(k
 
 QList<PaintSegment> paintGeometry(const PaintOperation &operation, quint32 step);
 std::optional<QList<quint64>> paintSegmentTiles(const PaintSegment &segment, quint32 diameter,
-                                               QRect region, QSize canvas, qsizetype maximumCoordinates);
+                                               QRect region, QSize canvas, qsizetype maximumCoordinates,
+                                               int tileSize = RgbaTile::Size);
 }
 #endif

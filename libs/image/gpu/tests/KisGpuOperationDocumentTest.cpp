@@ -67,7 +67,6 @@ private Q_SLOTS:
     void checkedRecoveryRejectsInvalidCountsAndValues();
     void importedPixelsPreserveLayersAndStartWithoutUndo();
     void tileReplacementSharesHistoryAndRejectsWholeRequests();
-    void directTileWritesPreserveHistoryBranchesAndSavedState();
     void rasterRecoveryPreservesPixelsIdentityAndPendingInput();
     void damagedRasterRecoveryPreservesTheLiveDocument();
     void layerStructureSharesPaintingHistoryAndPreservesPins();
@@ -701,58 +700,6 @@ void KisGpuOperationDocumentTest::rasterRecoveryPreservesPixelsIdentityAndPendin
     QCOMPARE(restored.redo(), Result::Success);
     QCOMPARE(restored.snapshot()->sampleCount, qsizetype(1));
     qInfo() << "raster recovery SHA-256:" << QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex();
-}
-
-void KisGpuOperationDocumentTest::directTileWritesPreserveHistoryBranchesAndSavedState()
-{
-    RasterImage source{{64, 64}, {{QStringLiteral("Edited"), true, {}, {}},
-                                {QStringLiteral("Imported"), true, {}, {}}}};
-    OperationDocument document(source);
-    const RgbaTile red{{0, 0}, QByteArray::fromHex("ff0000ff").repeated(RgbaTile::ByteCount / 4)};
-    const RgbaTile blue{{0, 0}, QByteArray::fromHex("0000ffff").repeated(RgbaTile::ByteCount / 4)};
-    const RgbaTile raw{{-1, -1}, QByteArray::fromHex("120a2700").repeated(RgbaTile::ByteCount / 4)};
-    auto samePixel = raw;
-    samePixel.coordinate = {0, 0};
-    QCOMPARE(document.writeTiles(1, {red}), Result::Success);
-    const auto pinned = document.snapshot();
-    QVERIFY(!document.isModified());
-    QCOMPARE(document.replaceTiles(1, {blue}), Result::Success);
-    QCOMPARE(document.undo(), Result::Success);
-    QVERIFY(!document.isModified());
-    QCOMPARE(document.writeTiles(2, {raw}), Result::Success);
-    QCOMPARE(document.writeTiles(1, {samePixel}), Result::Success);
-    QCOMPARE(document.undoCount(), 0);
-    QCOMPARE(document.redoCount(), 1);
-    QVERIFY(!document.isModified());
-    QVERIFY(document.snapshot()->revision() != pinned->revision());
-    QCOMPARE(std::get<TileWriteSnapshot>(pinned->layers[0].operations.last())->tiles.first()->rgba(), red.rgba);
-    const auto written = document.snapshot();
-    auto invalid = raw;
-    invalid.rgba.chop(1);
-    QCOMPARE(document.writeTiles(2, {raw, invalid}), Result::InvalidInput);
-    QCOMPARE(document.snapshot(), written);
-    const auto recovery = document.recoveryData();
-    QVERIFY(!recovery.isEmpty());
-    OperationDocument restored({1, 1});
-    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
-    QCOMPARE(restored.recoveryData(), recovery);
-    for (auto *image : {&document, &restored}) {
-        QCOMPARE(image->redo(), Result::Success);
-        QCOMPARE(std::get<TileWriteSnapshot>(image->snapshot()->layers[0].operations.last())->tiles.first()->rgba(), blue.rgba);
-        QCOMPARE(std::get<TileWriteSnapshot>(image->snapshot()->layers[1].operations.last())->tiles.first()->rgba(), raw.rgba);
-        QVERIFY(image->isModified());
-        QCOMPARE(image->undo(), Result::Success);
-        QCOMPARE(std::get<TileWriteSnapshot>(image->snapshot()->layers[0].operations.last())->tiles.first()->rgba(), raw.rgba);
-        QCOMPARE(std::get<TileWriteSnapshot>(image->snapshot()->layers[1].operations.last())->tiles.first()->rgba(), raw.rgba);
-        QVERIFY(!image->isModified());
-        QCOMPARE(image->markSaved(image->snapshot()), Result::Success);
-        const auto pending = image->beginStroke(1, Brush{}, 0);
-        QVERIFY(!pending.isNull());
-        QCOMPARE(image->writeTiles(2, {raw}), Result::EditInProgress);
-        QCOMPARE(image->cancelStroke(pending), Result::Success);
-        image->close();
-        QCOMPARE(image->writeTiles(2, {raw}), Result::Closed);
-    }
 }
 
 void KisGpuOperationDocumentTest::damagedRasterRecoveryPreservesTheLiveDocument()

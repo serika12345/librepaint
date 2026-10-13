@@ -8,6 +8,7 @@
 
 #include "KisGpuOperationDocument.h"
 #include <QObject>
+#include <QRect>
 #include <memory>
 
 namespace Krita::Image::Gpu {
@@ -39,8 +40,13 @@ public:
     Result commitStroke(OperationId id);
     Result cancelStroke(OperationId id);
     Result replaceTiles(LayerId layer, const QList<RgbaTile> &tiles);
-    /** Direct external writes publish pixels without editing notifications or history. */
-    Result writeTiles(LayerId layer, const QList<RgbaTile> &tiles);
+    /** Replaces nonempty packed pixel rectangles in one history entry. */
+    Result replaceRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes);
+    /** Direct packed RGBA8 writes preserve history, notifications and fixed versions.
+     * Ignores surplus input bytes and accepts empty rectangles. Transfers and
+     * compression finish before logical adoption; rejected writes are atomic.
+     */
+    Result writeRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes);
     LayerId addLayer(const QString &name);
     Result selectLayer(LayerId layer);
     Result setLayerVisible(LayerId layer, bool visible);
@@ -62,6 +68,8 @@ private:
     PaintImage(Execution &execution, std::unique_ptr<OperationDocument> document, Limits limits);
     bool onThread() const;
     Result publish(Result result);
+    void requestCurrentVersion();
+    Result applyRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes, bool recordHistory);
     struct Private;
     std::unique_ptr<Private> m_d;
 };

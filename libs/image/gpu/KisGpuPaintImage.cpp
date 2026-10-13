@@ -3,20 +3,12 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
-#include "KisGpuPaintImage.h"
-#include "KisGpuExecution.h"
+#include "KisGpuPaintImage_p.h"
 #include <QThread>
+#include <new>
 #include <stdexcept>
 
 namespace Krita::Image::Gpu {
-struct PaintImage::Private
-{
-    Execution &execution;
-    std::unique_ptr<OperationDocument> document;
-    Limits limits;
-    quint64 handle = 0;
-    ExecutionOutcome lastRequest{ExecutionCode::Success, {}};
-};
 PaintImage::PaintImage(Execution &execution, QSize size, Limits limits)
     : PaintImage(execution, std::make_unique<OperationDocument>(size, limits), limits) {}
 PaintImage::PaintImage(Execution &execution, const RasterImage &image, Limits limits)
@@ -37,10 +29,18 @@ const OperationDocument &PaintImage::operations() const { return *m_d->document;
 quint64 PaintImage::handle() const { return m_d->handle; }
 ExecutionOutcome PaintImage::lastRequestOutcome() const { return m_d->lastRequest; }
 bool PaintImage::onThread() const { return QThread::currentThread() == thread(); }
+void PaintImage::requestCurrentVersion()
+{
+    try {
+        m_d->lastRequest = m_d->execution.request(m_d->handle, m_d->document->preview());
+    } catch (const std::bad_alloc &) {
+        m_d->lastRequest = {ExecutionCode::CapacityExceeded, QStringLiteral("GPU request allocation exceeded capacity")};
+    }
+}
 Result PaintImage::publish(Result result)
 {
     if (result == Result::Success) {
-        m_d->lastRequest = m_d->execution.request(m_d->handle, m_d->document->preview());
+        requestCurrentVersion();
         Q_EMIT changed();
     }
     return result;
@@ -57,14 +57,6 @@ Result PaintImage::cancelStroke(OperationId id)
 { return onThread() ? publish(m_d->document->cancelStroke(id)) : Result::InvalidInput; }
 Result PaintImage::replaceTiles(LayerId layer, const QList<RgbaTile> &tiles)
 { return onThread() ? publish(m_d->document->replaceTiles(layer, tiles)) : Result::InvalidInput; }
-Result PaintImage::writeTiles(LayerId layer, const QList<RgbaTile> &tiles)
-{
-    if (!onThread()) return Result::InvalidInput;
-    const auto result = m_d->document->writeTiles(layer, tiles);
-    if (result == Result::Success)
-        m_d->lastRequest = m_d->execution.request(m_d->handle, m_d->document->snapshot());
-    return result;
-}
 LayerId PaintImage::addLayer(const QString &name)
 {
     if (!onThread()) return 0;
