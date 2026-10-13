@@ -25,15 +25,15 @@ using namespace Krita::Document::Gpu;
 namespace Kra = Krita::ImportExport::Kra;
 
 namespace {
-void dot(PaintDocument &document, QPointF position, std::array<quint8, 4> color)
+void dot(PaintImage &image, QPointF position, std::array<quint8, 4> color)
 {
     Brush brush;
     brush.rgba = color;
     brush.diameter = 6;
-    const auto id = document.beginStroke(document.operations().activeLayer(), brush, 0);
+    const auto id = image.beginStroke(image.operations().activeLayer(), brush, 0);
     QVERIFY(!id.isNull());
-    QCOMPARE(document.appendSamples(id, {{position, 1}}), Result::Success);
-    QCOMPARE(document.commitStroke(id), Result::Success);
+    QCOMPARE(image.appendSamples(id, {{position, 1}}), Result::Success);
+    QCOMPARE(image.commitStroke(id), Result::Success);
 }
 QByteArray pixel(const PixelReadbackOutcome &value, LayerId layer, QPoint point)
 {
@@ -73,9 +73,71 @@ private Q_SLOTS:
     void invalidRecoveryPreservesTheAttachedDocument();
     void layerStructureAndEmptyDocumentsRoundTripWithUnifiedHistory();
     void savingStreamsPixelsWithinTheGpuAndTransferBudgets();
+    void sharedImageEditsAndRecoveryPublishCompleteFileMetadata();
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPaintDocumentTest::sharedImageEditsAndRecoveryPublishCompleteFileMetadata()
+{
+    Execution execution(m_device, 128 * 1024 * 1024, 1);
+    auto document = std::make_unique<PaintDocument>(execution, QSize(64, 64));
+    auto image = document->image();
+    const auto handle = document->image()->handle();
+    QSignalSpy documentChanged(document.get(), &PaintDocument::changed);
+    QSignalSpy imageChanged(image.data(), &PaintImage::changed);
+    const auto stroke = image->beginStroke(image->operations().activeLayer(), Brush{}, 1);
+    QCOMPARE(image->appendSamples(stroke, {{{12, 12}, 1}}), Result::Success);
+    QCOMPARE(image->commitStroke(stroke), Result::Success);
+    QCOMPARE(document->image()->operations().undoCount(), 1);
+    QCOMPARE(documentChanged.size(), 2);
+    QCOMPARE(imageChanged.size(), 2);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto first = directory.filePath(QStringLiteral("first.kra"));
+    const auto second = directory.filePath(QStringLiteral("second.kra"));
+    QString expectedPath = first;
+    bool metadataCurrent = true;
+    bool checkMetadata = true;
+    const auto observe = [&] {
+        if (!checkMetadata) return;
+        metadataCurrent &= document->filePath() == expectedPath;
+        metadataCurrent &= execution.requested(handle) == image->operations().preview();
+    };
+    connect(document.get(), &PaintDocument::changed, this, observe);
+    connect(image.data(), &PaintImage::changed, this, observe);
+    QCOMPARE(document->saveKra(first).code, FileCode::Success);
+    QCOMPARE(imageChanged.size(), 2);
+    const auto recovery = document->recoveryData();
+    QVERIFY(!recovery.isEmpty());
+    expectedPath = second;
+    QCOMPARE(document->saveKra(second).code, FileCode::Success);
+    auto corrupt = recovery;
+    corrupt[10] ^= 1;
+    corrupt.replace(corrupt.size() - 32, 32,
+                    QCryptographicHash::hash(QByteArrayView(corrupt.constData(), corrupt.size() - 32), QCryptographicHash::Sha256));
+    const auto before = image->operations().snapshot();
+    const auto documentCount = documentChanged.size();
+    const auto imageCount = imageChanged.size();
+    QCOMPARE(document->restoreRecovery(corrupt), Result::InvalidRecovery);
+    QCOMPARE(document->filePath(), second);
+    QCOMPARE(image->operations().snapshot(), before);
+    QCOMPARE(documentChanged.size(), documentCount);
+    QCOMPARE(imageChanged.size(), imageCount);
+    expectedPath = first;
+    QCOMPARE(document->restoreRecovery(recovery), Result::Success);
+    QCOMPARE(document->image()->handle(), handle);
+    QVERIFY(image->operations().snapshot()->documentId() != before->documentId());
+    QCOMPARE(documentChanged.size(), documentCount + 1);
+    QCOMPARE(imageChanged.size(), imageCount + 1);
+    QVERIFY(metadataCurrent);
+    checkMetadata = false;
+    document.reset();
+    QCOMPARE(image->undo(), Result::Success);
+    QCOMPARE(execution.requested(handle), image->operations().preview());
+    image.clear();
+    QVERIFY(!execution.requested(handle));
+}
 
 void KisGpuPaintDocumentTest::savingStreamsPixelsWithinTheGpuAndTransferBudgets()
 {
@@ -94,9 +156,9 @@ void KisGpuPaintDocumentTest::savingStreamsPixelsWithinTheGpuAndTransferBudgets(
     };
     Execution execution(m_device, 4 * TileRenderer::TileBytes, 16, TileRenderer::TileBytes);
     PaintDocument document(execution, image);
-    dot(document, {270, 100}, {0, 255, 0, 128});
-    const auto pinned = document.operations().snapshot();
-    const auto history = document.operations().undoCount();
+    dot(*document.image(), {270, 100}, {0, 255, 0, 128});
+    const auto pinned = document.image()->operations().snapshot();
+    const auto history = document.image()->operations().undoCount();
     Execution oracle(m_device);
     const auto admitted = oracle.open(pinned);
     QCOMPARE(admitted.code, ExecutionCode::Success);
@@ -108,20 +170,20 @@ void KisGpuPaintDocumentTest::savingStreamsPixelsWithinTheGpuAndTransferBudgets(
     {
         const auto frame = execution.beginReadbackFrame();
         QCOMPARE(frame.code, ExecutionCode::Success);
-        const auto displayed = execution.project(document.handle(), {0, 0, 256, 256});
+        const auto displayed = execution.project(document.image()->handle(), {0, 0, 256, 256});
         QCOMPARE(displayed.code, RenderOutcome::Recorded);
         QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
     }
-    QCOMPARE(execution.published(document.handle()), pinned);
+    QCOMPARE(execution.published(document.image()->handle()), pinned);
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     const auto path = directory.filePath(QStringLiteral("bounded.kra"));
     const auto saved = document.saveKra(path);
     QVERIFY2(saved.code == FileCode::Success, qPrintable(saved.diagnostic));
-    QCOMPARE(execution.requested(document.handle()), pinned);
-    QCOMPARE(execution.published(document.handle()), pinned);
-    QCOMPARE(document.operations().undoCount(), history);
-    QVERIFY(!document.operations().isModified());
+    QCOMPARE(execution.requested(document.image()->handle()), pinned);
+    QCOMPARE(execution.published(document.image()->handle()), pinned);
+    QCOMPARE(document.image()->operations().undoCount(), history);
+    QVERIFY(!document.image()->operations().isModified());
     QFile input(path);
     QVERIFY(input.open(QIODevice::ReadOnly));
     const auto loaded = Kra::RasterCodec::read(input);
@@ -159,59 +221,59 @@ void KisGpuPaintDocumentTest::layerStructureAndEmptyDocumentsRoundTripWithUnifie
 {
     Execution execution(m_device);
     PaintDocument document(execution, QSize(64, 64));
-    dot(document, {8, 12}, {255, 0, 0, 255});
-    const auto red = document.operations().activeLayer();
-    const auto blue = document.addLayer(QStringLiteral("Upper"));
-    dot(document, {8, 12}, {0, 0, 255, 255});
-    QCOMPARE(document.renameLayer(red, QStringLiteral("Renamed 下地")), Result::Success);
-    QCOMPARE(document.moveLayer(red, 1), Result::Success);
-    auto value = execution.readPixels(document.handle(), document.operations().snapshot(), {0, 0, 64, 64});
+    dot(*document.image(), {8, 12}, {255, 0, 0, 255});
+    const auto red = document.image()->operations().activeLayer();
+    const auto blue = document.image()->addLayer(QStringLiteral("Upper"));
+    dot(*document.image(), {8, 12}, {0, 0, 255, 255});
+    QCOMPARE(document.image()->renameLayer(red, QStringLiteral("Renamed 下地")), Result::Success);
+    QCOMPARE(document.image()->moveLayer(red, 1), Result::Success);
+    auto value = execution.readPixels(document.image()->handle(), document.image()->operations().snapshot(), {0, 0, 64, 64});
     QCOMPARE(value.code, ExecutionCode::Success);
     QCOMPARE(pixel(value, 0, {8, 12}), QByteArray::fromHex("ff0000ff"));
-    const auto reordered = document.operations().snapshot();
+    const auto reordered = document.image()->operations().snapshot();
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     const auto path = directory.filePath(QStringLiteral("layers.kra"));
     QCOMPARE(document.saveKra(path).code, FileCode::Success);
     auto opened = PaintDocument::openKra(execution, path);
     QVERIFY2(opened.code == FileCode::Success, qPrintable(opened.diagnostic));
-    QCOMPARE(opened.document->operations().snapshot()->layers[1].name, QStringLiteral("Renamed 下地"));
-    QCOMPARE(opened.document->operations().snapshot()->layers[1].uuid, reordered->layers[1].uuid);
-    QCOMPARE(document.removeLayer(red), Result::Success);
-    value = execution.readPixels(document.handle(), document.operations().snapshot(), {0, 0, 64, 64});
+    QCOMPARE(opened.document->image()->operations().snapshot()->layers[1].name, QStringLiteral("Renamed 下地"));
+    QCOMPARE(opened.document->image()->operations().snapshot()->layers[1].uuid, reordered->layers[1].uuid);
+    QCOMPARE(document.image()->removeLayer(red), Result::Success);
+    value = execution.readPixels(document.image()->handle(), document.image()->operations().snapshot(), {0, 0, 64, 64});
     QCOMPARE(value.code, ExecutionCode::Success);
     QCOMPARE(pixel(value, 0, {8, 12}), QByteArray::fromHex("0000ffff"));
-    QCOMPARE(document.removeLayer(blue), Result::Success);
-    const auto empty = document.operations().snapshot();
-    value = execution.readPixels(document.handle(), empty, {0, 0, 64, 64});
+    QCOMPARE(document.image()->removeLayer(blue), Result::Success);
+    const auto empty = document.image()->operations().snapshot();
+    value = execution.readPixels(document.image()->handle(), empty, {0, 0, 64, 64});
     QCOMPARE(value.code, ExecutionCode::Success);
     QVERIFY(value.tiles.isEmpty());
     QCOMPARE(document.saveKra(path).code, FileCode::Success);
-    const auto history = document.operations().undoCount();
+    const auto history = document.image()->operations().undoCount();
     const auto recovered = document.recoveryData();
     QVERIFY(!recovered.isEmpty());
     opened = PaintDocument::openKra(execution, path);
     QVERIFY2(opened.code == FileCode::Success, qPrintable(opened.diagnostic));
-    QVERIFY(opened.document->operations().snapshot()->layers.isEmpty());
-    QCOMPARE(opened.document->operations().undoCount(), 0);
+    QVERIFY(opened.document->image()->operations().snapshot()->layers.isEmpty());
+    QCOMPARE(opened.document->image()->operations().undoCount(), 0);
     const auto merged = mergedImage(path);
     QCOMPARE(merged.size(), QSize(64, 64));
     QCOMPARE(merged.pixelColor(8, 12), QColor(Qt::transparent));
     QCOMPARE(document.restoreRecovery(recovered), Result::Success);
-    QCOMPARE(document.operations().undoCount(), history);
-    QCOMPARE(document.undo(), Result::Success);
-    value = execution.readPixels(document.handle(), document.operations().snapshot(), {0, 0, 64, 64});
+    QCOMPARE(document.image()->operations().undoCount(), history);
+    QCOMPARE(document.image()->undo(), Result::Success);
+    value = execution.readPixels(document.image()->handle(), document.image()->operations().snapshot(), {0, 0, 64, 64});
     QCOMPARE(value.code, ExecutionCode::Success);
     QCOMPARE(pixel(value, 0, {8, 12}), QByteArray::fromHex("0000ffff"));
-    QCOMPARE(document.undo(), Result::Success);
-    value = execution.readPixels(document.handle(), document.operations().snapshot(), {0, 0, 64, 64});
+    QCOMPARE(document.image()->undo(), Result::Success);
+    value = execution.readPixels(document.image()->handle(), document.image()->operations().snapshot(), {0, 0, 64, 64});
     QCOMPARE(value.code, ExecutionCode::Success);
     QCOMPARE(pixel(value, 0, {8, 12}), QByteArray::fromHex("ff0000ff"));
-    QCOMPARE(document.redo(), Result::Success);
-    QCOMPARE(document.redo(), Result::Success);
-    QVERIFY(document.operations().snapshot()->layers.isEmpty());
-    QVERIFY(document.addLayer(QStringLiteral("New")));
-    QCOMPARE(document.operations().redoCount(), 0);
+    QCOMPARE(document.image()->redo(), Result::Success);
+    QCOMPARE(document.image()->redo(), Result::Success);
+    QVERIFY(document.image()->operations().snapshot()->layers.isEmpty());
+    QVERIFY(document.image()->addLayer(QStringLiteral("New")));
+    QCOMPARE(document.image()->operations().redoCount(), 0);
 }
 
 void KisGpuPaintDocumentTest::initTestCase()
@@ -229,33 +291,33 @@ void KisGpuPaintDocumentTest::acceptedChangesUpdateOneAttachedDocument()
     Snapshot retained;
     {
         PaintDocument document(execution, QSize(512, 64));
-        handle = document.handle();
+        handle = document.image()->handle();
         QVERIFY(handle);
-        QCOMPARE(execution.requested(handle), document.operations().snapshot());
+        QCOMPARE(execution.requested(handle), document.image()->operations().snapshot());
         QSignalSpy changed(&document, &PaintDocument::changed);
-        const auto initial = document.operations().snapshot();
+        const auto initial = document.image()->operations().snapshot();
         Brush brush;
-        auto stroke = document.beginStroke(document.operations().activeLayer(), brush, 0);
-        QCOMPARE(document.appendSamples(stroke, {{{8, 12}, 1}}), Result::Success);
-        QCOMPARE(execution.requested(handle), document.operations().preview());
+        auto stroke = document.image()->beginStroke(document.image()->operations().activeLayer(), brush, 0);
+        QCOMPARE(document.image()->appendSamples(stroke, {{{8, 12}, 1}}), Result::Success);
+        QCOMPARE(execution.requested(handle), document.image()->operations().preview());
         QCOMPARE(changed.size(), 1);
-        const auto preview = document.operations().preview();
-        QCOMPARE(document.commitStroke(stroke), Result::Success);
-        QCOMPARE(document.operations().snapshot(), preview);
+        const auto preview = document.image()->operations().preview();
+        QCOMPARE(document.image()->commitStroke(stroke), Result::Success);
+        QCOMPARE(document.image()->operations().snapshot(), preview);
         QCOMPARE(execution.requested(handle), preview);
-        QCOMPARE(document.undo(), Result::Success);
+        QCOMPARE(document.image()->undo(), Result::Success);
         QCOMPARE(execution.requested(handle), initial);
-        QCOMPARE(document.redo(), Result::Success);
+        QCOMPARE(document.image()->redo(), Result::Success);
         QCOMPARE(execution.requested(handle), preview);
-        stroke = document.beginStroke(document.operations().activeLayer(), brush, 0);
-        QCOMPARE(document.appendSamples(stroke, {{{264, 12}, 1}}), Result::Success);
-        QCOMPARE(document.cancelStroke(stroke), Result::Success);
+        stroke = document.image()->beginStroke(document.image()->operations().activeLayer(), brush, 0);
+        QCOMPARE(document.image()->appendSamples(stroke, {{{264, 12}, 1}}), Result::Success);
+        QCOMPARE(document.image()->cancelStroke(stroke), Result::Success);
         QCOMPARE(execution.requested(handle), preview);
-        const auto layer = document.addLayer(QStringLiteral("Second"));
+        const auto layer = document.image()->addLayer(QStringLiteral("Second"));
         QVERIFY(layer);
-        QCOMPARE(document.setLayerVisible(layer, false), Result::Success);
-        QCOMPARE(execution.requested(handle), document.operations().snapshot());
-        retained = document.operations().snapshot();
+        QCOMPARE(document.image()->setLayerVisible(layer, false), Result::Success);
+        QCOMPARE(execution.requested(handle), document.image()->operations().snapshot());
+        retained = document.image()->operations().snapshot();
     }
     QVERIFY(!execution.requested(handle));
     QCOMPARE(execution.pendingDocuments(), 0);
@@ -266,10 +328,10 @@ void KisGpuPaintDocumentTest::pinnedSavePreservesLaterEditsAndHistory()
 {
     Execution execution(m_device);
     PaintDocument document(execution, QSize(512, 64));
-    dot(document, {8, 12}, {255, 0, 0, 255});
-    const auto pinned = document.operations().snapshot();
-    dot(document, {264, 12}, {0, 0, 255, 255});
-    const auto latest = document.operations().snapshot();
+    dot(*document.image(), {8, 12}, {255, 0, 0, 255});
+    const auto pinned = document.image()->operations().snapshot();
+    dot(*document.image(), {264, 12}, {0, 0, 255, 255});
+    const auto latest = document.image()->operations().snapshot();
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     const auto path = directory.filePath(QStringLiteral("pinned.kra"));
@@ -277,10 +339,10 @@ void KisGpuPaintDocumentTest::pinnedSavePreservesLaterEditsAndHistory()
     QVERIFY2(saved.code == FileCode::Success, qPrintable(saved.diagnostic));
     QCOMPARE(saved.version, pinned);
     QCOMPARE(document.filePath(), path);
-    QVERIFY(document.operations().isModified());
-    QCOMPARE(document.operations().snapshot(), latest);
-    QCOMPARE(execution.requested(document.handle()), latest);
-    QCOMPARE(document.operations().undoCount(), 2);
+    QVERIFY(document.image()->operations().isModified());
+    QCOMPARE(document.image()->operations().snapshot(), latest);
+    QCOMPARE(execution.requested(document.image()->handle()), latest);
+    QCOMPARE(document.image()->operations().undoCount(), 2);
     const auto merged = mergedImage(path);
     QCOMPARE(merged.size(), pinned->size);
     QCOMPARE(merged.pixelColor(8, 12), QColor(255, 0, 0, 255));
@@ -288,19 +350,19 @@ void KisGpuPaintDocumentTest::pinnedSavePreservesLaterEditsAndHistory()
     auto opened = PaintDocument::openKra(execution, path);
     QVERIFY2(opened.code == FileCode::Success, qPrintable(opened.diagnostic));
     QVERIFY(opened.document);
-    QVERIFY(!opened.document->operations().isModified());
-    QCOMPARE(opened.document->operations().undoCount(), 0);
-    const auto image = opened.document->operations().snapshot();
-    const auto read = execution.readPixels(opened.document->handle(), image, {0, 0, 512, 64}, {image->activeLayer});
+    QVERIFY(!opened.document->image()->operations().isModified());
+    QCOMPARE(opened.document->image()->operations().undoCount(), 0);
+    const auto image = opened.document->image()->operations().snapshot();
+    const auto read = execution.readPixels(opened.document->image()->handle(), image, {0, 0, 512, 64}, {image->activeLayer});
     QCOMPARE(read.code, ExecutionCode::Success);
     QCOMPARE(pixel(read, image->activeLayer, {8, 12}), QByteArray::fromHex("ff0000ff"));
     QVERIFY(pixel(read, image->activeLayer, {264, 12}).isEmpty() || pixel(read, image->activeLayer, {264, 12}) == QByteArray(4, '\0'));
-    QCOMPARE(document.undo(), Result::Success);
-    QVERIFY(!document.operations().isModified());
+    QCOMPARE(document.image()->undo(), Result::Success);
+    QVERIFY(!document.image()->operations().isModified());
     const auto alternate = directory.filePath(QStringLiteral("alternate.kra"));
     QCOMPARE(document.saveKra(alternate).code, FileCode::Success);
     QCOMPARE(document.filePath(), alternate);
-    QCOMPARE(document.operations().redoCount(), 1);
+    QCOMPARE(document.image()->operations().redoCount(), 1);
     QVERIFY(!fileBytes(path).isEmpty());
 }
 
@@ -329,9 +391,9 @@ void KisGpuPaintDocumentTest::rasterImportAndSaveRetainOffCanvasHiddenPixelsAndM
     Execution execution(m_device);
     auto opened = PaintDocument::openKra(execution, original);
     QVERIFY2(opened.document, qPrintable(opened.diagnostic));
-    const auto snapshot = opened.document->operations().snapshot();
-    QCOMPARE(opened.document->selectLayer(snapshot->layers[0].id), Result::Success);
-    dot(*opened.document, {8, 12}, {255, 0, 0, 255});
+    const auto snapshot = opened.document->image()->operations().snapshot();
+    QCOMPARE(opened.document->image()->selectLayer(snapshot->layers[0].id), Result::Success);
+    dot(*opened.document->image(), {8, 12}, {255, 0, 0, 255});
     const auto savedPath = directory.filePath(QStringLiteral("saved.kra"));
     const auto saved = opened.document->saveKra(savedPath);
     QVERIFY2(saved.code == FileCode::Success, qPrintable(saved.diagnostic));
@@ -355,21 +417,21 @@ void KisGpuPaintDocumentTest::rejectedSavesPreserveTheFileIdentityAndHistory()
 {
     Execution execution(m_device);
     PaintDocument document(execution, QSize(64, 64));
-    dot(document, {8, 12}, {255, 0, 0, 255});
+    dot(*document.image(), {8, 12}, {255, 0, 0, 255});
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     const auto path = directory.filePath(QStringLiteral("existing.kra"));
     QCOMPARE(document.saveKra(path).code, FileCode::Success);
     const auto bytes = fileBytes(path);
-    const auto saved = document.operations().snapshot();
+    const auto saved = document.image()->operations().snapshot();
     Brush brush;
-    const auto stroke = document.beginStroke(saved->activeLayer, brush, 0);
-    QCOMPARE(document.appendSamples(stroke, {{{24, 12}, 1}}), Result::Success);
-    QCOMPARE(document.saveKra(path, document.operations().preview()).code, FileCode::InvalidData);
+    const auto stroke = document.image()->beginStroke(saved->activeLayer, brush, 0);
+    QCOMPARE(document.image()->appendSamples(stroke, {{{24, 12}, 1}}), Result::Success);
+    QCOMPARE(document.saveKra(path, document.image()->operations().preview()).code, FileCode::InvalidData);
     QCOMPARE(fileBytes(path), bytes);
-    QCOMPARE(document.cancelStroke(stroke), Result::Success);
-    dot(document, {24, 12}, {0, 0, 255, 255});
-    const auto latest = document.operations().snapshot();
+    QCOMPARE(document.image()->cancelStroke(stroke), Result::Success);
+    dot(*document.image(), {24, 12}, {0, 0, 255, 255});
+    const auto latest = document.image()->operations().snapshot();
     QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
     QCOMPARE(document.saveKra(path).code, FileCode::Busy);
     QCOMPARE(execution.cancelFrame().code, ExecutionCode::Success);
@@ -378,9 +440,9 @@ void KisGpuPaintDocumentTest::rejectedSavesPreserveTheFileIdentityAndHistory()
     QCOMPARE(document.saveKra(path, foreign.snapshot()).code, FileCode::InvalidData);
     QCOMPARE(fileBytes(path), bytes);
     QCOMPARE(document.filePath(), path);
-    QCOMPARE(document.operations().snapshot(), latest);
-    QCOMPARE(document.operations().undoCount(), 2);
-    QVERIFY(document.operations().isModified());
+    QCOMPARE(document.image()->operations().snapshot(), latest);
+    QCOMPARE(document.image()->operations().undoCount(), 2);
+    QVERIFY(document.image()->operations().isModified());
     document.close();
     QCOMPARE(document.saveKra(path).code, FileCode::Closed);
     QCOMPARE(fileBytes(path), bytes);
@@ -397,7 +459,7 @@ void KisGpuPaintDocumentTest::rejectedOpenPreservesAttachedDocuments()
     const auto opened = PaintDocument::openKra(execution, path);
     QCOMPARE(opened.code, FileCode::CapacityExceeded);
     QVERIFY(!opened.document);
-    QCOMPARE(execution.requested(document.handle()), document.operations().snapshot());
+    QCOMPARE(execution.requested(document.image()->handle()), document.image()->operations().snapshot());
     const auto absent = PaintDocument::openKra(execution, directory.filePath(QStringLiteral("absent.kra")));
     QCOMPARE(absent.code, FileCode::IoFailure);
     QVERIFY(!absent.document);
@@ -407,18 +469,18 @@ void KisGpuPaintDocumentTest::notificationsAllowSynchronousCloseAndDeletion()
 {
     Execution execution(m_device);
     PaintDocument closing(execution, QSize(64, 64));
-    const auto handle = closing.handle();
-    connect(&closing, &PaintDocument::changed, &closing, [&] { if (closing.handle()) closing.close(); });
-    const auto stroke = closing.beginStroke(closing.operations().activeLayer(), {}, 0);
-    QCOMPARE(closing.appendSamples(stroke, {{{8, 12}, 1}}), Result::Success);
-    QCOMPARE(closing.handle(), 0);
+    const auto handle = closing.image()->handle();
+    connect(&closing, &PaintDocument::changed, &closing, [&] { if (closing.image()->handle()) closing.close(); });
+    const auto stroke = closing.image()->beginStroke(closing.image()->operations().activeLayer(), {}, 0);
+    QCOMPARE(closing.image()->appendSamples(stroke, {{{8, 12}, 1}}), Result::Success);
+    QCOMPARE(closing.image()->handle(), 0);
     QVERIFY(!execution.requested(handle));
 
     auto deleting = std::make_unique<PaintDocument>(execution, QSize(64, 64));
-    const auto second = deleting->handle();
-    const auto next = deleting->beginStroke(deleting->operations().activeLayer(), {}, 0);
+    const auto second = deleting->image()->handle();
+    const auto next = deleting->image()->beginStroke(deleting->image()->operations().activeLayer(), {}, 0);
     connect(deleting.get(), &PaintDocument::changed, this, [&] { deleting.reset(); });
-    QCOMPARE(deleting->appendSamples(next, {{{8, 12}, 1}}), Result::Success);
+    QCOMPARE(deleting->image()->appendSamples(next, {{{8, 12}, 1}}), Result::Success);
     QVERIFY(!deleting);
     QVERIFY(!execution.requested(second));
 }
@@ -442,20 +504,20 @@ void KisGpuPaintDocumentTest::recoveryKeepsHistoryPendingInputAndAssociatedFiles
     auto opened = PaintDocument::openKra(execution, path);
     QVERIFY2(opened.document, qPrintable(opened.diagnostic));
     auto &source = *opened.document;
-    dot(source, {8, 12}, {255, 0, 0, 255});
-    dot(source, {24, 12}, {0, 0, 255, 255});
-    QCOMPARE(source.undo(), Result::Success);
+    dot(*source.image(), {8, 12}, {255, 0, 0, 255});
+    dot(*source.image(), {24, 12}, {0, 0, 255, 255});
+    QCOMPARE(source.image()->undo(), Result::Success);
     Brush green;
     green.rgba = {0, 255, 0, 255};
-    const auto pending = source.beginStroke(source.operations().activeLayer(), green, 0);
-    QCOMPARE(source.appendSamples(pending, {{{40, 12}, 1}}), Result::Success);
-    const auto before = execution.readPixels(source.handle(), source.operations().preview(), {0, 0, 64, 64});
+    const auto pending = source.image()->beginStroke(source.image()->operations().activeLayer(), green, 0);
+    QCOMPARE(source.image()->appendSamples(pending, {{{40, 12}, 1}}), Result::Success);
+    const auto before = execution.readPixels(source.image()->handle(), source.image()->operations().preview(), {0, 0, 64, 64});
     QCOMPARE(before.code, ExecutionCode::Success);
     const auto data = source.recoveryData();
     QVERIFY(!data.isEmpty());
     PaintDocument restored(execution, QSize(8, 8));
-    const auto handle = restored.handle();
-    const auto previous = restored.operations().snapshot();
+    const auto handle = restored.image()->handle();
+    const auto previous = restored.image()->operations().snapshot();
     for (const auto &replacement : {qMakePair(QByteArrayLiteral("notes/retained.bin"), QByteArrayLiteral("../xx/retained.bin")),
                                     qMakePair(QByteArrayLiteral("paintlayer"), QByteArrayLiteral("grouplayer"))}) {
         auto corrupt = data;
@@ -466,25 +528,25 @@ void KisGpuPaintDocumentTest::recoveryKeepsHistoryPendingInputAndAssociatedFiles
         corrupt.replace(corrupt.size() - 32, 32, QCryptographicHash::hash(
             QByteArrayView(corrupt.constData(), corrupt.size() - 32), QCryptographicHash::Sha256));
         QCOMPARE(restored.restoreRecovery(corrupt), Result::InvalidRecovery);
-        QCOMPARE(restored.operations().snapshot(), previous);
+        QCOMPARE(restored.image()->operations().snapshot(), previous);
         QCOMPARE(execution.requested(handle), previous);
     }
     QCOMPARE(restored.restoreRecovery(data), Result::Success);
-    QCOMPARE(restored.handle(), handle);
+    QCOMPARE(restored.image()->handle(), handle);
     QCOMPARE(restored.filePath(), path);
-    QCOMPARE(restored.operations().undoCount(), 1);
-    QCOMPARE(restored.operations().redoCount(), 1);
-    QVERIFY(restored.operations().isModified());
-    QVERIFY(restored.operations().hasActiveStroke());
-    QCOMPARE(restored.appendSamples(pending, {{{48, 12}, 1}}), Result::StaleOperation);
+    QCOMPARE(restored.image()->operations().undoCount(), 1);
+    QCOMPARE(restored.image()->operations().redoCount(), 1);
+    QVERIFY(restored.image()->operations().isModified());
+    QVERIFY(restored.image()->operations().hasActiveStroke());
+    QCOMPARE(restored.image()->appendSamples(pending, {{{48, 12}, 1}}), Result::StaleOperation);
     QCOMPARE(restored.saveKra(path, previous).code, FileCode::InvalidData);
-    const auto snapshot = restored.operations().preview();
+    const auto snapshot = restored.image()->operations().preview();
     QCOMPARE(execution.requested(handle), snapshot);
     const auto after = execution.readPixels(handle, snapshot, {0, 0, 64, 64});
     QCOMPARE(after.code, ExecutionCode::Success);
     QCOMPARE(after.tiles.first().rgba, before.tiles.first().rgba);
-    QCOMPARE(restored.cancelStroke(restored.operations().activeOperation()), Result::Success);
-    QCOMPARE(restored.redo(), Result::Success);
+    QCOMPARE(restored.image()->cancelStroke(restored.image()->operations().activeOperation()), Result::Success);
+    QCOMPARE(restored.image()->redo(), Result::Success);
     const auto recoveredPath = directory.filePath(QStringLiteral("recovered.kra"));
     QCOMPARE(restored.saveKra(recoveredPath).code, FileCode::Success);
     QFile input(recoveredPath);
@@ -493,15 +555,15 @@ void KisGpuPaintDocumentTest::recoveryKeepsHistoryPendingInputAndAssociatedFiles
     QCOMPARE(decoded.code, Kra::Status::Success);
     QCOMPARE(decoded.document.files.value(QStringLiteral("notes/retained.bin")), values.files.value(QStringLiteral("notes/retained.bin")));
     QCOMPARE(decoded.document.image.layers.first().uuid, values.image.layers.first().uuid);
-    QCOMPARE(pixel(execution.readPixels(handle, restored.operations().snapshot(), {0, 0, 64, 64}), 0, {24, 12}), QByteArray::fromHex("0000ffff"));
+    QCOMPARE(pixel(execution.readPixels(handle, restored.image()->operations().snapshot(), {0, 0, 64, 64}), 0, {24, 12}), QByteArray::fromHex("0000ffff"));
 }
 
 void KisGpuPaintDocumentTest::invalidRecoveryPreservesTheAttachedDocument()
 {
     Execution execution(m_device);
     PaintDocument document(execution, QSize(64, 64));
-    dot(document, {8, 12}, {255, 0, 0, 255});
-    const auto snapshot = document.operations().snapshot();
+    dot(*document.image(), {8, 12}, {255, 0, 0, 255});
+    const auto snapshot = document.image()->operations().snapshot();
     const auto data = document.recoveryData();
     QVERIFY(!data.isEmpty());
     for (int change = 0; change < 4; ++change) {
@@ -515,9 +577,9 @@ void KisGpuPaintDocumentTest::invalidRecoveryPreservesTheAttachedDocument()
             corrupt.replace(corrupt.size() - 32, 32, digest);
         }
         QCOMPARE(document.restoreRecovery(corrupt), Result::InvalidRecovery);
-        QCOMPARE(document.operations().snapshot(), snapshot);
-        QCOMPARE(execution.requested(document.handle()), snapshot);
-        QCOMPARE(document.operations().undoCount(), 1);
+        QCOMPARE(document.image()->operations().snapshot(), snapshot);
+        QCOMPARE(execution.requested(document.image()->handle()), snapshot);
+        QCOMPARE(document.image()->operations().undoCount(), 1);
     }
     document.close();
     QCOMPARE(document.restoreRecovery(data), Result::Closed);

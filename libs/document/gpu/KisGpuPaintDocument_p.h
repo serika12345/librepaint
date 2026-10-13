@@ -13,13 +13,11 @@ namespace Krita::Document::Gpu {
 struct PaintDocument::Private
 {
     Paint::Execution &execution;
-    std::unique_ptr<Paint::OperationDocument> document;
+    Paint::PaintImageSP image;
     Paint::Limits limits;
-    Paint::DocumentHandle handle = 0;
     QString path;
     QByteArray description;
     QMap<QString, QByteArray> files;
-    Paint::ExecutionOutcome lastRequest{Paint::ExecutionCode::Success, {}};
     static ImportExport::Kra::Limits formatLimits(Paint::Limits limits)
     {
         ImportExport::Kra::Limits result;

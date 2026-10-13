@@ -2494,7 +2494,7 @@ kis_add_library(kritaimage SHARED
 
 generate_export_header(kritaimage BASE_NAME kritaimage)
 
-target_link_libraries(kritaimage PRIVATE kritaimagegpuoperations kritaimagegputiles)
+target_link_libraries(kritaimage PRIVATE kritaimagegpuoperations kritaimagegputiles kritaimagegpupaint)
 
 target_link_libraries(kritaimage 
     PUBLIC

@@ -37,4 +37,9 @@ qt6_add_shaders(kritaimagegputiles krita_gpu_tiles
     FILES shaders/paint.comp shaders/over.comp
 )
 
+add_library(kritaimagegpupaint OBJECT KisGpuPaintImage.cpp KisGpuPaintImage.h)
+target_compile_definitions(kritaimagegpupaint PRIVATE kritaimage_EXPORTS)
+target_link_libraries(kritaimagegpupaint PUBLIC kritaimagegpuoperations Qt6::Core PRIVATE kritaimagegputiles)
+set_target_properties(kritaimagegpupaint PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 add_subdirectory(tests)

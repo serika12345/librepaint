@@ -7,6 +7,8 @@
 #include <QBuffer>
 #include <QCryptographicHash>
 #include <QDataStream>
+#include <QPointer>
+#include <QScopeGuard>
 #include <limits>
 
 namespace Krita::Document::Gpu {
@@ -52,8 +54,8 @@ QByteArray readField(QDataStream &stream, qsizetype end, qsizetype maximum, bool
 QByteArray PaintDocument::recoveryData() const
 {
     const auto &d = *m_d;
-    if (!onThread() || !d.handle) return {};
-    const auto model = d.document->recoveryData();
+    if (!onThread() || !d.image->handle()) return {};
+    const auto model = d.image->operations().recoveryData();
     const auto path = d.path.toUtf8();
     QString decoded;
     const auto limits = Private::formatLimits(d.limits);
@@ -84,7 +86,7 @@ Result PaintDocument::restoreRecovery(const QByteArray &data)
 {
     auto &d = *m_d;
     if (!onThread()) return Result::InvalidRecovery;
-    if (!d.handle) return Result::Closed;
+    if (!d.image->handle()) return Result::Closed;
     if (data.size() < MinimumSize || data.size() > d.limits.recoveryBytes || data.size() > std::numeric_limits<int>::max())
         return Result::InvalidRecovery;
     const auto end = data.size() - DigestSize;
@@ -121,17 +123,24 @@ Result PaintDocument::restoreRecovery(const QByteArray &data)
     }
     if (input.pos() != end || Kra::RasterCodec::validateMetadata(description, files, limits).code != Kra::Status::Success)
         return Result::InvalidRecovery;
-    auto document = std::make_unique<OperationDocument>(QSize(1, 1), d.limits);
-    if (document->restoreRecovery(model) != Result::Success) return Result::InvalidRecovery;
-    const auto replaced = d.execution.replaceDocument(d.handle, document->preview());
-    if (replaced.code != ExecutionCode::Success)
-        return replaced.code == ExecutionCode::CapacityExceeded ? Result::CapacityExceeded : Result::InvalidRecovery;
-    d.document.swap(document);
+    const auto image = d.image;
+    const auto previousPath = d.path;
+    const auto previousDescription = d.description;
+    const auto previousFiles = d.files;
+    const QPointer<PaintDocument> guard(this);
+    bool adopted = false;
+    const auto rollback = qScopeGuard([&] {
+        if (adopted || !guard) return;
+        guard->m_d->path = previousPath;
+        guard->m_d->description = previousDescription;
+        guard->m_d->files = previousFiles;
+    });
     d.path = path;
     d.description = description;
     d.files = std::move(files);
-    d.lastRequest = replaced;
-    Q_EMIT changed();
-    return Result::Success;
+    const auto result = image->restoreRecovery(model);
+    adopted = result == Result::Success;
+    return result;
+
 }
 }

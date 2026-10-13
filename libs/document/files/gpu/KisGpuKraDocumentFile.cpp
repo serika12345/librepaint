@@ -61,9 +61,9 @@ FileOutcome PaintDocument::saveKra(const QString &path, const Snapshot &version)
 {
     auto &d = *m_d;
     if (!onThread()) return {FileCode::InvalidData, {}, QStringLiteral("Saving requires the document thread")};
-    if (!d.handle) return {FileCode::Closed, {}, QStringLiteral("The painting document is closed")};
-    const auto pinned = version ? version : d.document->snapshot();
-    if (!pinned || pinned->documentId() != d.document->snapshot()->documentId() || !pinned->isCommitted() || path.isEmpty())
+    if (!d.image->handle()) return {FileCode::Closed, {}, QStringLiteral("The painting document is closed")};
+    const auto pinned = version ? version : d.image->operations().snapshot();
+    if (!pinned || pinned->documentId() != d.image->operations().snapshot()->documentId() || !pinned->isCommitted() || path.isEmpty())
         return {FileCode::InvalidData, {}, QStringLiteral("Saving requires a committed version of this document and a path")};
     const auto limits = Private::formatLimits(d.limits);
     if (qint64(pinned->size.width()) * pinned->size.height() * 4 > limits.archiveBytes)
@@ -74,7 +74,7 @@ FileOutcome PaintDocument::saveKra(const QString &path, const Snapshot &version)
     output.image.size = pinned->size;
     qsizetype rasterBytes = 0;
     for (const auto &layer : pinned->layers) {
-        const auto pixels = d.execution.readLayerPixels(d.handle, pinned, layer.id, limits.rasterBytes - rasterBytes);
+        const auto pixels = d.execution.readLayerPixels(d.image->handle(), pinned, layer.id, limits.rasterBytes - rasterBytes);
         if (pixels.code != ExecutionCode::Success) return {fileCode(pixels.code), {}, pixels.diagnostic};
         if (pinned->activeLayer == layer.id) output.image.activeLayer = output.image.layers.size();
         RasterLayer saved{layer.name, layer.visible, layer.uuid, {}, layer.defaultPixel};
@@ -84,14 +84,14 @@ FileOutcome PaintDocument::saveKra(const QString &path, const Snapshot &version)
         }
         output.image.layers.append(std::move(saved));
     }
-    const auto projection = d.execution.readProjectionImage(d.handle, pinned, limits.archiveBytes);
+    const auto projection = d.execution.readProjectionImage(d.image->handle(), pinned, limits.archiveBytes);
     if (projection.code != ExecutionCode::Success) return {fileCode(projection.code), {}, projection.diagnostic};
     QSaveFile file(path);
     if (!file.open(QIODevice::WriteOnly)) return {FileCode::IoFailure, {}, file.errorString()};
     const auto written = Kra::RasterCodec::write(file, output, projection.image, limits);
     if (written.code != Kra::Status::Success) { file.cancelWriting(); return {fileCode(written.code), {}, written.diagnostic}; }
     if (!file.commit()) return {FileCode::IoFailure, {}, file.errorString()};
-    d.document->markSaved(pinned);
+    d.image->markSaved(pinned);
     d.path = path;
     Q_EMIT changed();
     return {FileCode::Success, pinned, {}};

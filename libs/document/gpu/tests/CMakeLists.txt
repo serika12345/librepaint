@@ -1,5 +1,5 @@
 kis_add_test(KisGpuPaintDocumentTest.cpp TEST_NAME_VAR gpu_paint_document_test
-    LINK_LIBRARIES kritadocumentgpupaint kritaimagegputiles kritaimagegpuoperations
+    LINK_LIBRARIES kritadocumentgpupaint kritaimagegpupaint kritaimagegputiles kritaimagegpuoperations
         kritaimpexkra Qt6::GuiPrivate Qt6::Test Qt6::Xml ${QUAZIP_LIBRARIES})
 target_compile_definitions(KisGpuPaintDocumentTest PRIVATE
     kritadocumentpainting_EXPORTS kritaimage_EXPORTS kritaimpex_EXPORTS)

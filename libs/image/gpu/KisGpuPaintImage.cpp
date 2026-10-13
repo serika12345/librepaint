@@ -1,0 +1,106 @@
+/*
+ * SPDX-FileCopyrightText: 2026 LibrePaint contributors
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+
+#include "KisGpuPaintImage.h"
+#include "KisGpuExecution.h"
+#include <QThread>
+#include <stdexcept>
+
+namespace Krita::Image::Gpu {
+struct PaintImage::Private
+{
+    Execution &execution;
+    std::unique_ptr<OperationDocument> document;
+    Limits limits;
+    quint64 handle = 0;
+    ExecutionOutcome lastRequest{ExecutionCode::Success, {}};
+};
+PaintImage::PaintImage(Execution &execution, QSize size, Limits limits)
+    : PaintImage(execution, std::make_unique<OperationDocument>(size, limits), limits) {}
+PaintImage::PaintImage(Execution &execution, const RasterImage &image, Limits limits)
+    : PaintImage(execution, std::make_unique<OperationDocument>(image, limits), limits) {}
+PaintImage::PaintImage(Execution &execution, std::unique_ptr<OperationDocument> document, Limits limits)
+    : m_d(new Private{execution, std::move(document), limits})
+{
+    const auto admitted = execution.open(m_d->document->snapshot());
+    if (admitted.code == ExecutionCode::CapacityExceeded) throw std::length_error(admitted.diagnostic.toStdString());
+    if (admitted.code != ExecutionCode::Success) throw std::invalid_argument(admitted.diagnostic.toStdString());
+    m_d->handle = admitted.handle;
+}
+PaintImage::~PaintImage()
+{
+    if (m_d->handle) m_d->execution.close(m_d->handle);
+}
+const OperationDocument &PaintImage::operations() const { return *m_d->document; }
+quint64 PaintImage::handle() const { return m_d->handle; }
+ExecutionOutcome PaintImage::lastRequestOutcome() const { return m_d->lastRequest; }
+bool PaintImage::onThread() const { return QThread::currentThread() == thread(); }
+Result PaintImage::publish(Result result)
+{
+    if (result == Result::Success) {
+        m_d->lastRequest = m_d->execution.request(m_d->handle, m_d->document->preview());
+        Q_EMIT changed();
+    }
+    return result;
+}
+OperationId PaintImage::beginStroke(LayerId layer, const Brush &brush, quint64 seed)
+{ return onThread() ? m_d->document->beginStroke(layer, brush, seed) : OperationId{}; }
+Result PaintImage::appendSamples(OperationId id, const QList<InputSample> &samples)
+{ return onThread() ? publish(m_d->document->appendSamples(id, samples)) : Result::InvalidInput; }
+Result PaintImage::updateShape(OperationId id, const Shape &shape)
+{ return onThread() ? publish(m_d->document->updateShape(id, shape)) : Result::InvalidInput; }
+Result PaintImage::commitStroke(OperationId id)
+{ return onThread() ? publish(m_d->document->commitStroke(id)) : Result::InvalidInput; }
+Result PaintImage::cancelStroke(OperationId id)
+{ return onThread() ? publish(m_d->document->cancelStroke(id)) : Result::InvalidInput; }
+Result PaintImage::replaceTiles(LayerId layer, const QList<RgbaTile> &tiles)
+{ return onThread() ? publish(m_d->document->replaceTiles(layer, tiles)) : Result::InvalidInput; }
+LayerId PaintImage::addLayer(const QString &name)
+{
+    if (!onThread()) return 0;
+    const auto id = m_d->document->addLayer(name);
+    if (id) publish(Result::Success);
+    return id;
+}
+Result PaintImage::selectLayer(LayerId layer)
+{ return onThread() ? publish(m_d->document->selectLayer(layer)) : Result::InvalidInput; }
+Result PaintImage::setLayerVisible(LayerId layer, bool visible)
+{ return onThread() ? publish(m_d->document->setLayerVisible(layer, visible)) : Result::InvalidInput; }
+Result PaintImage::renameLayer(LayerId layer, const QString &name)
+{ return onThread() ? publish(m_d->document->renameLayer(layer, name)) : Result::InvalidInput; }
+Result PaintImage::moveLayer(LayerId layer, qsizetype index)
+{ return onThread() ? publish(m_d->document->moveLayer(layer, index)) : Result::InvalidInput; }
+Result PaintImage::removeLayer(LayerId layer)
+{ return onThread() ? publish(m_d->document->removeLayer(layer)) : Result::InvalidInput; }
+Result PaintImage::undo() { return onThread() ? publish(m_d->document->undo()) : Result::InvalidInput; }
+Result PaintImage::redo() { return onThread() ? publish(m_d->document->redo()) : Result::InvalidInput; }
+void PaintImage::close()
+{
+    if (!onThread() || !m_d->handle) return;
+    m_d->execution.close(m_d->handle);
+    m_d->handle = 0;
+    m_d->document->close();
+    Q_EMIT changed();
+}
+Result PaintImage::markSaved(const Snapshot &version)
+{ return onThread() ? m_d->document->markSaved(version) : Result::InvalidInput; }
+
+Result PaintImage::restoreRecovery(const QByteArray &data)
+{
+    auto &d = *m_d;
+    if (!onThread()) return Result::InvalidRecovery;
+    if (!d.handle) return Result::Closed;
+    auto document = std::make_unique<OperationDocument>(QSize(1, 1), d.limits);
+    if (document->restoreRecovery(data) != Result::Success) return Result::InvalidRecovery;
+    const auto replaced = d.execution.replaceDocument(d.handle, document->preview());
+    if (replaced.code != ExecutionCode::Success)
+        return replaced.code == ExecutionCode::CapacityExceeded ? Result::CapacityExceeded : Result::InvalidRecovery;
+    d.document.swap(document);
+    d.lastRequest = replaced;
+    Q_EMIT changed();
+    return Result::Success;
+}
+
+}
