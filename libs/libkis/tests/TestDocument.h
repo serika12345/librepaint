@@ -15,6 +15,7 @@ private Q_SLOTS:
     void testSetColorSpace();
     void testSetColorProfile();
     void testPixelData();
+    void testGpuImagePixelDataModifiedStateAndRetainedNode();
     void testThumbnail();
     void testCreateFillLayer();
     void testCreateCloneLayer();

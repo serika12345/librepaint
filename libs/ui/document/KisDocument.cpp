@@ -98,6 +98,7 @@
 #include <flake/kis_shape_layer.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
+#include <gpu/KisGpuPaintImage.h>
 #include <kis_layer.h>
 #include <kis_name_server.h>
 #include <kis_paint_layer.h>
@@ -2985,6 +2986,10 @@ void KisDocument::hackPreliminarySetImage(KisImageSP image)
 
 void KisDocument::setImageModified()
 {
+    if (const auto image = d->image ? d->image->gpuImage() : nullptr) {
+        setModified(d->modificationState.imageModifiedWithoutUndo() || image->operations().isModified());
+        return;
+    }
     // we only set as modified if undo stack is not at clean state
     setModified(d->modificationState.imageModifiedWithoutUndo() || !d->undoStack->isClean());
 }

@@ -10,6 +10,7 @@
 #include <QDataStream>
 #include <QDir>
 #include <QBuffer>
+#include <QSignalSpy>
 #include <QTextStream>
 
 #include <Node.h>
@@ -22,6 +23,8 @@
 
 #include <document/KisDocument.h>
 #include <kis_image.h>
+#include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuExecution.h>
 #include <kis_fill_painter.h>
 #include <kis_paint_layer.h>
 #include <application/ui/orchestration/KisPart.h>
@@ -102,6 +105,53 @@ void TestDocument::testPixelData()
     } while (!ds.atEnd());
 
     KisPart::instance()->removeDocument(kisdoc.data(), false);
+}
+
+void TestDocument::testGpuImagePixelDataModifiedStateAndRetainedNode()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 32));
+    const auto handle = owner->handle();
+    const auto layerId = owner->operations().activeLayer();
+    QCOMPARE(owner->writeRgbaPixels(layerId, QRect(5, 5, 1, 1), QByteArray::fromHex("112233ff")), Gpu::Result::Success);
+    QScopedPointer<KisDocument> kisdoc(KisPart::instance()->createDocument());
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Public GPU document"));
+    kisdoc->setCurrentImage(image);
+    Document document(kisdoc.data(), false);
+    QCOMPARE(document.width(), 64);
+    QCOMPARE(document.height(), 32);
+    QCOMPARE(document.pixelData(5, 5, 1, 1), QByteArray::fromHex("332211ff"));
+    QVERIFY(!document.modified());
+    QScopedPointer<Node> root(document.rootNode());
+    const auto children = root->childNodes();
+    QCOMPARE(children.size(), 1);
+    NodeSP node(children.front());
+    root.reset();
+    QSignalSpy modified(kisdoc.data(), &KisDocument::modified);
+    QVERIFY(node->setPixelData(QByteArray::fromHex("90a4bcff"), 5, 5, 1, 1));
+    document.refreshProjection();
+    QCOMPARE(document.pixelData(5, 5, 1, 1), QByteArray::fromHex("90a4bcff"));
+    QVERIFY(!document.modified());
+    QVERIFY(modified.isEmpty());
+    QCOMPARE(owner->replaceRgbaPixels(layerId, QRect(5, 5, 1, 1), QByteArray::fromHex("223344ff")), Gpu::Result::Success);
+    QVERIFY(document.modified());
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QVERIFY(!document.modified());
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QVERIFY(document.modified());
+    QCOMPARE(modified.size(), 3);
+    QCOMPARE(document.pixelData(5, 5, 1, 1), QByteArray::fromHex("443322ff"));
+    owner.clear();
+    image.clear();
+    KisPart::instance()->removeDocument(kisdoc.data(), false);
+    kisdoc.reset();
+    QCOMPARE(node->pixelData(5, 5, 1, 1), QByteArray::fromHex("443322ff"));
+    node.clear();
+    QVERIFY(!execution.requested(handle));
 }
 
 void TestDocument::testThumbnail()
