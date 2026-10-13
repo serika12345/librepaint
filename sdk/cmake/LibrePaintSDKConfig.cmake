@@ -19,6 +19,8 @@ find_package(ECM REQUIRED NO_MODULE)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}" ${ECM_MODULE_PATH})
 include(KritaAddBrokenUnitTest)
 include("${CMAKE_CURRENT_LIST_DIR}/LibrePaintSDKTargets.cmake")
+list(APPEND CMAKE_INSTALL_RPATH "${_librepaint_sdk_root}/lib")
+set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 add_library(kritatestsdk INTERFACE IMPORTED)
 set_target_properties(kritatestsdk PROPERTIES
     INTERFACE_LINK_LIBRARIES Qt6::Test
