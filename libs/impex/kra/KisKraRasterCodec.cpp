@@ -98,8 +98,10 @@ Outcome description(const QByteArray &bytes, QDomDocument &xml, QDomElement &ima
     if (!xml.setContent(bytes)) return invalid(QStringLiteral("Invalid KRA document XML"));
     const auto root = xml.documentElement();
     image = root.firstChildElement(QStringLiteral("IMAGE"));
+    const auto layers = image.firstChildElement(QStringLiteral("layers"));
     if (root.tagName() != QLatin1String("DOC") || root.attribute(QStringLiteral("syntaxVersion")) != QLatin1String("2") ||
         image.isNull() || !image.nextSiblingElement(QStringLiteral("IMAGE")).isNull() ||
+        layers.isNull() || !layers.nextSiblingElement(QStringLiteral("layers")).isNull() ||
         !component(image.attribute(QStringLiteral("name")))) return invalid(QStringLiteral("Invalid KRA image description"));
     if (image.attribute(QStringLiteral("colorspacename")) != QLatin1String("RGBA"))
         return unsupported(QStringLiteral("KRA image requires RGBA8"));
@@ -299,8 +301,7 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         }
         document.image.layers.prepend(std::move(layer));
     }
-    if (document.image.layers.isEmpty()) return fail(invalid(QStringLiteral("Missing KRA paint layers")));
-    document.image.activeLayer = document.image.layers.size() - 1 - qMax(0, selected);
+    document.image.activeLayer = document.image.layers.isEmpty() ? 0 : document.image.layers.size() - 1 - qMax(0, selected);
     if (generatedUuids) document.description = xml.toByteArray();
     for (const auto &name : {QStringLiteral("maindoc.xml"), QStringLiteral("mimetype"), QStringLiteral("mergedimage.png"), QStringLiteral("preview.png")})
         document.files.remove(name);
@@ -314,7 +315,7 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
     const auto &value = document.image;
     if (value.size.width() <= 0 || value.size.height() <= 0 || value.size.width() > RgbaTile::CoordinateLimit ||
         value.size.height() > RgbaTile::CoordinateLimit || projection.isNull() || projection.size() != value.size ||
-        value.layers.isEmpty() || value.activeLayer < 0 || value.activeLayer >= value.layers.size())
+        value.activeLayer < 0 || (value.layers.isEmpty() ? value.activeLayer != 0 : value.activeLayer >= value.layers.size()))
         return invalid(QStringLiteral("Invalid KRA image or projection"));
     if (value.layers.size() > limits.layers || document.description.size() > limits.xmlBytes) return capacity();
     if (projection.colorSpace().isValid() &&

@@ -161,9 +161,10 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
     quint64 nextRevision = 0, nextOperation = 0, nextLayer = 0, savedRevision = 0;
     stream >> magic >> format >> width >> height >> nextRevision >> nextOperation >> nextLayer >> savedRevision >> tileCount;
     if (magic != Magic || format != FormatVersion || width <= 0 || height <= 0 ||
-        width > CoordinateLimit || height > CoordinateLimit || savedRevision > nextRevision || nextLayer == 0 ||
+        width > CoordinateLimit || height > CoordinateLimit || savedRevision > nextRevision ||
         !readableCount(stream, tileCount, payload.size(), 12)) return Result::InvalidRecovery;
-    if (tileCount > quint64(m_limits.rasterBytes / RgbaTile::ByteCount)) return Result::CapacityExceeded;
+    const quint64 retainedTileLimit = quint64(m_limits.rasterBytes / RgbaTile::ByteCount) * (HistoryLimit + 1);
+    if (tileCount > retainedTileLimit) return Result::CapacityExceeded;
     QList<QSharedPointer<const RasterTile>> tiles;
     for (quint32 i = 0; i < tileCount; ++i) {
         qint32 x = 0, y = 0;
@@ -184,6 +185,9 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
     QSet<quint64> operationIds;
     QSet<quint32> referencedTiles;
     qsizetype retainedSamples = 0;
+    const quint64 payloadSamples = quint64(payload.size() / 56);
+    const quint64 retainedSampleLimit = qMin(quint64(m_limits.samplesPerDocument), payloadSamples) * (HistoryLimit + 1) +
+                                        qMin(quint64(m_limits.samplesPerStroke), payloadSamples);
     for (quint32 i = 0; i < operationCount; ++i) {
         quint8 kind = 0;
         quint64 sequence = 0, version = 0;
@@ -228,8 +232,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         operation->shape.second = {x2, y2};
         if (erase > 1 || !validBrush(operation->brush) || !validShape(operation->shape) ||
             (sampleCount == 0) != (version == 0) || !readableCount(stream, sampleCount, m_limits.samplesPerStroke, 56)) return Result::InvalidRecovery;
-        const quint64 totalLimit = quint64(m_limits.samplesPerDocument) + quint64(m_limits.samplesPerStroke);
-        if (quint64(retainedSamples) + sampleCount > totalLimit) return Result::CapacityExceeded;
+        if (quint64(retainedSamples) + sampleCount > retainedSampleLimit) return Result::CapacityExceeded;
         retainedSamples += sampleCount;
         auto samples = QSharedPointer<QList<InputSample>>::create();
         samples->reserve(sampleCount);
@@ -261,7 +264,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         quint32 layerCount = 0;
         stream >> state->m_revision >> state->activeLayer >> layerCount;
         if (state->revision() > nextRevision || (i > 0 && state->revision() <= previousRevision) ||
-            layerCount == 0 || !readableCount(stream, layerCount, m_limits.layerCount, 37)) return Result::InvalidRecovery;
+            !readableCount(stream, layerCount, m_limits.layerCount, 37)) return Result::InvalidRecovery;
         previousRevision = state->revision();
         QSet<LayerId> layers;
         for (quint32 j = 0; j < layerCount; ++j) {
@@ -305,7 +308,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
             layers.insert(layer.id);
             state->layers.append(layer);
         }
-        if (!layers.contains(state->activeLayer)) return Result::InvalidRecovery;
+        if (layers.isEmpty() ? state->activeLayer != 0 : !layers.contains(state->activeLayer)) return Result::InvalidRecovery;
         history.append(state);
     }
     quint32 pendingIndex = NoOperation;

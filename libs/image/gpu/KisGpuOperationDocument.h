@@ -119,6 +119,7 @@ struct RasterImage
 {
     QSize size;
     QList<RasterLayer> layers;
+    /** Bottom-to-top list index; zero for an empty document. */
     qsizetype activeLayer = 0;
 };
 
@@ -230,6 +231,11 @@ public:
     /** Selection is screen state; selecting an existing layer adds no history entry. */
     Result selectLayer(LayerId layer);
     Result setLayerVisible(LayerId layer, bool visible);
+    Result renameLayer(LayerId layer, const QString &name);
+    /** Moves within the bottom-to-top layer list, preserving the selected identity. */
+    Result moveLayer(LayerId layer, qsizetype index);
+    /** Removes one layer; selection follows its nearest remaining list position. */
+    Result removeLayer(LayerId layer);
     Result undo();
     Result redo();
 

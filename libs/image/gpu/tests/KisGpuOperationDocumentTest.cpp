@@ -69,7 +69,183 @@ private Q_SLOTS:
     void tileReplacementSharesHistoryAndRejectsWholeRequests();
     void rasterRecoveryPreservesPixelsIdentityAndPendingInput();
     void damagedRasterRecoveryPreservesTheLiveDocument();
+    void layerStructureSharesPaintingHistoryAndPreservesPins();
+    void rejectedLayerChangesKeepRedoAndPendingInput();
+    void removingTheLastLayerPreservesAnEmptyRecoverableDocument();
+    void layerRemovalReusesCapacityWithoutLosingRecoveryHistory_data();
+    void layerRemovalReusesCapacityWithoutLosingRecoveryHistory();
 };
+
+void KisGpuOperationDocumentTest::layerRemovalReusesCapacityWithoutLosingRecoveryHistory_data()
+{
+    QTest::addColumn<bool>("raster");
+    QTest::newRow("compressed pixels") << true;
+    QTest::newRow("stroke input") << false;
+}
+
+void KisGpuOperationDocumentTest::layerRemovalReusesCapacityWithoutLosingRecoveryHistory()
+{
+    QFETCH(bool, raster);
+    Limits limits;
+    limits.samplesPerStroke = 1;
+    limits.samplesPerDocument = 1;
+    limits.rasterBytes = RgbaTile::ByteCount;
+    OperationDocument document(QSize(64, 64), limits);
+    RgbaTile pixels{{0, 0}, QByteArray(RgbaTile::ByteCount, char(0))};
+    for (int cycle = 0; cycle < 3; ++cycle) {
+        if (cycle) {
+            QCOMPARE(document.removeLayer(document.activeLayer()), Result::Success);
+            QVERIFY(document.addLayer(QString::number(cycle)));
+        }
+        if (raster) {
+            pixels.rgba.fill(char(cycle + 1));
+            QCOMPARE(document.replaceTiles(document.activeLayer(), {pixels}), Result::Success);
+        } else {
+            QVERIFY(!paint(document, {sample(8 + cycle, 12)}).isNull());
+        }
+    }
+    const auto bytes = document.recoveryData();
+    QVERIFY(!bytes.isEmpty());
+    OperationDocument restored(QSize(1, 1), limits);
+    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
+    QCOMPARE(restored.recoveryData(), bytes);
+    QCOMPARE(restored.undoCount(), document.undoCount());
+    if (raster) {
+        QCOMPARE(restored.replaceTiles(restored.activeLayer(), {pixels}), Result::CapacityExceeded);
+    } else {
+        const auto stroke = restored.beginStroke(restored.activeLayer(), Brush{}, 0);
+        QCOMPARE(restored.appendSamples(stroke, {sample(20, 20)}), Result::CapacityExceeded);
+        QCOMPARE(restored.cancelStroke(stroke), Result::Success);
+    }
+    for (;;) {
+        const auto actual = restored.snapshot();
+        const auto expected = document.snapshot();
+        QCOMPARE(actual->revision(), expected->revision());
+        QCOMPARE(actual->activeLayer, expected->activeLayer);
+        QCOMPARE(actual->sampleCount, expected->sampleCount);
+        QCOMPARE(actual->rasterBytes, expected->rasterBytes);
+        QCOMPARE(actual->layers.size(), expected->layers.size());
+        if (!actual->layers.isEmpty()) {
+            QCOMPARE(actual->layers[0].uuid, expected->layers[0].uuid);
+            QCOMPARE(actual->layers[0].name, expected->layers[0].name);
+            if (!actual->layers[0].operations.isEmpty()) {
+                if (raster) {
+                    QCOMPARE(std::get<TileWriteSnapshot>(actual->layers[0].operations[0])->tiles[0]->rgba(),
+                             std::get<TileWriteSnapshot>(expected->layers[0].operations[0])->tiles[0]->rgba());
+                } else {
+                    QCOMPARE(std::get<PaintSnapshot>(actual->layers[0].operations[0])->inputSamples(),
+                             std::get<PaintSnapshot>(expected->layers[0].operations[0])->inputSamples());
+                }
+            }
+        }
+        if (!document.undoCount()) break;
+        QCOMPARE(restored.undo(), document.undo());
+    }
+    QCOMPARE(restored.undoCount(), 0);
+    QCOMPARE(restored.redoCount(), document.redoCount());
+}
+
+void KisGpuOperationDocumentTest::layerStructureSharesPaintingHistoryAndPreservesPins()
+{
+    OperationDocument document(rasterImage());
+    const auto initial = document.snapshot();
+    const auto lower = initial->layers[0].id;
+    const auto upper = initial->layers[1].id;
+    QCOMPARE(document.renameLayer(lower, QStringLiteral("Renamed 下地")), Result::Success);
+    const auto renamed = document.snapshot();
+    QCOMPARE(renamed->layers[0].name, QStringLiteral("Renamed 下地"));
+    QCOMPARE(renamed->layers[0].uuid, initial->layers[0].uuid);
+    QCOMPARE(renamed->layers[0].operations, initial->layers[0].operations);
+    QCOMPARE(document.moveLayer(lower, 1), Result::Success);
+    const auto moved = document.snapshot();
+    QCOMPARE(moved->layers[1].id, lower);
+    QCOMPARE(document.activeLayer(), upper);
+    QCOMPARE(document.removeLayer(upper), Result::Success);
+    QCOMPARE(document.activeLayer(), lower);
+    QCOMPARE(document.snapshot()->layers.size(), 1);
+    QCOMPARE(document.snapshot()->rasterBytes, RgbaTile::ByteCount);
+    QCOMPARE(document.undoCount(), 3);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), moved);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), renamed);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), initial);
+    QVERIFY(!document.isModified());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(initial->layers.size(), 2);
+    QCOMPARE(initial->layers[0].name, QStringLiteral("Red"));
+}
+
+void KisGpuOperationDocumentTest::rejectedLayerChangesKeepRedoAndPendingInput()
+{
+    OperationDocument document(QSize(64, 64));
+    const auto layer = document.activeLayer();
+    const auto second = document.addLayer(QStringLiteral("Second"));
+    QCOMPARE(document.undo(), Result::Success);
+    const auto before = document.snapshot();
+    QCOMPARE(document.renameLayer(second, QStringLiteral("Gone")), Result::LayerUnavailable);
+    QCOMPARE(document.moveLayer(layer, -1), Result::InvalidInput);
+    QCOMPARE(document.moveLayer(layer, 1), Result::InvalidInput);
+    QCOMPARE(document.removeLayer(second), Result::LayerUnavailable);
+    QCOMPARE(document.renameLayer(layer, QString(65537, QLatin1Char('a'))), Result::InvalidInput);
+    QCOMPARE(document.renameLayer(layer, before->layers[0].name), Result::Success);
+    QCOMPARE(document.moveLayer(layer, 0), Result::Success);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.redoCount(), 1);
+    const auto stroke = document.beginStroke(layer, Brush{}, 0);
+    QCOMPARE(document.appendSamples(stroke, {sample(8, 12)}), Result::Success);
+    const auto preview = document.preview();
+    QCOMPARE(document.renameLayer(layer, QStringLiteral("Busy")), Result::EditInProgress);
+    QCOMPARE(document.moveLayer(layer, 0), Result::EditInProgress);
+    QCOMPARE(document.removeLayer(layer), Result::EditInProgress);
+    QCOMPARE(document.preview(), preview);
+    QCOMPARE(document.cancelStroke(stroke), Result::Success);
+    QCOMPARE(document.redoCount(), 1);
+    document.close();
+    QCOMPARE(document.renameLayer(layer, {}), Result::Closed);
+    QCOMPARE(document.moveLayer(layer, 0), Result::Closed);
+    QCOMPARE(document.removeLayer(layer), Result::Closed);
+}
+
+void KisGpuOperationDocumentTest::removingTheLastLayerPreservesAnEmptyRecoverableDocument()
+{
+    OperationDocument document(QSize(64, 64));
+    const auto layer = document.activeLayer();
+    QVERIFY(!paint(document, {sample(8, 12)}).isNull());
+    const auto painted = document.snapshot();
+    QCOMPARE(document.removeLayer(layer), Result::Success);
+    const auto empty = document.snapshot();
+    QVERIFY(empty->layers.isEmpty());
+    QCOMPARE(empty->activeLayer, LayerId(0));
+    QCOMPARE(empty->sampleCount, 0);
+    QCOMPARE(empty->rasterBytes, 0);
+    QVERIFY(document.beginStroke(layer, Brush{}, 0).isNull());
+    OperationDocument recovered(QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QVERIFY(recovered.snapshot()->layers.isEmpty());
+    QCOMPARE(recovered.activeLayer(), LayerId(0));
+    QCOMPARE(recovered.undoCount(), 2);
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->layers[0].uuid, painted->layers[0].uuid);
+    QCOMPARE(recovered.snapshot()->sampleCount, painted->sampleCount);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), painted);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), empty);
+    const auto added = document.addLayer(QStringLiteral("New"));
+    QVERIFY(added > layer);
+    QCOMPARE(document.activeLayer(), added);
+    OperationDocument imported(RasterImage{QSize(64, 64), {}, 0});
+    QVERIFY(imported.snapshot()->layers.isEmpty());
+    QCOMPARE(imported.activeLayer(), LayerId(0));
+    QVERIFY(!imported.isModified());
+    QCOMPARE(recovered.restoreRecovery(imported.recoveryData()), Result::Success);
+    QVERIFY(recovered.snapshot()->layers.isEmpty());
+    QVERIFY(recovered.addLayer(QStringLiteral("First")));
+}
 
 void KisGpuOperationDocumentTest::inputChunksRetainTheSameOperation()
 {

@@ -52,6 +52,9 @@ public:
     Paint::LayerId addLayer(const QString &name);
     Paint::Result selectLayer(Paint::LayerId layer);
     Paint::Result setLayerVisible(Paint::LayerId layer, bool visible);
+    Paint::Result renameLayer(Paint::LayerId layer, const QString &name);
+    Paint::Result moveLayer(Paint::LayerId layer, qsizetype index);
+    Paint::Result removeLayer(Paint::LayerId layer);
     Paint::Result undo();
     Paint::Result redo();
     void close();

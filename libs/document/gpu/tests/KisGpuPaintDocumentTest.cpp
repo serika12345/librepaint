@@ -70,9 +70,69 @@ private Q_SLOTS:
     void notificationsAllowSynchronousCloseAndDeletion();
     void recoveryKeepsHistoryPendingInputAndAssociatedFiles();
     void invalidRecoveryPreservesTheAttachedDocument();
+    void layerStructureAndEmptyDocumentsRoundTripWithUnifiedHistory();
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPaintDocumentTest::layerStructureAndEmptyDocumentsRoundTripWithUnifiedHistory()
+{
+    Execution execution(m_device);
+    PaintDocument document(execution, QSize(64, 64));
+    dot(document, {8, 12}, {255, 0, 0, 255});
+    const auto red = document.operations().activeLayer();
+    const auto blue = document.addLayer(QStringLiteral("Upper"));
+    dot(document, {8, 12}, {0, 0, 255, 255});
+    QCOMPARE(document.renameLayer(red, QStringLiteral("Renamed 下地")), Result::Success);
+    QCOMPARE(document.moveLayer(red, 1), Result::Success);
+    auto value = execution.readPixels(document.handle(), document.operations().snapshot(), {0, 0, 64, 64});
+    QCOMPARE(value.code, ExecutionCode::Success);
+    QCOMPARE(pixel(value, 0, {8, 12}), QByteArray::fromHex("ff0000ff"));
+    const auto reordered = document.operations().snapshot();
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("layers.kra"));
+    QCOMPARE(document.saveKra(path).code, FileCode::Success);
+    auto opened = PaintDocument::openKra(execution, path);
+    QVERIFY2(opened.code == FileCode::Success, qPrintable(opened.diagnostic));
+    QCOMPARE(opened.document->operations().snapshot()->layers[1].name, QStringLiteral("Renamed 下地"));
+    QCOMPARE(opened.document->operations().snapshot()->layers[1].uuid, reordered->layers[1].uuid);
+    QCOMPARE(document.removeLayer(red), Result::Success);
+    value = execution.readPixels(document.handle(), document.operations().snapshot(), {0, 0, 64, 64});
+    QCOMPARE(value.code, ExecutionCode::Success);
+    QCOMPARE(pixel(value, 0, {8, 12}), QByteArray::fromHex("0000ffff"));
+    QCOMPARE(document.removeLayer(blue), Result::Success);
+    const auto empty = document.operations().snapshot();
+    value = execution.readPixels(document.handle(), empty, {0, 0, 64, 64});
+    QCOMPARE(value.code, ExecutionCode::Success);
+    QVERIFY(value.tiles.isEmpty());
+    QCOMPARE(document.saveKra(path).code, FileCode::Success);
+    const auto history = document.operations().undoCount();
+    const auto recovered = document.recoveryData();
+    QVERIFY(!recovered.isEmpty());
+    opened = PaintDocument::openKra(execution, path);
+    QVERIFY2(opened.code == FileCode::Success, qPrintable(opened.diagnostic));
+    QVERIFY(opened.document->operations().snapshot()->layers.isEmpty());
+    QCOMPARE(opened.document->operations().undoCount(), 0);
+    const auto merged = mergedImage(path);
+    QCOMPARE(merged.size(), QSize(64, 64));
+    QCOMPARE(merged.pixelColor(8, 12), QColor(Qt::transparent));
+    QCOMPARE(document.restoreRecovery(recovered), Result::Success);
+    QCOMPARE(document.operations().undoCount(), history);
+    QCOMPARE(document.undo(), Result::Success);
+    value = execution.readPixels(document.handle(), document.operations().snapshot(), {0, 0, 64, 64});
+    QCOMPARE(value.code, ExecutionCode::Success);
+    QCOMPARE(pixel(value, 0, {8, 12}), QByteArray::fromHex("0000ffff"));
+    QCOMPARE(document.undo(), Result::Success);
+    value = execution.readPixels(document.handle(), document.operations().snapshot(), {0, 0, 64, 64});
+    QCOMPARE(value.code, ExecutionCode::Success);
+    QCOMPARE(pixel(value, 0, {8, 12}), QByteArray::fromHex("ff0000ff"));
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QVERIFY(document.operations().snapshot()->layers.isEmpty());
+    QVERIFY(document.addLayer(QStringLiteral("New")));
+    QCOMPARE(document.operations().redoCount(), 0);
+}
 
 void KisGpuPaintDocumentTest::initTestCase()
 {

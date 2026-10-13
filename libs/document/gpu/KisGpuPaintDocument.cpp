@@ -61,6 +61,12 @@ Result PaintDocument::selectLayer(LayerId layer)
 { return onThread() ? publish(m_d->document->selectLayer(layer)) : Result::InvalidInput; }
 Result PaintDocument::setLayerVisible(LayerId layer, bool visible)
 { return onThread() ? publish(m_d->document->setLayerVisible(layer, visible)) : Result::InvalidInput; }
+Result PaintDocument::renameLayer(LayerId layer, const QString &name)
+{ return onThread() ? publish(m_d->document->renameLayer(layer, name)) : Result::InvalidInput; }
+Result PaintDocument::moveLayer(LayerId layer, qsizetype index)
+{ return onThread() ? publish(m_d->document->moveLayer(layer, index)) : Result::InvalidInput; }
+Result PaintDocument::removeLayer(LayerId layer)
+{ return onThread() ? publish(m_d->document->removeLayer(layer)) : Result::InvalidInput; }
 Result PaintDocument::undo() { return onThread() ? publish(m_d->document->undo()) : Result::InvalidInput; }
 Result PaintDocument::redo() { return onThread() ? publish(m_d->document->redo()) : Result::InvalidInput; }
 void PaintDocument::close()

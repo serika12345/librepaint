@@ -120,7 +120,36 @@ private Q_SLOTS:
     void malformedPixelsAndProfilesAreAtomic();
     void zipDirectoryCapacityPreservesTheOutput();
     void legacyLayerWithoutUuidGetsOnePersistentIdentity();
+    void emptyDocumentsRequireAnExplicitLayerContainer();
 };
+
+void TestKraRasterCodec::emptyDocumentsRequireAnExplicitLayerContainer()
+{
+    Kra::Document source;
+    source.image.size = QSize(32, 24);
+    QImage projection(source.image.size, QImage::Format_RGBA8888);
+    projection.fill(Qt::transparent);
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, projection).code, Kra::Status::Success);
+    const auto imported = load(bytes);
+    QCOMPARE(imported.code, Kra::Status::Success);
+    QCOMPARE(imported.document.image.size, source.image.size);
+    QVERIFY(imported.document.image.layers.isEmpty());
+    QCOMPARE(imported.document.image.activeLayer, 0);
+    for (const bool duplicate : {false, true}) {
+        auto files = entries(bytes);
+        QDomDocument xml;
+        QVERIFY(xml.setContent(files[QStringLiteral("maindoc.xml")]));
+        auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+        const auto layers = image.firstChildElement(QStringLiteral("layers"));
+        if (duplicate) image.appendChild(layers.cloneNode(true));
+        else image.removeChild(layers);
+        files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
+        QCOMPARE(load(pack(files)).code, Kra::Status::InvalidData);
+    }
+}
 
 void TestKraRasterCodec::existingPaintFilesPreservePixelsAndDefaults_data()
 {

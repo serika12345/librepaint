@@ -183,6 +183,22 @@ void KisKraLoaderTest::testDirectRasterCompatibility()
         node = node->nextSibling();
     }
     QVERIFY(!node);
+
+    Kra::Document empty;
+    empty.image.size = source.image.size;
+    const auto emptyPath = directory.filePath(QStringLiteral("direct-empty.kra"));
+    QFile emptyOutput(emptyPath);
+    QVERIFY(emptyOutput.open(QIODevice::WriteOnly));
+    const auto emptyResult = Kra::RasterCodec::write(emptyOutput, empty, projection);
+    QVERIFY2(emptyResult.code == Kra::Status::Success, qPrintable(emptyResult.diagnostic));
+    emptyOutput.close();
+    QScopedPointer<KisDocument> emptyDocument(KisPart::instance()->createDocument());
+    QVERIFY(emptyDocument->loadNativeFormat(emptyPath));
+    emptyDocument->image()->waitForDone();
+    QCOMPARE(emptyDocument->image()->root()->childCount(), 0U);
+    QByteArray emptyPixels(100 * 100 * 4, Qt::Uninitialized);
+    emptyDocument->image()->projection()->readBytes(reinterpret_cast<quint8 *>(emptyPixels.data()), 0, 0, 100, 100);
+    QCOMPARE(emptyPixels, QByteArray(emptyPixels.size(), '\0'));
 }
 
 void KisKraLoaderTest::testLoadAnimated()

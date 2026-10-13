@@ -18,8 +18,8 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         limits.samplesPerStroke <= 0 || limits.samplesPerDocument <= 0 || limits.layerCount <= 0 ||
         limits.recoveryBytes <= 0 || limits.recoveryBytes > std::numeric_limits<int>::max() ||
         limits.rasterBytes <= 0 || limits.rasterBytes > std::numeric_limits<int>::max() ||
-        image.layers.isEmpty() || image.layers.size() > limits.layerCount ||
-        image.activeLayer < 0 || image.activeLayer >= image.layers.size()) {
+        image.layers.size() > limits.layerCount || image.activeLayer < 0 ||
+        (image.layers.isEmpty() ? image.activeLayer != 0 : image.activeLayer >= image.layers.size())) {
         throw std::invalid_argument("invalid raster document dimensions, layers or limits");
     }
     QSharedPointer<DocumentVersion> initial(new DocumentVersion);
@@ -58,7 +58,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         initial->layers.append(layer);
     }
     m_nextLayer = initial->layers.size();
-    initial->activeLayer = image.activeLayer + 1;
+    initial->activeLayer = image.layers.isEmpty() ? 0 : image.activeLayer + 1;
     m_history.append(initial);
 }
 

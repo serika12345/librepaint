@@ -5,6 +5,7 @@
 
 #include "KisGpuOperationDocument.h"
 #include "KisGpuOperationValidation_p.h"
+#include "KisGpuOperationValues_p.h"
 
 #include <limits>
 #include <algorithm>
@@ -214,6 +215,59 @@ Result OperationDocument::setLayerVisible(LayerId layer, bool visible)
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     version->layers[index].visible = visible;
+    version->m_revision = ++m_nextRevision;
+    commitVersion(version);
+    return Result::Success;
+}
+
+Result OperationDocument::renameLayer(LayerId layer, const QString &name)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto index = layerIndex(layer);
+    if (index < 0) return Result::LayerUnavailable;
+    if (!validLayerName(name)) return Result::InvalidInput;
+    if (snapshot()->layers[index].name == name) return Result::Success;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
+    version->layers[index].name = name;
+    version->m_revision = ++m_nextRevision;
+    commitVersion(version);
+    return Result::Success;
+}
+
+Result OperationDocument::moveLayer(LayerId layer, qsizetype index)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto previous = layerIndex(layer);
+    if (previous < 0) return Result::LayerUnavailable;
+    if (index < 0 || index >= snapshot()->layers.size()) return Result::InvalidInput;
+    if (previous == index) return Result::Success;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
+    version->layers.move(previous, index);
+    version->m_revision = ++m_nextRevision;
+    commitVersion(version);
+    return Result::Success;
+}
+
+Result OperationDocument::removeLayer(LayerId layer)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto index = layerIndex(layer);
+    if (index < 0) return Result::LayerUnavailable;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
+    for (const auto &operation : version->layers[index].operations) {
+        version->sampleCount -= operationSamples(operation);
+        version->rasterBytes -= operationRasterBytes(operation);
+    }
+    version->layers.removeAt(index);
+    if (version->activeLayer == layer) {
+        version->activeLayer = version->layers.isEmpty() ? 0 : version->layers[qMin(index, version->layers.size() - 1)].id;
+    }
     version->m_revision = ++m_nextRevision;
     commitVersion(version);
     return Result::Success;
