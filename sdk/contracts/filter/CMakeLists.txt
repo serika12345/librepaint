@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.25)
+project(LibrePaintExternalFilterContract LANGUAGES CXX)
+find_package(LibrePaintSDK REQUIRED CONFIG)
+find_package(Qt6 REQUIRED COMPONENTS Test)
+add_executable(ExternalFilterContract ExternalFilterContract.cpp)
+target_link_libraries(ExternalFilterContract PRIVATE kritadocumentpainting kritaapplicationui Qt6::Test)
+enable_testing()
+add_test(NAME ExternalFilterContract COMMAND ExternalFilterContract)

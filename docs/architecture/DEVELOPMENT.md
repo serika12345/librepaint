@@ -167,6 +167,42 @@ macOSは`tdd-macos`、Linuxは`tdd-linux`のCMakeプリセットを使う。
 他OSを所有する作業、リリース前、そのOSでの問題発覚時は該当OSを追加検証する。
 Androidは構築費用が大きいため、この条件に沿って検証する。
 
+### 外部プラグインのSDKと再ビルド
+
+`scripts/plugin-sdk`は、Nixの開発環境で構築済みのネイティブmacOS／Linux共有ライブラリー構成を
+入力にする。SDKの生成は構築済みライブラリーを取り出す処理で、必要な再構築が残る場合は
+対応する本体対象の構築を要求する。SDKとプラグインの出力には、新しい版ごとの配置先を使う。
+
+読み込んだ共有環境では次を実行する。自動実行では各コマンドを
+`./scripts/run-shared-test-env`から呼び出す。
+
+```sh
+sdk_build_tree="$(build-incremental native path)"
+./scripts/plugin-sdk package --build "$sdk_build_tree" --output "$PWD/build/plugin-sdk/review"
+./scripts/plugin-sdk build --sdk "$PWD/build/plugin-sdk/review" \
+  --source /path/to/plugin --build /path/to/plugin-build --output /path/to/plugin-artifacts
+./scripts/plugin-sdk check --sdk "$PWD/build/plugin-sdk/review" --output /path/to/plugin-artifacts
+```
+
+`build`はプラグインのCMakeディレクトリーを別の最上位プロジェクトから取り込み、
+元のファイルを保持する。`find_package(LibrePaintSDK CONFIG REQUIRED)`を持つ独立プロジェクトは
+`--project`を指定する。SDKのCMake設定は公開ヘッダー、元の対象名、Qtの生成処理と翻訳処理を
+提供する。コンパイラー、Qtと依存ライブラリーは収録した構築環境に合わせる。
+`check`はSDKの識別値、収録ファイルとプラグイン成果物を照合する。
+
+SDKの受入れは次で実行する。検証用配置先とログは一時ディレクトリーに保持される。
+LinuxはVulkanを利用できるX11の表示環境から実行する。
+
+```sh
+./scripts/run-shared-test-env ./scripts/verify-plugin-sdk --build build/tdd-macos
+```
+
+Linuxの構築木は`build/tdd-linux`を指定する。試験は丸マーカーブラシ、丸角フィルター、TGA入出力と
+画像位置の調整拡張をソース変更なしで構築し、元のソース木・構築木へのコンパイル時の参照を検査する。
+丸角フィルターは実際に読み込み、GPUとの画素受渡し、文書への反映と統一したUndo／Redoを検査する。
+他の代表プラグインは、この検査ではソースの再構築と成果物の照合を対象にする。
+SDKとプラグインの破損、不一致と既存出力の保護は高速検査が担当する。
+
 ### 圧縮画素形式の契約
 
 KRAとタイル保存が利用するLZFの展開、成分の並替えと復元を、Qt CoreとQt Testで検証する。
