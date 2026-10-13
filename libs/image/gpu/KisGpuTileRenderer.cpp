@@ -260,8 +260,17 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
                 if (old.defaultPixel != layer.defaultPixel) break;
                 data->defaults[layer.id] = base->m_data->defaults.value(layer.id);
                 if (old.operations.size() > layer.operations.size() || !base->m_data->selected.contains(layer.id)) break;
+                qsizetype shared = old.operations.size();
+                bool changingStroke = false;
+                if (shared > 0 && shared == layer.operations.size() && base->m_data->strokeInputs.contains(layer.id)) {
+                    const auto previous = std::get_if<PaintSnapshot>(&old.operations.back());
+                    const auto current = std::get_if<PaintSnapshot>(&layer.operations.back());
+                    changingStroke = previous && current && *previous != *current && (*previous)->id == (*current)->id &&
+                        (*previous)->brush == (*current)->brush;
+                    if (changingStroke) --shared;
+                }
                 bool matches = true;
-                for (qsizetype i = 0; i < old.operations.size(); ++i) {
+                for (qsizetype i = 0; i < shared; ++i) {
                     if (old.operations[i] != layer.operations[i]) { matches = false; break; }
                 }
                 if (matches) {
@@ -271,7 +280,24 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
                         data->layers[layer.id][tile.key()] = tile.value();
                         reusedCoordinates.insert(tile.key());
                     }
-                    reusedPrefix = old.operations.size();
+                    if (changingStroke) {
+                        const auto &inputs = base->m_data->strokeInputs[layer.id];
+                        for (auto input = inputs.cbegin(); input != inputs.cend(); ++input) {
+                            if (!reusedCoordinates.contains(input.key())) continue;
+                            if (input.value() && input.value() != data->defaults.value(layer.id))
+                                data->layers[layer.id][input.key()] = input.value();
+                            else data->layers[layer.id].remove(input.key());
+                        }
+                    } else if (base->m_data->strokeInputs.contains(layer.id) && !old.operations.isEmpty()) {
+                        const auto paint = std::get_if<PaintSnapshot>(&old.operations.back());
+                        if (paint && document->pendingOperation() == (*paint)->id) {
+                            auto &inputs = data->strokeInputs[layer.id];
+                            const auto &oldInputs = base->m_data->strokeInputs[layer.id];
+                            for (auto input = oldInputs.cbegin(); input != oldInputs.cend(); ++input)
+                                if (reusedCoordinates.contains(input.key())) inputs[input.key()] = input.value();
+                        }
+                    }
+                    reusedPrefix = shared;
                     if (!base->m_data->region || (region && base->m_data->region->contains(*region))) prefix = reusedPrefix;
                 }
                 break;
@@ -326,6 +352,8 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
             const auto paint = std::get_if<PaintSnapshot>(&layer.operations[op]);
             if (!paint || paintRegion.isEmpty()) continue;
             const auto &operation = **paint;
+            const bool pending = document->pendingOperation() == operation.id;
+            if (pending) data->strokeInputs[layer.id];
             const auto diameter = quint32(std::max<qint64>(1, std::llround(operation.brush.diameter * 16)));
             const auto step = quint32(std::max<qint64>(1, std::llround(operation.brush.diameter * operation.brush.spacing * 16)));
             const auto segments = geometry(operation, step);
@@ -380,6 +408,7 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
                 }
                 Job job;
                 job.input = tiles.value(tile.key(), data->defaults.value(layer.id));
+                if (pending) data->strokeInputs[layer.id][tile.key()] = job.input;
                 auto &pool = writable[tile.key()];
                 auto &output = pool[pool[0] && job.input == pool[0] ? 1 : 0];
                 if (!output) output = d.allocateTile();

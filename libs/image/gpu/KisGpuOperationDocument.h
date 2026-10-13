@@ -141,6 +141,7 @@ public:
     quint64 revision() const { return m_revision; }
     /** Admission state is queried on the OperationDocument owner's thread. */
     bool isCommitted() const { return m_committed; }
+    OperationId pendingOperation() const { return m_committed ? OperationId{} : m_pendingOperation; }
     QSize size;
     QList<Layer> layers;
     LayerId activeLayer = 0;
@@ -155,6 +156,7 @@ private:
     quint64 m_revision = 0;
     // Admission is owned by OperationDocument's thread; snapshot content is immutable.
     mutable bool m_committed = false;
+    OperationId m_pendingOperation;
 };
 
 using Snapshot = QSharedPointer<const DocumentVersion>;

@@ -66,6 +66,10 @@ void main() {
     uint mask = 0u;
     for (uint s = 0u; s < parameters.counts.x && mask != 65535u; ++s) {
         Segment segment = segments[s];
+        // Include every pressure-scaled dab and the four coverage sample offsets.
+        int maximumReach = int(parameters.counts.y / 2u + 8u);
+        if (any(lessThan(center, min(segment.endpoints.xy, segment.endpoints.zw) - ivec2(maximumReach))) ||
+            any(greaterThan(center, max(segment.endpoints.xy, segment.endpoints.zw) + ivec2(maximumReach)))) continue;
         ivec2 delta = segment.endpoints.zw - segment.endpoints.xy;
         uint length = segment.values.w;
         uint step = parameters.brush.w;

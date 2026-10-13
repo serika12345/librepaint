@@ -38,6 +38,7 @@ private Q_SLOTS:
     void implicitLayerPixelsStaySparseThroughEditsAndProjection();
     void implicitLayersRespectCompositionAndCapacity();
     void partialRenderingMatchesFullTilesAndRejectsIncompleteComposition();
+    void changingPreviewReusesItsBackgroundWithinThreeTiles();
 
 private:
     RenderedSnapshot render(TileRenderer &renderer, const Snapshot &snapshot,
@@ -49,6 +50,65 @@ private:
     DevicePtr m_device;
     QRhi *m_rhi = nullptr;
 };
+
+void KisGpuTileRendererTest::changingPreviewReusesItsBackgroundWithinThreeTiles()
+{
+    OperationDocument document({256, 256});
+    const auto layer = document.activeLayer();
+    Brush brush;
+    brush.rgba = {20, 80, 160, 128};
+    brush.diameter = 12;
+    for (int i = 0; i < OperationDocument::HistoryLimit; ++i) {
+        const auto id = document.beginStroke(layer, brush, i);
+        QCOMPARE(document.appendSamples(id, {{{qreal(20 + i % 180), 40}, 0.75}}), Result::Success);
+        QCOMPARE(document.commitStroke(id), Result::Success);
+    }
+    TileRenderer renderer(m_device, 3 * TileRenderer::TileBytes), oracle(m_device);
+    const auto background = render(renderer, document.snapshot());
+    QVERIFY(background);
+    const auto backgroundPixels = readTile(background, layer, {0, 0});
+    const auto stroke = document.beginStroke(layer, brush, 1000);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 80}, 0.5}}), Result::Success);
+    auto preview = render(renderer, document.preview(), background);
+    QVERIFY(preview);
+    const auto firstPixels = readTile(preview, layer, {0, 0});
+    QCOMPARE(document.appendSamples(stroke, {{{180, 120}, 1}}), Result::Success);
+    auto changed = render(renderer, document.preview(), preview);
+    QVERIFY2(changed, "A preview update must preserve the background and previous view within three tiles");
+    QCOMPARE(readTile(changed, layer, {0, 0}), readTile(render(oracle, document.preview()), layer, {0, 0}));
+    QCOMPARE(readTile(preview, layer, {0, 0}), firstPixels);
+    QCOMPARE(readTile(background, layer, {0, 0}), backgroundPixels);
+    preview = changed;
+    changed.clear();
+    for (const auto shape : {Shape{ShapeKind::Line, {140, 180}, {200, 200}, 0},
+                             Shape{ShapeKind::Ellipse, {60, 80}, {100, 110}, 0.2}}) {
+        QCOMPARE(document.updateShape(stroke, shape), Result::Success);
+        changed = render(renderer, document.preview(), preview);
+        QVERIFY(changed);
+        QCOMPARE(readTile(changed, layer, {0, 0}), readTile(render(oracle, document.preview()), layer, {0, 0}));
+        preview = changed;
+        changed.clear();
+    }
+    const auto recovery = document.recoveryData();
+    QCOMPARE(document.cancelStroke(stroke), Result::Success);
+    preview.clear();
+    const auto cancelled = render(renderer, document.snapshot(), background);
+    QVERIFY(cancelled);
+    QCOMPARE(readTile(cancelled, layer, {0, 0}), backgroundPixels);
+    QCOMPARE(renderer.residentBytes(), qsizetype(TileRenderer::TileBytes));
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
+    TileRenderer recoveredRenderer(m_device, 3 * TileRenderer::TileBytes);
+    const auto recoveredBackground = render(recoveredRenderer, restored.snapshot());
+    QVERIFY(recoveredBackground);
+    auto recovered = render(recoveredRenderer, restored.preview(), recoveredBackground);
+    QVERIFY(recovered);
+    QCOMPARE(restored.updateShape(restored.activeOperation(), {ShapeKind::Line, {20, 140}, {200, 160}, 0}), Result::Success);
+    const auto recoveredChange = render(recoveredRenderer, restored.preview(), recovered);
+    QVERIFY(recoveredChange);
+    QCOMPARE(readTile(recoveredChange, restored.activeLayer(), {0, 0}),
+             readTile(render(oracle, restored.preview()), restored.activeLayer(), {0, 0}));
+}
 
 void KisGpuTileRendererTest::initTestCase()
 {

@@ -137,6 +137,7 @@ void OperationDocument::replacePreview(const QSharedPointer<const PaintOperation
     version->sampleCount += operation->sampleCount;
     version->m_revision = ++m_nextRevision;
     version->m_committed = false;
+    version->m_pendingOperation = operation->id;
     m_edit = operation;
     m_preview = version;
 }

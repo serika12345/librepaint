@@ -109,7 +109,7 @@ int main(int argc, char **argv)
         surface->setRenderPassDescriptor(pass.get());
         require(surface->createOrResize(), QStringLiteral("Native benchmark surface creation failed"));
         const auto stroke = document.beginStroke(document.activeLayer(), brush, quint64(history + 1));
-        QList<double> cpu, gpu;
+        QList<double> cpu, gpu, inputTimes, acquireTimes, recordTimes, submitTimes;
         const QRect viewport(0, 0, 512, 512);
         for (int i = 0; i < warmup + frames; ++i) {
             QElapsedTimer timer;
@@ -118,8 +118,10 @@ int main(int argc, char **argv)
             require(document.appendSamples(stroke, {input}) == Result::Success, QStringLiteral("Interactive input was rejected"));
             const auto requested = execution.request(admitted.handle, document.preview());
             require(requested.code == ExecutionCode::Success, requested.diagnostic);
+            const auto inputFinished = timer.nsecsElapsed();
             const auto frame = execution.beginPresentationFrame(*surface);
             require(frame.code == ExecutionCode::Success, frame.diagnostic);
+            const auto acquired = timer.nsecsElapsed();
             try {
                 const double completedGpuMs = frame.commands->lastCompletedGpuTime() * 1000;
                 const auto projected = execution.project(admitted.handle, viewport);
@@ -127,10 +129,15 @@ int main(int argc, char **argv)
                 const auto drawn = presentation.record(*frame.commands, projected.version, *frame.target,
                                                        QTransform::fromScale(window.devicePixelRatio(), window.devicePixelRatio()), Qt::white);
                 require(drawn.recorded, drawn.diagnostic);
+                const auto recorded = timer.nsecsElapsed();
                 const auto submitted = execution.submitFrame();
                 require(submitted.code == ExecutionCode::Success, submitted.diagnostic);
                 if (i >= warmup) {
                     cpu.append(timer.nsecsElapsed() / 1e6);
+                    inputTimes.append(inputFinished / 1e6);
+                    acquireTimes.append((acquired - inputFinished) / 1e6);
+                    recordTimes.append((recorded - acquired) / 1e6);
+                    submitTimes.append(cpu.back() - recorded / 1e6);
                     if (completedGpuMs > 0) gpu.append(completedGpuMs);
                 }
             } catch (...) {
@@ -157,6 +164,8 @@ int main(int argc, char **argv)
             {"surfaceSize", QJsonArray{surface->currentPixelSize().width(), surface->currentPixelSize().height()}},
             {"historyStrokes", history}, {"frames", frames}, {"warmupFrames", warmup},
             {"cpuSubmissionMs", array(cpu)}, {"completedGpuMs", array(gpu)},
+            {"inputMs", array(inputTimes)}, {"acquireMs", array(acquireTimes)},
+            {"recordMs", array(recordTimes)}, {"submitMs", array(submitTimes)},
             {"cpuSubmissionP95Ms", percentile95(cpu)}, {"gpuP95Ms", percentile95(gpu)},
             {"residentTileBytes", qint64(execution.residentBytes())},
             {"projectionSha256", QString::fromLatin1(QCryptographicHash::hash(image, QCryptographicHash::Sha256).toHex())}

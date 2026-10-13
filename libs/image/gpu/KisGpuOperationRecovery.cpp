@@ -332,6 +332,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
             if (previewRevision <= previousRevision || previewRevision > nextRevision || previewRevision == savedRevision) return Result::InvalidRecovery;
             QSharedPointer<DocumentVersion> value(new DocumentVersion(*base));
             value->m_committed = false;
+            value->m_pendingOperation = edit->id;
             value->m_revision = previewRevision;
             value->layers[index].operations.append(edit);
             value->sampleCount += edit->sampleCount;
