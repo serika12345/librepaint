@@ -15,6 +15,9 @@ private Q_SLOTS:
     void testSetColorSpace();
     void testSetColorProfile();
     void testPixelData();
+    void testRawPixelWritesPreserveFormatHistoryAndFailures();
+    void testPixelCopiesAndNodesOutliveTheImageOwner();
+    void testLayerAndDocumentProjectionsRemainDistinct();
     void testProjectionPixelData();
     void testThumbnail();
     void testMergeDown();

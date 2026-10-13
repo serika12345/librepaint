@@ -6,9 +6,11 @@
 #include <simpletest.h>
 #include <QColor>
 #include <QDataStream>
+#include <kundo2stack.h>
 
 #include <KritaVersionWrapper.h>
 #include <Node.h>
+#include <Document.h>
 #include <Krita.h>
 
 #include <KoColorSpaceRegistry.h>
@@ -108,6 +110,83 @@ void TestNode::testProjectionPixelData()
         ds >> channelvalue;
         QVERIFY(channelvalue == 0xFF);
     }
+}
+
+void TestNode::testRawPixelWritesPreserveFormatHistoryAndFailures()
+{
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    KisImageSP image = new KisImage(document->createUndoStore(), 100, 100, KoColorSpaceRegistry::instance()->rgb8(), "test");
+    KisNodeSP layer = new KisPaintLayer(image, "Pixels", 255);
+    image->addNode(layer);
+    document->setCurrentImage(image);
+    image->waitForDone();
+    NodeSP node(Node::createNode(image, layer));
+    const auto raw = QByteArray::fromHex("120a2700197fafe00000ffffff000080");
+    const auto count = document->undoStack()->count();
+    const auto index = document->undoStack()->index();
+    const auto modified = document->isModified();
+    QVERIFY(node->setPixelData(raw + QByteArrayLiteral("ignored suffix"), -1, -1, 2, 2));
+    QCOMPARE(node->pixelData(-1, -1, 2, 2), raw);
+    QCOMPARE(node->pixelData(20, 20, 2, 2), QByteArray(16, '\0'));
+    QVERIFY(!node->setPixelData(raw.first(15), -1, -1, 2, 2));
+    QCOMPARE(node->pixelData(-1, -1, 2, 2), raw);
+    QVERIFY(node->setPixelData({}, 0, 0, 0, 0));
+    QCOMPARE(node->pixelData(-1, -1, 2, 2), raw);
+    QCOMPARE(document->undoStack()->count(), count);
+    QCOMPARE(document->undoStack()->index(), index);
+    QCOMPARE(document->isModified(), modified);
+    NodeSP group(Node::createNode(image, image->rootLayer()));
+    QVERIFY(!group->setPixelData(raw, 0, 0, 2, 2));
+    KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void TestNode::testPixelCopiesAndNodesOutliveTheImageOwner()
+{
+    KisImageSP image = new KisImage(nullptr, 100, 100, KoColorSpaceRegistry::instance()->rgb8(), "test");
+    KisNodeSP layer = new KisPaintLayer(image, "Pixels", 255);
+    image->addNode(layer);
+    NodeSP node(Node::createNode(image, layer));
+    const auto before = QByteArray::fromHex("197fafe0");
+    const auto after = QByteArray::fromHex("120a2700");
+    QVERIFY(node->setPixelData(before, 8, 12, 1, 1));
+    const auto retained = node->pixelData(8, 12, 1, 1);
+    QVERIFY(node->setPixelData(after, 8, 12, 1, 1));
+    QCOMPARE(retained, before);
+    QCOMPARE(node->pixelData(8, 12, 1, 1), after);
+    image->waitForDone();
+    layer.clear();
+    image.clear();
+    QCOMPARE(node->pixelData(8, 12, 1, 1), after);
+    QCOMPARE(retained, before);
+}
+
+void TestNode::testLayerAndDocumentProjectionsRemainDistinct()
+{
+    QScopedPointer<KisDocument> owner(KisPart::instance()->createDocument());
+    KisImageSP image = new KisImage(owner->createUndoStore(), 64, 64, KoColorSpaceRegistry::instance()->rgb8(), "test");
+    KisNodeSP lower = new KisPaintLayer(image, "Lower", 255);
+    KisNodeSP upper = new KisPaintLayer(image, "Upper", 255);
+    image->addNode(lower);
+    image->addNode(upper);
+    owner->setCurrentImage(image);
+    NodeSP lowerNode(Node::createNode(image, lower));
+    NodeSP upperNode(Node::createNode(image, upper));
+    const auto red = QByteArray::fromHex("0000ffff").repeated(4);
+    const auto blue = QByteArray::fromHex("120a2700ff0000ffff0000ffff0000ff");
+    QVERIFY(lowerNode->setPixelData(red, 8, 12, 2, 2));
+    QVERIFY(upperNode->setPixelData(blue, 8, 12, 2, 2));
+    upperNode->setVisible(false);
+    Document document(owner.data(), false);
+    document.refreshProjection();
+    QCOMPARE(document.pixelData(8, 12, 2, 2), red);
+    QCOMPARE(upperNode->pixelData(8, 12, 2, 2), blue);
+    QCOMPARE(upperNode->projectionPixelData(8, 12, 2, 2), blue);
+    upperNode->setVisible(true);
+    document.refreshProjection();
+    QCOMPARE(document.pixelData(8, 12, 2, 2), red.first(4) + blue.mid(4));
+    QCOMPARE(lowerNode->pixelData(8, 12, 2, 2), red);
+    QCOMPARE(upperNode->pixelData(8, 12, 2, 2), blue);
+    KisPart::instance()->removeDocument(owner.data(), false);
 }
 
 void TestNode::testThumbnail()
