@@ -199,6 +199,7 @@ Qt Core、Qt Test、zlibで構築し、GPUやウィンドウを必要とする�
 ```sh
 ./scripts/run-shared-test-env ./scripts/run-test TestKraRasterCodec
 ./scripts/run-shared-test-env ./scripts/run-test kis_kra_loader_test
+./scripts/run-shared-test-env ./scripts/run-test KisGpuPaintDocumentTest
 ```
 
 形式処理の試験は既存KRAと新しい書出しの往復、非表示レイヤー、キャンバス外と透明画素のRGB、
@@ -206,6 +207,10 @@ Qt Core、Qt Test、zlibで構築し、GPUやウィンドウを必要とする�
 容量超過、不正な圧縮入力、重複タイル、不正なパスやプロファイルでは完全な文書値の公開を保留する。
 対応する旧読込み試験は、両処理のレイヤー画素を全成分で比較し、新しい出力を旧処理で開いて照合する。
 形式処理の対象はQt Core・Gui・Xml、QuaZip、操作値、LZF展開へ依存し、画面と旧CPU文書の構築を必要としない。
+文書所有者の試験はMetal／Vulkanで生成した固定画素をKRAへ保存し、再読込みしたレイヤー画素と
+保存用合成画像を照合する。後続編集と履歴、元ファイル、保存済み版、ファイル識別、文書終了時の
+要求解除、同期通知中の終了と破棄を検査する。ファイル処理とGPU実行の両方を扱う対象は、
+両者の小さなオブジェクト対象を直接構築し、通常画面の構築を必要としない。
 
 ### GPUタイルの画素契約
 

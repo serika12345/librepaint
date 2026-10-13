@@ -22,6 +22,22 @@ SPEC.loader.exec_module(check_public_contracts)
 
 
 class PublicContractTests(unittest.TestCase):
+    def test_paint_document_keeps_shared_file_state_inside_its_owner(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            for directory in ("libs/document/gpu", "libs/document/files/gpu", "libs/application/ui", "libs/image"):
+                (root / directory).mkdir(parents=True)
+            (root / "libs/document/gpu/Private.h").write_text("class Private {};\n", encoding="utf-8")
+            (root / "libs/document/gpu/Public.h").write_text(
+                "class KRITADOCUMENTPAINTING_EXPORT Public {};\n", encoding="utf-8")
+            (root / "libs/document/files/gpu/save.cpp").write_text('#include "Private.h"\n', encoding="utf-8")
+            (root / "libs/application/ui/use.cpp").write_text('#include "Public.h"\n', encoding="utf-8")
+            with mock.patch.object(check_public_contracts, "PUBLIC_HEADER_COMPILE_CONTRACTS", {}):
+                self.assertEqual(check_public_contracts.validate_public_headers(root), 1)
+                (root / "libs/image/use.cpp").write_text('#include "Private.h"\n', encoding="utf-8")
+                with self.assertRaisesRegex(check_public_contracts.PublicContractError, "external internal-header references"):
+                    check_public_contracts.validate_public_headers(root)
+
     def test_external_header_without_publication_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)

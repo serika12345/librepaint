@@ -47,6 +47,7 @@
       "ownerTargets": [
         "kritadocument",
         "kritadocumentfiles",
+        "kritadocumentpainting",
         "kritadocumentui"
       ],
       "allowedDependencies": [

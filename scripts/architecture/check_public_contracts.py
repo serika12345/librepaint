@@ -66,14 +66,20 @@ PUBLIC_HEADER_OWNERS = (
     (
         "libs/document",
         ("libs/document",),
-        ("libs/document/files", "libs/document/tests", "libs/document/ui"),
+        ("libs/document/files", "libs/document/tests", "libs/document/ui", "libs/document/gpu"),
         "KRITADOCUMENT_EXPORT",
     ),
     (
         "libs/document/files",
         ("libs/document/files",),
-        ("libs/document/files/tests",),
+        ("libs/document/files/tests", "libs/document/files/gpu"),
         "KRITADOCUMENTFILES_EXPORT",
+    ),
+    (
+        "libs/document/gpu",
+        ("libs/document/gpu", "libs/document/files/gpu"),
+        (),
+        "KRITADOCUMENTPAINTING_EXPORT",
     ),
     (
         "libs/document/ui",

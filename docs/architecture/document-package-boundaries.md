@@ -4,11 +4,13 @@
 
 文書状態、ファイル操作、画面表示を別の所有先へ置き、変更と検証の範囲を責務ごとに保つ。
 文書全体の寿命と画像・アプリケーションの接続は`KisDocument`が調整する。
+GPU操作文書の寿命、固定版と実行要求は`PaintDocument`が所有する。
 
 | 所有先 | 対象 | 責務 |
 | --- | --- | --- |
 | `libs/document/session` | `kritadocument` | 文書識別、変更状態、自動保存状態、回復状態 |
 | `libs/document/files` | `kritadocumentfiles` | 保存先検査、バックアップ、自動保存名、回復候補の探索・読込・消去 |
+| `libs/document/gpu`、`libs/document/files/gpu` | `kritadocumentpainting` | GPU操作、統一履歴、共有GPU実行への接続、固定版の直接KRA保存・読込み |
 | `libs/document/ui` | `kritadocumentui` | 履歴接続と表示、文書情報編集、読込・保存の表示と通知、回復候補の表示 |
 | `libs/impex/metadata` | `kritaimpex` | 形式処理と文書表示が共有する直列化対象の文書情報 |
 
@@ -19,6 +21,11 @@
 全体基盤と資源ストレージを私有依存とする。文書状態とファイル操作は、表示部品を所有する
 [文書UI](../../libs/document/ui/CMakeLists.txt)から独立して利用できる。
 UIの各実装単位は、実際に利用する入出力エラー、メタデータ、取り消し履歴、Qt部品へ直接依存する。
+
+[GPU操作文書のCMake定義](../../libs/document/gpu/CMakeLists.txt)は、画像の公開接続面とQt Coreを
+公開し、形式処理を私有依存とする。操作の受理とGPU要求、ファイル識別と保存済み版を同じ文書の
+寿命に結び付ける。操作実装と保存実装は、この所有者の内部状態を共有する。
+小さな対象試験は操作、GPU実行、KRA形式処理のオブジェクト対象へ直接依存する。
 
 形式選択と形式変換は既存の入出力パッケージが所有する。文書情報の直列化は形式処理と共有し、
 自動保存中・変更済みなどの状態は呼出元から明示的な値で渡す。
