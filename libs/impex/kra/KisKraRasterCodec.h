@@ -51,6 +51,8 @@ class KRITAIMPEX_EXPORT RasterCodec
 {
 public:
     static LoadOutcome read(QIODevice &source, Limits limits = {});
+    /** Validates retained XML and associated files without allocating raster pixels. */
+    static Outcome validateMetadata(const QByteArray &description, const QMap<QString, QByteArray> &files, Limits limits = {});
     static Outcome write(QIODevice &destination, const Document &document, const QImage &projection, Limits limits = {});
 };
 }

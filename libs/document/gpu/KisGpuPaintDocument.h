@@ -60,6 +60,10 @@ public:
     static FileOpenOutcome openKra(Paint::Execution &execution, const QString &path, Paint::Limits limits = {});
     /** Saves a committed fixed version atomically; later edits remain modified. */
     FileOutcome saveKra(const QString &path, const Paint::Snapshot &version = {});
+    /** Bounded logical recovery, including file metadata and pending input. */
+    QByteArray recoveryData() const;
+    /** Validates before adopting a fresh operation identity on the same handle. */
+    Paint::Result restoreRecovery(const QByteArray &data);
 
 Q_SIGNALS:
     void changed();

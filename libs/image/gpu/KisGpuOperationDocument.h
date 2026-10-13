@@ -138,6 +138,7 @@ class KRITAIMAGE_EXPORT DocumentVersion
 public:
     QUuid documentId() const { return m_document; }
     quint64 revision() const { return m_revision; }
+    /** Admission state is queried on the OperationDocument owner's thread. */
     bool isCommitted() const { return m_committed; }
     QSize size;
     QList<Layer> layers;

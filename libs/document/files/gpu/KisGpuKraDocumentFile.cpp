@@ -39,20 +39,13 @@ FileCode fileCode(ExecutionCode code)
     }
     return FileCode::DeviceFailure;
 }
-Kra::Limits fileLimits(Limits limits)
-{
-    Kra::Limits result;
-    result.rasterBytes = limits.rasterBytes;
-    result.layers = limits.layerCount;
-    return result;
-}
 }
 
 FileOpenOutcome PaintDocument::openKra(Execution &execution, const QString &path, Limits limits)
 {
     QFile input(path);
     if (!input.open(QIODevice::ReadOnly)) return {FileCode::IoFailure, {}, input.errorString()};
-    const auto loaded = Kra::RasterCodec::read(input, fileLimits(limits));
+    const auto loaded = Kra::RasterCodec::read(input, Private::formatLimits(limits));
     if (loaded.code != Kra::Status::Success) return {fileCode(loaded.code), {}, loaded.diagnostic};
     try {
         auto document = std::make_unique<PaintDocument>(execution, loaded.document.image, limits);
@@ -75,7 +68,7 @@ FileOutcome PaintDocument::saveKra(const QString &path, const Snapshot &version)
     const auto pinned = version ? version : d.document->snapshot();
     if (!pinned || pinned->documentId() != d.document->snapshot()->documentId() || !pinned->isCommitted() || path.isEmpty())
         return {FileCode::InvalidData, {}, QStringLiteral("Saving requires a committed version of this document and a path")};
-    const auto limits = fileLimits(d.limits);
+    const auto limits = Private::formatLimits(d.limits);
     if (qint64(pinned->size.width()) * pinned->size.height() * 4 > limits.archiveBytes)
         return {FileCode::CapacityExceeded, {}, QStringLiteral("KRA projection pixel capacity exceeded")};
     QList<LayerId> ids;

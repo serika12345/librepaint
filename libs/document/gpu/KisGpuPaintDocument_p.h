@@ -6,6 +6,7 @@
 #define KIS_GPU_PAINT_DOCUMENT_P_H
 #include "KisGpuPaintDocument.h"
 #include <gpu/KisGpuExecution.h>
+#include <kra/KisKraRasterCodec.h>
 #include <QMap>
 
 namespace Krita::Document::Gpu {
@@ -19,6 +20,13 @@ struct PaintDocument::Private
     QByteArray description;
     QMap<QString, QByteArray> files;
     Paint::ExecutionOutcome lastRequest{Paint::ExecutionCode::Success, {}};
+    static ImportExport::Kra::Limits formatLimits(Paint::Limits limits)
+    {
+        ImportExport::Kra::Limits result;
+        result.rasterBytes = limits.rasterBytes;
+        result.layers = limits.layerCount;
+        return result;
+    }
 };
 }
 #endif

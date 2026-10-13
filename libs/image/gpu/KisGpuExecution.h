@@ -80,6 +80,11 @@ public:
     /** One attachment per document; handle zero denotes rejection. */
     DocumentAdmission open(const Snapshot &document);
     ExecutionOutcome request(DocumentHandle handle, const Snapshot &document);
+    /** Atomically restores a fresh logical identity without consuming another slot.
+     * Keeps the handle, clears its derived versions and invalidates recorded
+     * frames and reads from the previous document identity.
+     */
+    ExecutionOutcome replaceDocument(DocumentHandle handle, const Snapshot &document);
     ExecutionOutcome close(DocumentHandle handle);
     Snapshot requested(DocumentHandle handle) const;
     Snapshot published(DocumentHandle handle) const;

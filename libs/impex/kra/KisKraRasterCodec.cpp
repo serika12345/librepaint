@@ -197,6 +197,41 @@ Outcome writeArchive(QIODevice &destination, const QMap<QString, QByteArray> &fi
 }
 }
 
+Outcome RasterCodec::validateMetadata(const QByteArray &bytes, const QMap<QString, QByteArray> &files, Limits limits)
+{
+    if (!validLimits(limits)) return invalid(QStringLiteral("Invalid KRA limits"));
+    auto result = validateFiles(files, limits);
+    if (result.code != Status::Success) return result;
+    if (bytes.size() > limits.xmlBytes) return capacity();
+    if (bytes.isEmpty()) return {Status::Success, {}};
+    QDomDocument xml;
+    QDomElement image;
+    result = description(bytes, xml, image);
+    if (result.code != Status::Success) return result;
+    const auto folder = image.attribute(QStringLiteral("name"));
+    result = profile(files, folder + QStringLiteral("/annotations/icc"), image.attribute(QStringLiteral("profile")));
+    if (result.code != Status::Success) return result;
+    const auto layers = image.firstChildElement(QStringLiteral("layers"));
+    qsizetype count = 0;
+    QSet<QString> filenames;
+    QSet<QUuid> uuids;
+    for (auto element = layers.firstChildElement(); !element.isNull(); element = element.nextSiblingElement()) {
+        if (++count > limits.layers) return capacity();
+        QPoint offset;
+        result = layerDescription(element, offset);
+        if (result.code != Status::Success) return result;
+        const QUuid uuid(element.attribute(QStringLiteral("uuid")));
+        const auto filename = element.attribute(QStringLiteral("filename"));
+        if ((element.hasAttribute(QStringLiteral("uuid")) && (uuid.isNull() || uuids.contains(uuid))) || filenames.contains(filename))
+            return invalid(QStringLiteral("Invalid KRA layer identity"));
+        uuids.insert(uuid);
+        filenames.insert(filename);
+        result = profile(files, folder + QStringLiteral("/layers/") + filename + QStringLiteral(".icc"), image.attribute(QStringLiteral("profile")));
+        if (result.code != Status::Success) return result;
+    }
+    return {Status::Success, {}};
+}
+
 LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
 {
     auto fail = [](const Outcome &result) { return LoadOutcome{result.code, {}, result.diagnostic}; };
@@ -224,6 +259,7 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
     QSet<QString> filenames;
     qsizetype rasterBytes = 0;
     int selected = -1;
+    bool generatedUuids = false;
     const auto layers = image.firstChildElement(QStringLiteral("layers"));
     for (auto element = layers.firstChildElement(); !element.isNull(); element = element.nextSiblingElement()) {
         if (document.image.layers.size() >= limits.layers) return fail(capacity());
@@ -234,6 +270,10 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         layer.name = element.attribute(QStringLiteral("name"));
         layer.visible = element.attribute(QStringLiteral("visible")) == QLatin1String("1");
         layer.uuid = element.hasAttribute(QStringLiteral("uuid")) ? QUuid(element.attribute(QStringLiteral("uuid"))) : QUuid::createUuid();
+        if (!element.hasAttribute(QStringLiteral("uuid"))) {
+            element.setAttribute(QStringLiteral("uuid"), layer.uuid.toString());
+            generatedUuids = true;
+        }
         const auto filename = element.attribute(QStringLiteral("filename"));
         if (layer.uuid.isNull() || uuids.contains(layer.uuid) || filenames.contains(filename))
             return fail(invalid(QStringLiteral("Duplicate or invalid KRA layer identity")));
@@ -261,6 +301,7 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
     }
     if (document.image.layers.isEmpty()) return fail(invalid(QStringLiteral("Missing KRA paint layers")));
     document.image.activeLayer = document.image.layers.size() - 1 - qMax(0, selected);
+    if (generatedUuids) document.description = xml.toByteArray();
     for (const auto &name : {QStringLiteral("maindoc.xml"), QStringLiteral("mimetype"), QStringLiteral("mergedimage.png"), QStringLiteral("preview.png")})
         document.files.remove(name);
     return {Status::Success, std::move(document), {}};
@@ -280,7 +321,7 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         (projection.colorSpace().primaries() != QColorSpace::Primaries::SRgb ||
          projection.colorSpace().transferFunction() != QColorSpace::TransferFunction::SRgb))
         return unsupported(QStringLiteral("KRA projection requires sRGB"));
-    auto result = validateFiles(document.files, limits);
+    auto result = validateMetadata(document.description, document.files, limits);
     if (result.code != Status::Success) return result;
     QDomDocument xml;
     QDomElement image;

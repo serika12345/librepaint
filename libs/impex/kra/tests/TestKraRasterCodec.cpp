@@ -119,6 +119,7 @@ private Q_SLOTS:
     void malformedPixelsAndProfilesAreAtomic_data();
     void malformedPixelsAndProfilesAreAtomic();
     void zipDirectoryCapacityPreservesTheOutput();
+    void legacyLayerWithoutUuidGetsOnePersistentIdentity();
 };
 
 void TestKraRasterCodec::existingPaintFilesPreservePixelsAndDefaults_data()
@@ -248,6 +249,10 @@ void TestKraRasterCodec::unsupportedAndInvalidContentsReturnNoDocument()
         if (change == 3) layer.setAttribute(QStringLiteral("filename"), QStringLiteral("../outside"));
         if (change == 4) files[QStringLiteral("unnamed/layers/layer2.defaultpixel")] = QByteArray(3, '\0');
         files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
+        if (change < 4) {
+            QCOMPARE(Kra::RasterCodec::validateMetadata(files.value(QStringLiteral("maindoc.xml")), files).code,
+                     change < 3 ? Kra::Status::UnsupportedData : Kra::Status::InvalidData);
+        }
         const auto result = load(pack(files));
         QCOMPARE(result.code, change < 3 ? Kra::Status::UnsupportedData : Kra::Status::InvalidData);
         QVERIFY(!result.diagnostic.isEmpty());
@@ -354,6 +359,30 @@ void TestKraRasterCodec::zipDirectoryCapacityPreservesTheOutput()
     QVERIFY(rejected.open(QIODevice::WriteOnly));
     QCOMPARE(Kra::RasterCodec::write(rejected, source, merged({1, 1}), limits).code, Kra::Status::CapacityExceeded);
     QVERIFY(untouched.isEmpty());
+}
+
+void TestKraRasterCodec::legacyLayerWithoutUuidGetsOnePersistentIdentity()
+{
+    QFile fixture(QStringLiteral(KRA_COMPATIBILITY_DATA_DIR) + QStringLiteral("/single_layer_no_channel_flags_transp_def_pixel.kra"));
+    QVERIFY(fixture.open(QIODevice::ReadOnly));
+    auto files = entries(fixture.readAll());
+    QDomDocument xml;
+    QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
+    xml.documentElement().firstChildElement(QStringLiteral("IMAGE")).firstChildElement(QStringLiteral("layers"))
+        .firstChildElement(QStringLiteral("layer")).removeAttribute(QStringLiteral("uuid"));
+    files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
+    const auto imported = load(pack(files));
+    QVERIFY2(imported.code == Kra::Status::Success, qPrintable(imported.diagnostic));
+    const auto uuid = imported.document.image.layers.first().uuid;
+    QVERIFY(!uuid.isNull());
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    const auto saved = Kra::RasterCodec::write(output, imported.document, merged(imported.document.image.size));
+    QVERIFY2(saved.code == Kra::Status::Success, qPrintable(saved.diagnostic));
+    const auto reopened = load(bytes);
+    QVERIFY2(reopened.code == Kra::Status::Success, qPrintable(reopened.diagnostic));
+    QCOMPARE(reopened.document.image.layers.first().uuid, uuid);
 }
 
 QTEST_GUILESS_MAIN(TestKraRasterCodec)
