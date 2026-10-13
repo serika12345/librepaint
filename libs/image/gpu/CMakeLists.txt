@@ -4,6 +4,7 @@ add_library(kritaimagegpuoperations OBJECT
     KisGpuOperationRecovery.cpp
     KisGpuRasterPixels.cpp
     KisGpuRasterOperations.cpp
+    KisGpuPaintGeometry.cpp
 )
 target_compile_definitions(kritaimagegpuoperations PRIVATE kritaimage_EXPORTS)
 target_include_directories(kritaimagegpuoperations PUBLIC

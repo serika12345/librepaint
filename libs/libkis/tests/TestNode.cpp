@@ -173,14 +173,17 @@ void TestNode::testRawPixelWritesPreserveOtherLayerHistoryAndRedo()
     QVERIFY(owner->undoStack()->canRedo());
     QCOMPARE(owner->isModified(), modified);
     QVERIFY(editedNode->setPixelData(external, 8, 12, 1, 1));
+    QVERIFY(editedNode->setPixelData(external, 96, 96, 1, 1));
     QCOMPARE(editedNode->pixelData(8, 12, 1, 1), external);
     owner->undoStack()->redo();
     image->waitForDone();
     QCOMPARE(editedNode->pixelData(8, 12, 1, 1), after);
+    QCOMPARE(editedNode->pixelData(96, 96, 1, 1), external);
     QCOMPARE(importedNode->pixelData(-1, -1, 1, 1), external);
     owner->undoStack()->undo();
     image->waitForDone();
     QCOMPARE(editedNode->pixelData(8, 12, 1, 1), external);
+    QCOMPARE(editedNode->pixelData(96, 96, 1, 1), external);
     QCOMPARE(importedNode->pixelData(-1, -1, 1, 1), external);
     KisPart::instance()->removeDocument(owner.data(), false);
 }

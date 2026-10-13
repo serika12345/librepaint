@@ -7,6 +7,7 @@
 #define KIS_GPU_TILE_STORAGE_P_H
 
 #include "KisGpuTileRenderer.h"
+#include "KisGpuPaintGeometry_p.h"
 #include <QMap>
 #include <QSet>
 #include <rhi/qrhi.h>
@@ -37,8 +38,6 @@ struct Tile
     ~Tile() { budget->used -= TileRenderer::TileBytes; }
 };
 using Tiles = QMap<quint64, std::shared_ptr<Tile>>;
-inline quint64 key(int x, int y) { return (quint64(quint32(y)) << 32) | quint32(x); }
-inline QPoint coordinate(quint64 key) { return {int(quint32(key)), int(quint32(key >> 32))}; }
 }
 
 namespace Krita::Image::Gpu {
