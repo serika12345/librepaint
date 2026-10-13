@@ -633,6 +633,11 @@ SHA-256は`4f5b7f971268c853d893a2c6c25d805cb354eef8c1d6c26fffeaac5dafa4d219`で�
 所有し、SDKは元のソース木と構築木への参照を収録先へ置き換える。
 依存ライブラリーとコンパイラーはNixの固定した格納先を参照する。
 
+`nix/plugin-sdk-tools.nix`はSDK用コマンド、CMake設定、既存のCMake試験定義とライセンスを
+小さなソース入力へ収録する。`nix/application-source.nix`は本体が消費するソースを選別する。
+SDK用のツール・設定・受入れソースは独立した入力となり、SDKだけの変更に対して本体の
+コンパイル結果を再利用する。`plugin-sdk`開発環境は本体の依存物と独立したツールを合成する。
+
 | 入力 | SDKの収録先 |
 | --- | --- |
 | `libs/`と共有ライブラリーを所有する`plugins/`・`qmlmodules/`のヘッダー | `include/source/`内の同じ相対パス |

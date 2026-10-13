@@ -872,53 +872,10 @@
       };
       mkLibrepaintBuildSource =
         packageSet: excludeAndroidPackage:
-        packageSet.lib.cleanSourceWith {
-          name = "librepaint-source";
+        import ./nix/application-source.nix {
+          inherit (packageSet) lib;
           src = ./.;
-          filter =
-            path: _type:
-            let
-              relativePath = packageSet.lib.removePrefix "${toString ./.}/" (toString path);
-              topLevel = builtins.head (packageSet.lib.splitString "/" relativePath);
-            in
-            !(builtins.elem topLevel [
-              ".cache"
-              ".direnv"
-              ".git"
-              ".github"
-              ".gitlab"
-              "AGENTS.md"
-              "build-ios"
-              "docs"
-              "flake.lock"
-              "flake.nix"
-              "logs"
-              "nix"
-              "result"
-            ])
-            && !(builtins.elem relativePath [
-              "packaging/macos/fonts.conf"
-              "packaging/macos/macos-apptodmg.py"
-              "packaging/macos/macos-bundle-launcher.c"
-              "packaging/macos/macos-deploy.py"
-              "packaging/macos/qt.conf"
-              "scripts/platform/audit-linux-appimage.py"
-              "scripts/platform/audit-macos-bundle.py"
-              "scripts/platform/audit-windows-package.py"
-              "scripts/platform/check-macos-release-dmg"
-              "scripts/platform/check-release-assets"
-              "scripts/platform/sign-android-draft-release"
-              "scripts/platform/verify-android-release-apk.py"
-              "scripts/tests/test_android_release_apk.py"
-              "scripts/tests/test_linux_release_appimage.py"
-              "scripts/tests/test_macos_release_bundle.py"
-              "scripts/tests/test_windows_release_package.py"
-            ])
-            && !(excludeAndroidPackage && (
-              relativePath == "packaging/android/apk"
-              || packageSet.lib.hasPrefix "packaging/android/apk/" relativePath
-            ))
-            && !(packageSet.lib.hasPrefix "README" topLevel);
+          inherit excludeAndroidPackage;
         };
       # Policy files use an independent source so policy-only edits preserve
       # the application compilation cache.
@@ -989,6 +946,21 @@
         source = linuxBuildSource;
         auditWindowsPackage = ./scripts/platform/audit-windows-package.py;
       };
+      macosPluginSdkTools = import ./nix/plugin-sdk-tools.nix { inherit pkgs; };
+      linuxPluginSdkTools = import ./nix/plugin-sdk-tools.nix { pkgs = linuxPkgs; };
+      mkPluginSdkShell =
+        packageSet: application: tools:
+        packageSet.mkShell {
+          inputsFrom = [ application ];
+          packages = [ tools ];
+        };
+      mkApplicationSourceCheck =
+        packageSet:
+        assert import ./nix/tests/application-source.nix { inherit (packageSet) lib; };
+        packageSet.runCommand "librepaint-application-source-boundary" { } ''
+          mkdir -p "$out"
+          touch "$out/passed"
+        '';
       policyTools =
         packageSet: with packageSet; [
           bash
@@ -1056,6 +1028,7 @@
         default = macosPackages.librepaint;
         librepaint-macos = macosPackages.librepaint;
         macos-dependencies = macosPackages.macosDependencies;
+        plugin-sdk-tools = macosPluginSdkTools;
 
         source-zlib = pkgs.zlib.src;
         source-libdeflate = pkgs.libdeflate.src;
@@ -1205,6 +1178,7 @@
         librepaint-linux = linuxPackages.librepaint;
         librepaint-linux-appimage = linuxPackages.librepaintAppImage;
         linux-dependencies = linuxPackages.linuxDependencies;
+        plugin-sdk-tools = linuxPluginSdkTools;
         librepaint-android = linuxAndroidPackages.librepaint;
         librepaint-android-native = linuxAndroidPackages.nativeBuild;
         librepaint-android-update-baseline = linuxAndroidPackages.librepaintUpdateBaseline;
@@ -1243,6 +1217,8 @@
 
       checks.${system} = {
         governance = mkGovernanceCheck pkgs librepaintPolicySource;
+        application-source-boundary = mkApplicationSourceCheck pkgs;
+        plugin-sdk-tools = macosPluginSdkTools;
         librepaint-macos = macosPackages.librepaint;
         macos-dependencies = macosPackages.macosDependencies;
 
@@ -1332,6 +1308,8 @@
 
       checks.${linuxSystem} = {
         governance = mkGovernanceCheck linuxPkgs linuxPolicySource;
+        application-source-boundary = mkApplicationSourceCheck linuxPkgs;
+        plugin-sdk-tools = linuxPluginSdkTools;
         librepaint-linux = linuxPackages.librepaint;
         linux-dependencies = linuxPackages.linuxDependencies;
       };
@@ -1339,6 +1317,7 @@
       devShells.${system} = {
         default = macosPackages.devShell;
         docs = mkDocsShell pkgs;
+        plugin-sdk = mkPluginSdkShell pkgs macosPackages.librepaint macosPluginSdkTools;
         librepaint-macos = macosPackages.devShell;
         librepaint-test = mkTestShell pkgs macosPackages.librepaint;
         test = mkTestShell pkgs macosPackages.librepaint;
@@ -1384,6 +1363,7 @@
       devShells.${linuxSystem} = {
         default = linuxPackages.devShell;
         docs = mkDocsShell linuxPkgs;
+        plugin-sdk = mkPluginSdkShell linuxPkgs linuxPackages.librepaintUnwrapped linuxPluginSdkTools;
         android-release = import ./nix/android/release-shell.nix { pkgs = linuxPkgs; };
         librepaint-linux = linuxPackages.devShell;
         librepaint-test = mkTestShell linuxPkgs linuxPackages.librepaintUnwrapped;
