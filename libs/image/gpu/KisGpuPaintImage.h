@@ -33,6 +33,8 @@ public:
     /** Borrowed logical owner; successful recovery replaces this reference. */
     const OperationDocument &operations() const;
     quint64 handle() const;
+    /** Borrowed GUI-thread execution owner, which outlives every image reference. */
+    Execution &execution() const;
     ExecutionOutcome lastRequestOutcome() const;
     /** Synchronous canonical pixels from the current committed image version. */
     PixelBytesOutcome readRgbaPixels(LayerId layer, QRect region, qsizetype maximumBytes) const;

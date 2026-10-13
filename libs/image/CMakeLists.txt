@@ -2214,6 +2214,7 @@ set(kritaimage_LIB_SRCS
    kis_image_animation_interface.cpp
    kis_image.cc
    KisGpuImageView.cpp
+   KisGpuPaintDeviceTransfer.cpp
    kis_image_signal_router.cpp
    kis_image_config.cpp
    KisImageResolutionProxy.cpp

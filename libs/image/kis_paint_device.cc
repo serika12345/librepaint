@@ -13,6 +13,7 @@
 #include "KisRandomSubAccessorPaintDeviceAccess_p.h"
 #include "gpu/KisGpuPaintImage.h"
 #include "gpu/KisGpuExecution.h"
+#include "KisGpuPaintDeviceTransfer_p.h"
 
 #include <QRect>
 #include <QImage>
@@ -154,6 +155,14 @@ public:
     LibrePaint::Image::Gpu::PaintImageSP gpuImage;
     quint64 gpuLayer = 0;
     const KoColorSpace *gpuColorSpace = nullptr;
+    mutable int gpuBoundsSequence = -1;
+    mutable QRect gpuBounds;
+    mutable quint64 gpuSequenceRevision = 0;
+    mutable QUuid gpuSequenceDocument;
+    mutable QList<LibrePaint::Image::Gpu::LayerOperation> gpuSequenceOperations;
+    mutable std::array<quint8, 4> gpuSequenceDefault{};
+    mutable int gpuSequence = 0;
+    mutable bool gpuSequenceKnown = false;
     KisNodeWSP parent;
     QScopedPointer<KisRasterKeyframeChannel> contentChannel;
     KisDefaultBoundsBaseSP defaultBounds;
@@ -1278,6 +1287,27 @@ void KisPaintDevice::requestTimeSwitch(int time)
 
 int KisPaintDevice::sequenceNumber() const
 {
+    if (m_d->gpuImage) {
+        const auto version = m_d->gpuImage->operations().snapshot();
+        if (m_d->gpuSequenceKnown && m_d->gpuSequenceRevision == version->revision() &&
+            m_d->gpuSequenceDocument == version->documentId()) return m_d->gpuSequence;
+        bool changed = !m_d->gpuSequenceKnown;
+        if (!m_d->gpuLayer) {
+            changed = true;
+        } else {
+            for (const auto &layer : version->layers) {
+                if (layer.id != m_d->gpuLayer) continue;
+                changed |= layer.operations != m_d->gpuSequenceOperations || layer.defaultPixel != m_d->gpuSequenceDefault;
+                m_d->gpuSequenceOperations = layer.operations;
+                m_d->gpuSequenceDefault = layer.defaultPixel;
+            }
+        }
+        if (changed) m_d->gpuSequence = m_d->gpuSequence == std::numeric_limits<int>::max() ? 0 : m_d->gpuSequence + 1;
+        m_d->gpuSequenceKnown = true;
+        m_d->gpuSequenceRevision = version->revision();
+        m_d->gpuSequenceDocument = version->documentId();
+        return m_d->gpuSequence;
+    }
     return m_d->cache()->sequenceNumber();
 }
 
@@ -1301,7 +1331,10 @@ KisNodeWSP KisPaintDevice::parentNode() const
 void KisPaintDevice::setDefaultBounds(KisDefaultBoundsBaseSP defaultBounds)
 {
     m_d->defaultBounds = defaultBounds;
-    if (!m_d->gpuImage) m_d->cache()->invalidate();
+    if (m_d->gpuImage) {
+        m_d->gpuBoundsSequence = -1;
+        m_d->gpuSequenceKnown = false;
+    } else m_d->cache()->invalidate();
 }
 
 KisDefaultBoundsBaseSP KisPaintDevice::defaultBounds() const
@@ -1337,11 +1370,13 @@ void KisPaintDevice::setY(qint32 y)
 
 qint32 KisPaintDevice::x() const
 {
+    if (m_d->gpuImage) return 0;
     return m_d->x();
 }
 
 qint32 KisPaintDevice::y() const
 {
+    if (m_d->gpuImage) return 0;
     return m_d->y();
 }
 
@@ -1371,11 +1406,20 @@ QRect KisPaintDevice::nonDefaultPixelArea() const
 
 QRect KisPaintDevice::exactBounds() const
 {
+    if (m_d->gpuImage) {
+        const auto sequence = sequenceNumber();
+        if (sequence != m_d->gpuBoundsSequence) {
+            m_d->gpuBounds = kisGpuPaintDeviceTransfer(m_d->gpuImage, m_d->gpuLayer, m_d->defaultBounds)->exactBounds();
+            m_d->gpuBoundsSequence = sequence;
+        }
+        return m_d->gpuBounds;
+    }
     return m_d->cache()->exactBounds();
 }
 
 QRect KisPaintDevice::exactBoundsAmortized() const
 {
+    if (m_d->gpuImage) return exactBounds();
     return m_d->cache()->exactBoundsAmortized();
 }
 
@@ -1916,6 +1960,8 @@ QImage KisPaintDevice::createThumbnailUncached(qint32 w, qint32 h, QRect rect, q
 
 QImage KisPaintDevice::createThumbnail(qint32 w, qint32 h, KisThumbnailBoundsMode boundsMode, qreal oversample, KoColorConversionTransformation::Intent renderingIntent, KoColorConversionTransformation::ConversionFlags conversionFlags)
 {
+    if (m_d->gpuImage)
+        return kisGpuPaintDeviceTransfer(m_d->gpuImage, m_d->gpuLayer, m_d->defaultBounds)->createThumbnail(w, h, boundsMode, oversample, renderingIntent, conversionFlags);
     QSize size = fixThumbnailSize(QSize(w, h));
 
     return m_d->cache()->createThumbnail(size.width(), size.height(), boundsMode, oversample, renderingIntent, conversionFlags);

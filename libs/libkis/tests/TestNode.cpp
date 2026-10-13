@@ -303,6 +303,51 @@ void TestNode::testThumbnail()
     }
 }
 
+void TestNode::testGpuBoundsAndThumbnailMatchNativePixels_data()
+{
+    QTest::addColumn<QByteArray>("defaultPixel");
+    QTest::newRow("transparent") << QByteArray::fromHex("00000000");
+    QTest::newRow("implicit-color") << QByteArray::fromHex("316ac2c8");
+}
+
+void TestNode::testGpuBoundsAndThumbnailMatchNativePixels()
+{
+    QFETCH(QByteArray, defaultPixel);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    Gpu::RasterLayer imported;
+    imported.name = QStringLiteral("Pixels");
+    for (int i = 0; i < 4; ++i) imported.defaultPixel[i] = quint8(defaultPixel[i]);
+    auto owner = Gpu::PaintImageSP::create(execution, Gpu::RasterImage{{64, 32}, {imported}, 0});
+    auto gpuImage = KisImage::fromGpuImage(owner, QStringLiteral("GPU thumbnail"));
+    auto gpuLayer = gpuImage->root()->firstChild();
+    NodeSP gpuNode(Node::createNode(gpuImage, gpuLayer));
+    KisImageSP cpuImage = new KisImage(nullptr, 64, 32, KoColorSpaceRegistry::instance()->rgb8(), QStringLiteral("Native thumbnail"));
+    KisNodeSP cpuLayer = new KisPaintLayer(cpuImage, QStringLiteral("Pixels"), 255);
+    cpuImage->addNode(cpuLayer);
+    auto bgraDefault = defaultPixel;
+    std::swap(bgraDefault[0], bgraDefault[2]);
+    cpuLayer->paintDevice()->setDefaultPixel(KoColor(reinterpret_cast<const quint8 *>(bgraDefault.constData()), cpuImage->colorSpace()));
+    NodeSP cpuNode(Node::createNode(cpuImage, cpuLayer));
+    const auto bytes = QByteArray::fromHex("12345600aa1122ff00000000000000001020308000000000");
+    QVERIFY(cpuNode->setPixelData(bytes, -1, -1, 3, 2));
+    QVERIFY(gpuNode->setPixelData(bytes, -1, -1, 3, 2));
+    QCOMPARE(gpuNode->bounds(), cpuNode->bounds());
+    QCOMPARE(gpuNode->thumbnail(12, 10), cpuNode->thumbnail(12, 10));
+    QCOMPARE(gpuNode->position(), cpuNode->position());
+    const auto sequence = gpuLayer->thumbnailSeqNo();
+    QVERIFY(owner->addLayer(QStringLiteral("Other")));
+    QCOMPARE(gpuLayer->thumbnailSeqNo(), sequence);
+    QVERIFY(gpuNode->setPixelData(QByteArray::fromHex("552211ff"), 0, -1, 1, 1));
+    QVERIFY(gpuLayer->thumbnailSeqNo() != sequence);
+    QVERIFY(cpuNode->setPixelData(QByteArray::fromHex("552211ff"), 0, -1, 1, 1));
+    QCOMPARE(gpuNode->bounds(), cpuNode->bounds());
+    QCOMPARE(gpuNode->thumbnail(12, 10), cpuNode->thumbnail(12, 10));
+}
+
 void TestNode::testMergeDown()
 {
     KisImageSP image = new KisImage(0, 100, 100, KoColorSpaceRegistry::instance()->rgb8(), "test");

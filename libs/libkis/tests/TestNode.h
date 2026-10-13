@@ -22,6 +22,8 @@ private Q_SLOTS:
     void testLayerAndDocumentProjectionsRemainDistinct();
     void testProjectionPixelData();
     void testThumbnail();
+    void testGpuBoundsAndThumbnailMatchNativePixels_data();
+    void testGpuBoundsAndThumbnailMatchNativePixels();
     void testMergeDown();
     void testFindChildNodes();
 };

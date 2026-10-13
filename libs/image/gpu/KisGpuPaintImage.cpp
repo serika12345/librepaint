@@ -27,6 +27,7 @@ PaintImage::~PaintImage()
 }
 const OperationDocument &PaintImage::operations() const { return *m_d->document; }
 quint64 PaintImage::handle() const { return m_d->handle; }
+Execution &PaintImage::execution() const { return m_d->execution; }
 ExecutionOutcome PaintImage::lastRequestOutcome() const { return m_d->lastRequest; }
 PixelBytesOutcome PaintImage::readRgbaPixels(LayerId layer, QRect region, qsizetype maximumBytes) const
 {
