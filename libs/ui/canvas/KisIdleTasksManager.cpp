@@ -15,6 +15,8 @@
 #include <iterator>
 #include <kis_idle_watcher.h>
 #include <kis_image.h>
+#include <kis_canvas2.h>
+#include <klocalizedstring.h>
 #include <KisMpl.h>
 #include <qcontainerfwd.h>
 #include <qobjectdefs.h>
@@ -53,14 +55,20 @@ KisIdleTasksManager::~KisIdleTasksManager() = default;
 
 void KisIdleTasksManager::setImage(KisImageSP image)
 {
-    m_d->idleWatcher.setTrackedImage(image);
+    m_d->idleWatcher.setTrackedImage(image && image->gpuImage() ? KisImageSP() : image);
     m_d->image = image;
     m_d->queue.clear();
 
-    if (image) {
+    if (image && !image->gpuImage()) {
         slotImageIsModified();
         m_d->idleWatcher.triggerCountdownNoDelay();
     }
+}
+
+QString KisIdleTasksManager::unavailableCanvasReason(KisCanvas2 *canvas)
+{
+    return canvas && canvas->image() && canvas->image()->gpuImage() ?
+        i18n("This panel is not yet available for GPU documents.") : QString();
 }
 
 int KisIdleTasksManager::addIdleTask(KisIdleTaskStrokeStrategyFactory factory)
@@ -131,6 +139,7 @@ void KisIdleTasksManager::slotImageIsIdle()
 {
     KisImageSP image = m_d->image;
     if (!image) return;
+    if (image->gpuImage()) return;
 
     if (m_d->currentTaskCookie) {
         m_d->idleWatcher.restartCountdown();

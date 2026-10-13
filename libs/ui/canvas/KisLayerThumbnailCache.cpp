@@ -123,6 +123,8 @@ struct KisLayerThumbnailCache::Private
     KisIdleTasksManager::TaskGuard taskGuard;
     int maxSize = 32;
     QMap<KisNodeWSP, ThumbnailRecord> cache;
+    QMetaObject::Connection gpuUpdates;
+    QPointer<KisIdleTasksManager> manager;
 
     void cleanupDeletedNodes();
 };
@@ -137,7 +139,8 @@ KisLayerThumbnailCache::~KisLayerThumbnailCache() = default;
 
 void KisLayerThumbnailCache::setIdleTaskManagerImpl(KisIdleTasksManager *manager)
 {
-    if (manager) {
+    m_d->manager = manager;
+    if (manager && (!m_d->image || !m_d->image->gpuImage())) {
         m_d->taskGuard = manager->addIdleTaskWithGuard([this] (KisImageSP image) {
             ThumbnailsStroke *stroke = new ThumbnailsStroke(image, m_d->maxSize, m_d->cache);
             connect(stroke, SIGNAL(sigThumbnailGenerated(KisNodeSP, int, int, QImage)), this, SLOT(slotThumbnailGenerated(KisNodeSP, int, int, QImage)));
@@ -150,8 +153,24 @@ void KisLayerThumbnailCache::setIdleTaskManagerImpl(KisIdleTasksManager *manager
 
 void KisLayerThumbnailCache::setImage(KisImageSP image)
 {
+    disconnect(m_d->gpuUpdates);
     m_d->image = image;
     m_d->cache.clear();
+    setIdleTaskManagerImpl(m_d->manager);
+    if (image && image->gpuImage()) {
+        m_d->gpuUpdates = connect(image.data(), &KisImage::sigImageUpdated, this, [this] {
+            QList<KisNodeSP> changed;
+            for (auto it = m_d->cache.begin(); it != m_d->cache.end(); ++it) {
+                const KisNodeSP node = it.key();
+                if (node && node->image() == m_d->image && node->thumbnailSeqNo() != it->seqNo) changed.append(node);
+            }
+            QPointer<KisLayerThumbnailCache> guard(this);
+            for (const auto &node : changed) {
+                Q_EMIT sigLayerThumbnailUpdated(node);
+                if (!guard) return;
+            }
+        });
+    }
 
     if (m_d->image && m_d->taskGuard.isValid()) {
         m_d->taskGuard.trigger();
@@ -168,7 +187,7 @@ void KisLayerThumbnailCache::setIdleTaskManager(KisIdleTasksManager *manager)
 
 void KisLayerThumbnailCache::setImage(KisImageSP image, KisIdleTasksManager *manager)
 {
-    setIdleTaskManagerImpl(manager);
+    m_d->manager = manager;
     setImage(image);
     // the update is triggered only by the second call, not the first one!
 }
@@ -188,6 +207,12 @@ int KisLayerThumbnailCache::maxSize() const
 
 QImage KisLayerThumbnailCache::thumbnail(KisNodeSP node) const
 {
+    if (m_d->image && m_d->image->gpuImage() && node) {
+        const int sequence = node->thumbnailSeqNo();
+        const auto previous = m_d->cache.constFind(node);
+        if (previous == m_d->cache.cend() || previous->seqNo != sequence || previous->maxSize != m_d->maxSize)
+            m_d->cache[node] = {node->createThumbnail(m_d->maxSize, m_d->maxSize), sequence, m_d->maxSize};
+    }
     QImage image;
 
     auto it = m_d->cache.find(node);

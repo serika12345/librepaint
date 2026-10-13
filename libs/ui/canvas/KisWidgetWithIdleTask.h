@@ -28,9 +28,21 @@ public:
             m_idleTaskGuard = KisIdleTasksManager::TaskGuard();
         }
 
+        const auto reason = KisIdleTasksManager::unavailableCanvasReason(canvas);
+        if (!reason.isEmpty() && !m_disabledForGpu) {
+            m_supportedToolTip = this->toolTip();
+            m_enabledBeforeGpu = this->isEnabledTo(this->parentWidget());
+            m_disabledForGpu = true;
+            this->setEnabled(false);
+            this->setToolTip(reason);
+        } else if (reason.isEmpty() && m_disabledForGpu) {
+            m_disabledForGpu = false;
+            this->setEnabled(m_enabledBeforeGpu);
+            this->setToolTip(m_supportedToolTip);
+        }
         m_canvas = canvas;
 
-        if (m_canvas) {
+        if (m_canvas && !m_disabledForGpu) {
             if (this->isVisible()) {
                 m_idleTaskGuard = registerIdleTask(m_canvas);
             }
@@ -51,7 +63,7 @@ public:
                 m_idleTaskGuard = KisIdleTasksManager::TaskGuard();
             }
 
-            if (m_canvas) {
+            if (m_canvas && !m_disabledForGpu) {
                 m_idleTaskGuard = registerIdleTask(m_canvas);
             }
             if (m_idleTaskGuard.isValid()) {
@@ -67,7 +79,7 @@ public:
         if (m_isVisibleState) {
             m_isVisibleState = false;
 
-            KIS_SAFE_ASSERT_RECOVER_NOOP(!m_canvas || m_idleTaskGuard.isValid());
+            KIS_SAFE_ASSERT_RECOVER_NOOP(!m_canvas || m_disabledForGpu || m_idleTaskGuard.isValid());
             m_idleTaskGuard = KisIdleTasksManager::TaskGuard();
 
             clearCachedState();
@@ -95,6 +107,9 @@ protected:
      * event delivery.
      */
     bool m_isVisibleState {false};
+    bool m_disabledForGpu {false};
+    bool m_enabledBeforeGpu {true};
+    QString m_supportedToolTip;
 };
 
 #endif // KISWIDGETWITHIDLETASK_H

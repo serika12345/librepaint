@@ -295,6 +295,7 @@ MetalまたはVulkanで操作から実際のRGBA8画素を生成し、次の試�
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuPixelReadbackTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTilePresentationTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuCanvasWindowTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuDocumentViewTest
 ```
 
 試験は円形ブラシ、筆圧、消去、入力分割、直線・楕円の変更、取消し、Undo／Redo、
@@ -342,6 +343,9 @@ GPUの終了後も利用できるCPU画素の寿命を検査する。
 容量不足時は操作と公開版を維持し、識別子を伴う失敗通知と次の要求での再試行を検査する。
 進行中のフレームは表示面の再作成を拒否し、ネイティブウィンドウの破棄までデバイスを保持する。
 固定した入力とブラシ設定の照合値は試験ソースが所有し、MetalとVulkanで同じ値を要求する。
+通常画面の試験は、小さい資源バンドルと円形ブラシ設定を試験用の資源データベースへ登録する。
+公開文書と通常ウィンドウを使い、GPU画像の提示、編集とUndoの反映、未対応パネルの理由表示、
+タブ終了時の文書と表示面の解放、終了後の遅延更新を検査する。
 Linuxの実行にはVulkanに対応するQt画面プラグインを使う。画面を持たない検証は
 独立したXvfbのX11画面を用意して`QT_QPA_PLATFORM=xcb`で実行する。
 

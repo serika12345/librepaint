@@ -8,6 +8,7 @@
  */
 
 #include "kis_canvas2.h"
+#include "KisGpuCanvasWidget_p.h"
 #include <klocalizedstring.h>
 
 #include <functional>
@@ -786,6 +787,15 @@ void KisCanvas2::createCanvas(bool useOpenGL)
     m_d->prescaledProjection = 0;
     m_d->frameCache = 0;
 
+    if (const auto image = m_d->view->image()->gpuImage()) {
+        m_d->currentCanvasIsOpenGL = false;
+        m_d->multiSurfaceState =
+            m_d->multiSurfaceSetupManager.createInitializingConfig(false, m_d->currentScreenId(), m_d->proofingConfig);
+        setCanvasWidget(new KisGpuCanvasWidget(this, m_d->coordinatesConverter, image, m_d->view));
+        m_d->displayColorConverter.setMultiSurfaceDisplayConfig(m_d->multiSurfaceState->multiConfig);
+        return;
+    }
+
     KisConfig cfg(true);
 
     if (useOpenGL && !KisOpenGL::hasOpenGL()) {
@@ -839,6 +849,7 @@ void KisCanvas2::initializeImage()
 
 void KisCanvas2::disconnectImage()
 {
+    if (auto *gpu = dynamic_cast<KisGpuCanvasWidget *>(m_d->canvasWidget)) gpu->disconnectImage();
     KisImageSP image = m_d->view->image();
 
     /**
@@ -857,7 +868,7 @@ void KisCanvas2::connectCurrentCanvas()
 {
     KisImageWSP image = m_d->view->image();
 
-    if (!m_d->currentCanvasIsOpenGL) {
+    if (!m_d->currentCanvasIsOpenGL && !image->gpuImage()) {
         Q_ASSERT(m_d->prescaledProjection);
         m_d->prescaledProjection->setImage(image);
     }
@@ -1063,6 +1074,10 @@ void KisCanvas2::finishResizingImage(qint32 w, qint32 h)
 
 void KisCanvas2::startUpdateCanvasProjection(const QRect & rc)
 {
+    if (image()->gpuImage()) {
+        m_d->canvasWidget->updateCanvasImage(rc);
+        return;
+    }
     KisUpdateInfoSP info = m_d->canvasWidget->startUpdateCanvasProjection(rc);
     if (m_d->projectionUpdatesCompressor.putUpdateInfo(info)) {
         Q_EMIT sigCanvasCacheUpdated();
@@ -1437,6 +1452,11 @@ KisImageWSP KisCanvas2::currentImage() const
 
 void KisCanvas2::slotCanvasStateChanged()
 {
+    if (image()->gpuImage()) {
+        m_d->canvasWidget->updateCanvasImage(image()->bounds());
+        Q_EMIT sigCanvasStateChanged();
+        return;
+    }
     if (!m_d->currentCanvasIsOpenGL) {
         Q_ASSERT(m_d->prescaledProjection);
         auto state = KisCanvasState::fromConverter(*m_d->coordinatesConverter);

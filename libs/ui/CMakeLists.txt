@@ -1848,6 +1848,7 @@ set(kritaui_LIB_SRCS
 
     canvas/kis_canvas_widget_base.cpp
     canvas/kis_canvas2.cpp
+    canvas/KisGpuCanvasWidget.cpp
     canvas/kis_canvas_tool_support.cpp
     canvas/kis_canvas_updates_compressor.cpp
     canvas/kis_canvas_controller.cpp
