@@ -105,7 +105,8 @@ def package(build: Path, output: Path) -> None:
         if ((target["type"] == "SHARED_LIBRARY" and
              Path(target["paths"]["source"]).parts[0] in {"libs", "plugins", "qmlmodules"}) or
             (target["type"] == "STATIC_LIBRARY" and target["paths"]["source"].startswith("3rdparty_vendor/"))) and
-        production_path(Path(target["paths"]["source"]))
+        production_path(Path(target["paths"]["source"])) and
+        not Path(target["paths"]["source"]).is_relative_to(Path("plugins/extensions/pykrita/sip"))
     }
     if not libraries:
         raise SdkError("The configured application contains no shared SDK libraries")
