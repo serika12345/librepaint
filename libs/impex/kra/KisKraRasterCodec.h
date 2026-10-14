@@ -46,6 +46,12 @@ struct Outcome
     Status code = Status::InvalidData;
     QString diagnostic;
 };
+struct MetadataOutcome
+{
+    Status code = Status::InvalidData;
+    ImageMetadata metadata;
+    QString diagnostic;
+};
 struct LoadOutcome
 {
     Status code = Status::InvalidData;
@@ -66,6 +72,8 @@ public:
     static LoadOutcome read(QIODevice &source, Limits limits = {});
     /** Validates retained XML and associated files without allocating raster pixels. */
     static Outcome validateMetadata(const QByteArray &description, const QMap<QString, QByteArray> &files, Limits limits = {});
+    /** Returns validated image metadata; failure returns no partial values. */
+    static MetadataOutcome readImageMetadata(const QByteArray &description, const QMap<QString, QByteArray> &files, Limits limits = {});
     /** Validates and adopts current image metadata while preserving other format data. */
     static Outcome updateImageMetadata(Document &document, const ImageMetadata &metadata, Limits limits = {});
     static Outcome write(QIODevice &destination, const Document &document, const QImage &projection, Limits limits = {});

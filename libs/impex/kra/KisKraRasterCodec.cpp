@@ -195,6 +195,41 @@ Outcome validateFiles(const QMap<QString, QByteArray> &files, Limits limits)
     }
     return {Status::Success, {}};
 }
+Outcome extractMetadata(const QDomElement &image, const QMap<QString, QByteArray> &files,
+                        Limits limits, ImageMetadata &metadata)
+{
+    bool xOk = false, yOk = false;
+    const auto x = image.attribute(QStringLiteral("x-res"), QStringLiteral("72")).toDouble(&xOk);
+    const auto y = image.attribute(QStringLiteral("y-res"), QStringLiteral("72")).toDouble(&yOk);
+    if (!xOk || !yOk || !qIsFinite(x) || !qIsFinite(y) || x <= 0 || y <= 0)
+        return invalid(QStringLiteral("Invalid KRA image resolution"));
+    metadata.resolution = {x, y};
+    metadata.documentInfo = files.value(QStringLiteral("documentinfo.xml"));
+    if (metadata.documentInfo.size() > limits.xmlBytes) return capacity();
+    if (files.contains(QStringLiteral("documentinfo.xml"))) {
+        QDomDocument info;
+        if (!info.setContent(metadata.documentInfo) || info.documentElement().tagName() != QLatin1String("document-info"))
+            return invalid(QStringLiteral("Invalid KRA document information"));
+    }
+    const auto prefix = image.attribute(QStringLiteral("name")) + QStringLiteral("/annotations/");
+    metadata.iccProfile = files.value(prefix + QStringLiteral("icc"));
+    const auto annotations = image.firstChildElement(QStringLiteral("Annotations"));
+    if (!annotations.nextSiblingElement(QStringLiteral("Annotations")).isNull())
+        return invalid(QStringLiteral("Duplicate KRA annotation containers"));
+    QSet<QString> types;
+    for (auto entry = annotations.firstChildElement(); !entry.isNull(); entry = entry.nextSiblingElement()) {
+        Annotation annotation{entry.attribute(QStringLiteral("type")), entry.attribute(QStringLiteral("description")), {}};
+        if (!component(annotation.type) || annotation.type == QLatin1String("icc") ||
+            !validName(annotation.description) || types.contains(annotation.type) || !files.contains(prefix + annotation.type))
+            return invalid(QStringLiteral("Invalid, duplicate or missing KRA annotation"));
+        types.insert(annotation.type);
+        annotation.bytes = files.value(prefix + annotation.type);
+        metadata.annotations.append(std::move(annotation));
+    }
+    if (!types.contains(QStringLiteral("exif")) && files.contains(prefix + QStringLiteral("exif")))
+        metadata.annotations.append({QStringLiteral("exif"), {}, files.value(prefix + QStringLiteral("exif"))});
+    return {Status::Success, {}};
+}
 class ArchiveBuffer : public QBuffer
 {
 public:
@@ -300,10 +335,10 @@ Outcome RasterCodec::validateMetadata(const QByteArray &bytes, const QMap<QStrin
     auto result = validateFiles(files, limits);
     if (result.code != Status::Success) return result;
     if (bytes.size() > limits.xmlBytes) return capacity();
-    if (bytes.isEmpty()) return {Status::Success, {}};
     QDomDocument xml;
     QDomElement image;
-    result = description(bytes, xml, image);
+    if (bytes.isEmpty()) image = createDescription(xml);
+    else result = description(bytes, xml, image);
     if (result.code != Status::Success) return result;
     const auto folder = image.attribute(QStringLiteral("name"));
     result = profile(files, folder + QStringLiteral("/annotations/icc"), image.attribute(QStringLiteral("profile")));
@@ -326,7 +361,22 @@ Outcome RasterCodec::validateMetadata(const QByteArray &bytes, const QMap<QStrin
         result = profile(files, folder + QStringLiteral("/layers/") + filename + QStringLiteral(".icc"), image.attribute(QStringLiteral("profile")));
         if (result.code != Status::Success) return result;
     }
-    return {Status::Success, {}};
+    ImageMetadata metadata;
+    return extractMetadata(image, files, limits, metadata);
+}
+
+MetadataOutcome RasterCodec::readImageMetadata(const QByteArray &bytes, const QMap<QString, QByteArray> &files, Limits limits)
+{
+    const auto validated = validateMetadata(bytes, files, limits);
+    if (validated.code != Status::Success) return {validated.code, {}, validated.diagnostic};
+    QDomDocument xml;
+    QDomElement image;
+    if (bytes.isEmpty()) image = createDescription(xml);
+    else description(bytes, xml, image);
+    ImageMetadata metadata;
+    const auto extracted = extractMetadata(image, files, limits, metadata);
+    if (extracted.code != Status::Success) return {extracted.code, {}, extracted.diagnostic};
+    return {Status::Success, std::move(metadata), {}};
 }
 
 LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
@@ -340,6 +390,8 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
     if (mime != QByteArrayLiteral("application/x-krita") && mime != QByteArrayLiteral("application/x-kra"))
         return fail(invalid(QStringLiteral("Invalid KRA MIME type")));
     document.description = document.files.value(QStringLiteral("maindoc.xml"));
+    result = validateMetadata(document.description, document.files, limits);
+    if (result.code != Status::Success) return fail(result);
     QDomDocument xml;
     QDomElement image;
     result = description(document.description, xml, image);

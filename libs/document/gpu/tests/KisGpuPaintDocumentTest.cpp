@@ -64,6 +64,7 @@ class KisGpuPaintDocumentTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
+    void sharedExecutionOpenReturnsValidatedMetadataAndKeepsRetainedImagesAlive();
     void acceptedChangesUpdateOneAttachedDocument();
     void pinnedSavePreservesLaterEditsAndHistory();
     void rasterImportAndSaveRetainOffCanvasHiddenPixelsAndMetadata();
@@ -80,6 +81,49 @@ private Q_SLOTS:
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPaintDocumentTest::sharedExecutionOpenReturnsValidatedMetadataAndKeepsRetainedImagesAlive()
+{
+    auto execution = std::make_shared<Execution>(m_device);
+    std::weak_ptr<Execution> lifetime = execution;
+    auto source = std::make_unique<PaintDocument>(*execution, QSize(32, 24));
+    Kra::ImageMetadata metadata;
+    metadata.resolution = {300, 150};
+    metadata.iccProfile = QColorSpace(QColorSpace::SRgb).iccProfile();
+    metadata.documentInfo = QByteArrayLiteral("<document-info><title>Imported title</title></document-info>");
+    metadata.annotations = {{QStringLiteral("notes"), QStringLiteral("Project notes"), QByteArrayLiteral("note bytes")},
+                            {QStringLiteral("exif"), {}, QByteArray::fromHex("0011ff")}};
+    QCOMPARE(source->setKraImageMetadata(metadata).code, FileCode::Success);
+    dot(*source->image(), {12, 12}, {17, 34, 51, 255});
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("metadata.kra"));
+    QCOMPARE(source->saveKra(path).code, FileCode::Success);
+    auto opened = PaintDocument::openKra(execution, path);
+    QVERIFY2(opened.code == FileCode::Success, qPrintable(opened.diagnostic));
+    const auto loadedMetadata = opened.document->kraImageMetadata();
+    QVERIFY2(loadedMetadata.code == Kra::Status::Success, qPrintable(loadedMetadata.diagnostic));
+    const auto &loaded = loadedMetadata.metadata;
+    QCOMPARE(loaded.resolution, metadata.resolution);
+    QCOMPARE(loaded.iccProfile, metadata.iccProfile);
+    QCOMPARE(loaded.documentInfo, metadata.documentInfo);
+    QCOMPARE(loaded.annotations.size(), 2);
+    QCOMPARE(loaded.annotations[0].type, metadata.annotations[0].type);
+    QCOMPARE(loaded.annotations[0].description, metadata.annotations[0].description);
+    QCOMPARE(loaded.annotations[0].bytes, metadata.annotations[0].bytes);
+    QCOMPARE(loaded.annotations[1].type, QStringLiteral("exif"));
+    QCOMPARE(loaded.annotations[1].bytes, metadata.annotations[1].bytes);
+    auto retained = opened.document->image();
+    opened.document.reset();
+    source.reset();
+    execution.reset();
+    QVERIFY(!lifetime.expired());
+    QCOMPARE(retained->readRgbaPixels(retained->operations().activeLayer(), QRect(12, 12, 1, 1), 4).bytes,
+             QByteArray::fromHex("112233ff"));
+    retained.reset();
+    QVERIFY(lifetime.expired());
+    QCOMPARE(PaintDocument::openKra(std::shared_ptr<Execution>{}, path).code, FileCode::InvalidData);
+}
 
 void KisGpuPaintDocumentTest::adoptedImagesExportWithoutChangingSaveIdentity()
 {

@@ -111,6 +111,7 @@ class TestKraRasterCodec : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void imageMetadataIsCompleteOrRejectedBeforeRasterImport();
     void existingPaintFilesPreservePixelsAndDefaults_data();
     void existingPaintFilesPreservePixelsAndDefaults();
     void roundTripRetainsLayersHiddenRgbAndAssociatedFiles();
@@ -123,6 +124,54 @@ private Q_SLOTS:
     void legacyLayerWithoutUuidGetsOnePersistentIdentity();
     void emptyDocumentsRequireAnExplicitLayerContainer();
 };
+
+void TestKraRasterCodec::imageMetadataIsCompleteOrRejectedBeforeRasterImport()
+{
+    auto source = document();
+    Kra::ImageMetadata metadata;
+    metadata.resolution = {300, 150};
+    metadata.documentInfo = source.files.value(QStringLiteral("documentinfo.xml"));
+    metadata.iccProfile = QColorSpace(QColorSpace::SRgb).iccProfile();
+    metadata.annotations = {{QStringLiteral("notes"), QStringLiteral("Notes"), QByteArrayLiteral("kept")}};
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, metadata).code, Kra::Status::Success);
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto valid = entries(bytes);
+    const auto extracted = Kra::RasterCodec::readImageMetadata(valid.value(QStringLiteral("maindoc.xml")), valid);
+    QCOMPARE(extracted.code, Kra::Status::Success);
+    QCOMPARE(extracted.metadata.resolution, metadata.resolution);
+    QCOMPARE(extracted.metadata.iccProfile, metadata.iccProfile);
+    QCOMPARE(extracted.metadata.documentInfo, metadata.documentInfo);
+    QCOMPARE(extracted.metadata.annotations.size(), 1);
+    QCOMPARE(extracted.metadata.annotations.first().bytes, QByteArrayLiteral("kept"));
+    for (int change = 0; change < 7; ++change) {
+        auto files = valid;
+        QDomDocument xml;
+        QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
+        auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+        auto annotations = image.firstChildElement(QStringLiteral("Annotations"));
+        auto annotation = annotations.firstChildElement();
+        const auto prefix = image.attribute(QStringLiteral("name")) + QStringLiteral("/annotations/");
+        if (change == 0) image.setAttribute(QStringLiteral("x-res"), QStringLiteral("nan"));
+        if (change == 1) image.setAttribute(QStringLiteral("y-res"), QStringLiteral("0"));
+        if (change == 2) files[QStringLiteral("documentinfo.xml")] = QByteArrayLiteral("<invalid/>");
+        if (change == 3) files.remove(prefix + QStringLiteral("notes"));
+        if (change == 4) annotations.appendChild(annotation.cloneNode(true));
+        if (change == 5) annotation.setAttribute(QStringLiteral("type"), QStringLiteral("../outside"));
+        if (change == 6) image.appendChild(annotations.cloneNode(true));
+        files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
+        const auto rejected = Kra::RasterCodec::readImageMetadata(files.value(QStringLiteral("maindoc.xml")), files);
+        QCOMPARE(rejected.code, Kra::Status::InvalidData);
+        QVERIFY(!rejected.diagnostic.isEmpty());
+        QVERIFY(rejected.metadata.iccProfile.isEmpty());
+        QVERIFY(rejected.metadata.annotations.isEmpty());
+        const auto imported = load(pack(files));
+        QCOMPARE(imported.code, Kra::Status::InvalidData);
+        QVERIFY(imported.document.image.layers.isEmpty());
+    }
+}
 
 void TestKraRasterCodec::emptyDocumentsRequireAnExplicitLayerContainer()
 {

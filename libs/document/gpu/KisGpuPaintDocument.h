@@ -10,7 +10,7 @@
 #include <memory>
 #include <kritadocumentpainting_export.h>
 
-namespace LibrePaint::ImportExport::Kra { struct ImageMetadata; }
+namespace LibrePaint::ImportExport::Kra { struct ImageMetadata; struct MetadataOutcome; }
 namespace LibrePaint::Document::Gpu {
 namespace Paint = Image::Gpu;
 enum class FileCode { Success, InvalidData, UnsupportedData, CapacityExceeded, IoFailure, Busy, DeviceFailure, Closed };
@@ -46,6 +46,9 @@ public:
 
     /** Reads KRA before admitting a new document; failures return no attachment. */
     static FileOpenOutcome openKra(Paint::Execution &execution, const QString &path, Paint::Limits limits = {});
+    /** Retains shared execution through the loaded image and subsequent clones. */
+    static FileOpenOutcome openKra(std::shared_ptr<Paint::Execution> execution, const QString &path, Paint::Limits limits = {});
+    ImportExport::Kra::MetadataOutcome kraImageMetadata() const;
     /** Saves a committed fixed version atomically; later edits remain modified. */
     FileOutcome saveKra(const QString &path, const Paint::Snapshot &version = {});
     /** Writes a fixed version while preserving file identity and saved state. */
@@ -63,6 +66,8 @@ Q_SIGNALS:
 private:
     PaintDocument(Paint::Execution &execution, Paint::PaintImageSP image, Paint::Limits limits);
     bool onThread() const;
+    static FileOpenOutcome openKraImpl(Paint::Execution &execution, std::shared_ptr<Paint::Execution> retainedExecution,
+                                       const QString &path, Paint::Limits limits);
     FileOutcome writeKra(const QString &path, const Paint::Snapshot &version, bool adoptFile);
     struct Private;
     std::unique_ptr<Private> m_d;

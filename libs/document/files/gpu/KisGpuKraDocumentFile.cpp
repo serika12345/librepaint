@@ -40,13 +40,25 @@ FileCode fileCode(ExecutionCode code)
 }
 
 FileOpenOutcome PaintDocument::openKra(Execution &execution, const QString &path, Limits limits)
+{ return openKraImpl(execution, {}, path, limits); }
+
+FileOpenOutcome PaintDocument::openKra(std::shared_ptr<Execution> execution, const QString &path, Limits limits)
+{
+    if (!execution) return {FileCode::InvalidData, {}, QStringLiteral("Opening requires a GPU execution owner")};
+    return openKraImpl(*execution, execution, path, limits);
+}
+
+FileOpenOutcome PaintDocument::openKraImpl(Execution &execution, std::shared_ptr<Execution> retainedExecution,
+                                          const QString &path, Limits limits)
 {
     QFile input(path);
     if (!input.open(QIODevice::ReadOnly)) return {FileCode::IoFailure, {}, input.errorString()};
     const auto loaded = Kra::RasterCodec::read(input, Private::formatLimits(limits));
     if (loaded.code != Kra::Status::Success) return {fileCode(loaded.code), {}, loaded.diagnostic};
     try {
-        auto document = std::make_unique<PaintDocument>(execution, loaded.document.image, limits);
+        const auto image = retainedExecution ? PaintImageSP::create(retainedExecution, loaded.document.image, limits) :
+                                              PaintImageSP::create(execution, loaded.document.image, limits);
+        auto document = std::make_unique<PaintDocument>(image, limits);
         document->m_d->path = path;
         document->m_d->description = loaded.document.description;
         document->m_d->files = loaded.document.files;
@@ -56,6 +68,12 @@ FileOpenOutcome PaintDocument::openKra(Execution &execution, const QString &path
     } catch (const std::invalid_argument &error) {
         return {FileCode::InvalidData, {}, QString::fromUtf8(error.what())};
     }
+}
+
+Kra::MetadataOutcome PaintDocument::kraImageMetadata() const
+{
+    if (!onThread()) return {Kra::Status::InvalidData, {}, QStringLiteral("Metadata reads require the document thread")};
+    return Kra::RasterCodec::readImageMetadata(m_d->description, m_d->files, Private::formatLimits(m_d->limits));
 }
 
 FileOutcome PaintDocument::saveKra(const QString &path, const Snapshot &version)
