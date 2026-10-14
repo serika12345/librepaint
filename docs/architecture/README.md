@@ -916,6 +916,9 @@ LZF展開、レイヤー位置の適用を所有する。文書構造、画素�
 合成、マスクや階層は、画素の意味を保つため`UnsupportedData`として明示する。
 書出しは同じ固定版のGPU合成画像を受け取り、画素と付属情報を符号化し、容量内のZIPを完成
 させてから空の出力装置へ書く。呼出し側はファイルの原子的置換と保存済み版の更新を所有する。
+ZIP項目は時刻を1980年1月1日UTC、作成OSをUnixの識別値3として記録する。
+合成画像とプレビューのPNGは、文書の解像度から整数の画素密度を求める。
+PNGの画素密度は1からQtの整数上限の範囲へ収め、KRAの文書記述は元の解像度を保持する。
 
 `KisDocument`は`libs/impex/ui`の`KisImportExportManager`へ処理を委譲します。
 `libs/impex`の`KisImportExportFilterRegistry`が`Krita/FileFilter`プラグインをMIME型で選び、

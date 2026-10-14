@@ -9,12 +9,15 @@
 #include <QColorSpace>
 #include <QColorTransform>
 #include <QDomDocument>
+#include <QDateTime>
+#include <QTimeZone>
 #include <QImage>
 #include <QSet>
 #include <quazip.h>
 #include <quazipfile.h>
 #include <quazipnewinfo.h>
 #include <limits>
+#include <cmath>
 
 namespace LibrePaint::ImportExport::Kra {
 using namespace Image::Gpu;
@@ -262,10 +265,13 @@ Outcome writeArchive(QIODevice &destination, const QMap<QString, QByteArray> &fi
     if (!buffer.open(QIODevice::WriteOnly)) return ioFailure();
     QuaZip archive(&buffer);
     archive.setAutoClose(false);
+    archive.setOsCode(3); // ZIP creator code for Unix, shared by all saving hosts.
     if (!archive.open(QuaZip::mdCreate)) return ioFailure();
     auto write = [&](const QString &name, int method) {
         QuaZipFile file(&archive);
-        if (!file.open(QIODevice::WriteOnly, QuaZipNewInfo(name), nullptr, 0, method)) return false;
+        QuaZipNewInfo info(name);
+        info.dateTime = QDateTime(QDate(1980, 1, 1), QTime(0, 0), QTimeZone(QTimeZone::UTC));
+        if (!file.open(QIODevice::WriteOnly, info, nullptr, 0, method)) return false;
         const auto &bytes = files[name];
         if (file.write(bytes) != bytes.size()) return false;
         file.close();
@@ -577,8 +583,15 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
     files.insert(QStringLiteral("maindoc.xml"), xml.toByteArray());
     if (files.value(QStringLiteral("maindoc.xml")).size() > limits.xmlBytes) return capacity();
     files.insert(QStringLiteral("mimetype"), QByteArrayLiteral("application/x-krita"));
+    const auto density = [](qreal dpi) {
+        return int(qBound(1.0, std::floor(dpi / 0.0254 + 0.5), double(std::numeric_limits<int>::max())));
+    };
+    const int densityX = density(image.attribute(QStringLiteral("x-res"), QStringLiteral("72")).toDouble());
+    const int densityY = density(image.attribute(QStringLiteral("y-res"), QStringLiteral("72")).toDouble());
     auto png = [&](QImage image, const QString &name) {
         image.setColorSpace(QColorSpace::SRgb);
+        image.setDotsPerMeterX(densityX);
+        image.setDotsPerMeterY(densityY);
         QByteArray bytes;
         QBuffer buffer(&bytes);
         if (!buffer.open(QIODevice::WriteOnly) || !image.save(&buffer, "PNG")) return false;

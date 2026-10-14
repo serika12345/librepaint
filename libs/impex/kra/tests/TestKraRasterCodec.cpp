@@ -7,12 +7,15 @@
 #include <QBuffer>
 #include <QColorSpace>
 #include <QDomDocument>
+#include <QDateTime>
 #include <QFile>
 #include <QImage>
 #include <QTest>
 #include <cmath>
+#include <limits>
 #include <quazip.h>
 #include <quazipfile.h>
+#include <quazipfileinfo.h>
 #include <quazipnewinfo.h>
 
 namespace Kra = LibrePaint::ImportExport::Kra;
@@ -111,6 +114,9 @@ class TestKraRasterCodec : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void savedPngResolutionComesFromDocumentMetadata_data();
+    void savedPngResolutionComesFromDocumentMetadata();
+    void archiveMetadataIsIndependentOfClockAndHost();
     void layerOpacityAndLockSurviveEditingAndResaving();
     void imageMetadataIsCompleteOrRejectedBeforeRasterImport();
     void existingPaintFilesPreservePixelsAndDefaults_data();
@@ -125,6 +131,68 @@ private Q_SLOTS:
     void legacyLayerWithoutUuidGetsOnePersistentIdentity();
     void emptyDocumentsRequireAnExplicitLayerContainer();
 };
+
+void TestKraRasterCodec::savedPngResolutionComesFromDocumentMetadata_data()
+{
+    QTest::addColumn<QPointF>("resolution");
+    QTest::addColumn<QSize>("density");
+    QTest::newRow("document-resolution") << QPointF(300, 150) << QSize(11811, 5906);
+    QTest::newRow("png-density-range") << QPointF(1e-300, 1e300) << QSize(1, std::numeric_limits<int>::max());
+}
+
+void TestKraRasterCodec::savedPngResolutionComesFromDocumentMetadata()
+{
+    QFETCH(QPointF, resolution);
+    QFETCH(QSize, density);
+    auto source = document();
+    Kra::ImageMetadata metadata;
+    metadata.resolution = resolution;
+    metadata.iccProfile = QColorSpace(QColorSpace::SRgb).iccProfile();
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, metadata).code, Kra::Status::Success);
+    QList<QByteArray> archives;
+    for (int hostDensity : {2835, 3780}) {
+        auto projection = merged(source.image.size);
+        projection.setDotsPerMeterX(hostDensity);
+        projection.setDotsPerMeterY(hostDensity);
+        QByteArray bytes;
+        QBuffer output(&bytes);
+        QVERIFY(output.open(QIODevice::WriteOnly));
+        QCOMPARE(Kra::RasterCodec::write(output, source, projection).code, Kra::Status::Success);
+        const auto saved = entries(bytes);
+        for (const auto &name : {QStringLiteral("mergedimage.png"), QStringLiteral("preview.png")}) {
+            const auto image = QImage::fromData(saved.value(name));
+            QVERIFY(!image.isNull());
+            QCOMPARE(image.dotsPerMeterX(), density.width());
+            QCOMPARE(image.dotsPerMeterY(), density.height());
+        }
+        archives.append(bytes);
+    }
+    QCOMPARE(archives[0], archives[1]);
+}
+
+void TestKraRasterCodec::archiveMetadataIsIndependentOfClockAndHost()
+{
+    const auto source = document();
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    QBuffer input(&bytes);
+    QVERIFY(input.open(QIODevice::ReadOnly));
+    QuaZip archive(&input);
+    archive.setAutoClose(false);
+    QVERIFY(archive.open(QuaZip::mdUnzip));
+    int count = 0;
+    for (bool more = archive.goToFirstFile(); more; more = archive.goToNextFile()) {
+        QuaZipFileInfo64 info;
+        QVERIFY(archive.getCurrentFileInfo(&info));
+        QCOMPARE(info.dateTime.date(), QDate(1980, 1, 1));
+        QCOMPARE(info.dateTime.time(), QTime(0, 0));
+        QCOMPARE(info.versionCreated >> 8, 3);
+        ++count;
+    }
+    QVERIFY(count > 0);
+}
 
 void TestKraRasterCodec::layerOpacityAndLockSurviveEditingAndResaving()
 {
