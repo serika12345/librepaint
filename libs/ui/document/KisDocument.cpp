@@ -2415,6 +2415,8 @@ KisImportExportManager *KisDocument::importExportManager() const
 
 void KisDocument::slotUndoStackCleanChanged(bool value)
 {
+    // GPU edits publish image changes; saving finalizes cleanliness with its fixed file version.
+    if (d->gpuSaving) return;
     setModified(!value || d->modificationState.imageModifiedWithoutUndo());
 }
 

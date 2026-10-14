@@ -12,6 +12,9 @@ class TestDocument : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void testBackgroundApiKeepsHistoryAndPinnedPixels();
+    void testBackgroundNotificationLifetimes_data();
+    void testBackgroundNotificationLifetimes();
     void testOrdinaryCreationUsesGpuAndPreservesInitialDocumentState_data();
     void testOrdinaryCreationUsesGpuAndPreservesInitialDocumentState();
     void testCanvasBackgroundReferencePixels_data();

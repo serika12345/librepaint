@@ -83,6 +83,7 @@
 #include "KisGpuPaintDeviceTransfer_p.h"
 #include <stdexcept>
 #include <QScopeGuard>
+#include <QPointer>
 #include "kis_image_signal_router.h"
 #include "kis_image_animation_interface.h"
 #include "kis_keyframe_channel.h"
@@ -1835,6 +1836,12 @@ void KisImage::flattenLayer(KisLayerSP layer)
 
 void KisImage::setModifiedWithoutUndo()
 {
+    if (m_d->gpuImage) {
+        QPointer<KisImage> guard(this);
+        Q_EMIT sigImageModifiedWithoutUndo();
+        if (guard) Q_EMIT sigImageModified();
+        return;
+    }
     m_d->signalRouter.emitNotification(ModifiedWithoutUndoSignal);
     Q_EMIT sigImageModified();
 }
@@ -1959,6 +1966,15 @@ KisUndoAdapter* KisImage::undoAdapter() const
 
 void KisImage::setDefaultProjectionColor(const KoColor &color)
 {
+    if (m_d->gpuImage) {
+        auto converted = color;
+        converted.convertTo(colorSpace());
+        const auto bytes = converted.data();
+        const auto result = m_d->gpuImage->writeProjectionBackground({bytes[2], bytes[1], bytes[0], bytes[3]});
+        if (result != LibrePaint::Image::Gpu::Result::Success)
+            throw std::runtime_error("GPU canvas background write failed: " + std::to_string(int(result)));
+        return;
+    }
     KIS_ASSERT_RECOVER_RETURN(m_d->rootLayer);
     m_d->rootLayer->setDefaultProjectionColor(color);
 }

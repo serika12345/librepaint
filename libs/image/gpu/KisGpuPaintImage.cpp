@@ -67,6 +67,13 @@ PixelBytesOutcome PaintImage::readRgbaPixels(LayerId layer, QRect region, qsizet
     return m_d->execution.readRgbaPixels(m_d->handle, m_d->document->snapshot(), region, layer, maximumBytes);
 }
 bool PaintImage::onThread() const { return QThread::currentThread() == thread(); }
+Result PaintImage::writeProjectionBackground(const std::array<quint8, 4> &rgba)
+{
+    if (!onThread()) return Result::InvalidInput;
+    const auto result = m_d->document->writeProjectionBackground(rgba);
+    if (result == Result::Success) requestCurrentVersion();
+    return result;
+}
 void PaintImage::requestCurrentVersion()
 {
     try {

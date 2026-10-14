@@ -263,6 +263,8 @@ public:
     Result setLayerVisible(LayerId layer, bool visible);
     Result setLayerOpacity(LayerId layer, quint8 opacity);
     Result setLayerLocked(LayerId layer, bool locked);
+    /** Direct background writes preserve history, pending input and fixed snapshots. */
+    Result writeProjectionBackground(const std::array<quint8, 4> &rgba);
     Result renameLayer(LayerId layer, const QString &name);
     /** Moves within the bottom-to-top layer list, preserving the selected identity. */
     Result moveLayer(LayerId layer, qsizetype index);

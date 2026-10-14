@@ -17,6 +17,7 @@
 #include <QDomDocument>
 #include <QColorSpace>
 #include <QScopeGuard>
+#include <exception>
 
 #include <Node.h>
 #include <Krita.h>
@@ -36,6 +37,7 @@
 #include <gpu/KisGpuExecution.h>
 #include <kis_fill_painter.h>
 #include <kis_paint_layer.h>
+#include <kis_group_layer.h>
 #include <application/ui/orchestration/KisPart.h>
 
 #include <kis_transform_mask_params_factory_registry.h>
@@ -115,6 +117,120 @@ void TestDocument::testOrdinaryCreationUsesGpuAndPreservesInitialDocumentState()
     QVERIFY(!document->isModified());
 }
 
+void TestDocument::testBackgroundApiKeepsHistoryAndPinnedPixels()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    QVERIFY(document->newImage(QStringLiteral("Background API"), 32, 16, cs,
+                                KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    const auto image = KisImageSP(document->image());
+    const auto owner = image->gpuImage();
+    QVERIFY(owner);
+    const auto layer = owner->operations().activeLayer();
+    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("ff0000ff")), Gpu::Result::Success);
+    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(6, 6, 1, 1), QByteArray::fromHex("00ff00ff")), Gpu::Result::Success);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    const auto pinned = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(pinned), Gpu::Result::Success);
+    Document publicDocument(document.data(), false);
+    QVERIFY(!publicDocument.modified());
+    const auto pending = owner->beginStroke(layer, Gpu::Brush{}, 17);
+    QVERIFY(!pending.isNull());
+    QCOMPARE(owner->appendSamples(pending, {{{8, 8}, 1, 0, 0, 0, 1}}), Gpu::Result::Success);
+    QSignalSpy modified(document.data(), &KisDocument::modified);
+    const QColor background(17, 34, 51, 128);
+    try {
+        QVERIFY(publicDocument.setBackgroundColor(background));
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    QCOMPARE(publicDocument.backgroundColor(), background);
+    QCOMPARE(owner->operations().activeOperation(), pending);
+    QCOMPARE(owner->operations().preview()->sampleCount, qsizetype(1));
+    QCOMPARE(owner->cancelStroke(pending), Gpu::Result::Success);
+    QCOMPARE(publicDocument.pixelData(0, 0, 1, 1), QByteArray::fromHex("33221180"));
+    QCOMPARE(publicDocument.pixelData(-1, -1, 1, 1), QByteArray::fromHex("33221180"));
+    QVERIFY(publicDocument.modified());
+    QCOMPARE(modified.size(), 1);
+    QCOMPARE(owner->operations().undoCount(), 1);
+    QCOMPARE(owner->operations().redoCount(), 1);
+    QCOMPARE(owner->readRgbaPixels(layer, QRect(5, 5, 1, 1), 4).bytes, QByteArray::fromHex("ff0000ff"));
+    QCOMPARE(owner->execution().readRgbaPixels(owner->handle(), pinned, QRect(0, 0, 1, 1), 0, 4).bytes,
+             QByteArray(4, '\0'));
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QCOMPARE(publicDocument.backgroundColor(), background);
+    QCOMPARE(publicDocument.pixelData(6, 6, 1, 1), QByteArray::fromHex("00ff00ff"));
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(publicDocument.pixelData(6, 6, 1, 1), QByteArray::fromHex("33221180"));
+    QVERIFY(publicDocument.modified());
+    const auto recovery = owner->operations().recoveryData();
+    QCOMPARE(owner->restoreRecovery(recovery), Gpu::Result::Success);
+    QCOMPARE(publicDocument.backgroundColor(), background);
+    QCOMPARE(owner->operations().undoCount(), 1);
+    QCOMPARE(owner->operations().redoCount(), 1);
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QCOMPARE(publicDocument.backgroundColor(), background);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("background-edited.kra"));
+    document->setFileBatchMode(true);
+    QVERIFY2(document->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
+    QVERIFY(!publicDocument.modified());
+    QCOMPARE(owner->operations().undoCount(), 2);
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+    Document publicReopened(reopened.data(), false);
+    QCOMPARE(publicReopened.backgroundColor(), background);
+    QCOMPARE(publicReopened.pixelData(0, 0, 1, 1), QByteArray::fromHex("33221180"));
+}
+
+void TestDocument::testBackgroundNotificationLifetimes_data()
+{
+    QTest::addColumn<bool>("replace");
+    QTest::newRow("close") << false;
+    QTest::newRow("replace") << true;
+}
+
+void TestDocument::testBackgroundNotificationLifetimes()
+{
+    QFETCH(bool, replace);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QPointer<KisDocument> document(KisPart::instance()->createDocument());
+    QVERIFY(document->newImage(QStringLiteral("Background notification"), 32, 16, cs,
+                               KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    const auto owner = document->image()->gpuImage();
+    LibrePaint::Image::Gpu::PaintImageSP replacement;
+    const auto cleanup = qScopeGuard([&] { delete document.data(); });
+    Document publicDocument(document.data(), false);
+    QObject::connect(document.data(), &KisDocument::modified, &publicDocument, [&](bool modified) {
+        if (!modified) return;
+        if (replace) {
+            replacement = owner->clone();
+            document->setCurrentImage(KisImage::fromGpuImage(replacement, QStringLiteral("Background replacement")));
+        } else {
+            delete document.data();
+        }
+    });
+    const QColor background(17, 34, 51, 128);
+    try {
+        QVERIFY(publicDocument.setBackgroundColor(background));
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    if (replace) {
+        QVERIFY(document);
+        QCOMPARE(document->image()->gpuImage(), replacement);
+        QVERIFY(!document->isModified());
+    } else {
+        QVERIFY(document.isNull());
+    }
+    const std::array<quint8, 4> expected{17, 34, 51, 128};
+    QCOMPARE(owner->operations().snapshot()->projectionBackground, expected);
+    QCOMPARE(owner->readRgbaPixels(0, QRect(0, 0, 1, 1), 4).bytes, QByteArray::fromHex("11223380"));
+}
+
 void TestDocument::testCanvasBackgroundReferencePixels_data()
 {
     QTest::addColumn<QColor>("background");
@@ -165,6 +281,7 @@ void TestDocument::testCanvasBackgroundReferencePixels()
     QCOMPARE(publicDocument.pixelData(3, 3, 1, 1), inside);
     QCOMPARE(publicDocument.pixelData(-1, -1, 1, 1), outside);
     const auto referenceBounds = image->projection()->exactBounds();
+    const auto referenceDefaultPixel = image->projection()->defaultPixel();
     const auto referenceThumbnail = publicDocument.thumbnail(32, 16);
 
     namespace Gpu = LibrePaint::Image::Gpu;
@@ -188,6 +305,8 @@ void TestDocument::testCanvasBackgroundReferencePixels()
     auto gpuImage = KisImage::fromGpuImage(owner, QStringLiteral("Canvas background GPU"));
     target->setCurrentImage(gpuImage);
     QCOMPARE(gpuImage->defaultProjectionColor(), color);
+    QCOMPARE(gpuImage->rootLayer()->defaultProjectionColor(), color);
+    QCOMPARE(gpuImage->projection()->defaultPixel(), referenceDefaultPixel);
     Document publicTarget(target.data(), false);
     QCOMPARE(publicTarget.pixelData(3, 3, 1, 1), inside);
     QCOMPARE(publicTarget.pixelData(-1, -1, 1, 1), outside);
@@ -517,6 +636,7 @@ void TestDocument::testGpuSaveNotificationLifetimes_data()
     QTest::newRow("replace-image") << 2;
     QTest::newRow("close-on-completion") << 3;
     QTest::newRow("document-info-edit") << 4;
+    QTest::newRow("background-edit") << 5;
 }
 
 void TestDocument::testGpuSaveNotificationLifetimes()
@@ -565,6 +685,11 @@ void TestDocument::testGpuSaveNotificationLifetimes()
             document->documentInfo()->setAboutInfo(QStringLiteral("title"), QStringLiteral("After save"));
             document->setModified(true);
             break;
+        case 5: {
+            Document publicDocument(document.get(), false);
+            QVERIFY(publicDocument.setBackgroundColor(QColor(17, 34, 51, 128)));
+            break;
+        }
         }
     });
     QVERIFY(document->saveAs(path, KisDocument::nativeFormatMimeType(), false));
@@ -573,7 +698,7 @@ void TestDocument::testGpuSaveNotificationLifetimes()
     const auto loaded = Kra::RasterCodec::read(input);
     QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
     QCOMPARE(loaded.document.image.layers.first().tiles.first().rgba.mid((5 * 256 + 5) * 4, 4), QByteArray::fromHex("112233ff"));
-    if (reaction == 0 || reaction == 4) {
+    if (reaction == 0 || reaction == 4 || reaction == 5) {
         QCOMPARE(document->path(), path);
         QVERIFY(document->isModified());
         QCOMPARE(owner->operations().undoCount(), reaction == 0 ? 2 : 1);
@@ -584,6 +709,12 @@ void TestDocument::testGpuSaveNotificationLifetimes()
             QCOMPARE(document->documentInfo()->aboutInfo(QStringLiteral("title")), QStringLiteral("After save"));
             QVERIFY(loaded.document.files.value(QStringLiteral("documentinfo.xml")).contains("Before save"));
             QVERIFY(!loaded.document.files.value(QStringLiteral("documentinfo.xml")).contains("After save"));
+        }
+        if (reaction == 5) {
+            const std::array<quint8, 4> edited{17, 34, 51, 128};
+            const std::array<quint8, 4> original{};
+            QCOMPARE(owner->operations().snapshot()->projectionBackground, edited);
+            QCOMPARE(loaded.document.image.projectionBackground, original);
         }
     } else if (reaction == 1 || reaction == 3) {
         QVERIFY(!document);

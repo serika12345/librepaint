@@ -338,11 +338,16 @@ bool KisGroupLayer::projectionIsValid() const
 
 void KisGroupLayer::setDefaultProjectionColor(KoColor color)
 {
+    if (image() && image()->gpuImage()) {
+        image()->setDefaultProjectionColor(color);
+        return;
+    }
     m_d->paintDevice->setDefaultPixel(color);
 }
 
 KoColor KisGroupLayer::defaultProjectionColor() const
 {
+    if (image() && image()->gpuImage()) return image()->defaultProjectionColor();
     KoColor color(m_d->paintDevice->defaultPixel(), m_d->paintDevice->colorSpace());
     return color;
 }

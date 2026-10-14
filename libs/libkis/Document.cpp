@@ -256,14 +256,17 @@ QColor Document::backgroundColor()
 
 bool Document::setBackgroundColor(const QColor &color)
 {
-    if (!d->document) return false;
-    if (!d->document->image()) return false;
+    QPointer<KisDocument> document = d->document;
+    if (!document) return false;
+    auto *image = document->image().data();
+    if (!image) return false;
 
-    KoColor background = KoColor(color, d->document->image()->colorSpace());
-    d->document->image()->setDefaultProjectionColor(background);
+    KoColor background = KoColor(color, image->colorSpace());
+    image->setDefaultProjectionColor(background);
 
-    d->document->image()->setModifiedWithoutUndo();
-    d->document->image()->initialRefreshGraph();
+    image->setModifiedWithoutUndo();
+    if (!document || document->image().data() != image) return true;
+    image->initialRefreshGraph();
 
     return true;
 }

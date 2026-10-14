@@ -1669,13 +1669,15 @@ void KisPaintDevice::setDefaultPixel(const KoColor &defPixel)
 KoColor KisPaintDevice::defaultPixel() const
 {
     if (m_d->gpuImage) {
-        if (!m_d->gpuLayer) {
-            const auto &rgba = m_d->gpuImage->operations().snapshot()->projectionBackground;
+        const auto version = m_d->gpuImage->operations().snapshot();
+        const auto projectedLayer = m_d->gpuLayer ? m_d->gpuLayer : version->directProjectionLayer();
+        if (!projectedLayer) {
+            const auto &rgba = version->projectionBackground;
             const quint8 bgra[] = {rgba[2], rgba[1], rgba[0], rgba[3]};
             return KoColor(bgra, colorSpace());
         }
-        for (const auto &layer : m_d->gpuImage->operations().snapshot()->layers) {
-            if (layer.id != m_d->gpuLayer) continue;
+        for (const auto &layer : version->layers) {
+            if (layer.id != projectedLayer) continue;
             const auto &rgba = layer.defaultPixel;
             const quint8 bgra[] = {rgba[2], rgba[1], rgba[0], rgba[3]};
             return KoColor(bgra, colorSpace());

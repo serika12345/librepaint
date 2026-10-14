@@ -65,6 +65,8 @@ public:
      * compression finish before logical adoption; rejected writes are atomic.
      */
     Result writeRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes);
+    /** Direct background writes request pixels without adding history or edit notifications. */
+    Result writeProjectionBackground(const std::array<quint8, 4> &rgba);
     LayerId addLayer(const QString &name);
     Result selectLayer(LayerId layer);
     Result setLayerVisible(LayerId layer, bool visible);

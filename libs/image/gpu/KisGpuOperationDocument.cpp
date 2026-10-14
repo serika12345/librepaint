@@ -88,6 +88,33 @@ Result OperationDocument::checkMutation() const
     return Result::Success;
 }
 
+Result OperationDocument::writeProjectionBackground(const std::array<quint8, 4> &rgba)
+{
+    if (m_closed) return Result::Closed;
+    if (snapshot()->projectionBackground == rgba) return Result::Success;
+    const auto count = quint64(m_history.size()) + quint64(bool(m_preview));
+    if (count > std::numeric_limits<quint64>::max() - m_nextRevision) return Result::CapacityExceeded;
+    auto history = m_history;
+    auto nextRevision = m_nextRevision;
+    for (auto &state : history) {
+        auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*state));
+        version->projectionBackground = rgba;
+        version->m_revision = ++nextRevision;
+        state = version;
+    }
+    auto preview = m_preview;
+    if (preview) {
+        auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*preview));
+        version->projectionBackground = rgba;
+        version->m_revision = ++nextRevision;
+        preview = version;
+    }
+    m_history.swap(history);
+    m_preview = preview;
+    m_nextRevision = nextRevision;
+    return Result::Success;
+}
+
 Result OperationDocument::checkOperation(OperationId id) const
 {
     if (m_closed) return Result::Closed;
