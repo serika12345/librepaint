@@ -80,17 +80,36 @@ private Q_SLOTS:
     void freehandInputCommitsOneHistoryEntryAndCanBeCancelled_data();
     void freehandInputCommitsOneHistoryEntryAndCanBeCancelled();
     void replacementUpdatesPresentationInputHistoryAndSaving();
-    void ordinaryLayerPanelEditsUseOneDocumentHistory();
+    void layerPanelEditsUseOneDocumentHistory_data();
+    void layerPanelEditsUseOneDocumentHistory();
 private:
     KisPaintOpPresetSP m_preset;
 };
 
-void KisGpuDocumentViewTest::ordinaryLayerPanelEditsUseOneDocumentHistory()
+void KisGpuDocumentViewTest::layerPanelEditsUseOneDocumentHistory_data()
 {
+    QTest::addColumn<bool>("gpu");
+    QTest::newRow("ordinary") << false;
+    QTest::newRow("gpu") << true;
+}
+
+void KisGpuDocumentViewTest::layerPanelEditsUseOneDocumentHistory()
+{
+    QFETCH(bool, gpu);
+    std::shared_ptr<LibrePaint::Image::Gpu::Execution> execution;
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     const auto cs = KoColorSpaceRegistry::instance()->rgb8();
-    QVERIFY(document->newImage(QStringLiteral("Layer panel editing"), 32, 16, cs,
-                               KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    if (gpu) {
+        QString diagnostic;
+        auto device = LibrePaint::Image::Gpu::Device::createNative(diagnostic);
+        QVERIFY2(device, qPrintable(diagnostic));
+        execution = std::make_shared<LibrePaint::Image::Gpu::Execution>(device);
+        const auto owner = LibrePaint::Image::Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Layer panel editing")));
+    } else {
+        QVERIFY(document->newImage(QStringLiteral("Layer panel editing"), 32, 16, cs,
+                                   KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    }
     std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
     auto *view = window->newView(document.get());
     QVERIFY(view);
@@ -112,7 +131,12 @@ void KisGpuDocumentViewTest::ordinaryLayerPanelEditsUseOneDocumentHistory()
     layer->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(red.constData()), 5, 5, 1, 1);
     auto *manager = window->viewManager()->nodeManager();
     try {
+        manager->setNodeName(layer, QStringLiteral("Adjusting"));
+        image->waitForDone();
         manager->setNodeName(layer, QStringLiteral("Renamed"));
+        image->waitForDone();
+        manager->setNodeOpacity(layer, 192);
+        image->waitForDone();
         manager->setNodeOpacity(layer, 128);
     } catch (const std::exception &error) {
         QFAIL(error.what());

@@ -127,10 +127,14 @@ Result PaintImage::setLayerVisible(LayerId layer, bool visible)
 { return onThread() ? publish(m_d->document->setLayerVisible(layer, visible)) : Result::InvalidInput; }
 Result PaintImage::setLayerOpacity(LayerId layer, quint8 opacity)
 { return onThread() ? publish(m_d->document->setLayerOpacity(layer, opacity)) : Result::InvalidInput; }
+Result PaintImage::setLayerOpacity(LayerId layer, quint8 opacity, PropertyHistory history)
+{ return onThread() ? publish(m_d->document->setLayerOpacity(layer, opacity, history)) : Result::InvalidInput; }
 Result PaintImage::setLayerLocked(LayerId layer, bool locked)
 { return onThread() ? publish(m_d->document->setLayerLocked(layer, locked)) : Result::InvalidInput; }
 Result PaintImage::renameLayer(LayerId layer, const QString &name)
 { return onThread() ? publish(m_d->document->renameLayer(layer, name)) : Result::InvalidInput; }
+Result PaintImage::renameLayer(LayerId layer, const QString &name, PropertyHistory history)
+{ return onThread() ? publish(m_d->document->renameLayer(layer, name, history)) : Result::InvalidInput; }
 Result PaintImage::moveLayer(LayerId layer, qsizetype index)
 { return onThread() ? publish(m_d->document->moveLayer(layer, index)) : Result::InvalidInput; }
 Result PaintImage::removeLayer(LayerId layer)

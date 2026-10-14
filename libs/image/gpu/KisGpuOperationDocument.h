@@ -203,6 +203,9 @@ enum class Result {
     DeviceFailure
 };
 
+/** Consecutive panel adjustments form one undo step; independent edits retain separate steps. */
+enum class PropertyHistory { Separate, MergeConsecutive };
+
 struct Limits
 {
     qsizetype samplesPerStroke = 1024 * 1024;
@@ -265,6 +268,7 @@ public:
     Result selectLayer(LayerId layer);
     Result setLayerVisible(LayerId layer, bool visible);
     Result setLayerOpacity(LayerId layer, quint8 opacity);
+    Result setLayerOpacity(LayerId layer, quint8 opacity, PropertyHistory history);
     Result setLayerLocked(LayerId layer, bool locked);
     /** Direct background writes preserve history, pending input and fixed snapshots. */
     Result writeProjectionBackground(const std::array<quint8, 4> &rgba);
@@ -275,6 +279,7 @@ public:
     Result writeLayerLocked(LayerId layer, bool locked);
     Result writeLayerPinnedToTimeline(LayerId layer, bool pinned);
     Result renameLayer(LayerId layer, const QString &name);
+    Result renameLayer(LayerId layer, const QString &name, PropertyHistory history);
     /** Moves within the bottom-to-top layer list, preserving the selected identity. */
     Result moveLayer(LayerId layer, qsizetype index);
     /** Removes one layer; selection follows its nearest remaining list position. */
@@ -300,6 +305,7 @@ private:
         LayerProperty property = LayerProperty::None;
         LayerId layer = 0;
         QVariant before, after;
+        bool mergeable = false;
     };
     std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
     struct VersionPixelWrite
@@ -318,6 +324,7 @@ private:
     void replacePreview(const QSharedPointer<const PaintOperation> &operation);
     void commitVersion(const Snapshot &version);
     void commitVersion(const Snapshot &version, const PropertyChange &change);
+    void commitPropertyVersion(const Snapshot &version, PropertyChange change, PropertyHistory history);
 
     Limits m_limits;
     QUuid m_identity;

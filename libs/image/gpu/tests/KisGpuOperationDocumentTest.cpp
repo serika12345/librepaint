@@ -50,6 +50,10 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void mergedPropertiesPreservePinsSaveBoundariesAndRecovery();
+    void mergedNameResetRetainsItsRecordedBoundary();
+    void mergedOpacityResetPreservesSelectionAndDirectWrites();
+    void versionNinePropertyRecoveryRemainsReadable();
     void directLayerPropertiesPreserveOtherPropertyHistoryAndFixedVersions();
     void propertyRecoveryPreservesRecordedValuesAndRejectsDamagedChanges();
     void failedHistoryMovesPreserveEveryVersionAndCounter();
@@ -79,6 +83,94 @@ private Q_SLOTS:
     void layerRemovalReusesCapacityWithoutLosingRecoveryHistory_data();
     void layerRemovalReusesCapacityWithoutLosingRecoveryHistory();
 };
+
+void KisGpuOperationDocumentTest::mergedPropertiesPreservePinsSaveBoundariesAndRecovery()
+{
+    OperationDocument document({64, 64});
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.setLayerOpacity(layer, 128, PropertyHistory::MergeConsecutive), Result::Success);
+    const auto pinned = document.snapshot();
+    QCOMPARE(document.setLayerOpacity(layer, 64, PropertyHistory::MergeConsecutive), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(pinned->layers.first().opacity, quint8(128));
+    QCOMPARE(document.markSaved(pinned), Result::Success);
+    QVERIFY(document.isModified());
+    QCOMPARE(document.savedHistoryIndex(), -1);
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(restored.undo(), Result::Success);
+    QCOMPARE(restored.snapshot()->layers.first().opacity, quint8(255));
+    QCOMPARE(restored.redo(), Result::Success);
+    QCOMPARE(restored.snapshot()->layers.first().opacity, quint8(64));
+    QCOMPARE(document.markSaved(document.snapshot()), Result::Success);
+    QCOMPARE(document.setLayerOpacity(layer, 32, PropertyHistory::MergeConsecutive), Result::Success);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(!document.isModified());
+    QCOMPARE(document.snapshot()->layers.first().opacity, quint8(64));
+}
+
+void KisGpuOperationDocumentTest::mergedNameResetRetainsItsRecordedBoundary()
+{
+    OperationDocument document({64, 64});
+    const auto layer = document.activeLayer();
+    const auto initial = document.snapshot()->layers.first().name;
+    QCOMPARE(document.renameLayer(layer, QStringLiteral("Adjusted"), PropertyHistory::MergeConsecutive), Result::Success);
+    QCOMPARE(document.renameLayer(layer, initial, PropertyHistory::MergeConsecutive), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.writeLayerName(layer, QStringLiteral("Direct")), Result::Success);
+    OperationDocument restored({1, 1});
+    const auto recovery = document.recoveryData();
+    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
+    QCOMPARE(restored.recoveryData(), recovery);
+    QCOMPARE(restored.snapshot()->layers.first().name, QStringLiteral("Direct"));
+    QCOMPARE(restored.undo(), Result::Success);
+    QCOMPARE(restored.snapshot()->layers.first().name, initial);
+    QCOMPARE(restored.redo(), Result::Success);
+    QCOMPARE(restored.snapshot()->layers.first().name, initial);
+}
+
+void KisGpuOperationDocumentTest::mergedOpacityResetPreservesSelectionAndDirectWrites()
+{
+    OperationDocument document({64, 64});
+    const auto first = document.activeLayer();
+    const auto second = document.addLayer(QStringLiteral("Other"));
+    QVERIFY(second);
+    QCOMPARE(document.selectLayer(first), Result::Success);
+    QCOMPARE(document.markSaved(document.snapshot()), Result::Success);
+    const auto baseline = document.snapshot();
+    QCOMPARE(document.setLayerOpacity(first, 128, PropertyHistory::MergeConsecutive), Result::Success);
+    QCOMPARE(document.selectLayer(second), Result::Success);
+    QCOMPARE(document.writeLayerName(first, QStringLiteral("Direct")), Result::Success);
+    QCOMPARE(document.setLayerOpacity(first, 255, PropertyHistory::MergeConsecutive), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.activeLayer(), second);
+    QCOMPARE(document.snapshot()->layers.first().name, QStringLiteral("Direct"));
+    QCOMPARE(document.snapshot()->layers.first().opacity, quint8(255));
+    QVERIFY(!document.isModified());
+    QCOMPARE(baseline->activeLayer, first);
+    QCOMPARE(baseline->layers.first().name, QStringLiteral("Paint Layer 1"));
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(restored.activeLayer(), second);
+    QVERIFY(!restored.isModified());
+}
+
+void KisGpuOperationDocumentTest::versionNinePropertyRecoveryRemainsReadable()
+{
+    OperationDocument document({64, 64});
+    QCOMPARE(document.renameLayer(document.activeLayer(), QStringLiteral("Retained")), Result::Success);
+    auto payload = document.recoveryData().chopped(32);
+    // Version 9 has the same fields and requires unequal property delta values.
+    payload[4] = 0;
+    payload[5] = 9;
+    payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(payload), Result::Success);
+    QCOMPARE(restored.snapshot()->layers.first().name, QStringLiteral("Retained"));
+    QCOMPARE(restored.undo(), Result::Success);
+    QCOMPARE(restored.snapshot()->layers.first().name, QStringLiteral("Paint Layer 1"));
+}
 
 void KisGpuOperationDocumentTest::directLayerPropertiesPreserveOtherPropertyHistoryAndFixedVersions()
 {
@@ -638,6 +730,10 @@ void KisGpuOperationDocumentTest::emptyAndInvalidRequestsLeaveHistoryUnchanged()
     QVERIFY_THROWS_EXCEPTION(std::invalid_argument, OperationDocument(QSize(0, 1)));
     OperationDocument document({64, 64});
     const auto original = document.snapshot();
+    const auto invalidHistory = static_cast<PropertyHistory>(255);
+    QCOMPARE(document.renameLayer(document.activeLayer(), QStringLiteral("Invalid"), invalidHistory), Result::InvalidInput);
+    QCOMPARE(document.setLayerOpacity(document.activeLayer(), 128, invalidHistory), Result::InvalidInput);
+    QCOMPARE(document.snapshot(), original);
     Brush invalid;
     invalid.diameter = std::numeric_limits<qreal>::quiet_NaN();
     QVERIFY(document.beginStroke(document.activeLayer(), invalid, 0).isNull());

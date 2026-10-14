@@ -298,6 +298,38 @@ void OperationDocument::commitVersion(const Snapshot &version, const PropertyCha
     m_index = index;
 }
 
+void OperationDocument::commitPropertyVersion(const Snapshot &version, PropertyChange change, PropertyHistory history)
+{
+    change.mergeable = history == PropertyHistory::MergeConsecutive;
+    const auto previous = m_propertyChanges[m_index];
+    if (change.mergeable && previous.mergeable && m_index > 0 && !redoCount() &&
+        previous.property == change.property && previous.layer == change.layer &&
+        previous.after == change.before && snapshot()->m_modifiedRevision != m_savedRevision) {
+        change.before = previous.before;
+        auto states = m_history;
+        auto changes = m_propertyChanges;
+        int index = m_index;
+        if (change.property == LayerProperty::Opacity && change.before == change.after) {
+            states.removeLast();
+            changes.removeLast();
+            --index;
+            auto current = QSharedPointer<DocumentVersion>(new DocumentVersion(*states[index]));
+            current->activeLayer = version->activeLayer;
+            current->m_revision = version->m_revision;
+            states[index] = current;
+        } else {
+            version->m_committed = true;
+            states[index] = version;
+            changes[index] = change;
+        }
+        m_history.swap(states);
+        m_propertyChanges.swap(changes);
+        m_index = index;
+        return;
+    }
+    commitVersion(version, change);
+}
+
 Result OperationDocument::commitStroke(OperationId id)
 {
     const auto status = checkOperation(id);
@@ -363,9 +395,13 @@ Result OperationDocument::setLayerVisible(LayerId layer, bool visible)
 }
 
 Result OperationDocument::setLayerOpacity(LayerId layer, quint8 opacity)
+{ return setLayerOpacity(layer, opacity, PropertyHistory::Separate); }
+
+Result OperationDocument::setLayerOpacity(LayerId layer, quint8 opacity, PropertyHistory history)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
+    if (history != PropertyHistory::Separate && history != PropertyHistory::MergeConsecutive) return Result::InvalidInput;
     const auto index = layerIndex(layer);
     if (index < 0) return Result::LayerUnavailable;
     if (snapshot()->layers[index].opacity == opacity) return Result::Success;
@@ -373,7 +409,7 @@ Result OperationDocument::setLayerOpacity(LayerId layer, quint8 opacity)
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     version->layers[index].opacity = opacity;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
-    commitVersion(version, {LayerProperty::Opacity, layer, QVariant::fromValue(snapshot()->layers[index].opacity), QVariant::fromValue(opacity)});
+    commitPropertyVersion(version, {LayerProperty::Opacity, layer, QVariant::fromValue(snapshot()->layers[index].opacity), QVariant::fromValue(opacity)}, history);
     return Result::Success;
 }
 
@@ -393,9 +429,13 @@ Result OperationDocument::setLayerLocked(LayerId layer, bool locked)
 }
 
 Result OperationDocument::renameLayer(LayerId layer, const QString &name)
+{ return renameLayer(layer, name, PropertyHistory::Separate); }
+
+Result OperationDocument::renameLayer(LayerId layer, const QString &name, PropertyHistory history)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
+    if (history != PropertyHistory::Separate && history != PropertyHistory::MergeConsecutive) return Result::InvalidInput;
     const auto index = layerIndex(layer);
     if (index < 0) return Result::LayerUnavailable;
     if (!validLayerName(name)) return Result::InvalidInput;
@@ -404,7 +444,7 @@ Result OperationDocument::renameLayer(LayerId layer, const QString &name)
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     version->layers[index].name = name;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
-    commitVersion(version, {LayerProperty::Name, layer, QVariant::fromValue(snapshot()->layers[index].name), QVariant::fromValue(name)});
+    commitPropertyVersion(version, {LayerProperty::Name, layer, QVariant::fromValue(snapshot()->layers[index].name), QVariant::fromValue(name)}, history);
     return Result::Success;
 }
 

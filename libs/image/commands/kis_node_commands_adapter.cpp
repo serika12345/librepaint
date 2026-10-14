@@ -25,8 +25,19 @@
 #include "kis_layer.h"
 #include "kis_selection_mask.h"
 #include "kundo2stack.h"
+#include "gpu/KisGpuPaintImage.h"
+#include <stdexcept>
 
 namespace {
+
+LibrePaint::Image::Gpu::LayerId gpuLayerId(KisImageSP image, KisNodeSP node)
+{
+    if (!node || node->image() != image.data())
+        throw std::invalid_argument("GPU layer edits require a node in the current image");
+    for (const auto &layer : image->gpuImage()->operations().snapshot()->layers)
+        if (layer.uuid == node->uuid()) return layer.id;
+    throw std::invalid_argument("GPU layer edits require a paint layer in the current document");
+}
 
 bool prepareNodeMove(KisNodeSP node, KisNodeSP parent)
 {
@@ -163,6 +174,14 @@ void KisNodeCommandsAdapter::removeNode(KisNodeSP node)
 
 void KisNodeCommandsAdapter::setOpacity(KisNodeSP node, qint32 opacity)
 {
+    const auto currentImage = image();
+    if (const auto owner = currentImage->gpuImage()) {
+        const auto result = owner->setLayerOpacity(gpuLayerId(currentImage, node), quint8(opacity),
+            LibrePaint::Image::Gpu::PropertyHistory::MergeConsecutive);
+        if (result != LibrePaint::Image::Gpu::Result::Success)
+            throw std::runtime_error("GPU layer opacity edit failed: " + std::to_string(int(result)));
+        return;
+    }
     KUndo2Command *cmd = new KisNodeOpacityCommand(node, opacity);
     applyOneCommandAsync(cmd);
 }
@@ -177,6 +196,14 @@ void KisNodeCommandsAdapter::setCompositeOp(KisNodeSP node,
 
 void KisNodeCommandsAdapter::setNodeName(KisNodeSP node, const QString &name)
 {
+    const auto currentImage = image();
+    if (const auto owner = currentImage->gpuImage()) {
+        const auto result = owner->renameLayer(gpuLayerId(currentImage, node), name,
+            LibrePaint::Image::Gpu::PropertyHistory::MergeConsecutive);
+        if (result != LibrePaint::Image::Gpu::Result::Success)
+            throw std::runtime_error("GPU layer rename failed: " + std::to_string(int(result)));
+        return;
+    }
     KUndo2Command *cmd = new KisNodeRenameCommand(node, node->name(), name);
     applyOneCommandAsync(cmd);
 }

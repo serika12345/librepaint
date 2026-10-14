@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 9;
+constexpr quint16 FormatVersion = 10;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -185,7 +185,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
     qint32 width = 0, height = 0;
     quint64 nextRevision = 0, nextOperation = 0, nextLayer = 0, savedRevision = 0;
     stream >> magic >> format >> width >> height >> nextRevision >> nextOperation >> nextLayer >> savedRevision >> tileCount;
-    if (magic != Magic || format != FormatVersion || width <= 0 || height <= 0 ||
+    if (magic != Magic || (format != 9 && format != FormatVersion) || width <= 0 || height <= 0 ||
         width > CoordinateLimit || height > CoordinateLimit || savedRevision > nextRevision ||
         !readableCount(stream, tileCount, payload.size(), 12)) return Result::InvalidRecovery;
     const quint64 retainedTileLimit = quint64(m_limits.rasterBytes / RgbaTile::ByteCount) * (HistoryLimit + 1);
@@ -398,7 +398,8 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
                     change.after = bool(after);
                 }
             }
-            if (change.before == change.after) return Result::InvalidRecovery;
+            if (change.before == change.after && (format < 10 || change.property != LayerProperty::Name))
+                return Result::InvalidRecovery;
         }
         changes.append(change);
         history.append(state);
