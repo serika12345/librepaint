@@ -50,6 +50,7 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void selectionDuringInputPreservesPaintingAndHistory();
     void mergedPanelTogglesPreservePinsAndSaveBoundaries_data();
     void mergedPanelTogglesPreservePinsAndSaveBoundaries();
     void historyActionsSurviveDirectWritesMergingAndRecovery();
@@ -131,6 +132,53 @@ void KisGpuOperationDocumentTest::mergedNameResetRetainsItsRecordedBoundary()
     QCOMPARE(restored.snapshot()->layers.first().name, initial);
     QCOMPARE(restored.redo(), Result::Success);
     QCOMPARE(restored.snapshot()->layers.first().name, initial);
+}
+
+void KisGpuOperationDocumentTest::selectionDuringInputPreservesPaintingAndHistory()
+{
+    OperationDocument document({64, 64});
+    const auto first = document.activeLayer();
+    const auto second = document.addLayer(QStringLiteral("Other"));
+    QVERIFY(second);
+    QCOMPARE(document.selectLayer(first), Result::Success);
+    const auto saved = document.snapshot();
+    QCOMPARE(document.markSaved(saved), Result::Success);
+    const auto id = document.beginStroke(first, {}, 17);
+    QVERIFY(!id.isNull());
+    QCOMPARE(document.appendSamples(id, {sample(8, 9)}), Result::Success);
+    const auto preview = document.preview();
+    QCOMPARE(document.selectLayer(second), Result::Success);
+    QCOMPARE(document.activeLayer(), second);
+    QCOMPARE(document.preview()->activeLayer, second);
+    QCOMPARE(preview->activeLayer, first);
+    QCOMPARE(saved->activeLayer, first);
+    QCOMPARE(document.undoCount(), 1);
+    QVERIFY(!document.isModified());
+    QCOMPARE(document.preview()->pendingOperation(), id);
+    QCOMPARE(document.appendSamples(id, {sample(12, 13)}), Result::Success);
+    QCOMPARE(document.preview()->activeLayer, second);
+    QCOMPARE(document.preview()->layers[0].operations.size(), 1);
+    QVERIFY(document.preview()->layers[1].operations.empty());
+    QCOMPARE(document.commitStroke(id), Result::Success);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(document.activeLayer(), second);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.activeLayer(), second);
+    QVERIFY(!document.isModified());
+    QCOMPARE(document.redo(), Result::Success);
+    const auto committed = document.snapshot();
+    const auto cancelled = document.beginStroke(first, {}, 18);
+    QVERIFY(!cancelled.isNull());
+    QCOMPARE(document.selectLayer(first), Result::Success);
+    QCOMPARE(document.cancelStroke(cancelled), Result::Success);
+    QCOMPARE(document.activeLayer(), first);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(committed->activeLayer, second);
+    const auto beforeInvalid = document.recoveryData();
+    QCOMPARE(document.selectLayer(0), Result::LayerUnavailable);
+    QCOMPARE(document.recoveryData(), beforeInvalid);
+    document.close();
+    QCOMPARE(document.selectLayer(first), Result::Closed);
 }
 
 void KisGpuOperationDocumentTest::mergedPanelTogglesPreservePinsAndSaveBoundaries_data()

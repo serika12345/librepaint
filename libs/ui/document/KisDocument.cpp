@@ -2900,6 +2900,17 @@ void KisDocument::setReferenceImagesLayer(KisSharedPtr<KisReferenceImagesLayer> 
 
 void KisDocument::setPreActivatedNode(KisNodeSP activatedNode)
 {
+    if (activatedNode && d->image && activatedNode->image() == d->image.data()) {
+        if (const auto owner = d->image->gpuImage()) {
+            for (const auto &layer : owner->operations().snapshot()->layers) {
+                if (layer.uuid != activatedNode->uuid()) continue;
+                if (layer.id == owner->operations().activeLayer()) break;
+                const auto result = owner->selectLayer(layer.id);
+                KIS_SAFE_ASSERT_RECOVER_RETURN(result == LibrePaint::Image::Gpu::Result::Success);
+                break;
+            }
+        }
+    }
     d->preActivatedNode = activatedNode;
 }
 
@@ -2946,6 +2957,18 @@ void KisDocument::setCurrentImage(KisImageSP image, bool forceInitialUpdate, Kis
 
     d->setImageAndInitIdleWatcher(image);
     d->image->setUndoStore(new KisDocumentUndoStore(d->undoStack));
+    if (!preActivatedNode) {
+        if (const auto owner = image->gpuImage()) {
+            const auto selected = owner->operations().activeLayer();
+            const auto layers = owner->operations().snapshot()->layers;
+            for (qsizetype index = 0; index < layers.size(); ++index) {
+                if (layers[index].id == selected) {
+                    preActivatedNode = image->root()->at(index);
+                    break;
+                }
+            }
+        }
+    }
     d->shapeController->setImage(image, preActivatedNode);
     d->image->setMirrorAxesCenter(KisAlgebra2D::absoluteToRelative(d->mirrorAxisConfig.axisPosition(), image->bounds()));
     setModified(false);

@@ -88,9 +88,71 @@ private Q_SLOTS:
     void layerPanelEditsUseOneDocumentHistory_data();
     void layerPanelEditsUseOneDocumentHistory();
     void ordinaryLayerChangesDuringInput();
+    void layerPanelSelectionSurvivesSaving();
 private:
     KisPaintOpPresetSP m_preset;
 };
+
+void KisGpuDocumentViewTest::layerPanelSelectionSurvivesSaving()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    namespace Kra = LibrePaint::ImportExport::Kra;
+    QString diagnostic;
+    auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+    QVERIFY(owner->addLayer(QStringLiteral("Middle")));
+    QVERIFY(owner->addLayer(QStringLiteral("Top")));
+    const auto saved = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
+    const auto undoCount = owner->operations().undoCount();
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Selected layer")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    QTRY_VERIFY(view->currentNode());
+    QCOMPARE(view->currentNode()->uuid(), saved->layers.last().uuid);
+    const auto middle = lifetime->image()->root()->at(1);
+    QVERIFY(middle);
+    window->viewManager()->nodeManager()->slotUiActivatedNode(middle);
+    QCOMPARE(view->currentNode(), middle);
+    QCOMPARE(lifetime->preActivatedNode(), middle);
+    QCOMPARE(owner->operations().activeLayer(), saved->layers[1].id);
+    QCOMPARE(owner->operations().undoCount(), undoCount);
+    QVERIFY(!owner->operations().isModified());
+    QVERIFY(!lifetime->isModified());
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("selected.kra"));
+    lifetime->setFileBatchMode(true);
+    QVERIFY(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false));
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto loaded = Kra::RasterCodec::read(file);
+    QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
+    QCOMPARE(loaded.document.image.activeLayer, 1);
+    QCOMPARE(loaded.document.image.layers[1].uuid, middle->uuid());
+    const auto reopened = Gpu::PaintImageSP::create(execution, loaded.document.image);
+    lifetime->setCurrentImage(KisImage::fromGpuImage(reopened, QStringLiteral("Reopened selection")));
+    QTRY_VERIFY(view->currentNode());
+    QTRY_COMPARE(view->currentNode()->uuid(), loaded.document.image.layers[1].uuid);
+    QCOMPARE(reopened->operations().activeLayer(), reopened->operations().snapshot()->layers[1].id);
+    QCOMPARE(reopened->operations().undoCount(), 0);
+    QVERIFY(!lifetime->isModified());
+}
 
 void KisGpuDocumentViewTest::layerPanelEditsUseOneDocumentHistory_data()
 {
@@ -327,10 +389,12 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QTest::addColumn<bool>("exhaustInput");
     QTest::addColumn<bool>("closeAfterError");
     QTest::addColumn<bool>("hideDuringStroke");
-    QTest::newRow("paint-and-cancel") << false << false << false;
-    QTest::newRow("input-limit") << true << false << false;
-    QTest::newRow("close-on-input-limit") << true << true << false;
-    QTest::newRow("hide-during-stroke") << false << false << true;
+    QTest::addColumn<bool>("selectDuringStroke");
+    QTest::newRow("paint-and-cancel") << false << false << false << false;
+    QTest::newRow("input-limit") << true << false << false << false;
+    QTest::newRow("close-on-input-limit") << true << true << false << false;
+    QTest::newRow("hide-during-stroke") << false << false << true << false;
+    QTest::newRow("select-during-stroke") << false << false << false << true;
 }
 
 void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelled()
@@ -338,6 +402,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QFETCH(bool, exhaustInput);
     QFETCH(bool, closeAfterError);
     QFETCH(bool, hideDuringStroke);
+    QFETCH(bool, selectDuringStroke);
     namespace Gpu = LibrePaint::Image::Gpu;
     QString diagnostic;
     const auto device = Gpu::Device::createNative(diagnostic);
@@ -346,6 +411,8 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     Gpu::Limits limits;
     if (exhaustInput) limits.samplesPerStroke = 4;
     auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64), limits);
+    if (selectDuringStroke) QVERIFY(owner->addLayer(QStringLiteral("Paint target")));
+    const auto paintTarget = owner->operations().activeLayer();
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("GPU freehand input")));
     std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
@@ -435,6 +502,26 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
         QTest::mouseMove(native.data(), last);
     }
     QTest::qWait(10);
+    if (selectDuringStroke) {
+        const auto other = documentLifetime->image()->root()->firstChild();
+        window->viewManager()->nodeManager()->slotUiActivatedNode(other);
+        QCOMPARE(view->currentNode(), other);
+        QCOMPARE(owner->operations().activeLayer(), owner->operations().snapshot()->layers.first().id);
+        QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, last);
+        pressed = false;
+        QVERIFY(!owner->operations().hasActiveStroke());
+        QCOMPARE(owner->operations().undoCount(), 2);
+        QCOMPARE(owner->readRgbaPixels(paintTarget, QRect(40, 40, 1, 1), 4).bytes,
+                 QByteArray::fromHex("1181f1ff"));
+        QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(40, 40, 1, 1), 4).bytes,
+                 QByteArray(4, '\0'));
+        documentLifetime->undoStack()->undo();
+        QCOMPARE(owner->operations().undoCount(), 1);
+        QCOMPARE(view->currentNode(), other);
+        QCOMPARE(owner->readRgbaPixels(paintTarget, QRect(40, 40, 1, 1), 4).bytes,
+                 QByteArray(4, '\0'));
+        return;
+    }
     if (hideDuringStroke) {
         auto *manager = window->viewManager()->nodeManager();
         QTimer release;

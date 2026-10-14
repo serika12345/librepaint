@@ -398,13 +398,19 @@ LayerId OperationDocument::addLayer(const QString &name)
 
 Result OperationDocument::selectLayer(LayerId layer)
 {
-    const auto status = checkMutation();
-    if (status != Result::Success) return status;
+    if (m_closed) return Result::Closed;
     if (layerIndex(layer) < 0) return Result::LayerUnavailable;
     if (layer == activeLayer()) return Result::Success;
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     version->activeLayer = layer;
+    Snapshot preview = m_preview;
+    if (preview) {
+        QSharedPointer<DocumentVersion> selected(new DocumentVersion(*preview));
+        selected->activeLayer = layer;
+        preview = selected;
+    }
     m_history[m_index] = version;
+    m_preview = preview;
     return Result::Success;
 }
 
