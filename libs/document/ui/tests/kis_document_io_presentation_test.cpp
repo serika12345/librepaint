@@ -12,6 +12,7 @@
 
 #include <QApplication>
 #include <QSignalSpy>
+#include <memory>
 
 class KisDocumentIoPresentationTest : public QObject
 {
@@ -19,6 +20,8 @@ class KisDocumentIoPresentationTest : public QObject
 
 private Q_SLOTS:
     void testSaveNotificationOrder();
+    void testSaveNotificationAllowsDeletion_data();
+    void testSaveNotificationAllowsDeletion();
     void testCancelledSaveHasNoPresentation();
     void testBatchFailureEmitsStatusWithoutDialog();
     void testBatchModeSuppressesLoadDialogs();
@@ -26,6 +29,34 @@ private Q_SLOTS:
     void testAutoSaveStatusMessages();
     void testAutoSaveFailureUsesStatusFallback();
 };
+
+void KisDocumentIoPresentationTest::testSaveNotificationAllowsDeletion_data()
+{
+    QTest::addColumn<bool>("closeOnCompletion");
+    QTest::newRow("completed") << true;
+    QTest::newRow("saving-finished") << false;
+}
+
+void KisDocumentIoPresentationTest::testSaveNotificationAllowsDeletion()
+{
+    QFETCH(bool, closeOnCompletion);
+    auto presentation = std::make_unique<KisDocumentIoPresentation>();
+    QStringList notifications;
+    connect(presentation.get(), &KisDocumentIoPresentation::savingCompleted, this, [&] {
+        notifications.append(QStringLiteral("completed"));
+        if (closeOnCompletion) presentation.reset();
+    });
+    connect(presentation.get(), &KisDocumentIoPresentation::savingFinished, this, [&](const QString &) {
+        notifications.append(QStringLiteral("savingFinished"));
+        if (!closeOnCompletion) presentation.reset();
+    });
+    connect(presentation.get(), &KisDocumentIoPresentation::statusBarMessage, this, [&](const QString &, int) {
+        notifications.append(QStringLiteral("statusBarMessage"));
+    });
+    presentation->notifySaveSucceeded(QStringLiteral("/tmp/example.kra"));
+    QVERIFY(!presentation);
+    QCOMPARE(notifications, closeOnCompletion ? QStringList({"completed"}) : QStringList({"completed", "savingFinished"}));
+}
 
 void KisDocumentIoPresentationTest::testSaveNotificationOrder()
 {
