@@ -276,9 +276,11 @@ public:
     /** Selection is screen state; selecting an existing layer adds no history entry. */
     Result selectLayer(LayerId layer);
     Result setLayerVisible(LayerId layer, bool visible);
+    Result setLayerVisible(LayerId layer, bool visible, PropertyHistory history);
     Result setLayerOpacity(LayerId layer, quint8 opacity);
     Result setLayerOpacity(LayerId layer, quint8 opacity, PropertyHistory history);
     Result setLayerLocked(LayerId layer, bool locked);
+    Result setLayerLocked(LayerId layer, bool locked, PropertyHistory history);
     /** Direct background writes preserve history, pending input and fixed snapshots. */
     Result writeProjectionBackground(const std::array<quint8, 4> &rgba);
     /** Direct property writes preserve history transitions, pending input and fixed snapshots. */

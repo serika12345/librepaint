@@ -50,6 +50,8 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void mergedPanelTogglesPreservePinsAndSaveBoundaries_data();
+    void mergedPanelTogglesPreservePinsAndSaveBoundaries();
     void historyActionsSurviveDirectWritesMergingAndRecovery();
     void mergedPropertiesPreservePinsSaveBoundariesAndRecovery();
     void mergedNameResetRetainsItsRecordedBoundary();
@@ -129,6 +131,62 @@ void KisGpuOperationDocumentTest::mergedNameResetRetainsItsRecordedBoundary()
     QCOMPARE(restored.snapshot()->layers.first().name, initial);
     QCOMPARE(restored.redo(), Result::Success);
     QCOMPARE(restored.snapshot()->layers.first().name, initial);
+}
+
+void KisGpuOperationDocumentTest::mergedPanelTogglesPreservePinsAndSaveBoundaries_data()
+{
+    QTest::addColumn<bool>("locked");
+    QTest::newRow("visibility") << false;
+    QTest::newRow("lock") << true;
+}
+
+void KisGpuOperationDocumentTest::mergedPanelTogglesPreservePinsAndSaveBoundaries()
+{
+    QFETCH(bool, locked);
+    OperationDocument document({64, 64});
+    const auto first = document.activeLayer();
+    const auto second = document.addLayer(QStringLiteral("Other"));
+    QVERIFY(second);
+    QCOMPARE(document.selectLayer(first), Result::Success);
+    const auto saved = document.snapshot();
+    QCOMPARE(document.markSaved(saved), Result::Success);
+    const auto set = [&](OperationDocument &target, bool enabled, PropertyHistory history) {
+        return locked ? target.setLayerLocked(first, enabled, history)
+                      : target.setLayerVisible(first, !enabled, history);
+    };
+    const auto state = [&](const Snapshot &version) {
+        return locked ? version->layers.first().userLocked : !version->layers.first().visible;
+    };
+    QCOMPARE(set(document, true, PropertyHistory::MergeConsecutive), Result::Success);
+    const auto changed = document.snapshot();
+    QCOMPARE(document.selectLayer(second), Result::Success);
+    QCOMPARE(document.writeLayerName(first, QStringLiteral("Direct")), Result::Success);
+    QCOMPARE(set(document, false, PropertyHistory::MergeConsecutive), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.activeLayer(), second);
+    QCOMPARE(document.snapshot()->layers.first().name, QStringLiteral("Direct"));
+    QVERIFY(!document.isModified());
+    QVERIFY(!state(saved));
+    QVERIFY(state(changed));
+    QCOMPARE(set(document, true, PropertyHistory::MergeConsecutive), Result::Success);
+    QCOMPARE(document.markSaved(document.snapshot()), Result::Success);
+    QCOMPARE(set(document, false, PropertyHistory::MergeConsecutive), Result::Success);
+    QCOMPARE(document.undoCount(), 3);
+    QCOMPARE(document.savedHistoryIndex(), 2);
+    QVERIFY(document.isModified());
+    const auto beforeInvalid = document.recoveryData();
+    QCOMPARE(set(document, true, PropertyHistory(-1)), Result::InvalidInput);
+    QCOMPARE(document.recoveryData(), beforeInvalid);
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(restored.undo(), Result::Success);
+    QVERIFY(state(restored.snapshot()));
+    QVERIFY(!restored.isModified());
+    QCOMPARE(restored.redo(), Result::Success);
+    QVERIFY(!state(restored.snapshot()));
+    const auto action = locked ? HistoryAction::ChangeLock : HistoryAction::ChangeVisibility;
+    QCOMPARE(restored.historyAction(2), action);
+    QCOMPARE(restored.historyAction(3), action);
 }
 
 void KisGpuOperationDocumentTest::historyActionsSurviveDirectWritesMergingAndRecovery()

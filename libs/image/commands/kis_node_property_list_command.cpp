@@ -16,6 +16,7 @@
 #include "kis_undo_adapter.h"
 #include "kis_layer_properties_icons.h"
 #include "kis_command_ids.h"
+#include "gpu/KisGpuPaintImage.h"
 
 #include <memory>
 #include <QtGlobal>
@@ -23,6 +24,8 @@
 #include <qscopedpointer.h>
 #include <qset.h>
 #include <qvariant.h>
+#include <QScopeGuard>
+#include <stdexcept>
 
 // HACK! please refactor out!
 #include "kis_simple_stroke_strategy.h"
@@ -237,6 +240,33 @@ const QSet<QString>& KisNodePropertyListCommand::propsWithNoUpdates()
 void KisNodePropertyListCommand::setNodePropertiesAutoUndo(KisNodeSP node, KisImageSP image, PropertyList proplist)
 {
     const QSet<QString> properties = changedProperties(node->sectionModelProperties(), proplist);
+
+    if (const auto owner = image->gpuImage()) {
+        if (properties.isEmpty()) return;
+        if (properties.size() == 1 &&
+            (properties.contains(KisLayerPropertiesIcons::visible.id()) ||
+             properties.contains(KisLayerPropertiesIcons::locked.id()))) {
+            namespace Gpu = LibrePaint::Image::Gpu;
+            if (node->image() != image.data())
+                throw std::invalid_argument("GPU layer properties require a node in the current image");
+            Gpu::LayerId layerId = 0;
+            for (const auto &layer : owner->operations().snapshot()->layers)
+                if (layer.uuid == node->uuid()) { layerId = layer.id; break; }
+            image->barrierLock();
+            const auto unlock = qScopeGuard([&] { image->unlock(); });
+            const auto id = *properties.begin();
+            for (const auto &property : proplist) {
+                if (property.id != id) continue;
+                const auto result = id == KisLayerPropertiesIcons::visible.id()
+                    ? owner->setLayerVisible(layerId, property.state.toBool(), Gpu::PropertyHistory::MergeConsecutive)
+                    : owner->setLayerLocked(layerId, property.state.toBool(), Gpu::PropertyHistory::MergeConsecutive);
+                if (result != Gpu::Result::Success)
+                    throw std::runtime_error("GPU layer property edit failed: " + std::to_string(int(result)));
+                return;
+            }
+            throw std::invalid_argument("GPU layer property edit requires the changed value");
+        }
+    }
 
     const bool undo = !properties.isEmpty() &&
         (properties.size() != 1 ||

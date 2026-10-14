@@ -13,6 +13,8 @@
 #include <QStatusBar>
 #include <QScopeGuard>
 #include <QTemporaryDir>
+#include <QTimer>
+#include <QSettings>
 #include <QFile>
 #include <kra/KisKraRasterCodec.h>
 #include <KLocalizedString>
@@ -85,6 +87,7 @@ private Q_SLOTS:
     void replacementUpdatesPresentationInputHistoryAndSaving();
     void layerPanelEditsUseOneDocumentHistory_data();
     void layerPanelEditsUseOneDocumentHistory();
+    void ordinaryLayerChangesDuringInput();
 private:
     KisPaintOpPresetSP m_preset;
 };
@@ -92,13 +95,17 @@ private:
 void KisGpuDocumentViewTest::layerPanelEditsUseOneDocumentHistory_data()
 {
     QTest::addColumn<bool>("gpu");
-    QTest::newRow("ordinary") << false;
-    QTest::newRow("gpu") << true;
+    QTest::addColumn<bool>("locked");
+    QTest::newRow("ordinary") << false << false;
+    QTest::newRow("gpu") << true << false;
+    QTest::newRow("ordinary-lock") << false << true;
+    QTest::newRow("gpu-lock") << true << true;
 }
 
 void KisGpuDocumentViewTest::layerPanelEditsUseOneDocumentHistory()
 {
     QFETCH(bool, gpu);
+    QFETCH(bool, locked);
     std::shared_ptr<LibrePaint::Image::Gpu::Execution> execution;
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     const auto cs = KoColorSpaceRegistry::instance()->rgb8();
@@ -170,6 +177,41 @@ void KisGpuDocumentViewTest::layerPanelEditsUseOneDocumentHistory()
     QByteArray pixel(4, '\0');
     image->projection()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 5, 5, 1, 1);
     QCOMPARE(pixel, QByteArray::fromHex("0000ff80"));
+    QCOMPARE(manager->activeNode(), layer);
+    const auto toggle = [&] {
+        if (locked) manager->toggleLock();
+        else manager->toggleVisibility();
+    };
+    const auto propertySet = [&] { return locked ? layer->userLocked() : !layer->visible(); };
+    try {
+        toggle();
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    image->waitForDone();
+    QVERIFY(propertySet());
+    QCOMPARE(lifetime->undoStack()->count(), 3);
+    image->projection()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 5, 5, 1, 1);
+    QCOMPARE(pixel, locked ? QByteArray::fromHex("0000ff80") : QByteArray(4, '\0'));
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QVERIFY(!propertySet());
+    lifetime->undoStack()->redo();
+    image->waitForDone();
+    QVERIFY(propertySet());
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QVERIFY(!propertySet());
+    lifetime->undoStack()->redo();
+    image->waitForDone();
+    try {
+        toggle();
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    image->waitForDone();
+    QVERIFY(!propertySet());
+    QCOMPARE(lifetime->undoStack()->count(), 2);
     if (gpu) {
         manager->setNodeName(layer, QStringLiteral("Temporary"));
         manager->setNodeName(layer, QStringLiteral("Renamed"));
@@ -178,19 +220,124 @@ void KisGpuDocumentViewTest::layerPanelEditsUseOneDocumentHistory()
     }
 }
 
+void KisGpuDocumentViewTest::ordinaryLayerChangesDuringInput()
+{
+    QSettings displaySettings(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) +
+                              QStringLiteral("/kritadisplayrc"), QSettings::IniFormat);
+    const bool hadRenderer = displaySettings.contains(QStringLiteral("OpenGLRenderer"));
+    const auto previousRenderer = displaySettings.value(QStringLiteral("OpenGLRenderer"));
+    const auto restoreCanvas = qScopeGuard([&] {
+        if (hadRenderer) displaySettings.setValue(QStringLiteral("OpenGLRenderer"), previousRenderer);
+        else displaySettings.remove(QStringLiteral("OpenGLRenderer"));
+        displaySettings.sync();
+    });
+    KisConfig(true).disableOpenGL();
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QVERIFY(document->newImage(QStringLiteral("Layer change during input"), 64, 64, cs,
+                               KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    window->resize(800, 600);
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    QPointer<QWidget> input = view->canvasBase()->canvasWidget();
+    bool pressed = false;
+    const auto closeWindow = qScopeGuard([&] {
+        if (pressed && input) QTest::mouseRelease(input, Qt::LeftButton);
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    auto image = KisImageSP(lifetime->image());
+    const auto layer = image->root()->firstChild();
+    window->viewManager()->setCurrentView(view);
+    image->setWorkingThreadsLimit(1);
+    for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
+    window->show();
+    window->activateWindow();
+    auto *profiles = KisInputProfileManager::instance();
+    profiles->setProfileLocations({QStringLiteral(KRITA_SOURCE_DIR "/krita/data/input/kritadefault.profile")},
+                                 QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QStringLiteral("/input"));
+    profiles->loadProfiles();
+    auto *resources = window->viewManager()->canvasResourceProvider();
+    resources->setPaintOpPreset(m_preset);
+    resources->setSize(8);
+    resources->setOpacity(1);
+    resources->setEraserMode(false);
+    resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    resources->setFGColor(KoColor(QColor(17, 129, 241), cs));
+    KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
+    auto *brushTool = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KritaShape/KisToolBrush"));
+    QVERIFY(brushTool);
+    QVERIFY(brushTool->setProperty("smoothingType", 0));
+    input->setFocus();
+    QTRY_VERIFY(input->width() >= 64 && input->height() >= 64);
+    view->canvasController()->resetCanvasRotation();
+    view->canvasController()->mirrorCanvas(false);
+    view->zoomManager()->zoomTo100();
+    const auto imageSize = view->canvasBase()->coordinatesConverter()->imageRectInWidgetPixels().size();
+    view->canvasController()->setPreferredCenter({imageSize.width() / 2, imageSize.height() / 2});
+    const auto first = view->canvasBase()->coordinatesConverter()->imageToWidget(QPointF(16, 16)).toPoint();
+    const auto last = view->canvasBase()->coordinatesConverter()->imageToWidget(QPointF(40, 40)).toPoint();
+    QEnterEvent entered(first, first, input->mapToGlobal(first));
+    QApplication::sendEvent(input, &entered);
+    QTest::mouseMove(input, first);
+    QTest::qWait(10);
+    pressed = true;
+    QTest::mousePress(input, Qt::LeftButton, Qt::NoModifier, first);
+    QTest::mouseMove(input, last);
+    QTest::qWait(10);
+    QTimer release;
+    release.setSingleShot(true);
+    connect(&release, &QTimer::timeout, this, [&] {
+        QTest::mouseRelease(input, Qt::LeftButton, Qt::NoModifier, last);
+        pressed = false;
+    });
+    release.start(0);
+    window->viewManager()->nodeManager()->toggleVisibility();
+    QVERIFY(!pressed);
+    QCOMPARE(lifetime->undoStack()->count(), 2);
+    release.stop();
+    if (pressed) QTest::mouseRelease(input, Qt::LeftButton, Qt::NoModifier, last);
+    pressed = false;
+    image->waitForDone();
+    QByteArray pixel(4, '\0');
+    QVERIFY(!layer->visible());
+    layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 40, 40, 1, 1);
+    QCOMPARE(pixel, QByteArray::fromHex("f18111ff"));
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QVERIFY(layer->visible());
+    layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 40, 40, 1, 1);
+    QCOMPARE(pixel, QByteArray::fromHex("f18111ff"));
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(lifetime->undoStack()->index(), 0);
+    layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 40, 40, 1, 1);
+    QCOMPARE(pixel, QByteArray(4, '\0'));
+}
+
 void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelled_data()
 {
     QTest::addColumn<bool>("exhaustInput");
     QTest::addColumn<bool>("closeAfterError");
-    QTest::newRow("paint-and-cancel") << false << false;
-    QTest::newRow("input-limit") << true << false;
-    QTest::newRow("close-on-input-limit") << true << true;
+    QTest::addColumn<bool>("hideDuringStroke");
+    QTest::newRow("paint-and-cancel") << false << false << false;
+    QTest::newRow("input-limit") << true << false << false;
+    QTest::newRow("close-on-input-limit") << true << true << false;
+    QTest::newRow("hide-during-stroke") << false << false << true;
 }
 
 void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelled()
 {
     QFETCH(bool, exhaustInput);
     QFETCH(bool, closeAfterError);
+    QFETCH(bool, hideDuringStroke);
     namespace Gpu = LibrePaint::Image::Gpu;
     QString diagnostic;
     const auto device = Gpu::Device::createNative(diagnostic);
@@ -288,6 +435,37 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
         QTest::mouseMove(native.data(), last);
     }
     QTest::qWait(10);
+    if (hideDuringStroke) {
+        auto *manager = window->viewManager()->nodeManager();
+        QTimer release;
+        release.setSingleShot(true);
+        connect(&release, &QTimer::timeout, this, [&] {
+            QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, last);
+            pressed = false;
+        });
+        release.start(0);
+        try {
+            manager->toggleVisibility();
+        } catch (const std::exception &error) {
+            QFAIL(error.what());
+        }
+        QVERIFY(!owner->operations().hasActiveStroke());
+        QVERIFY(!pressed);
+        QCOMPARE(owner->operations().undoCount(), 2);
+        QVERIFY(!manager->activeNode()->visible());
+        QVERIFY(documentLifetime->isModified());
+        documentLifetime->undoStack()->undo();
+        QVERIFY(manager->activeNode()->visible());
+        QCOMPARE(owner->operations().undoCount(), 1);
+        QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(40, 40, 1, 1), 4).bytes,
+                 QByteArray::fromHex("1181f1ff"));
+        documentLifetime->undoStack()->undo();
+        QCOMPARE(owner->operations().undoCount(), 0);
+        QVERIFY(!documentLifetime->isModified());
+        QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(40, 40, 1, 1), 4).bytes,
+                 QByteArray(4, '\0'));
+        return;
+    }
     if (closeAfterError) {
         QVERIFY(!documentLifetime);
         QVERIFY(!native);

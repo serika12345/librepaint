@@ -76,9 +76,11 @@ public:
     LayerId addLayer(const QString &name);
     Result selectLayer(LayerId layer);
     Result setLayerVisible(LayerId layer, bool visible);
+    Result setLayerVisible(LayerId layer, bool visible, PropertyHistory history);
     Result setLayerOpacity(LayerId layer, quint8 opacity);
     Result setLayerOpacity(LayerId layer, quint8 opacity, PropertyHistory history);
     Result setLayerLocked(LayerId layer, bool locked);
+    Result setLayerLocked(LayerId layer, bool locked, PropertyHistory history);
     Result renameLayer(LayerId layer, const QString &name);
     Result renameLayer(LayerId layer, const QString &name, PropertyHistory history);
     Result moveLayer(LayerId layer, qsizetype index);

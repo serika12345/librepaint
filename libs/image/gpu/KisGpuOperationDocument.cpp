@@ -338,7 +338,7 @@ void OperationDocument::commitPropertyVersion(const Snapshot &version, PropertyC
         auto states = m_history;
         auto changes = m_propertyChanges;
         int index = m_index;
-        if (change.property == LayerProperty::Opacity && change.before == change.after) {
+        if (change.property != LayerProperty::Name && change.before == change.after) {
             states.removeLast();
             changes.removeLast();
             --index;
@@ -409,9 +409,13 @@ Result OperationDocument::selectLayer(LayerId layer)
 }
 
 Result OperationDocument::setLayerVisible(LayerId layer, bool visible)
+{ return setLayerVisible(layer, visible, PropertyHistory::Separate); }
+
+Result OperationDocument::setLayerVisible(LayerId layer, bool visible, PropertyHistory history)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
+    if (history != PropertyHistory::Separate && history != PropertyHistory::MergeConsecutive) return Result::InvalidInput;
     const qsizetype index = layerIndex(layer);
     if (index < 0) return Result::LayerUnavailable;
     if (snapshot()->layers[index].visible == visible) return Result::Success;
@@ -419,7 +423,7 @@ Result OperationDocument::setLayerVisible(LayerId layer, bool visible)
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     version->layers[index].visible = visible;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
-    commitVersion(version, {LayerProperty::Visible, layer, QVariant::fromValue(snapshot()->layers[index].visible), QVariant::fromValue(visible)});
+    commitPropertyVersion(version, {LayerProperty::Visible, layer, QVariant::fromValue(snapshot()->layers[index].visible), QVariant::fromValue(visible)}, history);
     return Result::Success;
 }
 
@@ -443,9 +447,13 @@ Result OperationDocument::setLayerOpacity(LayerId layer, quint8 opacity, Propert
 }
 
 Result OperationDocument::setLayerLocked(LayerId layer, bool locked)
+{ return setLayerLocked(layer, locked, PropertyHistory::Separate); }
+
+Result OperationDocument::setLayerLocked(LayerId layer, bool locked, PropertyHistory history)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
+    if (history != PropertyHistory::Separate && history != PropertyHistory::MergeConsecutive) return Result::InvalidInput;
     const auto index = layerIndex(layer);
     if (index < 0) return Result::LayerUnavailable;
     if (snapshot()->layers[index].userLocked == locked) return Result::Success;
@@ -453,7 +461,7 @@ Result OperationDocument::setLayerLocked(LayerId layer, bool locked)
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     version->layers[index].userLocked = locked;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
-    commitVersion(version, {LayerProperty::Locked, layer, QVariant::fromValue(snapshot()->layers[index].userLocked), QVariant::fromValue(locked)});
+    commitPropertyVersion(version, {LayerProperty::Locked, layer, QVariant::fromValue(snapshot()->layers[index].userLocked), QVariant::fromValue(locked)}, history);
     return Result::Success;
 }
 
