@@ -436,7 +436,7 @@ print_plan() {
 }
 
 build_target() {
-    cmake --build "$build_dir" --target "$target" --parallel
+    cmake --build "$build_dir" --target "$target" --parallel "${CMAKE_BUILD_PARALLEL_LEVEL:-4}"
     local app="$build_dir/bin/LibrePaint.app"
     local binary="$app/LibrePaint"
     local plist="$app/Info.plist"

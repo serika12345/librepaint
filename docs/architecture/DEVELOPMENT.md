@@ -907,6 +907,7 @@ build-incremental ios build
 計画を拒否する。大きい構成変更では計画を確認して`bootstrap`で基準を更新する。
 閾値の明示変更には`KRITA_IOS_INCREMENTAL_MAX_STEPS`を使う。
 共通入口は`packaging/ios/scripts/build-librepaint-incremental.sh`へ委譲する。
+構築は既定で4並列とし、`CMAKE_BUILD_PARALLEL_LEVEL`で並列数を指定できる。
 
 GPU実行基盤の依存定義は`nix/ios/wgpu-native.nix`、Rustのコンパイラー・ホスト標準ライブラリー・
 標準ライブラリーソースの固定値は`nix/ios/rust-toolchain.nix`が所有する。
