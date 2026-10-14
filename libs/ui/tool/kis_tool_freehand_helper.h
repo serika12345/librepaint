@@ -85,6 +85,8 @@ Q_SIGNALS:
      * event
      */
     void requestExplicitUpdateOutline();
+    /** Reports a rejected or cancelled stroke; receivers may release the tool. */
+    void requestErrorMessage(const QString &message);
 
 protected:
     void cancelPaint();

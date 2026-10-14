@@ -143,7 +143,9 @@ void KisPresetShadowUpdater::slotCanvasResourceChanged(int key, const QVariant &
 void KisPresetShadowUpdater::slotPresetChanged()
 {
     m_d->sequenceNumber++;
-    m_d->updateStartCompressor.start();
+    const auto image = m_d->view->image();
+    if (image && image->gpuImage()) m_d->updateStartCompressor.stop();
+    else m_d->updateStartCompressor.start();
 
     m_d->view->canvasResourceProvider()->resourceManager()->
             setResource(KoCanvasResource::CurrentPaintOpPresetCache,
@@ -155,6 +157,7 @@ void KisPresetShadowUpdater::slotStartPresetPreparation()
 {
     if (m_d->currentPreset) {
         KisImageSP image = m_d->view->image();
+        if (image && image->gpuImage()) return;
         if (image) {
             KisPaintOpPresetSP preset =
                     m_d->currentPreset->cloneWithResourcesSnapshot(

@@ -4,10 +4,12 @@
  */
 #include <QApplication>
 #include <QDockWidget>
+#include <QEnterEvent>
 #include <QListView>
 #include <QItemSelectionModel>
 #include <QPointer>
 #include <QSignalSpy>
+#include <QStatusBar>
 #include <QScopeGuard>
 #include <KLocalizedString>
 #include <KisGlobalResourcesInterface.h>
@@ -20,6 +22,14 @@
 #include <application/ui/workspace/KisMainWindow.h>
 #include <application/ui/workspace/KisView.h>
 #include <application/ui/workspace/KisViewManager.h>
+#include <actions/input/KisApplicationInputActions.h>
+#include <canvas/kis_canvas_resource_provider.h>
+#include <canvas/kis_coordinates_converter.h>
+#include <input/ui/kis_input_profile_manager.h>
+#include <gpu/KisGpuCanvasWindow.h>
+#include <KoToolManager.h>
+#include <KoToolBase.h>
+#include <KoColorSpaceRegistry.h>
 #include <document/KisDocument.h>
 #include <gpu/KisGpuExecution.h>
 #include <gpu/KisGpuPaintImage.h>
@@ -41,6 +51,7 @@ private Q_SLOTS:
         Q_INIT_RESOURCE(krita);
         KLocalizedString::setApplicationDomain("krita");
         KisOpenGL::setDefaultSurfaceConfig(KisOpenGL::RendererConfig());
+        KisInputProfileManager::instance()->setActions(createApplicationInputActions());
         const QString bundlePath = QStringLiteral(KRITA_SOURCE_DIR "/libs/resources/tests/data/bundles/test1.bundle");
         auto bundle = KisResourceStorageSP::create(bundlePath);
         QVERIFY(bundle->valid());
@@ -55,9 +66,183 @@ private Q_SLOTS:
         preset->setImage(preview);
         KisResourceModel presets(ResourceType::PaintOpPresets);
         QVERIFY(presets.addResource(preset));
+        m_preset = preset;
     }
     void presentsEditsAndReleasesTheClosedTab();
+    void freehandInputCommitsOneHistoryEntryAndCanBeCancelled_data();
+    void freehandInputCommitsOneHistoryEntryAndCanBeCancelled();
+private:
+    KisPaintOpPresetSP m_preset;
 };
+
+void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelled_data()
+{
+    QTest::addColumn<bool>("exhaustInput");
+    QTest::addColumn<bool>("closeAfterError");
+    QTest::newRow("paint-and-cancel") << false << false;
+    QTest::newRow("input-limit") << true << false;
+    QTest::newRow("close-on-input-limit") << true << true;
+}
+
+void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelled()
+{
+    QFETCH(bool, exhaustInput);
+    QFETCH(bool, closeAfterError);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    Gpu::Limits limits;
+    if (exhaustInput) limits.samplesPerStroke = 4;
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64), limits);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("GPU freehand input")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    window->resize(800, 600);
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> documentLifetime(document.release());
+    QPointer<LibrePaint::Canvas::Gpu::CanvasWindow> native;
+    bool pressed = false;
+    const auto releaseWindow = qScopeGuard([&] {
+        if (pressed && native) {
+            if (documentLifetime) documentLifetime->image()->requestStrokeCancellation();
+            QTest::mouseRelease(native.data(), Qt::LeftButton);
+        }
+        if (documentLifetime) {
+            documentLifetime->setModified(false);
+            auto *close = window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"));
+            if (close) close->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+    window->statusBar()->show();
+    window->activateWindow();
+    auto *profiles = KisInputProfileManager::instance();
+    profiles->setProfileLocations({QStringLiteral(KRITA_SOURCE_DIR "/krita/data/input/kritadefault.profile")},
+                                 QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QStringLiteral("/input"));
+    profiles->loadProfiles();
+    QVERIFY(profiles->currentProfile());
+    auto *resources = window->viewManager()->canvasResourceProvider();
+    resources->setPaintOpPreset(m_preset);
+    resources->setSize(8);
+    resources->setOpacity(1);
+    resources->setEraserMode(false);
+    resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    resources->setFGColor(KoColor(QColor(17, 129, 241), KoColorSpaceRegistry::instance()->rgb8()));
+    KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
+    QTRY_COMPARE(KoToolManager::instance()->activeToolId(), QStringLiteral("KritaShape/KisToolBrush"));
+    auto *brushTool = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KritaShape/KisToolBrush"));
+    QVERIFY(brushTool);
+    QVERIFY(brushTool->setProperty("smoothingType", 0));
+    QSignalSpy errors(brushTool, &KoToolBase::statusTextChanged);
+    if (closeAfterError) {
+        connect(brushTool, &KoToolBase::statusTextChanged, window.get(), [&](const QString &message) {
+            if (message.isEmpty()) return;
+            documentLifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+            QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        });
+    }
+    view->canvasBase()->canvasWidget()->setFocus();
+    QTRY_COMPARE(execution.published(owner->handle()), owner->operations().snapshot());
+    for (auto *candidate : QGuiApplication::allWindows())
+        if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate)) native = canvas;
+    QVERIFY(native);
+    const auto *converter = view->canvasBase()->coordinatesConverter();
+    const auto first = converter->imageToWidget(QPointF(16, 16)).toPoint();
+    const auto last = converter->imageToWidget(QPointF(40, 40)).toPoint();
+    QVERIFY(view->canvasBase()->canvasWidget()->rect().contains(first));
+    QEnterEvent entered(first, first, native->mapToGlobal(first));
+    QApplication::sendEvent(native.data(), &entered);
+    QTest::mouseMove(native.data(), first);
+    QTest::qWait(10);
+    pressed = true;
+    QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, first);
+    QVERIFY2(owner->operations().hasActiveStroke(),
+             errors.isEmpty() ? "The pointer press did not start a stroke" : qPrintable(errors.first().first().toString()));
+    QTRY_COMPARE(execution.published(owner->handle()), owner->operations().preview());
+    if (!exhaustInput) {
+        resources->setSize(16);
+        resources->setFGColor(KoColor(QColor(221, 17, 44), KoColorSpaceRegistry::instance()->rgb8()));
+    }
+    if (exhaustInput) {
+        for (int step = 1; step <= 8 && owner->operations().hasActiveStroke(); ++step)
+            QTest::mouseMove(native.data(), first + (last - first) * step / 8);
+    } else {
+        QTest::mouseMove(native.data(), last);
+    }
+    QTest::qWait(10);
+    if (closeAfterError) {
+        QVERIFY(!documentLifetime);
+        QVERIFY(!native);
+        QTest::mouseRelease(window->windowHandle(), Qt::LeftButton);
+        pressed = false;
+        QCOMPARE(owner->operations().undoCount(), 0);
+        QVERIFY(!owner->operations().hasActiveStroke());
+        QStringList reasons;
+        for (const auto &notification : errors)
+            if (!notification.first().toString().isEmpty()) reasons.append(notification.first().toString());
+        QCOMPARE(reasons.size(), 1);
+        return;
+    }
+    QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, last);
+    pressed = false;
+    QVERIFY(!owner->operations().hasActiveStroke());
+    if (exhaustInput) {
+        QCOMPARE(owner->operations().undoCount(), 0);
+        QVERIFY(!documentLifetime->isModified());
+        QCOMPARE(errors.size(), 1);
+        QVERIFY(!errors.first().first().toString().isEmpty());
+        QCOMPARE(window->statusBar()->currentMessage(), errors.first().first().toString());
+        QTRY_COMPARE(execution.published(owner->handle()), owner->operations().snapshot());
+        return;
+    }
+    QCOMPARE(owner->operations().undoCount(), 1);
+    const auto painted = owner->operations().snapshot();
+    QTRY_COMPARE(execution.published(owner->handle()), painted);
+    QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(40, 40, 1, 1), 4).bytes,
+             QByteArray::fromHex("1181f1ff"));
+    QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(45, 40, 1, 1), 4).bytes,
+             QByteArray::fromHex("00000000"));
+    documentLifetime->undoStack()->undo();
+    QCOMPARE(owner->operations().undoCount(), 0);
+    documentLifetime->undoStack()->redo();
+    QCOMPARE(owner->operations().snapshot(), painted);
+
+    resources->setSize(8);
+    resources->setEraserMode(true);
+    pressed = true;
+    QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, last);
+    QVERIFY(owner->operations().hasActiveStroke());
+    resources->setEraserMode(false);
+    QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, last);
+    pressed = false;
+    QCOMPARE(owner->operations().undoCount(), 2);
+    QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(40, 40, 1, 1), 4).bytes,
+             QByteArray::fromHex("00000000"));
+    documentLifetime->undoStack()->undo();
+    QCOMPARE(owner->operations().snapshot(), painted);
+
+    resources->setFGColor(KoColor(QColor(17, 129, 241), KoColorSpaceRegistry::instance()->rgb8()));
+    const auto cancelled = converter->imageToWidget(QPointF(48, 16)).toPoint();
+    pressed = true;
+    QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, cancelled);
+    QVERIFY(owner->operations().hasActiveStroke());
+    QTRY_COMPARE(execution.published(owner->handle()), owner->operations().preview());
+    view->image()->requestStrokeCancellation();
+    QVERIFY(!owner->operations().hasActiveStroke());
+    QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, cancelled);
+    pressed = false;
+    QCOMPARE(owner->operations().snapshot(), painted);
+    QCOMPARE(owner->operations().undoCount(), 1);
+    QTRY_COMPARE(execution.published(owner->handle()), painted);
+}
 
 void KisGpuDocumentViewTest::presentsEditsAndReleasesTheClosedTab()
 {
@@ -89,6 +274,7 @@ void KisGpuDocumentViewTest::presentsEditsAndReleasesTheClosedTab()
                 if (close) close->trigger();
             }
         }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
         window.reset();
         QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
     });
