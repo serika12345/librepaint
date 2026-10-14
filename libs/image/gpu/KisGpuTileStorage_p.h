@@ -47,6 +47,7 @@ struct RenderedVersion::Data
     std::shared_ptr<Detail::Budget> owner;
     QMap<LayerId, Detail::Tiles> layers;
     QMap<LayerId, std::shared_ptr<Detail::Tile>> defaults;
+    std::shared_ptr<Detail::Tile> background;
     QMap<LayerId, Detail::Tiles> strokeInputs;
     std::optional<QRect> region;
     QSet<LayerId> selected;

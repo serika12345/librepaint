@@ -107,6 +107,13 @@ Outcome description(const QByteArray &bytes, QDomDocument &xml, QDomElement &ima
         !component(image.attribute(QStringLiteral("name")))) return invalid(QStringLiteral("Invalid KRA image description"));
     if (image.attribute(QStringLiteral("colorspacename")) != QLatin1String("RGBA"))
         return unsupported(QStringLiteral("KRA image requires RGBA8"));
+    const auto background = image.firstChildElement(QStringLiteral("ProjectionBackgroundColor"));
+    if (!background.isNull()) {
+        const auto decoded = QByteArray::fromBase64Encoding(background.attribute(QStringLiteral("ColorData")).toLatin1(),
+                                                          QByteArray::AbortOnBase64DecodingErrors);
+        if (!background.nextSiblingElement(QStringLiteral("ProjectionBackgroundColor")).isNull() || !decoded || decoded.decoded.size() != 4)
+            return invalid(QStringLiteral("Invalid KRA canvas background color"));
+    }
     return {Status::Success, {}};
 }
 QDomElement createDescription(QDomDocument &xml)
@@ -403,6 +410,11 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         width <= 0 || height <= 0 || width > RgbaTile::CoordinateLimit || height > RgbaTile::CoordinateLimit)
         return fail(invalid(QStringLiteral("Invalid KRA image dimensions")));
     document.image.size = {width, height};
+    const auto background = image.firstChildElement(QStringLiteral("ProjectionBackgroundColor"));
+    if (!background.isNull()) {
+        const auto bgra = QByteArray::fromBase64(background.attribute(QStringLiteral("ColorData")).toLatin1());
+        document.image.projectionBackground = {quint8(bgra[2]), quint8(bgra[1]), quint8(bgra[0]), quint8(bgra[3])};
+    }
     const auto folder = image.attribute(QStringLiteral("name"));
     result = profile(document.files, folder + QStringLiteral("/annotations/icc"), image.attribute(QStringLiteral("profile")));
     if (result.code != Status::Success) return fail(result);
@@ -483,6 +495,12 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
     }
     const auto folder = image.attribute(QStringLiteral("name"));
     auto files = document.files;
+    auto background = image.firstChildElement(QStringLiteral("ProjectionBackgroundColor"));
+    if (background.isNull()) {
+        background = xml.createElement(QStringLiteral("ProjectionBackgroundColor"));
+        image.appendChild(background);
+    }
+    background.setAttribute(QStringLiteral("ColorData"), QString::fromLatin1(Detail::bgra(value.projectionBackground).toBase64()));
     const auto imageProfile = folder + QStringLiteral("/annotations/icc");
     if (!files.contains(imageProfile)) files.insert(imageProfile, QColorSpace(QColorSpace::SRgb).iccProfile());
     result = profile(files, imageProfile, image.attribute(QStringLiteral("profile")));

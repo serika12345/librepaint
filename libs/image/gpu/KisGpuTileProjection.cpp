@@ -75,7 +75,10 @@ ProjectionOutcome TileRenderer::compose(QRhiCommandBuffer &commands, const Rende
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Projection extends outside the generated GPU region")};
     }
     QSet<quint64> coordinates;
-    bool implicit = false;
+    // A single fully opaque paint layer supplies the legacy transparent-root projection,
+    // including the RGB components of pixels whose alpha is zero.
+    const auto background = document->document()->directProjectionLayer() ? std::shared_ptr<Tile>{} : document->m_data->background;
+    bool implicit = bool(background);
     for (const auto &layer : document->document()->layers) {
         if (!layer.visible || !layer.opacity) continue;
         if (!document->m_data->selected.contains(layer.id)) {
@@ -99,6 +102,9 @@ ProjectionOutcome TileRenderer::compose(QRhiCommandBuffer &commands, const Rende
         for (int y = top; y <= bottom; ++y) {
             for (int x = left; x <= right; ++x) coordinates.insert(key(x, y));
         }
+    }
+    if (background) {
+        for (const auto coordinate : coordinates) data->inputs[coordinate].append({background, 255});
     }
     for (const auto &layer : document->document()->layers) {
         if (!layer.visible || !layer.opacity) continue;

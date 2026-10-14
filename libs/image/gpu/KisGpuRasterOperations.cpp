@@ -26,6 +26,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     initial->m_document = m_identity;
     initial->m_committed = true;
     initial->size = image.size;
+    initial->projectionBackground = image.projectionBackground;
     QSet<QUuid> identities;
     for (const auto &source : image.layers) {
         const auto uuid = source.uuid.isNull() ? QUuid::createUuid() : source.uuid;

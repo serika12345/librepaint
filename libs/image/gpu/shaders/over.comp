@@ -16,5 +16,5 @@ void main() {
     uvec4 destination = unpackPixel(basePixels[index]);
     uvec4 source = unpackPixel(layerPixels[index]);
     source.w = mul255(source.w, opacity);
-    outputPixels[index] = packPixel(over(destination, source));
+    outputPixels[index] = packPixel(source.w == 0u ? destination : over(destination, source));
 }

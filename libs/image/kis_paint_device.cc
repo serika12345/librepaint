@@ -1669,7 +1669,11 @@ void KisPaintDevice::setDefaultPixel(const KoColor &defPixel)
 KoColor KisPaintDevice::defaultPixel() const
 {
     if (m_d->gpuImage) {
-        if (!m_d->gpuLayer) return KoColor::createTransparent(colorSpace());
+        if (!m_d->gpuLayer) {
+            const auto &rgba = m_d->gpuImage->operations().snapshot()->projectionBackground;
+            const quint8 bgra[] = {rgba[2], rgba[1], rgba[0], rgba[3]};
+            return KoColor(bgra, colorSpace());
+        }
         for (const auto &layer : m_d->gpuImage->operations().snapshot()->layers) {
             if (layer.id != m_d->gpuLayer) continue;
             const auto &rgba = layer.defaultPixel;
@@ -2167,7 +2171,10 @@ void KisPaintDevice::readBytes(quint8 *data, const QRect &rect) const
     if (m_d->gpuImage) {
         if (rect.isEmpty()) return;
         const auto count = gpuPixelByteCount(rect);
-        const auto pixels = m_d->gpuImage->readRgbaPixels(m_d->gpuLayer, rect, count);
+        const auto snapshot = m_d->gpuImage->operations().snapshot();
+        auto layer = m_d->gpuLayer;
+        if (!layer) layer = snapshot->directProjectionLayer();
+        const auto pixels = m_d->gpuImage->readRgbaPixels(layer, rect, count);
         if (pixels.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
             throw std::runtime_error(pixels.diagnostic.toStdString());
         for (qsizetype i = 0; i < pixels.bytes.size(); i += 4) {
@@ -2175,6 +2182,17 @@ void KisPaintDevice::readBytes(quint8 *data, const QRect &rect) const
             data[i + 1] = quint8(pixels.bytes[i + 1]);
             data[i + 2] = quint8(pixels.bytes[i]);
             data[i + 3] = quint8(pixels.bytes[i + 3]);
+        }
+        if (!layer) {
+            const QRect canvas(QPoint(), snapshot->size);
+            const auto &rgba = snapshot->projectionBackground;
+            for (int y = 0; y < rect.height(); ++y) {
+                for (int x = 0; x < rect.width(); ++x) {
+                    if (canvas.contains(rect.topLeft() + QPoint(x, y))) continue;
+                    const auto i = (qsizetype(y) * rect.width() + x) * 4;
+                    data[i] = rgba[2]; data[i + 1] = rgba[1]; data[i + 2] = rgba[0]; data[i + 3] = rgba[3];
+                }
+            }
         }
         return;
     }

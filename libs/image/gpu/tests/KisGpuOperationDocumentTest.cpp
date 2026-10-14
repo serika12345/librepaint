@@ -718,7 +718,8 @@ void KisGpuOperationDocumentTest::tileReplacementSharesHistoryAndRejectsWholeReq
 
 void KisGpuOperationDocumentTest::rasterRecoveryPreservesPixelsIdentityAndPendingInput()
 {
-    const auto image = rasterImage();
+    auto image = rasterImage();
+    image.projectionBackground = {17, 34, 51, 128};
     OperationDocument document(image);
     QCOMPARE(document.selectLayer(1), Result::Success);
     const RgbaTile green{{0, 0}, QByteArray::fromHex("00ff00ff").repeated(RgbaTile::ByteCount / 4)};
@@ -734,6 +735,7 @@ void KisGpuOperationDocumentTest::rasterRecoveryPreservesPixelsIdentityAndPendin
     OperationDocument restored({1, 1});
     QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
     QCOMPARE(restored.recoveryData(), bytes);
+    QCOMPARE(restored.snapshot()->projectionBackground, image.projectionBackground);
     QCOMPARE(restored.snapshot()->rasterBytes, replaced->rasterBytes);
     QCOMPARE(restored.snapshot()->layers[0].uuid, image.layers[0].uuid);
     QCOMPARE(restored.snapshot()->layers[0].defaultPixel, image.layers[0].defaultPixel);

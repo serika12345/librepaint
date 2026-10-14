@@ -16,6 +16,7 @@ KisPaintDeviceSP kisGpuPaintDeviceTransfer(const LibrePaint::Image::Gpu::PaintIm
     namespace Gpu = LibrePaint::Image::Gpu;
     constexpr qsizetype capacity = 256 * 1024 * 1024;
     const auto version = image->operations().snapshot();
+    if (!layer) layer = version->directProjectionLayer();
     const auto validated = image->readRgbaPixels(layer, {}, 0);
     if (validated.code != Gpu::ExecutionCode::Success)
         throw std::runtime_error(validated.diagnostic.toStdString());
@@ -37,7 +38,10 @@ KisPaintDeviceSP kisGpuPaintDeviceTransfer(const LibrePaint::Image::Gpu::PaintIm
         for (const auto &tile : pixels.tiles)
             write(tile.rgba, QRect(tile.coordinate * Gpu::RgbaTile::Size, QSize(Gpu::RgbaTile::Size, Gpu::RgbaTile::Size)));
     } else {
-        bool empty = true;
+        const auto &rgba = version->projectionBackground;
+        const quint8 bgra[] = {rgba[2], rgba[1], rgba[0], rgba[3]};
+        result->setDefaultPixel(KoColor(bgra, result->colorSpace()));
+        bool empty = rgba[3] == 0;
         for (const auto &value : version->layers)
             if (value.visible && (!value.operations.isEmpty() || value.defaultPixel[3])) empty = false;
         if (!empty) {

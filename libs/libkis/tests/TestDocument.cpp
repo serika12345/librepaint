@@ -44,6 +44,84 @@
 
 #include <KisPortingUtils.h>
 
+void TestDocument::testCanvasBackgroundReferencePixels_data()
+{
+    QTest::addColumn<QColor>("background");
+    QTest::addColumn<bool>("hiddenPixel");
+    QTest::addColumn<QByteArray>("inside");
+    QTest::addColumn<QByteArray>("outside");
+    QTest::addColumn<int>("layerCount");
+    QTest::addColumn<int>("pixelAlpha");
+    QTest::newRow("opaque") << QColor(17, 34, 51, 255) << false << QByteArray::fromHex("332211ff") << QByteArray::fromHex("332211ff") << 1 << 0;
+    QTest::newRow("partial") << QColor(17, 34, 51, 128) << false << QByteArray::fromHex("33221180") << QByteArray::fromHex("33221180") << 1 << 0;
+    QTest::newRow("transparent") << QColor(255, 255, 255, 0) << false << QByteArray::fromHex("00000000") << QByteArray::fromHex("00000000") << 1 << 0;
+    QTest::newRow("opaque-hidden-rgb") << QColor(17, 34, 51, 255) << true << QByteArray::fromHex("332211ff") << QByteArray::fromHex("332211ff") << 1 << 0;
+    QTest::newRow("partial-hidden-rgb") << QColor(17, 34, 51, 128) << true << QByteArray::fromHex("33221180") << QByteArray::fromHex("33221180") << 1 << 0;
+    QTest::newRow("transparent-hidden-rgb") << QColor(255, 255, 255, 0) << true << QByteArray::fromHex("66554400") << QByteArray::fromHex("00000000") << 1 << 0;
+    QTest::newRow("transparent-two-layers") << QColor(255, 255, 255, 0) << false << QByteArray::fromHex("ffffff00") << QByteArray::fromHex("ffffff00") << 2 << 0;
+    QTest::newRow("transparent-hidden-rgb-two-layers") << QColor(255, 255, 255, 0) << true << QByteArray::fromHex("ffffff00") << QByteArray::fromHex("ffffff00") << 2 << 0;
+    QTest::newRow("opaque-colored-pixel") << QColor(17, 34, 51, 255) << true << QByteArray::fromHex("4d3c2bff") << QByteArray::fromHex("332211ff") << 1 << 128;
+    QTest::newRow("partial-colored-pixel") << QColor(17, 34, 51, 128) << true << QByteArray::fromHex("554433c0") << QByteArray::fromHex("33221180") << 1 << 128;
+    QTest::newRow("transparent-colored-pixel") << QColor(255, 255, 255, 0) << true << QByteArray::fromHex("66554480") << QByteArray::fromHex("00000000") << 1 << 128;
+}
+
+void TestDocument::testCanvasBackgroundReferencePixels()
+{
+    QFETCH(QColor, background);
+    QFETCH(bool, hiddenPixel);
+    QFETCH(QByteArray, inside);
+    QFETCH(QByteArray, outside);
+    QFETCH(int, layerCount);
+    QFETCH(int, pixelAlpha);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    const KoColor color(background, cs);
+    QVERIFY(document->newImage(QStringLiteral("Canvas background reference"), 32, 16, cs, color,
+                                KisConfig::CANVAS_COLOR, layerCount, {}, 1));
+    auto image = KisImageSP(document->image());
+    if (hiddenPixel) {
+        auto pixel = QByteArray::fromHex("66554400");
+        pixel[3] = char(pixelAlpha);
+        image->root()->firstChild()->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(pixel.constData()), 3, 3, 1, 1);
+        image->root()->firstChild()->setDirty(QRect(3, 3, 1, 1));
+    }
+    image->waitForDone();
+    QCOMPARE(image->defaultProjectionColor(), color);
+    Document publicDocument(document.data(), false);
+    QCOMPARE(publicDocument.pixelData(3, 3, 1, 1), inside);
+    QCOMPARE(publicDocument.pixelData(-1, -1, 1, 1), outside);
+    const auto referenceBounds = image->projection()->exactBounds();
+    const auto referenceThumbnail = publicDocument.thumbnail(32, 16);
+
+    namespace Gpu = LibrePaint::Image::Gpu;
+    Gpu::RasterImage input;
+    input.size = {32, 16};
+    for (int i = 0; i < layerCount; ++i) input.layers.append({QStringLiteral("Paint Layer %1").arg(i + 1), true, {}, {}});
+    input.projectionBackground = {quint8(background.red()), quint8(background.green()),
+                                   quint8(background.blue()), quint8(background.alpha())};
+    if (hiddenPixel) {
+        Gpu::RgbaTile tile{{0, 0}, QByteArray(Gpu::RgbaTile::ByteCount, '\0')};
+        auto pixel = QByteArray::fromHex("44556600");
+        pixel[3] = char(pixelAlpha);
+        tile.rgba.replace((3 * 256 + 3) * 4, 4, pixel);
+        input.layers[0].tiles = {tile};
+    }
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    const auto owner = Gpu::PaintImageSP::create(execution, input);
+    QScopedPointer<KisDocument> target(KisPart::instance()->createDocument());
+    auto gpuImage = KisImage::fromGpuImage(owner, QStringLiteral("Canvas background GPU"));
+    target->setCurrentImage(gpuImage);
+    QCOMPARE(gpuImage->defaultProjectionColor(), color);
+    Document publicTarget(target.data(), false);
+    QCOMPARE(publicTarget.pixelData(3, 3, 1, 1), inside);
+    QCOMPARE(publicTarget.pixelData(-1, -1, 1, 1), outside);
+    QCOMPARE(gpuImage->projection()->exactBounds(), referenceBounds);
+    QCOMPARE(publicTarget.thumbnail(32, 16), referenceThumbnail);
+}
+
+
 void TestDocument::testSetColorSpace()
 {
     QScopedPointer<KisDocument> kisdoc(KisPart::instance()->createDocument());

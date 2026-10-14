@@ -480,6 +480,7 @@ void KisGpuPaintDocumentTest::rasterImportAndSaveRetainOffCanvasHiddenPixelsAndM
     Kra::Document source;
     source.image.size = {100, 100};
     source.image.activeLayer = 1;
+    source.image.projectionBackground = {17, 34, 51, 128};
     source.image.layers = {
         {QStringLiteral("Lower"), true, QUuid::createUuid(), {{{-1, 0}, QByteArray::fromHex("120a2700").repeated(RgbaTile::ByteCount / 4)}}},
         {QStringLiteral("Hidden"), false, QUuid::createUuid(), {{{0, 0}, QByteArray::fromHex("197fafe0").repeated(RgbaTile::ByteCount / 4)}}}
@@ -501,6 +502,7 @@ void KisGpuPaintDocumentTest::rasterImportAndSaveRetainOffCanvasHiddenPixelsAndM
     auto opened = PaintDocument::openKra(execution, original);
     QVERIFY2(opened.document, qPrintable(opened.diagnostic));
     const auto snapshot = opened.document->image()->operations().snapshot();
+    QCOMPARE(snapshot->projectionBackground, source.image.projectionBackground);
     QCOMPARE(opened.document->image()->selectLayer(snapshot->layers[0].id), Result::Success);
     dot(*opened.document->image(), {8, 12}, {255, 0, 0, 255});
     const auto savedPath = directory.filePath(QStringLiteral("saved.kra"));
@@ -510,6 +512,7 @@ void KisGpuPaintDocumentTest::rasterImportAndSaveRetainOffCanvasHiddenPixelsAndM
     QVERIFY(input.open(QIODevice::ReadOnly));
     const auto decoded = Kra::RasterCodec::read(input);
     QVERIFY2(decoded.code == Kra::Status::Success, qPrintable(decoded.diagnostic));
+    QCOMPARE(decoded.document.image.projectionBackground, source.image.projectionBackground);
     QCOMPARE(decoded.document.files.value(QStringLiteral("notes/data.bin")), source.files.value(QStringLiteral("notes/data.bin")));
     for (int i = 0; i < 2; ++i) {
         QCOMPARE(decoded.document.image.layers[i].uuid, source.image.layers[i].uuid);

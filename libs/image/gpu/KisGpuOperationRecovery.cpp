@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 6;
+constexpr quint16 FormatVersion = 7;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -129,6 +129,7 @@ QByteArray OperationDocument::recoveryData() const
     }
     stream << quint32(m_history.size()) << quint32(m_index);
     for (const auto &state : m_history) {
+        for (const auto component : state->projectionBackground) stream << component;
         stream << state->revision() << state->m_modifiedRevision << state->activeLayer << quint32(state->layers.size());
         if (!withinLimit()) return {};
         for (const auto &layer : state->layers) {
@@ -274,7 +275,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
     if (referencedTiles.size() != tiles.size()) return Result::InvalidRecovery;
     quint32 stateCount = 0, currentIndex = 0;
     stream >> stateCount >> currentIndex;
-    if (stateCount == 0 || currentIndex >= stateCount || !readableCount(stream, stateCount, HistoryLimit + 1, 28)) return Result::InvalidRecovery;
+    if (stateCount == 0 || currentIndex >= stateCount || !readableCount(stream, stateCount, HistoryLimit + 1, 32)) return Result::InvalidRecovery;
     QList<Snapshot> history;
     QSet<quint32> referencedOperations;
     QHash<LayerId, QUuid> layerIdentities;
@@ -288,6 +289,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         state->m_committed = true;
         state->size = {width, height};
         quint32 layerCount = 0;
+        for (auto &component : state->projectionBackground) stream >> component;
         stream >> state->m_revision >> state->m_modifiedRevision >> state->activeLayer >> layerCount;
         if (state->revision() > nextRevision || state->m_modifiedRevision > state->revision() ||
             stateRevisions.contains(state->revision()) ||

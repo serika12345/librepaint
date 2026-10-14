@@ -80,6 +80,7 @@
 #include "kis_image_config.h"
 #include "kis_update_scheduler.h"
 #include "gpu/KisGpuPaintImage.h"
+#include "KisGpuPaintDeviceTransfer_p.h"
 #include <stdexcept>
 #include <QScopeGuard>
 #include "kis_image_signal_router.h"
@@ -1873,8 +1874,10 @@ QImage KisImage::convertToQImage(const QSize& scaledImageSize, const KoColorProf
     }
 
     KisPaintDeviceSP dev = new KisPaintDevice(colorSpace());
+    const auto source = m_d->gpuImage
+        ? kisGpuPaintDeviceTransfer(m_d->gpuImage, 0, projection()->defaultBounds()) : projection();
     KisPainter gc;
-    gc.copyAreaOptimized(QPoint(0, 0), projection(), dev, bounds());
+    gc.copyAreaOptimized(QPoint(0, 0), source, dev, bounds());
     gc.end();
     double scaleX = qreal(scaledImageSize.width()) / width();
     double scaleY = qreal(scaledImageSize.height()) / height();
@@ -1962,6 +1965,11 @@ void KisImage::setDefaultProjectionColor(const KoColor &color)
 
 KoColor KisImage::defaultProjectionColor() const
 {
+    if (m_d->gpuImage) {
+        const auto &rgba = m_d->gpuImage->operations().snapshot()->projectionBackground;
+        const quint8 bgra[] = {rgba[2], rgba[1], rgba[0], rgba[3]};
+        return KoColor(bgra, colorSpace());
+    }
     KIS_ASSERT_RECOVER(m_d->rootLayer) {
         return KoColor::createTransparent(m_d->colorSpace);
     }
@@ -1990,7 +1998,7 @@ void KisImage::setRootLayer(KisGroupLayerSP rootLayer)
     m_d->rootLayer->setImage(this);
 
     setRoot(m_d->rootLayer.data());
-    this->setDefaultProjectionColor(defaultProjectionColor);
+    if (!m_d->gpuImage) this->setDefaultProjectionColor(defaultProjectionColor);
 }
 
 void KisImage::addAnnotation(KisAnnotationSP annotation)

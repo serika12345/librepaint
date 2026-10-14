@@ -132,6 +132,20 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
     struct Checkpoint { qsizetype operation = 0; QSharedPointer<const RasterTile> pixels; };
     struct Upload { std::shared_ptr<Tile> tile; QByteArray rgba; };
     std::vector<Upload> uploads;
+    if (base && base->document()->projectionBackground == document->projectionBackground)
+        data->background = base->m_data->background;
+    if (!document->directProjectionLayer() && packedPixel(document->projectionBackground) && !data->background) {
+        if (d.budget->used > d.budget->limit - TileBytes)
+            return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU canvas background tile budget exhausted")};
+        PaintJob fill;
+        fill.output = d.allocateTile();
+        fill.values.color = packedPixel(document->projectionBackground);
+        fill.values.uniformFill = 1;
+        if (!preparePaintJob(d.rhi, fill, d.zero.get()))
+            return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU canvas background allocation failed")};
+        data->background = fill.output;
+        jobs.push_back(std::move(fill));
+    }
     for (const auto &layer : document->layers) {
         if (!selected.contains(layer.id) || (region && region->isEmpty())) continue;
         qsizetype prefix = 0;

@@ -123,7 +123,7 @@ ImageReadbackOutcome Execution::readProjectionImage(DocumentHandle handle, const
     const qsizetype columns = (pinned->size.width() + size - 1) / size;
     const qsizetype rows = (pinned->size.height() + size - 1) / size;
     QSet<quint64> coordinates;
-    bool uniform = false;
+    bool uniform = Detail::packedPixel(pinned->projectionBackground) != 0;
     for (const auto &layer : pinned->layers) {
         if (!layer.visible) continue;
         uniform |= Detail::packedPixel(layer.defaultPixel) != 0;
@@ -186,7 +186,7 @@ PixelBytesOutcome Execution::readRgbaPixels(DocumentHandle handle, const Snapsho
     constexpr int size = TileRenderer::TileSize;
     QSet<quint64> coordinates;
     std::array<quint8, 4> defaultPixel{};
-    bool uniformProjection = false;
+    bool uniformProjection = !layer && Detail::packedPixel(pinned->projectionBackground) != 0;
     for (const auto &value : pinned->layers) {
         if (layer ? value.id != layer : !value.visible) continue;
         if (layer) defaultPixel = value.defaultPixel;

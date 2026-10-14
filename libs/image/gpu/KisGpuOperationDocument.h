@@ -129,6 +129,7 @@ struct RasterImage
     QList<RasterLayer> layers;
     /** Bottom-to-top list index; zero for an empty document. */
     qsizetype activeLayer = 0;
+    std::array<quint8, 4> projectionBackground{};
 };
 
 struct Layer
@@ -153,10 +154,18 @@ public:
     bool isCommitted() const { return m_committed; }
     OperationId pendingOperation() const { return m_committed ? OperationId{} : m_pendingOperation; }
     QSize size;
+    std::array<quint8, 4> projectionBackground{};
     QList<Layer> layers;
     LayerId activeLayer = 0;
     qsizetype sampleCount = 0;
     qsizetype rasterBytes = 0;
+
+    /** Transparent root projections reuse one full-opacity child, preserving hidden RGB. */
+    LayerId directProjectionLayer() const
+    {
+        return projectionBackground[3] == 0 && layers.size() == 1 && layers.first().visible && layers.first().opacity == 255
+            ? layers.first().id : 0;
+    }
 
 private:
     friend class OperationDocument;

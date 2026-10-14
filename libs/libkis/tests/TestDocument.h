@@ -12,6 +12,8 @@ class TestDocument : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void testCanvasBackgroundReferencePixels_data();
+    void testCanvasBackgroundReferencePixels();
     void testSetColorSpace();
     void testSetColorProfile();
     void testPixelData();

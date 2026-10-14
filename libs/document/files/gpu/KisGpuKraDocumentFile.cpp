@@ -111,6 +111,7 @@ FileOutcome PaintDocument::writeKra(const QString &path, const Snapshot &version
     output.description = d.description;
     output.files = d.files;
     output.image.size = pinned->size;
+    output.image.projectionBackground = pinned->projectionBackground;
     qsizetype rasterBytes = 0;
     for (const auto &layer : pinned->layers) {
         const auto pixels = d.execution.readLayerPixels(d.image->handle(), pinned, layer.id, limits.rasterBytes - rasterBytes);
