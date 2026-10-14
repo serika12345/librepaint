@@ -1176,7 +1176,7 @@ kis_add_test(
 kis_add_test(KisGpuDocumentViewTest.cpp ../../../krita/krita.qrc
     TEST_NAME KisGpuDocumentViewTest
     TEST_NAME_VAR gpu_document_view_test
-    LINK_LIBRARIES kritaapplicationui kritalibkis kritainputui kritatestsdk)
+    LINK_LIBRARIES kritaapplicationui kritalibkis kritainputui kritaimpexkra kritatestsdk)
 add_dependencies(KisGpuDocumentViewTest
     kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
     kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker)

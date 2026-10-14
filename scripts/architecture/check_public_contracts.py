@@ -91,13 +91,13 @@ PUBLIC_HEADER_OWNERS = (
         "libs/image",
         ("libs/image",),
         (),
-        ("KRITAIMAGE_EXPORT", "KRITAIMAGEGPUOPERATIONS_EXPORT", "KRITAGPUIMAGE_EXPORT"),
+        ("KRITAIMAGE_EXPORT", "KRITAIMAGEGPUOPERATIONS_EXPORT", "KRITAGPUIMAGE_EXPORT", "KRITALZFCOMPRESSION_EXPORT"),
     ),
     (
         "libs/impex",
         ("libs/impex",),
         ("libs/impex/animation", "libs/impex/tests", "libs/impex/ui"),
-        "KRITAIMPEX_EXPORT",
+        ("KRITAIMPEX_EXPORT", "KRITAIMPEXKRA_EXPORT"),
     ),
     (
         "libs/impex",

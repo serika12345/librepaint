@@ -7,14 +7,14 @@
 #ifndef __KIS_ABSTRACT_COMPRESSION_H
 #define __KIS_ABSTRACT_COMPRESSION_H
 
-#include "kritaimage_export.h"
+#include "kritalzfcompression_export.h"
 #include <QtGlobal>
 
 /**
  * Base class for compression operations
  */
 
-class KRITAIMAGE_EXPORT KisAbstractCompression
+class KRITALZFCOMPRESSION_EXPORT KisAbstractCompression
 {
 public:
     KisAbstractCompression();

@@ -9,7 +9,7 @@
 
 #include "kis_abstract_compression.h"
 
-class KRITAIMAGE_EXPORT KisLzfCompression : public KisAbstractCompression
+class KRITALZFCOMPRESSION_EXPORT KisLzfCompression : public KisAbstractCompression
 {
 public:
     KisLzfCompression();

@@ -22,6 +22,21 @@ SPEC.loader.exec_module(check_public_contracts)
 
 
 class PublicContractTests(unittest.TestCase):
+    def test_kra_codec_publishes_a_format_owned_boundary(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            for directory in ("libs/impex/kra", "libs/document/gpu"):
+                (root / directory).mkdir(parents=True)
+            header = root / "libs/impex/kra/Codec.h"
+            header.write_text("class KRITAIMPEXKRA_EXPORT Codec {};\n", encoding="utf-8")
+            (root / "libs/document/gpu/use.cpp").write_text('#include "Codec.h"\n', encoding="utf-8")
+            with mock.patch.object(check_public_contracts, "PUBLIC_HEADER_COMPILE_CONTRACTS", {}):
+                self.assertEqual(check_public_contracts.validate_public_headers(root), 1)
+                for declaration in ("class Codec {};\n", "class KRITAIMAGE_EXPORT Codec {};\n"):
+                    header.write_text(declaration, encoding="utf-8")
+                    with self.assertRaisesRegex(check_public_contracts.PublicContractError, "external internal-header references"):
+                        check_public_contracts.validate_public_headers(root)
+
     def test_paint_document_keeps_shared_file_state_inside_its_owner(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)
@@ -47,14 +62,16 @@ class PublicContractTests(unittest.TestCase):
                 "Legacy.h": "KRITAIMAGE_EXPORT",
                 "Values.h": "KRITAIMAGEGPUOPERATIONS_EXPORT",
                 "Execution.h": "KRITAGPUIMAGE_EXPORT",
+                "Compression.h": "KRITALZFCOMPRESSION_EXPORT",
             }
             for name, macro in headers.items():
                 (root / "libs/image/gpu" / name).write_text(
                     f"class {macro} Public {{}};\n", encoding="utf-8")
-            for directory, name in (("plugins/sample", "Legacy.h"), ("libs/impex", "Values.h"), ("libs/canvas", "Execution.h")):
+            for directory, name in (("plugins/sample", "Legacy.h"), ("libs/impex", "Values.h"), ("libs/canvas", "Execution.h"), ("libs/impex/kra", "Compression.h")):
+                (root / directory).mkdir(parents=True, exist_ok=True)
                 (root / directory / "use.cpp").write_text(f'#include "{name}"\n', encoding="utf-8")
             with mock.patch.object(check_public_contracts, "PUBLIC_HEADER_COMPILE_CONTRACTS", {}):
-                self.assertEqual(check_public_contracts.validate_public_headers(root), 3)
+                self.assertEqual(check_public_contracts.validate_public_headers(root), 4)
                 for declaration in ("class Private {};\n", "class KRITACANVAS_EXPORT Private {};\n"):
                     (root / "libs/image/gpu/Execution.h").write_text(declaration, encoding="utf-8")
                     with self.assertRaisesRegex(check_public_contracts.PublicContractError, "external internal-header references"):

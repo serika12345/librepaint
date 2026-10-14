@@ -13,3 +13,4 @@ kis_add_tests(
     )
 
 add_dependencies(TestDocument kritapngimport kritapngexport)
+target_link_libraries(TestDocument kritaimpexkra)

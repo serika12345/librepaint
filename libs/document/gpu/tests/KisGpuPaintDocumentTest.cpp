@@ -15,7 +15,6 @@
 #include <QSignalSpy>
 #include <QTemporaryDir>
 #include <QTest>
-#include <rhi/qrhi.h>
 #include <quazip.h>
 #include <quazipfile.h>
 #include <cstring>

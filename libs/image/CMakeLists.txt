@@ -1806,7 +1806,7 @@ add_library(kritaimagecompressionobjects OBJECT
    tiles3/swap/kis_abstract_compression.cpp
    tiles3/swap/kis_lzf_compression.cpp
 )
-target_compile_definitions(kritaimagecompressionobjects PRIVATE kritaimage_EXPORTS)
+target_compile_definitions(kritaimagecompressionobjects PRIVATE kritalzfcompression_EXPORTS)
 target_include_directories(kritaimagecompressionobjects
    PUBLIC
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
@@ -1817,6 +1817,17 @@ set_target_properties(kritaimagecompressionobjects PROPERTIES
    AUTOMOC OFF
    POSITION_INDEPENDENT_CODE ON
 )
+
+kis_add_library(kritalzfcompression SHARED)
+generate_export_header(kritalzfcompression BASE_NAME kritalzfcompression
+    EXPORT_FILE_NAME ${CMAKE_CURRENT_BINARY_DIR}/kritalzfcompression_export.h)
+target_link_libraries(kritalzfcompression PRIVATE kritaimagecompressionobjects PUBLIC Qt${QT_MAJOR_VERSION}::Core)
+target_include_directories(kritalzfcompression PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>)
+set_target_properties(kritalzfcompression PROPERTIES AUTOMOC OFF
+    VERSION ${GENERIC_KRITA_LIB_VERSION} SOVERSION ${GENERIC_KRITA_LIB_SOVERSION})
+install(TARGETS kritalzfcompression ${INSTALL_TARGETS_DEFAULT_ARGS})
 
 add_library(kritaimageabstracttilecompressorobjects OBJECT
    tiles3/swap/kis_abstract_tile_compressor.cpp
@@ -2483,7 +2494,6 @@ kis_add_library(kritaimage SHARED
    $<TARGET_OBJECTS:kritaimageconvexhullpointsobjects>
    $<TARGET_OBJECTS:kritaimageconvexhulldeviceobjects>
    $<TARGET_OBJECTS:kritaimageconvexhulldevicereaderobjects>
-   $<TARGET_OBJECTS:kritaimagecompressionobjects>
    $<TARGET_OBJECTS:kritaimageabstracttilecompressorobjects>
    $<TARGET_OBJECTS:kritaimagelodcapablelayeroffsetobjects>
    $<TARGET_OBJECTS:kritaimagetiledextentmanagerobjects>
@@ -2496,7 +2506,7 @@ kis_add_library(kritaimage SHARED
 
 generate_export_header(kritaimage BASE_NAME kritaimage)
 
-target_link_libraries(kritaimage PUBLIC kritagpuimage)
+target_link_libraries(kritaimage PUBLIC kritagpuimage kritalzfcompression)
 
 target_link_libraries(kritaimage 
     PUBLIC

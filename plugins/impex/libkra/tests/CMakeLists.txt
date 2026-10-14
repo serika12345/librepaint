@@ -1,6 +1,6 @@
 kis_add_tests(
     kis_kra_loader_test.cpp
-    LINK_LIBRARIES kritaapplicationui kritalibkra kritatestsdk
+    LINK_LIBRARIES kritaapplicationui kritalibkra kritaimpexkra kritatestsdk
     )
 
 

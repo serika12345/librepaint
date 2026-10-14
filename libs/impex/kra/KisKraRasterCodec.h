@@ -7,7 +7,7 @@
 
 #include <gpu/KisGpuOperationDocument.h>
 #include <QMap>
-#include <kritaimpex_export.h>
+#include <kritaimpexkra_export.h>
 
 class QIODevice;
 class QImage;
@@ -66,7 +66,7 @@ struct LoadOutcome
  * before touching the device; its caller owns atomic replacement of the file.
  * The caller supplies the GPU projection of the same pinned document version.
  */
-class KRITAIMPEX_EXPORT RasterCodec
+class KRITAIMPEXKRA_EXPORT RasterCodec
 {
 public:
     static LoadOutcome read(QIODevice &source, Limits limits = {});
