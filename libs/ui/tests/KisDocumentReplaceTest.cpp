@@ -15,6 +15,11 @@
 #include <kis_composite_progress_proxy.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
+#include <kis_paint_device.h>
+#include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuExecution.h>
+#include <metadata/KoDocumentInfo.h>
+#include <stdexcept>
 #include <kis_image_animation_interface.h>
 #include <kis_layer_utils.h>
 #include <kis_time_span.h>
@@ -89,6 +94,80 @@ void KisDocumentReplaceTest::testCopyFromDocument()
 
     KisPart::instance()->removeDocument(anotherDoc);
     finalize();
+}
+
+void KisDocumentReplaceTest::testGpuReplacementKeepsReferencesAndRejectsCapacityBeforeMutation_data()
+{
+    QTest::addColumn<bool>("capacityFailure");
+    QTest::newRow("independent-replacement") << false;
+    QTest::newRow("full-document-capacity") << true;
+}
+
+void KisDocumentReplaceTest::testGpuReplacementKeepsReferencesAndRejectsCapacityBeforeMutation()
+{
+    QFETCH(bool, capacityFailure);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device, 128 * 1024 * 1024, capacityFailure ? 2 : 16);
+    const auto sourceOwner = Gpu::PaintImageSP::create(execution, QSize(64, 32));
+    const auto oldOwner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+    const auto layer = sourceOwner->operations().activeLayer();
+    QCOMPARE(sourceOwner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("112233ff")), Gpu::Result::Success);
+    QCOMPARE(oldOwner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("aabbccff")), Gpu::Result::Success);
+    QScopedPointer<KisDocument> source(KisPart::instance()->createDocument());
+    QScopedPointer<KisDocument> target(KisPart::instance()->createDocument());
+    source->setCurrentImage(KisImage::fromGpuImage(sourceOwner, QStringLiteral("Source image")));
+    target->setCurrentImage(KisImage::fromGpuImage(oldOwner, QStringLiteral("Target image")));
+    source->setPath(QStringLiteral("/tmp/source-image.kra"));
+    target->setPath(QStringLiteral("/tmp/target-image.kra"));
+    source->documentInfo()->setAboutInfo(QStringLiteral("title"), QStringLiteral("Source title"));
+    target->documentInfo()->setAboutInfo(QStringLiteral("title"), QStringLiteral("Target title"));
+    target->setModified(true);
+    const auto image = KisImageSP(target->image());
+    const auto root = image->root();
+    const auto retained = root->firstChild()->paintDevice();
+    const auto previous = oldOwner->operations().snapshot();
+    if (capacityFailure) {
+        QVERIFY_EXCEPTION_THROWN(target->copyFromDocument(*source), std::length_error);
+        QCOMPARE(target->image().data(), image.data());
+        QCOMPARE(image->root(), root);
+        QCOMPARE(target->path(), QStringLiteral("/tmp/target-image.kra"));
+        QCOMPARE(target->documentInfo()->aboutInfo(QStringLiteral("title")), QStringLiteral("Target title"));
+        QVERIFY(target->isModified());
+        QCOMPARE(image->gpuImage(), oldOwner);
+        QCOMPARE(oldOwner->operations().snapshot(), previous);
+        QCOMPARE(execution.requested(oldOwner->handle()), previous);
+    } else {
+        target->copyFromDocument(*source);
+        QCOMPARE(target->image().data(), image.data());
+        QVERIFY(image->root() != root);
+        QCOMPARE(image->bounds().size(), QSize(64, 32));
+        QCOMPARE(target->path(), source->path());
+        QCOMPARE(target->documentInfo()->aboutInfo(QStringLiteral("title")), QStringLiteral("Source title"));
+        QVERIFY(target->isModified());
+        const auto copied = image->gpuImage();
+        QVERIFY(copied != sourceOwner);
+        QVERIFY(copied != oldOwner);
+        QCOMPARE(copied->operations().undoCount(), 0);
+        QCOMPARE(copied->readRgbaPixels(layer, QRect(5, 5, 1, 1), 4).bytes, QByteArray::fromHex("112233ff"));
+        target->setModified(false);
+        QSignalSpy changes(image.data(), &KisImage::sigImageModified);
+        QCOMPARE(oldOwner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("ddeeffff")), Gpu::Result::Success);
+        QVERIFY(changes.isEmpty());
+        QVERIFY(!target->isModified());
+        QCOMPARE(sourceOwner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("445566ff")), Gpu::Result::Success);
+        QCOMPARE(copied->readRgbaPixels(layer, QRect(5, 5, 1, 1), 4).bytes, QByteArray::fromHex("112233ff"));
+        QCOMPARE(copied->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("778899ff")), Gpu::Result::Success);
+        QVERIFY(target->isModified());
+        QCOMPARE(sourceOwner->readRgbaPixels(layer, QRect(5, 5, 1, 1), 4).bytes, QByteArray::fromHex("445566ff"));
+        QByteArray bytes(4, Qt::Uninitialized);
+        retained->readBytes(reinterpret_cast<quint8 *>(bytes.data()), 5, 5, 1, 1);
+        QCOMPARE(bytes, QByteArray::fromHex("ffeeddff"));
+    }
+    KisPart::instance()->removeDocument(source.data(), false);
+    KisPart::instance()->removeDocument(target.data(), false);
 }
 
 void KisDocumentReplaceTest::testDocumentIdentityDelegation()

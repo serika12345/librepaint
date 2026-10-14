@@ -5,6 +5,7 @@
 #include "KisGpuCanvasWidget_p.h"
 #include "kis_coordinates_converter.h"
 #include "kis_canvas2.h"
+#include <kis_image.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <gpu/KisGpuCanvasWindow.h>
 #include <QCoreApplication>
@@ -38,6 +39,7 @@ KisGpuCanvasWidget::KisGpuCanvasWidget(KisCanvas2 *canvas, KisCoordinatesConvert
     m_window->installEventFilter(this);
     m_window->setDocument(m_image->handle());
     connect(m_image.data(), &LibrePaint::Image::Gpu::PaintImage::changed, this, [this] { refresh(); });
+    connect(canvas->image().data(), &KisImage::sigLayersChangedAsync, this, [this] { refresh(); });
     connect(m_window, &LibrePaint::Canvas::Gpu::CanvasWindow::renderingFailed, this,
             [this](quint64, quint64, LibrePaint::Image::Gpu::ExecutionCode, const QString &diagnostic) {
         if (m_window) this->canvas()->viewManager()->showFloatingMessage(diagnostic, QIcon());
@@ -62,6 +64,14 @@ void KisGpuCanvasWidget::disconnectImage()
 void KisGpuCanvasWidget::refresh()
 {
     if (!m_window) return;
+    const auto image = canvas()->image()->gpuImage();
+    if (image && image != m_image) {
+        KIS_SAFE_ASSERT_RECOVER_RETURN(&image->execution() == &m_image->execution());
+        disconnect(m_image.data(), nullptr, this, nullptr);
+        m_image = image;
+        m_window->setDocument(m_image->handle());
+        connect(m_image.data(), &LibrePaint::Image::Gpu::PaintImage::changed, this, [this] { refresh(); });
+    }
     m_window->setDocumentToWindow(coordinatesConverter()->imageToWidgetTransform());
     m_window->refresh();
 }

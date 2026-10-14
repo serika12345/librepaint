@@ -334,6 +334,74 @@ void TestDocument::testGpuSaveNotificationLifetimes()
     if (document) KisPart::instance()->removeDocument(document.get(), false);
 }
 
+void TestDocument::testGpuSnapshotKeepsIndependentPixelsAndDocumentMetadata()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 32));
+    const auto layer = owner->operations().activeLayer();
+    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("112233ff")), Gpu::Result::Success);
+    const auto hidden = owner->addLayer(QStringLiteral("Hidden layer"));
+    QVERIFY(hidden);
+    QCOMPARE(owner->writeRgbaPixels(hidden, QRect(-5, 7, 1, 1), QByteArray::fromHex("aabbcc00")), Gpu::Result::Success);
+    QCOMPARE(owner->setLayerVisible(hidden, false), Gpu::Result::Success);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Snapshot source"));
+    image->setResolution(300.0 / 72, 150.0 / 72);
+    image->addAnnotation(new KisAnnotation(QStringLiteral("snapshot-data"), QStringLiteral("Snapshot annotation"), QByteArrayLiteral("annotation value")));
+    image->root()->firstChild()->setUserLocked(true);
+    image->root()->firstChild()->setColorLabelIndex(3);
+    document->setCurrentImage(image);
+    document->setPath(QStringLiteral("/tmp/snapshot-source.kra"));
+    document->setLocalFilePath(document->path());
+    document->documentInfo()->setAboutInfo(QStringLiteral("title"), QStringLiteral("Snapshot title"));
+    const auto before = owner->operations().snapshot();
+    const auto history = owner->operations().undoCount();
+    QScopedPointer<KisDocument> snapshot(document->lockAndCreateSnapshot());
+    QVERIFY(snapshot);
+    auto copied = snapshot->image()->gpuImage();
+    QVERIFY(copied);
+    QVERIFY(copied != owner);
+    QVERIFY(copied->handle() != owner->handle());
+    QVERIFY(copied->operations().snapshot()->documentId() != before->documentId());
+    QCOMPARE(copied->operations().undoCount(), 0);
+    QCOMPARE(copied->operations().redoCount(), 0);
+    QVERIFY(!snapshot->isModified());
+    QCOMPARE(snapshot->path(), document->path());
+    QCOMPARE(snapshot->localFilePath(), document->localFilePath());
+    QCOMPARE(snapshot->documentInfo()->aboutInfo(QStringLiteral("title")), QStringLiteral("Snapshot title"));
+    QCOMPARE(snapshot->image()->xRes(), image->xRes());
+    QCOMPARE(snapshot->image()->yRes(), image->yRes());
+    QCOMPARE(snapshot->image()->annotation(QStringLiteral("snapshot-data"))->annotation(), QByteArrayLiteral("annotation value"));
+    QVERIFY(snapshot->image()->root()->firstChild()->userLocked());
+    QCOMPARE(snapshot->image()->root()->firstChild()->colorLabelIndex(), 3);
+    QCOMPARE(copied->operations().snapshot()->layers.size(), before->layers.size());
+    for (int index = 0; index < before->layers.size(); ++index) {
+        const auto &original = before->layers[index];
+        const auto &cloned = copied->operations().snapshot()->layers[index];
+        QCOMPARE(cloned.uuid, original.uuid);
+        QCOMPARE(cloned.name, original.name);
+        QCOMPARE(cloned.visible, original.visible);
+    }
+    QCOMPARE(copied->readRgbaPixels(layer, QRect(5, 5, 1, 1), 4).bytes, QByteArray::fromHex("112233ff"));
+    QCOMPARE(copied->readRgbaPixels(hidden, QRect(-5, 7, 1, 1), 4).bytes, QByteArray::fromHex("aabbcc00"));
+    QCOMPARE(copied->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("445566ff")), Gpu::Result::Success);
+    QCOMPARE(owner->readRgbaPixels(layer, QRect(5, 5, 1, 1), 4).bytes, QByteArray::fromHex("112233ff"));
+    QCOMPARE(owner->operations().snapshot(), before);
+    QCOMPARE(owner->operations().undoCount(), history);
+    auto retained = snapshot->image()->root()->firstChild()->paintDevice();
+    KisPart::instance()->removeDocument(document.data(), false);
+    KisPart::instance()->removeDocument(snapshot.data(), false);
+    snapshot.reset();
+    copied.clear();
+    QByteArray bytes(4, Qt::Uninitialized);
+    retained->readBytes(reinterpret_cast<quint8 *>(bytes.data()), 5, 5, 1, 1);
+    QCOMPARE(bytes, QByteArray::fromHex("665544ff"));
+}
+
 void TestDocument::testThumbnail()
 {
     QScopedPointer<KisDocument> kisdoc(KisPart::instance()->createDocument());

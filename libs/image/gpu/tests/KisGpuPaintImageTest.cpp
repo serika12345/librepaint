@@ -12,6 +12,7 @@
 #include <QDataStream>
 #include <QTest>
 #include <limits>
+#include <stdexcept>
 
 using namespace LibrePaint::Image::Gpu;
 
@@ -19,6 +20,7 @@ class KisGpuPaintImageTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void clonesKeepIndependentCurrentStateAndOperationIdentities();
     void sharedEditsPublishBeforeNotificationAndReleaseTheLastAttachment();
     void recoveryPreservesPendingInputAndRedoOnTheSameAttachment();
     void directPixelsReachGpuWithoutEditingNotificationsOrHistory();
@@ -28,6 +30,55 @@ private Q_SLOTS:
     void damagedPixelSharingRecoveryPreservesTheLiveImage();
     void historyNavigationPublishesOneVersionAndPreservesSavedState();
 };
+
+void KisGpuPaintImageTest::clonesKeepIndependentCurrentStateAndOperationIdentities()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    auto source = PaintImageSP::create(execution, QSize(64, 64));
+    const auto layer = source->operations().activeLayer();
+    const auto stroke = source->beginStroke(layer, Brush{}, 17);
+    QCOMPARE(source->appendSamples(stroke, {{{12, 12}, 1}}), Result::Success);
+    QCOMPARE(source->commitStroke(stroke), Result::Success);
+    const auto hidden = source->addLayer(QStringLiteral("Hidden"));
+    QVERIFY(hidden);
+    QCOMPARE(source->writeRgbaPixels(hidden, QRect(-5, 7, 1, 1), QByteArray::fromHex("aabbcc00")), Result::Success);
+    QCOMPARE(source->setLayerVisible(hidden, false), Result::Success);
+    const auto before = source->operations().snapshot();
+    const auto history = source->operations().undoCount();
+    auto exact = source->clone(true);
+    QVERIFY(exact);
+    QVERIFY(exact->handle() != source->handle());
+    QVERIFY(exact->operations().snapshot()->documentId() != before->documentId());
+    QCOMPARE(exact->operations().undoCount(), 0);
+    QCOMPARE(exact->operations().redoCount(), 0);
+    QVERIFY(!exact->operations().isModified());
+    QCOMPARE(exact->operations().snapshot()->layers[0].uuid, before->layers[0].uuid);
+    QCOMPARE(exact->readRgbaPixels(layer, QRect(12, 12, 1, 1), 4).bytes, source->readRgbaPixels(layer, QRect(12, 12, 1, 1), 4).bytes);
+    QCOMPARE(exact->readRgbaPixels(hidden, QRect(-5, 7, 1, 1), 4).bytes, QByteArray::fromHex("aabbcc00"));
+    QCOMPARE(exact->restoreRecovery(exact->operations().recoveryData()), Result::Success);
+    QCOMPARE(exact->replaceRgbaPixels(layer, QRect(12, 12, 1, 1), QByteArray::fromHex("112233ff")), Result::Success);
+    QCOMPARE(source->operations().snapshot(), before);
+    QCOMPARE(source->operations().undoCount(), history);
+    auto renamed = source->clone(false);
+    QVERIFY(renamed);
+    for (int index = 0; index < before->layers.size(); ++index)
+        QVERIFY(renamed->operations().snapshot()->layers[index].uuid != before->layers[index].uuid);
+    Execution destination(device);
+    auto transferred = source->cloneTo(destination, true);
+    QVERIFY(transferred);
+    QCOMPARE(&transferred->execution(), &destination);
+    QCOMPARE(destination.requested(transferred->handle()), transferred->operations().snapshot());
+    QCOMPARE(transferred->readRgbaPixels(hidden, QRect(-5, 7, 1, 1), 4).bytes, QByteArray::fromHex("aabbcc00"));
+    Execution full(device, 128 * 1024 * 1024, 1);
+    PaintImage oneSlot(full, QSize(64, 64));
+    const auto retained = oneSlot.operations().snapshot();
+    QVERIFY_EXCEPTION_THROWN(oneSlot.clone(true), std::length_error);
+    QCOMPARE(oneSlot.operations().snapshot(), retained);
+    QCOMPARE(full.requested(oneSlot.handle()), retained);
+}
 
 void KisGpuPaintImageTest::historyNavigationPublishesOneVersionAndPreservesSavedState()
 {

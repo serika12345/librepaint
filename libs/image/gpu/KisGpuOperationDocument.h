@@ -18,6 +18,7 @@
 #include <kritaimage_export.h>
 #include "KisGpuRasterPixels.h"
 #include <variant>
+#include <memory>
 
 namespace LibrePaint::Image::Gpu {
 
@@ -266,6 +267,7 @@ public:
 
 private:
     friend class PaintImage;
+    std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
     struct VersionPixelWrite
     {
         Snapshot before;

@@ -20,6 +20,8 @@ class KisDocumentReplaceTest : public QObject
 
 private Q_SLOTS:
     void testCopyFromDocument();
+    void testGpuReplacementKeepsReferencesAndRejectsCapacityBeforeMutation_data();
+    void testGpuReplacementKeepsReferencesAndRejectsCapacityBeforeMutation();
     void testDocumentIdentityDelegation();
     void testDocumentModificationStateDelegation();
     void testDocumentRecoveryStatusDelegation();

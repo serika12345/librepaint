@@ -25,6 +25,7 @@
 #include <KoColorSpaceRegistry.h>
 #include <info/KoDocumentInfoDlg.h>
 #include <memory>
+#include <stdexcept>
 #include <metadata/KoDocumentInfo.h>
 #include <KoUnit.h>
 #include <KoID.h>
@@ -383,6 +384,7 @@ void KisDocument::Private::syncDecorationsWrapperLayerState()
 
     const bool needsDecorationsWrapper =
             gridConfig.showGrid() || (guidesConfig.showGuides() && guidesConfig.hasGuides()) || !assistants.isEmpty();
+    if (!needsDecorationsWrapper && !decorationsLayer) return;
     KisDecorationsWrapperLayerSP layerToAdd = needsDecorationsWrapper && !decorationsLayer ? new KisDecorationsWrapperLayer(q) : KisDecorationsWrapperLayerSP();
     struct SyncDecorationsWrapperStroke : public KisSimpleStrokeStrategy {
         SyncDecorationsWrapperStroke(KisImageSP image, KisDecorationsWrapperLayerSP layerToAdd, bool needsDecorationsWrapper)
@@ -1152,6 +1154,14 @@ void KisDocument::copyFromDocument(const KisDocument &rhs)
 
 void KisDocument::copyFromDocumentImpl(const KisDocument &rhs, CopyPolicy policy)
 {
+    if (policy == REPLACE && d->image && rhs.d->image &&
+        bool(d->image->gpuImage()) != bool(rhs.d->image->gpuImage()))
+        throw std::invalid_argument("Document replacement requires matching painting backends");
+    LibrePaint::Image::Gpu::PaintImageSP preparedGpuImage;
+    if (policy == REPLACE && d->image && rhs.d->image && rhs.d->image->gpuImage()) {
+        preparedGpuImage = rhs.d->image->gpuImage()->cloneTo(d->image->gpuImage()->execution());
+        if (!preparedGpuImage) throw std::invalid_argument("Document replacement requires the owning thread");
+    }
     if (policy == REPLACE) {
         d->decorationsSyncingDisabled = true;
         d->copyFrom(*(rhs.d), this);
@@ -1176,7 +1186,8 @@ void KisDocument::copyFromDocumentImpl(const KisDocument &rhs, CopyPolicy policy
         if (policy == REPLACE) {
             d->image->barrierLock(/* readOnly = */ false);
             rhs.d->image->barrierLock(/* readOnly = */ true);
-            d->image->copyFromImage(*(rhs.d->image));
+            if (preparedGpuImage) d->image->replaceFromGpuImage(preparedGpuImage, *(rhs.d->image));
+            else d->image->copyFromImage(*(rhs.d->image));
             d->image->unlock();
             rhs.d->image->unlock();
 
@@ -2381,6 +2392,11 @@ void KisDocument::slotConfigChanged()
 
 void KisDocument::slotImageRootChanged()
 {
+    const auto owner = d->image ? d->image->gpuImage() : nullptr;
+    if (owner && (!d->gpuDocument || d->gpuDocument->image() != owner)) {
+        d->gpuDocument = std::make_shared<LibrePaint::Document::Gpu::PaintDocument>(owner);
+        d->undoStack->setImage(d->image);
+    }
     d->syncDecorationsWrapperLayerState();
 }
 

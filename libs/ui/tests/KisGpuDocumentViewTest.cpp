@@ -12,6 +12,8 @@
 #include <QStatusBar>
 #include <QScopeGuard>
 #include <QTemporaryDir>
+#include <QFile>
+#include <kra/KisKraRasterCodec.h>
 #include <KLocalizedString>
 #include <KisGlobalResourcesInterface.h>
 #include <KisResourceLocator.h>
@@ -35,6 +37,7 @@
 #include <gpu/KisGpuExecution.h>
 #include <gpu/KisGpuPaintImage.h>
 #include <kis_image.h>
+#include <kis_node.h>
 #include <kis_canvas2.h>
 #include <kundo2stack.h>
 #include <brushengine/kis_paintop_registry.h>
@@ -72,6 +75,7 @@ private Q_SLOTS:
     void presentsEditsAndReleasesTheClosedTab();
     void freehandInputCommitsOneHistoryEntryAndCanBeCancelled_data();
     void freehandInputCommitsOneHistoryEntryAndCanBeCancelled();
+    void replacementUpdatesPresentationInputHistoryAndSaving();
 private:
     KisPaintOpPresetSP m_preset;
 };
@@ -263,6 +267,104 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QVERIFY(documentLifetime->isModified());
     documentLifetime->undoStack()->redo();
     QVERIFY(!documentLifetime->isModified());
+}
+
+void KisGpuDocumentViewTest::replacementUpdatesPresentationInputHistoryAndSaving()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    namespace Kra = LibrePaint::ImportExport::Kra;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    const auto previous = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto sourceOwner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto layer = sourceOwner->operations().activeLayer();
+    QCOMPARE(sourceOwner->replaceRgbaPixels(layer, QRect(8, 8, 1, 1), QByteArray::fromHex("4488ccff")), Gpu::Result::Success);
+    QScopedPointer<KisDocument> source(KisPart::instance()->createDocument());
+    source->setCurrentImage(KisImage::fromGpuImage(sourceOwner, QStringLiteral("Replacement source")));
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(previous, QStringLiteral("Replacement target")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    window->resize(800, 600);
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> documentLifetime(document.release());
+    QPointer<LibrePaint::Canvas::Gpu::CanvasWindow> native;
+    bool pressed = false;
+    const auto releaseWindow = qScopeGuard([&] {
+        if (pressed && native) {
+            if (documentLifetime) documentLifetime->image()->requestStrokeCancellation();
+            QTest::mouseRelease(native.data(), Qt::LeftButton);
+        }
+        if (documentLifetime) {
+            documentLifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+    window->activateWindow();
+    QTRY_COMPARE(execution.published(previous->handle()), previous->operations().snapshot());
+    auto *identity = view->image().data();
+    documentLifetime->copyFromDocument(*source);
+    QCOMPARE(view->image().data(), identity);
+    const auto copied = view->image()->gpuImage();
+    QVERIFY(copied != previous);
+    QVERIFY(copied != sourceOwner);
+    QTRY_COMPARE(execution.published(copied->handle()), copied->operations().snapshot());
+    auto *profiles = KisInputProfileManager::instance();
+    profiles->setProfileLocations({QStringLiteral(KRITA_SOURCE_DIR "/krita/data/input/kritadefault.profile")},
+                                 QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QStringLiteral("/input"));
+    profiles->loadProfiles();
+    auto *resources = window->viewManager()->canvasResourceProvider();
+    resources->setPaintOpPreset(m_preset);
+    resources->setSize(8);
+    resources->setOpacity(1);
+    resources->setEraserMode(false);
+    resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    resources->setFGColor(KoColor(QColor(17, 129, 241), KoColorSpaceRegistry::instance()->rgb8()));
+    KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
+    auto *brush = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KritaShape/KisToolBrush"));
+    QVERIFY(brush);
+    QVERIFY(brush->setProperty("smoothingType", 0));
+    for (auto *candidate : QGuiApplication::allWindows())
+        if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate)) native = canvas;
+    QVERIFY(native);
+    QTRY_VERIFY(view->currentNode());
+    QTRY_COMPARE(view->currentNode()->uuid(), copied->operations().snapshot()->layers.first().uuid);
+    const auto point = view->canvasBase()->coordinatesConverter()->imageToWidget(QPointF(32, 32)).toPoint();
+    QEnterEvent entered(point, point, native->mapToGlobal(point));
+    QApplication::sendEvent(native.data(), &entered);
+    QTest::mouseMove(native.data(), point);
+    QTest::qWait(10);
+    pressed = true;
+    QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, point);
+    QVERIFY(copied->operations().hasActiveStroke());
+    QVERIFY(!previous->operations().hasActiveStroke());
+    auto *undo = window->viewManager()->actionManager()->actionByName(QStringLiteral("edit_undo"));
+    QVERIFY(undo);
+    QTRY_VERIFY(undo->isEnabled());
+    QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point);
+    pressed = false;
+    QCOMPARE(copied->operations().undoCount(), 1);
+    documentLifetime->undoStack()->undo();
+    QCOMPARE(copied->operations().undoCount(), 0);
+    QCOMPARE(copied->readRgbaPixels(layer, QRect(32, 32, 1, 1), 4).bytes, QByteArray::fromHex("00000000"));
+    QCOMPARE(sourceOwner->operations().undoCount(), 1);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("replacement.kra"));
+    documentLifetime->setFileBatchMode(true);
+    QVERIFY(documentLifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false));
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto loaded = Kra::RasterCodec::read(file);
+    QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
+    QCOMPARE(loaded.document.image.layers.first().tiles.first().rgba.mid((8 * 256 + 8) * 4, 4), QByteArray::fromHex("4488ccff"));
 }
 
 void KisGpuDocumentViewTest::presentsEditsAndReleasesTheClosedTab()

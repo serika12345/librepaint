@@ -27,6 +27,33 @@ QList<InputSample> PaintOperation::inputSamples() const
 OperationDocument::OperationDocument(QSize size, Limits limits)
     : OperationDocument(RasterImage{size, {{QStringLiteral("Paint Layer 1"), true, {}, {}}}, 0}, limits) {}
 
+std::unique_ptr<OperationDocument> OperationDocument::cloneCurrent(bool preserveLayerUuids) const
+{
+    auto result = std::make_unique<OperationDocument>(RasterImage{snapshot()->size, {}, 0}, m_limits);
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->m_document = result->m_identity;
+    for (auto &layer : version->layers) {
+        if (!preserveLayerUuids) layer.uuid = QUuid::createUuid();
+        for (auto &operation : layer.operations) {
+            if (const auto *paint = std::get_if<PaintSnapshot>(&operation)) {
+                auto copied = QSharedPointer<PaintOperation>::create(**paint);
+                copied->id.document = result->m_identity;
+                operation = PaintSnapshot(copied);
+            } else {
+                auto copied = QSharedPointer<TileWriteOperation>::create(*std::get<TileWriteSnapshot>(operation));
+                copied->id.document = result->m_identity;
+                operation = TileWriteSnapshot(copied);
+            }
+        }
+    }
+    result->m_history = {version};
+    result->m_nextLayer = m_nextLayer;
+    result->m_nextOperation = m_nextOperation;
+    result->m_nextRevision = m_nextRevision;
+    result->m_savedRevision = version->m_modifiedRevision;
+    return result;
+}
+
 Snapshot OperationDocument::snapshot() const { return m_history[m_index]; }
 Snapshot OperationDocument::preview() const { return m_preview ? m_preview : snapshot(); }
 LayerId OperationDocument::activeLayer() const { return snapshot()->activeLayer; }

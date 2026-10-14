@@ -9,7 +9,6 @@ kis_add_tests(
     kis_prescaled_projection_test.cpp
     kis_display_color_converter_contract_test.cpp
     kis_animation_importer_test.cpp
-    KisDocumentReplaceTest.cpp
     kis_derived_resources_test.cpp
     kis_animation_frame_cache_test.cpp
     TestCanvasUiPublicHeaders.cpp
@@ -21,6 +20,13 @@ kis_add_tests(
     KisSafeDocumentLoaderTest.cpp
     LINK_LIBRARIES kritaapplication kritaapplicationui kritalibkis kritatestsdk
     )
+
+kis_add_test(KisDocumentReplaceTest.cpp
+    TEST_NAME_VAR gpu_document_replace_test
+    LINK_LIBRARIES kritaapplication kritaapplicationui kritalibkis kritatestsdk)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set_tests_properties(${gpu_document_replace_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
+endif()
 
 kis_add_test(
     KisSpinBoxSplineUnitConverterTest.cpp

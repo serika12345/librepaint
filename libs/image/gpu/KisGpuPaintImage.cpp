@@ -28,6 +28,14 @@ PaintImage::~PaintImage()
 const OperationDocument &PaintImage::operations() const { return *m_d->document; }
 quint64 PaintImage::handle() const { return m_d->handle; }
 Execution &PaintImage::execution() const { return m_d->execution; }
+PaintImageSP PaintImage::clone(bool preserveLayerUuids) const
+{ return cloneTo(m_d->execution, preserveLayerUuids); }
+
+PaintImageSP PaintImage::cloneTo(Execution &destination, bool preserveLayerUuids) const
+{
+    if (!onThread()) return {};
+    return PaintImageSP(new PaintImage(destination, m_d->document->cloneCurrent(preserveLayerUuids), m_d->limits));
+}
 ExecutionOutcome PaintImage::lastRequestOutcome() const { return m_d->lastRequest; }
 PixelBytesOutcome PaintImage::readRgbaPixels(LayerId layer, QRect region, qsizetype maximumBytes) const
 {

@@ -124,6 +124,11 @@ public:
     KisImage *clone(bool exactCopy = false);
 
     void copyFromImage(const KisImage &rhs);
+    /** Adopts a prepared GPU image on this execution and copies source metadata.
+     * The open image has the source dimensions; this image identity stays stable.
+     * Invalid values throw std::invalid_argument before changing the image.
+     */
+    void replaceFromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const KisImage &source);
 
 private:
 
@@ -134,7 +139,8 @@ private:
         EXACT_COPY = 4, /// we need an exact copy of the original image
     };
 
-    void copyFromImageImpl(const KisImage &rhs, int policy);
+    void copyFromImageImpl(const KisImage &rhs, int policy,
+                           QSharedPointer<LibrePaint::Image::Gpu::PaintImage> preparedGpuImage = {});
 
 public:
 
@@ -1253,6 +1259,8 @@ private:
 
     KisImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name);
     void synchronizeGpuNodes();
+    void connectGpuImageUpdates();
+    QSharedPointer<LibrePaint::Image::Gpu::PaintImage> cloneGpuImage(bool exactCopy) const;
     KisImage(const KisImage& rhs, KisUndoStore *undoStore, bool exactCopy);
     KisImage& operator=(const KisImage& rhs);
 

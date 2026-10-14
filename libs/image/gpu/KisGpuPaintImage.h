@@ -35,6 +35,14 @@ public:
     quint64 handle() const;
     /** Borrowed GUI-thread execution owner, which outlives every image reference. */
     Execution &execution() const;
+    /** Independent committed image with empty, saved history on the same execution.
+     * Immutable input and raster blocks may be shared. Operation identities are
+     * fresh; preserveLayerUuids retains public layer identities for snapshots.
+     * Returns null off-thread; attachment capacity throws std::length_error.
+     */
+    QSharedPointer<PaintImage> clone(bool preserveLayerUuids = false) const;
+    /** Clones logical values into the destination execution, with the same guarantees. */
+    QSharedPointer<PaintImage> cloneTo(Execution &destination, bool preserveLayerUuids = false) const;
     ExecutionOutcome lastRequestOutcome() const;
     /** Synchronous canonical pixels from the current committed image version. */
     PixelBytesOutcome readRgbaPixels(LayerId layer, QRect region, qsizetype maximumBytes) const;

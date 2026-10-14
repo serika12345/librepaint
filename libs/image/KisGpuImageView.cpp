@@ -17,8 +17,24 @@ KisImageSP KisImage::fromGpuImage(LibrePaint::Image::Gpu::PaintImageSP image, co
         throw std::invalid_argument("GPU image construction requires an open image on its owning thread");
     KisImageSP result = new KisImage(image, name);
     result->synchronizeGpuNodes();
-    connect(image.data(), &LibrePaint::Image::Gpu::PaintImage::changed, result.data(),
-            [view = result.data(), synchronized = image->operations().snapshot()]() mutable {
+    result->connectGpuImageUpdates();
+    return result;
+}
+
+QSharedPointer<LibrePaint::Image::Gpu::PaintImage> KisImage::cloneGpuImage(bool exactCopy) const
+{
+    const auto owner = gpuImage();
+    if (!owner) return {};
+    auto result = owner->clone(exactCopy);
+    if (!result) throw std::invalid_argument("GPU image cloning requires the owning thread");
+    return result;
+}
+
+void KisImage::connectGpuImageUpdates()
+{
+    const auto image = gpuImage();
+    connect(image.data(), &LibrePaint::Image::Gpu::PaintImage::changed, this,
+            [view = this, synchronized = image->operations().snapshot()]() mutable {
         KisImageSP retainedView = view;
         const auto version = retainedView->gpuImage()->operations().snapshot();
         if (version != synchronized) {
@@ -28,7 +44,6 @@ KisImageSP KisImage::fromGpuImage(LibrePaint::Image::Gpu::PaintImageSP image, co
         }
         retainedView->notifyProjectionUpdated(retainedView->bounds());
     });
-    return result;
 }
 
 void KisImage::synchronizeGpuNodes()

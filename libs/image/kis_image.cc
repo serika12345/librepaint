@@ -81,6 +81,7 @@
 #include "kis_update_scheduler.h"
 #include "gpu/KisGpuPaintImage.h"
 #include <stdexcept>
+#include <QScopeGuard>
 #include "kis_image_signal_router.h"
 #include "kis_image_animation_interface.h"
 #include "kis_keyframe_channel.h"
@@ -473,10 +474,26 @@ void KisImage::copyFromImage(const KisImage &rhs)
     copyFromImageImpl(rhs, REPLACE);
 }
 
-void KisImage::copyFromImageImpl(const KisImage &rhs, int policy)
+void KisImage::replaceFromGpuImage(LibrePaint::Image::Gpu::PaintImageSP image, const KisImage &source)
+{
+    if (!gpuImage() || !source.gpuImage() || !image || !image->handle() ||
+        QThread::currentThread() != image->thread() ||
+        &image->execution() != &gpuImage()->execution() || image->operations().snapshot()->size != source.bounds().size())
+        throw std::invalid_argument("GPU image replacement requires matching source dimensions and destination execution");
+    copyFromImageImpl(source, REPLACE, std::move(image));
+}
+
+void KisImage::copyFromImageImpl(const KisImage &rhs, int policy, LibrePaint::Image::Gpu::PaintImageSP preparedGpuImage)
 {
     // make sure we choose exactly one from REPLACE and CONSTRUCT
     KIS_ASSERT_RECOVER_RETURN(bool(policy & REPLACE) != bool(policy & CONSTRUCT));
+    if (bool(gpuImage()) != bool(rhs.gpuImage()))
+        throw std::invalid_argument("Image replacement requires matching painting backends");
+    const auto gpuCopy = rhs.gpuImage() ? (preparedGpuImage ? preparedGpuImage :
+        ((policy & REPLACE) ? rhs.gpuImage()->cloneTo(gpuImage()->execution(), policy & EXACT_COPY) : gpuImage())) : nullptr;
+    if (rhs.gpuImage() && !gpuCopy)
+        throw std::invalid_argument("GPU image replacement requires the owning thread");
+    const KisNodeSP sourceRoot = rhs.root();
 
     /**
      * We should replace the root before emitting any signals, because some of the layers
@@ -512,12 +529,32 @@ void KisImage::copyFromImageImpl(const KisImage &rhs, int policy)
     setObjectName(rhs.objectName());
 
     KisNodeSP oldRoot = this->root();
-    KisNodeSP newRoot = rhs.root()->clone();
+    KisNodeSP newRoot;
+    if (gpuCopy) {
+        QObject::disconnect(m_d->gpuImage.data(), nullptr, this, nullptr);
+        m_d->gpuImage = gpuCopy;
+        newRoot = new KisGroupLayer(this, sourceRoot->name(), sourceRoot->opacity());
+        newRoot->mergeNodeProperties(sourceRoot->nodeProperties());
+    } else {
+        newRoot = sourceRoot->clone();
+    }
     newRoot->setGraphListener(this);
     newRoot->setImage(this);
 
     m_d->rootLayer = dynamic_cast<KisGroupLayer*>(newRoot.data());
     setRoot(newRoot);
+    if (gpuCopy) {
+        // Publish the replacement as a complete subtree, matching CPU clones.
+        newRoot->setGraphListener(nullptr);
+        synchronizeGpuNodes();
+        auto source = sourceRoot->firstChild();
+        for (auto node = newRoot->firstChild(); node && source; node = node->nextSibling(), source = source->nextSibling()) {
+            node->setGraphListener(nullptr);
+            node->mergeNodeProperties(source->nodeProperties());
+        }
+        newRoot->setGraphListener(this);
+        connectGpuImageUpdates();
+    }
 
     if (oldRoot) {
         oldRoot->setImage(0);
@@ -631,8 +668,16 @@ KisImage::KisImage(const KisImage& rhs, KisUndoStore *undoStore, bool exactCopy)
                               rhs.width(), rhs.height(),
                               rhs.colorSpace(),
                               undoStore ? undoStore : new KisDumbUndoStore(),
-                              new KisImageAnimationInterface(*rhs.animationInterface(), this)))
+                              new KisImageAnimationInterface(*rhs.animationInterface(), this),
+                              rhs.cloneGpuImage(exactCopy)))
 {
+    // GPU node constructors temporarily promote weak image references. The
+    // caller adopts the returned raw clone after construction completes.
+    const bool holdConstructionReference = bool(m_d->gpuImage);
+    if (holdConstructionReference) ref();
+    const auto releaseConstructionReference = qScopeGuard([this, holdConstructionReference] {
+        if (holdConstructionReference) deref();
+    });
     // make sure KisImage belongs to the GUI thread
     moveToThread(qApp->thread());
     connect(this, SIGNAL(sigInternalStopIsolatedModeRequested()), SLOT(stopIsolatedMode()));
