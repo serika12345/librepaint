@@ -380,16 +380,21 @@ Result OperationDocument::cancelStroke(OperationId id)
 }
 
 LayerId OperationDocument::addLayer(const QString &name)
+{ return addLayer(name, snapshot()->layers.size(), false); }
+
+LayerId OperationDocument::addLayer(const QString &name, qsizetype index, bool pinnedToTimeline)
 {
     if (checkMutation() != Result::Success || snapshot()->layers.size() >= m_limits.layerCount ||
-        !validLayerName(name) ||
+        !validLayerName(name) || index < 0 || index > snapshot()->layers.size() ||
         m_nextLayer == std::numeric_limits<quint64>::max() ||
         m_nextRevision == std::numeric_limits<quint64>::max()) {
         return 0;
     }
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     const LayerId layer = ++m_nextLayer;
-    version->layers.append({layer, name, true, {}, QUuid::createUuid()});
+    Layer added{layer, name, true, {}, QUuid::createUuid()};
+    added.pinnedToTimeline = pinnedToTimeline;
+    version->layers.insert(index, added);
     version->activeLayer = layer;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     commitVersion(version);

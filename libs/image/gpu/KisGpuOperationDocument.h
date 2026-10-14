@@ -273,6 +273,8 @@ public:
 
     /** Adds and selects a layer in one history entry; returns zero on rejection. */
     LayerId addLayer(const QString &name);
+    /** Inserts and selects a layer at a bottom-to-top index, including its timeline state. */
+    LayerId addLayer(const QString &name, qsizetype index, bool pinnedToTimeline);
     /** Selection is screen state; selecting an existing layer adds no history entry. */
     Result selectLayer(LayerId layer);
     Result setLayerVisible(LayerId layer, bool visible);

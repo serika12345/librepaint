@@ -89,9 +89,99 @@ private Q_SLOTS:
     void layerPanelEditsUseOneDocumentHistory();
     void ordinaryLayerChangesDuringInput();
     void layerPanelSelectionSurvivesSaving();
+    void layerPanelAddsAtSelectionWithOneHistoryEntry_data();
+    void layerPanelAddsAtSelectionWithOneHistoryEntry();
 private:
     KisPaintOpPresetSP m_preset;
 };
+
+void KisGpuDocumentViewTest::layerPanelAddsAtSelectionWithOneHistoryEntry_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("pinned");
+    QTest::newRow("ordinary") << false << false;
+    QTest::newRow("gpu") << true << false;
+    QTest::newRow("ordinary-pinned") << false << true;
+    QTest::newRow("gpu-pinned") << true << true;
+}
+
+void KisGpuDocumentViewTest::layerPanelAddsAtSelectionWithOneHistoryEntry()
+{
+    QFETCH(bool, gpu);
+    QFETCH(bool, pinned);
+    const bool previousPin = KisConfig(true).autoPinLayersToTimeline();
+    const auto restorePin = qScopeGuard([&] { KisConfig(false).setAutoPinLayersToTimeline(previousPin); });
+    KisConfig(false).setAutoPinLayersToTimeline(pinned);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    std::shared_ptr<Gpu::Execution> execution;
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    if (gpu) {
+        QString diagnostic;
+        auto device = Gpu::Device::createNative(diagnostic);
+        QVERIFY2(device, qPrintable(diagnostic));
+        execution = std::make_shared<Gpu::Execution>(device);
+        const auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        QVERIFY(owner->addLayer(QStringLiteral("Middle")));
+        QVERIFY(owner->addLayer(QStringLiteral("Top")));
+        QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+        document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Layer creation")));
+    } else {
+        const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+        QVERIFY(document->newImage(QStringLiteral("Layer creation"), 32, 16, cs,
+                                   KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 3, {}, 1));
+    }
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    auto image = KisImageSP(lifetime->image());
+    const auto root = image->root();
+    const auto middle = root->at(1);
+    const auto top = root->at(2);
+    auto *manager = window->viewManager()->nodeManager();
+    manager->slotUiActivatedNode(middle);
+    QCOMPARE(view->currentNode(), middle);
+    const auto before = lifetime->undoStack()->count();
+    KisNodeSP added;
+    try {
+        added = manager->createNode(QStringLiteral("KisPaintLayer"));
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    QVERIFY(added);
+    image->waitForDone();
+    QTRY_COMPARE(view->currentNode(), added);
+    QCOMPARE(root->childCount(), 4U);
+    QCOMPARE(root->at(1), middle);
+    QCOMPARE(root->at(2), added);
+    QCOMPARE(root->at(3), top);
+    QCOMPARE(added->isPinnedToTimeline(), pinned);
+    QCOMPARE(lifetime->undoStack()->count(), before + 1);
+    QVERIFY(lifetime->isModified());
+    const auto pixel = QByteArray::fromHex("332211ff");
+    added->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(pixel.constData()), 5, 5, 1, 1);
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(root->childCount(), 3U);
+    QVERIFY(!added->parent());
+    lifetime->undoStack()->redo();
+    image->waitForDone();
+    QCOMPARE(root->at(2), added);
+    QTRY_COMPARE(view->currentNode(), added);
+    QByteArray actual(4, '\0');
+    added->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 5, 5, 1, 1);
+    QCOMPARE(actual, pixel);
+}
 
 void KisGpuDocumentViewTest::layerPanelSelectionSurvivesSaving()
 {

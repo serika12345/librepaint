@@ -50,6 +50,7 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void insertedLayersPreserveOrderPinsAndOneHistoryStep();
     void selectionDuringInputPreservesPaintingAndHistory();
     void mergedPanelTogglesPreservePinsAndSaveBoundaries_data();
     void mergedPanelTogglesPreservePinsAndSaveBoundaries();
@@ -132,6 +133,39 @@ void KisGpuOperationDocumentTest::mergedNameResetRetainsItsRecordedBoundary()
     QCOMPARE(restored.snapshot()->layers.first().name, initial);
     QCOMPARE(restored.redo(), Result::Success);
     QCOMPARE(restored.snapshot()->layers.first().name, initial);
+}
+
+void KisGpuOperationDocumentTest::insertedLayersPreserveOrderPinsAndOneHistoryStep()
+{
+    OperationDocument document(rasterImage());
+    const auto original = document.snapshot();
+    const auto id = document.addLayer(QStringLiteral("Inserted"), 1, true);
+    QVERIFY(id);
+    const auto inserted = document.snapshot();
+    QCOMPARE(inserted->layers.size(), 3);
+    QCOMPARE(inserted->layers[0].uuid, original->layers[0].uuid);
+    QCOMPARE(inserted->layers[2].uuid, original->layers[1].uuid);
+    QCOMPARE(inserted->layers[1].id, id);
+    QVERIFY(inserted->layers[1].pinnedToTimeline);
+    QCOMPARE(document.activeLayer(), id);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), original);
+    const auto beforeInvalid = document.recoveryData();
+    QCOMPARE(document.addLayer(QStringLiteral("Invalid"), -1, false), LayerId(0));
+    QCOMPARE(document.addLayer(QStringLiteral("Invalid"), 3, false), LayerId(0));
+    QCOMPARE(document.recoveryData(), beforeInvalid);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), inserted);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.snapshot()->layers[1].uuid, inserted->layers[1].uuid);
+    QVERIFY(recovered.snapshot()->layers[1].pinnedToTimeline);
+    const auto pending = document.beginStroke(id, {}, 17);
+    QVERIFY(!pending.isNull());
+    QCOMPARE(document.addLayer(QStringLiteral("Busy"), 0, false), LayerId(0));
+    QCOMPARE(document.cancelStroke(pending), Result::Success);
+    QCOMPARE(document.snapshot(), inserted);
 }
 
 void KisGpuOperationDocumentTest::selectionDuringInputPreservesPaintingAndHistory()

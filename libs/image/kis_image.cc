@@ -383,6 +383,7 @@ KisImage::~KisImage()
      */
     waitForDone();
 
+    if (m_d->gpuImage) QObject::disconnect(m_d->gpuImage.data(), nullptr, this, nullptr);
     delete m_d;
     disconnect(); // in case Qt gets confused
 }

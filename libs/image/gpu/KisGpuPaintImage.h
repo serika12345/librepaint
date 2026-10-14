@@ -74,6 +74,7 @@ public:
     Result writeLayerLocked(LayerId layer, bool locked);
     Result writeLayerPinnedToTimeline(LayerId layer, bool pinned);
     LayerId addLayer(const QString &name);
+    LayerId addLayer(const QString &name, qsizetype index, bool pinnedToTimeline);
     Result selectLayer(LayerId layer);
     Result setLayerVisible(LayerId layer, bool visible);
     Result setLayerVisible(LayerId layer, bool visible, PropertyHistory history);

@@ -45,6 +45,34 @@
 #define IMAGE_WIDTH 128
 #define IMAGE_HEIGHT 128
 
+void KisImageTest::testGpuLayerReferencesSurviveHistoryAndReleaseDiscardedBranches()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(16, 16));
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Layer reference lifetime"));
+    QPointer<KisImage> imageLifetime(image.data());
+    const auto original = owner->operations().activeLayer();
+    QVERIFY(owner->addLayer(QStringLiteral("Added"), 1, true));
+    auto added = image->root()->lastChild();
+    QPointer<KisNode> nodeLifetime(added.data());
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QVERIFY(!added->parent());
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QCOMPARE(image->root()->lastChild(), added);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    added.clear();
+    QVERIFY(nodeLifetime);
+    QCOMPARE(owner->renameLayer(original, QStringLiteral("New branch")), Gpu::Result::Success);
+    QCOMPARE(owner->operations().redoCount(), 0);
+    QVERIFY(!nodeLifetime);
+    image.clear();
+    QVERIFY(!imageLifetime);
+}
+
 void KisImageTest::testGpuImageNotificationLifetime_data()
 {
     QTest::addColumn<int>("notification");

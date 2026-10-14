@@ -117,7 +117,13 @@ Result PaintImage::replaceTiles(LayerId layer, const QList<RgbaTile> &tiles)
 LayerId PaintImage::addLayer(const QString &name)
 {
     if (!onThread()) return 0;
-    const auto id = m_d->document->addLayer(name);
+    return addLayer(name, m_d->document->snapshot()->layers.size(), false);
+}
+
+LayerId PaintImage::addLayer(const QString &name, qsizetype index, bool pinnedToTimeline)
+{
+    if (!onThread()) return 0;
+    const auto id = m_d->document->addLayer(name, index, pinnedToTimeline);
     if (id) publish(Result::Success);
     return id;
 }
