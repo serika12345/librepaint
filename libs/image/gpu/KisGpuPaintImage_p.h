@@ -11,6 +11,7 @@
 namespace LibrePaint::Image::Gpu {
 struct PaintImage::Private
 {
+    std::shared_ptr<Execution> retainedExecution;
     Execution &execution;
     std::unique_ptr<OperationDocument> document;
     Limits limits;

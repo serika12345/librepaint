@@ -490,7 +490,7 @@ void KisImage::copyFromImageImpl(const KisImage &rhs, int policy, LibrePaint::Im
     if (bool(gpuImage()) != bool(rhs.gpuImage()))
         throw std::invalid_argument("Image replacement requires matching painting backends");
     const auto gpuCopy = rhs.gpuImage() ? (preparedGpuImage ? preparedGpuImage :
-        ((policy & REPLACE) ? rhs.gpuImage()->cloneTo(gpuImage()->execution(), policy & EXACT_COPY) : gpuImage())) : nullptr;
+        ((policy & REPLACE) ? rhs.gpuImage()->cloneTo(*gpuImage(), policy & EXACT_COPY) : gpuImage())) : nullptr;
     if (rhs.gpuImage() && !gpuCopy)
         throw std::invalid_argument("GPU image replacement requires the owning thread");
     const KisNodeSP sourceRoot = rhs.root();

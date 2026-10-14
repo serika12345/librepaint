@@ -1159,7 +1159,7 @@ void KisDocument::copyFromDocumentImpl(const KisDocument &rhs, CopyPolicy policy
         throw std::invalid_argument("Document replacement requires matching painting backends");
     LibrePaint::Image::Gpu::PaintImageSP preparedGpuImage;
     if (policy == REPLACE && d->image && rhs.d->image && rhs.d->image->gpuImage()) {
-        preparedGpuImage = rhs.d->image->gpuImage()->cloneTo(d->image->gpuImage()->execution());
+        preparedGpuImage = rhs.d->image->gpuImage()->cloneTo(*d->image->gpuImage());
         if (!preparedGpuImage) throw std::invalid_argument("Document replacement requires the owning thread");
     }
     if (policy == REPLACE) {

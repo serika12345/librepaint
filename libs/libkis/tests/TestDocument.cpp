@@ -118,11 +118,11 @@ void TestDocument::testGpuImagePixelDataModifiedStateAndRetainedNode()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     QString diagnostic;
-    const auto device = Gpu::Device::createNative(diagnostic);
+    auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
-    Gpu::Execution execution(device);
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    std::weak_ptr<Gpu::Execution> lifetime = execution;
     auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 32));
-    const auto handle = owner->handle();
     const auto layerId = owner->operations().activeLayer();
     QCOMPARE(owner->writeRgbaPixels(layerId, QRect(5, 5, 1, 1), QByteArray::fromHex("112233ff")), Gpu::Result::Success);
     QScopedPointer<KisDocument> kisdoc(KisPart::instance()->createDocument());
@@ -156,9 +156,12 @@ void TestDocument::testGpuImagePixelDataModifiedStateAndRetainedNode()
     image.clear();
     KisPart::instance()->removeDocument(kisdoc.data(), false);
     kisdoc.reset();
+    execution.reset();
+    device.reset();
+    QVERIFY(!lifetime.expired());
     QCOMPARE(node->pixelData(5, 5, 1, 1), QByteArray::fromHex("443322ff"));
     node.clear();
-    QVERIFY(!execution.requested(handle));
+    QVERIFY(lifetime.expired());
 }
 
 void TestDocument::testGpuSaveAndExportPreserveHistoryAndFileIdentity()

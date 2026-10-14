@@ -20,6 +20,7 @@ class KisGpuPaintImageTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void retainedImagesAndClonesKeepTheirExecutionAlive();
     void clonesKeepIndependentCurrentStateAndOperationIdentities();
     void sharedEditsPublishBeforeNotificationAndReleaseTheLastAttachment();
     void recoveryPreservesPendingInputAndRedoOnTheSameAttachment();
@@ -30,6 +31,38 @@ private Q_SLOTS:
     void damagedPixelSharingRecoveryPreservesTheLiveImage();
     void historyNavigationPublishesOneVersionAndPreservesSavedState();
 };
+
+void KisGpuPaintImageTest::retainedImagesAndClonesKeepTheirExecutionAlive()
+{
+    QString diagnostic;
+    auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Execution>(device);
+    std::weak_ptr<Execution> lifetime = execution;
+    auto image = PaintImageSP::create(execution, QSize(32, 32));
+    const auto layer = image->operations().activeLayer();
+    QCOMPARE(image->writeRgbaPixels(layer, QRect(4, 5, 1, 1), QByteArray::fromHex("112233ff")), Result::Success);
+    auto clone = image->clone(true);
+    execution.reset();
+    device.reset();
+    image.reset();
+    QVERIFY(!lifetime.expired());
+    QCOMPARE(clone->readRgbaPixels(layer, QRect(4, 5, 1, 1), 4).bytes, QByteArray::fromHex("112233ff"));
+
+    auto destinationExecution = std::make_shared<Execution>(Device::createNative(diagnostic));
+    std::weak_ptr<Execution> destinationLifetime = destinationExecution;
+    auto destination = PaintImageSP::create(destinationExecution, QSize(32, 32));
+    auto replacement = clone->cloneTo(*destination, true);
+    destinationExecution.reset();
+    destination.reset();
+    clone.reset();
+    QVERIFY(lifetime.expired());
+    QVERIFY(!destinationLifetime.expired());
+    QCOMPARE(replacement->readRgbaPixels(layer, QRect(4, 5, 1, 1), 4).bytes, QByteArray::fromHex("112233ff"));
+    replacement.reset();
+    QVERIFY(destinationLifetime.expired());
+    QVERIFY_EXCEPTION_THROWN(PaintImage(std::shared_ptr<Execution>{}, QSize(32, 32)), std::invalid_argument);
+}
 
 void KisGpuPaintImageTest::clonesKeepIndependentCurrentStateAndOperationIdentities()
 {

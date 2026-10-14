@@ -9,12 +9,24 @@
 #include <stdexcept>
 
 namespace LibrePaint::Image::Gpu {
+namespace {
+Execution &requireExecution(const std::shared_ptr<Execution> &execution)
+{
+    if (!execution) throw std::invalid_argument("Image construction requires an execution owner");
+    return *execution;
+}
+}
 PaintImage::PaintImage(Execution &execution, QSize size, Limits limits)
     : PaintImage(execution, std::make_unique<OperationDocument>(size, limits), limits) {}
 PaintImage::PaintImage(Execution &execution, const RasterImage &image, Limits limits)
     : PaintImage(execution, std::make_unique<OperationDocument>(image, limits), limits) {}
-PaintImage::PaintImage(Execution &execution, std::unique_ptr<OperationDocument> document, Limits limits)
-    : m_d(new Private{execution, std::move(document), limits})
+PaintImage::PaintImage(std::shared_ptr<Execution> execution, QSize size, Limits limits)
+    : PaintImage(requireExecution(execution), std::make_unique<OperationDocument>(size, limits), limits, execution) {}
+PaintImage::PaintImage(std::shared_ptr<Execution> execution, const RasterImage &image, Limits limits)
+    : PaintImage(requireExecution(execution), std::make_unique<OperationDocument>(image, limits), limits, execution) {}
+PaintImage::PaintImage(Execution &execution, std::unique_ptr<OperationDocument> document, Limits limits,
+                       std::shared_ptr<Execution> retainedExecution)
+    : m_d(new Private{std::move(retainedExecution), execution, std::move(document), limits})
 {
     const auto admitted = execution.open(m_d->document->snapshot());
     if (admitted.code == ExecutionCode::CapacityExceeded) throw std::length_error(admitted.diagnostic.toStdString());
@@ -29,12 +41,20 @@ const OperationDocument &PaintImage::operations() const { return *m_d->document;
 quint64 PaintImage::handle() const { return m_d->handle; }
 Execution &PaintImage::execution() const { return m_d->execution; }
 PaintImageSP PaintImage::clone(bool preserveLayerUuids) const
-{ return cloneTo(m_d->execution, preserveLayerUuids); }
+{ return cloneTo(*this, preserveLayerUuids); }
+
+PaintImageSP PaintImage::cloneTo(const PaintImage &destination, bool preserveLayerUuids) const
+{
+    if (!onThread() || !destination.onThread()) return {};
+    return PaintImageSP(new PaintImage(destination.m_d->execution, m_d->document->cloneCurrent(preserveLayerUuids),
+                                       m_d->limits, destination.m_d->retainedExecution));
+}
 
 PaintImageSP PaintImage::cloneTo(Execution &destination, bool preserveLayerUuids) const
 {
     if (!onThread()) return {};
-    return PaintImageSP(new PaintImage(destination, m_d->document->cloneCurrent(preserveLayerUuids), m_d->limits));
+    return PaintImageSP(new PaintImage(destination, m_d->document->cloneCurrent(preserveLayerUuids), m_d->limits,
+        &destination == &m_d->execution ? m_d->retainedExecution : std::shared_ptr<Execution>{}));
 }
 ExecutionOutcome PaintImage::lastRequestOutcome() const { return m_d->lastRequest; }
 PixelBytesOutcome PaintImage::readRgbaPixels(LayerId layer, QRect region, qsizetype maximumBytes) const

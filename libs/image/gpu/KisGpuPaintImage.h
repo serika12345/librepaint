@@ -17,8 +17,9 @@ struct ExecutionOutcome;
 struct PixelBytesOutcome;
 
 /** Shared editable image, history, notifications and GPU attachment.
- * Calls and destruction use the GUI/device thread. The borrowed execution
- * owner outlives every shared image reference. Accepted edits update the GPU
+ * Calls and destruction use the GUI/device thread. Shared execution construction
+ * keeps the execution alive; borrowed execution outlives every image reference.
+ * Accepted edits update the GPU
  * request before changed() is emitted; admission failures retain logical edits.
  * Invalid construction throws std::invalid_argument, and exhausted attachment
  * capacity throws std::length_error. The last image reference closes its handle.
@@ -29,11 +30,13 @@ class KRITAIMAGE_EXPORT PaintImage : public QObject
 public:
     explicit PaintImage(Execution &execution, QSize size, Limits limits = {});
     explicit PaintImage(Execution &execution, const RasterImage &image, Limits limits = {});
+    explicit PaintImage(std::shared_ptr<Execution> execution, QSize size, Limits limits = {});
+    explicit PaintImage(std::shared_ptr<Execution> execution, const RasterImage &image, Limits limits = {});
     ~PaintImage() override;
     /** Borrowed logical owner; successful recovery replaces this reference. */
     const OperationDocument &operations() const;
     quint64 handle() const;
-    /** Borrowed GUI-thread execution owner, which outlives every image reference. */
+    /** Borrowed GUI-thread execution owner; shared construction pins its lifetime. */
     Execution &execution() const;
     /** Independent committed image with empty, saved history on the same execution.
      * Immutable input and raster blocks may be shared. Operation identities are
@@ -43,6 +46,8 @@ public:
     QSharedPointer<PaintImage> clone(bool preserveLayerUuids = false) const;
     /** Clones logical values into the destination execution, with the same guarantees. */
     QSharedPointer<PaintImage> cloneTo(Execution &destination, bool preserveLayerUuids = false) const;
+    /** Uses the destination image's execution lifetime, including shared ownership. */
+    QSharedPointer<PaintImage> cloneTo(const PaintImage &destination, bool preserveLayerUuids = false) const;
     ExecutionOutcome lastRequestOutcome() const;
     /** Synchronous canonical pixels from the current committed image version. */
     PixelBytesOutcome readRgbaPixels(LayerId layer, QRect region, qsizetype maximumBytes) const;
@@ -81,7 +86,8 @@ Q_SIGNALS:
     void savedStateChanged();
 
 private:
-    PaintImage(Execution &execution, std::unique_ptr<OperationDocument> document, Limits limits);
+    PaintImage(Execution &execution, std::unique_ptr<OperationDocument> document, Limits limits,
+               std::shared_ptr<Execution> retainedExecution = {});
     bool onThread() const;
     Result publish(Result result);
     void requestCurrentVersion();
