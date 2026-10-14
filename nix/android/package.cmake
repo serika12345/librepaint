@@ -21,6 +21,8 @@ find_package(Qt6 REQUIRED COMPONENTS
   Xml
 )
 qt_policy(SET QTP0002 NEW)
+include("${CMAKE_CURRENT_LIST_DIR}/KritaAndroidNativeSurface.cmake")
+kis_use_android_native_surface_plugin()
 
 add_library(krita MODULE IMPORTED GLOBAL)
 set_target_properties(krita PROPERTIES

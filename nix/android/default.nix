@@ -47,6 +47,15 @@ let
       ;
     pkgs = androidHost;
   };
+  qtNativeSurface = androidHost.callPackage ./qt-native-surface.nix {
+    inherit
+      androidAbi
+      androidNdkRoot
+      androidSdkRoot
+      qtbase
+      ;
+  };
+  qtNativeSurfacePlugin = "${qtNativeSurface}/plugins/platforms/libplugins_platforms_qtforandroid_${androidAbi}.so";
 
   qtsvg = import ./qt-module.nix {
     inherit
@@ -644,6 +653,8 @@ let
     cp -a ${../../packaging/android/apk} "$out/apk"
     chmod -R u+w "$out/apk"
     install -m 0644 ${packagingCmake} "$out/CMakeLists.txt"
+    install -m 0644 ${../../cmake/modules/KritaAndroidNativeSurface.cmake} \
+      "$out/KritaAndroidNativeSurface.cmake"
     install -m 0755 ${gradleWrapper} "$out/apk/gradlew"
     install -m 0644 ${qtbase}/src/android/templates/res/values/libs.xml \
       "$out/apk/res/values/libs.xml"
@@ -675,6 +686,7 @@ let
     cmakeBuildType = "Release";
     cmakeFlags = [
       "-DANDROIDDEPLOYQT_EXTRA_ARGS:STRING=--release"
+      "-DLIBREPAINT_ANDROID_NATIVE_SURFACE_PLUGIN:FILEPATH=${qtNativeSurfacePlugin}"
       "-DCMAKE_AR:FILEPATH=${androidNdkRoot}/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-ar"
       "-DCMAKE_FIND_ROOT_PATH:PATH=${dependencyPrefix};${nativeBuild}"
       "-DCMAKE_INSTALL_PREFIX:PATH=${nativeBuild}"
@@ -792,13 +804,13 @@ let
         ${androidAbi} \
         ${androidHost.binutils}/bin/readelf \
         ${androidSdkRoot}/build-tools/35.0.0/aapt2 \
-        product
+        product ${qtNativeSurfacePlugin}
       ${androidHost.bash}/bin/bash ${source}/scripts/platform/audit-android-package \
         "$out/LibrePaint-${androidAbi}.aab" \
         ${androidAbi} \
         ${androidHost.binutils}/bin/readelf \
         ${androidSdkRoot}/build-tools/35.0.0/aapt2 \
-        product
+        product ${qtNativeSurfacePlugin}
       runHook postInstall
     '';
 
@@ -845,6 +857,7 @@ let
       export LIBREPAINT_ANDROID_DEPENDENCY_PREFIX=${dependencyPrefix}
       export LIBREPAINT_ANDROID_GRADLE_WRAPPER=${androidTestGradleWrapper}
       export LIBREPAINT_ANDROID_PROFILE=${androidAbi}
+      export LIBREPAINT_ANDROID_NATIVE_SURFACE_PLUGIN=${qtNativeSurfacePlugin}
       export ANDROID_ABI=${androidAbi}
       export ANDROID_HOME=${androidSdkRoot}
       export ANDROID_NDK_HOME=${androidNdkRoot}

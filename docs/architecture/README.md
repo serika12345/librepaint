@@ -310,6 +310,14 @@ Androidは`nix/android/wgpu-native.nix`がarm64とx86_64向けのC API配布物�
 共有ライブラリーの配置に依存しない名前、16KiBページ境界、OS依存ライブラリーと
 NDK API 28からの利用側リンクを検査し、アプリと試験の包装へ同じ依存物を供給する。
 GPU依存物は最終的なアプリ用依存集合へ加え、Qt／KFと形式ライブラリーの構築を再利用する。
+`nix/android/qt-native-surface.nix`は固定したQt本体に対するAndroid画面プラグインを構築する。
+`qt-native-surface.patch`の画面所有者がJava Surfaceの生成、休止と破棄を扱い、
+取得した`ANativeWindow`の参照をキャンバスへ渡す。wgpu-nativeが作成するVulkan表示面も
+参照を保持し、キャンバスは毎フレームのネイティブ識別子の照合とアプリの休止通知で
+古い表示面を解放する。この参照の寿命は[VulkanのAndroid Surface契約](https://docs.vulkan.org/refpages/latest/refpages/source/vkCreateAndroidSurfaceKHR.html)に従う。
+`cmake/modules/KritaAndroidNativeSurface.cmake`がAPKのQt画面プラグインを選択する。
+包装用プラグインの入力はC++の依存集合と構成識別子から分離し、Qt／KFの構築と
+アプリの増分コンパイルを再利用する。
 
 `KisGpuTileProjection.cpp`は可視レイヤーを文書順で合成し、指定した文書領域と交差する
 タイルを生成する。表示側は可視領域、保存側は固定版の全文書領域を指定する。

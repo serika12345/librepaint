@@ -138,7 +138,8 @@ configure_tree() {
         -DECM_ADDITIONAL_FIND_ROOT_PATH:PATH="$LIBREPAINT_ANDROID_DEPENDENCY_PREFIX;$install_dir" \
         -DCMAKE_C_COMPILER_LAUNCHER:FILEPATH="$(command -v ccache)" \
         -DCMAKE_CXX_COMPILER_LAUNCHER:FILEPATH="$(command -v ccache)" \
-        -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON
+        -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON \
+        -DLIBREPAINT_ANDROID_NATIVE_SURFACE_PLUGIN:FILEPATH="${LIBREPAINT_ANDROID_NATIVE_SURFACE_PLUGIN:-}"
 
     python3 "$boundary_checker" \
         --reply-directory "$build_dir/.cmake/api/v1/reply" \
@@ -179,7 +180,7 @@ package_android_product() {
     local product_aab
 
     ensure_tree
-    cmake --build "$build_dir" --target all --parallel
+    cmake --build "$build_dir" --target all --parallel "${CMAKE_BUILD_PARALLEL_LEVEL:-4}"
     cmake --install "$build_dir"
     cmake -E remove_directory "$package_prefix"
     mkdir -p "$package_prefix"
@@ -197,9 +198,11 @@ package_android_product() {
     if [[ -d "$build_dir/krita/android-build" ]]; then
         chmod -R u+w "$build_dir/krita/android-build"
     fi
-    cmake --build "$build_dir" --target create-apk-krita --parallel
+    # Refresh this packaged input because Nix dependencies have normalized timestamps.
+    cmake -E rm -f "$build_dir/krita/android-build/libs/$ANDROID_ABI/libplugins_platforms_qtforandroid_${ANDROID_ABI}.so"
+    cmake --build "$build_dir" --target create-apk-krita --parallel "${CMAKE_BUILD_PARALLEL_LEVEL:-4}"
     chmod -R u+w "$build_dir/krita/android-build"
-    cmake --build "$build_dir" --target create-aab-krita --parallel
+    cmake --build "$build_dir" --target create-aab-krita --parallel "${CMAKE_BUILD_PARALLEL_LEVEL:-4}"
 
     product_apk="$(find "$build_dir/krita/android-build/build/outputs/apk/release" \
         -type f -name '*-release-unsigned.apk' -print -quit)"
@@ -215,13 +218,13 @@ package_android_product() {
         "$ANDROID_ABI" \
         "$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf" \
         "$ANDROID_SDK_ROOT/build-tools/35.0.0/aapt2" \
-        product
+        product "${LIBREPAINT_ANDROID_NATIVE_SURFACE_PLUGIN:-}"
     "$repo_root/scripts/platform/audit-android-package" \
         "$product_aab" \
         "$ANDROID_ABI" \
         "$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf" \
         "$ANDROID_SDK_ROOT/build-tools/35.0.0/aapt2" \
-        product
+        product "${LIBREPAINT_ANDROID_NATIVE_SURFACE_PLUGIN:-}"
     printf '%s\n%s\n' "$product_apk" "$product_aab"
 }
 
@@ -236,7 +239,7 @@ package_android_test() {
 
     validate_test_target "$test_target"
     ensure_tree
-    cmake --build "$build_dir" --target "$test_target" --parallel
+    cmake --build "$build_dir" --target "$test_target" --parallel "${CMAKE_BUILD_PARALLEL_LEVEL:-4}"
 
     test_library="$build_dir/lib/lib${test_target}_${ANDROID_ABI}.so"
     if [[ ! -s "$test_library" ]]; then
@@ -277,12 +280,14 @@ package_android_test() {
         -DANDROIDDEPLOYQT_EXTRA_ARGS:STRING= \
         -DANDROID_TEST_APK_DIR:PATH="$apk_template_dir" \
         -DANDROID_TEST_LIBRARY:FILEPATH="$test_library" \
+        -DLIBREPAINT_ANDROID_NATIVE_SURFACE_PLUGIN:FILEPATH="${LIBREPAINT_ANDROID_NATIVE_SURFACE_PLUGIN:-}" \
         -DCMAKE_FIND_ROOT_PATH:PATH="$LIBREPAINT_ANDROID_DEPENDENCY_PREFIX;$build_dir" \
         -DCMAKE_INSTALL_PREFIX:PATH="$build_dir" \
         -DCMAKE_PREFIX_PATH:PATH="$LIBREPAINT_ANDROID_DEPENDENCY_PREFIX;$build_dir" \
         -DECM_ADDITIONAL_FIND_ROOT_PATH:PATH="$build_dir;$LIBREPAINT_ANDROID_DEPENDENCY_PREFIX"
+    cmake -E rm -f "$package_dir/build/android-build/libs/$ANDROID_ABI/libplugins_platforms_qtforandroid_${ANDROID_ABI}.so"
     cmake --build "$package_dir/build" \
-        --target create-apk-librepaint_android_test --parallel
+        --target create-apk-librepaint_android_test --parallel "${CMAKE_BUILD_PARALLEL_LEVEL:-4}"
 
     install -m 0644 \
         "$package_dir/build/android-build/librepaint_android_test.apk" \
@@ -297,7 +302,7 @@ package_android_test() {
         "$ANDROID_ABI" \
         "$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf" \
         "$ANDROID_SDK_ROOT/build-tools/35.0.0/aapt2" \
-        test
+        test "${LIBREPAINT_ANDROID_NATIVE_SURFACE_PLUGIN:-}"
     packaged_apk="$apk_output"
 }
 
@@ -454,12 +459,12 @@ case "$operation" in
     build)
         (( $# <= 1 )) || usage
         ensure_tree
-        cmake --build "$build_dir" --target "$target" --parallel
+        cmake --build "$build_dir" --target "$target" --parallel "${CMAKE_BUILD_PARALLEL_LEVEL:-4}"
         ;;
     bootstrap)
         (( $# <= 1 )) || usage
         configure_tree
-        cmake --build "$build_dir" --target "$target" --parallel
+        cmake --build "$build_dir" --target "$target" --parallel "${CMAKE_BUILD_PARALLEL_LEVEL:-4}"
         ;;
     package-product)
         (( $# == 0 )) || usage

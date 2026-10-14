@@ -21,8 +21,10 @@ CAMetalLayer *metalLayer(CALayer *layer)
 }
 }
 void setNativeSurfaceType(QWindow &window) { window.setSurfaceType(QSurface::MetalSurface); }
-std::unique_ptr<Image::Gpu::PresentationSurface> createWindowSurface(Image::Gpu::DevicePtr device, QWindow &window)
+std::unique_ptr<Image::Gpu::PresentationSurface> createWindowSurface(Image::Gpu::DevicePtr device, QWindow &window,
+                                                                  quintptr *nativeIdentity)
 {
+    if (nativeIdentity) *nativeIdentity = 0;
 #ifdef Q_OS_IOS
     UIView *view = reinterpret_cast<UIView *>(window.winId());
 #else

@@ -8,6 +8,7 @@
 #include "KisGpuWindowSurface_p.h"
 #include "KisGpuViewTransform_p.h"
 #include <QPlatformSurfaceEvent>
+#include <QGuiApplication>
 #include <QThread>
 #include <stdexcept>
 
@@ -23,6 +24,7 @@ struct CanvasWindow::Private
     QTransform transform;
     bool recording = false;
     std::unique_ptr<PresentationSurface> surface;
+    quintptr nativeSurfaceIdentity = 0;
     std::unique_ptr<TilePresentation> presentation;
 
     explicit Private(Execution &execution)
@@ -32,6 +34,7 @@ struct CanvasWindow::Private
     {
         presentation.reset();
         surface.reset();
+        nativeSurfaceIdentity = 0;
     }
     QTransform physicalTransform(qreal ratio) const
     {
@@ -48,6 +51,11 @@ CanvasWindow::CanvasWindow(Execution &execution, QWindow *parent) : QWindow(pare
     }
     m_d = std::make_unique<Private>(execution);
     connectSurface();
+#ifdef Q_OS_ANDROID
+    connect(qGuiApp, &QGuiApplication::applicationStateChanged, this, [this](Qt::ApplicationState state) {
+        if (state <= Qt::ApplicationHidden) m_d->releaseSurface();
+    });
+#endif
 }
 
 CanvasWindow::~CanvasWindow()
@@ -145,8 +153,13 @@ void CanvasWindow::renderFrame()
             if (!Detail::validDocumentTransform(d.physicalTransform(devicePixelRatio()))) {
                 return {ExecutionCode::InvalidRequest, QStringLiteral("GPU canvas transform is outside the supported finite range")};
             }
+#ifdef Q_OS_ANDROID
+            const auto nativeIdentity = Detail::currentNativeSurfaceIdentity(*this);
+            if (!nativeIdentity || (d.surface && d.nativeSurfaceIdentity != nativeIdentity)) d.releaseSurface();
+            if (!nativeIdentity) return {ExecutionCode::Busy, {}};
+#endif
             if (!d.surface) {
-                d.surface = Detail::createWindowSurface(d.device, *this);
+                d.surface = Detail::createWindowSurface(d.device, *this, &d.nativeSurfaceIdentity);
                 d.presentation = std::make_unique<TilePresentation>(d.device);
             }
             const QSize pixels = QSizeF(size() * devicePixelRatio()).toSize();

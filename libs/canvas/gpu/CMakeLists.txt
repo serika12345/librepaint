@@ -14,9 +14,12 @@ target_include_directories(kritacanvasgputilepresentation PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/..>
 )
 target_link_libraries(kritacanvasgputilepresentation PUBLIC kritagpuimage PRIVATE WGPUNative::WGPUNative)
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" OR ANDROID)
     find_package(Qt6 6.6 REQUIRED COMPONENTS GuiPrivate)
     target_link_libraries(kritacanvasgputilepresentation PRIVATE Qt6::GuiPrivate)
+endif()
+if(ANDROID)
+    target_link_libraries(kritacanvasgputilepresentation PRIVATE android)
 endif()
 set_target_properties(kritacanvasgputilepresentation PROPERTIES AUTOMOC ON POSITION_INDEPENDENT_CODE ON)
 qt6_add_resources(kritacanvasgputilepresentation krita_gpu_tile_presentation

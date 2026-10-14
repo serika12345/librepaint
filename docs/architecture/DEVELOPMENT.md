@@ -604,6 +604,12 @@ SDK／NDK、Qt／KF、JDK／Gradleの固定値は[nix/android](../../nix/android
 GPU実行ライブラリーは`nix/android/wgpu-native.nix`が固定する。ABI、16KiBページ境界、
 配置に依存しない共有ライブラリー名とNDK利用側のリンクを依存物の構築時に検査する。
 アプリ用依存集合と追加ライブラリー指定が、製品APKと試験APKの探索先を供給する。
+Androidの画面プラグインは`nix/android/qt-native-surface.nix`が固定したQt本体に対して
+単独で構築する。製品・試験の包装は`LIBREPAINT_ANDROID_NATIVE_SURFACE_PLUGIN`で
+この成果物を選び、C++用依存集合と構成識別子を維持する。Qtの更新時は対応するパッチを
+確認し、両ABIで画面プラグイン、キャンバス試験APKと製品APKを検査する。
+APKとAABの検査は、選択した画面プラグインと包装済みライブラリーのビルド識別子も照合する。
+構築は既定で4並列とし、`CMAKE_BUILD_PARALLEL_LEVEL`で並列数を指定できる。
 
 ### APKとAAB
 

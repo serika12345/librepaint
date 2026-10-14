@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-if (( $# != 5 )); then
-    echo "usage: audit-android-package <apk-or-aab> <abi> <llvm-readelf> <aapt2> <product-or-test>" >&2
+if (( $# < 5 || $# > 6 )); then
+    echo "usage: audit-android-package <apk-or-aab> <abi> <llvm-readelf> <aapt2> <product-or-test> [platform-plugin]" >&2
     exit 2
 fi
 
@@ -12,6 +12,7 @@ expected_abi="$2"
 readelf_tool="$3"
 aapt2_tool="$4"
 package_scope="$5"
+expected_platform_plugin="${6:-}"
 repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd -P)"
 
 if [[ "$package_scope" != product && "$package_scope" != test ]]; then
@@ -93,6 +94,17 @@ if [[ "$libcxx_count" != 1 ]]; then
 fi
 
 unzip -qq "$package_path" '*.so' -d "$audit_root/unpacked"
+if [[ -n "$expected_platform_plugin" ]]; then
+    packaged_plugin="$audit_root/unpacked/$library_prefix/$expected_abi/libplugins_platforms_qtforandroid_${expected_abi}.so"
+    test -s "$expected_platform_plugin"
+    test -s "$packaged_plugin"
+    expected_plugin_id="$("$readelf_tool" -n "$expected_platform_plugin" | awk '/Build ID:/ {print $3}')"
+    packaged_plugin_id="$("$readelf_tool" -n "$packaged_plugin" | awk '/Build ID:/ {print $3}')"
+    if [[ -z "$expected_plugin_id" || "$expected_plugin_id" != "$packaged_plugin_id" ]]; then
+        echo "Android package contains a different Qt platform plugin" >&2
+        exit 1
+    fi
+fi
 while IFS= read -r -d '' library; do
     "$readelf_tool" -h "$library" | grep -Fq "$expected_machine"
     if "$readelf_tool" -dW "$library" | grep -E 'Shared library: .*\[(libQt5|libKF5)' >&2; then

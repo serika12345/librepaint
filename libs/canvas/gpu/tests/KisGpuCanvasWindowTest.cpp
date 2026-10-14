@@ -25,6 +25,7 @@ private Q_SLOTS:
 
     void editsAndViewChangesUseSharedExecution();
     void queuedUpdatesIgnoreClosedDocuments();
+    void nativeSurfaceRecreationPreservesDocumentAndContinuesPresentation();
     void capacityFailurePreservesPublicationAndCanRetry();
     void deviceReplacementRecreatesVisibleAndHiddenSurfaces();
 private:
@@ -101,6 +102,36 @@ void KisGpuCanvasWindowTest::queuedUpdatesIgnoreClosedDocuments()
     QVERIFY(window.documentViewport().isEmpty());
     QVERIFY(!window.setDocument(handle));
     QVERIFY(window.setDocument(0));
+    QCOMPARE(errors.size(), 0);
+}
+
+void KisGpuCanvasWindowTest::nativeSurfaceRecreationPreservesDocumentAndContinuesPresentation()
+{
+    Execution execution(m_device);
+    OperationDocument document({64, 64});
+    const auto handle = execution.open(document.snapshot()).handle;
+    CanvasWindow window(execution);
+    QVERIFY(window.setDocument(handle));
+    window.resize(128, 128);
+    QSignalSpy frames(&window, &CanvasWindow::frameSubmitted);
+    QSignalSpy errors(&window, &CanvasWindow::renderingFailed);
+    window.show();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    QTRY_VERIFY_WITH_TIMEOUT(!frames.isEmpty(), 5000);
+    window.hide();
+    window.destroy();
+    const auto stroke = document.beginStroke(document.activeLayer(), Brush{}, 0);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    QCOMPARE(execution.request(handle, document.snapshot()).code, ExecutionCode::Success);
+    const auto previousFrames = frames.size();
+    window.show();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    window.refresh();
+    QTRY_VERIFY_WITH_TIMEOUT(frames.size() > previousFrames, 5000);
+    QCOMPARE(execution.published(handle), document.snapshot());
+    QCOMPARE(frames.last()[2].toULongLong(), execution.generation());
+    QCOMPARE(document.undoCount(), 1);
     QCOMPARE(errors.size(), 0);
 }
 

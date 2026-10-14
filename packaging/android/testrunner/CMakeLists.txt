@@ -13,6 +13,8 @@ endif()
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui)
 qt_policy(SET QTP0002 NEW)
+include("${CMAKE_CURRENT_LIST_DIR}/../../../cmake/modules/KritaAndroidNativeSurface.cmake")
+kis_use_android_native_surface_plugin()
 
 add_library(librepaint_android_test_case SHARED IMPORTED GLOBAL)
 set_target_properties(librepaint_android_test_case PROPERTIES
