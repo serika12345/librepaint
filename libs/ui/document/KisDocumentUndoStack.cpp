@@ -13,27 +13,24 @@
 
 namespace {
 using namespace LibrePaint::Image::Gpu;
-KUndo2MagicString historyLabel(const Snapshot &before, const Snapshot &after)
+KUndo2MagicString historyLabel(HistoryAction action)
 {
-    if (after->layers.size() > before->layers.size()) return kundo2_i18n("Add layer");
-    if (after->layers.size() < before->layers.size()) return kundo2_i18n("Remove layer");
-    for (int index = 0; index < after->layers.size(); ++index) {
-        const auto &previous = before->layers[index];
-        const auto &current = after->layers[index];
-        if (previous.id != current.id) return kundo2_i18n("Move layer");
-        if (previous.name != current.name) return kundo2_i18n("Rename layer");
-        if (previous.visible != current.visible) return kundo2_i18n("Change layer visibility");
-        if (current.operations.size() > previous.operations.size()) {
-            if (const auto *paint = std::get_if<PaintSnapshot>(&current.operations.last())) {
-                switch ((*paint)->shape.kind) {
-                case ShapeKind::Freehand: return kundo2_i18n("Paint stroke");
-                case ShapeKind::Line: return kundo2_i18n("Draw line");
-                case ShapeKind::Ellipse: return kundo2_i18n("Draw ellipse");
-                }
-            }
-        }
+    switch (action) {
+    case HistoryAction::None: return {};
+    case HistoryAction::AddLayer: return kundo2_i18n("Add layer");
+    case HistoryAction::RemoveLayer: return kundo2_i18n("Remove layer");
+    case HistoryAction::MoveLayer: return kundo2_i18n("Move layer");
+    case HistoryAction::RenameLayer: return kundo2_i18n("Rename layer");
+    case HistoryAction::ChangeOpacity: return kundo2_i18n("Change layer opacity");
+    case HistoryAction::ChangeVisibility: return kundo2_i18n("Change layer visibility");
+    case HistoryAction::ChangeLock: return kundo2_i18n("Change layer lock");
+    case HistoryAction::ChangeTimelinePin: return kundo2_i18n("Change timeline pin");
+    case HistoryAction::PaintStroke: return kundo2_i18n("Paint stroke");
+    case HistoryAction::DrawLine: return kundo2_i18n("Draw line");
+    case HistoryAction::DrawEllipse: return kundo2_i18n("Draw ellipse");
+    case HistoryAction::ReplacePixels: return kundo2_i18n("Replace pixels");
     }
-    return kundo2_i18n("Replace pixels");
+    Q_UNREACHABLE();
 }
 }
 
@@ -80,7 +77,7 @@ void KisDocumentUndoStack::synchronizeGpuHistory()
         auto *command = sameIdentity ? m_gpuCommands.value(revision) : nullptr;
         if (!owned.contains(command)) command = nullptr;
         if (!command) {
-            command = new KUndo2Command(historyLabel(versions[index - 1], versions[index]));
+            command = new KUndo2Command(historyLabel(document.historyAction(index)));
             allocated.append(command);
         }
         commands.append(command);

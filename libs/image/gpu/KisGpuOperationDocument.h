@@ -206,6 +206,13 @@ enum class Result {
 /** Consecutive panel adjustments form one undo step; independent edits retain separate steps. */
 enum class PropertyHistory { Separate, MergeConsecutive };
 
+/** Domain action for one retained undo step, independent of its current property values. */
+enum class HistoryAction {
+    None, AddLayer, RemoveLayer, MoveLayer, RenameLayer, ChangeOpacity,
+    ChangeVisibility, ChangeLock, ChangeTimelinePin, PaintStroke, DrawLine,
+    DrawEllipse, ReplacePixels
+};
+
 struct Limits
 {
     qsizetype samplesPerStroke = 1024 * 1024;
@@ -247,6 +254,8 @@ public:
     int redoCount() const;
     /** Shared immutable versions for the public history display, oldest first. */
     QList<Snapshot> historyVersions() const;
+    /** Action reaching the given history position; None for the initial or invalid position. */
+    HistoryAction historyAction(int index) const;
     /** -1 when the saved version has left the retained history. */
     int savedHistoryIndex() const;
     bool isModified() const;

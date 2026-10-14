@@ -61,6 +61,35 @@ LayerId OperationDocument::activeLayer() const { return snapshot()->activeLayer;
 int OperationDocument::undoCount() const { return m_index; }
 int OperationDocument::redoCount() const { return m_history.size() - m_index - 1; }
 QList<Snapshot> OperationDocument::historyVersions() const { return m_history; }
+HistoryAction OperationDocument::historyAction(int index) const
+{
+    if (index <= 0 || index >= m_history.size()) return HistoryAction::None;
+    switch (m_propertyChanges[index].property) {
+    case LayerProperty::Name: return HistoryAction::RenameLayer;
+    case LayerProperty::Opacity: return HistoryAction::ChangeOpacity;
+    case LayerProperty::Visible: return HistoryAction::ChangeVisibility;
+    case LayerProperty::Locked: return HistoryAction::ChangeLock;
+    case LayerProperty::PinnedToTimeline: return HistoryAction::ChangeTimelinePin;
+    case LayerProperty::None: break;
+    }
+    const auto &before = m_history[index - 1]->layers;
+    const auto &after = m_history[index]->layers;
+    if (after.size() > before.size()) return HistoryAction::AddLayer;
+    if (after.size() < before.size()) return HistoryAction::RemoveLayer;
+    for (int layer = 0; layer < after.size(); ++layer) {
+        if (before[layer].id != after[layer].id) return HistoryAction::MoveLayer;
+        if (after[layer].operations.size() > before[layer].operations.size()) {
+            if (const auto *paint = std::get_if<PaintSnapshot>(&after[layer].operations.last())) {
+                switch ((*paint)->shape.kind) {
+                case ShapeKind::Freehand: return HistoryAction::PaintStroke;
+                case ShapeKind::Line: return HistoryAction::DrawLine;
+                case ShapeKind::Ellipse: return HistoryAction::DrawEllipse;
+                }
+            }
+        }
+    }
+    return HistoryAction::ReplacePixels;
+}
 int OperationDocument::savedHistoryIndex() const
 {
     for (int index = 0; index < m_history.size(); ++index)

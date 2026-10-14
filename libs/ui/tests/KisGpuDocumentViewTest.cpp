@@ -7,6 +7,7 @@
 #include <QEnterEvent>
 #include <QListView>
 #include <QItemSelectionModel>
+#include <QIcon>
 #include <QPointer>
 #include <QSignalSpy>
 #include <QStatusBar>
@@ -57,6 +58,8 @@ private Q_SLOTS:
     void initTestCase()
     {
         Q_INIT_RESOURCE(krita);
+        QIcon::setThemeSearchPaths({QStringLiteral(":/icons")});
+        QIcon::setFallbackSearchPaths({QStringLiteral(":/icons")});
         KLocalizedString::setApplicationDomain("krita");
         KisOpenGL::setDefaultSurfaceConfig(KisOpenGL::RendererConfig());
         KisInputProfileManager::instance()->setActions(createApplicationInputActions());
@@ -145,6 +148,10 @@ void KisGpuDocumentViewTest::layerPanelEditsUseOneDocumentHistory()
     QCOMPARE(layer->name(), QStringLiteral("Renamed"));
     QCOMPARE(layer->opacity(), quint8(128));
     QCOMPARE(lifetime->undoStack()->count(), 2);
+    if (gpu) {
+        QCOMPARE(lifetime->undoStack()->command(0)->text().toString(), i18n("Rename layer"));
+        QCOMPARE(lifetime->undoStack()->command(1)->text().toString(), i18n("Change layer opacity"));
+    }
     lifetime->undoStack()->undo();
     image->waitForDone();
     QCOMPARE(layer->opacity(), quint8(255));
@@ -163,6 +170,12 @@ void KisGpuDocumentViewTest::layerPanelEditsUseOneDocumentHistory()
     QByteArray pixel(4, '\0');
     image->projection()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 5, 5, 1, 1);
     QCOMPARE(pixel, QByteArray::fromHex("0000ff80"));
+    if (gpu) {
+        manager->setNodeName(layer, QStringLiteral("Temporary"));
+        manager->setNodeName(layer, QStringLiteral("Renamed"));
+        QCOMPARE(lifetime->undoStack()->count(), 3);
+        QCOMPARE(lifetime->undoStack()->command(2)->text().toString(), i18n("Rename layer"));
+    }
 }
 
 void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelled_data()

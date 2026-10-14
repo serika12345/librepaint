@@ -50,6 +50,7 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void historyActionsSurviveDirectWritesMergingAndRecovery();
     void mergedPropertiesPreservePinsSaveBoundariesAndRecovery();
     void mergedNameResetRetainsItsRecordedBoundary();
     void mergedOpacityResetPreservesSelectionAndDirectWrites();
@@ -128,6 +129,38 @@ void KisGpuOperationDocumentTest::mergedNameResetRetainsItsRecordedBoundary()
     QCOMPARE(restored.snapshot()->layers.first().name, initial);
     QCOMPARE(restored.redo(), Result::Success);
     QCOMPARE(restored.snapshot()->layers.first().name, initial);
+}
+
+void KisGpuOperationDocumentTest::historyActionsSurviveDirectWritesMergingAndRecovery()
+{
+    OperationDocument document({64, 64});
+    const auto layer = document.activeLayer();
+    const auto name = document.snapshot()->layers.first().name;
+    QCOMPARE(document.historyAction(0), HistoryAction::None);
+    QCOMPARE(document.renameLayer(layer, QStringLiteral("Temporary"), PropertyHistory::MergeConsecutive), Result::Success);
+    QCOMPARE(document.renameLayer(layer, name, PropertyHistory::MergeConsecutive), Result::Success);
+    QCOMPARE(document.setLayerOpacity(layer, 128), Result::Success);
+    QCOMPARE(document.writeLayerName(layer, QStringLiteral("Direct name")), Result::Success);
+    QCOMPARE(document.writeLayerOpacity(layer, 64), Result::Success);
+    QCOMPARE(document.setLayerVisible(layer, false), Result::Success);
+    QCOMPARE(document.writeLayerVisible(layer, true), Result::Success);
+    QCOMPARE(document.setLayerLocked(layer, true), Result::Success);
+    QCOMPARE(document.writeLayerLocked(layer, false), Result::Success);
+    const QList<HistoryAction> expected{HistoryAction::None, HistoryAction::RenameLayer,
+        HistoryAction::ChangeOpacity, HistoryAction::ChangeVisibility, HistoryAction::ChangeLock};
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    for (int index = 0; index < expected.size(); ++index) {
+        QCOMPARE(document.historyAction(index), expected[index]);
+        QCOMPARE(restored.historyAction(index), expected[index]);
+    }
+    QCOMPARE(document.historyAction(-1), HistoryAction::None);
+    QCOMPARE(document.historyAction(expected.size()), HistoryAction::None);
+    QCOMPARE(restored.undo(), Result::Success);
+    QCOMPARE(restored.historyAction(4), HistoryAction::ChangeLock);
+    QCOMPARE(restored.renameLayer(layer, QStringLiteral("Branched")), Result::Success);
+    QCOMPARE(restored.historyAction(4), HistoryAction::RenameLayer);
+    QCOMPARE(restored.redoCount(), 0);
 }
 
 void KisGpuOperationDocumentTest::mergedOpacityResetPreservesSelectionAndDirectWrites()

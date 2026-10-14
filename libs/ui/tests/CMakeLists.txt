@@ -1174,6 +1174,8 @@ kis_add_test(
     )
 
 kis_add_test(KisGpuDocumentViewTest.cpp ../../../krita/krita.qrc
+    ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
+    ../../../krita/pics/Breeze-light/breeze-light-icons.qrc
     TEST_NAME KisGpuDocumentViewTest
     TEST_NAME_VAR gpu_document_view_test
     LINK_LIBRARIES kritaapplicationui kritalibkis kritainputui kritaimpexkra kritatestsdk)
