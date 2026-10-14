@@ -87,10 +87,12 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QTest::addColumn<bool>("exhaustInput");
     QTest::addColumn<bool>("closeAfterError");
     QTest::addColumn<bool>("ordinaryOpen");
-    QTest::newRow("paint-and-cancel") << false << false << false;
-    QTest::newRow("input-limit") << true << false << false;
-    QTest::newRow("close-on-input-limit") << true << true << false;
-    QTest::newRow("ordinary-kra-open") << false << false << true;
+    QTest::addColumn<bool>("ordinaryNew");
+    QTest::newRow("paint-and-cancel") << false << false << false << false;
+    QTest::newRow("input-limit") << true << false << false << false;
+    QTest::newRow("close-on-input-limit") << true << true << false << false;
+    QTest::newRow("ordinary-kra-open") << false << false << true << false;
+    QTest::newRow("ordinary-new") << false << false << false << true;
 }
 
 void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelled()
@@ -98,6 +100,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QFETCH(bool, exhaustInput);
     QFETCH(bool, closeAfterError);
     QFETCH(bool, ordinaryOpen);
+    QFETCH(bool, ordinaryNew);
     namespace Gpu = LibrePaint::Image::Gpu;
     QString diagnostic;
     const auto device = Gpu::Device::createNative(diagnostic);
@@ -107,7 +110,16 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     if (exhaustInput) limits.samplesPerStroke = 4;
     auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64), limits);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
-    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("GPU freehand input")));
+    if (ordinaryNew) {
+        const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+        QVERIFY2(document->newImage(QStringLiteral("GPU freehand input"), 64, 64, cs,
+                                    KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1),
+                 qPrintable(document->errorMessage()));
+        owner = document->image()->gpuImage();
+        QVERIFY(owner);
+    } else {
+        document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("GPU freehand input")));
+    }
     QTemporaryDir openedDirectory;
     if (ordinaryOpen) {
         QVERIFY(openedDirectory.isValid());

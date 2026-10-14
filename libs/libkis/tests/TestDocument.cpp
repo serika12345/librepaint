@@ -44,6 +44,77 @@
 
 #include <KisPortingUtils.h>
 
+void TestDocument::testOrdinaryCreationUsesGpuAndPreservesInitialDocumentState_data()
+{
+    QTest::addColumn<int>("style");
+    QTest::addColumn<int>("layerCount");
+    QTest::newRow("raster-one-layer") << int(KisConfig::RASTER_LAYER) << 1;
+    QTest::newRow("raster-two-layers") << int(KisConfig::RASTER_LAYER) << 2;
+    QTest::newRow("canvas-one-layer") << int(KisConfig::CANVAS_COLOR) << 1;
+    QTest::newRow("canvas-two-layers") << int(KisConfig::CANVAS_COLOR) << 2;
+}
+
+void TestDocument::testOrdinaryCreationUsesGpuAndPreservesInitialDocumentState()
+{
+    QFETCH(int, style);
+    QFETCH(int, layerCount);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    const KoColor color(QColor(17, 34, 51, 128), cs);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    QVERIFY2(document->newImage(QStringLiteral("Ordinary GPU document"), 32, 16, cs, color,
+                                KisConfig::BackgroundStyle(style), layerCount, QStringLiteral("Kept description"), 2),
+             qPrintable(document->errorMessage()));
+    const auto image = KisImageSP(document->image());
+    const auto owner = image->gpuImage();
+    QVERIFY(owner);
+    const auto version = owner->operations().snapshot();
+    QCOMPARE(version->size, QSize(32, 16));
+    QCOMPARE(version->layers.size(), layerCount);
+    QCOMPARE(version->activeLayer, version->layers.last().id);
+    QCOMPARE(owner->operations().undoCount(), 0);
+    QVERIFY(!document->isModified());
+    QCOMPARE(image->xRes(), 2.0);
+    QCOMPARE(image->yRes(), 2.0);
+    QCOMPARE(document->documentInfo()->aboutInfo(QStringLiteral("title")), QStringLiteral("Ordinary GPU document"));
+    QCOMPARE(document->documentInfo()->aboutInfo(QStringLiteral("abstract")), QStringLiteral("Kept description"));
+    QCOMPARE(image->colorSpace(), cs);
+    const bool raster = style == int(KisConfig::RASTER_LAYER);
+    QCOMPARE(image->root()->firstChild()->userLocked(), raster && layerCount > 1);
+    QCOMPARE(image->root()->firstChild()->opacity(), raster ? quint8(128) : quint8(255));
+    QCOMPARE(image->root()->firstChild()->name(), QStringLiteral("Background"));
+    const bool autoPin = KisConfig(false).autoPinLayersToTimeline();
+    QCOMPARE(image->root()->firstChild()->isPinnedToTimeline(), raster && autoPin);
+    if (layerCount > 1) QCOMPARE(image->root()->lastChild()->isPinnedToTimeline(), autoPin);
+    Document publicDocument(document.data(), false);
+    QCOMPARE(publicDocument.pixelData(3, 3, 1, 1), QByteArray::fromHex("33221180"));
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    document->setFileBatchMode(true);
+    const auto path = directory.filePath(QStringLiteral("new.kra"));
+    QVERIFY2(document->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+    QVERIFY(reopened->image()->gpuImage());
+    Document publicReopened(reopened.data(), false);
+    QCOMPARE(publicReopened.pixelData(3, 3, 1, 1), publicDocument.pixelData(3, 3, 1, 1));
+    QCOMPARE(reopened->image()->defaultProjectionColor(), image->defaultProjectionColor());
+    QCOMPARE(reopened->image()->root()->firstChild()->userLocked(), raster && layerCount > 1);
+    QCOMPARE(reopened->image()->root()->firstChild()->opacity(), raster ? quint8(128) : quint8(255));
+    QCOMPARE(reopened->image()->root()->firstChild()->isPinnedToTimeline(), raster && autoPin);
+    if (layerCount > 1) QCOMPARE(reopened->image()->root()->lastChild()->isPinnedToTimeline(), autoPin);
+    QCOMPARE(reopened->documentInfo()->aboutInfo(QStringLiteral("abstract")), QStringLiteral("Kept description"));
+    const auto original = document->image();
+    QVERIFY(!document->newImage(QStringLiteral("Invalid size"), 0, 16, cs, color,
+                                KisConfig::BackgroundStyle(style), 1, {}, 1));
+    QCOMPARE(document->image(), original);
+    QVERIFY(!document->newImage(QStringLiteral("Too many layers"), 32, 16, cs, color,
+                                KisConfig::BackgroundStyle(style), 4097, {}, 1));
+    QCOMPARE(document->image(), original);
+    QVERIFY(!document->isModified());
+}
+
 void TestDocument::testCanvasBackgroundReferencePixels_data()
 {
     QTest::addColumn<QColor>("background");
@@ -76,9 +147,12 @@ void TestDocument::testCanvasBackgroundReferencePixels()
     const auto cs = KoColorSpaceRegistry::instance()->rgb8();
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
     const KoColor color(background, cs);
-    QVERIFY(document->newImage(QStringLiteral("Canvas background reference"), 32, 16, cs, color,
-                                KisConfig::CANVAS_COLOR, layerCount, {}, 1));
-    auto image = KisImageSP(document->image());
+    KisImageSP image = new KisImage(nullptr, 32, 16, cs, QStringLiteral("Canvas background reference"));
+    image->setDefaultProjectionColor(color);
+    for (int i = 0; i < layerCount; ++i)
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Paint Layer %1").arg(i + 1), 255), image->root(), i);
+    document->setCurrentImage(image);
+    image->initialRefreshGraph();
     if (hiddenPixel) {
         auto pixel = QByteArray::fromHex("66554400");
         pixel[3] = char(pixelAlpha);

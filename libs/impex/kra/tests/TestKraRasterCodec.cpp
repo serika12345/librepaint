@@ -132,6 +132,7 @@ void TestKraRasterCodec::layerOpacityAndLockSurviveEditingAndResaving()
     source.image.layers[0].opacity = 128;
     source.image.projectionBackground = {17, 34, 51, 128};
     source.image.layers[0].userLocked = true;
+    source.image.layers[0].pinnedToTimeline = true;
     QByteArray bytes;
     QBuffer output(&bytes);
     QVERIFY(output.open(QIODevice::WriteOnly));
@@ -141,6 +142,7 @@ void TestKraRasterCodec::layerOpacityAndLockSurviveEditingAndResaving()
     QCOMPARE(imported.document.image.projectionBackground, source.image.projectionBackground);
     QCOMPARE(imported.document.image.layers[0].opacity, quint8(128));
     QVERIFY(imported.document.image.layers[0].userLocked);
+    QVERIFY(imported.document.image.layers[0].pinnedToTimeline);
     auto edited = imported.document;
     edited.image.layers[0].opacity = 64;
     edited.image.layers[0].userLocked = false;
@@ -153,6 +155,7 @@ void TestKraRasterCodec::layerOpacityAndLockSurviveEditingAndResaving()
     QCOMPARE(reopened.document.image.projectionBackground, source.image.projectionBackground);
     QCOMPARE(reopened.document.image.layers[0].opacity, quint8(64));
     QVERIFY(!reopened.document.image.layers[0].userLocked);
+    QVERIFY(reopened.document.image.layers[0].pinnedToTimeline);
     QCOMPARE(reopened.document.image.layers[0].tiles.first().rgba, source.image.layers[0].tiles.first().rgba);
 }
 
@@ -177,7 +180,7 @@ void TestKraRasterCodec::imageMetadataIsCompleteOrRejectedBeforeRasterImport()
     QCOMPARE(extracted.metadata.documentInfo, metadata.documentInfo);
     QCOMPARE(extracted.metadata.annotations.size(), 1);
     QCOMPARE(extracted.metadata.annotations.first().bytes, QByteArrayLiteral("kept"));
-    for (int change = 0; change < 12; ++change) {
+    for (int change = 0; change < 13; ++change) {
         auto files = valid;
         QDomDocument xml;
         QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
@@ -199,6 +202,7 @@ void TestKraRasterCodec::imageMetadataIsCompleteOrRejectedBeforeRasterImport()
         if (change == 9) background.setAttribute(QStringLiteral("ColorData"), QStringLiteral("%%%"));
         if (change == 10) background.setAttribute(QStringLiteral("ColorData"), QStringLiteral("AA=="));
         if (change == 11) image.appendChild(background.cloneNode(true));
+        if (change == 12) firstLayer.setAttribute(QStringLiteral("intimeline"), QStringLiteral("2"));
         files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
         const auto rejected = Kra::RasterCodec::readImageMetadata(files.value(QStringLiteral("maindoc.xml")), files);
         QCOMPARE(rejected.code, Kra::Status::InvalidData);

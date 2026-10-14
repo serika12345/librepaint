@@ -122,6 +122,7 @@ struct RasterLayer
     std::array<quint8, 4> defaultPixel{};
     quint8 opacity = 255;
     bool userLocked = false;
+    bool pinnedToTimeline = false;
 };
 struct RasterImage
 {
@@ -142,6 +143,7 @@ struct Layer
     std::array<quint8, 4> defaultPixel{};
     quint8 opacity = 255;
     bool userLocked = false;
+    bool pinnedToTimeline = false;
 };
 
 /** Immutable logical document version; all layers are flat RGBA8/sRGB paint layers. */

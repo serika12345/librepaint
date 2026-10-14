@@ -78,6 +78,7 @@ void KisImage::synchronizeGpuNodes()
         node->setVisible(layer.visible);
         if (node->opacity() != layer.opacity) node->setOpacity(layer.opacity);
         if (node->userLocked() != layer.userLocked) node->setUserLocked(layer.userLocked);
+        if (node->isPinnedToTimeline() != layer.pinnedToTimeline) node->setPinnedToTimeline(layer.pinnedToTimeline);
         if (root()->at(index) != node) {
             if (node->parent()) removeNode(node);
             addNode(node, root(), quint32(index));

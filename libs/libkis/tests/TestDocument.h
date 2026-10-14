@@ -12,6 +12,8 @@ class TestDocument : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void testOrdinaryCreationUsesGpuAndPreservesInitialDocumentState_data();
+    void testOrdinaryCreationUsesGpuAndPreservesInitialDocumentState();
     void testCanvasBackgroundReferencePixels_data();
     void testCanvasBackgroundReferencePixels();
     void testSetColorSpace();

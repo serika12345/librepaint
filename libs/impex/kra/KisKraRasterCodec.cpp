@@ -156,8 +156,10 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset)
     const auto visible = element.attribute(QStringLiteral("visible"));
     int x = 0, y = 0, opacity = 255;
     const auto locked = element.attribute(QStringLiteral("locked"), QStringLiteral("0"));
+    const auto timeline = element.attribute(QStringLiteral("intimeline"), QStringLiteral("0"));
     if ((visible != QLatin1String("0") && visible != QLatin1String("1")) ||
         (locked != QLatin1String("0") && locked != QLatin1String("1")) ||
+        (timeline != QLatin1String("0") && timeline != QLatin1String("1")) ||
         !integer(element, QStringLiteral("opacity"), opacity, QStringLiteral("255")) || opacity < 0 || opacity > 255 ||
         !component(element.attribute(QStringLiteral("filename"))) || !validName(element.attribute(QStringLiteral("name"))) ||
         !integer(element, QStringLiteral("x"), x, QStringLiteral("0")) ||
@@ -434,6 +436,7 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         layer.visible = element.attribute(QStringLiteral("visible")) == QLatin1String("1");
         layer.opacity = quint8(element.attribute(QStringLiteral("opacity"), QStringLiteral("255")).toUInt());
         layer.userLocked = element.attribute(QStringLiteral("locked"), QStringLiteral("0")) == QLatin1String("1");
+        layer.pinnedToTimeline = element.attribute(QStringLiteral("intimeline"), QStringLiteral("0")) == QLatin1String("1");
         layer.uuid = element.hasAttribute(QStringLiteral("uuid")) ? QUuid(element.attribute(QStringLiteral("uuid"))) : QUuid::createUuid();
         if (!element.hasAttribute(QStringLiteral("uuid"))) {
             element.setAttribute(QStringLiteral("uuid"), layer.uuid.toString());
@@ -560,6 +563,7 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         element.setAttribute(QStringLiteral("opacity"), int(layer.opacity));
         element.setAttribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA"));
         element.setAttribute(QStringLiteral("locked"), layer.userLocked ? QStringLiteral("1") : QStringLiteral("0"));
+        element.setAttribute(QStringLiteral("intimeline"), layer.pinnedToTimeline ? QStringLiteral("1") : QStringLiteral("0"));
         layers.appendChild(element);
     }
     for (auto old = original.cbegin(); old != original.cend(); ++old) {
