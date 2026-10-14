@@ -39,6 +39,8 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         layer.visible = source.visible;
         layer.uuid = uuid;
         layer.defaultPixel = source.defaultPixel;
+        layer.opacity = source.opacity;
+        layer.userLocked = source.userLocked;
         identities.insert(uuid);
         QSet<QPoint> coordinates;
         auto operation = QSharedPointer<TileWriteOperation>::create();

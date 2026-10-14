@@ -177,6 +177,8 @@ void TestDocument::testGpuOpenKeepsPixelsMetadataAndAssociatedFiles()
     source.image.layers = {{QStringLiteral("Paint"), true, QUuid::createUuid(), {tile}},
                            {QStringLiteral("Hidden"), false, QUuid::createUuid(), {}, {170, 187, 204, 0}}};
     source.image.activeLayer = 0;
+    source.image.layers[0].opacity = 128;
+    source.image.layers[0].userLocked = true;
     Kra::ImageMetadata metadata;
     metadata.resolution = {300, 150};
     metadata.documentInfo = QByteArrayLiteral("<document-info><about><title>Imported title</title></about></document-info>");
@@ -209,6 +211,10 @@ void TestDocument::testGpuOpenKeepsPixelsMetadataAndAssociatedFiles()
     QCOMPARE(document->image()->annotation(QStringLiteral("notes"))->annotation(), QByteArrayLiteral("note bytes"));
     QCOMPARE(document->image()->root()->at(0)->paintDevice()->colorSpace()->profile()->rawData(), metadata.iccProfile);
     QCOMPARE(document->image()->root()->at(0)->uuid(), source.image.layers[0].uuid);
+    QCOMPARE(document->image()->root()->at(0)->opacity(), quint8(128));
+    QVERIFY(document->image()->root()->at(0)->userLocked());
+    Document publicDocument(document.data(), false);
+    QCOMPARE(publicDocument.pixelData(5, 5, 1, 1), QByteArray::fromHex("33221180"));
     QVERIFY(!document->image()->root()->at(1)->visible());
     QCOMPARE(document->preActivatedNode(), document->image()->root()->at(0));
     QVERIFY(!document->isModified());
@@ -223,6 +229,8 @@ void TestDocument::testGpuOpenKeepsPixelsMetadataAndAssociatedFiles()
     const auto saved = Kra::RasterCodec::read(input);
     QCOMPARE(saved.code, Kra::Status::Success);
     QCOMPARE(saved.document.files.value(QStringLiteral("notes/opaque.bin")), QByteArray::fromHex("ff0011"));
+    QCOMPARE(saved.document.image.layers[0].opacity, quint8(128));
+    QVERIFY(saved.document.image.layers[0].userLocked);
     const auto savedMetadata = Kra::RasterCodec::readImageMetadata(saved.document.description, saved.document.files);
     QCOMPARE(savedMetadata.code, Kra::Status::Success);
     QCOMPARE(savedMetadata.metadata.iccProfile, metadata.iccProfile);

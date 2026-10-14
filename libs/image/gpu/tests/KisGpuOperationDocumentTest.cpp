@@ -50,6 +50,7 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void layerOpacityAndLockShareHistoryAndRecovery();
     void inputChunksRetainTheSameOperation();
     void shapePreviewCommitsAsOneHistoryEntry();
     void cancelAndRejectedInputPreserveRedo();
@@ -75,6 +76,58 @@ private Q_SLOTS:
     void layerRemovalReusesCapacityWithoutLosingRecoveryHistory_data();
     void layerRemovalReusesCapacityWithoutLosingRecoveryHistory();
 };
+
+void KisGpuOperationDocumentTest::layerOpacityAndLockShareHistoryAndRecovery()
+{
+    auto source = rasterImage();
+    source.activeLayer = 0;
+    source.layers[0].opacity = 128;
+    source.layers[0].userLocked = true;
+    OperationDocument document(source);
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.snapshot()->layers.first().opacity, quint8(128));
+    QVERIFY(document.snapshot()->layers.first().userLocked);
+    QVERIFY(document.beginStroke(layer, Brush{}, 1).isNull());
+    QCOMPARE(document.undoCount(), 0);
+    QVERIFY(!document.isModified());
+    QCOMPARE(document.setLayerOpacity(layer, 64), Result::Success);
+    QCOMPARE(document.setLayerLocked(layer, false), Result::Success);
+    QCOMPARE(document.undoCount(), 2);
+    const auto committed = document.snapshot();
+    const auto stroke = document.beginStroke(layer, Brush{}, 1);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(document.setLayerOpacity(layer, 32), Result::EditInProgress);
+    QCOMPARE(document.setLayerLocked(layer, true), Result::EditInProgress);
+    QCOMPARE(document.snapshot(), committed);
+    QCOMPARE(document.cancelStroke(stroke), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(document.snapshot()->layers.first().userLocked);
+    QCOMPARE(document.snapshot()->layers.first().opacity, quint8(64));
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().opacity, quint8(128));
+    QVERIFY(!document.isModified());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.undoCount(), 2);
+    QCOMPARE(recovered.snapshot()->layers.first().opacity, quint8(64));
+    QVERIFY(!recovered.snapshot()->layers.first().userLocked);
+    QCOMPARE(recovered.undo(), Result::Success);
+    QVERIFY(recovered.snapshot()->layers.first().userLocked);
+    auto invalid = document.recoveryData();
+    invalid.chop(32);
+    const auto identity = source.layers[0].uuid.toRfc4122();
+    const auto offset = invalid.indexOf(identity);
+    QVERIFY(offset >= 0);
+    const auto lockOffset = offset + identity.size() + 4 + 1;
+    QCOMPARE(invalid[lockOffset], char(1));
+    invalid[lockOffset] = char(2);
+    invalid.append(QCryptographicHash::hash(invalid, QCryptographicHash::Sha256));
+    const auto retained = recovered.snapshot();
+    QCOMPARE(recovered.restoreRecovery(invalid), Result::InvalidRecovery);
+    QCOMPARE(recovered.snapshot(), retained);
+}
 
 void KisGpuOperationDocumentTest::layerRemovalReusesCapacityWithoutLosingRecoveryHistory_data()
 {

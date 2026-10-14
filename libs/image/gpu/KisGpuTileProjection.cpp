@@ -7,14 +7,18 @@
 #include <QFile>
 #include <QThread>
 #include <QSet>
+#include <algorithm>
 #include <vector>
 
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
+struct CompositeParameters { quint32 opacity = 255; quint32 padding[3]{}; };
 struct CompositeJob
 {
     std::shared_ptr<Tile> base, layer, output;
+    CompositeParameters values;
+    Resource<QRhiBuffer> parameters;
     Resource<QRhiShaderResourceBindings> bindings;
 };
 }
@@ -23,13 +27,15 @@ void TileRenderer::Private::initializeProjection()
 {
     projectionLayout = own(rhi, rhi.newShaderResourceBindings());
     projectionPipeline = own(rhi, rhi.newComputePipeline());
+    projectionParameters = own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::UniformBuffer, sizeof(CompositeParameters)));
     projectionLayout->setBindings({
         QRhiShaderResourceBinding::bufferLoad(0, QRhiShaderResourceBinding::ComputeStage, zero.get()),
         QRhiShaderResourceBinding::bufferLoad(1, QRhiShaderResourceBinding::ComputeStage, zero.get()),
-        QRhiShaderResourceBinding::bufferStore(2, QRhiShaderResourceBinding::ComputeStage, zero.get())
+        QRhiShaderResourceBinding::bufferStore(2, QRhiShaderResourceBinding::ComputeStage, zero.get()),
+        QRhiShaderResourceBinding::uniformBuffer(3, QRhiShaderResourceBinding::ComputeStage, projectionParameters.get())
     });
     QFile shader(QStringLiteral(":/librepaint/gpu/shaders/over.comp.qsb"));
-    if (!projectionLayout->create() || !shader.open(QIODevice::ReadOnly)) {
+    if (!projectionParameters->create() || !projectionLayout->create() || !shader.open(QIODevice::ReadOnly)) {
         error = QStringLiteral("GPU projection resources could not be initialized");
         return;
     }
@@ -71,7 +77,7 @@ ProjectionOutcome TileRenderer::compose(QRhiCommandBuffer &commands, const Rende
     QSet<quint64> coordinates;
     bool implicit = false;
     for (const auto &layer : document->document()->layers) {
-        if (!layer.visible) continue;
+        if (!layer.visible || !layer.opacity) continue;
         if (!document->m_data->selected.contains(layer.id)) {
             return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Projection requires every visible GPU layer")};
         }
@@ -95,22 +101,23 @@ ProjectionOutcome TileRenderer::compose(QRhiCommandBuffer &commands, const Rende
         }
     }
     for (const auto &layer : document->document()->layers) {
-        if (!layer.visible) continue;
+        if (!layer.visible || !layer.opacity) continue;
         const auto fallback = document->m_data->defaults.value(layer.id);
         const auto &tiles = document->m_data->layers[layer.id];
         for (const auto coordinate : coordinates) {
             const auto pixels = tiles.value(coordinate, fallback);
-            if (pixels) data->inputs[coordinate].append(pixels);
+            if (pixels) data->inputs[coordinate].append({pixels, layer.opacity});
         }
     }
     qsizetype required = 0;
     for (auto tile = data->inputs.cbegin(); tile != data->inputs.cend(); ++tile) {
         if (base && base->m_data->inputs.value(tile.key()) == tile.value()) {
             data->tiles[tile.key()] = base->m_data->tiles.value(tile.key());
-        } else if (tile.value().size() == 1) {
-            data->tiles[tile.key()] = tile.value().first();
+        } else if (tile.value().size() == 1 && tile.value().first().opacity == 255) {
+            data->tiles[tile.key()] = tile.value().first().pixels;
         } else {
-            required += tile.value().size() > 2 ? 2 : 1;
+            const auto jobs = tile.value().size() - (tile.value().first().opacity == 255 ? 1 : 0);
+            required += std::min<qsizetype>(2, jobs);
         }
     }
     if (required > (d.budget->limit - d.budget->used) / TileBytes) {
@@ -119,28 +126,39 @@ ProjectionOutcome TileRenderer::compose(QRhiCommandBuffer &commands, const Rende
     std::vector<CompositeJob> jobs;
     for (auto tile = data->inputs.cbegin(); tile != data->inputs.cend(); ++tile) {
         if (data->tiles.contains(tile.key())) continue;
+        const auto firstJob = tile.value().first().opacity == 255 ? 1 : 0;
+        const auto jobCount = tile.value().size() - firstJob;
         const auto a = d.allocateTile();
-        const auto b = tile.value().size() > 2 ? d.allocateTile() : std::shared_ptr<Tile>{};
-        if (!a || (tile.value().size() > 2 && !b)) {
+        const auto b = jobCount > 1 ? d.allocateTile() : std::shared_ptr<Tile>{};
+        if (!a || (jobCount > 1 && !b)) {
             return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection allocation failed")};
         }
-        auto input = tile.value().first();
-        for (qsizetype i = 1; i < tile.value().size(); ++i) {
+        auto input = firstJob ? tile.value().first().pixels : std::shared_ptr<Tile>{};
+        for (qsizetype i = firstJob; i < tile.value().size(); ++i) {
             CompositeJob job;
             job.base = input;
-            job.layer = tile.value()[i];
-            job.output = i % 2 ? a : b;
+            job.layer = tile.value()[i].pixels;
+            job.output = (i - firstJob) % 2 ? b : a;
+            job.values.opacity = tile.value()[i].opacity;
+            job.parameters = own(d.rhi, d.rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::UniformBuffer, sizeof(CompositeParameters)));
+            if (!job.parameters->create()) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection parameters failed")};
             job.bindings = own(d.rhi, d.rhi.newShaderResourceBindings());
             job.bindings->setBindings({
-                QRhiShaderResourceBinding::bufferLoad(0, QRhiShaderResourceBinding::ComputeStage, job.base->pixels.get()),
+                QRhiShaderResourceBinding::bufferLoad(0, QRhiShaderResourceBinding::ComputeStage, job.base ? job.base->pixels.get() : d.zero.get()),
                 QRhiShaderResourceBinding::bufferLoad(1, QRhiShaderResourceBinding::ComputeStage, job.layer->pixels.get()),
-                QRhiShaderResourceBinding::bufferStore(2, QRhiShaderResourceBinding::ComputeStage, job.output->pixels.get())
+                QRhiShaderResourceBinding::bufferStore(2, QRhiShaderResourceBinding::ComputeStage, job.output->pixels.get()),
+                QRhiShaderResourceBinding::uniformBuffer(3, QRhiShaderResourceBinding::ComputeStage, job.parameters.get())
             });
             if (!job.bindings->create()) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection binding failed")};
             input = job.output;
             jobs.push_back(std::move(job));
         }
         data->tiles[tile.key()] = input;
+    }
+    if (!jobs.empty()) {
+        auto *updates = d.rhi.nextResourceUpdateBatch();
+        for (const auto &job : jobs) updates->uploadStaticBuffer(job.parameters.get(), &job.values);
+        commands.resourceUpdate(updates);
     }
     for (const auto &job : jobs) {
         commands.beginComputePass();

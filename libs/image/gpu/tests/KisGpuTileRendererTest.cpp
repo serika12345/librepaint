@@ -18,6 +18,9 @@ class KisGpuTileRendererTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
+    void layerOpacityChangesProjectionWithoutChangingSourcePixelsOrRetainedVersions();
+    void partialLayerOpacityComposesOverTransparency_data();
+    void partialLayerOpacityComposesOverTransparency();
     void roundBrushProducesRgbaPixelsOnTheGpu();
     void inputPartitionsAndPreviewProduceTheSamePixels();
     void unchangedTilesAreSharedAndBudgetsRejectAtomically();
@@ -51,6 +54,77 @@ private:
     DevicePtr m_device;
     QRhi *m_rhi = nullptr;
 };
+
+void KisGpuTileRendererTest::partialLayerOpacityComposesOverTransparency_data()
+{
+    QTest::addColumn<QByteArray>("pixel");
+    QTest::addColumn<int>("opacity");
+    QTest::addColumn<bool>("implicit");
+    QTest::addColumn<QByteArray>("expected");
+    QTest::newRow("half-opacity") << QByteArray::fromHex("0000ffff") << 128 << false << QByteArray::fromHex("0000ff80");
+    QTest::newRow("half-alpha-half-opacity") << QByteArray::fromHex("0000ff80") << 128 << false << QByteArray::fromHex("0000ff40");
+    QTest::newRow("hidden-rgb-partial-opacity") << QByteArray::fromHex("0000ff00") << 128 << false << QByteArray::fromHex("00000000");
+    QTest::newRow("hidden-rgb-full-opacity") << QByteArray::fromHex("0000ff00") << 255 << false << QByteArray::fromHex("0000ff00");
+    QTest::newRow("zero-opacity") << QByteArray::fromHex("0000ffff") << 0 << false << QByteArray::fromHex("00000000");
+    QTest::newRow("implicit-background") << QByteArray::fromHex("0000ffff") << 128 << true << QByteArray::fromHex("0000ff80");
+}
+
+void KisGpuTileRendererTest::partialLayerOpacityComposesOverTransparency()
+{
+    QFETCH(QByteArray, pixel);
+    QFETCH(int, opacity);
+    QFETCH(bool, implicit);
+    QFETCH(QByteArray, expected);
+    RasterImage source;
+    source.size = {256, 256};
+    RasterLayer layer;
+    layer.name = QStringLiteral("Background");
+    layer.opacity = quint8(opacity);
+    if (implicit) for (int i = 0; i < 4; ++i) layer.defaultPixel[i] = quint8(pixel[i]);
+    else layer.tiles = {{{0, 0}, pixel.repeated(RgbaTile::ByteCount / 4)}};
+    source.layers = {layer};
+    OperationDocument document(source);
+    TileRenderer renderer(m_device);
+    const auto rendered = render(renderer, document.snapshot());
+    QVERIFY(rendered);
+    const auto merged = project(renderer, rendered, QRect(0, 0, 256, 256));
+    QVERIFY(merged);
+    if (!opacity) QVERIFY(merged->tiles().isEmpty());
+    else QCOMPARE(readBuffer(merged->tiles().first().pixels).left(4), expected);
+}
+
+void KisGpuTileRendererTest::layerOpacityChangesProjectionWithoutChangingSourcePixelsOrRetainedVersions()
+{
+    RasterImage source;
+    source.size = {256, 256};
+    source.layers = {
+        {QStringLiteral("Red"), true, {}, {{{0, 0}, QByteArray::fromHex("ff0000ff").repeated(RgbaTile::ByteCount / 4)}}},
+        {QStringLiteral("Blue"), true, {}, {{{0, 0}, QByteArray::fromHex("0000ffff").repeated(RgbaTile::ByteCount / 4)}}}
+    };
+    source.layers[1].opacity = 128;
+    OperationDocument document(source);
+    const auto blue = document.snapshot()->layers[1].id;
+    TileRenderer renderer(m_device);
+    const auto original = render(renderer, document.snapshot());
+    QVERIFY(original);
+    const auto merged = project(renderer, original, QRect(0, 0, 256, 256));
+    QVERIFY(merged);
+    QCOMPARE(readBuffer(merged->tiles().first().pixels).left(4), QByteArray::fromHex("7f0080ff"));
+    QCOMPARE(readTile(original, blue, {0, 0}).left(4), QByteArray::fromHex("0000ffff"));
+    QCOMPARE(document.setLayerOpacity(blue, 64), Result::Success);
+    const auto changed = render(renderer, document.snapshot(), original);
+    QVERIFY(changed);
+    const auto updated = project(renderer, changed, QRect(0, 0, 256, 256), merged);
+    QVERIFY(updated);
+    QCOMPARE(readBuffer(updated->tiles().first().pixels).left(4), QByteArray::fromHex("bf0040ff"));
+    QCOMPARE(readBuffer(merged->tiles().first().pixels).left(4), QByteArray::fromHex("7f0080ff"));
+    QCOMPARE(readTile(changed, blue, {0, 0}).left(4), QByteArray::fromHex("0000ffff"));
+    QCOMPARE(document.undo(), Result::Success);
+    const auto undone = render(renderer, document.snapshot(), changed);
+    const auto restored = project(renderer, undone, QRect(0, 0, 256, 256), updated);
+    QVERIFY(restored);
+    QCOMPARE(readBuffer(restored->tiles().first().pixels).left(4), QByteArray::fromHex("7f0080ff"));
+}
 
 void KisGpuTileRendererTest::appendedInputPreservesPixelsOutsideItsChangedTiles()
 {

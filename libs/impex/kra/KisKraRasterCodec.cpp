@@ -139,18 +139,19 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset)
 {
     if (element.tagName() != QLatin1String("layer") || element.attribute(QStringLiteral("nodetype")) != QLatin1String("paintlayer") ||
         element.attribute(QStringLiteral("compositeop")) != QLatin1String("normal") ||
-        element.attribute(QStringLiteral("opacity")) != QLatin1String("255") ||
         element.attribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA")) != QLatin1String("RGBA") ||
-        element.attribute(QStringLiteral("locked"), QStringLiteral("0")) != QLatin1String("0") ||
         !element.firstChildElement().isNull() || element.hasAttribute(QStringLiteral("keyframes")))
-        return unsupported(QStringLiteral("KRA layer requires a flat unlocked RGBA8 paint layer with normal compositing"));
+        return unsupported(QStringLiteral("KRA layer requires a flat RGBA8 paint layer with normal compositing"));
     for (const auto &name : {QStringLiteral("channelflags"), QStringLiteral("channellockflags")}) {
         const auto flags = element.attribute(name);
         if (!flags.isEmpty() && flags != QLatin1String("1111")) return unsupported(QStringLiteral("KRA channel flags require all channels"));
     }
     const auto visible = element.attribute(QStringLiteral("visible"));
-    int x = 0, y = 0;
+    int x = 0, y = 0, opacity = 255;
+    const auto locked = element.attribute(QStringLiteral("locked"), QStringLiteral("0"));
     if ((visible != QLatin1String("0") && visible != QLatin1String("1")) ||
+        (locked != QLatin1String("0") && locked != QLatin1String("1")) ||
+        !integer(element, QStringLiteral("opacity"), opacity, QStringLiteral("255")) || opacity < 0 || opacity > 255 ||
         !component(element.attribute(QStringLiteral("filename"))) || !validName(element.attribute(QStringLiteral("name"))) ||
         !integer(element, QStringLiteral("x"), x, QStringLiteral("0")) ||
         !integer(element, QStringLiteral("y"), y, QStringLiteral("0"))) return invalid(QStringLiteral("Invalid KRA layer values"));
@@ -419,6 +420,8 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         RasterLayer layer;
         layer.name = element.attribute(QStringLiteral("name"));
         layer.visible = element.attribute(QStringLiteral("visible")) == QLatin1String("1");
+        layer.opacity = quint8(element.attribute(QStringLiteral("opacity"), QStringLiteral("255")).toUInt());
+        layer.userLocked = element.attribute(QStringLiteral("locked"), QStringLiteral("0")) == QLatin1String("1");
         layer.uuid = element.hasAttribute(QStringLiteral("uuid")) ? QUuid(element.attribute(QStringLiteral("uuid"))) : QUuid::createUuid();
         if (!element.hasAttribute(QStringLiteral("uuid"))) {
             element.setAttribute(QStringLiteral("uuid"), layer.uuid.toString());
@@ -536,9 +539,9 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         element.setAttribute(QStringLiteral("selected"), i == value.activeLayer ? QStringLiteral("true") : QStringLiteral("false"));
         element.setAttribute(QStringLiteral("nodetype"), QStringLiteral("paintlayer"));
         element.setAttribute(QStringLiteral("compositeop"), QStringLiteral("normal"));
-        element.setAttribute(QStringLiteral("opacity"), QStringLiteral("255"));
+        element.setAttribute(QStringLiteral("opacity"), int(layer.opacity));
         element.setAttribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA"));
-        element.setAttribute(QStringLiteral("locked"), QStringLiteral("0"));
+        element.setAttribute(QStringLiteral("locked"), layer.userLocked ? QStringLiteral("1") : QStringLiteral("0"));
         layers.appendChild(element);
     }
     for (auto old = original.cbegin(); old != original.cend(); ++old) {

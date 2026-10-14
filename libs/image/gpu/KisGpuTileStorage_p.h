@@ -54,10 +54,15 @@ struct RenderedVersion::Data
 
 struct ProjectedVersion::Data
 {
+    struct Input {
+        std::shared_ptr<Detail::Tile> pixels;
+        quint8 opacity = 255;
+        bool operator==(const Input &other) const { return pixels == other.pixels && opacity == other.opacity; }
+    };
     RenderedSnapshot source;
     QRect region;
     Detail::Tiles tiles;
-    QMap<quint64, QList<std::shared_ptr<Detail::Tile>>> inputs;
+    QMap<quint64, QList<Input>> inputs;
 };
 
 struct TileRenderer::Private
@@ -70,6 +75,7 @@ struct TileRenderer::Private
     Detail::Resource<QRhiShaderResourceBindings> layout;
     Detail::Resource<QRhiComputePipeline> pipeline;
     Detail::Resource<QRhiShaderResourceBindings> projectionLayout;
+    Detail::Resource<QRhiBuffer> projectionParameters;
     Detail::Resource<QRhiComputePipeline> projectionPipeline;
     bool zeroUploaded = false;
     QString error;

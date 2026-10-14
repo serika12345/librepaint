@@ -111,6 +111,7 @@ class TestKraRasterCodec : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void layerOpacityAndLockSurviveEditingAndResaving();
     void imageMetadataIsCompleteOrRejectedBeforeRasterImport();
     void existingPaintFilesPreservePixelsAndDefaults_data();
     void existingPaintFilesPreservePixelsAndDefaults();
@@ -124,6 +125,33 @@ private Q_SLOTS:
     void legacyLayerWithoutUuidGetsOnePersistentIdentity();
     void emptyDocumentsRequireAnExplicitLayerContainer();
 };
+
+void TestKraRasterCodec::layerOpacityAndLockSurviveEditingAndResaving()
+{
+    auto source = document();
+    source.image.layers[0].opacity = 128;
+    source.image.layers[0].userLocked = true;
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto imported = load(bytes);
+    QVERIFY2(imported.code == Kra::Status::Success, qPrintable(imported.diagnostic));
+    QCOMPARE(imported.document.image.layers[0].opacity, quint8(128));
+    QVERIFY(imported.document.image.layers[0].userLocked);
+    auto edited = imported.document;
+    edited.image.layers[0].opacity = 64;
+    edited.image.layers[0].userLocked = false;
+    QByteArray saved;
+    QBuffer destination(&saved);
+    QVERIFY(destination.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(destination, edited, merged(edited.image.size)).code, Kra::Status::Success);
+    const auto reopened = load(saved);
+    QCOMPARE(reopened.code, Kra::Status::Success);
+    QCOMPARE(reopened.document.image.layers[0].opacity, quint8(64));
+    QVERIFY(!reopened.document.image.layers[0].userLocked);
+    QCOMPARE(reopened.document.image.layers[0].tiles.first().rgba, source.image.layers[0].tiles.first().rgba);
+}
 
 void TestKraRasterCodec::imageMetadataIsCompleteOrRejectedBeforeRasterImport()
 {
@@ -146,7 +174,7 @@ void TestKraRasterCodec::imageMetadataIsCompleteOrRejectedBeforeRasterImport()
     QCOMPARE(extracted.metadata.documentInfo, metadata.documentInfo);
     QCOMPARE(extracted.metadata.annotations.size(), 1);
     QCOMPARE(extracted.metadata.annotations.first().bytes, QByteArrayLiteral("kept"));
-    for (int change = 0; change < 7; ++change) {
+    for (int change = 0; change < 9; ++change) {
         auto files = valid;
         QDomDocument xml;
         QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
@@ -161,6 +189,9 @@ void TestKraRasterCodec::imageMetadataIsCompleteOrRejectedBeforeRasterImport()
         if (change == 4) annotations.appendChild(annotation.cloneNode(true));
         if (change == 5) annotation.setAttribute(QStringLiteral("type"), QStringLiteral("../outside"));
         if (change == 6) image.appendChild(annotations.cloneNode(true));
+        auto firstLayer = image.firstChildElement(QStringLiteral("layers")).firstChildElement();
+        if (change == 7) firstLayer.setAttribute(QStringLiteral("opacity"), QStringLiteral("256"));
+        if (change == 8) firstLayer.setAttribute(QStringLiteral("locked"), QStringLiteral("2"));
         files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
         const auto rejected = Kra::RasterCodec::readImageMetadata(files.value(QStringLiteral("maindoc.xml")), files);
         QCOMPARE(rejected.code, Kra::Status::InvalidData);
@@ -322,7 +353,7 @@ void TestKraRasterCodec::unsupportedAndInvalidContentsReturnNoDocument()
         QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
         auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
         auto layer = image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("layer"));
-        if (change == 0) layer.setAttribute(QStringLiteral("opacity"), QStringLiteral("128"));
+        if (change == 0) layer.setAttribute(QStringLiteral("compositeop"), QStringLiteral("multiply"));
         if (change == 1) layer.setAttribute(QStringLiteral("nodetype"), QStringLiteral("grouplayer"));
         if (change == 2) image.setAttribute(QStringLiteral("colorspacename"), QStringLiteral("LABA"));
         if (change == 3) layer.setAttribute(QStringLiteral("filename"), QStringLiteral("../outside"));

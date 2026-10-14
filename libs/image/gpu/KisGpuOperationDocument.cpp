@@ -98,7 +98,7 @@ Result OperationDocument::checkOperation(OperationId id) const
 OperationId OperationDocument::beginStroke(LayerId layer, const Brush &brush, quint64 randomSeed)
 {
     const qsizetype index = layerIndex(layer);
-    if (checkMutation() != Result::Success || index < 0 || !snapshot()->layers[index].visible ||
+    if (checkMutation() != Result::Success || index < 0 || !snapshot()->layers[index].visible || snapshot()->layers[index].userLocked ||
         !validBrush(brush) || m_nextOperation == std::numeric_limits<quint64>::max() ||
         m_nextRevision == std::numeric_limits<quint64>::max()) {
         return {};
@@ -250,6 +250,36 @@ Result OperationDocument::setLayerVisible(LayerId layer, bool visible)
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     version->layers[index].visible = visible;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    commitVersion(version);
+    return Result::Success;
+}
+
+Result OperationDocument::setLayerOpacity(LayerId layer, quint8 opacity)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto index = layerIndex(layer);
+    if (index < 0) return Result::LayerUnavailable;
+    if (snapshot()->layers[index].opacity == opacity) return Result::Success;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->layers[index].opacity = opacity;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    commitVersion(version);
+    return Result::Success;
+}
+
+Result OperationDocument::setLayerLocked(LayerId layer, bool locked)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto index = layerIndex(layer);
+    if (index < 0) return Result::LayerUnavailable;
+    if (snapshot()->layers[index].userLocked == locked) return Result::Success;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->layers[index].userLocked = locked;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     commitVersion(version);
     return Result::Success;

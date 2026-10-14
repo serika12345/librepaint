@@ -68,6 +68,8 @@ public:
     LayerId addLayer(const QString &name);
     Result selectLayer(LayerId layer);
     Result setLayerVisible(LayerId layer, bool visible);
+    Result setLayerOpacity(LayerId layer, quint8 opacity);
+    Result setLayerLocked(LayerId layer, bool locked);
     Result renameLayer(LayerId layer, const QString &name);
     Result moveLayer(LayerId layer, qsizetype index);
     Result removeLayer(LayerId layer);

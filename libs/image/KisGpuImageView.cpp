@@ -70,12 +70,14 @@ void KisImage::synchronizeGpuNodes()
         const auto &layer = version->layers[index];
         KisNodeSP node = existing.value(layer.uuid);
         if (!node) {
-            node = new KisPaintLayer(this, layer.name, OPACITY_OPAQUE_U8,
+            node = new KisPaintLayer(this, layer.name, layer.opacity,
                                      KisPaintDevice::fromGpuImage(owner, layer.id, {}, colorSpace()));
             node->setUuid(layer.uuid);
         }
         if (node->name() != layer.name) node->setName(layer.name);
         node->setVisible(layer.visible);
+        if (node->opacity() != layer.opacity) node->setOpacity(layer.opacity);
+        if (node->userLocked() != layer.userLocked) node->setUserLocked(layer.userLocked);
         if (root()->at(index) != node) {
             if (node->parent()) removeNode(node);
             addNode(node, root(), quint32(index));
