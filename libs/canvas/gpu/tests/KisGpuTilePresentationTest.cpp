@@ -6,7 +6,8 @@
 #include <QGuiApplication>
 #include <QTest>
 #include <QTransform>
-#include <rhi/qrhi.h>
+#include "../KisGpuPresentationResources_p.h"
+#include <gpu/KisGpuReadbackBatch_p.h>
 #include <gpu/KisGpuTilePresentation.h>
 #include <gpu/KisGpuTileRenderer.h>
 #include <limits>
@@ -27,27 +28,68 @@ private Q_SLOTS:
 
 private:
     DevicePtr m_device;
-    QRhi *m_rhi = nullptr;
 };
 
 namespace {
 struct Surface
 {
-    std::unique_ptr<QRhiTexture> texture;
-    std::unique_ptr<QRhiTextureRenderTarget> target;
-    std::unique_ptr<QRhiRenderPassDescriptor> pass;
+    LibrePaint::Canvas::Gpu::Detail::Texture texture;
+    LibrePaint::Canvas::Gpu::Detail::TextureView view;
+    PresentationTarget target;
     bool ready = false;
-    Surface(QRhi &rhi, QSize size)
-        : texture(rhi.newTexture(QRhiTexture::RGBA8, size, 1,
-              QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource))
+    Surface(DevicePtr device, QSize size)
     {
-        if (!texture->create()) return;
-        target.reset(rhi.newTextureRenderTarget({texture.get()}));
-        pass.reset(target->newCompatibleRenderPassDescriptor());
-        target->setRenderPassDescriptor(pass.get());
-        ready = target->create();
+        WGPUTextureDescriptor descriptor{};
+        descriptor.usage = WGPUTextureUsage_RenderAttachment | WGPUTextureUsage_CopySrc;
+        descriptor.dimension = WGPUTextureDimension_2D;
+        descriptor.size = {quint32(size.width()), quint32(size.height()), 1};
+        descriptor.format = WGPUTextureFormat_RGBA8Unorm;
+        descriptor.mipLevelCount = 1;
+        descriptor.sampleCount = 1;
+        texture.reset(wgpuDeviceCreateTexture(device->nativeDevice(), &descriptor));
+        if (!texture) return;
+        view.reset(wgpuTextureCreateView(texture.get(), nullptr));
+        target = {std::move(device), view.get(), size, WGPUTextureFormat_RGBA8Unorm};
+        ready = bool(view);
     }
 };
+void clear(WGPUCommandEncoder commands, const PresentationTarget &target, QColor color)
+{
+    WGPURenderPassColorAttachment attachment{};
+    attachment.view = target.view;
+    attachment.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
+    attachment.loadOp = WGPULoadOp_Clear;
+    attachment.storeOp = WGPUStoreOp_Store;
+    attachment.clearValue = {color.redF(), color.greenF(), color.blueF(), color.alphaF()};
+    WGPURenderPassDescriptor descriptor{};
+    descriptor.colorAttachmentCount = 1;
+    descriptor.colorAttachments = &attachment;
+    const auto pass = wgpuCommandEncoderBeginRenderPass(commands, &descriptor);
+    wgpuRenderPassEncoderEnd(pass);
+    wgpuRenderPassEncoderRelease(pass);
+}
+std::shared_ptr<LibrePaint::Image::Gpu::Detail::ReadbackBatch> readTexture(Device &device, WGPUCommandEncoder commands, const Surface &surface, WGPUBuffer sourcePixels = nullptr)
+{
+    const auto size = surface.target.size;
+    const quint64 bytes = quint64(size.width()) * size.height() * 4;
+    WGPUBufferDescriptor descriptor{};
+    descriptor.size = bytes;
+    descriptor.usage = WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst;
+    LibrePaint::Canvas::Gpu::Detail::Buffer buffer(wgpuDeviceCreateBuffer(device.nativeDevice(), &descriptor));
+    WGPUTexelCopyTextureInfo source{};
+    source.texture = surface.texture.get();
+    source.aspect = WGPUTextureAspect_All;
+    WGPUTexelCopyBufferInfo destination{};
+    destination.buffer = buffer.get();
+    destination.layout.bytesPerRow = size.width() * 4;
+    destination.layout.rowsPerImage = size.height();
+    WGPUExtent3D extent{quint32(size.width()), quint32(size.height()), 1};
+    wgpuCommandEncoderCopyTextureToBuffer(commands, &source, &destination, &extent);
+    auto reads = LibrePaint::Image::Gpu::Detail::ReadbackBatch::create(device, sourcePixels ? 2 : 1);
+    if (!reads || !reads->recordBuffer(device, commands, 0, buffer.get(), bytes)) return {};
+    if (sourcePixels && !reads->recordBuffer(device, commands, 1, sourcePixels, TileRenderer::TileBytes)) return {};
+    return reads;
+}
 
 void dot(OperationDocument &document, QPointF point, std::array<quint8, 4> color)
 {
@@ -65,9 +107,7 @@ void KisGpuTilePresentationTest::initTestCase()
     QString diagnostic;
     m_device = Device::createNative(diagnostic);
     QVERIFY2(m_device, qPrintable(diagnostic));
-    m_rhi = &m_device->rhi();
-    QVERIFY(m_rhi);
-    qInfo() << "GPU backend:" << m_rhi->backendName();
+
 }
 
 void KisGpuTilePresentationTest::panZoomAndTransparencyUseThePaintingQueue()
@@ -84,43 +124,37 @@ void KisGpuTilePresentationTest::panZoomAndTransparencyUseThePaintingQueue()
     QCOMPARE(document.appendSamples(stroke, {{{20, 16}, 1}}), Result::Success);
     QCOMPARE(document.commitStroke(stroke), Result::Success);
 
-    std::unique_ptr<QRhiTexture> texture(m_rhi->newTexture(QRhiTexture::RGBA8, {128, 128}, 1,
-        QRhiTexture::RenderTarget | QRhiTexture::UsedAsTransferSource));
-    QVERIFY(texture->create());
-    std::unique_ptr<QRhiTextureRenderTarget> target(m_rhi->newTextureRenderTarget({texture.get()}));
-    std::unique_ptr<QRhiRenderPassDescriptor> pass(target->newCompatibleRenderPassDescriptor());
-    target->setRenderPassDescriptor(pass.get());
-    QVERIFY(target->create());
+    Surface surface(m_device, {128, 128});
+    QVERIFY(surface.ready);
     TileRenderer renderer(m_device);
     TilePresentation presentation(m_device);
-    QRhiCommandBuffer *commands = nullptr;
-    QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
-    const auto layers = renderer.record(*commands, document.snapshot());
+    WGPUCommandEncoder commands = nullptr;
+    commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto layers = renderer.record(commands, document.snapshot());
     QCOMPARE(layers.code, RenderOutcome::Recorded);
-    const auto projection = renderer.compose(*commands, layers.version, {0, 0, 64, 64});
+    const auto projection = renderer.compose(commands, layers.version, {0, 0, 64, 64});
     QCOMPARE(projection.code, RenderOutcome::Recorded);
-    const auto drawn = presentation.record(*commands, projection.version, *target,
+    const auto drawn = presentation.record(commands, projection.version, surface.target,
         QTransform::fromTranslate(8, 16).scale(2, 2), QColor(0, 0, 0, 0));
     QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
-    QRhiReadbackResult readback;
-    auto updates = m_rhi->nextResourceUpdateBatch();
-    updates->readBackTexture({texture.get()}, &readback);
-    commands->resourceUpdate(updates);
-    QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
-    const auto pixel = [&](int x, int y) { return readback.data.mid((y * 128 + x) * 4, 4); };
+    auto readback = readTexture(*m_device, commands, surface);
+    QVERIFY(readback);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    const auto pixel = [&](int x, int y) { return readback->results.front()->data.mid((y * 128 + x) * 4, 4); };
     QCOMPARE(pixel(24, 40), QByteArray::fromHex("ff0000ff"));
     QCOMPARE(pixel(48, 48), QByteArray::fromHex("00008080"));
     QCOMPARE(pixel(8, 12), QByteArray(4, '\0'));
     QCOMPARE(drawn.tileCount, 1);
 
-    QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
-    const auto background = presentation.record(*commands, projection.version, *target,
+    commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto background = presentation.record(commands, projection.version, surface.target,
         QTransform::fromTranslate(8, 16).scale(2, 2), QColor(0, 255, 0, 128));
     QVERIFY2(background.recorded, qPrintable(background.diagnostic));
-    updates = m_rhi->nextResourceUpdateBatch();
-    updates->readBackTexture({texture.get()}, &readback);
-    commands->resourceUpdate(updates);
-    QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
+    readback = readTexture(*m_device, commands, surface);
+    QVERIFY(readback);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
     QCOMPARE(pixel(48, 48), QByteArray::fromHex("004080c0"));
     QCOMPARE(pixel(8, 12), QByteArray::fromHex("00800080"));
 }
@@ -133,44 +167,41 @@ void KisGpuTilePresentationTest::clippedTilesKeepTheirIndependentTransforms()
     dot(document, {8, 30}, {0, 0, 255, 255});
     TileRenderer renderer(m_device);
     TilePresentation presentation(m_device);
-    Surface surface(*m_rhi, {512, 64});
+    Surface surface(m_device, {512, 64});
     QVERIFY(surface.ready);
-    QRhiCommandBuffer *commands = nullptr;
-    QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
-    const auto layers = renderer.record(*commands, document.snapshot());
+    WGPUCommandEncoder commands = nullptr;
+    commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto layers = renderer.record(commands, document.snapshot());
     QCOMPARE(layers.code, RenderOutcome::Recorded);
-    const auto projection = renderer.compose(*commands, layers.version, {4, 4, 272, 16});
+    const auto projection = renderer.compose(commands, layers.version, {4, 4, 272, 16});
     QCOMPARE(projection.code, RenderOutcome::Recorded);
-    const auto drawn = presentation.record(*commands, projection.version, *surface.target, {}, Qt::transparent);
+    const auto drawn = presentation.record(commands, projection.version, surface.target, {}, Qt::transparent);
     QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
     QCOMPARE(drawn.tileCount, 2);
-    QRhiReadbackResult readback;
-    QRhiReadbackResult sourceReadback;
-    auto updates = m_rhi->nextResourceUpdateBatch();
-    updates->readBackBuffer(projection.version->tiles().first().pixels, 0, TileRenderer::TileBytes, &sourceReadback);
-    updates->readBackTexture({surface.texture.get()}, &readback);
-    commands->resourceUpdate(updates);
-    QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
-    QCOMPARE(sourceReadback.data.mid((12 * 256 + 8) * 4, 4), QByteArray::fromHex("ff0000ff"));
-    auto pixel = [&](int x, int y) { return readback.data.mid((y * 512 + x) * 4, 4); };
+    auto readback = readTexture(*m_device, commands, surface, projection.version->tiles().first().pixels);
+    QVERIFY(readback);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QCOMPARE(readback->results[1]->data.mid((12 * 256 + 8) * 4, 4), QByteArray::fromHex("ff0000ff"));
+    auto pixel = [&](int x, int y) { return readback->results.front()->data.mid((y * 512 + x) * 4, 4); };
     QCOMPARE(pixel(8, 12), QByteArray::fromHex("ff0000ff"));
     QCOMPARE(pixel(264, 12), QByteArray::fromHex("00ff00ff"));
     QCOMPARE(pixel(8, 30), QByteArray(4, '\0'));
 
-    Surface rotated(*m_rhi, {64, 64});
+    Surface rotated(m_device, {64, 64});
     QVERIFY(rotated.ready);
     TilePresentation oneVisibleTile(m_device, 1);
-    QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
-    const auto rotatedDraw = oneVisibleTile.record(*commands, projection.version, *rotated.target,
+    commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto rotatedDraw = oneVisibleTile.record(commands, projection.version, rotated.target,
         QTransform(0, 1, -1, 0, 64, 0), Qt::transparent);
     QVERIFY2(rotatedDraw.recorded, qPrintable(rotatedDraw.diagnostic));
     QCOMPARE(rotatedDraw.tileCount, 1);
-    updates = m_rhi->nextResourceUpdateBatch();
-    updates->readBackTexture({rotated.texture.get()}, &readback);
-    commands->resourceUpdate(updates);
-    QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
-    QCOMPARE(readback.data.mid((8 * 64 + 51) * 4, 4), QByteArray::fromHex("ff0000ff"));
-    QCOMPARE(readback.data.mid((8 * 64 + 33) * 4, 4), QByteArray(4, '\0'));
+    readback = readTexture(*m_device, commands, rotated);
+    QVERIFY(readback);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QCOMPARE(readback->results.front()->data.mid((8 * 64 + 51) * 4, 4), QByteArray::fromHex("ff0000ff"));
+    QCOMPARE(readback->results.front()->data.mid((8 * 64 + 33) * 4, 4), QByteArray(4, '\0'));
 }
 
 void KisGpuTilePresentationTest::rejectedPresentationPreservesTheTarget()
@@ -180,27 +211,25 @@ void KisGpuTilePresentationTest::rejectedPresentationPreservesTheTarget()
     dot(document, {264, 12}, {0, 255, 0, 255});
     TileRenderer renderer(m_device);
     TilePresentation presentation(m_device, 1);
-    Surface surface(*m_rhi, {512, 64});
+    Surface surface(m_device, {512, 64});
     QVERIFY(surface.ready);
-    QRhiCommandBuffer *commands = nullptr;
-    QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
-    const auto layers = renderer.record(*commands, document.snapshot());
+    WGPUCommandEncoder commands = nullptr;
+    commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto layers = renderer.record(commands, document.snapshot());
     QCOMPARE(layers.code, RenderOutcome::Recorded);
-    const auto projection = renderer.compose(*commands, layers.version, {0, 0, 512, 64});
+    const auto projection = renderer.compose(commands, layers.version, {0, 0, 512, 64});
     QCOMPARE(projection.code, RenderOutcome::Recorded);
-    commands->beginPass(surface.target.get(), QColor(7, 13, 29), {1, 0});
-    commands->endPass();
-    QVERIFY(!presentation.record(*commands, projection.version, *surface.target, {}, Qt::transparent).recorded);
-    QVERIFY(!presentation.record(*commands, projection.version, *surface.target,
+    clear(commands, surface.target, QColor(7, 13, 29));
+    QVERIFY(!presentation.record(commands, projection.version, surface.target, {}, Qt::transparent).recorded);
+    QVERIFY(!presentation.record(commands, projection.version, surface.target,
         QTransform::fromScale(0, 1), Qt::transparent).recorded);
-    QVERIFY(!presentation.record(*commands, projection.version, *surface.target,
+    QVERIFY(!presentation.record(commands, projection.version, surface.target,
         QTransform::fromTranslate(std::numeric_limits<double>::quiet_NaN(), 0), Qt::transparent).recorded);
-    QRhiReadbackResult readback;
-    auto updates = m_rhi->nextResourceUpdateBatch();
-    updates->readBackTexture({surface.texture.get()}, &readback);
-    commands->resourceUpdate(updates);
-    QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
-    QCOMPARE(readback.data, QByteArray::fromHex("070d1dff").repeated(512 * 64));
+    const auto readback = readTexture(*m_device, commands, surface);
+    QVERIFY(readback);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QCOMPARE(readback->results.front()->data, QByteArray::fromHex("070d1dff").repeated(512 * 64));
 }
 
 void KisGpuTilePresentationTest::projectionCannotCrossDevices()
@@ -208,32 +237,30 @@ void KisGpuTilePresentationTest::projectionCannotCrossDevices()
     OperationDocument document({64, 64});
     dot(document, {8, 12}, {255, 0, 0, 255});
     TileRenderer renderer(m_device);
-    QRhiCommandBuffer *commands = nullptr;
-    QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
-    const auto layers = renderer.record(*commands, document.snapshot());
+    WGPUCommandEncoder commands = nullptr;
+    commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto layers = renderer.record(commands, document.snapshot());
     QCOMPARE(layers.code, RenderOutcome::Recorded);
-    const auto projection = renderer.compose(*commands, layers.version, {0, 0, 64, 64});
+    const auto projection = renderer.compose(commands, layers.version, {0, 0, 64, 64});
     QCOMPARE(projection.code, RenderOutcome::Recorded);
-    QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
     QString diagnostic;
     const auto other = Device::createNative(diagnostic);
     QVERIFY2(other, qPrintable(diagnostic));
-    QRhi &otherRhi = other->rhi();
     TilePresentation presentation(other);
-    Surface surface(otherRhi, {64, 64});
+    Surface surface(other, {64, 64});
     QVERIFY(surface.ready);
-    QCOMPARE(otherRhi.beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
-    commands->beginPass(surface.target.get(), Qt::white, {1, 0});
-    commands->endPass();
-    const auto drawn = presentation.record(*commands, projection.version, *surface.target, {}, Qt::transparent);
+    commands = other->beginCommands();
+    QVERIFY(commands);
+    clear(commands, surface.target, Qt::white);
+    const auto drawn = presentation.record(commands, projection.version, surface.target, {}, Qt::transparent);
     QVERIFY(!drawn.recorded);
     QVERIFY(!drawn.diagnostic.isEmpty());
-    QRhiReadbackResult readback;
-    auto updates = otherRhi.nextResourceUpdateBatch();
-    updates->readBackTexture({surface.texture.get()}, &readback);
-    commands->resourceUpdate(updates);
-    QCOMPARE(otherRhi.endOffscreenFrame(), QRhi::FrameOpSuccess);
-    QCOMPARE(readback.data, QByteArray::fromHex("ffffffff").repeated(64 * 64));
+    const auto readback = readTexture(*other, commands, surface);
+    QVERIFY(readback);
+    QVERIFY2(other->submitCommands(true), qPrintable(other->diagnostic()));
+    QCOMPARE(readback->results.front()->data, QByteArray::fromHex("ffffffff").repeated(64 * 64));
 }
 
 void KisGpuTilePresentationTest::displayResourcesRetainTheirNativeDevice()

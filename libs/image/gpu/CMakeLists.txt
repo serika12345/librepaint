@@ -18,10 +18,10 @@ set_target_properties(kritaimagegpuoperations PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )
 
-find_package(Qt6 6.6 REQUIRED COMPONENTS GuiPrivate)
-find_package(Qt6ShaderToolsTools ${Qt6_VERSION} EXACT REQUIRED)
+find_package(WGPUNative REQUIRED)
 add_library(kritaimagegputiles OBJECT
     KisGpuDevice.cpp
+    KisGpuPresentationSurface.cpp
     KisGpuExecution.cpp
     KisGpuPixelReadback.cpp
     KisGpuPaintJob.cpp
@@ -29,13 +29,12 @@ add_library(kritaimagegputiles OBJECT
     KisGpuTileProjection.cpp
 )
 target_compile_definitions(kritaimagegputiles PRIVATE kritaimage_EXPORTS)
-target_link_libraries(kritaimagegputiles PUBLIC kritaimagegpuoperations Qt6::Gui PRIVATE Qt6::GuiPrivate)
+target_link_libraries(kritaimagegputiles PUBLIC kritaimagegpuoperations Qt6::Gui)
+target_link_libraries(kritaimagegputiles PRIVATE WGPUNative::WGPUNative)
 set_target_properties(kritaimagegputiles PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
-qt6_add_shaders(kritaimagegputiles krita_gpu_tiles
+qt6_add_resources(kritaimagegputiles krita_gpu_tiles
     PREFIX "/librepaint/gpu"
-    GLSL "310es,430"
-    NOHLSL
-    FILES shaders/paint.comp shaders/over.comp
+    FILES shaders/rgba.wgsl shaders/paint.wgsl shaders/over.wgsl
 )
 
 add_library(kritaimagegpupaint OBJECT KisGpuPaintImage.cpp KisGpuPaintImage.h KisGpuExternalPixels.cpp)

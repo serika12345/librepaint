@@ -9,7 +9,6 @@
 #include <QFile>
 #include <QMap>
 #include <QThread>
-#include <rhi/qrhi.h>
 #include <algorithm>
 #include <cmath>
 #include <limits>
@@ -28,42 +27,56 @@ bool containsHiddenRgb(const QByteArray &pixels)
 }
 
 TileRenderer::Private::Private(DevicePtr device, qsizetype byteBudget)
-    : device(std::move(device)), rhi(this->device->rhi()),
-      budget(std::make_shared<Budget>(Budget{this->device, byteBudget})),
-      zero(own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, TileBytes))),
-      layoutParameters(own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::UniformBuffer, sizeof(PaintParameters)))),
-      layout(own(rhi, rhi.newShaderResourceBindings())), pipeline(own(rhi, rhi.newComputePipeline()))
+    : device(std::move(device)), budget(std::make_shared<Budget>(Budget{this->device, byteBudget})),
+      zero(createBuffer(this->device->nativeDevice(), TileBytes,
+                        WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst))
 {
-    if (!rhi.isFeatureSupported(QRhi::Compute) || !zero->create() || !layoutParameters->create()) {
-        error = QStringLiteral("GPU storage buffers and compute are required");
-        return;
-    }
-    // The pipeline's layout is independent of each tile's actual bindings.
-    layout->setBindings({
-        QRhiShaderResourceBinding::uniformBuffer(0, QRhiShaderResourceBinding::ComputeStage, layoutParameters.get()),
-        QRhiShaderResourceBinding::bufferLoad(1, QRhiShaderResourceBinding::ComputeStage, zero.get()),
-        QRhiShaderResourceBinding::bufferLoad(2, QRhiShaderResourceBinding::ComputeStage, zero.get()),
-        QRhiShaderResourceBinding::bufferStore(3, QRhiShaderResourceBinding::ComputeStage, zero.get())
-    });
-    QFile shader(QStringLiteral(":/librepaint/gpu/shaders/paint.comp.qsb"));
-    if (!layout->create() || !shader.open(QIODevice::ReadOnly)) {
-        error = QStringLiteral("GPU paint resources could not be initialized");
-        return;
-    }
-    pipeline->setShaderStage({QRhiShaderStage::Compute, QShader::fromSerialized(shader.readAll())});
-    pipeline->setShaderResourceBindings(layout.get());
-    if (!pipeline->create()) error = QStringLiteral("GPU paint pipeline could not be created");
+    pipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/paint.wgsl"));
+    if (!zero || !pipeline) return;
+    layout.reset(wgpuComputePipelineGetBindGroupLayout(pipeline.get(), 0));
+    if (!layout) error = QStringLiteral("GPU paint bindings could not be created");
     if (error.isEmpty()) initializeProjection();
+}
+
+NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path)
+{
+    QFile shared(QStringLiteral(":/librepaint/gpu/shaders/rgba.wgsl")), shader(path);
+    if (!shared.open(QIODevice::ReadOnly) || !shader.open(QIODevice::ReadOnly)) {
+        error = QStringLiteral("GPU compute resources could not be loaded");
+        return {};
+    }
+    const QByteArray source = shared.readAll() + '\n' + shader.readAll();
+    WGPUShaderSourceWGSL code{};
+    code.chain.sType = WGPUSType_ShaderSourceWGSL;
+    code.code = {source.constData(), size_t(source.size())};
+    WGPUShaderModuleDescriptor shaderDescriptor{};
+    shaderDescriptor.nextInChain = &code.chain;
+    NativeShader module(wgpuDeviceCreateShaderModule(device->nativeDevice(), &shaderDescriptor));
+    if (!module || !device->diagnostic().isEmpty()) {
+        error = device->diagnostic();
+        return {};
+    }
+    WGPUComputePipelineDescriptor descriptor{};
+    descriptor.compute.module = module.get();
+    descriptor.compute.entryPoint = {"main", WGPU_STRLEN};
+    NativeComputePipeline result(wgpuDeviceCreateComputePipeline(device->nativeDevice(), &descriptor));
+    if (!result || !device->diagnostic().isEmpty()) {
+        error = device->diagnostic().isEmpty() ? QStringLiteral("GPU compute pipeline creation failed") : device->diagnostic();
+        return {};
+    }
+    return result;
 }
 
 std::shared_ptr<Tile> TileRenderer::Private::allocateTile()
 {
-    auto pixels = own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, TileBytes));
-    if (!pixels->create()) return {};
+    auto pixels = createBuffer(device->nativeDevice(), TileBytes,
+                               WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
+    if (!pixels || !device->diagnostic().isEmpty()) return {};
     return std::make_shared<Tile>(std::move(pixels), budget);
 }
 
 RenderedVersion::RenderedVersion(std::shared_ptr<Data> data) : m_data(std::move(data)) {}
+DevicePtr RenderedVersion::device() const { return m_data->owner->device; }
 Snapshot RenderedVersion::document() const { return m_data->document; }
 QList<TileView> RenderedVersion::tiles(LayerId layer) const
 {
@@ -77,7 +90,7 @@ QList<TileView> RenderedVersion::tiles(LayerId layer) const
 
 TileRenderer::TileRenderer(DevicePtr device, qsizetype byteBudget)
 {
-    if (!device || device->rhi().thread() != QThread::currentThread() || byteBudget < TileBytes) {
+    if (!device || device->thread() != QThread::currentThread() || byteBudget < TileBytes) {
         throw std::invalid_argument("invalid GPU owner thread or tile budget");
     }
     m_d = std::make_unique<Private>(std::move(device), byteBudget);
@@ -85,14 +98,14 @@ TileRenderer::TileRenderer(DevicePtr device, qsizetype byteBudget)
 TileRenderer::~TileRenderer() = default;
 qsizetype TileRenderer::residentBytes() const { return m_d->budget->used; }
 
-RenderOutcome TileRenderer::record(QRhiCommandBuffer &commands, const Snapshot &document, const RenderedSnapshot &base)
+RenderOutcome TileRenderer::record(WGPUCommandEncoder commands, const Snapshot &document, const RenderedSnapshot &base)
 {
     QList<LayerId> layers;
     if (document) for (const auto &layer : document->layers) layers.append(layer.id);
     return recordImpl(commands, document, base, std::nullopt, layers);
 }
 
-RenderOutcome TileRenderer::recordRegion(QRhiCommandBuffer &commands, const Snapshot &document,
+RenderOutcome TileRenderer::recordRegion(WGPUCommandEncoder commands, const Snapshot &document,
                                         QRect region, const QList<LayerId> &layers, const RenderedSnapshot &base)
 {
     constexpr qint64 limit = qint64(OperationDocument::CoordinateLimit);
@@ -109,16 +122,16 @@ RenderOutcome TileRenderer::recordRegion(QRhiCommandBuffer &commands, const Snap
                       QRect(left * TileSize, top * TileSize, (right - left + 1) * TileSize, (bottom - top + 1) * TileSize), layers);
 }
 
-RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapshot &document,
+RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapshot &document,
                                       const RenderedSnapshot &base, std::optional<QRect> region,
                                       const QList<LayerId> &layers)
 {
     auto &d = *m_d;
-    if (d.rhi.thread() != QThread::currentThread() || !d.rhi.isRecordingFrame() || !document ||
+    if (d.device->thread() != QThread::currentThread() || !d.device->ownsCommands(commands) || !document ||
         (base && (base->m_data->owner != d.budget || base->document()->documentId() != document->documentId()))) {
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU versions require their owning device and document")};
     }
-    if (!d.error.isEmpty() || d.rhi.isDeviceLost()) return {RenderOutcome::DeviceFailure, {}, d.error};
+    if (!d.error.isEmpty() || d.device->isLost()) return {RenderOutcome::DeviceFailure, {}, d.error};
     QSet<LayerId> available, selected;
     for (const auto &layer : document->layers) available.insert(layer.id);
     for (const auto layer : layers) {
@@ -149,7 +162,7 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
         fill.output = d.allocateTile();
         fill.values.color = packedPixel(document->projectionBackground);
         fill.values.uniformFill = 1;
-        if (!preparePaintJob(d.rhi, fill, d.zero.get()))
+        if (!preparePaintJob(*d.device, d.layout.get(), fill, d.zero.get()))
             return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU canvas background allocation failed")};
         data->background = fill.output;
         jobs.push_back(std::move(fill));
@@ -226,7 +239,7 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
             fill.output = d.allocateTile();
             fill.values.color = packedPixel(layer.defaultPixel);
             fill.values.uniformFill = 1;
-            if (!preparePaintJob(d.rhi, fill, d.zero.get())) {
+            if (!preparePaintJob(*d.device, d.layout.get(), fill, d.zero.get())) {
                 return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU default pixel allocation failed")};
             }
             data->defaults[layer.id] = fill.output;
@@ -324,38 +337,28 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
                 job.values = {point.x(), point.y(), document->size.width(), document->size.height(),
                               packedPixel(operation.brush.rgba),
                               operation.brush.opacity, quint32(operation.brush.erase), step, quint32(tile.value().size()), diameter};
-                if (!preparePaintJob(d.rhi, job, d.zero.get())) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
+                if (!preparePaintJob(*d.device, d.layout.get(), job, d.zero.get())) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
                 tiles[tile.key()] = job.output;
                 jobs.push_back(std::move(job));
             }
         }
     }
     if (!d.zeroUploaded) {
-        auto updates = d.rhi.nextResourceUpdateBatch();
-        updates->uploadStaticBuffer(d.zero.get(), QByteArray(TileBytes, '\0'));
-        commands.resourceUpdate(updates);
+        wgpuCommandEncoderClearBuffer(commands, d.zero.get(), 0, TileBytes);
         d.zeroUploaded = true;
     }
-    if (!uploads.empty()) {
-        auto updates = d.rhi.nextResourceUpdateBatch();
-        for (const auto &upload : uploads) {
-            updates->uploadStaticBuffer(upload.tile->pixels.get(), upload.rgba);
-            if (!updates->hasOptimalCapacity()) {
-                commands.resourceUpdate(updates);
-                updates = d.rhi.nextResourceUpdateBatch();
-            }
-        }
-        commands.resourceUpdate(updates);
-    }
+    for (const auto &upload : uploads)
+        wgpuQueueWriteBuffer(d.device->queue(), upload.tile->pixels.get(), 0, upload.rgba.constData(), size_t(upload.rgba.size()));
     for (const auto &job : jobs) {
-        auto updates = d.rhi.nextResourceUpdateBatch();
-        if (job.samples) updates->uploadStaticBuffer(job.samples.get(), job.geometry.constData());
-        updates->uploadStaticBuffer(job.parameters.get(), &job.values);
-        commands.beginComputePass(updates);
-        commands.setComputePipeline(d.pipeline.get());
-        commands.setShaderResources(job.bindings.get());
-        commands.dispatch(TileSize / 8, TileSize / 8, 1);
-        commands.endComputePass();
+        if (job.samples) wgpuQueueWriteBuffer(d.device->queue(), job.samples.get(), 0,
+                                              job.geometry.constData(), size_t(job.geometry.size()) * sizeof(PaintSegment));
+        wgpuQueueWriteBuffer(d.device->queue(), job.parameters.get(), 0, &job.values, sizeof(job.values));
+        const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
+        wgpuComputePassEncoderSetPipeline(pass, d.pipeline.get());
+        wgpuComputePassEncoderSetBindGroup(pass, 0, job.bindings.get(), 0, nullptr);
+        wgpuComputePassEncoderDispatchWorkgroups(pass, TileSize / 8, TileSize / 8, 1);
+        wgpuComputePassEncoderEnd(pass);
+        wgpuComputePassEncoderRelease(pass);
     }
     return {RenderOutcome::Recorded, RenderedSnapshot(new RenderedVersion(data)), {}};
 }

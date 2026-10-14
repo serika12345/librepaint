@@ -8,20 +8,9 @@
 #include <stdexcept>
 
 namespace LibrePaint::Image::Gpu {
-namespace {
-ExecutionCode code(QRhi::FrameOpResult result)
-{
-    switch (result) {
-    case QRhi::FrameOpSuccess: return ExecutionCode::Success;
-    case QRhi::FrameOpSwapChainOutOfDate: return ExecutionCode::SurfaceOutOfDate;
-    default: return ExecutionCode::DeviceFailure;
-    }
-}
-}
-
 Execution::Execution(DevicePtr device, qsizetype bytes, qsizetype documents, qsizetype readbackBytes)
 {
-    if (!device || device->rhi().thread() != QThread::currentThread() ||
+    if (!device || device->thread() != QThread::currentThread() ||
         bytes < TileRenderer::TileBytes || documents <= 0 || readbackBytes <= 0 ||
         readbackBytes > std::numeric_limits<int>::max()) {
         throw std::invalid_argument("invalid GPU execution owner or capacity");
@@ -31,7 +20,7 @@ Execution::Execution(DevicePtr device, qsizetype bytes, qsizetype documents, qsi
 Execution::~Execution()
 {
     if (m_d->active) cancelFrame();
-    if (m_d->device->readbackPending()) m_d->device->rhi().finish();
+    if (m_d->device->readbackPending()) m_d->device->finish();
     retireCompletedReadback();
 }
 
@@ -127,29 +116,31 @@ qsizetype Execution::pendingDocuments() const
     return result;
 }
 
-FrameOutcome Execution::beginPresentationFrame(QRhiSwapChain &surface) { return beginFrame(&surface); }
+FrameOutcome Execution::beginPresentationFrame(PresentationSurface &surface) { return beginFrame(&surface); }
 FrameOutcome Execution::beginReadbackFrame() { return beginFrame(nullptr); }
-FrameOutcome Execution::beginFrame(QRhiSwapChain *surface)
+FrameOutcome Execution::beginFrame(PresentationSurface *surface)
 {
     auto &d = *m_d;
-    auto &rhi = d.device->rhi();
-    if (!d.onThread() || (surface && surface->rhi() != &rhi)) {
+    if (!d.onThread() || (surface && surface->device() != d.device)) {
         return {ExecutionCode::InvalidRequest, nullptr, nullptr, QStringLiteral("Frame requires the owning GPU thread and surface")};
     }
-    if (d.active || rhi.isRecordingFrame()) return {ExecutionCode::Busy, nullptr, nullptr, QStringLiteral("A GPU frame is already active")};
-    if (rhi.isDeviceLost()) return {ExecutionCode::DeviceFailure, nullptr, nullptr, QStringLiteral("GPU device lost")};
-    if (surface && (surface->currentPixelSize().isEmpty() || !surface->renderPassDescriptor())) {
-        return {ExecutionCode::SurfaceOutOfDate, nullptr, nullptr, QStringLiteral("The native presentation surface requires creation or resizing")};
+    if (d.active || d.device->isRecordingFrame()) return {ExecutionCode::Busy, nullptr, nullptr, QStringLiteral("A GPU frame is already active")};
+    if (d.device->isLost()) return {ExecutionCode::DeviceFailure, nullptr, nullptr, QStringLiteral("GPU device lost")};
+    if (surface) {
+        const auto acquired = surface->acquire();
+        if (acquired.code != ExecutionCode::Success) return {acquired.code, nullptr, nullptr, acquired.diagnostic};
     }
-    QRhiCommandBuffer *commands = nullptr;
-    const auto result = surface ? rhi.beginFrame(surface) : rhi.beginOffscreenFrame(&commands);
-    if (result != QRhi::FrameOpSuccess) return {code(result), nullptr, nullptr, QStringLiteral("GPU frame could not begin")};
+    const auto commands = d.device->beginCommands();
+    if (!commands) {
+        if (surface) surface->discard();
+        return {ExecutionCode::DeviceFailure, nullptr, nullptr, d.device->diagnostic()};
+    }
     d.active = true;
     d.attempted = false;
     d.surface = surface;
-    d.commands = surface ? surface->currentFrameCommandBuffer() : commands;
+    d.commands = commands;
     d.stage = {};
-    return {ExecutionCode::Success, d.commands, surface ? surface->currentFrameRenderTarget() : nullptr, {}};
+    return {ExecutionCode::Success, d.commands, surface ? surface->target() : nullptr, {}};
 }
 
 ProjectionOutcome Execution::project(DocumentHandle handle, QRect region)
@@ -163,11 +154,11 @@ ProjectionOutcome Execution::project(DocumentHandle handle, QRect region)
     d.attempted = true;
     QList<LayerId> layers;
     for (const auto &layer : document->requested->layers) if (layer.visible) layers.append(layer.id);
-    const auto rendered = d.renderer->recordRegion(*d.commands, document->requested,
+    const auto rendered = d.renderer->recordRegion(d.commands, document->requested,
                                                    region.intersected(QRect(QPoint(0, 0), document->requested->size)),
                                                    layers, document->rendered);
     if (rendered.code != RenderOutcome::Recorded) return {rendered.code, {}, rendered.diagnostic};
-    const auto projected = d.renderer->compose(*d.commands, rendered.version, region, document->projected);
+    const auto projected = d.renderer->compose(d.commands, rendered.version, region, document->projected);
     if (projected.code != RenderOutcome::Recorded) return projected;
     d.stage = {handle, document->serial, d.generation, rendered.version, projected.version};
     return projected;
@@ -181,15 +172,17 @@ ExecutionOutcome Execution::endFrame(bool publish)
     if (!d.onThread() || !d.active) return {ExecutionCode::InvalidRequest, QStringLiteral("No owning GPU frame is active")};
     const auto stage = std::move(d.stage);
     const bool superseded = stage.handle && !d.isCurrent(stage);
-    const auto flags = !publish || superseded ? QRhi::EndFrameFlags(QRhi::SkipPresent) : QRhi::EndFrameFlags{};
-    auto &rhi = d.device->rhi();
-    const auto result = d.surface ? rhi.endFrame(d.surface, flags) : rhi.endOffscreenFrame(flags);
+    bool submitted = d.device->submitCommands(!d.surface);
+    if (d.surface) {
+        if (submitted && publish && !superseded) submitted = d.surface->present();
+        else d.surface->discard();
+    }
     d.active = false;
     d.attempted = false;
     d.surface = nullptr;
     d.commands = nullptr;
     retireCompletedReadback();
-    if (result != QRhi::FrameOpSuccess) return {code(result), QStringLiteral("GPU frame submission failed")};
+    if (!submitted) return {ExecutionCode::DeviceFailure, QStringLiteral("GPU frame submission failed: %1").arg(d.device->diagnostic())};
     if (publish && stage.handle) {
         if (!d.isCurrent(stage)) return {ExecutionCode::InvalidRequest, QStringLiteral("GPU frame was superseded or its document closed")};
         auto &document = d.documents[stage.handle];
@@ -203,13 +196,13 @@ ExecutionOutcome Execution::endFrame(bool publish)
 ExecutionOutcome Execution::replaceDevice(DevicePtr device)
 {
     auto &d = *m_d;
-    if (!d.onThread() || !device || device->rhi().thread() != QThread::currentThread()) {
+    if (!d.onThread() || !device || device->thread() != QThread::currentThread()) {
         return {ExecutionCode::InvalidRequest, QStringLiteral("Replacement requires a device on the owning thread")};
     }
-    if (d.active || d.device->rhi().isRecordingFrame() || device->rhi().isRecordingFrame()) return {ExecutionCode::Busy, QStringLiteral("GPU replacement requires submitted frames")};
+    if (d.active || d.device->isRecordingFrame() || device->isRecordingFrame()) return {ExecutionCode::Busy, QStringLiteral("GPU replacement requires submitted frames")};
     if (d.generation == std::numeric_limits<quint64>::max()) return {ExecutionCode::CapacityExceeded, QStringLiteral("GPU generation exhausted")};
     auto renderer = std::make_unique<TileRenderer>(device, d.byteBudget);
-    if (d.device->readbackPending()) d.device->rhi().finish();
+    if (d.device->readbackPending()) d.device->finish();
     d.device->releaseCompletedReadback();
     d.readbackProjected.clear();
     d.readbackRendered.clear();

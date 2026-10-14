@@ -5,6 +5,7 @@
 
 let
   inherit (pkgs) lib;
+  wgpuNative = pkgs.callPackage ../gpu/wgpu-native-runtime.nix { };
   pythonPackages = pkgs.python3Packages;
 
   # Keep this list aligned with nixpkgs' krita-unwrapped recipe.  It is shared
@@ -115,6 +116,8 @@ let
 
     cmakeBuildType = "RelWithDebInfo";
     cmakeFlags = [
+      "-DWGPUNative_INCLUDE_DIR:PATH=${lib.getDev wgpuNative}/include"
+      "-DWGPUNative_LIBRARY:FILEPATH=${wgpuNative}/lib/libwgpu_native.so"
       "-DALLOW_UNSTABLE=QT6"
       "-DBUILD_KRITA_QT_DESIGNER_PLUGINS=OFF"
       "-DBUILD_WITH_QT6=ON"
@@ -129,6 +132,7 @@ let
       nativeBuildInputs
       ++ buildInputs
       ++ [
+        wgpuNative
         pkgs.wrapGAppsHook3
       ];
 

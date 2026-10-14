@@ -12,9 +12,17 @@
 #include <QTransform>
 #include <memory>
 
-class QRhiRenderTarget;
 
 namespace LibrePaint::Canvas::Gpu {
+
+/** Borrowed native target; its owner and texture view remain alive through submission. */
+struct PresentationTarget
+{
+    Image::Gpu::DevicePtr device;
+    WGPUTextureView view = nullptr;
+    QSize size;
+    quint32 format = 0;
+};
 
 struct PresentationOutcome
 {
@@ -39,9 +47,9 @@ public:
     TilePresentation(const TilePresentation &) = delete;
     TilePresentation &operator=(const TilePresentation &) = delete;
 
-    PresentationOutcome record(QRhiCommandBuffer &commands,
+    PresentationOutcome record(WGPUCommandEncoder commands,
                                const Image::Gpu::ProjectedSnapshot &projection,
-                               QRhiRenderTarget &target, const QTransform &documentToPixels,
+                               const PresentationTarget &target, const QTransform &documentToPixels,
                                QColor clearColor);
 
 private:

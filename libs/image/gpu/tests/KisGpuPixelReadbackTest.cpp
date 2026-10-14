@@ -6,7 +6,6 @@
 #include <QGuiApplication>
 #include <QTest>
 #include <QColorSpace>
-#include <rhi/qrhi.h>
 #include <gpu/KisGpuExecution.h>
 
 using namespace LibrePaint::Image::Gpu;
@@ -164,7 +163,6 @@ void KisGpuPixelReadbackTest::initTestCase()
     QString diagnostic;
     m_device = Device::createNative(diagnostic);
     QVERIFY2(m_device, qPrintable(diagnostic));
-    qInfo() << "GPU backend:" << m_device->rhi().backendName();
 }
 
 void KisGpuPixelReadbackTest::selectedReadsFitWithoutGeneratingUnrequestedPixels()
@@ -286,7 +284,7 @@ void KisGpuPixelReadbackTest::boundedReadsRejectAtomicallyAndRecover()
     QCOMPARE(full.code, ExecutionCode::CapacityExceeded);
     QVERIFY(full.tiles.isEmpty());
     QVERIFY(!full.diagnostic.isEmpty());
-    QVERIFY(!m_device->rhi().isRecordingFrame());
+    QVERIFY(!m_device->isRecordingFrame());
     QCOMPARE(execution.requested(handle), pinned);
     QVERIFY(!execution.published(handle));
     const auto partial = execution.readPixels(handle, pinned, {256, 0, 256, 64}, {layer});

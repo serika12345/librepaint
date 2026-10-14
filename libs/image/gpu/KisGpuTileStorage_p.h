@@ -10,30 +10,17 @@
 #include "KisGpuPaintGeometry_p.h"
 #include <QMap>
 #include <QSet>
-#include <rhi/qrhi.h>
+#include "KisGpuNativeResources_p.h"
 
 namespace LibrePaint::Image::Gpu::Detail {
 struct Budget { DevicePtr device; qsizetype limit = 0; qsizetype used = 0; };
 
-template<class T> struct ResourceDeleter
-{
-    QRhi *rhi = nullptr;
-    void operator()(T *resource) const
-    {
-        if (!resource) return;
-        if (rhi->isRecordingFrame()) resource->deleteLater();
-        else delete resource;
-    }
-};
-template<class T> using Resource = std::unique_ptr<T, ResourceDeleter<T>>;
-template<class T> Resource<T> own(QRhi &rhi, T *resource) { return {resource, {&rhi}}; }
-
 struct Tile
 {
     std::shared_ptr<Budget> budget;
-    Resource<QRhiBuffer> pixels;
+    NativeBuffer pixels;
     bool mayContainHiddenRgb = true;
-    Tile(Resource<QRhiBuffer> pixels, std::shared_ptr<Budget> budget)
+    Tile(NativeBuffer pixels, std::shared_ptr<Budget> budget)
         : budget(std::move(budget)), pixels(std::move(pixels))
     { this->budget->used += TileRenderer::TileBytes; }
     ~Tile() { budget->used -= TileRenderer::TileBytes; }
@@ -71,19 +58,17 @@ struct ProjectedVersion::Data
 struct TileRenderer::Private
 {
     DevicePtr device;
-    QRhi &rhi;
     std::shared_ptr<Detail::Budget> budget;
-    Detail::Resource<QRhiBuffer> zero;
-    Detail::Resource<QRhiBuffer> layoutParameters;
-    Detail::Resource<QRhiShaderResourceBindings> layout;
-    Detail::Resource<QRhiComputePipeline> pipeline;
-    Detail::Resource<QRhiShaderResourceBindings> projectionLayout;
-    Detail::Resource<QRhiBuffer> projectionParameters;
-    Detail::Resource<QRhiComputePipeline> projectionPipeline;
+    Detail::NativeBuffer zero;
+    Detail::NativeBindingLayout layout;
+    Detail::NativeComputePipeline pipeline;
+    Detail::NativeBindingLayout projectionLayout;
+    Detail::NativeComputePipeline projectionPipeline;
     bool zeroUploaded = false;
     QString error;
 
     Private(DevicePtr device, qsizetype byteBudget);
+    Detail::NativeComputePipeline createPipeline(const QString &path);
     void initializeProjection();
     std::shared_ptr<Detail::Tile> allocateTile();
 };

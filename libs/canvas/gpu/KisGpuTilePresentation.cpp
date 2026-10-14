@@ -9,126 +9,113 @@
 #include <QFile>
 #include <QMatrix4x4>
 #include <QThread>
-#include <rhi/qrhi.h>
 #include <algorithm>
 #include <stdexcept>
 #include <vector>
 
 namespace LibrePaint::Canvas::Gpu {
-using Detail::Resource;
-using Detail::own;
 namespace {
-QShader shader(const QString &path)
-{
-    QFile file(path);
-    return file.open(QIODevice::ReadOnly) ? QShader::fromSerialized(file.readAll()) : QShader{};
-}
-
 struct Uniforms { float matrix[16]; float clip[4]; };
-struct Draw
-{
-    Resource<QRhiBuffer> uniform;
-    Resource<QRhiShaderResourceBindings> bindings;
-    Uniforms values;
-};
+struct Draw { Detail::Buffer uniform; Detail::Bindings bindings; Uniforms values; };
 }
-
 struct TilePresentation::Private
 {
     Image::Gpu::DevicePtr device;
-    QRhi &rhi;
     qsizetype maximumTiles;
-    Resource<QRhiBuffer> layoutUniform, layoutPixels;
-    Resource<QRhiShaderResourceBindings> layout;
-    Resource<QRhiRenderPassDescriptor> pass;
-    Resource<QRhiGraphicsPipeline> pipeline;
-    QShader vertex, fragment;
+    Detail::Shader shader;
+    Detail::Layout layout;
+    Detail::Pipeline pipeline;
+    quint32 format = 0;
     QString error;
-
     Private(Image::Gpu::DevicePtr device, qsizetype maximumTiles)
-        : device(std::move(device)), rhi(this->device->rhi()), maximumTiles(maximumTiles),
-          layoutUniform(own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::UniformBuffer, sizeof(Uniforms)))),
-          layoutPixels(own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer, sizeof(quint32)))),
-          layout(own(rhi, rhi.newShaderResourceBindings())),
-          pass(own<QRhiRenderPassDescriptor>(rhi, nullptr)), pipeline(own<QRhiGraphicsPipeline>(rhi, nullptr)),
-          vertex(shader(QStringLiteral(":/librepaint/canvas/shaders/tile.vert.qsb"))),
-          fragment(shader(QStringLiteral(":/librepaint/canvas/shaders/tile.frag.qsb")))
+        : device(std::move(device)), maximumTiles(maximumTiles)
     {
-        if (!vertex.isValid() || !fragment.isValid() || !layoutUniform->create() || !layoutPixels->create()) {
-            error = QStringLiteral("GPU tile presentation resources could not be initialized");
-            return;
-        }
-        layout->setBindings({
-            QRhiShaderResourceBinding::uniformBuffer(0, QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage, layoutUniform.get()),
-            QRhiShaderResourceBinding::bufferLoad(1, QRhiShaderResourceBinding::FragmentStage, layoutPixels.get())
-        });
-        if (!layout->create()) error = QStringLiteral("GPU tile presentation layout could not be created");
+        QFile file(QStringLiteral(":/librepaint/canvas/shaders/tile.wgsl"));
+        if (!file.open(QIODevice::ReadOnly)) { error = QStringLiteral("The native presentation shader could not be loaded"); return; }
+        const QByteArray source = file.readAll();
+        WGPUShaderSourceWGSL wgsl{};
+        wgsl.chain.sType = WGPUSType_ShaderSourceWGSL;
+        wgsl.code = {source.constData(), size_t(source.size())};
+        WGPUShaderModuleDescriptor descriptor{};
+        descriptor.nextInChain = &wgsl.chain;
+        shader.reset(wgpuDeviceCreateShaderModule(this->device->nativeDevice(), &descriptor));
+        if (!shader) error = this->device->diagnostic();
     }
-
-    bool preparePipeline(QRhiRenderTarget &target)
+    bool preparePipeline(quint32 targetFormat)
     {
-        if (pipeline && pipeline->sampleCount() == target.sampleCount() && pass->isCompatible(target.renderPassDescriptor())) return true;
-        auto nextPass = own(rhi, target.renderPassDescriptor()->newCompatibleRenderPassDescriptor());
-        auto next = own(rhi, rhi.newGraphicsPipeline());
-        QRhiGraphicsPipeline::TargetBlend blend;
-        blend.enable = true;
-        next->setTargetBlends({blend});
-        next->setShaderStages({{QRhiShaderStage::Vertex, vertex}, {QRhiShaderStage::Fragment, fragment}});
-        next->setVertexInputLayout({});
-        next->setShaderResourceBindings(layout.get());
-        next->setSampleCount(target.sampleCount());
-        next->setRenderPassDescriptor(nextPass.get());
-        if (!next->create()) return false;
+        if (pipeline && format == targetFormat) return true;
+        WGPUBlendState blend{};
+        blend.color = {WGPUBlendOperation_Add, WGPUBlendFactor_One, WGPUBlendFactor_OneMinusSrcAlpha};
+        blend.alpha = blend.color;
+        WGPUColorTargetState color{};
+        color.format = WGPUTextureFormat(targetFormat);
+        color.blend = &blend;
+        color.writeMask = WGPUColorWriteMask_All;
+        WGPUFragmentState fragment{};
+        fragment.module = shader.get();
+        fragment.entryPoint = {"fragmentMain", WGPU_STRLEN};
+        fragment.targetCount = 1;
+        fragment.targets = &color;
+        WGPURenderPipelineDescriptor descriptor{};
+        descriptor.vertex.module = shader.get();
+        descriptor.vertex.entryPoint = {"vertexMain", WGPU_STRLEN};
+        descriptor.primitive.topology = WGPUPrimitiveTopology_TriangleList;
+        descriptor.primitive.frontFace = WGPUFrontFace_CCW;
+        descriptor.primitive.cullMode = WGPUCullMode_None;
+        descriptor.multisample.count = 1;
+        descriptor.multisample.mask = 0xffffffff;
+        descriptor.fragment = &fragment;
+        Detail::Pipeline next(wgpuDeviceCreateRenderPipeline(device->nativeDevice(), &descriptor));
+        if (!next || !device->diagnostic().isEmpty()) return false;
+        Detail::Layout nextLayout(wgpuRenderPipelineGetBindGroupLayout(next.get(), 0));
+        if (!nextLayout) return false;
         pipeline = std::move(next);
-        pass = std::move(nextPass);
+        layout = std::move(nextLayout);
+        format = targetFormat;
         return true;
     }
 };
-
 TilePresentation::TilePresentation(Image::Gpu::DevicePtr device, qsizetype maximumTiles)
 {
-    if (!device || device->rhi().thread() != QThread::currentThread() || maximumTiles <= 0) {
+    if (!device || device->thread() != QThread::currentThread() || maximumTiles <= 0)
         throw std::invalid_argument("invalid GPU presentation owner or tile limit");
-    }
     m_d = std::make_unique<Private>(std::move(device), maximumTiles);
 }
 TilePresentation::~TilePresentation() = default;
-
-PresentationOutcome TilePresentation::record(QRhiCommandBuffer &commands,
-    const Image::Gpu::ProjectedSnapshot &projection, QRhiRenderTarget &target,
+PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
+    const Image::Gpu::ProjectedSnapshot &projection, const PresentationTarget &target,
     const QTransform &transform, QColor clearColor)
 {
     auto &d = *m_d;
-    if (d.rhi.thread() != QThread::currentThread() || !d.rhi.isRecordingFrame() ||
-        commands.rhi() != &d.rhi || target.rhi() != &d.rhi || !projection ||
-        !target.renderPassDescriptor() || target.pixelSize().isEmpty() ||
-        !Detail::validDocumentTransform(transform) || !clearColor.isValid()) {
+    if (d.device->thread() != QThread::currentThread() || !d.device->ownsCommands(commands) ||
+        target.device != d.device || !target.view || target.size.isEmpty() || !projection ||
+        projection->device() != d.device || !Detail::validDocumentTransform(transform) || !clearColor.isValid())
         return {false, QStringLiteral("Presentation requires an owning GPU frame and an invertible affine transform"), 0};
-    }
-    if (!d.error.isEmpty() || d.rhi.isDeviceLost()) return {false, d.error.isEmpty() ? QStringLiteral("GPU device lost") : d.error, 0};
-
+    if (!d.error.isEmpty() || d.device->isLost()) return {false, d.error.isEmpty() ? QStringLiteral("GPU device lost") : d.error, 0};
     const auto tiles = projection->tiles();
-    const QRectF viewport(QPointF(0, 0), target.pixelSize());
+    const QRectF viewport(QPointF(0, 0), target.size);
     const QRectF region(projection->region());
     QList<Image::Gpu::TileView> visible;
     constexpr int size = Image::Gpu::TileRenderer::TileSize;
     for (const auto &tile : tiles) {
-        if (!tile.pixels || tile.pixels->rhi() != &d.rhi) return {false, QStringLiteral("Projection belongs to another GPU"), 0};
+        if (!tile.pixels) return {false, QStringLiteral("Projection has no native pixels"), 0};
         const QRectF tileRect(tile.coordinate * size, QSize(size, size));
         if (transform.mapRect(tileRect.intersected(region)).intersects(viewport)) visible.append(tile);
     }
     if (visible.size() > d.maximumTiles) return {false, QStringLiteral("Visible GPU tile limit exceeded"), 0};
-    if (!visible.isEmpty() && !d.preparePipeline(target)) return {false, QStringLiteral("GPU presentation pipeline could not be created"), 0};
-
+    if (!visible.isEmpty() && !d.preparePipeline(target.format))
+        return {false, QStringLiteral("GPU presentation pipeline could not be created: %1").arg(d.device->diagnostic()), 0};
     QMatrix4x4 view;
-    view.ortho(0, target.pixelSize().width(), target.pixelSize().height(), 0, -1, 1);
-    view = d.rhi.clipSpaceCorrMatrix() * view * QMatrix4x4(transform);
+    view.ortho(0, target.size.width(), target.size.height(), 0, -1, 1);
+    view = view * QMatrix4x4(transform);
     std::vector<Draw> draws;
     draws.reserve(visible.size());
     for (const auto &tile : visible) {
         Draw draw;
-        draw.uniform = own(d.rhi, d.rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::UniformBuffer, sizeof(Uniforms)));
-        draw.bindings = own(d.rhi, d.rhi.newShaderResourceBindings());
+        WGPUBufferDescriptor buffer{};
+        buffer.size = sizeof(Uniforms);
+        buffer.usage = WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst;
+        draw.uniform.reset(wgpuDeviceCreateBuffer(d.device->nativeDevice(), &buffer));
         auto matrix = view;
         const QPoint origin = tile.coordinate * size;
         matrix.translate(origin.x(), origin.y());
@@ -138,28 +125,45 @@ PresentationOutcome TilePresentation::record(QRhiCommandBuffer &commands,
         draw.values.clip[1] = float(region.top() - origin.y()) / size;
         draw.values.clip[2] = float(region.left() + region.width() - origin.x()) / size;
         draw.values.clip[3] = float(region.top() + region.height() - origin.y()) / size;
-        if (!draw.uniform->create()) return {false, QStringLiteral("GPU presentation uniform allocation failed"), 0};
-        draw.bindings->setBindings({
-            QRhiShaderResourceBinding::uniformBuffer(0, QRhiShaderResourceBinding::VertexStage | QRhiShaderResourceBinding::FragmentStage, draw.uniform.get()),
-            QRhiShaderResourceBinding::bufferLoad(1, QRhiShaderResourceBinding::FragmentStage, tile.pixels)
-        });
-        if (!draw.bindings->create()) return {false, QStringLiteral("GPU presentation tile binding failed"), 0};
+        if (!draw.uniform) return {false, QStringLiteral("GPU presentation uniform allocation failed"), 0};
+        WGPUBindGroupEntry entries[2]{};
+        entries[0].binding = 0;
+        entries[0].buffer = draw.uniform.get();
+        entries[0].size = sizeof(Uniforms);
+        entries[1].binding = 1;
+        entries[1].buffer = tile.pixels;
+        entries[1].size = wgpuBufferGetSize(tile.pixels);
+        WGPUBindGroupDescriptor bindings{};
+        bindings.layout = d.layout.get();
+        bindings.entryCount = 2;
+        bindings.entries = entries;
+        draw.bindings.reset(wgpuDeviceCreateBindGroup(d.device->nativeDevice(), &bindings));
+        if (!draw.bindings || !d.device->diagnostic().isEmpty()) return {false, QStringLiteral("GPU presentation tile binding failed"), 0};
         draws.push_back(std::move(draw));
     }
-    auto updates = d.rhi.nextResourceUpdateBatch();
-    for (const auto &draw : draws) updates->uploadStaticBuffer(draw.uniform.get(), &draw.values);
-    const QColor premultipliedClear = QColor::fromRgbF(clearColor.redF() * clearColor.alphaF(),
-        clearColor.greenF() * clearColor.alphaF(), clearColor.blueF() * clearColor.alphaF(), clearColor.alphaF());
-    commands.beginPass(&target, premultipliedClear, {1, 0}, updates);
+    for (const auto &draw : draws) wgpuQueueWriteBuffer(d.device->queue(), draw.uniform.get(), 0, &draw.values, sizeof(Uniforms));
+    WGPURenderPassColorAttachment attachment{};
+    attachment.view = target.view;
+    attachment.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
+    attachment.loadOp = WGPULoadOp_Clear;
+    attachment.storeOp = WGPUStoreOp_Store;
+    attachment.clearValue = {clearColor.redF() * clearColor.alphaF(), clearColor.greenF() * clearColor.alphaF(),
+        clearColor.blueF() * clearColor.alphaF(), clearColor.alphaF()};
+    WGPURenderPassDescriptor passDescriptor{};
+    passDescriptor.colorAttachmentCount = 1;
+    passDescriptor.colorAttachments = &attachment;
+    auto pass = wgpuCommandEncoderBeginRenderPass(commands, &passDescriptor);
+    if (!pass) return {false, QStringLiteral("GPU presentation pass could not begin"), 0};
     if (!draws.empty()) {
-        commands.setGraphicsPipeline(d.pipeline.get());
-        commands.setViewport({0, 0, float(target.pixelSize().width()), float(target.pixelSize().height())});
+        wgpuRenderPassEncoderSetPipeline(pass, d.pipeline.get());
+        wgpuRenderPassEncoderSetViewport(pass, 0, 0, target.size.width(), target.size.height(), 0, 1);
         for (const auto &draw : draws) {
-            commands.setShaderResources(draw.bindings.get());
-            commands.draw(6);
+            wgpuRenderPassEncoderSetBindGroup(pass, 0, draw.bindings.get(), 0, nullptr);
+            wgpuRenderPassEncoderDraw(pass, 6, 1, 0, 0);
         }
     }
-    commands.endPass();
+    wgpuRenderPassEncoderEnd(pass);
+    wgpuRenderPassEncoderRelease(pass);
     return {true, {}, qsizetype(draws.size())};
 }
 }

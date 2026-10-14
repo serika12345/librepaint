@@ -10,8 +10,23 @@
 #include <QString>
 #include <memory>
 
-class QRhi;
-class QVulkanInstance;
+class QThread;
+struct WGPUInstanceImpl;
+struct WGPUAdapterImpl;
+struct WGPUDeviceImpl;
+struct WGPUQueueImpl;
+struct WGPUBufferImpl;
+struct WGPUCommandEncoderImpl;
+struct WGPUSurfaceImpl;
+struct WGPUTextureViewImpl;
+using WGPUInstance = WGPUInstanceImpl *;
+using WGPUAdapter = WGPUAdapterImpl *;
+using WGPUDevice = WGPUDeviceImpl *;
+using WGPUQueue = WGPUQueueImpl *;
+using WGPUBuffer = WGPUBufferImpl *;
+using WGPUCommandEncoder = WGPUCommandEncoderImpl *;
+using WGPUSurface = WGPUSurfaceImpl *;
+using WGPUTextureView = WGPUTextureViewImpl *;
 
 namespace LibrePaint::Image::Gpu {
 namespace Detail { struct ReadbackBatch; }
@@ -33,10 +48,21 @@ public:
     Device(const Device &) = delete;
     Device &operator=(const Device &) = delete;
 
-    /** Borrowed native device; all frame operations use its owning thread. */
-    QRhi &rhi() const;
-    /** Borrowed platform connection for a Vulkan QWindow; null on Metal. */
-    QVulkanInstance *vulkanInstance() const;
+    /** Native handles are borrowed through this owner on its application thread. */
+    WGPUInstance instance() const;
+    WGPUAdapter adapter() const;
+    WGPUDevice nativeDevice() const;
+    WGPUQueue queue() const;
+    QThread *thread() const;
+    bool isLost() const;
+    QString diagnostic() const;
+    /** One command encoder belongs to the device until submission. */
+    WGPUCommandEncoder beginCommands();
+    bool ownsCommands(WGPUCommandEncoder commands) const;
+    bool isRecordingFrame() const;
+    bool submitCommands(bool wait = false);
+    /** Waits at explicit external read and retirement boundaries. */
+    bool finish();
 
 private:
     friend class Execution;

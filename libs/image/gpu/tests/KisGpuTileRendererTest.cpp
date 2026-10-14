@@ -7,9 +7,10 @@
 #include <QTest>
 #include <QCryptographicHash>
 #include <QThread>
-#include <rhi/qrhi.h>
 #include <gpu/KisGpuTileRenderer.h>
 #include <gpu/KisGpuDevice.h>
+#include <gpu/KisGpuReadbackBatch_p.h>
+#include <webgpu/wgpu.h>
 
 using namespace LibrePaint::Image::Gpu;
 
@@ -51,11 +52,10 @@ private:
     RenderedSnapshot render(TileRenderer &renderer, const Snapshot &snapshot,
                             const RenderedSnapshot &base = {});
     QByteArray readTile(const RenderedSnapshot &version, LayerId layer, QPoint coordinate);
-    QByteArray readBuffer(QRhiBuffer *pixels);
+    QByteArray readBuffer(WGPUBuffer pixels);
     ProjectedSnapshot project(TileRenderer &renderer, const RenderedSnapshot &version,
                               QRect visible, const ProjectedSnapshot &base = {});
     DevicePtr m_device;
-    QRhi *m_rhi = nullptr;
 };
 
 void KisGpuTileRendererTest::transparentLayerPixelsFollowRootProjectionSemantics_data()
@@ -309,10 +309,8 @@ void KisGpuTileRendererTest::initTestCase()
     QString diagnostic;
     m_device = Device::createNative(diagnostic);
     QVERIFY2(m_device, qPrintable(diagnostic));
-    m_rhi = &m_device->rhi();
-    QVERIFY2(m_rhi != nullptr, "The native Metal/Vulkan device is required by this contract");
-    QVERIFY(m_rhi->isFeatureSupported(QRhi::Compute));
-    qInfo() << "GPU backend:" << m_rhi->backendName();
+    QVERIFY(m_device->nativeDevice());
+    QVERIFY(m_device->queue());
 }
 
 void KisGpuTileRendererTest::partialRenderingMatchesFullTilesAndRejectsIncompleteComposition()
@@ -334,27 +332,29 @@ void KisGpuTileRendererTest::partialRenderingMatchesFullTilesAndRejectsIncomplet
     QVERIFY(full);
     TileRenderer partialRenderer(m_device, 3 * TileRenderer::TileBytes);
     const QRect region(263, 130, 1, 1);
-    QRhiCommandBuffer *commands = nullptr;
-    QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
-    const auto partial = partialRenderer.recordRegion(*commands, document.snapshot(), region, {layer});
+    WGPUCommandEncoder commands = nullptr;
+    commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto partial = partialRenderer.recordRegion(commands, document.snapshot(), region, {layer});
     QCOMPARE(partial.code, RenderOutcome::Recorded);
-    const auto composed = partialRenderer.compose(*commands, partial.version, region);
+    const auto composed = partialRenderer.compose(commands, partial.version, region);
     QCOMPARE(composed.code, RenderOutcome::Recorded);
-    QCOMPARE(partialRenderer.compose(*commands, partial.version, {0, 0, 1024, 512}).code, RenderOutcome::InvalidVersion);
-    QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
+    QCOMPARE(partialRenderer.compose(commands, partial.version, {0, 0, 1024, 512}).code, RenderOutcome::InvalidVersion);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
     QCOMPARE(partial.version->tiles(layer).size(), 1);
     QVERIFY(partial.version->tiles(hidden).isEmpty());
     QCOMPARE(partial.version->tiles(layer)[0].coordinate, QPoint(1, 0));
     QCOMPARE(readTile(partial.version, layer, {1, 0}), readTile(full, layer, {1, 0}));
-    QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
-    const auto reused = partialRenderer.recordRegion(*commands, document.snapshot(), region, {layer}, partial.version);
+    commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto reused = partialRenderer.recordRegion(commands, document.snapshot(), region, {layer}, partial.version);
     QCOMPARE(reused.version, partial.version);
-    const auto shifted = partialRenderer.recordRegion(*commands, document.snapshot(), {280, 140, 1, 1}, {layer}, partial.version);
+    const auto shifted = partialRenderer.recordRegion(commands, document.snapshot(), {280, 140, 1, 1}, {layer}, partial.version);
     QCOMPARE(shifted.code, RenderOutcome::Recorded);
     QCOMPARE(partialRenderer.residentBytes(), qsizetype(TileRenderer::TileBytes));
-    auto expanded = partialRenderer.recordRegion(*commands, document.snapshot(), {256, 0, 512, 256}, {layer}, partial.version);
+    auto expanded = partialRenderer.recordRegion(commands, document.snapshot(), {256, 0, 512, 256}, {layer}, partial.version);
     QCOMPARE(expanded.code, RenderOutcome::Recorded);
-    QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
     QCOMPARE(expanded.version->tiles(layer).size(), 2);
     QCOMPARE(partialRenderer.residentBytes(), qsizetype(2 * TileRenderer::TileBytes));
     QCOMPARE(readTile(expanded.version, layer, {1, 0}), readTile(full, layer, {1, 0}));
@@ -365,24 +365,26 @@ void KisGpuTileRendererTest::partialRenderingMatchesFullTilesAndRejectsIncomplet
     QCOMPARE(document.commitStroke(edit), Result::Success);
     const auto editedFull = render(fullRenderer, document.snapshot(), full);
     QVERIFY(editedFull);
-    QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
-    auto edited = partialRenderer.recordRegion(*commands, document.snapshot(), {256, 0, 512, 256}, {layer}, partial.version);
+    commands = m_device->beginCommands();
+    QVERIFY(commands);
+    auto edited = partialRenderer.recordRegion(commands, document.snapshot(), {256, 0, 512, 256}, {layer}, partial.version);
     QCOMPARE(edited.code, RenderOutcome::Recorded);
-    QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
     QCOMPARE(readTile(edited.version, layer, {1, 0}), readTile(editedFull, layer, {1, 0}));
     QCOMPARE(readTile(edited.version, layer, {2, 0}), readTile(editedFull, layer, {2, 0}));
     QCOMPARE(readTile(partial.version, layer, {1, 0}), readTile(full, layer, {1, 0}));
     edited.version.clear();
-    QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
-    const auto raw = partialRenderer.recordRegion(*commands, document.snapshot(), {-1, -1, 1, 1}, {hidden}, partial.version);
+    commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto raw = partialRenderer.recordRegion(commands, document.snapshot(), {-1, -1, 1, 1}, {hidden}, partial.version);
     QCOMPARE(raw.code, RenderOutcome::Recorded);
-    QCOMPARE(partialRenderer.compose(*commands, raw.version, {0, 0, 1, 1}).code, RenderOutcome::InvalidVersion);
-    const auto incomplete = partialRenderer.recordRegion(*commands, document.snapshot(), {0, 0, 1, 1}, {hidden});
+    QCOMPARE(partialRenderer.compose(commands, raw.version, {0, 0, 1, 1}).code, RenderOutcome::InvalidVersion);
+    const auto incomplete = partialRenderer.recordRegion(commands, document.snapshot(), {0, 0, 1, 1}, {hidden});
     QCOMPARE(incomplete.code, RenderOutcome::Recorded);
-    QCOMPARE(partialRenderer.compose(*commands, incomplete.version, {0, 0, 1, 1}).code, RenderOutcome::InvalidVersion);
-    QCOMPARE(partialRenderer.recordRegion(*commands, document.snapshot(), region, {layer, layer}).code, RenderOutcome::InvalidVersion);
-    QCOMPARE(partialRenderer.recordRegion(*commands, document.snapshot(), region, {999}).code, RenderOutcome::InvalidVersion);
-    QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
+    QCOMPARE(partialRenderer.compose(commands, incomplete.version, {0, 0, 1, 1}).code, RenderOutcome::InvalidVersion);
+    QCOMPARE(partialRenderer.recordRegion(commands, document.snapshot(), region, {layer, layer}).code, RenderOutcome::InvalidVersion);
+    QCOMPARE(partialRenderer.recordRegion(commands, document.snapshot(), region, {999}).code, RenderOutcome::InvalidVersion);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
     QCOMPARE(raw.version->tiles(hidden).size(), 1);
     QCOMPARE(readTile(raw.version, hidden, {-1, -1}), offCanvas.rgba);
 }
@@ -390,12 +392,13 @@ void KisGpuTileRendererTest::partialRenderingMatchesFullTilesAndRejectsIncomplet
 RenderedSnapshot KisGpuTileRendererTest::render(TileRenderer &renderer, const Snapshot &snapshot,
                                                const RenderedSnapshot &base)
 {
-    QRhiCommandBuffer *commands = nullptr;
-    if (m_rhi->beginOffscreenFrame(&commands) != QRhi::FrameOpSuccess) return {};
-    const auto result = renderer.record(*commands, snapshot, base);
-    const auto submitted = m_rhi->endOffscreenFrame();
+    WGPUCommandEncoder commands = nullptr;
+    commands = m_device->beginCommands();
+    if (!commands) return {};
+    const auto result = renderer.record(commands, snapshot, base);
+    const auto submitted = m_device->submitCommands(true);
     if (result.code != RenderOutcome::Recorded) qWarning() << result.diagnostic;
-    if (submitted != QRhi::FrameOpSuccess) return {};
+    if (!submitted) return {};
     return result.version;
 }
 
@@ -408,27 +411,29 @@ QByteArray KisGpuTileRendererTest::readTile(const RenderedSnapshot &version, Lay
     return {};
 }
 
-QByteArray KisGpuTileRendererTest::readBuffer(QRhiBuffer *pixels)
+QByteArray KisGpuTileRendererTest::readBuffer(WGPUBuffer pixels)
 {
-    QRhiCommandBuffer *commands = nullptr;
-    if (m_rhi->beginOffscreenFrame(&commands) != QRhi::FrameOpSuccess) return {};
-    QRhiReadbackResult readback;
-    auto updates = m_rhi->nextResourceUpdateBatch();
-    updates->readBackBuffer(pixels, 0, TileRenderer::TileBytes, &readback);
-    commands->resourceUpdate(updates);
-    m_rhi->endOffscreenFrame();
-    return readback.data;
+    const auto commands = m_device->beginCommands();
+    if (!commands) return {};
+    const auto reads = Detail::ReadbackBatch::create(*m_device, 1);
+    if (!reads || !reads->recordBuffer(*m_device, commands, 0, pixels, TileRenderer::TileBytes)) {
+        m_device->submitCommands(true);
+        return {};
+    }
+    if (!m_device->submitCommands(true)) return {};
+    return reads->results.front()->data;
 }
 
 ProjectedSnapshot KisGpuTileRendererTest::project(TileRenderer &renderer, const RenderedSnapshot &version,
                                                  QRect visible, const ProjectedSnapshot &base)
 {
-    QRhiCommandBuffer *commands = nullptr;
-    if (m_rhi->beginOffscreenFrame(&commands) != QRhi::FrameOpSuccess) return {};
-    const auto result = renderer.compose(*commands, version, visible, base);
-    const auto submitted = m_rhi->endOffscreenFrame();
+    WGPUCommandEncoder commands = nullptr;
+    commands = m_device->beginCommands();
+    if (!commands) return {};
+    const auto result = renderer.compose(commands, version, visible, base);
+    const auto submitted = m_device->submitCommands(true);
     if (result.code != RenderOutcome::Recorded) qWarning() << result.diagnostic;
-    return submitted == QRhi::FrameOpSuccess ? result.version : ProjectedSnapshot{};
+    return submitted ? result.version : ProjectedSnapshot{};
 }
 
 void KisGpuTileRendererTest::roundBrushProducesRgbaPixelsOnTheGpu()
@@ -594,10 +599,11 @@ void KisGpuTileRendererTest::versionsOutliveTheRendererAndRejectAnotherDeviceOwn
     }
     QCOMPARE(readTile(retained, document.activeLayer(), {0, 0}).size(), TileRenderer::TileBytes);
     TileRenderer replacement(m_device);
-    QRhiCommandBuffer *commands = nullptr;
-    QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
-    QCOMPARE(replacement.record(*commands, document.preview(), retained).code, RenderOutcome::InvalidVersion);
-    QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
+    WGPUCommandEncoder commands = nullptr;
+    commands = m_device->beginCommands();
+    QVERIFY(commands);
+    QCOMPARE(replacement.record(commands, document.preview(), retained).code, RenderOutcome::InvalidVersion);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
     QVERIFY(render(replacement, document.preview()));
 }
 
@@ -687,18 +693,18 @@ void KisGpuTileRendererTest::paintingAndCompositionShareOneSubmission()
         QCOMPARE(document.commitStroke(stroke), Result::Success);
     }
     TileRenderer renderer(m_device);
-    QRhiCommandBuffer *commands = nullptr;
-    QCOMPARE(m_rhi->beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
-    const auto layers = renderer.record(*commands, document.snapshot());
+    WGPUCommandEncoder commands = nullptr;
+    commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto layers = renderer.record(commands, document.snapshot());
     QCOMPARE(layers.code, RenderOutcome::Recorded);
-    const auto projection = renderer.compose(*commands, layers.version, {0, 0, 64, 64});
+    const auto projection = renderer.compose(commands, layers.version, {0, 0, 64, 64});
     QCOMPARE(projection.code, RenderOutcome::Recorded);
-    QRhiReadbackResult readback;
-    auto updates = m_rhi->nextResourceUpdateBatch();
-    updates->readBackBuffer(projection.version->tiles().first().pixels, 0, TileRenderer::TileBytes, &readback);
-    commands->resourceUpdate(updates);
-    QCOMPARE(m_rhi->endOffscreenFrame(), QRhi::FrameOpSuccess);
-    QCOMPARE(readback.data.mid((32 * TileRenderer::TileSize + 32) * 4, 4), QByteArray::fromHex("5500aac0"));
+    const auto readback = Detail::ReadbackBatch::create(*m_device, 1);
+    QVERIFY(readback);
+    QVERIFY(readback->recordBuffer(*m_device, commands, 0, projection.version->tiles().first().pixels, TileRenderer::TileBytes));
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QCOMPARE(readback->results.front()->data.mid((32 * TileRenderer::TileSize + 32) * 4, 4), QByteArray::fromHex("5500aac0"));
 }
 
 void KisGpuTileRendererTest::longDocumentRebuildUsesBoundedTileStorage()
@@ -748,15 +754,16 @@ void KisGpuTileRendererTest::retainedPixelsOwnTheNativeDeviceUntilTheirLastReade
     QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
     {
         TileRenderer renderer(device);
-        QRhiCommandBuffer *commands = nullptr;
-        QCOMPARE(device->rhi().beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
-        const auto result = renderer.record(*commands, document.preview());
+        WGPUCommandEncoder commands = nullptr;
+        commands = device->beginCommands();
+        QVERIFY(commands);
+        const auto result = renderer.record(commands, document.preview());
         QCOMPARE(result.code, RenderOutcome::Recorded);
         retained = result.version;
-        const auto merged = renderer.compose(*commands, retained, {0, 0, 64, 64});
+        const auto merged = renderer.compose(commands, retained, {0, 0, 64, 64});
         QCOMPARE(merged.code, RenderOutcome::Recorded);
         projected = merged.version;
-        QCOMPARE(device->rhi().endOffscreenFrame(), QRhi::FrameOpSuccess);
+        QVERIFY(device->submitCommands(true));
     }
     device.reset();
     QVERIFY(!lifetime.expired());
@@ -764,14 +771,14 @@ void KisGpuTileRendererTest::retainedPixelsOwnTheNativeDeviceUntilTheirLastReade
     QVERIFY(!lifetime.expired());
     {
         const auto reader = lifetime.lock();
-        QRhiCommandBuffer *commands = nullptr;
-        QCOMPARE(reader->rhi().beginOffscreenFrame(&commands), QRhi::FrameOpSuccess);
-        QRhiReadbackResult pixels;
-        auto updates = reader->rhi().nextResourceUpdateBatch();
-        updates->readBackBuffer(projected->tiles().first().pixels, 0, TileRenderer::TileBytes, &pixels);
-        commands->resourceUpdate(updates);
-        QCOMPARE(reader->rhi().endOffscreenFrame(), QRhi::FrameOpSuccess);
-        QCOMPARE(pixels.data.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("000000ff"));
+        WGPUCommandEncoder commands = nullptr;
+        commands = reader->beginCommands();
+        QVERIFY(commands);
+        const auto pixels = Detail::ReadbackBatch::create(*reader, 1);
+        QVERIFY(pixels);
+        QVERIFY(pixels->recordBuffer(*reader, commands, 0, projected->tiles().first().pixels, TileRenderer::TileBytes));
+        QVERIFY(reader->submitCommands(true));
+        QCOMPARE(pixels->results.front()->data.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("000000ff"));
     }
     projected.clear();
     QVERIFY(lifetime.expired());

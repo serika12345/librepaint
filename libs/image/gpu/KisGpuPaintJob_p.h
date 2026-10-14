@@ -22,13 +22,13 @@ static_assert(sizeof(PaintParameters) == 48);
 struct PaintJob
 {
     std::shared_ptr<Tile> input, output;
-    Resource<QRhiBuffer> samples, parameters;
-    Resource<QRhiShaderResourceBindings> bindings;
+    NativeBuffer samples, parameters;
+    NativeBindings bindings;
     QList<PaintSegment> geometry;
     PaintParameters values{};
 };
 
 quint32 packedPixel(const std::array<quint8, 4> &rgba);
-bool preparePaintJob(QRhi &rhi, PaintJob &job, QRhiBuffer *zero);
+bool preparePaintJob(Device &device, WGPUBindGroupLayout layout, PaintJob &job, WGPUBuffer zero);
 }
 #endif

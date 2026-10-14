@@ -74,7 +74,7 @@ std::optional<QList<quint64>> layerCoordinates(const Layer &layer, QSize size, Q
 ExecutionOutcome Execution::retireDisplayCaches()
 {
     auto &d = *m_d;
-    if (d.device->rhi().finish() != QRhi::FrameOpSuccess)
+    if (!d.device->finish())
         return {ExecutionCode::DeviceFailure, QStringLiteral("GPU completion failed before pixel streaming")};
     retireCompletedReadback();
     for (auto &document : d.documents) {
@@ -243,7 +243,7 @@ PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot
     if (!d.onThread() || !pinned || (area != PixelReadArea::Canvas && area != PixelReadArea::LayerCoordinates)) {
         return failure(ExecutionCode::InvalidRequest, QStringLiteral("Pixel read requires a document, valid area and the GPU thread"));
     }
-    if (d.active || d.device->rhi().isRecordingFrame()) return failure(ExecutionCode::Busy, QStringLiteral("Pixel read requires submitted frames"));
+    if (d.active || d.device->isRecordingFrame()) return failure(ExecutionCode::Busy, QStringLiteral("Pixel read requires submitted frames"));
     if (d.device->readbackPending()) return failure(ExecutionCode::Busy, QStringLiteral("The native GPU still retains a previous readback"));
     retireCompletedReadback();
     const auto document = d.documents.constFind(handle);
@@ -276,21 +276,17 @@ PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot
         outcome.code = ExecutionCode::Success;
         return outcome;
     }
-    if (!d.device->rhi().isFeatureSupported(QRhi::ReadBackNonUniformBuffer)) {
-        return failure(ExecutionCode::DeviceFailure, QStringLiteral("GPU storage buffer readback is unavailable"));
-    }
     const auto base = document->rendered;
     const auto projectedBase = document->projected;
     RenderedSnapshot rendered;
     ProjectedSnapshot projected;
     std::shared_ptr<Detail::ReadbackBatch> reads;
-    QRhiResourceUpdateBatch *batch = nullptr;
     bool begun = false;
     try {
         const auto frame = beginReadbackFrame();
         if (frame.code != ExecutionCode::Success) return failure(frame.code, frame.diagnostic);
         begun = true;
-        const auto paint = d.renderer->recordRegion(*frame.commands, pinned, outcome.region, generatedLayers, base);
+        const auto paint = d.renderer->recordRegion(frame.commands, pinned, outcome.region, generatedLayers, base);
         if (paint.code != RenderOutcome::Recorded) {
             cancelFrame();
             begun = false;
@@ -298,7 +294,7 @@ PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot
         }
         rendered = paint.version;
         if (includeProjection) {
-            const auto compose = d.renderer->compose(*frame.commands, rendered, outcome.region, projectedBase);
+            const auto compose = d.renderer->compose(frame.commands, rendered, outcome.region, projectedBase);
             if (compose.code != RenderOutcome::Recorded) {
                 cancelFrame();
                 begun = false;
@@ -306,8 +302,8 @@ PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot
             }
             projected = compose.version;
         }
-        QList<QRhiBuffer *> buffers;
-        QHash<QRhiBuffer *, qsizetype> indices;
+        QList<WGPUBuffer> buffers;
+        QHash<WGPUBuffer, qsizetype> indices;
         QList<qsizetype> outputIndices;
         const auto append = [&](LayerId layer, const QList<TileView> &tiles) {
             for (const auto &tile : tiles) {
@@ -342,16 +338,10 @@ PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot
             }
             d.readbackRendered = rendered;
             d.readbackProjected = projected;
-            batch = d.device->rhi().nextResourceUpdateBatch();
             for (qsizetype i = 0; i < buffers.size(); ++i) {
-                batch->readBackBuffer(buffers[i], 0, TileRenderer::TileBytes, reads->results[i].get());
-                if (!batch->hasOptimalCapacity()) {
-                    frame.commands->resourceUpdate(batch);
-                    batch = d.device->rhi().nextResourceUpdateBatch();
-                }
+                if (!reads->recordBuffer(*d.device, frame.commands, i, buffers[i], TileRenderer::TileBytes))
+                    throw std::runtime_error("The native GPU readback buffer could not be recorded");
             }
-            frame.commands->resourceUpdate(batch);
-            batch = nullptr;
         }
         const auto submitted = submitFrame();
         begun = false;
@@ -368,7 +358,6 @@ PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot
         outcome.code = ExecutionCode::Success;
         return outcome;
     } catch (const std::exception &exception) {
-        if (batch) batch->release();
         if (begun) cancelFrame();
         retireCompletedReadback();
         return failure(ExecutionCode::DeviceFailure, QString::fromUtf8(exception.what()));

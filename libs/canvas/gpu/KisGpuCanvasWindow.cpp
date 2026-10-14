@@ -5,7 +5,7 @@
 
 #include "KisGpuCanvasWindow.h"
 #include "KisGpuTilePresentation.h"
-#include "KisGpuPresentationResources_p.h"
+#include "KisGpuWindowSurface_p.h"
 #include "KisGpuViewTransform_p.h"
 #include <QPlatformSurfaceEvent>
 #include <QThread>
@@ -22,20 +22,16 @@ struct CanvasWindow::Private
     DocumentHandle handle = 0;
     QTransform transform;
     bool recording = false;
-    Detail::Resource<QRhiRenderPassDescriptor> pass;
-    Detail::Resource<QRhiSwapChain> surface;
+    std::unique_ptr<PresentationSurface> surface;
     std::unique_ptr<TilePresentation> presentation;
 
     explicit Private(Execution &execution)
-        : device(execution.device()), execution(execution), generation(execution.generation()),
-          pass(Detail::own<QRhiRenderPassDescriptor>(device->rhi(), nullptr)),
-          surface(Detail::own<QRhiSwapChain>(device->rhi(), nullptr)) {}
+        : device(execution.device()), execution(execution), generation(execution.generation()) {}
 
     void releaseSurface()
     {
         presentation.reset();
         surface.reset();
-        pass.reset();
     }
     QTransform physicalTransform(qreal ratio) const
     {
@@ -47,7 +43,7 @@ struct CanvasWindow::Private
 
 CanvasWindow::CanvasWindow(Execution &execution, QWindow *parent) : QWindow(parent)
 {
-    if (!execution.device() || execution.device()->rhi().thread() != QThread::currentThread()) {
+    if (!execution.device() || execution.device()->thread() != QThread::currentThread()) {
         throw std::invalid_argument("GPU canvas requires the shared execution thread");
     }
     m_d = std::make_unique<Private>(execution);
@@ -58,17 +54,11 @@ CanvasWindow::~CanvasWindow()
 {
     m_d->releaseSurface();
     destroy();
-#if QT_CONFIG(vulkan)
-    setVulkanInstance(nullptr);
-#endif
 }
 
 void CanvasWindow::connectSurface()
 {
-    setSurfaceType(m_d->device->vulkanInstance() ? QSurface::VulkanSurface : QSurface::MetalSurface);
-#if QT_CONFIG(vulkan)
-    setVulkanInstance(m_d->device->vulkanInstance());
-#endif
+    Detail::setNativeSurfaceType(*this);
 }
 
 bool CanvasWindow::setDocument(DocumentHandle handle)
@@ -105,11 +95,10 @@ bool CanvasWindow::resetSurface()
 {
     auto &d = *m_d;
     const auto next = d.execution.device();
-    if (d.recording || !next || d.device->rhi().isRecordingFrame() || next->rhi().isRecordingFrame()) return false;
+    if (d.recording || !next || d.device->isRecordingFrame() || next->isRecordingFrame()) return false;
     const bool visible = isVisible();
     d.releaseSurface();
     destroy();
-    // The native window is destroyed while its original Vulkan instance is alive.
     d.device = next;
     d.generation = d.execution.generation();
     connectSurface();
@@ -152,24 +141,20 @@ void CanvasWindow::renderFrame()
     bool begun = false;
     const auto outcome = [&]() -> ExecutionOutcome {
         try {
-            auto &rhi = d.device->rhi();
-            if (rhi.isRecordingFrame()) return {ExecutionCode::Busy, {}};
+            if (d.device->isRecordingFrame()) return {ExecutionCode::Busy, {}};
             if (!Detail::validDocumentTransform(d.physicalTransform(devicePixelRatio()))) {
                 return {ExecutionCode::InvalidRequest, QStringLiteral("GPU canvas transform is outside the supported finite range")};
             }
             if (!d.surface) {
-                d.surface = Detail::own(rhi, rhi.newSwapChain());
-                d.surface->setWindow(this);
-                d.surface->setFlags(QRhiSwapChain::SurfaceHasPreMulAlpha);
-                d.pass = Detail::own(rhi, d.surface->newCompatibleRenderPassDescriptor());
-                d.surface->setRenderPassDescriptor(d.pass.get());
+                d.surface = Detail::createWindowSurface(d.device, *this);
                 d.presentation = std::make_unique<TilePresentation>(d.device);
             }
-            if (d.surface->currentPixelSize() != d.surface->surfacePixelSize() && !d.surface->createOrResize()) {
+            const QSize pixels = QSizeF(size() * devicePixelRatio()).toSize();
+            if (d.surface->size() != pixels && !d.surface->configure(pixels)) {
                 return {ExecutionCode::DeviceFailure, QStringLiteral("GPU canvas surface could not be created or resized")};
             }
             auto frame = d.execution.beginPresentationFrame(*d.surface);
-            if (frame.code == ExecutionCode::SurfaceOutOfDate && d.surface->createOrResize()) {
+            if (frame.code == ExecutionCode::SurfaceOutOfDate && d.surface->configure(pixels)) {
                 frame = d.execution.beginPresentationFrame(*d.surface);
             }
             if (frame.code != ExecutionCode::Success) return {frame.code, frame.diagnostic};
@@ -182,7 +167,8 @@ void CanvasWindow::renderFrame()
                     projected.code == RenderOutcome::InvalidVersion ? ExecutionCode::InvalidRequest : ExecutionCode::DeviceFailure;
                 return {code, projected.diagnostic};
             }
-            const auto drawn = d.presentation->record(*frame.commands, projected.version, *frame.target,
+            const auto drawn = d.presentation->record(frame.commands, projected.version,
+                                                      {d.device, frame.target, pixels, d.surface->format()},
                                                       d.physicalTransform(devicePixelRatio()), Qt::white);
             if (!drawn.recorded) {
                 d.execution.cancelFrame();

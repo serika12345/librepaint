@@ -9,11 +9,10 @@
 #include "KisGpuTileRenderer.h"
 #include <QImage>
 
-class QRhiRenderTarget;
-class QRhiSwapChain;
 
 namespace LibrePaint::Image::Gpu {
 
+class PresentationSurface;
 using DocumentHandle = quint64;
 enum class ExecutionCode { Success, InvalidRequest, CapacityExceeded, Busy, DeviceFailure, SurfaceOutOfDate };
 enum class PixelReadArea { Canvas, LayerCoordinates };
@@ -32,8 +31,8 @@ struct DocumentAdmission
 struct FrameOutcome
 {
     ExecutionCode code = ExecutionCode::InvalidRequest;
-    QRhiCommandBuffer *commands = nullptr;
-    QRhiRenderTarget *target = nullptr;
+    WGPUCommandEncoder commands = nullptr;
+    WGPUTextureView target = nullptr;
     QString diagnostic;
 };
 
@@ -80,7 +79,7 @@ struct PixelBytesOutcome
  * Presentation frames join drawing, composition and display without CPU pixel
  * transfers or completion waits. Readback frames serve synchronous external
  * reads; submission completes their requested CPU transfers. Command buffers and presentation targets are
- * borrowed until submitFrame()/cancelFrame(); keep the swap chain valid then.
+ * borrowed until submitFrame()/cancelFrame(); keep the presentation surface valid then.
  * A frame publishes its GPU version only after successful native submission
  * while its document handle and request remain current. Superseded and closed
  * documents suppress presentation. Cancellation preserves the published state.
@@ -108,7 +107,7 @@ public:
     Snapshot published(DocumentHandle handle) const;
     qsizetype pendingDocuments() const;
 
-    FrameOutcome beginPresentationFrame(QRhiSwapChain &surface);
+    FrameOutcome beginPresentationFrame(PresentationSurface &surface);
     FrameOutcome beginReadbackFrame();
     ProjectionOutcome project(DocumentHandle handle, QRect region);
     ExecutionOutcome submitFrame();
@@ -161,7 +160,7 @@ public:
 private:
     struct Private;
     std::unique_ptr<Private> m_d;
-    FrameOutcome beginFrame(QRhiSwapChain *surface);
+    FrameOutcome beginFrame(PresentationSurface *surface);
     ExecutionOutcome endFrame(bool publish);
     void retireCompletedReadback();
     ExecutionOutcome retireDisplayCaches();

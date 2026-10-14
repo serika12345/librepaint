@@ -6,58 +6,101 @@
 #include "KisGpuDevice.h"
 #include "KisGpuReadbackBatch_p.h"
 #include <QGuiApplication>
+#include <QMutex>
+#include <QMutexLocker>
 #include <QThread>
-#include <rhi/qrhi.h>
-#include <rhi/qrhi_platform.h>
+#include <cstring>
 
 namespace LibrePaint::Image::Gpu {
+using namespace Detail;
+namespace {
+QString messageText(WGPUStringView message)
+{
+    if (!message.data) return {};
+    const auto size = message.length == WGPU_STRLEN ? std::strlen(message.data) : message.length;
+    return QString::fromUtf8(message.data, qsizetype(size));
+}
+}
+
 struct Device::Private
 {
-#if QT_CONFIG(vulkan)
-    QVulkanInstance vulkan;
-#endif
-    // Results remain valid through native cleanup, including failed submissions.
-    std::shared_ptr<Detail::ReadbackBatch> readback;
-    std::unique_ptr<QRhi> rhi;
+    QThread *thread = QThread::currentThread();
+    mutable QMutex mutex;
+    QString error;
+    std::atomic<bool> lost{false}, failed{false};
+    // Callback addresses survive native device and instance cleanup.
+    std::shared_ptr<ReadbackBatch> readback;
+    NativeInstance instance;
+    NativeAdapter adapter;
+    NativeDevice device;
+    NativeQueue queue;
+    NativeCommands commands;
+
+    void fail(WGPUStringView message) noexcept
+    {
+        failed.store(true, std::memory_order_release);
+        try {
+            QMutexLocker guard(&mutex);
+            if (error.isEmpty()) error = messageText(message);
+        } catch (...) {}
+    }
 };
 
 Device::Device(std::unique_ptr<Private> data) : m_d(std::move(data)) {}
 Device::~Device()
 {
-    Q_ASSERT(m_d->rhi->thread() == QThread::currentThread());
-    Q_ASSERT(!m_d->rhi->isRecordingFrame());
+    Q_ASSERT(thread() == QThread::currentThread());
+    Q_ASSERT(!isRecordingFrame());
+    if (readbackPending()) finish();
+    wgpuDeviceDestroy(m_d->device.get());
+    wgpuDevicePoll(m_d->device.get(), true, nullptr);
 }
-QRhi &Device::rhi() const { return *m_d->rhi; }
-bool Device::readbackPending() const { return m_d->readback && m_d->readback->remaining > 0; }
+WGPUInstance Device::instance() const { return m_d->instance.get(); }
+WGPUAdapter Device::adapter() const { return m_d->adapter.get(); }
+WGPUDevice Device::nativeDevice() const { return m_d->device.get(); }
+WGPUQueue Device::queue() const { return m_d->queue.get(); }
+QThread *Device::thread() const { return m_d->thread; }
+bool Device::isLost() const { return m_d->lost.load(std::memory_order_acquire); }
+bool Device::isRecordingFrame() const { return bool(m_d->commands); }
+bool Device::ownsCommands(WGPUCommandEncoder commands) const { return commands && commands == m_d->commands.get(); }
+QString Device::diagnostic() const
+{
+    QMutexLocker guard(&m_d->mutex);
+    if (!m_d->error.isEmpty()) return m_d->error;
+    return m_d->failed.load(std::memory_order_acquire) ? QStringLiteral("The native GPU reported an error") : QString{};
+}
+bool Device::readbackPending() const
+{ return m_d->readback && m_d->readback->remaining.load(std::memory_order_acquire) > 0; }
 void Device::releaseCompletedReadback()
-{
-    if (!readbackPending()) m_d->readback.reset();
-}
+{ if (!readbackPending()) m_d->readback.reset(); }
 
-std::shared_ptr<Detail::ReadbackBatch> Detail::ReadbackBatch::create(Device &device, qsizetype count)
+WGPUCommandEncoder Device::beginCommands()
 {
-    if (device.rhi().thread() != QThread::currentThread() || count <= 0 || device.readbackPending()) return {};
-    auto batch = std::make_shared<ReadbackBatch>();
-    batch->remaining = count;
-    batch->results.reserve(count);
-    for (qsizetype i = 0; i < count; ++i) {
-        auto result = std::make_unique<QRhiReadbackResult>();
-        result->completed = [owner = std::weak_ptr<ReadbackBatch>(batch)] {
-            if (const auto batch = owner.lock()) --batch->remaining;
-        };
-        batch->results.push_back(std::move(result));
-    }
-    device.m_d->readback = batch;
-    return batch;
+    if (thread() != QThread::currentThread() || isRecordingFrame() || isLost() || !diagnostic().isEmpty()) return nullptr;
+    wgpuDevicePoll(nativeDevice(), false, nullptr);
+    if (readbackPending()) return nullptr;
+    releaseCompletedReadback();
+    m_d->commands.reset(wgpuDeviceCreateCommandEncoder(nativeDevice(), nullptr));
+    return m_d->commands.get();
 }
-
-QVulkanInstance *Device::vulkanInstance() const
+bool Device::submitCommands(bool wait)
 {
-#if QT_CONFIG(vulkan)
-    return m_d->rhi->backend() == QRhi::Vulkan ? &m_d->vulkan : nullptr;
-#else
-    return nullptr;
-#endif
+    if (thread() != QThread::currentThread() || !isRecordingFrame()) return false;
+    auto commands = std::move(m_d->commands);
+    NativeSubmission submission(wgpuCommandEncoderFinish(commands.get(), nullptr));
+    if (!submission) return false;
+    const auto buffer = submission.get();
+    wgpuQueueSubmit(queue(), 1, &buffer);
+    if (readbackPending()) m_d->readback->start(*this);
+    if (wait) return finish();
+    wgpuDevicePoll(nativeDevice(), false, nullptr);
+    return !isLost() && diagnostic().isEmpty();
+}
+bool Device::finish()
+{
+    if (thread() != QThread::currentThread() || isRecordingFrame()) return false;
+    wgpuDevicePoll(nativeDevice(), true, nullptr);
+    return !isLost() && diagnostic().isEmpty() && !readbackPending();
 }
 
 DevicePtr Device::createNative(QString &diagnostic)
@@ -68,28 +111,129 @@ DevicePtr Device::createNative(QString &diagnostic)
         diagnostic = QStringLiteral("Native GPU creation requires the GUI application thread");
         return {};
     }
-    auto data = std::make_unique<Private>();
-    constexpr auto flags = QRhi::EnableDebugMarkers | QRhi::EnableTimestamps;
-#if QT_CONFIG(metal)
-    QRhiMetalInitParams params;
-    data->rhi.reset(QRhi::create(QRhi::Metal, &params, flags));
-#elif QT_CONFIG(vulkan)
-    data->vulkan.setExtensions(QRhiVulkanInitParams::preferredInstanceExtensions());
-    if (!data->vulkan.create()) {
-        diagnostic = QStringLiteral("The platform Vulkan connection could not be created");
+    if ((wgpuGetVersion() >> 24) != 27) {
+        diagnostic = QStringLiteral("The native GPU library must match the pinned wgpu-native 27 C API");
         return {};
     }
-    QRhiVulkanInitParams params;
-    params.inst = &data->vulkan;
-    data->rhi.reset(QRhi::create(QRhi::Vulkan, &params, flags));
+    auto data = std::make_unique<Private>();
+    WGPUInstanceExtras extras{};
+    extras.chain.sType = WGPUSType(WGPUSType_InstanceExtras);
+#ifdef Q_OS_DARWIN
+    extras.backends = WGPUInstanceBackend_Metal;
 #else
-    diagnostic = QStringLiteral("A native Metal or Vulkan backend is required");
-    return {};
+    extras.backends = WGPUInstanceBackend_Vulkan;
 #endif
-    if (!data->rhi || !data->rhi->isFeatureSupported(QRhi::Compute)) {
-        diagnostic = QStringLiteral("The native GPU requires compute and storage buffers");
+    WGPUInstanceDescriptor instanceDescriptor{};
+    instanceDescriptor.nextInChain = &extras.chain;
+    data->instance.reset(wgpuCreateInstance(&instanceDescriptor));
+    if (!data->instance) {
+        diagnostic = QStringLiteral("The native GPU instance could not be created");
+        return {};
+    }
+    WGPURequestAdapterOptions options{};
+#ifdef Q_OS_DARWIN
+    options.backendType = WGPUBackendType_Metal;
+#else
+    options.backendType = WGPUBackendType_Vulkan;
+#endif
+    options.powerPreference = WGPUPowerPreference_HighPerformance;
+    WGPURequestAdapterCallbackInfo adapterCallback{};
+    adapterCallback.mode = WGPUCallbackMode_AllowSpontaneous;
+    adapterCallback.userdata1 = data.get();
+    adapterCallback.callback = [](WGPURequestAdapterStatus status, WGPUAdapter adapter, WGPUStringView message, void *context, void *) noexcept {
+        auto *data = static_cast<Private *>(context);
+        if (status == WGPURequestAdapterStatus_Success) data->adapter.reset(adapter);
+        else data->fail(message);
+    };
+    wgpuInstanceRequestAdapter(data->instance.get(), &options, adapterCallback);
+    if (!data->adapter) {
+        diagnostic = data->error.isEmpty() ? QStringLiteral("The required native GPU adapter is unavailable") : data->error;
+        return {};
+    }
+    WGPUDeviceDescriptor descriptor{};
+    descriptor.deviceLostCallbackInfo.mode = WGPUCallbackMode_AllowSpontaneous;
+    descriptor.deviceLostCallbackInfo.userdata1 = data.get();
+    descriptor.deviceLostCallbackInfo.callback = [](WGPUDevice const *, WGPUDeviceLostReason reason, WGPUStringView message, void *context, void *) noexcept {
+        if (reason == WGPUDeviceLostReason_Destroyed || reason == WGPUDeviceLostReason_InstanceDropped) return;
+        auto *data = static_cast<Private *>(context);
+        data->lost.store(true, std::memory_order_release);
+        data->fail(message);
+    };
+    descriptor.uncapturedErrorCallbackInfo.userdata1 = data.get();
+    descriptor.uncapturedErrorCallbackInfo.callback = [](WGPUDevice const *, WGPUErrorType, WGPUStringView message, void *context, void *) noexcept {
+        static_cast<Private *>(context)->fail(message);
+    };
+    WGPURequestDeviceCallbackInfo deviceCallback{};
+    deviceCallback.mode = WGPUCallbackMode_AllowSpontaneous;
+    deviceCallback.userdata1 = data.get();
+    deviceCallback.callback = [](WGPURequestDeviceStatus status, WGPUDevice device, WGPUStringView message, void *context, void *) noexcept {
+        auto *data = static_cast<Private *>(context);
+        if (status == WGPURequestDeviceStatus_Success) data->device.reset(device);
+        else data->fail(message);
+    };
+    wgpuAdapterRequestDevice(data->adapter.get(), &descriptor, deviceCallback);
+    if (!data->device) {
+        diagnostic = data->error.isEmpty() ? QStringLiteral("The native GPU device could not be created") : data->error;
+        return {};
+    }
+    data->queue.reset(wgpuDeviceGetQueue(data->device.get()));
+    if (!data->queue) {
+        diagnostic = QStringLiteral("The native GPU queue could not be created");
         return {};
     }
     return DevicePtr(new Device(std::move(data)));
+}
+
+std::shared_ptr<ReadbackBatch> ReadbackBatch::create(Device &device, qsizetype count)
+{
+    if (device.thread() != QThread::currentThread() || count <= 0 || device.readbackPending()) return {};
+    auto batch = std::make_shared<ReadbackBatch>();
+    batch->results.reserve(size_t(count));
+    for (qsizetype i = 0; i < count; ++i) {
+        auto result = std::make_unique<Result>();
+        result->owner = batch.get();
+        batch->results.push_back(std::move(result));
+    }
+    batch->remaining.store(count, std::memory_order_relaxed);
+    device.m_d->readback = batch;
+    return batch;
+}
+bool ReadbackBatch::recordBuffer(Device &device, WGPUCommandEncoder commands, qsizetype index, WGPUBuffer source, quint64 size)
+{
+    if (!device.ownsCommands(commands) || !source || index < 0 || size_t(index) >= results.size() || !size || size % 4) return false;
+    auto &result = *results[size_t(index)];
+    WGPUBufferDescriptor descriptor{};
+    descriptor.size = size;
+    descriptor.usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_MapRead;
+    result.buffer.reset(wgpuDeviceCreateBuffer(device.nativeDevice(), &descriptor));
+    if (!result.buffer) return false;
+    result.size = size;
+    wgpuCommandEncoderCopyBufferToBuffer(commands, source, 0, result.buffer.get(), 0, size);
+    return true;
+}
+void ReadbackBatch::start(Device &)
+{
+    for (const auto &result : results) {
+        if (!result->buffer) {
+            remaining.fetch_sub(1, std::memory_order_release);
+            continue;
+        }
+        WGPUBufferMapCallbackInfo callback{};
+        callback.mode = WGPUCallbackMode_AllowSpontaneous;
+        callback.userdata1 = result.get();
+        callback.callback = [](WGPUMapAsyncStatus status, WGPUStringView message, void *context, void *) noexcept {
+            auto *result = static_cast<Result *>(context);
+            try {
+                if (status == WGPUMapAsyncStatus_Success) {
+                    const auto bytes = wgpuBufferGetConstMappedRange(result->buffer.get(), 0, result->size);
+                    if (bytes) result->data = QByteArray(static_cast<const char *>(bytes), qsizetype(result->size));
+                    wgpuBufferUnmap(result->buffer.get());
+                } else result->diagnostic = messageText(message);
+                if (result->completed) result->completed();
+            } catch (...) {}
+            result->owner->remaining.fetch_sub(1, std::memory_order_release);
+        };
+        wgpuBufferMapAsync(result->buffer.get(), WGPUMapMode_Read, 0, result->size, callback);
+    }
 }
 }

@@ -287,7 +287,9 @@ Undo／Redo、同じ接続を使う復旧と、最後の参照による接続解
 ### GPUタイルの画素契約
 
 MetalまたはVulkanで操作から実際のRGBA8画素を生成し、次の試験で検証する。
-シェーダーの構築には本体のQtと同じ版のホスト用`qsb`を使う。
+WGSLシェーダーはQt資源から読み、固定したwgpu-nativeでコンパイルする。
+Nixの開発環境はCMakeの探索先にネイティブGPU依存を追加し、製品構築は同じ依存の
+ヘッダーとライブラリを明示する。Linuxの実行時探索パスにはVulkanローダーを含める。
 
 ```sh
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTileRendererTest
@@ -398,18 +400,17 @@ Linuxでは対応する実行ファイル`build/tdd-linux/bin/KisGpuInteractiveF
 `--warmup`、`--frames`、`--history-strokes`で変更できる。
 JSONには実際のGPU、表示面の画素数、CPUの入力処理から描画送信までの各測定値、
 入力受付、表示面の取得、描画記録、送信の各区間、
-最後に完了したGPUフレームの時間、各P95、タイル保持量と最終合成画像のSHA-256を記録する。
+CPU側のP95、タイル保持量と最終合成画像のSHA-256を記録する。
+GPU時間の欠測は`completedGpuMs`の空配列と`gpuP95Ms`の`null`で表し、
+ウィンドウ表示の上限判定では検証不足として扱う。
 同じ設定の改善前後では最終画像の照合値を一致させる。
 
-垂直同期の解除を要求し、イベント処理と最終画像の読取りを測定区間の外へ置く。
-解除要求の適用は描画基盤に依存するため、表示面取得の待ち時間も記録して比較する。
-GPU時間は[Qtの完了済みフレームの測定](https://doc.qt.io/qt-6/qrhicommandbuffer.html#lastCompletedGpuTime)
-を使うため、現在のCPU測定と同じフレームとは限らない。
-上限指定時はCPUまたはGPUのP95超過、ウィンドウ提示時のGPU測定値の欠落で終了値2を返す。
+表示面は垂直同期に従って提示し、イベント処理と最終画像の読取りを測定区間の外へ置く。
+表示面取得の待ち時間も記録して比較する。
+上限指定時はCPUのP95超過、ウィンドウ提示時のGPU測定値の欠落で終了値2を返す。
 `--offscreen`は、同じ表示倍率と画素数のRGBA8テクスチャへ出力し、OSの表示面取得待ちを
-含まない処理時間を測る。この方式は`QRhi::finish()`でGPU完了までを測定し、
-測定中のCPU画素読取りを伴わない。GPU単独の時間を取得できない場合は`gpuP95Ms`を
-`null`とし、上限判定にCPU側で観測したGPU完了までの時間を使う。
+含まない処理時間を測る。この方式は`wgpuDevicePoll`でGPU完了までを測定し、
+測定中のCPU画素読取りを伴わない。上限判定にはCPU側で観測したGPU完了までの時間を使う。
 JSONの`target`は`window`または`texture`を記録し、Qtが報告する表示更新周波数も記録する。
 `completionSynchronized`が`true`の場合はCPUの測定区間にGPU完了待ちを含む。
 これは処理費用の比較用であり、通常画面の240Hz入力、60Hz／120Hz表示、

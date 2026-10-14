@@ -8,6 +8,7 @@
 
 let
   inherit (pkgs) lib;
+  wgpuNative = pkgs.callPackage ../gpu/wgpu-native-runtime.nix { };
   qt = pkgs.qt6Packages;
   pythonPackages = pkgs.python3Packages;
   runtimePyQt = pythonRuntime.runtimePyQt;
@@ -107,6 +108,10 @@ pkgs.stdenv.mkDerivation {
 
   cmakeBuildType = "Release";
   cmakeFlags = [
+    "-DWGPUNative_INCLUDE_DIR:PATH=${lib.getDev wgpuNative}/include"
+    "-DWGPUNative_LIBRARY:FILEPATH=${wgpuNative}/lib/libwgpu_native.${
+      if pkgs.stdenv.hostPlatform.isDarwin then "dylib" else "so"
+    }"
     "-DBUILD_KRITA_QT_DESIGNER_PLUGINS=OFF"
     "-DBUILD_TESTING=OFF"
     "-DBUILD_WITH_QT6=ON"
@@ -187,7 +192,13 @@ pkgs.stdenv.mkDerivation {
 
   enableParallelBuilding = true;
 
-  passthru.macosDependencyMembers = nativeBuildInputs ++ buildInputs ++ [ pythonRuntime ];
+  passthru.macosDependencyMembers =
+    nativeBuildInputs
+    ++ buildInputs
+    ++ [
+      pythonRuntime
+      wgpuNative
+    ];
 
   meta = {
     description = "LibrePaint digital painting application for macOS";

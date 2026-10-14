@@ -18,33 +18,21 @@ struct CompositeJob
 {
     std::shared_ptr<Tile> base, layer, output;
     CompositeParameters values;
-    Resource<QRhiBuffer> parameters;
-    Resource<QRhiShaderResourceBindings> bindings;
+    NativeBuffer parameters;
+    NativeBindings bindings;
 };
 }
 
 void TileRenderer::Private::initializeProjection()
 {
-    projectionLayout = own(rhi, rhi.newShaderResourceBindings());
-    projectionPipeline = own(rhi, rhi.newComputePipeline());
-    projectionParameters = own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::UniformBuffer, sizeof(CompositeParameters)));
-    projectionLayout->setBindings({
-        QRhiShaderResourceBinding::bufferLoad(0, QRhiShaderResourceBinding::ComputeStage, zero.get()),
-        QRhiShaderResourceBinding::bufferLoad(1, QRhiShaderResourceBinding::ComputeStage, zero.get()),
-        QRhiShaderResourceBinding::bufferStore(2, QRhiShaderResourceBinding::ComputeStage, zero.get()),
-        QRhiShaderResourceBinding::uniformBuffer(3, QRhiShaderResourceBinding::ComputeStage, projectionParameters.get())
-    });
-    QFile shader(QStringLiteral(":/librepaint/gpu/shaders/over.comp.qsb"));
-    if (!projectionParameters->create() || !projectionLayout->create() || !shader.open(QIODevice::ReadOnly)) {
-        error = QStringLiteral("GPU projection resources could not be initialized");
-        return;
-    }
-    projectionPipeline->setShaderStage({QRhiShaderStage::Compute, QShader::fromSerialized(shader.readAll())});
-    projectionPipeline->setShaderResourceBindings(projectionLayout.get());
-    if (!projectionPipeline->create()) error = QStringLiteral("GPU projection pipeline could not be created");
+    projectionPipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/over.wgsl"));
+    if (!projectionPipeline) return;
+    projectionLayout.reset(wgpuComputePipelineGetBindGroupLayout(projectionPipeline.get(), 0));
+    if (!projectionLayout) error = QStringLiteral("GPU projection bindings could not be created");
 }
 
 ProjectedVersion::ProjectedVersion(std::shared_ptr<Data> data) : m_data(std::move(data)) {}
+DevicePtr ProjectedVersion::device() const { return m_data->source->device(); }
 Snapshot ProjectedVersion::document() const { return m_data->source->document(); }
 QRect ProjectedVersion::region() const { return m_data->region; }
 QList<TileView> ProjectedVersion::tiles() const
@@ -57,17 +45,17 @@ QList<TileView> ProjectedVersion::tiles() const
     return result;
 }
 
-ProjectionOutcome TileRenderer::compose(QRhiCommandBuffer &commands, const RenderedSnapshot &document,
+ProjectionOutcome TileRenderer::compose(WGPUCommandEncoder commands, const RenderedSnapshot &document,
                                        QRect region, const ProjectedSnapshot &base)
 {
     auto &d = *m_d;
-    if (d.rhi.thread() != QThread::currentThread() || !d.rhi.isRecordingFrame() || !document ||
+    if (d.device->thread() != QThread::currentThread() || !d.device->ownsCommands(commands) || !document ||
         document->m_data->owner != d.budget || region.width() < 0 || region.height() < 0 ||
         (base && (base->m_data->source->m_data->owner != d.budget ||
                   base->document()->documentId() != document->document()->documentId()))) {
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Projection requires the owning GPU and document")};
     }
-    if (!d.error.isEmpty() || d.rhi.isDeviceLost()) return {RenderOutcome::DeviceFailure, {}, d.error};
+    if (!d.error.isEmpty() || d.device->isLost()) return {RenderOutcome::DeviceFailure, {}, d.error};
     auto data = std::make_shared<ProjectedVersion::Data>();
     data->source = document;
     data->directLayerProjection = document->document()->directProjectionLayer() != 0;
@@ -154,32 +142,37 @@ ProjectionOutcome TileRenderer::compose(QRhiCommandBuffer &commands, const Rende
             job.values.opacity = tile.value()[i].opacity;
             job.values.normalizeBase = !background && !data->directLayerProjection && firstJob == 1 && i == firstJob;
             job.output->mayContainHiddenRgb = job.base && job.base->mayContainHiddenRgb && !job.values.normalizeBase;
-            job.parameters = own(d.rhi, d.rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::UniformBuffer, sizeof(CompositeParameters)));
-            if (!job.parameters->create()) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection parameters failed")};
-            job.bindings = own(d.rhi, d.rhi.newShaderResourceBindings());
-            job.bindings->setBindings({
-                QRhiShaderResourceBinding::bufferLoad(0, QRhiShaderResourceBinding::ComputeStage, job.base ? job.base->pixels.get() : d.zero.get()),
-                QRhiShaderResourceBinding::bufferLoad(1, QRhiShaderResourceBinding::ComputeStage, job.layer->pixels.get()),
-                QRhiShaderResourceBinding::bufferStore(2, QRhiShaderResourceBinding::ComputeStage, job.output->pixels.get()),
-                QRhiShaderResourceBinding::uniformBuffer(3, QRhiShaderResourceBinding::ComputeStage, job.parameters.get())
-            });
-            if (!job.bindings->create()) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection binding failed")};
+            job.parameters = createBuffer(d.device->nativeDevice(), sizeof(CompositeParameters),
+                                           WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
+            if (!job.parameters) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection parameters failed")};
+            WGPUBuffer buffers[] = {job.base ? job.base->pixels.get() : d.zero.get(), job.layer->pixels.get(),
+                                    job.output->pixels.get(), job.parameters.get()};
+            WGPUBindGroupEntry entries[4]{};
+            for (quint32 index = 0; index < 4; ++index) {
+                entries[index].binding = index;
+                entries[index].buffer = buffers[index];
+                entries[index].size = wgpuBufferGetSize(buffers[index]);
+            }
+            WGPUBindGroupDescriptor descriptor{};
+            descriptor.layout = d.projectionLayout.get();
+            descriptor.entryCount = 4;
+            descriptor.entries = entries;
+            job.bindings.reset(wgpuDeviceCreateBindGroup(d.device->nativeDevice(), &descriptor));
+            if (!job.bindings || !d.device->diagnostic().isEmpty())
+                return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection binding failed")};
             input = job.output;
             jobs.push_back(std::move(job));
         }
         data->tiles[tile.key()] = input;
     }
-    if (!jobs.empty()) {
-        auto *updates = d.rhi.nextResourceUpdateBatch();
-        for (const auto &job : jobs) updates->uploadStaticBuffer(job.parameters.get(), &job.values);
-        commands.resourceUpdate(updates);
-    }
     for (const auto &job : jobs) {
-        commands.beginComputePass();
-        commands.setComputePipeline(d.projectionPipeline.get());
-        commands.setShaderResources(job.bindings.get());
-        commands.dispatch(TileSize / 8, TileSize / 8, 1);
-        commands.endComputePass();
+        wgpuQueueWriteBuffer(d.device->queue(), job.parameters.get(), 0, &job.values, sizeof(job.values));
+        const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
+        wgpuComputePassEncoderSetPipeline(pass, d.projectionPipeline.get());
+        wgpuComputePassEncoderSetBindGroup(pass, 0, job.bindings.get(), 0, nullptr);
+        wgpuComputePassEncoderDispatchWorkgroups(pass, TileSize / 8, TileSize / 8, 1);
+        wgpuComputePassEncoderEnd(pass);
+        wgpuComputePassEncoderRelease(pass);
     }
     return {RenderOutcome::Recorded, ProjectedSnapshot(new ProjectedVersion(data)), {}};
 }

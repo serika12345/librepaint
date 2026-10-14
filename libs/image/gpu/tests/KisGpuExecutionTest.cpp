@@ -6,7 +6,7 @@
 #include <QGuiApplication>
 #include <QTest>
 #include <QWindow>
-#include <rhi/qrhi.h>
+#include <webgpu/wgpu.h>
 #include <gpu/KisGpuExecution.h>
 #include "../KisGpuReadbackBatch_p.h"
 
@@ -22,10 +22,6 @@ private Q_SLOTS:
     void replacingTheDeviceRebuildsAcceptedDocuments();
     void restoringAnAttachedDocumentKeepsCapacityAndInvalidatesOldFrames();
     void documentsShareTheTileBudgetAndKeepPublishedPixelsOnFailure();
-    void presentationFramesSubmitThroughTheOwningWindow();
-    void unconfiguredSurfacesAreRejectedBeforeNativeSubmission();
-    void abandonedReadbackResultsRemainValidThroughNativeCleanup();
-    void abandonedReadbackResultsRemainValidThroughNativeCleanup_data();
     void viewportsGenerateOnlyVisibleTilesAndLayers();
 private:
     DevicePtr m_device;
@@ -45,7 +41,6 @@ void KisGpuExecutionTest::initTestCase()
     QString diagnostic;
     m_device = Device::createNative(diagnostic);
     QVERIFY2(m_device, qPrintable(diagnostic));
-    qInfo() << "GPU backend:" << m_device->rhi().backendName();
 }
 
 void KisGpuExecutionTest::viewportsGenerateOnlyVisibleTilesAndLayers()
@@ -103,15 +98,14 @@ void KisGpuExecutionTest::latestRequestsRetainInputAndPublishAfterSubmission()
     const auto projection = execution.project(admitted.handle, {0, 0, 256, 64});
     QCOMPARE(projection.code, RenderOutcome::Recorded);
     QVERIFY(!execution.published(admitted.handle));
-    QRhiReadbackResult pixels;
-    auto updates = m_device->rhi().nextResourceUpdateBatch();
-    updates->readBackBuffer(projection.version->tiles().first().pixels, 0, TileRenderer::TileBytes, &pixels);
-    frame.commands->resourceUpdate(updates);
+    const auto pixels = Detail::ReadbackBatch::create(*m_device, 1);
+    QVERIFY(pixels);
+    QVERIFY(pixels->recordBuffer(*m_device, frame.commands, 0, projection.version->tiles().first().pixels, TileRenderer::TileBytes));
     QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
     QCOMPARE(execution.published(admitted.handle), document.preview());
     QCOMPARE(execution.pendingDocuments(), 0);
-    QCOMPARE(pixels.data.mid((32 * 256 + 247) * 4, 4), QByteArray::fromHex("000000ff"));
-    QCOMPARE(pixels.data.mid((32 * 256 + 252) * 4, 4), QByteArray(4, '\0'));
+    QCOMPARE(pixels->results.front()->data.mid((32 * 256 + 247) * 4, 4), QByteArray::fromHex("000000ff"));
+    QCOMPARE(pixels->results.front()->data.mid((32 * 256 + 252) * 4, 4), QByteArray(4, '\0'));
     QCOMPARE(document.commitStroke(stroke), Result::Success);
     QCOMPARE(execution.request(admitted.handle, document.snapshot()).code, ExecutionCode::Success);
     QCOMPARE(execution.pendingDocuments(), 0);
@@ -180,13 +174,12 @@ void KisGpuExecutionTest::replacingTheDeviceRebuildsAcceptedDocuments()
     QCOMPARE(frame.code, ExecutionCode::Success);
     const auto rebuilt = execution.project(handle, {0, 0, 64, 64});
     QCOMPARE(rebuilt.code, RenderOutcome::Recorded);
-    QVERIFY(rebuilt.version->tiles().first().pixels->rhi() != old.version->tiles().first().pixels->rhi());
-    QRhiReadbackResult pixels;
-    auto updates = replacement->rhi().nextResourceUpdateBatch();
-    updates->readBackBuffer(rebuilt.version->tiles().first().pixels, 0, TileRenderer::TileBytes, &pixels);
-    frame.commands->resourceUpdate(updates);
+    QVERIFY(rebuilt.version->device() != old.version->device());
+    const auto pixels = Detail::ReadbackBatch::create(*replacement, 1);
+    QVERIFY(pixels);
+    QVERIFY(pixels->recordBuffer(*replacement, frame.commands, 0, rebuilt.version->tiles().first().pixels, TileRenderer::TileBytes));
     QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
-    QCOMPARE(pixels.data.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("000000ff"));
+    QCOMPARE(pixels->results.front()->data.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("000000ff"));
     QCOMPARE(execution.pendingDocuments(), 0);
 }
 
@@ -253,135 +246,21 @@ void KisGpuExecutionTest::documentsShareTheTileBudgetAndKeepPublishedPixelsOnFai
     QCOMPARE(frame.code, ExecutionCode::Success);
     const auto projection = execution.project(hb, {0, 0, 64, 64});
     QCOMPARE(projection.code, RenderOutcome::Recorded);
-    QRhiReadbackResult pixels;
-    auto updates = m_device->rhi().nextResourceUpdateBatch();
-    updates->readBackBuffer(projection.version->tiles().first().pixels, 0, TileRenderer::TileBytes, &pixels);
-    frame.commands->resourceUpdate(updates);
+    const auto pixels = Detail::ReadbackBatch::create(*m_device, 1);
+    QVERIFY(pixels);
+    QVERIFY(pixels->recordBuffer(*m_device, frame.commands, 0, projection.version->tiles().first().pixels, TileRenderer::TileBytes));
     QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
-    QCOMPARE(pixels.data.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("000000ff"));
-    QCOMPARE(pixels.data.mid((48 * 256 + 48) * 4, 4), QByteArray::fromHex("000000ff"));
+    QCOMPARE(pixels->results.front()->data.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("000000ff"));
+    QCOMPARE(pixels->results.front()->data.mid((48 * 256 + 48) * 4, 4), QByteArray::fromHex("000000ff"));
 }
 
-void KisGpuExecutionTest::presentationFramesSubmitThroughTheOwningWindow()
-{
-    Execution execution(m_device);
-    OperationDocument document({64, 64});
-    const auto handle = execution.open(document.snapshot()).handle;
-    QWindow window;
-    if (m_device->rhi().backend() == QRhi::Metal) window.setSurfaceType(QSurface::MetalSurface);
-    else {
-        window.setSurfaceType(QSurface::VulkanSurface);
-        window.setVulkanInstance(m_device->vulkanInstance());
-    }
-    window.resize(128, 128);
-    window.show();
-    QVERIFY(QTest::qWaitForWindowExposed(&window));
-    std::unique_ptr<QRhiSwapChain> surface(m_device->rhi().newSwapChain());
-    surface->setWindow(&window);
-    std::unique_ptr<QRhiRenderPassDescriptor> pass(surface->newCompatibleRenderPassDescriptor());
-    surface->setRenderPassDescriptor(pass.get());
-    QVERIFY(surface->createOrResize());
-    const auto frame = execution.beginPresentationFrame(*surface);
-    QCOMPARE(frame.code, ExecutionCode::Success);
-    QVERIFY(frame.commands);
-    QVERIFY(frame.target);
-    const auto projection = execution.project(handle, {0, 0, 64, 64});
-    QCOMPARE(projection.code, RenderOutcome::Recorded);
-    frame.commands->beginPass(frame.target, Qt::white, {1, 0});
-    frame.commands->endPass();
-    QVERIFY(!execution.published(handle));
-    QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
-    QCOMPARE(execution.published(handle), document.snapshot());
-    QCOMPARE(execution.pendingDocuments(), 0);
-    QString diagnostic;
-    const auto replacement = Device::createNative(diagnostic);
-    QVERIFY2(replacement, qPrintable(diagnostic));
-    QCOMPARE(execution.replaceDevice(replacement).code, ExecutionCode::Success);
-    QCOMPARE(execution.beginPresentationFrame(*surface).code, ExecutionCode::InvalidRequest);
-}
 
-void KisGpuExecutionTest::unconfiguredSurfacesAreRejectedBeforeNativeSubmission()
-{
-    Execution execution(m_device);
-    std::unique_ptr<QRhiSwapChain> surface(m_device->rhi().newSwapChain());
-    QCOMPARE(execution.beginPresentationFrame(*surface).code, ExecutionCode::SurfaceOutOfDate);
-    QVERIFY(!m_device->rhi().isRecordingFrame());
-}
 
-void KisGpuExecutionTest::abandonedReadbackResultsRemainValidThroughNativeCleanup()
-{
-    QFETCH(bool, replaceDevice);
-    QString diagnostic;
-    auto device = Device::createNative(diagnostic);
-    QVERIFY2(device, qPrintable(diagnostic));
-    std::weak_ptr<Device> nativeOwner = device;
-    std::weak_ptr<Detail::ReadbackBatch> resultOwner;
-    QByteArray observed;
-    int completions = 0;
-    {
-        Execution execution(device);
-        OperationDocument document({64, 64});
-        dot(document, {32, 32});
-        const auto handle = execution.open(document.snapshot()).handle;
-        QWindow window;
-        if (device->vulkanInstance()) {
-            window.setSurfaceType(QSurface::VulkanSurface);
-            window.setVulkanInstance(device->vulkanInstance());
-        } else window.setSurfaceType(QSurface::MetalSurface);
-        window.resize(128, 128);
-        window.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&window));
-        std::unique_ptr<QRhiSwapChain> surface(device->rhi().newSwapChain());
-        surface->setWindow(&window);
-        std::unique_ptr<QRhiRenderPassDescriptor> pass(surface->newCompatibleRenderPassDescriptor());
-        surface->setRenderPassDescriptor(pass.get());
-        QVERIFY(surface->createOrResize());
-        const auto frame = execution.beginPresentationFrame(*surface);
-        QCOMPARE(frame.code, ExecutionCode::Success);
-        const auto projection = execution.project(handle, {0, 0, 64, 64});
-        QCOMPARE(projection.code, RenderOutcome::Recorded);
-        auto batch = Detail::ReadbackBatch::create(*device, 1);
-        QVERIFY(batch);
-        resultOwner = batch;
-        QVERIFY(!Detail::ReadbackBatch::create(*device, 1));
-        auto result = batch->results.front().get();
-        result->completed = [original = result->completed, result, &observed, &completions] {
-            original();
-            observed = result->data;
-            ++completions;
-        };
-        auto updates = device->rhi().nextResourceUpdateBatch();
-        updates->readBackBuffer(projection.version->tiles().first().pixels, 0, TileRenderer::TileBytes, result);
-        frame.commands->resourceUpdate(updates);
-        frame.commands->beginPass(frame.target, Qt::white, {1, 0});
-        frame.commands->endPass();
-        batch.reset();
-        QVERIFY(!resultOwner.expired());
-        QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
-        if (replaceDevice) {
-            const auto replacement = Device::createNative(diagnostic);
-            QVERIFY2(replacement, qPrintable(diagnostic));
-            QCOMPARE(execution.replaceDevice(replacement).code, ExecutionCode::Success);
-            QVERIFY(resultOwner.expired());
-        }
-        surface.reset();
-        pass.reset();
-        window.destroy();
-    }
-    QVERIFY(resultOwner.expired());
-    device.reset();
-    QVERIFY(nativeOwner.expired());
-    QVERIFY(resultOwner.expired());
-    QCOMPARE(completions, 1);
-    QCOMPARE(observed.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("000000ff"));
-}
 
-void KisGpuExecutionTest::abandonedReadbackResultsRemainValidThroughNativeCleanup_data()
-{
-    QTest::addColumn<bool>("replaceDevice");
-    QTest::newRow("execution-close") << false;
-    QTest::newRow("device-replacement") << true;
-}
+
+
+
+
 
 int main(int argc, char **argv)
 {

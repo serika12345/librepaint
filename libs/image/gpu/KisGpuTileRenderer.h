@@ -12,16 +12,12 @@
 #include <memory>
 #include <optional>
 
-class QRhi;
-class QRhiBuffer;
-class QRhiCommandBuffer;
-
 namespace LibrePaint::Image::Gpu {
 
 struct TileView
 {
     QPoint coordinate;
-    QRhiBuffer *pixels = nullptr;
+    WGPUBuffer pixels = nullptr;
 };
 
 /** Immutable sparse RGBA8/sRGB layer pixels, ordered on the owner's GPU queue. */
@@ -29,6 +25,7 @@ class KRITAIMAGE_EXPORT RenderedVersion
 {
 public:
     Snapshot document() const;
+    DevicePtr device() const;
     /** Borrowed buffers remain valid while this version is retained. */
     QList<TileView> tiles(LayerId layer) const;
 
@@ -53,6 +50,7 @@ class KRITAIMAGE_EXPORT ProjectedVersion
 {
 public:
     Snapshot document() const;
+    DevicePtr device() const;
     QRect region() const;
     QList<TileView> tiles() const;
 
@@ -94,21 +92,21 @@ public:
     TileRenderer(const TileRenderer &) = delete;
     TileRenderer &operator=(const TileRenderer &) = delete;
 
-    RenderOutcome record(QRhiCommandBuffer &commands, const Snapshot &document,
+    RenderOutcome record(WGPUCommandEncoder commands, const Snapshot &document,
                          const RenderedSnapshot &base = {});
     /** Generates complete tiles intersecting the region for exactly these layers. */
-    RenderOutcome recordRegion(QRhiCommandBuffer &commands, const Snapshot &document,
+    RenderOutcome recordRegion(WGPUCommandEncoder commands, const Snapshot &document,
                                QRect region, const QList<LayerId> &layers,
                                const RenderedSnapshot &base = {});
     /** Merges visible layers in document order; shares unchanged projected tiles. */
-    ProjectionOutcome compose(QRhiCommandBuffer &commands, const RenderedSnapshot &document,
+    ProjectionOutcome compose(WGPUCommandEncoder commands, const RenderedSnapshot &document,
                               QRect region, const ProjectedSnapshot &base = {});
     qsizetype residentBytes() const;
 
 private:
     struct Private;
     std::unique_ptr<Private> m_d;
-    RenderOutcome recordImpl(QRhiCommandBuffer &commands, const Snapshot &document,
+    RenderOutcome recordImpl(WGPUCommandEncoder commands, const Snapshot &document,
                              const RenderedSnapshot &base, std::optional<QRect> region,
                              const QList<LayerId> &layers);
 };

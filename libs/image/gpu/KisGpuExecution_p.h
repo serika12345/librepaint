@@ -9,7 +9,7 @@
 #include "KisGpuExecution.h"
 #include <QHash>
 #include <QThread>
-#include <rhi/qrhi.h>
+#include "KisGpuPresentationSurface.h"
 
 namespace LibrePaint::Image::Gpu {
 struct Execution::Private
@@ -33,8 +33,8 @@ struct Execution::Private
     std::unique_ptr<TileRenderer> renderer;
     QHash<DocumentHandle, Document> documents;
     quint64 nextHandle = 0, generation = 1;
-    QRhiSwapChain *surface = nullptr;
-    QRhiCommandBuffer *commands = nullptr;
+    PresentationSurface *surface = nullptr;
+    WGPUCommandEncoder commands = nullptr;
     bool active = false, attempted = false;
     Stage stage;
     RenderedSnapshot readbackRendered;
@@ -43,7 +43,7 @@ struct Execution::Private
     Private(DevicePtr device, qsizetype bytes, qsizetype documents, qsizetype readbackBytes)
         : device(std::move(device)), byteBudget(bytes), maximumDocuments(documents),
           maximumReadbackBytes(readbackBytes), renderer(std::make_unique<TileRenderer>(this->device, bytes)) {}
-    bool onThread() const { return device->rhi().thread() == QThread::currentThread(); }
+    bool onThread() const { return device->thread() == QThread::currentThread(); }
     bool isCurrent(const Stage &value) const
     {
         const auto document = documents.constFind(value.handle);

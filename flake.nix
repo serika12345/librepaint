@@ -951,7 +951,7 @@
       mkPluginSdkShell =
         packageSet: application: tools:
         packageSet.mkShell {
-          inputsFrom = [ application ];
+          inputsFrom = [ (application.overrideAttrs (_: { src = null; })) ];
           packages = [ tools ];
         };
       mkApplicationSourceCheck =
@@ -979,7 +979,12 @@
       mkTestShell =
         packageSet: application:
         packageSet.mkShell {
-          inputsFrom = [ application ];
+          inputsFrom = [ (application.overrideAttrs (_: { src = null; })) ];
+          CMAKE_PREFIX_PATH =
+            let
+              nativeGpu = packageSet.callPackage ./nix/gpu/wgpu-native-runtime.nix { };
+            in
+            "${packageSet.lib.getDev nativeGpu}:${nativeGpu}";
           packages = policyTools packageSet ++ (with packageSet; [
             ccache
             clang-tools

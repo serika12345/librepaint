@@ -10,24 +10,24 @@ target_compile_definitions(KisGpuRasterPixelsTest PRIVATE kritaimage_EXPORTS)
 
 kis_add_test(KisGpuPaintImageTest.cpp
     TEST_NAME_VAR gpu_paint_image_test
-    LINK_LIBRARIES kritaimagegpupaint kritaimagegputiles kritaimagegpuoperations Qt6::GuiPrivate Qt6::Test)
+    LINK_LIBRARIES kritaimagegpupaint kritaimagegputiles kritaimagegpuoperations Qt6::Gui Qt6::Test WGPUNative::WGPUNative)
 target_compile_definitions(KisGpuPaintImageTest PRIVATE kritaimage_EXPORTS)
 
 kis_add_test(KisGpuTileRendererTest.cpp
     TEST_NAME_VAR gpu_tile_renderer_test
-    LINK_LIBRARIES kritaimagegputiles kritaimagegpuoperations Qt6::GuiPrivate Qt6::Test
+    LINK_LIBRARIES kritaimagegputiles kritaimagegpuoperations Qt6::Gui Qt6::Test WGPUNative::WGPUNative
 )
 target_compile_definitions(KisGpuTileRendererTest PRIVATE kritaimage_EXPORTS)
 
 kis_add_test(KisGpuExecutionTest.cpp
     TEST_NAME_VAR gpu_execution_test
-    LINK_LIBRARIES kritaimagegputiles kritaimagegpuoperations Qt6::GuiPrivate Qt6::Test
+    LINK_LIBRARIES kritaimagegputiles kritaimagegpuoperations Qt6::Gui Qt6::Test WGPUNative::WGPUNative
 )
 target_compile_definitions(KisGpuExecutionTest PRIVATE kritaimage_EXPORTS)
 
 kis_add_test(KisGpuPixelReadbackTest.cpp
     TEST_NAME_VAR gpu_pixel_readback_test
-    LINK_LIBRARIES kritaimagegputiles kritaimagegpuoperations Qt6::GuiPrivate Qt6::Test
+    LINK_LIBRARIES kritaimagegputiles kritaimagegpuoperations Qt6::Gui Qt6::Test WGPUNative::WGPUNative
 )
 target_compile_definitions(KisGpuPixelReadbackTest PRIVATE kritaimage_EXPORTS)
 

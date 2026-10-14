@@ -390,7 +390,6 @@ void KisGpuPaintDocumentTest::initTestCase()
     QString diagnostic;
     m_device = Device::createNative(diagnostic);
     QVERIFY2(m_device, qPrintable(diagnostic));
-    qInfo() << "GPU backend:" << m_device->rhi().backendName();
 }
 
 void KisGpuPaintDocumentTest::acceptedChangesUpdateOneAttachedDocument()
