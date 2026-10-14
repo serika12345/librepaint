@@ -6,6 +6,7 @@
 #include <QCryptographicHash>
 #include <QDir>
 #include <QDomDocument>
+#include <QFile>
 #include <QImage>
 #include <QSignalSpy>
 #include <QTemporaryDir>
@@ -794,6 +795,29 @@ int main(int argc, char *argv[])
         return 1;
     }
     qputenv("KRITA_PLUGIN_PATH", pluginDirectory.path().toUtf8());
+
+    QTemporaryDir fontDirectory;
+    if (!fontDirectory.isValid()) return 1;
+    QDir fontRoot(fontDirectory.path());
+    if (!fontRoot.mkdir(QStringLiteral("fonts")) || !fontRoot.mkdir(QStringLiteral("cache"))) return 1;
+    Q_INIT_RESOURCE(FreehandStrokeFonts);
+    if (!QFile::copy(QStringLiteral(":/freehand-contract-fonts/DejaVuSans.ttf"),
+                     fontRoot.filePath(QStringLiteral("fonts/DejaVuSans.ttf")))) return 1;
+    QDomDocument fontConfiguration;
+    auto configuration = fontConfiguration.createElement(QStringLiteral("fontconfig"));
+    fontConfiguration.appendChild(configuration);
+    for (const auto &entry : {qMakePair(QStringLiteral("dir"), QStringLiteral("fonts")),
+                              qMakePair(QStringLiteral("cachedir"), QStringLiteral("cache"))}) {
+        auto element = fontConfiguration.createElement(entry.first);
+        element.appendChild(fontConfiguration.createTextNode(fontRoot.filePath(entry.second)));
+        configuration.appendChild(element);
+    }
+    QFile fontFile(fontRoot.filePath(QStringLiteral("fonts.conf")));
+    if (!fontFile.open(QIODevice::WriteOnly)) return 1;
+    const auto configurationBytes = fontConfiguration.toByteArray();
+    if (fontFile.write(configurationBytes) != configurationBytes.size()) return 1;
+    fontFile.close();
+    qputenv("FONTCONFIG_FILE", fontFile.fileName().toUtf8());
 
     QApplication app(argc, argv);
     app.setAttribute(Qt::AA_Use96Dpi, true);

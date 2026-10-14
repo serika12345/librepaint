@@ -136,7 +136,7 @@ kis_add_test( kis_selection_decoration_test.cpp ../../../sdk/tests/stroke_testin
     LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
-kis_add_test( FreehandStrokeContractTest.cpp
+kis_add_test( FreehandStrokeContractTest.cpp FreehandStrokeFonts.qrc
     TEST_NAME FreehandStrokeContractTest
     LINK_LIBRARIES kritapainting kritalibbrush kritatestsdk
     )
