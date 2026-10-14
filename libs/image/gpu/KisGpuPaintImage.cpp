@@ -69,11 +69,23 @@ PixelBytesOutcome PaintImage::readRgbaPixels(LayerId layer, QRect region, qsizet
 bool PaintImage::onThread() const { return QThread::currentThread() == thread(); }
 Result PaintImage::writeProjectionBackground(const std::array<quint8, 4> &rgba)
 {
-    if (!onThread()) return Result::InvalidInput;
-    const auto result = m_d->document->writeProjectionBackground(rgba);
+    return onThread() ? requestAfterWrite(m_d->document->writeProjectionBackground(rgba)) : Result::InvalidInput;
+}
+Result PaintImage::requestAfterWrite(Result result)
+{
     if (result == Result::Success) requestCurrentVersion();
     return result;
 }
+Result PaintImage::writeLayerName(LayerId layer, const QString &name)
+{ return onThread() ? requestAfterWrite(m_d->document->writeLayerName(layer, name)) : Result::InvalidInput; }
+Result PaintImage::writeLayerVisible(LayerId layer, bool visible)
+{ return onThread() ? requestAfterWrite(m_d->document->writeLayerVisible(layer, visible)) : Result::InvalidInput; }
+Result PaintImage::writeLayerOpacity(LayerId layer, quint8 opacity)
+{ return onThread() ? requestAfterWrite(m_d->document->writeLayerOpacity(layer, opacity)) : Result::InvalidInput; }
+Result PaintImage::writeLayerLocked(LayerId layer, bool locked)
+{ return onThread() ? requestAfterWrite(m_d->document->writeLayerLocked(layer, locked)) : Result::InvalidInput; }
+Result PaintImage::writeLayerPinnedToTimeline(LayerId layer, bool pinned)
+{ return onThread() ? requestAfterWrite(m_d->document->writeLayerPinnedToTimeline(layer, pinned)) : Result::InvalidInput; }
 void PaintImage::requestCurrentVersion()
 {
     try {

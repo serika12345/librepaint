@@ -12,6 +12,11 @@ class TestNode : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void testLayerPropertiesPreservePublicHistorySemantics_data();
+    void testLayerPropertiesPreservePublicHistorySemantics();
+    void testGpuNodeNotificationKeepsReentrantPropertyWrites();
+    void testDirectOpacityWritesPreserveRecordedPropertyUndo_data();
+    void testDirectOpacityWritesPreserveRecordedPropertyUndo();
     void testSetColorSpace();
     void testSetColorProfile();
     void testPixelData();

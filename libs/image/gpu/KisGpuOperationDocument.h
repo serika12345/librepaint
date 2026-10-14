@@ -14,6 +14,7 @@
 #include <QSharedPointer>
 #include <QSize>
 #include <QString>
+#include <QVariant>
 #include <QUuid>
 #include <kritaimage_export.h>
 #include "KisGpuRasterPixels.h"
@@ -152,6 +153,8 @@ class KRITAIMAGE_EXPORT DocumentVersion
 public:
     QUuid documentId() const { return m_document; }
     quint64 revision() const { return m_revision; }
+    /** Identity of this history state, preserved by direct writes outside undo. */
+    quint64 historyRevision() const { return m_modifiedRevision; }
     /** Admission state is queried on the OperationDocument owner's thread. */
     bool isCommitted() const { return m_committed; }
     OperationId pendingOperation() const { return m_committed ? OperationId{} : m_pendingOperation; }
@@ -265,6 +268,12 @@ public:
     Result setLayerLocked(LayerId layer, bool locked);
     /** Direct background writes preserve history, pending input and fixed snapshots. */
     Result writeProjectionBackground(const std::array<quint8, 4> &rgba);
+    /** Direct property writes preserve history transitions, pending input and fixed snapshots. */
+    Result writeLayerName(LayerId layer, const QString &name);
+    Result writeLayerVisible(LayerId layer, bool visible);
+    Result writeLayerOpacity(LayerId layer, quint8 opacity);
+    Result writeLayerLocked(LayerId layer, bool locked);
+    Result writeLayerPinnedToTimeline(LayerId layer, bool pinned);
     Result renameLayer(LayerId layer, const QString &name);
     /** Moves within the bottom-to-top layer list, preserving the selected identity. */
     Result moveLayer(LayerId layer, qsizetype index);
@@ -286,6 +295,12 @@ public:
 
 private:
     friend class PaintImage;
+    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline };
+    struct PropertyChange {
+        LayerProperty property = LayerProperty::None;
+        LayerId layer = 0;
+        QVariant before, after;
+    };
     std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
     struct VersionPixelWrite
     {
@@ -295,15 +310,19 @@ private:
         QList<QRect> areas;
     };
     Result applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory);
+    template<class T> Result writeLayerProperty(LayerId layer, LayerProperty property, T Layer::*member, const T &value);
+    Result restorePropertyChange(const PropertyChange &change, bool forward);
     Result checkOperation(OperationId id) const;
     Result checkMutation() const;
     qsizetype layerIndex(LayerId layer) const;
     void replacePreview(const QSharedPointer<const PaintOperation> &operation);
     void commitVersion(const Snapshot &version);
+    void commitVersion(const Snapshot &version, const PropertyChange &change);
 
     Limits m_limits;
     QUuid m_identity;
     QList<Snapshot> m_history;
+    QList<PropertyChange> m_propertyChanges;
     int m_index = 0;
     quint64 m_nextRevision = 0;
     quint64 m_nextOperation = 0;

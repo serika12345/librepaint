@@ -46,7 +46,7 @@ void KisImage::connectGpuImageUpdates()
         const auto version = retainedView->gpuImage()->operations().snapshot();
         if (version != synchronized) {
             retainedView->synchronizeGpuNodes();
-            synchronized = version;
+            synchronized = retainedView->gpuImage()->operations().snapshot();
             Q_EMIT retainedView->sigImageModified();
         }
         retainedView->notifyProjectionUpdated(retainedView->bounds());
@@ -55,33 +55,44 @@ void KisImage::connectGpuImageUpdates()
 
 void KisImage::synchronizeGpuNodes()
 {
-    const auto owner = gpuImage();
-    const auto version = owner->operations().snapshot();
-    QHash<QUuid, KisNodeSP> existing;
-    QSet<QUuid> desired;
-    for (const auto &layer : version->layers) desired.insert(layer.uuid);
-    for (auto node = root()->firstChild(); node;) {
-        auto next = node->nextSibling();
-        if (desired.contains(node->uuid())) existing.insert(node->uuid(), node);
-        else removeNode(node);
-        node = next;
-    }
-    for (qsizetype index = 0; index < version->layers.size(); ++index) {
-        const auto &layer = version->layers[index];
-        KisNodeSP node = existing.value(layer.uuid);
-        if (!node) {
-            node = new KisPaintLayer(this, layer.name, layer.opacity,
-                                     KisPaintDevice::fromGpuImage(owner, layer.id, {}, colorSpace()));
-            node->setUuid(layer.uuid);
+    for (;;) {
+        const auto owner = gpuImage();
+        const auto version = owner->operations().snapshot();
+        const auto changed = [&] { return gpuImage() != owner || owner->operations().snapshot() != version; };
+        QHash<QUuid, KisNodeSP> existing;
+        QSet<QUuid> desired;
+        for (const auto &layer : version->layers) desired.insert(layer.uuid);
+        for (auto node = root()->firstChild(); node;) {
+            auto next = node->nextSibling();
+            if (desired.contains(node->uuid())) existing.insert(node->uuid(), node);
+            else removeNode(node);
+            node = next;
         }
-        if (node->name() != layer.name) node->setName(layer.name);
-        node->setVisible(layer.visible);
-        if (node->opacity() != layer.opacity) node->setOpacity(layer.opacity);
-        if (node->userLocked() != layer.userLocked) node->setUserLocked(layer.userLocked);
-        if (node->isPinnedToTimeline() != layer.pinnedToTimeline) node->setPinnedToTimeline(layer.pinnedToTimeline);
-        if (root()->at(index) != node) {
-            if (node->parent()) removeNode(node);
-            addNode(node, root(), quint32(index));
+        if (gpuImage() != owner) return;
+        if (changed()) continue;
+        for (qsizetype index = 0; index < version->layers.size(); ++index) {
+            const auto &layer = version->layers[index];
+            KisNodeSP node = existing.value(layer.uuid);
+            if (!node) {
+                node = new KisPaintLayer(this, layer.name, layer.opacity,
+                                         KisPaintDevice::fromGpuImage(owner, layer.id, {}, colorSpace()));
+                node->setUuid(layer.uuid);
+            }
+            if (node->name() != layer.name) node->setName(layer.name);
+            if (changed()) break;
+            node->setVisible(layer.visible);
+            if (changed()) break;
+            if (node->opacity() != layer.opacity) node->setOpacity(layer.opacity);
+            if (changed()) break;
+            if (node->userLocked() != layer.userLocked) node->setUserLocked(layer.userLocked);
+            if (changed()) break;
+            if (node->isPinnedToTimeline() != layer.pinnedToTimeline) node->setPinnedToTimeline(layer.pinnedToTimeline);
+            if (changed()) break;
+            if (root()->at(index) != node) {
+                if (node->parent()) removeNode(node);
+                addNode(node, root(), quint32(index));
+            }
         }
+        if (gpuImage() != owner || !changed()) return;
     }
 }

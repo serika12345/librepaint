@@ -10,6 +10,7 @@
 #include <limits>
 #include <algorithm>
 #include <stdexcept>
+#include <QScopeGuard>
 
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
@@ -115,6 +116,76 @@ Result OperationDocument::writeProjectionBackground(const std::array<quint8, 4> 
     return Result::Success;
 }
 
+template<class T>
+Result OperationDocument::writeLayerProperty(LayerId layer, LayerProperty property, T Layer::*member, const T &value)
+{
+    if (m_closed) return Result::Closed;
+    const auto index = layerIndex(layer);
+    if (index < 0) return Result::LayerUnavailable;
+    const T previous = snapshot()->layers[index].*member;
+    if (previous == value) return Result::Success;
+    const auto containsLayer = [&](const Snapshot &state) {
+        for (const auto &candidate : state->layers)
+            if (candidate.id == layer) return true;
+        return false;
+    };
+    const auto changesProperty = [&](int index) {
+        return m_propertyChanges[index].layer == layer && m_propertyChanges[index].property == property;
+    };
+    int first = m_index, last = m_index;
+    while (first > 0 && !changesProperty(first) && containsLayer(m_history[first - 1])) --first;
+    while (last + 1 < m_history.size() && !changesProperty(last + 1) && containsLayer(m_history[last + 1])) ++last;
+    const auto count = quint64(last - first + 1) + quint64(bool(m_preview));
+    if (count > std::numeric_limits<quint64>::max() - m_nextRevision) return Result::CapacityExceeded;
+    auto history = m_history;
+    auto nextRevision = m_nextRevision;
+    const auto update = [&](const Snapshot &state) -> Snapshot {
+        auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*state));
+        for (auto &candidate : version->layers) {
+            if (candidate.id != layer) continue;
+            candidate.*member = value;
+            break;
+        }
+        version->m_revision = ++nextRevision;
+        return version;
+    };
+    for (int i = first; i <= last; ++i) history[i] = update(history[i]);
+    const auto preview = m_preview ? update(m_preview) : Snapshot{};
+    m_history.swap(history);
+    m_preview = preview;
+    m_nextRevision = nextRevision;
+    return Result::Success;
+}
+
+Result OperationDocument::writeLayerName(LayerId layer, const QString &name)
+{
+    if (m_closed) return Result::Closed;
+    if (!validLayerName(name)) return Result::InvalidInput;
+    return writeLayerProperty(layer, LayerProperty::Name, &Layer::name, name);
+}
+Result OperationDocument::writeLayerVisible(LayerId layer, bool visible)
+{ return writeLayerProperty(layer, LayerProperty::Visible, &Layer::visible, visible); }
+Result OperationDocument::writeLayerOpacity(LayerId layer, quint8 opacity)
+{ return writeLayerProperty(layer, LayerProperty::Opacity, &Layer::opacity, opacity); }
+Result OperationDocument::writeLayerLocked(LayerId layer, bool locked)
+{ return writeLayerProperty(layer, LayerProperty::Locked, &Layer::userLocked, locked); }
+Result OperationDocument::writeLayerPinnedToTimeline(LayerId layer, bool pinned)
+{ return writeLayerProperty(layer, LayerProperty::PinnedToTimeline, &Layer::pinnedToTimeline, pinned); }
+
+Result OperationDocument::restorePropertyChange(const PropertyChange &change, bool forward)
+{
+    const auto &value = forward ? change.after : change.before;
+    switch (change.property) {
+    case LayerProperty::None: return Result::Success;
+    case LayerProperty::Name: return writeLayerName(change.layer, value.toString());
+    case LayerProperty::Opacity: return writeLayerOpacity(change.layer, quint8(value.toUInt()));
+    case LayerProperty::Visible: return writeLayerVisible(change.layer, value.toBool());
+    case LayerProperty::Locked: return writeLayerLocked(change.layer, value.toBool());
+    case LayerProperty::PinnedToTimeline: return writeLayerPinnedToTimeline(change.layer, value.toBool());
+    }
+    return Result::InvalidInput;
+}
+
 Result OperationDocument::checkOperation(OperationId id) const
 {
     if (m_closed) return Result::Closed;
@@ -204,17 +275,26 @@ void OperationDocument::replacePreview(const QSharedPointer<const PaintOperation
 }
 
 void OperationDocument::commitVersion(const Snapshot &version)
+{ commitVersion(version, {}); }
+
+void OperationDocument::commitVersion(const Snapshot &version, const PropertyChange &change)
 {
     auto history = m_history;
+    auto changes = m_propertyChanges;
     history.erase(history.begin() + m_index + 1, history.end());
+    changes.erase(changes.begin() + m_index + 1, changes.end());
     history.append(version);
+    changes.append(change);
     int index = m_index + 1;
     if (index > HistoryLimit) {
         history.removeFirst();
+        changes.removeFirst();
+        changes[0] = {};
         --index;
     }
     version->m_committed = true;
     m_history.swap(history);
+    m_propertyChanges.swap(changes);
     m_index = index;
 }
 
@@ -278,7 +358,7 @@ Result OperationDocument::setLayerVisible(LayerId layer, bool visible)
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     version->layers[index].visible = visible;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
-    commitVersion(version);
+    commitVersion(version, {LayerProperty::Visible, layer, QVariant::fromValue(snapshot()->layers[index].visible), QVariant::fromValue(visible)});
     return Result::Success;
 }
 
@@ -293,7 +373,7 @@ Result OperationDocument::setLayerOpacity(LayerId layer, quint8 opacity)
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     version->layers[index].opacity = opacity;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
-    commitVersion(version);
+    commitVersion(version, {LayerProperty::Opacity, layer, QVariant::fromValue(snapshot()->layers[index].opacity), QVariant::fromValue(opacity)});
     return Result::Success;
 }
 
@@ -308,7 +388,7 @@ Result OperationDocument::setLayerLocked(LayerId layer, bool locked)
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     version->layers[index].userLocked = locked;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
-    commitVersion(version);
+    commitVersion(version, {LayerProperty::Locked, layer, QVariant::fromValue(snapshot()->layers[index].userLocked), QVariant::fromValue(locked)});
     return Result::Success;
 }
 
@@ -324,7 +404,7 @@ Result OperationDocument::renameLayer(LayerId layer, const QString &name)
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     version->layers[index].name = name;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
-    commitVersion(version);
+    commitVersion(version, {LayerProperty::Name, layer, QVariant::fromValue(snapshot()->layers[index].name), QVariant::fromValue(name)});
     return Result::Success;
 }
 
@@ -370,8 +450,7 @@ Result OperationDocument::undo()
     const auto status = checkMutation();
     if (status != Result::Success) return status;
     if (m_index == 0) return Result::NothingToUndo;
-    --m_index;
-    return Result::Success;
+    return setHistoryIndex(m_index - 1);
 }
 
 Result OperationDocument::redo()
@@ -379,8 +458,7 @@ Result OperationDocument::redo()
     const auto status = checkMutation();
     if (status != Result::Success) return status;
     if (redoCount() == 0) return Result::NothingToRedo;
-    ++m_index;
-    return Result::Success;
+    return setHistoryIndex(m_index + 1);
 }
 
 Result OperationDocument::markSaved(const Snapshot &saved)
@@ -396,7 +474,24 @@ Result OperationDocument::setHistoryIndex(int index)
     const auto status = checkMutation();
     if (status != Result::Success) return status;
     if (index < 0 || index >= m_history.size()) return Result::InvalidInput;
-    m_index = index;
+    const auto previousHistory = m_history;
+    const auto previousIndex = m_index;
+    const auto previousRevision = m_nextRevision;
+    bool completed = false;
+    const auto rollback = qScopeGuard([&] {
+        if (completed) return;
+        m_history = previousHistory;
+        m_index = previousIndex;
+        m_nextRevision = previousRevision;
+    });
+    while (m_index != index) {
+        const bool forward = index > m_index;
+        const auto change = m_propertyChanges[m_index + (forward ? 1 : 0)];
+        m_index += forward ? 1 : -1;
+        const auto result = restorePropertyChange(change, forward);
+        if (result != Result::Success) return result;
+    }
+    completed = true;
     return Result::Success;
 }
 
@@ -406,6 +501,7 @@ void OperationDocument::close()
     m_edit.clear();
     m_preview.clear();
     m_history.swap(remaining);
+    m_propertyChanges = {PropertyChange{}};
     m_index = 0;
     m_closed = true;
 }

@@ -76,7 +76,7 @@ void KisDocumentUndoStack::synchronizeGpuHistory()
     QList<KUndo2Command *> allocated;
     QHash<quint64, KUndo2Command *> retained;
     for (int index = 1; index < versions.size(); ++index) {
-        const quint64 revision = versions[index]->revision();
+        const quint64 revision = versions[index]->historyRevision();
         auto *command = sameIdentity ? m_gpuCommands.value(revision) : nullptr;
         if (!owned.contains(command)) command = nullptr;
         if (!command) {

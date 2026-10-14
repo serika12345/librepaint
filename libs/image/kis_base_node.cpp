@@ -126,6 +126,7 @@ quint8 KisBaseNode::opacity() const
 
 void KisBaseNode::setOpacity(quint8 val)
 {
+    preparePropertyChange(NodePropertyChange::Opacity, QVariant::fromValue(val));
     m_d->opacityProperty.set(val);
     baseNodeChangedCallback();
 }
@@ -262,6 +263,7 @@ bool KisBaseNode::visible(bool recursive) const
 
 void KisBaseNode::setVisible(bool visible, bool loading)
 {
+    preparePropertyChange(NodePropertyChange::Visible, visible);
     const bool isVisible = m_d->properties.boolProperty(KisLayerPropertiesIcons::visible.id(), true);
     if (!loading && isVisible == visible) return;
 
@@ -311,6 +313,7 @@ bool KisBaseNode::isIsolatedRoot() const
 
 void KisBaseNode::setUserLocked(bool locked)
 {
+    preparePropertyChange(NodePropertyChange::UserLocked, locked);
     const bool isLocked = m_d->properties.boolProperty(KisLayerPropertiesIcons::locked.id(), true);
     if (isLocked == locked) return;
 
@@ -437,6 +440,7 @@ bool KisBaseNode::isPinnedToTimeline() const
 
 void KisBaseNode::setPinnedToTimeline(bool pinned)
 {
+   preparePropertyChange(NodePropertyChange::PinnedToTimeline, pinned);
    if (pinned == m_d->pinnedToTimeline) return;
 
    m_d->pinnedToTimeline = pinned;

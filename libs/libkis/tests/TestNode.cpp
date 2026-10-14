@@ -8,6 +8,7 @@
 #include <QDataStream>
 #include <kundo2stack.h>
 #include <QSignalSpy>
+#include <QTemporaryDir>
 #include <gpu/KisGpuPaintImage.h>
 #include <gpu/KisGpuExecution.h>
 
@@ -25,11 +26,213 @@
 #include <kis_paint_layer.h>
 #include <kis_group_layer.h>
 #include <kis_transaction.h>
+#include <commands/kis_node_opacity_command.h>
 #include <kis_shape_layer.h>
 #include <document/KisDocument.h>
 #include <application/ui/orchestration/KisPart.h>
 
 #include <testui.h>
+
+void TestNode::testLayerPropertiesPreservePublicHistorySemantics_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::newRow("existing-image") << false;
+    QTest::newRow("gpu-image") << true;
+}
+
+void TestNode::testLayerPropertiesPreservePublicHistorySemantics()
+{
+    QFETCH(bool, gpu);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    Gpu::PaintImageSP owner;
+    KisImageSP image;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        Gpu::RasterImage input;
+        input.size = {64, 64};
+        input.layers = {{QStringLiteral("Recorded edit"), true, {}, {}}, {QStringLiteral("Other"), true, {}, {}}};
+        owner = Gpu::PaintImageSP::create(execution, input);
+        image = KisImage::fromGpuImage(owner, QStringLiteral("Layer properties"));
+    } else {
+        image = new KisImage(document->createUndoStore(), 64, 64, KoColorSpaceRegistry::instance()->rgb8(), "Layer properties");
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Recorded edit"), 255));
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Other"), 255));
+    }
+    document->setCurrentImage(image);
+    auto layer = image->root()->firstChild();
+    NodeSP node(Node::createNode(image, layer));
+    const auto before = QByteArray::fromHex("0000ffff");
+    const auto after = QByteArray::fromHex("ff0000ff");
+    QVERIFY(node->setPixelData(before, 8, 12, 1, 1));
+    if (gpu) {
+        QCOMPARE(owner->replaceRgbaPixels(1, QRect(8, 12, 1, 1), QByteArray::fromHex("0000ffff")), Gpu::Result::Success);
+    } else {
+        KisTransaction transaction(layer->paintDevice());
+        QVERIFY(node->setPixelData(after, 8, 12, 1, 1));
+        transaction.commit(image->undoAdapter());
+    }
+    image->waitForDone();
+    document->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(node->pixelData(8, 12, 1, 1), before);
+    QCOMPARE(document->undoStack()->index(), 0);
+    QCOMPARE(document->undoStack()->count(), 1);
+    QVERIFY(!document->isModified());
+    const auto *historyCommand = document->undoStack()->command(0);
+    QSignalSpy modified(document.data(), &KisDocument::modified);
+    node->setName(QStringLiteral("Renamed"));
+    node->setOpacity(-1);
+    QCOMPARE(node->opacity(), 0);
+    node->setOpacity(300);
+    QCOMPARE(node->opacity(), 255);
+    node->setOpacity(128);
+    node->setVisible(false);
+    node->setLocked(true);
+    layer->setPinnedToTimeline(true);
+    Document publicDocument(document.data(), false);
+    publicDocument.refreshProjection();
+    QCOMPARE(publicDocument.pixelData(8, 12, 1, 1), QByteArray(4, '\0'));
+    QCOMPARE(node->pixelData(8, 12, 1, 1), before);
+    QCOMPARE(document->undoStack()->index(), 0);
+    QCOMPARE(document->undoStack()->count(), 1);
+    QVERIFY(!document->isModified());
+    QVERIFY(modified.isEmpty());
+    document->undoStack()->redo();
+    image->waitForDone();
+    QCOMPARE(node->name(), QStringLiteral("Renamed"));
+    QCOMPARE(node->opacity(), 128);
+    QVERIFY(!node->visible());
+    QVERIFY(node->locked());
+    QVERIFY(layer->isPinnedToTimeline());
+    QCOMPARE(node->pixelData(8, 12, 1, 1), after);
+    QCOMPARE(document->undoStack()->index(), 1);
+    QCOMPARE(document->undoStack()->count(), 1);
+    QCOMPARE(document->undoStack()->command(0), historyCommand);
+    node->setName(QString());
+    document->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(node->name(), QString());
+    QCOMPARE(node->opacity(), 128);
+    QVERIFY(!node->visible());
+    QVERIFY(node->locked());
+    QVERIFY(layer->isPinnedToTimeline());
+    QCOMPARE(node->pixelData(8, 12, 1, 1), before);
+    QCOMPARE(document->undoStack()->count(), 1);
+    QVERIFY(!document->isModified());
+    if (gpu) {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        const auto path = directory.filePath(QStringLiteral("layer-properties.kra"));
+        document->setFileBatchMode(true);
+        QVERIFY2(document->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
+        QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+        reopened->setFileBatchMode(true);
+        QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+        const auto loaded = reopened->image()->root()->firstChild();
+        QCOMPARE(loaded->name(), QString());
+        QCOMPARE(loaded->opacity(), quint8(128));
+        QVERIFY(!loaded->visible());
+        QVERIFY(loaded->userLocked());
+        QVERIFY(loaded->isPinnedToTimeline());
+    }
+}
+
+void TestNode::testGpuNodeNotificationKeepsReentrantPropertyWrites()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto image = KisImage::fromGpuImage(owner, QStringLiteral("Reentrant layer properties"));
+    document->setCurrentImage(image);
+    auto layer = image->root()->firstChild();
+    NodeSP node(Node::createNode(image, layer));
+    QCOMPARE(owner->writeRgbaPixels(1, QRect(8, 12, 1, 1), QByteArray::fromHex("ff0000ff")), Gpu::Result::Success);
+    bool reacted = false;
+    QObject receiver;
+    QObject::connect(layer.data(), &KisNode::sigNodeChangedInternal, &receiver, [&] {
+        if (reacted || node->visible()) return;
+        reacted = true;
+        node->setOpacity(64);
+    });
+    QCOMPARE(owner->setLayerVisible(1, false), Gpu::Result::Success);
+    QVERIFY(reacted);
+    QVERIFY(!node->visible());
+    QCOMPARE(node->opacity(), 64);
+    QCOMPARE(owner->operations().snapshot()->layers.first().opacity, quint8(64));
+    QCOMPARE(owner->operations().undoCount(), 1);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QVERIFY(node->visible());
+    QCOMPARE(node->opacity(), 64);
+    Document publicDocument(document.data(), false);
+    QCOMPARE(publicDocument.pixelData(8, 12, 1, 1), QByteArray::fromHex("0000ff40"));
+    QCOMPARE(node->pixelData(8, 12, 1, 1), QByteArray::fromHex("0000ffff"));
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QVERIFY(!node->visible());
+    QCOMPARE(node->opacity(), 64);
+}
+
+void TestNode::testDirectOpacityWritesPreserveRecordedPropertyUndo_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::newRow("existing-image") << false;
+    QTest::newRow("gpu-image") << true;
+}
+
+void TestNode::testDirectOpacityWritesPreserveRecordedPropertyUndo()
+{
+    QFETCH(bool, gpu);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    Gpu::PaintImageSP owner;
+    KisImageSP image;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+        image = KisImage::fromGpuImage(owner, QStringLiteral("Opacity history"));
+    } else {
+        image = new KisImage(document->createUndoStore(), 64, 64, KoColorSpaceRegistry::instance()->rgb8(), "Opacity history");
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Layer"), 255));
+    }
+    document->setCurrentImage(image);
+    auto layer = image->root()->firstChild();
+    NodeSP node(Node::createNode(image, layer));
+    QScopedPointer<KisNodeOpacityCommand> command;
+    if (gpu) {
+        QCOMPARE(owner->setLayerOpacity(1, 128), Gpu::Result::Success);
+    } else {
+        command.reset(new KisNodeOpacityCommand(layer, 128));
+        command->redo();
+    }
+    image->waitForDone();
+    QCOMPARE(node->opacity(), 128);
+    node->setOpacity(64);
+    QCOMPARE(node->opacity(), 64);
+    if (gpu) QCOMPARE(owner->undo(), Gpu::Result::Success);
+    else command->undo();
+    image->waitForDone();
+    QCOMPARE(node->opacity(), 255);
+    if (gpu) QCOMPARE(owner->redo(), Gpu::Result::Success);
+    else command->redo();
+    image->waitForDone();
+    QCOMPARE(node->opacity(), 128);
+    if (gpu) QCOMPARE(owner->undo(), Gpu::Result::Success);
+    else command->undo();
+    node->setOpacity(32);
+    if (gpu) QCOMPARE(owner->redo(), Gpu::Result::Success);
+    else command->redo();
+    if (gpu) QCOMPARE(owner->undo(), Gpu::Result::Success);
+    else command->undo();
+    image->waitForDone();
+    QCOMPARE(node->opacity(), 255);
+}
 
 void TestNode::testSetColorSpace()
 {

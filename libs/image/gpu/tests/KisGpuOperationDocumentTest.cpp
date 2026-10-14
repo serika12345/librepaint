@@ -50,6 +50,9 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void directLayerPropertiesPreserveOtherPropertyHistoryAndFixedVersions();
+    void propertyRecoveryPreservesRecordedValuesAndRejectsDamagedChanges();
+    void failedHistoryMovesPreserveEveryVersionAndCounter();
     void layerOpacityAndLockShareHistoryAndRecovery();
     void inputChunksRetainTheSameOperation();
     void shapePreviewCommitsAsOneHistoryEntry();
@@ -76,6 +79,115 @@ private Q_SLOTS:
     void layerRemovalReusesCapacityWithoutLosingRecoveryHistory_data();
     void layerRemovalReusesCapacityWithoutLosingRecoveryHistory();
 };
+
+void KisGpuOperationDocumentTest::directLayerPropertiesPreserveOtherPropertyHistoryAndFixedVersions()
+{
+    OperationDocument document({64, 64});
+    const auto first = document.activeLayer();
+    QCOMPARE(document.setLayerOpacity(first, 128), Result::Success);
+    const auto second = document.addLayer(QStringLiteral("Other"));
+    QVERIFY(second);
+    const auto pinned = document.snapshot();
+    QCOMPARE(document.writeLayerName(first, {}), Result::Success);
+    QCOMPARE(document.writeLayerVisible(first, false), Result::Success);
+    QCOMPARE(document.writeLayerLocked(first, true), Result::Success);
+    QCOMPARE(document.writeLayerPinnedToTimeline(first, true), Result::Success);
+    QCOMPARE(document.writeLayerOpacity(second, 64), Result::Success);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(pinned->layers.first().name, QStringLiteral("Paint Layer 1"));
+    QVERIFY(pinned->layers.first().visible);
+    QVERIFY(!pinned->layers.first().userLocked);
+    QVERIFY(!pinned->layers.first().pinnedToTimeline);
+    QCOMPARE(pinned->layers.last().opacity, quint8(255));
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().opacity, quint8(128));
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().opacity, quint8(255));
+    QCOMPARE(document.snapshot()->layers.first().name, QString());
+    QVERIFY(!document.snapshot()->layers.first().visible);
+    QVERIFY(document.snapshot()->layers.first().userLocked);
+    QVERIFY(document.snapshot()->layers.first().pinnedToTimeline);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.last().opacity, quint8(64));
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(restored.snapshot()->layers.first().name, QString());
+    QVERIFY(!restored.snapshot()->layers.first().visible);
+    QVERIFY(restored.snapshot()->layers.first().userLocked);
+    QVERIFY(restored.snapshot()->layers.first().pinnedToTimeline);
+    QCOMPARE(restored.snapshot()->layers.last().opacity, quint8(64));
+    QCOMPARE(restored.undo(), Result::Success);
+    QCOMPARE(restored.undo(), Result::Success);
+    QCOMPARE(restored.snapshot()->layers.first().opacity, quint8(255));
+}
+
+void KisGpuOperationDocumentTest::propertyRecoveryPreservesRecordedValuesAndRejectsDamagedChanges()
+{
+    OperationDocument document({64, 64});
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.setLayerOpacity(layer, 128), Result::Success);
+    QCOMPARE(document.writeLayerOpacity(layer, 64), Result::Success);
+    const auto bytes = document.recoveryData();
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
+    QCOMPARE(restored.recoveryData(), bytes);
+    QCOMPARE(restored.snapshot()->layers.first().opacity, quint8(64));
+    QCOMPARE(restored.undo(), Result::Success);
+    QCOMPARE(restored.snapshot()->layers.first().opacity, quint8(255));
+    QCOMPARE(restored.redo(), Result::Success);
+    QCOMPARE(restored.snapshot()->layers.first().opacity, quint8(128));
+    QByteArray record;
+    QDataStream encoded(&record, QIODevice::WriteOnly);
+    encoded.setByteOrder(QDataStream::BigEndian);
+    encoded << quint8(2) << layer << quint8(255) << quint8(128);
+    const auto payload = bytes.first(bytes.size() - 32);
+    const auto offset = payload.lastIndexOf(record);
+    QVERIFY(offset >= 0);
+    const auto retained = restored.snapshot();
+    const auto retainedHistory = restored.recoveryData();
+    for (int damage = 0; damage < 3; ++damage) {
+        auto invalid = payload;
+        if (damage == 0) invalid[offset] = char(255);
+        if (damage == 1) invalid[offset + 8] = char(2);
+        if (damage == 2) invalid[offset + 10] = char(255);
+        invalid.append(QCryptographicHash::hash(invalid, QCryptographicHash::Sha256));
+        QCOMPARE(restored.restoreRecovery(invalid), Result::InvalidRecovery);
+        QCOMPARE(restored.snapshot(), retained);
+        QCOMPARE(restored.recoveryData(), retainedHistory);
+    }
+}
+
+void KisGpuOperationDocumentTest::failedHistoryMovesPreserveEveryVersionAndCounter()
+{
+    OperationDocument document({64, 64});
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.setLayerOpacity(layer, 128), Result::Success);
+    QCOMPARE(document.setLayerOpacity(layer, 32), Result::Success);
+    QCOMPARE(document.setHistoryIndex(0), Result::Success);
+    QCOMPARE(document.writeLayerOpacity(layer, 16), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.writeLayerOpacity(layer, 64), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    auto bytes = document.recoveryData();
+    bytes.chop(32);
+    QBuffer buffer(&bytes);
+    QVERIFY(buffer.open(QIODevice::ReadWrite));
+    QVERIFY(buffer.seek(14)); // LPOR dimensions precede the next content revision.
+    QDataStream encoded(&buffer);
+    encoded.setByteOrder(QDataStream::BigEndian);
+    encoded << quint64(std::numeric_limits<quint64>::max() - 1);
+    buffer.close();
+    bytes.append(QCryptographicHash::hash(bytes, QCryptographicHash::Sha256));
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
+    const auto retained = restored.snapshot();
+    const auto history = restored.recoveryData();
+    QCOMPARE(restored.setHistoryIndex(0), Result::CapacityExceeded);
+    QCOMPARE(restored.undoCount(), 2);
+    QCOMPARE(restored.snapshot(), retained);
+    QCOMPARE(restored.recoveryData(), history);
+}
 
 void KisGpuOperationDocumentTest::layerOpacityAndLockShareHistoryAndRecovery()
 {

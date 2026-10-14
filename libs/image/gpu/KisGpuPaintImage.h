@@ -67,6 +67,11 @@ public:
     Result writeRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes);
     /** Direct background writes request pixels without adding history or edit notifications. */
     Result writeProjectionBackground(const std::array<quint8, 4> &rgba);
+    Result writeLayerName(LayerId layer, const QString &name);
+    Result writeLayerVisible(LayerId layer, bool visible);
+    Result writeLayerOpacity(LayerId layer, quint8 opacity);
+    Result writeLayerLocked(LayerId layer, bool locked);
+    Result writeLayerPinnedToTimeline(LayerId layer, bool pinned);
     LayerId addLayer(const QString &name);
     Result selectLayer(LayerId layer);
     Result setLayerVisible(LayerId layer, bool visible);
@@ -94,6 +99,7 @@ private:
                std::shared_ptr<Execution> retainedExecution = {});
     bool onThread() const;
     Result publish(Result result);
+    Result requestAfterWrite(Result result);
     void requestCurrentVersion();
     Result applyRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes, bool recordHistory);
     struct Private;

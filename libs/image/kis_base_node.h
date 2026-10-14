@@ -220,6 +220,7 @@ public:
      * layer name also when debugging.
      */
     void setName(const QString& name) {
+        preparePropertyChange(NodePropertyChange::Name, name);
         setObjectName(name);
         baseNodeChangedCallback();
     }
@@ -572,6 +573,13 @@ protected:
     }
 
     virtual void notifyParentVisibilityChanged(bool value) {
+        Q_UNUSED(value);
+    }
+
+    enum class NodePropertyChange { Name, Opacity, Visible, UserLocked, PinnedToTimeline };
+    /** Adopts a property in its document owner before publishing the node value. */
+    virtual void preparePropertyChange(NodePropertyChange property, const QVariant &value) {
+        Q_UNUSED(property);
         Q_UNUSED(value);
     }
 

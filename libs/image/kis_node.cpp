@@ -5,6 +5,8 @@
  */
 
 #include "kis_node.h"
+#include "gpu/KisGpuPaintImage.h"
+#include <stdexcept>
 
 #include <optional>
 
@@ -350,6 +352,29 @@ void KisNode::notifyParentVisibilityChanged(bool value)
         KisNodeSP child = (*iter);
         child->notifyParentVisibilityChanged(value);
     }
+}
+
+void KisNode::preparePropertyChange(NodePropertyChange property, const QVariant &value)
+{
+    const auto currentImage = image();
+    if (!m_d->graphListener || !currentImage) return;
+    const auto owner = currentImage->gpuImage();
+    if (!owner) return;
+    LibrePaint::Image::Gpu::LayerId id = 0;
+    for (const auto &layer : owner->operations().snapshot()->layers)
+        if (layer.uuid == uuid()) { id = layer.id; break; }
+    if (!id) return;
+    using LibrePaint::Image::Gpu::Result;
+    auto result = Result::Success;
+    switch (property) {
+    case NodePropertyChange::Name: result = owner->writeLayerName(id, value.toString()); break;
+    case NodePropertyChange::Opacity: result = owner->writeLayerOpacity(id, quint8(value.toUInt())); break;
+    case NodePropertyChange::Visible: result = owner->writeLayerVisible(id, value.toBool()); break;
+    case NodePropertyChange::UserLocked: result = owner->writeLayerLocked(id, value.toBool()); break;
+    case NodePropertyChange::PinnedToTimeline: result = owner->writeLayerPinnedToTimeline(id, value.toBool()); break;
+    }
+    if (result != Result::Success)
+        throw std::runtime_error("GPU layer property write failed: " + std::to_string(int(result)));
 }
 
 void KisNode::baseNodeChangedCallback()
