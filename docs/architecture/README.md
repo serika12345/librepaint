@@ -306,6 +306,10 @@ LinuxのVulkanローダーは`nix/gpu/wgpu-native-runtime.nix`が実行時探索
 この小さい依存派生物はキャッシュ済みのRustライブラリを再利用する。
 Windowsは`nix/windows/wgpu-native.nix`が固定したGNU向けC API配布物を使い、
 実行時依存にVulkanローダーを含める。
+Androidは`nix/android/wgpu-native.nix`がarm64とx86_64向けのC API配布物を所有する。
+共有ライブラリーの配置に依存しない名前、16KiBページ境界、OS依存ライブラリーと
+NDK API 28からの利用側リンクを検査し、アプリと試験の包装へ同じ依存物を供給する。
+GPU依存物は最終的なアプリ用依存集合へ加え、Qt／KFと形式ライブラリーの構築を再利用する。
 
 `KisGpuTileProjection.cpp`は可視レイヤーを文書順で合成し、指定した文書領域と交差する
 タイルを生成する。表示側は可視領域、保存側は固定版の全文書領域を指定する。

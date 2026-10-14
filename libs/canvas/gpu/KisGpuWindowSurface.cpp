@@ -10,7 +10,7 @@
 #ifdef Q_OS_WIN
 #include <windows.h>
 #endif
-#ifdef Q_OS_LINUX
+#if defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
 #include <qpa/qplatformnativeinterface.h>
 #endif
 namespace LibrePaint::Canvas::Gpu::Detail {
@@ -18,8 +18,8 @@ namespace LibrePaint::Canvas::Gpu::Detail {
 void setNativeSurfaceType(QWindow &window) { window.setSurfaceType(QSurface::RasterSurface); }
 std::unique_ptr<Image::Gpu::PresentationSurface> createWindowSurface(Image::Gpu::DevicePtr device, QWindow &window)
 {
-    WGPUSurfaceDescriptor descriptor{};
 #ifdef Q_OS_WIN
+    WGPUSurfaceDescriptor descriptor{};
     WGPUSurfaceSourceWindowsHWND source{};
     source.chain.sType = WGPUSType_SurfaceSourceWindowsHWND;
     source.hinstance = GetModuleHandle(nullptr);
@@ -27,6 +27,7 @@ std::unique_ptr<Image::Gpu::PresentationSurface> createWindowSurface(Image::Gpu:
     descriptor.nextInChain = &source.chain;
     return std::make_unique<Image::Gpu::PresentationSurface>(std::move(device), descriptor);
 #elif defined(Q_OS_LINUX) && !defined(Q_OS_ANDROID)
+    WGPUSurfaceDescriptor descriptor{};
 #if QT_CONFIG(xcb)
     if (auto native = qGuiApp->nativeInterface<QNativeInterface::QX11Application>()) {
         WGPUSurfaceSourceXlibWindow source{};
@@ -48,6 +49,9 @@ std::unique_ptr<Image::Gpu::PresentationSurface> createWindowSurface(Image::Gpu:
         return std::make_unique<Image::Gpu::PresentationSurface>(std::move(device), descriptor);
     }
 #endif
+#else
+    Q_UNUSED(device);
+    Q_UNUSED(window);
 #endif
     throw std::runtime_error("The window platform has no native GPU surface connection");
 }

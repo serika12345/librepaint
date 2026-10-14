@@ -601,6 +601,9 @@ ctest --test-dir build/winquirks-msvc -C RelWithDebInfo --output-on-failure
 x86_64 Linuxで`arm64-v8a`または`x86_64`向けに構築する。後者はWaydroidでも試験できる。
 SDK／NDK、Qt／KF、JDK／Gradleの固定値は[nix/android](../../nix/android)、
 ソースを共有するiOS依存マニフェスト、`flake.lock`、`nix/android/gradle-deps.json`を参照する。
+GPU実行ライブラリーは`nix/android/wgpu-native.nix`が固定する。ABI、16KiBページ境界、
+配置に依存しない共有ライブラリー名とNDK利用側のリンクを依存物の構築時に検査する。
+アプリ用依存集合と追加ライブラリー指定が、製品APKと試験APKの探索先を供給する。
 
 ### APKとAAB
 

@@ -35,6 +35,10 @@ let
   androidSysroot = "${androidNdkRoot}/toolchains/llvm/prebuilt/linux-x86_64/sysroot";
   androidPlatformLibDir = "${androidSysroot}/usr/lib/${androidTriple}/28";
 
+  nativeGpu = androidHost.callPackage ./wgpu-native.nix {
+    inherit androidAbi androidNdkRoot;
+  };
+
   qtbase = import ./qtbase.nix {
     inherit
       androidAbi
@@ -260,6 +264,7 @@ let
       sourceDependencies.quazip
       kf6Prefix
       applicationDependencyPrefix
+      nativeGpu
     ];
     pathsToLink = [
       "/etc"
@@ -480,6 +485,9 @@ let
     cmakeBuildDir = "build";
     cmakeBuildType = "Release";
     cmakeFlags = [
+      "-DWGPUNative_INCLUDE_DIR:PATH=${nativeGpu}/include"
+      "-DWGPUNative_LIBRARY:FILEPATH=${nativeGpu}/lib/libwgpu_native.so"
+      "-DANDROID_EXTRA_LIBS:STRING=${nativeGpu}/lib/libwgpu_native.so"
       "-DBUILD_KRITA_QT_DESIGNER_PLUGINS:BOOL=OFF"
       "-DBUILD_TESTING:BOOL=OFF"
       "-DBUILD_WITH_QT6:BOOL=ON"
@@ -704,6 +712,7 @@ let
       mkdir -p "$ANDROID_USER_HOME" "$GRADLE_USER_HOME" "$HOME"
 
       androidExtraLibs=(
+        "${nativeGpu}/lib/libwgpu_native.so"
         "${qtdeclarative}/lib/libQt6QuickWidgets_${androidAbi}.so"
       )
       mltPluginDir="${applicationDependencies.mlt}/lib/mlt-7"
