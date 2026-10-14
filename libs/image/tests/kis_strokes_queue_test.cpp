@@ -1010,21 +1010,13 @@ void KisStrokesQueueTest::testMutatedJobs()
 
     queue.endStroke(id1);
 
-    t.processQueue();
+    QTRY_VERIFY_WITH_TIMEOUT(([&] {
+        t.processQueue();
+        return queue.isEmpty();
+    })(), 5000);
 
-    t.checkOnlyExecutedJob("str1_dab_1");
-
-    t.processQueue();
-
-    QStringList refList;
-    refList << "str1_dab_mutated" << "str1_dab_mutated";
-    t.checkExecutedJobs(refList);
-
-    t.processQueue();
-    t.checkOnlyExecutedJob("str1_dab_mutated");
-
-    t.processQueue();
-    t.checkOnlyExecutedJob("str1_dab_2");
+    t.checkExecutedJobs({"str1_dab_1", "str1_dab_mutated", "str1_dab_mutated",
+                         "str1_dab_mutated", "str1_dab_2"});
 
     t.processQueue();
     t.checkNothingExecuted();
