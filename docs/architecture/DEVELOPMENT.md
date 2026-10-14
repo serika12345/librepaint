@@ -622,7 +622,10 @@ build-incremental android-x86_64 build krita
 ```
 
 Qt 6の`androiddeployqt`が`packaging/android/apk`を使い、
-`create-apk-krita`と`create-aab-krita`で包装する。ABIごとの個別環境を初回に開く場合は
+`create-apk-krita`と`create-aab-krita`で包装する。増分構築は構築木の
+`product-apk-template`へ製品テンプレート、固定したGradle起動スクリプトとQtの
+ライブラリー資源定義を配置し、包装時に更新する。`androiddeployqt`はこの書込み可能な
+作業用テンプレートを使う。ABIごとの個別環境を初回に開く場合は
 `nix develop .#librepaint-android`または`nix develop .#librepaint-android-x86_64`を使う。
 端末試験後のクリーンな成果物は次で作成する。
 
@@ -654,6 +657,9 @@ build-incremental android-x86_64 run-test KisCurveOptionModelTest [adb-serial]
 
 ARM64では`build-incremental android run-test KisCurveOptionModelTest [adb-serial]`を使う。
 試験は対象と実行時依存物を専用APKに包装し、`data/`をアプリ専用外部領域へ展開して実行する。
+試験対象の構築設定を保ったまま、専用の起動部をDebug構成で包装し、Androidの
+開発用署名を含むAPKを作る。包装検査はABI、16KiB整列と画面プラグインに加えて、
+導入に必要なAPK署名を検査する。
 処理は端末ABI確認、試験用複製への署名、導入、Activity起動、結果回収、停止、試験パッケージ削除まで行う。
 xUnit XMLとlogcatは構築木の`test-results/<target>/`へ保存する。
 

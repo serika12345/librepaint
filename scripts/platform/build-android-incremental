@@ -128,6 +128,15 @@ configure_tree() {
         exit 1
     fi
 
+    local product_template="$build_dir/product-apk-template"
+    mkdir -p "$product_template/res/values"
+    cp -a "$repo_root/packaging/android/apk/." "$product_template/"
+    chmod -R u+w "$product_template"
+    install -m 0755 "$LIBREPAINT_ANDROID_GRADLE_WRAPPER" "$product_template/gradlew"
+    install -m 0644 \
+        "$LIBREPAINT_ANDROID_DEPENDENCY_PREFIX/src/android/templates/res/values/libs.xml" \
+        "$product_template/res/values/libs.xml"
+
     python3 "$boundary_checker" --prepare-query "$build_dir"
     mapfile -t cmake_args <"$LIBREPAINT_ANDROID_CMAKE_FLAGS_FILE"
     cmake -S "$repo_root" -B "$build_dir" -G Ninja \
@@ -139,6 +148,7 @@ configure_tree() {
         -DCMAKE_C_COMPILER_LAUNCHER:FILEPATH="$(command -v ccache)" \
         -DCMAKE_CXX_COMPILER_LAUNCHER:FILEPATH="$(command -v ccache)" \
         -DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON \
+        -DANDROID_APK_DIR:PATH="$product_template" \
         -DLIBREPAINT_ANDROID_NATIVE_SURFACE_PLUGIN:FILEPATH="${LIBREPAINT_ANDROID_NATIVE_SURFACE_PLUGIN:-}"
 
     python3 "$boundary_checker" \
@@ -179,7 +189,7 @@ package_android_product() {
     local product_apk
     local product_aab
 
-    ensure_tree
+    configure_tree
     cmake --build "$build_dir" --target all --parallel "${CMAKE_BUILD_PARALLEL_LEVEL:-4}"
     cmake --install "$build_dir"
     cmake -E remove_directory "$package_prefix"
@@ -278,6 +288,7 @@ package_android_test() {
         -B "$package_dir/build" -G Ninja \
         "${cmake_args[@]}" \
         -DANDROIDDEPLOYQT_EXTRA_ARGS:STRING= \
+        -DCMAKE_BUILD_TYPE:STRING=Debug \
         -DANDROID_TEST_APK_DIR:PATH="$apk_template_dir" \
         -DANDROID_TEST_LIBRARY:FILEPATH="$test_library" \
         -DLIBREPAINT_ANDROID_NATIVE_SURFACE_PLUGIN:FILEPATH="${LIBREPAINT_ANDROID_NATIVE_SURFACE_PLUGIN:-}" \

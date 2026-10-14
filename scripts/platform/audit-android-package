@@ -125,6 +125,14 @@ if [[ "$package_path" == *.apk ]]; then
     "$aapt2_tool" dump badging "$package_path" >"$audit_root/badging"
     grep -Fq "minSdkVersion:'28'" "$audit_root/badging"
     grep -Fq "targetSdkVersion:'35'" "$audit_root/badging"
+    if [[ "$package_scope" == test ]]; then
+        apk_signer="$(dirname "$aapt2_tool")/apksigner"
+        test -x "$apk_signer"
+        if ! "$apk_signer" verify "$package_path"; then
+            echo "Android test APK has no valid installation signature" >&2
+            exit 1
+        fi
+    fi
 fi
 
 echo "Android package audit passed: $package_path ($expected_abi)"
