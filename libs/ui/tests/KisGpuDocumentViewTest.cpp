@@ -28,6 +28,8 @@
 #include <actions/input/KisApplicationInputActions.h>
 #include <canvas/kis_canvas_resource_provider.h>
 #include <canvas/kis_coordinates_converter.h>
+#include <canvas/kis_canvas_controller.h>
+#include <canvas/kis_zoom_manager.h>
 #include <input/ui/kis_input_profile_manager.h>
 #include <gpu/KisGpuCanvasWindow.h>
 #include <KoToolManager.h>
@@ -84,15 +86,18 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
 {
     QTest::addColumn<bool>("exhaustInput");
     QTest::addColumn<bool>("closeAfterError");
-    QTest::newRow("paint-and-cancel") << false << false;
-    QTest::newRow("input-limit") << true << false;
-    QTest::newRow("close-on-input-limit") << true << true;
+    QTest::addColumn<bool>("ordinaryOpen");
+    QTest::newRow("paint-and-cancel") << false << false << false;
+    QTest::newRow("input-limit") << true << false << false;
+    QTest::newRow("close-on-input-limit") << true << true << false;
+    QTest::newRow("ordinary-kra-open") << false << false << true;
 }
 
 void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelled()
 {
     QFETCH(bool, exhaustInput);
     QFETCH(bool, closeAfterError);
+    QFETCH(bool, ordinaryOpen);
     namespace Gpu = LibrePaint::Image::Gpu;
     QString diagnostic;
     const auto device = Gpu::Device::createNative(diagnostic);
@@ -103,6 +108,16 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64), limits);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("GPU freehand input")));
+    QTemporaryDir openedDirectory;
+    if (ordinaryOpen) {
+        QVERIFY(openedDirectory.isValid());
+        const auto path = openedDirectory.filePath(QStringLiteral("ordinary-open.kra"));
+        document->setFileBatchMode(true);
+        QVERIFY2(document->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
+        QVERIFY2(document->openPath(path, KisDocument::DontAddToRecent), qPrintable(document->errorMessage()));
+        owner = document->image()->gpuImage();
+        QVERIFY(owner);
+    }
     std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
     window->resize(800, 600);
     auto *view = window->newView(document.get());
@@ -125,6 +140,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
         QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
     });
     window->viewManager()->setCurrentView(view);
+    for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
     window->show();
     window->statusBar()->show();
     window->activateWindow();
@@ -155,7 +171,13 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
         });
     }
     view->canvasBase()->canvasWidget()->setFocus();
-    QTRY_COMPARE(execution.published(owner->handle()), owner->operations().snapshot());
+    QTRY_VERIFY(view->canvasBase()->canvasWidget()->width() >= 64 && view->canvasBase()->canvasWidget()->height() >= 64);
+    view->canvasController()->resetCanvasRotation();
+    view->canvasController()->mirrorCanvas(false);
+    view->zoomManager()->zoomTo100();
+    const auto imageSize = view->canvasBase()->coordinatesConverter()->imageRectInWidgetPixels().size();
+    view->canvasController()->setPreferredCenter({imageSize.width() / 2, imageSize.height() / 2});
+    QTRY_COMPARE(owner->execution().published(owner->handle()), owner->operations().snapshot());
     for (auto *candidate : QGuiApplication::allWindows())
         if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate)) native = canvas;
     QVERIFY(native);
@@ -171,7 +193,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, first);
     QVERIFY2(owner->operations().hasActiveStroke(),
              errors.isEmpty() ? "The pointer press did not start a stroke" : qPrintable(errors.first().first().toString()));
-    QTRY_COMPARE(execution.published(owner->handle()), owner->operations().preview());
+    QTRY_COMPARE(owner->execution().published(owner->handle()), owner->operations().preview());
     if (!exhaustInput) {
         resources->setSize(16);
         resources->setFGColor(KoColor(QColor(221, 17, 44), KoColorSpaceRegistry::instance()->rgb8()));
@@ -205,12 +227,12 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
         QCOMPARE(errors.size(), 1);
         QVERIFY(!errors.first().first().toString().isEmpty());
         QCOMPARE(window->statusBar()->currentMessage(), errors.first().first().toString());
-        QTRY_COMPARE(execution.published(owner->handle()), owner->operations().snapshot());
+        QTRY_COMPARE(owner->execution().published(owner->handle()), owner->operations().snapshot());
         return;
     }
     QCOMPARE(owner->operations().undoCount(), 1);
     const auto painted = owner->operations().snapshot();
-    QTRY_COMPARE(execution.published(owner->handle()), painted);
+    QTRY_COMPARE(owner->execution().published(owner->handle()), painted);
     QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(40, 40, 1, 1), 4).bytes,
              QByteArray::fromHex("1181f1ff"));
     QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(45, 40, 1, 1), 4).bytes,
@@ -239,14 +261,14 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     pressed = true;
     QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, cancelled);
     QVERIFY(owner->operations().hasActiveStroke());
-    QTRY_COMPARE(execution.published(owner->handle()), owner->operations().preview());
+    QTRY_COMPARE(owner->execution().published(owner->handle()), owner->operations().preview());
     view->image()->requestStrokeCancellation();
     QVERIFY(!owner->operations().hasActiveStroke());
     QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, cancelled);
     pressed = false;
     QCOMPARE(owner->operations().snapshot(), painted);
     QCOMPARE(owner->operations().undoCount(), 1);
-    QTRY_COMPARE(execution.published(owner->handle()), painted);
+    QTRY_COMPARE(owner->execution().published(owner->handle()), painted);
 
     QTemporaryDir directory;
     QVERIFY(directory.isValid());

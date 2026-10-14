@@ -385,10 +385,10 @@ KisImage::~KisImage()
     disconnect(); // in case Qt gets confused
 }
 
-KisImage::KisImage(LibrePaint::Image::Gpu::PaintImageSP image, const QString &name)
+KisImage::KisImage(LibrePaint::Image::Gpu::PaintImageSP image, const QString &name, const KoColorSpace *colorSpace)
     : m_d(new KisImagePrivate(this, image->operations().snapshot()->size.width(),
                               image->operations().snapshot()->size.height(),
-                              KoColorSpaceRegistry::instance()->rgb8(), nullptr,
+                              colorSpace, nullptr,
                               new KisImageAnimationInterface(this), image))
 {
     setObjectName(name);

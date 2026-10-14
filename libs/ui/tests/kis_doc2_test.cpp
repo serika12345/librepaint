@@ -16,6 +16,8 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <application/kis_config.h>
 #include <testui.h>
+#include <KisImportExportManager.h>
+#include <kis_image.h>
 #include "KritaTransformMaskStubs.h"
 
 
@@ -40,8 +42,17 @@ void KisDocumentTest::testOpenImageTwiceInSameDoc()
 
     QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
 
-    doc->loadNativeFormat(fname);
-    doc->loadNativeFormat(fname2);
+    doc->setFileBatchMode(true);
+    QVERIFY(doc->importExportManager()->importDocument(fname, KisDocument::nativeFormatMimeType()).isOk());
+    QVERIFY(doc->importExportManager()->importDocument(fname2, KisDocument::nativeFormatMimeType()).isOk());
+
+    for (const auto &file : {QStringLiteral("single_layer_no_channel_flags_transp_def_pixel.kra"),
+                             QStringLiteral("single_layer_no_channel_flags_nontransp_def_pixel.kra")}) {
+        const auto path = QStringLiteral(KRITA_SOURCE_DIR "/plugins/impex/libkra/tests/data/") + file;
+        QVERIFY2(doc->loadNativeFormat(path), qPrintable(doc->errorMessage()));
+        QVERIFY(doc->image()->gpuImage());
+        QVERIFY(!doc->isModified());
+    }
 }
 
 

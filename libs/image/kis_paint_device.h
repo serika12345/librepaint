@@ -80,6 +80,9 @@ public:
      */
     static KisPaintDeviceSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image,
                                         quint64 layer, const QString &name = QString());
+    /** Uses the validated RGBA8/sRGB encoding supplied by the image owner. */
+    static KisPaintDeviceSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image,
+                                        quint64 layer, const QString &name, const KoColorSpace *colorSpace);
 
     /**
      * Create a new paint device with the specified colorspace.
@@ -970,7 +973,8 @@ protected:
 
 private:
     struct Private;
-    KisPaintDevice(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, quint64 layer, const QString &name);
+    KisPaintDevice(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, quint64 layer, const QString &name,
+                   const KoColorSpace *colorSpace);
     Private * const m_d;
 };
 

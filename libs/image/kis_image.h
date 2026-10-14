@@ -77,6 +77,9 @@ public:
      * Invalid or closed images throw std::invalid_argument.
      */
     static KisImageSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name);
+    /** Adopts the validated RGBA8/sRGB encoding of imported pixels. */
+    static KisImageSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name,
+                                   const KoColorSpace *colorSpace);
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuImage() const;
 
 public: // KisNodeGraphListener implementation
@@ -1257,7 +1260,7 @@ public Q_SLOTS:
 
 private:
 
-    KisImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name);
+    KisImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name, const KoColorSpace *colorSpace);
     void synchronizeGpuNodes();
     void connectGpuImageUpdates();
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> cloneGpuImage(bool exactCopy) const;

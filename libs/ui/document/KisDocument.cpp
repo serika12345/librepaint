@@ -1923,6 +1923,7 @@ bool KisDocument::importDocument(const QString &_path)
 
 bool KisDocument::openPath(const QString &_path, OpenFlags flags)
 {
+    QPointer<KisDocument> guard(this);
     dbgUI << "path=" << _path;
     d->lastErrorMessage.clear();
 
@@ -1974,6 +1975,7 @@ bool KisDocument::openPath(const QString &_path, OpenFlags flags)
     }
 
     bool ret = openPathInternal(path);
+    if (!guard || !ret) return ret;
 
     if (autosaveOpened || flags & RecoveryFile) {
         setReadWrite(true); // enable save button
@@ -2006,8 +2008,50 @@ bool KisDocument::openPath(const QString &_path, OpenFlags flags)
     return ret;
 }
 
+bool KisDocument::loadGpuKra(const QString &path)
+{
+    namespace GpuDocument = LibrePaint::Document::Gpu;
+    namespace Kra = LibrePaint::ImportExport::Kra;
+    QString diagnostic;
+    try {
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        if (!execution) { setErrorMessage(diagnostic); return false; }
+        auto opened = GpuDocument::PaintDocument::openKra(execution, path);
+        if (opened.code != GpuDocument::FileCode::Success) { setErrorMessage(opened.diagnostic); return false; }
+        const auto metadata = opened.document->kraImageMetadata();
+        if (metadata.code != Kra::Status::Success) { setErrorMessage(metadata.diagnostic); return false; }
+        const auto registry = KoColorSpaceRegistry::instance();
+        const auto profile = metadata.metadata.iccProfile.isEmpty() ? registry->rgb8()->profile() :
+            registry->createColorProfile(QStringLiteral("RGBA"), QStringLiteral("U8"), metadata.metadata.iccProfile);
+        if (!profile) { setErrorMessage(i18n("The KRA color profile could not be loaded.")); return false; }
+        const auto colorSpace = registry->rgb8(profile);
+        auto image = KisImage::fromGpuImage(opened.document->image(), QFileInfo(path).completeBaseName(), colorSpace);
+        image->setResolution(metadata.metadata.resolution.x() / 72, metadata.metadata.resolution.y() / 72);
+        for (const auto &annotation : metadata.metadata.annotations)
+            image->addAnnotation(new KisAnnotation(annotation.type, annotation.description, annotation.bytes));
+        KisNodeSP active;
+        const auto version = opened.document->image()->operations().snapshot();
+        for (int index = 0; index < version->layers.size(); ++index)
+            if (version->layers[index].id == version->activeLayer) active = image->root()->at(index);
+        auto fileDocument = std::shared_ptr<GpuDocument::PaintDocument>(std::move(opened.document));
+        setCurrentImage(image, true, active);
+        d->gpuDocument = std::move(fileDocument);
+        setPreActivatedNode(active);
+        if (!metadata.metadata.documentInfo.isEmpty()) {
+            QDomDocument info;
+            info.setContent(metadata.metadata.documentInfo);
+            documentInfo()->load(info);
+        }
+        return true;
+    } catch (const std::exception &error) {
+        setErrorMessage(QString::fromUtf8(error.what()));
+        return false;
+    }
+}
+
 bool KisDocument::openFile()
 {
+    QPointer<KisDocument> guard(this);
     //dbgUI <<"for" << localFilePath();
     if (!QFile::exists(localFilePath()) && !fileBatchMode()) {
         d->ioPresentation->presentMissingFile(localFilePath(), fileBatchMode());
@@ -2043,7 +2087,10 @@ bool KisDocument::openFile()
         d->importExportManager->setUpdater(updater);
     }
 
-    KisImportExportErrorCode status = d->importExportManager->importDocument(localFilePath(), typeName);
+    KisImportExportErrorCode status = typeName.toLatin1() == nativeFormatMimeType() ?
+        (loadGpuKra(localFilePath()) ? ImportExportCodes::OK : ImportExportCodes::Failure) :
+        d->importExportManager->importDocument(localFilePath(), typeName);
+    if (!guard) return status.isOk();
 
     if (!status.isOk()) {
         if (window && window->viewManager()) {
@@ -2069,6 +2116,7 @@ bool KisDocument::openFile()
     setMimeTypeAfterLoading(typeName);
     d->syncDecorationsWrapperLayerState();
     d->ioPresentation->notifyLoadSucceeded();
+    if (!guard) return true;
 
     undoStack()->clear();
 
@@ -2645,6 +2693,8 @@ bool KisDocument::openPathInternal(const QString &path)
     if ( path.isEmpty() ) {
         return false;
     }
+    const auto previousIdentity = d->identity;
+    QPointer<KisDocument> guard(this);
 
     if (d->identity.mimeTypeWasAutoDetected()) {
         d->identity.clearMimeType();
@@ -2656,9 +2706,11 @@ bool KisDocument::openPathInternal(const QString &path)
     if ( !closePath() ) {
         return false;
     }
+    if (!guard) return false;
 
     d->identity.setMimeType(mimeType);
     setPath(path);
+    if (!guard) return false;
 
     d->identity.setLocalFilePath(d->identity.path());
 
@@ -2674,6 +2726,14 @@ bool KisDocument::openPathInternal(const QString &path)
 
     setPath(d->identity.path());
     ret = openFile();
+    if (!guard) return ret;
+
+    if (!ret && d->identity.mimeType() == nativeFormatMimeType()) {
+        const bool pathChanged = d->identity.path() != previousIdentity.path();
+        d->identity = previousIdentity;
+        if (pathChanged) Q_EMIT sigPathChanged(d->identity.path());
+        if (!guard) return false;
+    }
 
     if (ret) {
         Q_EMIT completed();

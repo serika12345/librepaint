@@ -30,6 +30,7 @@
 #include "kis_fill_painter.h"
 #include "kis_shape_selection.h"
 #include "util.h"
+#include "KraReferenceReader.h"
 #include <testutil.h>
 #include "kis_keyframe_channel.h"
 #include "kis_image_animation_interface.h"
@@ -86,7 +87,7 @@ void KisKraSaverTest::testRoundTrip()
     doc->image()->rootLayer()->accept(cv1);
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    result = doc2->loadNativeFormat("roundtriptest.kra");
+    result = readWithExistingKraPlugin(doc2.data(), "roundtriptest.kra");
     QVERIFY(result);
 
     KisCountVisitor cv2(list, KoProperties());
@@ -117,7 +118,7 @@ void KisKraSaverTest::testSaveEmpty()
     doc->image()->rootLayer()->accept(cv1);
 
     KisDocument *doc2 = KisPart::instance()->createDocument();
-    doc2->loadNativeFormat("emptytest.kra");
+    readWithExistingKraPlugin(doc2, "emptytest.kra");
 
     KisCountVisitor cv2(list, KoProperties());
     doc2->image()->rootLayer()->accept(cv2);
@@ -155,7 +156,7 @@ void testRoundTripFillLayerImpl(const QString &testName, KisFilterConfigurationS
     doc->exportDocumentSync("roundtrip_fill_layer_test.kra", doc->mimeType());
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    doc2->loadNativeFormat("roundtrip_fill_layer_test.kra");
+    readWithExistingKraPlugin(doc2.data(), "roundtrip_fill_layer_test.kra");
 
     doc2->image()->waitForDone();
     chk.checkImage(doc2->image(), "01_fill_layer_round_trip");
@@ -248,7 +249,7 @@ void KisKraSaverTest::testRoundTripLayerStyles()
 
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    doc2->loadNativeFormat("roundtrip_layer_styles.kra");
+    readWithExistingKraPlugin(doc2.data(), "roundtrip_layer_styles.kra");
 
     doc2->image()->waitForDone();
     chk.checkImage(doc2->image(), "00_initial_layers");
@@ -296,7 +297,7 @@ void KisKraSaverTest::testRoundTripAnimation()
     doc->exportDocumentSync("roundtrip_animation.kra", doc->mimeType());
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    doc2->loadNativeFormat("roundtrip_animation.kra");
+    readWithExistingKraPlugin(doc2.data(), "roundtrip_animation.kra");
     KisImageSP image2 = doc2->image();
     KisNodeSP node = image2->root()->firstChild();
 
@@ -387,7 +388,7 @@ void KisKraSaverTest::testRoundTripColorizeMask()
     doc->exportDocumentSync("roundtrip_colorize.kra", doc->mimeType());
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    doc2->loadNativeFormat("roundtrip_colorize.kra");
+    readWithExistingKraPlugin(doc2.data(), "roundtrip_colorize.kra");
     KisImageSP image2 = doc2->image();
     KisNodeSP node = image2->root()->firstChild()->firstChild();
 
@@ -456,7 +457,7 @@ void KisKraSaverTest::testRoundTripShapeLayer()
     doc->exportDocumentSync("roundtrip_shapelayer_test.kra", doc->mimeType());
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    doc2->loadNativeFormat("roundtrip_shapelayer_test.kra");
+    readWithExistingKraPlugin(doc2.data(), "roundtrip_shapelayer_test.kra");
 
     qApp->processEvents();
     doc2->image()->waitForDone();
@@ -516,7 +517,7 @@ void KisKraSaverTest::testRoundTripShapeSelection()
     doc->exportDocumentSync("roundtrip_shapeselection_test.kra", doc->mimeType());
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    doc2->loadNativeFormat("roundtrip_shapeselection_test.kra");
+    readWithExistingKraPlugin(doc2.data(), "roundtrip_shapeselection_test.kra");
 
     qApp->processEvents();
     doc2->image()->waitForDone();
@@ -558,7 +559,7 @@ void KisKraSaverTest::testRoundTripStoryboard()
     QVERIFY(result);
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    result = doc2->loadNativeFormat("storyboardroundtriptest.kra");
+    result = readWithExistingKraPlugin(doc2.data(), "storyboardroundtriptest.kra");
     QVERIFY(result);
 
     QCOMPARE(doc2->getStoryboardItemList().count(), list.count());
@@ -610,7 +611,7 @@ void KisKraSaverTest::testRoundTripCicp()
     doc->exportDocumentSync(name, doc->mimeType());
 
     QScopedPointer<KisDocument> doc2(KisPart::instance()->createDocument());
-    bool result = doc2->loadNativeFormat(name);
+    bool result = readWithExistingKraPlugin(doc2.data(), name);
     QVERIFY(result);
     doc2->image()->waitForDone();
 

@@ -69,6 +69,8 @@
 #include "KisRecentFileIconCache.h"
 #include "animation/KisPlaybackEngine.h"
 #include "animation/KisPlaybackEngineQT.h"
+#include <gpu/KisGpuExecution.h>
+#include <QThread>
 
 #ifdef HAVE_MLT
 #include "animation/KisPlaybackEngineMLT.h"
@@ -92,6 +94,7 @@ public:
     }
 
     KisPart *part;
+    std::weak_ptr<LibrePaint::Image::Gpu::Execution> gpuExecution;
 
     QList<QPointer<KisView> > views;
     QList<QPointer<KisMainWindow> > mainWindows;
@@ -120,6 +123,21 @@ public:
 KisPart* KisPart::instance()
 {
     return s_instance;
+}
+
+std::shared_ptr<LibrePaint::Image::Gpu::Execution> KisPart::gpuExecution(QString &diagnostic)
+{
+    diagnostic.clear();
+    if (QThread::currentThread() != thread()) {
+        diagnostic = i18n("GPU documents require the application thread.");
+        return {};
+    }
+    if (auto execution = d->gpuExecution.lock()) return execution;
+    const auto device = LibrePaint::Image::Gpu::Device::createNative(diagnostic);
+    if (!device) return {};
+    auto execution = std::make_shared<LibrePaint::Image::Gpu::Execution>(device);
+    d->gpuExecution = execution;
+    return execution;
 }
 
 KisPart::KisPart()

@@ -28,12 +28,14 @@
 #include <filestest.h>
 
 #include <testui.h>
+#include "KraReferenceReader.h"
 #include <kra/KisKraRasterCodec.h>
 #include <QBuffer>
 #include <QTemporaryDir>
 #include <QColorSpace>
 
 const QString KraMimetype = "application/x-krita";
+
 
 void KisKraLoaderTest::initTestCase()
 {
@@ -44,7 +46,7 @@ void KisKraLoaderTest::initTestCase()
 void KisKraLoaderTest::testLoading()
 {
     QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
-    doc->loadNativeFormat(QString(FILES_DATA_DIR) + '/' + "load_test.kra");
+    readWithExistingKraPlugin(doc.data(), QString(FILES_DATA_DIR) + '/' + "load_test.kra");
     KisImageSP image = doc->image();
     image->waitForDone();
     QCOMPARE(image->nlayers(), 12);
@@ -75,7 +77,7 @@ void testObligeSingleChildImpl(bool transpDefaultPixel)
     QString fileName = TestUtil::fetchDataFileLazy(id);
 
     QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
-    const bool result = doc->loadNativeFormat(fileName);
+    const bool result = readWithExistingKraPlugin(doc.data(), fileName);
     QVERIFY(result);
 
     KisImageSP image = doc->image();
@@ -118,7 +120,7 @@ void KisKraLoaderTest::testDirectRasterCompatibility()
         const auto imported = Kra::RasterCodec::read(input);
         QVERIFY2(imported.code == Kra::Status::Success, qPrintable(imported.diagnostic));
         QScopedPointer<KisDocument> existing(KisPart::instance()->createDocument());
-        QVERIFY(existing->loadNativeFormat(path));
+        QVERIFY(readWithExistingKraPlugin(existing.data(), path));
         existing->image()->waitForDone();
         const auto pixels = existing->image()->root()->firstChild()->paintDevice();
         QVERIFY(pixels);
@@ -160,7 +162,7 @@ void KisKraLoaderTest::testDirectRasterCompatibility()
     QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
     output.close();
     QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
-    QVERIFY(reopened->loadNativeFormat(path));
+    QVERIFY(readWithExistingKraPlugin(reopened.data(), path));
     reopened->image()->waitForDone();
     auto node = reopened->image()->root()->firstChild();
     for (const auto &layer : source.image.layers) {
@@ -193,7 +195,7 @@ void KisKraLoaderTest::testDirectRasterCompatibility()
     QVERIFY2(emptyResult.code == Kra::Status::Success, qPrintable(emptyResult.diagnostic));
     emptyOutput.close();
     QScopedPointer<KisDocument> emptyDocument(KisPart::instance()->createDocument());
-    QVERIFY(emptyDocument->loadNativeFormat(emptyPath));
+    QVERIFY(readWithExistingKraPlugin(emptyDocument.data(), emptyPath));
     emptyDocument->image()->waitForDone();
     QCOMPARE(emptyDocument->image()->root()->childCount(), 0U);
     QByteArray emptyPixels(100 * 100 * 4, Qt::Uninitialized);
@@ -204,7 +206,7 @@ void KisKraLoaderTest::testDirectRasterCompatibility()
 void KisKraLoaderTest::testLoadAnimated()
 {
     QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
-    doc->loadNativeFormat(QString(FILES_DATA_DIR) + '/' + "load_test_animation.kra");
+    readWithExistingKraPlugin(doc.data(), QString(FILES_DATA_DIR) + '/' + "load_test_animation.kra");
     KisImageSP image = doc->image();
 
     KisNodeSP node1 = image->root()->firstChild();
@@ -275,7 +277,7 @@ void KisKraLoaderTest::testImportIncorrectFormat()
 void KisKraLoaderTest::testLoadingOldHdrProfileNoCicp()
 {
     QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
-    doc->loadNativeFormat(QString(FILES_DATA_DIR) + '/' + "hdr_gem_old_profile_no_cicp.kra");
+    readWithExistingKraPlugin(doc.data(), QString(FILES_DATA_DIR) + '/' + "hdr_gem_old_profile_no_cicp.kra");
     KisImageSP image = doc->image();
     image->waitForDone();
     QCOMPARE(image->colorSpace()->profile()->getColorPrimaries(), PRIMARIES_ITU_R_BT_2020_2_AND_2100_0);
@@ -286,7 +288,7 @@ void KisKraLoaderTest::testLoadingOldHdrProfileNoCicp()
 void KisKraLoaderTest::testLoadingUncommonHdrProfileWithCicp()
 {
     QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
-    doc->loadNativeFormat(QString(FILES_DATA_DIR) + '/' + "hdr_gem_180nits_rec2100pq_profile.kra");
+    readWithExistingKraPlugin(doc.data(), QString(FILES_DATA_DIR) + '/' + "hdr_gem_180nits_rec2100pq_profile.kra");
     KisImageSP image = doc->image();
     image->waitForDone();
     QCOMPARE(image->colorSpace()->profile()->getColorPrimaries(), PRIMARIES_ITU_R_BT_2020_2_AND_2100_0);

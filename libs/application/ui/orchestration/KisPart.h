@@ -16,6 +16,7 @@
 #include <QPointer>
 #include <QUrl>
 #include <QUuid>
+#include <memory>
 
 #include <application/ui/workspace/KisSessionResource.h>
 
@@ -39,6 +40,7 @@ class KisMainWindow;
 class KisInputManager;
 class KisViewManager;
 class QWidget;
+namespace LibrePaint::Image::Gpu { class Execution; }
 
 
 /**
@@ -87,6 +89,8 @@ public:
      * create a throwaway empty document. The document does not register a resource storage
      */
     KisDocument *createTemporaryDocument() const;
+    /** Reuses the GUI-thread execution of open GPU images; failure supplies a diagnostic. */
+    std::shared_ptr<LibrePaint::Image::Gpu::Execution> gpuExecution(QString &diagnostic);
 
     /**
      * Add the specified document to the list of documents this KisPart manages.

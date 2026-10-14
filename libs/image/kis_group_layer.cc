@@ -211,7 +211,7 @@ void KisGroupLayer::fillMergedLayerTemplate(KisLayerSP dstLayer, KisLayerSP prev
 void KisGroupLayer::resetCache(const KoColorSpace *colorSpace)
 {
     if (const auto owner = image() ? image()->gpuImage() : nullptr) {
-        m_d->paintDevice = KisPaintDevice::fromGpuImage(owner, 0);
+        m_d->paintDevice = KisPaintDevice::fromGpuImage(owner, 0, {}, colorSpace ? colorSpace : image()->colorSpace());
         m_d->paintDevice->setDefaultBounds(new KisDefaultBounds(image()));
         m_d->paintDevice->setProjectionDevice(true);
         return;

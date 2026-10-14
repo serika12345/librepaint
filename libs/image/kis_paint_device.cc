@@ -1126,21 +1126,29 @@ void KisPaintDevice::Private::init(const KoColorSpace *cs, const quint8 *default
 }
 
 KisPaintDeviceSP KisPaintDevice::fromGpuImage(LibrePaint::Image::Gpu::PaintImageSP image, quint64 layer, const QString &name)
+{ return fromGpuImage(std::move(image), layer, name, KoColorSpaceRegistry::instance()->rgb8()); }
+
+KisPaintDeviceSP KisPaintDevice::fromGpuImage(LibrePaint::Image::Gpu::PaintImageSP image, quint64 layer, const QString &name,
+                                            const KoColorSpace *colorSpace)
 {
     if (!image || !image->handle() || QThread::currentThread() != image->thread())
         throw std::invalid_argument("GPU paint-device construction requires an open image on its owning thread");
     bool found = layer == 0;
     for (const auto &value : image->operations().snapshot()->layers) found |= value.id == layer;
     if (!found) throw std::invalid_argument("GPU paint-device layer is unavailable");
-    return new KisPaintDevice(std::move(image), layer, name);
+    if (!colorSpace || colorSpace->colorModelId().id() != QLatin1String("RGBA") ||
+        colorSpace->colorDepthId().id() != QLatin1String("U8"))
+        throw std::invalid_argument("GPU paint-device views require the validated RGBA8/sRGB encoding");
+    return new KisPaintDevice(std::move(image), layer, name, colorSpace);
 }
 
-KisPaintDevice::KisPaintDevice(LibrePaint::Image::Gpu::PaintImageSP image, quint64 layer, const QString &name)
+KisPaintDevice::KisPaintDevice(LibrePaint::Image::Gpu::PaintImageSP image, quint64 layer, const QString &name,
+                              const KoColorSpace *colorSpace)
     : QObject(nullptr)
     , m_d(new Private(this, std::move(image), layer))
 {
     setObjectName(name);
-    m_d->gpuColorSpace = KoColorSpaceRegistry::instance()->rgb8();
+    m_d->gpuColorSpace = colorSpace;
     m_d->defaultBounds = new KisDefaultBounds();
 }
 

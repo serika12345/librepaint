@@ -15,6 +15,8 @@
 #include <QFile>
 #include <QTemporaryDir>
 #include <QDomDocument>
+#include <QColorSpace>
+#include <QScopeGuard>
 
 #include <Node.h>
 #include <Krita.h>
@@ -162,6 +164,106 @@ void TestDocument::testGpuImagePixelDataModifiedStateAndRetainedNode()
     QCOMPARE(node->pixelData(5, 5, 1, 1), QByteArray::fromHex("443322ff"));
     node.clear();
     QVERIFY(lifetime.expired());
+}
+
+void TestDocument::testGpuOpenKeepsPixelsMetadataAndAssociatedFiles()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    namespace Kra = LibrePaint::ImportExport::Kra;
+    Kra::Document source;
+    source.image.size = QSize(64, 32);
+    Gpu::RgbaTile tile{{0, 0}, QByteArray(Gpu::RgbaTile::ByteCount, '\0')};
+    tile.rgba.replace((5 * 256 + 5) * 4, 4, QByteArray::fromHex("112233ff"));
+    source.image.layers = {{QStringLiteral("Paint"), true, QUuid::createUuid(), {tile}},
+                           {QStringLiteral("Hidden"), false, QUuid::createUuid(), {}, {170, 187, 204, 0}}};
+    source.image.activeLayer = 0;
+    Kra::ImageMetadata metadata;
+    metadata.resolution = {300, 150};
+    metadata.documentInfo = QByteArrayLiteral("<document-info><about><title>Imported title</title></about></document-info>");
+    metadata.iccProfile = QColorSpace(QColorSpace::SRgb).iccProfile();
+    metadata.annotations = {{QStringLiteral("notes"), QStringLiteral("Project notes"), QByteArrayLiteral("note bytes")}};
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, metadata).code, Kra::Status::Success);
+    source.files.insert(QStringLiteral("notes/opaque.bin"), QByteArray::fromHex("ff0011"));
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("import.kra"));
+    QImage projection(source.image.size, QImage::Format_RGBA8888);
+    projection.fill(Qt::transparent);
+    projection.setColorSpace(QColorSpace::SRgb);
+    QFile output(path);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, projection).code, Kra::Status::Success);
+    output.close();
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    QSignalSpy completed(document.data(), &KisDocument::completed);
+    QVERIFY2(document->openPath(path, KisDocument::DontAddToRecent), qPrintable(document->errorMessage()));
+    QCOMPARE(completed.size(), 1);
+    const auto owner = document->image()->gpuImage();
+    QVERIFY(owner);
+    QCOMPARE(document->path(), path);
+    QCOMPARE(document->image()->xRes() * 72, 300.0);
+    QCOMPARE(document->image()->yRes() * 72, 150.0);
+    QCOMPARE(document->image()->profile()->rawData(), metadata.iccProfile);
+    QCOMPARE(document->documentInfo()->aboutInfo(QStringLiteral("title")), QStringLiteral("Imported title"));
+    QCOMPARE(document->image()->annotation(QStringLiteral("notes"))->annotation(), QByteArrayLiteral("note bytes"));
+    QCOMPARE(document->image()->root()->at(0)->paintDevice()->colorSpace()->profile()->rawData(), metadata.iccProfile);
+    QCOMPARE(document->image()->root()->at(0)->uuid(), source.image.layers[0].uuid);
+    QVERIFY(!document->image()->root()->at(1)->visible());
+    QCOMPARE(document->preActivatedNode(), document->image()->root()->at(0));
+    QVERIFY(!document->isModified());
+    QCOMPARE(owner->operations().undoCount(), 0);
+    QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(5, 5, 1, 1), 4).bytes, QByteArray::fromHex("112233ff"));
+    const auto layer = owner->operations().activeLayer();
+    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("445566ff")), Gpu::Result::Success);
+    const auto savedPath = directory.filePath(QStringLiteral("resaved.kra"));
+    QVERIFY2(document->saveAs(savedPath, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
+    QFile input(savedPath);
+    QVERIFY(input.open(QIODevice::ReadOnly));
+    const auto saved = Kra::RasterCodec::read(input);
+    QCOMPARE(saved.code, Kra::Status::Success);
+    QCOMPARE(saved.document.files.value(QStringLiteral("notes/opaque.bin")), QByteArray::fromHex("ff0011"));
+    const auto savedMetadata = Kra::RasterCodec::readImageMetadata(saved.document.description, saved.document.files);
+    QCOMPARE(savedMetadata.code, Kra::Status::Success);
+    QCOMPARE(savedMetadata.metadata.iccProfile, metadata.iccProfile);
+    const auto currentImage = document->image();
+    const auto currentVersion = owner->operations().snapshot();
+    const auto failedPath = directory.filePath(QStringLiteral("invalid.kra"));
+    QFile invalid(failedPath);
+    QVERIFY(invalid.open(QIODevice::WriteOnly));
+    invalid.write("invalid archive");
+    invalid.close();
+    QSignalSpy cancelled(document.data(), &KisDocument::canceled);
+    const auto completionsBeforeFailure = completed.size();
+    QVERIFY(!document->openPath(failedPath, KisDocument::DontAddToRecent));
+    QVERIFY(!document->errorMessage().isEmpty());
+    QCOMPARE(cancelled.size(), 1);
+    QCOMPARE(completed.size(), completionsBeforeFailure);
+    QCOMPARE(document->image(), currentImage);
+    QCOMPARE(owner->operations().snapshot(), currentVersion);
+    QCOMPARE(document->path(), savedPath);
+    QCOMPARE(document->localFilePath(), savedPath);
+    QCOMPARE(document->documentInfo()->aboutInfo(QStringLiteral("title")), QStringLiteral("Imported title"));
+    QVERIFY(!document->isModified());
+    for (const bool closeBeforeCompletion : {true, false}) {
+        QScopedPointer<KisDocument> closingOwner(KisPart::instance()->createDocument());
+        QPointer<KisDocument> closing = closingOwner.data();
+        closing->setFileBatchMode(true);
+        Gpu::PaintImageSP retained;
+        connect(closing.data(), closeBeforeCompletion ? &KisDocument::sigLoadingFinished : &KisDocument::completed,
+                this, [&] {
+            retained = closing->image()->gpuImage();
+            KisPart::instance()->removeDocument(closing.data(), false);
+            delete closingOwner.take();
+        });
+        const bool opened = closing->openPath(path, KisDocument::DontAddToRecent);
+        QVERIFY(opened);
+        QVERIFY(!closing);
+        QVERIFY(retained);
+        QCOMPARE(retained->readRgbaPixels(retained->operations().activeLayer(), QRect(5, 5, 1, 1), 4).bytes,
+                 QByteArray::fromHex("112233ff"));
+    }
+    KisPart::instance()->removeDocument(document.data(), false);
 }
 
 void TestDocument::testGpuSaveAndExportPreserveHistoryAndFileIdentity()
@@ -685,10 +787,18 @@ void TestDocument::testAnnotations()
     d.removeAnnotation("test");
     QVERIFY(d.annotationTypes().isEmpty());
 
-    d.close();
+    kisdoc.take();
+    layer.clear();
+    image.clear();
+    QVERIFY(d.close());
+    QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
 
     Krita *krita = Krita::instance();
+    const bool previousBatchMode = krita->batchmode();
+    const auto restoreBatchMode = qScopeGuard([&] { krita->setBatchmode(previousBatchMode); });
+    krita->setBatchmode(true);
     Document *d2 = krita->openDocument("roundtriptest.kra");
+    QVERIFY(d2);
 
     QVERIFY(d2->annotationTypes().size() == 1);
     QVERIFY(d2->annotationTypes().contains("test"));

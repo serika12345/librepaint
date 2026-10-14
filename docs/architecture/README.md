@@ -679,6 +679,13 @@ GPU画像の画素と履歴は共有所有者が保持し、公開画像はCPU�
 `KisDocument::setCurrentImage()`はこの画像を公開文書へ接続し、`Document::pixelData()`が
 同期的にGPUの合成結果を返す。文書の変更済み状態はGPU画像の保存済み版と比較し、直接画素書込みでは
 編集通知を増やさない。公開ノードが保持する画素は、文書を破棄した後も参照できる。
+通常のKRA読込は`libs/ui/document/KisDocument.cpp`から
+`libs/document/files/gpu/KisGpuKraDocumentFile.cpp`へ渡し、CPU文書の読込を介さずに画像を公開する。
+公開画像とレイヤーは検査済みのRGBA8/sRGBのICCを採用し、解像度、注釈、文書情報と
+選択レイヤーを復元する。形式所有者は元の記述と付属ファイルを保持して再保存へ渡す。
+読込失敗は元の画像と保存先を保持し、読込通知中の文書終了は後続通知を止める。
+`libs/application/ui/orchestration/KisPart.cpp`は、存続する画像間でGUIスレッドの共有実行を再利用する。
+画像が実行の寿命を保持し、アプリケーション側の弱参照は最後の画像の解放を妨げない。
 `libs/ui/document/KisDocument.cpp`は、接続したGPU画像のKRA保存と書出しを新しい文書所有者へ渡す。
 保存では旧画像の複製とCPU描画スケジューラーを使わず、通常の保存アクション、公開保存API、
 同期書出しが同じ固定版を利用する。保存通知中の追加編集は変更済み状態を保ち、

@@ -586,6 +586,7 @@ private:
      * This method is called from the KReadOnlyPart::openPath method.
      */
     bool openFile();
+    bool loadGpuKra(const QString &path);
 
 public:
 

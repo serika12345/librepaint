@@ -100,7 +100,8 @@ Outcome description(const QByteArray &bytes, QDomDocument &xml, QDomElement &ima
     const auto root = xml.documentElement();
     image = root.firstChildElement(QStringLiteral("IMAGE"));
     const auto layers = image.firstChildElement(QStringLiteral("layers"));
-    if (root.tagName() != QLatin1String("DOC") || root.attribute(QStringLiteral("syntaxVersion")) != QLatin1String("2") ||
+    const auto syntaxVersion = root.attribute(QStringLiteral("syntaxVersion"));
+    if (root.tagName() != QLatin1String("DOC") || (syntaxVersion != QLatin1String("2") && syntaxVersion != QLatin1String("2.0")) ||
         image.isNull() || !image.nextSiblingElement(QStringLiteral("IMAGE")).isNull() ||
         layers.isNull() || !layers.nextSiblingElement(QStringLiteral("layers")).isNull() ||
         !component(image.attribute(QStringLiteral("name")))) return invalid(QStringLiteral("Invalid KRA image description"));
