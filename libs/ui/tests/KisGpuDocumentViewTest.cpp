@@ -40,6 +40,8 @@
 #include <gpu/KisGpuPaintImage.h>
 #include <kis_image.h>
 #include <kis_node.h>
+#include <kis_paint_device.h>
+#include <nodes/kis_node_manager.h>
 #include <kis_canvas2.h>
 #include <kundo2stack.h>
 #include <brushengine/kis_paintop_registry.h>
@@ -78,29 +80,80 @@ private Q_SLOTS:
     void freehandInputCommitsOneHistoryEntryAndCanBeCancelled_data();
     void freehandInputCommitsOneHistoryEntryAndCanBeCancelled();
     void replacementUpdatesPresentationInputHistoryAndSaving();
+    void ordinaryLayerPanelEditsUseOneDocumentHistory();
 private:
     KisPaintOpPresetSP m_preset;
 };
+
+void KisGpuDocumentViewTest::ordinaryLayerPanelEditsUseOneDocumentHistory()
+{
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QVERIFY(document->newImage(QStringLiteral("Layer panel editing"), 32, 16, cs,
+                               KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    auto image = KisImageSP(lifetime->image());
+    const auto layer = image->root()->firstChild();
+    const auto originalName = layer->name();
+    const auto red = QByteArray::fromHex("0000ffff");
+    layer->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(red.constData()), 5, 5, 1, 1);
+    auto *manager = window->viewManager()->nodeManager();
+    try {
+        manager->setNodeName(layer, QStringLiteral("Renamed"));
+        manager->setNodeOpacity(layer, 128);
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    image->waitForDone();
+    QCOMPARE(layer->name(), QStringLiteral("Renamed"));
+    QCOMPARE(layer->opacity(), quint8(128));
+    QCOMPARE(lifetime->undoStack()->count(), 2);
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(layer->opacity(), quint8(255));
+    QCOMPARE(layer->name(), QStringLiteral("Renamed"));
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(layer->name(), originalName);
+    lifetime->undoStack()->redo();
+    image->waitForDone();
+    lifetime->undoStack()->redo();
+    image->waitForDone();
+    QCOMPARE(layer->name(), QStringLiteral("Renamed"));
+    QCOMPARE(layer->opacity(), quint8(128));
+    image->refreshGraphAsync();
+    image->waitForDone();
+    QByteArray pixel(4, '\0');
+    image->projection()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 5, 5, 1, 1);
+    QCOMPARE(pixel, QByteArray::fromHex("0000ff80"));
+}
 
 void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelled_data()
 {
     QTest::addColumn<bool>("exhaustInput");
     QTest::addColumn<bool>("closeAfterError");
-    QTest::addColumn<bool>("ordinaryOpen");
-    QTest::addColumn<bool>("ordinaryNew");
-    QTest::newRow("paint-and-cancel") << false << false << false << false;
-    QTest::newRow("input-limit") << true << false << false << false;
-    QTest::newRow("close-on-input-limit") << true << true << false << false;
-    QTest::newRow("ordinary-kra-open") << false << false << true << false;
-    QTest::newRow("ordinary-new") << false << false << false << true;
+    QTest::newRow("paint-and-cancel") << false << false;
+    QTest::newRow("input-limit") << true << false;
+    QTest::newRow("close-on-input-limit") << true << true;
 }
 
 void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelled()
 {
     QFETCH(bool, exhaustInput);
     QFETCH(bool, closeAfterError);
-    QFETCH(bool, ordinaryOpen);
-    QFETCH(bool, ordinaryNew);
     namespace Gpu = LibrePaint::Image::Gpu;
     QString diagnostic;
     const auto device = Gpu::Device::createNative(diagnostic);
@@ -110,26 +163,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     if (exhaustInput) limits.samplesPerStroke = 4;
     auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64), limits);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
-    if (ordinaryNew) {
-        const auto cs = KoColorSpaceRegistry::instance()->rgb8();
-        QVERIFY2(document->newImage(QStringLiteral("GPU freehand input"), 64, 64, cs,
-                                    KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1),
-                 qPrintable(document->errorMessage()));
-        owner = document->image()->gpuImage();
-        QVERIFY(owner);
-    } else {
-        document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("GPU freehand input")));
-    }
-    QTemporaryDir openedDirectory;
-    if (ordinaryOpen) {
-        QVERIFY(openedDirectory.isValid());
-        const auto path = openedDirectory.filePath(QStringLiteral("ordinary-open.kra"));
-        document->setFileBatchMode(true);
-        QVERIFY2(document->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
-        QVERIFY2(document->openPath(path, KisDocument::DontAddToRecent), qPrintable(document->errorMessage()));
-        owner = document->image()->gpuImage();
-        QVERIFY(owner);
-    }
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("GPU freehand input")));
     std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
     window->resize(800, 600);
     auto *view = window->newView(document.get());

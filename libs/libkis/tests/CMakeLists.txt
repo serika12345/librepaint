@@ -11,3 +11,5 @@ kis_add_tests(
     TestAngleSelector.cpp
     LINK_LIBRARIES kritalibkis kritatestsdk
     )
+
+add_dependencies(TestDocument kritapngimport kritapngexport)

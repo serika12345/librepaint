@@ -119,6 +119,13 @@ UI側は対象画像、参照画像、キャンバス色資源、カーソルと
 
 ### 入出力と文書寿命
 
+通常の文書操作は、既存のブラシ、色精度、レイヤー階層、選択・マスク、効果と形式の利用可否を維持する。
+GPU実装の製品採用は、対応する通常操作、公開API、ファイル往復と環境間一致の受入れを単位とする。
+限定した画像所有者の検証結果は、その範囲の根拠として扱う。通常経路への採用と旧処理の撤去条件は
+[#87](https://github.com/serika12345/librepaint/issues/87)、
+[#89](https://github.com/serika12345/librepaint/issues/89)、
+[#91](https://github.com/serika12345/librepaint/issues/91)が所有する。
+
 #### 保持する描画操作と文書版
 
 `libs/image/gpu/KisGpuOperationDocument.{h,cpp}`は、`LibrePaint::Image::Gpu`の
@@ -273,6 +280,10 @@ Vulkan接続はネイティブGPUの解放後に終了する。
 GPU計算はQt Guiの内部APIへ依存し、Nixで固定したQtと対応する`qsb`を使用する。
 シェーダー構築にはホストの`Qt6ShaderToolsTools`を使い、成果物に格納したシェーダーを実行時に読む。
 公開ヘッダーはGPU資源の借用寿命を表し、Qtの内部ヘッダーは実装側が所有する。
+このQRhi依存は[#89](https://github.com/serika12345/librepaint/issues/89)で置換する対象であり、
+共通GPU基盤の採用契約はwgpu-nativeである。計算、合成、提示、読取りと資源寿命の契約を
+Metal・Vulkanで満たしたwgpu-native実装へ移管し、QRhi依存と`qsb`によるシェーダー構築を撤去する。
+QtはUI、入力、ウィンドウ管理を所有する。
 
 `KisGpuTileProjection.cpp`は可視レイヤーを文書順で合成し、指定した文書領域と交差する
 タイルを生成する。表示側は可視領域、保存側は固定版の全文書領域を指定する。
@@ -696,17 +707,17 @@ GPU画像の画素と履歴は共有所有者が保持し、公開画像はCPU�
 `KisDocument::setCurrentImage()`はこの画像を公開文書へ接続し、`Document::pixelData()`が
 同期的にGPUの合成結果を返す。文書の変更済み状態はGPU画像の保存済み版と比較し、直接画素書込みでは
 編集通知を増やさない。公開ノードが保持する画素は、文書を破棄した後も参照できる。
-通常のKRA読込は`libs/ui/document/KisDocument.cpp`から
-`libs/document/files/gpu/KisGpuKraDocumentFile.cpp`へ渡し、CPU文書の読込を介さずに画像を公開する。
-公開画像とレイヤーは検査済みのRGBA8/sRGBのICCを採用し、解像度、注釈、文書情報と
-選択レイヤーを復元する。形式所有者は元の記述と付属ファイルを保持して再保存へ渡す。
+通常のKRA読込は`libs/ui/document/KisDocument.cpp`から既存の形式プラグインへ渡し、
+レイヤー階層、色精度、注釈、解像度と文書情報を含む文書を公開する。
 読込失敗は元の画像と保存先を保持し、読込通知中の文書終了は後続通知を止める。
+GPU画像所有者の限定した直接KRA入出力は`libs/document/files/gpu/KisGpuKraDocumentFile.cpp`が担当し、
+RGBA8/sRGBの画像情報、元の記述と付属ファイルを保持して再保存へ渡す。
 `libs/application/ui/orchestration/KisPart.cpp`は、存続する画像間でGUIスレッドの共有実行を再利用する。
 画像が実行の寿命を保持し、アプリケーション側の弱参照は最後の画像の解放を妨げない。
-`libs/ui/document/KisDocument.cpp`の新規作成は、RGBA8/sRGBのペイント背景レイヤーと
-キャンバス背景色をGPU文書の初期値へ渡す。初期レイヤーの名前、不透明度、ロック、
-タイムラインへの固定、選択位置と背景色を保持し、作成時の履歴を空にする。
-文書寸法、レイヤー数とICCを検査してから画像を公開し、失敗時は元の画像を保持する。
+`libs/ui/document/KisDocument.cpp`の通常の新規作成は既存の画像所有者を使い、
+選択した色空間、背景、レイヤー、初期属性と文書情報を利用できる文書へ接続する。
+PNGなどの書出し、階層、ブラシ、選択を含む通常操作の利用可否を保持する。
+正の文書寸法を検査してから画像を作成し、入力拒否時は元の画像を保持する。
 `libs/ui/document/KisDocument.cpp`は、接続したGPU画像のKRA保存と書出しを新しい文書所有者へ渡す。
 保存では旧画像の複製とCPU描画スケジューラーを使わず、通常の保存アクション、公開保存API、
 同期書出しが同じ固定版を利用する。保存通知中の追加編集は変更済み状態を保ち、

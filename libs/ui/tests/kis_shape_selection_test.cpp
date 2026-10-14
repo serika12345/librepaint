@@ -20,24 +20,11 @@
 #include "kis_pixel_selection.h"
 #include "flake/kis_shape_selection.h"
 #include "kis_image.h"
-#include "kis_paint_layer.h"
 #include <testutil.h>
 #include "testui.h"
 #include <application/ui/orchestration/KisPart.h>
 #include <document/KisDocument.h>
 #include "kis_transaction.h"
-
-namespace {
-// These reference contracts exercise CPU selection transactions and their scheduled updates.
-void initializeSelectionReference(KisDocument *document, const KoColorSpace *colorSpace, const KoColor &background)
-{
-    KisImageSP image = new KisImage(document->createUndoStore(), 300, 300, colorSpace, QStringLiteral("test"));
-    image->setResolution(100, 100);
-    image->setDefaultProjectionColor(background);
-    image->addNode(new KisPaintLayer(image, QStringLiteral("Background"), 255), image->root());
-    document->setCurrentImage(image);
-}
-}
 
 void KisShapeSelectionTest::testAddChild()
 {
@@ -46,7 +33,7 @@ void KisShapeSelectionTest::testAddChild()
     QColor qc(Qt::white);
     qc.setAlpha(0);
     KoColor bgColor(qc, cs);
-    initializeSelectionReference(doc.data(), cs, bgColor);
+    QVERIFY(doc->newImage("test", 300, 300, cs, bgColor, KisConfig::CANVAS_COLOR, 1, "test", 100));
     KisImageSP image = doc->image();
 
     KisDefaultBoundsSP bounds(new KisDefaultBounds(image));
@@ -105,7 +92,7 @@ void KisShapeSelectionTest::testUndoFlattening()
     const KoColorSpace * cs = KoColorSpaceRegistry::instance()->rgb8();
     QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
     KoColor bgColor(QColor(255, 255, 255, 0), cs);
-    initializeSelectionReference(doc.data(), cs, bgColor);
+    QVERIFY(doc->newImage("test", 300, 300, cs, bgColor, KisConfig::CANVAS_COLOR, 1, "test", 100));
     KisImageSP image = doc->image();
 
     QCOMPARE(image->locked(), false);
@@ -214,7 +201,7 @@ void KisShapeSelectionTest::testHistoryOnFlattening()
     const KoColorSpace * cs = KoColorSpaceRegistry::instance()->rgb8();
     QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
     KoColor bgColor(QColor(255, 255, 255, 0), cs);
-    initializeSelectionReference(doc.data(), cs, bgColor);
+    QVERIFY(doc->newImage("test", 300, 300, cs, bgColor, KisConfig::CANVAS_COLOR, 1, "test", 100));
     KisImageSP image = doc->image();
 
     QCOMPARE(image->locked(), false);

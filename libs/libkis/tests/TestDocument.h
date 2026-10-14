@@ -12,11 +12,13 @@ class TestDocument : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void testOrdinaryCreationKeepsPngExportAndReopen();
+    void testOrdinaryKraKeepsLayerHierarchyThroughResaving();
     void testBackgroundApiKeepsHistoryAndPinnedPixels();
     void testBackgroundNotificationLifetimes_data();
     void testBackgroundNotificationLifetimes();
-    void testOrdinaryCreationUsesGpuAndPreservesInitialDocumentState_data();
-    void testOrdinaryCreationUsesGpuAndPreservesInitialDocumentState();
+    void testOrdinaryCreationPreservesInitialDocumentState_data();
+    void testOrdinaryCreationPreservesInitialDocumentState();
     void testCanvasBackgroundReferencePixels_data();
     void testCanvasBackgroundReferencePixels();
     void testSetColorSpace();
@@ -24,7 +26,6 @@ private Q_SLOTS:
     void testPixelData();
     void testGpuImagePixelDataModifiedStateAndRetainedNode();
     void testGpuSaveAndExportPreserveHistoryAndFileIdentity();
-    void testGpuOpenKeepsPixelsMetadataAndAssociatedFiles();
     void testGpuSaveNotificationLifetimes_data();
     void testGpuSaveNotificationLifetimes();
     void testGpuSnapshotKeepsIndependentPixelsAndDocumentMetadata();

@@ -50,7 +50,7 @@ void KisDocumentTest::testOpenImageTwiceInSameDoc()
                              QStringLiteral("single_layer_no_channel_flags_nontransp_def_pixel.kra")}) {
         const auto path = QStringLiteral(KRITA_SOURCE_DIR "/plugins/impex/libkra/tests/data/") + file;
         QVERIFY2(doc->loadNativeFormat(path), qPrintable(doc->errorMessage()));
-        QVERIFY(doc->image()->gpuImage());
+        QVERIFY(doc->image());
         QVERIFY(!doc->isModified());
     }
 }

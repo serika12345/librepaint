@@ -2008,47 +2008,6 @@ bool KisDocument::openPath(const QString &_path, OpenFlags flags)
     return ret;
 }
 
-bool KisDocument::loadGpuKra(const QString &path)
-{
-    namespace GpuDocument = LibrePaint::Document::Gpu;
-    namespace Kra = LibrePaint::ImportExport::Kra;
-    QString diagnostic;
-    try {
-        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
-        if (!execution) { setErrorMessage(diagnostic); return false; }
-        auto opened = GpuDocument::PaintDocument::openKra(execution, path);
-        if (opened.code != GpuDocument::FileCode::Success) { setErrorMessage(opened.diagnostic); return false; }
-        const auto metadata = opened.document->kraImageMetadata();
-        if (metadata.code != Kra::Status::Success) { setErrorMessage(metadata.diagnostic); return false; }
-        const auto registry = KoColorSpaceRegistry::instance();
-        const auto profile = metadata.metadata.iccProfile.isEmpty() ? registry->rgb8()->profile() :
-            registry->createColorProfile(QStringLiteral("RGBA"), QStringLiteral("U8"), metadata.metadata.iccProfile);
-        if (!profile) { setErrorMessage(i18n("The KRA color profile could not be loaded.")); return false; }
-        const auto colorSpace = registry->rgb8(profile);
-        auto image = KisImage::fromGpuImage(opened.document->image(), QFileInfo(path).completeBaseName(), colorSpace);
-        image->setResolution(metadata.metadata.resolution.x() / 72, metadata.metadata.resolution.y() / 72);
-        for (const auto &annotation : metadata.metadata.annotations)
-            image->addAnnotation(new KisAnnotation(annotation.type, annotation.description, annotation.bytes));
-        KisNodeSP active;
-        const auto version = opened.document->image()->operations().snapshot();
-        for (int index = 0; index < version->layers.size(); ++index)
-            if (version->layers[index].id == version->activeLayer) active = image->root()->at(index);
-        auto fileDocument = std::shared_ptr<GpuDocument::PaintDocument>(std::move(opened.document));
-        setCurrentImage(image, true, active);
-        d->gpuDocument = std::move(fileDocument);
-        setPreActivatedNode(active);
-        if (!metadata.metadata.documentInfo.isEmpty()) {
-            QDomDocument info;
-            info.setContent(metadata.metadata.documentInfo);
-            documentInfo()->load(info);
-        }
-        return true;
-    } catch (const std::exception &error) {
-        setErrorMessage(QString::fromUtf8(error.what()));
-        return false;
-    }
-}
-
 bool KisDocument::openFile()
 {
     QPointer<KisDocument> guard(this);
@@ -2087,9 +2046,7 @@ bool KisDocument::openFile()
         d->importExportManager->setUpdater(updater);
     }
 
-    KisImportExportErrorCode status = typeName.toLatin1() == nativeFormatMimeType() ?
-        (loadGpuKra(localFilePath()) ? ImportExportCodes::OK : ImportExportCodes::Failure) :
-        d->importExportManager->importDocument(localFilePath(), typeName);
+    KisImportExportErrorCode status = d->importExportManager->importDocument(localFilePath(), typeName);
     if (!guard) return status.isOk();
 
     if (!status.isOk()) {
@@ -2758,59 +2715,14 @@ bool KisDocument::newImage(const QString& name,
     KisImageSP image;
 
     if (!cs) return false;
+    if (width <= 0 || height <= 0) {
+        setErrorMessage(i18n("Image dimensions must be positive."));
+        return false;
+    }
 
     KisCursorOverrideLock cursorLock(Qt::BusyCursor);
 
-    KisConfig cfg(false);
-    const bool gpu = cs->colorModelId().id() == QLatin1String("RGBA") &&
-        cs->colorDepthId().id() == QLatin1String("U8") &&
-        (bgStyle == KisConfig::RASTER_LAYER || bgStyle == KisConfig::CANVAS_COLOR);
-    if (gpu) {
-        namespace Gpu = LibrePaint::Image::Gpu;
-        namespace Kra = LibrePaint::ImportExport::Kra;
-        const int layers = qMax(1, numberOfLayers);
-        if (width <= 0 || height <= 0 || width > Gpu::RgbaTile::CoordinateLimit || height > Gpu::RgbaTile::CoordinateLimit ||
-            layers > Gpu::Limits{}.layerCount) {
-            setErrorMessage(i18n("The image dimensions or layer count exceed the supported document limits."));
-            return false;
-        }
-        Kra::Document metadataDocument;
-        Kra::ImageMetadata metadata;
-        metadata.iccProfile = cs->profile()->rawData();
-        const auto validated = Kra::RasterCodec::updateImageMetadata(metadataDocument, metadata);
-        if (validated.code != Kra::Status::Success) { setErrorMessage(validated.diagnostic); return false; }
-        try {
-            auto color = bgColor;
-            color.convertTo(cs);
-            const auto bytes = color.data();
-            const std::array<quint8, 4> rgba{bytes[2], bytes[1], bytes[0], bytes[3]};
-            Gpu::RasterImage input;
-            input.size = {width, height};
-            input.activeLayer = layers - 1;
-            if (bgStyle == KisConfig::CANVAS_COLOR) input.projectionBackground = rgba;
-            for (int index = 0; index < layers; ++index) {
-                Gpu::RasterLayer layer;
-                layer.name = index == 0 ? i18nc("Name for the bottom-most layer in the layerstack", "Background") :
-                    QStringLiteral("%1 %2").arg(i18n("Paint Layer")).arg(index);
-                if (index == 0 && bgStyle == KisConfig::RASTER_LAYER) {
-                    layer.defaultPixel = {rgba[0], rgba[1], rgba[2], 255};
-                    layer.opacity = rgba[3];
-                    layer.userLocked = layers > 1;
-                }
-                layer.pinnedToTimeline = cfg.autoPinLayersToTimeline() && (index > 0 || bgStyle == KisConfig::RASTER_LAYER);
-                input.layers.append(std::move(layer));
-            }
-            QString diagnostic;
-            const auto execution = KisPart::instance()->gpuExecution(diagnostic);
-            if (!execution) { setErrorMessage(diagnostic); return false; }
-            image = KisImage::fromGpuImage(Gpu::PaintImageSP::create(execution, input), name, cs);
-        } catch (const std::exception &error) {
-            setErrorMessage(QString::fromUtf8(error.what()));
-            return false;
-        }
-    } else {
-        image = new KisImage(createUndoStore(), width, height, cs, name);
-    }
+    image = new KisImage(createUndoStore(), width, height, cs, name);
 
     Q_CHECK_PTR(image);
 
@@ -2824,6 +2736,7 @@ bool KisDocument::newImage(const QString& name,
     documentInfo()->setAboutInfo("title", name);
     documentInfo()->setAboutInfo("abstract", description);
 
+    KisConfig cfg(false);
     cfg.defImageWidth(width);
     cfg.defImageHeight(height);
     cfg.defImageResolution(imageResolution);
@@ -2837,9 +2750,7 @@ bool KisDocument::newImage(const QString& name,
     bool autopin = cfg.autoPinLayersToTimeline();
 
     KisLayerSP bgLayer;
-    if (gpu) {
-        bgLayer = qobject_cast<KisLayer *>(image->root()->firstChild().data());
-    } else if (bgStyle == KisConfig::RASTER_LAYER || bgStyle == KisConfig::FILL_LAYER) {
+    if (bgStyle == KisConfig::RASTER_LAYER || bgStyle == KisConfig::FILL_LAYER) {
         KoColor strippedAlpha = bgColor;
         strippedAlpha.setOpacity(OPACITY_OPAQUE_U8);
 
@@ -2867,17 +2778,14 @@ bool KisDocument::newImage(const QString& name,
     }
 
     Q_CHECK_PTR(bgLayer);
-    if (!gpu) {
-        image->addNode(bgLayer.data(), image->rootLayer().data());
-        bgLayer->setDirty(QRect(0, 0, width, height));
-    }
+    image->addNode(bgLayer.data(), image->rootLayer().data());
+    bgLayer->setDirty(QRect(0, 0, width, height));
 
     // reset mirror axis to default:
     d->mirrorAxisConfig.setAxisPosition(QRectF(image->bounds()).center());
-    setCurrentImage(image, true, gpu ? image->root()->lastChild() : KisNodeSP{});
-    if (gpu) setPreActivatedNode(image->root()->lastChild());
+    setCurrentImage(image);
 
-    for(int i = 1; !gpu && i < numberOfLayers; ++i) {
+    for(int i = 1; i < numberOfLayers; ++i) {
         KisPaintLayerSP layer = new KisPaintLayer(image, image->nextLayerName(), OPACITY_OPAQUE_U8, cs);
         layer->setPinnedToTimeline(autopin);
         image->addNode(layer, image->root(), i);
