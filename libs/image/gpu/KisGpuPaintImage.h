@@ -7,6 +7,7 @@
 #define KIS_GPU_PAINT_IMAGE_H
 
 #include "KisGpuOperationDocument.h"
+#include <kritagpuimage_export.h>
 #include <QObject>
 #include <QRect>
 #include <memory>
@@ -24,7 +25,7 @@ struct PixelBytesOutcome;
  * Invalid construction throws std::invalid_argument, and exhausted attachment
  * capacity throws std::length_error. The last image reference closes its handle.
  */
-class KRITAIMAGE_EXPORT PaintImage : public QObject
+class KRITAGPUIMAGE_EXPORT PaintImage : public QObject
 {
     Q_OBJECT
 public:

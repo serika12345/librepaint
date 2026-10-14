@@ -10,7 +10,6 @@
 #include <gpu/KisGpuExecution.h>
 #include <limits>
 #include "../KisGpuWindowSurface_p.h"
-#include <gpu/KisGpuReadbackBatch_p.h>
 #include <webgpu/wgpu.h>
 
 using namespace LibrePaint::Image::Gpu;
@@ -23,8 +22,6 @@ private Q_SLOTS:
     void initTestCase();
     void presentationFramesSubmitThroughTheOwningWindow();
     void unconfiguredSurfacesAreRejectedBeforeNativeSubmission();
-    void abandonedReadbackResultsRemainValidThroughNativeCleanup();
-    void abandonedReadbackResultsRemainValidThroughNativeCleanup_data();
 
     void editsAndViewChangesUseSharedExecution();
     void queuedUpdatesIgnoreClosedDocuments();
@@ -244,70 +241,9 @@ void KisGpuCanvasWindowTest::unconfiguredSurfacesAreRejectedBeforeNativeSubmissi
     QCOMPARE(execution.cancelFrame().code, ExecutionCode::Success);
 }
 
-void KisGpuCanvasWindowTest::abandonedReadbackResultsRemainValidThroughNativeCleanup()
-{
-    QFETCH(bool, replaceDevice);
-    QString diagnostic;
-    auto device = Device::createNative(diagnostic);
-    QVERIFY2(device, qPrintable(diagnostic));
-    std::weak_ptr<Device> nativeOwner = device;
-    std::weak_ptr<LibrePaint::Image::Gpu::Detail::ReadbackBatch> resultOwner;
-    QByteArray observed;
-    int completions = 0;
-    {
-        Execution execution(device);
-        OperationDocument document({64, 64});
-        const auto stroke = document.beginStroke(document.activeLayer(), Brush{}, 0);
-        QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
-        QCOMPARE(document.commitStroke(stroke), Result::Success);
-        const auto handle = execution.open(document.snapshot()).handle;
-        QWindow window;
-        LibrePaint::Canvas::Gpu::Detail::setNativeSurfaceType(window);
-        window.resize(128, 128);
-        window.show();
-        QVERIFY(QTest::qWaitForWindowExposed(&window));
-        auto surface = LibrePaint::Canvas::Gpu::Detail::createWindowSurface(device, window);
-        QVERIFY(surface->configure(QSizeF(window.size() * window.devicePixelRatio()).toSize()));
-        const auto frame = execution.beginPresentationFrame(*surface);
-        QCOMPARE(frame.code, ExecutionCode::Success);
-        const auto projection = execution.project(handle, {0, 0, 64, 64});
-        QCOMPARE(projection.code, RenderOutcome::Recorded);
-        auto batch = LibrePaint::Image::Gpu::Detail::ReadbackBatch::create(*device, 1);
-        QVERIFY(batch);
-        resultOwner = batch;
-        QVERIFY(!LibrePaint::Image::Gpu::Detail::ReadbackBatch::create(*device, 1));
-        auto result = batch->results.front().get();
-        result->completed = [result, &observed, &completions] {
-            observed = result->data;
-            ++completions;
-        };
-        QVERIFY(batch->recordBuffer(*device, frame.commands, 0, projection.version->tiles().first().pixels, TileRenderer::TileBytes));
-        batch.reset();
-        QVERIFY(!resultOwner.expired());
-        QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
-        if (replaceDevice) {
-            const auto replacement = Device::createNative(diagnostic);
-            QVERIFY2(replacement, qPrintable(diagnostic));
-            QCOMPARE(execution.replaceDevice(replacement).code, ExecutionCode::Success);
-            QVERIFY(resultOwner.expired());
-        }
-        surface.reset();
-        window.destroy();
-    }
-    QVERIFY(resultOwner.expired());
-    device.reset();
-    QVERIFY(nativeOwner.expired());
-    QVERIFY(resultOwner.expired());
-    QCOMPARE(completions, 1);
-    QCOMPARE(observed.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("000000ff"));
-}
 
-void KisGpuCanvasWindowTest::abandonedReadbackResultsRemainValidThroughNativeCleanup_data()
-{
-    QTest::addColumn<bool>("replaceDevice");
-    QTest::newRow("execution-close") << false;
-    QTest::newRow("device-replacement") << true;
-}
+
+
 
 int main(int argc, char **argv)
 {

@@ -13,7 +13,7 @@ namespace LibrePaint::Image::Gpu {
  * The native window outlives this owner. Acquisition lasts until present/discard;
  * Execution borrows this owner through submission or cancellation.
  */
-class KRITAIMAGE_EXPORT PresentationSurface
+class KRITAGPUIMAGE_EXPORT PresentationSurface
 {
 public:
     PresentationSurface(DevicePtr device, const WGPUSurfaceDescriptor &descriptor);

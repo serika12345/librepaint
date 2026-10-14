@@ -13,7 +13,7 @@ target_include_directories(kritacanvasgputilepresentation PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/..>
 )
-target_link_libraries(kritacanvasgputilepresentation PUBLIC kritaimagegputiles PRIVATE WGPUNative::WGPUNative)
+target_link_libraries(kritacanvasgputilepresentation PUBLIC kritagpuimage PRIVATE WGPUNative::WGPUNative)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     find_package(Qt6 6.6 REQUIRED COMPONENTS GuiPrivate)
     target_link_libraries(kritacanvasgputilepresentation PRIVATE Qt6::GuiPrivate)

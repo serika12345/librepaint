@@ -16,7 +16,7 @@
 #include <QString>
 #include <QVariant>
 #include <QUuid>
-#include <kritaimage_export.h>
+#include <kritaimagegpuoperations_export.h>
 #include "KisGpuRasterPixels.h"
 #include <variant>
 #include <memory>
@@ -84,7 +84,7 @@ struct Shape
  * Immutable blocks preserve accepted input when previews and history share it.
  * Block boundaries carry no drawing semantics.
  */
-struct KRITAIMAGE_EXPORT PaintOperation
+struct KRITAIMAGEGPUOPERATIONS_EXPORT PaintOperation
 {
     OperationId id;
     quint64 version = 0;
@@ -148,7 +148,7 @@ struct Layer
 };
 
 /** Immutable logical document version; all layers are flat RGBA8/sRGB paint layers. */
-class KRITAIMAGE_EXPORT DocumentVersion
+class KRITAIMAGEGPUOPERATIONS_EXPORT DocumentVersion
 {
 public:
     QUuid documentId() const { return m_document; }
@@ -225,7 +225,7 @@ struct Limits
  * std::invalid_argument. Requests validate the complete input before adoption.
  * Rejected requests preserve accepted input and both history branches.
  */
-class KRITAIMAGE_EXPORT OperationDocument
+class KRITAIMAGEGPUOPERATIONS_EXPORT OperationDocument
 {
 public:
     static constexpr int HistoryLimit = 250;

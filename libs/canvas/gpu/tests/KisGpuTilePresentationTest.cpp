@@ -7,10 +7,12 @@
 #include <QTest>
 #include <QTransform>
 #include "../KisGpuPresentationResources_p.h"
-#include <gpu/KisGpuReadbackBatch_p.h>
 #include <gpu/KisGpuTilePresentation.h>
 #include <gpu/KisGpuTileRenderer.h>
 #include <limits>
+#include <vector>
+#include <algorithm>
+#include <atomic>
 
 using namespace LibrePaint::Image::Gpu;
 using namespace LibrePaint::Canvas::Gpu;
@@ -68,26 +70,68 @@ void clear(WGPUCommandEncoder commands, const PresentationTarget &target, QColor
     wgpuRenderPassEncoderEnd(pass);
     wgpuRenderPassEncoderRelease(pass);
 }
-std::shared_ptr<LibrePaint::Image::Gpu::Detail::ReadbackBatch> readTexture(Device &device, WGPUCommandEncoder commands, const Surface &surface, WGPUBuffer sourcePixels = nullptr)
+struct Readback
+{
+    struct Result {
+        LibrePaint::Canvas::Gpu::Detail::Buffer buffer;
+        QByteArray data;
+        quint64 size = 0;
+        std::atomic<bool> ready{false};
+    };
+    std::vector<std::shared_ptr<Result>> results;
+    void copy(WGPUCommandEncoder commands, WGPUBuffer source, quint64 size, Device &device)
+    {
+        auto result = allocate(device, size);
+        wgpuCommandEncoderCopyBufferToBuffer(commands, source, 0, result->buffer.get(), 0, size);
+    }
+    std::shared_ptr<Result> allocate(Device &device, quint64 size)
+    {
+        auto result = std::make_shared<Result>();
+        WGPUBufferDescriptor descriptor{};
+        descriptor.size = result->size = size;
+        descriptor.usage = WGPUBufferUsage_MapRead | WGPUBufferUsage_CopyDst;
+        result->buffer.reset(wgpuDeviceCreateBuffer(device.nativeDevice(), &descriptor));
+        results.push_back(result);
+        return result;
+    }
+    bool finish(Device &device)
+    {
+        for (const auto &result : results) {
+            WGPUBufferMapCallbackInfo callback{};
+            callback.mode = WGPUCallbackMode_AllowSpontaneous;
+            callback.userdata1 = new std::shared_ptr<Result>(result);
+            callback.callback = [](WGPUMapAsyncStatus status, WGPUStringView, void *context, void *) noexcept {
+                std::unique_ptr<std::shared_ptr<Result>> holder(static_cast<std::shared_ptr<Result> *>(context));
+                auto &result = **holder;
+                if (status != WGPUMapAsyncStatus_Success) return;
+                try {
+                    if (const auto bytes = wgpuBufferGetConstMappedRange(result.buffer.get(), 0, result.size)) {
+                        result.data = QByteArray(static_cast<const char *>(bytes), qsizetype(result.size));
+                    }
+                } catch (...) {}
+                wgpuBufferUnmap(result.buffer.get());
+                result.ready.store(!result.data.isEmpty(), std::memory_order_release);
+            };
+            wgpuBufferMapAsync(result->buffer.get(), WGPUMapMode_Read, 0, result->size, callback);
+        }
+        return device.finish() && std::all_of(results.begin(), results.end(), [](const auto &result) { return result->ready.load(std::memory_order_acquire); });
+    }
+};
+std::shared_ptr<Readback> readTexture(Device &device, WGPUCommandEncoder commands, const Surface &surface, WGPUBuffer sourcePixels = nullptr)
 {
     const auto size = surface.target.size;
-    const quint64 bytes = quint64(size.width()) * size.height() * 4;
-    WGPUBufferDescriptor descriptor{};
-    descriptor.size = bytes;
-    descriptor.usage = WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst;
-    LibrePaint::Canvas::Gpu::Detail::Buffer buffer(wgpuDeviceCreateBuffer(device.nativeDevice(), &descriptor));
+    auto reads = std::make_shared<Readback>();
+    auto texture = reads->allocate(device, quint64(size.width()) * size.height() * 4);
     WGPUTexelCopyTextureInfo source{};
     source.texture = surface.texture.get();
     source.aspect = WGPUTextureAspect_All;
     WGPUTexelCopyBufferInfo destination{};
-    destination.buffer = buffer.get();
+    destination.buffer = texture->buffer.get();
     destination.layout.bytesPerRow = size.width() * 4;
     destination.layout.rowsPerImage = size.height();
     WGPUExtent3D extent{quint32(size.width()), quint32(size.height()), 1};
     wgpuCommandEncoderCopyTextureToBuffer(commands, &source, &destination, &extent);
-    auto reads = LibrePaint::Image::Gpu::Detail::ReadbackBatch::create(device, sourcePixels ? 2 : 1);
-    if (!reads || !reads->recordBuffer(device, commands, 0, buffer.get(), bytes)) return {};
-    if (sourcePixels && !reads->recordBuffer(device, commands, 1, sourcePixels, TileRenderer::TileBytes)) return {};
+    if (sourcePixels) reads->copy(commands, sourcePixels, TileRenderer::TileBytes, device);
     return reads;
 }
 
@@ -141,6 +185,7 @@ void KisGpuTilePresentationTest::panZoomAndTransparencyUseThePaintingQueue()
     auto readback = readTexture(*m_device, commands, surface);
     QVERIFY(readback);
     QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QVERIFY(readback->finish(*m_device));
     const auto pixel = [&](int x, int y) { return readback->results.front()->data.mid((y * 128 + x) * 4, 4); };
     QCOMPARE(pixel(24, 40), QByteArray::fromHex("ff0000ff"));
     QCOMPARE(pixel(48, 48), QByteArray::fromHex("00008080"));
@@ -155,6 +200,7 @@ void KisGpuTilePresentationTest::panZoomAndTransparencyUseThePaintingQueue()
     readback = readTexture(*m_device, commands, surface);
     QVERIFY(readback);
     QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QVERIFY(readback->finish(*m_device));
     QCOMPARE(pixel(48, 48), QByteArray::fromHex("004080c0"));
     QCOMPARE(pixel(8, 12), QByteArray::fromHex("00800080"));
 }
@@ -182,6 +228,7 @@ void KisGpuTilePresentationTest::clippedTilesKeepTheirIndependentTransforms()
     auto readback = readTexture(*m_device, commands, surface, projection.version->tiles().first().pixels);
     QVERIFY(readback);
     QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QVERIFY(readback->finish(*m_device));
     QCOMPARE(readback->results[1]->data.mid((12 * 256 + 8) * 4, 4), QByteArray::fromHex("ff0000ff"));
     auto pixel = [&](int x, int y) { return readback->results.front()->data.mid((y * 512 + x) * 4, 4); };
     QCOMPARE(pixel(8, 12), QByteArray::fromHex("ff0000ff"));
@@ -200,6 +247,7 @@ void KisGpuTilePresentationTest::clippedTilesKeepTheirIndependentTransforms()
     readback = readTexture(*m_device, commands, rotated);
     QVERIFY(readback);
     QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QVERIFY(readback->finish(*m_device));
     QCOMPARE(readback->results.front()->data.mid((8 * 64 + 51) * 4, 4), QByteArray::fromHex("ff0000ff"));
     QCOMPARE(readback->results.front()->data.mid((8 * 64 + 33) * 4, 4), QByteArray(4, '\0'));
 }
@@ -229,6 +277,7 @@ void KisGpuTilePresentationTest::rejectedPresentationPreservesTheTarget()
     const auto readback = readTexture(*m_device, commands, surface);
     QVERIFY(readback);
     QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QVERIFY(readback->finish(*m_device));
     QCOMPARE(readback->results.front()->data, QByteArray::fromHex("070d1dff").repeated(512 * 64));
 }
 
@@ -260,6 +309,7 @@ void KisGpuTilePresentationTest::projectionCannotCrossDevices()
     const auto readback = readTexture(*other, commands, surface);
     QVERIFY(readback);
     QVERIFY2(other->submitCommands(true), qPrintable(other->diagnostic()));
+    QVERIFY(readback->finish(*other));
     QCOMPARE(readback->results.front()->data, QByteArray::fromHex("ffffffff").repeated(64 * 64));
 }
 

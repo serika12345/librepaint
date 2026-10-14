@@ -84,7 +84,7 @@ struct PixelBytesOutcome
  * while its document handle and request remain current. Superseded and closed
  * documents suppress presentation. Cancellation preserves the published state.
  */
-class KRITAIMAGE_EXPORT Execution
+class KRITAGPUIMAGE_EXPORT Execution
 {
 public:
     explicit Execution(DevicePtr device, qsizetype byteBudget = 128 * 1024 * 1024,

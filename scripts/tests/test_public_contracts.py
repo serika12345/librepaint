@@ -38,6 +38,28 @@ class PublicContractTests(unittest.TestCase):
                 with self.assertRaisesRegex(check_public_contracts.PublicContractError, "external internal-header references"):
                     check_public_contracts.validate_public_headers(root)
 
+    def test_image_values_and_execution_publish_their_own_shared_boundaries(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            for directory in ("libs/image/gpu", "libs/impex", "libs/canvas", "plugins/sample"):
+                (root / directory).mkdir(parents=True)
+            headers = {
+                "Legacy.h": "KRITAIMAGE_EXPORT",
+                "Values.h": "KRITAIMAGEGPUOPERATIONS_EXPORT",
+                "Execution.h": "KRITAGPUIMAGE_EXPORT",
+            }
+            for name, macro in headers.items():
+                (root / "libs/image/gpu" / name).write_text(
+                    f"class {macro} Public {{}};\n", encoding="utf-8")
+            for directory, name in (("plugins/sample", "Legacy.h"), ("libs/impex", "Values.h"), ("libs/canvas", "Execution.h")):
+                (root / directory / "use.cpp").write_text(f'#include "{name}"\n', encoding="utf-8")
+            with mock.patch.object(check_public_contracts, "PUBLIC_HEADER_COMPILE_CONTRACTS", {}):
+                self.assertEqual(check_public_contracts.validate_public_headers(root), 3)
+                for declaration in ("class Private {};\n", "class KRITACANVAS_EXPORT Private {};\n"):
+                    (root / "libs/image/gpu/Execution.h").write_text(declaration, encoding="utf-8")
+                    with self.assertRaisesRegex(check_public_contracts.PublicContractError, "external internal-header references"):
+                        check_public_contracts.validate_public_headers(root)
+
     def test_external_header_without_publication_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as temporary_directory:
             root = Path(temporary_directory)

@@ -6,6 +6,7 @@
 let
   inherit (pkgs) lib;
   buildPkgs = pkgs.buildPackages;
+  wgpuNative = buildPkgs.callPackage ./wgpu-native.nix { };
   # Qt's host tools do not need systemd/journald.  Leaving it enabled brings
   # a hardware TPM integration suite into the native tool dependency graph.
   hostQtBase = buildPkgs.qt6Packages.qtbase.override {
@@ -646,6 +647,8 @@ class PyQtBindings(_PyQtBindings):
   # The portable stage uses this set as explicit roots before collecting every
   # target DLL.  Include the MinGW runtime, which is not a CMake dependency.
   windowsRuntimeDependencies = buildInputs ++ [
+    wgpuNative
+    pkgs.vulkan-loader
     angle
     drmingw
     pkgs.poppler_data
@@ -753,6 +756,8 @@ pkgs.stdenv.mkDerivation {
   '';
 
   cmakeFlags = [
+    "-DWGPUNative_INCLUDE_DIR:PATH=${lib.getDev wgpuNative}/include"
+    "-DWGPUNative_LIBRARY:FILEPATH=${lib.getDev wgpuNative}/lib/libwgpu_native.dll.a"
     "-DALLOW_UNSTABLE=QT6"
     "-DBUILD_KRITA_QT_DESIGNER_PLUGINS=ON"
     "-DBUILD_TESTING=OFF"

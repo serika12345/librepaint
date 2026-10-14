@@ -6,7 +6,7 @@
 #ifndef KIS_GPU_RASTER_PIXELS_H
 #define KIS_GPU_RASTER_PIXELS_H
 
-#include <kritaimage_export.h>
+#include <kritaimagegpuoperations_export.h>
 #include <QByteArray>
 #include <QPoint>
 #include <QSharedPointer>
@@ -30,7 +30,7 @@ struct RgbaTile
  * and consumes the complete stream. Returned byte values have independent
  * lifetimes and retain all channels, including colors under zero alpha.
  */
-class KRITAIMAGE_EXPORT RasterTile
+class KRITAIMAGEGPUOPERATIONS_EXPORT RasterTile
 {
 public:
     static QSharedPointer<const RasterTile> fromPixels(const RgbaTile &tile);

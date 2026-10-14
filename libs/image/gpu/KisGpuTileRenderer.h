@@ -21,7 +21,7 @@ struct TileView
 };
 
 /** Immutable sparse RGBA8/sRGB layer pixels, ordered on the owner's GPU queue. */
-class KRITAIMAGE_EXPORT RenderedVersion
+class KRITAGPUIMAGE_EXPORT RenderedVersion
 {
 public:
     Snapshot document() const;
@@ -46,7 +46,7 @@ struct RenderOutcome
 };
 
 /** Immutable merged tiles for a pinned document version and requested region. */
-class KRITAIMAGE_EXPORT ProjectedVersion
+class KRITAGPUIMAGE_EXPORT ProjectedVersion
 {
 public:
     Snapshot document() const;
@@ -81,7 +81,7 @@ struct ProjectionOutcome
  * Fresh tiles preserve the input version, including on budget rejection.
  * Tile storage uses straight RGBA bytes, with 4x4 integer subpixel coverage.
  */
-class KRITAIMAGE_EXPORT TileRenderer
+class KRITAGPUIMAGE_EXPORT TileRenderer
 {
 public:
     static constexpr int TileSize = RgbaTile::Size;

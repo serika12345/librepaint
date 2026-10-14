@@ -6,7 +6,7 @@
 #ifndef KIS_GPU_DEVICE_H
 #define KIS_GPU_DEVICE_H
 
-#include <kritaimage_export.h>
+#include <kritagpuimage_export.h>
 #include <QString>
 #include <memory>
 
@@ -40,7 +40,7 @@ using DevicePtr = std::shared_ptr<Device>;
  * frame submission and release the last reference on the owning thread, before
  * QGuiApplication exits. A retained version can keep a retired device alive.
  */
-class KRITAIMAGE_EXPORT Device
+class KRITAGPUIMAGE_EXPORT Device
 {
 public:
     static DevicePtr createNative(QString &diagnostic);

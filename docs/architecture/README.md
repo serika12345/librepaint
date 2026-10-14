@@ -131,7 +131,17 @@ GPU実装の製品採用は、対応する通常操作、公開API、ファイ�
 `libs/image/gpu/KisGpuOperationDocument.{h,cpp}`は、`LibrePaint::Image::Gpu`の
 `OperationDocument`として、円形ブラシの設定、乱数種、筆圧・傾き・回転・時刻を含む入力、
 自由描画・直線・楕円の形状、平坦なレイヤー列をCPU値として保持する。
-`kritaimagegpuoperations`はQt Coreとzlibに依存する内部オブジェクトであり、`kritaimage`へ集約する。
+操作・履歴・復旧・圧縮画素の値は、Qt Coreとzlibに依存する共有ライブラリ
+`kritaimagegpuoperations`が所有する。形式処理はこの値の所有者を直接利用する。
+GPU実行・派生画素・画像接続の共有ライブラリ`kritagpuimage`は、その操作の値と
+wgpu-nativeに依存する。`kritaimage`は公開画像APIの接続を所有し、表示側は
+`kritagpuimage`の公開境界からGPU画素と実行を利用する。
+
+実装ファイルは`libs/image/gpu/`に置き、`libs/image/gpu/CMakeLists.txt`が両所有者を構築する。
+`KisGpuOperationDocument.cpp`、`KisGpuOperationRecovery.cpp`、`KisGpuRasterPixels.cpp`、
+`KisGpuRasterOperations.cpp`は操作の値に属する。`KisGpuPaintGeometry.cpp`、
+`KisGpuDevice.cpp`、`KisGpuExecution.cpp`、描画・合成・読取りと`KisGpuPaintImage.cpp`は
+GPU実行の所有者に属する。公開ヘッダーは各所有者の生成した公開シンボル宣言を使う。
 
 `KisGpuRasterPixels.{h,cpp}`はRGBA8の256×256画素ブロックを圧縮した不変値として保持する。
 展開は固定長の出力領域を使い、展開長、圧縮入力の消費量、座標の範囲を検査する。
@@ -288,7 +298,8 @@ QtはUI、入力、ウィンドウ管理を所有し、`libs/canvas/gpu/KisGpuWi
 OSのウィンドウとネイティブ表示面を接続する。
 LinuxのVulkanローダーは`nix/gpu/wgpu-native-runtime.nix`が実行時探索パスへ組み込む。
 この小さい依存派生物はキャッシュ済みのRustライブラリを再利用する。
-
+Windowsは`nix/windows/wgpu-native.nix`が固定したGNU向けC API配布物を使い、
+実行時依存にVulkanローダーを含める。
 
 `KisGpuTileProjection.cpp`は可視レイヤーを文書順で合成し、指定した文書領域と交差する
 タイルを生成する。表示側は可視領域、保存側は固定版の全文書領域を指定する。
@@ -296,7 +307,7 @@ LinuxのVulkanローダーは`nix/gpu/wgpu-native-runtime.nix`が実行時探索
 `shaders/rgba.wgsl`が描画とレイヤー合成のRGBA整数演算を一元管理する。
 同じ入力タイル列の合成結果は共有し、複数レイヤーの合成はタイルごとに最大2枚の出力領域を
 交互に利用する。入力レイヤーと合成タイルの保持量は同じ上限へ計上する。
-`KisGpuTileStorage_p.h`はタイルの共有寿命、計算用資源の遅延解放、資源量の計上を所有する。
+`KisGpuTileStorage_p.h`はタイルの共有寿命、計算用資源の借用寿命、資源量の計上を所有する。
 描画、合成、読取りは同じフレーム命令列で順序を維持する。
 
 `libs/image/gpu/KisGpuExecution.{h,cpp}`は、共有GPUキューへのフレーム送信、

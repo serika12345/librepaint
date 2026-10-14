@@ -17,6 +17,9 @@ class KisGpuExecutionTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
+    void abandonedReadbackResultsRemainValidThroughNativeCleanup();
+    void abandonedReadbackResultsRemainValidThroughNativeCleanup_data();
+
     void latestRequestsRetainInputAndPublishAfterSubmission();
     void cancellationAndClosureInvalidateRecordedFrames();
     void replacingTheDeviceRebuildsAcceptedDocuments();
@@ -261,6 +264,64 @@ void KisGpuExecutionTest::documentsShareTheTileBudgetAndKeepPublishedPixelsOnFai
 
 
 
+
+void KisGpuExecutionTest::abandonedReadbackResultsRemainValidThroughNativeCleanup()
+{
+    QFETCH(bool, replaceDevice);
+    QString diagnostic;
+    auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    std::weak_ptr<Device> nativeOwner = device;
+    std::weak_ptr<Detail::ReadbackBatch> resultOwner;
+    QByteArray observed;
+    int completions = 0;
+    {
+        Execution execution(device);
+        OperationDocument document({64, 64});
+        const auto stroke = document.beginStroke(document.activeLayer(), Brush{}, 0);
+        QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+        QCOMPARE(document.commitStroke(stroke), Result::Success);
+        TileRenderer renderer(device);
+        const auto commands = device->beginCommands();
+        QVERIFY(commands);
+        const auto rendered = renderer.record(commands, document.snapshot());
+        QCOMPARE(rendered.code, RenderOutcome::Recorded);
+        const auto projection = renderer.compose(commands, rendered.version, {0, 0, 64, 64});
+        QCOMPARE(projection.code, RenderOutcome::Recorded);
+        auto batch = Detail::ReadbackBatch::create(*device, 1);
+        QVERIFY(batch);
+        resultOwner = batch;
+        QVERIFY(!Detail::ReadbackBatch::create(*device, 1));
+        auto result = batch->results.front().get();
+        result->completed = [result, &observed, &completions] {
+            observed = result->data;
+            ++completions;
+        };
+        QVERIFY(batch->recordBuffer(*device, commands, 0, projection.version->tiles().first().pixels, TileRenderer::TileBytes));
+        batch.reset();
+        QVERIFY(!resultOwner.expired());
+        QVERIFY(device->submitCommands(false));
+        if (replaceDevice) {
+            const auto replacement = Device::createNative(diagnostic);
+            QVERIFY2(replacement, qPrintable(diagnostic));
+            QCOMPARE(execution.replaceDevice(replacement).code, ExecutionCode::Success);
+            QVERIFY(resultOwner.expired());
+        }
+    }
+    QVERIFY(resultOwner.expired());
+    device.reset();
+    QVERIFY(nativeOwner.expired());
+    QVERIFY(resultOwner.expired());
+    QCOMPARE(completions, 1);
+    QCOMPARE(observed.mid((32 * 256 + 32) * 4, 4), QByteArray::fromHex("000000ff"));
+}
+
+void KisGpuExecutionTest::abandonedReadbackResultsRemainValidThroughNativeCleanup_data()
+{
+    QTest::addColumn<bool>("replaceDevice");
+    QTest::newRow("execution-close") << false;
+    QTest::newRow("device-replacement") << true;
+}
 
 int main(int argc, char **argv)
 {
