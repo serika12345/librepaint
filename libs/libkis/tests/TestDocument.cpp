@@ -199,6 +199,7 @@ void TestDocument::testOrdinaryCreationPreservesInitialDocumentState()
     QCOMPARE(image->root()->firstChild()->isPinnedToTimeline(), raster && autoPin);
     if (layerCount > 1) QCOMPARE(image->root()->lastChild()->isPinnedToTimeline(), autoPin);
     Document publicDocument(document.data(), false);
+    publicDocument.refreshProjection();
     QCOMPARE(publicDocument.pixelData(3, 3, 1, 1), QByteArray::fromHex("33221180"));
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
