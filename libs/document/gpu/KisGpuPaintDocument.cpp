@@ -5,9 +5,20 @@
 
 #include "KisGpuPaintDocument_p.h"
 #include <QThread>
+#include <stdexcept>
 
 namespace LibrePaint::Document::Gpu {
 using namespace Image::Gpu;
+namespace {
+Execution &executionOfOpenImage(const PaintImageSP &image)
+{
+    if (!image || !image->handle() || QThread::currentThread() != image->thread())
+        throw std::invalid_argument("Document adoption requires an open image on its owning thread");
+    return image->execution();
+}
+}
+PaintDocument::PaintDocument(PaintImageSP image, Limits limits)
+    : PaintDocument(executionOfOpenImage(image), image, limits) {}
 PaintDocument::PaintDocument(Execution &execution, QSize size, Limits limits)
     : PaintDocument(execution, PaintImageSP::create(execution, size, limits), limits) {}
 PaintDocument::PaintDocument(Execution &execution, const RasterImage &image, Limits limits)

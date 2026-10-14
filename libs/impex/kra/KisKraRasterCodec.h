@@ -28,6 +28,19 @@ struct Document
     QByteArray description;
     QMap<QString, QByteArray> files;
 };
+struct Annotation
+{
+    QString type;
+    QString description;
+    QByteArray bytes;
+};
+struct ImageMetadata
+{
+    QPointF resolution{72, 72};
+    QByteArray documentInfo;
+    QByteArray iccProfile;
+    QList<Annotation> annotations;
+};
 struct Outcome
 {
     Status code = Status::InvalidData;
@@ -53,6 +66,8 @@ public:
     static LoadOutcome read(QIODevice &source, Limits limits = {});
     /** Validates retained XML and associated files without allocating raster pixels. */
     static Outcome validateMetadata(const QByteArray &description, const QMap<QString, QByteArray> &files, Limits limits = {});
+    /** Validates and adopts current image metadata while preserving other format data. */
+    static Outcome updateImageMetadata(Document &document, const ImageMetadata &metadata, Limits limits = {});
     static Outcome write(QIODevice &destination, const Document &document, const QImage &projection, Limits limits = {});
 };
 }

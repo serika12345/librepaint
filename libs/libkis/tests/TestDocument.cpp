@@ -12,10 +12,16 @@
 #include <QBuffer>
 #include <QSignalSpy>
 #include <QTextStream>
+#include <QFile>
+#include <QTemporaryDir>
+#include <QDomDocument>
 
 #include <Node.h>
 #include <Krita.h>
 #include <Document.h>
+#include <InfoObject.h>
+#include <metadata/KoDocumentInfo.h>
+#include <kra/KisKraRasterCodec.h>
 
 #include <KoColorSpaceRegistry.h>
 #include <KoColorProfile.h>
@@ -23,6 +29,7 @@
 
 #include <document/KisDocument.h>
 #include <kis_image.h>
+#include <kis_annotation.h>
 #include <gpu/KisGpuPaintImage.h>
 #include <gpu/KisGpuExecution.h>
 #include <kis_fill_painter.h>
@@ -152,6 +159,179 @@ void TestDocument::testGpuImagePixelDataModifiedStateAndRetainedNode()
     QCOMPARE(node->pixelData(5, 5, 1, 1), QByteArray::fromHex("443322ff"));
     node.clear();
     QVERIFY(!execution.requested(handle));
+}
+
+void TestDocument::testGpuSaveAndExportPreserveHistoryAndFileIdentity()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    namespace Kra = LibrePaint::ImportExport::Kra;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 32));
+    const auto layer = owner->operations().activeLayer();
+    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("112233ff")), Gpu::Result::Success);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("GPU file operations"));
+    image->setResolution(300.0 / 72, 150.0 / 72);
+    image->addAnnotation(new KisAnnotation(QStringLiteral("project-data"), QStringLiteral("Annotation description"), QByteArrayLiteral("preserved annotation")));
+    document->setCurrentImage(image);
+    document->documentInfo()->setAboutInfo(QStringLiteral("title"), QStringLiteral("保存契約"));
+    document->setFileBatchMode(true);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto savedPath = directory.filePath(QStringLiteral("saved.kra"));
+    const auto exportedPath = directory.filePath(QStringLiteral("exported.kra"));
+    QSignalSpy saved(document.data(), &KisDocument::sigSavingFinished);
+    QVERIFY2(document->saveAs(savedPath, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
+    document->waitForSavingToComplete();
+    QCOMPARE(saved.size(), 1);
+    QCOMPARE(document->path(), savedPath);
+    QCOMPARE(document->mimeType(), KisDocument::nativeFormatMimeType());
+    QVERIFY(!document->isModified());
+    QCOMPARE(owner->operations().undoCount(), 1);
+    QCOMPARE(owner->operations().savedHistoryIndex(), 1);
+    QFile input(savedPath);
+    QVERIFY(input.open(QIODevice::ReadOnly));
+    const auto savedBytes = input.readAll();
+    QVERIFY(input.seek(0));
+    const auto loaded = Kra::RasterCodec::read(input);
+    QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
+    QCOMPARE(loaded.document.image.size, QSize(64, 32));
+    QCOMPARE(loaded.document.image.layers.size(), 1);
+    QCOMPARE(loaded.document.image.layers.first().uuid, owner->operations().snapshot()->layers.first().uuid);
+    QCOMPARE(loaded.document.image.layers.first().tiles.first().rgba.mid((5 * 256 + 5) * 4, 4),
+             QByteArray::fromHex("112233ff"));
+    QDomDocument description;
+    QVERIFY(description.setContent(loaded.document.description));
+    const auto imageDescription = description.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    QCOMPARE(imageDescription.attribute(QStringLiteral("x-res")).toDouble(), 300.0);
+    QCOMPARE(imageDescription.attribute(QStringLiteral("y-res")).toDouble(), 150.0);
+    const auto folder = imageDescription.attribute(QStringLiteral("name"));
+    QCOMPARE(loaded.document.files.value(folder + QStringLiteral("/annotations/icc")), image->profile()->rawData());
+    QCOMPARE(loaded.document.files.value(folder + QStringLiteral("/annotations/project-data")), QByteArrayLiteral("preserved annotation"));
+    QVERIFY(loaded.document.files.value(QStringLiteral("documentinfo.xml")).contains(QStringLiteral("保存契約").toUtf8()));
+    input.close();
+    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("445566ff")), Gpu::Result::Success);
+    QVERIFY(document->isModified());
+    const auto current = owner->operations().snapshot();
+    Document publicDocument(document.data(), false);
+    InfoObject settings;
+    QVERIFY(publicDocument.exportImage(exportedPath, settings));
+    QCOMPARE(document->path(), savedPath);
+    QVERIFY(document->isModified());
+    QCOMPARE(owner->operations().snapshot(), current);
+    QCOMPARE(owner->operations().undoCount(), 2);
+    QCOMPARE(owner->operations().savedHistoryIndex(), 1);
+    QCOMPARE(saved.size(), 1);
+    QFile exported(exportedPath);
+    QVERIFY(exported.open(QIODevice::ReadOnly));
+    const auto exportedValue = Kra::RasterCodec::read(exported);
+    QVERIFY2(exportedValue.code == Kra::Status::Success, qPrintable(exportedValue.diagnostic));
+    QCOMPARE(exportedValue.document.image.layers.first().tiles.first().rgba.mid((5 * 256 + 5) * 4, 4),
+             QByteArray::fromHex("445566ff"));
+    QVERIFY(!document->saveAs(directory.filePath(QStringLiteral("missing/failed.kra")), KisDocument::nativeFormatMimeType(), false));
+    QVERIFY(!document->errorMessage().isEmpty());
+    QVERIFY(!document->exportDocumentSync(savedPath, QByteArrayLiteral("image/png")));
+    QVERIFY(!document->errorMessage().isEmpty());
+    QCOMPARE(document->path(), savedPath);
+    QVERIFY(document->isModified());
+    QCOMPARE(owner->operations().snapshot(), current);
+    QVERIFY(input.open(QIODevice::ReadOnly));
+    QCOMPARE(input.readAll(), savedBytes);
+    QCOMPARE(saved.size(), 1);
+    KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void TestDocument::testGpuSaveNotificationLifetimes_data()
+{
+    QTest::addColumn<int>("reaction");
+    QTest::newRow("later-edit") << 0;
+    QTest::newRow("close-document") << 1;
+    QTest::newRow("replace-image") << 2;
+    QTest::newRow("close-on-completion") << 3;
+    QTest::newRow("document-info-edit") << 4;
+}
+
+void TestDocument::testGpuSaveNotificationLifetimes()
+{
+    QFETCH(int, reaction);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    namespace Kra = LibrePaint::ImportExport::Kra;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 32));
+    const auto layer = owner->operations().activeLayer();
+    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("112233ff")), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Save notification fixture")));
+    document->setFileBatchMode(true);
+    document->documentInfo()->setAboutInfo(QStringLiteral("title"), QStringLiteral("Before save"));
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("saved.kra"));
+    const auto original = directory.filePath(QStringLiteral("original.kra"));
+    document->setPath(original);
+    QSignalSpy saved(document.get(), &KisDocument::sigSavingFinished);
+    if (reaction == 3) {
+        connect(document.get(), &KisDocument::completed, this, [&] {
+            KisPart::instance()->removeDocument(document.get(), false);
+            document.reset();
+        });
+    }
+    Gpu::PaintImageSP replacement;
+    connect(owner.data(), &Gpu::PaintImage::savedStateChanged, this, [&] {
+        switch (reaction) {
+        case 0:
+            QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("445566ff")), Gpu::Result::Success);
+            break;
+        case 1:
+            KisPart::instance()->removeDocument(document.get(), false);
+            document.reset();
+            break;
+        case 2:
+            replacement = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+            document->setCurrentImage(KisImage::fromGpuImage(replacement, QStringLiteral("Replacement image")));
+            break;
+        case 4:
+            document->documentInfo()->setAboutInfo(QStringLiteral("title"), QStringLiteral("After save"));
+            document->setModified(true);
+            break;
+        }
+    });
+    QVERIFY(document->saveAs(path, KisDocument::nativeFormatMimeType(), false));
+    QFile input(path);
+    QVERIFY(input.open(QIODevice::ReadOnly));
+    const auto loaded = Kra::RasterCodec::read(input);
+    QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
+    QCOMPARE(loaded.document.image.layers.first().tiles.first().rgba.mid((5 * 256 + 5) * 4, 4), QByteArray::fromHex("112233ff"));
+    if (reaction == 0 || reaction == 4) {
+        QCOMPARE(document->path(), path);
+        QVERIFY(document->isModified());
+        QCOMPARE(owner->operations().undoCount(), reaction == 0 ? 2 : 1);
+        QCOMPARE(owner->operations().savedHistoryIndex(), 1);
+        QCOMPARE(saved.size(), 1);
+        QVERIFY(!document->isSaving());
+        if (reaction == 4) {
+            QCOMPARE(document->documentInfo()->aboutInfo(QStringLiteral("title")), QStringLiteral("After save"));
+            QVERIFY(loaded.document.files.value(QStringLiteral("documentinfo.xml")).contains("Before save"));
+            QVERIFY(!loaded.document.files.value(QStringLiteral("documentinfo.xml")).contains("After save"));
+        }
+    } else if (reaction == 1 || reaction == 3) {
+        QVERIFY(!document);
+        QCOMPARE(saved.size(), 0);
+        QCOMPARE(owner->readRgbaPixels(layer, QRect(5, 5, 1, 1), 4).bytes, QByteArray::fromHex("112233ff"));
+    } else {
+        QCOMPARE(document->path(), original);
+        QCOMPARE(document->image()->gpuImage(), replacement);
+        QVERIFY(!document->isModified());
+        QCOMPARE(saved.size(), 0);
+        QVERIFY(!document->isSaving());
+    }
+    if (document) KisPart::instance()->removeDocument(document.get(), false);
 }
 
 void TestDocument::testThumbnail()

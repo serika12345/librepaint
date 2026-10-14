@@ -7,6 +7,7 @@
 #include <kra/KisKraRasterCodec.h>
 #include <QFile>
 #include <QSaveFile>
+#include <QPointer>
 #include <stdexcept>
 
 namespace LibrePaint::Document::Gpu {
@@ -58,6 +59,26 @@ FileOpenOutcome PaintDocument::openKra(Execution &execution, const QString &path
 }
 
 FileOutcome PaintDocument::saveKra(const QString &path, const Snapshot &version)
+{ return writeKra(path, version, true); }
+
+FileOutcome PaintDocument::setKraImageMetadata(const Kra::ImageMetadata &metadata)
+{
+    if (!onThread()) return {FileCode::InvalidData, {}, QStringLiteral("Metadata updates require the document thread")};
+    if (!m_d->image->handle()) return {FileCode::Closed, {}, QStringLiteral("The painting document is closed")};
+    Kra::Document value;
+    value.description = m_d->description;
+    value.files = m_d->files;
+    const auto outcome = Kra::RasterCodec::updateImageMetadata(value, metadata, Private::formatLimits(m_d->limits));
+    if (outcome.code != Kra::Status::Success) return {fileCode(outcome.code), {}, outcome.diagnostic};
+    m_d->description = std::move(value.description);
+    m_d->files = std::move(value.files);
+    return {FileCode::Success, m_d->image->operations().snapshot(), {}};
+}
+
+FileOutcome PaintDocument::exportKra(const QString &path, const Snapshot &version)
+{ return writeKra(path, version, false); }
+
+FileOutcome PaintDocument::writeKra(const QString &path, const Snapshot &version, bool adoptFile)
 {
     auto &d = *m_d;
     if (!onThread()) return {FileCode::InvalidData, {}, QStringLiteral("Saving requires the document thread")};
@@ -91,9 +112,13 @@ FileOutcome PaintDocument::saveKra(const QString &path, const Snapshot &version)
     const auto written = Kra::RasterCodec::write(file, output, projection.image, limits);
     if (written.code != Kra::Status::Success) { file.cancelWriting(); return {fileCode(written.code), {}, written.diagnostic}; }
     if (!file.commit()) return {FileCode::IoFailure, {}, file.errorString()};
-    d.image->markSaved(pinned);
-    d.path = path;
-    Q_EMIT changed();
+    if (adoptFile) {
+        const auto image = d.image;
+        d.path = path;
+        QPointer<PaintDocument> guard(this);
+        image->markSaved(pinned);
+        if (guard) Q_EMIT changed();
+    }
     return {FileCode::Success, pinned, {}};
 }
 }

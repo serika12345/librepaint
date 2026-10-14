@@ -10,6 +10,7 @@
 #include <memory>
 #include <kritadocumentpainting_export.h>
 
+namespace LibrePaint::ImportExport::Kra { struct ImageMetadata; }
 namespace LibrePaint::Document::Gpu {
 namespace Paint = Image::Gpu;
 enum class FileCode { Success, InvalidData, UnsupportedData, CapacityExceeded, IoFailure, Busy, DeviceFailure, Closed };
@@ -36,6 +37,8 @@ class KRITADOCUMENTPAINTING_EXPORT PaintDocument : public QObject
 public:
     explicit PaintDocument(Paint::Execution &execution, QSize size, Paint::Limits limits = {});
     explicit PaintDocument(Paint::Execution &execution, const Paint::RasterImage &image, Paint::Limits limits = {});
+    /** Adopts an open shared image on its thread without allocating another attachment. */
+    explicit PaintDocument(Paint::PaintImageSP image, Paint::Limits limits = {});
     ~PaintDocument() override;
     Paint::PaintImageSP image() const;
     QString filePath() const;
@@ -45,6 +48,10 @@ public:
     static FileOpenOutcome openKra(Paint::Execution &execution, const QString &path, Paint::Limits limits = {});
     /** Saves a committed fixed version atomically; later edits remain modified. */
     FileOutcome saveKra(const QString &path, const Paint::Snapshot &version = {});
+    /** Writes a fixed version while preserving file identity and saved state. */
+    FileOutcome exportKra(const QString &path, const Paint::Snapshot &version = {});
+    /** Validates image metadata before replacing the retained KRA description and files. */
+    FileOutcome setKraImageMetadata(const ImportExport::Kra::ImageMetadata &metadata);
     /** Bounded logical recovery, including file metadata and pending input. */
     QByteArray recoveryData() const;
     /** Validates before adopting a fresh operation identity on the same handle. */
@@ -56,6 +63,7 @@ Q_SIGNALS:
 private:
     PaintDocument(Paint::Execution &execution, Paint::PaintImageSP image, Paint::Limits limits);
     bool onThread() const;
+    FileOutcome writeKra(const QString &path, const Paint::Snapshot &version, bool adoptFile);
     struct Private;
     std::unique_ptr<Private> m_d;
 };

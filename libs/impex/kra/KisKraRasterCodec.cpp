@@ -7,6 +7,7 @@
 #include "KisKraRgbaTiles_p.h"
 #include <QBuffer>
 #include <QColorSpace>
+#include <QColorTransform>
 #include <QDomDocument>
 #include <QImage>
 #include <QSet>
@@ -107,6 +108,26 @@ Outcome description(const QByteArray &bytes, QDomDocument &xml, QDomElement &ima
         return unsupported(QStringLiteral("KRA image requires RGBA8"));
     return {Status::Success, {}};
 }
+QDomElement createDescription(QDomDocument &xml)
+{
+    xml = QDomDocument(QDomImplementation().createDocumentType(QStringLiteral("DOC"), QStringLiteral("-//KDE//DTD krita 2.0//EN"),
+                                                              QStringLiteral("http://www.calligra.org/DTD/krita-2.0.dtd")));
+    auto root = xml.createElement(QStringLiteral("DOC"));
+    root.setAttribute(QStringLiteral("xmlns"), QStringLiteral("http://www.calligra.org/DTD/krita"));
+    root.setAttribute(QStringLiteral("syntaxVersion"), QStringLiteral("2"));
+    root.setAttribute(QStringLiteral("editor"), QStringLiteral("LibrePaint"));
+    xml.appendChild(root);
+    auto image = xml.createElement(QStringLiteral("IMAGE"));
+    image.setAttribute(QStringLiteral("name"), QStringLiteral("image"));
+    image.setAttribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA"));
+    image.setAttribute(QStringLiteral("profile"), QStringLiteral("sRGB built-in"));
+    image.setAttribute(QStringLiteral("mime"), QStringLiteral("application/x-kra"));
+    image.setAttribute(QStringLiteral("x-res"), QStringLiteral("72"));
+    image.setAttribute(QStringLiteral("y-res"), QStringLiteral("72"));
+    root.appendChild(image);
+    image.appendChild(xml.createElement(QStringLiteral("layers")));
+    return image;
+}
 bool integer(const QDomElement &element, const QString &name, int &value, const QString &fallback = {})
 {
     bool ok = false;
@@ -135,6 +156,22 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset)
     offset = {x, y};
     return {Status::Success, {}};
 }
+bool srgbSpace(const QColorSpace &space)
+{
+    if (!space.isValid() || space.primaries() != QColorSpace::Primaries::SRgb) return false;
+    if (space.transferFunction() == QColorSpace::TransferFunction::SRgb) return true;
+    if (space.transferFunction() != QColorSpace::TransferFunction::Custom ||
+        space.transformModel() != QColorSpace::TransformModel::ThreeComponentMatrix) return false;
+    // Matrix profiles can encode sRGB curves as tables. Their independent
+    // channel curves must preserve every encoded 8-bit channel value.
+    const auto transform = space.transformationToColorSpace(QColorSpace(QColorSpace::SRgb));
+    for (int value = 0; value < 256; ++value) {
+        const auto expected = qRgb(value, value, value);
+        if (transform.map(expected) != expected) return false;
+    }
+    return true;
+}
+
 Outcome profile(const QMap<QString, QByteArray> &files, const QString &path, const QString &name)
 {
     if (!files.contains(path)) {
@@ -143,7 +180,7 @@ Outcome profile(const QMap<QString, QByteArray> &files, const QString &path, con
     }
     const auto space = QColorSpace::fromIccProfile(files.value(path));
     if (!space.isValid()) return invalid(QStringLiteral("Invalid KRA color profile"));
-    if (space.primaries() != QColorSpace::Primaries::SRgb || space.transferFunction() != QColorSpace::TransferFunction::SRgb)
+    if (!srgbSpace(space))
         return unsupported(QStringLiteral("KRA requires an sRGB profile"));
     return {Status::Success, {}};
 }
@@ -197,6 +234,64 @@ Outcome writeArchive(QIODevice &destination, const QMap<QString, QByteArray> &fi
     if (archive.getZipError() || destination.size() != 0 || !destination.seek(0) || destination.write(bytes) != bytes.size()) return ioFailure();
     return {Status::Success, {}};
 }
+}
+
+Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata &metadata, Limits limits)
+{
+    auto result = validateMetadata(document.description, document.files, limits);
+    if (result.code != Status::Success) return result;
+    if (!qIsFinite(metadata.resolution.x()) || !qIsFinite(metadata.resolution.y()) ||
+        metadata.resolution.x() <= 0 || metadata.resolution.y() <= 0)
+        return invalid(QStringLiteral("Invalid KRA image resolution"));
+    if (metadata.documentInfo.size() > limits.xmlBytes) return capacity();
+    if (!metadata.documentInfo.isEmpty()) {
+        QDomDocument info;
+        if (!info.setContent(metadata.documentInfo) || info.documentElement().tagName() != QLatin1String("document-info"))
+            return invalid(QStringLiteral("Invalid KRA document information"));
+    }
+    QDomDocument xml;
+    QDomElement image;
+    if (document.description.isEmpty()) image = createDescription(xml);
+    else {
+        result = description(document.description, xml, image);
+        if (result.code != Status::Success) return result;
+    }
+    auto files = document.files;
+    const auto folder = image.attribute(QStringLiteral("name"));
+    const auto prefix = folder + QStringLiteral("/annotations/");
+    auto annotations = image.firstChildElement(QStringLiteral("Annotations"));
+    for (auto entry = annotations.firstChildElement(); !entry.isNull(); entry = entry.nextSiblingElement())
+        files.remove(prefix + entry.attribute(QStringLiteral("type")));
+    if (!annotations.isNull()) image.removeChild(annotations);
+    annotations = xml.createElement(QStringLiteral("Annotations"));
+    files.remove(prefix + QStringLiteral("exif"));
+    QSet<QString> types;
+    for (const auto &annotation : metadata.annotations) {
+        if (!component(annotation.type) || annotation.type == QLatin1String("icc") ||
+            !validName(annotation.description) || types.contains(annotation.type))
+            return invalid(QStringLiteral("Invalid or duplicate KRA annotation"));
+        types.insert(annotation.type);
+        files.insert(prefix + annotation.type, annotation.bytes);
+        if (annotation.type != QLatin1String("exif")) {
+            auto entry = xml.createElement(QStringLiteral("Annotation"));
+            entry.setAttribute(QStringLiteral("type"), annotation.type);
+            entry.setAttribute(QStringLiteral("description"), annotation.description);
+            annotations.appendChild(entry);
+        }
+    }
+    if (annotations.hasChildNodes()) image.appendChild(annotations);
+    if (!metadata.iccProfile.isEmpty()) files.insert(prefix + QStringLiteral("icc"), metadata.iccProfile);
+    if (metadata.documentInfo.isEmpty()) files.remove(QStringLiteral("documentinfo.xml"));
+    else files.insert(QStringLiteral("documentinfo.xml"), metadata.documentInfo);
+    image.setAttribute(QStringLiteral("x-res"), QString::number(metadata.resolution.x(), 'g', 17));
+    image.setAttribute(QStringLiteral("y-res"), QString::number(metadata.resolution.y(), 'g', 17));
+    const auto bytes = xml.toByteArray();
+    files.insert(QStringLiteral("maindoc.xml"), bytes);
+    result = validateMetadata(bytes, files, limits);
+    if (result.code != Status::Success) return result;
+    document.description = bytes;
+    document.files = std::move(files);
+    return {Status::Success, {}};
 }
 
 Outcome RasterCodec::validateMetadata(const QByteArray &bytes, const QMap<QString, QByteArray> &files, Limits limits)
@@ -318,30 +413,14 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         value.activeLayer < 0 || (value.layers.isEmpty() ? value.activeLayer != 0 : value.activeLayer >= value.layers.size()))
         return invalid(QStringLiteral("Invalid KRA image or projection"));
     if (value.layers.size() > limits.layers || document.description.size() > limits.xmlBytes) return capacity();
-    if (projection.colorSpace().isValid() &&
-        (projection.colorSpace().primaries() != QColorSpace::Primaries::SRgb ||
-         projection.colorSpace().transferFunction() != QColorSpace::TransferFunction::SRgb))
+    if (projection.colorSpace().isValid() && !srgbSpace(projection.colorSpace()))
         return unsupported(QStringLiteral("KRA projection requires sRGB"));
     auto result = validateMetadata(document.description, document.files, limits);
     if (result.code != Status::Success) return result;
     QDomDocument xml;
     QDomElement image;
     if (document.description.isEmpty()) {
-        xml = QDomDocument(QDomImplementation().createDocumentType(QStringLiteral("DOC"), QStringLiteral("-//KDE//DTD krita 2.0//EN"),
-                                                                  QStringLiteral("http://www.calligra.org/DTD/krita-2.0.dtd")));
-        auto root = xml.createElement(QStringLiteral("DOC"));
-        root.setAttribute(QStringLiteral("xmlns"), QStringLiteral("http://www.calligra.org/DTD/krita"));
-        root.setAttribute(QStringLiteral("syntaxVersion"), QStringLiteral("2"));
-        root.setAttribute(QStringLiteral("editor"), QStringLiteral("LibrePaint"));
-        xml.appendChild(root);
-        image = xml.createElement(QStringLiteral("IMAGE"));
-        image.setAttribute(QStringLiteral("name"), QStringLiteral("image"));
-        image.setAttribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA"));
-        image.setAttribute(QStringLiteral("profile"), QStringLiteral("sRGB built-in"));
-        image.setAttribute(QStringLiteral("mime"), QStringLiteral("application/x-kra"));
-        image.setAttribute(QStringLiteral("x-res"), QStringLiteral("72"));
-        image.setAttribute(QStringLiteral("y-res"), QStringLiteral("72"));
-        root.appendChild(image);
+        image = createDescription(xml);
     } else {
         result = description(document.description, xml, image);
         if (result.code != Status::Success) return result;

@@ -11,6 +11,7 @@
 #include <QSignalSpy>
 #include <QStatusBar>
 #include <QScopeGuard>
+#include <QTemporaryDir>
 #include <KLocalizedString>
 #include <KisGlobalResourcesInterface.h>
 #include <KisResourceLocator.h>
@@ -242,6 +243,26 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QCOMPARE(owner->operations().snapshot(), painted);
     QCOMPARE(owner->operations().undoCount(), 1);
     QTRY_COMPARE(execution.published(owner->handle()), painted);
+
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("ordinary-document.kra"));
+    documentLifetime->setFileBatchMode(true);
+    QVERIFY2(documentLifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(documentLifetime->errorMessage()));
+    QCOMPARE(owner->replaceRgbaPixels(owner->operations().activeLayer(), QRect(8, 8, 1, 1), QByteArray::fromHex("112233ff")), Gpu::Result::Success);
+    auto *save = window->viewManager()->actionManager()->actionByName(QStringLiteral("file_save"));
+    QVERIFY(save);
+    QTRY_VERIFY(save->isEnabled());
+    QSignalSpy saved(documentLifetime.data(), &KisDocument::sigSavingFinished);
+    save->trigger();
+    QTRY_COMPARE(saved.size(), 1);
+    QVERIFY(!documentLifetime->isModified());
+    QCOMPARE(documentLifetime->path(), path);
+    QCOMPARE(owner->operations().undoCount(), 2);
+    documentLifetime->undoStack()->undo();
+    QVERIFY(documentLifetime->isModified());
+    documentLifetime->undoStack()->redo();
+    QVERIFY(!documentLifetime->isModified());
 }
 
 void KisGpuDocumentViewTest::presentsEditsAndReleasesTheClosedTab()

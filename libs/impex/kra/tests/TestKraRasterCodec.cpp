@@ -10,6 +10,7 @@
 #include <QFile>
 #include <QImage>
 #include <QTest>
+#include <cmath>
 #include <quazip.h>
 #include <quazipfile.h>
 #include <quazipnewinfo.h>
@@ -340,6 +341,7 @@ void TestKraRasterCodec::malformedPixelsAndProfilesAreAtomic_data()
     QTest::newRow("unsafe-archive-path") << 5 << Kra::Status::InvalidData;
     QTest::newRow("expanded-raster-capacity") << 6 << Kra::Status::CapacityExceeded;
     QTest::newRow("xml-capacity") << 7 << Kra::Status::CapacityExceeded;
+    QTest::newRow("non-srgb-table-curve") << 8 << Kra::Status::UnsupportedData;
 }
 
 void TestKraRasterCodec::malformedPixelsAndProfilesAreAtomic()
@@ -358,6 +360,12 @@ void TestKraRasterCodec::malformedPixelsAndProfilesAreAtomic()
     if (change == 3) files[QStringLiteral("unnamed/annotations/icc")] = QByteArrayLiteral("invalid profile");
     if (change == 4) files[QStringLiteral("unnamed/annotations/icc")] = QColorSpace(QColorSpace::DisplayP3).iccProfile();
     if (change == 5) files[QStringLiteral("../outside")] = QByteArrayLiteral("data");
+    if (change == 8) {
+        QList<uint16_t> curve;
+        for (int value = 0; value < 256; ++value)
+            curve.append(qRound(std::pow(value / 255.0, 2.2) * 65535));
+        files[QStringLiteral("unnamed/annotations/icc")] = QColorSpace(QColorSpace::Primaries::SRgb, curve).iccProfile();
+    }
     Kra::Limits limits;
     if (change == 6) limits.rasterBytes = 1;
     if (change == 7) limits.xmlBytes = 16;

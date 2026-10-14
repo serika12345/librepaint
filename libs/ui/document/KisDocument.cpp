@@ -99,7 +99,11 @@
 #include <flake/kis_shape_layer.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
+#include <kis_annotation.h>
 #include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuPaintDocument.h>
+#include <kra/KisKraRasterCodec.h>
+#include <QPointer>
 #include <kis_layer.h>
 #include <kis_name_server.h>
 #include <kis_paint_layer.h>
@@ -285,6 +289,8 @@ public:
 
     KisImageSP image;
     KisImageSP savingImage;
+    std::shared_ptr<LibrePaint::Document::Gpu::PaintDocument> gpuDocument;
+    bool gpuSaving = false;
 
     KisNodeWSP preActivatedNode;
     KisShapeController* shapeController = 0;
@@ -667,6 +673,8 @@ KisDocument *KisDocument::clone(bool addStorage)
 
 bool KisDocument::exportDocumentImpl(const KritaUtils::ExportFileJob &job, KisPropertiesConfigurationSP exportConfiguration, bool isAdvancedExporting)
 {
+    if (d->gpuDocument && job.mimeType != nativeFormatMimeType())
+        return exportGpuDocument(job, true);
     // ANDROID NOTES (other comments in this file reference this one!)
     //
     // The Android file system doesn't work like on a real operating system.
@@ -784,6 +792,8 @@ bool KisDocument::exportDocumentImpl(const KritaUtils::ExportFileJob &job, KisPr
 
     }
 
+    if (d->gpuDocument) return exportGpuDocument(job, true);
+
     const QString actionName =
             job.flags & KritaUtils::SaveIsExporting ?
                 i18n("Exporting Document...") :
@@ -832,6 +842,58 @@ bool KisDocument::exportDocumentImpl(const KritaUtils::ExportFileJob &job, KisPr
     }
 
     return (result == KritaUtils::BackgroudSavingStartResult::Success);
+}
+
+bool KisDocument::exportGpuDocument(const KritaUtils::ExportFileJob &job, bool notifyCompletion)
+{
+    namespace GpuDocument = LibrePaint::Document::Gpu;
+    const auto fileDocument = d->gpuDocument;
+    if (!fileDocument) return false;
+    KisImportExportErrorCode status = ImportExportCodes::Failure;
+    QString diagnostic;
+    if (job.mimeType != nativeFormatMimeType()) {
+        status = ImportExportCodes::FileFormatNotSupported;
+        diagnostic = i18n("This document currently supports saving and exporting as KRA. Other formats require GPU document support.");
+    } else if (isSaving()) {
+        status = ImportExportCodes::Busy;
+        diagnostic = i18n("Another save operation is in progress.");
+    } else {
+        const bool exporting = job.flags & KritaUtils::SaveIsExporting;
+        QPointer<KisDocument> guard(this);
+        d->gpuSaving = true;
+        if (!exporting) d->modificationState.markSavingStarted();
+        LibrePaint::ImportExport::Kra::ImageMetadata metadata;
+        metadata.resolution = {d->image->xRes() * 72, d->image->yRes() * 72};
+        auto info = createDomDocument(QStringLiteral("document-info"), QStringLiteral("document-info"), QStringLiteral("1.1"));
+        metadata.documentInfo = documentInfo()->save(info, isAutosaving(), isModified()).toByteArray();
+        metadata.iccProfile = d->image->profile()->rawData();
+        for (auto entry = d->image->beginAnnotations(); entry != d->image->endAnnotations(); ++entry) {
+            if (*entry && !(*entry)->type().isEmpty() && (*entry)->type() != QLatin1String("icc"))
+                metadata.annotations.append({(*entry)->type(), (*entry)->description(), (*entry)->annotation()});
+        }
+        auto outcome = fileDocument->setKraImageMetadata(metadata);
+        if (outcome.code == GpuDocument::FileCode::Success)
+            outcome = exporting ? fileDocument->exportKra(job.filePath) : fileDocument->saveKra(job.filePath);
+        const bool success = outcome.code == GpuDocument::FileCode::Success;
+        if (!guard) return success;
+        d->gpuSaving = false;
+        if (d->gpuDocument != fileDocument) return success;
+        diagnostic = outcome.diagnostic;
+        switch (outcome.code) {
+        case GpuDocument::FileCode::Success: status = ImportExportCodes::OK; break;
+        case GpuDocument::FileCode::CapacityExceeded: status = ImportExportCodes::InsufficientMemory; break;
+        case GpuDocument::FileCode::Busy: status = ImportExportCodes::Busy; break;
+        case GpuDocument::FileCode::UnsupportedData: status = ImportExportCodes::FormatFeaturesUnsupported; break;
+        case GpuDocument::FileCode::IoFailure: status = ImportExportCodes::ErrorWhileWriting; break;
+        default: status = ImportExportCodes::Failure; break;
+        }
+        if (success && !exporting && !d->modificationState.wasModifiedWhileSaving() &&
+            fileDocument->image()->operations().snapshot() == outcome.version)
+            d->modificationState.clearImageModifiedWithoutUndo();
+    }
+    d->lastErrorMessage = diagnostic;
+    if (notifyCompletion) slotCompleteSavingDocument(job, status, diagnostic, {});
+    return status.isOk();
 }
 
 bool KisDocument::exportDocument(const QString &path, const QByteArray &mimeType, bool isAdvancedExporting, bool showWarnings, KisPropertiesConfigurationSP exportConfiguration)
@@ -949,7 +1011,9 @@ void KisDocument::Private::updateDocumentMetadataOnSaving(const QString &filePat
 
     q->setReadWrite(Krita::Document::KisDocumentSaveTarget::inspect(filePath).writable);
 
-    if (!modificationState.wasModifiedWhileSaving()) {
+    if (image && image->gpuImage()) {
+        if (!modificationState.wasModifiedWhileSaving()) q->setImageModified();
+    } else if (!modificationState.wasModifiedWhileSaving()) {
         /**
          * If undo stack is already clean/empty, it doesn't Q_EMIT any
          * signals, so we might forget update document modified state
@@ -1169,6 +1233,8 @@ void KisDocument::copyFromDocumentImpl(const KisDocument &rhs, CopyPolicy policy
 
 bool KisDocument::exportDocumentSync(const QString &path, const QByteArray &mimeType, KisPropertiesConfigurationSP exportConfiguration)
 {
+    if (d->gpuDocument)
+        return exportGpuDocument(KritaUtils::ExportFileJob(path, mimeType, KritaUtils::SaveIsExporting), false);
     {
         /**
          * The caller guarantees that no one else uses the document (usually,
@@ -2709,6 +2775,7 @@ bool KisDocument::newImage(const QString& name,
 
 bool KisDocument::isSaving() const
 {
+    if (d->gpuSaving) return true;
     const bool result = d->savingMutex.tryLock();
     if (result) {
         d->savingMutex.unlock();
@@ -2820,6 +2887,9 @@ KisImageSP KisDocument::savingImage() const
 
 void KisDocument::setCurrentImage(KisImageSP image, bool forceInitialUpdate, KisNodeSP preActivatedNode)
 {
+    const auto fileDocument = image && image->gpuImage() ?
+        std::make_shared<LibrePaint::Document::Gpu::PaintDocument>(image->gpuImage()) : nullptr;
+    d->gpuDocument = fileDocument;
     d->undoStack->setImage(nullptr);
     if (d->image) {
         // Disconnect existing sig/slot connections

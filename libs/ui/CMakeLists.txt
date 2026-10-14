@@ -2391,6 +2391,7 @@ target_link_libraries(kritaapplicationui
         kritaapplication
     PRIVATE
         kritadocumentfiles
+        kritadocumentpainting
         kritadocumentui
         kritaimpexui
         kritainputui

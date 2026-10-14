@@ -19,6 +19,7 @@
 #include <quazip.h>
 #include <quazipfile.h>
 #include <cstring>
+#include <limits>
 
 using namespace LibrePaint::Image::Gpu;
 using namespace LibrePaint::Document::Gpu;
@@ -74,9 +75,73 @@ private Q_SLOTS:
     void layerStructureAndEmptyDocumentsRoundTripWithUnifiedHistory();
     void savingStreamsPixelsWithinTheGpuAndTransferBudgets();
     void sharedImageEditsAndRecoveryPublishCompleteFileMetadata();
+    void adoptedImagesExportWithoutChangingSaveIdentity();
+    void savedStateNotificationsAllowDocumentDeletion();
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPaintDocumentTest::adoptedImagesExportWithoutChangingSaveIdentity()
+{
+    Execution execution(m_device, 128 * 1024 * 1024, 1);
+    auto image = PaintImageSP::create(execution, QSize(64, 64));
+    const auto handle = image->handle();
+    PaintDocument document(image);
+    QCOMPARE(document.image(), image);
+    QCOMPARE(document.image()->handle(), handle);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("saved.kra"));
+    const auto exported = directory.filePath(QStringLiteral("exported.kra"));
+    dot(*image, {12, 12}, {17, 34, 51, 255});
+    QCOMPARE(document.saveKra(path).code, FileCode::Success);
+    const auto saved = image->operations().snapshot();
+    dot(*image, {12, 12}, {68, 85, 102, 255});
+    const auto current = image->operations().snapshot();
+    QSignalSpy changes(&document, &PaintDocument::changed);
+    QCOMPARE(document.exportKra(exported).code, FileCode::Success);
+    QCOMPARE(document.filePath(), path);
+    QCOMPARE(image->operations().snapshot(), current);
+    QCOMPARE(image->operations().undoCount(), 2);
+    QCOMPARE(image->operations().savedHistoryIndex(), 1);
+    QCOMPARE(changes.size(), 0);
+    QCOMPARE(mergedImage(exported).pixelColor(12, 12), QColor(68, 85, 102));
+    QCOMPARE(document.exportKra(exported, saved).code, FileCode::Success);
+    QCOMPARE(mergedImage(exported).pixelColor(12, 12), QColor(17, 34, 51));
+    QVERIFY(image->operations().isModified());
+    const auto recovery = document.recoveryData();
+    QList<Kra::ImageMetadata> invalidMetadata(5);
+    invalidMetadata[0].resolution.setX(std::numeric_limits<qreal>::quiet_NaN());
+    invalidMetadata[1].documentInfo = QByteArrayLiteral("invalid XML");
+    invalidMetadata[2].iccProfile = QByteArrayLiteral("invalid ICC profile");
+    invalidMetadata[3].annotations = {{QStringLiteral("../outside"), {}, {}}};
+    invalidMetadata[4].annotations = {{QStringLiteral("duplicate"), {}, {}}, {QStringLiteral("duplicate"), {}, {}}};
+    for (const auto &metadata : invalidMetadata) {
+        QCOMPARE(document.setKraImageMetadata(metadata).code, FileCode::InvalidData);
+        QCOMPARE(document.recoveryData(), recovery);
+    }
+}
+
+void KisGpuPaintDocumentTest::savedStateNotificationsAllowDocumentDeletion()
+{
+    Execution execution(m_device);
+    auto document = std::make_unique<PaintDocument>(execution, QSize(64, 64));
+    auto image = document->image();
+    dot(*image, {12, 12}, {17, 34, 51, 255});
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("saved.kra"));
+    QString observedPath;
+    connect(image.data(), &PaintImage::savedStateChanged, this, [&] {
+        observedPath = document->filePath();
+        document.reset();
+    });
+    QCOMPARE(document->saveKra(path).code, FileCode::Success);
+    QVERIFY(!document);
+    QCOMPARE(observedPath, path);
+    QVERIFY(!image->operations().isModified());
+    QCOMPARE(mergedImage(path).pixelColor(12, 12), QColor(17, 34, 51));
+}
 
 void KisGpuPaintDocumentTest::sharedImageEditsAndRecoveryPublishCompleteFileMetadata()
 {
