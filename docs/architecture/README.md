@@ -1006,8 +1006,12 @@ Nixは公開ソース、パッチ、ホストツールを固定し、外部ラ�
 `__impureHostDeps`を宣言する派生物だけが外部のXcodeを参照します。
 版はXcodeとSDKのplistから読み、固定値へ照合します。
 
-Xcode、SDK、Clangの版・ビルド識別子、対象OS、アーキテクチャはコンパイル済み依存物全体で一致させます。
-ホスト生成器はNixコンパイラー、対象ライブラリーはAppleコンパイラーで構築し、CMakeとpkg-configは
+Xcode、SDKの版・ビルド識別子、対象OS、アーキテクチャはコンパイル済み依存物全体で一致させます。
+C／C++の対象ライブラリーは固定したApple Clangで構築します。GPU実行基盤は
+[`nix/ios/wgpu-native.nix`](../../nix/ios/wgpu-native.nix)がMetalとWGSLを含む静的ライブラリーを所有し、
+[`nix/ios/rust-toolchain.nix`](../../nix/ios/rust-toolchain.nix)の対応するRustコンパイラーと
+標準ライブラリーのソースから同じ対象OS・SDK・アーキテクチャへ構築します。
+ホスト生成器はNixコンパイラーで構築し、CMakeとpkg-configは
 宣言した対象依存物だけを検索します。純粋なヘッダーパッケージは`iosTargetIndependent = true`とし、
 ソースとヘッダー依存だけを入力に持ちます。伝播する依存は`nix-support/propagated-build-inputs`へ記録します。
 
@@ -1018,6 +1022,7 @@ Xcode、SDK、Clangの版・ビルド識別子、対象OS、アーキテクチ�
 
 | 依存物 | 保持する契約 |
 | --- | --- |
+| wgpu-native | 全アーカイブ要素のiOS・arm64・最小OSを検査し、C APIからMetal／Foundation／QuartzCoreを含む利用側のリンクを成立させる |
 | libpng | `PNG::PNG`からzlibを含む利用側のリンクが成立する |
 | FreeType | `Freetype::Freetype`だけの指定からzlib／libpngを推移的に解決する |
 | HarfBuzz | FreeType接続と配置先に依存しないCoreText参照を維持する |

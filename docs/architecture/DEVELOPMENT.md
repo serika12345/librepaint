@@ -908,6 +908,12 @@ build-incremental ios build
 閾値の明示変更には`KRITA_IOS_INCREMENTAL_MAX_STEPS`を使う。
 共通入口は`packaging/ios/scripts/build-librepaint-incremental.sh`へ委譲する。
 
+GPU実行基盤の依存定義は`nix/ios/wgpu-native.nix`、Rustのコンパイラー・ホスト標準ライブラリー・
+標準ライブラリーソースの固定値は`nix/ios/rust-toolchain.nix`が所有する。
+対象標準ライブラリーは固定SDKと最小OSでソースから構築する。依存定義の変更後は増分環境を
+一度更新し、通常のソース編集では記録済み環境を再利用する。依存物の構築時に全静的アーカイブ
+要素を検査し、C API利用側の最終リンクまで確認する。
+
 クリーンなアプリと未署名IPAは次で作成する。IPA出力は必要なアプリ・依存物も構築する。
 
 ```sh

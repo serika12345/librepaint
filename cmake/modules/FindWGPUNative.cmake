@@ -13,6 +13,10 @@ if(WGPUNative_FOUND AND NOT TARGET WGPUNative::WGPUNative)
     set_target_properties(WGPUNative::WGPUNative PROPERTIES
         IMPORTED_LOCATION "${WGPUNative_LIBRARY}"
         INTERFACE_INCLUDE_DIRECTORIES "${WGPUNative_INCLUDE_DIR}")
+    if(IOS)
+        set_property(TARGET WGPUNative::WGPUNative PROPERTY INTERFACE_LINK_LIBRARIES
+            "-framework Metal;-framework Foundation;-framework QuartzCore;-lobjc")
+    endif()
 endif()
 
 mark_as_advanced(WGPUNative_INCLUDE_DIR WGPUNative_LIBRARY)

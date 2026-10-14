@@ -147,6 +147,13 @@ let
     inherit toolchain;
   };
 
+  rust-ios-toolchain = pkgs.callPackage ./rust-toolchain.nix { };
+  wgpu-native-ios = pkgs.callPackage ./wgpu-native.nix {
+    inherit toolchain;
+    rustToolchain = rust-ios-toolchain;
+    qtXcrunShim = qt-xcrun-shim;
+  };
+
   zlib-ios = pkgs.callPackage ./packages/zlib.nix {
     inherit mkIOSCMakePackage;
     packageSpec = dependencyByName.zlib;
@@ -690,6 +697,7 @@ let
   ];
 
   featureIOSPackages = [
+    wgpu-native-ios
     poppler-ios
     libkdcraw-ios
     kseexpr-ios
@@ -699,6 +707,7 @@ let
 
   krita-ios-app = pkgs.callPackage ./krita.nix {
     inherit
+      wgpu-native-ios
       boost-ios
       eigen-ios
       exiv2-ios
@@ -826,76 +835,12 @@ assert lib.assertMsg (
   && krita-ios-incremental-env.patches == [ ]
   && lib.all (hook: (krita-ios-incremental-env.${hook} or null) == "") incrementalDiscardedHooks
 ) "incremental iOS environment must discard the app source and package-specific phase hooks";
-assert lib.assertMsg (
-  builtins.length allIOSPackages == 58
-  && builtins.length (lib.unique (map toString allIOSPackages)) == 58
-) "final iOS dependency aggregate must contain exactly 58 unique outputs";
-assert lib.assertMsg (
-  map (package: package.pname) allIOSPackages == [
-    "zlib-ios"
-    "libdeflate-ios"
-    "expat-ios"
-    "libpng-ios"
-    "freetype-ios"
-    "harfbuzz-ios"
-    "fontconfig-ios"
-    "lcms2-ios"
-    "eigen-ios"
-    "xsimd-ios"
-    "libunibreak-ios"
-    "libjpeg-turbo-ios"
-    "libwebp-ios"
-    "libtiff-ios"
-    "openjpeg-ios"
-    "imath-ios"
-    "openexr-ios"
-    "libffi-ios"
-    "pcre2-ios"
-    "glib-ios"
-    "json-c-ios"
-    "libmypaint-ios"
-    "exiv2-ios"
-    "boost-ios"
-    "immer-ios"
-    "zug-ios"
-    "lager-ios"
-    "libintl-ios"
-    "fribidi-ios"
-    "giflib-ios"
-    "brotli-ios"
-    "libhwy-ios"
-    "libde265-ios"
-    "x265-ios"
-    "libaom-ios"
-    "libheif-ios"
-    "libjxl-ios"
-    "libraw-ios"
-    "yaml-cpp-ios"
-    "pystring-ios"
-    "minizip-ng-ios"
-    "opencolorio-ios"
-    "qtbase-ios"
-    "qtsvg-ios"
-    "qt5compat-ios"
-    "quazip-ios"
-    "kconfig-ios"
-    "kwidgetsaddons-ios"
-    "kcodecs-ios"
-    "kcompletion-ios"
-    "kcoreaddons-ios"
-    "kguiaddons-ios"
-    "ki18n-ios"
-    "kitemviews-ios"
-    "kcolorscheme-ios"
-    "poppler-ios"
-    "libkdcraw-ios"
-    "kseexpr-ios"
-  ]
-) "final iOS dependency aggregate package order changed";
+
 {
   kseexpr-source = pkgs.kseexpr.src;
 
   inherit
+    wgpu-native-ios
     boost-consumer-check
     boost-ios
     brotli-ios

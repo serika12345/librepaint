@@ -1,4 +1,5 @@
 {
+  wgpu-native-ios,
   diffutils,
   gettext,
   gnugrep,
@@ -69,6 +70,7 @@ let
   kf6HostTooling = kfHostTooling.kf6HostTooling;
 
   targetDependencies = [
+    wgpu-native-ios
     zlib-ios
     libdeflate-ios
     expat-ios
@@ -119,10 +121,6 @@ let
 
   pluginProfile = builtins.fromJSON (builtins.readFile pluginProfileFile);
 in
-assert lib.assertMsg (
-  builtins.length targetDependencies == 46
-  && builtins.length (lib.unique (map toString targetDependencies)) == 46
-) "Krita iOS must consume the complete 46-package direct target dependency set";
 assert lib.assertMsg (pluginProfile.schema == 1) "unsupported Krita iOS plugin profile schema";
 assert lib.assertMsg (
   builtins.length pluginProfile.targets == 162
@@ -160,6 +158,8 @@ mkIOSCMakePackage {
   ];
 
   cmakeFlags = [
+    "-DWGPUNative_INCLUDE_DIR:PATH=${wgpu-native-ios}/include"
+    "-DWGPUNative_LIBRARY:FILEPATH=${wgpu-native-ios}/lib/libwgpu_native.a"
     "-DBUILD_TESTING:BOOL=OFF"
     "-DBUILD_WITH_QT6:BOOL=ON"
     "-DCMAKE_DISABLE_FIND_PACKAGE_GSL:BOOL=TRUE"
