@@ -11,7 +11,7 @@ if(NOT ANDROID_TEST_APK_DIR)
     message(FATAL_ERROR "ANDROID_TEST_APK_DIR is required")
 endif()
 
-find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui)
 qt_policy(SET QTP0002 NEW)
 
 add_library(librepaint_android_test_case SHARED IMPORTED GLOBAL)
@@ -25,6 +25,7 @@ qt_add_executable(librepaint_android_test MANUAL_FINALIZATION
 target_link_libraries(librepaint_android_test PRIVATE
     librepaint_android_test_case
     Qt6::Core
+    Qt6::Gui
 )
 set_target_properties(librepaint_android_test PROPERTIES
     QT_ANDROID_PACKAGE_SOURCE_DIR "${ANDROID_TEST_APK_DIR}"
