@@ -18,6 +18,14 @@
 
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
+namespace {
+bool containsHiddenRgb(const QByteArray &pixels)
+{
+    for (qsizetype i = 0; i < pixels.size(); i += 4)
+        if (pixels[i + 3] == 0 && (pixels[i] != 0 || pixels[i + 1] != 0 || pixels[i + 2] != 0)) return true;
+    return false;
+}
+}
 
 TileRenderer::Private::Private(DevicePtr device, qsizetype byteBudget)
     : device(std::move(device)), rhi(this->device->rhi()),
@@ -251,6 +259,7 @@ RenderOutcome TileRenderer::recordImpl(QRhiCommandBuffer &commands, const Snapsh
             if (pixels.size() != TileBytes) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("CPU raster checkpoint is incomplete")};
             const auto output = d.allocateTile();
             if (!output) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU checkpoint allocation failed")};
+            output->mayContainHiddenRgb = containsHiddenRgb(pixels);
             tiles[checkpoint.key()] = output;
             writable[checkpoint.key()][0] = output;
             uploads.push_back({output, pixels});

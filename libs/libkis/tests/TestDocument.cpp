@@ -250,6 +250,8 @@ void TestDocument::testCanvasBackgroundReferencePixels_data()
     QTest::newRow("opaque-colored-pixel") << QColor(17, 34, 51, 255) << true << QByteArray::fromHex("4d3c2bff") << QByteArray::fromHex("332211ff") << 1 << 128;
     QTest::newRow("partial-colored-pixel") << QColor(17, 34, 51, 128) << true << QByteArray::fromHex("554433c0") << QByteArray::fromHex("33221180") << 1 << 128;
     QTest::newRow("transparent-colored-pixel") << QColor(255, 255, 255, 0) << true << QByteArray::fromHex("66554480") << QByteArray::fromHex("00000000") << 1 << 128;
+    QTest::newRow("transparent-black-two-layers") << QColor(0, 0, 0, 0) << false << QByteArray::fromHex("00000000") << QByteArray::fromHex("00000000") << 2 << 0;
+    QTest::newRow("transparent-black-hidden-rgb-two-layers") << QColor(0, 0, 0, 0) << true << QByteArray::fromHex("00000000") << QByteArray::fromHex("00000000") << 2 << 0;
 }
 
 void TestDocument::testCanvasBackgroundReferencePixels()

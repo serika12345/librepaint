@@ -18,6 +18,9 @@ class KisGpuTileRendererTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
+    void transparentLayerPixelsFollowRootProjectionSemantics_data();
+    void transparentLayerPixelsFollowRootProjectionSemantics();
+    void layerCountChangesInvalidateTransparentProjectionReuse();
     void layerOpacityChangesProjectionWithoutChangingSourcePixelsOrRetainedVersions();
     void partialLayerOpacityComposesOverTransparency_data();
     void partialLayerOpacityComposesOverTransparency();
@@ -54,6 +57,72 @@ private:
     DevicePtr m_device;
     QRhi *m_rhi = nullptr;
 };
+
+void KisGpuTileRendererTest::transparentLayerPixelsFollowRootProjectionSemantics_data()
+{
+    QTest::addColumn<bool>("composite");
+    QTest::addColumn<bool>("topPixels");
+    QTest::addColumn<bool>("whiteBackground");
+    QTest::addColumn<QByteArray>("expected");
+    QTest::newRow("direct-layer") << false << false << false << QByteArray::fromHex("11223300");
+    QTest::newRow("empty-upper-layer") << true << false << false << QByteArray::fromHex("00000000");
+    QTest::newRow("two-transparent-layers") << true << true << false << QByteArray::fromHex("00000000");
+    QTest::newRow("transparent-white-background") << true << true << true << QByteArray::fromHex("ffffff00");
+}
+
+void KisGpuTileRendererTest::transparentLayerPixelsFollowRootProjectionSemantics()
+{
+    QFETCH(bool, composite);
+    QFETCH(bool, topPixels);
+    QFETCH(bool, whiteBackground);
+    QFETCH(QByteArray, expected);
+    RasterImage input;
+    input.size = {256, 256};
+    if (whiteBackground) input.projectionBackground = {255, 255, 255, 0};
+    input.layers = {{QStringLiteral("Lower"), true, {},
+                     {{{0, 0}, QByteArray::fromHex("11223300").repeated(RgbaTile::ByteCount / 4)}}}};
+    if (composite) input.layers.append({QStringLiteral("Upper"), true, {}, {}});
+    if (topPixels) input.layers.last().tiles = {{{0, 0}, QByteArray::fromHex("44556600").repeated(RgbaTile::ByteCount / 4)}};
+    OperationDocument document(input);
+    TileRenderer renderer(m_device);
+    const auto pixels = render(renderer, document.snapshot());
+    QVERIFY(pixels);
+    const auto projection = project(renderer, pixels, QRect(0, 0, 256, 256));
+    QVERIFY(projection);
+    QCOMPARE(readBuffer(projection->tiles().first().pixels).left(4), expected);
+    QCOMPARE(readTile(pixels, 1, {0, 0}).left(4), QByteArray::fromHex("11223300"));
+}
+
+void KisGpuTileRendererTest::layerCountChangesInvalidateTransparentProjectionReuse()
+{
+    RasterImage input;
+    input.size = {256, 256};
+    input.layers = {{QStringLiteral("Lower"), true, {},
+                     {{{0, 0}, QByteArray::fromHex("11223300").repeated(RgbaTile::ByteCount / 4)}}}};
+    OperationDocument document(input);
+    TileRenderer renderer(m_device, 2 * TileRenderer::TileBytes);
+    const QRect region(0, 0, 256, 256);
+    const auto original = render(renderer, document.snapshot());
+    QVERIFY(original);
+    const auto single = project(renderer, original, region);
+    QVERIFY(single);
+    QCOMPARE(readBuffer(single->tiles().first().pixels).left(4), QByteArray::fromHex("11223300"));
+    QVERIFY(document.addLayer(QStringLiteral("Upper")));
+    const auto expanded = render(renderer, document.snapshot(), original);
+    QVERIFY(expanded);
+    const auto composite = project(renderer, expanded, region, single);
+    QVERIFY(composite);
+    QCOMPARE(readBuffer(composite->tiles().first().pixels).left(4), QByteArray::fromHex("00000000"));
+    QCOMPARE(document.undo(), Result::Success);
+    const auto restored = render(renderer, document.snapshot(), expanded);
+    QVERIFY(restored);
+    const auto direct = project(renderer, restored, region, composite);
+    QVERIFY(direct);
+    QCOMPARE(readBuffer(direct->tiles().first().pixels).left(4), QByteArray::fromHex("11223300"));
+    QCOMPARE(readBuffer(single->tiles().first().pixels).left(4), QByteArray::fromHex("11223300"));
+    QCOMPARE(readBuffer(composite->tiles().first().pixels).left(4), QByteArray::fromHex("00000000"));
+    QVERIFY(renderer.residentBytes() <= 2 * TileRenderer::TileBytes);
+}
 
 void KisGpuTileRendererTest::partialLayerOpacityComposesOverTransparency_data()
 {

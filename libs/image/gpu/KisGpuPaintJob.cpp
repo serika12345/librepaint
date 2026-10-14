@@ -14,6 +14,9 @@ quint32 packedPixel(const std::array<quint8, 4> &rgba)
 bool preparePaintJob(QRhi &rhi, PaintJob &job, QRhiBuffer *zero)
 {
     if (!job.output) return false;
+    job.output->mayContainHiddenRgb = job.values.uniformFill
+        ? (job.values.color >> 24) == 0 && (job.values.color & 0x00ffffffu) != 0
+        : job.input && job.input->mayContainHiddenRgb;
     if (!job.geometry.isEmpty()) {
         job.samples = own(rhi, rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::StorageBuffer,
                                             quint32(job.geometry.size() * sizeof(PaintSegment))));

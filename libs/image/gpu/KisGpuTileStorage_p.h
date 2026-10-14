@@ -32,6 +32,7 @@ struct Tile
 {
     std::shared_ptr<Budget> budget;
     Resource<QRhiBuffer> pixels;
+    bool mayContainHiddenRgb = true;
     Tile(Resource<QRhiBuffer> pixels, std::shared_ptr<Budget> budget)
         : budget(std::move(budget)), pixels(std::move(pixels))
     { this->budget->used += TileRenderer::TileBytes; }
@@ -62,6 +63,7 @@ struct ProjectedVersion::Data
     };
     RenderedSnapshot source;
     QRect region;
+    bool directLayerProjection = false;
     Detail::Tiles tiles;
     QMap<quint64, QList<Input>> inputs;
 };

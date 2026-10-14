@@ -13,7 +13,7 @@
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
-struct CompositeParameters { quint32 opacity = 255; quint32 padding[3]{}; };
+struct CompositeParameters { quint32 opacity = 255; quint32 normalizeBase = 0; quint32 padding[2]{}; };
 struct CompositeJob
 {
     std::shared_ptr<Tile> base, layer, output;
@@ -70,6 +70,7 @@ ProjectionOutcome TileRenderer::compose(QRhiCommandBuffer &commands, const Rende
     if (!d.error.isEmpty() || d.rhi.isDeviceLost()) return {RenderOutcome::DeviceFailure, {}, d.error};
     auto data = std::make_shared<ProjectedVersion::Data>();
     data->source = document;
+    data->directLayerProjection = document->document()->directProjectionLayer() != 0;
     data->region = region.intersected(QRect(QPoint(0, 0), document->document()->size));
     if (document->m_data->region && !data->region.isEmpty() && !document->m_data->region->contains(data->region)) {
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Projection extends outside the generated GPU region")};
@@ -77,7 +78,7 @@ ProjectionOutcome TileRenderer::compose(QRhiCommandBuffer &commands, const Rende
     QSet<quint64> coordinates;
     // A single fully opaque paint layer supplies the legacy transparent-root projection,
     // including the RGB components of pixels whose alpha is zero.
-    const auto background = document->document()->directProjectionLayer() ? std::shared_ptr<Tile>{} : document->m_data->background;
+    const auto background = data->directLayerProjection ? std::shared_ptr<Tile>{} : document->m_data->background;
     bool implicit = bool(background);
     for (const auto &layer : document->document()->layers) {
         if (!layer.visible || !layer.opacity) continue;
@@ -115,14 +116,19 @@ ProjectionOutcome TileRenderer::compose(QRhiCommandBuffer &commands, const Rende
             if (pixels) data->inputs[coordinate].append({pixels, layer.opacity});
         }
     }
+    const auto firstComposition = [&](const auto &inputs) {
+        return inputs.first().opacity == 255 && (inputs.size() > 1 || background || data->directLayerProjection ||
+                                                !inputs.first().pixels->mayContainHiddenRgb) ? 1 : 0;
+    };
     qsizetype required = 0;
     for (auto tile = data->inputs.cbegin(); tile != data->inputs.cend(); ++tile) {
-        if (base && base->m_data->inputs.value(tile.key()) == tile.value()) {
+        if (base && base->m_data->directLayerProjection == data->directLayerProjection &&
+            base->m_data->inputs.value(tile.key()) == tile.value()) {
             data->tiles[tile.key()] = base->m_data->tiles.value(tile.key());
-        } else if (tile.value().size() == 1 && tile.value().first().opacity == 255) {
+        } else if (tile.value().size() == 1 && firstComposition(tile.value()) == 1) {
             data->tiles[tile.key()] = tile.value().first().pixels;
         } else {
-            const auto jobs = tile.value().size() - (tile.value().first().opacity == 255 ? 1 : 0);
+            const auto jobs = tile.value().size() - firstComposition(tile.value());
             required += std::min<qsizetype>(2, jobs);
         }
     }
@@ -132,7 +138,7 @@ ProjectionOutcome TileRenderer::compose(QRhiCommandBuffer &commands, const Rende
     std::vector<CompositeJob> jobs;
     for (auto tile = data->inputs.cbegin(); tile != data->inputs.cend(); ++tile) {
         if (data->tiles.contains(tile.key())) continue;
-        const auto firstJob = tile.value().first().opacity == 255 ? 1 : 0;
+        const auto firstJob = firstComposition(tile.value());
         const auto jobCount = tile.value().size() - firstJob;
         const auto a = d.allocateTile();
         const auto b = jobCount > 1 ? d.allocateTile() : std::shared_ptr<Tile>{};
@@ -146,6 +152,8 @@ ProjectionOutcome TileRenderer::compose(QRhiCommandBuffer &commands, const Rende
             job.layer = tile.value()[i].pixels;
             job.output = (i - firstJob) % 2 ? b : a;
             job.values.opacity = tile.value()[i].opacity;
+            job.values.normalizeBase = !background && !data->directLayerProjection && firstJob == 1 && i == firstJob;
+            job.output->mayContainHiddenRgb = job.base && job.base->mayContainHiddenRgb && !job.values.normalizeBase;
             job.parameters = own(d.rhi, d.rhi.newBuffer(QRhiBuffer::Immutable, QRhiBuffer::UniformBuffer, sizeof(CompositeParameters)));
             if (!job.parameters->create()) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection parameters failed")};
             job.bindings = own(d.rhi, d.rhi.newShaderResourceBindings());
