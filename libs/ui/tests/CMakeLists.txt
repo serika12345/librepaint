@@ -1180,6 +1180,9 @@ kis_add_test(KisGpuDocumentViewTest.cpp ../../../krita/krita.qrc
 add_dependencies(KisGpuDocumentViewTest
     kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
     kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker)
+if(NOT IOS)
+    add_dependencies(KisGpuDocumentViewTest kritatextproperties)
+endif()
 add_dependencies(KisGpuDocumentViewTest kritakraexport)
 # Native window input requires exclusive use of the test display.
 set_tests_properties(${gpu_document_view_test} PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)
