@@ -956,20 +956,22 @@ void KisGpuDocumentViewTest::ordinaryLayerChangesDuringInput()
     if (pressed) QTest::mouseRelease(input, Qt::LeftButton, Qt::NoModifier, last);
     pressed = false;
     image->waitForDone();
-    QByteArray pixel(4, '\0');
+    QByteArray stroke(64 * 64 * 4, '\0');
     QVERIFY(!layer->visible());
-    layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 40, 40, 1, 1);
-    QCOMPARE(pixel, QByteArray::fromHex("f18111ff"));
+    layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(stroke.data()), image->bounds());
+    // The interior is opaque; endpoint coverage depends on display-coordinate rounding.
+    QCOMPARE(stroke.mid((28 * 64 + 28) * 4, 4), QByteArray::fromHex("f18111ff"));
     lifetime->undoStack()->undo();
     image->waitForDone();
     QVERIFY(layer->visible());
-    layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 40, 40, 1, 1);
-    QCOMPARE(pixel, QByteArray::fromHex("f18111ff"));
+    QByteArray pixels(stroke.size(), '\0');
+    layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), image->bounds());
+    QCOMPARE(pixels, stroke);
     lifetime->undoStack()->undo();
     image->waitForDone();
     QCOMPARE(lifetime->undoStack()->index(), 0);
-    layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 40, 40, 1, 1);
-    QCOMPARE(pixel, QByteArray(4, '\0'));
+    layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), image->bounds());
+    QCOMPARE(pixels, QByteArray(stroke.size(), '\0'));
 }
 
 void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelled_data()
