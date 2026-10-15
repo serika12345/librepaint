@@ -270,6 +270,32 @@ Qt Core、Qt Test、zlibで構築し、GPUやウィンドウを必要とする�
 文書枠を使い切った状態での復旧と、交換前に記録したGPU送信の無効化を共有実行試験で検査する。
 UUIDが省略された既存KRAは、読込み時に付けた識別子を再保存と再読込みで保持する。
 
+### 編集・保存結果の環境間比較
+
+`KisGpuPaintDocumentTest::fixedEditsSaveReopenAndExportIdenticalResults`は、
+64×64のRGBA8文書、3枚の固定UUIDレイヤー、同梱sRGB ICC、300×150 dpi、
+入力列、筆圧、円形ブラシ、乱数種、文書情報を固定する。
+不透明度、非表示レイヤーとキャンバス外の画素を含め、保存・再読込み・追加描画・
+Undo／Redo・KRA書出しを2回実行する。連続編集と再読込み後の追加編集を照合し、
+同一環境の反復では出力全体のバイト一致を検査する。
+
+`LIBREPAINT_GPU_RESULT_DIR`を空の比較用ディレクトリーへ指定すると、
+試験は保存時・再読込み時・追加編集後のレイヤー画素、合成画素、レイヤー属性と選択、
+保存前後のKRAを出力する。画素はRGBA順で、レイヤーは原点(-4, 0)から68×64、
+合成画素は原点(0, 0)から64×64の密な配列。各環境で同じコミットを構築し、次を実行する。
+
+```sh
+./scripts/run-shared-test-env env LIBREPAINT_GPU_RESULT_DIR=/tmp/gpu-paint-results \
+  ./scripts/run-test KisGpuPaintDocumentTest
+```
+
+Windowsは対応する実行ファイルへ同じ環境変数を渡す。Androidは試験APKで
+同じケースの反復照合を行う。ICCは実行ファイルへ埋め込まれている。
+収集したディレクトリー同士は`diff -r`で比較する。
+比較条件にはOS、CPU、GPU、描画基盤、コミットと依存ライブラリーの版を記録する。
+このケースは平坦なRGBA8／sRGBの円形ブラシとKRAを検証する。ほかのブラシ、精度、
+階層、マスク、効果、画像書出し形式は各機能の比較ケースで受け入れる。
+
 ### 共有画像の編集と寿命
 
 ```sh

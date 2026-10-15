@@ -10,6 +10,10 @@
 #include <QColorSpace>
 #include <QCryptographicHash>
 #include <QFile>
+#include <QDir>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QGuiApplication>
 #include <QImage>
 #include <QSignalSpy>
@@ -63,6 +67,7 @@ class KisGpuPaintDocumentTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
+    void fixedEditsSaveReopenAndExportIdenticalResults();
     void sharedExecutionOpenReturnsValidatedMetadataAndKeepsRetainedImagesAlive();
     void acceptedChangesUpdateOneAttachedDocument();
     void pinnedSavePreservesLaterEditsAndHistory();
@@ -80,6 +85,126 @@ private Q_SLOTS:
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPaintDocumentTest::fixedEditsSaveReopenAndExportIdenticalResults()
+{
+    QFile profile(QStringLiteral(":/gpu-paint-results/sRGB-elle-V2-srgbtrc.icc"));
+    QVERIFY2(profile.open(QIODevice::ReadOnly), "The fixed cross-environment ICC profile must be embedded");
+    Kra::ImageMetadata metadata;
+    metadata.resolution = {300, 150};
+    metadata.iccProfile = profile.readAll();
+    metadata.documentInfo = QByteArrayLiteral("<document-info><title>Fixed RGBA8 results</title></document-info>");
+    metadata.annotations = {{QStringLiteral("notes"), QStringLiteral("Fixed fixture"), QByteArrayLiteral("fixed annotation")}};
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    QMap<QString, QByteArray> results;
+    for (int repetition = 0; repetition < 2; ++repetition) {
+        Execution execution(m_device);
+        RasterImage initial;
+        initial.size = {64, 64};
+        for (int index = 1; index <= 3; ++index) {
+            RasterLayer layer;
+            layer.name = QStringLiteral("Layer %1").arg(index);
+            layer.uuid = QUuid(QStringLiteral("{01020304-0506-0708-090a-%1}").arg(index, 12, 10, QLatin1Char('0')));
+            initial.layers.append(layer);
+        }
+        PaintDocument document(execution, initial);
+        auto image = document.image();
+        const auto layers = image->operations().snapshot()->layers;
+        QCOMPARE(document.setKraImageMetadata(metadata).code, FileCode::Success);
+        auto paint = [](PaintImage &target, LayerId layer, Brush brush, quint64 seed) {
+            const auto id = target.beginStroke(layer, brush, seed);
+            QVERIFY(!id.isNull());
+            QCOMPARE(target.appendSamples(id, {{{8.25, 9.5}, 1, 0, 0, 0, 0},
+                                               {{20.5, 18.25}, 0.5, 0, 0, 0, 100},
+                                               {{45.75, 42.5}, 0.75, 0, 0, 0, 200}}), Result::Success);
+            QCOMPARE(target.commitStroke(id), Result::Success);
+        };
+        Brush brush;
+        brush.rgba = {17, 129, 241, 255};
+        brush.diameter = 8.5;
+        brush.spacing = 0.2;
+        paint(*image, layers[0].id, brush, 42);
+        brush.rgba = {219, 33, 81, 173};
+        brush.diameter = 12.25;
+        paint(*image, layers[1].id, brush, 43);
+        brush.erase = true;
+        brush.diameter = 4;
+        paint(*image, layers[0].id, brush, 44);
+        QCOMPARE(image->setLayerOpacity(layers[1].id, 113), Result::Success);
+        QCOMPARE(image->replaceRgbaPixels(layers[2].id, QRect(-3, 2, 1, 1), QByteArray::fromHex("11223344")), Result::Success);
+        QCOMPARE(image->setLayerVisible(layers[2].id, false), Result::Success);
+        QCOMPARE(image->selectLayer(layers[1].id), Result::Success);
+        const auto path = directory.filePath(QStringLiteral("document.kra"));
+        QCOMPARE(document.saveKra(path).code, FileCode::Success);
+        auto opened = PaintDocument::openKra(execution, path);
+        QVERIFY2(opened.code == FileCode::Success, qPrintable(opened.diagnostic));
+        auto loaded = opened.document->image();
+        QCOMPARE(loaded->operations().snapshot()->layers.size(), 3);
+        QCOMPARE(loaded->operations().activeLayer(), loaded->operations().snapshot()->layers[1].id);
+        const auto loadedMetadata = opened.document->kraImageMetadata();
+        QCOMPARE(loadedMetadata.code, Kra::Status::Success);
+        QCOMPARE(loadedMetadata.metadata.iccProfile, metadata.iccProfile);
+        QCOMPARE(loadedMetadata.metadata.resolution, metadata.resolution);
+        QMap<QString, QByteArray> actual;
+        actual.insert(QStringLiteral("document.kra"), fileBytes(path));
+        auto recordPixels = [&](const QString &prefix, PaintImage &target) {
+            QJsonArray layerState;
+            const auto version = target.operations().snapshot();
+            for (int index = 0; index < version->layers.size(); ++index) {
+                const auto &layer = version->layers[index];
+                const auto pixels = target.readRgbaPixels(layer.id, QRect(-4, 0, 68, 64), 68 * 64 * 4);
+                QVERIFY2(pixels.code == ExecutionCode::Success, qPrintable(pixels.diagnostic));
+                actual.insert(prefix + QStringLiteral("layer-%1.rgba").arg(index), pixels.bytes);
+                layerState.append(QJsonObject{{QStringLiteral("uuid"), layer.uuid.toString()},
+                    {QStringLiteral("name"), layer.name}, {QStringLiteral("visible"), layer.visible},
+                    {QStringLiteral("opacity"), layer.opacity}, {QStringLiteral("locked"), layer.userLocked},
+                    {QStringLiteral("selected"), layer.id == version->activeLayer}});
+            }
+            const auto projection = execution.readProjectionImage(target.handle(), version, 64 * 64 * 4);
+            QVERIFY2(projection.code == ExecutionCode::Success, qPrintable(projection.diagnostic));
+            actual.insert(prefix + QStringLiteral("projection.rgba"), QByteArray(
+                reinterpret_cast<const char *>(projection.image.constBits()), projection.image.sizeInBytes()));
+            actual.insert(prefix + QStringLiteral("state.json"), QJsonDocument(layerState).toJson(QJsonDocument::Compact));
+        };
+        recordPixels(QStringLiteral("saved-"), *image);
+        recordPixels(QStringLiteral("reopened-"), *loaded);
+        for (const auto &name : {QStringLiteral("layer-0.rgba"), QStringLiteral("layer-1.rgba"),
+                                 QStringLiteral("layer-2.rgba"), QStringLiteral("projection.rgba"), QStringLiteral("state.json")})
+            QCOMPARE(actual.value(QStringLiteral("saved-") + name), actual.value(QStringLiteral("reopened-") + name));
+        brush.erase = false;
+        brush.diameter = 5.5;
+        brush.rgba = {31, 211, 83, 149};
+        paint(*image, image->operations().activeLayer(), brush, 45);
+        paint(*loaded, loaded->operations().activeLayer(), brush, 45);
+        QCOMPARE(loaded->undo(), Result::Success);
+        QCOMPARE(loaded->redo(), Result::Success);
+        recordPixels(QStringLiteral("edited-"), *loaded);
+        const auto finalPath = directory.filePath(QStringLiteral("edited.kra"));
+        const auto continuousPath = directory.filePath(QStringLiteral("continuous.kra"));
+        QCOMPARE(opened.document->saveKra(finalPath).code, FileCode::Success);
+        QCOMPARE(document.exportKra(continuousPath).code, FileCode::Success);
+        actual.insert(QStringLiteral("edited.kra"), fileBytes(finalPath));
+        QCOMPARE(actual.value(QStringLiteral("edited.kra")), fileBytes(continuousPath));
+        const auto exportPath = directory.filePath(QStringLiteral("exported.kra"));
+        QCOMPARE(opened.document->exportKra(exportPath).code, FileCode::Success);
+        QCOMPARE(fileBytes(exportPath), actual.value(QStringLiteral("edited.kra")));
+        QVERIFY(!actual.value(QStringLiteral("document.kra")).isEmpty());
+        QVERIFY(!actual.value(QStringLiteral("edited.kra")).isEmpty());
+        QVERIFY(actual.value(QStringLiteral("document.kra")) != actual.value(QStringLiteral("edited.kra")));
+        if (repetition == 0) results = actual;
+        else QCOMPARE(actual, results);
+    }
+    const QString destination = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!destination.isEmpty()) {
+        QVERIFY(QDir().mkpath(destination));
+        for (auto result = results.cbegin(); result != results.cend(); ++result) {
+            QFile output(QDir(destination).filePath(result.key()));
+            QVERIFY(output.open(QIODevice::WriteOnly));
+            QCOMPARE(output.write(result.value()), result.value().size());
+        }
+    }
+}
 
 void KisGpuPaintDocumentTest::sharedExecutionOpenReturnsValidatedMetadataAndKeepsRetainedImagesAlive()
 {
