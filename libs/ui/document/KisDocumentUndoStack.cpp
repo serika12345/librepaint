@@ -47,7 +47,7 @@ void KisDocumentUndoStack::setImage(KisImageSP image)
     disconnect(m_gpuSaved);
     m_gpuImage = owner;
     m_gpuCommands.clear();
-    m_gpuIdentity = {};
+    m_gpuIdentity = QUuid{};
     KUndo2Stack::clear();
     if (!owner) return;
     m_gpuChanges = connect(owner.data(), &PaintImage::changed, this, [this] { synchronizeGpuHistory(); });
