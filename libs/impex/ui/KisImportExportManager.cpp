@@ -8,7 +8,6 @@
 
 #include <functional>
 #include <memory>
-#include <limits>
 #include <stdexcept>
 
 #include <QDir>
@@ -27,6 +26,7 @@
 #include <QFuture>
 #include <QtConcurrentRun>
 #include <QTemporaryFile>
+#include <QScopeGuard>
 
 #include <klocalizedstring.h>
 
@@ -48,6 +48,7 @@
 #include <kis_layer_utils.h>
 #include <kis_paint_layer.h>
 #include <kis_paint_device.h>
+#include <kis_default_bounds.h>
 #include <kis_painter.h>
 
 #include "KisExportCheckBase.h"
@@ -95,7 +96,13 @@ public:
 
     QString cachedExportFilterMimeType;
     QSharedPointer<KisImportExportFilter> cachedExportFilter;
+    KisPaintDeviceSP exportProjection;
 };
+
+namespace {
+constexpr qsizetype GpuExportMemoryBudget = 512 * 1024 * 1024;
+constexpr int ExportBlockSide = 256;
+}
 
 struct KisImportExportManager::ConversionResult {
     ConversionResult()
@@ -273,6 +280,24 @@ KisImportExportManager::ConversionResult KisImportExportManager::convert(KisImpo
         return KisImportExportErrorCode(ImportExportCodes::FileFormatNotSupported);
     }
 
+    const bool gpuExport = direction == Export && m_document->image()->gpuImage();
+    if (gpuExport) {
+        if (isAsync) return KisImportExportErrorCode(ImportExportCodes::FormatFeaturesUnsupported);
+        if (d->exportProjection) return KisImportExportErrorCode(ImportExportCodes::Busy);
+        try {
+            d->exportProjection = prepareExportPixels(m_document->image(), GpuExportMemoryBudget);
+        } catch (const std::length_error &) {
+            return KisImportExportErrorCode(ImportExportCodes::InsufficientMemory);
+        } catch (const std::bad_alloc &) {
+            return KisImportExportErrorCode(ImportExportCodes::InsufficientMemory);
+        } catch (const std::exception &error) {
+            return KisImportExportErrorCode(QString::fromUtf8(error.what()));
+        }
+    }
+    const auto releaseExportPixels = qScopeGuard([this, gpuExport] {
+        if (gpuExport) d->exportProjection.clear();
+    });
+
     filter->setFilename(location);
     filter->setRealFilename(realLocation);
     filter->setBatchMode(batchMode());
@@ -389,16 +414,17 @@ KisImportExportManager::ConversionResult KisImportExportManager::convert(KisImpo
             // we should explicitly report that the exporting has been initiated
             result.setStatus(ImportExportCodes::OK);
 
-        } else if (!batchMode() && !m_document->image()->gpuImage()) {
+        } else if (!batchMode()) {
             result = runImportExportActionWithFeedback(
                 i18n("Saving document..."),
                 nullptr,
-                std::bind(&KisImportExportManager::doExport,
-                          this,
-                          location,
-                          filter,
-                          exportConfiguration,
-                          alsoAsKraLocation));
+                [this, gpuExport, location, filter, exportConfiguration, alsoAsKraLocation] {
+                    return gpuExport ? doExportImpl(location, filter, exportConfiguration) :
+                                       doExport(location, filter, exportConfiguration, alsoAsKraLocation);
+                });
+            if (gpuExport && result.status().isOk() && !alsoAsKraLocation.isNull() &&
+                !m_document->exportDocumentSync(alsoAsKraLocation, m_document->nativeFormatMimeType()))
+                result.setStatus(KisImportExportErrorCode(m_document->errorMessage()));
         } else {
             result = doExport(location, filter, exportConfiguration, alsoAsKraLocation);
         }
@@ -410,28 +436,49 @@ KisImportExportManager::ConversionResult KisImportExportManager::convert(KisImpo
     return result;
 }
 
+KisPaintDeviceSP KisImportExportManager::prepareExportPixels(KisImageSP image, qsizetype memoryBudgetBytes)
+{
+    if (!image) throw std::invalid_argument("Export requires an image");
+    const auto source = image->projection();
+    if (!image->gpuImage()) return source;
+    const auto bounds = image->bounds();
+    const qint64 columns = (qint64(bounds.width()) + ExportBlockSide - 1) / ExportBlockSide;
+    const qint64 rows = (qint64(bounds.height()) + ExportBlockSide - 1) / ExportBlockSide;
+    constexpr qint64 blockBytes = ExportBlockSide * ExportBlockSide * 4;
+    constexpr qint64 scratchBytes = 8 * 1024 * 1024;
+    if (memoryBudgetBytes < scratchBytes || columns > (memoryBudgetBytes - scratchBytes) / blockBytes / 4 / rows)
+        throw std::length_error("GPU export working memory budget exceeded");
+    KisPaintDeviceSP output = new KisPaintDevice(image->colorSpace());
+    output->setDefaultBounds(new KisDefaultBounds(image));
+    QByteArray bytes;
+    bytes.reserve(blockBytes);
+    for (int y = bounds.top(); y <= bounds.bottom(); y += ExportBlockSide) {
+        for (int x = bounds.left(); x <= bounds.right(); x += ExportBlockSide) {
+            const auto region = QRect(x, y, ExportBlockSide, ExportBlockSide).intersected(bounds);
+            bytes.resize(qsizetype(region.width()) * region.height() * 4);
+            source->readBytes(reinterpret_cast<quint8 *>(bytes.data()), region);
+            output->writeBytes(reinterpret_cast<const quint8 *>(bytes.constData()), region);
+        }
+    }
+    return output;
+}
+
+KisPaintDeviceSP KisImportExportManager::exportProjection() const
+{
+    if (d->exportProjection) return d->exportProjection;
+    const auto image = m_document->savingImage();
+    return image ? image->projection() : KisPaintDeviceSP{};
+}
+
 void KisImportExportManager::fillStaticExportConfigurationProperties(KisPropertiesConfigurationSP exportConfiguration, KisImageSP image)
 {
-    KisPaintDeviceSP dev = image->projection();
+    fillExportPixelProperties(exportConfiguration, prepareExportPixels(image, GpuExportMemoryBudget));
+}
+
+void KisImportExportManager::fillExportPixelProperties(KisPropertiesConfigurationSP exportConfiguration, KisPaintDeviceSP dev)
+{
     const KoColorSpace* cs = dev->colorSpace();
-    bool isThereAlpha = false;
-    if (image->gpuImage()) {
-        const auto bounds = image->bounds();
-        const auto pixelSize = cs->pixelSize();
-        if (bounds.height() && qsizetype(bounds.width()) > std::numeric_limits<qsizetype>::max() / pixelSize / bounds.height())
-            throw std::length_error("Export pixel capacity exceeded");
-        const qsizetype byteCount = qsizetype(bounds.width()) * bounds.height() * pixelSize;
-        QByteArray pixels(byteCount, Qt::Uninitialized);
-        dev->readBytes(reinterpret_cast<quint8 *>(pixels.data()), bounds);
-        for (qsizetype offset = 0; offset < byteCount; offset += pixelSize) {
-            if (cs->opacityU8(reinterpret_cast<const quint8 *>(pixels.constData() + offset)) != OPACITY_OPAQUE_U8) {
-                isThereAlpha = true;
-                break;
-            }
-        }
-    } else {
-        isThereAlpha = KisPainter::checkDeviceHasTransparency(dev);
-    }
+    const bool isThereAlpha = KisPainter::checkDeviceHasTransparency(dev);
 
     exportConfiguration->setProperty(KisImportExportFilter::ImageContainsTransparencyTag, isThereAlpha);
     exportConfiguration->setProperty(KisImportExportFilter::ColorModelIDTag, cs->colorModelId().id());
@@ -462,7 +509,8 @@ void KisImportExportManager::fillStaticExportConfigurationProperties(KisProperti
 
 void KisImportExportManager::fillStaticExportConfigurationProperties(KisPropertiesConfigurationSP exportConfiguration)
 {
-    return fillStaticExportConfigurationProperties(exportConfiguration, m_document->image());
+    fillExportPixelProperties(exportConfiguration,
+                             d->exportProjection ? d->exportProjection : m_document->image()->projection());
 }
 
 bool KisImportExportManager::askUserAboutExportConfiguration(

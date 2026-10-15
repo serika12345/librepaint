@@ -9,9 +9,7 @@
 #include <QCheckBox>
 #include <QSlider>
 #include <QApplication>
-#include <limits>
 #include <memory>
-#include <stdexcept>
 
 #include <kpluginfactory.h>
 
@@ -85,24 +83,7 @@ KisImportExportErrorCode KisPNGExport::convert(KisDocument *document, QIODevice 
 
     KisPNGConverter pngConverter(document);
 
-    KisPaintDeviceSP pixels = image->projection();
-    if (image->gpuImage()) {
-        try {
-            const auto bounds = image->bounds();
-            const auto pixelSize = image->colorSpace()->pixelSize();
-            if (bounds.height() && qsizetype(bounds.width()) > std::numeric_limits<qsizetype>::max() / pixelSize / bounds.height())
-                throw std::length_error("PNG pixel capacity exceeded");
-            QByteArray bytes(qsizetype(bounds.width()) * bounds.height() * pixelSize, Qt::Uninitialized);
-            pixels->readBytes(reinterpret_cast<quint8 *>(bytes.data()), bounds);
-            pixels = new KisPaintDevice(image->colorSpace());
-            pixels->writeBytes(reinterpret_cast<const quint8 *>(bytes.constData()), bounds);
-        } catch (const std::bad_alloc &) {
-            return ImportExportCodes::InsufficientMemory;
-        } catch (const std::exception &error) {
-            document->setErrorMessage(QString::fromUtf8(error.what()));
-            return ImportExportCodes::Failure;
-        }
-    }
+    const auto pixels = document->importExportManager()->exportProjection();
     KisImportExportErrorCode res = pngConverter.buildFile(io, image->bounds(), image->xRes(), image->yRes(), pixels, beginIt, endIt, options, metadata.get());
     dbgFile << " Result =" << res;
     return res;

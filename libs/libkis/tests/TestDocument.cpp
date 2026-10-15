@@ -27,6 +27,7 @@
 #include <Krita.h>
 #include <Document.h>
 #include <InfoObject.h>
+#include <KisImportExportManager.h>
 #include <metadata/KoDocumentInfo.h>
 #include <kra/KisKraRasterCodec.h>
 
@@ -36,6 +37,7 @@
 
 #include <document/KisDocument.h>
 #include <kis_image.h>
+#include <kis_paint_device.h>
 #include <kis_annotation.h>
 #include <gpu/KisGpuPaintImage.h>
 #include <gpu/KisGpuExecution.h>
@@ -820,6 +822,58 @@ void TestDocument::testGpuPngExportDialogLifetimes()
         }
     }
     if (document) KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void TestDocument::testGpuExportPixelsRespectMemoryBudgetAndRetainTheirVersion()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    initializeGpuDocument(document.data(), QSize(32, 16), QStringLiteral("Bounded export"));
+    KisImageSP image = document->image().toStrongRef();
+    const auto owner = image->gpuImage();
+    const auto layer = owner->operations().activeLayer();
+    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("11223380")), Gpu::Result::Success);
+    const auto pinned = owner->operations().snapshot();
+    QVERIFY_EXCEPTION_THROWN(KisImportExportManager::prepareExportPixels(image, 0), std::length_error);
+    const auto pixels = KisImportExportManager::prepareExportPixels(image, 16 * 1024 * 1024);
+    QVERIFY(pixels);
+    QCOMPARE(pixels->colorSpace(), image->colorSpace());
+    QCOMPARE(owner->operations().snapshot(), pinned);
+    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("445566ff")), Gpu::Result::Success);
+    owner->close();
+    QByteArray bytes(4, '\0');
+    pixels->readBytes(reinterpret_cast<quint8 *>(bytes.data()), 5, 5, 1, 1);
+    QCOMPARE(bytes, QByteArray::fromHex("33221180"));
+    KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void TestDocument::testGpuPngExportRejectsExcessiveWorkingMemoryBeforeChangingFiles()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    initializeGpuDocument(document.data(), QSize(16384, 16384), QStringLiteral("Export memory limit"));
+    document->setFileBatchMode(true);
+    const auto owner = document->image()->gpuImage();
+    QCOMPARE(owner->renameLayer(owner->operations().activeLayer(), QStringLiteral("Modified")), Gpu::Result::Success);
+    const auto pinned = owner->operations().snapshot();
+    const auto resident = owner->execution().residentBytes();
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("existing.png"));
+    QFile existing(path);
+    QVERIFY(existing.open(QIODevice::WriteOnly));
+    const auto originalBytes = QByteArrayLiteral("preserve existing file on resource rejection");
+    QCOMPARE(existing.write(originalBytes), originalBytes.size());
+    existing.close();
+    QVERIFY(!document->exportDocumentSync(path, QByteArrayLiteral("image/png")));
+    QVERIFY(!document->errorMessage().isEmpty());
+    QVERIFY(existing.open(QIODevice::ReadOnly));
+    QCOMPARE(existing.readAll(), originalBytes);
+    QVERIFY(document->path().isEmpty());
+    QVERIFY(document->isModified());
+    QCOMPARE(owner->operations().snapshot(), pinned);
+    QCOMPARE(owner->execution().residentBytes(), resident);
+    KisPart::instance()->removeDocument(document.data(), false);
 }
 
 void TestDocument::testGpuSaveNotificationLifetimes_data()

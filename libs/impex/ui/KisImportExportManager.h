@@ -106,6 +106,16 @@ public:
      */
     static void fillStaticExportConfigurationProperties(KisPropertiesConfigurationSP exportConfiguration, KisImageSP image);
 
+    /** Materializes GPU pixels once for a CPU format consumer. The budget covers
+     * four padded pixel planes and bounded transfer/codec working storage.
+     * Throws std::length_error before reading pixels when the budget is insufficient.
+     * A null image throws std::invalid_argument; allocation can throw std::bad_alloc.
+     * Other read failures throw std::runtime_error. Call on the image's GPU thread.
+     */
+    static KisPaintDeviceSP prepareExportPixels(KisImageSP image, qsizetype memoryBudgetBytes);
+    /** Shared pixels during conversion, null outside it; retained references outlive the request. */
+    KisPaintDeviceSP exportProjection() const;
+
     /**
      * Get if the filter manager is batch mode (true)
      * or in interactive mode (true)
@@ -126,6 +136,7 @@ private:
 
 
     void fillStaticExportConfigurationProperties(KisPropertiesConfigurationSP exportConfiguration);
+    static void fillExportPixelProperties(KisPropertiesConfigurationSP exportConfiguration, KisPaintDeviceSP projection);
     bool askUserAboutExportConfiguration(QSharedPointer<KisImportExportFilter> filter, KisPropertiesConfigurationSP exportConfiguration, const QByteArray &from, const QByteArray &to, bool batchMode, const bool showWarnings, bool *alsoAsKra, bool isAdvancedExporting = false);
 
     KisImportExportErrorCode doImport(const QString &location, QSharedPointer<KisImportExportFilter> filter);

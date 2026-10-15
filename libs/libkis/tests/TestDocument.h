@@ -30,6 +30,8 @@ private Q_SLOTS:
     void testGpuPngExportPreservesPixelsAndDocument();
     void testGpuPngExportDialogLifetimes_data();
     void testGpuPngExportDialogLifetimes();
+    void testGpuExportPixelsRespectMemoryBudgetAndRetainTheirVersion();
+    void testGpuPngExportRejectsExcessiveWorkingMemoryBeforeChangingFiles();
     void testGpuSaveNotificationLifetimes_data();
     void testGpuSaveNotificationLifetimes();
     void testGpuSnapshotKeepsIndependentPixelsAndDocumentMetadata();
