@@ -2424,11 +2424,12 @@ KisImportExportManager *KisDocument::importExportManager() const
     return d->importExportManager;
 }
 
-void KisDocument::slotUndoStackCleanChanged(bool value)
+void KisDocument::slotUndoStackCleanChanged(bool)
 {
     // GPU edits publish image changes; saving finalizes cleanliness with its fixed file version.
     if (d->gpuSaving) return;
-    setModified(!value || d->modificationState.imageModifiedWithoutUndo());
+    // Queued notifications may describe an earlier history position.
+    setImageModified();
 }
 
 void KisDocument::slotConfigChanged()

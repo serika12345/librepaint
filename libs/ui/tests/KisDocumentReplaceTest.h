@@ -24,6 +24,8 @@ private Q_SLOTS:
     void testGpuReplacementKeepsReferencesAndRejectsCapacityBeforeMutation();
     void testDocumentIdentityDelegation();
     void testDocumentModificationStateDelegation();
+    void testQueuedHistoryNotificationsUseCurrentState_data();
+    void testQueuedHistoryNotificationsUseCurrentState();
     void testDocumentRecoveryStatusDelegation();
     void testTemplateRootLayerNameTranslation();
     void testImageStateDelegation();

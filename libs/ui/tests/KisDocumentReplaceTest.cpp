@@ -11,6 +11,8 @@
 #include <QMap>
 #include <QScopedPointer>
 #include <QSignalSpy>
+#include <QScopeGuard>
+#include <kundo2stack.h>
 #include <KoProgressProxy.h>
 #include <kis_composite_progress_proxy.h>
 #include <kis_group_layer.h>
@@ -233,6 +235,48 @@ void KisDocumentReplaceTest::testDocumentModificationStateDelegation()
     QVERIFY(!m_doc->isModified());
 
     finalize();
+}
+
+void KisDocumentReplaceTest::testQueuedHistoryNotificationsUseCurrentState_data()
+{
+    QTest::addColumn<bool>("deliveredClean");
+    QTest::addColumn<bool>("untrackedEdit");
+    QTest::newRow("dirty-notification-after-clean") << false << false;
+    QTest::newRow("clean-notification-after-dirty") << true << false;
+    QTest::newRow("clean-notification-keeps-untracked-edit") << true << true;
+}
+
+void KisDocumentReplaceTest::testQueuedHistoryNotificationsUseCurrentState()
+{
+    QFETCH(bool, deliveredClean);
+    QFETCH(bool, untrackedEdit);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QVERIFY(document->newImage(QStringLiteral("Deferred history"), 64, 64, cs,
+                               KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    auto *stack = document->undoStack();
+    stack->push(new KUndo2Command);
+    stack->setClean();
+    bool queued = false;
+    bool scheduled = false;
+    const auto connection = connect(stack, &KUndo2Stack::cleanChanged, document.data(), [&](bool clean) {
+        if (queued || clean != deliveredClean) return;
+        queued = true;
+        scheduled = QMetaObject::invokeMethod(document.data(), "slotUndoStackCleanChanged",
+                                             Qt::QueuedConnection, Q_ARG(bool, clean));
+    });
+    const auto disconnectHistory = qScopeGuard([&] { disconnect(connection); });
+    stack->push(new KUndo2Command);
+    stack->undo();
+    if (deliveredClean && !untrackedEdit) stack->redo();
+    if (untrackedEdit) {
+        QVERIFY(QMetaObject::invokeMethod(document.data(), "setImageModifiedWithoutUndo", Qt::DirectConnection));
+    }
+    QVERIFY(queued && scheduled);
+    const bool expected = !stack->isClean() || untrackedEdit;
+    QCOMPARE(document->isModified(), expected);
+    QApplication::sendPostedEvents(document.data(), QEvent::MetaCall);
+    QCOMPARE(document->isModified(), expected);
 }
 
 void KisDocumentReplaceTest::testDocumentRecoveryStatusDelegation()
