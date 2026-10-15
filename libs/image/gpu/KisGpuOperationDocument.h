@@ -334,7 +334,8 @@ private:
         QList<QSharedPointer<const RasterTile>> tiles;
         QList<QRect> areas;
     };
-    Result applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory);
+    Result applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory,
+                              Snapshot *retainedVersion = nullptr);
     template<class T> Result writeLayerProperty(LayerId layer, LayerProperty property, T Layer::*member, const T &value);
     Result restorePropertyChange(const PropertyChange &change, bool forward);
     Result checkOperation(OperationId id) const;

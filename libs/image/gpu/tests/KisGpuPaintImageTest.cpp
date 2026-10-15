@@ -20,6 +20,8 @@ class KisGpuPaintImageTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void retainedLayerPixelsRemainEditableThroughRemovalAndDiscardedHistory();
+    void rejectedRetainedLayerWritesPreserveVersionsAndHistory();
     void retainedImagesAndClonesKeepTheirExecutionAlive();
     void clonesKeepIndependentCurrentStateAndOperationIdentities();
     void sharedEditsPublishBeforeNotificationAndReleaseTheLastAttachment();
@@ -31,6 +33,86 @@ private Q_SLOTS:
     void damagedPixelSharingRecoveryPreservesTheLiveImage();
     void historyNavigationPublishesOneVersionAndPreservesSavedState();
 };
+
+void KisGpuPaintImageTest::retainedLayerPixelsRemainEditableThroughRemovalAndDiscardedHistory()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    PaintImage image(execution, QSize(16, 16));
+    const auto bottom = image.operations().activeLayer();
+    const auto layer = image.addLayer(QStringLiteral("Retained"));
+    const auto pixels = image.retainLayerPixels(layer);
+    QVERIFY(pixels);
+    QCOMPARE(image.retainLayerPixels(layer), pixels);
+    const auto first = QByteArray::fromHex("112233ff");
+    const auto second = QByteArray::fromHex("445566aa");
+    const QRect rect(5, 5, 1, 1);
+    QCOMPARE(image.writeRgbaPixels(layer, rect, first), Result::Success);
+    QCOMPARE(pixels->version(), image.operations().snapshot());
+    const auto pinned = pixels->version();
+    const auto before = image.operations().undoCount();
+    QCOMPARE(image.removeLayer(layer), Result::Success);
+    const auto removed = image.operations().snapshot();
+    QCOMPARE(image.markSaved(removed), Result::Success);
+    QCOMPARE(pixels->version(), pinned);
+    QSignalSpy changed(&image, &PaintImage::changed);
+    QCOMPARE(image.writeRgbaPixels(pixels, rect, second), Result::Success);
+    QCOMPARE(image.operations().snapshot(), removed);
+    QCOMPARE(image.operations().undoCount(), before + 1);
+    QVERIFY(!image.operations().isModified());
+    QVERIFY(changed.isEmpty());
+    QCOMPARE(execution.readRgbaPixels(image.handle(), pixels->version(), rect, layer, 4).bytes, second);
+    QCOMPARE(execution.readRgbaPixels(image.handle(), pinned, rect, layer, 4).bytes, first);
+    PaintImage recovered(execution, QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(image.operations().recoveryData()), Result::Success);
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(recovered.readRgbaPixels(layer, rect, 4).bytes, second);
+    QCOMPARE(image.undo(), Result::Success);
+    QCOMPARE(image.readRgbaPixels(layer, rect, 4).bytes, second);
+    QCOMPARE(pixels->version(), image.operations().snapshot());
+    QCOMPARE(image.undo(), Result::Success);
+    QCOMPARE(image.renameLayer(bottom, QStringLiteral("Discarded layer branch")), Result::Success);
+    QCOMPARE(image.operations().redoCount(), 0);
+    const auto branch = image.operations().snapshot();
+    const auto history = image.operations().undoCount();
+    const auto lastPixels = pixels->version();
+    QCOMPARE(image.writeRgbaPixels(pixels, rect, first), Result::Success);
+    QCOMPARE(image.operations().snapshot(), branch);
+    QCOMPARE(image.operations().undoCount(), history);
+    QCOMPARE(image.readRgbaPixels(bottom, rect, 4).bytes, QByteArray(4, '\0'));
+    QCOMPARE(execution.readRgbaPixels(image.handle(), pixels->version(), rect, layer, 4).bytes, first);
+    QCOMPARE(execution.readRgbaPixels(image.handle(), lastPixels, rect, layer, 4).bytes, second);
+    QVERIFY(!image.retainLayerPixels(layer));
+}
+
+void KisGpuPaintImageTest::rejectedRetainedLayerWritesPreserveVersionsAndHistory()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    Limits limits;
+    limits.rasterBytes = 2 * RgbaTile::ByteCount;
+    PaintImage image(execution, QSize(16, 16), limits);
+    PaintImage other(execution, QSize(16, 16));
+    const auto layer = image.operations().activeLayer();
+    const auto pixels = image.retainLayerPixels(layer);
+    const auto foreign = other.retainLayerPixels(other.operations().activeLayer());
+    QVERIFY(pixels && foreign);
+    const QRect rect(5, 5, 1, 1);
+    const auto bytes = QByteArray::fromHex("112233ff");
+    QCOMPARE(image.writeRgbaPixels(layer, rect, bytes), Result::Success);
+    QCOMPARE(image.removeLayer(layer), Result::Success);
+    QCOMPARE(image.writeRgbaPixels(pixels, rect, bytes), Result::Success);
+    const auto pinned = pixels->version();
+    const auto before = image.operations().recoveryData();
+    QCOMPARE(image.writeRgbaPixels(pixels, rect, bytes), Result::CapacityExceeded);
+    QCOMPARE(image.writeRgbaPixels(foreign, rect, bytes), Result::InvalidInput);
+    QCOMPARE(pixels->version(), pinned);
+    QCOMPARE(image.operations().recoveryData(), before);
+}
 
 void KisGpuPaintImageTest::retainedImagesAndClonesKeepTheirExecutionAlive()
 {

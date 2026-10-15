@@ -19,6 +19,7 @@ private Q_SLOTS:
     void layerTests();
     void testGpuImagePublishesLayersProjectionAndSharedLifetime();
     void testGpuLayerReferencesSurviveHistoryAndReleaseDiscardedBranches();
+    void testRetainedGpuLayerPixelsOutliveTheImageAndDiscardedHistory();
     void testGpuImageNotificationLifetime_data();
     void testGpuImageNotificationLifetime();
     void benchmarkCreation();

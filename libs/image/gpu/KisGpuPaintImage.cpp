@@ -5,6 +5,7 @@
 
 #include "KisGpuPaintImage_p.h"
 #include <QThread>
+#include <algorithm>
 #include <new>
 #include <stdexcept>
 
@@ -86,6 +87,38 @@ Result PaintImage::writeLayerLocked(LayerId layer, bool locked)
 { return onThread() ? requestAfterWrite(m_d->document->writeLayerLocked(layer, locked)) : Result::InvalidInput; }
 Result PaintImage::writeLayerPinnedToTimeline(LayerId layer, bool pinned)
 { return onThread() ? requestAfterWrite(m_d->document->writeLayerPinnedToTimeline(layer, pinned)) : Result::InvalidInput; }
+LayerPixelReferenceSP PaintImage::retainLayerPixels(LayerId layer)
+{
+    if (!onThread() || !m_d->handle) return {};
+    const auto version = m_d->document->snapshot();
+    const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(),
+        [layer](const auto &value) { return value.id == layer; });
+    if (found == version->layers.cend()) return {};
+    auto reference = m_d->layerPixels.value(found->uuid).toStrongRef();
+    if (!reference) {
+        reference.reset(new LayerPixelReference(layer, found->uuid, version));
+        m_d->layerPixels.insert(found->uuid, reference);
+    }
+    return reference;
+}
+void PaintImage::refreshLayerPixelReferences()
+{
+    const auto version = m_d->document->snapshot();
+    for (auto it = m_d->layerPixels.begin(); it != m_d->layerPixels.end();) {
+        const auto reference = it.value().toStrongRef();
+        if (!reference) {
+            it = m_d->layerPixels.erase(it);
+            continue;
+        }
+        const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(),
+            [&](const auto &layer) { return layer.uuid == reference->m_uuid; });
+        if (found != version->layers.cend()) {
+            reference->m_layer = found->id;
+            reference->m_version = version;
+        }
+        ++it;
+    }
+}
 void PaintImage::requestCurrentVersion()
 {
     try {
@@ -93,6 +126,7 @@ void PaintImage::requestCurrentVersion()
     } catch (const std::bad_alloc &) {
         m_d->lastRequest = {ExecutionCode::CapacityExceeded, QStringLiteral("GPU request allocation exceeded capacity")};
     }
+    refreshLayerPixelReferences();
 }
 Result PaintImage::publish(Result result)
 {
@@ -183,6 +217,7 @@ Result PaintImage::restoreRecovery(const QByteArray &data)
         return replaced.code == ExecutionCode::CapacityExceeded ? Result::CapacityExceeded : Result::InvalidRecovery;
     d.document.swap(document);
     d.lastRequest = replaced;
+    refreshLayerPixelReferences();
     Q_EMIT changed();
     return Result::Success;
 }

@@ -153,7 +153,10 @@ public:
 
     KisPaintDevice *q;
     LibrePaint::Image::Gpu::PaintImageSP gpuImage;
-    quint64 gpuLayer = 0;
+    LibrePaint::Image::Gpu::LayerPixelReferenceSP gpuPixels;
+    quint64 gpuLayerId() const { return gpuPixels ? gpuPixels->layer() : 0; }
+    LibrePaint::Image::Gpu::Snapshot gpuPixelVersion() const
+    { return gpuPixels ? gpuPixels->version() : gpuImage->operations().snapshot(); }
     const KoColorSpace *gpuColorSpace = nullptr;
     mutable int gpuBoundsSequence = -1;
     mutable QRect gpuBounds;
@@ -690,7 +693,7 @@ const KisDefaultBoundsSP KisPaintDevice::Private::transitionalDefaultBounds = ne
 KisPaintDevice::Private::Private(KisPaintDevice *paintDevice, LibrePaint::Image::Gpu::PaintImageSP image, quint64 layer)
     : q(paintDevice),
       gpuImage(std::move(image)),
-      gpuLayer(layer),
+      gpuPixels(gpuImage && layer ? gpuImage->retainLayerPixels(layer) : LibrePaint::Image::Gpu::LayerPixelReferenceSP{}),
       basicStrategy(gpuImage ? nullptr : new KisPaintDeviceStrategy(paintDevice, this)),
       isProjectionDevice(false),
       supportsWrapAroundMode(false),
@@ -1296,15 +1299,15 @@ void KisPaintDevice::requestTimeSwitch(int time)
 int KisPaintDevice::sequenceNumber() const
 {
     if (m_d->gpuImage) {
-        const auto version = m_d->gpuImage->operations().snapshot();
+        const auto version = m_d->gpuPixelVersion();
         if (m_d->gpuSequenceKnown && m_d->gpuSequenceRevision == version->revision() &&
             m_d->gpuSequenceDocument == version->documentId()) return m_d->gpuSequence;
         bool changed = !m_d->gpuSequenceKnown;
-        if (!m_d->gpuLayer) {
+        if (!m_d->gpuLayerId()) {
             changed = true;
         } else {
             for (const auto &layer : version->layers) {
-                if (layer.id != m_d->gpuLayer) continue;
+                if (layer.id != m_d->gpuLayerId()) continue;
                 changed |= layer.operations != m_d->gpuSequenceOperations || layer.defaultPixel != m_d->gpuSequenceDefault;
                 m_d->gpuSequenceOperations = layer.operations;
                 m_d->gpuSequenceDefault = layer.defaultPixel;
@@ -1417,7 +1420,7 @@ QRect KisPaintDevice::exactBounds() const
     if (m_d->gpuImage) {
         const auto sequence = sequenceNumber();
         if (sequence != m_d->gpuBoundsSequence) {
-            m_d->gpuBounds = kisGpuPaintDeviceTransfer(m_d->gpuImage, m_d->gpuLayer, m_d->defaultBounds)->exactBounds();
+            m_d->gpuBounds = kisGpuPaintDeviceTransfer(m_d->gpuImage, m_d->gpuLayerId(), m_d->defaultBounds, m_d->gpuPixelVersion())->exactBounds();
             m_d->gpuBoundsSequence = sequence;
         }
         return m_d->gpuBounds;
@@ -1669,8 +1672,8 @@ void KisPaintDevice::setDefaultPixel(const KoColor &defPixel)
 KoColor KisPaintDevice::defaultPixel() const
 {
     if (m_d->gpuImage) {
-        const auto version = m_d->gpuImage->operations().snapshot();
-        const auto projectedLayer = m_d->gpuLayer ? m_d->gpuLayer : version->directProjectionLayer();
+        const auto version = m_d->gpuPixelVersion();
+        const auto projectedLayer = m_d->gpuLayerId() ? m_d->gpuLayerId() : version->directProjectionLayer();
         if (!projectedLayer) {
             const auto &rgba = version->projectionBackground;
             const quint8 bgra[] = {rgba[2], rgba[1], rgba[0], rgba[3]};
@@ -1975,7 +1978,7 @@ QImage KisPaintDevice::createThumbnailUncached(qint32 w, qint32 h, QRect rect, q
 QImage KisPaintDevice::createThumbnail(qint32 w, qint32 h, KisThumbnailBoundsMode boundsMode, qreal oversample, KoColorConversionTransformation::Intent renderingIntent, KoColorConversionTransformation::ConversionFlags conversionFlags)
 {
     if (m_d->gpuImage)
-        return kisGpuPaintDeviceTransfer(m_d->gpuImage, m_d->gpuLayer, m_d->defaultBounds)->createThumbnail(w, h, boundsMode, oversample, renderingIntent, conversionFlags);
+        return kisGpuPaintDeviceTransfer(m_d->gpuImage, m_d->gpuLayerId(), m_d->defaultBounds, m_d->gpuPixelVersion())->createThumbnail(w, h, boundsMode, oversample, renderingIntent, conversionFlags);
     QSize size = fixThumbnailSize(QSize(w, h));
 
     return m_d->cache()->createThumbnail(size.width(), size.height(), boundsMode, oversample, renderingIntent, conversionFlags);
@@ -2173,10 +2176,10 @@ void KisPaintDevice::readBytes(quint8 *data, const QRect &rect) const
     if (m_d->gpuImage) {
         if (rect.isEmpty()) return;
         const auto count = gpuPixelByteCount(rect);
-        const auto snapshot = m_d->gpuImage->operations().snapshot();
-        auto layer = m_d->gpuLayer;
+        const auto snapshot = m_d->gpuPixelVersion();
+        auto layer = m_d->gpuLayerId();
         if (!layer) layer = snapshot->directProjectionLayer();
-        const auto pixels = m_d->gpuImage->readRgbaPixels(layer, rect, count);
+        const auto pixels = m_d->gpuImage->execution().readRgbaPixels(m_d->gpuImage->handle(), snapshot, rect, layer, count);
         if (pixels.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
             throw std::runtime_error(pixels.diagnostic.toStdString());
         for (qsizetype i = 0; i < pixels.bytes.size(); i += 4) {
@@ -2210,11 +2213,11 @@ void KisPaintDevice::writeBytes(const quint8 *data, const QRect &rect)
 {
     if (m_d->gpuImage) {
         if (rect.isEmpty()) return;
-        if (!m_d->gpuLayer) throw std::logic_error("GPU image projection is read-only");
+        if (!m_d->gpuLayerId()) throw std::logic_error("GPU image projection is read-only");
         const auto count = gpuPixelByteCount(rect);
         QByteArray rgba(reinterpret_cast<const char *>(data), qsizetype(count));
         for (qsizetype i = 0; i < rgba.size(); i += 4) std::swap(rgba[i], rgba[i + 2]);
-        const auto result = m_d->gpuImage->writeRgbaPixels(m_d->gpuLayer, rect, rgba);
+        const auto result = m_d->gpuImage->writeRgbaPixels(m_d->gpuPixels, rect, rgba);
         if (result != LibrePaint::Image::Gpu::Result::Success)
             throw std::runtime_error("GPU pixel write failed: " + std::to_string(int(result)));
         return;

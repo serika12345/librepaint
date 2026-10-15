@@ -412,6 +412,25 @@ void KisGpuDocumentViewTest::layerPanelRemovalPreservesLayersSelectionAndOneHist
     QCOMPARE(lifetime->undoStack()->count(), before + 1);
     QTRY_VERIFY(lifetime->isModified());
     for (const auto &node : selected) QVERIFY(!node->parent());
+    const auto detachedPixel = QByteArray::fromHex("665544aa");
+    try {
+        for (const auto &node : selected) {
+            QByteArray retained(4, '\0');
+            node->paintDevice()->readBytes(reinterpret_cast<quint8 *>(retained.data()), 5, 5, 1, 1);
+            QCOMPARE(retained, pixel);
+            node->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(detachedPixel.constData()), 6, 6, 1, 1);
+            node->paintDevice()->readBytes(reinterpret_cast<quint8 *>(retained.data()), 6, 6, 1, 1);
+            QCOMPARE(retained, detachedPixel);
+            QVERIFY(node->paintDevice()->exactBounds().contains(QPoint(6, 6)));
+            QVERIFY(!node->paintDevice()->createThumbnail(8, 8).isNull());
+        }
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    QByteArray remaining(4, '\0');
+    root->firstChild()->paintDevice()->readBytes(reinterpret_cast<quint8 *>(remaining.data()), 6, 6, 1, 1);
+    QCOMPARE(remaining, QByteArray(4, '\0'));
+    QCOMPARE(lifetime->undoStack()->count(), before + 1);
     QTRY_VERIFY(view->currentNode() && view->currentNode()->parent() == root);
     const auto after = view->currentNode();
     lifetime->undoStack()->undo();
@@ -424,10 +443,18 @@ void KisGpuDocumentViewTest::layerPanelRemovalPreservesLayersSelectionAndOneHist
     QByteArray actual(4, '\0');
     active->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 5, 5, 1, 1);
     QCOMPARE(actual, pixel);
+    for (const auto &node : selected) {
+        node->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 6, 6, 1, 1);
+        QCOMPARE(actual, detachedPixel);
+    }
     lifetime->undoStack()->redo();
     image->waitForDone();
     QTRY_COMPARE(root->childCount(), selection == 0 ? 2U : 1U);
     QTRY_COMPARE(view->currentNode(), after);
+    for (const auto &node : selected) {
+        node->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 6, 6, 1, 1);
+        QCOMPARE(actual, detachedPixel);
+    }
 }
 
 void KisGpuDocumentViewTest::layerPanelAddsAtSelectionWithOneHistoryEntry_data()
@@ -904,14 +931,17 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
         if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate)) native = canvas;
     QVERIFY(native);
     const auto *converter = view->canvasBase()->coordinatesConverter();
-    auto first = converter->imageToWidget(QPointF(16, 16)).toPoint();
+    const auto enterAt = [&](QPointF imagePoint) {
+        QTest::mouseMove(native.data(), converter->imageToWidget(imagePoint).toPoint());
+        QTest::qWait(10);
+        const auto point = converter->imageToWidget(imagePoint).toPoint();
+        QEnterEvent entered(point, point, native->mapToGlobal(point));
+        QApplication::sendEvent(native.data(), &entered);
+        return point;
+    };
+    const auto first = enterAt({16, 16});
     auto last = converter->imageToWidget(QPointF(40, 40)).toPoint();
     QVERIFY(view->canvasBase()->canvasWidget()->rect().contains(first));
-    QEnterEvent entered(first, first, native->mapToGlobal(first));
-    QApplication::sendEvent(native.data(), &entered);
-    QTest::mouseMove(native.data(), first);
-    QTest::qWait(10);
-    first = converter->imageToWidget(QPointF(16, 16)).toPoint();
     pressed = true;
     QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, first);
     QVERIFY2(owner->operations().hasActiveStroke(),
@@ -1031,9 +1061,11 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
 
     resources->setSize(8);
     resources->setEraserMode(true);
+    last = enterAt({40, 40});
     pressed = true;
     QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, last);
-    QVERIFY(owner->operations().hasActiveStroke());
+    QVERIFY2(owner->operations().hasActiveStroke(),
+             errors.isEmpty() ? "The erase press did not start a stroke" : qPrintable(errors.last().first().toString()));
     resources->setEraserMode(false);
     QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, last);
     pressed = false;
@@ -1044,7 +1076,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QCOMPARE(owner->operations().snapshot(), painted);
 
     resources->setFGColor(KoColor(QColor(17, 129, 241), KoColorSpaceRegistry::instance()->rgb8()));
-    const auto cancelled = converter->imageToWidget(QPointF(48, 16)).toPoint();
+    const auto cancelled = enterAt({48, 16});
     pressed = true;
     QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, cancelled);
     QVERIFY(owner->operations().hasActiveStroke());

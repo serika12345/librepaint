@@ -1883,7 +1883,8 @@ QImage KisImage::convertToQImage(const QSize& scaledImageSize, const KoColorProf
 
     KisPaintDeviceSP dev = new KisPaintDevice(colorSpace());
     const auto source = m_d->gpuImage
-        ? kisGpuPaintDeviceTransfer(m_d->gpuImage, 0, projection()->defaultBounds()) : projection();
+        ? kisGpuPaintDeviceTransfer(m_d->gpuImage, 0, projection()->defaultBounds(),
+                                    m_d->gpuImage->operations().snapshot()) : projection();
     KisPainter gc;
     gc.copyAreaOptimized(QPoint(0, 0), source, dev, bounds());
     gc.end();

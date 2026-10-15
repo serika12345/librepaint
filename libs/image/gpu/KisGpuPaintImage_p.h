@@ -7,6 +7,7 @@
 
 #include "KisGpuPaintImage.h"
 #include "KisGpuExecution.h"
+#include <QHash>
 
 namespace LibrePaint::Image::Gpu {
 struct PaintImage::Private
@@ -17,6 +18,7 @@ struct PaintImage::Private
     Limits limits;
     quint64 handle = 0;
     ExecutionOutcome lastRequest{ExecutionCode::Success, {}};
+    QHash<QUuid, QWeakPointer<LayerPixelReference>> layerPixels{};
 };
 }
 #endif

@@ -45,6 +45,43 @@
 #define IMAGE_WIDTH 128
 #define IMAGE_HEIGHT 128
 
+void KisImageTest::testRetainedGpuLayerPixelsOutliveTheImageAndDiscardedHistory()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    std::weak_ptr<Gpu::Execution> executionLifetime = execution;
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(16, 16));
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Retained pixels"));
+    const auto bottom = owner->operations().activeLayer();
+    QVERIFY(owner->addLayer(QStringLiteral("Retained")));
+    auto node = image->root()->lastChild();
+    QPointer<KisNode> nodeLifetime(node.data());
+    const auto first = QByteArray::fromHex("332211ff");
+    node->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(first.constData()), 5, 5, 1, 1);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(owner->renameLayer(bottom, QStringLiteral("New branch")), Gpu::Result::Success);
+    QCOMPARE(owner->operations().redoCount(), 0);
+    QVERIFY(!node->parent());
+    image.clear();
+    owner.reset();
+    execution.reset();
+    device.reset();
+    QVERIFY(!executionLifetime.expired());
+    QByteArray actual(4, '\0');
+    node->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 5, 5, 1, 1);
+    QCOMPARE(actual, first);
+    const auto edited = QByteArray::fromHex("665544aa");
+    node->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(edited.constData()), 6, 6, 1, 1);
+    node->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 6, 6, 1, 1);
+    QCOMPARE(actual, edited);
+    node.clear();
+    QVERIFY(!nodeLifetime);
+    QVERIFY(executionLifetime.expired());
+}
+
 void KisImageTest::testGpuLayerReferencesSurviveHistoryAndReleaseDiscardedBranches()
 {
     namespace Gpu = LibrePaint::Image::Gpu;

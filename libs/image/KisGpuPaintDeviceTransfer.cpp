@@ -11,13 +11,13 @@
 #include <stdexcept>
 
 KisPaintDeviceSP kisGpuPaintDeviceTransfer(const LibrePaint::Image::Gpu::PaintImageSP &image,
-                                         quint64 layer, KisDefaultBoundsBaseSP bounds)
+                                         quint64 layer, KisDefaultBoundsBaseSP bounds,
+                                         const LibrePaint::Image::Gpu::Snapshot &version)
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     constexpr qsizetype capacity = 256 * 1024 * 1024;
-    const auto version = image->operations().snapshot();
     if (!layer) layer = version->directProjectionLayer();
-    const auto validated = image->readRgbaPixels(layer, {}, 0);
+    const auto validated = image->execution().readRgbaPixels(image->handle(), version, {}, layer, 0);
     if (validated.code != Gpu::ExecutionCode::Success)
         throw std::runtime_error(validated.diagnostic.toStdString());
     KisPaintDeviceSP result = new KisPaintDevice(KoColorSpaceRegistry::instance()->rgb8());

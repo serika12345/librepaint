@@ -11,11 +11,31 @@
 #include <QObject>
 #include <QRect>
 #include <memory>
+#include <utility>
 
 namespace LibrePaint::Image::Gpu {
 class Execution;
 struct ExecutionOutcome;
 struct PixelBytesOutcome;
+class PaintImage;
+
+/** GUI-thread pixel identity shared by views of one layer. Immutable versions
+ * stay readable through removal and discarded history on the owning image.
+ */
+class KRITAGPUIMAGE_EXPORT LayerPixelReference
+{
+public:
+    LayerId layer() const { return m_layer; }
+    Snapshot version() const { return m_version; }
+private:
+    friend class PaintImage;
+    LayerPixelReference(LayerId layer, QUuid uuid, Snapshot version)
+        : m_layer(layer), m_uuid(uuid), m_version(std::move(version)) {}
+    LayerId m_layer;
+    QUuid m_uuid;
+    Snapshot m_version;
+};
+using LayerPixelReferenceSP = QSharedPointer<LayerPixelReference>;
 
 /** Shared editable image, history, notifications and GPU attachment.
  * Calls and destruction use the GUI/device thread. Shared execution construction
@@ -52,6 +72,10 @@ public:
     ExecutionOutcome lastRequestOutcome() const;
     /** Synchronous canonical pixels from the current committed image version. */
     PixelBytesOutcome readRgbaPixels(LayerId layer, QRect region, qsizetype maximumBytes) const;
+    /** Retains a live layer's pixel identity; null for unavailable/off-thread requests.
+     * The image weakly tracks references and keeps their last committed pixels.
+     */
+    LayerPixelReferenceSP retainLayerPixels(LayerId layer);
 
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 seed);
     Result appendSamples(OperationId id, const QList<InputSample> &samples);
@@ -66,6 +90,10 @@ public:
      * compression finish before logical adoption; rejected writes are atomic.
      */
     Result writeRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes);
+    /** Direct writes also reach retained removed layers and their surviving history.
+     * The current scene and its history position stay unchanged for detached layers.
+     */
+    Result writeRgbaPixels(const LayerPixelReferenceSP &pixels, QRect region, const QByteArray &bytes);
     /** Direct background writes request pixels without adding history or edit notifications. */
     Result writeProjectionBackground(const std::array<quint8, 4> &rgba);
     Result writeLayerName(LayerId layer, const QString &name);
@@ -108,7 +136,9 @@ private:
     Result publish(Result result);
     Result requestAfterWrite(Result result);
     void requestCurrentVersion();
-    Result applyRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes, bool recordHistory);
+    void refreshLayerPixelReferences();
+    Result applyRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes, bool recordHistory,
+                           Snapshot *retainedVersion = nullptr);
     struct Private;
     std::unique_ptr<Private> m_d;
 };

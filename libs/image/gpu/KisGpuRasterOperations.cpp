@@ -97,11 +97,13 @@ Result OperationDocument::replaceTiles(LayerId layer, const QList<RgbaTile> &til
     return Result::Success;
 }
 
-Result OperationDocument::applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory)
+Result OperationDocument::applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory,
+                                           Snapshot *retainedVersion)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
-    if (writes.isEmpty() || writes.size() > m_history.size()) return Result::InvalidInput;
+    const int retainedCount = retainedVersion && !m_history.contains(*retainedVersion) ? 1 : 0;
+    if (writes.isEmpty() || writes.size() > m_history.size() + retainedCount) return Result::InvalidInput;
     if (recordHistory && (writes.size() != 1 || writes.first().before != snapshot())) return Result::StaleVersion;
     if (quint64(writes.size()) > std::numeric_limits<quint64>::max() - m_nextOperation ||
         quint64(writes.size()) > std::numeric_limits<quint64>::max() - m_nextRevision)
@@ -109,11 +111,13 @@ Result OperationDocument::applyPixelVersions(const QList<VersionPixelWrite> &wri
     auto history = m_history;
     auto nextOperation = m_nextOperation;
     auto nextRevision = m_nextRevision;
+    auto retained = retainedVersion ? *retainedVersion : Snapshot{};
     const auto group = nextOperation + 1;
     QSet<const DocumentVersion *> updated;
     for (const auto &write : writes) {
         const auto index = m_history.indexOf(write.before);
-        if (index < 0 || updated.contains(write.before.data())) return Result::StaleVersion;
+        if ((index < 0 && (!retainedVersion || write.before != *retainedVersion)) ||
+            updated.contains(write.before.data())) return Result::StaleVersion;
         if (write.layer != writes.first().layer || write.tiles.isEmpty()) return Result::InvalidInput;
         qsizetype layerIndex = -1;
         for (qsizetype i = 0; i < write.before->layers.size(); ++i)
@@ -139,13 +143,15 @@ Result OperationDocument::applyPixelVersions(const QList<VersionPixelWrite> &wri
         version->rasterBytes += write.tiles.size() * RgbaTile::ByteCount;
         version->m_revision = ++nextRevision;
         if (recordHistory) version->m_modifiedRevision = version->m_revision;
-        history[index] = version;
+        if (index >= 0) history[index] = version;
+        if (write.before == retained) retained = version;
         updated.insert(write.before.data());
     }
     if (recordHistory) commitVersion(history[m_index]);
     else m_history.swap(history);
     m_nextOperation = nextOperation;
     m_nextRevision = nextRevision;
+    if (retainedVersion) *retainedVersion = retained;
     return Result::Success;
 }
 }

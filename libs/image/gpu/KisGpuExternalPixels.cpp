@@ -65,19 +65,29 @@ Result readFailure(ExecutionCode code)
 Result PaintImage::writeRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes)
 { return applyRgbaPixels(layer, region, bytes, false); }
 
+Result PaintImage::writeRgbaPixels(const LayerPixelReferenceSP &pixels, QRect region, const QByteArray &bytes)
+{
+    if (!onThread() || !pixels || m_d->layerPixels.value(pixels->m_uuid).toStrongRef() != pixels)
+        return Result::InvalidInput;
+    if (pixels->m_version->documentId() != m_d->document->snapshot()->documentId()) return Result::StaleVersion;
+    return applyRgbaPixels(pixels->m_layer, region, bytes, false, &pixels->m_version);
+}
+
 Result PaintImage::replaceRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes)
 { return applyRgbaPixels(layer, region, bytes, true); }
 
-Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes, bool recordHistory)
+Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes, bool recordHistory,
+                                 Snapshot *retainedVersion)
 {
     if (!onThread()) return Result::InvalidInput;
     auto &d = *m_d;
     auto &document = *d.document;
     const auto status = document.checkMutation();
     if (status != Result::Success) return status;
-    const auto current = document.snapshot();
-    const auto index = document.layerIndex(layer);
-    if (index < 0) return Result::LayerUnavailable;
+    const auto current = retainedVersion ? *retainedVersion : document.snapshot();
+    const auto selectedLayer = std::find_if(current->layers.cbegin(), current->layers.cend(),
+        [layer](const auto &value) { return value.id == layer; });
+    if (selectedLayer == current->layers.cend()) return Result::LayerUnavailable;
     constexpr qint64 limit = RgbaTile::CoordinateLimit;
     if (region.width() < 0 || region.height() < 0 || region.x() < -limit || region.y() < -limit ||
         qint64(region.x()) + region.width() > limit || qint64(region.y()) + region.height() > limit)
@@ -86,7 +96,7 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
     if (bytes.size() < byteCount) return Result::InvalidInput;
     if (byteCount > d.limits.rasterBytes) return Result::CapacityExceeded;
     if (region.isEmpty()) return Result::Success;
-    const auto &selected = current->layers[index];
+    const auto &selected = *selectedLayer;
     constexpr int size = RgbaTile::Size;
     const qint64 columns = Detail::pixelTileIndex(region.right(), size) - Detail::pixelTileIndex(region.left(), size) + 1;
     const qint64 rows = Detail::pixelTileIndex(region.bottom(), size) - Detail::pixelTileIndex(region.top(), size) + 1;
@@ -98,11 +108,12 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
         QHash<quint64, Lineage> lineages;
         QList<OperationDocument::VersionPixelWrite> writes;
         qsizetype compressedBytes = 0;
-        const auto versions = recordHistory ? QList<Snapshot>{current} : document.m_history;
+        auto versions = recordHistory ? QList<Snapshot>{current} : document.m_history;
+        if (retainedVersion && !versions.contains(current)) versions.append(current);
         for (const auto &version : versions) {
             const Layer *candidate = nullptr;
             for (const auto &value : version->layers) if (value.id == layer) candidate = &value;
-            if (!candidate || candidate->defaultPixel != selected.defaultPixel) continue;
+            if (!candidate || candidate->uuid != selected.uuid || candidate->defaultPixel != selected.defaultPixel) continue;
             QMap<quint64, QList<QRect>> areas;
             constexpr int blockSize = Detail::PixelHistoryBlockSize;
             for (int y = Detail::pixelTileIndex(region.top(), blockSize); y <= Detail::pixelTileIndex(region.bottom(), blockSize); ++y) {
@@ -146,7 +157,7 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
             }
             writes.append(write);
         }
-        adopted = document.applyPixelVersions(writes, recordHistory);
+        adopted = document.applyPixelVersions(writes, recordHistory, retainedVersion);
     } catch (const std::bad_alloc &) {
         return Result::CapacityExceeded;
     }
