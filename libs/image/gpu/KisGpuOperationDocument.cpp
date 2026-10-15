@@ -507,9 +507,33 @@ Result OperationDocument::moveLayer(LayerId layer, qsizetype index)
     if (previous < 0) return Result::LayerUnavailable;
     if (index < 0 || index >= snapshot()->layers.size()) return Result::InvalidInput;
     if (previous == index) return Result::Success;
+    QList<LayerId> order;
+    for (const auto &value : snapshot()->layers) order.append(value.id);
+    order.move(previous, index);
+    return reorderLayers(order);
+}
+
+Result OperationDocument::reorderLayers(const QList<LayerId> &order)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    if (order.size() != snapshot()->layers.size()) return Result::InvalidInput;
+    QSet<LayerId> included;
+    QList<Layer> layers;
+    layers.reserve(order.size());
+    for (const auto id : order) {
+        if (included.contains(id)) return Result::InvalidInput;
+        const auto index = layerIndex(id);
+        if (index < 0) return Result::LayerUnavailable;
+        included.insert(id);
+        layers.append(snapshot()->layers[index]);
+    }
+    bool changed = false;
+    for (qsizetype i = 0; i < order.size(); ++i) changed |= snapshot()->layers[i].id != order[i];
+    if (!changed) return Result::Success;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
-    version->layers.move(previous, index);
+    version->layers.swap(layers);
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     commitVersion(version);
     return Result::Success;

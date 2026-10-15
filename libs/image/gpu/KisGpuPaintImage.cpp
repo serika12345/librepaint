@@ -181,6 +181,8 @@ Result PaintImage::renameLayer(LayerId layer, const QString &name, PropertyHisto
 { return onThread() ? publish(m_d->document->renameLayer(layer, name, history)) : Result::InvalidInput; }
 Result PaintImage::moveLayer(LayerId layer, qsizetype index)
 { return onThread() ? publish(m_d->document->moveLayer(layer, index)) : Result::InvalidInput; }
+Result PaintImage::reorderLayers(const QList<LayerId> &order)
+{ return onThread() ? publish(m_d->document->reorderLayers(order)) : Result::InvalidInput; }
 Result PaintImage::removeLayer(LayerId layer)
 { return onThread() ? publish(m_d->document->removeLayer(layer)) : Result::InvalidInput; }
 Result PaintImage::removeLayers(const QList<LayerId> &layers, const QString &replacementName)

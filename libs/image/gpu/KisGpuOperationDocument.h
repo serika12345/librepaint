@@ -296,6 +296,10 @@ public:
     Result renameLayer(LayerId layer, const QString &name, PropertyHistory history);
     /** Moves within the bottom-to-top layer list, preserving the selected identity. */
     Result moveLayer(LayerId layer, qsizetype index);
+    /** Adopts a complete bottom-to-top permutation in one history entry.
+     * Rejects missing, repeated or foreign identities before changing any state.
+     */
+    Result reorderLayers(const QList<LayerId> &order);
     /** Removes one layer; selection follows its nearest remaining list position. */
     Result removeLayer(LayerId layer);
     /** Removes a set atomically in one history entry. Selection follows the

@@ -88,7 +88,56 @@ private Q_SLOTS:
     void removingTheLastLayerPreservesAnEmptyRecoverableDocument();
     void layerRemovalReusesCapacityWithoutLosingRecoveryHistory_data();
     void layerRemovalReusesCapacityWithoutLosingRecoveryHistory();
+    void layerReorderingIsAtomicAndPreservesSelectionPixelsAndHistory();
 };
+
+void KisGpuOperationDocumentTest::layerReorderingIsAtomicAndPreservesSelectionPixelsAndHistory()
+{
+    OperationDocument document({16, 16});
+    const auto bottom = document.activeLayer();
+    const auto middle = document.addLayer(QStringLiteral("Middle"));
+    const auto top = document.addLayer(QStringLiteral("Top"));
+    const RgbaTile pixels{{0, 0}, QByteArray(RgbaTile::ByteCount, '\x11')};
+    QCOMPARE(document.replaceTiles(middle, {pixels}), Result::Success);
+    QCOMPARE(document.selectLayer(middle), Result::Success);
+    const auto pinned = document.snapshot();
+    const auto before = document.undoCount();
+    QCOMPARE(document.markSaved(pinned), Result::Success);
+    QCOMPARE(document.reorderLayers({top, bottom}), Result::InvalidInput);
+    QCOMPARE(document.reorderLayers({top, bottom, bottom}), Result::InvalidInput);
+    QCOMPARE(document.reorderLayers({top, bottom, LayerId(9999)}), Result::LayerUnavailable);
+    QCOMPARE(document.snapshot(), pinned);
+    QCOMPARE(document.reorderLayers({bottom, middle, top}), Result::Success);
+    QCOMPARE(document.snapshot(), pinned);
+    QVERIFY(!document.isModified());
+    QCOMPARE(document.reorderLayers({top, bottom, middle}), Result::Success);
+    QCOMPARE(document.undoCount(), before + 1);
+    QCOMPARE(document.historyAction(before + 1), HistoryAction::MoveLayer);
+    QCOMPARE(document.activeLayer(), middle);
+    QCOMPARE(document.snapshot()->layers[0].id, top);
+    QCOMPARE(document.snapshot()->layers[1].id, bottom);
+    QCOMPARE(document.snapshot()->layers[2].id, middle);
+    QCOMPARE(document.snapshot()->layers[2].operations, pinned->layers[1].operations);
+    QCOMPARE(document.snapshot()->rasterBytes, pinned->rasterBytes);
+    QCOMPARE(pinned->layers[0].id, bottom);
+    QCOMPARE(pinned->layers[1].id, middle);
+    QCOMPARE(pinned->layers[2].id, top);
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(restored.snapshot()->layers[0].id, top);
+    QCOMPARE(restored.historyAction(restored.undoCount()), HistoryAction::MoveLayer);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), pinned);
+    QVERIFY(!document.isModified());
+    QCOMPARE(document.redo(), Result::Success);
+    const auto operation = document.beginStroke(middle, Brush{}, 0);
+    QVERIFY(!operation.isNull());
+    QCOMPARE(document.reorderLayers({bottom, middle, top}), Result::EditInProgress);
+    QCOMPARE(document.cancelStroke(operation), Result::Success);
+    QCOMPARE(document.snapshot()->layers[0].id, top);
+    document.close();
+    QCOMPARE(document.reorderLayers({bottom, middle, top}), Result::Closed);
+}
 
 void KisGpuOperationDocumentTest::mergedPropertiesPreservePinsSaveBoundariesAndRecovery()
 {

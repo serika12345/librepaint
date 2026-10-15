@@ -52,6 +52,7 @@
 #include <brushengine/kis_paintop_registry.h>
 #include <opengl/kis_opengl.h>
 #include <testui.h>
+#include <algorithm>
 #include <exception>
 #include <memory>
 
@@ -92,6 +93,8 @@ private Q_SLOTS:
     void ordinaryLayerChangesDuringInput();
     void lineToolPreservesPreviewCancellationAndHistory_data();
     void lineToolPreservesPreviewCancellationAndHistory();
+    void layerPanelReordersSelectionWithOneHistoryEntry_data();
+    void layerPanelReordersSelectionWithOneHistoryEntry();
     void layerPanelSelectionSurvivesSaving();
     void layerPanelRemovalPreservesLayersSelectionAndOneHistoryEntry_data();
     void layerPanelRemovalPreservesLayersSelectionAndOneHistoryEntry();
@@ -337,6 +340,139 @@ void KisGpuDocumentViewTest::lineToolPreservesPreviewCancellationAndHistory()
         QTRY_VERIFY(!lifetime->isModified());
     } catch (const std::exception &error) {
         QFAIL(error.what());
+    }
+}
+
+void KisGpuDocumentViewTest::layerPanelReordersSelectionWithOneHistoryEntry_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("raise");
+    QTest::addColumn<int>("selection");
+    for (const bool gpu : {false, true}) {
+        for (const bool raise : {false, true}) {
+            for (const int selection : {0, 1, 2}) {
+                const QByteArray name = QByteArray(gpu ? "gpu-" : "ordinary-") +
+                    (raise ? "raise-" : "lower-") +
+                    (selection == 0 ? "single" : selection == 1 ? "contiguous" : "disjoint");
+                QTest::newRow(name.constData()) << gpu << raise << selection;
+            }
+        }
+    }
+}
+
+void KisGpuDocumentViewTest::layerPanelReordersSelectionWithOneHistoryEntry()
+{
+    QFETCH(bool, gpu);
+    QFETCH(bool, raise);
+    QFETCH(int, selection);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    std::shared_ptr<Gpu::Execution> execution;
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    if (gpu) {
+        QString diagnostic;
+        auto device = Gpu::Device::createNative(diagnostic);
+        QVERIFY2(device, qPrintable(diagnostic));
+        execution = std::make_shared<Gpu::Execution>(device);
+        auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        for (const auto &name : {QStringLiteral("Second"), QStringLiteral("Third"), QStringLiteral("Top")})
+            QVERIFY(owner->addLayer(name));
+        QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+        document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Layer ordering")));
+    } else {
+        const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+        QVERIFY(document->newImage(QStringLiteral("Layer ordering"), 32, 16, cs,
+                                   KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 4, {}, 1));
+    }
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    QVERIFY(window->findChild<QDockWidget*>(QStringLiteral("KisLayerBox")));
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    auto image = KisImageSP(lifetime->image());
+    const auto root = image->root();
+    const KisNodeList original{root->at(0), root->at(1), root->at(2), root->at(3)};
+    const QList<QByteArray> pixels{QByteArray::fromHex("332211ff"), QByteArray::fromHex("665544ff"),
+                                  QByteArray::fromHex("998877ff"), QByteArray::fromHex("ccbbaaff")};
+    for (qsizetype i = 0; i < original.size(); ++i)
+        original[i]->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(pixels[i].constData()), 5, 5, 1, 1);
+    const KisNodeList selected = selection == 0 ? KisNodeList{original[1]} : selection == 1 ?
+        KisNodeList{original[1], original[2]} : raise ?
+        KisNodeList{original[0], original[2]} : KisNodeList{original[1], original[3]};
+    auto *manager = window->viewManager()->nodeManager();
+    const auto active = selected.last();
+    manager->slotUiActivatedNode(active);
+    manager->slotSetSelectedNodes(selected);
+    const auto before = lifetime->undoStack()->count();
+    try {
+        if (raise) manager->raiseNode();
+        else manager->lowerNode();
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    image->waitForDone();
+    const KisNodeList expected = selection == 2 ? KisNodeList{original[1], original[3], original[0], original[2]} : raise ?
+        (selection == 1 ? KisNodeList{original[0], original[3], original[1], original[2]} :
+                    KisNodeList{original[0], original[2], original[1], original[3]}) :
+        (selection == 1 ? KisNodeList{original[1], original[2], original[0], original[3]} :
+                    KisNodeList{original[1], original[0], original[2], original[3]});
+    const auto order = [&] {
+        KisNodeList result;
+        for (quint32 i = 0; i < root->childCount(); ++i) result.append(root->at(i));
+        return result;
+    };
+    QTRY_COMPARE(order(), expected);
+    QCOMPARE(lifetime->undoStack()->count(), before + 1);
+    QByteArray projection(4, '\0');
+    image->projection()->readBytes(reinterpret_cast<quint8 *>(projection.data()), 5, 5, 1, 1);
+    QCOMPARE(projection, pixels[original.indexOf(expected.last())]);
+    QCOMPARE(view->currentNode(), active);
+    const auto actualSelection = [&] {
+        auto nodes = manager->selectedNodes();
+        std::sort(nodes.begin(), nodes.end());
+        return nodes;
+    };
+    auto sortedSelection = selected;
+    std::sort(sortedSelection.begin(), sortedSelection.end());
+    QTRY_COMPARE(actualSelection(), sortedSelection);
+    if (gpu) {
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        const auto path = directory.filePath(QStringLiteral("ordered.kra"));
+        lifetime->setFileBatchMode(true);
+        QVERIFY2(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
+        QTRY_VERIFY(!lifetime->isModified());
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::ReadOnly));
+        const auto reopened = LibrePaint::ImportExport::Kra::RasterCodec::read(file);
+        QVERIFY2(reopened.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(reopened.diagnostic));
+        QCOMPARE(reopened.document.image.layers.size(), expected.size());
+        for (qsizetype i = 0; i < expected.size(); ++i)
+            QCOMPARE(reopened.document.image.layers[i].uuid, expected[i]->uuid());
+    }
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QTRY_COMPARE(order(), original);
+    QCOMPARE(view->currentNode(), active);
+    QTRY_COMPARE(actualSelection(), sortedSelection);
+    lifetime->undoStack()->redo();
+    image->waitForDone();
+    QTRY_COMPARE(order(), expected);
+    QCOMPARE(view->currentNode(), active);
+    QTRY_COMPARE(actualSelection(), sortedSelection);
+    for (qsizetype i = 0; i < original.size(); ++i) {
+        QByteArray actual(4, '\0');
+        original[i]->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 5, 5, 1, 1);
+        QCOMPARE(actual, pixels[i]);
     }
 }
 

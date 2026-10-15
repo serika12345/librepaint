@@ -18,6 +18,7 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QStandardPaths>
+#include <QSet>
 #include <algorithm>
 #include <krita_container_utils.h>
 #include <kactioncollection.h>
@@ -1167,8 +1168,50 @@ KisNodeSP KisNodeManager::OrderingAccess::activeNode(KisNodeManager *manager)
     return manager->activeNode();
 }
 
+namespace {
+LibrePaint::Image::Gpu::Result moveGpuLayerSelection(const KisImageSP &image, const KisNodeList &nodes, bool raise)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto owner = image->gpuImage();
+    const auto version = owner->operations().snapshot();
+    QSet<QUuid> selected;
+    for (const auto &node : nodes) {
+        if (!node || node->image() != image.data() || node->parent() != image->root() || selected.contains(node->uuid()))
+            return Gpu::Result::InvalidInput;
+        selected.insert(node->uuid());
+    }
+    if (selected.isEmpty()) return Gpu::Result::Success;
+    QList<Gpu::LayerId> original;
+    QList<Gpu::LayerId> moving;
+    QList<Gpu::LayerId> remaining;
+    qsizetype head = -1;
+    for (qsizetype i = 0; i < version->layers.size(); ++i) {
+        const auto &layer = version->layers[i];
+        original.append(layer.id);
+        if (selected.contains(layer.uuid)) {
+            moving.append(layer.id);
+            if (head < 0 || raise) head = i;
+        } else remaining.append(layer.id);
+    }
+    if (moving.size() != selected.size()) return Gpu::Result::LayerUnavailable;
+    const auto neighbor = head + (raise ? 1 : -1);
+    if (neighbor < 0 || neighbor >= original.size()) return Gpu::Result::Success;
+    auto index = remaining.indexOf(original[neighbor]) + (raise ? 1 : 0);
+    for (const auto layer : moving) remaining.insert(index++, layer);
+    return remaining == original ? Gpu::Result::Success : owner->reorderLayers(remaining);
+}
+}
+
 void KisNodeManager::OrderingAccess::raiseNodes(KisNodeManager *manager, const KisNodeList &nodes, KisNodeSP activeNode)
 {
+    const auto image = KisImageSP(manager->m_d->view->image());
+    if (image->gpuImage()) {
+        const QPointer<KisNodeManager> guard(manager);
+        const auto result = moveGpuLayerSelection(image, nodes, true);
+        if (guard && result != LibrePaint::Image::Gpu::Result::Success)
+            ModificationAccess::showWarning(manager, i18n("The layers could not be moved. Finish the active operation and try again."));
+        return;
+    }
     const KUndo2MagicString actionName = kundo2_i18n("Raise Nodes");
     KisNodeOperationBatch *batch = manager->m_d->lazyGetNodeOperationBatch(actionName);
     batch->raiseNode(nodes, activeNode);
@@ -1176,6 +1219,14 @@ void KisNodeManager::OrderingAccess::raiseNodes(KisNodeManager *manager, const K
 
 void KisNodeManager::OrderingAccess::lowerNodes(KisNodeManager *manager, const KisNodeList &nodes, KisNodeSP activeNode)
 {
+    const auto image = KisImageSP(manager->m_d->view->image());
+    if (image->gpuImage()) {
+        const QPointer<KisNodeManager> guard(manager);
+        const auto result = moveGpuLayerSelection(image, nodes, false);
+        if (guard && result != LibrePaint::Image::Gpu::Result::Success)
+            ModificationAccess::showWarning(manager, i18n("The layers could not be moved. Finish the active operation and try again."));
+        return;
+    }
     const KUndo2MagicString actionName = kundo2_i18n("Lower Nodes");
     KisNodeOperationBatch *batch = manager->m_d->lazyGetNodeOperationBatch(actionName);
     batch->lowerNode(nodes, activeNode);

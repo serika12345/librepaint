@@ -113,6 +113,7 @@ public:
     Result renameLayer(LayerId layer, const QString &name);
     Result renameLayer(LayerId layer, const QString &name, PropertyHistory history);
     Result moveLayer(LayerId layer, qsizetype index);
+    Result reorderLayers(const QList<LayerId> &order);
     Result removeLayer(LayerId layer);
     Result removeLayers(const QList<LayerId> &layers, const QString &replacementName = {});
     Result undo();
