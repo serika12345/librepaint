@@ -559,10 +559,33 @@ void KisGpuTileRendererTest::erasingAndLayerVisibilityPreservePixelMeaning()
     const auto erased = render(renderer, document.snapshot(), painted);
     QVERIFY(erased);
     QCOMPARE(readTile(erased, document.activeLayer(), {0, 0}).mid((32 * TileRenderer::TileSize + 32) * 4, 4), QByteArray::fromHex("ff00007f"));
+    brush.opacity = 255;
+    stroke = document.beginStroke(document.activeLayer(), brush, 0);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    const auto fullyErased = render(renderer, document.snapshot(), erased);
+    QVERIFY(fullyErased);
+    const auto pixel = [&](const RenderedSnapshot &version) {
+        return readTile(version, document.activeLayer(), {0, 0}).mid((32 * TileRenderer::TileSize + 32) * 4, 4);
+    };
+    QCOMPARE(pixel(fullyErased), QByteArray::fromHex("ff000000"));
+    QCOMPARE(document.undo(), Result::Success);
+    const auto undone = render(renderer, document.snapshot());
+    QVERIFY(undone);
+    QCOMPARE(pixel(undone), QByteArray::fromHex("ff00007f"));
+    QCOMPARE(document.redo(), Result::Success);
+    const auto redone = render(renderer, document.snapshot());
+    QVERIFY(redone);
+    QCOMPARE(pixel(redone), QByteArray::fromHex("ff000000"));
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    const auto restored = render(renderer, recovered.snapshot());
+    QVERIFY(restored);
+    QCOMPARE(pixel(restored), QByteArray::fromHex("ff000000"));
     QCOMPARE(document.setLayerVisible(document.activeLayer(), false), Result::Success);
-    const auto hidden = render(renderer, document.snapshot(), erased);
+    const auto hidden = render(renderer, document.snapshot(), fullyErased);
     QVERIFY(hidden);
-    QCOMPARE(hidden->tiles(document.activeLayer()).first().pixels, erased->tiles(document.activeLayer()).first().pixels);
+    QCOMPARE(hidden->tiles(document.activeLayer()).first().pixels, fullyErased->tiles(document.activeLayer()).first().pixels);
     QCOMPARE(readTile(painted, document.activeLayer(), {0, 0}).mid((32 * TileRenderer::TileSize + 32) * 4, 4), QByteArray::fromHex("ff0000ff"));
 }
 

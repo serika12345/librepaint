@@ -330,7 +330,7 @@ void KisGpuDocumentViewTest::lineToolPreservesPreviewCancellationAndHistory()
         release({40, 40});
         image->waitForDone();
         QTRY_COMPARE(lifetime->undoStack()->count(), 2);
-        QCOMPARE(quint8(pixel({28, 28})[3]), quint8(0));
+        QCOMPARE(pixel({28, 28}), QByteArray::fromHex("f1811100"));
         lifetime->undoStack()->undo();
         image->waitForDone();
         QCOMPARE(pixel({28, 28}), QByteArray::fromHex("f18111ff"));
@@ -1039,7 +1039,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     pressed = false;
     QCOMPARE(owner->operations().undoCount(), 2);
     QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(40, 40, 1, 1), 4).bytes,
-             QByteArray::fromHex("00000000"));
+             QByteArray::fromHex("1181f100"));
     documentLifetime->undoStack()->undo();
     QCOMPARE(owner->operations().snapshot(), painted);
 
