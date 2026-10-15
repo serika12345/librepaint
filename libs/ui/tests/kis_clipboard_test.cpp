@@ -7,6 +7,8 @@
 #include "kis_clipboard_test.h"
 
 #include <simpletest.h>
+#include <QApplication>
+#include <QClipboard>
 
 #include <KoColor.h>
 #include <KoColorSpace.h>
@@ -17,6 +19,19 @@
 
 #include <testutil.h>
 
+
+void KisClipboardTest::testEmptyClipboard()
+{
+    QApplication::clipboard()->clear();
+    auto *clipboard = KisClipboard::instance();
+    QVERIFY(!clipboard->hasClip());
+    QVERIFY(!clipboard->hasLayers());
+    QVERIFY(!clipboard->hasLayerStyles());
+    QVERIFY(!clipboard->hasImage());
+    QVERIFY(!clipboard->hasUrls());
+    QVERIFY(!clipboard->layersMimeData());
+    QCOMPARE(clipboard->clipSize(), QSize());
+}
 
 void KisClipboardTest::testRoundTrip()
 {

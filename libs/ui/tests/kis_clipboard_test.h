@@ -13,6 +13,7 @@ class KisClipboardTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void testEmptyClipboard();
     void testRoundTrip();
 };
 

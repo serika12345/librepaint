@@ -1211,6 +1211,15 @@ krita_add_broken_unit_test( kis_clipboard_test.cpp
     LINK_LIBRARIES kritaapplicationui kritatestsdk
     )
 
+add_test(
+    NAME libs-ui-KisClipboardEmptyContractTest
+    COMMAND KisClipboardTest testEmptyClipboard
+)
+set_tests_properties(libs-ui-KisClipboardEmptyContractTest PROPERTIES
+    ENVIRONMENT "QT_QPA_PLATFORM=offscreen"
+)
+
+
 krita_add_broken_unit_test( FreehandStrokeBenchmark.cpp  $<TARGET_PROPERTY:kritatestsdk,SOURCE_DIR>/stroke_testing_utils.cpp
     TEST_NAME FreehandStrokeBenchmark
     LINK_LIBRARIES kritaapplicationui kritatestsdk
