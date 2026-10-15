@@ -21,6 +21,12 @@ private Q_SLOTS:
     void testRoundtripCicpIccProfile();
 
     void testLoadPngWithLegacyProfile();
+    void testWriteCancellation_data();
+    void testWriteCancellation();
+    void testRowEncodingPreservesPixels_data();
+    void testRowEncodingPreservesPixels();
+    void testWriteFailureReleasesSourcePixels();
+    void testWriteFailureReleasesSourcePixels_data();
 };
 
 #endif

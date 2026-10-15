@@ -10,6 +10,7 @@
 #include <png.h>
 
 #include <QColor>
+#include <atomic>
 
 #include "kis_types.h"
 #include "kis_global.h"
@@ -118,6 +119,7 @@ public:
     static bool isColorSpaceSupported(const KoColorSpace *cs);
 
 public Q_SLOTS:
+    /** Requests encoding cancellation from any thread while the converter remains alive. */
     virtual void cancel();
 private:
     void progress(png_structp png_ptr, png_uint_32 row_number, int pass);
@@ -125,7 +127,7 @@ private:
     png_uint_32 m_max_row;
     KisImageSP m_image;
     KisDocument *m_doc;
-    bool m_stop;
+    std::atomic_bool m_stop;
     bool m_batchMode;
     QString m_path;
 };
