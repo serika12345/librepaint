@@ -59,7 +59,8 @@ private Q_SLOTS:
     void mergedPropertiesPreservePinsSaveBoundariesAndRecovery();
     void mergedNameResetRetainsItsRecordedBoundary();
     void mergedOpacityResetPreservesSelectionAndDirectWrites();
-    void versionNinePropertyRecoveryRemainsReadable();
+    void previousPropertyRecoveryRemainsReadable_data();
+    void previousPropertyRecoveryRemainsReadable();
     void directLayerPropertiesPreserveOtherPropertyHistoryAndFixedVersions();
     void propertyRecoveryPreservesRecordedValuesAndRejectsDamagedChanges();
     void failedHistoryMovesPreserveEveryVersionAndCounter();
@@ -427,18 +428,37 @@ void KisGpuOperationDocumentTest::mergedOpacityResetPreservesSelectionAndDirectW
     QVERIFY(!restored.isModified());
 }
 
-void KisGpuOperationDocumentTest::versionNinePropertyRecoveryRemainsReadable()
+void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable_data()
 {
+    QTest::addColumn<quint8>("format");
+    QTest::addColumn<bool>("resetName");
+    QTest::newRow("version-nine") << quint8(9) << false;
+    QTest::newRow("version-ten") << quint8(10) << false;
+    QTest::newRow("version-ten-reset-name") << quint8(10) << true;
+}
+
+void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable()
+{
+    QFETCH(quint8, format);
+    QFETCH(bool, resetName);
     OperationDocument document({64, 64});
-    QCOMPARE(document.renameLayer(document.activeLayer(), QStringLiteral("Retained")), Result::Success);
+    const auto stroke = document.beginStroke(document.activeLayer(), Brush{}, 7);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+    QCOMPARE(document.updateShape(stroke, {ShapeKind::Ellipse, {16, 16}, {48, 48}, 0}), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    QCOMPARE(document.renameLayer(document.activeLayer(), QStringLiteral("Retained"), PropertyHistory::MergeConsecutive), Result::Success);
+    if (resetName) QCOMPARE(document.renameLayer(document.activeLayer(), QStringLiteral("Paint Layer 1"), PropertyHistory::MergeConsecutive), Result::Success);
     auto payload = document.recoveryData().chopped(32);
-    // Version 9 has the same fields and requires unequal property delta values.
     payload[4] = 0;
-    payload[5] = 9;
+    payload[5] = char(format);
     payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
     OperationDocument restored({1, 1});
     QCOMPARE(restored.restoreRecovery(payload), Result::Success);
-    QCOMPARE(restored.snapshot()->layers.first().name, QStringLiteral("Retained"));
+    QCOMPARE(restored.undoCount(), 2);
+    QCOMPARE(restored.snapshot()->layers.first().name, resetName ? QStringLiteral("Paint Layer 1") : QStringLiteral("Retained"));
+    const auto paint = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.first());
+    QCOMPARE(paint->shape.kind, ShapeKind::Ellipse);
+    QCOMPARE(paint->shape.cornerRadii, QSizeF(0, 0));
     QCOMPARE(restored.undo(), Result::Success);
     QCOMPARE(restored.snapshot()->layers.first().name, QStringLiteral("Paint Layer 1"));
 }

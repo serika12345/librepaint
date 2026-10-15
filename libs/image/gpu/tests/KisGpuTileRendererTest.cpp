@@ -649,14 +649,23 @@ void KisGpuTileRendererTest::rectangleOutlinesPreserveRotationHistoryAndRecovery
 {
     QTest::addColumn<qreal>("rotation");
     QTest::addColumn<QPoint>("edge");
-    QTest::newRow("axis-aligned") << qreal(0) << QPoint(16, 32);
-    QTest::newRow("rotated") << qreal(0.7853981633974483) << QPoint(9, 32);
+    QTest::addColumn<bool>("rounded");
+    QTest::addColumn<QSizeF>("radii");
+    QTest::newRow("axis-aligned") << qreal(0) << QPoint(16, 32) << false << QSizeF(0, 0);
+    QTest::newRow("rotated") << qreal(0.7853981633974483) << QPoint(9, 32) << false << QSizeF(0, 0);
+    QTest::newRow("rounded") << qreal(0) << QPoint(16, 32) << true << QSizeF(14, 14);
+    QTest::newRow("rounded-rotated") << qreal(0.7853981633974483) << QPoint(21, 21) << true << QSizeF(14, 14);
+    QTest::newRow("rounded-clamped") << qreal(0) << QPoint(16, 32) << true << QSizeF(32, 32);
+    QTest::newRow("rounded-asymmetric") << qreal(0) << QPoint(16, 32) << true << QSizeF(14, 4);
+    QTest::newRow("rounded-zero-axis") << qreal(0) << QPoint(16, 32) << true << QSizeF(0, 14);
 }
 
 void KisGpuTileRendererTest::rectangleOutlinesPreserveRotationHistoryAndRecovery()
 {
     QFETCH(qreal, rotation);
     QFETCH(QPoint, edge);
+    QFETCH(bool, rounded);
+    QFETCH(QSizeF, radii);
     OperationDocument document({64, 64});
     const auto layer = document.activeLayer();
     Brush brush;
@@ -664,7 +673,9 @@ void KisGpuTileRendererTest::rectangleOutlinesPreserveRotationHistoryAndRecovery
     brush.diameter = 8;
     const auto stroke = document.beginStroke(layer, brush, 7);
     QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
-    QCOMPARE(document.updateShape(stroke, {ShapeKind::Rectangle, {16, 16}, {48, 48}, rotation}), Result::Success);
+    const Shape shape{rounded ? ShapeKind::RoundedRectangle : ShapeKind::Rectangle, {16, 16}, {48, 48}, rotation,
+                      radii};
+    QCOMPARE(document.updateShape(stroke, shape), Result::Success);
     TileRenderer renderer(m_device);
     const auto preview = render(renderer, document.preview());
     QVERIFY(preview);
@@ -672,18 +683,55 @@ void KisGpuTileRendererTest::rectangleOutlinesPreserveRotationHistoryAndRecovery
     const auto pixel = [&](const QByteArray &bytes, QPoint point) {
         return bytes.mid((point.y() * TileRenderer::TileSize + point.x()) * 4, 4);
     };
-    for (const auto &point : {edge, QPoint(64 - edge.x(), 64 - edge.y()),
-                              QPoint(edge.y(), edge.x()), QPoint(64 - edge.y(), 64 - edge.x())}) {
+    for (const auto &point : {edge, QPoint(64 - edge.y(), edge.x()),
+                              QPoint(64 - edge.x(), 64 - edge.y()), QPoint(edge.y(), 64 - edge.x())}) {
         QCOMPARE(pixel(pixels, point), QByteArray::fromHex("1181f1ff"));
     }
     QCOMPARE(pixel(pixels, {32, 32}), QByteArray(4, '\0'));
     QCOMPARE(pixel(pixels, {8, 8}), QByteArray(4, '\0'));
+    if (rounded && rotation == 0 && radii.width() >= 14 && radii.height() >= 14)
+        QCOMPARE(pixel(pixels, {16, 16}), QByteArray(4, '\0'));
+    if (rounded && radii.width() == 0) QCOMPARE(pixel(pixels, {16, 16}), QByteArray::fromHex("1181f1ff"));
+    if (rounded && (radii.width() > 16 || radii.height() > 16)) {
+        auto bounded = shape;
+        bounded.cornerRadii = {qMin(qreal(16), radii.width()), qMin(qreal(16), radii.height())};
+        QCOMPARE(document.updateShape(stroke, bounded), Result::Success);
+        QCOMPARE(readTile(render(renderer, document.preview()), layer, {0, 0}), pixels);
+        QCOMPARE(document.updateShape(stroke, shape), Result::Success);
+    }
     const auto beforeRejectedShape = document.preview();
     QCOMPARE(document.updateShape(stroke, {ShapeKind::Rectangle, {16, 16}, {16, 48}, rotation}), Result::InvalidInput);
     QCOMPARE(document.preview(), beforeRejectedShape);
+    if (rounded) {
+        auto invalid = shape;
+        invalid.cornerRadii.setWidth(-1);
+        QCOMPARE(document.updateShape(stroke, invalid), Result::InvalidInput);
+        QCOMPARE(document.preview(), beforeRejectedShape);
+    }
     QCOMPARE(document.undoCount(), 0);
     OperationDocument restored({1, 1});
     QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QVERIFY(restored.hasActiveStroke());
+    const auto recovered = std::get<PaintSnapshot>(restored.preview()->layers.first().operations.last());
+    QCOMPARE(recovered->shape.cornerRadii, shape.cornerRadii);
+    if (rounded) {
+        for (const quint8 previousFormat : {quint8(9), quint8(10)}) {
+            auto previous = document.recoveryData().chopped(32);
+            previous[4] = 0;
+            previous[5] = char(previousFormat);
+            previous.append(QCryptographicHash::hash(previous, QCryptographicHash::Sha256));
+            const auto before = restored.preview();
+            QCOMPARE(restored.restoreRecovery(previous), Result::InvalidRecovery);
+            QCOMPARE(restored.preview(), before);
+        }
+    } else {
+        auto previous = document.recoveryData().chopped(32);
+        previous[4] = 0;
+        previous[5] = 10;
+        previous.append(QCryptographicHash::hash(previous, QCryptographicHash::Sha256));
+        QCOMPARE(restored.restoreRecovery(previous), Result::Success);
+        QCOMPARE(readTile(render(renderer, restored.preview()), restored.activeLayer(), {0, 0}), pixels);
+    }
     QCOMPARE(readTile(render(renderer, restored.preview()), restored.activeLayer(), {0, 0}), pixels);
     QCOMPARE(document.commitStroke(stroke), Result::Success);
     QCOMPARE(document.historyAction(1), HistoryAction::DrawRectangle);

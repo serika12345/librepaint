@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 10;
+constexpr quint16 FormatVersion = 11;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -108,8 +108,10 @@ QByteArray OperationDocument::recoveryData() const
             stream << operation.brush.diameter << operation.brush.spacing << operation.brush.opacity
                    << quint8(operation.brush.erase) << operation.randomSeed << quint8(operation.shape.kind)
                    << operation.shape.first.x() << operation.shape.first.y()
-                   << operation.shape.second.x() << operation.shape.second.y() << operation.shape.rotation
-                   << quint32(operation.sampleCount);
+                   << operation.shape.second.x() << operation.shape.second.y() << operation.shape.rotation;
+            if (operation.shape.kind == ShapeKind::RoundedRectangle)
+                stream << operation.shape.cornerRadii.width() << operation.shape.cornerRadii.height();
+            stream << quint32(operation.sampleCount);
             if (!withinLimit()) return {};
             for (const auto &block : operation.sampleBlocks) {
                 if (block->size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 56) return {};
@@ -185,7 +187,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
     qint32 width = 0, height = 0;
     quint64 nextRevision = 0, nextOperation = 0, nextLayer = 0, savedRevision = 0;
     stream >> magic >> format >> width >> height >> nextRevision >> nextOperation >> nextLayer >> savedRevision >> tileCount;
-    if (magic != Magic || (format != 9 && format != FormatVersion) || width <= 0 || height <= 0 ||
+    if (magic != Magic || format < 9 || format > FormatVersion || width <= 0 || height <= 0 ||
         width > CoordinateLimit || height > CoordinateLimit || savedRevision > nextRevision ||
         !readableCount(stream, tileCount, payload.size(), 12)) return Result::InvalidRecovery;
     const quint64 retainedTileLimit = quint64(m_limits.rasterBytes / RgbaTile::ByteCount) * (HistoryLimit + 1);
@@ -260,7 +262,14 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         qreal x1 = 0, y1 = 0, x2 = 0, y2 = 0;
         quint32 sampleCount = 0;
         stream >> operation->brush.diameter >> operation->brush.spacing >> operation->brush.opacity >> erase
-               >> operation->randomSeed >> shape >> x1 >> y1 >> x2 >> y2 >> operation->shape.rotation >> sampleCount;
+               >> operation->randomSeed >> shape >> x1 >> y1 >> x2 >> y2 >> operation->shape.rotation;
+        if (static_cast<ShapeKind>(shape) == ShapeKind::RoundedRectangle) {
+            if (format < 11) return Result::InvalidRecovery;
+            qreal radiusX = 0, radiusY = 0;
+            stream >> radiusX >> radiusY;
+            operation->shape.cornerRadii = {radiusX, radiusY};
+        }
+        stream >> sampleCount;
         operation->brush.erase = erase;
         operation->shape.kind = static_cast<ShapeKind>(shape);
         operation->shape.first = {x1, y1};

@@ -73,7 +73,12 @@ inline bool validBrush(const Brush &brush)
 
 inline bool validShape(const Shape &shape)
 {
-    if (!validPoint(shape.first) || !validPoint(shape.second) || !std::isfinite(shape.rotation)) {
+    if (!validPoint(shape.first) || !validPoint(shape.second) || !std::isfinite(shape.rotation) ||
+        !std::isfinite(shape.cornerRadii.width()) || !std::isfinite(shape.cornerRadii.height()) ||
+        shape.cornerRadii.width() < 0 || shape.cornerRadii.height() < 0 ||
+        shape.cornerRadii.width() > OperationDocument::CoordinateLimit ||
+        shape.cornerRadii.height() > OperationDocument::CoordinateLimit ||
+        (shape.kind != ShapeKind::RoundedRectangle && shape.cornerRadii != QSizeF(0, 0))) {
         return false;
     }
     switch (shape.kind) {
@@ -82,6 +87,7 @@ inline bool validShape(const Shape &shape)
         return true;
     case ShapeKind::Ellipse:
     case ShapeKind::Rectangle:
+    case ShapeKind::RoundedRectangle:
         return shape.first.x() != shape.second.x() && shape.first.y() != shape.second.y();
     }
     return false;

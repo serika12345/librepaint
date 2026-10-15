@@ -87,7 +87,8 @@ HistoryAction OperationDocument::historyAction(int index) const
                 case ShapeKind::Freehand: return HistoryAction::PaintStroke;
                 case ShapeKind::Line: return HistoryAction::DrawLine;
                 case ShapeKind::Ellipse: return HistoryAction::DrawEllipse;
-                case ShapeKind::Rectangle: return HistoryAction::DrawRectangle;
+                case ShapeKind::Rectangle:
+                case ShapeKind::RoundedRectangle: return HistoryAction::DrawRectangle;
                 }
             }
         }

@@ -79,12 +79,13 @@ void KisToolRectangle::finishRect(const QRectF &rect, qreal roundCornersX, qreal
             Q_EMIT statusTextChanged(i18n("Filling a rectangle is not yet supported for this GPU document."));
             return;
         }
+        namespace Gpu = LibrePaint::Image::Gpu;
+        Gpu::Shape shape{Gpu::ShapeKind::Rectangle, rect.topLeft(), rect.bottomRight(), getRotationAngle()};
         if (roundCornersX > 0 || roundCornersY > 0) {
-            Q_EMIT statusTextChanged(i18n("Rounded rectangles are not yet supported for this GPU document."));
-            return;
+            shape.kind = Gpu::ShapeKind::RoundedRectangle;
+            shape.cornerRadii = {qMax(qreal(0), roundCornersX), qMax(qreal(0), roundCornersY)};
         }
-        paintGpuOutline({LibrePaint::Image::Gpu::ShapeKind::Rectangle, rect.topLeft(), rect.bottomRight(), getRotationAngle()},
-                        kundo2_i18n("Draw Rectangle"));
+        paintGpuOutline(shape, kundo2_i18n("Draw Rectangle"));
         return;
     }
     if (!info.shouldAddShape) {

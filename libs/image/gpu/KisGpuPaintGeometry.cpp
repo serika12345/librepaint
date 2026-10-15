@@ -49,12 +49,34 @@ QList<PaintSegment> paintGeometry(const PaintOperation &operation, quint32 step)
         points.back().position = operation.shape.second;
         break;
     }
-    case ShapeKind::Rectangle: {
+    case ShapeKind::Rectangle:
+    case ShapeKind::RoundedRectangle: {
         const auto &shape = operation.shape;
         const auto center = (shape.first + shape.second) / 2;
         const qreal cosine = std::cos(shape.rotation), sine = std::sin(shape.rotation);
-        for (const auto &corner : {shape.first, QPointF(shape.second.x(), shape.first.y()),
-                                   shape.second, QPointF(shape.first.x(), shape.second.y())}) {
+        const QRectF rect = QRectF(shape.first, shape.second).normalized();
+        const qreal rx = std::min(shape.cornerRadii.width(), rect.width() / 2);
+        const qreal ry = std::min(shape.cornerRadii.height(), rect.height() / 2);
+        QList<QPointF> outline;
+        if (shape.kind == ShapeKind::RoundedRectangle && rx > 0 && ry > 0) {
+            constexpr qreal pi = 3.14159265358979323846;
+            const int count = std::clamp(int(std::ceil(pi * std::sqrt(std::max(rx, ry) / 0.125) / 4)), 4, 16384);
+            const QList<QPointF> centers{{rect.right() - rx, rect.top() + ry},
+                                         {rect.right() - rx, rect.bottom() - ry},
+                                         {rect.left() + rx, rect.bottom() - ry},
+                                         {rect.left() + rx, rect.top() + ry}};
+            outline.reserve(4 * (count + 1));
+            for (int corner = 0; corner < 4; ++corner) {
+                for (int i = 0; i <= count; ++i) {
+                    const qreal angle = (corner - 1 + qreal(i) / count) * pi / 2;
+                    outline.append(centers[corner] + QPointF(rx * std::cos(angle), ry * std::sin(angle)));
+                }
+            }
+        } else {
+            outline = {shape.first, QPointF(shape.second.x(), shape.first.y()),
+                       shape.second, QPointF(shape.first.x(), shape.second.y())};
+        }
+        for (const auto &corner : outline) {
             auto point = input.front();
             const auto delta = corner - center;
             point.position = center + QPointF(delta.x() * cosine - delta.y() * sine,

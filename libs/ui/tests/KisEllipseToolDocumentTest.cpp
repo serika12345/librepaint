@@ -107,7 +107,10 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving_data()
     QTest::newRow("rectangle-ordinary") << false << false << false << true << false;
     QTest::newRow("rectangle-gpu") << true << false << false << true << false;
     QTest::newRow("rectangle-gpu-close-on-rejection") << true << true << false << true << false;
-    QTest::newRow("rectangle-gpu-close-on-rounded-rejection") << true << true << false << true << true;
+    QTest::newRow("rectangle-gpu-rounded") << true << false << false << true << true;
+    QTest::newRow("rectangle-ordinary-rounded") << false << false << false << true << true;
+    QTest::newRow("rectangle-gpu-rounded-close-on-fill-rejection") << true << true << false << true << true;
+    QTest::newRow("rectangle-gpu-rounded-canonical") << true << false << true << true << true;
     QTest::newRow("rectangle-gpu-canonical") << true << false << true << true << false;
 }
 
@@ -191,7 +194,7 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
     QVERIFY(tool);
     if (rectangle) {
         QVERIFY(QMetaObject::invokeMethod(tool, "roundCornersChanged", Qt::DirectConnection,
-                                         Q_ARG(int, rounded ? 4 : 0), Q_ARG(int, rounded ? 4 : 0)));
+                                         Q_ARG(int, rounded ? 14 : 0), Q_ARG(int, rounded ? 14 : 0)));
     }
     QPointer<QComboBox> outline, fill;
     for (QWidget *panel : tool->optionWidgets()) {
@@ -269,10 +272,9 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
         return bytes;
     };
     if (closeOnError) {
-        if (!rounded) fill->setCurrentIndex(KisFigurePaintingOptions::FillStyleForegroundColor);
+        fill->setCurrentIndex(KisFigurePaintingOptions::FillStyleForegroundColor);
         start();
-        const QString expected = rounded ? i18n("Rounded rectangles are not yet supported for this GPU document.") :
-                                 rectangle ? i18n("Filling a rectangle is not yet supported for this GPU document.") :
+        const QString expected = rectangle ? i18n("Filling a rectangle is not yet supported for this GPU document.") :
                                              i18n("Filling an ellipse is not yet supported for this GPU document.");
         QSignalSpy status(tool, &KoToolBase::statusTextChanged);
         connect(tool, &KoToolBase::statusTextChanged, window.get(), [&](const QString &message) {
@@ -302,10 +304,12 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
     QTRY_COMPARE(lifetime->undoStack()->count(), 1);
     QCOMPARE(pixel({32, 18}), QByteArray::fromHex("f18111ff"));
     QCOMPARE(pixel({32, 32}), QByteArray(4, '\0'));
-    QCOMPARE(pixel({16, 16}), rectangle ? QByteArray::fromHex("f18111ff") : QByteArray(4, '\0'));
+    QCOMPARE(pixel({16, 16}), rectangle && !rounded ? QByteArray::fromHex("f18111ff") : QByteArray(4, '\0'));
     if (gpu) {
         const auto operation = std::get<Gpu::PaintSnapshot>(owner->operations().snapshot()->layers.first().operations.last());
-        QCOMPARE(operation->shape.kind, rectangle ? Gpu::ShapeKind::Rectangle : Gpu::ShapeKind::Ellipse);
+        QCOMPARE(operation->shape.kind, rounded ? Gpu::ShapeKind::RoundedRectangle :
+                                       rectangle ? Gpu::ShapeKind::Rectangle : Gpu::ShapeKind::Ellipse);
+        QCOMPARE(operation->shape.cornerRadii, rounded ? QSizeF(14, 14) : QSizeF(0, 0));
         QCOMPARE(owner->operations().historyAction(1), rectangle ? Gpu::HistoryAction::DrawRectangle : Gpu::HistoryAction::DrawEllipse);
     }
     lifetime->undoStack()->undo();
@@ -329,8 +333,13 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
     QVERIFY(directory.isValid());
     lifetime->setFileBatchMode(true);
     const auto path = directory.filePath(QStringLiteral("ellipse.kra"));
+    QSignalSpy saveFinished(lifetime.data(), &KisDocument::sigSavingFinished);
     QVERIFY2(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
+    QTRY_VERIFY(!saveFinished.isEmpty());
+    QTRY_VERIFY(!lifetime->isSaving());
     QTRY_VERIFY(!lifetime->isModified());
+    QCOMPARE(lifetime->undoStack()->index(), 2);
+    QCOMPARE(lifetime->undoStack()->cleanIndex(), 2);
     QFile file(path);
     QVERIFY(file.open(QIODevice::ReadOnly));
     const auto saved = LibrePaint::ImportExport::Kra::RasterCodec::read(file);
@@ -346,11 +355,15 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
     lifetime->undoStack()->undo();
     image->waitForDone();
     QCOMPARE(pixel({32, 18}), QByteArray::fromHex("2c11ddff"));
-    QTRY_VERIFY(!lifetime->isModified());
+    QTRY_COMPARE(lifetime->undoStack()->index(), 2);
+    QTRY_VERIFY2(!lifetime->isModified(), qPrintable(QStringLiteral("index=%1 count=%2 clean=%3 saving=%4")
+                 .arg(lifetime->undoStack()->index()).arg(lifetime->undoStack()->count())
+                 .arg(lifetime->undoStack()->cleanIndex()).arg(lifetime->isSaving())));
     const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
     if (canonical && !results.isEmpty()) {
         QVERIFY(QDir().mkpath(results));
-        const auto prefix = rectangle ? QStringLiteral("rectangle-tool") : QStringLiteral("ellipse-tool");
+        const auto prefix = rounded ? QStringLiteral("rounded-rectangle-tool") :
+                            rectangle ? QStringLiteral("rectangle-tool") : QStringLiteral("ellipse-tool");
         LibrePaint::Document::Gpu::PaintDocument fixed(owner);
         const auto saved = fixed.exportKra(QDir(results).filePath(prefix + QStringLiteral(".kra")));
         QVERIFY2(saved.code == LibrePaint::Document::Gpu::FileCode::Success, qPrintable(saved.diagnostic));

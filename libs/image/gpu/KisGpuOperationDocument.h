@@ -69,7 +69,7 @@ struct Brush
     }
 };
 
-enum class ShapeKind { Freehand, Line, Ellipse, Rectangle };
+enum class ShapeKind { Freehand, Line, Ellipse, Rectangle, RoundedRectangle };
 
 struct Shape
 {
@@ -78,6 +78,7 @@ struct Shape
     QPointF first;
     QPointF second;
     qreal rotation = 0;
+    QSizeF cornerRadii{0, 0};
 };
 
 /**
