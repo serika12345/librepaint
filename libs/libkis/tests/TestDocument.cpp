@@ -13,10 +13,14 @@
 #include <QSignalSpy>
 #include <QTextStream>
 #include <QFile>
+#include <QSaveFile>
 #include <QTemporaryDir>
 #include <QDomDocument>
 #include <QColorSpace>
 #include <QScopeGuard>
+#include <QDialog>
+#include <QTimer>
+#include <QCheckBox>
 #include <exception>
 
 #include <Node.h>
@@ -615,7 +619,7 @@ void TestDocument::testGpuSaveAndExportPreserveHistoryAndFileIdentity()
              QByteArray::fromHex("445566ff"));
     QVERIFY(!document->saveAs(directory.filePath(QStringLiteral("missing/failed.kra")), KisDocument::nativeFormatMimeType(), false));
     QVERIFY(!document->errorMessage().isEmpty());
-    QVERIFY(!document->exportDocumentSync(savedPath, QByteArrayLiteral("image/png")));
+    QVERIFY(!document->exportDocumentSync(savedPath, QByteArrayLiteral("application/x-librepaint-unknown")));
     QVERIFY(!document->errorMessage().isEmpty());
     QCOMPARE(document->path(), savedPath);
     QVERIFY(document->isModified());
@@ -624,6 +628,198 @@ void TestDocument::testGpuSaveAndExportPreserveHistoryAndFileIdentity()
     QCOMPARE(input.readAll(), savedBytes);
     QCOMPARE(saved.size(), 1);
     KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void TestDocument::testGpuPngExportPreservesPixelsAndDocument_data()
+{
+    QTest::addColumn<bool>("alpha");
+    QTest::addColumn<bool>("interlaced");
+    QTest::addColumn<bool>("menuExport");
+    QTest::newRow("api-rgba") << true << false << false;
+    QTest::newRow("api-rgba-interlaced") << true << true << false;
+    QTest::newRow("api-white-background") << false << false << false;
+    QTest::newRow("api-white-background-interlaced") << false << true << false;
+    QTest::newRow("menu-rgba") << true << false << true;
+    QTest::newRow("menu-rgba-interlaced") << true << true << true;
+    QTest::newRow("menu-white-background") << false << false << true;
+    QTest::newRow("menu-white-background-interlaced") << false << true << true;
+}
+
+void TestDocument::testGpuPngExportPreservesPixelsAndDocument()
+{
+    QFETCH(bool, alpha);
+    QFETCH(bool, interlaced);
+    QFETCH(bool, menuExport);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    initializeGpuDocument(document.data(), QSize(32, 16), QStringLiteral("PNG export"));
+    document->setFileBatchMode(true);
+    KisImageSP image = document->image().toStrongRef();
+    const auto owner = image->gpuImage();
+    const auto layer = owner->operations().activeLayer();
+    const QByteArray colors = QByteArray::fromHex("112233ff4455668077889900cb1d57ad");
+    QByteArray rgba;
+    for (int i = 0; i < 32 * 16; ++i) rgba.append(colors.mid((i % 4) * 4, 4));
+    QCOMPARE(owner->replaceRgbaPixels(layer, image->bounds(), rgba), Gpu::Result::Success);
+    image->setResolution(300.0 / 72, 150.0 / 72);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto savedPath = directory.filePath(QStringLiteral("saved.kra"));
+    const auto pngPath = directory.filePath(QStringLiteral("export.png"));
+    QVERIFY(document->saveAs(savedPath, KisDocument::nativeFormatMimeType(), false));
+    QFile savedFile(savedPath);
+    QVERIFY(savedFile.open(QIODevice::ReadOnly));
+    const auto savedBytes = savedFile.readAll();
+    savedFile.close();
+    QCOMPARE(owner->renameLayer(layer, QStringLiteral("Edited name")), Gpu::Result::Success);
+    const auto version = owner->operations().snapshot();
+    const auto history = owner->operations().undoCount();
+    const auto savedIndex = owner->operations().savedHistoryIndex();
+    QSignalSpy saved(document.data(), &KisDocument::sigSavingFinished);
+    Document publicDocument(document.data(), false);
+    InfoObject settings;
+    settings.setProperty(QStringLiteral("alpha"), alpha);
+    settings.setProperty(QStringLiteral("interlaced"), interlaced);
+    settings.setProperty(QStringLiteral("saveSRGBProfile"), true);
+    KisPropertiesConfigurationSP menuSettings(new KisPropertiesConfiguration);
+    menuSettings->setProperty(QStringLiteral("alpha"), alpha);
+    menuSettings->setProperty(QStringLiteral("interlaced"), interlaced);
+    menuSettings->setProperty(QStringLiteral("saveSRGBProfile"), true);
+    const bool exportedSuccessfully = menuExport ?
+        document->exportDocument(pngPath, QByteArrayLiteral("image/png"), false, false, menuSettings) :
+        publicDocument.exportImage(pngPath, settings);
+    QVERIFY2(exportedSuccessfully, qPrintable(document->errorMessage()));
+    const QImage exported(pngPath);
+    QCOMPARE(exported.size(), image->size());
+    QCOMPARE(exported.dotsPerMeterX(), 11811);
+    QCOMPARE(exported.dotsPerMeterY(), 5905);
+    QCOMPARE(exported.colorSpace().iccProfile(), image->profile()->rawData());
+    for (int y = 0; y < 16; ++y) {
+        for (int x = 0; x < 32; ++x) {
+            const auto *pixel = reinterpret_cast<const quint8 *>(rgba.constData() + (y * 32 + x) * 4);
+            const auto blend = [pixel](int channel) {
+                return (pixel[channel] * pixel[3] + 255 * (255 - pixel[3]) + 127) / 255;
+            };
+            const QColor expected = alpha ? QColor(pixel[0], pixel[1], pixel[2], pixel[3]) :
+                                            QColor(blend(0), blend(1), blend(2));
+            QCOMPARE(exported.pixelColor(x, y), expected);
+        }
+    }
+    QFile png(pngPath);
+    QVERIFY(png.open(QIODevice::ReadOnly));
+    const auto pngBytes = png.readAll();
+    QVERIFY(pngBytes.size() > 28);
+    QCOMPARE(quint8(pngBytes[28]), quint8(interlaced ? 1 : 0));
+    const auto resultDirectory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!resultDirectory.isEmpty()) {
+        QVERIFY(QDir().mkpath(resultDirectory));
+        QSaveFile artifact(QDir(resultDirectory).filePath(QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".png")));
+        QVERIFY(artifact.open(QIODevice::WriteOnly));
+        QCOMPARE(artifact.write(pngBytes), pngBytes.size());
+        QVERIFY(artifact.commit());
+    }
+    QVERIFY(!publicDocument.exportImage(directory.filePath(QStringLiteral("missing/failed.png")), settings));
+    QVERIFY(!document->errorMessage().isEmpty());
+    QCOMPARE(document->path(), savedPath);
+    QCOMPARE(document->mimeType(), KisDocument::nativeFormatMimeType());
+    QVERIFY(document->isModified());
+    QCOMPARE(owner->operations().snapshot(), version);
+    QCOMPARE(owner->operations().undoCount(), history);
+    QCOMPARE(owner->operations().savedHistoryIndex(), savedIndex);
+    QCOMPARE(saved.size(), menuExport ? 1 : 0);
+    QVERIFY(savedFile.open(QIODevice::ReadOnly));
+    QCOMPARE(savedFile.readAll(), savedBytes);
+    KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void TestDocument::testGpuPngExportDialogLifetimes_data()
+{
+    QTest::addColumn<int>("reaction");
+    QTest::newRow("cancel-preserves-existing-file") << 0;
+    QTest::newRow("later-edit-keeps-exported-version") << 1;
+    QTest::newRow("close-document") << 2;
+    QTest::newRow("replace-image") << 3;
+    QTest::newRow("also-save-fixed-kra") << 4;
+}
+
+void TestDocument::testGpuPngExportDialogLifetimes()
+{
+    QFETCH(int, reaction);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    initializeGpuDocument(document.data(), QSize(32, 16), QStringLiteral("PNG dialog"));
+    const auto owner = document->image()->gpuImage();
+    const auto layer = owner->operations().activeLayer();
+    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("112233ff")), Gpu::Result::Success);
+    if (reaction == 4) QVERIFY(owner->addLayer(QStringLiteral("Second layer")));
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("existing.png"));
+    const auto originalBytes = QByteArrayLiteral("existing file remains intact on cancellation");
+    QFile existing(path);
+    QVERIFY(existing.open(QIODevice::WriteOnly));
+    QCOMPARE(existing.write(originalBytes), originalBytes.size());
+    existing.close();
+    bool dialogVisited = false;
+    const bool previousAlsoAsKra = KisConfig(true).readEntry<bool>("AlsoSaveAsKra", false);
+    const auto restoreAlsoAsKra = qScopeGuard([previousAlsoAsKra] {
+        KisConfig(false).writeEntry<bool>("AlsoSaveAsKra", previousAlsoAsKra);
+    });
+    QTimer interaction;
+    interaction.setInterval(1);
+    connect(&interaction, &QTimer::timeout, this, [&] {
+        auto *dialog = qobject_cast<QDialog *>(QApplication::activeModalWidget());
+        if (!dialog) return;
+        interaction.stop();
+        dialogVisited = true;
+        if (reaction == 4) {
+            auto checks = dialog->findChildren<QCheckBox *>();
+            bool found = false;
+            for (auto *check : checks) {
+                if (check->text().contains(QStringLiteral("KRA"))) {
+                    check->setChecked(true);
+                    found = true;
+                }
+            }
+            QVERIFY(found);
+        }
+        if (reaction == 0) {
+            dialog->reject();
+            return;
+        }
+        if (reaction == 1) {
+            QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("445566ff")), Gpu::Result::Success);
+        } else if (reaction == 2) {
+            KisPart::instance()->removeDocument(document.data(), false);
+            document.reset();
+        } else if (reaction == 3) {
+            initializeGpuDocument(document.data(), QSize(16, 16), QStringLiteral("Replacement"));
+        }
+        dialog->accept();
+    });
+    interaction.start();
+    const bool success = document->exportDocument(path, QByteArrayLiteral("image/png"), false, reaction == 4);
+    QVERIFY(dialogVisited);
+    QCOMPARE(success, reaction != 0);
+    if (reaction == 0) {
+        QVERIFY(existing.open(QIODevice::ReadOnly));
+        QCOMPARE(existing.readAll(), originalBytes);
+    } else {
+        const QImage exported(path);
+        QCOMPARE(exported.size(), QSize(32, 16));
+        QCOMPARE(exported.pixelColor(5, 5), QColor(17, 34, 51, 255));
+        if (reaction == 1)
+            QCOMPARE(owner->readRgbaPixels(layer, QRect(5, 5, 1, 1), 4).bytes, QByteArray::fromHex("445566ff"));
+        if (reaction == 4) {
+            QFile kra(path + QStringLiteral(".kra"));
+            QVERIFY(kra.open(QIODevice::ReadOnly));
+            const auto result = LibrePaint::ImportExport::Kra::RasterCodec::read(kra);
+            QVERIFY2(result.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(result.diagnostic));
+            QCOMPARE(result.document.image.layers.size(), 2);
+            QCOMPARE(result.document.image.layers.first().tiles.first().rgba.mid((5 * 256 + 5) * 4, 4), QByteArray::fromHex("112233ff"));
+        }
+    }
+    if (document) KisPart::instance()->removeDocument(document.data(), false);
 }
 
 void TestDocument::testGpuSaveNotificationLifetimes_data()

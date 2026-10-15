@@ -8,6 +8,8 @@
 
 #include <functional>
 #include <memory>
+#include <limits>
+#include <stdexcept>
 
 #include <QDir>
 #include <QFile>
@@ -387,7 +389,7 @@ KisImportExportManager::ConversionResult KisImportExportManager::convert(KisImpo
             // we should explicitly report that the exporting has been initiated
             result.setStatus(ImportExportCodes::OK);
 
-        } else if (!batchMode()) {
+        } else if (!batchMode() && !m_document->image()->gpuImage()) {
             result = runImportExportActionWithFeedback(
                 i18n("Saving document..."),
                 nullptr,
@@ -412,8 +414,24 @@ void KisImportExportManager::fillStaticExportConfigurationProperties(KisProperti
 {
     KisPaintDeviceSP dev = image->projection();
     const KoColorSpace* cs = dev->colorSpace();
-    const bool isThereAlpha =
-            KisPainter::checkDeviceHasTransparency(image->projection());
+    bool isThereAlpha = false;
+    if (image->gpuImage()) {
+        const auto bounds = image->bounds();
+        const auto pixelSize = cs->pixelSize();
+        if (bounds.height() && qsizetype(bounds.width()) > std::numeric_limits<qsizetype>::max() / pixelSize / bounds.height())
+            throw std::length_error("Export pixel capacity exceeded");
+        const qsizetype byteCount = qsizetype(bounds.width()) * bounds.height() * pixelSize;
+        QByteArray pixels(byteCount, Qt::Uninitialized);
+        dev->readBytes(reinterpret_cast<quint8 *>(pixels.data()), bounds);
+        for (qsizetype offset = 0; offset < byteCount; offset += pixelSize) {
+            if (cs->opacityU8(reinterpret_cast<const quint8 *>(pixels.constData() + offset)) != OPACITY_OPAQUE_U8) {
+                isThereAlpha = true;
+                break;
+            }
+        }
+    } else {
+        isThereAlpha = KisPainter::checkDeviceHasTransparency(dev);
+    }
 
     exportConfiguration->setProperty(KisImportExportFilter::ImageContainsTransparencyTag, isThereAlpha);
     exportConfiguration->setProperty(KisImportExportFilter::ColorModelIDTag, cs->colorModelId().id());
@@ -718,6 +736,10 @@ KisImportExportErrorCode KisImportExportManager::doExport(const QString &locatio
 
     if (!alsoAsKraLocation.isNull() && status.isOk()) {
         QByteArray mime = m_document->nativeFormatMimeType();
+        if (m_document->image()->gpuImage()) {
+            return m_document->exportDocumentSync(alsoAsKraLocation, mime) ?
+                KisImportExportErrorCode(ImportExportCodes::OK) : KisImportExportErrorCode(m_document->errorMessage());
+        }
         QSharedPointer<KisImportExportFilter> filter(
                     filterForMimeType(QString::fromLatin1(mime), Export));
 

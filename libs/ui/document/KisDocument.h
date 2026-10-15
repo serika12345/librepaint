@@ -161,7 +161,8 @@ public:
 
 private:
     bool exportDocumentImpl(const KritaUtils::ExportFileJob &job, KisPropertiesConfigurationSP exportConfiguration, bool isAdvancedExporting= false);
-    bool exportGpuDocument(const KritaUtils::ExportFileJob &job, bool notifyCompletion);
+    bool exportGpuDocument(const KritaUtils::ExportFileJob &job, bool notifyCompletion,
+                           KisPropertiesConfigurationSP exportConfiguration = {}, bool isAdvancedExporting = false);
 
 public:
     /**
