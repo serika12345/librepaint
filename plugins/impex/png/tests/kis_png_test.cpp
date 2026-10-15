@@ -11,6 +11,12 @@
 #include <QCoreApplication>
 #include <QBuffer>
 #include <QPointer>
+#include <QTemporaryDir>
+#include <QFile>
+#include <QScopeGuard>
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
 #include <kis_png_converter.h>
 #include <KisExportRasterRows.h>
 #include <cstring>
@@ -49,6 +55,88 @@ protected:
         return written;
     }
 };
+}
+
+void KisPngTest::testFileWritingPreservesExistingData_data()
+{
+    QTest::addColumn<int>("operation");
+    QTest::addColumn<bool>("existing");
+    const QList<QByteArray> names{"cancelled", "rejected", "successful", "replacement-unavailable"};
+    for (int operation = 0; operation < names.size(); ++operation) {
+        for (bool existing : {false, true}) {
+            const QByteArray name = names[operation] + (existing ? "-existing" : "-new");
+            QTest::newRow(name.constData()) << operation << existing;
+        }
+    }
+}
+
+void KisPngTest::testFileWritingPreservesExistingData()
+{
+    QFETCH(int, operation);
+    QFETCH(bool, existing);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("image.png"));
+    const QByteArray original = QByteArrayLiteral("preserve previous file contents");
+    if (existing) {
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(original), original.size());
+    }
+#ifdef Q_OS_WIN
+    HANDLE lockedFile = INVALID_HANDLE_VALUE;
+    const auto releaseFile = qScopeGuard([&] {
+        if (lockedFile != INVALID_HANDLE_VALUE) CloseHandle(lockedFile);
+    });
+    if (operation == 3) {
+        if (!existing) QSKIP("Windows replacement locking requires an existing destination");
+        lockedFile = CreateFileW(reinterpret_cast<LPCWSTR>(path.utf16()), GENERIC_READ,
+                                 FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_EXISTING,
+                                 FILE_ATTRIBUTE_NORMAL, nullptr);
+        QVERIFY(lockedFile != INVALID_HANDLE_VALUE);
+    }
+#else
+    const auto permissions = QFile::permissions(directory.path());
+    bool restricted = false;
+    const auto restoreDirectory = qScopeGuard([&] {
+        if (restricted) QFile::setPermissions(directory.path(), permissions);
+    });
+    if (operation == 3) {
+        QVERIFY(QFile::setPermissions(directory.path(), QFile::ReadOwner | QFile::ExeOwner));
+        restricted = true;
+        QFile probe(directory.filePath(QStringLiteral("probe")));
+        if (probe.open(QIODevice::WriteOnly)) QSKIP("This filesystem allows creation despite directory permissions");
+    }
+#endif
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    KisPaintDeviceSP device = new KisPaintDevice(cs);
+    const QRect region(0, 0, 33, 17);
+    device->fill(region, KoColor(QColor(17, 34, 51), cs));
+    KisPNGOptions options;
+    options.tryToSaveAsIndexed = false;
+    vKisAnnotationSP annotations;
+    KisPNGConverter writer(nullptr, true);
+    if (operation == 0) writer.cancel();
+    const auto result = writer.buildFile(path, operation == 1 ? QRect() : region, 1, 1,
+                                         device, annotations.begin(), annotations.end(), options, nullptr);
+    QCOMPARE(result.isOk(), operation == 2);
+    QCOMPARE(result.isCancelled(), operation == 0);
+    QCOMPARE(QFile::exists(path), existing || operation == 2);
+    if (operation == 2) {
+        QBuffer reference;
+        QVERIFY(reference.open(QIODevice::WriteOnly));
+        KisPNGConverter referenceWriter(nullptr, true);
+        QVERIFY(referenceWriter.buildFile(&reference, region, 1, 1, device,
+                                          annotations.begin(), annotations.end(), options, nullptr).isOk());
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::ReadOnly));
+        QCOMPARE(file.readAll(), reference.data());
+        QCOMPARE(QImage(path).pixelColor(5, 5), QColor(17, 34, 51));
+    } else if (existing) {
+        QFile file(path);
+        QVERIFY(file.open(QIODevice::ReadOnly));
+        QCOMPARE(file.readAll(), original);
+    }
 }
 
 void KisPngTest::testWriteCancellation_data()

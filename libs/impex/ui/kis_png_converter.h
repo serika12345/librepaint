@@ -93,7 +93,9 @@ public:
      */
     KisImportExportErrorCode buildImage(QIODevice* iod);
     /**
-     * Save a layer to a PNG
+     * Save a layer to a PNG using a temporary file and atomic replacement.
+     * Cancellation and conversion failure preserve the destination's contents
+     * or its absence. The directory must permit temporary-file creation.
      * @param filename the name of the destination file
      * @param imageRect the image rectangle to save
      * @param xRes resolution along x axis

@@ -52,6 +52,7 @@
 
 #include <QBuffer>
 #include <QFile>
+#include <QSaveFile>
 #include <QApplication>
 
 #include <klocalizedstring.h>
@@ -949,16 +950,25 @@ bool KisPNGConverter::saveDeviceToStore(const QString &filename, const QRect &im
 
 KisImportExportErrorCode KisPNGConverter::buildFile(const QString &filename, const QRect &imageRect, const qreal xRes, const qreal yRes, KisPaintDeviceSP device, vKisAnnotationSP_it annotationsStart, vKisAnnotationSP_it annotationsEnd, KisPNGOptions options, KisMetaData::Store* metaData)
 {
+    if (m_stop) return ImportExportCodes::Cancelled;
     dbgFile << "Start writing PNG File " << filename;
-    // Open a QIODevice for writing
-    QFile fp (filename);
+    QSaveFile fp(filename);
+    fp.setDirectWriteFallback(false);
     if (!fp.open(QIODevice::WriteOnly)) {
         dbgFile << "Failed to open PNG File for writing";
         return (KisImportExportErrorCannotWrite(fp.error()));
     }
 
     KisImportExportErrorCode result = buildFile(&fp, imageRect, xRes, yRes, device, annotationsStart, annotationsEnd, options, metaData);
-
+    if (!result.isOk()) {
+        fp.cancelWriting();
+        return result;
+    }
+    if (m_stop) {
+        fp.cancelWriting();
+        return ImportExportCodes::Cancelled;
+    }
+    if (!fp.commit()) return KisImportExportErrorCannotWrite(fp.error());
     return result;
 }
 

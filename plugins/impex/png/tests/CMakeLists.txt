@@ -14,7 +14,7 @@ add_test(
 
 add_test(
     NAME plugins-impex-png-KisPngRowWritingContractTest
-    COMMAND kis_png_test testWriteCancellation testRowEncodingPreservesPixels testRowEncodingPreservesColorOptions testRowReadFailureStopsEncoding testWriteFailureReleasesSourcePixels
+    COMMAND kis_png_test testFileWritingPreservesExistingData testWriteCancellation testRowEncodingPreservesPixels testRowEncodingPreservesColorOptions testRowReadFailureStopsEncoding testWriteFailureReleasesSourcePixels
 )
 
 set_tests_properties(
