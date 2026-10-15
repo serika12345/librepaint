@@ -82,6 +82,7 @@ private Q_SLOTS:
     void sharedImageEditsAndRecoveryPublishCompleteFileMetadata();
     void adoptedImagesExportWithoutChangingSaveIdentity();
     void savedStateNotificationsAllowDocumentDeletion();
+    void completedFormatWritesAdoptPinnedIdentityAndRecoverIt();
 private:
     DevicePtr m_device;
 };
@@ -288,6 +289,41 @@ void KisGpuPaintDocumentTest::adoptedImagesExportWithoutChangingSaveIdentity()
         QCOMPARE(document.setKraImageMetadata(metadata).code, FileCode::InvalidData);
         QCOMPARE(document.recoveryData(), recovery);
     }
+}
+
+void KisGpuPaintDocumentTest::completedFormatWritesAdoptPinnedIdentityAndRecoverIt()
+{
+    Execution execution(m_device);
+    PaintDocument document(execution, QSize(64, 64));
+    const auto image = document.image();
+    dot(*image, {12, 12}, {17, 34, 51, 255});
+    const auto pinned = image->operations().snapshot();
+    dot(*image, {32, 32}, {68, 85, 102, 255});
+    const auto latest = image->operations().snapshot();
+    const auto path = QStringLiteral("completed.png");
+    QSignalSpy changed(&document, &PaintDocument::changed);
+    const auto adopted = document.adoptSavedFile(path, pinned);
+    QCOMPARE(adopted.code, FileCode::Success);
+    QCOMPARE(adopted.version, pinned);
+    QCOMPARE(document.filePath(), path);
+    QCOMPARE(image->operations().snapshot(), latest);
+    QCOMPARE(image->operations().savedHistoryIndex(), 1);
+    QVERIFY(image->operations().isModified());
+    QCOMPARE(changed.size(), 1);
+    const auto recovery = document.recoveryData();
+    QVERIFY(!recovery.isEmpty());
+    PaintDocument restored(execution, QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
+    QCOMPARE(restored.filePath(), path);
+    QVERIFY(restored.image()->operations().isModified());
+    QCOMPARE(restored.image()->undo(), Result::Success);
+    QVERIFY(!restored.image()->operations().isModified());
+    OperationDocument foreign({64, 64});
+    QCOMPARE(document.adoptSavedFile(QStringLiteral("foreign.png"), foreign.snapshot()).code, FileCode::InvalidData);
+    QCOMPARE(document.adoptSavedFile({}, pinned).code, FileCode::InvalidData);
+    QCOMPARE(document.filePath(), path);
+    QCOMPARE(image->operations().savedHistoryIndex(), 1);
+    QCOMPARE(changed.size(), 1);
 }
 
 void KisGpuPaintDocumentTest::savedStateNotificationsAllowDocumentDeletion()

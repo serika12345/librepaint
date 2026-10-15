@@ -632,6 +632,62 @@ void TestDocument::testGpuSaveAndExportPreserveHistoryAndFileIdentity()
     KisPart::instance()->removeDocument(document.data(), false);
 }
 
+void TestDocument::testGpuPngSaveAsPreservesHistoryAndAdoptsTheSavedFile()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    initializeGpuDocument(document.data(), QSize(32, 16), QStringLiteral("PNG document"));
+    document->setFileBatchMode(true);
+    const auto owner = document->image()->gpuImage();
+    const auto layer = owner->operations().activeLayer();
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto originalPath = directory.filePath(QStringLiteral("original.kra"));
+    const auto pngPath = directory.filePath(QStringLiteral("saved.png"));
+    QVERIFY(document->saveAs(originalPath, KisDocument::nativeFormatMimeType(), false));
+    QFile original(originalPath);
+    QVERIFY(original.open(QIODevice::ReadOnly));
+    const auto originalBytes = original.readAll();
+    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("112233ff")), Gpu::Result::Success);
+    const auto version = owner->operations().snapshot();
+    const auto history = owner->operations().undoCount();
+    QSignalSpy saved(document.data(), &KisDocument::sigSavingFinished);
+    Document publicDocument(document.data(), false);
+    QVERIFY2(publicDocument.saveAs(pngPath), qPrintable(document->errorMessage()));
+    QCOMPARE(document->path(), pngPath);
+    QCOMPARE(document->localFilePath(), pngPath);
+    QCOMPARE(document->mimeType(), QByteArrayLiteral("image/png"));
+    QVERIFY(!document->isModified());
+    QCOMPARE(owner->operations().snapshot(), version);
+    QCOMPARE(owner->operations().undoCount(), history);
+    QCOMPARE(owner->operations().savedHistoryIndex(), history);
+    QCOMPARE(saved.size(), 1);
+    QCOMPARE(QImage(pngPath).pixelColor(5, 5), QColor(17, 34, 51));
+    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("445566ff")), Gpu::Result::Success);
+    QVERIFY(document->isModified());
+    QVERIFY2(publicDocument.save(), qPrintable(document->errorMessage()));
+    QVERIFY(!document->isModified());
+    QCOMPARE(saved.size(), 2);
+    QCOMPARE(QImage(pngPath).pixelColor(5, 5), QColor(68, 85, 102));
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QVERIFY(document->isModified());
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QVERIFY(!document->isModified());
+    QVERIFY(!document->saveAs(directory.filePath(QStringLiteral("missing/failed.png")), QByteArrayLiteral("image/png"), false));
+    QCOMPARE(document->path(), pngPath);
+    QCOMPARE(document->mimeType(), QByteArrayLiteral("image/png"));
+    QVERIFY(!document->isModified());
+    QVERIFY(original.seek(0));
+    QCOMPARE(original.readAll(), originalBytes);
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY2(reopened->openPath(pngPath), qPrintable(reopened->errorMessage()));
+    Document reopenedPublic(reopened.data(), false);
+    QCOMPARE(reopenedPublic.pixelData(5, 5, 1, 1), QByteArray::fromHex("665544ff"));
+    KisPart::instance()->removeDocument(reopened.data(), false);
+    KisPart::instance()->removeDocument(document.data(), false);
+}
+
 void TestDocument::testGpuPngExportPreservesPixelsAndDocument_data()
 {
     QTest::addColumn<bool>("alpha");
@@ -737,16 +793,21 @@ void TestDocument::testGpuPngExportPreservesPixelsAndDocument()
 void TestDocument::testGpuPngExportDialogLifetimes_data()
 {
     QTest::addColumn<int>("reaction");
-    QTest::newRow("cancel-preserves-existing-file") << 0;
-    QTest::newRow("later-edit-keeps-exported-version") << 1;
-    QTest::newRow("close-document") << 2;
-    QTest::newRow("replace-image") << 3;
-    QTest::newRow("also-save-fixed-kra") << 4;
+    QTest::addColumn<bool>("saving");
+    for (const bool saving : {false, true}) {
+        const auto prefix = saving ? QByteArrayLiteral("save-") : QByteArrayLiteral("export-");
+        QTest::newRow(QByteArray(prefix + "cancel-preserves-existing-file").constData()) << 0 << saving;
+        QTest::newRow(QByteArray(prefix + "later-edit-keeps-written-version").constData()) << 1 << saving;
+        QTest::newRow(QByteArray(prefix + "close-document").constData()) << 2 << saving;
+        QTest::newRow(QByteArray(prefix + "replace-image").constData()) << 3 << saving;
+        QTest::newRow(QByteArray(prefix + "also-save-fixed-kra").constData()) << 4 << saving;
+    }
 }
 
 void TestDocument::testGpuPngExportDialogLifetimes()
 {
     QFETCH(int, reaction);
+    QFETCH(bool, saving);
     namespace Gpu = LibrePaint::Image::Gpu;
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
     initializeGpuDocument(document.data(), QSize(32, 16), QStringLiteral("PNG dialog"));
@@ -754,6 +815,7 @@ void TestDocument::testGpuPngExportDialogLifetimes()
     const auto layer = owner->operations().activeLayer();
     QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("112233ff")), Gpu::Result::Success);
     if (reaction == 4) QVERIFY(owner->addLayer(QStringLiteral("Second layer")));
+    const auto savingHistory = owner->operations().undoCount();
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
     const auto path = directory.filePath(QStringLiteral("existing.png"));
@@ -800,7 +862,8 @@ void TestDocument::testGpuPngExportDialogLifetimes()
         dialog->accept();
     });
     interaction.start();
-    const bool success = document->exportDocument(path, QByteArrayLiteral("image/png"), false, reaction == 4);
+    const bool success = saving ? document->saveAs(path, QByteArrayLiteral("image/png"), reaction == 4) :
+        document->exportDocument(path, QByteArrayLiteral("image/png"), false, reaction == 4);
     QVERIFY(dialogVisited);
     QCOMPARE(success, reaction != 0);
     if (reaction == 0) {
@@ -821,7 +884,15 @@ void TestDocument::testGpuPngExportDialogLifetimes()
             QCOMPARE(result.document.image.layers.first().tiles.first().rgba.mid((5 * 256 + 5) * 4, 4), QByteArray::fromHex("112233ff"));
         }
     }
-    if (document) KisPart::instance()->removeDocument(document.data(), false);
+    if (document) {
+        if (saving && reaction != 0 && reaction != 3) {
+            QCOMPARE(document->path(), path);
+            QCOMPARE(document->mimeType(), QByteArrayLiteral("image/png"));
+            QCOMPARE(document->isModified(), reaction == 1);
+            QCOMPARE(owner->operations().savedHistoryIndex(), savingHistory);
+        } else QVERIFY(document->path().isEmpty());
+        KisPart::instance()->removeDocument(document.data(), false);
+    }
 }
 
 void TestDocument::testGpuExportPixelsRespectMemoryBudgetAndRetainTheirVersion()
@@ -951,17 +1022,22 @@ void TestDocument::testGpuPngExportRequiresAtomicReplacementForExistingFiles()
 void TestDocument::testGpuSaveNotificationLifetimes_data()
 {
     QTest::addColumn<int>("reaction");
-    QTest::newRow("later-edit") << 0;
-    QTest::newRow("close-document") << 1;
-    QTest::newRow("replace-image") << 2;
-    QTest::newRow("close-on-completion") << 3;
-    QTest::newRow("document-info-edit") << 4;
-    QTest::newRow("background-edit") << 5;
+    QTest::addColumn<bool>("png");
+    for (const bool png : {false, true}) {
+        const auto prefix = png ? QByteArrayLiteral("png-") : QByteArrayLiteral("kra-");
+        QTest::newRow(QByteArray(prefix + "later-edit").constData()) << 0 << png;
+        QTest::newRow(QByteArray(prefix + "close-document").constData()) << 1 << png;
+        QTest::newRow(QByteArray(prefix + "replace-image").constData()) << 2 << png;
+        QTest::newRow(QByteArray(prefix + "close-on-completion").constData()) << 3 << png;
+        QTest::newRow(QByteArray(prefix + "document-info-edit").constData()) << 4 << png;
+        QTest::newRow(QByteArray(prefix + "background-edit").constData()) << 5 << png;
+    }
 }
 
 void TestDocument::testGpuSaveNotificationLifetimes()
 {
     QFETCH(int, reaction);
+    QFETCH(bool, png);
     namespace Gpu = LibrePaint::Image::Gpu;
     namespace Kra = LibrePaint::ImportExport::Kra;
     QString diagnostic;
@@ -977,7 +1053,7 @@ void TestDocument::testGpuSaveNotificationLifetimes()
     document->documentInfo()->setAboutInfo(QStringLiteral("title"), QStringLiteral("Before save"));
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
-    const auto path = directory.filePath(QStringLiteral("saved.kra"));
+    const auto path = directory.filePath(png ? QStringLiteral("saved.png") : QStringLiteral("saved.kra"));
     const auto original = directory.filePath(QStringLiteral("original.kra"));
     document->setPath(original);
     QSignalSpy saved(document.get(), &KisDocument::sigSavingFinished);
@@ -1012,12 +1088,19 @@ void TestDocument::testGpuSaveNotificationLifetimes()
         }
         }
     });
-    QVERIFY(document->saveAs(path, KisDocument::nativeFormatMimeType(), false));
-    QFile input(path);
-    QVERIFY(input.open(QIODevice::ReadOnly));
-    const auto loaded = Kra::RasterCodec::read(input);
-    QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
-    QCOMPARE(loaded.document.image.layers.first().tiles.first().rgba.mid((5 * 256 + 5) * 4, 4), QByteArray::fromHex("112233ff"));
+    QVERIFY(document->saveAs(path, png ? QByteArrayLiteral("image/png") : KisDocument::nativeFormatMimeType(), false));
+    Kra::Document loaded;
+    if (png) {
+        QCOMPARE(QImage(path).pixelColor(5, 5), QColor(17, 34, 51));
+        QCOMPARE(QImage(path).pixelColor(0, 0).alpha(), 0);
+    } else {
+        QFile input(path);
+        QVERIFY(input.open(QIODevice::ReadOnly));
+        const auto result = Kra::RasterCodec::read(input);
+        QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
+        loaded = result.document;
+        QCOMPARE(loaded.image.layers.first().tiles.first().rgba.mid((5 * 256 + 5) * 4, 4), QByteArray::fromHex("112233ff"));
+    }
     if (reaction == 0 || reaction == 4 || reaction == 5) {
         QCOMPARE(document->path(), path);
         QVERIFY(document->isModified());
@@ -1027,14 +1110,16 @@ void TestDocument::testGpuSaveNotificationLifetimes()
         QVERIFY(!document->isSaving());
         if (reaction == 4) {
             QCOMPARE(document->documentInfo()->aboutInfo(QStringLiteral("title")), QStringLiteral("After save"));
-            QVERIFY(loaded.document.files.value(QStringLiteral("documentinfo.xml")).contains("Before save"));
-            QVERIFY(!loaded.document.files.value(QStringLiteral("documentinfo.xml")).contains("After save"));
+            if (!png) {
+                QVERIFY(loaded.files.value(QStringLiteral("documentinfo.xml")).contains("Before save"));
+                QVERIFY(!loaded.files.value(QStringLiteral("documentinfo.xml")).contains("After save"));
+            }
         }
         if (reaction == 5) {
             const std::array<quint8, 4> edited{17, 34, 51, 128};
             const std::array<quint8, 4> original{};
             QCOMPARE(owner->operations().snapshot()->projectionBackground, edited);
-            QCOMPARE(loaded.document.image.projectionBackground, original);
+            if (!png) QCOMPARE(loaded.image.projectionBackground, original);
         }
     } else if (reaction == 1 || reaction == 3) {
         QVERIFY(!document);

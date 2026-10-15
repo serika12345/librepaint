@@ -7,7 +7,6 @@
 #include <kra/KisKraRasterCodec.h>
 #include <QFile>
 #include <QSaveFile>
-#include <QPointer>
 #include <stdexcept>
 
 namespace LibrePaint::Document::Gpu {
@@ -131,13 +130,7 @@ FileOutcome PaintDocument::writeKra(const QString &path, const Snapshot &version
     const auto written = Kra::RasterCodec::write(file, output, projection.image, limits);
     if (written.code != Kra::Status::Success) { file.cancelWriting(); return {fileCode(written.code), {}, written.diagnostic}; }
     if (!file.commit()) return {FileCode::IoFailure, {}, file.errorString()};
-    if (adoptFile) {
-        const auto image = d.image;
-        d.path = path;
-        QPointer<PaintDocument> guard(this);
-        image->markSaved(pinned);
-        if (guard) Q_EMIT changed();
-    }
+    if (adoptFile) return adoptSavedFile(path, pinned);
     return {FileCode::Success, pinned, {}};
 }
 }

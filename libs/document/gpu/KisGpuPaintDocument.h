@@ -53,6 +53,10 @@ public:
     FileOutcome saveKra(const QString &path, const Paint::Snapshot &version = {});
     /** Writes a fixed version while preserving file identity and saved state. */
     FileOutcome exportKra(const QString &path, const Paint::Snapshot &version = {});
+    /** Adopts the identity and fixed saved version of a completed format write.
+     * Later edits retain their modified state. Invalid versions preserve identity.
+     */
+    FileOutcome adoptSavedFile(const QString &path, const Paint::Snapshot &version);
     /** Validates image metadata before replacing the retained KRA description and files. */
     FileOutcome setKraImageMetadata(const ImportExport::Kra::ImageMetadata &metadata);
     /** Bounded logical recovery, including file metadata and pending input. */

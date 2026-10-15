@@ -26,6 +26,7 @@ private Q_SLOTS:
     void testPixelData();
     void testGpuImagePixelDataModifiedStateAndRetainedNode();
     void testGpuSaveAndExportPreserveHistoryAndFileIdentity();
+    void testGpuPngSaveAsPreservesHistoryAndAdoptsTheSavedFile();
     void testGpuPngExportPreservesPixelsAndDocument_data();
     void testGpuPngExportPreservesPixelsAndDocument();
     void testGpuPngExportDialogLifetimes_data();

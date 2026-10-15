@@ -675,8 +675,7 @@ KisDocument *KisDocument::clone(bool addStorage)
 
 bool KisDocument::exportDocumentImpl(const KritaUtils::ExportFileJob &job, KisPropertiesConfigurationSP exportConfiguration, bool isAdvancedExporting)
 {
-    if (d->gpuDocument && job.mimeType != nativeFormatMimeType() &&
-        !(job.mimeType == QByteArrayLiteral("image/png") && (job.flags & KritaUtils::SaveIsExporting)))
+    if (d->gpuDocument && job.mimeType != nativeFormatMimeType() && job.mimeType != QByteArrayLiteral("image/png"))
         return exportGpuDocument(job, true, exportConfiguration, isAdvancedExporting);
     // ANDROID NOTES (other comments in this file reference this one!)
     //
@@ -856,19 +855,25 @@ bool KisDocument::exportGpuDocument(const KritaUtils::ExportFileJob &job, bool n
     KisImportExportErrorCode status = ImportExportCodes::Failure;
     QString diagnostic;
     QString warning;
-    const bool pngExport = job.mimeType == QByteArrayLiteral("image/png") && (job.flags & KritaUtils::SaveIsExporting);
+    const bool pngExport = job.mimeType == QByteArrayLiteral("image/png");
+    const bool exporting = job.flags & KritaUtils::SaveIsExporting;
     if (pngExport && isAdvancedExporting) {
         status = ImportExportCodes::FormatFeaturesUnsupported;
         diagnostic = i18n("Resizing during export requires GPU document support.");
     } else if (job.mimeType != nativeFormatMimeType() && !pngExport) {
         status = ImportExportCodes::FileFormatNotSupported;
-        diagnostic = i18n("This document supports KRA saving and PNG export. Other file operations require GPU document support.");
+        diagnostic = i18n("This document supports saving and exporting in KRA and PNG. Other formats require GPU document support.");
     } else if (isSaving()) {
         status = ImportExportCodes::Busy;
         diagnostic = i18n("Another save operation is in progress.");
+    } else if (pngExport && !exporting && !fileDocument->image()->operations().snapshot()->isCommitted()) {
+        status = ImportExportCodes::Busy;
+        diagnostic = i18n("Finish the active painting operation before saving.");
     } else if (pngExport) {
         QPointer<KisDocument> guard(this);
+        const auto pinned = fileDocument->image()->operations().snapshot();
         d->gpuSaving = true;
+        if (!exporting) d->modificationState.markSavingStarted();
         try {
             // Keep GPU pixels and format metadata independent of edits made in the export dialog.
             std::unique_ptr<KisDocument> snapshot(clone(false));
@@ -888,10 +893,27 @@ bool KisDocument::exportGpuDocument(const KritaUtils::ExportFileJob &job, bool n
             diagnostic = QString::fromUtf8(error.what());
         }
         if (!guard) return status.isOk();
+        if (d->gpuDocument != fileDocument) {
+            d->gpuSaving = false;
+            return status.isOk();
+        }
+        if (status.isOk() && !exporting) {
+            const auto adopted = fileDocument->adoptSavedFile(job.filePath, pinned);
+            if (!guard) return true;
+            if (d->gpuDocument != fileDocument) {
+                d->gpuSaving = false;
+                return true;
+            }
+            if (adopted.code != GpuDocument::FileCode::Success) {
+                status = ImportExportCodes::Failure;
+                diagnostic = adopted.diagnostic;
+            } else if (!d->modificationState.wasModifiedWhileSaving() &&
+                       fileDocument->image()->operations().snapshot() == pinned) {
+                d->modificationState.clearImageModifiedWithoutUndo();
+            }
+        }
         d->gpuSaving = false;
-        if (d->gpuDocument != fileDocument) return status.isOk();
     } else {
-        const bool exporting = job.flags & KritaUtils::SaveIsExporting;
         QPointer<KisDocument> guard(this);
         d->gpuSaving = true;
         if (!exporting) d->modificationState.markSavingStarted();

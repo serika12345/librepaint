@@ -5,6 +5,7 @@
 
 #include "KisGpuPaintDocument_p.h"
 #include <QThread>
+#include <QPointer>
 #include <stdexcept>
 
 namespace LibrePaint::Document::Gpu {
@@ -34,4 +35,19 @@ QString PaintDocument::filePath() const { return m_d->path; }
 bool PaintDocument::onThread() const { return QThread::currentThread() == thread(); }
 void PaintDocument::close()
 { if (onThread()) m_d->image->close(); }
+
+FileOutcome PaintDocument::adoptSavedFile(const QString &path, const Snapshot &version)
+{
+    if (!onThread()) return {FileCode::InvalidData, {}, QStringLiteral("Saved files require the document thread")};
+    const auto image = m_d->image;
+    if (!image->handle()) return {FileCode::Closed, {}, QStringLiteral("The painting document is closed")};
+    if (path.isEmpty() || !version || !version->isCommitted() ||
+        version->documentId() != image->operations().snapshot()->documentId())
+        return {FileCode::InvalidData, {}, QStringLiteral("Saved files require a committed version of this document and a path")};
+    m_d->path = path;
+    const QPointer<PaintDocument> guard(this);
+    image->markSaved(version);
+    if (guard) Q_EMIT changed();
+    return {FileCode::Success, version, {}};
+}
 }
