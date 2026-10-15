@@ -8,6 +8,9 @@
 #include <QApplication>
 #include <QSignalSpy>
 #include <QPointer>
+#include <QSemaphore>
+#include <atomic>
+#include <thread>
 
 #include <simpletest.h>
 
@@ -19,6 +22,7 @@
 #include "filter/kis_filter_registry.h"
 
 #include "kis_image.h"
+#include "kis_projection_updates_filter.h"
 #include "gpu/KisGpuPaintImage.h"
 #include "gpu/KisGpuExecution.h"
 #include "kis_paint_layer.h"
@@ -44,6 +48,68 @@
 
 #define IMAGE_WIDTH 128
 #define IMAGE_HEIGHT 128
+
+namespace {
+struct PausedProjectionState {
+    QSemaphore entered;
+    QSemaphore resume;
+    std::atomic<bool> destroyed{false};
+};
+
+class PausedProjectionFilter final : public KisProjectionUpdatesFilter
+{
+public:
+    explicit PausedProjectionFilter(PausedProjectionState &state) : m_state(state) {}
+    ~PausedProjectionFilter() override { m_state.destroyed = true; }
+    bool filter(KisImage *, KisNode *, const QVector<QRect> &, KisProjectionUpdateFlags) override
+    {
+        return pause();
+    }
+    bool filterRefreshGraph(KisImage *, KisNode *, const QVector<QRect> &, const QRect &, KisProjectionUpdateFlags) override
+    {
+        return pause();
+    }
+private:
+    bool pause()
+    {
+        auto &state = m_state;
+        state.entered.release();
+        state.resume.tryAcquire(1, 5000);
+        return true;
+    }
+    PausedProjectionState &m_state;
+};
+}
+
+void KisImageTest::testProjectionFilterSurvivesRemovalDuringARequest_data()
+{
+    QTest::addColumn<bool>("refreshGraph");
+    QTest::newRow("dirty-request") << false;
+    QTest::newRow("graph-refresh") << true;
+}
+
+void KisImageTest::testProjectionFilterSurvivesRemovalDuringARequest()
+{
+    QFETCH(bool, refreshGraph);
+    PausedProjectionState state;
+    KisImageSP image = new KisImage(nullptr, 32, 32, KoColorSpaceRegistry::instance()->rgb8(), QStringLiteral("Projection request"));
+    KisProjectionUpdatesFilterSP filter(new PausedProjectionFilter(state));
+    const auto cookie = image->addProjectionUpdatesFilter(filter);
+    filter.clear();
+    std::thread request([&] {
+        if (refreshGraph) image->refreshGraphAsync(image->root(), image->bounds());
+        else image->requestProjectionUpdate(image->rootLayer().data(), {image->bounds()}, {});
+    });
+    const bool entered = state.entered.tryAcquire(1, 5000);
+    if (entered) image->removeProjectionUpdatesFilter(cookie).clear();
+    const bool survivedRemoval = !state.destroyed.load();
+    state.resume.release();
+    request.join();
+    QVERIFY(entered);
+    QVERIFY2(survivedRemoval, "An executing projection filter must live until its request finishes");
+    QVERIFY(state.destroyed.load());
+    QVERIFY(!image->currentProjectionUpdatesFilter());
+}
 
 void KisImageTest::testRetainedGpuLayerPixelsOutliveTheImageAndDiscardedHistory()
 {

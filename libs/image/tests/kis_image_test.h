@@ -17,6 +17,8 @@ class KisImageTest : public QObject
 private Q_SLOTS:
 
     void layerTests();
+    void testProjectionFilterSurvivesRemovalDuringARequest_data();
+    void testProjectionFilterSurvivesRemovalDuringARequest();
     void testGpuImagePublishesLayersProjectionAndSharedLifetime();
     void testGpuLayerReferencesSurviveHistoryAndReleaseDiscardedBranches();
     void testRetainedGpuLayerPixelsOutliveTheImageAndDiscardedHistory();

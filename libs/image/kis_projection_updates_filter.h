@@ -14,6 +14,12 @@ class KisImage;
 class KisNode;
 class QRect;
 
+/**
+ * Each projection request retains its installed filters until processing ends.
+ * Removing a filter changes subsequent requests; callbacks already in progress
+ * keep their owner. Callbacks execute outside the image's registration lock.
+ * Implementations synchronize their mutable state across requesting threads.
+ */
 class KRITAIMAGE_EXPORT KisProjectionUpdatesFilter
 {
 public:

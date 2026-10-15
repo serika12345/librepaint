@@ -35,6 +35,8 @@
 #include <QSize>
 #include <QDateTime>
 #include <QRect>
+#include <QMutex>
+#include <QMutexLocker>
 
 #include <klocalizedstring.h>
 
@@ -220,8 +222,9 @@ public:
 
                 bool addedUIUpdateRequestSuccessfully = false;
 
-                for (auto it = std::make_reverse_iterator(projectionUpdatesFilters.end());
-                     it != std::make_reverse_iterator(projectionUpdatesFilters.begin());
+                const auto filters = installedProjectionFilters();
+                for (auto it = filters.rbegin();
+                     it != filters.rend();
                      ++it) {
 
                     KisSuspendProjectionUpdatesStrokeStrategy::SuspendUpdatesFilterInterface *iface =
@@ -311,7 +314,13 @@ public:
     KisLocklessStack<QRect> savedDisabledUIUpdates;
 
     // filters are applied in a reversed way, from rbegin() to rend()
+    mutable QMutex projectionFiltersMutex;
     QVector<KisProjectionUpdatesFilterSP> projectionUpdatesFilters;
+    QVector<KisProjectionUpdatesFilterSP> installedProjectionFilters() const
+    {
+        QMutexLocker guard(&projectionFiltersMutex);
+        return projectionUpdatesFilters;
+    }
     QStack<KisProjectionUpdatesFilterCookie> disabledUpdatesCookies;
     KisImageSignalRouter signalRouter;
     KisImageAnimationInterface *animationInterface;
@@ -656,7 +665,7 @@ void KisImage::copyFromImageImpl(const KisImage &rhs, int policy, LibrePaint::Im
     }
     m_d->annotations = newAnnotations;
 
-    KIS_ASSERT_RECOVER_NOOP(rhs.m_d->projectionUpdatesFilters.isEmpty());
+    KIS_ASSERT_RECOVER_NOOP(rhs.m_d->installedProjectionFilters().isEmpty());
     KIS_ASSERT_RECOVER_NOOP(!rhs.m_d->disableUIUpdateSignals);
     KIS_ASSERT_RECOVER_NOOP(!rhs.m_d->disableDirtyRequests);
 
@@ -2395,8 +2404,9 @@ void KisImage::refreshGraphAsync(KisNodeSP root, const QVector<QRect> &rects, co
      * We iterate through the filters in a reversed way. It makes the most nested filters
      * to execute first.
      */
-    for (auto it = m_d->projectionUpdatesFilters.rbegin();
-         it != m_d->projectionUpdatesFilters.rend();
+    const auto filters = m_d->installedProjectionFilters();
+    for (auto it = filters.rbegin();
+         it != filters.rend();
          ++it) {
 
         KIS_SAFE_ASSERT_RECOVER(*it) { continue; }
@@ -2427,6 +2437,7 @@ KisProjectionUpdatesFilterCookie KisImage::addProjectionUpdatesFilter(KisProject
 {
     KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(filter, KisProjectionUpdatesFilterCookie());
 
+    QMutexLocker guard(&m_d->projectionFiltersMutex);
     m_d->projectionUpdatesFilters.append(filter);
 
     return KisProjectionUpdatesFilterCookie(filter.data());
@@ -2434,6 +2445,7 @@ KisProjectionUpdatesFilterCookie KisImage::addProjectionUpdatesFilter(KisProject
 
 KisProjectionUpdatesFilterSP KisImage::removeProjectionUpdatesFilter(KisProjectionUpdatesFilterCookie cookie)
 {
+    QMutexLocker guard(&m_d->projectionFiltersMutex);
     KIS_SAFE_ASSERT_RECOVER_NOOP(cookie);
     KIS_SAFE_ASSERT_RECOVER_NOOP(m_d->projectionUpdatesFilters.last() == cookie);
 
@@ -2449,6 +2461,7 @@ KisProjectionUpdatesFilterSP KisImage::removeProjectionUpdatesFilter(KisProjecti
 
 KisProjectionUpdatesFilterCookie KisImage::currentProjectionUpdatesFilter() const
 {
+    QMutexLocker guard(&m_d->projectionFiltersMutex);
     return !m_d->projectionUpdatesFilters.isEmpty() ?
                 m_d->projectionUpdatesFilters.last().data() :
                 KisProjectionUpdatesFilterCookie();
@@ -2568,8 +2581,9 @@ void KisImage::requestProjectionUpdate(KisNode *node, const QVector<QRect> &rect
      * We iterate through the filters in a reversed way. It makes the most nested filters
      * to execute first.
      */
-    for (auto it = m_d->projectionUpdatesFilters.rbegin();
-         it != m_d->projectionUpdatesFilters.rend();
+    const auto filters = m_d->installedProjectionFilters();
+    for (auto it = filters.rbegin();
+         it != filters.rend();
          ++it) {
 
         KIS_SAFE_ASSERT_RECOVER(*it) { continue; }
