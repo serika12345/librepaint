@@ -241,6 +241,8 @@ void ReadbackBatch::start(Device &)
                     if (bytes) result->data = QByteArray(static_cast<const char *>(bytes), qsizetype(result->size));
                     wgpuBufferUnmap(result->buffer.get());
                 } else result->diagnostic = messageText(message);
+            } catch (...) {}
+            try {
                 if (result->completed) result->completed();
             } catch (...) {}
             result->owner->remaining.fetch_sub(1, std::memory_order_release);

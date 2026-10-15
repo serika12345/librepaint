@@ -8,6 +8,7 @@
 
 #include "KisGpuTileRenderer.h"
 #include <QImage>
+#include <future>
 
 
 namespace LibrePaint::Image::Gpu {
@@ -126,6 +127,18 @@ public:
     PixelReadbackOutcome readPixels(DocumentHandle handle, const Snapshot &document,
                                    QRect region, const QList<LayerId> &layers = {},
                                    bool includeProjection = true, PixelReadArea area = PixelReadArea::Canvas);
+    /** Submits a fixed-version read without waiting for GPU completion.
+     * pollReadbacks() drives native callbacks on the GPU thread. An admitted
+     * read completes independently of later edits or document closure; its CPU
+     * result outlives execution and the device. Rejections are ready futures
+     * with no partial pixels. Discarding a future retains native callback storage
+     * until completion. The same transfer budget as readPixels() applies.
+     */
+    std::future<PixelReadbackOutcome> readPixelsAsync(DocumentHandle handle, const Snapshot &document,
+                                   QRect region, const QList<LayerId> &layers = {},
+                                   bool includeProjection = true, PixelReadArea area = PixelReadArea::Canvas);
+    /** Nonblocking callback processing; Busy denotes unfinished native reads. */
+    ExecutionOutcome pollReadbacks();
 
     /** Packed straight RGBA8 rows for the exact requested rectangle.
      * Layer zero reads the visible projection, with transparent pixels outside
@@ -161,7 +174,7 @@ private:
     struct Private;
     std::unique_ptr<Private> m_d;
     FrameOutcome beginFrame(PresentationSurface *surface);
-    ExecutionOutcome endFrame(bool publish);
+    ExecutionOutcome endFrame(bool publish, bool waitForReadback = true);
     void retireCompletedReadback();
     ExecutionOutcome retireDisplayCaches();
 };

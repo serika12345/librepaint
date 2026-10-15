@@ -32,6 +32,7 @@ target_compile_definitions(KisGpuPixelReadbackTest PRIVATE kritagpuimage_EXPORTS
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_tests_properties(${gpu_execution_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set_tests_properties(${gpu_tile_renderer_test} ${gpu_execution_test} ${gpu_pixel_readback_test} ${gpu_paint_image_test}
+    set_tests_properties(${gpu_tile_renderer_test} ${gpu_execution_test} ${gpu_paint_image_test}
         PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
+    set_tests_properties(${gpu_pixel_readback_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
 endif()

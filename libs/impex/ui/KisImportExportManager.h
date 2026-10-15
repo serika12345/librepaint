@@ -111,6 +111,7 @@ public:
      * Throws std::length_error before reading pixels when the budget is insufficient.
      * A null image throws std::invalid_argument; allocation can throw std::bad_alloc.
      * Other read failures throw std::runtime_error. Call on the image's GPU thread.
+     * GPU transfers complete through the event loop; later edits retain the pinned pixels.
      */
     static KisPaintDeviceSP prepareExportPixels(KisImageSP image, qsizetype memoryBudgetBytes);
     /** Shared pixels during conversion, null outside it; retained references outlive the request. */

@@ -27,6 +27,7 @@ private Q_SLOTS:
     void queuedUpdatesIgnoreClosedDocuments();
     void nativeSurfaceRecreationPreservesDocumentAndContinuesPresentation();
     void capacityFailurePreservesPublicationAndCanRetry();
+    void busyFramesRetryTheLatestRequestedImage();
     void deviceReplacementRecreatesVisibleAndHiddenSurfaces();
 private:
     DevicePtr m_device;
@@ -102,6 +103,39 @@ void KisGpuCanvasWindowTest::queuedUpdatesIgnoreClosedDocuments()
     QVERIFY(window.documentViewport().isEmpty());
     QVERIFY(!window.setDocument(handle));
     QVERIFY(window.setDocument(0));
+    QCOMPARE(errors.size(), 0);
+}
+
+void KisGpuCanvasWindowTest::busyFramesRetryTheLatestRequestedImage()
+{
+    Execution execution(m_device);
+    OperationDocument document({64, 64});
+    const auto handle = execution.open(document.snapshot()).handle;
+    CanvasWindow window(execution);
+    QVERIFY(window.setDocument(handle));
+    QSignalSpy frames(&window, &CanvasWindow::frameSubmitted);
+    QSignalSpy errors(&window, &CanvasWindow::renderingFailed);
+    window.resize(128, 128);
+    window.show();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    QTRY_VERIFY_WITH_TIMEOUT(!frames.isEmpty(), 5000);
+    QTest::qWait(30);
+    const auto before = frames.size();
+    QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+    const auto stroke = document.beginStroke(document.activeLayer(), Brush{}, 0);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    const auto latest = document.snapshot();
+    QCOMPARE(execution.request(handle, latest).code, ExecutionCode::Success);
+    QEvent update(QEvent::UpdateRequest);
+    QCoreApplication::sendEvent(&window, &update);
+    QCOMPARE(frames.size(), before);
+    QCOMPARE(errors.size(), 0);
+    QTest::qWait(100);
+    QCOMPARE(frames.size(), before);
+    QCOMPARE(execution.cancelFrame().code, ExecutionCode::Success);
+    QTRY_COMPARE_WITH_TIMEOUT(execution.published(handle), latest, 5000);
+    QVERIFY(frames.size() > before);
     QCOMPARE(errors.size(), 0);
 }
 

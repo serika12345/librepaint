@@ -7,6 +7,8 @@
 #include <QTest>
 #include <QColorSpace>
 #include <gpu/KisGpuExecution.h>
+#include <chrono>
+#include <future>
 
 using namespace LibrePaint::Image::Gpu;
 
@@ -25,6 +27,9 @@ private Q_SLOTS:
     void completeImagesStreamThinCanvasesAndOutliveTheirDevice();
     void rectangularPixelsStreamDefaultsHiddenLayersAndCanvasClipping_data();
     void rectangularPixelsStreamDefaultsHiddenLayersAndCanvasClipping();
+    void asynchronousPixelsKeepThePinnedVersionAndNewerRequests();
+    void asynchronousResultsOutliveClosedDocumentsAndTheDevice();
+    void discardedAsynchronousReadsReleaseTheirNativeStorage();
 private:
     DevicePtr m_device;
 };
@@ -163,6 +168,76 @@ void KisGpuPixelReadbackTest::initTestCase()
     QString diagnostic;
     m_device = Device::createNative(diagnostic);
     QVERIFY2(m_device, qPrintable(diagnostic));
+}
+
+void KisGpuPixelReadbackTest::asynchronousPixelsKeepThePinnedVersionAndNewerRequests()
+{
+    OperationDocument document({64, 64});
+    dot(document, {12, 12}, {17, 129, 241, 255});
+    const auto pinned = document.snapshot();
+    Execution execution(m_device);
+    const auto handle = execution.open(pinned).handle;
+    QVERIFY(handle);
+    auto pending = execution.readPixelsAsync(handle, pinned, {0, 0, 64, 64});
+    dot(document, {12, 12}, {219, 33, 81, 255});
+    const auto latest = document.snapshot();
+    QCOMPARE(execution.request(handle, latest).code, ExecutionCode::Success);
+    QTRY_VERIFY_WITH_TIMEOUT(([&] {
+        execution.pollReadbacks();
+        return pending.wait_for(std::chrono::seconds(0)) == std::future_status::ready;
+    })(), 5000);
+    const auto pixels = pending.get();
+    QVERIFY2(pixels.code == ExecutionCode::Success, qPrintable(pixels.diagnostic));
+    QCOMPARE(pixels.document, pinned);
+    QCOMPARE(pixel(pixels, 0, {12, 12}), QByteArray::fromHex("1181f1ff"));
+    QCOMPARE(execution.requested(handle), latest);
+    QVERIFY(!execution.published(handle));
+    OperationDocument unrelated({64, 64});
+    auto rejected = execution.readPixelsAsync(handle, unrelated.snapshot(), {0, 0, 64, 64});
+    QCOMPARE(rejected.wait_for(std::chrono::seconds(0)), std::future_status::ready);
+    const auto failure = rejected.get();
+    QCOMPARE(failure.code, ExecutionCode::InvalidRequest);
+    QVERIFY(failure.tiles.isEmpty());
+}
+
+void KisGpuPixelReadbackTest::asynchronousResultsOutliveClosedDocumentsAndTheDevice()
+{
+    std::future<PixelReadbackOutcome> pending;
+    std::weak_ptr<Device> lifetime;
+    {
+        QString diagnostic;
+        auto device = Device::createNative(diagnostic);
+        QVERIFY2(device, qPrintable(diagnostic));
+        lifetime = device;
+        OperationDocument document({64, 64});
+        dot(document, {12, 12}, {17, 129, 241, 255});
+        Execution execution(device);
+        const auto handle = execution.open(document.snapshot()).handle;
+        pending = execution.readPixelsAsync(handle, document.snapshot(), {0, 0, 64, 64});
+        QCOMPARE(execution.close(handle).code, ExecutionCode::Success);
+    }
+    QVERIFY(lifetime.expired());
+    QCOMPARE(pending.wait_for(std::chrono::seconds(0)), std::future_status::ready);
+    const auto pixels = pending.get();
+    QVERIFY2(pixels.code == ExecutionCode::Success, qPrintable(pixels.diagnostic));
+    QCOMPARE(pixel(pixels, 0, {12, 12}), QByteArray::fromHex("1181f1ff"));
+}
+
+void KisGpuPixelReadbackTest::discardedAsynchronousReadsReleaseTheirNativeStorage()
+{
+    OperationDocument document({64, 64});
+    dot(document, {12, 12}, {17, 129, 241, 255});
+    Execution execution(m_device);
+    const auto pinned = document.snapshot();
+    const auto handle = execution.open(pinned).handle;
+    {
+        auto discarded = execution.readPixelsAsync(handle, pinned, {0, 0, 64, 64});
+        QVERIFY(discarded.valid());
+    }
+    QTRY_VERIFY_WITH_TIMEOUT(execution.pollReadbacks().code == ExecutionCode::Success, 5000);
+    const auto pixels = execution.readPixels(handle, pinned, {0, 0, 64, 64});
+    QVERIFY2(pixels.code == ExecutionCode::Success, qPrintable(pixels.diagnostic));
+    QCOMPARE(pixel(pixels, 0, {12, 12}), QByteArray::fromHex("1181f1ff"));
 }
 
 void KisGpuPixelReadbackTest::selectedReadsFitWithoutGeneratingUnrequestedPixels()

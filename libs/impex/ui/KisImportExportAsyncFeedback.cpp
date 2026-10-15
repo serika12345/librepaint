@@ -12,6 +12,7 @@
 #include <QProgressDialog>
 #include <QtConcurrentRun>
 #include <functional>
+#include <utility>
 #include <qfuture.h>
 #include <qnamespace.h>
 
@@ -20,8 +21,17 @@ KisImportExportErrorCode runImportExportActionWithFeedback(
     QWidget *parent,
     std::function<KisImportExportErrorCode()> action)
 {
+    return runImportExportActionWithFeedback(message, parent, std::move(action), false);
+}
+
+KisImportExportErrorCode runImportExportActionWithFeedback(
+    const QString &message,
+    QWidget *parent,
+    std::function<KisImportExportErrorCode()> action,
+    bool allowInteraction)
+{
     QProgressDialog progress(message, QString(), 0, 0, parent);
-    progress.setWindowModality(Qt::ApplicationModal);
+    progress.setWindowModality(allowInteraction ? Qt::NonModal : Qt::ApplicationModal);
     progress.setCancelButton(nullptr);
     progress.setMinimumDuration(1000);
     progress.setValue(0);
@@ -29,11 +39,11 @@ KisImportExportErrorCode runImportExportActionWithFeedback(
 
     QFuture<KisImportExportErrorCode> future = QtConcurrent::run(action);
     QFutureWatcher<KisImportExportErrorCode> watcher;
+    QEventLoop loop;
+    QObject::connect(&watcher, &QFutureWatcher<KisImportExportErrorCode>::finished, &loop, &QEventLoop::quit);
     watcher.setFuture(future);
-
-    while (watcher.isRunning()) {
-        qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
-    }
+    if (watcher.isRunning())
+        loop.exec(allowInteraction ? QEventLoop::AllEvents : QEventLoop::ExcludeUserInputEvents);
 
     watcher.waitForFinished();
     return watcher.result();

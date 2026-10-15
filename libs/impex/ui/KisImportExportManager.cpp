@@ -48,7 +48,6 @@
 #include <kis_layer_utils.h>
 #include <kis_paint_layer.h>
 #include <kis_paint_device.h>
-#include <kis_default_bounds.h>
 #include <kis_painter.h>
 
 #include "KisExportCheckBase.h"
@@ -101,7 +100,6 @@ public:
 
 namespace {
 constexpr qsizetype GpuExportMemoryBudget = 512 * 1024 * 1024;
-constexpr int ExportBlockSide = 256;
 }
 
 struct KisImportExportManager::ConversionResult {
@@ -421,7 +419,7 @@ KisImportExportManager::ConversionResult KisImportExportManager::convert(KisImpo
                 [this, gpuExport, location, filter, exportConfiguration, alsoAsKraLocation] {
                     return gpuExport ? doExportImpl(location, filter, exportConfiguration) :
                                        doExport(location, filter, exportConfiguration, alsoAsKraLocation);
-                });
+                }, gpuExport);
             if (gpuExport && result.status().isOk() && !alsoAsKraLocation.isNull() &&
                 !m_document->exportDocumentSync(alsoAsKraLocation, m_document->nativeFormatMimeType()))
                 result.setStatus(KisImportExportErrorCode(m_document->errorMessage()));
@@ -434,33 +432,6 @@ KisImportExportManager::ConversionResult KisImportExportManager::convert(KisImpo
         }
     }
     return result;
-}
-
-KisPaintDeviceSP KisImportExportManager::prepareExportPixels(KisImageSP image, qsizetype memoryBudgetBytes)
-{
-    if (!image) throw std::invalid_argument("Export requires an image");
-    const auto source = image->projection();
-    if (!image->gpuImage()) return source;
-    const auto bounds = image->bounds();
-    const qint64 columns = (qint64(bounds.width()) + ExportBlockSide - 1) / ExportBlockSide;
-    const qint64 rows = (qint64(bounds.height()) + ExportBlockSide - 1) / ExportBlockSide;
-    constexpr qint64 blockBytes = ExportBlockSide * ExportBlockSide * 4;
-    constexpr qint64 scratchBytes = 8 * 1024 * 1024;
-    if (memoryBudgetBytes < scratchBytes || columns > (memoryBudgetBytes - scratchBytes) / blockBytes / 4 / rows)
-        throw std::length_error("GPU export working memory budget exceeded");
-    KisPaintDeviceSP output = new KisPaintDevice(image->colorSpace());
-    output->setDefaultBounds(new KisDefaultBounds(image));
-    QByteArray bytes;
-    bytes.reserve(blockBytes);
-    for (int y = bounds.top(); y <= bounds.bottom(); y += ExportBlockSide) {
-        for (int x = bounds.left(); x <= bounds.right(); x += ExportBlockSide) {
-            const auto region = QRect(x, y, ExportBlockSide, ExportBlockSide).intersected(bounds);
-            bytes.resize(qsizetype(region.width()) * region.height() * 4);
-            source->readBytes(reinterpret_cast<quint8 *>(bytes.data()), region);
-            output->writeBytes(reinterpret_cast<const quint8 *>(bytes.constData()), region);
-        }
-    }
-    return output;
 }
 
 KisPaintDeviceSP KisImportExportManager::exportProjection() const
@@ -843,7 +814,8 @@ KisImportExportErrorCode KisImportExportManager::doExportImpl(const QString &loc
 {
 #ifdef USE_QSAVEFILE
     QSaveFile file(location);
-    file.setDirectWriteFallback(true);
+    const auto image = m_document->image();
+    file.setDirectWriteFallback(!image || !image->gpuImage());
     if (filter->supportsIO() && !file.open(QFile::WriteOnly)) {
 #else
     QFileInfo fi(location);

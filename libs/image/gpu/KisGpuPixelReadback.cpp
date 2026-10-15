@@ -14,6 +14,8 @@
 #include <exception>
 #include <limits>
 #include <new>
+#include <chrono>
+#include <mutex>
 
 namespace LibrePaint::Image::Gpu {
 namespace {
@@ -24,6 +26,37 @@ PixelReadbackOutcome failure(ExecutionCode code, const QString &diagnostic)
     outcome.diagnostic = diagnostic;
     return outcome;
 }
+std::future<PixelReadbackOutcome> readyReadback(PixelReadbackOutcome outcome)
+{
+    std::promise<PixelReadbackOutcome> result;
+    auto future = result.get_future();
+    result.set_value(std::move(outcome));
+    return future;
+}
+
+struct PixelReadCompletion
+{
+    std::promise<PixelReadbackOutcome> result;
+    PixelReadbackOutcome outcome;
+    qsizetype remaining = 0;
+    std::mutex mutex;
+
+    void complete(const Detail::ReadbackBatch::Result &read, const QList<qsizetype> &outputs)
+    {
+        std::lock_guard<std::mutex> guard(mutex);
+        if (read.data.size() != TileRenderer::TileBytes) {
+            outcome.code = ExecutionCode::DeviceFailure;
+            outcome.diagnostic = read.diagnostic.isEmpty() ?
+                QStringLiteral("GPU pixel readback did not return a complete tile") : read.diagnostic;
+        } else if (outcome.code == ExecutionCode::Success) {
+            for (const auto index : outputs) outcome.tiles[index].rgba = read.data;
+        }
+        if (--remaining == 0) {
+            if (outcome.code != ExecutionCode::Success) outcome = failure(outcome.code, outcome.diagnostic);
+            result.set_value(std::move(outcome));
+        }
+    }
+};
 ExecutionCode executionCode(RenderOutcome::Code code)
 {
     return code == RenderOutcome::CapacityExceeded ? ExecutionCode::CapacityExceeded :
@@ -239,24 +272,38 @@ PixelBytesOutcome Execution::readRgbaPixels(DocumentHandle handle, const Snapsho
 PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot &pinned,
                                          QRect region, const QList<LayerId> &layers, bool includeProjection, PixelReadArea area)
 {
+    if (!m_d->onThread()) return failure(ExecutionCode::InvalidRequest, QStringLiteral("Pixel read requires the GPU thread"));
+    auto pending = readPixelsAsync(handle, pinned, region, layers, includeProjection, area);
+    if (pending.wait_for(std::chrono::seconds(0)) != std::future_status::ready && !m_d->device->finish())
+        return failure(ExecutionCode::DeviceFailure, QStringLiteral("GPU pixel completion failed"));
+    retireCompletedReadback();
+    return pending.get();
+}
+
+std::future<PixelReadbackOutcome> Execution::readPixelsAsync(DocumentHandle handle, const Snapshot &pinned,
+                                         QRect region, const QList<LayerId> &layers, bool includeProjection, PixelReadArea area)
+{
+    const auto rejected = [](ExecutionCode code, const QString &diagnostic) {
+        return readyReadback(failure(code, diagnostic));
+    };
     auto &d = *m_d;
     if (!d.onThread() || !pinned || (area != PixelReadArea::Canvas && area != PixelReadArea::LayerCoordinates)) {
-        return failure(ExecutionCode::InvalidRequest, QStringLiteral("Pixel read requires a document, valid area and the GPU thread"));
+        return rejected(ExecutionCode::InvalidRequest, QStringLiteral("Pixel read requires a document, valid area and the GPU thread"));
     }
-    if (d.active || d.device->isRecordingFrame()) return failure(ExecutionCode::Busy, QStringLiteral("Pixel read requires submitted frames"));
-    if (d.device->readbackPending()) return failure(ExecutionCode::Busy, QStringLiteral("The native GPU still retains a previous readback"));
+    if (d.active || d.device->isRecordingFrame()) return rejected(ExecutionCode::Busy, QStringLiteral("Pixel read requires submitted frames"));
+    if (d.device->readbackPending()) return rejected(ExecutionCode::Busy, QStringLiteral("The native GPU still retains a previous readback"));
     retireCompletedReadback();
     const auto document = d.documents.constFind(handle);
     if (document == d.documents.cend() || document->requested->documentId() != pinned->documentId()) {
-        return failure(ExecutionCode::InvalidRequest, QStringLiteral("Pixel read document is no longer attached or belongs to another handle"));
+        return rejected(ExecutionCode::InvalidRequest, QStringLiteral("Pixel read document is no longer attached or belongs to another handle"));
     }
     if (!validPixelRegion(region)) {
-        return failure(ExecutionCode::InvalidRequest, QStringLiteral("Pixel read region is outside the supported range"));
+        return rejected(ExecutionCode::InvalidRequest, QStringLiteral("Pixel read region is outside the supported range"));
     }
     QSet<LayerId> available, selected;
     for (const auto &layer : pinned->layers) available.insert(layer.id);
     for (const auto layer : layers) {
-        if (!available.contains(layer) || selected.contains(layer)) return failure(ExecutionCode::InvalidRequest, QStringLiteral("Pixel read layer is unavailable or repeated"));
+        if (!available.contains(layer) || selected.contains(layer)) return rejected(ExecutionCode::InvalidRequest, QStringLiteral("Pixel read layer is unavailable or repeated"));
         selected.insert(layer);
     }
     QList<LayerId> generatedLayers = layers;
@@ -274,7 +321,7 @@ PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot
     outcome.region = area == PixelReadArea::Canvas ? region.intersected(QRect(QPoint(0, 0), pinned->size)) : region;
     if (outcome.region.isEmpty() || (layers.isEmpty() && !includeProjection)) {
         outcome.code = ExecutionCode::Success;
-        return outcome;
+        return readyReadback(std::move(outcome));
     }
     const auto base = document->rendered;
     const auto projectedBase = document->projected;
@@ -284,13 +331,13 @@ PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot
     bool begun = false;
     try {
         const auto frame = beginReadbackFrame();
-        if (frame.code != ExecutionCode::Success) return failure(frame.code, frame.diagnostic);
+        if (frame.code != ExecutionCode::Success) return rejected(frame.code, frame.diagnostic);
         begun = true;
         const auto paint = d.renderer->recordRegion(frame.commands, pinned, outcome.region, generatedLayers, base);
         if (paint.code != RenderOutcome::Recorded) {
             cancelFrame();
             begun = false;
-            return failure(executionCode(paint.code), paint.diagnostic);
+            return rejected(executionCode(paint.code), paint.diagnostic);
         }
         rendered = paint.version;
         if (includeProjection) {
@@ -298,7 +345,7 @@ PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot
             if (compose.code != RenderOutcome::Recorded) {
                 cancelFrame();
                 begun = false;
-                return failure(executionCode(compose.code), compose.diagnostic);
+                return rejected(executionCode(compose.code), compose.diagnostic);
             }
             projected = compose.version;
         }
@@ -327,14 +374,14 @@ PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot
         if (!withinLimit) {
             cancelFrame();
             begun = false;
-            return failure(ExecutionCode::CapacityExceeded, QStringLiteral("GPU pixel readback byte capacity exceeded"));
+            return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("GPU pixel readback byte capacity exceeded"));
         }
         if (!buffers.isEmpty()) {
             reads = Detail::ReadbackBatch::create(*d.device, buffers.size());
             if (!reads) {
                 cancelFrame();
                 begun = false;
-                return failure(ExecutionCode::Busy, QStringLiteral("The native GPU still retains a previous readback"));
+                return rejected(ExecutionCode::Busy, QStringLiteral("The native GPU still retains a previous readback"));
             }
             d.readbackRendered = rendered;
             d.readbackProjected = projected;
@@ -343,24 +390,32 @@ PixelReadbackOutcome Execution::readPixels(DocumentHandle handle, const Snapshot
                     throw std::runtime_error("The native GPU readback buffer could not be recorded");
             }
         }
-        const auto submitted = submitFrame();
-        begun = false;
-        if (submitted.code != ExecutionCode::Success) return failure(submitted.code, submitted.diagnostic);
-        if (!d.documents.contains(handle) || d.generation != outcome.generation) {
-            return failure(ExecutionCode::InvalidRequest, QStringLiteral("Pixel read document closed or GPU generation changed"));
-        }
+        std::shared_ptr<PixelReadCompletion> completion;
+        std::future<PixelReadbackOutcome> future;
         if (reads) {
-            for (const auto &read : reads->results) {
-                if (read->data.size() != TileRenderer::TileBytes) return failure(ExecutionCode::DeviceFailure, QStringLiteral("GPU pixel readback did not return a complete tile"));
+            completion = std::make_shared<PixelReadCompletion>();
+            outcome.code = ExecutionCode::Success;
+            completion->outcome = std::move(outcome);
+            completion->remaining = qsizetype(reads->results.size());
+            future = completion->result.get_future();
+            for (qsizetype index = 0; size_t(index) < reads->results.size(); ++index) {
+                QList<qsizetype> outputs;
+                for (qsizetype output = 0; output < outputIndices.size(); ++output)
+                    if (outputIndices[output] == index) outputs.append(output);
+                auto *read = reads->results[size_t(index)].get();
+                read->completed = [completion, read, outputs] { completion->complete(*read, outputs); };
             }
         }
-        for (qsizetype i = 0; i < outcome.tiles.size(); ++i) outcome.tiles[i].rgba = reads->results[outputIndices[i]]->data;
+        const auto submitted = endFrame(true, false);
+        begun = false;
+        if (submitted.code != ExecutionCode::Success) return rejected(submitted.code, submitted.diagnostic);
+        if (reads) return future;
         outcome.code = ExecutionCode::Success;
-        return outcome;
+        return readyReadback(std::move(outcome));
     } catch (const std::exception &exception) {
         if (begun) cancelFrame();
         retireCompletedReadback();
-        return failure(ExecutionCode::DeviceFailure, QString::fromUtf8(exception.what()));
+        return rejected(ExecutionCode::DeviceFailure, QString::fromUtf8(exception.what()));
     }
 }
 }

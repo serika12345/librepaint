@@ -835,15 +835,58 @@ void TestDocument::testGpuExportPixelsRespectMemoryBudgetAndRetainTheirVersion()
     QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("11223380")), Gpu::Result::Success);
     const auto pinned = owner->operations().snapshot();
     QVERIFY_EXCEPTION_THROWN(KisImportExportManager::prepareExportPixels(image, 0), std::length_error);
+    bool eventsProcessed = false;
+    auto editResult = Gpu::Result::InvalidInput;
+    QTimer edit;
+    edit.setSingleShot(true);
+    connect(&edit, &QTimer::timeout, this, [&] {
+        eventsProcessed = true;
+        editResult = owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("445566ff"));
+    });
+    edit.start(0);
     const auto pixels = KisImportExportManager::prepareExportPixels(image, 16 * 1024 * 1024);
+    edit.stop();
     QVERIFY(pixels);
+    QVERIFY(eventsProcessed);
+    QCOMPARE(editResult, Gpu::Result::Success);
     QCOMPARE(pixels->colorSpace(), image->colorSpace());
-    QCOMPARE(owner->operations().snapshot(), pinned);
-    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("445566ff")), Gpu::Result::Success);
+    QVERIFY(owner->operations().snapshot() != pinned);
     owner->close();
     QByteArray bytes(4, '\0');
     pixels->readBytes(reinterpret_cast<quint8 *>(bytes.data()), 5, 5, 1, 1);
     QCOMPARE(bytes, QByteArray::fromHex("33221180"));
+    KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void TestDocument::testGpuExportPreparationWaitsForAnOccupiedQueue()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    initializeGpuDocument(document.data(), QSize(32, 16), QStringLiteral("Queued export"));
+    KisImageSP image = document->image().toStrongRef();
+    const auto owner = image->gpuImage();
+    QCOMPARE(owner->replaceRgbaPixels(owner->operations().activeLayer(), QRect(5, 5, 1, 1), QByteArray::fromHex("112233ff")), Gpu::Result::Success);
+    QCOMPARE(owner->execution().beginReadbackFrame().code, Gpu::ExecutionCode::Success);
+    bool released = false;
+    QTimer release;
+    release.setSingleShot(true);
+    connect(&release, &QTimer::timeout, this, [&] {
+        released = owner->execution().cancelFrame().code == Gpu::ExecutionCode::Success;
+    });
+    release.start(100);
+    KisPaintDeviceSP pixels;
+    try {
+        pixels = KisImportExportManager::prepareExportPixels(image, 16 * 1024 * 1024);
+    } catch (const std::exception &error) {
+        release.stop();
+        if (!released) owner->execution().cancelFrame();
+        QFAIL(error.what());
+    }
+    QVERIFY(released);
+    QVERIFY(pixels);
+    QByteArray bytes(4, '\0');
+    pixels->readBytes(reinterpret_cast<quint8 *>(bytes.data()), 5, 5, 1, 1);
+    QCOMPARE(bytes, QByteArray::fromHex("332211ff"));
     KisPart::instance()->removeDocument(document.data(), false);
 }
 
@@ -874,6 +917,35 @@ void TestDocument::testGpuPngExportRejectsExcessiveWorkingMemoryBeforeChangingFi
     QCOMPARE(owner->operations().snapshot(), pinned);
     QCOMPARE(owner->execution().residentBytes(), resident);
     KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void TestDocument::testGpuPngExportRequiresAtomicReplacementForExistingFiles()
+{
+#ifdef Q_OS_WIN
+    QSKIP("Directory mode permissions are verified on POSIX filesystems");
+#else
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    initializeGpuDocument(document.data(), QSize(32, 16), QStringLiteral("Atomic PNG export"));
+    document->setFileBatchMode(true);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("existing.png"));
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::WriteOnly));
+    const auto originalBytes = QByteArrayLiteral("existing file remains intact when atomic replacement is unavailable");
+    QCOMPARE(file.write(originalBytes), originalBytes.size());
+    file.close();
+    const auto previousPermissions = QFile::permissions(directory.path());
+    const auto restorePermissions = qScopeGuard([&] { QFile::setPermissions(directory.path(), previousPermissions); });
+    QVERIFY(QFile::setPermissions(directory.path(), QFile::ReadOwner | QFile::ExeOwner));
+    QFile probe(directory.filePath(QStringLiteral("probe")));
+    if (probe.open(QIODevice::WriteOnly)) QSKIP("This filesystem permits creation despite directory mode permissions");
+    QVERIFY(!document->exportDocumentSync(path, QByteArrayLiteral("image/png")));
+    QVERIFY(!document->errorMessage().isEmpty());
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    QCOMPARE(file.readAll(), originalBytes);
+    KisPart::instance()->removeDocument(document.data(), false);
+#endif
 }
 
 void TestDocument::testGpuSaveNotificationLifetimes_data()

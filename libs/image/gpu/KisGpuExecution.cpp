@@ -4,6 +4,7 @@
  */
 
 #include "KisGpuExecution_p.h"
+#include <webgpu/wgpu.h>
 #include <limits>
 #include <stdexcept>
 
@@ -124,7 +125,9 @@ FrameOutcome Execution::beginFrame(PresentationSurface *surface)
     if (!d.onThread() || (surface && surface->device() != d.device)) {
         return {ExecutionCode::InvalidRequest, nullptr, nullptr, QStringLiteral("Frame requires the owning GPU thread and surface")};
     }
-    if (d.active || d.device->isRecordingFrame()) return {ExecutionCode::Busy, nullptr, nullptr, QStringLiteral("A GPU frame is already active")};
+    if (d.active || d.device->isRecordingFrame() || d.device->readbackPending())
+        return {ExecutionCode::Busy, nullptr, nullptr, QStringLiteral("A GPU frame or pixel transfer is active")};
+    retireCompletedReadback();
     if (d.device->isLost()) return {ExecutionCode::DeviceFailure, nullptr, nullptr, QStringLiteral("GPU device lost")};
     if (surface) {
         const auto acquired = surface->acquire();
@@ -166,13 +169,13 @@ ProjectionOutcome Execution::project(DocumentHandle handle, QRect region)
 
 ExecutionOutcome Execution::submitFrame() { return endFrame(true); }
 ExecutionOutcome Execution::cancelFrame() { return endFrame(false); }
-ExecutionOutcome Execution::endFrame(bool publish)
+ExecutionOutcome Execution::endFrame(bool publish, bool waitForReadback)
 {
     auto &d = *m_d;
     if (!d.onThread() || !d.active) return {ExecutionCode::InvalidRequest, QStringLiteral("No owning GPU frame is active")};
     const auto stage = std::move(d.stage);
     const bool superseded = stage.handle && !d.isCurrent(stage);
-    bool submitted = d.device->submitCommands(!d.surface);
+    bool submitted = d.device->submitCommands(!d.surface && waitForReadback);
     if (d.surface) {
         if (submitted && publish && !superseded) submitted = d.surface->present();
         else d.surface->discard();
@@ -191,6 +194,19 @@ ExecutionOutcome Execution::endFrame(bool publish)
         document.published = stage.rendered->document();
     }
     return {ExecutionCode::Success, {}};
+}
+
+ExecutionOutcome Execution::pollReadbacks()
+{
+    auto &d = *m_d;
+    if (!d.onThread()) return {ExecutionCode::InvalidRequest, QStringLiteral("Readback polling requires the GPU thread")};
+    if (d.active || d.device->isRecordingFrame()) return {ExecutionCode::Busy, QStringLiteral("A GPU frame is recording")};
+    wgpuDevicePoll(d.device->nativeDevice(), false, nullptr);
+    const bool pending = d.device->readbackPending();
+    retireCompletedReadback();
+    if (d.device->isLost() || !d.device->diagnostic().isEmpty())
+        return {ExecutionCode::DeviceFailure, d.device->diagnostic()};
+    return {pending ? ExecutionCode::Busy : ExecutionCode::Success, {}};
 }
 
 ExecutionOutcome Execution::replaceDevice(DevicePtr device)

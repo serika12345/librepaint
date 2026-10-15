@@ -372,6 +372,7 @@ endif()
 set(kritaimpexui_LIB_SRCS
     ui/KisImportExportAsyncFeedback.cpp
     ui/KisImportExportManager.cpp
+    ui/KisImportExportGpuPixels.cpp
     ui/KisSaveGroupVisitor.cpp
     ui/KisImportExportDialogs.cpp
     ui/kis_dlg_missing_color_profile.cpp
@@ -464,6 +465,8 @@ target_link_libraries(kritaimpexui
         Qt${QT_MAJOR_VERSION}::Widgets
         ${PNG_LIBRARIES}
 )
+
+target_link_libraries(kritaimpexui PRIVATE kritagpuimage)
 
 if(ANDROID)
     if(TARGET LibAV)

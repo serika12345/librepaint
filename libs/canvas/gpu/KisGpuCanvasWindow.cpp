@@ -202,7 +202,9 @@ void CanvasWindow::renderFrame()
     if (outcome.code == ExecutionCode::Success) {
         const auto document = d.execution.published(handle);
         if (document) Q_EMIT frameSubmitted(handle, document->revision(), generation);
-    } else if (outcome.code != ExecutionCode::Busy) {
+    } else if (outcome.code == ExecutionCode::Busy) {
+        refresh();
+    } else {
         Q_EMIT renderingFailed(handle, generation, outcome.code, outcome.diagnostic);
     }
 }
