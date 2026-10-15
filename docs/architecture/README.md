@@ -919,6 +919,10 @@ LZF展開、レイヤー位置の適用を所有する。文書構造、画素�
 ZIP項目は時刻を1980年1月1日UTC、作成OSをUnixの識別値3として記録する。
 合成画像とプレビューのPNGは、文書の解像度から整数の画素密度を求める。
 PNGの画素密度は1からQtの整数上限の範囲へ収め、KRAの文書記述は元の解像度を保持する。
+`KisKraPreview.cpp`は最長辺256画素のプレビューを生成する。縮小は面積平均、拡大は
+画素中心の線形補間を使い、sRGBの符号化値を透明度で重み付けして整数演算する。
+透明度と色は最終結果で一度だけ丸め、透明な出力画素のRGBをゼロとする。
+プレビューの短辺は1画素以上を保ち、合成画像とレイヤー画素は元の精度を保持する。
 
 `KisDocument`は`libs/impex/ui`の`KisImportExportManager`へ処理を委譲します。
 `libs/impex`の`KisImportExportFilterRegistry`が`Krita/FileFilter`プラグインをMIME型で選び、

@@ -13,6 +13,7 @@
 #include <QTest>
 #include <cmath>
 #include <limits>
+#include <cstring>
 #include <quazip.h>
 #include <quazipfile.h>
 #include <quazipfileinfo.h>
@@ -114,6 +115,8 @@ class TestKraRasterCodec : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void previewSamplingPreservesEdgesAndWeightedAlpha_data();
+    void previewSamplingPreservesEdgesAndWeightedAlpha();
     void savedPngResolutionComesFromDocumentMetadata_data();
     void savedPngResolutionComesFromDocumentMetadata();
     void archiveMetadataIsIndependentOfClockAndHost();
@@ -131,6 +134,87 @@ private Q_SLOTS:
     void legacyLayerWithoutUuidGetsOnePersistentIdentity();
     void emptyDocumentsRequireAnExplicitLayerContainer();
 };
+
+void TestKraRasterCodec::previewSamplingPreservesEdgesAndWeightedAlpha_data()
+{
+    QTest::addColumn<QSize>("sourceSize");
+    QTest::addColumn<QSize>("previewSize");
+    QTest::addColumn<QColor>("first");
+    QTest::addColumn<QColor>("second");
+    QTest::addColumn<QColor>("edgeStart");
+    QTest::addColumn<QColor>("middleLeft");
+    QTest::addColumn<QColor>("middleRight");
+    QTest::addColumn<QColor>("edgeEnd");
+    const QColor red(255, 0, 0, 255), blue(0, 0, 255, 255), hiddenBlue(0, 0, 255, 0);
+    const QColor purple(128, 0, 128, 255), fadedRed(255, 0, 0, 128);
+    QTest::newRow("opaque-upscale") << QSize(2, 1) << QSize(256, 128) << red << blue
+        << red << QColor(128, 0, 127, 255) << QColor(127, 0, 128, 255) << blue;
+    QTest::newRow("portrait-upscale") << QSize(1, 2) << QSize(128, 256) << red << blue
+        << red << QColor(128, 0, 127, 255) << QColor(127, 0, 128, 255) << blue;
+    QTest::newRow("transparent-upscale") << QSize(2, 1) << QSize(256, 128) << red << hiddenBlue
+        << red << fadedRed << QColor(255, 0, 0, 127) << QColor(0, 0, 0, 0);
+    QTest::newRow("opaque-area-reduction") << QSize(512, 2) << QSize(256, 1) << red << blue
+        << purple << purple << purple << purple;
+    QTest::newRow("transparent-area-reduction") << QSize(512, 2) << QSize(256, 1) << red << hiddenBlue
+        << fadedRed << fadedRed << fadedRed << fadedRed;
+    QTest::newRow("thin-canvas") << QSize(512, 1) << QSize(256, 1) << red << blue
+        << purple << purple << purple << purple;
+    const QColor dot(17, 33, 81, 127);
+    QTest::newRow("one-pixel") << QSize(1, 1) << QSize(256, 256) << dot << dot
+        << dot << dot << dot << dot;
+}
+
+void TestKraRasterCodec::previewSamplingPreservesEdgesAndWeightedAlpha()
+{
+    QFETCH(QSize, sourceSize);
+    QFETCH(QSize, previewSize);
+    QFETCH(QColor, first);
+    QFETCH(QColor, second);
+    QFETCH(QColor, edgeStart);
+    QFETCH(QColor, middleLeft);
+    QFETCH(QColor, middleRight);
+    QFETCH(QColor, edgeEnd);
+    const bool vertical = sourceSize.width() == 1 && sourceSize.height() > 1;
+    QImage projection(sourceSize, QImage::Format_RGBA8888);
+    projection.setColorSpace(QColorSpace::SRgb);
+    for (int y = 0; y < sourceSize.height(); ++y)
+        for (int x = 0; x < sourceSize.width(); ++x)
+            projection.setPixelColor(x, y, ((vertical ? y : x) % 2) ? second : first);
+    Kra::Document source;
+    source.image.size = sourceSize;
+    RasterLayer layer;
+    layer.name = QStringLiteral("Preview samples");
+    layer.uuid = QUuid(QStringLiteral("{01020304-0506-0708-090a-0b0c0d0e0f10}"));
+    for (int tileX = 0; tileX * RgbaTile::Size < sourceSize.width(); ++tileX) {
+        RgbaTile tile{{tileX, 0}, QByteArray(RgbaTile::ByteCount, '\0')};
+        const int copied = qMin(RgbaTile::Size, sourceSize.width() - tileX * RgbaTile::Size) * 4;
+        for (int y = 0; y < sourceSize.height(); ++y)
+            std::memcpy(tile.rgba.data() + y * RgbaTile::Size * 4,
+                        projection.constScanLine(y) + tileX * RgbaTile::Size * 4, copied);
+        layer.tiles.append(tile);
+    }
+    source.image.layers.append(layer);
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    const auto result = Kra::RasterCodec::write(output, source, projection);
+    QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
+    const auto saved = entries(bytes);
+    QCOMPARE(QImage::fromData(saved.value(QStringLiteral("mergedimage.png"))).convertToFormat(QImage::Format_RGBA8888), projection);
+    const auto preview = QImage::fromData(saved.value(QStringLiteral("preview.png")));
+    QCOMPARE(preview.size(), previewSize);
+    const auto at = [&](int index) {
+        return vertical ? preview.pixelColor(preview.width() / 2, index)
+                        : preview.pixelColor(index, preview.height() / 2);
+    };
+    QCOMPARE(at(0), edgeStart);
+    QCOMPARE(at(127), middleLeft);
+    QCOMPARE(at(128), middleRight);
+    QCOMPARE(at(255), edgeEnd);
+    const auto restored = load(bytes);
+    QCOMPARE(restored.code, Kra::Status::Success);
+    QCOMPARE(rgbaAt(restored.document.image.layers.first(), QPoint()), QByteArray(reinterpret_cast<const char *>(projection.constBits()), 4));
+}
 
 void TestKraRasterCodec::savedPngResolutionComesFromDocumentMetadata_data()
 {

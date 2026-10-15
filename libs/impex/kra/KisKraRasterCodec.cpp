@@ -5,6 +5,7 @@
 
 #include "KisKraRasterCodec.h"
 #include "KisKraRgbaTiles_p.h"
+#include "KisKraPreview_p.h"
 #include <QBuffer>
 #include <QColorSpace>
 #include <QColorTransform>
@@ -599,7 +600,7 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         return true;
     };
     if (!png(projection, QStringLiteral("mergedimage.png")) ||
-        !png(projection.scaled(256, 256, Qt::KeepAspectRatio, Qt::SmoothTransformation), QStringLiteral("preview.png"))) return ioFailure();
+        !png(Detail::makePreview(projection), QStringLiteral("preview.png"))) return ioFailure();
     result = validateFiles(files, limits);
     return result.code == Status::Success ? writeArchive(destination, files, limits) : result;
 }

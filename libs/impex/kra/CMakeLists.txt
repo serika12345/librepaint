@@ -1,5 +1,6 @@
 kis_add_library(kritaimpexkra SHARED
     KisKraRasterCodec.cpp
+    KisKraPreview.cpp
     KisKraRgbaTiles.cpp
 )
 generate_export_header(kritaimpexkra BASE_NAME kritaimpexkra
