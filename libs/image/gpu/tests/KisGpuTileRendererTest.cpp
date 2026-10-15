@@ -33,6 +33,8 @@ private Q_SLOTS:
     void shapesUndoAndRecoveryRestoreTheSamePixels();
     void rectangleOutlinesPreserveRotationHistoryAndRecovery_data();
     void rectangleOutlinesPreserveRotationHistoryAndRecovery();
+    void polylinesPreserveVerticesClosureHistoryAndRecovery_data();
+    void polylinesPreserveVerticesClosureHistoryAndRecovery();
     void straightLinesPreserveIntermediatePressure_data();
     void straightLinesPreserveIntermediatePressure();
     void versionsOutliveTheRendererAndRejectAnotherDeviceOwner();
@@ -748,6 +750,78 @@ void KisGpuTileRendererTest::rectangleOutlinesPreserveRotationHistoryAndRecovery
     QCOMPARE(document.undoCount(), 1);
     QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), pixels);
     QCOMPARE(readTile(preview, layer, {0, 0}), pixels);
+}
+
+void KisGpuTileRendererTest::polylinesPreserveVerticesClosureHistoryAndRecovery_data()
+{
+    QTest::addColumn<bool>("closed");
+    QTest::newRow("open") << false;
+    QTest::newRow("closed") << true;
+}
+
+void KisGpuTileRendererTest::polylinesPreserveVerticesClosureHistoryAndRecovery()
+{
+    QFETCH(bool, closed);
+    OperationDocument document({64, 64});
+    const auto layer = document.activeLayer();
+    Brush brush;
+    brush.rgba = {17, 129, 241, 255};
+    brush.diameter = 8;
+    const QList<InputSample> vertices{{{16, 16}, 1}, {{48, 16}, 1}, {{48, 48}, 1}};
+    const auto stroke = document.beginStroke(layer, brush, 7);
+    QCOMPARE(document.appendSamples(stroke, {vertices.first()}), Result::Success);
+    const Shape shape{closed ? ShapeKind::Polygon : ShapeKind::Polyline, {16, 16}, {48, 48}, 0};
+    const auto single = document.preview();
+    QCOMPARE(document.updateShape(stroke, shape), Result::InvalidInput);
+    QCOMPARE(document.preview(), single);
+    QCOMPARE(document.appendSamples(stroke, vertices.mid(1)), Result::Success);
+    QCOMPARE(document.updateShape(stroke, shape), Result::Success);
+    TileRenderer renderer(m_device);
+    const auto preview = render(renderer, document.preview());
+    QVERIFY(preview);
+    const auto pixels = readTile(preview, layer, {0, 0});
+    const auto pixel = [&](QPoint p) { return pixels.mid((p.y() * TileRenderer::TileSize + p.x()) * 4, 4); };
+    QCOMPARE(pixel({32, 16}), QByteArray::fromHex("1181f1ff"));
+    QCOMPARE(pixel({48, 32}), QByteArray::fromHex("1181f1ff"));
+    QCOMPARE(pixel({32, 32}), closed ? QByteArray::fromHex("1181f1ff") : QByteArray(4, '\0'));
+    QCOMPARE(pixel({16, 48}), QByteArray(4, '\0'));
+    OperationDocument oracle({64, 64});
+    auto path = vertices;
+    if (closed) path.append(path.first());
+    const auto expected = oracle.beginStroke(oracle.activeLayer(), brush, 7);
+    QCOMPARE(oracle.appendSamples(expected, path), Result::Success);
+    QCOMPARE(oracle.commitStroke(expected), Result::Success);
+    QCOMPARE(readTile(render(renderer, oracle.snapshot()), oracle.activeLayer(), {0, 0}), pixels);
+    const auto operation = std::get<PaintSnapshot>(document.preview()->layers.first().operations.last());
+    QCOMPARE(operation->inputSamples(), vertices);
+    QCOMPARE(document.undoCount(), 0);
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QVERIFY(restored.hasActiveStroke());
+    QCOMPARE(std::get<PaintSnapshot>(restored.preview()->layers.first().operations.last())->inputSamples(), vertices);
+    QCOMPARE(readTile(render(renderer, restored.preview()), restored.activeLayer(), {0, 0}), pixels);
+    for (const quint8 previousFormat : {quint8(9), quint8(10)}) {
+        auto previous = document.recoveryData().chopped(32);
+        previous[4] = 0;
+        previous[5] = char(previousFormat);
+        previous.append(QCryptographicHash::hash(previous, QCryptographicHash::Sha256));
+        const auto before = restored.preview();
+        QCOMPARE(restored.restoreRecovery(previous), Result::InvalidRecovery);
+        QCOMPARE(restored.preview(), before);
+    }
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    QCOMPARE(document.historyAction(1), closed ? HistoryAction::DrawPolygon : HistoryAction::DrawPolyline);
+    QCOMPARE(document.undo(), Result::Success);
+    const auto undone = render(renderer, document.snapshot(), preview);
+    QVERIFY(undone && undone->tiles(layer).isEmpty());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot(), undone), layer, {0, 0}), pixels);
+    const auto cancelled = document.beginStroke(layer, brush, 8);
+    QCOMPARE(document.appendSamples(cancelled, vertices), Result::Success);
+    QCOMPARE(document.updateShape(cancelled, shape), Result::Success);
+    QCOMPARE(document.cancelStroke(cancelled), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), pixels);
 }
 
 void KisGpuTileRendererTest::versionsOutliveTheRendererAndRejectAnotherDeviceOwner()

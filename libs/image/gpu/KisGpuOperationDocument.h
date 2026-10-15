@@ -69,7 +69,7 @@ struct Brush
     }
 };
 
-enum class ShapeKind { Freehand, Line, Ellipse, Rectangle, RoundedRectangle };
+enum class ShapeKind { Freehand, Line, Ellipse, Rectangle, RoundedRectangle, Polyline, Polygon };
 
 struct Shape
 {
@@ -212,7 +212,7 @@ enum class PropertyHistory { Separate, MergeConsecutive };
 enum class HistoryAction {
     None, AddLayer, RemoveLayer, MoveLayer, RenameLayer, ChangeOpacity,
     ChangeVisibility, ChangeLock, ChangeTimelinePin, PaintStroke, DrawLine,
-    DrawEllipse, ReplacePixels, DrawRectangle
+    DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon
 };
 
 struct Limits

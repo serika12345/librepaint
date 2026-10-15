@@ -9,6 +9,7 @@
 #include <klocalizedstring.h>
 #include <QMouseEvent>
 #include <QPainterPath>
+#include <QPointer>
 #include <QTabletEvent>
 
 #include <KoPointerEvent.h>
@@ -292,9 +293,11 @@ void KisToolPolylineBase::endStroke(bool closePolyline)
 
     const QVector<QPointF> points =
         m_polylineInteraction.finish(closePolyline);
+    const QPointer<KisToolPolylineBase> guard(this);
     if (points.count() > 1) {
         finishPolyline(points);
     }
+    if (!guard) return;
     updateArea();
     endShape();
 }

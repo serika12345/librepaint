@@ -89,6 +89,8 @@ HistoryAction OperationDocument::historyAction(int index) const
                 case ShapeKind::Ellipse: return HistoryAction::DrawEllipse;
                 case ShapeKind::Rectangle:
                 case ShapeKind::RoundedRectangle: return HistoryAction::DrawRectangle;
+                case ShapeKind::Polyline: return HistoryAction::DrawPolyline;
+                case ShapeKind::Polygon: return HistoryAction::DrawPolygon;
                 }
             }
         }
@@ -288,6 +290,7 @@ Result OperationDocument::updateShape(OperationId id, const Shape &shape)
     if (status != Result::Success) return status;
     if (!validShape(shape)) return Result::InvalidInput;
     if (m_edit->sampleCount == 0) return Result::EmptyOperation;
+    if (!validShapeSampleCount(shape, m_edit->sampleCount)) return Result::InvalidInput;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     QSharedPointer<PaintOperation> operation(new PaintOperation(*m_edit));
     operation->shape = shape;

@@ -32,7 +32,12 @@ QList<PaintSegment> paintGeometry(const PaintOperation &operation, quint32 step)
     QList<InputSample> points;
     switch (operation.shape.kind) {
     case ShapeKind::Freehand:
+    case ShapeKind::Polyline:
         points = input;
+        break;
+    case ShapeKind::Polygon:
+        points = input;
+        points.append(points.front());
         break;
     case ShapeKind::Line: {
         points = input.size() == 1 ? QList<InputSample>{input.front(), input.front()} : input;

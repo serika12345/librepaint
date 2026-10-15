@@ -84,6 +84,8 @@ inline bool validShape(const Shape &shape)
     switch (shape.kind) {
     case ShapeKind::Freehand:
     case ShapeKind::Line:
+    case ShapeKind::Polyline:
+    case ShapeKind::Polygon:
         return true;
     case ShapeKind::Ellipse:
     case ShapeKind::Rectangle:
@@ -91,6 +93,11 @@ inline bool validShape(const Shape &shape)
         return shape.first.x() != shape.second.x() && shape.first.y() != shape.second.y();
     }
     return false;
+}
+
+inline bool validShapeSampleCount(const Shape &shape, qsizetype count)
+{
+    return (shape.kind != ShapeKind::Polyline && shape.kind != ShapeKind::Polygon) || count >= 2;
 }
 }
 #endif

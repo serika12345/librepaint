@@ -213,6 +213,7 @@ void KisInputManager::setupAsEventFilter(QObject *receiver)
 bool KisInputManager::eventFilter(QObject* object, QEvent* event)
 {
     if (object != d->eventsReceiver) return false;
+    const QPointer<QObject> receiver(object);
 
     if (d->filterSuppressedEvent(event)) return false;
 
@@ -231,7 +232,12 @@ bool KisInputManager::eventFilter(QObject* object, QEvent* event)
                 continue;
             }
 
-            if (filter->eventFilter(object, event)) return true;
+            const bool handled = filter->eventFilter(object, event);
+            if (!receiver) {
+                event->accept();
+                return true;
+            }
+            if (handled) return true;
 
             /**
              * If the filter removed itself from the filters list or
@@ -251,10 +257,20 @@ bool KisInputManager::eventFilter(QObject* object, QEvent* event)
         if (d->toolProxy) {
             d->toolProxy->processEvent(event);
         }
+        if (!receiver) {
+            event->accept();
+            return true;
+        }
     }
 
     // Continue with the actual switch statement...
-    return eventFilterImpl(event);
+    const bool handled = eventFilterImpl(event);
+    // A tool can destroy its view while declining the event.
+    if (!receiver) {
+        event->accept();
+        return true;
+    }
+    return handled;
 }
 
 template <class Event>

@@ -61,13 +61,23 @@ class KisToolGpuOutlineHelper final : public KisToolFreehandHelper
 public:
     using KisToolFreehandHelper::KisToolFreehandHelper;
 
-    void paint(KisImageWSP image, KisNodeSP node, const LibrePaint::Image::Gpu::Shape &shape)
+    void paint(KisImageWSP image, KisNodeSP node, const LibrePaint::Image::Gpu::Shape &shape,
+               const QVector<QPointF> &points)
     {
         namespace Gpu = LibrePaint::Image::Gpu;
         const auto owner = image->gpuImage();
         initPaintImpl(0, KisPaintInformation(shape.first), resourceManager(), image, node, image.data());
         if (!isRunning()) return;
-        const auto result = owner->updateShape(owner->operations().activeOperation(), shape);
+        const auto operation = owner->operations().activeOperation();
+        auto result = Gpu::Result::Success;
+        if (points.size() > 1) {
+            QList<Gpu::InputSample> vertices;
+            vertices.reserve(points.size() - 1);
+            for (qsizetype i = 1; i < points.size(); ++i) vertices.append({points[i], 1});
+            result = owner->appendSamples(operation, vertices);
+            if (!isRunning()) return;
+        }
+        if (result == Gpu::Result::Success) result = owner->updateShape(operation, shape);
         if (result != Gpu::Result::Success) {
             cancelPaint();
             Q_EMIT requestErrorMessage(i18n("The outline could not be drawn on this GPU paint layer."));
@@ -79,6 +89,22 @@ public:
 }
 
 void KisToolShape::paintGpuOutline(const LibrePaint::Image::Gpu::Shape &shape, const KUndo2MagicString &name)
+{
+    paintGpuFigure(shape, {}, name);
+}
+
+void KisToolShape::paintGpuPolyline(const QVector<QPointF> &points, bool closed, const KUndo2MagicString &name)
+{
+    auto vertices = points;
+    if (closed && vertices.size() > 1 && vertices.first() == vertices.last()) vertices.removeLast();
+    if (vertices.size() < 2) return;
+    namespace Gpu = LibrePaint::Image::Gpu;
+    paintGpuFigure({closed ? Gpu::ShapeKind::Polygon : Gpu::ShapeKind::Polyline, vertices.first(), vertices.last(), 0},
+                   vertices, name);
+}
+
+void KisToolShape::paintGpuFigure(const LibrePaint::Image::Gpu::Shape &shape, const QVector<QPointF> &points,
+                                const KUndo2MagicString &name)
 {
     if (strokeStyle() == KisFigurePaintingOptions::StrokeStyleNone) return;
     auto *source = canvas()->resourceManager();
@@ -93,7 +119,7 @@ void KisToolShape::paintGpuOutline(const LibrePaint::Image::Gpu::Shape &shape, c
     KisPaintingInformationBuilder builder;
     KisToolGpuOutlineHelper helper(&builder, &resources, name);
     connect(&helper, &KisToolFreehandHelper::requestErrorMessage, this, &KoToolBase::statusTextChanged);
-    helper.paint(image(), currentNode(), shape);
+    helper.paint(image(), currentNode(), shape, points);
 }
 
 

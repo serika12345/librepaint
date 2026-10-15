@@ -159,8 +159,13 @@ bool KisToolProxy::forwardEvent(ActionState state, KisTool::ToolAction action, Q
         } else if (mouseEvent->type() == QEvent::MouseMove) {
             mouseMoveEvent(mouseEvent, docPoint);
         }
+        const QPointer<KisToolProxy> guard(this);
         forwardToTool(state, action, originalEvent, docPoint);
         retval = mouseEvent->isAccepted();
+        if (guard && state == BEGIN && !retval) {
+            // A declined action has no END callback to release the proxy's press state.
+            priv()->isToolPressed = false;
+        }
     }
     else if (touchEvent) {
         QPointF docPoint = widgetToDocument(touchEvent->touchPoints().at(0).pos());

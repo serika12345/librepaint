@@ -263,8 +263,8 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         quint32 sampleCount = 0;
         stream >> operation->brush.diameter >> operation->brush.spacing >> operation->brush.opacity >> erase
                >> operation->randomSeed >> shape >> x1 >> y1 >> x2 >> y2 >> operation->shape.rotation;
+        if (shape >= quint8(ShapeKind::RoundedRectangle) && format < 11) return Result::InvalidRecovery;
         if (static_cast<ShapeKind>(shape) == ShapeKind::RoundedRectangle) {
-            if (format < 11) return Result::InvalidRecovery;
             qreal radiusX = 0, radiusY = 0;
             stream >> radiusX >> radiusY;
             operation->shape.cornerRadii = {radiusX, radiusY};
@@ -275,6 +275,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         operation->shape.first = {x1, y1};
         operation->shape.second = {x2, y2};
         if (erase > 1 || !validBrush(operation->brush) || !validShape(operation->shape) ||
+            !validShapeSampleCount(operation->shape, sampleCount) ||
             (sampleCount == 0) != (version == 0) || !readableCount(stream, sampleCount, m_limits.samplesPerStroke, 56)) return Result::InvalidRecovery;
         if (quint64(retainedSamples) + sampleCount > retainedSampleLimit) return Result::CapacityExceeded;
         retainedSamples += sampleCount;

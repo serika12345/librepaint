@@ -51,6 +51,14 @@ void KisToolPolygon::finishPolyline(const QVector<QPointF>& points)
     const KisToolShape::ShapeAddInfo info =
         shouldAddShape(currentNode());
 
+    if (!info.shouldAddShape && image()->gpuImage()) {
+        if (fillStyle() != KisFigurePaintingOptions::FillStyleNone) {
+            Q_EMIT statusTextChanged(i18n("Filling a polygon is not yet supported for this GPU document."));
+            return;
+        }
+        paintGpuPolyline(points, true, kundo2_i18n("Draw Polygon"));
+        return;
+    }
     if (!info.shouldAddShape) {
         KisFigurePaintingStroke stroke(kundo2_i18n("Draw Polygon"),
                                        image(),

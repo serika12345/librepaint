@@ -67,6 +67,7 @@ protected:
 
     /** Draw one retained GPU outline with the current brush and outline color. */
     void paintGpuOutline(const LibrePaint::Image::Gpu::Shape &shape, const KUndo2MagicString &name);
+    void paintGpuPolyline(const QVector<QPointF> &points, bool closed, const KUndo2MagicString &name);
 
     struct KRITAUI_EXPORT ShapeAddInfo {
         bool shouldAddShape = false;
@@ -89,6 +90,10 @@ protected:
     virtual void endShape() {}
 
     KConfigGroup m_configGroup;
+
+private:
+    void paintGpuFigure(const LibrePaint::Image::Gpu::Shape &shape, const QVector<QPointF> &points,
+                        const KUndo2MagicString &name);
 };
 
 #endif // KIS_TOOL_SHAPE_H_
