@@ -61,11 +61,13 @@ struct Brush
     qreal spacing = 0.1;
     quint8 opacity = 255;
     bool erase = false;
+    bool alphaLocked = false;
 
     bool operator==(const Brush &other) const
     {
         return rgba == other.rgba && diameter == other.diameter &&
-            spacing == other.spacing && opacity == other.opacity && erase == other.erase;
+            spacing == other.spacing && opacity == other.opacity && erase == other.erase &&
+            alphaLocked == other.alphaLocked;
     }
 };
 

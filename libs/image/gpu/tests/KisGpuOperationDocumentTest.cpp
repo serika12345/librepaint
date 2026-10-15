@@ -435,6 +435,7 @@ void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable_data()
     QTest::newRow("version-nine") << quint8(9) << false;
     QTest::newRow("version-ten") << quint8(10) << false;
     QTest::newRow("version-ten-reset-name") << quint8(10) << true;
+    QTest::newRow("version-eleven") << quint8(11) << false;
 }
 
 void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable()

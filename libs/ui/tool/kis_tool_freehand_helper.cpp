@@ -387,10 +387,9 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
         const QString composite = resourceManager->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString();
         if ((composite != QLatin1String("normal") && composite != QLatin1String("erase")) ||
             resourceManager->resource(KoCanvasResource::MirrorHorizontal).toBool() ||
-            resourceManager->resource(KoCanvasResource::MirrorVertical).toBool() ||
-            resourceManager->resource(KoCanvasResource::GlobalAlphaLock).toBool()) {
+            resourceManager->resource(KoCanvasResource::MirrorVertical).toBool()) {
             m_d->infoBuilder->reset();
-            Q_EMIT requestErrorMessage(i18n("Painting symmetry, alpha locking and this blend mode are not yet available for this document."));
+            Q_EMIT requestErrorMessage(i18n("Painting symmetry and this blend mode are not yet available for this document."));
             return;
         }
         Gpu::Brush brush;
@@ -406,6 +405,7 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
         brush.opacity = quint8(qRound(255 * opacity));
         brush.erase = composite == QLatin1String("erase") ||
             resourceManager->resource(KoCanvasResource::EraserMode).toBool();
+        brush.alphaLocked = !brush.erase && resourceManager->resource(KoCanvasResource::GlobalAlphaLock).toBool();
         m_d->gpuOperation = owner->beginStroke(layerId, brush, 0);
         if (m_d->gpuOperation.isNull()) {
             m_d->infoBuilder->reset();

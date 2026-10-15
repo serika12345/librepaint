@@ -16,7 +16,7 @@ bool preparePaintJob(Device &device, WGPUBindGroupLayout layout, PaintJob &job, 
     if (!job.output) return false;
     job.output->mayContainHiddenRgb = job.values.uniformFill
         ? (job.values.color >> 24) == 0 && (job.values.color & 0x00ffffffu) != 0
-        : job.input && job.input->mayContainHiddenRgb;
+        : job.values.alphaLocked || (job.input && job.input->mayContainHiddenRgb);
     if (!job.geometry.isEmpty()) {
         job.samples = createBuffer(device.nativeDevice(), quint64(job.geometry.size()) * sizeof(PaintSegment),
                                     WGPUBufferUsage_Storage | WGPUBufferUsage_CopyDst);

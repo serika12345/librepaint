@@ -6,6 +6,8 @@
 #include <QGuiApplication>
 #include <QTest>
 #include <QCryptographicHash>
+#include <QDir>
+#include <QFile>
 #include <QThread>
 #include <gpu/KisGpuTileRenderer.h>
 #include <gpu/KisGpuDevice.h>
@@ -26,6 +28,8 @@ private Q_SLOTS:
     void partialLayerOpacityComposesOverTransparency_data();
     void partialLayerOpacityComposesOverTransparency();
     void roundBrushProducesRgbaPixelsOnTheGpu();
+    void alphaLockPreservesCoverageHistoryAndRecovery_data();
+    void alphaLockPreservesCoverageHistoryAndRecovery();
     void inputPartitionsAndPreviewProduceTheSamePixels();
     void unchangedTilesAreSharedAndBudgetsRejectAtomically();
     void erasingAndLayerVisibilityPreservePixelMeaning();
@@ -63,6 +67,91 @@ private:
                               QRect visible, const ProjectedSnapshot &base = {});
     DevicePtr m_device;
 };
+
+void KisGpuTileRendererTest::alphaLockPreservesCoverageHistoryAndRecovery_data()
+{
+    QTest::addColumn<quint8>("baseAlpha");
+    QTest::addColumn<bool>("erase");
+    QTest::newRow("transparent") << quint8(0) << false;
+    QTest::newRow("almost-transparent") << quint8(1) << false;
+    QTest::newRow("translucent") << quint8(128) << false;
+    QTest::newRow("opaque") << quint8(255) << false;
+    QTest::newRow("erase-translucent") << quint8(128) << true;
+    QTest::newRow("erase-transparent") << quint8(0) << true;
+}
+
+void KisGpuTileRendererTest::alphaLockPreservesCoverageHistoryAndRecovery()
+{
+    QFETCH(quint8, baseAlpha);
+    QFETCH(bool, erase);
+    QByteArray pixel = baseAlpha ? QByteArray::fromHex("0a28b400") : QByteArray(4, '\0');
+    pixel[3] = char(baseAlpha);
+    const auto background = pixel.repeated(RgbaTile::ByteCount / 4);
+    RasterImage image;
+    image.size = {64, 64};
+    image.layers = {{QStringLiteral("Protected alpha"), true, {}, {{{0, 0}, background}}}};
+    OperationDocument document(image);
+    const auto layer = document.activeLayer();
+    Brush brush;
+    brush.rgba = {200, 70, 30, 128};
+    brush.diameter = 8;
+    brush.opacity = 173;
+    brush.erase = erase;
+    brush.alphaLocked = true;
+    const auto stroke = document.beginStroke(layer, brush, 7);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+    TileRenderer renderer(m_device);
+    const auto preview = render(renderer, document.preview());
+    QVERIFY(preview);
+    const auto pixels = readTile(preview, layer, {0, 0});
+    QCOMPARE(pixels.size(), RgbaTile::ByteCount);
+    auto expected = pixel;
+    const quint32 alpha = (128u * 173u + 127u) / 255u;
+    if (erase) expected[3] = char((baseAlpha * (255u - alpha) + 127u) / 255u);
+    else {
+        for (int channel = 0; channel < 3; ++channel)
+            expected[channel] = char((brush.rgba[channel] * alpha + quint8(pixel[channel]) * (255u - alpha) + 127u) / 255u);
+    }
+    QCOMPARE(pixels.mid((32 * RgbaTile::Size + 32) * 4, 4), expected);
+    QCOMPARE(pixels.left(4), pixel);
+    if (!erase) {
+        for (qsizetype offset = 3; offset < pixels.size(); offset += 4)
+            QCOMPARE(quint8(pixels[offset]), baseAlpha);
+    }
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    const auto retained = std::get<PaintSnapshot>(restored.preview()->layers.first().operations.last());
+    QCOMPARE(retained->brush, brush);
+    QCOMPARE(readTile(render(renderer, restored.preview()), restored.activeLayer(), {0, 0}), pixels);
+    auto previous = document.recoveryData().chopped(32);
+    previous[5] = 11;
+    previous.append(QCryptographicHash::hash(previous, QCryptographicHash::Sha256));
+    const auto before = restored.preview();
+    QCOMPARE(restored.restoreRecovery(previous), Result::InvalidRecovery);
+    QCOMPARE(restored.preview(), before);
+    const auto resultDirectory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!resultDirectory.isEmpty()) {
+        QVERIFY(QDir().mkpath(resultDirectory));
+        QFile artifact(QDir(resultDirectory).filePath(QStringLiteral("alpha-lock-") +
+                       QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".rgba")));
+        QVERIFY(artifact.open(QIODevice::WriteOnly));
+        QCOMPARE(artifact.write(pixels), pixels.size());
+    }
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), background);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), pixels);
+    if (baseAlpha == 0 && !erase) {
+        QVERIFY(document.addLayer(QStringLiteral("Empty upper layer")));
+        const auto withUpper = render(renderer, document.snapshot());
+        const auto projection = project(renderer, withUpper, QRect(0, 0, 64, 64));
+        QVERIFY(projection && !projection->tiles().isEmpty());
+        QCOMPARE(readBuffer(projection->tiles().first().pixels).mid((32 * RgbaTile::Size + 32) * 4, 4), QByteArray(4, '\0'));
+        QCOMPARE(readTile(withUpper, layer, {0, 0}), pixels);
+    }
+}
 
 void KisGpuTileRendererTest::straightLinesPreserveIntermediatePressure_data()
 {

@@ -120,6 +120,8 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     if (alpha == 0u) { outputPixels[index] = basePixels[index]; return; }
     if (parameters.brush.z != 0u) {
         destination.w = mul255(destination.w, 255u - alpha);
+    } else if (parameters.counts.w != 0u) {
+        destination = vec4<u32>((source.xyz * alpha + destination.xyz * (255u - alpha) + vec3<u32>(127u)) / 255u, destination.w);
     } else {
         source.w = alpha;
         destination = over(destination, source);
