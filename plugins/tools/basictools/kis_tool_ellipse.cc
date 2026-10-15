@@ -19,11 +19,7 @@
 #include "kis_tool_shape.h"
 #include "kundo2magicstring.h"
 #include <KoCanvasBase.h>
-#include <KoCanvasResourceProvider.h>
-#include <KoCanvasResourcesIds.h>
-#include <kis_painting_information_builder.h>
-#include <kis_tool_freehand_helper.h>
-#include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuOperationDocument.h>
 #include <KoShapeStroke.h>
 
 #include <application/ui/workspace/KisViewManager.h>
@@ -36,30 +32,6 @@
 #include <qobjectdefs.h>
 #include <qpainterpath.h>
 #include <QtGlobal>
-
-namespace {
-class KisToolEllipseHelper final : public KisToolFreehandHelper
-{
-public:
-    using KisToolFreehandHelper::KisToolFreehandHelper;
-
-    void paint(KisImageWSP image, KisNodeSP node, const QRectF &rect, qreal rotation)
-    {
-        namespace Gpu = LibrePaint::Image::Gpu;
-        const auto owner = image->gpuImage();
-        initPaintImpl(0, KisPaintInformation(rect.topLeft()), resourceManager(), image, node, image.data());
-        if (!isRunning()) return;
-        const auto result = owner->updateShape(owner->operations().activeOperation(),
-                                               {Gpu::ShapeKind::Ellipse, rect.topLeft(), rect.bottomRight(), rotation});
-        if (result != Gpu::Result::Success) {
-            cancelPaint();
-            Q_EMIT requestErrorMessage(i18n("The ellipse could not be drawn on this GPU paint layer."));
-            return;
-        }
-        endPaint();
-    }
-};
-}
 
 KisToolEllipse::KisToolEllipse(KoCanvasBase * canvas)
         : KisToolEllipseBase(canvas, KisToolEllipseBase::PAINT, KisCursor::loadWithSize("tool_ellipse_cursor.svg", 32, 32, 6, 6))
@@ -104,20 +76,8 @@ void KisToolEllipse::finishRect(const QRectF& rect, qreal roundCornersX, qreal r
             Q_EMIT statusTextChanged(i18n("Filling an ellipse is not yet supported for this GPU document."));
             return;
         }
-        if (strokeStyle() == KisFigurePaintingOptions::StrokeStyleNone) return;
-        auto *source = canvas()->resourceManager();
-        KoCanvasResourceProvider resources;
-        for (int key : {KoCanvasResource::CurrentPaintOpPreset, KoCanvasResource::CurrentEffectiveCompositeOp,
-                        KoCanvasResource::Size, KoCanvasResource::Opacity, KoCanvasResource::MirrorHorizontal,
-                        KoCanvasResource::MirrorVertical, KoCanvasResource::GlobalAlphaLock, KoCanvasResource::EraserMode}) {
-            resources.setResource(key, source->resource(key));
-        }
-        resources.setForegroundColor(strokeStyle() == KisFigurePaintingOptions::StrokeStyleBackground ?
-                                     source->backgroundColor() : source->foregroundColor());
-        KisPaintingInformationBuilder builder;
-        KisToolEllipseHelper helper(&builder, &resources, kundo2_i18n("Draw Ellipse"));
-        connect(&helper, &KisToolFreehandHelper::requestErrorMessage, this, &KoToolBase::statusTextChanged);
-        helper.paint(image(), currentNode(), rect, getRotationAngle());
+        paintGpuOutline({LibrePaint::Image::Gpu::ShapeKind::Ellipse, rect.topLeft(), rect.bottomRight(), getRotationAngle()},
+                        kundo2_i18n("Draw Ellipse"));
         return;
     }
     if (!info.shouldAddShape) {

@@ -31,6 +31,8 @@ private Q_SLOTS:
     void erasingAndLayerVisibilityPreservePixelMeaning();
     void longDiagonalUsesOnlyIntersectingTiles();
     void shapesUndoAndRecoveryRestoreTheSamePixels();
+    void rectangleOutlinesPreserveRotationHistoryAndRecovery_data();
+    void rectangleOutlinesPreserveRotationHistoryAndRecovery();
     void straightLinesPreserveIntermediatePressure_data();
     void straightLinesPreserveIntermediatePressure();
     void versionsOutliveTheRendererAndRejectAnotherDeviceOwner();
@@ -641,6 +643,63 @@ void KisGpuTileRendererTest::shapesUndoAndRecoveryRestoreTheSamePixels()
     QVERIFY(render(renderer, document.preview(), ellipse));
     QCOMPARE(document.cancelStroke(cancelled), Result::Success);
     QCOMPARE(readTile(render(renderer, document.snapshot(), ellipse), document.activeLayer(), {0, 0}), pixels);
+}
+
+void KisGpuTileRendererTest::rectangleOutlinesPreserveRotationHistoryAndRecovery_data()
+{
+    QTest::addColumn<qreal>("rotation");
+    QTest::addColumn<QPoint>("edge");
+    QTest::newRow("axis-aligned") << qreal(0) << QPoint(16, 32);
+    QTest::newRow("rotated") << qreal(0.7853981633974483) << QPoint(9, 32);
+}
+
+void KisGpuTileRendererTest::rectangleOutlinesPreserveRotationHistoryAndRecovery()
+{
+    QFETCH(qreal, rotation);
+    QFETCH(QPoint, edge);
+    OperationDocument document({64, 64});
+    const auto layer = document.activeLayer();
+    Brush brush;
+    brush.rgba = {17, 129, 241, 255};
+    brush.diameter = 8;
+    const auto stroke = document.beginStroke(layer, brush, 7);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+    QCOMPARE(document.updateShape(stroke, {ShapeKind::Rectangle, {16, 16}, {48, 48}, rotation}), Result::Success);
+    TileRenderer renderer(m_device);
+    const auto preview = render(renderer, document.preview());
+    QVERIFY(preview);
+    const auto pixels = readTile(preview, layer, {0, 0});
+    const auto pixel = [&](const QByteArray &bytes, QPoint point) {
+        return bytes.mid((point.y() * TileRenderer::TileSize + point.x()) * 4, 4);
+    };
+    for (const auto &point : {edge, QPoint(64 - edge.x(), 64 - edge.y()),
+                              QPoint(edge.y(), edge.x()), QPoint(64 - edge.y(), 64 - edge.x())}) {
+        QCOMPARE(pixel(pixels, point), QByteArray::fromHex("1181f1ff"));
+    }
+    QCOMPARE(pixel(pixels, {32, 32}), QByteArray(4, '\0'));
+    QCOMPARE(pixel(pixels, {8, 8}), QByteArray(4, '\0'));
+    const auto beforeRejectedShape = document.preview();
+    QCOMPARE(document.updateShape(stroke, {ShapeKind::Rectangle, {16, 16}, {16, 48}, rotation}), Result::InvalidInput);
+    QCOMPARE(document.preview(), beforeRejectedShape);
+    QCOMPARE(document.undoCount(), 0);
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(readTile(render(renderer, restored.preview()), restored.activeLayer(), {0, 0}), pixels);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    QCOMPARE(document.historyAction(1), HistoryAction::DrawRectangle);
+    QCOMPARE(document.undo(), Result::Success);
+    const auto undone = render(renderer, document.snapshot(), preview);
+    QVERIFY(undone && undone->tiles(layer).isEmpty());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot(), undone), layer, {0, 0}), pixels);
+    const auto cancelled = document.beginStroke(layer, brush, 8);
+    QCOMPARE(document.appendSamples(cancelled, {{{32, 32}, 1}}), Result::Success);
+    QCOMPARE(document.updateShape(cancelled, {ShapeKind::Rectangle, {20, 20}, {40, 40}, rotation}), Result::Success);
+    QVERIFY(render(renderer, document.preview(), preview));
+    QCOMPARE(document.cancelStroke(cancelled), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), pixels);
+    QCOMPARE(readTile(preview, layer, {0, 0}), pixels);
 }
 
 void KisGpuTileRendererTest::versionsOutliveTheRendererAndRejectAnotherDeviceOwner()

@@ -49,6 +49,21 @@ QList<PaintSegment> paintGeometry(const PaintOperation &operation, quint32 step)
         points.back().position = operation.shape.second;
         break;
     }
+    case ShapeKind::Rectangle: {
+        const auto &shape = operation.shape;
+        const auto center = (shape.first + shape.second) / 2;
+        const qreal cosine = std::cos(shape.rotation), sine = std::sin(shape.rotation);
+        for (const auto &corner : {shape.first, QPointF(shape.second.x(), shape.first.y()),
+                                   shape.second, QPointF(shape.first.x(), shape.second.y())}) {
+            auto point = input.front();
+            const auto delta = corner - center;
+            point.position = center + QPointF(delta.x() * cosine - delta.y() * sine,
+                                               delta.x() * sine + delta.y() * cosine);
+            points.append(point);
+        }
+        points.append(points.front());
+        break;
+    }
     case ShapeKind::Ellipse: {
         const auto &shape = operation.shape;
         const auto center = (shape.first + shape.second) / 2;

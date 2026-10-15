@@ -13,6 +13,7 @@
 #include <KoUnit.h>
 #include <KoShape.h>
 #include <KoCanvasBase.h>
+#include <KoCanvasResourceProvider.h>
 #include <KoShapeController.h>
 #include <KoColorBackground.h>
 #include <KoPatternBackground.h>
@@ -25,6 +26,9 @@
 
 #include <canvas/kis_canvas_resource_provider.h>
 #include <kis_image.h>
+#include <kis_painting_information_builder.h>
+#include <kis_tool_freehand_helper.h>
+#include <gpu/KisGpuPaintImage.h>
 #include <brushengine/kis_paintop_registry.h>
 #include <kis_paint_device.h>
 #include <kis_figure_painting_stroke.h>
@@ -50,6 +54,47 @@
 #include "kis_tool.h"
 #include "kis_tool_paint.h"
 #include "kis_types.h"
+
+namespace {
+class KisToolGpuOutlineHelper final : public KisToolFreehandHelper
+{
+public:
+    using KisToolFreehandHelper::KisToolFreehandHelper;
+
+    void paint(KisImageWSP image, KisNodeSP node, const LibrePaint::Image::Gpu::Shape &shape)
+    {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        const auto owner = image->gpuImage();
+        initPaintImpl(0, KisPaintInformation(shape.first), resourceManager(), image, node, image.data());
+        if (!isRunning()) return;
+        const auto result = owner->updateShape(owner->operations().activeOperation(), shape);
+        if (result != Gpu::Result::Success) {
+            cancelPaint();
+            Q_EMIT requestErrorMessage(i18n("The outline could not be drawn on this GPU paint layer."));
+            return;
+        }
+        endPaint();
+    }
+};
+}
+
+void KisToolShape::paintGpuOutline(const LibrePaint::Image::Gpu::Shape &shape, const KUndo2MagicString &name)
+{
+    if (strokeStyle() == KisFigurePaintingOptions::StrokeStyleNone) return;
+    auto *source = canvas()->resourceManager();
+    KoCanvasResourceProvider resources;
+    for (int key : {KoCanvasResource::CurrentPaintOpPreset, KoCanvasResource::CurrentEffectiveCompositeOp,
+                    KoCanvasResource::Size, KoCanvasResource::Opacity, KoCanvasResource::MirrorHorizontal,
+                    KoCanvasResource::MirrorVertical, KoCanvasResource::GlobalAlphaLock, KoCanvasResource::EraserMode}) {
+        resources.setResource(key, source->resource(key));
+    }
+    resources.setForegroundColor(strokeStyle() == KisFigurePaintingOptions::StrokeStyleBackground ?
+                                 source->backgroundColor() : source->foregroundColor());
+    KisPaintingInformationBuilder builder;
+    KisToolGpuOutlineHelper helper(&builder, &resources, name);
+    connect(&helper, &KisToolFreehandHelper::requestErrorMessage, this, &KoToolBase::statusTextChanged);
+    helper.paint(image(), currentNode(), shape);
+}
 
 
 KisToolShape::KisToolShape(KoCanvasBase * canvas, const QCursor & cursor)

@@ -98,10 +98,17 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving_data()
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<bool>("closeOnError");
     QTest::addColumn<bool>("canonical");
-    QTest::newRow("ordinary") << false << false << false;
-    QTest::newRow("gpu") << true << false << false;
-    QTest::newRow("gpu-close-on-rejection") << true << true << false;
-    QTest::newRow("gpu-canonical") << true << false << true;
+    QTest::addColumn<bool>("rectangle");
+    QTest::addColumn<bool>("rounded");
+    QTest::newRow("ordinary") << false << false << false << false << false;
+    QTest::newRow("gpu") << true << false << false << false << false;
+    QTest::newRow("gpu-close-on-rejection") << true << true << false << false << false;
+    QTest::newRow("gpu-canonical") << true << false << true << false << false;
+    QTest::newRow("rectangle-ordinary") << false << false << false << true << false;
+    QTest::newRow("rectangle-gpu") << true << false << false << true << false;
+    QTest::newRow("rectangle-gpu-close-on-rejection") << true << true << false << true << false;
+    QTest::newRow("rectangle-gpu-close-on-rounded-rejection") << true << true << false << true << true;
+    QTest::newRow("rectangle-gpu-canonical") << true << false << true << true << false;
 }
 
 void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
@@ -109,6 +116,8 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
     QFETCH(bool, gpu);
     QFETCH(bool, closeOnError);
     QFETCH(bool, canonical);
+    QFETCH(bool, rectangle);
+    QFETCH(bool, rounded);
     namespace Gpu = LibrePaint::Image::Gpu;
     QSettings settings(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) +
                        QStringLiteral("/kritadisplayrc"), QSettings::IniFormat);
@@ -176,9 +185,14 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
     resources->setBGColor(KoColor(QColor(221, 17, 44), cs));
     resources->setEraserMode(false);
     resources->setCurrentCompositeOp(QStringLiteral("normal"));
-    KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolEllipse"));
-    tool = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KritaShape/KisToolEllipse"));
+    const auto toolId = rectangle ? QStringLiteral("KritaShape/KisToolRectangle") : QStringLiteral("KritaShape/KisToolEllipse");
+    KoToolManager::instance()->switchToolRequested(toolId);
+    tool = KoToolManager::instance()->toolById(view->canvasBase(), toolId);
     QVERIFY(tool);
+    if (rectangle) {
+        QVERIFY(QMetaObject::invokeMethod(tool, "roundCornersChanged", Qt::DirectConnection,
+                                         Q_ARG(int, rounded ? 4 : 0), Q_ARG(int, rounded ? 4 : 0)));
+    }
     QPointer<QComboBox> outline, fill;
     for (QWidget *panel : tool->optionWidgets()) {
         if (auto *value = panel->findChild<QComboBox*>(QStringLiteral("cmbOutline"))) outline = value;
@@ -255,9 +269,11 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
         return bytes;
     };
     if (closeOnError) {
-        fill->setCurrentIndex(KisFigurePaintingOptions::FillStyleForegroundColor);
+        if (!rounded) fill->setCurrentIndex(KisFigurePaintingOptions::FillStyleForegroundColor);
         start();
-        const QString expected = i18n("Filling an ellipse is not yet supported for this GPU document.");
+        const QString expected = rounded ? i18n("Rounded rectangles are not yet supported for this GPU document.") :
+                                 rectangle ? i18n("Filling a rectangle is not yet supported for this GPU document.") :
+                                             i18n("Filling an ellipse is not yet supported for this GPU document.");
         QSignalSpy status(tool, &KoToolBase::statusTextChanged);
         connect(tool, &KoToolBase::statusTextChanged, window.get(), [&](const QString &message) {
             if (message != expected) return;
@@ -286,10 +302,11 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
     QTRY_COMPARE(lifetime->undoStack()->count(), 1);
     QCOMPARE(pixel({32, 18}), QByteArray::fromHex("f18111ff"));
     QCOMPARE(pixel({32, 32}), QByteArray(4, '\0'));
-    QCOMPARE(pixel({16, 16}), QByteArray(4, '\0'));
+    QCOMPARE(pixel({16, 16}), rectangle ? QByteArray::fromHex("f18111ff") : QByteArray(4, '\0'));
     if (gpu) {
         const auto operation = std::get<Gpu::PaintSnapshot>(owner->operations().snapshot()->layers.first().operations.last());
-        QCOMPARE(operation->shape.kind, Gpu::ShapeKind::Ellipse);
+        QCOMPARE(operation->shape.kind, rectangle ? Gpu::ShapeKind::Rectangle : Gpu::ShapeKind::Ellipse);
+        QCOMPARE(owner->operations().historyAction(1), rectangle ? Gpu::HistoryAction::DrawRectangle : Gpu::HistoryAction::DrawEllipse);
     }
     lifetime->undoStack()->undo();
     image->waitForDone();
@@ -333,8 +350,9 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
     const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
     if (canonical && !results.isEmpty()) {
         QVERIFY(QDir().mkpath(results));
+        const auto prefix = rectangle ? QStringLiteral("rectangle-tool") : QStringLiteral("ellipse-tool");
         LibrePaint::Document::Gpu::PaintDocument fixed(owner);
-        const auto saved = fixed.exportKra(QDir(results).filePath(QStringLiteral("ellipse-tool.kra")));
+        const auto saved = fixed.exportKra(QDir(results).filePath(prefix + QStringLiteral(".kra")));
         QVERIFY2(saved.code == LibrePaint::Document::Gpu::FileCode::Success, qPrintable(saved.diagnostic));
         KisPropertiesConfigurationSP configuration(new KisPropertiesConfiguration);
         configuration->setProperty("alpha", true);
@@ -344,7 +362,7 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
         configuration->setProperty("forceSRGB", false);
         configuration->setProperty("storeAuthor", false);
         configuration->setProperty("storeMetaData", false);
-        QVERIFY2(lifetime->exportDocumentSync(QDir(results).filePath(QStringLiteral("ellipse-tool.png")),
+        QVERIFY2(lifetime->exportDocumentSync(QDir(results).filePath(prefix + QStringLiteral(".png")),
                                              QByteArrayLiteral("image/png"), configuration),
                  qPrintable(lifetime->errorMessage()));
     }

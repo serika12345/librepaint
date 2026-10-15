@@ -22,6 +22,7 @@
 
 class KoCanvasBase;
 class KoPathShape;
+namespace LibrePaint::Image::Gpu { struct Shape; }
 
 
 class WdgGeometryOptions : public QWidget, public Ui::WdgGeometryOptions
@@ -63,6 +64,9 @@ protected:
     QTransform fillTransform();
 
     qreal currentStrokeWidth() const;
+
+    /** Draw one retained GPU outline with the current brush and outline color. */
+    void paintGpuOutline(const LibrePaint::Image::Gpu::Shape &shape, const KUndo2MagicString &name);
 
     struct KRITAUI_EXPORT ShapeAddInfo {
         bool shouldAddShape = false;

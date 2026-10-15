@@ -28,6 +28,7 @@ KUndo2MagicString historyLabel(HistoryAction action)
     case HistoryAction::PaintStroke: return kundo2_i18n("Paint stroke");
     case HistoryAction::DrawLine: return kundo2_i18n("Draw line");
     case HistoryAction::DrawEllipse: return kundo2_i18n("Draw ellipse");
+    case HistoryAction::DrawRectangle: return kundo2_i18n("Draw rectangle");
     case HistoryAction::ReplacePixels: return kundo2_i18n("Replace pixels");
     }
     Q_UNREACHABLE();

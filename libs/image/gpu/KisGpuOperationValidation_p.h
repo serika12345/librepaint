@@ -81,6 +81,7 @@ inline bool validShape(const Shape &shape)
     case ShapeKind::Line:
         return true;
     case ShapeKind::Ellipse:
+    case ShapeKind::Rectangle:
         return shape.first.x() != shape.second.x() && shape.first.y() != shape.second.y();
     }
     return false;

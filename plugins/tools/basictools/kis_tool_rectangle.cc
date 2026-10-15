@@ -27,6 +27,8 @@
 #include <canvas/kis_canvas_resource_provider.h>
 #include <KoBasicShapeFactory.h>
 #include <kis_figure_painting_stroke.h>
+#include <gpu/KisGpuOperationDocument.h>
+#include <kis_image.h>
 
 #include <KoCanvasController.h>
 #include <KoShapeStroke.h>
@@ -72,6 +74,19 @@ void KisToolRectangle::finishRect(const QRectF &rect, qreal roundCornersX, qreal
     const KisToolShape::ShapeAddInfo info =
         shouldAddShape(currentNode());
 
+    if (!info.shouldAddShape && image()->gpuImage()) {
+        if (fillStyle() != KisFigurePaintingOptions::FillStyleNone) {
+            Q_EMIT statusTextChanged(i18n("Filling a rectangle is not yet supported for this GPU document."));
+            return;
+        }
+        if (roundCornersX > 0 || roundCornersY > 0) {
+            Q_EMIT statusTextChanged(i18n("Rounded rectangles are not yet supported for this GPU document."));
+            return;
+        }
+        paintGpuOutline({LibrePaint::Image::Gpu::ShapeKind::Rectangle, rect.topLeft(), rect.bottomRight(), getRotationAngle()},
+                        kundo2_i18n("Draw Rectangle"));
+        return;
+    }
     if (!info.shouldAddShape) {
         KisFigurePaintingStroke stroke(kundo2_i18n("Draw Rectangle"),
                                        image(),
