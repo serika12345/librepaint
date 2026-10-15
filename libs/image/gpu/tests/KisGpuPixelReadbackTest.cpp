@@ -30,9 +30,83 @@ private Q_SLOTS:
     void asynchronousPixelsKeepThePinnedVersionAndNewerRequests();
     void asynchronousResultsOutliveClosedDocumentsAndTheDevice();
     void discardedAsynchronousReadsReleaseTheirNativeStorage();
+    void projectionTransparencyUsesPinnedPixelsAndCanvasClipping();
+    void transparencyResultsOutliveClosedDocumentsAndTheirDevice();
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPixelReadbackTest::projectionTransparencyUsesPinnedPixelsAndCanvasClipping()
+{
+    QByteArray rgba = QByteArray::fromHex("112233ff").repeated(RgbaTile::ByteCount / 4);
+    rgba[7] = '\0';
+    rgba[TileRenderer::TileSize * 4 + 3] = '\0';
+    RasterImage image;
+    image.size = {1, 2};
+    image.layers = {{QStringLiteral("Visible"), true, {}, {{{0, 0}, rgba}}},
+                    {QStringLiteral("Hidden"), false, {}, {}, {20, 40, 60, 255}}};
+    OperationDocument document(image);
+    const auto pinned = document.snapshot();
+    Execution execution(m_device, 4 * TileRenderer::TileBytes, 1, TileRenderer::TileBytes);
+    const auto handle = execution.open(pinned).handle;
+    auto pending = execution.readTransparencyAsync(handle, pinned, {0, 0, 1, 1});
+    QCOMPARE(document.setLayerOpacity(pinned->layers.first().id, 128), Result::Success);
+    const auto latest = document.snapshot();
+    QCOMPARE(execution.request(handle, latest).code, ExecutionCode::Success);
+    QTRY_VERIFY_WITH_TIMEOUT((execution.pollReadbacks(), pending.wait_for(std::chrono::seconds(0))) == std::future_status::ready, 5000);
+    const auto opaque = pending.get();
+    QVERIFY2(opaque.code == ExecutionCode::Success, qPrintable(opaque.diagnostic));
+    QVERIFY(opaque.containsTransparency.has_value());
+    QVERIFY(!*opaque.containsTransparency);
+    QVERIFY(opaque.tiles.isEmpty());
+    QCOMPARE(opaque.document, pinned);
+    QCOMPARE(execution.requested(handle), latest);
+    QVERIFY(!execution.published(handle));
+    pending = execution.readTransparencyAsync(handle, latest, {-1, -1, 3, 4});
+    QTRY_VERIFY_WITH_TIMEOUT((execution.pollReadbacks(), pending.wait_for(std::chrono::seconds(0))) == std::future_status::ready, 5000);
+    const auto transparent = pending.get();
+    QVERIFY2(transparent.code == ExecutionCode::Success, qPrintable(transparent.diagnostic));
+    QCOMPARE(transparent.region, QRect(0, 0, 1, 2));
+    QVERIFY(transparent.containsTransparency.value_or(false));
+    QVERIFY(transparent.tiles.isEmpty());
+    QCOMPARE(document.writeProjectionBackground({0, 0, 0, 255}), Result::Success);
+    pending = execution.readTransparencyAsync(handle, document.snapshot(), {0, 0, 1, 2});
+    QTRY_VERIFY_WITH_TIMEOUT((execution.pollReadbacks(), pending.wait_for(std::chrono::seconds(0))) == std::future_status::ready, 5000);
+    const auto background = pending.get();
+    QVERIFY2(background.code == ExecutionCode::Success, qPrintable(background.diagnostic));
+    QVERIFY(background.containsTransparency.has_value());
+    QVERIFY(!*background.containsTransparency);
+    QCOMPARE(execution.requested(handle), latest);
+    QTRY_COMPARE(execution.pollReadbacks().code, ExecutionCode::Success);
+    OperationDocument foreign({1, 2});
+    const auto rejected = execution.readTransparencyAsync(handle, foreign.snapshot(), {0, 0, 1, 2}).get();
+    QCOMPARE(rejected.code, ExecutionCode::InvalidRequest);
+    QVERIFY(!rejected.containsTransparency);
+    QVERIFY(rejected.tiles.isEmpty());
+}
+
+void KisGpuPixelReadbackTest::transparencyResultsOutliveClosedDocumentsAndTheirDevice()
+{
+    std::future<PixelReadbackOutcome> pending;
+    std::weak_ptr<Device> lifetime;
+    {
+        QString diagnostic;
+        auto device = Device::createNative(diagnostic);
+        QVERIFY2(device, qPrintable(diagnostic));
+        lifetime = device;
+        OperationDocument document({513, 1});
+        Execution execution(device, 4 * TileRenderer::TileBytes, 1, TileRenderer::TileBytes);
+        const auto handle = execution.open(document.snapshot()).handle;
+        pending = execution.readTransparencyAsync(handle, document.snapshot(), {256, 0, 256, 1});
+        QCOMPARE(execution.close(handle).code, ExecutionCode::Success);
+    }
+    QVERIFY(lifetime.expired());
+    QCOMPARE(pending.wait_for(std::chrono::seconds(0)), std::future_status::ready);
+    const auto transparent = pending.get();
+    QVERIFY2(transparent.code == ExecutionCode::Success, qPrintable(transparent.diagnostic));
+    QVERIFY(transparent.containsTransparency.value_or(false));
+    QVERIFY(transparent.tiles.isEmpty());
+}
 
 void KisGpuPixelReadbackTest::rectangularPixelsStreamDefaultsHiddenLayersAndCanvasClipping_data()
 {

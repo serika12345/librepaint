@@ -12,6 +12,7 @@
 #include <QBuffer>
 #include <QPointer>
 #include <kis_png_converter.h>
+#include <KisExportRasterRows.h>
 #include <cstring>
 #include <thread>
 
@@ -163,6 +164,19 @@ void KisPngTest::testRowEncodingPreservesPixels()
     QVERIFY(encoded.open(QIODevice::ReadWrite));
     KisPNGConverter writer(nullptr, true);
     QVERIFY(writer.buildFile(&encoded, region, 1, 1, device, annotations.begin(), annotations.end(), options, nullptr).isOk());
+    KisExportRasterRows rows;
+    rows.colorSpace = cs;
+    rows.size = region.size();
+    rows.readRow = [device, region, cs](int row, QByteArray &bytes) {
+        bytes.resize(qsizetype(region.width()) * cs->pixelSize());
+        device->readBytes(reinterpret_cast<quint8 *>(bytes.data()), region.x(), region.y() + row, region.width(), 1);
+        return KisImportExportErrorCode(ImportExportCodes::OK);
+    };
+    QBuffer streamed;
+    QVERIFY(streamed.open(QIODevice::WriteOnly));
+    KisPNGConverter rowWriter(nullptr, true);
+    QVERIFY(rowWriter.buildFile(&streamed, rows, 1, 1, annotations.begin(), annotations.end(), options, nullptr).isOk());
+    QCOMPARE(streamed.data(), encoded.data());
     QVERIFY(encoded.seek(0));
     KisPNGConverter reader(nullptr, true);
     const auto result = reader.buildImage(&encoded);
@@ -174,6 +188,106 @@ void KisPngTest::testRowEncodingPreservesPixels()
     device->readBytes(reinterpret_cast<quint8 *>(expected.data()), region);
     reader.image()->projection()->readBytes(reinterpret_cast<quint8 *>(actual.data()), QRect(QPoint(), region.size()));
     QCOMPARE(actual, expected);
+}
+
+void KisPngTest::testRowEncodingPreservesColorOptions_data()
+{
+    QTest::addColumn<int>("conversion");
+    QTest::addColumn<bool>("alpha");
+    QTest::addColumn<bool>("interlaced");
+    for (int conversion = 0; conversion < 4; ++conversion) {
+        for (bool alpha : {false, true}) {
+            for (bool interlaced : {false, true}) {
+                const QByteArray name = QByteArray::number(conversion) + (alpha ? "-alpha" : "-background") +
+                                  (interlaced ? "-interlaced" : "-ordinary");
+                QTest::newRow(name.constData()) << conversion << alpha << interlaced;
+            }
+        }
+    }
+}
+
+void KisPngTest::testRowEncodingPreservesColorOptions()
+{
+    QFETCH(int, conversion);
+    QFETCH(bool, alpha);
+    QFETCH(bool, interlaced);
+    auto *registry = KoColorSpaceRegistry::instance();
+    const auto cs = conversion >= 2 ? registry->colorSpace(RGBAColorModelID.id(), Float32BitsColorDepthID.id(), registry->p709G10Profile()) : registry->rgb8();
+    QVERIFY(cs);
+    KisPaintDeviceSP device = new KisPaintDevice(cs);
+    const QRect region(2, 3, 33, 17);
+    for (int y = region.top(); y <= region.bottom(); ++y) {
+        for (int x = region.left(); x <= region.right(); ++x) {
+            KoColor pixel(QColor((x * 17) % 256, (y * 29) % 256, (x * y) % 256, ((x + y) % 4) * 85), cs);
+            device->writeBytes(pixel.data(), x, y, 1, 1);
+        }
+    }
+    KisPNGOptions options;
+    options.alpha = alpha;
+    options.interlace = interlaced;
+    options.forceSRGB = conversion == 1;
+    options.saveAsHDR = conversion == 2;
+    options.downsample = conversion == 3;
+    options.tryToSaveAsIndexed = false;
+    options.saveSRGBProfile = true;
+    options.transparencyFillColor = QColor(93, 171, 47);
+    options.compression = 3;
+    vKisAnnotationSP annotations;
+    QBuffer reference;
+    QVERIFY(reference.open(QIODevice::WriteOnly));
+    KisPNGConverter writer(nullptr, true);
+    auto result = writer.buildFile(&reference, region, 1, 1, device, annotations.begin(), annotations.end(), options, nullptr);
+    QVERIFY2(result.isOk(), qPrintable(result.errorMessage()));
+    KisExportRasterRows rows;
+    rows.colorSpace = cs;
+    rows.size = region.size();
+    rows.readRow = [device, region, cs](int row, QByteArray &bytes) {
+        bytes.resize(qsizetype(region.width()) * cs->pixelSize());
+        device->readBytes(reinterpret_cast<quint8 *>(bytes.data()), region.x(), region.y() + row, region.width(), 1);
+        return KisImportExportErrorCode(ImportExportCodes::OK);
+    };
+    QBuffer actual;
+    QVERIFY(actual.open(QIODevice::WriteOnly));
+    KisPNGConverter rowWriter(nullptr, true);
+    result = rowWriter.buildFile(&actual, rows, 1, 1, annotations.begin(), annotations.end(), options, nullptr);
+    QVERIFY2(result.isOk(), qPrintable(result.errorMessage()));
+    QCOMPARE(actual.data(), reference.data());
+}
+
+void KisPngTest::testRowReadFailureStopsEncoding_data()
+{
+    QTest::addColumn<int>("failure");
+    QTest::newRow("cancelled-source") << 0;
+    QTest::newRow("failed-source") << 1;
+    QTest::newRow("incomplete-row") << 2;
+}
+
+void KisPngTest::testRowReadFailureStopsEncoding()
+{
+    QFETCH(int, failure);
+    KisExportRasterRows rows;
+    rows.colorSpace = KoColorSpaceRegistry::instance()->rgb8();
+    rows.size = QSize(33, 17);
+    int requestedRows = 0;
+    rows.readRow = [&](int row, QByteArray &bytes) {
+        ++requestedRows;
+        bytes.fill('\0', 33 * 4);
+        if (row != 3) return KisImportExportErrorCode(ImportExportCodes::OK);
+        if (failure == 2) { bytes.chop(1); return KisImportExportErrorCode(ImportExportCodes::OK); }
+        return KisImportExportErrorCode(failure == 0 ? ImportExportCodes::Cancelled : ImportExportCodes::Failure);
+    };
+    KisPNGOptions options;
+    options.alpha = true;
+    options.tryToSaveAsIndexed = false;
+    vKisAnnotationSP annotations;
+    QBuffer encoded;
+    QVERIFY(encoded.open(QIODevice::WriteOnly));
+    KisPNGConverter writer(nullptr, true);
+    const auto result = writer.buildFile(&encoded, rows, 1, 1, annotations.begin(), annotations.end(), options, nullptr);
+    QVERIFY(!result.isOk());
+    QCOMPARE(result.isCancelled(), failure == 0);
+    QCOMPARE(requestedRows, 4);
+    QVERIFY(!encoded.data().endsWith(QByteArray::fromHex("0000000049454e44ae426082")));
 }
 
 void KisPngTest::testWriteFailureReleasesSourcePixels_data()

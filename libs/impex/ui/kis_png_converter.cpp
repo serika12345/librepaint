@@ -7,6 +7,7 @@
 
 #include "kis_png_converter.h"
 #include "KisImportExportErrorCode.h"
+#include "KisExportRasterRows.h"
 #include "KisQStringListFwd.h"
 #include "KoIntegerMaths.h"
 #include "kis_annotation.h"
@@ -57,6 +58,7 @@
 #include <QUrl>
 
 #include <KoColorSpace.h>
+#include <KoCompositeOp.h>
 #include <metadata/KoDocumentInfo.h>
 #include <KoID.h>
 #include <KoColorSpaceRegistry.h>
@@ -960,6 +962,47 @@ KisImportExportErrorCode KisPNGConverter::buildFile(const QString &filename, con
     return result;
 }
 
+namespace {
+const KoColorSpace *pngOutputColorSpace(const KoColorSpace *source, KisPNGOptions &options, bool &needsConversion)
+{
+    KIS_SAFE_ASSERT_RECOVER(!options.saveAsHDR || !options.forceSRGB) {
+        options.forceSRGB = false;
+    }
+
+    QStringList colormodels = QStringList() << RGBAColorModelID.id() << GrayAColorModelID.id();
+    QString dstModel = source->colorModelId().id();
+    QString dstDepth = source->colorDepthId().id();
+    const KoColorProfile *dstProfile = source->profile();
+    needsConversion = false;
+
+    if (options.saveAsHDR || options.forceSRGB || !colormodels.contains(source->colorModelId().id())) {
+        dstModel = RGBAColorModelID.id();
+        dstProfile = KoColorSpaceRegistry::instance()->p709SRGBProfile();
+
+        needsConversion = true;
+
+        if (options.saveAsHDR) {
+            dstProfile = KoColorSpaceRegistry::instance()->p2020PQProfile();
+        }
+    }
+
+    if (options.downsample
+            || source->colorDepthId() == Float16BitsColorDepthID
+            || source->colorDepthId() == Float32BitsColorDepthID
+            || source->colorDepthId() == Float64BitsColorDepthID) {
+        dstDepth = Integer16BitsColorDepthID.id();
+
+        needsConversion = true;
+
+        if (options.downsample) {
+            dstDepth = Integer8BitsColorDepthID.id();
+        }
+    }
+
+    return needsConversion ? KoColorSpaceRegistry::instance()->colorSpace(dstModel, dstDepth, dstProfile) : source;
+}
+}
+
 KisImportExportErrorCode KisPNGConverter::buildFile(QIODevice* iodevice, const QRect &imageRect, const qreal xRes, const qreal yRes, KisPaintDeviceSP device, vKisAnnotationSP_it annotationsStart, vKisAnnotationSP_it annotationsEnd, KisPNGOptions options, KisMetaData::Store* metaData)
 {
     if (m_stop) return ImportExportCodes::Cancelled;
@@ -976,56 +1019,113 @@ KisImportExportErrorCode KisPNGConverter::buildFile(QIODevice* iodevice, const Q
         device = tmp;
     }
 
-    KIS_SAFE_ASSERT_RECOVER(!options.saveAsHDR || !options.forceSRGB) {
-        options.forceSRGB = false;
-    }
-
-    QStringList colormodels = QStringList() << RGBAColorModelID.id() << GrayAColorModelID.id();
-    QString dstModel = device->colorSpace()->colorModelId().id();
-    QString dstDepth = device->colorSpace()->colorDepthId().id();
-    const KoColorProfile *dstProfile = device->colorSpace()->profile();
-    bool needColorTransform = false;
-
-    if (options.saveAsHDR || options.forceSRGB || !colormodels.contains(device->colorSpace()->colorModelId().id())) {
-        dstModel = RGBAColorModelID.id();
-        dstProfile = KoColorSpaceRegistry::instance()->p709SRGBProfile();
-
-        needColorTransform = true;
-
-        if (options.saveAsHDR) {
-            dstProfile = KoColorSpaceRegistry::instance()->p2020PQProfile();
-        }
-    }
-
-    if (options.downsample
-            || device->colorSpace()->colorDepthId() == Float16BitsColorDepthID
-            || device->colorSpace()->colorDepthId() == Float32BitsColorDepthID
-            || device->colorSpace()->colorDepthId() == Float64BitsColorDepthID) {
-        dstDepth = Integer16BitsColorDepthID.id();
-
-        needColorTransform = true;
-
-        if (options.downsample) {
-            dstDepth = Integer8BitsColorDepthID.id();
-        }
-    }
-
-    if (needColorTransform) {
-        const KoColorSpace *dstCs = KoColorSpaceRegistry::instance()->colorSpace(dstModel, dstDepth, dstProfile);
-
-        if (!dstCs) {
-            return ImportExportCodes::FormatColorSpaceUnsupported;
-        }
-
+    bool needsConversion = false;
+    const auto destination = pngOutputColorSpace(device->colorSpace(), options, needsConversion);
+    if (!destination) return ImportExportCodes::FormatColorSpaceUnsupported;
+    if (needsConversion) {
         device = new KisPaintDevice(*device);
-        device->convertTo(dstCs);
+        device->convertTo(destination);
     }
+    KisExportRasterRows rows;
+    rows.colorSpace = device->colorSpace();
+    rows.size = imageRect.size();
+    rows.readRow = [device, imageRect](int row, QByteArray &bytes) {
+        bytes.resize(qsizetype(imageRect.width()) * device->pixelSize());
+        device->readBytes(reinterpret_cast<quint8 *>(bytes.data()), imageRect.x(), imageRect.y() + row, imageRect.width(), 1);
+        return KisImportExportErrorCode(ImportExportCodes::OK);
+    };
+    return encodeRows(iodevice, rows, xRes, yRes, annotationsStart, annotationsEnd, options, metaData);
+}
 
+KisImportExportErrorCode KisPNGConverter::buildFile(QIODevice *iodevice, const KisExportRasterRows &rows,
+    qreal xRes, qreal yRes, vKisAnnotationSP_it annotationsStart, vKisAnnotationSP_it annotationsEnd,
+    KisPNGOptions options, KisMetaData::Store *metaData)
+{
+    if (m_stop) return ImportExportCodes::Cancelled;
+    if (!rows.colorSpace || !rows.readRow || rows.size.isEmpty()) return ImportExportCodes::InternalError;
+    if (qint64(rows.size.width()) * rows.colorSpace->pixelSize() > INT_MAX)
+        return ImportExportCodes::InsufficientMemory;
+    bool needsConversion = false;
+    const auto destination = pngOutputColorSpace(rows.colorSpace, options, needsConversion);
+    if (!destination) return ImportExportCodes::FormatColorSpaceUnsupported;
+    if (qint64(rows.size.width()) * destination->pixelSize() > INT_MAX)
+        return ImportExportCodes::InsufficientMemory;
+    struct Conversion {
+        KisExportRasterRows source;
+        const KoColorSpace *destination;
+        KoColor background;
+        bool flatten;
+        QByteArray input, filled;
+        KoColorConversionTransformation::Intent intent;
+        KoColorConversionTransformation::ConversionFlags flags;
+        std::unique_ptr<KoColorConversionTransformation> transform;
+        Conversion(const KisExportRasterRows &source, const KoColorSpace *destination, const KisPNGOptions &options)
+            : source(source), destination(destination), background(options.transparencyFillColor, source.colorSpace),
+              flatten(!options.alpha), intent(KoColorConversionTransformation::internalRenderingIntent()),
+              flags(KoColorConversionTransformation::internalConversionFlags())
+        {
+            if (source.colorSpace != destination)
+                transform.reset(source.colorSpace->createColorConverter(destination, intent, flags));
+        }
+        KisImportExportErrorCode read(int row, QByteArray &output)
+        {
+            auto result = source.readRow(row, input);
+            if (!result.isOk()) return result;
+            const qsizetype size = qsizetype(source.size.width()) * source.colorSpace->pixelSize();
+            if (input.size() != size || size > INT_MAX) return ImportExportCodes::InternalError;
+            const quint8 *pixels = reinterpret_cast<const quint8 *>(input.constData());
+            if (flatten) {
+                filled.resize(size);
+                for (int x = 0; x < source.size.width(); ++x)
+                    std::memcpy(filled.data() + qsizetype(x) * source.colorSpace->pixelSize(), background.data(), source.colorSpace->pixelSize());
+                KoCompositeOp::ParameterInfo parameters;
+                parameters.dstRowStart = reinterpret_cast<quint8 *>(filled.data());
+                parameters.dstRowStride = int(size);
+                parameters.srcRowStart = pixels;
+                parameters.srcRowStride = int(size);
+                parameters.rows = 1;
+                parameters.cols = source.size.width();
+                parameters.setOpacityAndAverage(1.0f, 1.0f);
+                parameters.flow = 1.0f;
+                source.colorSpace->bitBlt(source.colorSpace, parameters, source.colorSpace->compositeOp(QStringLiteral("normal")), intent, flags);
+                pixels = reinterpret_cast<const quint8 *>(filled.constData());
+            }
+            if (transform) {
+                output.resize(qsizetype(source.size.width()) * destination->pixelSize());
+                transform->transform(pixels, reinterpret_cast<quint8 *>(output.data()), source.size.width());
+            } else output = flatten ? filled : input;
+            return ImportExportCodes::OK;
+        }
+    };
+    const auto conversion = std::make_shared<Conversion>(rows, destination, options);
+    if (rows.colorSpace != destination && !conversion->transform) return ImportExportCodes::FormatColorSpaceUnsupported;
+    KisExportRasterRows prepared;
+    prepared.colorSpace = destination;
+    prepared.size = rows.size;
+    prepared.readRow = [conversion](int row, QByteArray &bytes) { return conversion->read(row, bytes); };
+    return encodeRows(iodevice, prepared, xRes, yRes, annotationsStart, annotationsEnd, options, metaData);
+}
+
+KisImportExportErrorCode KisPNGConverter::encodeRows(QIODevice *iodevice, const KisExportRasterRows &rows,
+    qreal xRes, qreal yRes, vKisAnnotationSP_it annotationsStart, vKisAnnotationSP_it annotationsEnd,
+    KisPNGOptions options, KisMetaData::Store *metaData)
+{
+    if (m_stop) return ImportExportCodes::Cancelled;
+    if (!rows.colorSpace || !rows.readRow || rows.size.isEmpty()) return ImportExportCodes::InternalError;
+    const QRect imageRect(QPoint(), rows.size);
     KIS_SAFE_ASSERT_RECOVER(!options.saveAsHDR || !options.tryToSaveAsIndexed) {
         options.tryToSaveAsIndexed = false;
     }
 
-    QByteArray rowData(qsizetype(imageRect.width()) * device->pixelSize(), Qt::Uninitialized);
+    struct RowBuffers { QByteArray input, encoded; };
+    auto rowBuffers = std::make_unique<RowBuffers>();
+    const qsizetype rowBytes = qsizetype(imageRect.width()) * rows.colorSpace->pixelSize();
+    rowBuffers->encoded.resize(rowBytes);
+    const auto readRow = [&](int row) {
+        auto result = rows.readRow(row, rowBuffers->input);
+        if (!result.isOk()) return result;
+        return rowBuffers->input.size() == rowBytes ? result : KisImportExportErrorCode(ImportExportCodes::InternalError);
+    };
 
     // Initialize structures
     png_structp png_ptr =  png_create_write_struct(PNG_LIBPNG_VER_STRING, 0, 0, 0);
@@ -1084,40 +1184,35 @@ KisImportExportErrorCode KisPNGConverter::buildFile(QIODevice* iodevice, const Q
     png_set_compression_method(png_ptr, 8);
     png_set_compression_buffer_size(png_ptr, 8192);
 
-    int color_nb_bits = 8 * device->pixelSize() / device->channelCount();
-    int color_type = getColorTypeforColorSpace(device->colorSpace(), options.alpha);
+    int color_nb_bits = 8 * rows.colorSpace->pixelSize() / rows.colorSpace->channelCount();
+    int color_type = getColorTypeforColorSpace(rows.colorSpace, options.alpha);
 
     Q_ASSERT(color_type > -1);
 
     // Try to compute a table of color if the colorspace is RGB8f
     QScopedArrayPointer<png_color> palette;
     int num_palette = 0;
-    if (!options.alpha && options.tryToSaveAsIndexed && KoID(device->colorSpace()->id()) == KoID("RGBA")) { // png doesn't handle indexed images and alpha, and only have indexed for RGB8
+    if (!options.alpha && options.tryToSaveAsIndexed && KoID(rows.colorSpace->id()) == KoID("RGBA")) { // png doesn't handle indexed images and alpha, and only have indexed for RGB8
         palette.reset(new png_color[255]);
 
-        KisSequentialIterator it(device, imageRect);
-
         bool toomuchcolor = false;
-        while (it.nextPixel()) {
-            const quint8* c = it.oldRawData();
-            bool findit = false;
-            for (int i = 0; i < num_palette; i++) {
-                if (palette[i].red == c[2] &&
-                        palette[i].green == c[1] &&
-                        palette[i].blue == c[0]) {
-                    findit = true;
-                    break;
+        for (int row = 0; row < rows.size.height() && !toomuchcolor; ++row) {
+            if (m_stop) return ImportExportCodes::Cancelled;
+            const auto read = readRow(row);
+            if (!read.isOk()) return read;
+            for (int x = 0; x < rows.size.width(); ++x) {
+                const auto *c = reinterpret_cast<const quint8 *>(rowBuffers->input.constData()) + x * rows.colorSpace->pixelSize();
+                bool found = false;
+                for (int i = 0; i < num_palette; ++i) {
+                    if (palette[i].red == c[2] && palette[i].green == c[1] && palette[i].blue == c[0]) { found = true; break; }
                 }
-            }
-            if (!findit) {
-                if (num_palette == 255) {
-                    toomuchcolor = true;
-                    break;
+                if (!found) {
+                    if (num_palette == 255) { toomuchcolor = true; break; }
+                    palette[num_palette].red = c[2];
+                    palette[num_palette].green = c[1];
+                    palette[num_palette].blue = c[0];
+                    ++num_palette;
                 }
-                palette[num_palette].red = c[2];
-                palette[num_palette].green = c[1];
-                palette[num_palette].blue = c[0];
-                num_palette++;
             }
         }
 
@@ -1151,7 +1246,7 @@ KisImportExportErrorCode KisPNGConverter::buildFile(QIODevice* iodevice, const Q
 
     // set sRGB only if the profile is sRGB  -- http://www.w3.org/TR/PNG/#11sRGB says sRGB and iCCP should not both be present
 
-    const bool sRGB = *device->colorSpace()->profile() == *KoColorSpaceRegistry::instance()->p709SRGBProfile();
+    const bool sRGB = *rows.colorSpace->profile() == *KoColorSpaceRegistry::instance()->p709SRGBProfile();
     /*
      * This automatically writes the correct gamma and chroma chunks along with the sRGB chunk, but firefox's
      * color management is bugged, so once you give it any incentive to start color managing an sRGB image it
@@ -1234,7 +1329,7 @@ KisImportExportErrorCode KisPNGConverter::buildFile(QIODevice* iodevice, const Q
     }
 
     // Save the color profile
-    const KoColorProfile* colorProfile = device->colorSpace()->profile();
+    const KoColorProfile* colorProfile = rows.colorSpace->profile();
     QByteArray colorProfileData = colorProfile->rawData();
     if (!sRGB || options.saveSRGBProfile) {
 
@@ -1350,54 +1445,55 @@ KisImportExportErrorCode KisPNGConverter::buildFile(QIODevice* iodevice, const Q
             if (m_stop) {
                 return ImportExportCodes::Cancelled;
             }
-            KisHLineConstIteratorSP it = device->createHLineConstIteratorNG(imageRect.x(), y, imageRect.width());
+            const auto read = readRow(y);
+            if (!read.isOk()) return read;
 
             switch (color_type) {
             case PNG_COLOR_TYPE_GRAY:
             case PNG_COLOR_TYPE_GRAY_ALPHA:
                 if (color_nb_bits == 16) {
-                    quint16 *dst = reinterpret_cast<quint16 *>(rowData.data());
-                    do {
-                        const quint16 *d = reinterpret_cast<const quint16 *>(it->oldRawData());
+                    quint16 *dst = reinterpret_cast<quint16 *>(rowBuffers->encoded.data());
+                    for (int x = 0; x < imageRect.width(); ++x) {
+                        const auto *d = reinterpret_cast<const quint16 *>(rowBuffers->input.constData() + qsizetype(x) * rows.colorSpace->pixelSize());
                         *(dst++) = d[0];
                         if (options.alpha) *(dst++) = d[1];
-                    } while (it->nextPixel());
+                    }
                 } else {
-                    quint8 *dst = reinterpret_cast<quint8 *>(rowData.data());
-                    do {
-                        const quint8 *d = it->oldRawData();
+                    quint8 *dst = reinterpret_cast<quint8 *>(rowBuffers->encoded.data());
+                    for (int x = 0; x < imageRect.width(); ++x) {
+                        const auto *d = reinterpret_cast<const quint8 *>(rowBuffers->input.constData() + qsizetype(x) * rows.colorSpace->pixelSize());
                         *(dst++) = d[0];
                         if (options.alpha) *(dst++) = d[1];
-                    } while (it->nextPixel());
+                    }
                 }
                 break;
             case PNG_COLOR_TYPE_RGB:
             case PNG_COLOR_TYPE_RGB_ALPHA:
                 if (color_nb_bits == 16) {
-                    quint16 *dst = reinterpret_cast<quint16 *>(rowData.data());
-                    do {
-                        const quint16 *d = reinterpret_cast<const quint16 *>(it->oldRawData());
+                    quint16 *dst = reinterpret_cast<quint16 *>(rowBuffers->encoded.data());
+                    for (int x = 0; x < imageRect.width(); ++x) {
+                        const auto *d = reinterpret_cast<const quint16 *>(rowBuffers->input.constData() + qsizetype(x) * rows.colorSpace->pixelSize());
                         *(dst++) = d[2];
                         *(dst++) = d[1];
                         *(dst++) = d[0];
                         if (options.alpha) *(dst++) = d[3];
-                    } while (it->nextPixel());
+                    }
                 } else {
-                    quint8 *dst = reinterpret_cast<quint8 *>(rowData.data());
-                    do {
-                        const quint8 *d = it->oldRawData();
+                    quint8 *dst = reinterpret_cast<quint8 *>(rowBuffers->encoded.data());
+                    for (int x = 0; x < imageRect.width(); ++x) {
+                        const auto *d = reinterpret_cast<const quint8 *>(rowBuffers->input.constData() + qsizetype(x) * rows.colorSpace->pixelSize());
                         *(dst++) = d[2];
                         *(dst++) = d[1];
                         *(dst++) = d[0];
                         if (options.alpha) *(dst++) = d[3];
-                    } while (it->nextPixel());
+                    }
                 }
                 break;
             case PNG_COLOR_TYPE_PALETTE: {
-                quint8 *dst = reinterpret_cast<quint8 *>(rowData.data());
+                quint8 *dst = reinterpret_cast<quint8 *>(rowBuffers->encoded.data());
                 KisPNGWriteStream writestream(dst, color_nb_bits);
-                do {
-                    const quint8 *d = it->oldRawData();
+                for (int x = 0; x < imageRect.width(); ++x) {
+                    const auto *d = reinterpret_cast<const quint8 *>(rowBuffers->input.constData() + qsizetype(x) * rows.colorSpace->pixelSize());
                     int i;
                     for (i = 0; i < num_palette; i++) {
                         if (palette[i].red == d[2] &&
@@ -1407,13 +1503,13 @@ KisImportExportErrorCode KisPNGConverter::buildFile(QIODevice* iodevice, const Q
                         }
                     }
                     writestream.setNextValue(i);
-                } while (it->nextPixel());
+                }
             }
                 break;
             default:
                 return ImportExportCodes::FormatColorSpaceUnsupported;
             }
-            if (!writePngRow(png_ptr, reinterpret_cast<png_bytep>(rowData.data()))) {
+            if (!writePngRow(png_ptr, reinterpret_cast<png_bytep>(rowBuffers->encoded.data()))) {
                 return ImportExportCodes::Failure;
             }
         }

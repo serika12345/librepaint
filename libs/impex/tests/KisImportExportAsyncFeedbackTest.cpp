@@ -23,13 +23,16 @@ private Q_SLOTS:
 void KisImportExportAsyncFeedbackTest::workerCompletionKeepsTheRequestedInteractionMode_data()
 {
     QTest::addColumn<bool>("interactive");
-    QTest::newRow("existing-exclusive-caller") << false;
-    QTest::newRow("fixed-snapshot-interactive-caller") << true;
+    QTest::addColumn<bool>("showProgress");
+    QTest::newRow("existing-exclusive-caller") << false << true;
+    QTest::newRow("fixed-snapshot-interactive-caller") << true << true;
+    QTest::newRow("batch-fixed-snapshot-caller") << true << false;
 }
 
 void KisImportExportAsyncFeedbackTest::workerCompletionKeepsTheRequestedInteractionMode()
 {
     QFETCH(bool, interactive);
+    QFETCH(bool, showProgress);
     QSemaphore finish;
     std::atomic_bool workerThread{false};
     bool guiEvent = false;
@@ -53,14 +56,15 @@ void KisImportExportAsyncFeedbackTest::workerCompletionKeepsTheRequestedInteract
         workerThread.store(QThread::currentThread() != qApp->thread());
         return KisImportExportErrorCode(finish.tryAcquire(1, 5000) ? ImportExportCodes::OK : ImportExportCodes::Failure);
     };
-    const auto result = interactive ?
+    const auto result = !showProgress ?
+        runImportExportActionWithFeedback(QStringLiteral("Encoding image"), nullptr, action, true, false) : interactive ?
         runImportExportActionWithFeedback(QStringLiteral("Encoding image"), nullptr, action, true) :
         runImportExportActionWithFeedback(QStringLiteral("Encoding image"), nullptr, action);
     interaction.stop();
     QVERIFY(result.isOk());
     QVERIFY(workerThread.load());
     QVERIFY(guiEvent);
-    QVERIFY(foundProgress);
+    QCOMPARE(foundProgress, showProgress);
     QCOMPARE(modal, !interactive);
     QVERIFY(!QApplication::activeModalWidget());
 }

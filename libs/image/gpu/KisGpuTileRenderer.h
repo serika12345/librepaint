@@ -83,6 +83,7 @@ struct ProjectionOutcome
  */
 class KRITAGPUIMAGE_EXPORT TileRenderer
 {
+    friend class Execution;
 public:
     static constexpr int TileSize = RgbaTile::Size;
     static constexpr int TileBytes = RgbaTile::ByteCount;

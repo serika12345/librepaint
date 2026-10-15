@@ -22,12 +22,16 @@
 #include <QTimer>
 #include <QCheckBox>
 #include <exception>
+#include <future>
+#include <chrono>
 
 #include <Node.h>
 #include <Krita.h>
 #include <Document.h>
 #include <InfoObject.h>
 #include <KisImportExportManager.h>
+#include <KisGpuExportRasterRows.h>
+#include <QImageReader>
 #include <metadata/KoDocumentInfo.h>
 #include <kra/KisKraRasterCodec.h>
 
@@ -895,37 +899,51 @@ void TestDocument::testGpuPngExportDialogLifetimes()
     }
 }
 
-void TestDocument::testGpuExportPixelsRespectMemoryBudgetAndRetainTheirVersion()
+void TestDocument::testGpuExportRowsRespectMemoryBudgetAndRetainTheirVersion()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
-    initializeGpuDocument(document.data(), QSize(32, 16), QStringLiteral("Bounded export"));
+    initializeGpuDocument(document.data(), QSize(513, 513), QStringLiteral("Bounded export"));
     KisImageSP image = document->image().toStrongRef();
     const auto owner = image->gpuImage();
     const auto layer = owner->operations().activeLayer();
     QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("11223380")), Gpu::Result::Success);
+    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(261, 257, 1, 1), QByteArray::fromHex("445566aa")), Gpu::Result::Success);
+    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(512, 512, 1, 1), QByteArray::fromHex("778899ff")), Gpu::Result::Success);
     const auto pinned = owner->operations().snapshot();
-    QVERIFY_EXCEPTION_THROWN(KisImportExportManager::prepareExportPixels(image, 0), std::length_error);
+    QVERIFY_EXCEPTION_THROWN(KisGpuExportRasterRows(image, 0), std::length_error);
     bool eventsProcessed = false;
     auto editResult = Gpu::Result::InvalidInput;
     QTimer edit;
     edit.setSingleShot(true);
     connect(&edit, &QTimer::timeout, this, [&] {
         eventsProcessed = true;
-        editResult = owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("445566ff"));
+        editResult = owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("aabbccff"));
     });
     edit.start(0);
-    const auto pixels = KisImportExportManager::prepareExportPixels(image, 16 * 1024 * 1024);
+    auto source = std::make_unique<KisGpuExportRasterRows>(image, 16 * 1024 * 1024);
     edit.stop();
-    QVERIFY(pixels);
     QVERIFY(eventsProcessed);
     QCOMPARE(editResult, Gpu::Result::Success);
-    QCOMPARE(pixels->colorSpace(), image->colorSpace());
+    QVERIFY(source->containsTransparency());
+    const auto rows = source->rows();
+    QCOMPARE(rows->colorSpace, image->colorSpace());
+    QCOMPARE(rows->size, image->size());
     QVERIFY(owner->operations().snapshot() != pinned);
+    QByteArray bytes;
+    QVERIFY(rows->readRow(5, bytes).isOk());
+    QCOMPARE(bytes.size(), 513 * 4);
+    QCOMPARE(bytes.mid(5 * 4, 4), QByteArray::fromHex("33221180"));
+    QVERIFY(rows->readRow(257, bytes).isOk());
+    QCOMPARE(bytes.mid(261 * 4, 4), QByteArray::fromHex("665544aa"));
+    QVERIFY(rows->readRow(512, bytes).isOk());
+    QCOMPARE(bytes.mid(512 * 4, 4), QByteArray::fromHex("998877ff"));
+    const auto retainedBytes = bytes;
+    source.reset();
+    QVERIFY(rows->readRow(512, bytes).isCancelled());
+    QCOMPARE(bytes, retainedBytes);
     owner->close();
-    QByteArray bytes(4, '\0');
-    pixels->readBytes(reinterpret_cast<quint8 *>(bytes.data()), 5, 5, 1, 1);
-    QCOMPARE(bytes, QByteArray::fromHex("33221180"));
+    QCOMPARE(retainedBytes.mid(512 * 4, 4), QByteArray::fromHex("998877ff"));
     KisPart::instance()->removeDocument(document.data(), false);
 }
 
@@ -945,19 +963,46 @@ void TestDocument::testGpuExportPreparationWaitsForAnOccupiedQueue()
         released = owner->execution().cancelFrame().code == Gpu::ExecutionCode::Success;
     });
     release.start(100);
-    KisPaintDeviceSP pixels;
+    std::unique_ptr<KisGpuExportRasterRows> source;
     try {
-        pixels = KisImportExportManager::prepareExportPixels(image, 16 * 1024 * 1024);
+        source = std::make_unique<KisGpuExportRasterRows>(image, 16 * 1024 * 1024);
     } catch (const std::exception &error) {
         release.stop();
         if (!released) owner->execution().cancelFrame();
         QFAIL(error.what());
     }
     QVERIFY(released);
-    QVERIFY(pixels);
-    QByteArray bytes(4, '\0');
-    pixels->readBytes(reinterpret_cast<quint8 *>(bytes.data()), 5, 5, 1, 1);
-    QCOMPARE(bytes, QByteArray::fromHex("332211ff"));
+    QVERIFY(source);
+    QByteArray bytes;
+    QVERIFY(source->rows()->readRow(5, bytes).isOk());
+    QCOMPARE(bytes.mid(5 * 4, 4), QByteArray::fromHex("332211ff"));
+    KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void TestDocument::testGpuExportRowsCancelPendingWorkerReads()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    initializeGpuDocument(document.data(), QSize(513, 513), QStringLiteral("Cancelled row read"));
+    const auto owner = document->image()->gpuImage();
+    auto source = std::make_unique<KisGpuExportRasterRows>(document->image(), 16 * 1024 * 1024);
+    const auto rows = source->rows();
+    QCOMPARE(owner->execution().beginReadbackFrame().code, Gpu::ExecutionCode::Success);
+    auto future = std::async(std::launch::async, [rows] {
+        QByteArray bytes = QByteArrayLiteral("preserve caller bytes on cancellation");
+        const auto result = rows->readRow(257, bytes);
+        return std::make_pair(result.isCancelled(), bytes);
+    });
+    QTimer cancel;
+    cancel.setSingleShot(true);
+    connect(&cancel, &QTimer::timeout, this, [&] { source.reset(); });
+    cancel.start(50);
+    QTRY_VERIFY_WITH_TIMEOUT(future.wait_for(std::chrono::seconds(0)) == std::future_status::ready, 5000);
+    cancel.stop();
+    const auto result = future.get();
+    QVERIFY(result.first);
+    QCOMPARE(result.second, QByteArrayLiteral("preserve caller bytes on cancellation"));
+    QCOMPARE(owner->execution().cancelFrame().code, Gpu::ExecutionCode::Success);
     KisPart::instance()->removeDocument(document.data(), false);
 }
 
@@ -965,7 +1010,7 @@ void TestDocument::testGpuPngExportRejectsExcessiveWorkingMemoryBeforeChangingFi
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
-    initializeGpuDocument(document.data(), QSize(16384, 16384), QStringLiteral("Export memory limit"));
+    initializeGpuDocument(document.data(), QSize(int(Gpu::OperationDocument::CoordinateLimit), 257), QStringLiteral("Export memory limit"));
     document->setFileBatchMode(true);
     const auto owner = document->image()->gpuImage();
     QCOMPARE(owner->renameLayer(owner->operations().activeLayer(), QStringLiteral("Modified")), Gpu::Result::Success);
@@ -986,6 +1031,47 @@ void TestDocument::testGpuPngExportRejectsExcessiveWorkingMemoryBeforeChangingFi
     QVERIFY(document->path().isEmpty());
     QVERIFY(document->isModified());
     QCOMPARE(owner->operations().snapshot(), pinned);
+    QCOMPARE(owner->execution().residentBytes(), resident);
+    KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void TestDocument::testGpuPngExportStreamsLargeFixedDocuments()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    initializeGpuDocument(document.data(), QSize(16384, 16384), QStringLiteral("Large streaming export"));
+    document->setFileBatchMode(true);
+    const auto owner = document->image()->gpuImage();
+    QCOMPARE(owner->renameLayer(owner->operations().activeLayer(), QStringLiteral("Modified")), Gpu::Result::Success);
+    const auto pinned = owner->operations().snapshot();
+    const auto history = owner->operations().undoCount();
+    const auto resident = owner->execution().residentBytes();
+    {
+        KisGpuExportRasterRows source(document->image(), 48 * 1024 * 1024);
+        QVERIFY(source.containsTransparency());
+        QByteArray bytes;
+        QVERIFY(source.rows()->readRow(0, bytes).isOk());
+        QCOMPARE(bytes, QByteArray(16384 * 4, '\0'));
+        QVERIFY(source.rows()->readRow(16383, bytes).isOk());
+        QCOMPARE(bytes, QByteArray(16384 * 4, '\0'));
+    }
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("large.png"));
+    QFile output(path);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QVERIFY(output.write("previous file") > 0);
+    output.close();
+    QVERIFY2(document->exportDocumentSync(path, QByteArrayLiteral("image/png")), qPrintable(document->errorMessage()));
+    QImageReader reader(path, "PNG");
+    QCOMPARE(reader.size(), QSize(16384, 16384));
+    QVERIFY(output.open(QIODevice::ReadOnly));
+    QVERIFY(output.seek(output.size() - 12));
+    QCOMPARE(output.readAll(), QByteArray::fromHex("0000000049454e44ae426082"));
+    QVERIFY(document->path().isEmpty());
+    QVERIFY(document->isModified());
+    QCOMPARE(owner->operations().snapshot(), pinned);
+    QCOMPARE(owner->operations().undoCount(), history);
     QCOMPARE(owner->execution().residentBytes(), resident);
     KisPart::instance()->removeDocument(document.data(), false);
 }

@@ -83,8 +83,10 @@ KisImportExportErrorCode KisPNGExport::convert(KisDocument *document, QIODevice 
 
     KisPNGConverter pngConverter(document);
 
-    const auto pixels = document->importExportManager()->exportProjection();
-    KisImportExportErrorCode res = pngConverter.buildFile(io, image->bounds(), image->xRes(), image->yRes(), pixels, beginIt, endIt, options, metadata.get());
+    const auto rows = document->importExportManager()->exportRows();
+    KisImportExportErrorCode res = rows ?
+        pngConverter.buildFile(io, *rows, image->xRes(), image->yRes(), beginIt, endIt, options, metadata.get()) :
+        pngConverter.buildFile(io, image->bounds(), image->xRes(), image->yRes(), image->projection(), beginIt, endIt, options, metadata.get());
     dbgFile << " Result =" << res;
     return res;
 }

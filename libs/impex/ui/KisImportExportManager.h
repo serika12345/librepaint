@@ -16,6 +16,7 @@
 #include <kis_types.h>
 
 #include "KisImportExportErrorCode.h"
+#include "KisExportRasterRows.h"
 #include "kritaui_export.h"
 
 class KisDocument;
@@ -106,16 +107,11 @@ public:
      */
     static void fillStaticExportConfigurationProperties(KisPropertiesConfigurationSP exportConfiguration, KisImageSP image);
 
-    /** Materializes GPU pixels once for a CPU format consumer. The budget covers
-     * four padded pixel planes and bounded transfer/codec working storage.
-     * Throws std::length_error before reading pixels when the budget is insufficient.
-     * A null image throws std::invalid_argument; allocation can throw std::bad_alloc.
-     * Other read failures throw std::runtime_error. Call on the image's GPU thread.
-     * GPU transfers complete through the event loop; later edits retain the pinned pixels.
+    /** Fixed rows for the active GPU conversion; null for CPU images and
+     * outside conversion. The manager owns the producer through serialization.
+     * Retained descriptors return Cancelled after conversion ends.
      */
-    static KisPaintDeviceSP prepareExportPixels(KisImageSP image, qsizetype memoryBudgetBytes);
-    /** Shared pixels during conversion, null outside it; retained references outlive the request. */
-    KisPaintDeviceSP exportProjection() const;
+    KisExportRasterRowsSP exportRows() const;
 
     /**
      * Get if the filter manager is batch mode (true)
@@ -137,7 +133,7 @@ private:
 
 
     void fillStaticExportConfigurationProperties(KisPropertiesConfigurationSP exportConfiguration);
-    static void fillExportPixelProperties(KisPropertiesConfigurationSP exportConfiguration, KisPaintDeviceSP projection);
+    static void fillExportPixelProperties(KisPropertiesConfigurationSP exportConfiguration, const KoColorSpace *colorSpace, bool containsTransparency);
     bool askUserAboutExportConfiguration(QSharedPointer<KisImportExportFilter> filter, KisPropertiesConfigurationSP exportConfiguration, const QByteArray &from, const QByteArray &to, bool batchMode, const bool showWarnings, bool *alsoAsKra, bool isAdvancedExporting = false);
 
     KisImportExportErrorCode doImport(const QString &location, QSharedPointer<KisImportExportFilter> filter);

@@ -21,6 +21,7 @@
 class KoStore;
 class KisDocument;
 class KoColorSpace;
+struct KisExportRasterRows;
 
 
 namespace KisMetaData
@@ -105,6 +106,10 @@ public:
      */
     KisImportExportErrorCode buildFile(const QString &filename, const QRect &imageRect, const qreal xRes, const qreal yRes, KisPaintDeviceSP device, vKisAnnotationSP_it annotationsStart, vKisAnnotationSP_it annotationsEnd, KisPNGOptions options, KisMetaData::Store* metaData);
     KisImportExportErrorCode buildFile(QIODevice*, const QRect &imageRect, const qreal xRes, const qreal yRes, KisPaintDeviceSP device, vKisAnnotationSP_it annotationsStart, vKisAnnotationSP_it annotationsEnd, KisPNGOptions options, KisMetaData::Store* metaData);
+    /** Encodes fixed native rows using the same formatting and color options. */
+    KisImportExportErrorCode buildFile(QIODevice*, const KisExportRasterRows &rows, qreal xRes, qreal yRes,
+                                     vKisAnnotationSP_it annotationsStart, vKisAnnotationSP_it annotationsEnd,
+                                     KisPNGOptions options, KisMetaData::Store *metaData);
     /**
      * Retrieve the constructed image
      */
@@ -122,6 +127,9 @@ public Q_SLOTS:
     /** Requests encoding cancellation from any thread while the converter remains alive. */
     virtual void cancel();
 private:
+    KisImportExportErrorCode encodeRows(QIODevice*, const KisExportRasterRows &rows, qreal xRes, qreal yRes,
+                                       vKisAnnotationSP_it annotationsStart, vKisAnnotationSP_it annotationsEnd,
+                                       KisPNGOptions options, KisMetaData::Store *metaData);
     void progress(png_structp png_ptr, png_uint_32 row_number, int pass);
 private:
     png_uint_32 m_max_row;

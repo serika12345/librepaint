@@ -9,6 +9,7 @@
 #include "KisGpuTileRenderer.h"
 #include <QImage>
 #include <future>
+#include <optional>
 
 
 namespace LibrePaint::Image::Gpu {
@@ -52,6 +53,7 @@ struct PixelReadbackOutcome
     QRect region;
     QList<PixelTile> tiles;
     QString diagnostic;
+    std::optional<bool> containsTransparency{};
 };
 struct ImageReadbackOutcome
 {
@@ -137,6 +139,11 @@ public:
     std::future<PixelReadbackOutcome> readPixelsAsync(DocumentHandle handle, const Snapshot &document,
                                    QRect region, const QList<LayerId> &layers = {},
                                    bool includeProjection = true, PixelReadArea area = PixelReadArea::Canvas);
+    /** Fixed-version projection alpha classification without transferring tile pixels.
+     * A successful result contains the boolean and no tiles. Canvas clipping,
+     * asynchronous completion, lifetime, and rejection follow readPixelsAsync().
+     */
+    std::future<PixelReadbackOutcome> readTransparencyAsync(DocumentHandle handle, const Snapshot &document, QRect region);
     /** Nonblocking callback processing; Busy denotes unfinished native reads. */
     ExecutionOutcome pollReadbacks();
 
@@ -177,6 +184,9 @@ private:
     ExecutionOutcome endFrame(bool publish, bool waitForReadback = true);
     void retireCompletedReadback();
     ExecutionOutcome retireDisplayCaches();
+    std::future<PixelReadbackOutcome> readPixelsAsyncImpl(DocumentHandle handle, const Snapshot &document,
+                                   QRect region, const QList<LayerId> &layers, bool includeProjection,
+                                   PixelReadArea area, bool transparencyOnly);
 };
 }
 #endif

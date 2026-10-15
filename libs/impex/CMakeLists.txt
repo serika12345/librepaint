@@ -1,5 +1,6 @@
 set(kritaimpex_LIB_SRCS
     KisImportExportFilterFactory.cpp
+    KisExportRasterRows.h
 )
 
 add_library(kritaimpexfilterstateobjects OBJECT
@@ -372,7 +373,8 @@ endif()
 set(kritaimpexui_LIB_SRCS
     ui/KisImportExportAsyncFeedback.cpp
     ui/KisImportExportManager.cpp
-    ui/KisImportExportGpuPixels.cpp
+    ui/KisGpuExportRasterRows.cpp
+    ui/KisGpuExportRasterRows.h
     ui/KisSaveGroupVisitor.cpp
     ui/KisImportExportDialogs.cpp
     ui/kis_dlg_missing_color_profile.cpp

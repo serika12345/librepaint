@@ -5,6 +5,7 @@
  */
 
 #include "KisImportExportManager.h"
+#include "KisGpuExportRasterRows.h"
 
 #include <functional>
 #include <memory>
@@ -95,7 +96,7 @@ public:
 
     QString cachedExportFilterMimeType;
     QSharedPointer<KisImportExportFilter> cachedExportFilter;
-    KisPaintDeviceSP exportProjection;
+    std::unique_ptr<KisGpuExportRasterRows> exportRows;
 };
 
 namespace {
@@ -281,9 +282,9 @@ KisImportExportManager::ConversionResult KisImportExportManager::convert(KisImpo
     const bool gpuExport = direction == Export && m_document->image()->gpuImage();
     if (gpuExport) {
         if (isAsync) return KisImportExportErrorCode(ImportExportCodes::FormatFeaturesUnsupported);
-        if (d->exportProjection) return KisImportExportErrorCode(ImportExportCodes::Busy);
+        if (d->exportRows) return KisImportExportErrorCode(ImportExportCodes::Busy);
         try {
-            d->exportProjection = prepareExportPixels(m_document->image(), GpuExportMemoryBudget);
+            d->exportRows = std::make_unique<KisGpuExportRasterRows>(m_document->image(), GpuExportMemoryBudget);
         } catch (const std::length_error &) {
             return KisImportExportErrorCode(ImportExportCodes::InsufficientMemory);
         } catch (const std::bad_alloc &) {
@@ -293,7 +294,7 @@ KisImportExportManager::ConversionResult KisImportExportManager::convert(KisImpo
         }
     }
     const auto releaseExportPixels = qScopeGuard([this, gpuExport] {
-        if (gpuExport) d->exportProjection.clear();
+        if (gpuExport) d->exportRows.reset();
     });
 
     filter->setFilename(location);
@@ -412,14 +413,14 @@ KisImportExportManager::ConversionResult KisImportExportManager::convert(KisImpo
             // we should explicitly report that the exporting has been initiated
             result.setStatus(ImportExportCodes::OK);
 
-        } else if (!batchMode()) {
+        } else if (!batchMode() || gpuExport) {
             result = runImportExportActionWithFeedback(
                 i18n("Saving document..."),
                 nullptr,
                 [this, gpuExport, location, filter, exportConfiguration, alsoAsKraLocation] {
                     return gpuExport ? doExportImpl(location, filter, exportConfiguration) :
                                        doExport(location, filter, exportConfiguration, alsoAsKraLocation);
-                }, gpuExport);
+                }, gpuExport, !batchMode());
             if (gpuExport && result.status().isOk() && !alsoAsKraLocation.isNull() &&
                 !m_document->exportDocumentSync(alsoAsKraLocation, m_document->nativeFormatMimeType()))
                 result.setStatus(KisImportExportErrorCode(m_document->errorMessage()));
@@ -434,23 +435,24 @@ KisImportExportManager::ConversionResult KisImportExportManager::convert(KisImpo
     return result;
 }
 
-KisPaintDeviceSP KisImportExportManager::exportProjection() const
+KisExportRasterRowsSP KisImportExportManager::exportRows() const
 {
-    if (d->exportProjection) return d->exportProjection;
-    const auto image = m_document->savingImage();
-    return image ? image->projection() : KisPaintDeviceSP{};
+    return d->exportRows ? d->exportRows->rows() : KisExportRasterRowsSP{};
 }
 
 void KisImportExportManager::fillStaticExportConfigurationProperties(KisPropertiesConfigurationSP exportConfiguration, KisImageSP image)
 {
-    fillExportPixelProperties(exportConfiguration, prepareExportPixels(image, GpuExportMemoryBudget));
+    if (image->gpuImage()) {
+        KisGpuExportRasterRows rows(image, GpuExportMemoryBudget);
+        fillExportPixelProperties(exportConfiguration, image->colorSpace(), rows.containsTransparency());
+    } else {
+        const auto projection = image->projection();
+        fillExportPixelProperties(exportConfiguration, projection->colorSpace(), KisPainter::checkDeviceHasTransparency(projection));
+    }
 }
 
-void KisImportExportManager::fillExportPixelProperties(KisPropertiesConfigurationSP exportConfiguration, KisPaintDeviceSP dev)
+void KisImportExportManager::fillExportPixelProperties(KisPropertiesConfigurationSP exportConfiguration, const KoColorSpace *cs, bool isThereAlpha)
 {
-    const KoColorSpace* cs = dev->colorSpace();
-    const bool isThereAlpha = KisPainter::checkDeviceHasTransparency(dev);
-
     exportConfiguration->setProperty(KisImportExportFilter::ImageContainsTransparencyTag, isThereAlpha);
     exportConfiguration->setProperty(KisImportExportFilter::ColorModelIDTag, cs->colorModelId().id());
     exportConfiguration->setProperty(KisImportExportFilter::ColorDepthIDTag, cs->colorDepthId().id());
@@ -480,8 +482,12 @@ void KisImportExportManager::fillExportPixelProperties(KisPropertiesConfiguratio
 
 void KisImportExportManager::fillStaticExportConfigurationProperties(KisPropertiesConfigurationSP exportConfiguration)
 {
-    fillExportPixelProperties(exportConfiguration,
-                             d->exportProjection ? d->exportProjection : m_document->image()->projection());
+    if (d->exportRows) {
+        fillExportPixelProperties(exportConfiguration, d->exportRows->rows()->colorSpace, d->exportRows->containsTransparency());
+    } else {
+        const auto projection = m_document->image()->projection();
+        fillExportPixelProperties(exportConfiguration, projection->colorSpace(), KisPainter::checkDeviceHasTransparency(projection));
+    }
 }
 
 bool KisImportExportManager::askUserAboutExportConfiguration(

@@ -45,6 +45,55 @@ QList<TileView> ProjectedVersion::tiles() const
     return result;
 }
 
+Detail::NativeBuffer TileRenderer::Private::recordTransparency(WGPUCommandEncoder commands,
+                                                              const ProjectedSnapshot &projection, QRect region)
+{
+    const auto tiles = projection->tiles();
+    const qint64 coordinates = qint64(region.right() / TileSize - region.left() / TileSize + 1) *
+                               (region.bottom() / TileSize - region.top() / TileSize + 1);
+    quint32 initial = tiles.size() < coordinates ? 1 : 0;
+    auto output = createBuffer(device->nativeDevice(), sizeof(initial),
+                               WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
+    if (!output) return {};
+    wgpuQueueWriteBuffer(device->queue(), output.get(), 0, &initial, sizeof(initial));
+    if (initial) return output;
+    if (!transparencyPipeline) {
+        transparencyPipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/transparency.wgsl"));
+        if (!transparencyPipeline) return {};
+        transparencyLayout.reset(wgpuComputePipelineGetBindGroupLayout(transparencyPipeline.get(), 0));
+    }
+    if (!transparencyLayout) return {};
+    for (const auto &tile : tiles) {
+        const auto local = region.intersected(QRect(tile.coordinate * TileSize, QSize(TileSize, TileSize)))
+            .translated(-tile.coordinate * TileSize);
+        const quint32 values[] = {quint32(local.left()), quint32(local.top()),
+                                  quint32(local.right() + 1), quint32(local.bottom() + 1)};
+        auto parameters = createBuffer(device->nativeDevice(), sizeof(values), WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
+        if (!parameters) return {};
+        wgpuQueueWriteBuffer(device->queue(), parameters.get(), 0, values, sizeof(values));
+        const WGPUBuffer buffers[] = {tile.pixels, output.get(), parameters.get()};
+        WGPUBindGroupEntry entries[3]{};
+        for (quint32 i = 0; i < 3; ++i) {
+            entries[i].binding = i;
+            entries[i].buffer = buffers[i];
+            entries[i].size = wgpuBufferGetSize(buffers[i]);
+        }
+        WGPUBindGroupDescriptor descriptor{};
+        descriptor.layout = transparencyLayout.get();
+        descriptor.entryCount = 3;
+        descriptor.entries = entries;
+        NativeBindings bindings(wgpuDeviceCreateBindGroup(device->nativeDevice(), &descriptor));
+        if (!bindings || !device->diagnostic().isEmpty()) return {};
+        const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
+        wgpuComputePassEncoderSetPipeline(pass, transparencyPipeline.get());
+        wgpuComputePassEncoderSetBindGroup(pass, 0, bindings.get(), 0, nullptr);
+        wgpuComputePassEncoderDispatchWorkgroups(pass, TileSize / 8, TileSize / 8, 1);
+        wgpuComputePassEncoderEnd(pass);
+        wgpuComputePassEncoderRelease(pass);
+    }
+    return output;
+}
+
 ProjectionOutcome TileRenderer::compose(WGPUCommandEncoder commands, const RenderedSnapshot &document,
                                        QRect region, const ProjectedSnapshot &base)
 {

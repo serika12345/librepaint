@@ -26,4 +26,12 @@ KisImportExportErrorCode runImportExportActionWithFeedback(
     std::function<KisImportExportErrorCode()> action,
     bool allowInteraction);
 
+/** Batch conversion keeps the event loop running without a progress window. */
+KisImportExportErrorCode runImportExportActionWithFeedback(
+    const QString &message,
+    QWidget *parent,
+    std::function<KisImportExportErrorCode()> action,
+    bool allowInteraction,
+    bool showProgress);
+
 #endif
