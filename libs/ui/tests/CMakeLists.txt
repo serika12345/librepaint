@@ -1191,9 +1191,9 @@ set_tests_properties(${gpu_document_view_test} PROPERTIES TIMEOUT 60 RUN_SERIAL 
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_tests_properties(${gpu_document_view_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set_tests_properties(${gpu_document_view_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb" TIMEOUT 120)
+    set_tests_properties(${gpu_document_view_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb" TIMEOUT 180)
 elseif(WIN32)
-    set_tests_properties(${gpu_document_view_test} PROPERTIES TIMEOUT 120)
+    set_tests_properties(${gpu_document_view_test} PROPERTIES TIMEOUT 180)
 endif()
 
 

@@ -31,6 +31,8 @@ private Q_SLOTS:
     void erasingAndLayerVisibilityPreservePixelMeaning();
     void longDiagonalUsesOnlyIntersectingTiles();
     void shapesUndoAndRecoveryRestoreTheSamePixels();
+    void straightLinesPreserveIntermediatePressure_data();
+    void straightLinesPreserveIntermediatePressure();
     void versionsOutliveTheRendererAndRejectAnotherDeviceOwner();
     void visibleLayersComposeOnTheGpuAndReuseUnchangedTiles();
     void compositionPreservesOrderAlphaAndExistingVersionsAtCapacity();
@@ -57,6 +59,38 @@ private:
                               QRect visible, const ProjectedSnapshot &base = {});
     DevicePtr m_device;
 };
+
+void KisGpuTileRendererTest::straightLinesPreserveIntermediatePressure_data()
+{
+    QTest::addColumn<bool>("offAxis");
+    QTest::newRow("collinear") << false;
+    QTest::newRow("projected") << true;
+}
+
+void KisGpuTileRendererTest::straightLinesPreserveIntermediatePressure()
+{
+    QFETCH(bool, offAxis);
+    Brush brush;
+    brush.diameter = 20;
+    brush.rgba = {17, 129, 241, 255};
+    OperationDocument document({256, 256});
+    const auto layer = document.addLayer(QStringLiteral("Pressure line"));
+    const auto stroke = document.beginStroke(layer, brush, 0);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 64}, 0.15}, {{128, offAxis ? 100.0 : 64.0}, 1}, {{224, 64}, 0.15}}), Result::Success);
+    TileRenderer renderer(m_device);
+    for (const int y : {64, 128}) {
+        OperationDocument expected({256, 256});
+        const auto expectedLayer = expected.addLayer(QStringLiteral("Pressure samples"));
+        const auto expectedStroke = expected.beginStroke(expectedLayer, brush, 0);
+        QCOMPARE(expected.appendSamples(expectedStroke, {{{32, qreal(y)}, 0.15}, {{128, qreal(y)}, 1}, {{224, qreal(y)}, 0.15}}), Result::Success);
+        const auto reference = render(renderer, expected.preview());
+        QVERIFY(reference);
+        QCOMPARE(document.updateShape(stroke, {ShapeKind::Line, {32, qreal(y)}, {224, qreal(y)}}), Result::Success);
+        const auto line = render(renderer, document.preview());
+        QVERIFY(line);
+        QCOMPARE(readTile(line, layer, {0, 0}), readTile(reference, expectedLayer, {0, 0}));
+    }
+}
 
 void KisGpuTileRendererTest::transparentLayerPixelsFollowRootProjectionSemantics_data()
 {

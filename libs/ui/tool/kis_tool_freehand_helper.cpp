@@ -328,63 +328,9 @@ void KisToolFreehandHelper::initPaint(KoPointerEvent *event,
     m_d->strokeTime.start();
     KisPaintInformation pi =
         m_d->infoBuilder->startStroke(event, elapsedStrokeTime(), m_d->resourceManager);
-    if (const auto owner = image->gpuImage()) {
-        namespace Gpu = LibrePaint::Image::Gpu;
-        disconnect(m_d->gpuCancellation);
-        m_d->gpuImage = owner;
-        m_d->gpuOperation = {};
-        Gpu::LayerId layerId = 0;
-        for (const auto &layer : owner->operations().snapshot()->layers)
-            if (currentNode && layer.uuid == currentNode->uuid()) layerId = layer.id;
-        const auto preset = m_d->resourceManager->resource(KoCanvasResource::CurrentPaintOpPreset).value<KisPaintOpPresetSP>();
-        if (overrideNode || bounds || image->globalSelection()) {
-            m_d->infoBuilder->reset();
-            Q_EMIT requestErrorMessage(i18n("Selection and overridden paint nodes are not yet supported for GPU freehand input."));
-            return;
-        }
-        if (!preset || preset->paintOp().id() != QLatin1String("roundmarker") ||
-            m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::NO_SMOOTHING) {
-            m_d->infoBuilder->reset();
-            Q_EMIT requestErrorMessage(i18n("GPU freehand input currently requires the circular brush with smoothing disabled."));
-            return;
-        }
-        const QString composite = m_d->resourceManager->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString();
-        if ((composite != QLatin1String("normal") && composite != QLatin1String("erase")) ||
-            m_d->resourceManager->resource(KoCanvasResource::MirrorHorizontal).toBool() ||
-            m_d->resourceManager->resource(KoCanvasResource::MirrorVertical).toBool() ||
-            m_d->resourceManager->resource(KoCanvasResource::GlobalAlphaLock).toBool()) {
-            m_d->infoBuilder->reset();
-            Q_EMIT requestErrorMessage(i18n("Painting symmetry, alpha locking and this blend mode are not yet available for this document."));
-            return;
-        }
-        Gpu::Brush brush;
-        const QColor color = m_d->resourceManager->foregroundColor().toQColor();
-        brush.rgba = {quint8(color.red()), quint8(color.green()), quint8(color.blue()), quint8(color.alpha())};
-        brush.diameter = m_d->resourceManager->resource(KoCanvasResource::Size).toReal();
-        const qreal opacity = m_d->resourceManager->resource(KoCanvasResource::Opacity).toReal();
-        if (!qIsFinite(opacity) || opacity < 0 || opacity > 1) {
-            m_d->infoBuilder->reset();
-            Q_EMIT requestErrorMessage(i18n("The brush opacity is invalid."));
-            return;
-        }
-        brush.opacity = quint8(qRound(255 * opacity));
-        brush.erase = composite == QLatin1String("erase") ||
-            m_d->resourceManager->resource(KoCanvasResource::EraserMode).toBool();
-        m_d->gpuOperation = owner->beginStroke(layerId, brush, 0);
-        if (m_d->gpuOperation.isNull()) {
-            m_d->infoBuilder->reset();
-            Q_EMIT requestErrorMessage(i18n("A stroke could not be started on this GPU paint layer."));
-            return;
-        }
-        m_d->gpuCancellation = connect(image.data(), &KisImage::sigStrokeCancellationRequested,
-                                      this, &KisToolFreehandHelper::cancelPaint);
-        QPointer<KisToolFreehandHelper> guard(this);
-        const auto result = owner->appendSamples(m_d->gpuOperation, {gpuInputSample(pi)});
-        if (!guard) return;
-        if (result != Gpu::Result::Success) {
-            cancelPaint();
-            if (guard) Q_EMIT requestErrorMessage(gpuInputError(result));
-        }
+    if (image->gpuImage() && m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::NO_SMOOTHING) {
+        m_d->infoBuilder->reset();
+        Q_EMIT requestErrorMessage(i18n("GPU freehand input currently requires the circular brush with smoothing disabled."));
         return;
     }
     qreal startAngle = KisAlgebra2D::directionBetweenPoints(prevPoint, pixelCoords, 0.0);
@@ -414,6 +360,69 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
                                           KisNodeSP overrideNode,
                                           KisDefaultBoundsBaseSP bounds)
 {
+    if (m_d->gpuImage && !image->gpuImage()) {
+        disconnect(m_d->gpuCancellation);
+        m_d->gpuImage.clear();
+        m_d->gpuOperation = {};
+    }
+    if (const auto owner = image->gpuImage()) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        disconnect(m_d->gpuCancellation);
+        m_d->gpuImage = owner;
+        m_d->gpuOperation = {};
+        Gpu::LayerId layerId = 0;
+        for (const auto &layer : owner->operations().snapshot()->layers)
+            if (currentNode && layer.uuid == currentNode->uuid()) layerId = layer.id;
+        const auto preset = resourceManager->resource(KoCanvasResource::CurrentPaintOpPreset).value<KisPaintOpPresetSP>();
+        if (overrideNode || bounds || image->globalSelection()) {
+            m_d->infoBuilder->reset();
+            Q_EMIT requestErrorMessage(i18n("Selection and overridden paint nodes are not yet supported for GPU freehand input."));
+            return;
+        }
+        if (!preset || preset->paintOp().id() != QLatin1String("roundmarker")) {
+            m_d->infoBuilder->reset();
+            Q_EMIT requestErrorMessage(i18n("Painting this document currently requires the circular brush."));
+            return;
+        }
+        const QString composite = resourceManager->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString();
+        if ((composite != QLatin1String("normal") && composite != QLatin1String("erase")) ||
+            resourceManager->resource(KoCanvasResource::MirrorHorizontal).toBool() ||
+            resourceManager->resource(KoCanvasResource::MirrorVertical).toBool() ||
+            resourceManager->resource(KoCanvasResource::GlobalAlphaLock).toBool()) {
+            m_d->infoBuilder->reset();
+            Q_EMIT requestErrorMessage(i18n("Painting symmetry, alpha locking and this blend mode are not yet available for this document."));
+            return;
+        }
+        Gpu::Brush brush;
+        const QColor color = resourceManager->foregroundColor().toQColor();
+        brush.rgba = {quint8(color.red()), quint8(color.green()), quint8(color.blue()), quint8(color.alpha())};
+        brush.diameter = resourceManager->resource(KoCanvasResource::Size).toReal();
+        const qreal opacity = resourceManager->resource(KoCanvasResource::Opacity).toReal();
+        if (!qIsFinite(opacity) || opacity < 0 || opacity > 1) {
+            m_d->infoBuilder->reset();
+            Q_EMIT requestErrorMessage(i18n("The brush opacity is invalid."));
+            return;
+        }
+        brush.opacity = quint8(qRound(255 * opacity));
+        brush.erase = composite == QLatin1String("erase") ||
+            resourceManager->resource(KoCanvasResource::EraserMode).toBool();
+        m_d->gpuOperation = owner->beginStroke(layerId, brush, 0);
+        if (m_d->gpuOperation.isNull()) {
+            m_d->infoBuilder->reset();
+            Q_EMIT requestErrorMessage(i18n("A stroke could not be started on this GPU paint layer."));
+            return;
+        }
+        m_d->gpuCancellation = connect(image.data(), &KisImage::sigStrokeCancellationRequested,
+                                      this, &KisToolFreehandHelper::cancelPaint);
+        QPointer<KisToolFreehandHelper> guard(this);
+        const auto result = owner->appendSamples(m_d->gpuOperation, {gpuInputSample(pi)});
+        if (!guard) return;
+        if (result != Gpu::Result::Success) {
+            cancelPaint();
+            if (guard) Q_EMIT requestErrorMessage(gpuInputError(result));
+        }
+        return;
+    }
     m_d->strokesFacade = strokesFacade;
 
     m_d->haveTangent = false;
@@ -1161,6 +1170,18 @@ void KisToolFreehandHelper::paintLine(int strokeInfoId,
                                       const KisPaintInformation &pi1,
                                       const KisPaintInformation &pi2)
 {
+    if (m_d->gpuImage) {
+        if (!isRunning()) return;
+        const auto owner = m_d->gpuImage;
+        const QPointer<KisToolFreehandHelper> guard(this);
+        const auto result = owner->appendSamples(m_d->gpuOperation, {gpuInputSample(pi2)});
+        if (!guard) return;
+        if (result != LibrePaint::Image::Gpu::Result::Success) {
+            cancelPaint();
+            if (guard) Q_EMIT requestErrorMessage(gpuInputError(result));
+        }
+        return;
+    }
     m_d->hasPaintAtLeastOnce = true;
     m_d->strokesFacade->addJob(m_d->strokeId,
                                new FreehandStrokeStrategy::Data(strokeInfoId, pi1, pi2));

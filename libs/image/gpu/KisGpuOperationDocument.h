@@ -73,6 +73,7 @@ enum class ShapeKind { Freehand, Line, Ellipse };
 
 struct Shape
 {
+    /** Lines retain intermediate sensor values at their projected input positions. */
     ShapeKind kind = ShapeKind::Freehand;
     QPointF first;
     QPointF second;

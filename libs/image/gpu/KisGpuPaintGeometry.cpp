@@ -34,11 +34,21 @@ QList<PaintSegment> paintGeometry(const PaintOperation &operation, quint32 step)
     case ShapeKind::Freehand:
         points = input;
         break;
-    case ShapeKind::Line:
-        points = {input.front(), input.back()};
+    case ShapeKind::Line: {
+        points = input.size() == 1 ? QList<InputSample>{input.front(), input.front()} : input;
+        const auto inputDelta = input.back().position - input.front().position;
+        const qreal lengthSquared = QPointF::dotProduct(inputDelta, inputDelta);
+        const auto lineDelta = operation.shape.second - operation.shape.first;
+        for (qsizetype i = 1; i + 1 < points.size(); ++i) {
+            const qreal fraction = lengthSquared > 0 ?
+                std::clamp(QPointF::dotProduct(points[i].position - input.front().position, inputDelta) / lengthSquared, qreal(0), qreal(1)) :
+                qreal(i) / (points.size() - 1);
+            points[i].position = operation.shape.first + lineDelta * fraction;
+        }
         points.front().position = operation.shape.first;
         points.back().position = operation.shape.second;
         break;
+    }
     case ShapeKind::Ellipse: {
         const auto &shape = operation.shape;
         const auto center = (shape.first + shape.second) / 2;

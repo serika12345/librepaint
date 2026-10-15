@@ -66,7 +66,7 @@ KisToolLine::KisToolLine(KoCanvasBase * canvas)
       m_infoBuilder(new KisConverterPaintingInformationBuilder(getCoordinatesConverter(canvas))),
       m_helper(new KisToolLineHelper(m_infoBuilder.data(),
                                      canvas->resourceManager(),
-                                     kundo2_i18n("Draw Line"))),
+                                     kundo2_i18n("Draw Line"), this)),
       m_strokeUpdateCompressor(200, KisSignalCompressor::POSTPONE),
       m_longStrokeUpdateCompressor(750, KisSignalCompressor::FIRST_INACTIVE)
 {
@@ -345,7 +345,9 @@ void KisToolLine::endPrimaryAction(KoPointerEvent *event)
     setMode(KisTool::HOVER_MODE);
 
     updateGuideline();
+    const QPointer<KisToolLine> guard(this);
     endStroke();
+    if (!guard) return;
 
     if (static_cast<KisCanvas2*>(canvas())->paintingAssistantsDecoration()) {
         static_cast<KisCanvas2*>(canvas())->paintingAssistantsDecoration()->endStroke();
@@ -371,8 +373,11 @@ void KisToolLine::endStroke()
         shouldAddShape(currentNode());
 
     if ((nodeAbility == PAINT && !info.shouldAddShape) || info.shouldAddSelectionShape) {
+        const QPointer<KisToolLine> guard(this);
         updateStroke();
+        if (!guard) return;
         m_helper->end();
+        if (!guard) return;
     }
     else {
         KisResourcesSnapshot resources(image(),
@@ -409,7 +414,9 @@ void KisToolLine::cancelStroke()
      * stroke is not running.
      */
     if (m_helper->isRunning()) {
+        const QPointer<KisToolLine> guard(this);
         m_helper->cancel();
+        if (!guard) return;
     }
 
     m_strokeIsRunning = false;

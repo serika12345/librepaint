@@ -50,6 +50,8 @@ target_link_libraries(kritadefaulttools_static
         KF${KF_MAJOR}::CoreAddons
         KF${KF_MAJOR}::I18n
         KF${KF_MAJOR}::WidgetsAddons
+    PRIVATE
+        kritagpuimage
 )
 
 set(kritadefaulttools_SOURCES

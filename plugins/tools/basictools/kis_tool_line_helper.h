@@ -9,13 +9,16 @@
 
 #include "kis_tool_freehand_helper.h"
 
+class KoToolBase;
 
 class KisToolLineHelper : private KisToolFreehandHelper
 {
 public:
+    /** The owning tool receives painting diagnostics on its status signal. */
     KisToolLineHelper(KisPaintingInformationBuilder *infoBuilder,
                       KoCanvasResourceProvider *resourceManager,
-                      const KUndo2MagicString &transactionText);
+                      const KUndo2MagicString &transactionText,
+                      KoToolBase *errorReceiver);
 
     ~KisToolLineHelper() override;
 
