@@ -9,6 +9,7 @@
 
 #include <QPainterPath>
 #include <QKeyEvent>
+#include <QPointer>
 
 #include "application/ui/workspace/KisViewManager.h"
 #include "kis_assert.h"
@@ -260,11 +261,12 @@ void KisToolRectangleBase::endStroke()
 {
     setMode(KisTool::HOVER_MODE);
     updateArea();
+    const QPointer<KisToolRectangleBase> guard(this);
     finishRect(createRect(m_rectangleInteraction.start(),
                           m_rectangleInteraction.end()),
                m_roundCornersX,
                m_roundCornersY);
-    endShape();
+    if (guard) endShape();
 }
 
 void KisToolRectangleBase::cancelStroke()

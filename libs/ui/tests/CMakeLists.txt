@@ -1186,6 +1186,28 @@ if(NOT IOS)
     add_dependencies(KisGpuDocumentViewTest kritatextproperties)
 endif()
 add_dependencies(KisGpuDocumentViewTest kritakraexport)
+
+kis_add_test(KisEllipseToolDocumentTest.cpp ../../../krita/krita.qrc
+    ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
+    ../../../krita/pics/Breeze-light/breeze-light-icons.qrc
+    TEST_NAME KisEllipseToolDocumentTest
+    TEST_NAME_VAR ellipse_tool_document_test
+    LINK_LIBRARIES kritaapplicationui kritainputui kritaimpexkra kritadocumentpainting kritatestsdk)
+add_dependencies(KisEllipseToolDocumentTest
+    kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
+    kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritakraexport kritapngexport)
+if(NOT IOS)
+    add_dependencies(KisEllipseToolDocumentTest kritatextproperties)
+endif()
+set_tests_properties(${ellipse_tool_document_test} PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set_tests_properties(${ellipse_tool_document_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set_tests_properties(${ellipse_tool_document_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb" TIMEOUT 180)
+elseif(WIN32)
+    set_tests_properties(${ellipse_tool_document_test} PROPERTIES TIMEOUT 180)
+endif()
+
 # Native window input requires exclusive use of the test display.
 set_tests_properties(${gpu_document_view_test} PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")

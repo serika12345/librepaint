@@ -8,7 +8,7 @@
 #include <kis_image.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <gpu/KisGpuCanvasWindow.h>
-#include <QCoreApplication>
+#include <QApplication>
 #include <QResizeEvent>
 #include <QVBoxLayout>
 
@@ -87,7 +87,9 @@ bool KisGpuCanvasWidget::eventFilter(QObject *object, QEvent *event)
         case QEvent::TouchBegin: case QEvent::TouchUpdate: case QEvent::TouchEnd: case QEvent::TouchCancel:
         case QEvent::Enter: case QEvent::Leave:
         case QEvent::FocusIn: case QEvent::FocusOut:
-            QCoreApplication::sendEvent(this, event);
+            // Deliver the original native event without clearing its spontaneous flag.
+            // Shape tools distinguish a user release from focus-loss cancellation.
+            qApp->notify(this, event);
             return true;
         default: break;
         }

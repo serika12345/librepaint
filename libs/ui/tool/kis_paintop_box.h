@@ -263,6 +263,7 @@ private:
     TabletToolID     m_currTabletToolID {KoInputDevice::invalid()};
     bool             m_presetsEnabled {true};
     bool             m_blockUpdate {false};
+    bool             m_handlingCanvasResourceChange {false};
     bool             m_dirtyPresetsEnabled {false};
     bool             m_eraserBrushSizeEnabled {false};
     bool             m_eraserBrushOpacityEnabled {false};
