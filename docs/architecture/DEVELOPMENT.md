@@ -445,6 +445,38 @@ JSONの`target`は`window`または`texture`を記録し、Qtが報告する表�
 入力から実表示までの受入れ検証は、対象機器で別途実施する。
 試験の画面外フレームは画素の読取り完了を保証する。通常表示は表示フレームの命令列へ計算を連結する。
 
+### 時間を固定した連続入力と高負荷の測定
+
+`KisGpuInteractiveFrameBenchmark --input-hz 240`は、入力標本の予定時刻と表示の予定時刻を
+独立に進める。予備2秒・測定10秒の全2,880標本を保持し、表示が遅れた場合も
+確定前に残りを受理・描画する。`--display-hz`は送信の予定周波数で、画面の実測更新周波数は
+`displayRefreshRateHz`へ別に記録する。
+
+`--high-load`は4096×4096文書、24レイヤー、直径512の円形ブラシ、中央1024×1024の
+占有領域を使用する。占有領域は固定したRGBA8チェックポイントから初期化し、
+初期転送を測定時間の外へ置く。GPUタイル予算は512MiB。小負荷条件は従来の
+2048×2048文書と直径16のブラシを使う。両条件の背景筆跡は`--history-strokes`で固定する。
+
+```sh
+./scripts/run-shared-test-env env QT_QPA_PLATFORM=cocoa \
+  build/tdd-macos/bin/KisGpuInteractiveFrameBenchmark.app/Contents/MacOS/KisGpuInteractiveFrameBenchmark \
+  --high-load --input-hz 240 --display-hz 120 --warmup-seconds 2 --duration-seconds 10 \
+  --output high-load-120.json
+```
+
+同じ条件を3回の独立起動で測り、60Hz条件は`--display-hz 60`で実行する。
+`--high-load`を外すと小負荷条件になる。`--offscreen --maximum-p95-ms 8.3`はGPU完了待ちを
+含む処理時間のP95を検査し、超過時に終了値2を返す。画面提示ではGPU完了時刻が
+未取得のため、同じ上限指定は検証不足として終了値2を返す。
+
+JSON形式2は受理・送信した入力数、表示予定の欠測数、送信前の未送信標本数、
+最新・最古の入力予定時刻から送信までの時間を記録する。CPU時間には表示間に
+受理した入力処理の合計を含める。最大タイル保持量はGPU画素の論理保持量を示す。
+物理GPUメモリー、割当回数、GPU内コピー量とGPU待ち列は対応する計測で確認する。
+実表示時刻は`actualDisplayP95Ms: null`で表し、入力から実表示までの受入れと区別する。
+表示頻度を変えた反復でも、最終画像の`projectionSha256`を照合する。
+ブラシ径の連続変更と楕円の連続変更は、それぞれの固定入力を用いる測定で受け入れる。
+
 ## デスクトップ
 
 ### macOS
