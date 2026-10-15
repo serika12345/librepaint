@@ -50,6 +50,7 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void groupedRemovalPreservesPixelsSelectionAndAtomicHistory();
     void insertedLayersPreserveOrderPinsAndOneHistoryStep();
     void selectionDuringInputPreservesPaintingAndHistory();
     void mergedPanelTogglesPreservePinsAndSaveBoundaries_data();
@@ -133,6 +134,54 @@ void KisGpuOperationDocumentTest::mergedNameResetRetainsItsRecordedBoundary()
     QCOMPARE(restored.snapshot()->layers.first().name, initial);
     QCOMPARE(restored.redo(), Result::Success);
     QCOMPARE(restored.snapshot()->layers.first().name, initial);
+}
+
+void KisGpuOperationDocumentTest::groupedRemovalPreservesPixelsSelectionAndAtomicHistory()
+{
+    OperationDocument document(rasterImage());
+    const auto top = document.addLayer(QStringLiteral("Top"));
+    QVERIFY(top);
+    QVERIFY(!paint(document, {sample(5, 5), sample(12, 12)}).isNull());
+    const auto pinned = document.snapshot();
+    const auto bottom = pinned->layers.first().id;
+    const auto middle = pinned->layers[1].id;
+    const auto before = document.undoCount();
+    QCOMPARE(document.removeLayers({bottom, LayerId(999999)}), Result::LayerUnavailable);
+    QCOMPARE(document.removeLayers({bottom, bottom}), Result::InvalidInput);
+    QCOMPARE(document.snapshot(), pinned);
+    QCOMPARE(document.undoCount(), before);
+    QCOMPARE(document.removeLayers({bottom, top}), Result::Success);
+    QCOMPARE(document.snapshot()->layers.size(), 1);
+    QCOMPARE(document.activeLayer(), middle);
+    QCOMPARE(document.snapshot()->rasterBytes, qsizetype(RgbaTile::ByteCount));
+    QCOMPARE(document.snapshot()->sampleCount, 0);
+    QCOMPARE(document.undoCount(), before + 1);
+    QCOMPARE(document.historyAction(before + 1), HistoryAction::RemoveLayer);
+    const auto removed = document.snapshot();
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), pinned);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), removed);
+    QCOMPARE(document.removeLayers({middle}, QStringLiteral("Replacement")), Result::Success);
+    const auto replacement = document.snapshot();
+    QCOMPARE(replacement->layers.size(), 1);
+    QVERIFY(replacement->layers.first().id != middle);
+    QCOMPARE(replacement->layers.first().name, QStringLiteral("Replacement"));
+    QVERIFY(replacement->layers.first().operations.isEmpty());
+    QCOMPARE(replacement->rasterBytes, 0);
+    QCOMPARE(replacement->sampleCount, 0);
+    QCOMPARE(document.activeLayer(), replacement->layers.first().id);
+    QCOMPARE(document.historyAction(document.undoCount()), HistoryAction::RemoveLayer);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), removed);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), replacement);
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(restored.historyAction(restored.undoCount()), HistoryAction::RemoveLayer);
+    QCOMPARE(restored.undo(), Result::Success);
+    QCOMPARE(restored.snapshot()->layers.first().uuid, removed->layers.first().uuid);
+    QCOMPARE(restored.snapshot()->rasterBytes, removed->rasterBytes);
 }
 
 void KisGpuOperationDocumentTest::insertedLayersPreserveOrderPinsAndOneHistoryStep()

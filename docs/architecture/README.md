@@ -487,6 +487,11 @@ UI設定は`libs/ui/tool/kis_painting_information_builder_config_p.h`から値�
 座標変換と自由描画への接続は`kis_painting_information_builder_adapters.{h,cpp}`が担当する。
 `TestToolCoreContract`と`TestToolSettingsUiContract`は操作結果と設定の保存・再読込を検査する。
 
+GPUレイヤーの複数削除は操作所有者が一つの版と履歴へ確定し、最後のレイヤーを削除する
+通常操作では空の置換レイヤーを同じ版で生成する。UIは選択した公開ノードをレイヤー識別子へ
+変換し、画像所有者へ渡す。公開画像は削除のUndoで復元されたノードの再選択を通知し、
+レイヤーパネルの複数選択とアクティブレイヤーを復元する。
+
 画像グラフの変更は`libs/image/commands`が所有する。
 `kis_node_commands_adapter.*`は操作対象画像を弱参照し、ノード追加、移動、削除、属性変更の
 取り消し可能な命令を作る。`kis_node_operation_batch.*`は連続操作を一つの履歴項目へまとめ、

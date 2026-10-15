@@ -1181,7 +1181,7 @@ kis_add_test(KisGpuDocumentViewTest.cpp ../../../krita/krita.qrc
     LINK_LIBRARIES kritaapplicationui kritalibkis kritainputui kritaimpexkra kritatestsdk)
 add_dependencies(KisGpuDocumentViewTest
     kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
-    kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker)
+    kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker)
 if(NOT IOS)
     add_dependencies(KisGpuDocumentViewTest kritatextproperties)
 endif()
@@ -1191,7 +1191,9 @@ set_tests_properties(${gpu_document_view_test} PROPERTIES TIMEOUT 60 RUN_SERIAL 
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set_tests_properties(${gpu_document_view_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set_tests_properties(${gpu_document_view_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
+    set_tests_properties(${gpu_document_view_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb" TIMEOUT 120)
+elseif(WIN32)
+    set_tests_properties(${gpu_document_view_test} PROPERTIES TIMEOUT 120)
 endif()
 
 

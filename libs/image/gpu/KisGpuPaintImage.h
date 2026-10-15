@@ -86,6 +86,7 @@ public:
     Result renameLayer(LayerId layer, const QString &name, PropertyHistory history);
     Result moveLayer(LayerId layer, qsizetype index);
     Result removeLayer(LayerId layer);
+    Result removeLayers(const QList<LayerId> &layers, const QString &replacementName = {});
     Result undo();
     Result redo();
     Result setHistoryIndex(int index);

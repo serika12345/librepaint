@@ -5,6 +5,7 @@
  */
 
 #include "nodes/kis_node_manager.h"
+#include <gpu/KisGpuPaintImage.h>
 #include <klocalizedstring.h>
 #include "KisQStringListFwd.h"
 #include "KoColorSpaceConstants.h"
@@ -1202,6 +1203,30 @@ KisNodeSP KisNodeManager::RemovalAccess::activeNode(KisNodeManager *manager)
 
 void KisNodeManager::RemovalAccess::removeNodes(KisNodeManager *manager, const KisNodeList &nodes, KisNodeSP activeNode)
 {
+    auto image = KisImageSP(manager->m_d->view->image());
+    if (const auto owner = image->gpuImage()) {
+        const auto version = owner->operations().snapshot();
+        QList<LibrePaint::Image::Gpu::LayerId> removed;
+        for (const auto &node : nodes) {
+            if (!node || node->image() != image.data() || node->parent() != image->root()) {
+                ModificationAccess::showWarning(manager, i18n("The selected layers are no longer available."));
+                return;
+            }
+            const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(),
+                [&](const auto &layer) { return layer.uuid == node->uuid(); });
+            if (found == version->layers.cend()) {
+                ModificationAccess::showWarning(manager, i18n("The selected layers are no longer available."));
+                return;
+            }
+            removed.append(found->id);
+        }
+        const auto replacement = removed.size() == version->layers.size() ? image->nextLayerName() : QString{};
+        const QPointer<KisNodeManager> guard(manager);
+        const auto result = owner->removeLayers(removed, replacement);
+        if (guard && result != LibrePaint::Image::Gpu::Result::Success)
+            ModificationAccess::showWarning(manager, i18n("The layers could not be removed. Finish the active operation and try again."));
+        return;
+    }
     const KUndo2MagicString actionName = kundo2_i18n("Remove Nodes");
     KisNodeOperationBatch *batch = manager->m_d->lazyGetNodeOperationBatch(actionName);
     batch->removeNode(nodes, activeNode);

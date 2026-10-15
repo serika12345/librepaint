@@ -149,6 +149,8 @@ Result PaintImage::moveLayer(LayerId layer, qsizetype index)
 { return onThread() ? publish(m_d->document->moveLayer(layer, index)) : Result::InvalidInput; }
 Result PaintImage::removeLayer(LayerId layer)
 { return onThread() ? publish(m_d->document->removeLayer(layer)) : Result::InvalidInput; }
+Result PaintImage::removeLayers(const QList<LayerId> &layers, const QString &replacementName)
+{ return onThread() ? publish(m_d->document->removeLayers(layers, replacementName)) : Result::InvalidInput; }
 Result PaintImage::undo() { return onThread() ? publish(m_d->document->undo()) : Result::InvalidInput; }
 Result PaintImage::redo() { return onThread() ? publish(m_d->document->redo()) : Result::InvalidInput; }
 Result PaintImage::setHistoryIndex(int index)

@@ -297,6 +297,11 @@ public:
     Result moveLayer(LayerId layer, qsizetype index);
     /** Removes one layer; selection follows its nearest remaining list position. */
     Result removeLayer(LayerId layer);
+    /** Removes a set atomically in one history entry. Selection follows the
+     * next remaining layer, or the preceding layer when no next layer remains.
+     * A nonempty replacement name creates an empty layer when all are removed.
+     */
+    Result removeLayers(const QList<LayerId> &layers, const QString &replacementName = {});
     Result undo();
     Result redo();
     /** Selects one retained history state without executing intermediate edits. */

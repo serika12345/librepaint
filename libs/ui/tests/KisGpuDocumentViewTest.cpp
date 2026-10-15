@@ -89,11 +89,103 @@ private Q_SLOTS:
     void layerPanelEditsUseOneDocumentHistory();
     void ordinaryLayerChangesDuringInput();
     void layerPanelSelectionSurvivesSaving();
+    void layerPanelRemovalPreservesLayersSelectionAndOneHistoryEntry_data();
+    void layerPanelRemovalPreservesLayersSelectionAndOneHistoryEntry();
     void layerPanelAddsAtSelectionWithOneHistoryEntry_data();
     void layerPanelAddsAtSelectionWithOneHistoryEntry();
 private:
     KisPaintOpPresetSP m_preset;
 };
+
+void KisGpuDocumentViewTest::layerPanelRemovalPreservesLayersSelectionAndOneHistoryEntry_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<int>("selection");
+    for (const bool gpu : {false, true}) {
+        const auto prefix = gpu ? QByteArrayLiteral("gpu-") : QByteArrayLiteral("ordinary-");
+        QTest::newRow(QByteArray(prefix + "single").constData()) << gpu << 0;
+        QTest::newRow(QByteArray(prefix + "multiple").constData()) << gpu << 1;
+        QTest::newRow(QByteArray(prefix + "all").constData()) << gpu << 2;
+    }
+}
+
+void KisGpuDocumentViewTest::layerPanelRemovalPreservesLayersSelectionAndOneHistoryEntry()
+{
+    QFETCH(bool, gpu);
+    QFETCH(int, selection);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    std::shared_ptr<Gpu::Execution> execution;
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    if (gpu) {
+        QString diagnostic;
+        auto device = Gpu::Device::createNative(diagnostic);
+        QVERIFY2(device, qPrintable(diagnostic));
+        execution = std::make_shared<Gpu::Execution>(device);
+        const auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        QVERIFY(owner->addLayer(QStringLiteral("Middle")));
+        QVERIFY(owner->addLayer(QStringLiteral("Top")));
+        QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+        document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Layer removal")));
+    } else {
+        const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+        QVERIFY(document->newImage(QStringLiteral("Layer removal"), 32, 16, cs,
+                                   KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 3, {}, 1));
+    }
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    QVERIFY(window->findChild<QDockWidget*>(QStringLiteral("KisLayerBox")));
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    auto image = KisImageSP(lifetime->image());
+    const auto root = image->root();
+    KisNodeList originals{root->at(0), root->at(1), root->at(2)};
+    const auto pixel = QByteArray::fromHex("332211ff");
+    for (const auto &node : originals)
+        node->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(pixel.constData()), 5, 5, 1, 1);
+    auto *manager = window->viewManager()->nodeManager();
+    const KisNodeList selected = selection == 0 ? KisNodeList{originals[1]} :
+        selection == 1 ? KisNodeList{originals[0], originals[2]} : originals;
+    const auto active = selected.last();
+    manager->slotUiActivatedNode(active);
+    manager->slotSetSelectedNodes(selected);
+    const auto before = lifetime->undoStack()->count();
+    try {
+        manager->removeNode();
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    image->waitForDone();
+    QTRY_COMPARE(root->childCount(), selection == 0 ? 2U : 1U);
+    QCOMPARE(lifetime->undoStack()->count(), before + 1);
+    QTRY_VERIFY(lifetime->isModified());
+    for (const auto &node : selected) QVERIFY(!node->parent());
+    QTRY_VERIFY(view->currentNode() && view->currentNode()->parent() == root);
+    const auto after = view->currentNode();
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QTRY_COMPARE(root->childCount(), 3U);
+    for (int i = 0; i < originals.size(); ++i) QCOMPARE(root->at(i), originals[i]);
+    QTRY_COMPARE(view->currentNode(), active);
+    QTRY_COMPARE(manager->selectedNodes().size(), selected.size());
+    for (const auto &node : selected) QVERIFY(manager->selectedNodes().contains(node));
+    QByteArray actual(4, '\0');
+    active->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 5, 5, 1, 1);
+    QCOMPARE(actual, pixel);
+    lifetime->undoStack()->redo();
+    image->waitForDone();
+    QTRY_COMPARE(root->childCount(), selection == 0 ? 2U : 1U);
+    QTRY_COMPARE(view->currentNode(), after);
+}
 
 void KisGpuDocumentViewTest::layerPanelAddsAtSelectionWithOneHistoryEntry_data()
 {

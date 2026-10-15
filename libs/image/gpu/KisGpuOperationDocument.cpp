@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <stdexcept>
 #include <QScopeGuard>
+#include <QSet>
 
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
@@ -76,6 +77,8 @@ HistoryAction OperationDocument::historyAction(int index) const
     const auto &after = m_history[index]->layers;
     if (after.size() > before.size()) return HistoryAction::AddLayer;
     if (after.size() < before.size()) return HistoryAction::RemoveLayer;
+    if (before.size() == 1 && after.size() == 1 && before.first().id != after.first().id)
+        return HistoryAction::RemoveLayer;
     for (int layer = 0; layer < after.size(); ++layer) {
         if (before[layer].id != after[layer].id) return HistoryAction::MoveLayer;
         if (after[layer].operations.size() > before[layer].operations.size()) {
@@ -513,20 +516,55 @@ Result OperationDocument::moveLayer(LayerId layer, qsizetype index)
 }
 
 Result OperationDocument::removeLayer(LayerId layer)
+{ return removeLayers({layer}); }
+
+Result OperationDocument::removeLayers(const QList<LayerId> &layers, const QString &replacementName)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
-    const auto index = layerIndex(layer);
-    if (index < 0) return Result::LayerUnavailable;
+    if (layers.isEmpty()) return Result::Success;
+    if (!replacementName.isEmpty() && !validLayerName(replacementName)) return Result::InvalidInput;
+    QSet<LayerId> removed;
+    for (const auto layer : layers) {
+        if (removed.contains(layer)) return Result::InvalidInput;
+        if (layerIndex(layer) < 0) return Result::LayerUnavailable;
+        removed.insert(layer);
+    }
+    const bool replace = removed.size() == snapshot()->layers.size() && !replacementName.isEmpty();
+    if (replace && m_nextLayer == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
-    for (const auto &operation : version->layers[index].operations) {
-        version->sampleCount -= operationSamples(operation);
-        version->rasterBytes -= operationRasterBytes(operation);
+    if (removed.contains(version->activeLayer)) {
+        const auto active = layerIndex(version->activeLayer);
+        version->activeLayer = 0;
+        for (qsizetype i = active + 1; i < version->layers.size(); ++i) {
+            if (!removed.contains(version->layers[i].id)) {
+                version->activeLayer = version->layers[i].id;
+                break;
+            }
+        }
+        if (!version->activeLayer) {
+            for (qsizetype i = active - 1; i >= 0; --i) {
+                if (!removed.contains(version->layers[i].id)) {
+                    version->activeLayer = version->layers[i].id;
+                    break;
+                }
+            }
+        }
     }
-    version->layers.removeAt(index);
-    if (version->activeLayer == layer) {
-        version->activeLayer = version->layers.isEmpty() ? 0 : version->layers[qMin(index, version->layers.size() - 1)].id;
+    for (qsizetype i = version->layers.size(); i-- > 0;) {
+        if (!removed.contains(version->layers[i].id)) continue;
+        for (const auto &operation : version->layers[i].operations) {
+            version->sampleCount -= operationSamples(operation);
+            version->rasterBytes -= operationRasterBytes(operation);
+        }
+        version->layers.removeAt(i);
+    }
+    if (replace) {
+        Layer replacement{m_nextLayer + 1, replacementName, true, {}, QUuid::createUuid()};
+        version->activeLayer = replacement.id;
+        version->layers.append(std::move(replacement));
+        ++m_nextLayer;
     }
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     commitVersion(version);

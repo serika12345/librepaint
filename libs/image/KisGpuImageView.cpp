@@ -50,12 +50,32 @@ void KisImage::connectGpuImageUpdates()
     for (auto node = root()->firstChild(); node; node = node->nextSibling())
         nodes.insert(node->uuid(), node);
     connect(image.data(), &LibrePaint::Image::Gpu::PaintImage::changed, this,
-            [view = this, synchronized = image->operations().snapshot(), nodes = std::move(nodes)]() mutable {
+            [view = this, synchronized = image->operations().snapshot(),
+             historyIndex = image->operations().undoCount(), nodes = std::move(nodes)]() mutable {
         KisImageSP retainedView = view;
-        const auto version = retainedView->gpuImage()->operations().snapshot();
+        const auto owner = retainedView->gpuImage();
+        const auto version = owner->operations().snapshot();
         if (version != synchronized) {
+            bool undoneRemoval = false;
+            if (version->documentId() == synchronized->documentId()) {
+                for (int index = owner->operations().undoCount() + 1; index <= historyIndex; ++index)
+                    undoneRemoval |= owner->operations().historyAction(index) == LibrePaint::Image::Gpu::HistoryAction::RemoveLayer;
+            }
+            QSet<QUuid> previousLayers;
+            if (undoneRemoval)
+                for (const auto &layer : synchronized->layers) previousLayers.insert(layer.uuid);
             synchronizeGpuLayerViews(retainedView.data(), &nodes);
             synchronized = retainedView->gpuImage()->operations().snapshot();
+            historyIndex = retainedView->gpuImage()->operations().undoCount();
+            if (undoneRemoval && synchronized == version) {
+                KisNodeList restored;
+                KisNodeSP active;
+                for (const auto &layer : synchronized->layers) {
+                    if (!previousLayers.contains(layer.uuid)) restored.append(nodes.value(layer.uuid));
+                    if (layer.id == synchronized->activeLayer) active = nodes.value(layer.uuid);
+                }
+                if (!restored.isEmpty()) Q_EMIT retainedView->sigRequestNodeReselection(active, restored);
+            }
             Q_EMIT retainedView->sigImageModified();
         }
         retainedView->notifyProjectionUpdated(retainedView->bounds());
