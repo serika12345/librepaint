@@ -33,6 +33,7 @@ private Q_SLOTS:
     void savedToolInvocationModesKeepTheirActions();
     void savedAlternateInvocationModesKeepTheirActions_data();
     void savedAlternateInvocationModesKeepTheirActions();
+    void lateAlternateDeactivationWithoutInputOwner();
 };
 
 void KisToolInvocationActionCompatibilityTest::savedToolInvocationModesKeepTheirActions_data()
@@ -87,6 +88,14 @@ void KisToolInvocationActionCompatibilityTest::savedAlternateInvocationModesKeep
 
     KisAlternateInvocationAction action;
     verifySavedMode(action, mode, expectedAction);
+}
+
+void KisToolInvocationActionCompatibilityTest::lateAlternateDeactivationWithoutInputOwner()
+{
+    // A shortcut can remain ready when closing a canvas clears the input owner.
+    // Retiring that shortcut must return safely after the owner has gone.
+    KisAlternateInvocationAction action;
+    action.deactivate(KisAlternateInvocationAction::PrimaryAlternateModeShortcut);
 }
 
 QTEST_GUILESS_MAIN(KisToolInvocationActionCompatibilityTest)

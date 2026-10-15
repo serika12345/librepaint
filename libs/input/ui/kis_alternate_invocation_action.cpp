@@ -91,8 +91,10 @@ void KisAlternateInvocationAction::activate(int shortcut)
 
 void KisAlternateInvocationAction::deactivate(int shortcut)
 {
-    KisTool::ToolAction action = shortcutToToolAction(shortcut);
-    inputManager()->toolProxy()->deactivateToolAction(action);
+    const auto manager = inputManager();
+    if (!manager) return;
+    const auto proxy = manager->toolProxy();
+    if (proxy) proxy->deactivateToolAction(shortcutToToolAction(shortcut));
 }
 
 int KisAlternateInvocationAction::priority() const
