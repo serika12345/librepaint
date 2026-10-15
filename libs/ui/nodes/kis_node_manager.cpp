@@ -110,6 +110,7 @@ struct KisNodeManager::Private {
     KisNodeManager * q {nullptr};
     KisViewManager * view {nullptr};
     QPointer<KisView>imageView;
+    KisImageWSP connectedImage;
     KisLayerManager layerManager;
     KisMaskManager maskManager;
     KisNodeCommandsAdapter commandsAdapter;
@@ -130,7 +131,7 @@ struct KisNodeManager::Private {
     KisSignalMapper nodeConversionSignalMapper;
 
     bool lastRequestedIsolatedModeStatus {false};
-    KisSynchronizedConnection<KisNodeSP, KisNodeList> activateNodeConnection;
+    KisSynchronizedConnection<KisImageWSP, KisNodeSP, KisNodeList> activateNodeConnection;
 
     void saveDeviceAsImage(KisPaintDeviceSP device,
                            const QString &defaultName,
@@ -207,7 +208,13 @@ void *KisNodeManager::LifecycleAccess::createPrivateState(KisNodeManager *manage
 
 void KisNodeManager::LifecycleAccess::connectReselectionOutput(KisNodeManager *manager)
 {
-    manager->m_d->activateNodeConnection.connectOutputSlot(manager, &KisNodeManager::slotImageRequestNodeReselection);
+    manager->m_d->activateNodeConnection.setCallback(
+        [manager](KisImageWSP source, KisNodeSP active, const KisNodeList &selected) {
+            if (manager->m_d->imageView && source &&
+                source.data() == manager->m_d->imageView->image().data()) {
+                manager->slotImageRequestNodeReselection(active, selected);
+            }
+        });
 }
 
 void KisNodeManager::LifecycleAccess::destroyPrivateState(void *state)
@@ -240,12 +247,13 @@ void KisNodeManager::LifecycleAccess::disconnectNodeActivation(KisNodeManager *m
 
 void KisNodeManager::LifecycleAccess::disconnectImageSignals(KisNodeManager *manager)
 {
-    manager->m_d->imageView->image()->disconnect(manager);
+    if (manager->m_d->connectedImage) manager->m_d->connectedImage->disconnect(manager);
 }
 
 void KisNodeManager::LifecycleAccess::disconnectReselectionInput(KisNodeManager *manager)
 {
-    manager->m_d->imageView->image()->disconnect(&manager->m_d->activateNodeConnection);
+    if (manager->m_d->connectedImage)
+        manager->m_d->connectedImage->disconnect(&manager->m_d->activateNodeConnection);
 }
 
 void KisNodeManager::LifecycleAccess::assignImageView(KisNodeManager *manager, QPointer<KisView> imageView)
@@ -255,7 +263,8 @@ void KisNodeManager::LifecycleAccess::assignImageView(KisNodeManager *manager, Q
 
 void KisNodeManager::LifecycleAccess::assignCommandImage(KisNodeManager *manager)
 {
-    manager->m_d->commandsAdapter.setImage(manager->m_d->imageView ? manager->m_d->imageView->image() : KisImageWSP());
+    manager->m_d->connectedImage = manager->m_d->imageView ? manager->m_d->imageView->image() : KisImageWSP();
+    manager->m_d->commandsAdapter.setImage(manager->m_d->connectedImage);
 }
 
 void KisNodeManager::LifecycleAccess::connectNodeActivation(KisNodeManager *manager)
@@ -296,8 +305,12 @@ void KisNodeManager::LifecycleAccess::activateNode(KisNodeManager *manager, KisN
 
 void KisNodeManager::LifecycleAccess::connectReselectionInput(KisNodeManager *manager)
 {
-    manager->m_d->activateNodeConnection.connectInputSignal(manager->m_d->imageView->image(),
-                                                            &KisImage::sigRequestNodeReselection);
+    const auto source = manager->m_d->connectedImage;
+    auto *connection = &manager->m_d->activateNodeConnection;
+    QObject::connect(source.data(), &KisImage::sigRequestNodeReselection, connection,
+                     [source, connection](KisNodeSP active, const KisNodeList &selected) {
+        connection->start(source, active, selected);
+    }, Qt::DirectConnection);
 }
 
 void KisNodeManager::LifecycleAccess::notifyResourceProvider(KisNodeManager *manager, KisNodeSP node)

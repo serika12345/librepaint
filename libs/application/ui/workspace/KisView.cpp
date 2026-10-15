@@ -112,6 +112,7 @@ public:
     KisPaintingAssistantsDecorationSP paintingAssistantsDecoration;
     KisReferenceImagesDecorationSP referenceImagesDecoration;
     bool isCurrent {false};
+    bool imageReplacementWasCurrent {false};
     bool showFloatingMessage {true};
     QPointer<KisFloatingMessage> savedFloatingMessage;
     KisSignalCompressor floatingMessageCompressor;
@@ -211,6 +212,28 @@ KisView::KisView(KisDocument *document, KisViewManager *viewManager, QWidget *pa
 
     setAcceptDrops(true);
 
+    connect(d->document, &KisDocument::sigCurrentImageAboutToChange, this, [this] {
+        const QPointer<KisView> guard(this);
+        d->imageReplacementWasCurrent = this->viewManager() && this->viewManager()->canvasBase() == canvasBase();
+        d->canvas.requestStrokeCancellationForTool();
+        if (!guard) return;
+        d->canvas.disconnectImage();
+        if (d->imageReplacementWasCurrent) this->viewManager()->setCurrentView(nullptr);
+        if (guard) setCurrentNode(nullptr);
+    });
+    connect(d->document, &KisDocument::sigCurrentImageChanged, this, [this] {
+        const QPointer<KisView> guard(this);
+        d->canvas.initializeImage();
+        if (!guard) return;
+        d->canvas.connectViewImageSignals();
+        if (!d->canvas.coordinatesConverter()->getCanvasWidgetSize().isEmpty()) {
+            slotImageResolutionChanged();
+        }
+        if (guard && this->viewManager() && d->imageReplacementWasCurrent) {
+            d->imageReplacementWasCurrent = false;
+            this->viewManager()->setCurrentView(this);
+        }
+    });
     connect(d->document, SIGNAL(sigLoadingFinished()), this, SLOT(slotLoadingFinished()));
 
     d->referenceImagesDecoration = new KisReferenceImagesDecoration(this, document, /* viewReady = */ false);

@@ -230,6 +230,8 @@ public:
     }
 
     KisCanvas2 *q = 0;
+    KisImageWSP connectedImage;
+    bool imageInitialized = false;
     KisCoordinatesConverter *coordinatesConverter = 0;
     QPointer<KisView>view;
     KisAbstractCanvasWidget *canvasWidget = 0;
@@ -826,10 +828,20 @@ void KisCanvas2::createCanvas(bool useOpenGL)
 void KisCanvas2::initializeImage()
 {
     KisImageSP image = m_d->view->image();
+    const bool resetWidget = m_d->imageInitialized && m_d->connectedImage.data() != image.data();
+    auto previous = m_d->connectedImage.toStrongRef();
+    if (previous && previous.data() != image.data()) {
+        previous->immediateLockForReadOnly();
+        disconnect(previous.data(), nullptr, this, nullptr);
+        previous->unlock();
+    }
+    m_d->connectedImage = image;
 
     m_d->displayColorConverter.setImageColorSpace(image->colorSpace());
     m_d->coordinatesConverter->setImage(image);
     m_d->toolProxy.initializeImage(image);
+    if (resetWidget) createCanvas(KisConfig(true).useOpenGL());
+    m_d->imageInitialized = true;
 
     connect(image, SIGNAL(sigImageUpdated(QRect)), SLOT(startUpdateCanvasProjection(QRect)), Qt::DirectConnection);
     connect(image->signalRouter(), SIGNAL(sigNotifyBatchUpdateStarted()), SLOT(slotBeginUpdatesBatch()), Qt::DirectConnection);

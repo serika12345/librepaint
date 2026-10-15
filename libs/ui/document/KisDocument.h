@@ -488,6 +488,16 @@ Q_SIGNALS:
     void sigRecoveredChanged(bool value);
     void sigPathChanged(const QString &path);
 
+    /** A non-null current image will be replaced.
+     * Receivers may close the document while handling the notification.
+     */
+    void sigCurrentImageAboutToChange();
+
+    /** A different non-null current image has been adopted.
+     * Receivers may close the document while handling the notification.
+     */
+    void sigCurrentImageChanged();
+
     void sigLoadingFinished();
 
     void sigSavingFinished(const QString &filePath);
@@ -650,6 +660,9 @@ public:
 
     /**
      * Set the current image to the specified image and turn undo on.
+     * Adopting a different image resets the document's history. Documents with
+     * views replace their image on the GUI thread; views suspend old input and
+     * rebind their presentation and controls around the adoption notifications.
      */
     void setCurrentImage(KisImageSP image, bool forceInitialUpdate = true, KisNodeSP preActivatedNode = nullptr);
 

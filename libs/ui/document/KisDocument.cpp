@@ -2991,10 +2991,19 @@ KisImageSP KisDocument::savingImage() const
 
 void KisDocument::setCurrentImage(KisImageSP image, bool forceInitialUpdate, KisNodeSP preActivatedNode)
 {
+    const bool changedIdentity = image && image != d->image;
+    const QPointer<KisDocument> guard(this);
     const auto fileDocument = image && image->gpuImage() ?
         std::make_shared<LibrePaint::Document::Gpu::PaintDocument>(image->gpuImage()) : nullptr;
+    if (changedIdentity && d->image) {
+        Q_EMIT sigCurrentImageAboutToChange();
+        if (!guard) return;
+    }
     d->gpuDocument = fileDocument;
     d->undoStack->setImage(nullptr);
+    if (!guard) return;
+    if (changedIdentity) d->undoStack->clear();
+    if (!guard) return;
     if (d->image) {
         // Disconnect existing sig/slot connections
         d->image->setUndoStore(new KisDumbUndoStore());
@@ -3034,6 +3043,8 @@ void KisDocument::setCurrentImage(KisImageSP image, bool forceInitialUpdate, Kis
     if (forceInitialUpdate) {
         d->image->initialRefreshGraph();
     }
+    image.clear();
+    if (guard && changedIdentity) Q_EMIT sigCurrentImageChanged();
 }
 
 void KisDocument::hackPreliminarySetImage(KisImageSP image)
