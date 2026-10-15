@@ -145,6 +145,8 @@ Q_SIGNALS:
     void imageChanged();
 
 private:
+
+    KisImageSP currentCanvasImage();
     inline void connectActionToButton(KisViewManager* view, QAbstractButton *button, const QString &id);
     inline void addActionToMenu(QMenu *menu, const QString &id);
     // reimp from KisNodeManager
@@ -158,6 +160,7 @@ private:
     QMenu *m_newLayerMenu;
     QMenu *m_opLayerMenu;
     KisImageWSP m_image;
+    bool m_canvasImageRefreshQueued = false;
     QPointer<KisNodeModel> m_nodeModel;
     QPointer<KisNodeFilterProxyModel> m_filteringModel;
     QPointer<KisNodeManager> m_nodeManager;

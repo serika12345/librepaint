@@ -47,6 +47,7 @@
 #include <kis_node.h>
 #include <kis_paint_device.h>
 #include <nodes/kis_node_manager.h>
+#include <nodes/kis_node_filter_proxy_model.h>
 #include <kis_canvas2.h>
 #include <kundo2stack.h>
 #include <brushengine/kis_paintop_registry.h>
@@ -712,6 +713,12 @@ void KisGpuDocumentViewTest::layerPanelSelectionSurvivesSaving()
     });
     window->viewManager()->setCurrentView(view);
     QTRY_VERIFY(view->currentNode());
+    QPointer<QDockWidget> layerPanel;
+    for (auto *dock : window->findChildren<QDockWidget*>())
+        if (dock->metaObject()->indexOfSlot("slotNodeCollapsedChanged()") >= 0) layerPanel = dock;
+    QVERIFY(layerPanel);
+    QSignalSpy panelImageChanged(layerPanel, SIGNAL(imageChanged()));
+    QVERIFY(panelImageChanged.isValid());
     QCOMPARE(view->currentNode()->uuid(), saved->layers.last().uuid);
     const auto middle = lifetime->image()->root()->at(1);
     QVERIFY(middle);
@@ -740,6 +747,26 @@ void KisGpuDocumentViewTest::layerPanelSelectionSurvivesSaving()
     QCOMPARE(reopened->operations().activeLayer(), reopened->operations().snapshot()->layers[1].id);
     QCOMPARE(reopened->operations().undoCount(), 0);
     QVERIFY(!lifetime->isModified());
+    QVERIFY(QMetaObject::invokeMethod(layerPanel, "slotNodeCollapsedChanged", Qt::DirectConnection));
+    QTRY_COMPARE(panelImageChanged.size(), 1);
+    QVERIFY(QMetaObject::invokeMethod(layerPanel, "slotNodeCollapsedChanged", Qt::DirectConnection));
+    QCOMPARE(panelImageChanged.size(), 1);
+    auto *list = layerPanel->findChild<QAbstractItemView*>(QStringLiteral("listLayers"));
+    QVERIFY(list);
+    auto *model = qobject_cast<KisNodeFilterProxyModel*>(list->model());
+    QVERIFY(model);
+    const auto newMiddle = lifetime->image()->root()->at(1);
+    QVERIFY(newMiddle != middle);
+    const auto index = model->indexFromNode(newMiddle);
+    QVERIFY(index.isValid());
+    QCOMPARE(model->nodeFromIndex(index), newMiddle);
+    QVERIFY(!model->indexFromNode(middle).isValid());
+    QVERIFY(model->setData(index, QStringLiteral("Reopened middle"), Qt::EditRole));
+    QCOMPARE(newMiddle->name(), QStringLiteral("Reopened middle"));
+    QCOMPARE(reopened->operations().snapshot()->layers[1].name, QStringLiteral("Reopened middle"));
+    QCOMPARE(owner->operations().snapshot()->layers[1].name, QStringLiteral("Middle"));
+    QCOMPARE(reopened->operations().undoCount(), 1);
+
 }
 
 void KisGpuDocumentViewTest::layerPanelEditsUseOneDocumentHistory_data()

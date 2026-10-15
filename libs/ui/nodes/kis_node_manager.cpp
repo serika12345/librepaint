@@ -872,6 +872,7 @@ bool KisNodeManager::ActivationAccess::isNodeVisible(KisNodeManager *manager, Ki
 
 bool KisNodeManager::ActivationAccess::activateNode(KisNodeManager *manager, KisNodeSP node)
 {
+    manager->m_d->commandsAdapter.setImage(manager->m_d->imageView->image());
     return manager->m_d->activateNodeImpl(node);
 }
 
