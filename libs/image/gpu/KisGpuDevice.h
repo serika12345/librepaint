@@ -44,6 +44,8 @@ class KRITAGPUIMAGE_EXPORT Device
 {
 public:
     static DevicePtr createNative(QString &diagnostic);
+    /** Diagnostic timestamp queries; unsupported adapters return a diagnostic. */
+    static DevicePtr createNative(QString &diagnostic, bool enableTimestampQueries);
     ~Device();
     Device(const Device &) = delete;
     Device &operator=(const Device &) = delete;

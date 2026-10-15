@@ -24,6 +24,8 @@
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
+#include <atomic>
+#include <cstring>
 
 using namespace LibrePaint::Image::Gpu;
 using LibrePaint::Canvas::Gpu::TilePresentation;
@@ -41,6 +43,50 @@ double percentile95(QList<double> values)
     return values[qsizetype(std::ceil(values.size() * 0.95)) - 1];
 }
 
+QByteArray timestamps(Device &device, WGPUQuerySet queries, quint32 count)
+{
+    using Buffer = LibrePaint::Canvas::Gpu::Detail::Buffer;
+    struct Read {
+        Buffer buffer;
+        QByteArray bytes;
+        std::atomic<bool> ready{false};
+    };
+    const quint64 bytes = quint64(count) * sizeof(quint64);
+    WGPUBufferDescriptor descriptor{};
+    descriptor.size = bytes;
+    descriptor.usage = WGPUBufferUsage_QueryResolve | WGPUBufferUsage_CopySrc;
+    Buffer resolved(wgpuDeviceCreateBuffer(device.nativeDevice(), &descriptor));
+    auto read = std::make_shared<Read>();
+    descriptor.usage = WGPUBufferUsage_MapRead | WGPUBufferUsage_CopyDst;
+    read->buffer.reset(wgpuDeviceCreateBuffer(device.nativeDevice(), &descriptor));
+    require(resolved && read->buffer, QStringLiteral("Timestamp readback allocation failed"));
+    const auto commands = device.beginCommands();
+    require(bool(commands), QStringLiteral("Timestamp resolve commands are unavailable"));
+    wgpuCommandEncoderResolveQuerySet(commands, queries, 0, count, resolved.get(), 0);
+    wgpuCommandEncoderCopyBufferToBuffer(commands, resolved.get(), 0, read->buffer.get(), 0, bytes);
+    require(device.submitCommands(true), QStringLiteral("Timestamp resolve failed"));
+    WGPUBufferMapCallbackInfo callback{};
+    callback.mode = WGPUCallbackMode_AllowSpontaneous;
+    callback.userdata1 = new std::shared_ptr<Read>(read);
+    callback.callback = [](WGPUMapAsyncStatus status, WGPUStringView, void *context, void *) noexcept {
+        std::unique_ptr<std::shared_ptr<Read>> retained(static_cast<std::shared_ptr<Read> *>(context));
+        auto &read = **retained;
+        if (status == WGPUMapAsyncStatus_Success) {
+            try {
+                const auto size = wgpuBufferGetSize(read.buffer.get());
+                const auto data = wgpuBufferGetConstMappedRange(read.buffer.get(), 0, size);
+                if (data) read.bytes = QByteArray(static_cast<const char *>(data), qsizetype(size));
+            } catch (...) {}
+            wgpuBufferUnmap(read.buffer.get());
+        }
+        read.ready.store(true, std::memory_order_release);
+    };
+    wgpuBufferMapAsync(read->buffer.get(), WGPUMapMode_Read, 0, bytes, callback);
+    require(device.finish() && read->ready.load(std::memory_order_acquire) && read->bytes.size() == qsizetype(bytes),
+            QStringLiteral("Timestamp readback failed"));
+    return read->bytes;
+}
+
 QJsonArray array(const QList<double> &values)
 {
     QJsonArray result;
@@ -55,6 +101,7 @@ int main(int argc, char **argv)
     QCommandLineParser parser;
     parser.setApplicationDescription(QStringLiteral("Measure native GPU input, painting, composition and presentation"));
     parser.addHelpOption();
+    parser.addOption({QStringLiteral("gpu-timestamps"), "Record diagnostic GPU timestamps and read them after measurement"});
     parser.addOption({QStringLiteral("high-load"), "Use 4096 square pixels, 24 occupied layers and a 512 pixel brush"});
     parser.addOption({QStringLiteral("offscreen"), "Measure rendering to a texture without native presentation waits"});
     parser.addOptions({
@@ -97,7 +144,8 @@ int main(int argc, char **argv)
         const bool highLoad = parser.isSet(QStringLiteral("high-load"));
         const bool offscreen = parser.isSet(QStringLiteral("offscreen"));
         QString diagnostic;
-        const auto device = Device::createNative(diagnostic);
+        const bool timestampQueries = parser.isSet(QStringLiteral("gpu-timestamps"));
+        const auto device = Device::createNative(diagnostic, timestampQueries);
         require(bool(device), diagnostic);
         QWindow window;
         LibrePaint::Canvas::Gpu::Detail::setNativeSurfaceType(window);
@@ -159,6 +207,44 @@ int main(int argc, char **argv)
             surface = LibrePaint::Canvas::Gpu::Detail::createWindowSurface(device, window);
             require(surface->configure(targetSize), QStringLiteral("Native benchmark surface creation failed"));
         }
+        using QuerySet = LibrePaint::Canvas::Gpu::Detail::Resource<WGPUQuerySet, wgpuQuerySetRelease>;
+        QuerySet queries;
+        using ComputePipeline = LibrePaint::Canvas::Gpu::Detail::Resource<WGPUComputePipeline, wgpuComputePipelineRelease>;
+        ComputePipeline timestampMarker;
+        quint32 timestampFrames = 0, timestampCapacity = 0;
+        QList<quint32> measuredTimestampFrames;
+        if (timestampQueries) {
+            const int capacity = paced ? (warmupSeconds + durationSeconds) * displayHz + 1 : warmup + frames;
+            require(capacity <= 4096, QStringLiteral("Diagnostic timestamps support at most 4096 submitted frames"));
+            timestampCapacity = quint32(capacity);
+            WGPUQuerySetDescriptor descriptor{};
+            descriptor.type = WGPUQueryType_Timestamp;
+            descriptor.count = timestampCapacity * 2;
+            queries.reset(wgpuDeviceCreateQuerySet(device->nativeDevice(), &descriptor));
+            require(bool(queries), QStringLiteral("GPU timestamp allocation failed"));
+            WGPUShaderSourceWGSL code{};
+            code.chain.sType = WGPUSType_ShaderSourceWGSL;
+            code.code = {"@compute @workgroup_size(1) fn main() {}", WGPU_STRLEN};
+            WGPUShaderModuleDescriptor shaderDescriptor{};
+            shaderDescriptor.nextInChain = &code.chain;
+            LibrePaint::Canvas::Gpu::Detail::Shader shader(wgpuDeviceCreateShaderModule(device->nativeDevice(), &shaderDescriptor));
+            WGPUComputePipelineDescriptor pipelineDescriptor{};
+            pipelineDescriptor.compute.module = shader.get();
+            pipelineDescriptor.compute.entryPoint = {"main", WGPU_STRLEN};
+            timestampMarker.reset(wgpuDeviceCreateComputePipeline(device->nativeDevice(), &pipelineDescriptor));
+            require(bool(timestampMarker), QStringLiteral("GPU timestamp marker pipeline failed"));
+        }
+        auto stamp = [&](WGPUCommandEncoder commands, quint32 index) {
+            WGPUComputePassTimestampWrites writes{queries.get(), index, WGPU_QUERY_SET_INDEX_UNDEFINED};
+            WGPUComputePassDescriptor descriptor{};
+            descriptor.timestampWrites = &writes;
+            const auto pass = wgpuCommandEncoderBeginComputePass(commands, &descriptor);
+            require(bool(pass), QStringLiteral("GPU timestamp marker failed"));
+            wgpuComputePassEncoderSetPipeline(pass, timestampMarker.get());
+            wgpuComputePassEncoderDispatchWorkgroups(pass, 1, 1, 1);
+            wgpuComputePassEncoderEnd(pass);
+            wgpuComputePassEncoderRelease(pass);
+        };
         const auto stroke = document.beginStroke(document.activeLayer(), brush, quint64(history + 1));
         QList<double> cpu, gpu, inputTimes, acquireTimes, recordTimes, submitTimes;
         QList<double> newestInputAges, oldestInputAges, pendingCounts;
@@ -184,6 +270,10 @@ int main(int argc, char **argv)
             require(frame.code == ExecutionCode::Success, frame.diagnostic);
             const auto acquired = timer.nsecsElapsed();
             try {
+                if (queries) {
+                    require(timestampFrames < timestampCapacity, QStringLiteral("GPU timestamp capacity exhausted"));
+                    stamp(frame.commands, timestampFrames * 2);
+                }
                 const auto projected = execution.project(admitted.handle, viewport);
                 require(projected.code == RenderOutcome::Recorded, projected.diagnostic);
                 if (!offscreen) target = {device, frame.target, targetSize, surface->format()};
@@ -192,6 +282,7 @@ int main(int argc, char **argv)
                 const QTransform transform(sx, 0, 0, sy, -viewport.x() * sx, -viewport.y() * sy);
                 const auto drawn = presentation.record(frame.commands, projected.version, target, transform, Qt::white);
                 require(drawn.recorded, drawn.diagnostic);
+                if (queries) stamp(frame.commands, timestampFrames * 2 + 1);
                 const auto recorded = timer.nsecsElapsed();
                 const auto submitted = execution.submitFrame();
                 require(submitted.code == ExecutionCode::Success, submitted.diagnostic);
@@ -208,6 +299,10 @@ int main(int argc, char **argv)
                         oldestInputAges.append((now - submittedSamples * 1000000000LL / inputHz) / 1e6);
                         pendingCounts.append(accepted - submittedSamples);
                     }
+                }
+                if (queries) {
+                    if (measured) measuredTimestampFrames.append(timestampFrames);
+                    ++timestampFrames;
                 }
                 submittedSamples = accepted;
                 pendingInputCpuNs = 0;
@@ -255,6 +350,19 @@ int main(int argc, char **argv)
         require(document.preview()->sampleCount == initialSamples + accepted,
                 QStringLiteral("Accepted input was lost from the retained operation"));
         require(document.commitStroke(stroke) == Result::Success, QStringLiteral("Interactive commit failed"));
+        if (queries) {
+            const auto values = timestamps(*device, queries.get(), timestampFrames * 2);
+            const float period = wgpuQueueGetTimestampPeriod(device->queue());
+            require(std::isfinite(period) && period > 0, QStringLiteral("GPU timestamp period is invalid"));
+            for (const auto index : measuredTimestampFrames) {
+                quint64 start = 0, end = 0;
+                std::memcpy(&start, values.constData() + index * 2 * sizeof(quint64), sizeof(start));
+                std::memcpy(&end, values.constData() + (index * 2 + 1) * sizeof(quint64), sizeof(end));
+                require(end > start, QStringLiteral("GPU timestamp markers did not produce a positive elapsed time"));
+                gpu.append(double(end - start) * period / 1e6);
+            }
+            require(gpu.size() == cpu.size(), QStringLiteral("GPU timestamps are missing for measured frames"));
+        }
         const auto pixels = execution.readPixels(admitted.handle, document.snapshot(), viewport);
         require(pixels.code == ExecutionCode::Success, pixels.diagnostic);
         QByteArray image;
@@ -271,7 +379,7 @@ int main(int argc, char **argv)
         const int deviceType = int(info.adapterType);
         wgpuAdapterInfoFreeMembers(info);
         const QJsonObject result{
-            {"schemaVersion", 2}, {"target", offscreen ? "texture" : "window"},
+            {"schemaVersion", 3}, {"diagnosticGpuTimestamps", timestampQueries}, {"target", offscreen ? "texture" : "window"},
             {"completionSynchronized", offscreen},
             {"displayRefreshRateHz", window.screen() ? window.screen()->refreshRate() : 0}, {"backend", backend},
             {"deviceName", deviceName}, {"deviceType", deviceType},
