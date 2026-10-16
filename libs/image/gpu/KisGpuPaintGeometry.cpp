@@ -135,12 +135,25 @@ std::optional<QList<quint64>> figureFillTiles(const QList<PaintSegment> &edges, 
 {
     if (edges.isEmpty()) return QList<quint64>{};
     qint32 minX = edges.first().ax, maxX = minX, minY = edges.first().ay, maxY = minY;
+    const QPoint origin(minX, minY);
+    qint64 directionX = 0, directionY = 0;
+    bool hasArea = false;
     for (const auto &edge : edges) {
         minX = std::min({minX, edge.ax, edge.bx});
         maxX = std::max({maxX, edge.ax, edge.bx});
         minY = std::min({minY, edge.ay, edge.by});
         maxY = std::max({maxY, edge.ay, edge.by});
+        for (const auto point : {QPoint(edge.ax, edge.ay), QPoint(edge.bx, edge.by)}) {
+            const qint64 dx = qint64(point.x()) - origin.x(), dy = qint64(point.y()) - origin.y();
+            if (directionX == 0 && directionY == 0) {
+                directionX = dx;
+                directionY = dy;
+            } else if (directionX * dy != directionY * dx) {
+                hasArea = true;
+            }
+        }
     }
+    if (!hasArea) return QList<quint64>{};
     QSet<quint64> coordinates;
     const int mirrorMode = int(brush.mirrorHorizontal) | (int(brush.mirrorVertical) << 1);
     for (int reflection = 0; reflection < 4; ++reflection) {

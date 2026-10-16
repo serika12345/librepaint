@@ -33,6 +33,8 @@ private Q_SLOTS:
     void solidFiguresPreserveFillOutlineHistoryAndRecovery_data();
     void solidFiguresPreserveFillOutlineHistoryAndRecovery();
     void filledInteriorRespectsRegionAndTileBudget();
+    void collinearFillPreservesPixelsWithinTileBudget_data();
+    void collinearFillPreservesPixelsWithinTileBudget();
     void removingFigureCoverageRestoresItsPreviewBackground();
     void symmetryPreservesPixelsOverlapHistoryAndRecovery_data();
     void symmetryPreservesPixelsOverlapHistoryAndRecovery();
@@ -1504,6 +1506,44 @@ void KisGpuTileRendererTest::removingFigureCoverageRestoresItsPreviewBackground(
     QVERIFY(empty->tiles(layer).isEmpty());
     QCOMPARE(readTile(painted, layer, {0, 0}), pixels);
     QCOMPARE(document.commitStroke(id), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+}
+
+void KisGpuTileRendererTest::collinearFillPreservesPixelsWithinTileBudget_data()
+{
+    QTest::addColumn<int>("kind");
+    QTest::addColumn<int>("vertices");
+    for (const auto kind : {ShapeKind::Polyline, ShapeKind::Polygon}) {
+        for (int vertices : {2, 3}) {
+            const auto name = QString::number(int(kind)) + '-' + QString::number(vertices);
+            QTest::newRow(qPrintable(name)) << int(kind) << vertices;
+        }
+    }
+}
+
+void KisGpuTileRendererTest::collinearFillPreservesPixelsWithinTileBudget()
+{
+    QFETCH(int, kind);
+    QFETCH(int, vertices);
+    OperationDocument document(QSize(1024, 1024));
+    const auto layer = document.activeLayer();
+    QList<InputSample> samples{{{0, 0}, 1}};
+    if (vertices == 3) samples.append({{512, 512}, 1});
+    samples.append({{1024, 1024}, 1});
+    FigureStyle style;
+    style.outline = false;
+    style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+    QCOMPARE(document.paintFigure(layer, Brush{}, samples,
+                                    {static_cast<ShapeKind>(kind), samples.first().position,
+                                     samples.last().position, 0}, style, 42), Result::Success);
+    TileRenderer renderer(m_device, TileRenderer::TileBytes);
+    auto *commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto result = renderer.record(commands, document.snapshot());
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QCOMPARE(result.code, RenderOutcome::Recorded);
+    QVERIFY(result.version->tiles(layer).isEmpty());
+    QCOMPARE(renderer.residentBytes(), qsizetype(0));
     QCOMPARE(document.undoCount(), 1);
 }
 
