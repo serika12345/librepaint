@@ -1172,13 +1172,35 @@ kis_add_test(
     TEST_NAME kis_view_signals_test
     LINK_LIBRARIES kritaapplicationui kritalibkis kritatestsdk
     )
+add_dependencies(kis_view_signals_test kritalcmsengine kritadefaulttools kritaroundmarkerpaintop)
 
+set(gpu_document_input_cases
+    presentsEditsAndReleasesTheClosedTab
+    freehandInputCommitsOneHistoryEntryAndCanBeCancelled
+    paintingBackendChangesRebindTheCanvas
+    replacementUpdatesPresentationInputHistoryAndSaving
+    ordinaryLayerChangesDuringInput
+    lineToolPreservesPreviewCancellationAndHistory)
+set(gpu_document_layer_cases
+    layerPanelEditsUseOneDocumentHistory
+    layerPanelReordersSelectionWithOneHistoryEntry
+    layerPanelSelectionSurvivesSaving
+    layerPanelSelectionPreservesAnUnselectedActiveLayer
+    layerSelectionCanCloseTheWindowDuringNotification
+    layerPanelDuplicationPreservesPixelsSelectionAndOneHistoryEntry
+    layerPanelRemovalPreservesLayersSelectionAndOneHistoryEntry
+    layerPanelAddsAtSelectionWithOneHistoryEntry)
 kis_add_test(KisGpuDocumentViewTest.cpp ../../../krita/krita.qrc
     ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
     ../../../krita/pics/Breeze-light/breeze-light-icons.qrc
     TEST_NAME KisGpuDocumentViewTest
     TEST_NAME_VAR gpu_document_view_test
+    TEST_ARGS ${gpu_document_input_cases}
     LINK_LIBRARIES kritaapplicationui kritainputui kritaimpexkra kritatestsdk)
+set(gpu_document_layer_test libs-ui-layers-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_layer_test}
+    COMMAND KisGpuDocumentViewTest ${gpu_document_layer_cases})
+set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test})
 add_dependencies(KisGpuDocumentViewTest
     kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
     kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker)
@@ -1218,13 +1240,13 @@ elseif(WIN32)
 endif()
 
 # Native window input requires exclusive use of the test display.
-set_tests_properties(${gpu_document_view_test} PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)
+set_tests_properties(${gpu_document_view_tests} PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set_tests_properties(${gpu_document_view_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")
+    set_tests_properties(${gpu_document_view_tests} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set_tests_properties(${gpu_document_view_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb" TIMEOUT 300)
+    set_tests_properties(${gpu_document_view_tests} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb" TIMEOUT 300)
 elseif(WIN32)
-    set_tests_properties(${gpu_document_view_test} PROPERTIES TIMEOUT 300)
+    set_tests_properties(${gpu_document_view_tests} PROPERTIES TIMEOUT 300)
 endif()
 
 
