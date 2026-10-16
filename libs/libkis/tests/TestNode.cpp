@@ -878,7 +878,7 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory_data()
     QTest::addColumn<bool>("cloned");
     for (bool gpu : {false, true}) {
         for (const auto &figure : {QStringLiteral("line"), QStringLiteral("rectangle"),
-                                  QStringLiteral("ellipse"), QStringLiteral("polygon")}) {
+                                  QStringLiteral("ellipse"), QStringLiteral("polygon"), QStringLiteral("polygon-pair")}) {
             for (const auto &style : {QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
                 const auto name = (gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + figure + '-' + style;
                 QTest::newRow(qPrintable(name)) << gpu << figure << style << QString() << false;
@@ -891,7 +891,7 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory_data()
     }
     for (bool gpu : {false, true}) {
         for (const auto &figure : {QStringLiteral("line"), QStringLiteral("rectangle"),
-                                  QStringLiteral("ellipse"), QStringLiteral("polygon")}) {
+                                  QStringLiteral("ellipse"), QStringLiteral("polygon"), QStringLiteral("polygon-pair")}) {
             for (const auto &style : {QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
                 const auto name = (gpu ? QStringLiteral("gpu-clone-") : QStringLiteral("ordinary-clone-")) + figure + '-' + style;
                 QTest::newRow(qPrintable(name)) << gpu << figure << style << QString() << true;
@@ -972,7 +972,7 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     resources->setCurrentCompositeOp(QStringLiteral("normal"));
     const auto expected = strokeStyle == QLatin1String("BackgroundColor") ?
         QByteArray::fromHex("2c11ddff") : QByteArray::fromHex("f18111ff");
-    const QPoint sample(32, figure == QLatin1String("line") ? 32 : 12);
+    const QPoint sample(32, figure == QLatin1String("line") || figure == QLatin1String("polygon-pair") ? 32 : 12);
     QScopedPointer<Node> api(Node::createNode(image, target));
     QScopedPointer<Node> activeApi(Node::createNode(image, active));
     if (cloned) {
@@ -1018,6 +1018,7 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
         }
         else if (figure == QLatin1String("rectangle")) api->paintRectangle({12, 12, 40, 40}, strokeStyle, QStringLiteral("None"));
         else if (figure == QLatin1String("ellipse")) api->paintEllipse({12, 12, 40, 40}, strokeStyle, QStringLiteral("None"));
+        else if (figure == QLatin1String("polygon-pair")) api->paintPolygon({{12, 32}, {52, 32}}, strokeStyle, QStringLiteral("None"));
         else api->paintPolygon({{12, 12}, {52, 12}, {32, 52}}, strokeStyle, QStringLiteral("None"));
     } catch (const std::exception &error) {
         QFAIL(error.what());

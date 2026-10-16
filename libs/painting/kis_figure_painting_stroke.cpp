@@ -223,7 +223,7 @@ void KisFigurePaintingStroke::paintPolygon(const vQPointF &points)
     if (m_gpuStroke) {
         auto vertices = points;
         if (vertices.size() > 1 && vertices.first() == vertices.last()) vertices.removeLast();
-        if (vertices.size() < 3) return;
+        if (vertices.size() < 2) return;
         QList<Gpu::InputSample> samples;
         samples.reserve(vertices.size());
         for (const auto &point : vertices) samples.append({point, 1});
