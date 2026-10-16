@@ -11,7 +11,7 @@
 #include <QSet>
 
 namespace LibrePaint::Image::Gpu::Test {
-// Emits pre-fill records for the maintained legacy reader contracts.
+// Emits earlier records for the maintained legacy reader contracts.
 inline QByteArray legacyRecovery(const OperationDocument &document, quint8 format)
 {
     auto payload = document.recoveryData().chopped(32);
@@ -28,6 +28,8 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                 const QPair<quint64, quint64> key(operation.id.sequence, operation.version);
                 if (seen.contains(key)) continue;
                 seen.insert(key);
+                Q_ASSERT(operation.shape.kind != ShapeKind::Path);
+                if (format >= 17) continue;
                 Q_ASSERT(operation.figureStyle.outline && !operation.figureStyle.fill);
                 QByteArray prefix;
                 QDataStream stream(&prefix, QIODevice::WriteOnly);

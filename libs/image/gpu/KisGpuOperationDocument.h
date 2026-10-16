@@ -80,7 +80,8 @@ struct Brush
     }
 };
 
-enum class ShapeKind { Freehand, Line, Ellipse, Rectangle, RoundedRectangle, Polyline, Polygon };
+enum class ShapeKind { Freehand, Line, Ellipse, Rectangle, RoundedRectangle, Polyline, Polygon, Path };
+enum class PathCommand : quint8 { MoveTo, LineTo, CubicTo };
 
 struct Shape
 {
@@ -90,6 +91,9 @@ struct Shape
     QPointF second;
     qreal rotation = 0;
     QSizeF cornerRadii{0, 0};
+    /** Commands consume one input point, or three for the cubic controls and endpoint. */
+    QList<PathCommand> pathCommands{};
+    bool windingFill = false;
 };
 
 /** Solid figure coverage, separate from the outline brush and its color. */
@@ -234,7 +238,7 @@ enum class PropertyHistory { Separate, MergeConsecutive };
 enum class HistoryAction {
     None, AddLayer, RemoveLayer, MoveLayer, RenameLayer, ChangeOpacity,
     ChangeVisibility, ChangeLock, ChangeTimelinePin, PaintStroke, DrawLine,
-    DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer
+    DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath
 };
 
 struct Limits
@@ -268,6 +272,8 @@ public:
     explicit OperationDocument(QSize size, Limits limits = {});
     /** Validated flat raster import starts saved, with preserved layer UUIDs and empty history. */
     explicit OperationDocument(const RasterImage &image, Limits limits = {});
+    /** Captured input is bounded before a producer allocates its retained copy. */
+    Limits limits() const { return m_limits; }
     OperationDocument(const OperationDocument &) = delete;
     OperationDocument &operator=(const OperationDocument &) = delete;
 

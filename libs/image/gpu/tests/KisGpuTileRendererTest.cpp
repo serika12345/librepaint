@@ -36,6 +36,8 @@ private Q_SLOTS:
     void collinearFillPreservesPixelsWithinTileBudget_data();
     void collinearFillPreservesPixelsWithinTileBudget();
     void removingFigureCoverageRestoresItsPreviewBackground();
+    void pathCommandsPreserveCoverageHistoryAndRecovery_data();
+    void pathCommandsPreserveCoverageHistoryAndRecovery();
     void symmetryPreservesPixelsOverlapHistoryAndRecovery_data();
     void symmetryPreservesPixelsOverlapHistoryAndRecovery();
     void symmetryKeepsSparseTilesAndIncrementalInputWithinBudget();
@@ -579,7 +581,7 @@ void KisGpuTileRendererTest::changingPreviewReusesItsBackgroundWithinThreeTiles(
     QCOMPARE(readTile(background, layer, {0, 0}), backgroundPixels);
     preview = changed;
     changed.clear();
-    for (const auto shape : {Shape{ShapeKind::Line, {140, 180}, {200, 200}, 0},
+    for (const auto &shape : {Shape{ShapeKind::Line, {140, 180}, {200, 200}, 0},
                              Shape{ShapeKind::Ellipse, {60, 80}, {100, 110}, 0.2}}) {
         QCOMPARE(document.updateShape(stroke, shape), Result::Success);
         changed = render(renderer, document.preview(), preview);
@@ -1629,6 +1631,87 @@ void KisGpuTileRendererTest::solidFiguresPreserveFillOutlineHistoryAndRecovery()
     const auto restored = render(renderer, recovered.snapshot());
     QVERIFY(restored);
     QCOMPARE(readTile(restored, layer, {0, 0}), pixels);
+}
+
+void KisGpuTileRendererTest::pathCommandsPreserveCoverageHistoryAndRecovery_data()
+{
+    QTest::addColumn<QString>("kind");
+    for (const auto &kind : {QStringLiteral("curve"), QStringLiteral("subpaths"),
+                              QStringLiteral("even-odd"), QStringLiteral("winding"), QStringLiteral("empty")})
+        QTest::newRow(qPrintable(kind)) << kind;
+}
+
+void KisGpuTileRendererTest::pathCommandsPreserveCoverageHistoryAndRecovery()
+{
+    QFETCH(QString, kind);
+    OperationDocument document(QSize(64, 64));
+    const auto layer = document.activeLayer();
+    Shape shape;
+    shape.kind = ShapeKind::Path;
+    QList<InputSample> samples;
+    FigureStyle style;
+    const bool fill = kind == QLatin1String("even-odd") || kind == QLatin1String("winding");
+    if (fill) {
+        shape.windingFill = kind == QLatin1String("winding");
+        for (const auto &rect : {QRectF(8, 8, 48, 48), QRectF(24, 24, 16, 16)}) {
+            shape.pathCommands.append(PathCommand::MoveTo);
+            samples.append({rect.topLeft(), 1});
+            for (const auto &point : {rect.topRight(), rect.bottomRight(), rect.bottomLeft(), rect.topLeft()}) {
+                shape.pathCommands.append(PathCommand::LineTo);
+                samples.append({point, 1});
+            }
+        }
+        style.outline = false;
+        style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+    } else if (kind == QLatin1String("curve")) {
+        shape.pathCommands = {PathCommand::MoveTo, PathCommand::CubicTo};
+        samples = {{{12, 32}, 1}, {{20, 12}, 1}, {{40, 52}, 1}, {{52, 32}, 1}};
+    } else if (kind == QLatin1String("subpaths")) {
+        shape.pathCommands = {PathCommand::MoveTo, PathCommand::LineTo, PathCommand::MoveTo, PathCommand::LineTo};
+        samples = {{{12, 12}, 1}, {{52, 12}, 1}, {{12, 52}, 1}, {{52, 52}, 1}};
+    }
+    Brush brush;
+    brush.rgba = {17, 129, 241, 255};
+    brush.diameter = 8;
+    QCOMPARE(document.paintFigure(layer, brush, samples, shape, style, 42), Result::Success);
+    TileRenderer renderer(m_device);
+    const auto version = render(renderer, document.snapshot());
+    QVERIFY(version);
+    if (kind == QLatin1String("empty")) {
+        QVERIFY(version->tiles(layer).isEmpty());
+        QCOMPARE(document.undoCount(), 1);
+        return;
+    }
+    const auto pixels = readTile(version, layer, {0, 0});
+    QCOMPARE(pixels.size(), TileRenderer::TileBytes);
+    const auto pixel = [&](int x, int y) { return pixels.mid((y * TileRenderer::TileSize + x) * 4, 4); };
+    if (fill) {
+        QCOMPARE(pixel(16, 16), QByteArray::fromHex("dd112cff"));
+        QCOMPARE(pixel(32, 32), shape.windingFill ? QByteArray::fromHex("dd112cff") : QByteArray(4, char(0)));
+    } else {
+        QCOMPARE(pixel(32, kind == QLatin1String("curve") ? 32 : 12), QByteArray::fromHex("1181f1ff"));
+        if (kind == QLatin1String("subpaths")) QCOMPARE(pixel(32, 32), QByteArray(4, char(0)));
+    }
+    QCOMPARE(document.undo(), Result::Success);
+    const auto undone = render(renderer, document.snapshot(), version);
+    QVERIFY(undone);
+    QVERIFY(undone->tiles(layer).isEmpty());
+    QCOMPARE(document.redo(), Result::Success);
+    const auto redone = render(renderer, document.snapshot());
+    QVERIFY(redone);
+    QCOMPARE(readTile(redone, layer, {0, 0}), pixels);
+    OperationDocument recovered(QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    const auto restored = render(renderer, recovered.snapshot());
+    QVERIFY(restored);
+    QCOMPARE(readTile(restored, layer, {0, 0}), pixels);
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        QFile file(QDir(results).filePath(QStringLiteral("path-") + kind + QStringLiteral(".rgba")));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(pixels), qint64(pixels.size()));
+    }
 }
 
 int main(int argc, char **argv)

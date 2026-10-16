@@ -81,6 +81,9 @@ private Q_SLOTS:
     void shapePreviewCommitsAsOneHistoryEntry();
     void filledFiguresPreserveStylesHistoryAndRecovery();
     void emptyFigureIntentPreservesHistoryAndRecovery();
+    void pathsPreserveCommandsControlPointsAndRecovery();
+    void emptyPathsPreserveHistoryAndPendingRecovery();
+    void invalidPathsPreserveHistoryAndInputBudgets();
     void cancelAndRejectedInputPreserveRedo();
     void documentChangesShareOneHistory();
     void savesPinTheirVersionWhileEditingContinues();
@@ -782,6 +785,7 @@ void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable_data()
     QTest::newRow("version-fourteen") << quint8(14) << false;
     QTest::newRow("version-fifteen") << quint8(15) << false;
     QTest::newRow("version-sixteen") << quint8(16) << false;
+    QTest::newRow("version-seventeen") << quint8(17) << false;
 }
 
 void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable()
@@ -1699,6 +1703,11 @@ void KisGpuOperationDocumentTest::filledFiguresPreserveStylesHistoryAndRecovery(
     QCOMPARE(recovered->figureStyle.fill, style.fill);
     QCOMPARE(recovered->shape.kind, ShapeKind::Rectangle);
     QCOMPARE(recovered->brush.rgba, brush.rgba);
+    OperationDocument previous(QSize(1, 1));
+    QCOMPARE(previous.restoreRecovery(legacyRecovery(document, 17)), Result::Success);
+    const auto previousFigure = std::get<PaintSnapshot>(previous.snapshot()->layers.first().operations.last());
+    QCOMPARE(previousFigure->figureStyle.fill, style.fill);
+    QVERIFY(!previousFigure->figureStyle.outline);
     QCOMPARE(restored.undo(), Result::Success);
     QVERIFY(restored.snapshot()->layers.first().operations.isEmpty());
     QCOMPARE(restored.redo(), Result::Success);
@@ -1728,6 +1737,95 @@ void KisGpuOperationDocumentTest::emptyFigureIntentPreservesHistoryAndRecovery()
     QVERIFY(restored.isModified());
     QCOMPARE(document.undo(), Result::Success);
     QCOMPARE(document.snapshot(), initial);
+}
+
+void KisGpuOperationDocumentTest::pathsPreserveCommandsControlPointsAndRecovery()
+{
+    OperationDocument document(QSize(64, 64));
+    const auto initial = document.snapshot();
+    Shape shape;
+    shape.kind = ShapeKind::Path;
+    shape.pathCommands = {PathCommand::MoveTo, PathCommand::CubicTo, PathCommand::MoveTo, PathCommand::LineTo};
+    shape.windingFill = true;
+    const QList<InputSample> samples{{{12, 32}, 1}, {{20, 12}, 1}, {{40, 52}, 1},
+                                    {{52, 32}, 1}, {{12, 52}, 1}, {{52, 52}, 1}};
+    FigureStyle style;
+    style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+    QCOMPARE(document.paintFigure(document.activeLayer(), Brush{}, samples, shape, style, 42), Result::Success);
+    const auto pinned = document.snapshot();
+    QCOMPARE(pinned->sampleCount, samples.size());
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.historyAction(1), HistoryAction::DrawPath);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), initial);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), pinned);
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    const auto operation = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QCOMPARE(operation->shape.pathCommands, shape.pathCommands);
+    QVERIFY(operation->shape.windingFill);
+    QCOMPARE(operation->inputSamples(), samples);
+    QCOMPARE(operation->figureStyle.fill, style.fill);
+    QCOMPARE(restored.undo(), Result::Success);
+    QVERIFY(restored.snapshot()->layers.first().operations.isEmpty());
+    QCOMPARE(restored.redo(), Result::Success);
+    QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last())->inputSamples(), samples);
+}
+
+void KisGpuOperationDocumentTest::emptyPathsPreserveHistoryAndPendingRecovery()
+{
+    OperationDocument document(QSize(64, 64));
+    Shape shape;
+    shape.kind = ShapeKind::Path;
+    QCOMPARE(document.paintFigure(document.activeLayer(), Brush{}, {}, shape, FigureStyle{}, 42), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    QVERIFY(document.isModified());
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(restored.undoCount(), 1);
+    QCOMPARE(restored.undo(), Result::Success);
+    QVERIFY(!restored.isModified());
+    QCOMPARE(restored.redo(), Result::Success);
+    const auto id = document.beginStroke(document.activeLayer(), Brush{}, 43);
+    QVERIFY(!id.isNull());
+    QCOMPARE(document.updateFigure(id, shape, FigureStyle{}), Result::Success);
+    OperationDocument pending(QSize(1, 1));
+    QCOMPARE(pending.restoreRecovery(document.recoveryData()), Result::Success);
+    QVERIFY(!pending.activeOperation().isNull());
+    QCOMPARE(std::get<PaintSnapshot>(pending.preview()->layers.first().operations.last())->shape.kind, ShapeKind::Path);
+    QCOMPARE(pending.cancelStroke(pending.activeOperation()), Result::Success);
+    QCOMPARE(pending.undoCount(), 1);
+    QCOMPARE(document.cancelStroke(id), Result::Success);
+}
+
+void KisGpuOperationDocumentTest::invalidPathsPreserveHistoryAndInputBudgets()
+{
+    OperationDocument document(QSize(64, 64));
+    const auto before = document.recoveryData();
+    Shape shape;
+    shape.kind = ShapeKind::Path;
+    shape.pathCommands = {PathCommand::LineTo};
+    QCOMPARE(document.paintFigure(document.activeLayer(), Brush{}, {{{12, 32}, 1}}, shape, FigureStyle{}, 42), Result::InvalidInput);
+    shape.pathCommands = {PathCommand::MoveTo, PathCommand::CubicTo};
+    const QList<InputSample> samples{{{12, 32}, 1}, {{20, 12}, 1}, {{40, 52}, 1}, {{52, 32}, 1}};
+    QCOMPARE(document.paintFigure(document.activeLayer(), Brush{}, samples.first(3), shape, FigureStyle{}, 42), Result::InvalidInput);
+    shape.pathCommands = {PathCommand::MoveTo, static_cast<PathCommand>(255)};
+    QCOMPARE(document.paintFigure(document.activeLayer(), Brush{}, samples.first(2), shape, FigureStyle{}, 42), Result::InvalidInput);
+    shape.kind = ShapeKind::Line;
+    shape.pathCommands = {PathCommand::MoveTo, PathCommand::LineTo};
+    QCOMPARE(document.paintFigure(document.activeLayer(), Brush{}, samples.first(2), shape, FigureStyle{}, 42), Result::InvalidInput);
+    QCOMPARE(document.recoveryData(), before);
+    QVERIFY(document.activeOperation().isNull());
+    Limits limits;
+    limits.samplesPerStroke = limits.samplesPerDocument = 3;
+    OperationDocument bounded(QSize(64, 64), limits);
+    const auto boundedBefore = bounded.recoveryData();
+    shape.kind = ShapeKind::Path;
+    shape.pathCommands = {PathCommand::MoveTo, PathCommand::CubicTo};
+    QCOMPARE(bounded.paintFigure(bounded.activeLayer(), Brush{}, samples, shape, FigureStyle{}, 42), Result::CapacityExceeded);
+    QCOMPARE(bounded.recoveryData(), boundedBefore);
+    QVERIFY(bounded.activeOperation().isNull());
 }
 
 QTEST_GUILESS_MAIN(KisGpuOperationDocumentTest)

@@ -25,11 +25,100 @@ quint32 integerRoot(quint64 value)
 }
 qint32 fixed(qreal value) { return qint32(std::llround(value * 16)); }
 quint32 pressure(qreal value) { return quint32(std::llround(value * 65535)); }
+
+bool appendSegment(QList<PaintSegment> &result, const InputSample &a, const InputSample &b,
+                   quint32 step, quint32 &phase, qsizetype maximumSegments = PathGeometrySegmentLimit)
+{
+    if (result.size() >= maximumSegments) return false;
+    const qint32 ax = fixed(a.position.x()), ay = fixed(a.position.y());
+    const qint32 bx = fixed(b.position.x()), by = fixed(b.position.y());
+    const qint64 dx = qint64(bx) - ax, dy = qint64(by) - ay;
+    const quint32 length = integerRoot(quint64(dx * dx) + quint64(dy * dy));
+    result.append({ax, ay, bx, by, pressure(a.pressure), pressure(b.pressure), phase, length});
+    phase = (quint64(phase) + length) % step;
+    return true;
 }
 
-QList<PaintSegment> paintGeometry(const PaintOperation &operation, quint32 step)
+bool appendCubic(QList<PaintSegment> &result, InputSample first, QPointF control1, QPointF control2,
+                 InputSample last, quint32 step, quint32 &phase)
+{
+    const auto quantized = [](QPointF value) {
+        return QPointF(qreal(fixed(value.x())) / 16, qreal(fixed(value.y())) / 16);
+    };
+    first.position = quantized(first.position);
+    last.position = quantized(last.position);
+    struct Curve { InputSample first; QPointF control1, control2; InputSample last; };
+    QList<Curve> pending{{first, quantized(control1), quantized(control2), last}};
+    while (!pending.isEmpty()) {
+        const auto curve = pending.takeLast();
+        const auto firstDifference = curve.first.position - 2 * curve.control1 + curve.control2;
+        const auto lastDifference = curve.control1 - 2 * curve.control2 + curve.last.position;
+        // Dyadic subdivision preserves the same fixed-input decisions on each OS.
+        const qreal flatness = std::max({std::abs(firstDifference.x()), std::abs(firstDifference.y()),
+                                         std::abs(lastDifference.x()), std::abs(lastDifference.y())});
+        if (flatness <= qreal(1) / 32) {
+            if (!appendSegment(result, curve.first, curve.last, step, phase)) return false;
+            continue;
+        }
+        const auto firstControl = (curve.first.position + curve.control1) / 2;
+        const auto middleControl = (curve.control1 + curve.control2) / 2;
+        const auto lastControl = (curve.control2 + curve.last.position) / 2;
+        const auto leftControl = (firstControl + middleControl) / 2;
+        const auto rightControl = (middleControl + lastControl) / 2;
+        auto middle = curve.first;
+        middle.position = (leftControl + rightControl) / 2;
+        middle.pressure = (curve.first.pressure + curve.last.pressure) / 2;
+        pending.append({middle, rightControl, lastControl, curve.last});
+        pending.append({curve.first, firstControl, leftControl, middle});
+    }
+    return true;
+}
+
+std::optional<PaintGeometry> pathGeometry(const PaintOperation &operation, const QList<InputSample> &input,
+                                         quint32 step)
+{
+    PaintGeometry result;
+    QList<PaintSegment> closures;
+    qsizetype index = 0;
+    quint32 phase = 0;
+    std::optional<InputSample> first, previous;
+    const auto close = [&] {
+        if (!operation.figureStyle.fill || !first || !previous) return true;
+        const qint32 ax = fixed(previous->position.x()), ay = fixed(previous->position.y());
+        const qint32 bx = fixed(first->position.x()), by = fixed(first->position.y());
+        if (ax == bx && ay == by) return true;
+        if (closures.size() + result.outline.size() >= PathGeometrySegmentLimit) return false;
+        closures.append({ax, ay, bx, by, 0, 0, 0, 0});
+        return true;
+    };
+    for (const auto command : operation.shape.pathCommands) {
+        if (command == PathCommand::MoveTo) {
+            if (!close()) return std::nullopt;
+            first = previous = input[index++];
+        } else if (command == PathCommand::LineTo) {
+            const auto &point = input[index++];
+            if (!appendSegment(result.outline, *previous, point, step, phase)) return std::nullopt;
+            previous = point;
+        } else {
+            if (!appendCubic(result.outline, *previous, input[index].position, input[index + 1].position,
+                              input[index + 2], step, phase)) return std::nullopt;
+            previous = input[index + 2];
+            index += 3;
+        }
+    }
+    if (!close() || result.outline.size() + closures.size() > PathGeometrySegmentLimit) return std::nullopt;
+    if (operation.figureStyle.fill) {
+        result.fill = result.outline;
+        result.fill.append(closures);
+    }
+    return result;
+}
+}
+
+std::optional<PaintGeometry> paintGeometry(const PaintOperation &operation, quint32 step)
 {
     const auto input = operation.inputSamples();
+    if (operation.shape.kind == ShapeKind::Path) return pathGeometry(operation, input, step);
     QList<InputSample> points;
     switch (operation.shape.kind) {
     case ShapeKind::Freehand:
@@ -111,20 +200,23 @@ QList<PaintSegment> paintGeometry(const PaintOperation &operation, quint32 step)
         points.append(points.front());
         break;
     }
+    case ShapeKind::Path:
+        break;
     }
-    QList<PaintSegment> result;
-    result.reserve(points.size());
+    PaintGeometry result;
+    result.outline.reserve(points.size());
     quint32 phase = 0;
     for (qsizetype i = 0; i < points.size(); ++i) {
         if (i == 0 && points.size() > 1) continue;
         const auto &a = points[i == 0 ? 0 : i - 1];
         const auto &b = points[i];
-        const qint32 ax = fixed(a.position.x()), ay = fixed(a.position.y());
-        const qint32 bx = fixed(b.position.x()), by = fixed(b.position.y());
-        const qint64 dx = qint64(bx) - ax, dy = qint64(by) - ay;
-        const quint32 length = integerRoot(quint64(dx * dx) + quint64(dy * dy));
-        result.append({ax, ay, bx, by, pressure(a.pressure), pressure(b.pressure), phase, length});
-        phase = (quint64(phase) + length) % step;
+        if (!appendSegment(result.outline, a, b, step, phase, points.size())) return std::nullopt;
+    }
+    if (operation.figureStyle.fill) {
+        result.fill = result.outline;
+        if (!result.fill.isEmpty() && (result.fill.last().bx != result.fill.first().ax || result.fill.last().by != result.fill.first().ay)) {
+            result.fill.append({result.fill.last().bx, result.fill.last().by, result.fill.first().ax, result.fill.first().ay, 0, 0, 0, 0});
+        }
     }
     return result;
 }

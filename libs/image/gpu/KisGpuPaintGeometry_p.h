@@ -23,7 +23,13 @@ static_assert(sizeof(PaintSegment) == 32);
 inline quint64 key(int x, int y) { return (quint64(quint32(y)) << 32) | quint32(x); }
 inline QPoint coordinate(quint64 key) { return {int(quint32(key)), int(quint32(key >> 32))}; }
 
-QList<PaintSegment> paintGeometry(const PaintOperation &operation, quint32 step);
+struct PaintGeometry
+{
+    QList<PaintSegment> outline;
+    QList<PaintSegment> fill;
+};
+constexpr qsizetype PathGeometrySegmentLimit = 1024 * 1024;
+std::optional<PaintGeometry> paintGeometry(const PaintOperation &operation, quint32 step);
 std::optional<QList<quint64>> figureFillTiles(const QList<PaintSegment> &edges, const Brush &brush,
                                              QRect region, QSize canvas, qsizetype maximumCoordinates,
                                              int tileSize = RgbaTile::Size);

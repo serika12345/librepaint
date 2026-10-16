@@ -930,8 +930,24 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory_data()
         QTest::newRow(gpu ? "gpu-preserve-empty-fill" : "ordinary-preserve-empty-fill")
             << gpu << QStringLiteral("polygon-pair") << QStringLiteral("None") << QStringLiteral("empty-fill") << false << QStringLiteral("ForegroundColor") << 255;
     }
-    for (const auto &reason : {QStringLiteral("path"),
-                               QStringLiteral("busy"), QStringLiteral("invalid-pressure"), QStringLiteral("none")}) {
+    for (bool gpu : {false, true}) {
+        const auto prefix = gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-");
+        for (const auto &figure : {QStringLiteral("path-line"), QStringLiteral("path-curve"), QStringLiteral("path-subpaths")}) {
+            for (const auto &stroke : {QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
+                QTest::newRow(qPrintable(prefix + figure + '-' + stroke))
+                    << gpu << figure << stroke << QString() << false << QStringLiteral("None") << 255;
+            }
+        }
+        for (const auto &figure : {QStringLiteral("path-hole-even-odd"), QStringLiteral("path-hole-winding")}) {
+            QTest::newRow(qPrintable(prefix + figure))
+                << gpu << figure << QStringLiteral("None") << QString() << false << QStringLiteral("ForegroundColor") << 255;
+        }
+        QTest::newRow(qPrintable(prefix + QStringLiteral("clone-path-curve")))
+            << gpu << QStringLiteral("path-curve") << QStringLiteral("ForegroundColor") << QString() << true << QStringLiteral("None") << 255;
+        QTest::newRow(qPrintable(prefix + QStringLiteral("path-empty")))
+            << gpu << QStringLiteral("path-empty") << QStringLiteral("ForegroundColor") << QStringLiteral("empty-path") << false << QStringLiteral("None") << 255;
+    }
+    for (const auto &reason : {QStringLiteral("busy"), QStringLiteral("invalid-pressure"), QStringLiteral("none")}) {
         QTest::newRow(qPrintable(QStringLiteral("gpu-preserve-") + reason))
             << true << QStringLiteral("line") << QStringLiteral("ForegroundColor") << reason << false << QStringLiteral("None") << 255;
     }
@@ -1007,8 +1023,10 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     const bool filledWithoutOutline = strokeStyle == QLatin1String("None") && fillStyle != QLatin1String("None");
     const auto expected = filledWithoutOutline ? fillExpected : strokeStyle == QLatin1String("BackgroundColor") ?
         QByteArray::fromHex("2c11ddff") : QByteArray::fromHex("f18111ff");
-    const QPoint sample(32, filledWithoutOutline ? 24 :
-                          figure == QLatin1String("line") || figure == QLatin1String("polygon-pair") ? 32 :
+    const bool pathHole = figure.startsWith(QLatin1String("path-hole-"));
+    const QPoint sample(pathHole ? 16 : 32, pathHole ? 32 : filledWithoutOutline ? 24 :
+                          figure == QLatin1String("line") || figure == QLatin1String("polygon-pair") ||
+                          figure == QLatin1String("path-line") || figure == QLatin1String("path-curve") ? 32 :
                           fillStyle != QLatin1String("None") ? 10 : 12);
     QScopedPointer<Node> api(Node::createNode(image, target));
     QScopedPointer<Node> activeApi(Node::createNode(image, active));
@@ -1044,11 +1062,23 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     try {
         if (rejection == QLatin1String("empty-fill")) {
             api->paintPolygon({{12, 32}, {52, 32}}, strokeStyle, fillStyle);
-        } else if (rejection == QLatin1String("path")) {
+        } else if (figure.startsWith(QLatin1String("path-"))) {
             QPainterPath path;
-            path.moveTo(12, 32);
-            path.cubicTo(20, 12, 40, 52, 52, 32);
-            api->paintPath(path, strokeStyle, QStringLiteral("None"));
+            if (pathHole) {
+                path.addRect({12, 12, 40, 40});
+                path.addRect({24, 24, 16, 16});
+                if (figure == QLatin1String("path-hole-winding")) path.setFillRule(Qt::WindingFill);
+            } else if (figure == QLatin1String("path-subpaths")) {
+                path.moveTo(12, 12);
+                path.lineTo(52, 12);
+                path.moveTo(12, 52);
+                path.lineTo(52, 52);
+            } else if (figure != QLatin1String("path-empty")) {
+                path.moveTo(12, 32);
+                if (figure == QLatin1String("path-curve")) path.cubicTo(20, 12, 40, 52, 52, 32);
+                else path.lineTo(52, 32);
+            }
+            api->paintPath(path, strokeStyle, fillStyle);
         } else if (rejection == QLatin1String("none")) {
             api->paintRectangle({12, 12, 40, 40}, QStringLiteral("None"), QStringLiteral("None"));
         } else if (figure == QLatin1String("line")) {
@@ -1067,7 +1097,8 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     if (pending.isNull()) image->waitForDone();
     if (!rejection.isEmpty()) {
         QApplication::sendPostedEvents();
-        const bool emptyIntent = rejection == QLatin1String("none") || rejection == QLatin1String("empty-fill");
+        const bool emptyIntent = rejection == QLatin1String("none") || rejection == QLatin1String("empty-fill") ||
+                                 rejection == QLatin1String("empty-path");
         QTRY_COMPARE(lifetime->undoStack()->count(), count + (emptyIntent ? 1 : 0));
         QCOMPARE(lifetime->undoStack()->index(), index + (emptyIntent ? 1 : 0));
         QCOMPARE(api->pixelData(0, 0, 64, 64), before);
@@ -1090,7 +1121,12 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     QTRY_COMPARE(lifetime->undoStack()->count(), count + 1);
     QCOMPARE(lifetime->undoStack()->index(), index + 1);
     QCOMPARE(api->pixelData(sample.x(), sample.y(), 1, 1), expected);
-    if (fillStyle != QLatin1String("None")) QCOMPARE(api->pixelData(32, 24, 1, 1), fillExpected);
+    if (pathHole) {
+        QCOMPARE(api->pixelData(32, 32, 1, 1), figure == QLatin1String("path-hole-winding") ? fillExpected : QByteArray(4, char(0)));
+    } else if (fillStyle != QLatin1String("None")) {
+        QCOMPARE(api->pixelData(32, 24, 1, 1), fillExpected);
+    }
+    if (figure == QLatin1String("path-subpaths")) QCOMPARE(api->pixelData(32, 32, 1, 1), QByteArray(4, char(0)));
     if (fillStyle != QLatin1String("None") && (figure == QLatin1String("rectangle") || figure == QLatin1String("polygon")))
         QCOMPARE(api->pixelData(32, 12, 1, 1), fillExpected);
     QCOMPARE(activeApi->pixelData(0, 0, 64, 64), activeBefore);

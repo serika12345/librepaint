@@ -14,9 +14,9 @@
 namespace LibrePaint::Image::Gpu {
 namespace {
 using Lineage = QList<QPair<quint64, quint64>>;
-using GeometryCache = QHash<const PaintOperation *, QList<Detail::PaintSegment>>;
+using GeometryCache = QHash<const PaintOperation *, std::optional<Detail::PaintGeometry>>;
 
-Lineage pixelLineage(const Layer &layer, QRect block, QSize canvas, GeometryCache &geometry)
+std::optional<Lineage> pixelLineage(const Layer &layer, QRect block, QSize canvas, GeometryCache &geometry)
 {
     Lineage result;
     for (auto it = layer.operations.crbegin(); it != layer.operations.crend(); ++it) {
@@ -40,9 +40,11 @@ Lineage pixelLineage(const Layer &layer, QRect block, QSize canvas, GeometryCach
                 const auto step = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * paint.brush.spacing * 16)));
                 found = geometry.insert(&paint, Detail::paintGeometry(paint, step));
             }
+            if (!*found) return std::nullopt;
+            const auto &mesh = **found;
             const auto diameter = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * 16)));
             bool intersects = false;
-            for (const auto &segment : paint.figureStyle.outline ? *found : QList<Detail::PaintSegment>{}) {
+            for (const auto &segment : paint.figureStyle.outline ? mesh.outline : QList<Detail::PaintSegment>{}) {
                 const auto tiles = Detail::paintSegmentTiles(segment, diameter, block.intersected(QRect(QPoint(), canvas)),
                                                              canvas, 1, Detail::PixelHistoryBlockSize);
                 if (!tiles || !tiles->isEmpty()) {
@@ -51,7 +53,7 @@ Lineage pixelLineage(const Layer &layer, QRect block, QSize canvas, GeometryCach
                 }
             }
             if (!intersects && paint.figureStyle.fill) {
-                const auto tiles = Detail::figureFillTiles(*found, paint.brush, block, canvas, 1, Detail::PixelHistoryBlockSize);
+                const auto tiles = Detail::figureFillTiles(mesh.fill, paint.brush, block, canvas, 1, Detail::PixelHistoryBlockSize);
                 intersects = !tiles || !tiles->isEmpty();
             }
             if (intersects) result.append({paint.id.sequence, paint.version});
@@ -128,8 +130,14 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
                     const QRect block(x * blockSize, y * blockSize, blockSize, blockSize);
                     if (candidate->operations != selected.operations) {
                         auto lineage = lineages.constFind(blockKey);
-                        if (lineage == lineages.cend()) lineage = lineages.insert(blockKey, pixelLineage(selected, block, current->size, geometry));
-                        if (pixelLineage(*candidate, block, version->size, geometry) != *lineage) continue;
+                        if (lineage == lineages.cend()) {
+                            const auto selectedLineage = pixelLineage(selected, block, current->size, geometry);
+                            if (!selectedLineage) return Result::CapacityExceeded;
+                            lineage = lineages.insert(blockKey, *selectedLineage);
+                        }
+                        const auto candidateLineage = pixelLineage(*candidate, block, version->size, geometry);
+                        if (!candidateLineage) return Result::CapacityExceeded;
+                        if (*candidateLineage != *lineage) continue;
                     }
                     const auto area = block.intersected(region);
                     areas[Detail::key(Detail::pixelTileIndex(area.x(), size), Detail::pixelTileIndex(area.y(), size))].append(area);

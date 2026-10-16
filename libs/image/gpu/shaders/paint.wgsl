@@ -67,6 +67,7 @@ fn reflected(point: vec2<i32>, reflection: u32) -> vec2<i32> {
 
 fn fillInside(point: vec2<i32>) -> bool {
     var insidePolygon = false;
+    var winding = 0;
     for (var i = 0u; i < arrayLength(&fillEdges); i += 1u) {
         let a = fillEdges[i].endpoints.xy;
         let b = fillEdges[i].endpoints.zw;
@@ -75,8 +76,15 @@ fn fillInside(point: vec2<i32>) -> bool {
                           negate64(signedProduct(point.x - a.x, b.y - a.y)));
         let positive = i32(cross.y) >= 0 && any(cross != vec2<u32>(0u));
         let negative = i32(cross.y) < 0;
-        if ((b.y > a.y && positive) || (b.y < a.y && negative)) { insidePolygon = !insidePolygon; }
+        if (b.y > a.y && positive) {
+            insidePolygon = !insidePolygon;
+            winding += 1;
+        } else if (b.y < a.y && negative) {
+            insidePolygon = !insidePolygon;
+            winding -= 1;
+        }
     }
+    if ((bitcast<u32>(parameters.mirror.w) & 4u) != 0u) { return winding != 0; }
     return insidePolygon;
 }
 

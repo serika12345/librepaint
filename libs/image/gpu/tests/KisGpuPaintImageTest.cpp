@@ -34,9 +34,46 @@ private Q_SLOTS:
     void rectangularWritesValidateBeforeMutationAndCrossTileBoundaries();
     void rectangularHistoryEditsPreserveIndependentUntrackedPixels();
     void interiorPixelWritesRemainWithTheirFilledHistory();
+    void pathGeometryBudgetsPreserveInputAndRejectWholeReadsAndWrites();
     void damagedPixelSharingRecoveryPreservesTheLiveImage();
     void historyNavigationPublishesOneVersionAndPreservesSavedState();
 };
+
+void KisGpuPaintImageTest::pathGeometryBudgetsPreserveInputAndRejectWholeReadsAndWrites()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    PaintImage image(execution, QSize(64, 64));
+    const auto layer = image.operations().activeLayer();
+    Shape shape;
+    shape.kind = ShapeKind::Path;
+    QList<InputSample> samples;
+    const qreal limit = OperationDocument::CoordinateLimit;
+    for (int curve = 0; curve < 65; ++curve) {
+        shape.pathCommands.append({PathCommand::MoveTo, PathCommand::CubicTo});
+        samples.append({{{0, 0}, 1}, {{limit, 0}, 1}, {{limit, limit}, 1}, {{0, limit}, 1}});
+    }
+    QCOMPARE(image.paintFigure(layer, Brush{}, samples, shape, FigureStyle{}, 42), Result::Success);
+    const auto pinned = image.operations().snapshot();
+    const auto recovery = image.operations().recoveryData();
+    TileRenderer renderer(device);
+    auto *commands = device->beginCommands();
+    QVERIFY(commands);
+    const auto recorded = renderer.record(commands, pinned);
+    QVERIFY2(device->submitCommands(true), qPrintable(device->diagnostic()));
+    QCOMPARE(recorded.code, RenderOutcome::CapacityExceeded);
+    QCOMPARE(renderer.residentBytes(), qsizetype(0));
+    const auto read = execution.readLayerPixels(image.handle(), pinned, layer, RgbaTile::ByteCount);
+    QCOMPARE(read.code, ExecutionCode::CapacityExceeded);
+    QVERIFY(read.tiles.isEmpty());
+    QCOMPARE(image.writeRgbaPixels(layer, {8, 8, 1, 1}, QByteArray::fromHex("112233ff")), Result::CapacityExceeded);
+    QCOMPARE(image.operations().snapshot(), pinned);
+    QCOMPARE(image.operations().recoveryData(), recovery);
+    QCOMPARE(image.operations().undoCount(), 1);
+    QVERIFY(image.operations().activeOperation().isNull());
+}
 
 void KisGpuPaintImageTest::interiorPixelWritesRemainWithTheirFilledHistory()
 {

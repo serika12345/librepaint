@@ -487,7 +487,7 @@ Undo／RedoとKRA保存をCPU画像とGPU画像で検査する。吸着を無効
 `KisToolProxyContractTest`は、継続を辞退したダブルクリックの直後に、次の描画の開始入力が届くことを検査する。
 `KisGpuTileRendererTest`は矩形・角丸矩形の回転、閉じた輪郭、取消し、Undo／Redo、未確定操作の復旧を検査する。
 二軸の異なる半径、上限への制限、半径ゼロ、不正な半径の拒否と復旧後の半径の保持も検査する。
-`KisGpuOperationDocumentTest`は旧形式9〜16の復旧を検査する。
+`KisGpuOperationDocumentTest`は旧形式9〜17の復旧を検査する。
 `KisGpuLegacyRecoveryFixture_p.h`は、塗りのない操作から旧形式の試験記録を生成する。
 形式11は角丸矩形と頂点列を保持し、形式12は描画時の透明度保護を保持する。
 形式13は描画開始時とレイヤーのチャンネル保護、属性履歴を保持する。
@@ -511,6 +511,16 @@ Undo／RedoとKRA保存をCPU画像とGPU画像で検査する。吸着を無効
 `KisGpuPixelReadbackTest`は1024×1024の単色塗りを16枚の完全なレイヤータイルとして読み、
 `LIBREPAINT_GPU_RESULT_DIR`へタイル座標順の`solid-fill-layer-interior.rgba`を出力する。
 `KisGpuPaintImageTest`は塗りの内側への直接書込みを、塗り後の履歴版へ保持し、Undoで塗り前の画素へ戻す。
+形式18は移動・直線・三次曲線の命令列、制御点と塗り規則を保持する。
+公開APIの経路描画は直線・曲線・複数経路・偶奇と巻き数による穴の塗り・空の経路について、
+指定レイヤー、画面の選択、複製レイヤー、Undo／Redoを既存経路とGPU経路で照合する。
+描画試験は経路の区切り、制御点から生成した曲線、二つの塗り規則、復旧後の全画素一致を検査し、
+`LIBREPAINT_GPU_RESULT_DIR`へ`path-curve.rgba`、`path-subpaths.rgba`、`path-even-odd.rgba`、`path-winding.rgba`を出力する。
+`KisGpuPaintDocumentTest`は複数タイルにまたがる曲線と穴のある塗りをKRAへ保存・再読込みし、
+全画素一致と埋込PNGを検査する。固定出力は`path-filled.kra`と`path-filled-merged.png`である。
+操作モデルは空の経路の履歴と未確定操作の復旧、不完全な命令列と入力予算の拒否を検査する。
+派生する境界線分の上限を超えた経路は、描画・保存用読取り・直接書込みが部分結果を採用せず、
+操作値・履歴・復旧記録を保持することを検査する。
 被覆を外すプレビューは以前の背景へ戻り、保持した描画版の画素を維持する。
 選択変更の通知中にタブを終了してウィンドウを破棄する試験は、既存経路とGPU経路で
 タブ・画像の解放とGPU接続の解放を検査する。破棄待ちのタブもツール資源の生存中に終了する。

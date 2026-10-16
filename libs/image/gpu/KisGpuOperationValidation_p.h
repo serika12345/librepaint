@@ -80,7 +80,8 @@ inline bool validShape(const Shape &shape)
         shape.cornerRadii.width() < 0 || shape.cornerRadii.height() < 0 ||
         shape.cornerRadii.width() > OperationDocument::CoordinateLimit ||
         shape.cornerRadii.height() > OperationDocument::CoordinateLimit ||
-        (shape.kind != ShapeKind::RoundedRectangle && shape.cornerRadii != QSizeF(0, 0))) {
+        (shape.kind != ShapeKind::RoundedRectangle && shape.cornerRadii != QSizeF(0, 0)) ||
+        (shape.kind != ShapeKind::Path && (!shape.pathCommands.isEmpty() || shape.windingFill))) {
         return false;
     }
     switch (shape.kind) {
@@ -88,6 +89,12 @@ inline bool validShape(const Shape &shape)
     case ShapeKind::Line:
     case ShapeKind::Polyline:
     case ShapeKind::Polygon:
+        return true;
+    case ShapeKind::Path:
+        if (!shape.pathCommands.isEmpty() && shape.pathCommands.first() != PathCommand::MoveTo) return false;
+        for (const auto command : shape.pathCommands) {
+            if (command != PathCommand::MoveTo && command != PathCommand::LineTo && command != PathCommand::CubicTo) return false;
+        }
         return true;
     case ShapeKind::Ellipse:
     case ShapeKind::Rectangle:
@@ -99,6 +106,14 @@ inline bool validShape(const Shape &shape)
 
 inline bool validShapeSampleCount(const Shape &shape, qsizetype count)
 {
+    if (shape.kind == ShapeKind::Path) {
+        for (const auto command : shape.pathCommands) {
+            const qsizetype points = command == PathCommand::CubicTo ? 3 : 1;
+            if (count < points) return false;
+            count -= points;
+        }
+        return count == 0;
+    }
     return (shape.kind != ShapeKind::Polyline && shape.kind != ShapeKind::Polygon) || count >= 2;
 }
 

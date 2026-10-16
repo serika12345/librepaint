@@ -140,6 +140,7 @@ HistoryAction OperationDocument::historyAction(int index) const
                 case ShapeKind::RoundedRectangle: return HistoryAction::DrawRectangle;
                 case ShapeKind::Polyline: return HistoryAction::DrawPolyline;
                 case ShapeKind::Polygon: return HistoryAction::DrawPolygon;
+                case ShapeKind::Path: return HistoryAction::DrawPath;
                 }
             }
         }
@@ -343,7 +344,7 @@ Result OperationDocument::paintFigure(LayerId layer, const Brush &brush, const Q
     const auto status = checkMutation();
     if (status != Result::Success) return status;
     if (!validBrush(brush) || !validShape(shape) || !validFigureStyle(shape, style)) return Result::InvalidInput;
-    if (samples.isEmpty()) return Result::EmptyOperation;
+    if (samples.isEmpty() && shape.kind != ShapeKind::Path) return Result::EmptyOperation;
     if (!validShapeSampleCount(shape, samples.size())) return Result::InvalidInput;
     quint64 time = 0;
     for (const auto &sample : samples) {
@@ -353,7 +354,7 @@ Result OperationDocument::paintFigure(LayerId layer, const Brush &brush, const Q
     if (samples.size() > m_limits.samplesPerStroke ||
         samples.size() > m_limits.samplesPerDocument - snapshot()->sampleCount ||
         m_nextOperation == std::numeric_limits<quint64>::max() ||
-        m_nextRevision > std::numeric_limits<quint64>::max() - 2) return Result::CapacityExceeded;
+        m_nextRevision > std::numeric_limits<quint64>::max() - (samples.isEmpty() ? 1 : 2)) return Result::CapacityExceeded;
     const auto id = beginStroke(layer, brush, randomSeed);
     if (id.isNull()) return Result::LayerUnavailable;
     const auto rollback = qScopeGuard([&] { if (m_edit && m_edit->id == id) cancelStroke(id); });
@@ -375,7 +376,7 @@ Result OperationDocument::updateFigure(OperationId id, const Shape &shape, const
     const auto status = checkOperation(id);
     if (status != Result::Success) return status;
     if (!validShape(shape) || !validFigureStyle(shape, style)) return Result::InvalidInput;
-    if (m_edit->sampleCount == 0) return Result::EmptyOperation;
+    if (m_edit->sampleCount == 0 && shape.kind != ShapeKind::Path) return Result::EmptyOperation;
     if (!validShapeSampleCount(shape, m_edit->sampleCount)) return Result::InvalidInput;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     QSharedPointer<PaintOperation> operation(new PaintOperation(*m_edit));

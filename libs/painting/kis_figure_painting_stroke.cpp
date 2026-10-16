@@ -276,7 +276,37 @@ void KisFigurePaintingStroke::paintEllipse(const QRectF &rect)
 void KisFigurePaintingStroke::paintPainterPath(const QPainterPath &path)
 {
     if (m_gpuStroke) {
-        m_gpuStroke->resources.diagnostic = QStringLiteral("GPU painter paths require a path operation.");
+        const auto &document = m_gpuStroke->owner->operations();
+        const auto limits = document.limits();
+        if (path.elementCount() > limits.samplesPerStroke ||
+            path.elementCount() > limits.samplesPerDocument - document.snapshot()->sampleCount) {
+            m_gpuStroke->resources.diagnostic = QStringLiteral("GPU path input exceeds the document input budget.");
+            return;
+        }
+        Gpu::Shape shape;
+        shape.kind = Gpu::ShapeKind::Path;
+        shape.windingFill = path.fillRule() == Qt::WindingFill;
+        QList<Gpu::InputSample> samples;
+        samples.reserve(path.elementCount());
+        for (int i = 0; i < path.elementCount(); ++i) {
+            const auto element = path.elementAt(i);
+            if (element.type == QPainterPath::MoveToElement || element.type == QPainterPath::LineToElement) {
+                shape.pathCommands.append(element.type == QPainterPath::MoveToElement ?
+                                            Gpu::PathCommand::MoveTo : Gpu::PathCommand::LineTo);
+                samples.append({{element.x, element.y}, 1});
+            } else if (element.type == QPainterPath::CurveToElement && path.elementCount() - i >= 3) {
+                shape.pathCommands.append(Gpu::PathCommand::CubicTo);
+                for (int point = 0; point < 3; ++point) {
+                    const auto value = path.elementAt(i + point);
+                    samples.append({{value.x, value.y}, 1});
+                }
+                i += 2;
+            } else {
+                m_gpuStroke->resources.diagnostic = QStringLiteral("GPU path commands are incomplete.");
+                return;
+            }
+        }
+        m_gpuStroke->setFigure(shape, samples);
         return;
     }
     m_strokesFacade->addJob(m_strokeId,

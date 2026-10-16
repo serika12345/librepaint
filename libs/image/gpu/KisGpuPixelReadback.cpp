@@ -98,7 +98,8 @@ std::optional<QList<quint64>> layerCoordinates(const Layer &layer, QSize size, Q
             const auto diameter = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * 16)));
             const auto step = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * paint.brush.spacing * 16)));
             const auto geometry = Detail::paintGeometry(paint, step);
-            for (const auto &segment : paint.figureStyle.outline ? geometry : QList<Detail::PaintSegment>{}) {
+            if (!geometry) return std::nullopt;
+            for (const auto &segment : paint.figureStyle.outline ? geometry->outline : QList<Detail::PaintSegment>{}) {
                 const auto tiles = Detail::paintSegmentTiles(segment, diameter, region.intersected(canvas), size, maximum);
                 if (!tiles) return std::nullopt;
                 for (const auto tile : *tiles) {
@@ -107,7 +108,7 @@ std::optional<QList<quint64>> layerCoordinates(const Layer &layer, QSize size, Q
                 }
             }
             if (paint.figureStyle.fill) {
-                const auto tiles = Detail::figureFillTiles(geometry, paint.brush, region.intersected(canvas), size, maximum);
+                const auto tiles = Detail::figureFillTiles(geometry->fill, paint.brush, region.intersected(canvas), size, maximum);
                 if (!tiles) return std::nullopt;
                 for (const auto tile : *tiles) {
                     coordinates.insert(tile);

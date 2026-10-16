@@ -69,6 +69,7 @@ class KisGpuPaintDocumentTest : public QObject
 private Q_SLOTS:
     void initTestCase();
     void fixedEditsSaveReopenAndExportIdenticalResults();
+    void curvedPathFillsSaveAndReopenAcrossInteriorTiles();
     void sharedExecutionOpenReturnsValidatedMetadataAndKeepsRetainedImagesAlive();
     void acceptedChangesUpdateOneAttachedDocument();
     void pinnedSavePreservesLaterEditsAndHistory();
@@ -87,6 +88,69 @@ private Q_SLOTS:
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPaintDocumentTest::curvedPathFillsSaveAndReopenAcrossInteriorTiles()
+{
+    Execution execution(m_device);
+    RasterImage initial;
+    initial.size = {768, 768};
+    initial.layers.append({QStringLiteral("Curved path"), true,
+                            QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000021}")), {}});
+    PaintDocument document(execution, initial);
+    const auto image = document.image();
+    const auto layer = image->operations().activeLayer();
+    Shape shape;
+    shape.kind = ShapeKind::Path;
+    shape.pathCommands = {PathCommand::MoveTo, PathCommand::LineTo, PathCommand::CubicTo,
+                           PathCommand::LineTo, PathCommand::CubicTo, PathCommand::MoveTo,
+                           PathCommand::LineTo, PathCommand::LineTo, PathCommand::LineTo, PathCommand::LineTo};
+    const QList<InputSample> samples{{{32, 32}, 1}, {{736, 32}, 1}, {{752, 32}, 1},
+                                    {{752, 736}, 1}, {{736, 736}, 1}, {{32, 736}, 1},
+                                    {{16, 736}, 1}, {{16, 32}, 1}, {{32, 32}, 1},
+                                    {{256, 256}, 1}, {{512, 256}, 1}, {{512, 512}, 1},
+                                    {{256, 512}, 1}, {{256, 256}, 1}};
+    FigureStyle style;
+    style.outline = false;
+    style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+    QCOMPARE(image->paintFigure(layer, Brush{}, samples, shape, style, 42), Result::Success);
+    const QRect region(QPoint(), initial.size);
+    const auto painted = image->readRgbaPixels(layer, region, 768 * 768 * 4);
+    QVERIFY2(painted.code == ExecutionCode::Success, qPrintable(painted.diagnostic));
+    QCOMPARE(painted.bytes.mid((384 * 768 + 128) * 4, 4), QByteArray::fromHex("dd112cff"));
+    QCOMPARE(painted.bytes.mid((384 * 768 + 384) * 4, 4), QByteArray(4, char(0)));
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    const auto destination = results.isEmpty() ? directory.path() : results;
+    QVERIFY(QDir().mkpath(destination));
+    const auto path = QDir(destination).filePath(QStringLiteral("path-filled.kra"));
+    QCOMPARE(document.saveKra(path).code, FileCode::Success);
+    QuaZip archive(path);
+    QVERIFY(archive.open(QuaZip::mdUnzip));
+    QVERIFY(archive.setCurrentFile(QStringLiteral("mergedimage.png")));
+    QuaZipFile merged(&archive);
+    QVERIFY(merged.open(QIODevice::ReadOnly));
+    const auto png = merged.readAll();
+    merged.close();
+    archive.close();
+    QFile output(QDir(destination).filePath(QStringLiteral("path-filled-merged.png")));
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(output.write(png), qint64(png.size()));
+    output.close();
+    const auto preview = QImage::fromData(png);
+    QVERIFY(!preview.isNull());
+    QCOMPARE(preview.pixelColor(128, 384), QColor(221, 17, 44, 255));
+    QCOMPARE(preview.pixelColor(384, 384).alpha(), 0);
+    const auto reopened = PaintDocument::openKra(execution, path);
+    QVERIFY2(reopened.code == FileCode::Success, qPrintable(reopened.diagnostic));
+    const auto loaded = reopened.document->image();
+    const auto actual = loaded->readRgbaPixels(loaded->operations().activeLayer(), region, painted.bytes.size());
+    QVERIFY2(actual.code == ExecutionCode::Success, qPrintable(actual.diagnostic));
+    QCOMPARE(QCryptographicHash::hash(actual.bytes, QCryptographicHash::Sha256),
+             QCryptographicHash::hash(painted.bytes, QCryptographicHash::Sha256));
+    QCOMPARE(image->operations().undoCount(), 1);
+    QVERIFY(!image->operations().isModified());
+}
 
 void KisGpuPaintDocumentTest::fixedEditsSaveReopenAndExportIdenticalResults()
 {

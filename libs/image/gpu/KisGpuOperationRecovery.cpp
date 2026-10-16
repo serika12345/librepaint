@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 17;
+constexpr quint16 FormatVersion = 18;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -116,6 +116,11 @@ QByteArray OperationDocument::recoveryData() const
                    << operation.shape.second.x() << operation.shape.second.y() << operation.shape.rotation;
             if (operation.shape.kind == ShapeKind::RoundedRectangle)
                 stream << operation.shape.cornerRadii.width() << operation.shape.cornerRadii.height();
+            if (operation.shape.kind == ShapeKind::Path) {
+                if (operation.shape.pathCommands.size() > m_limits.recoveryBytes - DigestSize - bytes.size() - 5) return {};
+                stream << quint8(operation.shape.windingFill) << quint32(operation.shape.pathCommands.size());
+                for (const auto command : operation.shape.pathCommands) stream << quint8(command);
+            }
             stream << quint8(quint8(operation.figureStyle.outline) | (operation.figureStyle.fill ? 2 : 0));
             if (operation.figureStyle.fill)
                 for (const auto component : *operation.figureStyle.fill) stream << component;
@@ -286,10 +291,24 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         }
         stream >> operation->randomSeed >> shape >> x1 >> y1 >> x2 >> y2 >> operation->shape.rotation;
         if (shape >= quint8(ShapeKind::RoundedRectangle) && format < 11) return Result::InvalidRecovery;
+        if (shape >= quint8(ShapeKind::Path) && format < 18) return Result::InvalidRecovery;
         if (static_cast<ShapeKind>(shape) == ShapeKind::RoundedRectangle) {
             qreal radiusX = 0, radiusY = 0;
             stream >> radiusX >> radiusY;
             operation->shape.cornerRadii = {radiusX, radiusY};
+        }
+        if (static_cast<ShapeKind>(shape) == ShapeKind::Path) {
+            quint8 winding = 0;
+            quint32 commandCount = 0;
+            stream >> winding >> commandCount;
+            if (winding > 1 || !readableCount(stream, commandCount, m_limits.samplesPerStroke, 1)) return Result::InvalidRecovery;
+            operation->shape.windingFill = winding;
+            operation->shape.pathCommands.reserve(commandCount);
+            for (quint32 i = 0; i < commandCount; ++i) {
+                quint8 command = 0;
+                stream >> command;
+                operation->shape.pathCommands.append(static_cast<PathCommand>(command));
+            }
         }
         if (format >= 17) {
             quint8 figureFlags = 0;
@@ -312,7 +331,9 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         if (brushFlags > (format < 12 ? 1 : format < 13 ? 3 : format < 14 ? 63 : 255) || !validBrush(operation->brush) || !validShape(operation->shape) ||
             !validFigureStyle(operation->shape, operation->figureStyle) ||
             !validShapeSampleCount(operation->shape, sampleCount) ||
-            (sampleCount == 0) != (version == 0) || !readableCount(stream, sampleCount, m_limits.samplesPerStroke, 56)) return Result::InvalidRecovery;
+            (version == 0 && (sampleCount != 0 || operation->shape.kind != ShapeKind::Freehand)) ||
+            (version > 0 && sampleCount == 0 && operation->shape.kind != ShapeKind::Path) ||
+            !readableCount(stream, sampleCount, m_limits.samplesPerStroke, 56)) return Result::InvalidRecovery;
         if (quint64(retainedSamples) + sampleCount > retainedSampleLimit) return Result::CapacityExceeded;
         retainedSamples += sampleCount;
         auto samples = QSharedPointer<QList<InputSample>>::create();
@@ -411,7 +432,8 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
                 const auto &operation = operations[index];
                 const auto samples = operationSamples(operation);
                 const auto pixels = operationRasterBytes(operation);
-                if (operationLayer(operation) != layer.id || (std::holds_alternative<PaintSnapshot>(operation) && samples == 0) ||
+                const auto paint = std::get_if<PaintSnapshot>(&operation);
+                if (operationLayer(operation) != layer.id || (paint && samples == 0 && (*paint)->shape.kind != ShapeKind::Path) ||
                     operationId(operation).sequence <= previousOperation) return Result::InvalidRecovery;
                 if (samples > m_limits.samplesPerDocument - state->sampleCount || pixels > m_limits.rasterBytes - state->rasterBytes) return Result::CapacityExceeded;
                 previousOperation = operationId(operation).sequence;
@@ -494,7 +516,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         }
         if (index < 0 || !base->layers[index].visible || base->layers[index].userLocked ||
             edit->sampleCount > m_limits.samplesPerDocument - base->sampleCount) return Result::InvalidRecovery;
-        if (edit->sampleCount > 0) {
+        if (edit->sampleCount > 0 || edit->shape.kind == ShapeKind::Path) {
             if (previewRevision <= previousRevision || previewRevision > nextRevision || previewRevision == savedRevision) return Result::InvalidRecovery;
             QSharedPointer<DocumentVersion> value(new DocumentVersion(*base));
             value->m_committed = false;
