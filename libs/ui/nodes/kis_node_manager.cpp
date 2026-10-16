@@ -1012,8 +1012,7 @@ void KisNodeManager::SelectionStateAccess::setSelectedNodes(KisNodeManager *mana
     for (const auto &layer : version->layers)
         for (const auto &node : nodes) if (node && node->uuid() == layer.uuid) selected.append(layer.id);
     if (selected.size() != nodes.size()) return;
-    const auto active = selected.contains(version->activeLayer) ? version->activeLayer : selected.first();
-    owner->selectLayers(selected, active);
+    owner->selectLayers(selected, version->activeLayer);
 }
 
 KisNodeList KisNodeManager::AccessorAccess::selectedNodes(KisNodeManager *manager)

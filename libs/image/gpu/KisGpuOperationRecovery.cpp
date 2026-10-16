@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 15;
+constexpr quint16 FormatVersion = 16;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -139,10 +139,11 @@ QByteArray OperationDocument::recoveryData() const
     for (qsizetype stateIndex = 0; stateIndex < m_history.size(); ++stateIndex) {
         const auto &state = m_history[stateIndex];
         for (const auto component : state->projectionBackground) stream << component;
-        const bool multiple = state->selectedLayers.size() > 1;
+        const bool explicitSelection = state->selectedLayers.size() > 1 ||
+            (!state->selectedLayers.isEmpty() && state->selectedLayers.first() != state->activeLayer);
         stream << state->revision() << state->m_modifiedRevision << state->activeLayer
-               << (quint32(state->layers.size()) | (multiple ? 0x80000000u : 0u));
-        if (multiple) {
+               << (quint32(state->layers.size()) | (explicitSelection ? 0x80000000u : 0u));
+        if (explicitSelection) {
             stream << quint32(state->selectedLayers.size());
             for (const auto layer : state->selectedLayers) stream << layer;
         }
@@ -341,12 +342,13 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         quint32 layerCount = 0;
         for (auto &component : state->projectionBackground) stream >> component;
         stream >> state->m_revision >> state->m_modifiedRevision >> state->activeLayer >> layerCount;
-        const bool multiple = format >= 15 && (layerCount & 0x80000000u);
-        if (multiple) {
+        const bool explicitSelection = format >= 15 && (layerCount & 0x80000000u);
+        if (explicitSelection) {
             layerCount &= 0x7fffffffu;
             quint32 selectedCount = 0;
             stream >> selectedCount;
-            if (selectedCount < 2 || !readableCount(stream, selectedCount, qMin<quint64>(layerCount, m_limits.layerCount), 8)) return Result::InvalidRecovery;
+            if (selectedCount < (format >= 16 ? 1u : 2u) ||
+                !readableCount(stream, selectedCount, qMin<quint64>(layerCount, m_limits.layerCount), 8)) return Result::InvalidRecovery;
             for (quint32 selected = 0; selected < selectedCount; ++selected) {
                 LayerId layer = 0;
                 stream >> layer;
@@ -409,7 +411,8 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         if (layers.isEmpty() ? state->activeLayer != 0 : !layers.contains(state->activeLayer)) return Result::InvalidRecovery;
         QList<LayerId> selected;
         for (const auto &layer : state->layers) if (state->selectedLayers.contains(layer.id)) selected.append(layer.id);
-        if (selected != state->selectedLayers || (!layers.isEmpty() && !selected.contains(state->activeLayer)))
+        if (selected != state->selectedLayers || (!layers.isEmpty() && selected.isEmpty()) ||
+            (format < 16 && !layers.isEmpty() && !selected.contains(state->activeLayer)))
             return Result::InvalidRecovery;
         LayerHistoryChange change;
         quint8 property = 0;

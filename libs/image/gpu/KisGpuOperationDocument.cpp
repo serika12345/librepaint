@@ -530,13 +530,13 @@ Result OperationDocument::selectLayers(const QList<LayerId> &layers, LayerId act
 {
     if (m_closed) return Result::Closed;
     if (layerIndex(active) < 0) return Result::LayerUnavailable;
+    if (layers.isEmpty()) return Result::InvalidInput;
     QSet<LayerId> selected;
     for (const auto layer : layers) {
         if (layerIndex(layer) < 0) return Result::LayerUnavailable;
         if (selected.contains(layer)) return Result::InvalidInput;
         selected.insert(layer);
     }
-    if (!selected.contains(active)) return Result::InvalidInput;
     QList<LayerId> ordered;
     for (const auto &layer : snapshot()->layers) if (selected.contains(layer.id)) ordered.append(layer.id);
     if (active == activeLayer() && ordered == snapshot()->selectedLayers) return Result::Success;

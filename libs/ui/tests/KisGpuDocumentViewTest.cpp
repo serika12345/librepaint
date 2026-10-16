@@ -15,6 +15,7 @@
 #include <QStatusBar>
 #include <QScopeGuard>
 #include <QTemporaryDir>
+#include <QTreeView>
 #include <QTimer>
 #include <QSettings>
 #include <QFile>
@@ -105,6 +106,8 @@ private Q_SLOTS:
     void layerPanelReordersSelectionWithOneHistoryEntry_data();
     void layerPanelReordersSelectionWithOneHistoryEntry();
     void layerPanelSelectionSurvivesSaving();
+    void layerPanelSelectionPreservesAnUnselectedActiveLayer_data();
+    void layerPanelSelectionPreservesAnUnselectedActiveLayer();
     void layerPanelDuplicationPreservesPixelsSelectionAndOneHistoryEntry_data();
     void layerPanelDuplicationPreservesPixelsSelectionAndOneHistoryEntry();
     void layerPanelRemovalPreservesLayersSelectionAndOneHistoryEntry_data();
@@ -828,6 +831,87 @@ void KisGpuDocumentViewTest::layerPanelAddsAtSelectionWithOneHistoryEntry()
     QByteArray actual(4, '\0');
     added->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 5, 5, 1, 1);
     QCOMPARE(actual, pixel);
+}
+
+void KisGpuDocumentViewTest::layerPanelSelectionPreservesAnUnselectedActiveLayer_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("multiple");
+    QTest::newRow("ordinary-single") << false << false;
+    QTest::newRow("ordinary-multiple") << false << true;
+    QTest::newRow("gpu-single") << true << false;
+    QTest::newRow("gpu-multiple") << true << true;
+}
+
+void KisGpuDocumentViewTest::layerPanelSelectionPreservesAnUnselectedActiveLayer()
+{
+    QFETCH(bool, gpu);
+    QFETCH(bool, multiple);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    std::shared_ptr<Gpu::Execution> execution;
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    if (gpu) {
+        QString diagnostic;
+        auto device = Gpu::Device::createNative(diagnostic);
+        QVERIFY2(device, qPrintable(diagnostic));
+        execution = std::make_shared<Gpu::Execution>(device);
+        const auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        QVERIFY(owner->addLayer(QStringLiteral("Middle")));
+        QVERIFY(owner->addLayer(QStringLiteral("Top")));
+        document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Layer selection")));
+    } else {
+        const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+        QVERIFY(document->newImage(QStringLiteral("Layer selection"), 32, 16, cs,
+                                   KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 3, {}, 1));
+    }
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    auto image = KisImageSP(lifetime->image());
+    const auto active = image->root()->at(0);
+    const auto middle = image->root()->at(1);
+    const auto top = image->root()->at(2);
+    auto *manager = window->viewManager()->nodeManager();
+    manager->slotUiActivatedNode(active);
+    const KisNodeList selected = multiple ? KisNodeList{middle, top} : KisNodeList{top};
+    const auto before = lifetime->undoStack()->count();
+    manager->slotSetSelectedNodes(selected);
+    QApplication::sendPostedEvents();
+    QApplication::processEvents();
+    QCOMPARE(view->currentNode(), active);
+    QCOMPARE(manager->selectedNodes().size(), selected.size());
+    for (const auto &node : selected) QVERIFY(manager->selectedNodes().contains(node));
+    QCOMPARE(lifetime->undoStack()->count(), before);
+    manager->duplicateActiveNode();
+    image->waitForDone();
+    QTRY_COMPARE(image->root()->childCount(), 3U + quint32(selected.size()));
+    QCOMPARE(lifetime->undoStack()->count(), before + 1);
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QApplication::sendPostedEvents();
+    QApplication::processEvents();
+    QCOMPARE(image->root()->childCount(), 3U);
+    QTRY_COMPARE(view->currentNode(), active);
+    QCOMPARE(manager->selectedNodes().size(), selected.size());
+    for (const auto &node : selected) QVERIFY(manager->selectedNodes().contains(node));
+    auto *panel = window->findChild<QDockWidget*>(QStringLiteral("KisLayerBox"));
+    QVERIFY(panel);
+    auto *tree = panel->findChild<QTreeView*>(QStringLiteral("listLayers"));
+    QVERIFY(tree);
+    tree->selectionModel()->clearSelection();
+    QTRY_COMPARE(manager->selectedNodes(), KisNodeList{active});
+    QCOMPARE(view->currentNode(), active);
 }
 
 void KisGpuDocumentViewTest::layerPanelSelectionSurvivesSaving()

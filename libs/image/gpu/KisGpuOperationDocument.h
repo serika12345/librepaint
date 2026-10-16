@@ -292,7 +292,9 @@ public:
     LayerId addLayer(const QString &name, qsizetype index, bool pinnedToTimeline);
     /** Selection is screen state; selecting an existing layer adds no history entry. */
     Result selectLayer(LayerId layer);
-    /** Screen selection preserves history, pending input and fixed snapshots. */
+    /** A nonempty screen selection and an independent existing active layer.
+     * Preserves history, pending input and fixed snapshots.
+     */
     Result selectLayers(const QList<LayerId> &layers, LayerId active);
     /** Duplicates a bottom-to-top selection above its highest layer in one edit.
      * Names correspond to the selected identities. Copies have independent layer
