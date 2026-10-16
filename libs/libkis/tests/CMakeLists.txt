@@ -13,4 +13,5 @@ kis_add_tests(
     )
 
 add_dependencies(TestDocument kritapngimport kritapngexport kritalcmsengine)
+add_dependencies(TestNode kritakraimport kritakraexport)
 target_link_libraries(TestDocument kritaimpexkra)

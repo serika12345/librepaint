@@ -56,6 +56,7 @@ private Q_SLOTS:
     void insertedLayersPreserveOrderPinsAndOneHistoryStep();
     void duplicatedLayersShareInputsAndPixelsWithIndependentHistory();
     void identicalLayerDuplicationsPreserveTheSamePersistentIdentities();
+    void insertedForeignLayersSharePixelsAndInputsWithAtomicHistory();
     void selectionDuringInputPreservesPaintingAndHistory();
     void activeLayerAndSelectionRemainIndependentThroughRecoveryAndInput();
     void mergedPanelTogglesPreservePinsAndSaveBoundaries_data();
@@ -272,6 +273,87 @@ void KisGpuOperationDocumentTest::insertedLayersPreserveOrderPinsAndOneHistorySt
     QCOMPARE(document.addLayer(QStringLiteral("Busy"), 0, false), LayerId(0));
     QCOMPARE(document.cancelStroke(pending), Result::Success);
     QCOMPARE(document.snapshot(), inserted);
+}
+
+void KisGpuOperationDocumentTest::insertedForeignLayersSharePixelsAndInputsWithAtomicHistory()
+{
+    OperationDocument source(rasterImage());
+    QCOMPARE(source.selectLayer(1), Result::Success);
+    QVERIFY(!paint(source, {sample(8, 9), sample(12, 13, 0.5)}).isNull());
+    const auto sourceVersion = source.snapshot();
+    const auto &original = sourceVersion->layers[0];
+    RasterLayer properties;
+    properties.name = QStringLiteral("Inserted");
+    properties.uuid = QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}"));
+    properties.defaultPixel = original.defaultPixel;
+    properties.opacity = 173;
+    properties.visible = false;
+    properties.userLocked = true;
+    properties.channelWriteMask = 7;
+    RasterImage destinationInput;
+    destinationInput.size = {64, 32};
+    destinationInput.layers = {{QStringLiteral("Destination"), true,
+        QUuid(QStringLiteral("{31323334-3536-3738-393a-3b3c3d3e3f40}")), {}}};
+    OperationDocument destination(destinationInput);
+    const auto before = destination.snapshot();
+    const auto id = destination.insertLayer(source, 1, properties, 0);
+    QVERIFY(id);
+    const auto inserted = destination.snapshot();
+    const auto &copy = inserted->layers[0];
+    QCOMPARE(copy.id, id);
+    QCOMPARE(copy.uuid, properties.uuid);
+    QCOMPARE(copy.name, properties.name);
+    QCOMPARE(copy.defaultPixel, original.defaultPixel);
+    QCOMPARE(copy.opacity, properties.opacity);
+    QVERIFY(!copy.visible);
+    QVERIFY(copy.userLocked);
+    QCOMPARE(copy.channelWriteMask, quint8(7));
+    QCOMPARE(copy.operations.size(), original.operations.size());
+    const auto pixels = std::get<TileWriteSnapshot>(copy.operations[0]);
+    const auto input = std::get<PaintSnapshot>(copy.operations[1]);
+    QCOMPARE(pixels->tiles, std::get<TileWriteSnapshot>(original.operations[0])->tiles);
+    QCOMPARE(input->sampleBlocks, std::get<PaintSnapshot>(original.operations[1])->sampleBlocks);
+    QCOMPARE(input->id.document, inserted->documentId());
+    QVERIFY(input->id != std::get<PaintSnapshot>(original.operations[1])->id);
+    QCOMPARE(input->layer, id);
+    QCOMPARE(inserted->sampleCount, sourceVersion->sampleCount);
+    QCOMPARE(inserted->rasterBytes, qsizetype(RgbaTile::ByteCount));
+    QCOMPARE(destination.undoCount(), 1);
+    QCOMPARE(destination.undo(), Result::Success);
+    QCOMPARE(destination.snapshot(), before);
+    QCOMPARE(destination.redo(), Result::Success);
+    QCOMPARE(destination.snapshot(), inserted);
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(destination.recoveryData()), Result::Success);
+    QCOMPARE(restored.snapshot()->layers[0].uuid, properties.uuid);
+    QCOMPARE(source.snapshot(), sourceVersion);
+    const auto fixed = destination.recoveryData();
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        QFile output(QDir(directory).filePath(QStringLiteral("layer-insertion.recovery")));
+        QVERIFY(output.open(QIODevice::WriteOnly));
+        QCOMPARE(output.write(fixed), qint64(fixed.size()));
+    }
+    QCOMPARE(destination.insertLayer(source, 999, properties, 0), LayerId(0));
+    QCOMPARE(destination.insertLayer(source, 1, properties, 0), LayerId(0));
+    QCOMPARE(destination.recoveryData(), fixed);
+    Limits limits;
+    limits.layerCount = 1;
+    OperationDocument bounded({64, 32}, limits);
+    const auto boundedVersion = bounded.snapshot();
+    QCOMPARE(bounded.insertLayer(source, 1, properties, 0), LayerId(0));
+    QCOMPARE(bounded.snapshot(), boundedVersion);
+    for (int budget = 0; budget < 3; ++budget) {
+        Limits capacity;
+        if (budget == 0) capacity.rasterBytes = RgbaTile::ByteCount - 1;
+        if (budget == 1) capacity.samplesPerDocument = 1;
+        if (budget == 2) capacity.samplesPerStroke = 1;
+        OperationDocument limited({64, 32}, capacity);
+        const auto retained = limited.recoveryData();
+        QCOMPARE(limited.insertLayer(source, 1, properties, 0), LayerId(0));
+        QCOMPARE(limited.recoveryData(), retained);
+    }
 }
 
 void KisGpuOperationDocumentTest::activeLayerAndSelectionRemainIndependentThroughRecoveryAndInput()

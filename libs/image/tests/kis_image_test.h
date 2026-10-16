@@ -25,6 +25,9 @@ private Q_SLOTS:
     void testRetainedGpuLayerPixelsOutliveTheImageAndDiscardedHistory();
     void testGpuImageNotificationLifetime_data();
     void testGpuImageNotificationLifetime();
+    void testGpuInsertionRejectsUnrepresentedLayerState_data();
+    void testGpuInsertionRejectsUnrepresentedLayerState();
+    void testGpuInsertionKeepsRawPixelsFromWrappedInput();
     void benchmarkCreation();
     void testBlockLevelOfDetail();
     void testConvertImageColorSpace();

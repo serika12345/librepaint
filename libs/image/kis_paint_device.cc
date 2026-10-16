@@ -234,6 +234,26 @@ public:
         return currentData()->createChangeInterstrokeDataCommand(value);
     }
 
+    void bindGpuLayer(LibrePaint::Image::Gpu::PaintImageSP image,
+                      LibrePaint::Image::Gpu::LayerPixelReferenceSP pixels,
+                      const KoColorSpace *colorSpace)
+    {
+        gpuColorSpace = colorSpace;
+        gpuImage = std::move(image);
+        gpuPixels = std::move(pixels);
+        gpuBoundsSequence = -1;
+        gpuSequenceKnown = false;
+        gpuSequenceOperations.clear();
+        contentChannel.reset();
+        framesInterface.reset();
+        m_frames.clear();
+        m_data.clear();
+        m_lodData.reset();
+        m_externalFrameData.reset();
+        basicStrategy.reset();
+        wrappedStrategy.reset();
+    }
+
     void cloneAllDataObjects(Private *rhs, bool copyFrames)
     {
         if (rhs->gpuImage) {
@@ -241,20 +261,7 @@ public:
             if (!image) throw std::invalid_argument("GPU pixel copies require a retained version on the owning thread");
             const auto pixels = rhs->gpuPixels ? image->retainLayerPixels(rhs->gpuLayerId())
                                               : LibrePaint::Image::Gpu::LayerPixelReferenceSP{};
-            gpuColorSpace = rhs->gpuColorSpace;
-            gpuImage = std::move(image);
-            gpuPixels = pixels;
-            gpuBoundsSequence = -1;
-            gpuSequenceKnown = false;
-            gpuSequenceOperations.clear();
-            contentChannel.reset();
-            framesInterface.reset();
-            m_frames.clear();
-            m_data.clear();
-            m_lodData.reset();
-            m_externalFrameData.reset();
-            basicStrategy.reset();
-            wrappedStrategy.reset();
+            bindGpuLayer(std::move(image), pixels, rhs->gpuColorSpace);
             return;
         }
 
@@ -1147,6 +1154,21 @@ void KisPaintDevice::Private::init(const KoColorSpace *cs, const quint8 *default
         KisDataManagerSP dataManager = new KisDataManager(cs->pixelSize(), defaultPixel);
         data->init(cs, dataManager);
     }
+}
+
+LibrePaint::Image::Gpu::PaintImageSP KisPaintDevice::gpuPixelImage() const
+{ return m_d->gpuImage; }
+
+LibrePaint::Image::Gpu::LayerPixelReferenceSP KisPaintDevice::gpuPixelReference() const
+{ return m_d->gpuPixels; }
+
+void KisPaintDevice::bindGpuLayer(LibrePaint::Image::Gpu::PaintImageSP image, quint64 layer)
+{
+    if (m_d->gpuImage == image && m_d->gpuLayerId() == layer) return;
+    const auto pixels = image->retainLayerPixels(layer);
+    if (!pixels) throw std::invalid_argument("GPU layer binding requires a live layer on its owning thread");
+    const auto *encoding = colorSpace();
+    m_d->bindGpuLayer(std::move(image), pixels, encoding);
 }
 
 KisPaintDeviceSP KisPaintDevice::fromGpuImage(LibrePaint::Image::Gpu::PaintImageSP image, quint64 layer, const QString &name)

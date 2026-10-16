@@ -42,6 +42,7 @@ class KUndo2MagicString;
 class KisProofingConfiguration;
 class KisPaintDevice;
 class KisImageGlobalSelectionManagementInterface;
+struct KisGpuImageViewState;
 namespace LibrePaint::Image::Gpu { class PaintImage; }
 
 namespace KisMetaData
@@ -81,6 +82,11 @@ public:
     static KisImageSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name,
                                    const KoColorSpace *colorSpace);
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuImage() const;
+    /** Adopts a detached flat paint layer at a bottom-to-top index as one GPU
+     * history entry. Preserves the node and its paint device. Invalid or
+     * over-budget input returns false before modifying the image.
+     */
+    bool insertGpuLayer(KisNodeSP node, qsizetype index);
     /** Transient node notifications describe the GPU version being adopted. */
     bool isSynchronizingGpuNodes() const { return m_synchronizingGpuNodes; }
 
@@ -1264,6 +1270,8 @@ private:
 
     KisImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name, const KoColorSpace *colorSpace);
     void synchronizeGpuNodes();
+    void synchronizeGpuLayerViews(KisGpuImageViewState *state);
+    QSharedPointer<KisGpuImageViewState> &gpuViewState();
     void connectGpuImageUpdates();
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> cloneGpuImage(bool exactCopy) const;
     KisImage(const KisImage& rhs, KisUndoStore *undoStore, bool exactCopy);

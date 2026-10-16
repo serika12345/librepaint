@@ -17,6 +17,32 @@
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 
+namespace {
+void copyLayerOperations(const Layer &source, Layer &copy, const QUuid &identity, quint64 &sequence)
+{
+    copy.operations.clear();
+    QHash<quint64, quint64> writeGroups;
+    for (const auto &sourceOperation : source.operations) {
+        const OperationId id{identity, ++sequence};
+        if (const auto paint = std::get_if<PaintSnapshot>(&sourceOperation)) {
+            auto operation = QSharedPointer<PaintOperation>::create(**paint);
+            operation->id = id;
+            operation->layer = copy.id;
+            copy.operations.append(PaintSnapshot(operation));
+        } else {
+            auto operation = QSharedPointer<TileWriteOperation>::create(*std::get<TileWriteSnapshot>(sourceOperation));
+            operation->id = id;
+            operation->layer = copy.id;
+            if (operation->writeGroup) {
+                if (!writeGroups.contains(operation->writeGroup)) writeGroups.insert(operation->writeGroup, id.sequence);
+                operation->writeGroup = writeGroups.value(operation->writeGroup);
+            }
+            copy.operations.append(TileWriteSnapshot(operation));
+        }
+    }
+}
+}
+
 QList<InputSample> PaintOperation::inputSamples() const
 {
     QList<InputSample> result;
@@ -438,6 +464,58 @@ LayerId OperationDocument::addLayer(const QString &name, qsizetype index, bool p
     return layer;
 }
 
+LayerId OperationDocument::insertLayer(const OperationDocument &source, LayerId sourceLayer,
+                                      const RasterLayer &properties, qsizetype index)
+{ return insertVersion(source.snapshot(), sourceLayer, properties, index); }
+
+LayerId OperationDocument::insertVersion(const Snapshot &source, LayerId sourceLayer,
+                                        const RasterLayer &properties, qsizetype index)
+{
+    if (checkMutation() != Result::Success || !source || index < 0 || index > snapshot()->layers.size() ||
+        !validLayerName(properties.name) || properties.uuid.isNull() || properties.channelWriteMask > 15 ||
+        !properties.tiles.isEmpty() || snapshot()->layers.size() >= m_limits.layerCount ||
+        m_nextLayer == std::numeric_limits<quint64>::max() || m_nextRevision == std::numeric_limits<quint64>::max()) return 0;
+    const auto found = std::find_if(source->layers.cbegin(), source->layers.cend(),
+                                   [sourceLayer](const Layer &layer) { return layer.id == sourceLayer; });
+    if (found == source->layers.cend() || found->defaultPixel != properties.defaultPixel) return 0;
+    for (const auto &state : m_history)
+        for (const auto &layer : state->layers) if (layer.uuid == properties.uuid) return 0;
+    auto samples = snapshot()->sampleCount;
+    auto pixels = snapshot()->rasterBytes;
+    auto nextOperation = m_nextOperation;
+    for (const auto &operation : found->operations) {
+        if (operationSamples(operation) > m_limits.samplesPerStroke ||
+            operationSamples(operation) > m_limits.samplesPerDocument - samples ||
+            operationRasterBytes(operation) > m_limits.rasterBytes - pixels ||
+            nextOperation == std::numeric_limits<quint64>::max()) return 0;
+        samples += operationSamples(operation);
+        pixels += operationRasterBytes(operation);
+        ++nextOperation;
+    }
+    Layer added = *found;
+    added.id = m_nextLayer + 1;
+    added.name = properties.name;
+    added.uuid = properties.uuid;
+    added.visible = properties.visible;
+    added.opacity = properties.opacity;
+    added.userLocked = properties.userLocked;
+    added.pinnedToTimeline = properties.pinnedToTimeline;
+    added.channelWriteMask = properties.channelWriteMask;
+    nextOperation = m_nextOperation;
+    copyLayerOperations(*found, added, m_identity, nextOperation);
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->layers.insert(index, added);
+    version->activeLayer = added.id;
+    version->selectedLayers = {added.id};
+    version->sampleCount = samples;
+    version->rasterBytes = pixels;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    m_nextLayer = added.id;
+    m_nextOperation = nextOperation;
+    commitVersion(version);
+    return added.id;
+}
+
 Result OperationDocument::duplicateLayers(const QList<LayerId> &layers, const QList<QString> &names, LayerId activeSource)
 {
     const auto status = checkMutation();
@@ -486,26 +564,7 @@ Result OperationDocument::duplicateLayers(const QList<LayerId> &layers, const QL
         if (!unique) return Result::CapacityExceeded;
         identities.insert(copy.uuid);
         copy.name = names[i];
-        copy.operations.clear();
-        QHash<quint64, quint64> writeGroups;
-        for (const auto &source : original->layers[layerIndex(layers[i])].operations) {
-            const OperationId id{m_identity, ++nextOperation};
-            if (const auto paint = std::get_if<PaintSnapshot>(&source)) {
-                auto operation = QSharedPointer<PaintOperation>::create(**paint);
-                operation->id = id;
-                operation->layer = copy.id;
-                copy.operations.append(PaintSnapshot(operation));
-            } else {
-                auto operation = QSharedPointer<TileWriteOperation>::create(*std::get<TileWriteSnapshot>(source));
-                operation->id = id;
-                operation->layer = copy.id;
-                if (operation->writeGroup) {
-                    if (!writeGroups.contains(operation->writeGroup)) writeGroups.insert(operation->writeGroup, id.sequence);
-                    operation->writeGroup = writeGroups.value(operation->writeGroup);
-                }
-                copy.operations.append(TileWriteSnapshot(operation));
-            }
-        }
+        copyLayerOperations(original->layers[layerIndex(layers[i])], copy, m_identity, nextOperation);
         if (i == activeIndex) version->activeLayer = copy.id;
         version->selectedLayers.append(copy.id);
         version->layers.insert(insertion++, copy);

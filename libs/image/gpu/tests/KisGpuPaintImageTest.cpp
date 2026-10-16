@@ -25,6 +25,7 @@ private Q_SLOTS:
     void retainedImagesAndClonesKeepTheirExecutionAlive();
     void clonesKeepIndependentCurrentStateAndOperationIdentities();
     void retainedLayerCopiesKeepIndependentPixelsAndExecutionLifetime();
+    void insertedLayerPixelsPublishAtomicallyAndRemainIndependent();
     void sharedEditsPublishBeforeNotificationAndReleaseTheLastAttachment();
     void recoveryPreservesPendingInputAndRedoOnTheSameAttachment();
     void directPixelsReachGpuWithoutEditingNotificationsOrHistory();
@@ -34,6 +35,49 @@ private Q_SLOTS:
     void damagedPixelSharingRecoveryPreservesTheLiveImage();
     void historyNavigationPublishesOneVersionAndPreservesSavedState();
 };
+
+void KisGpuPaintImageTest::insertedLayerPixelsPublishAtomicallyAndRemainIndependent()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    PaintImage source(execution, QSize(16, 16));
+    PaintImage destination(execution, QSize(16, 16));
+    const auto sourceLayer = source.operations().activeLayer();
+    const auto pixels = source.retainLayerPixels(sourceLayer);
+    const QRect rect(5, 7, 1, 1);
+    const auto bytes = QByteArray::fromHex("112233ff");
+    QCOMPARE(source.writeRgbaPixels(sourceLayer, rect, bytes), Result::Success);
+    RasterLayer properties;
+    properties.name = QStringLiteral("Inserted pixels");
+    properties.uuid = QUuid::createUuid();
+    QSignalSpy changed(&destination, &PaintImage::changed);
+    const auto inserted = destination.insertLayer(source, pixels, properties, 1);
+    QVERIFY(inserted);
+    QCOMPARE(changed.size(), 1);
+    QCOMPARE(destination.operations().undoCount(), 1);
+    QCOMPARE(destination.readRgbaPixels(inserted, rect, 4).bytes, bytes);
+    const auto fixed = destination.operations().snapshot();
+    QCOMPARE(source.writeRgbaPixels(sourceLayer, rect, QByteArray::fromHex("445566ff")), Result::Success);
+    QCOMPARE(destination.readRgbaPixels(inserted, rect, 4).bytes, bytes);
+    QCOMPARE(destination.undo(), Result::Success);
+    QCOMPARE(destination.redo(), Result::Success);
+    QCOMPARE(destination.operations().snapshot(), fixed);
+    auto rejected = properties;
+    rejected.uuid = QUuid::createUuid();
+    const auto before = destination.operations().recoveryData();
+    QVERIFY(!destination.insertLayer(destination, pixels, rejected, 0));
+    QCOMPARE(destination.operations().recoveryData(), before);
+    QCOMPARE(source.removeLayer(sourceLayer), Result::Success);
+    const auto retained = destination.insertLayer(source, pixels, rejected, 0);
+    QVERIFY(retained);
+    QCOMPARE(destination.readRgbaPixels(retained, rect, 4).bytes, QByteArray::fromHex("445566ff"));
+    OperationDocument empty(QSize(16, 16));
+    rejected.uuid = QUuid::createUuid();
+    QVERIFY(destination.insertLayer(empty, empty.activeLayer(), rejected, 0));
+    QCOMPARE(destination.limits().rasterBytes, Limits{}.rasterBytes);
+}
 
 void KisGpuPaintImageTest::retainedLayerPixelsRemainEditableThroughRemovalAndDiscardedHistory()
 {

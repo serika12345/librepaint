@@ -39,6 +39,7 @@ PaintImage::~PaintImage()
     if (m_d->handle) m_d->execution.close(m_d->handle);
 }
 const OperationDocument &PaintImage::operations() const { return *m_d->document; }
+Limits PaintImage::limits() const { return m_d->limits; }
 quint64 PaintImage::handle() const { return m_d->handle; }
 Execution &PaintImage::execution() const { return m_d->execution; }
 PaintImageSP PaintImage::clone(bool preserveLayerUuids) const
@@ -168,6 +169,25 @@ LayerId PaintImage::addLayer(const QString &name, qsizetype index, bool pinnedTo
     if (id) publish(Result::Success);
     return id;
 }
+LayerId PaintImage::insertLayer(const OperationDocument &source, LayerId layer,
+                               const RasterLayer &properties, qsizetype index)
+{
+    if (!onThread()) return 0;
+    const auto id = m_d->document->insertLayer(source, layer, properties, index);
+    if (id) publish(Result::Success);
+    return id;
+}
+
+LayerId PaintImage::insertLayer(const PaintImage &source, const LayerPixelReferenceSP &pixels,
+                               const RasterLayer &properties, qsizetype index)
+{
+    if (!onThread() || !source.onThread() || !pixels || !pixels->version() ||
+        pixels->version()->documentId() != source.operations().snapshot()->documentId()) return 0;
+    const auto id = m_d->document->insertVersion(pixels->version(), pixels->layer(), properties, index);
+    if (id) publish(Result::Success);
+    return id;
+}
+
 Result PaintImage::duplicateLayers(const QList<LayerId> &layers, const QList<QString> &names, LayerId activeSource)
 { return onThread() ? publish(m_d->document->duplicateLayers(layers, names, activeSource)) : Result::InvalidInput; }
 Result PaintImage::selectLayers(const QList<LayerId> &layers, LayerId active)

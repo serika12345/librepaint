@@ -16,6 +16,9 @@
 
 #include <KoColorSpaceRegistry.h>
 #include <KoColorSpace.h>
+#include <KoCompositeOpRegistry.h>
+#include <kis_psd_layer_style.h>
+#include <kis_default_bounds.h>
 
 #include "filter/kis_filter.h"
 #include "filter/kis_filter_configuration.h"
@@ -226,6 +229,100 @@ void KisImageTest::testGpuLayerReferencesSurviveHistoryAndReleaseDiscardedBranch
     QVERIFY(!nodeLifetime);
     image.clear();
     QVERIFY(!imageLifetime);
+}
+
+void KisImageTest::testGpuInsertionRejectsUnrepresentedLayerState_data()
+{
+    QTest::addColumn<int>("property");
+    QTest::newRow("blend") << 0;
+    QTest::newRow("offset") << 1;
+    QTest::newRow("animation") << 2;
+    QTest::newRow("layer-style") << 3;
+    QTest::newRow("composition-channels") << 4;
+    QTest::newRow("alpha-inheritance") << 5;
+    QTest::newRow("temporary-layer") << 6;
+    QTest::newRow("temporary-pixels") << 7;
+}
+
+void KisImageTest::testGpuInsertionRejectsUnrepresentedLayerState()
+{
+    QFETCH(int, property);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Validated insertion"));
+    KisImageSP source = new KisImage(nullptr, 32, 16, image->colorSpace(), QStringLiteral("Foreign input"));
+    KisPaintLayerSP layer = new KisPaintLayer(source, QStringLiteral("Preserved input"), 255);
+    auto pixels = layer->paintDevice();
+    const auto bytes = QByteArray::fromHex("112233ff");
+    pixels->writeBytes(reinterpret_cast<const quint8*>(bytes.constData()), 5, 7, 1, 1);
+    if (property == 0) layer->setCompositeOpId(COMPOSITE_MULT);
+    if (property == 1) { layer->setX(3); layer->setY(-4); }
+    if (property == 2) layer->enableAnimation();
+    if (property == 3) {
+        auto style = KisPSDLayerStyleSP::create();
+        style->dropShadow()->setEffectEnabled(true);
+        layer->setLayerStyle(style->cloneWithResourcesSnapshot(KisGlobalResourcesInterface::instance(), {}));
+    }
+    if (property == 4) {
+        QBitArray channels(4, true);
+        channels.setBit(0, false);
+        layer->setChannelFlags(channels);
+    }
+    if (property == 5) layer->disableAlphaChannel(true);
+    if (property == 6) layer->setTemporary(true);
+    if (property == 7) layer->setTemporaryTarget(new KisPaintDevice(layer->colorSpace()));
+    const auto channels = layer->channelFlags();
+    const auto before = owner->operations().snapshot();
+    const auto serialized = owner->operations().recoveryData();
+    QByteArray retained(4, Qt::Uninitialized);
+    pixels->readBytes(reinterpret_cast<quint8*>(retained.data()), 5 + layer->x(), 7 + layer->y(), 1, 1);
+    QVERIFY(!image->insertGpuLayer(layer, 0));
+    QCOMPARE(owner->operations().snapshot(), before);
+    QCOMPARE(owner->operations().recoveryData(), serialized);
+    QCOMPARE(image->root()->childCount(), 1U);
+    QCOMPARE(layer->paintDevice(), pixels);
+    QVERIFY(!layer->parent());
+    if (property == 0) QCOMPARE(layer->compositeOpId(), QString(COMPOSITE_MULT));
+    if (property == 1) QCOMPARE(QPoint(layer->x(), layer->y()), QPoint(3, -4));
+    if (property == 2) QVERIFY(layer->isAnimated());
+    if (property == 3) QVERIFY(layer->layerStyle()->dropShadow()->effectEnabled());
+    QCOMPARE(layer->channelFlags(), channels);
+    if (property == 6) QVERIFY(layer->temporary());
+    if (property == 7) QVERIFY(layer->hasTemporaryTarget());
+    QByteArray actual(4, Qt::Uninitialized);
+    pixels->readBytes(reinterpret_cast<quint8*>(actual.data()), 5 + layer->x(), 7 + layer->y(), 1, 1);
+    QCOMPARE(actual, retained);
+}
+
+void KisImageTest::testGpuInsertionKeepsRawPixelsFromWrappedInput()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device);
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 32));
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Raw insertion"));
+    KisImageSP source = new KisImage(nullptr, 32, 16, image->colorSpace(), QStringLiteral("Wrapped source"));
+    KisPaintLayerSP layer = new KisPaintLayer(source, QStringLiteral("Fixed input"), 255);
+    auto pixels = layer->paintDevice();
+    pixels->setDefaultBounds(new KisWrapAroundBoundsWrapper(new KisDefaultBounds(source), QRect(0, 0, 32, 16)));
+    QVERIFY(pixels->defaultBounds()->wrapAroundMode());
+    const auto bytes = QByteArray::fromHex("112233ff");
+    pixels->writeBytes(reinterpret_cast<const quint8*>(bytes.constData()), 5, 7, 1, 1);
+    QVERIFY(image->insertGpuLayer(layer, 1));
+    QByteArray actual(4, Qt::Uninitialized);
+    pixels->readBytes(reinterpret_cast<quint8*>(actual.data()), 5, 7, 1, 1);
+    QCOMPARE(actual, bytes);
+    for (QPoint point : {QPoint(37, 7), QPoint(5, 23), QPoint(37, 23)}) {
+        pixels->readBytes(reinterpret_cast<quint8*>(actual.data()), point.x(), point.y(), 1, 1);
+        QCOMPARE(actual, QByteArray(4, '\0'));
+    }
+    QCOMPARE(owner->operations().undoCount(), 1);
 }
 
 void KisImageTest::testGpuImageNotificationLifetime_data()

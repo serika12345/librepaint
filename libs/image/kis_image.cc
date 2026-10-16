@@ -325,6 +325,7 @@ public:
     KisImageSignalRouter signalRouter;
     KisImageAnimationInterface *animationInterface;
     LibrePaint::Image::Gpu::PaintImageSP gpuImage;
+    QSharedPointer<KisGpuImageViewState> gpuViewState;
     std::unique_ptr<KisUpdateScheduler> scheduler;
     KisUpdateScheduler &cpuScheduler() const
     {
@@ -411,6 +412,9 @@ LibrePaint::Image::Gpu::PaintImageSP KisImage::gpuImage() const
 {
     return m_d->gpuImage;
 }
+
+QSharedPointer<KisGpuImageViewState> &KisImage::gpuViewState()
+{ return m_d->gpuViewState; }
 
 KisImageSP KisImage::fromQImage(const QImage &image, KisUndoStore *undoStore)
 {

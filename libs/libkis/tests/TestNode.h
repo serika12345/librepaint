@@ -26,6 +26,9 @@ private Q_SLOTS:
     void testPixelCopiesAndNodesOutliveTheImageOwner();
     void testDetachedLayerCopiesPreserveIndependentPixels_data();
     void testDetachedLayerCopiesPreserveIndependentPixels();
+    void testInsertedLayersPreserveIdentityPixelsAndHistory_data();
+    void testInsertedLayersPreserveIdentityPixelsAndHistory();
+    void testGpuLayerInsertionPreservesNativeIdentityAndRejectsInvalidInputs();
     void testLayerAndDocumentProjectionsRemainDistinct();
     void testProjectionPixelData();
     void testThumbnail();

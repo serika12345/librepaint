@@ -280,7 +280,16 @@ QList<Node*> Node::findChildNodes(const QString &name, bool recursive, bool part
 
 bool Node::addChildNode(Node *child, Node *above)
 {
-    if (!d->node) return false;
+    if (!d->node || !child || !child->d->node) return false;
+
+    KisImageSP image = d->image;
+    if (image && image->gpuImage()) {
+        if (d->node != image->root() || (above && (!above->d->node || above->d->node->parent() != d->node))) return false;
+        const auto index = above ? d->node->index(above->d->node) + 1 : d->node->childCount();
+        if (!image->insertGpuLayer(child->d->node, index)) return false;
+        child->d->image = image;
+        return true;
+    }
 
     KUndo2Command *cmd = 0;
 

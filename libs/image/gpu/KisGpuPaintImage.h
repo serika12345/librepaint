@@ -56,6 +56,7 @@ public:
     ~PaintImage() override;
     /** Borrowed logical owner; successful recovery replaces this reference. */
     const OperationDocument &operations() const;
+    Limits limits() const;
     quint64 handle() const;
     /** Borrowed GUI-thread execution owner; shared construction pins its lifetime. */
     Execution &execution() const;
@@ -110,6 +111,14 @@ public:
     Result writeLayerPinnedToTimeline(LayerId layer, bool pinned);
     LayerId addLayer(const QString &name);
     LayerId addLayer(const QString &name, qsizetype index, bool pinnedToTimeline);
+    /** Inserts validated committed inputs as one history entry, preserving the
+     * supplied fresh public identity. Rejections leave history unchanged.
+     */
+    LayerId insertLayer(const OperationDocument &source, LayerId layer,
+                        const RasterLayer &properties, qsizetype index);
+    /** Uses retained pixels, including removed layers, without reading back GPU pixels. */
+    LayerId insertLayer(const PaintImage &source, const LayerPixelReferenceSP &pixels,
+                        const RasterLayer &properties, qsizetype index);
     Result selectLayer(LayerId layer);
     Result selectLayers(const QList<LayerId> &layers, LayerId active);
     Result duplicateLayers(const QList<LayerId> &layers, const QList<QString> &names, LayerId activeSource);

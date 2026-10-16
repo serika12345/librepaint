@@ -537,6 +537,136 @@ void TestNode::testDetachedLayerCopiesPreserveIndependentPixels()
     QCOMPARE(copy->pixelData(-1, 3, 1, 1), sourceEdit);
 }
 
+void TestNode::testInsertedLayersPreserveIdentityPixelsAndHistory_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<int>("kind");
+    for (const bool gpu : {false, true}) {
+        for (const int kind : {0, 1, 2}) {
+            const QByteArray name = QByteArray(gpu ? "gpu-" : "ordinary-") +
+                (kind == 0 ? "created" : kind == 1 ? "cloned-above-source" : "duplicated");
+            QTest::newRow(name.constData()) << gpu << kind;
+        }
+    }
+}
+
+void TestNode::testInsertedLayersPreserveIdentityPixelsAndHistory()
+{
+    QFETCH(bool, gpu);
+    QFETCH(int, kind);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    Gpu::PaintImageSP owner;
+    KisImageSP image;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        Gpu::RasterImage input;
+        input.size = {32, 16};
+        input.layers = {{QStringLiteral("Source"), true, {}, {}}, {QStringLiteral("Top"), true, {}, {}}};
+        owner = Gpu::PaintImageSP::create(execution, input);
+        image = KisImage::fromGpuImage(owner, QStringLiteral("Public layer insertion"));
+    } else {
+        image = new KisImage(document->createUndoStore(), 32, 16, KoColorSpaceRegistry::instance()->rgb8(), "Public layer insertion");
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Source"), 255));
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Top"), 255));
+    }
+    document->setCurrentImage(image);
+    Document api(document.data(), false);
+    NodeSP root(api.rootNode());
+    NodeSP source(Node::createNode(image, image->root()->firstChild()));
+    const auto before = QByteArray::fromHex("197fafe00000ffff120a2700ff000080");
+    const auto after = QByteArray::fromHex("a1b2c3ff");
+    QVERIFY(source->setPixelData(before, 5, 7, 2, 2));
+    NodeSP child(kind == 0 ? api.createNode(QStringLiteral("Inserted"), QStringLiteral("paintlayer")) :
+                 kind == 1 ? source->clone() : source->duplicate());
+    QVERIFY(child);
+    child->setName(QStringLiteral("Inserted"));
+    if (kind == 0) QVERIFY(child->setPixelData(before, 5, 7, 2, 2));
+    const auto identity = child->uniqueId();
+    const auto history = document->undoStack()->count();
+    try {
+        QVERIFY(root->addChildNode(child.data(), kind == 1 ? source.data() : nullptr));
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    image->waitForDone();
+    const auto index = kind == 1 ? 1 : 2;
+    QCOMPARE(image->root()->childCount(), 3U);
+    const auto native = image->root()->at(index);
+    QCOMPARE(native->uuid(), identity);
+    QCOMPARE(child->uniqueId(), identity);
+    QCOMPARE(child->pixelData(5, 7, 2, 2), before);
+    QScopedPointer<Node> parent(child->parentNode());
+    QVERIFY(parent);
+    QCOMPARE(parent->uniqueId(), root->uniqueId());
+    QCOMPARE(document->undoStack()->count(), history + 1);
+    QTRY_VERIFY(document->isModified());
+    QVERIFY(child->setPixelData(after, 5, 7, 1, 1));
+    api.refreshProjection();
+    QCOMPARE(api.pixelData(5, 7, 1, 1), after);
+    QCOMPARE(source->pixelData(5, 7, 2, 2), before);
+    document->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(image->root()->childCount(), 2U);
+    QVERIFY(!native->parent());
+    QCOMPARE(child->pixelData(5, 7, 1, 1), after);
+    document->undoStack()->redo();
+    image->waitForDone();
+    QCOMPARE(image->root()->at(index), native);
+    api.refreshProjection();
+    QCOMPARE(api.pixelData(5, 7, 1, 1), after);
+    KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void TestNode::testGpuLayerInsertionPreservesNativeIdentityAndRejectsInvalidInputs()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+    auto image = KisImage::fromGpuImage(owner, QStringLiteral("Native insertion"));
+    KisNodeSP layer = new KisPaintLayer(image, QStringLiteral("Wide input"), 255);
+    auto pixels = layer->paintDevice();
+    const auto bytes = QByteArray::fromHex("112233ff").repeated(65 * 256);
+    pixels->writeBytes(reinterpret_cast<const quint8*>(bytes.constData()), 0, 0, 65 * 256, 1);
+    NodeSP root(Node::createNode(image, image->root()));
+    NodeSP child(Node::createNode(image, layer));
+    QVERIFY(root->addChildNode(child.data(), nullptr));
+    QCOMPARE(image->root()->lastChild(), layer);
+    QCOMPARE(layer->paintDevice(), pixels);
+    QCOMPARE(child->pixelData(65 * 256 - 1, 0, 1, 1), QByteArray::fromHex("112233ff"));
+    QCOMPARE(owner->operations().undoCount(), 1);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QCOMPARE(image->root()->lastChild(), layer);
+    QCOMPARE(layer->paintDevice(), pixels);
+
+    Gpu::Limits limits;
+    limits.rasterBytes = Gpu::RgbaTile::ByteCount;
+    auto bounded = Gpu::PaintImageSP::create(execution, QSize(32, 16), limits);
+    auto boundedImage = KisImage::fromGpuImage(bounded, QStringLiteral("Bounded insertion"));
+    NodeSP boundedRoot(Node::createNode(boundedImage, boundedImage->root()));
+    NodeSP copy(child->clone());
+    const auto before = bounded->operations().recoveryData();
+    QVERIFY(!boundedRoot->addChildNode(copy.data(), nullptr));
+    QCOMPARE(bounded->operations().recoveryData(), before);
+    QVERIFY(!copy->parentNode());
+    QCOMPARE(copy->pixelData(0, 0, 1, 1), QByteArray::fromHex("112233ff"));
+    KisNodeSP invalid = new KisPaintLayer(boundedImage, QString(70000, QLatin1Char('x')), 255);
+    const auto originalDevice = invalid->paintDevice();
+    try {
+        QVERIFY(!boundedImage->insertGpuLayer(invalid, 0));
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    QCOMPARE(bounded->operations().recoveryData(), before);
+    QCOMPARE(invalid->paintDevice(), originalDevice);
+    QVERIFY(!invalid->parent());
+}
+
 void TestNode::testLayerAndDocumentProjectionsRemainDistinct()
 {
     QScopedPointer<KisDocument> owner(KisPart::instance()->createDocument());

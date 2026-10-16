@@ -290,6 +290,12 @@ public:
     LayerId addLayer(const QString &name);
     /** Inserts and selects a layer at a bottom-to-top index, including its timeline state. */
     LayerId addLayer(const QString &name, qsizetype index, bool pinnedToTimeline);
+    /** Copies one committed source layer into a new identity and one history entry.
+     * Properties supply a fresh UUID and attributes; pixels retain their source
+     * default and immutable blocks. Zero reports rejected input or capacity.
+     */
+    LayerId insertLayer(const OperationDocument &source, LayerId sourceLayer,
+                        const RasterLayer &properties, qsizetype index);
     /** Selection is screen state; selecting an existing layer adds no history entry. */
     Result selectLayer(LayerId layer);
     /** A nonempty screen selection and an independent existing active layer.
@@ -358,6 +364,8 @@ private:
         bool duplicatedLayers = false;
     };
     std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
+    LayerId insertVersion(const Snapshot &source, LayerId sourceLayer,
+                          const RasterLayer &properties, qsizetype index);
     std::unique_ptr<OperationDocument> cloneVersion(const Snapshot &source, bool preserveLayerUuids,
                                                   LayerId onlyLayer = 0) const;
     struct VersionPixelWrite
