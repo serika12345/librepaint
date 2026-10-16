@@ -3,6 +3,7 @@
  *
  *  SPDX-License-Identifier: LGPL-2.0-or-later
  */
+#include <gpu/KisGpuPaintImage.h>
 #include <QUrl>
 #include <QScopedPointer>
 #include <QUuid>
@@ -656,14 +657,22 @@ QPoint Node::position() const
 
 bool Node::remove()
 {
-    if (!d->node) return false;
-    if (!d->node->parent()) return false;
+    if (!d->node || !d->node->parent()) return false;
+    KisImageSP image = d->node->image();
+    if (!image) return false;
+    if (const auto owner = image->gpuImage()) {
+        if (d->node->parent() != image->root()) return false;
+        const auto version = owner->operations().snapshot();
+        for (const auto &layer : version->layers) {
+            if (layer.uuid == d->node->uuid())
+                return owner->removeLayer(layer.id) == LibrePaint::Image::Gpu::Result::Success;
+        }
+        return false;
+    }
 
-    KUndo2Command *cmd = new KisImageLayerRemoveCommand(d->image, d->node);
-
-    KisProcessingApplicator::runSingleCommandStroke(d->image, cmd);
-    d->image->waitForDone();
-
+    KUndo2Command *cmd = new KisImageLayerRemoveCommand(image, d->node);
+    KisProcessingApplicator::runSingleCommandStroke(image, cmd);
+    image->waitForDone();
     return true;
 }
 

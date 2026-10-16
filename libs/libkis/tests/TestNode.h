@@ -12,6 +12,7 @@ class TestNode : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void initTestCase();
     void testLayerPropertiesPreservePublicHistorySemantics_data();
     void testLayerPropertiesPreservePublicHistorySemantics();
     void testGpuNodeNotificationKeepsReentrantPropertyWrites();
@@ -29,6 +30,10 @@ private Q_SLOTS:
     void testInsertedLayersPreserveIdentityPixelsAndHistory_data();
     void testInsertedLayersPreserveIdentityPixelsAndHistory();
     void testGpuLayerInsertionPreservesNativeIdentityAndRejectsInvalidInputs();
+    void testLayerRemovalPreservesPixelsAndHistory_data();
+    void testLayerRemovalPreservesPixelsAndHistory();
+    void testLastLayerRemovalInWindowClearsSelectionAndRestoresHistory_data();
+    void testLastLayerRemovalInWindowClearsSelectionAndRestoresHistory();
     void testLayerAndDocumentProjectionsRemainDistinct();
     void testProjectionPixelData();
     void testThumbnail();

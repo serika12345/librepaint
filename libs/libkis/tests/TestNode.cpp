@@ -5,6 +5,26 @@
 #include "TestNode.h"
 #include <simpletest.h>
 #include <QColor>
+#include <QApplication>
+#include <QIcon>
+#include <QPointer>
+#include <QScopeGuard>
+#include <KLocalizedString>
+#include <application/ui/workspace/KisMainWindow.h>
+#include <application/ui/workspace/KisViewManager.h>
+#include <application/ui/orchestration/kis_action_manager.h>
+#include <application/ui/orchestration/kis_action.h>
+#include <nodes/kis_node_manager.h>
+#include <kis_config.h>
+#include <opengl/kis_opengl.h>
+#include <actions/input/KisApplicationInputActions.h>
+#include <input/ui/kis_input_profile_manager.h>
+#include <KisResourceStorage.h>
+#include <KisResourceLocator.h>
+#include <KisResourceModel.h>
+#include <KisGlobalResourcesInterface.h>
+#include <brushengine/kis_paintop_registry.h>
+#include <memory>
 #include <QDataStream>
 #include <kundo2stack.h>
 #include <QSignalSpy>
@@ -32,6 +52,30 @@
 #include <application/ui/orchestration/KisPart.h>
 
 #include <testui.h>
+
+void TestNode::initTestCase()
+{
+    Q_INIT_RESOURCE(krita);
+    QIcon::setThemeSearchPaths({QStringLiteral(":/icons")});
+    QIcon::setFallbackSearchPaths({QStringLiteral(":/icons")});
+    KLocalizedString::setApplicationDomain("krita");
+    KisOpenGL::setDefaultSurfaceConfig(KisOpenGL::RendererConfig());
+    KisInputProfileManager::instance()->setActions(createApplicationInputActions());
+    const QString bundlePath = QStringLiteral(KRITA_SOURCE_DIR "/libs/resources/tests/data/bundles/test1.bundle");
+    auto bundle = KisResourceStorageSP::create(bundlePath);
+    QVERIFY(bundle->valid());
+    QVERIFY(KisResourceLocator::instance()->addStorage(bundlePath, bundle));
+    auto preset = KisPaintOpRegistry::instance()->defaultPreset(
+        KoID("roundmarker"), KisGlobalResourcesInterface::instance());
+    QVERIFY(preset);
+    preset->setName(QStringLiteral("Public node window fixture"));
+    preset->setFilename(QStringLiteral("public-node-window-fixture.kpp"));
+    QImage preview(16, 16, QImage::Format_ARGB32);
+    preview.fill(Qt::black);
+    preset->setImage(preview);
+    KisResourceModel presets(ResourceType::PaintOpPresets);
+    QVERIFY(presets.addResource(preset));
+}
 
 void TestNode::testLayerPropertiesPreservePublicHistorySemantics_data()
 {
@@ -665,6 +709,160 @@ void TestNode::testGpuLayerInsertionPreservesNativeIdentityAndRejectsInvalidInpu
     QCOMPARE(bounded->operations().recoveryData(), before);
     QCOMPARE(invalid->paintDevice(), originalDevice);
     QVERIFY(!invalid->parent());
+}
+
+void TestNode::testLayerRemovalPreservesPixelsAndHistory_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("cloned");
+    QTest::addColumn<bool>("viaParent");
+    for (bool gpu : {false, true}) for (bool cloned : {false, true}) for (bool viaParent : {false, true}) {
+        const QByteArray name = QByteArray(gpu ? "gpu-" : "ordinary-") +
+            (cloned ? "cloned-" : "created-") + (viaParent ? "parent" : "self");
+        QTest::newRow(name.constData()) << gpu << cloned << viaParent;
+    }
+}
+
+void TestNode::testLayerRemovalPreservesPixelsAndHistory()
+{
+    QFETCH(bool, gpu);
+    QFETCH(bool, cloned);
+    QFETCH(bool, viaParent);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    KisImageSP image;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        image = KisImage::fromGpuImage(Gpu::PaintImageSP::create(execution, QSize(32, 16)), "Public removal");
+    } else {
+        image = new KisImage(document->createUndoStore(), 32, 16, KoColorSpaceRegistry::instance()->rgb8(), "Public removal");
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Source"), 255));
+    }
+    document->setCurrentImage(image);
+    Document api(document.data(), false);
+    NodeSP root(api.rootNode());
+    NodeSP bottom(Node::createNode(image, image->root()->firstChild()));
+    const auto original = QByteArray::fromHex("112233ff");
+    const auto inserted = QByteArray::fromHex("445566ff");
+    const auto detached = QByteArray::fromHex("778899ff");
+    QVERIFY(bottom->setPixelData(original, 5, 7, 1, 1));
+    NodeSP child(cloned ? bottom->clone() : api.createNode("Removable", "paintlayer"));
+    QVERIFY(root->addChildNode(child.data(), nullptr));
+    QVERIFY(child->setPixelData(inserted, 5, 7, 1, 1));
+    const auto native = image->root()->lastChild();
+    const auto history = document->undoStack()->count();
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    document->setFileBatchMode(true);
+    QVERIFY(document->saveAs(directory.filePath("removal.kra"), KisDocument::nativeFormatMimeType(), false));
+    QTRY_VERIFY(!document->isModified());
+    if (gpu) {
+        const auto owner = image->gpuImage();
+        const auto before = owner->operations().snapshot();
+        const auto stroke = owner->beginStroke(before->layers.first().id, {}, 17);
+        QVERIFY(!stroke.isNull());
+        QVERIFY(!(viaParent ? root->removeChildNode(child.data()) : child->remove()));
+        QCOMPARE(owner->operations().snapshot(), before);
+        QCOMPARE(document->undoStack()->count(), history);
+        QCOMPARE(native->parent(), image->root());
+        QCOMPARE(owner->cancelStroke(stroke), Gpu::Result::Success);
+    }
+    try {
+        QVERIFY(viaParent ? root->removeChildNode(child.data()) : child->remove());
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    image->waitForDone();
+    QCOMPARE(image->root()->childCount(), 1U);
+    QVERIFY(!native->parent());
+    QCOMPARE(document->undoStack()->count(), history + 1);
+    QTRY_VERIFY(document->isModified());
+    api.refreshProjection();
+    QCOMPARE(api.pixelData(5, 7, 1, 1), original);
+    QCOMPARE(child->pixelData(5, 7, 1, 1), inserted);
+    QVERIFY(child->setPixelData(detached, 5, 7, 1, 1));
+    api.refreshProjection();
+    QCOMPARE(api.pixelData(5, 7, 1, 1), original);
+    QVERIFY(!child->remove());
+    QCOMPARE(document->undoStack()->count(), history + 1);
+    document->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(image->root()->lastChild(), native);
+    api.refreshProjection();
+    QCOMPARE(api.pixelData(5, 7, 1, 1), detached);
+    QTRY_VERIFY(!document->isModified());
+    document->undoStack()->redo();
+    image->waitForDone();
+    QCOMPARE(image->root()->childCount(), 1U);
+    api.refreshProjection();
+    QCOMPARE(api.pixelData(5, 7, 1, 1), original);
+    KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void TestNode::testLastLayerRemovalInWindowClearsSelectionAndRestoresHistory_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::newRow("ordinary-document") << false;
+    QTest::newRow("gpu-document") << true;
+}
+
+void TestNode::testLastLayerRemovalInWindowClearsSelectionAndRestoresHistory()
+{
+    QFETCH(bool, gpu);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    std::shared_ptr<Gpu::Execution> execution;
+    Gpu::PaintImageSP owner;
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    if (gpu) {
+        QString diagnostic;
+        const auto device = Gpu::Device::createNative(diagnostic);
+        QVERIFY2(device, qPrintable(diagnostic));
+        execution = std::make_shared<Gpu::Execution>(device);
+        owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Public removal in window")));
+    } else {
+        const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+        QVERIFY(document->newImage(QStringLiteral("Public removal in window"), 32, 16, cs,
+                                   KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    }
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (window && lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+    QVERIFY(QTest::qWaitForWindowExposed(window.get()));
+    KisImageSP image = lifetime->image();
+    QCOMPARE(image->root()->childCount(), 1U);
+    const auto native = image->root()->firstChild();
+    auto *manager = window->viewManager()->nodeManager();
+    QTRY_COMPARE(manager->activeNode(), native);
+    QScopedPointer<Node> api(Node::createNode(image, native));
+    QVERIFY(api->remove());
+    image->waitForDone();
+    QTRY_COMPARE(image->root()->childCount(), 0U);
+    QTRY_VERIFY(manager->activeNode() != native);
+    QTRY_VERIFY(!manager->selectedNodes().contains(native));
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QTRY_COMPARE(image->root()->firstChild(), native);
+    QTRY_COMPARE(manager->activeNode(), native);
+    lifetime->undoStack()->redo();
+    image->waitForDone();
+    QTRY_COMPARE(image->root()->childCount(), 0U);
+    QTRY_VERIFY(manager->activeNode() != native);
+    QTRY_VERIFY(!manager->selectedNodes().contains(native));
 }
 
 void TestNode::testLayerAndDocumentProjectionsRemainDistinct()
