@@ -6,6 +6,7 @@
 
 #include "kis_types.h"
 #include "nodes/kis_node_manager.h"
+#include <QPointer>
 #include <QtGlobal>
 
 void KisNodeManager::slotImageRequestNodeReselection(KisNodeSP activeNode, const KisNodeList &selectedNodes)
@@ -20,6 +21,7 @@ void KisNodeManager::slotImageRequestNodeReselection(KisNodeSP activeNode, const
 
 void KisNodeManager::slotSetSelectedNodes(const KisNodeList &nodes)
 {
+    const QPointer<KisNodeManager> lifetime(this);
     SelectionStateAccess::setSelectedNodes(this, nodes);
-    Q_EMIT sigUiNeedChangeSelectedNodes(nodes);
+    if (lifetime) Q_EMIT sigUiNeedChangeSelectedNodes(nodes);
 }

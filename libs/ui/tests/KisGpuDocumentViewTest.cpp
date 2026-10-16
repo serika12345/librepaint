@@ -108,6 +108,8 @@ private Q_SLOTS:
     void layerPanelSelectionSurvivesSaving();
     void layerPanelSelectionPreservesAnUnselectedActiveLayer_data();
     void layerPanelSelectionPreservesAnUnselectedActiveLayer();
+    void layerSelectionCanCloseTheWindowDuringNotification_data();
+    void layerSelectionCanCloseTheWindowDuringNotification();
     void layerPanelDuplicationPreservesPixelsSelectionAndOneHistoryEntry_data();
     void layerPanelDuplicationPreservesPixelsSelectionAndOneHistoryEntry();
     void layerPanelRemovalPreservesLayersSelectionAndOneHistoryEntry_data();
@@ -912,6 +914,72 @@ void KisGpuDocumentViewTest::layerPanelSelectionPreservesAnUnselectedActiveLayer
     tree->selectionModel()->clearSelection();
     QTRY_COMPARE(manager->selectedNodes(), KisNodeList{active});
     QCOMPARE(view->currentNode(), active);
+}
+
+void KisGpuDocumentViewTest::layerSelectionCanCloseTheWindowDuringNotification_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::newRow("ordinary-selection-notification") << false;
+    QTest::newRow("gpu-image-notification") << true;
+}
+
+void KisGpuDocumentViewTest::layerSelectionCanCloseTheWindowDuringNotification()
+{
+    QFETCH(bool, gpu);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    std::shared_ptr<Gpu::Execution> execution;
+    Gpu::PaintImageSP owner;
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    if (gpu) {
+        QString diagnostic;
+        const auto device = Gpu::Device::createNative(diagnostic);
+        QVERIFY2(device, qPrintable(diagnostic));
+        execution = std::make_shared<Gpu::Execution>(device);
+        owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        QVERIFY(owner->addLayer(QStringLiteral("Top")));
+        QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+        document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Closing during selection")));
+    } else {
+        const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+        QVERIFY(document->newImage(QStringLiteral("Closing during selection"), 32, 16, cs,
+                                   KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 2, {}, 1));
+    }
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (window && lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    KisImageWSP imageLifetime = lifetime->image();
+    auto selected = lifetime->image()->root()->firstChild();
+    QPointer<KisNodeManager> manager = window->viewManager()->nodeManager();
+    QMetaObject::Connection close;
+    const auto closeDuringSelection = [&] {
+        QObject::disconnect(close);
+        lifetime->setModified(false);
+        window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        window.reset();
+    };
+    close = gpu ? connect(owner.data(), &Gpu::PaintImage::changed, window.get(), closeDuringSelection)
+                : connect(manager.data(), &KisNodeManager::sigUiNeedChangeSelectedNodes, window.get(), closeDuringSelection);
+    manager->slotSetSelectedNodes({selected});
+    QVERIFY(!manager);
+    QVERIFY(!window);
+    QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    QTRY_VERIFY(!lifetime);
+    QTRY_VERIFY(!imageLifetime.isValid());
+    const auto handle = owner ? owner->handle() : 0;
+    selected.clear();
+    owner.clear();
+    if (execution) QVERIFY(!execution->requested(handle));
 }
 
 void KisGpuDocumentViewTest::layerPanelSelectionSurvivesSaving()

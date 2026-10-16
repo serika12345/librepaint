@@ -727,18 +727,17 @@ KisMainWindow::~KisMainWindow()
     //    }
 
     /**
-     * Destructor of KisView accesses KisViewManager is multiple ways,
-     * directly and via KoToolManager. Hence we should destroy all the
-     * subwindows **before** we actually destroy the view manager.
-     *
-     * Please note that we cannot just `close()` the subwindows, becasue
-     * they are deleted with deleteLater(), which may postpone their
-     * destruction till after KisViewManager's death.
+     * Views detach their tools while the view manager still owns canvas
+     * resources. Closed subwindows awaiting deferred deletion remain in the
+     * QObject tree after leaving the MDI window list, so destroy every owned
+     * subwindow before releasing the manager.
      */
-    Q_FOREACH (QMdiSubWindow *subwin, d->mdiArea->subWindowList()) {
+    QList<QPointer<QMdiSubWindow>> subwindows;
+    for (auto *subwin : d->mdiArea->findChildren<QMdiSubWindow*>()) subwindows.append(subwin);
+    for (const auto &subwin : subwindows) {
         if (subwin) {
             (void) subwin->close();
-            delete subwin;
+            delete subwin.data();
         }
     }
 
