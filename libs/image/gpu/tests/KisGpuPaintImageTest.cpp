@@ -33,9 +33,34 @@ private Q_SLOTS:
     void rectangularWritesPreserveOtherRegionsAcrossHistoryAndRecovery();
     void rectangularWritesValidateBeforeMutationAndCrossTileBoundaries();
     void rectangularHistoryEditsPreserveIndependentUntrackedPixels();
+    void interiorPixelWritesRemainWithTheirFilledHistory();
     void damagedPixelSharingRecoveryPreservesTheLiveImage();
     void historyNavigationPublishesOneVersionAndPreservesSavedState();
 };
+
+void KisGpuPaintImageTest::interiorPixelWritesRemainWithTheirFilledHistory()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    PaintImage image(execution, QSize(1024, 1024));
+    const auto layer = image.operations().activeLayer();
+    FigureStyle style;
+    style.outline = false;
+    style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+    QCOMPARE(image.paintFigure(layer, Brush{}, {{{0, 0}, 1}, {{1024, 1024}, 1}},
+                               {ShapeKind::Rectangle, {0, 0}, {1024, 1024}, 0}, style, 42), Result::Success);
+    const QRect region(512, 512, 1, 1);
+    const auto written = QByteArray::fromHex("112233ff");
+    QCOMPARE(image.writeRgbaPixels(layer, region, written), Result::Success);
+    QCOMPARE(image.operations().undoCount(), 1);
+    QCOMPARE(image.readRgbaPixels(layer, region, 4).bytes, written);
+    QCOMPARE(image.undo(), Result::Success);
+    QCOMPARE(image.readRgbaPixels(layer, region, 4).bytes, QByteArray(4, char(0)));
+    QCOMPARE(image.redo(), Result::Success);
+    QCOMPARE(image.readRgbaPixels(layer, region, 4).bytes, written);
+}
 
 void KisGpuPaintImageTest::filledFiguresPublishOneVersionAndRejectWholeRequests()
 {

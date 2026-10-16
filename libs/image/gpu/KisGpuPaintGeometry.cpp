@@ -131,8 +131,9 @@ QList<PaintSegment> paintGeometry(const PaintOperation &operation, quint32 step)
 
 
 std::optional<QList<quint64>> figureFillTiles(const QList<PaintSegment> &edges, const Brush &brush,
-                                             QRect region, QSize canvas, qsizetype maximumCoordinates)
+                                             QRect region, QSize canvas, qsizetype maximumCoordinates, int tileSize)
 {
+    if (tileSize <= 0) return std::nullopt;
     if (edges.isEmpty()) return QList<quint64>{};
     qint32 minX = edges.first().ax, maxX = minX, minY = edges.first().ay, maxY = minY;
     const QPoint origin(minX, minY);
@@ -166,8 +167,8 @@ std::optional<QList<quint64>> figureFillTiles(const QList<PaintSegment> &edges, 
                            QPoint(int(std::ceil(qreal(right) / 16)) - 1, int(std::ceil(qreal(bottom) / 16)) - 1));
         const QRect clipped = bounds.intersected(region).intersected(QRect(QPoint(0, 0), canvas));
         if (clipped.isEmpty()) continue;
-        const int x0 = clipped.left() / RgbaTile::Size, x1 = clipped.right() / RgbaTile::Size;
-        const int y0 = clipped.top() / RgbaTile::Size, y1 = clipped.bottom() / RgbaTile::Size;
+        const int x0 = clipped.left() / tileSize, x1 = clipped.right() / tileSize;
+        const int y0 = clipped.top() / tileSize, y1 = clipped.bottom() / tileSize;
         if (qint64(x1 - x0 + 1) * (y1 - y0 + 1) > maximumCoordinates) return std::nullopt;
         for (int y = y0; y <= y1; ++y) {
             for (int x = x0; x <= x1; ++x) {

@@ -6,6 +6,8 @@
 #include <QGuiApplication>
 #include <QTest>
 #include <QColorSpace>
+#include <QDir>
+#include <QFile>
 #include <gpu/KisGpuExecution.h>
 #include <chrono>
 #include <future>
@@ -24,6 +26,7 @@ private Q_SLOTS:
     void cpuPixelsOutliveExecutionAndDevices();
     void savingReadsOffCanvasTilesAndRetainsImplicitPixels();
     void selectedReadsFitWithoutGeneratingUnrequestedPixels();
+    void sparseLayerReadsIncludeSolidFigureInteriors();
     void completeImagesStreamThinCanvasesAndOutliveTheirDevice();
     void rectangularPixelsStreamDefaultsHiddenLayersAndCanvasClipping_data();
     void rectangularPixelsStreamDefaultsHiddenLayersAndCanvasClipping();
@@ -345,6 +348,30 @@ void KisGpuPixelReadbackTest::selectedReadsFitWithoutGeneratingUnrequestedPixels
     QCOMPARE(raw.tiles.size(), 1);
     QCOMPARE(raw.tiles[0].coordinate, QPoint(-1, 0));
     QCOMPARE(pixel(raw, hidden, {-1, 12}), QByteArray::fromHex("ab567880"));
+}
+
+void KisGpuPixelReadbackTest::sparseLayerReadsIncludeSolidFigureInteriors()
+{
+    OperationDocument document(QSize(1024, 1024));
+    const auto layer = document.activeLayer();
+    FigureStyle style;
+    style.outline = false;
+    style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+    QCOMPARE(document.paintFigure(layer, Brush{}, {{{0, 0}, 1}, {{1024, 1024}, 1}},
+                                    {ShapeKind::Rectangle, {0, 0}, {1024, 1024}, 0}, style, 42), Result::Success);
+    Execution execution(m_device, 32 * TileRenderer::TileBytes, 1, 16 * TileRenderer::TileBytes);
+    const auto handle = execution.open(document.snapshot()).handle;
+    const auto read = execution.readLayerPixels(handle, document.snapshot(), layer, 16 * TileRenderer::TileBytes);
+    QVERIFY2(read.code == ExecutionCode::Success, qPrintable(read.diagnostic));
+    QCOMPARE(read.tiles.size(), 16);
+    QCOMPARE(pixel(read, layer, {512, 512}), QByteArray::fromHex("dd112cff"));
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        QFile file(QDir(results).filePath(QStringLiteral("solid-fill-layer-interior.rgba")));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        for (const auto &tile : read.tiles) QCOMPARE(file.write(tile.rgba), qint64(RgbaTile::ByteCount));
+    }
 }
 
 void KisGpuPixelReadbackTest::pinnedPixelsKeepNewerRequestsAndPublishedState()

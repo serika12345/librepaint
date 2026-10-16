@@ -41,14 +41,20 @@ Lineage pixelLineage(const Layer &layer, QRect block, QSize canvas, GeometryCach
                 found = geometry.insert(&paint, Detail::paintGeometry(paint, step));
             }
             const auto diameter = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * 16)));
-            for (const auto &segment : *found) {
+            bool intersects = false;
+            for (const auto &segment : paint.figureStyle.outline ? *found : QList<Detail::PaintSegment>{}) {
                 const auto tiles = Detail::paintSegmentTiles(segment, diameter, block.intersected(QRect(QPoint(), canvas)),
                                                              canvas, 1, Detail::PixelHistoryBlockSize);
                 if (!tiles || !tiles->isEmpty()) {
-                    result.append({paint.id.sequence, paint.version});
+                    intersects = true;
                     break;
                 }
             }
+            if (!intersects && paint.figureStyle.fill) {
+                const auto tiles = Detail::figureFillTiles(*found, paint.brush, block, canvas, 1, Detail::PixelHistoryBlockSize);
+                intersects = !tiles || !tiles->isEmpty();
+            }
+            if (intersects) result.append({paint.id.sequence, paint.version});
         }
     }
     return result;
