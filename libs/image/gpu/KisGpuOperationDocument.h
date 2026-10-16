@@ -64,12 +64,18 @@ struct Brush
     bool alphaLocked = false;
     /** Writable R, G, B, A channels in bits 0 through 3, frozen at stroke start. */
     quint8 channelWriteMask = 15;
+    bool mirrorHorizontal = false;
+    bool mirrorVertical = false;
+    /** Absolute document-pixel axes, rounded when input begins. */
+    QPoint mirrorCenter;
 
     bool operator==(const Brush &other) const
     {
         return rgba == other.rgba && diameter == other.diameter &&
             spacing == other.spacing && opacity == other.opacity && erase == other.erase &&
-            alphaLocked == other.alphaLocked && channelWriteMask == other.channelWriteMask;
+            alphaLocked == other.alphaLocked && channelWriteMask == other.channelWriteMask &&
+            mirrorHorizontal == other.mirrorHorizontal && mirrorVertical == other.mirrorVertical &&
+            mirrorCenter == other.mirrorCenter;
     }
 };
 

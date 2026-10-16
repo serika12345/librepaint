@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 13;
+constexpr quint16 FormatVersion = 14;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -106,7 +106,12 @@ QByteArray OperationDocument::recoveryData() const
             const auto &operation = **paint;
             for (const auto component : operation.brush.rgba) stream << component;
             stream << operation.brush.diameter << operation.brush.spacing << operation.brush.opacity
-                   << quint8(quint8(operation.brush.erase) | (quint8(operation.brush.alphaLocked) << 1) | ((15u ^ operation.brush.channelWriteMask) << 2)) << operation.randomSeed << quint8(operation.shape.kind)
+                   << quint8(quint8(operation.brush.erase) | (quint8(operation.brush.alphaLocked) << 1) |
+                             ((15u ^ operation.brush.channelWriteMask) << 2) |
+                             (quint8(operation.brush.mirrorHorizontal) << 6) | (quint8(operation.brush.mirrorVertical) << 7));
+            if (operation.brush.mirrorHorizontal || operation.brush.mirrorVertical)
+                stream << qint32(operation.brush.mirrorCenter.x()) << qint32(operation.brush.mirrorCenter.y());
+            stream << operation.randomSeed << quint8(operation.shape.kind)
                    << operation.shape.first.x() << operation.shape.first.y()
                    << operation.shape.second.x() << operation.shape.second.y() << operation.shape.rotation;
             if (operation.shape.kind == ShapeKind::RoundedRectangle)
@@ -261,8 +266,15 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         quint8 brushFlags = 0, shape = 0;
         qreal x1 = 0, y1 = 0, x2 = 0, y2 = 0;
         quint32 sampleCount = 0;
-        stream >> operation->brush.diameter >> operation->brush.spacing >> operation->brush.opacity >> brushFlags
-               >> operation->randomSeed >> shape >> x1 >> y1 >> x2 >> y2 >> operation->shape.rotation;
+        stream >> operation->brush.diameter >> operation->brush.spacing >> operation->brush.opacity >> brushFlags;
+        if (format >= 14 && (brushFlags & 192)) {
+            qint32 x = 0, y = 0;
+            stream >> x >> y;
+            operation->brush.mirrorCenter = {x, y};
+            operation->brush.mirrorHorizontal = brushFlags & 64;
+            operation->brush.mirrorVertical = brushFlags & 128;
+        }
+        stream >> operation->randomSeed >> shape >> x1 >> y1 >> x2 >> y2 >> operation->shape.rotation;
         if (shape >= quint8(ShapeKind::RoundedRectangle) && format < 11) return Result::InvalidRecovery;
         if (static_cast<ShapeKind>(shape) == ShapeKind::RoundedRectangle) {
             qreal radiusX = 0, radiusY = 0;
@@ -272,11 +284,11 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         stream >> sampleCount;
         operation->brush.erase = brushFlags & 1;
         operation->brush.alphaLocked = brushFlags & 2;
-        operation->brush.channelWriteMask = format >= 13 ? quint8(15u ^ (brushFlags >> 2)) : quint8(15);
+        operation->brush.channelWriteMask = format >= 13 ? quint8(15u ^ ((brushFlags >> 2) & 15u)) : quint8(15);
         operation->shape.kind = static_cast<ShapeKind>(shape);
         operation->shape.first = {x1, y1};
         operation->shape.second = {x2, y2};
-        if (brushFlags > (format < 12 ? 1 : format < 13 ? 3 : 63) || !validBrush(operation->brush) || !validShape(operation->shape) ||
+        if (brushFlags > (format < 12 ? 1 : format < 13 ? 3 : format < 14 ? 63 : 255) || !validBrush(operation->brush) || !validShape(operation->shape) ||
             !validShapeSampleCount(operation->shape, sampleCount) ||
             (sampleCount == 0) != (version == 0) || !readableCount(stream, sampleCount, m_limits.samplesPerStroke, 56)) return Result::InvalidRecovery;
         if (quint64(retainedSamples) + sampleCount > retainedSampleLimit) return Result::CapacityExceeded;

@@ -33,6 +33,7 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <actions/input/KisApplicationInputActions.h>
 #include <canvas/kis_canvas_resource_provider.h>
+#include <canvas/KisMirrorAxisConfig.h>
 #include <canvas/kis_coordinates_converter.h>
 #include <canvas/kis_canvas_controller.h>
 #include <canvas/kis_zoom_manager.h>
@@ -1023,13 +1024,17 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QTest::addColumn<bool>("selectDuringStroke");
     QTest::addColumn<bool>("alphaLock");
     QTest::addColumn<bool>("layerAlphaLock");
-    QTest::newRow("paint-and-cancel") << false << false << false << false << false << false;
-    QTest::newRow("input-limit") << true << false << false << false << false << false;
-    QTest::newRow("close-on-input-limit") << true << true << false << false << false << false;
-    QTest::newRow("hide-during-stroke") << false << false << true << false << false << false;
-    QTest::newRow("select-during-stroke") << false << false << false << true << false << false;
-    QTest::newRow("alpha-lock") << false << false << false << false << true << false;
-    QTest::newRow("layer-alpha-lock") << false << false << false << false << true << true;
+    QTest::addColumn<quint8>("mirrorMode");
+    QTest::newRow("paint-and-cancel") << false << false << false << false << false << false << quint8(0);
+    QTest::newRow("input-limit") << true << false << false << false << false << false << quint8(0);
+    QTest::newRow("close-on-input-limit") << true << true << false << false << false << false << quint8(0);
+    QTest::newRow("hide-during-stroke") << false << false << true << false << false << false << quint8(0);
+    QTest::newRow("select-during-stroke") << false << false << false << true << false << false << quint8(0);
+    QTest::newRow("alpha-lock") << false << false << false << false << true << false << quint8(0);
+    QTest::newRow("layer-alpha-lock") << false << false << false << false << true << true << quint8(0);
+    QTest::newRow("horizontal-symmetry") << false << false << false << false << false << false << quint8(1);
+    QTest::newRow("vertical-symmetry") << false << false << false << false << false << false << quint8(2);
+    QTest::newRow("both-axes-symmetry") << false << false << false << false << false << false << quint8(3);
 }
 
 void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelled()
@@ -1040,6 +1045,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QFETCH(bool, selectDuringStroke);
     QFETCH(bool, alphaLock);
     QFETCH(bool, layerAlphaLock);
+    QFETCH(quint8, mirrorMode);
     namespace Gpu = LibrePaint::Image::Gpu;
     QString diagnostic;
     const auto device = Gpu::Device::createNative(diagnostic);
@@ -1055,6 +1061,13 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("GPU freehand input")));
     if (layerAlphaLock) qobject_cast<KisPaintLayer*>(document->image()->root()->firstChild().data())->setAlphaLocked(true);
+    if (mirrorMode) {
+        KisMirrorAxisConfig axes;
+        axes.setAxisPosition(QPointF(32, 32));
+        axes.setMirrorHorizontal(mirrorMode & 1);
+        axes.setMirrorVertical(mirrorMode & 2);
+        document->setMirrorAxisConfig(axes);
+    }
     std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
     window->resize(800, 600);
     auto *view = window->newView(document.get());
@@ -1091,6 +1104,8 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     resources->setSize(8);
     resources->setOpacity(1);
     resources->setGlobalAlphaLock(alphaLock && !layerAlphaLock);
+    resources->setMirrorHorizontal(mirrorMode & 1);
+    resources->setMirrorVertical(mirrorMode & 2);
     resources->setEraserMode(false);
     resources->setCurrentCompositeOp(QStringLiteral("normal"));
     resources->setFGColor(KoColor(QColor(17, 129, 241), KoColorSpaceRegistry::instance()->rgb8()));
@@ -1148,6 +1163,15 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
         return;
     }
     if (!exhaustInput) {
+        if (mirrorMode) {
+            auto axes = documentLifetime->mirrorAxisConfig();
+            axes.setAxisPosition(QPointF(8, 8));
+            axes.setMirrorHorizontal(false);
+            axes.setMirrorVertical(false);
+            documentLifetime->setMirrorAxisConfig(axes);
+            resources->setMirrorHorizontal(false);
+            resources->setMirrorVertical(false);
+        }
         if (alphaLock) resources->setGlobalAlphaLock(false);
         resources->setSize(16);
         resources->setFGColor(KoColor(QColor(221, 17, 44), KoColorSpaceRegistry::instance()->rgb8()));
@@ -1239,11 +1263,18 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     }
     QCOMPARE(owner->operations().undoCount(), 1);
     const auto painted = owner->operations().snapshot();
+    if (mirrorMode) {
+        for (const auto &sample : QList<QPair<QPoint, bool>>{{{48, 16}, bool(mirrorMode & 1)},
+             {{16, 48}, bool(mirrorMode & 2)}, {{48, 48}, mirrorMode == 3}}) {
+            QCOMPARE(owner->readRgbaPixels(paintTarget, QRect(sample.first, QSize(1, 1)), 4).bytes,
+                     sample.second ? QByteArray::fromHex("1181f1ff") : QByteArray(4, '\0'));
+        }
+    }
     QTRY_COMPARE(owner->execution().published(owner->handle()), painted);
     if (alphaLock) QCOMPARE(owner->readRgbaPixels(paintTarget, QRect(16, 16, 1, 1), 4).bytes, QByteArray::fromHex("1181f100"));
     QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(40, 40, 1, 1), 4).bytes,
              alphaLock ? QByteArray::fromHex("1181f180") : QByteArray::fromHex("1181f1ff"));
-    QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(45, 40, 1, 1), 4).bytes,
+    QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(mirrorMode ? 56 : 45, 40, 1, 1), 4).bytes,
              QByteArray::fromHex("00000000"));
     documentLifetime->undoStack()->undo();
     QCOMPARE(owner->operations().undoCount(), 0);

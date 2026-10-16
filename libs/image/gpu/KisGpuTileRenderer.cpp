@@ -292,9 +292,24 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
             QSet<quint64> changedCoordinates;
             for (qsizetype index = 0; index < segments.size(); ++index) {
                 const auto &segment = segments[index];
-                const auto coordinates = paintSegmentTiles(segment, diameter, paintRegion, document->size, d.budget->limit / TileBytes);
-                if (!coordinates) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU tile budget exhausted")};
-                for (const auto coordinate : *coordinates) {
+                QSet<quint64> coordinates;
+                const int mirrorMode = int(operation.brush.mirrorHorizontal) | (int(operation.brush.mirrorVertical) << 1);
+                for (int reflection = 0; reflection < 4; ++reflection) {
+                    if ((reflection & mirrorMode) != reflection) continue;
+                    auto reflected = segment;
+                    if (reflection & 1) {
+                        reflected.ax = 32 * operation.brush.mirrorCenter.x() - segment.ax;
+                        reflected.bx = 32 * operation.brush.mirrorCenter.x() - segment.bx;
+                    }
+                    if (reflection & 2) {
+                        reflected.ay = 32 * operation.brush.mirrorCenter.y() - segment.ay;
+                        reflected.by = 32 * operation.brush.mirrorCenter.y() - segment.by;
+                    }
+                    const auto reflectedTiles = paintSegmentTiles(reflected, diameter, paintRegion, document->size, d.budget->limit / TileBytes);
+                    if (!reflectedTiles) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU tile budget exhausted")};
+                    for (const auto coordinate : *reflectedTiles) coordinates.insert(coordinate);
+                }
+                for (const auto coordinate : coordinates) {
                     if (op < reusedPrefix && reusedCoordinates.contains(coordinate)) continue;
                     const auto checkpoint = checkpoints.constFind(coordinate);
                     if (checkpoint != checkpoints.cend() && op < checkpoint->operation) continue;
@@ -336,7 +351,9 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 const auto point = coordinate(tile.key()) * TileSize;
                 job.values = {point.x(), point.y(), document->size.width(), document->size.height(),
                               packedPixel(operation.brush.rgba),
-                              operation.brush.opacity, quint32(operation.brush.erase), step, quint32(tile.value().size()), diameter, 0, quint32(operation.brush.alphaLocked) | (quint32(operation.brush.channelWriteMask) << 1)};
+                              operation.brush.opacity, quint32(operation.brush.erase), step, quint32(tile.value().size()), diameter, 0, quint32(operation.brush.alphaLocked) | (quint32(operation.brush.channelWriteMask) << 1) |
+                                  (quint32(operation.brush.mirrorHorizontal) << 5) | (quint32(operation.brush.mirrorVertical) << 6),
+                              operation.brush.mirrorCenter.x() * 16, operation.brush.mirrorCenter.y() * 16, 0, 0};
                 if (!preparePaintJob(*d.device, d.layout.get(), job, d.zero.get())) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
                 tiles[tile.key()] = job.output;
                 jobs.push_back(std::move(job));

@@ -28,6 +28,9 @@ private Q_SLOTS:
     void partialLayerOpacityComposesOverTransparency_data();
     void partialLayerOpacityComposesOverTransparency();
     void roundBrushProducesRgbaPixelsOnTheGpu();
+    void symmetryPreservesPixelsOverlapHistoryAndRecovery_data();
+    void symmetryPreservesPixelsOverlapHistoryAndRecovery();
+    void symmetryKeepsSparseTilesAndIncrementalInputWithinBudget();
     void channelProtectionPreservesPixelsHistoryAndRecovery_data();
     void channelProtectionPreservesPixelsHistoryAndRecovery();
     void alphaLockPreservesCoverageHistoryAndRecovery_data();
@@ -69,6 +72,114 @@ private:
                               QRect visible, const ProjectedSnapshot &base = {});
     DevicePtr m_device;
 };
+
+void KisGpuTileRendererTest::symmetryKeepsSparseTilesAndIncrementalInputWithinBudget()
+{
+    OperationDocument document({1024, 1024});
+    const auto layer = document.activeLayer();
+    Brush brush;
+    brush.diameter = 8;
+    brush.mirrorHorizontal = brush.mirrorVertical = true;
+    brush.mirrorCenter = {512, 512};
+    const auto stroke = document.beginStroke(layer, brush, 7);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+    const auto fixed = document.preview();
+    TileRenderer limited(m_device, 3 * TileRenderer::TileBytes);
+    QVERIFY(!render(limited, fixed));
+    QCOMPARE(limited.residentBytes(), qsizetype(0));
+    QCOMPARE(document.preview(), fixed);
+    TileRenderer renderer(m_device);
+    const auto first = render(renderer, fixed);
+    QCOMPARE(first->tiles(layer).size(), 4);
+    for (const QPoint point : {QPoint(0, 0), QPoint(3, 0), QPoint(0, 3), QPoint(3, 3)})
+        QVERIFY(!readTile(first, layer, point).isEmpty());
+    QCOMPARE(document.appendSamples(stroke, {{{300, 300}, 0.5}}), Result::Success);
+    const auto incremental = render(renderer, document.preview(), first);
+    const auto rebuilt = render(renderer, document.preview());
+    QCOMPARE(incremental->tiles(layer).size(), rebuilt->tiles(layer).size());
+    for (const auto &tile : rebuilt->tiles(layer))
+        QCOMPARE(readTile(incremental, layer, tile.coordinate), readTile(rebuilt, layer, tile.coordinate));
+    QCOMPARE(document.cancelStroke(stroke), Result::Success);
+    QVERIFY(render(renderer, document.snapshot())->tiles(layer).isEmpty());
+    QCOMPARE(first->document(), fixed);
+}
+
+void KisGpuTileRendererTest::symmetryPreservesPixelsOverlapHistoryAndRecovery_data()
+{
+    QTest::addColumn<quint8>("mirrorMode");
+    QTest::addColumn<QPoint>("center");
+    QTest::addColumn<QPointF>("position");
+    QTest::addColumn<bool>("line");
+    QTest::newRow("horizontal") << quint8(1) << QPoint(32, 32) << QPointF(16, 16) << false;
+    QTest::newRow("vertical") << quint8(2) << QPoint(32, 32) << QPointF(16, 16) << false;
+    QTest::newRow("both") << quint8(3) << QPoint(32, 32) << QPointF(16, 16) << false;
+    QTest::newRow("moved-axes") << quint8(3) << QPoint(24, 30) << QPointF(16, 16) << false;
+    QTest::newRow("outside-canvas") << quint8(1) << QPoint(0, 32) << QPointF(16, 16) << false;
+    QTest::newRow("overlapping-axis") << quint8(1) << QPoint(32, 32) << QPointF(32, 16) << false;
+    QTest::newRow("retained-line") << quint8(3) << QPoint(32, 32) << QPointF(16, 16) << true;
+}
+
+void KisGpuTileRendererTest::symmetryPreservesPixelsOverlapHistoryAndRecovery()
+{
+    QFETCH(quint8, mirrorMode);
+    QFETCH(QPoint, center);
+    QFETCH(QPointF, position);
+    QFETCH(bool, line);
+    Brush brush;
+    brush.rgba = {200, 70, 30, 128};
+    brush.diameter = 8;
+    const auto draw = [&](OperationDocument &document, const Brush &settings) {
+        const auto stroke = document.beginStroke(document.activeLayer(), settings, 7);
+        if (document.appendSamples(stroke, {{position, 1}}) != Result::Success) return OperationId{};
+        if (line) {
+            if (document.appendSamples(stroke, {{position + QPointF(4, 4), 0.5}}) != Result::Success ||
+                document.updateShape(stroke, {ShapeKind::Line, position, position + QPointF(4, 4), 0}) != Result::Success)
+                return OperationId{};
+        }
+        return stroke;
+    };
+    OperationDocument plain({64, 64});
+    QVERIFY(!draw(plain, brush).isNull());
+    TileRenderer renderer(m_device);
+    const auto original = readTile(render(renderer, plain.preview()), plain.activeLayer(), {0, 0});
+    QByteArray expected(RgbaTile::ByteCount, '\0');
+    for (int y = 0; y < 64; ++y) for (int x = 0; x < 64; ++x) {
+        const auto pixel = original.mid((y * RgbaTile::Size + x) * 4, 4);
+        if (!quint8(pixel[3])) continue;
+        for (int reflection = 0; reflection < 4; ++reflection) {
+            if ((reflection & mirrorMode) != reflection) continue;
+            const int dx = reflection & 1 ? 2 * center.x() - x - 1 : x;
+            const int dy = reflection & 2 ? 2 * center.y() - y - 1 : y;
+            if (dx >= 0 && dx < 64 && dy >= 0 && dy < 64)
+                expected.replace((dy * RgbaTile::Size + dx) * 4, 4, pixel);
+        }
+    }
+    brush.mirrorHorizontal = mirrorMode & 1;
+    brush.mirrorVertical = mirrorMode & 2;
+    brush.mirrorCenter = center;
+    OperationDocument document({64, 64});
+    const auto stroke = draw(document, brush);
+    QVERIFY(!stroke.isNull());
+    const auto pixels = readTile(render(renderer, document.preview()), document.activeLayer(), {0, 0});
+    QCOMPARE(pixels, expected);
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(std::get<PaintSnapshot>(restored.preview()->layers.first().operations.last())->brush, brush);
+    QCOMPARE(readTile(render(renderer, restored.preview()), restored.activeLayer(), {0, 0}), pixels);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(render(renderer, document.snapshot())->tiles(document.activeLayer()).isEmpty());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), document.activeLayer(), {0, 0}), pixels);
+    const auto resultDirectory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!resultDirectory.isEmpty()) {
+        QVERIFY(QDir().mkpath(resultDirectory));
+        QFile artifact(QDir(resultDirectory).filePath(QStringLiteral("symmetry-") +
+                       QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".rgba")));
+        QVERIFY(artifact.open(QIODevice::WriteOnly));
+        QCOMPARE(artifact.write(pixels), pixels.size());
+    }
+}
 
 void KisGpuTileRendererTest::channelProtectionPreservesPixelsHistoryAndRecovery_data()
 {

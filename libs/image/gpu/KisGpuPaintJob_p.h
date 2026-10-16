@@ -16,8 +16,9 @@ struct PaintParameters
     qint32 x, y, width, height;
     quint32 color, opacity, erase, step;
     quint32 count, diameter, uniformFill = 0, paintFlags = 30;
+    qint32 mirrorX = 0, mirrorY = 0, paddingX = 0, paddingY = 0;
 };
-static_assert(sizeof(PaintParameters) == 48);
+static_assert(sizeof(PaintParameters) == 64);
 
 struct PaintJob
 {

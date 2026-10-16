@@ -66,6 +66,7 @@ private Q_SLOTS:
     void failedHistoryMovesPreserveEveryVersionAndCounter();
     void layerOpacityAndLockShareHistoryAndRecovery();
     void channelProtectionPreservesFrozenSettingsHistoryAndRecovery();
+    void symmetryFreezesAxesAndRejectsInvalidRecoveryAtomically();
     void inputChunksRetainTheSameOperation();
     void shapePreviewCommitsAsOneHistoryEntry();
     void cancelAndRejectedInputPreserveRedo();
@@ -469,6 +470,44 @@ void KisGpuOperationDocumentTest::channelProtectionPreservesFrozenSettingsHistor
     QCOMPARE(document.undoCount(), 0);
 }
 
+void KisGpuOperationDocumentTest::symmetryFreezesAxesAndRejectsInvalidRecoveryAtomically()
+{
+    OperationDocument document({64, 64});
+    Brush brush;
+    brush.mirrorHorizontal = brush.mirrorVertical = true;
+    brush.mirrorCenter = {24, 30};
+    const auto stroke = document.beginStroke(document.activeLayer(), brush, 7);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(document.appendSamples(stroke, {sample(16, 16)}), Result::Success);
+    const auto fixed = document.preview();
+    const auto settings = brush;
+    brush.mirrorCenter = {8, 8};
+    brush.mirrorHorizontal = brush.mirrorVertical = false;
+    QCOMPARE(std::get<PaintSnapshot>(fixed->layers.first().operations.last())->brush, settings);
+    const auto recovery = document.recoveryData();
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
+    QCOMPARE(std::get<PaintSnapshot>(restored.preview()->layers.first().operations.last())->brush, settings);
+    const auto retained = restored.preview();
+    auto invalid = recovery.chopped(32);
+    invalid[5] = char(13);
+    invalid.append(QCryptographicHash::hash(invalid, QCryptographicHash::Sha256));
+    QCOMPARE(restored.restoreRecovery(invalid), Result::InvalidRecovery);
+    QCOMPARE(restored.preview(), retained);
+    QCOMPARE(restored.recoveryData(), recovery);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    const auto second = document.beginStroke(document.activeLayer(), brush, 8);
+    QVERIFY(!second.isNull());
+    QCOMPARE(document.appendSamples(second, {sample(20, 20)}), Result::Success);
+    QCOMPARE(std::get<PaintSnapshot>(document.preview()->layers.first().operations.last())->brush.mirrorCenter, QPoint());
+    QCOMPARE(document.cancelStroke(second), Result::Success);
+    const auto unchanged = document.snapshot();
+    brush.mirrorHorizontal = true;
+    brush.mirrorCenter = {std::numeric_limits<int>::min(), 0};
+    QVERIFY(document.beginStroke(document.activeLayer(), brush, 9).isNull());
+    QCOMPARE(document.snapshot(), unchanged);
+}
+
 void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable_data()
 {
     QTest::addColumn<quint8>("format");
@@ -478,6 +517,7 @@ void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable_data()
     QTest::newRow("version-ten-reset-name") << quint8(10) << true;
     QTest::newRow("version-eleven") << quint8(11) << false;
     QTest::newRow("version-twelve") << quint8(12) << false;
+    QTest::newRow("version-thirteen") << quint8(13) << false;
 }
 
 void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable()

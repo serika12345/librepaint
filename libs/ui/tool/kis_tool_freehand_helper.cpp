@@ -385,14 +385,25 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
             return;
         }
         const QString composite = resourceManager->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString();
-        if ((composite != QLatin1String("normal") && composite != QLatin1String("erase")) ||
-            resourceManager->resource(KoCanvasResource::MirrorHorizontal).toBool() ||
-            resourceManager->resource(KoCanvasResource::MirrorVertical).toBool()) {
+        if (composite != QLatin1String("normal") && composite != QLatin1String("erase")) {
             m_d->infoBuilder->reset();
-            Q_EMIT requestErrorMessage(i18n("Painting symmetry and this blend mode are not yet available for this document."));
+            Q_EMIT requestErrorMessage(i18n("This blend mode is not yet available for this document."));
             return;
         }
         Gpu::Brush brush;
+        brush.mirrorHorizontal = resourceManager->resource(KoCanvasResource::MirrorHorizontal).toBool();
+        brush.mirrorVertical = resourceManager->resource(KoCanvasResource::MirrorVertical).toBool();
+        if (brush.mirrorHorizontal || brush.mirrorVertical) {
+            const auto center = KisAlgebra2D::relativeToAbsolute(image->mirrorAxesCenter(), image->bounds());
+            if (!qIsFinite(center.x()) || !qIsFinite(center.y()) ||
+                qAbs(center.x()) > Gpu::OperationDocument::CoordinateLimit ||
+                qAbs(center.y()) > Gpu::OperationDocument::CoordinateLimit) {
+                m_d->infoBuilder->reset();
+                Q_EMIT requestErrorMessage(i18n("The painting symmetry axis is invalid."));
+                return;
+            }
+            brush.mirrorCenter = center.toPoint();
+        }
         const QColor color = resourceManager->foregroundColor().toQColor();
         brush.rgba = {quint8(color.red()), quint8(color.green()), quint8(color.blue()), quint8(color.alpha())};
         brush.diameter = resourceManager->resource(KoCanvasResource::Size).toReal();
