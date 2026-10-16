@@ -328,9 +328,10 @@ void KisToolFreehandHelper::initPaint(KoPointerEvent *event,
     m_d->strokeTime.start();
     KisPaintInformation pi =
         m_d->infoBuilder->startStroke(event, elapsedStrokeTime(), m_d->resourceManager);
-    if (image->gpuImage() && m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::NO_SMOOTHING) {
+    if (image->gpuImage() && m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::NO_SMOOTHING &&
+        m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::PIXEL_PERFECT) {
         m_d->infoBuilder->reset();
-        Q_EMIT requestErrorMessage(i18n("GPU freehand input currently requires the circular brush with smoothing disabled."));
+        Q_EMIT requestErrorMessage(i18n("GPU freehand input currently supports no smoothing or pixel-perfect smoothing with the circular brush."));
         return;
     }
     qreal startAngle = KisAlgebra2D::directionBetweenPoints(prevPoint, pixelCoords, 0.0);
@@ -375,7 +376,8 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
             Q_EMIT requestErrorMessage(i18n("Selection and overridden paint nodes are not yet supported for GPU freehand input."));
             return;
         }
-        const auto resources = captureGpuBrushResources(image, currentNode, resourceManager);
+        auto resources = captureGpuBrushResources(image, currentNode, resourceManager);
+        resources.brush.pixelPerfect = m_d->smoothingOptions->smoothingType() == KisSmoothingOptions::PIXEL_PERFECT;
         if (!resources.diagnostic.isEmpty()) {
             m_d->infoBuilder->reset();
             Q_EMIT requestErrorMessage(resources.diagnostic);
@@ -1062,7 +1064,7 @@ void KisToolFreehandHelper::stabilizerEnd()
 
 void KisToolFreehandHelper::slotSmoothingTypeChanged()
 {
-    if (!isRunning()) {
+    if (m_d->gpuImage || !isRunning()) {
         return;
     }
     KisSmoothingOptions::SmoothingType currentSmoothingType =

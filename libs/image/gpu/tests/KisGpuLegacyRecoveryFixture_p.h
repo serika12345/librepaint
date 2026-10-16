@@ -28,9 +28,9 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                 const QPair<quint64, quint64> key(operation.id.sequence, operation.version);
                 if (seen.contains(key)) continue;
                 seen.insert(key);
-                Q_ASSERT(operation.shape.kind != ShapeKind::Path);
-                if (format >= 17) continue;
-                Q_ASSERT(operation.figureStyle.outline && !operation.figureStyle.fill);
+                Q_ASSERT(!operation.brush.pixelPerfect);
+                Q_ASSERT(format >= 18 || operation.shape.kind != ShapeKind::Path);
+                Q_ASSERT(format >= 17 || (operation.figureStyle.outline && !operation.figureStyle.fill));
                 QByteArray prefix;
                 QDataStream stream(&prefix, QIODevice::WriteOnly);
                 stream.setVersion(QDataStream::Qt_5_15);
@@ -49,10 +49,16 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                        << operation.shape.second.x() << operation.shape.second.y() << operation.shape.rotation;
                 if (operation.shape.kind == ShapeKind::RoundedRectangle)
                     stream << operation.shape.cornerRadii.width() << operation.shape.cornerRadii.height();
+                if (operation.shape.kind == ShapeKind::Path) {
+                    stream << quint8(operation.shape.windingFill) << quint32(operation.shape.pathCommands.size());
+                    for (const auto command : operation.shape.pathCommands) stream << quint8(command);
+                }
                 const auto position = payload.indexOf(prefix);
                 Q_ASSERT(position >= 0 && position == payload.lastIndexOf(prefix));
-                Q_ASSERT(payload.at(position + prefix.size()) == char(1));
-                payload.remove(position + prefix.size(), 1);
+                const auto styleSize = 1 + (operation.figureStyle.fill ? 4 : 0);
+                Q_ASSERT(payload.at(position + prefix.size() + styleSize) == char(0));
+                payload.remove(position + prefix.size() + styleSize, 1);
+                if (format < 17) payload.remove(position + prefix.size(), styleSize);
             }
         }
     }

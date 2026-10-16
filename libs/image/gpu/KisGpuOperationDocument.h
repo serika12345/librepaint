@@ -69,6 +69,8 @@ struct Brush
     bool mirrorVertical = false;
     /** Absolute document-pixel axes, rounded when input begins. */
     QPoint mirrorCenter;
+    /** Pixel-centered freehand input with adjacent corner samples held back. */
+    bool pixelPerfect = false;
 
     bool operator==(const Brush &other) const
     {
@@ -76,7 +78,7 @@ struct Brush
             spacing == other.spacing && opacity == other.opacity && erase == other.erase &&
             alphaLocked == other.alphaLocked && channelWriteMask == other.channelWriteMask &&
             mirrorHorizontal == other.mirrorHorizontal && mirrorVertical == other.mirrorVertical &&
-            mirrorCenter == other.mirrorCenter;
+            mirrorCenter == other.mirrorCenter && pixelPerfect == other.pixelPerfect;
     }
 };
 

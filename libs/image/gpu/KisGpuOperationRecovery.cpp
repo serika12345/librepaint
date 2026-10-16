@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 18;
+constexpr quint16 FormatVersion = 19;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -124,6 +124,7 @@ QByteArray OperationDocument::recoveryData() const
             stream << quint8(quint8(operation.figureStyle.outline) | (operation.figureStyle.fill ? 2 : 0));
             if (operation.figureStyle.fill)
                 for (const auto component : *operation.figureStyle.fill) stream << component;
+            stream << quint8(operation.brush.pixelPerfect);
             stream << quint32(operation.sampleCount);
             if (!withinLimit()) return {};
             for (const auto &block : operation.sampleBlocks) {
@@ -320,6 +321,12 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
                 for (auto &component : fill) stream >> component;
                 operation->figureStyle.fill = fill;
             }
+        }
+        if (format >= 19) {
+            quint8 pixelPerfect = 0;
+            stream >> pixelPerfect;
+            if (pixelPerfect > 1) return Result::InvalidRecovery;
+            operation->brush.pixelPerfect = pixelPerfect;
         }
         stream >> sampleCount;
         operation->brush.erase = brushFlags & 1;

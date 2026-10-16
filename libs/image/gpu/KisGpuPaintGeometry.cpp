@@ -74,6 +74,39 @@ bool appendCubic(QList<PaintSegment> &result, InputSample first, QPointF control
     return true;
 }
 
+QList<InputSample> pixelPerfectInput(const QList<InputSample> &input)
+{
+    if (input.size() < 2) return input;
+    QList<InputSample> points;
+    points.reserve(input.size() - 1);
+    std::optional<InputSample> tentative;
+    QPoint lastPixel;
+    const auto adjacent = [&](QPoint pixel) {
+        return std::abs(pixel.x() - lastPixel.x()) <= 1 && std::abs(pixel.y() - lastPixel.y()) <= 1;
+    };
+    for (qsizetype index = 1; index < input.size(); ++index) {
+        auto point = input[index];
+        const QPoint pixel(int(std::floor(point.position.x())), int(std::floor(point.position.y())));
+        point.position = QPointF(pixel) + QPointF(0.5, 0.5);
+        if (points.isEmpty()) {
+            points.append(point);
+            lastPixel = pixel;
+            continue;
+        }
+        if (tentative && !adjacent(pixel)) {
+            points.append(*tentative);
+            lastPixel = QPoint(int(std::floor(tentative->position.x())), int(std::floor(tentative->position.y())));
+            tentative.reset();
+        }
+        if (adjacent(pixel)) tentative = point;
+        else {
+            points.append(point);
+            lastPixel = pixel;
+        }
+    }
+    return points;
+}
+
 std::optional<PaintGeometry> pathGeometry(const PaintOperation &operation, const QList<InputSample> &input,
                                          quint32 step)
 {
@@ -122,6 +155,8 @@ std::optional<PaintGeometry> paintGeometry(const PaintOperation &operation, quin
     QList<InputSample> points;
     switch (operation.shape.kind) {
     case ShapeKind::Freehand:
+        points = operation.brush.pixelPerfect ? pixelPerfectInput(input) : input;
+        break;
     case ShapeKind::Polyline:
         points = input;
         break;

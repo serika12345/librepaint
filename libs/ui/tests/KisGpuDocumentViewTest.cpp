@@ -1311,6 +1311,7 @@ void KisGpuDocumentViewTest::ordinaryLayerChangesDuringInput()
 
 void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelled_data()
 {
+    QTest::addColumn<int>("smoothingType");
     QTest::addColumn<bool>("exhaustInput");
     QTest::addColumn<bool>("closeAfterError");
     QTest::addColumn<bool>("hideDuringStroke");
@@ -1318,20 +1319,22 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QTest::addColumn<bool>("alphaLock");
     QTest::addColumn<bool>("layerAlphaLock");
     QTest::addColumn<quint8>("mirrorMode");
-    QTest::newRow("paint-and-cancel") << false << false << false << false << false << false << quint8(0);
-    QTest::newRow("input-limit") << true << false << false << false << false << false << quint8(0);
-    QTest::newRow("close-on-input-limit") << true << true << false << false << false << false << quint8(0);
-    QTest::newRow("hide-during-stroke") << false << false << true << false << false << false << quint8(0);
-    QTest::newRow("select-during-stroke") << false << false << false << true << false << false << quint8(0);
-    QTest::newRow("alpha-lock") << false << false << false << false << true << false << quint8(0);
-    QTest::newRow("layer-alpha-lock") << false << false << false << false << true << true << quint8(0);
-    QTest::newRow("horizontal-symmetry") << false << false << false << false << false << false << quint8(1);
-    QTest::newRow("vertical-symmetry") << false << false << false << false << false << false << quint8(2);
-    QTest::newRow("both-axes-symmetry") << false << false << false << false << false << false << quint8(3);
+    QTest::newRow("paint-and-cancel") << 0 << false << false << false << false << false << false << quint8(0);
+    QTest::newRow("input-limit") << 0 << true << false << false << false << false << false << quint8(0);
+    QTest::newRow("close-on-input-limit") << 0 << true << true << false << false << false << false << quint8(0);
+    QTest::newRow("hide-during-stroke") << 0 << false << false << true << false << false << false << quint8(0);
+    QTest::newRow("select-during-stroke") << 0 << false << false << false << true << false << false << quint8(0);
+    QTest::newRow("alpha-lock") << 0 << false << false << false << false << true << false << quint8(0);
+    QTest::newRow("layer-alpha-lock") << 0 << false << false << false << false << true << true << quint8(0);
+    QTest::newRow("horizontal-symmetry") << 0 << false << false << false << false << false << false << quint8(1);
+    QTest::newRow("vertical-symmetry") << 0 << false << false << false << false << false << false << quint8(2);
+    QTest::newRow("both-axes-symmetry") << 0 << false << false << false << false << false << false << quint8(3);
+    QTest::newRow("pixel-perfect") << 4 << false << false << false << false << false << false << quint8(0);
 }
 
 void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelled()
 {
+    QFETCH(int, smoothingType);
     QFETCH(bool, exhaustInput);
     QFETCH(bool, closeAfterError);
     QFETCH(bool, hideDuringStroke);
@@ -1406,7 +1409,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QTRY_COMPARE(KoToolManager::instance()->activeToolId(), QStringLiteral("KritaShape/KisToolBrush"));
     auto *brushTool = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KritaShape/KisToolBrush"));
     QVERIFY(brushTool);
-    QVERIFY(brushTool->setProperty("smoothingType", 0));
+    QVERIFY(brushTool->setProperty("smoothingType", smoothingType));
     QSignalSpy errors(brushTool, &KoToolBase::statusTextChanged);
     if (closeAfterError) {
         connect(brushTool, &KoToolBase::statusTextChanged, window.get(), [&](const QString &message) {
@@ -1455,6 +1458,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
         QVERIFY(!errors.first().first().toString().isEmpty());
         return;
     }
+    if (smoothingType == 4) QVERIFY(brushTool->setProperty("smoothingType", 3));
     if (!exhaustInput) {
         if (mirrorMode) {
             auto axes = documentLifetime->mirrorAxisConfig();
@@ -1556,6 +1560,9 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     }
     QCOMPARE(owner->operations().undoCount(), 1);
     const auto painted = owner->operations().snapshot();
+    const auto operation = std::get<Gpu::PaintSnapshot>(painted->layers.first().operations.last());
+    QCOMPARE(operation->brush.pixelPerfect, smoothingType == 4);
+    if (smoothingType == 4) qInfo() << "Pixel-corrected pointer input:" << operation->inputSamples().last().position;
     if (mirrorMode) {
         for (const auto &sample : QList<QPair<QPoint, bool>>{{{48, 16}, bool(mirrorMode & 1)},
              {{16, 48}, bool(mirrorMode & 2)}, {{48, 48}, mirrorMode == 3}}) {
@@ -1567,7 +1574,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     if (alphaLock) QCOMPARE(owner->readRgbaPixels(paintTarget, QRect(16, 16, 1, 1), 4).bytes, QByteArray::fromHex("1181f100"));
     QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(40, 40, 1, 1), 4).bytes,
              alphaLock ? QByteArray::fromHex("1181f180") : QByteArray::fromHex("1181f1ff"));
-    QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(mirrorMode ? 56 : 45, 40, 1, 1), 4).bytes,
+    QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(mirrorMode ? 56 : smoothingType == 4 ? 48 : 45, 40, 1, 1), 4).bytes,
              QByteArray::fromHex("00000000"));
     documentLifetime->undoStack()->undo();
     QCOMPARE(owner->operations().undoCount(), 0);
@@ -1576,6 +1583,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     documentLifetime->undoStack()->redo();
     QCOMPARE(owner->operations().snapshot(), painted);
 
+    QVERIFY(brushTool->setProperty("smoothingType", smoothingType));
     resources->setSize(8);
     resources->setGlobalAlphaLock(alphaLock && !layerAlphaLock);
     resources->setEraserMode(true);

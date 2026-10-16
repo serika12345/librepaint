@@ -46,6 +46,8 @@ private Q_SLOTS:
     void alphaLockPreservesCoverageHistoryAndRecovery_data();
     void alphaLockPreservesCoverageHistoryAndRecovery();
     void inputPartitionsAndPreviewProduceTheSamePixels();
+    void pixelCorrectionPreservesCornersSensorsAndIncrementalPixels_data();
+    void pixelCorrectionPreservesCornersSensorsAndIncrementalPixels();
     void unchangedTilesAreSharedAndBudgetsRejectAtomically();
     void erasingAndLayerVisibilityPreservePixelMeaning();
     void longDiagonalUsesOnlyIntersectingTiles();
@@ -1709,6 +1711,77 @@ void KisGpuTileRendererTest::pathCommandsPreserveCoverageHistoryAndRecovery()
     if (!results.isEmpty()) {
         QVERIFY(QDir().mkpath(results));
         QFile file(QDir(results).filePath(QStringLiteral("path-") + kind + QStringLiteral(".rgba")));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(pixels), qint64(pixels.size()));
+    }
+}
+
+void KisGpuTileRendererTest::pixelCorrectionPreservesCornersSensorsAndIncrementalPixels_data()
+{
+    QTest::addColumn<QList<InputSample>>("input");
+    QTest::addColumn<QList<InputSample>>("corrected");
+    QTest::newRow("tap") << QList<InputSample>{{{12.2, 12.7}, 0.8}}
+                         << QList<InputSample>{{{12.2, 12.7}, 0.8}};
+    QTest::newRow("held-corner") << QList<InputSample>{{{4, 4}, 1}, {{12.2, 12.7}, 0.8},
+                                                     {{13.2, 12.3}, 0.4}, {{13.8, 13.8}, 0.6}}
+                                 << QList<InputSample>{{{12.5, 12.5}, 0.8}};
+    QTest::newRow("flushed-corner") << QList<InputSample>{{{4, 4}, 1}, {{12.2, 12.7}, 0.8},
+                                                        {{13.2, 12.3}, 0.4}, {{20.8, 20.8}, 0.6}}
+                                    << QList<InputSample>{{{12.5, 12.5}, 0.8}, {{13.5, 12.5}, 0.4}, {{20.5, 20.5}, 0.6}};
+    QTest::newRow("initial-tile-removed") << QList<InputSample>{{{300, 300}, 1}, {{12.2, 12.7}, 0.8}}
+                                         << QList<InputSample>{{{12.5, 12.5}, 0.8}};
+    QTest::newRow("negative-floor") << QList<InputSample>{{{4, 4}, 1}, {{-0.2, 12.7}, 0.8}, {{20.8, 20.8}, 0.6}}
+                                    << QList<InputSample>{{{-0.5, 12.5}, 0.8}, {{20.5, 20.5}, 0.6}};
+}
+
+void KisGpuTileRendererTest::pixelCorrectionPreservesCornersSensorsAndIncrementalPixels()
+{
+    QFETCH(QList<InputSample>, input);
+    QFETCH(QList<InputSample>, corrected);
+    OperationDocument document(QSize(1024, 1024));
+    Brush brush;
+    brush.diameter = 3;
+    brush.rgba = {17, 129, 241, 255};
+    brush.pixelPerfect = true;
+    const auto layer = document.activeLayer();
+    const auto id = document.beginStroke(layer, brush, 7);
+    TileRenderer renderer(m_device);
+    RenderedSnapshot incremental;
+    for (const auto &sample : input) {
+        QCOMPARE(document.appendSamples(id, {sample}), Result::Success);
+        incremental = render(renderer, document.preview(), incremental);
+        QVERIFY(incremental);
+        const auto rebuilt = render(renderer, document.preview());
+        QVERIFY(rebuilt);
+        QCOMPARE(incremental->tiles(layer).size(), rebuilt->tiles(layer).size());
+        for (const auto &tile : rebuilt->tiles(layer))
+            QCOMPARE(readTile(incremental, layer, tile.coordinate), readTile(rebuilt, layer, tile.coordinate));
+    }
+    QCOMPARE(document.commitStroke(id), Result::Success);
+    const auto operation = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
+    QCOMPARE(operation->inputSamples(), input);
+    OperationDocument oracle(QSize(1024, 1024));
+    brush.pixelPerfect = false;
+    const auto expectedId = oracle.beginStroke(oracle.activeLayer(), brush, 7);
+    QCOMPARE(oracle.appendSamples(expectedId, corrected), Result::Success);
+    QCOMPARE(oracle.commitStroke(expectedId), Result::Success);
+    const auto expected = render(renderer, oracle.snapshot());
+    QVERIFY(expected);
+    QCOMPARE(incremental->tiles(layer).size(), expected->tiles(oracle.activeLayer()).size());
+    for (const auto &tile : expected->tiles(oracle.activeLayer()))
+        QCOMPARE(readTile(incremental, layer, tile.coordinate), readTile(expected, oracle.activeLayer(), tile.coordinate));
+    const auto pixels = readTile(incremental, layer, {0, 0});
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(render(renderer, document.snapshot(), incremental)->tiles(layer).isEmpty());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), pixels);
+    OperationDocument recovered(QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(readTile(render(renderer, recovered.snapshot()), layer, {0, 0}), pixels);
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        QFile file(QDir(results).filePath(QStringLiteral("pixel-perfect-") + QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".rgba")));
         QVERIFY(file.open(QIODevice::WriteOnly));
         QCOMPARE(file.write(pixels), qint64(pixels.size()));
     }

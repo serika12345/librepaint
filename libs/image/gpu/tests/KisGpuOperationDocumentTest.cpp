@@ -82,6 +82,7 @@ private Q_SLOTS:
     void filledFiguresPreserveStylesHistoryAndRecovery();
     void emptyFigureIntentPreservesHistoryAndRecovery();
     void pathsPreserveCommandsControlPointsAndRecovery();
+    void pixelCorrectionRetainsOriginalSensorsAndPendingRecovery();
     void emptyPathsPreserveHistoryAndPendingRecovery();
     void invalidPathsPreserveHistoryAndInputBudgets();
     void cancelAndRejectedInputPreserveRedo();
@@ -786,6 +787,7 @@ void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable_data()
     QTest::newRow("version-fifteen") << quint8(15) << false;
     QTest::newRow("version-sixteen") << quint8(16) << false;
     QTest::newRow("version-seventeen") << quint8(17) << false;
+    QTest::newRow("version-eighteen") << quint8(18) << false;
 }
 
 void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable()
@@ -1466,19 +1468,29 @@ void KisGpuOperationDocumentTest::checkedRecoveryRejectsInvalidCountsAndValues()
     QVERIFY(!paint(document, {sample(1, 2)}).isNull());
     const auto original = document.snapshot();
     const auto good = document.recoveryData();
-    // The paint-only header ends at byte 54; pressure follows the
-    // operation tag, 99-byte paint record and two 64-bit coordinates.
-    for (const bool invalidCount : {true, false}) {
+    // The header operation count precedes the first paint record. Locate its
+    // sensor payload so optional painting settings do not shift the mutation.
+    QByteArray sensor;
+    QDataStream sensorStream(&sensor, QIODevice::WriteOnly);
+    sensorStream.setVersion(QDataStream::Qt_5_15);
+    sensorStream.setByteOrder(QDataStream::BigEndian);
+    sensorStream.setFloatingPointPrecision(QDataStream::DoublePrecision);
+    sensorStream << qreal(1) << qreal(2) << qreal(1) << qreal(0) << qreal(0) << qreal(0) << quint64(0);
+    const auto sensorPosition = good.indexOf(sensor);
+    QVERIFY(sensorPosition >= 0);
+    QCOMPARE(sensorPosition, good.lastIndexOf(sensor));
+    for (const int corruption : {0, 1, 2}) {
         auto payload = good.first(good.size() - 32);
         QBuffer buffer(&payload);
         QVERIFY(buffer.open(QIODevice::ReadWrite));
-        QVERIFY(buffer.seek(invalidCount ? 50 : 170));
+        QVERIFY(buffer.seek(corruption == 0 ? 50 : corruption == 1 ? sensorPosition + 16 : sensorPosition - 5));
         QDataStream stream(&buffer);
         stream.setVersion(QDataStream::Qt_5_15);
         stream.setByteOrder(QDataStream::BigEndian);
         stream.setFloatingPointPrecision(QDataStream::DoublePrecision);
-        if (invalidCount) stream << std::numeric_limits<quint32>::max();
-        else stream << std::numeric_limits<qreal>::quiet_NaN();
+        if (corruption == 0) stream << std::numeric_limits<quint32>::max();
+        else if (corruption == 1) stream << std::numeric_limits<qreal>::quiet_NaN();
+        else stream << quint8(2);
         buffer.close();
         payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
         QCOMPARE(document.restoreRecovery(payload), Result::InvalidRecovery);
@@ -1767,10 +1779,44 @@ void KisGpuOperationDocumentTest::pathsPreserveCommandsControlPointsAndRecovery(
     QVERIFY(operation->shape.windingFill);
     QCOMPARE(operation->inputSamples(), samples);
     QCOMPARE(operation->figureStyle.fill, style.fill);
+    OperationDocument previous(QSize(1, 1));
+    QCOMPARE(previous.restoreRecovery(legacyRecovery(document, 18)), Result::Success);
+    const auto previousPath = std::get<PaintSnapshot>(previous.snapshot()->layers.first().operations.last());
+    QCOMPARE(previousPath->shape.pathCommands, shape.pathCommands);
+    QCOMPARE(previousPath->inputSamples(), samples);
+    QVERIFY(!previousPath->brush.pixelPerfect);
     QCOMPARE(restored.undo(), Result::Success);
     QVERIFY(restored.snapshot()->layers.first().operations.isEmpty());
     QCOMPARE(restored.redo(), Result::Success);
     QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last())->inputSamples(), samples);
+}
+
+void KisGpuOperationDocumentTest::pixelCorrectionRetainsOriginalSensorsAndPendingRecovery()
+{
+    OperationDocument document(QSize(64, 64));
+    Brush brush;
+    brush.pixelPerfect = true;
+    const auto id = document.beginStroke(document.activeLayer(), brush, 7);
+    const QList<InputSample> samples{{{12.2, 12.7}, 0.4, 12, -9, 32, 4},
+                                    {{13.8, 12.3}, 0.8, -12, 9, 64, 8},
+                                    {{14.1, 13.9}, 1, 0, 0, 90, 12}};
+    QCOMPARE(document.appendSamples(id, samples), Result::Success);
+    const auto pending = std::get<PaintSnapshot>(document.preview()->layers.first().operations.last());
+    QVERIFY(pending->brush.pixelPerfect);
+    QCOMPARE(pending->inputSamples(), samples);
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    const auto recovered = std::get<PaintSnapshot>(restored.preview()->layers.first().operations.last());
+    QVERIFY(recovered->brush.pixelPerfect);
+    QCOMPARE(recovered->inputSamples(), samples);
+    QCOMPARE(restored.commitStroke(restored.activeOperation()), Result::Success);
+    QCOMPARE(restored.undoCount(), 1);
+    const auto painted = restored.snapshot();
+    QCOMPARE(restored.undo(), Result::Success);
+    QCOMPARE(restored.redo(), Result::Success);
+    QCOMPARE(restored.snapshot(), painted);
+    QCOMPARE(document.cancelStroke(id), Result::Success);
+    QCOMPARE(document.undoCount(), 0);
 }
 
 void KisGpuOperationDocumentTest::emptyPathsPreserveHistoryAndPendingRecovery()
