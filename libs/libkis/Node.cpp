@@ -912,7 +912,7 @@ void Node::paintLine(const QPointF pointOne, const QPointF pointTwo, double pres
     pointTwoInfo.setPos(pointTwo);
 
     KisFigurePaintingStroke stroke =
-        PaintingResources::createFigurePaintingStroke(d->image, node(), strokeStyle);
+        PaintingResources::createFigurePaintingStroke(d->node->image(), node(), strokeStyle);
     stroke.paintLine(pointOneInfo, pointTwoInfo);
 }
 
@@ -928,7 +928,7 @@ void Node::paintRectangle(const QRectF &rect, const QString strokeStyle, const Q
     // void KisFigurePaintingStroke::paintRect(const QRectF &rect)
 
     KisFigurePaintingStroke stroke = PaintingResources::createFigurePaintingStroke(
-        d->image, node(), strokeStyle, fillStyle);
+        d->node->image(), node(), strokeStyle, fillStyle);
     stroke.paintRect(rect);
 }
 
@@ -943,7 +943,7 @@ void Node::paintPolygon(const QList<QPointF> listPoint, const QString strokeStyl
     // strategy needs points in vPointF format
     QVector<QPointF> points = points.fromList(listPoint);
     KisFigurePaintingStroke stroke = PaintingResources::createFigurePaintingStroke(
-        d->image, node(), strokeStyle, fillStyle);
+        d->node->image(), node(), strokeStyle, fillStyle);
     stroke.paintPolygon(points);
 }
 
@@ -956,7 +956,7 @@ void Node::paintEllipse(const QRectF &rect, const QString strokeStyle, const QSt
     }
 
     KisFigurePaintingStroke stroke = PaintingResources::createFigurePaintingStroke(
-        d->image, node(), strokeStyle, fillStyle);
+        d->node->image(), node(), strokeStyle, fillStyle);
     stroke.paintEllipse(rect);
 }
 
@@ -969,6 +969,6 @@ void Node::paintPath(const QPainterPath &path, const QString strokeStyle, const 
     }
 
     KisFigurePaintingStroke stroke = PaintingResources::createFigurePaintingStroke(
-        d->image, node(), strokeStyle, fillStyle);
+        d->node->image(), node(), strokeStyle, fillStyle);
     stroke.paintPainterPath(path);
 }

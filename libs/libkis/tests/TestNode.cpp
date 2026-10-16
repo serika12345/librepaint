@@ -28,6 +28,7 @@
 #include <brushengine/kis_paintop_registry.h>
 #include <brushengine/kis_paintop_settings.h>
 #include <memory>
+#include <algorithm>
 #include <QDataStream>
 #include <kundo2stack.h>
 #include <QSignalSpy>
@@ -874,23 +875,35 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory_data()
     QTest::addColumn<QString>("figure");
     QTest::addColumn<QString>("strokeStyle");
     QTest::addColumn<QString>("rejection");
+    QTest::addColumn<bool>("cloned");
     for (bool gpu : {false, true}) {
         for (const auto &figure : {QStringLiteral("line"), QStringLiteral("rectangle"),
                                   QStringLiteral("ellipse"), QStringLiteral("polygon")}) {
             for (const auto &style : {QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
                 const auto name = (gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + figure + '-' + style;
-                QTest::newRow(qPrintable(name)) << gpu << figure << style << QString();
+                QTest::newRow(qPrintable(name)) << gpu << figure << style << QString() << false;
             }
         }
     }
     for (bool gpu : {false, true}) {
         QTest::newRow(gpu ? "gpu-line-None" : "ordinary-line-None")
-            << gpu << QStringLiteral("line") << QStringLiteral("None") << QString();
+            << gpu << QStringLiteral("line") << QStringLiteral("None") << QString() << false;
+    }
+    for (bool gpu : {false, true}) {
+        for (const auto &figure : {QStringLiteral("line"), QStringLiteral("rectangle"),
+                                  QStringLiteral("ellipse"), QStringLiteral("polygon")}) {
+            for (const auto &style : {QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
+                const auto name = (gpu ? QStringLiteral("gpu-clone-") : QStringLiteral("ordinary-clone-")) + figure + '-' + style;
+                QTest::newRow(qPrintable(name)) << gpu << figure << style << QString() << true;
+            }
+        }
+        QTest::newRow(gpu ? "gpu-clone-line-None" : "ordinary-clone-line-None")
+            << gpu << QStringLiteral("line") << QStringLiteral("None") << QString() << true;
     }
     for (const auto &reason : {QStringLiteral("fill"), QStringLiteral("path"),
                                QStringLiteral("busy"), QStringLiteral("invalid-pressure"), QStringLiteral("none")}) {
         QTest::newRow(qPrintable(QStringLiteral("gpu-preserve-") + reason))
-            << true << QStringLiteral("line") << QStringLiteral("ForegroundColor") << reason;
+            << true << QStringLiteral("line") << QStringLiteral("ForegroundColor") << reason << false;
     }
 }
 
@@ -900,6 +913,7 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     QFETCH(QString, figure);
     QFETCH(QString, strokeStyle);
     QFETCH(QString, rejection);
+    QFETCH(bool, cloned);
     namespace Gpu = LibrePaint::Image::Gpu;
     const auto cs = KoColorSpaceRegistry::instance()->rgb8();
     std::shared_ptr<Gpu::Execution> execution;
@@ -939,7 +953,7 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     window->activateWindow();
     QVERIFY(QTest::qWaitForWindowExposed(window.get()));
     KisImageSP image = lifetime->image();
-    const auto target = image->root()->firstChild();
+    KisNodeSP target = image->root()->firstChild();
     const auto active = image->root()->lastChild();
     QVERIFY(target != active);
     auto *manager = window->viewManager()->nodeManager();
@@ -961,6 +975,21 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     const QPoint sample(32, figure == QLatin1String("line") ? 32 : 12);
     QScopedPointer<Node> api(Node::createNode(image, target));
     QScopedPointer<Node> activeApi(Node::createNode(image, active));
+    if (cloned) {
+        QScopedPointer<Node> copy(api->clone());
+        QVERIFY(copy);
+        QScopedPointer<Node> root(Node::createNode(image, image->root()));
+        QVERIFY(root->addChildNode(copy.data(), nullptr));
+        image->waitForDone();
+        api.swap(copy);
+        for (KisNodeSP candidate = image->root()->firstChild(); candidate; candidate = candidate->nextSibling()) {
+            if (candidate->uuid() == api->uniqueId()) target = candidate;
+        }
+        QCOMPARE(target->uuid(), api->uniqueId());
+        QTRY_COMPARE(manager->activeNode(), target);
+        manager->slotNonUiActivatedNode(active);
+        QTRY_COMPARE(manager->activeNode(), active);
+    }
     const auto before = api->pixelData(0, 0, 64, 64);
     const auto activeBefore = activeApi->pixelData(0, 0, 64, 64);
     const int count = lifetime->undoStack()->count();
@@ -1018,7 +1047,12 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     apiDocument.refreshProjection();
     QCOMPARE(apiDocument.pixelData(sample.x(), sample.y(), 1, 1), expected);
     if (gpu && figure == QLatin1String("line")) {
-        const auto operation = std::get<Gpu::PaintSnapshot>(owner->operations().snapshot()->layers.first().operations.last());
+        const auto version = owner->operations().snapshot();
+        const auto layer = std::find_if(version->layers.cbegin(), version->layers.cend(),
+                                        [&](const auto &value) { return value.uuid == target->uuid(); });
+        QVERIFY(layer != version->layers.cend());
+        QVERIFY(!layer->operations.isEmpty());
+        const auto operation = std::get<Gpu::PaintSnapshot>(layer->operations.last());
         QVERIFY(operation);
         const auto samples = operation->inputSamples();
         QCOMPARE(samples.size(), 2);
