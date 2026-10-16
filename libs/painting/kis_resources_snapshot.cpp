@@ -7,6 +7,9 @@
 #include "kis_resources_snapshot.h"
 
 #include <KoColor.h>
+#include <KoCanvasResourceProvider.h>
+#include <klocalizedstring.h>
+#include <gpu/KisGpuPaintImage.h>
 #include <qbitarray.h>
 #include <qnamespace.h>
 #include <qobject.h>
@@ -36,6 +39,50 @@
 #include "kis_algebra_2d.h"
 #include "KisGlobalResourcesInterface.h"
 #include "kis_types.h"
+
+KisGpuBrushResources captureGpuBrushResources(
+    KisImageSP image, KisNodeSP node, KoCanvasResourceProvider *resources)
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    KisGpuBrushResources result;
+    const auto reject = [&](const QString &message) {
+        result.diagnostic = message;
+        return result;
+    };
+    if (!image || !image->gpuImage() || !node || node->image().data() != image.data() || !resources)
+        return reject(i18n("A stroke could not be started on this GPU paint layer."));
+    for (const auto &layer : image->gpuImage()->operations().snapshot()->layers)
+        if (layer.uuid == node->uuid()) result.layer = layer.id;
+    if (!result.layer)
+        return reject(i18n("A stroke could not be started on this GPU paint layer."));
+    const auto preset = resources->resource(KoCanvasResource::CurrentPaintOpPreset).value<KisPaintOpPresetSP>();
+    if (!preset || preset->paintOp().id() != QLatin1String("roundmarker"))
+        return reject(i18n("Painting this document currently requires the circular brush."));
+    const QString composite = resources->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString();
+    if (composite != QLatin1String("normal") && composite != QLatin1String("erase"))
+        return reject(i18n("This blend mode is not yet available for this document."));
+    auto &brush = result.brush;
+    brush.mirrorHorizontal = resources->resource(KoCanvasResource::MirrorHorizontal).toBool();
+    brush.mirrorVertical = resources->resource(KoCanvasResource::MirrorVertical).toBool();
+    if (brush.mirrorHorizontal || brush.mirrorVertical) {
+        const auto center = KisAlgebra2D::relativeToAbsolute(image->mirrorAxesCenter(), image->bounds());
+        if (!qIsFinite(center.x()) || !qIsFinite(center.y()) ||
+            qAbs(center.x()) > Gpu::OperationDocument::CoordinateLimit ||
+            qAbs(center.y()) > Gpu::OperationDocument::CoordinateLimit)
+            return reject(i18n("The painting symmetry axis is invalid."));
+        brush.mirrorCenter = center.toPoint();
+    }
+    const QColor color = resources->foregroundColor().toQColor();
+    brush.rgba = {quint8(color.red()), quint8(color.green()), quint8(color.blue()), quint8(color.alpha())};
+    brush.diameter = resources->resource(KoCanvasResource::Size).toReal();
+    const qreal opacity = resources->resource(KoCanvasResource::Opacity).toReal();
+    if (!qIsFinite(opacity) || opacity < 0 || opacity > 1)
+        return reject(i18n("The brush opacity is invalid."));
+    brush.opacity = quint8(qRound(255 * opacity));
+    brush.erase = composite == QLatin1String("erase") || resources->resource(KoCanvasResource::EraserMode).toBool();
+    brush.alphaLocked = !brush.erase && resources->resource(KoCanvasResource::GlobalAlphaLock).toBool();
+    return result;
+}
 
 struct KisResourcesSnapshot::Private {
     Private()

@@ -12,6 +12,8 @@
 #include <KLocalizedString>
 #include <application/ui/workspace/KisMainWindow.h>
 #include <application/ui/workspace/KisViewManager.h>
+#include <application/ui/workspace/KisView.h>
+#include <canvas/kis_canvas_resource_provider.h>
 #include <application/ui/orchestration/kis_action_manager.h>
 #include <application/ui/orchestration/kis_action.h>
 #include <nodes/kis_node_manager.h>
@@ -24,6 +26,7 @@
 #include <KisResourceModel.h>
 #include <KisGlobalResourcesInterface.h>
 #include <brushengine/kis_paintop_registry.h>
+#include <brushengine/kis_paintop_settings.h>
 #include <memory>
 #include <QDataStream>
 #include <kundo2stack.h>
@@ -863,6 +866,173 @@ void TestNode::testLastLayerRemovalInWindowClearsSelectionAndRestoresHistory()
     QTRY_COMPARE(image->root()->childCount(), 0U);
     QTRY_VERIFY(manager->activeNode() != native);
     QTRY_VERIFY(!manager->selectedNodes().contains(native));
+}
+
+void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<QString>("figure");
+    QTest::addColumn<QString>("strokeStyle");
+    QTest::addColumn<QString>("rejection");
+    for (bool gpu : {false, true}) {
+        for (const auto &figure : {QStringLiteral("line"), QStringLiteral("rectangle"),
+                                  QStringLiteral("ellipse"), QStringLiteral("polygon")}) {
+            for (const auto &style : {QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
+                const auto name = (gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + figure + '-' + style;
+                QTest::newRow(qPrintable(name)) << gpu << figure << style << QString();
+            }
+        }
+    }
+    for (bool gpu : {false, true}) {
+        QTest::newRow(gpu ? "gpu-line-None" : "ordinary-line-None")
+            << gpu << QStringLiteral("line") << QStringLiteral("None") << QString();
+    }
+    for (const auto &reason : {QStringLiteral("fill"), QStringLiteral("path"),
+                               QStringLiteral("busy"), QStringLiteral("invalid-pressure"), QStringLiteral("none")}) {
+        QTest::newRow(qPrintable(QStringLiteral("gpu-preserve-") + reason))
+            << true << QStringLiteral("line") << QStringLiteral("ForegroundColor") << reason;
+    }
+}
+
+void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
+{
+    QFETCH(bool, gpu);
+    QFETCH(QString, figure);
+    QFETCH(QString, strokeStyle);
+    QFETCH(QString, rejection);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    std::shared_ptr<Gpu::Execution> execution;
+    Gpu::PaintImageSP owner;
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    if (gpu) {
+        QString diagnostic;
+        const auto device = Gpu::Device::createNative(diagnostic);
+        QVERIFY2(device, qPrintable(diagnostic));
+        execution = std::make_shared<Gpu::Execution>(device);
+        Gpu::RasterImage raster;
+        raster.size = {64, 64};
+        raster.layers.append({QStringLiteral("Requested layer"), true, QUuid::createUuid(), {}});
+        raster.layers.append({QStringLiteral("Active layer"), true, QUuid::createUuid(), {}});
+        raster.activeLayer = 1;
+        owner = Gpu::PaintImageSP::create(execution, raster);
+        document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Public figure")));
+    } else {
+        QVERIFY(document->newImage(QStringLiteral("Public figure"), 64, 64, cs,
+                                   KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 2, {}, 1));
+    }
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (window && lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+    window->activateWindow();
+    QVERIFY(QTest::qWaitForWindowExposed(window.get()));
+    KisImageSP image = lifetime->image();
+    const auto target = image->root()->firstChild();
+    const auto active = image->root()->lastChild();
+    QVERIFY(target != active);
+    auto *manager = window->viewManager()->nodeManager();
+    manager->slotNonUiActivatedNode(active);
+    QTRY_COMPARE(manager->activeNode(), active);
+    auto preset = KisPaintOpRegistry::instance()->defaultPreset(KoID("roundmarker"), KisGlobalResourcesInterface::instance());
+    QVERIFY(preset);
+    preset->settings()->setPaintOpSize(8);
+    auto *resources = window->viewManager()->canvasResourceProvider();
+    resources->setPaintOpPreset(preset);
+    resources->setSize(8);
+    resources->setOpacity(1);
+    resources->setFGColor(KoColor(QColor(17, 129, 241), cs));
+    resources->setBGColor(KoColor(QColor(221, 17, 44), cs));
+    resources->setEraserMode(false);
+    resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    const auto expected = strokeStyle == QLatin1String("BackgroundColor") ?
+        QByteArray::fromHex("2c11ddff") : QByteArray::fromHex("f18111ff");
+    const QPoint sample(32, figure == QLatin1String("line") ? 32 : 12);
+    QScopedPointer<Node> api(Node::createNode(image, target));
+    QScopedPointer<Node> activeApi(Node::createNode(image, active));
+    const auto before = api->pixelData(0, 0, 64, 64);
+    const auto activeBefore = activeApi->pixelData(0, 0, 64, 64);
+    const int count = lifetime->undoStack()->count();
+    const int index = lifetime->undoStack()->index();
+    Gpu::OperationId pending;
+    if (rejection == QLatin1String("busy")) {
+        pending = owner->beginStroke(owner->operations().activeLayer(), Gpu::Brush{}, 0);
+        QVERIFY(!pending.isNull());
+        QCOMPARE(owner->appendSamples(pending, {{{4, 4}, 1}}), Gpu::Result::Success);
+    }
+    const auto cancelPending = qScopeGuard([&] {
+        if (owner && !pending.isNull() && owner->operations().activeOperation() == pending)
+            owner->cancelStroke(pending);
+    });
+    try {
+        if (rejection == QLatin1String("fill")) api->paintRectangle({12, 12, 40, 40}, strokeStyle, QStringLiteral("ForegroundColor"));
+        else if (rejection == QLatin1String("path")) {
+            QPainterPath path;
+            path.moveTo(12, 32);
+            path.cubicTo(20, 12, 40, 52, 52, 32);
+            api->paintPath(path, strokeStyle, QStringLiteral("None"));
+        } else if (rejection == QLatin1String("none")) {
+            api->paintRectangle({12, 12, 40, 40}, QStringLiteral("None"), QStringLiteral("None"));
+        } else if (figure == QLatin1String("line")) {
+            api->paintLine({12, 32}, {52, 32}, rejection == QLatin1String("invalid-pressure") ? -1 : 0.5, 1, strokeStyle);
+        }
+        else if (figure == QLatin1String("rectangle")) api->paintRectangle({12, 12, 40, 40}, strokeStyle, QStringLiteral("None"));
+        else if (figure == QLatin1String("ellipse")) api->paintEllipse({12, 12, 40, 40}, strokeStyle, QStringLiteral("None"));
+        else api->paintPolygon({{12, 12}, {52, 12}, {32, 52}}, strokeStyle, QStringLiteral("None"));
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    resources->setFGColor(KoColor(Qt::green, cs));
+    resources->setBGColor(KoColor(Qt::yellow, cs));
+    resources->setSize(30);
+    if (pending.isNull()) image->waitForDone();
+    if (!rejection.isEmpty()) {
+        QCOMPARE(lifetime->undoStack()->count(), count);
+        QCOMPARE(lifetime->undoStack()->index(), index);
+        QCOMPARE(api->pixelData(0, 0, 64, 64), before);
+        QCOMPARE(activeApi->pixelData(0, 0, 64, 64), activeBefore);
+        QCOMPARE(manager->activeNode(), active);
+        QCOMPARE(owner->operations().activeOperation(), pending);
+        if (!pending.isNull()) QCOMPARE(owner->cancelStroke(pending), Gpu::Result::Success);
+        return;
+    }
+    QTRY_COMPARE(lifetime->undoStack()->count(), count + 1);
+    QCOMPARE(lifetime->undoStack()->index(), index + 1);
+    QCOMPARE(api->pixelData(sample.x(), sample.y(), 1, 1), expected);
+    QCOMPARE(activeApi->pixelData(0, 0, 64, 64), activeBefore);
+    QCOMPARE(manager->activeNode(), active);
+    const auto painted = api->pixelData(0, 0, 64, 64);
+    QVERIFY(painted != before);
+    Document apiDocument(lifetime.data(), false);
+    apiDocument.refreshProjection();
+    QCOMPARE(apiDocument.pixelData(sample.x(), sample.y(), 1, 1), expected);
+    if (gpu && figure == QLatin1String("line")) {
+        const auto operation = std::get<Gpu::PaintSnapshot>(owner->operations().snapshot()->layers.first().operations.last());
+        QVERIFY(operation);
+        const auto samples = operation->inputSamples();
+        QCOMPARE(samples.size(), 2);
+        QCOMPARE(samples.first().pressure, 0.5);
+        QCOMPARE(samples.last().pressure, 1.0);
+    }
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(api->pixelData(0, 0, 64, 64), before);
+    QCOMPARE(activeApi->pixelData(0, 0, 64, 64), activeBefore);
+    lifetime->undoStack()->redo();
+    image->waitForDone();
+    QCOMPARE(api->pixelData(0, 0, 64, 64), painted);
+    QCOMPARE(activeApi->pixelData(0, 0, 64, 64), activeBefore);
 }
 
 void TestNode::testLayerAndDocumentProjectionsRemainDistinct()

@@ -15,12 +15,28 @@
 #include "kis_default_bounds.h"
 #include <KoCanvasResourcesInterface.h>
 #include <KoResourceSignature.h>
+#include <gpu/KisGpuOperationDocument.h>
 
 class KoCompositeOp;
 class KisPainter;
 class KisPostExecutionUndoAdapter;
 class KoPattern;
 class KisInterstrokeDataFactory;
+class KoCanvasResourceProvider;
+
+/** Frozen circular-brush resources for the GPU painting consumers.
+ * Image, node and provider are borrowed for capture only. A nonempty diagnostic
+ * rejects painting before an operation or history entry is created.
+ */
+struct KRITAPAINTING_EXPORT KisGpuBrushResources
+{
+    LibrePaint::Image::Gpu::Brush brush;
+    LibrePaint::Image::Gpu::LayerId layer = 0;
+    QString diagnostic;
+};
+
+KRITAPAINTING_EXPORT KisGpuBrushResources captureGpuBrushResources(
+    KisImageSP image, KisNodeSP node, KoCanvasResourceProvider *resources);
 
 /**
  * @brief The KisResourcesSnapshot class takes a snapshot of the various resources

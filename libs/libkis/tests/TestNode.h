@@ -34,6 +34,8 @@ private Q_SLOTS:
     void testLayerRemovalPreservesPixelsAndHistory();
     void testLastLayerRemovalInWindowClearsSelectionAndRestoresHistory_data();
     void testLastLayerRemovalInWindowClearsSelectionAndRestoresHistory();
+    void testScriptedFigurePaintsRequestedLayerAndPreservesHistory_data();
+    void testScriptedFigurePaintsRequestedLayerAndPreservesHistory();
     void testLayerAndDocumentProjectionsRemainDistinct();
     void testProjectionPixelData();
     void testThumbnail();

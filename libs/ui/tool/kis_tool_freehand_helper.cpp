@@ -370,54 +370,18 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
         disconnect(m_d->gpuCancellation);
         m_d->gpuImage = owner;
         m_d->gpuOperation = {};
-        Gpu::LayerId layerId = 0;
-        for (const auto &layer : owner->operations().snapshot()->layers)
-            if (currentNode && layer.uuid == currentNode->uuid()) layerId = layer.id;
-        const auto preset = resourceManager->resource(KoCanvasResource::CurrentPaintOpPreset).value<KisPaintOpPresetSP>();
         if (overrideNode || bounds || image->globalSelection()) {
             m_d->infoBuilder->reset();
             Q_EMIT requestErrorMessage(i18n("Selection and overridden paint nodes are not yet supported for GPU freehand input."));
             return;
         }
-        if (!preset || preset->paintOp().id() != QLatin1String("roundmarker")) {
+        const auto resources = captureGpuBrushResources(image, currentNode, resourceManager);
+        if (!resources.diagnostic.isEmpty()) {
             m_d->infoBuilder->reset();
-            Q_EMIT requestErrorMessage(i18n("Painting this document currently requires the circular brush."));
+            Q_EMIT requestErrorMessage(resources.diagnostic);
             return;
         }
-        const QString composite = resourceManager->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString();
-        if (composite != QLatin1String("normal") && composite != QLatin1String("erase")) {
-            m_d->infoBuilder->reset();
-            Q_EMIT requestErrorMessage(i18n("This blend mode is not yet available for this document."));
-            return;
-        }
-        Gpu::Brush brush;
-        brush.mirrorHorizontal = resourceManager->resource(KoCanvasResource::MirrorHorizontal).toBool();
-        brush.mirrorVertical = resourceManager->resource(KoCanvasResource::MirrorVertical).toBool();
-        if (brush.mirrorHorizontal || brush.mirrorVertical) {
-            const auto center = KisAlgebra2D::relativeToAbsolute(image->mirrorAxesCenter(), image->bounds());
-            if (!qIsFinite(center.x()) || !qIsFinite(center.y()) ||
-                qAbs(center.x()) > Gpu::OperationDocument::CoordinateLimit ||
-                qAbs(center.y()) > Gpu::OperationDocument::CoordinateLimit) {
-                m_d->infoBuilder->reset();
-                Q_EMIT requestErrorMessage(i18n("The painting symmetry axis is invalid."));
-                return;
-            }
-            brush.mirrorCenter = center.toPoint();
-        }
-        const QColor color = resourceManager->foregroundColor().toQColor();
-        brush.rgba = {quint8(color.red()), quint8(color.green()), quint8(color.blue()), quint8(color.alpha())};
-        brush.diameter = resourceManager->resource(KoCanvasResource::Size).toReal();
-        const qreal opacity = resourceManager->resource(KoCanvasResource::Opacity).toReal();
-        if (!qIsFinite(opacity) || opacity < 0 || opacity > 1) {
-            m_d->infoBuilder->reset();
-            Q_EMIT requestErrorMessage(i18n("The brush opacity is invalid."));
-            return;
-        }
-        brush.opacity = quint8(qRound(255 * opacity));
-        brush.erase = composite == QLatin1String("erase") ||
-            resourceManager->resource(KoCanvasResource::EraserMode).toBool();
-        brush.alphaLocked = !brush.erase && resourceManager->resource(KoCanvasResource::GlobalAlphaLock).toBool();
-        m_d->gpuOperation = owner->beginStroke(layerId, brush, 0);
+        m_d->gpuOperation = owner->beginStroke(resources.layer, resources.brush, 0);
         if (m_d->gpuOperation.isNull()) {
             m_d->infoBuilder->reset();
             Q_EMIT requestErrorMessage(i18n("A stroke could not be started on this GPU paint layer."));
