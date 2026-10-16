@@ -8,6 +8,7 @@
 
 #include <QApplication>
 #include <QDialogButtonBox>
+#include <QImage>
 #include <QScopedPointer>
 #include <QSignalSpy>
 #include <QTabWidget>
@@ -29,6 +30,12 @@
 
 #include <KoInteractionTool.h>
 #include <KoToolManager.h>
+#include <KisGlobalResourcesInterface.h>
+#include <KisResourceLocator.h>
+#include <KisResourceModel.h>
+#include <KisResourceStorage.h>
+#include <brushengine/kis_paintop_preset.h>
+#include <brushengine/kis_paintop_registry.h>
 
 #include <Canvas.h>
 #include <Krita.h>
@@ -44,9 +51,27 @@ void KisViewSignalsTest::initTestCase()
     Q_INIT_RESOURCE(krita);
     KisOpenGL::setDefaultSurfaceConfig(KisOpenGL::RendererConfig());
 
+    const QString bundlePath = QStringLiteral(KRITA_SOURCE_DIR "/libs/resources/tests/data/bundles/test1.bundle");
+    auto bundle = KisResourceStorageSP::create(bundlePath);
+    QVERIFY(bundle->valid());
+    QVERIFY(KisResourceLocator::instance()->addStorage(bundlePath, bundle));
+    KisResourceModel presets(ResourceType::PaintOpPresets);
+    for (int index = 0; index < 2; ++index) {
+        auto preset = KisPaintOpRegistry::instance()->defaultPreset(
+            KoID("roundmarker"), KisGlobalResourcesInterface::instance());
+        QVERIFY(preset);
+        preset->setName(QStringLiteral("View contract preset %1").arg(index));
+        preset->setFilename(QStringLiteral("view-contract-preset-%1.kpp").arg(index));
+        QImage preview(16, 16, QImage::Format_ARGB32);
+        preview.fill(Qt::black);
+        preset->setImage(preview);
+        QVERIFY(presets.addResource(preset));
+    }
+
     m_document = createEmptyDocument();
     QVERIFY(m_document);
 
+    QSignalSpy windowCreated(KisPart::instance(), &KisPart::sigMainWindowCreated);
     m_mainWindow = KisPart::instance()->createMainWindow();
     QVERIFY(m_mainWindow);
 
@@ -57,14 +82,7 @@ void KisViewSignalsTest::initTestCase()
     QVERIFY(m_viewManager);
     m_viewManager->setCurrentView(m_kisView);
 
-    const auto timers = m_mainWindow->findChildren<QTimer*>();
-    for (QTimer *timer : timers) {
-        if (timer && timer->isSingleShot() && timer->interval() == 1000) {
-            timer->stop();
-        }
-    }
-
-    QApplication::processEvents();
+    QTRY_COMPARE(windowCreated.size(), 1);
 
     m_view = new View(m_kisView);
     QVERIFY(m_view);
@@ -116,7 +134,7 @@ void KisViewSignalsTest::testCurrentBrushPresetChanged()
     QMap<QString, Resource*> presets = Krita().resources(type);
     if (presets.size() < 2) {
         qDeleteAll(presets);
-        QSKIP("Need at least two paintop presets to test preset change signals.");
+        QFAIL("The view fixture must provide two registered paintop presets.");
     }
 
     Resource *initialPreset = nullptr;
@@ -139,7 +157,7 @@ void KisViewSignalsTest::testCurrentBrushPresetChanged()
 
     if (!initialPreset || !targetPreset) {
         qDeleteAll(presets);
-        QSKIP("Could not obtain two valid paintop presets from the resource model.");
+        QFAIL("The registered view fixture presets must be available through the public resource API.");
     }
 
     m_view->setCurrentBrushPreset(initialPreset);
@@ -230,12 +248,14 @@ void KisViewSignalsTest::testConfigureActionOpensToolsPreferences()
     });
     closeGuard.start(5000);
 
-    QTimer::singleShot(0, this, [&]() {
+    QTimer dialogObserver;
+    connect(&dialogObserver, &QTimer::timeout, this, [&]() {
         KPageDialog *dialog = qobject_cast<KPageDialog *>(QApplication::activeModalWidget());
         if (!dialog) {
             return;
         }
 
+        dialogObserver.stop();
         dialogWasShown = true;
         if (KPageWidgetItem *page = dialog->currentPage()) {
             pageName = page->name();
@@ -250,8 +270,10 @@ void KisViewSignalsTest::testConfigureActionOpensToolsPreferences()
             dialog->reject();
         }
     });
+    dialogObserver.start(10);
 
     configureAction->trigger();
+    dialogObserver.stop();
     closeGuard.stop();
 
     QVERIFY(dialogWasShown);
