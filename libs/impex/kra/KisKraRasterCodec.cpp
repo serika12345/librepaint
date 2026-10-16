@@ -222,6 +222,14 @@ Outcome extractMetadata(const QDomElement &image, const QMap<QString, QByteArray
     if (!xOk || !yOk || !qIsFinite(x) || !qIsFinite(y) || x <= 0 || y <= 0)
         return invalid(QStringLiteral("Invalid KRA image resolution"));
     metadata.resolution = {x, y};
+    const auto mirrorAxis = image.firstChildElement(QStringLiteral("MirrorAxis"));
+    if (!mirrorAxis.nextSiblingElement(QStringLiteral("MirrorAxis")).isNull())
+        return invalid(QStringLiteral("Duplicate KRA mirror axis settings"));
+    if (!mirrorAxis.isNull()) {
+        QDomDocument value;
+        value.appendChild(value.importNode(mirrorAxis, true));
+        metadata.mirrorAxis = value.toByteArray();
+    }
     metadata.documentInfo = files.value(QStringLiteral("documentinfo.xml"));
     if (metadata.documentInfo.size() > limits.xmlBytes) return capacity();
     if (files.contains(QStringLiteral("documentinfo.xml"))) {
@@ -299,7 +307,11 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
     if (!qIsFinite(metadata.resolution.x()) || !qIsFinite(metadata.resolution.y()) ||
         metadata.resolution.x() <= 0 || metadata.resolution.y() <= 0)
         return invalid(QStringLiteral("Invalid KRA image resolution"));
-    if (metadata.documentInfo.size() > limits.xmlBytes) return capacity();
+    if (metadata.documentInfo.size() > limits.xmlBytes || metadata.mirrorAxis.size() > limits.xmlBytes) return capacity();
+    QDomDocument mirrorAxis;
+    if (!metadata.mirrorAxis.isEmpty() &&
+        (!mirrorAxis.setContent(metadata.mirrorAxis) || mirrorAxis.documentElement().tagName() != QLatin1String("MirrorAxis")))
+        return invalid(QStringLiteral("Invalid KRA mirror axis settings"));
     if (!metadata.documentInfo.isEmpty()) {
         QDomDocument info;
         if (!info.setContent(metadata.documentInfo) || info.documentElement().tagName() != QLatin1String("document-info"))
@@ -312,6 +324,12 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
         result = description(document.description, xml, image);
         if (result.code != Status::Success) return result;
     }
+    for (auto old = image.firstChildElement(QStringLiteral("MirrorAxis")); !old.isNull();) {
+        const auto next = old.nextSiblingElement(QStringLiteral("MirrorAxis"));
+        image.removeChild(old);
+        old = next;
+    }
+    if (!metadata.mirrorAxis.isEmpty()) image.appendChild(xml.importNode(mirrorAxis.documentElement(), true));
     auto files = document.files;
     const auto folder = image.attribute(QStringLiteral("name"));
     const auto prefix = folder + QStringLiteral("/annotations/");

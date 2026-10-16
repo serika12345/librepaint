@@ -378,6 +378,22 @@ void TestKraRasterCodec::imageMetadataIsCompleteOrRejectedBeforeRasterImport()
     auto source = document();
     Kra::ImageMetadata metadata;
     metadata.resolution = {300, 150};
+    QDomDocument axes;
+    QVERIFY(axes.setContent(QByteArrayLiteral(
+        "<MirrorAxis>"
+        "<mirrorHorizontal type=\"value\" value=\"1\"/>"
+        "<mirrorVertical type=\"value\" value=\"1\"/>"
+        "<lockHorizontal type=\"value\" value=\"1\"/>"
+        "<lockVertical type=\"value\" value=\"0\"/>"
+        "<hideHorizontalDecoration type=\"value\" value=\"0\"/>"
+        "<hideVerticalDecoration type=\"value\" value=\"1\"/>"
+        "<handleSize type=\"value\" value=\"19.5\"/>"
+        "<horizontalHandlePosition type=\"value\" value=\"8.25\"/>"
+        "<verticalHandlePosition type=\"value\" value=\"-4.5\"/>"
+        "<axisPosition type=\"pointf\" x=\"21.25\" y=\"13.5\"/>"
+        "</MirrorAxis>"
+    )));
+    metadata.mirrorAxis = axes.toByteArray();
     metadata.documentInfo = source.files.value(QStringLiteral("documentinfo.xml"));
     metadata.iccProfile = QColorSpace(QColorSpace::SRgb).iccProfile();
     metadata.annotations = {{QStringLiteral("notes"), QStringLiteral("Notes"), QByteArrayLiteral("kept")}};
@@ -386,15 +402,23 @@ void TestKraRasterCodec::imageMetadataIsCompleteOrRejectedBeforeRasterImport()
     QBuffer output(&bytes);
     QVERIFY(output.open(QIODevice::WriteOnly));
     QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto resultDirectory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!resultDirectory.isEmpty()) {
+        QVERIFY(QDir().mkpath(resultDirectory));
+        QFile artifact(QDir(resultDirectory).filePath(QStringLiteral("mirror-axis-metadata.kra")));
+        QVERIFY(artifact.open(QIODevice::WriteOnly));
+        QCOMPARE(artifact.write(bytes), bytes.size());
+    }
     const auto valid = entries(bytes);
     const auto extracted = Kra::RasterCodec::readImageMetadata(valid.value(QStringLiteral("maindoc.xml")), valid);
     QCOMPARE(extracted.code, Kra::Status::Success);
     QCOMPARE(extracted.metadata.resolution, metadata.resolution);
     QCOMPARE(extracted.metadata.iccProfile, metadata.iccProfile);
     QCOMPARE(extracted.metadata.documentInfo, metadata.documentInfo);
+    QCOMPARE(extracted.metadata.mirrorAxis, metadata.mirrorAxis);
     QCOMPARE(extracted.metadata.annotations.size(), 1);
     QCOMPARE(extracted.metadata.annotations.first().bytes, QByteArrayLiteral("kept"));
-    for (int change = 0; change < 13; ++change) {
+    for (int change = 0; change < 14; ++change) {
         auto files = valid;
         QDomDocument xml;
         QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
@@ -417,6 +441,7 @@ void TestKraRasterCodec::imageMetadataIsCompleteOrRejectedBeforeRasterImport()
         if (change == 10) background.setAttribute(QStringLiteral("ColorData"), QStringLiteral("AA=="));
         if (change == 11) image.appendChild(background.cloneNode(true));
         if (change == 12) firstLayer.setAttribute(QStringLiteral("intimeline"), QStringLiteral("2"));
+        if (change == 13) image.appendChild(image.firstChildElement(QStringLiteral("MirrorAxis")).cloneNode(true));
         files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
         const auto rejected = Kra::RasterCodec::readImageMetadata(files.value(QStringLiteral("maindoc.xml")), files);
         QCOMPARE(rejected.code, Kra::Status::InvalidData);
@@ -427,6 +452,18 @@ void TestKraRasterCodec::imageMetadataIsCompleteOrRejectedBeforeRasterImport()
         QCOMPARE(imported.code, Kra::Status::InvalidData);
         QVERIFY(imported.document.image.layers.isEmpty());
     }
+    auto cleared = extracted.metadata;
+    cleared.mirrorAxis.clear();
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, cleared).code, Kra::Status::Success);
+    const auto withoutAxes = Kra::RasterCodec::readImageMetadata(source.description, source.files);
+    QCOMPARE(withoutAxes.code, Kra::Status::Success);
+    QVERIFY(withoutAxes.metadata.mirrorAxis.isEmpty());
+    const auto unchanged = source;
+    cleared.mirrorAxis = QByteArrayLiteral("<invalid/>");
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, cleared).code, Kra::Status::InvalidData);
+    QCOMPARE(source.description, unchanged.description);
+    QCOMPARE(source.files, unchanged.files);
+
 }
 
 void TestKraRasterCodec::emptyDocumentsRequireAnExplicitLayerContainer()

@@ -40,6 +40,7 @@
 #include <KoColor.h>
 
 #include <document/KisDocument.h>
+#include <canvas/KisMirrorAxisConfig.h>
 #include <kis_image.h>
 #include <kis_paint_device.h>
 #include <kis_annotation.h>
@@ -569,6 +570,16 @@ void TestDocument::testGpuSaveAndExportPreserveHistoryAndFileIdentity()
     image->setResolution(300.0 / 72, 150.0 / 72);
     image->addAnnotation(new KisAnnotation(QStringLiteral("project-data"), QStringLiteral("Annotation description"), QByteArrayLiteral("preserved annotation")));
     document->setCurrentImage(image);
+    KisMirrorAxisConfig mirror;
+    mirror.setAxisPosition(QPointF(21.25, 13.5));
+    mirror.setMirrorHorizontal(true);
+    mirror.setMirrorVertical(true);
+    mirror.setLockHorizontal(true);
+    mirror.setHideVerticalDecoration(true);
+    mirror.setHandleSize(19.5f);
+    mirror.setHorizontalHandlePosition(8.25f);
+    mirror.setVerticalHandlePosition(-4.5f);
+    document->setMirrorAxisConfig(mirror);
     document->documentInfo()->setAboutInfo(QStringLiteral("title"), QStringLiteral("保存契約"));
     document->setFileBatchMode(true);
     QTemporaryDir directory;
@@ -600,6 +611,9 @@ void TestDocument::testGpuSaveAndExportPreserveHistoryAndFileIdentity()
     const auto imageDescription = description.documentElement().firstChildElement(QStringLiteral("IMAGE"));
     QCOMPARE(imageDescription.attribute(QStringLiteral("x-res")).toDouble(), 300.0);
     QCOMPARE(imageDescription.attribute(QStringLiteral("y-res")).toDouble(), 150.0);
+    KisMirrorAxisConfig loadedMirror;
+    QVERIFY(loadedMirror.loadFromXml(imageDescription.firstChildElement(QStringLiteral("MirrorAxis"))));
+    QVERIFY(loadedMirror == mirror);
     const auto folder = imageDescription.attribute(QStringLiteral("name"));
     QCOMPARE(loaded.document.files.value(folder + QStringLiteral("/annotations/icc")), image->profile()->rawData());
     QCOMPARE(loaded.document.files.value(folder + QStringLiteral("/annotations/project-data")), QByteArrayLiteral("preserved annotation"));
@@ -610,6 +624,7 @@ void TestDocument::testGpuSaveAndExportPreserveHistoryAndFileIdentity()
     const auto current = owner->operations().snapshot();
     Document publicDocument(document.data(), false);
     InfoObject settings;
+    document->setMirrorAxisConfig(KisMirrorAxisConfig());
     QVERIFY(publicDocument.exportImage(exportedPath, settings));
     QCOMPARE(document->path(), savedPath);
     QVERIFY(document->isModified());
@@ -621,6 +636,10 @@ void TestDocument::testGpuSaveAndExportPreserveHistoryAndFileIdentity()
     QVERIFY(exported.open(QIODevice::ReadOnly));
     const auto exportedValue = Kra::RasterCodec::read(exported);
     QVERIFY2(exportedValue.code == Kra::Status::Success, qPrintable(exportedValue.diagnostic));
+    QDomDocument exportedDescription;
+    QVERIFY(exportedDescription.setContent(exportedValue.document.description));
+    QVERIFY(exportedDescription.documentElement().firstChildElement(QStringLiteral("IMAGE"))
+        .firstChildElement(QStringLiteral("MirrorAxis")).isNull());
     QCOMPARE(exportedValue.document.image.layers.first().tiles.first().rgba.mid((5 * 256 + 5) * 4, 4),
              QByteArray::fromHex("445566ff"));
     QVERIFY(!document->saveAs(directory.filePath(QStringLiteral("missing/failed.kra")), KisDocument::nativeFormatMimeType(), false));

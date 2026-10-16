@@ -922,6 +922,11 @@ bool KisDocument::exportGpuDocument(const KritaUtils::ExportFileJob &job, bool n
         auto info = createDomDocument(QStringLiteral("document-info"), QStringLiteral("document-info"), QStringLiteral("1.1"));
         metadata.documentInfo = documentInfo()->save(info, isAutosaving(), isModified()).toByteArray();
         metadata.iccProfile = d->image->profile()->rawData();
+        if (!d->mirrorAxisConfig.isDefault()) {
+            QDomDocument axes;
+            axes.appendChild(d->mirrorAxisConfig.saveToXml(axes, QStringLiteral("MirrorAxis")));
+            metadata.mirrorAxis = axes.toByteArray();
+        }
         for (auto entry = d->image->beginAnnotations(); entry != d->image->endAnnotations(); ++entry) {
             if (*entry && !(*entry)->type().isEmpty() && (*entry)->type() != QLatin1String("icc"))
                 metadata.annotations.append({(*entry)->type(), (*entry)->description(), (*entry)->annotation()});

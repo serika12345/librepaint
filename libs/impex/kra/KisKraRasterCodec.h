@@ -40,6 +40,8 @@ struct ImageMetadata
     QByteArray documentInfo;
     QByteArray iccProfile;
     QList<Annotation> annotations;
+    /** Serialized MirrorAxis settings; their values remain owned by the UI configuration. */
+    QByteArray mirrorAxis;
 };
 struct Outcome
 {

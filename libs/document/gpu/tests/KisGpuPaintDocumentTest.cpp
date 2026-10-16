@@ -13,6 +13,7 @@
 #include <QDir>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QDomDocument>
 #include <QJsonObject>
 #include <QGuiApplication>
 #include <QImage>
@@ -214,6 +215,22 @@ void KisGpuPaintDocumentTest::sharedExecutionOpenReturnsValidatedMetadataAndKeep
     auto source = std::make_unique<PaintDocument>(*execution, QSize(32, 24));
     Kra::ImageMetadata metadata;
     metadata.resolution = {300, 150};
+    QDomDocument axes;
+    QVERIFY(axes.setContent(QByteArrayLiteral(
+        "<MirrorAxis>"
+        "<mirrorHorizontal type=\"value\" value=\"1\"/>"
+        "<mirrorVertical type=\"value\" value=\"1\"/>"
+        "<lockHorizontal type=\"value\" value=\"1\"/>"
+        "<lockVertical type=\"value\" value=\"0\"/>"
+        "<hideHorizontalDecoration type=\"value\" value=\"0\"/>"
+        "<hideVerticalDecoration type=\"value\" value=\"1\"/>"
+        "<handleSize type=\"value\" value=\"19.5\"/>"
+        "<horizontalHandlePosition type=\"value\" value=\"8.25\"/>"
+        "<verticalHandlePosition type=\"value\" value=\"-4.5\"/>"
+        "<axisPosition type=\"pointf\" x=\"21.25\" y=\"13.5\"/>"
+        "</MirrorAxis>"
+    )));
+    metadata.mirrorAxis = axes.toByteArray();
     metadata.iccProfile = QColorSpace(QColorSpace::SRgb).iccProfile();
     metadata.documentInfo = QByteArrayLiteral("<document-info><title>Imported title</title></document-info>");
     metadata.annotations = {{QStringLiteral("notes"), QStringLiteral("Project notes"), QByteArrayLiteral("note bytes")},
@@ -232,6 +249,7 @@ void KisGpuPaintDocumentTest::sharedExecutionOpenReturnsValidatedMetadataAndKeep
     QCOMPARE(loaded.resolution, metadata.resolution);
     QCOMPARE(loaded.iccProfile, metadata.iccProfile);
     QCOMPARE(loaded.documentInfo, metadata.documentInfo);
+    QCOMPARE(loaded.mirrorAxis, metadata.mirrorAxis);
     QCOMPARE(loaded.annotations.size(), 2);
     QCOMPARE(loaded.annotations[0].type, metadata.annotations[0].type);
     QCOMPARE(loaded.annotations[0].description, metadata.annotations[0].description);
@@ -279,12 +297,13 @@ void KisGpuPaintDocumentTest::adoptedImagesExportWithoutChangingSaveIdentity()
     QCOMPARE(mergedImage(exported).pixelColor(12, 12), QColor(17, 34, 51));
     QVERIFY(image->operations().isModified());
     const auto recovery = document.recoveryData();
-    QList<Kra::ImageMetadata> invalidMetadata(5);
+    QList<Kra::ImageMetadata> invalidMetadata(6);
     invalidMetadata[0].resolution.setX(std::numeric_limits<qreal>::quiet_NaN());
     invalidMetadata[1].documentInfo = QByteArrayLiteral("invalid XML");
     invalidMetadata[2].iccProfile = QByteArrayLiteral("invalid ICC profile");
     invalidMetadata[3].annotations = {{QStringLiteral("../outside"), {}, {}}};
     invalidMetadata[4].annotations = {{QStringLiteral("duplicate"), {}, {}}, {QStringLiteral("duplicate"), {}, {}}};
+    invalidMetadata[5].mirrorAxis = QByteArrayLiteral("<invalid/>");
     for (const auto &metadata : invalidMetadata) {
         QCOMPARE(document.setKraImageMetadata(metadata).code, FileCode::InvalidData);
         QCOMPARE(document.recoveryData(), recovery);
