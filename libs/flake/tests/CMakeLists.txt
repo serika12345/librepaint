@@ -587,6 +587,17 @@ target_include_directories(KoSvgTextEnumConversionContractTest PRIVATE
 target_compile_definitions(KoSvgTextEnumConversionContractTest PRIVATE kritaflake_EXPORTS)
 
 kis_add_test(
+    KoSvgTextDefaultsContractTest.cpp
+    LINK_LIBRARIES
+        kritaflake
+        Qt${QT_MAJOR_VERSION}::Test
+)
+target_include_directories(KoSvgTextDefaultsContractTest PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/..
+    ${CMAKE_CURRENT_BINARY_DIR}/..
+)
+
+kis_add_test(
     KoFFWWSConverterContractTest.cpp
     TEST_NAME KoFFWWSConverterContractTest
     LINK_LIBRARIES

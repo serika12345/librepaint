@@ -167,6 +167,10 @@ macOSは`tdd-macos`、Linuxは`tdd-linux`のCMakeプリセットを使う。
 他OSを所有する作業、リリース前、そのOSでの問題発覚時は該当OSを追加検証する。
 Androidは構築費用が大きいため、この条件に沿って検証する。
 
+`run-test KoSvgTextDefaultsContractTest`は、新しいプロセスの32本の処理スレッドで
+SVG文字のフォント設定を同時に初めて解決する。各処理が完全な既定の字体、太さ、幅、
+寸法と光学寸法設定を取得することを検査する。
+
 ### 外部プラグインのSDKと再ビルド
 
 `nix build .#plugin-sdk-tools`はSDKの生成・再ビルド用コマンドとCMake設定を独立して構築する。
