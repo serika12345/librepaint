@@ -57,6 +57,13 @@ PaintImageSP PaintImage::cloneTo(Execution &destination, bool preserveLayerUuids
     return PaintImageSP(new PaintImage(destination, m_d->document->cloneCurrent(preserveLayerUuids), m_d->limits,
         &destination == &m_d->execution ? m_d->retainedExecution : std::shared_ptr<Execution>{}));
 }
+PaintImageSP PaintImage::cloneLayerPixels(const LayerPixelReferenceSP &pixels) const
+{
+    if (!onThread() || !pixels) return {};
+    auto document = m_d->document->cloneVersion(pixels->version(), false, pixels->layer());
+    if (!document) return {};
+    return PaintImageSP(new PaintImage(m_d->execution, std::move(document), m_d->limits, m_d->retainedExecution));
+}
 ExecutionOutcome PaintImage::lastRequestOutcome() const { return m_d->lastRequest; }
 PixelBytesOutcome PaintImage::readRgbaPixels(LayerId layer, QRect region, qsizetype maximumBytes) const
 {

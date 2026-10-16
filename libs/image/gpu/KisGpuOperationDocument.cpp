@@ -31,9 +31,29 @@ OperationDocument::OperationDocument(QSize size, Limits limits)
     : OperationDocument(RasterImage{size, {{QStringLiteral("Paint Layer 1"), true, {}, {}}}, 0}, limits) {}
 
 std::unique_ptr<OperationDocument> OperationDocument::cloneCurrent(bool preserveLayerUuids) const
+{ return cloneVersion(snapshot(), preserveLayerUuids); }
+
+std::unique_ptr<OperationDocument> OperationDocument::cloneVersion(const Snapshot &source, bool preserveLayerUuids,
+                                                               LayerId onlyLayer) const
 {
-    auto result = std::make_unique<OperationDocument>(RasterImage{snapshot()->size, {}, 0}, m_limits);
-    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    if (!source || source->documentId() != m_identity) return {};
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*source));
+    if (onlyLayer) {
+        auto found = std::find_if(source->layers.cbegin(), source->layers.cend(),
+                                 [onlyLayer](const Layer &layer) { return layer.id == onlyLayer; });
+        if (found == source->layers.cend()) return {};
+        version->layers = {*found};
+        version->activeLayer = onlyLayer;
+        version->selectedLayers = {onlyLayer};
+        version->projectionBackground = {};
+        version->sampleCount = 0;
+        version->rasterBytes = 0;
+        for (const auto &operation : found->operations) {
+            version->sampleCount += operationSamples(operation);
+            version->rasterBytes += operationRasterBytes(operation);
+        }
+    }
+    auto result = std::make_unique<OperationDocument>(RasterImage{source->size, {}, 0}, m_limits);
     version->m_document = result->m_identity;
     for (auto &layer : version->layers) {
         if (!preserveLayerUuids) layer.uuid = QUuid::createUuid();

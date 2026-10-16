@@ -356,6 +356,8 @@ private:
         bool duplicatedLayers = false;
     };
     std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
+    std::unique_ptr<OperationDocument> cloneVersion(const Snapshot &source, bool preserveLayerUuids,
+                                                  LayerId onlyLayer = 0) const;
     struct VersionPixelWrite
     {
         Snapshot before;

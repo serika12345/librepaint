@@ -236,6 +236,27 @@ public:
 
     void cloneAllDataObjects(Private *rhs, bool copyFrames)
     {
+        if (rhs->gpuImage) {
+            auto image = rhs->gpuPixels ? rhs->gpuImage->cloneLayerPixels(rhs->gpuPixels) : rhs->gpuImage->clone();
+            if (!image) throw std::invalid_argument("GPU pixel copies require a retained version on the owning thread");
+            const auto pixels = rhs->gpuPixels ? image->retainLayerPixels(rhs->gpuLayerId())
+                                              : LibrePaint::Image::Gpu::LayerPixelReferenceSP{};
+            gpuColorSpace = rhs->gpuColorSpace;
+            gpuImage = std::move(image);
+            gpuPixels = pixels;
+            gpuBoundsSequence = -1;
+            gpuSequenceKnown = false;
+            gpuSequenceOperations.clear();
+            contentChannel.reset();
+            framesInterface.reset();
+            m_frames.clear();
+            m_data.clear();
+            m_lodData.reset();
+            m_externalFrameData.reset();
+            basicStrategy.reset();
+            wrappedStrategy.reset();
+            return;
+        }
 
         m_lodData.reset();
         m_externalFrameData.reset();
@@ -1199,8 +1220,11 @@ KisPaintDevice::KisPaintDevice(const KisPaintDevice& rhs, KritaUtils::DeviceCopy
     , KisShared()
     , m_d(new Private(this))
 {
-    if (this != &rhs) {
+    try {
         makeFullCopyFrom(rhs, copyMode, newParentNode);
+    } catch (...) {
+        delete m_d;
+        throw;
     }
 }
 

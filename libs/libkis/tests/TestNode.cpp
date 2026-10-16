@@ -457,6 +457,86 @@ void TestNode::testPixelCopiesAndNodesOutliveTheImageOwner()
     QCOMPARE(retained, before);
 }
 
+void TestNode::testDetachedLayerCopiesPreserveIndependentPixels_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("duplicate");
+    QTest::addColumn<bool>("removed");
+    QTest::newRow("ordinary-clone") << false << false << false;
+    QTest::newRow("ordinary-duplicate") << false << true << false;
+    QTest::newRow("gpu-clone") << true << false << false;
+    QTest::newRow("gpu-duplicate") << true << true << false;
+    QTest::newRow("gpu-removed-clone") << true << false << true;
+    QTest::newRow("gpu-removed-duplicate") << true << true << true;
+}
+
+void TestNode::testDetachedLayerCopiesPreserveIndependentPixels()
+{
+    QFETCH(bool, gpu);
+    QFETCH(bool, duplicate);
+    QFETCH(bool, removed);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    Gpu::PaintImageSP owner;
+    KisImageSP image;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        owner = Gpu::PaintImageSP::create(execution, QSize(64, 32));
+        image = KisImage::fromGpuImage(owner, QStringLiteral("Layer copy"));
+    } else {
+        image = new KisImage(nullptr, 64, 32, KoColorSpaceRegistry::instance()->rgb8(), "Layer copy");
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Source"), 173));
+    }
+    auto layer = image->root()->firstChild();
+    NodeSP source(Node::createNode(image, layer));
+    source->setName(QStringLiteral("Source"));
+    source->setOpacity(173);
+    source->setVisible(false);
+    source->setAlphaLocked(true);
+    const auto before = QByteArray::fromHex("197fafe00000ffff120a2700ff000080");
+    const auto copiedEdit = QByteArray::fromHex("010203ff");
+    const auto sourceEdit = QByteArray::fromHex("ffeedd80");
+    QVERIFY(source->setPixelData(before, -1, 3, 2, 2));
+    if (removed) QCOMPARE(owner->removeLayer(owner->operations().activeLayer()), Gpu::Result::Success);
+    const auto version = owner ? owner->operations().snapshot() : Gpu::Snapshot();
+    const auto history = owner ? owner->operations().undoCount() : 0;
+    const auto childCount = image->root()->childCount();
+    NodeSP copy;
+    try {
+        copy.reset(duplicate ? source->duplicate() : source->clone());
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    QVERIFY(copy);
+    QVERIFY(!copy->parentNode());
+    QCOMPARE(image->root()->childCount(), childCount);
+    QVERIFY(copy->uniqueId() != source->uniqueId());
+    QCOMPARE(copy->name(), source->name());
+    QCOMPARE(copy->opacity(), 173);
+    QVERIFY(!copy->visible());
+    QVERIFY(copy->alphaLocked());
+    QCOMPARE(copy->pixelData(-1, 3, 2, 2), before);
+    if (owner) {
+        QCOMPARE(owner->operations().snapshot(), version);
+        QCOMPARE(owner->operations().undoCount(), history);
+    }
+    QVERIFY(copy->setPixelData(copiedEdit, -1, 3, 1, 1));
+    QCOMPARE(source->pixelData(-1, 3, 2, 2), before);
+    QVERIFY(source->setPixelData(sourceEdit, 0, 4, 1, 1));
+    const auto expected = copiedEdit + before.mid(4);
+    QCOMPARE(copy->pixelData(-1, 3, 2, 2), expected);
+    copy->setName(QStringLiteral("Independent"));
+    QCOMPARE(source->name(), QStringLiteral("Source"));
+    source.clear();
+    layer.clear();
+    image.clear();
+    owner.clear();
+    QCOMPARE(copy->pixelData(-1, 3, 2, 2), expected);
+    QVERIFY(copy->setPixelData(sourceEdit, -1, 3, 1, 1));
+    QCOMPARE(copy->pixelData(-1, 3, 1, 1), sourceEdit);
+}
+
 void TestNode::testLayerAndDocumentProjectionsRemainDistinct()
 {
     QScopedPointer<KisDocument> owner(KisPart::instance()->createDocument());

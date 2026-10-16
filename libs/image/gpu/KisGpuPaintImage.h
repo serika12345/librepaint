@@ -69,6 +69,13 @@ public:
     QSharedPointer<PaintImage> cloneTo(Execution &destination, bool preserveLayerUuids = false) const;
     /** Uses the destination image's execution lifetime, including shared ownership. */
     QSharedPointer<PaintImage> cloneTo(const PaintImage &destination, bool preserveLayerUuids = false) const;
+    /** Independent editable copy of retained layer pixels on this execution.
+     * Shares immutable input and compressed blocks, with fresh operation identity
+     * and empty saved history. Removed layers use their last retained version.
+     * Returns null for foreign, unavailable or off-thread references; attachment
+     * capacity throws std::length_error.
+     */
+    QSharedPointer<PaintImage> cloneLayerPixels(const LayerPixelReferenceSP &pixels) const;
     ExecutionOutcome lastRequestOutcome() const;
     /** Synchronous canonical pixels from the current committed image version. */
     PixelBytesOutcome readRgbaPixels(LayerId layer, QRect region, qsizetype maximumBytes) const;
