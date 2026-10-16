@@ -21,6 +21,7 @@ private Q_SLOTS:
     void testProjectionFilterSurvivesRemovalDuringARequest();
     void testGpuImagePublishesLayersProjectionAndSharedLifetime();
     void testGpuLayerReferencesSurviveHistoryAndReleaseDiscardedBranches();
+    void testGpuPaintChannelFlagsPreserveProtectedPixelsAndFrozenHistory();
     void testRetainedGpuLayerPixelsOutliveTheImageAndDiscardedHistory();
     void testGpuImageNotificationLifetime_data();
     void testGpuImageNotificationLifetime();

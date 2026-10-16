@@ -13,6 +13,10 @@
 
 #include <kis_icon.h>
 #include <KoColorSpace.h>
+#include <KoChannelInfo.h>
+#include <stdexcept>
+#include <string>
+#include "gpu/KisGpuPaintImage.h"
 #include <KoCompositeOpRegistry.h>
 #include <KoProperties.h>
 #include <QtGlobal>
@@ -244,7 +248,30 @@ void KisPaintLayer::accept(KisProcessingVisitor &visitor, KisUndoAdapter *undoAd
 void KisPaintLayer::setChannelLockFlags(const QBitArray& channelFlags)
 {
     Q_ASSERT(((quint32)channelFlags.count() == colorSpace()->channelCount() || channelFlags.isEmpty()));
+    const bool gpu = image() && image()->gpuImage();
+    if (gpu) {
+        if (!channelFlags.isEmpty() && channelFlags.size() != 4)
+            throw std::invalid_argument("GPU paint layers require four channel flags");
+        quint8 mask = 15;
+        if (!channelFlags.isEmpty()) {
+            mask = 0;
+            const auto channels = colorSpace()->channels();
+            for (int i = 0; i < 4; ++i)
+                if (channelFlags.testBit(i)) mask |= 1u << channels[i]->displayPosition();
+        }
+        const auto owner = image()->gpuImage();
+        const auto version = owner->operations().snapshot();
+        for (const auto &layer : version->layers) {
+            if (layer.uuid != uuid()) continue;
+            const auto result = owner->writeLayerChannelMask(layer.id, mask);
+            if (result != LibrePaint::Image::Gpu::Result::Success)
+                throw std::runtime_error("GPU paint channel write failed: " + std::to_string(int(result)));
+            break;
+        }
+    }
+    if (m_d->paintChannelFlags == channelFlags) return;
     m_d->paintChannelFlags = channelFlags;
+    if (gpu) baseNodeChangedCallback();
 }
 
 const QBitArray& KisPaintLayer::channelLockFlags() const
@@ -279,15 +306,13 @@ void KisPaintLayer::setAlphaLocked(bool lock)
     const bool oldAlphaLocked = alphaLocked();
     if (oldAlphaLocked == lock) return;
 
-    if(m_d->paintChannelFlags.isEmpty())
-        m_d->paintChannelFlags = colorSpace()->channelFlags(true, true);
-
-    if(lock)
-        m_d->paintChannelFlags &= colorSpace()->channelFlags(true, false);
-    else
-        m_d->paintChannelFlags |= colorSpace()->channelFlags(false, true);
-
-    baseNodeChangedCallback();
+    QBitArray flags = m_d->paintChannelFlags;
+    if (flags.isEmpty()) flags = colorSpace()->channelFlags(true, true);
+    if (lock) flags &= colorSpace()->channelFlags(true, false);
+    else flags |= colorSpace()->channelFlags(false, true);
+    const bool gpu = image() && image()->gpuImage();
+    setChannelLockFlags(flags);
+    if (!gpu) baseNodeChangedCallback();
 }
 
 bool KisPaintLayer::onionSkinEnabled() const

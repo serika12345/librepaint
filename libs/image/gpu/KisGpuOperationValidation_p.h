@@ -66,7 +66,7 @@ inline bool validSample(const InputSample &sample)
 
 inline bool validBrush(const Brush &brush)
 {
-    return std::isfinite(brush.diameter) && brush.diameter > 0 &&
+    return brush.channelWriteMask <= 15 && std::isfinite(brush.diameter) && brush.diameter > 0 &&
         brush.diameter <= OperationDocument::CoordinateLimit &&
         std::isfinite(brush.spacing) && brush.spacing > 0 && brush.spacing <= 1;
 }

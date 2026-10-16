@@ -24,6 +24,7 @@ KUndo2MagicString historyLabel(HistoryAction action)
     case HistoryAction::ChangeOpacity: return kundo2_i18n("Change layer opacity");
     case HistoryAction::ChangeVisibility: return kundo2_i18n("Change layer visibility");
     case HistoryAction::ChangeLock: return kundo2_i18n("Change layer lock");
+    case HistoryAction::ChangeChannelLock: return kundo2_i18n("Change layer channel protection");
     case HistoryAction::ChangeTimelinePin: return kundo2_i18n("Change timeline pin");
     case HistoryAction::PaintStroke: return kundo2_i18n("Paint stroke");
     case HistoryAction::DrawLine: return kundo2_i18n("Draw line");

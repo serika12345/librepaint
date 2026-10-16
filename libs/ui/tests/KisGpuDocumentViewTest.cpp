@@ -47,6 +47,7 @@
 #include <kis_image.h>
 #include <kis_node.h>
 #include <kis_paint_device.h>
+#include <kis_paint_layer.h>
 #include <nodes/kis_node_manager.h>
 #include <nodes/kis_node_filter_proxy_model.h>
 #include <kis_canvas2.h>
@@ -778,16 +779,20 @@ void KisGpuDocumentViewTest::layerPanelEditsUseOneDocumentHistory_data()
 {
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<bool>("locked");
-    QTest::newRow("ordinary") << false << false;
-    QTest::newRow("gpu") << true << false;
-    QTest::newRow("ordinary-lock") << false << true;
-    QTest::newRow("gpu-lock") << true << true;
+    QTest::addColumn<bool>("alphaLocked");
+    QTest::newRow("ordinary") << false << false << false;
+    QTest::newRow("gpu") << true << false << false;
+    QTest::newRow("ordinary-lock") << false << true << false;
+    QTest::newRow("gpu-lock") << true << true << false;
+    QTest::newRow("ordinary-alpha-lock") << false << false << true;
+    QTest::newRow("gpu-alpha-lock") << true << false << true;
 }
 
 void KisGpuDocumentViewTest::layerPanelEditsUseOneDocumentHistory()
 {
     QFETCH(bool, gpu);
     QFETCH(bool, locked);
+    QFETCH(bool, alphaLocked);
     std::shared_ptr<LibrePaint::Image::Gpu::Execution> execution;
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     const auto cs = KoColorSpaceRegistry::instance()->rgb8();
@@ -861,10 +866,14 @@ void KisGpuDocumentViewTest::layerPanelEditsUseOneDocumentHistory()
     QCOMPARE(pixel, QByteArray::fromHex("0000ff80"));
     QCOMPARE(manager->activeNode(), layer);
     const auto toggle = [&] {
-        if (locked) manager->toggleLock();
+        if (alphaLocked) manager->toggleAlphaLock();
+        else if (locked) manager->toggleLock();
         else manager->toggleVisibility();
     };
-    const auto propertySet = [&] { return locked ? layer->userLocked() : !layer->visible(); };
+    const auto propertySet = [&] {
+        return alphaLocked ? qobject_cast<const KisPaintLayer*>(layer.data())->alphaLocked() :
+                             locked ? layer->userLocked() : !layer->visible();
+    };
     try {
         toggle();
     } catch (const std::exception &error) {
@@ -874,7 +883,7 @@ void KisGpuDocumentViewTest::layerPanelEditsUseOneDocumentHistory()
     QVERIFY(propertySet());
     QCOMPARE(lifetime->undoStack()->count(), 3);
     image->projection()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 5, 5, 1, 1);
-    QCOMPARE(pixel, locked ? QByteArray::fromHex("0000ff80") : QByteArray(4, '\0'));
+    QCOMPARE(pixel, locked || alphaLocked ? QByteArray::fromHex("0000ff80") : QByteArray(4, '\0'));
     lifetime->undoStack()->undo();
     image->waitForDone();
     QVERIFY(!propertySet());
@@ -1013,12 +1022,14 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QTest::addColumn<bool>("hideDuringStroke");
     QTest::addColumn<bool>("selectDuringStroke");
     QTest::addColumn<bool>("alphaLock");
-    QTest::newRow("paint-and-cancel") << false << false << false << false << false;
-    QTest::newRow("input-limit") << true << false << false << false << false;
-    QTest::newRow("close-on-input-limit") << true << true << false << false << false;
-    QTest::newRow("hide-during-stroke") << false << false << true << false << false;
-    QTest::newRow("select-during-stroke") << false << false << false << true << false;
-    QTest::newRow("alpha-lock") << false << false << false << false << true;
+    QTest::addColumn<bool>("layerAlphaLock");
+    QTest::newRow("paint-and-cancel") << false << false << false << false << false << false;
+    QTest::newRow("input-limit") << true << false << false << false << false << false;
+    QTest::newRow("close-on-input-limit") << true << true << false << false << false << false;
+    QTest::newRow("hide-during-stroke") << false << false << true << false << false << false;
+    QTest::newRow("select-during-stroke") << false << false << false << true << false << false;
+    QTest::newRow("alpha-lock") << false << false << false << false << true << false;
+    QTest::newRow("layer-alpha-lock") << false << false << false << false << true << true;
 }
 
 void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelled()
@@ -1028,6 +1039,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QFETCH(bool, hideDuringStroke);
     QFETCH(bool, selectDuringStroke);
     QFETCH(bool, alphaLock);
+    QFETCH(bool, layerAlphaLock);
     namespace Gpu = LibrePaint::Image::Gpu;
     QString diagnostic;
     const auto device = Gpu::Device::createNative(diagnostic);
@@ -1042,6 +1054,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
                                                 QByteArray::fromHex("dd112c80")), Gpu::Result::Success);
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("GPU freehand input")));
+    if (layerAlphaLock) qobject_cast<KisPaintLayer*>(document->image()->root()->firstChild().data())->setAlphaLocked(true);
     std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
     window->resize(800, 600);
     auto *view = window->newView(document.get());
@@ -1077,7 +1090,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     resources->setPaintOpPreset(m_preset);
     resources->setSize(8);
     resources->setOpacity(1);
-    resources->setGlobalAlphaLock(alphaLock);
+    resources->setGlobalAlphaLock(alphaLock && !layerAlphaLock);
     resources->setEraserMode(false);
     resources->setCurrentCompositeOp(QStringLiteral("normal"));
     resources->setFGColor(KoColor(QColor(17, 129, 241), KoColorSpaceRegistry::instance()->rgb8()));
@@ -1240,7 +1253,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QCOMPARE(owner->operations().snapshot(), painted);
 
     resources->setSize(8);
-    resources->setGlobalAlphaLock(alphaLock);
+    resources->setGlobalAlphaLock(alphaLock && !layerAlphaLock);
     resources->setEraserMode(true);
     last = enterAt({40, 40});
     pressed = true;
@@ -1252,7 +1265,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     pressed = false;
     QCOMPARE(owner->operations().undoCount(), 2);
     QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(40, 40, 1, 1), 4).bytes,
-             QByteArray::fromHex("1181f100"));
+             layerAlphaLock ? QByteArray::fromHex("1181f180") : QByteArray::fromHex("1181f100"));
     documentLifetime->undoStack()->undo();
     QCOMPARE(owner->operations().snapshot(), painted);
 
@@ -1289,6 +1302,24 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QVERIFY(documentLifetime->isModified());
     documentLifetime->undoStack()->redo();
     QVERIFY(!documentLifetime->isModified());
+    if (layerAlphaLock) {
+        QFile savedFile(path);
+        QVERIFY(savedFile.open(QIODevice::ReadOnly));
+        const auto reopened = LibrePaint::ImportExport::Kra::RasterCodec::read(savedFile);
+        QVERIFY2(reopened.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(reopened.diagnostic));
+        QCOMPARE(reopened.document.image.layers.first().channelWriteMask, quint8(7));
+        const auto imported = Gpu::PaintImageSP::create(execution, reopened.document.image);
+        const auto image = KisImage::fromGpuImage(imported, QStringLiteral("Protected layer reopened"));
+        QVERIFY(qobject_cast<KisPaintLayer*>(image->root()->firstChild().data())->alphaLocked());
+        Gpu::Brush additional;
+        additional.rgba = {10, 20, 30, 255};
+        additional.diameter = 8;
+        const auto stroke = imported->beginStroke(imported->operations().activeLayer(), additional, 0);
+        QCOMPARE(imported->appendSamples(stroke, {{{40, 40}, 1}}), Gpu::Result::Success);
+        QCOMPARE(imported->commitStroke(stroke), Gpu::Result::Success);
+        QCOMPARE(imported->readRgbaPixels(imported->operations().activeLayer(), QRect(40, 40, 1, 1), 4).bytes,
+                 QByteArray::fromHex("0a141e80"));
+    }
 }
 
 void KisGpuDocumentViewTest::paintingBackendChangesRebindTheCanvas_data()

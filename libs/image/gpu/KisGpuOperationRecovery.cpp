@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 12;
+constexpr quint16 FormatVersion = 13;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -106,7 +106,7 @@ QByteArray OperationDocument::recoveryData() const
             const auto &operation = **paint;
             for (const auto component : operation.brush.rgba) stream << component;
             stream << operation.brush.diameter << operation.brush.spacing << operation.brush.opacity
-                   << quint8(quint8(operation.brush.erase) | (quint8(operation.brush.alphaLocked) << 1)) << operation.randomSeed << quint8(operation.shape.kind)
+                   << quint8(quint8(operation.brush.erase) | (quint8(operation.brush.alphaLocked) << 1) | ((15u ^ operation.brush.channelWriteMask) << 2)) << operation.randomSeed << quint8(operation.shape.kind)
                    << operation.shape.first.x() << operation.shape.first.y()
                    << operation.shape.second.x() << operation.shape.second.y() << operation.shape.rotation;
             if (operation.shape.kind == ShapeKind::RoundedRectangle)
@@ -143,7 +143,7 @@ QByteArray OperationDocument::recoveryData() const
             stream.writeRawData(name.constData(), int(name.size()));
             stream << quint8(layer.visible) << layer.uuid;
             for (const auto component : layer.defaultPixel) stream << component;
-            stream << layer.opacity << quint8(layer.userLocked) << quint8(layer.pinnedToTimeline);
+            stream << layer.opacity << quint8(layer.userLocked) << quint8(quint8(layer.pinnedToTimeline) | ((15u ^ layer.channelWriteMask) << 1));
             stream << quint32(layer.operations.size());
             if (!withinLimit() || layer.operations.size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 4) return {};
             for (const auto &operation : layer.operations) stream << indices.value(operationPointer(operation));
@@ -159,7 +159,7 @@ QByteArray OperationDocument::recoveryData() const
                     stream << quint32(name.size());
                     stream.writeRawData(name.constData(), int(name.size()));
                 }
-            } else if (change.property == LayerProperty::Opacity) {
+            } else if (change.property == LayerProperty::Opacity || change.property == LayerProperty::ChannelMask) {
                 stream << quint8(change.before.toUInt()) << quint8(change.after.toUInt());
             } else {
                 stream << quint8(change.before.toBool()) << quint8(change.after.toBool());
@@ -272,10 +272,11 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         stream >> sampleCount;
         operation->brush.erase = brushFlags & 1;
         operation->brush.alphaLocked = brushFlags & 2;
+        operation->brush.channelWriteMask = format >= 13 ? quint8(15u ^ (brushFlags >> 2)) : quint8(15);
         operation->shape.kind = static_cast<ShapeKind>(shape);
         operation->shape.first = {x1, y1};
         operation->shape.second = {x2, y2};
-        if (brushFlags > (format < 12 ? 1 : 3) || !validBrush(operation->brush) || !validShape(operation->shape) ||
+        if (brushFlags > (format < 12 ? 1 : format < 13 ? 3 : 63) || !validBrush(operation->brush) || !validShape(operation->shape) ||
             !validShapeSampleCount(operation->shape, sampleCount) ||
             (sampleCount == 0) != (version == 0) || !readableCount(stream, sampleCount, m_limits.samplesPerStroke, 56)) return Result::InvalidRecovery;
         if (quint64(retainedSamples) + sampleCount > retainedSampleLimit) return Result::CapacityExceeded;
@@ -345,7 +346,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
             for (auto &component : layer.defaultPixel) stream >> component;
             stream >> layer.opacity >> locked >> pinned;
             stream >> count;
-            if (visible > 1 || locked > 1 || pinned > 1 || layer.uuid.isNull() ||
+            if (visible > 1 || locked > 1 || pinned > (format < 13 ? 1 : 31) || layer.uuid.isNull() ||
                 (layerIdentities.contains(layer.id) && layerIdentities.value(layer.id) != layer.uuid) ||
                 (identityOwners.contains(layer.uuid) && identityOwners.value(layer.uuid) != layer.id) ||
                 !readableCount(stream, count, operationCount, 4)) return Result::InvalidRecovery;
@@ -353,7 +354,8 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
             identityOwners.insert(layer.uuid, layer.id);
             layer.visible = visible;
             layer.userLocked = locked;
-            layer.pinnedToTimeline = pinned;
+            layer.pinnedToTimeline = pinned & 1;
+            layer.channelWriteMask = format >= 13 ? quint8(15u ^ (pinned >> 1)) : quint8(15);
             quint64 previousOperation = 0;
             for (quint32 k = 0; k < count; ++k) {
                 quint32 index = NoOperation;
@@ -378,7 +380,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         PropertyChange change;
         quint8 property = 0;
         stream >> property;
-        if (property > quint8(LayerProperty::PinnedToTimeline)) return Result::InvalidRecovery;
+        if (property > quint8(format < 13 ? LayerProperty::PinnedToTimeline : LayerProperty::ChannelMask)) return Result::InvalidRecovery;
         change.property = LayerProperty(property);
         if (change.property != LayerProperty::None) {
             stream >> change.layer;
@@ -400,7 +402,8 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
             } else {
                 quint8 before = 0, after = 0;
                 stream >> before >> after;
-                if (change.property == LayerProperty::Opacity) {
+                if (change.property == LayerProperty::Opacity || change.property == LayerProperty::ChannelMask) {
+                    if (change.property == LayerProperty::ChannelMask && (before > 15 || after > 15)) return Result::InvalidRecovery;
                     change.before = QVariant::fromValue(before);
                     change.after = QVariant::fromValue(after);
                 } else {

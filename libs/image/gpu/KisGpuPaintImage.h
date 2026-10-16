@@ -110,6 +110,8 @@ public:
     Result setLayerOpacity(LayerId layer, quint8 opacity, PropertyHistory history);
     Result setLayerLocked(LayerId layer, bool locked);
     Result setLayerLocked(LayerId layer, bool locked, PropertyHistory history);
+    Result setLayerChannelMask(LayerId layer, quint8 mask, PropertyHistory history = PropertyHistory::Separate);
+    Result writeLayerChannelMask(LayerId layer, quint8 mask);
     Result renameLayer(LayerId layer, const QString &name);
     Result renameLayer(LayerId layer, const QString &name, PropertyHistory history);
     Result moveLayer(LayerId layer, qsizetype index);

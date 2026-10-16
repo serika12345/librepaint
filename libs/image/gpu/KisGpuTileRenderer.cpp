@@ -336,7 +336,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 const auto point = coordinate(tile.key()) * TileSize;
                 job.values = {point.x(), point.y(), document->size.width(), document->size.height(),
                               packedPixel(operation.brush.rgba),
-                              operation.brush.opacity, quint32(operation.brush.erase), step, quint32(tile.value().size()), diameter, 0, quint32(operation.brush.alphaLocked)};
+                              operation.brush.opacity, quint32(operation.brush.erase), step, quint32(tile.value().size()), diameter, 0, quint32(operation.brush.alphaLocked) | (quint32(operation.brush.channelWriteMask) << 1)};
                 if (!preparePaintJob(*d.device, d.layout.get(), job, d.zero.get())) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
                 tiles[tile.key()] = job.output;
                 jobs.push_back(std::move(job));

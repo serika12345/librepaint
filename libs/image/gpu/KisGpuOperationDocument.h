@@ -62,12 +62,14 @@ struct Brush
     quint8 opacity = 255;
     bool erase = false;
     bool alphaLocked = false;
+    /** Writable R, G, B, A channels in bits 0 through 3, frozen at stroke start. */
+    quint8 channelWriteMask = 15;
 
     bool operator==(const Brush &other) const
     {
         return rgba == other.rgba && diameter == other.diameter &&
             spacing == other.spacing && opacity == other.opacity && erase == other.erase &&
-            alphaLocked == other.alphaLocked;
+            alphaLocked == other.alphaLocked && channelWriteMask == other.channelWriteMask;
     }
 };
 
@@ -128,6 +130,7 @@ struct RasterLayer
     quint8 opacity = 255;
     bool userLocked = false;
     bool pinnedToTimeline = false;
+    quint8 channelWriteMask = 15;
 };
 struct RasterImage
 {
@@ -149,6 +152,7 @@ struct Layer
     quint8 opacity = 255;
     bool userLocked = false;
     bool pinnedToTimeline = false;
+    quint8 channelWriteMask = 15;
 };
 
 /** Immutable logical document version; all layers are flat RGBA8/sRGB paint layers. */
@@ -214,7 +218,7 @@ enum class PropertyHistory { Separate, MergeConsecutive };
 enum class HistoryAction {
     None, AddLayer, RemoveLayer, MoveLayer, RenameLayer, ChangeOpacity,
     ChangeVisibility, ChangeLock, ChangeTimelinePin, PaintStroke, DrawLine,
-    DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon
+    DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock
 };
 
 struct Limits
@@ -287,6 +291,8 @@ public:
     Result setLayerOpacity(LayerId layer, quint8 opacity, PropertyHistory history);
     Result setLayerLocked(LayerId layer, bool locked);
     Result setLayerLocked(LayerId layer, bool locked, PropertyHistory history);
+    Result setLayerChannelMask(LayerId layer, quint8 mask, PropertyHistory history = PropertyHistory::Separate);
+    Result writeLayerChannelMask(LayerId layer, quint8 mask);
     /** Direct background writes preserve history, pending input and fixed snapshots. */
     Result writeProjectionBackground(const std::array<quint8, 4> &rgba);
     /** Direct property writes preserve history transitions, pending input and fixed snapshots. */
@@ -326,7 +332,7 @@ public:
 
 private:
     friend class PaintImage;
-    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline };
+    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask };
     struct PropertyChange {
         LayerProperty property = LayerProperty::None;
         LayerId layer = 0;

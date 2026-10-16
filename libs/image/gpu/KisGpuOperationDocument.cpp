@@ -71,6 +71,7 @@ HistoryAction OperationDocument::historyAction(int index) const
     case LayerProperty::Visible: return HistoryAction::ChangeVisibility;
     case LayerProperty::Locked: return HistoryAction::ChangeLock;
     case LayerProperty::PinnedToTimeline: return HistoryAction::ChangeTimelinePin;
+    case LayerProperty::ChannelMask: return HistoryAction::ChangeChannelLock;
     case LayerProperty::None: break;
     }
     const auto &before = m_history[index - 1]->layers;
@@ -212,6 +213,7 @@ Result OperationDocument::restorePropertyChange(const PropertyChange &change, bo
 {
     const auto &value = forward ? change.after : change.before;
     switch (change.property) {
+    case LayerProperty::ChannelMask: return writeLayerChannelMask(change.layer, quint8(value.toUInt()));
     case LayerProperty::None: return Result::Success;
     case LayerProperty::Name: return writeLayerName(change.layer, value.toString());
     case LayerProperty::Opacity: return writeLayerOpacity(change.layer, quint8(value.toUInt()));
@@ -241,6 +243,8 @@ OperationId OperationDocument::beginStroke(LayerId layer, const Brush &brush, qu
     operation->id = {m_identity, ++m_nextOperation};
     operation->layer = layer;
     operation->brush = brush;
+    operation->brush.channelWriteMask &= snapshot()->layers[index].channelWriteMask;
+    operation->brush.alphaLocked |= !(operation->brush.channelWriteMask & 8);
     operation->randomSeed = randomSeed;
     m_edit = operation;
     return operation->id;
@@ -462,6 +466,29 @@ Result OperationDocument::setLayerOpacity(LayerId layer, quint8 opacity, Propert
     version->layers[index].opacity = opacity;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     commitPropertyVersion(version, {LayerProperty::Opacity, layer, QVariant::fromValue(snapshot()->layers[index].opacity), QVariant::fromValue(opacity)}, history);
+    return Result::Success;
+}
+
+Result OperationDocument::writeLayerChannelMask(LayerId layer, quint8 mask)
+{
+    if (mask > 15) return Result::InvalidInput;
+    return writeLayerProperty(layer, LayerProperty::ChannelMask, &Layer::channelWriteMask, mask);
+}
+
+Result OperationDocument::setLayerChannelMask(LayerId layer, quint8 mask, PropertyHistory history)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    if (mask > 15 || (history != PropertyHistory::Separate && history != PropertyHistory::MergeConsecutive)) return Result::InvalidInput;
+    const auto index = layerIndex(layer);
+    if (index < 0) return Result::LayerUnavailable;
+    if (snapshot()->layers[index].channelWriteMask == mask) return Result::Success;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->layers[index].channelWriteMask = mask;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    commitPropertyVersion(version, {LayerProperty::ChannelMask, layer,
+        QVariant::fromValue(snapshot()->layers[index].channelWriteMask), QVariant::fromValue(mask)}, history);
     return Result::Success;
 }
 

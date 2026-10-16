@@ -65,6 +65,7 @@ private Q_SLOTS:
     void propertyRecoveryPreservesRecordedValuesAndRejectsDamagedChanges();
     void failedHistoryMovesPreserveEveryVersionAndCounter();
     void layerOpacityAndLockShareHistoryAndRecovery();
+    void channelProtectionPreservesFrozenSettingsHistoryAndRecovery();
     void inputChunksRetainTheSameOperation();
     void shapePreviewCommitsAsOneHistoryEntry();
     void cancelAndRejectedInputPreserveRedo();
@@ -428,6 +429,46 @@ void KisGpuOperationDocumentTest::mergedOpacityResetPreservesSelectionAndDirectW
     QVERIFY(!restored.isModified());
 }
 
+void KisGpuOperationDocumentTest::channelProtectionPreservesFrozenSettingsHistoryAndRecovery()
+{
+    OperationDocument document({64, 64});
+    const auto layer = document.activeLayer();
+    const auto initial = document.snapshot();
+    QCOMPARE(document.setLayerChannelMask(layer, 7, PropertyHistory::MergeConsecutive), Result::Success);
+    QCOMPARE(document.setLayerChannelMask(layer, 1, PropertyHistory::MergeConsecutive), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.historyAction(1), HistoryAction::ChangeChannelLock);
+    QCOMPARE(initial->layers.first().channelWriteMask, quint8(15));
+    QCOMPARE(document.snapshot()->layers.first().channelWriteMask, quint8(1));
+    const auto stroke = document.beginStroke(layer, Brush{}, 7);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+    const auto preview = document.preview();
+    const auto paint = std::get<PaintSnapshot>(preview->layers.first().operations.last());
+    QCOMPARE(paint->brush.channelWriteMask, quint8(1));
+    QVERIFY(paint->brush.alphaLocked);
+    QCOMPARE(document.writeLayerChannelMask(layer, 7), Result::Success);
+    QCOMPARE(preview->layers.first().channelWriteMask, quint8(1));
+    QCOMPARE(document.preview()->layers.first().channelWriteMask, quint8(7));
+    QCOMPARE(std::get<PaintSnapshot>(document.preview()->layers.first().operations.last())->brush, paint->brush);
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(restored.preview()->layers.first().channelWriteMask, quint8(7));
+    QCOMPARE(std::get<PaintSnapshot>(restored.preview()->layers.first().operations.last())->brush, paint->brush);
+    QCOMPARE(document.cancelStroke(stroke), Result::Success);
+    const auto before = document.snapshot();
+    QCOMPARE(document.setLayerChannelMask(layer, 16), Result::InvalidInput);
+    QCOMPARE(document.snapshot(), before);
+    Brush invalid;
+    invalid.channelWriteMask = 16;
+    QVERIFY(document.beginStroke(layer, invalid, 0).isNull());
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().channelWriteMask, quint8(15));
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().channelWriteMask, quint8(1));
+    QCOMPARE(document.setLayerChannelMask(layer, 15, PropertyHistory::MergeConsecutive), Result::Success);
+    QCOMPARE(document.undoCount(), 0);
+}
+
 void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable_data()
 {
     QTest::addColumn<quint8>("format");
@@ -436,6 +477,7 @@ void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable_data()
     QTest::newRow("version-ten") << quint8(10) << false;
     QTest::newRow("version-ten-reset-name") << quint8(10) << true;
     QTest::newRow("version-eleven") << quint8(11) << false;
+    QTest::newRow("version-twelve") << quint8(12) << false;
 }
 
 void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable()

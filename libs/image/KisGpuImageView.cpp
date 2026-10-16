@@ -8,6 +8,7 @@
 #include "kis_paint_device.h"
 #include "gpu/KisGpuPaintImage.h"
 #include <KoColorSpaceRegistry.h>
+#include <KoChannelInfo.h>
 #include <QHash>
 #include <QSet>
 #include <QThread>
@@ -119,6 +120,16 @@ void synchronizeGpuLayerViews(KisImage *view, QHash<QUuid, KisNodeSP> *retainedN
             if (node->opacity() != layer.opacity) node->setOpacity(layer.opacity);
             if (changed()) break;
             if (node->userLocked() != layer.userLocked) node->setUserLocked(layer.userLocked);
+            if (changed()) break;
+            auto *paintLayer = qobject_cast<KisPaintLayer*>(node.data());
+            QBitArray paintFlags;
+            if (layer.channelWriteMask != 15) {
+                const auto channels = paintLayer->colorSpace()->channels();
+                paintFlags.resize(4);
+                for (int channel = 0; channel < 4; ++channel)
+                    paintFlags.setBit(channel, layer.channelWriteMask & (1u << channels[channel]->displayPosition()));
+            }
+            if (paintLayer->channelLockFlags() != paintFlags) paintLayer->setChannelLockFlags(paintFlags);
             if (changed()) break;
             if (node->isPinnedToTimeline() != layer.pinnedToTimeline) node->setPinnedToTimeline(layer.pinnedToTimeline);
             if (changed()) break;

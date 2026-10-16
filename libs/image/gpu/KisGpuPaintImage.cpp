@@ -175,6 +175,10 @@ Result PaintImage::setLayerLocked(LayerId layer, bool locked)
 { return onThread() ? publish(m_d->document->setLayerLocked(layer, locked)) : Result::InvalidInput; }
 Result PaintImage::setLayerLocked(LayerId layer, bool locked, PropertyHistory history)
 { return onThread() ? publish(m_d->document->setLayerLocked(layer, locked, history)) : Result::InvalidInput; }
+Result PaintImage::setLayerChannelMask(LayerId layer, quint8 mask, PropertyHistory history)
+{ return onThread() ? publish(m_d->document->setLayerChannelMask(layer, mask, history)) : Result::InvalidInput; }
+Result PaintImage::writeLayerChannelMask(LayerId layer, quint8 mask)
+{ return onThread() ? requestAfterWrite(m_d->document->writeLayerChannelMask(layer, mask)) : Result::InvalidInput; }
 Result PaintImage::renameLayer(LayerId layer, const QString &name)
 { return onThread() ? publish(m_d->document->renameLayer(layer, name)) : Result::InvalidInput; }
 Result PaintImage::renameLayer(LayerId layer, const QString &name, PropertyHistory history)

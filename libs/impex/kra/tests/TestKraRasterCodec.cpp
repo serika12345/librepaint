@@ -9,6 +9,7 @@
 #include <QDomDocument>
 #include <QDateTime>
 #include <QFile>
+#include <QDir>
 #include <QImage>
 #include <QTest>
 #include <cmath>
@@ -121,6 +122,8 @@ private Q_SLOTS:
     void savedPngResolutionComesFromDocumentMetadata();
     void archiveMetadataIsIndependentOfClockAndHost();
     void layerOpacityAndLockSurviveEditingAndResaving();
+    void channelProtectionSurvivesEditingAndResaving_data();
+    void channelProtectionSurvivesEditingAndResaving();
     void imageMetadataIsCompleteOrRejectedBeforeRasterImport();
     void existingPaintFilesPreservePixelsAndDefaults_data();
     void existingPaintFilesPreservePixelsAndDefaults();
@@ -309,6 +312,65 @@ void TestKraRasterCodec::layerOpacityAndLockSurviveEditingAndResaving()
     QVERIFY(!reopened.document.image.layers[0].userLocked);
     QVERIFY(reopened.document.image.layers[0].pinnedToTimeline);
     QCOMPARE(reopened.document.image.layers[0].tiles.first().rgba, source.image.layers[0].tiles.first().rgba);
+}
+
+void TestKraRasterCodec::channelProtectionSurvivesEditingAndResaving_data()
+{
+    QTest::addColumn<quint8>("mask");
+    QTest::addColumn<QString>("serializedFlags");
+    QTest::newRow("all-writable") << quint8(15) << QString();
+    QTest::newRow("alpha-protected") << quint8(7) << QStringLiteral("1110");
+    QTest::newRow("red-only") << quint8(1) << QStringLiteral("0010");
+    QTest::newRow("alpha-only") << quint8(8) << QStringLiteral("0001");
+    QTest::newRow("all-protected") << quint8(0) << QStringLiteral("0000");
+}
+
+void TestKraRasterCodec::channelProtectionSurvivesEditingAndResaving()
+{
+    QFETCH(quint8, mask);
+    QFETCH(QString, serializedFlags);
+    auto source = document();
+    source.image.layers[0].channelWriteMask = mask;
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto imported = load(bytes);
+    QVERIFY2(imported.code == Kra::Status::Success, qPrintable(imported.diagnostic));
+    QCOMPARE(imported.document.image.layers[0].channelWriteMask, mask);
+    const auto resultDirectory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!resultDirectory.isEmpty()) {
+        QVERIFY(QDir().mkpath(resultDirectory));
+        QFile artifact(QDir(resultDirectory).filePath(QStringLiteral("channel-protection-") +
+                       QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".kra")));
+        QVERIFY(artifact.open(QIODevice::WriteOnly));
+        QCOMPARE(artifact.write(bytes), bytes.size());
+    }
+    QDomDocument xml;
+    QVERIFY(xml.setContent(entries(bytes).value(QStringLiteral("maindoc.xml"))));
+    const auto layers = xml.elementsByTagName(QStringLiteral("layer"));
+    for (int i = 0; i < layers.size(); ++i) {
+        const auto element = layers.item(i).toElement();
+        if (element.attribute(QStringLiteral("uuid")) == source.image.layers[0].uuid.toString())
+            QCOMPARE(element.attribute(QStringLiteral("channellockflags")), serializedFlags);
+    }
+    QByteArray saved;
+    QBuffer destination(&saved);
+    QVERIFY(destination.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(destination, imported.document, merged(source.image.size)).code, Kra::Status::Success);
+    const auto reopened = load(saved);
+    QCOMPARE(reopened.code, Kra::Status::Success);
+    QCOMPARE(reopened.document.image.layers[0].channelWriteMask, mask);
+    QCOMPARE(reopened.document.image.layers[0].tiles.first().rgba, source.image.layers[0].tiles.first().rgba);
+    auto unlocked = reopened.document;
+    unlocked.image.layers[0].channelWriteMask = 15;
+    QByteArray cleared;
+    QBuffer clearedOutput(&cleared);
+    QVERIFY(clearedOutput.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(clearedOutput, unlocked, merged(source.image.size)).code, Kra::Status::Success);
+    const auto clearedDocument = load(cleared);
+    QCOMPARE(clearedDocument.code, Kra::Status::Success);
+    QCOMPARE(clearedDocument.document.image.layers[0].channelWriteMask, quint8(15));
 }
 
 void TestKraRasterCodec::imageMetadataIsCompleteOrRejectedBeforeRasterImport()

@@ -30,7 +30,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     QSet<QUuid> identities;
     for (const auto &source : image.layers) {
         const auto uuid = source.uuid.isNull() ? QUuid::createUuid() : source.uuid;
-        if (identities.contains(uuid) || !Detail::validLayerName(source.name) ||
+        if (identities.contains(uuid) || !Detail::validLayerName(source.name) || source.channelWriteMask > 15 ||
             source.tiles.size() > (limits.rasterBytes - initial->rasterBytes) / RgbaTile::ByteCount) {
             throw std::invalid_argument("invalid raster layer identity, name or pixel capacity");
         }
@@ -43,6 +43,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         layer.opacity = source.opacity;
         layer.userLocked = source.userLocked;
         layer.pinnedToTimeline = source.pinnedToTimeline;
+        layer.channelWriteMask = source.channelWriteMask;
         identities.insert(uuid);
         QSet<QPoint> coordinates;
         auto operation = QSharedPointer<TileWriteOperation>::create();

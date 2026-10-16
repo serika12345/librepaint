@@ -153,10 +153,13 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset)
         element.attribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA")) != QLatin1String("RGBA") ||
         !element.firstChildElement().isNull() || element.hasAttribute(QStringLiteral("keyframes")))
         return unsupported(QStringLiteral("KRA layer requires a flat RGBA8 paint layer with normal compositing"));
-    for (const auto &name : {QStringLiteral("channelflags"), QStringLiteral("channellockflags")}) {
-        const auto flags = element.attribute(name);
-        if (!flags.isEmpty() && flags != QLatin1String("1111")) return unsupported(QStringLiteral("KRA channel flags require all channels"));
-    }
+    const auto projectionFlags = element.attribute(QStringLiteral("channelflags"));
+    if (!projectionFlags.isEmpty() && projectionFlags != QLatin1String("1111"))
+        return unsupported(QStringLiteral("KRA projection channel flags require all channels"));
+    const auto paintFlags = element.attribute(QStringLiteral("channellockflags"));
+    if (!paintFlags.isEmpty() && (paintFlags.size() != 4 ||
+        std::any_of(paintFlags.begin(), paintFlags.end(), [](QChar flag) { return flag != QLatin1Char('0') && flag != QLatin1Char('1'); })))
+        return invalid(QStringLiteral("Invalid KRA paint channel flags"));
     const auto visible = element.attribute(QStringLiteral("visible"));
     int x = 0, y = 0, opacity = 255;
     const auto locked = element.attribute(QStringLiteral("locked"), QStringLiteral("0"));
@@ -444,6 +447,12 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         layer.opacity = quint8(element.attribute(QStringLiteral("opacity"), QStringLiteral("255")).toUInt());
         layer.userLocked = element.attribute(QStringLiteral("locked"), QStringLiteral("0")) == QLatin1String("1");
         layer.pinnedToTimeline = element.attribute(QStringLiteral("intimeline"), QStringLiteral("0")) == QLatin1String("1");
+        const auto paintFlags = element.attribute(QStringLiteral("channellockflags"), QStringLiteral("1111"));
+        if (!paintFlags.isEmpty()) {
+            layer.channelWriteMask = 0;
+            for (int channel = 0; channel < 4; ++channel)
+                if (paintFlags[channel] == QLatin1Char('1')) layer.channelWriteMask |= 1u << (channel == 3 ? 3 : 2 - channel);
+        }
         layer.uuid = element.hasAttribute(QStringLiteral("uuid")) ? QUuid(element.attribute(QStringLiteral("uuid"))) : QUuid::createUuid();
         if (!element.hasAttribute(QStringLiteral("uuid"))) {
             element.setAttribute(QStringLiteral("uuid"), layer.uuid.toString());
@@ -571,6 +580,15 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         element.setAttribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA"));
         element.setAttribute(QStringLiteral("locked"), layer.userLocked ? QStringLiteral("1") : QStringLiteral("0"));
         element.setAttribute(QStringLiteral("intimeline"), layer.pinnedToTimeline ? QStringLiteral("1") : QStringLiteral("0"));
+        if (layer.channelWriteMask > 15) return invalid(QStringLiteral("Invalid KRA paint channel mask"));
+        if (layer.channelWriteMask != 15) {
+            QString paintFlags;
+            for (int channel = 0; channel < 4; ++channel)
+                paintFlags += layer.channelWriteMask & (1u << (channel == 3 ? 3 : 2 - channel)) ? QLatin1Char('1') : QLatin1Char('0');
+            element.setAttribute(QStringLiteral("channellockflags"), paintFlags);
+        } else {
+            element.removeAttribute(QStringLiteral("channellockflags"));
+        }
         layers.appendChild(element);
     }
     for (auto old = original.cbegin(); old != original.cend(); ++old) {

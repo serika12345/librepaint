@@ -15,7 +15,7 @@ struct PaintParameters
 {
     qint32 x, y, width, height;
     quint32 color, opacity, erase, step;
-    quint32 count, diameter, uniformFill = 0, alphaLocked = 0;
+    quint32 count, diameter, uniformFill = 0, paintFlags = 30;
 };
 static_assert(sizeof(PaintParameters) == 48);
 

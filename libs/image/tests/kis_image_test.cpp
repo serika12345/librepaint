@@ -111,6 +111,58 @@ void KisImageTest::testProjectionFilterSurvivesRemovalDuringARequest()
     QVERIFY(!image->currentProjectionUpdatesFilter());
 }
 
+void KisImageTest::testGpuPaintChannelFlagsPreserveProtectedPixelsAndFrozenHistory()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    const auto id = owner->operations().activeLayer();
+    QCOMPARE(owner->writeRgbaPixels(id, QRect(32, 32, 1, 1), QByteArray::fromHex("0a28b480")), Gpu::Result::Success);
+    const auto image = KisImage::fromGpuImage(owner, QStringLiteral("Channel protection"));
+    KisNodeSP node = image->root()->firstChild();
+    auto *layer = qobject_cast<KisPaintLayer*>(node.data());
+    QVERIFY(layer);
+    // The public RGBA8 paint-layer flags use the existing BGRA channel order.
+    QBitArray redOnly(4, false);
+    redOnly.setBit(2);
+    layer->setChannelLockFlags(redOnly);
+    QCOMPARE(layer->channelLockFlags(), redOnly);
+    QVERIFY(layer->alphaLocked());
+    QCOMPARE(owner->operations().snapshot()->layers.first().channelWriteMask, quint8(1));
+    Gpu::Brush brush;
+    brush.rgba = {200, 70, 30, 255};
+    brush.diameter = 8;
+    const auto stroke = owner->beginStroke(id, brush, 7);
+    QCOMPARE(owner->appendSamples(stroke, {{{32, 32}, 1}}), Gpu::Result::Success);
+    QCOMPARE(owner->commitStroke(stroke), Gpu::Result::Success);
+    const auto painted = owner->operations().snapshot();
+    layer->setAlphaLocked(false);
+    QVERIFY(!layer->alphaLocked());
+    QCOMPARE(owner->operations().snapshot()->layers.first().channelWriteMask, quint8(9));
+    QCOMPARE(painted->layers.first().channelWriteMask, quint8(1));
+    QCOMPARE(owner->readRgbaPixels(id, QRect(32, 32, 1, 1), 4).bytes, QByteArray::fromHex("c828b480"));
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QCOMPARE(owner->readRgbaPixels(id, QRect(32, 32, 1, 1), 4).bytes, QByteArray::fromHex("c828b480"));
+    const auto restored = Gpu::PaintImageSP::create(execution, QSize(1, 1));
+    QCOMPARE(restored->restoreRecovery(owner->operations().recoveryData()), Gpu::Result::Success);
+    const auto reopened = KisImage::fromGpuImage(restored, QStringLiteral("Recovered channel protection"));
+    KisNodeSP restoredNode = reopened->root()->firstChild();
+    auto *restoredLayer = qobject_cast<KisPaintLayer*>(restoredNode.data());
+    auto redAndAlpha = redOnly;
+    redAndAlpha.setBit(3);
+    QCOMPARE(restoredLayer->channelLockFlags(), redAndAlpha);
+    brush.rgba = {1, 2, 3, 255};
+    const auto next = restored->beginStroke(restored->operations().activeLayer(), brush, 0);
+    QCOMPARE(restored->appendSamples(next, {{{32, 32}, 1}}), Gpu::Result::Success);
+    QCOMPARE(restored->commitStroke(next), Gpu::Result::Success);
+    QCOMPARE(restored->readRgbaPixels(restored->operations().activeLayer(), QRect(32, 32, 1, 1), 4).bytes,
+             QByteArray::fromHex("0128b4ff"));
+}
+
 void KisImageTest::testRetainedGpuLayerPixelsOutliveTheImageAndDiscardedHistory()
 {
     namespace Gpu = LibrePaint::Image::Gpu;

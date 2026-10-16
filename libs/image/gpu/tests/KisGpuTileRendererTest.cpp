@@ -28,6 +28,8 @@ private Q_SLOTS:
     void partialLayerOpacityComposesOverTransparency_data();
     void partialLayerOpacityComposesOverTransparency();
     void roundBrushProducesRgbaPixelsOnTheGpu();
+    void channelProtectionPreservesPixelsHistoryAndRecovery_data();
+    void channelProtectionPreservesPixelsHistoryAndRecovery();
     void alphaLockPreservesCoverageHistoryAndRecovery_data();
     void alphaLockPreservesCoverageHistoryAndRecovery();
     void inputPartitionsAndPreviewProduceTheSamePixels();
@@ -67,6 +69,65 @@ private:
                               QRect visible, const ProjectedSnapshot &base = {});
     DevicePtr m_device;
 };
+
+void KisGpuTileRendererTest::channelProtectionPreservesPixelsHistoryAndRecovery_data()
+{
+    QTest::addColumn<quint8>("writeMask");
+    QTest::addColumn<quint8>("baseAlpha");
+    QTest::addColumn<bool>("erase");
+    QTest::addColumn<QByteArray>("expected");
+    QTest::newRow("alpha-transparent") << quint8(7) << quint8(0) << false << QByteArray::fromHex("4b328100");
+    QTest::newRow("alpha-translucent") << quint8(7) << quint8(128) << false << QByteArray::fromHex("4b328180");
+    QTest::newRow("protected-erase") << quint8(7) << quint8(128) << true << QByteArray::fromHex("0a28b480");
+    QTest::newRow("red-only") << quint8(1) << quint8(128) << false << QByteArray::fromHex("4b28b480");
+    QTest::newRow("alpha-only") << quint8(8) << quint8(128) << false << QByteArray::fromHex("0a28b4ab");
+    QTest::newRow("green-and-alpha") << quint8(10) << quint8(128) << false << QByteArray::fromHex("0a37b4ab");
+    QTest::newRow("all-protected") << quint8(0) << quint8(255) << false << QByteArray::fromHex("0a28b4ff");
+}
+
+void KisGpuTileRendererTest::channelProtectionPreservesPixelsHistoryAndRecovery()
+{
+    QFETCH(quint8, writeMask);
+    QFETCH(quint8, baseAlpha);
+    QFETCH(bool, erase);
+    QFETCH(QByteArray, expected);
+    QByteArray pixel = QByteArray::fromHex("0a28b400");
+    pixel[3] = char(baseAlpha);
+    RasterImage image;
+    image.size = {64, 64};
+    image.layers = {{QStringLiteral("Protected channels"), true, {},
+                     {{{0, 0}, pixel.repeated(RgbaTile::ByteCount / 4)}}}};
+    OperationDocument document(image);
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.writeLayerChannelMask(layer, writeMask), Result::Success);
+    Brush brush;
+    brush.rgba = {200, 70, 30, 128};
+    brush.diameter = 8;
+    brush.opacity = 173;
+    brush.erase = erase;
+    const auto stroke = document.beginStroke(layer, brush, 7);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+    TileRenderer renderer(m_device);
+    const auto pixels = readTile(render(renderer, document.preview()), layer, {0, 0});
+    QCOMPARE(pixels.mid((32 * RgbaTile::Size + 32) * 4, 4), expected);
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(restored.preview()->layers.first().channelWriteMask, writeMask);
+    QCOMPARE(readTile(render(renderer, restored.preview()), restored.activeLayer(), {0, 0}), pixels);
+    const auto resultDirectory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!resultDirectory.isEmpty()) {
+        QVERIFY(QDir().mkpath(resultDirectory));
+        QFile artifact(QDir(resultDirectory).filePath(QStringLiteral("channel-protection-") +
+                       QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".rgba")));
+        QVERIFY(artifact.open(QIODevice::WriteOnly));
+        QCOMPARE(artifact.write(pixels), pixels.size());
+    }
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}).mid((32 * RgbaTile::Size + 32) * 4, 4), pixel);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), pixels);
+}
 
 void KisGpuTileRendererTest::alphaLockPreservesCoverageHistoryAndRecovery_data()
 {

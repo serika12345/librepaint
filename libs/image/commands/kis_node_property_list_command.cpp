@@ -245,7 +245,8 @@ void KisNodePropertyListCommand::setNodePropertiesAutoUndo(KisNodeSP node, KisIm
         if (properties.isEmpty()) return;
         if (properties.size() == 1 &&
             (properties.contains(KisLayerPropertiesIcons::visible.id()) ||
-             properties.contains(KisLayerPropertiesIcons::locked.id()))) {
+             properties.contains(KisLayerPropertiesIcons::locked.id()) ||
+             properties.contains(KisLayerPropertiesIcons::alphaLocked.id()))) {
             namespace Gpu = LibrePaint::Image::Gpu;
             if (node->image() != image.data())
                 throw std::invalid_argument("GPU layer properties require a node in the current image");
@@ -257,9 +258,18 @@ void KisNodePropertyListCommand::setNodePropertiesAutoUndo(KisNodeSP node, KisIm
             const auto id = *properties.begin();
             for (const auto &property : proplist) {
                 if (property.id != id) continue;
-                const auto result = id == KisLayerPropertiesIcons::visible.id()
-                    ? owner->setLayerVisible(layerId, property.state.toBool(), Gpu::PropertyHistory::MergeConsecutive)
-                    : owner->setLayerLocked(layerId, property.state.toBool(), Gpu::PropertyHistory::MergeConsecutive);
+                Gpu::Result result;
+                if (id == KisLayerPropertiesIcons::visible.id())
+                    result = owner->setLayerVisible(layerId, property.state.toBool(), Gpu::PropertyHistory::MergeConsecutive);
+                else if (id == KisLayerPropertiesIcons::locked.id())
+                    result = owner->setLayerLocked(layerId, property.state.toBool(), Gpu::PropertyHistory::MergeConsecutive);
+                else {
+                    quint8 mask = 15;
+                    for (const auto &layer : owner->operations().snapshot()->layers)
+                        if (layer.id == layerId) { mask = layer.channelWriteMask; break; }
+                    mask = property.state.toBool() ? mask & 7u : mask | 8u;
+                    result = owner->setLayerChannelMask(layerId, mask, Gpu::PropertyHistory::MergeConsecutive);
+                }
                 if (result != Gpu::Result::Success)
                     throw std::runtime_error("GPU layer property edit failed: " + std::to_string(int(result)));
                 return;
