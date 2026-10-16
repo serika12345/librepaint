@@ -1192,6 +1192,7 @@ kis_add_test(KisEllipseToolDocumentTest.cpp ../../../krita/krita.qrc
     ../../../krita/pics/Breeze-light/breeze-light-icons.qrc
     TEST_NAME KisEllipseToolDocumentTest
     TEST_NAME_VAR ellipse_tool_document_test
+    TEST_ARGS drawingPreservesShapeHistoryAndSaving
     LINK_LIBRARIES kritaapplicationui kritainputui kritaimpexkra kritadocumentpainting kritatestsdk)
 add_dependencies(KisEllipseToolDocumentTest
     kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
@@ -1200,13 +1201,20 @@ add_dependencies(KisEllipseToolDocumentTest
 if(NOT IOS)
     add_dependencies(KisEllipseToolDocumentTest kritatextproperties)
 endif()
-set_tests_properties(${ellipse_tool_document_test} PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)
+set(ellipse_tool_solid_test libs-ui-solid-fills-KisEllipseToolDocumentTest)
+add_test(NAME ${ellipse_tool_solid_test}
+    COMMAND KisEllipseToolDocumentTest solidFillsPreserveShapeHistoryAndSaving)
+set(ellipse_tool_ordinary_solid_test libs-ui-ordinary-solid-fills-KisEllipseToolDocumentTest)
+add_test(NAME ${ellipse_tool_ordinary_solid_test}
+    COMMAND KisEllipseToolDocumentTest ordinarySolidFillsPreserveShapeHistoryAndSaving)
+set(ellipse_tool_document_tests ${ellipse_tool_document_test} ${ellipse_tool_solid_test} ${ellipse_tool_ordinary_solid_test})
+set_tests_properties(${ellipse_tool_document_tests} PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set_tests_properties(${ellipse_tool_document_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")
+    set_tests_properties(${ellipse_tool_document_tests} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    set_tests_properties(${ellipse_tool_document_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb" TIMEOUT 300)
+    set_tests_properties(${ellipse_tool_document_tests} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb" TIMEOUT 300)
 elseif(WIN32)
-    set_tests_properties(${ellipse_tool_document_test} PROPERTIES TIMEOUT 300)
+    set_tests_properties(${ellipse_tool_document_tests} PROPERTIES TIMEOUT 300)
 endif()
 
 # Native window input requires exclusive use of the test display.

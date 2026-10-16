@@ -16,7 +16,8 @@ struct PaintParameters
     qint32 x, y, width, height;
     quint32 color, opacity, erase, step;
     quint32 count, diameter, uniformFill = 0, paintFlags = 30;
-    qint32 mirrorX = 0, mirrorY = 0, paddingX = 0, paddingY = 0;
+    qint32 mirrorX = 0, mirrorY = 0;
+    quint32 fillColor = 0, figureFlags = 0;
 };
 static_assert(sizeof(PaintParameters) == 64);
 
@@ -24,6 +25,7 @@ struct PaintJob
 {
     std::shared_ptr<Tile> input, output;
     NativeBuffer samples, parameters;
+    std::shared_ptr<NativeBuffer> fillEdges;
     NativeBindings bindings;
     QList<PaintSegment> geometry;
     PaintParameters values{};

@@ -33,6 +33,8 @@ struct KisFigurePaintingStroke::GpuStroke
     KisNodeSP node;
     Gpu::PaintImageSP owner;
     KisGpuBrushResources resources;
+    KoColor foregroundColor;
+    KoColor backgroundColor;
     KisSelectionSP selection;
     KisFigurePaintingOptions::StrokeStyle strokeStyle;
     KisFigurePaintingOptions::FillStyle fillStyle;
@@ -51,31 +53,31 @@ struct KisFigurePaintingStroke::GpuStroke
 
     void setColor(const KoColor &value)
     {
+        foregroundColor = value;
         const auto color = value.toQColor();
-        resources.brush.rgba = {quint8(color.red()), quint8(color.green()), quint8(color.blue()), quint8(color.alpha())};
+        resources.brush.rgba = {quint8(color.red()), quint8(color.green()), quint8(color.blue()), 255};
     }
 
     void finish()
     {
-        if (fillStyle != KisFigurePaintingOptions::FillStyleNone)
-            resources.diagnostic = QStringLiteral("GPU figure fills require a fill operation.");
+        if (fillStyle == KisFigurePaintingOptions::FillStylePattern)
+            resources.diagnostic = QStringLiteral("GPU pattern fills require a pattern resource operation.");
         if (selection)
             resources.diagnostic = QStringLiteral("GPU figure painting requires selection coverage.");
         if (!resources.diagnostic.isEmpty()) {
             warnKrita << resources.diagnostic;
             return;
         }
-        if (!shape || strokeStyle == KisFigurePaintingOptions::StrokeStyleNone) return;
-        const auto operation = owner->beginStroke(resources.layer, resources.brush, 0);
-        if (operation.isNull()) {
-            warnKrita << "A GPU figure stroke could not be started.";
-            return;
+        if (!shape) return;
+        Gpu::FigureStyle style;
+        style.outline = strokeStyle != KisFigurePaintingOptions::StrokeStyleNone;
+        if (fillStyle != KisFigurePaintingOptions::FillStyleNone) {
+            const auto color = (fillStyle == KisFigurePaintingOptions::FillStyleForegroundColor ?
+                                foregroundColor : backgroundColor).toQColor();
+            style.fill = std::array<quint8, 4>{quint8(color.red()), quint8(color.green()), quint8(color.blue()), 255};
         }
-        auto result = owner->appendSamples(operation, samples);
-        if (result == Gpu::Result::Success) result = owner->updateShape(operation, *shape);
-        if (result == Gpu::Result::Success) result = owner->commitStroke(operation);
+        const auto result = owner->paintFigure(resources.layer, resources.brush, samples, *shape, style, 0);
         if (result != Gpu::Result::Success) {
-            owner->cancelStroke(operation);
             warnKrita << "A GPU figure stroke was rejected:" << int(result);
         }
     }
@@ -100,8 +102,17 @@ KisFigurePaintingStroke::KisFigurePaintingStroke(
         m_gpuStroke->selection = image->globalSelection();
         m_gpuStroke->strokeStyle = strokeStyle;
         m_gpuStroke->fillStyle = fillStyle;
-        if (strokeStyle == KisFigurePaintingOptions::StrokeStyleBackground)
-            m_gpuStroke->setColor(resourceManager->backgroundColor());
+        m_gpuStroke->foregroundColor = resourceManager->foregroundColor();
+        m_gpuStroke->backgroundColor = resourceManager->backgroundColor();
+        if (strokeStyle == KisFigurePaintingOptions::StrokeStyleBackground) {
+            const auto foreground = m_gpuStroke->foregroundColor;
+            m_gpuStroke->setColor(m_gpuStroke->backgroundColor);
+            m_gpuStroke->backgroundColor = foreground;
+            if (fillStyle == KisFigurePaintingOptions::FillStyleForegroundColor)
+                m_gpuStroke->fillStyle = KisFigurePaintingOptions::FillStyleBackgroundColor;
+            else if (fillStyle == KisFigurePaintingOptions::FillStyleBackgroundColor)
+                m_gpuStroke->fillStyle = KisFigurePaintingOptions::FillStyleForegroundColor;
+        }
         return;
     }
     m_strokesFacade = image.data();
@@ -285,7 +296,10 @@ void KisFigurePaintingStroke::setFGColorOverride(const KoColor &color)
 
 void KisFigurePaintingStroke::setBGColorOverride(const KoColor &color)
 {
-    if (m_gpuStroke) return;
+    if (m_gpuStroke) {
+        m_gpuStroke->backgroundColor = color;
+        return;
+    }
     m_resources->setBGColorOverride(color);
 }
 

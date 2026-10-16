@@ -88,6 +88,10 @@ public:
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 seed);
     Result appendSamples(OperationId id, const QList<InputSample> &samples);
     Result updateShape(OperationId id, const Shape &shape);
+    Result updateFigure(OperationId id, const Shape &shape, const FigureStyle &style);
+    /** Complete figure adoption publishes one committed version and one notification. */
+    Result paintFigure(LayerId layer, const Brush &brush, const QList<InputSample> &samples,
+                       const Shape &shape, const FigureStyle &style, quint64 randomSeed);
     Result commitStroke(OperationId id);
     Result cancelStroke(OperationId id);
     Result replaceTiles(LayerId layer, const QList<RgbaTile> &tiles);

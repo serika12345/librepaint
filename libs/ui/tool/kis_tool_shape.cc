@@ -56,13 +56,13 @@
 #include "kis_types.h"
 
 namespace {
-class KisToolGpuOutlineHelper final : public KisToolFreehandHelper
+class KisToolGpuFigureHelper final : public KisToolFreehandHelper
 {
 public:
     using KisToolFreehandHelper::KisToolFreehandHelper;
 
     void paint(KisImageWSP image, KisNodeSP node, const LibrePaint::Image::Gpu::Shape &shape,
-               const QVector<QPointF> &points)
+               const QVector<QPointF> &points, const LibrePaint::Image::Gpu::FigureStyle &style)
     {
         namespace Gpu = LibrePaint::Image::Gpu;
         const auto owner = image->gpuImage();
@@ -77,10 +77,10 @@ public:
             result = owner->appendSamples(operation, vertices);
             if (!isRunning()) return;
         }
-        if (result == Gpu::Result::Success) result = owner->updateShape(operation, shape);
+        if (result == Gpu::Result::Success) result = owner->updateFigure(operation, shape, style);
         if (result != Gpu::Result::Success) {
             cancelPaint();
-            Q_EMIT requestErrorMessage(i18n("The outline could not be drawn on this GPU paint layer."));
+            Q_EMIT requestErrorMessage(i18n("The figure could not be drawn on this GPU paint layer."));
             return;
         }
         endPaint();
@@ -106,8 +106,18 @@ void KisToolShape::paintGpuPolyline(const QVector<QPointF> &points, bool closed,
 void KisToolShape::paintGpuFigure(const LibrePaint::Image::Gpu::Shape &shape, const QVector<QPointF> &points,
                                 const KUndo2MagicString &name)
 {
-    if (strokeStyle() == KisFigurePaintingOptions::StrokeStyleNone) return;
+    if (fillStyle() == KisFigurePaintingOptions::FillStylePattern) {
+        Q_EMIT statusTextChanged(i18n("Pattern fills are not yet supported for this GPU document."));
+        return;
+    }
     auto *source = canvas()->resourceManager();
+    LibrePaint::Image::Gpu::FigureStyle style;
+    style.outline = strokeStyle() != KisFigurePaintingOptions::StrokeStyleNone;
+    if (fillStyle() != KisFigurePaintingOptions::FillStyleNone) {
+        const auto color = (fillStyle() == KisFigurePaintingOptions::FillStyleForegroundColor ?
+                            source->foregroundColor() : source->backgroundColor()).toQColor();
+        style.fill = std::array<quint8, 4>{quint8(color.red()), quint8(color.green()), quint8(color.blue()), 255};
+    }
     KoCanvasResourceProvider resources;
     for (int key : {KoCanvasResource::CurrentPaintOpPreset, KoCanvasResource::CurrentEffectiveCompositeOp,
                     KoCanvasResource::Size, KoCanvasResource::Opacity, KoCanvasResource::MirrorHorizontal,
@@ -117,9 +127,9 @@ void KisToolShape::paintGpuFigure(const LibrePaint::Image::Gpu::Shape &shape, co
     resources.setForegroundColor(strokeStyle() == KisFigurePaintingOptions::StrokeStyleBackground ?
                                  source->backgroundColor() : source->foregroundColor());
     KisPaintingInformationBuilder builder;
-    KisToolGpuOutlineHelper helper(&builder, &resources, name);
+    KisToolGpuFigureHelper helper(&builder, &resources, name);
     connect(&helper, &KisToolFreehandHelper::requestErrorMessage, this, &KoToolBase::statusTextChanged);
-    helper.paint(image(), currentNode(), shape, points);
+    helper.paint(image(), currentNode(), shape, points, style);
 }
 
 

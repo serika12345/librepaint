@@ -13,8 +13,10 @@
 #include <stdexcept>
 
 #include <gpu/KisGpuOperationDocument.h>
+#include "KisGpuLegacyRecoveryFixture_p.h"
 
 using namespace LibrePaint::Image::Gpu;
+using LibrePaint::Image::Gpu::Test::legacyRecovery;
 
 namespace {
 InputSample sample(qreal x, qreal y, qreal pressure = 1, quint64 time = 0)
@@ -46,6 +48,8 @@ RasterImage rasterImage()
     image.layers[0].defaultPixel = {12, 34, 56, 78};
     return image;
 }
+
+
 }
 
 class KisGpuOperationDocumentTest : public QObject
@@ -75,6 +79,8 @@ private Q_SLOTS:
     void symmetryFreezesAxesAndRejectsInvalidRecoveryAtomically();
     void inputChunksRetainTheSameOperation();
     void shapePreviewCommitsAsOneHistoryEntry();
+    void filledFiguresPreserveStylesHistoryAndRecovery();
+    void emptyFigureIntentPreservesHistoryAndRecovery();
     void cancelAndRejectedInputPreserveRedo();
     void documentChangesShareOneHistory();
     void savesPinTheirVersionWhileEditingContinues();
@@ -382,9 +388,7 @@ void KisGpuOperationDocumentTest::activeLayerAndSelectionRemainIndependentThroug
     QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
     QCOMPARE(restored.activeLayer(), first);
     QCOMPARE(restored.snapshot()->selectedLayers, QList<LayerId>{second});
-    auto oldFormat = bytes.chopped(32);
-    oldFormat[5] = char(15);
-    oldFormat.append(QCryptographicHash::hash(oldFormat, QCryptographicHash::Sha256));
+    const auto oldFormat = legacyRecovery(document, 15);
     const auto before = restored.snapshot();
     QCOMPARE(restored.restoreRecovery(oldFormat), Result::InvalidRecovery);
     QCOMPARE(restored.snapshot(), before);
@@ -694,15 +698,11 @@ void KisGpuOperationDocumentTest::duplicatedLayersShareInputsAndPixelsWithIndepe
     QCOMPARE(restored.snapshot()->layers[3].channelWriteMask, quint8(7));
     QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers[3].operations.last())->brush, brush);
     const auto before = document.recoveryData();
-    auto previousFormat = before.chopped(32);
-    previousFormat[5] = char(15);
-    previousFormat.append(QCryptographicHash::hash(previousFormat, QCryptographicHash::Sha256));
+    const auto previousFormat = legacyRecovery(document, 15);
     QCOMPARE(restored.restoreRecovery(previousFormat), Result::Success);
     QCOMPARE(restored.snapshot()->selectedLayers, copied->selectedLayers);
     QCOMPARE(restored.historyAction(count + 1), HistoryAction::DuplicateLayer);
-    auto oldFormat = before.chopped(32);
-    oldFormat[5] = char(14);
-    oldFormat.append(QCryptographicHash::hash(oldFormat, QCryptographicHash::Sha256));
+    const auto oldFormat = legacyRecovery(document, 14);
     const auto restoredVersion = restored.snapshot();
     QCOMPARE(restored.restoreRecovery(oldFormat), Result::InvalidRecovery);
     QCOMPARE(restored.snapshot(), restoredVersion);
@@ -752,9 +752,7 @@ void KisGpuOperationDocumentTest::symmetryFreezesAxesAndRejectsInvalidRecoveryAt
     QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
     QCOMPARE(std::get<PaintSnapshot>(restored.preview()->layers.first().operations.last())->brush, settings);
     const auto retained = restored.preview();
-    auto invalid = recovery.chopped(32);
-    invalid[5] = char(13);
-    invalid.append(QCryptographicHash::hash(invalid, QCryptographicHash::Sha256));
+    const auto invalid = legacyRecovery(document, 13);
     QCOMPARE(restored.restoreRecovery(invalid), Result::InvalidRecovery);
     QCOMPARE(restored.preview(), retained);
     QCOMPARE(restored.recoveryData(), recovery);
@@ -783,6 +781,7 @@ void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable_data()
     QTest::newRow("version-thirteen") << quint8(13) << false;
     QTest::newRow("version-fourteen") << quint8(14) << false;
     QTest::newRow("version-fifteen") << quint8(15) << false;
+    QTest::newRow("version-sixteen") << quint8(16) << false;
 }
 
 void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable()
@@ -796,15 +795,14 @@ void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable()
     QCOMPARE(document.commitStroke(stroke), Result::Success);
     QCOMPARE(document.renameLayer(document.activeLayer(), QStringLiteral("Retained"), PropertyHistory::MergeConsecutive), Result::Success);
     if (resetName) QCOMPARE(document.renameLayer(document.activeLayer(), QStringLiteral("Paint Layer 1"), PropertyHistory::MergeConsecutive), Result::Success);
-    auto payload = document.recoveryData().chopped(32);
-    payload[4] = 0;
-    payload[5] = char(format);
-    payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));
+    const auto payload = legacyRecovery(document, format);
     OperationDocument restored({1, 1});
     QCOMPARE(restored.restoreRecovery(payload), Result::Success);
     QCOMPARE(restored.undoCount(), 2);
     QCOMPARE(restored.snapshot()->layers.first().name, resetName ? QStringLiteral("Paint Layer 1") : QStringLiteral("Retained"));
     const auto paint = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.first());
+    QVERIFY(paint->figureStyle.outline);
+    QVERIFY(!paint->figureStyle.fill);
     QCOMPARE(paint->shape.kind, ShapeKind::Ellipse);
     QCOMPARE(paint->shape.cornerRadii, QSizeF(0, 0));
     QCOMPARE(restored.undo(), Result::Success);
@@ -1667,6 +1665,69 @@ void KisGpuOperationDocumentTest::damagedRasterRecoveryPreservesTheLiveDocument(
     const auto unchanged = small.snapshot();
     QCOMPARE(small.restoreRecovery(good), Result::CapacityExceeded);
     QCOMPARE(small.snapshot(), unchanged);
+}
+
+
+void KisGpuOperationDocumentTest::filledFiguresPreserveStylesHistoryAndRecovery()
+{
+    OperationDocument document(QSize(64, 64));
+    const auto initial = document.snapshot();
+    Brush brush;
+    brush.rgba = {17, 129, 241, 255};
+    const auto id = document.beginStroke(document.activeLayer(), brush, 42);
+    QVERIFY(!id.isNull());
+    QCOMPARE(document.appendSamples(id, {sample(12, 12), sample(52, 52)}), Result::Success);
+    FigureStyle style;
+    style.outline = false;
+    style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+    QCOMPARE(document.updateFigure(id, {ShapeKind::Rectangle, {12, 12}, {52, 52}, 0}, style), Result::Success);
+    const auto preview = document.preview();
+    const auto operation = std::get<PaintSnapshot>(preview->layers.first().operations.last());
+    QVERIFY(!operation->figureStyle.outline);
+    QCOMPARE(operation->figureStyle.fill, style.fill);
+    QCOMPARE(operation->brush.rgba, brush.rgba);
+    QCOMPARE(document.commitStroke(id), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), initial);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), preview);
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    const auto recovered = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QVERIFY(!recovered->figureStyle.outline);
+    QCOMPARE(recovered->figureStyle.fill, style.fill);
+    QCOMPARE(recovered->shape.kind, ShapeKind::Rectangle);
+    QCOMPARE(recovered->brush.rgba, brush.rgba);
+    QCOMPARE(restored.undo(), Result::Success);
+    QVERIFY(restored.snapshot()->layers.first().operations.isEmpty());
+    QCOMPARE(restored.redo(), Result::Success);
+    QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last())->figureStyle.fill, style.fill);
+}
+
+void KisGpuOperationDocumentTest::emptyFigureIntentPreservesHistoryAndRecovery()
+{
+    OperationDocument document(QSize(32, 32));
+    const auto initial = document.snapshot();
+    FigureStyle style;
+    style.outline = false;
+    QCOMPARE(document.paintFigure(document.activeLayer(), Brush{}, {{{0, 0}, 1}, {{16, 16}, 1}},
+                                    {ShapeKind::Rectangle, {0, 0}, {16, 16}, 0}, style, 42), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    QVERIFY(document.isModified());
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    const auto operation = std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last());
+    QVERIFY(!operation->figureStyle.outline);
+    QVERIFY(!operation->figureStyle.fill);
+    QCOMPARE(restored.undoCount(), 1);
+    QCOMPARE(restored.undo(), Result::Success);
+    QVERIFY(restored.snapshot()->layers.first().operations.isEmpty());
+    QVERIFY(!restored.isModified());
+    QCOMPARE(restored.redo(), Result::Success);
+    QVERIFY(restored.isModified());
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), initial);
 }
 
 QTEST_GUILESS_MAIN(KisGpuOperationDocumentTest)

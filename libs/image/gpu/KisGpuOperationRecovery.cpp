@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 16;
+constexpr quint16 FormatVersion = 17;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -116,6 +116,9 @@ QByteArray OperationDocument::recoveryData() const
                    << operation.shape.second.x() << operation.shape.second.y() << operation.shape.rotation;
             if (operation.shape.kind == ShapeKind::RoundedRectangle)
                 stream << operation.shape.cornerRadii.width() << operation.shape.cornerRadii.height();
+            stream << quint8(quint8(operation.figureStyle.outline) | (operation.figureStyle.fill ? 2 : 0));
+            if (operation.figureStyle.fill)
+                for (const auto component : *operation.figureStyle.fill) stream << component;
             stream << quint32(operation.sampleCount);
             if (!withinLimit()) return {};
             for (const auto &block : operation.sampleBlocks) {
@@ -288,6 +291,17 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
             stream >> radiusX >> radiusY;
             operation->shape.cornerRadii = {radiusX, radiusY};
         }
+        if (format >= 17) {
+            quint8 figureFlags = 0;
+            stream >> figureFlags;
+            if (figureFlags > 3) return Result::InvalidRecovery;
+            operation->figureStyle.outline = figureFlags & 1;
+            if (figureFlags & 2) {
+                std::array<quint8, 4> fill;
+                for (auto &component : fill) stream >> component;
+                operation->figureStyle.fill = fill;
+            }
+        }
         stream >> sampleCount;
         operation->brush.erase = brushFlags & 1;
         operation->brush.alphaLocked = brushFlags & 2;
@@ -296,6 +310,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         operation->shape.first = {x1, y1};
         operation->shape.second = {x2, y2};
         if (brushFlags > (format < 12 ? 1 : format < 13 ? 3 : format < 14 ? 63 : 255) || !validBrush(operation->brush) || !validShape(operation->shape) ||
+            !validFigureStyle(operation->shape, operation->figureStyle) ||
             !validShapeSampleCount(operation->shape, sampleCount) ||
             (sampleCount == 0) != (version == 0) || !readableCount(stream, sampleCount, m_limits.samplesPerStroke, 56)) return Result::InvalidRecovery;
         if (quint64(retainedSamples) + sampleCount > retainedSampleLimit) return Result::CapacityExceeded;

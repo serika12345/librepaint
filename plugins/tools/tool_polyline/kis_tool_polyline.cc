@@ -58,10 +58,6 @@ void KisToolPolyline::finishPolyline(const QVector<QPointF>& points)
         shouldAddShape(currentNode());
 
     if (!info.shouldAddShape && image()->gpuImage()) {
-        if (fillStyle() != KisFigurePaintingOptions::FillStyleNone) {
-            Q_EMIT statusTextChanged(i18n("Filling a polyline is not yet supported for this GPU document."));
-            return;
-        }
         paintGpuPolyline(points, false, kundo2_i18n("Draw Polyline"));
         return;
     }

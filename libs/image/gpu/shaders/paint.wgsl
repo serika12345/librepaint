@@ -12,6 +12,7 @@ struct Segment { endpoints: vec4<i32>, values: vec4<u32>, }
 @group(0) @binding(1) var<storage, read> segments: array<Segment>;
 @group(0) @binding(2) var<storage, read> basePixels: array<u32>;
 @group(0) @binding(3) var<storage, read_write> outputPixels: array<u32>;
+@group(0) @binding(4) var<storage, read> fillEdges: array<Segment>;
 
 // Low word first; 16-bit products preserve the complete 64-bit result.
 fn product(a: u32, b: u32) -> vec2<u32> {
@@ -64,6 +65,32 @@ fn reflected(point: vec2<i32>, reflection: u32) -> vec2<i32> {
                   vec2<bool>((reflection & 1u) != 0u, (reflection & 2u) != 0u));
 }
 
+fn fillInside(point: vec2<i32>) -> bool {
+    var insidePolygon = false;
+    for (var i = 0u; i < arrayLength(&fillEdges); i += 1u) {
+        let a = fillEdges[i].endpoints.xy;
+        let b = fillEdges[i].endpoints.zw;
+        if ((a.y > point.y) == (b.y > point.y)) { continue; }
+        let cross = add64(signedProduct(b.x - a.x, point.y - a.y),
+                          negate64(signedProduct(point.x - a.x, b.y - a.y)));
+        let positive = i32(cross.y) >= 0 && any(cross != vec2<u32>(0u));
+        let negative = i32(cross.y) < 0;
+        if ((b.y > a.y && positive) || (b.y < a.y && negative)) { insidePolygon = !insidePolygon; }
+    }
+    return insidePolygon;
+}
+
+fn paintAlpha(destination: vec4<u32>, source: vec4<u32>, alpha: u32) -> vec4<u32> {
+    if (alpha == 0u) { return destination; }
+    if (parameters.brush.z != 0u) {
+        return vec4<u32>(destination.xyz, mul255(destination.w, 255u - alpha));
+    }
+    if ((parameters.counts.w & 1u) != 0u) {
+        return vec4<u32>((source.xyz * alpha + destination.xyz * (255u - alpha) + vec3<u32>(127u)) / 255u, destination.w);
+    }
+    return over(destination, vec4<u32>(source.xyz, alpha));
+}
+
 @compute @workgroup_size(8, 8)
 fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let local = invocation.xy;
@@ -74,67 +101,84 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     if (any(pixel >= parameters.tile.zw)) { outputPixels[index] = basePixels[index]; return; }
     var mask = 0u;
     let mirrorMode = (parameters.counts.w >> 5u) & 3u;
-    for (var reflection = 0u; reflection < 4u && mask != 65535u; reflection += 1u) {
-        if ((reflection & mirrorMode) != reflection) { continue; }
-        let center = reflected(pixel * 16 + vec2<i32>(8), reflection);
-        for (var s = 0u; s < parameters.counts.x && mask != 65535u; s += 1u) {
-            let segment = segments[s];
-            let maximumReach = i32(parameters.counts.y / 2u + 8u);
-            if (any(center < min(segment.endpoints.xy, segment.endpoints.zw) - vec2<i32>(maximumReach)) ||
-                any(center > max(segment.endpoints.xy, segment.endpoints.zw) + vec2<i32>(maximumReach))) { continue; }
-            let delta = segment.endpoints.zw - segment.endpoints.xy;
-            let length = segment.values.w;
-            let step = parameters.brush.w;
-            let first = (step - segment.values.z) % step;
-            var low = 0u;
-            var high = 0u;
-            if (length != 0u) {
-                let relative = center - segment.endpoints.xy;
-                let dotValue = add64(signedProduct(relative.x, delta.x), signedProduct(relative.y, delta.y));
-                var projection = 0u;
-                if (i32(dotValue.y) >= 0) {
-                    if (lessEqual64(product(length, length), dotValue)) { projection = length; }
-                    else { projection = divide64(dotValue, length); }
-                }
-                let reach = parameters.counts.y / 2u + 32u;
-                if (projection > reach + first) { low = (projection - reach - first) / step; }
-                high = min(length, projection + reach);
-                if (high < first) { continue; }
-                high = (high - first) / step;
-            }
-            for (var dab = low; dab <= high; dab += 1u) {
-                var along = first + dab * step;
-                if (length == 0u) { along = 0u; }
-                if (along > length) { break; }
-                var position = segment.endpoints.xy;
-                var pressure = segment.values.x;
+    let figureFlags = bitcast<u32>(parameters.mirror.w);
+    if ((figureFlags & 2u) == 0u) {
+        for (var reflection = 0u; reflection < 4u && mask != 65535u; reflection += 1u) {
+            if ((reflection & mirrorMode) != reflection) { continue; }
+            let center = reflected(pixel * 16 + vec2<i32>(8), reflection);
+            for (var s = 0u; s < parameters.counts.x && mask != 65535u; s += 1u) {
+                let segment = segments[s];
+                let maximumReach = i32(parameters.counts.y / 2u + 8u);
+                if (any(center < min(segment.endpoints.xy, segment.endpoints.zw) - vec2<i32>(maximumReach)) ||
+                    any(center > max(segment.endpoints.xy, segment.endpoints.zw) + vec2<i32>(maximumReach))) { continue; }
+                let delta = segment.endpoints.zw - segment.endpoints.xy;
+                let length = segment.values.w;
+                let step = parameters.brush.w;
+                let first = (step - segment.values.z) % step;
+                var low = 0u;
+                var high = 0u;
                 if (length != 0u) {
-                    position.x = interpolate(position.x, delta.x, along, length);
-                    position.y = interpolate(position.y, delta.y, along, length);
-                    pressure = u32(interpolate(i32(pressure), i32(segment.values.y) - i32(pressure), along, length));
+                    let relative = center - segment.endpoints.xy;
+                    let dotValue = add64(signedProduct(relative.x, delta.x), signedProduct(relative.y, delta.y));
+                    var projection = 0u;
+                    if (i32(dotValue.y) >= 0) {
+                        if (lessEqual64(product(length, length), dotValue)) { projection = length; }
+                        else { projection = divide64(dotValue, length); }
+                    }
+                    let reach = parameters.counts.y / 2u + 32u;
+                    if (projection > reach + first) { low = (projection - reach - first) / step; }
+                    high = min(length, projection + reach);
+                    if (high < first) { continue; }
+                    high = (high - first) / step;
                 }
-                let radius = divide64(product(parameters.counts.y, pressure), 131070u);
-                if (radius == 0u) { continue; }
-                for (var y = 0u; y < 4u; y += 1u) {
-                    for (var x = 0u; x < 4u; x += 1u) {
-                        let bit = 1u << (y * 4u + x);
-                        if ((mask & bit) == 0u && inside(reflected(pixel * 16 + vec2<i32>(i32(x * 4u + 2u), i32(y * 4u + 2u)), reflection), position, radius)) { mask |= bit; }
+                for (var dab = low; dab <= high; dab += 1u) {
+                    var along = first + dab * step;
+                    if (length == 0u) { along = 0u; }
+                    if (along > length) { break; }
+                    var position = segment.endpoints.xy;
+                    var pressure = segment.values.x;
+                    if (length != 0u) {
+                        position.x = interpolate(position.x, delta.x, along, length);
+                        position.y = interpolate(position.y, delta.y, along, length);
+                        pressure = u32(interpolate(i32(pressure), i32(segment.values.y) - i32(pressure), along, length));
+                    }
+                    let radius = divide64(product(parameters.counts.y, pressure), 131070u);
+                    if (radius == 0u) { continue; }
+                    for (var y = 0u; y < 4u; y += 1u) {
+                        for (var x = 0u; x < 4u; x += 1u) {
+                            let bit = 1u << (y * 4u + x);
+                            if ((mask & bit) == 0u && inside(reflected(pixel * 16 + vec2<i32>(i32(x * 4u + 2u), i32(y * 4u + 2u)), reflection), position, radius)) { mask |= bit; }
+                        }
                     }
                 }
             }
         }
     }
+    var fillMask = 0u;
+    if ((figureFlags & 1u) != 0u) {
+        for (var reflection = 0u; reflection < 4u && fillMask != 65535u; reflection += 1u) {
+            if ((reflection & mirrorMode) != reflection) { continue; }
+            for (var y = 0u; y < 4u; y += 1u) {
+                for (var x = 0u; x < 4u; x += 1u) {
+                    let bit = 1u << (y * 4u + x);
+                    let point = reflected(pixel * 16 + vec2<i32>(i32(x * 4u + 2u), i32(y * 4u + 2u)), reflection);
+                    if ((fillMask & bit) == 0u && fillInside(point)) { fillMask |= bit; }
+                }
+            }
+        }
+    }
     var destination = unpackPixel(basePixels[index]);
-    var source = unpackPixel(parameters.brush.x);
-    let alpha = (mul255(source.w, parameters.brush.y) * countOneBits(mask) + 8u) / 16u;
-    if (alpha == 0u) { outputPixels[index] = basePixels[index]; return; }
-    if (parameters.brush.z != 0u) {
-        destination.w = mul255(destination.w, 255u - alpha);
-    } else if ((parameters.counts.w & 1u) != 0u) {
-        destination = vec4<u32>((source.xyz * alpha + destination.xyz * (255u - alpha) + vec3<u32>(127u)) / 255u, destination.w);
+    let strokeColor = unpackPixel(parameters.brush.x);
+    if ((figureFlags & 1u) != 0u) {
+        let fillColor = unpackPixel(bitcast<u32>(parameters.mirror.z));
+        let fillAlpha = (fillColor.w * countOneBits(fillMask) + 8u) / 16u;
+        let strokeAlpha = (strokeColor.w * countOneBits(mask) + 8u) / 16u;
+        // The circular marker retains the first color at equal coverage.
+        let source = select(fillColor, strokeColor, strokeAlpha > fillAlpha);
+        destination = paintAlpha(destination, source, mul255(max(fillAlpha, strokeAlpha), parameters.brush.y));
     } else {
-        source.w = alpha;
-        destination = over(destination, source);
+        let alpha = (mul255(strokeColor.w, parameters.brush.y) * countOneBits(mask) + 8u) / 16u;
+        destination = paintAlpha(destination, strokeColor, alpha);
     }
     let writable = parameters.counts.w >> 1u;
     let original = unpackPixel(basePixels[index]);

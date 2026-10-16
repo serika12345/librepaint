@@ -72,10 +72,6 @@ void KisToolEllipse::finishRect(const QRectF& rect, qreal roundCornersX, qreal r
         shouldAddShape(currentNode());
 
     if (!info.shouldAddShape && image()->gpuImage()) {
-        if (fillStyle() != KisFigurePaintingOptions::FillStyleNone) {
-            Q_EMIT statusTextChanged(i18n("Filling an ellipse is not yet supported for this GPU document."));
-            return;
-        }
         paintGpuOutline({LibrePaint::Image::Gpu::ShapeKind::Ellipse, rect.topLeft(), rect.bottomRight(), getRotationAngle()},
                         kundo2_i18n("Draw Ellipse"));
         return;

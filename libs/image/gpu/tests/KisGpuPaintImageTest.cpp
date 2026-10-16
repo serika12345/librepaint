@@ -26,6 +26,7 @@ private Q_SLOTS:
     void clonesKeepIndependentCurrentStateAndOperationIdentities();
     void retainedLayerCopiesKeepIndependentPixelsAndExecutionLifetime();
     void insertedLayerPixelsPublishAtomicallyAndRemainIndependent();
+    void filledFiguresPublishOneVersionAndRejectWholeRequests();
     void sharedEditsPublishBeforeNotificationAndReleaseTheLastAttachment();
     void recoveryPreservesPendingInputAndRedoOnTheSameAttachment();
     void directPixelsReachGpuWithoutEditingNotificationsOrHistory();
@@ -35,6 +36,46 @@ private Q_SLOTS:
     void damagedPixelSharingRecoveryPreservesTheLiveImage();
     void historyNavigationPublishesOneVersionAndPreservesSavedState();
 };
+
+void KisGpuPaintImageTest::filledFiguresPublishOneVersionAndRejectWholeRequests()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    PaintImage image(execution, QSize(64, 64));
+    const auto layer = image.operations().activeLayer();
+    Brush brush;
+    brush.rgba = {17, 129, 241, 255};
+    brush.diameter = 4;
+    FigureStyle style;
+    style.fill = std::array<quint8, 4>{221, 17, 44, 255};
+    const Shape shape{ShapeKind::Rectangle, {8, 8}, {56, 56}, 0};
+    const QList<InputSample> samples{{{8, 8}, 1}, {{56, 56}, 1}};
+    QSignalSpy changed(&image, &PaintImage::changed);
+    QCOMPARE(image.paintFigure(layer, brush, samples, shape, style, 42), Result::Success);
+    QCOMPARE(changed.size(), 1);
+    QCOMPARE(image.operations().undoCount(), 1);
+    QCOMPARE(image.readRgbaPixels(layer, {32, 24, 1, 1}, 4).bytes, QByteArray::fromHex("dd112cff"));
+    QCOMPARE(image.readRgbaPixels(layer, {32, 8, 1, 1}, 4).bytes, QByteArray::fromHex("dd112cff"));
+    QCOMPARE(image.readRgbaPixels(layer, {32, 7, 1, 1}, 4).bytes, QByteArray::fromHex("1181f1ff"));
+    QCOMPARE(image.undo(), Result::Success);
+    QCOMPARE(image.readRgbaPixels(layer, {32, 24, 1, 1}, 4).bytes, QByteArray(4, char(0)));
+    QCOMPARE(image.redo(), Result::Success);
+    const auto before = image.operations().recoveryData();
+    changed.clear();
+    auto invalid = samples;
+    invalid.first().pressure = -1;
+    QCOMPARE(image.paintFigure(layer, brush, invalid, shape, style, 43), Result::InvalidInput);
+    QCOMPARE(changed.size(), 0);
+    QCOMPARE(image.operations().recoveryData(), before);
+    const auto pending = image.beginStroke(layer, brush, 44);
+    QVERIFY(!pending.isNull());
+    QCOMPARE(image.paintFigure(layer, brush, samples, shape, style, 45), Result::EditInProgress);
+    QCOMPARE(image.operations().activeOperation(), pending);
+    QCOMPARE(changed.size(), 0);
+    QCOMPARE(image.cancelStroke(pending), Result::Success);
+}
 
 void KisGpuPaintImageTest::insertedLayerPixelsPublishAtomicallyAndRemainIndependent()
 {

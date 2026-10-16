@@ -150,6 +150,11 @@ Result PaintImage::appendSamples(OperationId id, const QList<InputSample> &sampl
 { return onThread() ? publish(m_d->document->appendSamples(id, samples)) : Result::InvalidInput; }
 Result PaintImage::updateShape(OperationId id, const Shape &shape)
 { return onThread() ? publish(m_d->document->updateShape(id, shape)) : Result::InvalidInput; }
+Result PaintImage::updateFigure(OperationId id, const Shape &shape, const FigureStyle &style)
+{ return onThread() ? publish(m_d->document->updateFigure(id, shape, style)) : Result::InvalidInput; }
+Result PaintImage::paintFigure(LayerId layer, const Brush &brush, const QList<InputSample> &samples,
+                               const Shape &shape, const FigureStyle &style, quint64 randomSeed)
+{ return onThread() ? publish(m_d->document->paintFigure(layer, brush, samples, shape, style, randomSeed)) : Result::InvalidInput; }
 Result PaintImage::commitStroke(OperationId id)
 { return onThread() ? publish(m_d->document->commitStroke(id)) : Result::InvalidInput; }
 Result PaintImage::cancelStroke(OperationId id)

@@ -20,6 +20,7 @@
 #include "KisGpuRasterPixels.h"
 #include <variant>
 #include <memory>
+#include <optional>
 
 namespace LibrePaint::Image::Gpu {
 
@@ -91,6 +92,13 @@ struct Shape
     QSizeF cornerRadii{0, 0};
 };
 
+/** Solid figure coverage, separate from the outline brush and its color. */
+struct FigureStyle
+{
+    bool outline = true;
+    std::optional<std::array<quint8, 4>> fill;
+};
+
 /**
  * The input and intent of one stroke. GPU dabs and pixels are derived values.
  * Immutable blocks preserve accepted input when previews and history share it.
@@ -106,6 +114,7 @@ struct KRITAIMAGEGPUOPERATIONS_EXPORT PaintOperation
     Shape shape;
     QList<QSharedPointer<const QList<InputSample>>> sampleBlocks;
     qsizetype sampleCount = 0;
+    FigureStyle figureStyle;
 
     QList<InputSample> inputSamples() const;
 };
@@ -281,6 +290,11 @@ public:
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 randomSeed);
     Result appendSamples(OperationId id, const QList<InputSample> &samples);
     Result updateShape(OperationId id, const Shape &shape);
+    /** Freezes solid fill and outline intent together with the figure geometry. */
+    Result updateFigure(OperationId id, const Shape &shape, const FigureStyle &style);
+    /** Validates and commits one complete figure without exposing an intermediate preview. */
+    Result paintFigure(LayerId layer, const Brush &brush, const QList<InputSample> &samples,
+                       const Shape &shape, const FigureStyle &style, quint64 randomSeed);
     Result commitStroke(OperationId id);
     Result cancelStroke(OperationId id);
     /** Replaces full tiles, including hidden layers, in one history entry. */

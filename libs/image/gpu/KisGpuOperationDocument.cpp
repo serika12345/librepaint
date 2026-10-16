@@ -337,16 +337,50 @@ Result OperationDocument::appendSamples(OperationId id, const QList<InputSample>
     return Result::Success;
 }
 
+Result OperationDocument::paintFigure(LayerId layer, const Brush &brush, const QList<InputSample> &samples,
+                                      const Shape &shape, const FigureStyle &style, quint64 randomSeed)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    if (!validBrush(brush) || !validShape(shape) || !validFigureStyle(shape, style)) return Result::InvalidInput;
+    if (samples.isEmpty()) return Result::EmptyOperation;
+    if (!validShapeSampleCount(shape, samples.size())) return Result::InvalidInput;
+    quint64 time = 0;
+    for (const auto &sample : samples) {
+        if (!validSample(sample) || sample.timestamp < time) return Result::InvalidInput;
+        time = sample.timestamp;
+    }
+    if (samples.size() > m_limits.samplesPerStroke ||
+        samples.size() > m_limits.samplesPerDocument - snapshot()->sampleCount ||
+        m_nextOperation == std::numeric_limits<quint64>::max() ||
+        m_nextRevision > std::numeric_limits<quint64>::max() - 2) return Result::CapacityExceeded;
+    const auto id = beginStroke(layer, brush, randomSeed);
+    if (id.isNull()) return Result::LayerUnavailable;
+    const auto rollback = qScopeGuard([&] { if (m_edit && m_edit->id == id) cancelStroke(id); });
+    auto result = appendSamples(id, samples);
+    if (result == Result::Success) result = updateFigure(id, shape, style);
+    if (result == Result::Success) result = commitStroke(id);
+    return result;
+}
+
 Result OperationDocument::updateShape(OperationId id, const Shape &shape)
 {
     const auto status = checkOperation(id);
     if (status != Result::Success) return status;
-    if (!validShape(shape)) return Result::InvalidInput;
+    return updateFigure(id, shape, m_edit->figureStyle);
+}
+
+Result OperationDocument::updateFigure(OperationId id, const Shape &shape, const FigureStyle &style)
+{
+    const auto status = checkOperation(id);
+    if (status != Result::Success) return status;
+    if (!validShape(shape) || !validFigureStyle(shape, style)) return Result::InvalidInput;
     if (m_edit->sampleCount == 0) return Result::EmptyOperation;
     if (!validShapeSampleCount(shape, m_edit->sampleCount)) return Result::InvalidInput;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     QSharedPointer<PaintOperation> operation(new PaintOperation(*m_edit));
     operation->shape = shape;
+    operation->figureStyle = style;
     ++operation->version;
     replacePreview(operation);
     return Result::Success;

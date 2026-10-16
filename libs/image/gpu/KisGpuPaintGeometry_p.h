@@ -24,6 +24,8 @@ inline quint64 key(int x, int y) { return (quint64(quint32(y)) << 32) | quint32(
 inline QPoint coordinate(quint64 key) { return {int(quint32(key)), int(quint32(key >> 32))}; }
 
 QList<PaintSegment> paintGeometry(const PaintOperation &operation, quint32 step);
+std::optional<QList<quint64>> figureFillTiles(const QList<PaintSegment> &edges, const Brush &brush,
+                                             QRect region, QSize canvas, qsizetype maximumCoordinates);
 std::optional<QList<quint64>> paintSegmentTiles(const PaintSegment &segment, quint32 diameter,
                                                QRect region, QSize canvas, qsizetype maximumCoordinates,
                                                int tileSize = RgbaTile::Size);

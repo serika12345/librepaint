@@ -6,6 +6,7 @@
 #include "KisGpuPaintGeometry_p.h"
 #include <algorithm>
 #include <cmath>
+#include <QSet>
 
 namespace LibrePaint::Image::Gpu::Detail {
 namespace {
@@ -128,6 +129,42 @@ QList<PaintSegment> paintGeometry(const PaintOperation &operation, quint32 step)
     return result;
 }
 
+
+std::optional<QList<quint64>> figureFillTiles(const QList<PaintSegment> &edges, const Brush &brush,
+                                             QRect region, QSize canvas, qsizetype maximumCoordinates)
+{
+    if (edges.isEmpty()) return QList<quint64>{};
+    qint32 minX = edges.first().ax, maxX = minX, minY = edges.first().ay, maxY = minY;
+    for (const auto &edge : edges) {
+        minX = std::min({minX, edge.ax, edge.bx});
+        maxX = std::max({maxX, edge.ax, edge.bx});
+        minY = std::min({minY, edge.ay, edge.by});
+        maxY = std::max({maxY, edge.ay, edge.by});
+    }
+    QSet<quint64> coordinates;
+    const int mirrorMode = int(brush.mirrorHorizontal) | (int(brush.mirrorVertical) << 1);
+    for (int reflection = 0; reflection < 4; ++reflection) {
+        if ((reflection & mirrorMode) != reflection) continue;
+        const qint32 left = reflection & 1 ? 32 * brush.mirrorCenter.x() - maxX : minX;
+        const qint32 right = reflection & 1 ? 32 * brush.mirrorCenter.x() - minX : maxX;
+        const qint32 top = reflection & 2 ? 32 * brush.mirrorCenter.y() - maxY : minY;
+        const qint32 bottom = reflection & 2 ? 32 * brush.mirrorCenter.y() - minY : maxY;
+        const QRect bounds(QPoint(int(std::floor(qreal(left) / 16)), int(std::floor(qreal(top) / 16))),
+                           QPoint(int(std::ceil(qreal(right) / 16)) - 1, int(std::ceil(qreal(bottom) / 16)) - 1));
+        const QRect clipped = bounds.intersected(region).intersected(QRect(QPoint(0, 0), canvas));
+        if (clipped.isEmpty()) continue;
+        const int x0 = clipped.left() / RgbaTile::Size, x1 = clipped.right() / RgbaTile::Size;
+        const int y0 = clipped.top() / RgbaTile::Size, y1 = clipped.bottom() / RgbaTile::Size;
+        if (qint64(x1 - x0 + 1) * (y1 - y0 + 1) > maximumCoordinates) return std::nullopt;
+        for (int y = y0; y <= y1; ++y) {
+            for (int x = x0; x <= x1; ++x) {
+                coordinates.insert(key(x, y));
+                if (coordinates.size() > maximumCoordinates) return std::nullopt;
+            }
+        }
+    }
+    return coordinates.values();
+}
 
 std::optional<QList<quint64>> paintSegmentTiles(const PaintSegment &segment, quint32 diameter,
                                                QRect region, QSize canvas, qsizetype maximumCoordinates, int tileSize)

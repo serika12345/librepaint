@@ -75,10 +75,6 @@ void KisToolRectangle::finishRect(const QRectF &rect, qreal roundCornersX, qreal
         shouldAddShape(currentNode());
 
     if (!info.shouldAddShape && image()->gpuImage()) {
-        if (fillStyle() != KisFigurePaintingOptions::FillStyleNone) {
-            Q_EMIT statusTextChanged(i18n("Filling a rectangle is not yet supported for this GPU document."));
-            return;
-        }
         namespace Gpu = LibrePaint::Image::Gpu;
         Gpu::Shape shape{Gpu::ShapeKind::Rectangle, rect.topLeft(), rect.bottomRight(), getRotationAngle()};
         if (roundCornersX > 0 || roundCornersY > 0) {

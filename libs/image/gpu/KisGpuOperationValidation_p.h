@@ -101,5 +101,10 @@ inline bool validShapeSampleCount(const Shape &shape, qsizetype count)
 {
     return (shape.kind != ShapeKind::Polyline && shape.kind != ShapeKind::Polygon) || count >= 2;
 }
+
+inline bool validFigureStyle(const Shape &shape, const FigureStyle &style)
+{
+    return !style.fill || (shape.kind != ShapeKind::Freehand && shape.kind != ShapeKind::Line);
+}
 }
 #endif

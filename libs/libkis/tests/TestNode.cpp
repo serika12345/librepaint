@@ -876,34 +876,64 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory_data()
     QTest::addColumn<QString>("strokeStyle");
     QTest::addColumn<QString>("rejection");
     QTest::addColumn<bool>("cloned");
+    QTest::addColumn<QString>("fillStyle");
+    QTest::addColumn<int>("foregroundAlpha");
     for (bool gpu : {false, true}) {
         for (const auto &figure : {QStringLiteral("line"), QStringLiteral("rectangle"),
                                   QStringLiteral("ellipse"), QStringLiteral("polygon"), QStringLiteral("polygon-pair")}) {
             for (const auto &style : {QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
                 const auto name = (gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + figure + '-' + style;
-                QTest::newRow(qPrintable(name)) << gpu << figure << style << QString() << false;
+                QTest::newRow(qPrintable(name)) << gpu << figure << style << QString() << false << QStringLiteral("None") << 255;
             }
         }
     }
     for (bool gpu : {false, true}) {
         QTest::newRow(gpu ? "gpu-line-None" : "ordinary-line-None")
-            << gpu << QStringLiteral("line") << QStringLiteral("None") << QString() << false;
+            << gpu << QStringLiteral("line") << QStringLiteral("None") << QString() << false << QStringLiteral("None") << 255;
     }
     for (bool gpu : {false, true}) {
         for (const auto &figure : {QStringLiteral("line"), QStringLiteral("rectangle"),
                                   QStringLiteral("ellipse"), QStringLiteral("polygon"), QStringLiteral("polygon-pair")}) {
             for (const auto &style : {QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
                 const auto name = (gpu ? QStringLiteral("gpu-clone-") : QStringLiteral("ordinary-clone-")) + figure + '-' + style;
-                QTest::newRow(qPrintable(name)) << gpu << figure << style << QString() << true;
+                QTest::newRow(qPrintable(name)) << gpu << figure << style << QString() << true << QStringLiteral("None") << 255;
             }
         }
         QTest::newRow(gpu ? "gpu-clone-line-None" : "ordinary-clone-line-None")
-            << gpu << QStringLiteral("line") << QStringLiteral("None") << QString() << true;
+            << gpu << QStringLiteral("line") << QStringLiteral("None") << QString() << true << QStringLiteral("None") << 255;
     }
-    for (const auto &reason : {QStringLiteral("fill"), QStringLiteral("path"),
+    for (bool gpu : {false, true}) {
+        for (const auto &figure : {QStringLiteral("rectangle"), QStringLiteral("ellipse"), QStringLiteral("polygon")}) {
+            for (const auto &stroke : {QStringLiteral("None"), QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
+                for (const auto &fill : {QStringLiteral("ForegroundColor"), QStringLiteral("BackgroundColor")}) {
+                    const auto name = (gpu ? QStringLiteral("gpu-solid-") : QStringLiteral("ordinary-solid-")) +
+                        figure + '-' + stroke + '-' + fill;
+                    QTest::newRow(qPrintable(name)) << gpu << figure << stroke << QString() << false << fill << 255;
+                }
+            }
+        }
+        QTest::newRow(gpu ? "gpu-clone-solid-rectangle" : "ordinary-clone-solid-rectangle")
+            << gpu << QStringLiteral("rectangle") << QStringLiteral("ForegroundColor") << QString() << true << QStringLiteral("BackgroundColor") << 255;
+    }
+    for (bool gpu : {false, true}) {
+        for (int alpha : {0, 128}) {
+            const auto prefix = (gpu ? QStringLiteral("gpu-swatch-") : QStringLiteral("ordinary-swatch-")) + QString::number(alpha);
+            QTest::newRow(qPrintable(prefix + QStringLiteral("-line")))
+                << gpu << QStringLiteral("line") << QStringLiteral("ForegroundColor") << QString() << false << QStringLiteral("None") << alpha;
+            QTest::newRow(qPrintable(prefix + QStringLiteral("-fill")))
+                << gpu << QStringLiteral("rectangle") << QStringLiteral("None") << QString() << false << QStringLiteral("ForegroundColor") << alpha;
+        }
+    }
+    QTest::newRow("ordinary-preserve-none")
+        << false << QStringLiteral("line") << QStringLiteral("ForegroundColor") << QStringLiteral("none") << false << QStringLiteral("None") << 255;
+    for (bool gpu : {false, true}) {
+        QTest::newRow(gpu ? "gpu-preserve-empty-fill" : "ordinary-preserve-empty-fill")
+            << gpu << QStringLiteral("polygon-pair") << QStringLiteral("None") << QStringLiteral("empty-fill") << false << QStringLiteral("ForegroundColor") << 255;
+    }
+    for (const auto &reason : {QStringLiteral("path"),
                                QStringLiteral("busy"), QStringLiteral("invalid-pressure"), QStringLiteral("none")}) {
         QTest::newRow(qPrintable(QStringLiteral("gpu-preserve-") + reason))
-            << true << QStringLiteral("line") << QStringLiteral("ForegroundColor") << reason << false;
+            << true << QStringLiteral("line") << QStringLiteral("ForegroundColor") << reason << false << QStringLiteral("None") << 255;
     }
 }
 
@@ -914,6 +944,8 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     QFETCH(QString, strokeStyle);
     QFETCH(QString, rejection);
     QFETCH(bool, cloned);
+    QFETCH(QString, fillStyle);
+    QFETCH(int, foregroundAlpha);
     namespace Gpu = LibrePaint::Image::Gpu;
     const auto cs = KoColorSpaceRegistry::instance()->rgb8();
     std::shared_ptr<Gpu::Execution> execution;
@@ -966,13 +998,18 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     resources->setPaintOpPreset(preset);
     resources->setSize(8);
     resources->setOpacity(1);
-    resources->setFGColor(KoColor(QColor(17, 129, 241), cs));
+    resources->setFGColor(KoColor(QColor(17, 129, 241, foregroundAlpha), cs));
     resources->setBGColor(KoColor(QColor(221, 17, 44), cs));
     resources->setEraserMode(false);
     resources->setCurrentCompositeOp(QStringLiteral("normal"));
-    const auto expected = strokeStyle == QLatin1String("BackgroundColor") ?
+    const auto fillExpected = fillStyle == QLatin1String("BackgroundColor") ?
         QByteArray::fromHex("2c11ddff") : QByteArray::fromHex("f18111ff");
-    const QPoint sample(32, figure == QLatin1String("line") || figure == QLatin1String("polygon-pair") ? 32 : 12);
+    const bool filledWithoutOutline = strokeStyle == QLatin1String("None") && fillStyle != QLatin1String("None");
+    const auto expected = filledWithoutOutline ? fillExpected : strokeStyle == QLatin1String("BackgroundColor") ?
+        QByteArray::fromHex("2c11ddff") : QByteArray::fromHex("f18111ff");
+    const QPoint sample(32, filledWithoutOutline ? 24 :
+                          figure == QLatin1String("line") || figure == QLatin1String("polygon-pair") ? 32 :
+                          fillStyle != QLatin1String("None") ? 10 : 12);
     QScopedPointer<Node> api(Node::createNode(image, target));
     QScopedPointer<Node> activeApi(Node::createNode(image, active));
     if (cloned) {
@@ -1005,8 +1042,9 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
             owner->cancelStroke(pending);
     });
     try {
-        if (rejection == QLatin1String("fill")) api->paintRectangle({12, 12, 40, 40}, strokeStyle, QStringLiteral("ForegroundColor"));
-        else if (rejection == QLatin1String("path")) {
+        if (rejection == QLatin1String("empty-fill")) {
+            api->paintPolygon({{12, 32}, {52, 32}}, strokeStyle, fillStyle);
+        } else if (rejection == QLatin1String("path")) {
             QPainterPath path;
             path.moveTo(12, 32);
             path.cubicTo(20, 12, 40, 52, 52, 32);
@@ -1016,10 +1054,10 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
         } else if (figure == QLatin1String("line")) {
             api->paintLine({12, 32}, {52, 32}, rejection == QLatin1String("invalid-pressure") ? -1 : 0.5, 1, strokeStyle);
         }
-        else if (figure == QLatin1String("rectangle")) api->paintRectangle({12, 12, 40, 40}, strokeStyle, QStringLiteral("None"));
-        else if (figure == QLatin1String("ellipse")) api->paintEllipse({12, 12, 40, 40}, strokeStyle, QStringLiteral("None"));
+        else if (figure == QLatin1String("rectangle")) api->paintRectangle({12, 12, 40, 40}, strokeStyle, fillStyle);
+        else if (figure == QLatin1String("ellipse")) api->paintEllipse({12, 12, 40, 40}, strokeStyle, fillStyle);
         else if (figure == QLatin1String("polygon-pair")) api->paintPolygon({{12, 32}, {52, 32}}, strokeStyle, QStringLiteral("None"));
-        else api->paintPolygon({{12, 12}, {52, 12}, {32, 52}}, strokeStyle, QStringLiteral("None"));
+        else api->paintPolygon({{12, 12}, {52, 12}, {32, 52}}, strokeStyle, fillStyle);
     } catch (const std::exception &error) {
         QFAIL(error.what());
     }
@@ -1028,18 +1066,33 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     resources->setSize(30);
     if (pending.isNull()) image->waitForDone();
     if (!rejection.isEmpty()) {
-        QCOMPARE(lifetime->undoStack()->count(), count);
-        QCOMPARE(lifetime->undoStack()->index(), index);
+        QApplication::sendPostedEvents();
+        const bool emptyIntent = rejection == QLatin1String("none") || rejection == QLatin1String("empty-fill");
+        QTRY_COMPARE(lifetime->undoStack()->count(), count + (emptyIntent ? 1 : 0));
+        QCOMPARE(lifetime->undoStack()->index(), index + (emptyIntent ? 1 : 0));
         QCOMPARE(api->pixelData(0, 0, 64, 64), before);
         QCOMPARE(activeApi->pixelData(0, 0, 64, 64), activeBefore);
         QCOMPARE(manager->activeNode(), active);
-        QCOMPARE(owner->operations().activeOperation(), pending);
+        if (owner) QCOMPARE(owner->operations().activeOperation(), pending);
         if (!pending.isNull()) QCOMPARE(owner->cancelStroke(pending), Gpu::Result::Success);
+        if (emptyIntent) {
+            lifetime->undoStack()->undo();
+            image->waitForDone();
+            QCOMPARE(lifetime->undoStack()->index(), index);
+            QCOMPARE(api->pixelData(0, 0, 64, 64), before);
+            lifetime->undoStack()->redo();
+            image->waitForDone();
+            QCOMPARE(lifetime->undoStack()->index(), index + 1);
+            QCOMPARE(api->pixelData(0, 0, 64, 64), before);
+        }
         return;
     }
     QTRY_COMPARE(lifetime->undoStack()->count(), count + 1);
     QCOMPARE(lifetime->undoStack()->index(), index + 1);
     QCOMPARE(api->pixelData(sample.x(), sample.y(), 1, 1), expected);
+    if (fillStyle != QLatin1String("None")) QCOMPARE(api->pixelData(32, 24, 1, 1), fillExpected);
+    if (fillStyle != QLatin1String("None") && (figure == QLatin1String("rectangle") || figure == QLatin1String("polygon")))
+        QCOMPARE(api->pixelData(32, 12, 1, 1), fillExpected);
     QCOMPARE(activeApi->pixelData(0, 0, 64, 64), activeBefore);
     QCOMPARE(manager->activeNode(), active);
     const auto painted = api->pixelData(0, 0, 64, 64);

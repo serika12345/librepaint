@@ -73,7 +73,8 @@ KisGpuBrushResources captureGpuBrushResources(
         brush.mirrorCenter = center.toPoint();
     }
     const QColor color = resources->foregroundColor().toQColor();
-    brush.rgba = {quint8(color.red()), quint8(color.green()), quint8(color.blue()), quint8(color.alpha())};
+    // Circular marker coverage owns alpha; canvas opacity is applied separately.
+    brush.rgba = {quint8(color.red()), quint8(color.green()), quint8(color.blue()), 255};
     brush.diameter = resources->resource(KoCanvasResource::Size).toReal();
     const qreal opacity = resources->resource(KoCanvasResource::Opacity).toReal();
     if (!qIsFinite(opacity) || opacity < 0 || opacity > 1)

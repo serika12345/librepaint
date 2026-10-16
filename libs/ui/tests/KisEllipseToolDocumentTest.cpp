@@ -92,7 +92,13 @@ private Q_SLOTS:
     }
     void drawingPreservesShapeHistoryAndSaving_data();
     void drawingPreservesShapeHistoryAndSaving();
+    void solidFillsPreserveShapeHistoryAndSaving_data();
+    void solidFillsPreserveShapeHistoryAndSaving();
+    void ordinarySolidFillsPreserveShapeHistoryAndSaving_data();
+    void ordinarySolidFillsPreserveShapeHistoryAndSaving();
 private:
+    void addSolidFigureRows(bool gpu);
+    void exerciseFigure();
     KisPaintOpPresetSP m_preset;
 };
 
@@ -103,9 +109,13 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving_data()
     QTest::addColumn<bool>("closeOnError");
     QTest::addColumn<bool>("canonical");
     QTest::addColumn<bool>("closeOnPublish");
+    QTest::addColumn<int>("fillStyle");
+    QTest::addColumn<int>("outlineStyle");
     const auto row = [](const char *name, FigureKind figure, bool gpu,
                         bool close = false, bool canonical = false, bool publish = false) {
-        QTest::newRow(name) << figure << gpu << close << canonical << publish;
+        QTest::newRow(name) << figure << gpu << close << canonical << publish
+                            << int(KisFigurePaintingOptions::FillStyleNone)
+                            << int(KisFigurePaintingOptions::StrokeStyleForeground);
     };
     row("ordinary", FigureKind::Ellipse, false);
     row("gpu", FigureKind::Ellipse, true);
@@ -116,28 +126,91 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving_data()
     row("rectangle-gpu-close-on-rejection", FigureKind::Rectangle, true, true);
     row("rectangle-gpu-rounded", FigureKind::RoundedRectangle, true);
     row("rectangle-ordinary-rounded", FigureKind::RoundedRectangle, false);
-    row("rectangle-gpu-rounded-close-on-fill-rejection", FigureKind::RoundedRectangle, true, true);
+    row("rectangle-gpu-rounded-close-on-pattern-fill-rejection", FigureKind::RoundedRectangle, true, true);
     row("rectangle-gpu-rounded-canonical", FigureKind::RoundedRectangle, true, false, true);
     row("rectangle-gpu-canonical", FigureKind::Rectangle, true, false, true);
     row("rectangle-gpu-close-on-publish", FigureKind::Rectangle, true, false, false, true);
     row("polyline-ordinary", FigureKind::Polyline, false);
     row("polyline-gpu", FigureKind::Polyline, true);
     row("polyline-gpu-canonical", FigureKind::Polyline, true, false, true);
-    row("polyline-gpu-close-on-fill-rejection", FigureKind::Polyline, true, true);
+    row("polyline-gpu-close-on-pattern-fill-rejection", FigureKind::Polyline, true, true);
     row("polyline-gpu-close-on-publish", FigureKind::Polyline, true, false, false, true);
     row("polygon-ordinary", FigureKind::Polygon, false);
     row("polygon-gpu", FigureKind::Polygon, true);
     row("polygon-gpu-canonical", FigureKind::Polygon, true, false, true);
-    row("polygon-gpu-close-on-fill-rejection", FigureKind::Polygon, true, true);
+    row("polygon-gpu-close-on-pattern-fill-rejection", FigureKind::Polygon, true, true);
+}
+
+void KisEllipseToolDocumentTest::solidFillsPreserveShapeHistoryAndSaving_data()
+{
+    addSolidFigureRows(true);
+}
+
+void KisEllipseToolDocumentTest::ordinarySolidFillsPreserveShapeHistoryAndSaving_data()
+{
+    addSolidFigureRows(false);
+}
+
+void KisEllipseToolDocumentTest::addSolidFigureRows(bool gpu)
+{
+    QTest::addColumn<FigureKind>("figure");
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("closeOnError");
+    QTest::addColumn<bool>("canonical");
+    QTest::addColumn<bool>("closeOnPublish");
+    QTest::addColumn<int>("fillStyle");
+    QTest::addColumn<int>("outlineStyle");
+    for (const auto figure : {FigureKind::Ellipse, FigureKind::Rectangle, FigureKind::RoundedRectangle,
+                              FigureKind::Polyline, FigureKind::Polygon}) {
+        for (int mode : {0, 1, 2}) {
+            if ((mode != 0) != gpu) continue;
+            const auto name = QString::number(int(figure)) + (mode == 0 ? QStringLiteral("-ordinary") :
+                              mode == 1 ? QStringLiteral("-gpu-input") : QStringLiteral("-gpu-canonical"));
+            QTest::newRow(qPrintable(name)) << figure << (mode != 0) << false << (mode == 2) << false
+                << int(figure == FigureKind::Ellipse ? KisFigurePaintingOptions::FillStyleForegroundColor :
+                                                      KisFigurePaintingOptions::FillStyleBackgroundColor)
+                << int(KisFigurePaintingOptions::StrokeStyleForeground);
+        }
+    }
+    for (int mode : {0, 1, 2}) {
+        if ((mode != 0) != gpu) continue;
+        const auto name = QStringLiteral("fill-only-rectangle-") + QString::number(mode);
+        QTest::newRow(qPrintable(name)) << FigureKind::Rectangle << (mode != 0) << false << (mode == 2) << false
+            << int(KisFigurePaintingOptions::FillStyleBackgroundColor)
+            << int(KisFigurePaintingOptions::StrokeStyleNone);
+    }
 }
 
 void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
+{
+    exerciseFigure();
+}
+
+void KisEllipseToolDocumentTest::solidFillsPreserveShapeHistoryAndSaving()
+{
+    exerciseFigure();
+}
+
+void KisEllipseToolDocumentTest::ordinarySolidFillsPreserveShapeHistoryAndSaving()
+{
+    exerciseFigure();
+}
+
+void KisEllipseToolDocumentTest::exerciseFigure()
 {
     QFETCH(bool, gpu);
     QFETCH(bool, closeOnError);
     QFETCH(bool, canonical);
     QFETCH(FigureKind, figure);
     QFETCH(bool, closeOnPublish);
+    QFETCH(int, fillStyle);
+    QFETCH(int, outlineStyle);
+    const bool solid = fillStyle != KisFigurePaintingOptions::FillStyleNone;
+    const auto fillPixel = fillStyle == KisFigurePaintingOptions::FillStyleForegroundColor ?
+        QByteArray::fromHex("f18111ff") : QByteArray::fromHex("2c11ddff");
+    const QPoint outlineProbe(32, solid ? 14 : 18);
+    const bool hasOutline = outlineStyle != KisFigurePaintingOptions::StrokeStyleNone;
+    const auto firstOutlinePixel = hasOutline ? QByteArray::fromHex("f18111ff") : QByteArray(4, char(0));
     const bool rounded = figure == FigureKind::RoundedRectangle;
     const bool rectangle = rounded || figure == FigureKind::Rectangle;
     const bool polygon = figure == FigureKind::Polygon;
@@ -231,8 +304,8 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
         if (outline) outline->setCurrentIndex(previousOutline);
         if (fill) fill->setCurrentIndex(previousFill);
     });
-    outline->setCurrentIndex(KisFigurePaintingOptions::StrokeStyleForeground);
-    fill->setCurrentIndex(KisFigurePaintingOptions::FillStyleNone);
+    fill->setCurrentIndex(fillStyle);
+    outline->setCurrentIndex(outlineStyle);
     view->canvasBase()->snapGuide()->enableSnapping(false);
     input->setFocus();
     QTRY_VERIFY(input->width() >= 64 && input->height() >= 64);
@@ -262,7 +335,7 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
     };
     const auto start = [&] {
         if (pathFigure) {
-            const QVector<QPointF> vertices = canonical ? QVector<QPointF>{{16, 16}, {48, 16}, {48, 48}} :
+            const QVector<QPointF> vertices = canonical || solid ? QVector<QPointF>{{16, 16}, {48, 16}, {48, 48}} :
                                                         QVector<QPointF>{{16, 16}, {48, 16}};
             for (const auto &vertex : vertices) {
                 if (canonical) {
@@ -341,12 +414,9 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
         return;
     }
     if (closeOnError) {
-        fill->setCurrentIndex(KisFigurePaintingOptions::FillStyleForegroundColor);
+        fill->setCurrentIndex(KisFigurePaintingOptions::FillStylePattern);
         start();
-        const QString expected = polygon ? i18n("Filling a polygon is not yet supported for this GPU document.") :
-                                 pathFigure ? i18n("Filling a polyline is not yet supported for this GPU document.") :
-                                 rectangle ? i18n("Filling a rectangle is not yet supported for this GPU document.") :
-                                             i18n("Filling an ellipse is not yet supported for this GPU document.");
+        const QString expected = i18n("Pattern fills are not yet supported for this GPU document.");
         QSignalSpy status(tool, &KoToolBase::statusTextChanged);
         connect(tool, &KoToolBase::statusTextChanged, window.get(), [&](const QString &message) {
             if (message != expected) return;
@@ -373,9 +443,13 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
     }
     image->waitForDone();
     QTRY_COMPARE(lifetime->undoStack()->count(), 1);
-    QCOMPARE(pixel({32, 18}), QByteArray::fromHex("f18111ff"));
-    QCOMPARE(pixel({32, 32}), polygon ? QByteArray::fromHex("f18111ff") : QByteArray(4, '\0'));
-    QCOMPARE(pixel({16, 16}), (rectangle && !rounded) || pathFigure ? QByteArray::fromHex("f18111ff") : QByteArray(4, '\0'));
+    QCOMPARE(pixel(outlineProbe), firstOutlinePixel);
+    if (solid) {
+        QCOMPARE(pixel({40, 24}), fillPixel);
+    } else {
+        QCOMPARE(pixel({32, 32}), polygon ? QByteArray::fromHex("f18111ff") : QByteArray(4, '\0'));
+        QCOMPARE(pixel({16, 16}), (rectangle && !rounded) || pathFigure ? QByteArray::fromHex("f18111ff") : QByteArray(4, '\0'));
+    }
     if (gpu) {
         const auto operation = std::get<Gpu::PaintSnapshot>(owner->operations().snapshot()->layers.first().operations.last());
         QCOMPARE(operation->shape.kind, polygon ? Gpu::ShapeKind::Polygon :
@@ -387,10 +461,10 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
     }
     lifetime->undoStack()->undo();
     image->waitForDone();
-    QCOMPARE(pixel({32, 18}), QByteArray(4, '\0'));
+    QCOMPARE(pixel(outlineProbe), QByteArray(4, '\0'));
     lifetime->undoStack()->redo();
     image->waitForDone();
-    QCOMPARE(pixel({32, 18}), QByteArray::fromHex("f18111ff"));
+    QCOMPARE(pixel(outlineProbe), firstOutlinePixel);
     start();
     tool->requestStrokeCancellation();
     if (!pathFigure) release();
@@ -400,7 +474,7 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
     release();
     image->waitForDone();
     QTRY_COMPARE(lifetime->undoStack()->count(), 2);
-    QCOMPARE(pixel({32, 18}), QByteArray::fromHex("2c11ddff"));
+    QCOMPARE(pixel(outlineProbe), QByteArray::fromHex("2c11ddff"));
     QCOMPARE(resources->fgColor().toQColor(), QColor(17, 129, 241));
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
@@ -418,16 +492,16 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
     const auto saved = LibrePaint::ImportExport::Kra::RasterCodec::read(file);
     QVERIFY2(saved.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(saved.diagnostic));
     QCOMPARE(saved.document.image.layers.size(), 1);
-    QCOMPARE(saved.document.image.layers.first().tiles.first().rgba.mid((18 * 256 + 32) * 4, 4), QByteArray::fromHex("dd112cff"));
+    QCOMPARE(saved.document.image.layers.first().tiles.first().rgba.mid((outlineProbe.y() * 256 + outlineProbe.x()) * 4, 4), QByteArray::fromHex("dd112cff"));
     resources->setEraserMode(true);
     start();
     release();
     image->waitForDone();
     QTRY_COMPARE(lifetime->undoStack()->count(), 3);
-    QCOMPARE(pixel({32, 18}), QByteArray::fromHex("2c11dd00"));
+    QCOMPARE(pixel(outlineProbe), QByteArray::fromHex("2c11dd00"));
     lifetime->undoStack()->undo();
     image->waitForDone();
-    QCOMPARE(pixel({32, 18}), QByteArray::fromHex("2c11ddff"));
+    QCOMPARE(pixel(outlineProbe), QByteArray::fromHex("2c11ddff"));
     QTRY_COMPARE(lifetime->undoStack()->index(), 2);
     QTRY_VERIFY2(!lifetime->isModified(), qPrintable(QStringLiteral("index=%1 count=%2 clean=%3 saving=%4")
                  .arg(lifetime->undoStack()->index()).arg(lifetime->undoStack()->count())
@@ -435,8 +509,9 @@ void KisEllipseToolDocumentTest::drawingPreservesShapeHistoryAndSaving()
     const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
     if (canonical && !results.isEmpty()) {
         QVERIFY(QDir().mkpath(results));
-        const auto prefix = polygon ? QStringLiteral("polygon-tool") : pathFigure ? QStringLiteral("polyline-tool") : rounded ? QStringLiteral("rounded-rectangle-tool") :
-                            rectangle ? QStringLiteral("rectangle-tool") : QStringLiteral("ellipse-tool");
+        const auto figurePrefix = polygon ? QStringLiteral("polygon-tool") : pathFigure ? QStringLiteral("polyline-tool") : rounded ? QStringLiteral("rounded-rectangle-tool") :
+                                  rectangle ? QStringLiteral("rectangle-tool") : QStringLiteral("ellipse-tool");
+        const auto prefix = (solid ? (hasOutline ? QStringLiteral("filled-") : QStringLiteral("fill-only-")) : QString()) + figurePrefix;
         LibrePaint::Document::Gpu::PaintDocument fixed(owner);
         const auto saved = fixed.exportKra(QDir(results).filePath(prefix + QStringLiteral(".kra")));
         QVERIFY2(saved.code == LibrePaint::Document::Gpu::FileCode::Success, qPrintable(saved.diagnostic));
