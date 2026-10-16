@@ -18,6 +18,7 @@ KUndo2MagicString historyLabel(HistoryAction action)
     switch (action) {
     case HistoryAction::None: return {};
     case HistoryAction::AddLayer: return kundo2_i18n("Add layer");
+    case HistoryAction::DuplicateLayer: return kundo2_i18n("Duplicate Nodes");
     case HistoryAction::RemoveLayer: return kundo2_i18n("Remove layer");
     case HistoryAction::MoveLayer: return kundo2_i18n("Move layer");
     case HistoryAction::RenameLayer: return kundo2_i18n("Rename layer");

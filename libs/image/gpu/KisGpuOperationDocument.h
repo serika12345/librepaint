@@ -176,6 +176,7 @@ public:
     std::array<quint8, 4> projectionBackground{};
     QList<Layer> layers;
     LayerId activeLayer = 0;
+    QList<LayerId> selectedLayers;
     qsizetype sampleCount = 0;
     qsizetype rasterBytes = 0;
 
@@ -224,7 +225,7 @@ enum class PropertyHistory { Separate, MergeConsecutive };
 enum class HistoryAction {
     None, AddLayer, RemoveLayer, MoveLayer, RenameLayer, ChangeOpacity,
     ChangeVisibility, ChangeLock, ChangeTimelinePin, PaintStroke, DrawLine,
-    DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock
+    DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer
 };
 
 struct Limits
@@ -291,6 +292,14 @@ public:
     LayerId addLayer(const QString &name, qsizetype index, bool pinnedToTimeline);
     /** Selection is screen state; selecting an existing layer adds no history entry. */
     Result selectLayer(LayerId layer);
+    /** Screen selection preserves history, pending input and fixed snapshots. */
+    Result selectLayers(const QList<LayerId> &layers, LayerId active);
+    /** Duplicates a bottom-to-top selection above its highest layer in one edit.
+     * Names correspond to the selected identities. Copies have independent layer
+     * and operation identities while retaining immutable input and pixel blocks.
+     * An unselected active source selects the first copy.
+     */
+    Result duplicateLayers(const QList<LayerId> &layers, const QList<QString> &names, LayerId activeSource);
     Result setLayerVisible(LayerId layer, bool visible);
     Result setLayerVisible(LayerId layer, bool visible, PropertyHistory history);
     Result setLayerOpacity(LayerId layer, quint8 opacity);
@@ -339,11 +348,12 @@ public:
 private:
     friend class PaintImage;
     enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask };
-    struct PropertyChange {
+    struct LayerHistoryChange {
         LayerProperty property = LayerProperty::None;
         LayerId layer = 0;
         QVariant before, after;
         bool mergeable = false;
+        bool duplicatedLayers = false;
     };
     std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
     struct VersionPixelWrite
@@ -356,19 +366,19 @@ private:
     Result applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory,
                               Snapshot *retainedVersion = nullptr);
     template<class T> Result writeLayerProperty(LayerId layer, LayerProperty property, T Layer::*member, const T &value);
-    Result restorePropertyChange(const PropertyChange &change, bool forward);
+    Result restoreLayerHistoryChange(const LayerHistoryChange &change, bool forward);
     Result checkOperation(OperationId id) const;
     Result checkMutation() const;
     qsizetype layerIndex(LayerId layer) const;
     void replacePreview(const QSharedPointer<const PaintOperation> &operation);
     void commitVersion(const Snapshot &version);
-    void commitVersion(const Snapshot &version, const PropertyChange &change);
-    void commitPropertyVersion(const Snapshot &version, PropertyChange change, PropertyHistory history);
+    void commitVersion(const Snapshot &version, const LayerHistoryChange &change);
+    void commitPropertyVersion(const Snapshot &version, LayerHistoryChange change, PropertyHistory history);
 
     Limits m_limits;
     QUuid m_identity;
     QList<Snapshot> m_history;
-    QList<PropertyChange> m_propertyChanges;
+    QList<LayerHistoryChange> m_layerHistoryChanges;
     int m_index = 0;
     quint64 m_nextRevision = 0;
     quint64 m_nextOperation = 0;

@@ -75,6 +75,7 @@
 #include "kis_node_dummies_graph.h"
 #include "kis_mimedata.h"
 #include "kis_layer_utils.h"
+#include <kis_image_config.h>
 #include "krita_utils.h"
 #include "kis_shape_layer.h"
 #include "processing/kis_mirror_processing_visitor.h"
@@ -564,6 +565,49 @@ void KisNodeManager::TreeOperationAccess::duplicateNodes(KisNodeManager *manager
                                                          const KisNodeList &nodes,
                                                          KisNodeSP activeNode)
 {
+    namespace Gpu = LibrePaint::Image::Gpu;
+    auto image = KisImageSP(manager->m_d->view->image());
+    if (const auto owner = image->gpuImage()) {
+        QSet<QUuid> selected;
+        for (const auto &node : nodes) {
+            if (!node || node->parent() != image->root() || selected.contains(node->uuid())) {
+                ModificationAccess::showWarning(manager, i18n("The selected layers could not be duplicated."));
+                return;
+            }
+            selected.insert(node->uuid());
+        }
+        const auto version = owner->operations().snapshot();
+        QList<Gpu::LayerId> layers;
+        QList<QString> names;
+        Gpu::LayerId active = 0;
+        const bool rename = KisImageConfig(true).renameDuplicatedLayers();
+        const auto prefix = i18n("Copy of");
+        for (const auto &layer : version->layers) {
+            if (!selected.contains(layer.uuid)) continue;
+            layers.append(layer.id);
+            names.append(rename && !layer.name.startsWith(prefix) ? prefix + QLatin1Char(' ') + layer.name : layer.name);
+            if (activeNode && layer.uuid == activeNode->uuid()) active = layer.id;
+        }
+        const QPointer<KisNodeManager> guard(manager);
+        const auto result = layers.size() == selected.size() ? owner->duplicateLayers(layers, names, active) : Gpu::Result::LayerUnavailable;
+        if (!guard) return;
+        if (result != Gpu::Result::Success) {
+            ModificationAccess::showWarning(manager, i18n("The layers could not be duplicated. Finish the active operation and try again."));
+            return;
+        }
+        if (!manager->m_d->view || manager->m_d->view->image().data() != image.data() || image->gpuImage() != owner) return;
+        const auto copied = owner->operations().snapshot();
+        QSet<QUuid> original;
+        for (const auto &layer : version->layers) original.insert(layer.uuid);
+        KisNodeList copies;
+        KisNodeSP current;
+        for (int index = 0; index < copied->layers.size(); ++index) {
+            if (!original.contains(copied->layers[index].uuid)) copies.append(image->root()->at(index));
+            if (copied->layers[index].id == copied->activeLayer) current = image->root()->at(index);
+        }
+        Q_EMIT image->sigRequestNodeReselection(current, copies);
+        return;
+    }
     const KUndo2MagicString actionName = kundo2_i18n("Duplicate Nodes");
     KisNodeOperationBatch *batch = manager->m_d->lazyGetNodeOperationBatch(actionName);
     batch->duplicateNode(nodes, activeNode);
@@ -959,6 +1003,17 @@ void KisNodeManager::NodeChangeAccess::setCompositeOp(KisNodeManager *manager,
 void KisNodeManager::SelectionStateAccess::setSelectedNodes(KisNodeManager *manager, const KisNodeList &nodes)
 {
     manager->m_d->selectedNodes = nodes;
+    auto image = manager->m_d->view ? KisImageSP(manager->m_d->view->image()) : KisImageSP();
+    if (!image || image->isSynchronizingGpuNodes() || nodes.isEmpty()) return;
+    const auto owner = image->gpuImage();
+    if (!owner) return;
+    const auto version = owner->operations().snapshot();
+    QList<LibrePaint::Image::Gpu::LayerId> selected;
+    for (const auto &layer : version->layers)
+        for (const auto &node : nodes) if (node && node->uuid() == layer.uuid) selected.append(layer.id);
+    if (selected.size() != nodes.size()) return;
+    const auto active = selected.contains(version->activeLayer) ? version->activeLayer : selected.first();
+    owner->selectLayers(selected, active);
 }
 
 KisNodeList KisNodeManager::AccessorAccess::selectedNodes(KisNodeManager *manager)

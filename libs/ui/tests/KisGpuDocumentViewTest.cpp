@@ -46,6 +46,7 @@
 #include <gpu/KisGpuExecution.h>
 #include <gpu/KisGpuPaintImage.h>
 #include <kis_image.h>
+#include <kis_image_config.h>
 #include <kis_node.h>
 #include <kis_paint_device.h>
 #include <kis_paint_layer.h>
@@ -104,6 +105,8 @@ private Q_SLOTS:
     void layerPanelReordersSelectionWithOneHistoryEntry_data();
     void layerPanelReordersSelectionWithOneHistoryEntry();
     void layerPanelSelectionSurvivesSaving();
+    void layerPanelDuplicationPreservesPixelsSelectionAndOneHistoryEntry_data();
+    void layerPanelDuplicationPreservesPixelsSelectionAndOneHistoryEntry();
     void layerPanelRemovalPreservesLayersSelectionAndOneHistoryEntry_data();
     void layerPanelRemovalPreservesLayersSelectionAndOneHistoryEntry();
     void layerPanelAddsAtSelectionWithOneHistoryEntry_data();
@@ -482,6 +485,144 @@ void KisGpuDocumentViewTest::layerPanelReordersSelectionWithOneHistoryEntry()
         original[i]->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 5, 5, 1, 1);
         QCOMPARE(actual, pixels[i]);
     }
+}
+
+void KisGpuDocumentViewTest::layerPanelDuplicationPreservesPixelsSelectionAndOneHistoryEntry_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("rename");
+    QTest::addColumn<bool>("closeAfterChange");
+    QTest::newRow("ordinary") << false << true << false;
+    QTest::newRow("ordinary-keep-names") << false << false << false;
+    QTest::newRow("gpu") << true << true << false;
+    QTest::newRow("gpu-keep-names") << true << false << false;
+    QTest::newRow("gpu-close-on-change") << true << true << true;
+}
+
+void KisGpuDocumentViewTest::layerPanelDuplicationPreservesPixelsSelectionAndOneHistoryEntry()
+{
+    QFETCH(bool, gpu);
+    QFETCH(bool, rename);
+    QFETCH(bool, closeAfterChange);
+    const bool previousRename = KisImageConfig(true).renameDuplicatedLayers();
+    KisImageConfig(false).setRenameDuplicatedLayers(rename);
+    const auto restoreNames = qScopeGuard([&] { KisImageConfig(false).setRenameDuplicatedLayers(previousRename); });
+    namespace Gpu = LibrePaint::Image::Gpu;
+    std::shared_ptr<Gpu::Execution> execution;
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    if (gpu) {
+        QString diagnostic;
+        const auto device = Gpu::Device::createNative(diagnostic);
+        QVERIFY2(device, qPrintable(diagnostic));
+        execution = std::make_shared<Gpu::Execution>(device);
+        const auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        QVERIFY(owner->addLayer(QStringLiteral("Middle")));
+        QVERIFY(owner->addLayer(QStringLiteral("Top")));
+        document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Layer duplication")));
+    } else {
+        const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+        QVERIFY(document->newImage(QStringLiteral("Layer duplication"), 32, 16, cs,
+                                   KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 3, {}, 1));
+    }
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    auto image = KisImageSP(lifetime->image());
+    auto root = image->root();
+    KisNodeList originals{root->at(0), root->at(1), root->at(2)};
+    const auto pixel = QByteArray::fromHex("332211ff");
+    for (int index = 0; index < originals.size(); ++index) {
+        originals[index]->setName(QStringLiteral("Source %1").arg(index));
+        originals[index]->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(pixel.constData()), 5, 5, 1, 1);
+    }
+    originals[2]->setUserLocked(true);
+    originals[2]->setVisible(false);
+    originals[0]->setOpacity(128);
+    originals[0]->setPinnedToTimeline(true);
+    qobject_cast<KisPaintLayer*>(originals[0].data())->setAlphaLocked(true);
+    auto *manager = window->viewManager()->nodeManager();
+    manager->slotUiActivatedNode(originals[0]);
+    manager->slotSetSelectedNodes({originals[2], originals[0]});
+    const auto before = lifetime->undoStack()->count();
+    const KisImageWSP imageLifetime = image;
+    const auto retainedOwner = image->gpuImage();
+    QMetaObject::Connection closeOnChange;
+    if (closeAfterChange) {
+        closeOnChange = connect(retainedOwner.data(), &Gpu::PaintImage::changed, window.get(), [&] {
+            if (!lifetime || retainedOwner->operations().snapshot()->layers.size() != 5) return;
+            disconnect(closeOnChange);
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        });
+        image.clear();
+    }
+    const auto disconnectClose = qScopeGuard([&] { disconnect(closeOnChange); });
+    try {
+        manager->duplicateActiveNode();
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    if (closeAfterChange) {
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        QTRY_VERIFY(!lifetime);
+        QTRY_VERIFY(!imageLifetime.isValid());
+        QCOMPARE(root->childCount(), 5U);
+        return;
+    }
+    image->waitForDone();
+    QTRY_COMPARE(root->childCount(), 5U);
+    QCOMPARE(lifetime->undoStack()->count(), before + 1);
+    QCOMPARE(lifetime->undoStack()->undoText(), kundo2_i18n("Duplicate Nodes").toString());
+    QTRY_VERIFY(lifetime->isModified());
+    for (int index = 0; index < originals.size(); ++index) QCOMPARE(root->at(index), originals[index]);
+    KisNodeList copies{root->at(3), root->at(4)};
+    for (int index = 0; index < copies.size(); ++index) {
+        auto original = originals[index * 2];
+        QVERIFY(copies[index]->uuid() != original->uuid());
+        QVERIFY(copies[index]->name().contains(original->name()));
+        if (rename) QVERIFY(copies[index]->name() != original->name());
+        else QCOMPARE(copies[index]->name(), original->name());
+        QCOMPARE(copies[index]->userLocked(), original->userLocked());
+        QCOMPARE(copies[index]->visible(), original->visible());
+        QCOMPARE(copies[index]->opacity(), original->opacity());
+        QCOMPARE(copies[index]->isPinnedToTimeline(), original->isPinnedToTimeline());
+        QCOMPARE(qobject_cast<KisPaintLayer*>(copies[index].data())->alphaLocked(),
+                 qobject_cast<KisPaintLayer*>(original.data())->alphaLocked());
+        QByteArray actual(4, '\0');
+        copies[index]->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 5, 5, 1, 1);
+        QCOMPARE(actual, pixel);
+    }
+    QTRY_COMPARE(view->currentNode(), copies[0]);
+    QTRY_COMPARE(manager->selectedNodes().size(), 2);
+    const auto changed = QByteArray::fromHex("665544aa");
+    copies[0]->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(changed.constData()), 6, 6, 1, 1);
+    QByteArray actual(4, '\0');
+    originals[0]->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 6, 6, 1, 1);
+    QCOMPARE(actual, QByteArray(4, '\0'));
+    QCOMPARE(lifetime->undoStack()->count(), before + 1);
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QTRY_COMPARE(root->childCount(), 3U);
+    QTRY_COMPARE(view->currentNode(), originals[0]);
+    QTRY_COMPARE(manager->selectedNodes().size(), 2);
+    lifetime->undoStack()->redo();
+    image->waitForDone();
+    QTRY_COMPARE(root->childCount(), 5U);
+    QCOMPARE(root->at(3), copies[0]);
+    QCOMPARE(root->at(4), copies[1]);
+    copies[0]->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 6, 6, 1, 1);
+    QCOMPARE(actual, changed);
 }
 
 void KisGpuDocumentViewTest::layerPanelRemovalPreservesLayersSelectionAndOneHistoryEntry_data()

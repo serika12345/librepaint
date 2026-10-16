@@ -81,6 +81,8 @@ public:
     static KisImageSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name,
                                    const KoColorSpace *colorSpace);
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuImage() const;
+    /** Transient node notifications describe the GPU version being adopted. */
+    bool isSynchronizingGpuNodes() const { return m_synchronizingGpuNodes; }
 
 public: // KisNodeGraphListener implementation
 
@@ -1293,6 +1295,7 @@ private:
 private:
     class KisImagePrivate;
     KisImagePrivate * m_d;
+    bool m_synchronizingGpuNodes = false;
 };
 
 #endif // KIS_IMAGE_H_

@@ -104,6 +104,8 @@ public:
     LayerId addLayer(const QString &name);
     LayerId addLayer(const QString &name, qsizetype index, bool pinnedToTimeline);
     Result selectLayer(LayerId layer);
+    Result selectLayers(const QList<LayerId> &layers, LayerId active);
+    Result duplicateLayers(const QList<LayerId> &layers, const QList<QString> &names, LayerId activeSource);
     Result setLayerVisible(LayerId layer, bool visible);
     Result setLayerVisible(LayerId layer, bool visible, PropertyHistory history);
     Result setLayerOpacity(LayerId layer, quint8 opacity);

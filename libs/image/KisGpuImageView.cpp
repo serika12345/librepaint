@@ -11,6 +11,7 @@
 #include <KoChannelInfo.h>
 #include <QHash>
 #include <QSet>
+#include <QScopedValueRollback>
 #include <QThread>
 #include <stdexcept>
 #include <utility>
@@ -52,30 +53,26 @@ void KisImage::connectGpuImageUpdates()
         nodes.insert(node->uuid(), node);
     connect(image.data(), &LibrePaint::Image::Gpu::PaintImage::changed, this,
             [view = this, synchronized = image->operations().snapshot(),
-             historyIndex = image->operations().undoCount(), nodes = std::move(nodes)]() mutable {
+             nodes = std::move(nodes)]() mutable {
         KisImageSP retainedView = view;
         const auto owner = retainedView->gpuImage();
         const auto version = owner->operations().snapshot();
         if (version != synchronized) {
-            bool undoneRemoval = false;
-            if (version->documentId() == synchronized->documentId()) {
-                for (int index = owner->operations().undoCount() + 1; index <= historyIndex; ++index)
-                    undoneRemoval |= owner->operations().historyAction(index) == LibrePaint::Image::Gpu::HistoryAction::RemoveLayer;
+            const bool selectionChanged = version->activeLayer != synchronized->activeLayer ||
+                version->selectedLayers != synchronized->selectedLayers;
+            {
+                QScopedValueRollback<bool> syncing(retainedView->m_synchronizingGpuNodes, true);
+                synchronizeGpuLayerViews(retainedView.data(), &nodes);
             }
-            QSet<QUuid> previousLayers;
-            if (undoneRemoval)
-                for (const auto &layer : synchronized->layers) previousLayers.insert(layer.uuid);
-            synchronizeGpuLayerViews(retainedView.data(), &nodes);
             synchronized = retainedView->gpuImage()->operations().snapshot();
-            historyIndex = retainedView->gpuImage()->operations().undoCount();
-            if (undoneRemoval && synchronized == version) {
-                KisNodeList restored;
+            if (selectionChanged && synchronized == version) {
+                KisNodeList selected;
                 KisNodeSP active;
                 for (const auto &layer : synchronized->layers) {
-                    if (!previousLayers.contains(layer.uuid)) restored.append(nodes.value(layer.uuid));
+                    if (synchronized->selectedLayers.contains(layer.id)) selected.append(nodes.value(layer.uuid));
                     if (layer.id == synchronized->activeLayer) active = nodes.value(layer.uuid);
                 }
-                if (!restored.isEmpty()) Q_EMIT retainedView->sigRequestNodeReselection(active, restored);
+                if (active) Q_EMIT retainedView->sigRequestNodeReselection(active, selected);
             }
             Q_EMIT retainedView->sigImageModified();
         }
@@ -84,7 +81,10 @@ void KisImage::connectGpuImageUpdates()
 }
 
 void KisImage::synchronizeGpuNodes()
-{ synchronizeGpuLayerViews(this, nullptr); }
+{
+    QScopedValueRollback<bool> syncing(m_synchronizingGpuNodes, true);
+    synchronizeGpuLayerViews(this, nullptr);
+}
 
 namespace {
 void synchronizeGpuLayerViews(KisImage *view, QHash<QUuid, KisNodeSP> *retainedNodes)

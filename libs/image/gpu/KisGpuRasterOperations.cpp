@@ -64,8 +64,9 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     }
     m_nextLayer = initial->layers.size();
     initial->activeLayer = image.layers.isEmpty() ? 0 : image.activeLayer + 1;
+    if (initial->activeLayer) initial->selectedLayers = {initial->activeLayer};
     m_history.append(initial);
-    m_propertyChanges.append(PropertyChange{});
+    m_layerHistoryChanges.append(LayerHistoryChange{});
 }
 
 Result OperationDocument::replaceTiles(LayerId layer, const QList<RgbaTile> &tiles)

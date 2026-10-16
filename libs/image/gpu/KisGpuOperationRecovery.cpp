@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 14;
+constexpr quint16 FormatVersion = 15;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -134,12 +134,18 @@ QByteArray OperationDocument::recoveryData() const
         }
         if (!withinLimit()) return {};
     }
-    if (m_propertyChanges.size() != m_history.size()) return {};
+    if (m_layerHistoryChanges.size() != m_history.size()) return {};
     stream << quint32(m_history.size()) << quint32(m_index);
     for (qsizetype stateIndex = 0; stateIndex < m_history.size(); ++stateIndex) {
         const auto &state = m_history[stateIndex];
         for (const auto component : state->projectionBackground) stream << component;
-        stream << state->revision() << state->m_modifiedRevision << state->activeLayer << quint32(state->layers.size());
+        const bool multiple = state->selectedLayers.size() > 1;
+        stream << state->revision() << state->m_modifiedRevision << state->activeLayer
+               << (quint32(state->layers.size()) | (multiple ? 0x80000000u : 0u));
+        if (multiple) {
+            stream << quint32(state->selectedLayers.size());
+            for (const auto layer : state->selectedLayers) stream << layer;
+        }
         if (!withinLimit()) return {};
         for (const auto &layer : state->layers) {
             const auto name = layer.name.toUtf8();
@@ -153,8 +159,8 @@ QByteArray OperationDocument::recoveryData() const
             if (!withinLimit() || layer.operations.size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 4) return {};
             for (const auto &operation : layer.operations) stream << indices.value(operationPointer(operation));
         }
-        const auto &change = m_propertyChanges[stateIndex];
-        stream << quint8(change.property);
+        const auto &change = m_layerHistoryChanges[stateIndex];
+        stream << quint8(quint8(change.property) | (change.duplicatedLayers ? 128u : 0u));
         if (change.property != LayerProperty::None) {
             stream << change.layer;
             if (change.property == LayerProperty::Name) {
@@ -320,7 +326,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
     stream >> stateCount >> currentIndex;
     if (stateCount == 0 || currentIndex >= stateCount || !readableCount(stream, stateCount, HistoryLimit + 1, 33)) return Result::InvalidRecovery;
     QList<Snapshot> history;
-    QList<PropertyChange> changes;
+    QList<LayerHistoryChange> changes;
     QSet<quint32> referencedOperations;
     QHash<LayerId, QUuid> layerIdentities;
     QHash<QUuid, LayerId> identityOwners;
@@ -335,6 +341,18 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         quint32 layerCount = 0;
         for (auto &component : state->projectionBackground) stream >> component;
         stream >> state->m_revision >> state->m_modifiedRevision >> state->activeLayer >> layerCount;
+        const bool multiple = format >= 15 && (layerCount & 0x80000000u);
+        if (multiple) {
+            layerCount &= 0x7fffffffu;
+            quint32 selectedCount = 0;
+            stream >> selectedCount;
+            if (selectedCount < 2 || !readableCount(stream, selectedCount, qMin<quint64>(layerCount, m_limits.layerCount), 8)) return Result::InvalidRecovery;
+            for (quint32 selected = 0; selected < selectedCount; ++selected) {
+                LayerId layer = 0;
+                stream >> layer;
+                state->selectedLayers.append(layer);
+            }
+        } else if (state->activeLayer) state->selectedLayers = {state->activeLayer};
         if (state->revision() > nextRevision || state->m_modifiedRevision > state->revision() ||
             stateRevisions.contains(state->revision()) ||
             (i > 0 && state->m_modifiedRevision <= previousModifiedRevision) ||
@@ -389,9 +407,19 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
             state->layers.append(layer);
         }
         if (layers.isEmpty() ? state->activeLayer != 0 : !layers.contains(state->activeLayer)) return Result::InvalidRecovery;
-        PropertyChange change;
+        QList<LayerId> selected;
+        for (const auto &layer : state->layers) if (state->selectedLayers.contains(layer.id)) selected.append(layer.id);
+        if (selected != state->selectedLayers || (!layers.isEmpty() && !selected.contains(state->activeLayer)))
+            return Result::InvalidRecovery;
+        LayerHistoryChange change;
         quint8 property = 0;
         stream >> property;
+        change.duplicatedLayers = format >= 15 && (property & 128u);
+        if (change.duplicatedLayers) {
+            property &= 127u;
+            if (i == 0 || property != quint8(LayerProperty::None) || state->layers.size() <= history.last()->layers.size())
+                return Result::InvalidRecovery;
+        }
         if (property > quint8(format < 13 ? LayerProperty::PinnedToTimeline : LayerProperty::ChannelMask)) return Result::InvalidRecovery;
         change.property = LayerProperty(property);
         if (change.property != LayerProperty::None) {
@@ -463,7 +491,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
     if (referencedOperations.size() != operations.size()) return Result::InvalidRecovery;
     m_identity = identity;
     m_history = history;
-    m_propertyChanges = changes;
+    m_layerHistoryChanges = changes;
     m_index = currentIndex;
     m_nextRevision = nextRevision;
     m_nextOperation = nextOperation;

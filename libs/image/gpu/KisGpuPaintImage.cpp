@@ -161,6 +161,10 @@ LayerId PaintImage::addLayer(const QString &name, qsizetype index, bool pinnedTo
     if (id) publish(Result::Success);
     return id;
 }
+Result PaintImage::duplicateLayers(const QList<LayerId> &layers, const QList<QString> &names, LayerId activeSource)
+{ return onThread() ? publish(m_d->document->duplicateLayers(layers, names, activeSource)) : Result::InvalidInput; }
+Result PaintImage::selectLayers(const QList<LayerId> &layers, LayerId active)
+{ return onThread() ? publish(m_d->document->selectLayers(layers, active)) : Result::InvalidInput; }
 Result PaintImage::selectLayer(LayerId layer)
 { return onThread() ? publish(m_d->document->selectLayer(layer)) : Result::InvalidInput; }
 Result PaintImage::setLayerVisible(LayerId layer, bool visible)

@@ -2960,7 +2960,7 @@ void KisDocument::setReferenceImagesLayer(KisSharedPtr<KisReferenceImagesLayer> 
 
 void KisDocument::setPreActivatedNode(KisNodeSP activatedNode)
 {
-    if (activatedNode && d->image && activatedNode->image() == d->image.data()) {
+    if (activatedNode && d->image && !d->image->isSynchronizingGpuNodes() && activatedNode->image() == d->image.data()) {
         if (const auto owner = d->image->gpuImage()) {
             for (const auto &layer : owner->operations().snapshot()->layers) {
                 if (layer.uuid != activatedNode->uuid()) continue;

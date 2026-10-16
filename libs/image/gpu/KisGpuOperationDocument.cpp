@@ -12,6 +12,7 @@
 #include <stdexcept>
 #include <QScopeGuard>
 #include <QSet>
+#include <QHash>
 
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
@@ -65,7 +66,8 @@ QList<Snapshot> OperationDocument::historyVersions() const { return m_history; }
 HistoryAction OperationDocument::historyAction(int index) const
 {
     if (index <= 0 || index >= m_history.size()) return HistoryAction::None;
-    switch (m_propertyChanges[index].property) {
+    if (m_layerHistoryChanges[index].duplicatedLayers) return HistoryAction::DuplicateLayer;
+    switch (m_layerHistoryChanges[index].property) {
     case LayerProperty::Name: return HistoryAction::RenameLayer;
     case LayerProperty::Opacity: return HistoryAction::ChangeOpacity;
     case LayerProperty::Visible: return HistoryAction::ChangeVisibility;
@@ -167,7 +169,7 @@ Result OperationDocument::writeLayerProperty(LayerId layer, LayerProperty proper
         return false;
     };
     const auto changesProperty = [&](int index) {
-        return m_propertyChanges[index].layer == layer && m_propertyChanges[index].property == property;
+        return m_layerHistoryChanges[index].layer == layer && m_layerHistoryChanges[index].property == property;
     };
     int first = m_index, last = m_index;
     while (first > 0 && !changesProperty(first) && containsLayer(m_history[first - 1])) --first;
@@ -209,7 +211,7 @@ Result OperationDocument::writeLayerLocked(LayerId layer, bool locked)
 Result OperationDocument::writeLayerPinnedToTimeline(LayerId layer, bool pinned)
 { return writeLayerProperty(layer, LayerProperty::PinnedToTimeline, &Layer::pinnedToTimeline, pinned); }
 
-Result OperationDocument::restorePropertyChange(const PropertyChange &change, bool forward)
+Result OperationDocument::restoreLayerHistoryChange(const LayerHistoryChange &change, bool forward)
 {
     const auto &value = forward ? change.after : change.before;
     switch (change.property) {
@@ -319,10 +321,10 @@ void OperationDocument::replacePreview(const QSharedPointer<const PaintOperation
 void OperationDocument::commitVersion(const Snapshot &version)
 { commitVersion(version, {}); }
 
-void OperationDocument::commitVersion(const Snapshot &version, const PropertyChange &change)
+void OperationDocument::commitVersion(const Snapshot &version, const LayerHistoryChange &change)
 {
     auto history = m_history;
-    auto changes = m_propertyChanges;
+    auto changes = m_layerHistoryChanges;
     history.erase(history.begin() + m_index + 1, history.end());
     changes.erase(changes.begin() + m_index + 1, changes.end());
     history.append(version);
@@ -336,20 +338,20 @@ void OperationDocument::commitVersion(const Snapshot &version, const PropertyCha
     }
     version->m_committed = true;
     m_history.swap(history);
-    m_propertyChanges.swap(changes);
+    m_layerHistoryChanges.swap(changes);
     m_index = index;
 }
 
-void OperationDocument::commitPropertyVersion(const Snapshot &version, PropertyChange change, PropertyHistory history)
+void OperationDocument::commitPropertyVersion(const Snapshot &version, LayerHistoryChange change, PropertyHistory history)
 {
     change.mergeable = history == PropertyHistory::MergeConsecutive;
-    const auto previous = m_propertyChanges[m_index];
+    const auto previous = m_layerHistoryChanges[m_index];
     if (change.mergeable && previous.mergeable && m_index > 0 && !redoCount() &&
         previous.property == change.property && previous.layer == change.layer &&
         previous.after == change.before && snapshot()->m_modifiedRevision != m_savedRevision) {
         change.before = previous.before;
         auto states = m_history;
-        auto changes = m_propertyChanges;
+        auto changes = m_layerHistoryChanges;
         int index = m_index;
         if (change.property != LayerProperty::Name && change.before == change.after) {
             states.removeLast();
@@ -357,6 +359,7 @@ void OperationDocument::commitPropertyVersion(const Snapshot &version, PropertyC
             --index;
             auto current = QSharedPointer<DocumentVersion>(new DocumentVersion(*states[index]));
             current->activeLayer = version->activeLayer;
+            current->selectedLayers = version->selectedLayers;
             current->m_revision = version->m_revision;
             states[index] = current;
         } else {
@@ -365,7 +368,7 @@ void OperationDocument::commitPropertyVersion(const Snapshot &version, PropertyC
             changes[index] = change;
         }
         m_history.swap(states);
-        m_propertyChanges.swap(changes);
+        m_layerHistoryChanges.swap(changes);
         m_index = index;
         return;
     }
@@ -409,23 +412,123 @@ LayerId OperationDocument::addLayer(const QString &name, qsizetype index, bool p
     added.pinnedToTimeline = pinnedToTimeline;
     version->layers.insert(index, added);
     version->activeLayer = layer;
+    version->selectedLayers = {layer};
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     commitVersion(version);
     return layer;
 }
 
+Result OperationDocument::duplicateLayers(const QList<LayerId> &layers, const QList<QString> &names, LayerId activeSource)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    if (layers.isEmpty() || layers.size() != names.size()) return Result::InvalidInput;
+    const auto original = snapshot();
+    if (layers.size() > m_limits.layerCount - original->layers.size() ||
+        quint64(layers.size()) > std::numeric_limits<quint64>::max() - m_nextLayer ||
+        m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    qsizetype samples = original->sampleCount, pixels = original->rasterBytes;
+    quint64 nextOperation = m_nextOperation;
+    qsizetype previousIndex = -1;
+    for (int i = 0; i < layers.size(); ++i) {
+        const auto index = layerIndex(layers[i]);
+        if (index < 0) return Result::LayerUnavailable;
+        if (index <= previousIndex || !validLayerName(names[i])) return Result::InvalidInput;
+        previousIndex = index;
+        for (const auto &operation : original->layers[index].operations) {
+            if (operationSamples(operation) > m_limits.samplesPerDocument - samples ||
+                operationRasterBytes(operation) > m_limits.rasterBytes - pixels ||
+                nextOperation == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+            samples += operationSamples(operation);
+            pixels += operationRasterBytes(operation);
+            ++nextOperation;
+        }
+    }
+    QSharedPointer<DocumentVersion> version(new DocumentVersion(*original));
+    auto nextLayer = m_nextLayer;
+    nextOperation = m_nextOperation;
+    auto insertion = previousIndex + 1;
+    version->selectedLayers.clear();
+    QSet<QUuid> identities;
+    for (const auto &layer : original->layers) identities.insert(layer.uuid);
+    const auto activeIndex = qMax(qsizetype(0), layers.indexOf(activeSource));
+    for (int i = 0; i < layers.size(); ++i) {
+        Layer copy = original->layers[layerIndex(layers[i])];
+        copy.id = ++nextLayer;
+        const auto sourceIdentity = copy.uuid;
+        bool unique = false;
+        for (qsizetype attempt = 0; attempt <= identities.size(); ++attempt) {
+            const QByteArray name = QByteArrayLiteral("LibrePaint layer copy:") +
+                QByteArray::number(copy.id) + ':' + QByteArray::number(attempt);
+            copy.uuid = QUuid::createUuidV5(sourceIdentity, name);
+            if (!identities.contains(copy.uuid)) { unique = true; break; }
+        }
+        if (!unique) return Result::CapacityExceeded;
+        identities.insert(copy.uuid);
+        copy.name = names[i];
+        copy.operations.clear();
+        QHash<quint64, quint64> writeGroups;
+        for (const auto &source : original->layers[layerIndex(layers[i])].operations) {
+            const OperationId id{m_identity, ++nextOperation};
+            if (const auto paint = std::get_if<PaintSnapshot>(&source)) {
+                auto operation = QSharedPointer<PaintOperation>::create(**paint);
+                operation->id = id;
+                operation->layer = copy.id;
+                copy.operations.append(PaintSnapshot(operation));
+            } else {
+                auto operation = QSharedPointer<TileWriteOperation>::create(*std::get<TileWriteSnapshot>(source));
+                operation->id = id;
+                operation->layer = copy.id;
+                if (operation->writeGroup) {
+                    if (!writeGroups.contains(operation->writeGroup)) writeGroups.insert(operation->writeGroup, id.sequence);
+                    operation->writeGroup = writeGroups.value(operation->writeGroup);
+                }
+                copy.operations.append(TileWriteSnapshot(operation));
+            }
+        }
+        if (i == activeIndex) version->activeLayer = copy.id;
+        version->selectedLayers.append(copy.id);
+        version->layers.insert(insertion++, copy);
+    }
+    version->sampleCount = samples;
+    version->rasterBytes = pixels;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    m_nextLayer = nextLayer;
+    m_nextOperation = nextOperation;
+    LayerHistoryChange change;
+    change.duplicatedLayers = true;
+    commitVersion(version, change);
+    return Result::Success;
+}
+
 Result OperationDocument::selectLayer(LayerId layer)
 {
+    return selectLayers(snapshot()->selectedLayers.contains(layer) ? snapshot()->selectedLayers : QList<LayerId>{layer}, layer);
+}
+
+Result OperationDocument::selectLayers(const QList<LayerId> &layers, LayerId active)
+{
     if (m_closed) return Result::Closed;
-    if (layerIndex(layer) < 0) return Result::LayerUnavailable;
-    if (layer == activeLayer()) return Result::Success;
+    if (layerIndex(active) < 0) return Result::LayerUnavailable;
+    QSet<LayerId> selected;
+    for (const auto layer : layers) {
+        if (layerIndex(layer) < 0) return Result::LayerUnavailable;
+        if (selected.contains(layer)) return Result::InvalidInput;
+        selected.insert(layer);
+    }
+    if (!selected.contains(active)) return Result::InvalidInput;
+    QList<LayerId> ordered;
+    for (const auto &layer : snapshot()->layers) if (selected.contains(layer.id)) ordered.append(layer.id);
+    if (active == activeLayer() && ordered == snapshot()->selectedLayers) return Result::Success;
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
-    version->activeLayer = layer;
+    version->activeLayer = active;
+    version->selectedLayers = ordered;
     Snapshot preview = m_preview;
     if (preview) {
-        QSharedPointer<DocumentVersion> selected(new DocumentVersion(*preview));
-        selected->activeLayer = layer;
-        preview = selected;
+        QSharedPointer<DocumentVersion> value(new DocumentVersion(*preview));
+        value->activeLayer = active;
+        value->selectedLayers = ordered;
+        preview = value;
     }
     m_history[m_index] = version;
     m_preview = preview;
@@ -623,6 +726,10 @@ Result OperationDocument::removeLayers(const QList<LayerId> &layers, const QStri
         version->layers.append(std::move(replacement));
         ++m_nextLayer;
     }
+    const auto selected = version->selectedLayers;
+    version->selectedLayers.clear();
+    for (const auto &layer : version->layers)
+        if (selected.contains(layer.id) || layer.id == version->activeLayer) version->selectedLayers.append(layer.id);
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     commitVersion(version);
     return Result::Success;
@@ -669,9 +776,9 @@ Result OperationDocument::setHistoryIndex(int index)
     });
     while (m_index != index) {
         const bool forward = index > m_index;
-        const auto change = m_propertyChanges[m_index + (forward ? 1 : 0)];
+        const auto change = m_layerHistoryChanges[m_index + (forward ? 1 : 0)];
         m_index += forward ? 1 : -1;
-        const auto result = restorePropertyChange(change, forward);
+        const auto result = restoreLayerHistoryChange(change, forward);
         if (result != Result::Success) return result;
     }
     completed = true;
@@ -684,7 +791,7 @@ void OperationDocument::close()
     m_edit.clear();
     m_preview.clear();
     m_history.swap(remaining);
-    m_propertyChanges = {PropertyChange{}};
+    m_layerHistoryChanges = {LayerHistoryChange{}};
     m_index = 0;
     m_closed = true;
 }

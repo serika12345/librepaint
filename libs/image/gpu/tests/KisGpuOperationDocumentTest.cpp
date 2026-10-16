@@ -6,6 +6,8 @@
 #include <QTest>
 #include <QCryptographicHash>
 #include <QBuffer>
+#include <QDir>
+#include <QFile>
 #include <QDataStream>
 #include <limits>
 #include <stdexcept>
@@ -52,6 +54,8 @@ class KisGpuOperationDocumentTest : public QObject
 private Q_SLOTS:
     void groupedRemovalPreservesPixelsSelectionAndAtomicHistory();
     void insertedLayersPreserveOrderPinsAndOneHistoryStep();
+    void duplicatedLayersShareInputsAndPixelsWithIndependentHistory();
+    void identicalLayerDuplicationsPreserveTheSamePersistentIdentities();
     void selectionDuringInputPreservesPaintingAndHistory();
     void mergedPanelTogglesPreservePinsAndSaveBoundaries_data();
     void mergedPanelTogglesPreservePinsAndSaveBoundaries();
@@ -470,6 +474,124 @@ void KisGpuOperationDocumentTest::channelProtectionPreservesFrozenSettingsHistor
     QCOMPARE(document.undoCount(), 0);
 }
 
+void KisGpuOperationDocumentTest::identicalLayerDuplicationsPreserveTheSamePersistentIdentities()
+{
+    OperationDocument first(rasterImage()), second(rasterImage());
+    const QList<QString> names{QStringLiteral("Red copy"), QStringLiteral("Blue copy")};
+    QCOMPARE(first.duplicateLayers({1, 2}, names, 1), Result::Success);
+    QCOMPARE(second.duplicateLayers({1, 2}, names, 1), Result::Success);
+    const auto bytes = first.recoveryData();
+    QCOMPARE(bytes, second.recoveryData());
+    const auto firstCopy = first.snapshot()->layers[2].uuid;
+    auto collisionImage = rasterImage();
+    collisionImage.layers[1].uuid = firstCopy;
+    OperationDocument collision(collisionImage);
+    QCOMPARE(collision.duplicateLayers({1}, {QStringLiteral("Another copy")}, 1), Result::Success);
+    QVERIFY(collision.snapshot()->layers[1].uuid != firstCopy);
+    QVERIFY(collision.snapshot()->layers[1].uuid != collisionImage.layers.first().uuid);
+    QCOMPARE(first.duplicateLayers({1}, {QStringLiteral("Another copy")}, 1), Result::Success);
+    QVERIFY(first.snapshot()->layers[1].uuid != firstCopy);
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(bytes), Result::Success);
+    QCOMPARE(restored.recoveryData(), bytes);
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        QFile output(QDir(directory).filePath(QStringLiteral("layer-duplication.recovery")));
+        QVERIFY(output.open(QIODevice::WriteOnly));
+        QCOMPARE(output.write(bytes), qint64(bytes.size()));
+    }
+}
+
+void KisGpuOperationDocumentTest::duplicatedLayersShareInputsAndPixelsWithIndependentHistory()
+{
+    OperationDocument document(rasterImage());
+    const auto first = document.snapshot()->layers.first().id;
+    const auto last = document.addLayer(QStringLiteral("Top"));
+    Brush brush;
+    brush.mirrorHorizontal = true;
+    brush.mirrorCenter = {160, 90};
+    const auto stroke = document.beginStroke(first, brush, 7);
+    QCOMPARE(document.appendSamples(stroke, {sample(16, 16)}), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    QCOMPARE(document.writeLayerChannelMask(first, 7), Result::Success);
+    QCOMPARE(document.writeLayerOpacity(first, 128), Result::Success);
+    QCOMPARE(document.writeLayerPinnedToTimeline(first, true), Result::Success);
+    QCOMPARE(document.selectLayers({first, last}, first), Result::Success);
+    const auto fixed = document.snapshot();
+    const auto count = document.undoCount();
+    QCOMPARE(document.duplicateLayers({first, last}, {QStringLiteral("First copy"), QStringLiteral("Last copy")}, first), Result::Success);
+    const auto copied = document.snapshot();
+    QCOMPARE(copied->layers.size(), 5);
+    QCOMPARE(document.undoCount(), count + 1);
+    QCOMPARE(document.historyAction(count + 1), HistoryAction::DuplicateLayer);
+    QCOMPARE(copied->layers[3].name, QStringLiteral("First copy"));
+    QCOMPARE(copied->layers[4].name, QStringLiteral("Last copy"));
+    const auto copy = copied->layers[3];
+    QCOMPARE(copied->activeLayer, copy.id);
+    QCOMPARE(copied->selectedLayers, (QList<LayerId>{copy.id, copied->layers[4].id}));
+    QVERIFY(copy.id != first);
+    QVERIFY(copy.uuid != fixed->layers.first().uuid);
+    QCOMPARE(copy.opacity, quint8(128));
+    QVERIFY(copy.pinnedToTimeline);
+    QCOMPARE(copy.channelWriteMask, quint8(7));
+    QCOMPARE(copy.operations.size(), fixed->layers.first().operations.size());
+    const auto originalPaint = std::get<PaintSnapshot>(fixed->layers.first().operations.last());
+    const auto copiedPaint = std::get<PaintSnapshot>(copy.operations.last());
+    QCOMPARE(copiedPaint->brush, originalPaint->brush);
+    QCOMPARE(copiedPaint->sampleBlocks, originalPaint->sampleBlocks);
+    QVERIFY(copiedPaint->id != originalPaint->id);
+    QCOMPARE(copiedPaint->layer, copy.id);
+    const auto originalWrite = std::get<TileWriteSnapshot>(fixed->layers.first().operations.first());
+    const auto copiedWrite = std::get<TileWriteSnapshot>(copy.operations.first());
+    QCOMPARE(copiedWrite->tiles, originalWrite->tiles);
+    QCOMPARE(copied->sampleCount, fixed->sampleCount * 2);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), fixed);
+    QCOMPARE(document.snapshot()->selectedLayers, (QList<LayerId>{first, last}));
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), copied);
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(restored.snapshot()->layers[3].id, copy.id);
+    QCOMPARE(restored.historyAction(count + 1), HistoryAction::DuplicateLayer);
+    QCOMPARE(restored.snapshot()->selectedLayers, copied->selectedLayers);
+    QCOMPARE(restored.snapshot()->layers[3].channelWriteMask, quint8(7));
+    QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers[3].operations.last())->brush, brush);
+    const auto before = document.recoveryData();
+    auto oldFormat = before.chopped(32);
+    oldFormat[5] = char(14);
+    oldFormat.append(QCryptographicHash::hash(oldFormat, QCryptographicHash::Sha256));
+    const auto restoredVersion = restored.snapshot();
+    QCOMPARE(restored.restoreRecovery(oldFormat), Result::InvalidRecovery);
+    QCOMPARE(restored.snapshot(), restoredVersion);
+    QCOMPARE(document.selectLayers({first, first}, first), Result::InvalidInput);
+    QCOMPARE(document.selectLayers({last}, first), Result::InvalidInput);
+
+    QCOMPARE(document.duplicateLayers({first, first}, {QStringLiteral("A"), QStringLiteral("B")}, first), Result::InvalidInput);
+    QCOMPARE(document.duplicateLayers({first}, {}, first), Result::InvalidInput);
+    QCOMPARE(document.recoveryData(), before);
+    Limits limits;
+    limits.layerCount = 3;
+    OperationDocument bounded(rasterImage(), limits);
+    const auto limited = bounded.snapshot();
+    QCOMPARE(bounded.duplicateLayers({1, 2}, {QStringLiteral("A"), QStringLiteral("B")}, 1), Result::CapacityExceeded);
+    QCOMPARE(bounded.snapshot(), limited);
+    QCOMPARE(bounded.undoCount(), 0);
+    limits.layerCount = 4096;
+    limits.rasterBytes = 2 * RgbaTile::ByteCount;
+    OperationDocument pixelBounded(rasterImage(), limits);
+    const auto pixelLimit = pixelBounded.recoveryData();
+    QCOMPARE(pixelBounded.duplicateLayers({1}, {QStringLiteral("A")}, 1), Result::CapacityExceeded);
+    QCOMPARE(pixelBounded.recoveryData(), pixelLimit);
+    limits.samplesPerStroke = limits.samplesPerDocument = 1;
+    OperationDocument inputBounded({64, 64}, limits);
+    QVERIFY(!paint(inputBounded, {sample(16, 16)}).isNull());
+    const auto inputLimit = inputBounded.recoveryData();
+    QCOMPARE(inputBounded.duplicateLayers({inputBounded.activeLayer()}, {QStringLiteral("A")}, inputBounded.activeLayer()), Result::CapacityExceeded);
+    QCOMPARE(inputBounded.recoveryData(), inputLimit);
+}
+
 void KisGpuOperationDocumentTest::symmetryFreezesAxesAndRejectsInvalidRecoveryAtomically()
 {
     OperationDocument document({64, 64});
@@ -518,6 +640,7 @@ void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable_data()
     QTest::newRow("version-eleven") << quint8(11) << false;
     QTest::newRow("version-twelve") << quint8(12) << false;
     QTest::newRow("version-thirteen") << quint8(13) << false;
+    QTest::newRow("version-fourteen") << quint8(14) << false;
 }
 
 void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable()
