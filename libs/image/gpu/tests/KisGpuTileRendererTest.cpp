@@ -46,6 +46,8 @@ private Q_SLOTS:
     void alphaLockPreservesCoverageHistoryAndRecovery_data();
     void alphaLockPreservesCoverageHistoryAndRecovery();
     void inputPartitionsAndPreviewProduceTheSamePixels();
+    void basicSmoothingPreservesCurvesIdleCompletionAndRecovery_data();
+    void basicSmoothingPreservesCurvesIdleCompletionAndRecovery();
     void pixelCorrectionPreservesCornersSensorsAndIncrementalPixels_data();
     void pixelCorrectionPreservesCornersSensorsAndIncrementalPixels();
     void unchangedTilesAreSharedAndBudgetsRejectAtomically();
@@ -1782,6 +1784,93 @@ void KisGpuTileRendererTest::pixelCorrectionPreservesCornersSensorsAndIncrementa
     if (!results.isEmpty()) {
         QVERIFY(QDir().mkpath(results));
         QFile file(QDir(results).filePath(QStringLiteral("pixel-perfect-") + QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".rgba")));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(pixels), qint64(pixels.size()));
+    }
+}
+
+void KisGpuTileRendererTest::basicSmoothingPreservesCurvesIdleCompletionAndRecovery_data()
+{
+    QTest::addColumn<QString>("kind");
+    for (const auto &kind : {QStringLiteral("curve"), QStringLiteral("idle-then-continue"),
+                            QStringLiteral("idle-two"), QStringLiteral("tap"),
+                            QStringLiteral("tap-after-two"), QStringLiteral("stationary")})
+        QTest::newRow(qPrintable(kind)) << kind;
+}
+
+void KisGpuTileRendererTest::basicSmoothingPreservesCurvesIdleCompletionAndRecovery()
+{
+    QFETCH(QString, kind);
+    QList<InputSample> input{{{8, 32}, 1, 0, 0, 0, 0}, {{32, 8}, 1, 0, 0, 0, 8}, {{56, 32}, 1, 0, 0, 0, 16}};
+    if (kind == QLatin1String("tap")) input = input.first(1);
+    if (kind == QLatin1String("idle-two") || kind == QLatin1String("tap-after-two")) input = input.first(2);
+    if (kind == QLatin1String("stationary")) for (auto &sample : input) sample.position = {8, 32};
+    const bool idle = kind.startsWith(QLatin1String("idle"));
+    OperationDocument document(QSize(64, 64));
+    Brush brush;
+    brush.diameter = 4;
+    brush.rgba = {17, 129, 241, 255};
+    brush.basicSmoothing = true;
+    const auto layer = document.activeLayer();
+    const auto id = document.beginStroke(layer, brush, 7);
+    TileRenderer renderer(m_device);
+    RenderedSnapshot incremental;
+    for (qsizetype index = 0; index < input.size(); ++index) {
+        QCOMPARE(document.appendSamples(id, {input[index]}), Result::Success);
+        incremental = render(renderer, document.preview(), incremental);
+        QVERIFY(incremental);
+        if (index == 0) QVERIFY(incremental->tiles(layer).isEmpty());
+        if (index == 1 && idle) {
+            QCOMPARE(document.flushSmoothing(id), Result::Success);
+            incremental = render(renderer, document.preview(), incremental);
+            QVERIFY(incremental);
+            QVERIFY(!incremental->tiles(layer).isEmpty());
+        }
+        const auto rebuilt = render(renderer, document.preview());
+        QVERIFY(rebuilt);
+        QCOMPARE(incremental->tiles(layer).size(), rebuilt->tiles(layer).size());
+        for (const auto &tile : rebuilt->tiles(layer))
+            QCOMPARE(readTile(incremental, layer, tile.coordinate), readTile(rebuilt, layer, tile.coordinate));
+    }
+    QCOMPARE(document.commitStroke(id), Result::Success);
+    const auto final = render(renderer, document.snapshot(), incremental);
+    QVERIFY(final);
+    Shape shape;
+    QList<InputSample> expected;
+    if (kind == QLatin1String("tap") || kind == QLatin1String("tap-after-two") || kind == QLatin1String("stationary")) {
+        expected = {input.last()};
+    } else {
+        shape.kind = ShapeKind::Path;
+        shape.pathCommands = {PathCommand::MoveTo, PathCommand::CubicTo};
+        expected = idle ? QList<InputSample>{{{8, 32}, 1}, {{15.68, 24.32}, 1}, {{24.32, 15.68}, 1}, {{32, 8}, 1}} :
+                          QList<InputSample>{{{8, 32}, 1}, {{17.6, 22.4}, 1}, {{22.4, 8}, 1}, {{32, 8}, 1}};
+        if (input.size() == 3) {
+            shape.pathCommands.append(PathCommand::CubicTo);
+            expected.append(idle ? QList<InputSample>{{{39.68, 15.68}, 1}, {{48.32, 24.32}, 1}, {{56, 32}, 1}} :
+                                   QList<InputSample>{{{41.6, 8}, 1}, {{46.4, 22.4}, 1}, {{56, 32}, 1}});
+        }
+    }
+    OperationDocument oracle(QSize(64, 64));
+    brush.basicSmoothing = false;
+    QCOMPARE(oracle.paintFigure(oracle.activeLayer(), brush, expected, shape, FigureStyle{}, 7), Result::Success);
+    const auto renderedExpected = render(renderer, oracle.snapshot());
+    QVERIFY(renderedExpected);
+    const auto pixels = readTile(final, layer, {0, 0});
+    QCOMPARE(pixels, readTile(renderedExpected, oracle.activeLayer(), {0, 0}));
+    const auto operation = std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last());
+    QCOMPARE(operation->inputSamples(), input);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(render(renderer, document.snapshot(), final)->tiles(layer).isEmpty());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), pixels);
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(readTile(render(renderer, restored.snapshot()), layer, {0, 0}), pixels);
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        QFile file(QDir(results).filePath(QStringLiteral("basic-smoothing-") + kind + QStringLiteral(".rgba")));
         QVERIFY(file.open(QIODevice::WriteOnly));
         QCOMPARE(file.write(pixels), qint64(pixels.size()));
     }

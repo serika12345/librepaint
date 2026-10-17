@@ -71,6 +71,8 @@ struct Brush
     QPoint mirrorCenter;
     /** Pixel-centered freehand input with adjacent corner samples held back. */
     bool pixelPerfect = false;
+    /** Basic freehand interpolation retains raw sensors and explicit idle boundaries. */
+    bool basicSmoothing = false;
 
     bool operator==(const Brush &other) const
     {
@@ -78,7 +80,8 @@ struct Brush
             spacing == other.spacing && opacity == other.opacity && erase == other.erase &&
             alphaLocked == other.alphaLocked && channelWriteMask == other.channelWriteMask &&
             mirrorHorizontal == other.mirrorHorizontal && mirrorVertical == other.mirrorVertical &&
-            mirrorCenter == other.mirrorCenter && pixelPerfect == other.pixelPerfect;
+            mirrorCenter == other.mirrorCenter && pixelPerfect == other.pixelPerfect &&
+            basicSmoothing == other.basicSmoothing;
     }
 };
 
@@ -121,6 +124,9 @@ struct KRITAIMAGEGPUOPERATIONS_EXPORT PaintOperation
     QList<QSharedPointer<const QList<InputSample>>> sampleBlocks;
     qsizetype sampleCount = 0;
     FigureStyle figureStyle;
+    /** Accepted input counts at which an idle timeout completed the current curve. */
+    QList<qsizetype> smoothingFlushes{};
+    bool smoothingFinished = false;
 
     QList<InputSample> inputSamples() const;
 };
@@ -297,6 +303,11 @@ public:
     /** Returns an empty identifier for a closed/busy document or invalid brush/layer. */
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 randomSeed);
     Result appendSamples(OperationId id, const QList<InputSample> &samples);
+    /** Completes basic interpolation at the current input count. Repeated calls
+     * preserve the version; other modes return InvalidInput and fewer than two
+     * samples return EmptyOperation. Original sensor input remains unchanged.
+     */
+    Result flushSmoothing(OperationId id);
     Result updateShape(OperationId id, const Shape &shape);
     /** Freezes solid fill and outline intent together with the figure geometry. */
     Result updateFigure(OperationId id, const Shape &shape, const FigureStyle &style);

@@ -96,6 +96,7 @@ struct KisToolFreehandHelper::Private
     LibrePaint::Image::Gpu::PaintImageSP gpuImage;
     LibrePaint::Image::Gpu::OperationId gpuOperation;
     QMetaObject::Connection gpuCancellation;
+    bool gpuBasicInput = false;
     KoCanvasResourceProvider *resourceManager;
     KisPaintingInformationBuilder *infoBuilder;
     KisStrokesFacade *strokesFacade;
@@ -308,6 +309,8 @@ void KisToolFreehandHelper::initPaint(KoPointerEvent *event,
             Q_EMIT requestErrorMessage(i18n("Complete the current stroke before starting another stroke."));
             return;
         }
+        m_d->strokeTimeoutTimer.stop();
+        m_d->gpuBasicInput = false;
         disconnect(m_d->gpuCancellation);
         m_d->gpuImage.clear();
         m_d->gpuOperation = {};
@@ -329,11 +332,14 @@ void KisToolFreehandHelper::initPaint(KoPointerEvent *event,
     KisPaintInformation pi =
         m_d->infoBuilder->startStroke(event, elapsedStrokeTime(), m_d->resourceManager);
     if (image->gpuImage() && m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::NO_SMOOTHING &&
-        m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::PIXEL_PERFECT) {
+        m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::PIXEL_PERFECT &&
+        m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::SIMPLE_SMOOTHING) {
         m_d->infoBuilder->reset();
-        Q_EMIT requestErrorMessage(i18n("GPU freehand input currently supports no smoothing or pixel-perfect smoothing with the circular brush."));
+        Q_EMIT requestErrorMessage(i18n("GPU freehand input currently supports no smoothing, basic smoothing or pixel-perfect smoothing with the circular brush."));
         return;
     }
+    m_d->gpuBasicInput = image->gpuImage() &&
+        m_d->smoothingOptions->smoothingType() == KisSmoothingOptions::SIMPLE_SMOOTHING;
     qreal startAngle = KisAlgebra2D::directionBetweenPoints(prevPoint, pixelCoords, 0.0);
 
     initPaintImpl(startAngle,
@@ -362,6 +368,8 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
                                           KisDefaultBoundsBaseSP bounds)
 {
     if (m_d->gpuImage && !image->gpuImage()) {
+        m_d->strokeTimeoutTimer.stop();
+        m_d->gpuBasicInput = false;
         disconnect(m_d->gpuCancellation);
         m_d->gpuImage.clear();
         m_d->gpuOperation = {};
@@ -378,6 +386,7 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
         }
         auto resources = captureGpuBrushResources(image, currentNode, resourceManager);
         resources.brush.pixelPerfect = m_d->smoothingOptions->smoothingType() == KisSmoothingOptions::PIXEL_PERFECT;
+        resources.brush.basicSmoothing = m_d->gpuBasicInput;
         if (!resources.diagnostic.isEmpty()) {
             m_d->infoBuilder->reset();
             Q_EMIT requestErrorMessage(resources.diagnostic);
@@ -400,6 +409,7 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
         }
         return;
     }
+    m_d->gpuBasicInput = false;
     m_d->strokesFacade = strokesFacade;
 
     m_d->haveTangent = false;
@@ -582,6 +592,7 @@ void KisToolFreehandHelper::paintEvent(KoPointerEvent *event)
     if (m_d->gpuImage) {
         namespace Gpu = LibrePaint::Image::Gpu;
         if (!isRunning()) return;
+        if (m_d->gpuBasicInput) m_d->strokeTimeoutTimer.stop();
         QPointer<KisToolFreehandHelper> guard(this);
         const auto owner = m_d->gpuImage;
         const auto result = owner->appendSamples(m_d->gpuOperation, {gpuInputSample(info)});
@@ -589,6 +600,8 @@ void KisToolFreehandHelper::paintEvent(KoPointerEvent *event)
         if (result != Gpu::Result::Success) {
             cancelPaint();
             if (guard) Q_EMIT requestErrorMessage(gpuInputError(result));
+        } else if (m_d->gpuBasicInput && isRunning()) {
+            m_d->strokeTimeoutTimer.start(100);
         }
         return;
     }
@@ -812,6 +825,8 @@ void KisToolFreehandHelper::paint(KisPaintInformation &info)
 void KisToolFreehandHelper::endPaint()
 {
     if (m_d->gpuImage) {
+        m_d->strokeTimeoutTimer.stop();
+        m_d->gpuBasicInput = false;
         const auto owner = m_d->gpuImage;
         const auto operation = m_d->gpuOperation;
         disconnect(m_d->gpuCancellation);
@@ -819,7 +834,14 @@ void KisToolFreehandHelper::endPaint()
         m_d->gpuOperation = {};
         m_d->gpuImage.clear();
         m_d->infoBuilder->reset();
-        if (commit) owner->commitStroke(operation);
+        if (commit) {
+            const QPointer<KisToolFreehandHelper> guard(this);
+            const auto result = owner->commitStroke(operation);
+            if (result != LibrePaint::Image::Gpu::Result::Success) {
+                owner->cancelStroke(operation);
+                if (guard) Q_EMIT requestErrorMessage(gpuInputError(result));
+            }
+        }
         return;
     }
     if (!m_d->hasPaintAtLeastOnce) {
@@ -861,6 +883,8 @@ void KisToolFreehandHelper::endPaint()
 void KisToolFreehandHelper::cancelPaint()
 {
     if (m_d->gpuImage) {
+        m_d->strokeTimeoutTimer.stop();
+        m_d->gpuBasicInput = false;
         const auto owner = m_d->gpuImage;
         const auto operation = m_d->gpuOperation;
         const bool cancel = isRunning();
@@ -1080,6 +1104,17 @@ void KisToolFreehandHelper::slotSmoothingTypeChanged()
 
 void KisToolFreehandHelper::finishStroke()
 {
+    if (m_d->gpuImage) {
+        if (!m_d->gpuBasicInput || !isRunning()) return;
+        const auto owner = m_d->gpuImage;
+        const QPointer<KisToolFreehandHelper> guard(this);
+        const auto result = owner->flushSmoothing(m_d->gpuOperation);
+        if (guard && result != LibrePaint::Image::Gpu::Result::Success) {
+            cancelPaint();
+            if (guard) Q_EMIT requestErrorMessage(gpuInputError(result));
+        }
+        return;
+    }
     if (m_d->haveTangent) {
         m_d->haveTangent = false;
 

@@ -34,12 +34,52 @@ private Q_SLOTS:
     void rectangularWritesValidateBeforeMutationAndCrossTileBoundaries();
     void rectangularHistoryEditsPreserveIndependentUntrackedPixels();
     void interiorPixelWritesRemainWithTheirFilledHistory();
-    void pathGeometryBudgetsPreserveInputAndRejectWholeReadsAndWrites();
+    void idleSmoothingPublishesAcceptedVersionsWithoutDuplicateNotifications();
+    void derivedGeometryBudgetsPreserveInputAndRejectWholeReadsAndWrites_data();
+    void derivedGeometryBudgetsPreserveInputAndRejectWholeReadsAndWrites();
     void damagedPixelSharingRecoveryPreservesTheLiveImage();
     void historyNavigationPublishesOneVersionAndPreservesSavedState();
 };
 
-void KisGpuPaintImageTest::pathGeometryBudgetsPreserveInputAndRejectWholeReadsAndWrites()
+void KisGpuPaintImageTest::idleSmoothingPublishesAcceptedVersionsWithoutDuplicateNotifications()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    PaintImage image(execution, QSize(64, 64));
+    Brush brush;
+    brush.basicSmoothing = true;
+    QSignalSpy changed(&image, &PaintImage::changed);
+    bool requestedAtNotification = true;
+    connect(&image, &PaintImage::changed, this, [&] {
+        requestedAtNotification &= execution.requested(image.handle()) == image.operations().preview();
+    });
+    const auto id = image.beginStroke(image.operations().activeLayer(), brush, 7);
+    QCOMPARE(image.appendSamples(id, {{{8, 32}, 1}, {{32, 8}, 1}}), Result::Success);
+    QCOMPARE(changed.size(), 1);
+    const auto beforeIdle = image.operations().preview();
+    QCOMPARE(image.flushSmoothing(id), Result::Success);
+    QCOMPARE(changed.size(), 2);
+    const auto afterIdle = image.operations().preview();
+    QVERIFY(beforeIdle != afterIdle);
+    QCOMPARE(image.flushSmoothing(id), Result::Success);
+    QCOMPARE(changed.size(), 2);
+    QCOMPARE(image.operations().preview(), afterIdle);
+    QCOMPARE(image.commitStroke(id), Result::Success);
+    QCOMPARE(changed.size(), 3);
+    QCOMPARE(image.operations().undoCount(), 1);
+    QVERIFY(requestedAtNotification);
+}
+
+void KisGpuPaintImageTest::derivedGeometryBudgetsPreserveInputAndRejectWholeReadsAndWrites_data()
+{
+    QTest::addColumn<bool>("basicSmoothing");
+    QTest::newRow("path") << false;
+    QTest::newRow("basic-smoothing") << true;
+}
+
+void KisGpuPaintImageTest::derivedGeometryBudgetsPreserveInputAndRejectWholeReadsAndWrites()
 {
     QString diagnostic;
     const auto device = Device::createNative(diagnostic);
@@ -47,15 +87,24 @@ void KisGpuPaintImageTest::pathGeometryBudgetsPreserveInputAndRejectWholeReadsAn
     Execution execution(device);
     PaintImage image(execution, QSize(64, 64));
     const auto layer = image.operations().activeLayer();
+    QFETCH(bool, basicSmoothing);
     Shape shape;
-    shape.kind = ShapeKind::Path;
+    Brush brush;
+    brush.basicSmoothing = basicSmoothing;
     QList<InputSample> samples;
     const qreal limit = OperationDocument::CoordinateLimit;
-    for (int curve = 0; curve < 65; ++curve) {
-        shape.pathCommands.append({PathCommand::MoveTo, PathCommand::CubicTo});
-        samples.append({{{0, 0}, 1}, {{limit, 0}, 1}, {{limit, limit}, 1}, {{0, limit}, 1}});
+    if (basicSmoothing) {
+        const QList<QPointF> corners{{0, 0}, {limit, 0}, {limit, limit}, {0, limit}};
+        for (int index = 0; index < 512; ++index)
+            samples.append({corners[index % corners.size()], 1, 0, 0, 0, quint64(index * 8)});
+    } else {
+        shape.kind = ShapeKind::Path;
+        for (int curve = 0; curve < 65; ++curve) {
+            shape.pathCommands.append({PathCommand::MoveTo, PathCommand::CubicTo});
+            samples.append({{{0, 0}, 1}, {{limit, 0}, 1}, {{limit, limit}, 1}, {{0, limit}, 1}});
+        }
     }
-    QCOMPARE(image.paintFigure(layer, Brush{}, samples, shape, FigureStyle{}, 42), Result::Success);
+    QCOMPARE(image.paintFigure(layer, brush, samples, shape, FigureStyle{}, 42), Result::Success);
     const auto pinned = image.operations().snapshot();
     const auto recovery = image.operations().recoveryData();
     TileRenderer renderer(device);

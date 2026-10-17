@@ -192,7 +192,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     const auto current = std::get_if<PaintSnapshot>(&layer.operations.back());
                     changingStroke = previous && current && *previous != *current && (*previous)->id == (*current)->id &&
                         (*previous)->brush == (*current)->brush;
-                    if (changingStroke && !(*current)->brush.pixelPerfect && (*previous)->shape.kind == ShapeKind::Freehand &&
+                    if (changingStroke && !(*current)->brush.pixelPerfect && !(*current)->brush.basicSmoothing && (*previous)->shape.kind == ShapeKind::Freehand &&
                         (*current)->shape.kind == ShapeKind::Freehand && (*current)->sampleCount >= (*previous)->sampleCount)
                         previousSamples = (*previous)->sampleCount;
                     if (changingStroke) --shared;

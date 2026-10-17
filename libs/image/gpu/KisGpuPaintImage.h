@@ -87,6 +87,7 @@ public:
 
     OperationId beginStroke(LayerId layer, const Brush &brush, quint64 seed);
     Result appendSamples(OperationId id, const QList<InputSample> &samples);
+    Result flushSmoothing(OperationId id);
     Result updateShape(OperationId id, const Shape &shape);
     Result updateFigure(OperationId id, const Shape &shape, const FigureStyle &style);
     /** Complete figure adoption publishes one committed version and one notification. */

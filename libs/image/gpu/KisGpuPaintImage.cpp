@@ -148,6 +148,13 @@ OperationId PaintImage::beginStroke(LayerId layer, const Brush &brush, quint64 s
 { return onThread() ? m_d->document->beginStroke(layer, brush, seed) : OperationId{}; }
 Result PaintImage::appendSamples(OperationId id, const QList<InputSample> &samples)
 { return onThread() ? publish(m_d->document->appendSamples(id, samples)) : Result::InvalidInput; }
+Result PaintImage::flushSmoothing(OperationId id)
+{
+    if (!onThread()) return Result::InvalidInput;
+    const auto before = m_d->document->preview();
+    const auto result = m_d->document->flushSmoothing(id);
+    return m_d->document->preview() == before ? result : publish(result);
+}
 Result PaintImage::updateShape(OperationId id, const Shape &shape)
 { return onThread() ? publish(m_d->document->updateShape(id, shape)) : Result::InvalidInput; }
 Result PaintImage::updateFigure(OperationId id, const Shape &shape, const FigureStyle &style)

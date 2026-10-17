@@ -343,7 +343,8 @@ Result OperationDocument::paintFigure(LayerId layer, const Brush &brush, const Q
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
-    if (!validBrush(brush) || !validShape(shape) || !validFigureStyle(shape, style)) return Result::InvalidInput;
+    if (!validBrush(brush) || !validShape(shape) || !validFigureStyle(shape, style) ||
+        (brush.basicSmoothing && shape.kind != ShapeKind::Freehand)) return Result::InvalidInput;
     if (samples.isEmpty() && shape.kind != ShapeKind::Path) return Result::EmptyOperation;
     if (!validShapeSampleCount(shape, samples.size())) return Result::InvalidInput;
     quint64 time = 0;
@@ -375,7 +376,8 @@ Result OperationDocument::updateFigure(OperationId id, const Shape &shape, const
 {
     const auto status = checkOperation(id);
     if (status != Result::Success) return status;
-    if (!validShape(shape) || !validFigureStyle(shape, style)) return Result::InvalidInput;
+    if (!validShape(shape) || !validFigureStyle(shape, style) ||
+        (m_edit->brush.basicSmoothing && shape.kind != ShapeKind::Freehand)) return Result::InvalidInput;
     if (m_edit->sampleCount == 0 && shape.kind != ShapeKind::Path) return Result::EmptyOperation;
     if (!validShapeSampleCount(shape, m_edit->sampleCount)) return Result::InvalidInput;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
@@ -461,9 +463,32 @@ Result OperationDocument::commitStroke(OperationId id)
     const auto status = checkOperation(id);
     if (status != Result::Success) return status;
     if (!m_preview) return Result::EmptyOperation;
+    if (m_edit->brush.basicSmoothing) {
+        if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+        auto operation = QSharedPointer<PaintOperation>::create(*m_edit);
+        operation->smoothingFinished = true;
+        ++operation->version;
+        replacePreview(operation);
+    }
     commitVersion(m_preview);
     m_edit.clear();
     m_preview.clear();
+    return Result::Success;
+}
+
+Result OperationDocument::flushSmoothing(OperationId id)
+{
+    const auto status = checkOperation(id);
+    if (status != Result::Success) return status;
+    if (!m_edit->brush.basicSmoothing) return Result::InvalidInput;
+    if (m_edit->sampleCount < 2) return Result::EmptyOperation;
+    if (!m_edit->smoothingFlushes.isEmpty() && m_edit->smoothingFlushes.last() == m_edit->sampleCount)
+        return Result::Success;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto operation = QSharedPointer<PaintOperation>::create(*m_edit);
+    operation->smoothingFlushes.append(operation->sampleCount);
+    ++operation->version;
+    replacePreview(operation);
     return Result::Success;
 }
 

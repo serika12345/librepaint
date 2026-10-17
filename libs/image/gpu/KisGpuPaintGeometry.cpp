@@ -1,5 +1,6 @@
 /*
  * SPDX-FileCopyrightText: 2026 LibrePaint contributors
+ * SPDX-FileCopyrightText: 2011 Dmitry Kazakov <dimula73@gmail.com>
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 
@@ -7,6 +8,7 @@
 #include <algorithm>
 #include <cmath>
 #include <QSet>
+#include <QLineF>
 
 namespace LibrePaint::Image::Gpu::Detail {
 namespace {
@@ -72,6 +74,93 @@ bool appendCubic(QList<PaintSegment> &result, InputSample first, QPointF control
         pending.append({curve.first, firstControl, leftControl, middle});
     }
     return true;
+}
+
+bool appendBasicCurve(QList<PaintSegment> &result, const InputSample &first, const InputSample &last,
+                      QPointF tangent1, QPointF tangent2, quint32 step, quint32 &phase)
+{
+    if (tangent1.isNull() || tangent2.isNull()) return true;
+    QLineF line1(first.position, first.position + tangent1);
+    QLineF line2(last.position, last.position - tangent2);
+    QLineF controls(line1.p2(), line2.p2());
+    QLineF chord(first.position, last.position);
+    QPointF intersection, target1, target2;
+    if (controls.intersects(chord, &intersection) == QLineF::BoundedIntersection) {
+        const auto length = chord.length() / 2;
+        line1.setLength(length);
+        line2.setLength(length);
+        target1 = line1.p2();
+        target2 = line2.p2();
+    } else {
+        const auto type = line1.intersects(line2, &intersection);
+        if (type == QLineF::NoIntersection || intersection.manhattanLength() > 1e6)
+            intersection = (first.position + last.position) / 2;
+        target1 = target2 = intersection;
+    }
+    auto velocity1 = QLineF(QPointF(), tangent1).length();
+    auto velocity2 = QLineF(QPointF(), tangent2).length();
+    if (velocity1 == 0 || velocity2 == 0) velocity1 = velocity2 = 1e-6;
+    const auto similarity = std::max(qreal(0.5), std::min(velocity1 / velocity2, velocity2 / velocity1));
+    qreal coefficient = qreal(0.8) * (1 - std::max(qreal(0), similarity - qreal(0.8)));
+    QPointF control1, control2;
+    if (velocity1 > velocity2) {
+        control1 = first.position * (1 - coefficient) + coefficient * target1;
+        coefficient *= similarity;
+        control2 = last.position * (1 - coefficient) + coefficient * target2;
+    } else {
+        control2 = last.position * (1 - coefficient) + coefficient * target2;
+        coefficient *= similarity;
+        control1 = first.position * (1 - coefficient) + coefficient * target1;
+    }
+    return appendCubic(result, first, control1, control2, last, step, phase);
+}
+
+std::optional<PaintGeometry> basicGeometry(const PaintOperation &operation, const QList<InputSample> &input,
+                                          quint32 step)
+{
+    PaintGeometry result;
+    if (input.isEmpty()) return result;
+    InputSample previous = input.first(), older;
+    QPointF previousTangent;
+    bool haveTangent = false;
+    qsizetype flushIndex = 0;
+    quint32 phase = 0;
+    const auto tangent = [](const InputSample &a, const InputSample &b) {
+        return (b.position - a.position) / qreal(std::max<quint64>(1, b.timestamp - a.timestamp));
+    };
+    const auto finish = [&] {
+        if (!haveTangent) return true;
+        haveTangent = false;
+        return appendBasicCurve(result.outline, older, previous, previousTangent,
+                                tangent(older, previous), step, phase);
+    };
+    for (qsizetype index = 1; index < input.size(); ++index) {
+        const auto &point = input[index];
+        if (!haveTangent) {
+            haveTangent = true;
+            previousTangent = tangent(previous, point);
+        } else {
+            const auto nextTangent = tangent(older, point);
+            if (nextTangent.isNull() || previousTangent.isNull()) {
+                if (!appendSegment(result.outline, previous, point, step, phase)) return std::nullopt;
+            } else if (!appendBasicCurve(result.outline, older, previous, previousTangent, nextTangent, step, phase)) {
+                return std::nullopt;
+            }
+            previousTangent = nextTangent;
+        }
+        older = previous;
+        previous = point;
+        if (flushIndex < operation.smoothingFlushes.size() && operation.smoothingFlushes[flushIndex] == index + 1) {
+            if (!finish()) return std::nullopt;
+            ++flushIndex;
+        }
+    }
+    if (operation.smoothingFinished) {
+        if (result.outline.isEmpty()) {
+            if (!appendSegment(result.outline, previous, previous, step, phase)) return std::nullopt;
+        } else if (!finish()) return std::nullopt;
+    }
+    return result;
 }
 
 QList<InputSample> pixelPerfectInput(const QList<InputSample> &input)
@@ -151,6 +240,7 @@ std::optional<PaintGeometry> pathGeometry(const PaintOperation &operation, const
 std::optional<PaintGeometry> paintGeometry(const PaintOperation &operation, quint32 step)
 {
     const auto input = operation.inputSamples();
+    if (operation.brush.basicSmoothing) return basicGeometry(operation, input, step);
     if (operation.shape.kind == ShapeKind::Path) return pathGeometry(operation, input, step);
     QList<InputSample> points;
     switch (operation.shape.kind) {

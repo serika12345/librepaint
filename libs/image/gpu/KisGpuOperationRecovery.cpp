@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 19;
+constexpr quint16 FormatVersion = 20;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -124,7 +124,16 @@ QByteArray OperationDocument::recoveryData() const
             stream << quint8(quint8(operation.figureStyle.outline) | (operation.figureStyle.fill ? 2 : 0));
             if (operation.figureStyle.fill)
                 for (const auto component : *operation.figureStyle.fill) stream << component;
-            stream << quint8(operation.brush.pixelPerfect);
+            stream << quint8(quint8(operation.brush.pixelPerfect) | (quint8(operation.brush.basicSmoothing) << 1) |
+                              (quint8(operation.smoothingFinished) << 2));
+            if (operation.brush.basicSmoothing) {
+                const auto remaining = m_limits.recoveryBytes - DigestSize - bytes.size();
+                if (remaining < 4 || quint64(operation.sampleCount) > std::numeric_limits<quint32>::max() ||
+                    quint64(operation.smoothingFlushes.size()) > std::numeric_limits<quint32>::max() ||
+                    operation.smoothingFlushes.size() > (remaining - 4) / 4) return {};
+                stream << quint32(operation.smoothingFlushes.size());
+                for (const auto count : operation.smoothingFlushes) stream << quint32(count);
+            }
             stream << quint32(operation.sampleCount);
             if (!withinLimit()) return {};
             for (const auto &block : operation.sampleBlocks) {
@@ -323,10 +332,27 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
             }
         }
         if (format >= 19) {
-            quint8 pixelPerfect = 0;
-            stream >> pixelPerfect;
-            if (pixelPerfect > 1) return Result::InvalidRecovery;
-            operation->brush.pixelPerfect = pixelPerfect;
+            quint8 processing = 0;
+            stream >> processing;
+            if (processing > (format >= 20 ? 7 : 1) ||
+                ((processing & 4) && !(processing & 2))) return Result::InvalidRecovery;
+            operation->brush.pixelPerfect = processing & 1;
+            operation->brush.basicSmoothing = processing & 2;
+            operation->smoothingFinished = processing & 4;
+            if (operation->brush.basicSmoothing) {
+                quint32 flushes = 0;
+                stream >> flushes;
+                if (!readableCount(stream, flushes, m_limits.samplesPerStroke, 4)) return Result::InvalidRecovery;
+                operation->smoothingFlushes.reserve(flushes);
+                qsizetype previous = 1;
+                for (quint32 index = 0; index < flushes; ++index) {
+                    quint32 count = 0;
+                    stream >> count;
+                    if (count <= quint64(previous)) return Result::InvalidRecovery;
+                    operation->smoothingFlushes.append(count);
+                    previous = count;
+                }
+            }
         }
         stream >> sampleCount;
         operation->brush.erase = brushFlags & 1;
@@ -337,6 +363,8 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         operation->shape.second = {x2, y2};
         if (brushFlags > (format < 12 ? 1 : format < 13 ? 3 : format < 14 ? 63 : 255) || !validBrush(operation->brush) || !validShape(operation->shape) ||
             !validFigureStyle(operation->shape, operation->figureStyle) ||
+            (operation->brush.basicSmoothing && (operation->shape.kind != ShapeKind::Freehand ||
+             (!operation->smoothingFlushes.isEmpty() && operation->smoothingFlushes.last() > sampleCount))) ||
             !validShapeSampleCount(operation->shape, sampleCount) ||
             (version == 0 && (sampleCount != 0 || operation->shape.kind != ShapeKind::Freehand)) ||
             (version > 0 && sampleCount == 0 && operation->shape.kind != ShapeKind::Path) ||
@@ -440,7 +468,8 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
                 const auto samples = operationSamples(operation);
                 const auto pixels = operationRasterBytes(operation);
                 const auto paint = std::get_if<PaintSnapshot>(&operation);
-                if (operationLayer(operation) != layer.id || (paint && samples == 0 && (*paint)->shape.kind != ShapeKind::Path) ||
+                if ((paint && (*paint)->brush.basicSmoothing && !(*paint)->smoothingFinished) ||
+                    operationLayer(operation) != layer.id || (paint && samples == 0 && (*paint)->shape.kind != ShapeKind::Path) ||
                     operationId(operation).sequence <= previousOperation) return Result::InvalidRecovery;
                 if (samples > m_limits.samplesPerDocument - state->sampleCount || pixels > m_limits.rasterBytes - state->rasterBytes) return Result::CapacityExceeded;
                 previousOperation = operationId(operation).sequence;
@@ -516,6 +545,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         const auto paint = std::get_if<PaintSnapshot>(&operations[pendingIndex]);
         if (!paint) return Result::InvalidRecovery;
         edit = *paint;
+        if (edit->smoothingFinished) return Result::InvalidRecovery;
         const auto &base = history[currentIndex];
         qsizetype index = -1;
         for (qsizetype i = 0; i < base->layers.size(); ++i) {
