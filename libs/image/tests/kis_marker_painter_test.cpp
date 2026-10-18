@@ -128,4 +128,41 @@ void KisMarkerPainterTest::testFillCirclesDiff()
     QVERIFY(TestUtil::checkQImage(result, "marker_painter", "fill_stroke", ""));
 }
 
+void KisMarkerPainterTest::testDiagonalStrokeHasNoInteriorGaps_data()
+{
+    QTest::addColumn<qreal>("spacing");
+    QTest::newRow("dense") << 0.16;
+    QTest::newRow("half-pixel") << 0.5;
+    QTest::newRow("overlapping") << 2.4;
+}
+
+void KisMarkerPainterTest::testDiagonalStrokeHasNoInteriorGaps()
+{
+    QFETCH(qreal, spacing);
+    const auto *cs = KoColorSpaceRegistry::instance()->rgb8();
+    KisPaintDeviceSP device = new KisPaintDevice(cs);
+    KoColor color(Qt::blue, cs);
+    KisMarkerPainter painter(device, color);
+    const QPointF first(-12.5, -12.5);
+    const QPointF last(75.5, 75.5);
+    constexpr qreal radius = 4;
+    painter.fillFullCircle(first, radius);
+    QPointF previous = first;
+    const qreal length = QLineF(first, last).length();
+    for (qreal distance = spacing; distance < length; distance += spacing) {
+        const QPointF next = first + (last - first) * (distance / length);
+        painter.fillCirclesDiff(previous, radius, next, radius);
+        previous = next;
+    }
+    painter.fillCirclesDiff(previous, radius, last, radius);
+    // Every center-line pixel is inside an opaque circular mark, independent of spacing.
+    for (int coordinate = -8; coordinate <= 70; ++coordinate) {
+        QByteArray pixel(cs->pixelSize(), '\0');
+        device->readBytes(reinterpret_cast<quint8 *>(pixel.data()), coordinate, coordinate, 1, 1);
+        QVERIFY2(cs->opacityU8(reinterpret_cast<const quint8 *>(pixel.constData())) == 255,
+                 qPrintable(QStringLiteral("Center-line pixel (%1, %1): %2")
+                                .arg(coordinate).arg(QString::fromLatin1(pixel.toHex()))));
+    }
+}
+
 SIMPLE_TEST_MAIN(KisMarkerPainterTest)

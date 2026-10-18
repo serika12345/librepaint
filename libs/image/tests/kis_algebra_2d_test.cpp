@@ -53,6 +53,33 @@ void KisAlgebra2DTest::testHalfPlane()
     }
 }
 
+void KisAlgebra2DTest::testHalfPlaneCollinearBoundary_data()
+{
+    QTest::addColumn<qreal>("first");
+    QTest::addColumn<qreal>("last");
+    QTest::newRow("dense-marker") << -7.0694199204873147 << -6.9562828354974666;
+    QTest::newRow("half-pixel-marker") << -7.1966991411008934 << -6.8431457505076203;
+    QTest::newRow("overlapping-marker") << -7.9745166004060959 << -6.2774603255583816;
+}
+
+void KisAlgebra2DTest::testHalfPlaneCollinearBoundary()
+{
+    QFETCH(qreal, first);
+    QFETCH(qreal, last);
+    const QPointF a(first, first), b(last, last), boundary(-7, -7);
+    const KisAlgebra2D::RightHalfPlane forward(a, b), backward(b, a);
+    QVERIFY(forward.value(boundary) == 0);
+    QVERIFY(backward.value(boundary) == 0);
+    QCOMPARE(forward.pos(boundary), 0);
+    QCOMPARE(backward.pos(boundary), 0);
+    const QPointF above(-7, std::nextafter(qreal(-7), qreal(0)));
+    const QPointF below(-7, std::nextafter(qreal(-7), qreal(-8)));
+    QVERIFY(forward.value(above) > 0);
+    QVERIFY(backward.value(above) < 0);
+    QVERIFY(forward.value(below) < 0);
+    QVERIFY(backward.value(below) > 0);
+}
+
 void KisAlgebra2DTest::testOuterCircle()
 {
     QPointF a(10,10);
