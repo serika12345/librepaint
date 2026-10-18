@@ -596,13 +596,20 @@ void KisGpuTileRendererTest::appendedInputPreservesCoverageBackgroundAndOldVersi
     brush.mirrorCenter = {64, 32};
     const auto stroke = document.beginStroke(layer, brush, 123);
     QCOMPARE(document.appendSamples(stroke, {{{32.25, 32.25}, 0.35}}), Result::Success);
-    TileRenderer renderer(m_device, 24 * TileRenderer::TileBytes);
-    // A fresh reconstruction has room for the checkpoints and painted tiles.
-    TileRenderer oracle(m_device, 4 * TileRenderer::TileBytes);
+    // The 512px brush spans up to 4x3 layer tiles, including off-canvas pixels.
+    constexpr int maximumPaintedTiles = 4 * 3;
+    TileRenderer renderer(m_device, (3 * maximumPaintedTiles + 2) * TileRenderer::TileBytes);
+    TileRenderer oracle(m_device, (maximumPaintedTiles + 2) * TileRenderer::TileBytes);
+    const auto pixels = [&](const RenderedSnapshot &version) {
+        QMap<QPair<int, int>, QByteArray> result;
+        for (const auto &tile : version->tiles(layer))
+            result.insert({tile.coordinate.x(), tile.coordinate.y()}, readTile(version, layer, tile.coordinate));
+        return result;
+    };
     auto current = render(renderer, document.preview());
     QVERIFY(current);
     const auto first = current;
-    const QList<QByteArray> firstPixels{readTile(first, layer, {0, 0}), readTile(first, layer, {1, 0})};
+    const auto firstPixels = pixels(first);
     const QList<InputSample> additions{{{66.75, 34.5}, 0.87}, {{42.25, 31.75}, 0.6},
                                        {{300.5, 48.75}, 0.95}, {{32.5, 31.25}, 0.55}};
     for (const auto &sample : additions) {
@@ -611,28 +618,26 @@ void KisGpuTileRendererTest::appendedInputPreservesCoverageBackgroundAndOldVersi
         QVERIFY(next);
         const auto rebuilt = render(oracle, document.preview());
         QVERIFY(rebuilt);
-        for (int x = 0; x < 2; ++x) {
-            QCOMPARE(readTile(next, layer, {x, 0}), readTile(rebuilt, layer, {x, 0}));
-            QCOMPARE(readTile(first, layer, {x, 0}), firstPixels[x]);
-        }
+        QCOMPARE(pixels(next), pixels(rebuilt));
+        QCOMPARE(pixels(first), firstPixels);
         current = next;
     }
-    const QList<QByteArray> finalPixels{readTile(current, layer, {0, 0}), readTile(current, layer, {1, 0})};
+    const auto finalPixels = pixels(current);
+    if (mode == 4) QVERIFY(finalPixels.contains({-1, 0}));
+    if (mode == 6) QVERIFY(finalPixels.contains({-1, -1}));
     const auto recovery = document.recoveryData();
     QCOMPARE(document.cancelStroke(stroke), Result::Success);
     QCOMPARE(document.undoCount(), 0);
     const auto cancelled = render(renderer, document.snapshot(), current);
     QVERIFY(cancelled);
-    for (int x = 0; x < 2; ++x) {
-        QCOMPARE(readTile(cancelled, layer, {x, 0}), background);
-        QCOMPARE(readTile(current, layer, {x, 0}), finalPixels[x]);
-    }
+    QCOMPARE(cancelled->tiles(layer).size(), 2);
+    for (int x = 0; x < 2; ++x) QCOMPARE(readTile(cancelled, layer, {x, 0}), background);
+    QCOMPARE(pixels(current), finalPixels);
     OperationDocument restored({1, 1});
     QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
     const auto recovered = render(oracle, restored.preview());
     QVERIFY(recovered);
-    for (int x = 0; x < 2; ++x)
-        QCOMPARE(readTile(recovered, restored.activeLayer(), {x, 0}), finalPixels[x]);
+    QCOMPARE(pixels(recovered), finalPixels);
 }
 
 void KisGpuTileRendererTest::pendingStrokeLeavesCapacityForCompositionAndCancellation()

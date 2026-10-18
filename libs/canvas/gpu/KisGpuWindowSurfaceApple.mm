@@ -4,6 +4,7 @@
  */
 #include "KisGpuWindowSurface_p.h"
 #include <webgpu/wgpu.h>
+#include <QGuiApplication>
 #import <QuartzCore/CAMetalLayer.h>
 #ifdef Q_OS_IOS
 #import <UIKit/UIKit.h>
@@ -25,6 +26,12 @@ std::unique_ptr<Image::Gpu::PresentationSurface> createWindowSurface(Image::Gpu:
                                                                   quintptr *nativeIdentity)
 {
     if (nativeIdentity) *nativeIdentity = 0;
+#ifdef Q_OS_IOS
+    if (QGuiApplication::platformName() != QLatin1String("ios"))
+#else
+    if (QGuiApplication::platformName() != QLatin1String("cocoa"))
+#endif
+        throw std::runtime_error("The Qt platform does not provide a native Apple window");
 #ifdef Q_OS_IOS
     UIView *view = reinterpret_cast<UIView *>(window.winId());
 #else

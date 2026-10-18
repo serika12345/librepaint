@@ -81,10 +81,9 @@ bool validPixelRegion(QRect region)
         qint64(region.y()) + region.height() <= limit;
 }
 
-std::optional<QList<quint64>> layerCoordinates(const Layer &layer, QSize size, QRect region, qsizetype maximum)
+std::optional<QList<quint64>> layerCoordinates(const Layer &layer, QRect region, qsizetype maximum)
 {
     QSet<quint64> coordinates;
-    const QRect canvas(QPoint(0, 0), size);
     for (const auto &operation : layer.operations) {
         if (const auto write = std::get_if<TileWriteSnapshot>(&operation)) {
             for (const auto &tile : (*write)->tiles) {
@@ -100,7 +99,7 @@ std::optional<QList<quint64>> layerCoordinates(const Layer &layer, QSize size, Q
             const auto geometry = Detail::paintGeometry(paint, step);
             if (!geometry) return std::nullopt;
             for (const auto &segment : paint.figureStyle.outline ? geometry->outline : QList<Detail::PaintSegment>{}) {
-                const auto tiles = Detail::paintSegmentTiles(segment, diameter, region.intersected(canvas), size, maximum);
+                const auto tiles = Detail::paintSegmentTiles(segment, diameter, paint.brush, region, maximum);
                 if (!tiles) return std::nullopt;
                 for (const auto tile : *tiles) {
                     coordinates.insert(tile);
@@ -108,7 +107,7 @@ std::optional<QList<quint64>> layerCoordinates(const Layer &layer, QSize size, Q
                 }
             }
             if (paint.figureStyle.fill) {
-                const auto tiles = Detail::figureFillTiles(geometry->fill, paint.brush, region.intersected(canvas), size, maximum);
+                const auto tiles = Detail::figureFillTiles(geometry->fill, paint.brush, region, maximum);
                 if (!tiles) return std::nullopt;
                 for (const auto tile : *tiles) {
                     coordinates.insert(tile);
@@ -146,7 +145,7 @@ PixelReadbackOutcome Execution::readLayerPixels(DocumentHandle handle, const Sna
     outcome.region = {-limit, -limit, 2 * limit, 2 * limit};
     const Layer *selected = nullptr;
     for (const auto &value : pinned->layers) if (value.id == layer) selected = &value;
-    const auto coordinates = layerCoordinates(*selected, pinned->size, outcome.region, maximumBytes / TileRenderer::TileBytes);
+    const auto coordinates = layerCoordinates(*selected, outcome.region, maximumBytes / TileRenderer::TileBytes);
     if (!coordinates) return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Complete layer pixel capacity exceeded"));
     if (coordinates->isEmpty()) return outcome;
     const auto retired = retireDisplayCaches();
@@ -179,7 +178,7 @@ ImageReadbackOutcome Execution::readProjectionImage(DocumentHandle handle, const
     for (const auto &layer : pinned->layers) {
         if (!layer.visible) continue;
         uniform |= Detail::packedPixel(layer.defaultPixel) != 0;
-        const auto tiles = layerCoordinates(layer, pinned->size, canvas, columns * rows);
+        const auto tiles = layerCoordinates(layer, canvas, columns * rows);
         if (!tiles) return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Projection tile coordinates exceed the canvas"));
         for (const auto tile : *tiles) coordinates.insert(tile);
     }
@@ -243,7 +242,7 @@ PixelBytesOutcome Execution::readRgbaPixels(DocumentHandle handle, const Snapsho
         if (layer ? value.id != layer : !value.visible) continue;
         if (layer) defaultPixel = value.defaultPixel;
         else uniformProjection |= Detail::packedPixel(value.defaultPixel) != 0;
-        const auto tiles = layerCoordinates(value, pinned->size, clipped, std::numeric_limits<qsizetype>::max());
+        const auto tiles = layerCoordinates(value, clipped, std::numeric_limits<qsizetype>::max());
         if (!tiles) return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Packed pixel coordinates exceed capacity"));
         for (const auto tile : *tiles) coordinates.insert(tile);
     }

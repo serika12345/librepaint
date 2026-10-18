@@ -163,8 +163,9 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     data->owner = d.budget;
     data->region = region;
     data->selected = selected;
-    const QRect canvas(QPoint(0, 0), document->size);
-    const QRect paintRegion = region ? region->intersected(canvas) : canvas;
+    constexpr int limit = RgbaTile::CoordinateLimit;
+    const QRect layerDomain(-limit, -limit, 2 * limit, 2 * limit);
+    const QRect paintRegion = region ? region->intersected(layerDomain) : layerDomain;
     std::vector<PaintJob> jobs;
     struct FillUpload { std::shared_ptr<NativeBuffer> buffer; QList<PaintSegment> edges; };
     std::vector<FillUpload> fillUploads;
@@ -327,24 +328,10 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
             QMap<quint64, QList<PaintSegment>> appendedGeometry;
             for (qsizetype index = 0; operation.figureStyle.outline && index < segments.size(); ++index) {
                 const auto &segment = segments[index];
-                QSet<quint64> coordinates;
-                const int mirrorMode = int(operation.brush.mirrorHorizontal) | (int(operation.brush.mirrorVertical) << 1);
-                for (int reflection = 0; reflection < 4; ++reflection) {
-                    if ((reflection & mirrorMode) != reflection) continue;
-                    auto reflected = segment;
-                    if (reflection & 1) {
-                        reflected.ax = 32 * operation.brush.mirrorCenter.x() - segment.ax;
-                        reflected.bx = 32 * operation.brush.mirrorCenter.x() - segment.bx;
-                    }
-                    if (reflection & 2) {
-                        reflected.ay = 32 * operation.brush.mirrorCenter.y() - segment.ay;
-                        reflected.by = 32 * operation.brush.mirrorCenter.y() - segment.by;
-                    }
-                    const auto reflectedTiles = paintSegmentTiles(reflected, diameter, paintRegion, document->size, d.budget->limit / TileBytes);
-                    if (!reflectedTiles) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU tile budget exhausted")};
-                    for (const auto coordinate : *reflectedTiles) coordinates.insert(coordinate);
-                }
-                for (const auto coordinate : coordinates) {
+                const auto coordinates = paintSegmentTiles(segment, diameter, operation.brush, paintRegion,
+                                                             d.budget->limit / TileBytes);
+                if (!coordinates) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU tile budget exhausted")};
+                for (const auto coordinate : *coordinates) {
                     if (op < reusedPrefix && reusedCoordinates.contains(coordinate)) continue;
                     const auto checkpoint = checkpoints.constFind(coordinate);
                     if (checkpoint != checkpoints.cend() && op < checkpoint->operation) continue;
@@ -358,7 +345,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 }
             }
             if (operation.figureStyle.fill) {
-                const auto filled = figureFillTiles(geometry->fill, operation.brush, paintRegion, document->size,
+                const auto filled = figureFillTiles(geometry->fill, operation.brush, paintRegion,
                                                      d.budget->limit / TileBytes);
                 if (!filled) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU fill tile budget exhausted")};
                 for (const auto coordinate : *filled) {
@@ -417,7 +404,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 job.appendedGeometry = appendedGeometry.value(tile.key());
                 job.fillEdges = fillBuffer;
                 const auto point = coordinate(tile.key()) * TileSize;
-                job.values = {point.x(), point.y(), document->size.width(), document->size.height(),
+                job.values = {point.x(), point.y(), 0, 0,
                               packedPixel(operation.brush.rgba),
                               operation.brush.opacity, quint32(operation.brush.erase), step, quint32(tile.value().size()), diameter, 0, quint32(operation.brush.alphaLocked) | (quint32(operation.brush.channelWriteMask) << 1) |
                                   (quint32(operation.brush.mirrorHorizontal) << 5) | (quint32(operation.brush.mirrorVertical) << 6),

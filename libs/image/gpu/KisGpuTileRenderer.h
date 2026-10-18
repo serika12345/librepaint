@@ -93,6 +93,7 @@ public:
     TileRenderer(const TileRenderer &) = delete;
     TileRenderer &operator=(const TileRenderer &) = delete;
 
+    /** Generates all sparse layer tiles, including pixels outside the canvas. */
     RenderOutcome record(WGPUCommandEncoder commands, const Snapshot &document,
                          const RenderedSnapshot &base = {});
     /** Generates complete tiles intersecting the region for exactly these layers. */

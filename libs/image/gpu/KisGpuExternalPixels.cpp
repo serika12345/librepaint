@@ -16,7 +16,7 @@ namespace {
 using Lineage = QList<QPair<quint64, quint64>>;
 using GeometryCache = QHash<const PaintOperation *, std::optional<Detail::PaintGeometry>>;
 
-std::optional<Lineage> pixelLineage(const Layer &layer, QRect block, QSize canvas, GeometryCache &geometry)
+std::optional<Lineage> pixelLineage(const Layer &layer, QRect block, GeometryCache &geometry)
 {
     Lineage result;
     for (auto it = layer.operations.crbegin(); it != layer.operations.crend(); ++it) {
@@ -45,15 +45,14 @@ std::optional<Lineage> pixelLineage(const Layer &layer, QRect block, QSize canva
             const auto diameter = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * 16)));
             bool intersects = false;
             for (const auto &segment : paint.figureStyle.outline ? mesh.outline : QList<Detail::PaintSegment>{}) {
-                const auto tiles = Detail::paintSegmentTiles(segment, diameter, block.intersected(QRect(QPoint(), canvas)),
-                                                             canvas, 1, Detail::PixelHistoryBlockSize);
+                const auto tiles = Detail::paintSegmentTiles(segment, diameter, paint.brush, block, 1, Detail::PixelHistoryBlockSize);
                 if (!tiles || !tiles->isEmpty()) {
                     intersects = true;
                     break;
                 }
             }
             if (!intersects && paint.figureStyle.fill) {
-                const auto tiles = Detail::figureFillTiles(mesh.fill, paint.brush, block, canvas, 1, Detail::PixelHistoryBlockSize);
+                const auto tiles = Detail::figureFillTiles(mesh.fill, paint.brush, block, 1, Detail::PixelHistoryBlockSize);
                 intersects = !tiles || !tiles->isEmpty();
             }
             if (intersects) result.append({paint.id.sequence, paint.version});
@@ -131,11 +130,11 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
                     if (candidate->operations != selected.operations) {
                         auto lineage = lineages.constFind(blockKey);
                         if (lineage == lineages.cend()) {
-                            const auto selectedLineage = pixelLineage(selected, block, current->size, geometry);
+                            const auto selectedLineage = pixelLineage(selected, block, geometry);
                             if (!selectedLineage) return Result::CapacityExceeded;
                             lineage = lineages.insert(blockKey, *selectedLineage);
                         }
-                        const auto candidateLineage = pixelLineage(*candidate, block, version->size, geometry);
+                        const auto candidateLineage = pixelLineage(*candidate, block, geometry);
                         if (!candidateLineage) return Result::CapacityExceeded;
                         if (*candidateLineage != *lineage) continue;
                     }

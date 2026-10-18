@@ -31,10 +31,10 @@ struct PaintGeometry
 constexpr qsizetype PathGeometrySegmentLimit = 1024 * 1024;
 std::optional<PaintGeometry> paintGeometry(const PaintOperation &operation, quint32 step);
 std::optional<QList<quint64>> figureFillTiles(const QList<PaintSegment> &edges, const Brush &brush,
-                                             QRect region, QSize canvas, qsizetype maximumCoordinates,
+                                             QRect region, qsizetype maximumCoordinates,
                                              int tileSize = RgbaTile::Size);
-std::optional<QList<quint64>> paintSegmentTiles(const PaintSegment &segment, quint32 diameter,
-                                               QRect region, QSize canvas, qsizetype maximumCoordinates,
+std::optional<QList<quint64>> paintSegmentTiles(const PaintSegment &segment, quint32 diameter, const Brush &brush,
+                                               QRect region, qsizetype maximumCoordinates,
                                                int tileSize = RgbaTile::Size);
 }
 #endif

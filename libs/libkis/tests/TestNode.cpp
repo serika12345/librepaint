@@ -5,6 +5,7 @@
 #include "TestNode.h"
 #include <simpletest.h>
 #include <QColor>
+#include <QColorSpace>
 #include <QApplication>
 #include <QIcon>
 #include <QPointer>
@@ -33,6 +34,8 @@
 #include <kundo2stack.h>
 #include <QSignalSpy>
 #include <QTemporaryDir>
+#include <QDir>
+#include <QFile>
 #include <QSemaphore>
 #include <QThread>
 #include <KisRunnableBasedStrokeStrategy.h>
@@ -43,6 +46,7 @@
 #include <KritaVersionWrapper.h>
 #include <Node.h>
 #include <Document.h>
+#include <InfoObject.h>
 #include <Krita.h>
 
 #include <KoColorSpaceRegistry.h>
@@ -1106,6 +1110,16 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory_data()
     QTest::addColumn<bool>("cloned");
     QTest::addColumn<QString>("fillStyle");
     QTest::addColumn<int>("foregroundAlpha");
+    for (const bool gpu : {false, true}) for (const bool cloned : {false, true}) {
+        for (const bool mirrored : {false, true}) for (const auto &kind : {QStringLiteral("rectangle"), QStringLiteral("line")}) {
+            const auto figure = QStringLiteral("offcanvas-") + (mirrored ? QStringLiteral("mirrored-") : QString()) + kind;
+            const auto name = (gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + figure +
+                (cloned ? QStringLiteral("-clone") : QString());
+            const bool line = kind == QLatin1String("line");
+            QTest::newRow(qPrintable(name)) << gpu << figure << (line ? QStringLiteral("ForegroundColor") : QStringLiteral("None"))
+                << QString() << cloned << (line ? QStringLiteral("None") : QStringLiteral("ForegroundColor")) << 255;
+        }
+    }
     for (bool gpu : {false, true}) {
         for (const auto &figure : {QStringLiteral("line"), QStringLiteral("rectangle"),
                                   QStringLiteral("ellipse"), QStringLiteral("polygon"), QStringLiteral("polygon-pair")}) {
@@ -1190,6 +1204,9 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     QFETCH(bool, cloned);
     QFETCH(QString, fillStyle);
     QFETCH(int, foregroundAlpha);
+    const bool offCanvas = figure.startsWith(QLatin1String("offcanvas-"));
+    const bool offCanvasLine = offCanvas && figure.endsWith(QLatin1String("line"));
+    const bool offCanvasMirror = figure.startsWith(QLatin1String("offcanvas-mirrored-"));
     namespace Gpu = LibrePaint::Image::Gpu;
     const auto cs = KoColorSpaceRegistry::instance()->rgb8();
     std::shared_ptr<Gpu::Execution> execution;
@@ -1242,6 +1259,10 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     resources->setPaintOpPreset(preset);
     resources->setSize(8);
     resources->setOpacity(1);
+    resources->setGlobalAlphaLock(false);
+    resources->setMirrorHorizontal(offCanvasMirror);
+    resources->setMirrorVertical(false);
+    image->setMirrorAxesCenter(offCanvasMirror ? QPointF(-4, 0.5) : QPointF(0.5, 0.5));
     resources->setFGColor(KoColor(QColor(17, 129, 241, foregroundAlpha), cs));
     resources->setBGColor(KoColor(QColor(221, 17, 44), cs));
     resources->setEraserMode(false);
@@ -1252,8 +1273,15 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     const auto expected = filledWithoutOutline ? fillExpected : strokeStyle == QLatin1String("BackgroundColor") ?
         QByteArray::fromHex("2c11ddff") : QByteArray::fromHex("f18111ff");
     const bool pathHole = figure.startsWith(QLatin1String("path-hole-"));
+    QList<QPoint> exterior = offCanvasLine ? QList<QPoint>{{-4, -4}, {68, 68}} :
+        QList<QPoint>{{-4, 32}, {68, 32}, {32, -4}, {32, 68}};
+    if (offCanvasMirror) {
+        const auto original = exterior;
+        for (const auto point : original) exterior.append({-512 - point.x(), point.y()});
+    }
+    const QRect figureBounds = offCanvasMirror ? QRect(-588, -12, 664, 88) : QRect(-12, -12, 88, 88);
     const QPoint sample(pathHole ? 16 : 32, pathHole ? 32 : filledWithoutOutline ? 24 :
-                          figure == QLatin1String("line") || figure == QLatin1String("polygon-pair") ||
+                          offCanvasLine || figure == QLatin1String("line") || figure == QLatin1String("polygon-pair") ||
                           figure == QLatin1String("path-line") || figure == QLatin1String("path-curve") ? 32 :
                           fillStyle != QLatin1String("None") ? 10 : 12);
     QScopedPointer<Node> api(Node::createNode(image, target));
@@ -1312,6 +1340,8 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
         } else if (figure == QLatin1String("line")) {
             api->paintLine({12, 32}, {52, 32}, rejection == QLatin1String("invalid-pressure") ? -1 : 0.5, 1, strokeStyle);
         }
+        else if (offCanvasLine) api->paintLine({-12, -12}, {76, 76}, 1, 1, strokeStyle);
+        else if (offCanvas) api->paintRectangle({-12, -12, 88, 88}, strokeStyle, fillStyle);
         else if (figure == QLatin1String("rectangle")) api->paintRectangle({12, 12, 40, 40}, strokeStyle, fillStyle);
         else if (figure == QLatin1String("ellipse")) api->paintEllipse({12, 12, 40, 40}, strokeStyle, fillStyle);
         else if (figure == QLatin1String("polygon-pair")) api->paintPolygon({{12, 32}, {52, 32}}, strokeStyle, QStringLiteral("None"));
@@ -1322,6 +1352,7 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     resources->setFGColor(KoColor(Qt::green, cs));
     resources->setBGColor(KoColor(Qt::yellow, cs));
     resources->setSize(30);
+    resources->setMirrorHorizontal(false);
     if (pending.isNull()) image->waitForDone();
     if (!rejection.isEmpty()) {
         QApplication::sendPostedEvents();
@@ -1349,6 +1380,20 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     QTRY_COMPARE(lifetime->undoStack()->count(), count + 1);
     QCOMPARE(lifetime->undoStack()->index(), index + 1);
     QCOMPARE(api->pixelData(sample.x(), sample.y(), 1, 1), expected);
+    const auto exteriorDiagnostic = [&](bool painted) -> QString {
+        if (!offCanvas) return {};
+        for (const auto point : exterior) {
+            const auto actual = api->pixelData(point.x(), point.y(), 1, 1);
+            const auto wanted = painted ? fillExpected : QByteArray(4, '\0');
+            if (actual != wanted)
+                return QStringLiteral("Pixel (%1, %2): actual %3, expected %4")
+                    .arg(point.x()).arg(point.y()).arg(QString::fromLatin1(actual.toHex()), QString::fromLatin1(wanted.toHex()));
+        }
+        return {};
+    };
+    const auto paintedExterior = exteriorDiagnostic(true);
+    QVERIFY2(paintedExterior.isEmpty(), qPrintable(paintedExterior));
+    if (offCanvas && !offCanvasLine) QCOMPARE(api->bounds(), figureBounds);
     if (pathHole) {
         QCOMPARE(api->pixelData(32, 32, 1, 1), figure == QLatin1String("path-hole-winding") ? fillExpected : QByteArray(4, char(0)));
     } else if (fillStyle != QLatin1String("None")) {
@@ -1381,10 +1426,63 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     image->waitForDone();
     QCOMPARE(api->pixelData(0, 0, 64, 64), before);
     QCOMPARE(activeApi->pixelData(0, 0, 64, 64), activeBefore);
+    const auto undoneExterior = exteriorDiagnostic(false);
+    QVERIFY2(undoneExterior.isEmpty(), qPrintable(undoneExterior));
+    if (offCanvas) QVERIFY(api->bounds().isEmpty());
     lifetime->undoStack()->redo();
     image->waitForDone();
     QCOMPARE(api->pixelData(0, 0, 64, 64), painted);
     QCOMPARE(activeApi->pixelData(0, 0, 64, 64), activeBefore);
+    const auto redoneExterior = exteriorDiagnostic(true);
+    QVERIFY2(redoneExterior.isEmpty(), qPrintable(redoneExterior));
+    if (offCanvas && !offCanvasLine) QCOMPARE(api->bounds(), figureBounds);
+    if (offCanvas) {
+        const QRect rawRegion(-592, -16, 672, 96);
+        const auto rawPixels = api->pixelData(rawRegion.x(), rawRegion.y(), rawRegion.width(), rawRegion.height());
+        QCOMPARE(rawPixels.size(), rawRegion.width() * rawRegion.height() * 4);
+        QTemporaryDir directory;
+        QVERIFY(directory.isValid());
+        lifetime->setFileBatchMode(true);
+        const auto path = directory.filePath(QStringLiteral("offcanvas.kra"));
+        QVERIFY(apiDocument.saveAs(path));
+        apiDocument.waitForDone();
+        QScopedPointer<Document> reopened(Krita::instance()->openDocument(path));
+        QVERIFY(reopened);
+        QScopedPointer<Node> loadedNode(reopened->nodeByUniqueID(api->uniqueId()));
+        QVERIFY(loadedNode);
+        for (const auto point : exterior)
+            QCOMPARE(loadedNode->pixelData(point.x(), point.y(), 1, 1), fillExpected);
+        if (!offCanvasLine) QCOMPARE(loadedNode->bounds(), figureBounds);
+        QCOMPARE(loadedNode->pixelData(rawRegion.x(), rawRegion.y(), rawRegion.width(), rawRegion.height()), rawPixels);
+        InfoObject configuration;
+        configuration.setProperty("alpha", true);
+        configuration.setProperty("interlaced", false);
+        configuration.setProperty("compression", 3);
+        configuration.setProperty("saveSRGBProfile", true);
+        configuration.setProperty("forceSRGB", false);
+        configuration.setProperty("storeAuthor", false);
+        configuration.setProperty("storeMetaData", false);
+        const auto pngPath = directory.filePath(QStringLiteral("offcanvas.png"));
+        QVERIFY(apiDocument.exportImage(pngPath, configuration));
+        const QImage png(pngPath);
+        QCOMPARE(png.size(), QSize(64, 64));
+        const auto projection = apiDocument.pixelData(0, 0, 64, 64);
+        const auto exportedProjection = png.convertToFormat(QImage::Format_ARGB32);
+        QCOMPARE(QByteArray(reinterpret_cast<const char *>(exportedProjection.constBits()), exportedProjection.sizeInBytes()), projection);
+        QCOMPARE(png.colorSpace().iccProfile(), cs->profile()->rawData());
+        const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+        if (!results.isEmpty()) {
+            QVERIFY(QDir().mkpath(results));
+            const auto stem = QDir(results).filePath(QString::fromLatin1(QTest::currentDataTag()));
+            QFile raw(stem + QStringLiteral(".bgra"));
+            QVERIFY(raw.open(QIODevice::WriteOnly));
+            QCOMPARE(raw.write(rawPixels), rawPixels.size());
+            QVERIFY(QFile::copy(path, stem + QStringLiteral(".kra")));
+            QVERIFY(QFile::copy(pngPath, stem + QStringLiteral(".png")));
+        }
+        loadedNode.reset();
+        QVERIFY(reopened->close());
+    }
 }
 
 void TestNode::testLayerAndDocumentProjectionsRemainDistinct()

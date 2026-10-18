@@ -108,11 +108,6 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let index = local.y * 256u + local.x;
     if (parameters.counts.z != 0u) { outputPixels[index] = parameters.brush.x; return; }
     let pixel = parameters.tile.xy + vec2<i32>(local);
-    if (any(pixel >= parameters.tile.zw)) {
-        outputPixels[index] = basePixels[index];
-        if ((parameters.counts.w & 256u) != 0u) { retainedCoverage[index] = 0u; }
-        return;
-    }
     var mask = 0u;
     if ((parameters.counts.w & 128u) != 0u) { mask = previousCoverage[index]; }
     let mirrorMode = (parameters.counts.w >> 5u) & 3u;

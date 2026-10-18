@@ -407,7 +407,7 @@ std::optional<PaintGeometry> paintGeometry(const PaintOperation &operation, quin
 
 
 std::optional<QList<quint64>> figureFillTiles(const QList<PaintSegment> &edges, const Brush &brush,
-                                             QRect region, QSize canvas, qsizetype maximumCoordinates, int tileSize)
+                                             QRect region, qsizetype maximumCoordinates, int tileSize)
 {
     if (tileSize <= 0) return std::nullopt;
     if (edges.isEmpty()) return QList<quint64>{};
@@ -441,10 +441,10 @@ std::optional<QList<quint64>> figureFillTiles(const QList<PaintSegment> &edges, 
         const qint32 bottom = reflection & 2 ? 32 * brush.mirrorCenter.y() - minY : maxY;
         const QRect bounds(QPoint(int(std::floor(qreal(left) / 16)), int(std::floor(qreal(top) / 16))),
                            QPoint(int(std::ceil(qreal(right) / 16)) - 1, int(std::ceil(qreal(bottom) / 16)) - 1));
-        const QRect clipped = bounds.intersected(region).intersected(QRect(QPoint(0, 0), canvas));
+        const QRect clipped = bounds.intersected(region);
         if (clipped.isEmpty()) continue;
-        const int x0 = clipped.left() / tileSize, x1 = clipped.right() / tileSize;
-        const int y0 = clipped.top() / tileSize, y1 = clipped.bottom() / tileSize;
+        const int x0 = pixelTileIndex(clipped.left(), tileSize), x1 = pixelTileIndex(clipped.right(), tileSize);
+        const int y0 = pixelTileIndex(clipped.top(), tileSize), y1 = pixelTileIndex(clipped.bottom(), tileSize);
         if (qint64(x1 - x0 + 1) * (y1 - y0 + 1) > maximumCoordinates) return std::nullopt;
         for (int y = y0; y <= y1; ++y) {
             for (int x = x0; x <= x1; ++x) {
@@ -456,42 +456,57 @@ std::optional<QList<quint64>> figureFillTiles(const QList<PaintSegment> &edges, 
     return coordinates.values();
 }
 
-std::optional<QList<quint64>> paintSegmentTiles(const PaintSegment &segment, quint32 diameter,
-                                               QRect region, QSize canvas, qsizetype maximumCoordinates, int tileSize)
+std::optional<QList<quint64>> paintSegmentTiles(const PaintSegment &input, quint32 diameter, const Brush &brush,
+                                               QRect region, qsizetype maximumCoordinates, int tileSize)
 {
-    QList<quint64> result;
-    if (region.isEmpty()) return result;
     if (tileSize <= 0) return std::nullopt;
+    if (region.isEmpty()) return QList<quint64>{};
     const int size = tileSize;
     const qint64 radius = (diameter + 31) / 32;
-    const int left = int(std::max<qint64>(region.left() / size * size, std::min(segment.ax, segment.bx) / 16 - radius));
-    const int top = int(std::max<qint64>(region.top() / size * size, std::min(segment.ay, segment.by) / 16 - radius));
-    const int right = int(std::min<qint64>(qMin(canvas.width() - 1, (region.right() / size + 1) * size - 1),
-                                          std::max(segment.ax, segment.bx) / 16 + radius));
-    const int bottom = int(std::min<qint64>(qMin(canvas.height() - 1, (region.bottom() / size + 1) * size - 1),
-                                           std::max(segment.ay, segment.by) / 16 + radius));
-    if (right < left || bottom < top) return result;
-    for (int y = top / size; y <= bottom / size; ++y) {
-        qreal first = 0, last = 1;
-        if (segment.ay != segment.by) {
-            const qreal lower = qreal(y * size - radius - 1) * 16;
-            const qreal upper = qreal((y + 1) * size + radius + 1) * 16;
-            const qreal dy = qreal(segment.by) - segment.ay;
-            const qreal a = (lower - segment.ay) / dy, b = (upper - segment.ay) / dy;
-            first = std::max<qreal>(0, std::min(a, b));
-            last = std::min<qreal>(1, std::max(a, b));
-            if (first > last) continue;
+    QSet<quint64> result;
+    const int mirrorMode = int(brush.mirrorHorizontal) | (int(brush.mirrorVertical) << 1);
+    for (int reflection = 0; reflection < 4; ++reflection) {
+        if ((reflection & mirrorMode) != reflection) continue;
+        auto segment = input;
+        if (reflection & 1) {
+            segment.ax = 32 * brush.mirrorCenter.x() - input.ax;
+            segment.bx = 32 * brush.mirrorCenter.x() - input.bx;
         }
-        const qreal a = (segment.ax + (qreal(segment.bx) - segment.ax) * first) / 16;
-        const qreal b = (segment.ax + (qreal(segment.bx) - segment.ax) * last) / 16;
-        const int rowLeft = std::max(left, int(std::floor(std::min(a, b) - radius - 1)));
-        const int rowRight = std::min(right, int(std::ceil(std::max(a, b) + radius + 1)));
-        for (int x = rowLeft / size; x <= rowRight / size; ++x) {
-            if (result.size() >= maximumCoordinates) return std::nullopt;
-            result.append(key(x, y));
+        if (reflection & 2) {
+            segment.ay = 32 * brush.mirrorCenter.y() - input.ay;
+            segment.by = 32 * brush.mirrorCenter.y() - input.by;
+        }
+        const int left = int(std::max<qint64>(pixelTileIndex(region.left(), size) * size,
+                                             pixelTileIndex(std::min(segment.ax, segment.bx), 16) - radius));
+        const int top = int(std::max<qint64>(pixelTileIndex(region.top(), size) * size,
+                                            pixelTileIndex(std::min(segment.ay, segment.by), 16) - radius));
+        const int right = int(std::min<qint64>((pixelTileIndex(region.right(), size) + 1) * size - 1,
+                                              pixelTileIndex(std::max(segment.ax, segment.bx), 16) + radius));
+        const int bottom = int(std::min<qint64>((pixelTileIndex(region.bottom(), size) + 1) * size - 1,
+                                               pixelTileIndex(std::max(segment.ay, segment.by), 16) + radius));
+        if (right < left || bottom < top) continue;
+        for (int y = pixelTileIndex(top, size); y <= pixelTileIndex(bottom, size); ++y) {
+            qreal first = 0, last = 1;
+            if (segment.ay != segment.by) {
+                const qreal lower = qreal(y * size - radius - 1) * 16;
+                const qreal upper = qreal((y + 1) * size + radius + 1) * 16;
+                const qreal dy = qreal(segment.by) - segment.ay;
+                const qreal a = (lower - segment.ay) / dy, b = (upper - segment.ay) / dy;
+                first = std::max<qreal>(0, std::min(a, b));
+                last = std::min<qreal>(1, std::max(a, b));
+                if (first > last) continue;
+            }
+            const qreal a = (segment.ax + (qreal(segment.bx) - segment.ax) * first) / 16;
+            const qreal b = (segment.ax + (qreal(segment.bx) - segment.ax) * last) / 16;
+            const int rowLeft = std::max(left, int(std::floor(std::min(a, b) - radius - 1)));
+            const int rowRight = std::min(right, int(std::ceil(std::max(a, b) + radius + 1)));
+            for (int x = pixelTileIndex(rowLeft, size); x <= pixelTileIndex(rowRight, size); ++x) {
+                result.insert(key(x, y));
+                if (result.size() > maximumCoordinates) return std::nullopt;
+            }
         }
     }
-    return result;
+    return result.values();
 }
 
 }

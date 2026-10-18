@@ -12,6 +12,7 @@
 #include <QDataStream>
 #include <QTest>
 #include <limits>
+#include <cmath>
 #include <stdexcept>
 
 using namespace LibrePaint::Image::Gpu;
@@ -33,6 +34,7 @@ private Q_SLOTS:
     void sharedEditsPublishBeforeNotificationAndReleaseTheLastAttachment();
     void recoveryPreservesPendingInputAndRedoOnTheSameAttachment();
     void directPixelsReachGpuWithoutEditingNotificationsOrHistory();
+    void rectangularWritesPreserveOtherRegionsAcrossHistoryAndRecovery_data();
     void rectangularWritesPreserveOtherRegionsAcrossHistoryAndRecovery();
     void rectangularWritesValidateBeforeMutationAndCrossTileBoundaries();
     void rectangularHistoryEditsPreserveIndependentUntrackedPixels();
@@ -787,8 +789,21 @@ void KisGpuPaintImageTest::directPixelsReachGpuWithoutEditingNotificationsOrHist
     QCOMPARE(image.writeRgbaPixels(layer, {-256, -256, 256, 256}, pixels.rgba), Result::Closed);
 }
 
+void KisGpuPaintImageTest::rectangularWritesPreserveOtherRegionsAcrossHistoryAndRecovery_data()
+{
+    QTest::addColumn<QPoint>("source");
+    QTest::addColumn<QPoint>("point");
+    QTest::addColumn<bool>("mirrored");
+    QTest::newRow("canvas") << QPoint(8, 12) << QPoint(8, 12) << false;
+    QTest::newRow("negative-layer-pixels") << QPoint(-4, -4) << QPoint(-4, -4) << false;
+    QTest::newRow("mirrored-outside-canvas") << QPoint(8, 12) << QPoint(-520, 12) << true;
+}
+
 void KisGpuPaintImageTest::rectangularWritesPreserveOtherRegionsAcrossHistoryAndRecovery()
 {
+    QFETCH(QPoint, source);
+    QFETCH(QPoint, point);
+    QFETCH(bool, mirrored);
     QString diagnostic;
     const auto device = Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
@@ -798,38 +813,43 @@ void KisGpuPaintImageTest::rectangularWritesPreserveOtherRegionsAcrossHistoryAnd
     definition.layers = {{QStringLiteral("Edited"), true, {},
                           {{{0, 0}, QByteArray::fromHex("ff0000ff").repeated(RgbaTile::ByteCount / 4)}}},
                          {QStringLiteral("Imported"), true, {}, {}}};
+    const QPoint tile(int(std::floor(qreal(point.x()) / RgbaTile::Size)),
+                      int(std::floor(qreal(point.y()) / RgbaTile::Size)));
+    if (!tile.isNull()) definition.layers[0].tiles.append({tile, definition.layers[0].tiles.first().rgba});
     PaintImage image(execution, definition);
     QSignalSpy changed(&image, &PaintImage::changed);
     const auto pinned = image.operations().snapshot();
     Brush brush;
     brush.rgba = {0, 0, 255, 255};
     brush.diameter = 6;
+    brush.mirrorHorizontal = mirrored;
+    brush.mirrorCenter = {-256, 12};
     const auto stroke = image.beginStroke(1, brush, 0);
-    QCOMPARE(image.appendSamples(stroke, {{{8, 12}, 1}}), Result::Success);
+    QCOMPARE(image.appendSamples(stroke, {{QPointF(source), 1}}), Result::Success);
     QCOMPARE(image.commitStroke(stroke), Result::Success);
     QCOMPARE(image.undo(), Result::Success);
     const auto notifications = changed.size();
     const auto raw = QByteArray::fromHex("120a2700");
     const auto green = QByteArray::fromHex("00ff00ff");
     QCOMPARE(image.writeRgbaPixels(2, {-1, -1, 1, 1}, raw), Result::Success);
-    QCOMPARE(image.writeRgbaPixels(1, {8, 12, 1, 1}, raw), Result::Success);
+    QCOMPARE(image.writeRgbaPixels(1, QRect(point, QSize(1, 1)), raw), Result::Success);
     QCOMPARE(image.writeRgbaPixels(1, {96, 96, 1, 1}, raw), Result::Success);
     QCOMPARE(changed.size(), notifications);
     QCOMPARE(image.operations().undoCount(), 0);
     QCOMPARE(image.operations().redoCount(), 1);
     QVERIFY(!image.operations().isModified());
-    QCOMPARE(execution.readRgbaPixels(image.handle(), pinned, {8, 12, 1, 1}, 1, 4).bytes, QByteArray::fromHex("ff0000ff"));
+    QCOMPARE(execution.readRgbaPixels(image.handle(), pinned, QRect(point, QSize(1, 1)), 1, 4).bytes, QByteArray::fromHex("ff0000ff"));
     QCOMPARE(image.writeRgbaPixels(1, {96, 96, 1, 1}, green), Result::Success);
     PaintImage restored(execution, QSize(1, 1));
     QCOMPARE(restored.restoreRecovery(image.operations().recoveryData()), Result::Success);
     for (auto *owner : {&image, &restored}) {
         QCOMPARE(owner->redo(), Result::Success);
-        QCOMPARE(execution.readRgbaPixels(owner->handle(), owner->operations().snapshot(), {8, 12, 1, 1}, 1, 4).bytes,
+        QCOMPARE(execution.readRgbaPixels(owner->handle(), owner->operations().snapshot(), QRect(point, QSize(1, 1)), 1, 4).bytes,
                  QByteArray::fromHex("0000ffff"));
         QCOMPARE(execution.readRgbaPixels(owner->handle(), owner->operations().snapshot(), {96, 96, 1, 1}, 1, 4).bytes, green);
         QCOMPARE(execution.readRgbaPixels(owner->handle(), owner->operations().snapshot(), {-1, -1, 1, 1}, 2, 4).bytes, raw);
         QCOMPARE(owner->undo(), Result::Success);
-        QCOMPARE(execution.readRgbaPixels(owner->handle(), owner->operations().snapshot(), {8, 12, 1, 1}, 1, 4).bytes, raw);
+        QCOMPARE(execution.readRgbaPixels(owner->handle(), owner->operations().snapshot(), QRect(point, QSize(1, 1)), 1, 4).bytes, raw);
         const auto yellow = QByteArray::fromHex("ffff00ff");
         QCOMPARE(owner->writeRgbaPixels(1, {96, 96, 1, 1}, yellow), Result::Success);
         QCOMPARE(owner->redo(), Result::Success);
