@@ -69,6 +69,8 @@ struct TileRenderer::Private
     Detail::NativeComputePipeline transparencyPipeline;
     Detail::NativeBindingLayout boundsLayout;
     Detail::NativeComputePipeline boundsPipeline;
+    Detail::NativeBindingLayout translationLayout;
+    Detail::NativeComputePipeline translationPipeline;
     bool zeroUploaded = false;
     QString error;
     QWeakPointer<const RenderedVersion> coverageVersion;
@@ -80,9 +82,17 @@ struct TileRenderer::Private
     void initializeProjection();
     Detail::NativeBuffer recordTransparency(WGPUCommandEncoder commands, const ProjectedSnapshot &projection, QRect region);
     Detail::NativeBuffer recordBounds(WGPUCommandEncoder commands, const QList<TileView> &tiles,
-                                     QRect region, const std::array<quint8, 4> &defaultPixel);
+                                     QRect region, const std::array<quint8, 4> &defaultPixel, bool includeTransparentColors);
     std::shared_ptr<Detail::Tile> allocateTile();
     bool ensureTileCapacity(qsizetype count);
+    struct TranslationResult {
+        RenderOutcome::Code code;
+        Detail::Tiles tiles;
+        QString diagnostic;
+    };
+    TranslationResult translateTiles(WGPUCommandEncoder commands, const Detail::Tiles &source,
+                                     const std::shared_ptr<Detail::Tile> &fallback, QPoint offset,
+                                     QRect region, QList<std::shared_ptr<Detail::Tile>> &pins);
 };
 }
 #endif

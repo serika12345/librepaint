@@ -645,6 +645,11 @@ QRect Node::bounds() const
 void Node::move(int x, int y)
 {
     if (!d->node) return;
+    auto device = d->node->paintDevice();
+    if (device && qobject_cast<KisPaintLayer *>(d->node.data())) {
+        device->moveTo(x, y);
+        return;
+    }
     d->node->setX(x);
     d->node->setY(y);
 }

@@ -37,9 +37,113 @@ private Q_SLOTS:
     void transparencyResultsOutliveClosedDocumentsAndTheirDevice();
     void boundsKeepFixedVersionsAndRejectWithoutChangingRequests();
     void boundsStreamMoreTilesThanTheGpuCanRetain();
+    void boundsReusePixelsRetainedByTheDisplayedFrame();
+    void integerTranslationPreservesRgbaAcrossTileBoundariesAndFixedVersions();
+    void contentBoundsRetainTransparentRgbForMovementAdmission();
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPixelReadbackTest::contentBoundsRetainTransparentRgbForMovementAdmission()
+{
+    QByteArray pixels(RgbaTile::ByteCount, '\0');
+    pixels.replace((7 * 256 + 255) * 4, 4, QByteArray::fromHex("11223300"));
+    RasterImage input;
+    input.size = {32, 16};
+    input.layers = {{QStringLiteral("Hidden edge pixel"), true, {}, {{{32767, 0}, pixels}}}};
+    OperationDocument document(input);
+    Execution execution(m_device, TileRenderer::TileBytes, 1, 16);
+    const auto fixed = document.snapshot();
+    const auto handle = execution.open(fixed).handle;
+    QCOMPARE(execution.readBounds(handle, fixed, 1).bounds, std::optional<QRect>(QRect{}));
+    const auto content = execution.readBounds(handle, fixed, 1, true);
+    QVERIFY2(content.code == ExecutionCode::Success, qPrintable(content.diagnostic));
+    QCOMPARE(content.bounds, std::optional<QRect>(QRect(8388607, 7, 1, 1)));
+    QCOMPARE(execution.requested(handle), fixed);
+}
+
+void KisGpuPixelReadbackTest::integerTranslationPreservesRgbaAcrossTileBoundariesAndFixedVersions()
+{
+    QByteArray pixels(RgbaTile::ByteCount, '\0');
+    pixels.replace((1 * 256 + 255) * 4, 4, QByteArray::fromHex("112233ff"));
+    pixels.replace((1 * 256) * 4, 4, QByteArray::fromHex("44556600"));
+    RasterImage input;
+    input.size = {320, 64};
+    input.layers = {{QStringLiteral("Moved pixels"), true, {}, {{{0, 0}, pixels}}}};
+    input.layers.first().position = {7, -3};
+    OperationDocument document(input);
+    const auto before = document.snapshot();
+    const auto layer = document.activeLayer();
+    Execution execution(m_device, 12 * TileRenderer::TileBytes, 1);
+    const auto handle = execution.open(before).handle;
+    QCOMPARE(execution.readRgbaPixels(handle, before, {255, 1, 1, 1}, layer, 4).bytes, QByteArray::fromHex("112233ff"));
+    const auto move = document.beginLayerTranslation(layer);
+    QVERIFY(!move.isNull());
+    QCOMPARE(document.updateLayerTranslation(move, {-13, 17}), Result::Success);
+    QCOMPARE(document.commitLayerTranslation(move), Result::Success);
+    const auto moved = document.snapshot();
+    QCOMPARE(execution.request(handle, moved).code, ExecutionCode::Success);
+    const auto visible = execution.readRgbaPixels(handle, moved, {242, 18, 1, 1}, layer, 4);
+    QVERIFY2(visible.code == ExecutionCode::Success, qPrintable(visible.diagnostic));
+    QCOMPARE(visible.bytes, QByteArray::fromHex("112233ff"));
+    const auto hidden = execution.readRgbaPixels(handle, moved, {-13, 18, 1, 1}, layer, 4);
+    QVERIFY2(hidden.code == ExecutionCode::Success, qPrintable(hidden.diagnostic));
+    QCOMPARE(hidden.bytes, QByteArray::fromHex("44556600"));
+    QCOMPARE(execution.readRgbaPixels(handle, moved, {255, 1, 1, 1}, layer, 4).bytes, QByteArray(4, '\0'));
+    QCOMPARE(execution.readRgbaPixels(handle, before, {255, 1, 1, 1}, layer, 4).bytes, QByteArray::fromHex("112233ff"));
+    QCOMPARE(execution.requested(handle), moved);
+    QCOMPARE(moved->layers.first().position, QPoint(-6, 14));
+    Brush brush;
+    brush.diameter = 3;
+    brush.rgba = {117, 53, 201, 255};
+    const auto stroke = document.beginStroke(layer, brush, 42);
+    const QList<InputSample> samples{{QPointF(100.5, 33.5), 0.75, -0.2, 0.3, 17, 10}};
+    QCOMPARE(document.appendSamples(stroke, samples), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    const auto painted = document.snapshot();
+    const QRect patch(98, 31, 5, 5);
+    const auto original = execution.readRgbaPixels(handle, painted, patch, layer, 100);
+    QVERIFY2(original.code == ExecutionCode::Success, qPrintable(original.diagnostic));
+    QVERIFY(original.bytes != QByteArray(100, '\0'));
+    const auto next = document.beginLayerTranslation(layer);
+    QCOMPARE(document.updateLayerTranslation(next, {171, -7}), Result::Success);
+    QCOMPARE(document.commitLayerTranslation(next), Result::Success);
+    const auto final = document.snapshot();
+    const auto shiftedPaint = execution.readRgbaPixels(handle, final, patch.translated(171, -7), layer, 100);
+    QVERIFY2(shiftedPaint.code == ExecutionCode::Success, qPrintable(shiftedPaint.diagnostic));
+    QCOMPARE(shiftedPaint.bytes, original.bytes);
+    QCOMPARE(execution.readRgbaPixels(handle, final, {158, 11, 1, 1}, layer, 4).bytes, QByteArray::fromHex("44556600"));
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(execution.replaceDocument(handle, restored.snapshot()).code, ExecutionCode::Success);
+    const auto recovered = execution.readRgbaPixels(handle, restored.snapshot(), patch.translated(171, -7), restored.activeLayer(), 100);
+    QVERIFY2(recovered.code == ExecutionCode::Success, qPrintable(recovered.diagnostic));
+    QCOMPARE(recovered.bytes, original.bytes);
+}
+
+void KisGpuPixelReadbackTest::boundsReusePixelsRetainedByTheDisplayedFrame()
+{
+    QByteArray pixels(RgbaTile::ByteCount, '\0');
+    pixels.replace((9 * 256 + 7) * 4, 4, QByteArray::fromHex("112233ff"));
+    RasterImage input;
+    input.size = {64, 64};
+    input.layers = {{QStringLiteral("Displayed layer"), true, {}, {{{0, 0}, pixels}}}};
+    OperationDocument document(input);
+    const auto fixed = document.snapshot();
+    Execution execution(m_device, TileRenderer::TileBytes, 1, 16);
+    const auto handle = execution.open(fixed).handle;
+    QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+    const auto displayed = execution.project(handle, {0, 0, 64, 64});
+    QVERIFY2(displayed.code == RenderOutcome::Recorded, qPrintable(displayed.diagnostic));
+    QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
+    const auto bounds = execution.readBounds(handle, fixed, fixed->layers.first().id);
+    QVERIFY2(bounds.code == ExecutionCode::Success, qPrintable(bounds.diagnostic));
+    QCOMPARE(bounds.bounds, std::optional<QRect>(QRect(7, 9, 1, 1)));
+    QCOMPARE(displayed.version->tiles().size(), 1);
+    QCOMPARE(execution.published(handle), fixed);
+    QCOMPARE(execution.requested(handle), fixed);
+    QCOMPARE(execution.residentBytes(), qsizetype(TileRenderer::TileBytes));
+}
 
 void KisGpuPixelReadbackTest::boundsStreamMoreTilesThanTheGpuCanRetain()
 {

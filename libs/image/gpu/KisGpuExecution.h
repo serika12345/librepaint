@@ -151,8 +151,10 @@ public:
      * Streams one tile at a time, transfers sixteen bytes per summary, retains
      * the version, and preserves requests and publication.
      * Rejection and thread ownership follow readPixels().
+     * includeTransparentColors measures every nondefault RGBA value for content-preserving moves.
      */
-    PixelReadbackOutcome readBounds(DocumentHandle handle, const Snapshot &document, LayerId layer);
+    PixelReadbackOutcome readBounds(DocumentHandle handle, const Snapshot &document, LayerId layer,
+                                   bool includeTransparentColors = false);
     /** Nonblocking callback processing; Busy denotes unfinished native reads. */
     ExecutionOutcome pollReadbacks();
 
@@ -195,7 +197,8 @@ private:
     ExecutionOutcome retireDisplayCaches();
     std::future<PixelReadbackOutcome> readPixelsAsyncImpl(DocumentHandle handle, const Snapshot &document,
                                    QRect region, const QList<LayerId> &layers, bool includeProjection,
-                                   PixelReadArea area, bool transparencyOnly, bool boundsOnly = false);
+                                   PixelReadArea area, bool transparencyOnly, bool boundsOnly = false,
+                                   bool includeTransparentColors = false);
 };
 }
 #endif

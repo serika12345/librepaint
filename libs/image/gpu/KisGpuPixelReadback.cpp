@@ -91,23 +91,52 @@ bool validPixelRegion(QRect region)
 
 std::optional<QList<quint64>> layerCoordinates(const Layer &layer, QRect region, qsizetype maximum)
 {
+    constexpr int limit = RgbaTile::CoordinateLimit;
+    const QRect domain(-limit, -limit, 2 * limit, 2 * limit);
+    QRect needed = region.intersected(domain);
+    QHash<quint64, QRect> afterTranslations;
+    for (auto operation = layer.operations.crbegin(); operation != layer.operations.crend(); ++operation) {
+        if (const auto translation = std::get_if<TranslationSnapshot>(&*operation)) {
+            afterTranslations.insert((*translation)->id.sequence, needed);
+            needed = needed.translated(-(*translation)->offset).intersected(domain);
+        }
+    }
     QSet<quint64> coordinates;
     for (const auto &operation : layer.operations) {
         if (const auto write = std::get_if<TileWriteSnapshot>(&operation)) {
             for (const auto &tile : (*write)->tiles) {
-                if (!region.intersects(QRect(tile->coordinate() * TileRenderer::TileSize,
+                if (!needed.intersects(QRect(tile->coordinate() * TileRenderer::TileSize,
                                              QSize(TileRenderer::TileSize, TileRenderer::TileSize)))) continue;
                 coordinates.insert(Detail::key(tile->coordinate().x(), tile->coordinate().y()));
                 if (coordinates.size() > maximum) return std::nullopt;
             }
+        } else if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) {
+            const auto target = afterTranslations.value((*translation)->id.sequence);
+            QSet<quint64> moved;
+            for (const auto tile : coordinates) {
+                const auto pixels = QRect(Detail::coordinate(tile) * TileRenderer::TileSize + (*translation)->offset,
+                    QSize(TileRenderer::TileSize, TileRenderer::TileSize)).intersected(target);
+                if (pixels.isEmpty()) continue;
+                for (int y = Detail::pixelTileIndex(pixels.top(), TileRenderer::TileSize);
+                     y <= Detail::pixelTileIndex(pixels.bottom(), TileRenderer::TileSize); ++y) {
+                    for (int x = Detail::pixelTileIndex(pixels.left(), TileRenderer::TileSize);
+                         x <= Detail::pixelTileIndex(pixels.right(), TileRenderer::TileSize); ++x) {
+                        moved.insert(Detail::key(x, y));
+                        if (moved.size() > maximum) return std::nullopt;
+                    }
+                }
+            }
+            coordinates.swap(moved);
+            needed = target;
         } else {
+            if (needed.isEmpty()) continue;
             const auto &paint = **std::get_if<PaintSnapshot>(&operation);
             const auto diameter = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * 16)));
             const auto step = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * paint.brush.spacing * 16)));
             const auto geometry = Detail::paintGeometry(paint, step);
             if (!geometry) return std::nullopt;
             for (const auto &segment : paint.figureStyle.outline ? geometry->outline : QList<Detail::PaintSegment>{}) {
-                const auto tiles = Detail::paintSegmentTiles(segment, diameter, paint.brush, region, maximum);
+                const auto tiles = Detail::paintSegmentTiles(segment, diameter, paint.brush, needed, maximum);
                 if (!tiles) return std::nullopt;
                 for (const auto tile : *tiles) {
                     coordinates.insert(tile);
@@ -115,7 +144,7 @@ std::optional<QList<quint64>> layerCoordinates(const Layer &layer, QRect region,
                 }
             }
             if (paint.figureStyle.fill) {
-                const auto tiles = Detail::figureFillTiles(geometry->fill, paint.brush, region, maximum);
+                const auto tiles = Detail::figureFillTiles(geometry->fill, paint.brush, needed, maximum);
                 if (!tiles) return std::nullopt;
                 for (const auto tile : *tiles) {
                     coordinates.insert(tile);
@@ -313,7 +342,8 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsync(DocumentHandle hand
 std::future<PixelReadbackOutcome> Execution::readTransparencyAsync(DocumentHandle handle, const Snapshot &pinned, QRect region)
 { return readPixelsAsyncImpl(handle, pinned, region, {}, true, PixelReadArea::Canvas, true); }
 
-PixelReadbackOutcome Execution::readBounds(DocumentHandle handle, const Snapshot &pinned, LayerId layer)
+PixelReadbackOutcome Execution::readBounds(DocumentHandle handle, const Snapshot &pinned, LayerId layer,
+                                         bool includeTransparentColors)
 {
     if (!m_d->onThread()) return failure(ExecutionCode::InvalidRequest, QStringLiteral("Bounds read requires the GPU thread"));
     constexpr int limit = RgbaTile::CoordinateLimit;
@@ -341,18 +371,26 @@ PixelReadbackOutcome Execution::readBounds(DocumentHandle handle, const Snapshot
             for (int x = 0; x < columns; ++x) coordinates.insert(Detail::key(x, y));
     }
     if (coordinates.isEmpty()) return outcome;
-    const auto retired = retireDisplayCaches();
-    if (retired.code != ExecutionCode::Success) return failure(retired.code, retired.diagnostic);
+    if (m_d->maximumReadbackBytes < qsizetype(4 * sizeof(qint32)))
+        return failure(ExecutionCode::CapacityExceeded, QStringLiteral("GPU bounds readback byte capacity exceeded"));
     auto ordered = coordinates.values();
     std::sort(ordered.begin(), ordered.end());
     for (const auto coordinate : ordered) {
         const QRect region(Detail::coordinate(coordinate) * TileRenderer::TileSize,
                            QSize(TileRenderer::TileSize, TileRenderer::TileSize));
-        auto pending = readPixelsAsyncImpl(handle, pinned, region, selected, !layer, area, false, true);
-        if (pending.wait_for(std::chrono::seconds(0)) != std::future_status::ready && !m_d->device->finish())
-            return failure(ExecutionCode::DeviceFailure, QStringLiteral("GPU bounds completion failed"));
-        retireCompletedReadback();
-        const auto part = pending.get();
+        const auto readPart = [&] {
+            auto pending = readPixelsAsyncImpl(handle, pinned, region, selected, !layer, area, false, true, includeTransparentColors);
+            if (pending.wait_for(std::chrono::seconds(0)) != std::future_status::ready && !m_d->device->finish())
+                return failure(ExecutionCode::DeviceFailure, QStringLiteral("GPU bounds completion failed"));
+            retireCompletedReadback();
+            return pending.get();
+        };
+        auto part = readPart();
+        if (part.code == ExecutionCode::CapacityExceeded) {
+            const auto retired = retireDisplayCaches();
+            if (retired.code != ExecutionCode::Success) return failure(retired.code, retired.diagnostic);
+            part = readPart();
+        }
         if (part.code != ExecutionCode::Success) return failure(part.code, part.diagnostic);
         *outcome.bounds |= *part.bounds;
     }
@@ -361,7 +399,7 @@ PixelReadbackOutcome Execution::readBounds(DocumentHandle handle, const Snapshot
 
 std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle handle, const Snapshot &pinned,
                                          QRect region, const QList<LayerId> &layers, bool includeProjection,
-                                         PixelReadArea area, bool transparencyOnly, bool boundsOnly)
+                                         PixelReadArea area, bool transparencyOnly, bool boundsOnly, bool includeTransparentColors)
 {
     const auto rejected = [](ExecutionCode code, const QString &diagnostic) {
         return readyReadback(failure(code, diagnostic));
@@ -462,7 +500,7 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
                             if (layer.id == layers.first()) implicit = layer.defaultPixel;
                     }
                     summary = d.renderer->m_d->recordBounds(frame.commands,
-                        projected ? projected->tiles() : rendered->tiles(layers.first()), outcome.region, implicit);
+                        projected ? projected->tiles() : rendered->tiles(layers.first()), outcome.region, implicit, includeTransparentColors);
                 } else summary = d.renderer->m_d->recordTransparency(frame.commands, projected, outcome.region);
                 if (!summary) throw std::runtime_error("The GPU pixel summary could not be recorded");
                 buffers.append(summary.get());

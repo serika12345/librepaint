@@ -81,7 +81,8 @@ public:
     /** Synchronous canonical pixels from the current committed image version. */
     PixelBytesOutcome readRgbaPixels(LayerId layer, QRect region, qsizetype maximumBytes) const;
     /** Retains a live layer's pixel identity; null for unavailable/off-thread requests.
-     * The image weakly tracks references and keeps their last committed pixels.
+     * References follow committed pixels and active movement previews. Painting
+     * keeps committed pixels; cancellation and close discard movement previews.
      */
     LayerPixelReferenceSP retainLayerPixels(LayerId layer);
 
@@ -95,6 +96,16 @@ public:
                        const Shape &shape, const FigureStyle &style, quint64 randomSeed);
     Result commitStroke(OperationId id);
     Result cancelStroke(OperationId id);
+    /** Integer placement keeps original painting inputs and publishes live previews.
+     * One committed gesture adds one history entry; cancellation keeps Redo.
+     */
+    OperationId beginLayerTranslation(LayerId layer);
+    Result updateLayerTranslation(OperationId id, QPoint offsetSinceStart);
+    Result commitLayerTranslation(OperationId id);
+    Result cancelLayerTranslation(OperationId id);
+    /** Absolute placement preserves history position, saved state and notifications. */
+    Result writeLayerPosition(LayerId layer, QPoint position);
+    Result writeLayerPosition(const LayerPixelReferenceSP &pixels, QPoint position);
     Result replaceTiles(LayerId layer, const QList<RgbaTile> &tiles);
     /** Replaces nonempty packed pixel rectangles in one history entry. */
     Result replaceRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes);
@@ -168,6 +179,9 @@ private:
     Result requestAfterWrite(Result result);
     void requestCurrentVersion();
     void refreshLayerPixelReferences();
+    Snapshot layerPixelVersion() const;
+    Result checkLayerTranslation(const Snapshot &version, LayerId layer, QPoint offset) const;
+    Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);
     Result applyRgbaPixels(LayerId layer, QRect region, const QByteArray &bytes, bool recordHistory,
                            Snapshot *retainedVersion = nullptr);
     struct Private;

@@ -1401,6 +1401,13 @@ KisDefaultBoundsBaseSP KisPaintDevice::defaultBounds() const
 
 void KisPaintDevice::moveTo(const QPoint &pt)
 {
+    if (m_d->gpuImage) {
+        if (!m_d->gpuLayerId()) throw std::logic_error("GPU image projection is read-only");
+        const auto result = m_d->gpuImage->writeLayerPosition(m_d->gpuPixels, pt);
+        if (result != LibrePaint::Image::Gpu::Result::Success)
+            throw std::runtime_error("GPU layer movement failed: " + std::to_string(int(result)));
+        return;
+    }
     m_d->currentStrategy()->move(pt);
     m_d->cache()->invalidate();
 }
@@ -1417,12 +1424,12 @@ void KisPaintDevice::moveTo(qint32 x, qint32 y)
 
 void KisPaintDevice::setX(qint32 x)
 {
-    moveTo(QPoint(x, m_d->y()));
+    moveTo(QPoint(x, y()));
 }
 
 void KisPaintDevice::setY(qint32 y)
 {
-    moveTo(QPoint(m_d->x(), y));
+    moveTo(QPoint(x(), y));
 }
 
 qint32 KisPaintDevice::x() const

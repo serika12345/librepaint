@@ -258,6 +258,107 @@ void TestNode::testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery()
     }
 }
 
+void TestNode::testAbsoluteLayerMovementPreservesPixelsAndDirectHistory_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::newRow("ordinary") << false;
+    QTest::newRow("gpu") << true;
+}
+
+void TestNode::testAbsoluteLayerMovementPreservesPixelsAndDirectHistory()
+{
+    QFETCH(bool, gpu);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const QPoint initial(7, -3), destination(-12, 17);
+    const QPoint first(12, 9), shifted = first + destination - initial;
+    const auto before = QByteArray::fromHex("112233ff445566006677888899aabbff");
+    const auto after = QByteArray::fromHex("a1b2c3ff445566006677888899aabbff");
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    Gpu::PaintImageSP owner;
+    KisImageSP image;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        Gpu::RasterImage input;
+        input.size = {64, 64};
+        input.layers = {{QStringLiteral("Move target"), true, {}, {}}, {QStringLiteral("Unchanged"), true, {}, {}}};
+        input.layers.first().position = initial;
+        owner = Gpu::PaintImageSP::create(execution, input);
+        image = KisImage::fromGpuImage(owner, QStringLiteral("Absolute move"));
+    } else {
+        image = new KisImage(document->createUndoStore(), 64, 64, KoColorSpaceRegistry::instance()->rgb8(), QStringLiteral("Absolute move"));
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Move target"), 255));
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Unchanged"), 255));
+    }
+    document->setCurrentImage(image);
+    const auto layer = image->root()->firstChild();
+    QScopedPointer<Node> node(Node::createNode(image, layer));
+    QScopedPointer<Node> other(Node::createNode(image, image->root()->lastChild()));
+    if (!gpu) node->move(initial.x(), initial.y());
+    QVERIFY(node->setPixelData(before, first.x(), first.y(), 2, 2));
+    QVERIFY(other->setPixelData(QByteArray::fromHex("778899ff"), first.x(), first.y(), 1, 1));
+    if (gpu) {
+        QByteArray rgba = after;
+        for (qsizetype i = 0; i < rgba.size(); i += 4) std::swap(rgba[i], rgba[i + 2]);
+        QCOMPARE(owner->replaceRgbaPixels(1, QRect(first, QSize(2, 2)), rgba), Gpu::Result::Success);
+    } else {
+        KisTransaction edit(layer->paintDevice());
+        QVERIFY(node->setPixelData(after, first.x(), first.y(), 2, 2));
+        edit.commit(image->undoAdapter());
+    }
+    image->waitForDone();
+    document->undoStack()->undo();
+    image->waitForDone();
+    const auto modified = document->isModified();
+    QCOMPARE(node->pixelData(first.x(), first.y(), 2, 2), before);
+    try {
+        node->move(destination.x(), destination.y());
+    } catch (const std::exception &error) {
+        QFAIL(qPrintable(QStringLiteral("Public Node.move failed: ") + QString::fromUtf8(error.what())));
+    }
+    QCOMPARE(node->position(), destination);
+    QCOMPARE(node->pixelData(shifted.x(), shifted.y(), 2, 2), before);
+    QCOMPARE(node->pixelData(first.x(), first.y(), 2, 2), QByteArray(16, '\0'));
+    QCOMPARE(other->pixelData(first.x(), first.y(), 1, 1), QByteArray::fromHex("778899ff"));
+    QCOMPARE(document->undoStack()->count(), 1);
+    QCOMPARE(document->undoStack()->index(), 0);
+    QCOMPARE(document->isModified(), modified);
+    document->undoStack()->redo();
+    image->waitForDone();
+    QCOMPARE(node->position(), destination);
+    QCOMPARE(node->pixelData(shifted.x(), shifted.y(), 2, 2), after);
+    document->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(node->position(), destination);
+    QCOMPARE(node->pixelData(shifted.x(), shifted.y(), 2, 2), before);
+    QScopedPointer<Node> copy(node->clone());
+    QVERIFY(copy);
+    const QPoint copyPosition(43, -11);
+    const auto copyPoint = shifted + copyPosition - destination;
+    copy->move(copyPosition.x(), copyPosition.y());
+    QCOMPARE(copy->position(), copyPosition);
+    QCOMPARE(copy->pixelData(copyPoint.x(), copyPoint.y(), 2, 2), before);
+    QCOMPARE(node->position(), destination);
+    QCOMPARE(node->pixelData(shifted.x(), shifted.y(), 2, 2), before);
+    QVERIFY(node->remove());
+    image->waitForDone();
+    const QPoint removedPosition(29, 37);
+    const auto removedPoint = shifted + removedPosition - destination;
+    try {
+        node->move(removedPosition.x(), removedPosition.y());
+    } catch (const std::exception &error) {
+        QFAIL(qPrintable(QStringLiteral("Removed Node.move failed: ") + QString::fromUtf8(error.what())));
+    }
+    QCOMPARE(node->position(), removedPosition);
+    QCOMPARE(node->pixelData(removedPoint.x(), removedPoint.y(), 2, 2), before);
+    document->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(node->position(), removedPosition);
+    QCOMPARE(node->pixelData(removedPoint.x(), removedPoint.y(), 2, 2), before);
+}
+
 void TestNode::testGpuBoundsUseOnlyScalarReadback_data()
 {
     QTest::addColumn<bool>("opaqueDefault");

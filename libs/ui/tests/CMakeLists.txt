@@ -1248,6 +1248,25 @@ elseif(WIN32)
     set_tests_properties(${ellipse_tool_document_tests} PROPERTIES TIMEOUT 300)
 endif()
 
+kis_add_test(KisMoveToolDocumentTest.cpp ../../../krita/krita.qrc
+    ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
+    ../../../krita/pics/Breeze-light/breeze-light-icons.qrc
+    TEST_NAME KisMoveToolDocumentTest
+    TEST_NAME_VAR move_tool_document_test
+    LINK_LIBRARIES kritaapplicationui kritainputui kritaimpexkra kritadocumentpainting kritatestsdk)
+add_dependencies(KisMoveToolDocumentTest
+    kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
+    kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritakraexport kritapngexport)
+if(NOT IOS)
+    add_dependencies(KisMoveToolDocumentTest kritatextproperties)
+endif()
+set_tests_properties(${move_tool_document_test} PROPERTIES TIMEOUT 300 RUN_SERIAL TRUE)
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set_tests_properties(${move_tool_document_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    set_tests_properties(${move_tool_document_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
+endif()
+
 # Native window input requires exclusive use of the test display.
 set_tests_properties(${gpu_document_view_tests} PROPERTIES TIMEOUT 60 RUN_SERIAL TRUE)
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")

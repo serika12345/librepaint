@@ -15,6 +15,8 @@ private Q_SLOTS:
     void initTestCase();
     void testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery_data();
     void testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery();
+    void testAbsoluteLayerMovementPreservesPixelsAndDirectHistory_data();
+    void testAbsoluteLayerMovementPreservesPixelsAndDirectHistory();
     void testGpuBoundsUseOnlyScalarReadback_data();
     void testGpuBoundsUseOnlyScalarReadback();
     void testLayerPropertiesPreservePublicHistorySemantics_data();

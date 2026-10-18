@@ -56,6 +56,8 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void layerTranslationPreservesInputVersionsAndOneHistoryEntry();
+    void previousPlacedRecoveryPreservesPendingInputAndPosition();
     void groupedRemovalPreservesPixelsSelectionAndAtomicHistory();
     void insertedLayersPreserveOrderPinsAndOneHistoryStep();
     void duplicatedLayersShareInputsAndPixelsWithIndependentHistory();
@@ -114,6 +116,118 @@ private Q_SLOTS:
     void layerRemovalReusesCapacityWithoutLosingRecoveryHistory();
     void layerReorderingIsAtomicAndPreservesSelectionPixelsAndHistory();
 };
+
+void KisGpuOperationDocumentTest::layerTranslationPreservesInputVersionsAndOneHistoryEntry()
+{
+    const QPoint initial(7, -3), offset(13, -7), direct(-12, 17);
+    RasterImage input;
+    input.size = {64, 64};
+    input.layers = {{QStringLiteral("Moved layer"), true, {}, {}}};
+    input.layers.first().position = initial;
+    OperationDocument document(input);
+    const auto layer = document.activeLayer();
+    const QList<InputSample> samples{sample(12, 9, 0.5, 1), sample(14, 10, 1, 2)};
+    QVERIFY(!paint(document, samples).isNull());
+    const auto before = document.snapshot();
+    QCOMPARE(document.markSaved(before), Result::Success);
+    auto move = document.beginLayerTranslation(layer);
+    QVERIFY(!move.isNull());
+    QCOMPARE(document.activeOperation(), move);
+    QCOMPARE(document.updateLayerTranslation(move, offset), Result::Success);
+    const auto preview = document.preview();
+    QCOMPARE(preview->layers.first().position, initial + offset);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(std::get<PaintSnapshot>(preview->layers.first().operations.first())->inputSamples(), samples);
+    QCOMPARE(document.writeLayerPosition(layer, direct), Result::EditInProgress);
+    QCOMPARE(document.preview(), preview);
+    QCOMPARE(document.cancelLayerTranslation(move), Result::Success);
+    QCOMPARE(document.preview(), before);
+    QCOMPARE(document.undoCount(), 1);
+    QVERIFY(!document.isModified());
+    QCOMPARE(document.updateLayerTranslation(move, offset), Result::StaleOperation);
+    move = document.beginLayerTranslation(layer);
+    QVERIFY(!move.isNull());
+    QCOMPARE(document.updateLayerTranslation(move, offset), Result::Success);
+    const auto moved = document.preview();
+    QCOMPARE(document.commitLayerTranslation(move), Result::Success);
+    QCOMPARE(document.snapshot(), moved);
+    QVERIFY(moved->isCommitted());
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(document.historyAction(2), HistoryAction::TranslateLayer);
+    QCOMPARE(document.markSaved(moved), Result::Success);
+    QCOMPARE(document.writeLayerPosition(layer, direct), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().position, direct);
+    QCOMPARE(document.undoCount(), 2);
+    QVERIFY(!document.isModified());
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().position, initial);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().position, initial + offset);
+    QCOMPARE(before->layers.first().position, initial);
+    QCOMPARE(moved->layers.first().position, initial + offset);
+    QCOMPARE(std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.first())->inputSamples(), samples);
+    QByteArray recovery;
+    try {
+        recovery = document.recoveryData();
+    } catch (const std::exception &error) {
+        QFAIL(qPrintable(QStringLiteral("Recovery of a moved layer failed: ") + QString::fromUtf8(error.what())));
+    }
+    QVERIFY(!recovery.isEmpty());
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
+    QCOMPARE(restored.snapshot()->layers.first().position, initial + offset);
+    QCOMPARE(restored.undo(), Result::Success);
+    QCOMPARE(restored.snapshot()->layers.first().position, initial);
+    QCOMPARE(restored.redo(), Result::Success);
+    QCOMPARE(restored.snapshot()->layers.first().position, initial + offset);
+    QCOMPARE(restored.undo(), Result::Success);
+    const auto pending = restored.beginLayerTranslation(layer);
+    QVERIFY(!pending.isNull());
+    QCOMPARE(restored.updateLayerTranslation(pending, {-5, 3}), Result::Success);
+    OperationDocument pendingCopy({1, 1});
+    QCOMPARE(pendingCopy.restoreRecovery(restored.recoveryData()), Result::Success);
+    QVERIFY(pendingCopy.hasActiveStroke());
+    QCOMPARE(pendingCopy.snapshot()->layers.first().position, initial);
+    QCOMPARE(pendingCopy.preview()->layers.first().position, initial + QPoint(-5, 3));
+    QCOMPARE(pendingCopy.redoCount(), 1);
+    QCOMPARE(pendingCopy.cancelLayerTranslation(pendingCopy.activeOperation()), Result::Success);
+    QCOMPARE(pendingCopy.redo(), Result::Success);
+    QCOMPARE(pendingCopy.snapshot()->layers.first().position, initial + offset);
+    const auto source = document.snapshot();
+    try {
+        QCOMPARE(document.duplicateLayers({layer}, {QStringLiteral("Moved copy")}, layer), Result::Success);
+    } catch (const std::exception &error) {
+        QFAIL(qPrintable(QStringLiteral("Copying a moved layer failed: ") + QString::fromUtf8(error.what())));
+    }
+    const auto &copy = document.snapshot()->layers.last();
+    QCOMPARE(copy.position, initial + offset);
+    QCOMPARE(std::get<PaintSnapshot>(copy.operations.first())->inputSamples(), samples);
+    const auto translated = std::get_if<TranslationSnapshot>(&copy.operations.last());
+    QVERIFY(translated);
+    QCOMPARE((*translated)->offset, offset);
+    QCOMPARE(document.undoCount(), 3);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), source);
+}
+
+void KisGpuOperationDocumentTest::previousPlacedRecoveryPreservesPendingInputAndPosition()
+{
+    OperationDocument document({1, 1});
+    QCOMPARE(document.restoreRecovery(Test::placedLayerRecoveryV24()), Result::Success);
+    QCOMPARE(document.snapshot()->size, QSize(64, 64));
+    QCOMPARE(document.snapshot()->layers.first().position, QPoint(-73, 19));
+    QCOMPARE(document.preview()->layers.first().position, QPoint(-73, 19));
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.redoCount(), 1);
+    QVERIFY(document.hasActiveStroke());
+    QVERIFY(!document.isModified());
+    QCOMPARE(std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.first())->inputSamples(),
+             QList<InputSample>({sample(12, 9, 0.5, 1), sample(14, 10, 1, 2)}));
+    QCOMPARE(document.cancelStroke(document.activeOperation()), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().position, QPoint(-73, 19));
+    QCOMPARE(document.snapshot()->layers.first().opacity, quint8(129));
+}
 
 void KisGpuOperationDocumentTest::layerReorderingIsAtomicAndPreservesSelectionPixelsAndHistory()
 {

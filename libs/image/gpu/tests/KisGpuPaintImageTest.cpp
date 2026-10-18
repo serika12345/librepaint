@@ -21,6 +21,8 @@ class KisGpuPaintImageTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void translationPreviewsPublishPixelsAndCancelWithoutReplacingRedo();
+    void rejectedTranslationKeepsHiddenPixelsHistoryPreviewAndRequests();
     void colorFillKeepsVersionsHistoryAndWholeRequestFailures();
     void clearedLayersKeepFixedVersionsAndRejectWholeRequests();
     void clearHistoryKeepsItsMeaningAfterDirectWritesAndRecovery();
@@ -45,6 +47,99 @@ private Q_SLOTS:
     void damagedPixelSharingRecoveryPreservesTheLiveImage();
     void historyNavigationPublishesOneVersionAndPreservesSavedState();
 };
+
+void KisGpuPaintImageTest::rejectedTranslationKeepsHiddenPixelsHistoryPreviewAndRequests()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    QByteArray pixels(RgbaTile::ByteCount, '\0');
+    pixels.replace((7 * 256 + 255) * 4, 4, QByteArray::fromHex("11223300"));
+    RasterImage input;
+    input.size = {32, 16};
+    input.layers = {{QStringLiteral("Hidden edge pixel"), true, {}, {{{32767, 0}, pixels}}}};
+    Execution execution(device);
+    PaintImage image(execution, input);
+    const auto fixed = image.operations().snapshot();
+    const auto reference = image.retainLayerPixels(1);
+    QSignalSpy changed(&image, &PaintImage::changed);
+    QCOMPARE(image.writeLayerPosition(1, {1, 0}), Result::InvalidInput);
+    QCOMPARE(image.operations().snapshot(), fixed);
+    QCOMPARE(execution.requested(image.handle()), fixed);
+    const auto token = image.beginLayerTranslation(1);
+    QVERIFY(!token.isNull());
+    QCOMPARE(image.updateLayerTranslation(token, {1, 0}), Result::InvalidInput);
+    QCOMPARE(image.operations().preview(), fixed);
+    QCOMPARE(reference->version(), fixed);
+    QCOMPARE(changed.size(), 0);
+    QCOMPARE(image.updateLayerTranslation(token, {-1, 0}), Result::Success);
+    const auto preview = image.operations().preview();
+    QCOMPARE(image.updateLayerTranslation(token, {1, 0}), Result::InvalidInput);
+    QCOMPARE(image.operations().preview(), preview);
+    QCOMPARE(execution.requested(image.handle()), preview);
+    QCOMPARE(image.operations().undoCount(), 0);
+    QCOMPARE(image.cancelLayerTranslation(token), Result::Success);
+    QCOMPARE(reference->version(), fixed);
+    QCOMPARE(image.readRgbaPixels(1, {8388607, 7, 1, 1}, 4).bytes, QByteArray::fromHex("11223300"));
+    Execution bounded(device, 8 * TileRenderer::TileBytes, 1, 15);
+    PaintImage constrained(bounded, input);
+    const auto unchanged = constrained.operations().snapshot();
+    const auto move = constrained.beginLayerTranslation(1);
+    QVERIFY(!move.isNull());
+    QCOMPARE(constrained.updateLayerTranslation(move, {-1, 0}), Result::CapacityExceeded);
+    QCOMPARE(constrained.operations().preview(), unchanged);
+    QCOMPARE(bounded.requested(constrained.handle()), unchanged);
+    QCOMPARE(constrained.cancelLayerTranslation(move), Result::Success);
+    const auto busyMove = image.beginLayerTranslation(1);
+    QVERIFY(!busyMove.isNull());
+    QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+    QCOMPARE(image.updateLayerTranslation(busyMove, {-1, 0}), Result::Busy);
+    QCOMPARE(image.operations().preview(), fixed);
+    QCOMPARE(execution.cancelFrame().code, ExecutionCode::Success);
+    QCOMPARE(image.cancelLayerTranslation(busyMove), Result::Success);
+}
+
+void KisGpuPaintImageTest::translationPreviewsPublishPixelsAndCancelWithoutReplacingRedo()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    PaintImage image(execution, QSize(64, 64));
+    const auto layer = image.operations().activeLayer();
+    const auto reference = image.retainLayerPixels(layer);
+    const auto pixel = QByteArray::fromHex("112233ff");
+    QCOMPARE(image.writeRgbaPixels(layer, {7, 9, 1, 1}, pixel), Result::Success);
+    QCOMPARE(image.replaceRgbaPixels(layer, {7, 9, 1, 1}, QByteArray::fromHex("778899ff")), Result::Success);
+    QCOMPARE(image.undo(), Result::Success);
+    const auto fixed = image.operations().snapshot();
+    QSignalSpy changes(&image, &PaintImage::changed);
+    bool requestedBeforeNotification = false;
+    connect(&image, &PaintImage::changed, this, [&] {
+        requestedBeforeNotification = execution.requested(image.handle()) == image.operations().preview();
+    });
+    const auto token = image.beginLayerTranslation(layer);
+    QVERIFY(!token.isNull());
+    QCOMPARE(image.updateLayerTranslation(token, {-13, 17}), Result::Success);
+    QCOMPARE(changes.size(), 1);
+    QVERIFY(requestedBeforeNotification);
+    QCOMPARE(reference->version(), image.operations().preview());
+    QCOMPARE(execution.readRgbaPixels(image.handle(), reference->version(), {-6, 26, 1, 1}, layer, 4).bytes, pixel);
+    QCOMPARE(image.readRgbaPixels(layer, {7, 9, 1, 1}, 4).bytes, pixel);
+    QCOMPARE(image.operations().snapshot(), fixed);
+    QCOMPARE(image.cancelLayerTranslation(token), Result::Success);
+    QCOMPARE(reference->version(), fixed);
+    QCOMPARE(image.operations().redoCount(), 1);
+    QCOMPARE(image.redo(), Result::Success);
+    QCOMPARE(image.readRgbaPixels(layer, {7, 9, 1, 1}, 4).bytes, QByteArray::fromHex("778899ff"));
+    QCOMPARE(image.updateLayerTranslation(token, {1, 1}), Result::StaleOperation);
+    const auto closing = image.beginLayerTranslation(layer);
+    QVERIFY(!closing.isNull());
+    QCOMPARE(image.updateLayerTranslation(closing, {5, 7}), Result::Success);
+    image.close();
+    QCOMPARE(reference->version(), image.operations().snapshot());
+    QCOMPARE(image.updateLayerTranslation(closing, {9, 11}), Result::Closed);
+}
 
 void KisGpuPaintImageTest::colorFillKeepsVersionsHistoryAndWholeRequestFailures()
 {

@@ -29,6 +29,11 @@ void copyLayerOperations(const Layer &source, Layer &copy, const QUuid &identity
             operation->id = id;
             operation->layer = copy.id;
             copy.operations.append(PaintSnapshot(operation));
+        } else if (const auto translation = std::get_if<TranslationSnapshot>(&sourceOperation)) {
+            auto operation = QSharedPointer<TranslationOperation>::create(**translation);
+            operation->id = id;
+            operation->layer = copy.id;
+            copy.operations.append(TranslationSnapshot(operation));
         } else {
             auto operation = QSharedPointer<TileWriteOperation>::create(*std::get<TileWriteSnapshot>(sourceOperation));
             operation->id = id;
@@ -88,6 +93,10 @@ std::unique_ptr<OperationDocument> OperationDocument::cloneVersion(const Snapsho
                 auto copied = QSharedPointer<PaintOperation>::create(**paint);
                 copied->id.document = result->m_identity;
                 operation = PaintSnapshot(copied);
+            } else if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) {
+                auto copied = QSharedPointer<TranslationOperation>::create(**translation);
+                copied->id.document = result->m_identity;
+                operation = TranslationSnapshot(copied);
             } else {
                 auto copied = QSharedPointer<TileWriteOperation>::create(*std::get<TileWriteSnapshot>(operation));
                 copied->id.document = result->m_identity;
@@ -122,6 +131,7 @@ HistoryAction OperationDocument::historyAction(int index) const
     case LayerProperty::Locked: return HistoryAction::ChangeLock;
     case LayerProperty::PinnedToTimeline: return HistoryAction::ChangeTimelinePin;
     case LayerProperty::ChannelMask: return HistoryAction::ChangeChannelLock;
+    case LayerProperty::Position: return HistoryAction::TranslateLayer;
     case LayerProperty::None: break;
     }
     const auto &before = m_history[index - 1]->layers;
@@ -156,8 +166,9 @@ int OperationDocument::savedHistoryIndex() const
     return -1;
 }
 bool OperationDocument::isModified() const { return snapshot()->m_modifiedRevision != m_savedRevision; }
-bool OperationDocument::hasActiveStroke() const { return !m_edit.isNull(); }
-OperationId OperationDocument::activeOperation() const { return m_edit ? m_edit->id : OperationId{}; }
+bool OperationDocument::hasActiveStroke() const { return m_edit || m_translation; }
+OperationId OperationDocument::activeOperation() const
+{ return m_edit ? m_edit->id : m_translation ? m_translation->id : OperationId{}; }
 
 qsizetype OperationDocument::layerIndex(LayerId layer) const
 {
@@ -173,7 +184,7 @@ qsizetype OperationDocument::layerIndex(LayerId layer) const
 Result OperationDocument::checkMutation() const
 {
     if (m_closed) return Result::Closed;
-    if (m_edit) return Result::EditInProgress;
+    if (hasActiveStroke()) return Result::EditInProgress;
     return Result::Success;
 }
 
@@ -265,6 +276,7 @@ Result OperationDocument::restoreLayerHistoryChange(const LayerHistoryChange &ch
     const auto &value = forward ? change.after : change.before;
     switch (change.property) {
     case LayerProperty::ChannelMask: return writeLayerChannelMask(change.layer, quint8(value.toUInt()));
+    case LayerProperty::Position: return writeLayerPosition(change.layer, value.toPoint());
     case LayerProperty::None: return Result::Success;
     case LayerProperty::Name: return writeLayerName(change.layer, value.toString());
     case LayerProperty::Opacity: return writeLayerOpacity(change.layer, quint8(value.toUInt()));
@@ -957,12 +969,14 @@ Result OperationDocument::setHistoryIndex(int index)
     const auto previousHistory = m_history;
     const auto previousIndex = m_index;
     const auto previousRevision = m_nextRevision;
+    const auto previousOperation = m_nextOperation;
     bool completed = false;
     const auto rollback = qScopeGuard([&] {
         if (completed) return;
         m_history = previousHistory;
         m_index = previousIndex;
         m_nextRevision = previousRevision;
+        m_nextOperation = previousOperation;
     });
     while (m_index != index) {
         const bool forward = index > m_index;
@@ -981,6 +995,7 @@ void OperationDocument::close()
     m_edit.clear();
     m_preview.clear();
     m_history.swap(remaining);
+    m_translation.clear();
     m_layerHistoryChanges = {LayerHistoryChange{}};
     m_index = 0;
     m_closed = true;

@@ -33,6 +33,8 @@ std::optional<Lineage> pixelLineage(const Layer &layer, QRect block, GeometryCac
                 result.append({write.writeGroup ? write.writeGroup : write.id.sequence, 0});
                 break;
             }
+        } else if (const auto translation = std::get_if<TranslationSnapshot>(&*it)) {
+            block.translate(-(*translation)->offset);
         } else {
             const auto &paint = *std::get<PaintSnapshot>(*it);
             auto found = geometry.constFind(&paint);
@@ -121,12 +123,19 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
             const Layer *candidate = nullptr;
             for (const auto &value : version->layers) if (value.id == layer) candidate = &value;
             if (!candidate || candidate->uuid != selected.uuid || candidate->defaultPixel != selected.defaultPixel) continue;
+            const qint64 dx = qint64(candidate->position.x()) - selected.position.x();
+            const qint64 dy = qint64(candidate->position.y()) - selected.position.y();
+            if (qint64(region.left()) + dx < -limit || qint64(region.right()) + dx >= limit ||
+                qint64(region.top()) + dy < -limit || qint64(region.bottom()) + dy >= limit)
+                return Result::InvalidInput;
+            const QPoint placement{int(dx), int(dy)};
             QMap<quint64, QList<QRect>> areas;
             constexpr int blockSize = Detail::PixelHistoryBlockSize;
-            for (int y = Detail::pixelTileIndex(region.top(), blockSize); y <= Detail::pixelTileIndex(region.bottom(), blockSize); ++y) {
-                for (int x = Detail::pixelTileIndex(region.left(), blockSize); x <= Detail::pixelTileIndex(region.right(), blockSize); ++x) {
-                    const auto blockKey = Detail::key(x, y);
-                    const QRect block(x * blockSize, y * blockSize, blockSize, blockSize);
+            const auto blockIndex = [](qint64 value) { return value >= 0 ? value / blockSize : (value - blockSize + 1) / blockSize; };
+            for (qint64 y = blockIndex(qint64(region.top()) - selected.position.y()); y <= blockIndex(qint64(region.bottom()) - selected.position.y()); ++y) {
+                for (qint64 x = blockIndex(qint64(region.left()) - selected.position.x()); x <= blockIndex(qint64(region.right()) - selected.position.x()); ++x) {
+                    const auto blockKey = Detail::key(int(x), int(y));
+                    const QRect block(int(x * blockSize + selected.position.x()), int(y * blockSize + selected.position.y()), blockSize, blockSize);
                     if (candidate->operations != selected.operations) {
                         auto lineage = lineages.constFind(blockKey);
                         if (lineage == lineages.cend()) {
@@ -134,12 +143,14 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
                             if (!selectedLineage) return Result::CapacityExceeded;
                             lineage = lineages.insert(blockKey, *selectedLineage);
                         }
-                        const auto candidateLineage = pixelLineage(*candidate, block, geometry);
+                        const auto candidateLineage = pixelLineage(*candidate, block.translated(placement), geometry);
                         if (!candidateLineage) return Result::CapacityExceeded;
                         if (*candidateLineage != *lineage) continue;
                     }
-                    const auto area = block.intersected(region);
-                    areas[Detail::key(Detail::pixelTileIndex(area.x(), size), Detail::pixelTileIndex(area.y(), size))].append(area);
+                    const auto area = block.intersected(region).translated(placement);
+                    for (int ty = Detail::pixelTileIndex(area.top(), size); ty <= Detail::pixelTileIndex(area.bottom(), size); ++ty)
+                        for (int tx = Detail::pixelTileIndex(area.left(), size); tx <= Detail::pixelTileIndex(area.right(), size); ++tx)
+                            areas[Detail::key(tx, ty)].append(area.intersected(QRect(tx * size, ty * size, size, size)));
                 }
             }
             if (areas.isEmpty()) continue;
@@ -155,7 +166,7 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
                 if (pixels.code != ExecutionCode::Success) return readFailure(pixels.code);
                 for (const auto &area : tile.value()) {
                     for (int y = area.top(); y <= area.bottom(); ++y) {
-                        const qsizetype source = (qsizetype(y - region.y()) * region.width() + area.x() - region.x()) * 4;
+                        const qsizetype source = (qsizetype(y - placement.y() - region.y()) * region.width() + area.x() - placement.x() - region.x()) * 4;
                         const qsizetype destination = ((y - tileRegion.y()) * size + area.x() - tileRegion.x()) * 4;
                         std::memcpy(pixels.bytes.data() + destination, bytes.constData() + source, size_t(area.width()) * 4);
                     }

@@ -12,6 +12,8 @@
 #include <klocalizedstring.h>
 
 #include <QPoint>
+#include <QPointer>
+#include <QSignalBlocker>
 #include <kconfiggroup.h>
 #include <ksharedconfig.h>
 
@@ -27,6 +29,7 @@
 #include "kis_selection.h"
 #include "kis_canvas2.h"
 #include "kis_image.h"
+#include "kis_layer_utils.h"
 
 #include "kis_stroke_strategy.h"
 #include "kis_tool.h"
@@ -55,6 +58,7 @@
 #include <qobjectdefs.h>
 #include <qset.h>
 #include <qsharedpointer.h>
+#include <exception>
 #include <QtGlobal>
 
 
@@ -109,12 +113,18 @@ void KisToolMove::resetCursorStyle()
     if (!isActive()) return;
 
     bool canMove = true;
+    if (image()->gpuImage()) {
+        if (moveToolMode() == MoveSelectedLayer && selectedNodes().size() == 1 && currentNode() && currentNode()->isEditable())
+            KisTool::resetCursorStyle();
+        else useCursor(Qt::ForbiddenCursor);
+        return;
+    }
 
-    if (m_strokeId && m_currentlyUsingSelection) {
+    if (hasStroke() && m_currentlyUsingSelection) {
         /// noop; whatever the cursor position, we always show move
         /// cursor, because we don't use 'layer under cursor' mode
         /// for moving selections
-    } else if (m_strokeId && !m_currentlyUsingSelection) {
+    } else if (hasStroke() && !m_currentlyUsingSelection) {
         /// we cannot pick layer's pixel data while the stroke is running,
         /// because it may run in lodN mode; therefore, we delegate this
         /// work to the stroke itself
@@ -179,16 +189,45 @@ bool KisToolMove::startStrokeImpl(MoveToolMode mode, const QPoint *pos)
             !selection->selectedRect().isEmpty() &&
             !selection->selectedExactRect().isEmpty();
 
+    if (const auto owner = image->gpuImage()) {
+        if (mode != MoveSelectedLayer || selection || selectedNodes().size() != 1 ||
+            !paintLayer || selectedNodes().first().data() != paintLayer.data() || !paintLayer->isEditable()) {
+            Q_EMIT statusTextChanged(i18n("This document supports moving one selected paint layer."));
+            return false;
+        }
+        if (!m_gpuTranslation.isNull()) {
+            if (pos && !image->bounds().contains(*pos)) {
+                endStroke();
+                return false;
+            }
+            return true;
+        }
+        LibrePaint::Image::Gpu::LayerId layerId = 0;
+        for (const auto &layer : owner->operations().snapshot()->layers)
+            if (layer.uuid == paintLayer->uuid()) layerId = layer.id;
+        const auto token = owner->beginLayerTranslation(layerId);
+        if (token.isNull()) return false;
+        m_gpuImage = owner;
+        m_gpuTranslation = token;
+        m_currentlyProcessingNodes = {paintLayer};
+        m_currentlyUsingSelection = false;
+        m_currentMode = mode;
+        m_accumulatedOffset = QPoint();
+        m_changesTracker.reset();
+        commitChanges();
+        return true;
+    }
+
     if (pos) {
         // finish stroke by clicking outside image bounds
-        if (m_strokeId && !image->bounds().contains(*pos)) {
+        if (hasStroke() && !image->bounds().contains(*pos)) {
             endStroke();
             return false;
         }
 
         // restart stroke when the mode has changed or the user tried to
         // pick another layer in "layer under cursor" mode.
-        if (m_strokeId &&
+        if (hasStroke() &&
                 (m_currentMode != mode ||
                  m_currentlyUsingSelection != canUseSelectionMode ||
                  (!m_currentlyUsingSelection &&
@@ -199,7 +238,7 @@ bool KisToolMove::startStrokeImpl(MoveToolMode mode, const QPoint *pos)
         }
     }
 
-    if (m_strokeId) return true;
+    if (hasStroke()) return true;
 
 
     if (canUseSelectionMode && !nodeEditable()) {
@@ -317,7 +356,7 @@ void KisToolMove::notifyGuiAfterMove(bool showFloatingMessage)
 
 bool KisToolMove::tryEndPreviousStroke(const KisNodeList &nodes)
 {
-    if (!m_strokeId) return false;
+    if (!hasStroke()) return false;
 
     bool strokeEnded = false;
 
@@ -331,7 +370,7 @@ bool KisToolMove::tryEndPreviousStroke(const KisNodeList &nodes)
 
 void KisToolMove::commitChanges()
 {
-    KIS_SAFE_ASSERT_RECOVER_RETURN(m_strokeId);
+    KIS_SAFE_ASSERT_RECOVER_RETURN(hasStroke());
 
     QSharedPointer<KisToolMoveState> newState(new KisToolMoveState(m_accumulatedOffset));
     KisToolMoveState *lastState = dynamic_cast<KisToolMoveState*>(m_changesTracker.lastState().data());
@@ -384,9 +423,8 @@ void KisToolMove::moveDiscrete(MoveDirection direction, bool big)
     if (!image()) return;
     if (!currentNode()->isEditable()) return; // Don't move invisible nodes
 
-    if (startStrokeImpl(MoveSelectedLayer, nullptr)) {
-        setMode(KisTool::PAINT_MODE);
-    }
+    if (!startStrokeImpl(MoveSelectedLayer, nullptr)) return;
+    setMode(KisTool::PAINT_MODE);
 
     // Larger movement if "shift" key is pressed.
     qreal scale = big ? m_optionsWidget->moveScale() : 1.0;
@@ -398,8 +436,13 @@ void KisToolMove::moveDiscrete(MoveDirection direction, bool big)
         direction == Left ? QPoint(-moveStep,  0) :
         QPoint( moveStep,  0) ;
 
-    m_accumulatedOffset += offset;
-    image()->addJob(m_strokeId, new MoveStrokeStrategy::Data(m_accumulatedOffset));
+    const auto nextOffset = m_accumulatedOffset + offset;
+    QPointer<KisToolMove> guard(this);
+    if (!updateOffset(nextOffset)) {
+        if (guard) setMode(KisTool::HOVER_MODE);
+        return;
+    }
+    m_accumulatedOffset = nextOffset;
 
     notifyGuiAfterMove();
     commitChanges();
@@ -451,7 +494,7 @@ void KisToolMove::paint(QPainter& gc, const KoViewConverter &converter)
 {
     Q_UNUSED(converter);
 
-    if (m_strokeId && !m_handlesRect.isEmpty() && !m_currentlyUsingSelection) {
+    if (hasStroke() && !m_handlesRect.isEmpty() && !m_currentlyUsingSelection) {
         QPainterPath handles;
         handles.addRect(m_handlesRect.translated(currentOffset()));
 
@@ -484,21 +527,33 @@ void KisToolMove::requestStrokeCancellation()
 
 void KisToolMove::requestUndoDuringStroke()
 {
-    if (!m_strokeId) return;
+    if (!hasStroke()) return;
 
     if (!m_changesTracker.canUndo()) {
         cancelStroke();
     } else {
+        const auto previousOffset = m_accumulatedOffset;
+        QPointer<KisToolMove> guard(this);
         m_changesTracker.requestUndo();
+        if (guard && m_accumulatedOffset == previousOffset) {
+            const QSignalBlocker blocker(&m_changesTracker);
+            m_changesTracker.requestRedo();
+        }
     }
 }
 
 void KisToolMove::requestRedoDuringStroke()
 {
-    if (!m_strokeId) return;
+    if (!hasStroke()) return;
 
     if (m_changesTracker.canRedo()) {
+        const auto previousOffset = m_accumulatedOffset;
+        QPointer<KisToolMove> guard(this);
         m_changesTracker.requestRedo();
+        if (guard && m_accumulatedOffset == previousOffset) {
+            const QSignalBlocker blocker(&m_changesTracker);
+            m_changesTracker.requestUndo();
+        }
     }
 }
 
@@ -553,7 +608,7 @@ void KisToolMove::mouseMoveEvent(KoPointerEvent *event)
     KisTool::mouseMoveEvent(event);
 
     if (moveToolMode() != MoveSelectedLayer ||
-            (m_strokeId && m_currentMode != MoveSelectedLayer)) {
+            (hasStroke() && m_currentMode != MoveSelectedLayer)) {
 
         m_updateCursorCompressor.start();
     }
@@ -565,7 +620,10 @@ void KisToolMove::startAction(KoPointerEvent *event, MoveToolMode mode)
     m_dragStart = pos;
     m_dragPos = pos;
 
-    if (startStrokeImpl(mode, &pos)) {
+    QPointer<KisToolMove> guard(this);
+    const bool started = startStrokeImpl(mode, &pos);
+    if (!guard) return;
+    if (started) {
         setMode(KisTool::PAINT_MODE);
 
         if (m_currentlyUsingSelection) {
@@ -586,13 +644,12 @@ void KisToolMove::continueAction(KoPointerEvent *event)
 {
     CHECK_MODE_SANITY_OR_RETURN(KisTool::PAINT_MODE);
 
-    if (!m_strokeId) return;
+    if (!hasStroke()) return;
 
     QPoint pos = convertToPixelCoordAndSnap(event).toPoint();
     pos = applyModifiers(event->modifiers(), pos);
+    if (!drag(pos)) return;
     m_dragPos = pos;
-
-    drag(pos);
     notifyGuiAfterMove();
 
     qobject_cast<KisCanvas2*>(canvas())->updateCanvas();
@@ -602,11 +659,11 @@ void KisToolMove::endAction(KoPointerEvent *event)
 {
     CHECK_MODE_SANITY_OR_RETURN(KisTool::PAINT_MODE);
     setMode(KisTool::HOVER_MODE);
-    if (!m_strokeId) return;
+    if (!hasStroke()) return;
 
     QPoint pos = convertToPixelCoordAndSnap(event).toPoint();
     pos = applyModifiers(event->modifiers(), pos);
-    drag(pos);
+    if (!drag(pos)) return;
 
     m_accumulatedOffset += pos - m_dragStart;
     m_dragStart = QPoint();
@@ -624,19 +681,58 @@ void KisToolMove::endAction(KoPointerEvent *event)
     qobject_cast<KisCanvas2*>(canvas())->updateCanvas();
 }
 
-void KisToolMove::drag(const QPoint& newPos)
+bool KisToolMove::hasStroke() const
 {
-    KisImageSP image = currentImage();
+    return m_strokeId || !m_gpuTranslation.isNull();
+}
 
-    QPoint offset = m_accumulatedOffset + newPos - m_dragStart;
+bool KisToolMove::updateOffset(QPoint offset)
+{
+    if (!m_gpuTranslation.isNull()) {
+        const auto owner = m_gpuImage;
+        const auto token = m_gpuTranslation;
+        QPointer<KisToolMove> guard(this);
+        const auto result = owner->updateLayerTranslation(token, offset);
+        if (!guard || m_gpuImage != owner || m_gpuTranslation != token) return false;
+        if (result != LibrePaint::Image::Gpu::Result::Success) {
+            Q_EMIT statusTextChanged(i18n("The layer could not be moved. Its previous position is preserved."));
+            return false;
+        }
+        return true;
+    }
+    if (!m_strokeId) return false;
+    image()->addJob(m_strokeId, new MoveStrokeStrategy::Data(offset));
+    return true;
+}
 
-    image->addJob(m_strokeId,
-                  new MoveStrokeStrategy::Data(offset));
+bool KisToolMove::drag(const QPoint& newPos)
+{
+    return updateOffset(m_accumulatedOffset + newPos - m_dragStart);
 }
 
 void KisToolMove::endStroke()
 {
-    if (!m_strokeId) return;
+    if (!hasStroke()) return;
+    if (!m_gpuTranslation.isNull()) {
+        const auto owner = m_gpuImage;
+        const auto token = m_gpuTranslation;
+        m_gpuTranslation = {};
+        m_gpuImage.clear();
+        m_changesTracker.reset();
+        m_currentlyProcessingNodes.clear();
+        m_currentlyUsingSelection = false;
+        m_currentMode = MoveSelectedLayer;
+        m_accumulatedOffset = QPoint();
+        m_dragStart = QPoint();
+        m_dragPos = QPoint();
+        QPointer<KisToolMove> guard(this);
+        owner->commitLayerTranslation(token);
+        if (!guard) return;
+        requestHandlesRectUpdate();
+        qobject_cast<KisCanvas2*>(canvas())->updateCanvas();
+        return;
+    }
+
 
     if (m_asyncUpdateHelper.isActive()) {
         m_asyncUpdateHelper.endUpdateStream();
@@ -655,14 +751,15 @@ void KisToolMove::endStroke()
 
 void KisToolMove::slotTrackerChangedConfig(KisToolChangesTrackerDataSP state)
 {
-    KIS_SAFE_ASSERT_RECOVER_RETURN(m_strokeId);
+    KIS_SAFE_ASSERT_RECOVER_RETURN(hasStroke());
 
     KisToolMoveState *newState = dynamic_cast<KisToolMoveState*>(state.data());
     KIS_SAFE_ASSERT_RECOVER_RETURN(newState);
 
     if (mode() == KisTool::PAINT_MODE) return;  // Don't interact with dragging
-    m_accumulatedOffset = newState->accumulatedOffset;
-    image()->addJob(m_strokeId, new MoveStrokeStrategy::Data(m_accumulatedOffset));
+    const auto nextOffset = newState->accumulatedOffset;
+    if (!updateOffset(nextOffset)) return;
+    m_accumulatedOffset = nextOffset;
     notifyGuiAfterMove();
 }
 
@@ -708,7 +805,27 @@ void KisToolMove::slotMoveDiscreteDownMore()
 
 void KisToolMove::cancelStroke()
 {
-    if (!m_strokeId) return;
+    if (!hasStroke()) return;
+    if (!m_gpuTranslation.isNull()) {
+        const auto owner = m_gpuImage;
+        const auto token = m_gpuTranslation;
+        m_gpuTranslation = {};
+        m_gpuImage.clear();
+        m_changesTracker.reset();
+        m_currentlyProcessingNodes.clear();
+        m_currentlyUsingSelection = false;
+        m_currentMode = MoveSelectedLayer;
+        m_accumulatedOffset = QPoint();
+        m_dragStart = QPoint();
+        m_dragPos = QPoint();
+        QPointer<KisToolMove> guard(this);
+        owner->cancelLayerTranslation(token);
+        if (!guard) return;
+        requestHandlesRectUpdate();
+        qobject_cast<KisCanvas2*>(canvas())->updateCanvas();
+        return;
+    }
+
 
     if (m_asyncUpdateHelper.isActive()) {
         m_asyncUpdateHelper.cancelUpdateStream();
@@ -768,13 +885,17 @@ void KisToolMove::moveBySpinX(int newX)
     // but in this case no change is expected
     int handlesRectX = m_handlesRect.x();
 
-    if (startStrokeImpl(MoveSelectedLayer, nullptr)) {
-        setMode(KisTool::PAINT_MODE);
+    if (!startStrokeImpl(MoveSelectedLayer, nullptr)) return;
+    setMode(KisTool::PAINT_MODE);
+
+    auto nextOffset = m_accumulatedOffset;
+    nextOffset.rx() = newX - handlesRectX;
+    QPointer<KisToolMove> guard(this);
+    if (!updateOffset(nextOffset)) {
+        if (guard) setMode(KisTool::HOVER_MODE);
+        return;
     }
-
-    m_accumulatedOffset.rx() =  newX - handlesRectX;
-
-    image()->addJob(m_strokeId, new MoveStrokeStrategy::Data(m_accumulatedOffset));
+    m_accumulatedOffset = nextOffset;
 
     notifyGuiAfterMove(false);
     setMode(KisTool::HOVER_MODE);
@@ -792,13 +913,17 @@ void KisToolMove::moveBySpinY(int newY)
     // but in this case no change is expected
     int handlesRectY = m_handlesRect.y();
 
-    if (startStrokeImpl(MoveSelectedLayer, nullptr)) {
-        setMode(KisTool::PAINT_MODE);
+    if (!startStrokeImpl(MoveSelectedLayer, nullptr)) return;
+    setMode(KisTool::PAINT_MODE);
+
+    auto nextOffset = m_accumulatedOffset;
+    nextOffset.ry() = newY - handlesRectY;
+    QPointer<KisToolMove> guard(this);
+    if (!updateOffset(nextOffset)) {
+        if (guard) setMode(KisTool::HOVER_MODE);
+        return;
     }
-
-    m_accumulatedOffset.ry() =  newY - handlesRectY;
-
-    image()->addJob(m_strokeId, new MoveStrokeStrategy::Data(m_accumulatedOffset));
+    m_accumulatedOffset = nextOffset;
 
     notifyGuiAfterMove(false);
     setMode(KisTool::HOVER_MODE);
@@ -809,6 +934,23 @@ void KisToolMove::requestHandlesRectUpdate()
     KisResourcesSnapshotSP resources =
         new KisResourcesSnapshot(image(), currentNode(), canvas()->resourceManager()->canvasResourcesInterface());
     KisSelectionSP selection = resources->activeSelection();
+
+    if (image()->gpuImage()) {
+        if (selection) {
+            Q_EMIT statusTextChanged(i18n("Moving a pixel selection is not yet supported for this document."));
+            return;
+        }
+        QRect handlesRect;
+        try {
+            for (const auto &node : this->selectedNodes())
+                handlesRect |= KisLayerUtils::recursiveTightNodeVisibleBounds(node);
+        } catch (const std::exception &) {
+            Q_EMIT statusTextChanged(i18n("The layer bounds could not be calculated."));
+            return;
+        }
+        slotHandlesRectCalculated(handlesRect);
+        return;
+    }
 
     KisMoveBoundsCalculationJob *job = new KisMoveBoundsCalculationJob(this->selectedNodes(),
                                                                        selection, this);
@@ -824,7 +966,7 @@ void KisToolMove::requestHandlesRectUpdate()
 
 void KisToolMove::slotNodeChanged(const KisNodeList &nodes)
 {
-    if (m_strokeId && !tryEndPreviousStroke(nodes)) {
+    if (hasStroke() && !tryEndPreviousStroke(nodes)) {
         return;
     }
     requestHandlesRectUpdate();
@@ -832,7 +974,7 @@ void KisToolMove::slotNodeChanged(const KisNodeList &nodes)
 
 void KisToolMove::slotSelectionChanged()
 {
-    if (m_strokeId) return;
+    if (hasStroke()) return;
     requestHandlesRectUpdate();
 }
 

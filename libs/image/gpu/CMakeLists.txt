@@ -1,6 +1,7 @@
 find_package(ZLIB 1.2.9 REQUIRED)
 kis_add_library(kritaimagegpuoperations SHARED
     KisGpuOperationDocument.cpp
+    KisGpuLayerTranslation.cpp
     KisGpuOperationRecovery.cpp
     KisGpuRasterPixels.cpp
     KisGpuRasterOperations.cpp
@@ -30,6 +31,7 @@ add_library(kritaimagegputiles OBJECT
     KisGpuPaintJob.cpp
     KisGpuTileRenderer.cpp
     KisGpuTileProjection.cpp
+    KisGpuTileTranslation.cpp
 )
 target_compile_definitions(kritaimagegputiles PRIVATE kritagpuimage_EXPORTS)
 target_link_libraries(kritaimagegputiles PUBLIC kritaimagegpuoperations Qt6::Gui)
@@ -37,7 +39,7 @@ target_link_libraries(kritaimagegputiles PRIVATE WGPUNative::WGPUNative)
 set_target_properties(kritaimagegputiles PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 qt6_add_resources(kritaimagegputiles krita_gpu_tiles
     PREFIX "/librepaint/gpu"
-    FILES shaders/rgba.wgsl shaders/paint.wgsl shaders/over.wgsl shaders/transparency.wgsl shaders/bounds.wgsl
+    FILES shaders/rgba.wgsl shaders/paint.wgsl shaders/over.wgsl shaders/transparency.wgsl shaders/bounds.wgsl shaders/translate.wgsl
 )
 
 add_library(kritaimagegpupaint OBJECT KisGpuPaintImage.cpp KisGpuPaintImage.h KisGpuExternalPixels.cpp)

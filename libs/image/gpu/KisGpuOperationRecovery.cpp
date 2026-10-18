@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 24;
+constexpr quint16 FormatVersion = 25;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -82,6 +82,7 @@ QByteArray OperationDocument::recoveryData() const
         }
     }
     if (m_edit) registerOperation(m_edit);
+    if (m_translation) registerOperation(m_translation);
     if (quint64(operations.size()) >= NoOperation || quint64(tiles.size()) >= NoOperation) return {};
     QByteArray bytes;
     QDataStream stream(&bytes, QIODevice::WriteOnly);
@@ -102,7 +103,8 @@ QByteArray OperationDocument::recoveryData() const
     if (!withinLimit()) return {};
     for (const auto &value : operations) {
         const auto paint = std::get_if<PaintSnapshot>(&value);
-        stream << quint8(paint ? 0 : 1) << operationId(value).sequence << operationVersion(value) << operationLayer(value);
+        stream << quint8(paint ? 0 : std::holds_alternative<TileWriteSnapshot>(value) ? 1 : 2)
+               << operationId(value).sequence << operationVersion(value) << operationLayer(value);
         if (paint) {
             const auto &operation = **paint;
             for (const auto component : operation.brush.rgba) stream << component;
@@ -145,8 +147,8 @@ QByteArray OperationDocument::recoveryData() const
                 if (block->size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 64) return {};
                 for (const auto &sample : *block) writeSample(stream, sample);
             }
-        } else {
-            const auto &write = *std::get<TileWriteSnapshot>(value);
+        } else if (const auto tileWrite = std::get_if<TileWriteSnapshot>(&value)) {
+            const auto &write = **tileWrite;
             stream << quint32(write.tiles.size());
             if (!withinLimit() || write.tiles.size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 4) return {};
             for (const auto &tile : write.tiles) stream << tileIndices.value(tile.data());
@@ -154,6 +156,9 @@ QByteArray OperationDocument::recoveryData() const
             if (!withinLimit() || write.writtenAreas.size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 16) return {};
             for (const auto &area : write.writtenAreas)
                 stream << qint32(area.x()) << qint32(area.y()) << qint32(area.width()) << qint32(area.height());
+        } else {
+            const auto &translation = *std::get<TranslationSnapshot>(value);
+            stream << qint32(translation.offset.x()) << qint32(translation.offset.y());
         }
         if (!withinLimit()) return {};
     }
@@ -196,6 +201,9 @@ QByteArray OperationDocument::recoveryData() const
                     stream << quint32(name.size());
                     stream.writeRawData(name.constData(), int(name.size()));
                 }
+            } else if (change.property == LayerProperty::Position) {
+                for (const auto &value : {change.before, change.after})
+                    stream << qint32(value.toPoint().x()) << qint32(value.toPoint().y());
             } else if (change.property == LayerProperty::Opacity || change.property == LayerProperty::ChannelMask) {
                 stream << quint8(change.before.toUInt()) << quint8(change.after.toUInt());
             } else {
@@ -204,7 +212,7 @@ QByteArray OperationDocument::recoveryData() const
         }
         if (!withinLimit()) return {};
     }
-    stream << (m_edit ? indices.value(m_edit.data()) : NoOperation)
+    stream << (m_edit ? indices.value(m_edit.data()) : m_translation ? indices.value(m_translation.data()) : NoOperation)
            << (m_preview ? m_preview->revision() : quint64(0));
     if (!withinLimit()) return {};
     bytes.append(digest(bytes, bytes.size()));
@@ -257,9 +265,23 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         quint64 sequence = 0, version = 0;
         LayerId layer = 0;
         stream >> kind >> sequence >> version >> layer;
-        if (kind > 1 || sequence == 0 || sequence > nextOperation || operationIndices.contains(sequence) ||
+        if (kind > (format >= 25 ? 2 : 1) || sequence == 0 || sequence > nextOperation || operationIndices.contains(sequence) ||
             layer == 0 || layer > nextLayer || version > nextRevision) return Result::InvalidRecovery;
         operationIndices.insert(sequence, quint32(operations.size()));
+        if (kind == 2) {
+            auto operation = QSharedPointer<TranslationOperation>::create();
+            operation->id = {identity, sequence};
+            operation->version = version;
+            operation->layer = layer;
+            qint32 x = 0, y = 0;
+            stream >> x >> y;
+            constexpr qint64 limit = 2 * RgbaTile::CoordinateLimit;
+            if (stream.status() != QDataStream::Ok || std::abs(qint64(x)) > limit || std::abs(qint64(y)) > limit ||
+                (version == 0 && (x || y))) return Result::InvalidRecovery;
+            operation->offset = {x, y};
+            operations.append(TranslationSnapshot(operation));
+            continue;
+        }
         if (kind == 1) {
             auto operation = QSharedPointer<TileWriteOperation>::create();
             operation->id = {identity, sequence};
@@ -488,7 +510,9 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
                 const auto samples = operationSamples(operation);
                 const auto pixels = operationRasterBytes(operation);
                 const auto paint = std::get_if<PaintSnapshot>(&operation);
+                const auto translation = std::get_if<TranslationSnapshot>(&operation);
                 if ((paint && (*paint)->brush.basicSmoothing && !(*paint)->smoothingFinished) ||
+                    (translation && (*translation)->version == 0) ||
                     operationLayer(operation) != layer.id || (paint && samples == 0 && (*paint)->shape.kind != ShapeKind::Path) ||
                     operationId(operation).sequence <= previousOperation) return Result::InvalidRecovery;
                 if (samples > m_limits.samplesPerDocument - state->sampleCount || pixels > m_limits.rasterBytes - state->rasterBytes) return Result::CapacityExceeded;
@@ -532,7 +556,8 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
             if (i == 0 || property != quint8(LayerProperty::None) || state->layers.size() <= history.last()->layers.size())
                 return Result::InvalidRecovery;
         }
-        if (property > quint8(format < 13 ? LayerProperty::PinnedToTimeline : LayerProperty::ChannelMask)) return Result::InvalidRecovery;
+        if (property > quint8(format >= 25 ? LayerProperty::Position :
+                              format < 13 ? LayerProperty::PinnedToTimeline : LayerProperty::ChannelMask)) return Result::InvalidRecovery;
         change.property = LayerProperty(property);
         if (change.property != LayerProperty::None) {
             stream >> change.layer;
@@ -550,6 +575,12 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
                     const auto decoded = QString::fromUtf8(name);
                     if (decoded.toUtf8() != name || !validLayerName(decoded)) return Result::InvalidRecovery;
                     *value = decoded;
+                }
+            } else if (change.property == LayerProperty::Position) {
+                for (auto *value : {&change.before, &change.after}) {
+                    qint32 x = 0, y = 0;
+                    stream >> x >> y;
+                    *value = QPoint(x, y);
                 }
             } else {
                 quint8 before = 0, after = 0;
@@ -575,30 +606,62 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
     stream >> pendingIndex >> previewRevision;
     if (stream.status() != QDataStream::Ok || !stream.atEnd()) return Result::InvalidRecovery;
     PaintSnapshot edit;
+    TranslationSnapshot translation;
     Snapshot preview;
     if (pendingIndex != NoOperation) {
         if (pendingIndex >= operationCount || referencedOperations.contains(pendingIndex)) return Result::InvalidRecovery;
         const auto paint = std::get_if<PaintSnapshot>(&operations[pendingIndex]);
-        if (!paint) return Result::InvalidRecovery;
-        edit = *paint;
-        if (edit->smoothingFinished) return Result::InvalidRecovery;
-        const auto &base = history[currentIndex];
-        qsizetype index = -1;
-        for (qsizetype i = 0; i < base->layers.size(); ++i) {
-            if (base->layers[i].id == edit->layer) index = i;
-        }
-        if (index < 0 || !base->layers[index].visible || base->layers[index].userLocked ||
-            edit->sampleCount > m_limits.samplesPerDocument - base->sampleCount) return Result::InvalidRecovery;
-        if (edit->sampleCount > 0 || edit->shape.kind == ShapeKind::Path) {
-            if (previewRevision <= previousRevision || previewRevision > nextRevision || previewRevision == savedRevision) return Result::InvalidRecovery;
-            QSharedPointer<DocumentVersion> value(new DocumentVersion(*base));
-            value->m_committed = false;
-            value->m_pendingOperation = edit->id;
-            value->m_modifiedRevision = value->m_revision = previewRevision;
-            value->layers[index].operations.append(edit);
-            value->sampleCount += edit->sampleCount;
-            preview = value;
-        } else if (previewRevision != 0 || edit->shape.kind != ShapeKind::Freehand) return Result::InvalidRecovery;
+        if (paint) {
+            edit = *paint;
+            if (edit->smoothingFinished) return Result::InvalidRecovery;
+            const auto &base = history[currentIndex];
+            qsizetype index = -1;
+            for (qsizetype i = 0; i < base->layers.size(); ++i) {
+                if (base->layers[i].id == edit->layer) index = i;
+            }
+            if (index < 0 || !base->layers[index].visible || base->layers[index].userLocked ||
+                edit->sampleCount > m_limits.samplesPerDocument - base->sampleCount) return Result::InvalidRecovery;
+            if (edit->sampleCount > 0 || edit->shape.kind == ShapeKind::Path) {
+                if (previewRevision <= previousRevision || previewRevision > nextRevision || previewRevision == savedRevision) return Result::InvalidRecovery;
+                QSharedPointer<DocumentVersion> value(new DocumentVersion(*base));
+                value->m_committed = false;
+                value->m_pendingOperation = edit->id;
+                value->m_modifiedRevision = value->m_revision = previewRevision;
+                value->layers[index].operations.append(edit);
+                value->sampleCount += edit->sampleCount;
+                preview = value;
+            } else if (previewRevision != 0 || edit->shape.kind != ShapeKind::Freehand) return Result::InvalidRecovery;
+        } else if (const auto value = std::get_if<TranslationSnapshot>(&operations[pendingIndex])) {
+            translation = *value;
+            const auto &base = history[currentIndex];
+            qsizetype index = -1;
+            for (qsizetype i = 0; i < base->layers.size(); ++i)
+                if (base->layers[i].id == translation->layer) index = i;
+            if (index < 0 || !base->layers[index].visible || base->layers[index].userLocked) return Result::InvalidRecovery;
+            if (previewRevision) {
+                if (translation->version == 0 || previewRevision <= previousRevision || previewRevision > nextRevision ||
+                    previewRevision == savedRevision) return Result::InvalidRecovery;
+                auto value = QSharedPointer<DocumentVersion>(new DocumentVersion(*base));
+                auto &layer = value->layers[index];
+                const auto previous = layer.operations.isEmpty() ? nullptr :
+                    std::get_if<TranslationSnapshot>(&layer.operations.last());
+                const QPoint prior = previous ? (*previous)->offset : QPoint();
+                const qint64 dx = qint64(translation->offset.x()) - prior.x();
+                const qint64 dy = qint64(translation->offset.y()) - prior.y();
+                const qint64 x = qint64(layer.position.x()) + dx, y = qint64(layer.position.y()) + dy;
+                constexpr qint64 limit = 2 * RgbaTile::CoordinateLimit;
+                if (std::abs(dx) > limit || std::abs(dy) > limit ||
+                    x < std::numeric_limits<qint32>::min() || x > std::numeric_limits<qint32>::max() ||
+                    y < std::numeric_limits<qint32>::min() || y > std::numeric_limits<qint32>::max()) return Result::InvalidRecovery;
+                if (previous) layer.operations.removeLast();
+                layer.operations.append(translation);
+                layer.position = {int(x), int(y)};
+                value->m_committed = false;
+                value->m_pendingOperation = translation->id;
+                value->m_modifiedRevision = value->m_revision = previewRevision;
+                preview = value;
+            } else if (translation->version != 0) return Result::InvalidRecovery;
+        } else return Result::InvalidRecovery;
         referencedOperations.insert(pendingIndex);
     } else if (previewRevision != 0) return Result::InvalidRecovery;
     if (referencedOperations.size() != operations.size()) return Result::InvalidRecovery;
@@ -611,6 +674,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
     m_nextLayer = nextLayer;
     m_savedRevision = savedRevision;
     m_edit = edit;
+    m_translation = translation;
     m_preview = preview;
     return Result::Success;
 }

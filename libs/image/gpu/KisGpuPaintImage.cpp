@@ -98,7 +98,7 @@ Result PaintImage::writeLayerPinnedToTimeline(LayerId layer, bool pinned)
 LayerPixelReferenceSP PaintImage::retainLayerPixels(LayerId layer)
 {
     if (!onThread() || !m_d->handle) return {};
-    const auto version = m_d->document->snapshot();
+    const auto version = layerPixelVersion();
     const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(),
         [layer](const auto &value) { return value.id == layer; });
     if (found == version->layers.cend()) return {};
@@ -111,7 +111,7 @@ LayerPixelReferenceSP PaintImage::retainLayerPixels(LayerId layer)
 }
 void PaintImage::refreshLayerPixelReferences()
 {
-    const auto version = m_d->document->snapshot();
+    const auto version = layerPixelVersion();
     for (auto it = m_d->layerPixels.begin(); it != m_d->layerPixels.end();) {
         const auto reference = it.value().toStrongRef();
         if (!reference) {
@@ -126,6 +126,18 @@ void PaintImage::refreshLayerPixelReferences()
         }
         ++it;
     }
+}
+Snapshot PaintImage::layerPixelVersion() const
+{
+    const auto preview = m_d->document->preview();
+    if (!preview->pendingOperation().isNull()) {
+        for (const auto &layer : preview->layers) {
+            if (layer.operations.isEmpty()) continue;
+            const auto translation = std::get_if<TranslationSnapshot>(&layer.operations.last());
+            if (translation && (*translation)->id == preview->pendingOperation()) return preview;
+        }
+    }
+    return m_d->document->snapshot();
 }
 void PaintImage::requestCurrentVersion()
 {
@@ -166,6 +178,71 @@ Result PaintImage::commitStroke(OperationId id)
 { return onThread() ? publish(m_d->document->commitStroke(id)) : Result::InvalidInput; }
 Result PaintImage::cancelStroke(OperationId id)
 { return onThread() ? publish(m_d->document->cancelStroke(id)) : Result::InvalidInput; }
+OperationId PaintImage::beginLayerTranslation(LayerId layer)
+{ return onThread() ? m_d->document->beginLayerTranslation(layer) : OperationId{}; }
+Result PaintImage::updateLayerTranslation(OperationId id, QPoint offset)
+{
+    if (!onThread()) return Result::InvalidInput;
+    const auto &document = *m_d->document;
+    if (document.m_closed) return Result::Closed;
+    if (!document.m_translation || document.m_translation->id != id) return Result::StaleOperation;
+    const auto admitted = checkLayerTranslation(document.snapshot(), document.m_translation->layer, offset);
+    return admitted == Result::Success ? publish(m_d->document->updateLayerTranslation(id, offset)) : admitted;
+}
+Result PaintImage::commitLayerTranslation(OperationId id)
+{ return onThread() ? publish(m_d->document->commitLayerTranslation(id)) : Result::InvalidInput; }
+Result PaintImage::cancelLayerTranslation(OperationId id)
+{ return onThread() ? publish(m_d->document->cancelLayerTranslation(id)) : Result::InvalidInput; }
+Result PaintImage::writeLayerPosition(LayerId layer, QPoint position)
+{ return applyLayerPosition(layer, position, nullptr); }
+
+Result PaintImage::writeLayerPosition(const LayerPixelReferenceSP &pixels, QPoint position)
+{
+    if (!onThread() || !pixels || m_d->layerPixels.value(pixels->m_uuid).toStrongRef() != pixels)
+        return Result::InvalidInput;
+    return applyLayerPosition(pixels->m_layer, position, &pixels->m_version);
+}
+
+Result PaintImage::applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion)
+{
+    if (!onThread()) return Result::InvalidInput;
+    const auto &document = *m_d->document;
+    const auto status = document.checkMutation();
+    if (status != Result::Success) return status;
+    const auto source = retainedVersion ? *retainedVersion : document.snapshot();
+    if (!source || source->documentId() != document.snapshot()->documentId()) return Result::StaleVersion;
+    bool available = false;
+    for (const auto &value : source->layers) if (value.id == layer) available = true;
+    if (!available) return Result::LayerUnavailable;
+    for (const auto &version : document.layerPositionVersions(source, layer)) {
+        for (const auto &value : version->layers) {
+            if (value.id != layer) continue;
+            const qint64 x = qint64(position.x()) - value.position.x();
+            const qint64 y = qint64(position.y()) - value.position.y();
+            constexpr qint64 limit = 2 * RgbaTile::CoordinateLimit;
+            if (x < -limit || x > limit || y < -limit || y > limit) return Result::InvalidInput;
+            const auto admitted = checkLayerTranslation(version, layer, QPoint(int(x), int(y)));
+            if (admitted != Result::Success) return admitted;
+        }
+    }
+    return requestAfterWrite(m_d->document->applyLayerPosition(layer, position, retainedVersion));
+}
+
+Result PaintImage::checkLayerTranslation(const Snapshot &version, LayerId layer, QPoint offset) const
+{
+    if (offset.isNull()) return Result::Success;
+    constexpr qint64 limit = RgbaTile::CoordinateLimit;
+    if (qAbs(qint64(offset.x())) > 2 * limit || qAbs(qint64(offset.y())) > 2 * limit) return Result::InvalidInput;
+    const auto content = m_d->execution.readBounds(m_d->handle, version, layer, true);
+    if (content.code == ExecutionCode::CapacityExceeded) return Result::CapacityExceeded;
+    if (content.code == ExecutionCode::Busy) return Result::Busy;
+    if (content.code != ExecutionCode::Success) return Result::DeviceFailure;
+    const auto bounds = *content.bounds;
+    if (!bounds.isEmpty() && (qint64(bounds.left()) + offset.x() < -limit ||
+        qint64(bounds.right()) + offset.x() >= limit || qint64(bounds.top()) + offset.y() < -limit ||
+        qint64(bounds.bottom()) + offset.y() >= limit)) return Result::InvalidInput;
+    return Result::Success;
+}
 Result PaintImage::replaceTiles(LayerId layer, const QList<RgbaTile> &tiles)
 { return onThread() ? publish(m_d->document->replaceTiles(layer, tiles)) : Result::InvalidInput; }
 LayerId PaintImage::addLayer(const QString &name)
@@ -249,6 +326,7 @@ void PaintImage::close()
     m_d->execution.close(m_d->handle);
     m_d->handle = 0;
     m_d->document->close();
+    refreshLayerPixelReferences();
     Q_EMIT changed();
 }
 Result PaintImage::markSaved(const Snapshot &version)

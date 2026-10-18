@@ -163,7 +163,16 @@ struct TileWriteOperation
 };
 using PaintSnapshot = QSharedPointer<const PaintOperation>;
 using TileWriteSnapshot = QSharedPointer<const TileWriteOperation>;
-using LayerOperation = std::variant<PaintSnapshot, TileWriteSnapshot>;
+/** Integer relocation of all preceding layer pixels, preserving their RGBA values. */
+struct TranslationOperation
+{
+    OperationId id;
+    quint64 version = 0;
+    LayerId layer = 0;
+    QPoint offset;
+};
+using TranslationSnapshot = QSharedPointer<const TranslationOperation>;
+using LayerOperation = std::variant<PaintSnapshot, TileWriteSnapshot, TranslationSnapshot>;
 
 struct RasterLayer
 {
@@ -268,7 +277,7 @@ enum class HistoryAction {
     None, AddLayer, RemoveLayer, MoveLayer, RenameLayer, ChangeOpacity,
     ChangeVisibility, ChangeLock, ChangeTimelinePin, PaintStroke, DrawLine,
     DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath,
-    ClearPixels, FillLayer
+    ClearPixels, FillLayer, TranslateLayer
 };
 
 struct Limits
@@ -340,6 +349,19 @@ public:
     Result cancelStroke(OperationId id);
     /** Replaces full tiles, including hidden layers, in one history entry. */
     Result replaceTiles(LayerId layer, const QList<RgbaTile> &tiles);
+    /** A placement preview freezes its layer and starting version. Updates use
+     * an integer offset from the start; commit records one history entry and
+     * cancellation retains the committed version and redo branch.
+     */
+    OperationId beginLayerTranslation(LayerId layer);
+    Result updateLayerTranslation(OperationId id, QPoint offset);
+    Result commitLayerTranslation(OperationId id);
+    Result cancelLayerTranslation(OperationId id);
+    /** Absolute device position outside undo. Updates the layer's shared
+     * history range, retaining pinned versions, recorded placements and saved
+     * state. Active input rejects the write without changing either version.
+     */
+    Result writeLayerPosition(LayerId layer, QPoint position);
 
     /** Adds and selects a layer in one history entry; returns zero on rejection. */
     LayerId addLayer(const QString &name);
@@ -418,7 +440,7 @@ public:
 
 private:
     friend class PaintImage;
-    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask };
+    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position };
     struct LayerHistoryChange {
         LayerProperty property = LayerProperty::None;
         LayerId layer = 0;
@@ -442,6 +464,8 @@ private:
     };
     Result applyPixelVersions(const QList<VersionPixelWrite> &writes, bool recordHistory,
                               Snapshot *retainedVersion = nullptr);
+    QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;
+    Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);
     template<class T> Result writeLayerProperty(LayerId layer, LayerProperty property, T Layer::*member, const T &value);
     Result restoreLayerHistoryChange(const LayerHistoryChange &change, bool forward);
     Result checkOperation(OperationId id) const;
@@ -462,6 +486,7 @@ private:
     LayerId m_nextLayer = 1;
     quint64 m_savedRevision = 0;
     QSharedPointer<const PaintOperation> m_edit;
+    TranslationSnapshot m_translation;
     Snapshot m_preview;
     bool m_closed = false;
 };
