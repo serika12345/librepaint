@@ -15,6 +15,7 @@
 #include <qlist.h>
 
 #include "KoColorProfile.h"
+#include "KoColorProfileKey_p.h"
 #include "KoColorProfileQuery.h"
 #include "KoColorSpace.h"
 #include "KoColorSpaceRegistry.h"
@@ -22,7 +23,7 @@
 #include "kis_assert.h"
 
 struct Q_DECL_HIDDEN KoColorSpaceFactory::Private {
-    QHash<QString, KoColorSpace* > availableColorspaces;
+    QHash<KoColorProfileKey, KoColorSpace*> availableColorspaces;
     QMutex mutex;
 #ifndef NDEBUG
     QHash<KoColorSpace*, QString> stackInformation;
@@ -55,14 +56,15 @@ const KoColorSpace *KoColorSpaceFactory::grabColorSpace(const KoColorProfile * p
 {
     QMutexLocker l(&d->mutex);
     Q_ASSERT(profile);
-    auto it = d->availableColorspaces.find(profile->name());
+    const auto key = koColorProfileKey(profile);
+    auto it = d->availableColorspaces.find(key);
     KoColorSpace* cs;
 
     if (it == d->availableColorspaces.end()) {
         cs = createColorSpace(profile);
         KIS_ASSERT_X(cs != nullptr, "KoColorSpaceFactory::grabColorSpace", "createColorSpace returned nullptr.");
         if (cs) {
-            d->availableColorspaces[profile->name()] = cs;
+            d->availableColorspaces[key] = cs;
         }
     }
     else {

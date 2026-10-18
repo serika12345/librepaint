@@ -8,9 +8,11 @@
 #define _KO_COLOR_CONVERSION_TRANSFORMATION_FACTORY_H_
 
 class KoColorSpace;
+class KoColorProfile;
 class KoColorConversionTransformation;
 
 #include <QString>
+#include <QByteArray>
 #include <KoColorConversionTransformationAbstractFactory.h>
 
 /**
@@ -32,6 +34,9 @@ public:
      * @param _dstProfile name of the destination profile, or empty if any profile
      */
     KoColorConversionTransformationFactory(const QString &_srcModelId, const QString &_srcDepthId, const QString &_srcProfile, const QString &_dstModelId, const QString &_dstDepthId, const QString &_dstProfile);
+    /** Copy the names and serialized data; profiles are borrowed during construction. */
+    KoColorConversionTransformationFactory(const QString &srcModelId, const QString &srcDepthId, const KoColorProfile *srcProfile,
+                                           const QString &dstModelId, const QString &dstDepthId, const KoColorProfile *dstProfile);
     ~KoColorConversionTransformationFactory() override;
 
 public:
@@ -61,6 +66,8 @@ public:
      *         means all profiles can be used)
      */
     QString dstProfile() const;
+    QByteArray srcProfileData() const;
+    QByteArray dstProfileData() const;
 protected:
     /**
      * @param srcCS source color space

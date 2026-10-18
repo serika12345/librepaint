@@ -13,6 +13,7 @@
 #include <KoColorProfileQuery.h>
 #include <kis_assert.h>
 #include <lcms2.h>
+#include <memory>
 #include <QtGlobal>
 #include <qhashfunctions.h>
 #include <QDebug>
@@ -259,12 +260,11 @@ void IccColorSpaceEngine::removeProfile(const QString &filename)
 {
     KoColorSpaceRegistry *registry = KoColorSpaceRegistry::instance();
 
-    KoColorProfile *profile = new IccColorProfile(filename);
-    Q_CHECK_PTR(profile);
+    std::unique_ptr<KoColorProfile> profile(new IccColorProfile(filename));
     profile->load();
 
     if (profile->valid() && registry->profileByName(profile->name())) {
-        registry->removeProfile(profile);
+        registry->removeProfile(profile.get());
     }
 }
 

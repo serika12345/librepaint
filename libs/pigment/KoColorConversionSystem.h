@@ -37,6 +37,8 @@ public:
         virtual ~RegistryInterface() {}
 
         virtual const KoColorSpace * colorSpace(const QString & colorModelId, const QString & colorDepthId, const QString &profileName) = 0;
+        virtual const KoColorSpace *colorSpace(const QString &colorModelId, const QString &colorDepthId, const KoColorProfile *profile) = 0;
+        virtual const KoColorProfile *profileByName(const QString &name) const = 0;
         virtual const KoColorSpaceFactory* colorSpaceFactory(const QString &colorModelId, const QString &colorDepthId) const = 0;
         virtual QList<const KoColorProfile *>  profilesFor(const KoColorSpaceFactory * csf) const = 0;
         virtual QList<const KoColorSpaceFactory*> colorSpacesFor(const KoColorProfile* profile) const = 0;
@@ -189,7 +191,7 @@ private:
     /**
      * Create a new node
      */
-    Node* createNode(const QString& _modelId, const QString& _depthId, const QString& _profileName);
+    Node *createNode(const NodeKey &key, const KoColorProfile *profile = nullptr, const QByteArray &data = {});
     /**
      * Initialise a node for ICC color spaces
      */
@@ -199,6 +201,7 @@ private:
      * @return the node corresponding to that key, or create it if needed
      */
     Node* nodeFor(const NodeKey& key);
+    Node *nodeFor(const NodeKey &key, const QByteArray &profileData);
     const Node* nodeFor(const NodeKey& key) const;
     /**
      * @return the list of nodes that correspond to a given model and depth.
@@ -208,6 +211,7 @@ private:
      * @return the node associated with that key, and create it if needed
      */
     Node* nodeFor(const QString& colorModelId, const QString& colorDepthId, const QString& _profileName);
+    Node *nodeFor(const QString &colorModelId, const QString &colorDepthId, const KoColorProfile *profile);
     const Node* nodeFor(const QString& colorModelId, const QString& colorDepthId, const QString& _profileName) const;
     /**
      * @return the vertex between two nodes, or null if the vertex doesn't exist

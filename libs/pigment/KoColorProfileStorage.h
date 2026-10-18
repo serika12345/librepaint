@@ -46,11 +46,12 @@ public:
      * Register the profile in the storage
      * @param profile the new profile to be registered
      */
-    void addProfile(KoColorProfile* profile);
+    void addProfile(KoColorProfile *profile, bool replaceExistingNames = true);
 
     /**
-     * Removes the profile from the storage.
-     * Please note that the caller should delete the profile object himself!
+     * Remove matching profile data from the lookup indices. Passing a registered
+     * object returns its ownership to the caller. Passing a clone retains the
+     * original object until storage destruction, preserving borrowed references.
      *
      * @param profile the profile to be removed
      */
@@ -90,6 +91,8 @@ public:
      */
     const KoColorProfile * profileByName(const QString & name) const ;
 
+    const KoColorProfile *profileByData(const QString &name, const QByteArray &data) const;
+
 
     /**
      * Returns a profile by its unique id stored/calculated in the header.
@@ -109,6 +112,7 @@ public:
      * @return a list of profiles for the factory
      */
     QList<const KoColorProfile *>  profilesFor(const KoColorSpaceFactory * csf) const;
+    QList<const KoColorProfile *> profilesForConversions(const KoColorSpaceFactory *csf) const;
     /**
      * @brief profilesFor
      * Return the list of profiles for a colorspace represented by it's colorants and type.

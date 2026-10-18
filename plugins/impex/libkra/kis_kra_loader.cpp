@@ -469,7 +469,7 @@ void KisKraLoader::loadBinaryData(KoStore * store, KisImageSP image, const QStri
             if (res) {
                 QString colorspaceModel = image->colorSpace()->colorModelId().id();
                 QString colorspaceDepth = image->colorSpace()->colorDepthId().id();
-                const KoColorProfile *profile = KoColorSpaceRegistry::instance()->createColorProfile(colorspaceModel, image->colorSpace()->colorDepthId().id(), data, KisKraLoadVisitor::customProfileNameAliasForKra());
+                const KoColorProfile *profile = KoColorSpaceRegistry::instance()->createColorProfileFromData(colorspaceModel, colorspaceDepth, data, KisKraLoadVisitor::customProfileNameAliasForKra());
                 if (profile && profile->valid()) {
                     const KoColorSpace *colorSpace = KoColorSpaceRegistry::instance()->colorSpace(colorspaceModel, colorspaceDepth, profile);
                     image->convertImageProjectionColorSpace(colorSpace);

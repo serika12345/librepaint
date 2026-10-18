@@ -136,6 +136,14 @@ public:
     const KoColorProfile *createColorProfile(const QString & colorModelId, const QString & colorDepthId, const QByteArray& rawData, CustomProfileNameAlias customProfileNameAlias);
 
     /**
+     * Create or reuse a registry-owned profile with the exact supplied data.
+     * Explicit compatibility aliases take precedence over the embedded profile.
+     * Returns nullptr for an unsupported color space or invalid profile data.
+     */
+    const KoColorProfile *createColorProfileFromData(const QString &colorModelId, const QString &colorDepthId,
+                                                   const QByteArray &rawData, CustomProfileNameAlias customProfileNameAlias = {});
+
+    /**
      * Return a profile by its given name, or 0 if none registered.
      * @return a profile by its given name, or 0 if none registered.
      * @param name the product name as set on the profile.

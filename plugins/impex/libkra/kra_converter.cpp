@@ -479,6 +479,8 @@ bool KraConverter::completeLoading(KoStore* store)
         return false;
     }
 
+    // Complete projection color conversion before removing the enclosing updates filter.
+    m_image->waitForDone();
     m_image->enableDirtyRequests();
 
     if (!m_kraLoader->warningMessages().isEmpty()) {

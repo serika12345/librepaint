@@ -19,6 +19,11 @@ private Q_SLOTS:
     void testColorProfileAliasAddUnique();
     void testColorProfileAliasAddWhenProfileExists();
     void testColorProfileAliasOverrideByProfile();
+    void testExplicitSameNameProfiles_data();
+    void testExplicitSameNameProfiles();
+    void testEmbeddedPqWithLinearProfileName();
+    void testEmbeddedProfileRejection_data();
+    void testEmbeddedProfileRejection();
 };
 
 #endif

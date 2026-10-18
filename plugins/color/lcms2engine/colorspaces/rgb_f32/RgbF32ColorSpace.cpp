@@ -160,11 +160,11 @@ QList<KoColorConversionTransformationFactory *> RgbF32ColorSpaceFactory::colorCo
         const KoColorProfile *connectionProfile = registry->profileFor(query, false);
         KIS_SAFE_ASSERT_RECOVER_RETURN_VALUE(connectionProfile, QList<KoColorConversionTransformationFactory *>());
 
-        LcmsRGBP2020PQColorSpaceFactoryWrapper<RgbF32ColorSpaceFactory> factory(profile->name(), connectionProfile->name());
+        LcmsRGBP2020PQColorSpaceFactoryWrapper<RgbF32ColorSpaceFactory> factory(profile, connectionProfile);
         return factory.colorConversionLinks();
     } else if (profile->name() == "High Dynamic Range UHDTV Wide Color Gamut Display (Rec. 2020) - SMPTE ST 2084 PQ EOTF") {
         KoColorSpaceRegistry *registry = KoColorSpaceRegistry::instance();
-        LcmsRGBP2020PQColorSpaceFactoryWrapper<RgbF32ColorSpaceFactory> factory(profile->name(), registry->p2020G10Profile()->name());
+        LcmsRGBP2020PQColorSpaceFactoryWrapper<RgbF32ColorSpaceFactory> factory(profile, registry->p2020G10Profile());
         return factory.colorConversionLinks();
     }
     return QList<KoColorConversionTransformationFactory*>();

@@ -13,6 +13,8 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoColorSpace.h>
 #include <KoColor.h>
+#include <KoColorProfile.h>
+#include <KoColorSpaceEngine.h>
 
 #include "kis_image.h"
 #include <testutil.h>
@@ -32,6 +34,8 @@
 #include <QBuffer>
 #include <QTemporaryDir>
 #include <QColorSpace>
+#include <QDir>
+#include <QSaveFile>
 
 const QString KraMimetype = "application/x-krita";
 
@@ -142,13 +146,26 @@ void KisKraLoaderTest::testDirectRasterCompatibility()
         QCOMPARE(deviceDefault.data()[3], layer.defaultPixel[3]);
     }
 
+    // A host profile can have the embedded ICC's name and different bytes.
+    QByteArray hostIcc = QColorSpace(QColorSpace::SRgb).iccProfile();
+    hostIcc.replace(80, 4, QByteArray("LPnt"));
+    auto *registry = KoColorSpaceRegistry::instance();
+    auto *engine = KoColorSpaceEngineRegistry::instance()->get("icc");
+    QVERIFY(engine);
+    const KoColorProfile *hostProfile = engine->addProfile(hostIcc);
+    QVERIFY(hostProfile);
+    QCOMPARE(hostProfile->name(), QStringLiteral("sRGB"));
+    const KoColorSpace *hostSpace = registry->colorSpace(RGBAColorModelID.id(), Integer8BitsColorDepthID.id(), hostProfile);
+    QVERIFY(hostSpace);
+    QCOMPARE(hostSpace->profile()->rawData(), hostIcc);
+
     Kra::Document source;
     source.image.size = {100, 100};
     source.image.activeLayer = 1;
     using LibrePaint::Image::Gpu::RgbaTile;
     source.image.layers = {
-        {QStringLiteral("Lower"), true, QUuid::createUuid(), {{{-1, 0}, QByteArray::fromHex("120a2700").repeated(RgbaTile::ByteCount / 4)}}},
-        {QStringLiteral("Hidden"), false, QUuid::createUuid(), {{{0, 0}, QByteArray::fromHex("197fafe0").repeated(RgbaTile::ByteCount / 4)}}}
+        {QStringLiteral("Lower"), true, QUuid(QStringLiteral("{11111111-1111-4111-8111-111111111111}")), {{{-1, 0}, QByteArray::fromHex("120a2700").repeated(RgbaTile::ByteCount / 4)}}},
+        {QStringLiteral("Hidden"), false, QUuid(QStringLiteral("{22222222-2222-4222-8222-222222222222}")), {{{0, 0}, QByteArray::fromHex("197fafe0").repeated(RgbaTile::ByteCount / 4)}}}
     };
     source.image.layers[0].defaultPixel = {17, 23, 31, 0};
     source.image.layers[1].defaultPixel = {255, 255, 255, 255};
@@ -166,28 +183,57 @@ void KisKraLoaderTest::testDirectRasterCompatibility()
     QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
     reopened->setFileBatchMode(true);
     QVERIFY(reopened->openPath(path, KisDocument::DontAddToRecent));
-    reopened->image()->waitForDone();
-    auto node = reopened->image()->root()->firstChild();
-    for (const auto &layer : source.image.layers) {
-        QVERIFY(node);
-        QCOMPARE(node->name(), layer.name);
-        QCOMPARE(node->visible(), layer.visible);
-        QCOMPARE(node->uuid(), layer.uuid);
-        const auto pixels = node->paintDevice();
-        QVERIFY(pixels);
-        const auto tile = layer.tiles.first();
-        QByteArray raw(tile.rgba.size(), Qt::Uninitialized);
-        pixels->readBytes(reinterpret_cast<quint8 *>(raw.data()), tile.coordinate.x() * 256, tile.coordinate.y() * 256, 256, 256);
-        for (qsizetype i = 0; i < raw.size(); i += 4) std::swap(raw[i], raw[i + 2]);
-        QCOMPARE(raw, tile.rgba);
-        const auto fallback = pixels->defaultPixel();
-        QCOMPARE(fallback.data()[0], layer.defaultPixel[2]);
-        QCOMPARE(fallback.data()[1], layer.defaultPixel[1]);
-        QCOMPARE(fallback.data()[2], layer.defaultPixel[0]);
-        QCOMPARE(fallback.data()[3], layer.defaultPixel[3]);
-        node = node->nextSibling();
+    const QString artifactDirectory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    QVERIFY(artifactDirectory.isEmpty() || QDir().mkpath(artifactDirectory));
+    auto writeArtifact = [&](const QString &name, const QByteArray &data) {
+        if (artifactDirectory.isEmpty()) return true;
+        QSaveFile file(QDir(artifactDirectory).filePath(name));
+        return file.open(QIODevice::WriteOnly) && file.write(data) == data.size() && file.commit();
+    };
+    for (int cycle = 0; cycle < 2; ++cycle) {
+        if (cycle == 1) {
+            const QString originalPath = reopened->localFilePath();
+            const bool originalModified = reopened->isModified();
+            const QString savedPath = directory.filePath(QStringLiteral("resaved.kra"));
+            QVERIFY(reopened->exportDocumentSync(savedPath, KraMimetype.toLatin1()));
+            QCOMPARE(reopened->localFilePath(), originalPath);
+            QCOMPARE(reopened->isModified(), originalModified);
+            QScopedPointer<KisDocument> saved(KisPart::instance()->createDocument());
+            saved->setFileBatchMode(true);
+            QVERIFY(saved->openPath(savedPath, KisDocument::DontAddToRecent));
+            reopened.swap(saved);
+        }
+        const QString phase = cycle == 0 ? QStringLiteral("opened") : QStringLiteral("resaved");
+        QCOMPARE(reopened->image()->profile()->rawData(), QColorSpace(QColorSpace::SRgb).iccProfile());
+        QCOMPARE(hostSpace->profile()->rawData(), hostIcc);
+        QCOMPARE(registry->profileByName(hostProfile->name())->rawData(), hostIcc);
+        QVERIFY(writeArtifact(QStringLiteral("icc-%1-profile.icc").arg(phase), reopened->image()->profile()->rawData()));
+        reopened->image()->waitForDone();
+        auto node = reopened->image()->root()->firstChild();
+        int index = 0;
+        for (const auto &layer : source.image.layers) {
+            QVERIFY(node);
+            QCOMPARE(node->name(), layer.name);
+            QCOMPARE(node->visible(), layer.visible);
+            QCOMPARE(node->uuid(), layer.uuid);
+            const auto pixels = node->paintDevice();
+            QVERIFY(pixels);
+            QCOMPARE(pixels->colorSpace()->profile()->rawData(), QColorSpace(QColorSpace::SRgb).iccProfile());
+            const auto tile = layer.tiles.first();
+            QByteArray raw(tile.rgba.size(), Qt::Uninitialized);
+            pixels->readBytes(reinterpret_cast<quint8 *>(raw.data()), tile.coordinate.x() * 256, tile.coordinate.y() * 256, 256, 256);
+            for (qsizetype i = 0; i < raw.size(); i += 4) std::swap(raw[i], raw[i + 2]);
+            QCOMPARE(raw, tile.rgba);
+            QVERIFY(writeArtifact(QStringLiteral("icc-%1-layer-%2.rgba").arg(phase).arg(index++), raw));
+            const auto fallback = pixels->defaultPixel();
+            QCOMPARE(fallback.data()[0], layer.defaultPixel[2]);
+            QCOMPARE(fallback.data()[1], layer.defaultPixel[1]);
+            QCOMPARE(fallback.data()[2], layer.defaultPixel[0]);
+            QCOMPARE(fallback.data()[3], layer.defaultPixel[3]);
+            node = node->nextSibling();
+        }
+        QVERIFY(!node);
     }
-    QVERIFY(!node);
 
     Kra::Document empty;
     empty.image.size = source.image.size;
@@ -197,9 +243,17 @@ void KisKraLoaderTest::testDirectRasterCompatibility()
     const auto emptyResult = Kra::RasterCodec::write(emptyOutput, empty, projection);
     QVERIFY2(emptyResult.code == Kra::Status::Success, qPrintable(emptyResult.diagnostic));
     emptyOutput.close();
+    QFile encodedEmpty(emptyPath);
+    QVERIFY(encodedEmpty.open(QIODevice::ReadOnly));
+    const auto storedEmpty = Kra::RasterCodec::read(encodedEmpty);
+    QCOMPARE(storedEmpty.code, Kra::Status::Success);
+    const auto storedMetadata = Kra::RasterCodec::readImageMetadata(storedEmpty.document.description, storedEmpty.document.files);
+    QCOMPARE(storedMetadata.code, Kra::Status::Success);
+    QVERIFY(!storedMetadata.metadata.iccProfile.isEmpty());
     QScopedPointer<KisDocument> emptyDocument(KisPart::instance()->createDocument());
     emptyDocument->setFileBatchMode(true);
     QVERIFY(emptyDocument->openPath(emptyPath, KisDocument::DontAddToRecent));
+    QCOMPARE(emptyDocument->image()->profile()->rawData(), storedMetadata.metadata.iccProfile);
     emptyDocument->image()->waitForDone();
     QCOMPARE(emptyDocument->image()->root()->childCount(), 0U);
     QByteArray emptyPixels(100 * 100 * 4, Qt::Uninitialized);

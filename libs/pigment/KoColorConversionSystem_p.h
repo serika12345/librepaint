@@ -13,7 +13,9 @@
 #include "KoColorConversionTransformationFactory.h"
 #include "KoColorSpaceEngine.h"
 #include "KoColorConversionSystem.h"
+#include "KoColorProfile.h"
 #include <boost/operators.hpp>
+#include <memory>
 
 #include <QList>
 
@@ -89,7 +91,8 @@ struct KoColorConversionSystem::Node : boost::equality_comparable<KoColorConvers
     friend bool operator==(const Node &lhs, const Node &rhs) {
         return lhs.modelId == rhs.modelId &&
             lhs.depthId == rhs.depthId &&
-            lhs.profileName == rhs.profileName;
+            lhs.profileName == rhs.profileName &&
+            lhs.profile.get() == rhs.profile.get();
     }
 
     NodeCapabilities capabilities() const {
@@ -99,6 +102,8 @@ struct KoColorConversionSystem::Node : boost::equality_comparable<KoColorConvers
     QString modelId;
     QString depthId;
     QString profileName;
+    // Keep the profile available after its registry entry is removed.
+    std::unique_ptr<KoColorProfile> profile;
     bool isInitialized;
     int referenceDepth;
     QList<Vertex*> outputVertexes;
@@ -325,7 +330,7 @@ struct Q_DECL_HIDDEN KoColorConversionSystem::Private {
 
     Private(RegistryInterface *_registryInterface) : registryInterface(_registryInterface) {}
 
-    QHash<NodeKey, Node*> graph;
+    QHash<QPair<NodeKey, QByteArray>, Node*> graph;
     QList<Vertex*> vertexes;
     RegistryInterface *registryInterface;
 };
