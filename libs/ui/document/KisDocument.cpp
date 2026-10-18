@@ -25,6 +25,7 @@
 #include <KoColorSpaceRegistry.h>
 #include <info/KoDocumentInfoDlg.h>
 #include <memory>
+#include <functional>
 #include <stdexcept>
 #include <metadata/KoDocumentInfo.h>
 #include <KoUnit.h>
@@ -186,6 +187,40 @@ QString autoSaveFilePath(const KisDocument *document, const QString &path)
         KisConfig(true).readEntry<bool>("autosavefileshidden"));
 }
 
+KisImportExportErrorCode gpuFileStatus(LibrePaint::Document::Gpu::FileCode code)
+{
+    using LibrePaint::Document::Gpu::FileCode;
+    switch (code) {
+    case FileCode::Success: return ImportExportCodes::OK;
+    case FileCode::CapacityExceeded: return ImportExportCodes::InsufficientMemory;
+    case FileCode::Busy: return ImportExportCodes::Busy;
+    case FileCode::UnsupportedData: return ImportExportCodes::FormatFeaturesUnsupported;
+    case FileCode::IoFailure: return ImportExportCodes::ErrorWhileWriting;
+    default: return ImportExportCodes::Failure;
+    }
+}
+
+LibrePaint::ImportExport::Kra::ImageMetadata gpuKraMetadata(KisDocument &document)
+{
+    LibrePaint::ImportExport::Kra::ImageMetadata metadata;
+    KisImageSP image = document.image();
+    metadata.resolution = {image->xRes() * 72, image->yRes() * 72};
+    auto info = KisDocument::createDomDocument(QStringLiteral("document-info"), QStringLiteral("document-info"), QStringLiteral("1.1"));
+    metadata.documentInfo = document.documentInfo()->save(info, document.isAutosaving(), document.isModified()).toByteArray();
+    metadata.iccProfile = image->profile()->rawData();
+    const auto &mirror = document.mirrorAxisConfig();
+    if (!mirror.isDefault()) {
+        QDomDocument axes;
+        axes.appendChild(mirror.saveToXml(axes, QStringLiteral("MirrorAxis")));
+        metadata.mirrorAxis = axes.toByteArray();
+    }
+    for (auto entry = image->beginAnnotations(); entry != image->endAnnotations(); ++entry) {
+        if (*entry && !(*entry)->type().isEmpty() && (*entry)->type() != QLatin1String("icc"))
+            metadata.annotations.append({(*entry)->type(), (*entry)->description(), (*entry)->annotation()});
+    }
+    return metadata;
+}
+
 }
 
 /**********************************************************
@@ -292,6 +327,7 @@ public:
     KisImageSP savingImage;
     std::shared_ptr<LibrePaint::Document::Gpu::PaintDocument> gpuDocument;
     bool gpuSaving = false;
+    std::function<void()> gpuAutoSaveJob;
 
     KisNodeWSP preActivatedNode;
     KisShapeController* shapeController = 0;
@@ -347,6 +383,9 @@ public:
     KisDocument* lockAndCloneImpl(bool fetchResourcesFromLayers);
 
     void updateDocumentMetadataOnSaving(const QString &filePath, const QByteArray &mimeType);
+    enum class GpuAutoSaveMode { Timer, Recovery, Pause };
+    RecoveryAutoSaveStartResult startGpuAutoSave(const QString &path, GpuAutoSaveMode mode);
+    void runPendingGpuAutoSave();
 
     void connectPresentation()
     {
@@ -912,36 +951,15 @@ bool KisDocument::exportGpuDocument(const KritaUtils::ExportFileJob &job, bool n
         QPointer<KisDocument> guard(this);
         d->gpuSaving = true;
         if (!exporting) d->modificationState.markSavingStarted();
-        LibrePaint::ImportExport::Kra::ImageMetadata metadata;
-        metadata.resolution = {d->image->xRes() * 72, d->image->yRes() * 72};
-        auto info = createDomDocument(QStringLiteral("document-info"), QStringLiteral("document-info"), QStringLiteral("1.1"));
-        metadata.documentInfo = documentInfo()->save(info, isAutosaving(), isModified()).toByteArray();
-        metadata.iccProfile = d->image->profile()->rawData();
-        if (!d->mirrorAxisConfig.isDefault()) {
-            QDomDocument axes;
-            axes.appendChild(d->mirrorAxisConfig.saveToXml(axes, QStringLiteral("MirrorAxis")));
-            metadata.mirrorAxis = axes.toByteArray();
-        }
-        for (auto entry = d->image->beginAnnotations(); entry != d->image->endAnnotations(); ++entry) {
-            if (*entry && !(*entry)->type().isEmpty() && (*entry)->type() != QLatin1String("icc"))
-                metadata.annotations.append({(*entry)->type(), (*entry)->description(), (*entry)->annotation()});
-        }
-        auto outcome = fileDocument->setKraImageMetadata(metadata);
+        auto outcome = fileDocument->setKraImageMetadata(gpuKraMetadata(*this));
         if (outcome.code == GpuDocument::FileCode::Success)
             outcome = exporting ? fileDocument->exportKra(job.filePath) : fileDocument->saveKra(job.filePath);
         const bool success = outcome.code == GpuDocument::FileCode::Success;
-        if (!guard) return success;
-        d->gpuSaving = false;
-        if (d->gpuDocument != fileDocument) return success;
         diagnostic = outcome.diagnostic;
-        switch (outcome.code) {
-        case GpuDocument::FileCode::Success: status = ImportExportCodes::OK; break;
-        case GpuDocument::FileCode::CapacityExceeded: status = ImportExportCodes::InsufficientMemory; break;
-        case GpuDocument::FileCode::Busy: status = ImportExportCodes::Busy; break;
-        case GpuDocument::FileCode::UnsupportedData: status = ImportExportCodes::FormatFeaturesUnsupported; break;
-        case GpuDocument::FileCode::IoFailure: status = ImportExportCodes::ErrorWhileWriting; break;
-        default: status = ImportExportCodes::Failure; break;
-        }
+        status = gpuFileStatus(outcome.code);
+        if (!guard) return status.isOk();
+        d->gpuSaving = false;
+        if (d->gpuDocument != fileDocument) return status.isOk();
         if (success && !exporting && !d->modificationState.wasModifiedWhileSaving() &&
             fileDocument->image()->operations().snapshot() == outcome.version)
             d->modificationState.clearImageModifiedWithoutUndo();
@@ -1508,6 +1526,70 @@ void KisDocument::slotChildCompletedSavingInBackground(KisImportExportErrorCode 
     }
 }
 
+void KisDocument::Private::runPendingGpuAutoSave()
+{
+    auto job = std::move(gpuAutoSaveJob);
+    gpuAutoSaveJob = {};
+    if (job) job();
+}
+
+KisDocument::RecoveryAutoSaveStartResult KisDocument::Private::startGpuAutoSave(const QString &path, GpuAutoSaveMode mode)
+{
+    if (q->isSaving()) return RecoveryAutoSaveStartResult::AlreadySaving;
+    const auto fileDocument = gpuDocument;
+    if (!fileDocument->image()->operations().activeOperation().isNull()) return RecoveryAutoSaveStartResult::Failed;
+    const auto pinned = fileDocument->image()->operations().snapshot();
+    const KritaUtils::ExportFileJob job(path, nativeFormatMimeType(),
+                                      KritaUtils::SaveIsExporting | KritaUtils::SaveInAutosaveMode);
+    gpuSaving = true;
+    modificationState.markSavingStarted();
+    modificationState.markAutoSaveStarted();
+    autoSaveState.markAutoSaveExportStarted();
+    const auto prepared = fileDocument->setKraImageMetadata(gpuKraMetadata(*q));
+    gpuAutoSaveJob = [this, fileDocument, pinned, prepared, job, mode] {
+        if (gpuDocument != fileDocument) {
+            gpuSaving = false;
+            autoSaveState.markAutoSaveExportFinished();
+            q->finishRecoveryAutoSaveRequest(job.filePath, false);
+            return;
+        }
+        const QPointer<KisDocument> guard(q);
+        const auto outcome = prepared.code == LibrePaint::Document::Gpu::FileCode::Success ?
+            fileDocument->exportKra(job.filePath, pinned) : prepared;
+        if (!guard) return;
+        const auto status = gpuFileStatus(outcome.code);
+        autoSaveState.markAutoSaveExportFinished();
+        gpuSaving = false;
+        if (documentIsClosing) return;
+        if (gpuDocument != fileDocument) {
+            q->finishRecoveryAutoSaveRequest(job.filePath, false);
+            return;
+        }
+        lastErrorMessage = outcome.diagnostic;
+        if (mode == GpuAutoSaveMode::Recovery) {
+            q->slotCompleteRecoveryAutoSaving(job, status, outcome.diagnostic, {});
+        } else {
+            q->slotCompleteAutoSaving(job, status, outcome.diagnostic, {});
+            if (guard && gpuDocument != fileDocument) {
+                q->finishRecoveryAutoSaveRequest(job.filePath, false);
+                return;
+            }
+            if (guard && recoveryAutoSaveState.hasPendingRequest()) {
+                recoveryAutoSaveState.recordJoinedSave(job.filePath, status.isOk());
+            }
+        }
+        if (guard && recoveryAutoSaveState.hasPendingRequest()) {
+            QTimer::singleShot(0, q, &KisDocument::slotContinuePendingRecoveryAutoSave);
+        }
+    };
+    if (mode == GpuAutoSaveMode::Pause) {
+        runPendingGpuAutoSave();
+    } else {
+        QTimer::singleShot(0, q, [this] { runPendingGpuAutoSave(); });
+    }
+    return RecoveryAutoSaveStartResult::Started;
+}
+
 void KisDocument::slotAutoSaveImpl(std::unique_ptr<KisDocument> &&optionalClonedDocument)
 {
     if (!d->modificationState.isModified() ||
@@ -1516,9 +1598,22 @@ void KisDocument::slotAutoSaveImpl(std::unique_ptr<KisDocument> &&optionalCloned
     }
     const QString autoSaveFileName = autoSaveFilePath(this, localFilePath());
 
+    const QPointer<KisDocument> guard(this);
+    const auto fileDocument = d->gpuDocument;
     d->ioPresentation->notifyAutoSaveStarted(autoSaveFileName);
+    if (!guard || d->gpuDocument != fileDocument) return;
 
     KisUsageLogger::log(QString("Autosaving: %1").arg(autoSaveFileName));
+
+    if (fileDocument) {
+        if (isSaving() || !fileDocument->image()->operations().activeOperation().isNull()) {
+            d->ioPresentation->notifyAutoSavePostponed();
+            if (guard) setEmergencyAutoSaveInterval();
+            return;
+        }
+        d->startGpuAutoSave(autoSaveFileName, Private::GpuAutoSaveMode::Timer);
+        return;
+    }
 
     const bool hadClonedDocument = bool(optionalClonedDocument);
     KritaUtils::BackgroudSavingStartResult result = KritaUtils::BackgroudSavingStartResult::Failure;
@@ -1700,7 +1795,14 @@ void KisDocument::slotCompleteRecoveryAutoSaving(const KritaUtils::ExportFileJob
                                                  const QString &errorMessage,
                                                  const QString &warningMessage)
 {
+    const QPointer<KisDocument> guard(this);
+    const KisImageWSP image = d->image;
     slotCompleteAutoSaving(job, status, errorMessage, warningMessage);
+    if (!guard) return;
+    if (!image.isValid() || d->image.data() != image.data()) {
+        finishRecoveryAutoSaveRequest(job.filePath, false);
+        return;
+    }
 
     const bool saved = status.isOk()
         && Krita::Document::KisDocumentAutoSaveFiles::isUsable(job.filePath);
@@ -1762,7 +1864,9 @@ void KisDocument::slotContinuePendingRecoveryAutoSave()
     }
 
     d->recoveryAutoSaveState.clearJoinedSavePath();
+    const QPointer<KisDocument> guard(this);
     const RecoveryAutoSaveStartResult result = startRecoveryAutoSave();
+    if (!guard) return;
     if (result == RecoveryAutoSaveStartResult::Started ||
         result == RecoveryAutoSaveStartResult::AlreadySaving) {
         return;
@@ -2138,24 +2242,30 @@ KisDocument::RecoveryAutoSaveStartResult KisDocument::startRecoveryAutoSave()
 {
     const QString autoSaveFileName = autoSaveFilePath(this, localFilePath());
 
-    d->ioPresentation->notifyAutoSaveStarted(autoSaveFileName);
-    KisUsageLogger::log(QString("Autosaving recovery checkpoint: %1").arg(autoSaveFileName));
-
     d->recoveryAutoSaveState.beginSaveStart();
+    const QPointer<KisDocument> guard(this);
+    const auto fileDocument = d->gpuDocument;
+    d->ioPresentation->notifyAutoSaveStarted(autoSaveFileName);
+    if (!guard || d->gpuDocument != fileDocument) return RecoveryAutoSaveStartResult::Failed;
+    KisUsageLogger::log(QString("Autosaving recovery checkpoint: %1").arg(autoSaveFileName));
 
     // Clear before clone preparation so a modification delivered by its
     // event processing is distinguishable from the revision being saved.
     // Every unsuccessful start restores the flag below.
     d->modificationState.markAutoSaveStarted();
 
-    const KritaUtils::BackgroudSavingStartResult result =
+    const KritaUtils::ExportFileJob job(autoSaveFileName, nativeFormatMimeType(),
+                                      KritaUtils::SaveIsExporting | KritaUtils::SaveInAutosaveMode);
+    const KritaUtils::BackgroudSavingStartResult result = fileDocument ?
+        (isSaving() ? KritaUtils::BackgroudSavingStartResult::AnotherSavingInProgress :
+         d->startGpuAutoSave(autoSaveFileName, Private::GpuAutoSaveMode::Recovery) == RecoveryAutoSaveStartResult::Started ?
+             KritaUtils::BackgroudSavingStartResult::Success : KritaUtils::BackgroudSavingStartResult::Failure) :
         initiateSavingInBackground(i18n("Autosaving..."),
                                    this,
                                    SLOT(slotCompleteRecoveryAutoSaving(KritaUtils::ExportFileJob, KisImportExportErrorCode, QString, QString)),
-                                   KritaUtils::ExportFileJob(autoSaveFileName,
-                                                             nativeFormatMimeType(),
-                                                             KritaUtils::SaveIsExporting | KritaUtils::SaveInAutosaveMode),
+                                   job,
                                    nullptr);
+    if (!guard) return RecoveryAutoSaveStartResult::Failed;
 
     switch (result) {
     case KritaUtils::BackgroudSavingStartResult::Success: {
@@ -2221,7 +2331,9 @@ KisDocument::RecoveryAutoSaveStartResult KisDocument::requestRecoveryAutoSave()
 
     d->recoveryAutoSaveState.beginRequest();
 
+    const QPointer<KisDocument> guard(this);
     const RecoveryAutoSaveStartResult result = startRecoveryAutoSave();
+    if (!guard) return result;
     if (result == RecoveryAutoSaveStartResult::Failed) {
         d->recoveryAutoSaveState.cancelRequest();
     } else if (result == RecoveryAutoSaveStartResult::AlreadySaving) {
@@ -2236,12 +2348,20 @@ KisDocument::RecoveryAutoSaveStartResult KisDocument::requestRecoveryAutoSave()
 
 void KisDocument::autoSaveOnPause()
 {
+    const QPointer<KisDocument> guard(this);
+    d->runPendingGpuAutoSave();
+    if (!guard) return;
     if (!d->modificationState.isModified() ||
         !d->modificationState.hasChangesAfterAutoSave()) {
         return;
     }
 
     const QString autoSaveFileName = autoSaveFilePath(this, localFilePath());
+
+    if (d->gpuDocument) {
+        d->startGpuAutoSave(autoSaveFileName, Private::GpuAutoSaveMode::Pause);
+        return;
+    }
 
     bool started = exportDocumentSync(autoSaveFileName, nativeFormatMimeType());
 
@@ -2274,11 +2394,11 @@ void KisDocument::setModified(bool mod)
         updateEditingTime(false);
     }
 
-    /// 1) Ignore setModified calls due to autosaving
+    /// 1) Ignore format-side modifications in the CPU autosave clone.
     /// 2) When closing a document, QUndoStack emits a lot of
     ///    modified signals, when clearing itself, so we should
     ///    ignore all of them.
-    if (d->autoSaveState.isExportingAutoSave() || d->documentIsClosing)
+    if ((d->autoSaveState.isExportingAutoSave() && !d->gpuDocument) || d->documentIsClosing)
         return;
 
     //dbgUI<<" url:" << url.path();
@@ -2879,6 +2999,9 @@ bool KisDocument::isSaving() const
 
 void KisDocument::waitForSavingToComplete()
 {
+    const QPointer<KisDocument> guard(this);
+    d->runPendingGpuAutoSave();
+    if (!guard) return;
     if (isSaving()) {
         KisAsyncActionFeedback f(i18nc("progress dialog message when the user closes the document that is being saved", "Waiting for saving to complete..."), 0);
         f.waitForMutex(d->savingMutex);

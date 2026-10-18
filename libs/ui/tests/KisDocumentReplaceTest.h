@@ -22,6 +22,14 @@ private Q_SLOTS:
     void testCopyFromDocument();
     void testGpuReplacementKeepsReferencesAndRejectsCapacityBeforeMutation_data();
     void testGpuReplacementKeepsReferencesAndRejectsCapacityBeforeMutation();
+    void testGpuAutoSavePreservesEditingState_data();
+    void testGpuAutoSavePreservesEditingState();
+    void testGpuAutoSaveFailureKeepsCheckpointAndCanRetry_data();
+    void testGpuAutoSaveFailureKeepsCheckpointAndCanRetry();
+    void testGpuRecoveryAutoSaveWaitsForLatestEdit_data();
+    void testGpuRecoveryAutoSaveWaitsForLatestEdit();
+    void testGpuAutoSaveNotificationLifetimes_data();
+    void testGpuAutoSaveNotificationLifetimes();
     void testDocumentIdentityDelegation();
     void testDocumentModificationStateDelegation();
     void testQueuedHistoryNotificationsUseCurrentState_data();

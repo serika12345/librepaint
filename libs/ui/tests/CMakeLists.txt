@@ -23,7 +23,7 @@ kis_add_tests(
 
 kis_add_test(KisDocumentReplaceTest.cpp
     TEST_NAME_VAR gpu_document_replace_test
-    LINK_LIBRARIES kritaapplication kritaapplicationui kritalibkis kritatestsdk)
+    LINK_LIBRARIES kritaapplication kritaapplicationui kritalibkis kritatestsdk kritadocumentfiles kritaimpexkra)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set_tests_properties(${gpu_document_replace_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
 endif()

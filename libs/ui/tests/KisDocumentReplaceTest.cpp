@@ -12,8 +12,14 @@
 #include <QScopedPointer>
 #include <QSignalSpy>
 #include <QScopeGuard>
+#include <QTemporaryDir>
+#include <QFile>
+#include <QTimer>
+#include <QSaveFile>
+#include <QDomDocument>
 #include <kundo2stack.h>
 #include <KoProgressProxy.h>
+#include <KoColorProfile.h>
 #include <kis_composite_progress_proxy.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
@@ -21,6 +27,8 @@
 #include <gpu/KisGpuPaintImage.h>
 #include <gpu/KisGpuExecution.h>
 #include <metadata/KoDocumentInfo.h>
+#include <kra/KisKraRasterCodec.h>
+#include <files/kis_document_autosave_files.h>
 #include <stdexcept>
 #include <kis_image_animation_interface.h>
 #include <kis_layer_utils.h>
@@ -96,6 +104,398 @@ void KisDocumentReplaceTest::testCopyFromDocument()
 
     KisPart::instance()->removeDocument(anotherDoc);
     finalize();
+}
+
+void KisDocumentReplaceTest::testGpuAutoSavePreservesEditingState_data()
+{
+    QTest::addColumn<int>("entry");
+    QTest::newRow("timer") << 0;
+    QTest::newRow("recovery-request") << 1;
+    QTest::newRow("application-pause") << 2;
+}
+
+void KisDocumentReplaceTest::testGpuAutoSavePreservesEditingState()
+{
+    QFETCH(int, entry);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    namespace Kra = LibrePaint::ImportExport::Kra;
+    KisConfig config(false);
+    const bool trim = config.trimKra();
+    config.setTrimKra(true);
+    const auto restoreConfig = qScopeGuard([&] { config.setTrimKra(trim); });
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device, 128 * 1024 * 1024, 2);
+    Gpu::RasterImage raster{QSize(32, 16), {{QStringLiteral("Layer"), true,
+        QUuid(QStringLiteral("{11111111-2222-3333-4444-555555555555}"))}}};
+    const auto owner = Gpu::PaintImageSP::create(execution, raster);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    document->setAutoSaveActive(false);
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Autosave image")));
+    document->image()->setResolution(300.0 / 72, 150.0 / 72);
+    document->documentInfo()->setAboutInfo(QStringLiteral("title"), QStringLiteral("Autosave title"));
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("original.kra"));
+    QVERIFY(document->saveAs(path, KisDocument::nativeFormatMimeType(), false));
+    QDomDocument fixedInfo;
+    QVERIFY(fixedInfo.setContent(QByteArrayLiteral("<document-info><about><title>Autosave title</title>"
+        "<creation-date>2026-01-01T00:00:00</creation-date><date>2026-01-02T00:00:00</date>"
+        "<editing-cycles>7</editing-cycles><editing-time>10</editing-time></about>"
+        "<author><full-name>LibrePaint test</full-name></author></document-info>")));
+    QVERIFY(document->documentInfo()->load(fixedInfo));
+    QFile original(path);
+    QVERIFY(original.open(QIODevice::ReadOnly));
+    const auto originalBytes = original.readAll();
+    original.close();
+    const auto layer = owner->operations().activeLayer();
+    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("112233ff")), Gpu::Result::Success);
+    const auto version = owner->operations().snapshot();
+    const auto history = owner->operations().undoCount();
+    const auto savedIndex = owner->operations().savedHistoryIndex();
+    const auto autoSavePath = Krita::Document::KisDocumentAutoSaveFiles::filePath(
+        path, document->objectName(), config.readEntry<bool>("autosavefileshidden"));
+    QSignalSpy recovered(document.data(), &KisDocument::sigRecoveryAutoSaveFinished);
+    if (entry == 0) {
+        QVERIFY(QMetaObject::invokeMethod(document.data(), "slotAutoSave", Qt::DirectConnection));
+    } else if (entry == 1) {
+        QCOMPARE(document->requestRecoveryAutoSave(), KisDocument::RecoveryAutoSaveStartResult::Started);
+        QCOMPARE(recovered.size(), 0);
+        QTRY_COMPARE(recovered.size(), 1);
+        QCOMPARE(recovered[0][0].toString(), autoSavePath);
+        QVERIFY(recovered[0][1].toBool());
+    } else {
+        document->autoSaveOnPause();
+    }
+    QTRY_VERIFY(!document->isSaving());
+    QVERIFY2(QFileInfo::exists(autoSavePath), qPrintable(document->errorMessage()));
+    QFile checkpoint(autoSavePath);
+    QVERIFY(checkpoint.open(QIODevice::ReadOnly));
+    const auto loaded = Kra::RasterCodec::read(checkpoint);
+    QCOMPARE(loaded.code, Kra::Status::Success);
+    const auto metadata = Kra::RasterCodec::readImageMetadata(loaded.document.description, loaded.document.files);
+    QCOMPARE(metadata.code, Kra::Status::Success);
+    QCOMPARE(metadata.metadata.resolution, QPointF(300, 150));
+    QCOMPARE(metadata.metadata.iccProfile, document->image()->profile()->rawData());
+    QVERIFY(metadata.metadata.documentInfo.contains("Autosave title"));
+    QVERIFY(metadata.metadata.documentInfo.contains("2026-01-02T00:00:00"));
+    QCOMPARE(document->documentInfo()->aboutInfo(QStringLiteral("editing-cycles")), QStringLiteral("7"));
+    QCOMPARE(document->documentInfo()->aboutInfo(QStringLiteral("date")), QStringLiteral("2026-01-02T00:00:00"));
+    const auto resultDirectory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!resultDirectory.isEmpty()) {
+        QVERIFY(QDir().mkpath(resultDirectory));
+        QVERIFY(checkpoint.seek(0));
+        QSaveFile artifact(QDir(resultDirectory).filePath(QStringLiteral("autosave-") +
+                           QString::fromLatin1(QTest::currentDataTag()) + QStringLiteral(".kra")));
+        QVERIFY(artifact.open(QIODevice::WriteOnly));
+        const auto bytes = checkpoint.readAll();
+        QCOMPARE(artifact.write(bytes), bytes.size());
+        QVERIFY(artifact.commit());
+    }
+    const auto reopened = Gpu::PaintImageSP::create(execution, loaded.document.image);
+    QCOMPARE(reopened->readRgbaPixels(reopened->operations().activeLayer(), QRect(5, 5, 1, 1), 4).bytes,
+             QByteArray::fromHex("112233ff"));
+    QCOMPARE(owner->operations().snapshot(), version);
+    QCOMPARE(owner->operations().undoCount(), history);
+    QCOMPARE(owner->operations().savedHistoryIndex(), savedIndex);
+    QCOMPARE(document->path(), path);
+    QVERIFY(document->isModified());
+    QVERIFY(original.open(QIODevice::ReadOnly));
+    QCOMPARE(original.readAll(), originalBytes);
+    QCOMPARE(owner->undo(), Gpu::Result::Success);
+    QVERIFY(!document->isModified());
+    QCOMPARE(owner->redo(), Gpu::Result::Success);
+    QVERIFY(document->isModified());
+}
+
+void KisDocumentReplaceTest::testGpuAutoSaveFailureKeepsCheckpointAndCanRetry_data()
+{
+    QTest::addColumn<int>("failure");
+    QTest::newRow("pending-input-then-cancel") << 0;
+    QTest::newRow("write-failure-then-retry") << 1;
+    QTest::newRow("readback-capacity") << 2;
+}
+
+void KisDocumentReplaceTest::testGpuAutoSaveFailureKeepsCheckpointAndCanRetry()
+{
+    QFETCH(int, failure);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device, 128 * 1024 * 1024, 1, failure == 2 ? 1 : 64 * 1024 * 1024);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setAutoSaveActive(false);
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Autosave retry")));
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("original.kra"));
+    QFile original(path);
+    QVERIFY(original.open(QIODevice::WriteOnly));
+    original.write("original file");
+    original.close();
+    document->setPath(path);
+    document->setLocalFilePath(path);
+    const auto checkpointPath = Krita::Document::KisDocumentAutoSaveFiles::filePath(
+        path, document->objectName(), KisConfig(true).readEntry<bool>("autosavefileshidden"));
+    if (failure == 1) {
+        QVERIFY(QDir().mkdir(checkpointPath));
+    } else {
+        QFile checkpoint(checkpointPath);
+        QVERIFY(checkpoint.open(QIODevice::WriteOnly));
+        checkpoint.write("previous checkpoint");
+    }
+    Gpu::Brush brush;
+    brush.diameter = 4;
+    brush.rgba = {17, 34, 51, 255};
+    const auto layer = owner->operations().activeLayer();
+    auto stroke = owner->beginStroke(layer, brush, 7);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(owner->appendSamples(stroke, {{QPointF(5, 5), 1, 0, 0, 0, 1}}), Gpu::Result::Success);
+    QCOMPARE(owner->commitStroke(stroke), Gpu::Result::Success);
+    const auto committed = owner->operations().snapshot();
+    if (failure == 0) {
+        stroke = owner->beginStroke(layer, brush, 9);
+        QVERIFY(!stroke.isNull());
+        QCOMPARE(owner->appendSamples(stroke, {{QPointF(10, 5), 1, 0, 0, 0, 1}}), Gpu::Result::Success);
+    }
+    const auto version = owner->operations().snapshot();
+    const auto history = owner->operations().undoCount();
+    QSignalSpy messages(document.data(), &KisDocument::statusBarMessage);
+    for (int attempt = 0; attempt < 5; ++attempt) {
+        QVERIFY(QMetaObject::invokeMethod(document.data(), "slotAutoSave", Qt::DirectConnection));
+        QTRY_VERIFY(!document->isSaving());
+        QCOMPARE(owner->operations().snapshot(), version);
+        QCOMPARE(owner->operations().undoCount(), history);
+        QVERIFY(document->isModified());
+        QCOMPARE(document->path(), path);
+        if (failure == 1) {
+            QVERIFY(QFileInfo(checkpointPath).isDir());
+        } else {
+            QFile checkpoint(checkpointPath);
+            QVERIFY(checkpoint.open(QIODevice::ReadOnly));
+            QCOMPARE(checkpoint.readAll(), QByteArrayLiteral("previous checkpoint"));
+        }
+    }
+    if (failure == 0) {
+        QCOMPARE(owner->cancelStroke(stroke), Gpu::Result::Success);
+        QCOMPARE(owner->operations().snapshot(), committed);
+    } else if (failure == 1) {
+        QVERIFY(QDir().rmdir(checkpointPath));
+    } else {
+        QVERIFY(!document->errorMessage().isEmpty());
+        return;
+    }
+    QVERIFY(QMetaObject::invokeMethod(document.data(), "slotAutoSave", Qt::DirectConnection));
+    QTRY_VERIFY(!document->isSaving());
+    QStringList diagnostics{document->errorMessage(), checkpointPath};
+    for (const auto &message : messages) diagnostics.append(message[0].toString());
+    QVERIFY2(Krita::Document::KisDocumentAutoSaveFiles::isUsable(checkpointPath), qPrintable(diagnostics.join(QLatin1Char('\n'))));
+    QFile checkpoint(checkpointPath);
+    QVERIFY(checkpoint.open(QIODevice::ReadOnly));
+    QCOMPARE(LibrePaint::ImportExport::Kra::RasterCodec::read(checkpoint).code,
+             LibrePaint::ImportExport::Kra::Status::Success);
+    QCOMPARE(owner->operations().snapshot(), committed);
+    QCOMPARE(owner->operations().undoCount(), history);
+    QVERIFY(document->isModified());
+    QVERIFY(original.open(QIODevice::ReadOnly));
+    QCOMPARE(original.readAll(), QByteArrayLiteral("original file"));
+}
+
+void KisDocumentReplaceTest::testGpuRecoveryAutoSaveWaitsForLatestEdit_data()
+{
+    QTest::addColumn<bool>("joinTimer");
+    QTest::addColumn<bool>("pause");
+    QTest::newRow("edit-during-recovery-completion") << false << false;
+    QTest::newRow("join-timer-and-edit") << true << false;
+    QTest::newRow("pause-during-recovery") << false << true;
+    QTest::newRow("pause-during-timer") << true << true;
+}
+
+void KisDocumentReplaceTest::testGpuRecoveryAutoSaveWaitsForLatestEdit()
+{
+    QFETCH(bool, joinTimer);
+    QFETCH(bool, pause);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    namespace Kra = LibrePaint::ImportExport::Kra;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device, 128 * 1024 * 1024, 2);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setAutoSaveActive(false);
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Latest recovery")));
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("original.kra"));
+    QFile original(path);
+    QVERIFY(original.open(QIODevice::WriteOnly));
+    original.write("original file");
+    original.close();
+    document->setPath(path);
+    document->setLocalFilePath(path);
+    document->documentInfo()->setAboutInfo(QStringLiteral("title"), QStringLiteral("Before request"));
+    const auto layer = owner->operations().activeLayer();
+    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("112233ff")), Gpu::Result::Success);
+    const auto checkpointPath = Krita::Document::KisDocumentAutoSaveFiles::filePath(
+        path, document->objectName(), KisConfig(true).readEntry<bool>("autosavefileshidden"));
+    int messages = 0;
+    bool firstCheckpointInspected = false;
+    connect(document.data(), &KisDocument::statusBarMessage, this, [&](const QString &, int) {
+        if (++messages != 2) return;
+        QFile checkpoint(checkpointPath);
+        QVERIFY(checkpoint.open(QIODevice::ReadOnly));
+        const auto loaded = Kra::RasterCodec::read(checkpoint);
+        QCOMPARE(loaded.code, Kra::Status::Success);
+        const auto metadata = Kra::RasterCodec::readImageMetadata(loaded.document.description, loaded.document.files);
+        QCOMPARE(metadata.code, Kra::Status::Success);
+        QVERIFY(metadata.metadata.documentInfo.contains("Before request"));
+        QCOMPARE(loaded.document.image.layers.first().tiles.first().rgba.mid((5 * 256 + 5) * 4, 4),
+                 QByteArray::fromHex("112233ff"));
+        firstCheckpointInspected = true;
+    });
+    QSignalSpy finished(document.data(), &KisDocument::sigRecoveryAutoSaveFinished);
+    if (joinTimer) {
+        QVERIFY(QMetaObject::invokeMethod(document.data(), "slotAutoSave", Qt::DirectConnection));
+    }
+    QCOMPARE(document->requestRecoveryAutoSave(), joinTimer ? KisDocument::RecoveryAutoSaveStartResult::AlreadySaving :
+                                                            KisDocument::RecoveryAutoSaveStartResult::Started);
+    QVERIFY(finished.isEmpty());
+    QVERIFY(!QFileInfo::exists(checkpointPath));
+    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("445566ff")), Gpu::Result::Success);
+    document->documentInfo()->setAboutInfo(QStringLiteral("title"), QStringLiteral("After request"));
+    document->setModified(true);
+    if (pause) {
+        document->autoSaveOnPause();
+        QFile checkpoint(checkpointPath);
+        QVERIFY(checkpoint.open(QIODevice::ReadOnly));
+        const auto loaded = Kra::RasterCodec::read(checkpoint);
+        QCOMPARE(loaded.code, Kra::Status::Success);
+        QCOMPARE(loaded.document.image.layers.first().tiles.first().rgba.mid((5 * 256 + 5) * 4, 4),
+                 QByteArray::fromHex("445566ff"));
+    }
+    QTRY_COMPARE(finished.size(), 1);
+    QVERIFY(firstCheckpointInspected);
+    QVERIFY(finished[0][1].toBool());
+    QFile checkpoint(finished[0][0].toString());
+    QVERIFY(checkpoint.open(QIODevice::ReadOnly));
+    const auto loaded = Kra::RasterCodec::read(checkpoint);
+    QCOMPARE(loaded.code, Kra::Status::Success);
+    const auto metadata = Kra::RasterCodec::readImageMetadata(loaded.document.description, loaded.document.files);
+    QCOMPARE(metadata.code, Kra::Status::Success);
+    QVERIFY(metadata.metadata.documentInfo.contains("After request"));
+    const auto reopened = Gpu::PaintImageSP::create(execution, loaded.document.image);
+    QCOMPARE(reopened->readRgbaPixels(reopened->operations().activeLayer(), QRect(5, 5, 1, 1), 4).bytes,
+             QByteArray::fromHex("445566ff"));
+    QCOMPARE(document->requestRecoveryAutoSave(), KisDocument::RecoveryAutoSaveStartResult::NoChanges);
+    QCOMPARE(owner->operations().undoCount(), 2);
+    QVERIFY(document->isModified());
+    QCOMPARE(document->path(), path);
+}
+
+void KisDocumentReplaceTest::testGpuAutoSaveNotificationLifetimes_data()
+{
+    QTest::addColumn<bool>("recovery");
+    QTest::addColumn<int>("reaction");
+    QTest::newRow("timer-start-destruction") << false << 0;
+    QTest::newRow("timer-finish-destruction") << false << 1;
+    QTest::newRow("recovery-start-destruction") << true << 0;
+    QTest::newRow("recovery-finish-destruction") << true << 1;
+    QTest::newRow("recovery-image-replacement") << true << 2;
+    QTest::newRow("recovery-finish-image-replacement") << true << 3;
+    QTest::newRow("timer-failure-destruction") << false << 4;
+    QTest::newRow("timer-postponement-destruction") << false << 5;
+    QTest::newRow("recovery-close-pending-save") << true << 6;
+}
+
+void KisDocumentReplaceTest::testGpuAutoSaveNotificationLifetimes()
+{
+    QFETCH(bool, recovery);
+    QFETCH(int, reaction);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device, 128 * 1024 * 1024, 2);
+    const auto owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setAutoSaveActive(false);
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Lifetime recovery")));
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto path = directory.filePath(QStringLiteral("original.kra"));
+    QFile original(path);
+    QVERIFY(original.open(QIODevice::WriteOnly));
+    original.write("original file");
+    original.close();
+    document->setPath(path);
+    document->setLocalFilePath(path);
+    if (reaction == 4) {
+        QVERIFY(QDir().mkdir(Krita::Document::KisDocumentAutoSaveFiles::filePath(
+            path, document->objectName(), KisConfig(true).readEntry<bool>("autosavefileshidden"))));
+    }
+    const auto layer = owner->operations().activeLayer();
+    QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("112233ff")), Gpu::Result::Success);
+    if (reaction == 5) {
+        const auto stroke = owner->beginStroke(layer, Gpu::Brush{}, 11);
+        QVERIFY(!stroke.isNull());
+        QCOMPARE(owner->appendSamples(stroke, {{QPointF(10, 5), 1, 0, 0, 0, 1}}), Gpu::Result::Success);
+    }
+    Gpu::PaintImageSP replacement;
+    if (reaction == 2 || reaction == 3) replacement = Gpu::PaintImageSP::create(execution, QSize(16, 8));
+    int messages = 0;
+    connect(document.data(), &KisDocument::statusBarMessage, this, [&](const QString &, int) {
+        ++messages;
+        if ((reaction == 0 && messages == 1) ||
+            ((reaction == 1 || reaction == 4 || reaction == 5) && messages == 2)) document.reset();
+        if (reaction == 3 && messages == 2) {
+            document->setCurrentImage(KisImage::fromGpuImage(replacement, QStringLiteral("Replacement")));
+        }
+    });
+    QSignalSpy finished(document.data(), &KisDocument::sigRecoveryAutoSaveFinished);
+    if (recovery) {
+        const auto result = document->requestRecoveryAutoSave();
+        QCOMPARE(result, reaction == 0 ? KisDocument::RecoveryAutoSaveStartResult::Failed :
+                                        KisDocument::RecoveryAutoSaveStartResult::Started);
+    } else {
+        QVERIFY(QMetaObject::invokeMethod(document.data(), "slotAutoSave", Qt::DirectConnection));
+    }
+    if (reaction == 6) {
+        const auto checkpointPath = Krita::Document::KisDocumentAutoSaveFiles::filePath(
+            path, document->objectName(), KisConfig(true).readEntry<bool>("autosavefileshidden"));
+        QVERIFY(!QFileInfo::exists(checkpointPath));
+        document.reset();
+        QFile checkpoint(checkpointPath);
+        QVERIFY(checkpoint.open(QIODevice::ReadOnly));
+        QCOMPARE(LibrePaint::ImportExport::Kra::RasterCodec::read(checkpoint).code,
+                 LibrePaint::ImportExport::Kra::Status::Success);
+    }
+    if (reaction < 2 || reaction >= 4) {
+        QTRY_VERIFY(!document);
+        if (recovery && (reaction == 1 || reaction == 6)) {
+            QCOMPARE(finished.size(), 1);
+            QVERIFY(!finished[0][1].toBool());
+        } else {
+            QVERIFY(finished.isEmpty());
+        }
+    } else {
+        if (reaction == 2) document->setCurrentImage(KisImage::fromGpuImage(replacement, QStringLiteral("Replacement")));
+        QTRY_COMPARE(finished.size(), 1);
+        QVERIFY(!finished[0][1].toBool());
+        QVERIFY(!document->isModified());
+        QVERIFY(!document->isSaving());
+        QCOMPARE(messages, reaction == 2 ? 1 : 2);
+        QCOMPARE(replacement->replaceRgbaPixels(replacement->operations().activeLayer(), QRect(1, 1, 1, 1),
+                                               QByteArray::fromHex("aabbccff")), Gpu::Result::Success);
+        QCOMPARE(document->requestRecoveryAutoSave(), KisDocument::RecoveryAutoSaveStartResult::Started);
+        QTRY_COMPARE(finished.size(), 2);
+        QVERIFY(finished[1][1].toBool());
+    }
+    QCOMPARE(owner->readRgbaPixels(layer, QRect(5, 5, 1, 1), 4).bytes, QByteArray::fromHex("112233ff"));
 }
 
 void KisDocumentReplaceTest::testGpuReplacementKeepsReferencesAndRejectsCapacityBeforeMutation_data()
