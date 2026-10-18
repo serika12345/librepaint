@@ -937,6 +937,9 @@ nix build .#librepaint-android-x86_64
 共有ライブラリ間の`dynamic_cast`、`typeid`、例外捕捉を追加するときは、
 型情報の所有ライブラリを定め、`audit-android-cross-library-rtti.py`の監査対象に加える。
 仮想関数呼出しだけに使う型や、型判定が一つのライブラリ内で完結する型は監査対象外とする。
+ELF検査は見出しの出力を最後まで読み取り、検査器の終了状態とABIの一致を確認する。
+`scripts/tests/test_android_package_audit.py`は、見出しを分割して出力する検査器の正常終了、
+異なるABIの拒否と、見出し出力後の検査器の失敗を`verify-quick`で検査する。
 
 依存物だけの診断・キャッシュ準備には、`android-source-dependencies`、`qtbase-android`、
 `android-kf6`、`android-application-dependencies`、`android-dependencies`のNix出力を使う。

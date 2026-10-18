@@ -106,7 +106,8 @@ if [[ -n "$expected_platform_plugin" ]]; then
     fi
 fi
 while IFS= read -r -d '' library; do
-    "$readelf_tool" -h "$library" | grep -Fq "$expected_machine"
+    # Consume the full report so the inspector can finish writing.
+    "$readelf_tool" -h "$library" | grep -F "$expected_machine" > /dev/null
     if "$readelf_tool" -dW "$library" | grep -E 'Shared library: .*\[(libQt5|libKF5)' >&2; then
         echo "Android ELF depends on Qt 5 or KF5: $library" >&2
         exit 1
