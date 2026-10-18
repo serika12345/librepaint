@@ -40,19 +40,27 @@ struct PixelReadCompletion
     PixelReadbackOutcome outcome;
     qsizetype remaining = 0;
     bool transparencyOnly = false;
+    bool boundsOnly = false;
     std::mutex mutex;
 
     void complete(const Detail::ReadbackBatch::Result &read, const QList<qsizetype> &outputs)
     {
         std::lock_guard<std::mutex> guard(mutex);
-        const qsizetype expectedBytes = transparencyOnly ? sizeof(quint32) : TileRenderer::TileBytes;
+        const qsizetype expectedBytes = boundsOnly ? 4 * sizeof(qint32) :
+                                        transparencyOnly ? sizeof(quint32) : TileRenderer::TileBytes;
         if (read.data.size() != expectedBytes) {
             outcome.code = ExecutionCode::DeviceFailure;
             outcome.diagnostic = read.diagnostic.isEmpty() ?
-                (transparencyOnly ? QStringLiteral("GPU transparency readback did not return the complete value") :
+                (boundsOnly ? QStringLiteral("GPU bounds readback did not return the complete value") :
+                 transparencyOnly ? QStringLiteral("GPU transparency readback did not return the complete value") :
                                     QStringLiteral("GPU pixel readback did not return a complete tile")) : read.diagnostic;
         } else if (outcome.code == ExecutionCode::Success) {
-            if (transparencyOnly) {
+            if (boundsOnly) {
+                qint32 values[4];
+                std::memcpy(values, read.data.constData(), sizeof(values));
+                outcome.bounds = values[0] <= values[2] && values[1] <= values[3] ?
+                    QRect(QPoint(values[0], values[1]), QPoint(values[2], values[3])) : QRect();
+            } else if (transparencyOnly) {
                 quint32 value = 0;
                 std::memcpy(&value, read.data.constData(), sizeof(value));
                 outcome.containsTransparency = value != 0;
@@ -305,9 +313,55 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsync(DocumentHandle hand
 std::future<PixelReadbackOutcome> Execution::readTransparencyAsync(DocumentHandle handle, const Snapshot &pinned, QRect region)
 { return readPixelsAsyncImpl(handle, pinned, region, {}, true, PixelReadArea::Canvas, true); }
 
+PixelReadbackOutcome Execution::readBounds(DocumentHandle handle, const Snapshot &pinned, LayerId layer)
+{
+    if (!m_d->onThread()) return failure(ExecutionCode::InvalidRequest, QStringLiteral("Bounds read requires the GPU thread"));
+    constexpr int limit = RgbaTile::CoordinateLimit;
+    constexpr qsizetype capacity = 256 * 1024 * 1024;
+    const auto area = layer ? PixelReadArea::LayerCoordinates : PixelReadArea::Canvas;
+    const QList<LayerId> selected = layer ? QList<LayerId>{layer} : QList<LayerId>{};
+    auto outcome = readPixelsAsyncImpl(handle, pinned, {}, selected, !layer, area, false, true).get();
+    if (outcome.code != ExecutionCode::Success) return outcome;
+    outcome.region = layer ? QRect(-limit, -limit, 2 * limit, 2 * limit) : QRect(QPoint(), pinned->size);
+    QSet<quint64> coordinates;
+    const qsizetype columns = (pinned->size.width() + TileRenderer::TileSize - 1) / TileRenderer::TileSize;
+    const qsizetype rows = (pinned->size.height() + TileRenderer::TileSize - 1) / TileRenderer::TileSize;
+    if (!layer && qint64(pinned->size.width()) * pinned->size.height() * 4 > capacity)
+        return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Projection bounds pixel capacity exceeded"));
+    bool uniform = !layer && Detail::packedPixel(pinned->projectionBackground) != 0;
+    for (const auto &value : pinned->layers) {
+        if (layer ? value.id != layer : !value.visible) continue;
+        uniform |= !layer && Detail::packedPixel(value.defaultPixel) != 0;
+        const auto tiles = layerCoordinates(value, outcome.region, layer ? capacity / TileRenderer::TileBytes : columns * rows);
+        if (!tiles) return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Bounds tile coordinate capacity exceeded"));
+        for (const auto coordinate : *tiles) coordinates.insert(coordinate);
+    }
+    if (uniform) {
+        for (int y = 0; y < rows; ++y)
+            for (int x = 0; x < columns; ++x) coordinates.insert(Detail::key(x, y));
+    }
+    if (coordinates.isEmpty()) return outcome;
+    const auto retired = retireDisplayCaches();
+    if (retired.code != ExecutionCode::Success) return failure(retired.code, retired.diagnostic);
+    auto ordered = coordinates.values();
+    std::sort(ordered.begin(), ordered.end());
+    for (const auto coordinate : ordered) {
+        const QRect region(Detail::coordinate(coordinate) * TileRenderer::TileSize,
+                           QSize(TileRenderer::TileSize, TileRenderer::TileSize));
+        auto pending = readPixelsAsyncImpl(handle, pinned, region, selected, !layer, area, false, true);
+        if (pending.wait_for(std::chrono::seconds(0)) != std::future_status::ready && !m_d->device->finish())
+            return failure(ExecutionCode::DeviceFailure, QStringLiteral("GPU bounds completion failed"));
+        retireCompletedReadback();
+        const auto part = pending.get();
+        if (part.code != ExecutionCode::Success) return failure(part.code, part.diagnostic);
+        *outcome.bounds |= *part.bounds;
+    }
+    return outcome;
+}
+
 std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle handle, const Snapshot &pinned,
                                          QRect region, const QList<LayerId> &layers, bool includeProjection,
-                                         PixelReadArea area, bool transparencyOnly)
+                                         PixelReadArea area, bool transparencyOnly, bool boundsOnly)
 {
     const auto rejected = [](ExecutionCode code, const QString &diagnostic) {
         return readyReadback(failure(code, diagnostic));
@@ -346,6 +400,7 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
     outcome.generation = d.generation;
     outcome.region = area == PixelReadArea::Canvas ? region.intersected(QRect(QPoint(0, 0), pinned->size)) : region;
     if (transparencyOnly) outcome.containsTransparency = false;
+    if (boundsOnly) outcome.bounds = QRect();
     if (outcome.region.isEmpty() || (layers.isEmpty() && !includeProjection)) {
         outcome.code = ExecutionCode::Success;
         return readyReadback(std::move(outcome));
@@ -395,12 +450,21 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
         };
         bool withinLimit = true;
         Detail::NativeBuffer summary;
-        const quint64 transferBytes = transparencyOnly ? sizeof(quint32) : TileRenderer::TileBytes;
-        if (transparencyOnly) {
+        const quint64 transferBytes = boundsOnly ? 4 * sizeof(qint32) :
+                                      transparencyOnly ? sizeof(quint32) : TileRenderer::TileBytes;
+        if (boundsOnly || transparencyOnly) {
             withinLimit = d.maximumReadbackBytes >= qsizetype(transferBytes);
             if (withinLimit) {
-                summary = d.renderer->m_d->recordTransparency(frame.commands, projected, outcome.region);
-                if (!summary) throw std::runtime_error("The GPU transparency summary could not be recorded");
+                if (boundsOnly) {
+                    auto implicit = pinned->projectionBackground;
+                    if (!layers.isEmpty()) {
+                        for (const auto &layer : pinned->layers)
+                            if (layer.id == layers.first()) implicit = layer.defaultPixel;
+                    }
+                    summary = d.renderer->m_d->recordBounds(frame.commands,
+                        projected ? projected->tiles() : rendered->tiles(layers.first()), outcome.region, implicit);
+                } else summary = d.renderer->m_d->recordTransparency(frame.commands, projected, outcome.region);
+                if (!summary) throw std::runtime_error("The GPU pixel summary could not be recorded");
                 buffers.append(summary.get());
             }
         } else {
@@ -436,6 +500,7 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
             completion->outcome = std::move(outcome);
             completion->remaining = qsizetype(reads->results.size());
             completion->transparencyOnly = transparencyOnly;
+            completion->boundsOnly = boundsOnly;
             future = completion->result.get_future();
             for (qsizetype index = 0; size_t(index) < reads->results.size(); ++index) {
                 QList<qsizetype> outputs;

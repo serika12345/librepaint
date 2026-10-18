@@ -15,6 +15,8 @@ private Q_SLOTS:
     void initTestCase();
     void testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery_data();
     void testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery();
+    void testGpuBoundsUseOnlyScalarReadback_data();
+    void testGpuBoundsUseOnlyScalarReadback();
     void testLayerPropertiesPreservePublicHistorySemantics_data();
     void testLayerPropertiesPreservePublicHistorySemantics();
     void testGpuNodeNotificationKeepsReentrantPropertyWrites();

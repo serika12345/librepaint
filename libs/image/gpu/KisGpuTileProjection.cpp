@@ -4,10 +4,12 @@
  */
 
 #include "KisGpuTileStorage_p.h"
+#include "KisGpuPaintJob_p.h"
 #include <QFile>
 #include <QThread>
 #include <QSet>
 #include <algorithm>
+#include <limits>
 #include <vector>
 
 namespace LibrePaint::Image::Gpu {
@@ -88,6 +90,55 @@ Detail::NativeBuffer TileRenderer::Private::recordTransparency(WGPUCommandEncode
         wgpuComputePassEncoderSetPipeline(pass, transparencyPipeline.get());
         wgpuComputePassEncoderSetBindGroup(pass, 0, bindings.get(), 0, nullptr);
         wgpuComputePassEncoderDispatchWorkgroups(pass, TileSize / 8, TileSize / 8, 1);
+        wgpuComputePassEncoderEnd(pass);
+        wgpuComputePassEncoderRelease(pass);
+    }
+    return output;
+}
+
+Detail::NativeBuffer TileRenderer::Private::recordBounds(WGPUCommandEncoder commands,
+    const QList<TileView> &tiles, QRect region, const std::array<quint8, 4> &defaultPixel)
+{
+    const qint32 initial[] = {std::numeric_limits<qint32>::max(), std::numeric_limits<qint32>::max(),
+                              std::numeric_limits<qint32>::min(), std::numeric_limits<qint32>::min()};
+    auto output = createBuffer(device->nativeDevice(), sizeof(initial),
+                               WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
+    if (!output) return {};
+    wgpuQueueWriteBuffer(device->queue(), output.get(), 0, initial, sizeof(initial));
+    if (tiles.isEmpty()) return output;
+    if (!boundsPipeline) {
+        boundsPipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/bounds.wgsl"));
+        if (!boundsPipeline) return {};
+        boundsLayout.reset(wgpuComputePipelineGetBindGroupLayout(boundsPipeline.get(), 0));
+    }
+    if (!boundsLayout) return {};
+    for (const auto &tile : tiles) {
+        const auto origin = tile.coordinate * TileSize;
+        const auto local = region.intersected(QRect(origin, QSize(TileSize, TileSize))).translated(-origin);
+        if (local.isEmpty()) continue;
+        const quint32 values[] = {quint32(origin.x()), quint32(origin.y()), packedPixel(defaultPixel),
+                                  defaultPixel[3] ? 1u : 0u, quint32(local.left()), quint32(local.top()),
+                                  quint32(local.right() + 1), quint32(local.bottom() + 1)};
+        auto parameters = createBuffer(device->nativeDevice(), sizeof(values), WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
+        if (!parameters) return {};
+        wgpuQueueWriteBuffer(device->queue(), parameters.get(), 0, values, sizeof(values));
+        const WGPUBuffer buffers[] = {tile.pixels, output.get(), parameters.get()};
+        WGPUBindGroupEntry entries[3]{};
+        for (quint32 i = 0; i < 3; ++i) {
+            entries[i].binding = i;
+            entries[i].buffer = buffers[i];
+            entries[i].size = wgpuBufferGetSize(buffers[i]);
+        }
+        WGPUBindGroupDescriptor descriptor{};
+        descriptor.layout = boundsLayout.get();
+        descriptor.entryCount = 3;
+        descriptor.entries = entries;
+        NativeBindings bindings(wgpuDeviceCreateBindGroup(device->nativeDevice(), &descriptor));
+        if (!bindings || !device->diagnostic().isEmpty()) return {};
+        const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
+        wgpuComputePassEncoderSetPipeline(pass, boundsPipeline.get());
+        wgpuComputePassEncoderSetBindGroup(pass, 0, bindings.get(), 0, nullptr);
+        wgpuComputePassEncoderDispatchWorkgroups(pass, TileSize / 16, TileSize / 16, 1);
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
     }

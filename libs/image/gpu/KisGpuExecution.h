@@ -54,6 +54,7 @@ struct PixelReadbackOutcome
     QList<PixelTile> tiles;
     QString diagnostic;
     std::optional<bool> containsTransparency{};
+    std::optional<QRect> bounds{};
 };
 struct ImageReadbackOutcome
 {
@@ -144,6 +145,14 @@ public:
      * asynchronous completion, lifetime, and rejection follow readPixelsAsync().
      */
     std::future<PixelReadbackOutcome> readTransparencyAsync(DocumentHandle handle, const Snapshot &document, QRect region);
+    /** Exact nontransparent layer bounds, including off-canvas pixels. An opaque
+     * implicit pixel selects nondefault pixels instead; the caller supplies its
+     * default bounds. Layer zero measures the canvas-clipped projection.
+     * Streams one tile at a time, transfers sixteen bytes per summary, retains
+     * the version, and preserves requests and publication.
+     * Rejection and thread ownership follow readPixels().
+     */
+    PixelReadbackOutcome readBounds(DocumentHandle handle, const Snapshot &document, LayerId layer);
     /** Nonblocking callback processing; Busy denotes unfinished native reads. */
     ExecutionOutcome pollReadbacks();
 
@@ -186,7 +195,7 @@ private:
     ExecutionOutcome retireDisplayCaches();
     std::future<PixelReadbackOutcome> readPixelsAsyncImpl(DocumentHandle handle, const Snapshot &document,
                                    QRect region, const QList<LayerId> &layers, bool includeProjection,
-                                   PixelReadArea area, bool transparencyOnly);
+                                   PixelReadArea area, bool transparencyOnly, bool boundsOnly = false);
 };
 }
 #endif

@@ -29,6 +29,7 @@
 #include <brushengine/kis_paintop_registry.h>
 #include <brushengine/kis_paintop_settings.h>
 #include <memory>
+#include <exception>
 #include <algorithm>
 #include <QDataStream>
 #include <kundo2stack.h>
@@ -255,6 +256,66 @@ void TestNode::testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery()
         QCOMPARE(values.status(), QDataStream::Ok);
         QVERIFY(QFile::copy(saved, QDir(results).filePath(stem + QStringLiteral(".kra"))));
     }
+}
+
+void TestNode::testGpuBoundsUseOnlyScalarReadback_data()
+{
+    QTest::addColumn<bool>("opaqueDefault");
+    QTest::addColumn<bool>("visiblePixel");
+    QTest::addColumn<bool>("hiddenPixel");
+    QTest::newRow("transparent-default") << false << true << true;
+    QTest::newRow("transparent-empty") << false << false << false;
+    QTest::newRow("transparent-hidden-rgb") << false << false << true;
+    QTest::newRow("opaque-default") << true << true << true;
+    QTest::newRow("opaque-empty") << true << false << false;
+    QTest::newRow("opaque-hole") << true << false << true;
+}
+
+void TestNode::testGpuBoundsUseOnlyScalarReadback()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QFETCH(bool, opaqueDefault);
+    QFETCH(bool, visiblePixel);
+    QFETCH(bool, hiddenPixel);
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device, 8 * Gpu::TileRenderer::TileBytes, 1, 16);
+    Gpu::RasterImage input;
+    input.size = {64, 64};
+    input.layers = {{QStringLiteral("Bounds"), true, {}, {}}};
+    auto &layer = input.layers.first();
+    layer.defaultPixel = opaqueDefault ? std::array<quint8, 4>{7, 11, 19, 255} : std::array<quint8, 4>{};
+    QByteArray pixels(reinterpret_cast<const char*>(layer.defaultPixel.data()), 4);
+    pixels = pixels.repeated(Gpu::RgbaTile::Size * Gpu::RgbaTile::Size);
+    if (visiblePixel) pixels.replace((6 * 256 + 253) * 4, 4, QByteArray::fromHex("112233ff"));
+    if (hiddenPixel) pixels.replace((7 * 256 + 254) * 4, 4, QByteArray::fromHex("44556600"));
+    layer.tiles = {{{-1, 0}, pixels}};
+    const auto owner = Gpu::PaintImageSP::create(execution, input);
+    const auto image = KisImage::fromGpuImage(owner, QStringLiteral("Scalar bounds"));
+    QScopedPointer<Node> node(Node::createNode(image, image->root()->firstChild()));
+    QRect bounds;
+    try {
+        bounds = node->bounds();
+    } catch (const std::exception &error) {
+        QFAIL(qPrintable(QStringLiteral("Bounds exceeded the scalar transfer budget: ") + QString::fromUtf8(error.what())));
+    }
+    const QRect expected = opaqueDefault ?
+        (visiblePixel ? QRect(-3, 0, 67, 64) : hiddenPixel ? QRect(-2, 0, 66, 64) : QRect(0, 0, 64, 64)) :
+        (visiblePixel ? QRect(-3, 6, 1, 1) : QRect());
+    QCOMPARE(bounds, expected);
+    // Compare the public result with the existing device's exact pixel contract.
+    KisImageSP ordinary = new KisImage(nullptr, 64, 64, KoColorSpaceRegistry::instance()->rgb8(), QStringLiteral("Bounds reference"));
+    KisPaintLayerSP reference = new KisPaintLayer(ordinary, QStringLiteral("Bounds"), 255);
+    ordinary->addNode(reference);
+    const quint8 bgra[] = {layer.defaultPixel[2], layer.defaultPixel[1], layer.defaultPixel[0], layer.defaultPixel[3]};
+    reference->paintDevice()->setDefaultPixel(KoColor(bgra, ordinary->colorSpace()));
+    for (qsizetype i = 0; i < pixels.size(); i += 4) std::swap(pixels[i], pixels[i + 2]);
+    reference->paintDevice()->writeBytes(reinterpret_cast<const quint8*>(pixels.constData()), QRect(-256, 0, 256, 256));
+    QScopedPointer<Node> ordinaryNode(Node::createNode(ordinary, reference));
+    QCOMPARE(bounds, ordinaryNode->bounds());
+    QCOMPARE(owner->operations().undoCount(), 0);
+    QVERIFY(!owner->operations().isModified());
 }
 
 void TestNode::testLayerPropertiesPreservePublicHistorySemantics_data()

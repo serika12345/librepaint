@@ -35,9 +35,83 @@ private Q_SLOTS:
     void discardedAsynchronousReadsReleaseTheirNativeStorage();
     void projectionTransparencyUsesPinnedPixelsAndCanvasClipping();
     void transparencyResultsOutliveClosedDocumentsAndTheirDevice();
+    void boundsKeepFixedVersionsAndRejectWithoutChangingRequests();
+    void boundsStreamMoreTilesThanTheGpuCanRetain();
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPixelReadbackTest::boundsStreamMoreTilesThanTheGpuCanRetain()
+{
+    QByteArray pixels(RgbaTile::ByteCount, '\0');
+    pixels.replace((7 * 256 + 254) * 4, 4, QByteArray::fromHex("112233ff"));
+    RasterImage image;
+    image.size = {1024, 256};
+    image.layers = {{QStringLiteral("Sparse"), true, {},
+                    {{{-1, 0}, pixels}, {{0, 0}, pixels}, {{2, 0}, pixels}}}};
+    OperationDocument document(image);
+    Execution execution(m_device, TileRenderer::TileBytes, 1, 16);
+    const auto pinned = document.snapshot();
+    const auto handle = execution.open(pinned).handle;
+    const auto read = execution.readBounds(handle, pinned, pinned->layers.first().id);
+    QVERIFY2(read.code == ExecutionCode::Success, qPrintable(read.diagnostic));
+    QCOMPARE(read.bounds, std::optional<QRect>(QRect(-2, 7, 769, 1)));
+    const auto projection = execution.readBounds(handle, pinned, 0);
+    QVERIFY2(projection.code == ExecutionCode::Success, qPrintable(projection.diagnostic));
+    QCOMPARE(projection.bounds, std::optional<QRect>(QRect(254, 7, 513, 1)));
+    QVERIFY(read.tiles.isEmpty());
+    QVERIFY(projection.tiles.isEmpty());
+    QCOMPARE(execution.requested(handle), pinned);
+    QVERIFY(!execution.published(handle));
+}
+
+void KisGpuPixelReadbackTest::boundsKeepFixedVersionsAndRejectWithoutChangingRequests()
+{
+    RasterImage image;
+    image.size = {64, 64};
+    QByteArray pixels(RgbaTile::ByteCount, '\0');
+    pixels.replace((7 * 256 + 254) * 4, 4, QByteArray::fromHex("112233ff"));
+    image.layers = {{QStringLiteral("Hidden"), false, {}, {{{-1, 0}, pixels}}}};
+    OperationDocument document(image);
+    const auto pinned = document.snapshot();
+    const auto layer = pinned->layers.first().id;
+    Execution execution(m_device, 8 * TileRenderer::TileBytes, 1, 16);
+    const auto handle = execution.open(pinned).handle;
+    QCOMPARE(document.replaceTiles(layer, {{{-1, 0}, QByteArray(RgbaTile::ByteCount, '\0')}}), Result::Success);
+    const auto latest = document.snapshot();
+    QCOMPARE(execution.request(handle, latest).code, ExecutionCode::Success);
+    const auto read = execution.readBounds(handle, pinned, layer);
+    QVERIFY2(read.code == ExecutionCode::Success, qPrintable(read.diagnostic));
+    QCOMPARE(read.bounds, std::optional<QRect>(QRect(-2, 7, 1, 1)));
+    QVERIFY(read.tiles.isEmpty());
+    QCOMPARE(read.document, pinned);
+    QCOMPARE(execution.requested(handle), latest);
+    QVERIFY(!execution.published(handle));
+    const auto empty = execution.readBounds(handle, latest, layer);
+    QCOMPARE(empty.code, ExecutionCode::Success);
+    QCOMPARE(empty.bounds, std::optional<QRect>(QRect()));
+    QCOMPARE(execution.readBounds(handle, latest, 0).bounds, std::optional<QRect>(QRect()));
+    QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+    const auto busy = execution.readBounds(handle, pinned, layer);
+    QCOMPARE(busy.code, ExecutionCode::Busy);
+    QVERIFY(!busy.bounds);
+    QCOMPARE(execution.cancelFrame().code, ExecutionCode::Success);
+    OperationDocument foreign({64, 64});
+    const auto wrong = execution.readBounds(handle, foreign.snapshot(), layer);
+    QCOMPARE(wrong.code, ExecutionCode::InvalidRequest);
+    QVERIFY(!wrong.bounds);
+    Execution limited(m_device, 8 * TileRenderer::TileBytes, 1, 15);
+    const auto small = limited.open(pinned).handle;
+    const auto rejected = limited.readBounds(small, pinned, layer);
+    QCOMPARE(rejected.code, ExecutionCode::CapacityExceeded);
+    QVERIFY(!rejected.bounds);
+    QCOMPARE(limited.requested(small), pinned);
+    QVERIFY(!limited.published(small));
+    QCOMPARE(execution.requested(handle), latest);
+    QCOMPARE(execution.close(handle).code, ExecutionCode::Success);
+    QCOMPARE(execution.readBounds(handle, pinned, layer).code, ExecutionCode::InvalidRequest);
+    QCOMPARE(read.bounds, std::optional<QRect>(QRect(-2, 7, 1, 1)));
+}
 
 void KisGpuPixelReadbackTest::projectionTransparencyUsesPinnedPixelsAndCanvasClipping()
 {

@@ -1476,7 +1476,17 @@ QRect KisPaintDevice::exactBounds() const
     if (m_d->gpuImage) {
         const auto sequence = sequenceNumber();
         if (sequence != m_d->gpuBoundsSequence) {
-            m_d->gpuBounds = kisGpuPaintDeviceTransfer(m_d->gpuImage, m_d->gpuLayerId(), m_d->defaultBounds, m_d->gpuPixelVersion())->exactBounds();
+            const auto version = m_d->gpuPixelVersion();
+            auto layer = m_d->gpuLayerId();
+            if (!layer) layer = version->directProjectionLayer();
+            const auto result = m_d->gpuImage->execution().readBounds(m_d->gpuImage->handle(), version, layer);
+            if (result.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
+                throw std::runtime_error(result.diagnostic.toStdString());
+            auto bounds = result.bounds.value();
+            auto implicit = version->projectionBackground;
+            for (const auto &value : version->layers) if (value.id == layer) implicit = value.defaultPixel;
+            if (implicit[3]) bounds |= m_d->defaultBounds->bounds();
+            m_d->gpuBounds = bounds;
             m_d->gpuBoundsSequence = sequence;
         }
         return m_d->gpuBounds;
