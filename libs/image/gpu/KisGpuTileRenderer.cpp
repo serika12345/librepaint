@@ -425,7 +425,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                               operation.figureStyle.fill ? packedPixel(*operation.figureStyle.fill) : 0,
                               quint32(bool(operation.figureStyle.fill)) | (operation.figureStyle.outline ? 0u : 2u) |
                                   (operation.shape.windingFill ? 4u : 0u)};
-                job.output->mayContainHiddenRgb = operation.brush.alphaLocked ||
+                job.output->mayContainHiddenRgb = operation.brush.alphaLocked || operation.brush.erase ||
                     (job.input && job.input->mayContainHiddenRgb);
                 tiles[tile.key()] = job.output;
                 jobs.push_back(std::move(job));

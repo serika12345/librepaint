@@ -94,6 +94,9 @@ struct OverCompositor32 {
 
         }
 
+        // Transparent lanes preserve destination RGB just like scalar composition,
+        // even when another lane makes the vector take the opaque-copy path.
+        src_blend = xsimd::select(src_alpha == zeroValue, zeroValue, src_blend);
         if (!xsimd::all(src_blend == oneValue)) {
             KoStreamedMath<_impl>::template fetch_colors_32<true>(dst, dst_c1, dst_c2, dst_c3);
 

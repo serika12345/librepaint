@@ -114,6 +114,7 @@ HistoryAction OperationDocument::historyAction(int index) const
     if (index <= 0 || index >= m_history.size()) return HistoryAction::None;
     if (m_layerHistoryChanges[index].duplicatedLayers) return HistoryAction::DuplicateLayer;
     if (m_layerHistoryChanges[index].clearedLayers) return HistoryAction::ClearPixels;
+    if (m_layerHistoryChanges[index].filledLayer) return HistoryAction::FillLayer;
     switch (m_layerHistoryChanges[index].property) {
     case LayerProperty::Name: return HistoryAction::RenameLayer;
     case LayerProperty::Opacity: return HistoryAction::ChangeOpacity;
@@ -845,6 +846,25 @@ Result OperationDocument::clearLayers(const QList<LayerId> &layers)
     change.clearedLayers = true;
     commitVersion(version, change);
     return Result::Success;
+}
+
+Result OperationDocument::fillLayer(LayerId layer, const std::array<quint8, 3> &rgb,
+                                    quint8 opacity, bool erase, bool alphaLocked)
+{
+    Brush brush;
+    brush.rgba = {rgb[0], rgb[1], rgb[2], 255};
+    brush.opacity = opacity;
+    brush.erase = erase;
+    brush.alphaLocked = alphaLocked;
+    brush.channelWriteMask = alphaLocked ? 7 : 15;
+    FigureStyle style;
+    style.outline = false;
+    style.fill = brush.rgba;
+    const QPointF end(snapshot()->size.width(), snapshot()->size.height());
+    const auto result = paintFigure(layer, brush, {{{0, 0}, 1}, {end, 1}},
+                                    {ShapeKind::Rectangle, {0, 0}, end, 0}, style, 0);
+    if (result == Result::Success) m_layerHistoryChanges[m_index].filledLayer = true;
+    return result;
 }
 
 Result OperationDocument::removeLayers(const QList<LayerId> &layers, const QString &replacementName)

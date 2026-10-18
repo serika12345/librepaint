@@ -18,6 +18,7 @@
 #include <QGuiApplication>
 #include <QImage>
 #include <QSignalSpy>
+#include <QScopeGuard>
 #include <QTemporaryDir>
 #include <QTest>
 #include <quazip.h>
@@ -69,6 +70,8 @@ class KisGpuPaintDocumentTest : public QObject
 private Q_SLOTS:
     void initTestCase();
     void fixedEditsSaveReopenAndExportIdenticalResults();
+    void colorFillSavesReopensAndContinuesIdentically_data();
+    void colorFillSavesReopensAndContinuesIdentically();
     void curvedPathFillsSaveAndReopenAcrossInteriorTiles();
     void weightedSmoothingSaveReopenAndContinuePreservesPixels();
     void sharedExecutionOpenReturnsValidatedMetadataAndKeepsRetainedImagesAlive();
@@ -327,6 +330,141 @@ void KisGpuPaintDocumentTest::fixedEditsSaveReopenAndExportIdenticalResults()
         QVERIFY(QDir().mkpath(destination));
         for (auto result = results.cbegin(); result != results.cend(); ++result) {
             QFile output(QDir(destination).filePath(result.key()));
+            QVERIFY(output.open(QIODevice::WriteOnly));
+            QCOMPARE(output.write(result.value()), result.value().size());
+        }
+    }
+}
+
+void KisGpuPaintDocumentTest::colorFillSavesReopensAndContinuesIdentically_data()
+{
+    QTest::addColumn<quint8>("opacity");
+    QTest::addColumn<bool>("erase");
+    QTest::addColumn<bool>("alphaLocked");
+    QTest::addColumn<quint8>("channelMask");
+    QTest::addColumn<QByteArray>("blank");
+    QTest::addColumn<QByteArray>("covered");
+    QTest::newRow("opacity") << quint8(128) << false << false << quint8(15)
+        << QByteArray::fromHex("1181f180") << QByteArray::fromHex("225281ff");
+    QTest::newRow("alpha-lock") << quint8(255) << false << true << quint8(15)
+        << QByteArray::fromHex("1181f100") << QByteArray::fromHex("1181f1ff");
+    QTest::newRow("erase") << quint8(255) << true << false << quint8(15)
+        << QByteArray::fromHex("00000000") << QByteArray::fromHex("33221100");
+    QTest::newRow("channel-lock") << quint8(255) << false << false << quint8(14)
+        << QByteArray::fromHex("0081f1ff") << QByteArray::fromHex("3381f1ff");
+}
+
+void KisGpuPaintDocumentTest::colorFillSavesReopensAndContinuesIdentically()
+{
+    QFETCH(quint8, opacity);
+    QFETCH(bool, erase);
+    QFETCH(bool, alphaLocked);
+    QFETCH(quint8, channelMask);
+    QFETCH(QByteArray, blank);
+    QFETCH(QByteArray, covered);
+    QFile profile(QStringLiteral(":/gpu-paint-results/sRGB-elle-V2-srgbtrc.icc"));
+    QVERIFY(profile.open(QIODevice::ReadOnly));
+    Kra::ImageMetadata metadata;
+    metadata.resolution = {300, 150};
+    metadata.iccProfile = profile.readAll();
+    metadata.documentInfo = QByteArrayLiteral("<document-info><about><title>Color fill</title>"
+        "<creation-date>2000-01-01T00:00:00Z</creation-date><date>2000-01-02T00:00:00Z</date></about></document-info>");
+    const auto seed = QByteArray::fromHex("332211ff");
+    RasterImage initial;
+    initial.size = {32, 16};
+    initial.activeLayer = 1;
+    for (int index = 0; index < 2; ++index) {
+        RasterLayer layer;
+        layer.name = index == 0 ? QStringLiteral("Paint") : QStringLiteral("Other");
+        layer.uuid = QUuid(QStringLiteral("{11223344-5566-7788-99aa-%1}").arg(index + 1, 12, 10, QLatin1Char('0')));
+        layer.opacity = index == 0 ? 255 : 0;
+        layer.channelWriteMask = index == 0 ? channelMask : 15;
+        RgbaTile inside{{0, 0}, QByteArray(RgbaTile::ByteCount, '\0')};
+        RgbaTile outside{{-1, 0}, QByteArray(RgbaTile::ByteCount, '\0')};
+        for (const auto point : {QPoint(3, 5), QPoint(40, 20)})
+            std::memcpy(inside.rgba.data() + (point.y() * 256 + point.x()) * 4, seed.constData(), 4);
+        std::memcpy(outside.rgba.data() + (4 * 256 + 251) * 4, seed.constData(), 4);
+        layer.tiles = {inside, outside};
+        initial.layers.append(layer);
+    }
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    QMap<QString, QByteArray> reference;
+    const auto preserveFailure = qScopeGuard([&] {
+        if (!QTest::currentTestFailed()) return;
+        directory.setAutoRemove(false);
+        for (auto expected = reference.cbegin(); expected != reference.cend(); ++expected) {
+            QFile output(directory.filePath(QStringLiteral("expected-") + expected.key()));
+            if (output.open(QIODevice::WriteOnly)) output.write(expected.value());
+        }
+        qInfo() << "Color-fill KRA comparison artifacts:" << directory.path();
+    });
+    for (int repetition = 0; repetition < 2; ++repetition) {
+        Execution execution(m_device);
+        PaintDocument document(execution, initial);
+        QCOMPARE(document.setKraImageMetadata(metadata).code, FileCode::Success);
+        const auto image = document.image();
+        const auto layer = image->operations().snapshot()->layers[0].id;
+        const auto active = image->operations().activeLayer();
+        QCOMPARE(image->fillLayer(layer, {17, 129, 241}, opacity, erase, alphaLocked), Result::Success);
+        QCOMPARE(image->operations().undoCount(), 1);
+        QCOMPARE(image->operations().historyAction(1), HistoryAction::FillLayer);
+        QCOMPARE(image->operations().activeLayer(), active);
+        const auto checkPixels = [&](const PaintImageSP &target) {
+            const auto layers = target->operations().snapshot()->layers;
+            QCOMPARE(layers.size(), 2);
+            QCOMPARE(target->readRgbaPixels(layers[0].id, {8, 8, 1, 1}, 4).bytes, blank);
+            QCOMPARE(target->readRgbaPixels(layers[0].id, {3, 5, 1, 1}, 4).bytes, covered);
+            for (const auto point : {QPoint(-5, 4), QPoint(40, 20)})
+                QCOMPARE(target->readRgbaPixels(layers[0].id, QRect(point, QSize(1, 1)), 4).bytes, seed);
+            QCOMPARE(target->readRgbaPixels(layers[1].id, {3, 5, 1, 1}, 4).bytes, seed);
+            QCOMPARE(layers[0].channelWriteMask, channelMask);
+            QCOMPARE(layers[0].uuid, initial.layers[0].uuid);
+            QCOMPARE(layers[1].opacity, quint8(0));
+            QCOMPARE(target->operations().activeLayer(), layers[1].id);
+        };
+        checkPixels(image);
+        QCOMPARE(image->undo(), Result::Success);
+        QCOMPARE(image->readRgbaPixels(layer, {3, 5, 1, 1}, 4).bytes, seed);
+        QCOMPARE(image->redo(), Result::Success);
+        checkPixels(image);
+        const auto saved = directory.filePath(QStringLiteral("saved.kra"));
+        QCOMPARE(document.saveKra(saved).code, FileCode::Success);
+        auto opened = PaintDocument::openKra(execution, saved);
+        QVERIFY2(opened.code == FileCode::Success, qPrintable(opened.diagnostic));
+        const auto loaded = opened.document->image();
+        checkPixels(loaded);
+        const auto loadedMetadata = opened.document->kraImageMetadata();
+        QCOMPARE(loadedMetadata.code, Kra::Status::Success);
+        QCOMPARE(loadedMetadata.metadata.iccProfile, metadata.iccProfile);
+        QCOMPARE(loadedMetadata.metadata.documentInfo, metadata.documentInfo);
+        QCOMPARE(loadedMetadata.metadata.resolution, metadata.resolution);
+        const auto reopened = directory.filePath(QStringLiteral("reopened.kra"));
+        QCOMPARE(opened.document->exportKra(reopened).code, FileCode::Success);
+        QCOMPARE(fileBytes(reopened), fileBytes(saved));
+        for (const auto &target : {image, loaded})
+            QCOMPARE(target->fillLayer(target->operations().snapshot()->layers[0].id, {221, 17, 44}, 85), Result::Success);
+        QCOMPARE(loaded->undo(), Result::Success);
+        checkPixels(loaded);
+        QCOMPARE(loaded->redo(), Result::Success);
+        const auto edited = directory.filePath(QStringLiteral("edited.kra"));
+        const auto continuous = directory.filePath(QStringLiteral("continuous.kra"));
+        QCOMPARE(opened.document->saveKra(edited).code, FileCode::Success);
+        QCOMPARE(document.exportKra(continuous).code, FileCode::Success);
+        QCOMPARE(fileBytes(edited), fileBytes(continuous));
+        QMap<QString, QByteArray> actual{{QStringLiteral("saved.kra"), fileBytes(saved)},
+                                       {QStringLiteral("edited.kra"), fileBytes(edited)}};
+        QVERIFY(!actual.value(QStringLiteral("saved.kra")).isEmpty());
+        QVERIFY(actual.value(QStringLiteral("saved.kra")) != actual.value(QStringLiteral("edited.kra")));
+        if (repetition == 0) reference = actual;
+        else QCOMPARE(actual, reference);
+    }
+    const auto destination = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!destination.isEmpty()) {
+        const auto path = QDir(destination).filePath(QStringLiteral("color-fill-") + QString::fromLatin1(QTest::currentDataTag()));
+        QVERIFY(QDir().mkpath(path));
+        for (auto result = reference.cbegin(); result != reference.cend(); ++result) {
+            QFile output(QDir(path).filePath(result.key()));
             QVERIFY(output.open(QIODevice::WriteOnly));
             QCOMPARE(output.write(result.value()), result.value().size());
         }

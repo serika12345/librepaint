@@ -13,6 +13,8 @@
 #include "dialogs/kis_dlg_stroke_selection_properties.h"
 
 #include <QMimeData>
+#include <QPointer>
+#include <gpu/KisGpuPaintImage.h>
 
 #include <klocalizedstring.h>
 #include <kundo2command.h>
@@ -236,7 +238,7 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
     KisNodeSP node = view->activeNode();
     if (!node || !node->hasEditablePaintDevice()) return;
 
-    KisImageWSP image = view->image();
+    KisImageSP image = view->image();
 
     KisSelectionSP selection = view->selection();
 
@@ -246,6 +248,46 @@ void KisFillActionFactory::run(const QString &fillSource, KisViewManager *view)
         usePattern = true;
     } else if (fillSource.contains("bg")) {
         useBgColor = true;
+    }
+
+    if (const auto owner = image->gpuImage()) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        const QPointer<KisViewManager> lifetime(view);
+        const auto reject = [&](const QString &message) {
+            if (lifetime) lifetime->showFloatingMessage(message, QIcon(), 2000, KisFloatingMessage::Low);
+        };
+        if (selection || usePattern) {
+            reject(i18n("Selection and pattern fills are not yet available for this GPU document."));
+            return;
+        }
+        auto *resources = view->canvasResourceProvider();
+        const auto composite = resources->resourceManager()->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString();
+        if (composite != QLatin1String("normal") && composite != QLatin1String("erase")) {
+            reject(i18n("This blend mode is not yet available for this document."));
+            return;
+        }
+        const qreal opacity = fillSource.contains("opacity") ? resources->opacity() : 1;
+        if (!qIsFinite(opacity) || opacity < 0 || opacity > 1) {
+            reject(i18n("The fill opacity is invalid."));
+            return;
+        }
+        const auto color = (useBgColor ? resources->bgColor() : resources->fgColor()).toQColor();
+        const std::array<quint8, 3> rgb{quint8(color.red()), quint8(color.green()), quint8(color.blue())};
+        const bool erase = composite == QLatin1String("erase") || resources->eraserMode();
+        const bool alphaLocked = !resources->eraserMode() &&
+            resources->resourceManager()->resource(KoCanvasResource::GlobalAlphaLock).toBool();
+        Gpu::LayerId layer = 0;
+        for (const auto &candidate : owner->operations().snapshot()->layers)
+            if (candidate.uuid == node->uuid()) layer = candidate.id;
+        if (!layer || !view->blockUntilOperationsFinished(image)) return;
+        if (!lifetime || lifetime->image().data() != image.data() || image->gpuImage() != owner) return;
+        const auto result = owner->fillLayer(layer, rgb, quint8(qRound(255 * opacity)), erase, alphaLocked);
+        if (result != Gpu::Result::Success) {
+            reject(i18n("The GPU layer could not be filled."));
+            return;
+        }
+        if (lifetime) lifetime->canvasResourceProvider()->slotPainting();
+        return;
     }
 
     KisResourcesSnapshotSP resources =

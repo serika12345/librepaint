@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include <QApplication>
+#include <QBitArray>
 #include <QCheckBox>
 #include <QMouseEvent>
 #include <QDockWidget>
@@ -41,6 +42,7 @@
 #include <input/ui/kis_input_profile_manager.h>
 #include <gpu/KisGpuCanvasWindow.h>
 #include <KoToolManager.h>
+#include <KoCanvasResourcesIds.h>
 #include <KoToolBase.h>
 #include <KoColorSpaceRegistry.h>
 #include <document/KisDocument.h>
@@ -58,6 +60,7 @@
 #include <nodes/kis_node_filter_proxy_model.h>
 #include <kis_canvas2.h>
 #include <kundo2stack.h>
+#include <kundo2magicstring.h>
 #include <brushengine/kis_paintop_registry.h>
 #include <opengl/kis_opengl.h>
 #include <testui.h>
@@ -121,9 +124,252 @@ private Q_SLOTS:
     void layerPanelAddsAtSelectionWithOneHistoryEntry();
     void clearActionPreservesSelectedLayersAndHistory_data();
     void clearActionPreservesSelectedLayersAndHistory();
+    void colorFillActionsPreservePixelsHistoryAndSaving_data();
+    void colorFillActionsPreservePixelsHistoryAndSaving();
 private:
     KisPaintOpPresetSP m_preset;
 };
+
+void KisGpuDocumentViewTest::colorFillActionsPreservePixelsHistoryAndSaving_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<QString>("scenario");
+    QTest::addColumn<QByteArray>("blank");
+    QTest::addColumn<QByteArray>("covered");
+    struct Case { const char *name; const char *blank; const char *covered; };
+    const Case cases[] = {
+        {"foreground", "f18111ff", "f18111ff"},
+        {"background", "2c11ddff", "2c11ddff"},
+        {"foreground-opacity", "f1811180", "815222ff"},
+        {"background-opacity", "2c11dd80", "1f1988ff"},
+        {"half-alpha-opacity", "f1811180", "815222ff"},
+        {"alpha-lock", "f1811100", "f18111ff"},
+        {"layer-alpha-lock", "f1811100", "f18111ff"},
+        {"channel-lock", "f18100ff", "f18133ff"},
+        {"erase", "00000000", "11223300"},
+        {"zero-opacity", "00000000", "112233ff"}
+    };
+    for (const bool gpu : {false, true}) for (const auto &c : cases) {
+        const QByteArray name = QByteArray(gpu ? "gpu-" : "ordinary-") + c.name;
+        QTest::newRow(name.constData()) << gpu << QString::fromLatin1(c.name)
+            << QByteArray::fromHex(c.blank) << QByteArray::fromHex(c.covered);
+    }
+    for (const auto &scenario : {"reject-pattern", "reject-blend", "close-during-fill"}) {
+        const QByteArray name = QByteArray("gpu-") + scenario;
+        QTest::newRow(name.constData()) << true << QString::fromLatin1(scenario)
+            << QByteArray::fromHex("f18111ff") << QByteArray::fromHex("f18111ff");
+    }
+}
+
+void KisGpuDocumentViewTest::colorFillActionsPreservePixelsHistoryAndSaving()
+{
+    QFETCH(bool, gpu);
+    QFETCH(QString, scenario);
+    QFETCH(QByteArray, blank);
+    QFETCH(QByteArray, covered);
+    QSettings displaySettings(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) +
+                              QStringLiteral("/kritadisplayrc"), QSettings::IniFormat);
+    const bool hadRenderer = displaySettings.contains(QStringLiteral("OpenGLRenderer"));
+    const auto oldRenderer = displaySettings.value(QStringLiteral("OpenGLRenderer"));
+    const auto restoreCanvas = qScopeGuard([&] {
+        if (hadRenderer) displaySettings.setValue(QStringLiteral("OpenGLRenderer"), oldRenderer);
+        else displaySettings.remove(QStringLiteral("OpenGLRenderer"));
+        displaySettings.sync();
+    });
+    KisConfig(true).disableOpenGL();
+    namespace Gpu = LibrePaint::Image::Gpu;
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    Gpu::PaintImageSP owner;
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        QVERIFY(owner->addLayer(QStringLiteral("Other")));
+        document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Color fill")));
+    } else {
+        QVERIFY(document->newImage(QStringLiteral("Color fill"), 32, 16, cs,
+                                  KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 2, {}, 1));
+    }
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (window && lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    auto image = KisImageSP(lifetime->image());
+    auto target = image->root()->at(1);
+    auto other = image->root()->at(0);
+    other->setOpacity(0);
+    const auto seed = QByteArray::fromHex("112233ff");
+    const auto read = [](KisNodeSP node, QPoint point) {
+        QByteArray bytes(4, '\0');
+        node->paintDevice()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), point.x(), point.y(), 1, 1);
+        return bytes;
+    };
+    for (auto node : {target, other}) for (const auto &point : {QPoint(3, 5), QPoint(-5, 4), QPoint(40, 20)})
+        node->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(seed.constData()), point.x(), point.y(), 1, 1);
+    if (scenario == QLatin1String("layer-alpha-lock")) qobject_cast<KisPaintLayer *>(target.data())->setAlphaLocked(true);
+    if (scenario == QLatin1String("channel-lock")) {
+        QBitArray channels(4, true);
+        channels.setBit(2, false); // Public BGRA8 paint-device channels protect red.
+        qobject_cast<KisPaintLayer *>(target.data())->setChannelLockFlags(channels);
+    }
+    auto *manager = window->viewManager()->nodeManager();
+    manager->slotUiActivatedNode(target);
+    manager->slotSetSelectedNodes({other});
+    auto *resources = view->resourceProvider();
+    resources->setPaintOpPreset(m_preset);
+    resources->setFGColor(KoColor(QColor(17, 129, 241, scenario == QLatin1String("half-alpha-opacity") ? 128 : 255), cs));
+    resources->setBGColor(KoColor(QColor(221, 17, 44), cs));
+    const bool withOpacity = scenario.endsWith(QLatin1String("opacity"));
+    resources->setOpacity(scenario == QLatin1String("zero-opacity") ? 0 : qreal(withOpacity ? 128 : 64) / 255);
+    resources->setEraserMode(scenario == QLatin1String("erase"));
+    resources->setCurrentCompositeOp(QStringLiteral("normal"));
+    resources->resourceManager()->setResource(KoCanvasResource::GlobalAlphaLock,
+        scenario == QLatin1String("alpha-lock") || scenario == QLatin1String("erase"));
+    if (scenario == QLatin1String("reject-blend")) resources->setCurrentCompositeOp(QStringLiteral("multiply"));
+    const auto count = lifetime->undoStack()->count();
+    const auto index = lifetime->undoStack()->index();
+    if (owner) QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+    else lifetime->undoStack()->setClean();
+    const auto actionName = scenario == QLatin1String("reject-pattern") ? QStringLiteral("fill_selection_pattern") : QStringLiteral("fill_selection_") +
+        (scenario.startsWith(QLatin1String("background")) ? QStringLiteral("background_color") : QStringLiteral("foreground_color")) +
+        (withOpacity ? QStringLiteral("_opacity") : QString());
+    auto *action = window->viewManager()->actionManager()->actionByName(actionName);
+    QVERIFY(action);
+    QVERIFY(action->isEnabled());
+    const auto before = owner ? owner->operations().snapshot() : Gpu::Snapshot{};
+    QMetaObject::Connection close;
+    if (scenario == QLatin1String("close-during-fill")) {
+        close = connect(owner.data(), &Gpu::PaintImage::changed, window.get(), [&] {
+            QObject::disconnect(close);
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+            window.reset();
+        });
+    }
+    try { action->trigger(); } catch (const std::exception &error) { QFAIL(error.what()); }
+    if (scenario == QLatin1String("close-during-fill")) {
+        QVERIFY(!window);
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        QTRY_VERIFY(!lifetime);
+        QCOMPARE(owner->operations().undoCount(), count + 1);
+        QCOMPARE(read(target, {8, 8}), blank);
+        return;
+    }
+    if (scenario.startsWith(QLatin1String("reject-"))) {
+        QCOMPARE(owner->operations().snapshot(), before);
+        QCOMPARE(lifetime->undoStack()->count(), count);
+        QVERIFY(lifetime->undoStack()->isClean());
+        QCOMPARE(read(target, {8, 8}), QByteArray(4, '\0'));
+        QCOMPARE(read(target, {3, 5}), seed);
+        return;
+    }
+    resources->setFGColor(KoColor(Qt::green, cs));
+    resources->setBGColor(KoColor(Qt::yellow, cs));
+    resources->setOpacity(1);
+    image->waitForDone();
+    QTRY_COMPARE(lifetime->undoStack()->count(), count + 1);
+    QCOMPARE(lifetime->undoStack()->undoText(), kundo2_i18n("Flood Fill Layer").toString());
+    QCOMPARE(read(target, {8, 8}), blank);
+    QCOMPARE(read(target, {3, 5}), covered);
+    QCOMPARE(read(target, {-5, 4}), seed);
+    QCOMPARE(read(target, {40, 20}), seed);
+    QCOMPARE(read(other, {3, 5}), seed);
+    QCOMPARE(manager->activeNode(), target);
+    QCOMPARE(manager->selectedNodes(), KisNodeList{other});
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(lifetime->undoStack()->index(), index);
+    QCOMPARE(read(target, {8, 8}), QByteArray(4, '\0'));
+    QCOMPARE(read(target, {3, 5}), seed);
+    lifetime->undoStack()->redo();
+    image->waitForDone();
+    QCOMPARE(read(target, {8, 8}), blank);
+    QCOMPARE(read(target, {3, 5}), covered);
+    const QRect region(-8, -8, 64, 40);
+    QHash<QUuid, QByteArray> expectedLayers;
+    for (const auto &node : {target, other}) {
+        QByteArray bytes(region.width() * region.height() * 4, '\0');
+        node->paintDevice()->readBytes(reinterpret_cast<quint8 *>(bytes.data()), region.x(), region.y(), region.width(), region.height());
+        for (qsizetype i = 0; i < bytes.size(); i += 4) std::swap(bytes[i], bytes[i + 2]);
+        expectedLayers.insert(node->uuid(), bytes);
+    }
+    const auto projected = image->projection()->convertToQImage(nullptr, 0, 0, 32, 16).convertToFormat(QImage::Format_RGBA8888);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    lifetime->setFileBatchMode(true);
+    const auto path = directory.filePath(QStringLiteral("filled.kra"));
+    QVERIFY(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false));
+    lifetime->waitForSavingToComplete();
+    QVERIFY(lifetime->undoStack()->isClean());
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto loaded = LibrePaint::ImportExport::Kra::RasterCodec::read(file);
+    QVERIFY2(loaded.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(loaded.diagnostic));
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    Gpu::PaintImage reopened(execution, loaded.document.image);
+    QCOMPARE(reopened.operations().snapshot()->layers.size(), 2);
+    QByteArray canonical;
+    for (const auto &layer : reopened.operations().snapshot()->layers) {
+        QVERIFY(expectedLayers.contains(layer.uuid));
+        const auto pixels = reopened.readRgbaPixels(layer.id, region, region.width() * region.height() * 4);
+        QVERIFY2(pixels.code == Gpu::ExecutionCode::Success, qPrintable(pixels.diagnostic));
+        QCOMPARE(pixels.bytes, expectedLayers.value(layer.uuid));
+        canonical.append(pixels.bytes);
+    }
+    KisPropertiesConfigurationSP configuration(new KisPropertiesConfiguration);
+    configuration->setProperty("alpha", true);
+    configuration->setProperty("interlaced", false);
+    configuration->setProperty("compression", 3);
+    configuration->setProperty("saveSRGBProfile", true);
+    configuration->setProperty("forceSRGB", false);
+    configuration->setProperty("storeAuthor", false);
+    configuration->setProperty("storeMetaData", false);
+    const auto pngPath = directory.filePath(QStringLiteral("filled.png"));
+    QVERIFY2(lifetime->exportDocumentSync(pngPath, QByteArrayLiteral("image/png"), configuration), qPrintable(lifetime->errorMessage()));
+    const auto png = QImage(pngPath).convertToFormat(QImage::Format_RGBA8888);
+    QCOMPARE(png.size(), projected.size());
+    QCOMPARE(QByteArray::fromRawData(reinterpret_cast<const char *>(png.constBits()), png.sizeInBytes()),
+             QByteArray::fromRawData(reinterpret_cast<const char *>(projected.constBits()), projected.sizeInBytes()));
+    QByteArray expectedProjection(32 * 16 * 4, '\0');
+    const auto projectionPixel = [](QByteArray pixel) {
+        if (pixel[3] == 0) return QByteArray(4, '\0');
+        std::swap(pixel[0], pixel[2]);
+        return pixel;
+    };
+    const auto backgroundPixel = projectionPixel(blank);
+    for (qsizetype i = 0; i < expectedProjection.size(); i += 4)
+        std::copy(backgroundPixel.cbegin(), backgroundPixel.cend(), expectedProjection.begin() + i);
+    const auto coveredPixel = projectionPixel(covered);
+    std::copy(coveredPixel.cbegin(), coveredPixel.cend(), expectedProjection.begin() + (5 * 32 + 3) * 4);
+    QCOMPARE(QByteArray::fromRawData(reinterpret_cast<const char *>(png.constBits()), png.sizeInBytes()), expectedProjection);
+    const auto resultDirectory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!resultDirectory.isEmpty()) {
+        QVERIFY(QDir().mkpath(resultDirectory));
+        const auto stem = QDir(resultDirectory).filePath(QStringLiteral("fill-") + QString::fromLatin1(QTest::currentDataTag()));
+        QFile pixels(stem + QStringLiteral(".rgba"));
+        QVERIFY(pixels.open(QIODevice::WriteOnly));
+        QCOMPARE(pixels.write(canonical), canonical.size());
+        QFile exported(stem + QStringLiteral(".png.rgba"));
+        QVERIFY(exported.open(QIODevice::WriteOnly));
+        QCOMPARE(exported.write(reinterpret_cast<const char *>(png.constBits()), png.sizeInBytes()), png.sizeInBytes());
+        QVERIFY(QFile::copy(path, stem + QStringLiteral(".kra")));
+        QVERIFY(QFile::copy(pngPath, stem + QStringLiteral(".png")));
+    }
+}
 
 void KisGpuDocumentViewTest::clearActionPreservesSelectedLayersAndHistory_data()
 {

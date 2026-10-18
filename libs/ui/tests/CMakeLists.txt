@@ -1202,7 +1202,7 @@ add_test(NAME ${gpu_document_layer_test}
     COMMAND KisGpuDocumentViewTest ${gpu_document_layer_cases})
 set(gpu_document_pixel_test libs-ui-pixels-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_pixel_test}
-    COMMAND KisGpuDocumentViewTest clearActionPreservesSelectedLayersAndHistory)
+    COMMAND KisGpuDocumentViewTest clearActionPreservesSelectedLayersAndHistory colorFillActionsPreservePixelsHistoryAndSaving)
 set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test} ${gpu_document_pixel_test})
 add_dependencies(KisGpuDocumentViewTest
     kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop

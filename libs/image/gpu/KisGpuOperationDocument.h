@@ -265,7 +265,7 @@ enum class HistoryAction {
     None, AddLayer, RemoveLayer, MoveLayer, RenameLayer, ChangeOpacity,
     ChangeVisibility, ChangeLock, ChangeTimelinePin, PaintStroke, DrawLine,
     DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath,
-    ClearPixels
+    ClearPixels, FillLayer
 };
 
 struct Limits
@@ -396,6 +396,9 @@ public:
      * request must name distinct, available, unlocked layers.
      */
     Result clearLayers(const QList<LayerId> &layers);
+    /** Fills canvas bounds on one layer as one history step, preserving pixels outside them. */
+    Result fillLayer(LayerId layer, const std::array<quint8, 3> &rgb, quint8 opacity = 255,
+                     bool erase = false, bool alphaLocked = false);
     Result undo();
     Result redo();
     /** Selects one retained history state without executing intermediate edits. */
@@ -420,6 +423,7 @@ private:
         bool mergeable = false;
         bool duplicatedLayers = false;
         bool clearedLayers = false;
+        bool filledLayer = false;
     };
     std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
     LayerId insertVersion(const Snapshot &source, LayerId sourceLayer,

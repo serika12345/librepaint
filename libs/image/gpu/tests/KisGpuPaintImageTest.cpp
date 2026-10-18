@@ -20,6 +20,7 @@ class KisGpuPaintImageTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void colorFillKeepsVersionsHistoryAndWholeRequestFailures();
     void clearedLayersKeepFixedVersionsAndRejectWholeRequests();
     void clearHistoryKeepsItsMeaningAfterDirectWritesAndRecovery();
     void retainedLayerPixelsRemainEditableThroughRemovalAndDiscardedHistory();
@@ -42,6 +43,83 @@ private Q_SLOTS:
     void damagedPixelSharingRecoveryPreservesTheLiveImage();
     void historyNavigationPublishesOneVersionAndPreservesSavedState();
 };
+
+void KisGpuPaintImageTest::colorFillKeepsVersionsHistoryAndWholeRequestFailures()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    PaintImage image(execution, QSize(32, 16));
+    const auto layer = image.operations().activeLayer();
+    const auto other = image.addLayer(QStringLiteral("Other"));
+    QCOMPARE(image.selectLayers({other}, other), Result::Success);
+    const QRect outside(-4, 5, 1, 1);
+    const auto seed = QByteArray::fromHex("112233ff");
+    QCOMPARE(image.writeRgbaPixels(layer, outside, seed), Result::Success);
+    const auto fixed = image.operations().snapshot();
+    QCOMPARE(image.markSaved(fixed), Result::Success);
+    const auto count = image.operations().undoCount();
+    QSignalSpy changed(&image, &PaintImage::changed);
+    bool published = false;
+    connect(&image, &PaintImage::changed, this, [&] {
+        published = execution.requested(image.handle()) == image.operations().snapshot();
+    });
+    std::array<quint8, 3> rgb{17, 129, 241};
+    QCOMPARE(image.fillLayer(layer, rgb, 128), Result::Success);
+    rgb = {0, 255, 0};
+    QCOMPARE(changed.size(), 1);
+    QVERIFY(published);
+    QCOMPARE(image.operations().undoCount(), count + 1);
+    QCOMPARE(image.operations().historyAction(count + 1), HistoryAction::FillLayer);
+    QCOMPARE(image.operations().snapshot()->selectedLayers, fixed->selectedLayers);
+    QCOMPARE(image.operations().activeLayer(), other);
+    QCOMPARE(image.readRgbaPixels(layer, {8, 8, 1, 1}, 4).bytes, QByteArray::fromHex("1181f180"));
+    QCOMPARE(image.readRgbaPixels(layer, outside, 4).bytes, seed);
+    QCOMPARE(image.readRgbaPixels(other, {8, 8, 1, 1}, 4).bytes, QByteArray(4, '\0'));
+    QCOMPARE(execution.readRgbaPixels(image.handle(), fixed, {8, 8, 1, 1}, layer, 4).bytes, QByteArray(4, '\0'));
+    QCOMPARE(image.undo(), Result::Success);
+    QVERIFY(!image.operations().isModified());
+    const auto pending = image.beginStroke(layer, Brush{}, 42);
+    QCOMPARE(image.appendSamples(pending, {{{3, 4}, 1}}), Result::Success);
+    const auto preview = image.operations().preview();
+    const auto pendingRecovery = image.operations().recoveryData();
+    changed.clear();
+    QCOMPARE(image.fillLayer(layer, rgb), Result::EditInProgress);
+    QCOMPARE(image.operations().preview(), preview);
+    QCOMPARE(image.operations().recoveryData(), pendingRecovery);
+    QCOMPARE(changed.size(), 0);
+    QCOMPARE(image.cancelStroke(pending), Result::Success);
+    const auto redo = image.operations().recoveryData();
+    QCOMPARE(image.fillLayer(9999, rgb), Result::LayerUnavailable);
+    QCOMPARE(image.operations().recoveryData(), redo);
+    QCOMPARE(image.redo(), Result::Success);
+    QCOMPARE(image.readRgbaPixels(layer, {8, 8, 1, 1}, 4).bytes, QByteArray::fromHex("1181f180"));
+    QCOMPARE(image.writeRgbaPixels(layer, {3, 4, 1, 1}, seed), Result::Success);
+    PaintImage recovered(execution, QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(image.operations().recoveryData()), Result::Success);
+    QCOMPARE(recovered.operations().historyAction(count + 1), HistoryAction::FillLayer);
+    QCOMPARE(recovered.readRgbaPixels(layer, {3, 4, 1, 1}, 4).bytes, seed);
+    QCOMPARE(recovered.readRgbaPixels(layer, {8, 8, 1, 1}, 4).bytes, QByteArray::fromHex("1181f180"));
+    QCOMPARE(image.writeLayerLocked(layer, true), Result::Success);
+    const auto locked = image.operations().recoveryData();
+    changed.clear();
+    QCOMPARE(image.fillLayer(layer, rgb), Result::LayerUnavailable);
+    QCOMPARE(image.operations().recoveryData(), locked);
+    QCOMPARE(changed.size(), 0);
+    Limits limits;
+    limits.samplesPerStroke = 1;
+    PaintImage bounded(execution, QSize(32, 16), limits);
+    const auto before = bounded.operations().recoveryData();
+    QCOMPARE(bounded.fillLayer(bounded.operations().activeLayer(), rgb), Result::CapacityExceeded);
+    QCOMPARE(bounded.operations().recoveryData(), before);
+    auto closing = PaintImageSP::create(execution, QSize(32, 16));
+    const auto handle = closing->handle();
+    connect(closing.data(), &PaintImage::changed, this, [&] { closing.clear(); });
+    QCOMPARE(closing->fillLayer(closing->operations().activeLayer(), rgb), Result::Success);
+    QVERIFY(!closing);
+    QVERIFY(!execution.requested(handle));
+}
 
 void KisGpuPaintImageTest::clearHistoryKeepsItsMeaningAfterDirectWritesAndRecovery()
 {
