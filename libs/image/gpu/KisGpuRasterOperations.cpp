@@ -44,6 +44,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         layer.userLocked = source.userLocked;
         layer.pinnedToTimeline = source.pinnedToTimeline;
         layer.channelWriteMask = source.channelWriteMask;
+        layer.position = source.position;
         identities.insert(uuid);
         QSet<QPoint> coordinates;
         auto operation = QSharedPointer<TileWriteOperation>::create();

@@ -117,6 +117,7 @@ FileOutcome PaintDocument::writeKra(const QString &path, const Snapshot &version
         if (pixels.code != ExecutionCode::Success) return {fileCode(pixels.code), {}, pixels.diagnostic};
         if (pinned->activeLayer == layer.id) output.image.activeLayer = output.image.layers.size();
         RasterLayer saved{layer.name, layer.visible, layer.uuid, {}, layer.defaultPixel, layer.opacity, layer.userLocked, layer.pinnedToTimeline, layer.channelWriteMask};
+        saved.position = layer.position;
         for (const auto &tile : pixels.tiles) {
             saved.tiles.append({tile.coordinate, tile.rgba});
             rasterBytes += tile.rgba.size();

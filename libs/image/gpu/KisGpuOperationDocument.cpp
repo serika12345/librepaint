@@ -563,6 +563,7 @@ LayerId OperationDocument::insertVersion(const Snapshot &source, LayerId sourceL
     added.userLocked = properties.userLocked;
     added.pinnedToTimeline = properties.pinnedToTimeline;
     added.channelWriteMask = properties.channelWriteMask;
+    added.position = properties.position;
     nextOperation = m_nextOperation;
     copyLayerOperations(*found, added, m_identity, nextOperation);
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));

@@ -11,12 +11,69 @@
 #include <QSet>
 
 namespace LibrePaint::Image::Gpu::Test {
+// Version 23 record produced by insertedForeignLayersSharePixelsAndInputsWithAtomicHistory
+// at c8a2448b48. SHA-256: eabdadb389969d53b129f938d265db64dcf87011c6e4e77ca2854f73590acc44.
+inline QByteArray positionlessRecoveryV23()
+{
+    return QByteArray::fromHex(
+        "4c504f520017000000400000002000000000000000010000000000000002000000000000000200000000000000000000"
+        "0001000000000000000000000117789cedc3410d00000c03a1fa377dfb4e0424b495aaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaea"
+        "7b8fd61de300000002010000000000000001000000000000000000000000000000020000000100000000000000000000"
+        "00000000000000000000000000000200000000000000010000000000000002000000ff40240000000000003fb9999999"
+        "99999aff00000000000000002a0000000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000010000000002402000000000000040220000000000003ff0000000000000000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000004028000000000000402a0000000000003fe00000"
+        "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002"
+        "00000001000000000000000000000000000000000000000000000000000000010000000100000000000000010000000b"
+        "44657374696e6174696f6e013132333435363738393a3b3c3d3e3f4000000000ff000000000000000000000000000000"
+        "000000010000000000000001000000000000000200000002000000000000000200000008496e73657274656400212223"
+        "2425262728292a2b2c2d2e2f300c22384ead011000000002000000000000000100000000000000010000000b44657374"
+        "696e6174696f6e013132333435363738393a3b3c3d3e3f4000000000ff00000000000000ffffffff0000000000000000"
+        "4de040889bca17484aa9fb4d7dfa905528b871db3ce5cd2ebfb387bccd65cda6");
+}
+
 // Emits earlier records for the maintained legacy reader contracts.
 inline QByteArray legacyRecovery(const OperationDocument &document, quint8 format)
 {
     auto payload = document.recoveryData().chopped(32);
     auto versions = document.historyVersions();
     versions.append(document.preview());
+    if (format < 24) {
+        QSet<QByteArray> records;
+        for (const auto &version : versions) {
+            if (!version) continue;
+            for (const auto &layer : version->layers) {
+                Q_ASSERT(layer.position.isNull());
+                QByteArray record;
+                QDataStream stream(&record, QIODevice::WriteOnly);
+                stream.setVersion(QDataStream::Qt_5_15);
+                stream.setByteOrder(QDataStream::BigEndian);
+                const auto name = layer.name.toUtf8();
+                stream << layer.id << quint32(name.size());
+                stream.writeRawData(name.constData(), name.size());
+                stream << quint8(layer.visible) << layer.uuid;
+                for (const auto component : layer.defaultPixel) stream << component;
+                stream << layer.opacity << quint8(layer.userLocked)
+                       << quint8(quint8(layer.pinnedToTimeline) | ((15u ^ layer.channelWriteMask) << 1));
+                const auto positionOffset = record.size();
+                stream << qint32(0) << qint32(0);
+                if (records.contains(record)) continue;
+                records.insert(record);
+                qsizetype next = 0;
+                for (;;) {
+                    const auto found = payload.indexOf(record, next);
+                    if (found < 0) break;
+                    payload.remove(found + positionOffset, 8);
+                    next = found + positionOffset;
+                }
+            }
+        }
+    }
     QSet<QPair<quint64, quint64>> seen;
     for (const auto &version : versions) {
         if (!version) continue;

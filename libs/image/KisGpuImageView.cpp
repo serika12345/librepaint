@@ -35,7 +35,7 @@ bool KisImage::insertGpuLayer(KisNodeSP node, qsizetype index)
     auto *layer = qobject_cast<KisPaintLayer*>(node.data());
     if (!owner || !state || QThread::currentThread() != owner->thread() || !owner->handle() || owner->operations().hasActiveStroke() ||
         !layer || node->parent() || node->childCount() || index < 0 ||
-        layer->compositeOpId() != COMPOSITE_OVER || node->x() != 0 || node->y() != 0 ||
+        layer->compositeOpId() != COMPOSITE_OVER ||
         node->isAnimated() || !node->keyframeChannels().isEmpty() || layer->layerStyle() ||
         layer->temporary() || layer->hasTemporaryTarget() ||
         index > owner->operations().snapshot()->layers.size() ||
@@ -50,6 +50,7 @@ bool KisImage::insertGpuLayer(KisNodeSP node, qsizetype index)
     properties.opacity = node->opacity();
     properties.userLocked = node->userLocked();
     properties.pinnedToTimeline = node->isPinnedToTimeline();
+    properties.position = {node->x(), node->y()};
     const auto flags = layer->channelLockFlags();
     if (!flags.isEmpty()) {
         properties.channelWriteMask = 0;
@@ -82,7 +83,7 @@ bool KisImage::insertGpuLayer(KisNodeSP node, qsizetype index)
         // Pin full-resolution storage and read raw pixels independently of view modes.
         KisPaintDevice fixed(*pixels);
         fixed.setDefaultBounds(new KisDefaultBounds());
-        if (*fixed.colorSpace() != *colorSpace() || fixed.x() != 0 || fixed.y() != 0) return false;
+        if (*fixed.colorSpace() != *colorSpace()) return false;
         coordinates.clear();
         if (!collect(fixed.region())) return false;
         const auto fixedBackground = fixed.defaultPixel();

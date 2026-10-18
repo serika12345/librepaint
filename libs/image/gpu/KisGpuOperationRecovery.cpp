@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 23;
+constexpr quint16 FormatVersion = 24;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -173,12 +173,13 @@ QByteArray OperationDocument::recoveryData() const
         if (!withinLimit()) return {};
         for (const auto &layer : state->layers) {
             const auto name = layer.name.toUtf8();
-            if (name.size() > m_limits.recoveryBytes - DigestSize - bytes.size() - 40) return {};
+            if (name.size() > m_limits.recoveryBytes - DigestSize - bytes.size() - 48) return {};
             stream << layer.id << quint32(name.size());
             stream.writeRawData(name.constData(), int(name.size()));
             stream << quint8(layer.visible) << layer.uuid;
             for (const auto component : layer.defaultPixel) stream << component;
             stream << layer.opacity << quint8(layer.userLocked) << quint8(quint8(layer.pinnedToTimeline) | ((15u ^ layer.channelWriteMask) << 1));
+            stream << qint32(layer.position.x()) << qint32(layer.position.y());
             stream << quint32(layer.operations.size());
             if (!withinLimit() || layer.operations.size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 4) return {};
             for (const auto &operation : layer.operations) stream << indices.value(operationPointer(operation));
@@ -443,7 +444,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         if (state->revision() > nextRevision || state->m_modifiedRevision > state->revision() ||
             stateRevisions.contains(state->revision()) ||
             (i > 0 && state->m_modifiedRevision <= previousModifiedRevision) ||
-            !readableCount(stream, layerCount, m_limits.layerCount, 40)) return Result::InvalidRecovery;
+            !readableCount(stream, layerCount, m_limits.layerCount, format >= 24 ? 48 : 40)) return Result::InvalidRecovery;
         stateRevisions.insert(state->revision());
         previousRevision = qMax(previousRevision, state->revision());
         previousModifiedRevision = state->m_modifiedRevision;
@@ -462,6 +463,11 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
             stream >> visible >> layer.uuid;
             for (auto &component : layer.defaultPixel) stream >> component;
             stream >> layer.opacity >> locked >> pinned;
+            if (format >= 24) {
+                qint32 x = 0, y = 0;
+                stream >> x >> y;
+                layer.position = {x, y};
+            }
             stream >> count;
             if (visible > 1 || locked > 1 || pinned > (format < 13 ? 1 : 31) || layer.uuid.isNull() ||
                 (layerIdentities.contains(layer.id) && layerIdentities.value(layer.id) != layer.uuid) ||

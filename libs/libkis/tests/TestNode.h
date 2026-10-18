@@ -13,6 +13,8 @@ class TestNode : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
+    void testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery_data();
+    void testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery();
     void testLayerPropertiesPreservePublicHistorySemantics_data();
     void testLayerPropertiesPreservePublicHistorySemantics();
     void testGpuNodeNotificationKeepsReentrantPropertyWrites();

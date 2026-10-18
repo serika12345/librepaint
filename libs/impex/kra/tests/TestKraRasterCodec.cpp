@@ -582,11 +582,8 @@ void TestKraRasterCodec::offsetsAndDescriptionMetadataSurviveEditing()
     auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
     image.setAttribute(QStringLiteral("x-res"), QStringLiteral("144"));
     image.setAttribute(QStringLiteral("description"), QStringLiteral("Retained metadata"));
-    const auto layer = image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("layer"));
-    auto changed = layer;
-    changed.setAttribute(QStringLiteral("x"), QStringLiteral("17"));
-    changed.setAttribute(QStringLiteral("y"), QStringLiteral("-9"));
     source.description = xml.toByteArray();
+    source.image.layers[1].position = {17, -9};
     source.image.layers[1].name = QStringLiteral("Renamed");
     QByteArray saved;
     QBuffer destination(&saved);
@@ -595,6 +592,7 @@ void TestKraRasterCodec::offsetsAndDescriptionMetadataSurviveEditing()
     const auto result = load(saved);
     QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
     QCOMPARE(result.document.image.layers[1].name, QStringLiteral("Renamed"));
+    QCOMPARE(result.document.image.layers[1].position, QPoint(17, -9));
     QCOMPARE(rgbaAt(result.document.image.layers[1], {0, 0}), QByteArray::fromHex("0000ff80"));
     QCOMPARE(rgbaAt(result.document.image.layers[1], {255, 255}), QByteArray::fromHex("0000ff80"));
     QVERIFY(xml.setContent(result.document.description));

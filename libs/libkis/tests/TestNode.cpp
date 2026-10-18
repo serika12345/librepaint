@@ -42,6 +42,7 @@
 #include <KisRunnableStrokeJobData.h>
 #include <gpu/KisGpuPaintImage.h>
 #include <gpu/KisGpuExecution.h>
+#include <gpu/KisGpuPaintDocument.h>
 
 #include <KritaVersionWrapper.h>
 #include <Node.h>
@@ -133,6 +134,127 @@ void TestNode::initTestCase()
     preset->setImage(preview);
     KisResourceModel presets(ResourceType::PaintOpPresets);
     QVERIFY(presets.addResource(preset));
+}
+
+void TestNode::testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery_data()
+{
+    QTest::addColumn<QPoint>("position");
+    QTest::newRow("origin") << QPoint();
+    QTest::newRow("negative-x") << QPoint(-73, 19);
+    QTest::newRow("negative-y") << QPoint(17, -65);
+    QTest::newRow("tile-aligned") << QPoint(256, -256);
+}
+
+void TestNode::testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery()
+{
+    // A scripting consumer must retain the device position independently of
+    // the image-coordinate pixels when opening and resaving a moved layer.
+    QFETCH(QPoint, position);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    namespace Files = LibrePaint::Document::Gpu;
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QScopedPointer<KisDocument> original(KisPart::instance()->createDocument());
+    original->setFileBatchMode(true);
+    QVERIFY(original->newImage(QStringLiteral("Position source"), 64, 64, cs,
+                              KoColor(QColor(Qt::transparent), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    original->image()->root()->firstChild()->setUuid(QUuid(QStringLiteral("{61626364-6566-6768-696a-6b6c6d6e6f70}")));
+    Document originalApi(original.data(), false);
+    QScopedPointer<Node> source(Node::createNode(original->image(), original->image()->root()->firstChild()));
+    QVERIFY(source->setPixelData(QByteArray::fromHex("112233ff"), 5, 9, 1, 1));
+    QVERIFY(source->setPixelData(QByteArray::fromHex("55667700"), 8, 13, 1, 1));
+    source->move(position.x(), position.y());
+    QCOMPARE(source->position(), position);
+    const QRect region(position - QPoint(32, 32), QSize(96, 96));
+    const auto originalPixels = source->pixelData(region.x(), region.y(), region.width(), region.height());
+    const auto originalBounds = source->bounds();
+    const auto path = directory.filePath(QStringLiteral("source.kra"));
+    QVERIFY(originalApi.saveAs(path));
+
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    auto opened = Files::PaintDocument::openKra(execution, path);
+    QVERIFY2(opened.code == Files::FileCode::Success, qPrintable(opened.diagnostic));
+    const auto owner = opened.document->image();
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Imported position")));
+    Document apiDocument(document.data(), false);
+    QScopedPointer<Node> node(Node::createNode(document->image(), document->image()->root()->firstChild()));
+    QCOMPARE(node->position(), position);
+    QCOMPARE(node->bounds(), originalBounds);
+    QCOMPARE(node->pixelData(region.x(), region.y(), region.width(), region.height()), originalPixels);
+    QScopedPointer<Node> copy(node->clone());
+    QVERIFY(copy);
+    QCOMPARE(copy->position(), position);
+    QCOMPARE(copy->pixelData(region.x(), region.y(), region.width(), region.height()), originalPixels);
+    QScopedPointer<Node> foreignCopy(source->clone());
+    QScopedPointer<Node> root(Node::createNode(document->image(), document->image()->root()));
+    for (Node *candidate : {copy.data(), foreignCopy.data()}) {
+        QVERIFY(candidate);
+        QVERIFY2(root->addChildNode(candidate, nullptr), candidate == copy.data() ? "GPU copy insertion" : "CPU copy insertion");
+        QCOMPARE(candidate->position(), position);
+        QCOMPARE(candidate->pixelData(region.x(), region.y(), region.width(), region.height()), originalPixels);
+        QVERIFY(candidate->remove());
+        QCOMPARE(candidate->position(), position);
+        QCOMPARE(candidate->pixelData(region.x(), region.y(), region.width(), region.height()), originalPixels);
+    }
+    const auto pinned = owner->operations().snapshot();
+    const auto point = position + QPoint(14, 15);
+    QCOMPARE(owner->replaceRgbaPixels(owner->operations().activeLayer(), QRect(point, QSize(1, 1)),
+                                     QByteArray::fromHex("778899ff")), Gpu::Result::Success);
+    document->undoStack()->undo();
+    document->image()->waitForDone();
+    QCOMPARE(node->position(), position);
+    QCOMPARE(node->pixelData(region.x(), region.y(), region.width(), region.height()), originalPixels);
+    document->undoStack()->redo();
+    document->image()->waitForDone();
+    QCOMPARE(node->position(), position);
+    const auto edited = node->pixelData(region.x(), region.y(), region.width(), region.height());
+    QVERIFY(edited != originalPixels);
+
+    auto restored = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+    QCOMPARE(restored->restoreRecovery(owner->operations().recoveryData()), Gpu::Result::Success);
+    const auto recoveredView = KisImage::fromGpuImage(restored, QStringLiteral("Recovered position"));
+    QScopedPointer<Node> recovered(Node::createNode(recoveredView, recoveredView->root()->firstChild()));
+    QCOMPARE(recovered->position(), position);
+    QCOMPARE(recovered->pixelData(region.x(), region.y(), region.width(), region.height()), edited);
+
+    const auto saved = directory.filePath(QStringLiteral("resaved.kra"));
+    QVERIFY(apiDocument.saveAs(saved));
+    QScopedPointer<Document> reopened(Krita::instance()->openDocument(saved));
+    QVERIFY(reopened);
+    QScopedPointer<Node> loaded(reopened->nodeByUniqueID(node->uniqueId()));
+    QVERIFY(loaded);
+    QCOMPARE(loaded->position(), position);
+    QCOMPARE(loaded->pixelData(region.x(), region.y(), region.width(), region.height()), edited);
+    const auto fixed = directory.filePath(QStringLiteral("fixed.kra"));
+    QCOMPARE(opened.document->exportKra(fixed, pinned).code, Files::FileCode::Success);
+    auto fixedDocument = Files::PaintDocument::openKra(execution, fixed);
+    QVERIFY2(fixedDocument.code == Files::FileCode::Success, qPrintable(fixedDocument.diagnostic));
+    const auto fixedView = KisImage::fromGpuImage(fixedDocument.document->image(), QStringLiteral("Fixed position"));
+    QScopedPointer<Node> fixedNode(Node::createNode(fixedView, fixedView->root()->firstChild()));
+    QCOMPARE(fixedNode->position(), position);
+    QCOMPARE(fixedNode->pixelData(region.x(), region.y(), region.width(), region.height()), originalPixels);
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        const auto stem = QStringLiteral("position-%1-%2").arg(position.x()).arg(position.y());
+        QFile pixels(QDir(results).filePath(stem + QStringLiteral(".bgra")));
+        QVERIFY(pixels.open(QIODevice::WriteOnly));
+        QCOMPARE(pixels.write(edited), edited.size());
+        QFile state(QDir(results).filePath(stem + QStringLiteral(".state")));
+        QVERIFY(state.open(QIODevice::WriteOnly));
+        QDataStream values(&state);
+        values.setVersion(QDataStream::Qt_5_15);
+        values.setByteOrder(QDataStream::BigEndian);
+        values << qint32(node->position().x()) << qint32(node->position().y())
+               << node->bounds() << node->uniqueId();
+        QCOMPARE(values.status(), QDataStream::Ok);
+        QVERIFY(QFile::copy(saved, QDir(results).filePath(stem + QStringLiteral(".kra"))));
+    }
 }
 
 void TestNode::testLayerPropertiesPreservePublicHistorySemantics_data()

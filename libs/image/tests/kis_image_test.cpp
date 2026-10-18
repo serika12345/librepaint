@@ -235,7 +235,6 @@ void KisImageTest::testGpuInsertionRejectsUnrepresentedLayerState_data()
 {
     QTest::addColumn<int>("property");
     QTest::newRow("blend") << 0;
-    QTest::newRow("offset") << 1;
     QTest::newRow("animation") << 2;
     QTest::newRow("layer-style") << 3;
     QTest::newRow("composition-channels") << 4;
@@ -260,7 +259,6 @@ void KisImageTest::testGpuInsertionRejectsUnrepresentedLayerState()
     const auto bytes = QByteArray::fromHex("112233ff");
     pixels->writeBytes(reinterpret_cast<const quint8*>(bytes.constData()), 5, 7, 1, 1);
     if (property == 0) layer->setCompositeOpId(COMPOSITE_MULT);
-    if (property == 1) { layer->setX(3); layer->setY(-4); }
     if (property == 2) layer->enableAnimation();
     if (property == 3) {
         auto style = KisPSDLayerStyleSP::create();
@@ -287,7 +285,6 @@ void KisImageTest::testGpuInsertionRejectsUnrepresentedLayerState()
     QCOMPARE(layer->paintDevice(), pixels);
     QVERIFY(!layer->parent());
     if (property == 0) QCOMPARE(layer->compositeOpId(), QString(COMPOSITE_MULT));
-    if (property == 1) QCOMPARE(QPoint(layer->x(), layer->y()), QPoint(3, -4));
     if (property == 2) QVERIFY(layer->isAnimated());
     if (property == 3) QVERIFY(layer->layerStyle()->dropShadow()->effectEnabled());
     QCOMPARE(layer->channelFlags(), channels);

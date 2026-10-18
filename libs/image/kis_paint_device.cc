@@ -1427,13 +1427,23 @@ void KisPaintDevice::setY(qint32 y)
 
 qint32 KisPaintDevice::x() const
 {
-    if (m_d->gpuImage) return 0;
+    if (m_d->gpuImage) {
+        const auto version = m_d->gpuPixelVersion();
+        for (const auto &layer : version->layers)
+            if (layer.id == m_d->gpuLayerId()) return layer.position.x();
+        return 0;
+    }
     return m_d->x();
 }
 
 qint32 KisPaintDevice::y() const
 {
-    if (m_d->gpuImage) return 0;
+    if (m_d->gpuImage) {
+        const auto version = m_d->gpuPixelVersion();
+        for (const auto &layer : version->layers)
+            if (layer.id == m_d->gpuLayerId()) return layer.position.y();
+        return 0;
+    }
     return m_d->y();
 }
 

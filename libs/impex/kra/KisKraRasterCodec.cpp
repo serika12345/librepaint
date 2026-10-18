@@ -460,6 +460,7 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         result = layerDescription(element, offset);
         if (result.code != Status::Success) return fail(result);
         RasterLayer layer;
+        layer.position = offset;
         layer.name = element.attribute(QStringLiteral("name"));
         layer.visible = element.attribute(QStringLiteral("visible")) == QLatin1String("1");
         layer.opacity = quint8(element.attribute(QStringLiteral("opacity"), QStringLiteral("255")).toUInt());
@@ -577,8 +578,9 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
             element.setAttribute(QStringLiteral("y"), QStringLiteral("0"));
         }
         const auto path = folder + QStringLiteral("/layers/") + element.attribute(QStringLiteral("filename"));
-        const QPoint offset(element.attribute(QStringLiteral("x"), QStringLiteral("0")).toInt(),
-                            element.attribute(QStringLiteral("y"), QStringLiteral("0")).toInt());
+        const QPoint offset = layer.position;
+        element.setAttribute(QStringLiteral("x"), offset.x());
+        element.setAttribute(QStringLiteral("y"), offset.y());
         QByteArray pixels;
         result = Detail::writeTiles(layer.tiles, layer.defaultPixel, offset, limits.rasterBytes - rasterBytes, pixels);
         if (result.code != Status::Success) return result;

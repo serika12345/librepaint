@@ -24,7 +24,7 @@ qt6_add_resources(public_node_window_resources
     ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
     ../../../krita/pics/Breeze-light/breeze-light-icons.qrc)
 target_sources(TestNode PRIVATE ${public_node_window_resources})
-target_link_libraries(TestNode kritainputui)
+target_link_libraries(TestNode kritainputui kritadocumentpainting)
 set_tests_properties(libs-libkis-TestNode PROPERTIES RUN_SERIAL TRUE)
 if(APPLE AND NOT IOS)
     set_tests_properties(libs-libkis-TestNode PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=cocoa")

@@ -176,6 +176,8 @@ struct RasterLayer
     bool userLocked = false;
     bool pinnedToTimeline = false;
     quint8 channelWriteMask = 15;
+    /** Public device position; tile coordinates remain in image space. */
+    QPoint position{};
 };
 struct RasterImage
 {
@@ -198,6 +200,7 @@ struct Layer
     bool userLocked = false;
     bool pinnedToTimeline = false;
     quint8 channelWriteMask = 15;
+    QPoint position{};
 };
 
 /** Immutable logical document version; all layers are flat RGBA8/sRGB paint layers. */

@@ -71,6 +71,7 @@ private Q_SLOTS:
     void mergedOpacityResetPreservesSelectionAndDirectWrites();
     void previousPropertyRecoveryRemainsReadable_data();
     void previousPropertyRecoveryRemainsReadable();
+    void previousPositionlessRecoveryPreservesLayerEdits();
     void directLayerPropertiesPreserveOtherPropertyHistoryAndFixedVersions();
     void propertyRecoveryPreservesRecordedValuesAndRejectsDamagedChanges();
     void failedHistoryMovesPreserveEveryVersionAndCounter();
@@ -793,6 +794,34 @@ void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable_data()
     QTest::newRow("version-seventeen") << quint8(17) << false;
     QTest::newRow("version-eighteen") << quint8(18) << false;
     QTest::newRow("version-nineteen") << quint8(19) << false;
+    QTest::newRow("version-twenty") << quint8(20) << false;
+    QTest::newRow("version-twenty-one") << quint8(21) << false;
+    QTest::newRow("version-twenty-two") << quint8(22) << false;
+    QTest::newRow("version-twenty-three") << quint8(23) << false;
+}
+
+void KisGpuOperationDocumentTest::previousPositionlessRecoveryPreservesLayerEdits()
+{
+    OperationDocument document({1, 1});
+    QCOMPARE(document.restoreRecovery(LibrePaint::Image::Gpu::Test::positionlessRecoveryV23()), Result::Success);
+    const auto saved = document.snapshot();
+    QCOMPARE(saved->size, QSize(64, 32));
+    QCOMPARE(saved->layers.size(), 2);
+    QCOMPARE(saved->layers.first().name, QStringLiteral("Inserted"));
+    QCOMPARE(saved->layers.first().opacity, quint8(173));
+    QCOMPARE(saved->layers.first().channelWriteMask, quint8(7));
+    QVERIFY(saved->layers.first().userLocked);
+    QVERIFY(!saved->layers.first().visible);
+    QCOMPARE(saved->layers.first().operations.size(), 2);
+    const auto pixels = std::get<TileWriteSnapshot>(saved->layers.first().operations.first());
+    QCOMPARE(pixels->tiles.first()->rgba(), QByteArray::fromHex("ff0000ff").repeated(RgbaTile::ByteCount / 4));
+    for (const auto &version : document.historyVersions())
+        for (const auto &layer : version->layers) QCOMPARE(layer.position, QPoint());
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.size(), 1);
+    QCOMPARE(document.snapshot()->layers.first().name, QStringLiteral("Destination"));
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), saved);
 }
 
 void KisGpuOperationDocumentTest::previousPropertyRecoveryRemainsReadable()
