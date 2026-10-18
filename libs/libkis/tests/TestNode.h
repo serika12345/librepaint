@@ -51,6 +51,7 @@ private Q_SLOTS:
     void testThumbnail();
     void testGpuBoundsAndThumbnailMatchNativePixels_data();
     void testGpuBoundsAndThumbnailMatchNativePixels();
+    void testGpuThumbnailTransfersOnlyRequestedPixels();
     void testMergeDown();
     void testFindChildNodes();
 };

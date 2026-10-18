@@ -2050,8 +2050,27 @@ QImage KisPaintDevice::createThumbnailUncached(qint32 w, qint32 h, QRect rect, q
 
 QImage KisPaintDevice::createThumbnail(qint32 w, qint32 h, KisThumbnailBoundsMode boundsMode, qreal oversample, KoColorConversionTransformation::Intent renderingIntent, KoColorConversionTransformation::ConversionFlags conversionFlags)
 {
-    if (m_d->gpuImage)
-        return kisGpuPaintDeviceTransfer(m_d->gpuImage, m_d->gpuLayerId(), m_d->defaultBounds, m_d->gpuPixelVersion())->createThumbnail(w, h, boundsMode, oversample, renderingIntent, conversionFlags);
+    if (m_d->gpuImage) {
+        if (oversample != 1.)
+            return kisGpuPaintDeviceTransfer(m_d->gpuImage, m_d->gpuLayerId(), m_d->defaultBounds, m_d->gpuPixelVersion())->createThumbnail(w, h, boundsMode, oversample, renderingIntent, conversionFlags);
+        const auto version = m_d->gpuPixelVersion();
+        auto layer = m_d->gpuLayerId();
+        if (!layer) layer = version->directProjectionLayer();
+        const auto size = fixThumbnailSize(QSize(w, h));
+        if (size.isEmpty()) return QImage();
+        QRect bounds;
+        if (boundsMode == KisThumbnailBoundsMode::Precise) bounds = exactBounds();
+        else {
+            auto implicit = version->projectionBackground;
+            for (const auto &value : version->layers) if (value.id == layer) implicit = value.defaultPixel;
+            if (implicit[3]) bounds = m_d->defaultBounds->bounds();
+        }
+        const auto result = m_d->gpuImage->execution().readThumbnail(m_d->gpuImage->handle(), version, layer, bounds, size,
+            256 * 1024 * 1024, boundsMode == KisThumbnailBoundsMode::Coarse);
+        if (result.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
+            throw std::runtime_error(result.diagnostic.toStdString());
+        return result.image.convertToFormat(QImage::Format_ARGB32);
+    }
     QSize size = fixThumbnailSize(QSize(w, h));
 
     return m_d->cache()->createThumbnail(size.width(), size.height(), boundsMode, oversample, renderingIntent, conversionFlags);

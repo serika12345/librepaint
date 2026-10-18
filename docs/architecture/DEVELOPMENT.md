@@ -407,6 +407,16 @@ KRAの全ZIP項目は時刻1980年1月1日、作成OSの識別値3を要求す�
 GPU変更通知中の画面終了は、ツールの破棄と進行中操作の終了を検査する。
 同じツールを保持した通知中の取消しは、座標表示と次の方向キー操作を検査する。
 macOSのこの対象は非表示のQt基盤、Linuxは専用のX表示を利用する。
+`TestNode::testGpuThumbnailTransfersOnlyRequestedPixels`は、公開`Node.thumbnail()`と粗い範囲の
+画素デバイスAPIを、4096バイトの転送容量で取得する。負座標、透明画素のRGB、既存画像と
+同じ縮小結果、履歴と要求版の保持を検査する。
+`KisGpuDocumentViewTest::layerPanelThumbnailsReadOnlyReducedGpuPixels`は、同じ転送容量で実際の
+レイヤーパネルのモデルから画像を取得し、描画、Undoと履歴ドッカーの固定画像を照合する。
+`LIBREPAINT_GPU_RESULT_DIR`へ`public-thumbnail-{precise,coarse}`、`layer-thumbnail-{before,after}`と
+`history-thumbnail-fixed`の`.rgba`と`.png`を出力し、環境間でファイル全体を比較する。
+`KisGpuPixelReadbackTest`の縮小画像契約は、64バイト単位の分割転送、固定版と後続の画素変更、
+隠しレイヤー、投影の切出し、半透明の既定背景と保管境界の余白、読取り拒否と取消し、
+表示版による容量不足と解放後の再試行、デバイス終了後の返却画像を検査する。
 `kis_image_test`は、合成方式・合成チャンネル、アニメーション・効果と一時描画状態の
 挿入拒否が、元の画素・属性と文書履歴を保持することを検査する。ラップ表示中のCPU入力も、
 保管画素の位置と透明領域を保って取り込むことを検査する。

@@ -404,9 +404,47 @@ PixelReadbackOutcome Execution::readBounds(DocumentHandle handle, const Snapshot
     return outcome;
 }
 
+PixelReadbackOutcome Execution::readLayerTileExtent(DocumentHandle handle, const Snapshot &pinned, LayerId layer)
+{
+    auto outcome = readPixels(handle, pinned, {}, layer ? QList<LayerId>{layer} : QList<LayerId>{}, !layer);
+    if (outcome.code != ExecutionCode::Success) return outcome;
+    outcome.bounds = QRect();
+    if (!layer) {
+        bool nonempty = pinned->projectionBackground[3] != 0;
+        for (const auto &value : pinned->layers)
+            if (value.visible && (!value.operations.isEmpty() || value.defaultPixel[3])) nonempty = true;
+        // The image-returning projection boundary populates complete 64-pixel storage blocks.
+        if (nonempty) outcome.bounds = QRect(0, 0, ((pinned->size.width() + 63) / 64) * 64,
+                                             ((pinned->size.height() + 63) / 64) * 64);
+        return outcome;
+    }
+    constexpr int limit = RgbaTile::CoordinateLimit;
+    const auto selected = std::find_if(pinned->layers.cbegin(), pinned->layers.cend(),
+        [layer](const auto &value) { return value.id == layer; });
+    const auto coordinates = layerCoordinates(*selected, {-limit, -limit, 2 * limit, 2 * limit},
+                                              256 * 1024 * 1024 / TileRenderer::TileBytes);
+    if (!coordinates) return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Thumbnail source tile capacity exceeded"));
+    for (const auto tile : *coordinates) {
+        const QRect region(Detail::coordinate(tile) * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize));
+        auto part = readPixelsAsyncImpl(handle, pinned, region, {layer}, false, PixelReadArea::LayerCoordinates,
+                                       false, false, false, true).get();
+        if (part.code == ExecutionCode::CapacityExceeded) {
+            const auto retired = retireDisplayCaches();
+            if (retired.code != ExecutionCode::Success) return failure(retired.code, retired.diagnostic);
+            part = readPixelsAsyncImpl(handle, pinned, region, {layer}, false, PixelReadArea::LayerCoordinates,
+                                       false, false, false, true).get();
+        }
+        if (part.code != ExecutionCode::Success) return part;
+        if (!m_d->device->finish()) return failure(ExecutionCode::DeviceFailure, QStringLiteral("Thumbnail source completion failed"));
+        *outcome.bounds |= *part.bounds;
+    }
+    return outcome;
+}
+
 std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle handle, const Snapshot &pinned,
                                          QRect region, const QList<LayerId> &layers, bool includeProjection,
-                                         PixelReadArea area, bool transparencyOnly, bool boundsOnly, bool includeTransparentColors)
+                                         PixelReadArea area, bool transparencyOnly, bool boundsOnly, bool includeTransparentColors,
+                                         bool tileExtentOnly)
 {
     const auto rejected = [](ExecutionCode code, const QString &diagnostic) {
         return readyReadback(failure(code, diagnostic));
@@ -445,7 +483,7 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
     outcome.generation = d.generation;
     outcome.region = area == PixelReadArea::Canvas ? region.intersected(QRect(QPoint(0, 0), pinned->size)) : region;
     if (transparencyOnly) outcome.containsTransparency = false;
-    if (boundsOnly) outcome.bounds = QRect();
+    if (boundsOnly || tileExtentOnly) outcome.bounds = QRect();
     if (outcome.region.isEmpty() || (layers.isEmpty() && !includeProjection)) {
         outcome.code = ExecutionCode::Success;
         return readyReadback(std::move(outcome));
@@ -497,7 +535,13 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
         Detail::NativeBuffer summary;
         const quint64 transferBytes = boundsOnly ? 4 * sizeof(qint32) :
                                       transparencyOnly ? sizeof(quint32) : TileRenderer::TileBytes;
-        if (boundsOnly || transparencyOnly) {
+        if (tileExtentOnly) {
+            for (const auto layer : layers)
+                for (const auto &tile : rendered->tiles(layer)) {
+                    const QRect bounds(tile.coordinate * TileRenderer::TileSize, QSize(TileRenderer::TileSize, TileRenderer::TileSize));
+                    if (outcome.region.intersects(bounds)) *outcome.bounds |= bounds;
+                }
+        } else if (boundsOnly || transparencyOnly) {
             withinLimit = d.maximumReadbackBytes >= qsizetype(transferBytes);
             if (withinLimit) {
                 if (boundsOnly) {

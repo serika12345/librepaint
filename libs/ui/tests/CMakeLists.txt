@@ -1188,6 +1188,7 @@ set(gpu_document_input_cases
     ordinaryLayerChangesDuringInput
     lineToolPreservesPreviewCancellationAndHistory)
 set(gpu_document_layer_cases
+    layerPanelThumbnailsReadOnlyReducedGpuPixels
     layerPanelEditsUseOneDocumentHistory
     layerPanelReordersSelectionWithOneHistoryEntry
     layerPanelSelectionSurvivesSaving

@@ -1863,6 +1863,61 @@ void TestNode::testGpuBoundsAndThumbnailMatchNativePixels()
     QCOMPARE(gpuNode->thumbnail(12, 10), cpuNode->thumbnail(12, 10));
 }
 
+void TestNode::testGpuThumbnailTransfersOnlyRequestedPixels()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device, 8 * Gpu::TileRenderer::TileBytes, 1, 4096);
+    Gpu::RasterImage raster;
+    raster.size = {64, 32};
+    raster.layers = {{QStringLiteral("Thumbnail pixels"), true, {}, {}}};
+    KisImageSP reference = new KisImage(nullptr, 64, 32, KoColorSpaceRegistry::instance()->rgb8(), QStringLiteral("Reference"));
+    KisNodeSP referenceLayer = new KisPaintLayer(reference, QStringLiteral("Thumbnail pixels"), 255);
+    reference->addNode(referenceLayer);
+    for (int y = -1; y <= 0; ++y) for (int x = -1; x <= 0; ++x) {
+        QByteArray rgba(Gpu::RgbaTile::ByteCount, '\0');
+        const int px = x < 0 ? 255 : 0, py = y < 0 ? 255 : 0;
+        const auto color = x < 0 && y < 0 ? QByteArray::fromHex("12345600") : QByteArray::fromHex("316ac2c8");
+        rgba.replace((py * 256 + px) * 4, 4, color);
+        raster.layers.first().tiles.append({{x, y}, rgba});
+        auto bgra = rgba;
+        for (qsizetype i = 0; i < bgra.size(); i += 4) std::swap(bgra[i], bgra[i + 2]);
+        referenceLayer->paintDevice()->writeBytes(reinterpret_cast<const quint8*>(bgra.constData()), QRect(x * 256, y * 256, 256, 256));
+    }
+    const auto owner = Gpu::PaintImageSP::create(execution, raster);
+    const auto image = KisImage::fromGpuImage(owner, QStringLiteral("Bounded thumbnail"));
+    NodeSP actual(Node::createNode(image, image->root()->firstChild()));
+    NodeSP expected(Node::createNode(reference, referenceLayer));
+    const auto fixed = owner->operations().snapshot();
+    QImage thumbnail;
+    try {
+        thumbnail = actual->thumbnail(12, 10);
+        QCOMPARE(image->root()->firstChild()->paintDevice()->createThumbnail(12, 10, KisThumbnailBoundsMode::Coarse),
+                 referenceLayer->paintDevice()->createThumbnail(12, 10, KisThumbnailBoundsMode::Coarse));
+    } catch (const std::exception &error) {
+        QFAIL(qPrintable(QStringLiteral("Public thumbnail requested full-resolution pixel transfer: ") + QString::fromUtf8(error.what())));
+    }
+    QCOMPARE(thumbnail, expected->thumbnail(12, 10));
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        const QList<QPair<QString, QImage>> images{{QStringLiteral("public-thumbnail-precise"), thumbnail},
+            {QStringLiteral("public-thumbnail-coarse"), image->root()->firstChild()->paintDevice()->createThumbnail(12, 10, KisThumbnailBoundsMode::Coarse)}};
+        for (const auto &entry : images) {
+            const auto rgba = entry.second.convertToFormat(QImage::Format_RGBA8888);
+            QFile file(QDir(results).filePath(entry.first + QStringLiteral(".rgba")));
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            QCOMPARE(file.write(reinterpret_cast<const char*>(rgba.constBits()), rgba.sizeInBytes()), rgba.sizeInBytes());
+            QVERIFY(entry.second.save(QDir(results).filePath(entry.first + QStringLiteral(".png"))));
+        }
+    }
+    QCOMPARE(owner->operations().snapshot(), fixed);
+    QCOMPARE(owner->operations().undoCount(), 0);
+    QCOMPARE(execution.requested(owner->handle()), fixed);
+}
+
 void TestNode::testMergeDown()
 {
     KisImageSP image = new KisImage(0, 100, 100, KoColorSpaceRegistry::instance()->rgb8(), "test");

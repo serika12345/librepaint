@@ -182,6 +182,18 @@ public:
     ImageReadbackOutcome readProjectionImage(DocumentHandle handle, const Snapshot &document,
                                             qsizetype maximumBytes);
 
+    /** Nearest-sample thumbnail of a fixed layer or the canvas-clipped projection.
+     * Source pixels stay on the GPU. Only bounded chunks of the requested image
+     * are transferred. Upscaling retains the native thumbnail's transparent padding.
+     * Output and native working storage are bounded; rejection returns no image
+     * and preserves requests, publication and editing state.
+     * includeLayerTileExtent unions the source with retained tile bounds for
+     * coarse history previews, including implicit projection padding.
+     */
+    ImageReadbackOutcome readThumbnail(DocumentHandle handle, const Snapshot &document,
+                                      LayerId layer, QRect source, QSize size, qsizetype maximumBytes,
+                                      bool includeLayerTileExtent = false);
+
     /** Rebuilds accepted documents lazily on a new device; active frames reject replacement. */
     ExecutionOutcome replaceDevice(DevicePtr device);
     DevicePtr device() const;
@@ -195,10 +207,11 @@ private:
     ExecutionOutcome endFrame(bool publish, bool waitForReadback = true);
     void retireCompletedReadback();
     ExecutionOutcome retireDisplayCaches();
+    PixelReadbackOutcome readLayerTileExtent(DocumentHandle handle, const Snapshot &document, LayerId layer);
     std::future<PixelReadbackOutcome> readPixelsAsyncImpl(DocumentHandle handle, const Snapshot &document,
                                    QRect region, const QList<LayerId> &layers, bool includeProjection,
                                    PixelReadArea area, bool transparencyOnly, bool boundsOnly = false,
-                                   bool includeTransparentColors = false);
+                                   bool includeTransparentColors = false, bool tileExtentOnly = false);
 };
 }
 #endif

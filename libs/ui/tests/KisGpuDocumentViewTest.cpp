@@ -58,6 +58,7 @@
 #include <kis_tool_utils.h>
 #include <nodes/kis_node_manager.h>
 #include <nodes/kis_node_filter_proxy_model.h>
+#include <nodes/kis_node_model.h>
 #include <kis_canvas2.h>
 #include <kundo2stack.h>
 #include <kundo2magicstring.h>
@@ -106,6 +107,7 @@ private Q_SLOTS:
     void replacementUpdatesPresentationInputHistoryAndSaving();
     void layerPanelEditsUseOneDocumentHistory_data();
     void layerPanelEditsUseOneDocumentHistory();
+    void layerPanelThumbnailsReadOnlyReducedGpuPixels();
     void ordinaryLayerChangesDuringInput();
     void lineToolPreservesPreviewCancellationAndHistory_data();
     void lineToolPreservesPreviewCancellationAndHistory();
@@ -129,6 +131,100 @@ private Q_SLOTS:
 private:
     KisPaintOpPresetSP m_preset;
 };
+
+void KisGpuDocumentViewTest::layerPanelThumbnailsReadOnlyReducedGpuPixels()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device, 8 * Gpu::TileRenderer::TileBytes, 1, 4096);
+    QByteArray pixels(Gpu::RgbaTile::ByteCount, '\0');
+    for (qsizetype i = 0; i < pixels.size(); i += 4) pixels.replace(i, 4, QByteArray::fromHex("316ac2c8"));
+    Gpu::RasterImage raster;
+    raster.size = {256, 256};
+    raster.layers = {{QStringLiteral("Thumbnail"), true, {}, {{{0, 0}, pixels}}}};
+    const auto owner = Gpu::PaintImageSP::create(execution, raster);
+    const auto saved = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(saved), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Layer thumbnails")));
+    QSignalSpy windowReady(KisPart::instance(), &KisPart::sigMainWindowCreated);
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->viewManager()->canvasResourceProvider()->setPaintOpPreset(m_preset);
+    for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
+    window->show();
+    QTRY_VERIFY(!windowReady.isEmpty());
+    auto *panel = window->findChild<QDockWidget*>(QStringLiteral("KisLayerBox"));
+    QVERIFY(panel);
+    auto *tree = panel->findChild<QTreeView*>(QStringLiteral("listLayers"));
+    QVERIFY(tree);
+    auto *proxy = qobject_cast<KisNodeFilterProxyModel*>(tree->model());
+    QVERIFY(proxy);
+    auto *model = qobject_cast<KisNodeModel*>(proxy->sourceModel());
+    QVERIFY(model);
+    model->setPreferredThumnalSize(32);
+    const auto node = lifetime->image()->root()->firstChild();
+    QTRY_VERIFY(proxy->indexFromNode(node).isValid());
+    const auto thumbnail = [&] { return proxy->data(proxy->indexFromNode(node), int(KisNodeModel::BeginThumbnailRole) + 32).value<QImage>(); };
+    QSignalSpy changes(owner.data(), &Gpu::PaintImage::changed);
+    const auto before = thumbnail();
+    QCOMPARE(before.size(), QSize(32, 32));
+    QCOMPARE(before.pixelColor(16, 16), QColor(49, 106, 194, 200));
+    QCOMPARE(changes.size(), 0);
+    QCOMPARE(owner->operations().snapshot(), saved);
+    QCOMPARE(lifetime->undoStack()->count(), 0);
+    QCOMPARE(execution->beginReadbackFrame().code, Gpu::ExecutionCode::Success);
+    QCOMPARE(thumbnail(), before);
+    QCOMPARE(execution->cancelFrame().code, Gpu::ExecutionCode::Success);
+    Gpu::Brush brush;
+    brush.diameter = 9;
+    brush.rgba = {211, 39, 17, 255};
+    const auto stroke = owner->beginStroke(owner->operations().activeLayer(), brush, 17);
+    QCOMPARE(owner->appendSamples(stroke, {{{128.5, 128.5}, 1}}), Gpu::Result::Success);
+    QCOMPARE(owner->commitStroke(stroke), Gpu::Result::Success);
+    QTRY_COMPARE(thumbnail().pixelColor(16, 16), QColor(211, 39, 17, 255));
+    QCOMPARE(thumbnail().pixelColor(31, 31), QColor(49, 106, 194, 200));
+    QCOMPARE(lifetime->undoStack()->count(), 1);
+    auto *historyDock = window->findChild<QDockWidget*>(QStringLiteral("History"));
+    QVERIFY(historyDock);
+    auto *historyView = qobject_cast<QListView*>(historyDock->widget());
+    QVERIFY(historyView);
+    QImage historyImage;
+    QTRY_VERIFY(!(historyImage = historyView->model()->data(historyView->model()->index(1, 0), Qt::DecorationRole).value<QImage>()).isNull());
+    QCOMPARE(historyImage.pixelColor(historyImage.width() / 2, historyImage.height() / 2), QColor(211, 39, 17, 255));
+    const auto after = thumbnail();
+    lifetime->undoStack()->undo();
+    QTRY_COMPARE(thumbnail(), before);
+    QCOMPARE(lifetime->undoStack()->count(), 1);
+    QCOMPARE(historyView->model()->data(historyView->model()->index(1, 0), Qt::DecorationRole).value<QImage>(), historyImage);
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        const QList<QPair<QString, QImage>> images{{QStringLiteral("layer-thumbnail-before"), before},
+            {QStringLiteral("layer-thumbnail-after"), after}, {QStringLiteral("history-thumbnail-fixed"), historyImage}};
+        for (const auto &entry : images) {
+            const auto rgba = entry.second.convertToFormat(QImage::Format_RGBA8888);
+            QFile file(QDir(results).filePath(entry.first + QStringLiteral(".rgba")));
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            QCOMPARE(file.write(reinterpret_cast<const char*>(rgba.constBits()), rgba.sizeInBytes()), rgba.sizeInBytes());
+            QVERIFY(entry.second.save(QDir(results).filePath(entry.first + QStringLiteral(".png"))));
+        }
+    }
+}
 
 void KisGpuDocumentViewTest::colorFillActionsPreservePixelsHistoryAndSaving_data()
 {
