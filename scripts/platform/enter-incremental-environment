@@ -67,6 +67,21 @@ while IFS= read -r reference; do
     esac
 done < <(nix-store --query --requisites "$profile")
 
-exec nix develop "$profile" --command env \
+preserved_environment=()
+for environment_name in \
+    HOME USER LOGNAME TMPDIR TERM \
+    LIBREPAINT_CACHE_ROOT LIBREPAINT_WINDOWS_BUILD_ROOT \
+    LIBREPAINT_ANDROID_BUILD_DIR LIBREPAINT_ANDROID_REQUESTED_PROFILE \
+    LIBREPAINT_ANDROID_TEST_POLL_LIMIT CMAKE_BUILD_PARALLEL_LEVEL \
+    ANDROID_SERIAL ADB_SERVER_SOCKET \
+    http_proxy https_proxy all_proxy no_proxy \
+    HTTP_PROXY HTTPS_PROXY ALL_PROXY NO_PROXY; do
+    if [[ -v "$environment_name" ]]; then
+        preserved_environment+=(--keep "$environment_name")
+    fi
+done
+
+# The pinned profile owns compiler and dependency discovery; callers own task controls.
+exec nix develop "$profile" --ignore-environment "${preserved_environment[@]}" --command env \
     "$marker=1" \
     "$command_path" "$@"

@@ -87,6 +87,16 @@ iOS、Android、Windowsは依存定義ごとの環境を`build-ios/nix-profiles/
 `build/nix-profiles/`へ固定する。製品ソースの編集では同じ環境・Ninja木・キャッシュを再利用し、
 依存定義の変更では新しい構成指紋の木を使う。
 
+AndroidとWindowsの増分入口は、固定した環境がコンパイラー、依存物の探索先とQtの設定を
+供給する。呼出し元からはホーム・利用者名・一時保存先・端末、プロキシ、Androidの接続先と、
+明示した作業設定を引き継ぐ。作業設定は`LIBREPAINT_CACHE_ROOT`、
+`LIBREPAINT_WINDOWS_BUILD_ROOT`、`LIBREPAINT_ANDROID_BUILD_DIR`、
+`LIBREPAINT_ANDROID_REQUESTED_PROFILE`、`LIBREPAINT_ANDROID_TEST_POLL_LIMIT`と
+`CMAKE_BUILD_PARALLEL_LEVEL`で指定する。
+ホスト用の`Boost_DIR`や`Qt6WaylandClient_DIR`が既存のCMakeキャッシュへ保存されている場合は、
+対象のキャッシュ項目を取り除き、対応する固定環境で`configure`と`plan`を実行して探索結果と
+構築範囲を確認する。
+
 ### 実装前の構築範囲監査
 
 対象の実装、利用側、試験、CMake定義、対応Issueを読み、変更で守る結果を決める。
