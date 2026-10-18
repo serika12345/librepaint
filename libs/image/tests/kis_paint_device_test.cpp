@@ -9,6 +9,10 @@
 
 #include <QElapsedTimer>
 #include <QRandomGenerator>
+#include <QBuffer>
+#include <QDir>
+#include <QFile>
+#include <algorithm>
 
 #include <KoColor.h>
 #include <KoColorSpace.h>
@@ -46,6 +50,126 @@ public:
 
     KoStore *m_store;
 };
+
+namespace {
+class TileStreamWriter final : public KisPaintDeviceWriter
+{
+public:
+    bool write(const QByteArray &data) override { return write(data.constData(), data.size()); }
+    bool write(const char *data, qint64 length) override
+    {
+        if (writes++ == rejectAt) return false;
+        bytes.append(data, qsizetype(length));
+        return true;
+    }
+    QByteArray bytes;
+    int writes = 0;
+    int rejectAt = -1;
+};
+}
+
+void KisPaintDeviceTest::testSavingIgnoresTileCreationOrder()
+{
+    // KRA saves this stream through KisPaintDevice::write(). Fixed tile values
+    // include negative coordinates and transparent pixels with nonzero RGB.
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QVERIFY(cs);
+    QCOMPARE(cs->pixelSize(), 4U);
+    const quint8 defaultPixel[] = {5, 11, 19, 0};
+    const QRect region(-256, -256, 512, 512);
+    QList<QPoint> coordinates;
+    for (int y = -4; y < 4; ++y)
+        for (int x = -4; x < 4; ++x) coordinates.append({x, y});
+    QByteArray expectedPixels, expectedStream;
+    for (int order = 0; order < 3; ++order) {
+        if (order == 1) std::reverse(coordinates.begin(), coordinates.end());
+        if (order == 2) std::rotate(coordinates.begin(), coordinates.begin() + 17, coordinates.end());
+        KisPaintDeviceSP device = new KisPaintDevice(cs);
+        device->setDefaultPixel(KoColor(defaultPixel, cs));
+        for (const auto point : coordinates) {
+            const quint8 pixel[] = {quint8(point.x() + 20), quint8(point.y() + 40), 113,
+                                   quint8((point.x() + point.y()) % 2 ? 0 : 255)};
+            const auto tile = QByteArray(reinterpret_cast<const char *>(pixel), 4).repeated(64 * 64);
+            device->writeBytes(reinterpret_cast<const quint8 *>(tile.constData()), point.x() * 64, point.y() * 64, 64, 64);
+        }
+        QCOMPARE(device->extent(), region);
+        QByteArray pixels(region.width() * region.height() * 4, '\0');
+        device->readBytes(reinterpret_cast<quint8 *>(pixels.data()), region.x(), region.y(), region.width(), region.height());
+        if (order == 0) expectedPixels = pixels;
+        QCOMPARE(pixels, expectedPixels);
+        TileStreamWriter writer;
+        QVERIFY(device->write(writer));
+        if (order == 0) expectedStream = writer.bytes;
+        QCOMPARE(writer.bytes, expectedStream);
+        QBuffer input(&writer.bytes);
+        QVERIFY(input.open(QIODevice::ReadOnly));
+        KisPaintDeviceSP reopened = new KisPaintDevice(cs);
+        reopened->setDefaultPixel(KoColor(defaultPixel, cs));
+        QVERIFY(reopened->read(&input));
+        QCOMPARE(reopened->extent(), region);
+        QByteArray restored(pixels.size(), '\0');
+        reopened->readBytes(reinterpret_cast<quint8 *>(restored.data()), region.x(), region.y(), region.width(), region.height());
+        QCOMPARE(restored, expectedPixels);
+        TileStreamWriter savedAgain;
+        QVERIFY(reopened->write(savedAgain));
+        QCOMPARE(savedAgain.bytes, expectedStream);
+    }
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        QFile stream(QDir(results).filePath(QStringLiteral("cpu-ordered-tiles.bin")));
+        QVERIFY(stream.open(QIODevice::WriteOnly));
+        QCOMPARE(stream.write(expectedStream), expectedStream.size());
+        QFile pixels(QDir(results).filePath(QStringLiteral("cpu-ordered-tile-pixels.bgra")));
+        QVERIFY(pixels.open(QIODevice::WriteOnly));
+        QCOMPARE(pixels.write(expectedPixels), expectedPixels.size());
+    }
+}
+
+void KisPaintDeviceTest::testFailedSavingPreservesPixelsAndHistory_data()
+{
+    QTest::addColumn<int>("rejectAt");
+    QTest::newRow("stream-header") << 0;
+    QTest::newRow("tile-header") << 1;
+    QTest::newRow("tile-pixels") << 2;
+    QTest::newRow("following-tile") << 3;
+}
+
+void KisPaintDeviceTest::testFailedSavingPreservesPixelsAndHistory()
+{
+    QFETCH(int, rejectAt);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QVERIFY(cs);
+    QCOMPARE(cs->pixelSize(), 4U);
+    const quint8 defaultPixel[] = {5, 11, 19, 0};
+    KisPaintDeviceSP device = new KisPaintDevice(cs);
+    device->setDefaultPixel(KoColor(defaultPixel, cs));
+    const QRect region(-64, -64, 128, 64);
+    const auto original = QByteArray::fromHex("11223300").repeated(region.width() * region.height());
+    device->writeBytes(reinterpret_cast<const quint8 *>(original.constData()), region.x(), region.y(), region.width(), region.height());
+    KisTransaction transaction(device);
+    auto edited = original;
+    edited.replace(0, 4, QByteArray::fromHex("445566ff"));
+    device->writeBytes(reinterpret_cast<const quint8 *>(edited.constData()), region.x(), region.y(), region.width(), region.height());
+    QScopedPointer<KUndo2Command> command(transaction.endAndTake());
+    command->redo();
+    TileStreamWriter rejected;
+    rejected.rejectAt = rejectAt;
+    QVERIFY(!device->write(rejected));
+    QCOMPARE(rejected.writes, rejectAt + 1);
+    QCOMPARE(device->extent(), region);
+    QByteArray pixels(edited.size(), '\0');
+    device->readBytes(reinterpret_cast<quint8 *>(pixels.data()), region.x(), region.y(), region.width(), region.height());
+    QCOMPARE(pixels, edited);
+    command->undo();
+    device->readBytes(reinterpret_cast<quint8 *>(pixels.data()), region.x(), region.y(), region.width(), region.height());
+    QCOMPARE(pixels, original);
+    command->redo();
+    device->readBytes(reinterpret_cast<quint8 *>(pixels.data()), region.x(), region.y(), region.width(), region.height());
+    QCOMPARE(pixels, edited);
+    TileStreamWriter recovered;
+    QVERIFY(device->write(recovered));
+}
 
 void KisPaintDeviceTest::testCreation()
 {

@@ -48,6 +48,7 @@ bool KisTileCompressor2::writeTile(KisTileSP tile, KisPaintDeviceWriter &store)
     retval = store.write(header.toLatin1());
     if (!retval) {
         warnFile << "Failed to write the tile header";
+        return false;
     }
     retval = store.write(m_streamingBuffer.data(), bytesWritten);
     if (!retval) {
