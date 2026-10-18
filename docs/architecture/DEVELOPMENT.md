@@ -715,17 +715,18 @@ validation_layers="$(nix build --no-link --print-out-paths \
 
 `KisGpuInteractiveFrameBenchmark`は、250筆の背景を持つ2048×2048文書の
 512×512表示領域へ、筆圧の変化する入力を追加して処理時間を測る。
-対象を明示して構築し、macOSでは次のように実行する。
+対象を明示して構築し、macOSの画面外処理時間を次のように測る。
 
 ```sh
 ./scripts/run-shared-test-env ./scripts/build-incremental native build KisGpuInteractiveFrameBenchmark
-./scripts/run-shared-test-env env QT_QPA_PLATFORM=cocoa \
+./scripts/run-shared-test-env env QT_QPA_PLATFORM=offscreen \
   build/tdd-macos/bin/KisGpuInteractiveFrameBenchmark.app/Contents/MacOS/KisGpuInteractiveFrameBenchmark \
-  --output gpu-frame.json --maximum-p95-ms 8.3
+  --offscreen --output gpu-frame.json --maximum-p95-ms 8.3
 ```
 
-Linuxでは対応する実行ファイル`build/tdd-linux/bin/KisGpuInteractiveFrameBenchmark`を
-`QT_QPA_PLATFORM=xcb`で実行する。既定値は予備32フレームと測定240フレームで、
+Linuxでは対応する実行ファイル`build/tdd-linux/bin/KisGpuInteractiveFrameBenchmark`を使う。
+画面外は`QT_QPA_PLATFORM=offscreen`、ウィンドウ提示は`QT_QPA_PLATFORM=xcb`で実行する。
+既定値は予備32フレームと測定240フレームで、
 `--warmup`、`--frames`、`--history-strokes`で変更できる。
 JSONには実際のGPU、表示面の画素数、CPUの入力処理から描画送信までの各測定値、
 入力受付、表示面の取得、描画記録、送信の各区間、
@@ -733,6 +734,11 @@ CPU側のP95、タイル保持量と最終合成画像のSHA-256を記録する�
 GPU時間の欠測は`completedGpuMs`の空配列と`gpuP95Ms`の`null`で表し、
 ウィンドウ表示の上限判定では検証不足として扱う。
 同じ設定の改善前後では最終画像の照合値を一致させる。
+
+`deviceName`、`deviceType`と`backend`は描画に使用したアダプターから取得する。
+性能比較は、これらの値と実機のGPU構成を照合してから行う。LinuxのNVIDIA GPUでは、
+診断用の実行中に`nvidia-smi pmon -c 1`で測定プロセスのPIDとGPU上の処理を照合する。
+外部監視を伴う実行は、監視負荷を含む診断として通常の性能測定と分けて記録する。
 
 表示面は垂直同期に従って提示し、イベント処理と最終画像の読取りを測定区間の外へ置く。
 表示面取得の待ち時間も記録して比較する。
@@ -748,29 +754,48 @@ JSONの`target`は`window`または`texture`を記録し、Qtが報告する表�
 
 ### 時間を固定した連続入力と高負荷の測定
 
-描画速度は120Hzを目標、90Hz前後を受入れの下限とする。処理のフレーム予算は
-目標約8.3ms、下限約11.1msとして評価する。実表示までの遅延と入力保持も併せて検証する。
+小負荷の描画速度は120fpsを目標、90fps前後を受入れの下限とし、処理のフレーム予算を
+目標約8.3ms、下限約11.1msとして評価する。高負荷は60fpsを目標とし、
+240Hzの入力と60Hzの送信条件で、処理時間のP95と1フレーム約16.67ms
+（1,000/60ms）の目標との差を記録する。高負荷の60fpsは改善目標として扱い、
+機能移行の完了判定とは分けて評価する。実表示までの遅延と入力保持も併せて検証する。
 
 `KisGpuInteractiveFrameBenchmark --input-hz 240`は、入力標本の予定時刻と表示の予定時刻を
 独立に進める。予備2秒・測定10秒の全2,880標本を保持し、表示が遅れた場合も
 確定前に残りを受理・描画する。`--display-hz`は送信の予定周波数で、画面の実測更新周波数は
 `displayRefreshRateHz`へ別に記録する。
+描画完了時に次の期限が到来済みなら、最新の描画要求を一つ保持して処理を続ける。
+それ以前の要求は集約し、期限前の待機は入力と描画の次の予定時刻から決める。
+描画中に到来した期限の数は`missedScheduledFrames`へ計上し、処理の再開と独立して保持する。
 
 `--high-load`は4096×4096文書、24レイヤー、直径512の円形ブラシ、中央1024×1024の
 占有領域を使用する。占有領域は固定したRGBA8チェックポイントから初期化し、
 初期転送を測定時間の外へ置く。GPUタイル予算は512MiB。小負荷条件は従来の
 2048×2048文書と直径16のブラシを使う。両条件の背景筆跡は`--history-strokes`で固定する。
 
+画面外の高負荷測定は次の条件で実行する。
+
 ```sh
-./scripts/run-shared-test-env env QT_QPA_PLATFORM=cocoa \
+./scripts/run-shared-test-env env QT_QPA_PLATFORM=offscreen \
   build/tdd-macos/bin/KisGpuInteractiveFrameBenchmark.app/Contents/MacOS/KisGpuInteractiveFrameBenchmark \
-  --high-load --input-hz 240 --display-hz 120 --warmup-seconds 2 --duration-seconds 10 \
-  --output high-load-120.json
+  --offscreen --high-load --input-hz 240 --display-hz 60 --warmup-seconds 2 --duration-seconds 10 \
+  --maximum-p95-ms 16.666667 --output high-load-60.json
 ```
 
-同じ条件を3回の独立起動で測り、60Hz条件は`--display-hz 60`で実行する。
-`--high-load`を外すと小負荷条件になる。`--offscreen --maximum-p95-ms 8.3`はGPU完了待ちを
-含む処理時間のP95を検査し、超過時に終了値2を返す。GPUの時刻を計測しない画面提示では、同じ上限指定は検証不足として終了値2を返す。
+同じ条件を3回の独立起動で測る。小負荷は`--high-load`を外し、
+`--display-hz 120 --maximum-p95-ms 8.3`で実行する。小負荷の60Hz条件と高負荷の
+120Hz条件は比較用に記録する。`--offscreen`を加えるとGPU完了待ちを含む処理時間の
+P95を指定した上限で検査し、超過時に終了値2を返す。GPUの時刻を計測しない画面提示では、
+同じ上限指定は検証不足として終了値2を返す。
+
+環境間の速度比較では、CPUとGPUの型、GPUの接続、ドライバー、構築設定と描画領域を記録する。
+実時間入力では処理速度に応じて一フレームの入力数が変わるため、最終画像の一致と
+フレームごとの仕事量をそれぞれ確認する。処理能力の切分けには実時間指定を外し、
+`--warmup 120 --frames 600`で同じ入力列を連続実行する。連続実行と間隔付きの実行は、
+GPUの動作周波数と性能状態への応答も含めて比較する。CPUの送信区間は
+`wgpuCommandEncoderFinish`、`wgpuQueueSubmit`と`wgpuDevicePoll`に分け、
+経過時間とCPU実行時間を区別する。監視、追加の休止とAPI追跡を伴う条件は診断として記録し、
+通常設定の性能受入れは元の入力・時間予算で判定する。
 
 JSON形式3は受理・送信した入力数、表示予定の欠測数、送信前の未送信標本数、
 最新・最古の入力予定時刻から送信までの時間を記録する。CPU時間には表示間に

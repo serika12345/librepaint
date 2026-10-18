@@ -26,6 +26,7 @@
 #include <stdexcept>
 #include <atomic>
 #include <cstring>
+#include "KisGpuBenchmarkFrameSchedule_p.h"
 
 using namespace LibrePaint::Image::Gpu;
 using LibrePaint::Canvas::Gpu::TilePresentation;
@@ -325,9 +326,10 @@ int main(int argc, char **argv)
                 while (accepted < totalSamples && accepted * 1000000000LL / inputHz <= now) append(accepted);
                 if (frameIndex * 1000000000LL / displayHz <= now) {
                     render(timer, now >= warmupNs);
-                    const auto nextIndex = timeline.nsecsElapsed() * displayHz / 1000000000LL + 1;
-                    if (now >= warmupNs) missedFrames += std::max(qint64(0), nextIndex - frameIndex - 1);
-                    frameIndex = nextIndex;
+                    const auto advance = LibrePaint::Canvas::Gpu::Benchmark::advanceFrame(
+                        frameIndex, timeline.nsecsElapsed(), displayHz);
+                    if (now >= warmupNs) missedFrames += advance.elapsedDeadlines;
+                    frameIndex = advance.nextIndex;
                 }
                 const auto nextInput = accepted < totalSamples ? accepted * 1000000000LL / inputHz : endNs;
                 const auto nextFrame = frameIndex * 1000000000LL / displayHz;

@@ -12,6 +12,7 @@
 #include <limits>
 #include "../KisGpuWindowSurface_p.h"
 #include <webgpu/wgpu.h>
+#include "KisGpuBenchmarkFrameSchedule_p.h"
 
 using namespace LibrePaint::Image::Gpu;
 using namespace LibrePaint::Canvas::Gpu;
@@ -21,6 +22,9 @@ class KisGpuCanvasWindowTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
+    void benchmarkRetainsTheLatestDueFrame_data();
+    void benchmarkRetainsTheLatestDueFrame();
+    void benchmarkKeepsOnlyOneOverdueFrame();
     void presentationFramesSubmitThroughTheOwningWindow();
     void unconfiguredSurfacesAreRejectedBeforeNativeSubmission();
 
@@ -39,6 +43,41 @@ void KisGpuCanvasWindowTest::initTestCase()
     QString diagnostic;
     m_device = Device::createNative(diagnostic);
     QVERIFY2(m_device, qPrintable(diagnostic));
+}
+
+void KisGpuCanvasWindowTest::benchmarkRetainsTheLatestDueFrame_data()
+{
+    QTest::addColumn<qint64>("currentIndex");
+    QTest::addColumn<qint64>("completedNs");
+    QTest::addColumn<int>("displayHz");
+    QTest::addColumn<qint64>("nextIndex");
+    QTest::addColumn<qint64>("elapsedDeadlines");
+    QTest::newRow("before-next-deadline") << qint64(0) << qint64(10000000) << 60 << qint64(1) << qint64(0);
+    QTest::newRow("next-deadline-arrived") << qint64(0) << qint64(16666667) << 60 << qint64(1) << qint64(1);
+    QTest::newRow("over-budget") << qint64(0) << qint64(20000000) << 60 << qint64(1) << qint64(1);
+    QTest::newRow("several-deadlines-arrived") << qint64(5) << qint64(151000000) << 60 << qint64(9) << qint64(4);
+    QTest::newRow("120hz-over-budget") << qint64(4) << qint64(43000000) << 120 << qint64(5) << qint64(1);
+}
+
+void KisGpuCanvasWindowTest::benchmarkRetainsTheLatestDueFrame()
+{
+    QFETCH(qint64, currentIndex);
+    QFETCH(qint64, completedNs);
+    QFETCH(int, displayHz);
+    QFETCH(qint64, nextIndex);
+    QFETCH(qint64, elapsedDeadlines);
+    const auto advance = Benchmark::advanceFrame(currentIndex, completedNs, displayHz);
+    QCOMPARE(advance.nextIndex, nextIndex);
+    QCOMPARE(advance.elapsedDeadlines, elapsedDeadlines);
+}
+
+void KisGpuCanvasWindowTest::benchmarkKeepsOnlyOneOverdueFrame()
+{
+    const auto late = Benchmark::advanceFrame(5, 151000000, 60);
+    QCOMPARE(late.nextIndex, qint64(9));
+    const auto next = Benchmark::advanceFrame(late.nextIndex, 152000000, 60);
+    QCOMPARE(next.nextIndex, qint64(10));
+    QCOMPARE(next.elapsedDeadlines, qint64(0));
 }
 
 void KisGpuCanvasWindowTest::editsAndViewChangesUseSharedExecution()
