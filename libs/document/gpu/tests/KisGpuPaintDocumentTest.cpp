@@ -70,6 +70,7 @@ private Q_SLOTS:
     void initTestCase();
     void fixedEditsSaveReopenAndExportIdenticalResults();
     void curvedPathFillsSaveAndReopenAcrossInteriorTiles();
+    void weightedSmoothingSaveReopenAndContinuePreservesPixels();
     void sharedExecutionOpenReturnsValidatedMetadataAndKeepsRetainedImagesAlive();
     void acceptedChangesUpdateOneAttachedDocument();
     void pinnedSavePreservesLaterEditsAndHistory();
@@ -150,6 +151,66 @@ void KisGpuPaintDocumentTest::curvedPathFillsSaveAndReopenAcrossInteriorTiles()
              QCryptographicHash::hash(painted.bytes, QCryptographicHash::Sha256));
     QCOMPARE(image->operations().undoCount(), 1);
     QVERIFY(!image->operations().isModified());
+}
+
+void KisGpuPaintDocumentTest::weightedSmoothingSaveReopenAndContinuePreservesPixels()
+{
+    Execution execution(m_device);
+    RasterImage initial;
+    initial.size = {64, 64};
+    initial.layers.append({QStringLiteral("Weighted stroke"), true,
+                          QUuid(QStringLiteral("{01020304-0506-0708-090a-000000000022}")), {}});
+    PaintDocument document(execution, initial);
+    const auto image = document.image();
+    const auto layer = image->operations().activeLayer();
+    Brush brush;
+    brush.rgba = {17, 129, 241, 255};
+    brush.diameter = 4;
+    brush.basicSmoothing = true;
+    brush.weightedSmoothing = WeightedSmoothing{24, 48, 0.01, true};
+    const QList<InputSample> samples{{{8, 16}, 1, 0, 0, 0, 0, 0}, {{12, 20}, 0.8, 0, 0, 0, 8, 0.25},
+                                    {{16, 16}, 0.6, 0, 0, 0, 16, 0.5}, {{20, 20}, 0.4, 0, 0, 0, 24, 0.75},
+                                    {{24, 16}, 0.2, 0, 0, 0, 32, 1}, {{28, 20}, 0.1, 0, 0, 0, 40, 0}};
+    QCOMPARE(image->paintFigure(layer, brush, samples, Shape{}, FigureStyle{}, 42), Result::Success);
+    const QRect region(QPoint(), initial.size);
+    const auto painted = image->readRgbaPixels(layer, region, 64 * 64 * 4);
+    QCOMPARE(painted.code, ExecutionCode::Success);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    const auto destination = results.isEmpty() ? directory.path() : results;
+    QVERIFY(QDir().mkpath(destination));
+    const auto path = QDir(destination).filePath(QStringLiteral("weighted-smoothing.kra"));
+    QCOMPARE(document.saveKra(path).code, FileCode::Success);
+    const auto png = mergedImage(path).convertToFormat(QImage::Format_RGBA8888);
+    QVERIFY(!png.isNull());
+    QCOMPARE(png.size(), initial.size);
+    QCOMPARE(QByteArray(reinterpret_cast<const char *>(png.constBits()), png.sizeInBytes()), painted.bytes);
+    // Preserve the encoded PNG too, so environment comparisons cover the format output.
+    QuaZip archive(path);
+    QVERIFY(archive.open(QuaZip::mdUnzip));
+    QVERIFY(archive.setCurrentFile(QStringLiteral("mergedimage.png")));
+    QuaZipFile merged(&archive);
+    QVERIFY(merged.open(QIODevice::ReadOnly));
+    QFile output(QDir(destination).filePath(QStringLiteral("weighted-smoothing-merged.png")));
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    const auto encoded = merged.readAll();
+    QCOMPARE(output.write(encoded), qint64(encoded.size()));
+    output.close();
+    merged.close();
+    archive.close();
+    const auto reopened = PaintDocument::openKra(execution, path);
+    QVERIFY2(reopened.code == FileCode::Success, qPrintable(reopened.diagnostic));
+    const auto loaded = reopened.document->image();
+    const auto loadedLayer = loaded->operations().activeLayer();
+    QCOMPARE(loaded->readRgbaPixels(loadedLayer, region, painted.bytes.size()).bytes, painted.bytes);
+    QCOMPARE(image->paintFigure(layer, brush, samples, Shape{}, FigureStyle{}, 43), Result::Success);
+    QCOMPARE(loaded->paintFigure(loadedLayer, brush, samples, Shape{}, FigureStyle{}, 43), Result::Success);
+    QCOMPARE(loaded->readRgbaPixels(loadedLayer, region, painted.bytes.size()).bytes,
+             image->readRgbaPixels(layer, region, painted.bytes.size()).bytes);
+    QCOMPARE(loaded->undo(), Result::Success);
+    QCOMPARE(loaded->readRgbaPixels(loadedLayer, region, painted.bytes.size()).bytes, painted.bytes);
+    QCOMPARE(loaded->redo(), Result::Success);
 }
 
 void KisGpuPaintDocumentTest::fixedEditsSaveReopenAndExportIdenticalResults()

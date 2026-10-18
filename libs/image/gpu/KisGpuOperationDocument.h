@@ -45,12 +45,28 @@ struct InputSample
     qreal yTilt = 0;
     qreal rotation = 0;
     quint64 timestamp = 0;
+    /** Normalized drawing speed supplied by the input interpreter. */
+    qreal speed = 0;
 
     bool operator==(const InputSample &other) const
     {
         return position == other.position && pressure == other.pressure &&
             xTilt == other.xTilt && yTilt == other.yTilt &&
-            rotation == other.rotation && timestamp == other.timestamp;
+            rotation == other.rotation && timestamp == other.timestamp && speed == other.speed;
+    }
+};
+
+struct WeightedSmoothing
+{
+    qreal distanceMin = 0;
+    qreal distanceMax = 0;
+    qreal tailAggressiveness = 0;
+    bool smoothPressure = false;
+
+    bool operator==(const WeightedSmoothing &other) const
+    {
+        return distanceMin == other.distanceMin && distanceMax == other.distanceMax &&
+            tailAggressiveness == other.tailAggressiveness && smoothPressure == other.smoothPressure;
     }
 };
 
@@ -73,6 +89,8 @@ struct Brush
     bool pixelPerfect = false;
     /** Basic freehand interpolation retains raw sensors and explicit idle boundaries. */
     bool basicSmoothing = false;
+    /** Weighted positions feed basic interpolation; distances are frozen in document pixels. */
+    std::optional<WeightedSmoothing> weightedSmoothing{};
 
     bool operator==(const Brush &other) const
     {
@@ -81,7 +99,7 @@ struct Brush
             alphaLocked == other.alphaLocked && channelWriteMask == other.channelWriteMask &&
             mirrorHorizontal == other.mirrorHorizontal && mirrorVertical == other.mirrorVertical &&
             mirrorCenter == other.mirrorCenter && pixelPerfect == other.pixelPerfect &&
-            basicSmoothing == other.basicSmoothing;
+            basicSmoothing == other.basicSmoothing && weightedSmoothing == other.weightedSmoothing;
     }
 };
 

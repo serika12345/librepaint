@@ -61,11 +61,18 @@ inline bool validSample(const InputSample &sample)
         sample.pressure >= 0 && sample.pressure <= 1 &&
         std::isfinite(sample.xTilt) && std::abs(sample.xTilt) <= 90 &&
         std::isfinite(sample.yTilt) && std::abs(sample.yTilt) <= 90 &&
-        std::isfinite(sample.rotation);
+        std::isfinite(sample.rotation) && std::isfinite(sample.speed) && sample.speed >= 0 && sample.speed <= 1;
 }
 
 inline bool validBrush(const Brush &brush)
 {
+    if (brush.weightedSmoothing) {
+        const auto &value = *brush.weightedSmoothing;
+        if (!brush.basicSmoothing || !std::isfinite(value.distanceMin) || !std::isfinite(value.distanceMax) ||
+            value.distanceMin < 0 || value.distanceMax < 0 ||
+            value.distanceMin > OperationDocument::CoordinateLimit || value.distanceMax > OperationDocument::CoordinateLimit ||
+            !std::isfinite(value.tailAggressiveness) || value.tailAggressiveness < 0 || value.tailAggressiveness > 1) return false;
+    }
     return !(brush.basicSmoothing && brush.pixelPerfect) &&
         std::abs(qint64(brush.mirrorCenter.x())) <= OperationDocument::CoordinateLimit &&
         std::abs(qint64(brush.mirrorCenter.y())) <= OperationDocument::CoordinateLimit &&

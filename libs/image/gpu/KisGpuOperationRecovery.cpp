@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 20;
+constexpr quint16 FormatVersion = 21;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -42,15 +42,16 @@ bool readableCount(QDataStream &stream, quint32 count, qsizetype limit, qsizetyp
 void writeSample(QDataStream &stream, const InputSample &sample)
 {
     stream << sample.position.x() << sample.position.y() << sample.pressure
-           << sample.xTilt << sample.yTilt << sample.rotation << sample.timestamp;
+           << sample.xTilt << sample.yTilt << sample.rotation << sample.timestamp << sample.speed;
 }
-InputSample readSample(QDataStream &stream)
+InputSample readSample(QDataStream &stream, quint16 format)
 {
     InputSample sample;
     qreal x = 0, y = 0;
     stream >> x >> y >> sample.pressure >> sample.xTilt >> sample.yTilt
            >> sample.rotation >> sample.timestamp;
     sample.position = {x, y};
+    if (format >= 21) stream >> sample.speed;
     return sample;
 }
 }
@@ -125,7 +126,11 @@ QByteArray OperationDocument::recoveryData() const
             if (operation.figureStyle.fill)
                 for (const auto component : *operation.figureStyle.fill) stream << component;
             stream << quint8(quint8(operation.brush.pixelPerfect) | (quint8(operation.brush.basicSmoothing) << 1) |
-                              (quint8(operation.smoothingFinished) << 2));
+                              (quint8(operation.smoothingFinished) << 2) | (operation.brush.weightedSmoothing ? 8 : 0));
+            if (operation.brush.weightedSmoothing) {
+                const auto &value = *operation.brush.weightedSmoothing;
+                stream << value.distanceMin << value.distanceMax << value.tailAggressiveness << quint8(value.smoothPressure);
+            }
             if (operation.brush.basicSmoothing) {
                 const auto remaining = m_limits.recoveryBytes - DigestSize - bytes.size();
                 if (remaining < 4 || quint64(operation.sampleCount) > std::numeric_limits<quint32>::max() ||
@@ -137,7 +142,7 @@ QByteArray OperationDocument::recoveryData() const
             stream << quint32(operation.sampleCount);
             if (!withinLimit()) return {};
             for (const auto &block : operation.sampleBlocks) {
-                if (block->size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 56) return {};
+                if (block->size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 64) return {};
                 for (const auto &sample : *block) writeSample(stream, sample);
             }
         } else {
@@ -242,7 +247,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
     QHash<quint64, quint32> operationIndices;
     QSet<quint32> referencedTiles;
     qsizetype retainedSamples = 0;
-    const quint64 payloadSamples = quint64(payload.size() / 56);
+    const quint64 payloadSamples = quint64(payload.size() / (format >= 21 ? 64 : 56));
     const quint64 retainedSampleLimit = qMin(quint64(m_limits.samplesPerDocument), payloadSamples) * (HistoryLimit + 1) +
                                         qMin(quint64(m_limits.samplesPerStroke), payloadSamples);
     for (quint32 i = 0; i < operationCount; ++i) {
@@ -334,11 +339,19 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         if (format >= 19) {
             quint8 processing = 0;
             stream >> processing;
-            if (processing > (format >= 20 ? 7 : 1) ||
-                ((processing & 4) && !(processing & 2))) return Result::InvalidRecovery;
+            if (processing > (format >= 21 ? 15 : format >= 20 ? 7 : 1) ||
+                ((processing & 12) && !(processing & 2))) return Result::InvalidRecovery;
             operation->brush.pixelPerfect = processing & 1;
             operation->brush.basicSmoothing = processing & 2;
             operation->smoothingFinished = processing & 4;
+            if (processing & 8) {
+                WeightedSmoothing value;
+                quint8 pressure = 0;
+                stream >> value.distanceMin >> value.distanceMax >> value.tailAggressiveness >> pressure;
+                if (pressure > 1) return Result::InvalidRecovery;
+                value.smoothPressure = pressure;
+                operation->brush.weightedSmoothing = value;
+            }
             if (operation->brush.basicSmoothing) {
                 quint32 flushes = 0;
                 stream >> flushes;
@@ -368,14 +381,14 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
             !validShapeSampleCount(operation->shape, sampleCount) ||
             (version == 0 && (sampleCount != 0 || operation->shape.kind != ShapeKind::Freehand)) ||
             (version > 0 && sampleCount == 0 && operation->shape.kind != ShapeKind::Path) ||
-            !readableCount(stream, sampleCount, m_limits.samplesPerStroke, 56)) return Result::InvalidRecovery;
+            !readableCount(stream, sampleCount, m_limits.samplesPerStroke, format >= 21 ? 64 : 56)) return Result::InvalidRecovery;
         if (quint64(retainedSamples) + sampleCount > retainedSampleLimit) return Result::CapacityExceeded;
         retainedSamples += sampleCount;
         auto samples = QSharedPointer<QList<InputSample>>::create();
         samples->reserve(sampleCount);
         quint64 time = 0;
         for (quint32 j = 0; j < sampleCount; ++j) {
-            const auto sample = readSample(stream);
+            const auto sample = readSample(stream, format);
             if (!validSample(sample) || sample.timestamp < time) return Result::InvalidRecovery;
             time = sample.timestamp;
             samples->append(sample);

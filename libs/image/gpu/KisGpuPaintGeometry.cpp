@@ -9,6 +9,7 @@
 #include <cmath>
 #include <QSet>
 #include <QLineF>
+#include <QVector2D>
 
 namespace LibrePaint::Image::Gpu::Detail {
 namespace {
@@ -113,6 +114,60 @@ bool appendBasicCurve(QList<PaintSegment> &result, const InputSample &first, con
         control1 = first.position * (1 - coefficient) + coefficient * target1;
     }
     return appendCubic(result, first, control1, control2, last, step, phase);
+}
+
+std::optional<QList<InputSample>> weightedInput(const QList<InputSample> &input, const WeightedSmoothing &settings)
+{
+    auto points = input;
+    if (settings.distanceMin == 0 && settings.distanceMax == 0) return points;
+    QList<qreal> distances;
+    distances.reserve(input.size());
+    distances.append(0);
+    // Bound replay even for stationary input whose Gaussian cutoff never advances.
+    constexpr qsizetype maximumWeights = 16 * 1024 * 1024;
+    qsizetype weights = 0;
+    for (qsizetype index = 1; index < points.size(); ++index) {
+        distances.append(QVector2D(points[index].position - points[index - 1].position).length());
+        if (index < 4) continue;
+        const auto speed = points[index - 1].speed;
+        const qreal sigma = ((1 - speed) * settings.distanceMax + speed * settings.distanceMin) / 3;
+        const qreal variance = sigma * sigma;
+        const qreal gaussian = sigma > 0 ? 1 / (std::sqrt(2 * M_PI) * sigma) : 0;
+        qreal distanceSum = 0, scaleSum = 0, x = 0, y = 0, pressureSum = 0, baseRate = 0;
+        for (qsizetype i = index; i >= 1; --i) {
+            if (++weights > maximumWeights) return std::nullopt;
+            const auto &point = points[i];
+            qreal distance = distances[i];
+            if (i < index) {
+                auto gradient = point.pressure - points[i + 1].pressure;
+                if (gradient > 0) {
+                    gradient *= (40 * settings.tailAggressiveness) * (1 - point.pressure);
+                    distance += gradient * 3 * sigma;
+                }
+            }
+            qreal rate = 0;
+            if (variance != 0) {
+                distanceSum += distance;
+                rate = gaussian * std::exp(-distanceSum * distanceSum / (2 * variance));
+            }
+            if (i == index) baseRate = rate;
+            else if (baseRate / rate > 100) break;
+            scaleSum += rate;
+            x += rate * point.position.x();
+            y += rate * point.position.y();
+            if (settings.smoothPressure) pressureSum += rate * point.pressure;
+        }
+        if (scaleSum != 0) {
+            x /= scaleSum;
+            y /= scaleSum;
+            if (settings.smoothPressure) pressureSum /= scaleSum;
+        }
+        if ((x != 0 && y != 0) || (x == points[index].position.x() && y == points[index].position.y())) {
+            points[index].position = {x, y};
+            if (settings.smoothPressure) points[index].pressure = pressureSum;
+        }
+    }
+    return points;
 }
 
 std::optional<PaintGeometry> basicGeometry(const PaintOperation &operation, const QList<InputSample> &input,
@@ -240,6 +295,10 @@ std::optional<PaintGeometry> pathGeometry(const PaintOperation &operation, const
 std::optional<PaintGeometry> paintGeometry(const PaintOperation &operation, quint32 step)
 {
     const auto input = operation.inputSamples();
+    if (operation.brush.weightedSmoothing) {
+        const auto corrected = weightedInput(input, *operation.brush.weightedSmoothing);
+        return corrected ? basicGeometry(operation, *corrected, step) : std::nullopt;
+    }
     if (operation.brush.basicSmoothing) return basicGeometry(operation, input, step);
     if (operation.shape.kind == ShapeKind::Path) return pathGeometry(operation, input, step);
     QList<InputSample> points;

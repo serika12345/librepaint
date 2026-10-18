@@ -84,6 +84,7 @@ private Q_SLOTS:
     void pathsPreserveCommandsControlPointsAndRecovery();
     void pixelCorrectionRetainsOriginalSensorsAndPendingRecovery();
     void basicSmoothingRetainsIdleBoundariesSensorsAndFinalIntent();
+    void weightedSmoothingRetainsFrozenSettingsSpeedAndRecovery();
     void basicSmoothingRejectsConflictingModesAndShapeChanges();
     void damagedSmoothingRecoveryPreservesTheActiveDocument();
     void emptyPathsPreserveHistoryAndPendingRecovery();
@@ -1872,6 +1873,67 @@ void KisGpuOperationDocumentTest::basicSmoothingRetainsIdleBoundariesSensorsAndF
     QVERIFY(std::get<PaintSnapshot>(completed.snapshot()->layers.first().operations.last())->smoothingFinished);
     QCOMPARE(document.cancelStroke(id), Result::Success);
     QCOMPARE(document.undoCount(), 0);
+}
+
+void KisGpuOperationDocumentTest::weightedSmoothingRetainsFrozenSettingsSpeedAndRecovery()
+{
+    OperationDocument document(QSize(64, 64));
+    Brush brush;
+    brush.basicSmoothing = true;
+    brush.weightedSmoothing = WeightedSmoothing{24, 48, 0.01, true};
+    const auto id = document.beginStroke(document.activeLayer(), brush, 7);
+    QVERIFY(!id.isNull());
+    const QList<InputSample> samples{{{8, 16}, 1, 12, -9, 32, 0, 0.25},
+                                    {{12, 20}, 0.8, -12, 9, 64, 8, 0.75}};
+    QCOMPARE(document.appendSamples(id, samples), Result::Success);
+    const auto pinned = document.preview();
+    const auto operation = std::get<PaintSnapshot>(pinned->layers.first().operations.last());
+    brush.weightedSmoothing->distanceMax = 96;
+    QCOMPARE(operation->brush.weightedSmoothing->distanceMax, 48.0);
+    QCOMPARE(operation->inputSamples(), samples);
+    const auto beforeInvalid = document.recoveryData();
+    for (const auto speed : {-0.1, 1.1, std::numeric_limits<qreal>::quiet_NaN()}) {
+        auto invalid = samples.last();
+        invalid.speed = speed;
+        QCOMPARE(document.appendSamples(id, {invalid}), Result::InvalidInput);
+        QCOMPARE(document.preview(), pinned);
+        QCOMPARE(document.recoveryData(), beforeInvalid);
+    }
+    QCOMPARE(document.flushSmoothing(id), Result::Success);
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    const auto recovered = std::get<PaintSnapshot>(restored.preview()->layers.first().operations.last());
+    QCOMPARE(recovered->inputSamples(), samples);
+    QVERIFY(recovered->brush == operation->brush);
+    QCOMPARE(recovered->smoothingFlushes, QList<qsizetype>{2});
+    QCOMPARE(restored.commitStroke(restored.activeOperation()), Result::Success);
+    QCOMPARE(restored.undoCount(), 1);
+    const auto painted = restored.snapshot();
+    QCOMPARE(restored.undo(), Result::Success);
+    QCOMPARE(restored.redo(), Result::Success);
+    QCOMPARE(restored.snapshot(), painted);
+    QVERIFY(!operation->smoothingFinished);
+    QCOMPARE(operation->inputSamples(), samples);
+    QCOMPARE(document.cancelStroke(id), Result::Success);
+    QCOMPARE(document.undoCount(), 0);
+    const auto original = document.recoveryData();
+    for (int invalid = 0; invalid < 5; ++invalid) {
+        auto rejected = operation->brush;
+        if (invalid == 0) rejected.basicSmoothing = false;
+        if (invalid == 1) rejected.pixelPerfect = true;
+        if (invalid == 2) rejected.weightedSmoothing->distanceMin = -1;
+        if (invalid == 3) rejected.weightedSmoothing->distanceMax = std::numeric_limits<qreal>::infinity();
+        if (invalid == 4) rejected.weightedSmoothing->tailAggressiveness = 1.1;
+        QVERIFY(document.beginStroke(document.activeLayer(), rejected, 7).isNull());
+        QCOMPARE(document.recoveryData(), original);
+    }
+    // Version 20 has no drawing-speed field; its existing input defaults to zero.
+    OperationDocument previous(QSize(64, 64));
+    const auto plain = previous.beginStroke(previous.activeLayer(), Brush{}, 7);
+    QCOMPARE(previous.appendSamples(plain, {{{8, 16}, 1}, {{12, 20}, 0.8}}), Result::Success);
+    QCOMPARE(previous.commitStroke(plain), Result::Success);
+    QCOMPARE(document.restoreRecovery(legacyRecovery(previous, 20)), Result::Success);
+    QCOMPARE(std::get<PaintSnapshot>(document.snapshot()->layers.first().operations.last())->inputSamples().last().speed, 0.0);
 }
 
 void KisGpuOperationDocumentTest::basicSmoothingRejectsConflictingModesAndShapeChanges()

@@ -716,14 +716,17 @@ void TestDocument::testGpuPngExportPreservesPixelsAndDocument_data()
     QTest::addColumn<bool>("alpha");
     QTest::addColumn<bool>("interlaced");
     QTest::addColumn<bool>("menuExport");
-    QTest::newRow("api-rgba") << true << false << false;
-    QTest::newRow("api-rgba-interlaced") << true << true << false;
-    QTest::newRow("api-white-background") << false << false << false;
-    QTest::newRow("api-white-background-interlaced") << false << true << false;
-    QTest::newRow("menu-rgba") << true << false << true;
-    QTest::newRow("menu-rgba-interlaced") << true << true << true;
-    QTest::newRow("menu-white-background") << false << false << true;
-    QTest::newRow("menu-white-background-interlaced") << false << true << true;
+    QTest::addColumn<bool>("weighted");
+    QTest::newRow("api-rgba") << true << false << false << false;
+    QTest::newRow("api-rgba-interlaced") << true << true << false << false;
+    QTest::newRow("api-white-background") << false << false << false << false;
+    QTest::newRow("api-white-background-interlaced") << false << true << false << false;
+    QTest::newRow("menu-rgba") << true << false << true << false;
+    QTest::newRow("menu-rgba-interlaced") << true << true << true << false;
+    QTest::newRow("menu-white-background") << false << false << true << false;
+    QTest::newRow("menu-white-background-interlaced") << false << true << true << false;
+    QTest::newRow("weighted-api-rgba") << true << false << false << true;
+    QTest::newRow("weighted-menu-rgba") << true << false << true << true;
 }
 
 void TestDocument::testGpuPngExportPreservesPixelsAndDocument()
@@ -731,6 +734,7 @@ void TestDocument::testGpuPngExportPreservesPixelsAndDocument()
     QFETCH(bool, alpha);
     QFETCH(bool, interlaced);
     QFETCH(bool, menuExport);
+    QFETCH(bool, weighted);
     namespace Gpu = LibrePaint::Image::Gpu;
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
     initializeGpuDocument(document.data(), QSize(32, 16), QStringLiteral("PNG export"));
@@ -742,6 +746,21 @@ void TestDocument::testGpuPngExportPreservesPixelsAndDocument()
     QByteArray rgba;
     for (int i = 0; i < 32 * 16; ++i) rgba.append(colors.mid((i % 4) * 4, 4));
     QCOMPARE(owner->replaceRgbaPixels(layer, image->bounds(), rgba), Gpu::Result::Success);
+    if (weighted) {
+        Gpu::Brush brush;
+        brush.rgba = {221, 17, 44, 255};
+        brush.diameter = 4;
+        brush.basicSmoothing = true;
+        brush.weightedSmoothing = Gpu::WeightedSmoothing{24, 48, 0.01, true};
+        const QList<Gpu::InputSample> samples{{{4, 4}, 1, 0, 0, 0, 0, 0}, {{8, 8}, 0.8, 0, 0, 0, 8, 0.25},
+                                            {{12, 4}, 0.6, 0, 0, 0, 16, 0.5}, {{16, 8}, 0.4, 0, 0, 0, 24, 0.75},
+                                            {{20, 4}, 0.2, 0, 0, 0, 32, 1}, {{24, 8}, 0.1, 0, 0, 0, 40, 0}};
+        QCOMPARE(owner->paintFigure(layer, brush, samples, Gpu::Shape{}, Gpu::FigureStyle{}, 42), Gpu::Result::Success);
+        const auto painted = owner->readRgbaPixels(layer, image->bounds(), rgba.size());
+        QCOMPARE(painted.code, Gpu::ExecutionCode::Success);
+        QVERIFY(painted.bytes != rgba);
+        rgba = painted.bytes;
+    }
     image->setResolution(300.0 / 72, 150.0 / 72);
     QTemporaryDir directory;
     QVERIFY(directory.isValid());

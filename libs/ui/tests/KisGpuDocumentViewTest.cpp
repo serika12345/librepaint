@@ -1335,6 +1335,11 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QTest::newRow("basic-smoothing") << 1 << false << false << false << false << false << false << false << false << quint8(0);
     QTest::newRow("basic-smoothing-idle") << 1 << true << false << false << false << false << false << false << false << quint8(0);
     QTest::newRow("basic-smoothing-pending-cancel") << 1 << false << true << false << false << false << false << false << false << quint8(0);
+    QTest::newRow("weighted-smoothing") << 2 << false << false << false << false << false << false << false << false << quint8(0);
+    QTest::newRow("weighted-smoothing-idle") << 2 << true << false << false << false << false << false << false << false << quint8(0);
+    QTest::newRow("weighted-smoothing-pending-cancel") << 2 << false << true << false << false << false << false << false << false << quint8(0);
+    QTest::newRow("weighted-smoothing-input-limit") << 2 << false << false << true << false << false << false << false << false << quint8(0);
+    QTest::newRow("weighted-smoothing-close-on-limit") << 2 << false << false << true << true << false << false << false << false << quint8(0);
 }
 
 void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelled()
@@ -1417,6 +1422,13 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     auto *brushTool = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KritaShape/KisToolBrush"));
     QVERIFY(brushTool);
     QVERIFY(brushTool->setProperty("smoothingType", smoothingType));
+    if (smoothingType == 2) {
+        QVERIFY(brushTool->setProperty("smoothnessQualityMin", 12));
+        QVERIFY(brushTool->setProperty("smoothnessQualityMax", 24));
+        QVERIFY(brushTool->setProperty("smoothnessFactor", 0.25));
+        QVERIFY(brushTool->setProperty("smoothPressure", true));
+        QVERIFY(brushTool->setProperty("useScalableDistance", false));
+    }
     QSignalSpy errors(brushTool, &KoToolBase::statusTextChanged);
     if (closeAfterError) {
         connect(brushTool, &KoToolBase::statusTextChanged, window.get(), [&](const QString &message) {
@@ -1466,6 +1478,13 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
         QVERIFY(!errors.first().first().toString().isEmpty());
         return;
     }
+    if (smoothingType == 2) {
+        QVERIFY(brushTool->setProperty("smoothnessQualityMin", 80));
+        QVERIFY(brushTool->setProperty("smoothnessQualityMax", 160));
+        QVERIFY(brushTool->setProperty("smoothnessFactor", 0.75));
+        QVERIFY(brushTool->setProperty("smoothPressure", false));
+        QVERIFY(brushTool->setProperty("useScalableDistance", true));
+    }
     if (smoothingType != 0) QVERIFY(brushTool->setProperty("smoothingType", 3));
     if (!exhaustInput) {
         if (mirrorMode) {
@@ -1487,6 +1506,10 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
         for (int step = 1; step <= 8 && owner->operations().hasActiveStroke(); ++step)
             QTest::mouseMove(native.data(), first + (last - first) * step / 8);
     } else {
+        if (smoothingType == 2) {
+            for (const auto point : {QPointF(20, 20), QPointF(24, 24), QPointF(28, 28), QPointF(32, 32)})
+                QTest::mouseMove(native.data(), converter->imageToWidget(point).toPoint());
+        }
         QTest::mouseMove(native.data(), last);
     }
     QTest::qWait(10);
@@ -1587,7 +1610,16 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     const auto painted = owner->operations().snapshot();
     const auto operation = std::get<Gpu::PaintSnapshot>(painted->layers.first().operations.last());
     QCOMPARE(operation->brush.pixelPerfect, smoothingType == 4);
-    QCOMPARE(operation->brush.basicSmoothing, smoothingType == 1);
+    QCOMPARE(operation->brush.basicSmoothing, smoothingType == 1 || smoothingType == 2);
+    QCOMPARE(bool(operation->brush.weightedSmoothing), smoothingType == 2);
+    if (smoothingType == 2) {
+        QVERIFY(operation->inputSamples().size() >= 6);
+        const auto &weighted = *operation->brush.weightedSmoothing;
+        QCOMPARE(weighted.distanceMin, 12.0);
+        QCOMPARE(weighted.distanceMax, 24.0);
+        QCOMPARE(weighted.tailAggressiveness, 0.25);
+        QVERIFY(weighted.smoothPressure);
+    }
     if (smoothingType == 4) qInfo() << "Pixel-corrected pointer input:" << operation->inputSamples().last().position;
     if (mirrorMode) {
         for (const auto &sample : QList<QPair<QPoint, bool>>{{{48, 16}, bool(mirrorMode & 1)},
@@ -1598,7 +1630,10 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     }
     QTRY_COMPARE(owner->execution().published(owner->handle()), painted);
     if (alphaLock) QCOMPARE(owner->readRgbaPixels(paintTarget, QRect(16, 16, 1, 1), 4).bytes, QByteArray::fromHex("1181f100"));
-    QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(40, 40, 1, 1), 4).bytes,
+    // Weighted smoothing moves the endpoint according to the measured input speed.
+    // The earlier interior sample is opaque for every accepted input timing.
+    const QPoint paintedProbe = smoothingType == 2 ? QPoint(24, 24) : QPoint(40, 40);
+    QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(paintedProbe, QSize(1, 1)), 4).bytes,
              alphaLock ? QByteArray::fromHex("1181f180") : QByteArray::fromHex("1181f1ff"));
     QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(mirrorMode ? 56 : smoothingType != 0 ? 48 : 45, 40, 1, 1), 4).bytes,
              QByteArray::fromHex("00000000"));
@@ -1613,7 +1648,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     resources->setSize(8);
     resources->setGlobalAlphaLock(alphaLock && !layerAlphaLock);
     resources->setEraserMode(true);
-    last = enterAt({40, 40});
+    last = enterAt(paintedProbe);
     pressed = true;
     QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, last);
     QVERIFY2(owner->operations().hasActiveStroke(),
@@ -1622,7 +1657,7 @@ void KisGpuDocumentViewTest::freehandInputCommitsOneHistoryEntryAndCanBeCancelle
     QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, last);
     pressed = false;
     QCOMPARE(owner->operations().undoCount(), 2);
-    QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(40, 40, 1, 1), 4).bytes,
+    QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(paintedProbe, QSize(1, 1)), 4).bytes,
              layerAlphaLock ? QByteArray::fromHex("1181f180") : QByteArray::fromHex("1181f100"));
     documentLifetime->undoStack()->undo();
     QCOMPARE(owner->operations().snapshot(), painted);

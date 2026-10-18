@@ -48,6 +48,8 @@ private Q_SLOTS:
     void inputPartitionsAndPreviewProduceTheSamePixels();
     void basicSmoothingPreservesCurvesIdleCompletionAndRecovery_data();
     void basicSmoothingPreservesCurvesIdleCompletionAndRecovery();
+    void weightedSmoothingPreservesPixelsAndRecovery_data();
+    void weightedSmoothingPreservesPixelsAndRecovery();
     void pixelCorrectionPreservesCornersSensorsAndIncrementalPixels_data();
     void pixelCorrectionPreservesCornersSensorsAndIncrementalPixels();
     void unchangedTilesAreSharedAndBudgetsRejectAtomically();
@@ -1871,6 +1873,96 @@ void KisGpuTileRendererTest::basicSmoothingPreservesCurvesIdleCompletionAndRecov
     if (!results.isEmpty()) {
         QVERIFY(QDir().mkpath(results));
         QFile file(QDir(results).filePath(QStringLiteral("basic-smoothing-") + kind + QStringLiteral(".rgba")));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(pixels), qint64(pixels.size()));
+    }
+}
+
+void KisGpuTileRendererTest::weightedSmoothingPreservesPixelsAndRecovery_data()
+{
+    QTest::addColumn<QString>("kind");
+    QTest::addColumn<QPointF>("fourth");
+    QTest::addColumn<QPointF>("fifth");
+    QTest::addColumn<qreal>("fourthPressure");
+    QTest::addColumn<qreal>("fifthPressure");
+    // Fixed results of the existing weighted-input rule in kis_tool_freehand_helper.cpp.
+    QTest::newRow("weighted") << QStringLiteral("weighted") << QPointF(21.671799047212705, 17.296375248240203)
+        << QPointF(26.190447445238277, 19.37998501314707) << qreal(0.31641004763936476) << qreal(0.16306585611055563);
+    QTest::newRow("no-pressure") << QStringLiteral("no-pressure") << QPointF(21.671799047212705, 17.296375248240203)
+        << QPointF(26.04262003540347, 19.310955108328365) << qreal(0.2) << qreal(0.1);
+    QTest::newRow("no-tail") << QStringLiteral("no-tail") << QPointF(21.087831442146605, 17.427899484954125)
+        << QPointF(25.512175466564386, 19.274354334843917) << qreal(0.3456084278926697) << qreal(0.19015482878006573);
+    QTest::newRow("slow") << QStringLiteral("slow") << QPointF(20.070453973415706, 17.61942028617956)
+        << QPointF(22.863223234608107, 19.016418949226647) << qreal(0.39647730132921466) << qreal(0.30008962757304986);
+    QTest::newRow("fast") << QStringLiteral("fast") << QPointF(22.522529933316513, 17.04453976461341)
+        << QPointF(26.243823024060887, 19.26420364596108) << qreal(0.2738735033341744) << qreal(0.15800647037967294);
+    QTest::newRow("zero-distance") << QStringLiteral("zero-distance") << QPointF(24, 16) << QPointF(28, 20) << qreal(0.2) << qreal(0.1);
+}
+
+void KisGpuTileRendererTest::weightedSmoothingPreservesPixelsAndRecovery()
+{
+    QFETCH(QString, kind);
+    QFETCH(QPointF, fourth);
+    QFETCH(QPointF, fifth);
+    QFETCH(qreal, fourthPressure);
+    QFETCH(qreal, fifthPressure);
+    QList<InputSample> input{{{8, 16}, 1, 0, 0, 0, 0, 0}, {{12, 20}, 0.8, 0, 0, 0, 8, 0.25},
+                            {{16, 16}, 0.6, 0, 0, 0, 16, 0.5}, {{20, 20}, 0.4, 0, 0, 0, 24, 0.75},
+                            {{24, 16}, 0.2, 0, 0, 0, 32, 1}, {{28, 20}, 0.1, 0, 0, 0, 40, 0}};
+    if (kind == QLatin1String("slow") || kind == QLatin1String("fast"))
+        for (auto &sample : input) sample.speed = kind == QLatin1String("fast") ? 1 : 0;
+    Brush brush;
+    brush.diameter = 4;
+    brush.rgba = {17, 129, 241, 255};
+    brush.basicSmoothing = true;
+    brush.weightedSmoothing = WeightedSmoothing{24, 48, kind == QLatin1String("no-tail") ? 0.0 : 0.01,
+                                               kind != QLatin1String("no-pressure")};
+    if (kind == QLatin1String("zero-distance")) brush.weightedSmoothing->distanceMin = brush.weightedSmoothing->distanceMax = 0;
+    OperationDocument document(QSize(64, 64));
+    const auto layer = document.activeLayer();
+    const auto id = document.beginStroke(layer, brush, 7);
+    TileRenderer renderer(m_device);
+    RenderedSnapshot incremental;
+    for (const auto &sample : input) {
+        QCOMPARE(document.appendSamples(id, {sample}), Result::Success);
+        incremental = render(renderer, document.preview(), incremental);
+        QVERIFY(incremental);
+        const auto rebuilt = render(renderer, document.preview());
+        QVERIFY(rebuilt);
+        QCOMPARE(readTile(incremental, layer, {0, 0}), readTile(rebuilt, layer, {0, 0}));
+    }
+    const auto pinned = incremental;
+    const auto pinnedPixels = readTile(pinned, layer, {0, 0});
+    QCOMPARE(document.flushSmoothing(id), Result::Success);
+    QCOMPARE(document.commitStroke(id), Result::Success);
+    const auto painted = render(renderer, document.snapshot(), incremental);
+    QVERIFY(painted);
+    auto expected = input;
+    expected[4].position = fourth;
+    expected[4].pressure = fourthPressure;
+    expected[5].position = fifth;
+    expected[5].pressure = fifthPressure;
+    OperationDocument oracle(QSize(64, 64));
+    brush.weightedSmoothing.reset();
+    const auto reference = oracle.beginStroke(oracle.activeLayer(), brush, 7);
+    QCOMPARE(oracle.appendSamples(reference, expected), Result::Success);
+    QCOMPARE(oracle.flushSmoothing(reference), Result::Success);
+    QCOMPARE(oracle.commitStroke(reference), Result::Success);
+    const auto pixels = readTile(painted, layer, {0, 0});
+    QCOMPARE(pixels, readTile(render(renderer, oracle.snapshot()), oracle.activeLayer(), {0, 0}));
+    QCOMPARE(readTile(pinned, layer, {0, 0}), pinnedPixels);
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(render(renderer, document.snapshot(), painted)->tiles(layer).isEmpty());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(readTile(render(renderer, document.snapshot()), layer, {0, 0}), pixels);
+    OperationDocument restored(QSize(1, 1));
+    QCOMPARE(restored.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(readTile(render(renderer, restored.snapshot()), layer, {0, 0}), pixels);
+    QCOMPARE(std::get<PaintSnapshot>(restored.snapshot()->layers.first().operations.last())->inputSamples(), input);
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        QFile file(QDir(results).filePath(QStringLiteral("weighted-smoothing-") + kind + QStringLiteral(".rgba")));
         QVERIFY(file.open(QIODevice::WriteOnly));
         QCOMPARE(file.write(pixels), qint64(pixels.size()));
     }

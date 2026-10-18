@@ -75,8 +75,10 @@ void KisGpuPaintImageTest::idleSmoothingPublishesAcceptedVersionsWithoutDuplicat
 void KisGpuPaintImageTest::derivedGeometryBudgetsPreserveInputAndRejectWholeReadsAndWrites_data()
 {
     QTest::addColumn<bool>("basicSmoothing");
-    QTest::newRow("path") << false;
-    QTest::newRow("basic-smoothing") << true;
+    QTest::addColumn<bool>("weightedSmoothing");
+    QTest::newRow("path") << false << false;
+    QTest::newRow("basic-smoothing") << true << false;
+    QTest::newRow("weighted-smoothing") << true << true;
 }
 
 void KisGpuPaintImageTest::derivedGeometryBudgetsPreserveInputAndRejectWholeReadsAndWrites()
@@ -88,12 +90,17 @@ void KisGpuPaintImageTest::derivedGeometryBudgetsPreserveInputAndRejectWholeRead
     PaintImage image(execution, QSize(64, 64));
     const auto layer = image.operations().activeLayer();
     QFETCH(bool, basicSmoothing);
+    QFETCH(bool, weightedSmoothing);
     Shape shape;
     Brush brush;
     brush.basicSmoothing = basicSmoothing;
     QList<InputSample> samples;
     const qreal limit = OperationDocument::CoordinateLimit;
-    if (basicSmoothing) {
+    if (weightedSmoothing) {
+        brush.weightedSmoothing = WeightedSmoothing{24, 48, 0.01, true};
+        for (int index = 0; index < 6000; ++index)
+            samples.append({{8, 16}, 1, 0, 0, 0, quint64(index * 8)});
+    } else if (basicSmoothing) {
         const QList<QPointF> corners{{0, 0}, {limit, 0}, {limit, limit}, {0, limit}};
         for (int index = 0; index < 512; ++index)
             samples.append({corners[index % corners.size()], 1, 0, 0, 0, quint64(index * 8)});

@@ -490,7 +490,7 @@ Undo／RedoとKRA保存をCPU画像とGPU画像で検査する。吸着を無効
 `KisToolProxyContractTest`は、継続を辞退したダブルクリックの直後に、次の描画の開始入力が届くことを検査する。
 `KisGpuTileRendererTest`は矩形・角丸矩形の回転、閉じた輪郭、取消し、Undo／Redo、未確定操作の復旧を検査する。
 二軸の異なる半径、上限への制限、半径ゼロ、不正な半径の拒否と復旧後の半径の保持も検査する。
-`KisGpuOperationDocumentTest`は旧形式9〜19の復旧を検査する。
+`KisGpuOperationDocumentTest`は旧形式9〜20の復旧を検査する。
 `KisGpuLegacyRecoveryFixture_p.h`は、各形式が扱える操作から旧形式の試験記録を生成する。
 形式11は角丸矩形と頂点列を保持し、形式12は描画時の透明度保護を保持する。
 形式13は描画開始時とレイヤーのチャンネル保護、属性履歴を保持する。
@@ -514,6 +514,17 @@ Undo／RedoとKRA保存をCPU画像とGPU画像で検査する。吸着を無効
 `KisGpuPixelReadbackTest`は1024×1024の単色塗りを16枚の完全なレイヤータイルとして読み、
 `LIBREPAINT_GPU_RESULT_DIR`へタイル座標順の`solid-fill-layer-interior.rgba`を出力する。
 `KisGpuPaintImageTest`は塗りの内側への直接書込みを、塗り後の履歴版へ保持し、Undoで塗り前の画素へ戻す。
+形式21は加重補正の固定設定と正規化した入力速度を保持する。
+操作試験は固定した設定と元入力、速度と設定の値域、未確定操作の復旧、取消しと履歴を検査する。
+描画試験は速度、筆圧補正、末尾の強さと距離ゼロについて固定した補正後の点から生成する全画素を照合する。
+逐次更新・一括描画・固定版・停止・Undo／Redo・復旧を検査し、
+`weighted-smoothing-{weighted,no-pressure,no-tail,slow,fast,zero-distance}.rgba`を出力する。
+通常画面は加重補正で複数点を描き、設定変更からの独立、停止、消去、取消し、入力上限と拒否通知中のタブ終了を検査する。
+`KisGpuPaintDocumentTest`はKRA保存・再読込み・同じ追加描画後の画素を照合し、
+`weighted-smoothing.kra`と`weighted-smoothing-merged.png`を出力する。
+`TestDocument`は同じ加重補正の画素を公開APIと通常の書出し操作からPNGへ渡し、全画素・ICC・解像度、履歴と保存先の保持を検査する。
+固定出力は`weighted-api-rgba.png`と`weighted-menu-rgba.png`である。
+重み評価の上限超過では、描画・読取り・直接書込みが部分結果を採用せず、入力・履歴・復旧を保持することを検査する。
 形式20は基本補正の設定、入力停止位置と確定状態を保持する。
 操作試験は元の座標・センサー値、停止位置、未確定の復旧、確定・取消し・履歴を検査する。
 停止位置の順序と範囲、設定の組合せ、確定状態と不正な個数は、編集中の文書を変えずに拒否する。

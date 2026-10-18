@@ -30,6 +30,7 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                 seen.insert(key);
                 Q_ASSERT(format >= 19 || !operation.brush.pixelPerfect);
                 Q_ASSERT(!operation.brush.basicSmoothing);
+                Q_ASSERT(!operation.brush.weightedSmoothing);
                 Q_ASSERT(format >= 18 || operation.shape.kind != ShapeKind::Path);
                 Q_ASSERT(format >= 17 || (operation.figureStyle.outline && !operation.figureStyle.fill));
                 QByteArray prefix;
@@ -58,6 +59,11 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                 Q_ASSERT(position >= 0 && position == payload.lastIndexOf(prefix));
                 const auto styleSize = 1 + (operation.figureStyle.fill ? 4 : 0);
                 Q_ASSERT(payload.at(position + prefix.size() + styleSize) == char(operation.brush.pixelPerfect));
+                if (format < 21) {
+                    const auto samples = position + prefix.size() + styleSize + 1 + 4;
+                    for (qsizetype index = operation.sampleCount; index > 0; --index)
+                        payload.remove(samples + (index - 1) * 64 + 56, 8);
+                }
                 if (format < 19) payload.remove(position + prefix.size() + styleSize, 1);
                 if (format < 17) payload.remove(position + prefix.size(), styleSize);
             }

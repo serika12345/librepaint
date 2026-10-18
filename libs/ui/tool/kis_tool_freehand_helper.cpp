@@ -80,7 +80,7 @@ namespace {
 LibrePaint::Image::Gpu::InputSample gpuInputSample(const KisPaintInformation &information)
 {
     return {information.pos(), information.pressure(), information.xTilt(), information.yTilt(),
-            information.rotation(), quint64(information.currentTime())};
+            information.rotation(), quint64(information.currentTime()), information.drawingSpeed()};
 }
 
 QString gpuInputError(LibrePaint::Image::Gpu::Result result)
@@ -333,13 +333,15 @@ void KisToolFreehandHelper::initPaint(KoPointerEvent *event,
         m_d->infoBuilder->startStroke(event, elapsedStrokeTime(), m_d->resourceManager);
     if (image->gpuImage() && m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::NO_SMOOTHING &&
         m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::PIXEL_PERFECT &&
-        m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::SIMPLE_SMOOTHING) {
+        m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::SIMPLE_SMOOTHING &&
+        m_d->smoothingOptions->smoothingType() != KisSmoothingOptions::WEIGHTED_SMOOTHING) {
         m_d->infoBuilder->reset();
-        Q_EMIT requestErrorMessage(i18n("GPU freehand input currently supports no smoothing, basic smoothing or pixel-perfect smoothing with the circular brush."));
+        Q_EMIT requestErrorMessage(i18n("GPU freehand input currently supports no smoothing, basic, weighted or pixel-perfect smoothing with the circular brush."));
         return;
     }
     m_d->gpuBasicInput = image->gpuImage() &&
-        m_d->smoothingOptions->smoothingType() == KisSmoothingOptions::SIMPLE_SMOOTHING;
+        (m_d->smoothingOptions->smoothingType() == KisSmoothingOptions::SIMPLE_SMOOTHING ||
+         m_d->smoothingOptions->smoothingType() == KisSmoothingOptions::WEIGHTED_SMOOTHING);
     qreal startAngle = KisAlgebra2D::directionBetweenPoints(prevPoint, pixelCoords, 0.0);
 
     initPaintImpl(startAngle,
@@ -387,6 +389,14 @@ void KisToolFreehandHelper::initPaintImpl(qreal startAngle,
         auto resources = captureGpuBrushResources(image, currentNode, resourceManager);
         resources.brush.pixelPerfect = m_d->smoothingOptions->smoothingType() == KisSmoothingOptions::PIXEL_PERFECT;
         resources.brush.basicSmoothing = m_d->gpuBasicInput;
+        if (m_d->smoothingOptions->smoothingType() == KisSmoothingOptions::WEIGHTED_SMOOTHING) {
+            const auto zoom = resourceManager->resource(KoCanvasResource::EffectiveZoom).toDouble();
+            const qreal scale = m_d->smoothingOptions->useScalableDistance() ? 1.0 / zoom : 1.0;
+            resources.brush.weightedSmoothing = LibrePaint::Image::Gpu::WeightedSmoothing{
+                scale * m_d->smoothingOptions->smoothnessDistanceMin(),
+                scale * m_d->smoothingOptions->smoothnessDistanceMax(),
+                m_d->smoothingOptions->tailAggressiveness(), m_d->smoothingOptions->smoothPressure()};
+        }
         if (!resources.diagnostic.isEmpty()) {
             m_d->infoBuilder->reset();
             Q_EMIT requestErrorMessage(resources.diagnostic);
