@@ -113,6 +113,7 @@ HistoryAction OperationDocument::historyAction(int index) const
 {
     if (index <= 0 || index >= m_history.size()) return HistoryAction::None;
     if (m_layerHistoryChanges[index].duplicatedLayers) return HistoryAction::DuplicateLayer;
+    if (m_layerHistoryChanges[index].clearedLayers) return HistoryAction::ClearPixels;
     switch (m_layerHistoryChanges[index].property) {
     case LayerProperty::Name: return HistoryAction::RenameLayer;
     case LayerProperty::Opacity: return HistoryAction::ChangeOpacity;
@@ -816,6 +817,35 @@ Result OperationDocument::reorderLayers(const QList<LayerId> &order)
 
 Result OperationDocument::removeLayer(LayerId layer)
 { return removeLayers({layer}); }
+
+Result OperationDocument::clearLayers(const QList<LayerId> &layers)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    if (layers.isEmpty()) return Result::InvalidInput;
+    QSet<LayerId> cleared;
+    for (const auto layer : layers) {
+        if (cleared.contains(layer)) return Result::InvalidInput;
+        const auto index = layerIndex(layer);
+        if (index < 0 || snapshot()->layers[index].userLocked) return Result::LayerUnavailable;
+        cleared.insert(layer);
+    }
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    for (auto &layer : version->layers) {
+        if (!cleared.contains(layer.id)) continue;
+        for (const auto &operation : layer.operations) {
+            version->sampleCount -= operationSamples(operation);
+            version->rasterBytes -= operationRasterBytes(operation);
+        }
+        layer.operations.clear();
+    }
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    LayerHistoryChange change;
+    change.clearedLayers = true;
+    commitVersion(version, change);
+    return Result::Success;
+}
 
 Result OperationDocument::removeLayers(const QList<LayerId> &layers, const QString &replacementName)
 {

@@ -51,6 +51,9 @@
 #include <kis_node.h>
 #include <kis_paint_device.h>
 #include <kis_paint_layer.h>
+#include <kis_properties_configuration.h>
+#include <kis_selection.h>
+#include <kis_tool_utils.h>
 #include <nodes/kis_node_manager.h>
 #include <nodes/kis_node_filter_proxy_model.h>
 #include <kis_canvas2.h>
@@ -116,9 +119,219 @@ private Q_SLOTS:
     void layerPanelRemovalPreservesLayersSelectionAndOneHistoryEntry();
     void layerPanelAddsAtSelectionWithOneHistoryEntry_data();
     void layerPanelAddsAtSelectionWithOneHistoryEntry();
+    void clearActionPreservesSelectedLayersAndHistory_data();
+    void clearActionPreservesSelectedLayersAndHistory();
 private:
     KisPaintOpPresetSP m_preset;
 };
+
+void KisGpuDocumentViewTest::clearActionPreservesSelectedLayersAndHistory_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("multiple");
+    QTest::addColumn<bool>("locked");
+    QTest::addColumn<bool>("closeDuringClear");
+    for (const bool gpu : {false, true}) {
+        const auto prefix = gpu ? QByteArray("gpu-") : QByteArray("ordinary-");
+        QTest::newRow(QByteArray(prefix + "single").constData()) << gpu << false << false << false;
+        QTest::newRow(QByteArray(prefix + "multiple").constData()) << gpu << true << false << false;
+        QTest::newRow(QByteArray(prefix + "locked").constData()) << gpu << true << true << false;
+    }
+    QTest::newRow("gpu-close-during-clear") << true << true << false << true;
+}
+
+void KisGpuDocumentViewTest::clearActionPreservesSelectedLayersAndHistory()
+{
+    QFETCH(bool, gpu);
+    QFETCH(bool, multiple);
+    QFETCH(bool, locked);
+    QFETCH(bool, closeDuringClear);
+    QSettings displaySettings(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) +
+                              QStringLiteral("/kritadisplayrc"), QSettings::IniFormat);
+    const bool hadRenderer = displaySettings.contains(QStringLiteral("OpenGLRenderer"));
+    const auto previousRenderer = displaySettings.value(QStringLiteral("OpenGLRenderer"));
+    const auto restoreCanvas = qScopeGuard([&] {
+        if (hadRenderer) displaySettings.setValue(QStringLiteral("OpenGLRenderer"), previousRenderer);
+        else displaySettings.remove(QStringLiteral("OpenGLRenderer"));
+        displaySettings.sync();
+    });
+    KisConfig(true).disableOpenGL();
+    namespace Gpu = LibrePaint::Image::Gpu;
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    Gpu::PaintImageSP owner;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        owner = Gpu::PaintImageSP::create(execution, QSize(32, 16));
+        QVERIFY(owner->addLayer(QStringLiteral("Middle")));
+        QVERIFY(owner->addLayer(QStringLiteral("Top")));
+        document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Clear layers")));
+    } else {
+        const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+        QVERIFY(document->newImage(QStringLiteral("Clear layers"), 32, 16, cs,
+                                  KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 3, {}, 1));
+    }
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto closeWindow = qScopeGuard([&] {
+        if (window && lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    auto image = KisImageSP(lifetime->image());
+    KisNodeList layers{image->root()->at(0), image->root()->at(1), image->root()->at(2)};
+    const QByteArray pixel = QByteArray::fromHex("112233ff");
+    const QList<QPoint> points{{3, 5}, {-4, 8}, {40, 20}};
+    for (auto layer : layers) {
+        for (const auto &point : points)
+            layer->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(pixel.constData()), point.x(), point.y(), 1, 1);
+    }
+    if (locked) layers[1]->setUserLocked(true);
+    layers[0]->setOpacity(0);
+    auto *manager = window->viewManager()->nodeManager();
+    manager->slotUiActivatedNode(layers[0]);
+    const KisNodeList selected = multiple ? KisNodeList{layers[1], layers[2]} : KisNodeList{layers[2]};
+    manager->slotSetSelectedNodes(selected);
+    view->resourceProvider()->setPaintOpPreset(m_preset);
+    KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
+    QApplication::processEvents();
+    const auto count = lifetime->undoStack()->count();
+    const auto index = lifetime->undoStack()->index();
+    if (owner) QCOMPARE(owner->markSaved(owner->operations().snapshot()), Gpu::Result::Success);
+    else lifetime->undoStack()->setClean();
+    auto *clear = window->viewManager()->actionManager()->actionByName(QStringLiteral("clear"));
+    QVERIFY(clear);
+    QVERIFY(clear->isEnabled());
+    if (owner) {
+        const auto before = owner->operations().snapshot();
+        QVERIFY(!KisToolUtils::clearImage(image, selected, KisSelectionSP(new KisSelection)));
+        QCOMPARE(owner->operations().snapshot(), before);
+        QCOMPARE(lifetime->undoStack()->count(), count);
+    }
+    QMetaObject::Connection close;
+    if (closeDuringClear) {
+        close = connect(owner.data(), &Gpu::PaintImage::changed, window.get(), [&] {
+            QObject::disconnect(close);
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+            window.reset();
+        });
+    }
+    try {
+        clear->trigger();
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    if (closeDuringClear) {
+        QVERIFY(!window);
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        QTRY_VERIFY(!lifetime);
+        QCOMPARE(owner->operations().undoCount(), count + 1);
+        for (auto layer : selected) {
+            QByteArray actual(4, '\0');
+            layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), 3, 5, 1, 1);
+            QCOMPARE(actual, QByteArray(4, '\0'));
+        }
+        return;
+    }
+    image->waitForDone();
+    QTRY_COMPARE(lifetime->undoStack()->count(), count + 1);
+    QCOMPARE(lifetime->undoStack()->index(), index + 1);
+    const auto checkPixels = [&](bool cleared) {
+        for (const auto &layer : layers) {
+            QCOMPARE(image->root()->at(layers.indexOf(layer)), layer);
+            for (const auto &point : points) {
+                QByteArray actual(4, '\0');
+                layer->paintDevice()->readBytes(reinterpret_cast<quint8 *>(actual.data()), point.x(), point.y(), 1, 1);
+                QCOMPARE(actual, cleared && selected.contains(layer) && !layer->userLocked() ? QByteArray(4, '\0') : pixel);
+            }
+        }
+        QCOMPARE(manager->activeNode(), layers[0]);
+        QCOMPARE(manager->selectedNodes().size(), selected.size());
+        for (const auto &layer : selected) QVERIFY(manager->selectedNodes().contains(layer));
+    };
+    checkPixels(true);
+    QTRY_VERIFY(lifetime->isModified());
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    checkPixels(false);
+    QVERIFY(lifetime->undoStack()->isClean());
+    lifetime->undoStack()->redo();
+    image->waitForDone();
+    checkPixels(true);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    lifetime->setFileBatchMode(true);
+    const auto path = directory.filePath(QStringLiteral("cleared.kra"));
+    QVERIFY(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false));
+    lifetime->waitForSavingToComplete();
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto loaded = LibrePaint::ImportExport::Kra::RasterCodec::read(file);
+    QVERIFY2(loaded.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(loaded.diagnostic));
+    QCOMPARE(loaded.document.image.layers.size(), 3);
+    KisPropertiesConfigurationSP configuration(new KisPropertiesConfiguration);
+    configuration->setProperty("alpha", true);
+    configuration->setProperty("interlaced", false);
+    configuration->setProperty("compression", 3);
+    configuration->setProperty("saveSRGBProfile", true);
+    configuration->setProperty("forceSRGB", false);
+    configuration->setProperty("storeAuthor", false);
+    configuration->setProperty("storeMetaData", false);
+    const auto pngPath = directory.filePath(QStringLiteral("cleared.png"));
+    QVERIFY2(lifetime->exportDocumentSync(pngPath, QByteArrayLiteral("image/png"), configuration),
+             qPrintable(lifetime->errorMessage()));
+    const QImage png(pngPath);
+    QCOMPARE(png.size(), QSize(32, 16));
+    QCOMPARE(png.pixelColor(3, 5), multiple && !locked ? QColor(0, 0, 0, 0) : QColor(0x33, 0x22, 0x11));
+    QVERIFY(lifetime->undoStack()->isClean());
+    if (owner) {
+        Gpu::PaintImage reopened(owner->execution(), loaded.document.image);
+        QByteArray canonical;
+        for (const auto &layer : reopened.operations().snapshot()->layers) {
+            const auto found = std::find_if(layers.cbegin(), layers.cend(), [&](const auto &node) { return node->uuid() == layer.uuid; });
+            QVERIFY(found != layers.cend());
+            QCOMPARE(layer.opacity, (*found)->opacity());
+            QCOMPARE(layer.userLocked, (*found)->userLocked());
+            for (const auto &point : points) {
+                const auto pixels = reopened.readRgbaPixels(layer.id, QRect(point, QSize(1, 1)), 4);
+                QVERIFY2(pixels.code == Gpu::ExecutionCode::Success, qPrintable(pixels.diagnostic));
+                QCOMPARE(pixels.bytes, selected.contains(*found) && !(*found)->userLocked() ? QByteArray(4, '\0') : QByteArray::fromHex("332211ff"));
+            }
+            const auto pixels = reopened.readRgbaPixels(layer.id, QRect(-8, -8, 64, 40), 64 * 40 * 4);
+            QVERIFY2(pixels.code == Gpu::ExecutionCode::Success, qPrintable(pixels.diagnostic));
+            canonical.append(pixels.bytes);
+        }
+        const auto resultDirectory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+        if (!resultDirectory.isEmpty()) {
+            QVERIFY(QDir().mkpath(resultDirectory));
+            const auto stem = QDir(resultDirectory).filePath(QStringLiteral("clear-") + QString::fromLatin1(QTest::currentDataTag()));
+            QFile pixels(stem + QStringLiteral(".rgba"));
+            QVERIFY(pixels.open(QIODevice::WriteOnly));
+            QCOMPARE(pixels.write(canonical), canonical.size());
+            QVERIFY(QFile::copy(path, stem + QStringLiteral(".kra")));
+            QVERIFY(QFile::copy(pngPath, stem + QStringLiteral(".png")));
+            const auto rgba = png.convertToFormat(QImage::Format_RGBA8888);
+            QFile exported(stem + QStringLiteral(".png.rgba"));
+            QVERIFY(exported.open(QIODevice::WriteOnly));
+            QCOMPARE(exported.write(reinterpret_cast<const char *>(rgba.constBits()), rgba.sizeInBytes()), rgba.sizeInBytes());
+        }
+        const auto clearText = lifetime->undoStack()->undoText();
+        const auto direct = QByteArray::fromHex("445566ff");
+        layers[2]->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(direct.constData()), 9, 9, 1, 1);
+        QCOMPARE(owner->restoreRecovery(owner->operations().recoveryData()), Gpu::Result::Success);
+        QTRY_COMPARE(lifetime->undoStack()->undoText(), clearText);
+        QCOMPARE(lifetime->undoStack()->count(), count + 1);
+    }
+}
 
 void KisGpuDocumentViewTest::lineToolPreservesPreviewCancellationAndHistory_data()
 {

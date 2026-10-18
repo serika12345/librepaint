@@ -19,6 +19,7 @@
 #include "kis_selection.h"
 #include "kis_command_utils.h"
 #include "kis_processing_applicator.h"
+#include <gpu/KisGpuPaintImage.h>
 
 #include <algorithm>
 
@@ -38,6 +39,20 @@ namespace KisToolUtils {
 
     bool clearImage(KisImageSP image, KisNodeList nodes, KisSelectionSP selection)
     {
+        if (const auto owner = image->gpuImage()) {
+            if (selection || nodes.isEmpty()) return false;
+            const auto version = owner->operations().snapshot();
+            QList<LibrePaint::Image::Gpu::LayerId> layers;
+            for (auto node : nodes) {
+                if (!node || node->image().data() != image.data()) return false;
+                if (!node->hasEditablePaintDevice()) continue;
+                const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(),
+                    [&](const auto &layer) { return layer.uuid == node->uuid(); });
+                if (found == version->layers.cend()) return false;
+                if (!layers.contains(found->id)) layers.append(found->id);
+            }
+            return !layers.isEmpty() && owner->clearLayers(layers) == LibrePaint::Image::Gpu::Result::Success;
+        }
         KisNodeList masks;
 
         Q_FOREACH (KisNodeSP node, nodes) {

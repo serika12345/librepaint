@@ -264,7 +264,8 @@ enum class PropertyHistory { Separate, MergeConsecutive };
 enum class HistoryAction {
     None, AddLayer, RemoveLayer, MoveLayer, RenameLayer, ChangeOpacity,
     ChangeVisibility, ChangeLock, ChangeTimelinePin, PaintStroke, DrawLine,
-    DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath
+    DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath,
+    ClearPixels
 };
 
 struct Limits
@@ -390,6 +391,11 @@ public:
      * A nonempty replacement name creates an empty layer when all are removed.
      */
     Result removeLayers(const QList<LayerId> &layers, const QString &replacementName = {});
+    /** Clears retained paint and raster inputs in one undo step, preserving each
+     * layer's default pixel, identity, properties and selection. The complete
+     * request must name distinct, available, unlocked layers.
+     */
+    Result clearLayers(const QList<LayerId> &layers);
     Result undo();
     Result redo();
     /** Selects one retained history state without executing intermediate edits. */
@@ -413,6 +419,7 @@ private:
         QVariant before, after;
         bool mergeable = false;
         bool duplicatedLayers = false;
+        bool clearedLayers = false;
     };
     std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
     LayerId insertVersion(const Snapshot &source, LayerId sourceLayer,

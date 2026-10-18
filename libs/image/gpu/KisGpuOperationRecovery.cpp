@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 21;
+constexpr quint16 FormatVersion = 22;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -184,7 +184,8 @@ QByteArray OperationDocument::recoveryData() const
             for (const auto &operation : layer.operations) stream << indices.value(operationPointer(operation));
         }
         const auto &change = m_layerHistoryChanges[stateIndex];
-        stream << quint8(quint8(change.property) | (change.duplicatedLayers ? 128u : 0u));
+        stream << quint8(quint8(change.property) | (change.duplicatedLayers ? 128u : 0u) |
+                         (change.clearedLayers ? 64u : 0u));
         if (change.property != LayerProperty::None) {
             stream << change.layer;
             if (change.property == LayerProperty::Name) {
@@ -503,6 +504,14 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         LayerHistoryChange change;
         quint8 property = 0;
         stream >> property;
+        change.clearedLayers = format >= 22 && (property & 64u);
+        if (change.clearedLayers) {
+            property &= 191u;
+            if (i == 0 || property != quint8(LayerProperty::None) ||
+                state->layers.size() != history.last()->layers.size()) return Result::InvalidRecovery;
+            for (qsizetype layer = 0; layer < state->layers.size(); ++layer)
+                if (state->layers[layer].id != history.last()->layers[layer].id) return Result::InvalidRecovery;
+        }
         change.duplicatedLayers = format >= 15 && (property & 128u);
         if (change.duplicatedLayers) {
             property &= 127u;

@@ -1200,14 +1200,17 @@ kis_add_test(KisGpuDocumentViewTest.cpp ../../../krita/krita.qrc
 set(gpu_document_layer_test libs-ui-layers-KisGpuDocumentViewTest)
 add_test(NAME ${gpu_document_layer_test}
     COMMAND KisGpuDocumentViewTest ${gpu_document_layer_cases})
-set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test})
+set(gpu_document_pixel_test libs-ui-pixels-KisGpuDocumentViewTest)
+add_test(NAME ${gpu_document_pixel_test}
+    COMMAND KisGpuDocumentViewTest clearActionPreservesSelectedLayersAndHistory)
+set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test} ${gpu_document_pixel_test})
 add_dependencies(KisGpuDocumentViewTest
     kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
     kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker)
 if(NOT IOS)
     add_dependencies(KisGpuDocumentViewTest kritatextproperties)
 endif()
-add_dependencies(KisGpuDocumentViewTest kritakraexport)
+add_dependencies(KisGpuDocumentViewTest kritakraexport kritapngexport)
 
 kis_add_test(KisEllipseToolDocumentTest.cpp ../../../krita/krita.qrc
     ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc

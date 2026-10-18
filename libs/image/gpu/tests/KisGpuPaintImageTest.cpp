@@ -20,6 +20,8 @@ class KisGpuPaintImageTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void clearedLayersKeepFixedVersionsAndRejectWholeRequests();
+    void clearHistoryKeepsItsMeaningAfterDirectWritesAndRecovery();
     void retainedLayerPixelsRemainEditableThroughRemovalAndDiscardedHistory();
     void rejectedRetainedLayerWritesPreserveVersionsAndHistory();
     void retainedImagesAndClonesKeepTheirExecutionAlive();
@@ -40,6 +42,109 @@ private Q_SLOTS:
     void damagedPixelSharingRecoveryPreservesTheLiveImage();
     void historyNavigationPublishesOneVersionAndPreservesSavedState();
 };
+
+void KisGpuPaintImageTest::clearHistoryKeepsItsMeaningAfterDirectWritesAndRecovery()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    PaintImage image(execution, QSize(16, 16));
+    const auto layer = image.operations().activeLayer();
+    QCOMPARE(image.replaceRgbaPixels(layer, {1, 1, 1, 1}, QByteArray::fromHex("112233ff")), Result::Success);
+    QCOMPARE(image.clearLayers({layer}), Result::Success);
+    const auto count = image.operations().undoCount();
+    QCOMPARE(image.writeRgbaPixels(layer, {8, 8, 1, 1}, QByteArray::fromHex("445566ff")), Result::Success);
+    QCOMPARE(image.operations().undoCount(), count);
+    // The document's public undo display reads this action after recovery.
+    QCOMPARE(image.operations().historyAction(count), HistoryAction::ClearPixels);
+    PaintImage recovered(execution, QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(image.operations().recoveryData()), Result::Success);
+    QCOMPARE(recovered.operations().historyAction(count), HistoryAction::ClearPixels);
+}
+
+void KisGpuPaintImageTest::clearedLayersKeepFixedVersionsAndRejectWholeRequests()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    RasterImage raster{QSize(64, 64), {{QStringLiteral("Default pixels"), true, QUuid::createUuid(), {}, {5, 6, 7, 255}},
+                                      {QStringLiteral("Paint"), true, QUuid::createUuid(), {}}}, 1};
+    Limits limits;
+    limits.rasterBytes = RgbaTile::ByteCount;
+    PaintImage image(execution, raster, limits);
+    const auto first = image.operations().snapshot()->layers[0].id;
+    const auto second = image.operations().snapshot()->layers[1].id;
+    const QRect region(-4, 8, 1, 1);
+    const auto pixel = QByteArray::fromHex("112233ff");
+    QCOMPARE(image.replaceRgbaPixels(first, region, pixel), Result::Success);
+    Brush brush;
+    const auto stroke = image.beginStroke(second, brush, 11);
+    QCOMPARE(image.appendSamples(stroke, {{{8, 8}, 1}}), Result::Success);
+    QCOMPARE(image.commitStroke(stroke), Result::Success);
+    const auto fixed = image.operations().snapshot();
+    const auto reference = image.retainLayerPixels(first);
+    QCOMPARE(image.markSaved(fixed), Result::Success);
+    const auto count = image.operations().undoCount();
+    QSignalSpy changed(&image, &PaintImage::changed);
+    bool requestedBeforeNotification = true;
+    connect(&image, &PaintImage::changed, this, [&] {
+        requestedBeforeNotification &= execution.requested(image.handle()) == image.operations().preview();
+    });
+    const auto pending = image.beginStroke(second, brush, 12);
+    QCOMPARE(image.appendSamples(pending, {{{24, 24}, 1}}), Result::Success);
+    const auto preview = image.operations().preview();
+    const auto history = image.operations().recoveryData();
+    changed.clear();
+    QCOMPARE(image.clearLayers({first, second}), Result::EditInProgress);
+    QCOMPARE(image.operations().preview(), preview);
+    QCOMPARE(image.operations().recoveryData(), history);
+    QCOMPARE(changed.size(), 0);
+    QCOMPARE(image.cancelStroke(pending), Result::Success);
+    changed.clear();
+    QCOMPARE(image.clearLayers({first, 9999}), Result::LayerUnavailable);
+    QCOMPARE(image.clearLayers({first, first}), Result::InvalidInput);
+    QCOMPARE(image.operations().snapshot(), fixed);
+    QCOMPARE(changed.size(), 0);
+    QCOMPARE(image.clearLayers({first, second}), Result::Success);
+    QCOMPARE(changed.size(), 1);
+    QCOMPARE(image.operations().undoCount(), count + 1);
+    QCOMPARE(image.operations().historyAction(count + 1), HistoryAction::ClearPixels);
+    QCOMPARE(image.operations().snapshot()->sampleCount, 0);
+    QCOMPARE(image.operations().snapshot()->rasterBytes, 0);
+    QCOMPARE(image.operations().snapshot()->selectedLayers, fixed->selectedLayers);
+    QCOMPARE(image.operations().activeLayer(), fixed->activeLayer);
+    QCOMPARE(reference->version(), image.operations().snapshot());
+    QCOMPARE(image.readRgbaPixels(first, region, 4).bytes, QByteArray::fromHex("050607ff"));
+    QCOMPARE(image.readRgbaPixels(second, {8, 8, 1, 1}, 4).bytes, QByteArray(4, '\0'));
+    QCOMPARE(execution.readRgbaPixels(image.handle(), fixed, region, first, 4).bytes, pixel);
+    QVERIFY(image.operations().isModified());
+    QCOMPARE(image.undo(), Result::Success);
+    QVERIFY(!image.operations().isModified());
+    QCOMPARE(image.readRgbaPixels(first, region, 4).bytes, pixel);
+    QCOMPARE(image.redo(), Result::Success);
+    const auto cleared = image.operations().snapshot();
+    PaintImage recovered(execution, QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(image.operations().recoveryData()), Result::Success);
+    QCOMPARE(recovered.readRgbaPixels(first, region, 4).bytes, QByteArray::fromHex("050607ff"));
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(recovered.readRgbaPixels(first, region, 4).bytes, pixel);
+    QCOMPARE(image.writeLayerLocked(second, true), Result::Success);
+    const auto locked = image.operations().snapshot();
+    changed.clear();
+    QCOMPARE(image.clearLayers({first, second}), Result::LayerUnavailable);
+    QCOMPARE(image.operations().snapshot(), locked);
+    QCOMPARE(changed.size(), 0);
+    QVERIFY(requestedBeforeNotification);
+    QCOMPARE(execution.readRgbaPixels(image.handle(), cleared, region, first, 4).bytes, QByteArray::fromHex("050607ff"));
+    auto closing = PaintImageSP::create(execution, QSize(32, 32));
+    const auto handle = closing->handle();
+    connect(closing.data(), &PaintImage::changed, this, [&] { closing.clear(); });
+    QCOMPARE(closing->clearLayers({closing->operations().activeLayer()}), Result::Success);
+    QVERIFY(!closing);
+    QVERIFY(!execution.requested(handle));
+}
 
 void KisGpuPaintImageTest::idleSmoothingPublishesAcceptedVersionsWithoutDuplicateNotifications()
 {

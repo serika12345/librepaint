@@ -141,6 +141,8 @@ public:
     Result reorderLayers(const QList<LayerId> &order);
     Result removeLayer(LayerId layer);
     Result removeLayers(const QList<LayerId> &layers, const QString &replacementName = {});
+    /** Clears whole layers atomically while retained versions remain readable. */
+    Result clearLayers(const QList<LayerId> &layers);
     Result undo();
     Result redo();
     Result setHistoryIndex(int index);

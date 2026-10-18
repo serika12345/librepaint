@@ -35,6 +35,7 @@ KUndo2MagicString historyLabel(HistoryAction action)
     case HistoryAction::DrawPolygon: return kundo2_i18n("Draw polygon");
     case HistoryAction::DrawPath: return kundo2_i18n("Draw path");
     case HistoryAction::ReplacePixels: return kundo2_i18n("Replace pixels");
+    case HistoryAction::ClearPixels: return kundo2_i18n("Clear");
     }
     Q_UNREACHABLE();
 }
