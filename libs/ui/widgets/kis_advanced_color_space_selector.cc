@@ -8,6 +8,7 @@
  */
 
 #include "kis_advanced_color_space_selector.h"
+#include "kis_color_space_profile_value_p.h"
 
 #include <KoFileDialog.h>
 #include <KoColorProfile.h>
@@ -25,6 +26,8 @@
 #include <QStandardPaths>
 #include <QTextBrowser>
 #include <QScrollBar>
+#include <QPointer>
+#include <QSignalBlocker>
 
 #include <KoResourcePaths.h>
 
@@ -54,6 +57,27 @@
 struct KisAdvancedColorSpaceSelector::Private {
     Ui_WdgColorSpaceSelectorAdvanced* colorSpaceSelector;
     QString knsrcFile;
+
+    KisColorSpaceProfileValue selectedProfile() const
+    {
+        const auto *item = colorSpaceSelector->lstProfile->currentItem();
+        return item ? item->data(Qt::UserRole).value<KisColorSpaceProfileValue>() : KisColorSpaceProfileValue();
+    }
+
+    void selectProfile(const KisColorSpaceProfileValue &profile)
+    {
+        auto *list = colorSpaceSelector->lstProfile;
+        for (int i = 0; i < list->count(); ++i) {
+            auto *item = list->item(i);
+            if (kisSameColorSpaceProfile(item->data(Qt::UserRole).value<KisColorSpaceProfileValue>(), profile)) {
+                list->setCurrentItem(item);
+                return;
+            }
+        }
+        auto *item = new QListWidgetItem(i18nc("An unlisted profile retained by the color space selector", "%1 (current profile)", profile->name()), list);
+        item->setData(Qt::UserRole, QVariant::fromValue(profile));
+        list->setCurrentItem(item);
+    }
 };
 
 KisAdvancedColorSpaceSelector::KisAdvancedColorSpaceSelector(QWidget* parent, const QString &caption)
@@ -114,28 +138,30 @@ KisAdvancedColorSpaceSelector::~KisAdvancedColorSpaceSelector()
 
 void KisAdvancedColorSpaceSelector::fillLstProfiles()
 {
-    d->colorSpaceSelector->lstProfile->blockSignals(true);
-    const QString colorSpaceId = KoColorSpaceRegistry::instance()->colorSpaceId(d->colorSpaceSelector->cmbColorModels->currentItem(), d->colorSpaceSelector->cmbColorDepth->currentItem());
-    const QString defaultProfileName = KoColorSpaceRegistry::instance()->defaultProfileForColorSpace(colorSpaceId);
-    d->colorSpaceSelector->lstProfile->clear();
-
-    QList<const KoColorProfile *>  profileList = KoColorSpaceRegistry::instance()->profilesFor(colorSpaceId);
-    QStringList profileNames;
-    Q_FOREACH (const KoColorProfile *profile, profileList) {
-        profileNames.append(profile->name());
+    auto *registry = KoColorSpaceRegistry::instance();
+    const QString colorSpaceId = registry->colorSpaceId(d->colorSpaceSelector->cmbColorModels->currentItem(), d->colorSpaceSelector->cmbColorDepth->currentItem());
+    const QString defaultProfileName = registry->defaultProfileForColorSpace(colorSpaceId);
+    QList<KisColorSpaceProfileValue> profiles;
+    for (const auto *profile : registry->profilesFor(colorSpaceId)) {
+        profiles.append(KisColorSpaceProfileValue(profile->clone()));
     }
-    std::sort(profileNames.begin(), profileNames.end());
-    QListWidgetItem *defaultProfile = new QListWidgetItem;
-    defaultProfile->setText(defaultProfileName + " " + i18nc("This is appended to the color profile which is the default for the given colorspace and bit-depth","(Default)"));
-    Q_FOREACH (QString stringName, profileNames) {
-        if (stringName == defaultProfileName) {
-            d->colorSpaceSelector->lstProfile->addItem(defaultProfile);
-        } else {
-            d->colorSpaceSelector->lstProfile->addItem(stringName);
+    std::sort(profiles.begin(), profiles.end(), [](const auto &left, const auto &right) {
+        return left->name() < right->name();
+    });
+    {
+        auto *list = d->colorSpaceSelector->lstProfile;
+        const QSignalBlocker blocker(list);
+        list->clear();
+        QListWidgetItem *defaultItem = nullptr;
+        for (const auto &profile : profiles) {
+            const bool isDefault = profile->name() == defaultProfileName;
+            const QString suffix = isDefault ? " " + i18nc("This is appended to the color profile which is the default for the given colorspace and bit-depth", "(Default)") : QString();
+            auto *item = new QListWidgetItem(profile->name() + suffix, list);
+            item->setData(Qt::UserRole, QVariant::fromValue(profile));
+            if (isDefault) defaultItem = item;
         }
+        list->setCurrentItem(defaultItem ? defaultItem : list->item(0));
     }
-    d->colorSpaceSelector->lstProfile->setCurrentItem(defaultProfile);
-    d->colorSpaceSelector->lstProfile->blockSignals(false);
     colorSpaceChanged();
 }
 
@@ -174,10 +200,9 @@ void KisAdvancedColorSpaceSelector::fillDescription()
     QString profileName = i18nc("Shows up instead of the name when there's no profile","No Profile Found");
     QString whatIsColorant = i18n("Colorant in d50-adapted xyY.");
     //set colorants
-    const QString colorSpaceId = KoColorSpaceRegistry::instance()->colorSpaceId(d->colorSpaceSelector->cmbColorModels->currentItem(), d->colorSpaceSelector->cmbColorDepth->currentItem());
-    QList<const KoColorProfile *>  profileList = KoColorSpaceRegistry::instance()->profilesFor(colorSpaceId);
+    const auto *colorSpace = currentColorSpace();
 
-    if (!profileList.isEmpty()) {
+    if (colorSpace) {
         profileName = currentColorSpace()->profile()->name();
         if (currentColorSpace()->profile()->hasColorants()){
             QVector <KoColorimetryUtils::xyY> colorants = currentColorSpace()->profile()->getColorantsxyY();
@@ -208,7 +233,7 @@ void KisAdvancedColorSpaceSelector::fillDescription()
     QString whatissRGB = i18nc("@info:tooltip","The Tone Response Curve of this color space is either sRGB, L* or rec709 TRC.");
     QString currentModelStr = d->colorSpaceSelector->cmbColorModels->currentItem().id();
 
-    if (profileList.isEmpty()) {
+    if (!colorSpace) {
         d->colorSpaceSelector->TongueWidget->setProfileDataAvailable(false);
         d->colorSpaceSelector->TRCwidget->setProfileDataAvailable(false);
     }
@@ -391,7 +416,7 @@ void KisAdvancedColorSpaceSelector::fillDescription()
     }
 
     d->colorSpaceSelector->textProfileDescription->clear();
-    if (!profileList.isEmpty()) {
+    if (colorSpace) {
         d->colorSpaceSelector->textProfileDescription->append(
             QString("<h3>%1</h3>").arg(i18nc("About <Profilename>", "About %1/%2", currentColorSpace()->name().toHtmlEscaped(), profileName.toHtmlEscaped())));
         d->colorSpaceSelector->textProfileDescription->append(
@@ -502,7 +527,7 @@ void KisAdvancedColorSpaceSelector::fillDescription()
                                                                     "much more processing power. We recommend watching the RAM usage of the file carefully, or otherwise use "
                                                                     "8 bit if your computer slows down.")+"</p>");
     }
-    if (profileList.isEmpty()==false) {
+    if (colorSpace) {
         QString possibleConversionIntents = "<p>"+i18n("The following conversion intents are possible: ")+"<ul>";
         if (currentColorSpace()->profile()->supportsPerceptual()){
             possibleConversionIntents += "<li>"+i18n("Perceptual")+"</li>";
@@ -761,22 +786,18 @@ QString KisAdvancedColorSpaceSelector::nameWhitePoint(KoColorimetryUtils::xyY wh
 
 const KoColorSpace* KisAdvancedColorSpaceSelector::currentColorSpace()
 {
-    QString check = "";
-    if (d->colorSpaceSelector->lstProfile->currentItem()) {
-        check = d->colorSpaceSelector->lstProfile->currentItem()->text();
-    } else if (d->colorSpaceSelector->lstProfile->item(0)) {
-        check = d->colorSpaceSelector->lstProfile->item(0)->text();
-    }
+    const auto profile = d->selectedProfile();
+    if (!profile) return nullptr;
     return KoColorSpaceRegistry::instance()->colorSpace(d->colorSpaceSelector->cmbColorModels->currentItem().id(),
                                                         d->colorSpaceSelector->cmbColorDepth->currentItem().id(),
-                                                        check);
+                                                        profile.data());
 }
 
 void KisAdvancedColorSpaceSelector::setCurrentColorModel(const KoID& id)
 {
     d->colorSpaceSelector->cmbColorModels->setCurrent(id);
-    fillLstProfiles();
     fillCmbDepths(id);
+    fillLstProfiles();
 }
 
 void KisAdvancedColorSpaceSelector::setCurrentColorDepth(const KoID& id)
@@ -787,8 +808,15 @@ void KisAdvancedColorSpaceSelector::setCurrentColorDepth(const KoID& id)
 
 void KisAdvancedColorSpaceSelector::setCurrentProfile(const QString& name)
 {
-    QList<QListWidgetItem *> Items= d->colorSpaceSelector->lstProfile->findItems(name, Qt::MatchStartsWith);
-    d->colorSpaceSelector->lstProfile->setCurrentItem(Items.at(0));
+    auto *registry = KoColorSpaceRegistry::instance();
+    const auto *profile = registry->profileByName(name);
+    const QString colorSpaceId = registry->colorSpaceId(d->colorSpaceSelector->cmbColorModels->currentItem(), d->colorSpaceSelector->cmbColorDepth->currentItem());
+    if (!profile || !registry->profileIsCompatible(profile, colorSpaceId)) return;
+    {
+        const QSignalBlocker blocker(d->colorSpaceSelector->lstProfile);
+        d->selectProfile(KisColorSpaceProfileValue(profile->clone()));
+    }
+    colorSpaceChanged();
 }
 
 void KisAdvancedColorSpaceSelector::setCurrentColorSpace(const KoColorSpace* colorSpace)
@@ -796,17 +824,29 @@ void KisAdvancedColorSpaceSelector::setCurrentColorSpace(const KoColorSpace* col
     if (!colorSpace) {
         return;
     }
-    setCurrentColorModel(colorSpace->colorModelId());
-    setCurrentColorDepth(colorSpace->colorDepthId());
-    setCurrentProfile(colorSpace->profile()->name());
+    const KoID model = colorSpace->colorModelId();
+    const KoID depth = colorSpace->colorDepthId();
+    const KisColorSpaceProfileValue profile(colorSpace->profile()->clone());
+    {
+        const QSignalBlocker blocker(this);
+        const QSignalBlocker listBlocker(d->colorSpaceSelector->lstProfile);
+        d->colorSpaceSelector->cmbColorModels->setCurrent(model);
+        fillCmbDepths(model);
+        d->colorSpaceSelector->cmbColorDepth->setCurrent(depth);
+        fillLstProfiles();
+        d->selectProfile(profile);
+    }
+    colorSpaceChanged();
 }
 
 void KisAdvancedColorSpaceSelector::colorSpaceChanged()
 {
-    bool valid = d->colorSpaceSelector->lstProfile->count() != 0;
+    const auto *selected = currentColorSpace();
+    const bool valid = selected != nullptr;
+    const QPointer<KisAdvancedColorSpaceSelector> guard(this);
     emit(selectionChanged(valid));
-    if (valid) {
-        Q_EMIT colorSpaceChanged(currentColorSpace());
+    if (guard && valid && currentColorSpace() == selected) {
+        Q_EMIT colorSpaceChanged(selected);
     }
 }
 

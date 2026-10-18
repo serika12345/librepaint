@@ -28,6 +28,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     set_tests_properties(${gpu_document_replace_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=xcb")
 endif()
 
+kis_add_test(KisColorSpaceSelectionTest.cpp
+    TEST_NAME_VAR color_space_selection_test
+    LINK_LIBRARIES kritaapplicationui Qt${QT_MAJOR_VERSION}::Test)
+add_dependencies(KisColorSpaceSelectionTest kritalcmsengine)
+set_tests_properties(${color_space_selection_test} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 kis_add_test(
     KisSpinBoxSplineUnitConverterTest.cpp
     LINK_LIBRARIES

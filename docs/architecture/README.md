@@ -955,6 +955,11 @@ GPU実行所有者の交換でも、同じ公開文書と画面を利用する�
 `KoColorConversionTransformationFactory.*`は具体的な接続元・接続先の名前と実データを値として保持する。
 LCMSのRGB変換接続はPQと線形の同名プロファイルも区別し、登録解除後も保持済みの色空間から変換する。
 KRAの画像と各レイヤーの埋込ICCはこの入口を使い、旧HDRの互換変換は形式所有者が明示する別名表を使う。
+`libs/ui/widgets/kis_color_space_selector.cc`と`kis_advanced_color_space_selector.cc`は、
+選択行がプロファイルの複製を所有し、表示名と既定値の接尾辞を選択値から分離する。
+画像プロパティから渡された色空間の実データを保持し、名前による明示選択は登録済みの値を選ぶ。
+通知中の選択変更は最新の値を通知し、選択部品の破棄は後続の通知を止める。
+校正設定は`libs/image/KisProofingConfiguration.h`がプロファイル名を保持し、表示変換とKRA保存が名前から解決する。
 形式所有者は、埋込ICCによる投影の色変換を完了させてから、読込中の画像更新の抑止を解除する。
 読込失敗は元の画像と保存先を保持し、読込通知中の文書終了は後続通知を止める。
 GPU画像所有者の限定した直接KRA入出力は`libs/document/files/gpu/KisGpuKraDocumentFile.cpp`が担当し、
