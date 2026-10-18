@@ -686,6 +686,31 @@ KRAの付属情報は解像度、ICC、文書情報、注釈と対称軸を照�
 Linuxの実行にはVulkanに対応するQt画面プラグインを使う。画面を持たない検証は
 独立したXvfbのX11画面を用意して`QT_QPA_PLATFORM=xcb`で実行する。
 
+### GPU表示のVulkan検証
+
+LinuxのGPU表示は、画素試験に加えてVulkan検証層で生成シェーダー、表示画像の配置と
+資源の寿命を検査する。独立したXvfbの`DISPLAY`を選択し、固定したNix入力から
+検証層を取得して実行する。
+
+```sh
+nixpkgs_rev="$(./scripts/run-shared-test-env python3 -c \
+  'import json; print(json.load(open("flake.lock"))["nodes"]["nixpkgs"]["locked"]["rev"])')"
+validation_layers="$(nix build --no-link --print-out-paths \
+  "github:NixOS/nixpkgs/$nixpkgs_rev#vulkan-validation-layers")"
+./scripts/run-shared-test-env ./scripts/build-incremental native build KisGpuCanvasWindowTest
+./scripts/run-shared-test-env ./scripts/build-incremental native build KisGpuTilePresentationTest
+./scripts/run-shared-test-env env QT_QPA_PLATFORM=xcb \
+  VK_LAYER_PATH="$validation_layers/share/vulkan/explicit_layer.d" \
+  VK_INSTANCE_LAYERS=VK_LAYER_KHRONOS_validation \
+  ctest --preset tdd-linux --verbose --tests-regex '^libs-canvas-gpu-' \
+  > gpu-native-validation.log 2>&1 &&
+  ! rg 'Validation Error:|SYNC-HAZARD-' gpu-native-validation.log
+```
+
+検証結果には使用GPU、検証層の版、試験結果と診断ログを記録する。
+試験成功とネイティブAPIの診断ゼロを併せて受入れ条件とする。
+表示用シェーダーの変更では、透明度、クリップ、移動・拡大・回転の画素契約も照合する。
+
 ### GPU連続入力の処理時間
 
 `KisGpuInteractiveFrameBenchmark`は、250筆の背景を持つ2048×2048文書の

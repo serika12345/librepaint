@@ -8,6 +8,7 @@
 #include <QTest>
 #include <gpu/KisGpuCanvasWindow.h>
 #include <gpu/KisGpuExecution.h>
+#include <gpu/KisGpuTilePresentation.h>
 #include <limits>
 #include "../KisGpuWindowSurface_p.h"
 #include <webgpu/wgpu.h>
@@ -277,6 +278,10 @@ void KisGpuCanvasWindowTest::presentationFramesSubmitThroughTheOwningWindow()
     const auto projection = execution.project(handle, {0, 0, 64, 64});
     QCOMPARE(projection.code, RenderOutcome::Recorded);
     QVERIFY(!execution.published(handle));
+    TilePresentation presentation(m_device);
+    const auto drawn = presentation.record(frame.commands, projection.version,
+        {m_device, frame.target, surface->size(), surface->format()}, QTransform(), Qt::white);
+    QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
     QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
     QCOMPARE(execution.published(handle), document.snapshot());
     QCOMPARE(execution.pendingDocuments(), 0);
