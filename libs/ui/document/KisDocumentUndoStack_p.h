@@ -11,6 +11,7 @@
 #include <gpu/KisGpuPaintImage.h>
 #include <QHash>
 #include <QQueue>
+#include <QTimer>
 
 class KisDocument;
 
@@ -23,6 +24,7 @@ class KisDocumentUndoStack final : public KUndo2Stack
 public:
     explicit KisDocumentUndoStack(KisDocument *document);
     void setImage(KisImageSP image);
+    void beginDocumentClose();
     void setIndex(int index) override;
     void undo() override;
     void redo() override;
@@ -31,10 +33,10 @@ protected:
     void notifySetIndexChangedOneCommand() override;
 
 private:
-    KisImageWSP image();
-    void setIndexImpl(int index);
-    void undoImpl();
-    void redoImpl();
+    KisImageSP image();
+    bool setIndexImpl(int index, bool notify);
+    bool undoImpl(bool notify);
+    bool redoImpl(bool notify);
     void processPostponedJobs();
     void synchronizeGpuHistory();
 
@@ -42,9 +44,13 @@ private:
         enum Type { Undo, Redo, SetIndex };
         Type type = Undo;
         int index = 0;
+        bool notified = false;
     };
     int m_recursionCounter = 0;
     QQueue<PostponedJob> m_postponedJobs;
+    QTimer m_retryTimer;
+    quint64 m_imageGeneration = 0;
+    bool m_closing = false;
     KisDocument *m_document;
     LibrePaint::Image::Gpu::PaintImageSP m_gpuImage;
     QMetaObject::Connection m_gpuChanges;

@@ -43,12 +43,19 @@ KUndo2MagicString historyLabel(HistoryAction action)
 }
 
 KisDocumentUndoStack::KisDocumentUndoStack(KisDocument *document)
-    : KUndo2Stack(document), m_document(document)
+    : KUndo2Stack(document), m_retryTimer(this), m_document(document)
 {
+    m_retryTimer.setSingleShot(true);
+    m_retryTimer.setInterval(16);
+    connect(&m_retryTimer, &QTimer::timeout, this, &KisDocumentUndoStack::processPostponedJobs);
 }
 
 void KisDocumentUndoStack::setImage(KisImageSP image)
 {
+    if (m_closing) return;
+    ++m_imageGeneration;
+    m_postponedJobs.clear();
+    m_retryTimer.stop();
     const auto owner = image ? image->gpuImage() : PaintImageSP();
     if (!m_gpuImage && !owner) return;
     disconnect(m_gpuChanges);
@@ -63,8 +70,19 @@ void KisDocumentUndoStack::setImage(KisImageSP image)
     synchronizeGpuHistory();
 }
 
+void KisDocumentUndoStack::beginDocumentClose()
+{
+    m_closing = true;
+    ++m_imageGeneration;
+    m_postponedJobs.clear();
+    m_retryTimer.stop();
+    disconnect(m_gpuChanges);
+    disconnect(m_gpuSaved);
+}
+
 void KisDocumentUndoStack::synchronizeGpuHistory()
 {
+    if (m_closing) return;
     const auto owner = m_gpuImage;
     if (!owner) return;
     const auto &document = owner->operations();
@@ -109,27 +127,28 @@ void KisDocumentUndoStack::synchronizeGpuHistory()
 
 void KisDocumentUndoStack::setIndex(int index)
 {
+    if (m_closing) return;
     m_postponedJobs.append({PostponedJob::SetIndex, index});
     processPostponedJobs();
 }
 
 void KisDocumentUndoStack::undo()
 {
+    if (m_closing) return;
     m_postponedJobs.append({PostponedJob::Undo, 0});
     processPostponedJobs();
 }
 
 void KisDocumentUndoStack::redo()
 {
+    if (m_closing) return;
     m_postponedJobs.append({PostponedJob::Redo, 0});
     processPostponedJobs();
 }
 
-KisImageWSP KisDocumentUndoStack::image()
+KisImageSP KisDocumentUndoStack::image()
 {
-    KisImageWSP currentImage = m_document->image();
-    Q_ASSERT(currentImage);
-    return currentImage;
+    return m_document->image();
 }
 
 void KisDocumentUndoStack::notifySetIndexChangedOneCommand()
@@ -142,65 +161,100 @@ void KisDocumentUndoStack::notifySetIndexChangedOneCommand()
     }
 }
 
-void KisDocumentUndoStack::setIndexImpl(int index)
+bool KisDocumentUndoStack::setIndexImpl(int index, bool notify)
 {
     if (const auto owner = m_gpuImage) {
         if (owner->operations().hasActiveStroke()) owner->cancelStroke(owner->operations().activeOperation());
         owner->setHistoryIndex(std::clamp(index, 0, owner->operations().undoCount() + owner->operations().redoCount()));
-        return;
+        return true;
     }
-    KisImageWSP currentImage = image();
-    currentImage->requestStrokeCancellation();
+    KisImageSP currentImage = image();
+    if (!currentImage) return true;
+    if (notify) {
+        const auto generation = m_imageGeneration;
+        QPointer<KisDocumentUndoStack> guard(this);
+        currentImage->requestStrokeCancellation();
+        if (!guard || generation != m_imageGeneration) return true;
+    }
     if (currentImage->tryBarrierLock()) {
         KUndo2Stack::setIndex(index);
         currentImage->unlock();
+        return true;
     }
+    return false;
 }
 
-void KisDocumentUndoStack::undoImpl()
+bool KisDocumentUndoStack::undoImpl(bool notify)
 {
     if (const auto owner = m_gpuImage) {
         if (owner->operations().hasActiveStroke()) owner->cancelStroke(owner->operations().activeOperation());
         else owner->undo();
-        return;
+        return true;
     }
-    KisImageWSP currentImage = image();
-    currentImage->requestUndoDuringStroke();
-    if (currentImage->tryUndoUnfinishedLod0Stroke() == UNDO_OK) return;
+    KisImageSP currentImage = image();
+    if (!currentImage) return true;
+    if (notify) {
+        const bool toolOwnsInput = currentImage->hasOpenStrokes();
+        const auto generation = m_imageGeneration;
+        QPointer<KisDocumentUndoStack> guard(this);
+        currentImage->requestUndoDuringStroke();
+        if (!guard || generation != m_imageGeneration || toolOwnsInput) return true;
+        if (currentImage->tryUndoUnfinishedLod0Stroke() == UNDO_OK) return true;
+    }
     if (currentImage->tryBarrierLock()) {
         KUndo2Stack::undo();
         currentImage->unlock();
+        return true;
     }
+    return false;
 }
 
-void KisDocumentUndoStack::redoImpl()
+bool KisDocumentUndoStack::redoImpl(bool notify)
 {
     if (const auto owner = m_gpuImage) {
         if (!owner->operations().hasActiveStroke()) owner->redo();
-        return;
+        return true;
     }
-    KisImageWSP currentImage = image();
-    currentImage->requestRedoDuringStroke();
+    KisImageSP currentImage = image();
+    if (!currentImage) return true;
+    if (notify) {
+        const bool toolOwnsInput = currentImage->hasOpenStrokes();
+        const auto generation = m_imageGeneration;
+        QPointer<KisDocumentUndoStack> guard(this);
+        currentImage->requestRedoDuringStroke();
+        if (!guard || generation != m_imageGeneration || toolOwnsInput) return true;
+    }
     if (currentImage->tryBarrierLock()) {
         KUndo2Stack::redo();
         currentImage->unlock();
+        return true;
     }
+    return false;
 }
 
 void KisDocumentUndoStack::processPostponedJobs()
 {
     // Blocking command notifications can reenter navigation from the history panel.
-    if (m_recursionCounter > 0) return;
+    if (m_closing || m_recursionCounter > 0) return;
     ++m_recursionCounter;
     QPointer<KisDocumentUndoStack> guard(this);
     while (!m_postponedJobs.isEmpty()) {
-        const PostponedJob job = m_postponedJobs.dequeue();
+        PostponedJob job = m_postponedJobs.dequeue();
+        const auto generation = m_imageGeneration;
+        const bool notify = !job.notified;
+        job.notified = true;
+        bool completed = false;
         switch (job.type) {
-        case PostponedJob::SetIndex: setIndexImpl(job.index); break;
-        case PostponedJob::Redo: redoImpl(); break;
-        case PostponedJob::Undo: undoImpl(); break;
+        case PostponedJob::SetIndex: completed = setIndexImpl(job.index, notify); break;
+        case PostponedJob::Redo: completed = redoImpl(notify); break;
+        case PostponedJob::Undo: completed = undoImpl(notify); break;
         }
         if (!guard) return;
+        if (!completed && generation == m_imageGeneration) {
+            m_postponedJobs.prepend(job);
+            break;
+        }
     }
     --m_recursionCounter;
+    if (!m_postponedJobs.isEmpty()) m_retryTimer.start();
 }

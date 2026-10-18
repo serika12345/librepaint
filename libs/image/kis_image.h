@@ -1004,6 +1004,11 @@ public:
 
     bool isIdle(bool allowLocked = false);
 
+    /** True while a stroke owner can still add input, before endStroke() or cancellation.
+     * Call from the image owner thread.
+     */
+    bool hasOpenStrokes() const;
+
     /**
      * @brief Wait until all the queued background jobs are completed and lock the image.
      *

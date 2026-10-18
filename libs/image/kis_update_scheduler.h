@@ -104,6 +104,7 @@ public:
      * moment. Internally calls to tryBarrierLock(), so it is not O(1).
      */
     bool isIdle();
+    bool hasOpenStrokes() const;
 
     /**
      * Blocks all the updates from execution. It doesn't affect

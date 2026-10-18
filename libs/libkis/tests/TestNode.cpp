@@ -33,6 +33,10 @@
 #include <kundo2stack.h>
 #include <QSignalSpy>
 #include <QTemporaryDir>
+#include <QSemaphore>
+#include <QThread>
+#include <KisRunnableBasedStrokeStrategy.h>
+#include <KisRunnableStrokeJobData.h>
 #include <gpu/KisGpuPaintImage.h>
 #include <gpu/KisGpuExecution.h>
 
@@ -56,6 +60,52 @@
 #include <application/ui/orchestration/KisPart.h>
 
 #include <testui.h>
+
+namespace {
+class HistoryNavigationImageJob final : public KisRunnableBasedStrokeStrategy
+{
+public:
+    HistoryNavigationImageJob() : KisRunnableBasedStrokeStrategy(QLatin1String("history-navigation-image-job"))
+    {
+        enableJob(JOB_DOSTROKE);
+        setClearsRedoOnStart(false);
+    }
+};
+
+class PausedHistoryImageJob
+{
+public:
+    PausedHistoryImageJob(KisImageSP image, bool active = false) : m_image(image)
+    {
+        m_stroke = image->startStroke(new HistoryNavigationImageJob);
+        image->addJob(m_stroke, new KisRunnableStrokeJobData([entered = m_entered, resume = m_resume] {
+            entered->release();
+            resume->acquire();
+        }));
+        if (!active) {
+            image->endStroke(m_stroke);
+            m_ended = true;
+        }
+    }
+    ~PausedHistoryImageJob() { finish(); }
+    bool waitForStart() { return m_entered->tryAcquire(1, 5000); }
+    void finish()
+    {
+        if (m_finished) return;
+        if (!m_ended) m_image->endStroke(m_stroke);
+        m_resume->release();
+        m_image->waitForDone();
+        m_finished = true;
+    }
+private:
+    KisImageSP m_image;
+    KisStrokeId m_stroke;
+    std::shared_ptr<QSemaphore> m_entered = std::make_shared<QSemaphore>();
+    std::shared_ptr<QSemaphore> m_resume = std::make_shared<QSemaphore>();
+    bool m_ended = false;
+    bool m_finished = false;
+};
+}
 
 void TestNode::initTestCase()
 {
@@ -803,6 +853,184 @@ void TestNode::testLayerRemovalPreservesPixelsAndHistory()
     api.refreshProjection();
     QCOMPARE(api.pixelData(5, 7, 1, 1), original);
     KisPart::instance()->removeDocument(document.data(), false);
+}
+
+void TestNode::testHistoryNavigationWaitsForImageJobs_data()
+{
+    QTest::addColumn<QString>("navigation");
+    QTest::addColumn<bool>("active");
+    QTest::addColumn<bool>("cloned");
+    QTest::newRow("undo") << QStringLiteral("undo") << false << false;
+    QTest::newRow("redo") << QStringLiteral("redo") << false << false;
+    QTest::newRow("set-index") << QStringLiteral("set-index") << false << false;
+    QTest::newRow("active-undo") << QStringLiteral("undo") << true << false;
+    QTest::newRow("active-redo") << QStringLiteral("redo") << true << false;
+    QTest::newRow("worker-clone-undo") << QStringLiteral("undo") << false << true;
+}
+
+void TestNode::testHistoryNavigationWaitsForImageJobs()
+{
+    QFETCH(QString, navigation);
+    QFETCH(bool, active);
+    QFETCH(bool, cloned);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QVERIFY(document->newImage(QStringLiteral("History navigation with pending image work"), 32, 16, cs,
+                               KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, active ? 2 : 1, {}, 1));
+    KisImageSP image = document->image();
+    if (cloned) {
+        QScopedPointer<KisDocument> copy;
+        bool usedWorkerThread = false;
+        const auto stroke = image->startStroke(new HistoryNavigationImageJob);
+        image->addJob(stroke, new KisRunnableStrokeJobData([&] {
+            usedWorkerThread = QThread::currentThread() != qApp->thread();
+            copy.reset(document->clone());
+            copy->moveToThread(qApp->thread());
+        }, KisStrokeJobData::BARRIER, KisStrokeJobData::EXCLUSIVE));
+        image->endStroke(stroke);
+        image->waitForDone();
+        QVERIFY(usedWorkerThread);
+        QVERIFY(copy);
+        QCOMPARE(copy->thread(), qApp->thread());
+        image = copy->image();
+        document.swap(copy);
+    }
+    if (active) {
+        QScopedPointer<Node> first(Node::createNode(image, image->root()->firstChild()));
+        QVERIFY(first->remove());
+    }
+    const auto original = image->root()->firstChild();
+    QScopedPointer<Node> api(Node::createNode(image, original));
+    QVERIFY(api->remove());
+    const int historyCount = active ? 2 : 1;
+    QCOMPARE(document->undoStack()->count(), historyCount);
+    QCOMPARE(document->undoStack()->index(), historyCount);
+    if (navigation == QStringLiteral("redo")) {
+        document->undoStack()->undo();
+        image->waitForDone();
+        if (active) {
+            document->undoStack()->undo();
+            image->waitForDone();
+        }
+        QCOMPARE(document->undoStack()->index(), 0);
+        QCOMPARE(active ? image->root()->lastChild() : image->root()->firstChild(), original);
+    }
+    const int initialIndex = document->undoStack()->index();
+    QSignalSpy changes(document->undoStack(), &KUndo2Stack::indexChanged);
+    PausedHistoryImageJob pending(image, active);
+    QVERIFY(pending.waitForStart());
+    QVERIFY(!image->isIdle());
+    QCOMPARE(image->hasOpenStrokes(), active);
+    if (navigation == QStringLiteral("undo")) document->undoStack()->undo();
+    else if (navigation == QStringLiteral("redo")) document->undoStack()->redo();
+    else document->undoStack()->setIndex(0);
+    QCOMPARE(document->undoStack()->index(), initialIndex);
+    QCOMPARE(changes.count(), 0);
+    pending.finish();
+    QVERIFY(!image->hasOpenStrokes());
+    if (active) {
+        if (navigation == QStringLiteral("undo")) document->undoStack()->undo();
+        else document->undoStack()->redo();
+    }
+    const int expectedIndex = initialIndex + (navigation == QStringLiteral("redo") ? 1 : -1);
+    QTRY_COMPARE(document->undoStack()->index(), expectedIndex);
+    image->waitForDone();
+    QCOMPARE(document->undoStack()->count(), historyCount);
+    QCOMPARE(changes.count(), 1);
+    QCOMPARE(image->root()->firstChild(), active || initialIndex ? original : KisNodeSP());
+}
+
+void TestNode::testDeferredHistoryRequestsPreserveOrderAndLifetime_data()
+{
+    QTest::addColumn<QString>("operation");
+    for (const auto &operation : {"ordered", "replace-image", "destroy-document", "notification-replace", "notification-destroy", "close-notification"})
+        QTest::newRow(operation) << QString::fromLatin1(operation);
+}
+
+void TestNode::testDeferredHistoryRequestsPreserveOrderAndLifetime()
+{
+    QFETCH(QString, operation);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QVERIFY(document->newImage(QStringLiteral("Deferred history lifetime"), 32, 16, cs,
+                               KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
+    KisImageSP image = document->image();
+    const auto original = image->root()->firstChild();
+    QScopedPointer<Node> api(Node::createNode(image, original));
+    const auto pixels = api->pixelData(0, 0, 1, 1);
+    QVERIFY(api->remove());
+    QCOMPARE(document->undoStack()->index(), 1);
+    QPointer<KUndo2Stack> lifetime(document->undoStack());
+    QSignalSpy changes(lifetime, &KUndo2Stack::indexChanged);
+    QSignalSpy undoRequests(image.data(), &KisImage::sigUndoDuringStrokeRequested);
+    QSignalSpy redoRequests(image.data(), &KisImage::sigRedoDuringStrokeRequested);
+    PausedHistoryImageJob pending(image);
+    QVERIFY(pending.waitForStart());
+
+    const auto replaceAndRecord = [&] {
+        if (!document->newImage(QStringLiteral("Replacement history"), 32, 16, cs,
+                                KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 2, {}, 1)) return false;
+        KisImageSP replacement = document->image();
+        while (replacement->root()->firstChild()) {
+            QScopedPointer<Node> node(Node::createNode(replacement, replacement->root()->firstChild()));
+            if (!node->remove()) return false;
+        }
+        return document->undoStack()->index() == 2;
+    };
+    bool replaced = false;
+    QMetaObject::Connection notification;
+    const auto disconnectNotification = qScopeGuard([&] { QObject::disconnect(notification); });
+    if (operation.startsWith(QStringLiteral("notification-"))) {
+        notification = connect(image.data(), &KisImage::sigUndoDuringStrokeRequested, image.data(), [&] {
+            pending.finish();
+            if (operation == QStringLiteral("notification-destroy")) document.reset();
+            else replaced = replaceAndRecord();
+        });
+    } else if (operation == QStringLiteral("close-notification")) {
+        notification = connect(image.data(), &KisImage::sigAboutToBeDeleted, image.data(), [stack = lifetime.data()] {
+            stack->undo();
+        });
+    }
+    document->undoStack()->undo();
+    if (operation == QStringLiteral("ordered")) {
+        document->undoStack()->redo();
+        document->undoStack()->undo();
+        QCOMPARE(document->undoStack()->index(), 1);
+        QCOMPARE(changes.count(), 0);
+        pending.finish();
+        QTRY_COMPARE(changes.count(), 3);
+        QCOMPARE(document->undoStack()->index(), 0);
+        image->waitForDone();
+        QCOMPARE(changes.at(0).at(0).toInt(), 0);
+        QCOMPARE(changes.at(1).at(0).toInt(), 1);
+        QCOMPARE(changes.at(2).at(0).toInt(), 0);
+        QCOMPARE(undoRequests.count(), 2);
+        QCOMPARE(redoRequests.count(), 1);
+        QCOMPARE(image->root()->firstChild(), original);
+        return;
+    }
+    if (operation == QStringLiteral("replace-image")) {
+        pending.finish();
+        replaced = replaceAndRecord();
+    } else if (operation == QStringLiteral("destroy-document") || operation == QStringLiteral("close-notification")) {
+        pending.finish();
+        document.reset();
+    }
+    if (operation.endsWith(QStringLiteral("destroy")) || operation == QStringLiteral("destroy-document") || operation == QStringLiteral("close-notification")) {
+        QVERIFY(lifetime.isNull());
+        QCOMPARE(image->root()->childCount(), 0U);
+        QCOMPARE(api->pixelData(0, 0, 1, 1), pixels);
+        return;
+    }
+    QVERIFY(replaced);
+    KisImageSP replacement = document->image();
+    QSignalSpy replacementChanges(document->undoStack(), &KUndo2Stack::indexChanged);
+    document->undoStack()->undo();
+    QTRY_COMPARE(document->undoStack()->index(), 1);
+    replacement->waitForDone();
+    QCOMPARE(replacementChanges.count(), 1);
+    QCOMPARE(replacement->root()->childCount(), 1U);
+    QCOMPARE(image->root()->childCount(), 0U);
 }
 
 void TestNode::testLastLayerRemovalInWindowClearsSelectionAndRestoresHistory_data()

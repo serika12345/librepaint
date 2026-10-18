@@ -913,6 +913,12 @@ bool KisImage::isIdle(bool allowLocked)
         !m_d->gpuImage->operations().hasActiveStroke() : m_d->cpuScheduler().isIdle());
 }
 
+bool KisImage::hasOpenStrokes() const
+{
+    return m_d->gpuImage ? m_d->gpuImage->operations().hasActiveStroke() :
+        m_d->scheduler && m_d->cpuScheduler().hasOpenStrokes();
+}
+
 void KisImage::immediateLockForReadOnly()
 {
     if (!locked()) {

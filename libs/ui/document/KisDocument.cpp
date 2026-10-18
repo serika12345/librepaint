@@ -582,6 +582,7 @@ KisDocument::KisDocument(const KisDocument &rhs, bool addStorage)
 KisDocument::~KisDocument()
 {
     d->documentIsClosing = true;
+    d->undoStack->beginDocumentClose();
 
     // wait until all the pending operations are in progress
     waitForSavingToComplete();
@@ -636,14 +637,8 @@ KisDocument::~KisDocument()
         d->undoStack->clear();
         d->image->waitForDone();
 
-        KisImageWSP sanityCheckPointer = d->image;
-        Q_UNUSED(sanityCheckPointer);
-
-        // The following line trigger the deletion of the image
+        d->image->setUndoStore(new KisDumbUndoStore());
         d->image.clear();
-
-        // check if the image has actually been deleted
-        KIS_SAFE_ASSERT_RECOVER_NOOP(!sanityCheckPointer.isValid());
     }
 
     if (d->wasStorageAdded) {
