@@ -1157,6 +1157,10 @@ PNGの画素密度は1からQtの整数上限の範囲へ収め、KRAの文書�
 `libs/impex`の`KisImportExportFilterRegistry`が`Krita/FileFilter`プラグインをMIME型で選び、
 管理クラスが`KisImportExportFilter::convert()`を呼びます。
 
+TIFFの向き補正は`plugins/impex/tiff/kis_tiff_import.cc`が所有する。
+回転と反転を組み合わせる向きは、画像をロックして画素の反転を完了してから、
+画像所有者へ非同期回転を予約することで、ファイルに指定された向きを再現する。
+
 - KRAやORAのようなコンテナー形式では`libs/resources/storage`の`KoStore`がZIP／ディレクトリー抽象化を提供します。
 - XML名前空間と逐次書出しは`libs/serialization/xml`が提供します。
 - 画像形式固有の符号化、設定画面、依存ライブラリー接続は`plugins/impex/<format>/`に置きます。
