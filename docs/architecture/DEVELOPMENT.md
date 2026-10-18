@@ -160,6 +160,8 @@ Issueへの反映には、後述の「Issueによる作業管理」の依頼・�
 `run-test`の第1引数はCMakeターゲット、第2引数はCTest名の正規表現。
 宣言済み依存だけを構築し、同じ構築木の`bin`から必要な製品プラグインを読み込む。
 動的探索するプラグインは、その具体的なモジュールを試験のCMake依存へ追加する。
+Qtの異常終了診断を子プロセスの標準エラーで検査する場合は、子プロセスへ
+`QT_FORCE_STDERR_LOGGING=1`を指定して観測先を固定する。
 
 ```sh
 run-test kis_strokes_queue_test '^libs-image-kis_strokes_queue_test$'
