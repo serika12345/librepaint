@@ -169,7 +169,7 @@ ProjectionOutcome TileRenderer::compose(WGPUCommandEncoder commands, const Rende
             required += std::min<qsizetype>(2, jobs);
         }
     }
-    if (required > (d.budget->limit - d.budget->used) / TileBytes) {
+    if (!d.ensureTileCapacity(required)) {
         return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU projection tile budget exhausted")};
     }
     std::vector<CompositeJob> jobs;

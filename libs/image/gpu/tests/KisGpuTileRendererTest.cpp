@@ -78,6 +78,9 @@ private Q_SLOTS:
     void partialRenderingMatchesFullTilesAndRejectsIncompleteComposition();
     void changingPreviewReusesItsBackgroundWithinThreeTiles();
     void appendedInputPreservesPixelsOutsideItsChangedTiles();
+    void appendedInputPreservesCoverageBackgroundAndOldVersions_data();
+    void appendedInputPreservesCoverageBackgroundAndOldVersions();
+    void pendingStrokeLeavesCapacityForCompositionAndCancellation();
 
 private:
     RenderedSnapshot render(TileRenderer &renderer, const Snapshot &snapshot,
@@ -556,6 +559,112 @@ void KisGpuTileRendererTest::appendedInputPreservesPixelsOutsideItsChangedTiles(
     const auto redone = render(renderer, document.snapshot(), undone);
     QVERIFY(redone);
     QCOMPARE(readTile(redone, layer, {0, 0}), shaped);
+}
+
+void KisGpuTileRendererTest::appendedInputPreservesCoverageBackgroundAndOldVersions_data()
+{
+    QTest::addColumn<int>("mode");
+    QTest::newRow("normal") << 0;
+    QTest::newRow("erase") << 1;
+    QTest::newRow("alpha-locked") << 2;
+    QTest::newRow("protected-channels") << 3;
+    QTest::newRow("mirrored-overlap") << 4;
+    QTest::newRow("hidden-background-rgb") << 5;
+    QTest::newRow("large-brush") << 6;
+}
+
+void KisGpuTileRendererTest::appendedInputPreservesCoverageBackgroundAndOldVersions()
+{
+    QFETCH(int, mode);
+    const QByteArray pixel = QByteArray::fromHex(mode == 5 ? "4d2b8700" : "4d2b875f");
+    const auto background = pixel.repeated(RgbaTile::ByteCount / 4);
+    RasterImage input;
+    input.size = {512, 256};
+    input.layers = {{QStringLiteral("Background"), true, {},
+                     {{{0, 0}, background}, {{1, 0}, background}}}};
+    OperationDocument document(input);
+    const auto layer = document.activeLayer();
+    Brush brush;
+    brush.rgba = {31, 142, 207, 135};
+    brush.diameter = mode == 6 ? 512 : 16.75;
+    brush.spacing = 0.27;
+    brush.opacity = 149;
+    brush.erase = mode == 1;
+    brush.alphaLocked = mode == 2;
+    brush.channelWriteMask = mode == 3 ? 5 : 15;
+    brush.mirrorHorizontal = brush.mirrorVertical = mode == 4;
+    brush.mirrorCenter = {64, 32};
+    const auto stroke = document.beginStroke(layer, brush, 123);
+    QCOMPARE(document.appendSamples(stroke, {{{32.25, 32.25}, 0.35}}), Result::Success);
+    TileRenderer renderer(m_device, 24 * TileRenderer::TileBytes);
+    // A fresh reconstruction has room for the checkpoints and painted tiles.
+    TileRenderer oracle(m_device, 4 * TileRenderer::TileBytes);
+    auto current = render(renderer, document.preview());
+    QVERIFY(current);
+    const auto first = current;
+    const QList<QByteArray> firstPixels{readTile(first, layer, {0, 0}), readTile(first, layer, {1, 0})};
+    const QList<InputSample> additions{{{66.75, 34.5}, 0.87}, {{42.25, 31.75}, 0.6},
+                                       {{300.5, 48.75}, 0.95}, {{32.5, 31.25}, 0.55}};
+    for (const auto &sample : additions) {
+        QCOMPARE(document.appendSamples(stroke, {sample}), Result::Success);
+        const auto next = render(renderer, document.preview(), current);
+        QVERIFY(next);
+        const auto rebuilt = render(oracle, document.preview());
+        QVERIFY(rebuilt);
+        for (int x = 0; x < 2; ++x) {
+            QCOMPARE(readTile(next, layer, {x, 0}), readTile(rebuilt, layer, {x, 0}));
+            QCOMPARE(readTile(first, layer, {x, 0}), firstPixels[x]);
+        }
+        current = next;
+    }
+    const QList<QByteArray> finalPixels{readTile(current, layer, {0, 0}), readTile(current, layer, {1, 0})};
+    const auto recovery = document.recoveryData();
+    QCOMPARE(document.cancelStroke(stroke), Result::Success);
+    QCOMPARE(document.undoCount(), 0);
+    const auto cancelled = render(renderer, document.snapshot(), current);
+    QVERIFY(cancelled);
+    for (int x = 0; x < 2; ++x) {
+        QCOMPARE(readTile(cancelled, layer, {x, 0}), background);
+        QCOMPARE(readTile(current, layer, {x, 0}), finalPixels[x]);
+    }
+    OperationDocument restored({1, 1});
+    QCOMPARE(restored.restoreRecovery(recovery), Result::Success);
+    const auto recovered = render(oracle, restored.preview());
+    QVERIFY(recovered);
+    for (int x = 0; x < 2; ++x)
+        QCOMPARE(readTile(recovered, restored.activeLayer(), {x, 0}), finalPixels[x]);
+}
+
+void KisGpuTileRendererTest::pendingStrokeLeavesCapacityForCompositionAndCancellation()
+{
+    RasterImage input;
+    input.size = {64, 64};
+    input.activeLayer = 1;
+    input.layers = {{QStringLiteral("Lower"), true, {},
+                     {{{0, 0}, QByteArray::fromHex("ff0000ff").repeated(RgbaTile::ByteCount / 4)}}},
+                    {QStringLiteral("Upper"), true, {}, {}}};
+    OperationDocument document(input);
+    Brush brush;
+    brush.rgba = {0, 0, 255, 128};
+    brush.diameter = 16;
+    const auto stroke = document.beginStroke(document.activeLayer(), brush, 7);
+    QCOMPARE(document.appendSamples(stroke, {{{32, 32}, 1}}), Result::Success);
+    TileRenderer renderer(m_device, 3 * TileRenderer::TileBytes);
+    const auto painted = render(renderer, document.preview());
+    QVERIFY(painted);
+    const auto projection = project(renderer, painted, {0, 0, 64, 64});
+    QVERIFY2(projection, "Pending-stroke derived data must leave room for the required projection");
+    const auto offset = (32 * TileRenderer::TileSize + 32) * 4;
+    QCOMPARE(readBuffer(projection->tiles().first().pixels).mid(offset, 4), QByteArray::fromHex("7f0080ff"));
+    QVERIFY(renderer.residentBytes() <= 3 * TileRenderer::TileBytes);
+    QCOMPARE(document.cancelStroke(stroke), Result::Success);
+    const auto cancelled = render(renderer, document.snapshot(), painted);
+    QVERIFY(cancelled);
+    const auto restored = project(renderer, cancelled, {0, 0, 64, 64}, projection);
+    QVERIFY(restored);
+    QCOMPARE(readBuffer(restored->tiles().first().pixels).mid(offset, 4), QByteArray::fromHex("ff0000ff"));
+    QCOMPARE(readBuffer(projection->tiles().first().pixels).mid(offset, 4), QByteArray::fromHex("7f0080ff"));
+    QVERIFY(renderer.residentBytes() <= 3 * TileRenderer::TileBytes);
 }
 
 void KisGpuTileRendererTest::changingPreviewReusesItsBackgroundWithinThreeTiles()

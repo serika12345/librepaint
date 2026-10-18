@@ -60,6 +60,7 @@ struct TileRenderer::Private
     DevicePtr device;
     std::shared_ptr<Detail::Budget> budget;
     Detail::NativeBuffer zero;
+    Detail::NativeBuffer unusedCoverage;
     Detail::NativeBindingLayout layout;
     Detail::NativeComputePipeline pipeline;
     Detail::NativeBindingLayout projectionLayout;
@@ -68,12 +69,16 @@ struct TileRenderer::Private
     Detail::NativeComputePipeline transparencyPipeline;
     bool zeroUploaded = false;
     QString error;
+    QWeakPointer<const RenderedVersion> coverageVersion;
+    LayerId coverageLayer = 0;
+    Detail::Tiles coverage;
 
     Private(DevicePtr device, qsizetype byteBudget);
     Detail::NativeComputePipeline createPipeline(const QString &path);
     void initializeProjection();
     Detail::NativeBuffer recordTransparency(WGPUCommandEncoder commands, const ProjectedSnapshot &projection, QRect region);
     std::shared_ptr<Detail::Tile> allocateTile();
+    bool ensureTileCapacity(qsizetype count);
 };
 }
 #endif

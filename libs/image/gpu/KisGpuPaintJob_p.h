@@ -24,14 +24,20 @@ static_assert(sizeof(PaintParameters) == 64);
 struct PaintJob
 {
     std::shared_ptr<Tile> input, output;
+    std::shared_ptr<Tile> coverageInput, coverageOutput;
     NativeBuffer samples, parameters;
     std::shared_ptr<NativeBuffer> fillEdges;
     NativeBindings bindings;
     QList<PaintSegment> geometry;
+    QList<PaintSegment> appendedGeometry;
+    quint64 coverageCoordinate = 0;
+    bool retainCoverage = false;
+    bool extendsCoverage = false;
     PaintParameters values{};
 };
 
 quint32 packedPixel(const std::array<quint8, 4> &rgba);
-bool preparePaintJob(Device &device, WGPUBindGroupLayout layout, PaintJob &job, WGPUBuffer zero);
+bool preparePaintJob(Device &device, WGPUBindGroupLayout layout, PaintJob &job,
+                     WGPUBuffer zero, WGPUBuffer unusedCoverage);
 }
 #endif

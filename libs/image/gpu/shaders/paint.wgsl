@@ -13,6 +13,8 @@ struct Segment { endpoints: vec4<i32>, values: vec4<u32>, }
 @group(0) @binding(2) var<storage, read> basePixels: array<u32>;
 @group(0) @binding(3) var<storage, read_write> outputPixels: array<u32>;
 @group(0) @binding(4) var<storage, read> fillEdges: array<Segment>;
+@group(0) @binding(5) var<storage, read> previousCoverage: array<u32>;
+@group(0) @binding(6) var<storage, read_write> retainedCoverage: array<u32>;
 
 // Low word first; 16-bit products preserve the complete 64-bit result.
 fn product(a: u32, b: u32) -> vec2<u32> {
@@ -106,8 +108,13 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     let index = local.y * 256u + local.x;
     if (parameters.counts.z != 0u) { outputPixels[index] = parameters.brush.x; return; }
     let pixel = parameters.tile.xy + vec2<i32>(local);
-    if (any(pixel >= parameters.tile.zw)) { outputPixels[index] = basePixels[index]; return; }
+    if (any(pixel >= parameters.tile.zw)) {
+        outputPixels[index] = basePixels[index];
+        if ((parameters.counts.w & 256u) != 0u) { retainedCoverage[index] = 0u; }
+        return;
+    }
     var mask = 0u;
+    if ((parameters.counts.w & 128u) != 0u) { mask = previousCoverage[index]; }
     let mirrorMode = (parameters.counts.w >> 5u) & 3u;
     let figureFlags = bitcast<u32>(parameters.mirror.w);
     if ((figureFlags & 2u) == 0u) {
@@ -162,6 +169,7 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
             }
         }
     }
+    if ((parameters.counts.w & 256u) != 0u) { retainedCoverage[index] = mask; }
     var fillMask = 0u;
     if ((figureFlags & 1u) != 0u) {
         for (var reflection = 0u; reflection < 4u && fillMask != 65535u; reflection += 1u) {

@@ -29,10 +29,11 @@ bool containsHiddenRgb(const QByteArray &pixels)
 TileRenderer::Private::Private(DevicePtr device, qsizetype byteBudget)
     : device(std::move(device)), budget(std::make_shared<Budget>(Budget{this->device, byteBudget})),
       zero(createBuffer(this->device->nativeDevice(), TileBytes,
-                        WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst))
+                        WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst)),
+      unusedCoverage(createBuffer(this->device->nativeDevice(), sizeof(quint32), WGPUBufferUsage_Storage))
 {
     pipeline = createPipeline(QStringLiteral(":/librepaint/gpu/shaders/paint.wgsl"));
-    if (!zero || !pipeline) return;
+    if (!zero || !unusedCoverage || !pipeline) return;
     layout.reset(wgpuComputePipelineGetBindGroupLayout(pipeline.get(), 0));
     if (!layout) error = QStringLiteral("GPU paint bindings could not be created");
     if (error.isEmpty()) initializeProjection();
@@ -69,10 +70,21 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path)
 
 std::shared_ptr<Tile> TileRenderer::Private::allocateTile()
 {
+    if (!ensureTileCapacity(1)) return {};
     auto pixels = createBuffer(device->nativeDevice(), TileBytes,
                                WGPUBufferUsage_Storage | WGPUBufferUsage_CopySrc | WGPUBufferUsage_CopyDst);
     if (!pixels || !device->diagnostic().isEmpty()) return {};
     return std::make_shared<Tile>(std::move(pixels), budget);
+}
+
+bool TileRenderer::Private::ensureTileCapacity(qsizetype count)
+{
+    if (coverageVersion.isNull() || count > (budget->limit - budget->used) / TileBytes) {
+        coverage.clear();
+        coverageVersion.clear();
+        coverageLayer = 0;
+    }
+    return count <= (budget->limit - budget->used) / TileBytes;
 }
 
 RenderedVersion::RenderedVersion(std::shared_ptr<Data> data) : m_data(std::move(data)) {}
@@ -96,7 +108,11 @@ TileRenderer::TileRenderer(DevicePtr device, qsizetype byteBudget)
     m_d = std::make_unique<Private>(std::move(device), byteBudget);
 }
 TileRenderer::~TileRenderer() = default;
-qsizetype TileRenderer::residentBytes() const { return m_d->budget->used; }
+qsizetype TileRenderer::residentBytes() const
+{
+    m_d->ensureTileCapacity(0);
+    return m_d->budget->used;
+}
 
 RenderOutcome TileRenderer::record(WGPUCommandEncoder commands, const Snapshot &document, const RenderedSnapshot &base)
 {
@@ -155,17 +171,20 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     struct Checkpoint { qsizetype operation = 0; QSharedPointer<const RasterTile> pixels; };
     struct Upload { std::shared_ptr<Tile> tile; QByteArray rgba; };
     std::vector<Upload> uploads;
+    LayerId pendingCoverageLayer = 0;
+    bool preserveCoverage = false;
     if (base && base->document()->projectionBackground == document->projectionBackground)
         data->background = base->m_data->background;
     if (!document->directProjectionLayer() && packedPixel(document->projectionBackground) && !data->background) {
-        if (d.budget->used > d.budget->limit - TileBytes)
+        if (!d.ensureTileCapacity(1))
             return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU canvas background tile budget exhausted")};
         PaintJob fill;
         fill.output = d.allocateTile();
         fill.values.color = packedPixel(document->projectionBackground);
         fill.values.uniformFill = 1;
-        if (!preparePaintJob(*d.device, d.layout.get(), fill, d.zero.get()))
+        if (!fill.output)
             return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU canvas background allocation failed")};
+        fill.output->mayContainHiddenRgb = (fill.values.color >> 24) == 0;
         data->background = fill.output;
         jobs.push_back(std::move(fill));
     }
@@ -210,6 +229,10 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     }
                     if (changingStroke || droppingStroke) {
                         if (previousSamples >= 0) appendedFrom = std::max<qsizetype>(0, previousSamples - 1);
+                        if (appendedFrom && document->pendingOperation() == std::get<PaintSnapshot>(layer.operations.back())->id) {
+                            pendingCoverageLayer = layer.id;
+                            preserveCoverage = true;
+                        }
                         const auto &inputs = base->m_data->strokeInputs[layer.id];
                         for (auto input = inputs.cbegin(); input != inputs.cend(); ++input) {
                             if (!reusedCoordinates.contains(input.key())) continue;
@@ -221,6 +244,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     } else if (base->m_data->strokeInputs.contains(layer.id) && !old.operations.isEmpty()) {
                         const auto paint = std::get_if<PaintSnapshot>(&old.operations.back());
                         if (paint && document->pendingOperation() == (*paint)->id) {
+                            pendingCoverageLayer = layer.id;
+                            preserveCoverage = true;
                             auto &inputs = data->strokeInputs[layer.id];
                             const auto &oldInputs = base->m_data->strokeInputs[layer.id];
                             for (auto input = oldInputs.cbegin(); input != oldInputs.cend(); ++input)
@@ -234,16 +259,17 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
             }
         }
         if (packedPixel(layer.defaultPixel) && !data->defaults.value(layer.id)) {
-            if (d.budget->used > d.budget->limit - TileBytes) {
+            if (!d.ensureTileCapacity(1)) {
                 return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU default pixel tile budget exhausted")};
             }
             PaintJob fill;
             fill.output = d.allocateTile();
             fill.values.color = packedPixel(layer.defaultPixel);
             fill.values.uniformFill = 1;
-            if (!preparePaintJob(*d.device, d.layout.get(), fill, d.zero.get())) {
+            if (!fill.output) {
                 return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU default pixel allocation failed")};
             }
+            fill.output->mayContainHiddenRgb = (fill.values.color >> 24) == 0;
             data->defaults[layer.id] = fill.output;
             jobs.push_back(std::move(fill));
         }
@@ -264,7 +290,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 }
             }
         }
-        if (checkpoints.size() > (d.budget->limit - d.budget->used) / TileBytes) {
+        if (!d.ensureTileCapacity(checkpoints.size())) {
             return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU checkpoint tile budget exhausted")};
         }
         // Each coordinate starts at its last whole-tile write. Later pixel-local
@@ -286,6 +312,9 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
             if (!operation.figureStyle.outline && !operation.figureStyle.fill) continue;
             const bool pending = document->pendingOperation() == operation.id;
             const bool extending = appendedFrom && op == layer.operations.size() - 1;
+            const bool retainCoverage = pending && operation.shape.kind == ShapeKind::Freehand &&
+                !operation.brush.pixelPerfect && !operation.brush.basicSmoothing && !operation.figureStyle.fill;
+            if (retainCoverage) pendingCoverageLayer = layer.id;
             if (pending) data->strokeInputs[layer.id];
             if (pending && extending) data->strokeInputs[layer.id] = strokeInputs;
             const auto diameter = quint32(std::max<qint64>(1, std::llround(operation.brush.diameter * 16)));
@@ -295,6 +324,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
             const auto &segments = geometry->outline;
             QMap<quint64, QList<PaintSegment>> affected;
             QSet<quint64> changedCoordinates;
+            QMap<quint64, QList<PaintSegment>> appendedGeometry;
             for (qsizetype index = 0; operation.figureStyle.outline && index < segments.size(); ++index) {
                 const auto &segment = segments[index];
                 QSet<quint64> coordinates;
@@ -319,7 +349,10 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     const auto checkpoint = checkpoints.constFind(coordinate);
                     if (checkpoint != checkpoints.cend() && op < checkpoint->operation) continue;
                     affected[coordinate].append(segment);
-                    if (extending && index >= *appendedFrom) changedCoordinates.insert(coordinate);
+                    if (extending && index >= *appendedFrom) {
+                        changedCoordinates.insert(coordinate);
+                        if (retainCoverage) appendedGeometry[coordinate].append(segment);
+                    }
                     if (affected.size() > d.budget->limit / TileBytes)
                         return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU tile budget exhausted")};
                 }
@@ -349,7 +382,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 const int next = pool[0] && tiles.value(tile.key()) == pool[0] ? 1 : 0;
                 if (!pool[next]) ++required;
             }
-            if (required > (d.budget->limit - d.budget->used) / TileBytes) {
+            if (!d.ensureTileCapacity(required)) {
                 return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU tile budget exhausted")};
             }
             std::shared_ptr<NativeBuffer> fillBuffer;
@@ -376,7 +409,12 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 auto &output = pool[pool[0] && job.input == pool[0] ? 1 : 0];
                 if (!output) output = d.allocateTile();
                 job.output = output;
+                if (!job.output) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
                 job.geometry = tile.value();
+                job.retainCoverage = retainCoverage;
+                job.coverageCoordinate = tile.key();
+                job.extendsCoverage = extending;
+                job.appendedGeometry = appendedGeometry.value(tile.key());
                 job.fillEdges = fillBuffer;
                 const auto point = coordinate(tile.key()) * TileSize;
                 job.values = {point.x(), point.y(), document->size.width(), document->size.height(),
@@ -387,11 +425,41 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                               operation.figureStyle.fill ? packedPixel(*operation.figureStyle.fill) : 0,
                               quint32(bool(operation.figureStyle.fill)) | (operation.figureStyle.outline ? 0u : 2u) |
                                   (operation.shape.windingFill ? 4u : 0u)};
-                if (!preparePaintJob(*d.device, d.layout.get(), job, d.zero.get())) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
+                job.output->mayContainHiddenRgb = operation.brush.alphaLocked ||
+                    (job.input && job.input->mayContainHiddenRgb);
                 tiles[tile.key()] = job.output;
                 jobs.push_back(std::move(job));
             }
         }
+    }
+    const bool reuseCoverage = preserveCoverage && d.coverageVersion.toStrongRef() == base &&
+        d.coverageLayer == pendingCoverageLayer;
+    Tiles nextCoverage;
+    if (reuseCoverage) {
+        const auto &inputs = data->strokeInputs[pendingCoverageLayer];
+        for (auto tile = d.coverage.cbegin(); tile != d.coverage.cend(); ++tile)
+            if (inputs.contains(tile.key())) nextCoverage[tile.key()] = tile.value();
+    }
+    for (auto &job : jobs) {
+        if (job.retainCoverage) {
+            nextCoverage.remove(job.coverageCoordinate);
+            if (d.budget->limit - d.budget->used >= TileBytes) {
+                job.coverageOutput = d.allocateTile();
+                if (!job.coverageOutput)
+                    return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU coverage allocation failed")};
+                if (reuseCoverage && job.extendsCoverage)
+                    job.coverageInput = d.coverage.value(job.coverageCoordinate);
+                if (job.coverageInput) {
+                    job.geometry = std::move(job.appendedGeometry);
+                    job.values.count = quint32(job.geometry.size());
+                    job.values.paintFlags |= 128u;
+                }
+                job.values.paintFlags |= 256u;
+                nextCoverage[job.coverageCoordinate] = job.coverageOutput;
+            }
+        }
+        if (!preparePaintJob(*d.device, d.layout.get(), job, d.zero.get(), d.unusedCoverage.get()))
+            return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
     }
     if (!d.zeroUploaded) {
         wgpuCommandEncoderClearBuffer(commands, d.zero.get(), 0, TileBytes);
@@ -413,6 +481,10 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
     }
-    return {RenderOutcome::Recorded, RenderedSnapshot(new RenderedVersion(data)), {}};
+    const RenderedSnapshot version(new RenderedVersion(data));
+    d.coverage = std::move(nextCoverage);
+    d.coverageVersion = version;
+    d.coverageLayer = pendingCoverageLayer;
+    return {RenderOutcome::Recorded, version, {}};
 }
 }
