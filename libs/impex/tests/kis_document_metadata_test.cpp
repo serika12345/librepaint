@@ -59,8 +59,26 @@ void KisImportExportDocumentMetadataTest::testSaveUsesExplicitDocumentState()
 
     QDomDocument unchangedDocument;
     unchangedDocument.appendChild(unchangedDocument.createElement("document"));
-    info.save(unchangedDocument, false, false);
+    const auto saveTime = QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate);
+    info.save(unchangedDocument, false, false, saveTime);
     QCOMPARE(info.aboutInfo("editing-cycles"), QString("5"));
+    QCOMPARE(info.aboutInfo("date"), saveTime.toString(Qt::ISODate));
+
+    QDomDocument invalidDocument;
+    invalidDocument.appendChild(invalidDocument.createElement("document"));
+    QVERIFY(info.save(invalidDocument, false, false, QDateTime()).isNull());
+    QCOMPARE(info.aboutInfo("editing-cycles"), QString("5"));
+    QCOMPARE(info.aboutInfo("date"), saveTime.toString(Qt::ISODate));
+    QVERIFY(invalidDocument.documentElement().firstChild().isNull());
+
+    QDomDocument ordinaryDocument;
+    ordinaryDocument.appendChild(ordinaryDocument.createElement("document"));
+    const auto before = QDateTime::currentDateTime().toSecsSinceEpoch();
+    info.save(ordinaryDocument, false, false);
+    const auto after = QDateTime::currentDateTime().toSecsSinceEpoch();
+    const auto ordinaryTime = QDateTime::fromString(info.aboutInfo("date"), Qt::ISODate).toSecsSinceEpoch();
+    QVERIFY(ordinaryTime >= before && ordinaryTime <= after);
+    QCOMPARE(info.aboutInfo("editing-cycles"), QString("6"));
 }
 
 void KisImportExportDocumentMetadataTest::testParameterUpdateUsesExplicitModificationState()

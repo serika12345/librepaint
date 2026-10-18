@@ -40,9 +40,45 @@ private Q_SLOTS:
     void boundsReusePixelsRetainedByTheDisplayedFrame();
     void integerTranslationPreservesRgbaAcrossTileBoundariesAndFixedVersions();
     void contentBoundsRetainTransparentRgbForMovementAdmission();
+    void projectionReadsTranslatedCheckpointsWithinCanvasBudget();
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPixelReadbackTest::projectionReadsTranslatedCheckpointsWithinCanvasBudget()
+{
+    RasterImage input;
+    input.size = {64, 64};
+    input.layers = {{QStringLiteral("Four source tiles"), true, {}, {}}};
+    for (int y = -1; y <= 0; ++y) for (int x = -1; x <= 0; ++x) {
+        QByteArray pixels(RgbaTile::ByteCount, '\0');
+        const int px = x < 0 ? 255 : 0, py = y < 0 ? 255 : 0;
+        pixels.replace((py * 256 + px) * 4, 4, QByteArray::fromHex("112233ff"));
+        input.layers.first().tiles.append({{x, y}, pixels});
+    }
+    OperationDocument document(input);
+    const auto fixed = document.snapshot();
+    const auto operation = document.beginLayerTranslation(document.activeLayer());
+    QCOMPARE(document.updateLayerTranslation(operation, {1, 1}), Result::Success);
+    QCOMPARE(document.commitLayerTranslation(operation), Result::Success);
+    const auto moved = document.snapshot();
+    Execution execution(m_device, 12 * TileRenderer::TileBytes, 1);
+    const auto handle = execution.open(moved).handle;
+    const auto projection = execution.readProjectionImage(handle, moved, 64 * 64 * 4);
+    QVERIFY2(projection.code == ExecutionCode::Success, qPrintable(projection.diagnostic));
+    QByteArray expected(64 * 64 * 4, '\0');
+    for (int y = 0; y < 2; ++y) for (int x = 0; x < 2; ++x)
+        expected.replace((y * 64 + x) * 4, 4, QByteArray::fromHex("112233ff"));
+    QCOMPARE(QByteArray(reinterpret_cast<const char*>(projection.image.constBits()), projection.image.sizeInBytes()), expected);
+    const auto original = execution.readProjectionImage(handle, fixed, 64 * 64 * 4);
+    QVERIFY2(original.code == ExecutionCode::Success, qPrintable(original.diagnostic));
+    expected.fill('\0');
+    expected.replace(0, 4, QByteArray::fromHex("112233ff"));
+    QCOMPARE(QByteArray(reinterpret_cast<const char*>(original.image.constBits()), original.image.sizeInBytes()), expected);
+    QCOMPARE(execution.readProjectionImage(handle, moved, 64 * 64 * 4 - 1).code, ExecutionCode::CapacityExceeded);
+    QCOMPARE(execution.readLayerPixels(handle, moved, document.activeLayer(), TileRenderer::TileBytes).code, ExecutionCode::CapacityExceeded);
+    QCOMPARE(execution.requested(handle), moved);
+}
 
 void KisGpuPixelReadbackTest::contentBoundsRetainTransparentRgbForMovementAdmission()
 {

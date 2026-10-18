@@ -7,6 +7,7 @@
 #include <QDir>
 #include <QFile>
 #include <QDataStream>
+#include <QDateTime>
 #include <QIcon>
 #include <QMouseEvent>
 #include <QPointer>
@@ -14,6 +15,9 @@
 #include <QScopeGuard>
 #include <QSignalSpy>
 #include <QTemporaryDir>
+#include <QTimeZone>
+#include <QDomDocument>
+#include <quazip.h>
 #include <KLocalizedString>
 #include <KConfigGroup>
 #include <KSharedConfig>
@@ -37,6 +41,7 @@
 #include <brushengine/kis_paintop_registry.h>
 #include <brushengine/kis_paintop_preset.h>
 #include <document/KisDocument.h>
+#include <gpu/KisGpuPaintDocument.h>
 #include <gpu/KisGpuExecution.h>
 #include <gpu/KisGpuPaintImage.h>
 #include <input/ui/kis_input_profile_manager.h>
@@ -46,6 +51,8 @@
 #include <kis_node.h>
 #include <kis_paint_device.h>
 #include <kis_properties_configuration.h>
+#include <metadata/KoDocumentInfo.h>
+#include <nodes/kis_node_manager.h>
 #include <kis_tool.h>
 #include <kundo2stack.h>
 #include <opengl/kis_opengl.h>
@@ -149,11 +156,13 @@ void KisMoveToolDocumentTest::movementPreservesPreviewCancellationHistoryAndSavi
     auto *view = window->newView(document.get());
     QVERIFY(view);
     QPointer<KisDocument> lifetime(document.release());
+    QPointer<KisDocument> continued;
     QPointer<KisTool> tool;
     QMetaObject::Connection interruption;
     const auto cleanup = qScopeGuard([&] {
         QObject::disconnect(interruption);
         if (tool) tool->requestStrokeCancellation();
+        if (continued) continued->setModified(false);
         if (lifetime) {
             lifetime->setModified(false);
             window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
@@ -300,20 +309,74 @@ void KisMoveToolDocumentTest::movementPreservesPreviewCancellationHistoryAndSavi
     QCOMPARE(layer->paintDevice()->offset(), initial + delta);
     QTemporaryDir output;
     QVERIFY(output.isValid());
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            output.setAutoRemove(false);
+            qInfo() << "Move save artifacts retained at" << output.path();
+        }
+    });
     const auto path = output.filePath(QStringLiteral("moved.kra"));
+    const auto saveTime = QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate);
+    lifetime->documentInfo()->setAboutInfo("creation-date", QStringLiteral("2000-01-02T03:04:05Z"));
+    KisPropertiesConfigurationSP saveConfiguration(new KisPropertiesConfiguration);
+    saveConfiguration->setProperty("documentSaveTime", saveTime);
     lifetime->setFileBatchMode(true);
     QSignalSpy saved(lifetime, &KisDocument::sigSavingFinished);
-    QVERIFY(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false));
+    QVERIFY(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false, saveConfiguration));
+    saveConfiguration->setProperty("documentSaveTime", QStringLiteral("invalid"));
     QTRY_COMPARE(saved.size(), 1);
+    saveConfiguration->setProperty("documentSaveTime", saveTime);
     QVERIFY(!lifetime->isSaving());
     std::unique_ptr<KisDocument> reopened(KisPart::instance()->createDocument());
     reopened->setFileBatchMode(true);
     QVERIFY(reopened->openPath(path, KisDocument::DontAddToRecent));
+    QCOMPARE(reopened->documentInfo()->aboutInfo("date"), saveTime.toString(Qt::ISODate));
+    QCOMPARE(reopened->documentInfo()->aboutInfo("creation-date"), QStringLiteral("2000-01-02T03:04:05Z"));
+    QuaZip archive(path);
+    QVERIFY(archive.open(QuaZip::mdUnzip));
+    int entries = 0;
+    for (bool more = archive.goToFirstFile(); more; more = archive.goToNextFile()) {
+        QuaZipFileInfo64 info;
+        QVERIFY(archive.getCurrentFileInfo(&info));
+        QCOMPARE(info.dateTime.date(), QDate(1980, 1, 1));
+        QCOMPARE(info.dateTime.time(), QTime(0, 0));
+        QCOMPARE(info.versionCreated >> 8, 3);
+        ++entries;
+    }
+    QVERIFY(entries > 0);
+    QCOMPARE(archive.getZipError(), 0);
+    archive.close();
     const auto restored = reopened->image()->root()->firstChild()->paintDevice();
     QCOMPARE(restored->offset(), initial + delta);
     QByteArray result(16, '\0');
     restored->readBytes(reinterpret_cast<quint8*>(result.data()), QRect(moved, QSize(2, 2)));
     QCOMPARE(result, bytes);
+    if (input == QStringLiteral("drag")) {
+        QFile original(path);
+        QVERIFY(original.open(QIODevice::ReadOnly));
+        const auto originalFile = original.readAll();
+        original.close();
+        const auto date = lifetime->documentInfo()->aboutInfo("date");
+        const auto cycles = lifetime->documentInfo()->aboutInfo("editing-cycles");
+        const auto history = lifetime->undoStack()->index();
+        const auto modified = lifetime->isModified();
+        const auto filename = lifetime->path();
+        QSignalSpy failed(lifetime, &KisDocument::statusBarMessage);
+        KisPropertiesConfigurationSP invalid(new KisPropertiesConfiguration);
+        invalid->setProperty("documentSaveTime", QStringLiteral("invalid"));
+        lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false, invalid);
+        QTRY_VERIFY(!failed.isEmpty());
+        QCOMPARE(saved.size(), 1);
+        QVERIFY(!lifetime->isSaving());
+        QCOMPARE(lifetime->documentInfo()->aboutInfo("date"), date);
+        QCOMPARE(lifetime->documentInfo()->aboutInfo("editing-cycles"), cycles);
+        QCOMPARE(lifetime->undoStack()->index(), history);
+        QCOMPARE(lifetime->isModified(), modified);
+        QCOMPARE(lifetime->path(), filename);
+        QCOMPARE(pixel(moved), bytes);
+        QVERIFY(original.open(QIODevice::ReadOnly));
+        QCOMPARE(original.readAll(), originalFile);
+    }
     KisPropertiesConfigurationSP configuration(new KisPropertiesConfiguration);
     configuration->setProperty("alpha", true);
     configuration->setProperty("interlaced", false);
@@ -366,6 +429,73 @@ void KisMoveToolDocumentTest::movementPreservesPreviewCancellationHistoryAndSavi
     lifetime->undoStack()->redo();
     image->waitForDone();
     QTRY_COMPARE(pixel(directPoint), direct);
+
+    if (gpu) {
+        namespace Files = LibrePaint::Document::Gpu;
+        auto loaded = Files::PaintDocument::openKra(owner->execution(), path);
+        QVERIFY2(loaded.code == Files::FileCode::Success, qPrintable(loaded.diagnostic));
+        reopened->setCurrentImage(KisImage::fromGpuImage(loaded.document->image(), image->objectName()));
+    }
+    auto *continuedView = window->newView(reopened.get());
+    QVERIFY(continuedView);
+    continued = reopened.release();
+    window->viewManager()->setCurrentView(continuedView);
+    window->viewManager()->canvasResourceProvider()->setPaintOpPreset(m_preset);
+    KoToolManager::instance()->switchToolRequested(toolId);
+    tool = qobject_cast<KisTool*>(KoToolManager::instance()->toolById(continuedView->canvasBase(), toolId));
+    QVERIFY(tool);
+    continuedView->canvasBase()->snapGuide()->enableSnapping(false);
+    auto continuedLayer = continued->image()->root()->firstChild();
+    QTRY_COMPARE(window->viewManager()->document(), continued.data());
+    QTRY_VERIFY(continued->shapeForNode(continuedLayer));
+    window->viewManager()->nodeManager()->slotUiActivatedNode(continuedLayer);
+    window->viewManager()->nodeManager()->slotSetSelectedNodes({continuedLayer});
+    QSignalSpy continuedHandles(tool, SIGNAL(moveInNewPosition(QPoint)));
+    QVERIFY(QMetaObject::invokeMethod(tool, "slotSelectionChanged"));
+    QTRY_VERIFY(!continuedHandles.isEmpty());
+    const QPoint extra(1, 1), edited = moved + extra;
+    QVERIFY(QMetaObject::invokeMethod(tool, "slotMoveDiscreteRight"));
+    QTRY_COMPARE(continuedLayer->paintDevice()->offset(), initial + delta + QPoint(1, 0));
+    QVERIFY(QMetaObject::invokeMethod(tool, "slotMoveDiscreteDown"));
+    QTRY_COMPARE(continuedLayer->paintDevice()->offset(), initial + delta + extra);
+    tool->requestStrokeEnd();
+    continued->image()->waitForDone();
+    QTRY_COMPARE(continued->undoStack()->count(), 1);
+    QCOMPARE(continuedLayer->paintDevice()->offset(), initial + delta + extra);
+    continuedLayer->paintDevice()->readBytes(reinterpret_cast<quint8*>(result.data()), QRect(edited, QSize(2, 2)));
+    QCOMPARE(result, bytes);
+    const auto editedPath = output.filePath(QStringLiteral("edited.kra"));
+    QSignalSpy resaved(continued, &KisDocument::sigSavingFinished);
+    saveConfiguration->setProperty("documentSaveTime", saveTime.addSecs(3600));
+    QVERIFY2(continued->saveAs(editedPath, KisDocument::nativeFormatMimeType(), false, saveConfiguration), qPrintable(continued->errorMessage()));
+    QTRY_COMPARE(resaved.size(), 1);
+    std::unique_ptr<KisDocument> finalDocument(KisPart::instance()->createDocument());
+    finalDocument->setFileBatchMode(true);
+    QVERIFY(finalDocument->openPath(editedPath, KisDocument::DontAddToRecent));
+    QCOMPARE(finalDocument->documentInfo()->aboutInfo("date"), saveTime.addSecs(3600).toString(Qt::ISODate));
+    QCOMPARE(finalDocument->documentInfo()->aboutInfo("creation-date"), QStringLiteral("2000-01-02T03:04:05Z"));
+    const auto finalLayer = finalDocument->image()->root()->firstChild();
+    QCOMPARE(finalLayer->paintDevice()->offset(), initial + delta + extra);
+    finalLayer->paintDevice()->readBytes(reinterpret_cast<quint8*>(result.data()), QRect(edited, QSize(2, 2)));
+    QCOMPARE(result, bytes);
+    const auto editedPng = output.filePath(QStringLiteral("edited.png"));
+    QVERIFY(continued->exportDocumentSync(editedPng, QByteArrayLiteral("image/png"), configuration));
+    const auto editedProjection = QImage(editedPng).convertToFormat(QImage::Format_RGBA8888);
+    auto expected = rgba;
+    expected.fill('\0');
+    for (int y = 0; y < 63; ++y)
+        expected.replace(((y + 1) * 64 + 1) * 4, 63 * 4, rgba.mid(y * 64 * 4, 63 * 4));
+    QCOMPARE(editedProjection.size(), QSize(64, 64));
+    for (int y = 0; y < 64; ++y)
+        QCOMPARE(QByteArray(reinterpret_cast<const char*>(editedProjection.constScanLine(y)), 64 * 4), expected.mid(y * 64 * 4, 64 * 4));
+    if (!results.isEmpty()) {
+        const auto prefix = QStringLiteral("move-") + (gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + input;
+        const auto copy = [&](QString source, QString suffix) {
+            return QFile::copy(source, QDir(results).filePath(prefix + suffix));
+        };
+        QVERIFY(copy(editedPath, QStringLiteral(".edited.kra")));
+        QVERIFY(copy(editedPng, QStringLiteral(".edited.png")));
+    }
 }
 
 KISTEST_MAIN(KisMoveToolDocumentTest)

@@ -200,13 +200,14 @@ KisImportExportErrorCode gpuFileStatus(LibrePaint::Document::Gpu::FileCode code)
     }
 }
 
-LibrePaint::ImportExport::Kra::ImageMetadata gpuKraMetadata(KisDocument &document)
+LibrePaint::ImportExport::Kra::ImageMetadata gpuKraMetadata(KisDocument &document,
+                                                        const QDateTime &saveTime = QDateTime::currentDateTime())
 {
     LibrePaint::ImportExport::Kra::ImageMetadata metadata;
     KisImageSP image = document.image();
     metadata.resolution = {image->xRes() * 72, image->yRes() * 72};
     auto info = KisDocument::createDomDocument(QStringLiteral("document-info"), QStringLiteral("document-info"), QStringLiteral("1.1"));
-    metadata.documentInfo = document.documentInfo()->save(info, document.isAutosaving(), document.isModified()).toByteArray();
+    metadata.documentInfo = document.documentInfo()->save(info, document.isAutosaving(), document.isModified(), saveTime).toByteArray();
     metadata.iccProfile = image->profile()->rawData();
     const auto &mirror = document.mirrorAxisConfig();
     if (!mirror.isDefault()) {
@@ -709,6 +710,10 @@ KisDocument *KisDocument::clone(bool addStorage)
 
 bool KisDocument::exportDocumentImpl(const KritaUtils::ExportFileJob &job, KisPropertiesConfigurationSP exportConfiguration, bool isAdvancedExporting)
 {
+    if (job.mimeType == nativeFormatMimeType() && exportConfiguration && exportConfiguration->hasProperty("documentSaveTime")) {
+        exportConfiguration = KisPropertiesConfigurationSP(new KisPropertiesConfiguration(*exportConfiguration));
+        exportConfiguration->setPropertyNotSaved("documentSaveTime");
+    }
     if (d->gpuDocument && job.mimeType != nativeFormatMimeType() && job.mimeType != QByteArrayLiteral("image/png"))
         return exportGpuDocument(job, true, exportConfiguration, isAdvancedExporting);
     // ANDROID NOTES (other comments in this file reference this one!)
@@ -891,7 +896,12 @@ bool KisDocument::exportGpuDocument(const KritaUtils::ExportFileJob &job, bool n
     QString warning;
     const bool pngExport = job.mimeType == QByteArrayLiteral("image/png");
     const bool exporting = job.flags & KritaUtils::SaveIsExporting;
-    if (pngExport && isAdvancedExporting) {
+    const auto saveTime = exportConfiguration && exportConfiguration->hasProperty("documentSaveTime")
+        ? exportConfiguration->getProperty("documentSaveTime").toDateTime() : QDateTime::currentDateTime();
+    if (job.mimeType == nativeFormatMimeType() && !saveTime.isValid()) {
+        status = ImportExportCodes::FormatFeaturesUnsupported;
+        diagnostic = i18n("The document save time is invalid.");
+    } else if (pngExport && isAdvancedExporting) {
         status = ImportExportCodes::FormatFeaturesUnsupported;
         diagnostic = i18n("Resizing during export requires GPU document support.");
     } else if (job.mimeType != nativeFormatMimeType() && !pngExport) {
@@ -951,7 +961,7 @@ bool KisDocument::exportGpuDocument(const KritaUtils::ExportFileJob &job, bool n
         QPointer<KisDocument> guard(this);
         d->gpuSaving = true;
         if (!exporting) d->modificationState.markSavingStarted();
-        auto outcome = fileDocument->setKraImageMetadata(gpuKraMetadata(*this));
+        auto outcome = fileDocument->setKraImageMetadata(gpuKraMetadata(*this, saveTime));
         if (outcome.code == GpuDocument::FileCode::Success)
             outcome = exporting ? fileDocument->exportKra(job.filePath) : fileDocument->saveKra(job.filePath);
         const bool success = outcome.code == GpuDocument::FileCode::Success;
@@ -1316,6 +1326,8 @@ void KisDocument::copyFromDocumentImpl(const KisDocument &rhs, CopyPolicy policy
 
 bool KisDocument::exportDocumentSync(const QString &path, const QByteArray &mimeType, KisPropertiesConfigurationSP exportConfiguration)
 {
+    if (mimeType == nativeFormatMimeType() && exportConfiguration)
+        exportConfiguration->setPropertyNotSaved("documentSaveTime");
     if (d->gpuDocument)
         return exportGpuDocument(KritaUtils::ExportFileJob(path, mimeType, KritaUtils::SaveIsExporting), false, exportConfiguration);
     {

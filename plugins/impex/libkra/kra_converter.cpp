@@ -148,8 +148,10 @@ StoryboardCommentList KraConverter::storyboardCommentList()
     return m_storyboardCommentList;
 }
 
-KisImportExportErrorCode KraConverter::buildFile(QIODevice *io, const QString &filename, bool addMergedImage)
+KisImportExportErrorCode KraConverter::buildFile(QIODevice *io, const QString &filename, bool addMergedImage,
+                                               const QDateTime &saveTime)
 {
+    if (!saveTime.isValid()) return ImportExportCodes::FormatFeaturesUnsupported;
     if (m_image->size().isEmpty()) {
         return ImportExportCodes::Failure;
     }
@@ -168,7 +170,7 @@ KisImportExportErrorCode KraConverter::buildFile(QIODevice *io, const QString &f
 
     m_kraSaver = new KisKraSaver(m_doc, filename, addMergedImage);
 
-    KisImportExportErrorCode resultCode = saveRootDocuments(m_store);
+    KisImportExportErrorCode resultCode = saveRootDocuments(m_store, saveTime);
 
     if (!resultCode.isOk()) {
         return resultCode;
@@ -229,7 +231,7 @@ KisImportExportErrorCode KraConverter::buildFile(QIODevice *io, const QString &f
     return ImportExportCodes::OK;
 }
 
-KisImportExportErrorCode KraConverter::saveRootDocuments(KoStore *store)
+KisImportExportErrorCode KraConverter::saveRootDocuments(KoStore *store, const QDateTime &saveTime)
 {
     dbgFile << "Saving root";
     if (store->open("root")) {
@@ -248,7 +250,7 @@ KisImportExportErrorCode KraConverter::saveRootDocuments(KoStore *store)
                                                           /*DTD name*/, "document-info" /*tag name*/, "1.1");
         doc = m_doc->documentInfo()->save(doc,
                                           m_doc->isAutosaving(),
-                                          m_doc->isModified());
+                                          m_doc->isModified(), saveTime);
         KoStoreDevice dev(store);
         QByteArray s = doc.toByteArray(); // this is already Utf8!
         bool success = dev.write(s.data(), s.size());

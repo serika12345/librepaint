@@ -102,15 +102,22 @@ std::optional<QList<quint64>> layerCoordinates(const Layer &layer, QRect region,
         }
     }
     QSet<quint64> coordinates;
+    // An unaligned translation can read four source tiles for one output tile.
+    // Bound coordinate discovery separately from the caller's final tile budget.
+    qsizetype remainingTranslations = afterTranslations.size();
+    qsizetype stageMaximum = remainingTranslations
+        ? (maximum <= std::numeric_limits<qsizetype>::max() / 4 ? maximum * 4 : std::numeric_limits<qsizetype>::max())
+        : maximum;
     for (const auto &operation : layer.operations) {
         if (const auto write = std::get_if<TileWriteSnapshot>(&operation)) {
             for (const auto &tile : (*write)->tiles) {
                 if (!needed.intersects(QRect(tile->coordinate() * TileRenderer::TileSize,
                                              QSize(TileRenderer::TileSize, TileRenderer::TileSize)))) continue;
                 coordinates.insert(Detail::key(tile->coordinate().x(), tile->coordinate().y()));
-                if (coordinates.size() > maximum) return std::nullopt;
+                if (coordinates.size() > stageMaximum) return std::nullopt;
             }
         } else if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) {
+            if (--remainingTranslations == 0) stageMaximum = maximum;
             const auto target = afterTranslations.value((*translation)->id.sequence);
             QSet<quint64> moved;
             for (const auto tile : coordinates) {
@@ -122,7 +129,7 @@ std::optional<QList<quint64>> layerCoordinates(const Layer &layer, QRect region,
                     for (int x = Detail::pixelTileIndex(pixels.left(), TileRenderer::TileSize);
                          x <= Detail::pixelTileIndex(pixels.right(), TileRenderer::TileSize); ++x) {
                         moved.insert(Detail::key(x, y));
-                        if (moved.size() > maximum) return std::nullopt;
+                        if (moved.size() > stageMaximum) return std::nullopt;
                     }
                 }
             }
@@ -136,19 +143,19 @@ std::optional<QList<quint64>> layerCoordinates(const Layer &layer, QRect region,
             const auto geometry = Detail::paintGeometry(paint, step);
             if (!geometry) return std::nullopt;
             for (const auto &segment : paint.figureStyle.outline ? geometry->outline : QList<Detail::PaintSegment>{}) {
-                const auto tiles = Detail::paintSegmentTiles(segment, diameter, paint.brush, needed, maximum);
+                const auto tiles = Detail::paintSegmentTiles(segment, diameter, paint.brush, needed, stageMaximum);
                 if (!tiles) return std::nullopt;
                 for (const auto tile : *tiles) {
                     coordinates.insert(tile);
-                    if (coordinates.size() > maximum) return std::nullopt;
+                    if (coordinates.size() > stageMaximum) return std::nullopt;
                 }
             }
             if (paint.figureStyle.fill) {
-                const auto tiles = Detail::figureFillTiles(geometry->fill, paint.brush, needed, maximum);
+                const auto tiles = Detail::figureFillTiles(geometry->fill, paint.brush, needed, stageMaximum);
                 if (!tiles) return std::nullopt;
                 for (const auto tile : *tiles) {
                     coordinates.insert(tile);
-                    if (coordinates.size() > maximum) return std::nullopt;
+                    if (coordinates.size() > stageMaximum) return std::nullopt;
                 }
             }
         }

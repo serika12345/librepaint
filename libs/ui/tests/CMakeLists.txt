@@ -1253,7 +1253,7 @@ kis_add_test(KisMoveToolDocumentTest.cpp ../../../krita/krita.qrc
     ../../../krita/pics/Breeze-light/breeze-light-icons.qrc
     TEST_NAME KisMoveToolDocumentTest
     TEST_NAME_VAR move_tool_document_test
-    LINK_LIBRARIES kritaapplicationui kritainputui kritaimpexkra kritadocumentpainting kritatestsdk)
+    LINK_LIBRARIES kritaapplicationui kritainputui kritaimpexkra kritadocumentpainting kritatestsdk ${QUAZIP_LIBRARIES})
 add_dependencies(KisMoveToolDocumentTest
     kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
     kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritakraexport kritapngexport)
