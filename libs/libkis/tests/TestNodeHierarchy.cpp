@@ -8,6 +8,7 @@
 #include <simpletest.h>
 #include <Document.h>
 #include <GroupLayer.h>
+#include <InfoObject.h>
 #include <Krita.h>
 #include <Node.h>
 #include <KoColor.h>
@@ -20,13 +21,21 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <document/KisDocument.h>
 #include <gpu/KisGpuPaintImage.h>
+#include <kis_config.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
+#include <kis_image_config.h>
 #include <kis_paint_device.h>
 #include <kis_paint_layer.h>
+#include <kis_properties_configuration.h>
 #include <kundo2stack.h>
+#include <metadata/KoDocumentInfo.h>
 #include <nodes/kis_node_manager.h>
 #include <QApplication>
+#include <QDateTime>
+#include <QDir>
+#include <QFile>
+#include <QImage>
 #include <QPointer>
 #include <QScopeGuard>
 #include <QSignalSpy>
@@ -473,4 +482,224 @@ void TestNode::testPaintLayerCreationInGroupsPreservesPlacementAndHistory()
         QCOMPARE(inserted->pixelData(3, 3, 1, 1), green);
         QTRY_COMPARE(manager->activeNode(), native);
     }
+}
+
+void TestNode::testRootGroupDuplicationKeepsSelectionAndHistory_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("multiple");
+    QTest::addColumn<bool>("activeGroup");
+    for (const bool gpu : {false, true}) {
+        const auto prefix = gpu ? QByteArrayLiteral("gpu-") : QByteArrayLiteral("ordinary-");
+        QTest::newRow(QByteArray(prefix + "group").constData()) << gpu << false << true;
+        QTest::newRow(QByteArray(prefix + "group-and-paint").constData()) << gpu << true << true;
+        QTest::newRow(QByteArray(prefix + "group-and-paint-active-paint").constData()) << gpu << true << false;
+    }
+}
+
+void TestNode::testRootGroupDuplicationKeepsSelectionAndHistory()
+{
+    QFETCH(bool, gpu);
+    QFETCH(bool, multiple);
+    QFETCH(bool, activeGroup);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    KisConfig(true).disableOpenGL();
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    const QUuid baseId(QStringLiteral("{00000001-1122-3344-5566-778899aabbcc}"));
+    const QUuid leafId(QStringLiteral("{00000002-1122-3344-5566-778899aabbcc}"));
+    const QUuid innerId(QStringLiteral("{00000003-1122-3344-5566-778899aabbcc}"));
+    const QUuid outerId(QStringLiteral("{00000004-1122-3344-5566-778899aabbcc}"));
+    const QUuid topId(QStringLiteral("{00000005-1122-3344-5566-778899aabbcc}"));
+    KisImageSP image;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        Gpu::RasterLayer base{QStringLiteral("Base"), true, baseId, {}};
+        base.defaultPixel = {255, 0, 0, 255};
+        Gpu::RasterLayer leaf{QStringLiteral("Leaf"), true, leafId, {}};
+        leaf.parentUuid = innerId;
+        QByteArray tile(Gpu::RgbaTile::ByteCount, '\0');
+        tile.replace((3 * 256 + 3) * 4, 4, QByteArray::fromHex("00ff00ff"));
+        leaf.tiles = {{{0, 0}, tile}};
+        Gpu::RasterLayer inner{QStringLiteral("Inner"), true, innerId, {}};
+        inner.kind = Gpu::LayerKind::Group;
+        inner.parentUuid = outerId;
+        Gpu::RasterLayer outer{QStringLiteral("Outer"), true, outerId, {}};
+        outer.kind = Gpu::LayerKind::Group;
+        Gpu::RasterLayer top{QStringLiteral("Top"), true, topId, {}};
+        Gpu::RasterImage input;
+        input.size = {32, 16};
+        input.layers = {base, leaf, inner, outer, top};
+        input.activeLayer = 3;
+        image = KisImage::fromGpuImage(Gpu::PaintImageSP::create(execution, input), QStringLiteral("Group duplication"));
+    } else {
+        const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+        image = new KisImage(document->createUndoStore(), 32, 16, cs, "Group duplication");
+        auto base = new KisPaintLayer(image, QStringLiteral("Base"), 255);
+        base->setUuid(baseId);
+        base->paintDevice()->setDefaultPixel(KoColor(Qt::red, cs));
+        image->addNode(base);
+        auto outer = new KisGroupLayer(image, QStringLiteral("Outer"), 255);
+        outer->setUuid(outerId);
+        image->addNode(outer);
+        auto inner = new KisGroupLayer(image, QStringLiteral("Inner"), 255);
+        inner->setUuid(innerId);
+        image->addNode(inner, outer);
+        auto leaf = new KisPaintLayer(image, QStringLiteral("Leaf"), 255);
+        leaf->setUuid(leafId);
+        const auto green = QByteArray::fromHex("00ff00ff");
+        leaf->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(green.constData()), 3, 3, 1, 1);
+        image->addNode(leaf, inner);
+        auto top = new KisPaintLayer(image, QStringLiteral("Top"), 255);
+        top->setUuid(topId);
+        image->addNode(top);
+    }
+    document->setCurrentImage(image);
+    document->setFileBatchMode(true);
+    document->documentInfo()->setAboutInfo("title", QStringLiteral("Fixed root duplication"));
+    document->documentInfo()->setAboutInfo("initial-creator", QStringLiteral("LibrePaint fixture"));
+    document->documentInfo()->setAboutInfo("language", QStringLiteral("en"));
+    document->documentInfo()->setAboutInfo("creation-date", QStringLiteral("2000-01-02T03:04:05Z"));
+    image->waitForDone();
+    const auto outer = image->root()->at(1);
+    const auto top = image->root()->at(2);
+    KisNodeList originalRoots;
+    for (auto node = image->root()->firstChild(); node; node = node->nextSibling()) originalRoots.append(node);
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto cleanup = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+    QVERIFY(QTest::qWaitForWindowExposed(window.get()));
+    auto *manager = window->viewManager()->nodeManager();
+    QTRY_VERIFY(lifetime->shapeForNode(outer));
+    QTRY_VERIFY(lifetime->shapeForNode(top));
+    const KisNodeSP sourceActive = activeGroup ? outer : top;
+    manager->slotNonUiActivatedNode(sourceActive);
+    QTRY_COMPARE(manager->activeNode(), sourceActive);
+    const KisNodeList selected = multiple ? KisNodeList{outer, top} : KisNodeList{outer};
+    manager->slotSetSelectedNodes(selected);
+    QTRY_COMPARE(manager->selectedNodes(), selected);
+    const bool previousRename = KisImageConfig(true).renameDuplicatedLayers();
+    const auto restoreRename = qScopeGuard([&] { KisImageConfig(false).setRenameDuplicatedLayers(previousRename); });
+    { KisImageConfig configuration(false); configuration.setRenameDuplicatedLayers(false); }
+    const int history = lifetime->undoStack()->index();
+    manager->duplicateActiveNode();
+    image->waitForDone();
+    QCOMPARE(image->root()->childCount(), unsigned(originalRoots.size() + selected.size()));
+    KisNodeList copies;
+    KisNodeSP copiedGroup;
+    KisNodeSP copiedPaint;
+    for (auto node = image->root()->firstChild(); node; node = node->nextSibling()) {
+        if (originalRoots.contains(node)) continue;
+        copies.append(node);
+        if (node->inherits("KisGroupLayer")) copiedGroup = node;
+        else copiedPaint = node;
+    }
+    QCOMPARE(copies.size(), selected.size());
+    QVERIFY(copiedGroup);
+    QVERIFY(copiedGroup->uuid() != outer->uuid());
+    QCOMPARE(copiedGroup->childCount(), 1U);
+    QVERIFY(copiedGroup->firstChild()->uuid() != innerId);
+    QVERIFY(copiedGroup->firstChild()->firstChild()->uuid() != leafId);
+    QCOMPARE(lifetime->undoStack()->index(), history + 1);
+    QTRY_COMPARE(manager->activeNode(), activeGroup ? copiedGroup : copiedPaint);
+    const auto copiesSelected = [&] {
+        const auto selected = manager->selectedNodes();
+        if (selected.size() != copies.size()) return false;
+        for (const auto &node : selected) if (!copies.contains(node)) return false;
+        return true;
+    };
+    QTRY_VERIFY(copiesSelected());
+    QScopedPointer<Node> copiedApi(Node::createNode(image, copiedGroup));
+    QCOMPARE(copiedApi->projectionPixelData(3, 3, 1, 1), QByteArray::fromHex("00ff00ff"));
+    QTemporaryDir output;
+    QVERIFY(output.isValid());
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            output.setAutoRemove(false);
+            qInfo() << "Root duplication artifacts retained at" << output.path();
+        }
+    });
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    const auto destination = gpu && !results.isEmpty() ? results : output.path();
+    QVERIFY(QDir().mkpath(destination));
+    const auto stem = QStringLiteral("root-duplicate-%1%2").arg(multiple ? QStringLiteral("group-and-paint") : QStringLiteral("group"),
+        activeGroup ? QString() : QStringLiteral("-active-paint"));
+    const auto path = QDir(destination).filePath(stem + QStringLiteral(".kra"));
+    const auto saveTime = QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate);
+    KisPropertiesConfigurationSP saveConfiguration(new KisPropertiesConfiguration);
+    saveConfiguration->setProperty("documentSaveTime", saveTime);
+    QVERIFY2(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false, saveConfiguration), qPrintable(lifetime->errorMessage()));
+    lifetime->waitForSavingToComplete();
+    QCOMPARE(lifetime->undoStack()->index(), history + 1);
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY(reopened->openPath(path, KisDocument::DontAddToRecent));
+    if (gpu) QCOMPARE(reopened->documentInfo()->aboutInfo("date"), saveTime.toString(Qt::ISODate));
+    Document loaded(reopened.data(), false);
+    QScopedPointer<Node> loadedGroup(loaded.nodeByUniqueID(copiedGroup->uuid()));
+    QScopedPointer<Node> loadedLeaf(loaded.nodeByUniqueID(copiedGroup->firstChild()->firstChild()->uuid()));
+    QVERIFY(loadedGroup && loadedLeaf);
+    QCOMPARE(loadedGroup->projectionPixelData(3, 3, 1, 1), QByteArray::fromHex("00ff00ff"));
+    QCOMPARE(loadedLeaf->pixelData(3, 3, 1, 1), QByteArray::fromHex("00ff00ff"));
+    QScopedPointer<Node> loadedInner(loadedLeaf->parentNode());
+    QVERIFY(loadedInner);
+    QCOMPARE(loadedInner->uniqueId(), copiedGroup->firstChild()->uuid());
+    QScopedPointer<Node> loadedOuter(loadedInner->parentNode());
+    QVERIFY(loadedOuter);
+    QCOMPARE(loadedOuter->uniqueId(), copiedGroup->uuid());
+    for (const auto &node : copies) {
+        QScopedPointer<Node> retained(loaded.nodeByUniqueID(node->uuid()));
+        QVERIFY(retained);
+    }
+    Document api(lifetime.data(), false);
+    const auto pixels = api.pixelData(0, 0, 32, 16);
+    InfoObject pngConfiguration;
+    pngConfiguration.setProperty("alpha", true);
+    pngConfiguration.setProperty("interlaced", false);
+    pngConfiguration.setProperty("compression", 3);
+    pngConfiguration.setProperty("saveSRGBProfile", true);
+    pngConfiguration.setProperty("forceSRGB", false);
+    pngConfiguration.setProperty("storeAuthor", false);
+    pngConfiguration.setProperty("storeMetaData", false);
+    const auto pngPath = QDir(destination).filePath(stem + QStringLiteral(".png"));
+    QVERIFY2(api.exportImage(pngPath, pngConfiguration), qPrintable(lifetime->errorMessage()));
+    const auto png = QImage(pngPath).convertToFormat(QImage::Format_ARGB32);
+    QCOMPARE(png.size(), QSize(32, 16));
+    QCOMPARE(QByteArray(reinterpret_cast<const char *>(png.constBits()), png.sizeInBytes()), pixels);
+    if (gpu && !results.isEmpty()) {
+        QFile recovery(QDir(destination).filePath(stem + QStringLiteral(".recovery")));
+        QVERIFY(recovery.open(QIODevice::WriteOnly));
+        const auto bytes = image->gpuImage()->operations().recoveryData();
+        QCOMPARE(recovery.write(bytes), qint64(bytes.size()));
+    }
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(image->root()->childCount(), unsigned(originalRoots.size()));
+    for (int i = 0; i < originalRoots.size(); ++i) QCOMPARE(image->root()->at(i), originalRoots[i]);
+    lifetime->undoStack()->redo();
+    image->waitForDone();
+    for (const auto &node : copies) QCOMPARE(node->parent(), image->root());
+    QTRY_COMPARE(manager->activeNode(), activeGroup ? copiedGroup : copiedPaint);
+    QTRY_VERIFY(copiesSelected());
+    manager->removeNode();
+    image->waitForDone();
+    QCOMPARE(image->root()->childCount(), unsigned(originalRoots.size()));
+    QCOMPARE(lifetime->undoStack()->index(), history + 2);
+    lifetime->undoStack()->undo();
+    image->waitForDone();
+    for (const auto &node : copies) QCOMPARE(node->parent(), image->root());
+    QCOMPARE(copiedApi->projectionPixelData(3, 3, 1, 1), QByteArray::fromHex("00ff00ff"));
 }

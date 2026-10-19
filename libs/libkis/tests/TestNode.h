@@ -13,6 +13,8 @@ class TestNode : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
+    void testRootGroupDuplicationKeepsSelectionAndHistory_data();
+    void testRootGroupDuplicationKeepsSelectionAndHistory();
     void testGroupCreationKeepsIndependentPixelsChildrenAndHistory_data();
     void testGroupCreationKeepsIndependentPixelsChildrenAndHistory();
     void testExportImageCancelsWhenItsSourceChangesBeforeCapture_data();

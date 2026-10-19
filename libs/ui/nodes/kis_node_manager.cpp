@@ -595,17 +595,6 @@ void KisNodeManager::TreeOperationAccess::duplicateNodes(KisNodeManager *manager
             ModificationAccess::showWarning(manager, i18n("The layers could not be duplicated. Finish the active operation and try again."));
             return;
         }
-        if (!manager->m_d->view || manager->m_d->view->image().data() != image.data() || image->gpuImage() != owner) return;
-        const auto copied = owner->operations().snapshot();
-        QSet<QUuid> original;
-        for (const auto &layer : version->layers) original.insert(layer.uuid);
-        KisNodeList copies;
-        KisNodeSP current;
-        for (int index = 0; index < copied->layers.size(); ++index) {
-            if (!original.contains(copied->layers[index].uuid)) copies.append(image->root()->at(index));
-            if (copied->layers[index].id == copied->activeLayer) current = image->root()->at(index);
-        }
-        Q_EMIT image->sigRequestNodeReselection(current, copies);
         return;
     }
     const KUndo2MagicString actionName = kundo2_i18n("Duplicate Nodes");
