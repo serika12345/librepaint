@@ -92,6 +92,17 @@ public:
      * parent selects the image root.
      */
     bool insertGpuLayer(KisNodeSP node, qsizetype index, KisNodeSP parent = {});
+    /** Adopts detached paint/group subtrees in one history entry. Validates the
+     * entire forest before binding any node or device; preserves their public
+     * references through Undo/Redo. Root order follows the supplied list.
+     */
+    bool insertGpuLayers(const KisNodeList &nodes, qsizetype index, KisNodeSP parent = {});
+    /** Detached copies of supported GPU subtrees, preserving supplied root order
+     * and independent overlapping roots. Their pixel devices share one copied
+     * image and retain its execution. Invalid input returns an empty list;
+     * attachment capacity throws std::length_error.
+     */
+    KisNodeList cloneGpuNodes(const KisNodeList &nodes) const;
     /** Transient node notifications describe the GPU version being adopted. */
     bool isSynchronizingGpuNodes() const { return m_synchronizingGpuNodes; }
 

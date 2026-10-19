@@ -66,6 +66,14 @@ PaintImageSP PaintImage::cloneLayerPixels(const LayerPixelReferenceSP &pixels) c
     if (!document) return {};
     return PaintImageSP(new PaintImage(m_d->execution, std::move(document), m_d->limits, m_d->retainedExecution));
 }
+PaintImageSP PaintImage::cloneLayerForest(const QList<LayerInsertion> &layers) const
+{
+    if (!onThread()) return {};
+    OperationDocument prepared(RasterImage{m_d->document->snapshot()->size, {}, 0}, m_d->limits);
+    if (prepared.insertLayers(layers, 0) != Result::Success) return {};
+    return PaintImageSP(new PaintImage(m_d->execution, prepared.cloneCurrent(true),
+                                       m_d->limits, m_d->retainedExecution));
+}
 ExecutionOutcome PaintImage::lastRequestOutcome() const { return m_d->lastRequest; }
 PixelBytesOutcome PaintImage::readRgbaPixels(LayerId layer, QRect region, qsizetype maximumBytes) const
 {
@@ -277,6 +285,9 @@ LayerId PaintImage::insertLayer(const PaintImage &source, const LayerPixelRefere
     if (id) publish(Result::Success);
     return id;
 }
+
+Result PaintImage::insertLayers(const QList<LayerInsertion> &layers, qsizetype index)
+{ return onThread() ? publish(m_d->document->insertLayers(layers, index)) : Result::InvalidInput; }
 
 Result PaintImage::duplicateLayers(const QList<LayerId> &layers, const QList<QString> &names, LayerId activeSource)
 { return onThread() ? publish(m_d->document->duplicateLayers(layers, names, activeSource)) : Result::InvalidInput; }

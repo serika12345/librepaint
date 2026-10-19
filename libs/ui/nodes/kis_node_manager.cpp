@@ -588,6 +588,17 @@ void KisNodeManager::TreeOperationAccess::addNodes(KisNodeManager *manager,
                                                    KisNodeSP aboveThis,
                                                    KisNodeSP activeNode)
 {
+    auto image = KisImageSP(manager->m_d->view->image());
+    if (image->gpuImage()) {
+        const QPointer<KisNodeManager> guard(manager);
+        const bool validDestination = parent && KisLayerUtils::findRoot(parent) == image->root() &&
+            (!aboveThis || aboveThis->parent() == parent);
+        const bool accepted = validDestination && image->insertGpuLayers(nodes,
+            aboveThis ? parent->index(aboveThis) + 1 : 0, parent);
+        if (guard && !accepted)
+            ModificationAccess::showWarning(manager, i18n("The layers could not be added. Finish the active operation and check the layer settings."));
+        return;
+    }
     manager->m_d->lazyGetNodeOperationBatch(kundo2_i18n("Add Nodes"))->addNode(nodes, parent, aboveThis, activeNode);
 }
 

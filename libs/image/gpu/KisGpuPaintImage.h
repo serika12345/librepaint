@@ -77,6 +77,11 @@ public:
      * capacity throws std::length_error.
      */
     QSharedPointer<PaintImage> cloneLayerPixels(const LayerPixelReferenceSP &pixels) const;
+    /** Independent saved copy of prepared roots and descendants on one attachment.
+     * Immutable pixel/input blocks are retained. Returns null for invalid or
+     * off-thread input; attachment capacity throws std::length_error.
+     */
+    QSharedPointer<PaintImage> cloneLayerForest(const QList<LayerInsertion> &layers) const;
     ExecutionOutcome lastRequestOutcome() const;
     /** Synchronous canonical pixels from the current committed image version. */
     PixelBytesOutcome readRgbaPixels(LayerId layer, QRect region, qsizetype maximumBytes) const;
@@ -135,6 +140,8 @@ public:
     /** Uses retained pixels, including removed layers, without reading back GPU pixels. */
     LayerId insertLayer(const PaintImage &source, const LayerPixelReferenceSP &pixels,
                         const RasterLayer &properties, qsizetype index);
+    /** Publishes one prepared forest and one notification after atomic adoption. */
+    Result insertLayers(const QList<LayerInsertion> &layers, qsizetype index);
     Result selectLayer(LayerId layer);
     Result selectLayers(const QList<LayerId> &layers, LayerId active);
     Result duplicateLayers(const QList<LayerId> &layers, const QList<QString> &names, LayerId activeSource);

@@ -13,6 +13,7 @@
 #include <Node.h>
 #include <KoColor.h>
 #include <KoColorSpaceRegistry.h>
+#include <KoProperties.h>
 #include <application/ui/orchestration/KisPart.h>
 #include <application/ui/orchestration/kis_action.h>
 #include <application/ui/orchestration/kis_action_manager.h>
@@ -21,6 +22,9 @@
 #include <application/ui/workspace/KisViewManager.h>
 #include <document/KisDocument.h>
 #include <gpu/KisGpuPaintImage.h>
+#include <flake/kis_shape_controller.h>
+#include <kis_mimedata.h>
+#include <nodes/kis_node_insertion_adapter.h>
 #include <kis_config.h>
 #include <kis_group_layer.h>
 #include <kis_image.h>
@@ -44,6 +48,37 @@
 #include <algorithm>
 #include <memory>
 #include <exception>
+
+namespace {
+/** Fixes prepared UUID inputs at the existing MIME insertion boundary. */
+class FixedMimeCopyInputs final : public KisMimeData::NodeInsertionInterface
+{
+public:
+    explicit FixedMimeCopyInputs(KisMimeData::NodeInsertionInterface *destination) : m_destination(destination) {}
+    void moveNodes(KisNodeList nodes, KisNodeSP parent, KisNodeSP above) override
+    { m_destination->moveNodes(nodes, parent, above); }
+    void addNodes(KisNodeList nodes, KisNodeSP parent, KisNodeSP above) override
+    {
+        QList<QPair<KisNodeSP, QByteArray>> pending;
+        for (qsizetype i = 0; i < nodes.size(); ++i) pending.append({nodes[i], QByteArray::number(i)});
+        const QUuid fixture(QStringLiteral("{a1000000-1122-3344-5566-778899aabbcc}"));
+        QSet<QUuid> generated;
+        for (qsizetype i = 0; i < pending.size(); ++i) {
+            KisNodeSP node = pending[i].first;
+            QVERIFY(!node->uuid().isNull());
+            QVERIFY(!generated.contains(node->uuid()));
+            generated.insert(node->uuid());
+            node->setUuid(QUuid::createUuidV5(fixture, pending[i].second));
+            qsizetype childIndex = 0;
+            for (auto child = node->firstChild(); child; child = child->nextSibling())
+                pending.append({child, pending[i].second + '/' + QByteArray::number(childIndex++)});
+        }
+        m_destination->addNodes(nodes, parent, above);
+    }
+private:
+    KisMimeData::NodeInsertionInterface *m_destination;
+};
+}
 
 void TestNode::testGroupCreationKeepsIndependentPixelsChildrenAndHistory_data()
 {
@@ -709,23 +744,38 @@ void TestNode::testRootGroupDuplicationKeepsSelectionAndHistory()
 void TestNode::testHierarchyDuplicationPreservesPlacementPixelsHistoryAndSaving_data()
 {
     QTest::addColumn<bool>("gpu");
+    QTest::addColumn<QString>("entry");
     QTest::addColumn<QString>("scenario");
     QTest::addColumn<QString>("layout");
-    for (const auto &scenario : {QStringLiteral("nested-paint"), QStringLiteral("nested-group"),
-                                QStringLiteral("cross-parent"), QStringLiteral("ancestor-and-child"),
-                                QStringLiteral("locked-parent"), QStringLiteral("locked-ancestor")}) {
-        QTest::newRow(qPrintable(QStringLiteral("ordinary-") + scenario)) << false << scenario << QStringLiteral("child-first");
-        for (const auto &layout : {QStringLiteral("child-first"), QStringLiteral("parent-first"), QStringLiteral("interleaved")})
-            QTest::newRow(qPrintable(QStringLiteral("gpu-") + scenario + QLatin1Char('-') + layout)) << true << scenario << layout;
+    for (const auto &entry : {QStringLiteral("menu"), QStringLiteral("mime"), QStringLiteral("fixed-mime")}) {
+        for (const auto &scenario : {QStringLiteral("nested-paint"), QStringLiteral("nested-group"),
+                                    QStringLiteral("cross-parent"), QStringLiteral("ancestor-and-child"),
+                                    QStringLiteral("locked-parent"), QStringLiteral("locked-ancestor"),
+                                    QStringLiteral("independent-active"), QStringLiteral("wide-group")}) {
+            if ((scenario == QLatin1String("independent-active") || scenario == QLatin1String("wide-group")) &&
+                entry == QLatin1String("menu")) continue;
+            if (entry != QLatin1String("fixed-mime") && scenario != QLatin1String("wide-group")) {
+                QTest::newRow(qPrintable(QStringLiteral("ordinary-") + entry + QLatin1Char('-') + scenario))
+                    << false << entry << scenario << QStringLiteral("child-first");
+            }
+            for (const auto &layout : {QStringLiteral("child-first"), QStringLiteral("parent-first"), QStringLiteral("interleaved")})
+                QTest::newRow(qPrintable(QStringLiteral("gpu-") + entry + QLatin1Char('-') + scenario + QLatin1Char('-') + layout))
+                    << true << entry << scenario << layout;
+        }
     }
 }
 
 void TestNode::testHierarchyDuplicationPreservesPlacementPixelsHistoryAndSaving()
-{
+try {
     QFETCH(QString, scenario);
+    QFETCH(QString, entry);
     QFETCH(bool, gpu);
     QFETCH(QString, layout);
     namespace Gpu = LibrePaint::Image::Gpu;
+    // Fix the option before image workers acquire their thread-local configuration.
+    const bool previousRename = KisImageConfig(true).renameDuplicatedLayers();
+    const auto restoreRename = qScopeGuard([&] { KisImageConfig(false).setRenameDuplicatedLayers(previousRename); });
+    { KisImageConfig configuration(false); configuration.setRenameDuplicatedLayers(false); }
     KisConfig(true).disableOpenGL();
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     const QUuid baseId(QStringLiteral("{00000001-1122-3344-5566-778899aabbcc}"));
@@ -756,6 +806,14 @@ void TestNode::testHierarchyDuplicationPreservesPlacementPixelsHistoryAndSaving(
         input.layers = layout == QLatin1String("child-first") ? QList<Gpu::RasterLayer>{base, leaf, inner, outer, top}
             : layout == QLatin1String("parent-first") ? QList<Gpu::RasterLayer>{base, outer, inner, leaf, top}
             : QList<Gpu::RasterLayer>{base, outer, top, leaf, inner};
+        if (scenario == QLatin1String("wide-group")) {
+            for (int i = 0; i < 16; ++i) {
+                Gpu::RasterLayer extra{QStringLiteral("Extra %1").arg(i), true,
+                    QUuid::createUuidV5(innerId, QByteArray::number(i)), {}};
+                extra.parentUuid = innerId;
+                input.layers.append(extra);
+            }
+        }
         input.activeLayer = layout == QLatin1String("child-first") ? 3 : 1;
         image = KisImage::fromGpuImage(Gpu::PaintImageSP::create(execution, input), QStringLiteral("Group duplication"));
     } else {
@@ -824,12 +882,20 @@ void TestNode::testHierarchyDuplicationPreservesPlacementPixelsHistoryAndSaving(
         copiedNames = {QStringLiteral("Leaf"), QStringLiteral("Top")};
     } else if (scenario == QLatin1String("ancestor-and-child")) {
         selected = {outer, leaf}; destinationParent = image->root(); anchor = outer;
-        copiedNames = {QStringLiteral("Outer")};
+        copiedNames = entry != QLatin1String("menu") ? QStringList{QStringLiteral("Outer"), QStringLiteral("Leaf")}
+                                                    : QStringList{QStringLiteral("Outer")};
     } else if (scenario == QLatin1String("locked-parent")) {
         inner->setUserLocked(true); destinationParent = outer; anchor = inner;
     } else if (scenario == QLatin1String("locked-ancestor")) {
         outer->setUserLocked(true); destinationParent = image->root(); anchor = outer;
     }
+    if (scenario == QLatin1String("wide-group")) {
+        selected = {outer}; sourceActive = outer; destinationParent = image->root(); anchor = outer;
+        copiedNames = {QStringLiteral("Outer")};
+        outer->setCollapsed(true);
+        outer->setNodeProperty(QStringLiteral("fixture-copy-property"), 42);
+    }
+    if (scenario == QLatin1String("independent-active")) sourceActive = top;
     manager->slotNonUiActivatedNode(sourceActive);
     QTRY_COMPARE(manager->activeNode(), sourceActive);
     manager->slotSetSelectedNodes(selected);
@@ -841,11 +907,21 @@ void TestNode::testHierarchyDuplicationPreservesPlacementPixelsHistoryAndSaving(
     }());
     const auto oldCount = destinationParent->childCount();
     const int insertion = destinationParent->index(anchor) + 1;
-    const bool previousRename = KisImageConfig(true).renameDuplicatedLayers();
-    const auto restoreRename = qScopeGuard([&] { KisImageConfig(false).setRenameDuplicatedLayers(previousRename); });
-    { KisImageConfig configuration(false); configuration.setRenameDuplicatedLayers(false); }
     const auto history = lifetime->undoStack()->index();
-    manager->duplicateActiveNode();
+    if (entry != QLatin1String("menu")) {
+        auto *controller = dynamic_cast<KisShapeController *>(lifetime->shapeController());
+        QVERIFY(controller);
+        QScopedPointer<QMimeData> mime(KisMimeData::mimeForLayers(selected, image, false));
+        QVERIFY(mime);
+        FixedMimeCopyInputs fixed(manager->nodeInsertionAdapter());
+        auto *insertionOwner = entry == QLatin1String("fixed-mime")
+            ? static_cast<KisMimeData::NodeInsertionInterface *>(&fixed) : manager->nodeInsertionAdapter();
+        QVERIFY(KisMimeData::insertMimeLayers(mime.data(), image, controller,
+            controller->dummyForNode(destinationParent), controller->dummyForNode(anchor), true,
+            insertionOwner));
+    } else {
+        manager->duplicateActiveNode();
+    }
     image->waitForDone();
     QCOMPARE(destinationParent->childCount(), oldCount + unsigned(copiedNames.size()));
     QCOMPARE(lifetime->undoStack()->index(), history + 1);
@@ -853,6 +929,7 @@ void TestNode::testHierarchyDuplicationPreservesPlacementPixelsHistoryAndSaving(
     for (int i = 0; i < copiedNames.size(); ++i) {
         const auto copy = destinationParent->at(insertion + i);
         QVERIFY(copy);
+        QCOMPARE(copy->name(), copiedNames[i]);
         QCOMPARE(copy->inherits("KisGroupLayer"), copiedNames[i] == QLatin1String("Inner") || copiedNames[i] == QLatin1String("Outer"));
         QVERIFY(!selected.contains(copy));
         QVERIFY(copy->uuid() != leafId && copy->uuid() != innerId && copy->uuid() != outerId && copy->uuid() != topId);
@@ -866,6 +943,11 @@ void TestNode::testHierarchyDuplicationPreservesPlacementPixelsHistoryAndSaving(
     };
     QTRY_VERIFY(copiesSelected());
     QTRY_COMPARE(manager->activeNode(), copies.first());
+    if (scenario == QLatin1String("wide-group")) {
+        QCOMPARE(copies.first()->firstChild()->childCount(), 17u);
+        QVERIFY(copies.first()->collapsed());
+        QCOMPARE(copies.first()->nodeProperties().intProperty(QStringLiteral("fixture-copy-property")), 42);
+    }
     QScopedPointer<Node> copiedApi(Node::createNode(image, copies.first()));
     QCOMPARE(copiedApi->projectionPixelData(3, 3, 1, 1), QByteArray::fromHex("00ff00ff"));
     KisNodeSP copiedLeaf = copies.first();
@@ -878,6 +960,10 @@ void TestNode::testHierarchyDuplicationPreservesPlacementPixelsHistoryAndSaving(
     api.refreshProjection();
     QCOMPARE(sourceLeafApi->pixelData(3, 3, 1, 1), QByteArray::fromHex("00ff00ff"));
     QCOMPARE(copiedApi->projectionPixelData(3, 3, 1, 1), blue);
+    if (scenario == QLatin1String("ancestor-and-child") && entry != QLatin1String("menu")) {
+        QScopedPointer<Node> independent(Node::createNode(image, copies[1]));
+        QCOMPARE(independent->pixelData(3, 3, 1, 1), QByteArray::fromHex("00ff00ff"));
+    }
     QCOMPARE(lifetime->undoStack()->index(), history + 1);
     QTemporaryDir output;
     QVERIFY(output.isValid());
@@ -890,7 +976,9 @@ void TestNode::testHierarchyDuplicationPreservesPlacementPixelsHistoryAndSaving(
     const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
     const auto destination = gpu && !results.isEmpty() ? results : output.path();
     QVERIFY(QDir().mkpath(destination));
-    const auto stem = QStringLiteral("hierarchy-duplicate-%1-%2").arg(scenario, layout);
+    const auto stem = (entry == QLatin1String("fixed-mime") ? QStringLiteral("hierarchy-mime-fixed-%1-%2")
+        : entry == QLatin1String("mime") ? QStringLiteral("hierarchy-mime-copy-%1-%2")
+                                         : QStringLiteral("hierarchy-duplicate-%1-%2")).arg(scenario, layout);
     const auto kraPath = QDir(destination).filePath(stem + QStringLiteral(".kra"));
     KisPropertiesConfigurationSP saveConfiguration(new KisPropertiesConfiguration);
     saveConfiguration->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));
@@ -940,9 +1028,20 @@ void TestNode::testHierarchyDuplicationPreservesPlacementPixelsHistoryAndSaving(
         QCOMPARE(recovery.write(bytes), qint64(bytes.size()));
     }
     lifetime->undoStack()->undo();
+    QTRY_COMPARE(lifetime->undoStack()->index(), history);
     image->waitForDone();
     QCOMPARE(destinationParent->childCount(), oldCount);
+    if (gpu) {
+        QTRY_COMPARE(manager->activeNode(), sourceActive);
+        QTRY_VERIFY([&] {
+            const auto restored = manager->selectedNodes();
+            if (restored.size() != selected.size()) return false;
+            for (const auto &node : restored) if (!selected.contains(node)) return false;
+            return true;
+        }());
+    }
     lifetime->undoStack()->redo();
+    QTRY_COMPARE(lifetime->undoStack()->index(), history + 1);
     image->waitForDone();
     for (int i = 0; i < copies.size(); ++i) QCOMPARE(destinationParent->at(insertion + i), copies[i]);
     QTRY_COMPARE(manager->activeNode(), copies.first());
@@ -958,6 +1057,7 @@ void TestNode::testHierarchyDuplicationPreservesPlacementPixelsHistoryAndSaving(
     for (int i = 0; i < copies.size(); ++i) QCOMPARE(destinationParent->at(insertion + i), copies[i]);
     QCOMPARE(copiedLeafApi->pixelData(3, 3, 1, 1), blue);
 }
+catch (const std::exception &error) { QFAIL(error.what()); }
 
 void TestNode::testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving_data()
 {

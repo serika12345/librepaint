@@ -64,6 +64,33 @@ RasterImage nestedImage()
     return image;
 }
 
+QList<LayerInsertion> insertionForest(const Snapshot &source, const QUuid &parent = {})
+{
+    QHash<QUuid, QUuid> identities;
+    for (const auto &layer : source->layers)
+        identities.insert(layer.uuid, QUuid::createUuidV5(layer.uuid, QByteArrayLiteral("Inserted")));
+    QList<LayerInsertion> result;
+    for (const auto &layer : source->layers) {
+        RasterLayer properties;
+        properties.name = layer.name;
+        properties.uuid = identities.value(layer.uuid);
+        properties.kind = layer.kind;
+        properties.parentUuid = identities.value(layer.parentUuid, parent);
+        properties.defaultPixel = layer.defaultPixel;
+        properties.opacity = 173;
+        properties.pinnedToTimeline = true;
+        properties.channelWriteMask = layer.kind == LayerKind::Paint ? 7 : 15;
+        properties.position = layer.kind == LayerKind::Paint ? QPoint(-256, 512) : QPoint();
+        result.append({source, layer.id, properties});
+    }
+    auto secondRoot = result.first();
+    secondRoot.properties.uuid = QUuid::createUuidV5(source->layers.first().uuid, QByteArrayLiteral("Second root"));
+    secondRoot.properties.parentUuid = parent;
+    secondRoot.properties.name = QStringLiteral("Second root");
+    result.append(secondRoot);
+    return result;
+}
+
 
 }
 
@@ -71,6 +98,8 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void preparedLayerForestsKeepPixelsSelectionAndAtomicHistory();
+    void rejectedLayerForestsPreservePendingInputAndHistory();
     void nestedLayerIdentitySurvivesPropertiesHistoryAndRecovery();
     void directHierarchyMovesAdoptTheirActiveRootAtomically();
     void movedSubtreesPreservePixelsSelectionHistoryAndRecovery_data();
@@ -155,6 +184,113 @@ private Q_SLOTS:
     void layerRemovalReusesCapacityWithoutLosingRecoveryHistory();
     void layerReorderingIsAtomicAndPreservesSelectionPixelsAndHistory();
 };
+
+void KisGpuOperationDocumentTest::preparedLayerForestsKeepPixelsSelectionAndAtomicHistory()
+{
+    OperationDocument source(nestedImage());
+    QVERIFY(!paint(source, {sample(8, 9), sample(12, 13)}).isNull());
+    const auto fixed = source.snapshot();
+    OperationDocument destination(nestedImage());
+    QCOMPARE(destination.selectLayers({1, 3}, 2), Result::Success);
+    const auto before = destination.snapshot();
+    auto inputs = insertionForest(fixed, before->layers[1].uuid);
+    source.close();
+    QCOMPARE(destination.insertLayers(inputs, 1), Result::Success);
+    const auto after = destination.snapshot();
+    QCOMPARE(after->layers.size(), 7);
+    QCOMPARE(after->activeLayer, after->layers[3].id);
+    QCOMPARE(after->selectedLayers, (QList<LayerId>{after->layers[3].id, after->layers[4].id}));
+    QCOMPARE(after->layers[1].parentUuid, inputs[1].properties.uuid);
+    QCOMPARE(after->layers[2].parentUuid, inputs[2].properties.uuid);
+    QCOMPARE(after->layers[3].parentUuid, before->layers[1].uuid);
+    QCOMPARE(after->layers[4].parentUuid, before->layers[1].uuid);
+    QCOMPARE(after->sampleCount, fixed->sampleCount * 2);
+    QCOMPARE(after->rasterBytes, before->rasterBytes + fixed->rasterBytes * 2);
+    for (int index : {1, 4}) {
+        const auto &copy = after->layers[index];
+        QCOMPARE(copy.opacity, quint8(173));
+        QVERIFY(copy.pinnedToTimeline);
+        QCOMPARE(copy.position, QPoint(-256, 512));
+        QCOMPARE(copy.channelWriteMask, quint8(7));
+        QCOMPARE(std::get<TileWriteSnapshot>(copy.operations.first())->tiles,
+                 std::get<TileWriteSnapshot>(fixed->layers.first().operations.first())->tiles);
+        const auto input = std::get<PaintSnapshot>(copy.operations.last());
+        QCOMPARE(input->sampleBlocks, std::get<PaintSnapshot>(fixed->layers.first().operations.last())->sampleBlocks);
+        QCOMPARE(input->id.document, after->documentId());
+        QCOMPARE(input->layer, copy.id);
+    }
+    QCOMPARE(destination.undoCount(), 1);
+    QCOMPARE(destination.historyAction(1), HistoryAction::AddLayer);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(destination.recoveryData()), Result::Success);
+    for (auto *value : {&destination, &recovered}) {
+        QCOMPARE(value->undo(), Result::Success);
+        QCOMPARE(value->snapshot()->activeLayer, before->activeLayer);
+        QCOMPARE(value->snapshot()->selectedLayers, before->selectedLayers);
+        QCOMPARE(value->snapshot()->layers.size(), before->layers.size());
+        QCOMPARE(value->redo(), Result::Success);
+        QCOMPARE(value->snapshot()->activeLayer, after->activeLayer);
+        QCOMPARE(value->snapshot()->selectedLayers, after->selectedLayers);
+        for (qsizetype i = 0; i < after->layers.size(); ++i)
+            QCOMPARE(value->snapshot()->layers[i].uuid, after->layers[i].uuid);
+    }
+    QCOMPARE(destination.undo(), Result::Success);
+    QCOMPARE(destination.snapshot(), before);
+    QCOMPARE(destination.redo(), Result::Success);
+    QCOMPARE(destination.snapshot(), after);
+    QCOMPARE(fixed->layers.size(), 3);
+    QCOMPARE(before->layers.size(), 3);
+}
+
+void KisGpuOperationDocumentTest::rejectedLayerForestsPreservePendingInputAndHistory()
+{
+    OperationDocument source(nestedImage());
+    QVERIFY(!paint(source, {sample(8, 9), sample(12, 13)}).isNull());
+    const auto inputs = insertionForest(source.snapshot());
+    OperationDocument destination({64, 32});
+    QVERIFY(destination.addLayer(QStringLiteral("Redo")));
+    const auto reserved = destination.snapshot()->layers.last().uuid;
+    QCOMPARE(destination.undo(), Result::Success);
+    const auto before = destination.snapshot();
+    const auto bytes = destination.recoveryData();
+    for (int failure = 0; failure < 6; ++failure) {
+        auto invalid = inputs;
+        if (failure == 0) invalid[3].sourceLayer = 999;
+        if (failure == 1) invalid[3].properties.uuid = invalid[0].properties.uuid;
+        if (failure == 2) invalid[1].properties.parentUuid = invalid[0].properties.uuid;
+        if (failure == 3) invalid[2].properties.parentUuid = invalid[1].properties.uuid;
+        if (failure == 4) invalid[3].properties.uuid = reserved;
+        if (failure == 5) invalid[3].properties.parentUuid = QUuid::createUuid();
+        QCOMPARE(destination.insertLayers(invalid, 0), failure == 0 ? Result::LayerUnavailable : Result::InvalidInput);
+        QCOMPARE(destination.snapshot(), before);
+        QCOMPARE(destination.recoveryData(), bytes);
+        QCOMPARE(destination.redoCount(), 1);
+    }
+    QCOMPARE(destination.insertLayers({}, 0), Result::InvalidInput);
+    QCOMPARE(destination.insertLayers(inputs, -1), Result::InvalidInput);
+    const auto stroke = destination.beginStroke(1, Brush{}, 42);
+    QVERIFY(!stroke.isNull());
+    const auto preview = destination.preview();
+    QCOMPARE(destination.insertLayers(inputs, 0), Result::EditInProgress);
+    QCOMPARE(destination.preview(), preview);
+    QCOMPARE(destination.snapshot(), before);
+    QCOMPARE(destination.cancelStroke(stroke), Result::Success);
+    for (int budget = 0; budget < 4; ++budget) {
+        Limits limits;
+        if (budget == 0) limits.layerCount = inputs.size();
+        if (budget == 1) limits.rasterBytes = RgbaTile::ByteCount * 2 - 1;
+        if (budget == 2) limits.samplesPerDocument = 3;
+        if (budget == 3) limits.samplesPerStroke = 1;
+        OperationDocument bounded({64, 32}, limits);
+        const auto retained = bounded.recoveryData();
+        QCOMPARE(bounded.insertLayers(inputs, 0), Result::CapacityExceeded);
+        QCOMPARE(bounded.recoveryData(), retained);
+    }
+    destination.close();
+    const auto closed = destination.snapshot();
+    QCOMPARE(destination.insertLayers(inputs, 0), Result::Closed);
+    QCOMPARE(destination.snapshot(), closed);
+}
 
 void KisGpuOperationDocumentTest::hierarchyDuplicationPreservesPlacementSelectionAndRecovery_data()
 {

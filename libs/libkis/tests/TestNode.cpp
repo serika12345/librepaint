@@ -3,6 +3,7 @@
    SPDX-License-Identifier: LGPL-2.0-or-later
 */
 #include "TestNode.h"
+#include <kis_mimedata.h>
 #include <simpletest.h>
 #include <QColor>
 #include <QColorSpace>
@@ -1635,6 +1636,62 @@ void TestNode::testGpuLayerInsertionPreservesNativeIdentityAndRejectsInvalidInpu
     QCOMPARE(bounded->operations().recoveryData(), before);
     QCOMPARE(invalid->paintDevice(), originalDevice);
     QVERIFY(!invalid->parent());
+    KisNodeSP prepared = new KisPaintLayer(boundedImage, QStringLiteral("Prepared first"), 255);
+    auto preparedPixels = prepared->paintDevice();
+    preparedPixels->writeBytes(reinterpret_cast<const quint8*>(bytes.constData()), 0, 0, 1, 1);
+    QSignalSpy changed(bounded.data(), &Gpu::PaintImage::changed);
+    QVERIFY(!boundedImage->insertGpuLayers({prepared, invalid}, 0));
+    QCOMPARE(changed.size(), 0);
+    QCOMPARE(bounded->operations().recoveryData(), before);
+    QVERIFY(!prepared->parent());
+    QCOMPARE(prepared->paintDevice(), preparedPixels);
+    QByteArray retainedPixel(4, Qt::Uninitialized);
+    preparedPixels->readBytes(reinterpret_cast<quint8*>(retainedPixel.data()), 0, 0, 1, 1);
+    QCOMPARE(retainedPixel, bytes.left(4));
+    QVERIFY(!boundedImage->insertGpuLayers({prepared, prepared}, 0));
+    QCOMPARE(bounded->operations().recoveryData(), before);
+    QVERIFY(boundedImage->insertGpuLayers({prepared}, 0));
+    QCOMPARE(changed.size(), 1);
+    QCOMPARE(boundedImage->root()->firstChild(), prepared);
+    QCOMPARE(prepared->paintDevice(), preparedPixels);
+    preparedPixels->readBytes(reinterpret_cast<quint8*>(retainedPixel.data()), 0, 0, 1, 1);
+    QCOMPARE(retainedPixel, bytes.left(4));
+    QCOMPARE(bounded->operations().undoCount(), 1);
+    QCOMPARE(bounded->undo(), Gpu::Result::Success);
+    QVERIFY(!prepared->parent());
+    QCOMPARE(bounded->redo(), Gpu::Result::Success);
+    QCOMPARE(boundedImage->root()->firstChild(), prepared);
+
+    const auto admissionBefore = bounded->operations().recoveryData();
+    const auto admissionSignals = changed.size();
+    QScopedPointer<QMimeData> mime(KisMimeData::mimeForLayers({prepared}, boundedImage, false));
+    QVERIFY(mime);
+    QList<Gpu::PaintImageSP> blockers;
+    for (int i = 0; i < 16; ++i) {
+        try {
+            blockers.append(Gpu::PaintImageSP::create(bounded->execution(), QSize(1, 1)));
+        } catch (const std::length_error &) {
+            break;
+        }
+    }
+    QVERIFY(!blockers.isEmpty());
+    bool copyInput = true;
+    try {
+        const auto rejected = KisMimeData::loadNodesFast(mime.data(), boundedImage, nullptr, copyInput);
+        QVERIFY(rejected.isEmpty());
+    } catch (const std::exception &error) {
+        QFAIL(error.what());
+    }
+    QCOMPARE(bounded->operations().recoveryData(), admissionBefore);
+    QCOMPARE(changed.size(), admissionSignals);
+    blockers.clear();
+    const auto copied = KisMimeData::loadNodesFast(mime.data(), boundedImage, nullptr, copyInput);
+    QCOMPARE(copied.size(), 1);
+    QVERIFY(copied.first() != prepared);
+    QVERIFY(!copied.first()->parent());
+    QCOMPARE(bounded->operations().recoveryData(), admissionBefore);
+    QCOMPARE(changed.size(), admissionSignals);
+
 }
 
 void TestNode::testLayerRemovalPreservesPixelsAndHistory_data()

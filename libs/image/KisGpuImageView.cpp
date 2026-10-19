@@ -9,6 +9,7 @@
 #include "kis_group_layer.h"
 #include "kis_paint_device.h"
 #include "kis_default_bounds.h"
+#include <kis_meta_data_store.h>
 #include "gpu/KisGpuPaintImage.h"
 #include <KoColorSpaceRegistry.h>
 #include <KoChannelInfo.h>
@@ -71,108 +72,228 @@ KisNodeSP KisImage::addGpuPaintLayer(const QString &name, KisNodeSP parent, qsiz
 
 bool KisImage::insertGpuLayer(KisNodeSP node, qsizetype index, KisNodeSP parent)
 {
+    return node && !node->childCount() && insertGpuLayers({node}, index, parent);
+}
+
+bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNodeSP parent)
+{
     namespace Gpu = LibrePaint::Image::Gpu;
     const auto owner = gpuImage();
     const auto state = gpuViewState();
     if (!parent) parent = root();
-    auto *layer = qobject_cast<KisLayer*>(node.data());
-    auto *paint = qobject_cast<KisPaintLayer*>(node.data());
-    auto *group = qobject_cast<KisGroupLayer*>(node.data());
-    if (!owner || !state || QThread::currentThread() != owner->thread() || !owner->handle() || owner->operations().hasActiveStroke() ||
-        !layer || (!paint && !group) || node->parent() || node->childCount() ||
-        layer->compositeOpId() != COMPOSITE_OVER ||
-        node->isAnimated() || !node->keyframeChannels().isEmpty() || layer->layerStyle() ||
-        layer->temporary() || (paint && paint->hasTemporaryTarget()) || (group && group->passThroughMode()) ||
-        *layer->colorSpace() != *colorSpace() || node->uuid().isNull() || state->nodes.contains(node->uuid())) return false;
+    if (!owner || !state || roots.isEmpty() || QThread::currentThread() != owner->thread() ||
+        !owner->handle() || owner->operations().hasActiveStroke()) return false;
     const auto insertion = gpuInsertionIndex(this, owner->operations().snapshot(), parent, index);
     if (insertion < 0) return false;
-    const auto projectionFlags = layer->channelFlags();
-    if (!projectionFlags.isEmpty() && (projectionFlags.size() != 4 || projectionFlags.count(true) != 4)) return false;
-    const auto pixels = group ? group->original() : paint->paintDevice();
-    Gpu::RasterLayer properties;
-    properties.kind = group ? Gpu::LayerKind::Group : Gpu::LayerKind::Paint;
-    properties.name = node->name();
-    properties.uuid = node->uuid();
-    properties.parentUuid = parent == root() ? QUuid() : parent->uuid();
-    properties.visible = node->visible();
-    properties.opacity = node->opacity();
-    properties.userLocked = node->userLocked();
-    properties.pinnedToTimeline = node->isPinnedToTimeline();
-    properties.position = {node->x(), node->y()};
-    const auto flags = paint ? paint->channelLockFlags() : QBitArray();
-    if (!flags.isEmpty()) {
-        properties.channelWriteMask = 0;
-        const auto channels = layer->colorSpace()->channels();
-        for (int channel = 0; channel < 4; ++channel)
-            if (flags.testBit(channel)) properties.channelWriteMask |= 1u << channels[channel]->displayPosition();
+    KisNodeList nodes = roots;
+    for (const auto &node : roots) if (!node || node->parent()) return false;
+    QSet<QUuid> identities;
+    for (qsizetype i = 0; i < nodes.size(); ++i) {
+        const auto node = nodes[i];
+        if (node->uuid().isNull() || state->nodes.contains(node->uuid()) || identities.contains(node->uuid()) ||
+            nodes.size() > owner->limits().layerCount - owner->operations().snapshot()->layers.size()) return false;
+        identities.insert(node->uuid());
+        for (auto child = node->firstChild(); child; child = child->nextSibling()) nodes.append(child);
     }
-    const auto background = pixels->defaultPixel();
-    const auto *bgra = background.data();
-    properties.defaultPixel = {bgra[2], bgra[1], bgra[0], bgra[3]};
-    if (group && properties.defaultPixel != std::array<quint8, 4>{}) return false;
-    const auto source = pixels->gpuPixelImage();
-    const auto reference = pixels->gpuPixelReference();
-    std::unique_ptr<Gpu::OperationDocument> imported;
-    if (!source) {
-        const auto budget = owner->limits().rasterBytes - owner->operations().snapshot()->rasterBytes;
-        QSet<QPoint> coordinates;
-        const auto tileIndex = [](int value) { return int(value >= 0 ? qint64(value) / 256 : (qint64(value) - 255) / 256); };
-        const auto collect = [&](const KisRegion &region) {
-            for (const auto &rect : region.rects()) {
-                for (int y = tileIndex(rect.top()); y <= tileIndex(rect.bottom()); ++y) {
-                    for (int x = tileIndex(rect.left()); x <= tileIndex(rect.right()); ++x) {
-                        coordinates.insert({x, y});
-                        if (coordinates.size() > budget / Gpu::RgbaTile::ByteCount) return false;
+    QList<Gpu::LayerInsertion> prepared;
+    qsizetype preparedBytes = 0;
+    for (KisNodeSP node : nodes) {
+        auto *layer = qobject_cast<KisLayer*>(node.data());
+        auto *paint = qobject_cast<KisPaintLayer*>(node.data());
+        auto *group = qobject_cast<KisGroupLayer*>(node.data());
+        if (!layer || (!paint && !group) || (paint && node->childCount()) ||
+            layer->compositeOpId() != COMPOSITE_OVER ||
+            node->isAnimated() || !node->keyframeChannels().isEmpty() || layer->layerStyle() ||
+            layer->temporary() || (paint && paint->hasTemporaryTarget()) || (group && group->passThroughMode()) ||
+            *layer->colorSpace() != *colorSpace()) return false;
+        const auto projectionFlags = layer->channelFlags();
+        if (!projectionFlags.isEmpty() && (projectionFlags.size() != 4 || projectionFlags.count(true) != 4)) return false;
+        const auto pixels = group ? group->original() : paint->paintDevice();
+        Gpu::RasterLayer properties;
+        properties.kind = group ? Gpu::LayerKind::Group : Gpu::LayerKind::Paint;
+        properties.name = node->name();
+        properties.uuid = node->uuid();
+        properties.parentUuid = roots.contains(node) ? (parent == root() ? QUuid() : parent->uuid()) : node->parent()->uuid();
+        properties.visible = node->visible();
+        properties.opacity = node->opacity();
+        properties.userLocked = node->userLocked();
+        properties.pinnedToTimeline = node->isPinnedToTimeline();
+        properties.position = {node->x(), node->y()};
+        const auto flags = paint ? paint->channelLockFlags() : QBitArray();
+        if (!flags.isEmpty()) {
+            if (flags.size() != 4) return false;
+            properties.channelWriteMask = 0;
+            const auto channels = layer->colorSpace()->channels();
+            for (int channel = 0; channel < 4; ++channel)
+                if (flags.testBit(channel)) properties.channelWriteMask |= 1u << channels[channel]->displayPosition();
+        }
+        const auto background = pixels->defaultPixel();
+        const auto *bgra = background.data();
+        properties.defaultPixel = {bgra[2], bgra[1], bgra[0], bgra[3]};
+        if (group) properties.defaultPixel = {};
+        const auto source = pixels->gpuPixelImage();
+        const auto reference = pixels->gpuPixelReference();
+        std::unique_ptr<Gpu::OperationDocument> imported;
+        if (!source && group) {
+            if (!node->childCount() && ((bgra[0] || bgra[1] || bgra[2] || bgra[3]) ||
+                !pixels->regionForLodSyncing().isEmpty())) return false;
+            Gpu::RasterImage input;
+            input.size = owner->operations().snapshot()->size;
+            input.layers = {properties};
+            input.layers.first().parentUuid = QUuid();
+            try {
+                imported = std::make_unique<Gpu::OperationDocument>(input, owner->limits());
+            } catch (const std::invalid_argument &) {
+                return false;
+            }
+        } else if (!source) {
+            const auto budget = owner->limits().rasterBytes - owner->operations().snapshot()->rasterBytes - preparedBytes;
+            QSet<QPoint> coordinates;
+            const auto tileIndex = [](int value) { return int(value >= 0 ? qint64(value) / 256 : (qint64(value) - 255) / 256); };
+            const auto collect = [&](const KisRegion &region) {
+                for (const auto &rect : region.rects()) {
+                    for (int y = tileIndex(rect.top()); y <= tileIndex(rect.bottom()); ++y) {
+                        for (int x = tileIndex(rect.left()); x <= tileIndex(rect.right()); ++x) {
+                            coordinates.insert({x, y});
+                            if (coordinates.size() > budget / Gpu::RgbaTile::ByteCount) return false;
+                        }
                     }
                 }
+                return true;
+            };
+            if (!collect(pixels->regionForLodSyncing())) return false;
+            // Pin full-resolution storage and read raw pixels independently of view modes.
+            KisPaintDevice fixed(*pixels);
+            fixed.setDefaultBounds(new KisDefaultBounds());
+            if (*fixed.colorSpace() != *colorSpace()) return false;
+            coordinates.clear();
+            if (!collect(fixed.region())) return false;
+            const auto fixedBackground = fixed.defaultPixel();
+            const auto *fixedBgra = fixedBackground.data();
+            properties.defaultPixel = {fixedBgra[2], fixedBgra[1], fixedBgra[0], fixedBgra[3]};
+            auto ordered = coordinates.values();
+            std::sort(ordered.begin(), ordered.end(), [](QPoint left, QPoint right) {
+                return left.y() == right.y() ? left.x() < right.x() : left.y() < right.y();
+            });
+            Gpu::RasterImage input;
+            input.size = owner->operations().snapshot()->size;
+            input.layers = {properties};
+            input.layers.first().parentUuid = QUuid();
+            try {
+                imported = std::make_unique<Gpu::OperationDocument>(input, owner->limits());
+            } catch (const std::invalid_argument &) {
+                return false;
             }
-            return true;
-        };
-        if (!collect(pixels->regionForLodSyncing())) return false;
-        // Pin full-resolution storage and read raw pixels independently of view modes.
-        KisPaintDevice fixed(*pixels);
-        fixed.setDefaultBounds(new KisDefaultBounds());
-        if (*fixed.colorSpace() != *colorSpace()) return false;
-        coordinates.clear();
-        if (!collect(fixed.region())) return false;
-        const auto fixedBackground = fixed.defaultPixel();
-        const auto *fixedBgra = fixedBackground.data();
-        properties.defaultPixel = {fixedBgra[2], fixedBgra[1], fixedBgra[0], fixedBgra[3]};
-        auto ordered = coordinates.values();
-        std::sort(ordered.begin(), ordered.end(), [](QPoint left, QPoint right) {
-            return left.y() == right.y() ? left.x() < right.x() : left.y() < right.y();
-        });
-        Gpu::RasterImage input;
-        input.size = owner->operations().snapshot()->size;
-        input.layers = {properties};
-        input.layers.first().parentUuid = QUuid();
-        try {
-            imported = std::make_unique<Gpu::OperationDocument>(input, owner->limits());
-        } catch (const std::invalid_argument &) {
-            return false;
+            QList<Gpu::RgbaTile> batch;
+            const auto flush = [&] {
+                if (batch.isEmpty()) return true;
+                const bool accepted = imported->replaceTiles(imported->activeLayer(), batch) == Gpu::Result::Success;
+                batch.clear();
+                return accepted;
+            };
+            for (const auto &coordinate : ordered) {
+                QByteArray bytes(Gpu::RgbaTile::ByteCount, Qt::Uninitialized);
+                fixed.readBytes(reinterpret_cast<quint8*>(bytes.data()), coordinate.x() * 256, coordinate.y() * 256, 256, 256);
+                for (qsizetype offset = 0; offset < bytes.size(); offset += 4) std::swap(bytes[offset], bytes[offset + 2]);
+                batch.append({coordinate, std::move(bytes)});
+                if (batch.size() == 64 && !flush()) return false;
+            }
+            if (!flush()) return false;
         }
-        QList<Gpu::RgbaTile> batch;
-        const auto flush = [&] {
-            if (batch.isEmpty()) return true;
-            const bool accepted = imported->replaceTiles(imported->activeLayer(), batch) == Gpu::Result::Success;
-            batch.clear();
-            return accepted;
-        };
-        for (const auto &coordinate : ordered) {
-            QByteArray bytes(Gpu::RgbaTile::ByteCount, Qt::Uninitialized);
-            fixed.readBytes(reinterpret_cast<quint8*>(bytes.data()), coordinate.x() * 256, coordinate.y() * 256, 256, 256);
-            for (qsizetype offset = 0; offset < bytes.size(); offset += 4) std::swap(bytes[offset], bytes[offset + 2]);
-            batch.append({coordinate, std::move(bytes)});
-            if (batch.size() == 64 && !flush()) return false;
+        const auto version = imported ? imported->snapshot() : reference ? reference->version() : Gpu::Snapshot();
+        const auto sourceId = imported ? imported->activeLayer() : reference ? reference->layer() : Gpu::LayerId(0);
+        if (!version || (!imported && (!source || QThread::currentThread() != source->thread() ||
+            version->documentId() != source->operations().snapshot()->documentId()))) return false;
+        const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(),
+            [&](const auto &layer) { return layer.id == sourceId; });
+        if (found == version->layers.cend()) return false;
+        for (const auto &operation : found->operations) {
+            if (const auto tiles = std::get_if<Gpu::TileWriteSnapshot>(&operation)) {
+                const auto bytes = (*tiles)->tiles.size() * Gpu::RgbaTile::ByteCount;
+                if (bytes > owner->limits().rasterBytes - owner->operations().snapshot()->rasterBytes - preparedBytes) return false;
+                preparedBytes += bytes;
+            }
         }
-        if (!flush()) return false;
+        prepared.append({version, sourceId, properties});
     }
     KisImageSP retained = this;
-    state->nodes.insert(node->uuid(), node);
-    const auto id = source ? owner->insertLayer(*source, reference, properties, insertion)
-                           : owner->insertLayer(*imported, imported->activeLayer(), properties, insertion);
-    if (!id) state->nodes.remove(node->uuid());
-    return id != 0;
+    for (const auto &node : nodes) state->nodes.insert(node->uuid(), node);
+    const auto result = owner->insertLayers(prepared, insertion);
+    if (result != Gpu::Result::Success)
+        for (const auto &node : nodes) state->nodes.remove(node->uuid());
+    return result == Gpu::Result::Success;
+}
+
+KisNodeList KisImage::cloneGpuNodes(const KisNodeList &roots) const
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto owner = gpuImage();
+    if (!owner || !owner->handle() || roots.isEmpty() || QThread::currentThread() != owner->thread()) return {};
+    const auto version = owner->operations().snapshot();
+    QHash<QUuid, const Gpu::Layer *> sourceLayers;
+    for (const auto &layer : version->layers) sourceLayers.insert(layer.uuid, &layer);
+    QList<QPair<KisNodeSP, QUuid>> pending;
+    for (const auto &node : roots) {
+        if (!node || node == root() || node->image() != this || !node->parent()) return {};
+        pending.append({node, {}});
+    }
+    QList<Gpu::LayerInsertion> prepared;
+    for (qsizetype i = 0; i < pending.size(); ++i) {
+        KisNodeSP node = pending[i].first;
+        const auto source = sourceLayers.value(node->uuid());
+        auto *layer = qobject_cast<KisLayer*>(node.data());
+        auto *paint = qobject_cast<KisPaintLayer*>(node.data());
+        auto *group = qobject_cast<KisGroupLayer*>(node.data());
+        if (!source || !layer || (!paint && !group) || (paint && node->childCount()) ||
+            layer->compositeOpId() != COMPOSITE_OVER || node->isAnimated() ||
+            !node->keyframeChannels().isEmpty() || layer->layerStyle() || layer->temporary() ||
+            (paint && paint->hasTemporaryTarget()) || (group && group->passThroughMode()) ||
+            *layer->colorSpace() != *colorSpace() || pending.size() > owner->limits().layerCount) return {};
+        const auto flags = layer->channelFlags();
+        if (!flags.isEmpty() && (flags.size() != 4 || flags.count(true) != 4)) return {};
+        Gpu::RasterLayer properties;
+        properties.name = source->name;
+        properties.visible = source->visible;
+        properties.uuid = QUuid::createUuid();
+        properties.defaultPixel = source->defaultPixel;
+        properties.opacity = source->opacity;
+        properties.userLocked = source->userLocked;
+        properties.pinnedToTimeline = source->pinnedToTimeline;
+        properties.channelWriteMask = source->channelWriteMask;
+        properties.position = source->position;
+        properties.kind = source->kind;
+        properties.parentUuid = pending[i].second;
+        prepared.append({version, source->id, properties});
+        for (auto child = node->firstChild(); child; child = child->nextSibling())
+            pending.append({child, properties.uuid});
+    }
+    const auto copied = owner->cloneLayerForest(prepared);
+    if (!copied) return {};
+    auto view = KisImage::fromGpuImage(copied, QStringLiteral("Copied layers"), colorSpace());
+    QScopedValueRollback<bool> syncing(view->m_synchronizingGpuNodes, true);
+    QHash<QUuid, KisNodeSP> copies;
+    KisNodeList tree{view->root()};
+    for (qsizetype i = 0; i < tree.size(); ++i)
+        for (auto node = tree[i]->firstChild(); node; node = node->nextSibling()) {
+            copies.insert(node->uuid(), node);
+            tree.append(node);
+        }
+    for (qsizetype i = 0; i < pending.size(); ++i) {
+        KisNodeSP node = copies.value(prepared[i].properties.uuid);
+        node->mergeNodeProperties(pending[i].first->nodeProperties());
+        node->setCollapsed(pending[i].first->collapsed());
+        auto *layer = qobject_cast<KisLayer*>(node.data());
+        auto *source = qobject_cast<KisLayer*>(pending[i].first.data());
+        layer->setChannelFlags(source->channelFlags());
+        layer->metaData()->copyFrom(source->metaData());
+    }
+    KisNodeList result;
+    for (qsizetype i = 0; i < roots.size(); ++i) {
+        const auto node = copies.value(prepared[i].properties.uuid);
+        if (!view->removeNode(node)) return {};
+        result.append(node);
+    }
+    return result;
 }
 
 KisImageSP KisImage::fromGpuImage(LibrePaint::Image::Gpu::PaintImageSP image, const QString &name)

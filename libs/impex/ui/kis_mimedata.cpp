@@ -36,6 +36,7 @@
 #include "KisImageBarrierLock.h"
 #include "kis_types.h"
 #include <algorithm>
+#include <stdexcept>
 #include <commands/kis_image_layer_add_command.h>
 #include <commands/kis_image_layer_move_command.h>
 #include <kis_processing_applicator.h>
@@ -339,13 +340,20 @@ QList<KisNodeSP> KisMimeData::tryLoadInternalNodes(const QMimeData *data,
         }
 
         QList<KisNodeSP> clones;
-        Q_FOREACH (KisNodeSP node, nodes) {
-            node = safeCopyNode(node, sourceImage != image);
+        const bool gpuCopy = sourceImage && sourceImage->gpuImage();
+        if (gpuCopy) {
+            clones = sourceImage->cloneGpuNodes(nodes);
+            if (clones.size() != nodes.size())
+                throw std::invalid_argument("The selected GPU layers cannot be copied with their current settings");
+        }
+        for (qsizetype i = 0; i < nodes.size(); ++i) {
+            KisNodeSP node = gpuCopy ? clones[i] : safeCopyNode(nodes[i], sourceImage != image);
             if ((forceCopy || copyNode) && sourceImage == image) {
                 KisLayerUtils::addCopyOfNameTag(node);
             }
             initializeExternalNode(&node, sourceImage, image, shapeController);
-            clones << node;
+            if (gpuCopy) clones[i] = node;
+            else clones.append(node);
         }
         nodes = clones;
         copyNode = true;
@@ -475,11 +483,16 @@ KisNodeList KisMimeData::loadNodesFast(
     KisShapeController *shapeController,
     bool &copyNode)
 {
-    QList<KisNodeSP> nodes =
-        KisMimeData::tryLoadInternalNodes(data,
-                                          image,
-                                          shapeController,
-                                          copyNode /* IN-OUT */);
+    QList<KisNodeSP> nodes;
+    try {
+        nodes = tryLoadInternalNodes(data, image, shapeController, copyNode /* IN-OUT */);
+    } catch (const std::length_error &error) {
+        warnKrita << error.what();
+        return {};
+    } catch (const std::invalid_argument &error) {
+        warnKrita << error.what();
+        return {};
+    }
 
     if (nodes.isEmpty()) {
         nodes = KisMimeData::loadNonNativeNodes(data, image);

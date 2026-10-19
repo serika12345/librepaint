@@ -282,6 +282,14 @@ private:
 
 using Snapshot = QSharedPointer<const DocumentVersion>;
 
+/** Frozen layer pixels and fresh destination properties for one prepared node. */
+struct LayerInsertion
+{
+    Snapshot source;
+    LayerId sourceLayer = 0;
+    RasterLayer properties;
+};
+
 struct CanvasResize
 {
     QRect rect;
@@ -414,6 +422,12 @@ public:
      */
     LayerId insertLayer(const OperationDocument &source, LayerId sourceLayer,
                         const RasterLayer &properties, qsizetype index);
+    /** Adopts a prepared forest in list order as one history entry. Parent UUIDs
+     * refer to existing groups or other prepared nodes. Selects its roots and
+     * activates the first root; Undo restores the original selection and active
+     * layer. Rejected requests retain the complete document and input state.
+     */
+    Result insertLayers(const QList<LayerInsertion> &layers, qsizetype index);
     /** Selection is screen state; selecting an existing layer adds no history entry. */
     Result selectLayer(LayerId layer);
     /** A nonempty screen selection and an independent existing active layer.

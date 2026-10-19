@@ -600,61 +600,87 @@ LayerId OperationDocument::insertLayer(const OperationDocument &source, LayerId 
 LayerId OperationDocument::insertVersion(const Snapshot &source, LayerId sourceLayer,
                                         const RasterLayer &properties, qsizetype index)
 {
-    if (checkMutation() != Result::Success || !source || index < 0 || index > snapshot()->layers.size() ||
-        !validLayerName(properties.name) || properties.uuid.isNull() || properties.channelWriteMask > 15 ||
-        !properties.tiles.isEmpty() || snapshot()->layers.size() >= m_limits.layerCount ||
-        m_nextLayer == std::numeric_limits<quint64>::max() || m_nextRevision == std::numeric_limits<quint64>::max()) return 0;
+    if (!source) return 0;
     const auto found = std::find_if(source->layers.cbegin(), source->layers.cend(),
                                    [sourceLayer](const Layer &layer) { return layer.id == sourceLayer; });
-    if (found == source->layers.cend() || found->kind != properties.kind ||
-        found->defaultPixel != properties.defaultPixel) return 0;
-    if (found->kind == LayerKind::Group &&
-        (properties.channelWriteMask != 15 || !found->operations.isEmpty() ||
+    if (found == source->layers.cend() ||
+        (found->kind == LayerKind::Group &&
          std::any_of(source->layers.cbegin(), source->layers.cend(),
                      [&](const Layer &layer) { return layer.parentUuid == found->uuid; }))) return 0;
-    if (!properties.parentUuid.isNull()) {
-        const auto parent = std::find_if(snapshot()->layers.cbegin(), snapshot()->layers.cend(),
-            [&](const Layer &layer) { return layer.uuid == properties.parentUuid && layer.kind == LayerKind::Group; });
-        if (parent == snapshot()->layers.cend()) return 0;
-    }
-    for (const auto &state : m_history)
-        for (const auto &layer : state->layers) if (layer.uuid == properties.uuid) return 0;
-    auto samples = snapshot()->sampleCount;
-    auto pixels = snapshot()->rasterBytes;
+    return insertLayers({{source, sourceLayer, properties}}, index) == Result::Success
+        ? snapshot()->activeLayer : 0;
+}
+
+Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsizetype index)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto before = snapshot();
+    if (layers.isEmpty() || index < 0 || index > before->layers.size()) return Result::InvalidInput;
+    if (layers.size() > m_limits.layerCount - before->layers.size() ||
+        quint64(layers.size()) > std::numeric_limits<quint64>::max() - m_nextLayer ||
+        m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    QSet<QUuid> identities, inserted;
+    for (const auto &version : m_history)
+        for (const auto &layer : version->layers) identities.insert(layer.uuid);
+    QList<Layer> added;
+    auto samples = before->sampleCount;
+    auto pixels = before->rasterBytes;
+    auto nextLayer = m_nextLayer;
     auto nextOperation = m_nextOperation;
-    for (const auto &operation : found->operations) {
-        if (operationSamples(operation) > m_limits.samplesPerStroke ||
-            operationSamples(operation) > m_limits.samplesPerDocument - samples ||
-            operationRasterBytes(operation) > m_limits.rasterBytes - pixels ||
-            nextOperation == std::numeric_limits<quint64>::max()) return 0;
-        samples += operationSamples(operation);
-        pixels += operationRasterBytes(operation);
-        ++nextOperation;
+    for (const auto &input : layers) {
+        const auto &properties = input.properties;
+        if (!input.source || !validLayerName(properties.name) || properties.uuid.isNull() ||
+            identities.contains(properties.uuid) || properties.channelWriteMask > 15 ||
+            !properties.tiles.isEmpty()) return Result::InvalidInput;
+        identities.insert(properties.uuid);
+        inserted.insert(properties.uuid);
+        const auto found = std::find_if(input.source->layers.cbegin(), input.source->layers.cend(),
+            [&](const Layer &layer) { return layer.id == input.sourceLayer; });
+        if (found == input.source->layers.cend()) return Result::LayerUnavailable;
+        if (found->kind != properties.kind || found->defaultPixel != properties.defaultPixel ||
+            (found->kind == LayerKind::Group &&
+             (properties.channelWriteMask != 15 || !found->operations.isEmpty()))) return Result::InvalidInput;
+        for (const auto &operation : found->operations) {
+            if (operationSamples(operation) > m_limits.samplesPerStroke ||
+                operationSamples(operation) > m_limits.samplesPerDocument - samples ||
+                operationRasterBytes(operation) > m_limits.rasterBytes - pixels ||
+                nextOperation == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+            samples += operationSamples(operation);
+            pixels += operationRasterBytes(operation);
+            ++nextOperation;
+        }
+        Layer copy = *found;
+        copy.id = ++nextLayer;
+        copy.name = properties.name;
+        copy.uuid = properties.uuid;
+        copy.visible = properties.visible;
+        copy.opacity = properties.opacity;
+        copy.userLocked = properties.userLocked;
+        copy.pinnedToTimeline = properties.pinnedToTimeline;
+        copy.channelWriteMask = properties.channelWriteMask;
+        copy.position = properties.position;
+        copy.parentUuid = properties.parentUuid;
+        added.append(std::move(copy));
     }
-    Layer added = *found;
-    added.id = m_nextLayer + 1;
-    added.name = properties.name;
-    added.uuid = properties.uuid;
-    added.visible = properties.visible;
-    added.opacity = properties.opacity;
-    added.userLocked = properties.userLocked;
-    added.pinnedToTimeline = properties.pinnedToTimeline;
-    added.channelWriteMask = properties.channelWriteMask;
-    added.position = properties.position;
-    added.parentUuid = properties.parentUuid;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*before));
+    for (qsizetype i = 0; i < added.size(); ++i) version->layers.insert(index + i, added[i]);
+    if (!Detail::validLayerHierarchy(version->layers)) return Result::InvalidInput;
     nextOperation = m_nextOperation;
-    copyLayerOperations(*found, added, m_identity, nextOperation);
-    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
-    version->layers.insert(index, added);
-    version->activeLayer = added.id;
-    version->selectedLayers = {added.id};
+    version->selectedLayers.clear();
+    for (qsizetype i = 0; i < added.size(); ++i) {
+        auto &copy = version->layers[index + i];
+        copyLayerOperations(added[i], copy, m_identity, nextOperation);
+        if (!inserted.contains(copy.parentUuid)) version->selectedLayers.append(copy.id);
+    }
+    version->activeLayer = version->selectedLayers.first();
     version->sampleCount = samples;
     version->rasterBytes = pixels;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
-    m_nextLayer = added.id;
+    m_nextLayer = nextLayer;
     m_nextOperation = nextOperation;
     commitVersion(version);
-    return added.id;
+    return Result::Success;
 }
 
 Result OperationDocument::duplicateLayers(const QList<LayerId> &layers, const QList<QString> &names, LayerId activeSource)
