@@ -111,6 +111,8 @@ QList<Snapshot> OperationDocument::layerPositionVersions(const Snapshot &source,
         return false;
     };
     const auto changesPosition = [&](int index) {
+        if (const auto &resize = m_layerHistoryChanges[index].canvasResize)
+            if (!resize->rect.topLeft().isNull()) return true;
         return m_layerHistoryChanges[index].layer == layer &&
             m_layerHistoryChanges[index].property == LayerProperty::Position;
     };

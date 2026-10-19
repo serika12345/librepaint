@@ -80,7 +80,21 @@
 #include <qobject.h>
 #include <qstringview.h>
 #include <qtransform.h>
+#include <gpu/KisGpuOperationDocument.h>
+#include <stdexcept>
 
+namespace {
+QRect canvasRectangle(KisImageSP image, int x, int y, int width, int height)
+{
+    if (image->gpuImage()) {
+        constexpr qint64 limit = LibrePaint::Image::Gpu::RgbaTile::CoordinateLimit;
+        if (width <= 0 || height <= 0 || width > limit || height > limit ||
+            x < -limit || y < -limit || qint64(x) + width > limit || qint64(y) + height > limit)
+            throw std::invalid_argument("GPU canvas rectangle exceeds the positive dimension or pixel coordinate domain");
+    }
+    return QRect(x, y, width, height);
+}
+}
 
 struct Document::Private {
     Private() {}
@@ -526,7 +540,7 @@ void Document::crop(int x, int y, int w, int h)
     if (!d->document) return;
     KisImageSP image = d->document->image();
     if (!image) return;
-    QRect rc(x, y, w, h);
+    const auto rc = canvasRectangle(image, x, y, w, h);
     image->cropImage(rc);
     image->waitForDone();
 }
@@ -554,11 +568,7 @@ void Document::resizeImage(int x, int y, int w, int h)
     if (!d->document) return;
     KisImageSP image = d->document->image();
     if (!image) return;
-    QRect rc;
-    rc.setX(x);
-    rc.setY(y);
-    rc.setWidth(w);
-    rc.setHeight(h);
+    const auto rc = canvasRectangle(image, x, y, w, h);
 
     image->resizeImage(rc);
     image->waitForDone();

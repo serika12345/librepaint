@@ -56,6 +56,11 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void canvasResizePreservesVersionSizesPropertiesAndRecovery();
+    void canvasResizeKeepsEmptyDocumentsRecoverable();
+    void directLayerPositionKeepsCanvasHistoryBoundaries();
+    void rejectedCanvasResizesKeepRedoPendingInputAndClosedState();
+    void previousCroppedRecoveryPreservesInputAndCanvasHistory();
     void layerCropPreservesValuesHistoryAndRecovery();
     void rejectedLayerCropsKeepRedoPendingInputAndClosedState();
     void previousTranslatedRecoveryPreservesPendingInputAndCropHistory();
@@ -119,6 +124,152 @@ private Q_SLOTS:
     void layerRemovalReusesCapacityWithoutLosingRecoveryHistory();
     void layerReorderingIsAtomicAndPreservesSelectionPixelsAndHistory();
 };
+
+void KisGpuOperationDocumentTest::canvasResizePreservesVersionSizesPropertiesAndRecovery()
+{
+    auto source = rasterImage();
+    source.activeLayer = 0;
+    source.layers[1].userLocked = true;
+    OperationDocument document(source);
+    QCOMPARE(document.selectLayers({1, 2}, 1), Result::Success);
+    const auto before = document.snapshot();
+    const QRect canvas(8, 6, 160, 90), crop(-3, -5, 96, 64);
+    QCOMPARE(document.resizeCanvas(canvas, false), Result::Success);
+    const auto resized = document.snapshot();
+    QCOMPARE(resized->size, canvas.size());
+    QCOMPARE(document.historyAction(1), HistoryAction::ResizeCanvas);
+    QCOMPARE(document.historyCanvasResize(1)->rect, canvas);
+    QCOMPARE(document.markSaved(resized), Result::Success);
+    QCOMPARE(document.resizeCanvas(crop, true), Result::Success);
+    const auto cropped = document.snapshot();
+    QCOMPARE(cropped->size, crop.size());
+    QCOMPARE(before->size, source.size);
+    QCOMPARE(document.historyAction(2), HistoryAction::CropImage);
+    QVERIFY(document.historyCanvasResize(2)->cropLayers);
+    QCOMPARE(cropped->selectedLayers, before->selectedLayers);
+    QCOMPARE(cropped->activeLayer, before->activeLayer);
+    QCOMPARE(cropped->rasterBytes, before->rasterBytes);
+    for (int i = 0; i < 2; ++i) {
+        QCOMPARE(cropped->layers[i].position, before->layers[i].position - canvas.topLeft() - crop.topLeft());
+        QCOMPARE(cropped->layers[i].uuid, before->layers[i].uuid);
+        QCOMPARE(cropped->layers[i].defaultPixel, before->layers[i].defaultPixel);
+        QCOMPARE(cropped->layers[i].userLocked, before->layers[i].userLocked);
+        QCOMPARE(cropped->layers[i].visible, before->layers[i].visible);
+        QCOMPARE(cropped->layers[i].operations.first(), before->layers[i].operations.first());
+    }
+    QCOMPARE(document.undo(), Result::Success);
+    QVERIFY(!document.isModified());
+    QCOMPARE(document.resizeCanvas(QRect(QPoint(), canvas.size()), false), Result::Success);
+    QCOMPARE(document.snapshot(), resized);
+    QCOMPARE(document.redoCount(), 1);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.snapshot()->size, canvas.size());
+    QCOMPARE(recovered.savedHistoryIndex(), 1);
+    QCOMPARE(recovered.historyCanvasResize(2)->rect, crop);
+    QCOMPARE(recovered.redo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->size, crop.size());
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->size, source.size);
+    QCOMPARE(recovered.snapshot()->layers.first().position, source.layers.first().position);
+    auto damaged = document.recoveryData().chopped(32);
+    QByteArray prefix;
+    QDataStream writer(&prefix, QIODevice::WriteOnly);
+    writer.setVersion(QDataStream::Qt_5_15);
+    writer << qint32(before->size.width()) << qint32(before->size.height());
+    for (const auto component : before->projectionBackground) writer << component;
+    writer << before->revision() << before->historyRevision();
+    const auto offset = damaged.indexOf(prefix);
+    QVERIFY(offset > 0);
+    damaged.replace(offset, 4, QByteArray(4, '\0'));
+    damaged.append(QCryptographicHash::hash(damaged, QCryptographicHash::Sha256));
+    const auto unchanged = recovered.recoveryData();
+    QCOMPARE(recovered.restoreRecovery(damaged), Result::InvalidRecovery);
+    QCOMPARE(recovered.recoveryData(), unchanged);
+}
+
+void KisGpuOperationDocumentTest::canvasResizeKeepsEmptyDocumentsRecoverable()
+{
+    RasterImage source;
+    source.size = {64, 48};
+    OperationDocument document(source);
+    QCOMPARE(document.resizeCanvas({-8, -6, 128, 96}, true), Result::Success);
+    QVERIFY(document.snapshot()->layers.isEmpty());
+    QCOMPARE(document.snapshot()->size, QSize(128, 96));
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->size, source.size);
+    QCOMPARE(recovered.redo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->size, QSize(128, 96));
+}
+
+void KisGpuOperationDocumentTest::directLayerPositionKeepsCanvasHistoryBoundaries()
+{
+    OperationDocument document({64, 48});
+    QCOMPARE(document.resizeCanvas({8, 6, 32, 24}, false), Result::Success);
+    QCOMPARE(document.writeLayerPosition(1, {11, 13}), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().position, QPoint());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers.first().position, QPoint(11, 13));
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->layers.first().position, QPoint());
+}
+
+void KisGpuOperationDocumentTest::rejectedCanvasResizesKeepRedoPendingInputAndClosedState()
+{
+    OperationDocument document({64, 48});
+    QCOMPARE(document.resizeCanvas({8, 6, 32, 24}, true), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    const auto before = document.snapshot();
+    const auto recovery = document.recoveryData();
+    for (const QRect rect : {QRect(0, 0, 0, 4), QRect(0, 0, -1, 4),
+                             QRect(RgbaTile::CoordinateLimit, 0, 1, 1),
+                             QRect(-RgbaTile::CoordinateLimit - 1, 0, 1, 1)}) {
+        QCOMPARE(document.resizeCanvas(rect, false), Result::InvalidInput);
+        QCOMPARE(document.recoveryData(), recovery);
+        QCOMPARE(document.snapshot(), before);
+        QCOMPARE(document.redoCount(), 1);
+    }
+    const auto pending = document.beginStroke(document.activeLayer(), Brush{}, 42);
+    QCOMPARE(document.appendSamples(pending, {sample(8, 9)}), Result::Success);
+    const auto preview = document.preview();
+    QCOMPARE(document.resizeCanvas({8, 6, 32, 24}, true), Result::EditInProgress);
+    QCOMPARE(document.preview(), preview);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.cancelStroke(pending), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    document.close();
+    const auto closed = document.snapshot();
+    QCOMPARE(document.resizeCanvas({8, 6, 32, 24}, true), Result::Closed);
+    QCOMPARE(document.snapshot(), closed);
+}
+
+void KisGpuOperationDocumentTest::previousCroppedRecoveryPreservesInputAndCanvasHistory()
+{
+    const auto bytes = LibrePaint::Image::Gpu::Test::croppedLayerRecoveryV26();
+    QCOMPARE(QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex(),
+             QByteArrayLiteral("90aa7aeb29165403c9364ceff682f35b292daeeab1750cd72877c95f44b8bf94"));
+    OperationDocument document({1, 1});
+    QCOMPARE(document.restoreRecovery(bytes), Result::Success);
+    QCOMPARE(document.snapshot()->size, QSize(64, 64));
+    QCOMPARE(document.undoCount(), 3);
+    QVERIFY(document.hasActiveStroke());
+    QCOMPARE(document.preview()->sampleCount, 3);
+    QCOMPARE(document.historyCrop(3)->rect, QRect(-80, 10, 40, 40));
+    QCOMPARE(document.cancelStroke(document.activeOperation()), Result::Success);
+    QCOMPARE(document.resizeCanvas({-8, -6, 32, 24}, false), Result::Success);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.snapshot()->size, QSize(32, 24));
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->size, QSize(64, 64));
+    QCOMPARE(recovered.historyAction(3), HistoryAction::CropLayer);
+}
 
 void KisGpuOperationDocumentTest::layerCropPreservesValuesHistoryAndRecovery()
 {

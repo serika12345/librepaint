@@ -4,6 +4,7 @@
  */
 #include "kis_image.h"
 #include "KisNodeAdditionFlags.h"
+#include "KisImageSignals.h"
 #include "kis_paint_layer.h"
 #include "kis_paint_device.h"
 #include "kis_default_bounds.h"
@@ -20,6 +21,7 @@
 #include <stdexcept>
 #include <utility>
 #include <algorithm>
+#include <cstdlib>
 
 struct KisGpuImageViewState
 {
@@ -166,13 +168,48 @@ void KisImage::connectGpuImageUpdates()
         const auto owner = retainedView->gpuImage();
         const auto version = owner->operations().snapshot();
         if (version != synchronized) {
+            const auto previous = synchronized;
+            const auto previousSize = retainedView->size();
             const bool selectionChanged = version->activeLayer != synchronized->activeLayer ||
                 version->selectedLayers != synchronized->selectedLayers;
+            retainedView->setSize(version->size);
             {
                 QScopedValueRollback<bool> syncing(retainedView->m_synchronizingGpuNodes, true);
                 retainedView->synchronizeGpuLayerViews(state.data());
             }
             synchronized = retainedView->gpuImage()->operations().snapshot();
+            retainedView->setSize(synchronized->size);
+            const auto &operations = retainedView->gpuImage()->operations();
+            const auto versions = operations.historyVersions();
+            int previousIndex = -1;
+            for (int i = 0; i < versions.size(); ++i) {
+                if (versions[i]->documentId() == previous->documentId() &&
+                    versions[i]->historyRevision() == previous->historyRevision()) previousIndex = i;
+            }
+            std::optional<ComplexSizeChangedSignal> resize;
+            const int currentIndex = operations.undoCount();
+            if (previousIndex >= 0 && previousIndex != currentIndex) {
+                QPointF offset;
+                bool resized = false;
+                for (int i = std::min(previousIndex, currentIndex) + 1; i <= std::max(previousIndex, currentIndex); ++i) {
+                    if (const auto change = operations.historyCanvasResize(i)) {
+                        resized = true;
+                        offset += change->rect.topLeft();
+                        if (std::abs(previousIndex - currentIndex) == 1) {
+                            const ComplexSizeChangedSignal signal(change->rect, change->rect.size());
+                            resize = previousIndex < currentIndex ? signal : signal.inverted();
+                        }
+                    }
+                }
+                if (resized && !resize) {
+                    if (previousIndex > currentIndex) offset = -offset;
+                    const QPointF centre = QRectF(QPointF(), QSizeF(synchronized->size)).center();
+                    resize = ComplexSizeChangedSignal(centre + offset, centre);
+                }
+            }
+            if (!resize && previousSize != synchronized->size)
+                resize = ComplexSizeChangedSignal(QRect(QPoint(), previousSize), synchronized->size);
+            if (resize) Q_EMIT retainedView->sigSizeChanged(resize->oldStillPoint, resize->newStillPoint);
             if (selectionChanged && synchronized == version) {
                 KisNodeList selected;
                 KisNodeSP active;

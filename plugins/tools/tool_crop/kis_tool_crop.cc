@@ -22,6 +22,7 @@
 #include <QPen>
 #include <QRect>
 #include <QMenu>
+#include <stdexcept>
 
 #include <klocalizedstring.h>
 #include <ksharedconfig.h>
@@ -492,15 +493,22 @@ void KisToolCrop::crop()
 
     QRect cropRect = m_finalRect.rect();
 
-    // The visitor adds the undo steps to the macro
-    if (imageCrop || !currentNode()->paintDevice()) {
-        if (m_cropType == CanvasCropType) {
-            currentImage()->resizeImage(cropRect);
+    KisImageSP image = currentImage();
+    try {
+        if (imageCrop || !currentNode()->paintDevice()) {
+            if (m_cropType == CanvasCropType) {
+                image->resizeImage(cropRect);
+            } else {
+                image->cropImage(cropRect);
+            }
         } else {
-            currentImage()->cropImage(cropRect);
+            image->cropNode(currentNode(), cropRect, m_cropType == FrameCropType);
         }
-    } else {
-        currentImage()->cropNode(currentNode(), cropRect, m_cropType == FrameCropType);
+    } catch (const std::runtime_error &error) {
+        if (!image->gpuImage()) throw;
+        qWarning() << error.what();
+        m_haveCropSelection = true;
+        Q_EMIT statusTextChanged(i18n("The crop could not be applied."));
     }
 }
 

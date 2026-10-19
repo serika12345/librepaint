@@ -4,6 +4,7 @@
  */
 
 #include "KisGpuPaintImage_p.h"
+#include "KisGpuOperationValidation_p.h"
 #include <QThread>
 #include <algorithm>
 #include <new>
@@ -283,6 +284,23 @@ Result PaintImage::clearLayers(const QList<LayerId> &layers)
 { return onThread() ? publish(m_d->document->clearLayers(layers)) : Result::InvalidInput; }
 Result PaintImage::cropLayer(LayerId layer, const QRect &rect)
 { return onThread() ? publish(m_d->document->cropLayer(layer, rect)) : Result::InvalidInput; }
+Result PaintImage::resizeCanvas(const QRect &rect, bool cropLayers)
+{
+    if (!onThread()) return Result::InvalidInput;
+    const auto &document = *m_d->document;
+    const auto status = document.checkMutation();
+    if (status != Result::Success) return status;
+    if (!Detail::validCanvasRect(rect)) return Result::InvalidInput;
+    const auto before = document.snapshot();
+    if (!cropLayers) {
+        for (const auto &layer : before->layers) {
+            const auto admitted = checkLayerTranslation(before, layer.id, -rect.topLeft());
+            if (admitted != Result::Success) return admitted;
+        }
+    }
+    const auto result = m_d->document->resizeCanvas(rect, cropLayers);
+    return document.snapshot() == before ? result : publish(result);
+}
 Result PaintImage::fillLayer(LayerId layer, const std::array<quint8, 3> &rgb,
                              quint8 opacity, bool erase, bool alphaLocked)
 { return onThread() ? publish(m_d->document->fillLayer(layer, rgb, opacity, erase, alphaLocked)) : Result::InvalidInput; }

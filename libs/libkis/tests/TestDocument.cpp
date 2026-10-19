@@ -8,6 +8,7 @@
 #include <KritaVersionWrapper.h>
 #include <QColor>
 #include <QDataStream>
+#include <QDateTime>
 #include <QDir>
 #include <QBuffer>
 #include <QSignalSpy>
@@ -24,6 +25,8 @@
 #include <exception>
 #include <future>
 #include <chrono>
+#include <cstring>
+#include <limits>
 
 #include <Node.h>
 #include <Krita.h>
@@ -54,6 +57,8 @@
 
 #include <kis_transform_mask_params_factory_registry.h>
 #include <kis_undo_stores.h>
+#include <kis_crop_saved_extra_data.h>
+#include <kis_properties_configuration.h>
 #include <kundo2stack.h>
 #include <testui.h>
 
@@ -68,6 +73,246 @@ void initializeGpuDocument(KisDocument *document, QSize size, const QString &nam
     auto owner = LibrePaint::Image::Gpu::PaintImageSP::create(execution, size);
     document->setCurrentImage(KisImage::fromGpuImage(owner, name));
 }
+}
+
+void TestDocument::testCanvasResizePreservesPixelsHistoryAndSaving_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("cropLayers");
+    QTest::addColumn<QRect>("requested");
+    const QList<QPair<const char *, QRect>> regions{
+        {"shrink", {8, 6, 32, 24}}, {"grow", {-5, -7, 80, 64}},
+        {"same", {0, 0, 64, 48}}, {"outside", {100, 90, 16, 12}}};
+    for (const bool gpu : {false, true}) for (const bool crop : {false, true}) for (const auto &region : regions) {
+        const QByteArray name = (gpu ? QByteArrayLiteral("gpu-") : QByteArrayLiteral("ordinary-")) +
+            (crop ? QByteArrayLiteral("crop-") : QByteArrayLiteral("canvas-")) + region.first;
+        QTest::newRow(name.constData()) << gpu << crop << region.second;
+    }
+}
+
+void TestDocument::testCanvasResizePreservesPixelsHistoryAndSaving()
+try
+{
+    QFETCH(bool, gpu);
+    QFETCH(bool, cropLayers);
+    QFETCH(QRect, requested);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    const QSize originalSize(64, 48);
+    const QRect sourceRegion(-8, -4, 80, 64), inspected(-160, -160, 320, 320);
+    const QList<QPoint> positions{{7, -9}, {-11, 13}};
+    const QList<QByteArray> defaults{QByteArray(4, '\0'), QByteArray::fromHex("33221100")};
+    Gpu::RasterImage input;
+    input.size = originalSize;
+    input.layers = {{QStringLiteral("Visible pixels"), true, QUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa0}")), {}},
+                    {QStringLiteral("Hidden locked pixels"), false, QUuid(QStringLiteral("{a1a2a3a4-a5a6-a7a8-a9aa-abacadaeafb0}")), {}}};
+    QList<QByteArray> initialPixels;
+    for (int i = 0; i < 2; ++i) {
+        const auto &bgra = defaults[i];
+        input.layers[i].position = positions[i];
+        input.layers[i].defaultPixel = {quint8(bgra[2]), quint8(bgra[1]), quint8(bgra[0]), quint8(bgra[3])};
+        input.layers[i].userLocked = i == 1;
+        QByteArray pixels(sourceRegion.width() * sourceRegion.height() * 4, Qt::Uninitialized);
+        for (int y = 0; y < sourceRegion.height(); ++y) for (int x = 0; x < sourceRegion.width(); ++x) {
+            auto *pixel = pixels.data() + (y * sourceRegion.width() + x) * 4;
+            pixel[0] = char((x * 3 + y + i * 17) & 255);
+            pixel[1] = char((x + y * 7 + i * 29) & 255);
+            pixel[2] = char((x * 11 + y * 5 + i * 31) & 255);
+            pixel[3] = i ? 0 : char(255);
+        }
+        initialPixels.append(pixels);
+        for (int ty = -1; ty <= 0; ++ty) for (int tx = -1; tx <= 0; ++tx) {
+            auto tile = defaults[i].repeated(256 * 256);
+            const QRect bounds(tx * 256, ty * 256, 256, 256);
+            const auto area = bounds.intersected(sourceRegion);
+            for (int y = area.top(); y <= area.bottom(); ++y) {
+                const int source = ((y - sourceRegion.y()) * sourceRegion.width() + area.x() - sourceRegion.x()) * 4;
+                const int destination = ((y - bounds.y()) * 256 + area.x() - bounds.x()) * 4;
+                std::memcpy(tile.data() + destination, pixels.constData() + source, size_t(area.width()) * 4);
+            }
+            for (qsizetype offset = 0; offset < tile.size(); offset += 4) std::swap(tile[offset], tile[offset + 2]);
+            input.layers[i].tiles.append({{tx, ty}, tile});
+        }
+    }
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    Gpu::PaintImageSP owner;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        owner = Gpu::PaintImageSP::create(execution, input);
+        document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Canvas resize")));
+    } else {
+        KisImageSP image = new KisImage(document->createUndoStore(), 64, 48, cs, QStringLiteral("Canvas resize"));
+        for (int i = 0; i < 2; ++i) {
+            const auto &properties = input.layers[i];
+            KisPaintLayerSP layer = new KisPaintLayer(image, properties.name, 255);
+            layer->setUuid(properties.uuid);
+            layer->setX(positions[i].x()); layer->setY(positions[i].y());
+            layer->setVisible(properties.visible); layer->setUserLocked(properties.userLocked);
+            layer->paintDevice()->setDefaultPixel(KoColor(reinterpret_cast<const quint8*>(defaults[i].constData()), cs));
+            image->addNode(layer, image->root(), i);
+        }
+        document->setCurrentImage(image);
+    }
+    Document api(document.data(), false);
+    QList<NodeSP> nodes;
+    QList<QByteArray> originals, expected;
+    for (int i = 0; i < 2; ++i) {
+        nodes.append(NodeSP(Node::createNode(document->image(), document->image()->root()->at(i))));
+        const auto &pixels = initialPixels[i];
+        if (!gpu) QVERIFY(nodes[i]->setPixelData(pixels, sourceRegion.x(), sourceRegion.y(), sourceRegion.width(), sourceRegion.height()));
+        originals.append(nodes[i]->pixelData(inspected.x(), inspected.y(), inspected.width(), inspected.height()));
+        auto result = defaults[i].repeated(inspected.width() * inspected.height());
+        for (int y = 0; y < inspected.height(); ++y) for (int x = 0; x < inspected.width(); ++x) {
+            const QPoint source = inspected.topLeft() + QPoint(x, y) + requested.topLeft();
+            if (!sourceRegion.contains(source) || (cropLayers && !requested.contains(source))) continue;
+            const int offset = ((source.y() - sourceRegion.y()) * sourceRegion.width() + source.x() - sourceRegion.x()) * 4;
+            std::memcpy(result.data() + (y * inspected.width() + x) * 4, pixels.constData() + offset, 4);
+        }
+        expected.append(result);
+    }
+    api.refreshProjection();
+    document->setModified(false);
+    const int history = document->undoStack()->index();
+    const int steps = cropLayers || requested != QRect(QPoint(), originalSize) ? 1 : 0;
+    QSignalSpy sizeChanged(document->image().data(), &KisImage::sigSizeChanged);
+    if (cropLayers) api.crop(requested.x(), requested.y(), requested.width(), requested.height());
+    else api.resizeImage(requested.x(), requested.y(), requested.width(), requested.height());
+    QCOMPARE(document->image()->size(), requested.size());
+    QCOMPARE(QSize(api.width(), api.height()), requested.size());
+    QCOMPARE(document->undoStack()->index(), history + steps);
+    if (steps) {
+        QTRY_COMPARE(sizeChanged.size(), 1);
+        QCOMPARE(sizeChanged.first()[0].toPointF(), QRectF(requested).center());
+        QCOMPARE(sizeChanged.first()[1].toPointF(), QRectF(QPointF(), QSizeF(requested.size())).center());
+        const auto *extra = dynamic_cast<const KisCropSavedExtraData*>(document->undoStack()->command(history)->extraData());
+        QVERIFY(extra);
+        QCOMPARE(extra->type(), cropLayers ? KisCropSavedExtraData::CROP_IMAGE : KisCropSavedExtraData::RESIZE_IMAGE);
+        QCOMPARE(extra->cropRect(), requested);
+    }
+    for (int i = 0; i < 2; ++i) {
+        QCOMPARE(nodes[i]->position(), positions[i] - requested.topLeft());
+        QCOMPARE(nodes[i]->pixelData(inspected.x(), inspected.y(), inspected.width(), inspected.height()), expected[i]);
+        QCOMPARE(nodes[i]->uniqueId(), input.layers[i].uuid);
+        QCOMPARE(nodes[i]->locked(), i == 1);
+    }
+    if (steps) {
+        document->undoStack()->undo();
+        document->image()->waitForDone();
+        QCOMPARE(document->image()->size(), originalSize);
+        for (int i = 0; i < 2; ++i) {
+            QCOMPARE(nodes[i]->position(), positions[i]);
+            QCOMPARE(nodes[i]->pixelData(inspected.x(), inspected.y(), inspected.width(), inspected.height()), originals[i]);
+        }
+        document->undoStack()->redo();
+        document->image()->waitForDone();
+        QCOMPARE(document->image()->size(), requested.size());
+        for (int i = 0; i < 2; ++i)
+            QCOMPARE(nodes[i]->pixelData(inspected.x(), inspected.y(), inspected.width(), inspected.height()), expected[i]);
+    }
+    QTemporaryDir output;
+    QVERIFY(output.isValid());
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            output.setAutoRemove(false);
+            qInfo() << "Canvas resize artifacts retained at" << output.path();
+        }
+    });
+    const auto kra = output.filePath(QStringLiteral("resized.kra"));
+    document->documentInfo()->setAboutInfo("creation-date", QStringLiteral("2000-01-02T03:04:05Z"));
+    KisPropertiesConfigurationSP kraSettings(new KisPropertiesConfiguration);
+    kraSettings->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));
+    QVERIFY(document->exportDocumentSync(kra, KisDocument::nativeFormatMimeType(), kraSettings));
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY(reopened->openPath(kra, KisDocument::DontAddToRecent));
+    QCOMPARE(reopened->image()->size(), requested.size());
+    for (int i = 0; i < 2; ++i) {
+        NodeSP node(Node::createNode(reopened->image(), reopened->image()->root()->at(i)));
+        QCOMPARE(node->position(), positions[i] - requested.topLeft());
+        QCOMPARE(node->pixelData(inspected.x(), inspected.y(), inspected.width(), inspected.height()), expected[i]);
+    }
+    InfoObject pngSettings;
+    pngSettings.setProperty("alpha", true);
+    pngSettings.setProperty("interlaced", false);
+    pngSettings.setProperty("compression", 3);
+    pngSettings.setProperty("saveSRGBProfile", true);
+    pngSettings.setProperty("forceSRGB", false);
+    pngSettings.setProperty("storeAuthor", false);
+    pngSettings.setProperty("storeMetaData", false);
+    const auto png = output.filePath(QStringLiteral("resized.png"));
+    QVERIFY(api.exportImage(png, pngSettings));
+    const auto projection = api.pixelData(0, 0, requested.width(), requested.height());
+    const auto decoded = QImage(png).convertToFormat(QImage::Format_ARGB32);
+    QCOMPARE(decoded.size(), requested.size());
+    QCOMPARE(QByteArray(reinterpret_cast<const char*>(decoded.constBits()), decoded.sizeInBytes()), projection);
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        const auto prefix = QDir(results).filePath(QStringLiteral("canvas-resize-") + QString::fromLatin1(QTest::currentDataTag()));
+        const auto write = [&](const QString &suffix, const QByteArray &bytes) {
+            QFile file(prefix + suffix);
+            return file.open(QIODevice::WriteOnly) && file.write(bytes) == bytes.size();
+        };
+        for (int i = 0; i < 2; ++i) QVERIFY(write(QStringLiteral(".layer-%1.bgra").arg(i), expected[i]));
+        QVERIFY(write(QStringLiteral(".projection.bgra"), projection));
+        QByteArray state;
+        QDataStream stream(&state, QIODevice::WriteOnly);
+        stream.setVersion(QDataStream::Qt_5_15);
+        stream << document->image()->size() << qint32(document->undoStack()->index());
+        for (const auto &node : nodes) stream << node->position() << node->uniqueId() << node->locked();
+        QVERIFY(write(QStringLiteral(".state"), state));
+        QVERIFY(QFile::copy(kra, prefix + QStringLiteral(".kra")));
+        QVERIFY(QFile::copy(png, prefix + QStringLiteral(".png")));
+    }
+}
+catch (const std::exception &error)
+{
+    QFAIL(qPrintable(QStringLiteral("Public canvas resize failed: ") + QString::fromUtf8(error.what())));
+}
+
+void TestDocument::testGpuCanvasResizePreservesRejectedInputsAndNotificationLifetimes()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    for (const bool crop : {false, true}) for (const bool closeOnSize : {false, true}) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        const auto owner = Gpu::PaintImageSP::create(execution, QSize(64, 48));
+        const auto pixel = QByteArray::fromHex("112233ff");
+        QCOMPARE(owner->writeRgbaPixels(1, {8, 8, 1, 1}, pixel), Gpu::Result::Success);
+        QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+        const auto image = KisImage::fromGpuImage(owner, QStringLiteral("Closing canvas resize"));
+        document->setCurrentImage(image);
+        QScopedPointer<Document> api(new Document(document.data(), false));
+        const auto unchanged = owner->operations().recoveryData();
+        const auto requested = execution->requested(owner->handle());
+        const auto resize = [&](Document *caller, int x, int y, int w, int h) {
+            if (crop) caller->crop(x, y, w, h);
+            else caller->resizeImage(x, y, w, h);
+        };
+        QVERIFY_EXCEPTION_THROWN(resize(api.data(), std::numeric_limits<int>::max(), 0, 1, 1), std::invalid_argument);
+        QVERIFY_EXCEPTION_THROWN(resize(api.data(), 0, 0, std::numeric_limits<int>::min(), 1), std::invalid_argument);
+        QVERIFY_EXCEPTION_THROWN(resize(api.data(), 0, 0, 0, 1), std::invalid_argument);
+        QCOMPARE(owner->operations().recoveryData(), unchanged);
+        QCOMPARE(execution->requested(owner->handle()), requested);
+        const auto close = [&] { api.reset(); document.reset(); };
+        const auto connection = closeOnSize ? connect(image.data(), &KisImage::sigSizeChanged, this, close) :
+                                             connect(owner.data(), &Gpu::PaintImage::changed, this, close);
+        auto *caller = api.data();
+        resize(caller, 8, 6, 32, 24);
+        disconnect(connection);
+        QVERIFY(!api);
+        QVERIFY(!document);
+        QCOMPARE(owner->operations().snapshot()->size, QSize(32, 24));
+        QCOMPARE(owner->operations().undoCount(), 1);
+        QCOMPARE(owner->readRgbaPixels(1, {0, 2, 1, 1}, 4).bytes, pixel);
+        QCOMPARE(owner->undo(), Gpu::Result::Success);
+        QCOMPARE(owner->operations().snapshot()->size, QSize(64, 48));
+        QCOMPARE(owner->readRgbaPixels(1, {8, 8, 1, 1}, 4).bytes, pixel);
+    }
 }
 
 void TestDocument::testOrdinaryCreationKeepsPngExportAndReopen()

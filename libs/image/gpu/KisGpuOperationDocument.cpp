@@ -134,6 +134,8 @@ HistoryAction OperationDocument::historyAction(int index) const
     if (m_layerHistoryChanges[index].clearedLayers) return HistoryAction::ClearPixels;
     if (m_layerHistoryChanges[index].filledLayer) return HistoryAction::FillLayer;
     if (m_layerHistoryChanges[index].crop) return HistoryAction::CropLayer;
+    if (const auto &resize = m_layerHistoryChanges[index].canvasResize)
+        return resize->cropLayers ? HistoryAction::CropImage : HistoryAction::ResizeCanvas;
     switch (m_layerHistoryChanges[index].property) {
     case LayerProperty::Name: return HistoryAction::RenameLayer;
     case LayerProperty::Opacity: return HistoryAction::ChangeOpacity;
@@ -171,6 +173,8 @@ HistoryAction OperationDocument::historyAction(int index) const
 }
 CropSnapshot OperationDocument::historyCrop(int index) const
 { return index > 0 && index < m_layerHistoryChanges.size() ? m_layerHistoryChanges[index].crop : CropSnapshot(); }
+std::optional<CanvasResize> OperationDocument::historyCanvasResize(int index) const
+{ return index > 0 && index < m_layerHistoryChanges.size() ? m_layerHistoryChanges[index].canvasResize : std::nullopt; }
 
 int OperationDocument::savedHistoryIndex() const
 {

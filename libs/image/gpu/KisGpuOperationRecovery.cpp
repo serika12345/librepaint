@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 26;
+constexpr quint16 FormatVersion = 27;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -170,6 +170,7 @@ QByteArray OperationDocument::recoveryData() const
     stream << quint32(m_history.size()) << quint32(m_index);
     for (qsizetype stateIndex = 0; stateIndex < m_history.size(); ++stateIndex) {
         const auto &state = m_history[stateIndex];
+        stream << qint32(state->size.width()) << qint32(state->size.height());
         for (const auto component : state->projectionBackground) stream << component;
         const bool explicitSelection = state->selectedLayers.size() > 1 ||
             (!state->selectedLayers.isEmpty() && state->selectedLayers.first() != state->activeLayer);
@@ -195,7 +196,13 @@ QByteArray OperationDocument::recoveryData() const
         }
         const auto &change = m_layerHistoryChanges[stateIndex];
         stream << quint8(quint8(change.property) | (change.duplicatedLayers ? 128u : 0u) |
-                         (change.clearedLayers ? 64u : 0u) | (change.filledLayer ? 32u : 0u) | (change.crop ? 16u : 0u));
+                         (change.clearedLayers ? 64u : 0u) | (change.filledLayer ? 32u : 0u) |
+                         (change.crop ? 16u : 0u) | (change.canvasResize ? 8u : 0u));
+        if (change.canvasResize) {
+            const auto &resize = *change.canvasResize;
+            stream << qint32(resize.rect.x()) << qint32(resize.rect.y())
+                   << qint32(resize.rect.width()) << qint32(resize.rect.height()) << quint8(resize.cropLayers);
+        }
         if (change.crop) {
             if (!indices.contains(change.crop.data())) return {};
             stream << indices.value(change.crop.data());
@@ -467,6 +474,13 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         state->m_document = identity;
         state->m_committed = true;
         state->size = {width, height};
+        if (format >= 27) {
+            qint32 stateWidth = 0, stateHeight = 0;
+            stream >> stateWidth >> stateHeight;
+            if (stateWidth <= 0 || stateHeight <= 0 || stateWidth > CoordinateLimit || stateHeight > CoordinateLimit)
+                return Result::InvalidRecovery;
+            state->size = {stateWidth, stateHeight};
+        }
         quint32 layerCount = 0;
         for (auto &component : state->projectionBackground) stream >> component;
         stream >> state->m_revision >> state->m_modifiedRevision >> state->activeLayer >> layerCount;
@@ -554,6 +568,19 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         LayerHistoryChange change;
         quint8 property = 0;
         stream >> property;
+        if (format >= 27 && (property & 8u)) {
+            property &= 247u;
+            qint32 x = 0, y = 0, w = 0, h = 0;
+            quint8 crop = 0;
+            stream >> x >> y >> w >> h >> crop;
+            if (i == 0 || property != quint8(LayerProperty::None) || crop > 1 ||
+                !validCropRect(x, y, w, h) || !validCanvasRect(QRect(x, y, w, h)) ||
+                state->size != QSize(w, h) || state->layers.size() != history.last()->layers.size())
+                return Result::InvalidRecovery;
+            for (qsizetype layer = 0; layer < state->layers.size(); ++layer)
+                if (state->layers[layer].id != history.last()->layers[layer].id) return Result::InvalidRecovery;
+            change.canvasResize = CanvasResize{QRect(x, y, w, h), bool(crop)};
+        }
         if (format >= 26 && (property & 16u)) {
             property &= 239u;
             quint32 cropIndex = NoOperation;
@@ -637,6 +664,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
             if (change.before == change.after && (format < 10 || change.property != LayerProperty::Name))
                 return Result::InvalidRecovery;
         }
+        if (i > 0 && state->size != history.last()->size && !change.canvasResize) return Result::InvalidRecovery;
         changes.append(change);
         history.append(state);
     }
@@ -704,6 +732,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         referencedOperations.insert(pendingIndex);
     } else if (previewRevision != 0) return Result::InvalidRecovery;
     if (referencedOperations.size() != operations.size()) return Result::InvalidRecovery;
+    if (history[currentIndex]->size != QSize(width, height)) return Result::InvalidRecovery;
     m_identity = identity;
     m_history = history;
     m_layerHistoryChanges = changes;

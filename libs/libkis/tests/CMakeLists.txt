@@ -13,7 +13,7 @@ kis_add_tests(
     )
 
 add_dependencies(TestDocument
-    kritapngimport kritapngexport kritalcmsengine
+    kritakraimport kritakraexport kritapngimport kritapngexport kritalcmsengine
     kritapatterngenerator kritacolorgenerator)
 add_dependencies(TestNode kritakraimport kritakraexport kritapngexport kritalcmsengine)
 add_dependencies(TestNode kritaroundmarkerpaintop)

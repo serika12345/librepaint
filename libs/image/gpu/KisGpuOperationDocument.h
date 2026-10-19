@@ -261,6 +261,12 @@ private:
 
 using Snapshot = QSharedPointer<const DocumentVersion>;
 
+struct CanvasResize
+{
+    QRect rect;
+    bool cropLayers = false;
+};
+
 enum class Result {
     Success,
     InvalidInput,
@@ -286,7 +292,7 @@ enum class HistoryAction {
     None, AddLayer, RemoveLayer, MoveLayer, RenameLayer, ChangeOpacity,
     ChangeVisibility, ChangeLock, ChangeTimelinePin, PaintStroke, DrawLine,
     DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath,
-    ClearPixels, FillLayer, TranslateLayer, CropLayer
+    ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage
 };
 
 struct Limits
@@ -336,6 +342,7 @@ public:
     HistoryAction historyAction(int index) const;
     /** Original rectangle and layer identity for resuming a retained crop action. */
     CropSnapshot historyCrop(int index) const;
+    std::optional<CanvasResize> historyCanvasResize(int index) const;
     /** -1 when the saved version has left the retained history. */
     int savedHistoryIndex() const;
     bool isModified() const;
@@ -437,6 +444,11 @@ public:
      * cropping accepts locked layers; interactive callers enforce editability.
      */
     Result cropLayer(LayerId layer, const QRect &rect);
+    /** Moves the requested canvas origin to zero and optionally crops all layers.
+     * Preserves layer properties and selection in one history step. An unchanged
+     * canvas without layer cropping preserves the current version and history.
+     */
+    Result resizeCanvas(const QRect &rect, bool cropLayers);
     /** Fills canvas bounds on one layer as one history step, preserving pixels outside them. */
     Result fillLayer(LayerId layer, const std::array<quint8, 3> &rgb, quint8 opacity = 255,
                      bool erase = false, bool alphaLocked = false);
@@ -466,6 +478,7 @@ private:
         bool clearedLayers = false;
         bool filledLayer = false;
         CropSnapshot crop;
+        std::optional<CanvasResize> canvasResize;
     };
     std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
     LayerId insertVersion(const Snapshot &source, LayerId sourceLayer,

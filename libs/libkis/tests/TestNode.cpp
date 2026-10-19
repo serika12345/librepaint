@@ -382,12 +382,22 @@ void TestNode::testLayerCropToolPreservesConfirmationResumptionAndCancellation_d
 {
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<QString>("mode");
-    for (const bool gpu : {false, true}) for (const auto *mode : {"confirm", "cancel", "resume-cancel", "resume-reapply", "locked"}) {
-        const QByteArray name = (gpu ? QByteArrayLiteral("gpu-") : QByteArrayLiteral("ordinary-")) + mode;
-        QTest::newRow(name.constData()) << gpu << QString::fromLatin1(mode);
+    QTest::addColumn<int>("cropType");
+    for (const bool gpu : {false, true}) for (const int type : {2, 0, 1}) {
+        const QByteArray scope = type == 2 ? QByteArray() : type == 0 ? QByteArrayLiteral("image-") : QByteArrayLiteral("canvas-");
+        for (const auto *mode : {"confirm", "cancel", "resume-cancel", "resume-reapply", "locked"}) {
+            const QByteArray name = (gpu ? QByteArrayLiteral("gpu-") : QByteArrayLiteral("ordinary-")) + scope + mode;
+            QTest::newRow(name.constData()) << gpu << QString::fromLatin1(mode) << type;
+        }
+        if (gpu) for (const auto *mode : {"close-confirm", "close-resume"}) {
+            const QByteArray name = QByteArrayLiteral("gpu-") + scope + mode;
+            QTest::newRow(name.constData()) << true << QString::fromLatin1(mode) << type;
+        }
     }
-    QTest::newRow("gpu-close-confirm") << true << QStringLiteral("close-confirm");
-    QTest::newRow("gpu-close-resume") << true << QStringLiteral("close-resume");
+    for (const auto *mode : {"reject-retry", "close-reject"}) {
+        const QByteArray name = QByteArrayLiteral("gpu-canvas-") + mode;
+        QTest::newRow(name.constData()) << true << QString::fromLatin1(mode) << 1;
+    }
 }
 
 void TestNode::testLayerCropCanReleaseItsPublicCallerDuringNotification()
@@ -427,6 +437,7 @@ try
 {
     QFETCH(bool, gpu);
     QFETCH(QString, mode);
+    QFETCH(int, cropType);
     namespace Gpu = LibrePaint::Image::Gpu;
     KisImageConfig configuration(false);
     const int previousThreads = configuration.maxNumberOfThreads();
@@ -485,7 +496,7 @@ try
     KoToolManager::instance()->switchToolRequested(id);
     tool = qobject_cast<KisTool*>(KoToolManager::instance()->toolById(view->canvasBase(), id));
     QVERIFY(tool);
-    QVERIFY(QMetaObject::invokeMethod(tool, "setCropTypeLegacy", Q_ARG(int, 2)));
+    QVERIFY(QMetaObject::invokeMethod(tool, "setCropTypeLegacy", Q_ARG(int, cropType)));
     QVERIFY(QMetaObject::invokeMethod(tool, "setAllowGrow", Q_ARG(bool, true)));
     QVERIFY(QMetaObject::invokeMethod(tool, "setGrowCenter", Q_ARG(bool, false)));
     for (const auto *property : {"lockWidth", "lockHeight", "lockRatio"}) QVERIFY(tool->setProperty(property, false));
@@ -495,7 +506,7 @@ try
     QVERIFY(tool->setProperty("cropY", crop.y()));
     QVERIFY(tool->setProperty("cropWidth", crop.width()));
     QVERIFY(tool->setProperty("cropHeight", crop.height()));
-    QCOMPARE(tool->property("cropType").toInt(), 2);
+    QCOMPARE(tool->property("cropType").toInt(), cropType);
     QCOMPARE(tool->property("cropX").toInt(), crop.x());
     QCOMPARE(tool->property("cropY").toInt(), crop.y());
     QCOMPARE(tool->property("cropWidth").toInt(), crop.width());
@@ -516,6 +527,34 @@ try
         QCOMPARE(node->pixelData(0, 0, 64, 64), pixels);
         return;
     }
+    if (mode == QLatin1String("reject-retry") || mode == QLatin1String("close-reject")) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        const auto before = owner->operations().recoveryData();
+        QSignalSpy errors(tool, &KoToolBase::statusTextChanged);
+        if (mode == QLatin1String("close-reject")) {
+            interruption = connect(tool, &KoToolBase::statusTextChanged, this, [&] {
+                lifetime->setModified(false);
+                window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+                QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+            });
+        }
+        QCOMPARE(execution->beginReadbackFrame().code, Gpu::ExecutionCode::Success);
+        auto cancelFrame = qScopeGuard([&] { execution->cancelFrame(); });
+        tool->requestStrokeEnd();
+        QCOMPARE(errors.size(), 1);
+        QVERIFY(!errors.first().first().toString().isEmpty());
+        QCOMPARE(owner->operations().recoveryData(), before);
+        QCOMPARE(image->size(), QSize(64, 64));
+        QCOMPARE(execution->cancelFrame().code, Gpu::ExecutionCode::Success);
+        cancelFrame.dismiss();
+        if (mode == QLatin1String("close-reject")) {
+            QTRY_VERIFY(!tool);
+            return;
+        }
+        QCOMPARE(node->pixelData(0, 0, 64, 64), pixels);
+    }
     if (mode == QLatin1String("close-confirm")) closeOnChange();
     tool->requestStrokeEnd();
     image->waitForDone();
@@ -524,23 +563,26 @@ try
         QCOMPARE(owner->operations().undoCount(), 1);
         return;
     }
-    if (mode == QLatin1String("locked")) {
+    if (mode == QLatin1String("locked") && cropType == 2) {
         QCOMPARE(lifetime->undoStack()->index(), 0);
         QCOMPARE(node->pixelData(0, 0, 64, 64), pixels);
         return;
     }
     QCOMPARE(lifetime->undoStack()->index(), 1);
-    QCOMPARE(node->pixelData(4, 4, 1, 1), QByteArray(4, '\0'));
+    QCOMPARE(image->size(), cropType == 2 ? QSize(64, 64) : crop.size());
+    QCOMPARE(node->pixelData(4, 4, 1, 1), cropType == 2 ? QByteArray(4, '\0') : QByteArray::fromHex("332211ff"));
+    QCOMPARE(node->pixelData(-4, -4, 1, 1), cropType == 1 ? QByteArray::fromHex("332211ff") : QByteArray(4, '\0'));
     QCOMPARE(node->pixelData(12, 12, 1, 1), QByteArray::fromHex("332211ff"));
     if (mode.startsWith(QLatin1String("resume")) || mode == QLatin1String("close-resume")) {
         if (mode == QLatin1String("close-resume")) closeOnChange();
-        QCOMPARE(tool->property("cropType").toInt(), 2);
+        if (cropType == 1) QVERIFY(QMetaObject::invokeMethod(tool, "setCropTypeLegacy", Q_ARG(int, 0)));
+        QCOMPARE(tool->property("cropType").toInt(), cropType == 1 ? 0 : cropType);
         QCOMPARE(window->viewManager()->canvasResourceProvider()->currentNode(), layer);
         const auto *last = image->undoAdapter()->presentCommand();
         QVERIFY(last);
         const auto *saved = dynamic_cast<const KisCropSavedExtraData*>(last->extraData());
         QVERIFY(saved);
-        QCOMPARE(saved->cropNode(), layer);
+        QCOMPARE(saved->cropNode(), cropType == 2 ? layer : KisNodeSP());
         const auto converter = view->canvasBase()->coordinatesConverter();
         const QPointF point = converter->imageToDocument(QPointF(40, 40));
         QMouseEvent press(QEvent::MouseButtonPress, QPointF(), QPointF(), Qt::LeftButton, Qt::LeftButton, Qt::NoModifier);
@@ -557,6 +599,7 @@ try
             return;
         }
         QCOMPARE(lifetime->undoStack()->index(), 0);
+        QCOMPARE(image->size(), QSize(64, 64));
         QCOMPARE(node->pixelData(0, 0, 64, 64), pixels);
         QCOMPARE(tool->property("cropX").toInt(), crop.x());
         QCOMPARE(tool->property("cropWidth").toInt(), crop.width());
@@ -575,9 +618,10 @@ try
     lifetime->undoStack()->undo();
     image->waitForDone();
     QCOMPARE(node->pixelData(0, 0, 64, 64), pixels);
+    QCOMPARE(image->size(), QSize(64, 64));
     lifetime->undoStack()->redo();
     image->waitForDone();
-    QCOMPARE(node->pixelData(4, 4, 1, 1), QByteArray(4, '\0'));
+    QCOMPARE(node->pixelData(4, 4, 1, 1), cropType == 2 ? QByteArray(4, '\0') : QByteArray::fromHex("332211ff"));
 }
 catch (const std::exception &error)
 {

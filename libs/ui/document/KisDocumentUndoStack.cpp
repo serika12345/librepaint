@@ -41,6 +41,8 @@ KUndo2MagicString historyLabel(HistoryAction action)
     case HistoryAction::ClearPixels: return kundo2_i18n("Clear");
     case HistoryAction::FillLayer: return kundo2_i18n("Flood Fill Layer");
     case HistoryAction::CropLayer: return kundo2_i18n("Crop Layer");
+    case HistoryAction::CropImage: return kundo2_i18n("Crop Image");
+    case HistoryAction::ResizeCanvas: return kundo2_i18n("Resize Image");
     }
     Q_UNREACHABLE();
 }
@@ -111,6 +113,10 @@ void KisDocumentUndoStack::synchronizeGpuHistory()
             allocated.append(command);
         }
         if (!command->extraData()) {
+            if (const auto resize = document.historyCanvasResize(index))
+                command->setExtraData(new KisCropSavedExtraData(resize->cropLayers ? KisCropSavedExtraData::CROP_IMAGE :
+                                                                                 KisCropSavedExtraData::RESIZE_IMAGE,
+                                                              resize->rect));
             if (const auto crop = document.historyCrop(index)) {
                 QUuid uuid;
                 for (const auto &layer : versions[index]->layers)

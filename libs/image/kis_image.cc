@@ -965,6 +965,13 @@ void KisImage::setSize(const QSize& size)
 void KisImage::resizeImageImpl(const QRect& newRect, bool cropLayers)
 {
     if (newRect == bounds() && !cropLayers) return;
+    if (const auto owner = m_d->gpuImage) {
+        const KisImageSP retained = this;
+        const auto result = owner->resizeCanvas(newRect, cropLayers);
+        if (result != LibrePaint::Image::Gpu::Result::Success)
+            throw std::runtime_error(QStringLiteral("GPU canvas resize rejected (%1)").arg(int(result)).toStdString());
+        return;
+    }
 
     KUndo2MagicString actionName = cropLayers ?
         kundo2_i18n("Crop Image") :

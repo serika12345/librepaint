@@ -155,6 +155,7 @@ public:
     /** Clears whole layers atomically while retained versions remain readable. */
     Result clearLayers(const QList<LayerId> &layers);
     Result cropLayer(LayerId layer, const QRect &rect);
+    Result resizeCanvas(const QRect &rect, bool cropLayers);
     /** Publishes one canvas-bounded color fill before notifying attached consumers. */
     Result fillLayer(LayerId layer, const std::array<quint8, 3> &rgb, quint8 opacity = 255,
                      bool erase = false, bool alphaLocked = false);

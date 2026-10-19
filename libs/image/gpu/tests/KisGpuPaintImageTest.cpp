@@ -21,6 +21,7 @@ class KisGpuPaintImageTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void canvasResizePublishesPinnedSizesAndRejectsIncompleteMoves();
     void layerCropPublishesFixedPixelsAndPreservesRejectedRequests();
     void directWritesKeepTheirCropHistoryBlocks_data();
     void directWritesKeepTheirCropHistoryBlocks();
@@ -50,6 +51,69 @@ private Q_SLOTS:
     void damagedPixelSharingRecoveryPreservesTheLiveImage();
     void historyNavigationPublishesOneVersionAndPreservesSavedState();
 };
+
+void KisGpuPaintImageTest::canvasResizePublishesPinnedSizesAndRejectsIncompleteMoves()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    PaintImage image(execution, QSize(64, 48));
+    const auto pixel = QByteArray::fromHex("112233ff");
+    QCOMPARE(image.writeRgbaPixels(1, {8, 8, 1, 1}, pixel), Result::Success);
+    const auto fixed = image.operations().snapshot();
+    const auto reference = image.retainLayerPixels(1);
+    QSignalSpy changed(&image, &PaintImage::changed);
+    bool requestedBeforeNotification = false;
+    connect(&image, &PaintImage::changed, this, [&] {
+        requestedBeforeNotification = execution.requested(image.handle()) == image.operations().snapshot() &&
+                                      reference->version() == image.operations().snapshot();
+    });
+    QCOMPARE(image.resizeCanvas({0, 0, 64, 48}, false), Result::Success);
+    QCOMPARE(image.operations().snapshot(), fixed);
+    QCOMPARE(changed.size(), 0);
+    QCOMPARE(image.resizeCanvas({8, 6, 32, 24}, true), Result::Success);
+    QVERIFY(requestedBeforeNotification);
+    QCOMPARE(changed.size(), 1);
+    QCOMPARE(image.readRgbaPixels(1, {0, 2, 1, 1}, 4).bytes, pixel);
+    QCOMPARE(execution.readRgbaPixels(image.handle(), fixed, {8, 8, 1, 1}, 1, 4).bytes, pixel);
+    QCOMPARE(fixed->size, QSize(64, 48));
+    const auto resized = image.operations().snapshot();
+    QCOMPARE(resized->size, QSize(32, 24));
+    QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+    changed.clear();
+    QCOMPARE(image.resizeCanvas({-1, -1, 64, 48}, false), Result::Busy);
+    QCOMPARE(image.operations().snapshot(), resized);
+    QCOMPARE(changed.size(), 0);
+    QCOMPARE(execution.cancelFrame().code, ExecutionCode::Success);
+    PaintImage recovered(execution, QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(image.operations().recoveryData()), Result::Success);
+    QCOMPARE(recovered.operations().snapshot()->size, QSize(32, 24));
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(recovered.operations().snapshot()->size, QSize(64, 48));
+    QCOMPARE(recovered.readRgbaPixels(1, {8, 8, 1, 1}, 4).bytes, pixel);
+    QCOMPARE(recovered.redo(), Result::Success);
+    QCOMPARE(recovered.readRgbaPixels(1, {0, 2, 1, 1}, 4).bytes, pixel);
+
+    RasterImage source;
+    source.size = {64, 48};
+    QByteArray edge(RgbaTile::ByteCount, '\0');
+    edge.replace(255 * 4, 4, pixel);
+    source.layers = {{QStringLiteral("Edge pixels"), true, {}, {{{32767, 0}, edge}}}};
+    PaintImage bounded(execution, source);
+    const auto original = bounded.operations().snapshot();
+    QCOMPARE(bounded.resizeCanvas({-1, 0, 64, 48}, false), Result::InvalidInput);
+    QCOMPARE(bounded.operations().snapshot(), original);
+    QCOMPARE(bounded.operations().undoCount(), 0);
+    QCOMPARE(bounded.resizeCanvas({-1, 0, 64, 48}, true), Result::Success);
+    QCOMPARE(bounded.readRgbaPixels(1, {RgbaTile::CoordinateLimit - 1, 0, 1, 1}, 4).bytes, QByteArray(4, '\0'));
+    Execution limited(device, 8 * TileRenderer::TileBytes, 1, 15);
+    PaintImage capacity(limited, source);
+    const auto unchanged = capacity.operations().snapshot();
+    QCOMPARE(capacity.resizeCanvas({-1, 0, 64, 48}, false), Result::CapacityExceeded);
+    QCOMPARE(capacity.operations().snapshot(), unchanged);
+    QCOMPARE(limited.requested(capacity.handle()), unchanged);
+}
 
 void KisGpuPaintImageTest::layerCropPublishesFixedPixelsAndPreservesRejectedRequests()
 {

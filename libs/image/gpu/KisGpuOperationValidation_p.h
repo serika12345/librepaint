@@ -23,6 +23,11 @@ inline bool validCropRect(qint32 x, qint32 y, qint32 width, qint32 height)
 }
 inline bool validCropRect(const QRect &rect)
 { return validCropRect(rect.x(), rect.y(), rect.width(), rect.height()); }
+inline bool validCanvasRect(const QRect &rect)
+{
+    return validCropRect(rect) && rect.width() > 0 && rect.height() > 0 &&
+        rect.width() <= OperationDocument::CoordinateLimit && rect.height() <= OperationDocument::CoordinateLimit;
+}
 
 inline bool validPixelWriteArea(qint32 x, qint32 y, qint32 width, qint32 height)
 {

@@ -12,6 +12,9 @@ class TestDocument : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void testCanvasResizePreservesPixelsHistoryAndSaving_data();
+    void testCanvasResizePreservesPixelsHistoryAndSaving();
+    void testGpuCanvasResizePreservesRejectedInputsAndNotificationLifetimes();
     void testOrdinaryCreationKeepsPngExportAndReopen();
     void testOrdinaryKraKeepsLayerHierarchyThroughResaving();
     void testBackgroundApiKeepsHistoryAndPinnedPixels();
