@@ -659,7 +659,7 @@ void TestNode::testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery()
     source->move(position.x(), position.y());
     QCOMPARE(source->position(), position);
     const QRect region(position - QPoint(32, 32), QSize(96, 96));
-    const auto originalPixels = source->pixelData(region.x(), region.y(), region.width(), region.height());
+    auto originalPixels = source->pixelData(region.x(), region.y(), region.width(), region.height());
     const auto originalBounds = source->bounds();
     const auto path = directory.filePath(QStringLiteral("source.kra"));
     QVERIFY(originalApi.saveAs(path));
@@ -677,6 +677,14 @@ void TestNode::testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery()
     QScopedPointer<Node> node(Node::createNode(document->image(), document->image()->root()->firstChild()));
     QCOMPARE(node->position(), position);
     QCOMPARE(node->bounds(), originalBounds);
+    QCOMPARE(node->pixelData(region.x(), region.y(), region.width(), region.height()), originalPixels);
+    const QRect writtenRegion(position - QPoint(32, 32), QSize(80, 64));
+    const auto writtenPixels = QByteArray::fromHex("a1b2c300556677ff").repeated(80 * 64 / 2);
+    const int historyBeforeWrite = document->undoStack()->index();
+    QVERIFY(source->setPixelData(writtenPixels, writtenRegion.x(), writtenRegion.y(), writtenRegion.width(), writtenRegion.height()));
+    QVERIFY(node->setPixelData(writtenPixels, writtenRegion.x(), writtenRegion.y(), writtenRegion.width(), writtenRegion.height()));
+    QCOMPARE(document->undoStack()->index(), historyBeforeWrite);
+    originalPixels = source->pixelData(region.x(), region.y(), region.width(), region.height());
     QCOMPARE(node->pixelData(region.x(), region.y(), region.width(), region.height()), originalPixels);
     QScopedPointer<Node> copy(node->clone());
     QVERIFY(copy);

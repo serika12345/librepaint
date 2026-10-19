@@ -56,6 +56,7 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void previousCanvasRecoveryPreservesSizesAndInput();
     void canvasResizePreservesVersionSizesPropertiesAndRecovery();
     void canvasResizeKeepsEmptyDocumentsRecoverable();
     void directLayerPositionKeepsCanvasHistoryBoundaries();
@@ -247,6 +248,31 @@ void KisGpuOperationDocumentTest::rejectedCanvasResizesKeepRedoPendingInputAndCl
     const auto closed = document.snapshot();
     QCOMPARE(document.resizeCanvas({8, 6, 32, 24}, true), Result::Closed);
     QCOMPARE(document.snapshot(), closed);
+}
+
+void KisGpuOperationDocumentTest::previousCanvasRecoveryPreservesSizesAndInput()
+{
+    const auto record = LibrePaint::Image::Gpu::Test::resizedCanvasRecoveryV27();
+    QCOMPARE(QCryptographicHash::hash(record, QCryptographicHash::Sha256).toHex(),
+             QByteArrayLiteral("9652ea3870203cd85a85de7dddfc7645c0eef31390794dd5f922deff5a92120c"));
+    OperationDocument document({1, 1});
+    QCOMPARE(document.restoreRecovery(record), Result::Success);
+    QCOMPARE(document.snapshot()->size, QSize(80, 64));
+    QCOMPARE(document.snapshot()->layers.first().position, QPoint(-76, 20));
+    QCOMPARE(document.historyAction(3), HistoryAction::CropImage);
+    QCOMPARE(document.historyAction(4), HistoryAction::ResizeCanvas);
+    QVERIFY(document.hasActiveStroke());
+    QCOMPARE(document.preview()->size, QSize(80, 64));
+    QCOMPARE(document.cancelStroke(document.activeOperation()), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot()->size, QSize(32, 24));
+    QCOMPARE(document.snapshot()->layers.first().position, QPoint(-81, 13));
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot()->size, QSize(64, 64));
+    QCOMPARE(document.snapshot()->layers.first().position, QPoint(-73, 19));
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot()->size, QSize(80, 64));
 }
 
 void KisGpuOperationDocumentTest::previousCroppedRecoveryPreservesInputAndCanvasHistory()

@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 27;
+constexpr quint16 FormatVersion = 28;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -328,14 +328,15 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
             }
             quint32 areaCount = 0;
             stream >> operation->writeGroup >> areaCount;
-            if (!readableCount(stream, areaCount, quint64(count) * 16, 16)) return Result::InvalidRecovery;
+            const auto maximumAreas = format < 28 ? 16 : PixelWriteAreasPerTile;
+            if (!readableCount(stream, areaCount, quint64(count) * maximumAreas, 16)) return Result::InvalidRecovery;
             for (quint32 j = 0; j < areaCount; ++j) {
                 qint32 x = 0, y = 0, width = 0, height = 0;
                 stream >> x >> y >> width >> height;
-                if (stream.status() != QDataStream::Ok || !validPixelWriteArea(x, y, width, height)) return Result::InvalidRecovery;
+                if (stream.status() != QDataStream::Ok || !validPixelWriteArea(x, y, width, height, format < 28)) return Result::InvalidRecovery;
                 operation->writtenAreas.append({x, y, width, height});
             }
-            if (!validWrittenAreas(*operation)) return Result::InvalidRecovery;
+            if (!validWrittenAreas(*operation, format < 28)) return Result::InvalidRecovery;
             operations.append(TileWriteSnapshot(operation));
             continue;
         }

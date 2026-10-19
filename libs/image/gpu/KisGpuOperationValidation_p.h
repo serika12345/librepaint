@@ -9,6 +9,7 @@
 #include "KisGpuOperationDocument.h"
 #include "KisGpuPaintGeometry_p.h"
 #include <QSet>
+#include <QHash>
 #include <cmath>
 
 namespace LibrePaint::Image::Gpu::Detail {
@@ -29,29 +30,41 @@ inline bool validCanvasRect(const QRect &rect)
         rect.width() <= OperationDocument::CoordinateLimit && rect.height() <= OperationDocument::CoordinateLimit;
 }
 
-inline bool validPixelWriteArea(qint32 x, qint32 y, qint32 width, qint32 height)
+// A shifted 64-pixel history grid cuts a 256-pixel GPU tile into at most 5 by 5 pieces.
+constexpr qsizetype PixelWriteAreasPerTile = 25;
+
+inline bool validPixelWriteArea(qint32 x, qint32 y, qint32 width, qint32 height, bool alignedHistoryBlocks = false)
 {
     if (width <= 0 || height <= 0 || width > PixelHistoryBlockSize || height > PixelHistoryBlockSize ||
         x < -RgbaTile::CoordinateLimit || y < -RgbaTile::CoordinateLimit ||
         qint64(x) + width > RgbaTile::CoordinateLimit || qint64(y) + height > RgbaTile::CoordinateLimit) return false;
-    return pixelTileIndex(x, PixelHistoryBlockSize) == pixelTileIndex(x + width - 1, PixelHistoryBlockSize) &&
-        pixelTileIndex(y, PixelHistoryBlockSize) == pixelTileIndex(y + height - 1, PixelHistoryBlockSize);
+    if (pixelTileIndex(x, RgbaTile::Size) != pixelTileIndex(x + width - 1, RgbaTile::Size) ||
+        pixelTileIndex(y, RgbaTile::Size) != pixelTileIndex(y + height - 1, RgbaTile::Size)) return false;
+    return !alignedHistoryBlocks ||
+        (pixelTileIndex(x, PixelHistoryBlockSize) == pixelTileIndex(x + width - 1, PixelHistoryBlockSize) &&
+         pixelTileIndex(y, PixelHistoryBlockSize) == pixelTileIndex(y + height - 1, PixelHistoryBlockSize));
 }
 
-inline bool validWrittenAreas(const TileWriteOperation &write)
+inline bool validWrittenAreas(const TileWriteOperation &write, bool alignedHistoryBlocks = false)
 {
     if (write.writtenAreas.isEmpty()) return write.writeGroup == 0;
+    const qsizetype maximumAreas = alignedHistoryBlocks ? 16 : PixelWriteAreasPerTile;
     if (!write.writeGroup || write.writeGroup > write.id.sequence ||
-        write.writtenAreas.size() > write.tiles.size() * 16) return false;
+        write.writtenAreas.size() > write.tiles.size() * maximumAreas) return false;
     QSet<QPoint> tiles, blocks, referencedTiles;
+    QHash<QPoint, QList<QRect>> occupied;
     for (const auto &tile : write.tiles) tiles.insert(tile->coordinate());
     for (const auto &area : write.writtenAreas) {
-        if (!validPixelWriteArea(area.x(), area.y(), area.width(), area.height())) return false;
+        if (!validPixelWriteArea(area.x(), area.y(), area.width(), area.height(), alignedHistoryBlocks)) return false;
         const QPoint block(pixelTileIndex(area.left(), PixelHistoryBlockSize), pixelTileIndex(area.top(), PixelHistoryBlockSize));
-        if (blocks.contains(block) ||
-            !tiles.contains({pixelTileIndex(area.left(), RgbaTile::Size), pixelTileIndex(area.top(), RgbaTile::Size)})) return false;
-        blocks.insert(block);
-        referencedTiles.insert({pixelTileIndex(area.left(), RgbaTile::Size), pixelTileIndex(area.top(), RgbaTile::Size)});
+        const QPoint tile(pixelTileIndex(area.left(), RgbaTile::Size), pixelTileIndex(area.top(), RgbaTile::Size));
+        if ((alignedHistoryBlocks && blocks.contains(block)) || !tiles.contains(tile)) return false;
+        if (alignedHistoryBlocks) blocks.insert(block);
+        auto &areas = occupied[tile];
+        if (areas.size() >= maximumAreas) return false;
+        for (const auto &previous : areas) if (previous.intersects(area)) return false;
+        areas.append(area);
+        referencedTiles.insert(tile);
     }
     return referencedTiles == tiles;
 }

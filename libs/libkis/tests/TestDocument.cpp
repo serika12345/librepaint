@@ -121,18 +121,6 @@ try
             pixel[3] = i ? 0 : char(255);
         }
         initialPixels.append(pixels);
-        for (int ty = -1; ty <= 0; ++ty) for (int tx = -1; tx <= 0; ++tx) {
-            auto tile = defaults[i].repeated(256 * 256);
-            const QRect bounds(tx * 256, ty * 256, 256, 256);
-            const auto area = bounds.intersected(sourceRegion);
-            for (int y = area.top(); y <= area.bottom(); ++y) {
-                const int source = ((y - sourceRegion.y()) * sourceRegion.width() + area.x() - sourceRegion.x()) * 4;
-                const int destination = ((y - bounds.y()) * 256 + area.x() - bounds.x()) * 4;
-                std::memcpy(tile.data() + destination, pixels.constData() + source, size_t(area.width()) * 4);
-            }
-            for (qsizetype offset = 0; offset < tile.size(); offset += 4) std::swap(tile[offset], tile[offset + 2]);
-            input.layers[i].tiles.append({{tx, ty}, tile});
-        }
     }
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
     document->setFileBatchMode(true);
@@ -162,7 +150,7 @@ try
     for (int i = 0; i < 2; ++i) {
         nodes.append(NodeSP(Node::createNode(document->image(), document->image()->root()->at(i))));
         const auto &pixels = initialPixels[i];
-        if (!gpu) QVERIFY(nodes[i]->setPixelData(pixels, sourceRegion.x(), sourceRegion.y(), sourceRegion.width(), sourceRegion.height()));
+        QVERIFY(nodes[i]->setPixelData(pixels, sourceRegion.x(), sourceRegion.y(), sourceRegion.width(), sourceRegion.height()));
         originals.append(nodes[i]->pixelData(inspected.x(), inspected.y(), inspected.width(), inspected.height()));
         auto result = defaults[i].repeated(inspected.width() * inspected.height());
         for (int y = 0; y < inspected.height(); ++y) for (int x = 0; x < inspected.width(); ++x) {
