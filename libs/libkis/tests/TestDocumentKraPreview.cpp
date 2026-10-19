@@ -26,7 +26,7 @@
 #include <QTemporaryDir>
 #include <exception>
 
-void TestDocument::testSavedKraPreviewPixelsAgreeAcrossBackends_data()
+void TestDocument::testSavedKraEmbeddedPngsAgreeAcrossBackends_data()
 {
     QTest::addColumn<QSize>("sourceSize");
     QTest::newRow("three-pixels") << QSize(3, 1);
@@ -36,7 +36,7 @@ void TestDocument::testSavedKraPreviewPixelsAgreeAcrossBackends_data()
     QTest::newRow("thin-document") << QSize(1, 1025);
 }
 
-void TestDocument::testSavedKraPreviewPixelsAgreeAcrossBackends()
+void TestDocument::testSavedKraEmbeddedPngsAgreeAcrossBackends()
 try {
     QFETCH(QSize, sourceSize);
     namespace Gpu = LibrePaint::Image::Gpu;
@@ -60,6 +60,7 @@ try {
         pixel[3] = char(alpha);
     }
     QList<QImage> mergedImages, previews;
+    QList<QByteArray> mergedPngs, previewPngs;
     for (bool gpu : {false, true}) {
         QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
         const QUuid id(QStringLiteral("{d2000001-1122-3344-5566-778899aabbcc}"));
@@ -100,10 +101,12 @@ try {
         QVERIFY(store && !store->bad());
         for (const auto &name : {QStringLiteral("mergedimage.png"), QStringLiteral("preview.png")}) {
             QVERIFY(store->open(name));
-            const auto png = QImage::fromData(store->device()->readAll()).convertToFormat(QImage::Format_RGBA8888);
+            const auto bytes = store->device()->readAll();
+            const auto png = QImage::fromData(bytes).convertToFormat(QImage::Format_RGBA8888);
             QVERIFY(store->close());
             QVERIFY(!png.isNull());
             (name == QLatin1String("mergedimage.png") ? mergedImages : previews).append(png);
+            (name == QLatin1String("mergedimage.png") ? mergedPngs : previewPngs).append(bytes);
         }
         KisPart::instance()->removeDocument(document.data(), false);
     }
@@ -114,6 +117,8 @@ try {
     QCOMPARE(rgba(mergedImages[1]), rgba(mergedImages[0]));
     QCOMPARE(previews[1].size(), previews[0].size());
     QCOMPARE(rgba(previews[1]), rgba(previews[0]));
+    QCOMPARE(mergedPngs[1], mergedPngs[0]);
+    QCOMPARE(previewPngs[1], previewPngs[0]);
 }
 catch (const std::exception &error) { QFAIL(error.what()); }
 

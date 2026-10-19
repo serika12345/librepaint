@@ -170,7 +170,9 @@ void KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProje
     const auto projected = execution.readProjectionImage(restored->handle(), restored->operations().snapshot(), 64 * 48 * 4);
     QCOMPARE(projected.code, ExecutionCode::Success);
     QCOMPARE(projected.image, expected.image);
-    QCOMPARE(mergedImage(path).convertToFormat(QImage::Format_RGBA8888), expected.image);
+    auto storedProjection = expected.image;
+    storedProjection.setColorSpace({});
+    QCOMPARE(mergedImage(path).convertToFormat(QImage::Format_RGBA8888), storedProjection);
     QCOMPARE(restored->readRgbaPixels(2, {-5, 7, 1, 1}, 4).bytes, QByteArray::fromHex("11223300"));
     QCOMPARE(restored->replaceRgbaPixels(2, {12, 9, 1, 1}, QByteArray::fromHex("ff0000ff")), Result::Success);
     QCOMPARE(restored->undo(), Result::Success);
@@ -858,7 +860,6 @@ void KisGpuPaintDocumentTest::savingStreamsPixelsWithinTheGpuAndTransferBudgets(
     }
     QImage frame(image.size, QImage::Format_RGBA8888);
     frame.fill(Qt::transparent);
-    frame.setColorSpace(QColorSpace::SRgb);
     for (const auto &tile : projection.tiles) {
         for (int y = 0; y < RgbaTile::Size; ++y)
             std::memcpy(frame.scanLine(y) + tile.coordinate.x() * RgbaTile::Size * 4,

@@ -36,8 +36,8 @@ private Q_SLOTS:
     void testGpuSaveAndExportPreserveHistoryAndFileIdentity();
     void testSavedPngDensityUsesDocumentResolution_data();
     void testSavedPngDensityUsesDocumentResolution();
-    void testSavedKraPreviewPixelsAgreeAcrossBackends_data();
-    void testSavedKraPreviewPixelsAgreeAcrossBackends();
+    void testSavedKraEmbeddedPngsAgreeAcrossBackends_data();
+    void testSavedKraEmbeddedPngsAgreeAcrossBackends();
     void testSavedKraPreviewKeepsOtherColorSpaces_data();
     void testSavedKraPreviewKeepsOtherColorSpaces();
     void testGpuPngSaveAsPreservesHistoryAndAdoptsTheSavedFile();

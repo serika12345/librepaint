@@ -13,6 +13,7 @@
 #include <QDateTime>
 #include <QTimeZone>
 #include <QImage>
+#include <QImageWriter>
 #include <QSet>
 #include <quazip.h>
 #include <quazipfile.h>
@@ -701,12 +702,16 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
     const int densityX = density(image.attribute(QStringLiteral("x-res"), QStringLiteral("72")).toDouble());
     const int densityY = density(image.attribute(QStringLiteral("y-res"), QStringLiteral("72")).toDouble());
     auto png = [&](QImage image, const QString &name) {
-        image.setColorSpace(QColorSpace::SRgb);
+        image.setColorSpace({});
         image.setDotsPerMeterX(densityX);
         image.setDotsPerMeterY(densityY);
         QByteArray bytes;
         QBuffer buffer(&bytes);
-        if (!buffer.open(QIODevice::WriteOnly) || !image.save(&buffer, "PNG")) return false;
+        if (!buffer.open(QIODevice::WriteOnly)) return false;
+        QImageWriter encoder(&buffer, "PNG");
+        // Qt's PNG scale maps 33 to the KRA merged-image compression level 3.
+        if (name == QLatin1String("mergedimage.png")) encoder.setCompression(33);
+        if (!encoder.write(image)) return false;
         files.insert(name, std::move(bytes));
         return true;
     };

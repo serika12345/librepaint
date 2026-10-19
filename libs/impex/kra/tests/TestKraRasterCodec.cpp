@@ -327,7 +327,10 @@ void TestKraRasterCodec::previewSamplingPreservesEdgesAndWeightedAlpha()
     const auto result = Kra::RasterCodec::write(output, source, projection);
     QVERIFY2(result.code == Kra::Status::Success, qPrintable(result.diagnostic));
     const auto saved = entries(bytes);
-    QCOMPARE(QImage::fromData(saved.value(QStringLiteral("mergedimage.png"))).convertToFormat(QImage::Format_RGBA8888), projection);
+    const auto mergedPixels = QImage::fromData(saved.value(QStringLiteral("mergedimage.png"))).convertToFormat(QImage::Format_RGBA8888);
+    QCOMPARE(mergedPixels.size(), projection.size());
+    QCOMPARE(QByteArray(reinterpret_cast<const char *>(mergedPixels.constBits()), mergedPixels.sizeInBytes()),
+             QByteArray(reinterpret_cast<const char *>(projection.constBits()), projection.sizeInBytes()));
     const auto preview = QImage::fromData(saved.value(QStringLiteral("preview.png")));
     QCOMPARE(preview.size(), previewSize);
     const auto at = [&](int index) {
@@ -611,6 +614,8 @@ void TestKraRasterCodec::imageMetadataIsCompleteOrRejectedBeforeRasterImport()
     QCOMPARE(extracted.metadata.resolution, metadata.resolution);
     QCOMPARE(extracted.metadata.iccProfile, metadata.iccProfile);
     QCOMPARE(extracted.metadata.documentInfo, metadata.documentInfo);
+    for (const auto &name : {QStringLiteral("mergedimage.png"), QStringLiteral("preview.png")})
+        QVERIFY(!QImage::fromData(valid.value(name)).colorSpace().isValid());
     QCOMPARE(extracted.metadata.mirrorAxis, metadata.mirrorAxis);
     QCOMPARE(extracted.metadata.annotations.size(), 1);
     QCOMPARE(extracted.metadata.annotations.first().bytes, QByteArrayLiteral("kept"));
@@ -761,7 +766,9 @@ void TestKraRasterCodec::roundTripRetainsLayersHiddenRgbAndAssociatedFiles()
     for (auto item = source.files.cbegin(); item != source.files.cend(); ++item) QCOMPARE(result.document.files.value(item.key()), item.value());
     const auto saved = entries(bytes);
     QCOMPARE(saved.value(QStringLiteral("mimetype")), QByteArrayLiteral("application/x-krita"));
-    QCOMPARE(QImage::fromData(saved.value(QStringLiteral("mergedimage.png"))).convertToFormat(QImage::Format_RGBA8888), projection);
+    auto storedProjection = projection;
+    storedProjection.setColorSpace({});
+    QCOMPARE(QImage::fromData(saved.value(QStringLiteral("mergedimage.png"))).convertToFormat(QImage::Format_RGBA8888), storedProjection);
     QCOMPARE(document().image.layers[0].tiles[0].rgba, source.image.layers[0].tiles[0].rgba);
 }
 
