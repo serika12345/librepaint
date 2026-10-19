@@ -673,15 +673,49 @@ Result OperationDocument::duplicateLayers(const QList<LayerId> &layers, const QL
         included.insert(layers[i]);
         copyNames.insert(layers[i], names[i]);
     }
-    includeLayerDescendants(original->layers, included);
+    QHash<QUuid, qsizetype> indices;
+    QHash<QUuid, QList<qsizetype>> children;
+    for (qsizetype i = 0; i < original->layers.size(); ++i) {
+        indices.insert(original->layers[i].uuid, i);
+        children[original->layers[i].parentUuid].append(i);
+    }
+    QList<QPair<qsizetype, bool>> pending;
+    const auto rootIndices = children.value(QUuid());
+    for (auto it = rootIndices.crbegin(); it != rootIndices.crend(); ++it) pending.append({*it, false});
+    QList<qsizetype> selectedRoots, ordered;
+    QSet<QUuid> selectedSubtree;
+    QHash<QUuid, bool> editable;
+    while (!pending.isEmpty()) {
+        const auto [index, visited] = pending.takeLast();
+        const auto &layer = original->layers[index];
+        if (visited) {
+            if (included.contains(layer.id)) ordered.append(index);
+            continue;
+        }
+        const bool parentSelected = selectedSubtree.contains(layer.parentUuid);
+        if (parentSelected) copyNames.remove(layer.id);
+        if (copyNames.contains(layer.id)) selectedRoots.append(index);
+        if (parentSelected || copyNames.contains(layer.id)) {
+            selectedSubtree.insert(layer.uuid);
+            included.insert(layer.id);
+        }
+        editable.insert(layer.uuid, !layer.userLocked &&
+            (layer.parentUuid.isNull() || editable.value(layer.parentUuid)));
+        pending.append({index, true});
+        const auto branches = children.value(layer.uuid);
+        for (auto it = branches.crbegin(); it != branches.crend(); ++it) pending.append({*it, false});
+    }
+    auto anchor = selectedRoots.last();
+    while (!original->layers[anchor].parentUuid.isNull() &&
+           !editable.value(original->layers[anchor].parentUuid))
+        anchor = indices.value(original->layers[anchor].parentUuid);
+    const auto destinationParent = original->layers[anchor].parentUuid;
     if (included.size() > m_limits.layerCount - original->layers.size() ||
         quint64(included.size()) > std::numeric_limits<quint64>::max() - m_nextLayer ||
         m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     qsizetype samples = original->sampleCount, pixels = original->rasterBytes;
     quint64 nextOperation = m_nextOperation;
-    for (qsizetype index = 0; index < original->layers.size(); ++index) {
-        if (!included.contains(original->layers[index].id)) continue;
-        previousIndex = index;
+    for (const auto index : ordered) {
         for (const auto &operation : original->layers[index].operations) {
             if (operationSamples(operation) > m_limits.samplesPerDocument - samples ||
                 operationRasterBytes(operation) > m_limits.rasterBytes - pixels ||
@@ -694,15 +728,15 @@ Result OperationDocument::duplicateLayers(const QList<LayerId> &layers, const QL
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*original));
     auto nextLayer = m_nextLayer;
     nextOperation = m_nextOperation;
-    auto insertion = previousIndex + 1;
+    auto insertion = anchor + 1;
     version->selectedLayers.clear();
     QSet<QUuid> identities;
     for (const auto &layer : original->layers) identities.insert(layer.uuid);
     QHash<QUuid, QUuid> copiedIdentities;
     QList<Layer> copies;
-    const auto active = layers.contains(activeSource) ? activeSource : layers.first();
-    for (const auto &source : original->layers) {
-        if (!included.contains(source.id)) continue;
+    const auto active = copyNames.contains(activeSource) ? activeSource : original->layers[selectedRoots.first()].id;
+    for (const auto index : ordered) {
+        const auto &source = original->layers[index];
         Layer copy = source;
         copy.id = ++nextLayer;
         const auto sourceIdentity = copy.uuid;
@@ -723,7 +757,7 @@ Result OperationDocument::duplicateLayers(const QList<LayerId> &layers, const QL
         copies.append(std::move(copy));
     }
     for (auto &copy : copies) {
-        copy.parentUuid = copiedIdentities.value(copy.parentUuid, copy.parentUuid);
+        copy.parentUuid = copiedIdentities.value(copy.parentUuid, destinationParent);
         version->layers.insert(insertion++, copy);
     }
     version->sampleCount = samples;

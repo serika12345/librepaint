@@ -570,7 +570,7 @@ void KisNodeManager::TreeOperationAccess::duplicateNodes(KisNodeManager *manager
     if (const auto owner = image->gpuImage()) {
         QSet<QUuid> selected;
         for (const auto &node : nodes) {
-            if (!node || node->parent() != image->root() || selected.contains(node->uuid())) {
+            if (!node || !node->parent() || KisLayerUtils::findRoot(node) != image->root() || selected.contains(node->uuid())) {
                 ModificationAccess::showWarning(manager, i18n("The selected layers could not be duplicated."));
                 return;
             }

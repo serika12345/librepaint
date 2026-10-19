@@ -74,6 +74,8 @@ private Q_SLOTS:
     void nestedLayerIdentitySurvivesPropertiesHistoryAndRecovery();
     void nestedRemovalOwnsDescendantsAndOneHistoryStep();
     void nestedDuplicationCopiesSubtreePixelsAndIndependentParents();
+    void hierarchyDuplicationPreservesPlacementSelectionAndRecovery_data();
+    void hierarchyDuplicationPreservesPlacementSelectionAndRecovery();
     void nestedCanvasChangesKeepGroupsDerivedAndRecoverable();
     void previousShiftedWritesRecoverPixelsAndPendingInput();
     void groupProjectionDefaultsRespectIsolationAndQuantizedOpacity_data();
@@ -149,6 +151,116 @@ private Q_SLOTS:
     void layerRemovalReusesCapacityWithoutLosingRecoveryHistory();
     void layerReorderingIsAtomicAndPreservesSelectionPixelsAndHistory();
 };
+
+void KisGpuOperationDocumentTest::hierarchyDuplicationPreservesPlacementSelectionAndRecovery_data()
+{
+    QTest::addColumn<QString>("scenario");
+    QTest::addColumn<QString>("layout");
+    for (const auto &scenario : {QStringLiteral("nested-paint"), QStringLiteral("nested-group"),
+                                QStringLiteral("cross-parent"), QStringLiteral("ancestor-and-child"),
+                                QStringLiteral("locked-parent"), QStringLiteral("locked-ancestor")}) {
+        for (const auto &layout : {QStringLiteral("child-first"), QStringLiteral("parent-first"), QStringLiteral("interleaved")})
+            QTest::newRow(qPrintable(scenario + QLatin1Char('-') + layout)) << scenario << layout;
+    }
+}
+
+void KisGpuOperationDocumentTest::hierarchyDuplicationPreservesPlacementSelectionAndRecovery()
+{
+    QFETCH(QString, scenario);
+    QFETCH(QString, layout);
+    auto input = nestedImage();
+    const auto leaf = input.layers[0], inner = input.layers[1], outer = input.layers[2];
+    const RasterLayer base{QStringLiteral("Base"), true, QUuid(QStringLiteral("{31323334-3536-3738-393a-3b3c3d3e3f40}")), {}};
+    const RasterLayer top{QStringLiteral("Top"), true, QUuid(QStringLiteral("{41424344-4546-4748-494a-4b4c4d4e4f50}")), {}};
+    input.layers = layout == QLatin1String("child-first") ? QList<RasterLayer>{base, leaf, inner, outer, top}
+        : layout == QLatin1String("parent-first") ? QList<RasterLayer>{base, outer, inner, leaf, top}
+        : QList<RasterLayer>{base, outer, top, leaf, inner};
+    input.activeLayer = 0;
+    for (auto &layer : input.layers) {
+        if (layer.uuid == inner.uuid) layer.userLocked = scenario == QLatin1String("locked-parent");
+        if (layer.uuid == outer.uuid) layer.userLocked = scenario == QLatin1String("locked-ancestor");
+    }
+    OperationDocument document(input);
+    const auto initial = document.snapshot();
+    const auto sourceId = [&](const QUuid &uuid) {
+        for (const auto &layer : initial->layers) if (layer.uuid == uuid) return layer.id;
+        return LayerId(0);
+    };
+    QList<LayerId> selected{sourceId(leaf.uuid)};
+    QStringList rootNames{leaf.name + QStringLiteral(" copy")};
+    QUuid parent = inner.uuid, anchor = leaf.uuid;
+    auto active = sourceId(leaf.uuid);
+    if (scenario == QLatin1String("nested-group")) {
+        selected = {sourceId(inner.uuid)}; rootNames = {QStringLiteral("Inner copy")};
+        parent = outer.uuid; anchor = inner.uuid; active = sourceId(inner.uuid);
+    } else if (scenario == QLatin1String("cross-parent")) {
+        selected = {sourceId(leaf.uuid), sourceId(top.uuid)}; rootNames.append(QStringLiteral("Top copy"));
+        parent = QUuid(); anchor = top.uuid;
+    } else if (scenario == QLatin1String("ancestor-and-child")) {
+        selected = {sourceId(leaf.uuid), sourceId(outer.uuid)}; rootNames = {QStringLiteral("Outer copy")};
+        parent = QUuid(); anchor = outer.uuid;
+    } else if (scenario == QLatin1String("locked-parent")) {
+        parent = outer.uuid; anchor = inner.uuid;
+    } else if (scenario == QLatin1String("locked-ancestor")) {
+        parent = QUuid(); anchor = outer.uuid;
+    }
+    std::sort(selected.begin(), selected.end());
+    QList<QString> names;
+    for (const auto id : selected)
+        for (const auto &layer : initial->layers) if (layer.id == id) names.append(layer.name + QStringLiteral(" copy"));
+    QCOMPARE(document.selectLayers(selected, active), Result::Success);
+    const auto before = document.snapshot();
+    QCOMPARE(document.duplicateLayers(selected, names, active), Result::Success);
+    const auto after = document.snapshot();
+    QList<LayerId> copies;
+    for (const auto &name : rootNames) {
+        const auto found = std::find_if(after->layers.cbegin(), after->layers.cend(),
+            [&](const Layer &layer) { return layer.id > 5 && layer.name == name; });
+        QVERIFY2(found != after->layers.cend(), qPrintable(name));
+        QCOMPARE(found->parentUuid, parent);
+        copies.append(found->id);
+    }
+    QCOMPARE(after->selectedLayers, copies);
+    QCOMPARE(after->activeLayer, copies.first());
+    QList<LayerId> expectedOrder, actualOrder;
+    for (const auto &layer : before->layers) if (layer.parentUuid == parent) expectedOrder.append(layer.id);
+    const auto insertion = expectedOrder.indexOf(sourceId(anchor)) + 1;
+    for (int i = 0; i < copies.size(); ++i) expectedOrder.insert(insertion + i, copies[i]);
+    for (const auto &layer : after->layers) if (layer.parentUuid == parent) actualOrder.append(layer.id);
+    QCOMPARE(actualOrder, expectedOrder);
+    const auto sourceLeaf = std::find_if(before->layers.cbegin(), before->layers.cend(),
+        [&](const Layer &layer) { return layer.uuid == leaf.uuid; });
+    QVERIFY(sourceLeaf != before->layers.cend());
+    QSet<QUuid> identities;
+    int paintCopies = 0;
+    for (const auto &layer : after->layers) {
+        QVERIFY(!identities.contains(layer.uuid)); identities.insert(layer.uuid);
+        if (layer.id <= 5 || layer.kind != LayerKind::Paint || layer.operations.isEmpty()) continue;
+        ++paintCopies;
+        QCOMPARE(std::get<TileWriteSnapshot>(layer.operations.first())->tiles.first(),
+                 std::get<TileWriteSnapshot>(sourceLeaf->operations.first())->tiles.first());
+        if (scenario == QLatin1String("ancestor-and-child") || scenario == QLatin1String("nested-group"))
+            QCOMPARE(layer.name, sourceLeaf->name);
+    }
+    QCOMPARE(paintCopies, 1);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot(), after);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.snapshot()->selectedLayers, copies);
+    QCOMPARE(recovered.snapshot()->activeLayer, copies.first());
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->layers.size(), before->layers.size());
+    QCOMPARE(recovered.redo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->layers.size(), after->layers.size());
+    for (int i = 0; i < after->layers.size(); ++i) {
+        QCOMPARE(recovered.snapshot()->layers[i].uuid, after->layers[i].uuid);
+        QCOMPARE(recovered.snapshot()->layers[i].parentUuid, after->layers[i].parentUuid);
+    }
+}
 
 void KisGpuOperationDocumentTest::canvasResizePreservesVersionSizesPropertiesAndRecovery()
 {

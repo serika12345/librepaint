@@ -15,6 +15,8 @@ private Q_SLOTS:
     void initTestCase();
     void testRootGroupDuplicationKeepsSelectionAndHistory_data();
     void testRootGroupDuplicationKeepsSelectionAndHistory();
+    void testHierarchyDuplicationPreservesPlacementPixelsHistoryAndSaving_data();
+    void testHierarchyDuplicationPreservesPlacementPixelsHistoryAndSaving();
     void testGroupCreationKeepsIndependentPixelsChildrenAndHistory_data();
     void testGroupCreationKeepsIndependentPixelsChildrenAndHistory();
     void testExportImageCancelsWhenItsSourceChangesBeforeCapture_data();

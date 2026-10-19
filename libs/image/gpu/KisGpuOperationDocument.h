@@ -420,10 +420,11 @@ public:
      * Preserves history, pending input and fixed snapshots.
      */
     Result selectLayers(const QList<LayerId> &layers, LayerId active);
-    /** Duplicates a bottom-to-top selection above its highest layer in one edit.
-     * Groups include their descendants. Names correspond to the selected identities. Copies have independent layer
+    /** Duplicates selected subtrees above their highest root, climbing locked parents.
+     * Input identities are in bottom-to-top list order. Selected descendants of another selected root are included once.
+     * Names correspond to the selected identities. Copies have independent layer
      * and operation identities while retaining immutable input and pixel blocks.
-     * An unselected active source selects the first copy.
+     * A source outside the filtered selection selects the first copied root.
      */
     Result duplicateLayers(const QList<LayerId> &layers, const QList<QString> &names, LayerId activeSource);
     Result setLayerVisible(LayerId layer, bool visible);
