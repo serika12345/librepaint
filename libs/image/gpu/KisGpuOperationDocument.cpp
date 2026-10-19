@@ -183,7 +183,8 @@ HistoryAction OperationDocument::historyAction(int index) const
     if (before.size() == 1 && after.size() == 1 && before.first().id != after.first().id)
         return HistoryAction::RemoveLayer;
     for (int layer = 0; layer < after.size(); ++layer) {
-        if (before[layer].id != after[layer].id) return HistoryAction::MoveLayer;
+        if (before[layer].id != after[layer].id || before[layer].parentUuid != after[layer].parentUuid)
+            return HistoryAction::MoveLayer;
         if (after[layer].operations.size() > before[layer].operations.size()) {
             if (const auto *paint = std::get_if<PaintSnapshot>(&after[layer].operations.last())) {
                 switch ((*paint)->shape.kind) {
@@ -950,6 +951,103 @@ Result OperationDocument::reorderLayers(const QList<LayerId> &order)
 
 Result OperationDocument::removeLayer(LayerId layer)
 { return removeLayers({layer}); }
+
+Result OperationDocument::moveLayers(const QList<LayerId> &layers, const QUuid &parentUuid, const QUuid &aboveUuid)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    if (layers.isEmpty()) return Result::InvalidInput;
+    const auto original = snapshot();
+    QHash<QUuid, const Layer *> identities;
+    QHash<LayerId, const Layer *> values;
+    QHash<QUuid, QList<LayerId>> children;
+    for (const auto &layer : original->layers) {
+        identities.insert(layer.uuid, &layer);
+        values.insert(layer.id, &layer);
+        children[layer.parentUuid].append(layer.id);
+    }
+    const auto editable = [&](QUuid parent) {
+        while (!parent.isNull()) {
+            const auto layer = identities.value(parent);
+            if (layer->userLocked) return false;
+            parent = layer->parentUuid;
+        }
+        return true;
+    };
+    if (!parentUuid.isNull()) {
+        const auto parent = identities.value(parentUuid);
+        if (!parent) return Result::LayerUnavailable;
+        if (parent->kind != LayerKind::Group) return Result::InvalidInput;
+        if (!editable(parentUuid)) return Result::LayerUnavailable;
+    }
+    QSet<LayerId> requested;
+    for (const auto id : layers) {
+        if (requested.contains(id)) return Result::InvalidInput;
+        const auto layer = values.value(id);
+        if (!layer) return Result::LayerUnavailable;
+        if (!editable(layer->parentUuid)) return Result::LayerUnavailable;
+        requested.insert(id);
+    }
+    QSet<LayerId> moving;
+    for (const auto id : layers) {
+        auto parent = values.value(id)->parentUuid;
+        while (!parent.isNull() && !requested.contains(identities.value(parent)->id))
+            parent = identities.value(parent)->parentUuid;
+        if (parent.isNull()) moving.insert(id);
+    }
+    for (auto parent = parentUuid; !parent.isNull(); parent = identities.value(parent)->parentUuid)
+        if (moving.contains(identities.value(parent)->id)) return Result::InvalidInput;
+    if (!aboveUuid.isNull()) {
+        const auto above = identities.value(aboveUuid);
+        if (!above) return Result::LayerUnavailable;
+        if (above->parentUuid != parentUuid || moving.contains(above->id)) return Result::InvalidInput;
+    }
+    QList<Layer> ordered;
+    QList<LayerId> pending;
+    const auto roots = children.value(QUuid());
+    for (auto it = roots.crbegin(); it != roots.crend(); ++it) pending.append(*it);
+    while (!pending.isEmpty()) {
+        const auto layer = values.value(pending.takeLast());
+        if (moving.contains(layer->id)) ordered.append(*layer);
+        const auto branches = children.value(layer->uuid);
+        for (auto it = branches.crbegin(); it != branches.crend(); ++it) pending.append(*it);
+    }
+    QList<Layer> remaining;
+    QList<LayerId> selectedBefore;
+    for (const auto &layer : original->layers) {
+        if (moving.contains(layer.id)) selectedBefore.append(layer.id);
+        else remaining.append(layer);
+    }
+    qsizetype insertion = remaining.size();
+    for (qsizetype i = 0; i < remaining.size(); ++i) {
+        if (!aboveUuid.isNull() ? remaining[i].uuid == aboveUuid : remaining[i].parentUuid == parentUuid) {
+            insertion = i + (aboveUuid.isNull() ? 0 : 1);
+            break;
+        }
+        if (aboveUuid.isNull() && remaining[i].uuid == parentUuid) insertion = i + 1;
+    }
+    QList<LayerId> selectedAfter;
+    for (auto &layer : ordered) {
+        layer.parentUuid = parentUuid;
+        selectedAfter.append(layer.id);
+        remaining.insert(insertion++, layer);
+    }
+    QHash<QUuid, QList<LayerId>> resultChildren;
+    for (const auto &layer : remaining) resultChildren[layer.parentUuid].append(layer.id);
+    if (resultChildren == children) return Result::Success;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*original));
+    version->layers.swap(remaining);
+    version->selectedLayers = selectedAfter;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    if (selectedBefore != original->selectedLayers) {
+        auto before = QSharedPointer<DocumentVersion>(new DocumentVersion(*original));
+        before->selectedLayers = selectedBefore;
+        m_history[m_index] = before;
+    }
+    commitVersion(version);
+    return Result::Success;
+}
 
 Result OperationDocument::clearLayers(const QList<LayerId> &layers)
 {

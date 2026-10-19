@@ -333,6 +333,13 @@ Result PaintImage::moveLayer(LayerId layer, qsizetype index)
 { return onThread() ? publish(m_d->document->moveLayer(layer, index)) : Result::InvalidInput; }
 Result PaintImage::reorderLayers(const QList<LayerId> &order)
 { return onThread() ? publish(m_d->document->reorderLayers(order)) : Result::InvalidInput; }
+Result PaintImage::moveLayers(const QList<LayerId> &layers, const QUuid &parentUuid, const QUuid &aboveUuid)
+{
+    if (!onThread()) return Result::InvalidInput;
+    const auto before = m_d->document->snapshot();
+    const auto result = m_d->document->moveLayers(layers, parentUuid, aboveUuid);
+    return m_d->document->snapshot() == before ? result : publish(result);
+}
 Result PaintImage::removeLayer(LayerId layer)
 { return onThread() ? publish(m_d->document->removeLayer(layer)) : Result::InvalidInput; }
 Result PaintImage::removeLayers(const QList<LayerId> &layers, const QString &replacementName)

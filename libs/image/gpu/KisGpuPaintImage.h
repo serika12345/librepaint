@@ -150,6 +150,7 @@ public:
     Result renameLayer(LayerId layer, const QString &name, PropertyHistory history);
     Result moveLayer(LayerId layer, qsizetype index);
     Result reorderLayers(const QList<LayerId> &order);
+    Result moveLayers(const QList<LayerId> &layers, const QUuid &parentUuid, const QUuid &aboveUuid);
     Result removeLayer(LayerId layer);
     Result removeLayers(const QList<LayerId> &layers, const QString &replacementName = {});
     /** Clears whole layers atomically while retained versions remain readable. */

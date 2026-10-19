@@ -72,6 +72,9 @@ class KisGpuOperationDocumentTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void nestedLayerIdentitySurvivesPropertiesHistoryAndRecovery();
+    void movedSubtreesPreservePixelsSelectionHistoryAndRecovery_data();
+    void movedSubtreesPreservePixelsSelectionHistoryAndRecovery();
+    void rejectedHierarchyMovesPreserveRedoInputAndClosedState();
     void nestedRemovalOwnsDescendantsAndOneHistoryStep();
     void nestedDuplicationCopiesSubtreePixelsAndIndependentParents();
     void hierarchyDuplicationPreservesPlacementSelectionAndRecovery_data();
@@ -260,6 +263,170 @@ void KisGpuOperationDocumentTest::hierarchyDuplicationPreservesPlacementSelectio
         QCOMPARE(recovered.snapshot()->layers[i].uuid, after->layers[i].uuid);
         QCOMPARE(recovered.snapshot()->layers[i].parentUuid, after->layers[i].parentUuid);
     }
+}
+
+void KisGpuOperationDocumentTest::movedSubtreesPreservePixelsSelectionHistoryAndRecovery_data()
+{
+    QTest::addColumn<QString>("scenario");
+    QTest::addColumn<int>("layout");
+    for (const auto &scenario : {QStringLiteral("group"), QStringLiteral("enter"), QStringLiteral("leave"),
+                                QStringLiteral("cross-parent"), QStringLiteral("ancestor-and-child"),
+                                QStringLiteral("parent-only"), QStringLiteral("locked-source")})
+        for (int layout = 0; layout < 3; ++layout)
+            QTest::newRow(qPrintable(scenario + QString::number(layout))) << scenario << layout;
+}
+
+void KisGpuOperationDocumentTest::movedSubtreesPreservePixelsSelectionHistoryAndRecovery()
+{
+    QFETCH(QString, scenario);
+    QFETCH(int, layout);
+    auto input = nestedImage();
+    auto leaf = input.layers[0], inner = input.layers[1], outer = input.layers[2];
+    RasterLayer base{QStringLiteral("Base"), true, QUuid(QStringLiteral("{31323334-3536-3738-393a-3b3c3d3e3f40}")), {}};
+    RasterLayer top{QStringLiteral("Top"), true, QUuid(QStringLiteral("{41424344-4546-4748-494a-4b4c4d4e4f50}")), {}};
+    outer.userLocked = scenario == QLatin1String("locked-source");
+    input.layers = layout == 0 ? QList<RasterLayer>{base, leaf, inner, outer, top}
+        : layout == 1 ? QList<RasterLayer>{base, outer, inner, leaf, top}
+        : QList<RasterLayer>{base, outer, top, leaf, inner};
+    input.activeLayer = 0;
+    OperationDocument document(input);
+    const auto initial = document.snapshot();
+    const auto id = [&](const QUuid &uuid) {
+        for (const auto &layer : initial->layers) if (layer.uuid == uuid) return layer.id;
+        return LayerId(0);
+    };
+    QList<LayerId> requested{id(outer.uuid)}, roots = requested;
+    QUuid parent, above;
+    auto active = id(outer.uuid);
+    if (scenario == QLatin1String("enter")) {
+        requested = roots = {id(base.uuid)}; parent = outer.uuid; active = id(base.uuid);
+    } else if (scenario == QLatin1String("leave")) {
+        requested = roots = {id(inner.uuid)}; above = outer.uuid; active = id(inner.uuid);
+    } else if (scenario == QLatin1String("cross-parent")) {
+        requested = {id(leaf.uuid), id(base.uuid)}; roots = {id(base.uuid), id(leaf.uuid)};
+        parent = outer.uuid; above = inner.uuid; active = id(leaf.uuid);
+    } else if (scenario == QLatin1String("ancestor-and-child")) {
+        requested = {id(leaf.uuid), id(inner.uuid)}; roots = {id(inner.uuid)};
+        above = outer.uuid; active = id(leaf.uuid);
+    } else if (scenario == QLatin1String("parent-only")) {
+        requested = roots = {id(leaf.uuid)}; parent = outer.uuid; active = id(leaf.uuid);
+    }
+    QCOMPARE(document.selectLayers(requested, active), Result::Success);
+    const auto before = document.snapshot();
+    QCOMPARE(document.markSaved(before), Result::Success);
+    const auto hierarchy = [](const Snapshot &state) {
+        QHash<QUuid, QList<LayerId>> result;
+        for (const auto &layer : state->layers) result[layer.parentUuid].append(layer.id);
+        return result;
+    };
+    auto expected = hierarchy(before);
+    for (const auto root : roots) {
+        const auto found = std::find_if(before->layers.cbegin(), before->layers.cend(),
+            [&](const Layer &layer) { return layer.id == root; });
+        expected[found->parentUuid].removeAll(root);
+        if (expected.value(found->parentUuid).isEmpty()) expected.remove(found->parentUuid);
+    }
+    const auto anchor = above.isNull() ? LayerId(0) : id(above);
+    auto insertion = expected.value(parent).indexOf(anchor) + 1;
+    for (const auto root : roots) expected[parent].insert(insertion++, root);
+    QCOMPARE(document.moveLayers(requested, parent, above), Result::Success);
+    const auto after = document.snapshot();
+    QCOMPARE(hierarchy(after), expected);
+    QCOMPARE(after->layers.size(), before->layers.size());
+    QCOMPARE(after->activeLayer, active);
+    QCOMPARE(after->selectedLayers.size(), roots.size());
+    for (const auto root : roots) QVERIFY(after->selectedLayers.contains(root));
+    QCOMPARE(after->sampleCount, before->sampleCount);
+    QCOMPARE(after->rasterBytes, before->rasterBytes);
+    for (const auto &source : before->layers) {
+        const auto found = std::find_if(after->layers.cbegin(), after->layers.cend(),
+            [&](const Layer &layer) { return layer.id == source.id; });
+        QVERIFY(found != after->layers.cend());
+        QCOMPARE(found->uuid, source.uuid);
+        QCOMPARE(found->operations, source.operations);
+        QCOMPARE(found->defaultPixel, source.defaultPixel);
+        QCOMPARE(found->position, source.position);
+        QCOMPARE(found->name, source.name);
+        QCOMPARE(found->opacity, source.opacity);
+        QCOMPARE(found->userLocked, source.userLocked);
+        QCOMPARE(found->parentUuid, roots.contains(source.id) ? parent : source.parentUuid);
+    }
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.historyAction(1), HistoryAction::MoveLayer);
+    QVERIFY(document.isModified());
+    OperationDocument recovered({1, 1});
+    const auto bytes = document.recoveryData();
+    QCOMPARE(recovered.restoreRecovery(bytes), Result::Success);
+    QCOMPARE(recovered.recoveryData(), bytes);
+    QCOMPARE(recovered.historyAction(1), HistoryAction::MoveLayer);
+    for (auto *value : {&document, &recovered}) {
+        QCOMPARE(value->undo(), Result::Success);
+        QCOMPARE(hierarchy(value->snapshot()), hierarchy(before));
+        QCOMPARE(value->snapshot()->activeLayer, active);
+        QCOMPARE(value->snapshot()->selectedLayers.size(), roots.size());
+        for (const auto root : roots) QVERIFY(value->snapshot()->selectedLayers.contains(root));
+        QVERIFY(!value->isModified());
+        QCOMPARE(value->redo(), Result::Success);
+        QCOMPARE(hierarchy(value->snapshot()), expected);
+        QCOMPARE(value->snapshot()->activeLayer, active);
+    }
+    QCOMPARE(document.snapshot(), after);
+    QCOMPARE(hierarchy(before), hierarchy(initial));
+    QCOMPARE(before->selectedLayers.size(), requested.size());
+}
+
+void KisGpuOperationDocumentTest::rejectedHierarchyMovesPreserveRedoInputAndClosedState()
+{
+    auto input = nestedImage();
+    RasterLayer top{QStringLiteral("Top"), true, QUuid(QStringLiteral("{41424344-4546-4748-494a-4b4c4d4e4f50}")), {}};
+    input.layers.append(top);
+    OperationDocument document(input);
+    const auto inner = input.layers[1].uuid, outer = input.layers[2].uuid;
+    QCOMPARE(document.renameLayer(1, QStringLiteral("Renamed")), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    const auto before = document.snapshot();
+    const auto recovery = document.recoveryData();
+    const auto missing = QUuid(QStringLiteral("{51525354-5556-5758-595a-5b5c5d5e5f60}"));
+    QCOMPARE(document.moveLayers({}, {}, {}), Result::InvalidInput);
+    QCOMPARE(document.moveLayers({1, 1}, {}, {}), Result::InvalidInput);
+    QCOMPARE(document.moveLayers({99}, {}, {}), Result::LayerUnavailable);
+    QCOMPARE(document.moveLayers({4, 99}, outer, {}), Result::LayerUnavailable);
+    QCOMPARE(document.moveLayers({1}, missing, {}), Result::LayerUnavailable);
+    QCOMPARE(document.moveLayers({1}, input.layers[0].uuid, {}), Result::InvalidInput);
+    QCOMPARE(document.moveLayers({1}, {}, missing), Result::LayerUnavailable);
+    QCOMPARE(document.moveLayers({1}, {}, inner), Result::InvalidInput);
+    QCOMPARE(document.moveLayers({1}, inner, input.layers[0].uuid), Result::InvalidInput);
+    QCOMPARE(document.moveLayers({2}, {}, input.layers[0].uuid), Result::InvalidInput);
+    QCOMPARE(document.moveLayers({3}, inner, {}), Result::InvalidInput);
+    QCOMPARE(document.moveLayers({2}, inner, {}), Result::InvalidInput);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.recoveryData(), recovery);
+    QCOMPARE(document.redoCount(), 1);
+    QCOMPARE(document.moveLayers({1}, inner, {}), Result::Success);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.recoveryData(), recovery);
+    const auto stroke = document.beginStroke(1, Brush{}, 42);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(document.appendSamples(stroke, {sample(5, 6)}), Result::Success);
+    const auto preview = document.preview();
+    const auto pendingRecovery = document.recoveryData();
+    QCOMPARE(document.moveLayers({1}, outer, {}), Result::EditInProgress);
+    QCOMPARE(document.preview(), preview);
+    QCOMPARE(document.recoveryData(), pendingRecovery);
+    QCOMPARE(document.cancelStroke(stroke), Result::Success);
+    for (const bool destination : {false, true}) {
+        auto locked = input;
+        locked.layers[destination ? 2 : 1].userLocked = true;
+        OperationDocument value(locked);
+        const auto untouched = value.snapshot();
+        QCOMPARE(value.moveLayers({destination ? LayerId(4) : LayerId(1)}, outer, {}), Result::LayerUnavailable);
+        QCOMPARE(value.snapshot(), untouched);
+        QCOMPARE(value.undoCount(), 0);
+    }
+    document.close();
+    const auto closed = document.snapshot();
+    QCOMPARE(document.moveLayers({1}, outer, {}), Result::Closed);
+    QCOMPARE(document.snapshot(), closed);
 }
 
 void KisGpuOperationDocumentTest::canvasResizePreservesVersionSizesPropertiesAndRecovery()

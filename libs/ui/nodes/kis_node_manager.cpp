@@ -1230,32 +1230,53 @@ LibrePaint::Image::Gpu::Result moveGpuLayerSelection(const KisImageSP &image, co
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     const auto owner = image->gpuImage();
-    const auto version = owner->operations().snapshot();
     QSet<QUuid> selected;
     for (const auto &node : nodes) {
-        if (!node || node->image() != image.data() || node->parent() != image->root() || selected.contains(node->uuid()))
+        if (!node || node->image() != image.data() || !node->parent() ||
+            KisLayerUtils::findRoot(node) != image->root() || selected.contains(node->uuid()))
             return Gpu::Result::InvalidInput;
         selected.insert(node->uuid());
     }
     if (selected.isEmpty()) return Gpu::Result::Success;
-    QList<Gpu::LayerId> original;
-    QList<Gpu::LayerId> moving;
-    QList<Gpu::LayerId> remaining;
-    qsizetype head = -1;
-    for (qsizetype i = 0; i < version->layers.size(); ++i) {
-        const auto &layer = version->layers[i];
-        original.append(layer.id);
-        if (selected.contains(layer.uuid)) {
-            moving.append(layer.id);
-            if (head < 0 || raise) head = i;
-        } else remaining.append(layer.id);
+    const auto sorted = KisLayerUtils::sortAndFilterAnyMergeableNodesSafe(nodes, image);
+    if (sorted.isEmpty()) return Gpu::Result::InvalidInput;
+    const auto head = raise ? sorted.last() : sorted.first();
+    const auto parent = head->parent();
+    if (!parent->isEditable(false)) return Gpu::Result::Success;
+    KisNodeSP destination, above;
+    const auto allowsChildren = [&](KisNodeSP candidate) {
+        if (!candidate->isEditable(false) || candidate->collapsed()) return false;
+        for (const auto &node : sorted) if (!candidate->allowAsChild(node)) return false;
+        return true;
+    };
+    if (raise) {
+        const auto next = head->nextSibling();
+        if (next) {
+            if (allowsChildren(next)) destination = next;
+            else { destination = parent; above = next; }
+        } else if (parent->parent()) {
+            destination = parent->parent(); above = parent;
+        }
+    } else {
+        const auto previous = head->prevSibling();
+        if (previous) {
+            if (allowsChildren(previous)) { destination = previous; above = previous->lastChild(); }
+            else { destination = parent; above = previous->prevSibling(); }
+        } else if (parent->parent()) {
+            destination = parent->parent(); above = parent->prevSibling();
+        }
     }
-    if (moving.size() != selected.size()) return Gpu::Result::LayerUnavailable;
-    const auto neighbor = head + (raise ? 1 : -1);
-    if (neighbor < 0 || neighbor >= original.size()) return Gpu::Result::Success;
-    auto index = remaining.indexOf(original[neighbor]) + (raise ? 1 : 0);
-    for (const auto layer : moving) remaining.insert(index++, layer);
-    return remaining == original ? Gpu::Result::Success : owner->reorderLayers(remaining);
+    if (!destination || !destination->isEditable(false)) return Gpu::Result::Success;
+    QList<Gpu::LayerId> moving;
+    const auto version = owner->operations().snapshot();
+    for (const auto &node : sorted) {
+        const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(),
+            [&](const auto &layer) { return layer.uuid == node->uuid(); });
+        if (found == version->layers.cend()) return Gpu::Result::LayerUnavailable;
+        moving.append(found->id);
+    }
+    return owner->moveLayers(moving, destination == image->root() ? QUuid() : destination->uuid(),
+                             above ? above->uuid() : QUuid());
 }
 }
 

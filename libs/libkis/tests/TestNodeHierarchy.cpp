@@ -36,6 +36,7 @@
 #include <QDir>
 #include <QFile>
 #include <QImage>
+#include <QMap>
 #include <QPointer>
 #include <QScopeGuard>
 #include <QSignalSpy>
@@ -955,4 +956,270 @@ void TestNode::testHierarchyDuplicationPreservesPlacementPixelsHistoryAndSaving(
     image->waitForDone();
     for (int i = 0; i < copies.size(); ++i) QCOMPARE(destinationParent->at(insertion + i), copies[i]);
     QCOMPARE(copiedLeafApi->pixelData(3, 3, 1, 1), blue);
+}
+
+void TestNode::testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<int>("scenario");
+    QTest::addColumn<QString>("layout");
+    const QStringList cases{
+        QStringLiteral("group-down"), QStringLiteral("enter-up"), QStringLiteral("enter-down"),
+        QStringLiteral("collapsed-up"), QStringLiteral("collapsed-down"), QStringLiteral("leaf-up"),
+        QStringLiteral("leaf-down"), QStringLiteral("inner-up"), QStringLiteral("inner-down"),
+        QStringLiteral("ancestor-and-child"), QStringLiteral("cross-parent"), QStringLiteral("locked-source"),
+        QStringLiteral("locked-destination"), QStringLiteral("boundary"), QStringLiteral("noncontiguous-boundary"),
+        QStringLiteral("locked-parent")};
+    for (int i = 0; i < cases.size(); ++i) {
+        QTest::newRow(qPrintable(QStringLiteral("ordinary-") + cases[i])) << false << i << QStringLiteral("child-first");
+        for (const auto &layout : {QStringLiteral("child-first"), QStringLiteral("parent-first"), QStringLiteral("interleaved")})
+            QTest::newRow(qPrintable(QStringLiteral("gpu-") + cases[i] + QLatin1Char('-') + layout)) << true << i << layout;
+    }
+}
+
+void TestNode::testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving()
+{
+    QFETCH(bool, gpu);
+    QFETCH(int, scenario);
+    QFETCH(QString, layout);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    KisConfig(true).disableOpenGL();
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    const QUuid baseId(QStringLiteral("{00000001-1122-3344-5566-778899aabbcc}"));
+    const QUuid leafId(QStringLiteral("{00000002-1122-3344-5566-778899aabbcc}"));
+    const QUuid innerId(QStringLiteral("{00000003-1122-3344-5566-778899aabbcc}"));
+    const QUuid outerId(QStringLiteral("{00000004-1122-3344-5566-778899aabbcc}"));
+    const QUuid topId(QStringLiteral("{00000005-1122-3344-5566-778899aabbcc}"));
+    KisImageSP image;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        Gpu::RasterLayer base{QStringLiteral("Base"), true, baseId, {}};
+        base.defaultPixel = {255, 0, 0, 255};
+        Gpu::RasterLayer leaf{QStringLiteral("Leaf"), true, leafId, {}};
+        leaf.parentUuid = innerId;
+        QByteArray tile(Gpu::RgbaTile::ByteCount, '\0');
+        tile.replace((3 * 256 + 3) * 4, 4, QByteArray::fromHex("00ff00ff"));
+        leaf.tiles = {{{0, 0}, tile}};
+        Gpu::RasterLayer inner{QStringLiteral("Inner"), true, innerId, {}};
+        inner.kind = Gpu::LayerKind::Group;
+        inner.parentUuid = outerId;
+        Gpu::RasterLayer outer{QStringLiteral("Outer"), true, outerId, {}};
+        outer.kind = Gpu::LayerKind::Group;
+        Gpu::RasterLayer top{QStringLiteral("Top"), true, topId, {}};
+        Gpu::RasterImage input;
+        input.size = {32, 16};
+        input.layers = layout == QLatin1String("child-first") ? QList<Gpu::RasterLayer>{base, leaf, inner, outer, top}
+            : layout == QLatin1String("parent-first") ? QList<Gpu::RasterLayer>{base, outer, inner, leaf, top}
+            : QList<Gpu::RasterLayer>{base, outer, top, leaf, inner};
+        input.activeLayer = layout == QLatin1String("child-first") ? 3 : 1;
+        image = KisImage::fromGpuImage(Gpu::PaintImageSP::create(execution, input), QStringLiteral("Hierarchy ordering"));
+    } else {
+        const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+        image = new KisImage(document->createUndoStore(), 32, 16, cs, "Hierarchy ordering");
+        auto base = new KisPaintLayer(image, QStringLiteral("Base"), 255);
+        base->setUuid(baseId);
+        base->paintDevice()->setDefaultPixel(KoColor(Qt::red, cs));
+        image->addNode(base);
+        auto outer = new KisGroupLayer(image, QStringLiteral("Outer"), 255);
+        outer->setUuid(outerId);
+        image->addNode(outer);
+        auto inner = new KisGroupLayer(image, QStringLiteral("Inner"), 255);
+        inner->setUuid(innerId);
+        image->addNode(inner, outer);
+        auto leaf = new KisPaintLayer(image, QStringLiteral("Leaf"), 255);
+        leaf->setUuid(leafId);
+        const auto green = QByteArray::fromHex("00ff00ff");
+        leaf->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(green.constData()), 3, 3, 1, 1);
+        image->addNode(leaf, inner);
+        auto top = new KisPaintLayer(image, QStringLiteral("Top"), 255);
+        top->setUuid(topId);
+        image->addNode(top);
+    }
+    document->setCurrentImage(image);
+    document->setFileBatchMode(true);
+    document->documentInfo()->setAboutInfo("title", QStringLiteral("Fixed hierarchy ordering"));
+    document->documentInfo()->setAboutInfo("initial-creator", QStringLiteral("LibrePaint fixture"));
+    document->documentInfo()->setAboutInfo("language", QStringLiteral("en"));
+    document->documentInfo()->setAboutInfo("creation-date", QStringLiteral("2000-01-02T03:04:05Z"));
+    image->waitForDone();
+    KisNodeSP outer = image->root()->at(1);
+    const auto top = image->root()->at(2);
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto cleanup = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+    QVERIFY(QTest::qWaitForWindowExposed(window.get()));
+    auto *manager = window->viewManager()->nodeManager();
+    QTRY_VERIFY(lifetime->shapeForNode(outer));
+    QTRY_VERIFY(lifetime->shapeForNode(top));
+
+
+
+    const KisNodeSP base = image->root()->at(0);
+    KisNodeSP inner = outer->firstChild();
+    const KisNodeSP leaf = inner->firstChild();
+    const bool lower = scenario == 0 || scenario == 2 || scenario == 4 || scenario == 6 || scenario == 8 || scenario == 11 || scenario == 13;
+    const bool changes = scenario < 13;
+    const KisNodeSP source = (scenario == 0 || scenario == 11) ? outer :
+        (scenario == 2 || scenario == 4 || scenario == 14) ? top :
+        (scenario == 5 || scenario == 6 || scenario == 9 || scenario == 10 || scenario == 15) ? leaf :
+        (scenario == 7 || scenario == 8) ? inner : base;
+    if (scenario == 3 || scenario == 4) outer->setCollapsed(true);
+    if (scenario == 11 || scenario == 12) outer->setUserLocked(true);
+    if (scenario == 15) inner->setUserLocked(true);
+    const KisNodeList selected = scenario == 9 ? KisNodeList{inner, leaf} :
+        scenario == 10 ? KisNodeList{leaf, base} : scenario == 14 ? KisNodeList{top, base} : KisNodeList{source};
+    const KisNodeList expectedSelection = scenario == 9 ? KisNodeList{inner} : selected;
+    manager->slotNonUiActivatedNode(source);
+    QTRY_COMPARE(manager->activeNode(), source);
+    manager->slotSetSelectedNodes(selected);
+    const auto selectedAsExpected = [&] {
+        const auto actual = manager->selectedNodes();
+        if (actual.size() != expectedSelection.size()) return false;
+        for (const auto &node : actual) if (!expectedSelection.contains(node)) return false;
+        return true;
+    };
+    const auto retainedNodesAreAttached = [&] {
+        for (const auto &node : KisNodeList{base, leaf, inner, outer, top}) {
+            KisNodeSP root = node;
+            while (root->parent()) root = root->parent();
+            if (root != image->root()) return false;
+        }
+        return true;
+    };
+    const auto hierarchy = [](KisImageSP current) {
+        QMap<QUuid, QList<QUuid>> result;
+        KisNodeList pending{current->root()};
+        for (int i = 0; i < pending.size(); ++i) {
+            const auto node = pending[i];
+            const auto key = i == 0 ? QUuid() : node->uuid();
+            result.insert(key, {});
+            for (auto child = node->firstChild(); child; child = child->nextSibling()) {
+                result[key].append(child->uuid());
+                pending.append(child);
+            }
+        }
+        return result;
+    };
+    const auto before = hierarchy(image);
+    auto after = before;
+    if (scenario == 0 || scenario == 3 || scenario == 11 || scenario == 12) after[QUuid()] = {outerId, baseId, topId};
+    else if (scenario == 1) { after[QUuid()] = {outerId, topId}; after[outerId] = {baseId, innerId}; }
+    else if (scenario == 2) { after[QUuid()] = {baseId, outerId}; after[outerId] = {innerId, topId}; }
+    else if (scenario == 4) after[QUuid()] = {baseId, topId, outerId};
+    else if (scenario == 5 || scenario == 6) {
+        after[innerId].clear();
+        after[outerId] = scenario == 5 ? QList<QUuid>{innerId, leafId} : QList<QUuid>{leafId, innerId};
+    } else if (scenario == 7 || scenario == 8 || scenario == 9) {
+        after[outerId].clear();
+        after[QUuid()] = scenario == 8 ? QList<QUuid>{baseId, innerId, outerId, topId} : QList<QUuid>{baseId, outerId, innerId, topId};
+    } else if (scenario == 10) {
+        after[QUuid()] = {outerId, topId}; after[innerId].clear(); after[outerId] = {innerId, baseId, leafId};
+    }
+    QScopedPointer<Node> leafApi(Node::createNode(image, leaf));
+    QScopedPointer<Node> baseApi(Node::createNode(image, base));
+    const auto leafPixels = leafApi->pixelData(0, 0, 32, 16);
+    const auto basePixels = baseApi->pixelData(0, 0, 32, 16);
+    const auto history = lifetime->undoStack()->index();
+    if (lower) manager->lowerNode(); else manager->raiseNode();
+    image->waitForDone();
+    QCOMPARE(hierarchy(image), after);
+    QVERIFY(retainedNodesAreAttached());
+    if (changes || gpu || scenario == 15) QCOMPARE(lifetime->undoStack()->index(), history + (changes ? 1 : 0));
+    QTRY_VERIFY(selectedAsExpected());
+    QTRY_COMPARE(manager->activeNode(), source);
+    QCOMPARE(leafApi->pixelData(0, 0, 32, 16), leafPixels);
+    QCOMPARE(baseApi->pixelData(0, 0, 32, 16), basePixels);
+    Document api(lifetime.data(), false);
+    const auto pixels = api.pixelData(0, 0, 32, 16);
+    QTemporaryDir output;
+    QVERIFY(output.isValid());
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            output.setAutoRemove(false);
+            qInfo() << "Hierarchy ordering artifacts retained at" << output.path();
+        }
+    });
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    const auto destination = gpu && !results.isEmpty() ? results : output.path();
+    QVERIFY(QDir().mkpath(destination));
+    const auto stem = QStringLiteral("hierarchy-order-%1-%2").arg(scenario).arg(layout);
+    const auto kraPath = QDir(destination).filePath(stem + QStringLiteral(".kra"));
+    KisPropertiesConfigurationSP saveConfiguration(new KisPropertiesConfiguration);
+    saveConfiguration->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));
+    QVERIFY2(lifetime->saveAs(kraPath, KisDocument::nativeFormatMimeType(), false, saveConfiguration), qPrintable(lifetime->errorMessage()));
+    lifetime->waitForSavingToComplete();
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY2(reopened->openPath(kraPath, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+    QCOMPARE(hierarchy(reopened->image()), after);
+    Document loaded(reopened.data(), false);
+    QCOMPARE(loaded.pixelData(0, 0, 32, 16), pixels);
+    QScopedPointer<Node> loadedLeaf(loaded.nodeByUniqueID(leafId));
+    QScopedPointer<Node> loadedBase(loaded.nodeByUniqueID(baseId));
+    QVERIFY(loadedLeaf && loadedBase);
+    QCOMPARE(loadedLeaf->pixelData(0, 0, 32, 16), leafPixels);
+    QCOMPARE(loadedBase->pixelData(0, 0, 32, 16), basePixels);
+    InfoObject pngConfiguration;
+    pngConfiguration.setProperty("alpha", true);
+    pngConfiguration.setProperty("interlaced", false);
+    pngConfiguration.setProperty("compression", 3);
+    pngConfiguration.setProperty("saveSRGBProfile", true);
+    pngConfiguration.setProperty("forceSRGB", false);
+    pngConfiguration.setProperty("storeAuthor", false);
+    pngConfiguration.setProperty("storeMetaData", false);
+    const auto pngPath = QDir(destination).filePath(stem + QStringLiteral(".png"));
+    QVERIFY2(api.exportImage(pngPath, pngConfiguration), qPrintable(lifetime->errorMessage()));
+    const auto png = QImage(pngPath).convertToFormat(QImage::Format_ARGB32);
+    QCOMPARE(png.size(), QSize(32, 16));
+    QCOMPARE(QByteArray(reinterpret_cast<const char *>(png.constBits()), png.sizeInBytes()), pixels);
+    const auto blue = QByteArray::fromHex("ff0000ff");
+    QVERIFY(loadedLeaf->setPixelData(blue, 4, 4, 1, 1));
+    loaded.refreshProjection();
+    QCOMPARE(loadedLeaf->pixelData(4, 4, 1, 1), blue);
+    QCOMPARE(hierarchy(reopened->image()), after);
+    if (gpu) {
+        const auto bytes = image->gpuImage()->operations().recoveryData();
+        Gpu::OperationDocument recovered({1, 1});
+        QCOMPARE(recovered.restoreRecovery(bytes), Gpu::Result::Success);
+        QCOMPARE(recovered.recoveryData(), bytes);
+        QCOMPARE(recovered.snapshot()->activeLayer, image->gpuImage()->operations().activeLayer());
+        if (!results.isEmpty()) {
+            QFile recovery(QDir(destination).filePath(stem + QStringLiteral(".recovery")));
+            QVERIFY(recovery.open(QIODevice::WriteOnly));
+            QCOMPARE(recovery.write(bytes), qint64(bytes.size()));
+        }
+    }
+    if (changes) {
+        lifetime->undoStack()->undo();
+        image->waitForDone();
+        QCOMPARE(hierarchy(image), before);
+        QVERIFY(retainedNodesAreAttached());
+        QTRY_VERIFY(selectedAsExpected());
+        QTRY_COMPARE(manager->activeNode(), source);
+        lifetime->undoStack()->redo();
+        image->waitForDone();
+        QCOMPARE(hierarchy(image), after);
+        QVERIFY(retainedNodesAreAttached());
+        QCOMPARE(lifetime->undoStack()->index(), history + 1);
+        QTRY_VERIFY(selectedAsExpected());
+        QTRY_COMPARE(manager->activeNode(), source);
+        QCOMPARE(leafApi->pixelData(0, 0, 32, 16), leafPixels);
+        QCOMPARE(baseApi->pixelData(0, 0, 32, 16), basePixels);
+        const auto topLevel = image->root()->at(after[QUuid()].indexOf(outerId));
+        QCOMPARE(topLevel, KisNodeSP(outer));
+    }
 }

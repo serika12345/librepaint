@@ -13,6 +13,8 @@ class TestNode : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
+    void testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving_data();
+    void testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving();
     void testRootGroupDuplicationKeepsSelectionAndHistory_data();
     void testRootGroupDuplicationKeepsSelectionAndHistory();
     void testHierarchyDuplicationPreservesPlacementPixelsHistoryAndSaving_data();
