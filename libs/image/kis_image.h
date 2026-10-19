@@ -103,6 +103,12 @@ public:
      * attachment capacity throws std::length_error.
      */
     KisNodeList cloneGpuNodes(const KisNodeList &nodes) const;
+    /** Independent GPU image containing the supplied paint/group subtrees in
+     * root order, including independent overlapping roots. Retains execution
+     * and native layer properties. Invalid input returns null; attachment
+     * capacity throws std::length_error. Requires the image thread.
+     */
+    KisImageSP cloneGpuNodeImage(const KisNodeList &nodes) const;
     /** Transient node notifications describe the GPU version being adopted. */
     bool isSynchronizingGpuNodes() const { return m_synchronizingGpuNodes; }
 

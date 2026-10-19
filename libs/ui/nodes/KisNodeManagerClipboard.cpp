@@ -8,6 +8,7 @@
 
 #include <kundo2magicstring.h>
 #include <qpoint.h>
+#include <QPointer>
 
 void KisNodeManager::cutLayersToClipboard()
 {
@@ -25,7 +26,8 @@ void KisNodeManager::cutLayersToClipboard()
         }
     }
 
-    ClipboardAccess::setLayers(this, nodes, false);
+    const QPointer<KisNodeManager> guard(this);
+    if (!ClipboardAccess::setLayers(this, nodes, false) || !guard) return;
 
     if (ClipboardAccess::canModifyLayers(this, nodes)) {
         ClipboardAccess::removeNodes(this, nodes, kundo2_i18n("Cut Nodes"));

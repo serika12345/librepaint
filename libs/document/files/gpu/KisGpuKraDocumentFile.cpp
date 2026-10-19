@@ -97,12 +97,26 @@ FileOutcome PaintDocument::exportKra(const QString &path, const Snapshot &versio
 
 FileOutcome PaintDocument::writeKra(const QString &path, const Snapshot &version, bool adoptFile)
 {
+    if (!onThread()) return {FileCode::InvalidData, {}, QStringLiteral("Saving requires the document thread")};
+    if (!m_d->image->handle()) return {FileCode::Closed, {}, QStringLiteral("The painting document is closed")};
+    if (path.isEmpty()) return {FileCode::InvalidData, {}, QStringLiteral("Saving requires a path")};
+    QSaveFile file(path);
+    if (!file.open(QIODevice::WriteOnly)) return {FileCode::IoFailure, {}, file.errorString()};
+    const auto written = exportKra(file, version);
+    if (written.code != FileCode::Success) { file.cancelWriting(); return written; }
+    if (!file.commit()) return {FileCode::IoFailure, {}, file.errorString()};
+    if (adoptFile) return adoptSavedFile(path, written.version);
+    return written;
+}
+
+FileOutcome PaintDocument::exportKra(QIODevice &destination, const Snapshot &version)
+{
     auto &d = *m_d;
     if (!onThread()) return {FileCode::InvalidData, {}, QStringLiteral("Saving requires the document thread")};
     if (!d.image->handle()) return {FileCode::Closed, {}, QStringLiteral("The painting document is closed")};
     const auto pinned = version ? version : d.image->operations().snapshot();
-    if (!pinned || pinned->documentId() != d.image->operations().snapshot()->documentId() || !pinned->isCommitted() || path.isEmpty())
-        return {FileCode::InvalidData, {}, QStringLiteral("Saving requires a committed version of this document and a path")};
+    if (!pinned || pinned->documentId() != d.image->operations().snapshot()->documentId() || !pinned->isCommitted())
+        return {FileCode::InvalidData, {}, QStringLiteral("Saving requires a committed version of this document")};
     const auto limits = Private::formatLimits(d.limits);
     if (qint64(pinned->size.width()) * pinned->size.height() * 4 > limits.archiveBytes)
         return {FileCode::CapacityExceeded, {}, QStringLiteral("KRA projection pixel capacity exceeded")};
@@ -130,12 +144,8 @@ FileOutcome PaintDocument::writeKra(const QString &path, const Snapshot &version
     }
     const auto projection = d.execution.readProjectionImage(d.image->handle(), pinned, limits.archiveBytes);
     if (projection.code != ExecutionCode::Success) return {fileCode(projection.code), {}, projection.diagnostic};
-    QSaveFile file(path);
-    if (!file.open(QIODevice::WriteOnly)) return {FileCode::IoFailure, {}, file.errorString()};
-    const auto written = Kra::RasterCodec::write(file, output, projection.image, limits);
-    if (written.code != Kra::Status::Success) { file.cancelWriting(); return {fileCode(written.code), {}, written.diagnostic}; }
-    if (!file.commit()) return {FileCode::IoFailure, {}, file.errorString()};
-    if (adoptFile) return adoptSavedFile(path, pinned);
+    const auto written = Kra::RasterCodec::write(destination, output, projection.image, limits);
+    if (written.code != Kra::Status::Success) return {fileCode(written.code), {}, written.diagnostic};
     return {FileCode::Success, pinned, {}};
 }
 }

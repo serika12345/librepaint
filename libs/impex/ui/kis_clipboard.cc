@@ -685,16 +685,17 @@ QSize KisClipboard::clipSize() const
     return QSize();
 }
 
-void KisClipboard::setLayers(KisNodeList nodes, KisImageSP image, bool forceCopy)
+bool KisClipboard::setLayers(KisNodeList nodes, KisImageSP image, bool forceCopy)
 {
     /**
      * See a comment in KisMimeData::deepCopyNodes()
      */
     QMimeData *data = KisMimeData::mimeForLayersDeepCopy(nodes, image, forceCopy);
     if (!data)
-        return;
+        return false;
 
     d->clipboard->setMimeData(data);
+    return true;
 }
 
 bool KisClipboard::hasLayers() const

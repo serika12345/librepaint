@@ -1804,9 +1804,9 @@ KisNodeSP KisNodeManager::ClipboardAccess::parentNode(KisNodeSP node)
     return node->parent();
 }
 
-void KisNodeManager::ClipboardAccess::setLayers(KisNodeManager *manager, const KisNodeList &nodes, bool copy)
+bool KisNodeManager::ClipboardAccess::setLayers(KisNodeManager *manager, const KisNodeList &nodes, bool copy)
 {
-    KisClipboard::instance()->setLayers(nodes, manager->m_d->view->image(), copy);
+    return KisClipboard::instance()->setLayers(nodes, manager->m_d->view->image(), copy);
 }
 
 bool KisNodeManager::ClipboardAccess::canModifyLayers(KisNodeManager *manager, const KisNodeList &nodes)
@@ -1818,6 +1818,10 @@ void KisNodeManager::ClipboardAccess::removeNodes(KisNodeManager *manager,
                                                   const KisNodeList &nodes,
                                                   const KUndo2MagicString &actionName)
 {
+    if (manager->m_d->view->image()->gpuImage()) {
+        RemovalAccess::removeNodes(manager, nodes, manager->activeNode());
+        return;
+    }
     KisNodeOperationBatch *batch = manager->m_d->lazyGetNodeOperationBatch(actionName);
     batch->removeNode(nodes, manager->activeNode());
 }

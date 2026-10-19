@@ -519,7 +519,7 @@ protected:
     struct KRITAUI_EXPORT ClipboardAccess {
         static KisNodeList selectedNodes(KisNodeManager *manager);
         static KisNodeSP parentNode(KisNodeSP node);
-        static void setLayers(KisNodeManager *manager, const KisNodeList &nodes, bool copy);
+        static bool setLayers(KisNodeManager *manager, const KisNodeList &nodes, bool copy);
         static bool canModifyLayers(KisNodeManager *manager, const KisNodeList &nodes);
         static void removeNodes(KisNodeManager *manager, const KisNodeList &nodes, const KUndo2MagicString &actionName);
         static const QMimeData *layersMimeData();

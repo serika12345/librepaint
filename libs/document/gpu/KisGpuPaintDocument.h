@@ -11,6 +11,7 @@
 #include <kritadocumentpainting_export.h>
 
 namespace LibrePaint::ImportExport::Kra { struct ImageMetadata; struct MetadataOutcome; }
+class QIODevice;
 namespace LibrePaint::Document::Gpu {
 namespace Paint = Image::Gpu;
 enum class FileCode { Success, InvalidData, UnsupportedData, CapacityExceeded, IoFailure, Busy, DeviceFailure, Closed };
@@ -53,6 +54,11 @@ public:
     FileOutcome saveKra(const QString &path, const Paint::Snapshot &version = {});
     /** Writes a fixed version while preserving file identity and saved state. */
     FileOutcome exportKra(const QString &path, const Paint::Snapshot &version = {});
+    /** Writes a committed fixed version to a borrowed open, empty, seekable
+     * device, preserving file identity and saved state. Leaves the device open.
+     * Uses the document thread; failures return a diagnostic.
+     */
+    FileOutcome exportKra(QIODevice &destination, const Paint::Snapshot &version = {});
     /** Adopts the identity and fixed saved version of a completed format write.
      * Later edits retain their modified state. Invalid versions preserve identity.
      */

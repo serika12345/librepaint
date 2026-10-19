@@ -68,6 +68,7 @@ KisNodeList selectedNodesValue;
 KisNodeList parentedNodes;
 KisNodeSP parentNodeValue;
 bool canModifyResult = false;
+bool clipboardAccepted = true;
 const QMimeData *mimeDataValue = nullptr;
 KisNodeSP activeNodeValue;
 KisNodeSP rootNodeValue;
@@ -104,10 +105,11 @@ KisNodeSP KisNodeManager::ClipboardAccess::parentNode(KisNodeSP node)
     return parentedNodes.contains(node) ? parentNodeValue : KisNodeSP();
 }
 
-void KisNodeManager::ClipboardAccess::setLayers(KisNodeManager *, const KisNodeList &nodes, bool copy)
+bool KisNodeManager::ClipboardAccess::setLayers(KisNodeManager *, const KisNodeList &nodes, bool copy)
 {
     events.append(QStringLiteral("clipboard"));
     clipboardWrites.append({nodes, copy});
+    return clipboardAccepted;
 }
 
 bool KisNodeManager::ClipboardAccess::canModifyLayers(KisNodeManager *, const KisNodeList &nodes)
@@ -161,6 +163,7 @@ class KisNodeManagerClipboardContractTest : public QObject
 private Q_SLOTS:
     void init();
     void cutFiltersParentlessNodesAndChecksModification();
+    void refusedClipboardCapturePreservesCutLayers();
     void copyPreservesEntireSelection();
     void pasteRequiresMimeData();
     void pasteUsesActiveNodeOrRootAndPreservesArguments();
@@ -172,6 +175,7 @@ void KisNodeManagerClipboardContractTest::init()
     parentedNodes.clear();
     parentNodeValue.clear();
     canModifyResult = false;
+    clipboardAccepted = true;
     mimeDataValue = nullptr;
     activeNodeValue.clear();
     rootNodeValue.clear();
@@ -220,6 +224,23 @@ void KisNodeManagerClipboardContractTest::cutFiltersParentlessNodesAndChecksModi
     QCOMPARE(removalActionNames, (QStringList{kundo2_i18n("Cut Nodes").toString()}));
     QCOMPARE(events.mid(2),
              (QStringList{QStringLiteral("clipboard"), QStringLiteral("modify"), QStringLiteral("remove")}));
+}
+
+void KisNodeManagerClipboardContractTest::refusedClipboardCapturePreservesCutLayers()
+{
+    KisNodeManager manager(nullptr);
+    const KisNodeSP node = nodeToken(1);
+    selectedNodesValue = {node};
+    parentedNodes = {node};
+    parentNodeValue = nodeToken(2);
+    clipboardAccepted = false;
+    canModifyResult = true;
+
+    manager.cutLayersToClipboard();
+
+    QCOMPARE(clipboardWrites.size(), 1);
+    QVERIFY(modificationRequests.isEmpty());
+    QVERIFY(removalRequests.isEmpty());
 }
 
 void KisNodeManagerClipboardContractTest::copyPreservesEntireSelection()

@@ -116,7 +116,10 @@ public:
 
     QSize clipSize() const;
 
-    void setLayers(KisNodeList nodes, KisImageSP image, bool forceCopy = false);
+    /** Captures layers before replacing clipboard data. Returns false on
+     * capture refusal, preserving the previous clipboard contents.
+     */
+    bool setLayers(KisNodeList nodes, KisImageSP image, bool forceCopy = false);
     bool hasLayers() const;
     bool hasLayerStyles() const;
 

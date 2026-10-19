@@ -12,7 +12,7 @@ kis_add_tests(
     LINK_LIBRARIES kritalibkis kritatestsdk
     )
 
-target_sources(TestNode PRIVATE TestNodeHierarchy.cpp)
+target_sources(TestNode PRIVATE TestNodeHierarchy.cpp TestNodeClipboard.cpp)
 
 add_dependencies(TestDocument
     kritakraimport kritakraexport kritapngimport kritapngexport kritalcmsengine

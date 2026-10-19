@@ -1036,6 +1036,20 @@ QByteArray KisDocument::serializeToNativeByteArray()
 {
     QBuffer buffer;
 
+    if (const auto fileDocument = d->gpuDocument) {
+        if (!buffer.open(QIODevice::ReadWrite)) return {};
+        try {
+            auto outcome = fileDocument->setKraImageMetadata(gpuKraMetadata(*this));
+            if (outcome.code == LibrePaint::Document::Gpu::FileCode::Success)
+                outcome = fileDocument->exportKra(buffer);
+            d->lastErrorMessage = outcome.diagnostic;
+            return outcome.code == LibrePaint::Document::Gpu::FileCode::Success ? buffer.data() : QByteArray();
+        } catch (const std::exception &error) {
+            d->lastErrorMessage = QString::fromUtf8(error.what());
+            return {};
+        }
+    }
+
     QScopedPointer<KisImportExportFilter> filter(KisImportExportManager::filterForMimeType(nativeFormatMimeType(), KisImportExportManager::Export));
     filter->setBatchMode(true);
     filter->setMimeType(nativeFormatMimeType());

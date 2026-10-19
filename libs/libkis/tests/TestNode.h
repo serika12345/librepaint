@@ -13,6 +13,12 @@ class TestNode : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
+    void testClipboardLayersSurviveSourceEditsAndClosure_data();
+    void testClipboardLayersSurviveSourceEditsAndClosure();
+    void testClipboardLayersProvideImageAndNativeData_data();
+    void testClipboardLayersProvideImageAndNativeData();
+    void testGpuClipboardRefusalKeepsCapturedLayers();
+    void testGpuCutWaitsForClipboardCapture();
     void testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving_data();
     void testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving();
     void testRootGroupDuplicationKeepsSelectionAndHistory_data();

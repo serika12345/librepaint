@@ -18,6 +18,7 @@
 #include "kis_shared_ptr.h"
 #include "KisPortingUtils.h"
 #include "kis_image.h"
+#include <gpu/KisGpuPaintImage.h>
 #include "kis_layer.h"
 #include "kis_shape_layer.h"
 #include "kis_paint_layer.h"
@@ -48,6 +49,7 @@
 #include <canvas/KisDisplayConfig.h>
 #include <application/ui/orchestration/KisPlatformPluginInterfaceFactory.h>
 #include <mutex>
+#include <memory>
 #include <opengl/KisOpenGLModeProber.h>
 
 #include <QApplication>
@@ -105,9 +107,9 @@ KisDisplayConfig KisMimeData::displayConfigForMimePastes()
          */
         result.profile = KoColorSpaceRegistry::instance()->p709SRGBProfile();
     } else {
-        const KoColorProfile *profile = KisDisplayConfig::profileForScreen(
+        result.profile = KisDisplayConfig::profileForScreen(
             KisPortingUtils::getScreenNumberForWidget(QApplication::activeWindow()));
-        KIS_SAFE_ASSERT_RECOVER(profile) {
+        KIS_SAFE_ASSERT_RECOVER(result.profile) {
             result.profile = KoColorSpaceRegistry::instance()->p709SRGBProfile();
         }
     }
@@ -127,6 +129,15 @@ void KisMimeData::deepCopyNodes()
         KisImageReadOnlyBarrierLock lock(m_image, std::defer_lock);
         if (m_image) {
             lock.lock();
+        }
+
+        if (m_image && m_image->gpuImage()) {
+            const auto copied = m_image->cloneGpuNodeImage(m_nodes);
+            if (!copied) throw std::invalid_argument("The selected GPU layers cannot be captured with their current settings");
+            for (auto node = copied->root()->firstChild(); node; node = node->nextSibling()) newNodes.append(node);
+            m_nodes = newNodes;
+            m_image = copied;
+            return;
         }
 
         Q_FOREACH (KisNodeSP node, m_nodes) {
@@ -159,7 +170,6 @@ QStringList KisMimeData::formats () const
 
 KisDocument *createDocument(QList<KisNodeSP> nodes, KisImageSP srcImage, const QRect &copiedBounds)
 {
-    KisDocument *doc = KisPart::instance()->createTemporaryDocument();
     QRect rc = copiedBounds;
 
     QRect offset(0, 0, rc.width(), rc.height());
@@ -169,14 +179,18 @@ KisDocument *createDocument(QList<KisNodeSP> nodes, KisImageSP srcImage, const Q
         rc = srcImage->bounds();
     }
 
-    KisImageSP image = new KisImage(0, rc.width(), rc.height(), nodes.first()->colorSpace(), nodes.first()->name());
-    image->setAllowMasksOnRootNode(true);
-
-    if (srcImage) {
-        image->setResolution(srcImage->xRes(), srcImage->yRes());
-    }
-
-    {
+    KisImageSP image;
+    if (srcImage && srcImage->gpuImage()) {
+        KisImageReadOnlyBarrierLock lock(srcImage);
+        image = srcImage->cloneGpuNodeImage(nodes);
+        if (!image || image->gpuImage()->resizeCanvas(QRect(QPoint(), rc.size()), false) != LibrePaint::Image::Gpu::Result::Success)
+            throw std::invalid_argument("The selected GPU layers cannot form a clipboard document");
+    } else {
+        image = new KisImage(0, rc.width(), rc.height(), nodes.first()->colorSpace(), nodes.first()->name());
+        image->setAllowMasksOnRootNode(true);
+        if (srcImage) {
+            image->setResolution(srcImage->xRes(), srcImage->yRes());
+        }
         KisImageReadOnlyBarrierLock lock(srcImage, std::defer_lock);
         if (srcImage) {
             lock.lock();
@@ -195,6 +209,7 @@ KisDocument *createDocument(QList<KisNodeSP> nodes, KisImageSP srcImage, const Q
         }
     }
 
+    KisDocument *doc = KisPart::instance()->createTemporaryDocument();
     doc->setCurrentImage(image);
 
     return doc;
@@ -229,21 +244,18 @@ QVariant KisMimeData::retrieveData(const QString &mimetype, QMetaType preferredT
 
     Q_ASSERT(m_nodes.size() > 0);
 
-    if (mimetype == "application/x-qt-image") {
-        KisConfig cfg(true);
-
-        QScopedPointer<KisDocument> doc(createDocument(m_nodes, m_image, m_copiedBounds));
-
-        const KisDisplayConfig displayConfig = this->displayConfigForMimePastes();
-        return doc->image()->projection()->convertToQImage(displayConfig.profile,
-                                                           displayConfig.intent,
-                                                           displayConfig.conversionFlags);
-    }
-    else if (mimetype == "application/zip") {
-
-        QByteArray ba = serializeToByteArray(m_nodes, m_image, m_copiedBounds);
-        return ba;
-
+    if (mimetype == "application/x-qt-image" || mimetype == "application/zip") {
+        try {
+            if (mimetype == "application/zip") return serializeToByteArray(m_nodes, m_image, m_copiedBounds);
+            QScopedPointer<KisDocument> doc(createDocument(m_nodes, m_image, m_copiedBounds));
+            const KisDisplayConfig displayConfig = this->displayConfigForMimePastes();
+            return doc->image()->projection()->convertToQImage(displayConfig.profile,
+                                                              displayConfig.intent,
+                                                              displayConfig.conversionFlags);
+        } catch (const std::exception &error) {
+            qWarning() << "Could not retrieve clipboard layers:" << error.what();
+            return {};
+        }
     }
     else if (mimetype == "application/x-krita-node-internal-pointer") {
 
@@ -433,9 +445,17 @@ QMimeData* KisMimeData::mimeForLayersDeepCopy(const KisNodeList &nodes, KisImage
     KisLayerUtils::sortMergeableNodes(image->root(), inputNodes, sortedNodes);
     if (sortedNodes.isEmpty()) return 0;
 
-    KisMimeData* data = new KisMimeData(sortedNodes, image, forceCopy);
-    data->deepCopyNodes();
-    return data;
+    auto data = std::make_unique<KisMimeData>(sortedNodes, image, forceCopy);
+    try {
+        data->deepCopyNodes();
+    } catch (const std::length_error &error) {
+        qWarning() << "Could not capture clipboard layers:" << error.what();
+        return nullptr;
+    } catch (const std::invalid_argument &error) {
+        qWarning() << "Could not capture clipboard layers:" << error.what();
+        return nullptr;
+    }
+    return data.release();
 }
 
 bool nodeAllowsAsChild(KisNodeSP parent, KisNodeList nodes)

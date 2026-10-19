@@ -224,7 +224,7 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
     return result == Gpu::Result::Success;
 }
 
-KisNodeList KisImage::cloneGpuNodes(const KisNodeList &roots) const
+KisImageSP KisImage::cloneGpuNodeImage(const KisNodeList &roots) const
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     const auto owner = gpuImage();
@@ -270,6 +270,7 @@ KisNodeList KisImage::cloneGpuNodes(const KisNodeList &roots) const
     const auto copied = owner->cloneLayerForest(prepared);
     if (!copied) return {};
     auto view = KisImage::fromGpuImage(copied, QStringLiteral("Copied layers"), colorSpace());
+    view->setResolution(xRes(), yRes());
     QScopedValueRollback<bool> syncing(view->m_synchronizingGpuNodes, true);
     QHash<QUuid, KisNodeSP> copies;
     KisNodeList tree{view->root()};
@@ -287,9 +288,16 @@ KisNodeList KisImage::cloneGpuNodes(const KisNodeList &roots) const
         layer->setChannelFlags(source->channelFlags());
         layer->metaData()->copyFrom(source->metaData());
     }
+    return view;
+}
+
+KisNodeList KisImage::cloneGpuNodes(const KisNodeList &roots) const
+{
+    auto view = cloneGpuNodeImage(roots);
+    if (!view) return {};
+    QScopedValueRollback<bool> syncing(view->m_synchronizingGpuNodes, true);
     KisNodeList result;
-    for (qsizetype i = 0; i < roots.size(); ++i) {
-        const auto node = copies.value(prepared[i].properties.uuid);
+    while (const auto node = view->root()->firstChild()) {
         if (!view->removeNode(node)) return {};
         result.append(node);
     }

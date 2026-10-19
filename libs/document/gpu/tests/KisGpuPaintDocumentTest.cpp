@@ -646,6 +646,17 @@ void KisGpuPaintDocumentTest::adoptedImagesExportWithoutChangingSaveIdentity()
     QCOMPARE(mergedImage(exported).pixelColor(12, 12), QColor(68, 85, 102));
     QCOMPARE(document.exportKra(exported, saved).code, FileCode::Success);
     QCOMPARE(mergedImage(exported).pixelColor(12, 12), QColor(17, 34, 51));
+    QBuffer serialized;
+    QVERIFY(serialized.open(QIODevice::ReadWrite));
+    const auto written = document.exportKra(serialized, saved);
+    QCOMPARE(written.code, FileCode::Success);
+    QCOMPARE(written.version, saved);
+    QVERIFY(serialized.isOpen());
+    QCOMPARE(serialized.data(), fileBytes(exported));
+    QCOMPARE(document.filePath(), path);
+    QCOMPARE(image->operations().snapshot(), current);
+    QCOMPARE(image->operations().savedHistoryIndex(), 1);
+    QCOMPARE(changes.size(), 0);
     QVERIFY(image->operations().isModified());
     const auto recovery = document.recoveryData();
     QList<Kra::ImageMetadata> invalidMetadata(6);
