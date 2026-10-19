@@ -11,6 +11,8 @@
 #include <QIODevice>
 #include <QUrl>
 #include <QVersionNumber>
+#include <cmath>
+#include <limits>
 
 #include <KoStore.h>
 #include <KoStoreDevice.h>
@@ -316,6 +318,11 @@ KisImportExportErrorCode KraConverter::savePreview(KoStore *store)
         preview = QImage(newSize, QImage::Format_ARGB32);
         preview.fill(QColor(0, 0, 0, 0));
     }
+    const auto density = [](qreal resolution) {
+        return int(qBound(1.0, std::floor((resolution * 72) / 0.0254 + 0.5), double(std::numeric_limits<int>::max())));
+    };
+    preview.setDotsPerMeterX(density(m_image->xRes()));
+    preview.setDotsPerMeterY(density(m_image->yRes()));
 
     KoStoreDevice io(store);
     if (!io.open(QIODevice::WriteOnly)) {

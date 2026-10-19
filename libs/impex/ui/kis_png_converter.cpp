@@ -1444,7 +1444,10 @@ KisImportExportErrorCode KisPNGConverter::encodeRows(QIODevice *iodevice, const 
     int unit_type;
     png_uint_32 x_resolution, y_resolution;
 #endif
-    png_set_pHYs(png_ptr, info_ptr, CM_TO_POINT(xRes) * 100.0, CM_TO_POINT(yRes) * 100.0, PNG_RESOLUTION_METER); // It is the "invert" macro because we convert from point-per-inch to points
+    const auto density = [](qreal resolution) {
+        return int(qBound(1.0, std::floor((resolution * 72) / 0.0254 + 0.5), double(INT_MAX)));
+    };
+    png_set_pHYs(png_ptr, info_ptr, density(xRes), density(yRes), PNG_RESOLUTION_METER);
 
     const int passes = beginPngWrite(png_ptr, info_ptr, color_nb_bits);
     if (!passes) {

@@ -44,6 +44,7 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoColorProfile.h>
 #include <KoColor.h>
+#include <KoStore.h>
 
 #include <document/KisDocument.h>
 #include <canvas/KisMirrorAxisConfig.h>
@@ -1158,6 +1159,104 @@ void TestDocument::testGpuImagePixelDataModifiedStateAndRetainedNode()
     QVERIFY(lifetime.expired());
 }
 
+void TestDocument::testSavedPngDensityUsesDocumentResolution_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<QPointF>("resolution");
+    QTest::addColumn<QSize>("density");
+    for (bool gpu : {false, true}) {
+        QTest::newRow(gpu ? "gpu-72dpi" : "ordinary-72dpi") << gpu << QPointF(72, 72) << QSize(2835, 2835);
+        QTest::newRow(gpu ? "gpu-300x150dpi" : "ordinary-300x150dpi") << gpu << QPointF(300, 150) << QSize(11811, 5906);
+    }
+}
+
+void TestDocument::testSavedPngDensityUsesDocumentResolution()
+try {
+    QFETCH(bool, gpu);
+    QFETCH(QPointF, resolution);
+    QFETCH(QSize, density);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    namespace Kra = LibrePaint::ImportExport::Kra;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    const QUuid id(QStringLiteral("{d1000001-1122-3344-5566-778899aabbcc}"));
+    KisImageSP image;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        Gpu::RasterImage raster;
+        raster.size = {4, 2};
+        raster.layers = {{QStringLiteral("Density layer"), true, id, {}}};
+        image = KisImage::fromGpuImage(Gpu::PaintImageSP::create(execution, raster), QStringLiteral("Density image"));
+    } else {
+        image = new KisImage(document->createUndoStore(), 4, 2, KoColorSpaceRegistry::instance()->rgb8(), "Density image");
+        auto layer = new KisPaintLayer(image, QStringLiteral("Density layer"), 255);
+        layer->setUuid(id);
+        image->addNode(layer);
+    }
+    image->setResolution(resolution.x() / 72, resolution.y() / 72);
+    document->setCurrentImage(image);
+    Document publicDocument(document.data(), false);
+    QScopedPointer<Node> layer(Node::createNode(image, image->root()->firstChild()));
+    QVERIFY(layer->setPixelData(QByteArray::fromHex("112233ff").repeated(8), 0, 0, 4, 2));
+    publicDocument.refreshProjection();
+    image->waitForDone();
+    document->documentInfo()->setAboutInfo("title", QStringLiteral("Fixed density document"));
+    document->documentInfo()->setAboutInfo("initial-creator", QStringLiteral("LibrePaint fixture"));
+    document->documentInfo()->setAboutInfo("language", QStringLiteral("en"));
+    document->documentInfo()->setAboutInfo("creation-date", QStringLiteral("2000-01-02T03:04:05Z"));
+    document->setFileBatchMode(true);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            directory.setAutoRemove(false);
+            qInfo() << "Document PNG density artifacts retained at" << directory.path();
+        }
+    });
+    const auto destination = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", directory.path());
+    QVERIFY(QDir().mkpath(destination));
+    const auto stem = QStringLiteral("document-density-%1").arg(QString::fromLatin1(QTest::currentDataTag()));
+    const auto savedPath = QDir(destination).filePath(stem + QStringLiteral(".kra"));
+    KisPropertiesConfigurationSP configuration(new KisPropertiesConfiguration);
+    configuration->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));
+    QVERIFY2(document->saveAs(savedPath, KisDocument::nativeFormatMimeType(), false, configuration), qPrintable(document->errorMessage()));
+    document->waitForSavingToComplete();
+    InfoObject png;
+    png.setProperty("alpha", true);
+    png.setProperty("interlaced", false);
+    png.setProperty("compression", 3);
+    png.setProperty("saveSRGBProfile", true);
+    png.setProperty("forceSRGB", false);
+    png.setProperty("storeAuthor", false);
+    png.setProperty("storeMetaData", false);
+    const auto pngPath = QDir(destination).filePath(stem + QStringLiteral(".png"));
+    QVERIFY(publicDocument.exportImage(pngPath, png));
+    QFile file(savedPath);
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto saved = Kra::RasterCodec::read(file);
+    QVERIFY2(saved.code == Kra::Status::Success, qPrintable(saved.diagnostic));
+    file.close();
+    QScopedPointer<KoStore> store(KoStore::createStore(savedPath, KoStore::Read));
+    QVERIFY(store && !store->bad());
+    QList<QPair<QString, QImage>> images;
+    for (const auto &name : {QStringLiteral("mergedimage.png"), QStringLiteral("preview.png")}) {
+        QVERIFY(store->open(name));
+        images.append({name, QImage::fromData(store->device()->readAll())});
+        QVERIFY(store->close());
+    }
+    images.append({QStringLiteral("exported.png"), QImage(pngPath)});
+    for (const auto &entry : images)
+        qInfo() << entry.first << "document DPI" << resolution << "PNG density" << entry.second.dotsPerMeterX() << entry.second.dotsPerMeterY();
+    for (const auto &entry : images) {
+        QVERIFY2(!entry.second.isNull(), qPrintable(entry.first));
+        QCOMPARE(entry.second.dotsPerMeterX(), density.width());
+        QCOMPARE(entry.second.dotsPerMeterY(), density.height());
+    }
+    KisPart::instance()->removeDocument(document.data(), false);
+}
+catch (const std::exception &error) { QFAIL(error.what()); }
+
 void TestDocument::testGpuSaveAndExportPreserveHistoryAndFileIdentity()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
@@ -1405,7 +1504,7 @@ void TestDocument::testGpuPngExportPreservesPixelsAndDocument()
     const QImage exported(pngPath);
     QCOMPARE(exported.size(), image->size());
     QCOMPARE(exported.dotsPerMeterX(), 11811);
-    QCOMPARE(exported.dotsPerMeterY(), 5905);
+    QCOMPARE(exported.dotsPerMeterY(), 5906);
     QCOMPARE(exported.colorSpace().iccProfile(), image->profile()->rawData());
     for (int y = 0; y < 16; ++y) {
         for (int x = 0; x < 32; ++x) {
