@@ -8,9 +8,43 @@
 #include <gpu/KisGpuOperationDocument.h>
 #include <QCryptographicHash>
 #include <QDataStream>
+#include <QIODevice>
 #include <QSet>
 
 namespace LibrePaint::Image::Gpu::Test {
+// Version 28 record produced by PaintImage at 24ee71e117: move to (7,-9),
+// write a 256 by 256 constant RGBA tile outside undo, and seed43 pending input.
+// SHA-256: 58b55eea74b81547c4710c318601eb4398ed25fd225bcfe0858b71e8cec0ab01.
+inline QByteArray shiftedPixelRecoveryV28()
+{
+    return QByteArray::fromHex(
+        "4c504f52001c000000400000003000000000000000030000000000000003000000000000000100000000000000000000"
+        "000100000000000000000000011c789cedc3310d00000803302ccc0216e6df1b2f22daa4d94e54555555555555555555"
+        "555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555"
+        "555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555"
+        "555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555"
+        "555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555"
+        "555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555"
+        "55555555df03b78405fb000000030200000000000000010000000000000001000000000000000100000007fffffff701"
+        "000000000000000200000000000000010000000000000001000000010000000000000000000000020000001900000000"
+        "000000000000000700000037000000070000000000000040000000370000004700000000000000400000003700000087"
+        "000000000000004000000037000000c70000000000000039000000370000000000000037000000070000004000000007"
+        "0000003700000040000000400000004700000037000000400000004000000087000000370000004000000040000000c7"
+        "000000370000003900000040000000000000007700000007000000400000000700000077000000400000004000000047"
+        "00000077000000400000004000000087000000770000004000000040000000c700000077000000390000004000000000"
+        "000000b7000000070000004000000007000000b7000000400000004000000047000000b7000000400000004000000087"
+        "000000b70000004000000040000000c7000000b7000000390000004000000000000000f7000000070000000900000007"
+        "000000f7000000400000000900000047000000f7000000400000000900000087000000f70000004000000009000000c7"
+        "000000f7000000390000000900000000000000000300000000000000010000000000000001000000ff40240000000000"
+        "003fb999999999999aff00000000000000002b0000000000000000000000000000000000000000000000000000000000"
+        "000000000000000000000000010000000001403400000000000040340000000000003fe8000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000400000"
+        "00300000000000000000000000020000000000000000000000000000000100000001000000000000000100000010506f"
+        "736974696f6e656420777269746501a1a2a3a4a5a6a7a8a9aaabacadaeafb000000000ff000000000007fffffff70000"
+        "00020000000000000001000000000200000000000000036d7192fb4d4ef0f3fedb7c10ac37a85a550f2815ee6f868446"
+        "5c7ed80b59e676");
+}
+
 // Version 27 record produced by OperationDocument at 2f7f35ace3:
 // seed42 stroke, move(-73,19), image crop(8,6,32,24), canvas(-5,-7,80,64),
 // and seed43 pending input. SHA-256:
@@ -179,12 +213,13 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
         }
     }
     versions.append(document.preview());
-    if (format < 24) {
+    if (format < 29) {
         QSet<QByteArray> records;
         for (const auto &version : versions) {
             if (!version) continue;
             for (const auto &layer : version->layers) {
-                Q_ASSERT(layer.position.isNull());
+                Q_ASSERT(layer.kind == LayerKind::Paint && layer.parentUuid.isNull());
+                Q_ASSERT(format >= 24 || layer.position.isNull());
                 QByteArray record;
                 QDataStream stream(&record, QIODevice::WriteOnly);
                 stream.setVersion(QDataStream::Qt_5_15);
@@ -197,15 +232,18 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                 stream << layer.opacity << quint8(layer.userLocked)
                        << quint8(quint8(layer.pinnedToTimeline) | ((15u ^ layer.channelWriteMask) << 1));
                 const auto positionOffset = record.size();
-                stream << qint32(0) << qint32(0);
+                stream << qint32(layer.position.x()) << qint32(layer.position.y());
+                const auto hierarchyOffset = record.size();
+                stream << quint8(layer.kind) << layer.parentUuid;
                 if (records.contains(record)) continue;
                 records.insert(record);
                 qsizetype next = 0;
                 for (;;) {
                     const auto found = payload.indexOf(record, next);
                     if (found < 0) break;
-                    payload.remove(found + positionOffset, 8);
-                    next = found + positionOffset;
+                    const auto offset = format < 24 ? positionOffset : hierarchyOffset;
+                    payload.remove(found + offset, format < 24 ? 25 : 17);
+                    next = found + offset;
                 }
             }
         }

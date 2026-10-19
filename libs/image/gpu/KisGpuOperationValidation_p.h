@@ -15,6 +15,39 @@
 namespace LibrePaint::Image::Gpu::Detail {
 constexpr qsizetype LayerNameByteLimit = 65536;
 
+template<class LayerValue>
+bool validLayerHierarchy(const QList<LayerValue> &layers)
+{
+    QHash<QUuid, const LayerValue *> identities;
+    for (const auto &layer : layers) {
+        if (layer.kind != LayerKind::Paint && layer.kind != LayerKind::Group) return false;
+        if (!layer.uuid.isNull()) {
+            if (identities.contains(layer.uuid)) return false;
+            identities.insert(layer.uuid, &layer);
+        }
+    }
+    for (const auto &layer : layers) {
+        if (layer.parentUuid.isNull()) continue;
+        const auto parent = identities.constFind(layer.parentUuid);
+        if (parent == identities.cend() || (*parent)->kind != LayerKind::Group) return false;
+    }
+    QHash<QUuid, quint8> colours;
+    for (auto entry = identities.cbegin(); entry != identities.cend(); ++entry) {
+        auto current = entry.key();
+        while (!current.isNull() && colours.value(current) == 0) {
+            colours[current] = 1;
+            current = identities.value(current)->parentUuid;
+        }
+        if (!current.isNull() && colours.value(current) == 1) return false;
+        current = entry.key();
+        while (!current.isNull() && colours.value(current) == 1) {
+            colours[current] = 2;
+            current = identities.value(current)->parentUuid;
+        }
+    }
+    return true;
+}
+
 inline bool validCropRect(qint32 x, qint32 y, qint32 width, qint32 height)
 {
     constexpr qint64 limit = RgbaTile::CoordinateLimit;

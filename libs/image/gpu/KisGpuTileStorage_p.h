@@ -26,6 +26,12 @@ struct Tile
     ~Tile() { budget->used -= TileRenderer::TileBytes; }
 };
 using Tiles = QMap<quint64, std::shared_ptr<Tile>>;
+struct ProjectionInput {
+    std::shared_ptr<Tile> pixels;
+    quint8 opacity = 255;
+    bool operator==(const ProjectionInput &other) const { return pixels == other.pixels && opacity == other.opacity; }
+};
+using ProjectionInputs = QMap<quint64, QList<ProjectionInput>>;
 }
 
 namespace LibrePaint::Image::Gpu {
@@ -35,6 +41,9 @@ struct RenderedVersion::Data
     std::shared_ptr<Detail::Budget> owner;
     QMap<LayerId, Detail::Tiles> layers;
     QMap<LayerId, std::shared_ptr<Detail::Tile>> defaults;
+    QHash<LayerId, std::array<quint8, 4>> defaultPixels;
+    QMap<LayerId, Detail::ProjectionInputs> groupInputs;
+    QSet<LayerId> directGroups;
     std::shared_ptr<Detail::Tile> background;
     QMap<LayerId, Detail::Tiles> strokeInputs;
     std::optional<QRect> region;
@@ -43,16 +52,11 @@ struct RenderedVersion::Data
 
 struct ProjectedVersion::Data
 {
-    struct Input {
-        std::shared_ptr<Detail::Tile> pixels;
-        quint8 opacity = 255;
-        bool operator==(const Input &other) const { return pixels == other.pixels && opacity == other.opacity; }
-    };
     RenderedSnapshot source;
     QRect region;
     bool directLayerProjection = false;
     Detail::Tiles tiles;
-    QMap<quint64, QList<Input>> inputs;
+    Detail::ProjectionInputs inputs;
 };
 
 struct TileRenderer::Private

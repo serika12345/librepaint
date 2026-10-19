@@ -19,6 +19,9 @@ class KisGpuPixelReadbackTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
+    void groupReadsKeepSubtreePixelsDefaultsAndPinnedVersions_data();
+    void groupReadsKeepSubtreePixelsDefaultsAndPinnedVersions();
+    void projectionSkipsHiddenSubtreesWithinVisibleCapacity();
     void pinnedPixelsKeepNewerRequestsAndPublishedState();
     void hiddenLayersAndVisibleProjectionRemainDistinct();
     void boundedReadsRejectAtomicallyAndRecover();
@@ -51,6 +54,91 @@ private Q_SLOTS:
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPixelReadbackTest::groupReadsKeepSubtreePixelsDefaultsAndPinnedVersions_data()
+{
+    QTest::addColumn<bool>("uniform");
+    QTest::addColumn<bool>("hidden");
+    QTest::addColumn<QByteArray>("rgba");
+    QTest::newRow("explicit") << false << false << QByteArray::fromHex("ff0000ff");
+    QTest::newRow("uniform") << true << false << QByteArray::fromHex("ff0000ff");
+    QTest::newRow("hidden") << false << true << QByteArray::fromHex("ff0000ff");
+    QTest::newRow("implicit-hidden-rgb") << true << false << QByteArray::fromHex("11223300");
+}
+
+void KisGpuPixelReadbackTest::groupReadsKeepSubtreePixelsDefaultsAndPinnedVersions()
+{
+    QFETCH(bool, uniform);
+    QFETCH(bool, hidden);
+    QFETCH(QByteArray, rgba);
+    RasterImage input;
+    input.size = {64, 48};
+    input.layers = {
+        {QStringLiteral("Backdrop"), true, QUuid(QStringLiteral("{01020304-0506-0708-090a-0b0c0d0e0f10}")), {}, {0, 0, 255, 255}},
+        {QStringLiteral("Child"), true, QUuid(QStringLiteral("{11121314-1516-1718-191a-1b1c1d1e1f20}")), {}},
+        {QStringLiteral("Group"), !hidden, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}}};
+    input.layers[1].parentUuid = input.layers[2].uuid;
+    input.layers[2].kind = LayerKind::Group;
+    input.layers[2].opacity = 128;
+    if (uniform) std::copy_n(reinterpret_cast<const quint8 *>(rgba.constData()), 4, input.layers[1].defaultPixel.begin());
+    else input.layers[1].tiles = {{{-1, 0}, rgba.repeated(RgbaTile::ByteCount / 4)}, {{0, 0}, rgba.repeated(RgbaTile::ByteCount / 4)}};
+    OperationDocument document(input);
+    const auto fixed = document.snapshot();
+    Execution execution(m_device, 12 * TileRenderer::TileBytes, 1, 2 * TileRenderer::TileBytes);
+    const auto handle = execution.open(fixed).handle;
+    QCOMPARE(document.setLayerOpacity(3, 64), Result::Success);
+    const auto newer = document.snapshot();
+    QCOMPARE(execution.request(handle, newer).code, ExecutionCode::Success);
+    const auto packed = execution.readRgbaPixels(handle, fixed, {-5, 7, 8, 2}, 3, 64);
+    QVERIFY2(packed.code == ExecutionCode::Success, qPrintable(packed.diagnostic));
+    QCOMPARE(packed.bytes, rgba.repeated(16));
+    const auto complete = execution.readLayerPixels(handle, fixed, 3, 2 * TileRenderer::TileBytes);
+    QVERIFY2(complete.code == ExecutionCode::Success, qPrintable(complete.diagnostic));
+    QCOMPARE(complete.tiles.size(), uniform ? 0 : 2);
+    for (const auto &tile : complete.tiles) QCOMPARE(tile.rgba, rgba.repeated(RgbaTile::ByteCount / 4));
+    const auto bounds = execution.readBounds(handle, fixed, 3);
+    QVERIFY2(bounds.code == ExecutionCode::Success, qPrintable(bounds.diagnostic));
+    QCOMPARE(*bounds.bounds, uniform ? QRect() : QRect(-256, 0, 512, 256));
+    const auto thumbnail = execution.readThumbnail(handle, fixed, 3, {-5, 7, 8, 2}, {4, 1}, 16);
+    QVERIFY2(thumbnail.code == ExecutionCode::Success, qPrintable(thumbnail.diagnostic));
+    QCOMPARE(thumbnail.image.size(), QSize(4, 1));
+    QCOMPARE(QByteArray(reinterpret_cast<const char *>(thumbnail.image.constBits()), 16), rgba.repeated(4));
+    const auto projection = execution.readProjectionImage(handle, fixed, 64 * 48 * 4);
+    QVERIFY2(projection.code == ExecutionCode::Success, qPrintable(projection.diagnostic));
+    const auto expected = hidden || rgba[3] == 0 ? QColor(0, 0, 255, 255) : QColor(128, 0, 127, 255);
+    QCOMPARE(projection.image.pixelColor(12, 9), expected);
+    QCOMPARE(execution.requested(handle), newer);
+    QVERIFY(!execution.published(handle));
+    QCOMPARE(document.snapshot(), newer);
+}
+
+void KisGpuPixelReadbackTest::projectionSkipsHiddenSubtreesWithinVisibleCapacity()
+{
+    RasterImage input;
+    input.size = {64, 48};
+    input.layers = {
+        {QStringLiteral("Backdrop"), true, {}, {}, {0, 0, 255, 255}},
+        {QStringLiteral("Hidden subtree paint"), true, {}, {{{0, 0}, QByteArray::fromHex("00ff00ff").repeated(RgbaTile::ByteCount / 4)}}, {255, 0, 0, 255}},
+        {QStringLiteral("Hidden group"), false, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}}};
+    input.layers[1].parentUuid = input.layers[2].uuid;
+    input.layers[2].kind = LayerKind::Group;
+    OperationDocument document(input);
+    const auto fixed = document.snapshot();
+    Execution execution(m_device, 2 * TileRenderer::TileBytes, 1, TileRenderer::TileBytes);
+    const auto handle = execution.open(fixed).handle;
+    const auto projected = execution.readProjectionImage(handle, fixed, 64 * 48 * 4);
+    QVERIFY2(projected.code == ExecutionCode::Success, qPrintable(projected.diagnostic));
+    QCOMPARE(projected.image.pixelColor(12, 9), QColor(0, 0, 255, 255));
+    const auto preview = execution.readThumbnail(handle, fixed, 0, {0, 0, 64, 48}, {8, 6}, 8 * 6 * 4);
+    QVERIFY2(preview.code == ExecutionCode::Success, qPrintable(preview.diagnostic));
+    QCOMPARE(preview.image.pixelColor(1, 1), QColor(0, 0, 255, 255));
+    QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+    const auto display = execution.project(handle, {0, 0, 64, 48});
+    QVERIFY2(display.code == RenderOutcome::Recorded, qPrintable(display.diagnostic));
+    QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
+    QCOMPARE(execution.requested(handle), fixed);
+    QCOMPARE(document.snapshot(), fixed);
+}
 
 void KisGpuPixelReadbackTest::constantProjectionPreviewUsesOnlyOnePixelTransfer()
 {

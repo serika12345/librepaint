@@ -49,6 +49,21 @@ RasterImage rasterImage()
     return image;
 }
 
+RasterImage nestedImage()
+{
+    auto image = rasterImage();
+    image.layers.resize(1);
+    image.activeLayer = 0;
+    RasterLayer inner{QStringLiteral("Inner"), true, QUuid(QStringLiteral("{11121314-1516-1718-191a-1b1c1d1e1f20}")), {}};
+    RasterLayer outer{QStringLiteral("Outer"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}};
+    inner.kind = outer.kind = LayerKind::Group;
+    image.layers[0].parentUuid = inner.uuid;
+    inner.parentUuid = outer.uuid;
+    image.layers.append(inner);
+    image.layers.append(outer);
+    return image;
+}
+
 
 }
 
@@ -56,6 +71,13 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void nestedLayerIdentitySurvivesPropertiesHistoryAndRecovery();
+    void nestedRemovalOwnsDescendantsAndOneHistoryStep();
+    void nestedDuplicationCopiesSubtreePixelsAndIndependentParents();
+    void nestedCanvasChangesKeepGroupsDerivedAndRecoverable();
+    void previousShiftedWritesRecoverPixelsAndPendingInput();
+    void groupProjectionDefaultsRespectIsolationAndQuantizedOpacity_data();
+    void groupProjectionDefaultsRespectIsolationAndQuantizedOpacity();
     void previousCanvasRecoveryPreservesSizesAndInput();
     void canvasResizePreservesVersionSizesPropertiesAndRecovery();
     void canvasResizeKeepsEmptyDocumentsRecoverable();
@@ -248,6 +270,233 @@ void KisGpuOperationDocumentTest::rejectedCanvasResizesKeepRedoPendingInputAndCl
     const auto closed = document.snapshot();
     QCOMPARE(document.resizeCanvas({8, 6, 32, 24}, true), Result::Closed);
     QCOMPARE(document.snapshot(), closed);
+}
+
+void KisGpuOperationDocumentTest::groupProjectionDefaultsRespectIsolationAndQuantizedOpacity_data()
+{
+    QTest::addColumn<QByteArray>("lower");
+    QTest::addColumn<QByteArray>("upper");
+    QTest::addColumn<bool>("includeUpper");
+    QTest::addColumn<bool>("upperVisible");
+    QTest::addColumn<int>("groupOpacity");
+    QTest::addColumn<QByteArray>("innerPixel");
+    QTest::addColumn<QByteArray>("outerPixel");
+    QTest::newRow("two-colour-defaults") << QByteArray::fromHex("ff0000ff") << QByteArray::fromHex("0000ffff")
+        << true << true << 128 << QByteArray::fromHex("7f0080ff") << QByteArray::fromHex("7f008080");
+    QTest::newRow("hidden-sibling-normalizes-transparent-rgb") << QByteArray::fromHex("11223300") << QByteArray::fromHex("00000000")
+        << true << false << 255 << QByteArray::fromHex("00000000") << QByteArray::fromHex("00000000");
+    QTest::newRow("single-child-keeps-transparent-rgb") << QByteArray::fromHex("11223300") << QByteArray::fromHex("00000000")
+        << false << false << 128 << QByteArray::fromHex("11223300") << QByteArray::fromHex("00000000");
+    QTest::newRow("nested-full-opacity-keeps-transparent-rgb") << QByteArray::fromHex("11223300") << QByteArray::fromHex("00000000")
+        << false << false << 255 << QByteArray::fromHex("11223300") << QByteArray::fromHex("11223300");
+    QTest::newRow("nested-alpha-is-quantized-at-each-group") << QByteArray::fromHex("ff000080") << QByteArray::fromHex("00000000")
+        << false << false << 128 << QByteArray::fromHex("ff000080") << QByteArray::fromHex("ff000040");
+}
+
+void KisGpuOperationDocumentTest::groupProjectionDefaultsRespectIsolationAndQuantizedOpacity()
+{
+    QFETCH(QByteArray, lower);
+    QFETCH(QByteArray, upper);
+    QFETCH(bool, includeUpper);
+    QFETCH(bool, upperVisible);
+    QFETCH(int, groupOpacity);
+    QFETCH(QByteArray, innerPixel);
+    QFETCH(QByteArray, outerPixel);
+    const QUuid inner(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}"));
+    const QUuid outer(QStringLiteral("{31323334-3536-3738-393a-3b3c3d3e3f40}"));
+    RasterImage source;
+    source.size = {64, 48};
+    source.layers = {{QStringLiteral("Lower"), true, QUuid(QStringLiteral("{01020304-0506-0708-090a-0b0c0d0e0f10}")), {}}};
+    if (includeUpper) source.layers.append({QStringLiteral("Upper"), upperVisible,
+        QUuid(QStringLiteral("{11121314-1516-1718-191a-1b1c1d1e1f20}")), {}});
+    for (int index = 0; index < source.layers.size(); ++index) {
+        const auto &pixel = index == 0 ? lower : upper;
+        for (int channel = 0; channel < 4; ++channel) source.layers[index].defaultPixel[channel] = quint8(pixel[channel]);
+        source.layers[index].parentUuid = inner;
+        if (index == 1) source.layers[index].opacity = 128;
+    }
+    source.layers.append({QStringLiteral("Inner"), true, inner, {}});
+    source.layers.last().kind = LayerKind::Group;
+    source.layers.last().parentUuid = outer;
+    source.layers.last().opacity = quint8(groupOpacity);
+    source.layers.append({QStringLiteral("Outer"), true, outer, {}});
+    source.layers.last().kind = LayerKind::Group;
+    OperationDocument document(source);
+    const auto defaults = document.snapshot()->projectionDefaultPixels();
+    const LayerId innerId = source.layers.size() - 1, outerId = source.layers.size();
+    QVERIFY(defaults.contains(innerId) && defaults.contains(outerId));
+    const auto innerValue = defaults.value(innerId), outerValue = defaults.value(outerId);
+    QCOMPARE(QByteArray(reinterpret_cast<const char*>(innerValue.data()), 4), innerPixel);
+    QCOMPARE(QByteArray(reinterpret_cast<const char*>(outerValue.data()), 4), outerPixel);
+}
+
+void KisGpuOperationDocumentTest::previousShiftedWritesRecoverPixelsAndPendingInput()
+{
+    const auto record = LibrePaint::Image::Gpu::Test::shiftedPixelRecoveryV28();
+    QCOMPARE(QCryptographicHash::hash(record, QCryptographicHash::Sha256).toHex(),
+             QByteArrayLiteral("58b55eea74b81547c4710c318601eb4398ed25fd225bcfe0858b71e8cec0ab01"));
+    OperationDocument document({1, 1});
+    QCOMPARE(document.restoreRecovery(record), Result::Success);
+    const auto layer = document.snapshot()->layers.first();
+    QCOMPARE(layer.kind, LayerKind::Paint);
+    QVERIFY(layer.parentUuid.isNull());
+    QCOMPARE(layer.position, QPoint(7, -9));
+    TileWriteSnapshot write;
+    for (const auto &operation : layer.operations)
+        if (const auto pixels = std::get_if<TileWriteSnapshot>(&operation)) write = *pixels;
+    QVERIFY(write);
+    QRect written;
+    int pixels = 0;
+    for (const auto &area : write->writtenAreas) {
+        written = written.united(area);
+        pixels += area.width() * area.height();
+    }
+    QCOMPARE(written, QRect(0, 0, 256, 256));
+    QCOMPARE(pixels, 256 * 256);
+    QCOMPARE(write->tiles.first()->coordinate(), QPoint(0, 0));
+    QCOMPARE(write->tiles.first()->rgba(), QByteArray::fromHex("11223300").repeated(256 * 256));
+    QVERIFY(document.hasActiveStroke());
+    QCOMPARE(document.cancelStroke(document.activeOperation()), Result::Success);
+}
+
+void KisGpuOperationDocumentTest::nestedRemovalOwnsDescendantsAndOneHistoryStep()
+{
+    OperationDocument document(nestedImage());
+    const auto fixed = document.snapshot();
+    QCOMPARE(document.removeLayers({2}), Result::Success);
+    QCOMPARE(document.snapshot()->layers.size(), 1);
+    QCOMPARE(document.snapshot()->layers.first().id, LayerId(3));
+    QCOMPARE(document.activeLayer(), LayerId(3));
+    QCOMPARE(document.snapshot()->selectedLayers, QList<LayerId>{3});
+    QCOMPARE(document.snapshot()->rasterBytes, qsizetype(0));
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), fixed);
+    QCOMPARE(document.redo(), Result::Success);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->layers[0].parentUuid, fixed->layers[1].uuid);
+    QCOMPARE(recovered.removeLayers({3}, QStringLiteral("Replacement")), Result::Success);
+    QCOMPARE(recovered.snapshot()->layers.size(), 1);
+    QCOMPARE(recovered.snapshot()->layers.first().kind, LayerKind::Paint);
+    QVERIFY(recovered.snapshot()->layers.first().parentUuid.isNull());
+}
+
+void KisGpuOperationDocumentTest::nestedDuplicationCopiesSubtreePixelsAndIndependentParents()
+{
+    OperationDocument document(nestedImage());
+    const auto fixed = document.snapshot();
+    QCOMPARE(document.duplicateLayers({2}, {QStringLiteral("Inner copy")}, 2), Result::Success);
+    const auto copied = document.snapshot();
+    QCOMPARE(copied->layers.size(), 5);
+    const auto leaf = std::find_if(copied->layers.cbegin(), copied->layers.cend(),
+        [](const Layer &layer) { return layer.id == 4; });
+    const auto group = std::find_if(copied->layers.cbegin(), copied->layers.cend(),
+        [](const Layer &layer) { return layer.id == 5; });
+    QVERIFY(leaf != copied->layers.cend());
+    QVERIFY(group != copied->layers.cend());
+    QCOMPARE(leaf->parentUuid, group->uuid);
+    QCOMPARE(group->parentUuid, fixed->layers[2].uuid);
+    QCOMPARE(group->name, QStringLiteral("Inner copy"));
+    QCOMPARE(std::get<TileWriteSnapshot>(leaf->operations.first())->tiles.first(),
+             std::get<TileWriteSnapshot>(fixed->layers[0].operations.first())->tiles.first());
+    QCOMPARE(copied->rasterBytes, 2 * fixed->rasterBytes);
+    QCOMPARE(document.activeLayer(), group->id);
+    QCOMPARE(copied->selectedLayers, QList<LayerId>{group->id});
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.snapshot(), fixed);
+    QCOMPARE(document.redo(), Result::Success);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    Limits limits;
+    limits.layerCount = 4;
+    OperationDocument bounded(nestedImage(), limits);
+    const auto unchanged = bounded.recoveryData();
+    QCOMPARE(bounded.duplicateLayers({2}, {QStringLiteral("Copy")}, 2), Result::CapacityExceeded);
+    QCOMPARE(bounded.recoveryData(), unchanged);
+}
+
+void KisGpuOperationDocumentTest::nestedCanvasChangesKeepGroupsDerivedAndRecoverable()
+{
+    OperationDocument document(nestedImage());
+    const auto fixed = document.snapshot();
+    QCOMPARE(document.resizeCanvas({8, 6, 32, 24}, true), Result::Success);
+    for (const auto &layer : document.snapshot()->layers) {
+        if (layer.kind == LayerKind::Group) {
+            QVERIFY(layer.operations.isEmpty());
+            QCOMPARE(layer.position, QPoint());
+        } else QCOMPARE(layer.position, QPoint(-8, -6));
+    }
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->size, fixed->size);
+    QCOMPARE(recovered.redo(), Result::Success);
+}
+
+void KisGpuOperationDocumentTest::nestedLayerIdentitySurvivesPropertiesHistoryAndRecovery()
+{
+    RasterImage source;
+    source.size = {64, 48};
+    source.layers = {
+        {QStringLiteral("Nested paint"), true, QUuid(QStringLiteral("{01020304-0506-0708-090a-0b0c0d0e0f10}")), {}},
+        {QStringLiteral("Inner group"), true, QUuid(QStringLiteral("{11121314-1516-1718-191a-1b1c1d1e1f20}")), {}},
+        {QStringLiteral("Outer group"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}}};
+    source.layers[0].parentUuid = source.layers[1].uuid;
+    source.layers[1].kind = LayerKind::Group;
+    source.layers[1].parentUuid = source.layers[2].uuid;
+    source.layers[2].kind = LayerKind::Group;
+    OperationDocument document(source);
+    const auto fixed = document.snapshot();
+    QCOMPARE(document.activeLayer(), LayerId(1));
+    const auto beforeRejected = document.recoveryData();
+    QVERIFY(document.beginStroke(2, Brush{}, 41).isNull());
+    const QList<RgbaTile> pixels{{{0, 0}, QByteArray(RgbaTile::ByteCount, '\0')}};
+    QCOMPARE(document.replaceTiles(2, pixels), Result::LayerUnavailable);
+    QCOMPARE(document.cropLayer(2, {1, 2, 16, 16}), Result::LayerUnavailable);
+    QCOMPARE(document.clearLayers({2}), Result::LayerUnavailable);
+    QVERIFY(document.beginLayerTranslation(2).isNull());
+    QCOMPARE(document.writeLayerPosition(2, {7, -9}), Result::LayerUnavailable);
+    QCOMPARE(document.writeLayerChannelMask(2, 7), Result::LayerUnavailable);
+    QCOMPARE(document.setLayerChannelMask(2, 7), Result::LayerUnavailable);
+    QCOMPARE(document.recoveryData(), beforeRejected);
+    QCOMPARE(document.setLayerOpacity(3, 128), Result::Success);
+    const auto stroke = document.beginStroke(1, Brush{}, 42);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(document.appendSamples(stroke, {sample(12, 9), sample(20, 15)}), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    QCOMPARE(document.undoCount(), 2);
+    QCOMPARE(fixed->layers[2].opacity, quint8(255));
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    for (int index = 0; index < source.layers.size(); ++index) {
+        const auto &actual = recovered.snapshot()->layers[index];
+        QCOMPARE(actual.uuid, source.layers[index].uuid);
+        QCOMPARE(actual.parentUuid, source.layers[index].parentUuid);
+        QCOMPARE(actual.kind, source.layers[index].kind);
+    }
+    QCOMPARE(recovered.snapshot()->layers[2].opacity, quint8(128));
+    QCOMPARE(recovered.undo(), Result::Success);
+    QVERIFY(recovered.snapshot()->layers[0].operations.isEmpty());
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->layers[2].opacity, quint8(255));
+    QCOMPARE(recovered.redo(), Result::Success);
+    QCOMPARE(recovered.redo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->layers[0].operations.size(), 1);
+    for (int damage = 0; damage < 6; ++damage) {
+        auto invalid = source;
+        if (damage == 0) invalid.layers[0].parentUuid = QUuid(QStringLiteral("{31323334-3536-3738-393a-3b3c3d3e3f40}"));
+        if (damage == 1) invalid.layers[1].parentUuid = invalid.layers[0].uuid;
+        if (damage == 2) invalid.layers[2].parentUuid = invalid.layers[1].uuid;
+        if (damage == 3) invalid.layers[1].parentUuid = invalid.layers[1].uuid;
+        if (damage == 4) invalid.layers[1].kind = static_cast<LayerKind>(255);
+        if (damage == 5) invalid.layers[1].tiles = {{{0, 0}, QByteArray(RgbaTile::ByteCount, '\0')}};
+        bool rejected = false;
+        try { OperationDocument candidate(invalid); } catch (const std::invalid_argument &) { rejected = true; }
+        QVERIFY2(rejected, qPrintable(QStringLiteral("Invalid hierarchy case %1 was accepted").arg(damage)));
+    }
 }
 
 void KisGpuOperationDocumentTest::previousCanvasRecoveryPreservesSizesAndInput()

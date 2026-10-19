@@ -111,6 +111,8 @@ private:
     RenderOutcome recordImpl(WGPUCommandEncoder commands, const Snapshot &document,
                              const RenderedSnapshot &base, std::optional<QRect> region,
                              const QList<LayerId> &layers);
+    ProjectionOutcome composeImpl(WGPUCommandEncoder commands, const RenderedSnapshot &document,
+                                  QRect region, const ProjectedSnapshot &base, LayerId group);
 };
 }
 #endif

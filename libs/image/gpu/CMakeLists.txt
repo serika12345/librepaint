@@ -3,6 +3,7 @@ kis_add_library(kritaimagegpuoperations SHARED
     KisGpuOperationDocument.cpp
     KisGpuLayerTranslation.cpp
     KisGpuCanvasResize.cpp
+    KisGpuLayerProjectionValues.cpp
     KisGpuOperationRecovery.cpp
     KisGpuRasterPixels.cpp
     KisGpuRasterOperations.cpp

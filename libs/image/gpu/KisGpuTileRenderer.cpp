@@ -149,12 +149,27 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     }
     if (!d.error.isEmpty() || d.device->isLost()) return {RenderOutcome::DeviceFailure, {}, d.error};
     QSet<LayerId> available, selected;
-    for (const auto &layer : document->layers) available.insert(layer.id);
+    QHash<LayerId, const Layer *> nodes;
+    QHash<QUuid, QList<const Layer *>> children;
+    QList<const Layer *> selectedGroups;
+    for (const auto &layer : document->layers) {
+        available.insert(layer.id);
+        nodes.insert(layer.id, &layer);
+        children[layer.parentUuid].append(&layer);
+    }
     for (const auto layer : layers) {
         if (!available.contains(layer) || selected.contains(layer)) {
             return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU tile layer is unavailable or repeated")};
         }
         selected.insert(layer);
+        if (nodes.value(layer)->kind == LayerKind::Group) selectedGroups.append(nodes.value(layer));
+    }
+    for (qsizetype index = 0; index < selectedGroups.size(); ++index) {
+        for (const auto child : children.value(selectedGroups[index]->uuid)) {
+            if (!child->visible || !child->opacity || selected.contains(child->id)) continue;
+            selected.insert(child->id);
+            if (child->kind == LayerKind::Group) selectedGroups.append(child);
+        }
     }
     if (base && base->document() == document && base->m_data->region == region && base->m_data->selected == selected)
         return {RenderOutcome::Recorded, base, {}};
@@ -163,6 +178,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     data->owner = d.budget;
     data->region = region;
     data->selected = selected;
+    if (!selectedGroups.isEmpty()) data->defaultPixels = document->projectionDefaultPixels();
     constexpr int limit = RgbaTile::CoordinateLimit;
     const QRect layerDomain(-limit, -limit, 2 * limit, 2 * limit);
     const QRect paintRegion = region ? region->intersected(layerDomain) : layerDomain;
@@ -256,6 +272,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     }
     for (const auto &layer : document->layers) {
         if (!selected.contains(layer.id) || (region && region->isEmpty())) continue;
+        const auto uniform = data->defaultPixels.value(layer.id, layer.defaultPixel);
         QList<QRect> operationRegions(layer.operations.size() + 1, paintRegion);
         for (qsizetype i = layer.operations.size(); i-- > 0;) {
             auto needed = operationRegions[i + 1];
@@ -288,7 +305,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         if (base) {
             for (const auto &old : base->document()->layers) {
                 if (old.id != layer.id) continue;
-                if (old.defaultPixel != layer.defaultPixel) break;
+                if (base->m_data->defaultPixels.value(layer.id, old.defaultPixel) != uniform) break;
                 data->defaults[layer.id] = base->m_data->defaults.value(layer.id);
                 const bool droppingStroke = old.operations.size() == layer.operations.size() + 1 &&
                     base->m_data->strokeInputs.contains(layer.id);
@@ -353,13 +370,13 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 break;
             }
         }
-        if (packedPixel(layer.defaultPixel) && !data->defaults.value(layer.id)) {
+        if (packedPixel(uniform) && !data->defaults.value(layer.id)) {
             if (!d.ensureTileCapacity(1)) {
                 return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU default pixel tile budget exhausted")};
             }
             PaintJob fill;
             fill.output = d.allocateTile();
-            fill.values.color = packedPixel(layer.defaultPixel);
+            fill.values.color = packedPixel(uniform);
             fill.values.uniformFill = 1;
             if (!fill.output) {
                 return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU default pixel allocation failed")};
@@ -368,6 +385,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
             data->defaults[layer.id] = fill.output;
             jobs.push_back(std::move(fill));
         }
+        if (layer.kind == LayerKind::Group) continue;
         auto &tiles = data->layers[layer.id];
         for (qsizetype epoch = prefix; epoch < layer.operations.size();) {
             qsizetype end = epoch;
@@ -536,6 +554,35 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     }
     if (const auto failure = flushPaint()) return *failure;
     const RenderedSnapshot version(new RenderedVersion(data));
+    if (!region || !region->isEmpty()) {
+        QHash<QUuid, LayerId> groups;
+        QHash<LayerId, int> remaining;
+        QList<LayerId> ready;
+        for (const auto group : selectedGroups) { groups.insert(group->uuid, group->id); remaining.insert(group->id, 0); }
+        for (const auto group : selectedGroups)
+            if (groups.contains(group->parentUuid)) ++remaining[groups.value(group->parentUuid)];
+        for (const auto group : selectedGroups) if (remaining.value(group->id) == 0) ready.append(group->id);
+        for (qsizetype index = 0; index < ready.size(); ++index) {
+            const auto group = ready[index];
+            ProjectedSnapshot previous;
+            if (base && base->m_data->groupInputs.contains(group)) {
+                auto cached = std::make_shared<ProjectedVersion::Data>();
+                cached->source = base;
+                cached->region = paintRegion;
+                cached->tiles = base->m_data->layers.value(group);
+                cached->inputs = base->m_data->groupInputs.value(group);
+                cached->directLayerProjection = base->m_data->directGroups.contains(group);
+                previous = ProjectedSnapshot(new ProjectedVersion(cached));
+            }
+            const auto projected = composeImpl(commands, version, paintRegion, previous, group);
+            if (projected.code != RenderOutcome::Recorded) return {projected.code, {}, projected.diagnostic};
+            data->layers[group] = projected.version->m_data->tiles;
+            data->groupInputs[group] = projected.version->m_data->inputs;
+            if (projected.version->m_data->directLayerProjection) data->directGroups.insert(group);
+            const auto parent = groups.value(nodes.value(group)->parentUuid);
+            if (parent && --remaining[parent] == 0) ready.append(parent);
+        }
+    }
     d.coverage = std::move(nextCoverage);
     d.coverageVersion = version;
     d.coverageLayer = pendingCoverageLayer;

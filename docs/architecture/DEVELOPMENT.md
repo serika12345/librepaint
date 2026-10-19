@@ -340,6 +340,17 @@ Windowsは対応する実行ファイルへ同じ環境変数を渡す。Android
 このケースは平坦なRGBA8／sRGBの円形ブラシとKRAを検証する。ほかのブラシ、精度、
 階層、マスク、効果、画像書出し形式は各機能の比較ケースで受け入れる。
 
+`KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProjection`は、
+固定UUIDの描画レイヤーと通常合成グループを使い、単一グループと入れ子を検査する。
+子の画素編集、親の不透明度、キャンバス外の透明画素のRGB、固定版保存、子の選択と
+保存・再読込み後の追加編集を扱う。比較用ディレクトリーへ`hierarchy-<条件>.kra`と、
+64×48の密なRGBA配列`hierarchy-<条件>.rgba`を出力する。
+`TestDocument::testGpuHierarchyKeepsPublicEditingHistoryAndNativeFiles`は、同じ環境変数で
+`public-hierarchy-<条件>.kra`と`.png`を出力する。文書日時とPNG設定を固定し、
+公開ノードの型と親子関係、子の選択、編集、履歴、削除と復元、既存のKRA読込みとの一致を検査する。
+通常のブラシ設定による入れ子の子レイヤーへの描画は、`TestNode`の
+`testScriptedFigurePaintsRequestedLayerAndPreservesHistory`の`nested`条件で検査する。
+
 ### 共有画像の編集と寿命
 
 ```sh

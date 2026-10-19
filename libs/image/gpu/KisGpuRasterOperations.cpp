@@ -10,6 +10,9 @@
 #include <stdexcept>
 
 namespace LibrePaint::Image::Gpu {
+bool validRasterLayerHierarchy(const QList<RasterLayer> &layers)
+{ return Detail::validLayerHierarchy(layers); }
+
 OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     : m_limits(limits), m_identity(QUuid::createUuid())
 {
@@ -22,6 +25,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         (image.layers.isEmpty() ? image.activeLayer != 0 : image.activeLayer >= image.layers.size())) {
         throw std::invalid_argument("invalid raster document dimensions, layers or limits");
     }
+    if (!validRasterLayerHierarchy(image.layers)) throw std::invalid_argument("invalid raster layer hierarchy");
     QSharedPointer<DocumentVersion> initial(new DocumentVersion);
     initial->m_document = m_identity;
     initial->m_committed = true;
@@ -31,6 +35,8 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     for (const auto &source : image.layers) {
         const auto uuid = source.uuid.isNull() ? QUuid::createUuid() : source.uuid;
         if (identities.contains(uuid) || !Detail::validLayerName(source.name) || source.channelWriteMask > 15 ||
+            (source.kind == LayerKind::Group && (!source.tiles.isEmpty() ||
+                source.defaultPixel != std::array<quint8, 4>{} || source.channelWriteMask != 15)) ||
             source.tiles.size() > (limits.rasterBytes - initial->rasterBytes) / RgbaTile::ByteCount) {
             throw std::invalid_argument("invalid raster layer identity, name or pixel capacity");
         }
@@ -45,6 +51,8 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         layer.pinnedToTimeline = source.pinnedToTimeline;
         layer.channelWriteMask = source.channelWriteMask;
         layer.position = source.position;
+        layer.kind = source.kind;
+        layer.parentUuid = source.parentUuid;
         identities.insert(uuid);
         QSet<QPoint> coordinates;
         auto operation = QSharedPointer<TileWriteOperation>::create();
@@ -75,7 +83,7 @@ Result OperationDocument::replaceTiles(LayerId layer, const QList<RgbaTile> &til
     const auto status = checkMutation();
     if (status != Result::Success) return status;
     const auto index = layerIndex(layer);
-    if (index < 0) return Result::LayerUnavailable;
+    if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint) return Result::LayerUnavailable;
     if (tiles.isEmpty()) return Result::EmptyOperation;
     if (tiles.size() > (m_limits.rasterBytes - snapshot()->rasterBytes) / RgbaTile::ByteCount ||
         m_nextOperation == std::numeric_limits<quint64>::max() ||
@@ -125,7 +133,7 @@ Result OperationDocument::applyPixelVersions(const QList<VersionPixelWrite> &wri
         qsizetype layerIndex = -1;
         for (qsizetype i = 0; i < write.before->layers.size(); ++i)
             if (write.before->layers[i].id == write.layer) layerIndex = i;
-        if (layerIndex < 0) return Result::LayerUnavailable;
+        if (layerIndex < 0 || write.before->layers[layerIndex].kind != LayerKind::Paint) return Result::LayerUnavailable;
         if (write.tiles.size() > (m_limits.rasterBytes - write.before->rasterBytes) / RgbaTile::ByteCount)
             return Result::CapacityExceeded;
         auto operation = QSharedPointer<TileWriteOperation>::create();

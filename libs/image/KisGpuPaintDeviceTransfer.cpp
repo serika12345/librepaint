@@ -27,11 +27,9 @@ KisPaintDeviceSP kisGpuPaintDeviceTransfer(const LibrePaint::Image::Gpu::PaintIm
         result->writeBytes(reinterpret_cast<const quint8 *>(rgba.constData()), rect);
     };
     if (layer) {
-        for (const auto &value : version->layers) {
-            if (value.id != layer) continue;
-            const quint8 bgra[] = {value.defaultPixel[2], value.defaultPixel[1], value.defaultPixel[0], value.defaultPixel[3]};
-            result->setDefaultPixel(KoColor(bgra, result->colorSpace()));
-        }
+        const auto value = version->projectionDefaultPixels().value(layer);
+        const quint8 bgra[] = {value[2], value[1], value[0], value[3]};
+        result->setDefaultPixel(KoColor(bgra, result->colorSpace()));
         const auto pixels = image->execution().readLayerPixels(image->handle(), version, layer, capacity);
         if (pixels.code != Gpu::ExecutionCode::Success)
             throw std::runtime_error(pixels.diagnostic.toStdString());

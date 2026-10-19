@@ -69,6 +69,8 @@ class KisGpuPaintDocumentTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
+    void groupedFilesRetainSubtreeEditsPinnedSavingAndProjection_data();
+    void groupedFilesRetainSubtreeEditsPinnedSavingAndProjection();
     void fixedEditsSaveReopenAndExportIdenticalResults();
     void colorFillSavesReopensAndContinuesIdentically_data();
     void colorFillSavesReopensAndContinuesIdentically();
@@ -92,6 +94,92 @@ private Q_SLOTS:
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProjection_data()
+{
+    QTest::addColumn<bool>("nested");
+    QTest::newRow("group") << false;
+    QTest::newRow("nested") << true;
+}
+
+void KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProjection()
+{
+    QFETCH(bool, nested);
+    Execution execution(m_device, 16 * TileRenderer::TileBytes, 8, 2 * TileRenderer::TileBytes);
+    RasterImage input;
+    input.size = {64, 48};
+    input.activeLayer = 1;
+    input.layers = {
+        {QStringLiteral("Backdrop"), true, QUuid(QStringLiteral("{01020304-0506-0708-090a-0b0c0d0e0f10}")), {}, {0, 0, 255, 255}},
+        {QStringLiteral("Child"), true, QUuid(QStringLiteral("{11121314-1516-1718-191a-1b1c1d1e1f20}")),
+         {{{-1, 0}, QByteArray::fromHex("11223300").repeated(RgbaTile::ByteCount / 4)}}, {255, 0, 0, 255}},
+        {QStringLiteral("Group"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}}};
+    input.layers[1].parentUuid = input.layers[2].uuid;
+    input.layers[2].kind = LayerKind::Group;
+    input.layers[2].opacity = 128;
+    if (nested) {
+        input.layers.append({QStringLiteral("Outer"), true, QUuid(QStringLiteral("{31323334-3536-3738-393a-3b3c3d3e3f40}")), {}});
+        input.layers[3].kind = LayerKind::Group;
+        input.layers[3].opacity = 128;
+        input.layers[2].parentUuid = input.layers[3].uuid;
+    }
+    PaintDocument document(execution, input);
+    const auto image = document.image();
+    QCOMPARE(image->replaceRgbaPixels(2, {12, 9, 1, 1}, QByteArray::fromHex("00ff00ff")), Result::Success);
+    const auto fixed = image->operations().snapshot();
+    const auto expected = execution.readProjectionImage(image->handle(), fixed, 64 * 48 * 4);
+    QVERIFY2(expected.code == ExecutionCode::Success, qPrintable(expected.diagnostic));
+    QCOMPARE(expected.image.pixelColor(12, 9), nested ? QColor(0, 64, 191, 255) : QColor(0, 128, 127, 255));
+    QCOMPARE(image->setLayerOpacity(3, 64), Result::Success);
+    const auto current = image->operations().snapshot();
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            directory.setAutoRemove(false);
+            qInfo() << "Hierarchy save artifacts retained at" << directory.path();
+        }
+    });
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    const auto destination = results.isEmpty() ? directory.path() : results;
+    QVERIFY(QDir().mkpath(destination));
+    const auto stem = QStringLiteral("hierarchy-%1").arg(nested ? QStringLiteral("nested") : QStringLiteral("group"));
+    const auto path = QDir(destination).filePath(stem + QStringLiteral(".kra"));
+    const auto saved = document.saveKra(path, fixed);
+    QVERIFY2(saved.code == FileCode::Success, qPrintable(saved.diagnostic));
+    QCOMPARE(image->operations().snapshot(), current);
+    QCOMPARE(image->operations().undoCount(), 2);
+    QCOMPARE(image->operations().savedHistoryIndex(), 1);
+    QVERIFY(image->operations().isModified());
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto decoded = Kra::RasterCodec::read(file);
+    QVERIFY2(decoded.code == Kra::Status::Success, qPrintable(decoded.diagnostic));
+    QCOMPARE(decoded.document.image.layers.size(), input.layers.size());
+    for (int i = 0; i < input.layers.size(); ++i) {
+        const auto &actual = decoded.document.image.layers[i];
+        QCOMPARE(actual.uuid, input.layers[i].uuid);
+        QCOMPARE(actual.parentUuid, input.layers[i].parentUuid);
+        QCOMPARE(actual.kind, input.layers[i].kind);
+        if (actual.kind == LayerKind::Group) QVERIFY(actual.tiles.isEmpty());
+    }
+    QCOMPARE(decoded.document.image.layers[decoded.document.image.activeLayer].uuid, input.layers[1].uuid);
+    const auto reopened = PaintDocument::openKra(execution, path);
+    QVERIFY2(reopened.code == FileCode::Success, qPrintable(reopened.diagnostic));
+    const auto restored = reopened.document->image();
+    const auto projected = execution.readProjectionImage(restored->handle(), restored->operations().snapshot(), 64 * 48 * 4);
+    QCOMPARE(projected.code, ExecutionCode::Success);
+    QCOMPARE(projected.image, expected.image);
+    QCOMPARE(mergedImage(path).convertToFormat(QImage::Format_RGBA8888), expected.image);
+    QCOMPARE(restored->readRgbaPixels(2, {-5, 7, 1, 1}, 4).bytes, QByteArray::fromHex("11223300"));
+    QCOMPARE(restored->replaceRgbaPixels(2, {12, 9, 1, 1}, QByteArray::fromHex("ff0000ff")), Result::Success);
+    QCOMPARE(restored->undo(), Result::Success);
+    QCOMPARE(restored->readRgbaPixels(2, {12, 9, 1, 1}, 4).bytes, QByteArray::fromHex("00ff00ff"));
+    QFile pixels(QDir(destination).filePath(stem + QStringLiteral(".rgba")));
+    QVERIFY(pixels.open(QIODevice::WriteOnly));
+    for (int y = 0; y < expected.image.height(); ++y)
+        QCOMPARE(pixels.write(reinterpret_cast<const char *>(expected.image.constScanLine(y)), 64 * 4), qint64(64 * 4));
+}
 
 void KisGpuPaintDocumentTest::curvedPathFillsSaveAndReopenAcrossInteriorTiles()
 {
@@ -1072,7 +1160,7 @@ void KisGpuPaintDocumentTest::recoveryKeepsHistoryPendingInputAndAssociatedFiles
     const auto handle = restored.image()->handle();
     const auto previous = restored.image()->operations().snapshot();
     for (const auto &replacement : {qMakePair(QByteArrayLiteral("notes/retained.bin"), QByteArrayLiteral("../xx/retained.bin")),
-                                    qMakePair(QByteArrayLiteral("paintlayer"), QByteArrayLiteral("grouplayer"))}) {
+                                    qMakePair(QByteArrayLiteral("paintlayer"), QByteArrayLiteral("invalidnod"))}) {
         auto corrupt = data;
         const auto position = corrupt.indexOf(replacement.first);
         QVERIFY(position >= 0);

@@ -8,6 +8,7 @@
 #include <QColorSpace>
 #include <QDomDocument>
 #include <QDateTime>
+#include <QTimeZone>
 #include <QFile>
 #include <QDir>
 #include <QImage>
@@ -53,7 +54,9 @@ QByteArray pack(const QMap<QString, QByteArray> &files)
     if (!archive.open(QuaZip::mdCreate)) return {};
     for (auto item = files.cbegin(); item != files.cend(); ++item) {
         QuaZipFile file(&archive);
-        if (!file.open(QIODevice::WriteOnly, QuaZipNewInfo(item.key()))) return {};
+        QuaZipNewInfo info(item.key());
+        info.dateTime = QDateTime(QDate(1980, 1, 1), QTime(0, 0), QTimeZone(QTimeZone::UTC));
+        if (!file.open(QIODevice::WriteOnly, info)) return {};
         if (file.write(item.value()) != item.value().size()) return {};
         file.close();
     }
@@ -116,6 +119,8 @@ class TestKraRasterCodec : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void groupedArchivesPreserveHierarchyPixelsAndSelectedLeaf_data();
+    void groupedArchivesPreserveHierarchyPixelsAndSelectedLeaf();
     void previewSamplingPreservesEdgesAndWeightedAlpha_data();
     void previewSamplingPreservesEdgesAndWeightedAlpha();
     void savedPngResolutionComesFromDocumentMetadata_data();
@@ -137,6 +142,122 @@ private Q_SLOTS:
     void legacyLayerWithoutUuidGetsOnePersistentIdentity();
     void emptyDocumentsRequireAnExplicitLayerContainer();
 };
+
+void TestKraRasterCodec::groupedArchivesPreserveHierarchyPixelsAndSelectedLeaf_data()
+{
+    QTest::addColumn<int>("depth");
+    QTest::newRow("group") << 1;
+    QTest::newRow("nested-group") << 2;
+}
+
+void TestKraRasterCodec::groupedArchivesPreserveHierarchyPixelsAndSelectedLeaf()
+{
+    QFETCH(int, depth);
+    const auto original = document();
+    QByteArray bytes;
+    QBuffer initial(&bytes);
+    QVERIFY(initial.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(initial, original, merged(original.image.size)).code, Kra::Status::Success);
+    auto files = entries(bytes);
+    QDomDocument xml;
+    QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
+    auto layers = xml.documentElement().firstChildElement(QStringLiteral("IMAGE")).firstChildElement(QStringLiteral("layers"));
+    const QList<QUuid> groups{
+        QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")),
+        QUuid(QStringLiteral("{31323334-3536-3738-393a-3b3c3d3e3f40}"))};
+    for (int level = 0; level < depth; ++level) {
+        auto group = layers.firstChildElement(QStringLiteral("layer")).cloneNode(false).toElement();
+        group.setAttribute(QStringLiteral("nodetype"), QStringLiteral("grouplayer"));
+        group.setAttribute(QStringLiteral("filename"), QStringLiteral("group%1").arg(level));
+        group.setAttribute(QStringLiteral("name"), QStringLiteral("Group %1").arg(level));
+        group.setAttribute(QStringLiteral("uuid"), groups[level].toString());
+        group.setAttribute(QStringLiteral("selected"), QStringLiteral("false"));
+        group.setAttribute(QStringLiteral("visible"), QStringLiteral("1"));
+        group.setAttribute(QStringLiteral("opacity"), QStringLiteral("128"));
+        group.setAttribute(QStringLiteral("passthrough"), QStringLiteral("0"));
+        auto children = xml.createElement(QStringLiteral("layers"));
+        while (!layers.firstChild().isNull()) children.appendChild(layers.firstChild());
+        group.appendChild(children);
+        layers.appendChild(group);
+    }
+    files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
+    const auto input = pack(files);
+    Kra::Limits tooFewLayers;
+    tooFewLayers.layers = original.image.layers.size() + depth - 1;
+    QCOMPARE(load(input, tooFewLayers).code, Kra::Status::CapacityExceeded);
+    auto conflicting = files;
+    QDomDocument duplicate;
+    QVERIFY(duplicate.setContent(conflicting.value(QStringLiteral("maindoc.xml"))));
+    const auto nodes = duplicate.elementsByTagName(QStringLiteral("layer"));
+    nodes.at(nodes.size() - 1).toElement().setAttribute(QStringLiteral("uuid"), groups[depth - 1].toString());
+    conflicting[QStringLiteral("maindoc.xml")] = duplicate.toByteArray();
+    const auto rejected = load(pack(conflicting));
+    QCOMPARE(rejected.code, Kra::Status::InvalidData);
+    QVERIFY(rejected.document.image.layers.isEmpty());
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        QFile fixture(QDir(results).filePath(QStringLiteral("hierarchy-input-%1.kra").arg(depth)));
+        QVERIFY(fixture.open(QIODevice::WriteOnly));
+        QCOMPARE(fixture.write(input), input.size());
+    }
+    auto opened = load(input);
+    QVERIFY2(opened.code == Kra::Status::Success, qPrintable(opened.diagnostic));
+    QCOMPARE(opened.document.image.layers.size(), original.image.layers.size() + depth);
+    const auto selected = original.image.layers[original.image.activeLayer].uuid;
+    QCOMPARE(opened.document.image.layers[opened.document.image.activeLayer].uuid, selected);
+    for (auto &layer : opened.document.image.layers) {
+        if (layer.uuid == original.image.layers[0].uuid) layer.name = QStringLiteral("Edited lower red");
+        if (groups.contains(layer.uuid)) layer.opacity = 64;
+    }
+    QByteArray saved;
+    QBuffer output(&saved);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, opened.document, merged(original.image.size)).code, Kra::Status::Success);
+    const auto reopened = load(saved);
+    QVERIFY2(reopened.code == Kra::Status::Success, qPrintable(reopened.diagnostic));
+    QCOMPARE(reopened.document.image.layers[reopened.document.image.activeLayer].uuid, selected);
+    for (const auto &expected : original.image.layers) {
+        bool found = false;
+        for (const auto &layer : reopened.document.image.layers) {
+            if (layer.uuid != expected.uuid) continue;
+            found = true;
+            QCOMPARE(layer.name, expected.uuid == original.image.layers[0].uuid ? QStringLiteral("Edited lower red") : expected.name);
+            QCOMPARE(layer.visible, expected.visible);
+            QCOMPARE(layer.defaultPixel, expected.defaultPixel);
+            for (const auto &tile : expected.tiles) {
+                bool tileFound = false;
+                for (const auto &actual : layer.tiles) {
+                    if (actual.coordinate != tile.coordinate) continue;
+                    tileFound = true;
+                    QCOMPARE(actual.rgba, tile.rgba);
+                }
+                QVERIFY(tileFound);
+            }
+        }
+        QVERIFY(found);
+    }
+    QVERIFY(xml.setContent(reopened.document.description));
+    layers = xml.documentElement().firstChildElement(QStringLiteral("IMAGE")).firstChildElement(QStringLiteral("layers"));
+    for (int level = depth - 1; level >= 0; --level) {
+        const auto group = layers.firstChildElement(QStringLiteral("layer"));
+        QVERIFY(group.nextSiblingElement().isNull());
+        QCOMPARE(group.attribute(QStringLiteral("nodetype")), QStringLiteral("grouplayer"));
+        QCOMPARE(QUuid(group.attribute(QStringLiteral("uuid"))), groups[level]);
+        QCOMPARE(group.attribute(QStringLiteral("opacity")), QStringLiteral("64"));
+        layers = group.firstChildElement(QStringLiteral("layers"));
+    }
+    const auto upper = layers.firstChildElement(QStringLiteral("layer"));
+    QCOMPARE(QUuid(upper.attribute(QStringLiteral("uuid"))), original.image.layers[1].uuid);
+    QCOMPARE(upper.attribute(QStringLiteral("selected")), QStringLiteral("true"));
+    QCOMPARE(QUuid(upper.nextSiblingElement().attribute(QStringLiteral("uuid"))), original.image.layers[0].uuid);
+    QCOMPARE(reopened.document.files.value(QStringLiteral("notes/custom.bin")), original.files.value(QStringLiteral("notes/custom.bin")));
+    if (!results.isEmpty()) {
+        QFile file(QDir(results).filePath(QStringLiteral("hierarchy-output-%1.kra").arg(depth)));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(saved), saved.size());
+    }
+}
 
 void TestKraRasterCodec::previewSamplingPreservesEdgesAndWeightedAlpha_data()
 {
@@ -614,7 +735,7 @@ void TestKraRasterCodec::unsupportedAndInvalidContentsReturnNoDocument()
         auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
         auto layer = image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("layer"));
         if (change == 0) layer.setAttribute(QStringLiteral("compositeop"), QStringLiteral("multiply"));
-        if (change == 1) layer.setAttribute(QStringLiteral("nodetype"), QStringLiteral("grouplayer"));
+        if (change == 1) layer.setAttribute(QStringLiteral("nodetype"), QStringLiteral("unsupportedlayer"));
         if (change == 2) image.setAttribute(QStringLiteral("colorspacename"), QStringLiteral("LABA"));
         if (change == 3) layer.setAttribute(QStringLiteral("filename"), QStringLiteral("../outside"));
         if (change == 4) files[QStringLiteral("unnamed/layers/layer2.defaultpixel")] = QByteArray(3, '\0');

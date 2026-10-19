@@ -147,6 +147,10 @@ Detail::NativeBuffer TileRenderer::Private::recordBounds(WGPUCommandEncoder comm
 
 ProjectionOutcome TileRenderer::compose(WGPUCommandEncoder commands, const RenderedSnapshot &document,
                                        QRect region, const ProjectedSnapshot &base)
+{ return composeImpl(commands, document, region, base, 0); }
+
+ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const RenderedSnapshot &document,
+                                           QRect region, const ProjectedSnapshot &base, LayerId group)
 {
     auto &d = *m_d;
     if (d.device->thread() != QThread::currentThread() || !d.device->ownsCommands(commands) || !document ||
@@ -158,17 +162,26 @@ ProjectionOutcome TileRenderer::compose(WGPUCommandEncoder commands, const Rende
     if (!d.error.isEmpty() || d.device->isLost()) return {RenderOutcome::DeviceFailure, {}, d.error};
     auto data = std::make_shared<ProjectedVersion::Data>();
     data->source = document;
-    data->directLayerProjection = document->document()->directProjectionLayer() != 0;
-    data->region = region.intersected(QRect(QPoint(0, 0), document->document()->size));
+    QUuid parent;
+    if (group) {
+        for (const auto &layer : document->document()->layers) if (layer.id == group) parent = layer.uuid;
+        if (parent.isNull()) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU group is unavailable")};
+    }
+    QList<const Layer *> children;
+    for (const auto &layer : document->document()->layers) if (layer.parentUuid == parent) children.append(&layer);
+    data->directLayerProjection = group ? children.size() == 1 && children.first()->visible && children.first()->opacity == 255 :
+        document->document()->directProjectionLayer() != 0;
+    data->region = group ? region : region.intersected(QRect(QPoint(0, 0), document->document()->size));
     if (document->m_data->region && !data->region.isEmpty() && !document->m_data->region->contains(data->region)) {
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Projection extends outside the generated GPU region")};
     }
     QSet<quint64> coordinates;
     // A single fully opaque paint layer supplies the legacy transparent-root projection,
     // including the RGB components of pixels whose alpha is zero.
-    const auto background = data->directLayerProjection ? std::shared_ptr<Tile>{} : document->m_data->background;
+    const auto background = group || data->directLayerProjection ? std::shared_ptr<Tile>{} : document->m_data->background;
     bool implicit = bool(background);
-    for (const auto &layer : document->document()->layers) {
+    for (const auto child : children) {
+        const auto &layer = *child;
         if (!layer.visible || !layer.opacity) continue;
         if (!document->m_data->selected.contains(layer.id)) {
             return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Projection requires every visible GPU layer")};
@@ -181,7 +194,7 @@ ProjectionOutcome TileRenderer::compose(WGPUCommandEncoder commands, const Rende
             }
         }
     }
-    if (implicit && !data->region.isEmpty()) {
+    if (!group && implicit && !data->region.isEmpty()) {
         const int left = data->region.left() / TileSize, right = data->region.right() / TileSize;
         const int top = data->region.top() / TileSize, bottom = data->region.bottom() / TileSize;
         // Bound derived coordinate bookkeeping before expanding a uniform region.
@@ -195,7 +208,8 @@ ProjectionOutcome TileRenderer::compose(WGPUCommandEncoder commands, const Rende
     if (background) {
         for (const auto coordinate : coordinates) data->inputs[coordinate].append({background, 255});
     }
-    for (const auto &layer : document->document()->layers) {
+    for (const auto child : children) {
+        const auto &layer = *child;
         if (!layer.visible || !layer.opacity) continue;
         const auto fallback = document->m_data->defaults.value(layer.id);
         const auto &tiles = document->m_data->layers[layer.id];

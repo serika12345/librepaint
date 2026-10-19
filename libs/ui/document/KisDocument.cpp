@@ -3166,12 +3166,15 @@ void KisDocument::setCurrentImage(KisImageSP image, bool forceInitialUpdate, Kis
         if (const auto owner = image->gpuImage()) {
             const auto selected = owner->operations().activeLayer();
             const auto layers = owner->operations().snapshot()->layers;
-            for (qsizetype index = 0; index < layers.size(); ++index) {
-                if (layers[index].id == selected) {
-                    preActivatedNode = image->root()->at(index);
-                    break;
+            QUuid identity;
+            for (const auto &layer : layers) if (layer.id == selected) identity = layer.uuid;
+            QList<KisNodeSP> nodes{image->root()};
+            for (qsizetype i = 0; i < nodes.size() && !preActivatedNode; ++i)
+                for (auto node = nodes[i]->firstChild(); node; node = node->nextSibling()) {
+                    if (node->uuid() == identity) { preActivatedNode = node; break; }
+                    nodes.append(node);
                 }
-            }
+            d->preActivatedNode = preActivatedNode;
         }
     }
     d->shapeController->setImage(image, preActivatedNode);

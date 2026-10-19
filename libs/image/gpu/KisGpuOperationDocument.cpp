@@ -18,6 +18,23 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 
 namespace {
+void includeLayerDescendants(const QList<Layer> &layers, QSet<LayerId> &included)
+{
+    QHash<QUuid, QList<const Layer *>> children;
+    QList<const Layer *> pending;
+    for (const auto &layer : layers) {
+        children[layer.parentUuid].append(&layer);
+        if (included.contains(layer.id)) pending.append(&layer);
+    }
+    for (qsizetype i = 0; i < pending.size(); ++i) {
+        for (const auto child : children.value(pending[i]->uuid)) {
+            if (included.contains(child->id)) continue;
+            included.insert(child->id);
+            pending.append(child);
+        }
+    }
+}
+
 void copyLayerOperations(const Layer &source, Layer &copy, const QUuid &identity, quint64 &sequence)
 {
     copy.operations.clear();
@@ -78,21 +95,34 @@ std::unique_ptr<OperationDocument> OperationDocument::cloneVersion(const Snapsho
         auto found = std::find_if(source->layers.cbegin(), source->layers.cend(),
                                  [onlyLayer](const Layer &layer) { return layer.id == onlyLayer; });
         if (found == source->layers.cend()) return {};
-        version->layers = {*found};
+        QSet<LayerId> included{onlyLayer};
+        includeLayerDescendants(source->layers, included);
+        version->layers.clear();
+        for (const auto &layer : source->layers) if (included.contains(layer.id)) {
+            version->layers.append(layer);
+            if (layer.id == onlyLayer) version->layers.last().parentUuid = QUuid();
+        }
         version->activeLayer = onlyLayer;
         version->selectedLayers = {onlyLayer};
         version->projectionBackground = {};
         version->sampleCount = 0;
         version->rasterBytes = 0;
-        for (const auto &operation : found->operations) {
-            version->sampleCount += operationSamples(operation);
-            version->rasterBytes += operationRasterBytes(operation);
-        }
+        for (const auto &layer : version->layers)
+            for (const auto &operation : layer.operations) {
+                version->sampleCount += operationSamples(operation);
+                version->rasterBytes += operationRasterBytes(operation);
+            }
     }
     auto result = std::make_unique<OperationDocument>(RasterImage{source->size, {}, 0}, m_limits);
     version->m_document = result->m_identity;
+    QHash<QUuid, QUuid> identities;
+    if (!preserveLayerUuids)
+        for (const auto &layer : version->layers) identities.insert(layer.uuid, QUuid::createUuid());
     for (auto &layer : version->layers) {
-        if (!preserveLayerUuids) layer.uuid = QUuid::createUuid();
+        if (!preserveLayerUuids) {
+            layer.uuid = identities.value(layer.uuid);
+            layer.parentUuid = identities.value(layer.parentUuid);
+        }
         for (auto &operation : layer.operations) {
             if (const auto *paint = std::get_if<PaintSnapshot>(&operation)) {
                 auto copied = QSharedPointer<PaintOperation>::create(**paint);
@@ -314,7 +344,8 @@ Result OperationDocument::checkOperation(OperationId id) const
 OperationId OperationDocument::beginStroke(LayerId layer, const Brush &brush, quint64 randomSeed)
 {
     const qsizetype index = layerIndex(layer);
-    if (checkMutation() != Result::Success || index < 0 || !snapshot()->layers[index].visible || snapshot()->layers[index].userLocked ||
+    if (checkMutation() != Result::Success || index < 0 || snapshot()->layers[index].kind != LayerKind::Paint ||
+        !snapshot()->layers[index].visible || snapshot()->layers[index].userLocked ||
         !validBrush(brush) || m_nextOperation == std::numeric_limits<quint64>::max() ||
         m_nextRevision == std::numeric_limits<quint64>::max()) {
         return {};
@@ -568,7 +599,13 @@ LayerId OperationDocument::insertVersion(const Snapshot &source, LayerId sourceL
         m_nextLayer == std::numeric_limits<quint64>::max() || m_nextRevision == std::numeric_limits<quint64>::max()) return 0;
     const auto found = std::find_if(source->layers.cbegin(), source->layers.cend(),
                                    [sourceLayer](const Layer &layer) { return layer.id == sourceLayer; });
-    if (found == source->layers.cend() || found->defaultPixel != properties.defaultPixel) return 0;
+    if (found == source->layers.cend() || found->kind != LayerKind::Paint || properties.kind != LayerKind::Paint ||
+        found->defaultPixel != properties.defaultPixel) return 0;
+    if (!properties.parentUuid.isNull()) {
+        const auto parent = std::find_if(snapshot()->layers.cbegin(), snapshot()->layers.cend(),
+            [&](const Layer &layer) { return layer.uuid == properties.parentUuid && layer.kind == LayerKind::Group; });
+        if (parent == snapshot()->layers.cend()) return 0;
+    }
     for (const auto &state : m_history)
         for (const auto &layer : state->layers) if (layer.uuid == properties.uuid) return 0;
     auto samples = snapshot()->sampleCount;
@@ -593,6 +630,7 @@ LayerId OperationDocument::insertVersion(const Snapshot &source, LayerId sourceL
     added.pinnedToTimeline = properties.pinnedToTimeline;
     added.channelWriteMask = properties.channelWriteMask;
     added.position = properties.position;
+    added.parentUuid = properties.parentUuid;
     nextOperation = m_nextOperation;
     copyLayerOperations(*found, added, m_identity, nextOperation);
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
@@ -614,16 +652,25 @@ Result OperationDocument::duplicateLayers(const QList<LayerId> &layers, const QL
     if (status != Result::Success) return status;
     if (layers.isEmpty() || layers.size() != names.size()) return Result::InvalidInput;
     const auto original = snapshot();
-    if (layers.size() > m_limits.layerCount - original->layers.size() ||
-        quint64(layers.size()) > std::numeric_limits<quint64>::max() - m_nextLayer ||
-        m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
-    qsizetype samples = original->sampleCount, pixels = original->rasterBytes;
-    quint64 nextOperation = m_nextOperation;
     qsizetype previousIndex = -1;
+    QSet<LayerId> included;
+    QHash<LayerId, QString> copyNames;
     for (int i = 0; i < layers.size(); ++i) {
         const auto index = layerIndex(layers[i]);
         if (index < 0) return Result::LayerUnavailable;
         if (index <= previousIndex || !validLayerName(names[i])) return Result::InvalidInput;
+        previousIndex = index;
+        included.insert(layers[i]);
+        copyNames.insert(layers[i], names[i]);
+    }
+    includeLayerDescendants(original->layers, included);
+    if (included.size() > m_limits.layerCount - original->layers.size() ||
+        quint64(included.size()) > std::numeric_limits<quint64>::max() - m_nextLayer ||
+        m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    qsizetype samples = original->sampleCount, pixels = original->rasterBytes;
+    quint64 nextOperation = m_nextOperation;
+    for (qsizetype index = 0; index < original->layers.size(); ++index) {
+        if (!included.contains(original->layers[index].id)) continue;
         previousIndex = index;
         for (const auto &operation : original->layers[index].operations) {
             if (operationSamples(operation) > m_limits.samplesPerDocument - samples ||
@@ -641,9 +688,12 @@ Result OperationDocument::duplicateLayers(const QList<LayerId> &layers, const QL
     version->selectedLayers.clear();
     QSet<QUuid> identities;
     for (const auto &layer : original->layers) identities.insert(layer.uuid);
-    const auto activeIndex = qMax(qsizetype(0), layers.indexOf(activeSource));
-    for (int i = 0; i < layers.size(); ++i) {
-        Layer copy = original->layers[layerIndex(layers[i])];
+    QHash<QUuid, QUuid> copiedIdentities;
+    QList<Layer> copies;
+    const auto active = layers.contains(activeSource) ? activeSource : layers.first();
+    for (const auto &source : original->layers) {
+        if (!included.contains(source.id)) continue;
+        Layer copy = source;
         copy.id = ++nextLayer;
         const auto sourceIdentity = copy.uuid;
         bool unique = false;
@@ -655,10 +705,15 @@ Result OperationDocument::duplicateLayers(const QList<LayerId> &layers, const QL
         }
         if (!unique) return Result::CapacityExceeded;
         identities.insert(copy.uuid);
-        copy.name = names[i];
-        copyLayerOperations(original->layers[layerIndex(layers[i])], copy, m_identity, nextOperation);
-        if (i == activeIndex) version->activeLayer = copy.id;
-        version->selectedLayers.append(copy.id);
+        copiedIdentities.insert(source.uuid, copy.uuid);
+        if (copyNames.contains(source.id)) copy.name = copyNames.value(source.id);
+        copyLayerOperations(source, copy, m_identity, nextOperation);
+        if (source.id == active) version->activeLayer = copy.id;
+        if (copyNames.contains(source.id)) version->selectedLayers.append(copy.id);
+        copies.append(std::move(copy));
+    }
+    for (auto &copy : copies) {
+        copy.parentUuid = copiedIdentities.value(copy.parentUuid, copy.parentUuid);
         version->layers.insert(insertion++, copy);
     }
     version->sampleCount = samples;
@@ -747,6 +802,9 @@ Result OperationDocument::setLayerOpacity(LayerId layer, quint8 opacity, Propert
 Result OperationDocument::writeLayerChannelMask(LayerId layer, quint8 mask)
 {
     if (mask > 15) return Result::InvalidInput;
+    if (m_closed) return Result::Closed;
+    const auto index = layerIndex(layer);
+    if (index >= 0 && snapshot()->layers[index].kind != LayerKind::Paint) return Result::LayerUnavailable;
     return writeLayerProperty(layer, LayerProperty::ChannelMask, &Layer::channelWriteMask, mask);
 }
 
@@ -756,7 +814,7 @@ Result OperationDocument::setLayerChannelMask(LayerId layer, quint8 mask, Proper
     if (status != Result::Success) return status;
     if (mask > 15 || (history != PropertyHistory::Separate && history != PropertyHistory::MergeConsecutive)) return Result::InvalidInput;
     const auto index = layerIndex(layer);
-    if (index < 0) return Result::LayerUnavailable;
+    if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint) return Result::LayerUnavailable;
     if (snapshot()->layers[index].channelWriteMask == mask) return Result::Success;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
@@ -858,7 +916,8 @@ Result OperationDocument::clearLayers(const QList<LayerId> &layers)
     for (const auto layer : layers) {
         if (cleared.contains(layer)) return Result::InvalidInput;
         const auto index = layerIndex(layer);
-        if (index < 0 || snapshot()->layers[index].userLocked) return Result::LayerUnavailable;
+        if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint ||
+            snapshot()->layers[index].userLocked) return Result::LayerUnavailable;
         cleared.insert(layer);
     }
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
@@ -883,7 +942,7 @@ Result OperationDocument::cropLayer(LayerId layer, const QRect &rect)
     const auto status = checkMutation();
     if (status != Result::Success) return status;
     const auto index = layerIndex(layer);
-    if (index < 0) return Result::LayerUnavailable;
+    if (index < 0 || snapshot()->layers[index].kind != LayerKind::Paint) return Result::LayerUnavailable;
     if (!validCropRect(rect)) return Result::InvalidInput;
     if (m_nextOperation == std::numeric_limits<quint64>::max() ||
         m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
@@ -932,6 +991,7 @@ Result OperationDocument::removeLayers(const QList<LayerId> &layers, const QStri
         if (layerIndex(layer) < 0) return Result::LayerUnavailable;
         removed.insert(layer);
     }
+    includeLayerDescendants(snapshot()->layers, removed);
     const bool replace = removed.size() == snapshot()->layers.size() && !replacementName.isEmpty();
     if (replace && m_nextLayer == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;

@@ -115,9 +115,9 @@ ImageReadbackOutcome Execution::readThumbnail(DocumentHandle handle, const Snaps
         const QRect canvas(QPoint(), pinned->size);
         QList<LayerId> generated;
         auto implicit = pinned->projectionBackground;
+        if (layer) implicit = pinned->projectionDefaultPixels().value(layer);
         for (const auto &value : pinned->layers) {
-            if (layer ? value.id == layer : value.visible) generated.append(value.id);
-            if (value.id == layer) implicit = value.defaultPixel;
+            if (layer ? value.id == layer : value.parentUuid.isNull() && value.visible && value.opacity) generated.append(value.id);
         }
         for (qsizetype start = 0; start < pixels; start += chunkPixels) {
             const qsizetype count = std::min(chunkPixels, qsizetype(pixels) - start);

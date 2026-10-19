@@ -330,6 +330,135 @@ void TestDocument::testOrdinaryCreationKeepsPngExportAndReopen()
     QCOMPARE(publicReopened.pixelData(5, 5, 1, 1), red);
 }
 
+void TestDocument::testGpuHierarchyKeepsPublicEditingHistoryAndNativeFiles_data()
+{
+    QTest::addColumn<bool>("nested");
+    QTest::newRow("group") << false;
+    QTest::newRow("nested") << true;
+}
+
+void TestDocument::testGpuHierarchyKeepsPublicEditingHistoryAndNativeFiles()
+{
+    QFETCH(bool, nested);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    namespace Kra = LibrePaint::ImportExport::Kra;
+    QString diagnostic;
+    const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+    QVERIFY2(execution, qPrintable(diagnostic));
+    Gpu::RasterImage input;
+    input.size = {32, 16};
+    input.projectionBackground = {41, 42, 43, 0};
+    input.activeLayer = 1;
+    input.layers = {
+        {QStringLiteral("Backdrop"), true, QUuid(QStringLiteral("{01020304-0506-0708-090a-0b0c0d0e0f10}")), {}, {0, 0, 255, 255}},
+        {QStringLiteral("Nested paint"), true, QUuid(QStringLiteral("{11121314-1516-1718-191a-1b1c1d1e1f20}")), {}, {17, 34, 51, 0}},
+        {QStringLiteral("Group"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}}};
+    input.layers[1].parentUuid = input.layers[2].uuid;
+    input.layers[2].kind = Gpu::LayerKind::Group;
+    input.layers[2].opacity = 128;
+    if (nested) {
+        input.layers.append({QStringLiteral("Outer"), true, QUuid(QStringLiteral("{31323334-3536-3738-393a-3b3c3d3e3f40}")), {}});
+        input.layers[3].kind = Gpu::LayerKind::Group;
+        input.layers[3].opacity = 128;
+        input.layers[2].parentUuid = input.layers[3].uuid;
+    }
+    const auto owner = Gpu::PaintImageSP::create(execution, input);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Grouped GPU document")));
+    const auto image = document->image();
+    QCOMPARE(image->root()->childCount(), quint32(2));
+    const auto top = image->root()->lastChild();
+    KisNodeSP group = nested ? top->firstChild() : top;
+    QVERIFY(qobject_cast<const KisGroupLayer *>(group.data()));
+    QCOMPARE(group->childCount(), quint32(1));
+    const auto leaf = group->firstChild();
+    QCOMPARE(leaf->uuid(), input.layers[1].uuid);
+    QCOMPARE(document->preActivatedNode(), leaf);
+    NodeSP publicGroup(Node::createNode(image, group));
+    NodeSP publicLeaf(Node::createNode(image, leaf));
+    QCOMPARE(publicGroup->type(), QStringLiteral("grouplayer"));
+    QVERIFY(publicGroup->pixelData(0, 0, 1, 1).isEmpty());
+    QVERIFY(!publicGroup->setPixelData(QByteArray::fromHex("0000ffff"), 0, 0, 1, 1));
+    const auto groupDevice = qobject_cast<const KisGroupLayer *>(group.data())->original();
+    QCOMPARE(QByteArray(reinterpret_cast<const char *>(groupDevice->defaultPixel().data()), 4), QByteArray::fromHex("33221100"));
+    QCOMPARE(qobject_cast<const KisGroupLayer *>(group.data())->defaultProjectionColor().toQColor(), QColor(0, 0, 0, 0));
+    const auto background = image->defaultProjectionColor();
+    QVERIFY_EXCEPTION_THROWN(qobject_cast<KisGroupLayer *>(group.data())->setDefaultProjectionColor(KoColor(QColor(Qt::red), image->colorSpace())), std::logic_error);
+    QCOMPARE(image->defaultProjectionColor(), background);
+    const auto sequence = groupDevice->sequenceNumber();
+    const auto red = QByteArray::fromHex("0000ffff");
+    QVERIFY(publicLeaf->setPixelData(red, 5, 5, 1, 1));
+    QVERIFY(groupDevice->sequenceNumber() != sequence);
+    QCOMPARE(publicGroup->projectionPixelData(5, 5, 1, 1), red);
+    Document api(document.data(), false);
+    QCOMPARE(api.pixelData(5, 5, 1, 1), nested ? QByteArray::fromHex("bf0040ff") : QByteArray::fromHex("7f0080ff"));
+    QCOMPARE(owner->replaceRgbaPixels(2, {5, 5, 1, 1}, QByteArray::fromHex("00ff00ff")), Gpu::Result::Success);
+    QCOMPARE(document->undoStack()->count(), 1);
+    document->undoStack()->undo();
+    QCOMPARE(publicLeaf->pixelData(5, 5, 1, 1), red);
+    document->undoStack()->redo();
+    QCOMPARE(publicLeaf->pixelData(5, 5, 1, 1), QByteArray::fromHex("00ff00ff"));
+    QCOMPARE(group->firstChild(), leaf);
+    publicGroup->setOpacity(64);
+    QCOMPARE(owner->operations().snapshot()->layers[2].opacity, quint8(64));
+    QCOMPARE(publicGroup->thumbnail(8, 8).isNull(), false);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            directory.setAutoRemove(false);
+            qInfo() << "Public hierarchy artifacts retained at" << directory.path();
+        }
+    });
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    const auto destination = results.isEmpty() ? directory.path() : results;
+    QVERIFY(QDir().mkpath(destination));
+    const auto stem = QStringLiteral("public-hierarchy-%1").arg(nested ? QStringLiteral("nested") : QStringLiteral("group"));
+    const auto kraPath = QDir(destination).filePath(stem + QStringLiteral(".kra"));
+    document->documentInfo()->setAboutInfo("creation-date", QStringLiteral("2000-01-02T03:04:05Z"));
+    KisPropertiesConfigurationSP kraSettings(new KisPropertiesConfiguration);
+    kraSettings->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));
+    QVERIFY2(document->saveAs(kraPath, KisDocument::nativeFormatMimeType(), false, kraSettings), qPrintable(document->errorMessage()));
+    document->waitForSavingToComplete();
+    InfoObject configuration;
+    configuration.setProperty("alpha", true);
+    configuration.setProperty("interlaced", false);
+    configuration.setProperty("compression", 3);
+    configuration.setProperty("saveSRGBProfile", true);
+    configuration.setProperty("forceSRGB", false);
+    configuration.setProperty("storeAuthor", false);
+    configuration.setProperty("storeMetaData", false);
+    const auto pngPath = QDir(destination).filePath(stem + QStringLiteral(".png"));
+    QVERIFY2(api.exportImage(pngPath, configuration), qPrintable(document->errorMessage()));
+    const auto expected = api.pixelData(0, 0, 32, 16);
+    QFile saved(kraPath);
+    QVERIFY(saved.open(QIODevice::ReadOnly));
+    const auto decoded = Kra::RasterCodec::read(saved);
+    QVERIFY2(decoded.code == Kra::Status::Success, qPrintable(decoded.diagnostic));
+    auto reopenedOwner = Gpu::PaintImageSP::create(execution, decoded.document.image);
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setCurrentImage(KisImage::fromGpuImage(reopenedOwner, QStringLiteral("Reopened hierarchy")));
+    Document reopenedApi(reopened.data(), false);
+    QCOMPARE(reopenedApi.pixelData(0, 0, 32, 16), expected);
+    QCOMPARE(reopened->preActivatedNode()->uuid(), leaf->uuid());
+    QScopedPointer<KisDocument> native(KisPart::instance()->createDocument());
+    native->setFileBatchMode(true);
+    QVERIFY2(native->openPath(kraPath, KisDocument::DontAddToRecent), qPrintable(native->errorMessage()));
+    Document nativeApi(native.data(), false);
+    QCOMPARE(nativeApi.pixelData(0, 0, 32, 16), expected);
+    const auto nativeTop = native->image()->root()->lastChild();
+    const auto nativeGroup = nested ? nativeTop->firstChild() : nativeTop;
+    QVERIFY(qobject_cast<const KisGroupLayer *>(nativeGroup.data()));
+    QCOMPARE(nativeGroup->firstChild()->uuid(), leaf->uuid());
+    QVERIFY(publicGroup->remove());
+    QCOMPARE(image->root()->childCount(), nested ? quint32(2) : quint32(1));
+    if (nested) QCOMPARE(top->childCount(), quint32(0));
+    document->undoStack()->undo();
+    QCOMPARE(group->firstChild(), leaf);
+    QCOMPARE(publicLeaf->pixelData(5, 5, 1, 1), QByteArray::fromHex("00ff00ff"));
+}
+
 void TestDocument::testOrdinaryKraKeepsLayerHierarchyThroughResaving()
 {
     const auto cs = KoColorSpaceRegistry::instance()->rgb8();

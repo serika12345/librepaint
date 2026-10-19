@@ -123,7 +123,7 @@ public:
      * including hidden ones, and optionally the visible projection. Returns full
      * sparse tiles intersecting the document-clipped region by default.
      * LayerCoordinates preserves off-canvas layer tiles; the projection remains
-     * clipped to the canvas. Absent layer tiles use the pinned layer's defaultPixel.
+     * clipped to the canvas. Absent tiles use the pinned document's projectionDefaultPixels().
      * The byte limit counts distinct transferred tile buffers.
      * Rejection returns no partial pixels. CPU values outlive the device.
      */
@@ -168,7 +168,7 @@ public:
                                      QRect region, LayerId layer, qsizetype maximumBytes);
 
     /** Complete sparse layer pixels, including hidden and off-canvas tiles.
-     * Implicit pixels stay in the returned document's layer defaultPixel.
+     * Implicit pixels use the returned document's projectionDefaultPixels().
      * The output byte limit bounds CPU tiles; each transfer uses one tile.
      * Complete reads retire derived display caches after GPU completion while
      * preserving requests and publication. External GPU pins count against the

@@ -14,12 +14,15 @@ Result OperationDocument::resizeCanvas(const QRect &rect, bool cropLayers)
     if (!Detail::validCanvasRect(rect)) return Result::InvalidInput;
     if (!cropLayers && rect == QRect(QPoint(), snapshot()->size)) return Result::Success;
     const QPoint offset = -rect.topLeft();
-    const quint64 count = quint64(snapshot()->layers.size()) * (int(cropLayers) + int(!offset.isNull()));
+    quint64 paintLayers = 0;
+    for (const auto &layer : snapshot()->layers) paintLayers += layer.kind == LayerKind::Paint;
+    const quint64 count = paintLayers * (int(cropLayers) + int(!offset.isNull()));
     if (m_nextRevision == std::numeric_limits<quint64>::max() ||
         count > std::numeric_limits<quint64>::max() - m_nextOperation) return Result::CapacityExceeded;
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
     auto nextOperation = m_nextOperation;
     for (auto &layer : version->layers) {
+        if (layer.kind == LayerKind::Group) continue;
         const qint64 x = qint64(layer.position.x()) + offset.x(), y = qint64(layer.position.y()) + offset.y();
         if (x < std::numeric_limits<qint32>::min() || x > std::numeric_limits<qint32>::max() ||
             y < std::numeric_limits<qint32>::min() || y > std::numeric_limits<qint32>::max()) return Result::InvalidInput;

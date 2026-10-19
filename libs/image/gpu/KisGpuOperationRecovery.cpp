@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 28;
+constexpr quint16 FormatVersion = 29;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -183,13 +183,14 @@ QByteArray OperationDocument::recoveryData() const
         if (!withinLimit()) return {};
         for (const auto &layer : state->layers) {
             const auto name = layer.name.toUtf8();
-            if (name.size() > m_limits.recoveryBytes - DigestSize - bytes.size() - 48) return {};
+            if (name.size() > m_limits.recoveryBytes - DigestSize - bytes.size() - 65) return {};
             stream << layer.id << quint32(name.size());
             stream.writeRawData(name.constData(), int(name.size()));
             stream << quint8(layer.visible) << layer.uuid;
             for (const auto component : layer.defaultPixel) stream << component;
             stream << layer.opacity << quint8(layer.userLocked) << quint8(quint8(layer.pinnedToTimeline) | ((15u ^ layer.channelWriteMask) << 1));
             stream << qint32(layer.position.x()) << qint32(layer.position.y());
+            stream << quint8(layer.kind) << layer.parentUuid;
             stream << quint32(layer.operations.size());
             if (!withinLimit() || layer.operations.size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 4) return {};
             for (const auto &operation : layer.operations) stream << indices.value(operationPointer(operation));
@@ -466,6 +467,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
     QList<LayerHistoryChange> changes;
     QSet<quint32> referencedOperations;
     QHash<LayerId, QUuid> layerIdentities;
+    QHash<LayerId, LayerKind> layerKinds;
     QHash<QUuid, LayerId> identityOwners;
     quint64 previousRevision = 0;
     quint64 previousModifiedRevision = 0;
@@ -501,7 +503,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         if (state->revision() > nextRevision || state->m_modifiedRevision > state->revision() ||
             stateRevisions.contains(state->revision()) ||
             (i > 0 && state->m_modifiedRevision <= previousModifiedRevision) ||
-            !readableCount(stream, layerCount, m_limits.layerCount, format >= 24 ? 48 : 40)) return Result::InvalidRecovery;
+            !readableCount(stream, layerCount, m_limits.layerCount, format >= 29 ? 65 : format >= 24 ? 48 : 40)) return Result::InvalidRecovery;
         stateRevisions.insert(state->revision());
         previousRevision = qMax(previousRevision, state->revision());
         previousModifiedRevision = state->m_modifiedRevision;
@@ -525,12 +527,20 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
                 stream >> x >> y;
                 layer.position = {x, y};
             }
+            if (format >= 29) {
+                quint8 kind = 0;
+                stream >> kind >> layer.parentUuid;
+                if (kind > quint8(LayerKind::Group)) return Result::InvalidRecovery;
+                layer.kind = LayerKind(kind);
+            }
             stream >> count;
             if (visible > 1 || locked > 1 || pinned > (format < 13 ? 1 : 31) || layer.uuid.isNull() ||
                 (layerIdentities.contains(layer.id) && layerIdentities.value(layer.id) != layer.uuid) ||
+                (layerKinds.contains(layer.id) && layerKinds.value(layer.id) != layer.kind) ||
                 (identityOwners.contains(layer.uuid) && identityOwners.value(layer.uuid) != layer.id) ||
                 !readableCount(stream, count, operationCount, 4)) return Result::InvalidRecovery;
             layerIdentities.insert(layer.id, layer.uuid);
+            layerKinds.insert(layer.id, layer.kind);
             identityOwners.insert(layer.uuid, layer.id);
             layer.visible = visible;
             layer.userLocked = locked;
@@ -557,10 +567,13 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
                 layer.operations.append(operation);
                 referencedOperations.insert(index);
             }
+            if (layer.kind == LayerKind::Group && (!layer.operations.isEmpty() ||
+                layer.defaultPixel != std::array<quint8, 4>{} || layer.channelWriteMask != 15)) return Result::InvalidRecovery;
             layers.insert(layer.id);
             state->layers.append(layer);
         }
-        if (layers.isEmpty() ? state->activeLayer != 0 : !layers.contains(state->activeLayer)) return Result::InvalidRecovery;
+        if (!validLayerHierarchy(state->layers) ||
+            (layers.isEmpty() ? state->activeLayer != 0 : !layers.contains(state->activeLayer))) return Result::InvalidRecovery;
         QList<LayerId> selected;
         for (const auto &layer : state->layers) if (state->selectedLayers.contains(layer.id)) selected.append(layer.id);
         if (selected != state->selectedLayers || (!layers.isEmpty() && selected.isEmpty()) ||
@@ -687,7 +700,8 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
             for (qsizetype i = 0; i < base->layers.size(); ++i) {
                 if (base->layers[i].id == edit->layer) index = i;
             }
-            if (index < 0 || !base->layers[index].visible || base->layers[index].userLocked ||
+            if (index < 0 || base->layers[index].kind != LayerKind::Paint ||
+                !base->layers[index].visible || base->layers[index].userLocked ||
                 edit->sampleCount > m_limits.samplesPerDocument - base->sampleCount) return Result::InvalidRecovery;
             if (edit->sampleCount > 0 || edit->shape.kind == ShapeKind::Path) {
                 if (previewRevision <= previousRevision || previewRevision > nextRevision || previewRevision == savedRevision) return Result::InvalidRecovery;
@@ -705,7 +719,8 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
             qsizetype index = -1;
             for (qsizetype i = 0; i < base->layers.size(); ++i)
                 if (base->layers[i].id == translation->layer) index = i;
-            if (index < 0 || !base->layers[index].visible || base->layers[index].userLocked) return Result::InvalidRecovery;
+            if (index < 0 || base->layers[index].kind != LayerKind::Paint ||
+                !base->layers[index].visible || base->layers[index].userLocked) return Result::InvalidRecovery;
             if (previewRevision) {
                 if (translation->version == 0 || previewRevision <= previousRevision || previewRevision > nextRevision ||
                     previewRevision == savedRevision) return Result::InvalidRecovery;

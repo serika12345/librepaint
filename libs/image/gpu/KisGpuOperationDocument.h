@@ -9,6 +9,7 @@
 #include <array>
 #include <QByteArray>
 #include <QList>
+#include <QHash>
 #include <QPointF>
 #include <QRect>
 #include <QSharedPointer>
@@ -183,6 +184,8 @@ struct CropOperation
 using CropSnapshot = QSharedPointer<const CropOperation>;
 using LayerOperation = std::variant<PaintSnapshot, TileWriteSnapshot, TranslationSnapshot, CropSnapshot>;
 
+enum class LayerKind : quint8 { Paint, Group };
+
 struct RasterLayer
 {
     QString name;
@@ -196,7 +199,13 @@ struct RasterLayer
     quint8 channelWriteMask = 15;
     /** Public device position; tile coordinates remain in image space. */
     QPoint position{};
+    LayerKind kind = LayerKind::Paint;
+    QUuid parentUuid{};
 };
+/** Validates parent identities, group parents and cycles. Null identities are
+ * assigned during raster import and can only be referenced after assignment.
+ */
+KRITAIMAGEGPUOPERATIONS_EXPORT bool validRasterLayerHierarchy(const QList<RasterLayer> &layers);
 struct RasterImage
 {
     QSize size;
@@ -219,9 +228,11 @@ struct Layer
     bool pinnedToTimeline = false;
     quint8 channelWriteMask = 15;
     QPoint position{};
+    LayerKind kind = LayerKind::Paint;
+    QUuid parentUuid{};
 };
 
-/** Immutable logical document version; all layers are flat RGBA8/sRGB paint layers. */
+/** Immutable RGBA8/sRGB document version with paint layers and group ownership. */
 class KRITAIMAGEGPUOPERATIONS_EXPORT DocumentVersion
 {
 public:
@@ -232,6 +243,10 @@ public:
     /** Admission state is queried on the OperationDocument owner's thread. */
     bool isCommitted() const { return m_committed; }
     OperationId pendingOperation() const { return m_committed ? OperationId{} : m_pendingOperation; }
+    /** Uniform projection values before each node's own opacity. Group values
+     * derive from child defaults, order, visibility and quantized opacity.
+     */
+    QHash<LayerId, std::array<quint8, 4>> projectionDefaultPixels() const;
     QSize size;
     std::array<quint8, 4> projectionBackground{};
     QList<Layer> layers;
@@ -243,8 +258,14 @@ public:
     /** Transparent root projections reuse one full-opacity child, preserving hidden RGB. */
     LayerId directProjectionLayer() const
     {
-        return projectionBackground[3] == 0 && layers.size() == 1 && layers.first().visible && layers.first().opacity == 255
-            ? layers.first().id : 0;
+        if (projectionBackground[3] != 0) return 0;
+        const Layer *only = nullptr;
+        for (const auto &layer : layers) {
+            if (!layer.parentUuid.isNull()) continue;
+            if (only) return 0;
+            only = &layer;
+        }
+        return only && only->visible && only->opacity == 255 ? only->id : 0;
     }
 
 private:
@@ -305,7 +326,7 @@ struct Limits
 };
 
 /**
- * Owns retained painting operations, flat layer state and the document's history.
+ * Owns retained painting operations, layer hierarchy and the document's history.
  *
  * Call on one owning thread. Snapshots are immutable and can outlive the owner;
  * consumers retain a snapshot for background work. Each accepted append or shape
@@ -324,7 +345,7 @@ public:
     static constexpr qreal CoordinateLimit = RgbaTile::CoordinateLimit;
 
     explicit OperationDocument(QSize size, Limits limits = {});
-    /** Validated flat raster import starts saved, with preserved layer UUIDs and empty history. */
+    /** Validated raster import starts saved, with preserved layer UUIDs and empty history. */
     explicit OperationDocument(const RasterImage &image, Limits limits = {});
     /** Captured input is bounded before a producer allocates its retained copy. */
     Limits limits() const { return m_limits; }
@@ -398,7 +419,7 @@ public:
      */
     Result selectLayers(const QList<LayerId> &layers, LayerId active);
     /** Duplicates a bottom-to-top selection above its highest layer in one edit.
-     * Names correspond to the selected identities. Copies have independent layer
+     * Groups include their descendants. Names correspond to the selected identities. Copies have independent layer
      * and operation identities while retaining immutable input and pixel blocks.
      * An unselected active source selects the first copy.
      */
@@ -427,7 +448,7 @@ public:
      * Rejects missing, repeated or foreign identities before changing any state.
      */
     Result reorderLayers(const QList<LayerId> &order);
-    /** Removes one layer; selection follows its nearest remaining list position. */
+    /** Removes a layer and its descendants; selection follows the nearest remaining list position. */
     Result removeLayer(LayerId layer);
     /** Removes a set atomically in one history entry. Selection follows the
      * next remaining layer, or the preceding layer when no next layer remains.

@@ -23,6 +23,8 @@ class KisGpuTileRendererTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
+    void isolatedGroupsKeepProjectionAndRetainedSubtreePixels_data();
+    void isolatedGroupsKeepProjectionAndRetainedSubtreePixels();
     void transparentLayerPixelsFollowRootProjectionSemantics_data();
     void transparentLayerPixelsFollowRootProjectionSemantics();
     void layerCountChangesInvalidateTransparentProjectionReuse();
@@ -94,6 +96,88 @@ private:
                               QRect visible, const ProjectedSnapshot &base = {});
     DevicePtr m_device;
 };
+
+void KisGpuTileRendererTest::isolatedGroupsKeepProjectionAndRetainedSubtreePixels_data()
+{
+    QTest::addColumn<bool>("implicit");
+    QTest::addColumn<bool>("visible");
+    QTest::addColumn<bool>("nested");
+    QTest::addColumn<bool>("backdrop");
+    QTest::addColumn<QByteArray>("rootPixel");
+    QTest::addColumn<QByteArray>("groupPixel");
+    QTest::newRow("isolated") << false << true << false << true << QByteArray::fromHex("80007fff") << QByteArray::fromHex("ff0000ff");
+    QTest::newRow("uniform") << true << true << false << true << QByteArray::fromHex("80007fff") << QByteArray::fromHex("ff0000ff");
+    QTest::newRow("hidden") << false << false << false << true << QByteArray::fromHex("0000ffff") << QByteArray::fromHex("ff0000ff");
+    QTest::newRow("nested") << false << true << true << true << QByteArray::fromHex("4000bfff") << QByteArray::fromHex("ff000080");
+    QTest::newRow("hidden-rgb") << false << true << false << false << QByteArray::fromHex("11223300") << QByteArray::fromHex("11223300");
+    QTest::newRow("implicit-hidden-rgb") << true << true << false << false << QByteArray::fromHex("11223300") << QByteArray::fromHex("11223300");
+}
+
+void KisGpuTileRendererTest::isolatedGroupsKeepProjectionAndRetainedSubtreePixels()
+{
+    QFETCH(bool, implicit);
+    QFETCH(bool, visible);
+    QFETCH(bool, nested);
+    QFETCH(bool, backdrop);
+    QFETCH(QByteArray, rootPixel);
+    QFETCH(QByteArray, groupPixel);
+    RasterImage source;
+    source.size = {64, 48};
+    const QUuid inner(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}"));
+    const QUuid outer(QStringLiteral("{31323334-3536-3738-393a-3b3c3d3e3f40}"));
+    const auto populate = [&](RasterLayer &layer, const QByteArray &pixel) {
+        if (implicit) {
+            for (int channel = 0; channel < 4; ++channel) layer.defaultPixel[channel] = quint8(pixel[channel]);
+        } else {
+            const auto bytes = pixel.repeated(RgbaTile::ByteCount / 4);
+            layer.tiles = {{{0, 0}, bytes}, {{1, 0}, bytes}};
+        }
+    };
+    if (backdrop) {
+        source.layers.append({QStringLiteral("Blue backdrop"), true, QUuid(QStringLiteral("{01020304-0506-0708-090a-0b0c0d0e0f10}")), {}});
+        populate(source.layers.last(), QByteArray::fromHex("0000ffff"));
+    }
+    source.activeLayer = source.layers.size();
+    source.layers.append({QStringLiteral("Nested pixels"), true, QUuid(QStringLiteral("{11121314-1516-1718-191a-1b1c1d1e1f20}")), {}});
+    populate(source.layers.last(), backdrop ? QByteArray::fromHex("ff0000ff") : groupPixel);
+    source.layers.last().parentUuid = inner;
+    source.layers.append({QStringLiteral("Inner group"), visible, inner, {}});
+    source.layers.last().kind = LayerKind::Group;
+    source.layers.last().opacity = backdrop ? 128 : 255;
+    if (nested) {
+        source.layers.last().parentUuid = outer;
+        source.layers.append({QStringLiteral("Outer group"), visible, outer, {}});
+        source.layers.last().kind = LayerKind::Group;
+        source.layers.last().opacity = 128;
+    }
+    const LayerId group = source.layers.size();
+    OperationDocument document(source);
+    TileRenderer renderer(m_device, 10 * TileRenderer::TileBytes);
+    const auto raw = render(renderer, document.snapshot());
+    QVERIFY(raw);
+    const QRect region(0, 0, 64, 48);
+    const auto before = project(renderer, raw, region);
+    QVERIFY(before);
+    const auto projectedPixel = [&](const ProjectedSnapshot &version) {
+        for (const auto &tile : version->tiles()) if (tile.coordinate == QPoint()) return readBuffer(tile.pixels).first(4);
+        return QByteArray(4, '\0');
+    };
+    QCOMPARE(projectedPixel(before), rootPixel);
+    if (!implicit) {
+        QCOMPARE(readTile(raw, group, {0, 0}), groupPixel.repeated(RgbaTile::ByteCount / 4));
+        QCOMPARE(readTile(raw, group, {1, 0}), groupPixel.repeated(RgbaTile::ByteCount / 4));
+    }
+    if (backdrop && visible && !nested) {
+        QCOMPARE(document.setLayerOpacity(group, 64), Result::Success);
+        const auto changed = render(renderer, document.snapshot(), raw);
+        QVERIFY(changed);
+        const auto after = project(renderer, changed, region, before);
+        QVERIFY(after);
+        QCOMPARE(projectedPixel(after), QByteArray::fromHex("4000bfff"));
+        QCOMPARE(projectedPixel(before), rootPixel);
+        if (!implicit) QCOMPARE(changed->tiles(group).first().pixels, raw->tiles(group).first().pixels);
+    }
+}
 
 void KisGpuTileRendererTest::layerCropSharesInteriorPreservesBoundaryAndRetainedPixels_data()
 {

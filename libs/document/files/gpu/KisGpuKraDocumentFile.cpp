@@ -113,14 +113,18 @@ FileOutcome PaintDocument::writeKra(const QString &path, const Snapshot &version
     output.image.projectionBackground = pinned->projectionBackground;
     qsizetype rasterBytes = 0;
     for (const auto &layer : pinned->layers) {
-        const auto pixels = d.execution.readLayerPixels(d.image->handle(), pinned, layer.id, limits.rasterBytes - rasterBytes);
-        if (pixels.code != ExecutionCode::Success) return {fileCode(pixels.code), {}, pixels.diagnostic};
         if (pinned->activeLayer == layer.id) output.image.activeLayer = output.image.layers.size();
         RasterLayer saved{layer.name, layer.visible, layer.uuid, {}, layer.defaultPixel, layer.opacity, layer.userLocked, layer.pinnedToTimeline, layer.channelWriteMask};
         saved.position = layer.position;
-        for (const auto &tile : pixels.tiles) {
-            saved.tiles.append({tile.coordinate, tile.rgba});
-            rasterBytes += tile.rgba.size();
+        saved.kind = layer.kind;
+        saved.parentUuid = layer.parentUuid;
+        if (layer.kind == LayerKind::Paint) {
+            const auto pixels = d.execution.readLayerPixels(d.image->handle(), pinned, layer.id, limits.rasterBytes - rasterBytes);
+            if (pixels.code != ExecutionCode::Success) return {fileCode(pixels.code), {}, pixels.diagnostic};
+            for (const auto &tile : pixels.tiles) {
+                saved.tiles.append({tile.coordinate, tile.rgba});
+                rasterBytes += tile.rgba.size();
+            }
         }
         output.image.layers.append(std::move(saved));
     }

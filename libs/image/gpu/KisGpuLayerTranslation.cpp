@@ -27,7 +27,8 @@ std::optional<QPoint> checkedPosition(QPoint start, QPoint offset)
 OperationId OperationDocument::beginLayerTranslation(LayerId layer)
 {
     const auto index = layerIndex(layer);
-    if (checkMutation() != Result::Success || index < 0 || !snapshot()->layers[index].visible ||
+    if (checkMutation() != Result::Success || index < 0 || snapshot()->layers[index].kind != LayerKind::Paint ||
+        !snapshot()->layers[index].visible ||
         snapshot()->layers[index].userLocked || m_nextOperation == std::numeric_limits<quint64>::max() ||
         m_nextRevision == std::numeric_limits<quint64>::max()) return {};
     auto operation = QSharedPointer<TranslationOperation>::create();
@@ -130,7 +131,7 @@ Result OperationDocument::applyLayerPosition(LayerId layer, QPoint position, Sna
     if (!source || source->documentId() != snapshot()->documentId()) return Result::StaleVersion;
     const Layer *selected = nullptr;
     for (const auto &candidate : source->layers) if (candidate.id == layer) selected = &candidate;
-    if (!selected) return Result::LayerUnavailable;
+    if (!selected || selected->kind != LayerKind::Paint) return Result::LayerUnavailable;
     if (selected->position == position) return Result::Success;
     const auto versions = layerPositionVersions(source, layer);
     const quint64 count = quint64(versions.size());

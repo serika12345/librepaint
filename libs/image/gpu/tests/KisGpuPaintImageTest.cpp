@@ -5,6 +5,7 @@
 
 #include <gpu/KisGpuPaintImage.h>
 #include <gpu/KisGpuExecution.h>
+#include "KisGpuLegacyRecoveryFixture_p.h"
 #include <QGuiApplication>
 #include <QSignalSpy>
 #include <QBuffer>
@@ -39,6 +40,7 @@ private Q_SLOTS:
     void rejectedRetainedLayerWritesPreserveVersionsAndHistory();
     void retainedImagesAndClonesKeepTheirExecutionAlive();
     void clonesKeepIndependentCurrentStateAndOperationIdentities();
+    void nestedCopiesRemapParentsAndDetachTheSelectedSubtree();
     void retainedLayerCopiesKeepIndependentPixelsAndExecutionLifetime();
     void insertedLayerPixelsPublishAtomicallyAndRemainIndependent();
     void filledFiguresPublishOneVersionAndRejectWholeRequests();
@@ -953,6 +955,52 @@ void KisGpuPaintImageTest::retainedImagesAndClonesKeepTheirExecutionAlive()
     QVERIFY_EXCEPTION_THROWN(PaintImage(std::shared_ptr<Execution>{}, QSize(32, 32)), std::invalid_argument);
 }
 
+void KisGpuPaintImageTest::nestedCopiesRemapParentsAndDetachTheSelectedSubtree()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    RasterImage input;
+    input.size = {64, 48};
+    input.layers = {
+        {QStringLiteral("Paint"), true, QUuid(QStringLiteral("{01020304-0506-0708-090a-0b0c0d0e0f10}")),
+         {{{0, 0}, QByteArray::fromHex("112233ff").repeated(RgbaTile::ByteCount / 4)}}},
+        {QStringLiteral("Inner"), true, QUuid(QStringLiteral("{11121314-1516-1718-191a-1b1c1d1e1f20}")), {}},
+        {QStringLiteral("Outer"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}}};
+    input.layers[1].kind = input.layers[2].kind = LayerKind::Group;
+    input.layers[0].parentUuid = input.layers[1].uuid;
+    input.layers[1].parentUuid = input.layers[2].uuid;
+    auto document = PaintImageSP::create(execution, input);
+    const auto fixed = document->operations().snapshot();
+    auto copy = document->clone(false);
+    QVERIFY(copy);
+    const auto copied = copy->operations().snapshot();
+    QCOMPARE(copied->layers.size(), 3);
+    QCOMPARE(copied->layers[0].parentUuid, copied->layers[1].uuid);
+    QCOMPARE(copied->layers[1].parentUuid, copied->layers[2].uuid);
+    for (int i = 0; i < 3; ++i) QVERIFY(copied->layers[i].uuid != fixed->layers[i].uuid);
+    auto subtree = document->cloneLayerPixels(document->retainLayerPixels(2));
+    QVERIFY(subtree);
+    const auto nested = subtree->operations().snapshot();
+    QCOMPARE(nested->layers.size(), 2);
+    QCOMPARE(nested->layers[0].parentUuid, nested->layers[1].uuid);
+    QVERIFY(nested->layers[1].parentUuid.isNull());
+    QCOMPARE(nested->rasterBytes, fixed->rasterBytes);
+    auto leaf = document->cloneLayerPixels(document->retainLayerPixels(1));
+    QVERIFY(leaf);
+    QCOMPARE(leaf->operations().snapshot()->layers.size(), 1);
+    QVERIFY(leaf->operations().snapshot()->layers.first().parentUuid.isNull());
+    QCOMPARE(leaf->readRgbaPixels(1, {7, 9, 1, 1}, 4).bytes, QByteArray::fromHex("112233ff"));
+    QCOMPARE(copy->restoreRecovery(copy->operations().recoveryData()), Result::Success);
+    QCOMPARE(subtree->restoreRecovery(subtree->operations().recoveryData()), Result::Success);
+    QCOMPARE(leaf->restoreRecovery(leaf->operations().recoveryData()), Result::Success);
+    QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+    QCOMPARE(document->writeRgbaPixels(2, {0, 0, 1, 1}, QByteArray::fromHex("112233ff")), Result::LayerUnavailable);
+    QCOMPARE(execution.cancelFrame().code, ExecutionCode::Success);
+    QCOMPARE(document->operations().snapshot(), fixed);
+}
+
 void KisGpuPaintImageTest::clonesKeepIndependentCurrentStateAndOperationIdentities()
 {
     QString diagnostic;
@@ -1379,9 +1427,12 @@ void KisGpuPaintImageTest::damagedPixelSharingRecoveryPreservesTheLiveImage()
     reader >> group >> areas;
     QCOMPARE(areas, quint32(1));
     const auto areaPosition = input.pos();
+    const auto legacy = LibrePaint::Image::Gpu::Test::legacyRecovery(image.operations(), 27);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(legacy), Result::Success);
     QSignalSpy changed(&image, &PaintImage::changed);
     for (int damage = 0; damage < 6; ++damage) {
-        auto payload = record.first(record.size() - 32);
+        auto payload = (damage == 5 ? legacy : record).chopped(32);
         QBuffer output(&payload);
         QVERIFY(output.open(QIODevice::ReadWrite));
         QVERIFY(output.seek(damage == 0 ? groupPosition : damage == 4 ? groupPosition + 8 : areaPosition));
@@ -1396,7 +1447,6 @@ void KisGpuPaintImageTest::damagedPixelSharingRecoveryPreservesTheLiveImage()
         if (damage == 4) writer << std::numeric_limits<quint32>::max();
         if (damage == 5) {
             writer << qint32(63) << qint32(12) << qint32(2) << qint32(1);
-            payload[5] = char(27);
         }
         output.close();
         payload.append(QCryptographicHash::hash(payload, QCryptographicHash::Sha256));

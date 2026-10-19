@@ -294,6 +294,7 @@ Result PaintImage::resizeCanvas(const QRect &rect, bool cropLayers)
     const auto before = document.snapshot();
     if (!cropLayers) {
         for (const auto &layer : before->layers) {
+            if (layer.kind == LayerKind::Group) continue;
             const auto admitted = checkLayerTranslation(before, layer.id, -rect.topLeft());
             if (admitted != Result::Success) return admitted;
         }

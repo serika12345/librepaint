@@ -6,6 +6,7 @@
 #include "KisNodeAdditionFlags.h"
 #include "KisImageSignals.h"
 #include "kis_paint_layer.h"
+#include "kis_group_layer.h"
 #include "kis_paint_device.h"
 #include "kis_default_bounds.h"
 #include "gpu/KisGpuPaintImage.h"
@@ -157,8 +158,12 @@ void KisImage::connectGpuImageUpdates()
     const auto image = gpuImage();
     auto state = QSharedPointer<KisGpuImageViewState>::create();
     state->synchronized = image->operations().snapshot();
-    for (auto node = root()->firstChild(); node; node = node->nextSibling())
-        state->nodes.insert(node->uuid(), node);
+    QList<KisNodeSP> parents{root()};
+    for (qsizetype i = 0; i < parents.size(); ++i)
+        for (auto node = parents[i]->firstChild(); node; node = node->nextSibling()) {
+            state->nodes.insert(node->uuid(), node);
+            parents.append(node);
+        }
     gpuViewState() = state;
     connect(image.data(), &LibrePaint::Image::Gpu::PaintImage::changed, this,
             [view = this, state]() {
@@ -242,11 +247,15 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
         QHash<QUuid, KisNodeSP> existing = retainedNodes ? *retainedNodes : QHash<QUuid, KisNodeSP>();
         QSet<QUuid> desired;
         for (const auto &layer : version->layers) desired.insert(layer.uuid);
-        for (auto node = view->root()->firstChild(); node;) {
-            auto next = node->nextSibling();
-            if (desired.contains(node->uuid())) existing.insert(node->uuid(), node);
-            else view->removeNode(node);
-            node = next;
+        QList<KisNodeSP> attached{view->root()};
+        for (qsizetype i = 0; i < attached.size(); ++i)
+            for (auto node = attached[i]->firstChild(); node; node = node->nextSibling()) attached.append(node);
+        for (qsizetype i = 1; i < attached.size(); ++i) {
+            const auto node = attached[i];
+            existing.insert(node->uuid(), node);
+            if (!desired.contains(node->uuid()) && node->parent() &&
+                (node->parent() == view->root() || desired.contains(node->parent()->uuid()))) view->removeNode(node);
+            if (changed()) break;
         }
         if (view->gpuImage() != owner) return;
         if (changed()) continue;
@@ -254,12 +263,15 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
             const auto &layer = version->layers[index];
             KisNodeSP node = existing.value(layer.uuid);
             if (!node) {
-                node = new KisPaintLayer(view, layer.name, layer.opacity,
-                                         KisPaintDevice::fromGpuImage(owner, layer.id, {}, view->colorSpace()));
+                if (layer.kind == LibrePaint::Image::Gpu::LayerKind::Group)
+                    node = new KisGroupLayer(view, layer.name, layer.opacity);
+                else node = new KisPaintLayer(view, layer.name, layer.opacity,
+                                             KisPaintDevice::fromGpuImage(owner, layer.id, {}, view->colorSpace()));
                 node->setUuid(layer.uuid);
             }
             existing.insert(layer.uuid, node);
-            node->paintDevice()->bindGpuLayer(owner, layer.id);
+            if (auto *group = qobject_cast<KisGroupLayer *>(node.data())) group->original()->bindGpuLayer(owner, layer.id);
+            else node->paintDevice()->bindGpuLayer(owner, layer.id);
             if (node->name() != layer.name) node->setName(layer.name);
             if (changed()) break;
             node->setVisible(layer.visible);
@@ -268,25 +280,43 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
             if (changed()) break;
             if (node->userLocked() != layer.userLocked) node->setUserLocked(layer.userLocked);
             if (changed()) break;
-            auto *paintLayer = qobject_cast<KisPaintLayer*>(node.data());
-            QBitArray paintFlags;
-            if (layer.channelWriteMask != 15) {
-                const auto channels = paintLayer->colorSpace()->channels();
-                paintFlags.resize(4);
-                for (int channel = 0; channel < 4; ++channel)
-                    paintFlags.setBit(channel, layer.channelWriteMask & (1u << channels[channel]->displayPosition()));
+            if (auto *paintLayer = qobject_cast<KisPaintLayer*>(node.data())) {
+                QBitArray paintFlags;
+                if (layer.channelWriteMask != 15) {
+                    const auto channels = paintLayer->colorSpace()->channels();
+                    paintFlags.resize(4);
+                    for (int channel = 0; channel < 4; ++channel)
+                        paintFlags.setBit(channel, layer.channelWriteMask & (1u << channels[channel]->displayPosition()));
+                }
+                if (paintLayer->channelLockFlags() != paintFlags) paintLayer->setChannelLockFlags(paintFlags);
             }
-            if (paintLayer->channelLockFlags() != paintFlags) paintLayer->setChannelLockFlags(paintFlags);
             if (changed()) break;
             if (node->isPinnedToTimeline() != layer.pinnedToTimeline) node->setPinnedToTimeline(layer.pinnedToTimeline);
             if (changed()) break;
-            if (view->root()->at(index) != node) {
-                if (node->parent()) view->removeNode(node);
-                const auto above = index ? view->root()->at(index - 1) : KisNodeSP();
-                const auto flags = layer.id == version->activeLayer
-                    ? KisNodeAdditionFlags(KisNodeAdditionFlag::None)
-                    : KisNodeAdditionFlags(KisNodeAdditionFlag::DontActivateNode);
-                view->addNode(node, view->root(), above, flags);
+        }
+        if (view->gpuImage() != owner) return;
+        if (changed()) continue;
+        QHash<QUuid, QList<const LibrePaint::Image::Gpu::Layer *>> children;
+        for (const auto &layer : version->layers) children[layer.parentUuid].append(&layer);
+        QList<QUuid> parents{QUuid()};
+        for (qsizetype i = 0; i < parents.size() && !changed(); ++i) {
+            auto parent = parents[i].isNull() ? view->root() : existing.value(parents[i]);
+            KisNodeSP above;
+            qsizetype index = 0;
+            for (const auto layer : children.value(parents[i])) {
+                const auto node = existing.value(layer->uuid);
+                if (node->parent() != parent || parent->at(index) != node) {
+                    if (node->parent()) view->removeNode(node);
+                    if (changed()) break;
+                    const auto flags = layer->id == version->activeLayer
+                        ? KisNodeAdditionFlags(KisNodeAdditionFlag::None)
+                        : KisNodeAdditionFlags(KisNodeAdditionFlag::DontActivateNode);
+                    view->addNode(node, parent, above, flags);
+                    if (changed()) break;
+                }
+                if (layer->kind == LibrePaint::Image::Gpu::LayerKind::Group) parents.append(layer->uuid);
+                above = node;
+                ++index;
             }
         }
         if (view->gpuImage() != owner) return;

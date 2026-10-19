@@ -136,7 +136,7 @@ Result PaintImage::applyRgbaPixels(LayerId layer, QRect region, const QByteArray
     const auto current = retainedVersion ? *retainedVersion : document.snapshot();
     const auto selectedLayer = std::find_if(current->layers.cbegin(), current->layers.cend(),
         [layer](const auto &value) { return value.id == layer; });
-    if (selectedLayer == current->layers.cend()) return Result::LayerUnavailable;
+    if (selectedLayer == current->layers.cend() || selectedLayer->kind != LayerKind::Paint) return Result::LayerUnavailable;
     constexpr qint64 limit = RgbaTile::CoordinateLimit;
     if (region.width() < 0 || region.height() < 0 || region.x() < -limit || region.y() < -limit ||
         qint64(region.x()) + region.width() > limit || qint64(region.y()) + region.height() > limit)

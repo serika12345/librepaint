@@ -1893,6 +1893,12 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory_data()
     QTest::addColumn<bool>("cloned");
     QTest::addColumn<QString>("fillStyle");
     QTest::addColumn<int>("foregroundAlpha");
+    for (const bool gpu : {false, true}) for (const auto &kind : {QStringLiteral("line"), QStringLiteral("rectangle")}) {
+        const auto figure = QStringLiteral("nested-") + kind;
+        QTest::newRow(qPrintable((gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + figure))
+            << gpu << figure << QStringLiteral("ForegroundColor") << QString() << false
+            << (kind == QLatin1String("line") ? QStringLiteral("None") : QStringLiteral("BackgroundColor")) << 255;
+    }
     for (const bool gpu : {false, true}) for (const bool cloned : {false, true}) {
         for (const bool mirrored : {false, true}) for (const auto &kind : {QStringLiteral("rectangle"), QStringLiteral("line")}) {
             const auto figure = QStringLiteral("offcanvas-") + (mirrored ? QStringLiteral("mirrored-") : QString()) + kind;
@@ -1987,6 +1993,8 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     QFETCH(bool, cloned);
     QFETCH(QString, fillStyle);
     QFETCH(int, foregroundAlpha);
+    const bool nested = figure.startsWith(QLatin1String("nested-"));
+    if (nested) figure.remove(0, 7);
     const bool offCanvas = figure.startsWith(QLatin1String("offcanvas-"));
     const bool offCanvasLine = offCanvas && figure.endsWith(QLatin1String("line"));
     const bool offCanvasMirror = figure.startsWith(QLatin1String("offcanvas-mirrored-"));
@@ -2003,13 +2011,30 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
         Gpu::RasterImage raster;
         raster.size = {64, 64};
         raster.layers.append({QStringLiteral("Requested layer"), true, QUuid::createUuid(), {}});
+        if (nested) {
+            raster.layers.append({QStringLiteral("Inner group"), true, QUuid::createUuid(), {}});
+            raster.layers.append({QStringLiteral("Outer group"), true, QUuid::createUuid(), {}});
+            raster.layers[1].kind = raster.layers[2].kind = Gpu::LayerKind::Group;
+            raster.layers[0].parentUuid = raster.layers[1].uuid;
+            raster.layers[1].parentUuid = raster.layers[2].uuid;
+        }
         raster.layers.append({QStringLiteral("Active layer"), true, QUuid::createUuid(), {}});
-        raster.activeLayer = 1;
+        raster.activeLayer = raster.layers.size() - 1;
         owner = Gpu::PaintImageSP::create(execution, raster);
         document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Public figure")));
     } else {
         QVERIFY(document->newImage(QStringLiteral("Public figure"), 64, 64, cs,
                                    KoColor(QColor(0, 0, 0, 0), cs), KisConfig::CANVAS_COLOR, 2, {}, 1));
+        if (nested) {
+            KisImageSP image = document->image();
+            const auto target = image->root()->firstChild();
+            KisNodeSP outer = new KisGroupLayer(image, QStringLiteral("Outer group"), 255);
+            KisNodeSP inner = new KisGroupLayer(image, QStringLiteral("Inner group"), 255);
+            image->removeNode(target);
+            image->addNode(outer, image->root(), quint32(0));
+            image->addNode(inner, outer);
+            image->addNode(target, inner);
+        }
     }
     std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
     auto *view = window->newView(document.get());
@@ -2030,6 +2055,7 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
     QVERIFY(QTest::qWaitForWindowExposed(window.get()));
     KisImageSP image = lifetime->image();
     KisNodeSP target = image->root()->firstChild();
+    if (nested) target = target->firstChild()->firstChild();
     const auto active = image->root()->lastChild();
     QVERIFY(target != active);
     auto *manager = window->viewManager()->nodeManager();

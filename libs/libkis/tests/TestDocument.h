@@ -17,6 +17,8 @@ private Q_SLOTS:
     void testGpuCanvasResizePreservesRejectedInputsAndNotificationLifetimes();
     void testOrdinaryCreationKeepsPngExportAndReopen();
     void testOrdinaryKraKeepsLayerHierarchyThroughResaving();
+    void testGpuHierarchyKeepsPublicEditingHistoryAndNativeFiles_data();
+    void testGpuHierarchyKeepsPublicEditingHistoryAndNativeFiles();
     void testBackgroundApiKeepsHistoryAndPinnedPixels();
     void testBackgroundNotificationLifetimes_data();
     void testBackgroundNotificationLifetimes();

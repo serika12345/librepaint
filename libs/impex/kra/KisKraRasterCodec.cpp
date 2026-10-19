@@ -148,11 +148,17 @@ bool integer(const QDomElement &element, const QString &name, int &value, const 
 }
 Outcome layerDescription(const QDomElement &element, QPoint &offset)
 {
-    if (element.tagName() != QLatin1String("layer") || element.attribute(QStringLiteral("nodetype")) != QLatin1String("paintlayer") ||
+    const auto type = element.attribute(QStringLiteral("nodetype"));
+    const bool group = type == QLatin1String("grouplayer");
+    const auto child = element.firstChildElement();
+    if (element.tagName() != QLatin1String("layer") || (!group && type != QLatin1String("paintlayer")) ||
         element.attribute(QStringLiteral("compositeop")) != QLatin1String("normal") ||
         element.attribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA")) != QLatin1String("RGBA") ||
-        !element.firstChildElement().isNull() || element.hasAttribute(QStringLiteral("keyframes")))
-        return unsupported(QStringLiteral("KRA layer requires a flat RGBA8 paint layer with normal compositing"));
+        element.hasAttribute(QStringLiteral("keyframes")) ||
+        (!group && !child.isNull()) || (group &&
+            ((!child.isNull() && (child.tagName() != QLatin1String("layers") || !child.nextSiblingElement().isNull())) ||
+             element.attribute(QStringLiteral("passthrough"), QStringLiteral("0")) != QLatin1String("0"))))
+        return unsupported(QStringLiteral("KRA requires RGBA8 paint layers and isolated groups with normal compositing"));
     const auto projectionFlags = element.attribute(QStringLiteral("channelflags"));
     if (!projectionFlags.isEmpty() && projectionFlags != QLatin1String("1111"))
         return unsupported(QStringLiteral("KRA projection channel flags require all channels"));
@@ -172,6 +178,26 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset)
         !integer(element, QStringLiteral("x"), x, QStringLiteral("0")) ||
         !integer(element, QStringLiteral("y"), y, QStringLiteral("0"))) return invalid(QStringLiteral("Invalid KRA layer values"));
     offset = {x, y};
+    return {Status::Success, {}};
+}
+
+Outcome collectLayerElements(const QDomElement &layers, qsizetype maximum, QList<QDomElement> &elements)
+{
+    QList<QDomElement> pending;
+    const auto append = [&](const QDomElement &container) {
+        for (auto child = container.lastChildElement(); !child.isNull(); child = child.previousSiblingElement()) {
+            if (pending.size() + elements.size() >= maximum) return false;
+            pending.append(child);
+        }
+        return true;
+    };
+    if (!append(layers)) return capacity();
+    while (!pending.isEmpty()) {
+        const auto element = pending.takeLast();
+        elements.append(element);
+        if (element.attribute(QStringLiteral("nodetype")) == QLatin1String("grouplayer") &&
+            !append(element.firstChildElement(QStringLiteral("layers")))) return capacity();
+    }
     return {Status::Success, {}};
 }
 bool srgbSpace(const QColorSpace &space)
@@ -383,11 +409,12 @@ Outcome RasterCodec::validateMetadata(const QByteArray &bytes, const QMap<QStrin
     result = profile(files, folder + QStringLiteral("/annotations/icc"), image.attribute(QStringLiteral("profile")));
     if (result.code != Status::Success) return result;
     const auto layers = image.firstChildElement(QStringLiteral("layers"));
-    qsizetype count = 0;
+    QList<QDomElement> elements;
+    result = collectLayerElements(layers, limits.layers, elements);
+    if (result.code != Status::Success) return result;
     QSet<QString> filenames;
     QSet<QUuid> uuids;
-    for (auto element = layers.firstChildElement(); !element.isNull(); element = element.nextSiblingElement()) {
-        if (++count > limits.layers) return capacity();
+    for (const auto &element : elements) {
         QPoint offset;
         result = layerDescription(element, offset);
         if (result.code != Status::Success) return result;
@@ -397,8 +424,13 @@ Outcome RasterCodec::validateMetadata(const QByteArray &bytes, const QMap<QStrin
             return invalid(QStringLiteral("Invalid KRA layer identity"));
         uuids.insert(uuid);
         filenames.insert(filename);
-        result = profile(files, folder + QStringLiteral("/layers/") + filename + QStringLiteral(".icc"), image.attribute(QStringLiteral("profile")));
-        if (result.code != Status::Success) return result;
+        const auto layerProfile = folder + QStringLiteral("/layers/") + filename + QStringLiteral(".icc");
+        if (element.attribute(QStringLiteral("nodetype")) == QLatin1String("paintlayer") || files.contains(layerProfile)) {
+            result = profile(files, layerProfile, image.attribute(QStringLiteral("profile")));
+            if (result.code != Status::Success) return result;
+        } else if (element.attribute(QStringLiteral("profile"), image.attribute(QStringLiteral("profile"))) != image.attribute(QStringLiteral("profile"))) {
+            return unsupported(QStringLiteral("KRA groups require the image's sRGB profile"));
+        }
     }
     ImageMetadata metadata;
     return extractMetadata(image, files, limits, metadata);
@@ -454,12 +486,17 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
     int selected = -1;
     bool generatedUuids = false;
     const auto layers = image.firstChildElement(QStringLiteral("layers"));
-    for (auto element = layers.firstChildElement(); !element.isNull(); element = element.nextSiblingElement()) {
-        if (document.image.layers.size() >= limits.layers) return fail(capacity());
+    QList<QDomElement> elements;
+    result = collectLayerElements(layers, limits.layers, elements);
+    if (result.code != Status::Success) return fail(result);
+    for (auto element : elements) {
         QPoint offset;
         result = layerDescription(element, offset);
         if (result.code != Status::Success) return fail(result);
         RasterLayer layer;
+        layer.kind = element.attribute(QStringLiteral("nodetype")) == QLatin1String("grouplayer") ? LayerKind::Group : LayerKind::Paint;
+        const auto parent = element.parentNode().parentNode().toElement();
+        if (parent.tagName() == QLatin1String("layer")) layer.parentUuid = QUuid(parent.attribute(QStringLiteral("uuid")));
         layer.position = offset;
         layer.name = element.attribute(QStringLiteral("name"));
         layer.visible = element.attribute(QStringLiteral("visible")) == QLatin1String("1");
@@ -467,7 +504,7 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         layer.userLocked = element.attribute(QStringLiteral("locked"), QStringLiteral("0")) == QLatin1String("1");
         layer.pinnedToTimeline = element.attribute(QStringLiteral("intimeline"), QStringLiteral("0")) == QLatin1String("1");
         const auto paintFlags = element.attribute(QStringLiteral("channellockflags"), QStringLiteral("1111"));
-        if (!paintFlags.isEmpty()) {
+        if (layer.kind == LayerKind::Paint && !paintFlags.isEmpty()) {
             layer.channelWriteMask = 0;
             for (int channel = 0; channel < 4; ++channel)
                 if (paintFlags[channel] == QLatin1Char('1')) layer.channelWriteMask |= 1u << (channel == 3 ? 3 : 2 - channel);
@@ -483,25 +520,28 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         uuids.insert(layer.uuid);
         filenames.insert(filename);
         const auto path = folder + QStringLiteral("/layers/") + filename;
-        if (!document.files.contains(path)) return fail(invalid(QStringLiteral("Missing KRA layer pixels")));
-        result = profile(document.files, path + QStringLiteral(".icc"), image.attribute(QStringLiteral("profile")));
-        if (result.code != Status::Success) return fail(result);
-        if (document.files.contains(path + QStringLiteral(".defaultpixel"))) {
-            const auto pixel = document.files.value(path + QStringLiteral(".defaultpixel"));
-            if (pixel.size() != 4) return fail(invalid(QStringLiteral("Invalid KRA default pixel")));
-            layer.defaultPixel = {quint8(pixel[2]), quint8(pixel[1]), quint8(pixel[0]), quint8(pixel[3])};
+        if (layer.kind == LayerKind::Paint) {
+            if (!document.files.contains(path)) return fail(invalid(QStringLiteral("Missing KRA layer pixels")));
+            result = profile(document.files, path + QStringLiteral(".icc"), image.attribute(QStringLiteral("profile")));
+            if (result.code != Status::Success) return fail(result);
+            if (document.files.contains(path + QStringLiteral(".defaultpixel"))) {
+                const auto pixel = document.files.value(path + QStringLiteral(".defaultpixel"));
+                if (pixel.size() != 4) return fail(invalid(QStringLiteral("Invalid KRA default pixel")));
+                layer.defaultPixel = {quint8(pixel[2]), quint8(pixel[1]), quint8(pixel[0]), quint8(pixel[3])};
+            }
+            result = Detail::readTiles(document.files.value(path), layer.defaultPixel, offset, limits.rasterBytes - rasterBytes, layer.tiles);
+            if (result.code != Status::Success) return fail(result);
+            rasterBytes += layer.tiles.size() * RgbaTile::ByteCount;
+            document.files.remove(path);
+            document.files.remove(path + QStringLiteral(".defaultpixel"));
         }
-        result = Detail::readTiles(document.files.value(path), layer.defaultPixel, offset, limits.rasterBytes - rasterBytes, layer.tiles);
-        if (result.code != Status::Success) return fail(result);
-        rasterBytes += layer.tiles.size() * RgbaTile::ByteCount;
-        document.files.remove(path);
-        document.files.remove(path + QStringLiteral(".defaultpixel"));
         if (element.attribute(QStringLiteral("selected")) == QLatin1String("true")) {
             if (selected >= 0) return fail(invalid(QStringLiteral("Multiple selected KRA layers")));
             selected = document.image.layers.size();
         }
         document.image.layers.prepend(std::move(layer));
     }
+    if (!validRasterLayerHierarchy(document.image.layers)) return fail(invalid(QStringLiteral("Invalid KRA layer hierarchy")));
     document.image.activeLayer = document.image.layers.isEmpty() ? 0 : document.image.layers.size() - 1 - qMax(0, selected);
     if (generatedUuids) document.description = xml.toByteArray();
     for (const auto &name : {QStringLiteral("maindoc.xml"), QStringLiteral("mimetype"), QStringLiteral("mergedimage.png"), QStringLiteral("preview.png")})
@@ -519,6 +559,7 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         value.activeLayer < 0 || (value.layers.isEmpty() ? value.activeLayer != 0 : value.activeLayer >= value.layers.size()))
         return invalid(QStringLiteral("Invalid KRA image or projection"));
     if (value.layers.size() > limits.layers || document.description.size() > limits.xmlBytes) return capacity();
+    if (!validRasterLayerHierarchy(value.layers)) return invalid(QStringLiteral("Invalid KRA layer hierarchy"));
     if (projection.colorSpace().isValid() && !srgbSpace(projection.colorSpace()))
         return unsupported(QStringLiteral("KRA projection requires sRGB"));
     auto result = validateMetadata(document.description, document.files, limits);
@@ -547,7 +588,10 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
     QSet<QString> filenames;
     auto layers = image.firstChildElement(QStringLiteral("layers"));
     if (layers.isNull()) { layers = xml.createElement(QStringLiteral("layers")); image.appendChild(layers); }
-    for (auto element = layers.firstChildElement(); !element.isNull(); element = element.nextSiblingElement()) {
+    QList<QDomElement> elements;
+    result = collectLayerElements(layers, limits.layers, elements);
+    if (result.code != Status::Success) return result;
+    for (const auto &element : elements) {
         QPoint offset;
         result = layerDescription(element, offset);
         if (result.code != Status::Success) return result;
@@ -559,9 +603,13 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
     }
     while (!layers.firstChild().isNull()) layers.removeChild(layers.firstChild());
     QSet<QUuid> uuids;
+    QMap<QUuid, QDomElement> prepared;
     qsizetype rasterBytes = 0;
     for (qsizetype i = value.layers.size(); i-- > 0;) {
         const auto &layer = value.layers[i];
+        if (layer.kind == LayerKind::Group && (!layer.tiles.isEmpty() ||
+            layer.defaultPixel != std::array<quint8, 4>{} || layer.channelWriteMask != 15))
+            return invalid(QStringLiteral("KRA groups derive their pixels from children"));
         if (layer.uuid.isNull() || uuids.contains(layer.uuid) || !validName(layer.name)) return invalid(QStringLiteral("Invalid KRA layer identity or name"));
         uuids.insert(layer.uuid);
         QDomElement element = original.value(layer.uuid);
@@ -581,20 +629,37 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         const QPoint offset = layer.position;
         element.setAttribute(QStringLiteral("x"), offset.x());
         element.setAttribute(QStringLiteral("y"), offset.y());
-        QByteArray pixels;
-        result = Detail::writeTiles(layer.tiles, layer.defaultPixel, offset, limits.rasterBytes - rasterBytes, pixels);
-        if (result.code != Status::Success) return result;
-        rasterBytes += layer.tiles.size() * RgbaTile::ByteCount;
-        files.insert(path, std::move(pixels));
-        files.insert(path + QStringLiteral(".defaultpixel"), Detail::bgra(layer.defaultPixel));
-        if (!files.contains(path + QStringLiteral(".icc"))) files.insert(path + QStringLiteral(".icc"), files.value(imageProfile));
-        result = profile(files, path + QStringLiteral(".icc"), image.attribute(QStringLiteral("profile")));
-        if (result.code != Status::Success) return result;
+        if (layer.kind == LayerKind::Paint) {
+            QByteArray pixels;
+            result = Detail::writeTiles(layer.tiles, layer.defaultPixel, offset, limits.rasterBytes - rasterBytes, pixels);
+            if (result.code != Status::Success) return result;
+            rasterBytes += layer.tiles.size() * RgbaTile::ByteCount;
+            files.insert(path, std::move(pixels));
+            files.insert(path + QStringLiteral(".defaultpixel"), Detail::bgra(layer.defaultPixel));
+            if (!files.contains(path + QStringLiteral(".icc"))) files.insert(path + QStringLiteral(".icc"), files.value(imageProfile));
+            result = profile(files, path + QStringLiteral(".icc"), image.attribute(QStringLiteral("profile")));
+            if (result.code != Status::Success) return result;
+            const auto children = element.firstChildElement(QStringLiteral("layers"));
+            if (!children.isNull()) element.removeChild(children);
+            element.removeAttribute(QStringLiteral("passthrough"));
+        } else {
+            files.remove(path);
+            files.remove(path + QStringLiteral(".defaultpixel"));
+            auto children = element.firstChildElement(QStringLiteral("layers"));
+            if (children.isNull()) {
+                children = xml.createElement(QStringLiteral("layers"));
+                element.appendChild(children);
+            }
+            while (!children.firstChild().isNull()) children.removeChild(children.firstChild());
+            element.setAttribute(QStringLiteral("passthrough"), QStringLiteral("0"));
+            if (!element.hasAttribute(QStringLiteral("profile")))
+                element.setAttribute(QStringLiteral("profile"), image.attribute(QStringLiteral("profile")));
+        }
         element.setAttribute(QStringLiteral("name"), layer.name);
         element.setAttribute(QStringLiteral("uuid"), layer.uuid.toString());
         element.setAttribute(QStringLiteral("visible"), layer.visible ? QStringLiteral("1") : QStringLiteral("0"));
         element.setAttribute(QStringLiteral("selected"), i == value.activeLayer ? QStringLiteral("true") : QStringLiteral("false"));
-        element.setAttribute(QStringLiteral("nodetype"), QStringLiteral("paintlayer"));
+        element.setAttribute(QStringLiteral("nodetype"), layer.kind == LayerKind::Paint ? QStringLiteral("paintlayer") : QStringLiteral("grouplayer"));
         element.setAttribute(QStringLiteral("compositeop"), QStringLiteral("normal"));
         element.setAttribute(QStringLiteral("opacity"), int(layer.opacity));
         element.setAttribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA"));
@@ -609,7 +674,12 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         } else {
             element.removeAttribute(QStringLiteral("channellockflags"));
         }
-        layers.appendChild(element);
+        prepared.insert(layer.uuid, element);
+    }
+    for (qsizetype i = value.layers.size(); i-- > 0;) {
+        const auto &layer = value.layers[i];
+        if (layer.parentUuid.isNull()) layers.appendChild(prepared.value(layer.uuid));
+        else prepared.value(layer.parentUuid).firstChildElement(QStringLiteral("layers")).appendChild(prepared.value(layer.uuid));
     }
     for (auto old = original.cbegin(); old != original.cend(); ++old) {
         if (!uuids.contains(old.key())) {

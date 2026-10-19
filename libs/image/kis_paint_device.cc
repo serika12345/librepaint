@@ -1354,6 +1354,7 @@ int KisPaintDevice::sequenceNumber() const
         } else {
             for (const auto &layer : version->layers) {
                 if (layer.id != m_d->gpuLayerId()) continue;
+                if (layer.kind == LibrePaint::Image::Gpu::LayerKind::Group) changed = true;
                 changed |= layer.operations != m_d->gpuSequenceOperations || layer.defaultPixel != m_d->gpuSequenceDefault;
                 m_d->gpuSequenceOperations = layer.operations;
                 m_d->gpuSequenceDefault = layer.defaultPixel;
@@ -1491,7 +1492,7 @@ QRect KisPaintDevice::exactBounds() const
                 throw std::runtime_error(result.diagnostic.toStdString());
             auto bounds = result.bounds.value();
             auto implicit = version->projectionBackground;
-            for (const auto &value : version->layers) if (value.id == layer) implicit = value.defaultPixel;
+            if (layer) implicit = version->projectionDefaultPixels().value(layer);
             if (implicit[3]) bounds |= m_d->defaultBounds->bounds();
             m_d->gpuBounds = bounds;
             m_d->gpuBoundsSequence = sequence;
@@ -1754,7 +1755,8 @@ KoColor KisPaintDevice::defaultPixel() const
         }
         for (const auto &layer : version->layers) {
             if (layer.id != projectedLayer) continue;
-            const auto &rgba = layer.defaultPixel;
+            const auto rgba = layer.kind == LibrePaint::Image::Gpu::LayerKind::Group ?
+                version->projectionDefaultPixels().value(layer.id) : layer.defaultPixel;
             const quint8 bgra[] = {rgba[2], rgba[1], rgba[0], rgba[3]};
             return KoColor(bgra, colorSpace());
         }

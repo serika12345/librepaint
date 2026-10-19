@@ -37,6 +37,7 @@
 #include <qicon.h>
 #include <qobject.h>
 #include <tuple>
+#include <stdexcept>
 
 void kisSharedPtrAddReference(KisGroupLayer *pointer)
 {
@@ -339,7 +340,12 @@ bool KisGroupLayer::projectionIsValid() const
 void KisGroupLayer::setDefaultProjectionColor(KoColor color)
 {
     if (image() && image()->gpuImage()) {
-        image()->setDefaultProjectionColor(color);
+        if (this == image()->rootLayer().data()) image()->setDefaultProjectionColor(color);
+        else {
+            color.convertTo(colorSpace());
+            if (color != KoColor::createTransparent(colorSpace()))
+                throw std::logic_error("GPU group projection backgrounds require transparent black");
+        }
         return;
     }
     m_d->paintDevice->setDefaultPixel(color);
@@ -347,7 +353,8 @@ void KisGroupLayer::setDefaultProjectionColor(KoColor color)
 
 KoColor KisGroupLayer::defaultProjectionColor() const
 {
-    if (image() && image()->gpuImage()) return image()->defaultProjectionColor();
+    if (image() && image()->gpuImage()) return this == image()->rootLayer().data() ?
+        image()->defaultProjectionColor() : KoColor::createTransparent(colorSpace());
     KoColor color(m_d->paintDevice->defaultPixel(), m_d->paintDevice->colorSpace());
     return color;
 }
