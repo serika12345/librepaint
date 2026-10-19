@@ -82,6 +82,15 @@ public:
      * off-thread input; attachment capacity throws std::length_error.
      */
     QSharedPointer<PaintImage> cloneLayerForest(const QList<LayerInsertion> &layers) const;
+    /** Captures fixed canonical pixels as one saved paint layer at the origin.
+     * Layer zero uses the image's canonical byte view. The working estimate
+     * includes packed pixels, padded tiles and checkpoint encoding. Returns null
+     * for invalid, busy, closed, off-thread or rejected pixel reads; attachment
+     * capacity throws std::length_error. The caller supplies the destination
+     * layer identity. Copies retain shared execution.
+     */
+    QSharedPointer<PaintImage> cloneRasterLayer(const Snapshot &version, LayerId layer, QRect region,
+                                               const QUuid &destinationUuid, qsizetype maximumWorkingBytes) const;
     ExecutionOutcome lastRequestOutcome() const;
     /** Synchronous canonical pixels from the current committed image version. */
     PixelBytesOutcome readRgbaPixels(LayerId layer, QRect region, qsizetype maximumBytes) const;
@@ -186,6 +195,7 @@ private:
     PaintImage(Execution &execution, std::unique_ptr<OperationDocument> document, Limits limits,
                std::shared_ptr<Execution> retainedExecution = {});
     bool onThread() const;
+    QSharedPointer<PaintImage> cloneLayerForest(const QList<LayerInsertion> &layers, QSize size) const;
     Result publish(Result result);
     Result requestAfterWrite(Result result);
     void requestCurrentVersion();

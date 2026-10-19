@@ -24,6 +24,8 @@ class KisGpuPaintImageTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void rasterCopiesRetainFixedPixelsAndExecution_data();
+    void rasterCopiesRetainFixedPixelsAndExecution();
     void positionedPixelWritesPreservePixelsVersionsAndRecovery_data();
     void positionedPixelWritesPreservePixelsVersionsAndRecovery();
     void directPixelWritesFollowCanvasOriginsAcrossHistory();
@@ -58,6 +60,59 @@ private Q_SLOTS:
     void damagedPixelSharingRecoveryPreservesTheLiveImage();
     void historyNavigationPublishesOneVersionAndPreservesSavedState();
 };
+
+void KisGpuPaintImageTest::rasterCopiesRetainFixedPixelsAndExecution_data()
+{
+    QTest::addColumn<bool>("projection");
+    QTest::newRow("layer") << false;
+    QTest::newRow("canonical-projection") << true;
+}
+
+void KisGpuPaintImageTest::rasterCopiesRetainFixedPixelsAndExecution()
+{
+    QFETCH(bool, projection);
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Execution>(device);
+    RasterImage input;
+    input.size = {8, 6};
+    input.layers = {{QStringLiteral("Source"), true,
+        QUuid(QStringLiteral("{c1000001-1122-3344-5566-778899aabbcc}")), {}}};
+    QByteArray negative(RgbaTile::ByteCount, '\0'), positive(RgbaTile::ByteCount, '\0');
+    negative.replace((255 * 256 + 255) * 4, 4, QByteArray::fromHex("ff221100"));
+    positive.replace((1 * 256 + 1) * 4, 4, QByteArray::fromHex("00ff00ff"));
+    input.layers.first().tiles = {{{-1, -1}, negative}, {{0, 0}, positive}};
+    auto source = PaintImageSP::create(execution, input);
+    const auto fixed = source->operations().snapshot();
+    QCOMPARE(source->writeRgbaPixels(1, {1, 1, 1, 1}, QByteArray::fromHex("ff0000ff")), Result::Success);
+    const auto current = source->operations().snapshot();
+    const auto recovery = source->operations().recoveryData();
+    const LayerId layer = projection ? 0 : 1;
+    const QUuid capturedId(QStringLiteral("{c1000002-1122-3344-5566-778899aabbcc}"));
+    QVERIFY(!source->cloneRasterLayer(fixed, layer, {-2, -2, 4, 4}, capturedId, 1));
+    auto captured = source->cloneRasterLayer(fixed, layer, {-2, -2, 4, 4}, capturedId, 1024 * 1024);
+    QVERIFY(captured);
+    QCOMPARE(captured->operations().snapshot()->size, QSize(4, 4));
+    QCOMPARE(captured->operations().snapshot()->layers.size(), 1);
+    QCOMPARE(captured->operations().snapshot()->layers.first().kind, LayerKind::Paint);
+    QCOMPARE(captured->operations().snapshot()->layers.first().uuid, capturedId);
+    QCOMPARE(captured->operations().undoCount(), 0);
+    QVERIFY(!captured->operations().isModified());
+    QCOMPARE(source->operations().snapshot(), current);
+    QCOMPARE(source->operations().recoveryData(), recovery);
+    QByteArray expected(4 * 4 * 4, '\0');
+    expected.replace((1 * 4 + 1) * 4, 4, QByteArray::fromHex("ff221100"));
+    expected.replace((3 * 4 + 3) * 4, 4, QByteArray::fromHex("00ff00ff"));
+    source.clear();
+    execution.reset();
+    const auto result = captured->readRgbaPixels(1, {0, 0, 4, 4}, expected.size());
+    QCOMPARE(result.code, ExecutionCode::Success);
+    QCOMPARE(result.bytes, expected);
+    QCOMPARE(captured->replaceRgbaPixels(1, {3, 3, 1, 1}, QByteArray::fromHex("0000ffff")), Result::Success);
+    QCOMPARE(captured->undo(), Result::Success);
+    QCOMPARE(captured->readRgbaPixels(1, {0, 0, 4, 4}, expected.size()).bytes, expected);
+}
 
 void KisGpuPaintImageTest::positionedPixelWritesPreservePixelsVersionsAndRecovery_data()
 {

@@ -69,7 +69,11 @@ PaintImageSP PaintImage::cloneLayerPixels(const LayerPixelReferenceSP &pixels) c
 PaintImageSP PaintImage::cloneLayerForest(const QList<LayerInsertion> &layers) const
 {
     if (!onThread()) return {};
-    OperationDocument prepared(RasterImage{m_d->document->snapshot()->size, {}, 0}, m_d->limits);
+    return cloneLayerForest(layers, m_d->document->snapshot()->size);
+}
+PaintImageSP PaintImage::cloneLayerForest(const QList<LayerInsertion> &layers, QSize size) const
+{
+    OperationDocument prepared(RasterImage{size, {}, 0}, m_d->limits);
     if (prepared.insertLayers(layers, 0) != Result::Success) return {};
     return PaintImageSP(new PaintImage(m_d->execution, prepared.cloneCurrent(true),
                                        m_d->limits, m_d->retainedExecution));

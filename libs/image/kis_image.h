@@ -11,6 +11,7 @@
 #include <QString>
 #include <QPainter>
 #include <QRect>
+#include <QUuid>
 
 #include <KoColorConversionTransformation.h>
 
@@ -73,6 +74,14 @@ public:
     ~KisImage() override;
 
     static KisImageSP fromQImage(const QImage &image, KisUndoStore *undoStore);
+    /** Copies fixed device pixels to one paint layer at the origin.
+     * GPU byte views retain GPU ownership; CPU devices use their color space.
+     * The caller supplies the layer identity; document adoption attaches its undo store.
+     * Returns null on invalid input or native capture refusal; attachment capacity
+     * throws std::length_error. Native capture uses the given working estimate.
+     */
+    static KisImageSP fromPaintDevice(KisPaintDeviceSP device, QRect region, const QString &name,
+                                      const QUuid &layerUuid, qsizetype maximumWorkingBytes);
     /** GUI-thread image view of shared RGBA8/sRGB layers and GPU projection.
      * The execution owner outlives this image and retained pixel devices.
      * Invalid or closed images throw std::invalid_argument.

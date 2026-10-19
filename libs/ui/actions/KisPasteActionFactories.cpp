@@ -34,6 +34,7 @@
 #include "nodes/kis_node_manager.h"
 
 #include <algorithm>
+#include <exception>
 #include <iterator>
 #include <metadata/KoDocumentInfo.h>
 #include <KoSvgPaste.h>
@@ -60,6 +61,10 @@
 #include <application/ui/workspace/KisMainWindow.h>
 #include <QApplication>
 #include <QClipboard>
+#include <QDebug>
+#include <QPointer>
+#include <QScopedPointer>
+#include <QUuid>
 #include <qalgorithms.h>
 #include <QtGlobal>
 #include <qlist.h>
@@ -395,36 +400,42 @@ void KisPasteIntoActionFactory::run(KisViewManager *viewManager)
 
 void KisPasteNewActionFactory::run(KisViewManager *viewManager)
 {
-    Q_UNUSED(viewManager);
+    if (!viewManager) return;
+    const QPointer<KisViewManager> guard(viewManager);
+    const QPointer<KisMainWindow> window(viewManager->mainWindow());
+    if (!window) return;
 
     KisPaintDeviceSP clip = KisClipboard::instance()->clip(QRect(), true);
-    if (!clip) return;
+    if (!clip || !window) return;
 
-    QRect rect = clip->exactBounds();
-    if (rect.isEmpty()) return;
+    KisImageSP image;
+    try {
+        const QRect rect = clip->exactBounds();
+        if (rect.isEmpty()) return;
+        image = KisImage::fromPaintDevice(clip, rect, i18n("Pasted"), QUuid::createUuid(), 256 * 1024 * 1024);
+        if (!image) {
+            if (guard) viewManager->showFloatingMessage(i18n("The image could not be created from the clipboard."), QIcon());
+            return;
+        }
+    } catch (const std::exception &error) {
+        qWarning() << "Could not create image from clipboard:" << error.what();
+        if (guard) viewManager->showFloatingMessage(i18n("The image could not be created from the clipboard."), QIcon());
+        return;
+    }
+    if (!window) return;
 
-    KisDocument *doc = KisPart::instance()->createDocument();
+    QScopedPointer<KisDocument> doc(KisPart::instance()->createDocument());
     doc->documentInfo()->setAboutInfo("title", i18n("Untitled"));
-    KisImageSP image = new KisImage(doc->createUndoStore(),
-                                    rect.width(),
-                                    rect.height(),
-                                    clip->colorSpace(),
-                                    i18n("Pasted"));
-    bool renamePastedLayers = KisConfig(true).renamePastedLayers();
-    QString pastedLayerName = renamePastedLayers ? image->nextLayerName() + " " + i18n("(pasted)") :
-                                                   image->nextLayerName();
-    KisPaintLayerSP layer =
-            new KisPaintLayer(image.data(), pastedLayerName,
-                              OPACITY_OPAQUE_U8, clip->colorSpace());
-
-    KisPainter::copyAreaOptimized(QPoint(), clip, layer->paintDevice(), rect);
-
-    image->addNode(layer.data(), image->rootLayer());
+    if (KisConfig(true).renamePastedLayers()) {
+        auto layer = image->root()->firstChild();
+        layer->setName(layer->name() + " " + i18n("(pasted)"));
+    }
     doc->setCurrentImage(image);
-    KisPart::instance()->addDocument(doc);
+    if (!window) return;
+    const QPointer<KisDocument> published(doc.take());
+    KisPart::instance()->addDocument(published);
 
-    KisMainWindow *win = viewManager->mainWindow();
-    win->addViewAndNotifyLoadingCompleted(doc);
+    if (window && published) window->addViewAndNotifyLoadingCompleted(published);
 }
 
 void KisPasteReferenceActionFactory::run(KisViewManager *viewManager)

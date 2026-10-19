@@ -25,6 +25,8 @@ private Q_SLOTS:
     void testMergedClipboardSurvivesImageReplacement();
     void testNormalPasteRetainsMultipleClipboardRoots_data();
     void testNormalPasteRetainsMultipleClipboardRoots();
+    void testPasteNewKeepsClipboardAndSource_data();
+    void testPasteNewKeepsClipboardAndSource();
     void testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving_data();
     void testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving();
     void testRootGroupDuplicationKeepsSelectionAndHistory_data();

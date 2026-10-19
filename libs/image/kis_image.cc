@@ -418,6 +418,36 @@ LibrePaint::Image::Gpu::PaintImageSP KisImage::gpuImage() const
 QSharedPointer<KisGpuImageViewState> &KisImage::gpuViewState()
 { return m_d->gpuViewState; }
 
+namespace {
+QString bottomLayerName()
+{
+    return i18nc("Name for the bottom-most layer in the layerstack", "Background");
+}
+}
+
+KisImageSP KisImage::fromPaintDevice(KisPaintDeviceSP device, QRect region, const QString &name,
+                                    const QUuid &layerUuid, qsizetype maximumWorkingBytes)
+{
+    if (!device || region.isEmpty() || layerUuid.isNull() || maximumWorkingBytes < 0) return {};
+    if (const auto owner = device->gpuPixelImage()) {
+        if (QThread::currentThread() != owner->thread()) return {};
+        const auto pixels = device->gpuPixelReference();
+        const auto version = pixels ? pixels->version() : owner->operations().snapshot();
+        const auto captured = owner->cloneRasterLayer(version, pixels ? pixels->layer() : 0,
+                                                      region, layerUuid, maximumWorkingBytes);
+        if (!captured) return {};
+        auto image = fromGpuImage(captured, name, device->colorSpace());
+        image->root()->firstChild()->setName(bottomLayerName());
+        return image;
+    }
+    KisImageSP image = new KisImage(nullptr, region.width(), region.height(), device->colorSpace(), name);
+    KisPaintLayerSP layer = new KisPaintLayer(image, image->nextLayerName(), OPACITY_OPAQUE_U8, device->colorSpace());
+    layer->setUuid(layerUuid);
+    KisPainter::copyAreaOptimized(QPoint(), device, layer->paintDevice(), region);
+    image->addNode(layer, image->root());
+    return image;
+}
+
 KisImageSP KisImage::fromQImage(const QImage &image, KisUndoStore *undoStore)
 {
     const KoColorSpace *colorSpace = 0;
@@ -857,7 +887,7 @@ QString KisImage::nextLayerName(const QString &_baseName) const
 
     // special case if there is only root node
     if (numLayers == 1) {
-        return i18nc("Name for the bottom-most layer in the layerstack", "Background");
+        return bottomLayerName();
     }
 
     if (baseName.isEmpty()) {

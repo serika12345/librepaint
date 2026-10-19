@@ -18,7 +18,6 @@
 #include <QTemporaryFile>
 #include <QThread>
 #include <gpu/KisGpuPaintImage.h>
-#include <cstring>
 #include <stdexcept>
 
 // kritaglobal
@@ -727,50 +726,16 @@ bool KisClipboard::setLayers(KisNodeList nodes, KisImageSP image, bool forceCopy
 
 bool KisClipboard::setGpuProjection(KisImageSP image, qsizetype memoryBudgetBytes)
 {
-    namespace Gpu = LibrePaint::Image::Gpu;
     const auto owner = image ? image->gpuImage() : nullptr;
     if (!owner || QThread::currentThread() != thread() || QThread::currentThread() != owner->thread() ||
         !owner->handle() || owner->operations().hasActiveStroke() || memoryBudgetBytes < 0) return false;
     const auto version = owner->operations().snapshot();
-    const auto size = version->size;
-    const qint64 columns = (qint64(size.width()) + 255) / 256;
-    const qint64 rows = (qint64(size.height()) + 255) / 256;
-    const qint64 pixelBytes = qint64(size.width()) * size.height() * 4;
-    const qint64 tileBytes = columns * rows * Gpu::RgbaTile::ByteCount;
-    if (pixelBytes + 2 * tileBytes > memoryBudgetBytes) {
-        qWarning() << "Could not capture merged clipboard image: workspace capacity exceeded";
-        return false;
-    }
     try {
-        QByteArray pixels(pixelBytes, Qt::Uninitialized);
-        image->projection()->readBytes(reinterpret_cast<quint8 *>(pixels.data()), 0, 0, size.width(), size.height());
-        if (!owner->handle() || owner->operations().snapshot() != version || owner->operations().hasActiveStroke()) return false;
-        Gpu::RasterLayer properties{QStringLiteral("Projection"), true, QUuid::createUuid(), {}};
-        Gpu::RasterImage input;
-        input.size = size;
-        input.layers = {properties};
-        qsizetype retainedBytes = 0;
-        for (int y = 0; y < rows; ++y) for (int x = 0; x < columns; ++x) {
-            QByteArray tile(Gpu::RgbaTile::ByteCount, '\0');
-            const int width = std::min(256, size.width() - x * 256);
-            const int height = std::min(256, size.height() - y * 256);
-            for (int row = 0; row < height; ++row) {
-                const auto source = pixels.constData() + (qint64(y * 256 + row) * size.width() + x * 256) * 4;
-                auto destination = tile.data() + row * 256 * 4;
-                std::memcpy(destination, source, width * 4);
-                for (int column = 0; column < width; ++column) std::swap(destination[column * 4], destination[column * 4 + 2]);
-            }
-            if (std::none_of(tile.cbegin(), tile.cend(), [](char value) { return value != 0; })) continue;
-            if (Gpu::RgbaTile::ByteCount > owner->limits().rasterBytes - retainedBytes) return false;
-            retainedBytes += Gpu::RgbaTile::ByteCount;
-            input.layers.first().tiles.append({{x, y}, std::move(tile)});
-        }
-        Gpu::OperationDocument prepared(input, owner->limits());
-        pixels.clear();
-        input.layers.clear();
-        const auto copied = owner->cloneLayerForest({{prepared.snapshot(), prepared.activeLayer(), properties}});
+        const auto copied = owner->cloneRasterLayer(version, 0, QRect(QPoint(), version->size),
+                                                    QUuid::createUuid(), memoryBudgetBytes);
         if (!copied) return false;
-        auto captured = KisImage::fromGpuImage(copied, properties.name, image->colorSpace());
+        if (!owner->handle() || owner->operations().snapshot() != version || owner->operations().hasActiveStroke()) return false;
+        auto captured = KisImage::fromGpuImage(copied, QStringLiteral("Projection"), image->colorSpace());
         captured->setResolution(image->xRes(), image->yRes());
         auto *data = KisMimeData::mimeForLayers({captured->root()->firstChild()}, captured, true);
         if (!data) return false;
