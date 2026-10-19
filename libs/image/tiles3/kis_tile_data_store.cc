@@ -168,8 +168,10 @@ void KisTileDataStore::unregisterTileData(KisTileData *td)
 
 KisTileData *KisTileDataStore::allocTileData(qint32 pixelSize, const quint8 *defPixel)
 {
-    KisTileData *td = new KisTileData(pixelSize, defPixel, this);
-    registerTileData(td);
+    checkFreeMemory();
+    QReadLocker lock(&m_iteratorLock);
+    KisTileData *td = new KisTileData(pixelSize, defPixel, this, false);
+    registerTileDataImp(td);
     return td;
 }
 
@@ -177,18 +179,26 @@ KisTileData *KisTileDataStore::duplicateTileData(KisTileData *rhs)
 {
     KisTileData *td = 0;
 
-    if (rhs->m_clonesStack.pop(td)) {
-        DEBUG_PRECLONE_ACTION("+ Pre-clone HIT", rhs, td);
-        DEBUG_COUNT_PRECLONE_HIT(rhs);
-    } else {
-        rhs->blockSwapping();
-        td = new KisTileData(*rhs);
-        rhs->unblockSwapping();
-        DEBUG_PRECLONE_ACTION("- Pre-clone #MISS#", rhs, td);
-        DEBUG_COUNT_PRECLONE_MISS(rhs);
+    {
+        QReadLocker lock(&m_iteratorLock);
+        if (rhs->m_clonesStack.pop(td)) {
+            DEBUG_PRECLONE_ACTION("+ Pre-clone HIT", rhs, td);
+            DEBUG_COUNT_PRECLONE_HIT(rhs);
+            registerTileDataImp(td);
+            return td;
+        }
     }
 
-    registerTileData(td);
+    checkFreeMemory();
+    rhs->blockSwapping();
+    {
+        QReadLocker lock(&m_iteratorLock);
+        td = new KisTileData(*rhs, false);
+        registerTileDataImp(td);
+    }
+    rhs->unblockSwapping();
+    DEBUG_PRECLONE_ACTION("- Pre-clone #MISS#", rhs, td);
+    DEBUG_COUNT_PRECLONE_MISS(rhs);
     return td;
 }
 

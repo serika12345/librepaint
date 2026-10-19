@@ -15,6 +15,8 @@ class KisTileDataStoreTest : public QObject
 private:
 
 private Q_SLOTS:
+    void testAllocationPreservesPixelsDuringDocumentMemoryRelease_data();
+    void testAllocationPreservesPixelsDuringDocumentMemoryRelease();
     void testClockIterator();
     void testLeaks();
     void testSwapping();
