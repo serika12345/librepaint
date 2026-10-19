@@ -408,7 +408,7 @@ public:
      * parent UUID identifies an existing group; null places it at the root.
      */
     LayerId addLayer(const QString &name, qsizetype index, bool pinnedToTimeline, const QUuid &parentUuid = {});
-    /** Copies one committed source layer into a new identity and one history entry.
+    /** Copies one committed paint layer or empty group into a new identity and one history entry.
      * Properties supply a fresh UUID and attributes; pixels retain their source
      * default and immutable blocks. Zero reports rejected input or capacity.
      */

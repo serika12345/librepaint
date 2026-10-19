@@ -733,6 +733,14 @@ KisNodeSP KisLayerManager::addGroupLayer(KisNodeSP activeNode)
 {
     KisImageWSP image = m_view->image();
     KisGroupLayerSP group = new KisGroupLayer(image.data(), image->nextLayerName( i18nc("A group of layers", "Group") ), OPACITY_OPAQUE_U8);
+    if (image->gpuImage()) {
+        KisNodeSP parent;
+        KisNodeSP above;
+        adjustLayerPosition(group, activeNode ? activeNode : image->root(), parent, above);
+        const qsizetype index = above ? parent->index(above) + 1 : 0;
+        if (!image->insertGpuLayer(group, index, parent)) return {};
+        return group;
+    }
     addLayerCommon(activeNode, group, false, 0);
     return group;
 }

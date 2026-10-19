@@ -75,19 +75,22 @@ bool KisImage::insertGpuLayer(KisNodeSP node, qsizetype index, KisNodeSP parent)
     const auto owner = gpuImage();
     const auto state = gpuViewState();
     if (!parent) parent = root();
-    auto *layer = qobject_cast<KisPaintLayer*>(node.data());
+    auto *layer = qobject_cast<KisLayer*>(node.data());
+    auto *paint = qobject_cast<KisPaintLayer*>(node.data());
+    auto *group = qobject_cast<KisGroupLayer*>(node.data());
     if (!owner || !state || QThread::currentThread() != owner->thread() || !owner->handle() || owner->operations().hasActiveStroke() ||
-        !layer || node->parent() || node->childCount() ||
+        !layer || (!paint && !group) || node->parent() || node->childCount() ||
         layer->compositeOpId() != COMPOSITE_OVER ||
         node->isAnimated() || !node->keyframeChannels().isEmpty() || layer->layerStyle() ||
-        layer->temporary() || layer->hasTemporaryTarget() ||
+        layer->temporary() || (paint && paint->hasTemporaryTarget()) || (group && group->passThroughMode()) ||
         *layer->colorSpace() != *colorSpace() || node->uuid().isNull() || state->nodes.contains(node->uuid())) return false;
     const auto insertion = gpuInsertionIndex(this, owner->operations().snapshot(), parent, index);
     if (insertion < 0) return false;
     const auto projectionFlags = layer->channelFlags();
     if (!projectionFlags.isEmpty() && (projectionFlags.size() != 4 || projectionFlags.count(true) != 4)) return false;
-    const auto pixels = layer->paintDevice();
+    const auto pixels = group ? group->original() : paint->paintDevice();
     Gpu::RasterLayer properties;
+    properties.kind = group ? Gpu::LayerKind::Group : Gpu::LayerKind::Paint;
     properties.name = node->name();
     properties.uuid = node->uuid();
     properties.parentUuid = parent == root() ? QUuid() : parent->uuid();
@@ -96,7 +99,7 @@ bool KisImage::insertGpuLayer(KisNodeSP node, qsizetype index, KisNodeSP parent)
     properties.userLocked = node->userLocked();
     properties.pinnedToTimeline = node->isPinnedToTimeline();
     properties.position = {node->x(), node->y()};
-    const auto flags = layer->channelLockFlags();
+    const auto flags = paint ? paint->channelLockFlags() : QBitArray();
     if (!flags.isEmpty()) {
         properties.channelWriteMask = 0;
         const auto channels = layer->colorSpace()->channels();
@@ -106,6 +109,7 @@ bool KisImage::insertGpuLayer(KisNodeSP node, qsizetype index, KisNodeSP parent)
     const auto background = pixels->defaultPixel();
     const auto *bgra = background.data();
     properties.defaultPixel = {bgra[2], bgra[1], bgra[0], bgra[3]};
+    if (group && properties.defaultPixel != std::array<quint8, 4>{}) return false;
     const auto source = pixels->gpuPixelImage();
     const auto reference = pixels->gpuPixelReference();
     std::unique_ptr<Gpu::OperationDocument> imported;

@@ -212,7 +212,10 @@ void KisGroupLayer::fillMergedLayerTemplate(KisLayerSP dstLayer, KisLayerSP prev
 void KisGroupLayer::resetCache(const KoColorSpace *colorSpace)
 {
     if (const auto owner = image() ? image()->gpuImage() : nullptr) {
-        m_d->paintDevice = KisPaintDevice::fromGpuImage(owner, 0, {}, colorSpace ? colorSpace : image()->colorSpace());
+        if (!image()->root() || image()->root().data() == this)
+            m_d->paintDevice = KisPaintDevice::fromGpuImage(owner, 0, {}, colorSpace ? colorSpace : image()->colorSpace());
+    }
+    if (m_d->paintDevice && m_d->paintDevice->gpuPixelImage()) {
         m_d->paintDevice->setDefaultBounds(new KisDefaultBounds(image()));
         m_d->paintDevice->setProjectionDevice(true);
         return;

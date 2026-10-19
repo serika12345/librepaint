@@ -92,6 +92,7 @@ private Q_SLOTS:
     void groupedRemovalPreservesPixelsSelectionAndAtomicHistory();
     void insertedLayersPreserveOrderPinsAndOneHistoryStep();
     void nestedPaintInsertionRejectsMissingAndNonGroupParents();
+    void emptyGroupInsertionPreservesHierarchyHistoryAndRejectsSubtrees();
     void duplicatedLayersShareInputsAndPixelsWithIndependentHistory();
     void identicalLayerDuplicationsPreserveTheSamePersistentIdentities();
     void insertedForeignLayersSharePixelsAndInputsWithAtomicHistory();
@@ -951,6 +952,80 @@ void KisGpuOperationDocumentTest::nestedPaintInsertionRejectsMissingAndNonGroupP
     OperationDocument recovered({1, 1});
     QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
     QCOMPARE(recovered.snapshot()->layers[1].parentUuid, original->layers[1].uuid);
+}
+
+void KisGpuOperationDocumentTest::emptyGroupInsertionPreservesHierarchyHistoryAndRejectsSubtrees()
+{
+    RasterImage input;
+    input.size = {64, 32};
+    RasterLayer group{QStringLiteral("Source group"), true,
+        QUuid(QStringLiteral("{16171819-2021-2223-2425-262728293031}")), {}};
+    group.kind = LayerKind::Group;
+    input.layers = {group};
+    OperationDocument source(input);
+    const auto sourceVersion = source.snapshot();
+    OperationDocument destination(nestedImage());
+    const auto original = destination.snapshot();
+    RasterLayer properties = group;
+    properties.name = QStringLiteral("Inserted group");
+    properties.uuid = QUuid(QStringLiteral("{41424344-4546-4748-4950-515253545556}"));
+    properties.parentUuid = original->layers[1].uuid;
+    properties.opacity = 173;
+    properties.visible = false;
+    properties.userLocked = true;
+    properties.pinnedToTimeline = true;
+    const auto id = destination.insertLayer(source, source.activeLayer(), properties, 1);
+    QVERIFY(id);
+    const auto inserted = destination.snapshot();
+    const auto &created = inserted->layers[1];
+    QCOMPARE(created.id, id);
+    QCOMPARE(created.kind, LayerKind::Group);
+    QCOMPARE(created.uuid, properties.uuid);
+    QCOMPARE(created.parentUuid, properties.parentUuid);
+    QCOMPARE(created.name, properties.name);
+    QCOMPARE(created.opacity, properties.opacity);
+    QVERIFY(!created.visible);
+    QVERIFY(created.userLocked);
+    QVERIFY(created.pinnedToTimeline);
+    QVERIFY(created.operations.isEmpty());
+    QCOMPARE(inserted->sampleCount, original->sampleCount);
+    QCOMPARE(inserted->rasterBytes, original->rasterBytes);
+    QCOMPARE(destination.activeLayer(), id);
+    QCOMPARE(inserted->selectedLayers, QList<LayerId>{id});
+    QCOMPARE(destination.undoCount(), 1);
+    QCOMPARE(destination.undo(), Result::Success);
+    QCOMPARE(destination.snapshot(), original);
+    const auto beforeRejected = destination.recoveryData();
+    RasterLayer child{QStringLiteral("Child"), true,
+        QUuid(QStringLiteral("{61626364-6566-6768-6970-717273747576}")), {}};
+    child.parentUuid = group.uuid;
+    input.layers.append(child);
+    OperationDocument subtree(input);
+    auto rejected = properties;
+    rejected.uuid = QUuid(QStringLiteral("{81828384-8586-8788-8990-919293949596}"));
+    QCOMPARE(destination.insertLayer(subtree, 1, rejected, 1), LayerId(0));
+    rejected.kind = LayerKind::Paint;
+    QCOMPARE(destination.insertLayer(source, source.activeLayer(), rejected, 1), LayerId(0));
+    rejected.kind = LayerKind::Group;
+    rejected.channelWriteMask = 7;
+    QCOMPARE(destination.insertLayer(source, source.activeLayer(), rejected, 1), LayerId(0));
+    QCOMPARE(destination.recoveryData(), beforeRejected);
+    QCOMPARE(destination.redo(), Result::Success);
+    QCOMPARE(destination.snapshot(), inserted);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(destination.recoveryData()), Result::Success);
+    QCOMPARE(recovered.snapshot()->layers[1].kind, LayerKind::Group);
+    QCOMPARE(recovered.snapshot()->layers[1].uuid, properties.uuid);
+    QCOMPARE(recovered.snapshot()->layers[1].parentUuid, properties.parentUuid);
+    QCOMPARE(source.snapshot(), sourceVersion);
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        QFile output(QDir(directory).filePath(QStringLiteral("empty-group-insertion.recovery")));
+        QVERIFY(output.open(QIODevice::WriteOnly));
+        const auto fixed = destination.recoveryData();
+        QCOMPARE(output.write(fixed), qint64(fixed.size()));
+    }
 }
 
 void KisGpuOperationDocumentTest::insertedForeignLayersSharePixelsAndInputsWithAtomicHistory()

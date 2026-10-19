@@ -605,8 +605,12 @@ LayerId OperationDocument::insertVersion(const Snapshot &source, LayerId sourceL
         m_nextLayer == std::numeric_limits<quint64>::max() || m_nextRevision == std::numeric_limits<quint64>::max()) return 0;
     const auto found = std::find_if(source->layers.cbegin(), source->layers.cend(),
                                    [sourceLayer](const Layer &layer) { return layer.id == sourceLayer; });
-    if (found == source->layers.cend() || found->kind != LayerKind::Paint || properties.kind != LayerKind::Paint ||
+    if (found == source->layers.cend() || found->kind != properties.kind ||
         found->defaultPixel != properties.defaultPixel) return 0;
+    if (found->kind == LayerKind::Group &&
+        (properties.channelWriteMask != 15 || !found->operations.isEmpty() ||
+         std::any_of(source->layers.cbegin(), source->layers.cend(),
+                     [&](const Layer &layer) { return layer.parentUuid == found->uuid; }))) return 0;
     if (!properties.parentUuid.isNull()) {
         const auto parent = std::find_if(snapshot()->layers.cbegin(), snapshot()->layers.cend(),
             [&](const Layer &layer) { return layer.uuid == properties.parentUuid && layer.kind == LayerKind::Group; });
