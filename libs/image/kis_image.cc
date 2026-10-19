@@ -1116,6 +1116,18 @@ void KisImage::purgeUnusedData(bool isCancellable)
 
 void KisImage::cropNode(KisNodeSP node, const QRect& newRect, const bool activeFrameOnly)
 {
+    if (const auto owner = m_d->gpuImage) {
+        const KisImageSP retained = this;
+        if (!node || node->parent() != root()) throw std::invalid_argument("GPU layer crop requires an attached paint layer");
+        const auto version = owner->operations().snapshot();
+        const auto layer = std::find_if(version->layers.cbegin(), version->layers.cend(),
+                                       [&node](const auto &value) { return value.uuid == node->uuid(); });
+        if (layer == version->layers.cend()) throw std::invalid_argument("GPU layer crop target is unavailable");
+        const auto result = owner->cropLayer(layer->id, newRect);
+        if (result != LibrePaint::Image::Gpu::Result::Success)
+            throw std::runtime_error(QStringLiteral("GPU layer crop rejected (%1)").arg(int(result)).toStdString());
+        return;
+    }
     const bool isLayer = qobject_cast<KisLayer*>(node.data());
     KUndo2MagicString actionName = isLayer ?
         kundo2_i18n("Crop Layer") :

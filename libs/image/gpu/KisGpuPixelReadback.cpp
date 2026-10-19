@@ -94,17 +94,21 @@ std::optional<QList<quint64>> layerCoordinates(const Layer &layer, QRect region,
     constexpr int limit = RgbaTile::CoordinateLimit;
     const QRect domain(-limit, -limit, 2 * limit, 2 * limit);
     QRect needed = region.intersected(domain);
-    QHash<quint64, QRect> afterTranslations;
+    QHash<quint64, QRect> afterSpatialOperations;
+    qsizetype remainingTranslations = 0;
     for (auto operation = layer.operations.crbegin(); operation != layer.operations.crend(); ++operation) {
         if (const auto translation = std::get_if<TranslationSnapshot>(&*operation)) {
-            afterTranslations.insert((*translation)->id.sequence, needed);
+            afterSpatialOperations.insert((*translation)->id.sequence, needed);
+            ++remainingTranslations;
             needed = needed.translated(-(*translation)->offset).intersected(domain);
+        } else if (const auto crop = std::get_if<CropSnapshot>(&*operation)) {
+            afterSpatialOperations.insert((*crop)->id.sequence, needed);
+            needed = needed.intersected((*crop)->rect.normalized());
         }
     }
     QSet<quint64> coordinates;
     // An unaligned translation can read four source tiles for one output tile.
     // Bound coordinate discovery separately from the caller's final tile budget.
-    qsizetype remainingTranslations = afterTranslations.size();
     qsizetype stageMaximum = remainingTranslations
         ? (maximum <= std::numeric_limits<qsizetype>::max() / 4 ? maximum * 4 : std::numeric_limits<qsizetype>::max())
         : maximum;
@@ -118,7 +122,7 @@ std::optional<QList<quint64>> layerCoordinates(const Layer &layer, QRect region,
             }
         } else if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) {
             if (--remainingTranslations == 0) stageMaximum = maximum;
-            const auto target = afterTranslations.value((*translation)->id.sequence);
+            const auto target = afterSpatialOperations.value((*translation)->id.sequence);
             QSet<quint64> moved;
             for (const auto tile : coordinates) {
                 const auto pixels = QRect(Detail::coordinate(tile) * TileRenderer::TileSize + (*translation)->offset,
@@ -134,6 +138,16 @@ std::optional<QList<quint64>> layerCoordinates(const Layer &layer, QRect region,
                 }
             }
             coordinates.swap(moved);
+            needed = target;
+        } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
+            const auto target = afterSpatialOperations.value((*crop)->id.sequence);
+            const auto keep = (*crop)->rect.normalized();
+            for (auto tile = coordinates.begin(); tile != coordinates.end();) {
+                const QRect bounds(Detail::coordinate(*tile) * TileRenderer::TileSize,
+                                   QSize(TileRenderer::TileSize, TileRenderer::TileSize));
+                if (!keep.intersects(bounds) || !target.intersects(bounds)) tile = coordinates.erase(tile);
+                else ++tile;
+            }
             needed = target;
         } else {
             if (needed.isEmpty()) continue;

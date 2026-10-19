@@ -6,6 +6,8 @@
 #include "KisDocumentUndoStack_p.h"
 #include "KisDocument.h"
 #include <kis_image.h>
+#include <kis_node.h>
+#include <kis_crop_saved_extra_data.h>
 #include <QApplication>
 #include <QPointer>
 #include <QSet>
@@ -38,6 +40,7 @@ KUndo2MagicString historyLabel(HistoryAction action)
     case HistoryAction::ReplacePixels: return kundo2_i18n("Replace pixels");
     case HistoryAction::ClearPixels: return kundo2_i18n("Clear");
     case HistoryAction::FillLayer: return kundo2_i18n("Flood Fill Layer");
+    case HistoryAction::CropLayer: return kundo2_i18n("Crop Layer");
     }
     Q_UNREACHABLE();
 }
@@ -106,6 +109,19 @@ void KisDocumentUndoStack::synchronizeGpuHistory()
         if (!command) {
             command = new KUndo2Command(historyLabel(document.historyAction(index)));
             allocated.append(command);
+        }
+        if (!command->extraData()) {
+            if (const auto crop = document.historyCrop(index)) {
+                QUuid uuid;
+                for (const auto &layer : versions[index]->layers)
+                    if (layer.id == crop->layer) uuid = layer.uuid;
+                const auto currentImage = image();
+                for (auto node = currentImage ? currentImage->root()->firstChild() : KisNodeSP(); node; node = node->nextSibling()) {
+                    if (node->uuid() != uuid) continue;
+                    command->setExtraData(new KisCropSavedExtraData(KisCropSavedExtraData::CROP_LAYER, crop->rect, node));
+                    break;
+                }
+            }
         }
         commands.append(command);
         retained.insert(revision, command);

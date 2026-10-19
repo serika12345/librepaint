@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 25;
+constexpr quint16 FormatVersion = 26;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -103,7 +103,8 @@ QByteArray OperationDocument::recoveryData() const
     if (!withinLimit()) return {};
     for (const auto &value : operations) {
         const auto paint = std::get_if<PaintSnapshot>(&value);
-        stream << quint8(paint ? 0 : std::holds_alternative<TileWriteSnapshot>(value) ? 1 : 2)
+        stream << quint8(paint ? 0 : std::holds_alternative<TileWriteSnapshot>(value) ? 1 :
+                        std::holds_alternative<TranslationSnapshot>(value) ? 2 : 3)
                << operationId(value).sequence << operationVersion(value) << operationLayer(value);
         if (paint) {
             const auto &operation = **paint;
@@ -156,6 +157,9 @@ QByteArray OperationDocument::recoveryData() const
             if (!withinLimit() || write.writtenAreas.size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 16) return {};
             for (const auto &area : write.writtenAreas)
                 stream << qint32(area.x()) << qint32(area.y()) << qint32(area.width()) << qint32(area.height());
+        } else if (const auto crop = std::get_if<CropSnapshot>(&value)) {
+            const auto &rect = (*crop)->rect;
+            stream << qint32(rect.x()) << qint32(rect.y()) << qint32(rect.width()) << qint32(rect.height());
         } else {
             const auto &translation = *std::get<TranslationSnapshot>(value);
             stream << qint32(translation.offset.x()) << qint32(translation.offset.y());
@@ -191,7 +195,11 @@ QByteArray OperationDocument::recoveryData() const
         }
         const auto &change = m_layerHistoryChanges[stateIndex];
         stream << quint8(quint8(change.property) | (change.duplicatedLayers ? 128u : 0u) |
-                         (change.clearedLayers ? 64u : 0u) | (change.filledLayer ? 32u : 0u));
+                         (change.clearedLayers ? 64u : 0u) | (change.filledLayer ? 32u : 0u) | (change.crop ? 16u : 0u));
+        if (change.crop) {
+            if (!indices.contains(change.crop.data())) return {};
+            stream << indices.value(change.crop.data());
+        }
         if (change.property != LayerProperty::None) {
             stream << change.layer;
             if (change.property == LayerProperty::Name) {
@@ -265,9 +273,21 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         quint64 sequence = 0, version = 0;
         LayerId layer = 0;
         stream >> kind >> sequence >> version >> layer;
-        if (kind > (format >= 25 ? 2 : 1) || sequence == 0 || sequence > nextOperation || operationIndices.contains(sequence) ||
+        if (kind > (format >= 26 ? 3 : format >= 25 ? 2 : 1) || sequence == 0 || sequence > nextOperation || operationIndices.contains(sequence) ||
             layer == 0 || layer > nextLayer || version > nextRevision) return Result::InvalidRecovery;
         operationIndices.insert(sequence, quint32(operations.size()));
+        if (kind == 3) {
+            qint32 x = 0, y = 0, width = 0, height = 0;
+            stream >> x >> y >> width >> height;
+            if (version != 1 || stream.status() != QDataStream::Ok || !validCropRect(x, y, width, height)) return Result::InvalidRecovery;
+            auto operation = QSharedPointer<CropOperation>::create();
+            operation->id = {identity, sequence};
+            operation->version = version;
+            operation->layer = layer;
+            operation->rect = QRect(x, y, width, height);
+            operations.append(CropSnapshot(operation));
+            continue;
+        }
         if (kind == 2) {
             auto operation = QSharedPointer<TranslationOperation>::create();
             operation->id = {identity, sequence};
@@ -534,6 +554,25 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         LayerHistoryChange change;
         quint8 property = 0;
         stream >> property;
+        if (format >= 26 && (property & 16u)) {
+            property &= 239u;
+            quint32 cropIndex = NoOperation;
+            stream >> cropIndex;
+            if (i == 0 || property != quint8(LayerProperty::None) || cropIndex >= operationCount ||
+                !std::holds_alternative<CropSnapshot>(operations[cropIndex]) ||
+                state->layers.size() != history.last()->layers.size()) return Result::InvalidRecovery;
+            change.crop = std::get<CropSnapshot>(operations[cropIndex]);
+            bool found = false;
+            for (qsizetype layer = 0; layer < state->layers.size(); ++layer) {
+                if (state->layers[layer].id != history.last()->layers[layer].id) return Result::InvalidRecovery;
+                if (state->layers[layer].id != change.crop->layer) continue;
+                const LayerOperation crop(change.crop);
+                if (!state->layers[layer].operations.contains(crop) || history.last()->layers[layer].operations.contains(crop))
+                    return Result::InvalidRecovery;
+                found = true;
+            }
+            if (!found) return Result::InvalidRecovery;
+        }
         change.filledLayer = format >= 23 && (property & 32u);
         if (change.filledLayer) {
             property &= 223u;

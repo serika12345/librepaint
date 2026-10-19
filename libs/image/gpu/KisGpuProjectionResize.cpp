@@ -157,7 +157,13 @@ ImageReadbackOutcome Execution::readResizedProjectionImage(DocumentHandle handle
     const bool area = scaleX < 1. / 256 || scaleY < 1. / 256;
     ImageReadbackOutcome result{ExecutionCode::Success, pinned, checked.generation, {}, {}};
     const bool constant = std::all_of(pinned->layers.cbegin(), pinned->layers.cend(),
-        [](const auto &layer) { return !layer.visible || layer.operations.isEmpty(); });
+        [](const auto &layer) {
+            return !layer.visible || std::all_of(layer.operations.cbegin(), layer.operations.cend(),
+                [](const auto &operation) {
+                    return std::holds_alternative<CropSnapshot>(operation) ||
+                           std::holds_alternative<TranslationSnapshot>(operation);
+                });
+        });
     if (constant) {
         const auto pixel = readThumbnail(handle, pinned, 0, {0, 0, 1, 1}, {1, 1}, 4);
         if (pixel.code != ExecutionCode::Success) return pixel;

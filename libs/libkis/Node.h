@@ -526,8 +526,8 @@ public Q_SLOTS:
      * @brief cropNode crop this layer.
      * @param x the left edge of the cropping rectangle.
      * @param y the top edge of the cropping rectangle
-     * @param w the right edge of the cropping rectangle
-     * @param h the bottom edge of the cropping rectangle
+     * @param w the width of the cropping rectangle
+     * @param h the height of the cropping rectangle
      */
     void cropNode(int x, int y, int w, int h);
 

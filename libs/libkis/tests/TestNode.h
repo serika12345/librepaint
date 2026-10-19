@@ -13,6 +13,12 @@ class TestNode : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
+    void testLayerCropPreservesPublicPixelsAndHistory_data();
+    void testLayerCropPreservesPublicPixelsAndHistory();
+    void testGpuLayerCropKeepsUnrelatedDirectWritesAcrossUndo();
+    void testLayerCropCanReleaseItsPublicCallerDuringNotification();
+    void testLayerCropToolPreservesConfirmationResumptionAndCancellation_data();
+    void testLayerCropToolPreservesConfirmationResumptionAndCancellation();
     void testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery_data();
     void testImportedLayerPositionSurvivesPublicCopiesSavingAndRecovery();
     void testAbsoluteLayerMovementPreservesPixelsAndDirectHistory_data();

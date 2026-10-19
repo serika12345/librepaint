@@ -16,48 +16,88 @@ namespace {
 using Lineage = QList<QPair<quint64, quint64>>;
 using GeometryCache = QHash<const PaintOperation *, std::optional<Detail::PaintGeometry>>;
 
+bool writeIntersects(const TileWriteOperation &write, const QRect &block)
+{
+    if (write.writtenAreas.isEmpty()) {
+        for (const auto &tile : write.tiles)
+            if (QRect(tile->coordinate() * RgbaTile::Size, QSize(RgbaTile::Size, RgbaTile::Size)).intersects(block)) return true;
+    } else {
+        for (const auto &area : write.writtenAreas) if (area.intersects(block)) return true;
+    }
+    return false;
+}
+
+std::optional<bool> paintIntersects(const PaintOperation &paint, const QRect &block, GeometryCache &geometry)
+{
+    auto found = geometry.constFind(&paint);
+    if (found == geometry.cend()) {
+        const auto step = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * paint.brush.spacing * 16)));
+        found = geometry.insert(&paint, Detail::paintGeometry(paint, step));
+    }
+    if (!*found) return std::nullopt;
+    const auto &mesh = **found;
+    const auto diameter = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * 16)));
+    for (const auto &segment : paint.figureStyle.outline ? mesh.outline : QList<Detail::PaintSegment>{}) {
+        // A one-pixel grid clips discovery to this region, including shifted and cropped blocks.
+        const auto tiles = Detail::paintSegmentTiles(segment, diameter, paint.brush, block, 1, 1);
+        if (!tiles || !tiles->isEmpty()) return true;
+    }
+    if (paint.figureStyle.fill) {
+        const auto tiles = Detail::figureFillTiles(mesh.fill, paint.brush, block, 1, Detail::PixelHistoryBlockSize);
+        if (!tiles || !tiles->isEmpty()) return true;
+    }
+    return false;
+}
+
+std::optional<bool> blockExistsBefore(const Layer &layer, qsizetype before, QRect block, GeometryCache &geometry)
+{
+    while (before-- > 0) {
+        const auto &operation = layer.operations[before];
+        if (const auto write = std::get_if<TileWriteSnapshot>(&operation)) {
+            if (writeIntersects(**write, block)) return true;
+        } else if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) {
+            block.translate(-(*translation)->offset);
+        } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
+            if (!(*crop)->rect.normalized().intersects(block)) return false;
+            // A partially cropped history block stays allocated even when its remaining pixels are defaults.
+        } else {
+            const auto intersects = paintIntersects(*std::get<PaintSnapshot>(operation), block, geometry);
+            if (!intersects || *intersects) return intersects;
+        }
+    }
+    return false;
+}
+
 std::optional<Lineage> pixelLineage(const Layer &layer, QRect block, GeometryCache &geometry)
 {
     Lineage result;
-    for (auto it = layer.operations.crbegin(); it != layer.operations.crend(); ++it) {
-        if (const auto value = std::get_if<TileWriteSnapshot>(&*it)) {
+    QRect historyBlock = block;
+    for (qsizetype index = layer.operations.size(); index-- > 0;) {
+        const auto &operation = layer.operations[index];
+        if (const auto value = std::get_if<TileWriteSnapshot>(&operation)) {
             const auto &write = **value;
-            bool intersects = false;
-            if (write.writtenAreas.isEmpty()) {
-                for (const auto &tile : write.tiles)
-                    intersects |= QRect(tile->coordinate() * RgbaTile::Size, QSize(RgbaTile::Size, RgbaTile::Size)).intersects(block);
-            } else {
-                for (const auto &area : write.writtenAreas) intersects |= area.intersects(block);
-            }
-            if (intersects) {
+            if (writeIntersects(write, block)) {
                 result.append({write.writeGroup ? write.writeGroup : write.id.sequence, 0});
                 break;
             }
-        } else if (const auto translation = std::get_if<TranslationSnapshot>(&*it)) {
+        } else if (const auto translation = std::get_if<TranslationSnapshot>(&operation)) {
             block.translate(-(*translation)->offset);
+            historyBlock.translate(-(*translation)->offset);
+        } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
+            const auto keep = (*crop)->rect.normalized();
+            if (!keep.contains(block)) {
+                const auto exists = blockExistsBefore(layer, index, historyBlock, geometry);
+                if (!exists) return std::nullopt;
+                if (!*exists) continue;
+                result.append({(*crop)->id.sequence, (*crop)->version});
+                block = block.intersected(keep);
+                if (block.isEmpty()) break;
+            }
         } else {
-            const auto &paint = *std::get<PaintSnapshot>(*it);
-            auto found = geometry.constFind(&paint);
-            if (found == geometry.cend()) {
-                const auto step = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * paint.brush.spacing * 16)));
-                found = geometry.insert(&paint, Detail::paintGeometry(paint, step));
-            }
-            if (!*found) return std::nullopt;
-            const auto &mesh = **found;
-            const auto diameter = quint32(std::max<qint64>(1, std::llround(paint.brush.diameter * 16)));
-            bool intersects = false;
-            for (const auto &segment : paint.figureStyle.outline ? mesh.outline : QList<Detail::PaintSegment>{}) {
-                const auto tiles = Detail::paintSegmentTiles(segment, diameter, paint.brush, block, 1, Detail::PixelHistoryBlockSize);
-                if (!tiles || !tiles->isEmpty()) {
-                    intersects = true;
-                    break;
-                }
-            }
-            if (!intersects && paint.figureStyle.fill) {
-                const auto tiles = Detail::figureFillTiles(mesh.fill, paint.brush, block, 1, Detail::PixelHistoryBlockSize);
-                intersects = !tiles || !tiles->isEmpty();
-            }
-            if (intersects) result.append({paint.id.sequence, paint.version});
+            const auto &paint = *std::get<PaintSnapshot>(operation);
+            const auto intersects = paintIntersects(paint, block, geometry);
+            if (!intersects) return std::nullopt;
+            if (*intersects) result.append({paint.id.sequence, paint.version});
         }
     }
     return result;

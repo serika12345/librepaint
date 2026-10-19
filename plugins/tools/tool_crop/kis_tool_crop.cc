@@ -18,6 +18,7 @@
 #include <QCheckBox>
 #include <QObject>
 #include <QPainter>
+#include <QPointer>
 #include <QPen>
 #include <QRect>
 #include <QMenu>
@@ -346,10 +347,13 @@ bool KisToolCrop::tryContinueLastCropAction()
 
 
         if (cropImageConsistent || cropLayerConsistent) {
-            image()->undoAdapter()->undoLastCommand();
-            image()->waitForDone();
-
-            m_finalRect.setRectInitial(data->cropRect());
+            const auto rect = data->cropRect();
+            KisImageSP retainedImage = image();
+            QPointer<KisToolCrop> guard(this);
+            retainedImage->undoAdapter()->undoLastCommand();
+            retainedImage->waitForDone();
+            if (!guard) return false;
+            m_finalRect.setRectInitial(rect);
             m_haveCropSelection = true;
 
             result = true;
@@ -371,7 +375,10 @@ void KisToolCrop::endPrimaryAction(KoPointerEvent *event)
 
 
     if (!m_haveCropSelection && !haveValidRect) {
-        if (!tryContinueLastCropAction()) {
+        QPointer<KisToolCrop> guard(this);
+        const bool continued = tryContinueLastCropAction();
+        if (!guard) return;
+        if (!continued) {
             m_finalRect.setRectInitial(image()->bounds());
             m_haveCropSelection = true;
         }

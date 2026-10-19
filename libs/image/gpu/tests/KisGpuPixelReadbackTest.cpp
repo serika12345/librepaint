@@ -69,6 +69,14 @@ void KisGpuPixelReadbackTest::constantProjectionPreviewUsesOnlyOnePixelTransfer(
     QCOMPARE(execution.requested(handle), fixed);
     QVERIFY(!execution.published(handle));
     QCOMPARE(document.snapshot(), fixed);
+    QCOMPARE(document.cropLayer(document.activeLayer(), {3, 4, 50, 60}), Result::Success);
+    const auto cropped = document.snapshot();
+    QCOMPARE(execution.request(handle, cropped).code, ExecutionCode::Success);
+    const auto afterCrop = execution.readResizedProjectionImage(handle, cropped, {32, 16}, 2048);
+    QVERIFY2(afterCrop.code == ExecutionCode::Success, qPrintable(afterCrop.diagnostic));
+    QCOMPARE(afterCrop.image, result.image);
+    QCOMPARE(execution.requested(handle), cropped);
+    QVERIFY(!execution.published(handle));
 }
 
 void KisGpuPixelReadbackTest::resizedProjectionPreservesFixedPixelsRequestsAndReturnedImage()

@@ -281,6 +281,8 @@ Result PaintImage::duplicateLayers(const QList<LayerId> &layers, const QList<QSt
 { return onThread() ? publish(m_d->document->duplicateLayers(layers, names, activeSource)) : Result::InvalidInput; }
 Result PaintImage::clearLayers(const QList<LayerId> &layers)
 { return onThread() ? publish(m_d->document->clearLayers(layers)) : Result::InvalidInput; }
+Result PaintImage::cropLayer(LayerId layer, const QRect &rect)
+{ return onThread() ? publish(m_d->document->cropLayer(layer, rect)) : Result::InvalidInput; }
 Result PaintImage::fillLayer(LayerId layer, const std::array<quint8, 3> &rgb,
                              quint8 opacity, bool erase, bool alphaLocked)
 { return onThread() ? publish(m_d->document->fillLayer(layer, rgb, opacity, erase, alphaLocked)) : Result::InvalidInput; }

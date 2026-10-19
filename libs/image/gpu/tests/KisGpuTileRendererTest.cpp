@@ -81,6 +81,9 @@ private Q_SLOTS:
     void appendedInputPreservesCoverageBackgroundAndOldVersions_data();
     void appendedInputPreservesCoverageBackgroundAndOldVersions();
     void pendingStrokeLeavesCapacityForCompositionAndCancellation();
+    void layerCropSharesInteriorPreservesBoundaryAndRetainedPixels_data();
+    void layerCropSharesInteriorPreservesBoundaryAndRetainedPixels();
+    void layerCropRejectsBoundaryAllocationWithoutChangingRetainedPixels();
 
 private:
     RenderedSnapshot render(TileRenderer &renderer, const Snapshot &snapshot,
@@ -91,6 +94,81 @@ private:
                               QRect visible, const ProjectedSnapshot &base = {});
     DevicePtr m_device;
 };
+
+void KisGpuTileRendererTest::layerCropSharesInteriorPreservesBoundaryAndRetainedPixels_data()
+{
+    QTest::addColumn<QByteArray>("implicit");
+    QTest::newRow("transparent") << QByteArray::fromHex("00000000");
+    QTest::newRow("hidden-rgb") << QByteArray::fromHex("19334d00");
+    QTest::newRow("partial-alpha") << QByteArray::fromHex("19334d49");
+}
+
+void KisGpuTileRendererTest::layerCropSharesInteriorPreservesBoundaryAndRetainedPixels()
+{
+    QFETCH(QByteArray, implicit);
+    const auto raw = QByteArray::fromHex("11223300").repeated(RgbaTile::ByteCount / 4);
+    RasterImage input;
+    input.size = {768, 256};
+    input.layers = {{QStringLiteral("Crop target"), true, {}, {}}};
+    for (int i = 0; i < 4; ++i) input.layers[0].defaultPixel[i] = quint8(implicit[i]);
+    for (int x = -2; x <= 2; ++x) input.layers[0].tiles.append({{x, 0}, raw});
+    OperationDocument document(input);
+    const auto layer = document.activeLayer();
+    TileRenderer renderer(m_device);
+    const auto before = render(renderer, document.snapshot());
+    QVERIFY(before);
+    const auto allocated = renderer.residentBytes();
+    QCOMPARE(document.cropLayer(layer, {-256, 0, 776, 256}), Result::Success);
+    const auto after = render(renderer, document.snapshot(), before);
+    QVERIFY(after);
+    QCOMPARE(after->tiles(layer).size(), 4);
+    QCOMPARE(renderer.residentBytes() - allocated, qsizetype(TileRenderer::TileBytes));
+    for (const auto &tile : after->tiles(layer)) {
+        if (tile.coordinate.x() == 2) continue;
+        const auto old = before->tiles(layer);
+        const auto found = std::find_if(old.cbegin(), old.cend(), [&](const auto &value) { return value.coordinate == tile.coordinate; });
+        QVERIFY(found != old.cend());
+        QCOMPARE(tile.pixels, found->pixels);
+    }
+    auto expected = implicit.repeated(RgbaTile::ByteCount / 4);
+    for (int y = 0; y < 256; ++y) std::memcpy(expected.data() + y * 256 * 4, raw.constData(), 8 * 4);
+    QCOMPARE(readTile(after, layer, {2, 0}), expected);
+    QCOMPARE(readTile(before, layer, {2, 0}), raw);
+    QCOMPARE(readTile(before, layer, {-2, 0}), raw);
+    QCOMPARE(document.undo(), Result::Success);
+    const auto undone = render(renderer, document.snapshot(), after);
+    QVERIFY(undone);
+    QCOMPARE(readTile(undone, layer, {2, 0}), raw);
+    QCOMPARE(document.redo(), Result::Success);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    TileRenderer rebuilt(m_device);
+    const auto restored = render(rebuilt, recovered.snapshot());
+    QVERIFY(restored);
+    QCOMPARE(readTile(restored, layer, {2, 0}), expected);
+}
+
+void KisGpuTileRendererTest::layerCropRejectsBoundaryAllocationWithoutChangingRetainedPixels()
+{
+    const auto raw = QByteArray::fromHex("112233ff").repeated(RgbaTile::ByteCount / 4);
+    RasterImage input;
+    input.size = {256, 256};
+    input.layers = {{QStringLiteral("Crop target"), true, {}, {{{0, 0}, raw}}}};
+    OperationDocument document(input);
+    TileRenderer renderer(m_device, TileRenderer::TileBytes);
+    const auto before = render(renderer, document.snapshot());
+    QVERIFY(before);
+    QCOMPARE(document.cropLayer(document.activeLayer(), {3, 4, 50, 60}), Result::Success);
+    const auto commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto rejected = renderer.record(commands, document.snapshot(), before);
+    QCOMPARE(rejected.code, RenderOutcome::CapacityExceeded);
+    QVERIFY(!rejected.version);
+    QVERIFY(rejected.diagnostic.contains(QStringLiteral("crop")));
+    QVERIFY(m_device->submitCommands(true));
+    QCOMPARE(readTile(before, document.activeLayer(), {0, 0}), raw);
+    QCOMPARE(renderer.residentBytes(), qsizetype(TileRenderer::TileBytes));
+}
 
 void KisGpuTileRendererTest::symmetryKeepsSparseTilesAndIncrementalInputWithinBudget()
 {

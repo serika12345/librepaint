@@ -34,6 +34,11 @@ void copyLayerOperations(const Layer &source, Layer &copy, const QUuid &identity
             operation->id = id;
             operation->layer = copy.id;
             copy.operations.append(TranslationSnapshot(operation));
+        } else if (const auto crop = std::get_if<CropSnapshot>(&sourceOperation)) {
+            auto operation = QSharedPointer<CropOperation>::create(**crop);
+            operation->id = id;
+            operation->layer = copy.id;
+            copy.operations.append(CropSnapshot(operation));
         } else {
             auto operation = QSharedPointer<TileWriteOperation>::create(*std::get<TileWriteSnapshot>(sourceOperation));
             operation->id = id;
@@ -97,6 +102,10 @@ std::unique_ptr<OperationDocument> OperationDocument::cloneVersion(const Snapsho
                 auto copied = QSharedPointer<TranslationOperation>::create(**translation);
                 copied->id.document = result->m_identity;
                 operation = TranslationSnapshot(copied);
+            } else if (const auto crop = std::get_if<CropSnapshot>(&operation)) {
+                auto copied = QSharedPointer<CropOperation>::create(**crop);
+                copied->id.document = result->m_identity;
+                operation = CropSnapshot(copied);
             } else {
                 auto copied = QSharedPointer<TileWriteOperation>::create(*std::get<TileWriteSnapshot>(operation));
                 copied->id.document = result->m_identity;
@@ -124,6 +133,7 @@ HistoryAction OperationDocument::historyAction(int index) const
     if (m_layerHistoryChanges[index].duplicatedLayers) return HistoryAction::DuplicateLayer;
     if (m_layerHistoryChanges[index].clearedLayers) return HistoryAction::ClearPixels;
     if (m_layerHistoryChanges[index].filledLayer) return HistoryAction::FillLayer;
+    if (m_layerHistoryChanges[index].crop) return HistoryAction::CropLayer;
     switch (m_layerHistoryChanges[index].property) {
     case LayerProperty::Name: return HistoryAction::RenameLayer;
     case LayerProperty::Opacity: return HistoryAction::ChangeOpacity;
@@ -159,6 +169,9 @@ HistoryAction OperationDocument::historyAction(int index) const
     }
     return HistoryAction::ReplacePixels;
 }
+CropSnapshot OperationDocument::historyCrop(int index) const
+{ return index > 0 && index < m_layerHistoryChanges.size() ? m_layerHistoryChanges[index].crop : CropSnapshot(); }
+
 int OperationDocument::savedHistoryIndex() const
 {
     for (int index = 0; index < m_history.size(); ++index)
@@ -857,6 +870,29 @@ Result OperationDocument::clearLayers(const QList<LayerId> &layers)
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     LayerHistoryChange change;
     change.clearedLayers = true;
+    commitVersion(version, change);
+    return Result::Success;
+}
+
+Result OperationDocument::cropLayer(LayerId layer, const QRect &rect)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    const auto index = layerIndex(layer);
+    if (index < 0) return Result::LayerUnavailable;
+    if (!validCropRect(rect)) return Result::InvalidInput;
+    if (m_nextOperation == std::numeric_limits<quint64>::max() ||
+        m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto operation = QSharedPointer<CropOperation>::create();
+    operation->id = {m_identity, m_nextOperation + 1};
+    operation->layer = layer;
+    operation->rect = rect;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->layers[index].operations.append(CropSnapshot(operation));
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    ++m_nextOperation;
+    LayerHistoryChange change;
+    change.crop = operation;
     commitVersion(version, change);
     return Result::Success;
 }

@@ -172,7 +172,16 @@ struct TranslationOperation
     QPoint offset;
 };
 using TranslationSnapshot = QSharedPointer<const TranslationOperation>;
-using LayerOperation = std::variant<PaintSnapshot, TileWriteSnapshot, TranslationSnapshot>;
+/** Resets preceding pixels outside the requested rectangle to the layer default. */
+struct CropOperation
+{
+    OperationId id;
+    quint64 version = 1;
+    LayerId layer = 0;
+    QRect rect;
+};
+using CropSnapshot = QSharedPointer<const CropOperation>;
+using LayerOperation = std::variant<PaintSnapshot, TileWriteSnapshot, TranslationSnapshot, CropSnapshot>;
 
 struct RasterLayer
 {
@@ -277,7 +286,7 @@ enum class HistoryAction {
     None, AddLayer, RemoveLayer, MoveLayer, RenameLayer, ChangeOpacity,
     ChangeVisibility, ChangeLock, ChangeTimelinePin, PaintStroke, DrawLine,
     DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath,
-    ClearPixels, FillLayer, TranslateLayer
+    ClearPixels, FillLayer, TranslateLayer, CropLayer
 };
 
 struct Limits
@@ -325,6 +334,8 @@ public:
     QList<Snapshot> historyVersions() const;
     /** Action reaching the given history position; None for the initial or invalid position. */
     HistoryAction historyAction(int index) const;
+    /** Original rectangle and layer identity for resuming a retained crop action. */
+    CropSnapshot historyCrop(int index) const;
     /** -1 when the saved version has left the retained history. */
     int savedHistoryIndex() const;
     bool isModified() const;
@@ -421,6 +432,11 @@ public:
      * request must name distinct, available, unlocked layers.
      */
     Result clearLayers(const QList<LayerId> &layers);
+    /** One undo step; normalizes the pixel rectangle while retaining its original
+     * UI values. Defaults, position and properties stay unchanged. Programmatic
+     * cropping accepts locked layers; interactive callers enforce editability.
+     */
+    Result cropLayer(LayerId layer, const QRect &rect);
     /** Fills canvas bounds on one layer as one history step, preserving pixels outside them. */
     Result fillLayer(LayerId layer, const std::array<quint8, 3> &rgb, quint8 opacity = 255,
                      bool erase = false, bool alphaLocked = false);
@@ -449,6 +465,7 @@ private:
         bool duplicatedLayers = false;
         bool clearedLayers = false;
         bool filledLayer = false;
+        CropSnapshot crop;
     };
     std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
     LayerId insertVersion(const Snapshot &source, LayerId sourceLayer,

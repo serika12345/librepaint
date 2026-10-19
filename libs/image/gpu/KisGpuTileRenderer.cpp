@@ -177,7 +177,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     Tiles nextCoverage;
     bool coverageInitialized = false;
     size_t recordedJobs = 0, recordedFills = 0, recordedUploads = 0;
-    QList<std::shared_ptr<Tile>> translationPins;
+    QList<std::shared_ptr<Tile>> spatialPins;
     const auto flushPaint = [&]() -> std::optional<RenderOutcome> {
         const bool reuseCoverage = preserveCoverage && d.coverageVersion.toStrongRef() == base &&
             d.coverageLayer == pendingCoverageLayer;
@@ -259,6 +259,14 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         QList<QRect> operationRegions(layer.operations.size() + 1, paintRegion);
         for (qsizetype i = layer.operations.size(); i-- > 0;) {
             auto needed = operationRegions[i + 1];
+            if (const auto crop = std::get_if<CropSnapshot>(&layer.operations[i]); crop && !needed.isEmpty()) {
+                const int left = pixelTileIndex(needed.left(), TileSize);
+                const int top = pixelTileIndex(needed.top(), TileSize);
+                const int right = pixelTileIndex(needed.right(), TileSize);
+                const int bottom = pixelTileIndex(needed.bottom(), TileSize);
+                needed = QRect(left * TileSize, top * TileSize, (right - left + 1) * TileSize,
+                               (bottom - top + 1) * TileSize).intersected((*crop)->rect.normalized());
+            }
             if (const auto translation = std::get_if<TranslationSnapshot>(&layer.operations[i]); translation && !needed.isEmpty()) {
                 needed = needed.translated(-(*translation)->offset).intersected(layerDomain);
                 if (!needed.isEmpty()) {
@@ -303,10 +311,11 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     if (old.operations[i] != layer.operations[i]) { matches = false; break; }
                 }
                 const auto sourceRegion = operationRegions[shared];
-                bool sharedTranslation = false;
+                bool sharedSpatialOperation = false;
                 for (qsizetype i = 0; i < shared; ++i)
-                    sharedTranslation = sharedTranslation || std::holds_alternative<TranslationSnapshot>(layer.operations[i]);
-                if (matches && (!sharedTranslation || !base->m_data->region || base->m_data->region->contains(sourceRegion))) {
+                    sharedSpatialOperation = sharedSpatialOperation || std::holds_alternative<TranslationSnapshot>(layer.operations[i]) ||
+                        std::holds_alternative<CropSnapshot>(layer.operations[i]);
+                if (matches && (!sharedSpatialOperation || !base->m_data->region || base->m_data->region->contains(sourceRegion))) {
                     const auto &oldTiles = base->m_data->layers[layer.id];
                     for (auto tile = oldTiles.cbegin(); tile != oldTiles.cend(); ++tile) {
                         if (!sourceRegion.intersects(QRect(coordinate(tile.key()) * TileSize, QSize(TileSize, TileSize)))) continue;
@@ -362,7 +371,8 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         auto &tiles = data->layers[layer.id];
         for (qsizetype epoch = prefix; epoch < layer.operations.size();) {
             qsizetype end = epoch;
-            while (end < layer.operations.size() && !std::holds_alternative<TranslationSnapshot>(layer.operations[end])) ++end;
+            while (end < layer.operations.size() && !std::holds_alternative<TranslationSnapshot>(layer.operations[end]) &&
+                   !std::holds_alternative<CropSnapshot>(layer.operations[end])) ++end;
             const auto paintRegion = operationRegions[epoch];
             QMap<quint64, std::array<std::shared_ptr<Tile>, 2>> writable;
             QMap<quint64, Checkpoint> checkpoints;
@@ -509,11 +519,18 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
             }
             if (end == layer.operations.size()) break;
             if (const auto failure = flushPaint()) return *failure;
-            const auto &translation = std::get<TranslationSnapshot>(layer.operations[end]);
-            auto moved = d.translateTiles(commands, tiles, data->defaults.value(layer.id), translation->offset,
-                                           operationRegions[end + 1], translationPins);
-            if (moved.code != RenderOutcome::Recorded) return {moved.code, {}, moved.diagnostic};
-            tiles = std::move(moved.tiles);
+            if (const auto crop = std::get_if<CropSnapshot>(&layer.operations[end])) {
+                auto cropped = d.cropTiles(commands, tiles, (*crop)->rect.normalized(), packedPixel(layer.defaultPixel),
+                                           operationRegions[end + 1], spatialPins);
+                if (cropped.code != RenderOutcome::Recorded) return {cropped.code, {}, cropped.diagnostic};
+                tiles = std::move(cropped.tiles);
+            } else {
+                const auto &translation = std::get<TranslationSnapshot>(layer.operations[end]);
+                auto moved = d.translateTiles(commands, tiles, data->defaults.value(layer.id), translation->offset,
+                                               operationRegions[end + 1], spatialPins);
+                if (moved.code != RenderOutcome::Recorded) return {moved.code, {}, moved.diagnostic};
+                tiles = std::move(moved.tiles);
+            }
             epoch = end + 1;
         }
     }

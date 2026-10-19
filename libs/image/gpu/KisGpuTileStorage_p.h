@@ -71,6 +71,8 @@ struct TileRenderer::Private
     Detail::NativeComputePipeline boundsPipeline;
     Detail::NativeBindingLayout translationLayout;
     Detail::NativeComputePipeline translationPipeline;
+    Detail::NativeBindingLayout cropLayout;
+    Detail::NativeComputePipeline cropPipeline;
     Detail::NativeBindingLayout thumbnailLayout;
     Detail::NativeComputePipeline thumbnailPipeline;
     Detail::NativeBindingLayout resizeLayout;
@@ -102,6 +104,13 @@ struct TileRenderer::Private
     TranslationResult translateTiles(WGPUCommandEncoder commands, const Detail::Tiles &source,
                                      const std::shared_ptr<Detail::Tile> &fallback, QPoint offset,
                                      QRect region, QList<std::shared_ptr<Detail::Tile>> &pins);
+    struct CropResult {
+        RenderOutcome::Code code;
+        Detail::Tiles tiles;
+        QString diagnostic;
+    };
+    CropResult cropTiles(WGPUCommandEncoder commands, const Detail::Tiles &source, QRect keep,
+                        quint32 defaultPixel, QRect region, QList<std::shared_ptr<Detail::Tile>> &pins);
 };
 }
 #endif

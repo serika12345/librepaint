@@ -766,9 +766,18 @@ void Node::cropNode(int x, int y, int w, int h)
     if (!qobject_cast<KisLayer*>(d->node.data())) return;
     if (!d->node->parent()) return;
 
-    QRect rect = QRect(x, y, w, h);
-    d->image->cropNode(d->node, rect);
-    d->image->waitForDone();
+    KisImageSP image = d->image;
+    if (!image) return;
+    if (image->gpuImage()) {
+        constexpr qint64 limit = LibrePaint::Image::Gpu::RgbaTile::CoordinateLimit;
+        if (x < -limit || x > limit || y < -limit || y > limit ||
+            qint64(x) + w < -limit || qint64(x) + w > limit ||
+            qint64(y) + h < -limit || qint64(y) + h > limit)
+            throw std::invalid_argument("GPU layer crop rectangle exceeds the pixel coordinate domain");
+    }
+    const KisNodeSP node = d->node;
+    image->cropNode(node, QRect(x, y, w, h));
+    image->waitForDone();
 }
 
 void Node::shearNode(double angleX, double angleY)

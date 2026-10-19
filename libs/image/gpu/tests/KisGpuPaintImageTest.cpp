@@ -21,6 +21,9 @@ class KisGpuPaintImageTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void layerCropPublishesFixedPixelsAndPreservesRejectedRequests();
+    void directWritesKeepTheirCropHistoryBlocks_data();
+    void directWritesKeepTheirCropHistoryBlocks();
     void translationPreviewsPublishPixelsAndCancelWithoutReplacingRedo();
     void rejectedTranslationKeepsHiddenPixelsHistoryPreviewAndRequests();
     void colorFillKeepsVersionsHistoryAndWholeRequestFailures();
@@ -47,6 +50,152 @@ private Q_SLOTS:
     void damagedPixelSharingRecoveryPreservesTheLiveImage();
     void historyNavigationPublishesOneVersionAndPreservesSavedState();
 };
+
+void KisGpuPaintImageTest::layerCropPublishesFixedPixelsAndPreservesRejectedRequests()
+{
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    PaintImage image(execution, QSize(64, 64));
+    const auto layer = image.operations().activeLayer();
+    const auto pixel = QByteArray::fromHex("112233ff");
+    QCOMPARE(image.writeRgbaPixels(layer, {7, 9, 1, 1}, pixel), Result::Success);
+    const auto fixed = image.operations().snapshot();
+    QSignalSpy changes(&image, &PaintImage::changed);
+    bool published = false;
+    connect(&image, &PaintImage::changed, this, [&] {
+        published = execution.requested(image.handle()) == image.operations().snapshot();
+    });
+    QCOMPARE(image.cropLayer(layer, {10, 10, 20, 20}), Result::Success);
+    QVERIFY(published);
+    QCOMPARE(changes.size(), 1);
+    const auto cropped = image.operations().snapshot();
+    QCOMPARE(image.readRgbaPixels(layer, {7, 9, 1, 1}, 4).bytes, QByteArray(4, '\0'));
+    QCOMPARE(execution.readRgbaPixels(image.handle(), fixed, {7, 9, 1, 1}, layer, 4).bytes, pixel);
+    QCOMPARE(execution.requested(image.handle()), cropped);
+    QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+    QCOMPARE(image.readRgbaPixels(layer, {7, 9, 1, 1}, 4).code, ExecutionCode::Busy);
+    QCOMPARE(execution.cancelFrame().code, ExecutionCode::Success);
+    QCOMPARE(image.readRgbaPixels(layer, {7, 9, 1, 1}, 3).code, ExecutionCode::CapacityExceeded);
+    QCOMPARE(execution.requested(image.handle()), cropped);
+    QCOMPARE(image.operations().snapshot(), cropped);
+    QCOMPARE(image.undo(), Result::Success);
+    const auto pending = image.beginStroke(layer, Brush{}, 42);
+    QCOMPARE(image.appendSamples(pending, {{{4, 5}, 1}}), Result::Success);
+    const auto recovery = image.operations().recoveryData();
+    const auto requested = execution.requested(image.handle());
+    changes.clear();
+    QCOMPARE(image.cropLayer(layer, {1, 2, 3, 4}), Result::EditInProgress);
+    QCOMPARE(image.operations().recoveryData(), recovery);
+    QCOMPARE(execution.requested(image.handle()), requested);
+    QCOMPARE(changes.size(), 0);
+    QCOMPARE(image.cancelStroke(pending), Result::Success);
+    const auto unchanged = image.operations().recoveryData();
+    changes.clear();
+    QCOMPARE(image.cropLayer(layer, {-RgbaTile::CoordinateLimit - 1, 0, 1, 1}), Result::InvalidInput);
+    QCOMPARE(image.cropLayer(layer + 1, {1, 2, 3, 4}), Result::LayerUnavailable);
+    QCOMPARE(image.operations().recoveryData(), unchanged);
+    QCOMPARE(changes.size(), 0);
+    QCOMPARE(image.redo(), Result::Success);
+    QCOMPARE(image.operations().historyAction(1), HistoryAction::CropLayer);
+    QCOMPARE(image.writeRgbaPixels(layer, {1000, 7, 1, 1}, pixel), Result::Success);
+    QCOMPARE(image.readRgbaPixels(layer, {1000, 7, 1, 1}, 4).bytes, pixel);
+    image.close();
+    QCOMPARE(image.cropLayer(layer, {1, 2, 3, 4}), Result::Closed);
+}
+
+void KisGpuPaintImageTest::directWritesKeepTheirCropHistoryBlocks_data()
+{
+    QTest::addColumn<QPoint>("writePoint");
+    QTest::addColumn<QList<QRect>>("crops");
+    QTest::addColumn<int>("owningCrop");
+    QTest::addColumn<int>("sourceKind");
+    QTest::addColumn<QPoint>("translation");
+    const QList<QRect> removed{{64, 0, 64, 64}};
+    QTest::newRow("unused-far-block") << QPoint(1100, 44) << removed << 0 << 0 << QPoint();
+    QTest::newRow("unused-block-in-same-gpu-tile") << QPoint(160, 8) << removed << 0 << 0 << QPoint();
+    QTest::newRow("fully-kept-block") << QPoint(16, 8) << QList<QRect>{{0, 0, 64, 64}} << 0 << 0 << QPoint();
+    QTest::newRow("removed-block") << QPoint(8, 8) << removed << 1 << 0 << QPoint();
+    QTest::newRow("kept-side-of-boundary-block") << QPoint(40, 8) << QList<QRect>{{32, 0, 32, 64}} << 1 << 0 << QPoint();
+    QTest::newRow("explicit-default-block") << QPoint(8, 8) << removed << 1 << 2 << QPoint();
+    QTest::newRow("painted-block") << QPoint(8, 8) << removed << 1 << 1 << QPoint();
+    QTest::newRow("previously-removed-block") << QPoint(8, 8) << QList<QRect>{{64, 0, 64, 64}, {128, 0, 64, 64}} << 1 << 0 << QPoint();
+    QTest::newRow("retained-default-boundary-block") << QPoint(40, 8) << QList<QRect>{{32, 0, 32, 64}, {64, 0, 64, 64}} << 2 << 0 << QPoint();
+    QTest::newRow("translated-removed-block") << QPoint(-65, 27) << removed << 1 << 0 << QPoint(-73, 19);
+    QTest::newRow("translated-unused-block") << QPoint(-400, 27) << removed << 0 << 0 << QPoint(-73, 19);
+    QTest::newRow("paint-after-non-aligned-position") << QPoint(40, 8) << removed << 0 << 3 << QPoint();
+    QTest::newRow("fill-after-non-aligned-position") << QPoint(40, 8) << removed << 0 << 4 << QPoint();
+    QTest::newRow("mirrored-paint-after-non-aligned-position") << QPoint(40, 8) << removed << 0 << 5 << QPoint();
+}
+
+void KisGpuPaintImageTest::directWritesKeepTheirCropHistoryBlocks()
+{
+    QFETCH(QPoint, writePoint);
+    QFETCH(QList<QRect>, crops);
+    QFETCH(int, owningCrop);
+    QFETCH(int, sourceKind);
+    QFETCH(QPoint, translation);
+    QString diagnostic;
+    const auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Execution execution(device);
+    PaintImage image(execution, QSize(64, 64));
+    const auto layer = image.operations().activeLayer();
+    if (sourceKind >= 3) QCOMPARE(image.writeLayerPosition(layer, {17, 0}), Result::Success);
+    if (sourceKind == 4) {
+        FigureStyle style;
+        style.outline = false;
+        style.fill = std::array<quint8, 4>{17, 34, 51, 255};
+        QCOMPARE(image.paintFigure(layer, Brush{}, {{{0, 0}, 1}, {{16, 16}, 1}},
+                                   {ShapeKind::Rectangle, {0, 0}, {16, 16}, 0}, style, 42), Result::Success);
+    } else if (sourceKind == 1 || sourceKind >= 3) {
+        Brush brush;
+        brush.diameter = 4;
+        brush.mirrorHorizontal = sourceKind == 5;
+        brush.mirrorCenter = {64, 0};
+        const auto stroke = image.beginStroke(layer, brush, 42);
+        QCOMPARE(image.appendSamples(stroke, {{{8, 8}, 1}}), Result::Success);
+        QCOMPARE(image.commitStroke(stroke), Result::Success);
+    } else {
+        const auto pixel = sourceKind == 2 ? QByteArray(4, '\0') : QByteArray::fromHex("112233ff");
+        QCOMPARE(image.writeRgbaPixels(layer, {8, 8, 1, 1}, pixel), Result::Success);
+    }
+    if (!translation.isNull()) {
+        const auto move = image.beginLayerTranslation(layer);
+        QCOMPARE(image.updateLayerTranslation(move, translation), Result::Success);
+        QCOMPARE(image.commitLayerTranslation(move), Result::Success);
+    }
+    const auto baseHistory = image.operations().undoCount();
+    const QRect region(writePoint, QSize(1, 1));
+    QList<QByteArray> before{image.readRgbaPixels(layer, region, 4).bytes};
+    for (const auto &crop : crops) {
+        QCOMPARE(image.cropLayer(layer, crop), Result::Success);
+        before.append(image.readRgbaPixels(layer, region, 4).bytes);
+    }
+    const auto fixed = image.operations().snapshot();
+    const auto written = QByteArray::fromHex("77889900");
+    QSignalSpy changed(&image, &PaintImage::changed);
+    QCOMPARE(image.writeRgbaPixels(layer, region, written), Result::Success);
+    QCOMPARE(changed.size(), 0);
+    QCOMPARE(image.operations().undoCount(), baseHistory + crops.size());
+    QCOMPARE(execution.readRgbaPixels(image.handle(), fixed, region, layer, 4).bytes, before.last());
+    PaintImage recovered(execution, QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(image.operations().recoveryData()), Result::Success);
+    for (auto *owner : {&image, &recovered}) {
+        for (qsizetype index = crops.size(); index >= 0; --index) {
+            QCOMPARE(owner->readRgbaPixels(layer, region, 4).bytes,
+                     owningCrop == 0 || index >= owningCrop ? written : before[index]);
+            QCOMPARE(owner->operations().undoCount(), baseHistory + index);
+            if (index) QCOMPARE(owner->undo(), Result::Success);
+        }
+        for (qsizetype index = 1; index <= crops.size(); ++index) {
+            QCOMPARE(owner->redo(), Result::Success);
+            QCOMPARE(owner->readRgbaPixels(layer, region, 4).bytes,
+                     owningCrop == 0 || index >= owningCrop ? written : before[index]);
+        }
+    }
+}
 
 void KisGpuPaintImageTest::rejectedTranslationKeepsHiddenPixelsHistoryPreviewAndRequests()
 {

@@ -14,6 +14,16 @@
 namespace LibrePaint::Image::Gpu::Detail {
 constexpr qsizetype LayerNameByteLimit = 65536;
 
+inline bool validCropRect(qint32 x, qint32 y, qint32 width, qint32 height)
+{
+    constexpr qint64 limit = RgbaTile::CoordinateLimit;
+    return x >= -limit && x <= limit && y >= -limit && y <= limit &&
+        qint64(x) + width >= -limit && qint64(x) + width <= limit &&
+        qint64(y) + height >= -limit && qint64(y) + height <= limit;
+}
+inline bool validCropRect(const QRect &rect)
+{ return validCropRect(rect.x(), rect.y(), rect.width(), rect.height()); }
+
 inline bool validPixelWriteArea(qint32 x, qint32 y, qint32 width, qint32 height)
 {
     if (width <= 0 || height <= 0 || width > PixelHistoryBlockSize || height > PixelHistoryBlockSize ||

@@ -56,6 +56,9 @@ class KisGpuOperationDocumentTest : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void layerCropPreservesValuesHistoryAndRecovery();
+    void rejectedLayerCropsKeepRedoPendingInputAndClosedState();
+    void previousTranslatedRecoveryPreservesPendingInputAndCropHistory();
     void layerTranslationPreservesInputVersionsAndOneHistoryEntry();
     void previousPlacedRecoveryPreservesPendingInputAndPosition();
     void groupedRemovalPreservesPixelsSelectionAndAtomicHistory();
@@ -116,6 +119,105 @@ private Q_SLOTS:
     void layerRemovalReusesCapacityWithoutLosingRecoveryHistory();
     void layerReorderingIsAtomicAndPreservesSelectionPixelsAndHistory();
 };
+
+void KisGpuOperationDocumentTest::layerCropPreservesValuesHistoryAndRecovery()
+{
+    RasterImage source;
+    source.size = {512, 64};
+    source.layers = {{QStringLiteral("Hidden locked target"), false, {}, {}}, {QStringLiteral("Active layer"), true, {}, {}}};
+    source.layers.first().defaultPixel = {17, 34, 51, 73};
+    source.layers.first().position = {17, -9};
+    source.layers.first().userLocked = true;
+    source.activeLayer = 1;
+    OperationDocument document(source);
+    const auto before = document.snapshot();
+    const auto layer = before->layers.first().id;
+    const QRect requested(256, 16, -259, -11);
+    QCOMPARE(document.cropLayer(layer, requested), Result::Success);
+    const auto cropped = document.snapshot();
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.historyAction(1), HistoryAction::CropLayer);
+    QCOMPARE(document.historyCrop(1)->rect, requested);
+    QCOMPARE(document.historyCrop(1)->layer, layer);
+    QVERIFY(!document.historyCrop(0));
+    QVERIFY(!document.historyCrop(2));
+    QCOMPARE(cropped->activeLayer, before->activeLayer);
+    QCOMPARE(cropped->selectedLayers, before->selectedLayers);
+    QCOMPARE(cropped->layers.first().position, before->layers.first().position);
+    QCOMPARE(cropped->layers.first().defaultPixel, before->layers.first().defaultPixel);
+    QVERIFY(cropped->layers.first().userLocked);
+    QVERIFY(!cropped->layers.first().visible);
+    QVERIFY(before->layers.first().operations.isEmpty());
+    QVERIFY(cropped->layers.last().operations.isEmpty());
+    QCOMPARE(document.writeLayerName(layer, QStringLiteral("Renamed after crop")), Result::Success);
+    QCOMPARE(document.historyAction(1), HistoryAction::CropLayer);
+    QCOMPARE(document.historyCrop(1)->rect, requested);
+    QCOMPARE(document.markSaved(document.snapshot()), Result::Success);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.historyAction(1), HistoryAction::CropLayer);
+    QCOMPARE(recovered.historyCrop(1)->rect, requested);
+    QCOMPARE(recovered.historyCrop(1)->layer, layer);
+    QCOMPARE(recovered.savedHistoryIndex(), 1);
+    QCOMPARE(recovered.snapshot()->layers.first().name, QStringLiteral("Renamed after crop"));
+    QCOMPARE(recovered.undo(), Result::Success);
+    QVERIFY(recovered.snapshot()->layers.first().operations.isEmpty());
+    QCOMPARE(recovered.redo(), Result::Success);
+    QCOMPARE(std::get<CropSnapshot>(recovered.snapshot()->layers.first().operations.last())->rect, requested);
+}
+
+void KisGpuOperationDocumentTest::rejectedLayerCropsKeepRedoPendingInputAndClosedState()
+{
+    OperationDocument document({64, 64});
+    const auto layer = document.activeLayer();
+    QCOMPARE(document.cropLayer(layer, QRect(1, 2, 3, 4)), Result::Success);
+    QCOMPARE(document.undo(), Result::Success);
+    const auto before = document.snapshot();
+    QCOMPARE(document.cropLayer(layer, QRect(-RgbaTile::CoordinateLimit - 1, 0, 1, 1)), Result::InvalidInput);
+    QCOMPARE(document.cropLayer(layer + 1, QRect(1, 2, 3, 4)), Result::LayerUnavailable);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.redoCount(), 1);
+    const auto pending = document.beginStroke(layer, Brush{}, 17);
+    QVERIFY(!pending.isNull());
+    QCOMPARE(document.appendSamples(pending, {sample(8, 9)}), Result::Success);
+    const auto preview = document.preview();
+    QCOMPARE(document.cropLayer(layer, QRect(1, 2, 3, 4)), Result::EditInProgress);
+    QCOMPARE(document.preview(), preview);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.activeOperation(), pending);
+    QCOMPARE(document.redoCount(), 1);
+    QCOMPARE(document.cancelStroke(pending), Result::Success);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.historyCrop(1)->rect, QRect(1, 2, 3, 4));
+    document.close();
+    const auto closed = document.snapshot();
+    QCOMPARE(document.cropLayer(layer, QRect(1, 2, 3, 4)), Result::Closed);
+    QCOMPARE(document.snapshot(), closed);
+}
+
+void KisGpuOperationDocumentTest::previousTranslatedRecoveryPreservesPendingInputAndCropHistory()
+{
+    const auto bytes = LibrePaint::Image::Gpu::Test::translatedLayerRecoveryV25();
+    QCOMPARE(QCryptographicHash::hash(bytes, QCryptographicHash::Sha256).toHex(),
+             QByteArrayLiteral("c556bf45c01accefd2338475dcecafc5c023a15683084bd962732b4626d08bc3"));
+    OperationDocument document({1, 1});
+    QCOMPARE(document.restoreRecovery(bytes), Result::Success);
+    QCOMPARE(document.snapshot()->size, QSize(64, 64));
+    QCOMPARE(document.snapshot()->layers.first().position, QPoint(-73, 19));
+    QCOMPARE(document.undoCount(), 2);
+    QVERIFY(document.hasActiveStroke());
+    QCOMPARE(document.preview()->sampleCount, 3);
+    QCOMPARE(document.cancelStroke(document.activeOperation()), Result::Success);
+    QCOMPARE(document.cropLayer(document.activeLayer(), QRect(-70, 20, 10, 12)), Result::Success);
+    QCOMPARE(document.undoCount(), 3);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.historyAction(3), HistoryAction::CropLayer);
+    QCOMPARE(recovered.historyCrop(3)->rect, QRect(-70, 20, 10, 12));
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->layers.first().position, QPoint());
+}
 
 void KisGpuOperationDocumentTest::layerTranslationPreservesInputVersionsAndOneHistoryEntry()
 {
