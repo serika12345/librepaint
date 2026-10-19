@@ -404,8 +404,10 @@ public:
 
     /** Adds and selects a layer in one history entry; returns zero on rejection. */
     LayerId addLayer(const QString &name);
-    /** Inserts and selects a layer at a bottom-to-top index, including its timeline state. */
-    LayerId addLayer(const QString &name, qsizetype index, bool pinnedToTimeline);
+    /** Inserts and selects a paint layer at a document-list index. A nonnull
+     * parent UUID identifies an existing group; null places it at the root.
+     */
+    LayerId addLayer(const QString &name, qsizetype index, bool pinnedToTimeline, const QUuid &parentUuid = {});
     /** Copies one committed source layer into a new identity and one history entry.
      * Properties supply a fresh UUID and attributes; pixels retain their source
      * default and immutable blocks. Zero reports rejected input or capacity.

@@ -697,21 +697,27 @@ void KisLayerManager::addLayerCommon(KisNodeSP activeNode, KisNodeSP layer, bool
 KisLayerSP KisLayerManager::addPaintLayer(KisNodeSP activeNode)
 {
     KisImageWSP image = m_view->image();    
-    if (const auto owner = image->gpuImage()) {
-        const KisImageSP retainedImage = image;
-        const qsizetype index = activeNode && activeNode != image->root()
-            ? image->root()->index(activeNode) + 1 : image->root()->childCount();
-        if (activeNode && activeNode != image->root() && activeNode->parent() != image->root())
-            return {};
-        const auto id = owner->addLayer(image->nextLayerName(i18n("Paint Layer")), index,
-                                       KisConfig(true).autoPinLayersToTimeline());
-        if (!id || retainedImage->gpuImage() != owner) return {};
-        for (const auto &layer : owner->operations().snapshot()->layers) {
-            if (layer.id != id) continue;
-            for (auto node = retainedImage->root()->firstChild(); node; node = node->nextSibling())
-                if (node->uuid() == layer.uuid) return qobject_cast<KisLayer *>(node.data());
+    if (image->gpuImage()) {
+        KisImageSP retainedImage = image;
+        KisNodeSP parent = activeNode ? activeNode : image->root();
+        KisNodeSP above = parent->lastChild();
+        if (parent != image->root() && parent->inherits("KisGroupLayer") && parent->collapsed()) {
+            above = parent;
+            parent = parent->parent();
+        } else {
+            while (parent && (!parent->inherits("KisGroupLayer") || !parent->isEditable(false))) {
+                above = parent;
+                parent = parent->parent();
+            }
         }
-        return {};
+        if (!parent) {
+            parent = image->root();
+            above = parent->lastChild();
+        }
+        const qsizetype index = above ? parent->index(above) + 1 : 0;
+        KisNodeSP node = retainedImage->addGpuPaintLayer(image->nextLayerName(i18n("Paint Layer")), parent, index,
+                                                       KisConfig(true).autoPinLayersToTimeline());
+        return qobject_cast<KisLayer *>(node.data());
     }
     KisLayerSP layer = new KisPaintLayer(image.data(),  image->nextLayerName( i18n("Paint Layer") ), OPACITY_OPAQUE_U8, image->colorSpace());
 

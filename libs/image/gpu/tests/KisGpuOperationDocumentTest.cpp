@@ -91,6 +91,7 @@ private Q_SLOTS:
     void previousPlacedRecoveryPreservesPendingInputAndPosition();
     void groupedRemovalPreservesPixelsSelectionAndAtomicHistory();
     void insertedLayersPreserveOrderPinsAndOneHistoryStep();
+    void nestedPaintInsertionRejectsMissingAndNonGroupParents();
     void duplicatedLayersShareInputsAndPixelsWithIndependentHistory();
     void identicalLayerDuplicationsPreserveTheSamePersistentIdentities();
     void insertedForeignLayersSharePixelsAndInputsWithAtomicHistory();
@@ -930,6 +931,26 @@ void KisGpuOperationDocumentTest::insertedLayersPreserveOrderPinsAndOneHistorySt
     QCOMPARE(document.addLayer(QStringLiteral("Busy"), 0, false), LayerId(0));
     QCOMPARE(document.cancelStroke(pending), Result::Success);
     QCOMPARE(document.snapshot(), inserted);
+}
+
+void KisGpuOperationDocumentTest::nestedPaintInsertionRejectsMissingAndNonGroupParents()
+{
+    OperationDocument document(nestedImage());
+    const auto original = document.snapshot();
+    const auto id = document.addLayer(QStringLiteral("Child"), 1, false, original->layers[1].uuid);
+    QVERIFY(id);
+    QCOMPARE(document.snapshot()->layers[1].parentUuid, original->layers[1].uuid);
+    QCOMPARE(document.undo(), Result::Success);
+    const auto beforeInvalid = document.recoveryData();
+    QCOMPARE(document.addLayer(QStringLiteral("Missing parent"), 1, false,
+                              QUuid(QStringLiteral("{deadbeef-735b-47cf-93c5-7893d04916f0}"))), LayerId(0));
+    QCOMPARE(document.addLayer(QStringLiteral("Paint parent"), 1, false, original->layers[0].uuid), LayerId(0));
+    QCOMPARE(document.recoveryData(), beforeInvalid);
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.activeLayer(), id);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.snapshot()->layers[1].parentUuid, original->layers[1].uuid);
 }
 
 void KisGpuOperationDocumentTest::insertedForeignLayersSharePixelsAndInputsWithAtomicHistory()

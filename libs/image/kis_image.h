@@ -82,11 +82,16 @@ public:
     static KisImageSP fromGpuImage(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, const QString &name,
                                    const KoColorSpace *colorSpace);
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuImage() const;
-    /** Adopts a detached flat paint layer at a bottom-to-top index as one GPU
-     * history entry. Preserves the node and its paint device. Invalid or
-     * over-budget input returns false before modifying the image.
+    /** Adds a GPU paint layer at a bottom-to-top child index in the given
+     * group. Returns the adopted node, or null on invalid input or capacity.
      */
-    bool insertGpuLayer(KisNodeSP node, qsizetype index);
+    KisNodeSP addGpuPaintLayer(const QString &name, KisNodeSP parent, qsizetype index, bool pinnedToTimeline);
+    /** Adopts a detached paint layer at a bottom-to-top child index as one GPU
+     * history entry. Preserves the node and its paint device. Invalid or
+     * over-budget input returns false before modifying the image. A null
+     * parent selects the image root.
+     */
+    bool insertGpuLayer(KisNodeSP node, qsizetype index, KisNodeSP parent = {});
     /** Transient node notifications describe the GPU version being adopted. */
     bool isSynchronizingGpuNodes() const { return m_synchronizingGpuNodes; }
 

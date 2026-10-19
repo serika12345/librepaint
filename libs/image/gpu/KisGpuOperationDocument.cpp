@@ -566,7 +566,7 @@ Result OperationDocument::cancelStroke(OperationId id)
 LayerId OperationDocument::addLayer(const QString &name)
 { return addLayer(name, snapshot()->layers.size(), false); }
 
-LayerId OperationDocument::addLayer(const QString &name, qsizetype index, bool pinnedToTimeline)
+LayerId OperationDocument::addLayer(const QString &name, qsizetype index, bool pinnedToTimeline, const QUuid &parentUuid)
 {
     if (checkMutation() != Result::Success || snapshot()->layers.size() >= m_limits.layerCount ||
         !validLayerName(name) || index < 0 || index > snapshot()->layers.size() ||
@@ -574,10 +574,16 @@ LayerId OperationDocument::addLayer(const QString &name, qsizetype index, bool p
         m_nextRevision == std::numeric_limits<quint64>::max()) {
         return 0;
     }
+    if (!parentUuid.isNull()) {
+        const auto parent = std::find_if(snapshot()->layers.cbegin(), snapshot()->layers.cend(),
+            [&](const Layer &layer) { return layer.uuid == parentUuid && layer.kind == LayerKind::Group; });
+        if (parent == snapshot()->layers.cend()) return 0;
+    }
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     const LayerId layer = ++m_nextLayer;
     Layer added{layer, name, true, {}, QUuid::createUuid()};
     added.pinnedToTimeline = pinnedToTimeline;
+    added.parentUuid = parentUuid;
     version->layers.insert(index, added);
     version->activeLayer = layer;
     version->selectedLayers = {layer};
@@ -997,22 +1003,32 @@ Result OperationDocument::removeLayers(const QList<LayerId> &layers, const QStri
     if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
     QSharedPointer<DocumentVersion> version(new DocumentVersion(*snapshot()));
     if (removed.contains(version->activeLayer)) {
-        const auto active = layerIndex(version->activeLayer);
+        auto active = layerIndex(version->activeLayer);
+        QHash<QUuid, qsizetype> indices;
+        for (qsizetype i = 0; i < version->layers.size(); ++i) indices.insert(version->layers[i].uuid, i);
+        while (!version->layers[active].parentUuid.isNull()) {
+            const auto parent = indices.value(version->layers[active].parentUuid);
+            if (!removed.contains(version->layers[parent].id)) break;
+            active = parent;
+        }
+        const auto parentUuid = version->layers[active].parentUuid;
         version->activeLayer = 0;
         for (qsizetype i = active + 1; i < version->layers.size(); ++i) {
-            if (!removed.contains(version->layers[i].id)) {
+            if (!removed.contains(version->layers[i].id) && version->layers[i].parentUuid == parentUuid) {
                 version->activeLayer = version->layers[i].id;
                 break;
             }
         }
         if (!version->activeLayer) {
             for (qsizetype i = active - 1; i >= 0; --i) {
-                if (!removed.contains(version->layers[i].id)) {
+                if (!removed.contains(version->layers[i].id) && version->layers[i].parentUuid == parentUuid) {
                     version->activeLayer = version->layers[i].id;
                     break;
                 }
             }
         }
+        if (!version->activeLayer && !parentUuid.isNull())
+            version->activeLayer = version->layers[indices.value(parentUuid)].id;
     }
     for (qsizetype i = version->layers.size(); i-- > 0;) {
         if (!removed.contains(version->layers[i].id)) continue;

@@ -973,6 +973,7 @@ protected:
 
 private:
     friend class KisImage;
+    friend class KisGroupLayer;
     QSharedPointer<LibrePaint::Image::Gpu::PaintImage> gpuPixelImage() const;
     QSharedPointer<LibrePaint::Image::Gpu::LayerPixelReference> gpuPixelReference() const;
     void bindGpuLayer(QSharedPointer<LibrePaint::Image::Gpu::PaintImage> image, quint64 layer);

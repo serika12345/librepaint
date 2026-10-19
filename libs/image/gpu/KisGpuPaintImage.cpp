@@ -252,10 +252,10 @@ LayerId PaintImage::addLayer(const QString &name)
     return addLayer(name, m_d->document->snapshot()->layers.size(), false);
 }
 
-LayerId PaintImage::addLayer(const QString &name, qsizetype index, bool pinnedToTimeline)
+LayerId PaintImage::addLayer(const QString &name, qsizetype index, bool pinnedToTimeline, const QUuid &parentUuid)
 {
     if (!onThread()) return 0;
-    const auto id = m_d->document->addLayer(name, index, pinnedToTimeline);
+    const auto id = m_d->document->addLayer(name, index, pinnedToTimeline, parentUuid);
     if (id) publish(Result::Success);
     return id;
 }

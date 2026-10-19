@@ -1327,7 +1327,7 @@ void KisNodeManager::RemovalAccess::removeNodes(KisNodeManager *manager, const K
         const auto version = owner->operations().snapshot();
         QList<LibrePaint::Image::Gpu::LayerId> removed;
         for (const auto &node : nodes) {
-            if (!node || node->image() != image.data() || node->parent() != image->root()) {
+            if (!node || node->image() != image.data() || !node->parent()) {
                 ModificationAccess::showWarning(manager, i18n("The selected layers are no longer available."));
                 return;
             }
@@ -1339,7 +1339,9 @@ void KisNodeManager::RemovalAccess::removeNodes(KisNodeManager *manager, const K
             }
             removed.append(found->id);
         }
-        const auto replacement = removed.size() == version->layers.size() ? image->nextLayerName() : QString{};
+        const bool removesAll = std::all_of(version->layers.cbegin(), version->layers.cend(),
+            [&](const auto &layer) { return !layer.parentUuid.isNull() || removed.contains(layer.id); });
+        const auto replacement = removesAll ? image->nextLayerName() : QString{};
         const QPointer<KisNodeManager> guard(manager);
         const auto result = owner->removeLayers(removed, replacement);
         if (guard && result != LibrePaint::Image::Gpu::Result::Success)

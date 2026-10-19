@@ -42,6 +42,9 @@ private Q_SLOTS:
     void testInsertedLayersPreserveIdentityPixelsAndHistory_data();
     void testInsertedLayersPreserveIdentityPixelsAndHistory();
     void testGpuLayerInsertionPreservesNativeIdentityAndRejectsInvalidInputs();
+    void testPaintLayerCreationInGroupsPreservesPlacementAndHistory_data();
+    void testPaintLayerCreationInGroupsPreservesPlacementAndHistory();
+    void testGpuLayerSelectionKeepsProjectionNotificationsForPaint();
     void testLayerRemovalPreservesPixelsAndHistory_data();
     void testLayerRemovalPreservesPixelsAndHistory();
     void testHistoryNavigationWaitsForImageJobs_data();

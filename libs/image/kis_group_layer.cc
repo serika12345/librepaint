@@ -288,7 +288,7 @@ KisPaintDeviceSP KisGroupLayer::tryObligeChild() const
 
 std::tuple<KisPaintDeviceSP, bool> KisGroupLayer::originalImpl() const
 {
-    if (image() && image()->gpuImage()) return {m_d->paintDevice, true};
+    if (m_d->paintDevice->gpuPixelImage()) return {m_d->paintDevice, true};
     /**
      * We are too lazy! Let's our children work for us.
      * Try to use children's paintDevice if it's the only

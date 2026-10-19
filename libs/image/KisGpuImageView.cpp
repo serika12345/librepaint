@@ -27,28 +27,70 @@
 struct KisGpuImageViewState
 {
     LibrePaint::Image::Gpu::Snapshot synchronized;
+    quint64 previewRevision = 0;
     QHash<QUuid, KisNodeSP> nodes;
 };
 
-bool KisImage::insertGpuLayer(KisNodeSP node, qsizetype index)
+namespace {
+qsizetype gpuInsertionIndex(KisImage *image, const LibrePaint::Image::Gpu::Snapshot &version,
+                           KisNodeSP parent, qsizetype index)
+{
+    if (!parent || parent->image() != image || index < 0 || index > parent->childCount()) return -1;
+    if (parent != image->root()) {
+        const auto group = std::find_if(version->layers.cbegin(), version->layers.cend(),
+            [&](const auto &layer) { return layer.uuid == parent->uuid() &&
+                layer.kind == LibrePaint::Image::Gpu::LayerKind::Group; });
+        if (!parent->parent() || group == version->layers.cend()) return -1;
+    }
+    KisNodeSP anchor = index < parent->childCount() ? parent->at(index) : parent->lastChild();
+    const bool after = anchor && index == parent->childCount();
+    if (!anchor) {
+        if (parent == image->root()) return version->layers.size();
+        anchor = parent;
+    }
+    const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(),
+        [&](const auto &layer) { return layer.uuid == anchor->uuid(); });
+    return found == version->layers.cend() ? -1 : std::distance(version->layers.cbegin(), found) + after;
+}
+}
+
+KisNodeSP KisImage::addGpuPaintLayer(const QString &name, KisNodeSP parent, qsizetype index, bool pinnedToTimeline)
+{
+    const auto owner = gpuImage();
+    const auto state = gpuViewState();
+    if (!owner || !state || QThread::currentThread() != owner->thread()) return {};
+    const auto insertion = gpuInsertionIndex(this, owner->operations().snapshot(), parent, index);
+    if (insertion < 0) return {};
+    KisImageSP retained = this;
+    const auto id = owner->addLayer(name, insertion, pinnedToTimeline, parent == root() ? QUuid() : parent->uuid());
+    if (!id || retained->gpuImage() != owner) return {};
+    for (const auto &layer : owner->operations().snapshot()->layers)
+        if (layer.id == id) return state->nodes.value(layer.uuid);
+    return {};
+}
+
+bool KisImage::insertGpuLayer(KisNodeSP node, qsizetype index, KisNodeSP parent)
 {
     namespace Gpu = LibrePaint::Image::Gpu;
     const auto owner = gpuImage();
     const auto state = gpuViewState();
+    if (!parent) parent = root();
     auto *layer = qobject_cast<KisPaintLayer*>(node.data());
     if (!owner || !state || QThread::currentThread() != owner->thread() || !owner->handle() || owner->operations().hasActiveStroke() ||
-        !layer || node->parent() || node->childCount() || index < 0 ||
+        !layer || node->parent() || node->childCount() ||
         layer->compositeOpId() != COMPOSITE_OVER ||
         node->isAnimated() || !node->keyframeChannels().isEmpty() || layer->layerStyle() ||
         layer->temporary() || layer->hasTemporaryTarget() ||
-        index > owner->operations().snapshot()->layers.size() ||
         *layer->colorSpace() != *colorSpace() || node->uuid().isNull() || state->nodes.contains(node->uuid())) return false;
+    const auto insertion = gpuInsertionIndex(this, owner->operations().snapshot(), parent, index);
+    if (insertion < 0) return false;
     const auto projectionFlags = layer->channelFlags();
     if (!projectionFlags.isEmpty() && (projectionFlags.size() != 4 || projectionFlags.count(true) != 4)) return false;
     const auto pixels = layer->paintDevice();
     Gpu::RasterLayer properties;
     properties.name = node->name();
     properties.uuid = node->uuid();
+    properties.parentUuid = parent == root() ? QUuid() : parent->uuid();
     properties.visible = node->visible();
     properties.opacity = node->opacity();
     properties.userLocked = node->userLocked();
@@ -99,6 +141,7 @@ bool KisImage::insertGpuLayer(KisNodeSP node, qsizetype index)
         Gpu::RasterImage input;
         input.size = owner->operations().snapshot()->size;
         input.layers = {properties};
+        input.layers.first().parentUuid = QUuid();
         try {
             imported = std::make_unique<Gpu::OperationDocument>(input, owner->limits());
         } catch (const std::invalid_argument &) {
@@ -122,8 +165,8 @@ bool KisImage::insertGpuLayer(KisNodeSP node, qsizetype index)
     }
     KisImageSP retained = this;
     state->nodes.insert(node->uuid(), node);
-    const auto id = source ? owner->insertLayer(*source, reference, properties, index)
-                           : owner->insertLayer(*imported, imported->activeLayer(), properties, index);
+    const auto id = source ? owner->insertLayer(*source, reference, properties, insertion)
+                           : owner->insertLayer(*imported, imported->activeLayer(), properties, insertion);
     if (!id) state->nodes.remove(node->uuid());
     return id != 0;
 }
@@ -158,6 +201,7 @@ void KisImage::connectGpuImageUpdates()
     const auto image = gpuImage();
     auto state = QSharedPointer<KisGpuImageViewState>::create();
     state->synchronized = image->operations().snapshot();
+    state->previewRevision = image->operations().preview()->revision();
     QList<KisNodeSP> parents{root()};
     for (qsizetype i = 0; i < parents.size(); ++i)
         for (auto node = parents[i]->firstChild(); node; node = node->nextSibling()) {
@@ -172,6 +216,10 @@ void KisImage::connectGpuImageUpdates()
         KisImageSP retainedView = view;
         const auto owner = retainedView->gpuImage();
         const auto version = owner->operations().snapshot();
+        const auto previewRevision = owner->operations().preview()->revision();
+        const bool projectionChanged = version->documentId() != synchronized->documentId() ||
+            version->revision() != synchronized->revision() || previewRevision != state->previewRevision;
+        state->previewRevision = previewRevision;
         if (version != synchronized) {
             const auto previous = synchronized;
             const auto previousSize = retainedView->size();
@@ -226,7 +274,7 @@ void KisImage::connectGpuImageUpdates()
             }
             Q_EMIT retainedView->sigImageModified();
         }
-        retainedView->notifyProjectionUpdated(retainedView->bounds());
+        if (projectionChanged) retainedView->notifyProjectionUpdated(retainedView->bounds());
     });
 }
 

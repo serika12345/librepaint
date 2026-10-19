@@ -285,9 +285,9 @@ bool Node::addChildNode(Node *child, Node *above)
 
     KisImageSP image = d->image;
     if (image && image->gpuImage()) {
-        if (d->node != image->root() || (above && (!above->d->node || above->d->node->parent() != d->node))) return false;
+        if (above && (!above->d->node || above->d->node->parent() != d->node)) return false;
         const auto index = above ? d->node->index(above->d->node) + 1 : d->node->childCount();
-        if (!image->insertGpuLayer(child->d->node, index)) return false;
+        if (!image->insertGpuLayer(child->d->node, index, d->node)) return false;
         child->d->image = image;
         return true;
     }
