@@ -38,6 +38,7 @@
 #include <qobject.h>
 #include <tuple>
 #include <stdexcept>
+#include <utility>
 
 void kisSharedPtrAddReference(KisGroupLayer *pointer)
 {
@@ -72,10 +73,18 @@ public:
     std::tuple<KisPaintDeviceSP, bool> originalImpl() const;
 };
 
-KisGroupLayer::KisGroupLayer(KisImageWSP image, const QString &name, quint8 opacity, const KoColorSpace * colorSpace) :
+KisGroupLayer::KisGroupLayer(KisImageWSP image, const QString &name, quint8 opacity, const KoColorSpace *colorSpace)
+    : KisGroupLayer(image, name, opacity, colorSpace, KisPaintDeviceSP())
+{
+}
+
+KisGroupLayer::KisGroupLayer(KisImageWSP image, const QString &name, quint8 opacity,
+                           const KoColorSpace *colorSpace, KisPaintDeviceSP projection) :
     KisLayer(image, name, opacity),
     m_d(new Private())
 {
+    m_d->paintDevice = std::move(projection);
+    if (m_d->paintDevice) m_d->paintDevice->setParentNode(this);
     resetCache(colorSpace);
 }
 

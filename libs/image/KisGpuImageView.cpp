@@ -316,7 +316,8 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
             KisNodeSP node = existing.value(layer.uuid);
             if (!node) {
                 if (layer.kind == LibrePaint::Image::Gpu::LayerKind::Group)
-                    node = new KisGroupLayer(view, layer.name, layer.opacity);
+                    node = new KisGroupLayer(view, layer.name, layer.opacity, view->colorSpace(),
+                                             KisPaintDevice::fromGpuImage(owner, layer.id, {}, view->colorSpace()));
                 else node = new KisPaintLayer(view, layer.name, layer.opacity,
                                              KisPaintDevice::fromGpuImage(owner, layer.id, {}, view->colorSpace()));
                 node->setUuid(layer.uuid);

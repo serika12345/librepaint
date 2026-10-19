@@ -17,6 +17,8 @@ private Q_SLOTS:
 
     void testProjection();
 
+    void testGpuGroupViewsReuseTheOnlyDocumentAttachment();
+
     void testRemoveAndUndo();
 
 };
