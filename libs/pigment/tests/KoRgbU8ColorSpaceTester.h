@@ -20,6 +20,8 @@ private Q_SLOTS:
     void testMixColorsAverage();
     void testCompositeOpsWithChannelFlags();
     void testCompositeCopyDivisionByZero();
+    void testSourceOverPreservesDivisionRounding_data();
+    void testSourceOverPreservesDivisionRounding();
 };
 
 #endif

@@ -287,6 +287,16 @@ Qt Core、Qt Test、zlibで構築し、GPUやウィンドウを必要とする�
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuPaintDocumentTest
 ```
 
+`KoRgbU8ColorSpaceTester`は、通常合成の厳密な色が5494/33となる固定入力について、
+単一画素、ベクトルと端数を含む画素列、開始位置をずらした画素列で、166へ丸める結果を照合する。
+`TestDocument`は、2枚の半透明レイヤーの合成を、公開画素読取り、通常KRA保存の統合画像と
+PNG書き出しで検査する。CPU／GPUで同じ入力、UUID、文書情報、日時と設定を使い、
+既定設定と、ICC・アルファ・圧縮・メタデータの設定を固定した条件をそれぞれ検査し、
+全画素とPNGの全バイトを比較する。`source-over-rounding-<設定条件>-<描画所有者>.kra`と`.png`を保存する。
+CPU合成の演算時間は`KoCompositeOpsBenchmark benchmarkCompositeOver -iterations 1 -median 7`で測る。
+一回の測定ごとに固定入力を初期化する。反復中に変わる下地のアルファを揃えるため、一試行の反復数を1にする。
+`-tickcounter`は同じ入力の細かい計数を供給する。構築との並行実行を分け、処理完了と実表示の遅延を別々に評価する。
+
 形式処理の試験は既存KRAと新しい書出しの往復、非表示レイヤー、キャンバス外と透明画素のRGB、
 既定画素、レイヤー位置、UUID、文書XML、ICCと付属ファイルを検査する。
 画像情報の更新はプロファイル名とICCを保存・再読込みで保持し、名前の省略は元の名前を保つ。

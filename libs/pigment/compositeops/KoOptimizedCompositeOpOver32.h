@@ -88,9 +88,7 @@ struct OverCompositor32 {
              */
             new_alpha = dst_alpha + (uint8Max - dst_alpha) * src_alpha * uint8MaxRec1;
 
-            // Optimized version of:
-            //     src_blend = src_alpha / new_alpha;
-            src_blend = OptiDiv<_impl>::divVector(src_alpha, new_alpha);
+            src_blend = src_alpha / new_alpha;
 
         }
 
@@ -153,9 +151,7 @@ struct OverCompositor32 {
                 }
             } else {
                 dstAlpha += (uint8Max - dstAlpha) * srcAlpha * uint8Rec1;
-                // Optimized version of:
-                //     srcBlendNorm = srcAlpha / dstAlpha);
-                srcBlendNorm = OptiDiv<_impl>::divScalar(srcAlpha, dstAlpha);
+                srcBlendNorm = srcAlpha / dstAlpha;
             }
 
             if(allChannelsFlag) {

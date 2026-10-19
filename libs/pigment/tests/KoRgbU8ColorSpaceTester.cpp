@@ -29,6 +29,87 @@
 #define ALPHA_CHANNEL 3
 #include <KoColorProfile.h>
 
+void KoRgbU8ColorSpaceTester::testSourceOverPreservesDivisionRounding_data()
+{
+    QTest::addColumn<int>("sourceColor");
+    QTest::addColumn<int>("sourceAlpha");
+    QTest::addColumn<int>("destinationColor");
+    QTest::addColumn<int>("destinationAlpha");
+    QTest::addColumn<int>("outputAlpha");
+    QTest::addColumn<int>("width");
+    QTest::addColumn<int>("offset");
+    // These source-over inputs all have the exact color 5494/33, which rounds to 166.
+    // Their alpha denominators exercise the reciprocal estimates identified in Issue #91.
+    struct Case { int source, sourceAlpha, destination, destinationAlpha, outputAlpha; };
+    const Case cases[] = {
+        {0, 9, 201, 45, 52},
+        {166, 15, 167, 15, 29},
+        {166, 30, 167, 32, 58},
+        {0, 30, 201, 164, 175},
+        {255, 48, 128, 136, 158},
+        {0, 50, 218, 201, 212},
+        {166, 51, 167, 60, 99},
+        {166, 55, 167, 66, 107},
+        {211, 60, 98, 51, 99},
+        {166, 75, 218, 1, 76},
+        {166, 75, 168, 34, 99},
+        {166, 75, 167, 100, 146},
+        {200, 80, 150, 237, 243},
+        {83, 84, 228, 170, 198},
+        {83, 84, 218, 203, 220},
+        {166, 85, 167, 120, 165},
+        {255, 102, 48, 127, 178},
+        {166, 102, 167, 160, 198},
+        {211, 102, 133, 226, 238},
+        {166, 105, 167, 168, 204},
+        {166, 111, 167, 185, 215},
+        {166, 119, 167, 210, 231},
+        {255, 128, 48, 192, 224},
+        {211, 138, 48, 113, 190},
+        {153, 166, 252, 75, 192},
+        {166, 215, 173, 102, 231},
+        {166, 225, 218, 18, 227},
+        {173, 230, 48, 129, 243},
+        {166, 249, 252, 60, 250},
+        {166, 250, 218, 120, 252},
+    };
+    for (const auto &c : cases) for (const int width : {1, 8, 17}) for (const int offset : {0, 4}) {
+        const auto name = QStringLiteral("alpha-%1-%2-color-%3-%4-width-%5-offset-%6")
+            .arg(c.sourceAlpha).arg(c.destinationAlpha).arg(c.source).arg(c.destination).arg(width).arg(offset).toLatin1();
+        QTest::newRow(name.constData()) << c.source << c.sourceAlpha << c.destination << c.destinationAlpha << c.outputAlpha << width << offset;
+    }
+}
+
+void KoRgbU8ColorSpaceTester::testSourceOverPreservesDivisionRounding()
+{
+    QFETCH(int, sourceColor);
+    QFETCH(int, sourceAlpha);
+    QFETCH(int, destinationColor);
+    QFETCH(int, destinationAlpha);
+    QFETCH(int, outputAlpha);
+    QFETCH(int, width);
+    QFETCH(int, offset);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QVERIFY(cs);
+    const auto op = cs->compositeOp(COMPOSITE_OVER);
+    QVERIFY(op);
+    QByteArray source(width * 4 + offset + 16, char(0x5a));
+    QByteArray destination = source;
+    const QByteArray sourcePixel = QByteArray(3, char(sourceColor)) + char(sourceAlpha);
+    const QByteArray destinationPixel = QByteArray(3, char(destinationColor)) + char(destinationAlpha);
+    const QByteArray expectedPixel = QByteArray(3, char(166)) + char(outputAlpha);
+    source.replace(offset, width * 4, sourcePixel.repeated(width));
+    destination.replace(offset, width * 4, destinationPixel.repeated(width));
+    const auto unchangedSource = source;
+    auto expected = destination;
+    expected.replace(offset, width * 4, expectedPixel.repeated(width));
+    op->composite(reinterpret_cast<quint8 *>(destination.data() + offset), width * 4,
+                  reinterpret_cast<const quint8 *>(source.constData() + offset), width * 4,
+                  nullptr, 0, 1, width, 1.0f);
+    QCOMPARE(destination, expected);
+    QCOMPARE(source, unchangedSource);
+}
+
 void KoRgbU8ColorSpaceTester::testBasics()
 {
 }

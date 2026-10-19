@@ -21,10 +21,110 @@
 #include <metadata/KoDocumentInfo.h>
 #include <QDateTime>
 #include <QDir>
+#include <QFile>
 #include <QImage>
 #include <QScopeGuard>
 #include <QTemporaryDir>
 #include <exception>
+
+void TestDocument::testSavedSourceOverPixelsAgreeAcrossBackends_data()
+{
+    QTest::addColumn<bool>("fixedSettings");
+    QTest::newRow("defaults") << false;
+    QTest::newRow("fixed-settings") << true;
+}
+
+void TestDocument::testSavedSourceOverPixelsAgreeAcrossBackends()
+try {
+    QFETCH(bool, fixedSettings);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto destination = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", directory.path());
+    QVERIFY(QDir().mkpath(destination));
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            directory.setAutoRemove(false);
+            qInfo() << "Saved source-over comparison artifacts retained at" << destination;
+        }
+    });
+    QList<QByteArray> pngFiles;
+    for (const bool gpu : {false, true}) {
+        QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+        const QUuid bottomId(QStringLiteral("{d3000001-1122-3344-5566-778899aabbcc}"));
+        const QUuid topId(QStringLiteral("{d3000002-1122-3344-5566-778899aabbcc}"));
+        KisImageSP image;
+        if (gpu) {
+            QString diagnostic;
+            const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+            QVERIFY2(execution, qPrintable(diagnostic));
+            Gpu::RasterImage raster;
+            raster.size = {17, 1};
+            raster.layers = {{QStringLiteral("Destination"), true, bottomId, {}},
+                             {QStringLiteral("Source"), true, topId, {}}};
+            raster.activeLayer = 1;
+            image = KisImage::fromGpuImage(Gpu::PaintImageSP::create(execution, raster), QStringLiteral("Fixed source over"));
+        } else {
+            image = new KisImage(document->createUndoStore(), 17, 1, KoColorSpaceRegistry::instance()->rgb8(), "Fixed source over");
+            KisPaintLayerSP bottom = new KisPaintLayer(image, QStringLiteral("Destination"), 255);
+            bottom->setUuid(bottomId);
+            QVERIFY(image->addNode(bottom));
+            KisPaintLayerSP top = new KisPaintLayer(image, QStringLiteral("Source"), 255);
+            top->setUuid(topId);
+            QVERIFY(image->addNode(top, image->root(), bottom));
+        }
+        document->setCurrentImage(image);
+        Document publicDocument(document.data(), false);
+        QScopedPointer<Node> top(Node::createNode(image, image->root()->lastChild()));
+        QScopedPointer<Node> bottom(Node::createNode(image, image->root()->firstChild()));
+        QCOMPARE(top->uniqueId(), topId);
+        QCOMPARE(bottom->uniqueId(), bottomId);
+        QVERIFY(top->setPixelData(QByteArray::fromHex("d3640009").repeated(17), 0, 0, 17, 1));
+        QVERIFY(bottom->setPixelData(QByteArray::fromHex("1150c92d").repeated(17), 0, 0, 17, 1));
+        publicDocument.refreshProjection();
+        image->waitForDone();
+        // Exact source-over values are B=4981/99, G=8260/99, R=5494/33, A=891/17.
+        QCOMPARE(publicDocument.pixelData(0, 0, 17, 1), QByteArray::fromHex("3253a634").repeated(17));
+        document->documentInfo()->setAboutInfo("title", QStringLiteral("Fixed source-over document"));
+        document->documentInfo()->setAboutInfo("initial-creator", QStringLiteral("LibrePaint fixture"));
+        document->documentInfo()->setAboutInfo("language", QStringLiteral("en"));
+        document->documentInfo()->setAboutInfo("creation-date", QStringLiteral("2000-01-02T03:04:05Z"));
+        document->setFileBatchMode(true);
+        const auto prefix = QDir(destination).filePath(QStringLiteral("source-over-rounding-%1-%2").arg(QString::fromLatin1(QTest::currentDataTag()), gpu ? QStringLiteral("gpu") : QStringLiteral("ordinary")));
+        KisPropertiesConfigurationSP configuration(new KisPropertiesConfiguration);
+        configuration->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));
+        QVERIFY2(document->saveAs(prefix + QStringLiteral(".kra"), KisDocument::nativeFormatMimeType(), false, configuration), qPrintable(document->errorMessage()));
+        document->waitForSavingToComplete();
+        QScopedPointer<KoStore> store(KoStore::createStore(prefix + QStringLiteral(".kra"), KoStore::Read));
+        QVERIFY(store && !store->bad());
+        QVERIFY(store->open(QStringLiteral("mergedimage.png")));
+        const auto merged = QImage::fromData(store->device()->readAll()).convertToFormat(QImage::Format_RGBA8888);
+        QVERIFY(store->close());
+        QCOMPARE(merged.size(), QSize(17, 1));
+        QCOMPARE(QByteArray(reinterpret_cast<const char *>(merged.constBits()), merged.sizeInBytes()), QByteArray::fromHex("a6533234").repeated(17));
+        InfoObject settings;
+        if (fixedSettings) {
+            settings.setProperty("alpha", true);
+            settings.setProperty("interlaced", false);
+            settings.setProperty("compression", 3);
+            settings.setProperty("saveSRGBProfile", true);
+            settings.setProperty("forceSRGB", false);
+            settings.setProperty("storeAuthor", false);
+            settings.setProperty("storeMetaData", false);
+        }
+        QVERIFY(publicDocument.exportImage(prefix + QStringLiteral(".png"), settings));
+        QFile png(prefix + QStringLiteral(".png"));
+        QVERIFY(png.open(QIODevice::ReadOnly));
+        const auto bytes = png.readAll();
+        const auto exported = QImage::fromData(bytes).convertToFormat(QImage::Format_RGBA8888);
+        QCOMPARE(exported.size(), QSize(17, 1));
+        QCOMPARE(QByteArray(reinterpret_cast<const char *>(exported.constBits()), exported.sizeInBytes()), QByteArray::fromHex("a6533234").repeated(17));
+        pngFiles.append(bytes);
+        KisPart::instance()->removeDocument(document.data(), false);
+    }
+    QCOMPARE(pngFiles[1], pngFiles[0]);
+}
+catch (const std::exception &error) { QFAIL(error.what()); }
 
 void TestDocument::testSavedKraEmbeddedPngsAgreeAcrossBackends_data()
 {
