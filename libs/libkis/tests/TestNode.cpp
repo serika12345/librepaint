@@ -2173,6 +2173,14 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
         QCOMPARE(rawPixels.size(), rawRegion.width() * rawRegion.height() * 4);
         QTemporaryDir directory;
         QVERIFY(directory.isValid());
+        const auto preserveFailure = qScopeGuard([&] {
+            if (QTest::currentTestFailed()) {
+                directory.setAutoRemove(false);
+                QFile pixels(directory.filePath(QStringLiteral("before-export.bgra")));
+                if (pixels.open(QIODevice::WriteOnly)) pixels.write(rawPixels);
+                qInfo() << "Off-canvas export artifacts retained at" << directory.path();
+            }
+        });
         lifetime->setFileBatchMode(true);
         const auto path = directory.filePath(QStringLiteral("offcanvas.kra"));
         QVERIFY(apiDocument.saveAs(path));
@@ -2194,7 +2202,9 @@ void TestNode::testScriptedFigurePaintsRequestedLayerAndPreservesHistory()
         configuration.setProperty("storeAuthor", false);
         configuration.setProperty("storeMetaData", false);
         const auto pngPath = directory.filePath(QStringLiteral("offcanvas.png"));
-        QVERIFY(apiDocument.exportImage(pngPath, configuration));
+        const bool exported = apiDocument.exportImage(pngPath, configuration);
+        QVERIFY2(exported, qPrintable(QStringLiteral("PNG export failed: %1; saving=%2 idle=%3 locked=%4")
+            .arg(lifetime->errorMessage()).arg(lifetime->isSaving()).arg(image->isIdle()).arg(image->locked())));
         const QImage png(pngPath);
         QCOMPARE(png.size(), QSize(64, 64));
         const auto projection = apiDocument.pixelData(0, 0, 64, 64);
