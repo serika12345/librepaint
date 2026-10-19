@@ -130,6 +130,8 @@ private Q_SLOTS:
     void channelProtectionSurvivesEditingAndResaving_data();
     void channelProtectionSurvivesEditingAndResaving();
     void imageMetadataIsCompleteOrRejectedBeforeRasterImport();
+    void imageProfileIdentitySurvivesMetadataUpdates_data();
+    void imageProfileIdentitySurvivesMetadataUpdates();
     void existingPaintFilesPreservePixelsAndDefaults_data();
     void existingPaintFilesPreservePixelsAndDefaults();
     void roundTripRetainsLayersHiddenRgbAndAssociatedFiles();
@@ -492,6 +494,57 @@ void TestKraRasterCodec::channelProtectionSurvivesEditingAndResaving()
     const auto clearedDocument = load(cleared);
     QCOMPARE(clearedDocument.code, Kra::Status::Success);
     QCOMPARE(clearedDocument.document.image.layers[0].channelWriteMask, quint8(15));
+}
+
+void TestKraRasterCodec::imageProfileIdentitySurvivesMetadataUpdates_data()
+{
+    QTest::addColumn<bool>("retained");
+    QTest::newRow("new-description") << false;
+    QTest::newRow("retained-description") << true;
+}
+
+void TestKraRasterCodec::imageProfileIdentitySurvivesMetadataUpdates()
+{
+    QFETCH(bool, retained);
+    auto source = document();
+    if (retained) {
+        QByteArray bytes;
+        QBuffer output(&bytes);
+        QVERIFY(output.open(QIODevice::WriteOnly));
+        QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+        const auto opened = load(bytes);
+        QCOMPARE(opened.code, Kra::Status::Success);
+        source = opened.document;
+    }
+    Kra::ImageMetadata metadata;
+    metadata.iccProfile = QColorSpace(QColorSpace::SRgb).iccProfile();
+    metadata.profileName = QStringLiteral("sRGB <&> 名前");
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, metadata).code, Kra::Status::Success);
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto opened = load(bytes);
+    QCOMPARE(opened.code, Kra::Status::Success);
+    QDomDocument xml;
+    QVERIFY(xml.setContent(opened.document.description));
+    QCOMPARE(xml.documentElement().firstChildElement(QStringLiteral("IMAGE")).attribute(QStringLiteral("profile")), metadata.profileName);
+    const auto extracted = Kra::RasterCodec::readImageMetadata(opened.document.description, opened.document.files);
+    QCOMPARE(extracted.code, Kra::Status::Success);
+    QCOMPARE(extracted.metadata.profileName, metadata.profileName);
+    QCOMPARE(extracted.metadata.iccProfile, metadata.iccProfile);
+    const auto name = metadata.profileName;
+    metadata.profileName.clear();
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, metadata).code, Kra::Status::Success);
+    QCOMPARE(Kra::RasterCodec::readImageMetadata(source.description, source.files).metadata.profileName, name);
+    const auto unchanged = source;
+    const QStringList invalidNames{QString(QChar::Null), QString(QChar(0xd800)), QString(65537, QLatin1Char('x'))};
+    for (const auto &invalid : invalidNames) {
+        metadata.profileName = invalid;
+        QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, metadata).code, Kra::Status::InvalidData);
+        QCOMPARE(source.description, unchanged.description);
+        QCOMPARE(source.files, unchanged.files);
+    }
 }
 
 void TestKraRasterCodec::imageMetadataIsCompleteOrRejectedBeforeRasterImport()

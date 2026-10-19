@@ -1190,6 +1190,12 @@ void TestDocument::testGpuSaveAndExportPreserveHistoryAndFileIdentity()
     QVERIFY(directory.isValid());
     const auto savedPath = directory.filePath(QStringLiteral("saved.kra"));
     const auto exportedPath = directory.filePath(QStringLiteral("exported.kra"));
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            directory.setAutoRemove(false);
+            qInfo() << "GPU document save artifacts retained at" << directory.path();
+        }
+    });
     QSignalSpy saved(document.data(), &KisDocument::sigSavingFinished);
     QVERIFY2(document->saveAs(savedPath, KisDocument::nativeFormatMimeType(), false), qPrintable(document->errorMessage()));
     document->waitForSavingToComplete();
@@ -1215,6 +1221,7 @@ void TestDocument::testGpuSaveAndExportPreserveHistoryAndFileIdentity()
     const auto imageDescription = description.documentElement().firstChildElement(QStringLiteral("IMAGE"));
     QCOMPARE(imageDescription.attribute(QStringLiteral("x-res")).toDouble(), 300.0);
     QCOMPARE(imageDescription.attribute(QStringLiteral("y-res")).toDouble(), 150.0);
+    QCOMPARE(imageDescription.attribute(QStringLiteral("profile")), image->profile()->name());
     KisMirrorAxisConfig loadedMirror;
     QVERIFY(loadedMirror.loadFromXml(imageDescription.firstChildElement(QStringLiteral("MirrorAxis"))));
     QVERIFY(loadedMirror == mirror);
@@ -1242,6 +1249,8 @@ void TestDocument::testGpuSaveAndExportPreserveHistoryAndFileIdentity()
     QVERIFY2(exportedValue.code == Kra::Status::Success, qPrintable(exportedValue.diagnostic));
     QDomDocument exportedDescription;
     QVERIFY(exportedDescription.setContent(exportedValue.document.description));
+    QCOMPARE(exportedDescription.documentElement().firstChildElement(QStringLiteral("IMAGE"))
+        .attribute(QStringLiteral("profile")), image->profile()->name());
     QVERIFY(exportedDescription.documentElement().firstChildElement(QStringLiteral("IMAGE"))
         .firstChildElement(QStringLiteral("MirrorAxis")).isNull());
     QCOMPARE(exportedValue.document.image.layers.first().tiles.first().rgba.mid((5 * 256 + 5) * 4, 4),

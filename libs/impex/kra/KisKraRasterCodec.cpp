@@ -265,6 +265,7 @@ Outcome extractMetadata(const QDomElement &image, const QMap<QString, QByteArray
     }
     const auto prefix = image.attribute(QStringLiteral("name")) + QStringLiteral("/annotations/");
     metadata.iccProfile = files.value(prefix + QStringLiteral("icc"));
+    metadata.profileName = image.attribute(QStringLiteral("profile"));
     const auto annotations = image.firstChildElement(QStringLiteral("Annotations"));
     if (!annotations.nextSiblingElement(QStringLiteral("Annotations")).isNull())
         return invalid(QStringLiteral("Duplicate KRA annotation containers"));
@@ -333,6 +334,7 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
     if (!qIsFinite(metadata.resolution.x()) || !qIsFinite(metadata.resolution.y()) ||
         metadata.resolution.x() <= 0 || metadata.resolution.y() <= 0)
         return invalid(QStringLiteral("Invalid KRA image resolution"));
+    if (!validName(metadata.profileName)) return invalid(QStringLiteral("Invalid KRA profile name"));
     if (metadata.documentInfo.size() > limits.xmlBytes || metadata.mirrorAxis.size() > limits.xmlBytes) return capacity();
     QDomDocument mirrorAxis;
     if (!metadata.mirrorAxis.isEmpty() &&
@@ -381,6 +383,7 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
     }
     if (annotations.hasChildNodes()) image.appendChild(annotations);
     if (!metadata.iccProfile.isEmpty()) files.insert(prefix + QStringLiteral("icc"), metadata.iccProfile);
+    if (!metadata.profileName.isEmpty()) image.setAttribute(QStringLiteral("profile"), metadata.profileName);
     if (metadata.documentInfo.isEmpty()) files.remove(QStringLiteral("documentinfo.xml"));
     else files.insert(QStringLiteral("documentinfo.xml"), metadata.documentInfo);
     image.setAttribute(QStringLiteral("x-res"), QString::number(metadata.resolution.x(), 'g', 17));

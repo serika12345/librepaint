@@ -209,6 +209,7 @@ LibrePaint::ImportExport::Kra::ImageMetadata gpuKraMetadata(KisDocument &documen
     auto info = KisDocument::createDomDocument(QStringLiteral("document-info"), QStringLiteral("document-info"), QStringLiteral("1.1"));
     metadata.documentInfo = document.documentInfo()->save(info, document.isAutosaving(), document.isModified(), saveTime).toByteArray();
     metadata.iccProfile = image->profile()->rawData();
+    metadata.profileName = image->profile()->name();
     const auto &mirror = document.mirrorAxisConfig();
     if (!mirror.isDefault()) {
         QDomDocument axes;

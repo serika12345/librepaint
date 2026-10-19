@@ -42,6 +42,8 @@ struct ImageMetadata
     QList<Annotation> annotations;
     /** Serialized MirrorAxis settings; their values remain owned by the UI configuration. */
     QByteArray mirrorAxis;
+    /** Nonempty values replace the saved profile label; empty retains its current label. */
+    QString profileName;
 };
 struct Outcome
 {
