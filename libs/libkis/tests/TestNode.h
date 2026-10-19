@@ -19,6 +19,10 @@ private Q_SLOTS:
     void testClipboardLayersProvideImageAndNativeData();
     void testGpuClipboardRefusalKeepsCapturedLayers();
     void testGpuCutWaitsForClipboardCapture();
+    void testMergedClipboardPreservesProjectionAndSource_data();
+    void testMergedClipboardPreservesProjectionAndSource();
+    void testMergedClipboardSurvivesImageReplacement_data();
+    void testMergedClipboardSurvivesImageReplacement();
     void testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving_data();
     void testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving();
     void testRootGroupDuplicationKeepsSelectionAndHistory_data();

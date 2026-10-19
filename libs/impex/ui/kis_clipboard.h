@@ -120,6 +120,12 @@ public:
      * capture refusal, preserving the previous clipboard contents.
      */
     bool setLayers(KisNodeList nodes, KisImageSP image, bool forceCopy = false);
+    /** Captures the committed GPU canvas as one independent paint layer.
+     * Requires the GUI/image thread. The workspace budget covers packed source
+     * pixels, padded raster tiles and their checkpoint encoding. Refusal keeps
+     * the previous clipboard and source state; the copy retains execution.
+     */
+    bool setGpuProjection(KisImageSP image, qsizetype memoryBudgetBytes = 256 * 1024 * 1024);
     bool hasLayers() const;
     bool hasLayerStyles() const;
 

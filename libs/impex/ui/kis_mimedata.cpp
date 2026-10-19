@@ -91,6 +91,7 @@ KisMimeData::KisMimeData(QList<KisNodeSP> nodes, KisImageSP image, bool forceCop
     Q_FOREACH (KisNodeSP node, nodes) {
         m_copiedBounds |= KisLayerUtils::recursiveTightNodeVisibleBounds(node);
     }
+    if (m_copiedBounds.isEmpty()) m_copiedBounds = image->bounds();
 }
 
 KisMimeData::~KisMimeData() = default;

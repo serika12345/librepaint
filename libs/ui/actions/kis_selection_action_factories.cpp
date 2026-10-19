@@ -81,6 +81,7 @@
 #include <qpainterpath.h>
 #include <qsharedpointer.h>
 #include <qtransform.h>
+#include <QPointer>
 #include "kis_update_outline_job.h"
 
 namespace ActionHelper {
@@ -512,9 +513,20 @@ void KisCutCopyActionFactory::run(Flags flags, KisViewManager *view)
 
 void KisCopyMergedActionFactory::run(KisViewManager *view)
 {
-    KisImageWSP image = view->image();
+    const QPointer<KisViewManager> guard(view);
+    KisImageSP image = view->image();
     if (!image) return;
     if (!view->blockUntilOperationsFinished(image)) return;
+    if (!guard || view->image().data() != image.data()) return;
+
+    if (image->gpuImage()) {
+        if (view->selection()) {
+            view->showFloatingMessage(i18n("Copying the selected area is not available for this document."), QIcon());
+        } else if (!KisClipboard::instance()->setGpuProjection(image) && guard) {
+            view->showFloatingMessage(i18n("The merged image could not be copied."), QIcon());
+        }
+        return;
+    }
 
     image->barrierLock();
     KisPaintDeviceSP dev = new KisPaintDevice(*image->root()->projection());
@@ -524,12 +536,8 @@ void KisCopyMergedActionFactory::run(KisViewManager *view)
     KisNodeList nodes{node};
 
     KisImageSP tempImage = ActionHelper::makeImage(view, nodes);
-    const bool captured = KisClipboard::instance()->setLayers(nodes, tempImage);
+    KisClipboard::instance()->setLayers(nodes, tempImage);
     image->unlock();
-    if (!captured) return;
-
-    KisProcessingApplicator *ap = beginAction(view, kundo2_i18n("Copy Merged"));
-    endAction(ap, KisOperationConfiguration(id()).toXML());
 }
 
 void KisInvertSelectionOperation::runFromXML(KisViewManager* view, const KisOperationConfiguration& config)
