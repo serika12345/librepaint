@@ -11,10 +11,11 @@
 
 void KisNodeManager::slotImageRequestNodeReselection(KisNodeSP activeNode, const KisNodeList &selectedNodes)
 {
+    const QPointer<KisNodeManager> lifetime(this);
     if (activeNode) {
         slotNonUiActivatedNode(activeNode);
     }
-    if (!selectedNodes.isEmpty()) {
+    if (lifetime && !selectedNodes.isEmpty()) {
         slotSetSelectedNodes(selectedNodes);
     }
 }

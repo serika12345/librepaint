@@ -52,6 +52,8 @@ public:
     ~NodeView() override;
 
     void setModel(QAbstractItemModel *model) override;
+    /** Document-owned selections stay independent of model active-row updates. */
+    void setActiveChangePreservesSelection(bool preserve);
     void resizeEvent(QResizeEvent * event) override;
     void paintEvent (QPaintEvent *event) override;
     void drawBranches(QPainter *painter, const QRect &rect,

@@ -454,12 +454,15 @@ public:
     /** Moves selected roots into an existing group, or the root for a null parent.
      * A null sibling places them first; otherwise it must be a remaining child
      * of that parent. Roots follow native tree order and include their descendants.
-     * Both sides of the history step select the filtered roots and retain the
-     * independent active layer. Fixed versions and pixel inputs remain unchanged.
+     * Both sides of the history step select the filtered roots. A zero activeRoot
+     * retains the independent active layer; a specified moving root becomes
+     * active after the move. Undo retains the original active layer.
+     * Fixed versions and pixel inputs remain unchanged.
      * Locked parents, cycles and invalid identities reject the complete request;
      * an unchanged hierarchy preserves the current version and history.
      */
-    Result moveLayers(const QList<LayerId> &layers, const QUuid &parentUuid, const QUuid &aboveUuid);
+    Result moveLayers(const QList<LayerId> &layers, const QUuid &parentUuid, const QUuid &aboveUuid,
+                      LayerId activeRoot = 0);
     /** Removes a layer and its descendants; selection follows the nearest remaining list position. */
     Result removeLayer(LayerId layer);
     /** Removes a set atomically in one history entry. Selection follows the

@@ -72,6 +72,7 @@ class KisGpuOperationDocumentTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void nestedLayerIdentitySurvivesPropertiesHistoryAndRecovery();
+    void directHierarchyMovesAdoptTheirActiveRootAtomically();
     void movedSubtreesPreservePixelsSelectionHistoryAndRecovery_data();
     void movedSubtreesPreservePixelsSelectionHistoryAndRecovery();
     void rejectedHierarchyMovesPreserveRedoInputAndClosedState();
@@ -263,6 +264,53 @@ void KisGpuOperationDocumentTest::hierarchyDuplicationPreservesPlacementSelectio
         QCOMPARE(recovered.snapshot()->layers[i].uuid, after->layers[i].uuid);
         QCOMPARE(recovered.snapshot()->layers[i].parentUuid, after->layers[i].parentUuid);
     }
+}
+
+void KisGpuOperationDocumentTest::directHierarchyMovesAdoptTheirActiveRootAtomically()
+{
+    auto input = nestedImage();
+    RasterLayer top{QStringLiteral("Top"), true, QUuid(QStringLiteral("{41424344-4546-4748-494a-4b4c4d4e4f50}")), {}};
+    input.layers.append(top);
+    OperationDocument document(input);
+    QCOMPARE(document.selectLayers({3, 1}, 1), Result::Success);
+    const auto before = document.snapshot();
+    QCOMPARE(document.markSaved(before), Result::Success);
+    const auto recovery = document.recoveryData();
+    QCOMPARE(document.moveLayers({3, 1}, {}, top.uuid, 1), Result::InvalidInput);
+    QCOMPARE(document.moveLayers({3, 1}, {}, top.uuid, 99), Result::LayerUnavailable);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.recoveryData(), recovery);
+    QCOMPARE(document.moveLayers({3, 1}, {}, {}, 3), Result::Success);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.recoveryData(), recovery);
+    const auto stroke = document.beginStroke(1, Brush{}, 42);
+    QVERIFY(!stroke.isNull());
+    const auto preview = document.preview();
+    QCOMPARE(document.moveLayers({3, 1}, {}, top.uuid, 3), Result::EditInProgress);
+    QCOMPARE(document.preview(), preview);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.cancelStroke(stroke), Result::Success);
+    QCOMPARE(document.moveLayers({3, 1}, {}, top.uuid, 3), Result::Success);
+    const auto after = document.snapshot();
+    QCOMPARE(after->activeLayer, LayerId(3));
+    QCOMPARE(after->selectedLayers, QList<LayerId>{3});
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.historyAction(1), HistoryAction::MoveLayer);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    for (auto *value : {&document, &recovered}) {
+        QCOMPARE(value->undo(), Result::Success);
+        QCOMPARE(value->snapshot()->activeLayer, LayerId(1));
+        QCOMPARE(value->snapshot()->selectedLayers, QList<LayerId>{3});
+        QVERIFY(!value->isModified());
+        QCOMPARE(value->redo(), Result::Success);
+        QCOMPARE(value->snapshot()->activeLayer, LayerId(3));
+        QCOMPARE(value->snapshot()->selectedLayers, QList<LayerId>{3});
+        QVERIFY(value->isModified());
+    }
+    QCOMPARE(document.snapshot(), after);
+    QCOMPARE(before->activeLayer, LayerId(1));
+    QCOMPARE(before->selectedLayers, (QList<LayerId>{1, 3}));
 }
 
 void KisGpuOperationDocumentTest::movedSubtreesPreservePixelsSelectionHistoryAndRecovery_data()

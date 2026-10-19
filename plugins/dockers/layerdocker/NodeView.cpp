@@ -85,6 +85,7 @@ public:
     bool shiftClickFix;
 #endif
     bool ignoreDataChanged = false;
+    bool activeChangePreservesSelection = false;
 };
 
 
@@ -318,6 +319,11 @@ void NodeView::showContextMenu(const QPoint &globalPos, const QModelIndex &index
     Q_EMIT contextMenuRequested(globalPos, index);
 }
 
+void NodeView::setActiveChangePreservesSelection(bool preserve)
+{
+    d->activeChangePreservesSelection = preserve;
+}
+
 void NodeView::currentChanged(const QModelIndex &current, const QModelIndex &previous)
 {
     QTreeView::currentChanged(current, previous);
@@ -342,7 +348,12 @@ void NodeView::dataChanged(const QModelIndex &topLeft, const QModelIndex &bottom
             QModelIndex index = topLeft.sibling(x, y);
             if (index.data(KisNodeModel::ActiveRole).toBool()) {
                 if (currentIndex() != index) {
-                    setCurrentIndex(index);
+                    if (d->activeChangePreservesSelection && selectionModel()->hasSelection()) {
+                        selectionModel()->setCurrentIndex(index, QItemSelectionModel::NoUpdate);
+                        scrollTo(index);
+                    } else {
+                        setCurrentIndex(index);
+                    }
                 }
 
                 return;

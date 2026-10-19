@@ -574,6 +574,7 @@ void LayerBox::setCanvas(KoCanvasBase *canvas)
 
     if (m_canvas) {
         m_image = m_canvas->image();
+        m_wdgLayerBox->listLayers->setActiveChangePreservesSelection(bool(m_image->gpuImage()));
         Q_EMIT imageChanged();
 
         KisDocument* doc = static_cast<KisDocument*>(m_canvas->imageView()->document());

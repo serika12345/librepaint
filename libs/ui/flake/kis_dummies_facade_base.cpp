@@ -6,6 +6,8 @@
 
 #include <QMutex>
 #include <QMutexLocker>
+#include <QPointer>
+#include <QThread>
 #include "kis_dummies_facade_base.h"
 
 #include "KisNodeAdditionFlags.h"
@@ -181,23 +183,34 @@ void KisDummiesFacadeBase::slotNodeActivationRequested(KisNodeSP node, KisNodeAd
 void KisDummiesFacadeBase::slotNodeAdded(KisNodeSP node, KisNodeAdditionFlags flags)
 {
     Q_UNUSED(flags)
+    const QPointer<KisDummiesFacadeBase> lifetime(this);
 
     {
         QMutexLocker l(&m_d->pendingNodeSetLock);
         m_d->pendingNodeSet.append(node);
     }
 
-    m_d->addNodeConnection.start(node, node->parent(), node->prevSibling());
+    if (QThread::currentThread() == thread() && m_d->image && m_d->image->isSynchronizingGpuNodes() &&
+        !m_d->addNodeConnection.hasPendingSignals() && !m_d->removeNodeConnection.hasPendingSignals() &&
+        (!node->parent() || hasDummyForNode(node->parent())) &&
+        (!node->prevSibling() || hasDummyForNode(node->prevSibling()))) {
+        slotContinueAddNode(node, node->parent(), node->prevSibling());
+    } else {
+        m_d->addNodeConnection.start(node, node->parent(), node->prevSibling());
+    }
+    if (!lifetime) return;
 
     KisNodeSP childNode = node->firstChild();
     while (childNode) {
         slotNodeAdded(childNode, flags);
+        if (!lifetime) return;
         childNode = childNode->nextSibling();
     }
 }
 
 void KisDummiesFacadeBase::slotRemoveNode(KisNodeSP node)
 {
+    const QPointer<KisDummiesFacadeBase> lifetime(this);
     {
         QMutexLocker l(&m_d->pendingNodeSetLock);
         KIS_SAFE_ASSERT_RECOVER_RETURN(m_d->pendingNodeSet.contains(node));
@@ -206,6 +219,7 @@ void KisDummiesFacadeBase::slotRemoveNode(KisNodeSP node)
     KisNodeSP childNode = node->lastChild();
     while (childNode) {
         slotRemoveNode(childNode);
+        if (!lifetime) return;
         childNode = childNode->prevSibling();
     }
 
@@ -213,29 +227,41 @@ void KisDummiesFacadeBase::slotRemoveNode(KisNodeSP node)
         QMutexLocker l(&m_d->pendingNodeSetLock);
         m_d->pendingNodeSet.removeOne(node);
     }
-    m_d->removeNodeConnection.start(node);
+    if (QThread::currentThread() == thread() && m_d->image && m_d->image->isSynchronizingGpuNodes() &&
+        !m_d->addNodeConnection.hasPendingSignals() && !m_d->removeNodeConnection.hasPendingSignals() &&
+        hasDummyForNode(node)) {
+        slotContinueRemoveNode(node);
+    } else {
+        m_d->removeNodeConnection.start(node);
+    }
 }
 
 void KisDummiesFacadeBase::slotContinueAddNode(KisNodeSP node, KisNodeSP parent, KisNodeSP aboveThis)
 {
+    const QPointer<KisDummiesFacadeBase> lifetime(this);
     KisNodeDummy *parentDummy = parent ? dummyForNode(parent) : 0;
     KisNodeDummy *aboveThisDummy = aboveThis ? dummyForNode(aboveThis) : 0;
     // Add one because this node does not exist yet
     int index = parentDummy && aboveThisDummy ?
         parentDummy->indexOf(aboveThisDummy) + 1 : 0;
     Q_EMIT sigBeginInsertDummy(parentDummy, index, node->metaObject()->className());
+    if (!lifetime) return;
 
     addNodeImpl(node, parent, aboveThis);
+    if (!lifetime) return;
 
     Q_EMIT sigEndInsertDummy(dummyForNode(node));
 }
 
 void KisDummiesFacadeBase::slotContinueRemoveNode(KisNodeSP node)
 {
+    const QPointer<KisDummiesFacadeBase> lifetime(this);
     KisNodeDummy *dummy = dummyForNode(node);
     Q_EMIT sigBeginRemoveDummy(dummy);
+    if (!lifetime) return;
 
     removeNodeImpl(node);
+    if (!lifetime) return;
 
     Q_EMIT sigEndRemoveDummy();
 }

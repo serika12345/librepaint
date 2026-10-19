@@ -24,6 +24,9 @@
 
 #include "KisAnimTimelineFramesView.h"
 #include "KisAnimTimelineFramesModel.h"
+#include "KisAnimCurvesChannelsModel.h"
+#include "KisAnimCurvesModel.h"
+#include "kis_keyframe_channel.h"
 
 #include "kis_node_dummies_graph.h"
 
@@ -59,6 +62,48 @@ void TimelineModelTest::cleanup()
     delete m_nameServer;
     delete m_doc;
     delete m_displayModeAdapter;
+}
+
+void TimelineModelTest::testCurveSelectionSurvivesFacadeReplacementAndDestruction()
+{
+    constructImage();
+    m_shapeController->setImage(m_image);
+    QTRY_VERIFY(m_shapeController->hasDummyForNode(m_layer1));
+    QVERIFY(m_layer1->getKeyframeChannel(KisKeyframeChannel::Opacity.id(), true));
+    KisAnimCurvesModel curves(nullptr);
+    curves.setImage(m_image);
+    KisAnimCurvesChannelsModel channels(&curves, nullptr);
+    channels.setDummiesFacade(m_shapeController);
+    channels.selectedNodesChanged({m_layer1});
+    QCOMPARE(channels.rowCount(QModelIndex()), 1);
+    QCOMPARE(curves.rowCount(), 1);
+
+    QScopedPointer<KisShapeController> replacement(new KisShapeController(m_nameServer, m_doc->undoStack()));
+    replacement->setImage(m_image);
+    QTRY_VERIFY(replacement->hasDummyForNode(m_layer1));
+    channels.setDummiesFacade(replacement.data());
+    channels.selectedNodesChanged({m_layer1});
+    QCOMPARE(channels.rowCount(QModelIndex()), 1);
+    QCOMPARE(curves.rowCount(), 1);
+    delete m_shapeController;
+    m_shapeController = nullptr;
+    channels.selectedNodesChanged({m_layer1});
+    QCOMPARE(channels.data(channels.index(0, 0, QModelIndex()), Qt::DisplayRole).toString(), m_layer1->name());
+
+    replacement.reset();
+    channels.selectedNodesChanged({m_layer1});
+    QCOMPARE(channels.rowCount(QModelIndex()), 0);
+    QCOMPARE(curves.rowCount(), 0);
+    replacement.reset(new KisShapeController(m_nameServer, m_doc->undoStack()));
+    replacement->setImage(m_image);
+    QTRY_VERIFY(replacement->hasDummyForNode(m_layer1));
+    channels.setDummiesFacade(replacement.data());
+    channels.selectedNodesChanged({m_layer1});
+    QCOMPARE(channels.rowCount(QModelIndex()), 1);
+    QCOMPARE(curves.rowCount(), 1);
+    channels.selectedNodesChanged({});
+    QCOMPARE(channels.rowCount(QModelIndex()), 0);
+    QCOMPARE(curves.rowCount(), 0);
 }
 
 #include "timeline_frames_index_converter.h"

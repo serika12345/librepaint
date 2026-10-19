@@ -41,6 +41,7 @@
 #include <QScopeGuard>
 #include <QSignalSpy>
 #include <QTemporaryDir>
+#include <algorithm>
 #include <memory>
 #include <exception>
 
@@ -963,6 +964,7 @@ void TestNode::testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving_dat
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<int>("scenario");
     QTest::addColumn<QString>("layout");
+    QTest::addColumn<QString>("entry");
     const QStringList cases{
         QStringLiteral("group-down"), QStringLiteral("enter-up"), QStringLiteral("enter-down"),
         QStringLiteral("collapsed-up"), QStringLiteral("collapsed-down"), QStringLiteral("leaf-up"),
@@ -971,17 +973,22 @@ void TestNode::testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving_dat
         QStringLiteral("locked-destination"), QStringLiteral("boundary"), QStringLiteral("noncontiguous-boundary"),
         QStringLiteral("locked-parent")};
     for (int i = 0; i < cases.size(); ++i) {
-        QTest::newRow(qPrintable(QStringLiteral("ordinary-") + cases[i])) << false << i << QStringLiteral("child-first");
-        for (const auto &layout : {QStringLiteral("child-first"), QStringLiteral("parent-first"), QStringLiteral("interleaved")})
-            QTest::newRow(qPrintable(QStringLiteral("gpu-") + cases[i] + QLatin1Char('-') + layout)) << true << i << layout;
+        for (const auto &entry : {QStringLiteral("buttons"), QStringLiteral("direct")}) {
+            if (entry == QLatin1String("direct") && i >= 13) continue;
+            const auto name = (entry == QLatin1String("direct") ? QStringLiteral("direct-") : QString()) + cases[i];
+            QTest::newRow(qPrintable(QStringLiteral("ordinary-") + name)) << false << i << QStringLiteral("child-first") << entry;
+            for (const auto &layout : {QStringLiteral("child-first"), QStringLiteral("parent-first"), QStringLiteral("interleaved")})
+                QTest::newRow(qPrintable(QStringLiteral("gpu-") + name + QLatin1Char('-') + layout)) << true << i << layout << entry;
+        }
     }
 }
 
 void TestNode::testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving()
-{
+try {
     QFETCH(bool, gpu);
     QFETCH(int, scenario);
     QFETCH(QString, layout);
+    QFETCH(QString, entry);
     namespace Gpu = LibrePaint::Image::Gpu;
     KisConfig(true).disableOpenGL();
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -1083,6 +1090,7 @@ void TestNode::testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving()
     const KisNodeList selected = scenario == 9 ? KisNodeList{inner, leaf} :
         scenario == 10 ? KisNodeList{leaf, base} : scenario == 14 ? KisNodeList{top, base} : KisNodeList{source};
     const KisNodeList expectedSelection = scenario == 9 ? KisNodeList{inner} : selected;
+    const KisNodeSP expectedActive = entry == QLatin1String("direct") && scenario == 9 ? inner : source;
     manager->slotNonUiActivatedNode(source);
     QTRY_COMPARE(manager->activeNode(), source);
     manager->slotSetSelectedNodes(selected);
@@ -1090,6 +1098,17 @@ void TestNode::testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving()
         const auto actual = manager->selectedNodes();
         if (actual.size() != expectedSelection.size()) return false;
         for (const auto &node : actual) if (!expectedSelection.contains(node)) return false;
+        if (gpu) {
+            const auto version = image->gpuImage()->operations().snapshot();
+            const auto active = manager->activeNode();
+            if (!active || version->selectedLayers.size() != expectedSelection.size()) return false;
+            for (const auto &layer : version->layers) {
+                if (layer.id == version->activeLayer && layer.uuid != active->uuid()) return false;
+                if (version->selectedLayers.contains(layer.id) &&
+                    std::none_of(expectedSelection.cbegin(), expectedSelection.cend(),
+                                 [&](const auto &node) { return node->uuid() == layer.uuid; })) return false;
+            }
+        }
         return true;
     };
     const auto retainedNodesAreAttached = [&] {
@@ -1134,13 +1153,21 @@ void TestNode::testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving()
     const auto leafPixels = leafApi->pixelData(0, 0, 32, 16);
     const auto basePixels = baseApi->pixelData(0, 0, 32, 16);
     const auto history = lifetime->undoStack()->index();
-    if (lower) manager->lowerNode(); else manager->raiseNode();
+    if (entry == QLatin1String("direct")) {
+        KisNodeSP destination = image->root(), anchor;
+        if (scenario == 1 || scenario == 2 || scenario == 5 || scenario == 6 || scenario == 10) destination = outer;
+        if (scenario == 2 || scenario == 5 || scenario == 10) anchor = inner;
+        else if (scenario == 3 || scenario == 7 || scenario == 9 || scenario == 12) anchor = outer;
+        else if (scenario == 4 || scenario == 8) anchor = base;
+        manager->moveNodesDirect(selected, destination, anchor);
+    } else if (lower) manager->lowerNode();
+    else manager->raiseNode();
     image->waitForDone();
     QCOMPARE(hierarchy(image), after);
     QVERIFY(retainedNodesAreAttached());
     if (changes || gpu || scenario == 15) QCOMPARE(lifetime->undoStack()->index(), history + (changes ? 1 : 0));
     QTRY_VERIFY(selectedAsExpected());
-    QTRY_COMPARE(manager->activeNode(), source);
+    QTRY_COMPARE(manager->activeNode(), expectedActive);
     QCOMPARE(leafApi->pixelData(0, 0, 32, 16), leafPixels);
     QCOMPARE(baseApi->pixelData(0, 0, 32, 16), basePixels);
     Document api(lifetime.data(), false);
@@ -1156,7 +1183,8 @@ void TestNode::testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving()
     const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
     const auto destination = gpu && !results.isEmpty() ? results : output.path();
     QVERIFY(QDir().mkpath(destination));
-    const auto stem = QStringLiteral("hierarchy-order-%1-%2").arg(scenario).arg(layout);
+    const auto stem = (entry == QLatin1String("direct") ? QStringLiteral("hierarchy-direct-move-%1-%2") :
+                                                        QStringLiteral("hierarchy-order-%1-%2")).arg(scenario).arg(layout);
     const auto kraPath = QDir(destination).filePath(stem + QStringLiteral(".kra"));
     KisPropertiesConfigurationSP saveConfiguration(new KisPropertiesConfiguration);
     saveConfiguration->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));
@@ -1205,21 +1233,29 @@ void TestNode::testHierarchyOrderingPreservesPlacementPixelsHistoryAndSaving()
     }
     if (changes) {
         lifetime->undoStack()->undo();
+        QTRY_COMPARE(lifetime->undoStack()->index(), history);
         image->waitForDone();
+        QApplication::sendPostedEvents();
         QCOMPARE(hierarchy(image), before);
         QVERIFY(retainedNodesAreAttached());
         QTRY_VERIFY(selectedAsExpected());
         QTRY_COMPARE(manager->activeNode(), source);
         lifetime->undoStack()->redo();
+        QTRY_COMPARE(lifetime->undoStack()->index(), history + 1);
         image->waitForDone();
+        QApplication::sendPostedEvents();
         QCOMPARE(hierarchy(image), after);
         QVERIFY(retainedNodesAreAttached());
         QCOMPARE(lifetime->undoStack()->index(), history + 1);
         QTRY_VERIFY(selectedAsExpected());
-        QTRY_COMPARE(manager->activeNode(), source);
+        QTRY_COMPARE(manager->activeNode(), expectedActive);
         QCOMPARE(leafApi->pixelData(0, 0, 32, 16), leafPixels);
         QCOMPARE(baseApi->pixelData(0, 0, 32, 16), basePixels);
         const auto topLevel = image->root()->at(after[QUuid()].indexOf(outerId));
         QCOMPARE(topLevel, KisNodeSP(outer));
     }
+}
+catch (const std::exception &error)
+{
+    QFAIL(error.what());
 }

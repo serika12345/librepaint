@@ -19,6 +19,7 @@
 #include <QMessageBox>
 #include <QStandardPaths>
 #include <QSet>
+#include <QThread>
 #include <algorithm>
 #include <krita_container_utils.h>
 #include <kactioncollection.h>
@@ -309,8 +310,12 @@ void KisNodeManager::LifecycleAccess::connectReselectionInput(KisNodeManager *ma
     const auto source = manager->m_d->connectedImage;
     auto *connection = &manager->m_d->activateNodeConnection;
     QObject::connect(source.data(), &KisImage::sigRequestNodeReselection, connection,
-                     [source, connection](KisNodeSP active, const KisNodeList &selected) {
-        connection->start(source, active, selected);
+                     [manager, source, connection](KisNodeSP active, const KisNodeList &selected) {
+        if (QThread::currentThread() == manager->thread() && source && source->gpuImage()) {
+            manager->slotImageRequestNodeReselection(active, selected);
+        } else {
+            connection->start(source, active, selected);
+        }
     }, Qt::DirectConnection);
 }
 
@@ -532,6 +537,39 @@ void KisNodeManager::TreeOperationAccess::moveNodes(KisNodeManager *manager,
                                                     KisNodeSP aboveThis,
                                                     KisNodeSP activeNode)
 {
+    const auto image = KisImageSP(manager->m_d->view->image());
+    if (const auto owner = image->gpuImage()) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        const QPointer<KisNodeManager> guard(manager);
+        const auto result = [&]() -> Gpu::Result {
+            if (!parent || KisLayerUtils::findRoot(parent) != image->root() ||
+                (aboveThis && aboveThis->parent() != parent)) return Gpu::Result::InvalidInput;
+            QSet<QUuid> identities;
+            for (const auto &node : nodes) {
+                if (!node || !node->parent() || KisLayerUtils::findRoot(node) != image->root() ||
+                    identities.contains(node->uuid())) return Gpu::Result::InvalidInput;
+                identities.insert(node->uuid());
+            }
+            const auto sorted = KisLayerUtils::sortAndFilterAnyMergeableNodesSafe(nodes, image);
+            if (sorted.isEmpty()) return Gpu::Result::InvalidInput;
+            const auto active = sorted.contains(activeNode) ? activeNode : sorted.first();
+            const auto version = owner->operations().snapshot();
+            QList<Gpu::LayerId> moving;
+            Gpu::LayerId activeId = 0;
+            for (const auto &node : sorted) {
+                const auto found = std::find_if(version->layers.cbegin(), version->layers.cend(),
+                    [&](const auto &layer) { return layer.uuid == node->uuid(); });
+                if (found == version->layers.cend()) return Gpu::Result::LayerUnavailable;
+                moving.append(found->id);
+                if (node == active) activeId = found->id;
+            }
+            return owner->moveLayers(moving, parent == image->root() ? QUuid() : parent->uuid(),
+                                     aboveThis ? aboveThis->uuid() : QUuid(), activeId);
+        }();
+        if (guard && result != Gpu::Result::Success)
+            ModificationAccess::showWarning(manager, i18n("The layers could not be moved. Finish the active operation and try again."));
+        return;
+    }
     manager->m_d->lazyGetNodeOperationBatch(kundo2_i18n("Move Nodes"))->moveNode(nodes, parent, aboveThis, activeNode);
 }
 

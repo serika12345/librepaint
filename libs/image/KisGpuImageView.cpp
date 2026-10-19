@@ -229,6 +229,11 @@ void KisImage::connectGpuImageUpdates()
             const auto previousSize = retainedView->size();
             const bool selectionChanged = version->activeLayer != synchronized->activeLayer ||
                 version->selectedLayers != synchronized->selectedLayers;
+            const bool hierarchyChanged = version->layers.size() != previous->layers.size() ||
+                !std::equal(version->layers.cbegin(), version->layers.cend(), previous->layers.cbegin(),
+                            [](const auto &left, const auto &right) {
+                    return left.id == right.id && left.uuid == right.uuid && left.parentUuid == right.parentUuid;
+                });
             retainedView->setSize(version->size);
             {
                 QScopedValueRollback<bool> syncing(retainedView->m_synchronizingGpuNodes, true);
@@ -267,7 +272,7 @@ void KisImage::connectGpuImageUpdates()
             if (!resize && previousSize != synchronized->size)
                 resize = ComplexSizeChangedSignal(QRect(QPoint(), previousSize), synchronized->size);
             if (resize) Q_EMIT retainedView->sigSizeChanged(resize->oldStillPoint, resize->newStillPoint);
-            if (selectionChanged && synchronized == version) {
+            if ((selectionChanged || hierarchyChanged) && synchronized == version) {
                 KisNodeList selected;
                 KisNodeSP active;
                 for (const auto &layer : synchronized->layers) {

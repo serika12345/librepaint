@@ -952,7 +952,8 @@ Result OperationDocument::reorderLayers(const QList<LayerId> &order)
 Result OperationDocument::removeLayer(LayerId layer)
 { return removeLayers({layer}); }
 
-Result OperationDocument::moveLayers(const QList<LayerId> &layers, const QUuid &parentUuid, const QUuid &aboveUuid)
+Result OperationDocument::moveLayers(const QList<LayerId> &layers, const QUuid &parentUuid, const QUuid &aboveUuid,
+                                     LayerId activeRoot)
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
@@ -994,6 +995,10 @@ Result OperationDocument::moveLayers(const QList<LayerId> &layers, const QUuid &
         while (!parent.isNull() && !requested.contains(identities.value(parent)->id))
             parent = identities.value(parent)->parentUuid;
         if (parent.isNull()) moving.insert(id);
+    }
+    if (activeRoot) {
+        if (!values.contains(activeRoot)) return Result::LayerUnavailable;
+        if (!moving.contains(activeRoot)) return Result::InvalidInput;
     }
     for (auto parent = parentUuid; !parent.isNull(); parent = identities.value(parent)->parentUuid)
         if (moving.contains(identities.value(parent)->id)) return Result::InvalidInput;
@@ -1039,6 +1044,7 @@ Result OperationDocument::moveLayers(const QList<LayerId> &layers, const QUuid &
     auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*original));
     version->layers.swap(remaining);
     version->selectedLayers = selectedAfter;
+    if (activeRoot) version->activeLayer = activeRoot;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     if (selectedBefore != original->selectedLayers) {
         auto before = QSharedPointer<DocumentVersion>(new DocumentVersion(*original));
