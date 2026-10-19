@@ -123,6 +123,7 @@ private Q_SLOTS:
     void groupedArchivesPreserveHierarchyPixelsAndSelectedLeaf();
     void previewSamplingPreservesEdgesAndWeightedAlpha_data();
     void previewSamplingPreservesEdgesAndWeightedAlpha();
+    void previewRowsRejectIncompletePixels();
     void savedPngResolutionComesFromDocumentMetadata_data();
     void savedPngResolutionComesFromDocumentMetadata();
     void archiveMetadataIsIndependentOfClockAndHost();
@@ -337,9 +338,30 @@ void TestKraRasterCodec::previewSamplingPreservesEdgesAndWeightedAlpha()
     QCOMPARE(at(127), middleLeft);
     QCOMPARE(at(128), middleRight);
     QCOMPARE(at(255), edgeEnd);
+    qsizetype rowsRead = 0;
+    const auto streamed = Kra::RasterCodec::createPreview(sourceSize, [&](int y) {
+        ++rowsRead;
+        return QByteArray(reinterpret_cast<const char *>(projection.constScanLine(y)), sourceSize.width() * 4);
+    });
+    const auto decoded = preview.convertToFormat(QImage::Format_RGBA8888);
+    QCOMPARE(streamed.size(), decoded.size());
+    QCOMPARE(QByteArray(reinterpret_cast<const char *>(streamed.constBits()), streamed.sizeInBytes()),
+             QByteArray(reinterpret_cast<const char *>(decoded.constBits()), decoded.sizeInBytes()));
+    QVERIFY(rowsRead <= sourceSize.height() + 2 * previewSize.height());
     const auto restored = load(bytes);
     QCOMPARE(restored.code, Kra::Status::Success);
     QCOMPARE(rgbaAt(restored.document.image.layers.first(), QPoint()), QByteArray(reinterpret_cast<const char *>(projection.constBits()), 4));
+}
+
+void TestKraRasterCodec::previewRowsRejectIncompletePixels()
+{
+    QVERIFY(Kra::RasterCodec::createPreview({2, 2}, [](int y) { return QByteArray(y ? 7 : 8, '\0'); }).isNull());
+    bool called = false;
+    QVERIFY(Kra::RasterCodec::createPreview({RgbaTile::CoordinateLimit + 1, 1}, [&](int) {
+        called = true;
+        return QByteArray();
+    }).isNull());
+    QVERIFY(!called);
 }
 
 void TestKraRasterCodec::savedPngResolutionComesFromDocumentMetadata_data()

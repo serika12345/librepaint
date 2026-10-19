@@ -20,7 +20,9 @@ set(kritalibkra_LIB_SRCS
 )
 
 kis_add_library(kritalibkra SHARED ${kritalibkra_LIB_SRCS})
-target_link_libraries(kritalibkra kritaapplication kritaapplicationui kritaresourcestorage kritaxmlserialization)
+target_link_libraries(kritalibkra
+    PUBLIC kritaapplication kritaapplicationui kritaresourcestorage kritaxmlserialization
+    PRIVATE kritaimpexkra)
 generate_export_header(kritalibkra BASE_NAME kritalibkra)
 
 set_target_properties(kritalibkra PROPERTIES

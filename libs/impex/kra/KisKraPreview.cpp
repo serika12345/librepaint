@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisKraPreview_p.h"
+#include "KisKraRasterCodec.h"
 
 #include <array>
 
-namespace LibrePaint::ImportExport::Kra::Detail {
+namespace LibrePaint::ImportExport::Kra {
 namespace {
 constexpr int PreviewExtent = 256;
 
@@ -58,43 +59,57 @@ PreviewSpan previewSpan(int index, int source, int destination)
 }
 }
 
-QImage makePreview(const QImage &projection)
+QImage RasterCodec::createPreview(QSize sourceSize, const std::function<QByteArray(int)> &readRgbaRow)
 {
-    if (projection.isNull()) return {};
-    const auto source = projection.convertToFormat(QImage::Format_RGBA8888);
-    if (source.isNull()) return {};
-    auto size = source.size().scaled(QSize(PreviewExtent, PreviewExtent), Qt::KeepAspectRatio);
+    constexpr int limit = Image::Gpu::RgbaTile::CoordinateLimit;
+    if (sourceSize.isEmpty() || sourceSize.width() > limit || sourceSize.height() > limit || !readRgbaRow) return {};
+    auto size = sourceSize.scaled(QSize(PreviewExtent, PreviewExtent), Qt::KeepAspectRatio);
     size.setWidth(qMax(1, size.width()));
     size.setHeight(qMax(1, size.height()));
     QImage preview(size, QImage::Format_RGBA8888);
     if (preview.isNull()) return {};
     std::array<PreviewSpan, PreviewExtent> horizontal;
     std::array<PreviewSpan, PreviewExtent> vertical;
-    for (int x = 0; x < size.width(); ++x) horizontal[x] = previewSpan(x, source.width(), size.width());
-    for (int y = 0; y < size.height(); ++y) vertical[y] = previewSpan(y, source.height(), size.height());
+    for (int x = 0; x < size.width(); ++x) horizontal[x] = previewSpan(x, sourceSize.width(), size.width());
+    for (int y = 0; y < size.height(); ++y) vertical[y] = previewSpan(y, sourceSize.height(), size.height());
     for (int y = 0; y < size.height(); ++y) {
         auto *output = preview.scanLine(y);
         const auto &rows = vertical[y];
-        for (int x = 0; x < size.width(); ++x) {
-            const auto &columns = horizontal[x];
-            std::array<quint64, 4> weighted{};
-            for (int sy = rows.first; sy < rows.end; ++sy) {
-                const auto *row = source.constScanLine(sy);
-                const quint64 rowWeight = rows.weight(sy);
+        std::array<std::array<quint64, 4>, PreviewExtent> weighted{};
+        for (int sy = rows.first; sy < rows.end; ++sy) {
+            const auto bytes = readRgbaRow(sy);
+            if (bytes.size() != qsizetype(sourceSize.width()) * 4) return {};
+            const auto *row = reinterpret_cast<const quint8 *>(bytes.constData());
+            const quint64 rowWeight = rows.weight(sy);
+            for (int x = 0; x < size.width(); ++x) {
+                const auto &columns = horizontal[x];
                 for (int sx = columns.first; sx < columns.end; ++sx) {
                     const auto *pixel = row + sx * 4;
                     const quint64 alpha = rowWeight * columns.weight(sx) * pixel[3];
-                    weighted[3] += alpha;
-                    for (int channel = 0; channel < 3; ++channel) weighted[channel] += alpha * pixel[channel];
+                    weighted[x][3] += alpha;
+                    for (int channel = 0; channel < 3; ++channel) weighted[x][channel] += alpha * pixel[channel];
                 }
             }
-            const quint64 total = rows.total * columns.total;
-            output[x * 4 + 3] = quint8((weighted[3] + total / 2) / total);
+        }
+        for (int x = 0; x < size.width(); ++x) {
+            const auto &value = weighted[x];
+            const quint64 total = rows.total * horizontal[x].total;
+            output[x * 4 + 3] = quint8((value[3] + total / 2) / total);
             for (int channel = 0; channel < 3; ++channel)
                 output[x * 4 + channel] = output[x * 4 + 3]
-                    ? quint8((weighted[channel] + weighted[3] / 2) / weighted[3]) : 0;
+                    ? quint8((value[channel] + value[3] / 2) / value[3]) : 0;
         }
     }
     return preview;
+}
+
+QImage Detail::makePreview(const QImage &projection)
+{
+    if (projection.isNull()) return {};
+    const auto source = projection.convertToFormat(QImage::Format_RGBA8888);
+    if (source.isNull()) return {};
+    return RasterCodec::createPreview(source.size(), [&](int y) {
+        return QByteArray(reinterpret_cast<const char *>(source.constScanLine(y)), source.width() * 4);
+    });
 }
 }

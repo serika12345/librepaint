@@ -13,6 +13,7 @@ kis_add_tests(
     )
 
 target_sources(TestNode PRIVATE TestNodeHierarchy.cpp TestNodeClipboard.cpp)
+target_sources(TestDocument PRIVATE TestDocumentKraPreview.cpp)
 
 add_dependencies(TestDocument
     kritakraimport kritakraexport kritapngimport kritapngexport kritalcmsengine

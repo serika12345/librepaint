@@ -8,6 +8,7 @@
 #include <gpu/KisGpuOperationDocument.h>
 #include <QMap>
 #include <kritaimpexkra_export.h>
+#include <functional>
 
 class QIODevice;
 class QImage;
@@ -80,6 +81,14 @@ public:
     static MetadataOutcome readImageMetadata(const QByteArray &description, const QMap<QString, QByteArray> &files, Limits limits = {});
     /** Validates and adopts current image metadata while preserving other format data. */
     static Outcome updateImageMetadata(Document &document, const ImageMetadata &metadata, Limits limits = {});
+    /** Canonical 256-pixel preview from fixed straight RGBA8/sRGB rows.
+     * Reads synchronously and retains one source row plus the preview and weights.
+     * File encoding supplies profile tagging and physical resolution.
+     * Dimensions use the raster coordinate limit. At most height + 512 rows are
+     * requested. Invalid dimensions or incomplete rows return a null image;
+     * reader exceptions propagate to the caller.
+     */
+    static QImage createPreview(QSize sourceSize, const std::function<QByteArray(int)> &readRgbaRow);
     static Outcome write(QIODevice &destination, const Document &document, const QImage &projection, Limits limits = {});
 };
 }

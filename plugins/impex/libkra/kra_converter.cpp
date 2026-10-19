@@ -11,6 +11,7 @@
 #include <QIODevice>
 #include <QUrl>
 #include <QVersionNumber>
+#include <algorithm>
 #include <cmath>
 #include <limits>
 
@@ -18,11 +19,15 @@
 #include <KoStoreDevice.h>
 #include <KoUpdater.h>
 #include <metadata/KoDocumentInfo.h>
+#include <KoColorSpaceRegistry.h>
+#include <KoColorSpace.h>
+#include <kra/KisKraRasterCodec.h>
 
 #include <document/KisDocument.h>
 #include <KritaVersionWrapper.h>
 #include <kis_clone_layer.h>
 #include <kis_image.h>
+#include <kis_paint_device.h>
 #include <qcoreapplication.h>
 #include <qdebug.h>
 #include <QtGlobal>
@@ -310,7 +315,23 @@ QDomDocument KraConverter::createDomDocument()
 
 KisImportExportErrorCode KraConverter::savePreview(KoStore *store)
 {
-    QImage preview(m_doc->generatePreviewImage(QSize(256, 256)).convertToFormat(QImage::Format_ARGB32, Qt::ColorOnly));
+    QImage preview;
+    const auto projection = m_image->projection();
+    const auto srgb = KoColorSpaceRegistry::instance()->rgb8();
+    constexpr int limit = LibrePaint::Image::Gpu::RgbaTile::CoordinateLimit;
+    if (m_image->width() <= limit && m_image->height() <= limit &&
+        *m_image->colorSpace() == *srgb && *projection->colorSpace() == *srgb) {
+        const int width = m_image->width();
+        preview = LibrePaint::ImportExport::Kra::RasterCodec::createPreview(m_image->size(), [projection, width](int y) {
+            QByteArray row(width * 4, Qt::Uninitialized);
+            projection->readBytes(reinterpret_cast<quint8 *>(row.data()), 0, y, width, 1);
+            for (int x = 0; x < width; ++x) std::swap(row[x * 4], row[x * 4 + 2]);
+            return row;
+        });
+        if (preview.isNull()) return ImportExportCodes::InsufficientMemory;
+    } else {
+        preview = m_doc->generatePreviewImage(QSize(256, 256)).convertToFormat(QImage::Format_ARGB32, Qt::ColorOnly);
+    }
     if (preview.size().isEmpty()) {
         QSize newSize = m_doc->savingImage()->bounds().size();
         // make sure dimensions are at least one pixel, because extreme aspect ratios may cause rounding to zero
