@@ -28,7 +28,6 @@
 #include <qlist.h>
 #include <qlogging.h>
 #include <qnamespace.h>
-#include <qpixmap.h>
 #include <qpointer.h>
 
 #include "KisImportExportErrorCode.h"
@@ -309,8 +308,7 @@ QDomDocument KraConverter::createDomDocument()
 
 KisImportExportErrorCode KraConverter::savePreview(KoStore *store)
 {
-    QPixmap pix = m_doc->generatePreview(QSize(256, 256));
-    QImage preview(pix.toImage().convertToFormat(QImage::Format_ARGB32, Qt::ColorOnly));
+    QImage preview(m_doc->generatePreviewImage(QSize(256, 256)).convertToFormat(QImage::Format_ARGB32, Qt::ColorOnly));
     if (preview.size().isEmpty()) {
         QSize newSize = m_doc->savingImage()->bounds().size();
         // make sure dimensions are at least one pixel, because extreme aspect ratios may cause rounding to zero

@@ -15,6 +15,14 @@
 #include <KoPathShape.h>
 
 #include <KoColorProfileQuery.h>
+#include <KoStore.h>
+#include <QBuffer>
+#include <QDateTime>
+#include <QDir>
+#include <QFile>
+#include <QScopeGuard>
+#include <QTemporaryDir>
+#include <kis_properties_configuration.h>
 #include "filter/kis_filter_registry.h"
 #include "filter/kis_filter_configuration.h"
 #include "kis_image.h"
@@ -127,6 +135,77 @@ void KisKraSaverTest::testSaveEmpty()
 
     delete doc2;
     delete doc;
+}
+
+void KisKraSaverTest::testSavedPreviewPreservesImagePixels_data()
+{
+    QTest::addColumn<QSize>("sourceSize");
+    QTest::newRow("fractional-enlargement") << QSize(33, 17);
+    QTest::newRow("integer-pixel-art") << QSize(32, 16);
+    QTest::newRow("reduction") << QSize(513, 257);
+    QTest::newRow("thin-document") << QSize(1, 1025);
+}
+
+void KisKraSaverTest::testSavedPreviewPreservesImagePixels()
+{
+    QFETCH(QSize, sourceSize);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    const QColor background(17, 34, 51, 128);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    KisImageSP image = new KisImage(nullptr, sourceSize.width(), sourceSize.height(), cs, QStringLiteral("Saved preview"));
+    image->setDefaultProjectionColor(KoColor(background, cs));
+    KisPaintLayerSP layer = new KisPaintLayer(image, QStringLiteral("Preview pixels"), 255);
+    layer->setUuid(QUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa0}")));
+    image->addNode(layer);
+    document->setCurrentImage(image);
+    image->initialRefreshGraph();
+    image->waitForDone();
+    const auto expected = document->generatePreviewImage(QSize(256, 256)).convertToFormat(QImage::Format_ARGB32);
+    QVERIFY(!expected.isNull());
+    QCOMPARE(expected.pixelColor(0, 0), background);
+    QTemporaryDir output;
+    QVERIFY(output.isValid());
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            output.setAutoRemove(false);
+            qInfo() << "Saved preview artifacts retained at" << output.path();
+        }
+    });
+    QVERIFY(expected.save(output.filePath(QStringLiteral("expected.png"))));
+    document->documentInfo()->setAboutInfo("creation-date", QStringLiteral("2000-01-02T03:04:05Z"));
+    KisPropertiesConfigurationSP settings(new KisPropertiesConfiguration);
+    settings->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));
+    const auto path = output.filePath(QStringLiteral("preview.kra"));
+    QVERIFY(document->exportDocumentSync(path, KisDocument::nativeFormatMimeType(), settings));
+    QFile saved(path);
+    QVERIFY(saved.open(QIODevice::ReadOnly));
+    QByteArray archive = saved.readAll();
+    QBuffer input(&archive);
+    QVERIFY(input.open(QIODevice::ReadOnly));
+    QScopedPointer<KoStore> store(KoStore::createStore(&input, KoStore::Read, "", KoStore::Zip));
+    QVERIFY(!store->bad());
+    QVERIFY(store->open(QStringLiteral("preview.png")));
+    const auto png = store->device()->readAll();
+    QVERIFY(store->close());
+    const auto preview = QImage::fromData(png, "PNG").convertToFormat(QImage::Format_ARGB32);
+    QVERIFY(preview.save(output.filePath(QStringLiteral("actual.png"))));
+    QCOMPARE(preview.pixelColor(0, 0), background);
+    QCOMPARE(preview, expected);
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY(reopened->openPath(path, KisDocument::DontAddToRecent));
+    QCOMPARE(reopened->image()->size(), sourceSize);
+    QCOMPARE(reopened->image()->defaultProjectionColor(), KoColor(background, cs));
+    QCOMPARE(reopened->generatePreviewImage(QSize(256, 256)).convertToFormat(QImage::Format_ARGB32), expected);
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        const auto prefix = QDir(results).filePath(QStringLiteral("saved-preview-") + QString::fromLatin1(QTest::currentDataTag()));
+        QVERIFY(QFile::copy(path, prefix + QStringLiteral(".kra")));
+        QFile pixels(prefix + QStringLiteral(".png"));
+        QVERIFY(pixels.open(QIODevice::WriteOnly));
+        QCOMPARE(pixels.write(png), png.size());
+    }
 }
 
 #include <generator/kis_generator.h>

@@ -1064,6 +1064,9 @@ KRA保存設定の`documentSaveTime`は、その保存要求が使う有効な`Q
 未指定時は保存時の実時刻を使う。文書情報の作成日時は文書値として保持し、
 `KoDocumentInfo`は明示した保存日時と編集回数を記録する。不正な日時は文書情報の変更前に拒否する。
 既存画像のKRA形式処理とGPU文書の保存は同じ日時の契約を使う。
+既存画像のKRAプレビューは`plugins/impex/libkra/kra_converter.cpp`が
+`KisDocument::generatePreviewImage()`の画素を直接PNGへ保存する。
+画像生成側が縮小・拡大と半透明画素を所有し、画面表示用の`QPixmap`は表示側で生成する。
 GPU文書の定期自動保存と回復要求は、確定した操作版とKRAの付属情報を固定して、文書所有の
 一件の保存を予約する。開始結果を返した後、GUI所有スレッドで`PaintDocument::exportKra()`を実行する。
 画像交換は予約した旧画像の保存を取り消し、回復要求を失敗として完了する。
