@@ -204,6 +204,165 @@ try {
 }
 catch (const std::exception &error) { QFAIL(error.what()); }
 
+void TestNode::testNormalPasteRetainsMultipleClipboardRoots_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<QString>("scenario");
+    for (const bool gpu : {false, true})
+        for (const auto &scenario : {QStringLiteral("inside"), QStringLiteral("outside"), QStringLiteral("capacity"),
+                                    QStringLiteral("outside-capacity")}) {
+            if (!gpu && scenario.contains(QLatin1String("capacity"))) continue;
+            QTest::newRow(qPrintable((gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + scenario)) << gpu << scenario;
+        }
+}
+
+void TestNode::testNormalPasteRetainsMultipleClipboardRoots()
+try {
+    QFETCH(bool, gpu);
+    QFETCH(QString, scenario);
+    KisConfig(true).disableOpenGL();
+    auto *clipboard = QApplication::clipboard();
+    clipboard->clear();
+    const auto clearClipboard = qScopeGuard([&] { clipboard->clear(); });
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    const QPoint point = scenario.startsWith(QLatin1String("outside")) ? QPoint(40, 20) : QPoint(3, 3);
+    auto image = clipboardSource(gpu, false, document.get(), point, true);
+    document->setCurrentImage(image);
+    image->waitForDone();
+    const auto group = image->root()->firstChild();
+    const auto top = group->nextSibling();
+    QVERIFY(top);
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto cleanup = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+    QVERIFY(QTest::qWaitForWindowExposed(window.get()));
+    auto *manager = window->viewManager()->nodeManager();
+    manager->slotNonUiActivatedNode(group);
+    manager->slotSetSelectedNodes({group, top});
+    QTRY_COMPARE(manager->activeNode(), group);
+    auto *copy = window->viewManager()->actionManager()->actionByName(QStringLiteral("edit_copy"));
+    auto *paste = window->viewManager()->actionManager()->actionByName(QStringLiteral("edit_paste"));
+    QVERIFY(copy);
+    QVERIFY(paste);
+    copy->trigger();
+    const auto mime = qobject_cast<const KisMimeData *>(KisClipboard::instance()->layersMimeData());
+    QVERIFY(mime);
+    QCOMPARE(mime->nodes().size(), 2);
+    const KisNodeList captured = mime->nodes();
+    const auto capturedImage = captured.first()->image();
+    QScopedPointer<Node> capturedPixels(Node::createNode({}, captured.first()->firstChild()));
+    QCOMPARE(capturedPixels->pixelData(point.x(), point.y(), 1, 1), QByteArray::fromHex("00ff00ff"));
+    const auto history = lifetime->undoStack()->index();
+    if (scenario.contains(QLatin1String("capacity"))) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        QList<Gpu::PaintImageSP> blockers;
+        for (;;) {
+            try { blockers.append(Gpu::PaintImageSP::create(image->gpuImage()->execution(), QSize(1, 1))); }
+            catch (const std::length_error &) { break; }
+        }
+        QVERIFY(!blockers.isEmpty());
+        paste->trigger();
+        image->waitForDone();
+        QCOMPARE(lifetime->undoStack()->index(), history);
+        QCOMPARE(group->childCount(), 1u);
+        QCOMPARE(KisClipboard::instance()->layersMimeData(), mime);
+        QCOMPARE(capturedPixels->pixelData(point.x(), point.y(), 1, 1), QByteArray::fromHex("00ff00ff"));
+    }
+    for (int iteration = 0; iteration < 2; ++iteration) {
+        manager->slotNonUiActivatedNode(group);
+        manager->slotSetSelectedNodes({group});
+        QTRY_COMPARE(manager->activeNode(), group);
+        paste->trigger();
+        image->waitForDone();
+        QCOMPARE(lifetime->undoStack()->index(), history + iteration + 1);
+        QCOMPARE(group->childCount(), quint32(3 + iteration * 2));
+        const auto pastedTop = group->lastChild();
+        const auto pastedGroup = pastedTop->prevSibling();
+        QVERIFY(pastedGroup->inherits("KisGroupLayer"));
+        QVERIFY(pastedTop->inherits("KisPaintLayer"));
+        QVERIFY(pastedGroup->uuid() != group->uuid());
+        QCOMPARE(pastedGroup->childCount(), 1u);
+        QScopedPointer<Node> pixels(Node::createNode(image, pastedGroup->firstChild()));
+        const auto pastedBounds = pastedGroup->firstChild()->projection()->exactBounds();
+        const QPoint expectedPoint = scenario.startsWith(QLatin1String("outside")) ? QPoint(14, 6) : point;
+        QCOMPARE(pastedBounds, QRect(expectedPoint, QSize(1, 1)));
+        QCOMPARE(QPoint(pastedGroup->x(), pastedGroup->y()), expectedPoint - point);
+        QCOMPARE(pixels->position(), expectedPoint - point);
+        QCOMPARE(pixels->pixelData(pastedBounds.x(), pastedBounds.y(), 1, 1), QByteArray::fromHex("00ff00ff"));
+        QCOMPARE(capturedPixels->pixelData(point.x(), point.y(), 1, 1), QByteArray::fromHex("00ff00ff"));
+        QCOMPARE(KisClipboard::instance()->layersMimeData(), mime);
+        if (gpu) {
+            QCOMPARE(captured.first()->image().data(), capturedImage.data());
+            QCOMPARE(captured.first()->parent(), capturedImage->root());
+            QCOMPARE(captured.last()->parent(), capturedImage->root());
+        }
+    }
+    for (int iteration = 1; iteration >= 0; --iteration) {
+        lifetime->undoStack()->undo();
+        image->waitForDone();
+        QCOMPARE(lifetime->undoStack()->index(), history + iteration);
+        QCOMPARE(group->childCount(), quint32(1 + iteration * 2));
+    }
+    for (int iteration = 0; iteration < 2; ++iteration) {
+        lifetime->undoStack()->redo();
+        image->waitForDone();
+        QCOMPARE(lifetime->undoStack()->index(), history + iteration + 1);
+        QCOMPARE(group->childCount(), quint32(3 + iteration * 2));
+    }
+    QTemporaryDir output;
+    QVERIFY(output.isValid());
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            output.setAutoRemove(false);
+            qInfo() << "Normal paste artifacts retained at" << output.path();
+        }
+    });
+    Document source(lifetime.data(), false);
+    source.refreshProjection();
+    const auto expected = source.pixelData(0, 0, 32, 16);
+    const auto destination = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", output.path());
+    QVERIFY(QDir().mkpath(destination));
+    const auto stem = QStringLiteral("normal-layer-paste-%1-%2").arg(gpu ? QStringLiteral("gpu") : QStringLiteral("ordinary"), scenario);
+    QFile pixelsFile(QDir(destination).filePath(stem + QStringLiteral(".pixels")));
+    QVERIFY(pixelsFile.open(QIODevice::WriteOnly));
+    QCOMPARE(pixelsFile.write(expected), qint64(expected.size()));
+    pixelsFile.close();
+    const auto path = QDir(destination).filePath(stem + QStringLiteral(".kra"));
+    lifetime->setFileBatchMode(true);
+    QVERIFY2(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
+    lifetime->waitForSavingToComplete();
+    QScopedPointer<KisDocument> saved(KisPart::instance()->createDocument());
+    saved->setFileBatchMode(true);
+    QVERIFY2(saved->openPath(path, KisDocument::DontAddToRecent), qPrintable(saved->errorMessage()));
+    Document loaded(saved.data(), false);
+    loaded.refreshProjection();
+    QCOMPARE(loaded.pixelData(0, 0, 32, 16), expected);
+    for (auto pasted = group->firstChild()->nextSibling(); pasted; pasted = pasted->nextSibling()) {
+        QScopedPointer<Node> reopened(loaded.nodeByUniqueID(pasted->uuid()));
+        QVERIFY(reopened);
+        QCOMPARE(reopened->position(), QPoint(pasted->x(), pasted->y()));
+        if (pasted->firstChild()) {
+            QScopedPointer<Node> child(loaded.nodeByUniqueID(pasted->firstChild()->uuid()));
+            QVERIFY(child);
+            QCOMPARE(child->position(), QPoint(pasted->firstChild()->x(), pasted->firstChild()->y()));
+        }
+    }
+    QCOMPARE(capturedPixels->pixelData(point.x(), point.y(), 1, 1), QByteArray::fromHex("00ff00ff"));
+}
+catch (const std::exception &error) { QFAIL(error.what()); }
+
 void TestNode::testMergedClipboardSurvivesImageReplacement_data()
 {
     QTest::addColumn<bool>("gpu");

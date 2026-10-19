@@ -23,6 +23,7 @@
 #include "kis_shape_layer.h"
 #include "kis_import_catcher.h"
 #include "kis_clipboard.h"
+#include "kis_mimedata.h"
 #include "kis_selection.h"
 #include "commands/KisDeselectActiveSelectionCommand.h"
 #include "commands/kis_image_layer_add_command.h"
@@ -244,6 +245,7 @@ void KisPasteActionFactory::run(Flags flags, KisViewManager *view)
 
     // If no shapes, check for layers
     if (KisClipboard::instance()->hasLayers()) {
+        bool placementFailed = false;
         const QPointF offsetTopLeft = [&]() -> QPointF {
             KisPaintDeviceSP clip =
                 KisClipboard::instance()->clipFromKritaLayers(
@@ -251,6 +253,7 @@ void KisPasteActionFactory::run(Flags flags, KisViewManager *view)
 
             if (!clip) {
                 pasteAtCursorPosition = false;
+                placementFailed = qobject_cast<const KisMimeData *>(KisClipboard::instance()->layersMimeData());
                 return {};
             }
 
@@ -273,6 +276,7 @@ void KisPasteActionFactory::run(Flags flags, KisViewManager *view)
             return offset;
         }();
 
+        if (placementFailed) return;
 
         if (view->selection()) {
             /// TODO: we are relying on a sticky translated string from KisImageLayerAddCommand

@@ -923,10 +923,15 @@ void KisGpuOperationDocumentTest::nestedLayerIdentitySurvivesPropertiesHistoryAn
     QCOMPARE(document.cropLayer(2, {1, 2, 16, 16}), Result::LayerUnavailable);
     QCOMPARE(document.clearLayers({2}), Result::LayerUnavailable);
     QVERIFY(document.beginLayerTranslation(2).isNull());
-    QCOMPARE(document.writeLayerPosition(2, {7, -9}), Result::LayerUnavailable);
     QCOMPARE(document.writeLayerChannelMask(2, 7), Result::LayerUnavailable);
     QCOMPARE(document.setLayerChannelMask(2, 7), Result::LayerUnavailable);
     QCOMPARE(document.recoveryData(), beforeRejected);
+    QCOMPARE(document.writeLayerPosition(2, {7, -9}), Result::Success);
+    QCOMPARE(document.undoCount(), 0);
+    QCOMPARE(document.snapshot()->layers[1].position, QPoint(7, -9));
+    QCOMPARE(document.snapshot()->layers.first().position, QPoint());
+    QVERIFY(document.snapshot()->layers[1].operations.isEmpty());
+    QCOMPARE(fixed->layers[1].position, QPoint());
     QCOMPARE(document.setLayerOpacity(3, 128), Result::Success);
     const auto stroke = document.beginStroke(1, Brush{}, 42);
     QVERIFY(!stroke.isNull());
@@ -943,6 +948,7 @@ void KisGpuOperationDocumentTest::nestedLayerIdentitySurvivesPropertiesHistoryAn
         QCOMPARE(actual.kind, source.layers[index].kind);
     }
     QCOMPARE(recovered.snapshot()->layers[2].opacity, quint8(128));
+    QCOMPARE(recovered.snapshot()->layers[1].position, QPoint(7, -9));
     QCOMPARE(recovered.undo(), Result::Success);
     QVERIFY(recovered.snapshot()->layers[0].operations.isEmpty());
     QCOMPARE(recovered.undo(), Result::Success);

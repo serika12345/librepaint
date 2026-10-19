@@ -131,7 +131,7 @@ Result OperationDocument::applyLayerPosition(LayerId layer, QPoint position, Sna
     if (!source || source->documentId() != snapshot()->documentId()) return Result::StaleVersion;
     const Layer *selected = nullptr;
     for (const auto &candidate : source->layers) if (candidate.id == layer) selected = &candidate;
-    if (!selected || selected->kind != LayerKind::Paint) return Result::LayerUnavailable;
+    if (!selected) return Result::LayerUnavailable;
     if (selected->position == position) return Result::Success;
     const auto versions = layerPositionVersions(source, layer);
     const quint64 count = quint64(versions.size());
@@ -148,6 +148,10 @@ Result OperationDocument::applyLayerPosition(LayerId layer, QPoint position, Sna
             const auto offset = checkedOffset(qint64(position.x()) - candidate.position.x(),
                                                qint64(position.y()) - candidate.position.y());
             if (!offset) return Result::InvalidInput;
+            if (candidate.kind == LayerKind::Group) {
+                candidate.position = position;
+                break;
+            }
             const auto previous = candidate.operations.isEmpty() ? nullptr :
                 std::get_if<TranslationSnapshot>(&candidate.operations.last());
             const auto combined = previous ?

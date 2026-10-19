@@ -230,6 +230,7 @@ Result PaintImage::applyLayerPosition(LayerId layer, QPoint position, Snapshot *
             const qint64 y = qint64(position.y()) - value.position.y();
             constexpr qint64 limit = 2 * RgbaTile::CoordinateLimit;
             if (x < -limit || x > limit || y < -limit || y > limit) return Result::InvalidInput;
+            if (value.kind == LayerKind::Group) continue;
             const auto admitted = checkLayerTranslation(version, layer, QPoint(int(x), int(y)));
             if (admitted != Result::Success) return admitted;
         }

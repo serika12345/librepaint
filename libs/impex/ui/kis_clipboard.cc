@@ -353,10 +353,33 @@ KisPaintDeviceSP KisClipboard::clipFromKritaLayers(const KoColorSpace *cs) const
     if (nodes.size() > 1) {
         // we explicitly include point (0,0) into the bounds since that
         // is a requirement for the image
-        const QRect bounds =
-            std::accumulate(nodes.begin(), nodes.end(), QRect(0, 0, 1, 1),
-                            kismpl::mem_bit_or(&KisNode::exactBounds));
+        const auto boundsForNodes = [&] {
+            return std::accumulate(nodes.begin(), nodes.end(), QRect(0, 0, 1, 1),
+                                   kismpl::mem_bit_or(&KisNode::exactBounds));
+        };
 
+        const KisImageSP source = nodes.first()->image();
+        if (source && source->gpuImage()) {
+            try {
+                const QRect bounds = boundsForNodes();
+                KisNodeList roots;
+                for (auto node = source->root()->firstChild(); node; node = node->nextSibling()) roots.append(node);
+                auto projectionImage = source;
+                const bool resize = !source->bounds().contains(bounds);
+                if (nodes != roots || resize) {
+                    projectionImage = source->cloneGpuNodeImage(nodes);
+                    if (!projectionImage) return nullptr;
+                    if (resize && projectionImage->gpuImage()->resizeCanvas(QRect(QPoint(), bounds.size()), false) !=
+                        LibrePaint::Image::Gpu::Result::Success) return nullptr;
+                }
+                return projectionImage->projection();
+            } catch (const std::exception &error) {
+                qWarning() << "Could not read copied GPU layer projection:" << error.what();
+                return nullptr;
+            }
+        }
+
+        const QRect bounds = boundsForNodes();
         // if no color space provided choose the most used one in the layer data
         if (cs == nullptr) {
             QHash<const KoColorSpace *, int> colorSpacesCount;
