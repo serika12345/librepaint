@@ -21,12 +21,15 @@
 #include <QScopeGuard>
 #include <QDialog>
 #include <QTimer>
+#include <QSemaphore>
 #include <QCheckBox>
 #include <exception>
 #include <future>
 #include <chrono>
 #include <cstring>
 #include <limits>
+#include <atomic>
+#include <thread>
 
 #include <Node.h>
 #include <Krita.h>
@@ -45,6 +48,10 @@
 #include <document/KisDocument.h>
 #include <canvas/KisMirrorAxisConfig.h>
 #include <kis_image.h>
+#include <KisBusyWaitBroker.h>
+#include <KisRunnableBasedStrokeStrategy.h>
+#include <KisRunnableStrokeJobData.h>
+#include <commands/kis_node_opacity_command.h>
 #include <kis_image_config.h>
 #include <kis_paint_device.h>
 #include <kis_annotation.h>
@@ -65,6 +72,16 @@
 #include <KisPortingUtils.h>
 
 namespace {
+class ExportProcessingJob final : public KisRunnableBasedStrokeStrategy
+{
+public:
+    ExportProcessingJob() : KisRunnableBasedStrokeStrategy(QLatin1String("export-processing-job"))
+    {
+        enableJob(JOB_DOSTROKE);
+        setClearsRedoOnStart(false);
+    }
+};
+
 void initializeGpuDocument(KisDocument *document, QSize size, const QString &name)
 {
     QString diagnostic;
@@ -73,6 +90,78 @@ void initializeGpuDocument(KisDocument *document, QSize size, const QString &nam
     auto owner = LibrePaint::Image::Gpu::PaintImageSP::create(execution, size);
     document->setCurrentImage(KisImage::fromGpuImage(owner, name));
 }
+}
+
+void TestDocument::testExportImageWaitsForImageProcessingAndPreservesSource()
+{
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            directory.setAutoRemove(false);
+            qInfo() << "Busy export artifacts retained at" << directory.path();
+        }
+    });
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    KisImageSP image = new KisImage(document->createUndoStore(), 32, 16, cs, "Busy export");
+    KisNodeSP layer = new KisPaintLayer(image, QStringLiteral("Queued pixels"), 255);
+    image->addNode(layer);
+    document->setCurrentImage(image);
+    document->setFileBatchMode(true);
+    const auto blue = QByteArray::fromHex("ff0000ff");
+    const auto green = QByteArray::fromHex("00ff00ff");
+    layer->paintDevice()->writeBytes(reinterpret_cast<const quint8*>(blue.constData()), 3, 3, 1, 1);
+    document->undoStack()->push(new KisNodeOpacityCommand(layer, 127));
+    layer->setDirty(image->bounds());
+    image->waitForDone();
+    Document api(document.data(), false);
+    api.setFileName(directory.filePath(QStringLiteral("source.kra")));
+    document->setModified(true);
+    const auto name = api.fileName();
+    const auto mime = document->mimeType();
+    const auto history = document->undoStack()->index();
+    const auto count = document->undoStack()->count();
+    QSemaphore entered;
+    std::atomic<bool> abort{false};
+    const auto stroke = image->startStroke(new ExportProcessingJob);
+    image->addJob(stroke, new KisRunnableStrokeJobData([&entered, &abort, layer, green]() mutable {
+        entered.release();
+        while (!abort.load() && !KisBusyWaitBroker::instance()->guiThreadIsWaitingForBetterWeather())
+            std::this_thread::yield();
+        if (abort.load()) return;
+        layer->paintDevice()->writeBytes(reinterpret_cast<const quint8*>(green.constData()), 3, 3, 1, 1);
+        layer->setDirty(QRect(3, 3, 1, 1));
+    }));
+    image->endStroke(stroke);
+    const auto finishJob = qScopeGuard([&] {
+        abort.store(true);
+        image->waitForDone();
+    });
+    QVERIFY(entered.tryAcquire(1, 5000));
+    QVERIFY(!image->isIdle());
+    InfoObject settings;
+    settings.setProperty("alpha", true);
+    settings.setProperty("interlaced", false);
+    settings.setProperty("compression", 3);
+    settings.setProperty("saveSRGBProfile", true);
+    settings.setProperty("forceSRGB", false);
+    settings.setProperty("storeAuthor", false);
+    settings.setProperty("storeMetaData", false);
+    const auto path = directory.filePath(QStringLiteral("queued.png"));
+    QVERIFY2(api.exportImage(path, settings), "A synchronous export must include completed queued image processing");
+    const auto png = QImage(path).convertToFormat(QImage::Format_ARGB32);
+    QCOMPARE(png.size(), QSize(32, 16));
+    QCOMPARE(png.pixelColor(3, 3), QColor(0, 255, 0, 127));
+    QCOMPARE(QByteArray(reinterpret_cast<const char*>(png.constBits()), png.sizeInBytes()), api.pixelData(0, 0, 32, 16));
+    QCOMPARE(png.colorSpace().iccProfile(), cs->profile()->rawData());
+    QCOMPARE(document->image().data(), image.data());
+    QCOMPARE(image->root()->firstChild(), layer);
+    QCOMPARE(api.fileName(), name);
+    QCOMPARE(document->mimeType(), mime);
+    QVERIFY(document->isModified());
+    QCOMPARE(document->undoStack()->index(), history);
+    QCOMPARE(document->undoStack()->count(), count);
 }
 
 void TestDocument::testCanvasResizePreservesPixelsHistoryAndSaving_data()

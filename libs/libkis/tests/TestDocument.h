@@ -12,6 +12,7 @@ class TestDocument : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void testExportImageWaitsForImageProcessingAndPreservesSource();
     void testCanvasResizePreservesPixelsHistoryAndSaving_data();
     void testCanvasResizePreservesPixelsHistoryAndSaving();
     void testGpuCanvasResizePreservesRejectedInputsAndNotificationLifetimes();

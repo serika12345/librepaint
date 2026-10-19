@@ -8,6 +8,7 @@
 #include <QPointer>
 #include <QUrl>
 #include <QDomDocument>
+#include <memory>
 
 #include <KisSynchronizedConnection.h>
 #include <KoColorSpaceConstants.h>
@@ -547,12 +548,16 @@ void Document::crop(int x, int y, int w, int h)
 
 bool Document::exportImage(const QString &filename, const InfoObject &exportConfiguration)
 {
-    if (!d->document) return false;
+    if (!d->document || !d->document->image()) return false;
 
     const QString outputFormatString = KisMimeDatabase::mimeTypeForFile(filename, false);
     const QByteArray outputFormat = outputFormatString.toLatin1();
 
-    return d->document->exportDocumentSync(filename, outputFormat, exportConfiguration.configuration());
+    if (d->document->image()->gpuImage())
+        return d->document->exportDocumentSync(filename, outputFormat, exportConfiguration.configuration());
+
+    std::unique_ptr<KisDocument> snapshot(d->document->cloneWithImageReadLock());
+    return snapshot && snapshot->exportDocumentSync(filename, outputFormat, exportConfiguration.configuration());
 }
 
 void Document::flatten()

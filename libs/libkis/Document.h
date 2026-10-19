@@ -432,6 +432,8 @@ public Q_SLOTS:
 
     /**
      * @brief exportImage export the image, without changing its URL to the given path.
+     * The exported image version stays fixed during the operation. The source
+     * file name, modified state and undo history are preserved.
      * @param filename the full path to which the image is to be saved
      * @param exportConfiguration a configuration object appropriate to the file format.
      * An InfoObject will used to that configuration.
