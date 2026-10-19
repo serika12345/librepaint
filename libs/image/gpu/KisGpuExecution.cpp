@@ -29,6 +29,7 @@ void Execution::retireCompletedReadback()
 {
     auto &d = *m_d;
     if (!d.device->readbackPending()) {
+        d.readbackResize.reset();
         d.readbackThumbnail.reset();
         d.readbackProjected.clear();
         d.readbackRendered.clear();

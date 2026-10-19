@@ -194,6 +194,16 @@ public:
                                       LayerId layer, QRect source, QSize size, qsizetype maximumBytes,
                                       bool includeLayerTileExtent = false);
 
+    /** Resizes a fixed projection with the native document-preview rules.
+     * Bicubic passes retain alpha-weighted integer rounding and content cropping.
+     * Reductions below 1/256 use Qt area/bilinear rules. When the cropped source
+     * fits inside the requested result, Qt enlarges the bounded returned pixels.
+     * GPU working storage and transfers are bounded; failed reads return no image
+     * and preserve requests, publication and document state.
+     */
+    ImageReadbackOutcome readResizedProjectionImage(DocumentHandle handle, const Snapshot &document,
+                                                    QSize scaledCanvas, qsizetype maximumBytes);
+
     /** Rebuilds accepted documents lazily on a new device; active frames reject replacement. */
     ExecutionOutcome replaceDevice(DevicePtr device);
     DevicePtr device() const;
@@ -208,6 +218,8 @@ private:
     void retireCompletedReadback();
     ExecutionOutcome retireDisplayCaches();
     PixelReadbackOutcome readLayerTileExtent(DocumentHandle handle, const Snapshot &document, LayerId layer);
+    PixelReadbackOutcome readBoundsImpl(DocumentHandle handle, const Snapshot &document, LayerId layer,
+                                        bool includeTransparentColors, bool sparseProjection);
     std::future<PixelReadbackOutcome> readPixelsAsyncImpl(DocumentHandle handle, const Snapshot &document,
                                    QRect region, const QList<LayerId> &layers, bool includeProjection,
                                    PixelReadArea area, bool transparencyOnly, bool boundsOnly = false,

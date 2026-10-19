@@ -21,6 +21,8 @@ private Q_SLOTS:
     void testOrdinaryCreationPreservesInitialDocumentState();
     void testCanvasBackgroundReferencePixels_data();
     void testCanvasBackgroundReferencePixels();
+    void testGpuDocumentPreviewsTransferOnlyRequestedPixels_data();
+    void testGpuDocumentPreviewsTransferOnlyRequestedPixels();
     void testSetColorSpace();
     void testSetColorProfile();
     void testPixelData();

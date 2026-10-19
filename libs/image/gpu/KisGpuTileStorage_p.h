@@ -73,6 +73,8 @@ struct TileRenderer::Private
     Detail::NativeComputePipeline translationPipeline;
     Detail::NativeBindingLayout thumbnailLayout;
     Detail::NativeComputePipeline thumbnailPipeline;
+    Detail::NativeBindingLayout resizeLayout;
+    Detail::NativeComputePipeline resizePipeline;
     bool zeroUploaded = false;
     QString error;
     QWeakPointer<const RenderedVersion> coverageVersion;
@@ -87,6 +89,9 @@ struct TileRenderer::Private
                                      QRect region, const std::array<quint8, 4> &defaultPixel, bool includeTransparentColors);
     bool recordThumbnailSamples(WGPUCommandEncoder commands, WGPUBuffer source, WGPUBuffer output,
                                 WGPUBuffer samples, WGPUBuffer parameters, quint32 count);
+    bool recordResizePass(WGPUCommandEncoder commands, WGPUBuffer source, WGPUBuffer accumulated,
+                          WGPUBuffer spans, WGPUBuffer weights, WGPUBuffer output,
+                          WGPUBuffer parameters, quint32 count);
     std::shared_ptr<Detail::Tile> allocateTile();
     bool ensureTileCapacity(qsizetype count);
     struct TranslationResult {

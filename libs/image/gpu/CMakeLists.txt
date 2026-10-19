@@ -29,6 +29,7 @@ add_library(kritaimagegputiles OBJECT
     KisGpuExecution.cpp
     KisGpuPixelReadback.cpp
     KisGpuThumbnailReadback.cpp
+    KisGpuProjectionResize.cpp
     KisGpuPaintJob.cpp
     KisGpuTileRenderer.cpp
     KisGpuTileProjection.cpp
@@ -40,7 +41,7 @@ target_link_libraries(kritaimagegputiles PRIVATE WGPUNative::WGPUNative)
 set_target_properties(kritaimagegputiles PROPERTIES AUTOMOC OFF POSITION_INDEPENDENT_CODE ON)
 qt6_add_resources(kritaimagegputiles krita_gpu_tiles
     PREFIX "/librepaint/gpu"
-    FILES shaders/rgba.wgsl shaders/paint.wgsl shaders/over.wgsl shaders/transparency.wgsl shaders/bounds.wgsl shaders/translate.wgsl shaders/thumbnail.wgsl
+    FILES shaders/rgba.wgsl shaders/paint.wgsl shaders/over.wgsl shaders/transparency.wgsl shaders/bounds.wgsl shaders/translate.wgsl shaders/thumbnail.wgsl shaders/resize.wgsl
 )
 
 add_library(kritaimagegpupaint OBJECT KisGpuPaintImage.cpp KisGpuPaintImage.h KisGpuExternalPixels.cpp)

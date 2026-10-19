@@ -244,6 +244,9 @@ public:
      */
     QPixmap generatePreview(const QSize& size);
 
+    /** Returns preview pixels independently of the display's pixmap format. */
+    QImage generatePreviewImage(const QSize& size);
+
     /**
      *  @brief Sets the document to empty.
      *

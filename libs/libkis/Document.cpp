@@ -820,7 +820,7 @@ QImage Document::projection(int x, int y, int w, int h) const
 QImage Document::thumbnail(int w, int h) const
 {
     if (!d->document || !d->document->image()) return QImage();
-    return d->document->generatePreview(QSize(w, h)).toImage();
+    return d->document->generatePreviewImage(QSize(w, h));
 }
 
 

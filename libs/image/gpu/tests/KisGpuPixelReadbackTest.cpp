@@ -45,9 +45,117 @@ private Q_SLOTS:
     void thumbnailsStreamFixedHiddenPixelsAndPreserveRequests();
     void coarseThumbnailsRetainProjectionBackgroundOutsideStorageEdges();
     void thumbnailWorkingStorageWaitsForPinnedGpuPixels();
+    void resizedProjectionPreservesFixedPixelsRequestsAndReturnedImage();
+    void resizedProjectionRejectsPinnedWorkingStorageWithoutChangingPublication();
+    void constantProjectionPreviewUsesOnlyOnePixelTransfer();
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPixelReadbackTest::constantProjectionPreviewUsesOnlyOnePixelTransfer()
+{
+    RasterImage input;
+    input.size = {9000, 9000};
+    input.layers = {{QStringLiteral("Uniform canvas"), true, {}, {}, {17, 34, 51, 255}}};
+    OperationDocument document(input);
+    const auto fixed = document.snapshot();
+    Execution execution(m_device, 8 * TileRenderer::TileBytes, 1, 4);
+    const auto handle = execution.open(fixed).handle;
+    const auto result = execution.readResizedProjectionImage(handle, fixed, {32, 16}, 2048);
+    QVERIFY2(result.code == ExecutionCode::Success, qPrintable(result.diagnostic));
+    QCOMPARE(result.image.size(), QSize(16, 16));
+    for (int y = 0; y < 16; ++y) for (int x = 0; x < 16; ++x)
+        QCOMPARE(result.image.pixelColor(x, y), QColor(17, 34, 51, 255));
+    QCOMPARE(execution.requested(handle), fixed);
+    QVERIFY(!execution.published(handle));
+    QCOMPARE(document.snapshot(), fixed);
+}
+
+void KisGpuPixelReadbackTest::resizedProjectionPreservesFixedPixelsRequestsAndReturnedImage()
+{
+    QImage retained;
+    {
+        QString diagnostic;
+        const auto device = Device::createNative(diagnostic);
+        QVERIFY2(device, qPrintable(diagnostic));
+        RasterImage input;
+        input.size = {32, 16};
+        const auto rgba = QByteArray::fromHex("11223349").repeated(RgbaTile::ByteCount / 4);
+        input.layers = {{QStringLiteral("Fixed preview"), true, {}, {{{0, 0}, rgba}}}};
+        OperationDocument document(input);
+        const auto fixed = document.snapshot();
+        Execution execution(device, 8 * TileRenderer::TileBytes, 1, 16);
+        const auto handle = execution.open(fixed).handle;
+        QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+        const auto displayed = execution.project(handle, {0, 0, 32, 16});
+        QCOMPARE(displayed.code, RenderOutcome::Recorded);
+        QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
+        const auto replacement = QByteArray::fromHex("aabbccff").repeated(RgbaTile::ByteCount / 4);
+        QCOMPARE(document.replaceTiles(fixed->layers.first().id, {{{0, 0}, replacement}}), Result::Success);
+        const auto newer = document.snapshot();
+        QCOMPARE(execution.request(handle, newer).code, ExecutionCode::Success);
+        const auto result = execution.readResizedProjectionImage(handle, fixed, {16, 8}, 16 * 8 * 4);
+        QVERIFY2(result.code == ExecutionCode::Success, qPrintable(result.diagnostic));
+        retained = result.image;
+        QCOMPARE(retained.size(), QSize(16, 8));
+        for (int y = 0; y < retained.height(); ++y) for (int x = 0; x < retained.width(); ++x)
+            QCOMPARE(retained.pixelColor(x, y), QColor(17, 34, 51, 73));
+        QCOMPARE(result.document, fixed);
+        QCOMPARE(execution.requested(handle), newer);
+        QCOMPARE(execution.published(handle), fixed);
+        const auto rejected = execution.readResizedProjectionImage(handle, fixed, {16, 8}, 16 * 8 * 4 - 1);
+        QCOMPARE(rejected.code, ExecutionCode::CapacityExceeded);
+        QVERIFY(rejected.image.isNull());
+        QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+        const auto busy = execution.readResizedProjectionImage(handle, fixed, {16, 8}, 16 * 8 * 4);
+        QCOMPARE(busy.code, ExecutionCode::Busy);
+        QVERIFY(busy.image.isNull());
+        QCOMPARE(execution.cancelFrame().code, ExecutionCode::Success);
+        QCOMPARE(execution.requested(handle), newer);
+        QCOMPARE(execution.published(handle), fixed);
+        QCOMPARE(document.snapshot(), newer);
+        QCOMPARE(execution.close(handle).code, ExecutionCode::Success);
+        QCOMPARE(execution.readResizedProjectionImage(handle, fixed, {16, 8}, 16 * 8 * 4).code, ExecutionCode::InvalidRequest);
+    }
+    QCOMPARE(retained.pixelColor(0, 0), QColor(17, 34, 51, 73));
+    QCOMPARE(retained.pixelColor(15, 7), QColor(17, 34, 51, 73));
+}
+
+void KisGpuPixelReadbackTest::resizedProjectionRejectsPinnedWorkingStorageWithoutChangingPublication()
+{
+    RasterImage input;
+    input.size = {32, 16};
+    input.layers = {{QStringLiteral("Pinned previews"), true, {}, {{{0, 0}, QByteArray::fromHex("112233ff").repeated(RgbaTile::ByteCount / 4)}}}};
+    OperationDocument document(input);
+    Execution execution(m_device, 4 * TileRenderer::TileBytes, 1, 64);
+    const auto handle = execution.open(document.snapshot()).handle;
+    QList<ProjectedSnapshot> pinned;
+    for (int i = 0; i < 4; ++i) {
+        if (i) {
+            const QByteArray rgba = QByteArray(1, char(17 + i)) + QByteArray::fromHex("2233ff");
+            QCOMPARE(document.replaceTiles(document.activeLayer(), {{{0, 0}, rgba.repeated(RgbaTile::ByteCount / 4)}}), Result::Success);
+            QCOMPARE(execution.request(handle, document.snapshot()).code, ExecutionCode::Success);
+        }
+        QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+        const auto displayed = execution.project(handle, {0, 0, 32, 16});
+        QCOMPARE(displayed.code, RenderOutcome::Recorded);
+        QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
+        pinned.append(displayed.version);
+    }
+    QCOMPARE(execution.residentBytes(), qsizetype(4 * TileRenderer::TileBytes));
+    const auto fixed = document.snapshot();
+    const auto rejected = execution.readResizedProjectionImage(handle, fixed, {4, 2}, 32);
+    QCOMPARE(rejected.code, ExecutionCode::CapacityExceeded);
+    QVERIFY(rejected.image.isNull());
+    QCOMPARE(execution.requested(handle), fixed);
+    QCOMPARE(execution.published(handle), fixed);
+    pinned.clear();
+    const auto result = execution.readResizedProjectionImage(handle, fixed, {4, 2}, 32);
+    QVERIFY2(result.code == ExecutionCode::Success, qPrintable(result.diagnostic));
+    QCOMPARE(result.image.pixelColor(0, 0), QColor(20, 34, 51, 255));
+    QCOMPARE(execution.requested(handle), fixed);
+    QCOMPARE(execution.published(handle), fixed);
+}
 
 void KisGpuPixelReadbackTest::thumbnailWorkingStorageWaitsForPinnedGpuPixels()
 {

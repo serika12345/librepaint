@@ -42,6 +42,7 @@
 #include <document/KisDocument.h>
 #include <canvas/KisMirrorAxisConfig.h>
 #include <kis_image.h>
+#include <kis_image_config.h>
 #include <kis_paint_device.h>
 #include <kis_annotation.h>
 #include <gpu/KisGpuPaintImage.h>
@@ -431,6 +432,158 @@ void TestDocument::testCanvasBackgroundReferencePixels()
     QCOMPARE(publicTarget.thumbnail(32, 16), referenceThumbnail);
 }
 
+
+void TestDocument::testGpuDocumentPreviewsTransferOnlyRequestedPixels_data()
+{
+    QTest::addColumn<QString>("fixture");
+    QTest::addColumn<QSize>("sourceSize");
+    QTest::addColumn<QSize>("requestedSize");
+    QTest::newRow("bicubic-reduction") << QStringLiteral("gradient") << QSize(64, 32) << QSize(16, 8);
+    QTest::newRow("bicubic-aspect") << QStringLiteral("gradient") << QSize(64, 32) << QSize(31, 17);
+    QTest::newRow("bicubic-enlargement") << QStringLiteral("gradient") << QSize(64, 32) << QSize(96, 48);
+    QTest::newRow("integer-pixel-art") << QStringLiteral("gradient") << QSize(64, 32) << QSize(128, 64);
+    QTest::newRow("qt-smooth-reduction") << QStringLiteral("gradient") << QSize(513, 513) << QSize(1, 1);
+    QTest::newRow("bicubic-minimum-scale") << QStringLiteral("gradient") << QSize(256, 256) << QSize(1, 1);
+    QTest::newRow("qt-smooth-sparse-enlargement") << QStringLiteral("sparse") << QSize(2049, 2049) << QSize(8, 8);
+    QTest::newRow("large-sparse-canvas") << QStringLiteral("sparse") << QSize(9000, 9000) << QSize(16, 16);
+    QTest::newRow("large-transparent-background") << QStringLiteral("transparent-background") << QSize(9000, 9000) << QSize(16, 16);
+    QTest::newRow("qt-smooth-one-pixel-axis") << QStringLiteral("gradient") << QSize(1, 513) << QSize(1, 1);
+    QTest::newRow("qt-smooth-thin-canvas") << QStringLiteral("gradient") << QSize(1025, 2) << QSize(1, 1);
+    QTest::newRow("sparse-content") << QStringLiteral("sparse") << QSize(64, 32) << QSize(16, 8);
+    QTest::newRow("empty-content") << QStringLiteral("empty") << QSize(64, 32) << QSize(16, 8);
+    QTest::newRow("implicit-background") << QStringLiteral("background") << QSize(33, 17) << QSize(16, 16);
+}
+
+void TestDocument::testGpuDocumentPreviewsTransferOnlyRequestedPixels()
+{
+    QFETCH(QString, fixture);
+    QFETCH(QSize, sourceSize);
+    QFETCH(QSize, requestedSize);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    KisConfig config(false);
+    const auto checker1 = config.checkersColor1(), checker2 = config.checkersColor2();
+    const auto restoreCheckers = qScopeGuard([&] { config.setCheckersColor1(checker1); config.setCheckersColor2(checker2); });
+    config.setCheckersColor1(QColor(80, 96, 112));
+    config.setCheckersColor2(QColor(160, 176, 192));
+    KisImageConfig imageConfig(false);
+    const int previousThreads = imageConfig.maxNumberOfThreads();
+    const auto restoreThreads = qScopeGuard([&] { imageConfig.setMaxNumberOfThreads(previousThreads); });
+    imageConfig.setMaxNumberOfThreads(1);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    const QColor background = fixture == QLatin1String("background") ? QColor(17, 34, 51, 128) :
+        fixture == QLatin1String("transparent-background") ? QColor(255, 255, 255, 0) : QColor(0, 0, 0, 0);
+    KisImageSP reference = new KisImage(nullptr, sourceSize.width(), sourceSize.height(), cs, QStringLiteral("Preview reference"));
+    reference->setDefaultProjectionColor(KoColor(background, cs));
+    KisNodeSP layer = new KisPaintLayer(reference, QStringLiteral("Preview pixels"), 255);
+    reference->addNode(layer);
+    Gpu::RasterImage raster;
+    raster.size = sourceSize;
+    raster.projectionBackground = {quint8(background.red()), quint8(background.green()), quint8(background.blue()), quint8(background.alpha())};
+    raster.layers = {{QStringLiteral("Preview pixels"), true, {}, {}}};
+    const bool sparse = fixture == QLatin1String("sparse");
+    if (fixture == QLatin1String("gradient") || sparse) {
+        for (int ty = sparse ? -1 : 0; sparse ? ty <= 0 : ty * 256 < sourceSize.height(); ++ty) {
+            for (int tx = sparse ? -1 : 0; sparse ? tx <= 0 : tx * 256 < sourceSize.width(); ++tx) {
+                QByteArray rgba(Gpu::RgbaTile::ByteCount, '\0');
+                for (int y = 0; y < 256; ++y) for (int x = 0; x < 256; ++x) {
+                    const int px = tx * 256 + x, py = ty * 256 + y;
+                    if ((!sparse && QRect(QPoint(), sourceSize).contains(px, py)) ||
+                        (sparse && (QRect(17, 9, 5, 5).contains(px, py) || QPoint(px, py) == QPoint(-1, -1)))) {
+                        auto *pixel = rgba.data() + (y * 256 + x) * 4;
+                        pixel[0] = char((px * 17 + py * 3) & 255);
+                        pixel[1] = char((px * 5 + py * 11) & 255);
+                        pixel[2] = char((px * 13 + py * 7) & 255);
+                        pixel[3] = char((px + py) % 4 == 0 ? 0 : (px + py) % 4 == 1 ? 73 : 255);
+                    }
+                }
+                raster.layers.first().tiles.append({{tx, ty}, rgba});
+                for (qsizetype i = 0; i < rgba.size(); i += 4) std::swap(rgba[i], rgba[i + 2]);
+                layer->paintDevice()->writeBytes(reinterpret_cast<const quint8*>(rgba.constData()), QRect(tx * 256, ty * 256, 256, 256));
+            }
+        }
+    }
+    reference->initialRefreshGraph();
+    reference->waitForDone();
+    QScopedPointer<KisDocument> referenceDocument(KisPart::instance()->createDocument());
+    referenceDocument->setCurrentImage(reference);
+    Document expected(referenceDocument.data(), false);
+    const auto thumbnail = expected.thumbnail(requestedSize.width(), requestedSize.height());
+    QVERIFY(!thumbnail.isNull());
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    auto execution = std::make_shared<Gpu::Execution>(device, 16 * Gpu::TileRenderer::TileBytes, 1, 4096);
+    const auto owner = Gpu::PaintImageSP::create(execution, raster);
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Bounded document preview")));
+    Document actual(document.data(), false);
+    const auto fixed = owner->operations().snapshot();
+    const auto published = execution->published(owner->handle());
+    const auto modified = document->isModified();
+    QSignalSpy changes(owner.data(), &Gpu::PaintImage::changed);
+    QImage result;
+    try {
+        result = actual.thumbnail(requestedSize.width(), requestedSize.height());
+    } catch (const std::exception &error) {
+        QFAIL(qPrintable(QStringLiteral("Document.thumbnail could not produce a bounded preview: ") + QString::fromUtf8(error.what())));
+    }
+    if (fixture == QLatin1String("background")) {
+        QCOMPARE(result.pixelColor(0, 0), background);
+        QCOMPARE(thumbnail.pixelColor(0, 0), background);
+    }
+    if (QTest::currentDataTag() == QLatin1String("large-sparse-canvas")) {
+        // The raster sample is premultiplied RGBA(27,67,14,90).
+        // Straight channels round integer quotients to the nearest value, ties up.
+        QCOMPARE(result.pixelColor(5, 3), QColor(77, 190, 40, 90));
+        QCOMPARE(thumbnail.pixelColor(5, 3), QColor(77, 190, 40, 90));
+    }
+    QImage converted, referenceConverted;
+    QByteArray conversionProfileId;
+    const bool convertsProfile = qreal(requestedSize.width()) / sourceSize.width() >= 1. / 256 &&
+        qreal(requestedSize.height()) / sourceSize.height() >= 1. / 256 && fixture != QLatin1String("empty");
+    if (convertsProfile) {
+        const auto *linear = KoColorSpaceRegistry::instance()->profileByName(QStringLiteral("sRGB-elle-V2-g10.icc"));
+        QVERIFY(linear);
+        QVERIFY(linear->uniqueId() != cs->profile()->uniqueId());
+        conversionProfileId = linear->uniqueId();
+        referenceConverted = reference->convertToQImage(requestedSize, linear);
+        converted = document->image()->convertToQImage(requestedSize, linear);
+    }
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        const auto name = QStringLiteral("document-preview-") + QString::fromLatin1(QTest::currentDataTag());
+        QList<QPair<QString, QImage>> images{{name, result}, {name + QStringLiteral("-reference"), thumbnail}};
+        if (convertsProfile) {
+            images.append({name + QStringLiteral("-linear"), converted});
+            images.append({name + QStringLiteral("-linear-reference"), referenceConverted});
+        }
+        for (const auto &entry : images) {
+            const auto rgba = entry.second.convertToFormat(QImage::Format_RGBA8888);
+            QFile pixels(QDir(results).filePath(entry.first + QStringLiteral(".rgba")));
+            QVERIFY(pixels.open(QIODevice::WriteOnly));
+            QCOMPARE(pixels.write(reinterpret_cast<const char*>(rgba.constBits()), rgba.sizeInBytes()), rgba.sizeInBytes());
+            QVERIFY(entry.second.save(QDir(results).filePath(entry.first + QStringLiteral(".png"))));
+            QFile state(QDir(results).filePath(entry.first + QStringLiteral(".state")));
+            QVERIFY(state.open(QIODevice::WriteOnly));
+            QDataStream stream(&state);
+            stream.setVersion(QDataStream::Qt_5_15);
+            stream << entry.second.size() << qint32(entry.second.format()) << entry.second.devicePixelRatio();
+            stream << cs->profile()->uniqueId() << (entry.first.contains(QLatin1String("-linear")) ? conversionProfileId : cs->profile()->uniqueId());
+            stream << qint32(imageConfig.maxNumberOfThreads());
+            QCOMPARE(stream.status(), QDataStream::Ok);
+        }
+    }
+    QCOMPARE(result, thumbnail);
+    if (convertsProfile) QCOMPARE(converted, referenceConverted);
+    QCOMPARE(document->generatePreview(requestedSize).toImage(), referenceDocument->generatePreview(requestedSize).toImage());
+    QCOMPARE(owner->operations().snapshot(), fixed);
+    QCOMPARE(owner->operations().undoCount(), 0);
+    QCOMPARE(execution->requested(owner->handle()), fixed);
+    QCOMPARE(execution->published(owner->handle()), published);
+    QCOMPARE(document->isModified(), modified);
+    QCOMPARE(changes.size(), 0);
+}
 
 void TestDocument::testSetColorSpace()
 {

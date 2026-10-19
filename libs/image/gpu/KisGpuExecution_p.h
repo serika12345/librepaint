@@ -12,7 +12,7 @@
 #include "KisGpuPresentationSurface.h"
 
 namespace LibrePaint::Image::Gpu {
-namespace Detail { struct ThumbnailReadbackResources; }
+namespace Detail { struct ThumbnailReadbackResources; struct ResizeReadbackResources; }
 struct Execution::Private
 {
     struct Document
@@ -41,6 +41,7 @@ struct Execution::Private
     RenderedSnapshot readbackRendered;
     ProjectedSnapshot readbackProjected;
     std::shared_ptr<Detail::ThumbnailReadbackResources> readbackThumbnail;
+    std::shared_ptr<Detail::ResizeReadbackResources> readbackResize;
 
     Private(DevicePtr device, qsizetype bytes, qsizetype documents, qsizetype readbackBytes)
         : device(std::move(device)), byteBudget(bytes), maximumDocuments(documents),

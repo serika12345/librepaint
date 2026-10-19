@@ -352,6 +352,12 @@ std::future<PixelReadbackOutcome> Execution::readTransparencyAsync(DocumentHandl
 PixelReadbackOutcome Execution::readBounds(DocumentHandle handle, const Snapshot &pinned, LayerId layer,
                                          bool includeTransparentColors)
 {
+    return readBoundsImpl(handle, pinned, layer, includeTransparentColors, false);
+}
+
+PixelReadbackOutcome Execution::readBoundsImpl(DocumentHandle handle, const Snapshot &pinned, LayerId layer,
+                                             bool includeTransparentColors, bool sparseProjection)
+{
     if (!m_d->onThread()) return failure(ExecutionCode::InvalidRequest, QStringLiteral("Bounds read requires the GPU thread"));
     constexpr int limit = RgbaTile::CoordinateLimit;
     constexpr qsizetype capacity = 256 * 1024 * 1024;
@@ -363,17 +369,22 @@ PixelReadbackOutcome Execution::readBounds(DocumentHandle handle, const Snapshot
     QSet<quint64> coordinates;
     const qsizetype columns = (pinned->size.width() + TileRenderer::TileSize - 1) / TileRenderer::TileSize;
     const qsizetype rows = (pinned->size.height() + TileRenderer::TileSize - 1) / TileRenderer::TileSize;
-    if (!layer && qint64(pinned->size.width()) * pinned->size.height() * 4 > capacity)
+    if (!layer && !sparseProjection && qint64(pinned->size.width()) * pinned->size.height() * 4 > capacity)
         return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Projection bounds pixel capacity exceeded"));
-    bool uniform = !layer && Detail::packedPixel(pinned->projectionBackground) != 0;
+    const qsizetype maximumCoordinates = layer || sparseProjection ? capacity / TileRenderer::TileBytes : columns * rows;
+    bool uniform = !layer && (sparseProjection && !includeTransparentColors ? pinned->projectionBackground[3] != 0 : Detail::packedPixel(pinned->projectionBackground) != 0);
     for (const auto &value : pinned->layers) {
         if (layer ? value.id != layer : !value.visible) continue;
-        uniform |= !layer && Detail::packedPixel(value.defaultPixel) != 0;
-        const auto tiles = layerCoordinates(value, outcome.region, layer ? capacity / TileRenderer::TileBytes : columns * rows);
+        uniform |= !layer && (sparseProjection && !includeTransparentColors ? value.defaultPixel[3] != 0 : Detail::packedPixel(value.defaultPixel) != 0);
+        const auto tiles = layerCoordinates(value, outcome.region, maximumCoordinates);
         if (!tiles) return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Bounds tile coordinate capacity exceeded"));
         for (const auto coordinate : *tiles) coordinates.insert(coordinate);
+        if (sparseProjection && coordinates.size() > maximumCoordinates)
+            return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Preview bounds tile capacity exceeded"));
     }
     if (uniform) {
+        if (sparseProjection && columns * rows > maximumCoordinates)
+            return failure(ExecutionCode::CapacityExceeded, QStringLiteral("Preview background tile capacity exceeded"));
         for (int y = 0; y < rows; ++y)
             for (int x = 0; x < columns; ++x) coordinates.insert(Detail::key(x, y));
     }

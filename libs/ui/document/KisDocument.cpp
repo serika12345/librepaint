@@ -2030,6 +2030,11 @@ bool KisDocument::isModified() const
 
 QPixmap KisDocument::generatePreview(const QSize& size)
 {
+    return QPixmap::fromImage(generatePreviewImage(size));
+}
+
+QImage KisDocument::generatePreviewImage(const QSize& size)
+{
     KisImageSP image = d->image;
     if (d->savingImage) image = d->savingImage;
 
@@ -2049,26 +2054,27 @@ QPixmap KisDocument::generatePreview(const QSize& size)
             }
         }
 
-        QPixmap px;
+        QImage preview;
         if (pixelArt) {
             // do not scale while converting (because it uses Bicubic)
             QImage original = image->convertToQImage(originalSize, 0);
             // scale using FastTransformation, which is probably Nearest neighbour, suitable for pixel art
-            QImage scaled = original.scaled(newSize, Qt::KeepAspectRatio, Qt::FastTransformation);
-            px = QPixmap::fromImage(scaled);
+            preview = original.scaled(newSize, Qt::KeepAspectRatio, Qt::FastTransformation);
         } else {
-            px = QPixmap::fromImage(image->convertToQImage(newSize, 0));
+            preview = image->convertToQImage(newSize, 0);
         }
-        if (px.size() == QSize(0,0)) {
-            px = QPixmap(newSize);
-            QPainter gc(&px);
+        if (preview.isNull()) {
+            preview = QImage(newSize, QImage::Format_ARGB32);
+            QPainter gc(&preview);
             QBrush checkBrush = QBrush(KisCanvasWidgetBase::createCheckersImage(newSize.width() / 5));
-            gc.fillRect(px.rect(), checkBrush);
+            gc.fillRect(preview.rect(), checkBrush);
             gc.end();
         }
-        return px;
+        return preview;
     }
-    return QPixmap(size);
+    QImage preview(size, QImage::Format_ARGB32);
+    preview.fill(Qt::transparent);
+    return preview;
 }
 
 bool KisDocument::importDocument(const QString &_path)

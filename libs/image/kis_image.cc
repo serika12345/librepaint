@@ -31,6 +31,7 @@
 #include <math.h>
 
 #include <QImage>
+#include <QColorSpace>
 #include <QPainter>
 #include <QSize>
 #include <QDateTime>
@@ -82,6 +83,7 @@
 #include "kis_image_config.h"
 #include "kis_update_scheduler.h"
 #include "gpu/KisGpuPaintImage.h"
+#include "gpu/KisGpuExecution.h"
 #include "KisGpuPaintDeviceTransfer_p.h"
 #include <stdexcept>
 #include <QScopeGuard>
@@ -1894,10 +1896,53 @@ QImage KisImage::convertToQImage(qint32 x,
 
 
 
+namespace {
+QImage straightPreviewPixels(const QImage &image)
+{
+    const auto premultiplied = image.convertToFormat(QImage::Format_ARGB32_Premultiplied);
+    if (premultiplied.isNull()) return {};
+    QImage result(image.size(), QImage::Format_ARGB32);
+    if (result.isNull()) return {};
+    result.setColorSpace(image.colorSpace());
+    result.setDevicePixelRatio(image.devicePixelRatio());
+    for (int y = 0; y < result.height(); ++y) {
+        const auto *source = reinterpret_cast<const QRgb*>(premultiplied.constScanLine(y));
+        auto *destination = reinterpret_cast<QRgb*>(result.scanLine(y));
+        for (int x = 0; x < result.width(); ++x) {
+            const int alpha = qAlpha(source[x]);
+            const auto straight = [alpha](int value) { return alpha ? std::min(255, (value * 255 + alpha / 2) / alpha) : 0; };
+            destination[x] = qRgba(straight(qRed(source[x])), straight(qGreen(source[x])), straight(qBlue(source[x])), alpha);
+        }
+    }
+    return result;
+}
+}
+
 QImage KisImage::convertToQImage(const QSize& scaledImageSize, const KoColorProfile *profile)
 {
     if (scaledImageSize.isEmpty()) {
         return QImage();
+    }
+
+    if (m_d->gpuImage) {
+        const auto previewColorSpace = KoColorSpaceRegistry::instance()->rgb8();
+        const qreal scaleX = qreal(scaledImageSize.width()) / width();
+        const qreal scaleY = qreal(scaledImageSize.height()) / height();
+        const bool areaResize = scaleX < 1. / 256 || scaleY < 1. / 256;
+        const auto destinationColorSpace = KoColorSpaceRegistry::instance()->rgb8(profile);
+        if (*colorSpace() == *previewColorSpace &&
+            (!areaResize || (destinationColorSpace && *destinationColorSpace == *previewColorSpace))) {
+            const auto result = m_d->gpuImage->execution().readResizedProjectionImage(m_d->gpuImage->handle(),
+                m_d->gpuImage->operations().snapshot(), scaledImageSize, 256 * 1024 * 1024);
+            if (result.code != LibrePaint::Image::Gpu::ExecutionCode::Success)
+                throw std::runtime_error(result.diagnostic.toStdString());
+            if (result.image.isNull()) return {};
+            if (result.image.format() == QImage::Format_RGBA8888_Premultiplied || result.image.format() == QImage::Format_ARGB32_Premultiplied)
+                return straightPreviewPixels(result.image);
+            const auto image = result.image.convertToFormat(QImage::Format_ARGB32);
+            return previewColorSpace->convertToQImage(image.constBits(), image.width(), image.height(), profile,
+                KoColorConversionTransformation::internalRenderingIntent(), KoColorConversionTransformation::internalConversionFlags());
+        }
     }
 
     KisPaintDeviceSP dev = new KisPaintDevice(colorSpace());
@@ -1916,7 +1961,26 @@ QImage KisImage::convertToQImage(const QSize& scaledImageSize, const KoColorProf
         // convertToQImage uses KisFixedPoint values, which means that the scale cannot be smaller than 1/2^8
         // BUG:432182
         // FIXME: would be best to extend KisFixedPoint instead
-        return convertToQImage(size(), profile).scaled(scaledImageSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        const auto pixels = convertToQImage(size(), profile);
+        if (pixels.isNull()) return {};
+        const auto outputSize = pixels.size().scaled(scaledImageSize, Qt::KeepAspectRatio).expandedTo({1, 1});
+        QImage resized;
+        if (outputSize.width() >= pixels.width() && outputSize.height() >= pixels.height()) {
+            // Keep the small-image raster interpolation in premultiplied form
+            // until the common integer conversion at the image boundary.
+            resized = QImage(outputSize, QImage::Format_ARGB32_Premultiplied);
+            resized.fill(Qt::transparent);
+            QPainter painter(&resized);
+            painter.setRenderHint(QPainter::Antialiasing);
+            painter.setRenderHint(QPainter::SmoothPixmapTransform);
+            painter.scale(qreal(outputSize.width()) / pixels.width(), qreal(outputSize.height()) / pixels.height());
+            painter.drawImage(QPoint(), pixels);
+            painter.end();
+        } else {
+            resized = pixels.convertToFormat(QImage::Format_ARGB32_Premultiplied)
+                .scaled(outputSize, Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        }
+        return straightPreviewPixels(resized);
     }
 
     KoDummyUpdaterHolder updaterHolder;
