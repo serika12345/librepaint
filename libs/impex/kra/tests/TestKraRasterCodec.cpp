@@ -131,6 +131,7 @@ private Q_SLOTS:
     void channelProtectionSurvivesEditingAndResaving_data();
     void channelProtectionSurvivesEditingAndResaving();
     void imageMetadataIsCompleteOrRejectedBeforeRasterImport();
+    void documentTitlesMoveAssociatedFilesAtomically();
     void imageProfileIdentitySurvivesMetadataUpdates_data();
     void imageProfileIdentitySurvivesMetadataUpdates();
     void existingPaintFilesPreservePixelsAndDefaults_data();
@@ -567,6 +568,87 @@ void TestKraRasterCodec::imageProfileIdentitySurvivesMetadataUpdates()
     for (const auto &invalid : invalidNames) {
         metadata.profileName = invalid;
         QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, metadata).code, Kra::Status::InvalidData);
+        QCOMPARE(source.description, unchanged.description);
+        QCOMPARE(source.files, unchanged.files);
+    }
+}
+
+void TestKraRasterCodec::documentTitlesMoveAssociatedFilesAtomically()
+{
+    auto source = document();
+    QByteArray initial;
+    QBuffer output(&initial);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto opened = load(initial);
+    QCOMPARE(opened.code, Kra::Status::Success);
+    source = opened.document;
+    source.files.insert(QStringLiteral("image/extra.bin"), QByteArrayLiteral("retained associated bytes"));
+    const auto originalFiles = source.files;
+    Kra::ImageMetadata metadata;
+    metadata.iccProfile = QColorSpace(QColorSpace::SRgb).iccProfile();
+    metadata.annotations = {{QStringLiteral("project"), QStringLiteral("Kept annotation"), QByteArrayLiteral("annotation bytes")}};
+    const auto updateTitle = [&](const QString &title) {
+        QDomDocument info;
+        auto root = info.createElement(QStringLiteral("document-info"));
+        info.appendChild(root);
+        auto about = info.createElement(QStringLiteral("about"));
+        root.appendChild(about);
+        auto name = info.createElement(QStringLiteral("title"));
+        name.appendChild(info.createTextNode(title));
+        about.appendChild(name);
+        metadata.documentInfo = info.toByteArray();
+        return Kra::RasterCodec::updateImageMetadata(source, metadata);
+    };
+    const QString title = QStringLiteral("保存 <&> title");
+    QCOMPARE(updateTitle(title).code, Kra::Status::Success);
+    QDomDocument xml;
+    QVERIFY(xml.setContent(source.description));
+    QCOMPARE(xml.documentElement().firstChildElement(QStringLiteral("IMAGE")).attribute(QStringLiteral("name")), title);
+    for (auto entry = originalFiles.cbegin(); entry != originalFiles.cend(); ++entry) {
+        if (!entry.key().startsWith(QLatin1String("image/"))) continue;
+        QVERIFY(!source.files.contains(entry.key()));
+        QCOMPARE(source.files.value(title + entry.key().mid(5)), entry.value());
+    }
+    QCOMPARE(source.files.value(title + QStringLiteral("/annotations/project")), QByteArrayLiteral("annotation bytes"));
+    QCOMPARE(source.files.value(QStringLiteral("notes/custom.bin")), originalFiles.value(QStringLiteral("notes/custom.bin")));
+    QCOMPARE(updateTitle(QStringLiteral("Renamed document")).code, Kra::Status::Success);
+    for (const auto &name : source.files.keys()) QVERIFY(!name.startsWith(title + QLatin1Char('/')));
+    for (const auto &unsafe : {QStringLiteral("../outside"), QStringLiteral("with/slash"), QStringLiteral("with\\backslash"), QStringLiteral(".."), QString(), QString(1010, QLatin1Char('x'))}) {
+        QCOMPARE(updateTitle(unsafe).code, Kra::Status::Success);
+        QVERIFY(xml.setContent(source.description));
+        QCOMPARE(xml.documentElement().firstChildElement(QStringLiteral("IMAGE")).attribute(QStringLiteral("name")), QStringLiteral("Renamed document"));
+        QCOMPARE(source.files.value(QStringLiteral("documentinfo.xml")), metadata.documentInfo);
+    }
+    QByteArray saved;
+    QBuffer savedOutput(&saved);
+    QVERIFY(savedOutput.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(savedOutput, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto restored = load(saved);
+    QCOMPARE(restored.code, Kra::Status::Success);
+    QCOMPARE(restored.document.image.layers.size(), source.image.layers.size());
+    for (int i = 0; i < source.image.layers.size(); ++i) {
+        QCOMPARE(restored.document.image.layers[i].uuid, source.image.layers[i].uuid);
+        QCOMPARE(restored.document.image.layers[i].defaultPixel, source.image.layers[i].defaultPixel);
+        const auto &expected = source.image.layers[i].tiles;
+        const auto &actual = restored.document.image.layers[i].tiles;
+        QCOMPARE(actual.size(), expected.size());
+        for (int tile = 0; tile < expected.size(); ++tile) {
+            QCOMPARE(actual[tile].coordinate, expected[tile].coordinate);
+            QCOMPARE(actual[tile].rgba, expected[tile].rgba);
+        }
+    }
+    QCOMPARE(restored.document.files.value(QStringLiteral("Renamed document/extra.bin")), QByteArrayLiteral("retained associated bytes"));
+    const auto restoredMetadata = Kra::RasterCodec::readImageMetadata(restored.document.description, restored.document.files);
+    QCOMPARE(restoredMetadata.code, Kra::Status::Success);
+    QCOMPARE(restoredMetadata.metadata.iccProfile, metadata.iccProfile);
+    QCOMPARE(restoredMetadata.metadata.annotations.first().bytes, metadata.annotations.first().bytes);
+    const auto beforeCollision = source;
+    for (const auto &name : {QStringLiteral("Collision/extra.bin"), QStringLiteral("Collision/annotations/unrelated")}) {
+        source = beforeCollision;
+        source.files.insert(name, QByteArrayLiteral("unrelated caller data"));
+        const auto unchanged = source;
+        QCOMPARE(updateTitle(QStringLiteral("Collision")).code, Kra::Status::InvalidData);
         QCOMPARE(source.description, unchanged.description);
         QCOMPARE(source.files, unchanged.files);
     }

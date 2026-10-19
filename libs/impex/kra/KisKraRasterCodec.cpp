@@ -341,8 +341,8 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
     if (!metadata.mirrorAxis.isEmpty() &&
         (!mirrorAxis.setContent(metadata.mirrorAxis) || mirrorAxis.documentElement().tagName() != QLatin1String("MirrorAxis")))
         return invalid(QStringLiteral("Invalid KRA mirror axis settings"));
+    QDomDocument info;
     if (!metadata.documentInfo.isEmpty()) {
-        QDomDocument info;
         if (!info.setContent(metadata.documentInfo) || info.documentElement().tagName() != QLatin1String("document-info"))
             return invalid(QStringLiteral("Invalid KRA document information"));
     }
@@ -360,7 +360,31 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
     }
     if (!metadata.mirrorAxis.isEmpty()) image.appendChild(xml.importNode(mirrorAxis.documentElement(), true));
     auto files = document.files;
-    const auto folder = image.attribute(QStringLiteral("name"));
+    auto folder = image.attribute(QStringLiteral("name"));
+    const auto title = info.documentElement().firstChildElement(QStringLiteral("about"))
+        .firstChildElement(QStringLiteral("title")).text();
+    const auto oldPrefix = folder + QLatin1Char('/');
+    // Reserve raster filenames allocated after the metadata update, including retained layer names.
+    const bool usableTitle = component(title) &&
+        validPath(title + QStringLiteral("/layers/layer%1.defaultpixel").arg(2 * limits.layers)) &&
+        std::all_of(metadata.annotations.cbegin(), metadata.annotations.cend(), [&](const Annotation &annotation) {
+            return validPath(title + QStringLiteral("/annotations/") + annotation.type);
+        }) && std::all_of(files.keyBegin(), files.keyEnd(), [&](const QString &name) {
+            return !name.startsWith(oldPrefix) || validPath(title + name.mid(folder.size()));
+        });
+    if (usableTitle && title != folder) {
+        if (std::any_of(files.keyBegin(), files.keyEnd(), [&](const QString &name) { return name.startsWith(title + QLatin1Char('/')); }))
+            return invalid(QStringLiteral("KRA image rename conflicts with an associated file"));
+        const auto originalFiles = files;
+        for (auto file = originalFiles.cbegin(); file != originalFiles.cend(); ++file) {
+            if (!file.key().startsWith(oldPrefix)) continue;
+            const auto renamed = title + file.key().mid(folder.size());
+            files.remove(file.key());
+            files.insert(renamed, file.value());
+        }
+        folder = title;
+        image.setAttribute(QStringLiteral("name"), folder);
+    }
     const auto prefix = folder + QStringLiteral("/annotations/");
     auto annotations = image.firstChildElement(QStringLiteral("Annotations"));
     for (auto entry = annotations.firstChildElement(); !entry.isNull(); entry = entry.nextSiblingElement())

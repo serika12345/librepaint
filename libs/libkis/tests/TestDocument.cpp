@@ -1325,6 +1325,7 @@ void TestDocument::testGpuSaveAndExportPreserveHistoryAndFileIdentity()
     QVERIFY(loadedMirror.loadFromXml(imageDescription.firstChildElement(QStringLiteral("MirrorAxis"))));
     QVERIFY(loadedMirror == mirror);
     const auto folder = imageDescription.attribute(QStringLiteral("name"));
+    QCOMPARE(folder, document->documentInfo()->aboutInfo(QStringLiteral("title")));
     QCOMPARE(loaded.document.files.value(folder + QStringLiteral("/annotations/icc")), image->profile()->rawData());
     QCOMPARE(loaded.document.files.value(folder + QStringLiteral("/annotations/project-data")), QByteArrayLiteral("preserved annotation"));
     QVERIFY(loaded.document.files.value(QStringLiteral("documentinfo.xml")).contains(QStringLiteral("保存契約").toUtf8()));
@@ -1335,6 +1336,7 @@ void TestDocument::testGpuSaveAndExportPreserveHistoryAndFileIdentity()
     Document publicDocument(document.data(), false);
     InfoObject settings;
     document->setMirrorAxisConfig(KisMirrorAxisConfig());
+    document->documentInfo()->setAboutInfo(QStringLiteral("title"), QStringLiteral("Renamed export"));
     QVERIFY(publicDocument.exportImage(exportedPath, settings));
     QCOMPARE(document->path(), savedPath);
     QVERIFY(document->isModified());
@@ -1349,11 +1351,25 @@ void TestDocument::testGpuSaveAndExportPreserveHistoryAndFileIdentity()
     QDomDocument exportedDescription;
     QVERIFY(exportedDescription.setContent(exportedValue.document.description));
     QCOMPARE(exportedDescription.documentElement().firstChildElement(QStringLiteral("IMAGE"))
+        .attribute(QStringLiteral("name")), QStringLiteral("Renamed export"));
+    QVERIFY(!exportedValue.document.files.contains(folder + QStringLiteral("/annotations/icc")));
+    QCOMPARE(exportedValue.document.files.value(QStringLiteral("Renamed export/annotations/icc")), image->profile()->rawData());
+    QCOMPARE(exportedValue.document.files.value(QStringLiteral("Renamed export/annotations/project-data")), QByteArrayLiteral("preserved annotation"));
+    QCOMPARE(exportedDescription.documentElement().firstChildElement(QStringLiteral("IMAGE"))
         .attribute(QStringLiteral("profile")), image->profile()->name());
     QVERIFY(exportedDescription.documentElement().firstChildElement(QStringLiteral("IMAGE"))
         .firstChildElement(QStringLiteral("MirrorAxis")).isNull());
     QCOMPARE(exportedValue.document.image.layers.first().tiles.first().rgba.mid((5 * 256 + 5) * 4, 4),
              QByteArray::fromHex("445566ff"));
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY2(reopened->openPath(exportedPath, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+    QCOMPARE(reopened->image()->objectName(), QStringLiteral("Renamed export"));
+    QCOMPARE(reopened->documentInfo()->aboutInfo(QStringLiteral("title")), QStringLiteral("Renamed export"));
+    QCOMPARE(reopened->image()->profile()->rawData(), image->profile()->rawData());
+    Document publicReopened(reopened.data(), false);
+    QCOMPARE(publicReopened.pixelData(5, 5, 1, 1), QByteArray::fromHex("665544ff"));
+    KisPart::instance()->removeDocument(reopened.data(), false);
     QVERIFY(!document->saveAs(directory.filePath(QStringLiteral("missing/failed.kra")), KisDocument::nativeFormatMimeType(), false));
     QVERIFY(!document->errorMessage().isEmpty());
     QVERIFY(!document->exportDocumentSync(savedPath, QByteArrayLiteral("application/x-librepaint-unknown")));
