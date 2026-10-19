@@ -49,6 +49,7 @@
 #include <QFile>
 #include <QSemaphore>
 #include <QThread>
+#include <QTimer>
 #include <KisRunnableBasedStrokeStrategy.h>
 #include <KisRunnableStrokeJobData.h>
 #include <gpu/KisGpuPaintImage.h>
@@ -151,6 +152,90 @@ void TestNode::initTestCase()
     preset->setImage(preview);
     KisResourceModel presets(ResourceType::PaintOpPresets);
     QVERIFY(presets.addResource(preset));
+}
+
+void TestNode::testExportImageCancelsWhenItsSourceChangesBeforeCapture_data()
+{
+    QTest::addColumn<bool>("closeDocument");
+    QTest::newRow("replaced") << false;
+    QTest::newRow("closed") << true;
+}
+
+void TestNode::testExportImageCancelsWhenItsSourceChangesBeforeCapture()
+{
+    QFETCH(bool, closeDocument);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            directory.setAutoRemove(false);
+            qInfo() << "Invalidated export artifacts retained at" << directory.path();
+        }
+    });
+    KisConfig(true).disableOpenGL();
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    KisImageSP image = new KisImage(document->createUndoStore(), 8, 8, cs, "Original export");
+    image->addNode(new KisPaintLayer(image, QStringLiteral("Original"), 255));
+    document->setCurrentImage(image);
+    document->setFileBatchMode(true);
+    image->waitForDone();
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto cleanup = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    window->show();
+    QVERIFY(QTest::qWaitForWindowExposed(window.get()));
+    Document api(lifetime, false);
+    PausedHistoryImageJob pending(image);
+    QVERIFY(pending.waitForStart());
+    QVERIFY(!image->isIdle());
+    bool changed = false;
+    KisImageSP replacement;
+    QTimer::singleShot(0, window.get(), [&] {
+        pending.finish();
+        if (closeDocument) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+            QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+            QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        } else {
+            replacement = new KisImage(lifetime->createUndoStore(), 12, 6, cs, "Replacement");
+            replacement->addNode(new KisPaintLayer(replacement, QStringLiteral("Replacement"), 255));
+            lifetime->setCurrentImage(replacement);
+            lifetime->setModified(true);
+            api.setFileName(directory.filePath(QStringLiteral("replacement.kra")));
+            replacement->waitForDone();
+        }
+        changed = true;
+    });
+    InfoObject settings;
+    settings.setProperty("alpha", true);
+    const auto path = directory.filePath(QStringLiteral("invalidated.png"));
+    const bool exported = api.exportImage(path, settings);
+    QVERIFY(changed);
+    if (closeDocument) QVERIFY(lifetime.isNull());
+    const auto outputSize = QImage(path).size();
+    QVERIFY2(!exported, qPrintable(QStringLiteral("An invalidated source was exported as %1x%2")
+        .arg(outputSize.width()).arg(outputSize.height())));
+    QVERIFY(!QFile::exists(path));
+    if (closeDocument) {
+        QVERIFY(lifetime.isNull());
+    } else {
+        QCOMPARE(lifetime->image().data(), replacement.data());
+        QCOMPARE(api.fileName(), directory.filePath(QStringLiteral("replacement.kra")));
+        QVERIFY(lifetime->isModified());
+    }
 }
 
 void TestNode::testLayerCropPreservesPublicPixelsAndHistory_data()

@@ -797,6 +797,7 @@ public:
     KisDocument *lockAndCreateSnapshot();
 
     /// Clones the document with its resource storage while holding the image's read barrier lock.
+    /// Returns null if the document closes or its image changes while waiting for the lock.
     KisDocument *cloneWithImageReadLock();
 
     void copyFromDocument(const KisDocument &rhs);
