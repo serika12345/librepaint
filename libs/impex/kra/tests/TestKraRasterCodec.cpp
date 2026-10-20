@@ -135,6 +135,7 @@ private Q_SLOTS:
     void channelProtectionSurvivesEditingAndResaving_data();
     void channelProtectionSurvivesEditingAndResaving();
     void passThroughGroupsSurviveEditingAndResaving();
+    void layerBlendModesSurviveEditingAndResaving();
     void projectionChannelsSurviveEditingAndResaving_data();
     void projectionChannelsSurviveEditingAndResaving();
     void imageMetadataIsCompleteOrRejectedBeforeRasterImport();
@@ -635,6 +636,42 @@ void TestKraRasterCodec::channelProtectionSurvivesEditingAndResaving()
     QCOMPARE(clearedDocument.document.image.layers[0].channelWriteMask, quint8(15));
 }
 
+void TestKraRasterCodec::layerBlendModesSurviveEditingAndResaving()
+{
+    auto source = document();
+    RasterLayer group{QStringLiteral("Group"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}};
+    group.kind = LayerKind::Group;
+    group.blendMode = LayerBlendMode::Multiply;
+    source.image.layers[0].parentUuid = group.uuid;
+    source.image.layers[0].blendMode = LayerBlendMode::Multiply;
+    source.image.layers.append(group);
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto imported = load(bytes);
+    QCOMPARE(imported.code, Kra::Status::Success);
+    for (const auto &expected : source.image.layers) {
+        const auto found = std::find_if(imported.document.image.layers.cbegin(), imported.document.image.layers.cend(),
+            [&](const RasterLayer &layer) { return layer.uuid == expected.uuid; });
+        QVERIFY(found != imported.document.image.layers.cend());
+        QCOMPARE(found->blendMode, expected.blendMode);
+    }
+    auto edited = imported.document;
+    for (auto &layer : edited.image.layers) layer.blendMode = LayerBlendMode::Normal;
+    QByteArray saved;
+    QBuffer destination(&saved);
+    QVERIFY(destination.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(destination, edited, merged(source.image.size)).code, Kra::Status::Success);
+    const auto reopened = load(saved);
+    QCOMPARE(reopened.code, Kra::Status::Success);
+    for (const auto &layer : reopened.document.image.layers) QCOMPARE(layer.blendMode, LayerBlendMode::Normal);
+    edited.image.layers[0].blendMode = LayerBlendMode(2);
+    const auto retained = saved;
+    QCOMPARE(Kra::RasterCodec::write(destination, edited, merged(source.image.size)).code, Kra::Status::InvalidData);
+    QCOMPARE(saved, retained);
+}
+
 void TestKraRasterCodec::passThroughGroupsSurviveEditingAndResaving()
 {
     auto source = document();
@@ -1118,7 +1155,7 @@ void TestKraRasterCodec::unsupportedAndInvalidContentsReturnNoDocument()
         QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
         auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
         auto layer = image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("layer"));
-        if (change == 0) layer.setAttribute(QStringLiteral("compositeop"), QStringLiteral("multiply"));
+        if (change == 0) layer.setAttribute(QStringLiteral("compositeop"), QStringLiteral("screen"));
         if (change == 1) layer.setAttribute(QStringLiteral("nodetype"), QStringLiteral("unsupportedlayer"));
         if (change == 2) image.setAttribute(QStringLiteral("colorspacename"), QStringLiteral("LABA"));
         if (change == 3) layer.setAttribute(QStringLiteral("filename"), QStringLiteral("../outside"));

@@ -1,7 +1,8 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-struct CompositeParameters { opacityBits: u32, normalizeBase: u32, channelMask: u32, padding: u32, }
+// blendModeOpacity holds LayerBlendMode in the low byte and opacity in the next.
+struct CompositeParameters { opacityBits: u32, normalizeBase: u32, channelMask: u32, blendModeOpacity: u32, }
 @group(0) @binding(0) var<storage, read> basePixels: array<u32>;
 @group(0) @binding(1) var<storage, read> layerPixels: array<u32>;
 @group(0) @binding(2) var<storage, read_write> outputPixels: array<u32>;
@@ -117,10 +118,51 @@ fn projectionColor(destination: u32, source: u32, blend: u32) -> u32 {
     return projectionByte(projectionFloat(value, projectionPower(blend)));
 }
 
+fn multiplyByte(a: u32, b: u32) -> u32 {
+    let product = a * b + 128u;
+    return ((product >> 8u) + product) >> 8u;
+}
+fn multiplyThreeBytes(a: u32, b: u32, c: u32) -> u32 {
+    let product = a * b * c + 0x7f5bu;
+    return ((product >> 7u) + product) >> 16u;
+}
+fn blendByte(destination: u32, source: u32, alpha: u32) -> u32 {
+    let weighted = (i32(source) - i32(destination)) * i32(alpha) + 128;
+    return u32((((weighted >> 8u) + weighted) >> 8u) + i32(destination)) & 255u;
+}
+fn multiplyProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, mask: u32) -> u32 {
+    var destination = base;
+    if (mask != 15u && destination.w == 0u) { destination = vec4<u32>(0u); }
+    let alpha = multiplyThreeBytes(source.w, 255u, opacity);
+    if (alpha == 0u) { return packPixel(destination); }
+    let locked = (mask & 8u) == 0u;
+    let oldAlpha = destination.w;
+    var nextAlpha = oldAlpha;
+    if (!locked) { nextAlpha = alpha + oldAlpha - multiplyByte(alpha, oldAlpha); }
+    for (var channel = 0u; channel < 3u; channel += 1u) {
+        if ((mask & (1u << channel)) == 0u) { continue; }
+        let product = multiplyByte(source[channel], destination[channel]);
+        if (locked || oldAlpha == 255u) {
+            if (oldAlpha != 0u) { destination[channel] = blendByte(destination[channel], product, alpha); }
+        } else if (oldAlpha == 0u) { destination[channel] = source[channel]; }
+        else if (alpha == 255u) { destination[channel] = blendByte(source[channel], product, oldAlpha); }
+        else {
+            let result = (multiplyThreeBytes(255u - alpha, oldAlpha, destination[channel]) +
+                multiplyThreeBytes(255u - oldAlpha, alpha, source[channel]) + multiplyThreeBytes(oldAlpha, alpha, product)) & 255u;
+            destination[channel] = ((result * 255u + nextAlpha / 2u) / nextAlpha) & 255u;
+        }
+    }
+    destination.w = nextAlpha;
+    return packPixel(destination);
+}
+
 fn projectionOver(base: u32, layer: u32, values: CompositeParameters) -> u32 {
     var destination = unpackPixel(base);
     if (values.normalizeBase != 0u && destination.w == 0u) { destination = vec4<u32>(0u); }
     let source = unpackPixel(layer);
+    if ((values.blendModeOpacity & 255u) == 1u) {
+        return multiplyProjectionPixel(destination, source, values.blendModeOpacity >> 8u, values.channelMask);
+    }
     if (source.w == 0u) { return packPixel(destination); }
     if (values.channelMask == 15u && source.w == 255u && values.opacityBits == 0x3f800000u) {
         return packPixel(source);

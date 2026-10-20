@@ -180,6 +180,7 @@ HistoryAction OperationDocument::historyAction(int index) const
     case LayerProperty::None: break;
     case LayerProperty::ColorLabel: break;
     case LayerProperty::PassThrough: return HistoryAction::ChangePassThrough;
+    case LayerProperty::BlendMode: return HistoryAction::ChangeBlendMode;
     }
     const auto &before = m_history[index - 1]->layers;
     const auto &after = m_history[index]->layers;
@@ -388,6 +389,7 @@ Result OperationDocument::restoreLayerPropertyEdit(const LayerPropertyEdit &chan
     case LayerProperty::PinnedToTimeline: return writeLayerPinnedToTimeline(change.layer, value.toBool());
     case LayerProperty::ColorLabel: return writeLayerColorLabel(change.layer, value.toInt());
     case LayerProperty::PassThrough: return writeLayerPassThrough(change.layer, value.toBool());
+    case LayerProperty::BlendMode: return writeLayerBlendMode(change.layer, LayerBlendMode(value.toUInt()));
     }
     return Result::InvalidInput;
 }
@@ -423,6 +425,7 @@ Result OperationDocument::collectLayerPropertyEdits(const Snapshot &before, cons
         add(fields.projectionChannels, LayerProperty::ProjectionMask, old->projectionChannelMask, current.projectionChannelMask, fields.projectionChannels);
         add(fields.colorLabel, LayerProperty::ColorLabel, old->colorLabelIndex, current.colorLabelIndex);
         add(fields.passThrough, LayerProperty::PassThrough, old->passThrough, current.passThrough);
+        add(fields.blendMode, LayerProperty::BlendMode, quint8(old->blendMode), quint8(current.blendMode));
     }
     return Result::Success;
 }
@@ -806,6 +809,7 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
         copy.channelWriteMask = properties.channelWriteMask;
         copy.projectionChannelMask = properties.projectionChannelMask;
         copy.passThrough = properties.passThrough;
+        copy.blendMode = properties.blendMode;
         copy.position = properties.position;
         copy.parentUuid = properties.parentUuid;
         added.append(std::move(copy));
@@ -1039,6 +1043,30 @@ Result OperationDocument::setLayerPassThrough(LayerId layer, bool enabled, Prope
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     commitPropertyVersion(version, {LayerProperty::PassThrough, layer,
         QVariant::fromValue(snapshot()->layers[index].passThrough), QVariant::fromValue(enabled)}, history);
+    return Result::Success;
+}
+
+Result OperationDocument::writeLayerBlendMode(LayerId layer, LayerBlendMode mode)
+{
+    if (mode != LayerBlendMode::Normal && mode != LayerBlendMode::Multiply) return Result::InvalidInput;
+    return writeLayerProperty(layer, LayerProperty::BlendMode, &Layer::blendMode, mode);
+}
+
+Result OperationDocument::setLayerBlendMode(LayerId layer, LayerBlendMode mode, PropertyHistory history)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    if ((mode != LayerBlendMode::Normal && mode != LayerBlendMode::Multiply) ||
+        (history != PropertyHistory::Separate && history != PropertyHistory::MergeConsecutive)) return Result::InvalidInput;
+    const auto index = layerIndex(layer);
+    if (index < 0) return Result::LayerUnavailable;
+    if (snapshot()->layers[index].blendMode == mode) return Result::Success;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->layers[index].blendMode = mode;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    commitPropertyVersion(version, {LayerProperty::BlendMode, layer,
+        QVariant::fromValue(quint8(snapshot()->layers[index].blendMode)), QVariant::fromValue(quint8(mode))}, history);
     return Result::Success;
 }
 

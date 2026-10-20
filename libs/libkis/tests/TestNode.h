@@ -54,6 +54,8 @@ private Q_SLOTS:
     void testLayerPropertiesPreservePublicHistorySemantics_data();
     void testLayerPropertiesPreservePublicHistorySemantics();
     void testPassThroughGroupsKeepPublicReadsAndPropertyHistory();
+    void testBlendModeChangesPreservePublicHistory_data();
+    void testBlendModeChangesPreservePublicHistory();
     void testLayerPropertiesDialogPreservesPreviewCancellationAndHistory_data();
     void testLayerPropertiesDialogPreservesPreviewCancellationAndHistory();
     void testGpuNodeNotificationKeepsReentrantPropertyWrites();

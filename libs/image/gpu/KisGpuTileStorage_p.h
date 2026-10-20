@@ -30,8 +30,9 @@ struct ProjectionInput {
     std::shared_ptr<Tile> pixels;
     quint8 opacity = 255;
     quint8 channelMask = 15;
+    LayerBlendMode blendMode = LayerBlendMode::Normal;
     bool operator==(const ProjectionInput &other) const {
-        return pixels == other.pixels && opacity == other.opacity && channelMask == other.channelMask;
+        return pixels == other.pixels && opacity == other.opacity && channelMask == other.channelMask && blendMode == other.blendMode;
     }
 };
 using ProjectionInputs = QMap<quint64, QList<ProjectionInput>>;

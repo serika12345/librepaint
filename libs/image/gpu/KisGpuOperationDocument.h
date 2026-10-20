@@ -41,6 +41,7 @@ struct LayerPropertiesSelection
     quint8 protectedChannels = 0;
     quint8 projectionChannels = 0;
     bool passThrough = false;
+    bool blendMode = false;
 };
 
 struct OperationId
@@ -201,6 +202,7 @@ using CropSnapshot = QSharedPointer<const CropOperation>;
 using LayerOperation = std::variant<PaintSnapshot, TileWriteSnapshot, TranslationSnapshot, CropSnapshot>;
 
 enum class LayerKind : quint8 { Paint, Group };
+enum class LayerBlendMode : quint8 { Normal, Multiply };
 
 struct RasterLayer
 {
@@ -223,6 +225,7 @@ struct RasterLayer
     quint8 projectionChannelMask = 15;
     /** Groups contribute their descendants directly to the enclosing composition. */
     bool passThrough = false;
+    LayerBlendMode blendMode = LayerBlendMode::Normal;
 };
 /** Validates parent identities, group parents and cycles. Null identities are
  * assigned during raster import and can only be referenced after assignment.
@@ -256,6 +259,7 @@ struct Layer
     quint8 projectionChannelMask = 15;
     /** Groups contribute their descendants directly to the enclosing composition. */
     bool passThrough = false;
+    LayerBlendMode blendMode = LayerBlendMode::Normal;
 };
 
 /** One visible layer contributed to a composition boundary, after passing
@@ -266,6 +270,7 @@ struct LayerProjectionInput
     LayerId layer = 0;
     quint8 opacity = 255;
     quint8 channelMask = 15;
+    LayerBlendMode blendMode = LayerBlendMode::Normal;
 };
 
 /** Immutable RGBA8/sRGB document version with paint layers and group ownership. */
@@ -306,7 +311,7 @@ public:
             if (only) return 0;
             only = &layer;
         }
-        return only && !only->passThrough && only->visible && only->opacity == 255 && only->projectionChannelMask == 15 ? only->id : 0;
+        return only && only->blendMode == LayerBlendMode::Normal && !only->passThrough && only->visible && only->opacity == 255 && only->projectionChannelMask == 15 ? only->id : 0;
     }
 
 private:
@@ -362,7 +367,7 @@ enum class HistoryAction {
     None, AddLayer, RemoveLayer, MoveLayer, RenameLayer, ChangeOpacity,
     ChangeVisibility, ChangeLock, ChangeTimelinePin, PaintStroke, DrawLine,
     DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath,
-    ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage, ChangeProjectionChannels, ChangeLayerProperties, ChangePassThrough
+    ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage, ChangeProjectionChannels, ChangeLayerProperties, ChangePassThrough, ChangeBlendMode
 };
 
 struct Limits
@@ -494,6 +499,8 @@ public:
     Result writeLayerProjectionMask(LayerId layer, quint8 mask);
     Result setLayerPassThrough(LayerId layer, bool enabled, PropertyHistory history = PropertyHistory::Separate);
     Result writeLayerPassThrough(LayerId layer, bool enabled);
+    Result setLayerBlendMode(LayerId layer, LayerBlendMode mode, PropertyHistory history = PropertyHistory::Separate);
+    Result writeLayerBlendMode(LayerId layer, LayerBlendMode mode);
     /** Direct background writes preserve history, pending input and fixed snapshots. */
     Result writeProjectionBackground(const std::array<quint8, 4> &rgba);
     /** Direct property writes preserve history transitions, pending input and fixed snapshots. */
@@ -582,7 +589,7 @@ public:
 
 private:
     friend class PaintImage;
-    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position, ProjectionMask, ColorLabel, PassThrough };
+    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position, ProjectionMask, ColorLabel, PassThrough, BlendMode };
     struct LayerPropertyEdit {
         LayerProperty property;
         LayerId layer;

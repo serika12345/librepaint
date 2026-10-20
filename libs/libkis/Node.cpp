@@ -202,6 +202,16 @@ QString Node::blendingMode() const
 void Node::setBlendingMode(QString value)
 {
     if (!d->node) return;
+    if (const auto owner = d->image->gpuImage()) {
+        if (value != COMPOSITE_OVER && value != COMPOSITE_MULT) return;
+        for (const auto &layer : owner->operations().snapshot()->layers)
+            if (layer.uuid == d->node->uuid()) {
+                owner->setLayerBlendMode(layer.id, value == COMPOSITE_MULT ?
+                    LibrePaint::Image::Gpu::LayerBlendMode::Multiply : LibrePaint::Image::Gpu::LayerBlendMode::Normal);
+                return;
+            }
+        return;
+    }
 
     KUndo2Command *cmd = new KisNodeCompositeOpCommand(d->node,
                                                        value);

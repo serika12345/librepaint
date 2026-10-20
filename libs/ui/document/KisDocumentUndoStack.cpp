@@ -32,6 +32,7 @@ KUndo2MagicString historyLabel(HistoryAction action)
     case HistoryAction::ChangeProjectionChannels: return kundo2_i18n("Change layer channel visibility");
     case HistoryAction::ChangeLayerProperties: return kundo2_i18n("Change Layer Properties");
     case HistoryAction::ChangePassThrough: return kundo2_i18n("Change group pass-through mode");
+    case HistoryAction::ChangeBlendMode: return kundo2_i18n("Change blending mode");
     case HistoryAction::ChangeTimelinePin: return kundo2_i18n("Change timeline pin");
     case HistoryAction::PaintStroke: return kundo2_i18n("Paint stroke");
     case HistoryAction::DrawLine: return kundo2_i18n("Draw line");

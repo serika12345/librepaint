@@ -8,6 +8,49 @@
 
 namespace LibrePaint::Image::Gpu {
 namespace {
+quint32 multiplyByte(quint32 a, quint32 b)
+{
+    const auto product = a * b + 128u;
+    return ((product >> 8) + product) >> 8;
+}
+quint32 multiplyThreeBytes(quint32 a, quint32 b, quint32 c)
+{
+    const auto product = a * b * c + 0x7f5bu;
+    return ((product >> 7) + product) >> 16;
+}
+quint8 blendByte(quint8 destination, quint8 source, quint32 alpha)
+{
+    const auto weighted = (int(source) - destination) * int(alpha) + 128;
+    return quint8((((weighted >> 8) + weighted) >> 8) + destination);
+}
+std::array<quint8, 4> multiplyProjectionPixel(std::array<quint8, 4> destination,
+    const std::array<quint8, 4> &source, quint8 opacity, quint8 mask)
+{
+    // RGBA8 generic separable composition quantizes opacity, products and blend
+    // terms independently before the final integer division.
+    if (mask != 15 && destination[3] == 0) destination = {};
+    const auto alpha = multiplyThreeBytes(source[3], 255, opacity);
+    if (!alpha) return destination;
+    const bool locked = !(mask & 8u);
+    const auto oldAlpha = destination[3];
+    const auto nextAlpha = locked ? oldAlpha : alpha + oldAlpha - multiplyByte(alpha, oldAlpha);
+    for (int channel = 0; channel < 3; ++channel) {
+        if (!(mask & (1u << channel))) continue;
+        const auto product = quint8(multiplyByte(source[channel], destination[channel]));
+        if (locked || oldAlpha == 255) {
+            if (oldAlpha) destination[channel] = blendByte(destination[channel], product, alpha);
+        } else if (!oldAlpha) destination[channel] = source[channel];
+        else if (alpha == 255) destination[channel] = blendByte(source[channel], product, oldAlpha);
+        else {
+            const auto result = quint8(multiplyThreeBytes(255 - alpha, oldAlpha, destination[channel]) +
+                multiplyThreeBytes(255 - oldAlpha, alpha, source[channel]) + multiplyThreeBytes(oldAlpha, alpha, product));
+            destination[channel] = quint8((quint32(result) * 255u + nextAlpha / 2u) / nextAlpha);
+        }
+    }
+    destination[3] = quint8(nextAlpha);
+    return destination;
+}
+
 QList<LayerProjectionInput> compositionInputs(const QHash<QUuid, QList<const Layer *>> &children, const QUuid &parent)
 {
     struct Pending { const Layer *layer; quint8 opacity; quint8 parentMask; };
@@ -25,7 +68,7 @@ QList<LayerProjectionInput> compositionInputs(const QHash<QUuid, QList<const Lay
         const auto opacity = quint8(int(layer.opacity) * value.opacity / 255);
         if (!layer.visible || !opacity) continue;
         if (layer.passThrough) appendChildren(layer.uuid, opacity, layer.projectionChannelMask);
-        else result.append({layer.id, opacity, quint8(layer.projectionChannelMask & value.parentMask)});
+        else result.append({layer.id, opacity, quint8(layer.projectionChannelMask & value.parentMask), layer.blendMode});
     }
     return result;
 }
@@ -70,11 +113,15 @@ QHash<LayerId, std::array<quint8, 4>> DocumentVersion::projectionDefaultPixels()
         const auto inputs = compositionInputs(children, group->uuid);
         std::array<quint8, 4> pixel{};
         if (ownChildren.size() == 1 && !ownChildren.first()->passThrough && inputs.size() == 1 &&
-            inputs.first().opacity == 255 && inputs.first().channelMask == 15) {
+            inputs.first().opacity == 255 && inputs.first().channelMask == 15 && inputs.first().blendMode == LayerBlendMode::Normal) {
             pixel = result.value(inputs.first().layer);
         } else {
             for (const auto &layer : inputs) {
                 auto source = result.value(layer.layer);
+                if (layer.blendMode == LayerBlendMode::Multiply) {
+                    pixel = multiplyProjectionPixel(pixel, source, layer.opacity, layer.channelMask);
+                    continue;
+                }
                 const float alpha = float(source[3]) * (float(layer.opacity) / 255.0f);
                 if (alpha == 0.0f) continue;
                 float destinationAlpha = pixel[3];

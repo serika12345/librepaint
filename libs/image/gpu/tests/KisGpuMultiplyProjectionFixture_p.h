@@ -1,0 +1,26 @@
+/*
+ * SPDX-FileCopyrightText: 2026 LibrePaint contributors
+ * SPDX-License-Identifier: GPL-2.0-or-later
+ */
+#ifndef KIS_GPU_MULTIPLY_PROJECTION_FIXTURE_P_H
+#define KIS_GPU_MULTIPLY_PROJECTION_FIXTURE_P_H
+
+#include <QByteArray>
+
+namespace LibrePaint::Image::Gpu::Test {
+// RGBA8/sRGB CPU projection at 4caf79b443, equal on ARM64 and x86_64.
+// Two uniform 256x256 layers: normal (37,89,151,A), multiply (201,41,93,A).
+// Row order: destination alpha0/173/255, source alpha0/137/255,
+// opacity137/255 and RGBA mask15/9/6/0.
+inline QByteArray multiplyProjectionReferences()
+{
+    return QByteArray::fromHex(
+        "0000000000000000000000000000000000000000000000000000000000000000c9295d4ac900004a0000000000000000"
+        "c9295d89c90000890000000000000000c9295d89c90000890000000000000000c9295dffc90000ff0000000000000000"
+        "255997ad255997ad255997ad255997ad255997ad255997ad255997ad255997ad384178c5385997c525437bad255997ad"
+        "442f62d9445997d9253163ad255997ad442f62d9445997d9253163ad255997ad541743ff545997ff250e37ad255997ad"
+        "255997ff255997ff255997ff255997ff255997ff255997ff255997ff255997ff23437bff235997ff25437bff255997ff"
+        "213163ff215997ff253163ff255997ff213163ff215997ff253163ff255997ff1d0e37ff1d5997ff250e37ff255997ff");
+}
+}
+#endif

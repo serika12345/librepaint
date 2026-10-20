@@ -172,6 +172,8 @@ public:
     Result writeLayerProjectionMask(LayerId layer, quint8 mask);
     Result setLayerPassThrough(LayerId layer, bool enabled, PropertyHistory history = PropertyHistory::Separate);
     Result writeLayerPassThrough(LayerId layer, bool enabled);
+    Result setLayerBlendMode(LayerId layer, LayerBlendMode mode, PropertyHistory history = PropertyHistory::Separate);
+    Result writeLayerBlendMode(LayerId layer, LayerBlendMode mode);
     Result renameLayer(LayerId layer, const QString &name);
     Result renameLayer(LayerId layer, const QString &name, PropertyHistory history);
     Result moveLayer(LayerId layer, qsizetype index);

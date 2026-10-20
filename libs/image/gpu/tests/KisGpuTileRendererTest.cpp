@@ -15,6 +15,8 @@
 #include <webgpu/wgpu.h>
 #include "KisGpuLegacyRecoveryFixture_p.h"
 
+#include "KisGpuMultiplyProjectionFixture_p.h"
+
 using namespace LibrePaint::Image::Gpu;
 using LibrePaint::Image::Gpu::Test::legacyRecovery;
 
@@ -38,6 +40,8 @@ private Q_SLOTS:
     void explicitPassThroughReadAfterParentKeepsSubtreePixels();
     void passThroughHierarchyMatchesNativeRootPixels_data();
     void passThroughHierarchyMatchesNativeRootPixels();
+    void multiplyProjectionMatchesNativePixels_data();
+    void multiplyProjectionMatchesNativePixels();
     void threeLayerProjectionFitsOneOutputTile_data();
     void threeLayerProjectionFitsOneOutputTile();
     void previewProjectionTracksBackgroundPropertiesAndRetainedPixels();
@@ -818,6 +822,64 @@ void KisGpuTileRendererTest::passThroughHierarchyMatchesNativeRootPixels()
     QVERIFY(hidden);
     QCOMPARE(readBuffer(hidden->tiles().first().pixels).first(4), colors[0]);
     QCOMPARE(readBuffer(projection->tiles().first().pixels).first(4), expected);
+}
+
+void KisGpuTileRendererTest::multiplyProjectionMatchesNativePixels_data()
+{
+    QTest::addColumn<int>("destinationAlpha");
+    QTest::addColumn<int>("sourceAlpha");
+    QTest::addColumn<int>("opacity");
+    QTest::addColumn<int>("mask");
+    QTest::addColumn<bool>("implicit");
+    QTest::addColumn<QByteArray>("expected");
+    const auto references = LibrePaint::Image::Gpu::Test::multiplyProjectionReferences();
+    qsizetype row = 0;
+    for (int destinationAlpha : {0, 173, 255}) for (int sourceAlpha : {0, 137, 255})
+    for (int opacity : {137, 255}) for (int mask : {15, 9, 6, 0}) {
+        for (bool implicit : {false, true}) {
+            const QByteArray name = QByteArray::number(destinationAlpha) + '-' + QByteArray::number(sourceAlpha) + '-' +
+                QByteArray::number(opacity) + '-' + QByteArray::number(mask) + (implicit ? "-default" : "-stored");
+            QTest::newRow(name.constData()) << destinationAlpha << sourceAlpha << opacity << mask << implicit << references.mid(row * 4, 4);
+        }
+        ++row;
+    }
+}
+
+void KisGpuTileRendererTest::multiplyProjectionMatchesNativePixels()
+{
+    QFETCH(int, destinationAlpha);
+    QFETCH(int, sourceAlpha);
+    QFETCH(int, opacity);
+    QFETCH(int, mask);
+    QFETCH(bool, implicit);
+    QFETCH(QByteArray, expected);
+    RasterImage input;
+    input.size = {256, 256};
+    const std::array<quint8, 4> colors[] = {{37, 89, 151, quint8(destinationAlpha)}, {201, 41, 93, quint8(sourceAlpha)}};
+    for (int index = 0; index < 2; ++index) {
+        RasterLayer layer;
+        layer.opacity = index == 0 ? 255 : opacity;
+        layer.blendMode = index == 0 ? LayerBlendMode::Normal : LayerBlendMode::Multiply;
+        layer.projectionChannelMask = index == 0 ? 15 : mask;
+        if (implicit) layer.defaultPixel = colors[index];
+        else layer.tiles = {{{0, 0}, QByteArray(reinterpret_cast<const char *>(colors[index].data()), 4).repeated(RgbaTile::ByteCount / 4)}};
+        input.layers.append(layer);
+    }
+    OperationDocument document(input);
+    TileRenderer renderer(m_device);
+    const auto raw = render(renderer, document.snapshot());
+    QVERIFY(raw);
+    const auto projected = project(renderer, raw, {0, 0, 256, 256});
+    QVERIFY(projected);
+    QCOMPARE(readBuffer(projected->tiles().first().pixels), expected.repeated(RgbaTile::ByteCount / 4));
+    QCOMPARE(document.setLayerBlendMode(2, LayerBlendMode::Normal), Result::Success);
+    const auto normal = project(renderer, render(renderer, document.snapshot(), raw), {0, 0, 256, 256}, projected);
+    QVERIFY(normal);
+    QCOMPARE(document.undo(), Result::Success);
+    const auto restored = project(renderer, render(renderer, document.snapshot(), raw), {0, 0, 256, 256}, normal);
+    QVERIFY(restored);
+    QCOMPARE(readBuffer(restored->tiles().first().pixels), expected.repeated(RgbaTile::ByteCount / 4));
+    QCOMPARE(readBuffer(projected->tiles().first().pixels), expected.repeated(RgbaTile::ByteCount / 4));
 }
 
 void KisGpuTileRendererTest::threeLayerProjectionFitsOneOutputTile_data()

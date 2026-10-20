@@ -18,11 +18,12 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 33;
+constexpr quint16 FormatVersion = 34;
 // Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
 constexpr quint8 LayerProperties = 254;
 constexpr quint8 PassThroughProperty = 253;
+constexpr quint8 BlendModeProperty = 252;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -185,7 +186,7 @@ QByteArray OperationDocument::recoveryData() const
         } else if (property == LayerProperty::ColorLabel) {
             stream << qint32(before.toInt()) << qint32(after.toInt());
         } else if (property == LayerProperty::Opacity || property == LayerProperty::ChannelMask ||
-                   property == LayerProperty::ProjectionMask) {
+                   property == LayerProperty::ProjectionMask || property == LayerProperty::BlendMode) {
             stream << quint8(before.toUInt()) << quint8(after.toUInt());
         } else {
             stream << quint8(before.toBool()) << quint8(after.toBool());
@@ -217,7 +218,8 @@ QByteArray OperationDocument::recoveryData() const
             stream << layer.opacity << quint8(layer.userLocked) << quint8(quint8(layer.pinnedToTimeline) | ((15u ^ layer.channelWriteMask) << 1));
             stream << qint32(layer.position.x()) << qint32(layer.position.y());
             stream << quint8(layer.kind) << layer.parentUuid;
-            stream << qint32(layer.colorLabelIndex) << layer.projectionChannelMask << quint8(layer.passThrough);
+            stream << qint32(layer.colorLabelIndex) << layer.projectionChannelMask << quint8(layer.passThrough)
+                   << quint8(layer.blendMode);
             stream << quint32(layer.operations.size());
             if (!withinLimit() || layer.operations.size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 4) return {};
             for (const auto &operation : layer.operations) stream << indices.value(operationPointer(operation));
@@ -226,6 +228,7 @@ QByteArray OperationDocument::recoveryData() const
         stream << quint8(change.changedLayerProperties ? LayerProperties :
                          change.property == LayerProperty::ProjectionMask ? ProjectionMaskProperty :
                          change.property == LayerProperty::PassThrough ? PassThroughProperty :
+                         change.property == LayerProperty::BlendMode ? BlendModeProperty :
                          quint8(change.property) | (change.duplicatedLayers ? 128u : 0u) |
                          (change.clearedLayers ? 64u : 0u) | (change.filledLayer ? 32u : 0u) |
                          (change.crop ? 16u : 0u) | (change.canvasResize ? 8u : 0u));
@@ -569,6 +572,12 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
                 if (mode > 1) return Result::InvalidRecovery;
                 layer.passThrough = mode;
             }
+            if (format >= 34) {
+                quint8 mode = 0;
+                stream >> mode;
+                if (mode > quint8(LayerBlendMode::Multiply)) return Result::InvalidRecovery;
+                layer.blendMode = LayerBlendMode(mode);
+            }
             stream >> count;
             if (layer.projectionChannelMask > 15 || visible > 1 || locked > 1 || pinned > (format < 13 ? 1 : 31) || layer.uuid.isNull() ||
                 (layerIdentities.contains(layer.id) && layerIdentities.value(layer.id) != layer.uuid) ||
@@ -621,8 +630,9 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
         const bool projectionChange = format >= 31 && property == ProjectionMaskProperty;
         const bool multipleProperties = format >= 32 && property == LayerProperties;
         const bool passThroughChange = format >= 33 && property == PassThroughProperty;
+        const bool blendModeChange = format >= 34 && property == BlendModeProperty;
         change.changedLayerProperties = multipleProperties;
-        if (projectionChange || multipleProperties || passThroughChange) property = 0;
+        if (projectionChange || multipleProperties || passThroughChange || blendModeChange) property = 0;
         if (format >= 27 && (property & 8u)) {
             property &= 247u;
             qint32 x = 0, y = 0, w = 0, h = 0;
@@ -680,7 +690,8 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
         if (property > quint8(format >= 25 ? LayerProperty::Position :
                               format < 13 ? LayerProperty::PinnedToTimeline : LayerProperty::ChannelMask)) return Result::InvalidRecovery;
         change.property = projectionChange ? LayerProperty::ProjectionMask :
-            passThroughChange ? LayerProperty::PassThrough : LayerProperty(property);
+            passThroughChange ? LayerProperty::PassThrough :
+            blendModeChange ? LayerProperty::BlendMode : LayerProperty(property);
         const auto readProperty = [&](LayerProperty property, LayerId &identity, QVariant &before, QVariant &after) {
             stream >> identity;
             if (i == 0 || !layers.contains(identity) ||
@@ -714,9 +725,11 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
                 quint8 old = 0, current = 0;
                 stream >> old >> current;
                 if (property == LayerProperty::Opacity || property == LayerProperty::ChannelMask ||
-                       property == LayerProperty::ProjectionMask) {
+                       property == LayerProperty::ProjectionMask || property == LayerProperty::BlendMode) {
                     if ((property == LayerProperty::ChannelMask || property == LayerProperty::ProjectionMask) &&
                         (old > 15 || current > 15)) return false;
+                    if (property == LayerProperty::BlendMode &&
+                        (old > quint8(LayerBlendMode::Multiply) || current > quint8(LayerBlendMode::Multiply))) return false;
                     before = QVariant::fromValue(old);
                     after = QVariant::fromValue(current);
                 } else {
@@ -733,12 +746,13 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
         if (multipleProperties) {
             quint32 count = 0;
             stream >> count;
-            if (!readableCount(stream, count, state->layers.size() * (format >= 33 ? 8 : 7), 11)) return Result::InvalidRecovery;
+            if (!readableCount(stream, count, state->layers.size() * (format >= 34 ? 9 : format >= 33 ? 8 : 7), 11)) return Result::InvalidRecovery;
             QSet<QPair<LayerId, quint8>> attributes;
             for (quint32 entry = 0; entry < count; ++entry) {
                 quint8 attribute = 0;
                 stream >> attribute;
-                if (attribute == 0 || attribute > quint8(format >= 33 ? LayerProperty::PassThrough : LayerProperty::ColorLabel) ||
+                if (attribute == 0 || attribute > quint8(format >= 34 ? LayerProperty::BlendMode :
+                                                       format >= 33 ? LayerProperty::PassThrough : LayerProperty::ColorLabel) ||
                     attribute == quint8(LayerProperty::Position) ||
                     attribute == quint8(LayerProperty::PinnedToTimeline)) return Result::InvalidRecovery;
                 LayerPropertyEdit edit{LayerProperty(attribute), 0, {}, {}};

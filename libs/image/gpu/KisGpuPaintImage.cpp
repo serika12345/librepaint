@@ -356,6 +356,10 @@ Result PaintImage::setLayerPassThrough(LayerId layer, bool enabled, PropertyHist
 { return onThread() ? publish(m_d->document->setLayerPassThrough(layer, enabled, history)) : Result::InvalidInput; }
 Result PaintImage::writeLayerPassThrough(LayerId layer, bool enabled)
 { return onThread() ? requestAfterWrite(m_d->document->writeLayerPassThrough(layer, enabled)) : Result::InvalidInput; }
+Result PaintImage::setLayerBlendMode(LayerId layer, LayerBlendMode mode, PropertyHistory history)
+{ return onThread() ? publish(m_d->document->setLayerBlendMode(layer, mode, history)) : Result::InvalidInput; }
+Result PaintImage::writeLayerBlendMode(LayerId layer, LayerBlendMode mode)
+{ return onThread() ? requestAfterWrite(m_d->document->writeLayerBlendMode(layer, mode)) : Result::InvalidInput; }
 Result PaintImage::renameLayer(LayerId layer, const QString &name)
 { return onThread() ? publish(m_d->document->renameLayer(layer, name)) : Result::InvalidInput; }
 Result PaintImage::renameLayer(LayerId layer, const QString &name, PropertyHistory history)

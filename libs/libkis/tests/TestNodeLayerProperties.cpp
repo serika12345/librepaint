@@ -23,6 +23,7 @@
 #include <gpu/KisGpuExecution.h>
 #include <kis_color_label_selector_widget.h>
 #include <commands/kis_node_property_list_command.h>
+#include <commands/kis_node_commands_adapter.h>
 #include <GroupLayer.h>
 #include <kis_cmb_composite.h>
 #include <kis_layer_properties_icons.h>
@@ -64,33 +65,40 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory_d
     QTest::addColumn<int>("initialOpacity");
     QTest::addColumn<bool>("completedEdit");
     QTest::addColumn<bool>("passThrough");
+    QTest::addColumn<bool>("multiply");
     for (const bool gpu : {false, true}) {
         for (const bool group : {false, true}) {
             for (const bool multiple : {false, true}) {
                 for (const bool accept : {false, true}) {
                     const QByteArray tag = QByteArray(gpu ? "gpu-" : "ordinary-")
                         + (group ? "group-" : "paint-") + (multiple ? "multiple-" : "single-") + (accept ? "accept" : "cancel");
-                    QTest::newRow(tag.constData()) << gpu << multiple << accept << true << false << group << QString() << 153 << false << false;
+                    QTest::newRow(tag.constData()) << gpu << multiple << accept << true << false << group << QString() << 153 << false << false << false;
                 }
             }
             const QByteArray prefix = QByteArray(gpu ? "gpu-" : "ordinary-") + (group ? "group-" : "paint-");
             const QByteArray unchanged = prefix + "unchanged-accept";
             const QByteArray mixed = prefix + "mixed-channels-accept";
-            QTest::newRow(unchanged.constData()) << gpu << false << true << false << false << group << QString() << 153 << false << false;
-            QTest::newRow(mixed.constData()) << gpu << true << true << true << true << group << QString() << 153 << false << false;
+            QTest::newRow(unchanged.constData()) << gpu << false << true << false << false << group << QString() << 153 << false << false << false;
+            QTest::newRow(mixed.constData()) << gpu << true << true << true << true << group << QString() << 153 << false << false << false;
         }
     }
-    QTest::newRow("gpu-busy") << true << false << false << true << false << false << QStringLiteral("busy") << 153 << false << false;
-    QTest::newRow("gpu-unsupported-blend") << true << false << false << true << false << false << QStringLiteral("blend") << 153 << false << false;
+    QTest::newRow("gpu-busy") << true << false << false << true << false << false << QStringLiteral("busy") << 153 << false << false << false;
+    QTest::newRow("gpu-unsupported-blend") << true << false << false << true << false << false << QStringLiteral("blend") << 153 << false << false << false;
     for (const bool edit : {false, true}) for (const bool accept : {false, true}) {
         const QByteArray tag = QByteArray("gpu-exact-opacity-") + (edit ? "edited-" : "unchanged-") + (accept ? "accept" : "cancel");
-        QTest::newRow(tag.constData()) << true << false << accept << edit << false << false << QString() << 137 << false << false;
+        QTest::newRow(tag.constData()) << true << false << accept << edit << false << false << QString() << 137 << false << false << false;
     }
-    QTest::newRow("gpu-completed-painting") << true << false << true << true << false << false << QString() << 153 << true << false;
+    QTest::newRow("gpu-completed-painting") << true << false << true << true << false << false << QString() << 153 << true << false << false;
     for (bool gpu : {false, true}) for (bool accept : {false, true}) {
         const QByteArray tag = QByteArray(gpu ? "gpu-" : "ordinary-") + "pass-through-" + (accept ? "accept" : "cancel");
-        QTest::newRow(tag.constData()) << gpu << false << accept << true << false << true << QString() << 153 << false << true;
+        QTest::newRow(tag.constData()) << gpu << false << accept << true << false << true << QString() << 153 << false << true << false;
     }
+    for (bool gpu : {false, true}) for (bool group : {false, true}) for (bool accept : {false, true}) {
+        const QByteArray tag = QByteArray(gpu ? "gpu-" : "ordinary-") + "multiply-" +
+            (group ? "group-" : "paint-") + (accept ? "accept" : "cancel");
+        QTest::newRow(tag.constData()) << gpu << true << accept << true << false << group << QString() << 153 << false << false << true;
+    }
+
 }
 
 void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory()
@@ -107,6 +115,7 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory()
     QFETCH(int, initialOpacity);
     QFETCH(bool, completedEdit);
     QFETCH(bool, passThrough);
+    QFETCH(bool, multiply);
     namespace Gpu = LibrePaint::Image::Gpu;
     KisConfig(true).disableOpenGL();
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -182,6 +191,10 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory()
         source->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(edited.constData()), QRect(1, 1, 1, 1));
         transaction.commit(image->undoAdapter());
     }
+    if (multiply) {
+        QScopedPointer<Node> upper(Node::createNode(image, second));
+        QVERIFY(upper->setPixelData(QByteArray::fromHex("5d29c989"), 1, 1, 1, 1));
+    }
     image->waitForDone();
     document->undoStack()->undo();
     image->waitForDone();
@@ -256,6 +269,17 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory()
         QVERIFY(found);
         QVERIFY(dynamic_cast<KisGroupLayer *>(first.data())->passThroughMode());
     }
+    if (multiply) {
+        publicDocument.refreshProjection();
+        const auto normal = publicDocument.pixelData(1, 1, 1, 1);
+        auto *composite = dialog->findChild<KisCompositeOpComboBox *>(QStringLiteral("cmbComposite"));
+        QVERIFY(composite);
+        composite->selectCompositeOp(KoID(QStringLiteral("multiply")));
+        QCOMPARE(first->compositeOpId(), QStringLiteral("multiply"));
+        QCOMPARE(second->compositeOpId(), QStringLiteral("multiply"));
+        publicDocument.refreshProjection();
+        QVERIFY(publicDocument.pixelData(1, 1, 1, 1) != normal);
+    }
     QCOMPARE(first->opacity(), quint8(edit ? 89 : initialOpacity));
     QCOMPARE(second->opacity(), quint8(multiple && edit ? 89 : 204));
     QCOMPARE(first->colorLabelIndex(), edit ? 5 : 0);
@@ -290,8 +314,8 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory()
         } else if (refusal == QLatin1String("blend")) {
             auto *composite = dialog->findChild<KisCompositeOpComboBox *>(QStringLiteral("cmbComposite"));
             QVERIFY(composite);
-            composite->selectCompositeOp(KoID(QStringLiteral("multiply")));
-            QCOMPARE(first->compositeOpId(), QStringLiteral("multiply"));
+            composite->selectCompositeOp(KoID(QStringLiteral("screen")));
+            QCOMPARE(first->compositeOpId(), QStringLiteral("screen"));
         } else {
             QFAIL("Unknown layer property refusal scenario");
         }
@@ -357,6 +381,7 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory()
         QCOMPARE(first->name(), multiple ? QStringLiteral("Direct multi name") :
                  edit ? QStringLiteral("Renamed") : QStringLiteral("First"));
         QCOMPARE(first->colorLabelIndex(), edit ? 5 : 0);
+        QCOMPARE(first->compositeOpId(), multiply ? QStringLiteral("multiply") : QStringLiteral("normal"));
         if (group) QCOMPARE(dynamic_cast<KisGroupLayer *>(first.data())->passThroughMode(), passThrough);
         QVERIFY(first->visible());
         publicDocument.refreshProjection();
@@ -411,6 +436,7 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory()
             QCOMPARE(node->name(), first->name());
             QCOMPARE(node->opacity(), first->opacity());
             QCOMPARE(node->colorLabelIndex(), first->colorLabelIndex());
+            QCOMPARE(node->compositeOpId(), first->compositeOpId());
             if (group) QCOMPARE(dynamic_cast<KisGroupLayer *>(node.data())->passThroughMode(), passThrough);
             const auto *layer = dynamic_cast<const KisLayer *>(node.data());
             QVERIFY(layer);
@@ -448,10 +474,126 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory()
         const auto png = QImage(pngPath).convertToFormat(QImage::Format_ARGB32);
         QCOMPARE(png.size(), QSize(32, 16));
         QCOMPARE(QByteArray(reinterpret_cast<const char *>(png.constBits()), png.sizeInBytes()), pixels);
+        if (multiply) {
+            const auto gpuImage = gpuLoaded.document->image();
+            Gpu::LayerId sourceId = 0;
+            for (const auto &layer : gpuImage->operations().snapshot()->layers) {
+                if (layer.uuid == firstUuid || layer.uuid == secondUuid)
+                    QCOMPARE(layer.blendMode, Gpu::LayerBlendMode::Multiply);
+                if (layer.uuid == source->uuid()) sourceId = layer.id;
+            }
+            QVERIFY(sourceId);
+            QVERIFY(loadedSource->setPixelData(QByteArray::fromHex("713ce2a5"), 1, 1, 1, 1));
+            loaded.refreshProjection();
+            QCOMPARE(gpuImage->writeRgbaPixels(sourceId, {1, 1, 1, 1}, QByteArray::fromHex("e23c71a5")), Gpu::Result::Success);
+            const auto editedPixels = loaded.pixelData(0, 0, 32, 16);
+            const QImage editedImage(reinterpret_cast<const uchar *>(editedPixels.constData()), 32, 16, QImage::Format_ARGB32);
+            const auto editedRgba = editedImage.convertToFormat(QImage::Format_RGBA8888);
+            const QByteArray expectedEdited(reinterpret_cast<const char *>(editedRgba.constBits()), editedRgba.sizeInBytes());
+            const auto actualEdited = gpuImage->readRgbaPixels(0, {0, 0, 32, 16}, editedPixels.size());
+            QCOMPARE(actualEdited.code, Gpu::ExecutionCode::Success);
+            QCOMPARE(actualEdited.bytes, expectedEdited);
+            QVERIFY(editedPixels != pixels);
+            QFile artifact(QDir(destination).filePath(stem + QStringLiteral("-edited.rgba")));
+            QVERIFY(artifact.open(QIODevice::WriteOnly));
+            QCOMPARE(artifact.write(actualEdited.bytes), actualEdited.bytes.size());
+        }
     } else {
         QCOMPARE(first->opacity(), quint8(initialOpacity));
         QCOMPARE(first->colorLabelIndex(), 0);
         QCOMPARE(publicNode->pixelData(1, 1, 1, 1), QByteArray::fromHex("ab6543ff"));
+    }
+}
+
+void TestNode::testBlendModeChangesPreservePublicHistory_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<QString>("entry");
+    for (bool gpu : {false, true}) for (const auto &entry : {QStringLiteral("api"), QStringLiteral("panel"), QStringLiteral("direct")}) {
+        const QByteArray name = QByteArray(gpu ? "gpu-" : "ordinary-") + entry.toLatin1();
+        QTest::newRow(name.constData()) << gpu << entry;
+    }
+}
+
+void TestNode::testBlendModeChangesPreservePublicHistory()
+{
+    QFETCH(bool, gpu);
+    QFETCH(QString, entry);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    KisImageSP image;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        Gpu::RasterImage input;
+        input.size = {4, 4};
+        input.layers = {{QStringLiteral("Destination"), true, {}, {}}, {QStringLiteral("Source"), true, {}, {}}};
+        input.layers[1].opacity = 137;
+        image = KisImage::fromGpuImage(Gpu::PaintImageSP::create(execution, input), QStringLiteral("Blending mode"));
+    } else {
+        image = new KisImage(document->createUndoStore(), 4, 4, KoColorSpaceRegistry::instance()->rgb8(), "Blending mode");
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Destination"), 255));
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Source"), 137));
+    }
+    document->setCurrentImage(image);
+    const auto lower = image->root()->firstChild();
+    auto upper = image->root()->lastChild();
+    QScopedPointer<Node> destination(Node::createNode(image, lower));
+    QScopedPointer<Node> source(Node::createNode(image, upper));
+    const auto sourcePixels = QByteArray::fromHex("5d29c989");
+    QVERIFY(destination->setPixelData(QByteArray::fromHex("975925ad"), 1, 1, 1, 1));
+    QVERIFY(source->setPixelData(sourcePixels, 1, 1, 1, 1));
+    Document api(document.data(), false);
+    api.refreshProjection();
+    const auto normal = api.pixelData(1, 1, 1, 1);
+    if (entry == QLatin1String("api")) source->setBlendingMode(QStringLiteral("multiply"));
+    else if (entry == QLatin1String("panel")) {
+        KisNodeCommandsAdapter commands(image);
+        commands.setCompositeOp(upper, image->colorSpace()->compositeOp(QStringLiteral("multiply")));
+    } else upper->setCompositeOpId(QStringLiteral("multiply"));
+    image->waitForDone();
+    QCOMPARE(source->blendingMode(), QStringLiteral("multiply"));
+    QCOMPARE(document->undoStack()->index(), entry == QLatin1String("direct") ? 0 : 1);
+    api.refreshProjection();
+    const auto multiply = QByteArray::fromHex("784138c5");
+    QCOMPARE(api.pixelData(1, 1, 1, 1), multiply);
+    QCOMPARE(source->pixelData(1, 1, 1, 1), sourcePixels);
+    if (entry != QLatin1String("direct")) {
+        document->undoStack()->undo();
+        image->waitForDone();
+        QCOMPARE(source->blendingMode(), QStringLiteral("normal"));
+        api.refreshProjection();
+        QCOMPARE(api.pixelData(1, 1, 1, 1), normal);
+        document->undoStack()->redo();
+        image->waitForDone();
+        QCOMPARE(source->blendingMode(), QStringLiteral("multiply"));
+        api.refreshProjection();
+        QCOMPARE(api.pixelData(1, 1, 1, 1), multiply);
+    }
+    QScopedPointer<Node> copy(source->clone());
+    QVERIFY(copy);
+    QCOMPARE(copy->blendingMode(), QStringLiteral("multiply"));
+    QCOMPARE(copy->pixelData(1, 1, 1, 1), sourcePixels);
+    QScopedPointer<Node> root(api.rootNode());
+    QVERIFY(root->addChildNode(copy.data(), nullptr));
+    image->waitForDone();
+    QCOMPARE(copy->blendingMode(), QStringLiteral("multiply"));
+    if (gpu) {
+        const auto owner = image->gpuImage();
+        QCOMPARE(owner->operations().snapshot()->layers[1].blendMode, Gpu::LayerBlendMode::Multiply);
+        const auto stroke = owner->beginStroke(2, Gpu::Brush{}, 43);
+        QCOMPARE(owner->appendSamples(stroke, {{{3, 3}}}), Gpu::Result::Success);
+        const auto pending = owner->operations().preview();
+        const auto index = document->undoStack()->index();
+        source->setBlendingMode(QStringLiteral("normal"));
+        QCOMPARE(owner->operations().preview(), pending);
+        QCOMPARE(source->blendingMode(), QStringLiteral("multiply"));
+        QCOMPARE(document->undoStack()->index(), index);
+        source->setBlendingMode(QStringLiteral("screen"));
+        QCOMPARE(owner->operations().preview(), pending);
+        QCOMPARE(source->blendingMode(), QStringLiteral("multiply"));
+        QCOMPARE(owner->cancelStroke(stroke), Gpu::Result::Success);
     }
 }
 

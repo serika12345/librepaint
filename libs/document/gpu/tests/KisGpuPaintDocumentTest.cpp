@@ -129,16 +129,23 @@ void KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProje
 {
     QTest::addColumn<bool>("nested");
     QTest::addColumn<bool>("passThrough");
-    QTest::newRow("group") << false << false;
-    QTest::newRow("nested") << true << false;
-    QTest::newRow("pass-through") << false << true;
-    QTest::newRow("nested-pass-through") << true << true;
+    QTest::addColumn<bool>("multiply");
+    QTest::newRow("group") << false << false << false;
+    QTest::newRow("nested") << true << false << false;
+    QTest::newRow("pass-through") << false << true << false;
+    QTest::newRow("nested-pass-through") << true << true << false;
+    QTest::newRow("group-multiply") << false << false << true;
+    QTest::newRow("nested-multiply") << true << false << true;
+    QTest::newRow("pass-through-multiply") << false << true << true;
+    QTest::newRow("nested-pass-through-multiply") << true << true << true;
+
 }
 
 void KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProjection()
 {
     QFETCH(bool, nested);
     QFETCH(bool, passThrough);
+    QFETCH(bool, multiply);
     Execution execution(m_device, 16 * TileRenderer::TileBytes, 8, 2 * TileRenderer::TileBytes);
     RasterImage input;
     input.size = {64, 48};
@@ -159,14 +166,22 @@ void KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProje
         input.layers[3].opacity = 128;
         input.layers[2].parentUuid = input.layers[3].uuid;
     }
+    if (multiply) {
+        input.layers[0].defaultPixel = {37, 89, 151, 255};
+        input.layers[2].blendMode = LayerBlendMode::Multiply;
+        if (nested) input.layers[3].blendMode = LayerBlendMode::Multiply;
+        if (passThrough) input.layers[1].blendMode = LayerBlendMode::Multiply;
+    }
     PaintDocument document(execution, input);
     const auto image = document.image();
     QCOMPARE(image->replaceRgbaPixels(2, {12, 9, 1, 1}, QByteArray::fromHex("00ff00ff")), Result::Success);
     const auto fixed = image->operations().snapshot();
     const auto expected = execution.readProjectionImage(image->handle(), fixed, 64 * 48 * 4);
     QVERIFY2(expected.code == ExecutionCode::Success, qPrintable(expected.diagnostic));
-    QCOMPARE(expected.image.pixelColor(12, 9), nested ? QColor(0, 64, 191, 255) : QColor(0, 128, 127, 255));
+    QCOMPARE(expected.image.pixelColor(12, 9), multiply ? (nested ? QColor(28, 89, 113, 255) : QColor(18, 89, 75, 255)) :
+             nested ? QColor(0, 64, 191, 255) : QColor(0, 128, 127, 255));
     QCOMPARE(image->setLayerOpacity(3, 64), Result::Success);
+    if (multiply) QCOMPARE(image->setLayerBlendMode(3, LayerBlendMode::Normal), Result::Success);
     const auto current = image->operations().snapshot();
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
@@ -180,12 +195,12 @@ void KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProje
     const auto destination = results.isEmpty() ? directory.path() : results;
     QVERIFY(QDir().mkpath(destination));
     const QString stem = QStringLiteral("hierarchy-%1%2").arg(nested ? QStringLiteral("nested") : QStringLiteral("group"))
-        .arg(passThrough ? QStringLiteral("-pass-through") : QString());
+        .arg(passThrough ? QStringLiteral("-pass-through") : QString()) + (multiply ? QStringLiteral("-multiply") : QString());
     const auto path = QDir(destination).filePath(stem + QStringLiteral(".kra"));
     const auto saved = document.saveKra(path, fixed);
     QVERIFY2(saved.code == FileCode::Success, qPrintable(saved.diagnostic));
     QCOMPARE(image->operations().snapshot(), current);
-    QCOMPARE(image->operations().undoCount(), 2);
+    QCOMPARE(image->operations().undoCount(), 2 + int(multiply));
     QCOMPARE(image->operations().savedHistoryIndex(), 1);
     QVERIFY(image->operations().isModified());
     QFile file(path);
@@ -199,6 +214,7 @@ void KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProje
         QCOMPARE(actual.parentUuid, input.layers[i].parentUuid);
         QCOMPARE(actual.kind, input.layers[i].kind);
         QCOMPARE(actual.passThrough, input.layers[i].passThrough);
+        QCOMPARE(actual.blendMode, input.layers[i].blendMode);
         if (actual.kind == LayerKind::Group) QVERIFY(actual.tiles.isEmpty());
     }
     QCOMPARE(decoded.document.image.layers[decoded.document.image.activeLayer].uuid, input.layers[1].uuid);

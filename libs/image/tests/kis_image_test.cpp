@@ -234,7 +234,8 @@ void KisImageTest::testGpuLayerReferencesSurviveHistoryAndReleaseDiscardedBranch
 void KisImageTest::testGpuInsertionPreservesSupportedStateAndRejectsUnrepresentedState_data()
 {
     QTest::addColumn<int>("property");
-    QTest::newRow("blend") << 0;
+    QTest::newRow("unsupported-blend") << 0;
+    QTest::newRow("multiply-blend") << 1;
     QTest::newRow("animation") << 2;
     QTest::newRow("layer-style") << 3;
     QTest::newRow("composition-channels") << 4;
@@ -258,7 +259,8 @@ void KisImageTest::testGpuInsertionPreservesSupportedStateAndRejectsUnrepresente
     auto pixels = layer->paintDevice();
     const auto bytes = QByteArray::fromHex("112233ff");
     pixels->writeBytes(reinterpret_cast<const quint8*>(bytes.constData()), 5, 7, 1, 1);
-    if (property == 0) layer->setCompositeOpId(COMPOSITE_MULT);
+    if (property == 0) layer->setCompositeOpId(COMPOSITE_SCREEN);
+    if (property == 1) layer->setCompositeOpId(COMPOSITE_MULT);
     if (property == 2) layer->enableAnimation();
     if (property == 3) {
         auto style = KisPSDLayerStyleSP::create();
@@ -278,12 +280,14 @@ void KisImageTest::testGpuInsertionPreservesSupportedStateAndRejectsUnrepresente
     const auto serialized = owner->operations().recoveryData();
     QByteArray retained(4, Qt::Uninitialized);
     pixels->readBytes(reinterpret_cast<quint8*>(retained.data()), 5 + layer->x(), 7 + layer->y(), 1, 1);
-    if (property == 4 || property == 5) {
+    if (property == 1 || property == 4 || property == 5) {
         QVERIFY(image->insertGpuLayer(layer, 0));
         QCOMPARE(image->root()->childCount(), 2U);
         QCOMPARE(owner->operations().undoCount(), 1);
         QCOMPARE(layer->channelFlags(), channels);
-        const quint8 expectedMask = property == 4 ? 11 : 7;
+        const quint8 expectedMask = property == 1 ? 15 : property == 4 ? 11 : 7;
+        const auto expectedMode = property == 1 ? Gpu::LayerBlendMode::Multiply : Gpu::LayerBlendMode::Normal;
+        QCOMPARE(owner->operations().snapshot()->layers.first().blendMode, expectedMode);
         QCOMPARE(owner->operations().snapshot()->layers.first().projectionChannelMask, expectedMask);
         QCOMPARE(owner->readRgbaPixels(owner->operations().snapshot()->layers.first().id, {5, 7, 1, 1}, 4).bytes,
                  QByteArray::fromHex("332211ff"));
@@ -292,6 +296,8 @@ void KisImageTest::testGpuInsertionPreservesSupportedStateAndRejectsUnrepresente
         const auto copiedLayer = qobject_cast<const KisLayer*>(copied->root()->firstChild().data());
         QVERIFY(copiedLayer);
         QCOMPARE(copiedLayer->channelFlags(), channels);
+        QCOMPARE(copiedLayer->compositeOpId(), layer->compositeOpId());
+        QCOMPARE(copied->gpuImage()->operations().snapshot()->layers.first().blendMode, expectedMode);
         QCOMPARE(copied->gpuImage()->operations().snapshot()->layers.first().projectionChannelMask, expectedMask);
         QCOMPARE(copied->gpuImage()->readRgbaPixels(copied->gpuImage()->operations().activeLayer(), {5, 7, 1, 1}, 4).bytes,
                  QByteArray::fromHex("332211ff"));
@@ -309,7 +315,7 @@ void KisImageTest::testGpuInsertionPreservesSupportedStateAndRejectsUnrepresente
     QCOMPARE(image->root()->childCount(), 1U);
     QCOMPARE(layer->paintDevice(), pixels);
     QVERIFY(!layer->parent());
-    if (property == 0) QCOMPARE(layer->compositeOpId(), QString(COMPOSITE_MULT));
+    if (property == 0) QCOMPARE(layer->compositeOpId(), QString(COMPOSITE_SCREEN));
     if (property == 2) QVERIFY(layer->isAnimated());
     if (property == 3) QVERIFY(layer->layerStyle()->dropShadow()->effectEnabled());
     QCOMPARE(layer->channelFlags(), channels);

@@ -135,6 +135,7 @@ FileOutcome PaintDocument::exportKra(QIODevice &destination, const Snapshot &ver
         saved.colorLabelIndex = layer.colorLabelIndex;
         saved.projectionChannelMask = layer.projectionChannelMask;
         saved.passThrough = layer.passThrough;
+        saved.blendMode = layer.blendMode;
         if (layer.kind == LayerKind::Paint) {
             const auto pixels = d.execution.readLayerPixels(d.image->handle(), pinned, layer.id, limits.rasterBytes - rasterBytes);
             if (pixels.code != ExecutionCode::Success) return {fileCode(pixels.code), {}, pixels.diagnostic};

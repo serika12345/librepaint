@@ -31,6 +31,8 @@
 #include "kis_scalar_keyframe_channel.h"
 #include "kis_shared.h"
 #include "kis_types.h"
+#include "gpu/KisGpuPaintImage.h"
+#include <stdexcept>
 
 struct Q_DECL_HIDDEN KisBaseNode::Private
 {
@@ -150,6 +152,24 @@ void KisBaseNode::setCompositeOpId(const QString& compositeOp)
 {
     if (m_d->compositeOp == compositeOp) return;
 
+    // Other modes remain unaccepted dialog previews until their GPU composition
+    // and persistence contracts are implemented in #89.
+    const auto currentImage = image();
+    if (currentImage && !currentImage->isSynchronizingGpuNodes() &&
+        (compositeOp == COMPOSITE_OVER || compositeOp == COMPOSITE_MULT)) {
+        if (const auto owner = currentImage->gpuImage()) {
+            namespace Gpu = LibrePaint::Image::Gpu;
+            for (const auto &layer : owner->operations().snapshot()->layers) {
+                if (layer.uuid != uuid()) continue;
+                const auto result = owner->writeLayerBlendMode(layer.id,
+                    compositeOp == COMPOSITE_MULT ? Gpu::LayerBlendMode::Multiply : Gpu::LayerBlendMode::Normal);
+                if (result != Gpu::Result::Success)
+                    throw std::runtime_error("GPU layer blending mode write failed: " + std::to_string(int(result)));
+                if (m_d->compositeOp == compositeOp) return;
+                break;
+            }
+        }
+    }
     m_d->compositeOp = compositeOp;
     baseNodeChangedCallback();
     baseNodeInvalidateAllFramesCallback();

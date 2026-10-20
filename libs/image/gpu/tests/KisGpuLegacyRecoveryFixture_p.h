@@ -12,6 +12,39 @@
 #include <QSet>
 
 namespace LibrePaint::Image::Gpu::Test {
+// Version 33 record produced at 9b85d32ff0: nested pass-through groups,
+// one mode edit, a direct group write and seed43 pending input.
+// SHA-256: 64f1b807a67e2c9acd18f73dd505f53508325d6962623a6c92e3d18c9a44f6ea.
+inline QByteArray passThroughRecoveryV33()
+{
+    return QByteArray::fromHex(
+        "4c504f52002100000140000000b400000000000000050000000000000002000000000000000300000000000000000000"
+        "0001000000000000000000000117789cedc3410d00000c03a1fa377dfb4e0424b495aaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaea"
+        "7b8fd61de300000002010000000000000001000000000000000000000000000000010000000100000000000000000000"
+        "00000000000000000000000000000200000000000000010000000000000001000000ff40240000000000003fb9999999"
+        "99999aff00000000000000002b0000000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000010000000001403400000000000040340000000000003ff0000000000000000000000000000000000000"
+        "00000000000000000000000000000000000000000000000000000000000000020000000100000140000000b400000000"
+        "000000000000000300000000000000000000000000000001000000030000000000000001000000035265640101020304"
+        "05060708090a0b0c0d0e0f100c22384eff00000000000000000000001112131415161718191a1b1c1d1e1f2000000000"
+        "0f000000000100000000000000000000000200000005496e6e6572011112131415161718191a1b1c1d1e1f2000000000"
+        "ff00000000000000000000012122232425262728292a2b2c2d2e2f30000000000f000000000000000000000000030000"
+        "00054f75746572012122232425262728292a2b2c2d2e2f3000000000ff00000000000000000000010000000000000000"
+        "0000000000000000000000000f01000000000000000140000000b4000000000000000000000004000000000000000100"
+        "0000000000000100000003000000000000000100000003526564010102030405060708090a0b0c0d0e0f100c22384eff"
+        "00000000000000000000001112131415161718191a1b1c1d1e1f20000000000f00000000010000000000000000000000"
+        "0200000005496e6e6572011112131415161718191a1b1c1d1e1f2000000000ff00000000000000000000012122232425"
+        "262728292a2b2c2d2e2f30000000000f01000000000000000000000003000000054f7574657201212223242526272829"
+        "2a2b2c2d2e2f3000000000ff000000000000000000000100000000000000000000000000000000000000000f01000000"
+        "00fd0000000000000002000100000001000000000000000535228c3078f16644881662f360a632c5977bac9248c5ce43"
+        "263f64740cda4fa0");
+}
+
 // Version 32 record produced at 066f2dc2b1: selected layer attributes,
 // direct channel writes, one reversible dialog edit and fixed layer identities.
 // SHA-256: b8264ba7d215987b745d4c1675b3c33c6d0fc044b46120d24080a217ed441949.
@@ -308,14 +341,15 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
         }
     }
     versions.append(document.preview());
-    if (format < 33) {
+    if (format < 34) {
         QSet<QByteArray> records;
         for (const auto &version : versions) {
             if (!version) continue;
             for (const auto &layer : version->layers) {
                 Q_ASSERT(format >= 30 || layer.colorLabelIndex == 0);
                 Q_ASSERT(format >= 31 || layer.projectionChannelMask == 15);
-                Q_ASSERT(!layer.passThrough);
+                Q_ASSERT(format >= 33 || !layer.passThrough);
+                Q_ASSERT(layer.blendMode == LayerBlendMode::Normal);
                 Q_ASSERT(format >= 29 || (layer.kind == LayerKind::Paint && layer.parentUuid.isNull()));
                 Q_ASSERT(format >= 24 || layer.position.isNull());
                 QByteArray record;
@@ -339,13 +373,16 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                 stream << layer.projectionChannelMask;
                 const auto passThroughOffset = record.size();
                 stream << quint8(layer.passThrough);
+                const auto blendModeOffset = record.size();
+                stream << quint8(layer.blendMode);
                 if (records.contains(record)) continue;
                 records.insert(record);
                 qsizetype next = 0;
                 for (;;) {
                     const auto found = payload.indexOf(record, next);
                     if (found < 0) break;
-                    const auto offset = format < 24 ? positionOffset : format < 29 ? hierarchyOffset : format < 30 ? labelOffset : format < 31 ? projectionOffset : passThroughOffset;
+                    const auto offset = format < 24 ? positionOffset : format < 29 ? hierarchyOffset : format < 30 ? labelOffset :
+                        format < 31 ? projectionOffset : format < 33 ? passThroughOffset : blendModeOffset;
                     payload.remove(found + offset, record.size() - offset);
                     next = found + offset;
                 }

@@ -16,7 +16,7 @@
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
-struct CompositeParameters { quint32 opacityBits = 0x3f800000; quint32 normalizeBase = 0; quint32 channelMask = 15; quint32 padding = 0; };
+struct CompositeParameters { quint32 opacityBits = 0x3f800000; quint32 normalizeBase = 0; quint32 channelMask = 15; quint32 blendModeOpacity = 0; };
 struct CompositeJob
 {
     std::shared_ptr<Tile> base, output;
@@ -171,7 +171,7 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
     }
     QList<const Layer *> children;
     for (const auto &layer : document->document()->layers) if (layer.parentUuid == parent) children.append(&layer);
-    data->directLayerProjection = group ? children.size() == 1 && children.first()->visible && children.first()->opacity == 255 && children.first()->projectionChannelMask == 15 && !children.first()->passThrough :
+    data->directLayerProjection = group ? children.size() == 1 && children.first()->visible && children.first()->opacity == 255 && children.first()->projectionChannelMask == 15 && !children.first()->passThrough && children.first()->blendMode == LayerBlendMode::Normal :
         document->document()->directProjectionLayer() != 0;
     data->region = group ? region : region.intersected(QRect(QPoint(0, 0), document->document()->size));
     if (document->m_data->region && !data->region.isEmpty() && !document->m_data->region->contains(data->region)) {
@@ -214,11 +214,11 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         const auto &tiles = document->m_data->layers[layer.layer];
         for (const auto coordinate : coordinates) {
             const auto pixels = tiles.value(coordinate, fallback);
-            if (pixels) data->inputs[coordinate].append({pixels, layer.opacity, layer.channelMask});
+            if (pixels) data->inputs[coordinate].append({pixels, layer.opacity, layer.channelMask, layer.blendMode});
         }
     }
     const auto firstComposition = [&](const auto &inputs) {
-        return inputs.first().opacity == 255 && inputs.first().channelMask == 15 && (inputs.size() > 1 || background || data->directLayerProjection ||
+        return inputs.first().blendMode == LayerBlendMode::Normal && inputs.first().opacity == 255 && inputs.first().channelMask == 15 && (inputs.size() > 1 || background || data->directLayerProjection ||
                                                 !inputs.first().pixels->mayContainHiddenRgb) ? 1 : 0;
     };
     const bool cachedBase = !group && base && d.backdropVersion.toStrongRef() == base &&
@@ -292,6 +292,7 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
                 const float opacity = float(source.opacity) / 255.0f;
                 std::memcpy(&job.values[layer].opacityBits, &opacity, sizeof(opacity));
                 job.values[layer].channelMask = source.channelMask;
+                job.values[layer].blendModeOpacity = quint32(source.blendMode) | (quint32(source.opacity) << 8);
                 job.values[layer].normalizeBase = !background && !data->directLayerProjection && firstJob == 1 && i + layer == firstJob;
                 hiddenRgb = !(source.channelMask & 8u) || source.opacity < 128 ||
                     (hiddenRgb && !job.values[layer].normalizeBase);

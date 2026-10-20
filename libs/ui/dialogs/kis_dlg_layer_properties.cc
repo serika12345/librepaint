@@ -93,6 +93,7 @@ struct KisDlgLayerProperties::Private
             fields.name = !nameProperty->isIgnored();
             fields.opacity = !opacityProperty->isIgnored();
             fields.colorLabel = !colorLabelProperty->isIgnored();
+            fields.blendMode = !compositeOpProperty->isIgnored();
             const auto properties = node->sectionModelProperties();
             for (qsizetype index = 0; index < layerProperties.size(); ++index) {
                 if (layerProperties[index]->isIgnored()) continue;
@@ -306,7 +307,7 @@ void KisDlgLayerProperties::accept()
             return;
         }
         for (const auto &node : d->nodes) {
-            if (node->compositeOpId() != COMPOSITE_OVER) {
+            if (node->compositeOpId() != COMPOSITE_OVER && node->compositeOpId() != COMPOSITE_MULT) {
                 d->view->showFloatingMessage(i18n("The selected blending mode cannot be applied to this document."), QIcon());
                 return;
             }

@@ -189,6 +189,20 @@ void KisNodeCommandsAdapter::setOpacity(KisNodeSP node, qint32 opacity)
 void KisNodeCommandsAdapter::setCompositeOp(KisNodeSP node,
                                             const KoCompositeOp* compositeOp)
 {
+    const auto currentImage = image();
+    if (const auto owner = currentImage->gpuImage()) {
+        namespace Gpu = LibrePaint::Image::Gpu;
+        if (compositeOp->id() != COMPOSITE_OVER && compositeOp->id() != COMPOSITE_MULT) {
+            qWarning("The selected GPU layer blending mode is unavailable");
+            return;
+        }
+        const auto result = owner->setLayerBlendMode(gpuLayerId(currentImage, node),
+            compositeOp->id() == COMPOSITE_MULT ? Gpu::LayerBlendMode::Multiply : Gpu::LayerBlendMode::Normal,
+            Gpu::PropertyHistory::MergeConsecutive);
+        if (result != Gpu::Result::Success)
+            throw std::runtime_error("GPU layer blending mode edit failed: " + std::to_string(int(result)));
+        return;
+    }
     KUndo2Command *cmd = new KisNodeCompositeOpCommand(node,
                                                        compositeOp->id());
     applyOneCommandAsync(cmd);
