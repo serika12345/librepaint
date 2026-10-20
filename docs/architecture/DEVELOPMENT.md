@@ -288,6 +288,7 @@ KRA情報からの色ラベルの採用と、新形式で明記したゼロの�
 ./scripts/run-shared-test-env ./scripts/run-test TestKraRasterCodec
 ./scripts/run-shared-test-env ./scripts/run-test kis_kra_loader_test
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuPaintDocumentTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuTileRendererTest
 ```
 
 `KoRgbU8ColorSpaceTester`は、通常合成の厳密な色が5494/33となる固定入力について、
@@ -295,10 +296,17 @@ KRA情報からの色ラベルの採用と、新形式で明記したゼロの�
 異なるRGB成分とレイヤー不透明度を持つ固定画素も、同じ条件でスカラーとSIMDの一致を検査する。
 AArch64の混色率はハードウェア除算で計算する。数値ライブラリーの演算子を変更する場合は、
 実際に選択される命令と、対象環境間の保存画素の一致を確認する。
+`KisGpuTileRendererTest`はRGBを固定し、元画素と下地の全アルファ値の組合せを、
+レイヤー不透明度1、128、254、255で照合する。参照値はARM64とx86_64のCPU合成から生成し、
+画素ごとの処理とSIMDの一致を確認したRGBA列である。試験は実際のGPUと描画基盤を記録し、
+`LIBREPAINT_GPU_RESULT_DIR`へ`normalized-opacity-<不透明度>.rgba`を出力する。
+環境間の比較はRGBA列全体を対象にする。
 `TestDocument`は、2枚の半透明レイヤーの合成を、公開画素読取り、通常KRA保存の統合画像と
 PNG書き出しで検査する。CPU／GPUで同じ入力、UUID、文書情報、日時と設定を使い、
 既定設定と、ICC・アルファ・圧縮・メタデータの設定を固定した条件をそれぞれ検査し、
 全画素とPNGの全バイトを比較する。`source-over-rounding-<設定条件>-<描画所有者>.kra`と`.png`を保存する。
+低い不透明度のグループでは、元レイヤーの画素、透明RGBを持つ部分木の投影、
+上位で正規化した文書投影を個別に検査する。一様なグループ既定色も同じ丸め規則を使う。
 CPU合成の演算時間は`KoCompositeOpsBenchmark benchmarkCompositeOver -iterations 1 -median 7`で測る。
 一回の測定ごとに固定入力を初期化する。反復中に変わる下地のアルファを揃えるため、一試行の反復数を1にする。
 `-tickcounter`は同じ入力の細かい計数を供給する。構築との並行実行を分け、処理完了と実表示の遅延を別々に評価する。

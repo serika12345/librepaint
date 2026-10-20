@@ -757,6 +757,8 @@ void KisGpuOperationDocumentTest::groupProjectionDefaultsRespectIsolationAndQuan
         << false << false << 255 << QByteArray::fromHex("11223300") << QByteArray::fromHex("11223300");
     QTest::newRow("nested-alpha-is-quantized-at-each-group") << QByteArray::fromHex("ff000080") << QByteArray::fromHex("00000000")
         << false << false << 128 << QByteArray::fromHex("ff000080") << QByteArray::fromHex("ff000040");
+    QTest::newRow("small-alpha-keeps-normalized-source-opacity") << QByteArray::fromHex("99663301") << QByteArray::fromHex("56341201")
+        << true << true << 255 << QByteArray::fromHex("83552801") << QByteArray::fromHex("83552801");
 }
 
 void KisGpuOperationDocumentTest::groupProjectionDefaultsRespectIsolationAndQuantizedOpacity()

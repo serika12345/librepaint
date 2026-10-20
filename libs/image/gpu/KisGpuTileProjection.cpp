@@ -9,13 +9,14 @@
 #include <QThread>
 #include <QSet>
 #include <algorithm>
+#include <cstring>
 #include <limits>
 #include <vector>
 
 namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
-struct CompositeParameters { quint32 opacity = 255; quint32 normalizeBase = 0; quint32 padding[2]{}; };
+struct CompositeParameters { quint32 opacityBits = 0x3f800000; quint32 normalizeBase = 0; quint32 padding[2]{}; };
 struct CompositeJob
 {
     std::shared_ptr<Tile> base, layer, output;
@@ -253,9 +254,11 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
             job.base = input;
             job.layer = tile.value()[i].pixels;
             job.output = (i - firstJob) % 2 ? b : a;
-            job.values.opacity = tile.value()[i].opacity;
+            const float opacity = float(tile.value()[i].opacity) / 255.0f;
+            std::memcpy(&job.values.opacityBits, &opacity, sizeof(opacity));
             job.values.normalizeBase = !background && !data->directLayerProjection && firstJob == 1 && i == firstJob;
-            job.output->mayContainHiddenRgb = job.base && job.base->mayContainHiddenRgb && !job.values.normalizeBase;
+            job.output->mayContainHiddenRgb = tile.value()[i].opacity < 128 ||
+                (job.base && job.base->mayContainHiddenRgb && !job.values.normalizeBase);
             job.parameters = createBuffer(d.device->nativeDevice(), sizeof(CompositeParameters),
                                            WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
             if (!job.parameters) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection parameters failed")};

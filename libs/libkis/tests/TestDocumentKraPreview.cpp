@@ -16,6 +16,7 @@
 #include <gpu/KisGpuPaintImage.h>
 #include <kis_image.h>
 #include <kis_paint_layer.h>
+#include <kis_group_layer.h>
 #include <kis_paint_device.h>
 #include <kis_properties_configuration.h>
 #include <metadata/KoDocumentInfo.h>
@@ -30,13 +31,48 @@
 void TestDocument::testSavedSourceOverPixelsAgreeAcrossBackends_data()
 {
     QTest::addColumn<bool>("fixedSettings");
-    QTest::newRow("defaults") << false;
-    QTest::newRow("fixed-settings") << true;
+    QTest::addColumn<QByteArray>("sourcePixel");
+    QTest::addColumn<QByteArray>("destinationPixel");
+    QTest::addColumn<int>("opacity");
+    QTest::addColumn<QByteArray>("expectedPixel");
+    QTest::addColumn<bool>("sourceGroup");
+    struct Case { const char *name, *source, *destination; int opacity; const char *expected; };
+    const Case cases[] = {
+        {"", "d3640009", "1150c92d", 255, "3253a634"},
+        {"quotient-102-50", "12345666", "33669932", 255, "1a3f6584"},
+        {"quotient-168-136", "123456a8", "33669988", 255, "193f65d6"},
+        {"quotient-180-180", "123456b4", "336699b4", 255, "1a3f65e9"},
+        {"quotient-170-238", "123456aa", "336699ee", 255, "1c446bf9"},
+        {"partial-opacity", "12345686", "336699e2", 128, "295886ea"},
+        {"small-alpha-partial-opacity", "12345601", "33669901", 128, "28558301"},
+        {"low-opacity-rounds-after-color", "0034567f", "ff6699fe", 1, "fe6699fe"},
+    };
+    // Scalar and batched production composition agree on these fixed pixels
+    // on ARM64 and x86_64; normal saving must retain the same values.
+    for (const auto &c : cases) for (const bool fixed : {false, true}) {
+        const QByteArray name = QByteArray(c.name) + (c.name[0] ? "-" : "") +
+            (fixed ? "fixed-settings" : "defaults");
+        QTest::newRow(name.constData()) << fixed << QByteArray::fromHex(c.source) <<
+            QByteArray::fromHex(c.destination) << c.opacity << QByteArray::fromHex(c.expected) << false;
+    }
+    for (const bool fixed : {false, true}) {
+        const QByteArray name = QByteArrayLiteral("nested-low-opacity-") + (fixed ? "fixed-settings" : "defaults");
+        QTest::newRow(name.constData()) << fixed << QByteArray::fromHex("11223301") <<
+            QByteArray::fromHex("00000000") << 1 << QByteArray::fromHex("00000000") << true;
+    }
 }
 
 void TestDocument::testSavedSourceOverPixelsAgreeAcrossBackends()
 try {
     QFETCH(bool, fixedSettings);
+    QFETCH(QByteArray, sourcePixel);
+    QFETCH(QByteArray, destinationPixel);
+    QFETCH(int, opacity);
+    QFETCH(QByteArray, expectedPixel);
+    QFETCH(bool, sourceGroup);
+    QByteArray expectedRgba;
+    expectedRgba.append(expectedPixel[2]); expectedRgba.append(expectedPixel[1]);
+    expectedRgba.append(expectedPixel[0]); expectedRgba.append(expectedPixel[3]);
     namespace Gpu = LibrePaint::Image::Gpu;
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
@@ -53,6 +89,7 @@ try {
         QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
         const QUuid bottomId(QStringLiteral("{d3000001-1122-3344-5566-778899aabbcc}"));
         const QUuid topId(QStringLiteral("{d3000002-1122-3344-5566-778899aabbcc}"));
+        const QUuid groupId(QStringLiteral("{d3000003-1122-3344-5566-778899aabbcc}"));
         KisImageSP image;
         if (gpu) {
             QString diagnostic;
@@ -63,6 +100,13 @@ try {
             raster.layers = {{QStringLiteral("Destination"), true, bottomId, {}},
                              {QStringLiteral("Source"), true, topId, {}}};
             raster.activeLayer = 1;
+            if (sourceGroup) {
+                Gpu::RasterLayer group{QStringLiteral("Source group"), true, groupId, {}};
+                group.kind = Gpu::LayerKind::Group;
+                raster.layers.insert(1, group);
+                raster.layers.last().parentUuid = groupId;
+                raster.activeLayer = 2;
+            }
             image = KisImage::fromGpuImage(Gpu::PaintImageSP::create(execution, raster), QStringLiteral("Fixed source over"));
         } else {
             image = new KisImage(document->createUndoStore(), 17, 1, KoColorSpaceRegistry::instance()->rgb8(), "Fixed source over");
@@ -71,20 +115,31 @@ try {
             QVERIFY(image->addNode(bottom));
             KisPaintLayerSP top = new KisPaintLayer(image, QStringLiteral("Source"), 255);
             top->setUuid(topId);
-            QVERIFY(image->addNode(top, image->root(), bottom));
+            if (sourceGroup) {
+                KisNodeSP group = new KisGroupLayer(image, QStringLiteral("Source group"), 255);
+                group->setUuid(groupId);
+                QVERIFY(image->addNode(group, image->root(), bottom));
+                QVERIFY(image->addNode(top, group));
+            } else QVERIFY(image->addNode(top, image->root(), bottom));
         }
         document->setCurrentImage(image);
         Document publicDocument(document.data(), false);
-        QScopedPointer<Node> top(Node::createNode(image, image->root()->lastChild()));
+        QScopedPointer<Node> top(Node::createNode(image, sourceGroup ? image->root()->lastChild()->firstChild() : image->root()->lastChild()));
         QScopedPointer<Node> bottom(Node::createNode(image, image->root()->firstChild()));
         QCOMPARE(top->uniqueId(), topId);
         QCOMPARE(bottom->uniqueId(), bottomId);
-        QVERIFY(top->setPixelData(QByteArray::fromHex("d3640009").repeated(17), 0, 0, 17, 1));
-        QVERIFY(bottom->setPixelData(QByteArray::fromHex("1150c92d").repeated(17), 0, 0, 17, 1));
+        QVERIFY(top->setPixelData(sourcePixel.repeated(17), 0, 0, 17, 1));
+        if (sourceGroup) bottom->setVisible(false);
+        else QVERIFY(bottom->setPixelData(destinationPixel.repeated(17), 0, 0, 17, 1));
+        top->setOpacity(opacity);
         publicDocument.refreshProjection();
         image->waitForDone();
-        // Exact source-over values are B=4981/99, G=8260/99, R=5494/33, A=891/17.
-        QCOMPARE(publicDocument.pixelData(0, 0, 17, 1), QByteArray::fromHex("3253a634").repeated(17));
+        QCOMPARE(top->pixelData(0, 0, 17, 1), sourcePixel.repeated(17));
+        if (sourceGroup) {
+            QScopedPointer<Node> group(Node::createNode(image, image->root()->lastChild()));
+            QCOMPARE(group->projectionPixelData(0, 0, 17, 1), QByteArray::fromHex("11223300").repeated(17));
+        }
+        QCOMPARE(publicDocument.pixelData(0, 0, 17, 1), expectedPixel.repeated(17));
         document->documentInfo()->setAboutInfo("title", QStringLiteral("Fixed source-over document"));
         document->documentInfo()->setAboutInfo("initial-creator", QStringLiteral("LibrePaint fixture"));
         document->documentInfo()->setAboutInfo("language", QStringLiteral("en"));
@@ -101,7 +156,7 @@ try {
         const auto merged = QImage::fromData(store->device()->readAll()).convertToFormat(QImage::Format_RGBA8888);
         QVERIFY(store->close());
         QCOMPARE(merged.size(), QSize(17, 1));
-        QCOMPARE(QByteArray(reinterpret_cast<const char *>(merged.constBits()), merged.sizeInBytes()), QByteArray::fromHex("a6533234").repeated(17));
+        QCOMPARE(QByteArray(reinterpret_cast<const char *>(merged.constBits()), merged.sizeInBytes()), expectedRgba.repeated(17));
         InfoObject settings;
         if (fixedSettings) {
             settings.setProperty("alpha", true);
@@ -118,7 +173,7 @@ try {
         const auto bytes = png.readAll();
         const auto exported = QImage::fromData(bytes).convertToFormat(QImage::Format_RGBA8888);
         QCOMPARE(exported.size(), QSize(17, 1));
-        QCOMPARE(QByteArray(reinterpret_cast<const char *>(exported.constBits()), exported.sizeInBytes()), QByteArray::fromHex("a6533234").repeated(17));
+        QCOMPARE(QByteArray(reinterpret_cast<const char *>(exported.constBits()), exported.sizeInBytes()), expectedRgba.repeated(17));
         pngFiles.append(bytes);
         KisPart::instance()->removeDocument(document.data(), false);
     }

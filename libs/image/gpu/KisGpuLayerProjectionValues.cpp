@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "KisGpuOperationDocument.h"
+#include <cmath>
 #include <stdexcept>
 
 namespace LibrePaint::Image::Gpu {
@@ -37,15 +38,24 @@ QHash<LayerId, std::array<quint8, 4>> DocumentVersion::projectionDefaultPixels()
             for (const auto layer : inputs) {
                 if (!layer->visible) continue;
                 auto source = result.value(layer->id);
-                const quint32 alpha = (quint32(source[3]) * layer->opacity + 127u) / 255u;
-                if (!alpha) continue;
-                const quint32 destinationAlpha = pixel[3];
-                const quint32 denominator = alpha * 255u + destinationAlpha * (255u - alpha);
-                for (int channel = 0; channel < 3; ++channel) {
-                    pixel[channel] = quint8((quint32(source[channel]) * alpha * 255u +
-                        quint32(pixel[channel]) * destinationAlpha * (255u - alpha) + denominator / 2u) / denominator);
+                const float alpha = float(source[3]) * (float(layer->opacity) / 255.0f);
+                if (alpha == 0.0f) continue;
+                float destinationAlpha = pixel[3];
+                float blend;
+                if (destinationAlpha == 255.0f) blend = alpha * (1.0f / 255.0f);
+                else if (destinationAlpha == 0.0f) {
+                    destinationAlpha = alpha;
+                    blend = 1.0f;
+                } else {
+                    const float weightedAlpha = (255.0f - destinationAlpha) * alpha;
+                    destinationAlpha = std::fma(weightedAlpha, 1.0f / 255.0f, destinationAlpha);
+                    blend = alpha / destinationAlpha;
                 }
-                pixel[3] = quint8((denominator + 127u) / 255u);
+                for (int channel = 0; channel < 3; ++channel) {
+                    pixel[channel] = quint8(std::nearbyint(std::fma(float(source[channel]) - pixel[channel], blend,
+                                                                  float(pixel[channel]))));
+                }
+                pixel[3] = quint8(std::nearbyint(destinationAlpha));
             }
         }
         result.insert(group->id, pixel);

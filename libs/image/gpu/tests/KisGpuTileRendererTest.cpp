@@ -31,6 +31,8 @@ private Q_SLOTS:
     void layerOpacityChangesProjectionWithoutChangingSourcePixelsOrRetainedVersions();
     void partialLayerOpacityComposesOverTransparency_data();
     void partialLayerOpacityComposesOverTransparency();
+    void normalProjectionPreservesBinary32Rounding_data();
+    void normalProjectionPreservesBinary32Rounding();
     void roundBrushProducesRgbaPixelsOnTheGpu();
     void solidFiguresPreserveFillOutlineHistoryAndRecovery_data();
     void solidFiguresPreserveFillOutlineHistoryAndRecovery();
@@ -602,6 +604,65 @@ void KisGpuTileRendererTest::layerCountChangesInvalidateTransparentProjectionReu
     QVERIFY(renderer.residentBytes() <= 2 * TileRenderer::TileBytes);
 }
 
+void KisGpuTileRendererTest::normalProjectionPreservesBinary32Rounding_data()
+{
+    QTest::addColumn<int>("opacity");
+    QTest::addColumn<QByteArray>("expectedHash");
+    // Reference: production RGBA8 source-over at 5cd3e87, all byte-alpha
+    // pairs, BGR source (18,52,86), destination (51,102,153), transparent
+    // destination RGB normalized to zero. Scalar and batched ARM64/NEON64
+    // and x86_64 results agree. Hashes cover the complete straight RGBA tile.
+    struct Case { int opacity; const char *hash; };
+    const Case cases[] = {
+        {1, "397ded9ba63a06e74ed56775eb1dfd7b823621913fbe6034fbbf31e9ea8e5c82"},
+        {128, "c6633dd35c638b9d271d776fe77e400f84c7ee2863d939e16489ac806974fad6"},
+        {254, "91359ff33552e7bc841cbcc1b8fdcd9c0a9a9e34eae84643488544529a992b2a"},
+        {255, "181798e20485cea5823ec6c209ccf4e9963cff73ec1d92cf1566beee4ba0dab4"},
+    };
+    for (const auto &c : cases) {
+        const QByteArray name = QByteArray::number(c.opacity);
+        QTest::newRow(name.constData()) << c.opacity << QByteArray(c.hash);
+    }
+}
+
+void KisGpuTileRendererTest::normalProjectionPreservesBinary32Rounding()
+{
+    QFETCH(int, opacity);
+    QFETCH(QByteArray, expectedHash);
+    QByteArray lower(RgbaTile::ByteCount, '\0'), upper(RgbaTile::ByteCount, '\0');
+    for (int destinationAlpha = 0; destinationAlpha < 256; ++destinationAlpha) {
+        for (int sourceAlpha = 0; sourceAlpha < 256; ++sourceAlpha) {
+            const auto offset = (destinationAlpha * 256 + sourceAlpha) * 4;
+            lower[offset] = '\x99'; lower[offset + 1] = '\x66'; lower[offset + 2] = '\x33';
+            lower[offset + 3] = char(destinationAlpha);
+            upper[offset] = '\x56'; upper[offset + 1] = '\x34'; upper[offset + 2] = '\x12';
+            upper[offset + 3] = char(sourceAlpha);
+        }
+    }
+    RasterImage source;
+    source.size = {256, 256};
+    source.layers = {{QStringLiteral("Destination"), true, {}, {{{0, 0}, lower}}},
+                     {QStringLiteral("Source"), true, {}, {{{0, 0}, upper}}}};
+    source.layers.last().opacity = quint8(opacity);
+    OperationDocument document(source);
+    TileRenderer renderer(m_device);
+    const auto rendered = render(renderer, document.snapshot());
+    QVERIFY(rendered);
+    const auto projected = project(renderer, rendered, QRect(0, 0, 256, 256));
+    QVERIFY(projected);
+    QByteArray actual;
+    for (const auto &tile : projected->tiles()) if (tile.coordinate == QPoint()) actual = readBuffer(tile.pixels);
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        QFile artifact(QDir(directory).filePath(QStringLiteral("normalized-opacity-%1.rgba").arg(opacity)));
+        QVERIFY(artifact.open(QIODevice::WriteOnly));
+        QCOMPARE(artifact.write(actual), actual.size());
+    }
+    QCOMPARE(actual.size(), RgbaTile::ByteCount);
+    QCOMPARE(QCryptographicHash::hash(actual, QCryptographicHash::Sha256).toHex(), expectedHash);
+}
+
 void KisGpuTileRendererTest::partialLayerOpacityComposesOverTransparency_data()
 {
     QTest::addColumn<QByteArray>("pixel");
@@ -900,6 +961,11 @@ void KisGpuTileRendererTest::initTestCase()
     QVERIFY2(m_device, qPrintable(diagnostic));
     QVERIFY(m_device->nativeDevice());
     QVERIFY(m_device->queue());
+    WGPUAdapterInfo info{};
+    QVERIFY(wgpuAdapterGetInfo(m_device->adapter(), &info) == WGPUStatus_Success);
+    qInfo() << "GPU projection adapter:" << QString::fromUtf8(info.device.data, qsizetype(info.device.length))
+            << "backend" << int(info.backendType) << "type" << int(info.adapterType);
+    wgpuAdapterInfoFreeMembers(info);
 }
 
 void KisGpuTileRendererTest::partialRenderingMatchesFullTilesAndRejectsIncompleteComposition()
