@@ -71,7 +71,7 @@ FileOpenOutcome PaintDocument::openKraImpl(Execution &execution, std::shared_ptr
 
 Kra::MetadataOutcome PaintDocument::kraImageMetadata() const
 {
-    if (!onThread()) return {Kra::Status::InvalidData, {}, QStringLiteral("Metadata reads require the document thread")};
+    if (!onThread()) return {Kra::Status::InvalidData, {}, QStringLiteral("Metadata reads require the document thread"), {}};
     return Kra::RasterCodec::readImageMetadata(m_d->description, m_d->files, Private::formatLimits(m_d->limits));
 }
 
@@ -132,6 +132,7 @@ FileOutcome PaintDocument::exportKra(QIODevice &destination, const Snapshot &ver
         saved.position = layer.position;
         saved.kind = layer.kind;
         saved.parentUuid = layer.parentUuid;
+        saved.colorLabelIndex = layer.colorLabelIndex;
         if (layer.kind == LayerKind::Paint) {
             const auto pixels = d.execution.readLayerPixels(d.image->handle(), pinned, layer.id, limits.rasterBytes - rasterBytes);
             if (pixels.code != ExecutionCode::Success) return {fileCode(pixels.code), {}, pixels.diagnostic};

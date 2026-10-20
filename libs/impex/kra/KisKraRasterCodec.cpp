@@ -168,13 +168,14 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset)
         std::any_of(paintFlags.begin(), paintFlags.end(), [](QChar flag) { return flag != QLatin1Char('0') && flag != QLatin1Char('1'); })))
         return invalid(QStringLiteral("Invalid KRA paint channel flags"));
     const auto visible = element.attribute(QStringLiteral("visible"));
-    int x = 0, y = 0, opacity = 255;
+    int x = 0, y = 0, opacity = 255, colorLabel = 0;
     const auto locked = element.attribute(QStringLiteral("locked"), QStringLiteral("0"));
     const auto timeline = element.attribute(QStringLiteral("intimeline"), QStringLiteral("0"));
     if ((visible != QLatin1String("0") && visible != QLatin1String("1")) ||
         (locked != QLatin1String("0") && locked != QLatin1String("1")) ||
         (timeline != QLatin1String("0") && timeline != QLatin1String("1")) ||
         !integer(element, QStringLiteral("opacity"), opacity, QStringLiteral("255")) || opacity < 0 || opacity > 255 ||
+        !integer(element, QStringLiteral("colorlabel"), colorLabel, QStringLiteral("0")) ||
         !component(element.attribute(QStringLiteral("filename"))) || !validName(element.attribute(QStringLiteral("name"))) ||
         !integer(element, QStringLiteral("x"), x, QStringLiteral("0")) ||
         !integer(element, QStringLiteral("y"), y, QStringLiteral("0"))) return invalid(QStringLiteral("Invalid KRA layer values"));
@@ -467,15 +468,23 @@ Outcome RasterCodec::validateMetadata(const QByteArray &bytes, const QMap<QStrin
 MetadataOutcome RasterCodec::readImageMetadata(const QByteArray &bytes, const QMap<QString, QByteArray> &files, Limits limits)
 {
     const auto validated = validateMetadata(bytes, files, limits);
-    if (validated.code != Status::Success) return {validated.code, {}, validated.diagnostic};
+    if (validated.code != Status::Success) return {validated.code, {}, validated.diagnostic, {}};
     QDomDocument xml;
     QDomElement image;
     if (bytes.isEmpty()) image = createDescription(xml);
     else description(bytes, xml, image);
     ImageMetadata metadata;
     const auto extracted = extractMetadata(image, files, limits, metadata);
-    if (extracted.code != Status::Success) return {extracted.code, {}, extracted.diagnostic};
-    return {Status::Success, std::move(metadata), {}};
+    if (extracted.code != Status::Success) return {extracted.code, {}, extracted.diagnostic, {}};
+    QList<QDomElement> elements;
+    const auto collected = collectLayerElements(image.firstChildElement(QStringLiteral("layers")), limits.layers, elements);
+    if (collected.code != Status::Success) return {collected.code, {}, collected.diagnostic, {}};
+    QHash<QUuid, int> labels;
+    for (const auto &element : elements) {
+        const QUuid uuid(element.attribute(QStringLiteral("uuid")));
+        if (!uuid.isNull()) labels.insert(uuid, element.attribute(QStringLiteral("colorlabel"), QStringLiteral("0")).toInt());
+    }
+    return {Status::Success, std::move(metadata), {}, std::move(labels)};
 }
 
 LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
@@ -531,6 +540,7 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         layer.opacity = quint8(element.attribute(QStringLiteral("opacity"), QStringLiteral("255")).toUInt());
         layer.userLocked = element.attribute(QStringLiteral("locked"), QStringLiteral("0")) == QLatin1String("1");
         layer.pinnedToTimeline = element.attribute(QStringLiteral("intimeline"), QStringLiteral("0")) == QLatin1String("1");
+        layer.colorLabelIndex = element.attribute(QStringLiteral("colorlabel"), QStringLiteral("0")).toInt();
         const auto paintFlags = element.attribute(QStringLiteral("channellockflags"), QStringLiteral("1111"));
         if (layer.kind == LayerKind::Paint && !paintFlags.isEmpty()) {
             layer.channelWriteMask = 0;
@@ -693,6 +703,7 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         element.setAttribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA"));
         element.setAttribute(QStringLiteral("locked"), layer.userLocked ? QStringLiteral("1") : QStringLiteral("0"));
         element.setAttribute(QStringLiteral("intimeline"), layer.pinnedToTimeline ? QStringLiteral("1") : QStringLiteral("0"));
+        element.setAttribute(QStringLiteral("colorlabel"), layer.colorLabelIndex);
         if (layer.channelWriteMask > 15) return invalid(QStringLiteral("Invalid KRA paint channel mask"));
         if (layer.channelWriteMask != 15) {
             QString paintFlags;

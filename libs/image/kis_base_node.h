@@ -576,7 +576,7 @@ protected:
         Q_UNUSED(value);
     }
 
-    enum class NodePropertyChange { Name, Opacity, Visible, UserLocked, PinnedToTimeline };
+    enum class NodePropertyChange { Name, Opacity, Visible, UserLocked, PinnedToTimeline, ColorLabel };
     /** Adopts a property in its document owner before publishing the node value. */
     virtual void preparePropertyChange(NodePropertyChange property, const QVariant &value) {
         Q_UNUSED(property);

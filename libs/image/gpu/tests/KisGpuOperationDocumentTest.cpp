@@ -101,6 +101,7 @@ private Q_SLOTS:
     void preparedLayerForestsKeepPixelsSelectionAndAtomicHistory();
     void rejectedLayerForestsPreservePendingInputAndHistory();
     void nestedLayerIdentitySurvivesPropertiesHistoryAndRecovery();
+    void colorLabelsPreserveFixedVersionsPendingInputAndRecovery();
     void directHierarchyMovesAdoptTheirActiveRootAtomically();
     void movedSubtreesPreservePixelsSelectionHistoryAndRecovery_data();
     void movedSubtreesPreservePixelsSelectionHistoryAndRecovery();
@@ -899,6 +900,61 @@ void KisGpuOperationDocumentTest::nestedCanvasChangesKeepGroupsDerivedAndRecover
     QCOMPARE(recovered.undo(), Result::Success);
     QCOMPARE(recovered.snapshot()->size, fixed->size);
     QCOMPARE(recovered.redo(), Result::Success);
+}
+
+void KisGpuOperationDocumentTest::colorLabelsPreserveFixedVersionsPendingInputAndRecovery()
+{
+    RasterImage input;
+    input.size = {64, 48};
+    input.layers = {{QStringLiteral("Paint"), true, QUuid(QStringLiteral("{01020304-0506-0708-090a-0b0c0d0e0f10}")), {}},
+                    {QStringLiteral("Group"), true, QUuid(QStringLiteral("{11121314-1516-1718-191a-1b1c1d1e1f20}")), {}}};
+    input.layers[0].parentUuid = input.layers[1].uuid;
+    input.layers[0].colorLabelIndex = 2;
+    input.layers[1].kind = LayerKind::Group;
+    input.layers[1].colorLabelIndex = 6;
+    OperationDocument document(input);
+    const auto fixed = document.snapshot();
+    QVERIFY(!paint(document, {sample(8, 12)}).isNull());
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.writeLayerColorLabel(1, 5), Result::Success);
+    QCOMPARE(document.writeLayerColorLabel(2, 7), Result::Success);
+    QCOMPARE(fixed->layers[0].colorLabelIndex, 2);
+    QCOMPARE(fixed->layers[1].colorLabelIndex, 6);
+    QCOMPARE(document.undoCount(), 0);
+    QCOMPARE(document.redoCount(), 1);
+    QVERIFY(!document.isModified());
+    QCOMPARE(document.redo(), Result::Success);
+    QCOMPARE(document.snapshot()->layers[0].colorLabelIndex, 5);
+    QCOMPARE(document.snapshot()->layers[1].colorLabelIndex, 7);
+    const auto stroke = document.beginStroke(1, Brush{}, 43);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(document.appendSamples(stroke, {sample(20, 20)}), Result::Success);
+    const auto preview = document.preview();
+    QCOMPARE(document.writeLayerColorLabel(1, 3), Result::Success);
+    QCOMPARE(preview->layers[0].colorLabelIndex, 5);
+    QCOMPARE(document.preview()->layers[0].colorLabelIndex, 3);
+    const auto bytes = document.recoveryData();
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        QFile artifact(QDir(results).filePath(QStringLiteral("color-labels.recovery")));
+        QVERIFY(artifact.open(QIODevice::WriteOnly));
+        QCOMPARE(artifact.write(bytes), qint64(bytes.size()));
+    }
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(bytes), Result::Success);
+    QCOMPARE(recovered.recoveryData(), bytes);
+    QCOMPARE(recovered.snapshot()->layers[0].colorLabelIndex, 3);
+    QCOMPARE(recovered.snapshot()->layers[1].colorLabelIndex, 7);
+    QCOMPARE(recovered.preview()->layers[0].colorLabelIndex, 3);
+    QCOMPARE(recovered.writeLayerColorLabel(999, 4), Result::LayerUnavailable);
+    QCOMPARE(recovered.recoveryData(), bytes);
+    QCOMPARE(recovered.cancelStroke(recovered.activeOperation()), Result::Success);
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->layers[0].colorLabelIndex, 3);
+    QCOMPARE(recovered.snapshot()->layers[1].colorLabelIndex, 7);
+    recovered.close();
+    QCOMPARE(recovered.writeLayerColorLabel(1, 4), Result::Closed);
 }
 
 void KisGpuOperationDocumentTest::nestedLayerIdentitySurvivesPropertiesHistoryAndRecovery()

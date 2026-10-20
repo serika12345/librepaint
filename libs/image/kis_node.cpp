@@ -372,6 +372,7 @@ void KisNode::preparePropertyChange(NodePropertyChange property, const QVariant 
     case NodePropertyChange::Visible: result = owner->writeLayerVisible(id, value.toBool()); break;
     case NodePropertyChange::UserLocked: result = owner->writeLayerLocked(id, value.toBool()); break;
     case NodePropertyChange::PinnedToTimeline: result = owner->writeLayerPinnedToTimeline(id, value.toBool()); break;
+    case NodePropertyChange::ColorLabel: result = owner->writeLayerColorLabel(id, value.toInt()); break;
     }
     if (result != Result::Success)
         throw std::runtime_error("GPU layer property write failed: " + std::to_string(int(result)));

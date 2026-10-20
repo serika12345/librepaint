@@ -118,6 +118,7 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         properties.opacity = node->opacity();
         properties.userLocked = node->userLocked();
         properties.pinnedToTimeline = node->isPinnedToTimeline();
+        properties.colorLabelIndex = node->colorLabelIndex();
         properties.position = {node->x(), node->y()};
         const auto flags = paint ? paint->channelLockFlags() : QBitArray();
         if (!flags.isEmpty()) {
@@ -259,6 +260,7 @@ KisImageSP KisImage::cloneGpuNodeImage(const KisNodeList &roots) const
         properties.opacity = source->opacity;
         properties.userLocked = source->userLocked;
         properties.pinnedToTimeline = source->pinnedToTimeline;
+        properties.colorLabelIndex = source->colorLabelIndex;
         properties.channelWriteMask = source->channelWriteMask;
         properties.position = source->position;
         properties.kind = source->kind;
@@ -479,6 +481,8 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
             }
             if (changed()) break;
             if (node->isPinnedToTimeline() != layer.pinnedToTimeline) node->setPinnedToTimeline(layer.pinnedToTimeline);
+            if (changed()) break;
+            if (node->colorLabelIndex() != layer.colorLabelIndex) node->setColorLabelIndex(layer.colorLabelIndex);
             if (changed()) break;
         }
         if (view->gpuImage() != owner) return;

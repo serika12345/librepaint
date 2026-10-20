@@ -213,12 +213,13 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
         }
     }
     versions.append(document.preview());
-    if (format < 29) {
+    if (format < 30) {
         QSet<QByteArray> records;
         for (const auto &version : versions) {
             if (!version) continue;
             for (const auto &layer : version->layers) {
-                Q_ASSERT(layer.kind == LayerKind::Paint && layer.parentUuid.isNull());
+                Q_ASSERT(layer.colorLabelIndex == 0);
+                Q_ASSERT(format >= 29 || (layer.kind == LayerKind::Paint && layer.parentUuid.isNull()));
                 Q_ASSERT(format >= 24 || layer.position.isNull());
                 QByteArray record;
                 QDataStream stream(&record, QIODevice::WriteOnly);
@@ -235,14 +236,16 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                 stream << qint32(layer.position.x()) << qint32(layer.position.y());
                 const auto hierarchyOffset = record.size();
                 stream << quint8(layer.kind) << layer.parentUuid;
+                const auto labelOffset = record.size();
+                stream << qint32(layer.colorLabelIndex);
                 if (records.contains(record)) continue;
                 records.insert(record);
                 qsizetype next = 0;
                 for (;;) {
                     const auto found = payload.indexOf(record, next);
                     if (found < 0) break;
-                    const auto offset = format < 24 ? positionOffset : hierarchyOffset;
-                    payload.remove(found + offset, format < 24 ? 25 : 17);
+                    const auto offset = format < 24 ? positionOffset : format < 29 ? hierarchyOffset : labelOffset;
+                    payload.remove(found + offset, record.size() - offset);
                     next = found + offset;
                 }
             }

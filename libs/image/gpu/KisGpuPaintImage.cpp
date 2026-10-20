@@ -108,6 +108,8 @@ Result PaintImage::writeLayerLocked(LayerId layer, bool locked)
 { return onThread() ? requestAfterWrite(m_d->document->writeLayerLocked(layer, locked)) : Result::InvalidInput; }
 Result PaintImage::writeLayerPinnedToTimeline(LayerId layer, bool pinned)
 { return onThread() ? requestAfterWrite(m_d->document->writeLayerPinnedToTimeline(layer, pinned)) : Result::InvalidInput; }
+Result PaintImage::writeLayerColorLabel(LayerId layer, int index)
+{ return onThread() ? requestAfterWrite(m_d->document->writeLayerColorLabel(layer, index)) : Result::InvalidInput; }
 LayerPixelReferenceSP PaintImage::retainLayerPixels(LayerId layer)
 {
     if (!onThread() || !m_d->handle) return {};
@@ -382,13 +384,13 @@ Result PaintImage::markSaved(const Snapshot &version)
     return result;
 }
 
-Result PaintImage::restoreRecovery(const QByteArray &data)
+Result PaintImage::restoreRecovery(const QByteArray &data, const QHash<QUuid, int> &legacyColorLabels)
 {
     auto &d = *m_d;
     if (!onThread()) return Result::InvalidRecovery;
     if (!d.handle) return Result::Closed;
     auto document = std::make_unique<OperationDocument>(QSize(1, 1), d.limits);
-    if (document->restoreRecovery(data) != Result::Success) return Result::InvalidRecovery;
+    if (document->restoreRecovery(data, legacyColorLabels) != Result::Success) return Result::InvalidRecovery;
     const auto replaced = d.execution.replaceDocument(d.handle, document->preview());
     if (replaced.code != ExecutionCode::Success)
         return replaced.code == ExecutionCode::CapacityExceeded ? Result::CapacityExceeded : Result::InvalidRecovery;

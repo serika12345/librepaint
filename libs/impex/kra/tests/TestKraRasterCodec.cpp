@@ -277,6 +277,7 @@ void TestKraRasterCodec::groupedArchivesPreserveHierarchyPixelsAndSelectedLeaf()
         group.setAttribute(QStringLiteral("selected"), QStringLiteral("false"));
         group.setAttribute(QStringLiteral("visible"), QStringLiteral("1"));
         group.setAttribute(QStringLiteral("opacity"), QStringLiteral("128"));
+        group.setAttribute(QStringLiteral("colorlabel"), level + 3);
         group.setAttribute(QStringLiteral("passthrough"), QStringLiteral("0"));
         auto children = xml.createElement(QStringLiteral("layers"));
         while (!layers.firstChild().isNull()) children.appendChild(layers.firstChild());
@@ -311,7 +312,11 @@ void TestKraRasterCodec::groupedArchivesPreserveHierarchyPixelsAndSelectedLeaf()
     QCOMPARE(opened.document.image.layers[opened.document.image.activeLayer].uuid, selected);
     for (auto &layer : opened.document.image.layers) {
         if (layer.uuid == original.image.layers[0].uuid) layer.name = QStringLiteral("Edited lower red");
-        if (groups.contains(layer.uuid)) layer.opacity = 64;
+        if (groups.contains(layer.uuid)) {
+            QCOMPARE(layer.colorLabelIndex, groups.indexOf(layer.uuid) + 3);
+            layer.opacity = 64;
+            layer.colorLabelIndex = 7;
+        }
     }
     QByteArray saved;
     QBuffer output(&saved);
@@ -320,6 +325,8 @@ void TestKraRasterCodec::groupedArchivesPreserveHierarchyPixelsAndSelectedLeaf()
     const auto reopened = load(saved);
     QVERIFY2(reopened.code == Kra::Status::Success, qPrintable(reopened.diagnostic));
     QCOMPARE(reopened.document.image.layers[reopened.document.image.activeLayer].uuid, selected);
+    for (const auto &layer : reopened.document.image.layers)
+        if (groups.contains(layer.uuid)) QCOMPARE(layer.colorLabelIndex, 7);
     for (const auto &expected : original.image.layers) {
         bool found = false;
         for (const auto &layer : reopened.document.image.layers) {
@@ -536,6 +543,7 @@ void TestKraRasterCodec::layerOpacityAndLockSurviveEditingAndResaving()
     source.image.projectionBackground = {17, 34, 51, 128};
     source.image.layers[0].userLocked = true;
     source.image.layers[0].pinnedToTimeline = true;
+    source.image.layers[0].colorLabelIndex = 5;
     QByteArray bytes;
     QBuffer output(&bytes);
     QVERIFY(output.open(QIODevice::WriteOnly));
@@ -546,9 +554,11 @@ void TestKraRasterCodec::layerOpacityAndLockSurviveEditingAndResaving()
     QCOMPARE(imported.document.image.layers[0].opacity, quint8(128));
     QVERIFY(imported.document.image.layers[0].userLocked);
     QVERIFY(imported.document.image.layers[0].pinnedToTimeline);
+    QCOMPARE(imported.document.image.layers[0].colorLabelIndex, 5);
     auto edited = imported.document;
     edited.image.layers[0].opacity = 64;
     edited.image.layers[0].userLocked = false;
+    edited.image.layers[0].colorLabelIndex = 0;
     QByteArray saved;
     QBuffer destination(&saved);
     QVERIFY(destination.open(QIODevice::WriteOnly));
@@ -559,6 +569,7 @@ void TestKraRasterCodec::layerOpacityAndLockSurviveEditingAndResaving()
     QCOMPARE(reopened.document.image.layers[0].opacity, quint8(64));
     QVERIFY(!reopened.document.image.layers[0].userLocked);
     QVERIFY(reopened.document.image.layers[0].pinnedToTimeline);
+    QCOMPARE(reopened.document.image.layers[0].colorLabelIndex, 0);
     QCOMPARE(reopened.document.image.layers[0].tiles.first().rgba, source.image.layers[0].tiles.first().rgba);
 }
 
@@ -1066,6 +1077,7 @@ void TestKraRasterCodec::malformedPixelsAndProfilesAreAtomic_data()
     QTest::newRow("expanded-raster-capacity") << 6 << Kra::Status::CapacityExceeded;
     QTest::newRow("xml-capacity") << 7 << Kra::Status::CapacityExceeded;
     QTest::newRow("non-srgb-table-curve") << 8 << Kra::Status::UnsupportedData;
+    QTest::newRow("invalid-color-label") << 9 << Kra::Status::InvalidData;
 }
 
 void TestKraRasterCodec::malformedPixelsAndProfilesAreAtomic()
@@ -1089,6 +1101,12 @@ void TestKraRasterCodec::malformedPixelsAndProfilesAreAtomic()
         for (int value = 0; value < 256; ++value)
             curve.append(qRound(std::pow(value / 255.0, 2.2) * 65535));
         files[QStringLiteral("unnamed/annotations/icc")] = QColorSpace(QColorSpace::Primaries::SRgb, curve).iccProfile();
+    }
+    if (change == 9) {
+        QDomDocument xml;
+        QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
+        xml.elementsByTagName(QStringLiteral("layer")).at(0).toElement().setAttribute(QStringLiteral("colorlabel"), QStringLiteral("invalid"));
+        files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
     }
     Kra::Limits limits;
     if (change == 6) limits.rasterBytes = 1;

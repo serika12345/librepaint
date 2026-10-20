@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 29;
+constexpr quint16 FormatVersion = 30;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -183,7 +183,7 @@ QByteArray OperationDocument::recoveryData() const
         if (!withinLimit()) return {};
         for (const auto &layer : state->layers) {
             const auto name = layer.name.toUtf8();
-            if (name.size() > m_limits.recoveryBytes - DigestSize - bytes.size() - 65) return {};
+            if (name.size() > m_limits.recoveryBytes - DigestSize - bytes.size() - 69) return {};
             stream << layer.id << quint32(name.size());
             stream.writeRawData(name.constData(), int(name.size()));
             stream << quint8(layer.visible) << layer.uuid;
@@ -191,6 +191,7 @@ QByteArray OperationDocument::recoveryData() const
             stream << layer.opacity << quint8(layer.userLocked) << quint8(quint8(layer.pinnedToTimeline) | ((15u ^ layer.channelWriteMask) << 1));
             stream << qint32(layer.position.x()) << qint32(layer.position.y());
             stream << quint8(layer.kind) << layer.parentUuid;
+            stream << qint32(layer.colorLabelIndex);
             stream << quint32(layer.operations.size());
             if (!withinLimit() || layer.operations.size() > (m_limits.recoveryBytes - DigestSize - bytes.size()) / 4) return {};
             for (const auto &operation : layer.operations) stream << indices.value(operationPointer(operation));
@@ -235,7 +236,7 @@ QByteArray OperationDocument::recoveryData() const
     return bytes;
 }
 
-Result OperationDocument::restoreRecovery(const QByteArray &data)
+Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QUuid, int> &legacyColorLabels)
 {
     if (m_closed) return Result::Closed;
     if (data.size() > m_limits.recoveryBytes) return Result::CapacityExceeded;
@@ -503,7 +504,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
         if (state->revision() > nextRevision || state->m_modifiedRevision > state->revision() ||
             stateRevisions.contains(state->revision()) ||
             (i > 0 && state->m_modifiedRevision <= previousModifiedRevision) ||
-            !readableCount(stream, layerCount, m_limits.layerCount, format >= 29 ? 65 : format >= 24 ? 48 : 40)) return Result::InvalidRecovery;
+            !readableCount(stream, layerCount, m_limits.layerCount, format >= 30 ? 69 : format >= 29 ? 65 : format >= 24 ? 48 : 40)) return Result::InvalidRecovery;
         stateRevisions.insert(state->revision());
         previousRevision = qMax(previousRevision, state->revision());
         previousModifiedRevision = state->m_modifiedRevision;
@@ -533,6 +534,11 @@ Result OperationDocument::restoreRecovery(const QByteArray &data)
                 if (kind > quint8(LayerKind::Group)) return Result::InvalidRecovery;
                 layer.kind = LayerKind(kind);
             }
+            if (format >= 30) {
+                qint32 label = 0;
+                stream >> label;
+                layer.colorLabelIndex = label;
+            } else layer.colorLabelIndex = legacyColorLabels.value(layer.uuid);
             stream >> count;
             if (visible > 1 || locked > 1 || pinned > (format < 13 ? 1 : 31) || layer.uuid.isNull() ||
                 (layerIdentities.contains(layer.id) && layerIdentities.value(layer.id) != layer.uuid) ||

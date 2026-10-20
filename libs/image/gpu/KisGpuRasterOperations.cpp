@@ -49,6 +49,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         layer.opacity = source.opacity;
         layer.userLocked = source.userLocked;
         layer.pinnedToTimeline = source.pinnedToTimeline;
+        layer.colorLabelIndex = source.colorLabelIndex;
         layer.channelWriteMask = source.channelWriteMask;
         layer.position = source.position;
         layer.kind = source.kind;

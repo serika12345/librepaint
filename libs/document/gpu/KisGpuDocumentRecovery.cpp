@@ -121,8 +121,9 @@ Result PaintDocument::restoreRecovery(const QByteArray &data)
         fileBytes += bytes.size();
         files.insert(name, bytes);
     }
-    if (input.pos() != end || Kra::RasterCodec::validateMetadata(description, files, limits).code != Kra::Status::Success)
-        return Result::InvalidRecovery;
+    if (input.pos() != end) return Result::InvalidRecovery;
+    const auto metadata = Kra::RasterCodec::readImageMetadata(description, files, limits);
+    if (metadata.code != Kra::Status::Success) return Result::InvalidRecovery;
     const auto image = d.image;
     const auto previousPath = d.path;
     const auto previousDescription = d.description;
@@ -138,7 +139,7 @@ Result PaintDocument::restoreRecovery(const QByteArray &data)
     d.path = path;
     d.description = description;
     d.files = std::move(files);
-    const auto result = image->restoreRecovery(model);
+    const auto result = image->restoreRecovery(model, metadata.layerColorLabels);
     adopted = result == Result::Success;
     return result;
 

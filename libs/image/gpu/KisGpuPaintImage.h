@@ -139,6 +139,7 @@ public:
     Result writeLayerOpacity(LayerId layer, quint8 opacity);
     Result writeLayerLocked(LayerId layer, bool locked);
     Result writeLayerPinnedToTimeline(LayerId layer, bool pinned);
+    Result writeLayerColorLabel(LayerId layer, int index);
     LayerId addLayer(const QString &name);
     LayerId addLayer(const QString &name, qsizetype index, bool pinnedToTimeline, const QUuid &parentUuid = {});
     /** Inserts validated committed inputs as one history entry, preserving the
@@ -183,7 +184,7 @@ public:
     /** Records completed file saving; file owners publish their metadata changes. */
     Result markSaved(const Snapshot &version);
     /** Adopts validated logical recovery on the same attachment and notifies readers. */
-    Result restoreRecovery(const QByteArray &data);
+    Result restoreRecovery(const QByteArray &data, const QHash<QUuid, int> &legacyColorLabels = {});
     void close();
 
 Q_SIGNALS:

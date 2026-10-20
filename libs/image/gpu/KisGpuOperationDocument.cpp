@@ -277,7 +277,8 @@ Result OperationDocument::writeLayerProperty(LayerId layer, LayerProperty proper
         return false;
     };
     const auto changesProperty = [&](int index) {
-        return m_layerHistoryChanges[index].layer == layer && m_layerHistoryChanges[index].property == property;
+        return property != LayerProperty::None && m_layerHistoryChanges[index].layer == layer &&
+            m_layerHistoryChanges[index].property == property;
     };
     int first = m_index, last = m_index;
     while (first > 0 && !changesProperty(first) && containsLayer(m_history[first - 1])) --first;
@@ -318,6 +319,8 @@ Result OperationDocument::writeLayerLocked(LayerId layer, bool locked)
 { return writeLayerProperty(layer, LayerProperty::Locked, &Layer::userLocked, locked); }
 Result OperationDocument::writeLayerPinnedToTimeline(LayerId layer, bool pinned)
 { return writeLayerProperty(layer, LayerProperty::PinnedToTimeline, &Layer::pinnedToTimeline, pinned); }
+Result OperationDocument::writeLayerColorLabel(LayerId layer, int index)
+{ return writeLayerProperty(layer, LayerProperty::None, &Layer::colorLabelIndex, index); }
 
 Result OperationDocument::restoreLayerHistoryChange(const LayerHistoryChange &change, bool forward)
 {
@@ -658,6 +661,7 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
         copy.opacity = properties.opacity;
         copy.userLocked = properties.userLocked;
         copy.pinnedToTimeline = properties.pinnedToTimeline;
+        copy.colorLabelIndex = properties.colorLabelIndex;
         copy.channelWriteMask = properties.channelWriteMask;
         copy.position = properties.position;
         copy.parentUuid = properties.parentUuid;

@@ -363,6 +363,7 @@ bool KisBaseNode::collapsed() const
 
 void KisBaseNode::setColorLabelIndex(int index)
 {
+    preparePropertyChange(NodePropertyChange::ColorLabel, index);
     const int currentLabel = colorLabelIndex();
 
     if (currentLabel == index) return;

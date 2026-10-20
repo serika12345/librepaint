@@ -1063,6 +1063,7 @@ void TestNode::testLayerPropertiesPreservePublicHistorySemantics()
     node->setVisible(false);
     node->setLocked(true);
     layer->setPinnedToTimeline(true);
+    node->setColorLabel(5);
     Document publicDocument(document.data(), false);
     publicDocument.refreshProjection();
     QCOMPARE(publicDocument.pixelData(8, 12, 1, 1), QByteArray(4, '\0'));
@@ -1078,6 +1079,7 @@ void TestNode::testLayerPropertiesPreservePublicHistorySemantics()
     QVERIFY(!node->visible());
     QVERIFY(node->locked());
     QVERIFY(layer->isPinnedToTimeline());
+    QCOMPARE(node->colorLabel(), 5);
     QCOMPARE(node->pixelData(8, 12, 1, 1), after);
     QCOMPARE(document->undoStack()->index(), 1);
     QCOMPARE(document->undoStack()->count(), 1);
@@ -1090,6 +1092,7 @@ void TestNode::testLayerPropertiesPreservePublicHistorySemantics()
     QVERIFY(!node->visible());
     QVERIFY(node->locked());
     QVERIFY(layer->isPinnedToTimeline());
+    QCOMPARE(node->colorLabel(), 5);
     QCOMPARE(node->pixelData(8, 12, 1, 1), before);
     QCOMPARE(document->undoStack()->count(), 1);
     QVERIFY(!document->isModified());
@@ -1108,6 +1111,7 @@ void TestNode::testLayerPropertiesPreservePublicHistorySemantics()
         QVERIFY(!loaded->visible());
         QVERIFY(loaded->userLocked());
         QVERIFY(loaded->isPinnedToTimeline());
+        QCOMPARE(loaded->colorLabelIndex(), 5);
     }
 }
 

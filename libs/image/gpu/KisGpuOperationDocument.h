@@ -201,6 +201,8 @@ struct RasterLayer
     QPoint position{};
     LayerKind kind = LayerKind::Paint;
     QUuid parentUuid{};
+    /** Label identity; its displayed color is owned by the UI configuration. */
+    int colorLabelIndex = 0;
 };
 /** Validates parent identities, group parents and cycles. Null identities are
  * assigned during raster import and can only be referenced after assignment.
@@ -230,6 +232,7 @@ struct Layer
     QPoint position{};
     LayerKind kind = LayerKind::Paint;
     QUuid parentUuid{};
+    int colorLabelIndex = 0;
 };
 
 /** Immutable RGBA8/sRGB document version with paint layers and group ownership. */
@@ -457,6 +460,7 @@ public:
     Result writeLayerOpacity(LayerId layer, quint8 opacity);
     Result writeLayerLocked(LayerId layer, bool locked);
     Result writeLayerPinnedToTimeline(LayerId layer, bool pinned);
+    Result writeLayerColorLabel(LayerId layer, int index);
     Result renameLayer(LayerId layer, const QString &name);
     Result renameLayer(LayerId layer, const QString &name, PropertyHistory history);
     /** Moves within the bottom-to-top layer list, preserving the selected identity. */
@@ -512,7 +516,10 @@ public:
     /** Bounded recovery of logical versions, both history branches and pending input. */
     QByteArray recoveryData() const;
     /** Validates the whole record before replacing state; starts a new operation identity. */
-    Result restoreRecovery(const QByteArray &data);
+    /** Records predating color labels adopt retained format values by UUID.
+     * Labels present in the record take precedence over these values.
+     */
+    Result restoreRecovery(const QByteArray &data, const QHash<QUuid, int> &legacyColorLabels = {});
     /** Releases uncommitted input and history; the last committed snapshot remains available. */
     void close();
 
