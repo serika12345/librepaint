@@ -89,6 +89,8 @@ struct TileRenderer::Private
     QWeakPointer<const RenderedVersion> coverageVersion;
     LayerId coverageLayer = 0;
     Detail::Tiles coverage;
+    QWeakPointer<const ProjectedVersion> backdropVersion;
+    Detail::Tiles projectionBackdrops;
 
     Private(DevicePtr device, qsizetype byteBudget);
     Detail::NativeComputePipeline createPipeline(const QString &path);

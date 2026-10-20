@@ -223,6 +223,14 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         return inputs.first().opacity == 255 && inputs.first().channelMask == 15 && (inputs.size() > 1 || background || data->directLayerProjection ||
                                                 !inputs.first().pixels->mayContainHiddenRgb) ? 1 : 0;
     };
+    const bool cachedBase = !group && base && d.backdropVersion.toStrongRef() == base &&
+        base->m_data->directLayerProjection == data->directLayerProjection;
+    const Layer *topLayer = nullptr;
+    if (!group) for (const auto child : children)
+        if (child->visible && child->opacity) topLayer = child;
+    const bool keepBackdrop = !group && !document->document()->isCommitted() && topLayer &&
+        topLayer->id == document->document()->activeLayer && topLayer->kind == LayerKind::Paint;
+    Tiles reusedBackdrops, nextBackdrops;
     qsizetype required = 0;
     for (auto tile = data->inputs.cbegin(); tile != data->inputs.cend(); ++tile) {
         if (base && base->m_data->directLayerProjection == data->directLayerProjection &&
@@ -231,8 +239,16 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         } else if (tile.value().size() == 1 && firstComposition(tile.value()) == 1) {
             data->tiles[tile.key()] = tile.value().first().pixels;
         } else {
-            const auto jobs = tile.value().size() - firstComposition(tile.value());
-            required += std::min<qsizetype>(2, jobs);
+            const auto backdrop = cachedBase ? d.projectionBackdrops.value(tile.key()) : std::shared_ptr<Tile>{};
+            const auto previous = base ? base->m_data->inputs.value(tile.key()) : QList<ProjectionInput>{};
+            if (backdrop && tile.value().size() > 1 && previous.size() == tile.value().size() &&
+                std::equal(tile.value().cbegin(), tile.value().cend() - 1, previous.cbegin())) {
+                reusedBackdrops[tile.key()] = backdrop;
+                ++required;
+            } else {
+                const auto jobs = tile.value().size() - firstComposition(tile.value());
+                required += std::min<qsizetype>(2, jobs);
+            }
         }
     }
     if (!d.ensureTileCapacity(required)) {
@@ -242,18 +258,22 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
     for (auto tile = data->inputs.cbegin(); tile != data->inputs.cend(); ++tile) {
         if (data->tiles.contains(tile.key())) continue;
         const auto firstJob = firstComposition(tile.value());
-        const auto jobCount = tile.value().size() - firstJob;
+        const auto backdrop = reusedBackdrops.value(tile.key());
+        const auto start = backdrop ? tile.value().size() - 1 : firstJob;
+        const auto jobCount = tile.value().size() - start;
         const auto a = d.allocateTile();
         const auto b = jobCount > 1 ? d.allocateTile() : std::shared_ptr<Tile>{};
         if (!a || (jobCount > 1 && !b)) {
             return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection allocation failed")};
         }
-        auto input = firstJob ? tile.value().first().pixels : std::shared_ptr<Tile>{};
-        for (qsizetype i = firstJob; i < tile.value().size(); ++i) {
+        auto input = backdrop ? backdrop : firstJob ? tile.value().first().pixels : std::shared_ptr<Tile>{};
+        for (qsizetype i = start; i < tile.value().size(); ++i) {
+            if (keepBackdrop && tile.value().size() > 1 && i == tile.value().size() - 1)
+                nextBackdrops[tile.key()] = input;
             CompositeJob job;
             job.base = input;
             job.layer = tile.value()[i].pixels;
-            job.output = (i - firstJob) % 2 ? b : a;
+            job.output = (i - start) % 2 ? b : a;
             const float opacity = float(tile.value()[i].opacity) / 255.0f;
             std::memcpy(&job.values.opacityBits, &opacity, sizeof(opacity));
             job.values.channelMask = tile.value()[i].channelMask;
@@ -292,6 +312,16 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
     }
-    return {RenderOutcome::Recorded, ProjectedSnapshot(new ProjectedVersion(data)), {}};
+    const ProjectedSnapshot result(new ProjectedVersion(data));
+    if (!group) {
+        if (keepBackdrop && cachedBase && d.backdropVersion.toStrongRef() == base) {
+            for (auto tile = d.projectionBackdrops.cbegin(); tile != d.projectionBackdrops.cend(); ++tile)
+                if (data->tiles.contains(tile.key()) && data->inputs.value(tile.key()) == base->m_data->inputs.value(tile.key()))
+                    nextBackdrops[tile.key()] = tile.value();
+        }
+        d.projectionBackdrops = std::move(nextBackdrops);
+        d.backdropVersion = keepBackdrop ? result : ProjectedSnapshot{};
+    }
+    return {RenderOutcome::Recorded, result, {}};
 }
 }

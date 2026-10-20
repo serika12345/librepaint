@@ -84,6 +84,10 @@ bool TileRenderer::Private::ensureTileCapacity(qsizetype count)
         coverageVersion.clear();
         coverageLayer = 0;
     }
+    if (backdropVersion.isNull() || count > (budget->limit - budget->used) / TileBytes) {
+        projectionBackdrops.clear();
+        backdropVersion.clear();
+    }
     return count <= (budget->limit - budget->used) / TileBytes;
 }
 

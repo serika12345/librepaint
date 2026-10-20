@@ -35,6 +35,8 @@ private Q_SLOTS:
     void partialLayerOpacityComposesOverTransparency();
     void normalProjectionPreservesBinary32Rounding_data();
     void normalProjectionPreservesBinary32Rounding();
+    void previewProjectionTracksBackgroundPropertiesAndRetainedPixels();
+    void switchingDocumentsReleasesPreviewDerivedPixelsAtCapacity();
     void roundBrushProducesRgbaPixelsOnTheGpu();
     void solidFiguresPreserveFillOutlineHistoryAndRecovery_data();
     void solidFiguresPreserveFillOutlineHistoryAndRecovery();
@@ -663,6 +665,86 @@ void KisGpuTileRendererTest::normalProjectionPreservesBinary32Rounding()
     }
     QCOMPARE(actual.size(), RgbaTile::ByteCount);
     QCOMPARE(QCryptographicHash::hash(actual, QCryptographicHash::Sha256).toHex(), expectedHash);
+}
+
+void KisGpuTileRendererTest::previewProjectionTracksBackgroundPropertiesAndRetainedPixels()
+{
+    RasterImage input;
+    input.size = {64, 64};
+    for (const auto &rgba : {"255997ad", "c9295d89", "11d34dbd"}) {
+        RasterLayer layer;
+        layer.tiles = {{{0, 0}, QByteArray::fromHex(rgba).repeated(RgbaTile::ByteCount / 4)}};
+        input.layers.append(layer);
+    }
+    input.activeLayer = 2;
+    OperationDocument document(input);
+    Brush brush;
+    brush.rgba = {73, 149, 231, 128};
+    const auto stroke = document.beginStroke(document.activeLayer(), brush, 23);
+    TileRenderer renderer(m_device);
+    RenderedSnapshot rendered;
+    ProjectedSnapshot projected, retained;
+    QByteArray retainedPixels;
+    for (int step = 0; step < 5; ++step) {
+        QCOMPARE(document.appendSamples(stroke, {{{16.0 + step * 4, 24}, 1}}), Result::Success);
+        if (step == 2) QCOMPARE(document.writeLayerOpacity(document.snapshot()->layers.first().id, 137), Result::Success);
+        if (step == 3) QCOMPARE(document.writeLayerProjectionMask(document.snapshot()->layers[1].id, 9), Result::Success);
+        rendered = render(renderer, document.preview(), rendered);
+        QVERIFY(rendered);
+        projected = project(renderer, rendered, {0, 0, 64, 64}, projected);
+        QVERIFY(projected);
+        const auto actual = readBuffer(projected->tiles().first().pixels);
+        TileRenderer independent(m_device);
+        const auto fresh = project(independent, render(independent, document.preview()), {0, 0, 64, 64});
+        QVERIFY(fresh);
+        QCOMPARE(actual, readBuffer(fresh->tiles().first().pixels));
+        if (!retained) {
+            retained = projected;
+            retainedPixels = actual;
+        }
+        QCOMPARE(readBuffer(retained->tiles().first().pixels), retainedPixels);
+    }
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    const auto committed = project(renderer, render(renderer, document.snapshot(), rendered), {0, 0, 64, 64}, projected);
+    QVERIFY(committed);
+    QCOMPARE(readBuffer(committed->tiles().first().pixels), readBuffer(projected->tiles().first().pixels));
+}
+
+void KisGpuTileRendererTest::switchingDocumentsReleasesPreviewDerivedPixelsAtCapacity()
+{
+    const auto raster = [](int count) {
+        RasterImage image;
+        image.size = {64, 64};
+        image.activeLayer = count - 1;
+        for (int index = 0; index < count; ++index) {
+            RasterLayer layer;
+            layer.tiles = {{{0, 0}, QByteArray::fromHex("255997ad").repeated(RgbaTile::ByteCount / 4)}};
+            image.layers.append(layer);
+        }
+        return image;
+    };
+    OperationDocument first(raster(3));
+    Brush brush;
+    const auto stroke = first.beginStroke(first.activeLayer(), brush, 29);
+    QCOMPARE(first.appendSamples(stroke, {{{512, 512}, 1}}), Result::Success);
+    TileRenderer renderer(m_device, 10 * TileRenderer::TileBytes);
+    const auto commands = m_device->beginCommands();
+    QVERIFY(commands);
+    QList<LayerId> layers;
+    for (const auto &layer : first.preview()->layers) layers.append(layer.id);
+    const auto preview = renderer.recordRegion(commands, first.preview(), {0, 0, 64, 64}, layers);
+    QCOMPARE(preview.code, RenderOutcome::Recorded);
+    const auto composed = renderer.compose(commands, preview.version, {0, 0, 64, 64});
+    QCOMPARE(composed.code, RenderOutcome::Recorded);
+    QVERIFY(m_device->submitCommands(true));
+    const auto retainedPixels = readBuffer(composed.version->tiles().first().pixels);
+    OperationDocument second(raster(4));
+    const auto rendered = render(renderer, second.snapshot());
+    QVERIFY(rendered);
+    const auto switched = project(renderer, rendered, {0, 0, 64, 64});
+    QVERIFY2(switched, "Preview-derived pixels must yield capacity to another document");
+    QCOMPARE(readBuffer(composed.version->tiles().first().pixels), retainedPixels);
+    QVERIFY(renderer.residentBytes() <= 10 * TileRenderer::TileBytes);
 }
 
 void KisGpuTileRendererTest::partialLayerOpacityComposesOverTransparency_data()

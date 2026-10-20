@@ -113,6 +113,7 @@ int main(int argc, char **argv)
         {QStringLiteral("frames"), "Measured input frames", "count", "240"},
         {QStringLiteral("warmup"), "Input frames before measurement", "count", "32"},
         {QStringLiteral("history-strokes"), "Retained background strokes", "count", "250"},
+        {QStringLiteral("paint-layer"), "Zero-based bottom-to-top drawing layer index", "index", "0"},
         {QStringLiteral("maximum-p95-ms"), "Require CPU submission and GPU P95 within this budget", "milliseconds"},
         {QStringLiteral("output"), "Write the measurements and final image digest as JSON", "file"}
     });
@@ -143,6 +144,7 @@ int main(int argc, char **argv)
         require(!paced || (!parser.isSet(QStringLiteral("frames")) && !parser.isSet(QStringLiteral("warmup"))),
                 QStringLiteral("Real-time input uses seconds instead of frame counts"));
         const bool highLoad = parser.isSet(QStringLiteral("high-load"));
+        const int paintLayer = count(QStringLiteral("paint-layer"), 0, highLoad ? 23 : 0);
         const bool offscreen = parser.isSet(QStringLiteral("offscreen"));
         QString diagnostic;
         const bool timestampQueries = parser.isSet(QStringLiteral("gpu-timestamps"));
@@ -156,6 +158,7 @@ int main(int argc, char **argv)
             require(QTest::qWaitForWindowExposed(&window), QStringLiteral("The native benchmark window must be exposed"));
         }
         RasterImage initial;
+        initial.activeLayer = paintLayer;
         initial.size = highLoad ? QSize(4096, 4096) : QSize(2048, 2048);
         const QRect viewport = highLoad ? QRect(1536, 1536, 1024, 1024) : QRect(0, 0, 512, 512);
         for (int index = 0; index < (highLoad ? 24 : 1); ++index) {
@@ -393,7 +396,7 @@ int main(int argc, char **argv)
             {"newestInputToSubmissionMs", array(newestInputAges)},
             {"oldestInputToSubmissionMs", array(oldestInputAges)}, {"pendingInputSamples", array(pendingCounts)},
             {"documentSize", QJsonArray{document.snapshot()->size.width(), document.snapshot()->size.height()}},
-            {"layerCount", document.snapshot()->layers.size()}, {"brushDiameter", brush.diameter},
+            {"layerCount", document.snapshot()->layers.size()}, {"paintLayerIndex", paintLayer}, {"brushDiameter", brush.diameter},
             {"brushSpacing", brush.spacing}, {"brushRgba", QJsonArray{20, 80, 160, 128}},
             {"initialRasterTiles", highLoad ? 384 : 0}, {"gpuTileBudgetBytes", (highLoad ? 512 : 128) * 1024 * 1024},
             {"viewport", QJsonArray{viewport.x(), viewport.y(), viewport.width(), viewport.height()}},
