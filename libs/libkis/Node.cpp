@@ -203,12 +203,15 @@ void Node::setBlendingMode(QString value)
 {
     if (!d->node) return;
     if (const auto owner = d->image->gpuImage()) {
-        if (value != COMPOSITE_OVER && value != COMPOSITE_MULT && value != COMPOSITE_SCREEN) return;
+        if (value != COMPOSITE_OVER && value != COMPOSITE_MULT && value != COMPOSITE_SCREEN &&
+            value != COMPOSITE_DARKEN && value != COMPOSITE_LIGHTEN) return;
         for (const auto &layer : owner->operations().snapshot()->layers)
             if (layer.uuid == d->node->uuid()) {
-                owner->setLayerBlendMode(layer.id, value == COMPOSITE_MULT ?
-                    LibrePaint::Image::Gpu::LayerBlendMode::Multiply : value == COMPOSITE_SCREEN ?
-                    LibrePaint::Image::Gpu::LayerBlendMode::Screen : LibrePaint::Image::Gpu::LayerBlendMode::Normal);
+                owner->setLayerBlendMode(layer.id,
+                    value == COMPOSITE_MULT ? LibrePaint::Image::Gpu::LayerBlendMode::Multiply :
+                    value == COMPOSITE_SCREEN ? LibrePaint::Image::Gpu::LayerBlendMode::Screen :
+                    value == COMPOSITE_DARKEN ? LibrePaint::Image::Gpu::LayerBlendMode::Darken :
+                    value == COMPOSITE_LIGHTEN ? LibrePaint::Image::Gpu::LayerBlendMode::Lighten : LibrePaint::Image::Gpu::LayerBlendMode::Normal);
                 return;
             }
         return;

@@ -1048,7 +1048,7 @@ Result OperationDocument::setLayerPassThrough(LayerId layer, bool enabled, Prope
 
 Result OperationDocument::writeLayerBlendMode(LayerId layer, LayerBlendMode mode)
 {
-    if (mode != LayerBlendMode::Normal && mode != LayerBlendMode::Multiply && mode != LayerBlendMode::Screen) return Result::InvalidInput;
+    if (mode > LayerBlendMode::Lighten) return Result::InvalidInput;
     return writeLayerProperty(layer, LayerProperty::BlendMode, &Layer::blendMode, mode);
 }
 
@@ -1056,7 +1056,7 @@ Result OperationDocument::setLayerBlendMode(LayerId layer, LayerBlendMode mode, 
 {
     const auto status = checkMutation();
     if (status != Result::Success) return status;
-    if ((mode != LayerBlendMode::Normal && mode != LayerBlendMode::Multiply && mode != LayerBlendMode::Screen) ||
+    if (mode > LayerBlendMode::Lighten ||
         (history != PropertyHistory::Separate && history != PropertyHistory::MergeConsecutive)) return Result::InvalidInput;
     const auto index = layerIndex(layer);
     if (index < 0) return Result::LayerUnavailable;

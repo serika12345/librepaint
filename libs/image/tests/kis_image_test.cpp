@@ -237,6 +237,8 @@ void KisImageTest::testGpuInsertionPreservesSupportedStateAndRejectsUnrepresente
     QTest::newRow("unsupported-blend") << 0;
     QTest::newRow("multiply-blend") << 1;
     QTest::newRow("screen-blend") << 8;
+    QTest::newRow("darken-blend") << 9;
+    QTest::newRow("lighten-blend") << 10;
     QTest::newRow("animation") << 2;
     QTest::newRow("layer-style") << 3;
     QTest::newRow("composition-channels") << 4;
@@ -263,6 +265,8 @@ void KisImageTest::testGpuInsertionPreservesSupportedStateAndRejectsUnrepresente
     if (property == 0) layer->setCompositeOpId(COMPOSITE_OVERLAY);
     if (property == 1) layer->setCompositeOpId(COMPOSITE_MULT);
     if (property == 8) layer->setCompositeOpId(COMPOSITE_SCREEN);
+    if (property == 9) layer->setCompositeOpId(COMPOSITE_DARKEN);
+    if (property == 10) layer->setCompositeOpId(COMPOSITE_LIGHTEN);
     if (property == 2) layer->enableAnimation();
     if (property == 3) {
         auto style = KisPSDLayerStyleSP::create();
@@ -282,13 +286,14 @@ void KisImageTest::testGpuInsertionPreservesSupportedStateAndRejectsUnrepresente
     const auto serialized = owner->operations().recoveryData();
     QByteArray retained(4, Qt::Uninitialized);
     pixels->readBytes(reinterpret_cast<quint8*>(retained.data()), 5 + layer->x(), 7 + layer->y(), 1, 1);
-    if (property == 1 || property == 8 || property == 4 || property == 5) {
+    if (property == 1 || property == 8 || property == 9 || property == 10 || property == 4 || property == 5) {
         QVERIFY(image->insertGpuLayer(layer, 0));
         QCOMPARE(image->root()->childCount(), 2U);
         QCOMPARE(owner->operations().undoCount(), 1);
         QCOMPARE(layer->channelFlags(), channels);
-        const quint8 expectedMask = (property == 1 || property == 8) ? 15 : property == 4 ? 11 : 7;
-        const auto expectedMode = property == 1 ? Gpu::LayerBlendMode::Multiply : property == 8 ? Gpu::LayerBlendMode::Screen : Gpu::LayerBlendMode::Normal;
+        const quint8 expectedMask = (property == 1 || property == 8 || property == 9 || property == 10) ? 15 : property == 4 ? 11 : 7;
+        const auto expectedMode = property == 1 ? Gpu::LayerBlendMode::Multiply : property == 8 ? Gpu::LayerBlendMode::Screen :
+            property == 9 ? Gpu::LayerBlendMode::Darken : property == 10 ? Gpu::LayerBlendMode::Lighten : Gpu::LayerBlendMode::Normal;
         QCOMPARE(owner->operations().snapshot()->layers.first().blendMode, expectedMode);
         QCOMPARE(owner->operations().snapshot()->layers.first().projectionChannelMask, expectedMask);
         QCOMPARE(owner->readRgbaPixels(owner->operations().snapshot()->layers.first().id, {5, 7, 1, 1}, 4).bytes,

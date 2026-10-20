@@ -130,9 +130,9 @@ void KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProje
     QTest::addColumn<bool>("nested");
     QTest::addColumn<bool>("passThrough");
     QTest::addColumn<int>("blendMode");
-    for (int mode : {0, 1, 2}) for (bool nested : {false, true}) for (bool passThrough : {false, true}) {
+    for (int mode : {0, 1, 2, 3, 4}) for (bool nested : {false, true}) for (bool passThrough : {false, true}) {
         const QByteArray tag = QByteArray(nested ? "nested" : "group") + (passThrough ? "-pass-through" : "") +
-            (mode == 1 ? "-multiply" : mode == 2 ? "-screen" : "");
+            (mode == 1 ? "-multiply" : mode == 2 ? "-screen" : mode == 3 ? "-darken" : mode == 4 ? "-lighten" : "");
         QTest::newRow(tag.constData()) << nested << passThrough << mode;
     }
 }
@@ -175,7 +175,7 @@ void KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProje
     const auto fixed = image->operations().snapshot();
     const auto expected = execution.readProjectionImage(image->handle(), fixed, 64 * 48 * 4);
     QVERIFY2(expected.code == ExecutionCode::Success, qPrintable(expected.diagnostic));
-    QCOMPARE(expected.image.pixelColor(12, 9), blendMode == 2 ? (nested ? QColor(37, 131, 151, 255) : QColor(37, 172, 151, 255)) :
+    QCOMPARE(expected.image.pixelColor(12, 9), (blendMode == 2 || blendMode == 4) ? (nested ? QColor(37, 131, 151, 255) : QColor(37, 172, 151, 255)) :
              blended ? (nested ? QColor(28, 89, 113, 255) : QColor(18, 89, 75, 255)) :
              nested ? QColor(0, 64, 191, 255) : QColor(0, 128, 127, 255));
     QCOMPARE(image->setLayerOpacity(3, 64), Result::Success);
@@ -193,7 +193,8 @@ void KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProje
     const auto destination = results.isEmpty() ? directory.path() : results;
     QVERIFY(QDir().mkpath(destination));
     const QString stem = QStringLiteral("hierarchy-%1%2").arg(nested ? QStringLiteral("nested") : QStringLiteral("group"))
-        .arg(passThrough ? QStringLiteral("-pass-through") : QString()) + (blendMode == 1 ? QStringLiteral("-multiply") : blendMode == 2 ? QStringLiteral("-screen") : QString());
+        .arg(passThrough ? QStringLiteral("-pass-through") : QString()) + (blendMode == 1 ? QStringLiteral("-multiply") : blendMode == 2 ? QStringLiteral("-screen") :
+        blendMode == 3 ? QStringLiteral("-darken") : blendMode == 4 ? QStringLiteral("-lighten") : QString());
     const auto path = QDir(destination).filePath(stem + QStringLiteral(".kra"));
     const auto saved = document.saveKra(path, fixed);
     QVERIFY2(saved.code == FileCode::Success, qPrintable(saved.diagnostic));

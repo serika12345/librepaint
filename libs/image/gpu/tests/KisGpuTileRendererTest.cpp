@@ -17,6 +17,7 @@
 
 #include "KisGpuMultiplyProjectionFixture_p.h"
 #include "KisGpuScreenProjectionFixture_p.h"
+#include "KisGpuMinMaxProjectionFixture_p.h"
 
 using namespace LibrePaint::Image::Gpu;
 using LibrePaint::Image::Gpu::Test::legacyRecovery;
@@ -834,9 +835,11 @@ void KisGpuTileRendererTest::separableLayerProjectionMatchesNativePixels_data()
     QTest::addColumn<bool>("implicit");
     QTest::addColumn<QByteArray>("expected");
     QTest::addColumn<int>("blendMode");
-    for (int mode : {1, 2}) {
+    for (int mode : {1, 2, 3, 4}) {
         const auto references = mode == 1 ? LibrePaint::Image::Gpu::Test::multiplyProjectionReferences() :
-            LibrePaint::Image::Gpu::Test::screenProjectionReferences();
+            mode == 2 ? LibrePaint::Image::Gpu::Test::screenProjectionReferences() :
+            mode == 3 ? LibrePaint::Image::Gpu::Test::darkenProjectionReferences() :
+            LibrePaint::Image::Gpu::Test::lightenProjectionReferences();
         qsizetype row = 0;
         for (int destinationAlpha : {0, 173, 255}) for (int sourceAlpha : {0, 137, 255})
         for (int opacity : {137, 255}) for (int mask : {15, 9, 6, 0}) {

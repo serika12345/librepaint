@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 35;
+constexpr quint16 FormatVersion = 36;
 // Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
 constexpr quint8 LayerProperties = 254;
@@ -278,6 +278,8 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
     if (magic != Magic || format < 9 || format > FormatVersion || width <= 0 || height <= 0 ||
         width > CoordinateLimit || height > CoordinateLimit || savedRevision > nextRevision ||
         !readableCount(stream, tileCount, payload.size(), 12)) return Result::InvalidRecovery;
+    const auto maximumBlendMode = format >= 36 ? LayerBlendMode::Lighten :
+        format >= 35 ? LayerBlendMode::Screen : LayerBlendMode::Multiply;
     const quint64 retainedTileLimit = quint64(m_limits.rasterBytes / RgbaTile::ByteCount) * (HistoryLimit + 1);
     if (tileCount > retainedTileLimit) return Result::CapacityExceeded;
     QList<QSharedPointer<const RasterTile>> tiles;
@@ -575,7 +577,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
             if (format >= 34) {
                 quint8 mode = 0;
                 stream >> mode;
-                if (mode > quint8(format >= 35 ? LayerBlendMode::Screen : LayerBlendMode::Multiply)) return Result::InvalidRecovery;
+                if (mode > quint8(maximumBlendMode)) return Result::InvalidRecovery;
                 layer.blendMode = LayerBlendMode(mode);
             }
             stream >> count;
@@ -729,8 +731,8 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
                     if ((property == LayerProperty::ChannelMask || property == LayerProperty::ProjectionMask) &&
                         (old > 15 || current > 15)) return false;
                     if (property == LayerProperty::BlendMode &&
-                        (old > quint8(format >= 35 ? LayerBlendMode::Screen : LayerBlendMode::Multiply) ||
-                         current > quint8(format >= 35 ? LayerBlendMode::Screen : LayerBlendMode::Multiply))) return false;
+                        (old > quint8(maximumBlendMode) ||
+                         current > quint8(maximumBlendMode))) return false;
                     before = QVariant::fromValue(old);
                     after = QVariant::fromValue(current);
                 } else {

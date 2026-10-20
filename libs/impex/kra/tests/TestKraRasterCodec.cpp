@@ -638,7 +638,7 @@ void TestKraRasterCodec::channelProtectionSurvivesEditingAndResaving()
 
 void TestKraRasterCodec::layerBlendModesSurviveEditingAndResaving()
 {
-    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen}) {
+    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken, LayerBlendMode::Lighten}) {
         auto source = document();
         RasterLayer group{QStringLiteral("Group"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}};
         group.kind = LayerKind::Group;
@@ -667,7 +667,7 @@ void TestKraRasterCodec::layerBlendModesSurviveEditingAndResaving()
         const auto reopened = load(saved);
         QCOMPARE(reopened.code, Kra::Status::Success);
         for (const auto &layer : reopened.document.image.layers) QCOMPARE(layer.blendMode, LayerBlendMode::Normal);
-        edited.image.layers[0].blendMode = LayerBlendMode(3);
+        edited.image.layers[0].blendMode = LayerBlendMode(5);
         const auto retained = saved;
         QCOMPARE(Kra::RasterCodec::write(destination, edited, merged(source.image.size)).code, Kra::Status::InvalidData);
         QCOMPARE(saved, retained);

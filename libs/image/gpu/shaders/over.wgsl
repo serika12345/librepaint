@@ -142,7 +142,13 @@ fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, ma
     for (var channel = 0u; channel < 3u; channel += 1u) {
         if ((mask & (1u << channel)) == 0u) { continue; }
         let multiplied = multiplyByte(source[channel], destination[channel]);
-        let product = select(multiplied, source[channel] + destination[channel] - multiplied, mode == 2u);
+        var product = multiplied;
+        switch mode {
+            case 2u: { product = source[channel] + destination[channel] - multiplied; }
+            case 3u: { product = min(source[channel], destination[channel]); }
+            case 4u: { product = max(source[channel], destination[channel]); }
+            default: {}
+        }
         if (locked || oldAlpha == 255u) {
             if (oldAlpha != 0u) { destination[channel] = blendByte(destination[channel], product, alpha); }
         } else if (oldAlpha == 0u) { destination[channel] = source[channel]; }

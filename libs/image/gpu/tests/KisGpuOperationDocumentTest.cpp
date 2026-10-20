@@ -16,6 +16,7 @@
 #include "KisGpuLegacyRecoveryFixture_p.h"
 #include "KisGpuMultiplyProjectionFixture_p.h"
 #include "KisGpuScreenProjectionFixture_p.h"
+#include "KisGpuMinMaxProjectionFixture_p.h"
 
 using namespace LibrePaint::Image::Gpu;
 using LibrePaint::Image::Gpu::Test::legacyRecovery;
@@ -1018,6 +1019,8 @@ void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInputAn
     QTest::addColumn<int>("blendMode");
     QTest::newRow("multiply") << int(LayerBlendMode::Multiply);
     QTest::newRow("screen") << int(LayerBlendMode::Screen);
+    QTest::newRow("darken") << int(LayerBlendMode::Darken);
+    QTest::newRow("lighten") << int(LayerBlendMode::Lighten);
 }
 
 void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInputAndRecovery()
@@ -1049,7 +1052,9 @@ void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInputAn
     const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
     if (!results.isEmpty()) {
         QVERIFY(QDir().mkpath(results));
-        QFile artifact(QDir(results).filePath((mode == LayerBlendMode::Screen ? QStringLiteral("layer-screen-mode.recovery") : QStringLiteral("layer-blend-modes.recovery"))));
+        QFile artifact(QDir(results).filePath((mode == LayerBlendMode::Screen ? QStringLiteral("layer-screen-mode.recovery") :
+            mode == LayerBlendMode::Darken ? QStringLiteral("layer-darken-mode.recovery") :
+            mode == LayerBlendMode::Lighten ? QStringLiteral("layer-lighten-mode.recovery") : QStringLiteral("layer-blend-modes.recovery"))));
         QVERIFY(artifact.open(QIODevice::WriteOnly));
         QCOMPARE(artifact.write(bytes), bytes.size());
     }
@@ -1063,9 +1068,9 @@ void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInputAn
     QCOMPARE(recovered.redo(), Result::Success);
     QCOMPARE(recovered.snapshot()->layers[1].blendMode, mode);
     const auto current = recovered.recoveryData();
-    if (mode == LayerBlendMode::Screen) {
+    if (mode != LayerBlendMode::Multiply) {
         auto earlier = current.chopped(32);
-        earlier[5] = 34;
+        earlier[5] = mode == LayerBlendMode::Screen ? 34 : 35;
         earlier.append(QCryptographicHash::hash(earlier, QCryptographicHash::Sha256));
         QCOMPARE(recovered.restoreRecovery(earlier), Result::InvalidRecovery);
         QCOMPARE(recovered.recoveryData(), current);
@@ -1084,12 +1089,12 @@ void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInputAn
     auto invalid = current.chopped(32);
     const auto offset = invalid.indexOf(prefix);
     QVERIFY(offset >= 0);
-    invalid[offset + prefix.size()] = 3;
+    invalid[offset + prefix.size()] = 5;
     invalid.append(QCryptographicHash::hash(invalid, QCryptographicHash::Sha256));
     QCOMPARE(recovered.restoreRecovery(invalid), Result::InvalidRecovery);
     QCOMPARE(recovered.recoveryData(), current);
-    QCOMPARE(recovered.writeLayerBlendMode(2, LayerBlendMode(3)), Result::InvalidInput);
-    QCOMPARE(recovered.setLayerBlendMode(2, LayerBlendMode(3)), Result::InvalidInput);
+    QCOMPARE(recovered.writeLayerBlendMode(2, LayerBlendMode(5)), Result::InvalidInput);
+    QCOMPARE(recovered.setLayerBlendMode(2, LayerBlendMode(5)), Result::InvalidInput);
     QCOMPARE(recovered.setLayerBlendMode(999, mode), Result::LayerUnavailable);
     QCOMPARE(recovered.recoveryData(), current);
     QCOMPARE(recovered.duplicateLayers({1}, {QStringLiteral("Copy")}, 3), Result::Success);
@@ -1110,17 +1115,30 @@ void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInputAn
     QCOMPARE(previous34.cancelStroke(previous34.activeOperation()), Result::Success);
     QCOMPARE(previous34.undo(), Result::Success);
     QCOMPARE(previous34.snapshot()->layers[1].blendMode, LayerBlendMode::Normal);
+    OperationDocument previous35({1, 1});
+    QCOMPARE(previous35.restoreRecovery(LibrePaint::Image::Gpu::Test::screenRecoveryV35()), Result::Success);
+    for (const auto &layer : previous35.snapshot()->layers) QCOMPARE(layer.blendMode, LayerBlendMode::Screen);
+    QVERIFY(!previous35.activeOperation().isNull());
+    QCOMPARE(previous35.cancelStroke(previous35.activeOperation()), Result::Success);
+    QCOMPARE(previous35.undo(), Result::Success);
+    QCOMPARE(previous35.snapshot()->layers[1].blendMode, LayerBlendMode::Normal);
+    QCOMPARE(previous35.snapshot()->layers[0].blendMode, LayerBlendMode::Screen);
+    QCOMPARE(previous35.snapshot()->layers[2].blendMode, LayerBlendMode::Screen);
+    QCOMPARE(previous35.redo(), Result::Success);
+    QCOMPARE(previous35.snapshot()->layers[1].blendMode, LayerBlendMode::Screen);
     recovered.close();
     QCOMPARE(recovered.writeLayerBlendMode(2, LayerBlendMode::Normal), Result::Closed);
-    input.layers[0].blendMode = LayerBlendMode(3);
+    input.layers[0].blendMode = LayerBlendMode(5);
     QVERIFY_EXCEPTION_THROWN(OperationDocument invalid(input), std::invalid_argument);
 }
 
 void KisGpuOperationDocumentTest::separableGroupDefaultsMatchNativeProjection()
 {
-    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen}) {
+    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen, LayerBlendMode::Darken, LayerBlendMode::Lighten}) {
         const auto references = mode == LayerBlendMode::Multiply ? LibrePaint::Image::Gpu::Test::multiplyProjectionReferences() :
-            LibrePaint::Image::Gpu::Test::screenProjectionReferences();
+            mode == LayerBlendMode::Screen ? LibrePaint::Image::Gpu::Test::screenProjectionReferences() :
+            mode == LayerBlendMode::Darken ? LibrePaint::Image::Gpu::Test::darkenProjectionReferences() :
+            LibrePaint::Image::Gpu::Test::lightenProjectionReferences();
         qsizetype row = 0;
         for (int destinationAlpha : {0, 173, 255}) for (int sourceAlpha : {0, 137, 255})
         for (int opacity : {137, 255}) for (int mask : {15, 9, 6, 0}) {
@@ -1148,6 +1166,8 @@ void KisGpuOperationDocumentTest::layerBlendModePreviewsAdoptAndCancelOneAttribu
     QTest::addColumn<int>("blendMode");
     QTest::newRow("multiply") << int(LayerBlendMode::Multiply);
     QTest::newRow("screen") << int(LayerBlendMode::Screen);
+    QTest::newRow("darken") << int(LayerBlendMode::Darken);
+    QTest::newRow("lighten") << int(LayerBlendMode::Lighten);
 }
 
 void KisGpuOperationDocumentTest::layerBlendModePreviewsAdoptAndCancelOneAttribute()
