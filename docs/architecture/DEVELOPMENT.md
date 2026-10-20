@@ -1042,6 +1042,18 @@ CPU側のP95、タイル保持量と最終合成画像のSHA-256を記録する�
 GPU時間の欠測は`completedGpuMs`の空配列と`gpuP95Ms`の`null`で表し、
 ウィンドウ表示の上限判定では検証不足として扱う。
 同じ設定の改善前後では最終画像の照合値を一致させる。
+比較する実行ファイルと共有ライブラリーは、それぞれ対応するヘッダーで構築する。
+クラスの保持状態が変わる変更では、ヘッダー内で生成される破棄処理を含めて
+実行ファイルを再構築し、測定した実行物と依存ライブラリーの照合値を記録する。
+
+通常合成の除算を変更する場合は、実際のGPUシェーダーで全ての非ゼロ不透明度と
+元アルファ、1から254の下地アルファを組み合わせ、CPUの単精度除算と
+商の全ビットを照合する。透明・不透明な下地は既存の投影画素契約で確認する。
+
+```sh
+./scripts/run-shared-test-env ./scripts/run-test KisGpuProjectionArithmeticTest
+./scripts/run-shared-test-env ./scripts/run-test KisGpuTileRendererTest
+```
 
 `deviceName`、`deviceType`と`backend`は描画に使用したアダプターから取得する。
 性能比較は、これらの値と実機のGPU構成を照合してから行う。LinuxのNVIDIA GPUでは、
