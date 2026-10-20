@@ -216,7 +216,7 @@ void TestResourceUiContract::retainsTheSelectionWhenClosingTemporaryStorage()
     QVERIFY(installed);
 
     auto *locator = KisResourceLocator::instance();
-    const auto storageName = QStringLiteral("chooser-temporary-")
+    const QString storageName = QStringLiteral("chooser-temporary-")
         + QString::fromLatin1(QTest::currentDataTag());
     QVERIFY(!locator->hasStorage(storageName));
     const auto storage = KisResourceStorageSP::create(storageName);

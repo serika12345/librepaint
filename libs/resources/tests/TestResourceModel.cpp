@@ -254,13 +254,13 @@ void TestResourceModel::testAddDuplicatedResource()
     KisResourceModel activeModel(m_resourceType);
     const int startResourceCount = resourceModel.rowCount();
     const int startActiveCount = activeModel.rowCount();
-    const auto storageName = QStringLiteral("duplicate-model-") + QString::fromLatin1(QTest::currentDataTag());
+    const QString storageName = QStringLiteral("duplicate-model-") + QString::fromLatin1(QTest::currentDataTag());
     QVERIFY(!m_locator->hasStorage(storageName));
     const auto storage = KisResourceStorageSP::create(storageName);
     QVERIFY(storage->valid());
     QVERIFY(m_locator->addStorage(storageName, storage));
     const auto cleanup = qScopeGuard([&] { m_locator->removeStorage(storageName); });
-    const auto filename = storageName + QStringLiteral(".kpp");
+    const QString filename = storageName + QStringLiteral(".kpp");
     KoResourceSP permanent;
     for (const bool temporary : {temporaryFirst, !temporaryFirst}) {
         KoResourceSP resource(new DummyResource(filename));
