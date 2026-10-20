@@ -68,6 +68,25 @@ private:
     int m_maximum = 0;
     int m_value = 0;
 };
+
+void verifySavedRgbColorSettings(const LibrePaint::ImportExport::Kra::ImageMetadata &metadata,
+                                const QColor &historyColor, const QColor &assistantsColor)
+{
+    QDomDocument history, assistants;
+    QVERIFY(history.setContent(metadata.colorHistory));
+    QCOMPARE(history.documentElement().tagName(), QStringLiteral("ColorHistory"));
+    QCOMPARE(history.documentElement().childNodes().size(), 1);
+    const auto color = history.documentElement().firstChildElement(QStringLiteral("RGB"));
+    QVERIFY(!color.isNull());
+    QCOMPARE(color.attribute(QStringLiteral("r")).toDouble(), historyColor.redF());
+    QCOMPARE(color.attribute(QStringLiteral("g")).toDouble(), historyColor.greenF());
+    QCOMPARE(color.attribute(QStringLiteral("b")).toDouble(), historyColor.blueF());
+    QVERIFY(assistants.setContent(metadata.assistantsGlobalColor));
+    QCOMPARE(assistants.documentElement().tagName(), QStringLiteral("GlobalAssistantsColor"));
+    const auto components = assistants.documentElement().attribute(QStringLiteral("SimpleColorData")).split(QLatin1Char(','));
+    QCOMPARE(components.size(), 4);
+    QCOMPARE(QColor(components[0].toInt(), components[1].toInt(), components[2].toInt(), components[3].toInt()), assistantsColor);
+}
 }
 
 
@@ -134,6 +153,8 @@ void KisDocumentReplaceTest::testGpuAutoSavePreservesEditingState()
     document->setFileBatchMode(true);
     document->setAutoSaveActive(false);
     document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Autosave image")));
+    document->setColorHistoryColors({KoColor(QColor(Qt::red), KoColorSpaceRegistry::instance()->rgb8())});
+    document->setAssistantsGlobalColor(QColor(17, 63, 129, 201));
     document->image()->setResolution(300.0 / 72, 150.0 / 72);
     document->documentInfo()->setAboutInfo(QStringLiteral("title"), QStringLiteral("Autosave title"));
     QTemporaryDir directory;
@@ -180,6 +201,7 @@ void KisDocumentReplaceTest::testGpuAutoSavePreservesEditingState()
     QCOMPARE(metadata.metadata.resolution, QPointF(300, 150));
     QCOMPARE(metadata.metadata.iccProfile, document->image()->profile()->rawData());
     QVERIFY(metadata.metadata.documentInfo.contains("Autosave title"));
+    verifySavedRgbColorSettings(metadata.metadata, QColor(Qt::red), QColor(17, 63, 129, 201));
     QVERIFY(metadata.metadata.documentInfo.contains("2026-01-02T00:00:00"));
     QCOMPARE(document->documentInfo()->aboutInfo(QStringLiteral("editing-cycles")), QStringLiteral("7"));
     QCOMPARE(document->documentInfo()->aboutInfo(QStringLiteral("date")), QStringLiteral("2026-01-02T00:00:00"));
@@ -339,6 +361,8 @@ void KisDocumentReplaceTest::testGpuRecoveryAutoSaveWaitsForLatestEdit()
     document->setPath(path);
     document->setLocalFilePath(path);
     document->documentInfo()->setAboutInfo(QStringLiteral("title"), QStringLiteral("Before request"));
+    document->setColorHistoryColors({KoColor(QColor(Qt::red), KoColorSpaceRegistry::instance()->rgb8())});
+    document->setAssistantsGlobalColor(QColor(17, 63, 129, 201));
     const auto layer = owner->operations().activeLayer();
     QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("112233ff")), Gpu::Result::Success);
     const auto checkpointPath = Krita::Document::KisDocumentAutoSaveFiles::filePath(
@@ -354,6 +378,7 @@ void KisDocumentReplaceTest::testGpuRecoveryAutoSaveWaitsForLatestEdit()
         const auto metadata = Kra::RasterCodec::readImageMetadata(loaded.document.description, loaded.document.files);
         QCOMPARE(metadata.code, Kra::Status::Success);
         QVERIFY(metadata.metadata.documentInfo.contains("Before request"));
+        verifySavedRgbColorSettings(metadata.metadata, QColor(Qt::red), QColor(17, 63, 129, 201));
         QCOMPARE(loaded.document.image.layers.first().tiles.first().rgba.mid((5 * 256 + 5) * 4, 4),
                  QByteArray::fromHex("112233ff"));
         firstCheckpointInspected = true;
@@ -368,6 +393,8 @@ void KisDocumentReplaceTest::testGpuRecoveryAutoSaveWaitsForLatestEdit()
     QVERIFY(!QFileInfo::exists(checkpointPath));
     QCOMPARE(owner->replaceRgbaPixels(layer, QRect(5, 5, 1, 1), QByteArray::fromHex("445566ff")), Gpu::Result::Success);
     document->documentInfo()->setAboutInfo(QStringLiteral("title"), QStringLiteral("After request"));
+    document->setColorHistoryColors({KoColor(QColor(Qt::green), KoColorSpaceRegistry::instance()->rgb8())});
+    document->setAssistantsGlobalColor(QColor(67, 23, 149, 101));
     document->setModified(true);
     if (pause) {
         document->autoSaveOnPause();
@@ -388,6 +415,7 @@ void KisDocumentReplaceTest::testGpuRecoveryAutoSaveWaitsForLatestEdit()
     const auto metadata = Kra::RasterCodec::readImageMetadata(loaded.document.description, loaded.document.files);
     QCOMPARE(metadata.code, Kra::Status::Success);
     QVERIFY(metadata.metadata.documentInfo.contains("After request"));
+    verifySavedRgbColorSettings(metadata.metadata, QColor(Qt::green), QColor(67, 23, 149, 101));
     const auto reopened = Gpu::PaintImageSP::create(execution, loaded.document.image);
     QCOMPARE(reopened->readRgbaPixels(reopened->operations().activeLayer(), QRect(5, 5, 1, 1), 4).bytes,
              QByteArray::fromHex("445566ff"));

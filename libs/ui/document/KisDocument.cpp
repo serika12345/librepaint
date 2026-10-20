@@ -19,6 +19,7 @@
 
 #include <KoCanvasBase.h>
 #include <KoColor.h>
+#include <kis_dom_utils.h>
 #include <KoColorProfile.h>
 #include <KoColorSpaceEngine.h>
 #include <KoColorSpace.h>
@@ -210,6 +211,16 @@ LibrePaint::ImportExport::Kra::ImageMetadata gpuKraMetadata(KisDocument &documen
     metadata.documentInfo = document.documentInfo()->save(info, document.isAutosaving(), document.isModified(), saveTime).toByteArray();
     metadata.iccProfile = image->profile()->rawData();
     metadata.profileName = image->profile()->name();
+    QDomDocument colors;
+    auto colorHistory = colors.createElement(QStringLiteral("ColorHistory"));
+    colors.appendChild(colorHistory);
+    for (const auto &color : document.colorHistoryColors()) color.toXML(colors, colorHistory);
+    metadata.colorHistory = colors.toByteArray();
+    QDomDocument assistants;
+    auto assistantsColor = assistants.createElement(QStringLiteral("GlobalAssistantsColor"));
+    assistantsColor.setAttribute(QStringLiteral("SimpleColorData"), KisDomUtils::qColorToQString(document.assistantsGlobalColor()));
+    assistants.appendChild(assistantsColor);
+    metadata.assistantsGlobalColor = assistants.toByteArray();
     const auto &mirror = document.mirrorAxisConfig();
     if (!mirror.isDefault()) {
         QDomDocument axes;

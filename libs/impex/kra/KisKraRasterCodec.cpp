@@ -266,6 +266,16 @@ Outcome extractMetadata(const QDomElement &image, const QMap<QString, QByteArray
         value.appendChild(value.importNode(mirrorAxis, true));
         metadata.mirrorAxis = value.toByteArray();
     }
+    for (const auto &tag : {QStringLiteral("ColorHistory"), QStringLiteral("GlobalAssistantsColor")}) {
+        const auto setting = image.firstChildElement(tag);
+        if (!setting.nextSiblingElement(tag).isNull())
+            return invalid(QStringLiteral("Duplicate KRA %1 settings").arg(tag));
+        if (!setting.isNull()) {
+            QDomDocument value;
+            value.appendChild(value.importNode(setting, true));
+            (tag == QLatin1String("ColorHistory") ? metadata.colorHistory : metadata.assistantsGlobalColor) = value.toByteArray();
+        }
+    }
     metadata.documentInfo = files.value(QStringLiteral("documentinfo.xml"));
     if (metadata.documentInfo.size() > limits.xmlBytes) return capacity();
     if (files.contains(QStringLiteral("documentinfo.xml"))) {
@@ -368,6 +378,19 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
         old = next;
     }
     if (!metadata.mirrorAxis.isEmpty()) image.appendChild(xml.importNode(mirrorAxis.documentElement(), true));
+    for (const auto &tag : {QStringLiteral("ColorHistory"), QStringLiteral("GlobalAssistantsColor")}) {
+        const auto &bytes = tag == QLatin1String("ColorHistory") ? metadata.colorHistory : metadata.assistantsGlobalColor;
+        if (bytes.size() > limits.xmlBytes) return capacity();
+        QDomDocument value;
+        if (!bytes.isEmpty() && (!value.setContent(bytes) || value.documentElement().tagName() != tag))
+            return invalid(QStringLiteral("Invalid KRA %1 settings").arg(tag));
+        for (auto old = image.firstChildElement(tag); !old.isNull();) {
+            const auto next = old.nextSiblingElement(tag);
+            image.removeChild(old);
+            old = next;
+        }
+        if (!bytes.isEmpty()) image.appendChild(xml.importNode(value.documentElement(), true));
+    }
     auto files = document.files;
     auto folder = image.attribute(QStringLiteral("name"));
     const auto title = info.documentElement().firstChildElement(QStringLiteral("about"))

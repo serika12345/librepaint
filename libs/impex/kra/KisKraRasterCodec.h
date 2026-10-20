@@ -43,6 +43,11 @@ struct ImageMetadata
     QList<Annotation> annotations;
     /** Serialized MirrorAxis settings; their values remain owned by the UI configuration. */
     QByteArray mirrorAxis;
+    /** Serialized ColorHistory and GlobalAssistantsColor settings, owned by the document.
+     * Empty values remove their respective settings from the saved image.
+     */
+    QByteArray colorHistory;
+    QByteArray assistantsGlobalColor;
     /** Nonempty values replace the saved profile label; empty retains its current label. */
     QString profileName;
 };

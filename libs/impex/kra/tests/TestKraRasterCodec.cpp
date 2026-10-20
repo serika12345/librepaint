@@ -139,6 +139,7 @@ private Q_SLOTS:
     void projectionChannelsSurviveEditingAndResaving_data();
     void projectionChannelsSurviveEditingAndResaving();
     void imageMetadataIsCompleteOrRejectedBeforeRasterImport();
+    void documentColorSettingsSurviveReplacementAndClearing();
     void documentTitlesMoveAssociatedFilesAtomically();
     void imageProfileIdentitySurvivesMetadataUpdates_data();
     void imageProfileIdentitySurvivesMetadataUpdates();
@@ -1006,6 +1007,78 @@ void TestKraRasterCodec::imageMetadataIsCompleteOrRejectedBeforeRasterImport()
     QCOMPARE(source.description, unchanged.description);
     QCOMPARE(source.files, unchanged.files);
 
+}
+
+void TestKraRasterCodec::documentColorSettingsSurviveReplacementAndClearing()
+{
+    auto source = document();
+    Kra::ImageMetadata metadata;
+    metadata.documentInfo = source.files.value(QStringLiteral("documentinfo.xml"));
+    // Color XML from TestDocument's fixed ordinary KRA fixture, commit 721eb5f23b.
+    QDomDocument history, assistants;
+    QVERIFY(history.setContent(QByteArrayLiteral("<ColorHistory>"
+        "<RGB b=\"0.250980406999588\" g=\"0.0666666701436043\" r=\"0.752941191196442\" space=\"sRGB-elle-V2-srgbtrc.icc\"/>"
+        "<RGB b=\"0.321568638086319\" g=\"0.639215707778931\" r=\"0.14509804546833\" space=\"sRGB-elle-V2-srgbtrc.icc\"/>"
+        "</ColorHistory>")));
+    QVERIFY(assistants.setContent(QByteArrayLiteral("<GlobalAssistantsColor SimpleColorData=\"17,63,129,201\"/>")));
+    for (int step = 0; step < 3; ++step) {
+        if (step == 1) {
+            auto colors = history.documentElement();
+            colors.appendChild(colors.firstChild());
+            assistants.documentElement().setAttribute(QStringLiteral("SimpleColorData"), QStringLiteral("67,23,149,101"));
+        }
+        metadata.colorHistory = step == 2 ? QByteArray() : history.toByteArray();
+        metadata.assistantsGlobalColor = step == 2 ? QByteArray() : assistants.toByteArray();
+        QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, metadata).code, Kra::Status::Success);
+        QByteArray bytes;
+        QBuffer output(&bytes);
+        QVERIFY(output.open(QIODevice::WriteOnly));
+        QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+        const auto resultDirectory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+        if (!resultDirectory.isEmpty()) {
+            QVERIFY(QDir().mkpath(resultDirectory));
+            QFile artifact(QDir(resultDirectory).filePath(QStringLiteral("document-color-settings-%1.kra").arg(step)));
+            QVERIFY(artifact.open(QIODevice::WriteOnly));
+            QCOMPARE(artifact.write(bytes), bytes.size());
+        }
+        const auto restored = load(bytes);
+        QCOMPARE(restored.code, Kra::Status::Success);
+        const auto values = Kra::RasterCodec::readImageMetadata(restored.document.description, restored.document.files);
+        QCOMPARE(values.code, Kra::Status::Success);
+        QCOMPARE(values.metadata.colorHistory, metadata.colorHistory);
+        QCOMPARE(values.metadata.assistantsGlobalColor, metadata.assistantsGlobalColor);
+        if (step == 2) continue;
+        for (const auto &tag : {QStringLiteral("ColorHistory"), QStringLiteral("GlobalAssistantsColor")}) {
+            auto files = restored.document.files;
+            QDomDocument duplicate;
+            QVERIFY(duplicate.setContent(restored.document.description));
+            auto image = duplicate.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+            image.appendChild(image.firstChildElement(tag).cloneNode(true));
+            files[QStringLiteral("maindoc.xml")] = duplicate.toByteArray();
+            const auto rejected = Kra::RasterCodec::readImageMetadata(files.value(QStringLiteral("maindoc.xml")), files);
+            QCOMPARE(rejected.code, Kra::Status::InvalidData);
+            QVERIFY(rejected.metadata.colorHistory.isEmpty());
+            QVERIFY(rejected.metadata.assistantsGlobalColor.isEmpty());
+            QCOMPARE(load(pack(files)).code, Kra::Status::InvalidData);
+        }
+    }
+    const auto unchanged = source;
+    for (const bool colorHistory : {false, true}) {
+        for (const auto &bytes : {QByteArrayLiteral("<invalid/>"), QByteArrayLiteral("invalid XML")}) {
+            auto invalid = metadata;
+            (colorHistory ? invalid.colorHistory : invalid.assistantsGlobalColor) = bytes;
+            QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, invalid).code, Kra::Status::InvalidData);
+            QCOMPARE(source.description, unchanged.description);
+            QCOMPARE(source.files, unchanged.files);
+        }
+        auto oversized = metadata;
+        Kra::Limits limits;
+        limits.xmlBytes = source.description.size() + 1;
+        (colorHistory ? oversized.colorHistory : oversized.assistantsGlobalColor) = QByteArray(limits.xmlBytes + 1, 'x');
+        QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, oversized, limits).code, Kra::Status::CapacityExceeded);
+        QCOMPARE(source.description, unchanged.description);
+        QCOMPARE(source.files, unchanged.files);
+    }
 }
 
 void TestKraRasterCodec::emptyDocumentsRequireAnExplicitLayerContainer()
