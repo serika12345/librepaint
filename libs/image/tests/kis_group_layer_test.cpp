@@ -31,6 +31,68 @@ void KisGroupLayerTest::testProjection()
 
 }
 
+void KisGroupLayerTest::testPassThroughChildrenComposeIntoTheirParent_data()
+{
+    QTest::addColumn<int>("children");
+    QTest::addColumn<bool>("nestedPassThrough");
+    QTest::addColumn<bool>("isolatedParent");
+    QTest::addColumn<bool>("visible");
+    QTest::newRow("one-child") << 1 << false << false << true;
+    QTest::newRow("two-children") << 2 << false << false << true;
+    QTest::newRow("nested-pass-through") << 2 << true << false << true;
+    QTest::newRow("inside-isolated-group") << 2 << false << true << true;
+    QTest::newRow("hidden-pass-through") << 2 << false << false << false;
+}
+
+void KisGroupLayerTest::testPassThroughChildrenComposeIntoTheirParent()
+{
+    QFETCH(int, children);
+    QFETCH(bool, nestedPassThrough);
+    QFETCH(bool, isolatedParent);
+    QFETCH(bool, visible);
+    const auto *cs = KoColorSpaceRegistry::instance()->rgb8();
+    const QRect bounds(0, 0, 4, 4);
+    KisImageSP grouped = new KisImage(nullptr, 4, 4, cs, "Pass-through group");
+    KisImageSP flat = new KisImage(nullptr, 4, 4, cs, "Equivalent layer stack");
+    KisNodeSP parent = grouped->root();
+    if (isolatedParent) {
+        KisGroupLayerSP isolated = new KisGroupLayer(grouped, "Isolated parent", 255);
+        QVERIFY(grouped->addNode(isolated, parent));
+        parent = isolated;
+    }
+    KisGroupLayerSP outer = new KisGroupLayer(grouped, "Pass-through", 255);
+    outer->setPassThroughMode(true);
+    outer->setVisible(visible);
+    QVERIFY(grouped->addNode(outer, parent));
+    parent = outer;
+    if (nestedPassThrough) {
+        KisGroupLayerSP inner = new KisGroupLayer(grouped, "Nested pass-through", 171);
+        inner->setPassThroughMode(true);
+        QVERIFY(grouped->addNode(inner, parent));
+        parent = inner;
+    }
+    const QColor colors[] = {QColor(201, 41, 93, 137), QColor(17, 211, 77, 189)};
+    const quint8 opacities[] = {153, 211};
+    for (int index = 0; index < children; ++index) {
+        KisPaintLayerSP layer = new KisPaintLayer(grouped, "Grouped child", opacities[index]);
+        layer->paintDevice()->fill(bounds, KoColor(colors[index], cs));
+        QVERIFY(grouped->addNode(layer, parent));
+        const quint8 effectiveOpacity = nestedPassThrough ? int(opacities[index]) * 171 / 255 : opacities[index];
+        KisPaintLayerSP reference = new KisPaintLayer(flat, "Flat child", effectiveOpacity);
+        reference->setVisible(visible);
+        reference->paintDevice()->fill(bounds, KoColor(colors[index], cs));
+        QVERIFY(flat->addNode(reference, flat->root()));
+    }
+    grouped->initialRefreshGraph();
+    flat->initialRefreshGraph();
+    QByteArray actual(bounds.width() * bounds.height() * 4, Qt::Uninitialized);
+    QByteArray expected(actual.size(), Qt::Uninitialized);
+    grouped->projection()->readBytes(reinterpret_cast<quint8 *>(actual.data()), bounds);
+    flat->projection()->readBytes(reinterpret_cast<quint8 *>(expected.data()), bounds);
+    if (visible) QVERIFY(expected != QByteArray(expected.size(), '\0'));
+    QCOMPARE(actual, expected);
+}
+
 #include "commands/kis_image_layer_remove_command.h"
 
 void KisGroupLayerTest::testRemoveAndUndo()

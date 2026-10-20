@@ -275,6 +275,9 @@ KisPaintDeviceSP KisGroupLayer::tryObligeChild() const
     KisLayer *child = onlyMeaningfulChild();
 
     if (child) {
+        const auto *group = qobject_cast<const KisGroupLayer *>(child);
+        if (group && group->passThroughMode()) return nullptr;
+
         KisPaintDeviceSP projection = child->projection();
         if (child->channelFlags().isEmpty() &&
                 projection &&

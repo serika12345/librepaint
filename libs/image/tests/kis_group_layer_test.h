@@ -17,6 +17,9 @@ private Q_SLOTS:
 
     void testProjection();
 
+    void testPassThroughChildrenComposeIntoTheirParent_data();
+    void testPassThroughChildrenComposeIntoTheirParent();
+
     void testGpuGroupViewsReuseTheOnlyDocumentAttachment();
 
     void testRemoveAndUndo();
