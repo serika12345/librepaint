@@ -110,6 +110,60 @@ void KoRgbU8ColorSpaceTester::testSourceOverPreservesDivisionRounding()
     QCOMPARE(source, unchangedSource);
 }
 
+void KoRgbU8ColorSpaceTester::testSourceOverPreservesPixelsAcrossBatchBoundaries_data()
+{
+    QTest::addColumn<int>("sourceAlpha");
+    QTest::addColumn<int>("destinationAlpha");
+    QTest::addColumn<int>("opacity");
+    QTest::addColumn<QByteArray>("expectedPixel");
+    QTest::addColumn<int>("width");
+    QTest::addColumn<int>("offset");
+    // Fixed scalar results agree on ARM64 and x86_64. A tile's width and
+    // alignment must preserve these same editable RGBA8 values.
+    struct Case { int sourceAlpha, destinationAlpha, opacity; const char *expected; };
+    const Case cases[] = {
+        {102, 50, 255, "1a3f6584"},
+        {168, 136, 255, "193f65d6"},
+        {180, 180, 255, "1a3f65e9"},
+        {170, 238, 255, "1c446bf9"},
+        {134, 226, 128, "295886ea"},
+    };
+    for (const auto &c : cases) for (const int width : {1, 8, 17}) for (const int offset : {0, 4}) {
+        const QByteArray name = QByteArray::number(c.sourceAlpha) + '-' + QByteArray::number(c.destinationAlpha) +
+            '-' + QByteArray::number(c.opacity) + '-' + QByteArray::number(width) + '-' + QByteArray::number(offset);
+        QTest::newRow(name.constData()) << c.sourceAlpha << c.destinationAlpha << c.opacity <<
+            QByteArray::fromHex(c.expected) << width << offset;
+    }
+}
+
+void KoRgbU8ColorSpaceTester::testSourceOverPreservesPixelsAcrossBatchBoundaries()
+{
+    QFETCH(int, sourceAlpha);
+    QFETCH(int, destinationAlpha);
+    QFETCH(int, opacity);
+    QFETCH(QByteArray, expectedPixel);
+    QFETCH(int, width);
+    QFETCH(int, offset);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QVERIFY(cs);
+    const auto op = cs->compositeOp(COMPOSITE_OVER);
+    QVERIFY(op);
+    QByteArray source(width * 4 + offset + 16, char(0x5a));
+    QByteArray destination = source;
+    const QByteArray sourcePixel = QByteArray::fromHex("123456") + char(sourceAlpha);
+    const QByteArray destinationPixel = QByteArray::fromHex("336699") + char(destinationAlpha);
+    source.replace(offset, width * 4, sourcePixel.repeated(width));
+    destination.replace(offset, width * 4, destinationPixel.repeated(width));
+    const auto unchangedSource = source;
+    auto expected = destination;
+    expected.replace(offset, width * 4, expectedPixel.repeated(width));
+    op->composite(reinterpret_cast<quint8 *>(destination.data() + offset), width * 4,
+                  reinterpret_cast<const quint8 *>(source.constData() + offset), width * 4,
+                  nullptr, 0, 1, width, opacity / 255.0f);
+    QCOMPARE(destination, expected);
+    QCOMPARE(source, unchangedSource);
+}
+
 void KoRgbU8ColorSpaceTester::testBasics()
 {
 }

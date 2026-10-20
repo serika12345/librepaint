@@ -88,7 +88,13 @@ struct OverCompositor32 {
              */
             new_alpha = dst_alpha + (uint8Max - dst_alpha) * src_alpha * uint8MaxRec1;
 
-            src_blend = src_alpha / new_alpha;
+#if XSIMD_WITH_NEON64
+        // xsimd's NEON float division refines a reciprocal estimate, including
+        // on AArch64. Hardware division preserves the scalar quotient rounding.
+        src_blend = vdivq_f32(src_alpha, new_alpha);
+#else
+        src_blend = src_alpha / new_alpha;
+#endif
 
         }
 

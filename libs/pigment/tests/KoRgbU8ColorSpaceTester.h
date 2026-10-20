@@ -22,6 +22,8 @@ private Q_SLOTS:
     void testCompositeCopyDivisionByZero();
     void testSourceOverPreservesDivisionRounding_data();
     void testSourceOverPreservesDivisionRounding();
+    void testSourceOverPreservesPixelsAcrossBatchBoundaries_data();
+    void testSourceOverPreservesPixelsAcrossBatchBoundaries();
 };
 
 #endif
