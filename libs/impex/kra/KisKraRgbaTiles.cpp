@@ -139,10 +139,22 @@ Outcome writeTiles(const QList<RgbaTile> &tiles, const std::array<quint8, 4> &de
         }
     }
     QByteArray bytes = QByteArrayLiteral("VERSION 2\nTILEWIDTH 64\nTILEHEIGHT 64\nPIXELSIZE 4\nDATA ") + QByteArray::number(result.size()) + '\n';
-    for (auto tile = result.cbegin(); tile != result.cend(); ++tile) {
-        bytes += QByteArray::number(tile.key().second * 64) + ',' + QByteArray::number(tile.key().first * 64) + QByteArrayLiteral(",LZF,16385\n");
-        bytes += char(0);
-        bytes += tile.value();
+    KisLzfCompression compression;
+    QByteArray planar(FileTileBytes, Qt::Uninitialized);
+    const auto encodedCapacity = compression.outputBufferSize(FileTileBytes);
+    QByteArray encoded(encodedCapacity, Qt::Uninitialized);
+    for (auto tile = result.begin(); tile != result.end(); ++tile) {
+        KisAbstractCompression::linearizeColors(reinterpret_cast<quint8 *>(tile.value().data()),
+                                               reinterpret_cast<quint8 *>(planar.data()), FileTileBytes, 4);
+        const auto compressedBytes = compression.compress(reinterpret_cast<const quint8 *>(planar.constData()), FileTileBytes,
+                                                         reinterpret_cast<quint8 *>(encoded.data()), encodedCapacity);
+        if (compressedBytes <= 0) return {Status::IoFailure, QStringLiteral("KRA layer pixel compression failed")};
+        const bool useCompressed = compressedBytes < FileTileBytes;
+        const auto payloadSize = useCompressed ? compressedBytes : FileTileBytes;
+        bytes += QByteArray::number(tile.key().second * 64) + ',' + QByteArray::number(tile.key().first * 64) +
+                 QByteArrayLiteral(",LZF,") + QByteArray::number(payloadSize + 1) + '\n';
+        bytes += char(useCompressed ? 1 : 0);
+        bytes.append(useCompressed ? encoded.constData() : tile.value().constData(), payloadSize);
     }
     output = std::move(bytes);
     return {Status::Success, {}};

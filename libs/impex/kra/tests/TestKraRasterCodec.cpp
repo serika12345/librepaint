@@ -13,6 +13,8 @@
 #include <QDir>
 #include <QImage>
 #include <QTest>
+#include <QTemporaryDir>
+#include <QScopeGuard>
 #include <cmath>
 #include <limits>
 #include <cstring>
@@ -119,6 +121,8 @@ class TestKraRasterCodec : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void layerTileEncodingMatchesTheCpuWriter_data();
+    void layerTileEncodingMatchesTheCpuWriter();
     void groupedArchivesPreserveHierarchyPixelsAndSelectedLeaf_data();
     void groupedArchivesPreserveHierarchyPixelsAndSelectedLeaf();
     void previewSamplingPreservesEdgesAndWeightedAlpha_data();
@@ -146,6 +150,101 @@ private Q_SLOTS:
     void legacyLayerWithoutUuidGetsOnePersistentIdentity();
     void emptyDocumentsRequireAnExplicitLayerContainer();
 };
+
+void TestKraRasterCodec::layerTileEncodingMatchesTheCpuWriter_data()
+{
+    QTest::addColumn<QSize>("size");
+    QTest::addColumn<QByteArray>("filePixels");
+    QTest::addColumn<QByteArray>("expectedStream");
+    constexpr int fileTileBytes = 64 * 64 * 4;
+    QByteArray pixels(fileTileBytes, '\0');
+    pixels.replace(0, 12, QByteArray::fromHex("332211ff000000004d484b80"));
+    // CPU KRA save from TestDocument::testSavedKraEmbeddedPngsAgreeAcrossBackends
+    // (three-pixels), commit 773b4defee. BGRA pixels above, transparent default,
+    // one 64 x 64 tile; the entire encoded stream is the compatibility contract.
+    QByteArray expected = QByteArrayLiteral("VERSION 2\nTILEWIDTH 64\nTILEHEIGHT 64\nPIXELSIZE 4\nDATA 1\n0,0,LZF,394\n");
+    expected += QByteArray::fromHex(
+        "010333004d00e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900"
+        "e0f900e0d50002220048e0d5e0e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f9"
+        "00e0f900e0f900e0f900030011004be1f905e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900"
+        "e0f900e0f900e0f900e0f900e0d60002ff0080e0d6e1e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f900e0f9"
+        "00e0f900e0f900e0f900e0f900e0f9002000200020002000200020002000200020002000200020002000200020002000"
+        "200020002000200020002000200020002000200020002000200020002000200020002000200020002000200020002000"
+        "200020002000200020002000200020002000200020002000200020002000200020002000200020002000200020002000"
+        "20002000200020002000200020002000200020001f000000000000000000000000000000000000000000000000000000"
+        "00000000000300000000"
+    );
+    QTest::newRow("compressible") << QSize(3, 1) << pixels << expected;
+
+    quint32 random = 0x13579bdf;
+    for (auto &byte : pixels) {
+        random ^= random << 13;
+        random ^= random >> 17;
+        random ^= random << 5;
+        byte = char(random >> 24);
+    }
+    expected = QByteArrayLiteral("VERSION 2\nTILEWIDTH 64\nTILEHEIGHT 64\nPIXELSIZE 4\nDATA 1\n0,0,LZF,16385\n");
+    expected += char(0);
+    expected += pixels;
+    QTest::newRow("incompressible") << QSize(64, 64) << pixels << expected;
+}
+
+void TestKraRasterCodec::layerTileEncodingMatchesTheCpuWriter()
+{
+    QFETCH(QSize, size);
+    QFETCH(QByteArray, filePixels);
+    QFETCH(QByteArray, expectedStream);
+    RgbaTile tile{{0, 0}, QByteArray(RgbaTile::ByteCount, '\0')};
+    for (int y = 0; y < 64; ++y) for (int x = 0; x < 64; ++x) {
+        const auto source = filePixels.constData() + (y * 64 + x) * 4;
+        auto destination = tile.rgba.data() + (y * RgbaTile::Size + x) * 4;
+        destination[0] = source[2]; destination[1] = source[1];
+        destination[2] = source[0]; destination[3] = source[3];
+    }
+    Kra::Document value;
+    value.image.size = size;
+    value.image.layers = {{QStringLiteral("Encoded pixels"), true,
+        QUuid(QStringLiteral("{d2000001-1122-3344-5566-778899aabbcc}")), {tile}}};
+    QImage projection(size, QImage::Format_RGBA8888);
+    projection.setColorSpace(QColorSpace::SRgb);
+    for (int y = 0; y < size.height(); ++y)
+        std::memcpy(projection.scanLine(y), tile.rgba.constData() + y * RgbaTile::Size * 4, size.width() * 4);
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, value, projection).code, Kra::Status::Success);
+    const auto files = entries(bytes);
+    QDomDocument xml;
+    QVERIFY(xml.setContent(files.value(QStringLiteral("maindoc.xml"))));
+    const auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    const auto layer = image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("layer"));
+    const QString path = image.attribute(QStringLiteral("name")) + QStringLiteral("/layers/") + layer.attribute(QStringLiteral("filename"));
+    const auto actual = files.value(path);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto destination = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", directory.path());
+    QVERIFY(QDir().mkpath(destination));
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            directory.setAutoRemove(false);
+            qInfo() << "KRA tile stream artifacts retained at" << destination;
+        }
+    });
+    const auto writeArtifact = [&](const QString &suffix, const QByteArray &data) {
+        QFile file(QDir(destination).filePath(QStringLiteral("kra-layer-tile-%1-%2")
+            .arg(QString::fromLatin1(QTest::currentDataTag()), suffix)));
+        return file.open(QIODevice::WriteOnly) && file.write(data) == data.size();
+    };
+    QVERIFY(writeArtifact(QStringLiteral("actual.tiles"), actual));
+    QVERIFY(writeArtifact(QStringLiteral("expected.tiles"), expectedStream));
+    QVERIFY(writeArtifact(QStringLiteral("input.bgra"), filePixels));
+    QCOMPARE(actual, expectedStream);
+    const auto restored = load(bytes);
+    QCOMPARE(restored.code, Kra::Status::Success);
+    QCOMPARE(restored.document.image.layers.size(), 1);
+    QCOMPARE(restored.document.image.layers[0].tiles.size(), 1);
+    QCOMPARE(restored.document.image.layers[0].tiles[0].rgba, tile.rgba);
+}
 
 void TestKraRasterCodec::groupedArchivesPreserveHierarchyPixelsAndSelectedLeaf_data()
 {
