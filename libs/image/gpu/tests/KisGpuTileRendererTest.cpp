@@ -16,6 +16,7 @@
 #include "KisGpuLegacyRecoveryFixture_p.h"
 
 #include "KisGpuMultiplyProjectionFixture_p.h"
+#include "KisGpuScreenProjectionFixture_p.h"
 
 using namespace LibrePaint::Image::Gpu;
 using LibrePaint::Image::Gpu::Test::legacyRecovery;
@@ -40,8 +41,8 @@ private Q_SLOTS:
     void explicitPassThroughReadAfterParentKeepsSubtreePixels();
     void passThroughHierarchyMatchesNativeRootPixels_data();
     void passThroughHierarchyMatchesNativeRootPixels();
-    void multiplyProjectionMatchesNativePixels_data();
-    void multiplyProjectionMatchesNativePixels();
+    void separableLayerProjectionMatchesNativePixels_data();
+    void separableLayerProjectionMatchesNativePixels();
     void threeLayerProjectionFitsOneOutputTile_data();
     void threeLayerProjectionFitsOneOutputTile();
     void previewProjectionTracksBackgroundPropertiesAndRetainedPixels();
@@ -824,7 +825,7 @@ void KisGpuTileRendererTest::passThroughHierarchyMatchesNativeRootPixels()
     QCOMPARE(readBuffer(projection->tiles().first().pixels).first(4), expected);
 }
 
-void KisGpuTileRendererTest::multiplyProjectionMatchesNativePixels_data()
+void KisGpuTileRendererTest::separableLayerProjectionMatchesNativePixels_data()
 {
     QTest::addColumn<int>("destinationAlpha");
     QTest::addColumn<int>("sourceAlpha");
@@ -832,21 +833,26 @@ void KisGpuTileRendererTest::multiplyProjectionMatchesNativePixels_data()
     QTest::addColumn<int>("mask");
     QTest::addColumn<bool>("implicit");
     QTest::addColumn<QByteArray>("expected");
-    const auto references = LibrePaint::Image::Gpu::Test::multiplyProjectionReferences();
-    qsizetype row = 0;
-    for (int destinationAlpha : {0, 173, 255}) for (int sourceAlpha : {0, 137, 255})
-    for (int opacity : {137, 255}) for (int mask : {15, 9, 6, 0}) {
-        for (bool implicit : {false, true}) {
-            const QByteArray name = QByteArray::number(destinationAlpha) + '-' + QByteArray::number(sourceAlpha) + '-' +
-                QByteArray::number(opacity) + '-' + QByteArray::number(mask) + (implicit ? "-default" : "-stored");
-            QTest::newRow(name.constData()) << destinationAlpha << sourceAlpha << opacity << mask << implicit << references.mid(row * 4, 4);
+    QTest::addColumn<int>("blendMode");
+    for (int mode : {1, 2}) {
+        const auto references = mode == 1 ? LibrePaint::Image::Gpu::Test::multiplyProjectionReferences() :
+            LibrePaint::Image::Gpu::Test::screenProjectionReferences();
+        qsizetype row = 0;
+        for (int destinationAlpha : {0, 173, 255}) for (int sourceAlpha : {0, 137, 255})
+        for (int opacity : {137, 255}) for (int mask : {15, 9, 6, 0}) {
+            for (bool implicit : {false, true}) {
+                const QByteArray name = QByteArray::number(mode) + '-' + QByteArray::number(destinationAlpha) + '-' + QByteArray::number(sourceAlpha) + '-' +
+                    QByteArray::number(opacity) + '-' + QByteArray::number(mask) + (implicit ? "-default" : "-stored");
+                QTest::newRow(name.constData()) << destinationAlpha << sourceAlpha << opacity << mask << implicit << references.mid(row * 4, 4) << mode;
+            }
+            ++row;
         }
-        ++row;
     }
 }
 
-void KisGpuTileRendererTest::multiplyProjectionMatchesNativePixels()
+void KisGpuTileRendererTest::separableLayerProjectionMatchesNativePixels()
 {
+    QFETCH(int, blendMode);
     QFETCH(int, destinationAlpha);
     QFETCH(int, sourceAlpha);
     QFETCH(int, opacity);
@@ -859,13 +865,14 @@ void KisGpuTileRendererTest::multiplyProjectionMatchesNativePixels()
     for (int index = 0; index < 2; ++index) {
         RasterLayer layer;
         layer.opacity = index == 0 ? 255 : opacity;
-        layer.blendMode = index == 0 ? LayerBlendMode::Normal : LayerBlendMode::Multiply;
+        layer.blendMode = LayerBlendMode::Normal;
         layer.projectionChannelMask = index == 0 ? 15 : mask;
         if (implicit) layer.defaultPixel = colors[index];
         else layer.tiles = {{{0, 0}, QByteArray(reinterpret_cast<const char *>(colors[index].data()), 4).repeated(RgbaTile::ByteCount / 4)}};
         input.layers.append(layer);
     }
     OperationDocument document(input);
+    QCOMPARE(document.writeLayerBlendMode(2, LayerBlendMode(blendMode)), Result::Success);
     TileRenderer renderer(m_device);
     const auto raw = render(renderer, document.snapshot());
     QVERIFY(raw);

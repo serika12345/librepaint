@@ -65,38 +65,39 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory_d
     QTest::addColumn<int>("initialOpacity");
     QTest::addColumn<bool>("completedEdit");
     QTest::addColumn<bool>("passThrough");
-    QTest::addColumn<bool>("multiply");
+    QTest::addColumn<QString>("blendMode");
     for (const bool gpu : {false, true}) {
         for (const bool group : {false, true}) {
             for (const bool multiple : {false, true}) {
                 for (const bool accept : {false, true}) {
                     const QByteArray tag = QByteArray(gpu ? "gpu-" : "ordinary-")
                         + (group ? "group-" : "paint-") + (multiple ? "multiple-" : "single-") + (accept ? "accept" : "cancel");
-                    QTest::newRow(tag.constData()) << gpu << multiple << accept << true << false << group << QString() << 153 << false << false << false;
+                    QTest::newRow(tag.constData()) << gpu << multiple << accept << true << false << group << QString() << 153 << false << false << QStringLiteral("normal");
                 }
             }
             const QByteArray prefix = QByteArray(gpu ? "gpu-" : "ordinary-") + (group ? "group-" : "paint-");
             const QByteArray unchanged = prefix + "unchanged-accept";
             const QByteArray mixed = prefix + "mixed-channels-accept";
-            QTest::newRow(unchanged.constData()) << gpu << false << true << false << false << group << QString() << 153 << false << false << false;
-            QTest::newRow(mixed.constData()) << gpu << true << true << true << true << group << QString() << 153 << false << false << false;
+            QTest::newRow(unchanged.constData()) << gpu << false << true << false << false << group << QString() << 153 << false << false << QStringLiteral("normal");
+            QTest::newRow(mixed.constData()) << gpu << true << true << true << true << group << QString() << 153 << false << false << QStringLiteral("normal");
         }
     }
-    QTest::newRow("gpu-busy") << true << false << false << true << false << false << QStringLiteral("busy") << 153 << false << false << false;
-    QTest::newRow("gpu-unsupported-blend") << true << false << false << true << false << false << QStringLiteral("blend") << 153 << false << false << false;
+    QTest::newRow("gpu-busy") << true << false << false << true << false << false << QStringLiteral("busy") << 153 << false << false << QStringLiteral("normal");
+    QTest::newRow("gpu-unsupported-blend") << true << false << false << true << false << false << QStringLiteral("blend") << 153 << false << false << QStringLiteral("normal");
     for (const bool edit : {false, true}) for (const bool accept : {false, true}) {
         const QByteArray tag = QByteArray("gpu-exact-opacity-") + (edit ? "edited-" : "unchanged-") + (accept ? "accept" : "cancel");
-        QTest::newRow(tag.constData()) << true << false << accept << edit << false << false << QString() << 137 << false << false << false;
+        QTest::newRow(tag.constData()) << true << false << accept << edit << false << false << QString() << 137 << false << false << QStringLiteral("normal");
     }
-    QTest::newRow("gpu-completed-painting") << true << false << true << true << false << false << QString() << 153 << true << false << false;
+    QTest::newRow("gpu-completed-painting") << true << false << true << true << false << false << QString() << 153 << true << false << QStringLiteral("normal");
     for (bool gpu : {false, true}) for (bool accept : {false, true}) {
         const QByteArray tag = QByteArray(gpu ? "gpu-" : "ordinary-") + "pass-through-" + (accept ? "accept" : "cancel");
-        QTest::newRow(tag.constData()) << gpu << false << accept << true << false << true << QString() << 153 << false << true << false;
+        QTest::newRow(tag.constData()) << gpu << false << accept << true << false << true << QString() << 153 << false << true << QStringLiteral("normal");
     }
+    for (const auto &mode : {QStringLiteral("multiply"), QStringLiteral("screen")})
     for (bool gpu : {false, true}) for (bool group : {false, true}) for (bool accept : {false, true}) {
-        const QByteArray tag = QByteArray(gpu ? "gpu-" : "ordinary-") + "multiply-" +
+        const QByteArray tag = QByteArray(gpu ? "gpu-" : "ordinary-") + mode.toLatin1() + '-' +
             (group ? "group-" : "paint-") + (accept ? "accept" : "cancel");
-        QTest::newRow(tag.constData()) << gpu << true << accept << true << false << group << QString() << 153 << false << false << true;
+        QTest::newRow(tag.constData()) << gpu << true << accept << true << false << group << QString() << 153 << false << false << mode;
     }
 
 }
@@ -115,7 +116,8 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory()
     QFETCH(int, initialOpacity);
     QFETCH(bool, completedEdit);
     QFETCH(bool, passThrough);
-    QFETCH(bool, multiply);
+    QFETCH(QString, blendMode);
+    const bool blended = blendMode != QLatin1String("normal");
     namespace Gpu = LibrePaint::Image::Gpu;
     KisConfig(true).disableOpenGL();
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
@@ -191,7 +193,7 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory()
         source->paintDevice()->writeBytes(reinterpret_cast<const quint8 *>(edited.constData()), QRect(1, 1, 1, 1));
         transaction.commit(image->undoAdapter());
     }
-    if (multiply) {
+    if (blended) {
         QScopedPointer<Node> upper(Node::createNode(image, second));
         QVERIFY(upper->setPixelData(QByteArray::fromHex("5d29c989"), 1, 1, 1, 1));
     }
@@ -269,14 +271,14 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory()
         QVERIFY(found);
         QVERIFY(dynamic_cast<KisGroupLayer *>(first.data())->passThroughMode());
     }
-    if (multiply) {
+    if (blended) {
         publicDocument.refreshProjection();
         const auto normal = publicDocument.pixelData(1, 1, 1, 1);
         auto *composite = dialog->findChild<KisCompositeOpComboBox *>(QStringLiteral("cmbComposite"));
         QVERIFY(composite);
-        composite->selectCompositeOp(KoID(QStringLiteral("multiply")));
-        QCOMPARE(first->compositeOpId(), QStringLiteral("multiply"));
-        QCOMPARE(second->compositeOpId(), QStringLiteral("multiply"));
+        composite->selectCompositeOp(KoID(blendMode));
+        QCOMPARE(first->compositeOpId(), blendMode);
+        QCOMPARE(second->compositeOpId(), blendMode);
         publicDocument.refreshProjection();
         QVERIFY(publicDocument.pixelData(1, 1, 1, 1) != normal);
     }
@@ -314,8 +316,8 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory()
         } else if (refusal == QLatin1String("blend")) {
             auto *composite = dialog->findChild<KisCompositeOpComboBox *>(QStringLiteral("cmbComposite"));
             QVERIFY(composite);
-            composite->selectCompositeOp(KoID(QStringLiteral("screen")));
-            QCOMPARE(first->compositeOpId(), QStringLiteral("screen"));
+            composite->selectCompositeOp(KoID(QStringLiteral("overlay")));
+            QCOMPARE(first->compositeOpId(), QStringLiteral("overlay"));
         } else {
             QFAIL("Unknown layer property refusal scenario");
         }
@@ -381,7 +383,7 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory()
         QCOMPARE(first->name(), multiple ? QStringLiteral("Direct multi name") :
                  edit ? QStringLiteral("Renamed") : QStringLiteral("First"));
         QCOMPARE(first->colorLabelIndex(), edit ? 5 : 0);
-        QCOMPARE(first->compositeOpId(), multiply ? QStringLiteral("multiply") : QStringLiteral("normal"));
+        QCOMPARE(first->compositeOpId(), blended ? blendMode : QStringLiteral("normal"));
         if (group) QCOMPARE(dynamic_cast<KisGroupLayer *>(first.data())->passThroughMode(), passThrough);
         QVERIFY(first->visible());
         publicDocument.refreshProjection();
@@ -474,12 +476,12 @@ void TestNode::testLayerPropertiesDialogPreservesPreviewCancellationAndHistory()
         const auto png = QImage(pngPath).convertToFormat(QImage::Format_ARGB32);
         QCOMPARE(png.size(), QSize(32, 16));
         QCOMPARE(QByteArray(reinterpret_cast<const char *>(png.constBits()), png.sizeInBytes()), pixels);
-        if (multiply) {
+        if (blended) {
             const auto gpuImage = gpuLoaded.document->image();
             Gpu::LayerId sourceId = 0;
             for (const auto &layer : gpuImage->operations().snapshot()->layers) {
                 if (layer.uuid == firstUuid || layer.uuid == secondUuid)
-                    QCOMPARE(layer.blendMode, Gpu::LayerBlendMode::Multiply);
+                    QCOMPARE(layer.blendMode, (blendMode == QLatin1String("screen") ? Gpu::LayerBlendMode::Screen : Gpu::LayerBlendMode::Multiply));
                 if (layer.uuid == source->uuid()) sourceId = layer.id;
             }
             QVERIFY(sourceId);
@@ -509,9 +511,11 @@ void TestNode::testBlendModeChangesPreservePublicHistory_data()
 {
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<QString>("entry");
+    QTest::addColumn<QString>("blendMode");
+    for (const auto &mode : {QStringLiteral("multiply"), QStringLiteral("screen")})
     for (bool gpu : {false, true}) for (const auto &entry : {QStringLiteral("api"), QStringLiteral("panel"), QStringLiteral("direct")}) {
-        const QByteArray name = QByteArray(gpu ? "gpu-" : "ordinary-") + entry.toLatin1();
-        QTest::newRow(name.constData()) << gpu << entry;
+        const QByteArray name = QByteArray(gpu ? "gpu-" : "ordinary-") + entry.toLatin1() + '-' + mode.toLatin1();
+        QTest::newRow(name.constData()) << gpu << entry << mode;
     }
 }
 
@@ -519,6 +523,7 @@ void TestNode::testBlendModeChangesPreservePublicHistory()
 {
     QFETCH(bool, gpu);
     QFETCH(QString, entry);
+    QFETCH(QString, blendMode);
     namespace Gpu = LibrePaint::Image::Gpu;
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
     KisImageSP image;
@@ -547,17 +552,17 @@ void TestNode::testBlendModeChangesPreservePublicHistory()
     Document api(document.data(), false);
     api.refreshProjection();
     const auto normal = api.pixelData(1, 1, 1, 1);
-    if (entry == QLatin1String("api")) source->setBlendingMode(QStringLiteral("multiply"));
+    if (entry == QLatin1String("api")) source->setBlendingMode(blendMode);
     else if (entry == QLatin1String("panel")) {
         KisNodeCommandsAdapter commands(image);
-        commands.setCompositeOp(upper, image->colorSpace()->compositeOp(QStringLiteral("multiply")));
-    } else upper->setCompositeOpId(QStringLiteral("multiply"));
+        commands.setCompositeOp(upper, image->colorSpace()->compositeOp(blendMode));
+    } else upper->setCompositeOpId(blendMode);
     image->waitForDone();
-    QCOMPARE(source->blendingMode(), QStringLiteral("multiply"));
+    QCOMPARE(source->blendingMode(), blendMode);
     QCOMPARE(document->undoStack()->index(), entry == QLatin1String("direct") ? 0 : 1);
     api.refreshProjection();
-    const auto multiply = QByteArray::fromHex("784138c5");
-    QCOMPARE(api.pixelData(1, 1, 1, 1), multiply);
+    const auto blended = QByteArray::fromHex(blendMode == QLatin1String("screen") ? "9a5b65c5" : "784138c5");
+    QCOMPARE(api.pixelData(1, 1, 1, 1), blended);
     QCOMPARE(source->pixelData(1, 1, 1, 1), sourcePixels);
     if (entry != QLatin1String("direct")) {
         document->undoStack()->undo();
@@ -567,32 +572,32 @@ void TestNode::testBlendModeChangesPreservePublicHistory()
         QCOMPARE(api.pixelData(1, 1, 1, 1), normal);
         document->undoStack()->redo();
         image->waitForDone();
-        QCOMPARE(source->blendingMode(), QStringLiteral("multiply"));
+        QCOMPARE(source->blendingMode(), blendMode);
         api.refreshProjection();
-        QCOMPARE(api.pixelData(1, 1, 1, 1), multiply);
+        QCOMPARE(api.pixelData(1, 1, 1, 1), blended);
     }
     QScopedPointer<Node> copy(source->clone());
     QVERIFY(copy);
-    QCOMPARE(copy->blendingMode(), QStringLiteral("multiply"));
+    QCOMPARE(copy->blendingMode(), blendMode);
     QCOMPARE(copy->pixelData(1, 1, 1, 1), sourcePixels);
     QScopedPointer<Node> root(api.rootNode());
     QVERIFY(root->addChildNode(copy.data(), nullptr));
     image->waitForDone();
-    QCOMPARE(copy->blendingMode(), QStringLiteral("multiply"));
+    QCOMPARE(copy->blendingMode(), blendMode);
     if (gpu) {
         const auto owner = image->gpuImage();
-        QCOMPARE(owner->operations().snapshot()->layers[1].blendMode, Gpu::LayerBlendMode::Multiply);
+        QCOMPARE(owner->operations().snapshot()->layers[1].blendMode, (blendMode == QLatin1String("screen") ? Gpu::LayerBlendMode::Screen : Gpu::LayerBlendMode::Multiply));
         const auto stroke = owner->beginStroke(2, Gpu::Brush{}, 43);
         QCOMPARE(owner->appendSamples(stroke, {{{3, 3}}}), Gpu::Result::Success);
         const auto pending = owner->operations().preview();
         const auto index = document->undoStack()->index();
         source->setBlendingMode(QStringLiteral("normal"));
         QCOMPARE(owner->operations().preview(), pending);
-        QCOMPARE(source->blendingMode(), QStringLiteral("multiply"));
+        QCOMPARE(source->blendingMode(), blendMode);
         QCOMPARE(document->undoStack()->index(), index);
-        source->setBlendingMode(QStringLiteral("screen"));
+        source->setBlendingMode(QStringLiteral("overlay"));
         QCOMPARE(owner->operations().preview(), pending);
-        QCOMPARE(source->blendingMode(), QStringLiteral("multiply"));
+        QCOMPARE(source->blendingMode(), blendMode);
         QCOMPARE(owner->cancelStroke(stroke), Gpu::Result::Success);
     }
 }

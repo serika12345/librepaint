@@ -23,8 +23,8 @@ quint8 blendByte(quint8 destination, quint8 source, quint32 alpha)
     const auto weighted = (int(source) - destination) * int(alpha) + 128;
     return quint8((((weighted >> 8) + weighted) >> 8) + destination);
 }
-std::array<quint8, 4> multiplyProjectionPixel(std::array<quint8, 4> destination,
-    const std::array<quint8, 4> &source, quint8 opacity, quint8 mask)
+std::array<quint8, 4> separableProjectionPixel(std::array<quint8, 4> destination,
+    const std::array<quint8, 4> &source, quint8 opacity, quint8 mask, LayerBlendMode mode)
 {
     // RGBA8 generic separable composition quantizes opacity, products and blend
     // terms independently before the final integer division.
@@ -36,7 +36,8 @@ std::array<quint8, 4> multiplyProjectionPixel(std::array<quint8, 4> destination,
     const auto nextAlpha = locked ? oldAlpha : alpha + oldAlpha - multiplyByte(alpha, oldAlpha);
     for (int channel = 0; channel < 3; ++channel) {
         if (!(mask & (1u << channel))) continue;
-        const auto product = quint8(multiplyByte(source[channel], destination[channel]));
+        const auto multiplied = multiplyByte(source[channel], destination[channel]);
+        const auto product = quint8(mode == LayerBlendMode::Screen ? source[channel] + destination[channel] - multiplied : multiplied);
         if (locked || oldAlpha == 255) {
             if (oldAlpha) destination[channel] = blendByte(destination[channel], product, alpha);
         } else if (!oldAlpha) destination[channel] = source[channel];
@@ -118,8 +119,8 @@ QHash<LayerId, std::array<quint8, 4>> DocumentVersion::projectionDefaultPixels()
         } else {
             for (const auto &layer : inputs) {
                 auto source = result.value(layer.layer);
-                if (layer.blendMode == LayerBlendMode::Multiply) {
-                    pixel = multiplyProjectionPixel(pixel, source, layer.opacity, layer.channelMask);
+                if (layer.blendMode != LayerBlendMode::Normal) {
+                    pixel = separableProjectionPixel(pixel, source, layer.opacity, layer.channelMask, layer.blendMode);
                     continue;
                 }
                 const float alpha = float(source[3]) * (float(layer.opacity) / 255.0f);

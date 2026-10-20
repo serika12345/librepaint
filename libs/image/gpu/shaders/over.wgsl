@@ -130,7 +130,7 @@ fn blendByte(destination: u32, source: u32, alpha: u32) -> u32 {
     let weighted = (i32(source) - i32(destination)) * i32(alpha) + 128;
     return u32((((weighted >> 8u) + weighted) >> 8u) + i32(destination)) & 255u;
 }
-fn multiplyProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, mask: u32) -> u32 {
+fn separableProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, mask: u32, mode: u32) -> u32 {
     var destination = base;
     if (mask != 15u && destination.w == 0u) { destination = vec4<u32>(0u); }
     let alpha = multiplyThreeBytes(source.w, 255u, opacity);
@@ -141,7 +141,8 @@ fn multiplyProjectionPixel(base: vec4<u32>, source: vec4<u32>, opacity: u32, mas
     if (!locked) { nextAlpha = alpha + oldAlpha - multiplyByte(alpha, oldAlpha); }
     for (var channel = 0u; channel < 3u; channel += 1u) {
         if ((mask & (1u << channel)) == 0u) { continue; }
-        let product = multiplyByte(source[channel], destination[channel]);
+        let multiplied = multiplyByte(source[channel], destination[channel]);
+        let product = select(multiplied, source[channel] + destination[channel] - multiplied, mode == 2u);
         if (locked || oldAlpha == 255u) {
             if (oldAlpha != 0u) { destination[channel] = blendByte(destination[channel], product, alpha); }
         } else if (oldAlpha == 0u) { destination[channel] = source[channel]; }
@@ -160,8 +161,8 @@ fn projectionOver(base: u32, layer: u32, values: CompositeParameters) -> u32 {
     var destination = unpackPixel(base);
     if (values.normalizeBase != 0u && destination.w == 0u) { destination = vec4<u32>(0u); }
     let source = unpackPixel(layer);
-    if ((values.blendModeOpacity & 255u) == 1u) {
-        return multiplyProjectionPixel(destination, source, values.blendModeOpacity >> 8u, values.channelMask);
+    if ((values.blendModeOpacity & 255u) != 0u) {
+        return separableProjectionPixel(destination, source, values.blendModeOpacity >> 8u, values.channelMask, values.blendModeOpacity & 255u);
     }
     if (source.w == 0u) { return packPixel(destination); }
     if (values.channelMask == 15u && source.w == 255u && values.opacityBits == 0x3f800000u) {

@@ -15,6 +15,7 @@
 #include <gpu/KisGpuOperationDocument.h>
 #include "KisGpuLegacyRecoveryFixture_p.h"
 #include "KisGpuMultiplyProjectionFixture_p.h"
+#include "KisGpuScreenProjectionFixture_p.h"
 
 using namespace LibrePaint::Image::Gpu;
 using LibrePaint::Image::Gpu::Test::legacyRecovery;
@@ -109,9 +110,11 @@ private Q_SLOTS:
     void groupPassThroughPreservesPinnedInputHistoryAndRecovery();
     void groupPassThroughPreviewsAdoptAndCancelOneAttribute();
     void importedAndCopiedGroupsKeepPassThroughModes();
+    void layerBlendModesKeepPixelsHistoryPendingInputAndRecovery_data();
     void layerBlendModesKeepPixelsHistoryPendingInputAndRecovery();
+    void layerBlendModePreviewsAdoptAndCancelOneAttribute_data();
     void layerBlendModePreviewsAdoptAndCancelOneAttribute();
-    void multiplyGroupDefaultsMatchNativeProjection();
+    void separableGroupDefaultsMatchNativeProjection();
     void layerPropertyPreviewsBecomeOneReversibleEdit();
     void rejectedLayerPropertyPreviewsRetainHistoryAndInput();
     void layerPropertyAcceptanceRetainsEditsCompletedDuringPreview();
@@ -1010,34 +1013,43 @@ void KisGpuOperationDocumentTest::groupPassThroughPreservesPinnedInputHistoryAnd
     QCOMPARE(recovered.writeLayerPassThrough(2, false), Result::Closed);
 }
 
+void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInputAndRecovery_data()
+{
+    QTest::addColumn<int>("blendMode");
+    QTest::newRow("multiply") << int(LayerBlendMode::Multiply);
+    QTest::newRow("screen") << int(LayerBlendMode::Screen);
+}
+
 void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInputAndRecovery()
 {
+    QFETCH(int, blendMode);
+    const auto mode = LayerBlendMode(blendMode);
     auto input = nestedImage();
-    input.layers[0].blendMode = LayerBlendMode::Multiply;
+    input.layers[0].blendMode = mode;
     OperationDocument document(input);
     const auto fixed = document.snapshot();
-    QCOMPARE(fixed->layers[0].blendMode, LayerBlendMode::Multiply);
-    QCOMPARE(document.setLayerBlendMode(2, LayerBlendMode::Multiply), Result::Success);
+    QCOMPARE(fixed->layers[0].blendMode, mode);
+    QCOMPARE(document.setLayerBlendMode(2, mode), Result::Success);
     QCOMPARE(document.undoCount(), 1);
     QCOMPARE(document.historyAction(1), HistoryAction::ChangeBlendMode);
     QCOMPARE(fixed->layers[1].blendMode, LayerBlendMode::Normal);
     QCOMPARE(document.snapshot()->layers[0].operations, fixed->layers[0].operations);
     const auto unchanged = document.snapshot();
-    QCOMPARE(document.setLayerBlendMode(2, LayerBlendMode::Multiply), Result::Success);
+    QCOMPARE(document.setLayerBlendMode(2, mode), Result::Success);
     QCOMPARE(document.snapshot(), unchanged);
     const auto stroke = document.beginStroke(1, Brush{}, 43);
     QVERIFY(!stroke.isNull());
     QCOMPARE(document.appendSamples(stroke, {sample(20, 20)}), Result::Success);
     const auto pending = document.preview();
-    QCOMPARE(document.writeLayerBlendMode(3, LayerBlendMode::Multiply), Result::Success);
+    QCOMPARE(document.writeLayerBlendMode(3, mode), Result::Success);
     QCOMPARE(document.activeOperation(), stroke);
     QCOMPARE(pending->layers[2].blendMode, LayerBlendMode::Normal);
-    QCOMPARE(document.preview()->layers[2].blendMode, LayerBlendMode::Multiply);
+    QCOMPARE(document.preview()->layers[2].blendMode, mode);
     const auto bytes = document.recoveryData();
     const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
     if (!results.isEmpty()) {
         QVERIFY(QDir().mkpath(results));
-        QFile artifact(QDir(results).filePath(QStringLiteral("layer-blend-modes.recovery")));
+        QFile artifact(QDir(results).filePath((mode == LayerBlendMode::Screen ? QStringLiteral("layer-screen-mode.recovery") : QStringLiteral("layer-blend-modes.recovery"))));
         QVERIFY(artifact.open(QIODevice::WriteOnly));
         QCOMPARE(artifact.write(bytes), bytes.size());
     }
@@ -1047,10 +1059,17 @@ void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInputAn
     QCOMPARE(recovered.cancelStroke(recovered.activeOperation()), Result::Success);
     QCOMPARE(recovered.undo(), Result::Success);
     QCOMPARE(recovered.snapshot()->layers[1].blendMode, LayerBlendMode::Normal);
-    QCOMPARE(recovered.snapshot()->layers[2].blendMode, LayerBlendMode::Multiply);
+    QCOMPARE(recovered.snapshot()->layers[2].blendMode, mode);
     QCOMPARE(recovered.redo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[1].blendMode, LayerBlendMode::Multiply);
+    QCOMPARE(recovered.snapshot()->layers[1].blendMode, mode);
     const auto current = recovered.recoveryData();
+    if (mode == LayerBlendMode::Screen) {
+        auto earlier = current.chopped(32);
+        earlier[5] = 34;
+        earlier.append(QCryptographicHash::hash(earlier, QCryptographicHash::Sha256));
+        QCOMPARE(recovered.restoreRecovery(earlier), Result::InvalidRecovery);
+        QCOMPARE(recovered.recoveryData(), current);
+    }
     const auto &group = recovered.snapshot()->layers[1];
     QByteArray prefix;
     QDataStream stream(&prefix, QIODevice::WriteOnly);
@@ -1065,60 +1084,79 @@ void KisGpuOperationDocumentTest::layerBlendModesKeepPixelsHistoryPendingInputAn
     auto invalid = current.chopped(32);
     const auto offset = invalid.indexOf(prefix);
     QVERIFY(offset >= 0);
-    invalid[offset + prefix.size()] = 2;
+    invalid[offset + prefix.size()] = 3;
     invalid.append(QCryptographicHash::hash(invalid, QCryptographicHash::Sha256));
     QCOMPARE(recovered.restoreRecovery(invalid), Result::InvalidRecovery);
     QCOMPARE(recovered.recoveryData(), current);
-    QCOMPARE(recovered.writeLayerBlendMode(2, LayerBlendMode(2)), Result::InvalidInput);
-    QCOMPARE(recovered.setLayerBlendMode(2, LayerBlendMode(2)), Result::InvalidInput);
-    QCOMPARE(recovered.setLayerBlendMode(999, LayerBlendMode::Multiply), Result::LayerUnavailable);
+    QCOMPARE(recovered.writeLayerBlendMode(2, LayerBlendMode(3)), Result::InvalidInput);
+    QCOMPARE(recovered.setLayerBlendMode(2, LayerBlendMode(3)), Result::InvalidInput);
+    QCOMPARE(recovered.setLayerBlendMode(999, mode), Result::LayerUnavailable);
     QCOMPARE(recovered.recoveryData(), current);
     QCOMPARE(recovered.duplicateLayers({1}, {QStringLiteral("Copy")}, 3), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[3].blendMode, LayerBlendMode::Multiply);
+    QCOMPARE(recovered.snapshot()->layers[3].blendMode, mode);
     OperationDocument target(QSize(320, 180));
     QCOMPARE(target.insertLayers(insertionForest(document.snapshot()), 1), Result::Success);
     for (const auto &layer : target.snapshot()->layers)
         if (layer.name == QLatin1String("Red") || layer.name == QLatin1String("Inner") || layer.name == QLatin1String("Outer"))
-            QCOMPARE(layer.blendMode, LayerBlendMode::Multiply);
+            QCOMPARE(layer.blendMode, mode);
     OperationDocument previous({1, 1});
     QCOMPARE(previous.restoreRecovery(LibrePaint::Image::Gpu::Test::passThroughRecoveryV33()), Result::Success);
     for (const auto &state : previous.historyVersions())
         for (const auto &layer : state->layers) QCOMPARE(layer.blendMode, LayerBlendMode::Normal);
+    OperationDocument previous34({1, 1});
+    QCOMPARE(previous34.restoreRecovery(LibrePaint::Image::Gpu::Test::blendModesRecoveryV34()), Result::Success);
+    QCOMPARE(previous34.snapshot()->layers[1].blendMode, LayerBlendMode::Multiply);
+    QVERIFY(!previous34.activeOperation().isNull());
+    QCOMPARE(previous34.cancelStroke(previous34.activeOperation()), Result::Success);
+    QCOMPARE(previous34.undo(), Result::Success);
+    QCOMPARE(previous34.snapshot()->layers[1].blendMode, LayerBlendMode::Normal);
     recovered.close();
     QCOMPARE(recovered.writeLayerBlendMode(2, LayerBlendMode::Normal), Result::Closed);
-    input.layers[0].blendMode = LayerBlendMode(2);
+    input.layers[0].blendMode = LayerBlendMode(3);
     QVERIFY_EXCEPTION_THROWN(OperationDocument invalid(input), std::invalid_argument);
 }
 
-void KisGpuOperationDocumentTest::multiplyGroupDefaultsMatchNativeProjection()
+void KisGpuOperationDocumentTest::separableGroupDefaultsMatchNativeProjection()
 {
-    const auto references = LibrePaint::Image::Gpu::Test::multiplyProjectionReferences();
-    qsizetype row = 0;
-    for (int destinationAlpha : {0, 173, 255}) for (int sourceAlpha : {0, 137, 255})
-    for (int opacity : {137, 255}) for (int mask : {15, 9, 6, 0}) {
-        const auto group = QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}"));
-        RasterImage input;
-        input.size = {256, 256};
-        input.layers = {{QStringLiteral("Destination"), true, {}, {}},
-                        {QStringLiteral("Source"), true, {}, {}}, {QStringLiteral("Group"), true, group, {}}};
-        input.layers[0].defaultPixel = {37, 89, 151, quint8(destinationAlpha)};
-        input.layers[1].defaultPixel = {201, 41, 93, quint8(sourceAlpha)};
-        input.layers[1].opacity = quint8(opacity);
-        input.layers[1].blendMode = LayerBlendMode::Multiply;
-        input.layers[1].projectionChannelMask = quint8(mask);
-        input.layers[0].parentUuid = input.layers[1].parentUuid = group;
-        input.layers[2].kind = LayerKind::Group;
-        OperationDocument document(input);
-        const auto value = document.snapshot()->projectionDefaultPixels().value(3);
-        QCOMPARE(QByteArray(reinterpret_cast<const char *>(value.data()), 4), references.mid(row++ * 4, 4));
+    for (auto mode : {LayerBlendMode::Multiply, LayerBlendMode::Screen}) {
+        const auto references = mode == LayerBlendMode::Multiply ? LibrePaint::Image::Gpu::Test::multiplyProjectionReferences() :
+            LibrePaint::Image::Gpu::Test::screenProjectionReferences();
+        qsizetype row = 0;
+        for (int destinationAlpha : {0, 173, 255}) for (int sourceAlpha : {0, 137, 255})
+        for (int opacity : {137, 255}) for (int mask : {15, 9, 6, 0}) {
+            const auto group = QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}"));
+            RasterImage input;
+            input.size = {256, 256};
+            input.layers = {{QStringLiteral("Destination"), true, {}, {}},
+                            {QStringLiteral("Source"), true, {}, {}}, {QStringLiteral("Group"), true, group, {}}};
+            input.layers[0].defaultPixel = {37, 89, 151, quint8(destinationAlpha)};
+            input.layers[1].defaultPixel = {201, 41, 93, quint8(sourceAlpha)};
+            input.layers[1].opacity = quint8(opacity);
+            input.layers[1].blendMode = mode;
+            input.layers[1].projectionChannelMask = quint8(mask);
+            input.layers[0].parentUuid = input.layers[1].parentUuid = group;
+            input.layers[2].kind = LayerKind::Group;
+            OperationDocument document(input);
+            const auto value = document.snapshot()->projectionDefaultPixels().value(3);
+            QCOMPARE(QByteArray(reinterpret_cast<const char *>(value.data()), 4), references.mid(row++ * 4, 4));
+        }
     }
+}
+
+void KisGpuOperationDocumentTest::layerBlendModePreviewsAdoptAndCancelOneAttribute_data()
+{
+    QTest::addColumn<int>("blendMode");
+    QTest::newRow("multiply") << int(LayerBlendMode::Multiply);
+    QTest::newRow("screen") << int(LayerBlendMode::Screen);
 }
 
 void KisGpuOperationDocumentTest::layerBlendModePreviewsAdoptAndCancelOneAttribute()
 {
+    QFETCH(int, blendMode);
+    const auto mode = LayerBlendMode(blendMode);
     OperationDocument document(nestedImage());
     const auto before = document.snapshot();
-    QCOMPARE(document.writeLayerBlendMode(2, LayerBlendMode::Multiply), Result::Success);
+    QCOMPARE(document.writeLayerBlendMode(2, mode), Result::Success);
     QCOMPARE(document.writeLayerOpacity(2, 137), Result::Success);
     LayerPropertiesSelection fields;
     fields.layer = 2;
@@ -1131,10 +1169,10 @@ void KisGpuOperationDocumentTest::layerBlendModePreviewsAdoptAndCancelOneAttribu
     QCOMPARE(recovered.snapshot()->layers[1].blendMode, LayerBlendMode::Normal);
     QCOMPARE(recovered.snapshot()->layers[1].opacity, quint8(137));
     QCOMPARE(recovered.redo(), Result::Success);
-    QCOMPARE(recovered.snapshot()->layers[1].blendMode, LayerBlendMode::Multiply);
+    QCOMPARE(recovered.snapshot()->layers[1].blendMode, mode);
     QCOMPARE(document.undo(), Result::Success);
     const auto opening = document.snapshot();
-    QCOMPARE(document.writeLayerBlendMode(2, LayerBlendMode::Multiply), Result::Success);
+    QCOMPARE(document.writeLayerBlendMode(2, mode), Result::Success);
     const auto stroke = document.beginStroke(1, Brush{}, 43);
     QCOMPARE(document.appendSamples(stroke, {sample(20, 20)}), Result::Success);
     QCOMPARE(document.restoreLayerProperties(opening, {fields}), Result::Success);

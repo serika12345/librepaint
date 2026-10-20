@@ -154,12 +154,13 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset)
     const auto child = element.firstChildElement();
     if (element.tagName() != QLatin1String("layer") || (!group && type != QLatin1String("paintlayer")) ||
         (element.attribute(QStringLiteral("compositeop")) != QLatin1String("normal") &&
-         element.attribute(QStringLiteral("compositeop")) != QLatin1String("multiply")) ||
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("multiply") &&
+         element.attribute(QStringLiteral("compositeop")) != QLatin1String("screen")) ||
         element.attribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA")) != QLatin1String("RGBA") ||
         element.hasAttribute(QStringLiteral("keyframes")) ||
         (!group && !child.isNull()) || (group && !child.isNull() &&
             (child.tagName() != QLatin1String("layers") || !child.nextSiblingElement().isNull())))
-        return unsupported(QStringLiteral("KRA requires RGBA8 paint layers and groups with normal or multiply compositing"));
+        return unsupported(QStringLiteral("KRA requires RGBA8 paint layers and groups with normal, multiply or screen compositing"));
     const auto passThrough = element.attribute(QStringLiteral("passthrough"), QStringLiteral("0"));
     if ((passThrough != QLatin1String("0") && passThrough != QLatin1String("1")) ||
         (!group && passThrough != QLatin1String("0")))
@@ -538,7 +539,8 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         RasterLayer layer;
         layer.kind = element.attribute(QStringLiteral("nodetype")) == QLatin1String("grouplayer") ? LayerKind::Group : LayerKind::Paint;
         layer.passThrough = element.attribute(QStringLiteral("passthrough"), QStringLiteral("0")) == QLatin1String("1");
-        layer.blendMode = element.attribute(QStringLiteral("compositeop")) == QLatin1String("multiply") ? LayerBlendMode::Multiply : LayerBlendMode::Normal;
+        layer.blendMode = element.attribute(QStringLiteral("compositeop")) == QLatin1String("multiply") ? LayerBlendMode::Multiply :
+            element.attribute(QStringLiteral("compositeop")) == QLatin1String("screen") ? LayerBlendMode::Screen : LayerBlendMode::Normal;
         const auto parent = element.parentNode().parentNode().toElement();
         if (parent.tagName() == QLatin1String("layer")) layer.parentUuid = QUuid(parent.attribute(QStringLiteral("uuid")));
         layer.position = offset;
@@ -711,7 +713,8 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
         element.setAttribute(QStringLiteral("visible"), layer.visible ? QStringLiteral("1") : QStringLiteral("0"));
         element.setAttribute(QStringLiteral("selected"), i == value.activeLayer ? QStringLiteral("true") : QStringLiteral("false"));
         element.setAttribute(QStringLiteral("nodetype"), layer.kind == LayerKind::Paint ? QStringLiteral("paintlayer") : QStringLiteral("grouplayer"));
-        element.setAttribute(QStringLiteral("compositeop"), layer.blendMode == LayerBlendMode::Multiply ? QStringLiteral("multiply") : QStringLiteral("normal"));
+        element.setAttribute(QStringLiteral("compositeop"), layer.blendMode == LayerBlendMode::Multiply ? QStringLiteral("multiply") :
+                             layer.blendMode == LayerBlendMode::Screen ? QStringLiteral("screen") : QStringLiteral("normal"));
         element.setAttribute(QStringLiteral("opacity"), int(layer.opacity));
         element.setAttribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA"));
         element.setAttribute(QStringLiteral("locked"), layer.userLocked ? QStringLiteral("1") : QStringLiteral("0"));

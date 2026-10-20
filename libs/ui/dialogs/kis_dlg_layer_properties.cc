@@ -307,7 +307,7 @@ void KisDlgLayerProperties::accept()
             return;
         }
         for (const auto &node : d->nodes) {
-            if (node->compositeOpId() != COMPOSITE_OVER && node->compositeOpId() != COMPOSITE_MULT) {
+            if (node->compositeOpId() != COMPOSITE_OVER && node->compositeOpId() != COMPOSITE_MULT && node->compositeOpId() != COMPOSITE_SCREEN) {
                 d->view->showFloatingMessage(i18n("The selected blending mode cannot be applied to this document."), QIcon());
                 return;
             }

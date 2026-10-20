@@ -202,7 +202,7 @@ using CropSnapshot = QSharedPointer<const CropOperation>;
 using LayerOperation = std::variant<PaintSnapshot, TileWriteSnapshot, TranslationSnapshot, CropSnapshot>;
 
 enum class LayerKind : quint8 { Paint, Group };
-enum class LayerBlendMode : quint8 { Normal, Multiply };
+enum class LayerBlendMode : quint8 { Normal, Multiply, Screen };
 
 struct RasterLayer
 {

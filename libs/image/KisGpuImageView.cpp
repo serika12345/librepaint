@@ -102,7 +102,7 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         auto *paint = qobject_cast<KisPaintLayer*>(node.data());
         auto *group = qobject_cast<KisGroupLayer*>(node.data());
         if (!layer || (!paint && !group) || (paint && node->childCount()) ||
-            (layer->compositeOpId() != COMPOSITE_OVER && layer->compositeOpId() != COMPOSITE_MULT) ||
+            (layer->compositeOpId() != COMPOSITE_OVER && layer->compositeOpId() != COMPOSITE_MULT && layer->compositeOpId() != COMPOSITE_SCREEN) ||
             node->isAnimated() || !node->keyframeChannels().isEmpty() || layer->layerStyle() ||
             layer->temporary() || (paint && paint->hasTemporaryTarget()) ||
             *layer->colorSpace() != *colorSpace()) return false;
@@ -112,7 +112,8 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         Gpu::RasterLayer properties;
         properties.kind = group ? Gpu::LayerKind::Group : Gpu::LayerKind::Paint;
         properties.passThrough = group && group->passThroughMode();
-        properties.blendMode = layer->compositeOpId() == COMPOSITE_MULT ? Gpu::LayerBlendMode::Multiply : Gpu::LayerBlendMode::Normal;
+        properties.blendMode = layer->compositeOpId() == COMPOSITE_MULT ? Gpu::LayerBlendMode::Multiply :
+                    layer->compositeOpId() == COMPOSITE_SCREEN ? Gpu::LayerBlendMode::Screen : Gpu::LayerBlendMode::Normal;
         properties.name = node->name();
         properties.uuid = node->uuid();
         properties.parentUuid = roots.contains(node) ? (parent == root() ? QUuid() : parent->uuid()) : node->parent()->uuid();
@@ -254,7 +255,7 @@ KisImageSP KisImage::cloneGpuNodeImage(const KisNodeList &roots) const
         auto *paint = qobject_cast<KisPaintLayer*>(node.data());
         auto *group = qobject_cast<KisGroupLayer*>(node.data());
         if (!source || !layer || (!paint && !group) || (paint && node->childCount()) ||
-            (layer->compositeOpId() != COMPOSITE_OVER && layer->compositeOpId() != COMPOSITE_MULT) || node->isAnimated() ||
+            (layer->compositeOpId() != COMPOSITE_OVER && layer->compositeOpId() != COMPOSITE_MULT && layer->compositeOpId() != COMPOSITE_SCREEN) || node->isAnimated() ||
             !node->keyframeChannels().isEmpty() || layer->layerStyle() || layer->temporary() ||
             (paint && paint->hasTemporaryTarget()) ||
             *layer->colorSpace() != *colorSpace() || pending.size() > owner->limits().layerCount) return {};
@@ -474,7 +475,8 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
             else node->paintDevice()->bindGpuLayer(owner, layer.id);
             if (node->name() != layer.name) node->setName(layer.name);
             if (changed()) break;
-            node->setCompositeOpId(layer.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::Multiply ? COMPOSITE_MULT : COMPOSITE_OVER);
+            node->setCompositeOpId(layer.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::Multiply ? COMPOSITE_MULT :
+                layer.blendMode == LibrePaint::Image::Gpu::LayerBlendMode::Screen ? COMPOSITE_SCREEN : COMPOSITE_OVER);
             if (changed()) break;
             node->setVisible(layer.visible);
             if (changed()) break;

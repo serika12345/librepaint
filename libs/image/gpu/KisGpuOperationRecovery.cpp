@@ -18,7 +18,7 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 34;
+constexpr quint16 FormatVersion = 35;
 // Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
 constexpr quint8 LayerProperties = 254;
@@ -575,7 +575,7 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
             if (format >= 34) {
                 quint8 mode = 0;
                 stream >> mode;
-                if (mode > quint8(LayerBlendMode::Multiply)) return Result::InvalidRecovery;
+                if (mode > quint8(format >= 35 ? LayerBlendMode::Screen : LayerBlendMode::Multiply)) return Result::InvalidRecovery;
                 layer.blendMode = LayerBlendMode(mode);
             }
             stream >> count;
@@ -729,7 +729,8 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
                     if ((property == LayerProperty::ChannelMask || property == LayerProperty::ProjectionMask) &&
                         (old > 15 || current > 15)) return false;
                     if (property == LayerProperty::BlendMode &&
-                        (old > quint8(LayerBlendMode::Multiply) || current > quint8(LayerBlendMode::Multiply))) return false;
+                        (old > quint8(format >= 35 ? LayerBlendMode::Screen : LayerBlendMode::Multiply) ||
+                         current > quint8(format >= 35 ? LayerBlendMode::Screen : LayerBlendMode::Multiply))) return false;
                     before = QVariant::fromValue(old);
                     after = QVariant::fromValue(current);
                 } else {
