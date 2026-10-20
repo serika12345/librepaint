@@ -6,6 +6,7 @@
 
 #include "kis_strokes_queue_test.h"
 #include <simpletest.h>
+#include <QThread>
 
 #include "kistest.h"
 
@@ -879,6 +880,7 @@ struct TestUndoCommand : public KUndo2Command
 
     void undo() override {
         ENTER_FUNCTION();
+        undoExecutedInWorker = QThread::currentThread() != qApp->thread();
         undoCount++;
     }
 
@@ -889,6 +891,7 @@ struct TestUndoCommand : public KUndo2Command
 
     int undoCount = 0;
     int redoCount = 0;
+    bool undoExecutedInWorker = false;
 };
 
 void KisStrokesQueueTest::testLodUndoBase()
@@ -941,6 +944,18 @@ void KisStrokesQueueTest::testLodUndoBase2()
 {
     LodStrokesQueueTester t(true);
     KisStrokesQueue &queue = t.queue;
+    const auto processPhase = [&] {
+        // Register undo commands at their clone completion boundaries while
+        // keeping job execution on the real worker pool.
+        t.realContext.setTestingMode(true);
+        t.processQueue();
+        t.realContext.setTestingMode(false);
+        const auto jobs = t.realContext.getJobs();
+        for (int index = 0; index < jobs.size(); ++index) {
+            if (jobs[index]->isRunning()) t.realContext.startThread(index);
+        }
+        t.realContext.waitForDone();
+    };
 
     // create a stroke with LOD0 + LOD2
     queue.setLodPreferences(KisLodPreferences(2));
@@ -952,40 +967,41 @@ void KisStrokesQueueTest::testLodUndoBase2()
     queue.addJob(id2, new KisTestingStrokeJobData(KisStrokeJobData::CONCURRENT));
     queue.endStroke(id2);
 
-    t.processQueue();
+    processPhase();
     t.checkOnlyExecutedJob("sync_u_init");
 
-    t.processQueue();
+    processPhase();
     t.checkOnlyExecutedJob("clone2_str1_dab");
 
     QSharedPointer<TestUndoCommand> undoStr1(new TestUndoCommand("str1_undo"));
     queue.lodNPostExecutionUndoAdapter()->addCommand(undoStr1);
 
-    t.processQueue();
+    processPhase();
     t.checkOnlyExecutedJob("clone2_str2_dab");
 
     QSharedPointer<TestUndoCommand> undoStr2(new TestUndoCommand("str2_undo"));
     queue.lodNPostExecutionUndoAdapter()->addCommand(undoStr2);
 
-    t.processQueue();
+    processPhase();
     t.checkOnlyExecutedJob("susp_u_init");
 
     queue.tryUndoLastStrokeAsync();
-    t.processQueue();
+    processPhase();
 
     while (queue.currentStrokeName() == kundo2_noi18n("str2_undo")) {
         //queue.debugPrintStrokes();
-        t.processQueue();
+        processPhase();
     }
 
     QCOMPARE(undoStr2->undoCount, 1);
+    QVERIFY(undoStr2->undoExecutedInWorker);
 
     t.checkOnlyExecutedJob("str1_dab");
 
-    t.processQueue();
+    processPhase();
     t.checkOnlyExecutedJob("str2_cancel");
 
-    t.processQueue();
+    processPhase();
     t.checkOnlyExecutedJob("resu_u_init");
 }
 
