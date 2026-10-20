@@ -72,6 +72,8 @@ struct TileRenderer::Private
     Detail::NativeComputePipeline pipeline;
     Detail::NativeBindingLayout projectionLayout;
     Detail::NativeComputePipeline projectionPipeline;
+    Detail::NativeBindingLayout pairedProjectionLayout;
+    Detail::NativeComputePipeline pairedProjectionPipeline;
     Detail::NativeBindingLayout transparencyLayout;
     Detail::NativeComputePipeline transparencyPipeline;
     Detail::NativeBindingLayout boundsLayout;
@@ -93,7 +95,7 @@ struct TileRenderer::Private
     Detail::Tiles projectionBackdrops;
 
     Private(DevicePtr device, qsizetype byteBudget);
-    Detail::NativeComputePipeline createPipeline(const QString &path);
+    Detail::NativeComputePipeline createPipeline(const QString &path, const char *entryPoint = "main");
     void initializeProjection();
     Detail::NativeBuffer recordTransparency(WGPUCommandEncoder commands, const ProjectedSnapshot &projection, QRect region);
     Detail::NativeBuffer recordBounds(WGPUCommandEncoder commands, const QList<TileView> &tiles,

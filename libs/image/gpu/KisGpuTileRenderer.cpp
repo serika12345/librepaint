@@ -39,7 +39,7 @@ TileRenderer::Private::Private(DevicePtr device, qsizetype byteBudget)
     if (error.isEmpty()) initializeProjection();
 }
 
-NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path)
+NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path, const char *entryPoint)
 {
     QFile shared(QStringLiteral(":/librepaint/gpu/shaders/rgba.wgsl")), shader(path);
     if (!shared.open(QIODevice::ReadOnly) || !shader.open(QIODevice::ReadOnly)) {
@@ -59,7 +59,7 @@ NativeComputePipeline TileRenderer::Private::createPipeline(const QString &path)
     }
     WGPUComputePipelineDescriptor descriptor{};
     descriptor.compute.module = module.get();
-    descriptor.compute.entryPoint = {"main", WGPU_STRLEN};
+    descriptor.compute.entryPoint = {entryPoint, WGPU_STRLEN};
     NativeComputePipeline result(wgpuDeviceCreateComputePipeline(device->nativeDevice(), &descriptor));
     if (!result || !device->diagnostic().isEmpty()) {
         error = device->diagnostic().isEmpty() ? QStringLiteral("GPU compute pipeline creation failed") : device->diagnostic();

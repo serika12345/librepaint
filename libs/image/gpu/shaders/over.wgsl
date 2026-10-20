@@ -6,6 +6,9 @@ struct CompositeParameters { opacityBits: u32, normalizeBase: u32, channelMask: 
 @group(0) @binding(1) var<storage, read> layerPixels: array<u32>;
 @group(0) @binding(2) var<storage, read_write> outputPixels: array<u32>;
 @group(0) @binding(3) var<uniform> parameters: CompositeParameters;
+struct CompositePairParameters { first: CompositeParameters, second: CompositeParameters, }
+@group(0) @binding(4) var<storage, read> secondLayerPixels: array<u32>;
+@group(0) @binding(5) var<uniform> pairParameters: CompositePairParameters;
 
 // Positive finite binary32 values for normal RGBA8 projection. Integer
 // evaluation fixes normalization, single-rounded multiply-add and quotient
@@ -114,28 +117,23 @@ fn projectionColor(destination: u32, source: u32, blend: u32) -> u32 {
     return projectionByte(projectionFloat(value, projectionPower(blend)));
 }
 
-@compute @workgroup_size(8, 8)
-fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
-    let position = invocation.xy;
-    if (any(position >= vec2<u32>(256u))) { return; }
-    let index = position.y * 256u + position.x;
-    var destination = unpackPixel(basePixels[index]);
-    if (parameters.normalizeBase != 0u && destination.w == 0u) { destination = vec4<u32>(0u); }
-    let source = unpackPixel(layerPixels[index]);
-    if (source.w == 0u) { outputPixels[index] = packPixel(destination); return; }
-    if (parameters.channelMask == 15u && source.w == 255u && parameters.opacityBits == 0x3f800000u) {
-        outputPixels[index] = packPixel(source);
-        return;
+fn projectionOver(base: u32, layer: u32, values: CompositeParameters) -> u32 {
+    var destination = unpackPixel(base);
+    if (values.normalizeBase != 0u && destination.w == 0u) { destination = vec4<u32>(0u); }
+    let source = unpackPixel(layer);
+    if (source.w == 0u) { return packPixel(destination); }
+    if (values.channelMask == 15u && source.w == 255u && values.opacityBits == 0x3f800000u) {
+        return packPixel(source);
     }
-    let sourceAlpha = projectionScaleByte(parameters.opacityBits, source.w);
+    let sourceAlpha = projectionScaleByte(values.opacityBits, source.w);
     var alpha = destination.w;
     var blend: u32;
-    if ((parameters.channelMask & 8u) == 0u || destination.w == 255u) {
+    if ((values.channelMask & 8u) == 0u || destination.w == 255u) {
         blend = projectionMultiply(sourceAlpha, 0x3b808081u);
     } else if (destination.w == 0u) {
         alpha = projectionByte(sourceAlpha);
         blend = 0x3f800000u;
-        if (parameters.channelMask != 15u) { destination = vec4<u32>(0u); }
+        if (values.channelMask != 15u) { destination = vec4<u32>(0u); }
     } else {
         let value = projectionAlpha(sourceAlpha, destination.w);
         alpha = projectionByte(value);
@@ -143,9 +141,26 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     }
     var color = destination.xyz;
     for (var channel = 0u; channel < 3u; channel += 1u) {
-        if ((parameters.channelMask & (1u << channel)) == 0u) { continue; }
+        if ((values.channelMask & (1u << channel)) == 0u) { continue; }
         if (blend == 0x3f800000u) { color[channel] = source[channel]; }
         else { color[channel] = projectionColor(destination[channel], source[channel], blend); }
     }
-    outputPixels[index] = packPixel(vec4<u32>(color, alpha));
+    return packPixel(vec4<u32>(color, alpha));
+}
+
+@compute @workgroup_size(8, 8)
+fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
+    let position = invocation.xy;
+    if (any(position >= vec2<u32>(256u))) { return; }
+    let index = position.y * 256u + position.x;
+    outputPixels[index] = projectionOver(basePixels[index], layerPixels[index], parameters);
+}
+
+@compute @workgroup_size(8, 8)
+fn mainPair(@builtin(global_invocation_id) invocation: vec3<u32>) {
+    let position = invocation.xy;
+    if (any(position >= vec2<u32>(256u))) { return; }
+    let index = position.y * 256u + position.x;
+    let first = projectionOver(basePixels[index], layerPixels[index], pairParameters.first);
+    outputPixels[index] = projectionOver(first, secondLayerPixels[index], pairParameters.second);
 }

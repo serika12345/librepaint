@@ -35,6 +35,8 @@ private Q_SLOTS:
     void partialLayerOpacityComposesOverTransparency();
     void normalProjectionPreservesBinary32Rounding_data();
     void normalProjectionPreservesBinary32Rounding();
+    void threeLayerProjectionFitsOneOutputTile_data();
+    void threeLayerProjectionFitsOneOutputTile();
     void previewProjectionTracksBackgroundPropertiesAndRetainedPixels();
     void switchingDocumentsReleasesPreviewDerivedPixelsAtCapacity();
     void roundBrushProducesRgbaPixelsOnTheGpu();
@@ -665,6 +667,57 @@ void KisGpuTileRendererTest::normalProjectionPreservesBinary32Rounding()
     }
     QCOMPARE(actual.size(), RgbaTile::ByteCount);
     QCOMPARE(QCryptographicHash::hash(actual, QCryptographicHash::Sha256).toHex(), expectedHash);
+}
+
+void KisGpuTileRendererTest::threeLayerProjectionFitsOneOutputTile_data()
+{
+    QTest::addColumn<int>("bottomAlpha");
+    QTest::addColumn<int>("middleMask");
+    QTest::addColumn<int>("topMask");
+    QTest::addColumn<QByteArray>("expected");
+    // RGBA8/sRGB CPU normal-composition references from 6e856978f0.
+    // Three 256x256 uniform layers, opacity 255/137/211, bottom-to-top.
+    QTest::newRow("transparent-normal") << 0 << 15 << 15 << QByteArray::fromHex("2db94fb9");
+    QTest::newRow("transparent-middle-channels") << 0 << 9 << 15 << QByteArray::fromHex("2db241b9");
+    QTest::newRow("transparent-inherit-alpha") << 0 << 15 << 6 << QByteArray::fromHex("c991534a");
+    QTest::newRow("transparent-masked-bottom") << 0 << 0 << 9 << QByteArray::fromHex("1100009c");
+    QTest::newRow("normal") << 173 << 15 << 15 << QByteArray::fromHex("2ca55ee9");
+    QTest::newRow("middle-channels") << 173 << 9 << 15 << QByteArray::fromHex("2cab65e9");
+    QTest::newRow("inherit-alpha") << 173 << 15 << 6 << QByteArray::fromHex("629d61c5");
+    QTest::newRow("masked-bottom") << 173 << 0 << 9 << QByteArray::fromHex("175997df");
+}
+
+void KisGpuTileRendererTest::threeLayerProjectionFitsOneOutputTile()
+{
+    QFETCH(int, bottomAlpha);
+    QFETCH(int, middleMask);
+    QFETCH(int, topMask);
+    QFETCH(QByteArray, expected);
+    RasterImage input;
+    input.size = {256, 256};
+    QByteArray colors[] = {QByteArray::fromHex("25599700"), QByteArray::fromHex("c9295d89"), QByteArray::fromHex("11d34dbd")};
+    colors[0][3] = char(bottomAlpha);
+    for (int index = 0; index < 3; ++index) {
+        RasterLayer layer;
+        layer.opacity = index == 0 ? 255 : index == 1 ? 137 : 211;
+        layer.projectionChannelMask = index == 0 ? 15 : index == 1 ? middleMask : topMask;
+        layer.tiles = {{{0, 0}, colors[index].repeated(RgbaTile::ByteCount / 4)}};
+        input.layers.append(layer);
+    }
+    OperationDocument document(input);
+    TileRenderer reference(m_device);
+    const auto full = project(reference, render(reference, document.snapshot()), {0, 0, 256, 256});
+    QVERIFY(full);
+    QCOMPARE(readBuffer(full->tiles().first().pixels), expected.repeated(RgbaTile::ByteCount / 4));
+    TileRenderer limited(m_device, 4 * TileRenderer::TileBytes);
+    const auto layers = render(limited, document.snapshot());
+    QVERIFY(layers);
+    const auto composed = project(limited, layers, {0, 0, 256, 256});
+    QVERIFY2(composed, "Three source tiles must leave one output tile for projection");
+    QCOMPARE(readBuffer(composed->tiles().first().pixels), expected.repeated(RgbaTile::ByteCount / 4));
+    for (int index = 0; index < 3; ++index)
+        QCOMPARE(readTile(layers, document.snapshot()->layers[index].id, {}), input.layers[index].tiles.first().rgba);
+    QVERIFY(limited.residentBytes() <= 4 * TileRenderer::TileBytes);
 }
 
 void KisGpuTileRendererTest::previewProjectionTracksBackgroundPropertiesAndRetainedPixels()
@@ -1650,12 +1703,24 @@ void KisGpuTileRendererTest::compositionPreservesOrderAlphaAndExistingVersionsAt
     QCOMPARE(document.setLayerVisible(green, false), Result::Success);
     const auto hidden = render(renderer, document.snapshot(), layers);
     QVERIFY(hidden);
-    QVERIFY(!project(renderer, hidden, {0, 0, 64, 64}, composed));
-    QCOMPARE(readBuffer(composed->tiles().first().pixels), original);
-    composed.clear();
-    const auto reduced = project(renderer, hidden, {0, 0, 64, 64});
+    auto reduced = project(renderer, hidden, {0, 0, 64, 64}, composed);
     QVERIFY(reduced);
     QCOMPARE(readBuffer(reduced->tiles().first().pixels).mid((32 * TileRenderer::TileSize + 32) * 4, 4), QByteArray::fromHex("bf80c0ff"));
+    QCOMPARE(readBuffer(composed->tiles().first().pixels), original);
+    QVERIFY(renderer.residentBytes() <= 6 * TileRenderer::TileBytes);
+    const auto lower = document.snapshot()->layers.first().id;
+    QCOMPARE(document.setLayerOpacity(lower, 137), Result::Success);
+    const auto changed = render(renderer, document.snapshot(), hidden);
+    QVERIFY(changed);
+    QVERIFY(!project(renderer, changed, {0, 0, 64, 64}, reduced));
+    QCOMPARE(readBuffer(composed->tiles().first().pixels), original);
+    QCOMPARE(readBuffer(reduced->tiles().first().pixels).mid((32 * TileRenderer::TileSize + 32) * 4, 4), QByteArray::fromHex("bf80c0ff"));
+    composed.clear();
+    reduced.clear();
+    QCOMPARE(document.setLayerOpacity(lower, 255), Result::Success);
+    const auto restored = project(renderer, render(renderer, document.snapshot(), changed), {0, 0, 64, 64});
+    QVERIFY(restored);
+    QCOMPARE(readBuffer(restored->tiles().first().pixels).mid((32 * TileRenderer::TileSize + 32) * 4, 4), QByteArray::fromHex("bf80c0ff"));
 }
 
 void KisGpuTileRendererTest::paintingAndCompositionShareOneSubmission()
