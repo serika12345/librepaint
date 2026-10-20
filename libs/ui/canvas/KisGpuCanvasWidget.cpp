@@ -10,9 +10,21 @@
 #include <application/kis_config.h>
 #include <kis_config_notifier.h>
 #include <KoChannelInfo.h>
+#include <KoCanvasResourcesIds.h>
+#include <KoCanvasResourceProvider.h>
+#include <KoColor.h>
+#include <KoColorDisplayRendererInterface.h>
+#include <KoColorSpaceRegistry.h>
+#include <KoCompositeOpIds.h>
+#include <KoToolProxy.h>
+#include <KisOptimizedBrushOutline.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <gpu/KisGpuCanvasWindow.h>
 #include <QApplication>
+#include <QPainter>
+#include <QPicture>
+#include <QPointer>
+#include <QScopeGuard>
 #include <QResizeEvent>
 #include <QVBoxLayout>
 
@@ -46,7 +58,10 @@ KisGpuCanvasWidget::KisGpuCanvasWidget(KisCanvas2 *canvas, KisCoordinatesConvert
     connect(KisConfigNotifier::instance(), &KisConfigNotifier::configChanged, this, [this] {
         const KisImageSP image = this->canvas()->image();
         if (image) channelSelectionChanged(image->rootLayer()->channelFlags());
+        refresh();
     });
+    connect(toolProxy(), &KoToolProxy::toolChanged, this, [this] { refresh(); });
+    connect(canvas->viewManager(), &KisViewManager::viewChanged, this, [this] { refresh(); });
     connect(m_image.data(), &LibrePaint::Image::Gpu::PaintImage::changed, this, [this] { refresh(); });
     connect(canvas->image().data(), &KisImage::sigLayersChangedAsync, this, [this] { refresh(); });
     connect(m_window, &LibrePaint::Canvas::Gpu::CanvasWindow::renderingFailed, this,
@@ -72,7 +87,7 @@ void KisGpuCanvasWidget::disconnectImage()
 
 void KisGpuCanvasWidget::refresh()
 {
-    if (!m_window) return;
+    if (!m_window || m_collectingToolOutline) return;
     const auto image = canvas()->image()->gpuImage();
     if (image && image != m_image) {
         KIS_SAFE_ASSERT_RECOVER_RETURN(&image->execution() == &m_image->execution());
@@ -83,7 +98,46 @@ void KisGpuCanvasWidget::refresh()
         connect(m_image.data(), &LibrePaint::Image::Gpu::PaintImage::changed, this, [this] { refresh(); });
     }
     m_window->setDocumentToWindow(coordinatesConverter()->imageToWidgetTransform());
+    if (!updateToolOutline()) return;
     m_window->refresh();
+}
+
+bool KisGpuCanvasWidget::updateToolOutline()
+{
+    m_toolOutline = {};
+    if (canvas()->viewManager()->canvasBase() == canvas() && toolProxy()) {
+        const KisConfig config(true);
+        const bool eraser = config.separateEraserCursor() &&
+            canvas()->resourceManager()->resource(KoCanvasResource::CurrentEffectiveCompositeOp).toString() == COMPOSITE_ERASE;
+        const QColor color = eraser ? config.getEraserCursorMainColor() : config.getCursorMainColor();
+        m_toolOutline.color = canvas()->displayRendererInterface()->convertColorToDisplayColorSpace(
+            KoColor(color, KoColorSpaceRegistry::instance()->rgb8()));
+        // #89: replace this active Qt paint receiver when the remaining tool
+        // painting primitives have native GPU consumers. It records commands;
+        // document pixels stay with the GPU image owner.
+        QPicture commands;
+        QPainter painter(&commands);
+        painter.setTransform(coordinatesConverter()->flakeToWidgetTransform());
+        QPointer<KisGpuCanvasWidget> guard(this);
+        m_collectingToolOutline = true;
+        const auto finishCollection = qScopeGuard([guard] {
+            if (guard) guard->m_collectingToolOutline = false;
+        });
+        toolProxy()->paint(painter, *canvas()->viewConverter());
+        painter.end();
+        if (!guard || !m_window) return false;
+    }
+    m_window->setToolOutline(std::move(m_toolOutline));
+    return true;
+}
+
+void KisGpuCanvasWidget::collectToolOutline(const KisOptimizedBrushOutline &path, int thickness)
+{
+    if (!m_collectingToolOutline) return;
+    m_toolOutline.thickness = thickness;
+    const auto transform = coordinatesConverter()->flakeToWidgetTransform();
+    for (auto it = path.begin(); it != path.end(); ++it)
+        m_toolOutline.contours.append(transform.map(*it));
 }
 
 bool KisGpuCanvasWidget::eventFilter(QObject *object, QEvent *event)

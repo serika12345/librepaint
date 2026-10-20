@@ -1182,6 +1182,7 @@ add_dependencies(kis_view_signals_test kritalcmsengine kritadefaulttools kritaro
 
 set(gpu_document_input_cases
     presentsEditsAndReleasesTheClosedTab
+    brushOutlineFollowsTheOrdinaryPointerWithoutEditing
     freehandInputCommitsOneHistoryEntryAndCanBeCancelled
     paintingBackendChangesRebindTheCanvas
     replacementUpdatesPresentationInputHistoryAndSaving

@@ -1022,6 +1022,14 @@ KRAの付属情報は解像度、ICC、文書情報、注釈と対称軸を照�
 Linuxの実行にはVulkanに対応するQt画面プラグインを使う。画面を持たない検証は
 独立したXvfbのX11画面を用意して`QT_QPA_PLATFORM=xcb`で実行する。
 
+`KisGpuTilePresentationTest`は、輪郭の移動・線幅・消去と不透明・半透明・透明背景の全RGBA画素を照合する。
+不正な座標・線幅・色と頂点数の上限超過では、表示先の全画素が維持されることを検査する。
+`KisGpuDocumentViewTest::brushOutlineFollowsTheOrdinaryPointerWithoutEditing`は、通常画面のブラシとポインターから
+輪郭の表示・移動・倍率変更・ツール切替・文書の非アクティブ化・退出時の消去を検査し、文書画素・版・履歴・変更状態の維持を照合する。
+画面取得は起動通知が消えた文書表示との厳密一致から開始し、設定変更による表示窓の再生成を追跡する。
+`LIBREPAINT_GPU_RESULT_DIR`へ低水準の`.rgba`と通常画面の`ordinary-brush-outline-<stage>.png`を保存する。
+通常画面の画像はネイティブ表示と入力の接続を確認し、固定したGPU表示画素の環境間比較は低水準の全RGBAを使う。
+
 ### GPU表示のVulkan検証
 
 LinuxのGPU表示は、画素試験に加えてVulkan検証層で生成シェーダー、表示画像の配置と

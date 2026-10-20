@@ -36,6 +36,8 @@ public:
     void refresh();
     /** Changes view components without replacing or completing document input. */
     bool setDisplayChannels(DisplayChannels channels);
+    /** Owned display contours in logical window pixels; thickness stays physical. */
+    void setToolOutline(ToolOutline outline);
     bool setDocumentToWindow(const QTransform &transform);
     QTransform documentToWindow() const;
     QRect documentViewport() const;

@@ -7,6 +7,10 @@
 #include <QImage>
 #include <QTest>
 #include <QTransform>
+#include <QDir>
+#include <QFile>
+#include <QTemporaryDir>
+#include <QScopeGuard>
 #include "../KisGpuPresentationResources_p.h"
 #include <gpu/KisGpuTilePresentation.h>
 #include <gpu/KisGpuTileRenderer.h>
@@ -30,6 +34,10 @@ private Q_SLOTS:
     void rejectedPresentationPreservesTheTarget();
     void projectionCannotCrossDevices();
     void displayResourcesRetainTheirNativeDevice();
+    void toolOutlinesMoveAndClearWithoutChangingDocumentPixels_data();
+    void toolOutlinesMoveAndClearWithoutChangingDocumentPixels();
+    void invalidToolOutlinesPreserveTheTarget_data();
+    void invalidToolOutlinesPreserveTheTarget();
 
 private:
     DevicePtr m_device;
@@ -206,6 +214,145 @@ void KisGpuTilePresentationTest::panZoomAndTransparencyUseThePaintingQueue()
     QVERIFY(readback->finish(*m_device));
     QCOMPARE(pixel(48, 48), QByteArray::fromHex("004080c0"));
     QCOMPARE(pixel(8, 12), QByteArray::fromHex("00800080"));
+}
+
+void KisGpuTilePresentationTest::toolOutlinesMoveAndClearWithoutChangingDocumentPixels_data()
+{
+    QTest::addColumn<QColor>("backgroundColor");
+    QTest::addColumn<QTransform>("imageTransform");
+    QTest::newRow("opaque") << QColor(64, 96, 128) << QTransform();
+    QTest::newRow("translucent") << QColor(64, 96, 128, 128) << QTransform();
+    QTest::newRow("transparent-transformed") << QColor(64, 96, 128, 0)
+        << QTransform::fromTranslate(4, 8).rotate(30).scale(0.75, 0.5);
+}
+
+void KisGpuTilePresentationTest::toolOutlinesMoveAndClearWithoutChangingDocumentPixels()
+{
+    QFETCH(QColor, backgroundColor);
+    QFETCH(QTransform, imageTransform);
+    OperationDocument document({64, 64});
+    dot(document, {16.5, 24.5}, {192, 17, 64, 255});
+    const auto version = document.snapshot();
+    const auto history = document.undoCount();
+    TileRenderer renderer(m_device);
+    TilePresentation presentation(m_device);
+    Surface surface(m_device, {128, 128});
+    QVERIFY(surface.ready);
+    auto commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto layers = renderer.record(commands, version);
+    QCOMPARE(layers.code, RenderOutcome::Recorded);
+    const auto projection = renderer.compose(commands, layers.version, {0, 0, 64, 64});
+    QCOMPARE(projection.code, RenderOutcome::Recorded);
+    QVERIFY(!projection.version->tiles().isEmpty());
+    const auto sourcePixels = projection.version->tiles().first().pixels;
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", temporary.path());
+    QVERIFY(QDir().mkpath(directory));
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            temporary.setAutoRemove(false);
+            qInfo() << "Tool outline actual/expected artifacts at" << directory;
+        }
+    });
+    QByteArray background, initialPixels;
+    const QColor cursor(255, 192, 96);
+    for (int stage = 0; stage < 4; ++stage) {
+        if (stage) commands = m_device->beginCommands();
+        QVERIFY(commands);
+        ToolOutline outline;
+        QRect outside, inside;
+        if (stage == 1 || stage == 2) {
+            outline.contours = {QPolygonF{{16.5, 16.5}, {47.5, 16.5}, {47.5, 47.5}, {16.5, 47.5}, {16.5, 16.5}}};
+            outline.color = cursor;
+            outline.thickness = stage == 1 ? 1 : 3;
+            if (stage == 1) {
+                outside = {16, 16, 32, 32};
+                inside = {17, 17, 30, 30};
+            } else {
+                for (auto &point : outline.contours.first()) point += QPointF(16, 0);
+                outside = {31, 15, 34, 34};
+                inside = {34, 18, 28, 28};
+            }
+        }
+        const auto drawn = presentation.record(commands, projection.version, surface.target,
+            imageTransform, backgroundColor, {}, outline);
+        QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
+        auto reads = readTexture(*m_device, commands, surface, sourcePixels);
+        QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+        QVERIFY(reads->finish(*m_device));
+        const auto actual = reads->results.front()->data;
+        if (stage == 0) {
+            background = actual;
+            initialPixels = reads->results.back()->data;
+        }
+        auto expected = background;
+        // The existing primary canvas uses cursorRGB * (1 - displayedRGB)
+        // on opaque pixels. The display keeps the destination alpha.
+        const int components[] = {cursor.red(), cursor.green(), cursor.blue()};
+        for (int y = outside.top(); !outside.isEmpty() && y <= outside.bottom(); ++y) {
+            for (int x = outside.left(); x <= outside.right(); ++x) {
+                if (inside.contains(x, y)) continue;
+                const auto offset = (y * 128 + x) * 4;
+                const int alpha = quint8(background[offset + 3]);
+                for (int channel = 0; channel < 3; ++channel)
+                    expected[offset + channel] = char((components[channel] * (alpha - quint8(background[offset + channel])) + 127) / 255);
+            }
+        }
+        for (const auto &artifact : {qMakePair(QStringLiteral("actual"), actual), qMakePair(QStringLiteral("expected"), expected)}) {
+            QFile file(QDir(directory).filePath(QStringLiteral("tool-outline-%1-stage-%2-%3.rgba")
+                .arg(QString::fromLatin1(QTest::currentDataTag())).arg(stage).arg(artifact.first)));
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            QCOMPARE(file.write(artifact.second), artifact.second.size());
+        }
+        QCOMPARE(actual, expected);
+        QCOMPARE(reads->results.back()->data, initialPixels);
+        QCOMPARE(document.snapshot(), version);
+        QCOMPARE(document.undoCount(), history);
+    }
+}
+
+void KisGpuTilePresentationTest::invalidToolOutlinesPreserveTheTarget_data()
+{
+    QTest::addColumn<int>("invalid");
+    QTest::newRow("nonfinite-point") << 0;
+    QTest::newRow("negative-width") << 1;
+    QTest::newRow("invalid-color") << 2;
+    QTest::newRow("vertex-budget") << 3;
+}
+
+void KisGpuTilePresentationTest::invalidToolOutlinesPreserveTheTarget()
+{
+    QFETCH(int, invalid);
+    OperationDocument document({64, 64});
+    TileRenderer renderer(m_device);
+    TilePresentation presentation(m_device);
+    Surface surface(m_device, {128, 128});
+    QVERIFY(surface.ready);
+    auto commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto layers = renderer.record(commands, document.snapshot());
+    QCOMPARE(layers.code, RenderOutcome::Recorded);
+    const auto projection = renderer.compose(commands, layers.version, {0, 0, 64, 64});
+    QCOMPARE(projection.code, RenderOutcome::Recorded);
+    clear(commands, surface.target, QColor(100, 20, 30));
+    ToolOutline outline;
+    outline.contours = {QPolygonF{{16, 16}, {32, 32}}};
+    if (invalid == 0) outline.contours.first()[0].setX(std::numeric_limits<qreal>::quiet_NaN());
+    if (invalid == 1) outline.thickness = -1;
+    if (invalid == 2) outline.color = QColor();
+    if (invalid == 3) {
+        auto &contour = outline.contours.first();
+        for (int i = 0; i < 12000; ++i) contour.append(QPointF(i, i % 2));
+    }
+    const auto outcome = presentation.record(commands, projection.version, surface.target, QTransform(), Qt::white, {}, outline);
+    auto reads = readTexture(*m_device, commands, surface);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QVERIFY(reads->finish(*m_device));
+    QVERIFY(!outcome.recorded);
+    QVERIFY(!outcome.diagnostic.isEmpty());
+    QCOMPARE(reads->results.front()->data, QByteArray::fromHex("64141eff").repeated(128 * 128));
 }
 
 void KisGpuTilePresentationTest::clippedTilesKeepTheirIndependentTransforms()

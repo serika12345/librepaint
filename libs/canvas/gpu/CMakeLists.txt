@@ -24,7 +24,7 @@ endif()
 set_target_properties(kritacanvasgputilepresentation PROPERTIES AUTOMOC ON POSITION_INDEPENDENT_CODE ON)
 qt6_add_resources(kritacanvasgputilepresentation krita_gpu_tile_presentation
     PREFIX "/librepaint/canvas"
-    FILES shaders/tile.wgsl
+    FILES shaders/tile.wgsl shaders/tool_outline.wgsl
 )
 
 add_subdirectory(tests)

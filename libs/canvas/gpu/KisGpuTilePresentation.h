@@ -9,6 +9,7 @@
 #include <kritacanvas_export.h>
 #include <gpu/KisGpuTileRenderer.h>
 #include <QColor>
+#include <QPolygonF>
 #include <QTransform>
 #include <memory>
 
@@ -40,6 +41,18 @@ struct DisplayChannels
     bool showSingleChannelAsColor = false;
 };
 
+/** Display-only contours in physical target pixels, independent of the document transform.
+ * Thickness is measured in physical pixels; cursor RGB controls contrast against
+ * the displayed image while preserving destination alpha.
+ * One frame admits at most 65536 contour points and generated triangle vertices.
+ */
+struct ToolOutline
+{
+    QList<QPolygonF> contours;
+    QColor color{Qt::white};
+    qreal thickness = 1;
+};
+
 /**
  * Draws borrowed immutable tiles on their owning GPU thread and queue.
  * Display resources keep the shared device alive. record() joins an active frame and clears the
@@ -60,7 +73,8 @@ public:
     PresentationOutcome record(WGPUCommandEncoder commands,
                                const Image::Gpu::ProjectedSnapshot &projection,
                                const PresentationTarget &target, const QTransform &documentToPixels,
-                               QColor clearColor, DisplayChannels channels = {});
+                               QColor clearColor, DisplayChannels channels = {},
+                               const ToolOutline &outline = {});
 
 private:
     struct Private;

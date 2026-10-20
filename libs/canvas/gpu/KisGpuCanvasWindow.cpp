@@ -23,6 +23,7 @@ struct CanvasWindow::Private
     DocumentHandle handle = 0;
     QTransform transform;
     DisplayChannels channels;
+    ToolOutline outline;
     bool recording = false;
     std::unique_ptr<PresentationSurface> surface;
     quintptr nativeSurfaceIdentity = 0;
@@ -73,6 +74,7 @@ void CanvasWindow::connectSurface()
 bool CanvasWindow::setDocument(DocumentHandle handle)
 {
     if (handle && !m_d->execution.requested(handle)) return false;
+    if (m_d->handle != handle) m_d->outline = {};
     m_d->handle = handle;
     refresh();
     return true;
@@ -85,6 +87,11 @@ bool CanvasWindow::setDisplayChannels(DisplayChannels channels)
     m_d->channels = channels;
     refresh();
     return true;
+}
+void CanvasWindow::setToolOutline(ToolOutline outline)
+{
+    m_d->outline = std::move(outline);
+    refresh();
 }
 bool CanvasWindow::setDocumentToWindow(const QTransform &transform)
 {
@@ -188,9 +195,12 @@ void CanvasWindow::renderFrame()
                     projected.code == RenderOutcome::InvalidVersion ? ExecutionCode::InvalidRequest : ExecutionCode::DeviceFailure;
                 return {code, projected.diagnostic};
             }
+            auto outline = d.outline;
+            const auto logicalToPhysical = QTransform::fromScale(devicePixelRatio(), devicePixelRatio());
+            for (auto &contour : outline.contours) contour = logicalToPhysical.map(contour);
             const auto drawn = d.presentation->record(frame.commands, projected.version,
                                                       {d.device, frame.target, pixels, d.surface->format()},
-                                                      d.physicalTransform(devicePixelRatio()), Qt::white, d.channels);
+                                                      d.physicalTransform(devicePixelRatio()), Qt::white, d.channels, outline);
             if (!drawn.recorded) {
                 d.execution.cancelFrame();
                 begun = false;

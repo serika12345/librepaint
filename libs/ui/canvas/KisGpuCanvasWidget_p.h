@@ -7,9 +7,11 @@
 
 #include "kis_canvas_widget_base.h"
 #include <gpu/KisGpuPaintImage.h>
+#include <gpu/KisGpuTilePresentation.h>
 #include <QWidget>
 
 namespace LibrePaint::Canvas::Gpu { class CanvasWindow; }
+class KisOptimizedBrushOutline;
 
 /** Embeds the shared GPU presentation in the ordinary document canvas.
  * Native input uses the existing canvas input dispatcher. The borrowed
@@ -23,6 +25,7 @@ public:
                        LibrePaint::Image::Gpu::PaintImageSP image, QWidget *parent);
     ~KisGpuCanvasWidget() override;
     void disconnectImage();
+    void collectToolOutline(const KisOptimizedBrushOutline &path, int thickness);
     QWidget *widget() override { return this; }
     void setDisplayFilter(QSharedPointer<KisDisplayFilter>) override;
     void notifyImageColorSpaceChanged(const KoColorSpace *) override;
@@ -52,6 +55,9 @@ protected:
 
 private:
     void refresh();
+    bool updateToolOutline();
+    LibrePaint::Canvas::Gpu::ToolOutline m_toolOutline;
+    bool m_collectingToolOutline = false;
     LibrePaint::Image::Gpu::PaintImageSP m_image;
     LibrePaint::Canvas::Gpu::CanvasWindow *m_window;
     QWidget *m_container;

@@ -19,6 +19,9 @@
 #include <QTreeView>
 #include <QTimer>
 #include <QSettings>
+#include <QScreen>
+#include <application/kis_config.h>
+#include <kis_config_notifier.h>
 #include <QFile>
 #include <kra/KisKraRasterCodec.h>
 #include <KLocalizedString>
@@ -99,6 +102,7 @@ private Q_SLOTS:
         m_preset = preset;
     }
     void presentsEditsAndReleasesTheClosedTab();
+    void brushOutlineFollowsTheOrdinaryPointerWithoutEditing();
     void freehandInputCommitsOneHistoryEntryAndCanBeCancelled_data();
     void freehandInputCommitsOneHistoryEntryAndCanBeCancelled();
     void paintingBackendChangesRebindTheCanvas_data();
@@ -2648,6 +2652,190 @@ void KisGpuDocumentViewTest::replacementUpdatesPresentationInputHistoryAndSaving
     const auto loaded = Kra::RasterCodec::read(file);
     QVERIFY2(loaded.code == Kra::Status::Success, qPrintable(loaded.diagnostic));
     QCOMPARE(loaded.document.image.layers.first().tiles.first().rgba.mid((8 * 256 + 8) * 4, 4), QByteArray::fromHex("4488ccff"));
+}
+
+
+void KisGpuDocumentViewTest::brushOutlineFollowsTheOrdinaryPointerWithoutEditing()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    KisConfig config(false);
+    const auto oldStyle = config.newOutlineStyle();
+    const auto oldColor = config.getCursorMainColor();
+    const auto oldSeparate = config.separateEraserCursor();
+    const auto oldFullSize = config.forceAlwaysFullSizedOutline();
+    const auto oldMinimum = config.outlineSizeMinimum();
+    const auto restoreConfig = qScopeGuard([&] {
+        config.setNewOutlineStyle(oldStyle);
+        config.setCursorMainColor(oldColor);
+        config.setSeparateEraserCursor(oldSeparate);
+        config.setForceAlwaysFullSizedOutline(oldFullSize);
+        config.setOutlineSizeMinimum(oldMinimum);
+        KisConfigNotifier::instance()->notifyConfigChanged();
+    });
+    config.setNewOutlineStyle(OUTLINE_NONE);
+    config.setCursorMainColor(Qt::white);
+    config.setSeparateEraserCursor(false);
+    config.setForceAlwaysFullSizedOutline(true);
+    config.setOutlineSizeMinimum(1);
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(128, 128));
+    QByteArray pixels;
+    for (int i = 0; i < 128 * 128; ++i) pixels += QByteArray::fromHex("506478ff");
+    QCOMPARE(owner->writeRgbaPixels(owner->operations().activeLayer(), QRect(0, 0, 128, 128), pixels), Gpu::Result::Success);
+    const auto snapshot = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(snapshot), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("GPU brush outline")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    window->resize(800, 600);
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto releaseWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
+    window->show();
+    window->activateWindow();
+    auto *resources = window->viewManager()->canvasResourceProvider();
+    resources->setPaintOpPreset(m_preset);
+    resources->setSize(24);
+    resources->setEraserMode(false);
+    KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
+    view->canvasBase()->canvasWidget()->setFocus();
+    view->canvasController()->resetCanvasRotation();
+    view->canvasController()->mirrorCanvas(false);
+    view->zoomManager()->zoomTo100();
+    const auto *converter = view->canvasBase()->coordinatesConverter();
+    view->canvasController()->setPreferredCenter(converter->imageRectInWidgetPixels().center());
+    QTRY_COMPARE(execution.published(owner->handle()), snapshot);
+    QPointer<LibrePaint::Canvas::Gpu::CanvasWindow> native;
+    for (auto *candidate : QGuiApplication::allWindows())
+        if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate)) native = canvas;
+    QVERIFY(native);
+    native->setCursor(Qt::BlankCursor);
+    QSignalSpy frames(native, &LibrePaint::Canvas::Gpu::CanvasWindow::frameSubmitted);
+    const auto capture = [&] { return native->screen()->grabWindow(native->winId()).toImage().convertToFormat(QImage::Format_RGBA8888); };
+    const auto save = [&](const QImage &image, const QString &stage) {
+        const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+        if (directory.isEmpty()) return true;
+        return QDir().mkpath(directory) && image.save(QDir(directory).filePath(QStringLiteral("ordinary-brush-outline-") + stage + QStringLiteral(".png")));
+    };
+    const auto first = converter->imageToWidget(QPointF(40, 64)).toPoint();
+    const auto second = converter->imageToWidget(QPointF(88, 64)).toPoint();
+    QTest::mouseMove(native.data(), first);
+    QEnterEvent entered(first, first, native->mapToGlobal(first));
+    QApplication::sendEvent(native.data(), &entered);
+    native->refresh();
+    QTRY_VERIFY(!frames.isEmpty());
+    QImage baseline;
+    QTRY_VERIFY(!(baseline = capture()).isNull());
+    const auto ratio = native->devicePixelRatio();
+    const auto physical = [&](QPoint point) { return (QPointF(point) * ratio).toPoint(); };
+    const auto currentBackground = [&] {
+        QImage result(capture().size(), QImage::Format_RGBA8888);
+        result.fill(Qt::white);
+        const auto bounds = QTransform::fromScale(ratio, ratio).mapRect(converter->imageRectInWidgetPixels()).toAlignedRect().intersected(result.rect());
+        for (int y = bounds.top(); y <= bounds.bottom(); ++y)
+            for (int x = bounds.left(); x <= bounds.right(); ++x)
+                result.setPixelColor(x, y, QColor(80, 100, 120));
+        return result;
+    };
+    const auto expectedBaseline = currentBackground();
+    // Startup notifications can overlap the native child. Accept its clean frame.
+    QTRY_VERIFY_WITH_TIMEOUT((baseline = capture()) == expectedBaseline, 10000);
+    QCOMPARE(baseline.pixelColor(physical(first)), QColor(80, 100, 120));
+    QCOMPARE(baseline.pixelColor(physical(second)), QColor(80, 100, 120));
+    QVERIFY(save(baseline, QStringLiteral("baseline")));
+    const auto changedPixels = [&](const QImage &image, QPoint center) {
+        const auto region = QRect(physical(center) - QPoint(16 * ratio, 16 * ratio), QSize(32 * ratio, 32 * ratio)).intersected(image.rect());
+        int count = 0;
+        for (int y = region.top(); y <= region.bottom(); ++y)
+            for (int x = region.left(); x <= region.right(); ++x)
+                if (image.pixel(x, y) != baseline.pixel(x, y)) ++count;
+        return count;
+    };
+    const auto differenceBounds = [&](const QImage &image) {
+        QRect bounds;
+        for (int y = 0; y < image.height(); ++y)
+            for (int x = 0; x < image.width(); ++x)
+                if (image.pixel(x, y) != baseline.pixel(x, y)) bounds |= QRect(x, y, 1, 1);
+        return bounds;
+    };
+    config.setNewOutlineStyle(OUTLINE_CIRCLE);
+    KisConfigNotifier::instance()->notifyConfigChanged();
+    // Configuration can recreate the native canvas. Follow its current window.
+    native.clear();
+    for (auto *candidate : QGuiApplication::allWindows())
+        if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate)) native = canvas;
+    QVERIFY(native);
+    native->setCursor(Qt::BlankCursor);
+    QEnterEvent reentered(first, first, native->mapToGlobal(first));
+    QApplication::sendEvent(native.data(), &reentered);
+    QTest::mouseMove(native.data(), first + QPoint(1, 0));
+    QTest::mouseMove(native.data(), first);
+    QImage visible;
+    const auto preserveVisible = qScopeGuard([&] { if (!visible.isNull()) save(visible, QStringLiteral("visible")); });
+    QTRY_VERIFY_WITH_TIMEOUT((visible = capture()).size() == baseline.size() && changedPixels(visible, first) >= 40 && changedPixels(visible, second) == 0, 5000);
+    QVERIFY(save(visible, QStringLiteral("visible")));
+    QCOMPARE(changedPixels(visible, second), 0);
+    const auto fullBounds = differenceBounds(visible);
+    QVERIFY(fullBounds.width() >= 22 * ratio && fullBounds.width() <= 26 * ratio);
+    QVERIFY(fullBounds.height() >= 22 * ratio && fullBounds.height() <= 26 * ratio);
+    QVERIFY((fullBounds.center() - physical(first)).manhattanLength() <= 2);
+
+    QTest::mouseMove(native.data(), second);
+    QImage moved;
+    QTRY_VERIFY((moved = capture()).size() == baseline.size() && changedPixels(moved, second) >= 40 && changedPixels(moved, first) == 0);
+    QVERIFY(save(moved, QStringLiteral("moved")));
+    QEvent leave(QEvent::Leave);
+    QApplication::sendEvent(native.data(), &leave);
+    QImage cleared;
+    QTRY_VERIFY((cleared = capture()) == baseline);
+    QVERIFY(save(cleared, QStringLiteral("cleared")));
+    view->canvasController()->setZoom(KoZoomMode::ZOOM_CONSTANT, 0.5);
+    const auto halfBackground = currentBackground();
+    QTRY_VERIFY(capture() == halfBackground);
+    baseline = halfBackground;
+    const auto halfPoint = converter->imageToWidget(QPointF(64, 64)).toPoint();
+    QEnterEvent halfEntered(halfPoint, halfPoint, native->mapToGlobal(halfPoint));
+    QApplication::sendEvent(native.data(), &halfEntered);
+    QTest::mouseMove(native.data(), halfPoint);
+    QImage halfVisible;
+    QTRY_VERIFY((halfVisible = capture()).size() == baseline.size() && changedPixels(halfVisible, halfPoint) >= 20);
+    const auto halfBounds = differenceBounds(halfVisible);
+    QVERIFY(halfBounds.width() >= 10 * ratio && halfBounds.width() <= 14 * ratio);
+    QVERIFY(halfBounds.height() >= 10 * ratio && halfBounds.height() <= 14 * ratio);
+    QVERIFY((halfBounds.center() - physical(halfPoint)).manhattanLength() <= 2);
+    QVERIFY(save(halfVisible, QStringLiteral("half-zoom")));
+    KoToolManager::instance()->switchToolRequested(QStringLiteral("PanTool"));
+    QTRY_VERIFY(capture() == baseline);
+    KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
+    QApplication::sendEvent(native.data(), &halfEntered);
+    QTest::mouseMove(native.data(), halfPoint + QPoint(1, 0));
+    QTest::mouseMove(native.data(), halfPoint);
+    QTRY_VERIFY(changedPixels(capture(), halfPoint) >= 20);
+    window->viewManager()->setCurrentView(nullptr);
+    QTRY_VERIFY(capture() == baseline);
+    window->viewManager()->setCurrentView(view);
+    QApplication::sendEvent(native.data(), &leave);
+    QTRY_VERIFY(capture() == baseline);
+    QCOMPARE(owner->operations().snapshot(), snapshot);
+    QCOMPARE(owner->operations().undoCount(), 0);
+    const auto after = owner->readRgbaPixels(owner->operations().activeLayer(), QRect(0, 0, 128, 128), pixels.size());
+    QCOMPARE(after.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(after.bytes, pixels);
+    QVERIFY(!lifetime->isModified());
 }
 
 void KisGpuDocumentViewTest::presentsEditsAndReleasesTheClosedTab()
