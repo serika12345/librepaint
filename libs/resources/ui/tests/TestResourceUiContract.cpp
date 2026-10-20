@@ -10,6 +10,7 @@
 #include <KisResourceLocator.h>
 #include <KisResourceModel.h>
 #include <KisResourceModelProvider.h>
+#include <KisResourceStorage.h>
 #include <KisResourceTypes.h>
 #include <KisResourceUserOperations.h>
 #include <KisStorageChooserWidget.h>
@@ -21,6 +22,7 @@
 #include <KisTagResourceModel.h>
 
 #include <ResourceTestHelper.h>
+#include <DummyResource.h>
 
 #include <QAbstractButton>
 #include <QApplication>
@@ -31,6 +33,7 @@
 #include <QMessageBox>
 #include <QMenu>
 #include <QPushButton>
+#include <QScopeGuard>
 #include <QSignalSpy>
 #include <QStandardPaths>
 #include <QTest>
@@ -129,6 +132,8 @@ private Q_SLOTS:
     void initTestCase();
     void cleanupTestCase();
     void selectsAnInstalledResource();
+    void retainsTheSelectionWhenClosingTemporaryStorage_data();
+    void retainsTheSelectionWhenClosingTemporaryStorage();
     void synchronizesPreviewCellSizeAcrossChoosers();
     void togglesTheStorageShownInChooserPopup();
     void asksBeforeOverwritingAResourceFile();
@@ -190,6 +195,46 @@ void TestResourceUiContract::selectsAnInstalledResource()
 
     QCOMPARE(selectedSpy.count(), 1);
     QVERIFY(chooser.currentResource() == expectedResource);
+}
+
+void TestResourceUiContract::retainsTheSelectionWhenClosingTemporaryStorage_data()
+{
+    QTest::addColumn<bool>("selectTemporary");
+    QTest::newRow("installed-selection") << false;
+    QTest::newRow("removed-selection") << true;
+}
+
+void TestResourceUiContract::retainsTheSelectionWhenClosingTemporaryStorage()
+{
+    // Closing a document removes its embedded resources. The preset chooser
+    // retains an installed selection and clears a selection that was removed.
+    QFETCH(bool, selectTemporary);
+    KisResourceItemChooser chooser(
+        KisResourceUiDescriptor(ResourceType::PaintOpPresets, false));
+    auto *model = chooser.tagFilterModel();
+    const auto installed = model->resourceForIndex(model->index(0, 0));
+    QVERIFY(installed);
+
+    auto *locator = KisResourceLocator::instance();
+    const auto storageName = QStringLiteral("chooser-temporary-")
+        + QString::fromLatin1(QTest::currentDataTag());
+    QVERIFY(!locator->hasStorage(storageName));
+    const auto storage = KisResourceStorageSP::create(storageName);
+    QVERIFY(storage->valid());
+    QVERIFY(locator->addStorage(storageName, storage));
+    const auto cleanup = qScopeGuard([&] { locator->removeStorage(storageName); });
+    KoResourceSP temporary(new DummyResource(storageName + QStringLiteral(".kpp")));
+    QVERIFY(model->addResource(temporary, storageName));
+    const auto selected = selectTemporary ? temporary : installed;
+    chooser.setCurrentResource(selected);
+    QCOMPARE(chooser.currentResource(), selected);
+    QSignalSpy selectedSpy(&chooser, &KisResourceItemChooser::resourceSelected);
+
+    QVERIFY(locator->removeStorage(storageName));
+
+    QCOMPARE(chooser.currentResource(), selectTemporary ? KoResourceSP() : installed);
+    QCOMPARE(chooser.itemView()->currentIndex().isValid(), !selectTemporary);
+    QCOMPARE(selectedSpy.count(), 0);
 }
 
 void TestResourceUiContract::synchronizesPreviewCellSizeAcrossChoosers()

@@ -26,6 +26,7 @@ private Q_SLOTS:
     void testImportResourceFile();
     void testAddResource();
     void testAddTemporaryResource();
+    void testAddDuplicatedResource_data();
     void testAddDuplicatedResource();
     void testResourceForId();
     void testResourceForName();

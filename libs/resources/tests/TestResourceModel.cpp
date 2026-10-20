@@ -14,6 +14,8 @@
 #include <QSqlQuery>
 #include <QTemporaryFile>
 #include <QAbstractItemModelTester>
+#include <QScopeGuard>
+#include <KisResourceStorage.h>
 
 #include <kconfig.h>
 #include <kconfiggroup.h>
@@ -235,28 +237,48 @@ void TestResourceModel::testAddTemporaryResource()
     QCOMPARE(startResourceCount + 1, resourceModel.rowCount());
 }
 
+void TestResourceModel::testAddDuplicatedResource_data()
+{
+    QTest::addColumn<bool>("temporaryFirst");
+    QTest::newRow("permanent-first") << false;
+    QTest::newRow("temporary-first") << true;
+}
+
 void TestResourceModel::testAddDuplicatedResource()
 {
+    // A resource chooser outlives temporary document storages. Closing a
+    // document must retain the equivalent preset in a permanent storage.
+    QFETCH(bool, temporaryFirst);
     KisResourceModel resourceModel(m_resourceType);
     resourceModel.setResourceFilter(KisResourceModel::ShowAllResources);
-
+    KisResourceModel activeModel(m_resourceType);
     const int startResourceCount = resourceModel.rowCount();
-
-    KoResourceSP resource(new DummyResource("duplicated_resource.kpp"));
-    resource->setValid(true);
-    bool r = resourceModel.addResource(resource); // first add to the folder storage
-
-    QVERIFY(r);
+    const int startActiveCount = activeModel.rowCount();
+    const auto storageName = QStringLiteral("duplicate-model-") + QString::fromLatin1(QTest::currentDataTag());
+    QVERIFY(!m_locator->hasStorage(storageName));
+    const auto storage = KisResourceStorageSP::create(storageName);
+    QVERIFY(storage->valid());
+    QVERIFY(m_locator->addStorage(storageName, storage));
+    const auto cleanup = qScopeGuard([&] { m_locator->removeStorage(storageName); });
+    const auto filename = storageName + QStringLiteral(".kpp");
+    KoResourceSP permanent;
+    for (const bool temporary : {temporaryFirst, !temporaryFirst}) {
+        KoResourceSP resource(new DummyResource(filename));
+        resource->setValid(true);
+        QVERIFY(resourceModel.addResource(resource, temporary ? storageName : QString()));
+        if (!temporary) permanent = resource;
+        QCOMPARE(resourceModel.rowCount(), startResourceCount + 1);
+        QCOMPARE(activeModel.rowCount(), startActiveCount + 1);
+    }
+    QVERIFY(permanent);
+    QVERIFY(m_locator->removeStorage(storageName));
     QCOMPARE(resourceModel.rowCount(), startResourceCount + 1);
-
-    // Matching MD5, name and filename resources should be hidden -- BUG:445367
-    // the copy of this resource has been added in testAddResource()
-    resource.reset(new DummyResource("duplicated_resource.kpp"));
-    resource->setValid(true);
-    r = resourceModel.addResource(resource, "memory"); // then add to the temporary storage
-
-    QVERIFY(r);
-    QCOMPARE(resourceModel.rowCount(), startResourceCount + 1);
+    QCOMPARE(activeModel.rowCount(), startActiveCount + 1);
+    const auto index = activeModel.indexForResource(permanent);
+    QVERIFY(index.isValid());
+    const auto available = activeModel.resourceForIndex(index);
+    QVERIFY(available && available->valid());
+    QCOMPARE(available->resourceId(), permanent->resourceId());
 }
 
 void TestResourceModel::testResourceForId()
