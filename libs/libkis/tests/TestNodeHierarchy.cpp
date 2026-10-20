@@ -50,6 +50,110 @@
 #include <memory>
 #include <exception>
 
+void TestNode::testPublicSubtreeInsertionKeepsChildrenPixelsAndHistory_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::addColumn<bool>("passThrough");
+    for (bool gpu : {false, true}) for (bool passThrough : {false, true}) {
+        const QByteArray name = QByteArray(gpu ? "gpu-" : "ordinary-") + (passThrough ? "pass-through" : "isolated");
+        QTest::newRow(name.constData()) << gpu << passThrough;
+    }
+}
+
+void TestNode::testPublicSubtreeInsertionKeepsChildrenPixelsAndHistory()
+{
+    QFETCH(bool, gpu);
+    QFETCH(bool, passThrough);
+    namespace Gpu = LibrePaint::Image::Gpu;
+    KisConfig(true).disableOpenGL();
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    const QUuid groupUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}"));
+    KisImageSP image;
+    if (gpu) {
+        QString diagnostic;
+        const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+        QVERIFY2(execution, qPrintable(diagnostic));
+        Gpu::RasterImage input;
+        input.size = {4, 4};
+        input.layers = {{QStringLiteral("First"), true, {}, {}},
+                        {QStringLiteral("Second"), true, {}, {}},
+                        {QStringLiteral("Group"), true, groupUuid, {}}};
+        input.layers[0].parentUuid = input.layers[1].parentUuid = groupUuid;
+        input.layers[2].kind = Gpu::LayerKind::Group;
+        input.layers[2].passThrough = passThrough;
+        image = KisImage::fromGpuImage(Gpu::PaintImageSP::create(execution, input), QStringLiteral("Subtree insertion"));
+    } else {
+        image = new KisImage(document->createUndoStore(), 4, 4, KoColorSpaceRegistry::instance()->rgb8(), "Subtree insertion");
+        KisGroupLayerSP group = new KisGroupLayer(image, QStringLiteral("Group"), 255);
+        group->setUuid(groupUuid);
+        group->setPassThroughMode(passThrough);
+        image->addNode(group);
+        image->addNode(new KisPaintLayer(image, QStringLiteral("First"), 255), group);
+        image->addNode(new KisPaintLayer(image, QStringLiteral("Second"), 255), group);
+    }
+    document->setCurrentImage(image);
+    Document api(document.data(), false);
+    QScopedPointer<Node> original(api.nodeByUniqueID(groupUuid));
+    QVERIFY(original);
+    auto sourceChildren = original->childNodes();
+    const auto releaseSource = qScopeGuard([&] { qDeleteAll(sourceChildren); });
+    QCOMPARE(sourceChildren.size(), 2);
+    const auto red = QByteArray::fromHex("0000ffff");
+    const auto blue = QByteArray::fromHex("ff000080");
+    const auto green = QByteArray::fromHex("00ff00ff");
+    const auto yellow = QByteArray::fromHex("00ffffff");
+    QVERIFY(sourceChildren[0]->setPixelData(red, 1, 1, 1, 1));
+    QVERIFY(sourceChildren[1]->setPixelData(blue, 2, 2, 1, 1));
+    image->waitForDone();
+    QScopedPointer<Node> copied(original->clone());
+    QVERIFY(copied);
+    const auto identity = copied->uniqueId();
+    QVERIFY(identity != original->uniqueId());
+    QScopedPointer<Node> root(api.rootNode());
+    const auto history = document->undoStack()->index();
+    if (gpu) {
+        const auto owner = image->gpuImage();
+        const auto stroke = owner->beginStroke(owner->operations().snapshot()->layers.first().id, Gpu::Brush{}, 43);
+        QVERIFY(!stroke.isNull());
+        QCOMPARE(owner->appendSamples(stroke, {{{3, 3}}}), Gpu::Result::Success);
+        const auto pending = owner->operations().preview();
+        QVERIFY(!root->addChildNode(copied.data(), nullptr));
+        QCOMPARE(owner->operations().preview(), pending);
+        QCOMPARE(image->root()->childCount(), 1u);
+        QCOMPARE(document->undoStack()->index(), history);
+        QCOMPARE(owner->cancelStroke(stroke), Gpu::Result::Success);
+    }
+    QVERIFY(root->addChildNode(copied.data(), nullptr));
+    image->waitForDone();
+    QCOMPARE(image->root()->childCount(), 2u);
+    QCOMPARE(document->undoStack()->index(), history + 1);
+    QCOMPARE(image->root()->lastChild()->uuid(), identity);
+    const auto *group = dynamic_cast<GroupLayer *>(copied.data());
+    QVERIFY(group);
+    QCOMPARE(group->passThroughMode(), passThrough);
+    auto children = copied->childNodes();
+    const auto releaseChildren = qScopeGuard([&] { qDeleteAll(children); });
+    QCOMPARE(children.size(), 2);
+    QCOMPARE(children[0]->name(), QStringLiteral("First"));
+    QCOMPARE(children[1]->name(), QStringLiteral("Second"));
+    QCOMPARE(children[0]->pixelData(1, 1, 1, 1), red);
+    QCOMPARE(children[1]->pixelData(2, 2, 1, 1), blue);
+    QVERIFY(sourceChildren[0]->setPixelData(green, 1, 1, 1, 1));
+    QCOMPARE(children[0]->pixelData(1, 1, 1, 1), red);
+    document->undoStack()->undo();
+    image->waitForDone();
+    QCOMPARE(image->root()->childCount(), 1u);
+    QCOMPARE(document->undoStack()->index(), history);
+    QCOMPARE(sourceChildren[0]->pixelData(1, 1, 1, 1), green);
+    QVERIFY(children[1]->setPixelData(yellow, 2, 2, 1, 1));
+    document->undoStack()->redo();
+    image->waitForDone();
+    QCOMPARE(image->root()->lastChild()->uuid(), identity);
+    QCOMPARE(document->undoStack()->index(), history + 1);
+    QCOMPARE(children[0]->pixelData(1, 1, 1, 1), red);
+    QCOMPARE(children[1]->pixelData(2, 2, 1, 1), yellow);
+}
+
 void TestNode::testGroupCreationKeepsIndependentPixelsChildrenAndHistory_data()
 {
     QTest::addColumn<bool>("gpu");
