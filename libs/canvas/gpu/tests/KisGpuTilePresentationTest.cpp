@@ -4,6 +4,7 @@
  */
 
 #include <QGuiApplication>
+#include <QImage>
 #include <QTest>
 #include <QTransform>
 #include "../KisGpuPresentationResources_p.h"
@@ -24,6 +25,8 @@ private Q_SLOTS:
     void initTestCase();
     void panZoomAndTransparencyUseThePaintingQueue();
     void clippedTilesKeepTheirIndependentTransforms();
+    void displayChannelsPreserveDocumentPixels_data();
+    void displayChannelsPreserveDocumentPixels();
     void rejectedPresentationPreservesTheTarget();
     void projectionCannotCrossDevices();
     void displayResourcesRetainTheirNativeDevice();
@@ -252,6 +255,65 @@ void KisGpuTilePresentationTest::clippedTilesKeepTheirIndependentTransforms()
     QCOMPARE(readback->results.front()->data.mid((8 * 64 + 33) * 4, 4), QByteArray(4, '\0'));
 }
 
+void KisGpuTilePresentationTest::displayChannelsPreserveDocumentPixels_data()
+{
+    QTest::addColumn<int>("mask");
+    QTest::addColumn<bool>("asColor");
+    QTest::addColumn<QByteArray>("visualBgra");
+    // Produced by rgb8()->convertChannelToVisualRepresentation, following
+    // KisImagePyramid::retrieveImageData at 066f2dc2b1. RGBA8/sRGB input is
+    // (73,149,231,128); the two rows fix showSingleChannelAsColor=false/true.
+    const char *expected[2][16] = {
+        {"00000000", "49494980", "95959580", "00954900", "e7e7e780", "e7004900", "e7950000", "e7954900",
+         "00000080", "49494980", "95959580", "00954980", "e7e7e780", "e7004980", "e7950080", "e7954980"},
+        {"00000000", "00004900", "00950000", "00954900", "e7000000", "e7004900", "e7950000", "e7954900",
+         "00000080", "00004980", "00950080", "00954980", "e7000080", "e7004980", "e7950080", "e7954980"}
+    };
+    for (int asColor = 0; asColor < 2; ++asColor) for (int mask = 0; mask < 16; ++mask) {
+        const QByteArray tag = QByteArray(asColor ? "color-" : "gray-") + QByteArray::number(mask, 16);
+        QTest::newRow(tag.constData()) << mask << bool(asColor) << QByteArray::fromHex(expected[asColor][mask]);
+    }
+}
+
+void KisGpuTilePresentationTest::displayChannelsPreserveDocumentPixels()
+{
+    QFETCH(int, mask);
+    QFETCH(bool, asColor);
+    QFETCH(QByteArray, visualBgra);
+    const auto raw = QByteArray::fromHex("4995e780").repeated(RgbaTile::ByteCount / 4);
+    RasterImage input;
+    input.size = {64, 64};
+    input.layers = {{QStringLiteral("Display channels"), true, QUuid::createUuid(), {{{0, 0}, raw}}}};
+    OperationDocument document(input);
+    const auto before = document.snapshot();
+    const auto recovery = document.recoveryData();
+    TileRenderer renderer(m_device);
+    TilePresentation presentation(m_device);
+    Surface surface(m_device, {64, 64});
+    QVERIFY(surface.ready);
+    const auto commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto layers = renderer.record(commands, before);
+    QCOMPARE(layers.code, RenderOutcome::Recorded);
+    const auto projection = renderer.compose(commands, layers.version, {0, 0, 64, 64});
+    QCOMPARE(projection.code, RenderOutcome::Recorded);
+    const auto drawn = presentation.record(commands, projection.version, surface.target, {}, Qt::transparent,
+                                           DisplayChannels{quint8(mask), asColor});
+    QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
+    auto readback = readTexture(*m_device, commands, surface, layers.version->tiles(document.activeLayer()).first().pixels);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QVERIFY(readback->finish(*m_device));
+    QByteArray rgba = visualBgra;
+    std::swap(rgba[0], rgba[2]);
+    const QImage straight(reinterpret_cast<const uchar *>(rgba.constData()), 1, 1, QImage::Format_RGBA8888);
+    const auto premultiplied = straight.convertToFormat(QImage::Format_RGBA8888_Premultiplied);
+    const QByteArray expected(reinterpret_cast<const char *>(premultiplied.constBits()), 4);
+    QCOMPARE(readback->results.front()->data, expected.repeated(64 * 64));
+    QCOMPARE(readback->results[1]->data, raw);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.recoveryData(), recovery);
+}
+
 void KisGpuTilePresentationTest::rejectedPresentationPreservesTheTarget()
 {
     OperationDocument document({512, 64});
@@ -274,6 +336,8 @@ void KisGpuTilePresentationTest::rejectedPresentationPreservesTheTarget()
         QTransform::fromScale(0, 1), Qt::transparent).recorded);
     QVERIFY(!presentation.record(commands, projection.version, surface.target,
         QTransform::fromTranslate(std::numeric_limits<double>::quiet_NaN(), 0), Qt::transparent).recorded);
+    TilePresentation unrestricted(m_device);
+    QVERIFY(!unrestricted.record(commands, projection.version, surface.target, {}, Qt::transparent, {16, false}).recorded);
     const auto readback = readTexture(*m_device, commands, surface);
     QVERIFY(readback);
     QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));

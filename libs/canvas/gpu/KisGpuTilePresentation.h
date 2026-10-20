@@ -31,6 +31,15 @@ struct PresentationOutcome
     qsizetype tileCount = 0;
 };
 
+/** View-only RGBA bits 0 through 3. A single color component is gray by default,
+ * preserving source alpha. Color display applies the selected alpha bit.
+ */
+struct DisplayChannels
+{
+    quint8 rgbaMask = 15;
+    bool showSingleChannelAsColor = false;
+};
+
 /**
  * Draws borrowed immutable tiles on their owning GPU thread and queue.
  * Display resources keep the shared device alive. record() joins an active frame and clears the
@@ -38,6 +47,7 @@ struct PresentationOutcome
  * The transform maps document coordinates to physical target pixels.
  * Retain the projection through frame submission. Invalid input and resource
  * failures leave the target untouched. Output colors are premultiplied RGBA.
+ * Channel selection changes the presentation target while retaining projection pixels.
  */
 class KRITACANVAS_EXPORT TilePresentation
 {
@@ -50,7 +60,7 @@ public:
     PresentationOutcome record(WGPUCommandEncoder commands,
                                const Image::Gpu::ProjectedSnapshot &projection,
                                const PresentationTarget &target, const QTransform &documentToPixels,
-                               QColor clearColor);
+                               QColor clearColor, DisplayChannels channels = {});
 
 private:
     struct Private;

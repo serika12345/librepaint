@@ -1,6 +1,6 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
-struct Parameters { matrix: mat4x4<f32>, clip: vec4<f32> }
+struct Parameters { matrix: mat4x4<f32>, clip: vec4<f32>, channels: vec4<u32> }
 @group(0) @binding(0) var<uniform> p: Parameters;
 @group(0) @binding(1) var<storage, read> pixels: array<u32>;
 struct Vertex { @builtin(position) position: vec4<f32>, @location(0) uv: vec2<f32> }
@@ -16,5 +16,16 @@ struct Vertex { @builtin(position) position: vec4<f32>, @location(0) uv: vec2<f3
     let pixel = pixels[pos.y * 256u + pos.x];
     let straight = vec4<f32>(f32(pixel & 255u), f32((pixel >> 8u) & 255u),
         f32((pixel >> 16u) & 255u), f32(pixel >> 24u)) / 255.;
-    return vec4(straight.rgb * straight.a, straight.a);
+    let mask = p.channels.x;
+    let colors = mask & 7u;
+    var visual: vec4<f32>;
+    if (p.channels.y == 0u && (colors == 1u || colors == 2u || colors == 4u)) {
+        let index = select(select(2u, 1u, colors == 2u), 0u, colors == 1u);
+        visual = vec4(vec3(straight[index]), straight.a);
+    } else {
+        let enabled = vec4<bool>((mask & 1u) != 0u, (mask & 2u) != 0u,
+                                  (mask & 4u) != 0u, (mask & 8u) != 0u);
+        visual = select(vec4(0.), straight, enabled);
+    }
+    return vec4(visual.rgb * visual.a, visual.a);
 }

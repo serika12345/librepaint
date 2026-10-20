@@ -6,6 +6,7 @@
 #include <QGuiApplication>
 #include <QSignalSpy>
 #include <QTest>
+#include <QScreen>
 #include <gpu/KisGpuCanvasWindow.h>
 #include <gpu/KisGpuExecution.h>
 #include <gpu/KisGpuTilePresentation.h>
@@ -30,6 +31,7 @@ private Q_SLOTS:
     void failedDevicesRejectSurfaceAcquisitionAndReleaseWindowResources();
 
     void editsAndViewChangesUseSharedExecution();
+    void displayChannelsChangeOnlyPresentation();
     void queuedUpdatesIgnoreClosedDocuments();
     void nativeSurfaceRecreationPreservesDocumentAndContinuesPresentation();
     void capacityFailurePreservesPublicationAndCanRetry();
@@ -119,6 +121,62 @@ void KisGpuCanvasWindowTest::editsAndViewChangesUseSharedExecution()
     window.refresh();
     QCOMPARE(window.documentViewport(), QRect(0, 0, 124, 56));
     QTRY_VERIFY_WITH_TIMEOUT(frames.size() > resized, 5000);
+    QCOMPARE(errors.size(), 0);
+}
+
+void KisGpuCanvasWindowTest::displayChannelsChangeOnlyPresentation()
+{
+    RasterImage input;
+    input.size = {256, 256};
+    input.layers = {{QStringLiteral("Display channels"), true, QUuid::createUuid(),
+        {{{0, 0}, QByteArray::fromHex("4995e780").repeated(RgbaTile::ByteCount / 4)}}}};
+    OperationDocument document(input);
+    const auto before = document.snapshot();
+    const auto recovery = document.recoveryData();
+    Execution execution(m_device);
+    const auto handle = execution.open(before).handle;
+    QVERIFY(handle);
+    CanvasWindow window(execution);
+    QVERIFY(window.setDocument(handle));
+    QSignalSpy frames(&window, &CanvasWindow::frameSubmitted);
+    QSignalSpy errors(&window, &CanvasWindow::renderingFailed);
+    window.resize(64, 64);
+    window.show();
+    QVERIFY(QTest::qWaitForWindowExposed(&window));
+    QTRY_VERIFY_WITH_TIMEOUT(!frames.isEmpty(), 5000);
+#ifdef Q_OS_LINUX
+    // X11's native window capture observes the presented surface, independently
+    // of the offscreen render-target contract. The suite uses a private display.
+    const auto displayed = [&] {
+        const auto image = window.screen()->grabWindow(window.winId()).toImage();
+        return image.rect().contains(8, 8) ? image.pixelColor(8, 8) : QColor{};
+    };
+    QTRY_COMPARE_WITH_TIMEOUT(displayed(), QColor(164, 202, 243), 5000);
+#endif
+    QVERIFY(!window.setDisplayChannels({16, false}));
+    const std::pair<DisplayChannels, QColor> cases[] = {
+        {{14, false}, QColor(127, 202, 243)},
+        {{9, false}, QColor(164, 164, 164)},
+        {{0, false}, Qt::white},
+        {{9, true}, QColor(164, 127, 127)}
+    };
+    for (const auto &entry : cases) {
+        const auto count = frames.size();
+        QVERIFY(window.setDisplayChannels(entry.first));
+        QTRY_VERIFY_WITH_TIMEOUT(frames.size() > count, 5000);
+#ifdef Q_OS_LINUX
+        QTRY_COMPARE_WITH_TIMEOUT(displayed(), entry.second, 5000);
+#endif
+        QCOMPARE(execution.requested(handle), before);
+        QCOMPARE(execution.published(handle), before);
+        QCOMPARE(document.recoveryData(), recovery);
+    }
+    const auto count = frames.size();
+    QVERIFY(window.resetSurface());
+    QTRY_VERIFY_WITH_TIMEOUT(frames.size() > count, 5000);
+#ifdef Q_OS_LINUX
+    QTRY_COMPARE_WITH_TIMEOUT(displayed(), QColor(164, 127, 127), 5000);
+#endif
     QCOMPARE(errors.size(), 0);
 }
 

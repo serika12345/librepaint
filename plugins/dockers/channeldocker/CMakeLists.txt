@@ -8,3 +8,7 @@ set(KRITA_CHANNELDOCKER_SOURCES
 kis_add_library(kritachanneldocker MODULE ${KRITA_CHANNELDOCKER_SOURCES})
 target_link_libraries(kritachanneldocker kritaapplication kritaapplicationui)
 install(TARGETS kritachanneldocker  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
+
+if(BUILD_TESTING)
+    add_subdirectory(tests)
+endif()

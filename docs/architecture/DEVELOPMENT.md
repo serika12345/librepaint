@@ -460,6 +460,7 @@ GPU喪失を伴う実機検証は、この再現可能な検査エラーの試�
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTilePresentationTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuCanvasWindowTest
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuDocumentViewTest
+./scripts/run-shared-test-env ./scripts/run-test TestChannelDocker
 ```
 
 試験は円形ブラシ、筆圧、消去、入力分割、直線・楕円の変更、取消し、Undo／Redo、
@@ -673,6 +674,13 @@ POSIXの保存先ディレクトリーで新規作成を拒否した場合も、
 先行するGPU処理でキューが使用中の場合はイベント処理を続け、解放後に固定版の読取りを再開する。
 `KisGpuCanvasWindowTest`は、共有キューの使用中に要求した最新画像を、
 キュー解放後の再表示で採用することを検査する。
+表示成分の試験はRGBA8/sRGBの固定入力を使い、16通りの成分指定と単一成分の濃淡・色表示を、
+CPUの色空間処理から得た値と照合する。表示先の全画素、元のGPUバッファーと復旧記録を検査する。
+Linuxの表示窓試験はX11から表示面の画素を取得し、成分切替と表示面の再作成後の結果を照合する。
+`TestChannelDocker`は、通常の一覧の有効化、各成分の縮小画像、再接続、
+描画入力中の表示切替と設定通知、固定したKRA出力の保持を検査する。
+Linuxでは一覧から表示窓までの結果もX11で取得する。
+`LIBREPAINT_GPU_RESULT_DIR`を指定した場合、大小の文書の`display-channels-{gpu,gpu-large}.kra`を出力する。
 `KisGpuPixelReadbackTest`は非同期読取り後の新しい要求、文書終了とGPU終了からの
 CPU結果の独立性を検査する。同期読取りも同じ完了処理を使い、従来の画素契約を維持する。
 GPU画素読取り試験は、Qtの画面外環境でもネイティブGPUを使用する。

@@ -6,6 +6,10 @@
 #include "kis_coordinates_converter.h"
 #include "kis_canvas2.h"
 #include <kis_image.h>
+#include <kis_group_layer.h>
+#include <application/kis_config.h>
+#include <kis_config_notifier.h>
+#include <KoChannelInfo.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <gpu/KisGpuCanvasWindow.h>
 #include <QApplication>
@@ -38,6 +42,11 @@ KisGpuCanvasWidget::KisGpuCanvasWidget(KisCanvas2 *canvas, KisCoordinatesConvert
     m_container->setFocusPolicy(Qt::NoFocus);
     m_window->installEventFilter(this);
     m_window->setDocument(m_image->handle());
+    channelSelectionChanged(canvas->image()->rootLayer()->channelFlags());
+    connect(KisConfigNotifier::instance(), &KisConfigNotifier::configChanged, this, [this] {
+        const KisImageSP image = this->canvas()->image();
+        if (image) channelSelectionChanged(image->rootLayer()->channelFlags());
+    });
     connect(m_image.data(), &LibrePaint::Image::Gpu::PaintImage::changed, this, [this] { refresh(); });
     connect(canvas->image().data(), &KisImage::sigLayersChangedAsync, this, [this] { refresh(); });
     connect(m_window, &LibrePaint::Canvas::Gpu::CanvasWindow::renderingFailed, this,
@@ -70,6 +79,7 @@ void KisGpuCanvasWidget::refresh()
         disconnect(m_image.data(), nullptr, this, nullptr);
         m_image = image;
         m_window->setDocument(m_image->handle());
+        channelSelectionChanged(canvas()->image()->rootLayer()->channelFlags());
         connect(m_image.data(), &LibrePaint::Image::Gpu::PaintImage::changed, this, [this] { refresh(); });
     }
     m_window->setDocumentToWindow(coordinatesConverter()->imageToWidgetTransform());
@@ -107,7 +117,20 @@ void KisGpuCanvasWidget::setDisplayFilter(QSharedPointer<KisDisplayFilter>) { re
 void KisGpuCanvasWidget::notifyImageColorSpaceChanged(const KoColorSpace *) { refresh(); }
 void KisGpuCanvasWidget::setWrapAroundViewingMode(bool) {}
 void KisGpuCanvasWidget::setWrapAroundViewingModeAxis(WrapAroundAxis) {}
-void KisGpuCanvasWidget::channelSelectionChanged(const QBitArray &) { refresh(); }
+void KisGpuCanvasWidget::channelSelectionChanged(const QBitArray &flags)
+{
+    if (!m_window) return;
+    const KisImageSP image = canvas()->image();
+    if (!image) return;
+    quint8 mask = 15;
+    const auto channels = image->colorSpace()->channels();
+    if (flags.size() == channels.size()) {
+        mask = 0;
+        for (int index = 0; index < channels.size(); ++index)
+            if (flags.testBit(index)) mask |= 1u << channels[index]->displayPosition();
+    }
+    m_window->setDisplayChannels({mask, KisConfig(true).showSingleChannelAsColor()});
+}
 void KisGpuCanvasWidget::setDisplayConfig(const KisDisplayConfig &) { refresh(); }
 void KisGpuCanvasWidget::finishResizingImage(qint32, qint32) { refresh(); }
 KisUpdateInfoSP KisGpuCanvasWidget::startUpdateCanvasProjection(const QRect &rect) { return new GpuCanvasUpdateInfo(rect); }

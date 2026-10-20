@@ -22,6 +22,7 @@ struct CanvasWindow::Private
     quint64 generation;
     DocumentHandle handle = 0;
     QTransform transform;
+    DisplayChannels channels;
     bool recording = false;
     std::unique_ptr<PresentationSurface> surface;
     quintptr nativeSurfaceIdentity = 0;
@@ -78,6 +79,13 @@ bool CanvasWindow::setDocument(DocumentHandle handle)
 }
 
 void CanvasWindow::refresh() { requestUpdate(); }
+bool CanvasWindow::setDisplayChannels(DisplayChannels channels)
+{
+    if (channels.rgbaMask > 15) return false;
+    m_d->channels = channels;
+    refresh();
+    return true;
+}
 bool CanvasWindow::setDocumentToWindow(const QTransform &transform)
 {
     if (!Detail::validDocumentTransform(transform)) return false;
@@ -182,7 +190,7 @@ void CanvasWindow::renderFrame()
             }
             const auto drawn = d.presentation->record(frame.commands, projected.version,
                                                       {d.device, frame.target, pixels, d.surface->format()},
-                                                      d.physicalTransform(devicePixelRatio()), Qt::white);
+                                                      d.physicalTransform(devicePixelRatio()), Qt::white, d.channels);
             if (!drawn.recorded) {
                 d.execution.cancelFrame();
                 begun = false;

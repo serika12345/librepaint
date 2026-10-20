@@ -575,6 +575,11 @@ void KisCanvas2::channelSelectionChanged()
     KisImageSP image = this->image();
     m_d->channelFlags = image->rootLayer()->channelFlags();
 
+    if (image->gpuImage()) {
+        m_d->canvasWidget->channelSelectionChanged(m_d->channelFlags);
+        return;
+    }
+
     m_d->view->viewManager()->blockUntilOperationsFinishedForced(image);
 
     image->barrierLock();
@@ -946,6 +951,11 @@ void KisCanvas2::setDisplayFilter(QSharedPointer<KisDisplayFilter> displayFilter
 {
     m_d->displayColorConverter.setDisplayFilter(displayFilter);
     KisImageSP image = this->image();
+
+    if (image->gpuImage()) {
+        m_d->canvasWidget->setDisplayFilter(displayFilter);
+        return;
+    }
 
     m_d->view->viewManager()->blockUntilOperationsFinishedForced(image);
 

@@ -15,7 +15,7 @@
 
 namespace LibrePaint::Canvas::Gpu {
 namespace {
-struct Uniforms { float matrix[16]; float clip[4]; };
+struct Uniforms { float matrix[16]; float clip[4]; quint32 channels[4]; };
 struct Draw { Detail::Buffer uniform; Detail::Bindings bindings; Uniforms values; };
 }
 struct TilePresentation::Private
@@ -84,13 +84,13 @@ TilePresentation::TilePresentation(Image::Gpu::DevicePtr device, qsizetype maxim
 TilePresentation::~TilePresentation() = default;
 PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
     const Image::Gpu::ProjectedSnapshot &projection, const PresentationTarget &target,
-    const QTransform &transform, QColor clearColor)
+    const QTransform &transform, QColor clearColor, DisplayChannels channels)
 {
     auto &d = *m_d;
     if (d.device->thread() != QThread::currentThread() || !d.device->ownsCommands(commands) ||
         target.device != d.device || !target.view || target.size.isEmpty() || !projection ||
-        projection->device() != d.device || !Detail::validDocumentTransform(transform) || !clearColor.isValid())
-        return {false, QStringLiteral("Presentation requires an owning GPU frame and an invertible affine transform"), 0};
+        projection->device() != d.device || !Detail::validDocumentTransform(transform) || !clearColor.isValid() || channels.rgbaMask > 15)
+        return {false, QStringLiteral("Presentation requires an owning GPU frame, an invertible affine transform and valid RGBA channel bits"), 0};
     if (!d.error.isEmpty() || d.device->isLost()) return {false, d.error.isEmpty() ? QStringLiteral("GPU device lost") : d.error, 0};
     const auto tiles = projection->tiles();
     const QRectF viewport(QPointF(0, 0), target.size);
@@ -125,6 +125,9 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
         draw.values.clip[1] = float(region.top() - origin.y()) / size;
         draw.values.clip[2] = float(region.left() + region.width() - origin.x()) / size;
         draw.values.clip[3] = float(region.top() + region.height() - origin.y()) / size;
+        draw.values.channels[0] = channels.rgbaMask;
+        draw.values.channels[1] = channels.showSingleChannelAsColor;
+        draw.values.channels[2] = draw.values.channels[3] = 0;
         if (!draw.uniform) return {false, QStringLiteral("GPU presentation uniform allocation failed"), 0};
         WGPUBindGroupEntry entries[2]{};
         entries[0].binding = 0;

@@ -8,6 +8,7 @@
 
 #include <kritacanvas_export.h>
 #include <gpu/KisGpuExecution.h>
+#include "KisGpuTilePresentation.h"
 #include <QTransform>
 #include <QWindow>
 
@@ -33,6 +34,8 @@ public:
     /** Zero suspends drawing; a closed or unknown handle preserves selection. */
     bool setDocument(Image::Gpu::DocumentHandle handle);
     void refresh();
+    /** Changes view components without replacing or completing document input. */
+    bool setDisplayChannels(DisplayChannels channels);
     bool setDocumentToWindow(const QTransform &transform);
     QTransform documentToWindow() const;
     QRect documentViewport() const;

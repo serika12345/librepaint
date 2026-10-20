@@ -185,23 +185,18 @@ void ChannelModel::setCanvas(KisCanvas2 *canvas)
 
 void ChannelModel::setChannelThumbnails(const QVector<QImage> &channels, const KoColorSpace *cs)
 {
-    if (m_canvas) {
-        KisGroupLayerWSP rootLayer = m_canvas->image()->rootLayer();
-
-        if (!cs || *rootLayer->colorSpace() == *cs) {
-            const int newChannelCount = cs ? cs->channelCount() : 0;
-
-
-            if (newChannelCount != m_channelCount) {
-                beginResetModel();
-                m_thumbnails = channels;
-                m_channelCount = newChannelCount;
-                endResetModel();
-            } else {
-                m_thumbnails = channels;
-                emitAllDataChanged(channels.count() - 1, columnCount() - 1);
-            }
-        }
+    KisImageSP image;
+    if (m_canvas) image = m_canvas->image();
+    if (cs && (!image || *image->rootLayer()->colorSpace() != *cs)) return;
+    const int newChannelCount = cs ? cs->channelCount() : 0;
+    if (newChannelCount != m_channelCount) {
+        beginResetModel();
+        m_thumbnails = channels;
+        m_channelCount = newChannelCount;
+        endResetModel();
+    } else {
+        m_thumbnails = channels;
+        emitAllDataChanged(channels.count() - 1, columnCount() - 1);
     }
 }
 
