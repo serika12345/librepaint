@@ -12,7 +12,7 @@ kis_add_tests(
     LINK_LIBRARIES kritalibkis kritatestsdk
     )
 
-target_sources(TestNode PRIVATE TestNodeHierarchy.cpp TestNodeClipboard.cpp)
+target_sources(TestNode PRIVATE TestNodeHierarchy.cpp TestNodeClipboard.cpp TestNodeLayerProperties.cpp)
 target_sources(TestDocument PRIVATE TestDocumentKraPreview.cpp)
 
 add_dependencies(TestDocument

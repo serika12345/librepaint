@@ -10,6 +10,7 @@
 #include <limits>
 #include <algorithm>
 #include <stdexcept>
+#include <type_traits>
 #include <QScopeGuard>
 #include <QSet>
 #include <QHash>
@@ -160,6 +161,7 @@ QList<Snapshot> OperationDocument::historyVersions() const { return m_history; }
 HistoryAction OperationDocument::historyAction(int index) const
 {
     if (index <= 0 || index >= m_history.size()) return HistoryAction::None;
+    if (m_layerHistoryChanges[index].changedLayerProperties) return HistoryAction::ChangeLayerProperties;
     if (m_layerHistoryChanges[index].duplicatedLayers) return HistoryAction::DuplicateLayer;
     if (m_layerHistoryChanges[index].clearedLayers) return HistoryAction::ClearPixels;
     if (m_layerHistoryChanges[index].filledLayer) return HistoryAction::FillLayer;
@@ -176,6 +178,7 @@ HistoryAction OperationDocument::historyAction(int index) const
     case LayerProperty::ProjectionMask: return HistoryAction::ChangeProjectionChannels;
     case LayerProperty::Position: return HistoryAction::TranslateLayer;
     case LayerProperty::None: break;
+    case LayerProperty::ColorLabel: break;
     }
     const auto &before = m_history[index - 1]->layers;
     const auto &after = m_history[index]->layers;
@@ -265,21 +268,30 @@ Result OperationDocument::writeProjectionBackground(const std::array<quint8, 4> 
 }
 
 template<class T>
-Result OperationDocument::writeLayerProperty(LayerId layer, LayerProperty property, T Layer::*member, const T &value)
+Result OperationDocument::writeLayerProperty(LayerId layer, LayerProperty property, T Layer::*member,
+                                            const T &value, quint8 componentMask)
 {
     if (m_closed) return Result::Closed;
     const auto index = layerIndex(layer);
     if (index < 0) return Result::LayerUnavailable;
     const T previous = snapshot()->layers[index].*member;
-    if (previous == value) return Result::Success;
+    const bool components = property == LayerProperty::ChannelMask || property == LayerProperty::ProjectionMask;
+    if constexpr (std::is_same_v<T, quint8>) {
+        if (components ? (previous & componentMask) == (value & componentMask) : previous == value) return Result::Success;
+    } else if (previous == value) return Result::Success;
     const auto containsLayer = [&](const Snapshot &state) {
         for (const auto &candidate : state->layers)
             if (candidate.id == layer) return true;
         return false;
     };
     const auto changesProperty = [&](int index) {
-        return property != LayerProperty::None && m_layerHistoryChanges[index].layer == layer &&
-            m_layerHistoryChanges[index].property == property;
+        if (property == LayerProperty::None) return false;
+        const auto &change = m_layerHistoryChanges[index];
+        if (change.layer == layer && change.property == property) return true;
+        for (const auto &edit : change.propertyEdits)
+            if (edit.layer == layer && edit.property == property &&
+                (!components || (edit.componentMask & componentMask))) return true;
+        return false;
     };
     int first = m_index, last = m_index;
     while (first > 0 && !changesProperty(first) && containsLayer(m_history[first - 1])) --first;
@@ -292,7 +304,9 @@ Result OperationDocument::writeLayerProperty(LayerId layer, LayerProperty proper
         auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*state));
         for (auto &candidate : version->layers) {
             if (candidate.id != layer) continue;
-            candidate.*member = value;
+            if constexpr (std::is_same_v<T, quint8>) {
+                candidate.*member = components ? quint8(((candidate.*member) & ~componentMask) | (value & componentMask)) : value;
+            } else candidate.*member = value;
             break;
         }
         version->m_revision = ++nextRevision;
@@ -303,6 +317,22 @@ Result OperationDocument::writeLayerProperty(LayerId layer, LayerProperty proper
     m_history.swap(history);
     m_preview = preview;
     m_nextRevision = nextRevision;
+    return Result::Success;
+}
+
+Result OperationDocument::writeLayerMask(LayerId layer, LayerProperty property, quint8 Layer::*member, quint8 value)
+{
+    const auto history = m_history;
+    const auto preview = m_preview;
+    const auto revision = m_nextRevision;
+    for (quint8 bit = 1; bit <= 8; bit <<= 1) {
+        const auto result = writeLayerProperty(layer, property, member, value, bit);
+        if (result == Result::Success) continue;
+        m_history = history;
+        m_preview = preview;
+        m_nextRevision = revision;
+        return result;
+    }
     return Result::Success;
 }
 
@@ -321,14 +351,33 @@ Result OperationDocument::writeLayerLocked(LayerId layer, bool locked)
 Result OperationDocument::writeLayerPinnedToTimeline(LayerId layer, bool pinned)
 { return writeLayerProperty(layer, LayerProperty::PinnedToTimeline, &Layer::pinnedToTimeline, pinned); }
 Result OperationDocument::writeLayerColorLabel(LayerId layer, int index)
-{ return writeLayerProperty(layer, LayerProperty::None, &Layer::colorLabelIndex, index); }
+{ return writeLayerProperty(layer, LayerProperty::ColorLabel, &Layer::colorLabelIndex, index); }
 
 Result OperationDocument::restoreLayerHistoryChange(const LayerHistoryChange &change, bool forward)
 {
+    const auto status = restoreLayerPropertyEdit({change.property, change.layer, change.before, change.after}, forward);
+    if (status != Result::Success) return status;
+    for (const auto &edit : change.propertyEdits) {
+        const auto result = restoreLayerPropertyEdit(edit, forward);
+        if (result != Result::Success) return result;
+    }
+    return Result::Success;
+}
+
+Result OperationDocument::restoreLayerPropertyEdit(const LayerPropertyEdit &change, bool forward)
+{
     const auto &value = forward ? change.after : change.before;
     switch (change.property) {
-    case LayerProperty::ChannelMask: return writeLayerChannelMask(change.layer, quint8(value.toUInt()));
-    case LayerProperty::ProjectionMask: return writeLayerProjectionMask(change.layer, quint8(value.toUInt()));
+    case LayerProperty::ChannelMask:
+    case LayerProperty::ProjectionMask: {
+        const auto index = layerIndex(change.layer);
+        if (index < 0) return Result::LayerUnavailable;
+        const bool projection = change.property == LayerProperty::ProjectionMask;
+        const auto &layer = snapshot()->layers[index];
+        const auto current = projection ? layer.projectionChannelMask : layer.channelWriteMask;
+        const auto mask = quint8((current & ~change.componentMask) | (value.toUInt() & change.componentMask));
+        return projection ? writeLayerProjectionMask(change.layer, mask) : writeLayerChannelMask(change.layer, mask);
+    }
     case LayerProperty::Position: return writeLayerPosition(change.layer, value.toPoint());
     case LayerProperty::None: return Result::Success;
     case LayerProperty::Name: return writeLayerName(change.layer, value.toString());
@@ -336,8 +385,94 @@ Result OperationDocument::restoreLayerHistoryChange(const LayerHistoryChange &ch
     case LayerProperty::Visible: return writeLayerVisible(change.layer, value.toBool());
     case LayerProperty::Locked: return writeLayerLocked(change.layer, value.toBool());
     case LayerProperty::PinnedToTimeline: return writeLayerPinnedToTimeline(change.layer, value.toBool());
+    case LayerProperty::ColorLabel: return writeLayerColorLabel(change.layer, value.toInt());
     }
     return Result::InvalidInput;
+}
+
+Result OperationDocument::collectLayerPropertyEdits(const Snapshot &before, const Snapshot &after,
+                                                   const QList<LayerPropertiesSelection> &selection,
+                                                   QList<LayerPropertyEdit> &edits) const
+{
+    if (!before || !after || before->documentId() != m_identity || after != snapshot() ||
+        !before->isCommitted()) return Result::StaleVersion;
+    QHash<LayerId, const Layer *> originals;
+    for (const auto &layer : before->layers) originals.insert(layer.id, &layer);
+    QSet<LayerId> included;
+    for (const auto &fields : selection) {
+        const auto index = layerIndex(fields.layer);
+        if (index < 0) return Result::LayerUnavailable;
+        if (included.contains(fields.layer) || fields.protectedChannels > 15 || fields.projectionChannels > 15 ||
+            (fields.protectedChannels && after->layers[index].kind != LayerKind::Paint)) return Result::InvalidInput;
+        included.insert(fields.layer);
+        const auto *old = originals.value(fields.layer);
+        if (!old) return Result::LayerUnavailable;
+        const auto &current = after->layers[index];
+        if (old->uuid != current.uuid || old->kind != current.kind) return Result::StaleVersion;
+        const auto add = [&](bool enabled, LayerProperty property, const auto &previous, const auto &value, quint8 mask = 15) {
+            if (enabled) edits.append({property, current.id, QVariant::fromValue(previous), QVariant::fromValue(value), mask});
+        };
+        add(fields.name, LayerProperty::Name, old->name, current.name);
+        add(fields.opacity, LayerProperty::Opacity, old->opacity, current.opacity);
+        add(fields.visible, LayerProperty::Visible, old->visible, current.visible);
+        add(fields.locked, LayerProperty::Locked, old->userLocked, current.userLocked);
+        add(fields.protectedChannels, LayerProperty::ChannelMask, old->channelWriteMask, current.channelWriteMask, fields.protectedChannels);
+        add(fields.projectionChannels, LayerProperty::ProjectionMask, old->projectionChannelMask, current.projectionChannelMask, fields.projectionChannels);
+        add(fields.colorLabel, LayerProperty::ColorLabel, old->colorLabelIndex, current.colorLabelIndex);
+    }
+    return Result::Success;
+}
+
+Result OperationDocument::restoreLayerPropertyEdits(const QList<LayerPropertyEdit> &edits)
+{
+    const auto history = m_history;
+    const auto preview = m_preview;
+    const auto revision = m_nextRevision;
+    for (const auto &edit : edits) {
+        const auto result = restoreLayerPropertyEdit(edit, false);
+        if (result == Result::Success) continue;
+        m_history = history;
+        m_preview = preview;
+        m_nextRevision = revision;
+        return result;
+    }
+    return Result::Success;
+}
+
+Result OperationDocument::restoreLayerProperties(const Snapshot &before,
+                                                const QList<LayerPropertiesSelection> &selection)
+{
+    if (m_closed) return Result::Closed;
+    QList<LayerPropertyEdit> edits;
+    const auto status = collectLayerPropertyEdits(before, snapshot(), selection, edits);
+    return status == Result::Success ? restoreLayerPropertyEdits(edits) : status;
+}
+
+Result OperationDocument::recordLayerProperties(const Snapshot &before, const Snapshot &after,
+                                               const QList<LayerPropertiesSelection> &selection)
+{
+    const auto mutation = checkMutation();
+    if (mutation != Result::Success) return mutation;
+    LayerHistoryChange change;
+    change.changedLayerProperties = true;
+    const auto status = collectLayerPropertyEdits(before, after, selection, change.propertyEdits);
+    if (status != Result::Success) return status;
+    const auto previousHistory = m_history;
+    const auto previousRevision = m_nextRevision;
+    bool completed = false;
+    const auto rollback = qScopeGuard([&] {
+        if (completed) return;
+        m_history = previousHistory;
+        m_nextRevision = previousRevision;
+    });
+    const auto result = restoreLayerPropertyEdits(change.propertyEdits);
+    if (result != Result::Success) return result;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*after));
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    commitVersion(version, change);
+    completed = true;
+    return Result::Success;
 }
 
 Result OperationDocument::checkOperation(OperationId id) const
@@ -880,7 +1015,7 @@ Result OperationDocument::setLayerOpacity(LayerId layer, quint8 opacity, Propert
 Result OperationDocument::writeLayerProjectionMask(LayerId layer, quint8 mask)
 {
     if (mask > 15) return Result::InvalidInput;
-    return writeLayerProperty(layer, LayerProperty::ProjectionMask, &Layer::projectionChannelMask, mask);
+    return writeLayerMask(layer, LayerProperty::ProjectionMask, &Layer::projectionChannelMask, mask);
 }
 
 Result OperationDocument::setLayerProjectionMask(LayerId layer, quint8 mask, PropertyHistory history)
@@ -906,7 +1041,7 @@ Result OperationDocument::writeLayerChannelMask(LayerId layer, quint8 mask)
     if (m_closed) return Result::Closed;
     const auto index = layerIndex(layer);
     if (index >= 0 && snapshot()->layers[index].kind != LayerKind::Paint) return Result::LayerUnavailable;
-    return writeLayerProperty(layer, LayerProperty::ChannelMask, &Layer::channelWriteMask, mask);
+    return writeLayerMask(layer, LayerProperty::ChannelMask, &Layer::channelWriteMask, mask);
 }
 
 Result OperationDocument::setLayerChannelMask(LayerId layer, quint8 mask, PropertyHistory history)

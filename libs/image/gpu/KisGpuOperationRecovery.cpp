@@ -18,9 +18,10 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 constexpr quint32 Magic = 0x4c504f52; // LPOR
-constexpr quint16 FormatVersion = 31;
-// Existing history flags occupy every packed bit; this tag owns component edits.
+constexpr quint16 FormatVersion = 32;
+// Packed history flags leave these tags for component and multi-attribute edits.
 constexpr quint8 ProjectionMaskProperty = 255;
+constexpr quint8 LayerProperties = 254;
 constexpr quint32 NoOperation = std::numeric_limits<quint32>::max();
 constexpr qsizetype DigestSize = 32;
 
@@ -168,6 +169,28 @@ QByteArray OperationDocument::recoveryData() const
         }
         if (!withinLimit()) return {};
     }
+    const auto writeProperty = [&](LayerProperty property, LayerId layer, const QVariant &before, const QVariant &after) {
+        stream << layer;
+        if (property == LayerProperty::Name) {
+            for (const auto &value : {before, after}) {
+                const auto name = value.toString().toUtf8();
+                if (name.size() > m_limits.recoveryBytes - DigestSize - bytes.size() - 4) return false;
+                stream << quint32(name.size());
+                stream.writeRawData(name.constData(), int(name.size()));
+            }
+        } else if (property == LayerProperty::Position) {
+            for (const auto &value : {before, after})
+                stream << qint32(value.toPoint().x()) << qint32(value.toPoint().y());
+        } else if (property == LayerProperty::ColorLabel) {
+            stream << qint32(before.toInt()) << qint32(after.toInt());
+        } else if (property == LayerProperty::Opacity || property == LayerProperty::ChannelMask ||
+                   property == LayerProperty::ProjectionMask) {
+            stream << quint8(before.toUInt()) << quint8(after.toUInt());
+        } else {
+            stream << quint8(before.toBool()) << quint8(after.toBool());
+        }
+        return withinLimit();
+    };
     if (m_layerHistoryChanges.size() != m_history.size()) return {};
     stream << quint32(m_history.size()) << quint32(m_index);
     for (qsizetype stateIndex = 0; stateIndex < m_history.size(); ++stateIndex) {
@@ -199,7 +222,8 @@ QByteArray OperationDocument::recoveryData() const
             for (const auto &operation : layer.operations) stream << indices.value(operationPointer(operation));
         }
         const auto &change = m_layerHistoryChanges[stateIndex];
-        stream << quint8(change.property == LayerProperty::ProjectionMask ? ProjectionMaskProperty :
+        stream << quint8(change.changedLayerProperties ? LayerProperties :
+                         change.property == LayerProperty::ProjectionMask ? ProjectionMaskProperty :
                          quint8(change.property) | (change.duplicatedLayers ? 128u : 0u) |
                          (change.clearedLayers ? 64u : 0u) | (change.filledLayer ? 32u : 0u) |
                          (change.crop ? 16u : 0u) | (change.canvasResize ? 8u : 0u));
@@ -213,22 +237,15 @@ QByteArray OperationDocument::recoveryData() const
             stream << indices.value(change.crop.data());
         }
         if (change.property != LayerProperty::None) {
-            stream << change.layer;
-            if (change.property == LayerProperty::Name) {
-                for (const auto &value : {change.before, change.after}) {
-                    const auto name = value.toString().toUtf8();
-                    if (name.size() > m_limits.recoveryBytes - DigestSize - bytes.size() - 4) return {};
-                    stream << quint32(name.size());
-                    stream.writeRawData(name.constData(), int(name.size()));
-                }
-            } else if (change.property == LayerProperty::Position) {
-                for (const auto &value : {change.before, change.after})
-                    stream << qint32(value.toPoint().x()) << qint32(value.toPoint().y());
-            } else if (change.property == LayerProperty::Opacity || change.property == LayerProperty::ChannelMask ||
-                       change.property == LayerProperty::ProjectionMask) {
-                stream << quint8(change.before.toUInt()) << quint8(change.after.toUInt());
-            } else {
-                stream << quint8(change.before.toBool()) << quint8(change.after.toBool());
+            if (!writeProperty(change.property, change.layer, change.before, change.after)) return {};
+        }
+        if (change.changedLayerProperties) {
+            stream << quint32(change.propertyEdits.size());
+            for (const auto &edit : change.propertyEdits) {
+                stream << quint8(edit.property);
+                if (edit.property == LayerProperty::ChannelMask || edit.property == LayerProperty::ProjectionMask)
+                    stream << edit.componentMask;
+                if (!writeProperty(edit.property, edit.layer, edit.before, edit.after)) return {};
             }
         }
         if (!withinLimit()) return {};
@@ -594,7 +611,9 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
         quint8 property = 0;
         stream >> property;
         const bool projectionChange = format >= 31 && property == ProjectionMaskProperty;
-        if (projectionChange) property = 0;
+        const bool multipleProperties = format >= 32 && property == LayerProperties;
+        change.changedLayerProperties = multipleProperties;
+        if (projectionChange || multipleProperties) property = 0;
         if (format >= 27 && (property & 8u)) {
             property &= 247u;
             qint32 x = 0, y = 0, w = 0, h = 0;
@@ -652,45 +671,78 @@ Result OperationDocument::restoreRecovery(const QByteArray &data, const QHash<QU
         if (property > quint8(format >= 25 ? LayerProperty::Position :
                               format < 13 ? LayerProperty::PinnedToTimeline : LayerProperty::ChannelMask)) return Result::InvalidRecovery;
         change.property = projectionChange ? LayerProperty::ProjectionMask : LayerProperty(property);
-        if (change.property != LayerProperty::None) {
-            stream >> change.layer;
-            if (i == 0 || !layers.contains(change.layer)) return Result::InvalidRecovery;
+        const auto readProperty = [&](LayerProperty property, LayerId &identity, QVariant &before, QVariant &after) {
+            stream >> identity;
+            if (i == 0 || !layers.contains(identity)) return false;
             bool existed = false;
-            for (const auto &layer : history.last()->layers) existed |= layer.id == change.layer;
-            if (!existed) return Result::InvalidRecovery;
-            if (change.property == LayerProperty::Name) {
-                for (auto *value : {&change.before, &change.after}) {
+            for (const auto &layer : history.last()->layers) existed |= layer.id == identity;
+            if (!existed) return false;
+            if (property == LayerProperty::Name) {
+                for (auto *value : {&before, &after}) {
                     quint32 count = 0;
                     stream >> count;
-                    if (!readableCount(stream, count, LayerNameByteLimit, 1)) return Result::InvalidRecovery;
+                    if (!readableCount(stream, count, LayerNameByteLimit, 1)) return false;
                     QByteArray name(count, Qt::Uninitialized);
-                    if (stream.readRawData(name.data(), int(count)) != int(count)) return Result::InvalidRecovery;
+                    if (stream.readRawData(name.data(), int(count)) != int(count)) return false;
                     const auto decoded = QString::fromUtf8(name);
-                    if (decoded.toUtf8() != name || !validLayerName(decoded)) return Result::InvalidRecovery;
+                    if (decoded.toUtf8() != name || !validLayerName(decoded)) return false;
                     *value = decoded;
                 }
-            } else if (change.property == LayerProperty::Position) {
-                for (auto *value : {&change.before, &change.after}) {
+            } else if (property == LayerProperty::Position) {
+                for (auto *value : {&before, &after}) {
                     qint32 x = 0, y = 0;
                     stream >> x >> y;
                     *value = QPoint(x, y);
                 }
+            } else if (property == LayerProperty::ColorLabel) {
+                qint32 old = 0, current = 0;
+                stream >> old >> current;
+                before = int(old);
+                after = int(current);
             } else {
-                quint8 before = 0, after = 0;
-                stream >> before >> after;
-                if (change.property == LayerProperty::Opacity || change.property == LayerProperty::ChannelMask ||
-                       change.property == LayerProperty::ProjectionMask) {
-                    if ((change.property == LayerProperty::ChannelMask || change.property == LayerProperty::ProjectionMask) &&
-                        (before > 15 || after > 15)) return Result::InvalidRecovery;
-                    change.before = QVariant::fromValue(before);
-                    change.after = QVariant::fromValue(after);
+                quint8 old = 0, current = 0;
+                stream >> old >> current;
+                if (property == LayerProperty::Opacity || property == LayerProperty::ChannelMask ||
+                       property == LayerProperty::ProjectionMask) {
+                    if ((property == LayerProperty::ChannelMask || property == LayerProperty::ProjectionMask) &&
+                        (old > 15 || current > 15)) return false;
+                    before = QVariant::fromValue(old);
+                    after = QVariant::fromValue(current);
                 } else {
-                    if (before > 1 || after > 1) return Result::InvalidRecovery;
-                    change.before = bool(before);
-                    change.after = bool(after);
+                    if (old > 1 || current > 1) return false;
+                    before = bool(old);
+                    after = bool(current);
                 }
             }
-            if (change.before == change.after && (format < 10 || change.property != LayerProperty::Name))
+            return stream.status() == QDataStream::Ok &&
+                (before != after || multipleProperties || (format >= 10 && property == LayerProperty::Name));
+        };
+        if (change.property != LayerProperty::None &&
+            !readProperty(change.property, change.layer, change.before, change.after)) return Result::InvalidRecovery;
+        if (multipleProperties) {
+            quint32 count = 0;
+            stream >> count;
+            if (!readableCount(stream, count, state->layers.size() * 7, 11)) return Result::InvalidRecovery;
+            QSet<QPair<LayerId, quint8>> attributes;
+            for (quint32 entry = 0; entry < count; ++entry) {
+                quint8 attribute = 0;
+                stream >> attribute;
+                if (attribute == 0 || attribute > quint8(LayerProperty::ColorLabel) ||
+                    attribute == quint8(LayerProperty::Position) ||
+                    attribute == quint8(LayerProperty::PinnedToTimeline)) return Result::InvalidRecovery;
+                LayerPropertyEdit edit{LayerProperty(attribute), 0, {}, {}};
+                if (edit.property == LayerProperty::ChannelMask || edit.property == LayerProperty::ProjectionMask) {
+                    stream >> edit.componentMask;
+                    if (!edit.componentMask || edit.componentMask > 15) return Result::InvalidRecovery;
+                }
+                if (!readProperty(edit.property, edit.layer, edit.before, edit.after) ||
+                    attributes.contains({edit.layer, attribute})) return Result::InvalidRecovery;
+                if (edit.property == LayerProperty::ChannelMask && layerKinds.value(edit.layer) == LayerKind::Group &&
+                    (edit.before.toUInt() != 15 || edit.after.toUInt() != 15)) return Result::InvalidRecovery;
+                attributes.insert({edit.layer, attribute});
+                change.propertyEdits.append(edit);
+            }
+            if (i == 0 || state->layers.size() != history.last()->layers.size())
                 return Result::InvalidRecovery;
         }
         if (i > 0 && state->size != history.last()->size && !change.canvasResize) return Result::InvalidRecovery;

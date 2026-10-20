@@ -103,6 +103,10 @@ private Q_SLOTS:
     void nestedLayerIdentitySurvivesPropertiesHistoryAndRecovery();
     void colorLabelsPreserveFixedVersionsPendingInputAndRecovery();
     void projectionChannelsPreservePixelsPendingInputHistoryAndRecovery();
+    void layerPropertyPreviewsBecomeOneReversibleEdit();
+    void rejectedLayerPropertyPreviewsRetainHistoryAndInput();
+    void layerPropertyAcceptanceRetainsEditsCompletedDuringPreview();
+    void layerPropertyCancellationKeepsExactValuesPendingInputAndRedo();
     void directHierarchyMovesAdoptTheirActiveRootAtomically();
     void movedSubtreesPreservePixelsSelectionHistoryAndRecovery_data();
     void movedSubtreesPreservePixelsSelectionHistoryAndRecovery();
@@ -919,6 +923,202 @@ void KisGpuOperationDocumentTest::nestedCanvasChangesKeepGroupsDerivedAndRecover
     QCOMPARE(recovered.redo(), Result::Success);
 }
 
+void KisGpuOperationDocumentTest::layerPropertyPreviewsBecomeOneReversibleEdit()
+{
+    // The properties dialog applies direct previews, then adopts the changed
+    // attributes as one edit. Pixels and unrelated direct writes survive undo.
+    OperationDocument document(rasterImage());
+    const auto before = document.snapshot();
+    QCOMPARE(document.writeLayerName(1, QStringLiteral("Renamed")), Result::Success);
+    QCOMPARE(document.writeLayerOpacity(1, 89), Result::Success);
+    QCOMPARE(document.writeLayerVisible(1, false), Result::Success);
+    QCOMPARE(document.writeLayerLocked(1, true), Result::Success);
+    QCOMPARE(document.writeLayerChannelMask(1, 5), Result::Success);
+    QCOMPARE(document.writeLayerProjectionMask(1, 9), Result::Success);
+    QCOMPARE(document.writeLayerColorLabel(1, 5), Result::Success);
+    QCOMPARE(document.writeLayerOpacity(2, 197), Result::Success);
+    const auto after = document.snapshot();
+    QCOMPARE(document.undoCount(), 0);
+    QVERIFY(!document.isModified());
+    const QList<LayerPropertiesSelection> selection{{1, true, true, true, true, true, 15, 13},
+                                                   {2, false, true, false, false, false, 0, 0}};
+    QCOMPARE(document.recordLayerProperties(before, after, selection), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.redoCount(), 0);
+    QVERIFY(document.isModified());
+    QCOMPARE(document.historyAction(1), HistoryAction::ChangeLayerProperties);
+    QCOMPARE(document.snapshot()->layers[0].operations, before->layers[0].operations);
+    QCOMPARE(before->layers[0].name, QStringLiteral("Red"));
+    QCOMPARE(after->layers[0].name, QStringLiteral("Renamed"));
+    QCOMPARE(document.writeLayerName(1, QStringLiteral("Later direct name")), Result::Success);
+    QCOMPARE(document.writeLayerColorLabel(2, 7), Result::Success);
+    QCOMPARE(document.writeLayerPinnedToTimeline(1, true), Result::Success);
+    QCOMPARE(document.writeLayerProjectionMask(1, 11), Result::Success);
+    OperationDocument recovered(QSize(1, 1));
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.historyAction(1), HistoryAction::ChangeLayerProperties);
+    const auto recovery = recovered.recoveryData();
+    const auto resultDirectory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!resultDirectory.isEmpty()) {
+        QVERIFY(QDir().mkpath(resultDirectory));
+        QFile artifact(QDir(resultDirectory).filePath(QStringLiteral("layer-properties.recovery")));
+        QVERIFY(artifact.open(QIODevice::WriteOnly));
+        QCOMPARE(artifact.write(recovery), recovery.size());
+    }
+    auto corrupt = recovery.first(recovery.size() - 32);
+    QByteArray descriptor;
+    QDataStream descriptorStream(&descriptor, QIODevice::WriteOnly);
+    descriptorStream.setByteOrder(QDataStream::BigEndian);
+    descriptorStream << quint8(254) << quint32(8) << quint8(1) << quint64(1);
+    const auto offset = corrupt.indexOf(descriptor);
+    QVERIFY(offset >= 0 && offset == corrupt.lastIndexOf(descriptor));
+    corrupt[offset + 5] = 7; // Placement belongs to the separate movement operation.
+    corrupt.append(QCryptographicHash::hash(corrupt, QCryptographicHash::Sha256));
+    QCOMPARE(recovered.restoreRecovery(corrupt), Result::InvalidRecovery);
+    QCOMPARE(recovered.recoveryData(), recovery);
+    QByteArray componentDescriptor;
+    QDataStream componentStream(&componentDescriptor, QIODevice::WriteOnly);
+    componentStream.setByteOrder(QDataStream::BigEndian);
+    componentStream << quint8(8) << quint8(13) << quint64(1) << quint8(15) << quint8(9);
+    corrupt = recovery.first(recovery.size() - 32);
+    const auto componentOffset = corrupt.indexOf(componentDescriptor);
+    QVERIFY(componentOffset >= 0 && componentOffset == corrupt.lastIndexOf(componentDescriptor));
+    corrupt[componentOffset + 1] = 0;
+    corrupt.append(QCryptographicHash::hash(corrupt, QCryptographicHash::Sha256));
+    QCOMPARE(recovered.restoreRecovery(corrupt), Result::InvalidRecovery);
+    QCOMPARE(recovered.recoveryData(), recovery);
+    for (auto *owner : {&document, &recovered}) {
+        QCOMPARE(owner->undo(), Result::Success);
+        const auto old = owner->snapshot();
+        QCOMPARE(old->layers[0].name, QStringLiteral("Red"));
+        QCOMPARE(old->layers[0].opacity, quint8(255));
+        QVERIFY(old->layers[0].visible);
+        QVERIFY(!old->layers[0].userLocked);
+        QVERIFY(old->layers[0].pinnedToTimeline);
+        QCOMPARE(old->layers[0].channelWriteMask, quint8(15));
+        QCOMPARE(old->layers[0].projectionChannelMask, quint8(15));
+        QCOMPARE(old->layers[0].colorLabelIndex, 0);
+        QCOMPARE(old->layers[1].opacity, quint8(255));
+        QCOMPARE(old->layers[1].colorLabelIndex, 7);
+        QVERIFY(!owner->isModified());
+        QCOMPARE(owner->redo(), Result::Success);
+        const auto current = owner->snapshot();
+        QCOMPARE(current->layers[0].name, QStringLiteral("Renamed"));
+        QCOMPARE(current->layers[0].opacity, quint8(89));
+        QVERIFY(!current->layers[0].visible);
+        QVERIFY(current->layers[0].userLocked);
+        QVERIFY(current->layers[0].pinnedToTimeline);
+        QCOMPARE(current->layers[0].channelWriteMask, quint8(5));
+        QCOMPARE(current->layers[0].projectionChannelMask, quint8(11));
+        QCOMPARE(current->layers[0].colorLabelIndex, 5);
+        QCOMPARE(current->layers[1].opacity, quint8(197));
+        QCOMPARE(current->layers[1].colorLabelIndex, 7);
+    }
+}
+
+void KisGpuOperationDocumentTest::layerPropertyCancellationKeepsExactValuesPendingInputAndRedo()
+{
+    auto input = rasterImage();
+    input.layers[0].opacity = 137;
+    OperationDocument document(input);
+    const auto before = document.snapshot();
+    QCOMPARE(document.selectLayer(1), Result::Success);
+    QVERIFY(!paint(document, {sample(12, 13)}).isNull());
+    QCOMPARE(document.undo(), Result::Success);
+    QCOMPARE(document.writeLayerOpacity(1, 89), Result::Success);
+    QCOMPARE(document.writeLayerProjectionMask(1, 9), Result::Success);
+    const auto operation = document.beginStroke(1, Brush{}, 43);
+    QVERIFY(!operation.isNull());
+    QCOMPARE(document.appendSamples(operation, {sample(20, 21)}), Result::Success);
+    const auto pending = document.preview();
+    const auto paintOperation = std::get<PaintSnapshot>(pending->layers[0].operations.last());
+    const auto modified = document.isModified();
+    const QList<LayerPropertiesSelection> selection{{1, false, true, false, false, false, 0, 13}};
+    QCOMPARE(document.restoreLayerProperties(before, selection), Result::Success);
+    QCOMPARE(document.snapshot()->layers[0].opacity, quint8(137));
+    QCOMPARE(document.preview()->layers[0].opacity, quint8(137));
+    QCOMPARE(document.snapshot()->layers[0].projectionChannelMask, quint8(13));
+    QCOMPARE(document.preview()->layers[0].projectionChannelMask, quint8(13));
+    QCOMPARE(pending->layers[0].opacity, quint8(89));
+    QCOMPARE(std::get<PaintSnapshot>(document.preview()->layers[0].operations.last()), paintOperation);
+    QCOMPARE(document.activeOperation(), operation);
+    QCOMPARE(document.undoCount(), 0);
+    QCOMPARE(document.redoCount(), 1);
+    QCOMPARE(document.isModified(), modified);
+    const auto recovery = document.recoveryData();
+    OperationDocument foreign(input);
+    QCOMPARE(document.restoreLayerProperties(foreign.snapshot(), selection), Result::StaleVersion);
+    auto invalid = selection.first();
+    invalid.projectionChannels = 16;
+    QCOMPARE(document.restoreLayerProperties(before, {invalid}), Result::InvalidInput);
+    QCOMPARE(document.recoveryData(), recovery);
+    document.close();
+    QCOMPARE(document.restoreLayerProperties(before, selection), Result::Closed);
+}
+
+void KisGpuOperationDocumentTest::layerPropertyAcceptanceRetainsEditsCompletedDuringPreview()
+{
+    OperationDocument document(rasterImage());
+    const auto before = document.snapshot();
+    QCOMPARE(document.writeLayerOpacity(1, 89), Result::Success);
+    QCOMPARE(document.selectLayer(1), Result::Success);
+    QVERIFY(!paint(document, {sample(12, 13)}).isNull());
+    QCOMPARE(document.moveLayer(1, 1), Result::Success);
+    QVERIFY(document.addLayer(QStringLiteral("Other edit")));
+    const auto after = document.snapshot();
+    const int history = document.undoCount();
+    const QList<LayerPropertiesSelection> selection{{1, false, true, false, false, false, 0, 0}};
+    QCOMPARE(document.recordLayerProperties(before, after, selection), Result::Success);
+    QCOMPARE(document.undoCount(), history + 1);
+    QCOMPARE(document.undo(), Result::Success);
+    const auto restored = document.snapshot();
+    QCOMPARE(restored->layers.size(), after->layers.size());
+    for (qsizetype index = 0; index < after->layers.size(); ++index) {
+        QCOMPARE(restored->layers[index].id, after->layers[index].id);
+        QCOMPARE(restored->layers[index].operations, after->layers[index].operations);
+        QCOMPARE(restored->layers[index].parentUuid, after->layers[index].parentUuid);
+        QCOMPARE(restored->layers[index].opacity, restored->layers[index].id == 1 ? quint8(255) : after->layers[index].opacity);
+    }
+    QCOMPARE(document.redo(), Result::Success);
+    for (const auto &layer : document.snapshot()->layers)
+        if (layer.id == 1) QCOMPARE(layer.opacity, quint8(89));
+}
+
+void KisGpuOperationDocumentTest::rejectedLayerPropertyPreviewsRetainHistoryAndInput()
+{
+    OperationDocument document(rasterImage());
+    const auto before = document.snapshot();
+    QCOMPARE(document.writeLayerOpacity(1, 89), Result::Success);
+    const auto after = document.snapshot();
+    const QList<LayerPropertiesSelection> selection{{1, false, true, false, false, false, 0, 0}};
+    OperationDocument foreign(rasterImage());
+    QCOMPARE(document.recordLayerProperties(foreign.snapshot(), after, selection), Result::StaleVersion);
+    QCOMPARE(document.recordLayerProperties(before, foreign.snapshot(), selection), Result::StaleVersion);
+    QCOMPARE(document.recordLayerProperties(before, after, {selection.first(), selection.first()}), Result::InvalidInput);
+    auto invalid = selection.first();
+    invalid.projectionChannels = 16;
+    QCOMPARE(document.recordLayerProperties(before, after, {invalid}), Result::InvalidInput);
+    invalid = selection.first();
+    invalid.layer = 999;
+    QCOMPARE(document.recordLayerProperties(before, after, {invalid}), Result::LayerUnavailable);
+    QCOMPARE(document.snapshot(), after);
+    QCOMPARE(document.undoCount(), 0);
+    const auto id = document.beginStroke(1, Brush{}, 42);
+    QVERIFY(!id.isNull());
+    QCOMPARE(document.appendSamples(id, {sample(4, 5)}), Result::Success);
+    const auto pending = document.preview();
+    QCOMPARE(document.recordLayerProperties(before, after, selection), Result::EditInProgress);
+    QCOMPARE(document.preview(), pending);
+    QCOMPARE(document.cancelStroke(id), Result::Success);
+    QCOMPARE(document.writeLayerOpacity(2, 77), Result::Success);
+    const auto current = document.snapshot();
+    QCOMPARE(document.recordLayerProperties(before, after, selection), Result::StaleVersion);
+    QCOMPARE(document.snapshot(), current);
+    QCOMPARE(document.undoCount(), 0);
+    document.close();
+    QCOMPARE(document.recordLayerProperties(before, current, selection), Result::Closed);
+}
+
 void KisGpuOperationDocumentTest::colorLabelsPreserveFixedVersionsPendingInputAndRecovery()
 {
     RasterImage input;
@@ -1043,6 +1243,15 @@ void KisGpuOperationDocumentTest::projectionChannelsPreservePixelsPendingInputHi
     QCOMPARE(recovered.snapshot()->layers[0].colorLabelIndex, 3);
     QCOMPARE(recovered.snapshot()->layers[1].colorLabelIndex, 7);
     QVERIFY(recovered.hasActiveStroke());
+    QCOMPARE(recovered.restoreRecovery(LibrePaint::Image::Gpu::Test::projectionChannelsRecoveryV31()), Result::Success);
+    QCOMPARE(recovered.snapshot()->layers[0].projectionChannelMask, quint8(9));
+    QCOMPARE(recovered.snapshot()->layers[1].projectionChannelMask, quint8(5));
+    QCOMPARE(recovered.preview()->layers[1].projectionChannelMask, quint8(5));
+    QCOMPARE(recovered.cancelStroke(recovered.activeOperation()), Result::Success);
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->layers[1].projectionChannelMask, quint8(15));
+    QCOMPARE(recovered.redo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->layers[1].projectionChannelMask, quint8(1));
     auto invalid = nestedImage();
     invalid.layers[1].projectionChannelMask = 16;
     QVERIFY_EXCEPTION_THROWN(OperationDocument{invalid}, std::invalid_argument);

@@ -110,6 +110,11 @@ Result PaintImage::writeLayerPinnedToTimeline(LayerId layer, bool pinned)
 { return onThread() ? requestAfterWrite(m_d->document->writeLayerPinnedToTimeline(layer, pinned)) : Result::InvalidInput; }
 Result PaintImage::writeLayerColorLabel(LayerId layer, int index)
 { return onThread() ? requestAfterWrite(m_d->document->writeLayerColorLabel(layer, index)) : Result::InvalidInput; }
+Result PaintImage::recordLayerProperties(const Snapshot &before, const Snapshot &after,
+                                        const QList<LayerPropertiesSelection> &selection)
+{ return onThread() ? publish(m_d->document->recordLayerProperties(before, after, selection)) : Result::InvalidInput; }
+Result PaintImage::restoreLayerProperties(const Snapshot &before, const QList<LayerPropertiesSelection> &selection)
+{ return onThread() ? publish(m_d->document->restoreLayerProperties(before, selection)) : Result::InvalidInput; }
 LayerPixelReferenceSP PaintImage::retainLayerPixels(LayerId layer)
 {
     if (!onThread() || !m_d->handle) return {};

@@ -27,6 +27,21 @@ namespace LibrePaint::Image::Gpu {
 
 using LayerId = quint64;
 
+/** Attributes enabled for one layer by the properties dialog. Component masks
+ * select the RGBA bits whose values participate in Undo and Redo.
+ */
+struct LayerPropertiesSelection
+{
+    LayerId layer = 0;
+    bool name = false;
+    bool opacity = false;
+    bool visible = false;
+    bool locked = false;
+    bool colorLabel = false;
+    quint8 protectedChannels = 0;
+    quint8 projectionChannels = 0;
+};
+
 struct OperationId
 {
     QUuid document;
@@ -327,7 +342,7 @@ enum class HistoryAction {
     None, AddLayer, RemoveLayer, MoveLayer, RenameLayer, ChangeOpacity,
     ChangeVisibility, ChangeLock, ChangeTimelinePin, PaintStroke, DrawLine,
     DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath,
-    ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage, ChangeProjectionChannels
+    ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage, ChangeProjectionChannels, ChangeLayerProperties
 };
 
 struct Limits
@@ -466,6 +481,21 @@ public:
     Result writeLayerLocked(LayerId layer, bool locked);
     Result writeLayerPinnedToTimeline(LayerId layer, bool pinned);
     Result writeLayerColorLabel(LayerId layer, int index);
+    /** Records selected attributes from the fixed before version and current
+     * after version as one edit. Both belong to this document and retain the
+     * selected layer identities. Pixels, hierarchy, placement and other edits
+     * completed during preview remain current. Busy, stale or rejected requests
+     * preserve history, pending input and fixed versions.
+     * Enabled attributes participate even when unchanged; unselected attributes
+     * and components retain subsequent direct writes across this history step.
+     */
+    Result recordLayerProperties(const Snapshot &before, const Snapshot &after,
+                                 const QList<LayerPropertiesSelection> &selection);
+    /** Restores selected attributes from a fixed version outside undo, including
+     * their exact component values. Preserves other edits, Redo, pending input
+     * and fixed versions; rejects the complete request before adoption.
+     */
+    Result restoreLayerProperties(const Snapshot &before, const QList<LayerPropertiesSelection> &selection);
     Result renameLayer(LayerId layer, const QString &name);
     Result renameLayer(LayerId layer, const QString &name, PropertyHistory history);
     /** Moves within the bottom-to-top layer list, preserving the selected identity. */
@@ -530,7 +560,13 @@ public:
 
 private:
     friend class PaintImage;
-    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position, ProjectionMask };
+    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position, ProjectionMask, ColorLabel };
+    struct LayerPropertyEdit {
+        LayerProperty property;
+        LayerId layer;
+        QVariant before, after;
+        quint8 componentMask = 15;
+    };
     struct LayerHistoryChange {
         LayerProperty property = LayerProperty::None;
         LayerId layer = 0;
@@ -541,6 +577,8 @@ private:
         bool filledLayer = false;
         CropSnapshot crop;
         std::optional<CanvasResize> canvasResize;
+        QList<LayerPropertyEdit> propertyEdits;
+        bool changedLayerProperties = false;
     };
     std::unique_ptr<OperationDocument> cloneCurrent(bool preserveLayerUuids) const;
     LayerId insertVersion(const Snapshot &source, LayerId sourceLayer,
@@ -558,8 +596,15 @@ private:
                               Snapshot *retainedVersion = nullptr);
     QList<Snapshot> layerPositionVersions(const Snapshot &source, LayerId layer) const;
     Result applyLayerPosition(LayerId layer, QPoint position, Snapshot *retainedVersion);
-    template<class T> Result writeLayerProperty(LayerId layer, LayerProperty property, T Layer::*member, const T &value);
+    template<class T> Result writeLayerProperty(LayerId layer, LayerProperty property, T Layer::*member,
+                                              const T &value, quint8 componentMask = 15);
+    Result writeLayerMask(LayerId layer, LayerProperty property, quint8 Layer::*member, quint8 value);
     Result restoreLayerHistoryChange(const LayerHistoryChange &change, bool forward);
+    Result restoreLayerPropertyEdit(const LayerPropertyEdit &change, bool forward);
+    Result collectLayerPropertyEdits(const Snapshot &before, const Snapshot &after,
+                                    const QList<LayerPropertiesSelection> &selection,
+                                    QList<LayerPropertyEdit> &edits) const;
+    Result restoreLayerPropertyEdits(const QList<LayerPropertyEdit> &edits);
     Result checkOperation(OperationId id) const;
     Result checkMutation() const;
     qsizetype layerIndex(LayerId layer) const;

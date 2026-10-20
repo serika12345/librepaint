@@ -140,6 +140,11 @@ public:
     Result writeLayerLocked(LayerId layer, bool locked);
     Result writeLayerPinnedToTimeline(LayerId layer, bool pinned);
     Result writeLayerColorLabel(LayerId layer, int index);
+    /** Publishes one adopted layer-attribute edit after direct UI previews. */
+    Result recordLayerProperties(const Snapshot &before, const Snapshot &after,
+                                 const QList<LayerPropertiesSelection> &selection);
+    /** Restores selected preview attributes without changing history or input. */
+    Result restoreLayerProperties(const Snapshot &before, const QList<LayerPropertiesSelection> &selection);
     LayerId addLayer(const QString &name);
     LayerId addLayer(const QString &name, qsizetype index, bool pinnedToTimeline, const QUuid &parentUuid = {});
     /** Inserts validated committed inputs as one history entry, preserving the
