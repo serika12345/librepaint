@@ -1305,8 +1305,16 @@ WindowsのシステムDLLとして解決することを確認する。同梱DLL�
 操作定義、入力設定とICCプロファイルを製品と同じ`share/krita`の探索先へ配置する。
 Fontconfigの設定と固定フォント本体は、[Windows同梱定義](../../nix/windows/default.nix)と同じ
 相対パスへ対応付ける。DLL、Qtプラグイン、資源と固定試験データを含む配置を検証してから試験を実行する。
+Qtの画面外基盤向けにも同じ固定フォントを`lib/fonts`へ配置し、`QT_QPA_FONTDIR`でその場所を指定する。
 画面を表示しない機能契約は`QT_QPA_PLATFORM=offscreen`、`CreateNoWindow=true`とセッション0で実行する。
 入力と実表示の製品受入れは、対象の対話環境で別途検証する。
+資源を登録するQt Testは、`KIS_TEST_PREFIX_PATH`に指定した配置先の`lib/kritaplugins`と
+`share`を使う。`CMakeCache.txt`を持つ増分構築先は、CMakeが設定したプラグイン・資源の探索先を使う。
+公開ノード試験の固定バンドルは、`libs/resources/tests/data/bundles/test1.bundle`から
+配置先の`bin/data/test1.bundle`へコピーする。試験は指定した配置先の固定入力を優先し、
+通常のソース反復ではソースツリーの同じ入力を使う。公開ノード試験は、製品の`krita.action`・
+`kritamenu.action`を読み、操作の有効化から履歴と保存までを検査する。
+通常のレイヤーパネル操作は`kritalayerdocker`を試験の依存へ含め、操作対象と選択の通知も実行する。
 
 WindowsのJPEG XL依存は`flake.nix`のMinGW向けlibjxl定義が所有する。
 構築、開発用依存集合、配布物は同じ定義を使用する。

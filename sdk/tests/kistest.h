@@ -9,6 +9,8 @@
 
 #include <KoTestConfig.h>
 #include <QApplication>
+#include <QDir>
+#include <QFileInfo>
 #include <simpletest.h>
 #include <QStandardPaths>
 #include <QLoggingCategory>
@@ -16,6 +18,24 @@
 #include <set>
 #include <QLocale>
 #include <KisSynchronizedConnection.h>
+
+namespace TestUtil {
+inline void initializeResourcePathsForTests()
+{
+    const auto prefix = qEnvironmentVariable("KIS_TEST_PREFIX_PATH");
+    const QDir root(prefix);
+    const auto plugins = root.filePath(QStringLiteral("lib/kritaplugins"));
+    if (!prefix.isEmpty() && !QFileInfo(root.filePath(QStringLiteral("CMakeCache.txt"))).isFile() &&
+        QFileInfo(plugins).isDir() && root.exists(QStringLiteral("share"))) {
+        qputenv("KRITA_PLUGIN_PATH", plugins.toUtf8());
+        qputenv("EXTRA_RESOURCE_DIRS", (root.filePath(QStringLiteral("share")) + QLatin1Char(';') +
+            root.filePath(QStringLiteral("share/krita"))).toUtf8());
+    } else {
+        qputenv("EXTRA_RESOURCE_DIRS", QByteArray(KRITA_RESOURCE_DIRS_FOR_TESTS));
+        qputenv("KRITA_PLUGIN_PATH", QByteArray(KRITA_PLUGINS_DIR_FOR_TESTS));
+    }
+}
+}
 
 /**
  * There is a hierarchy of libraries built on the kritaresources library
@@ -256,8 +276,7 @@ int main(int argc, char *argv[]) \
     QLocale::setDefault(QLocale(QLocale::English, QLocale::UnitedStates)); \
     qputenv("QT_LOGGING_RULES", ""); \
     QStandardPaths::setTestModeEnabled(true); \
-    qputenv("EXTRA_RESOURCE_DIRS", QByteArray(KRITA_RESOURCE_DIRS_FOR_TESTS)); \
-    qputenv("KRITA_PLUGIN_PATH", QByteArray(KRITA_PLUGINS_DIR_FOR_TESTS)); \
+    TestUtil::initializeResourcePathsForTests(); \
     QApplication app(argc, argv); \
     app.setAttribute(Qt::AA_Use96Dpi, true); \
     QTEST_DISABLE_KEYPAD_NAVIGATION \
@@ -275,8 +294,7 @@ int main(int argc, char *argv[]) \
     qputenv("LANGUAGE", "en"); \
     QLocale::setDefault(QLocale(QLocale::English, QLocale::UnitedStates)); \
     qputenv("QT_LOGGING_RULES", ""); \
-    qputenv("EXTRA_RESOURCE_DIRS", QByteArray(KRITA_RESOURCE_DIRS_FOR_TESTS)); \
-    qputenv("KRITA_PLUGIN_PATH", QByteArray(KRITA_PLUGINS_DIR_FOR_TESTS)); \
+    TestUtil::initializeResourcePathsForTests(); \
     KisSynchronizedConnectionBase::setAutoModeForUnittestsEnabled(true); \
     QStandardPaths::setTestModeEnabled(true); \
     QApplication app(argc, argv); \

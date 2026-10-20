@@ -48,6 +48,7 @@
 #include <QTemporaryDir>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QSemaphore>
 #include <QThread>
 #include <QTimer>
@@ -65,6 +66,7 @@
 
 #include <KoColorSpaceRegistry.h>
 #include <KoColorProfile.h>
+#include <KoResourcePaths.h>
 #include <KoColor.h>
 #include <metadata/KoDocumentInfo.h>
 #include <QDateTime>
@@ -134,12 +136,19 @@ private:
 void TestNode::initTestCase()
 {
     Q_INIT_RESOURCE(krita);
+    const auto prefix = qEnvironmentVariable("KIS_TEST_PREFIX_PATH");
+    const auto stagedActions = QDir(prefix).filePath(QStringLiteral("share/krita/actions"));
+    const auto actions = !prefix.isEmpty() && QDir(stagedActions).exists() ? stagedActions :
+        QStringLiteral(KRITA_SOURCE_DIR "/krita");
+    KoResourcePaths::addAssetDir(QStringLiteral("kis_actions"), actions);
     QIcon::setThemeSearchPaths({QStringLiteral(":/icons")});
     QIcon::setFallbackSearchPaths({QStringLiteral(":/icons")});
     KLocalizedString::setApplicationDomain("krita");
     KisOpenGL::setDefaultSurfaceConfig(KisOpenGL::RendererConfig());
     KisInputProfileManager::instance()->setActions(createApplicationInputActions());
-    const QString bundlePath = QStringLiteral(KRITA_SOURCE_DIR "/libs/resources/tests/data/bundles/test1.bundle");
+    QString bundlePath = QStringLiteral(KRITA_SOURCE_DIR "/libs/resources/tests/data/bundles/test1.bundle");
+    const auto stagedBundle = QDir(prefix).filePath(QStringLiteral("bin/data/test1.bundle"));
+    if (!prefix.isEmpty() && QFileInfo(stagedBundle).isFile()) bundlePath = stagedBundle;
     auto bundle = KisResourceStorageSP::create(bundlePath);
     QVERIFY(bundle->valid());
     QVERIFY(KisResourceLocator::instance()->addStorage(bundlePath, bundle));

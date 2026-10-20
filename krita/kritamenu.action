@@ -338,7 +338,7 @@
       <whatsThis></whatsThis>
       <toolTip>Copy merged</toolTip>
       <iconText>Copy merged</iconText>
-      <activationFlags>100000000</activationFlags>
+      <activationFlags>1</activationFlags>
       <activationConditions>0</activationConditions>
       <shortcut>Ctrl+Shift+C</shortcut>
       <isCheckable>false</isCheckable>

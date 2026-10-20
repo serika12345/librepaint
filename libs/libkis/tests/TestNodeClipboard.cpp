@@ -371,6 +371,7 @@ try {
     QTRY_COMPARE(window->viewManager()->nodeManager()->activeNode(), layer);
     auto *fill = window->viewManager()->actionManager()->actionByName(QStringLiteral("fill_selection_foreground_color"));
     QVERIFY(fill);
+    QTRY_VERIFY(fill->isEnabled());
     fill->trigger();
     result->waitForDone();
     QTRY_COMPARE(created->undoStack()->index(), 1);
@@ -647,6 +648,7 @@ try {
     });
     auto *action = window->viewManager()->actionManager()->actionByName(QStringLiteral("copy_merged"));
     QVERIFY(action);
+    QTRY_VERIFY(action->isEnabled());
     action->trigger();
     QTRY_VERIFY(replaced);
     QCOMPARE(lifetime->image().data(), replacement.data());
@@ -759,6 +761,7 @@ try {
     }
     auto *action = window->viewManager()->actionManager()->actionByName(QStringLiteral("copy_merged"));
     QVERIFY(action);
+    QTRY_VERIFY(action->isEnabled());
     action->trigger();
     image->waitForDone();
     QCOMPARE(source.pixelData(0, 0, 32, 16), expected);
