@@ -77,6 +77,7 @@ QList<LayerInsertion> insertionForest(const Snapshot &source, const QUuid &paren
         properties.kind = layer.kind;
         properties.parentUuid = identities.value(layer.parentUuid, parent);
         properties.defaultPixel = layer.defaultPixel;
+        properties.passThrough = layer.passThrough;
         properties.opacity = 173;
         properties.pinnedToTimeline = true;
         properties.channelWriteMask = layer.kind == LayerKind::Paint ? 7 : 15;
@@ -103,6 +104,9 @@ private Q_SLOTS:
     void nestedLayerIdentitySurvivesPropertiesHistoryAndRecovery();
     void colorLabelsPreserveFixedVersionsPendingInputAndRecovery();
     void projectionChannelsPreservePixelsPendingInputHistoryAndRecovery();
+    void groupPassThroughPreservesPinnedInputHistoryAndRecovery();
+    void groupPassThroughPreviewsAdoptAndCancelOneAttribute();
+    void importedAndCopiedGroupsKeepPassThroughModes();
     void layerPropertyPreviewsBecomeOneReversibleEdit();
     void rejectedLayerPropertyPreviewsRetainHistoryAndInput();
     void layerPropertyAcceptanceRetainsEditsCompletedDuringPreview();
@@ -921,6 +925,141 @@ void KisGpuOperationDocumentTest::nestedCanvasChangesKeepGroupsDerivedAndRecover
     QCOMPARE(recovered.undo(), Result::Success);
     QCOMPARE(recovered.snapshot()->size, fixed->size);
     QCOMPARE(recovered.redo(), Result::Success);
+}
+
+void KisGpuOperationDocumentTest::groupPassThroughPreservesPinnedInputHistoryAndRecovery()
+{
+    OperationDocument document(nestedImage());
+    const auto fixed = document.snapshot();
+    QCOMPARE(document.setLayerPassThrough(2, true), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.historyAction(1), HistoryAction::ChangePassThrough);
+    QVERIFY(document.snapshot()->layers[1].passThrough);
+    QVERIFY(!fixed->layers[1].passThrough);
+    QCOMPARE(document.snapshot()->layers[0].operations, fixed->layers[0].operations);
+    const auto unchanged = document.snapshot();
+    QCOMPARE(document.setLayerPassThrough(2, true), Result::Success);
+    QCOMPARE(document.snapshot(), unchanged);
+    const auto stroke = document.beginStroke(1, Brush{}, 43);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(document.appendSamples(stroke, {sample(20, 20)}), Result::Success);
+    const auto preview = document.preview();
+    const auto operation = std::get<PaintSnapshot>(preview->layers[0].operations.last());
+    QCOMPARE(document.writeLayerPassThrough(3, true), Result::Success);
+    QVERIFY(!preview->layers[2].passThrough);
+    QVERIFY(document.preview()->layers[2].passThrough);
+    QCOMPARE(std::get<PaintSnapshot>(document.preview()->layers[0].operations.last()), operation);
+    const auto bytes = document.recoveryData();
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        QFile artifact(QDir(results).filePath(QStringLiteral("group-pass-through.recovery")));
+        QVERIFY(artifact.open(QIODevice::WriteOnly));
+        QCOMPARE(artifact.write(bytes), bytes.size());
+    }
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(bytes), Result::Success);
+    QCOMPARE(recovered.recoveryData(), bytes);
+    QCOMPARE(recovered.activeOperation().sequence, stroke.sequence);
+    QVERIFY(recovered.preview()->layers[1].passThrough);
+    QVERIFY(recovered.preview()->layers[2].passThrough);
+    QCOMPARE(recovered.cancelStroke(recovered.activeOperation()), Result::Success);
+    QCOMPARE(recovered.undo(), Result::Success);
+    QVERIFY(!recovered.snapshot()->layers[1].passThrough);
+    QVERIFY(recovered.snapshot()->layers[2].passThrough);
+    QCOMPARE(recovered.redo(), Result::Success);
+    QVERIFY(recovered.snapshot()->layers[1].passThrough);
+    const auto current = recovered.recoveryData();
+    for (int index = 0; index < 2; ++index) {
+        const auto &layer = recovered.snapshot()->layers[index];
+        QByteArray prefix;
+        QDataStream stream(&prefix, QIODevice::WriteOnly);
+        stream.setVersion(QDataStream::Qt_5_15);
+        stream.setByteOrder(QDataStream::BigEndian);
+        stream << layer.uuid;
+        for (const auto component : layer.defaultPixel) stream << component;
+        stream << layer.opacity << quint8(layer.userLocked)
+               << quint8(quint8(layer.pinnedToTimeline) | ((15u ^ layer.channelWriteMask) << 1))
+               << qint32(layer.position.x()) << qint32(layer.position.y()) << quint8(layer.kind)
+               << layer.parentUuid << qint32(layer.colorLabelIndex) << layer.projectionChannelMask;
+        auto invalid = current.chopped(32);
+        const auto offset = invalid.indexOf(prefix);
+        QVERIFY(offset >= 0);
+        invalid[offset + prefix.size()] = index == 0 ? 1 : 2;
+        invalid.append(QCryptographicHash::hash(invalid, QCryptographicHash::Sha256));
+        QCOMPARE(recovered.restoreRecovery(invalid), Result::InvalidRecovery);
+        QCOMPARE(recovered.recoveryData(), current);
+    }
+    QCOMPARE(recovered.writeLayerPassThrough(1, true), Result::LayerUnavailable);
+    QCOMPARE(recovered.setLayerPassThrough(999, true), Result::LayerUnavailable);
+    QCOMPARE(recovered.recoveryData(), current);
+    OperationDocument previous({1, 1});
+    QCOMPARE(previous.restoreRecovery(LibrePaint::Image::Gpu::Test::layerPropertiesRecoveryV32()), Result::Success);
+    for (const auto &state : previous.historyVersions())
+        for (const auto &layer : state->layers) QVERIFY(!layer.passThrough);
+    QCOMPARE(previous.undo(), Result::Success);
+    QCOMPARE(previous.snapshot()->layers[0].name, QStringLiteral("Red"));
+    QCOMPARE(previous.redo(), Result::Success);
+    QCOMPARE(previous.snapshot()->layers[0].name, QStringLiteral("Renamed"));
+    recovered.close();
+    QCOMPARE(recovered.writeLayerPassThrough(2, false), Result::Closed);
+}
+
+void KisGpuOperationDocumentTest::groupPassThroughPreviewsAdoptAndCancelOneAttribute()
+{
+    OperationDocument document(nestedImage());
+    const auto before = document.snapshot();
+    QCOMPARE(document.writeLayerPassThrough(2, true), Result::Success);
+    QCOMPARE(document.writeLayerOpacity(2, 137), Result::Success);
+    LayerPropertiesSelection fields;
+    fields.layer = 2;
+    fields.passThrough = true;
+    QCOMPARE(document.recordLayerProperties(before, document.snapshot(), {fields}), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    QCOMPARE(recovered.undo(), Result::Success);
+    QVERIFY(!recovered.snapshot()->layers[1].passThrough);
+    QCOMPARE(recovered.snapshot()->layers[1].opacity, quint8(137));
+    QCOMPARE(recovered.redo(), Result::Success);
+    QVERIFY(recovered.snapshot()->layers[1].passThrough);
+    QCOMPARE(document.undo(), Result::Success);
+    const auto opening = document.snapshot();
+    QCOMPARE(document.writeLayerPassThrough(2, true), Result::Success);
+    const auto stroke = document.beginStroke(1, Brush{}, 43);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(document.appendSamples(stroke, {sample(20, 20)}), Result::Success);
+    QCOMPARE(document.restoreLayerProperties(opening, {fields}), Result::Success);
+    QVERIFY(!document.preview()->layers[1].passThrough);
+    QCOMPARE(document.activeOperation(), stroke);
+    QCOMPARE(document.undoCount(), 0);
+    QCOMPARE(document.redoCount(), 1);
+    const auto bytes = document.recoveryData();
+    fields.layer = 1;
+    QCOMPARE(document.restoreLayerProperties(opening, {fields}), Result::InvalidInput);
+    QCOMPARE(document.recoveryData(), bytes);
+}
+
+void KisGpuOperationDocumentTest::importedAndCopiedGroupsKeepPassThroughModes()
+{
+    auto input = nestedImage();
+    input.layers[1].passThrough = true;
+    OperationDocument document(input);
+    QVERIFY(document.snapshot()->layers[1].passThrough);
+    QCOMPARE(document.duplicateLayers({2}, {QStringLiteral("Copy")}, 2), Result::Success);
+    int groups = 0;
+    for (const auto &layer : document.snapshot()->layers)
+        if (layer.kind == LayerKind::Group && layer.passThrough) ++groups;
+    QCOMPARE(groups, 2);
+    OperationDocument target(QSize(64, 48));
+    const auto forest = insertionForest(document.snapshot());
+    QCOMPARE(target.insertLayers(forest, 1), Result::Success);
+    groups = 0;
+    for (const auto &layer : target.snapshot()->layers)
+        if (layer.kind == LayerKind::Group && layer.passThrough) ++groups;
+    QCOMPARE(groups, 2);
+    input.layers[0].passThrough = true;
+    QVERIFY_EXCEPTION_THROWN(OperationDocument invalid(input), std::invalid_argument);
 }
 
 void KisGpuOperationDocumentTest::layerPropertyPreviewsBecomeOneReversibleEdit()

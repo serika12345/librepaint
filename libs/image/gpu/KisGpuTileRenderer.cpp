@@ -152,7 +152,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU versions require their owning device and document")};
     }
     if (!d.error.isEmpty() || d.device->isLost()) return {RenderOutcome::DeviceFailure, {}, d.error};
-    QSet<LayerId> available, selected;
+    QSet<LayerId> available, selected, requestedGroups;
     QHash<LayerId, const Layer *> nodes;
     QHash<QUuid, QList<const Layer *>> children;
     QList<const Layer *> selectedGroups;
@@ -166,7 +166,10 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
             return {RenderOutcome::InvalidVersion, {}, QStringLiteral("GPU tile layer is unavailable or repeated")};
         }
         selected.insert(layer);
-        if (nodes.value(layer)->kind == LayerKind::Group) selectedGroups.append(nodes.value(layer));
+        if (nodes.value(layer)->kind == LayerKind::Group) {
+            selectedGroups.append(nodes.value(layer));
+            requestedGroups.insert(layer);
+        }
     }
     for (qsizetype index = 0; index < selectedGroups.size(); ++index) {
         for (const auto child : children.value(selectedGroups[index]->uuid)) {
@@ -175,7 +178,9 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
             if (child->kind == LayerKind::Group) selectedGroups.append(child);
         }
     }
-    if (base && base->document() == document && base->m_data->region == region && base->m_data->selected == selected)
+    if (base && base->document() == document && base->m_data->region == region && base->m_data->selected == selected &&
+        ((region && region->isEmpty()) || std::all_of(requestedGroups.cbegin(), requestedGroups.cend(),
+            [&](LayerId group) { return base->m_data->groupInputs.contains(group); })))
         return {RenderOutcome::Recorded, base, {}};
     auto data = std::make_shared<RenderedVersion::Data>();
     data->document = document;
@@ -276,6 +281,7 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
     }
     for (const auto &layer : document->layers) {
         if (!selected.contains(layer.id) || (region && region->isEmpty())) continue;
+        if (layer.passThrough && !requestedGroups.contains(layer.id)) continue;
         const auto uniform = data->defaultPixels.value(layer.id, layer.defaultPixel);
         QList<QRect> operationRegions(layer.operations.size() + 1, paintRegion);
         for (qsizetype i = layer.operations.size(); i-- > 0;) {
@@ -568,21 +574,23 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         for (const auto group : selectedGroups) if (remaining.value(group->id) == 0) ready.append(group->id);
         for (qsizetype index = 0; index < ready.size(); ++index) {
             const auto group = ready[index];
-            ProjectedSnapshot previous;
-            if (base && base->m_data->groupInputs.contains(group)) {
-                auto cached = std::make_shared<ProjectedVersion::Data>();
-                cached->source = base;
-                cached->region = paintRegion;
-                cached->tiles = base->m_data->layers.value(group);
-                cached->inputs = base->m_data->groupInputs.value(group);
-                cached->directLayerProjection = base->m_data->directGroups.contains(group);
-                previous = ProjectedSnapshot(new ProjectedVersion(cached));
+            if (!nodes.value(group)->passThrough || requestedGroups.contains(group)) {
+                ProjectedSnapshot previous;
+                if (base && base->m_data->groupInputs.contains(group)) {
+                    auto cached = std::make_shared<ProjectedVersion::Data>();
+                    cached->source = base;
+                    cached->region = paintRegion;
+                    cached->tiles = base->m_data->layers.value(group);
+                    cached->inputs = base->m_data->groupInputs.value(group);
+                    cached->directLayerProjection = base->m_data->directGroups.contains(group);
+                    previous = ProjectedSnapshot(new ProjectedVersion(cached));
+                }
+                const auto projected = composeImpl(commands, version, paintRegion, previous, group);
+                if (projected.code != RenderOutcome::Recorded) return {projected.code, {}, projected.diagnostic};
+                data->layers[group] = projected.version->m_data->tiles;
+                data->groupInputs[group] = projected.version->m_data->inputs;
+                if (projected.version->m_data->directLayerProjection) data->directGroups.insert(group);
             }
-            const auto projected = composeImpl(commands, version, paintRegion, previous, group);
-            if (projected.code != RenderOutcome::Recorded) return {projected.code, {}, projected.diagnostic};
-            data->layers[group] = projected.version->m_data->tiles;
-            data->groupInputs[group] = projected.version->m_data->inputs;
-            if (projected.version->m_data->directLayerProjection) data->directGroups.insert(group);
             const auto parent = groups.value(nodes.value(group)->parentUuid);
             if (parent && --remaining[parent] == 0) ready.append(parent);
         }

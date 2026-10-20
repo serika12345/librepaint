@@ -288,6 +288,9 @@ Qt Core、Qt Test、zlibで構築し、GPUやウィンドウを必要とする�
 固定入力の`projection-channels.recovery`を`LIBREPAINT_GPU_RESULT_DIR`へ出力し、環境間で全バイトを比較する。
 形式32の一括属性履歴は、複数レイヤーの属性、後続の直接書込み、Undo／Redoと復旧後の結果を照合する。
 生成元とハッシュを持つ形式31の固定記録で、未確定入力と属性履歴の読込みを検査する。
+形式33の通過指定は、固定版、描画中の入力、属性の直接変更、一括変更、取消しと履歴の両方向で照合する。
+生成元とハッシュを持つ形式32の固定記録を独立合成として読み、`group-pass-through.recovery`を
+比較用ディレクトリーへ出力する。非グループの通過指定と不正な真偽値は原子的に拒否する。
 画面側の属性試験は、単一・複数選択のプレビュー、取消し、確定、Redo分岐と保存結果を照合する。
 確定通知の属性値、百分率で表し切れない8ビット不透明度の復元、編集中に完了した描画と階層変更も検査する。
 `KisGpuPaintDocumentTest`は生成元とハッシュを持つ形式29の固定記録で、色ラベルの既定値と階層を照合する。
@@ -411,13 +414,18 @@ Windowsは対応する実行ファイルへ同じ環境変数を渡す。Android
 階層、マスク、効果、画像書出し形式は各機能の比較ケースで受け入れる。
 
 `KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProjection`は、
-固定UUIDの描画レイヤーと通常合成グループを使い、単一グループと入れ子を検査する。
+固定UUIDの描画レイヤーと通常合成グループを使い、独立合成・通過の単一グループと入れ子を検査する。
 子の画素編集、親の不透明度、キャンバス外の透明画素のRGB、固定版保存、子の選択と
 保存・再読込み後の追加編集を扱う。比較用ディレクトリーへ`hierarchy-<条件>.kra`と、
 64×48の密なRGBA配列`hierarchy-<条件>.rgba`を出力する。
 `TestDocument::testGpuHierarchyKeepsPublicEditingHistoryAndNativeFiles`は、同じ環境変数で
 `public-hierarchy-<条件>.kra`と`.png`を出力する。文書日時とPNG設定を固定し、
 公開ノードの型と親子関係、子の選択、編集、履歴、削除と復元、既存のKRA読込みとの一致を検査する。
+`KisGpuTileRendererTest::passThroughHierarchyMatchesNativeRootPixels`は、固定CPU参照とGPUの
+明示タイル・既定色を、不透明度、入れ子と成分指定ごとに照合する。
+公開ノードの通過指定、単体投影、サムネイルとパネルのUndo／Redoは、
+`TestNode::testPassThroughGroupsKeepPublicReadsAndPropertyHistory`で検査する。
+属性ダイアログの通過指定は、確定・取消し、固定日時のKRA・PNGと再読込みで照合する。
 通常のブラシ設定による入れ子の子レイヤーへの描画は、`TestNode`の
 `testScriptedFigurePaintsRequestedLayerAndPreservesHistory`の`nested`条件で検査する。
 
@@ -794,7 +802,7 @@ MIME複製の識別子は実行ごとに生成される。通常の挿入先を�
 `hierarchy-mime-fixed-<条件>-<列挙順>`のKRA・PNG・復旧記録をバイト単位で比較する。
 通常条件の識別子の保持と固定条件の環境間一致は、それぞれの検査結果として記録する。
 クリップボードの階層コピーは`TestNodeClipboard.cpp`で、コピー後の元画素の変更と文書終了、
-17枚の子、親子を独立した根にする入力、繰返しの貼付と一件のUndo／Redoを検査する。
+17枚の子、通過指定、親子を独立した根にする入力、繰返しの貼付と一件のUndo／Redoを検査する。
 画像・KRAの取得は表示プロファイルをsRGBへ固定し、通常位置、負の座標と元のキャンバス外の画素を照合する。
 画像は内容の範囲、KRAは元のレイヤー座標と階層を保持する。GPU結果は
 `LIBREPAINT_GPU_RESULT_DIR`へ`clipboard-<形式>-<x>-<y>`の名前で出力する。

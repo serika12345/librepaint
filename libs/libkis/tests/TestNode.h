@@ -51,6 +51,7 @@ private Q_SLOTS:
     void testGpuBoundsUseOnlyScalarReadback();
     void testLayerPropertiesPreservePublicHistorySemantics_data();
     void testLayerPropertiesPreservePublicHistorySemantics();
+    void testPassThroughGroupsKeepPublicReadsAndPropertyHistory();
     void testLayerPropertiesDialogPreservesPreviewCancellationAndHistory_data();
     void testLayerPropertiesDialogPreservesPreviewCancellationAndHistory();
     void testGpuNodeNotificationKeepsReentrantPropertyWrites();

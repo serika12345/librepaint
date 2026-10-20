@@ -179,6 +179,7 @@ HistoryAction OperationDocument::historyAction(int index) const
     case LayerProperty::Position: return HistoryAction::TranslateLayer;
     case LayerProperty::None: break;
     case LayerProperty::ColorLabel: break;
+    case LayerProperty::PassThrough: return HistoryAction::ChangePassThrough;
     }
     const auto &before = m_history[index - 1]->layers;
     const auto &after = m_history[index]->layers;
@@ -386,6 +387,7 @@ Result OperationDocument::restoreLayerPropertyEdit(const LayerPropertyEdit &chan
     case LayerProperty::Locked: return writeLayerLocked(change.layer, value.toBool());
     case LayerProperty::PinnedToTimeline: return writeLayerPinnedToTimeline(change.layer, value.toBool());
     case LayerProperty::ColorLabel: return writeLayerColorLabel(change.layer, value.toInt());
+    case LayerProperty::PassThrough: return writeLayerPassThrough(change.layer, value.toBool());
     }
     return Result::InvalidInput;
 }
@@ -403,7 +405,8 @@ Result OperationDocument::collectLayerPropertyEdits(const Snapshot &before, cons
         const auto index = layerIndex(fields.layer);
         if (index < 0) return Result::LayerUnavailable;
         if (included.contains(fields.layer) || fields.protectedChannels > 15 || fields.projectionChannels > 15 ||
-            (fields.protectedChannels && after->layers[index].kind != LayerKind::Paint)) return Result::InvalidInput;
+            (fields.protectedChannels && after->layers[index].kind != LayerKind::Paint) ||
+            (fields.passThrough && after->layers[index].kind != LayerKind::Group)) return Result::InvalidInput;
         included.insert(fields.layer);
         const auto *old = originals.value(fields.layer);
         if (!old) return Result::LayerUnavailable;
@@ -419,6 +422,7 @@ Result OperationDocument::collectLayerPropertyEdits(const Snapshot &before, cons
         add(fields.protectedChannels, LayerProperty::ChannelMask, old->channelWriteMask, current.channelWriteMask, fields.protectedChannels);
         add(fields.projectionChannels, LayerProperty::ProjectionMask, old->projectionChannelMask, current.projectionChannelMask, fields.projectionChannels);
         add(fields.colorLabel, LayerProperty::ColorLabel, old->colorLabelIndex, current.colorLabelIndex);
+        add(fields.passThrough, LayerProperty::PassThrough, old->passThrough, current.passThrough);
     }
     return Result::Success;
 }
@@ -801,6 +805,7 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
         copy.colorLabelIndex = properties.colorLabelIndex;
         copy.channelWriteMask = properties.channelWriteMask;
         copy.projectionChannelMask = properties.projectionChannelMask;
+        copy.passThrough = properties.passThrough;
         copy.position = properties.position;
         copy.parentUuid = properties.parentUuid;
         added.append(std::move(copy));
@@ -1009,6 +1014,31 @@ Result OperationDocument::setLayerOpacity(LayerId layer, quint8 opacity, Propert
     version->layers[index].opacity = opacity;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     commitPropertyVersion(version, {LayerProperty::Opacity, layer, QVariant::fromValue(snapshot()->layers[index].opacity), QVariant::fromValue(opacity)}, history);
+    return Result::Success;
+}
+
+Result OperationDocument::writeLayerPassThrough(LayerId layer, bool enabled)
+{
+    if (m_closed) return Result::Closed;
+    const auto index = layerIndex(layer);
+    if (index < 0 || snapshot()->layers[index].kind != LayerKind::Group) return Result::LayerUnavailable;
+    return writeLayerProperty(layer, LayerProperty::PassThrough, &Layer::passThrough, enabled);
+}
+
+Result OperationDocument::setLayerPassThrough(LayerId layer, bool enabled, PropertyHistory history)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    if (history != PropertyHistory::Separate && history != PropertyHistory::MergeConsecutive) return Result::InvalidInput;
+    const auto index = layerIndex(layer);
+    if (index < 0 || snapshot()->layers[index].kind != LayerKind::Group) return Result::LayerUnavailable;
+    if (snapshot()->layers[index].passThrough == enabled) return Result::Success;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->layers[index].passThrough = enabled;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    commitPropertyVersion(version, {LayerProperty::PassThrough, layer,
+        QVariant::fromValue(snapshot()->layers[index].passThrough), QVariant::fromValue(enabled)}, history);
     return Result::Success;
 }
 

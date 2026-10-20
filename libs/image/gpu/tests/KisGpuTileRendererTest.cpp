@@ -35,6 +35,9 @@ private Q_SLOTS:
     void partialLayerOpacityComposesOverTransparency();
     void normalProjectionPreservesBinary32Rounding_data();
     void normalProjectionPreservesBinary32Rounding();
+    void explicitPassThroughReadAfterParentKeepsSubtreePixels();
+    void passThroughHierarchyMatchesNativeRootPixels_data();
+    void passThroughHierarchyMatchesNativeRootPixels();
     void threeLayerProjectionFitsOneOutputTile_data();
     void threeLayerProjectionFitsOneOutputTile();
     void previewProjectionTracksBackgroundPropertiesAndRetainedPixels();
@@ -667,6 +670,154 @@ void KisGpuTileRendererTest::normalProjectionPreservesBinary32Rounding()
     }
     QCOMPARE(actual.size(), RgbaTile::ByteCount);
     QCOMPARE(QCryptographicHash::hash(actual, QCryptographicHash::Sha256).toHex(), expectedHash);
+}
+
+void KisGpuTileRendererTest::explicitPassThroughReadAfterParentKeepsSubtreePixels()
+{
+    RasterImage input;
+    input.size = {4, 4};
+    const QUuid inner(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}"));
+    const QUuid outer(QStringLiteral("{31323334-3536-3738-393a-3b3c3d3e3f40}"));
+    input.layers = {{QStringLiteral("First"), true, {},
+                     {{{0, 0}, QByteArray::fromHex("c9295d89").repeated(RgbaTile::ByteCount / 4)}}},
+                    {QStringLiteral("Second"), true, {},
+                     {{{0, 0}, QByteArray::fromHex("11d34dbd").repeated(RgbaTile::ByteCount / 4)}}},
+                    {QStringLiteral("Pass-through"), true, inner, {}},
+                    {QStringLiteral("Isolated parent"), true, outer, {}}};
+    input.layers[0].parentUuid = input.layers[1].parentUuid = inner;
+    input.layers[0].opacity = 153;
+    input.layers[1].opacity = 211;
+    input.layers[2].kind = input.layers[3].kind = LayerKind::Group;
+    input.layers[2].parentUuid = outer;
+    input.layers[2].passThrough = true;
+    input.layers[2].opacity = 137;
+    input.layers[2].projectionChannelMask = 9;
+    OperationDocument document(input);
+    TileRenderer renderer(m_device);
+    auto commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto parent = renderer.recordRegion(commands, document.snapshot(), {0, 0, 4, 4}, {4});
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QVERIFY2(parent.code == RenderOutcome::Recorded, qPrintable(parent.diagnostic));
+    const auto retained = readTile(parent.version, 4, {});
+    commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto both = renderer.recordRegion(commands, document.snapshot(), {0, 0, 4, 4}, {4, 3}, parent.version);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QVERIFY2(both.code == RenderOutcome::Recorded, qPrintable(both.diagnostic));
+    QCOMPARE(readTile(both.version, 3, {}).first(4), QByteArray::fromHex("30b650bc"));
+    QCOMPARE(readTile(parent.version, 4, {}), retained);
+}
+
+void KisGpuTileRendererTest::passThroughHierarchyMatchesNativeRootPixels_data()
+{
+    QTest::addColumn<bool>("passThrough");
+    QTest::addColumn<int>("nesting");
+    QTest::addColumn<int>("opacity");
+    QTest::addColumn<int>("mask");
+    QTest::addColumn<bool>("uniform");
+    QTest::addColumn<QByteArray>("expected");
+    // Native RGBA8/sRGB root references at 6e856978f0. Four-pixel square,
+    // fixed lower/first/second RGBA:255997ad/c9295d89/11d34dbd;
+    // child opacities153/211, inner opacity171 and component mask6.
+    struct Case { bool passThrough; int nesting, opacity, mask; const char *rgba; };
+    const Case cases[] = {
+        {false, 0, 255, 15, "2ea45ee9"},
+        {false, 0, 255, 9, "2e5997e9"},
+        {false, 0, 137, 15, "2a8774cd"},
+        {false, 0, 137, 9, "2a5997cd"},
+        {false, 0, 0, 15, "255997ad"},
+        {false, 0, 0, 9, "255997ad"},
+        {false, 1, 255, 15, "68627cc7"},
+        {false, 1, 255, 9, "685997c7"},
+        {false, 1, 137, 15, "4c5e88bb"},
+        {false, 1, 137, 9, "4c5997bb"},
+        {false, 1, 0, 15, "255997ad"},
+        {false, 1, 0, 9, "255997ad"},
+        {false, 2, 255, 15, "68627cc7"},
+        {false, 2, 255, 9, "685997c7"},
+        {false, 2, 137, 15, "4c5e88bb"},
+        {false, 2, 137, 9, "4c5997bb"},
+        {false, 2, 0, 15, "255997ad"},
+        {false, 2, 0, 9, "255997ad"},
+        {true, 0, 255, 15, "2ea45de9"},
+        {true, 0, 255, 9, "2e5997e9"},
+        {true, 0, 137, 15, "348371d1"},
+        {true, 0, 137, 9, "345997d1"},
+        {true, 0, 0, 15, "255997ad"},
+        {true, 0, 0, 9, "255997ad"},
+        {true, 1, 255, 15, "697f6ac7"},
+        {true, 1, 255, 9, "695997c7"},
+        {true, 1, 137, 15, "4c6b7cbb"},
+        {true, 1, 137, 9, "4c5997bb"},
+        {true, 1, 0, 15, "255997ad"},
+        {true, 1, 0, 9, "255997ad"},
+        {true, 2, 255, 15, "697f6bc7"},
+        {true, 2, 255, 9, "698b79c7"},
+        {true, 2, 137, 15, "4c6b7cbb"},
+        {true, 2, 137, 9, "4c7487bb"},
+        {true, 2, 0, 15, "255997ad"},
+        {true, 2, 0, 9, "255997ad"},
+    };
+    for (const auto &c : cases) for (bool uniform : {false, true}) {
+        const QByteArray name = QByteArray::number(c.passThrough) + '-' + QByteArray::number(c.nesting) + '-' +
+            QByteArray::number(c.opacity) + '-' + QByteArray::number(c.mask) + (uniform ? "-default" : "-tile");
+        QTest::newRow(name.constData()) << c.passThrough << c.nesting << c.opacity << c.mask << uniform
+                                      << QByteArray::fromHex(c.rgba);
+    }
+}
+
+void KisGpuTileRendererTest::passThroughHierarchyMatchesNativeRootPixels()
+{
+    QFETCH(bool, passThrough);
+    QFETCH(int, nesting);
+    QFETCH(int, opacity);
+    QFETCH(int, mask);
+    QFETCH(bool, uniform);
+    QFETCH(QByteArray, expected);
+    RasterImage input;
+    input.size = {4, 4};
+    const QUuid outer(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}"));
+    const QUuid inner(QStringLiteral("{31323334-3536-3738-393a-3b3c3d3e3f40}"));
+    input.layers = {{QStringLiteral("Bottom"), true, {}, {}},
+                    {QStringLiteral("First"), true, {}, {}},
+                    {QStringLiteral("Second"), true, {}, {}},
+                    {QStringLiteral("Outer"), true, outer, {}}};
+    input.layers[1].opacity = 153;
+    input.layers[1].parentUuid = outer;
+    input.layers[2].opacity = 211;
+    input.layers[2].parentUuid = nesting ? inner : outer;
+    input.layers[3].kind = LayerKind::Group;
+    input.layers[3].passThrough = passThrough;
+    input.layers[3].opacity = opacity;
+    input.layers[3].projectionChannelMask = mask;
+    if (nesting) {
+        RasterLayer group{QStringLiteral("Inner"), true, inner, {}};
+        group.kind = LayerKind::Group;
+        group.parentUuid = outer;
+        group.passThrough = nesting == 2;
+        group.opacity = 171;
+        group.projectionChannelMask = 6;
+        input.layers.append(group);
+    }
+    const QByteArray colors[] = {QByteArray::fromHex("255997ad"), QByteArray::fromHex("c9295d89"),
+                                 QByteArray::fromHex("11d34dbd")};
+    for (int index = 0; index < 3; ++index) {
+        if (uniform) std::copy_n(reinterpret_cast<const quint8 *>(colors[index].constData()), 4, input.layers[index].defaultPixel.begin());
+        else input.layers[index].tiles = {{{0, 0}, colors[index].repeated(RgbaTile::ByteCount / 4)}};
+    }
+    OperationDocument document(input);
+    TileRenderer renderer(m_device);
+    const auto pixels = render(renderer, document.snapshot());
+    QVERIFY(pixels);
+    const auto projection = project(renderer, pixels, {0, 0, 4, 4});
+    QVERIFY(projection);
+    QCOMPARE(readBuffer(projection->tiles().first().pixels).first(4), expected);
+    QCOMPARE(document.setLayerVisible(4, false), Result::Success);
+    const auto hidden = project(renderer, render(renderer, document.snapshot(), pixels), {0, 0, 4, 4}, projection);
+    QVERIFY(hidden);
+    QCOMPARE(readBuffer(hidden->tiles().first().pixels).first(4), colors[0]);
+    QCOMPARE(readBuffer(projection->tiles().first().pixels).first(4), expected);
 }
 
 void KisGpuTileRendererTest::threeLayerProjectionFitsOneOutputTile_data()

@@ -24,6 +24,7 @@
 #include "kis_node_visitor.h"
 #include "kis_processing_visitor.h"
 #include "kis_image.h"
+#include "gpu/KisGpuPaintImage.h"
 #include "kis_paint_device.h"
 #include "kis_default_bounds.h"
 #include "kis_clone_layer.h"
@@ -381,6 +382,14 @@ bool KisGroupLayer::passThroughMode() const
 
 void KisGroupLayer::setPassThroughMode(bool value)
 {
+    const auto owner = image() ? image()->gpuImage() : LibrePaint::Image::Gpu::PaintImageSP();
+    if (graphListener() && owner) {
+        LibrePaint::Image::Gpu::LayerId id = 0;
+        for (const auto &layer : owner->operations().snapshot()->layers)
+            if (layer.uuid == uuid()) { id = layer.id; break; }
+        if (id && owner->writeLayerPassThrough(id, value) != LibrePaint::Image::Gpu::Result::Success)
+            throw std::runtime_error("GPU group pass-through write failed");
+    }
     if (m_d->passThroughMode == value) return;
 
     m_d->passThroughMode = value;

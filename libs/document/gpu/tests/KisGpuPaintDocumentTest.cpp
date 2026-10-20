@@ -128,13 +128,17 @@ private:
 void KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProjection_data()
 {
     QTest::addColumn<bool>("nested");
-    QTest::newRow("group") << false;
-    QTest::newRow("nested") << true;
+    QTest::addColumn<bool>("passThrough");
+    QTest::newRow("group") << false << false;
+    QTest::newRow("nested") << true << false;
+    QTest::newRow("pass-through") << false << true;
+    QTest::newRow("nested-pass-through") << true << true;
 }
 
 void KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProjection()
 {
     QFETCH(bool, nested);
+    QFETCH(bool, passThrough);
     Execution execution(m_device, 16 * TileRenderer::TileBytes, 8, 2 * TileRenderer::TileBytes);
     RasterImage input;
     input.size = {64, 48};
@@ -146,10 +150,12 @@ void KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProje
         {QStringLiteral("Group"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}}};
     input.layers[1].parentUuid = input.layers[2].uuid;
     input.layers[2].kind = LayerKind::Group;
+    input.layers[2].passThrough = passThrough;
     input.layers[2].opacity = 128;
     if (nested) {
         input.layers.append({QStringLiteral("Outer"), true, QUuid(QStringLiteral("{31323334-3536-3738-393a-3b3c3d3e3f40}")), {}});
         input.layers[3].kind = LayerKind::Group;
+        input.layers[3].passThrough = passThrough;
         input.layers[3].opacity = 128;
         input.layers[2].parentUuid = input.layers[3].uuid;
     }
@@ -173,7 +179,8 @@ void KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProje
     const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
     const auto destination = results.isEmpty() ? directory.path() : results;
     QVERIFY(QDir().mkpath(destination));
-    const auto stem = QStringLiteral("hierarchy-%1").arg(nested ? QStringLiteral("nested") : QStringLiteral("group"));
+    const QString stem = QStringLiteral("hierarchy-%1%2").arg(nested ? QStringLiteral("nested") : QStringLiteral("group"))
+        .arg(passThrough ? QStringLiteral("-pass-through") : QString());
     const auto path = QDir(destination).filePath(stem + QStringLiteral(".kra"));
     const auto saved = document.saveKra(path, fixed);
     QVERIFY2(saved.code == FileCode::Success, qPrintable(saved.diagnostic));
@@ -191,6 +198,7 @@ void KisGpuPaintDocumentTest::groupedFilesRetainSubtreeEditsPinnedSavingAndProje
         QCOMPARE(actual.uuid, input.layers[i].uuid);
         QCOMPARE(actual.parentUuid, input.layers[i].parentUuid);
         QCOMPARE(actual.kind, input.layers[i].kind);
+        QCOMPARE(actual.passThrough, input.layers[i].passThrough);
         if (actual.kind == LayerKind::Group) QVERIFY(actual.tiles.isEmpty());
     }
     QCOMPARE(decoded.document.image.layers[decoded.document.image.activeLayer].uuid, input.layers[1].uuid);

@@ -104,13 +104,14 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         if (!layer || (!paint && !group) || (paint && node->childCount()) ||
             layer->compositeOpId() != COMPOSITE_OVER ||
             node->isAnimated() || !node->keyframeChannels().isEmpty() || layer->layerStyle() ||
-            layer->temporary() || (paint && paint->hasTemporaryTarget()) || (group && group->passThroughMode()) ||
+            layer->temporary() || (paint && paint->hasTemporaryTarget()) ||
             *layer->colorSpace() != *colorSpace()) return false;
         const auto projectionFlags = layer->channelFlags();
         if (!projectionFlags.isEmpty() && projectionFlags.size() != 4) return false;
         const auto pixels = group ? group->original() : paint->paintDevice();
         Gpu::RasterLayer properties;
         properties.kind = group ? Gpu::LayerKind::Group : Gpu::LayerKind::Paint;
+        properties.passThrough = group && group->passThroughMode();
         properties.name = node->name();
         properties.uuid = node->uuid();
         properties.parentUuid = roots.contains(node) ? (parent == root() ? QUuid() : parent->uuid()) : node->parent()->uuid();
@@ -254,7 +255,7 @@ KisImageSP KisImage::cloneGpuNodeImage(const KisNodeList &roots) const
         if (!source || !layer || (!paint && !group) || (paint && node->childCount()) ||
             layer->compositeOpId() != COMPOSITE_OVER || node->isAnimated() ||
             !node->keyframeChannels().isEmpty() || layer->layerStyle() || layer->temporary() ||
-            (paint && paint->hasTemporaryTarget()) || (group && group->passThroughMode()) ||
+            (paint && paint->hasTemporaryTarget()) ||
             *layer->colorSpace() != *colorSpace() || pending.size() > owner->limits().layerCount) return {};
         const auto flags = layer->channelFlags();
         if (!flags.isEmpty() && flags.size() != 4) return {};
@@ -269,6 +270,7 @@ KisImageSP KisImage::cloneGpuNodeImage(const KisNodeList &roots) const
         properties.colorLabelIndex = source->colorLabelIndex;
         properties.channelWriteMask = source->channelWriteMask;
         properties.projectionChannelMask = source->projectionChannelMask;
+        properties.passThrough = source->passThrough;
         properties.position = source->position;
         properties.kind = source->kind;
         properties.parentUuid = pending[i].second;
@@ -475,6 +477,9 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
             if (node->opacity() != layer.opacity) node->setOpacity(layer.opacity);
             if (changed()) break;
             if (node->userLocked() != layer.userLocked) node->setUserLocked(layer.userLocked);
+            if (changed()) break;
+            if (auto *group = qobject_cast<KisGroupLayer *>(node.data()))
+                if (group->passThroughMode() != layer.passThrough) group->setPassThroughMode(layer.passThrough);
             if (changed()) break;
             auto *layerView = qobject_cast<KisLayer*>(node.data());
             QBitArray projectionFlags;

@@ -260,8 +260,10 @@ ImageReadbackOutcome Execution::readProjectionImage(DocumentHandle handle, const
     QSet<quint64> coordinates;
     const auto defaults = pinned->projectionDefaultPixels();
     bool uniform = Detail::packedPixel(pinned->projectionBackground) != 0;
+    QSet<LayerId> projectionLayers;
+    for (const auto &input : pinned->projectionInputs()) projectionLayers.insert(input.layer);
     for (const auto &layer : pinned->layers) {
-        if (!layer.parentUuid.isNull() || !layer.visible || !layer.opacity) continue;
+        if (!projectionLayers.contains(layer.id)) continue;
         uniform |= Detail::packedPixel(defaults.value(layer.id)) != 0;
         const auto tiles = layerCoordinates(pinned, layer, canvas, columns * rows);
         if (!tiles) return rejected(ExecutionCode::CapacityExceeded, QStringLiteral("Projection tile coordinates exceed the canvas"));
@@ -324,8 +326,10 @@ PixelBytesOutcome Execution::readRgbaPixels(DocumentHandle handle, const Snapsho
     std::array<quint8, 4> defaultPixel{};
     const auto defaults = pinned->projectionDefaultPixels();
     bool uniformProjection = !layer && Detail::packedPixel(pinned->projectionBackground) != 0;
+    QSet<LayerId> projectionLayers;
+    if (!layer) for (const auto &input : pinned->projectionInputs()) projectionLayers.insert(input.layer);
     for (const auto &value : pinned->layers) {
-        if (layer ? value.id != layer : !value.parentUuid.isNull() || !value.visible || !value.opacity) continue;
+        if (layer ? value.id != layer : !projectionLayers.contains(value.id)) continue;
         if (layer) defaultPixel = defaults.value(value.id);
         else uniformProjection |= Detail::packedPixel(defaults.value(value.id)) != 0;
         const auto tiles = layerCoordinates(pinned, value, clipped, std::numeric_limits<qsizetype>::max());
@@ -416,8 +420,10 @@ PixelReadbackOutcome Execution::readBoundsImpl(DocumentHandle handle, const Snap
     const qsizetype maximumCoordinates = layer || sparseProjection ? capacity / TileRenderer::TileBytes : columns * rows;
     const auto defaults = pinned->projectionDefaultPixels();
     bool uniform = !layer && (sparseProjection && !includeTransparentColors ? pinned->projectionBackground[3] != 0 : Detail::packedPixel(pinned->projectionBackground) != 0);
+    QSet<LayerId> projectionLayers;
+    if (!layer) for (const auto &input : pinned->projectionInputs()) projectionLayers.insert(input.layer);
     for (const auto &value : pinned->layers) {
-        if (layer ? value.id != layer : !value.parentUuid.isNull() || !value.visible || !value.opacity) continue;
+        if (layer ? value.id != layer : !projectionLayers.contains(value.id)) continue;
         const auto pixel = defaults.value(value.id);
         uniform |= !layer && (sparseProjection && !includeTransparentColors ? pixel[3] != 0 : Detail::packedPixel(pixel) != 0);
         const auto tiles = layerCoordinates(pinned, value, outcome.region, maximumCoordinates);
@@ -526,10 +532,10 @@ std::future<PixelReadbackOutcome> Execution::readPixelsAsyncImpl(DocumentHandle 
     }
     QList<LayerId> generatedLayers = layers;
     if (includeProjection) {
-        for (const auto &layer : pinned->layers) {
-            if (layer.parentUuid.isNull() && layer.visible && layer.opacity && !selected.contains(layer.id)) {
-                generatedLayers.append(layer.id);
-                selected.insert(layer.id);
+        for (const auto &layer : pinned->projectionInputs()) {
+            if (!selected.contains(layer.layer)) {
+                generatedLayers.append(layer.layer);
+                selected.insert(layer.layer);
             }
         }
     }

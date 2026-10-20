@@ -158,8 +158,7 @@ ProjectionOutcome Execution::project(DocumentHandle handle, QRect region)
     if (document == d.documents.cend()) return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Document handle is no longer active")};
     d.attempted = true;
     QList<LayerId> layers;
-    for (const auto &layer : document->requested->layers)
-        if (layer.parentUuid.isNull() && layer.visible && layer.opacity) layers.append(layer.id);
+    for (const auto &layer : document->requested->projectionInputs()) layers.append(layer.layer);
     const auto rendered = d.renderer->recordRegion(d.commands, document->requested,
                                                    region.intersected(QRect(QPoint(0, 0), document->requested->size)),
                                                    layers, document->rendered);

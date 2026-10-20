@@ -19,6 +19,8 @@ class KisGpuPixelReadbackTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
+    void passThroughReadsKeepSubtreeBoundaryAndRootCapacity_data();
+    void passThroughReadsKeepSubtreeBoundaryAndRootCapacity();
     void groupReadsKeepSubtreePixelsDefaultsAndPinnedVersions_data();
     void groupReadsKeepSubtreePixelsDefaultsAndPinnedVersions();
     void projectionSkipsHiddenSubtreesWithinVisibleCapacity();
@@ -54,6 +56,62 @@ private Q_SLOTS:
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPixelReadbackTest::passThroughReadsKeepSubtreeBoundaryAndRootCapacity_data()
+{
+    QTest::addColumn<bool>("hidden");
+    QTest::newRow("visible") << false;
+    QTest::newRow("hidden") << true;
+}
+
+void KisGpuPixelReadbackTest::passThroughReadsKeepSubtreeBoundaryAndRootCapacity()
+{
+    QFETCH(bool, hidden);
+    RasterImage input;
+    input.size = {4, 4};
+    const QUuid group(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}"));
+    input.layers = {{QStringLiteral("Bottom"), true, {}, {}},
+                    {QStringLiteral("First"), true, {}, {}},
+                    {QStringLiteral("Second"), true, {}, {}},
+                    {QStringLiteral("Group"), !hidden, group, {}}};
+    input.layers[1].parentUuid = input.layers[2].parentUuid = group;
+    input.layers[1].opacity = 153;
+    input.layers[2].opacity = 211;
+    input.layers[3].kind = LayerKind::Group;
+    input.layers[3].passThrough = true;
+    input.layers[3].opacity = 137;
+    input.layers[3].projectionChannelMask = 9;
+    const QByteArray colors[] = {QByteArray::fromHex("255997ad"), QByteArray::fromHex("c9295d89"),
+                                 QByteArray::fromHex("11d34dbd")};
+    for (int i = 0; i < 3; ++i)
+        input.layers[i].tiles = {{{0, 0}, colors[i].repeated(RgbaTile::ByteCount / 4)}};
+    OperationDocument document(input);
+    const auto fixed = document.snapshot();
+    Execution execution(m_device, 4 * TileRenderer::TileBytes, 1, TileRenderer::TileBytes);
+    const auto handle = execution.open(fixed).handle;
+    QCOMPARE(document.setLayerPassThrough(4, false), Result::Success);
+    QCOMPARE(document.writeLayerOpacity(4, 0), Result::Success);
+    const auto current = document.snapshot();
+    QCOMPARE(execution.request(handle, current).code, ExecutionCode::Success);
+    const auto root = execution.readRgbaPixels(handle, fixed, {0, 0, 1, 1}, 0, 4);
+    QVERIFY2(root.code == ExecutionCode::Success, qPrintable(root.diagnostic));
+    QCOMPARE(root.bytes, hidden ? colors[0] : QByteArray::fromHex("345997d1"));
+    const auto own = execution.readRgbaPixels(handle, fixed, {0, 0, 1, 1}, 4, 4);
+    QVERIFY2(own.code == ExecutionCode::Success, qPrintable(own.diagnostic));
+    // Independent isolated subtree: target attributes and outside state excluded.
+    QCOMPARE(own.bytes, QByteArray::fromHex("30b650bc"));
+    const auto preview = execution.readThumbnail(handle, fixed, 4, {0, 0, 4, 4}, {2, 2}, 16);
+    QVERIFY2(preview.code == ExecutionCode::Success, qPrintable(preview.diagnostic));
+    for (int y = 0; y < 2; ++y)
+        QCOMPARE(QByteArray(reinterpret_cast<const char *>(preview.image.constScanLine(y)), 8), own.bytes.repeated(2));
+    const auto bounds = execution.readBounds(handle, fixed, 4);
+    QVERIFY2(bounds.code == ExecutionCode::Success, qPrintable(bounds.diagnostic));
+    QCOMPARE(*bounds.bounds, QRect(0, 0, 256, 256));
+    QCOMPARE(execution.requested(handle), current);
+    QVERIFY(!execution.published(handle));
+    QCOMPARE(document.snapshot(), current);
+    QVERIFY(fixed->layers[3].passThrough);
+}
 
 void KisGpuPixelReadbackTest::groupReadsKeepSubtreePixelsDefaultsAndPinnedVersions_data()
 {

@@ -103,6 +103,7 @@ struct KisDlgLayerProperties::Private
                 else if (id == KisLayerPropertiesIcons::locked.id()) fields.locked = true;
                 else if (id == KisLayerPropertiesIcons::alphaLocked.id()) fields.protectedChannels |= 8;
                 else if (id == KisLayerPropertiesIcons::inheritAlpha.id()) fields.projectionChannels |= 8;
+                else if (id == KisLayerPropertiesIcons::passThrough.id()) fields.passThrough = true;
             }
             for (qsizetype index = 0; index < channelFlagsProps.size(); ++index)
                 if (!channelFlagsProps[index]->isIgnored()) fields.projectionChannels |= channelFlagMasks[index];
@@ -113,9 +114,6 @@ struct KisDlgLayerProperties::Private
 
     void cancelUnsupportedGpuPreviews() {
         compositeOpProperty->setIgnored(true);
-        for (qsizetype index = 0; index < layerProperties.size(); ++index)
-            if (layerPropertyIds[index] == KisLayerPropertiesIcons::passThrough.id())
-                layerProperties[index]->setIgnored(true);
     }
 
     QList<KisMultinodePropertyInterfaceSP> allProperties() const {
@@ -308,8 +306,7 @@ void KisDlgLayerProperties::accept()
             return;
         }
         for (const auto &node : d->nodes) {
-            const auto *group = dynamic_cast<const KisGroupLayer *>(node.data());
-            if (node->compositeOpId() != COMPOSITE_OVER || (group && group->passThroughMode())) {
+            if (node->compositeOpId() != COMPOSITE_OVER) {
                 d->view->showFloatingMessage(i18n("The selected blending mode cannot be applied to this document."), QIcon());
                 return;
             }

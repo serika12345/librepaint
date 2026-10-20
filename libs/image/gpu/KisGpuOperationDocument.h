@@ -40,6 +40,7 @@ struct LayerPropertiesSelection
     bool colorLabel = false;
     quint8 protectedChannels = 0;
     quint8 projectionChannels = 0;
+    bool passThrough = false;
 };
 
 struct OperationId
@@ -220,6 +221,8 @@ struct RasterLayer
     int colorLabelIndex = 0;
     /** RGBA components contributed to the parent projection. */
     quint8 projectionChannelMask = 15;
+    /** Groups contribute their descendants directly to the enclosing composition. */
+    bool passThrough = false;
 };
 /** Validates parent identities, group parents and cycles. Null identities are
  * assigned during raster import and can only be referenced after assignment.
@@ -251,6 +254,18 @@ struct Layer
     QUuid parentUuid{};
     int colorLabelIndex = 0;
     quint8 projectionChannelMask = 15;
+    /** Groups contribute their descendants directly to the enclosing composition. */
+    bool passThrough = false;
+};
+
+/** One visible layer contributed to a composition boundary, after passing
+ * ancestor opacity and immediate-parent channel selection through groups.
+ */
+struct LayerProjectionInput
+{
+    LayerId layer = 0;
+    quint8 opacity = 255;
+    quint8 channelMask = 15;
 };
 
 /** Immutable RGBA8/sRGB document version with paint layers and group ownership. */
@@ -268,6 +283,11 @@ public:
      * derive from child defaults, order, visibility, opacity and projection components.
      */
     QHash<LayerId, std::array<quint8, 4>> projectionDefaultPixels() const;
+    /** Bottom-to-top inputs for the root, or one group's isolated subtree.
+     * A group boundary excludes its own attributes and all outside state.
+     * Unavailable group identities throw std::invalid_argument.
+     */
+    QList<LayerProjectionInput> projectionInputs(LayerId group = 0) const;
     QSize size;
     std::array<quint8, 4> projectionBackground{};
     QList<Layer> layers;
@@ -286,7 +306,7 @@ public:
             if (only) return 0;
             only = &layer;
         }
-        return only && only->visible && only->opacity == 255 && only->projectionChannelMask == 15 ? only->id : 0;
+        return only && !only->passThrough && only->visible && only->opacity == 255 && only->projectionChannelMask == 15 ? only->id : 0;
     }
 
 private:
@@ -342,7 +362,7 @@ enum class HistoryAction {
     None, AddLayer, RemoveLayer, MoveLayer, RenameLayer, ChangeOpacity,
     ChangeVisibility, ChangeLock, ChangeTimelinePin, PaintStroke, DrawLine,
     DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath,
-    ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage, ChangeProjectionChannels, ChangeLayerProperties
+    ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage, ChangeProjectionChannels, ChangeLayerProperties, ChangePassThrough
 };
 
 struct Limits
@@ -472,6 +492,8 @@ public:
     Result writeLayerChannelMask(LayerId layer, quint8 mask);
     Result setLayerProjectionMask(LayerId layer, quint8 mask, PropertyHistory history = PropertyHistory::Separate);
     Result writeLayerProjectionMask(LayerId layer, quint8 mask);
+    Result setLayerPassThrough(LayerId layer, bool enabled, PropertyHistory history = PropertyHistory::Separate);
+    Result writeLayerPassThrough(LayerId layer, bool enabled);
     /** Direct background writes preserve history, pending input and fixed snapshots. */
     Result writeProjectionBackground(const std::array<quint8, 4> &rgba);
     /** Direct property writes preserve history transitions, pending input and fixed snapshots. */
@@ -560,7 +582,7 @@ public:
 
 private:
     friend class PaintImage;
-    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position, ProjectionMask, ColorLabel };
+    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position, ProjectionMask, ColorLabel, PassThrough };
     struct LayerPropertyEdit {
         LayerProperty property;
         LayerId layer;

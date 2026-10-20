@@ -21,6 +21,7 @@ bool validLayerHierarchy(const QList<LayerValue> &layers)
     QHash<QUuid, const LayerValue *> identities;
     for (const auto &layer : layers) {
         if (layer.kind != LayerKind::Paint && layer.kind != LayerKind::Group) return false;
+        if (layer.kind != LayerKind::Group && layer.passThrough) return false;
         if (!layer.uuid.isNull()) {
             if (identities.contains(layer.uuid)) return false;
             identities.insert(layer.uuid, &layer);

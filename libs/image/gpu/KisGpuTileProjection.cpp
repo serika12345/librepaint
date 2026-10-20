@@ -171,25 +171,24 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
     }
     QList<const Layer *> children;
     for (const auto &layer : document->document()->layers) if (layer.parentUuid == parent) children.append(&layer);
-    data->directLayerProjection = group ? children.size() == 1 && children.first()->visible && children.first()->opacity == 255 && children.first()->projectionChannelMask == 15 :
+    data->directLayerProjection = group ? children.size() == 1 && children.first()->visible && children.first()->opacity == 255 && children.first()->projectionChannelMask == 15 && !children.first()->passThrough :
         document->document()->directProjectionLayer() != 0;
     data->region = group ? region : region.intersected(QRect(QPoint(0, 0), document->document()->size));
     if (document->m_data->region && !data->region.isEmpty() && !document->m_data->region->contains(data->region)) {
         return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Projection extends outside the generated GPU region")};
     }
+    const auto inputs = document->document()->projectionInputs(group);
     QSet<quint64> coordinates;
     // A single fully opaque paint layer supplies the legacy transparent-root projection,
     // including the RGB components of pixels whose alpha is zero.
     const auto background = group || data->directLayerProjection ? std::shared_ptr<Tile>{} : document->m_data->background;
     bool implicit = bool(background);
-    for (const auto child : children) {
-        const auto &layer = *child;
-        if (!layer.visible || !layer.opacity) continue;
-        if (!document->m_data->selected.contains(layer.id)) {
+    for (const auto &layer : inputs) {
+        if (!document->m_data->selected.contains(layer.layer)) {
             return {RenderOutcome::InvalidVersion, {}, QStringLiteral("Projection requires every visible GPU layer")};
         }
-        implicit = implicit || bool(document->m_data->defaults.value(layer.id));
-        const auto &tiles = document->m_data->layers[layer.id];
+        implicit = implicit || bool(document->m_data->defaults.value(layer.layer));
+        const auto &tiles = document->m_data->layers[layer.layer];
         for (auto tile = tiles.cbegin(); tile != tiles.cend(); ++tile) {
             if (data->region.intersects(QRect(coordinate(tile.key()) * TileSize, QSize(TileSize, TileSize)))) {
                 coordinates.insert(tile.key());
@@ -210,14 +209,12 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
     if (background) {
         for (const auto coordinate : coordinates) data->inputs[coordinate].append({background, 255});
     }
-    for (const auto child : children) {
-        const auto &layer = *child;
-        if (!layer.visible || !layer.opacity) continue;
-        const auto fallback = document->m_data->defaults.value(layer.id);
-        const auto &tiles = document->m_data->layers[layer.id];
+    for (const auto &layer : inputs) {
+        const auto fallback = document->m_data->defaults.value(layer.layer);
+        const auto &tiles = document->m_data->layers[layer.layer];
         for (const auto coordinate : coordinates) {
             const auto pixels = tiles.value(coordinate, fallback);
-            if (pixels) data->inputs[coordinate].append({pixels, layer.opacity, layer.projectionChannelMask});
+            if (pixels) data->inputs[coordinate].append({pixels, layer.opacity, layer.channelMask});
         }
     }
     const auto firstComposition = [&](const auto &inputs) {

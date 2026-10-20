@@ -116,9 +116,8 @@ ImageReadbackOutcome Execution::readThumbnail(DocumentHandle handle, const Snaps
         QList<LayerId> generated;
         auto implicit = pinned->projectionBackground;
         if (layer) implicit = pinned->projectionDefaultPixels().value(layer);
-        for (const auto &value : pinned->layers) {
-            if (layer ? value.id == layer : value.parentUuid.isNull() && value.visible && value.opacity) generated.append(value.id);
-        }
+        if (layer) generated.append(layer);
+        else for (const auto &value : pinned->projectionInputs()) generated.append(value.layer);
         for (qsizetype start = 0; start < pixels; start += chunkPixels) {
             const qsizetype count = std::min(chunkPixels, qsizetype(pixels) - start);
             QMap<quint64, QList<std::array<quint32, 2>>> groups;

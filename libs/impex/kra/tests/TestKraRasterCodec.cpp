@@ -134,6 +134,7 @@ private Q_SLOTS:
     void layerOpacityAndLockSurviveEditingAndResaving();
     void channelProtectionSurvivesEditingAndResaving_data();
     void channelProtectionSurvivesEditingAndResaving();
+    void passThroughGroupsSurviveEditingAndResaving();
     void projectionChannelsSurviveEditingAndResaving_data();
     void projectionChannelsSurviveEditingAndResaving();
     void imageMetadataIsCompleteOrRejectedBeforeRasterImport();
@@ -632,6 +633,53 @@ void TestKraRasterCodec::channelProtectionSurvivesEditingAndResaving()
     const auto clearedDocument = load(cleared);
     QCOMPARE(clearedDocument.code, Kra::Status::Success);
     QCOMPARE(clearedDocument.document.image.layers[0].channelWriteMask, quint8(15));
+}
+
+void TestKraRasterCodec::passThroughGroupsSurviveEditingAndResaving()
+{
+    auto source = document();
+    RasterLayer group{QStringLiteral("Group"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}};
+    group.kind = LayerKind::Group;
+    group.passThrough = true;
+    source.image.layers[0].parentUuid = group.uuid;
+    source.image.layers.append(group);
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto imported = load(bytes);
+    QVERIFY2(imported.code == Kra::Status::Success, qPrintable(imported.diagnostic));
+    QVERIFY(imported.document.image.layers.last().passThrough);
+    const RasterLayer *child = nullptr;
+    for (const auto &layer : imported.document.image.layers)
+        if (layer.uuid == source.image.layers[0].uuid) child = &layer;
+    QVERIFY(child);
+    QCOMPARE(child->parentUuid, group.uuid);
+    QCOMPARE(child->tiles.first().rgba, source.image.layers[0].tiles.first().rgba);
+    auto edited = imported.document;
+    edited.image.layers.last().passThrough = false;
+    QByteArray saved;
+    QBuffer destination(&saved);
+    QVERIFY(destination.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(destination, edited, merged(source.image.size)).code, Kra::Status::Success);
+    const auto reopened = load(saved);
+    QCOMPARE(reopened.code, Kra::Status::Success);
+    QVERIFY(!reopened.document.image.layers.last().passThrough);
+    QDomDocument xml;
+    QVERIFY(xml.setContent(entries(bytes).value(QStringLiteral("maindoc.xml"))));
+    const auto elements = xml.elementsByTagName(QStringLiteral("layer"));
+    for (int index = 0; index < elements.size(); ++index) {
+        auto element = elements.item(index).toElement();
+        const auto old = element.attribute(QStringLiteral("passthrough"));
+        element.setAttribute(QStringLiteral("passthrough"), element.attribute(QStringLiteral("nodetype")) == QLatin1String("grouplayer") ? QStringLiteral("2") : QStringLiteral("1"));
+        auto files = entries(bytes);
+        files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
+        const auto invalid = load(pack(files));
+        QCOMPARE(invalid.code, Kra::Status::InvalidData);
+        QVERIFY(invalid.document.image.layers.isEmpty());
+        if (old.isEmpty()) element.removeAttribute(QStringLiteral("passthrough"));
+        else element.setAttribute(QStringLiteral("passthrough"), old);
+    }
 }
 
 void TestKraRasterCodec::projectionChannelsSurviveEditingAndResaving_data()

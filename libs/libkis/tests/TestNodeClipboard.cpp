@@ -111,7 +111,7 @@ void addClipboardRows()
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<QString>("scenario");
     for (const bool gpu : {false, true})
-        for (const auto &scenario : {QStringLiteral("group"), QStringLiteral("wide"), QStringLiteral("overlap")})
+        for (const auto &scenario : {QStringLiteral("group"), QStringLiteral("wide"), QStringLiteral("overlap"), QStringLiteral("pass-through")})
             QTest::newRow(qPrintable((gpu ? QStringLiteral("gpu-") : QStringLiteral("ordinary-")) + scenario)) << gpu << scenario;
 }
 }
@@ -132,6 +132,8 @@ try {
     source->setCurrentImage(sourceImage);
     sourceImage->waitForDone();
     KisNodeSP group = sourceImage->root()->firstChild();
+    const bool passThrough = scenario == QLatin1String("pass-through");
+    qobject_cast<KisGroupLayer *>(group.data())->setPassThroughMode(passThrough);
     KisNodeSP leaf = group->firstChild();
     const KisNodeList selected = scenario == QLatin1String("overlap") ? KisNodeList{group, leaf} : KisNodeList{group};
     QScopedPointer<QMimeData> mime(KisMimeData::mimeForLayersDeepCopy(selected, sourceImage, true));
@@ -182,6 +184,7 @@ try {
     QCOMPARE(lifetime->undoStack()->index(), history + 1);
     const auto copied = image->root()->at(1);
     QCOMPARE(copied->name(), QStringLiteral("Group"));
+    QCOMPARE(qobject_cast<const KisGroupLayer *>(copied.data())->passThroughMode(), passThrough);
     QCOMPARE(copied->childCount(), scenario == QLatin1String("wide") ? 17u : 1u);
     QScopedPointer<Node> api(Node::createNode(image, copied->firstChild()));
     QCOMPARE(api->pixelData(3, 3, 1, 1), QByteArray::fromHex("00ff00ff"));
@@ -203,6 +206,7 @@ try {
     bool copy = true;
     const auto repeated = KisMimeData::loadNodesFast(mime.data(), image, controller, copy);
     QCOMPARE(repeated.size(), qsizetype(rootCount - 1));
+    QCOMPARE(qobject_cast<const KisGroupLayer *>(repeated.first().data())->passThroughMode(), passThrough);
     QScopedPointer<Node> frozen(Node::createNode({}, repeated.first()->firstChild()));
     QCOMPARE(frozen->pixelData(3, 3, 1, 1), QByteArray::fromHex("00ff00ff"));
 }

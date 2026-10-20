@@ -247,7 +247,8 @@ void KisNodePropertyListCommand::setNodePropertiesAutoUndo(KisNodeSP node, KisIm
             (properties.contains(KisLayerPropertiesIcons::visible.id()) ||
              properties.contains(KisLayerPropertiesIcons::locked.id()) ||
              properties.contains(KisLayerPropertiesIcons::alphaLocked.id()) ||
-             properties.contains(KisLayerPropertiesIcons::inheritAlpha.id()))) {
+             properties.contains(KisLayerPropertiesIcons::inheritAlpha.id()) ||
+             properties.contains(KisLayerPropertiesIcons::passThrough.id()))) {
             namespace Gpu = LibrePaint::Image::Gpu;
             if (node->image() != image.data())
                 throw std::invalid_argument("GPU layer properties require a node in the current image");
@@ -264,6 +265,8 @@ void KisNodePropertyListCommand::setNodePropertiesAutoUndo(KisNodeSP node, KisIm
                     result = owner->setLayerVisible(layerId, property.state.toBool(), Gpu::PropertyHistory::MergeConsecutive);
                 else if (id == KisLayerPropertiesIcons::locked.id())
                     result = owner->setLayerLocked(layerId, property.state.toBool(), Gpu::PropertyHistory::MergeConsecutive);
+                else if (id == KisLayerPropertiesIcons::passThrough.id())
+                    result = owner->setLayerPassThrough(layerId, property.state.toBool(), Gpu::PropertyHistory::MergeConsecutive);
                 else {
                     quint8 mask = 15;
                     for (const auto &layer : owner->operations().snapshot()->layers)

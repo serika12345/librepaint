@@ -52,6 +52,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         layer.colorLabelIndex = source.colorLabelIndex;
         layer.channelWriteMask = source.channelWriteMask;
         layer.projectionChannelMask = source.projectionChannelMask;
+        layer.passThrough = source.passThrough;
         layer.position = source.position;
         layer.kind = source.kind;
         layer.parentUuid = source.parentUuid;

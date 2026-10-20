@@ -156,10 +156,13 @@ Outcome layerDescription(const QDomElement &element, QPoint &offset)
         element.attribute(QStringLiteral("compositeop")) != QLatin1String("normal") ||
         element.attribute(QStringLiteral("colorspacename"), QStringLiteral("RGBA")) != QLatin1String("RGBA") ||
         element.hasAttribute(QStringLiteral("keyframes")) ||
-        (!group && !child.isNull()) || (group &&
-            ((!child.isNull() && (child.tagName() != QLatin1String("layers") || !child.nextSiblingElement().isNull())) ||
-             element.attribute(QStringLiteral("passthrough"), QStringLiteral("0")) != QLatin1String("0"))))
-        return unsupported(QStringLiteral("KRA requires RGBA8 paint layers and isolated groups with normal compositing"));
+        (!group && !child.isNull()) || (group && !child.isNull() &&
+            (child.tagName() != QLatin1String("layers") || !child.nextSiblingElement().isNull())))
+        return unsupported(QStringLiteral("KRA requires RGBA8 paint layers and groups with normal compositing"));
+    const auto passThrough = element.attribute(QStringLiteral("passthrough"), QStringLiteral("0"));
+    if ((passThrough != QLatin1String("0") && passThrough != QLatin1String("1")) ||
+        (!group && passThrough != QLatin1String("0")))
+        return invalid(QStringLiteral("Invalid KRA group pass-through mode"));
     const auto projectionFlags = element.attribute(QStringLiteral("channelflags"));
     if (!projectionFlags.isEmpty() && (projectionFlags.size() != 4 ||
         std::any_of(projectionFlags.begin(), projectionFlags.end(), [](QChar flag) { return flag != QLatin1Char('0') && flag != QLatin1Char('1'); })))
@@ -533,6 +536,7 @@ LoadOutcome RasterCodec::read(QIODevice &source, Limits limits)
         if (result.code != Status::Success) return fail(result);
         RasterLayer layer;
         layer.kind = element.attribute(QStringLiteral("nodetype")) == QLatin1String("grouplayer") ? LayerKind::Group : LayerKind::Paint;
+        layer.passThrough = element.attribute(QStringLiteral("passthrough"), QStringLiteral("0")) == QLatin1String("1");
         const auto parent = element.parentNode().parentNode().toElement();
         if (parent.tagName() == QLatin1String("layer")) layer.parentUuid = QUuid(parent.attribute(QStringLiteral("uuid")));
         layer.position = offset;
@@ -696,7 +700,7 @@ Outcome RasterCodec::write(QIODevice &destination, const Document &document, con
                 element.appendChild(children);
             }
             while (!children.firstChild().isNull()) children.removeChild(children.firstChild());
-            element.setAttribute(QStringLiteral("passthrough"), QStringLiteral("0"));
+            element.setAttribute(QStringLiteral("passthrough"), layer.passThrough ? QStringLiteral("1") : QStringLiteral("0"));
             if (!element.hasAttribute(QStringLiteral("profile")))
                 element.setAttribute(QStringLiteral("profile"), image.attribute(QStringLiteral("profile")));
         }

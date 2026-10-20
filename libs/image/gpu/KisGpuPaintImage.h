@@ -170,6 +170,8 @@ public:
     Result writeLayerChannelMask(LayerId layer, quint8 mask);
     Result setLayerProjectionMask(LayerId layer, quint8 mask, PropertyHistory history = PropertyHistory::Separate);
     Result writeLayerProjectionMask(LayerId layer, quint8 mask);
+    Result setLayerPassThrough(LayerId layer, bool enabled, PropertyHistory history = PropertyHistory::Separate);
+    Result writeLayerPassThrough(LayerId layer, bool enabled);
     Result renameLayer(LayerId layer, const QString &name);
     Result renameLayer(LayerId layer, const QString &name, PropertyHistory history);
     Result moveLayer(LayerId layer, qsizetype index);
