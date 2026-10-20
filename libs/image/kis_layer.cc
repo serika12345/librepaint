@@ -34,6 +34,9 @@
 #include "kis_base_node.h"
 #include "kis_default_bounds.h"
 #include "kis_image.h"
+#include "gpu/KisGpuPaintImage.h"
+#include <KoChannelInfo.h>
+#include <stdexcept>
 
 #include "kis_effect_mask.h"
 #include "kis_filter_mask.h"
@@ -354,6 +357,25 @@ bool KisLayer::alphaChannelDisabled() const
 void KisLayer::setChannelFlags(const QBitArray & channelFlags)
 {
     Q_ASSERT(channelFlags.isEmpty() ||((quint32)channelFlags.count() == colorSpace()->channelCount()));
+
+    const auto currentImage = image().toStrongRef();
+    const auto owner = currentImage ? currentImage->gpuImage() : LibrePaint::Image::Gpu::PaintImageSP();
+    if (graphListener() && owner) {
+        if (!channelFlags.isEmpty() && channelFlags.size() != 4)
+            throw std::invalid_argument("GPU projection channel flags require four components");
+        quint8 mask = 15;
+        if (!channelFlags.isEmpty()) {
+            mask = 0;
+            const auto channels = colorSpace()->channels();
+            for (int channel = 0; channel < 4; ++channel)
+                if (channelFlags.testBit(channel)) mask |= 1u << channels[channel]->displayPosition();
+        }
+        LibrePaint::Image::Gpu::LayerId id = 0;
+        for (const auto &layer : owner->operations().snapshot()->layers)
+            if (layer.uuid == uuid()) { id = layer.id; break; }
+        if (id && owner->writeLayerProjectionMask(id, mask) != LibrePaint::Image::Gpu::Result::Success)
+            throw std::runtime_error("GPU projection channel write failed");
+    }
 
     if (KritaUtils::compareChannelFlags(channelFlags,
                                         this->channelFlags())) {

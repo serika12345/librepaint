@@ -32,7 +32,8 @@ QHash<LayerId, std::array<quint8, 4>> DocumentVersion::projectionDefaultPixels()
         const auto group = ready[index];
         const auto inputs = children.value(group->uuid);
         std::array<quint8, 4> pixel{};
-        if (inputs.size() == 1 && inputs.first()->visible && inputs.first()->opacity == 255) {
+        if (inputs.size() == 1 && inputs.first()->visible && inputs.first()->opacity == 255 &&
+            inputs.first()->projectionChannelMask == 15) {
             pixel = result.value(inputs.first()->id);
         } else {
             for (const auto layer : inputs) {
@@ -42,20 +43,22 @@ QHash<LayerId, std::array<quint8, 4>> DocumentVersion::projectionDefaultPixels()
                 if (alpha == 0.0f) continue;
                 float destinationAlpha = pixel[3];
                 float blend;
-                if (destinationAlpha == 255.0f) blend = alpha * (1.0f / 255.0f);
+                if (!(layer->projectionChannelMask & 8u) || destinationAlpha == 255.0f) blend = alpha * (1.0f / 255.0f);
                 else if (destinationAlpha == 0.0f) {
                     destinationAlpha = alpha;
                     blend = 1.0f;
+                    if (layer->projectionChannelMask != 15) pixel = {};
                 } else {
                     const float weightedAlpha = (255.0f - destinationAlpha) * alpha;
                     destinationAlpha = std::fma(weightedAlpha, 1.0f / 255.0f, destinationAlpha);
                     blend = alpha / destinationAlpha;
                 }
                 for (int channel = 0; channel < 3; ++channel) {
+                    if (!(layer->projectionChannelMask & (1u << channel))) continue;
                     pixel[channel] = quint8(std::nearbyint(std::fma(float(source[channel]) - pixel[channel], blend,
                                                                   float(pixel[channel]))));
                 }
-                pixel[3] = quint8(std::nearbyint(destinationAlpha));
+                if (layer->projectionChannelMask & 8u) pixel[3] = quint8(std::nearbyint(destinationAlpha));
             }
         }
         result.insert(group->id, pixel);

@@ -231,7 +231,7 @@ void KisImageTest::testGpuLayerReferencesSurviveHistoryAndReleaseDiscardedBranch
     QVERIFY(!imageLifetime);
 }
 
-void KisImageTest::testGpuInsertionRejectsUnrepresentedLayerState_data()
+void KisImageTest::testGpuInsertionPreservesSupportedStateAndRejectsUnrepresentedState_data()
 {
     QTest::addColumn<int>("property");
     QTest::newRow("blend") << 0;
@@ -243,7 +243,7 @@ void KisImageTest::testGpuInsertionRejectsUnrepresentedLayerState_data()
     QTest::newRow("temporary-pixels") << 7;
 }
 
-void KisImageTest::testGpuInsertionRejectsUnrepresentedLayerState()
+void KisImageTest::testGpuInsertionPreservesSupportedStateAndRejectsUnrepresentedState()
 {
     QFETCH(int, property);
     namespace Gpu = LibrePaint::Image::Gpu;
@@ -278,6 +278,31 @@ void KisImageTest::testGpuInsertionRejectsUnrepresentedLayerState()
     const auto serialized = owner->operations().recoveryData();
     QByteArray retained(4, Qt::Uninitialized);
     pixels->readBytes(reinterpret_cast<quint8*>(retained.data()), 5 + layer->x(), 7 + layer->y(), 1, 1);
+    if (property == 4 || property == 5) {
+        QVERIFY(image->insertGpuLayer(layer, 0));
+        QCOMPARE(image->root()->childCount(), 2U);
+        QCOMPARE(owner->operations().undoCount(), 1);
+        QCOMPARE(layer->channelFlags(), channels);
+        const quint8 expectedMask = property == 4 ? 11 : 7;
+        QCOMPARE(owner->operations().snapshot()->layers.first().projectionChannelMask, expectedMask);
+        QCOMPARE(owner->readRgbaPixels(owner->operations().snapshot()->layers.first().id, {5, 7, 1, 1}, 4).bytes,
+                 QByteArray::fromHex("332211ff"));
+        auto copied = image->cloneGpuNodeImage({layer});
+        QVERIFY(copied);
+        const auto copiedLayer = qobject_cast<const KisLayer*>(copied->root()->firstChild().data());
+        QVERIFY(copiedLayer);
+        QCOMPARE(copiedLayer->channelFlags(), channels);
+        QCOMPARE(copied->gpuImage()->operations().snapshot()->layers.first().projectionChannelMask, expectedMask);
+        QCOMPARE(copied->gpuImage()->readRgbaPixels(copied->gpuImage()->operations().activeLayer(), {5, 7, 1, 1}, 4).bytes,
+                 QByteArray::fromHex("332211ff"));
+        QCOMPARE(owner->undo(), Gpu::Result::Success);
+        QVERIFY(!layer->parent());
+        QCOMPARE(layer->channelFlags(), channels);
+        QCOMPARE(owner->redo(), Gpu::Result::Success);
+        QCOMPARE(layer->channelFlags(), channels);
+        QCOMPARE(owner->operations().snapshot()->layers.first().projectionChannelMask, expectedMask);
+        return;
+    }
     QVERIFY(!image->insertGpuLayer(layer, 0));
     QCOMPARE(owner->operations().snapshot(), before);
     QCOMPARE(owner->operations().recoveryData(), serialized);

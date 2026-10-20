@@ -246,7 +246,8 @@ void KisNodePropertyListCommand::setNodePropertiesAutoUndo(KisNodeSP node, KisIm
         if (properties.size() == 1 &&
             (properties.contains(KisLayerPropertiesIcons::visible.id()) ||
              properties.contains(KisLayerPropertiesIcons::locked.id()) ||
-             properties.contains(KisLayerPropertiesIcons::alphaLocked.id()))) {
+             properties.contains(KisLayerPropertiesIcons::alphaLocked.id()) ||
+             properties.contains(KisLayerPropertiesIcons::inheritAlpha.id()))) {
             namespace Gpu = LibrePaint::Image::Gpu;
             if (node->image() != image.data())
                 throw std::invalid_argument("GPU layer properties require a node in the current image");
@@ -266,9 +267,15 @@ void KisNodePropertyListCommand::setNodePropertiesAutoUndo(KisNodeSP node, KisIm
                 else {
                     quint8 mask = 15;
                     for (const auto &layer : owner->operations().snapshot()->layers)
-                        if (layer.id == layerId) { mask = layer.channelWriteMask; break; }
+                        if (layer.id == layerId) {
+                            mask = id == KisLayerPropertiesIcons::inheritAlpha.id() ?
+                                layer.projectionChannelMask : layer.channelWriteMask;
+                            break;
+                        }
                     mask = property.state.toBool() ? mask & 7u : mask | 8u;
-                    result = owner->setLayerChannelMask(layerId, mask, Gpu::PropertyHistory::MergeConsecutive);
+                    result = id == KisLayerPropertiesIcons::inheritAlpha.id() ?
+                        owner->setLayerProjectionMask(layerId, mask, Gpu::PropertyHistory::MergeConsecutive) :
+                        owner->setLayerChannelMask(layerId, mask, Gpu::PropertyHistory::MergeConsecutive);
                 }
                 if (result != Gpu::Result::Success)
                     throw std::runtime_error("GPU layer property edit failed: " + std::to_string(int(result)));

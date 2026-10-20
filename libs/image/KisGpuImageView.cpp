@@ -107,7 +107,7 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
             layer->temporary() || (paint && paint->hasTemporaryTarget()) || (group && group->passThroughMode()) ||
             *layer->colorSpace() != *colorSpace()) return false;
         const auto projectionFlags = layer->channelFlags();
-        if (!projectionFlags.isEmpty() && (projectionFlags.size() != 4 || projectionFlags.count(true) != 4)) return false;
+        if (!projectionFlags.isEmpty() && projectionFlags.size() != 4) return false;
         const auto pixels = group ? group->original() : paint->paintDevice();
         Gpu::RasterLayer properties;
         properties.kind = group ? Gpu::LayerKind::Group : Gpu::LayerKind::Paint;
@@ -119,6 +119,12 @@ bool KisImage::insertGpuLayers(const KisNodeList &roots, qsizetype index, KisNod
         properties.userLocked = node->userLocked();
         properties.pinnedToTimeline = node->isPinnedToTimeline();
         properties.colorLabelIndex = node->colorLabelIndex();
+        if (!projectionFlags.isEmpty()) {
+            properties.projectionChannelMask = 0;
+            const auto channels = layer->colorSpace()->channels();
+            for (int channel = 0; channel < 4; ++channel)
+                if (projectionFlags.testBit(channel)) properties.projectionChannelMask |= 1u << channels[channel]->displayPosition();
+        }
         properties.position = {node->x(), node->y()};
         const auto flags = paint ? paint->channelLockFlags() : QBitArray();
         if (!flags.isEmpty()) {
@@ -251,7 +257,7 @@ KisImageSP KisImage::cloneGpuNodeImage(const KisNodeList &roots) const
             (paint && paint->hasTemporaryTarget()) || (group && group->passThroughMode()) ||
             *layer->colorSpace() != *colorSpace() || pending.size() > owner->limits().layerCount) return {};
         const auto flags = layer->channelFlags();
-        if (!flags.isEmpty() && (flags.size() != 4 || flags.count(true) != 4)) return {};
+        if (!flags.isEmpty() && flags.size() != 4) return {};
         Gpu::RasterLayer properties;
         properties.name = source->name;
         properties.visible = source->visible;
@@ -262,6 +268,7 @@ KisImageSP KisImage::cloneGpuNodeImage(const KisNodeList &roots) const
         properties.pinnedToTimeline = source->pinnedToTimeline;
         properties.colorLabelIndex = source->colorLabelIndex;
         properties.channelWriteMask = source->channelWriteMask;
+        properties.projectionChannelMask = source->projectionChannelMask;
         properties.position = source->position;
         properties.kind = source->kind;
         properties.parentUuid = pending[i].second;
@@ -468,6 +475,16 @@ void KisImage::synchronizeGpuLayerViews(KisGpuImageViewState *state)
             if (node->opacity() != layer.opacity) node->setOpacity(layer.opacity);
             if (changed()) break;
             if (node->userLocked() != layer.userLocked) node->setUserLocked(layer.userLocked);
+            if (changed()) break;
+            auto *layerView = qobject_cast<KisLayer*>(node.data());
+            QBitArray projectionFlags;
+            if (layer.projectionChannelMask != 15) {
+                const auto channels = layerView->colorSpace()->channels();
+                projectionFlags.resize(4);
+                for (int channel = 0; channel < 4; ++channel)
+                    projectionFlags.setBit(channel, layer.projectionChannelMask & (1u << channels[channel]->displayPosition()));
+            }
+            if (layerView->channelFlags() != projectionFlags) layerView->setChannelFlags(projectionFlags);
             if (changed()) break;
             if (auto *paintLayer = qobject_cast<KisPaintLayer*>(node.data())) {
                 QBitArray paintFlags;

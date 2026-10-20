@@ -102,6 +102,7 @@ private Q_SLOTS:
     void rejectedLayerForestsPreservePendingInputAndHistory();
     void nestedLayerIdentitySurvivesPropertiesHistoryAndRecovery();
     void colorLabelsPreserveFixedVersionsPendingInputAndRecovery();
+    void projectionChannelsPreservePixelsPendingInputHistoryAndRecovery();
     void directHierarchyMovesAdoptTheirActiveRootAtomically();
     void movedSubtreesPreservePixelsSelectionHistoryAndRecovery_data();
     void movedSubtreesPreservePixelsSelectionHistoryAndRecovery();
@@ -747,18 +748,28 @@ void KisGpuOperationDocumentTest::groupProjectionDefaultsRespectIsolationAndQuan
     QTest::addColumn<int>("groupOpacity");
     QTest::addColumn<QByteArray>("innerPixel");
     QTest::addColumn<QByteArray>("outerPixel");
+    QTest::addColumn<int>("upperMask");
     QTest::newRow("two-colour-defaults") << QByteArray::fromHex("ff0000ff") << QByteArray::fromHex("0000ffff")
-        << true << true << 128 << QByteArray::fromHex("7f0080ff") << QByteArray::fromHex("7f008080");
+        << true << true << 128 << QByteArray::fromHex("7f0080ff") << QByteArray::fromHex("7f008080") << 15;
     QTest::newRow("hidden-sibling-normalizes-transparent-rgb") << QByteArray::fromHex("11223300") << QByteArray::fromHex("00000000")
-        << true << false << 255 << QByteArray::fromHex("00000000") << QByteArray::fromHex("00000000");
+        << true << false << 255 << QByteArray::fromHex("00000000") << QByteArray::fromHex("00000000") << 15;
     QTest::newRow("single-child-keeps-transparent-rgb") << QByteArray::fromHex("11223300") << QByteArray::fromHex("00000000")
-        << false << false << 128 << QByteArray::fromHex("11223300") << QByteArray::fromHex("00000000");
+        << false << false << 128 << QByteArray::fromHex("11223300") << QByteArray::fromHex("00000000") << 15;
     QTest::newRow("nested-full-opacity-keeps-transparent-rgb") << QByteArray::fromHex("11223300") << QByteArray::fromHex("00000000")
-        << false << false << 255 << QByteArray::fromHex("11223300") << QByteArray::fromHex("11223300");
+        << false << false << 255 << QByteArray::fromHex("11223300") << QByteArray::fromHex("11223300") << 15;
     QTest::newRow("nested-alpha-is-quantized-at-each-group") << QByteArray::fromHex("ff000080") << QByteArray::fromHex("00000000")
-        << false << false << 128 << QByteArray::fromHex("ff000080") << QByteArray::fromHex("ff000040");
+        << false << false << 128 << QByteArray::fromHex("ff000080") << QByteArray::fromHex("ff000040") << 15;
     QTest::newRow("small-alpha-keeps-normalized-source-opacity") << QByteArray::fromHex("99663301") << QByteArray::fromHex("56341201")
-        << true << true << 255 << QByteArray::fromHex("83552801") << QByteArray::fromHex("83552801");
+        << true << true << 255 << QByteArray::fromHex("83552801") << QByteArray::fromHex("83552801") << 15;
+    // Fixed CPU scalar/SIMD corpus at 5cd3e87, RGBA ordering, opacity128.
+    QTest::newRow("inherited-default-alpha") << QByteArray::fromHex("996633e2") << QByteArray::fromHex("56341286")
+        << true << true << 255 << QByteArray::fromHex("87592ae2") << QByteArray::fromHex("87592ae2") << 7;
+    QTest::newRow("selected-default-components") << QByteArray::fromHex("996633e2") << QByteArray::fromHex("56341286")
+        << true << true << 255 << QByteArray::fromHex("866633ea") << QByteArray::fromHex("866633ea") << 9;
+    QTest::newRow("selected-components-clear-transparent-default") << QByteArray::fromHex("99663300") << QByteArray::fromHex("56341286")
+        << true << true << 255 << QByteArray::fromHex("56000043") << QByteArray::fromHex("56000043") << 9;
+    QTest::newRow("inherited-transparent-default-keeps-hidden-rgb") << QByteArray::fromHex("99663300") << QByteArray::fromHex("56341286")
+        << true << true << 255 << QByteArray::fromHex("170e0500") << QByteArray::fromHex("170e0500") << 7;
 }
 
 void KisGpuOperationDocumentTest::groupProjectionDefaultsRespectIsolationAndQuantizedOpacity()
@@ -770,6 +781,7 @@ void KisGpuOperationDocumentTest::groupProjectionDefaultsRespectIsolationAndQuan
     QFETCH(int, groupOpacity);
     QFETCH(QByteArray, innerPixel);
     QFETCH(QByteArray, outerPixel);
+    QFETCH(int, upperMask);
     const QUuid inner(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}"));
     const QUuid outer(QStringLiteral("{31323334-3536-3738-393a-3b3c3d3e3f40}"));
     RasterImage source;
@@ -781,7 +793,10 @@ void KisGpuOperationDocumentTest::groupProjectionDefaultsRespectIsolationAndQuan
         const auto &pixel = index == 0 ? lower : upper;
         for (int channel = 0; channel < 4; ++channel) source.layers[index].defaultPixel[channel] = quint8(pixel[channel]);
         source.layers[index].parentUuid = inner;
-        if (index == 1) source.layers[index].opacity = 128;
+        if (index == 1) {
+            source.layers[index].opacity = 128;
+            source.layers[index].projectionChannelMask = quint8(upperMask);
+        }
     }
     source.layers.append({QStringLiteral("Inner"), true, inner, {}});
     source.layers.last().kind = LayerKind::Group;
@@ -957,6 +972,82 @@ void KisGpuOperationDocumentTest::colorLabelsPreserveFixedVersionsPendingInputAn
     QCOMPARE(recovered.snapshot()->layers[1].colorLabelIndex, 7);
     recovered.close();
     QCOMPARE(recovered.writeLayerColorLabel(1, 4), Result::Closed);
+}
+
+void KisGpuOperationDocumentTest::projectionChannelsPreservePixelsPendingInputHistoryAndRecovery()
+{
+    OperationDocument document(nestedImage());
+    const auto fixed = document.snapshot();
+    const auto oldRecovery = LibrePaint::Image::Gpu::Test::layerMetadataRecoveryV30();
+    QCOMPARE(document.setLayerProjectionMask(2, 7, PropertyHistory::MergeConsecutive), Result::Success);
+    QCOMPARE(document.setLayerProjectionMask(2, 1, PropertyHistory::MergeConsecutive), Result::Success);
+    QCOMPARE(document.undoCount(), 1);
+    QCOMPARE(document.historyAction(1), HistoryAction::ChangeProjectionChannels);
+    QCOMPARE(fixed->layers[1].projectionChannelMask, quint8(15));
+    QCOMPARE(document.snapshot()->layers[1].projectionChannelMask, quint8(1));
+    QCOMPARE(document.snapshot()->layers[0].operations, fixed->layers[0].operations);
+    const auto stroke = document.beginStroke(1, Brush{}, 43);
+    QVERIFY(!stroke.isNull());
+    QCOMPARE(document.appendSamples(stroke, {sample(20, 20)}), Result::Success);
+    const auto preview = document.preview();
+    const auto operation = std::get<PaintSnapshot>(preview->layers[0].operations.last());
+    QCOMPARE(operation->brush.channelWriteMask, quint8(15));
+    QCOMPARE(document.writeLayerProjectionMask(2, 5), Result::Success);
+    QCOMPARE(document.writeLayerProjectionMask(1, 9), Result::Success);
+    QCOMPARE(preview->layers[1].projectionChannelMask, quint8(1));
+    QCOMPARE(document.preview()->layers[1].projectionChannelMask, quint8(5));
+    QCOMPARE(std::get<PaintSnapshot>(document.preview()->layers[0].operations.last()), operation);
+    OperationDocument recovered({1, 1});
+    const auto bytes = document.recoveryData();
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        QFile artifact(QDir(directory).filePath(QStringLiteral("projection-channels.recovery")));
+        QVERIFY(artifact.open(QIODevice::WriteOnly));
+        QCOMPARE(artifact.write(bytes), bytes.size());
+    }
+    QCOMPARE(recovered.restoreRecovery(bytes), Result::Success);
+    QCOMPARE(recovered.recoveryData(), bytes);
+    QCOMPARE(recovered.preview()->layers[1].projectionChannelMask, quint8(5));
+    QByteArray prefix;
+    QDataStream stream(&prefix, QIODevice::WriteOnly);
+    stream.setVersion(QDataStream::Qt_5_15);
+    stream.setByteOrder(QDataStream::BigEndian);
+    const auto &group = document.snapshot()->layers[1];
+    stream << group.uuid;
+    for (const auto component : group.defaultPixel) stream << component;
+    stream << group.opacity << quint8(group.userLocked)
+           << quint8(quint8(group.pinnedToTimeline) | ((15u ^ group.channelWriteMask) << 1))
+           << qint32(group.position.x()) << qint32(group.position.y()) << quint8(group.kind)
+           << group.parentUuid << qint32(group.colorLabelIndex);
+    auto invalidRecovery = bytes.first(bytes.size() - 32);
+    const auto flagOffset = invalidRecovery.indexOf(prefix) + prefix.size();
+    QVERIFY(flagOffset >= prefix.size() && flagOffset < invalidRecovery.size());
+    invalidRecovery[flagOffset] = 16;
+    invalidRecovery.append(QCryptographicHash::hash(invalidRecovery, QCryptographicHash::Sha256));
+    QCOMPARE(recovered.restoreRecovery(invalidRecovery), Result::InvalidRecovery);
+    QCOMPARE(recovered.recoveryData(), bytes);
+    QCOMPARE(recovered.cancelStroke(recovered.activeOperation()), Result::Success);
+    QCOMPARE(recovered.undo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->layers[1].projectionChannelMask, quint8(15));
+    QCOMPARE(recovered.snapshot()->layers[0].projectionChannelMask, quint8(9));
+    QCOMPARE(recovered.redo(), Result::Success);
+    QCOMPARE(recovered.snapshot()->layers[1].projectionChannelMask, quint8(1));
+    const auto beforeRejected = recovered.recoveryData();
+    QCOMPARE(recovered.setLayerProjectionMask(2, 16), Result::InvalidInput);
+    QCOMPARE(recovered.writeLayerProjectionMask(2, 16), Result::InvalidInput);
+    QCOMPARE(recovered.writeLayerProjectionMask(999, 7), Result::LayerUnavailable);
+    QCOMPARE(recovered.recoveryData(), beforeRejected);
+    QCOMPARE(recovered.restoreRecovery(oldRecovery), Result::Success);
+    for (const auto &layer : recovered.snapshot()->layers) QCOMPARE(layer.projectionChannelMask, quint8(15));
+    QCOMPARE(recovered.snapshot()->layers[0].colorLabelIndex, 3);
+    QCOMPARE(recovered.snapshot()->layers[1].colorLabelIndex, 7);
+    QVERIFY(recovered.hasActiveStroke());
+    auto invalid = nestedImage();
+    invalid.layers[1].projectionChannelMask = 16;
+    QVERIFY_EXCEPTION_THROWN(OperationDocument{invalid}, std::invalid_argument);
+    recovered.close();
+    QCOMPARE(recovered.writeLayerProjectionMask(1, 7), Result::Closed);
 }
 
 void KisGpuOperationDocumentTest::nestedLayerIdentitySurvivesPropertiesHistoryAndRecovery()

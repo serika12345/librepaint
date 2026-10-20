@@ -134,6 +134,8 @@ private Q_SLOTS:
     void layerOpacityAndLockSurviveEditingAndResaving();
     void channelProtectionSurvivesEditingAndResaving_data();
     void channelProtectionSurvivesEditingAndResaving();
+    void projectionChannelsSurviveEditingAndResaving_data();
+    void projectionChannelsSurviveEditingAndResaving();
     void imageMetadataIsCompleteOrRejectedBeforeRasterImport();
     void documentTitlesMoveAssociatedFilesAtomically();
     void imageProfileIdentitySurvivesMetadataUpdates_data();
@@ -630,6 +632,66 @@ void TestKraRasterCodec::channelProtectionSurvivesEditingAndResaving()
     const auto clearedDocument = load(cleared);
     QCOMPARE(clearedDocument.code, Kra::Status::Success);
     QCOMPARE(clearedDocument.document.image.layers[0].channelWriteMask, quint8(15));
+}
+
+void TestKraRasterCodec::projectionChannelsSurviveEditingAndResaving_data()
+{
+    QTest::addColumn<quint8>("mask");
+    QTest::addColumn<QString>("serializedFlags");
+    const char *flags[] = {"0000", "0010", "0100", "0110", "1000", "1010", "1100", "1110",
+                           "0001", "0011", "0101", "0111", "1001", "1011", "1101", ""};
+    for (int mask = 0; mask < 16; ++mask)
+        QTest::newRow(QByteArray::number(mask, 16).constData()) << quint8(mask) << QString::fromLatin1(flags[mask]);
+}
+
+void TestKraRasterCodec::projectionChannelsSurviveEditingAndResaving()
+{
+    QFETCH(quint8, mask);
+    QFETCH(QString, serializedFlags);
+    auto source = document();
+    RasterLayer group{QStringLiteral("Group"), true, QUuid(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}")), {}};
+    group.kind = LayerKind::Group;
+    source.image.layers.append(group);
+    for (auto &layer : source.image.layers) layer.projectionChannelMask = mask;
+    QByteArray bytes;
+    QBuffer output(&bytes);
+    QVERIFY(output.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(output, source, merged(source.image.size)).code, Kra::Status::Success);
+    const auto imported = load(bytes);
+    QVERIFY2(imported.code == Kra::Status::Success, qPrintable(imported.diagnostic));
+    for (const auto &layer : imported.document.image.layers) QCOMPARE(layer.projectionChannelMask, mask);
+    QCOMPARE(imported.document.image.layers[0].tiles.first().rgba, source.image.layers[0].tiles.first().rgba);
+    QDomDocument xml;
+    QVERIFY(xml.setContent(entries(bytes).value(QStringLiteral("maindoc.xml"))));
+    const auto layers = xml.elementsByTagName(QStringLiteral("layer"));
+    QCOMPARE(layers.size(), 3);
+    for (int i = 0; i < layers.size(); ++i)
+        QCOMPARE(layers.item(i).toElement().attribute(QStringLiteral("channelflags")), serializedFlags);
+    auto edited = imported.document;
+    edited.image.layers[0].projectionChannelMask = 15;
+    QByteArray saved;
+    QBuffer destination(&saved);
+    QVERIFY(destination.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(destination, edited, merged(source.image.size)).code, Kra::Status::Success);
+    const auto reopened = load(saved);
+    QCOMPARE(reopened.code, Kra::Status::Success);
+    QCOMPARE(reopened.document.image.layers[0].projectionChannelMask, quint8(15));
+    QCOMPARE(reopened.document.image.layers[1].projectionChannelMask, mask);
+    QCOMPARE(reopened.document.image.layers[2].projectionChannelMask, mask);
+    for (const auto bad : {QStringLiteral("10"), QStringLiteral("1112"), QStringLiteral("11111")}) {
+        auto files = entries(bytes);
+        layers.item(0).toElement().setAttribute(QStringLiteral("channelflags"), bad);
+        files[QStringLiteral("maindoc.xml")] = xml.toByteArray();
+        const auto rejected = load(pack(files));
+        QCOMPARE(rejected.code, Kra::Status::InvalidData);
+        QVERIFY(rejected.document.image.layers.isEmpty());
+    }
+    auto invalid = source;
+    invalid.image.layers[0].projectionChannelMask = 16;
+    QByteArray rejected;
+    QBuffer rejectedOutput(&rejected);
+    QVERIFY(rejectedOutput.open(QIODevice::WriteOnly));
+    QCOMPARE(Kra::RasterCodec::write(rejectedOutput, invalid, merged(source.image.size)).code, Kra::Status::InvalidData);
 }
 
 void TestKraRasterCodec::imageProfileIdentitySurvivesMetadataUpdates_data()

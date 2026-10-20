@@ -7,6 +7,9 @@
 #include <simpletest.h>
 #include <Document.h>
 #include <Node.h>
+#include <Channel.h>
+#include <gpu/KisGpuPaintDocument.h>
+#include <gpu/KisGpuExecution.h>
 #include <KoColorSpaceRegistry.h>
 #include <KoColorSpace.h>
 #include <KoColor.h>
@@ -36,6 +39,8 @@ void TestDocument::testSavedSourceOverPixelsAgreeAcrossBackends_data()
     QTest::addColumn<int>("opacity");
     QTest::addColumn<QByteArray>("expectedPixel");
     QTest::addColumn<bool>("sourceGroup");
+    QTest::addColumn<bool>("hiddenBackdrop");
+    QTest::addColumn<int>("projectionMask");
     struct Case { const char *name, *source, *destination; int opacity; const char *expected; };
     const Case cases[] = {
         {"", "d3640009", "1150c92d", 255, "3253a634"},
@@ -53,12 +58,18 @@ void TestDocument::testSavedSourceOverPixelsAgreeAcrossBackends_data()
         const QByteArray name = QByteArray(c.name) + (c.name[0] ? "-" : "") +
             (fixed ? "fixed-settings" : "defaults");
         QTest::newRow(name.constData()) << fixed << QByteArray::fromHex(c.source) <<
-            QByteArray::fromHex(c.destination) << c.opacity << QByteArray::fromHex(c.expected) << false;
+            QByteArray::fromHex(c.destination) << c.opacity << QByteArray::fromHex(c.expected) << false << false << 15;
     }
     for (const bool fixed : {false, true}) {
         const QByteArray name = QByteArrayLiteral("nested-low-opacity-") + (fixed ? "fixed-settings" : "defaults");
         QTest::newRow(name.constData()) << fixed << QByteArray::fromHex("11223301") <<
-            QByteArray::fromHex("00000000") << 1 << QByteArray::fromHex("00000000") << true;
+            QByteArray::fromHex("00000000") << 1 << QByteArray::fromHex("00000000") << true << true << 15;
+    }
+    for (const bool group : {false, true}) for (const int mask : {0, 1, 7, 8}) for (const bool fixed : {false, true}) {
+        const QByteArray name = QByteArrayLiteral("projection-") + QByteArray::number(mask, 16) +
+            (group ? "-group-" : "-paint-") + (fixed ? "fixed-settings" : "defaults");
+        QTest::newRow(name.constData()) << fixed << QByteArray::fromHex("12345686") <<
+            QByteArray::fromHex("336699e2") << 128 << QByteArray() << group << false << mask;
     }
 }
 
@@ -70,9 +81,9 @@ try {
     QFETCH(int, opacity);
     QFETCH(QByteArray, expectedPixel);
     QFETCH(bool, sourceGroup);
-    QByteArray expectedRgba;
-    expectedRgba.append(expectedPixel[2]); expectedRgba.append(expectedPixel[1]);
-    expectedRgba.append(expectedPixel[0]); expectedRgba.append(expectedPixel[3]);
+    QFETCH(bool, hiddenBackdrop);
+    QFETCH(int, projectionMask);
+    QByteArray referencePixel = expectedPixel;
     namespace Gpu = LibrePaint::Image::Gpu;
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
@@ -129,17 +140,25 @@ try {
         QCOMPARE(top->uniqueId(), topId);
         QCOMPARE(bottom->uniqueId(), bottomId);
         QVERIFY(top->setPixelData(sourcePixel.repeated(17), 0, 0, 17, 1));
-        if (sourceGroup) bottom->setVisible(false);
+        if (hiddenBackdrop) bottom->setVisible(false);
         else QVERIFY(bottom->setPixelData(destinationPixel.repeated(17), 0, 0, 17, 1));
         top->setOpacity(opacity);
+        QScopedPointer<Node> projectionNode(Node::createNode(image, image->root()->lastChild()));
+        const auto channels = projectionNode->channels();
+        const auto releaseChannels = qScopeGuard([&] { qDeleteAll(channels); });
+        for (auto *channel : channels) channel->setVisible(projectionMask & (1 << channel->position()));
         publicDocument.refreshProjection();
         image->waitForDone();
         QCOMPARE(top->pixelData(0, 0, 17, 1), sourcePixel.repeated(17));
-        if (sourceGroup) {
+        if (hiddenBackdrop) {
             QScopedPointer<Node> group(Node::createNode(image, image->root()->lastChild()));
             QCOMPARE(group->projectionPixelData(0, 0, 17, 1), QByteArray::fromHex("11223300").repeated(17));
         }
-        QCOMPARE(publicDocument.pixelData(0, 0, 17, 1), expectedPixel.repeated(17));
+        if (!gpu && referencePixel.isEmpty()) referencePixel = publicDocument.pixelData(0, 0, 1, 1);
+        QCOMPARE(publicDocument.pixelData(0, 0, 17, 1), referencePixel.repeated(17));
+        QByteArray expectedRgba;
+        expectedRgba.append(referencePixel[2]); expectedRgba.append(referencePixel[1]);
+        expectedRgba.append(referencePixel[0]); expectedRgba.append(referencePixel[3]);
         document->documentInfo()->setAboutInfo("title", QStringLiteral("Fixed source-over document"));
         document->documentInfo()->setAboutInfo("initial-creator", QStringLiteral("LibrePaint fixture"));
         document->documentInfo()->setAboutInfo("language", QStringLiteral("en"));
@@ -175,6 +194,32 @@ try {
         QCOMPARE(exported.size(), QSize(17, 1));
         QCOMPARE(QByteArray(reinterpret_cast<const char *>(exported.constBits()), exported.sizeInBytes()), expectedRgba.repeated(17));
         pngFiles.append(bytes);
+        if (projectionMask != 15) {
+            QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+            reopened->setFileBatchMode(true);
+            QVERIFY2(reopened->openPath(prefix + QStringLiteral(".kra"), KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+            reopened->image()->waitForDone();
+            Document reopenedApi(reopened.data(), false);
+            QCOMPARE(reopenedApi.pixelData(0, 0, 17, 1), referencePixel.repeated(17));
+            QScopedPointer<Node> reopenedProjection(Node::createNode(reopened->image(), reopened->image()->root()->lastChild()));
+            const auto reopenedChannels = reopenedProjection->channels();
+            const auto releaseReopenedChannels = qScopeGuard([&] { qDeleteAll(reopenedChannels); });
+            for (auto *channel : reopenedChannels)
+                QCOMPARE(channel->visible(), bool(projectionMask & (1 << channel->position())));
+            QString diagnostic;
+            const auto execution = KisPart::instance()->gpuExecution(diagnostic);
+            QVERIFY2(execution, qPrintable(diagnostic));
+            namespace Files = LibrePaint::Document::Gpu;
+            auto loaded = Files::PaintDocument::openKra(execution, prefix + QStringLiteral(".kra"));
+            QVERIFY2(loaded.code == Files::FileCode::Success, qPrintable(loaded.diagnostic));
+            const auto loadedOwner = loaded.document->image();
+            QCOMPARE(loadedOwner->readRgbaPixels(0, {0, 0, 17, 1}, 17 * 4).bytes, expectedRgba.repeated(17));
+            auto loadedView = KisImage::fromGpuImage(loadedOwner, QStringLiteral("Reopened projection channels"));
+            const auto loadedTarget = loadedView->root()->lastChild();
+            QScopedPointer<Node> loadedSource(Node::createNode(loadedView, sourceGroup ? loadedTarget->firstChild() : loadedTarget));
+            QCOMPARE(loadedSource->pixelData(0, 0, 17, 1), sourcePixel.repeated(17));
+            KisPart::instance()->removeDocument(reopened.data(), false);
+        }
         KisPart::instance()->removeDocument(document.data(), false);
     }
     QCOMPARE(pngFiles[1], pngFiles[0]);

@@ -203,6 +203,8 @@ struct RasterLayer
     QUuid parentUuid{};
     /** Label identity; its displayed color is owned by the UI configuration. */
     int colorLabelIndex = 0;
+    /** RGBA components contributed to the parent projection. */
+    quint8 projectionChannelMask = 15;
 };
 /** Validates parent identities, group parents and cycles. Null identities are
  * assigned during raster import and can only be referenced after assignment.
@@ -233,6 +235,7 @@ struct Layer
     LayerKind kind = LayerKind::Paint;
     QUuid parentUuid{};
     int colorLabelIndex = 0;
+    quint8 projectionChannelMask = 15;
 };
 
 /** Immutable RGBA8/sRGB document version with paint layers and group ownership. */
@@ -247,7 +250,7 @@ public:
     bool isCommitted() const { return m_committed; }
     OperationId pendingOperation() const { return m_committed ? OperationId{} : m_pendingOperation; }
     /** Uniform projection values before each node's own opacity. Group values
-     * derive from child defaults, order, visibility and quantized opacity.
+     * derive from child defaults, order, visibility, opacity and projection components.
      */
     QHash<LayerId, std::array<quint8, 4>> projectionDefaultPixels() const;
     QSize size;
@@ -268,7 +271,7 @@ public:
             if (only) return 0;
             only = &layer;
         }
-        return only && only->visible && only->opacity == 255 ? only->id : 0;
+        return only && only->visible && only->opacity == 255 && only->projectionChannelMask == 15 ? only->id : 0;
     }
 
 private:
@@ -324,7 +327,7 @@ enum class HistoryAction {
     None, AddLayer, RemoveLayer, MoveLayer, RenameLayer, ChangeOpacity,
     ChangeVisibility, ChangeLock, ChangeTimelinePin, PaintStroke, DrawLine,
     DrawEllipse, ReplacePixels, DrawRectangle, DrawPolyline, DrawPolygon, ChangeChannelLock, DuplicateLayer, DrawPath,
-    ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage
+    ClearPixels, FillLayer, TranslateLayer, CropLayer, ResizeCanvas, CropImage, ChangeProjectionChannels
 };
 
 struct Limits
@@ -452,6 +455,8 @@ public:
     Result setLayerLocked(LayerId layer, bool locked, PropertyHistory history);
     Result setLayerChannelMask(LayerId layer, quint8 mask, PropertyHistory history = PropertyHistory::Separate);
     Result writeLayerChannelMask(LayerId layer, quint8 mask);
+    Result setLayerProjectionMask(LayerId layer, quint8 mask, PropertyHistory history = PropertyHistory::Separate);
+    Result writeLayerProjectionMask(LayerId layer, quint8 mask);
     /** Direct background writes preserve history, pending input and fixed snapshots. */
     Result writeProjectionBackground(const std::array<quint8, 4> &rgba);
     /** Direct property writes preserve history transitions, pending input and fixed snapshots. */
@@ -525,7 +530,7 @@ public:
 
 private:
     friend class PaintImage;
-    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position };
+    enum class LayerProperty : quint8 { None, Name, Opacity, Visible, Locked, PinnedToTimeline, ChannelMask, Position, ProjectionMask };
     struct LayerHistoryChange {
         LayerProperty property = LayerProperty::None;
         LayerId layer = 0;

@@ -34,7 +34,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
     QSet<QUuid> identities;
     for (const auto &source : image.layers) {
         const auto uuid = source.uuid.isNull() ? QUuid::createUuid() : source.uuid;
-        if (identities.contains(uuid) || !Detail::validLayerName(source.name) || source.channelWriteMask > 15 ||
+        if (identities.contains(uuid) || !Detail::validLayerName(source.name) || source.channelWriteMask > 15 || source.projectionChannelMask > 15 ||
             (source.kind == LayerKind::Group && (!source.tiles.isEmpty() ||
                 source.defaultPixel != std::array<quint8, 4>{} || source.channelWriteMask != 15)) ||
             source.tiles.size() > (limits.rasterBytes - initial->rasterBytes) / RgbaTile::ByteCount) {
@@ -51,6 +51,7 @@ OperationDocument::OperationDocument(const RasterImage &image, Limits limits)
         layer.pinnedToTimeline = source.pinnedToTimeline;
         layer.colorLabelIndex = source.colorLabelIndex;
         layer.channelWriteMask = source.channelWriteMask;
+        layer.projectionChannelMask = source.projectionChannelMask;
         layer.position = source.position;
         layer.kind = source.kind;
         layer.parentUuid = source.parentUuid;

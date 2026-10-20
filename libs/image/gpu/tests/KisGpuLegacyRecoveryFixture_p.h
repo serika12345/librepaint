@@ -12,6 +12,32 @@
 #include <QSet>
 
 namespace LibrePaint::Image::Gpu::Test {
+// Version 30 record produced by OperationDocument at 8027d8da99: paint and
+// isolated group labels 3 and 7, direct writes across history and seed43 pending input.
+// SHA-256: 1e6befaacdfdffe996cc262443ef354baeeadc87e0a8445a65d83603009a8082.
+inline QByteArray layerMetadataRecoveryV30()
+{
+    return QByteArray::fromHex(
+        "4c504f52001e000000400000003000000000000000090000000000000002000000000000000200000000000000000000"
+        "00000000000200000000000000000100000000000000010000000000000001000000ff40240000000000003fb9999999"
+        "99999aff00000000000000002a0000000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000000010000000001402000000000000040280000000000003ff0000000000000000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000000000000000000020000000000000001000000"
+        "0000000001000000ff40240000000000003fb999999999999aff00000000000000002b00000000000000000000000000"
+        "000000000000000000000000000000000000000000000000000000000100000000014034000000000000403400000000"
+        "00003ff00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+        "000000000002000000010000004000000030000000000000000000000007000000000000000000000000000000010000"
+        "00020000000000000001000000055061696e74010102030405060708090a0b0c0d0e0f1000000000ff00000000000000"
+        "000000001112131415161718191a1b1c1d1e1f20000000030000000000000000000000020000000547726f7570011112"
+        "131415161718191a1b1c1d1e1f2000000000ff0000000000000000000001000000000000000000000000000000000000"
+        "000700000000000000004000000030000000000000000000000008000000000000000100000000000000010000000200"
+        "00000000000001000000055061696e74010102030405060708090a0b0c0d0e0f1000000000ff00000000000000000000"
+        "001112131415161718191a1b1c1d1e1f2000000003000000010000000000000000000000020000000547726f75700111"
+        "12131415161718191a1b1c1d1e1f2000000000ff00000000000000000000010000000000000000000000000000000000"
+        "0000070000000000000000010000000000000009bcbab4fe1b15cc8de75fce78fae9f3007fb99dbf2a39ca51bf31dec4"
+        "62f780aa");
+}
+
 // Version 28 record produced by PaintImage at 24ee71e117: move to (7,-9),
 // write a 256 by 256 constant RGBA tile outside undo, and seed43 pending input.
 // SHA-256: 58b55eea74b81547c4710c318601eb4398ed25fd225bcfe0858b71e8cec0ab01.
@@ -213,12 +239,13 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
         }
     }
     versions.append(document.preview());
-    if (format < 30) {
+    if (format < 31) {
         QSet<QByteArray> records;
         for (const auto &version : versions) {
             if (!version) continue;
             for (const auto &layer : version->layers) {
-                Q_ASSERT(layer.colorLabelIndex == 0);
+                Q_ASSERT(format >= 30 || layer.colorLabelIndex == 0);
+                Q_ASSERT(layer.projectionChannelMask == 15);
                 Q_ASSERT(format >= 29 || (layer.kind == LayerKind::Paint && layer.parentUuid.isNull()));
                 Q_ASSERT(format >= 24 || layer.position.isNull());
                 QByteArray record;
@@ -238,13 +265,15 @@ inline QByteArray legacyRecovery(const OperationDocument &document, quint8 forma
                 stream << quint8(layer.kind) << layer.parentUuid;
                 const auto labelOffset = record.size();
                 stream << qint32(layer.colorLabelIndex);
+                const auto projectionOffset = record.size();
+                stream << layer.projectionChannelMask;
                 if (records.contains(record)) continue;
                 records.insert(record);
                 qsizetype next = 0;
                 for (;;) {
                     const auto found = payload.indexOf(record, next);
                     if (found < 0) break;
-                    const auto offset = format < 24 ? positionOffset : format < 29 ? hierarchyOffset : labelOffset;
+                    const auto offset = format < 24 ? positionOffset : format < 29 ? hierarchyOffset : format < 30 ? labelOffset : projectionOffset;
                     payload.remove(found + offset, record.size() - offset);
                     next = found + offset;
                 }

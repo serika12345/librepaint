@@ -343,6 +343,10 @@ Result PaintImage::setLayerChannelMask(LayerId layer, quint8 mask, PropertyHisto
 { return onThread() ? publish(m_d->document->setLayerChannelMask(layer, mask, history)) : Result::InvalidInput; }
 Result PaintImage::writeLayerChannelMask(LayerId layer, quint8 mask)
 { return onThread() ? requestAfterWrite(m_d->document->writeLayerChannelMask(layer, mask)) : Result::InvalidInput; }
+Result PaintImage::setLayerProjectionMask(LayerId layer, quint8 mask, PropertyHistory history)
+{ return onThread() ? publish(m_d->document->setLayerProjectionMask(layer, mask, history)) : Result::InvalidInput; }
+Result PaintImage::writeLayerProjectionMask(LayerId layer, quint8 mask)
+{ return onThread() ? requestAfterWrite(m_d->document->writeLayerProjectionMask(layer, mask)) : Result::InvalidInput; }
 Result PaintImage::renameLayer(LayerId layer, const QString &name)
 { return onThread() ? publish(m_d->document->renameLayer(layer, name)) : Result::InvalidInput; }
 Result PaintImage::renameLayer(LayerId layer, const QString &name, PropertyHistory history)

@@ -21,7 +21,7 @@ add_dependencies(TestDocument
 add_dependencies(TestNode kritakraimport kritakraexport kritapngexport kritalcmsengine)
 add_dependencies(TestNode kritaroundmarkerpaintop)
 add_dependencies(TestNode kritatoolcrop)
-target_link_libraries(TestDocument kritaimpexkra)
+target_link_libraries(TestDocument kritaimpexkra kritadocumentpainting)
 
 qt6_add_resources(public_node_window_resources
     ../../../krita/krita.qrc

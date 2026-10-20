@@ -29,7 +29,10 @@ using Tiles = QMap<quint64, std::shared_ptr<Tile>>;
 struct ProjectionInput {
     std::shared_ptr<Tile> pixels;
     quint8 opacity = 255;
-    bool operator==(const ProjectionInput &other) const { return pixels == other.pixels && opacity == other.opacity; }
+    quint8 channelMask = 15;
+    bool operator==(const ProjectionInput &other) const {
+        return pixels == other.pixels && opacity == other.opacity && channelMask == other.channelMask;
+    }
 };
 using ProjectionInputs = QMap<quint64, QList<ProjectionInput>>;
 }

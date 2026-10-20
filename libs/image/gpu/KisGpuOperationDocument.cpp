@@ -173,6 +173,7 @@ HistoryAction OperationDocument::historyAction(int index) const
     case LayerProperty::Locked: return HistoryAction::ChangeLock;
     case LayerProperty::PinnedToTimeline: return HistoryAction::ChangeTimelinePin;
     case LayerProperty::ChannelMask: return HistoryAction::ChangeChannelLock;
+    case LayerProperty::ProjectionMask: return HistoryAction::ChangeProjectionChannels;
     case LayerProperty::Position: return HistoryAction::TranslateLayer;
     case LayerProperty::None: break;
     }
@@ -327,6 +328,7 @@ Result OperationDocument::restoreLayerHistoryChange(const LayerHistoryChange &ch
     const auto &value = forward ? change.after : change.before;
     switch (change.property) {
     case LayerProperty::ChannelMask: return writeLayerChannelMask(change.layer, quint8(value.toUInt()));
+    case LayerProperty::ProjectionMask: return writeLayerProjectionMask(change.layer, quint8(value.toUInt()));
     case LayerProperty::Position: return writeLayerPosition(change.layer, value.toPoint());
     case LayerProperty::None: return Result::Success;
     case LayerProperty::Name: return writeLayerName(change.layer, value.toString());
@@ -634,7 +636,7 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
     for (const auto &input : layers) {
         const auto &properties = input.properties;
         if (!input.source || !validLayerName(properties.name) || properties.uuid.isNull() ||
-            identities.contains(properties.uuid) || properties.channelWriteMask > 15 ||
+            identities.contains(properties.uuid) || properties.channelWriteMask > 15 || properties.projectionChannelMask > 15 ||
             !properties.tiles.isEmpty()) return Result::InvalidInput;
         identities.insert(properties.uuid);
         inserted.insert(properties.uuid);
@@ -663,6 +665,7 @@ Result OperationDocument::insertLayers(const QList<LayerInsertion> &layers, qsiz
         copy.pinnedToTimeline = properties.pinnedToTimeline;
         copy.colorLabelIndex = properties.colorLabelIndex;
         copy.channelWriteMask = properties.channelWriteMask;
+        copy.projectionChannelMask = properties.projectionChannelMask;
         copy.position = properties.position;
         copy.parentUuid = properties.parentUuid;
         added.append(std::move(copy));
@@ -871,6 +874,29 @@ Result OperationDocument::setLayerOpacity(LayerId layer, quint8 opacity, Propert
     version->layers[index].opacity = opacity;
     version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
     commitPropertyVersion(version, {LayerProperty::Opacity, layer, QVariant::fromValue(snapshot()->layers[index].opacity), QVariant::fromValue(opacity)}, history);
+    return Result::Success;
+}
+
+Result OperationDocument::writeLayerProjectionMask(LayerId layer, quint8 mask)
+{
+    if (mask > 15) return Result::InvalidInput;
+    return writeLayerProperty(layer, LayerProperty::ProjectionMask, &Layer::projectionChannelMask, mask);
+}
+
+Result OperationDocument::setLayerProjectionMask(LayerId layer, quint8 mask, PropertyHistory history)
+{
+    const auto status = checkMutation();
+    if (status != Result::Success) return status;
+    if (mask > 15 || (history != PropertyHistory::Separate && history != PropertyHistory::MergeConsecutive)) return Result::InvalidInput;
+    const auto index = layerIndex(layer);
+    if (index < 0) return Result::LayerUnavailable;
+    if (snapshot()->layers[index].projectionChannelMask == mask) return Result::Success;
+    if (m_nextRevision == std::numeric_limits<quint64>::max()) return Result::CapacityExceeded;
+    auto version = QSharedPointer<DocumentVersion>(new DocumentVersion(*snapshot()));
+    version->layers[index].projectionChannelMask = mask;
+    version->m_modifiedRevision = version->m_revision = ++m_nextRevision;
+    commitPropertyVersion(version, {LayerProperty::ProjectionMask, layer,
+        QVariant::fromValue(snapshot()->layers[index].projectionChannelMask), QVariant::fromValue(mask)}, history);
     return Result::Success;
 }
 

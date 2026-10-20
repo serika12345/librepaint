@@ -29,6 +29,8 @@ private Q_SLOTS:
     void transparentLayerPixelsFollowRootProjectionSemantics();
     void layerCountChangesInvalidateTransparentProjectionReuse();
     void layerOpacityChangesProjectionWithoutChangingSourcePixelsOrRetainedVersions();
+    void projectionChannelsInvalidateGroupReuseAndKeepRetainedPixels_data();
+    void projectionChannelsInvalidateGroupReuseAndKeepRetainedPixels();
     void partialLayerOpacityComposesOverTransparency_data();
     void partialLayerOpacityComposesOverTransparency();
     void normalProjectionPreservesBinary32Rounding_data();
@@ -732,6 +734,54 @@ void KisGpuTileRendererTest::layerOpacityChangesProjectionWithoutChangingSourceP
     const auto restored = project(renderer, undone, QRect(0, 0, 256, 256), updated);
     QVERIFY(restored);
     QCOMPARE(readBuffer(restored->tiles().first().pixels).left(4), QByteArray::fromHex("7f0080ff"));
+}
+
+void KisGpuTileRendererTest::projectionChannelsInvalidateGroupReuseAndKeepRetainedPixels_data()
+{
+    QTest::addColumn<bool>("uniform");
+    QTest::newRow("stored-tiles") << false;
+    QTest::newRow("uniform-defaults") << true;
+}
+
+void KisGpuTileRendererTest::projectionChannelsInvalidateGroupReuseAndKeepRetainedPixels()
+{
+    QFETCH(bool, uniform);
+    RasterImage input;
+    input.size = {256, 256};
+    const QUuid parent(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}"));
+    input.layers = {{QStringLiteral("Lower"), true, QUuid::createUuid(), {}},
+                    {QStringLiteral("Upper"), true, QUuid::createUuid(), {}},
+                    {QStringLiteral("Group"), true, parent, {}}};
+    input.layers[2].kind = LayerKind::Group;
+    input.layers[1].opacity = 128;
+    const QByteArray pixels[] = {QByteArray::fromHex("996633e2"), QByteArray::fromHex("56341286")};
+    for (int index = 0; index < 2; ++index) {
+        auto &layer = input.layers[index];
+        layer.parentUuid = parent;
+        if (uniform) {
+            for (int channel = 0; channel < 4; ++channel) layer.defaultPixel[channel] = quint8(pixels[index][channel]);
+        } else layer.tiles = {{{0, 0}, pixels[index].repeated(RgbaTile::ByteCount / 4)}};
+    }
+    OperationDocument document(input);
+    TileRenderer renderer(m_device);
+    auto current = render(renderer, document.snapshot());
+    QVERIFY(current);
+    auto projection = project(renderer, current, {0, 0, 256, 256});
+    QVERIFY(projection);
+    const auto fixed = projection;
+    QCOMPARE(readBuffer(fixed->tiles().first().pixels), QByteArray::fromHex("865829ea").repeated(RgbaTile::ByteCount / 4));
+    for (const auto mask : {quint8(7), quint8(9)}) {
+        QCOMPARE(document.setLayerProjectionMask(2, mask), Result::Success);
+        auto changed = render(renderer, document.snapshot(), current);
+        QVERIFY(changed);
+        auto updated = project(renderer, changed, {0, 0, 256, 256}, projection);
+        QVERIFY(updated);
+        const auto expected = QByteArray::fromHex(mask == 7 ? "87592ae2" : "866633ea");
+        QCOMPARE(readBuffer(updated->tiles().first().pixels), expected.repeated(RgbaTile::ByteCount / 4));
+        QCOMPARE(readBuffer(fixed->tiles().first().pixels), QByteArray::fromHex("865829ea").repeated(RgbaTile::ByteCount / 4));
+        current = changed;
+        projection = updated;
+    }
 }
 
 void KisGpuTileRendererTest::appendedInputPreservesPixelsOutsideItsChangedTiles()

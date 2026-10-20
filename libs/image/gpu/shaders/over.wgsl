@@ -1,7 +1,7 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
 
-struct CompositeParameters { opacityBits: u32, normalizeBase: u32, padding: vec2<u32>, }
+struct CompositeParameters { opacityBits: u32, normalizeBase: u32, channelMask: u32, padding: u32, }
 @group(0) @binding(0) var<storage, read> basePixels: array<u32>;
 @group(0) @binding(1) var<storage, read> layerPixels: array<u32>;
 @group(0) @binding(2) var<storage, read_write> outputPixels: array<u32>;
@@ -122,23 +122,30 @@ fn main(@builtin(global_invocation_id) invocation: vec3<u32>) {
     var destination = unpackPixel(basePixels[index]);
     if (parameters.normalizeBase != 0u && destination.w == 0u) { destination = vec4<u32>(0u); }
     let source = unpackPixel(layerPixels[index]);
-    if (source.w == 0u) { outputPixels[index] = packPixel(destination); }
-    else if (source.w == 255u && parameters.opacityBits == 0x3f800000u) {
+    if (source.w == 0u) { outputPixels[index] = packPixel(destination); return; }
+    if (parameters.channelMask == 15u && source.w == 255u && parameters.opacityBits == 0x3f800000u) {
         outputPixels[index] = packPixel(source);
+        return;
     }
-    else {
-        let sourceAlpha = projectionScaleByte(parameters.opacityBits, source.w);
-        if (destination.w == 0u) {
-            outputPixels[index] = packPixel(vec4<u32>(source.xyz, projectionByte(sourceAlpha)));
-            return;
-        }
-        var alpha: u32;
-        var blend: u32;
-        if (destination.w == 255u) { alpha = 0x437f0000u; blend = projectionMultiply(sourceAlpha, 0x3b808081u); }
-        else { alpha = projectionAlpha(sourceAlpha, destination.w); blend = projectionDivide(sourceAlpha, alpha); }
-        let color = vec3<u32>(projectionColor(destination.x, source.x, blend),
-                              projectionColor(destination.y, source.y, blend),
-                              projectionColor(destination.z, source.z, blend));
-        outputPixels[index] = packPixel(vec4<u32>(color, projectionByte(alpha)));
+    let sourceAlpha = projectionScaleByte(parameters.opacityBits, source.w);
+    var alpha = destination.w;
+    var blend: u32;
+    if ((parameters.channelMask & 8u) == 0u || destination.w == 255u) {
+        blend = projectionMultiply(sourceAlpha, 0x3b808081u);
+    } else if (destination.w == 0u) {
+        alpha = projectionByte(sourceAlpha);
+        blend = 0x3f800000u;
+        if (parameters.channelMask != 15u) { destination = vec4<u32>(0u); }
+    } else {
+        let value = projectionAlpha(sourceAlpha, destination.w);
+        alpha = projectionByte(value);
+        blend = projectionDivide(sourceAlpha, value);
     }
+    var color = destination.xyz;
+    for (var channel = 0u; channel < 3u; channel += 1u) {
+        if ((parameters.channelMask & (1u << channel)) == 0u) { continue; }
+        if (blend == 0x3f800000u) { color[channel] = source[channel]; }
+        else { color[channel] = projectionColor(destination[channel], source[channel], blend); }
+    }
+    outputPixels[index] = packPixel(vec4<u32>(color, alpha));
 }
