@@ -505,6 +505,12 @@ wgpu-nativeの命令列が参照する資源は、ネイティブ参照を通し
 版と借用バッファーの利用・解放はGPU所有スレッドで行う。
 
 GPU計算、合成、画面提示、外部向け読取りは、Nixで固定したwgpu-nativeのC APIを使う。
+`nix/gpu/wgpu-native.nix`が全OS共通のソースとエラー通知のパッチを所有する。
+待機、読取り、命令送信、表示面の取得と資源解放の失敗は、登録済みの通知先へ
+操作名と原因を返す。内部のエラーに包まれたGPU喪失とメモリ不足も、元の分類を保持する。
+GPU所有者は失敗後の新しい命令記録・送信・画面取得を拒否し、保持中の資源を解放する。
+共通パッチは、上流のC APIが同じ通知と解放の契約を満たし、
+[#89](https://github.com/serika12345/librepaint/issues/89)の対応OSで契約試験が成立した版へ更新するときに取り除く。
 Apple系のGPU所有者はMetal、それ以外のGPU所有者はVulkanを選択する。
 WGSLシェーダーをQtの資源へ格納し、ネイティブGPUでコンパイルする。
 `KisGpuDevice.cpp`がインスタンス、デバイス、キュー、命令列と読取り完了通知を所有する。
@@ -517,9 +523,11 @@ Appleの表示面はCocoaまたはiOSの画面方式を確認してからネイ�
 非表示の画面方式は描画失敗として呼出し元へ返す。
 LinuxのVulkanローダーは`nix/gpu/wgpu-native-runtime.nix`が実行時探索パスへ組み込む。
 この小さい依存派生物はキャッシュ済みのRustライブラリを再利用する。
-Windowsは`nix/windows/wgpu-native.nix`が固定したGNU向けC API配布物を使い、
+Windowsは`nix/windows/wgpu-native.nix`が固定ソースからGNU向けのDLLとリンク用ライブラリーを構築し、
 実行時依存にVulkanローダーを含める。
-Androidは`nix/android/wgpu-native.nix`がarm64とx86_64向けのC API配布物を所有する。
+Androidは`nix/android/wgpu-native.nix`が固定NDKでarm64とx86_64向けのC APIを構築する。
+`nix/gpu/rust-toolchain.nix`はiOSとAndroidのRustコンパイラー・ホスト標準ライブラリー・
+標準ライブラリーのソースを固定し、`nix/gpu/wgpu-native-vendor.nix`がオフライン構築用の依存ソースを集約する。
 共有ライブラリーの配置に依存しない名前、16KiBページ境界、OS依存ライブラリーと
 NDK API 28からの利用側リンクを検査し、アプリと試験の包装へ同じ依存物を供給する。
 GPU依存物は最終的なアプリ用依存集合へ加え、Qt／KFと形式ライブラリーの構築を再利用する。
@@ -1533,7 +1541,7 @@ Nixは公開ソース、パッチ、ホストツールを固定し、外部ラ�
 Xcode、SDKの版・ビルド識別子、対象OS、アーキテクチャはコンパイル済み依存物全体で一致させます。
 C／C++の対象ライブラリーは固定したApple Clangで構築します。GPU実行基盤は
 [`nix/ios/wgpu-native.nix`](../../nix/ios/wgpu-native.nix)がMetalとWGSLを含む静的ライブラリーを所有し、
-[`nix/ios/rust-toolchain.nix`](../../nix/ios/rust-toolchain.nix)の対応するRustコンパイラーと
+[`nix/gpu/rust-toolchain.nix`](../../nix/gpu/rust-toolchain.nix)の対応するRustコンパイラーと
 標準ライブラリーのソースから同じ対象OS・SDK・アーキテクチャへ構築します。
 ホスト生成器はNixコンパイラーで構築し、CMakeとpkg-configは
 宣言した対象依存物だけを検索します。純粋なヘッダーパッケージは`iosTargetIndependent = true`とし、

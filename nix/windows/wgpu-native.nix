@@ -1,27 +1,21 @@
 {
   lib,
   runCommand,
-  fetchurl,
-  unzip,
+  wgpu-native,
 }:
 
 let
-  version = "27.0.4.0";
-  archive = fetchurl {
-    url = "https://github.com/gfx-rs/wgpu-native/releases/download/v${version}/wgpu-windows-x86_64-gnu-release.zip";
-    hash = "sha256-wMLbzvPGqZM6Ghv3y9quvtYaM8gzussCaWYvkVNr6L0=";
-  };
+  native = import ../gpu/wgpu-native.nix { inherit wgpu-native; };
 in
-runCommand "wgpu-native-windows-x86_64-gnu-${version}"
+runCommand "wgpu-native-windows-x86_64-gnu-${native.version}"
   {
-    inherit version;
+    inherit (native) version;
     outputs = [
       "out"
       "dev"
     ];
-    nativeBuildInputs = [ unzip ];
     meta = {
-      description = "Pinned upstream native WebGPU runtime for 64-bit MinGW Windows";
+      description = "Native WebGPU runtime built from pinned source for 64-bit MinGW Windows";
       homepage = "https://github.com/gfx-rs/wgpu-native";
       license = with lib.licenses; [
         mit
@@ -30,11 +24,10 @@ runCommand "wgpu-native-windows-x86_64-gnu-${version}"
     };
   }
   ''
-    unzip -q ${archive}
-    mkdir -p "$out/bin" "$out/share/wgpu-native" "$dev/include" "$dev/lib" "$dev/nix-support"
-    cp -R include/webgpu "$dev/include/"
-    cp -R wgpu-native-meta "$out/share/wgpu-native/"
-    cp lib/wgpu_native.dll "$out/bin/"
-    cp lib/libwgpu_native.dll.a "$dev/lib/"
+    mkdir -p "$out/bin" "$out/share/licenses/wgpu-native" "$dev/include" "$dev/lib" "$dev/nix-support"
+    cp -R ${lib.getDev native}/include/webgpu "$dev/include/"
+    cp ${native}/bin/wgpu_native.dll "$out/bin/"
+    cp ${native}/lib/libwgpu_native.dll.a "$dev/lib/"
+    cp ${native.src}/LICENSE.MIT ${native.src}/LICENSE.APACHE "$out/share/licenses/wgpu-native/"
     printf '%s\n' "$out" > "$dev/nix-support/propagated-build-inputs"
   ''

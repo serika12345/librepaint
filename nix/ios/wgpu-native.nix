@@ -16,23 +16,16 @@
 }:
 
 let
-  standardLibraryVendor = rustPlatform.fetchCargoVendor {
-    name = "librepaint-ios-rust-std-${rustToolchain.version}";
-    src = rustToolchain.standardLibrarySource;
-    cargoRoot = "rust-src/lib/rustlib/src/rust/library";
-    hash = "sha256-hU9x09KB7TacKV9lQBCGwbE9SO7lHfPDi8JMjRXE1qk=";
+  native = import ../gpu/wgpu-native.nix { inherit wgpu-native; };
+  vendor = import ../gpu/wgpu-native-vendor.nix {
+    inherit
+      runCommand
+      rustPlatform
+      rustToolchain
+      wgpu-native
+      ;
   };
-  vendor = runCommand "wgpu-native-ios-vendor-${wgpu-native.version}" { } ''
-    mkdir -p "$out"
-    for crate in ${wgpu-native.cargoDeps}/source-registry-0/* ${standardLibraryVendor}/source-registry-0/*; do
-      name="''${crate##*/}"
-      if test -e "$out/$name"; then
-        cmp "$out/$name/.cargo-checksum.json" "$crate/.cargo-checksum.json"
-      else
-        ln -s "$crate" "$out/$name"
-      fi
-    done
-  '';
+  inherit (vendor) standardLibraryVendor;
   hostLinker = writeShellScript "wgpu-native-ios-host-linker" ''
     unset SDKROOT IPHONEOS_DEPLOYMENT_TARGET
     exec ${stdenv.cc}/bin/cc "$@"
@@ -41,7 +34,7 @@ let
 in
 stdenvNoCC.mkDerivation {
   pname = "wgpu-native-ios";
-  inherit (wgpu-native) version src;
+  inherit (native) version src patches;
   strictDeps = true;
   dontStrip = true;
   dontConfigure = true;

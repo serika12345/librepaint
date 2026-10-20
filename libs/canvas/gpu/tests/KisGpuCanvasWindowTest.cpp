@@ -27,6 +27,7 @@ private Q_SLOTS:
     void benchmarkKeepsOnlyOneOverdueFrame();
     void presentationFramesSubmitThroughTheOwningWindow();
     void unconfiguredSurfacesAreRejectedBeforeNativeSubmission();
+    void failedDevicesRejectSurfaceAcquisitionAndReleaseWindowResources();
 
     void editsAndViewChangesUseSharedExecution();
     void queuedUpdatesIgnoreClosedDocuments();
@@ -348,6 +349,33 @@ void KisGpuCanvasWindowTest::unconfiguredSurfacesAreRejectedBeforeNativeSubmissi
     QVERIFY(surface->configure({128, 128}));
     QCOMPARE(execution.beginPresentationFrame(*surface).code, ExecutionCode::Success);
     QCOMPARE(execution.cancelFrame().code, ExecutionCode::Success);
+}
+
+void KisGpuCanvasWindowTest::failedDevicesRejectSurfaceAcquisitionAndReleaseWindowResources()
+{
+    QString diagnostic;
+    auto device = Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    const std::weak_ptr<Device> lifetime = device;
+    {
+        QWindow window;
+        LibrePaint::Canvas::Gpu::Detail::setNativeSurfaceType(window);
+        window.resize(128, 128);
+        window.show();
+        QVERIFY(QTest::qWaitForWindowExposed(&window));
+        auto surface = LibrePaint::Canvas::Gpu::Detail::createWindowSurface(device, window);
+        QVERIFY(surface->configure(QSizeF(window.size() * window.devicePixelRatio()).toSize()));
+        const WGPUSubmissionIndex invalidSubmission = std::numeric_limits<WGPUSubmissionIndex>::max();
+        QVERIFY(!wgpuDevicePoll(device->nativeDevice(), true, &invalidSubmission));
+        QVERIFY(!device->diagnostic().isEmpty());
+        const auto acquired = surface->acquire();
+        QCOMPARE(acquired.code, ExecutionCode::DeviceFailure);
+        QCOMPARE(acquired.diagnostic, device->diagnostic());
+        QVERIFY(!surface->target());
+        QVERIFY(!device->isRecordingFrame());
+    }
+    device.reset();
+    QVERIFY(lifetime.expired());
 }
 
 

@@ -37,6 +37,7 @@ let
 
   nativeGpu = androidHost.callPackage ./wgpu-native.nix {
     inherit androidAbi androidNdkRoot;
+    rustToolchain = androidHost.callPackage ../gpu/rust-toolchain.nix { };
   };
 
   qtbase = import ./qtbase.nix {

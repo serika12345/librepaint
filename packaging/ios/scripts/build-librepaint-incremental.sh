@@ -36,6 +36,7 @@ if [[ "${KRITA_IOS_INCREMENTAL_ENV:-0}" != "1" ]]; then
                 "$repo_root/packaging/ios/versions.env"
             find \
                 "$repo_root/nix/ios" \
+                "$repo_root/nix/gpu" \
                 "$repo_root/packaging/ios/deps" \
                 "$repo_root/packaging/ios/frameworks" \
                 "$repo_root/packaging/ios/manifests" \

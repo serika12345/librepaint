@@ -402,6 +402,15 @@ MetalまたはVulkanで操作から実際のRGBA8画素を生成し、次の試�
 WGSLシェーダーはQt資源から読み、固定したwgpu-nativeでコンパイルする。
 Nixの開発環境はCMakeの探索先にネイティブGPU依存を追加し、製品構築は同じ依存の
 ヘッダーとライブラリを明示する。Linuxの実行時探索パスにはVulkanローダーを含める。
+`nix/gpu/wgpu-native.nix`のパッチは、全OSで同じエラー分類と通知を供給する。
+ホスト向けの依存物構築はパッチ内のRust試験を実行し、内部に包まれたGPU喪失・メモリ不足と
+内部エラーが正しい通知先へ操作名・原因を渡すことを確認する。
+`KisGpuExecutionTest`は実際のC APIで不正な待機番号、未写像バッファーの読取り、
+同じ命令列の再送信を拒否させ、通知、後続命令の拒否と所有者の解放を検査する。
+GPU喪失を伴う実機検証は、この再現可能な検査エラーの試験とは別に記録する。
+共通GPU定義とパッチの変更は、Windows・Android・iOSの増分環境を更新する入力として扱う。
+ネイティブの開発環境を更新した後は、対象のプリセットで
+`cmake --preset <preset> -U 'WGPUNative_*'`を実行し、GPU依存物の探索結果を更新する。
 
 ```sh
 ./scripts/run-shared-test-env ./scripts/run-test KisGpuTileRendererTest
@@ -1252,7 +1261,8 @@ ctest --test-dir build/winquirks-msvc -C RelWithDebInfo --output-on-failure
 x86_64 Linuxで`arm64-v8a`または`x86_64`向けに構築する。後者はWaydroidでも試験できる。
 SDK／NDK、Qt／KF、JDK／Gradleの固定値は[nix/android](../../nix/android)、
 ソースを共有するiOS依存マニフェスト、`flake.lock`、`nix/android/gradle-deps.json`を参照する。
-GPU実行ライブラリーは`nix/android/wgpu-native.nix`が固定する。ABI、16KiBページ境界、
+GPU実行ライブラリーは`nix/android/wgpu-native.nix`が共通ソースと固定NDKから構築する。
+Rustの対象標準ライブラリーも固定したソースから構築する。ABI、16KiBページ境界、
 配置に依存しない共有ライブラリー名とNDK利用側のリンクを依存物の構築時に検査する。
 アプリ用依存集合と追加ライブラリー指定が、製品APKと試験APKの探索先を供給する。
 Androidの画面プラグインは`nix/android/qt-native-surface.nix`が固定したQt本体に対して
@@ -1581,7 +1591,7 @@ build-incremental ios build
 構築は既定で4並列とし、`CMAKE_BUILD_PARALLEL_LEVEL`で並列数を指定できる。
 
 GPU実行基盤の依存定義は`nix/ios/wgpu-native.nix`、Rustのコンパイラー・ホスト標準ライブラリー・
-標準ライブラリーソースの固定値は`nix/ios/rust-toolchain.nix`が所有する。
+標準ライブラリーソースの固定値は`nix/gpu/rust-toolchain.nix`が所有する。
 対象標準ライブラリーは固定SDKと最小OSでソースから構築する。依存定義の変更後は増分環境を
 一度更新し、通常のソース編集では記録済み環境を再利用する。依存物の構築時に全静的アーカイブ
 要素を検査し、C API利用側の最終リンクまで確認する。

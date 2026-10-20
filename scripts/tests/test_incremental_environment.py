@@ -15,6 +15,7 @@ import unittest
 
 
 ENTRY = Path(__file__).resolve().parents[1] / "platform/enter-incremental-environment"
+IOS_ENTRY = Path(__file__).resolve().parents[2] / "packaging/ios/scripts/build-librepaint-incremental.sh"
 PROBE_KEYS = (
     "INCREMENTAL_CONTRACT_READY", "INCREMENTAL_CONTRACT_ENTERED",
     "Boost_DIR", "Qt6WaylandClient_DIR", "LIBREPAINT_CACHE_ROOT",
@@ -120,6 +121,71 @@ class IncrementalEnvironmentTest(unittest.TestCase):
         self.assertEqual(result["arguments"], arguments)
         for key, value in controls.items():
             self.assertEqual(result["environment"].get(key), value, key)
+
+    def test_shared_gpu_patch_refreshes_cross_profiles_while_application_edits_reuse_them(self):
+        for platform in ("windows", "android", "android-x86_64", "ios"):
+            with self.subTest(platform=platform), tempfile.TemporaryDirectory() as directory:
+                root = Path(directory).resolve()
+                ios = platform == "ios"
+                entry = root / ("packaging/ios/scripts/build-librepaint-incremental.sh" if ios
+                                else "scripts/platform/enter-incremental-environment")
+                entry.parent.mkdir(parents=True)
+                shutil.copy2(IOS_ENTRY if ios else ENTRY, entry)
+                configuration = root / "nix" / ("android" if platform == "android-x86_64" else platform)
+                configuration.mkdir(parents=True)
+                (configuration / "default.nix").write_text("{}\n")
+                patch = root / "nix/gpu/patches/device-errors.patch"
+                patch.parent.mkdir(parents=True)
+                patch.write_text("initial GPU dependency\n")
+                for name in ("flake.nix", "flake.lock"):
+                    (root / name).write_text("{}\n")
+                refreshes = root / "refreshes"
+                binary = root / "bin/nix"
+                binary.parent.mkdir()
+                if ios:
+                    for name in ("deps", "frameworks", "manifests", "qt"):
+                        (root / "packaging/ios" / name).mkdir()
+                    (root / "packaging/ios/versions.env").write_text("\n")
+                    git = binary.parent / "git"
+                    git.write_text(f"#!{sys.executable}\nprint({str(root)!r})\n")
+                    git.chmod(0o755)
+                binary.write_text(
+                    f"#!{sys.executable}\n"
+                    "import os, pathlib, sys\n"
+                    "args = sys.argv[1:]\n"
+                    "if len(args) > 1 and args[0] == 'develop' and args[1].startswith('.#'):\n"
+                    f"    with open({str(refreshes)!r}, 'a') as out: out.write('refresh\\n')\n"
+                    "    profile = pathlib.Path(args[args.index('--profile') + 1])\n"
+                    "    if not profile.exists():\n"
+                    f"        profile.symlink_to({self.profile!r})\n"
+                    "    sys.exit(0)\n"
+                    "if args[:2] == ['profile', 'wipe-history']: sys.exit(0)\n"
+                    + ("if args and args[0] == 'develop': sys.exit(0)\n" if ios else "") +
+                    f"os.execv({shutil.which('nix')!r}, [{shutil.which('nix')!r}, *args])\n"
+                )
+                binary.chmod(0o755)
+                environment = os.environ | {"PATH": str(binary.parent) + os.pathsep + os.environ["PATH"]}
+                command = ["bash", str(entry), platform, f"librepaint-{platform}",
+                           "INCREMENTAL_CONTRACT_ENTERED", sys.executable, "-c",
+                           "import os; assert os.environ['INCREMENTAL_CONTRACT_READY'] == '1'"]
+                if ios:
+                    command = ["bash", str(entry), "path"]
+
+                def enter():
+                    result = subprocess.run(command, cwd=root, env=environment,
+                                            capture_output=True, text=True, timeout=30)
+                    self.assertEqual(result.returncode, 0, result.stderr)
+
+                enter()
+                self.assertEqual(refreshes.read_text().splitlines(), ["refresh"])
+                patch.write_text("updated GPU dependency\n")
+                enter()
+                self.assertEqual(refreshes.read_text().splitlines(), ["refresh", "refresh"])
+                source = root / "libs/paint.cpp"
+                source.parent.mkdir()
+                source.write_text("application edit\n")
+                enter()
+                self.assertEqual(refreshes.read_text().splitlines(), ["refresh", "refresh"])
 
 
 if __name__ == "__main__":

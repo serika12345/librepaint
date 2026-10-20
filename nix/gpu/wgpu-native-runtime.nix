@@ -7,13 +7,16 @@
   patchelf,
 }:
 
+let
+  native = import ./wgpu-native.nix { inherit wgpu-native; };
+in
 if !stdenv.hostPlatform.isLinux then
-  wgpu-native
+  native
 else
   # Preserve the cached Rust library while supplying its runtime-loaded Vulkan dependency.
-  runCommand "wgpu-native-runtime-${wgpu-native.version}"
+  runCommand "wgpu-native-runtime-${native.version}"
     {
-      inherit (wgpu-native) version meta;
+      inherit (native) version meta;
       outputs = [
         "out"
         "dev"
@@ -22,8 +25,8 @@ else
     }
     ''
       mkdir -p "$out/lib" "$dev/nix-support"
-      install -m755 ${wgpu-native}/lib/libwgpu_native.so "$out/lib/"
+      install -m755 ${native}/lib/libwgpu_native.so "$out/lib/"
       patchelf --add-rpath ${lib.makeLibraryPath [ vulkan-loader ]} "$out/lib/libwgpu_native.so"
-      ln -s ${lib.getDev wgpu-native}/include "$dev/include"
+      ln -s ${lib.getDev native}/include "$dev/include"
       printf '%s\n' "$out" > "$dev/nix-support/propagated-build-inputs"
     ''

@@ -78,6 +78,8 @@ ExecutionOutcome PresentationSurface::acquire()
     auto &d = *m_d;
     if (d.device->thread() != QThread::currentThread() || d.texture)
         return {ExecutionCode::InvalidRequest, QStringLiteral("The native surface is already acquired or belongs to another thread")};
+    const auto diagnostic = d.device->diagnostic();
+    if (d.device->isLost() || !diagnostic.isEmpty()) return {ExecutionCode::DeviceFailure, diagnostic};
     if (d.size.isEmpty()) return {ExecutionCode::SurfaceOutOfDate, QStringLiteral("The native surface requires configuration")};
     WGPUSurfaceTexture current{};
     wgpuSurfaceGetCurrentTexture(d.surface.get(), &current);

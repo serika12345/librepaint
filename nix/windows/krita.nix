@@ -6,7 +6,7 @@
 let
   inherit (pkgs) lib;
   buildPkgs = pkgs.buildPackages;
-  wgpuNative = buildPkgs.callPackage ./wgpu-native.nix { };
+  wgpuNative = buildPkgs.callPackage ./wgpu-native.nix { wgpu-native = pkgs.wgpu-native; };
   # Qt's host tools do not need systemd/journald.  Leaving it enabled brings
   # a hardware TPM integration suite into the native tool dependency graph.
   hostQtBase = buildPkgs.qt6Packages.qtbase.override {

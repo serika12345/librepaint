@@ -147,7 +147,7 @@ let
     inherit toolchain;
   };
 
-  rust-ios-toolchain = pkgs.callPackage ./rust-toolchain.nix { };
+  rust-ios-toolchain = pkgs.callPackage ../gpu/rust-toolchain.nix { };
   wgpu-native-ios = pkgs.callPackage ./wgpu-native.nix {
     inherit toolchain;
     rustToolchain = rust-ios-toolchain;

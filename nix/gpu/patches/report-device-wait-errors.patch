@@ -1,0 +1,428 @@
+--- a/src/lib.rs
++++ b/src/lib.rs
+@@ -30,6 +30,7 @@
+ };
+ 
+ use crate::conv::map_primitive_state;
++use wgt::error::{ErrorType, WebGpuError};
+ 
+ pub mod conv;
+ pub mod logging;
+@@ -190,7 +191,7 @@
+             // pre v27 this would wait for 60 seconds instead of waiting indefinitely
+             match context.device_poll(self.id, wgt::PollType::wait_indefinitely()) {
+                 Ok(_) => (),
+-                Err(err) => handle_error_fatal(err, "WGPUDeviceImpl::drop"),
++                Err(err) => handle_wait_error(&self.error_sink, err, "WGPUDeviceImpl::drop"),
+             }
+ 
+             context.device_drop(self.id);
+@@ -375,7 +376,7 @@
+             if !self.has_surface_presented.load(atomic::Ordering::SeqCst) {
+                 match self.context.surface_texture_discard(surface_id) {
+                     Ok(_) => (),
+-                    Err(cause) => handle_error_fatal(cause, "wgpuTextureRelease"),
++                    Err(cause) => handle_error(&self.error_sink, cause, None, "wgpuTextureRelease"),
+                 }
+             }
+         }
+@@ -445,6 +446,10 @@
+ 
+ #[derive(Debug)]
+ pub enum Error {
++    Internal {
++        source: Box<dyn error::Error + Send + 'static>,
++        description: String,
++    },
+     DeviceLost {
+         source: Box<dyn error::Error + Send + 'static>,
+     },
+@@ -457,9 +462,19 @@
+     },
+ }
+ 
++impl Error {
++    fn message(&self) -> String {
++        match self {
++            Self::Validation { description, .. } | Self::Internal { description, .. } => description.clone(),
++            _ => format_error(self),
++        }
++    }
++}
++
+ impl error::Error for Error {
+     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+         match self {
++            Error::Internal { source, .. } => Some(source.as_ref()),
+             Error::DeviceLost { source } => Some(source.as_ref()),
+             Error::OutOfMemory { source } => Some(source.as_ref()),
+             Error::Validation { source, .. } => Some(source.as_ref()),
+@@ -470,6 +485,7 @@
+ impl Display for Error {
+     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+         match self {
++            Error::Internal { description, .. } => f.write_str(description),
+             Error::DeviceLost { .. } => f.write_str("Device lost"),
+             Error::OutOfMemory { .. } => f.write_str("Out of Memory"),
+             Error::Validation { description, .. } => f.write_str(description),
+@@ -479,6 +495,7 @@
+ 
+ #[derive(Clone, Copy, Debug, Eq, PartialEq, PartialOrd)]
+ pub enum ErrorFilter {
++    Internal,
+     /// Catch only out-of-memory errors.
+     OutOfMemory,
+     /// Catch only validation errors.
+@@ -511,16 +528,17 @@
+ 
+     fn handle_error(&mut self, err: crate::Error) {
+         let (typ, filter) = match err {
++            crate::Error::Internal { .. } => (native::WGPUErrorType_Internal, crate::ErrorFilter::Internal),
+             crate::Error::DeviceLost { .. } => {
+                 // handle device lost error early
+                 if let Some(callback) = self.device_lost_handler.callback {
+                     let userdata = &self.device_lost_handler.userdata;
+-                    let msg = err.to_string();
++                    let msg = err.message();
+                     let device = self.device.as_ptr();
+                     unsafe {
+                         callback(
+                             &device,
+-                            native::WGPUDeviceLostReason_Destroyed,
++                            native::WGPUDeviceLostReason_Unknown,
+                             str_into_string_view(&msg),
+                             userdata.get_1(),
+                             userdata.get_2(),
+@@ -553,7 +571,7 @@
+             None => {
+                 if let Some(callback) = self.uncaptured_handler.callback {
+                     let userdata = &self.uncaptured_handler.userdata;
+-                    let msg = err.to_string();
++                    let msg = err.message();
+                     let device = self.device.as_ptr();
+                     unsafe {
+                         callback(
+@@ -606,9 +624,32 @@
+     panic!("Error in {operation}: {f}", f = format_error(&cause));
+ }
+ 
++fn handle_wait_error(
++    sink: &Mutex<ErrorSinkRaw>,
++    source: wgc::device::WaitIdleError,
++    operation: &'static str,
++) {
++    let typ = match &source {
++        wgc::device::WaitIdleError::Device(error) => error.webgpu_error_type(),
++        _ => ErrorType::Validation,
++    };
++    handle_error_with_type(sink, source, typ, None, operation);
++}
++
+ fn handle_error(
++    sink: &Mutex<ErrorSinkRaw>,
++    source: impl WebGpuError + Send + Sync,
++    label: Label<'_>,
++    operation: &'static str,
++) {
++    let typ = source.webgpu_error_type();
++    handle_error_with_type(sink, source, typ, label, operation);
++}
++
++fn handle_error_with_type(
+     sink_mutex: &Mutex<ErrorSinkRaw>,
+     source: impl error::Error + Send + Sync + 'static,
++    typ: ErrorType,
+     label: Label<'_>,
+     fn_ident: &'static str,
+ ) {
+@@ -617,30 +658,19 @@
+         source: Box::new(source),
+         label: label.unwrap_or_default().to_string(),
+     };
+-    let mut sink = sink_mutex.lock();
+-    let mut source_opt: Option<&(dyn error::Error + 'static)> = Some(&error);
+-    while let Some(source) = source_opt {
+-        match source.downcast_ref::<wgc::device::DeviceError>() {
+-            Some(wgc::device::DeviceError::Lost) => {
+-                return sink.handle_error(crate::Error::DeviceLost {
+-                    source: Box::new(error),
+-                });
+-            }
+-            Some(wgc::device::DeviceError::OutOfMemory) => {
+-                return sink.handle_error(crate::Error::OutOfMemory {
+-                    source: Box::new(error),
+-                });
+-            }
+-            _ => (),
+-        }
+-        source_opt = source.source();
+-    }
+-
+-    // Otherwise, it is a validation error
+-    sink.handle_error(crate::Error::Validation {
+-        description: format_error(&error),
+-        source: Box::new(error),
+-    });
++    let error = match typ {
++        ErrorType::DeviceLost => crate::Error::DeviceLost { source: Box::new(error) },
++        ErrorType::OutOfMemory => crate::Error::OutOfMemory { source: Box::new(error) },
++        ErrorType::Internal => crate::Error::Internal {
++            description: format_error(&error),
++            source: Box::new(error),
++        },
++        ErrorType::Validation => crate::Error::Validation {
++            description: format_error(&error),
++            source: Box::new(error),
++        },
++    };
++    sink_mutex.lock().handle_error(error);
+ }
+ 
+ // webgpu.h functions
+@@ -916,9 +946,9 @@
+     offset: usize,
+     size: usize,
+ ) -> *const u8 {
+-    let (buffer_id, context) = {
++    let (buffer_id, context, error_sink) = {
+         let buffer = buffer.as_ref().expect("invalid buffer");
+-        (buffer.id, &buffer.context)
++        (buffer.id, &buffer.context, &buffer.error_sink)
+     };
+ 
+     let buf = match context.buffer_get_mapped_range(
+@@ -930,7 +960,10 @@
+         },
+     ) {
+         Ok((ptr, _)) => ptr,
+-        Err(err) => handle_error_fatal(err, "wgpuBufferGetConstMappedRange"),
++        Err(err) => {
++            handle_error(error_sink, err, None, "wgpuBufferGetConstMappedRange");
++            return std::ptr::null();
++        }
+     };
+ 
+     buf.as_ptr()
+@@ -2381,9 +2414,10 @@
+     ) {
+         Ok(source) => source,
+         Err(cause) => {
+-            handle_error(
++            handle_error_with_type(
+                 error_sink,
+                 cause,
++                ErrorType::Validation,
+                 desc_label,
+                 "wgpuDeviceCreateShaderModule",
+             );
+@@ -2570,6 +2604,7 @@
+     match scope.error {
+         Some(error) => {
+             let typ = match error {
++                crate::Error::Internal { .. } => native::WGPUErrorType_Internal,
+                 crate::Error::OutOfMemory { .. } => native::WGPUErrorType_OutOfMemory,
+                 crate::Error::Validation { .. } => native::WGPUErrorType_Validation,
+                 // We handle device lost error early in ErrorSinkRaw::handle_error
+@@ -2577,7 +2612,7 @@
+                 crate::Error::DeviceLost { .. } => unreachable!(),
+             };
+ 
+-            let msg = error.to_string();
++            let msg = error.message();
+             unsafe {
+                 callback(
+                     native::WGPUPopErrorScopeStatus_Success,
+@@ -2614,6 +2649,7 @@
+     error_sink.scopes.push(ErrorScope {
+         error: None,
+         filter: match filter {
++            native::WGPUErrorFilter_Internal => ErrorFilter::Internal,
+             native::WGPUErrorFilter_Validation => ErrorFilter::Validation,
+             native::WGPUErrorFilter_OutOfMemory => ErrorFilter::OutOfMemory,
+             _ => panic!("invalid error filter"),
+@@ -2919,9 +2955,9 @@
+     command_count: usize,
+     commands: *const native::WGPUCommandBuffer,
+ ) {
+-    let (queue_id, context) = {
++    let (queue_id, context, error_sink) = {
+         let queue = queue.as_ref().expect("invalid queue");
+-        (queue.queue.id, &queue.queue.context)
++        (queue.queue.id, &queue.queue.context, &queue.error_sink)
+     };
+ 
+     let command_buffers = make_slice(commands, command_count)
+@@ -2934,7 +2970,7 @@
+         .collect::<SmallVec<[_; 4]>>();
+ 
+     if let Err(cause) = context.queue_submit(queue_id, &command_buffers) {
+-        handle_error_fatal(cause.1, "wgpuQueueSubmit");
++        handle_error(error_sink, cause.1, None, "wgpuQueueSubmit");
+     }
+ }
+ 
+@@ -3876,7 +3912,7 @@
+     ));
+ 
+     match context.surface_configure(surface.id, device.id, &surface_config) {
+-        Some(cause) => handle_error_fatal(cause, "wgpuSurfaceConfigure"),
++        Some(cause) => handle_error(&device.error_sink, cause, None, "wgpuSurfaceConfigure"),
+         None => {
+             let mut surface_data_guard = surface.data.lock();
+             *surface_data_guard = Some(SurfaceData {
+@@ -4030,7 +4066,11 @@
+                 None => std::ptr::null_mut(),
+             };
+         }
+-        Err(cause) => handle_error_fatal(cause, "wgpuSurfaceGetCurrentTexture"),
++        Err(cause) => {
++            handle_error(&surface_data.error_sink, cause, None, "wgpuSurfaceGetCurrentTexture");
++            surface_texture.texture = std::ptr::null_mut();
++            surface_texture.status = native::WGPUSurfaceGetCurrentTextureStatus_Error;
++        }
+     };
+ }
+ 
+@@ -4287,9 +4327,9 @@
+     wait: bool,
+     submission_index: Option<&native::WGPUSubmissionIndex>,
+ ) -> bool {
+-    let (device_id, context) = {
++    let (device_id, context, error_sink) = {
+         let device = device.as_ref().expect("invalid device");
+-        (device.id, &device.context)
++        (device.id, &device.context, &device.error_sink)
+     };
+ 
+     let maintain = match wait {
+@@ -4307,7 +4347,8 @@
+         Ok(wgt::PollStatus::QueueEmpty) => true,
+         Ok(_) => false,
+         Err(cause) => {
+-            handle_error_fatal(cause, "wgpuDevicePoll");
++            handle_wait_error(error_sink, cause, "wgpuDevicePoll");
++            false
+         }
+     }
+ }
+@@ -4681,3 +4722,120 @@
+         ),
+     }
+ }
++
++#[cfg(test)]
++mod librepaint_device_error_contract {
++    use super::*;
++
++    #[derive(Default)]
++    struct Notice {
++        reason: Option<native::WGPUDeviceLostReason>,
++        error_type: Option<native::WGPUErrorType>,
++        message: String,
++    }
++
++    unsafe extern "C" fn record_loss(
++        _device: *const native::WGPUDevice,
++        reason: native::WGPUDeviceLostReason,
++        message: native::WGPUStringView,
++        userdata1: *mut std::ffi::c_void,
++        _userdata2: *mut std::ffi::c_void,
++    ) {
++        let notice = unsafe { &mut *userdata1.cast::<Notice>() };
++        notice.reason = Some(reason);
++        let bytes = unsafe { std::slice::from_raw_parts(message.data.cast::<u8>(), message.length) };
++        notice.message = std::str::from_utf8(bytes).unwrap().to_owned();
++    }
++
++    unsafe extern "C" fn record_error(
++        _device: *const native::WGPUDevice,
++        error_type: native::WGPUErrorType,
++        message: native::WGPUStringView,
++        userdata1: *mut std::ffi::c_void,
++        _userdata2: *mut std::ffi::c_void,
++    ) {
++        let notice = unsafe { &mut *userdata1.cast::<Notice>() };
++        notice.error_type = Some(error_type);
++        let bytes = unsafe { std::slice::from_raw_parts(message.data.cast::<u8>(), message.length) };
++        notice.message = std::str::from_utf8(bytes).unwrap().to_owned();
++    }
++
++    fn recording_sink(notice: &mut Notice) -> Mutex<ErrorSinkRaw> {
++        let userdata = (notice as *mut Notice).cast();
++        let mut sink = ErrorSinkRaw::new(DeviceLostCallback {
++            callback: Some(record_loss),
++            userdata: utils::Userdata::new(userdata, std::ptr::null_mut()),
++        }, Weak::new());
++        sink.uncaptured_handler = UncapturedErrorCallback {
++            callback: Some(record_error),
++            userdata: utils::Userdata::new(userdata, std::ptr::null_mut()),
++        };
++        Mutex::new(sink)
++    }
++
++    #[test]
++    fn device_loss_reaches_the_client_with_its_cause() {
++        for site in ["wgpuDevicePoll", "WGPUDeviceImpl::drop", "wgpuSurfaceGetCurrentTexture"] {
++            let mut notice = Notice::default();
++            let sink = recording_sink(&mut notice);
++            handle_error(&sink, wgc::device::DeviceError::Lost, None, site);
++            assert_eq!(notice.reason, Some(native::WGPUDeviceLostReason_Unknown));
++            assert!(notice.message.contains(site));
++            assert!(notice.message.contains("Parent device is lost"));
++        }
++    }
++
++    #[test]
++    fn a_surface_error_retains_the_underlying_device_loss() {
++        let mut notice = Notice::default();
++        let sink = recording_sink(&mut notice);
++        handle_error(
++            &sink,
++            wgc::present::SurfaceError::Device(wgc::device::DeviceError::Lost),
++            None,
++            "wgpuSurfaceGetCurrentTexture",
++        );
++        assert_eq!(notice.reason, Some(native::WGPUDeviceLostReason_Unknown));
++        assert!(notice.message.contains("wgpuSurfaceGetCurrentTexture"));
++        assert!(notice.message.contains("Parent device is lost"));
++    }
++    #[test]
++    fn wait_and_submission_errors_keep_device_loss_and_memory_failure_distinct() {
++        for memory_failure in [false, true] {
++            let mut wait_notice = Notice::default();
++            let wait_sink = recording_sink(&mut wait_notice);
++            let mut queue_notice = Notice::default();
++            let queue_sink = recording_sink(&mut queue_notice);
++            let cause = if memory_failure {
++                wgc::device::DeviceError::OutOfMemory
++            } else {
++                wgc::device::DeviceError::Lost
++            };
++            handle_wait_error(&wait_sink, wgc::device::WaitIdleError::Device(cause.clone()), "wgpuDevicePoll");
++            handle_error(&queue_sink, wgc::device::queue::QueueSubmitError::Queue(cause), None, "wgpuQueueSubmit");
++            for notice in [&wait_notice, &queue_notice] {
++                if memory_failure {
++                    assert_eq!(notice.reason, None);
++                    assert_eq!(notice.error_type, Some(native::WGPUErrorType_OutOfMemory));
++                } else {
++                    assert_eq!(notice.reason, Some(native::WGPUDeviceLostReason_Unknown));
++                    assert_eq!(notice.error_type, None);
++                }
++            }
++            assert!(wait_notice.message.contains("wgpuDevicePoll"));
++            assert!(queue_notice.message.contains("wgpuQueueSubmit"));
++        }
++    }
++
++    #[test]
++    fn a_pipeline_internal_error_reaches_the_internal_error_handler() {
++        let mut notice = Notice::default();
++        let sink = recording_sink(&mut notice);
++        handle_error(&sink, wgc::pipeline::CreateComputePipelineError::Internal("compiler failed".into()), None, "wgpuDeviceCreateComputePipeline");
++        assert_eq!(notice.reason, None);
++        assert_eq!(notice.error_type, Some(native::WGPUErrorType_Internal));
++        assert!(notice.message.contains("wgpuDeviceCreateComputePipeline"));
++        assert!(notice.message.contains("compiler failed"));
++    }
++
++}

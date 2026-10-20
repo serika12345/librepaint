@@ -35,6 +35,9 @@ configuration_fingerprint="$({
     {
         printf '%s\n' "$repo_root/flake.nix" "$repo_root/flake.lock"
         find "$configuration_root" -type f -print
+        if [[ -d "$repo_root/nix/gpu" ]]; then
+            find "$repo_root/nix/gpu" -type f -print
+        fi
     } | LC_ALL=C sort | while IFS= read -r input_path; do
         printf 'path=%s\n' "${input_path#"$repo_root/"}"
         sha256sum "$input_path"

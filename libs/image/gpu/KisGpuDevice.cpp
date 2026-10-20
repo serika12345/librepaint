@@ -78,7 +78,7 @@ WGPUCommandEncoder Device::beginCommands()
 {
     if (thread() != QThread::currentThread() || isRecordingFrame() || isLost() || !diagnostic().isEmpty()) return nullptr;
     wgpuDevicePoll(nativeDevice(), false, nullptr);
-    if (readbackPending()) return nullptr;
+    if (isLost() || m_d->failed.load(std::memory_order_acquire) || readbackPending()) return nullptr;
     releaseCompletedReadback();
     m_d->commands.reset(wgpuDeviceCreateCommandEncoder(nativeDevice(), nullptr));
     return m_d->commands.get();
@@ -88,9 +88,10 @@ bool Device::submitCommands(bool wait)
     if (thread() != QThread::currentThread() || !isRecordingFrame()) return false;
     auto commands = std::move(m_d->commands);
     NativeSubmission submission(wgpuCommandEncoderFinish(commands.get(), nullptr));
-    if (!submission) return false;
+    if (!submission || isLost() || m_d->failed.load(std::memory_order_acquire)) return false;
     const auto buffer = submission.get();
     wgpuQueueSubmit(queue(), 1, &buffer);
+    if (isLost() || m_d->failed.load(std::memory_order_acquire)) return false;
     if (readbackPending()) m_d->readback->start(*this);
     if (wait) return finish();
     wgpuDevicePoll(nativeDevice(), false, nullptr);
