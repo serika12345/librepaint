@@ -44,6 +44,7 @@
 #include <KoColorSpaceRegistry.h>
 #include <KoColorProfile.h>
 #include <KoColor.h>
+#include <KisUniqueColorSet.h>
 #include <KoStore.h>
 
 #include <document/KisDocument.h>
@@ -91,6 +92,106 @@ void initializeGpuDocument(KisDocument *document, QSize size, const QString &nam
     auto owner = LibrePaint::Image::Gpu::PaintImageSP::create(execution, size);
     document->setCurrentImage(KisImage::fromGpuImage(owner, name));
 }
+}
+
+void TestDocument::testColorHistoryReplacementAndCopyKeepNewestFirst_data()
+{
+    QTest::addColumn<bool>("gpu");
+    QTest::newRow("ordinary") << false;
+    QTest::newRow("gpu") << true;
+}
+
+void TestDocument::testColorHistoryReplacementAndCopyKeepNewestFirst()
+{
+    QFETCH(bool, gpu);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    const KoColor newest(QColor(192, 17, 64), cs), older(QColor(37, 163, 82), cs), other(QColor(25, 64, 211), cs);
+    const QList<KoColor> expected{newest, older};
+    const auto initialize = [&](KisDocument *document) {
+        if (gpu) initializeGpuDocument(document, {4, 4}, QStringLiteral("Color history"));
+        else {
+            KisImageSP image = new KisImage(document->createUndoStore(), 4, 4, cs, QStringLiteral("Color history"));
+            image->addNode(new KisPaintLayer(image, QStringLiteral("Paint"), 255));
+            document->setCurrentImage(image);
+            image->waitForDone();
+        }
+    };
+    QScopedPointer<KisDocument> source(KisPart::instance()->createDocument());
+    initialize(source.data());
+    source->setColorHistoryColors(expected);
+    QCOMPARE(source->colorHistoryColors(), expected);
+    QScopedPointer<KisDocument> snapshot(source->lockAndCreateSnapshot());
+    QVERIFY(snapshot);
+    QCOMPARE(snapshot->colorHistoryColors(), expected);
+    QScopedPointer<KisDocument> restored(KisPart::instance()->createDocument());
+    initialize(restored.data());
+    restored->setColorHistoryColors({other});
+    restored->copyFromDocument(*source);
+    QCOMPARE(restored->colorHistoryColors(), expected);
+    restored->colorHistoryModel()->addColor(other);
+    QCOMPARE(restored->colorHistoryColors(), (QList<KoColor>{other, newest, older}));
+    QCOMPARE(source->colorHistoryColors(), expected);
+    QCOMPARE(snapshot->colorHistoryColors(), expected);
+    source.reset();
+    QCOMPARE(restored->colorHistoryColors(), (QList<KoColor>{other, newest, older}));
+    QCOMPARE(snapshot->colorHistoryColors(), expected);
+}
+
+void TestDocument::testNativeSavingKeepsColorHistoryOrderAndSelectedColor()
+{
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    KisImageSP image = new KisImage(document->createUndoStore(), 4, 4, cs, QStringLiteral("Color history"));
+    KisPaintLayerSP layer = new KisPaintLayer(image, QStringLiteral("Paint"), 255);
+    layer->setUuid(QUuid(QStringLiteral("{01020304-0506-0708-090a-0b0c0d0e0f10}")));
+    image->addNode(layer);
+    document->setCurrentImage(image);
+    image->initialRefreshGraph();
+    image->waitForDone();
+    const QColor newest(192, 17, 64), older(37, 163, 82);
+    document->colorHistoryModel()->addColor(KoColor(older, cs));
+    document->colorHistoryModel()->addColor(KoColor(newest, cs));
+    const auto before = document->colorHistoryColors();
+    document->setAssistantsGlobalColor(QColor(17, 63, 129, 201));
+    document->documentInfo()->setAboutInfo("title", QStringLiteral("Fixed color history"));
+    document->documentInfo()->setAboutInfo("initial-creator", QStringLiteral("LibrePaint fixture"));
+    document->documentInfo()->setAboutInfo("language", QStringLiteral("en"));
+    document->documentInfo()->setAboutInfo("creation-date", QStringLiteral("2000-01-02T03:04:05Z"));
+    KisPropertiesConfigurationSP settings(new KisPropertiesConfiguration);
+    settings->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));
+    document->setModified(true);
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto destination = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", directory.path());
+    QVERIFY(QDir().mkpath(destination));
+    const auto path = QDir(destination).filePath(QStringLiteral("color-history-native.kra"));
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            directory.setAutoRemove(false);
+            qInfo() << "Color history save artifacts retained at" << destination;
+        }
+    });
+    QVERIFY2(document->saveAs(path, KisDocument::nativeFormatMimeType(), false, settings), qPrintable(document->errorMessage()));
+    document->waitForSavingToComplete();
+    QCOMPARE(document->colorHistoryColors(), before);
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY2(reopened->openPath(path, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+    const auto restored = reopened->colorHistoryColors();
+    QCOMPARE(restored.size(), 2);
+    // KRA's existing normalized color XML may use another channel depth.
+    // Retain the exact selected colors and their priority when painting again.
+    QCOMPARE(restored[0].toQColor(), newest);
+    QCOMPARE(restored[1].toQColor(), older);
+    auto *paint = dynamic_cast<KisPaintLayer *>(reopened->image()->root()->firstChild().data());
+    QVERIFY(paint);
+    auto selectedColor = restored[0];
+    selectedColor.convertTo(paint->colorSpace());
+    paint->paintDevice()->fill(QRect(1, 1, 1, 1), selectedColor);
+    QByteArray pixel(4, '\0');
+    paint->paintDevice()->readBytes(reinterpret_cast<quint8 *>(pixel.data()), 1, 1, 1, 1);
+    QCOMPARE(pixel, QByteArray::fromHex("4011c0ff"));
 }
 
 void TestDocument::testExportImageWaitsForImageProcessingAndPreservesSource()

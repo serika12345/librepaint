@@ -12,6 +12,9 @@ class TestDocument : public QObject
 {
     Q_OBJECT
 private Q_SLOTS:
+    void testColorHistoryReplacementAndCopyKeepNewestFirst_data();
+    void testColorHistoryReplacementAndCopyKeepNewestFirst();
+    void testNativeSavingKeepsColorHistoryOrderAndSelectedColor();
     void testExportImageWaitsForImageProcessingAndPreservesSource();
     void testCanvasResizePreservesPixelsHistoryAndSaving_data();
     void testCanvasResizePreservesPixelsHistoryAndSaving();
