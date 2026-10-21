@@ -9,6 +9,12 @@ kis_add_test(KisGpuCanvasWindowTest.cpp
     LINK_LIBRARIES kritacanvasgputilepresentation kritagpuimage Qt6::Gui Qt6::Test WGPUNative::WGPUNative
 )
 target_compile_definitions(KisGpuCanvasWindowTest PRIVATE kritacanvas_EXPORTS)
+if(BUILD_TESTING AND NOT IOS AND NOT ANDROID)
+    add_test(NAME libs-canvas-gpu-offscreen-KisGpuCanvasWindowTest
+        COMMAND KisGpuCanvasWindowTest unconfiguredSurfacesAreRejectedBeforeNativeSubmission)
+    set_tests_properties(libs-canvas-gpu-offscreen-KisGpuCanvasWindowTest PROPERTIES
+        ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+endif()
 
 add_executable(KisGpuInteractiveFrameBenchmark EXCLUDE_FROM_ALL KisGpuInteractiveFrameBenchmark.cpp)
 target_link_libraries(KisGpuInteractiveFrameBenchmark PRIVATE

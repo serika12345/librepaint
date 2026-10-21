@@ -54,11 +54,15 @@ std::unique_ptr<Image::Gpu::PresentationSurface> createWindowSurface(Image::Gpu:
 {
     if (nativeIdentity) *nativeIdentity = 0;
 #ifdef Q_OS_WIN
+    if (QGuiApplication::platformName() != QLatin1String("windows"))
+        throw std::runtime_error("The Qt platform does not provide a native Windows window");
     WGPUSurfaceDescriptor descriptor{};
     WGPUSurfaceSourceWindowsHWND source{};
     source.chain.sType = WGPUSType_SurfaceSourceWindowsHWND;
     source.hinstance = GetModuleHandle(nullptr);
     source.hwnd = reinterpret_cast<HWND>(window.winId());
+    if (!source.hinstance || !IsWindow(static_cast<HWND>(source.hwnd)))
+        throw std::runtime_error("The Windows window has no native surface");
     descriptor.nextInChain = &source.chain;
     return std::make_unique<Image::Gpu::PresentationSurface>(std::move(device), descriptor);
 #elif defined(Q_OS_ANDROID)
@@ -76,21 +80,29 @@ std::unique_ptr<Image::Gpu::PresentationSurface> createWindowSurface(Image::Gpu:
 #elif defined(Q_OS_LINUX)
     WGPUSurfaceDescriptor descriptor{};
 #if QT_CONFIG(xcb)
-    if (auto native = qGuiApp->nativeInterface<QNativeInterface::QX11Application>()) {
+    if (QGuiApplication::platformName() == QLatin1String("xcb")) {
+        const auto native = qGuiApp->nativeInterface<QNativeInterface::QX11Application>();
+        if (!native || !native->display())
+            throw std::runtime_error("The X11 window has no native display connection");
         WGPUSurfaceSourceXlibWindow source{};
         source.chain.sType = WGPUSType_SurfaceSourceXlibWindow;
         source.display = native->display();
         source.window = window.winId();
+        if (!source.window) throw std::runtime_error("The X11 window has no native surface");
         descriptor.nextInChain = &source.chain;
         return std::make_unique<Image::Gpu::PresentationSurface>(std::move(device), descriptor);
     }
 #endif
 #if QT_CONFIG(wayland)
-    if (auto native = qGuiApp->nativeInterface<QNativeInterface::QWaylandApplication>()) {
+    if (QGuiApplication::platformName().startsWith(QLatin1String("wayland"))) {
+        const auto native = qGuiApp->nativeInterface<QNativeInterface::QWaylandApplication>();
+        const auto platform = QGuiApplication::platformNativeInterface();
+        if (!native || !native->display() || !platform)
+            throw std::runtime_error("The Wayland window has no native display connection");
         WGPUSurfaceSourceWaylandSurface source{};
         source.chain.sType = WGPUSType_SurfaceSourceWaylandSurface;
         source.display = native->display();
-        source.surface = QGuiApplication::platformNativeInterface()->nativeResourceForWindow("surface", &window);
+        source.surface = platform->nativeResourceForWindow("surface", &window);
         if (!source.surface) throw std::runtime_error("The Wayland window has no native surface");
         descriptor.nextInChain = &source.chain;
         return std::make_unique<Image::Gpu::PresentationSurface>(std::move(device), descriptor);

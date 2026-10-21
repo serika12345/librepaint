@@ -11,6 +11,7 @@
 #include <gpu/KisGpuExecution.h>
 #include <gpu/KisGpuTilePresentation.h>
 #include <limits>
+#include <stdexcept>
 #include "../KisGpuWindowSurface_p.h"
 #include <webgpu/wgpu.h>
 #include "KisGpuBenchmarkFrameSchedule_p.h"
@@ -398,6 +399,14 @@ void KisGpuCanvasWindowTest::unconfiguredSurfacesAreRejectedBeforeNativeSubmissi
     window.resize(128, 128);
     window.show();
     QVERIFY(QTest::qWaitForWindowExposed(&window));
+    if (QGuiApplication::platformName() == QLatin1String("offscreen")) {
+        QVERIFY_THROWS_EXCEPTION(std::runtime_error, LibrePaint::Canvas::Gpu::Detail::createWindowSurface(m_device, window));
+        QVERIFY(!m_device->isRecordingFrame());
+        QVERIFY(m_device->diagnostic().isEmpty());
+        QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+        QCOMPARE(execution.cancelFrame().code, ExecutionCode::Success);
+        return;
+    }
     const auto surface = LibrePaint::Canvas::Gpu::Detail::createWindowSurface(m_device, window);
     QCOMPARE(execution.beginPresentationFrame(*surface).code, ExecutionCode::SurfaceOutOfDate);
     QVERIFY(!m_device->isRecordingFrame());
