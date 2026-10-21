@@ -97,11 +97,12 @@ struct KisAsyncColorSamplerHelper::Private
     QUuid gpuDocumentId;
     std::optional<GpuSample> gpuSample;
     std::optional<GpuSample> nextGpuSample;
-    std::future<LibrePaint::Image::Gpu::PixelReadbackOutcome> gpuReadback;
+    std::future<LibrePaint::Image::Gpu::ColorSampleOutcome> gpuReadback;
     std::optional<KoColor> lastGpuColor;
     QTimer gpuPoll;
     quint64 gpuActionSerial = 0;
     int gpuBlend = 100;
+    int gpuRadius = 1;
     bool gpuMode = false;
     bool gpuActive = false;
     typedef KisSignalCompressorWithParam<QPointF> SamplingCompressor;
@@ -375,7 +376,7 @@ void KisAsyncColorSamplerHelper::startAction(const QPointF &docPoint, int radius
     KisImageSP image = m_d->canvas->image();
     if (const auto owner = image->gpuImage()) {
         m_d->gpuMode = true;
-        if (radius != 1 || blend < 0 || blend > 100) {
+        if (radius < 1 || radius > 900 || blend < 0 || blend > 100) {
             m_d->canvas->viewManager()->showFloatingMessage(i18n("These color sampling settings are not available for this document."), QIcon());
             return;
         }
@@ -383,6 +384,7 @@ void KisAsyncColorSamplerHelper::startAction(const QPointF &docPoint, int radius
         m_d->gpuPublicImage = image;
         m_d->gpuDocumentId = owner->operations().snapshot()->documentId();
         m_d->gpuBlend = blend;
+        m_d->gpuRadius = radius;
         m_d->gpuActive = true;
     } else {
         m_d->samplingStroke.start(image.data(), radius, blend);
@@ -415,6 +417,7 @@ void KisAsyncColorSamplerHelper::resetGpuSampling()
     m_d->gpuMode = false;
     m_d->gpuActive = false;
     m_d->gpuBlend = 100;
+    m_d->gpuRadius = 1;
     m_d->gpuDocumentId = QUuid();
     m_d->gpuReadback = {};
     m_d->gpuSample.reset();
@@ -468,10 +471,8 @@ void KisAsyncColorSamplerHelper::pollGpuSample()
     const auto sample = *m_d->gpuSample;
     const auto owner = m_d->gpuImage;
     if (!m_d->gpuReadback.valid()) {
-        const QList<Gpu::LayerId> layers = sample.layer ? QList<Gpu::LayerId>{sample.layer} : QList<Gpu::LayerId>{};
-        m_d->gpuReadback = owner->execution().readPixelsAsync(owner->handle(), sample.version,
-            QRect(sample.point, QSize(1, 1)), layers, !sample.layer,
-            sample.layer ? Gpu::PixelReadArea::LayerCoordinates : Gpu::PixelReadArea::Canvas);
+        m_d->gpuReadback = owner->execution().readColorSampleAsync(owner->handle(), sample.version,
+            sample.layer, sample.point, m_d->gpuRadius);
     }
     const auto polled = owner->execution().pollReadbacks();
     if (m_d->gpuReadback.wait_for(std::chrono::seconds(0)) != std::future_status::ready) {
@@ -490,16 +491,7 @@ void KisAsyncColorSamplerHelper::pollGpuSample()
     const auto serial = m_d->gpuActionSerial;
     const QPointer<KisAsyncColorSamplerHelper> guard(this);
     if (read.code == Gpu::ExecutionCode::Success) {
-        std::array<quint8, 4> rgba{};
-        if (sample.layer) rgba = sample.version->projectionDefaultPixels().value(sample.layer);
-        constexpr int side = Gpu::TileRenderer::TileSize;
-        for (const auto &tile : read.tiles) {
-            const QPoint local = sample.point - tile.coordinate * side;
-            if (tile.layer != sample.layer || !QRect(0, 0, side, side).contains(local)) continue;
-            const auto offset = (local.y() * side + local.x()) * 4;
-            for (int channel = 0; channel < 4; ++channel) rgba[channel] = quint8(tile.rgba[offset + channel]);
-            break;
-        }
+        const auto &rgba = read.rgba;
         const quint8 bgra[]{rgba[2], rgba[1], rgba[0], rgba[3]};
         KoColor color(bgra, m_d->gpuPublicImage->colorSpace());
         if (m_d->gpuBlend < 100) {

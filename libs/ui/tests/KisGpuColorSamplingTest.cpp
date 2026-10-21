@@ -89,6 +89,7 @@ private Q_SLOTS:
         QTest::addColumn<int>("alpha");
         QTest::addColumn<bool>("gpu");
         QTest::addColumn<int>("blend");
+        QTest::addColumn<int>("radius");
         struct Case { const char *name; bool layer, foreground; const char *transition; int alpha; bool gpu; };
         const Case cases[] = {
             {"layer-foreground", true, true, "", 255, true},
@@ -107,25 +108,34 @@ private Q_SLOTS:
             {"ordinary-merged", false, true, "", 255, false},
             {"ordinary-translucent", true, true, "", 128, false},
         };
-        QTest::newRow("blend-first-operation") << true << true << QString() << 255 << true << 50;
+        QTest::newRow("blend-first-operation") << true << true << QString() << 255 << true << 50 << 1;
         for (const auto &c : cases) QTest::newRow(c.name) << c.layer << c.foreground
-            << QString::fromLatin1(c.transition) << c.alpha << c.gpu << 100;
+            << QString::fromLatin1(c.transition) << c.alpha << c.gpu << 100 << 1;
         for (int blend : {0, 1, 33, 50, 99}) {
             const QByteArray name = QByteArray("blend-foreground-") + QByteArray::number(blend);
-            QTest::newRow(name.constData()) << true << true << QString() << 255 << true << blend;
+            QTest::newRow(name.constData()) << true << true << QString() << 255 << true << blend << 1;
         }
-        QTest::newRow("blend-merged-background") << false << false << QString() << 255 << true << 50;
-        QTest::newRow("blend-translucent") << true << true << QString() << 128 << true << 50;
-        QTest::newRow("blend-transparent") << true << true << QString() << 0 << true << 50;
-        QTest::newRow("registered-sampler-blend") << false << true << QStringLiteral("tool") << 255 << true << 50;
-        QTest::newRow("blend-captured-current-color") << true << true << QStringLiteral("palette") << 255 << true << 50;
-        QTest::newRow("blend-preview-without-updating-color") << true << true << QStringLiteral("preview") << 255 << true << 50;
-        QTest::newRow("blend-current-color-rgb16") << true << true << QStringLiteral("rgb16") << 255 << true << 50;
-        QTest::newRow("materialized-rgb") << true << true << QStringLiteral("colorful") << 255 << true << 100;
-        QTest::newRow("blend-materialized-rgb") << true << true << QStringLiteral("colorful") << 255 << true << 50;
-        QTest::newRow("recover-on-raw-color") << true << true << QStringLiteral("recover-raw") << 255 << true << 100;
-        QTest::newRow("close-on-raw-color") << true << true << QStringLiteral("close-raw") << 255 << true << 100;
-        QTest::newRow("recover-before-release") << true << true << QStringLiteral("recover-release") << 255 << true << 100;
+        QTest::newRow("blend-merged-background") << false << false << QString() << 255 << true << 50 << 1;
+        QTest::newRow("blend-translucent") << true << true << QString() << 128 << true << 50 << 1;
+        QTest::newRow("blend-transparent") << true << true << QString() << 0 << true << 50 << 1;
+        QTest::newRow("registered-sampler-blend") << false << true << QStringLiteral("tool") << 255 << true << 50 << 1;
+        QTest::newRow("blend-captured-current-color") << true << true << QStringLiteral("palette") << 255 << true << 50 << 1;
+        QTest::newRow("blend-preview-without-updating-color") << true << true << QStringLiteral("preview") << 255 << true << 50 << 1;
+        QTest::newRow("blend-current-color-rgb16") << true << true << QStringLiteral("rgb16") << 255 << true << 50 << 1;
+        QTest::newRow("materialized-rgb") << true << true << QStringLiteral("colorful") << 255 << true << 100 << 1;
+        QTest::newRow("blend-materialized-rgb") << true << true << QStringLiteral("colorful") << 255 << true << 50 << 1;
+        QTest::newRow("recover-on-raw-color") << true << true << QStringLiteral("recover-raw") << 255 << true << 100 << 1;
+        QTest::newRow("close-on-raw-color") << true << true << QStringLiteral("close-raw") << 255 << true << 100 << 1;
+        QTest::newRow("recover-before-release") << true << true << QStringLiteral("recover-release") << 255 << true << 100 << 1;
+        QTest::newRow("average-layer-foreground") << true << true << QStringLiteral("average") << 255 << true << 100 << 3;
+        QTest::newRow("average-layer-background") << true << false << QStringLiteral("average") << 255 << true << 100 << 3;
+        QTest::newRow("average-merged-foreground") << false << true << QStringLiteral("average") << 255 << true << 100 << 3;
+        QTest::newRow("average-merged-background") << false << false << QStringLiteral("average") << 255 << true << 100 << 3;
+        QTest::newRow("average-blend-layer") << true << true << QStringLiteral("average") << 255 << true << 50 << 3;
+        QTest::newRow("average-blend-merged-background") << false << false << QStringLiteral("average") << 255 << true << 50 << 3;
+        QTest::newRow("registered-sampler-average") << false << true << QStringLiteral("tool-average") << 255 << true << 100 << 3;
+        QTest::newRow("registered-sampler-average-blend") << false << true << QStringLiteral("tool-average") << 255 << true << 50 << 3;
+        QTest::newRow("average-large-layer") << true << true << QStringLiteral("average") << 255 << true << 100 << 900;
     }
     void samplesLayerAndProjectionWithoutEditing();
 private:
@@ -140,6 +150,8 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
     QFETCH(int, alpha);
     QFETCH(bool, gpu);
     QFETCH(int, blend);
+    QFETCH(int, radius);
+    const bool averaging = transition.contains(QStringLiteral("average"));
     namespace Gpu = LibrePaint::Image::Gpu;
     QString diagnostic;
     const auto execution = KisPart::instance()->gpuExecution(diagnostic);
@@ -153,7 +165,14 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
     raster.layers[1].defaultPixel[3] = quint8(alpha);
     raster.layers[0].uuid = QUuid(QStringLiteral("{d3000001-1122-3344-5566-778899aabbcc}"));
     raster.layers[1].uuid = QUuid(QStringLiteral("{d3000002-1122-3344-5566-778899aabbcc}"));
+    if (averaging) {
+        raster.layers[1].defaultPixel = {255, 0, 0, 255};
+        raster.layers[1].opacity = 255;
+    }
     const auto owner = gpu ? Gpu::PaintImageSP::create(execution, raster) : Gpu::PaintImageSP();
+    if (averaging) {
+        QCOMPARE(owner->replaceRgbaPixels(owner->operations().snapshot()->layers[1].id, {12, 9, 1, 1}, QByteArray::fromHex("0000ffff")), Gpu::Result::Success);
+    }
     if (transition == QStringLiteral("colorful")) {
         QCOMPARE(owner->replaceRgbaPixels(owner->operations().snapshot()->layers[1].id, {12, 9, 1, 1}, QByteArray::fromHex("1561c9ff")), Gpu::Result::Success);
     }
@@ -215,11 +234,11 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
     auto expectedVersion = before;
     auto history = lifetime->undoStack()->count();
     bool modified = false;
-    if (transition == QStringLiteral("tool")) {
+    if (transition.startsWith(QStringLiteral("tool"))) {
         KisToolUtils::ColorSamplerConfig previous;
         previous.load();
         KisToolUtils::ColorSamplerConfig config;
-        config.radius = 1;
+        config.radius = radius;
         config.blend = blend;
         config.sampleMerged = true;
         config.toForegroundColor = true;
@@ -245,7 +264,9 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
         } catch (const std::exception &failure) {
             QFAIL(failure.what());
         }
-        QTRY_COMPARE(resources->fgColor(), KoColor(blend == 50 ? QColor(66, 69, 74) : QColor(128, 128, 128), cs));
+        const QColor sampled = averaging ? (blend == 50 ? QColor(116, 5, 24) : QColor(227, 0, 28))
+            : (blend == 50 ? QColor(66, 69, 74) : QColor(128, 128, 128));
+        QTRY_COMPARE(resources->fgColor(), KoColor(sampled, cs));
         QCOMPARE(resources->bgColor(), oldBackground);
         QCOMPARE(owner->operations().snapshot(), before);
         QCOMPARE(pixels(), expectedPixels);
@@ -266,7 +287,7 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
             if (restarted) return;
             restarted = true;
             helper->activate(false, foreground);
-            helper->startAction(view->canvasBase()->coordinatesConverter()->imageToDocument(QPointF(12, 9)), 1, blend);
+            helper->startAction(view->canvasBase()->coordinatesConverter()->imageToDocument(QPointF(12, 9)), radius, blend);
             helper->endAction();
             helper->deactivate();
         });
@@ -296,7 +317,7 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
     helper->activate(currentLayer, foreground);
     QString error;
     try {
-        helper->startAction(view->canvasBase()->coordinatesConverter()->imageToDocument(QPointF(12, 9)), 1, blend);
+        helper->startAction(view->canvasBase()->coordinatesConverter()->imageToDocument(QPointF(12, 9)), radius, blend);
         QCOMPARE(raw.size(), 0);
         if (transition == QStringLiteral("palette")) resources->setFGColor(KoColor(QColor(230, 1, 40), cs));
         if (transition == QStringLiteral("edit")) {
@@ -396,6 +417,7 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
     }
     QColor expected = currentLayer && !restarted ? QColor(126, 126, 126) : QColor(128, 128, 128);
     if (transition == QStringLiteral("colorful")) expected = QColor(21, 97, 201);
+    if (averaging) expected = radius == 900 ? QColor(255, 0, 0) : QColor(227, 0, 28);
     auto rawExpected = expected;
     if (currentLayer && !restarted) rawExpected.setAlpha(alpha);
     if (blend < 100) {

@@ -8,6 +8,7 @@
 
 #include "KisGpuTileRenderer.h"
 #include <QImage>
+#include <array>
 #include <future>
 #include <optional>
 
@@ -71,6 +72,14 @@ struct PixelBytesOutcome
     quint64 generation = 0;
     QRect region;
     QByteArray bytes;
+    QString diagnostic;
+};
+struct ColorSampleOutcome
+{
+    ExecutionCode code = ExecutionCode::InvalidRequest;
+    Snapshot document;
+    quint64 generation = 0;
+    std::array<quint8, 4> rgba{};
     QString diagnostic;
 };
 
@@ -140,6 +149,17 @@ public:
     std::future<PixelReadbackOutcome> readPixelsAsync(DocumentHandle handle, const Snapshot &document,
                                    QRect region, const QList<LayerId> &layers = {},
                                    bool includeProjection = true, PixelReadArea area = PixelReadArea::Canvas);
+    /** Canonical alpha-weighted color of a fixed layer or the canvas projection.
+     * Radius 1 selects the center; radii 2..900 select integer points strictly
+     * inside a disk of radius (radius - 1). Alpha averages all sample positions;
+     * RGB is weighted by alpha. Integer ties round upward. Zero aggregate alpha
+     * returns zero RGBA. Layer zero samples transparent pixels beyond the canvas;
+     * other layers retain off-canvas and implicit pixels. Transfers use 32 bytes,
+     * independent of the sampled area. Thread, asynchronous completion, lifetime
+     * and rejection follow readPixelsAsync(); requests/publication stay current.
+     */
+    std::future<ColorSampleOutcome> readColorSampleAsync(DocumentHandle handle, const Snapshot &document,
+                                                        LayerId layer, QPoint point, int radius);
     /** Fixed-version projection alpha classification without transferring tile pixels.
      * A successful result contains the boolean and no tiles. Canvas clipping,
      * asynchronous completion, lifetime, and rejection follow readPixelsAsync().

@@ -19,6 +19,11 @@ class KisGpuPixelReadbackTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
+    void colorSamplesKeepCanonicalDiskAlphaAndTransferLimits_data();
+    void colorSamplesKeepCanonicalDiskAlphaAndTransferLimits();
+    void colorSamplesKeepPaintedVersionsAndPublication();
+    void colorSamplesOutliveCloseAndDeviceReplacement();
+    void rejectedColorSamplesLeaveTheNextReadAvailable();
     void passThroughReadsKeepSubtreeBoundaryAndRootCapacity_data();
     void passThroughReadsKeepSubtreeBoundaryAndRootCapacity();
     void groupReadsKeepSubtreePixelsDefaultsAndPinnedVersions_data();
@@ -56,6 +61,82 @@ private Q_SLOTS:
 private:
     DevicePtr m_device;
 };
+
+void KisGpuPixelReadbackTest::colorSamplesKeepCanonicalDiskAlphaAndTransferLimits_data()
+{
+    QTest::addColumn<int>("radius");
+    QTest::addColumn<QPoint>("point");
+    QTest::addColumn<bool>("projection");
+    QTest::addColumn<int>("defaultAlpha");
+    QTest::addColumn<QByteArray>("center");
+    QTest::addColumn<bool>("halfTie");
+    QTest::addColumn<QByteArray>("expected");
+    QTest::newRow("one-pixel") << 1 << QPoint(12,9) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("0000ffff");
+    QTest::newRow("radius-two-center") << 2 << QPoint(12,9) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("0000ffff");
+    QTest::newRow("nine-pixel-disk") << 3 << QPoint(12,9) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("e3001cff");
+    QTest::newRow("twenty-five-pixel-disk") << 4 << QPoint(12,9) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("f5000aff");
+    QTest::newRow("circle-not-square") << 5 << QPoint(12,9) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("f90006ff");
+    QTest::newRow("projection-disk") << 3 << QPoint(12,9) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("e3001cff");
+    QTest::newRow("layer-corner-defaults") << 3 << QPoint(0,0) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("e3001cff");
+    QTest::newRow("projection-corner-padding") << 3 << QPoint(0,0) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("bf004071");
+    QTest::newRow("projection-last-corner-padding") << 3 << QPoint(63,47) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("bf004071");
+    QTest::newRow("negative-layer-tile") << 3 << QPoint(-1,-1) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("e3001cff");
+    QTest::newRow("projection-outside-center") << 3 << QPoint(-1,-1) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("ff00001c");
+    QTest::newRow("projection-positive-outside-center") << 3 << QPoint(64,48) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("ff00001c");
+    QTest::newRow("fully-outside-projection") << 3 << QPoint(-500,-500) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray(4,'\0');
+    QTest::newRow("alpha-weighted-color") << 3 << QPoint(12,9) << false << 255 << QByteArray::fromHex("0000ff80") << false << QByteArray::fromHex("f0000ff1");
+    QTest::newRow("transparent-neighbors") << 3 << QPoint(12,9) << false << 0 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("0000ff1c");
+    QTest::newRow("zero-alpha") << 3 << QPoint(12,9) << false << 0 << QByteArray::fromHex("12345600") << false << QByteArray(4,'\0');
+    QTest::newRow("nearest-half-up") << 3 << QPoint(12,9) << false << 0 << QByteArray::fromHex("01000005") << true << QByteArray::fromHex("01000001");
+    QTest::newRow("large-layer-sum") << 900 << QPoint(1024,1024) << false << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("ff0000ff");
+    QTest::newRow("large-projection-sum") << 900 << QPoint(1024,1024) << true << 255 << QByteArray::fromHex("0000ffff") << false << QByteArray::fromHex("ff0000ff");
+}
+
+void KisGpuPixelReadbackTest::colorSamplesKeepCanonicalDiskAlphaAndTransferLimits()
+{
+    QFETCH(int,radius);
+    QFETCH(QPoint,point);
+    QFETCH(bool,projection);
+    QFETCH(int,defaultAlpha);
+    QFETCH(QByteArray,center);
+    QFETCH(bool,halfTie);
+    QFETCH(QByteArray,expected);
+    RasterImage input;
+    input.size = radius == 900 ? QSize(2048,2048) : QSize(64,48);
+    input.layers = {{QStringLiteral("Color sample"),true,{}, {}, {255,0,0,quint8(defaultAlpha)}}};
+    constexpr int side = TileRenderer::TileSize;
+    const auto floorTile = [](int value) { return value / side - (value % side < 0); };
+    const QPoint coordinate(floorTile(point.x()),floorTile(point.y()));
+    const QPoint local = point - coordinate * side;
+    QByteArray pixel = QByteArray::fromHex("ff0000ff");
+    pixel[3] = char(defaultAlpha);
+    auto bytes = pixel.repeated(RgbaTile::ByteCount / 4);
+    const int offset = (local.y() * side + local.x()) * 4;
+    bytes.replace(offset,4,center);
+    if (halfTie) bytes.replace(offset+4,4,QByteArray::fromHex("00000005"));
+    input.layers[0].tiles = {{coordinate,bytes}};
+    OperationDocument document(input);
+    const auto fixed = document.snapshot();
+    Execution execution(m_device,128 * TileRenderer::TileBytes,1,32);
+    const auto handle = execution.open(fixed).handle;
+    auto future = execution.readColorSampleAsync(handle,fixed,projection ? 0 : fixed->layers[0].id,point,radius);
+    QTRY_VERIFY((execution.pollReadbacks(), future.wait_for(std::chrono::seconds(0)) == std::future_status::ready));
+    const auto result = future.get();
+    QVERIFY2(result.code == ExecutionCode::Success,qPrintable(result.diagnostic));
+    QCOMPARE(QByteArray(reinterpret_cast<const char *>(result.rgba.data()),4),expected);
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        QFile file(QDir(results).filePath(QStringLiteral("color-sample-%1.rgba").arg(QString::fromLatin1(QTest::currentDataTag()))));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(reinterpret_cast<const char *>(result.rgba.data()), 4), qint64(4));
+    }
+    QCOMPARE(result.document,fixed);
+    QCOMPARE(result.generation,execution.generation());
+    QCOMPARE(execution.requested(handle),fixed);
+    QVERIFY(!execution.published(handle));
+    QCOMPARE(document.snapshot(),fixed);
+}
 
 void KisGpuPixelReadbackTest::passThroughReadsKeepSubtreeBoundaryAndRootCapacity_data()
 {
@@ -165,6 +246,15 @@ void KisGpuPixelReadbackTest::groupReadsKeepSubtreePixelsDefaultsAndPinnedVersio
     QVERIFY2(projection.code == ExecutionCode::Success, qPrintable(projection.diagnostic));
     const auto expected = hidden || rgba[3] == 0 ? QColor(0, 0, 255, 255) : QColor(128, 0, 127, 255);
     QCOMPARE(projection.image.pixelColor(12, 9), expected);
+    for (LayerId sampledLayer : {LayerId(3), LayerId(0)}) {
+        auto pending = execution.readColorSampleAsync(handle, fixed, sampledLayer, {0, 9}, 3);
+        QTRY_VERIFY((execution.pollReadbacks(), pending.wait_for(std::chrono::seconds(0)) == std::future_status::ready));
+        const auto sampled = pending.get();
+        QVERIFY2(sampled.code == ExecutionCode::Success, qPrintable(sampled.diagnostic));
+        const auto expectedRgba = sampledLayer ? (rgba[3] == 0 ? QByteArray(4, '\0') : rgba)
+            : QByteArray::fromHex(hidden || rgba[3] == 0 ? "0000ffaa" : "80007faa");
+        QCOMPARE(QByteArray(reinterpret_cast<const char *>(sampled.rgba.data()), 4), expectedRgba);
+    }
     QCOMPARE(execution.requested(handle), newer);
     QVERIFY(!execution.published(handle));
     QCOMPARE(document.snapshot(), newer);
@@ -860,6 +950,101 @@ void KisGpuPixelReadbackTest::initTestCase()
     QString diagnostic;
     m_device = Device::createNative(diagnostic);
     QVERIFY2(m_device, qPrintable(diagnostic));
+}
+
+void KisGpuPixelReadbackTest::colorSamplesKeepPaintedVersionsAndPublication()
+{
+    OperationDocument document({64, 64});
+    dot(document, {12, 12}, {17, 129, 241, 255});
+    const auto pinned = document.snapshot();
+    Execution execution(m_device, 8 * TileRenderer::TileBytes, 1, 32);
+    const auto handle = execution.open(pinned).handle;
+    QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+    QCOMPARE(execution.project(handle, {0, 0, 64, 64}).code, RenderOutcome::Recorded);
+    QCOMPARE(execution.submitFrame().code, ExecutionCode::Success);
+    auto pending = execution.readColorSampleAsync(handle, pinned, document.activeLayer(), {12, 12}, 3);
+    dot(document, {12, 12}, {219, 33, 81, 255});
+    const auto latest = document.snapshot();
+    QCOMPARE(execution.request(handle, latest).code, ExecutionCode::Success);
+    QTRY_VERIFY((execution.pollReadbacks(), pending.wait_for(std::chrono::seconds(0)) == std::future_status::ready));
+    const auto sampled = pending.get();
+    QVERIFY2(sampled.code == ExecutionCode::Success, qPrintable(sampled.diagnostic));
+    QCOMPARE(sampled.rgba, (std::array<quint8, 4>{17, 129, 241, 255}));
+    QCOMPARE(sampled.document, pinned);
+    QCOMPARE(execution.requested(handle), latest);
+    QCOMPARE(execution.published(handle), pinned);
+    auto newer = execution.readColorSampleAsync(handle, latest, 0, {12, 12}, 3);
+    QTRY_VERIFY((execution.pollReadbacks(), newer.wait_for(std::chrono::seconds(0)) == std::future_status::ready));
+    const auto next = newer.get();
+    QVERIFY2(next.code == ExecutionCode::Success, qPrintable(next.diagnostic));
+    QCOMPARE(next.rgba, (std::array<quint8, 4>{219, 33, 81, 255}));
+    QCOMPARE(execution.published(handle), pinned);
+}
+
+void KisGpuPixelReadbackTest::colorSamplesOutliveCloseAndDeviceReplacement()
+{
+    std::future<ColorSampleOutcome> retained;
+    std::weak_ptr<Device> lifetime;
+    {
+        QString diagnostic;
+        const auto device = Device::createNative(diagnostic);
+        QVERIFY2(device, qPrintable(diagnostic));
+        lifetime = device;
+        OperationDocument document({64, 64});
+        dot(document, {12, 12}, {17, 129, 241, 255});
+        const auto pinned = document.snapshot();
+        Execution execution(device, 8 * TileRenderer::TileBytes, 1, 32);
+        const auto handle = execution.open(pinned).handle;
+        auto old = execution.readColorSampleAsync(handle, pinned, 0, {12, 12}, 3);
+        const auto replacement = Device::createNative(diagnostic);
+        QVERIFY2(replacement, qPrintable(diagnostic));
+        QCOMPARE(execution.replaceDevice(replacement).code, ExecutionCode::Success);
+        const auto previous = old.get();
+        QCOMPARE(previous.code, ExecutionCode::Success);
+        QCOMPARE(previous.generation, quint64(1));
+        QCOMPARE(previous.rgba, (std::array<quint8, 4>{17, 129, 241, 255}));
+        retained = execution.readColorSampleAsync(handle, pinned, 0, {12, 12}, 3);
+        QCOMPARE(execution.close(handle).code, ExecutionCode::Success);
+    }
+    QVERIFY(lifetime.expired());
+    QCOMPARE(retained.wait_for(std::chrono::seconds(0)), std::future_status::ready);
+    const auto sampled = retained.get();
+    QVERIFY2(sampled.code == ExecutionCode::Success, qPrintable(sampled.diagnostic));
+    QCOMPARE(sampled.generation, quint64(2));
+    QCOMPARE(sampled.rgba, (std::array<quint8, 4>{17, 129, 241, 255}));
+}
+
+void KisGpuPixelReadbackTest::rejectedColorSamplesLeaveTheNextReadAvailable()
+{
+    OperationDocument document({64, 64});
+    dot(document, {12, 12}, {17, 129, 241, 255});
+    const auto pinned = document.snapshot();
+    Execution tooSmall(m_device, 8 * TileRenderer::TileBytes, 1, 31);
+    const auto smallHandle = tooSmall.open(pinned).handle;
+    QCOMPARE(tooSmall.readColorSampleAsync(smallHandle, pinned, 0, {12, 12}, 3).get().code, ExecutionCode::CapacityExceeded);
+    QCOMPARE(tooSmall.residentBytes(), qsizetype(0));
+    Execution execution(m_device, TileRenderer::TileBytes, 1, 32);
+    const auto handle = execution.open(pinned).handle;
+    OperationDocument other({64, 64});
+    QCOMPARE(execution.readColorSampleAsync(handle, other.snapshot(), 0, {12, 12}, 3).get().code, ExecutionCode::InvalidRequest);
+    QCOMPARE(execution.readColorSampleAsync(handle, pinned, 0, {12, 12}, 0).get().code, ExecutionCode::InvalidRequest);
+    QCOMPARE(execution.readColorSampleAsync(handle, pinned, 0, {12, 12}, 901).get().code, ExecutionCode::InvalidRequest);
+    QCOMPARE(execution.readColorSampleAsync(handle, pinned, 999, {12, 12}, 3).get().code, ExecutionCode::InvalidRequest);
+    QCOMPARE(execution.readColorSampleAsync(handle, pinned, 0, {int(OperationDocument::CoordinateLimit), 0}, 3).get().code, ExecutionCode::InvalidRequest);
+    QCOMPARE(execution.beginReadbackFrame().code, ExecutionCode::Success);
+    QCOMPARE(execution.readColorSampleAsync(handle, pinned, 0, {12, 12}, 3).get().code, ExecutionCode::Busy);
+    QCOMPARE(execution.cancelFrame().code, ExecutionCode::Success);
+    QCOMPARE(execution.readColorSampleAsync(handle, pinned, 0, {12, 12}, 3).get().code, ExecutionCode::CapacityExceeded);
+    auto recovered = execution.readColorSampleAsync(handle, pinned, 0, {-500, -500}, 3);
+    QTRY_VERIFY((execution.pollReadbacks(), recovered.wait_for(std::chrono::seconds(0)) == std::future_status::ready));
+    const auto result = recovered.get();
+    QVERIFY2(result.code == ExecutionCode::Success, qPrintable(result.diagnostic));
+    QCOMPARE(result.rgba, (std::array<quint8, 4>{}));
+    QCOMPARE(execution.requested(handle), pinned);
+    QVERIFY(!execution.published(handle));
+    QCOMPARE(document.snapshot(), pinned);
+    QCOMPARE(execution.close(handle).code, ExecutionCode::Success);
+    QCOMPARE(execution.readColorSampleAsync(handle, pinned, 0, {12, 12}, 3).get().code, ExecutionCode::InvalidRequest);
 }
 
 void KisGpuPixelReadbackTest::asynchronousPixelsKeepThePinnedVersionAndNewerRequests()

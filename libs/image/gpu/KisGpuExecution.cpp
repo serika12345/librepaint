@@ -29,6 +29,7 @@ void Execution::retireCompletedReadback()
 {
     auto &d = *m_d;
     if (!d.device->readbackPending()) {
+        d.readbackColor.reset();
         d.readbackResize.reset();
         d.readbackThumbnail.reset();
         d.readbackProjected.clear();
@@ -222,6 +223,7 @@ ExecutionOutcome Execution::replaceDevice(DevicePtr device)
     auto renderer = std::make_unique<TileRenderer>(device, d.byteBudget);
     if (d.device->readbackPending()) d.device->finish();
     d.device->releaseCompletedReadback();
+    d.readbackColor.reset();
     d.readbackProjected.clear();
     d.readbackRendered.clear();
     for (auto &document : d.documents) {

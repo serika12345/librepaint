@@ -87,6 +87,8 @@ struct TileRenderer::Private
     Detail::NativeComputePipeline thumbnailPipeline;
     Detail::NativeBindingLayout resizeLayout;
     Detail::NativeComputePipeline resizePipeline;
+    Detail::NativeBindingLayout colorSampleLayout;
+    Detail::NativeComputePipeline colorSamplePipeline;
     bool zeroUploaded = false;
     QString error;
     QWeakPointer<const RenderedVersion> coverageVersion;
@@ -103,6 +105,8 @@ struct TileRenderer::Private
                                      QRect region, const std::array<quint8, 4> &defaultPixel, bool includeTransparentColors);
     bool recordThumbnailSamples(WGPUCommandEncoder commands, WGPUBuffer source, WGPUBuffer output,
                                 WGPUBuffer samples, WGPUBuffer parameters, quint32 count);
+    bool recordColorSample(WGPUCommandEncoder commands, WGPUBuffer source, WGPUBuffer output,
+                           WGPUBuffer parameters, QSize size);
     bool recordResizePass(WGPUCommandEncoder commands, WGPUBuffer source, WGPUBuffer accumulated,
                           WGPUBuffer spans, WGPUBuffer weights, WGPUBuffer output,
                           WGPUBuffer parameters, quint32 count);
