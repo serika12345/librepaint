@@ -2790,8 +2790,9 @@ void KisGpuDocumentViewTest::brushOutlineFollowsTheOrdinaryPointerWithoutEditing
     QVERIFY(save(visible, QStringLiteral("visible")));
     QCOMPARE(changedPixels(visible, second), 0);
     const auto fullBounds = differenceBounds(visible);
-    QVERIFY(fullBounds.width() >= 22 * ratio && fullBounds.width() <= 26 * ratio);
-    QVERIFY(fullBounds.height() >= 22 * ratio && fullBounds.height() <= 26 * ratio);
+    const auto fullSize = converter->imageToWidget(QRectF(0, 0, 24, 24)).size() * ratio;
+    QVERIFY(qAbs(fullBounds.width() - fullSize.width()) <= 2 * ratio);
+    QVERIFY(qAbs(fullBounds.height() - fullSize.height()) <= 2 * ratio);
     QVERIFY((fullBounds.center() - physical(first)).manhattanLength() <= 2);
 
     QTest::mouseMove(native.data(), second);
@@ -2814,8 +2815,9 @@ void KisGpuDocumentViewTest::brushOutlineFollowsTheOrdinaryPointerWithoutEditing
     QImage halfVisible;
     QTRY_VERIFY((halfVisible = capture()).size() == baseline.size() && changedPixels(halfVisible, halfPoint) >= 20);
     const auto halfBounds = differenceBounds(halfVisible);
-    QVERIFY(halfBounds.width() >= 10 * ratio && halfBounds.width() <= 14 * ratio);
-    QVERIFY(halfBounds.height() >= 10 * ratio && halfBounds.height() <= 14 * ratio);
+    const auto halfSize = converter->imageToWidget(QRectF(0, 0, 24, 24)).size() * ratio;
+    QVERIFY(qAbs(halfBounds.width() - halfSize.width()) <= 2 * ratio);
+    QVERIFY(qAbs(halfBounds.height() - halfSize.height()) <= 2 * ratio);
     QVERIFY((halfBounds.center() - physical(halfPoint)).manhattanLength() <= 2);
     QVERIFY(save(halfVisible, QStringLiteral("half-zoom")));
     KoToolManager::instance()->switchToolRequested(QStringLiteral("PanTool"));
