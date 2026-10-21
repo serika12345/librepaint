@@ -103,6 +103,10 @@
 `kritapainting`から分けることで、依存方向を一方向に保つ。
 資源スナップショットは`libs/resources`の読出し接続面を保持する。
 
+`plugins/metadata/iptc`と`plugins/metadata/xmp`は画像メタデータの形式変換を所有する。
+書出し時は名前空間を含む項目名の順に入力を並べ、同じ項目と値を持つ保存領域から同じ
+符号列を生成する。配列の値と順序、構造内の項目は、それぞれの形式変換が保持する。
+
 図形描画は`libs/painting/kis_figure_painting_stroke.{h,cpp}`が所有し、
 `KisFigurePaintingStroke`の寿命がストロークの開始、ジョブ追加、終了をまとめる。
 描線・塗り値は`KisFigurePaintingOptions.h`が定義し、列挙値の順序とスクリプトの
