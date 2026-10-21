@@ -1252,6 +1252,16 @@ elseif(WIN32)
     set_tests_properties(${ellipse_tool_document_tests} PROPERTIES TIMEOUT 300)
 endif()
 
+kis_add_test(KisGpuColorSamplingTest.cpp ../../../krita/krita.qrc
+    ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
+    ../../../krita/pics/Breeze-light/breeze-light-icons.qrc
+    TEST_NAME KisGpuColorSamplingTest
+    TEST_NAME_VAR gpu_color_sampling_test
+    LINK_LIBRARIES kritaapplicationui kritainputui kritatestsdk)
+add_dependencies(KisGpuColorSamplingTest kritalcmsengine kritadefaulttools kritaroundmarkerpaintop)
+set_tests_properties(${gpu_color_sampling_test} PROPERTIES
+    TIMEOUT 120 RUN_SERIAL TRUE ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+
 kis_add_test(KisMoveToolDocumentTest.cpp ../../../krita/krita.qrc
     ../../../krita/pics/Breeze-dark/breeze-dark-icons.qrc
     ../../../krita/pics/Breeze-light/breeze-light-icons.qrc

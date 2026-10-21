@@ -60,11 +60,8 @@ Q_SIGNALS:
     void sigColorSelected(const KoColor &color);
 
     /**
-     * Notifies about the "palette" color picked from the layer,
-     * that is, with the alpha channel set to OPACITY_OPAQUE.
-     *
-     * This notification is emitted only once at the very end
-     * of the color picking stroke.
+     * Reports the final raw sampled color once, including its alpha channel.
+     * Palette insertion retains this value.
      */
     void sigFinalColorSelected(const KoColor &color);
 
@@ -75,6 +72,10 @@ private Q_SLOTS:
     void slotUpdateBgColor();
 
 private:
+    void queueGpuSample(const QPoint &imagePoint);
+    void pollGpuSample();
+    void completeGpuSampling();
+    void resetGpuSampling();
     void activatePreview();
     void paintRectangle(QPainter &gc, const QRectF &viewRectF, const QColor &currentColor, const QColor &baseColor);
     void paintCircle(QPainter &gc, const QRectF &viewRectF, const QColor &currentColor, const QColor &baseColor);
