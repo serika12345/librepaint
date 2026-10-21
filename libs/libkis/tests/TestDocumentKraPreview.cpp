@@ -51,6 +51,8 @@ void TestDocument::testSavedSourceOverPixelsAgreeAcrossBackends_data()
         {"partial-opacity", "12345686", "336699e2", 128, "295886ea"},
         {"small-alpha-partial-opacity", "12345601", "33669901", 128, "28558301"},
         {"low-opacity-rounds-after-color", "0034567f", "ff6699fe", 1, "fe6699fe"},
+        {"color-rounds-to-power-of-two", "7e7e7eff", "818181ff", 85, "808080ff"},
+        {"color-below-half-byte", "00000026", "fdfdfd19", 1, "fbfbfb19"},
     };
     // Scalar and batched production composition agree on these fixed pixels
     // on ARM64 and x86_64; normal saving must retain the same values.
@@ -194,7 +196,7 @@ try {
         QCOMPARE(exported.size(), QSize(17, 1));
         QCOMPARE(QByteArray(reinterpret_cast<const char *>(exported.constBits()), exported.sizeInBytes()), expectedRgba.repeated(17));
         pngFiles.append(bytes);
-        if (projectionMask != 15) {
+        {
             QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
             reopened->setFileBatchMode(true);
             QVERIFY2(reopened->openPath(prefix + QStringLiteral(".kra"), KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
@@ -214,7 +216,7 @@ try {
             QVERIFY2(loaded.code == Files::FileCode::Success, qPrintable(loaded.diagnostic));
             const auto loadedOwner = loaded.document->image();
             QCOMPARE(loadedOwner->readRgbaPixels(0, {0, 0, 17, 1}, 17 * 4).bytes, expectedRgba.repeated(17));
-            auto loadedView = KisImage::fromGpuImage(loadedOwner, QStringLiteral("Reopened projection channels"));
+            auto loadedView = KisImage::fromGpuImage(loadedOwner, QStringLiteral("Reopened source over"));
             const auto loadedTarget = loadedView->root()->lastChild();
             QScopedPointer<Node> loadedSource(Node::createNode(loadedView, sourceGroup ? loadedTarget->firstChild() : loadedTarget));
             QCOMPARE(loadedSource->pixelData(0, 0, 17, 1), sourcePixel.repeated(17));

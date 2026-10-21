@@ -45,8 +45,8 @@ fn projectionRoundedShift(value: vec2<u32>, count: u32) -> u32 {
 }
 fn projectionFloat(value: vec2<u32>, scale: i32) -> u32 {
     if (all(value == vec2<u32>(0u))) { return 0u; }
-    var leading = firstLeadingBit(value.x);
-    if (value.y != 0u) { leading = 32u + firstLeadingBit(value.y); }
+    var leading = 31u - countLeadingZeros(value.x);
+    if (value.y != 0u) { leading = 63u - countLeadingZeros(value.y); }
     let shift = i32(leading) - 23;
     var mantissa: u32;
     var power = scale + shift;

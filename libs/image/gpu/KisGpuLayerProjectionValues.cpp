@@ -136,13 +136,16 @@ QHash<LayerId, std::array<quint8, 4>> DocumentVersion::projectionDefaultPixels()
                     if (layer.channelMask != 15) pixel = {};
                 } else {
                     const float weightedAlpha = (255.0f - destinationAlpha) * alpha;
-                    destinationAlpha = std::fma(weightedAlpha, 1.0f / 255.0f, destinationAlpha);
+                    destinationAlpha = float(double(weightedAlpha) * double(1.0f / 255.0f) + double(destinationAlpha));
                     blend = alpha / destinationAlpha;
                 }
                 for (int channel = 0; channel < 3; ++channel) {
                     if (!(layer.channelMask & (1u << channel))) continue;
-                    pixel[channel] = quint8(std::nearbyint(std::fma(float(source[channel]) - pixel[channel], blend,
-                                                                  float(pixel[channel]))));
+                    // Retain the byte-color product and sum in binary64, then
+                    // round once to binary32 before nearest-even quantization.
+                    const float color = float(double(int(source[channel]) - pixel[channel]) * double(blend) +
+                                              double(pixel[channel]));
+                    pixel[channel] = quint8(std::nearbyint(color));
                 }
                 if (layer.channelMask & 8u) pixel[3] = quint8(std::nearbyint(destinationAlpha));
             }

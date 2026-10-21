@@ -39,6 +39,8 @@ private Q_SLOTS:
     void partialLayerOpacityComposesOverTransparency();
     void normalProjectionPreservesBinary32Rounding_data();
     void normalProjectionPreservesBinary32Rounding();
+    void normalProjectionKeepsDefaultAndTileColorsAtRoundingBoundaries_data();
+    void normalProjectionKeepsDefaultAndTileColorsAtRoundingBoundaries();
     void explicitPassThroughReadAfterParentKeepsSubtreePixels();
     void passThroughHierarchyMatchesNativeRootPixels_data();
     void passThroughHierarchyMatchesNativeRootPixels();
@@ -676,6 +678,70 @@ void KisGpuTileRendererTest::normalProjectionPreservesBinary32Rounding()
     }
     QCOMPARE(actual.size(), RgbaTile::ByteCount);
     QCOMPARE(QCryptographicHash::hash(actual, QCryptographicHash::Sha256).toHex(), expectedHash);
+}
+
+void KisGpuTileRendererTest::normalProjectionKeepsDefaultAndTileColorsAtRoundingBoundaries_data()
+{
+    QTest::addColumn<bool>("implicit");
+    QTest::addColumn<QByteArray>("sourcePixel");
+    QTest::addColumn<QByteArray>("destinationPixel");
+    QTest::addColumn<int>("opacity");
+    QTest::addColumn<QByteArray>("expectedPixel");
+    for (const bool implicit : {false, true}) {
+        QTest::newRow(implicit ? "default-pixels" : "tiles") << implicit
+            << QByteArray::fromHex("7e7e7eff") << QByteArray::fromHex("818181ff")
+            << 85 << QByteArray::fromHex("808080ff");
+        QTest::newRow(implicit ? "negative-half-default-pixels" : "negative-half-tiles") << implicit
+            << QByteArray::fromHex("00000026") << QByteArray::fromHex("fdfdfd19")
+            << 1 << QByteArray::fromHex("fbfbfb19");
+    }
+}
+
+void KisGpuTileRendererTest::normalProjectionKeepsDefaultAndTileColorsAtRoundingBoundaries()
+{
+    QFETCH(bool, implicit);
+    QFETCH(QByteArray, sourcePixel);
+    QFETCH(QByteArray, destinationPixel);
+    QFETCH(int, opacity);
+    QFETCH(QByteArray, expectedPixel);
+    const QUuid group(QStringLiteral("{21222324-2526-2728-292a-2b2c2d2e2f30}"));
+    RasterImage input;
+    input.size = {64, 48};
+    input.layers = {{QStringLiteral("Destination"), true, {}, {}, {129, 129, 129, 255}},
+                    {QStringLiteral("Source"), true, {}, {}, {126, 126, 126, 255}},
+                    {QStringLiteral("Group"), true, group, {}}};
+    input.layers[0].parentUuid = input.layers[1].parentUuid = group;
+    input.layers[1].opacity = quint8(opacity);
+    input.layers[2].kind = LayerKind::Group;
+    std::array<quint8, 4> expected;
+    for (int channel = 0; channel < 4; ++channel) {
+        input.layers[0].defaultPixel[channel] = quint8(destinationPixel[channel]);
+        input.layers[1].defaultPixel[channel] = quint8(sourcePixel[channel]);
+        expected[channel] = quint8(expectedPixel[channel]);
+    }
+    if (!implicit) {
+        input.layers[0].tiles = {{{0, 0}, destinationPixel.repeated(RgbaTile::ByteCount / 4)}};
+        input.layers[1].tiles = {{{0, 0}, sourcePixel.repeated(RgbaTile::ByteCount / 4)}};
+    }
+    OperationDocument document(input);
+    // Uniform defaults and materialized pixels share both the binary32
+    // multiply-add rounding and the subsequent nearest-even byte conversion.
+    QCOMPARE(document.snapshot()->projectionDefaultPixels().value(3), expected);
+    TileRenderer renderer(m_device);
+    const auto raw = render(renderer, document.snapshot());
+    QVERIFY(raw);
+    const auto projected = project(renderer, raw, {0, 0, 64, 48});
+    QVERIFY(projected && projected->tiles().size() == 1);
+    const auto actual = readBuffer(projected->tiles().first().pixels);
+    QCOMPARE(actual, expectedPixel.repeated(RgbaTile::ByteCount / 4));
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        QFile artifact(QDir(directory).filePath(QStringLiteral("normal-rounding-%1.rgba")
+            .arg(QString::fromLatin1(QTest::currentDataTag()))));
+        QVERIFY(artifact.open(QIODevice::WriteOnly));
+        QCOMPARE(artifact.write(actual), actual.size());
+    }
 }
 
 void KisGpuTileRendererTest::explicitPassThroughReadAfterParentKeepsSubtreePixels()
