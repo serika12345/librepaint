@@ -34,7 +34,10 @@
 #include <klocalizedstring.h>
 #include "KoCanvasResourcesIds.h"
 #include "KoCanvasResourceProvider.h"
+#include <KoColor.h>
+#include <KoColorSpace.h>
 #include "KoColorSpaceConstants.h"
+#include <KoMixColorsOp.h>
 #include "KoViewConverter.h"
 #include "KoIcon.h"
 #include "KisColorSamplerStroke.h"
@@ -87,15 +90,18 @@ struct KisAsyncColorSamplerHelper::Private
         LibrePaint::Image::Gpu::Snapshot version;
         LibrePaint::Image::Gpu::LayerId layer = 0;
         QPoint point;
+        KoColor currentColor;
     };
     LibrePaint::Image::Gpu::PaintImageSP gpuImage;
     KisImageSP gpuPublicImage;
+    QUuid gpuDocumentId;
     std::optional<GpuSample> gpuSample;
     std::optional<GpuSample> nextGpuSample;
     std::future<LibrePaint::Image::Gpu::PixelReadbackOutcome> gpuReadback;
     std::optional<KoColor> lastGpuColor;
     QTimer gpuPoll;
     quint64 gpuActionSerial = 0;
+    int gpuBlend = 100;
     bool gpuMode = false;
     bool gpuActive = false;
     typedef KisSignalCompressorWithParam<QPointF> SamplingCompressor;
@@ -117,6 +123,13 @@ struct KisAsyncColorSamplerHelper::Private
     QPixmap cache;
     qreal cacheRotation = 0.0;
     bool cacheMirror = false;
+
+    bool isCurrentGpuDocument() const
+    {
+        return canvas && gpuImage && gpuImage->handle() &&
+            canvas->image().data() == gpuPublicImage.data() &&
+            gpuImage->operations().snapshot()->documentId() == gpuDocumentId;
+    }
 
     const KoViewConverter &converter() const {
         return *canvas->imageView()->viewConverter();
@@ -362,12 +375,14 @@ void KisAsyncColorSamplerHelper::startAction(const QPointF &docPoint, int radius
     KisImageSP image = m_d->canvas->image();
     if (const auto owner = image->gpuImage()) {
         m_d->gpuMode = true;
-        if (radius != 1 || blend != 100) {
+        if (radius != 1 || blend < 0 || blend > 100) {
             m_d->canvas->viewManager()->showFloatingMessage(i18n("These color sampling settings are not available for this document."), QIcon());
             return;
         }
         m_d->gpuImage = owner;
         m_d->gpuPublicImage = image;
+        m_d->gpuDocumentId = owner->operations().snapshot()->documentId();
+        m_d->gpuBlend = blend;
         m_d->gpuActive = true;
     } else {
         m_d->samplingStroke.start(image.data(), radius, blend);
@@ -399,6 +414,8 @@ void KisAsyncColorSamplerHelper::resetGpuSampling()
     ++m_d->gpuActionSerial;
     m_d->gpuMode = false;
     m_d->gpuActive = false;
+    m_d->gpuBlend = 100;
+    m_d->gpuDocumentId = QUuid();
     m_d->gpuReadback = {};
     m_d->gpuSample.reset();
     m_d->nextGpuSample.reset();
@@ -410,6 +427,10 @@ void KisAsyncColorSamplerHelper::resetGpuSampling()
 void KisAsyncColorSamplerHelper::completeGpuSampling()
 {
     if (m_d->gpuActive || m_d->gpuSample || m_d->nextGpuSample) return;
+    if (!m_d->isCurrentGpuDocument()) {
+        resetGpuSampling();
+        return;
+    }
     const auto selected = m_d->lastGpuColor;
     resetGpuSampling();
     if (selected) Q_EMIT sigFinalColorSelected(*selected);
@@ -417,11 +438,12 @@ void KisAsyncColorSamplerHelper::completeGpuSampling()
 
 void KisAsyncColorSamplerHelper::queueGpuSample(const QPoint &imagePoint)
 {
-    if (!m_d->canvas || m_d->canvas->image().data() != m_d->gpuPublicImage.data()) {
+    if (!m_d->isCurrentGpuDocument()) {
         resetGpuSampling();
         return;
     }
-    Private::GpuSample sample{m_d->gpuImage->operations().snapshot(), 0, imagePoint};
+    Private::GpuSample sample{m_d->gpuImage->operations().snapshot(), 0, imagePoint,
+        m_d->canvas->resourceManager()->koColorResource(m_d->sampleResourceId)};
     if (m_d->sampleCurrentLayer) {
         const auto node = m_d->canvas->imageView()->currentNode();
         if (!node) return;
@@ -438,7 +460,7 @@ void KisAsyncColorSamplerHelper::queueGpuSample(const QPoint &imagePoint)
 void KisAsyncColorSamplerHelper::pollGpuSample()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
-    if (!m_d->canvas || m_d->canvas->image().data() != m_d->gpuPublicImage.data()) {
+    if (!m_d->isCurrentGpuDocument()) {
         resetGpuSampling();
         return;
     }
@@ -478,9 +500,17 @@ void KisAsyncColorSamplerHelper::pollGpuSample()
             for (int channel = 0; channel < 4; ++channel) rgba[channel] = quint8(tile.rgba[offset + channel]);
             break;
         }
-        if (rgba[3]) {
-            const quint8 bgra[]{rgba[2], rgba[1], rgba[0], rgba[3]};
-            const KoColor color(bgra, m_d->gpuPublicImage->colorSpace());
+        const quint8 bgra[]{rgba[2], rgba[1], rgba[0], rgba[3]};
+        KoColor color(bgra, m_d->gpuPublicImage->colorSpace());
+        if (m_d->gpuBlend < 100) {
+            KoColor previous(sample.currentColor);
+            previous.convertTo(color.colorSpace());
+            const quint8 *colors[]{previous.data(), color.data()};
+            const qint16 sampledWeight = m_d->gpuBlend * 255 / 100;
+            const qint16 weights[]{qint16(255 - sampledWeight), sampledWeight};
+            color.colorSpace()->mixColorsOp()->mixColors(colors, weights, 2, color.data());
+        }
+        if (color.opacityU8()) {
             m_d->lastGpuColor = color;
             slotColorSamplingFinished(color);
         }
@@ -488,7 +518,7 @@ void KisAsyncColorSamplerHelper::pollGpuSample()
         m_d->canvas->viewManager()->showFloatingMessage(i18n("The color could not be sampled: %1", read.diagnostic), QIcon());
     }
     if (!guard || m_d->gpuActionSerial != serial) return;
-    if (!m_d->canvas || m_d->canvas->image().data() != m_d->gpuPublicImage.data()) {
+    if (!m_d->isCurrentGpuDocument()) {
         resetGpuSampling();
         return;
     }
@@ -755,8 +785,9 @@ void KisAsyncColorSamplerHelper::slotColorSamplingFinished(const KoColor &rawCol
     const auto serial = m_d->gpuActionSerial;
     const auto currentAction = [&] {
         return guard && m_d->gpuActionSerial == serial && (!m_d->gpuMode ||
-            (m_d->canvas && m_d->canvas->image().data() == m_d->gpuPublicImage.data()));
+            m_d->isCurrentGpuDocument());
     };
+    if (!currentAction()) return;
     KoColor color(rawColor);
 
     color.setOpacity(OPACITY_OPAQUE_U8);

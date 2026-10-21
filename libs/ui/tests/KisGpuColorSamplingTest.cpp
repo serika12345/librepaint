@@ -17,6 +17,7 @@
 #include <KisResourceModel.h>
 #include <KisResourceStorage.h>
 #include <KoColorSpaceRegistry.h>
+#include <KoColorSpace.h>
 #include <KoColor.h>
 #include <KoCanvasResourcesIds.h>
 #include <KoPointerEvent.h>
@@ -87,6 +88,7 @@ private Q_SLOTS:
         QTest::addColumn<QString>("transition");
         QTest::addColumn<int>("alpha");
         QTest::addColumn<bool>("gpu");
+        QTest::addColumn<int>("blend");
         struct Case { const char *name; bool layer, foreground; const char *transition; int alpha; bool gpu; };
         const Case cases[] = {
             {"layer-foreground", true, true, "", 255, true},
@@ -105,8 +107,25 @@ private Q_SLOTS:
             {"ordinary-merged", false, true, "", 255, false},
             {"ordinary-translucent", true, true, "", 128, false},
         };
+        QTest::newRow("blend-first-operation") << true << true << QString() << 255 << true << 50;
         for (const auto &c : cases) QTest::newRow(c.name) << c.layer << c.foreground
-            << QString::fromLatin1(c.transition) << c.alpha << c.gpu;
+            << QString::fromLatin1(c.transition) << c.alpha << c.gpu << 100;
+        for (int blend : {0, 1, 33, 50, 99}) {
+            const QByteArray name = QByteArray("blend-foreground-") + QByteArray::number(blend);
+            QTest::newRow(name.constData()) << true << true << QString() << 255 << true << blend;
+        }
+        QTest::newRow("blend-merged-background") << false << false << QString() << 255 << true << 50;
+        QTest::newRow("blend-translucent") << true << true << QString() << 128 << true << 50;
+        QTest::newRow("blend-transparent") << true << true << QString() << 0 << true << 50;
+        QTest::newRow("registered-sampler-blend") << false << true << QStringLiteral("tool") << 255 << true << 50;
+        QTest::newRow("blend-captured-current-color") << true << true << QStringLiteral("palette") << 255 << true << 50;
+        QTest::newRow("blend-preview-without-updating-color") << true << true << QStringLiteral("preview") << 255 << true << 50;
+        QTest::newRow("blend-current-color-rgb16") << true << true << QStringLiteral("rgb16") << 255 << true << 50;
+        QTest::newRow("materialized-rgb") << true << true << QStringLiteral("colorful") << 255 << true << 100;
+        QTest::newRow("blend-materialized-rgb") << true << true << QStringLiteral("colorful") << 255 << true << 50;
+        QTest::newRow("recover-on-raw-color") << true << true << QStringLiteral("recover-raw") << 255 << true << 100;
+        QTest::newRow("close-on-raw-color") << true << true << QStringLiteral("close-raw") << 255 << true << 100;
+        QTest::newRow("recover-before-release") << true << true << QStringLiteral("recover-release") << 255 << true << 100;
     }
     void samplesLayerAndProjectionWithoutEditing();
 private:
@@ -120,6 +139,7 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
     QFETCH(QString, transition);
     QFETCH(int, alpha);
     QFETCH(bool, gpu);
+    QFETCH(int, blend);
     namespace Gpu = LibrePaint::Image::Gpu;
     QString diagnostic;
     const auto execution = KisPart::instance()->gpuExecution(diagnostic);
@@ -134,6 +154,9 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
     raster.layers[0].uuid = QUuid(QStringLiteral("{d3000001-1122-3344-5566-778899aabbcc}"));
     raster.layers[1].uuid = QUuid(QStringLiteral("{d3000002-1122-3344-5566-778899aabbcc}"));
     const auto owner = gpu ? Gpu::PaintImageSP::create(execution, raster) : Gpu::PaintImageSP();
+    if (transition == QStringLiteral("colorful")) {
+        QCOMPARE(owner->replaceRgbaPixels(owner->operations().snapshot()->layers[1].id, {12, 9, 1, 1}, QByteArray::fromHex("1561c9ff")), Gpu::Result::Success);
+    }
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
     const auto cs = KoColorSpaceRegistry::instance()->rgb8();
     KisImageSP image;
@@ -175,7 +198,10 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
     QTRY_VERIFY(!windowReady.isEmpty());
     if (!gpu) window->viewManager()->nodeManager()->slotNonUiActivatedNode(image->root()->lastChild());
     QTRY_COMPARE(view->currentNode()->uuid(), raster.layers[1].uuid);
-    const KoColor oldForeground(QColor(5, 10, 20), cs), oldBackground(QColor(200, 210, 220), cs);
+    const auto previousSpace = transition == QStringLiteral("rgb16")
+        ? KoColorSpaceRegistry::instance()->rgb16(cs->profile()) : cs;
+    QVERIFY(previousSpace);
+    const KoColor oldForeground(QColor(5, 10, 20), previousSpace), oldBackground(QColor(200, 210, 220), cs);
     resources->setFGColor(oldForeground);
     resources->setBGColor(oldBackground);
     lifetime->setModified(false);
@@ -194,7 +220,7 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
         previous.load();
         KisToolUtils::ColorSamplerConfig config;
         config.radius = 1;
-        config.blend = 100;
+        config.blend = blend;
         config.sampleMerged = true;
         config.toForegroundColor = true;
         config.save();
@@ -205,6 +231,7 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
         view->canvasBase()->resourceManager()->setResource(KoCanvasResource::UsingOtherColor, false);
         const auto toolId = QStringLiteral("KritaSelected/KisToolColorSampler");
         KoToolManager::instance()->switchToolRequested(toolId);
+        QTRY_COMPARE(KoToolManager::instance()->activeToolId(), toolId);
         auto *tool = qobject_cast<KisTool *>(KoToolManager::instance()->toolById(view->canvasBase(), toolId));
         QVERIFY(tool);
         const auto point = view->canvasBase()->coordinatesConverter()->imageToDocument(QPointF(12, 9));
@@ -218,7 +245,7 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
         } catch (const std::exception &failure) {
             QFAIL(failure.what());
         }
-        QTRY_COMPARE(resources->fgColor(), KoColor(QColor(128, 128, 128), cs));
+        QTRY_COMPARE(resources->fgColor(), KoColor(blend == 50 ? QColor(66, 69, 74) : QColor(128, 128, 128), cs));
         QCOMPARE(resources->bgColor(), oldBackground);
         QCOMPARE(owner->operations().snapshot(), before);
         QCOMPARE(pixels(), expectedPixels);
@@ -227,6 +254,7 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
         return;
     }
     auto helper = std::make_unique<KisAsyncColorSamplerHelper>(view->canvasBase());
+    if (transition == QStringLiteral("preview")) helper->setUpdateGlobalColor(false);
     QSignalSpy raw(helper.get(), &KisAsyncColorSamplerHelper::sigRawColorSelected);
     QSignalSpy selected(helper.get(), &KisAsyncColorSamplerHelper::sigColorSelected);
     QSignalSpy finished(helper.get(), &KisAsyncColorSamplerHelper::sigFinalColorSelected);
@@ -238,9 +266,23 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
             if (restarted) return;
             restarted = true;
             helper->activate(false, foreground);
-            helper->startAction(view->canvasBase()->coordinatesConverter()->imageToDocument(QPointF(12, 9)), 1, 100);
+            helper->startAction(view->canvasBase()->coordinatesConverter()->imageToDocument(QPointF(12, 9)), 1, blend);
             helper->endAction();
             helper->deactivate();
+        });
+    } else if (transition == QStringLiteral("close-raw")) {
+        connect(helper.get(), &KisAsyncColorSamplerHelper::sigRawColorSelected, helper.get(), [&] { owner->close(); });
+    } else if (transition == QStringLiteral("recover-raw")) {
+        connect(helper.get(), &KisAsyncColorSamplerHelper::sigRawColorSelected, helper.get(), [&] {
+            auto recovered = raster;
+            recovered.layers[1].defaultPixel = {42, 90, 200, 255};
+            recovered.layers[1].opacity = 255;
+            Gpu::OperationDocument replacement(recovered);
+            QCOMPARE(owner->restoreRecovery(replacement.recoveryData()), Gpu::Result::Success);
+            expectedVersion = owner->operations().snapshot();
+            expectedPixels = pixels();
+            history = lifetime->undoStack()->count();
+            modified = lifetime->isModified();
         });
     } else if (transition == QStringLiteral("replace-raw")) {
         connect(helper.get(), &KisAsyncColorSamplerHelper::sigRawColorSelected, helper.get(), [&] {
@@ -254,14 +296,28 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
     helper->activate(currentLayer, foreground);
     QString error;
     try {
-        helper->startAction(view->canvasBase()->coordinatesConverter()->imageToDocument(QPointF(12, 9)), 1, 100);
+        helper->startAction(view->canvasBase()->coordinatesConverter()->imageToDocument(QPointF(12, 9)), 1, blend);
         QCOMPARE(raw.size(), 0);
+        if (transition == QStringLiteral("palette")) resources->setFGColor(KoColor(QColor(230, 1, 40), cs));
         if (transition == QStringLiteral("edit")) {
             QCOMPARE(owner->replaceRgbaPixels(before->layers[1].id, {12, 9, 1, 1}, QByteArray::fromHex("fafafaff")), Gpu::Result::Success);
             expectedVersion = owner->operations().snapshot();
             history = lifetime->undoStack()->count();
             modified = lifetime->isModified();
             expectedPixels = pixels();
+        }
+        if (transition == QStringLiteral("recover-release")) {
+            QTRY_COMPARE(selected.size(), 1);
+            QCOMPARE(finished.size(), 0);
+            auto recovered = raster;
+            recovered.layers[1].defaultPixel = {42, 90, 200, 255};
+            recovered.layers[1].opacity = 255;
+            Gpu::OperationDocument replacement(recovered);
+            QCOMPARE(owner->restoreRecovery(replacement.recoveryData()), Gpu::Result::Success);
+            expectedVersion = owner->operations().snapshot();
+            expectedPixels = pixels();
+            history = lifetime->undoStack()->count();
+            modified = lifetime->isModified();
         }
         helper->endAction();
     } catch (const std::exception &exception) {
@@ -311,7 +367,23 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
         QCOMPARE(owner->operations().snapshot(), before);
         return;
     }
-    if (transition == QStringLiteral("destroy") || transition == QStringLiteral("replace-raw")) {
+    if (transition == QStringLiteral("recover-release")) {
+        QCOMPARE(raw.size(), 1);
+        QCOMPARE(selected.size(), 1);
+        QCOMPARE(finished.size(), 0);
+        QCOMPARE(resources->fgColor(), KoColor(QColor(126, 126, 126), cs));
+        QCOMPARE(owner->operations().snapshot(), expectedVersion);
+        QCOMPARE(pixels(), expectedPixels);
+        return;
+    }
+    if (transition == QStringLiteral("close-raw")) {
+        QTRY_COMPARE(raw.size(), 1);
+        QCOMPARE(selected.size(), 0);
+        QCOMPARE(finished.size(), 0);
+        QCOMPARE(owner->handle(), 0);
+        return;
+    }
+    if (transition == QStringLiteral("destroy") || transition == QStringLiteral("replace-raw") || transition == QStringLiteral("recover-raw")) {
         QTRY_COMPARE(raw.size(), 1);
         if (transition == QStringLiteral("destroy")) QVERIFY(!helper);
         QCOMPARE(raw.size(), 1);
@@ -322,14 +394,28 @@ void KisGpuColorSamplingTest::samplesLayerAndProjectionWithoutEditing()
         QCOMPARE(raw.size(), restarted ? 2 : 1);
         QCOMPARE(selected.size(), 1);
     }
-    const QColor expected = currentLayer && !restarted ? QColor(126, 126, 126) : QColor(128, 128, 128);
+    QColor expected = currentLayer && !restarted ? QColor(126, 126, 126) : QColor(128, 128, 128);
+    if (transition == QStringLiteral("colorful")) expected = QColor(21, 97, 201);
     auto rawExpected = expected;
     if (currentLayer && !restarted) rawExpected.setAlpha(alpha);
+    if (blend < 100) {
+        const auto previous = (foreground ? oldForeground : oldBackground).toQColor();
+        const int sampledWeight = blend * 255 / 100;
+        const int previousWeight = 255 - sampledWeight;
+        const int totalAlpha = previous.alpha() * previousWeight + rawExpected.alpha() * sampledWeight;
+        const auto channel = [&](int oldValue, int sampledValue) {
+            return (oldValue * previous.alpha() * previousWeight + sampledValue * rawExpected.alpha() * sampledWeight + totalAlpha / 2) / totalAlpha;
+        };
+        rawExpected = QColor(channel(previous.red(), rawExpected.red()), channel(previous.green(), rawExpected.green()),
+                             channel(previous.blue(), rawExpected.blue()), (totalAlpha + 127) / 255);
+        expected = rawExpected;
+        expected.setAlpha(255);
+    }
     QCOMPARE(qvariant_cast<KoColor>(raw.last().first()).toQColor(), rawExpected);
     if (!selected.isEmpty()) QCOMPARE(qvariant_cast<KoColor>(selected.first().first()).toQColor(), expected);
     if (!finished.isEmpty()) QCOMPARE(qvariant_cast<KoColor>(finished.first().first()).toQColor(), rawExpected);
-    QCOMPARE(resources->fgColor(), foreground ? KoColor(expected, cs) : oldForeground);
-    QCOMPARE(resources->bgColor(), foreground ? oldBackground : KoColor(expected, cs));
+    QCOMPARE(resources->fgColor(), foreground && transition != QStringLiteral("preview") ? KoColor(expected, cs) : oldForeground);
+    QCOMPARE(resources->bgColor(), foreground || transition == QStringLiteral("preview") ? oldBackground : KoColor(expected, cs));
     if (owner) QCOMPARE(owner->operations().snapshot(), expectedVersion);
     QCOMPARE(pixels(), expectedPixels);
     if (transition != QStringLiteral("replace-raw")) {
