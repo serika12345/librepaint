@@ -705,6 +705,7 @@ Linuxの表示窓試験はX11から表示面の画素を取得し、成分切替
 `TestChannelDocker`は、通常の一覧の有効化、各成分の縮小画像、再接続、
 描画入力中の表示切替と設定通知、固定したKRA出力の保持を検査する。
 Linuxでは一覧から表示窓までの結果もX11で取得する。
+チャンネル合成の参照値には白の市松模様と余白を固定し、模様設定の検査と独立して照合する。
 `LIBREPAINT_GPU_RESULT_DIR`を指定した場合、大小の文書の`display-channels-{gpu,gpu-large}.kra`を出力する。
 `KisGpuPixelReadbackTest`は非同期読取り後の新しい要求、文書終了とGPU終了からの
 CPU結果の独立性を検査する。同期読取りも同じ完了処理を使い、従来の画素契約を維持する。
@@ -1029,12 +1030,24 @@ Linuxの実行にはVulkanに対応するQt画面プラグインを使う。画�
 Qtの8ビット乗算済みアルファ合成との全画素一致と、元のGPU画素・文書版・復旧記録の保持を要求する。
 `LIBREPAINT_GPU_RESULT_DIR`へ`matte-palette-<format>-<background>-actual.rgba`と`-expected.rgba`を保存する。
 
+`KisGpuTilePresentationTest::checkerBackgroundPreservesDocumentPixels`は、空の文書と半透明の画素について、
+固定・追従・拡大・90度回転、表示先による切取り、RGBA8とBGRA8を全画素で照合する。
+期待値はQtの8ビット前景合成で2色を作り、物理画素の中心から文書境界と模様のセルを直接判定する。
+`checker-background-<format>-<condition>-actual.rgba`と`-expected.rgba`を出力し、元画素・文書版・復旧記録の保持を検査する。
+不正な模様の色・セル幅・変換・座標範囲は表示先の変更前に拒否する。
+`KisGpuDocumentViewTest::canvasBackgroundFollowsPreferencesWithoutEditing`は、通常の空の文書で、
+パン・ズーム・23度回転・設定変更後の全画素と文書画素・履歴・変更状態を照合する。
+固定・追従と半透明の2条件を組み合わせ、`ordinary-canvas-background-<condition>-<stage>-{actual,expected}.png`を保存する。
+最大幅の文書では1画素の模様を使い、末尾と余白を表示した後のパンでも全画素と文書状態を照合する。
+低水準の固定画素は環境間で照合し、通常画面の取得は各環境の表示座標との接続を検査する。
+
 `KisGpuTilePresentationTest`は、輪郭の移動・線幅・消去と不透明・半透明・透明背景の全RGBA画素を照合する。
 不正な座標・線幅・色と頂点数の上限超過では、表示先の全画素が維持されることを検査する。
 `KisGpuDocumentViewTest::brushOutlineFollowsTheOrdinaryPointerWithoutEditing`は、通常画面のブラシとポインターから
 輪郭の表示・移動・倍率変更・ツール切替・文書の非アクティブ化・退出時の消去を検査し、文書画素・版・履歴・変更状態の維持を照合する。
 輪郭径は画像座標からウィジェット座標へ変換し、画面倍率を掛けた物理画素で照合する。
 画面取得は起動通知が消えた文書表示との厳密一致から開始し、設定変更による表示窓の再生成を追跡する。
+倍率変更後も通知が重ならないフレームの輪郭径・位置・画素数を同じ条件で照合する。
 `LIBREPAINT_GPU_RESULT_DIR`へ低水準の`.rgba`と通常画面の`ordinary-brush-outline-<stage>.png`を保存する。
 通常画面の画像はネイティブ表示と入力の接続を確認し、固定したGPU表示画素の環境間比較は低水準の全RGBAを使う。
 

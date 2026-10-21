@@ -27,6 +27,7 @@
 #include <QScopeGuard>
 #include <QResizeEvent>
 #include <QVBoxLayout>
+#include <cmath>
 
 namespace {
 class GpuCanvasUpdateInfo final : public KisUpdateInfo
@@ -55,6 +56,7 @@ KisGpuCanvasWidget::KisGpuCanvasWidget(KisCanvas2 *canvas, KisCoordinatesConvert
     m_window->installEventFilter(this);
     m_window->setDocument(m_image->handle());
     channelSelectionChanged(canvas->image()->rootLayer()->channelFlags());
+    updateBackground();
     connect(KisConfigNotifier::instance(), &KisConfigNotifier::configChanged, this, [this] {
         const KisImageSP image = this->canvas()->image();
         if (image) channelSelectionChanged(image->rootLayer()->channelFlags());
@@ -98,8 +100,25 @@ void KisGpuCanvasWidget::refresh()
         connect(m_image.data(), &LibrePaint::Image::Gpu::PaintImage::changed, this, [this] { refresh(); });
     }
     m_window->setDocumentToWindow(coordinatesConverter()->imageToWidgetTransform());
+    updateBackground();
     if (!updateToolOutline()) return;
     m_window->refresh();
+}
+
+void KisGpuCanvasWidget::updateBackground()
+{
+    const KisConfig config(true);
+    const auto *converter = coordinatesConverter();
+    const auto transform = config.scrollCheckers() ? converter->viewportToWidgetTransform() : QTransform();
+    const auto origin = config.scrollCheckers() ? converter->imageToViewport(QPointF()) : QPointF();
+    LibrePaint::Canvas::Gpu::CheckerPattern pattern;
+    pattern.first = config.checkersColor1();
+    pattern.second = config.checkersColor2();
+    pattern.cellSize = config.checkSize();
+    const qreal period = 2.0 * pattern.cellSize;
+    const QPointF phase(std::fmod(origin.x(), period), std::fmod(origin.y(), period));
+    pattern.targetToPattern = transform.inverted() * QTransform::fromTranslate(-phase.x(), -phase.y());
+    KIS_SAFE_ASSERT_RECOVER_RETURN(m_window->setBackground(config.canvasBorderColor(), std::move(pattern)));
 }
 
 bool KisGpuCanvasWidget::updateToolOutline()

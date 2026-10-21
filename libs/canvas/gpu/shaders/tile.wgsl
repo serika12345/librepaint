@@ -1,6 +1,10 @@
 // SPDX-FileCopyrightText: 2026 LibrePaint contributors
 // SPDX-License-Identifier: GPL-2.0-or-later
-struct Parameters { matrix: mat4x4<f32>, clip: vec4<f32>, channels: vec4<u32>, background: vec4<u32> }
+struct Parameters {
+    matrix: mat4x4<f32>, clip: vec4<f32>, channels: vec4<u32>, background: vec4<u32>,
+    checkerFirst: vec4<u32>, checkerSecond: vec4<u32>,
+    checkerX: vec4<f32>, checkerY: vec4<f32>, checker: vec4<u32>
+}
 @group(0) @binding(0) var<uniform> p: Parameters;
 @group(0) @binding(1) var<storage, read> pixels: array<u32>;
 struct Vertex { @builtin(position) position: vec4<f32>, @location(0) uv: vec2<f32> }
@@ -15,7 +19,21 @@ fn scaleDisplayBytes(pixel: vec4<u32>, opacity: u32) -> vec4<u32> {
     let product = pixel * opacity;
     return (product + (product >> vec4(8u)) + vec4(128u)) >> vec4(8u);
 }
-@fragment fn fragmentMain(@location(0) uv: vec2<f32>) -> @location(0) vec4<f32> {
+fn overBytes(source: vec4<u32>, destination: vec4<u32>) -> vec4<u32> {
+    return source + scaleDisplayBytes(destination, 255u - source.a);
+}
+fn backgroundAt(position: vec2<f32>) -> vec4<u32> {
+    if (p.checker.x == 0u) { return p.background; }
+    let point = vec2(dot(p.checkerX.xy, position) + p.checkerX.z,
+                     dot(p.checkerY.xy, position) + p.checkerY.z);
+    let cell = vec2<i32>(floor(point / f32(p.checker.y)));
+    let second = overBytes(p.checkerSecond, p.background);
+    return select(second, overBytes(p.checkerFirst, second), ((cell.x ^ cell.y) & 1) == 0);
+}
+@fragment fn backgroundMain(@builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
+    return vec4<f32>(backgroundAt(position.xy)) / 255.;
+}
+@fragment fn fragmentMain(@location(0) uv: vec2<f32>, @builtin(position) position: vec4<f32>) -> @location(0) vec4<f32> {
     if (any(uv < p.clip.xy) || any(uv >= p.clip.zw)) { discard; }
     let pos = vec2<u32>(clamp(floor(uv * 256.), vec2(0.), vec2(255.)));
     let pixel = pixels[pos.y * 256u + pos.x];
@@ -33,6 +51,5 @@ fn scaleDisplayBytes(pixel: vec4<u32>, opacity: u32) -> vec4<u32> {
         visual = select(vec4(0u), straight, enabled);
     }
     let source = scaleDisplayBytes(vec4<u32>(visual.rgb, 255u), visual.a);
-    let destination = scaleDisplayBytes(p.background, 255u - visual.a);
-    return vec4<f32>(source + destination) / 255.;
+    return vec4<f32>(overBytes(source, backgroundAt(position.xy))) / 255.;
 }

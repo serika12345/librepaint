@@ -12,6 +12,7 @@
 #include <QItemSelectionModel>
 #include <QIcon>
 #include <QPointer>
+#include <QPainter>
 #include <QSignalSpy>
 #include <QStatusBar>
 #include <QScopeGuard>
@@ -69,6 +70,7 @@
 #include <opengl/kis_opengl.h>
 #include <testui.h>
 #include <algorithm>
+#include <cmath>
 #include <exception>
 #include <memory>
 #include <thread>
@@ -103,6 +105,8 @@ private Q_SLOTS:
     }
     void presentsEditsAndReleasesTheClosedTab();
     void brushOutlineFollowsTheOrdinaryPointerWithoutEditing();
+    void canvasBackgroundFollowsPreferencesWithoutEditing_data();
+    void canvasBackgroundFollowsPreferencesWithoutEditing();
     void freehandInputCommitsOneHistoryEntryAndCanBeCancelled_data();
     void freehandInputCommitsOneHistoryEntryAndCanBeCancelled();
     void paintingBackendChangesRebindTheCanvas_data();
@@ -2655,6 +2659,203 @@ void KisGpuDocumentViewTest::replacementUpdatesPresentationInputHistoryAndSaving
 }
 
 
+void KisGpuDocumentViewTest::canvasBackgroundFollowsPreferencesWithoutEditing_data()
+{
+    QTest::addColumn<bool>("scrollCheckers");
+    QTest::addColumn<int>("secondAlpha");
+    QTest::addColumn<bool>("imageLimitPan");
+    QTest::newRow("fixed-opaque") << false << 255 << false;
+    QTest::newRow("scrolling-opaque") << true << 255 << false;
+    QTest::newRow("fixed-translucent") << false << 128 << false;
+    QTest::newRow("scrolling-translucent") << true << 128 << false;
+    QTest::newRow("scrolling-image-limit") << true << 128 << true;
+}
+
+void KisGpuDocumentViewTest::canvasBackgroundFollowsPreferencesWithoutEditing()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    QFETCH(bool, scrollCheckers);
+    QFETCH(int, secondAlpha);
+    QFETCH(bool, imageLimitPan);
+    KisConfig config(false);
+    const auto oldFirst = config.checkersColor1();
+    const auto oldSecond = config.checkersColor2();
+    const auto oldBorder = config.canvasBorderColor();
+    const auto oldSize = config.checkSize();
+    const auto oldScrolling = config.scrollCheckers();
+    const auto oldVastScrolling = config.vastScrolling();
+    const auto restoreConfig = qScopeGuard([&] {
+        config.setCheckersColor1(oldFirst);
+        config.setCheckersColor2(oldSecond);
+        config.setCanvasBorderColor(oldBorder);
+        config.setCheckSize(oldSize);
+        config.setScrollingCheckers(oldScrolling);
+        config.setVastScrolling(oldVastScrolling);
+        KisConfigNotifier::instance()->notifyConfigChanged();
+    });
+    QColor first(24, 68, 116, 128);
+    QColor second(173, 209, 67, secondAlpha);
+    QColor border(9, 33, 57);
+    int checkSize = imageLimitPan ? 1 : 8;
+    if (imageLimitPan) config.setVastScrolling(1);
+    const auto configure = [&] {
+        config.setCheckersColor1(first);
+        config.setCheckersColor2(second);
+        config.setCanvasBorderColor(border);
+        config.setCheckSize(checkSize);
+        config.setScrollingCheckers(scrollCheckers);
+    };
+    configure();
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(imageLimitPan ? Gpu::RgbaTile::CoordinateLimit : 128, 128));
+    const auto snapshot = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(snapshot), Gpu::Result::Success);
+    const auto recovery = owner->operations().recoveryData();
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("GPU canvas background")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    window->resize(800, 600);
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto releaseWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
+    if (imageLimitPan) view->canvasBase()->canvasWidget()->setFixedSize(128, 128);
+    window->show();
+    window->activateWindow();
+    KoToolManager::instance()->switchToolRequested(QStringLiteral("PanTool"));
+    view->canvasController()->resetCanvasRotation();
+    view->canvasController()->mirrorCanvas(false);
+    view->zoomManager()->zoomTo100();
+    const auto *converter = view->canvasBase()->coordinatesConverter();
+    view->canvasController()->setPreferredCenter(converter->imageRectInWidgetPixels().center());
+    QTRY_COMPARE(execution.published(owner->handle()), snapshot);
+    QPointer<LibrePaint::Canvas::Gpu::CanvasWindow> native;
+    const auto findNative = [&] {
+        native.clear();
+        for (auto *candidate : QGuiApplication::allWindows())
+            if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate))
+                if (canvas->isVisible()) native = canvas;
+        if (native) native->setCursor(Qt::BlankCursor);
+        return bool(native);
+    };
+    QTRY_VERIFY(findNative());
+    const auto reference = [&] {
+        const auto ratio = native->devicePixelRatio();
+        QImage result(QSizeF(native->size() * ratio).toSize(), QImage::Format_ARGB32_Premultiplied);
+        result.setDevicePixelRatio(ratio);
+        result.fill(border);
+        QImage checks(2 * checkSize, 2 * checkSize, QImage::Format_ARGB32_Premultiplied);
+        // The configured border supplies a defined base for translucent checks.
+        checks.fill(border);
+        QPainter pattern(&checks);
+        pattern.fillRect(checks.rect(), second);
+        pattern.fillRect(0, 0, checkSize, checkSize, first);
+        pattern.fillRect(checkSize, checkSize, checkSize, checkSize, first);
+        pattern.end();
+        QTransform transform;
+        QPointF origin;
+        QPolygonF unusedPolygon;
+        converter->getQPainterCheckersInfo(&transform, &origin, &unusedPolygon, scrollCheckers);
+        const auto physicalToLogical = QTransform::fromScale(1.0 / ratio, 1.0 / ratio);
+        const auto toDocument = physicalToLogical * converter->imageToWidgetTransform().inverted();
+        const auto toPattern = physicalToLogical * transform.inverted();
+        const QRgb colors[] = {checks.pixel(0, 0), checks.pixel(checkSize, 0)};
+        const auto outside = qPremultiply(border.rgba());
+        // Native document and pattern bounds sample physical pixel centers.
+        for (int y = 0; y < result.height(); ++y) {
+            auto *row = reinterpret_cast<QRgb *>(result.scanLine(y));
+            for (int x = 0; x < result.width(); ++x) {
+                const QPointF center(x + 0.5, y + 0.5);
+                const auto point = toDocument.map(center);
+                row[x] = outside;
+                if (point.x() >= 0 && point.y() >= 0 && point.x() < snapshot->size.width() && point.y() < snapshot->size.height()) {
+                    const auto patternPoint = toPattern.map(center) - origin;
+                    const auto column = qint64(std::floor(patternPoint.x() / checkSize));
+                    const auto patternRow = qint64(std::floor(patternPoint.y() / checkSize));
+                    row[x] = colors[(column ^ patternRow) & 1];
+                }
+            }
+        }
+        return result.convertToFormat(QImage::Format_RGBA8888);
+    };
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", temporary.path());
+    QString stage = QStringLiteral("initial");
+    QImage actual, expected;
+    const auto saveFrames = [&] {
+        if (!QDir().mkpath(directory)) return false;
+        const auto stem = QDir(directory).filePath(QStringLiteral("ordinary-canvas-background-") +
+            QString::fromLatin1(QTest::currentDataTag()) + QLatin1Char('-') + stage);
+        return actual.save(stem + QStringLiteral("-actual.png")) && expected.save(stem + QStringLiteral("-expected.png"));
+    };
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            temporary.setAutoRemove(false);
+            saveFrames();
+            qInfo() << "Canvas background actual/expected artifacts at" << directory;
+        }
+    });
+    const auto matches = [&] {
+        if (!findNative()) return false;
+        expected = reference();
+        actual = native->screen()->grabWindow(native->winId()).toImage().convertToFormat(QImage::Format_RGBA8888);
+        return !actual.isNull() && actual == expected;
+    };
+    if (imageLimitPan) {
+        const auto center = converter->widgetCenterPoint();
+        view->canvasController()->setPreferredCenter(center + QPointF(converter->imageRectInWidgetPixels().width() - 32, 0));
+        QTRY_COMPARE(converter->imageRectInWidgetPixels().right(), qreal(32));
+        QTRY_COMPARE(native->size(), QSize(128, 128));
+    }
+    QTRY_VERIFY_WITH_TIMEOUT(matches(), 10000);
+    QVERIFY(saveFrames());
+    stage = QStringLiteral("pan");
+    view->canvasController()->pan(QPoint(13, 7));
+    QTRY_VERIFY_WITH_TIMEOUT(matches(), 10000);
+    QVERIFY(saveFrames());
+    if (!imageLimitPan) {
+        stage = QStringLiteral("zoom");
+        view->canvasController()->setZoom(KoZoomMode::ZOOM_CONSTANT, 0.5);
+        QTRY_VERIFY_WITH_TIMEOUT(matches(), 10000);
+        QVERIFY(saveFrames());
+        stage = QStringLiteral("rotation");
+        view->canvasController()->rotateCanvas(23);
+        QTRY_VERIFY_WITH_TIMEOUT(matches(), 10000);
+        QVERIFY(saveFrames());
+        stage = QStringLiteral("preferences");
+        first = QColor(200, 50, 70, 128);
+        second = QColor(70, 120, 190, secondAlpha);
+        border = QColor(31, 19, 73);
+        checkSize = 16;
+        configure();
+        KisConfigNotifier::instance()->notifyConfigChanged();
+        QTRY_VERIFY_WITH_TIMEOUT(matches(), 10000);
+        QVERIFY(saveFrames());
+    }
+    QCOMPARE(owner->operations().snapshot(), snapshot);
+    QCOMPARE(owner->operations().recoveryData(), recovery);
+    QCOMPARE(owner->operations().undoCount(), 0);
+    const auto pixels = owner->readRgbaPixels(owner->operations().activeLayer(), QRect(0, 0, 128, 128), 65536);
+    QCOMPARE(pixels.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(pixels.bytes, QByteArray(65536, char(0)));
+    QVERIFY(!owner->operations().isModified());
+    QVERIFY(!lifetime->isModified());
+}
+
 void KisGpuDocumentViewTest::brushOutlineFollowsTheOrdinaryPointerWithoutEditing()
 {
     namespace Gpu = LibrePaint::Image::Gpu;
@@ -2664,12 +2865,14 @@ void KisGpuDocumentViewTest::brushOutlineFollowsTheOrdinaryPointerWithoutEditing
     const auto oldSeparate = config.separateEraserCursor();
     const auto oldFullSize = config.forceAlwaysFullSizedOutline();
     const auto oldMinimum = config.outlineSizeMinimum();
+    const auto oldBorder = config.canvasBorderColor();
     const auto restoreConfig = qScopeGuard([&] {
         config.setNewOutlineStyle(oldStyle);
         config.setCursorMainColor(oldColor);
         config.setSeparateEraserCursor(oldSeparate);
         config.setForceAlwaysFullSizedOutline(oldFullSize);
         config.setOutlineSizeMinimum(oldMinimum);
+        config.setCanvasBorderColor(oldBorder);
         KisConfigNotifier::instance()->notifyConfigChanged();
     });
     config.setNewOutlineStyle(OUTLINE_NONE);
@@ -2677,6 +2880,7 @@ void KisGpuDocumentViewTest::brushOutlineFollowsTheOrdinaryPointerWithoutEditing
     config.setSeparateEraserCursor(false);
     config.setForceAlwaysFullSizedOutline(true);
     config.setOutlineSizeMinimum(1);
+    config.setCanvasBorderColor(Qt::white);
     QString diagnostic;
     const auto device = Gpu::Device::createNative(diagnostic);
     QVERIFY2(device, qPrintable(diagnostic));
@@ -2813,12 +3017,20 @@ void KisGpuDocumentViewTest::brushOutlineFollowsTheOrdinaryPointerWithoutEditing
     QApplication::sendEvent(native.data(), &halfEntered);
     QTest::mouseMove(native.data(), halfPoint);
     QImage halfVisible;
-    QTRY_VERIFY((halfVisible = capture()).size() == baseline.size() && changedPixels(halfVisible, halfPoint) >= 20);
-    const auto halfBounds = differenceBounds(halfVisible);
-    const auto halfSize = converter->imageToWidget(QRectF(0, 0, 24, 24)).size() * ratio;
-    QVERIFY(qAbs(halfBounds.width() - halfSize.width()) <= 2 * ratio);
-    QVERIFY(qAbs(halfBounds.height() - halfSize.height()) <= 2 * ratio);
-    QVERIFY((halfBounds.center() - physical(halfPoint)).manhattanLength() <= 2);
+    const auto preserveHalfVisible = qScopeGuard([&] {
+        if (QTest::currentTestFailed() && !halfVisible.isNull()) save(halfVisible, QStringLiteral("half-zoom"));
+    });
+    const auto halfOutlineMatches = [&] {
+        halfVisible = capture();
+        if (halfVisible.size() != baseline.size() || changedPixels(halfVisible, halfPoint) < 20) return false;
+        const auto bounds = differenceBounds(halfVisible);
+        const auto size = converter->imageToWidget(QRectF(0, 0, 24, 24)).size() * ratio;
+        return qAbs(bounds.width() - size.width()) <= 2 * ratio &&
+               qAbs(bounds.height() - size.height()) <= 2 * ratio &&
+               (bounds.center() - physical(halfPoint)).manhattanLength() <= 2;
+    };
+    // A delayed zoom notification can cover an otherwise complete native frame.
+    QTRY_VERIFY_WITH_TIMEOUT(halfOutlineMatches(), 10000);
     QVERIFY(save(halfVisible, QStringLiteral("half-zoom")));
     KoToolManager::instance()->switchToolRequested(QStringLiteral("PanTool"));
     QTRY_VERIFY(capture() == baseline);

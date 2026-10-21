@@ -95,10 +95,19 @@ void TestChannelDocker::displaySelectionPreservesEditingAndSaving()
     QFETCH(bool, gpu);
     QFETCH(QSize, size);
     const bool previousAsColor = KisConfig(true).showSingleChannelAsColor();
+    const auto previousFirstCheck = KisConfig(true).checkersColor1();
+    const auto previousSecondCheck = KisConfig(true).checkersColor2();
+    const auto previousBorder = KisConfig(true).canvasBorderColor();
+    KisConfig(true).setCheckersColor1(Qt::white);
+    KisConfig(true).setCheckersColor2(Qt::white);
+    KisConfig(true).setCanvasBorderColor(Qt::white);
     KisConfig(true).setShowSingleChannelAsColor(false);
     KisConfig(true).disableOpenGL();
     const auto restoreConfig = qScopeGuard([&] {
         KisConfig(true).setShowSingleChannelAsColor(previousAsColor);
+        KisConfig(true).setCheckersColor1(previousFirstCheck);
+        KisConfig(true).setCheckersColor2(previousSecondCheck);
+        KisConfig(true).setCanvasBorderColor(previousBorder);
         KisConfigNotifier::instance()->notifyConfigChanged();
     });
     std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());

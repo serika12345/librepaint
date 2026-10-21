@@ -55,6 +55,7 @@ protected:
 
 private:
     void refresh();
+    void updateBackground();
     bool updateToolOutline();
     LibrePaint::Canvas::Gpu::ToolOutline m_toolOutline;
     bool m_collectingToolOutline = false;

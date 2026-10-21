@@ -12,6 +12,7 @@
 #include <QPolygonF>
 #include <QTransform>
 #include <memory>
+#include <optional>
 
 
 namespace LibrePaint::Canvas::Gpu {
@@ -39,6 +40,20 @@ struct DisplayChannels
 {
     quint8 rgbaMask = 15;
     bool showSingleChannelAsColor = false;
+};
+
+/** Display checks with a positive cell size in pattern coordinates.
+ * targetToPattern maps physical target pixels to the pattern. The second
+ * color covers the configured clear color; alternating cells add the first
+ * color using the same 8-bit SourceOver rule as projection tiles.
+ * Mapped cell coordinates stay within +/-8388608 for byte-stable evaluation.
+ */
+struct CheckerPattern
+{
+    QColor first{220, 220, 220};
+    QColor second{Qt::white};
+    int cellSize = 32;
+    QTransform targetToPattern;
 };
 
 /** Display-only contours in physical target pixels, independent of the document transform.
@@ -74,7 +89,8 @@ public:
                                const Image::Gpu::ProjectedSnapshot &projection,
                                const PresentationTarget &target, const QTransform &documentToPixels,
                                QColor clearColor, DisplayChannels channels = {},
-                               const ToolOutline &outline = {});
+                               const ToolOutline &outline = {},
+                               const std::optional<CheckerPattern> &checkers = {});
 
 private:
     struct Private;

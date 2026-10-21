@@ -36,6 +36,10 @@ public:
     void refresh();
     /** Changes view components without replacing or completing document input. */
     bool setDisplayChannels(DisplayChannels channels);
+    /** Pattern coordinates use logical window pixels. Invalid colors, size or
+     * transform preserve the previous background. Native DPR is applied once.
+     */
+    bool setBackground(QColor color, std::optional<CheckerPattern> checkers = {});
     /** Owned display contours in logical window pixels; thickness stays physical. */
     void setToolOutline(ToolOutline outline);
     bool setDocumentToWindow(const QTransform &transform);

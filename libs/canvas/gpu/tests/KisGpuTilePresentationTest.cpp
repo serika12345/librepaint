@@ -19,6 +19,7 @@
 #include <vector>
 #include <algorithm>
 #include <atomic>
+#include <cmath>
 
 using namespace LibrePaint::Image::Gpu;
 using namespace LibrePaint::Canvas::Gpu;
@@ -31,6 +32,10 @@ private Q_SLOTS:
     void panZoomAndTransparencyUseThePaintingQueue();
     void tileOverBackgroundMatchesEightBitSourceOver_data();
     void tileOverBackgroundMatchesEightBitSourceOver();
+    void checkerBackgroundPreservesDocumentPixels_data();
+    void checkerBackgroundPreservesDocumentPixels();
+    void invalidCheckerPatternsPreserveTheTarget_data();
+    void invalidCheckerPatternsPreserveTheTarget();
     void clippedTilesKeepTheirIndependentTransforms();
     void displayChannelsPreserveDocumentPixels_data();
     void displayChannelsPreserveDocumentPixels();
@@ -303,6 +308,158 @@ void KisGpuTilePresentationTest::tileOverBackgroundMatchesEightBitSourceOver()
     QCOMPARE(readback->results.back()->data, raw);
     QCOMPARE(document.snapshot(), before);
     QCOMPARE(document.recoveryData(), recovery);
+}
+
+void KisGpuTilePresentationTest::checkerBackgroundPreservesDocumentPixels_data()
+{
+    QTest::addColumn<quint32>("format");
+    QTest::addColumn<int>("scenario");
+    const QStringList names{QStringLiteral("empty-fixed"), QStringLiteral("empty-scrolling-clipped"),
+                            QStringLiteral("painted-scaled"), QStringLiteral("painted-quarter-rotated")};
+    for (auto format : {WGPUTextureFormat_RGBA8Unorm, WGPUTextureFormat_BGRA8Unorm})
+        for (int scenario = 0; scenario < names.size(); ++scenario) {
+            const auto name = (format == WGPUTextureFormat_RGBA8Unorm ? QStringLiteral("rgba8-") : QStringLiteral("bgra8-")) + names[scenario];
+            QTest::newRow(qPrintable(name)) << quint32(format) << scenario;
+        }
+}
+
+void KisGpuTilePresentationTest::checkerBackgroundPreservesDocumentPixels()
+{
+    QFETCH(quint32, format);
+    QFETCH(int, scenario);
+    const bool painted = scenario >= 2;
+    const auto raw = QByteArray::fromHex("c0114080").repeated(RgbaTile::ByteCount / 4);
+    RasterImage input;
+    input.size = {64, 64};
+    input.layers = {{QStringLiteral("Checker source"), true,
+                     QUuid(QStringLiteral("8dedfa5c-5e78-48f2-894b-6256a7f62ec9")), {}}};
+    if (painted) input.layers.first().tiles = {{{0, 0}, raw}};
+    OperationDocument document(input);
+    const auto before = document.snapshot();
+    const auto recovery = document.recoveryData();
+    const QColor border(9, 33, 57, scenario >= 2 ? 128 : 255);
+    CheckerPattern pattern;
+    pattern.first = QColor(24, 68, 116, 128);
+    pattern.second = QColor(173, 209, 67, scenario == 0 ? 255 : 128);
+    pattern.cellSize = 8;
+    QTransform transform = QTransform::fromTranslate(16, 24);
+    if (scenario == 1) {
+        transform = QTransform::fromTranslate(-16, 8);
+        pattern.targetToPattern = QTransform::fromTranslate(-11, -7);
+    } else if (scenario == 2) {
+        transform = QTransform::fromTranslate(16, 16).scale(1.5, 1.5);
+        pattern.targetToPattern = QTransform::fromScale(0.5, 0.5);
+    } else if (scenario == 3) {
+        transform = QTransform::fromTranslate(104, 8).rotate(90).scale(1.5, 1.5);
+        pattern.targetToPattern = transform.inverted();
+    }
+    TileRenderer renderer(m_device);
+    TilePresentation presentation(m_device);
+    Surface surface(m_device, {128, 128}, format);
+    QVERIFY(surface.ready);
+    const auto commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto layers = renderer.record(commands, before);
+    QCOMPARE(layers.code, RenderOutcome::Recorded);
+    const auto projection = renderer.compose(commands, layers.version, {0, 0, 64, 64});
+    QCOMPARE(projection.code, RenderOutcome::Recorded);
+    const auto drawn = presentation.record(commands, projection.version, surface.target, transform, border, {}, {}, pattern);
+    QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
+    const auto sourcePixels = painted ? layers.version->tiles(document.activeLayer()).first().pixels : nullptr;
+    const auto reads = readTexture(*m_device, commands, surface, sourcePixels);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QVERIFY(reads->finish(*m_device));
+    const auto actual = reads->results.front()->data;
+    QImage swatches(2, 1, QImage::Format_ARGB32_Premultiplied);
+    swatches.fill(border);
+    QPainter painter(&swatches);
+    painter.fillRect(swatches.rect(), pattern.second);
+    painter.fillRect(0, 0, 1, 1, pattern.first);
+    if (painted) painter.fillRect(swatches.rect(), QColor(192, 17, 64, 128));
+    painter.end();
+    QImage reference(128, 128, QImage::Format_ARGB32_Premultiplied);
+    reference.fill(border);
+    const QRgb colors[] = {swatches.pixel(0, 0), swatches.pixel(1, 0)};
+    const auto toDocument = transform.inverted();
+    for (int y = 0; y < reference.height(); ++y) {
+        auto *row = reinterpret_cast<QRgb *>(reference.scanLine(y));
+        for (int x = 0; x < reference.width(); ++x) {
+            const QPointF center(x + 0.5, y + 0.5);
+            const auto point = toDocument.map(center);
+            if (point.x() >= 0 && point.y() >= 0 && point.x() < 64 && point.y() < 64) {
+                const auto patternPoint = pattern.targetToPattern.map(center);
+                const auto column = qint64(std::floor(patternPoint.x() / pattern.cellSize));
+                const auto patternRow = qint64(std::floor(patternPoint.y() / pattern.cellSize));
+                row[x] = colors[(column ^ patternRow) & 1];
+            }
+        }
+    }
+    reference = reference.convertToFormat(QImage::Format_RGBA8888_Premultiplied);
+    QByteArray expected(reinterpret_cast<const char *>(reference.constBits()), reference.sizeInBytes());
+    if (format == WGPUTextureFormat_BGRA8Unorm)
+        for (qsizetype i = 0; i < expected.size(); i += 4) std::swap(expected[i], expected[i + 2]);
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", temporary.path());
+    QVERIFY(QDir().mkpath(directory));
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            temporary.setAutoRemove(false);
+            qInfo() << "Checker actual/expected artifacts at" << directory;
+        }
+    });
+    const auto stem = QDir(directory).filePath(QStringLiteral("checker-background-") + QString::fromLatin1(QTest::currentDataTag()));
+    for (const auto &entry : {qMakePair(QStringLiteral("-actual.rgba"), actual), qMakePair(QStringLiteral("-expected.rgba"), expected)}) {
+        QFile file(stem + entry.first);
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(entry.second), entry.second.size());
+    }
+    QCOMPARE(actual, expected);
+    if (painted) QCOMPARE(reads->results.back()->data, raw);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.recoveryData(), recovery);
+}
+
+void KisGpuTilePresentationTest::invalidCheckerPatternsPreserveTheTarget_data()
+{
+    QTest::addColumn<int>("invalid");
+    QTest::newRow("invalid-first-color") << 0;
+    QTest::newRow("invalid-second-color") << 1;
+    QTest::newRow("zero-cell-size") << 2;
+    QTest::newRow("singular-transform") << 3;
+    QTest::newRow("nonfinite-transform") << 4;
+    QTest::newRow("coordinate-limit") << 5;
+}
+
+void KisGpuTilePresentationTest::invalidCheckerPatternsPreserveTheTarget()
+{
+    QFETCH(int, invalid);
+    OperationDocument document({64, 64});
+    TileRenderer renderer(m_device);
+    TilePresentation presentation(m_device);
+    Surface surface(m_device, {128, 128});
+    QVERIFY(surface.ready);
+    const auto commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto layers = renderer.record(commands, document.snapshot());
+    QCOMPARE(layers.code, RenderOutcome::Recorded);
+    const auto projection = renderer.compose(commands, layers.version, {0, 0, 64, 64});
+    QCOMPARE(projection.code, RenderOutcome::Recorded);
+    clear(commands, surface.target, QColor(100, 20, 30));
+    CheckerPattern pattern;
+    if (invalid == 0) pattern.first = QColor();
+    if (invalid == 1) pattern.second = QColor();
+    if (invalid == 2) pattern.cellSize = 0;
+    if (invalid == 3) pattern.targetToPattern.scale(0, 1);
+    if (invalid == 4) pattern.targetToPattern.translate(std::numeric_limits<qreal>::quiet_NaN(), 0);
+    if (invalid == 5) pattern.targetToPattern.translate(qreal(8388609) * pattern.cellSize, 0);
+    const auto outcome = presentation.record(commands, projection.version, surface.target, {}, Qt::white, {}, {}, pattern);
+    const auto reads = readTexture(*m_device, commands, surface);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QVERIFY(reads->finish(*m_device));
+    QVERIFY(!outcome.recorded);
+    QVERIFY(!outcome.diagnostic.isEmpty());
+    QCOMPARE(reads->results.front()->data, QByteArray::fromHex("64141eff").repeated(128 * 128));
 }
 
 void KisGpuTilePresentationTest::toolOutlinesMoveAndClearWithoutChangingDocumentPixels_data()

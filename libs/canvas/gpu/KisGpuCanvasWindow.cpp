@@ -23,6 +23,8 @@ struct CanvasWindow::Private
     DocumentHandle handle = 0;
     QTransform transform;
     DisplayChannels channels;
+    QColor background{Qt::white};
+    std::optional<CheckerPattern> checkers;
     ToolOutline outline;
     bool recording = false;
     std::unique_ptr<PresentationSurface> surface;
@@ -85,6 +87,15 @@ bool CanvasWindow::setDisplayChannels(DisplayChannels channels)
 {
     if (channels.rgbaMask > 15) return false;
     m_d->channels = channels;
+    refresh();
+    return true;
+}
+bool CanvasWindow::setBackground(QColor color, std::optional<CheckerPattern> checkers)
+{
+    if (!color.isValid() || (checkers && (!checkers->first.isValid() || !checkers->second.isValid() ||
+        checkers->cellSize <= 0 || !Detail::validDocumentTransform(checkers->targetToPattern)))) return false;
+    m_d->background = color;
+    m_d->checkers = std::move(checkers);
     refresh();
     return true;
 }
@@ -198,9 +209,12 @@ void CanvasWindow::renderFrame()
             auto outline = d.outline;
             const auto logicalToPhysical = QTransform::fromScale(devicePixelRatio(), devicePixelRatio());
             for (auto &contour : outline.contours) contour = logicalToPhysical.map(contour);
+            auto checkers = d.checkers;
+            if (checkers) checkers->targetToPattern =
+                QTransform::fromScale(1.0 / devicePixelRatio(), 1.0 / devicePixelRatio()) * checkers->targetToPattern;
             const auto drawn = d.presentation->record(frame.commands, projected.version,
                                                       {d.device, frame.target, pixels, d.surface->format()},
-                                                      d.physicalTransform(devicePixelRatio()), Qt::white, d.channels, outline);
+                                                      d.physicalTransform(devicePixelRatio()), d.background, d.channels, outline, checkers);
             if (!drawn.recorded) {
                 d.execution.cancelFrame();
                 begun = false;

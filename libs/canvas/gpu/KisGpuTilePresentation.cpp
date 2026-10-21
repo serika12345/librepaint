@@ -17,8 +17,13 @@
 
 namespace LibrePaint::Canvas::Gpu {
 namespace {
-struct Uniforms { float matrix[16]; float clip[4]; quint32 channels[4]; quint32 background[4]; };
-struct Draw { Detail::Buffer uniform; Detail::Bindings bindings; Uniforms values; };
+struct Uniforms {
+    float matrix[16]; float clip[4]; quint32 channels[4]; quint32 background[4];
+    quint32 checkerFirst[4]; quint32 checkerSecond[4];
+    float checkerX[4]; float checkerY[4]; quint32 checker[4];
+};
+static_assert(sizeof(Uniforms) == 192);
+struct Draw { Detail::Buffer uniform; Detail::Bindings bindings; Uniforms values{}; };
 struct OutlineVertex { float x, y; };
 struct OutlineUniforms { float viewport[4]; float color[4]; };
 constexpr qsizetype maximumOutlineVertices = 65536;
@@ -87,6 +92,9 @@ struct TilePresentation::Private
     Detail::Layout layout;
     Detail::Pipeline pipeline;
     quint32 format = 0;
+    Detail::Layout backgroundLayout;
+    Detail::Pipeline backgroundPipeline;
+    quint32 backgroundFormat = 0;
     Detail::Shader outlineShader;
     Detail::Pipeline outlinePipeline;
     Detail::Layout outlineLayout;
@@ -110,15 +118,18 @@ struct TilePresentation::Private
         shader.reset(wgpuDeviceCreateShaderModule(this->device->nativeDevice(), &descriptor));
         if (!shader) error = this->device->diagnostic();
     }
-    bool preparePipeline(quint32 targetFormat)
+    bool preparePipeline(quint32 targetFormat, bool forBackground = false)
     {
-        if (pipeline && format == targetFormat) return true;
+        auto &selectedPipeline = forBackground ? backgroundPipeline : pipeline;
+        auto &selectedLayout = forBackground ? backgroundLayout : layout;
+        auto &selectedFormat = forBackground ? backgroundFormat : format;
+        if (selectedPipeline && selectedFormat == targetFormat) return true;
         WGPUColorTargetState color{};
         color.format = WGPUTextureFormat(targetFormat);
         color.writeMask = WGPUColorWriteMask_All;
         WGPUFragmentState fragment{};
         fragment.module = shader.get();
-        fragment.entryPoint = {"fragmentMain", WGPU_STRLEN};
+        fragment.entryPoint = {forBackground ? "backgroundMain" : "fragmentMain", WGPU_STRLEN};
         fragment.targetCount = 1;
         fragment.targets = &color;
         WGPURenderPipelineDescriptor descriptor{};
@@ -134,9 +145,9 @@ struct TilePresentation::Private
         if (!next || !device->diagnostic().isEmpty()) return false;
         Detail::Layout nextLayout(wgpuRenderPipelineGetBindGroupLayout(next.get(), 0));
         if (!nextLayout) return false;
-        pipeline = std::move(next);
-        layout = std::move(nextLayout);
-        format = targetFormat;
+        selectedPipeline = std::move(next);
+        selectedLayout = std::move(nextLayout);
+        selectedFormat = targetFormat;
         return true;
     }
 
@@ -234,7 +245,7 @@ TilePresentation::~TilePresentation() = default;
 PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
     const Image::Gpu::ProjectedSnapshot &projection, const PresentationTarget &target,
     const QTransform &transform, QColor clearColor, DisplayChannels channels,
-    const ToolOutline &outline)
+    const ToolOutline &outline, const std::optional<CheckerPattern> &checkers)
 {
     auto &d = *m_d;
     if (d.device->thread() != QThread::currentThread() || !d.device->ownsCommands(commands) ||
@@ -242,6 +253,15 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
         projection->device() != d.device || !Detail::validDocumentTransform(transform) || !clearColor.isValid() || channels.rgbaMask > 15)
         return {false, QStringLiteral("Presentation requires an owning GPU frame, an invertible affine transform and valid RGBA channel bits"), 0};
     if (!d.error.isEmpty() || d.device->isLost()) return {false, d.error.isEmpty() ? QStringLiteral("GPU device lost") : d.error, 0};
+    if (checkers) {
+        if (!checkers->first.isValid() || !checkers->second.isValid() || checkers->cellSize <= 0 ||
+            !Detail::validDocumentTransform(checkers->targetToPattern))
+            return {false, QStringLiteral("GPU canvas checks require valid colors, a positive cell size and an invertible pattern transform"), 0};
+        const auto cells = checkers->targetToPattern.mapRect(QRectF(QPointF(), target.size));
+        for (const qreal value : {cells.left(), cells.top(), cells.right(), cells.bottom()})
+            if (!std::isfinite(value) || std::abs(value / checkers->cellSize) > 8388608)
+                return {false, QStringLiteral("GPU canvas check coordinates exceed the supported range"), 0};
+    }
     std::vector<OutlineVertex> outlineVertices;
     if (!outlineGeometry(outline, outlineVertices))
         return {false, QStringLiteral("GPU tool outline requires finite geometry, a positive width and at most 65536 vertices"), 0};
@@ -260,9 +280,32 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
     if (visible.size() > d.maximumTiles) return {false, QStringLiteral("Visible GPU tile limit exceeded"), 0};
     if (!visible.isEmpty() && !d.preparePipeline(target.format))
         return {false, QStringLiteral("GPU presentation pipeline could not be created: %1").arg(d.device->diagnostic()), 0};
+    if (checkers && !d.preparePipeline(target.format, true))
+        return {false, QStringLiteral("GPU canvas background pipeline could not be created: %1").arg(d.device->diagnostic()), 0};
     const QRgb premultipliedBackground = qPremultiply(clearColor.rgba());
     const quint32 background[] = {quint32(qRed(premultipliedBackground)), quint32(qGreen(premultipliedBackground)),
                                   quint32(qBlue(premultipliedBackground)), quint32(qAlpha(premultipliedBackground))};
+    Uniforms frame{};
+    std::copy_n(background, 4, frame.background);
+    frame.channels[0] = channels.rgbaMask;
+    frame.channels[1] = channels.showSingleChannelAsColor;
+    if (checkers) {
+        const auto color = [](QColor input, quint32 *output) {
+            const auto value = qPremultiply(input.rgba());
+            const quint32 rgba[] = {quint32(qRed(value)), quint32(qGreen(value)),
+                                    quint32(qBlue(value)), quint32(qAlpha(value))};
+            std::copy_n(rgba, 4, output);
+        };
+        color(checkers->first, frame.checkerFirst);
+        color(checkers->second, frame.checkerSecond);
+        const auto &pattern = checkers->targetToPattern;
+        const float x[] = {float(pattern.m11()), float(pattern.m21()), float(pattern.dx()), 0};
+        const float y[] = {float(pattern.m12()), float(pattern.m22()), float(pattern.dy()), 0};
+        std::copy_n(x, 4, frame.checkerX);
+        std::copy_n(y, 4, frame.checkerY);
+        frame.checker[0] = 1;
+        frame.checker[1] = quint32(checkers->cellSize);
+    }
     QMatrix4x4 view;
     view.ortho(0, target.size.width(), target.size.height(), 0, -1, 1);
     view = view * QMatrix4x4(transform);
@@ -270,6 +313,7 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
     draws.reserve(visible.size());
     for (const auto &tile : visible) {
         Draw draw;
+        draw.values = frame;
         WGPUBufferDescriptor buffer{};
         buffer.size = sizeof(Uniforms);
         buffer.usage = WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst;
@@ -283,10 +327,6 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
         draw.values.clip[1] = float(region.top() - origin.y()) / size;
         draw.values.clip[2] = float(region.left() + region.width() - origin.x()) / size;
         draw.values.clip[3] = float(region.top() + region.height() - origin.y()) / size;
-        draw.values.channels[0] = channels.rgbaMask;
-        draw.values.channels[1] = channels.showSingleChannelAsColor;
-        draw.values.channels[2] = draw.values.channels[3] = 0;
-        std::copy_n(background, 4, draw.values.background);
         if (!draw.uniform) return {false, QStringLiteral("GPU presentation uniform allocation failed"), 0};
         WGPUBindGroupEntry entries[2]{};
         entries[0].binding = 0;
@@ -302,6 +342,32 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
         draw.bindings.reset(wgpuDeviceCreateBindGroup(d.device->nativeDevice(), &bindings));
         if (!draw.bindings || !d.device->diagnostic().isEmpty()) return {false, QStringLiteral("GPU presentation tile binding failed"), 0};
         draws.push_back(std::move(draw));
+    }
+    std::optional<Draw> backgroundDraw;
+    if (checkers) {
+        backgroundDraw.emplace();
+        auto &draw = *backgroundDraw;
+        draw.values = frame;
+        auto matrix = view;
+        const auto imageSize = projection->document()->size;
+        matrix.scale(imageSize.width(), imageSize.height());
+        std::copy_n(matrix.constData(), 16, draw.values.matrix);
+        WGPUBufferDescriptor buffer{};
+        buffer.size = sizeof(Uniforms);
+        buffer.usage = WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst;
+        draw.uniform.reset(wgpuDeviceCreateBuffer(d.device->nativeDevice(), &buffer));
+        if (!draw.uniform) return {false, QStringLiteral("GPU canvas background uniform allocation failed"), 0};
+        WGPUBindGroupEntry entry{};
+        entry.buffer = draw.uniform.get();
+        entry.size = sizeof(Uniforms);
+        WGPUBindGroupDescriptor bindings{};
+        bindings.layout = d.backgroundLayout.get();
+        bindings.entryCount = 1;
+        bindings.entries = &entry;
+        draw.bindings.reset(wgpuDeviceCreateBindGroup(d.device->nativeDevice(), &bindings));
+        if (!draw.bindings || !d.device->diagnostic().isEmpty())
+            return {false, QStringLiteral("GPU canvas background binding failed"), 0};
+        wgpuQueueWriteBuffer(d.device->queue(), draw.uniform.get(), 0, &draw.values, sizeof(Uniforms));
     }
     for (const auto &draw : draws) wgpuQueueWriteBuffer(d.device->queue(), draw.uniform.get(), 0, &draw.values, sizeof(Uniforms));
     if (!outlineVertices.empty()) {
@@ -322,6 +388,12 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
     passDescriptor.colorAttachments = &attachment;
     auto pass = wgpuCommandEncoderBeginRenderPass(commands, &passDescriptor);
     if (!pass) return {false, QStringLiteral("GPU presentation pass could not begin"), 0};
+    if (backgroundDraw) {
+        wgpuRenderPassEncoderSetPipeline(pass, d.backgroundPipeline.get());
+        wgpuRenderPassEncoderSetViewport(pass, 0, 0, target.size.width(), target.size.height(), 0, 1);
+        wgpuRenderPassEncoderSetBindGroup(pass, 0, backgroundDraw->bindings.get(), 0, nullptr);
+        wgpuRenderPassEncoderDraw(pass, 6, 1, 0, 0);
+    }
     if (!draws.empty()) {
         wgpuRenderPassEncoderSetPipeline(pass, d.pipeline.get());
         wgpuRenderPassEncoderSetViewport(pass, 0, 0, target.size.width(), target.size.height(), 0, 1);
