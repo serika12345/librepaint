@@ -4,6 +4,7 @@
  */
 
 #include "KisGpuTilePresentation.h"
+#include "KisGpuCropPreview_p.h"
 #include "KisGpuPresentationResources_p.h"
 #include "KisGpuViewTransform_p.h"
 #include <QFile>
@@ -104,8 +105,9 @@ struct TilePresentation::Private
     qsizetype outlineCapacity = 0;
     quint32 outlineFormat = 0;
     QString error;
+    Detail::CropPreviewRenderer cropRenderer;
     Private(Image::Gpu::DevicePtr device, qsizetype maximumTiles)
-        : device(std::move(device)), maximumTiles(maximumTiles)
+        : device(std::move(device)), maximumTiles(maximumTiles), cropRenderer(this->device)
     {
         QFile file(QStringLiteral(":/librepaint/canvas/shaders/tile.wgsl"));
         if (!file.open(QIODevice::ReadOnly)) { error = QStringLiteral("The native presentation shader could not be loaded"); return; }
@@ -245,7 +247,8 @@ TilePresentation::~TilePresentation() = default;
 PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
     const Image::Gpu::ProjectedSnapshot &projection, const PresentationTarget &target,
     const QTransform &transform, QColor clearColor, DisplayChannels channels,
-    const ToolOutline &outline, const std::optional<CheckerPattern> &checkers)
+    const ToolOutline &outline, const std::optional<CheckerPattern> &checkers,
+    const std::optional<CropPreview> &crop)
 {
     auto &d = *m_d;
     if (d.device->thread() != QThread::currentThread() || !d.device->ownsCommands(commands) ||
@@ -253,6 +256,10 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
         projection->device() != d.device || !Detail::validDocumentTransform(transform) || !clearColor.isValid() || channels.rgbaMask > 15)
         return {false, QStringLiteral("Presentation requires an owning GPU frame, an invertible affine transform and valid RGBA channel bits"), 0};
     if (!d.error.isEmpty() || d.device->isLost()) return {false, d.error.isEmpty() ? QStringLiteral("GPU device lost") : d.error, 0};
+    std::vector<Detail::CropPreviewRenderer::Draw> cropDraws;
+    QString cropDiagnostic;
+    if (crop && !d.cropRenderer.prepare(*crop, target, cropDraws, cropDiagnostic))
+        return {false, cropDiagnostic, 0};
     if (checkers) {
         if (!checkers->first.isValid() || !checkers->second.isValid() || checkers->cellSize <= 0 ||
             !Detail::validDocumentTransform(checkers->targetToPattern))
@@ -409,6 +416,7 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
         wgpuRenderPassEncoderSetVertexBuffer(pass, 0, d.outlineVertices.get(), 0, outlineVertices.size() * sizeof(OutlineVertex));
         wgpuRenderPassEncoderDraw(pass, quint32(outlineVertices.size()), 1, 0, 0);
     }
+    d.cropRenderer.draw(pass, cropDraws);
     wgpuRenderPassEncoderEnd(pass);
     wgpuRenderPassEncoderRelease(pass);
     return {true, {}, qsizetype(draws.size())};

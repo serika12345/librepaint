@@ -2,6 +2,7 @@ find_package(WGPUNative REQUIRED)
 add_library(kritacanvasgputilepresentation OBJECT
     KisGpuWindowSurface.cpp
     KisGpuTilePresentation.cpp
+    KisGpuCropPreview.cpp
     KisGpuCanvasWindow.cpp KisGpuCanvasWindow.h
 )
 if(APPLE)
@@ -24,7 +25,7 @@ endif()
 set_target_properties(kritacanvasgputilepresentation PROPERTIES AUTOMOC ON POSITION_INDEPENDENT_CODE ON)
 qt6_add_resources(kritacanvasgputilepresentation krita_gpu_tile_presentation
     PREFIX "/librepaint/canvas"
-    FILES shaders/tile.wgsl shaders/tool_outline.wgsl
+    FILES shaders/tile.wgsl shaders/tool_outline.wgsl shaders/crop_preview.wgsl
 )
 
 add_subdirectory(tests)

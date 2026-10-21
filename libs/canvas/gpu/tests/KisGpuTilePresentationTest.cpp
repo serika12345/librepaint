@@ -6,6 +6,7 @@
 #include <QGuiApplication>
 #include <QImage>
 #include <QPainter>
+#include <QPainterPath>
 #include <QTest>
 #include <QTransform>
 #include <QDir>
@@ -29,6 +30,10 @@ class KisGpuTilePresentationTest : public QObject
     Q_OBJECT
 private Q_SLOTS:
     void initTestCase();
+    void invalidCropPreviewsPreserveTheTarget_data();
+    void invalidCropPreviewsPreserveTheTarget();
+    void cropPreviewRetainsAntialiasedGeometryAndDocument_data();
+    void cropPreviewRetainsAntialiasedGeometryAndDocument();
     void panZoomAndTransparencyUseThePaintingQueue();
     void tileOverBackgroundMatchesEightBitSourceOver_data();
     void tileOverBackgroundMatchesEightBitSourceOver();
@@ -224,6 +229,193 @@ void KisGpuTilePresentationTest::panZoomAndTransparencyUseThePaintingQueue()
     QCOMPARE(pixel(8, 12), QByteArray::fromHex("00800080"));
 }
 
+
+void KisGpuTilePresentationTest::invalidCropPreviewsPreserveTheTarget_data()
+{
+    QTest::addColumn<int>("invalid");
+    for (int i = 0; i < 6; ++i) QTest::newRow(qPrintable(QString::number(i))) << i;
+}
+void KisGpuTilePresentationTest::invalidCropPreviewsPreserveTheTarget()
+{
+    QFETCH(int, invalid);
+    CropPreview crop;
+    crop.image = QRectF(0, 0, 16, 16);
+    crop.crop = QRectF(4, 4, 8, 8);
+    switch (invalid) {
+    case 0: crop.crop.moveLeft(std::numeric_limits<qreal>::quiet_NaN()); break;
+    case 1: crop.shade = QColor(); break;
+    case 2: crop.thickness = 0; break;
+    case 3: crop.toTarget.scale(0, 1); break;
+    case 4: for (int i = 0; i < 9; ++i) crop.guides.append(QLineF(0, i, 8, i)); break;
+    case 5: crop.handles.cubicTo(1, 2, 3, 4, 5, 6); break;
+    }
+    OperationDocument document({16, 16});
+    Surface surface(m_device, {64, 16});
+    QVERIFY(surface.ready);
+    TileRenderer renderer(m_device);
+    TilePresentation presentation(m_device);
+    auto commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto layers = renderer.record(commands, document.snapshot());
+    QCOMPARE(layers.code, RenderOutcome::Recorded);
+    const auto projection = renderer.compose(commands, layers.version, {0, 0, 16, 16});
+    QCOMPARE(projection.code, RenderOutcome::Recorded);
+    clear(commands, surface.target, QColor(7, 13, 29));
+    const auto outcome = presentation.record(commands, projection.version, surface.target, {}, Qt::white, {}, {}, {}, crop);
+    QVERIFY(!outcome.recorded);
+    QVERIFY(!outcome.diagnostic.isEmpty());
+    const auto readback = readTexture(*m_device, commands, surface);
+    QVERIFY(readback);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QVERIFY(readback->finish(*m_device));
+    QCOMPARE(readback->results.front()->data, QByteArray::fromHex("070d1dff").repeated(64 * 16));
+}
+
+void KisGpuTilePresentationTest::cropPreviewRetainsAntialiasedGeometryAndDocument_data()
+{
+    QTest::addColumn<int>("scenario");
+    QTest::addColumn<quint32>("format");
+    for (auto format : {WGPUTextureFormat_RGBA8Unorm, WGPUTextureFormat_BGRA8Unorm})
+        for (int scenario = 0; scenario < 18; ++scenario) {
+            const auto name = QStringLiteral("%1-case-%2").arg(format == WGPUTextureFormat_RGBA8Unorm ? "rgba8" : "bgra8").arg(scenario);
+            QTest::newRow(qPrintable(name)) << scenario << quint32(format);
+        }
+}
+
+void KisGpuTilePresentationTest::cropPreviewRetainsAntialiasedGeometryAndDocument()
+{
+    QFETCH(int, scenario);
+    QFETCH(quint32, format);
+    const int ratio = scenario == 1 ? 2 : 1;
+    const QSize size = scenario == 12 ? QSize(1600, 960) : QSize(256 * ratio, 256 * ratio);
+    OperationDocument document({128, 128});
+    const auto before = document.snapshot();
+    const auto recovery = document.recoveryData();
+    CropPreview preview;
+    preview.image = QRectF(0, 0, 128, 128);
+    preview.crop = (scenario == 4 || scenario == 8) ? QRectF(60, 60, 3, 5) : QRectF(32, 32, 64, 64);
+    preview.toTarget = QTransform::fromTranslate(32.25, 32.5);
+    if (scenario == 1) preview.toTarget *= QTransform::fromScale(ratio, ratio);
+    if (scenario == 2 || scenario == 7) preview.toTarget = QTransform::fromTranslate(128, 40).rotate(23);
+    if (scenario == 3) preview.toTarget = QTransform::fromTranslate(200, 32).scale(-1, 1);
+    if (scenario == 5) {
+        preview.image = QRectF(0, 0, RgbaTile::CoordinateLimit, 128);
+        preview.crop = QRectF(RgbaTile::CoordinateLimit - 64, 32, 64, 64);
+        preview.toTarget = QTransform::fromTranslate(-RgbaTile::CoordinateLimit + 96, 32);
+    }
+    if (scenario >= 6 && scenario <= 8) preview.thickness = 3;
+    if (scenario == 10) preview.crop = QRectF(60, 32, 0, 64);
+    if (scenario == 11) preview.crop = QRectF(60, 32, -5, 64);
+    if (scenario == 12) {
+        // Half zoom, DPR2 and a 23-degree canvas rotation from an ordinary
+        // crop drag: adjacent cosmetic handle edges meet inside one pixel.
+        preview.image = QRectF(0, 0, 32, 32);
+        preview.crop = QRectF(9.5, 9, 18, 18);
+        preview.thickness = 2;
+        preview.toTarget = QTransform(1.8410097069048807, 0.7814622569785475,
+                                     -0.7814622569785475, 1.8410097069048807,
+                                     760.6500511845652, 429.9078549457024);
+    }
+    if (scenario == 13) {
+        // A small crop during a rotated DPR2 drag has overlapping wide handles.
+        preview.image = QRectF(0, 0, 32, 32);
+        preview.crop = QRectF(15, 15, 3, 5);
+        preview.thickness = 2;
+        preview.toTarget = QTransform::fromTranslate(128, 128).rotate(23).translate(-16, -16);
+    }
+    if (scenario == 14) {
+        // A zero-width drag on a rotated DPR3 canvas retains the handle outline.
+        preview.image = QRectF(0, 0, 32, 32);
+        preview.crop = QRectF(16, 12, 0, 10);
+        preview.thickness = 3;
+        preview.toTarget = QTransform::fromTranslate(128, 128).rotate(-23).scale(3, 3).translate(-16, -16);
+    }
+    if (scenario >= 15 && scenario <= 17) {
+        // A reversed drag can leave wide guide endpoints outside the viewport.
+        preview.image = QRectF(0, 0, 32, 32);
+        preview.crop = QRectF(16, 12, -5, 10);
+        preview.thickness = scenario == 17 ? 3 : 2;
+        preview.toTarget = QTransform::fromTranslate(4, 5).rotate(scenario == 16 ? -23 : 23)
+            .scale(scenario == 16 ? -3 : 3, 3).translate(-16, -16);
+    }
+    const auto rect = preview.crop;
+    for (const auto center : {rect.topLeft(), rect.topRight(), rect.bottomLeft(), rect.bottomRight(),
+                              QPointF(rect.center().x(), rect.top()), QPointF(rect.center().x(), rect.bottom()),
+                              QPointF(rect.left(), rect.center().y()), QPointF(rect.right(), rect.center().y())})
+        preview.handles.addRect(QRectF(center - QPointF(6.5, 6.5), QSizeF(13, 13)));
+    for (const qreal fraction : {0.2, 0.4, 0.6, 0.8}) {
+        preview.guides.append(QLineF(rect.left(), rect.top() + fraction * rect.height(), rect.right(), rect.top() + fraction * rect.height()));
+        preview.guides.append(QLineF(rect.left() + fraction * rect.width(), rect.top(), rect.left() + fraction * rect.width(), rect.bottom()));
+    }
+    if (scenario == 12) {
+        preview.guides = {QLineF(rect.left(), rect.center().y(), rect.right(), rect.center().y()),
+                          QLineF(rect.center().x(), rect.top(), rect.center().x(), rect.bottom())};
+    }
+    const QColor background = scenario == 12 ? QColor(Qt::white) : QColor(80, 100, 120, scenario == 9 ? 128 : 255);
+    QImage reference(size, QImage::Format_ARGB32_Premultiplied);
+    reference.fill(background);
+    QPainter painter(&reference);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setTransform(preview.toTarget);
+    QPainterPath shade;
+    shade.addRect(preview.image);
+    shade.addRect(preview.crop);
+    painter.fillPath(shade, preview.shade);
+    QPen pen(preview.stroke, preview.thickness, Qt::SolidLine, Qt::SquareCap, Qt::BevelJoin);
+    pen.setCosmetic(true);
+    painter.setPen(pen);
+    painter.setBrush(preview.handleFill);
+    painter.drawPath(preview.handles);
+    painter.setClipRect(preview.crop, Qt::IntersectClip);
+    for (const auto &line : preview.guides) painter.drawLine(line);
+    painter.end();
+    Surface surface(m_device, size, format);
+    QVERIFY(surface.ready);
+    TileRenderer renderer(m_device);
+    TilePresentation presentation(m_device);
+    auto commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto finishCommands = qScopeGuard([&] {
+        if (m_device->ownsCommands(commands)) m_device->submitCommands(true);
+    });
+    const auto layers = renderer.record(commands, before);
+    QCOMPARE(layers.code, RenderOutcome::Recorded);
+    const auto projection = renderer.compose(commands, layers.version, {0, 0, 128, 128});
+    QCOMPARE(projection.code, RenderOutcome::Recorded);
+    const auto drawn = presentation.record(commands, projection.version, surface.target, {}, background, {}, {}, {}, preview);
+    QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
+    const auto readback = readTexture(*m_device, commands, surface);
+    QVERIFY(readback);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QVERIFY(readback->finish(*m_device));
+    auto actual = readback->results.front()->data;
+    if (format == WGPUTextureFormat_BGRA8Unorm)
+        for (qsizetype i = 0; i < actual.size(); i += 4) std::swap(actual[i], actual[i + 2]);
+    const auto expectedImage = reference.convertToFormat(QImage::Format_RGBA8888_Premultiplied);
+    const QByteArray expected(reinterpret_cast<const char*>(expectedImage.constBits()), expectedImage.sizeInBytes());
+    const QString directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) {
+        QVERIFY(QDir().mkpath(directory));
+        for (const auto &entry : {qMakePair(QStringLiteral("-actual.rgba"), actual), qMakePair(QStringLiteral("-expected.rgba"), expected)}) {
+            QFile file(QDir(directory).filePath(QStringLiteral("crop-") + QString::fromLatin1(QTest::currentDataTag()) + entry.first));
+            QVERIFY(file.open(QIODevice::WriteOnly));
+            QCOMPARE(file.write(entry.second), entry.second.size());
+        }
+    }
+    QCOMPARE(actual.size(), expected.size());
+    qsizetype differences = 0;
+    int maximumDifference = 0;
+    for (qsizetype i = 0; i < actual.size(); ++i) {
+        const int difference = qAbs(int(quint8(actual[i])) - int(quint8(expected[i])));
+        differences += difference != 0;
+        maximumDifference = qMax(maximumDifference, difference);
+    }
+    qInfo() << "Crop display byte differences" << differences << "maximum" << maximumDifference;
+    // Coverage rounding is confined to this display-only target (#91).
+    QVERIFY2(maximumDifference <= 2, qPrintable(QStringLiteral("Crop AA maximum byte difference: %1").arg(maximumDifference)));
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.recoveryData(), recovery);
+}
 
 void KisGpuTilePresentationTest::tileOverBackgroundMatchesEightBitSourceOver_data()
 {

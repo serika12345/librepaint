@@ -63,6 +63,13 @@ void KisCanvas2::showToolMessage(const QString &message, const QString &iconName
     viewManager()->showFloatingMessage(message, KisIconUtils::loadIcon(iconName));
 }
 
+bool KisCanvas2::drawCropPreview(const LibrePaint::Canvas::Gpu::CropPreview &crop)
+{
+    if (auto *gpuCanvas = dynamic_cast<KisGpuCanvasWidget *>(canvasWidget()))
+        return gpuCanvas->collectCropPreview(crop);
+    return false;
+}
+
 void KisCanvas2::drawToolOutline(QPainter *painter,
                                  const KisOptimizedBrushOutline &path,
                                  int thickness)

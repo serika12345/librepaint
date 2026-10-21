@@ -105,6 +105,7 @@ int main(int argc, char **argv)
     parser.addOption({QStringLiteral("gpu-timestamps"), "Record diagnostic GPU timestamps and read them after measurement"});
     parser.addOption({QStringLiteral("high-load"), "Use 4096 square pixels, 24 occupied layers and a 512 pixel brush"});
     parser.addOption({QStringLiteral("offscreen"), "Measure rendering to a texture without native presentation waits"});
+    parser.addOption({QStringLiteral("crop-preview"), "Include the crop mask, handles and eight guide lines in each display frame"});
     parser.addOptions({
         {QStringLiteral("input-hz"), "Generate all input samples on a fixed real-time schedule", "rate"},
         {QStringLiteral("display-hz"), "Scheduled presentation rate", "rate", "120"},
@@ -146,6 +147,7 @@ int main(int argc, char **argv)
         const bool highLoad = parser.isSet(QStringLiteral("high-load"));
         const int paintLayer = count(QStringLiteral("paint-layer"), 0, highLoad ? 23 : 0);
         const bool offscreen = parser.isSet(QStringLiteral("offscreen"));
+        const bool cropPreview = parser.isSet(QStringLiteral("crop-preview"));
         QString diagnostic;
         const bool timestampQueries = parser.isSet(QStringLiteral("gpu-timestamps"));
         const auto device = Device::createNative(diagnostic, timestampQueries);
@@ -284,7 +286,23 @@ int main(int argc, char **argv)
                 const qreal sx = qreal(targetSize.width()) / viewport.width();
                 const qreal sy = qreal(targetSize.height()) / viewport.height();
                 const QTransform transform(sx, 0, 0, sy, -viewport.x() * sx, -viewport.y() * sy);
-                const auto drawn = presentation.record(frame.commands, projected.version, target, transform, Qt::white);
+                std::optional<LibrePaint::Canvas::Gpu::CropPreview> crop;
+                if (cropPreview) {
+                    crop.emplace();
+                    crop->image = transform.mapRect(QRectF(QPointF(), document.snapshot()->size));
+                    crop->crop = QRectF(targetSize.width() * 0.25, targetSize.height() * 0.25,
+                                        targetSize.width() * 0.5, targetSize.height() * 0.5);
+                    const auto rect = crop->crop;
+                    for (const auto center : {rect.topLeft(), rect.topRight(), rect.bottomLeft(), rect.bottomRight(),
+                                              QPointF(rect.center().x(), rect.top()), QPointF(rect.center().x(), rect.bottom()),
+                                              QPointF(rect.left(), rect.center().y()), QPointF(rect.right(), rect.center().y())})
+                        crop->handles.addRect(QRectF(center - QPointF(6.5, 6.5), QSizeF(13, 13)));
+                    for (const qreal fraction : {0.2, 0.4, 0.6, 0.8}) {
+                        crop->guides.append(QLineF(rect.left(), rect.top() + fraction * rect.height(), rect.right(), rect.top() + fraction * rect.height()));
+                        crop->guides.append(QLineF(rect.left() + fraction * rect.width(), rect.top(), rect.left() + fraction * rect.width(), rect.bottom()));
+                    }
+                }
+                const auto drawn = presentation.record(frame.commands, projected.version, target, transform, Qt::white, {}, {}, {}, crop);
                 require(drawn.recorded, drawn.diagnostic);
                 if (queries) stamp(frame.commands, timestampFrames * 2 + 1);
                 const auto recorded = timer.nsecsElapsed();
@@ -387,6 +405,7 @@ int main(int argc, char **argv)
             {"schemaVersion", 3}, {"diagnosticGpuTimestamps", timestampQueries}, {"target", offscreen ? "texture" : "window"},
             {"completionSynchronized", offscreen},
             {"displayRefreshRateHz", window.screen() ? window.screen()->refreshRate() : 0}, {"backend", backend},
+            {"cropPreview", cropPreview},
             {"deviceName", deviceName}, {"deviceType", deviceType},
             {"workload", highLoad ? "high-load" : "small"}, {"pacedInput", paced},
             {"inputHz", inputHz}, {"scheduledDisplayHz", paced ? displayHz : 0},

@@ -26,6 +26,7 @@ struct CanvasWindow::Private
     QColor background{Qt::white};
     std::optional<CheckerPattern> checkers;
     ToolOutline outline;
+    std::optional<CropPreview> crop;
     bool recording = false;
     std::unique_ptr<PresentationSurface> surface;
     quintptr nativeSurfaceIdentity = 0;
@@ -76,7 +77,10 @@ void CanvasWindow::connectSurface()
 bool CanvasWindow::setDocument(DocumentHandle handle)
 {
     if (handle && !m_d->execution.requested(handle)) return false;
-    if (m_d->handle != handle) m_d->outline = {};
+    if (m_d->handle != handle) {
+        m_d->outline = {};
+        m_d->crop.reset();
+    }
     m_d->handle = handle;
     refresh();
     return true;
@@ -102,6 +106,11 @@ bool CanvasWindow::setBackground(QColor color, std::optional<CheckerPattern> che
 void CanvasWindow::setToolOutline(ToolOutline outline)
 {
     m_d->outline = std::move(outline);
+    refresh();
+}
+void CanvasWindow::setCropPreview(std::optional<CropPreview> crop)
+{
+    m_d->crop = std::move(crop);
     refresh();
 }
 bool CanvasWindow::setDocumentToWindow(const QTransform &transform)
@@ -212,9 +221,11 @@ void CanvasWindow::renderFrame()
             auto checkers = d.checkers;
             if (checkers) checkers->targetToPattern =
                 QTransform::fromScale(1.0 / devicePixelRatio(), 1.0 / devicePixelRatio()) * checkers->targetToPattern;
+            auto crop = d.crop;
+            if (crop) crop->toTarget *= logicalToPhysical;
             const auto drawn = d.presentation->record(frame.commands, projected.version,
                                                       {d.device, frame.target, pixels, d.surface->format()},
-                                                      d.physicalTransform(devicePixelRatio()), d.background, d.channels, outline, checkers);
+                                                      d.physicalTransform(devicePixelRatio()), d.background, d.channels, outline, checkers, crop);
             if (!drawn.recorded) {
                 d.execution.cancelFrame();
                 begun = false;

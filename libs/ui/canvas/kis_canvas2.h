@@ -52,6 +52,7 @@ class KoViewConverter;
 class KisAbstractCanvasWidget;
 class KisPopupPalette;
 class KisMainWindow;
+namespace LibrePaint::Canvas::Gpu { struct CropPreview; }
 
 
 /**
@@ -161,6 +162,10 @@ public: // KoCanvasBase implementation
     void drawToolOutline(QPainter *painter,
                          const KisOptimizedBrushOutline &path,
                          int thickness) override;
+    /** Accepts crop vectors only during native tool collection. Other callers
+     * retain their current painter and own its drawing operation.
+     */
+    bool drawCropPreview(const LibrePaint::Canvas::Gpu::CropPreview &crop);
     QObject *toolConfigNotifier() const override;
 
     /**

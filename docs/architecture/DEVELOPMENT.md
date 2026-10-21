@@ -1051,6 +1051,21 @@ Qtの8ビット乗算済みアルファ合成との全画素一致と、元のGP
 `LIBREPAINT_GPU_RESULT_DIR`へ低水準の`.rgba`と通常画面の`ordinary-brush-outline-<stage>.png`を保存する。
 通常画面の画像はネイティブ表示と入力の接続を確認し、固定したGPU表示画素の環境間比較は低水準の全RGBAを使う。
 
+`KisGpuTilePresentationTest::cropPreviewRetainsAntialiasedGeometryAndDocument`は、切り抜きの暗幕、ハンドルと補助線を
+アンチエイリアス付きの既存の描画条件で照合する。DPR 1／2／3、回転、反転、太い線、半透明背景、
+重なるハンドル、DPR2での縮小・回転と2画素の枠線の組合せ、
+ドラッグ途中の空・負の矩形、表示端で切れる補助線と最大文書端の移動を含む。
+表示専用の被覆率と丸めの比較上限は各成分2階調とし、文書版と復旧記録は厳密に比較する。
+RGBA8／BGRA8の全表示画素を`crop-<format>-case-<condition>-{actual,expected}.rgba`へ保存し、
+不正入力では表示先の全画素が維持されることを照合する。
+`KisGpuDocumentViewTest::cropPreviewPreservesPixelsHistoryAndCancellation`は、登録済みの切り抜きツールを使い、
+5種類の補助線、ドラッグによる移動とサイズ変更、パン・ズーム・回転、取消しを検査する。
+自由ドラッグは吸着を無効にして位置を照合し、画像端への吸着を有効にした操作も検査する。
+画像を表示領域の中央へ置き、吸着の距離は表示座標で10画素に固定して、DPRごとの画像座標との対応を照合する。
+作成と確定、Undo／Redo、KRA再読込とPNG書出しでは文書画素を全バイトで比較し、表示用の暗幕と装飾から分離する。
+通常画面の全画素は同じ表示専用の上限で照合し、`crop-<style>-{actual,expected}.png`と
+`crop-operation-<stage>-{actual,expected}.png`を保存する。
+
 ### GPU表示のVulkan検証
 
 LinuxのGPU表示は、画素試験に加えてVulkan検証層で生成シェーダー、表示画像の配置と
@@ -1130,6 +1145,9 @@ JSONの`target`は`window`または`texture`を記録し、Qtが報告する表�
 `completionSynchronized`が`true`の場合はCPUの測定区間にGPU完了待ちを含む。
 これは処理費用の比較用であり、通常画面の240Hz入力、60Hz／120Hz表示、
 入力から実表示までの受入れ検証は、対象機器で別途実施する。
+`--crop-preview`は毎フレームの表示へ切り抜きの暗幕、8個のハンドルと8本の補助線を追加し、
+JSONの`cropPreview`へ有効状態を記録する。同じ入力・仕事量で有効／無効を交互に測り、
+処理時間、保持した入力、最終文書の投影ハッシュを比較する。投影ハッシュは編集用の文書画素から計算する。
 試験の画面外フレームは画素の読取り完了を保証する。通常表示は表示フレームの命令列へ計算を連結する。
 
 ### 時間を固定した連続入力と高負荷の測定

@@ -26,6 +26,7 @@ public:
     ~KisGpuCanvasWidget() override;
     void disconnectImage();
     void collectToolOutline(const KisOptimizedBrushOutline &path, int thickness);
+    bool collectCropPreview(LibrePaint::Canvas::Gpu::CropPreview crop);
     QWidget *widget() override { return this; }
     void setDisplayFilter(QSharedPointer<KisDisplayFilter>) override;
     void notifyImageColorSpaceChanged(const KoColorSpace *) override;
@@ -56,9 +57,10 @@ protected:
 private:
     void refresh();
     void updateBackground();
-    bool updateToolOutline();
+    bool updateToolDecorations();
     LibrePaint::Canvas::Gpu::ToolOutline m_toolOutline;
-    bool m_collectingToolOutline = false;
+    std::optional<LibrePaint::Canvas::Gpu::CropPreview> m_cropPreview;
+    bool m_collectingToolDecorations = false;
     LibrePaint::Image::Gpu::PaintImageSP m_image;
     LibrePaint::Canvas::Gpu::CanvasWindow *m_window;
     QWidget *m_container;

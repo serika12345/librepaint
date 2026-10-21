@@ -9,6 +9,8 @@
 #include <kritacanvas_export.h>
 #include <gpu/KisGpuTileRenderer.h>
 #include <QColor>
+#include <QLineF>
+#include <QPainterPath>
 #include <QPolygonF>
 #include <QTransform>
 #include <memory>
@@ -68,6 +70,25 @@ struct ToolOutline
     qreal thickness = 1;
 };
 
+/** Display-only crop geometry. toTarget maps the tool's view coordinates to
+ * physical target pixels; cosmetic stroke thickness remains physical.
+ * Handles contain the crop tool's eight rectangular subpaths. Guides are
+ * clipped to crop, with at most eight lines. Colors have already been
+ * converted to the display color space by the tool.
+ */
+struct CropPreview
+{
+    QRectF image;
+    QRectF crop;
+    QPainterPath handles;
+    QList<QLineF> guides;
+    QTransform toTarget;
+    QColor shade{0, 0, 0, 200};
+    QColor handleFill{200, 200, 200, 200};
+    QColor stroke{Qt::black};
+    qreal thickness = 1;
+};
+
 /**
  * Draws borrowed immutable tiles on their owning GPU thread and queue.
  * Display resources keep the shared device alive. record() joins an active frame and clears the
@@ -90,7 +111,8 @@ public:
                                const PresentationTarget &target, const QTransform &documentToPixels,
                                QColor clearColor, DisplayChannels channels = {},
                                const ToolOutline &outline = {},
-                               const std::optional<CheckerPattern> &checkers = {});
+                               const std::optional<CheckerPattern> &checkers = {},
+                               const std::optional<CropPreview> &crop = {});
 
 private:
     struct Private;

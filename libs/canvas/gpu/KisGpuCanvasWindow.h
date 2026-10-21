@@ -42,6 +42,8 @@ public:
     bool setBackground(QColor color, std::optional<CheckerPattern> checkers = {});
     /** Owned display contours in logical window pixels; thickness stays physical. */
     void setToolOutline(ToolOutline outline);
+    /** Owned crop vectors in logical window pixels; cosmetic width stays physical. */
+    void setCropPreview(std::optional<CropPreview> crop);
     bool setDocumentToWindow(const QTransform &transform);
     QTransform documentToWindow() const;
     QRect documentViewport() const;

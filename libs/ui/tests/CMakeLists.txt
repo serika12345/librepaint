@@ -1188,7 +1188,8 @@ set(gpu_document_input_cases
     paintingBackendChangesRebindTheCanvas
     replacementUpdatesPresentationInputHistoryAndSaving
     ordinaryLayerChangesDuringInput
-    lineToolPreservesPreviewCancellationAndHistory)
+    lineToolPreservesPreviewCancellationAndHistory
+    cropPreviewPreservesPixelsHistoryAndCancellation)
 set(gpu_document_layer_cases
     layerPanelThumbnailsReadOnlyReducedGpuPixels
     layerPanelEditsUseOneDocumentHistory
@@ -1215,7 +1216,7 @@ add_test(NAME ${gpu_document_pixel_test}
 set(gpu_document_view_tests ${gpu_document_view_test} ${gpu_document_layer_test} ${gpu_document_pixel_test})
 add_dependencies(KisGpuDocumentViewTest
     kritalcmsengine krita_shape_image krita_shape_paths kritadefaulttools kritaroundmarkerpaintop
-    kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker)
+    kritaoverviewdocker kritachanneldocker kritahistogramdocker kritahistorydocker kritalayerdocker kritatoolcrop)
 if(NOT IOS)
     add_dependencies(KisGpuDocumentViewTest kritatextproperties)
 endif()

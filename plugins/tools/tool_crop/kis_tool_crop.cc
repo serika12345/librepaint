@@ -28,7 +28,6 @@
 #include <ksharedconfig.h>
 
 #include <KoCanvasBase.h>
-#include <kis_painter.h>
 #include <kis_cursor.h>
 #include <kis_image.h>
 #include <kis_node.h>
@@ -36,6 +35,7 @@
 #include <KoPointerEvent.h>
 #include <kis_selection.h>
 #include <kis_canvas2.h>
+#include <gpu/KisGpuTilePresentation.h>
 #include <application/ui/workspace/KisViewManager.h>
 #include <kis_floating_message.h>
 #include <kis_resources_snapshot.h>
@@ -441,11 +441,27 @@ QRectF KisToolCrop::borderLineRect()
 void KisToolCrop::paintOutlineWithHandles(QPainter& gc)
 {
     if (canvas() && (mode() == KisTool::PAINT_MODE || m_haveCropSelection)) {
+        const QRectF wholeImageRect = pixelToView(image()->bounds());
+        const QRectF borderRect = borderLineRect();
+        const auto handles = handlesPath();
+        QList<QLineF> guides;
+        if (m_decoration > 0) {
+            for (int i = decorsIndex[m_decoration - 1]; i < decorsIndex[m_decoration]; ++i)
+                guides.append(decorationLine(&decors[i], borderRect));
+        }
+        if (auto *kisCanvas = dynamic_cast<KisCanvas2 *>(canvas())) {
+            LibrePaint::Canvas::Gpu::CropPreview preview;
+            preview.image = wholeImageRect;
+            preview.crop = borderRect;
+            preview.handles = handles;
+            preview.guides = guides;
+            preview.shade = m_transparentBlack;
+            preview.handleFill = m_transparentGrey;
+            preview.stroke = m_black;
+            preview.thickness = HANDLE_BORDER_LINE_WIDTH * decorationThickness();
+            if (kisCanvas->drawCropPreview(preview)) return;
+        }
         gc.save();
-
-        QRectF wholeImageRect = pixelToView(image()->bounds());
-        QRectF borderRect = borderLineRect();
-
         QPainterPath path;
 
         path.addRect(wholeImageRect);
@@ -461,15 +477,11 @@ void KisToolCrop::paintOutlineWithHandles(QPainter& gc)
         pen.setCosmetic(true);
         gc.setPen(pen);
         gc.setBrush(m_transparentGrey);
-        gc.drawPath(handlesPath());
+        gc.drawPath(handles);
 
         gc.setClipRect(borderRect, Qt::IntersectClip);
 
-        if (m_decoration > 0) {
-            for (int i = decorsIndex[m_decoration-1]; i<decorsIndex[m_decoration]; i++) {
-                drawDecorationLine(&gc, &(decors[i]), borderRect);
-            }
-        }
+        for (const auto &line : guides) gc.drawLine(line);
         gc.restore();
     }
 }
@@ -944,7 +956,7 @@ QRectF KisToolCrop::boundingRect()
     return rect;
 }
 
-void KisToolCrop::drawDecorationLine(QPainter *p, DecorationLine *decorLine, const QRectF rect)
+QLineF KisToolCrop::decorationLine(const DecorationLine *decorLine, const QRectF rect) const
 {
     QPointF start = rect.topLeft();
     QPointF end = rect.topLeft();
@@ -1011,5 +1023,5 @@ void KisToolCrop::drawDecorationLine(QPainter *p, DecorationLine *decorLine, con
         break;
     }
 
-    p->drawLine(start, end);
+    return QLineF(start, end);
 }

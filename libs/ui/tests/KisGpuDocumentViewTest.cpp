@@ -5,6 +5,7 @@
 #include <QApplication>
 #include <QBitArray>
 #include <QCheckBox>
+#include <QColorSpace>
 #include <QMouseEvent>
 #include <QDockWidget>
 #include <QEnterEvent>
@@ -26,6 +27,8 @@
 #include <QFile>
 #include <kra/KisKraRasterCodec.h>
 #include <KLocalizedString>
+#include <KConfigGroup>
+#include <KSharedConfig>
 #include <KisSynchronizedConnection.h>
 #include <KisGlobalResourcesInterface.h>
 #include <KisResourceLocator.h>
@@ -46,6 +49,7 @@
 #include <input/ui/kis_input_profile_manager.h>
 #include <gpu/KisGpuCanvasWindow.h>
 #include <KoToolManager.h>
+#include <KoSnapGuide.h>
 #include <KoCanvasResourcesIds.h>
 #include <KoToolBase.h>
 #include <KoColorSpaceRegistry.h>
@@ -105,6 +109,7 @@ private Q_SLOTS:
     }
     void presentsEditsAndReleasesTheClosedTab();
     void brushOutlineFollowsTheOrdinaryPointerWithoutEditing();
+    void cropPreviewPreservesPixelsHistoryAndCancellation();
     void canvasBackgroundFollowsPreferencesWithoutEditing_data();
     void canvasBackgroundFollowsPreferencesWithoutEditing();
     void freehandInputCommitsOneHistoryEntryAndCanBeCancelled_data();
@@ -2925,7 +2930,8 @@ void KisGpuDocumentViewTest::brushOutlineFollowsTheOrdinaryPointerWithoutEditing
     QTRY_COMPARE(execution.published(owner->handle()), snapshot);
     QPointer<LibrePaint::Canvas::Gpu::CanvasWindow> native;
     for (auto *candidate : QGuiApplication::allWindows())
-        if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate)) native = canvas;
+        if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate))
+            if (canvas->isVisible()) native = canvas;
     QVERIFY(native);
     native->setCursor(Qt::BlankCursor);
     QSignalSpy frames(native, &LibrePaint::Canvas::Gpu::CanvasWindow::frameSubmitted);
@@ -2947,7 +2953,10 @@ void KisGpuDocumentViewTest::brushOutlineFollowsTheOrdinaryPointerWithoutEditing
     const auto ratio = native->devicePixelRatio();
     const auto physical = [&](QPoint point) { return (QPointF(point) * ratio).toPoint(); };
     const auto currentBackground = [&] {
-        QImage result(capture().size(), QImage::Format_RGBA8888);
+        const auto screenshot = capture();
+        QImage result(screenshot.size(), QImage::Format_RGBA8888);
+        result.setDevicePixelRatio(screenshot.devicePixelRatio());
+        result.setColorSpace(screenshot.colorSpace());
         result.fill(Qt::white);
         const auto bounds = QTransform::fromScale(ratio, ratio).mapRect(converter->imageRectInWidgetPixels()).toAlignedRect().intersected(result.rect());
         for (int y = bounds.top(); y <= bounds.bottom(); ++y)
@@ -2957,7 +2966,17 @@ void KisGpuDocumentViewTest::brushOutlineFollowsTheOrdinaryPointerWithoutEditing
     };
     const auto expectedBaseline = currentBackground();
     // Startup notifications can overlap the native child. Accept its clean frame.
-    QTRY_VERIFY_WITH_TIMEOUT((baseline = capture()) == expectedBaseline, 10000);
+    for (int attempt = 0; attempt < 100; ++attempt) {
+        baseline = capture();
+        if (baseline == expectedBaseline) break;
+        QTest::qWait(100);
+    }
+    QVERIFY(save(baseline, QStringLiteral("baseline-last")));
+    QVERIFY(save(expectedBaseline, QStringLiteral("baseline-expected")));
+    qInfo() << "baseline" << baseline.size() << baseline.format() << baseline.devicePixelRatio()
+            << "expected" << expectedBaseline.size() << expectedBaseline.format() << expectedBaseline.devicePixelRatio()
+            << "equal" << (baseline == expectedBaseline);
+    QCOMPARE(baseline, expectedBaseline);
     QCOMPARE(baseline.pixelColor(physical(first)), QColor(80, 100, 120));
     QCOMPARE(baseline.pixelColor(physical(second)), QColor(80, 100, 120));
     QVERIFY(save(baseline, QStringLiteral("baseline")));
@@ -2979,10 +2998,18 @@ void KisGpuDocumentViewTest::brushOutlineFollowsTheOrdinaryPointerWithoutEditing
     config.setNewOutlineStyle(OUTLINE_CIRCLE);
     KisConfigNotifier::instance()->notifyConfigChanged();
     // Configuration can recreate the native canvas. Follow its current window.
-    native.clear();
+    QCoreApplication::processEvents();
+    qInfo() << "kept native" << native.data() << (native ? native->size() : QSize());
     for (auto *candidate : QGuiApplication::allWindows())
-        if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate)) native = canvas;
-    QVERIFY(native);
+        if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate))
+            qInfo() << "candidate" << canvas << canvas->size() << canvas->isVisible() << canvas->title() << canvas->parent();
+    if (!native) {
+        for (auto *candidate : QGuiApplication::allWindows())
+            if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate))
+                if (canvas->isVisible()) native = canvas;
+    }
+    QTRY_VERIFY(native && native->isVisible() && native->size().width() >= 600);
+    qInfo() << "native window" << native->size() << native->geometry() << "baseline" << baseline.size() << ratio;
     native->setCursor(Qt::BlankCursor);
     QEnterEvent reentered(first, first, native->mapToGlobal(first));
     QApplication::sendEvent(native.data(), &reentered);
@@ -3182,6 +3209,356 @@ void KisGpuDocumentViewTest::presentsEditsAndReleasesTheClosedTab()
     window->hide();
     window.reset();
     QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+}
+
+void KisGpuDocumentViewTest::cropPreviewPreservesPixelsHistoryAndCancellation()
+{
+    namespace Gpu = LibrePaint::Image::Gpu;
+    KisConfig config(false);
+    const auto oldStyle = config.newOutlineStyle();
+    const auto oldColor = config.getCursorMainColor();
+    const auto oldSeparate = config.separateEraserCursor();
+    const auto oldFullSize = config.forceAlwaysFullSizedOutline();
+    const auto oldMinimum = config.outlineSizeMinimum();
+    const auto oldBorder = config.canvasBorderColor();
+    const auto oldVastScrolling = config.vastScrolling();
+    const auto restoreConfig = qScopeGuard([&] {
+        config.setNewOutlineStyle(oldStyle);
+        config.setCursorMainColor(oldColor);
+        config.setSeparateEraserCursor(oldSeparate);
+        config.setForceAlwaysFullSizedOutline(oldFullSize);
+        config.setOutlineSizeMinimum(oldMinimum);
+        config.setCanvasBorderColor(oldBorder);
+        config.setVastScrolling(oldVastScrolling);
+        KisConfigNotifier::instance()->notifyConfigChanged();
+    });
+    config.setNewOutlineStyle(OUTLINE_NONE);
+    config.setCursorMainColor(Qt::white);
+    config.setSeparateEraserCursor(false);
+    config.setForceAlwaysFullSizedOutline(true);
+    config.setOutlineSizeMinimum(1);
+    config.setCanvasBorderColor(Qt::white);
+    config.setVastScrolling(1);
+    QString diagnostic;
+    const auto device = Gpu::Device::createNative(diagnostic);
+    QVERIFY2(device, qPrintable(diagnostic));
+    Gpu::Execution execution(device);
+    auto owner = Gpu::PaintImageSP::create(execution, QSize(128, 128));
+    QByteArray pixels;
+    for (int i = 0; i < 128 * 128; ++i) pixels += QByteArray::fromHex("506478ff");
+    QCOMPARE(owner->writeRgbaPixels(owner->operations().activeLayer(), QRect(0, 0, 128, 128), pixels), Gpu::Result::Success);
+    const auto snapshot = owner->operations().snapshot();
+    QCOMPARE(owner->markSaved(snapshot), Gpu::Result::Success);
+    std::unique_ptr<KisDocument> document(KisPart::instance()->createDocument());
+    document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("GPU crop preview")));
+    std::unique_ptr<KisMainWindow> window(KisPart::instance()->createMainWindow());
+    window->resize(800, 600);
+    auto *view = window->newView(document.get());
+    QVERIFY(view);
+    QPointer<KisDocument> lifetime(document.release());
+    const auto releaseWindow = qScopeGuard([&] {
+        if (lifetime) {
+            lifetime->setModified(false);
+            window->viewManager()->actionManager()->actionByName(QStringLiteral("file_close"))->trigger();
+        }
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+        window.reset();
+        QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
+    });
+    window->viewManager()->setCurrentView(view);
+    for (auto *dock : window->findChildren<QDockWidget*>()) dock->hide();
+    window->show();
+    window->activateWindow();
+    auto *profiles = KisInputProfileManager::instance();
+    profiles->setProfileLocations({QStringLiteral(KRITA_SOURCE_DIR "/krita/data/input/kritadefault.profile")},
+                                 QStandardPaths::writableLocation(QStandardPaths::AppDataLocation) + QStringLiteral("/input"));
+    profiles->loadProfiles();
+    auto *resources = window->viewManager()->canvasResourceProvider();
+    resources->setPaintOpPreset(m_preset);
+    resources->setSize(24);
+    resources->setEraserMode(false);
+    KoToolManager::instance()->switchToolRequested(QStringLiteral("KritaShape/KisToolBrush"));
+    view->canvasBase()->canvasWidget()->setFocus();
+    view->canvasController()->resetCanvasRotation();
+    view->canvasController()->mirrorCanvas(false);
+    view->zoomManager()->zoomTo100();
+    const auto *converter = view->canvasBase()->coordinatesConverter();
+    const auto centerImage = [&] {
+        const auto size = converter->imageRectInWidgetPixels().size();
+        view->canvasController()->setPreferredCenter(QPointF(size.width() / 2, size.height() / 2));
+    };
+    centerImage();
+    QTRY_COMPARE(execution.published(owner->handle()), snapshot);
+    QPointer<LibrePaint::Canvas::Gpu::CanvasWindow> native;
+    for (auto *candidate : QGuiApplication::allWindows())
+        if (auto *canvas = qobject_cast<LibrePaint::Canvas::Gpu::CanvasWindow*>(candidate))
+            if (canvas->isVisible()) native = canvas;
+    QVERIFY(native);
+    native->setCursor(Qt::BlankCursor);
+    QSignalSpy frames(native, &LibrePaint::Canvas::Gpu::CanvasWindow::frameSubmitted);
+    const auto capture = [&] { return native->screen()->grabWindow(native->winId()).toImage().convertToFormat(QImage::Format_RGBA8888); };
+
+    native->setCursor(Qt::BlankCursor);
+    const auto ratio = native->devicePixelRatio();
+    const auto expectedSize = capture();
+    QImage expected(expectedSize.size(), QImage::Format_RGBA8888);
+    expected.setDevicePixelRatio(expectedSize.devicePixelRatio());
+    expected.setColorSpace(expectedSize.colorSpace());
+    expected.fill(Qt::white);
+    const auto rect = QTransform::fromScale(ratio, ratio).mapRect(converter->imageRectInWidgetPixels()).toAlignedRect().intersected(expected.rect());
+    for (int y = rect.top(); y <= rect.bottom(); ++y)
+        for (int x = rect.left(); x <= rect.right(); ++x) expected.setPixelColor(x, y, QColor(80, 100, 120));
+    QImage baseline;
+    QTRY_VERIFY_WITH_TIMEOUT((baseline = capture()) == expected, 10000);
+    KoToolManager::instance()->switchToolRequested(QStringLiteral("KisToolCrop"));
+    auto *tool = KoToolManager::instance()->toolById(view->canvasBase(), QStringLiteral("KisToolCrop"));
+    QVERIFY2(tool, "The ordinary crop plugin must be available");
+    KConfigGroup cropSettings(KSharedConfig::openConfig(), tool->toolId());
+    const auto previousCropSettings = cropSettings.entryMap();
+    const auto restoreCropSettings = qScopeGuard([&] {
+        for (const auto &key : {QStringLiteral("growCenter"), QStringLiteral("allowGrow"),
+                               QStringLiteral("decoration"), QStringLiteral("cropType")}) {
+            if (previousCropSettings.contains(key)) cropSettings.writeEntry(key, previousCropSettings[key]);
+            else cropSettings.deleteEntry(key);
+        }
+    });
+    QVERIFY(QMetaObject::invokeMethod(tool, "setGrowCenter", Qt::DirectConnection, Q_ARG(bool, false)));
+    QVERIFY(QMetaObject::invokeMethod(tool, "setAllowGrow", Qt::DirectConnection, Q_ARG(bool, false)));
+    QVERIFY(QMetaObject::invokeMethod(tool, "setCropTypeLegacy", Qt::DirectConnection, Q_ARG(int, 0)));
+    auto *snapGuide = view->canvasBase()->snapGuide();
+    const bool previousSnapping = snapGuide->isSnapping();
+    const auto previousStrategies = snapGuide->enabledSnapStrategies();
+    const int previousSnapDistance = snapGuide->snapDistance();
+    const auto restoreSnapping = qScopeGuard([&] {
+        snapGuide->enableSnapStrategies(previousStrategies);
+        snapGuide->setSnapDistance(previousSnapDistance);
+        snapGuide->enableSnapping(previousSnapping);
+    });
+    snapGuide->enableSnapping(false);
+    QVERIFY(tool->setProperty("lockWidth", false));
+    QVERIFY(tool->setProperty("lockHeight", false));
+    QVERIFY(tool->setProperty("lockRatio", false));
+    QVERIFY(tool->setProperty("cropX", 32));
+    QVERIFY(tool->setProperty("cropY", 32));
+    QVERIFY(tool->setProperty("cropWidth", 64));
+    QVERIFY(tool->setProperty("cropHeight", 64));
+    const auto recovery = owner->operations().recoveryData();
+    const QString directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!directory.isEmpty()) QVERIFY(QDir().mkpath(directory));
+    const auto preserveCropFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed() && !directory.isEmpty())
+            capture().save(QDir(directory).filePath(QStringLiteral("crop-failure.png")));
+    });
+    for (int style = 0; style < 5; ++style) {
+        QVERIFY(tool->setProperty("decoration", style));
+        auto expectedPreview = baseline;
+        expectedPreview.setDevicePixelRatio(ratio);
+        QPainter painter(&expectedPreview);
+        // The ordinary CPU canvas enables these hints before invoking the tool.
+        painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing |
+                               QPainter::SmoothPixmapTransform);
+        painter.setTransform(converter->flakeToWidgetTransform());
+        tool->paint(painter, *view->canvasBase()->viewConverter());
+        painter.end();
+        expectedPreview.setDevicePixelRatio(1);
+        QImage actual;
+        const auto matches = [&] {
+            actual = capture();
+            if (actual.size() != expectedPreview.size()) return false;
+            for (int y = 0; y < actual.height(); ++y) {
+                for (int x = 0; x < actual.width(); ++x) {
+                    const auto a = actual.pixelColor(x, y);
+                    const auto e = expectedPreview.pixelColor(x, y);
+                    // Display-only coverage has a two-byte rounding bound.
+                    // Document, history and recovery retain exact comparisons.
+                    if (qAbs(a.red() - e.red()) > 2 || qAbs(a.green() - e.green()) > 2 ||
+                        qAbs(a.blue() - e.blue()) > 2 || a.alpha() != e.alpha()) return false;
+                }
+            }
+            return true;
+        };
+        const auto preserve = qScopeGuard([&] {
+            if (directory.isEmpty()) return;
+            actual.save(QDir(directory).filePath(QStringLiteral("crop-%1-actual.png").arg(style)));
+            expectedPreview.save(QDir(directory).filePath(QStringLiteral("crop-%1-expected.png").arg(style)));
+        });
+        native->refresh();
+        QTRY_VERIFY_WITH_TIMEOUT(matches(), 10000);
+        QCOMPARE(owner->operations().snapshot(), snapshot);
+        QCOMPARE(owner->operations().undoCount(), 0);
+        QVERIFY(owner->operations().recoveryData() == recovery);
+    }
+    const auto base = [&] {
+        const auto screenshot = capture();
+        QImage image(screenshot.size(), QImage::Format_RGBA8888);
+        image.setDevicePixelRatio(screenshot.devicePixelRatio());
+        image.setColorSpace(screenshot.colorSpace());
+        image.fill(Qt::white);
+        for (int y = 0; y < image.height(); ++y) {
+            for (int x = 0; x < image.width(); ++x) {
+                const auto position = converter->widgetToImage(QPointF((x + 0.5) / ratio, (y + 0.5) / ratio));
+                if (position.x() >= 0 && position.y() >= 0 && position.x() < 128 && position.y() < 128)
+                    image.setPixelColor(x, y, QColor(80, 100, 120));
+            }
+        }
+        return image;
+    };
+    QImage actualPreview, expectedPreview;
+    const auto previewMatches = [&] {
+        expectedPreview = base();
+        expectedPreview.setDevicePixelRatio(ratio);
+        QPainter painter(&expectedPreview);
+        painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
+        painter.setTransform(converter->flakeToWidgetTransform());
+        tool->paint(painter, *view->canvasBase()->viewConverter());
+        painter.end();
+        expectedPreview.setDevicePixelRatio(1);
+        actualPreview = capture();
+        if (actualPreview.size() != expectedPreview.size()) return false;
+        for (int y = 0; y < actualPreview.height(); ++y) {
+            for (int x = 0; x < actualPreview.width(); ++x) {
+                const auto actual = actualPreview.pixelColor(x, y);
+                const auto expected = expectedPreview.pixelColor(x, y);
+                if (qAbs(actual.red() - expected.red()) > 2 || qAbs(actual.green() - expected.green()) > 2 ||
+                    qAbs(actual.blue() - expected.blue()) > 2 || actual.alpha() != expected.alpha()) return false;
+            }
+        }
+        return true;
+    };
+    const auto point = [&](QPointF position) { return converter->imageToWidget(position).toPoint(); };
+    const auto safeInput = QRectF(QPointF(), native->size()).adjusted(64, 64, -64, -64);
+    QVERIFY(safeInput.contains(point({16, 16})));
+    QVERIFY(safeInput.contains(point({128, 108})));
+    for (int stage = 0; stage < 5; ++stage) {
+        if (stage == 0) {
+            QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, point({64, 64}));
+            QTest::mouseMove(native.data(), point({70, 68}), 30);
+            QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point({70, 68}));
+            QCOMPARE(tool->property("cropX").toInt(), 38);
+            QCOMPARE(tool->property("cropY").toInt(), 36);
+            QCOMPARE(tool->property("cropWidth").toInt(), 64);
+            QCOMPARE(tool->property("cropHeight").toInt(), 64);
+        } else if (stage == 1) {
+            QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, point({102, 100}));
+            QTest::mouseMove(native.data(), point({110, 108}), 30);
+            QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point({110, 108}));
+            QCOMPARE(tool->property("cropWidth").toInt(), 72);
+            QCOMPARE(tool->property("cropHeight").toInt(), 72);
+        } else if (stage == 2) view->canvasController()->pan(QPoint(7, -5));
+        else if (stage == 3) view->canvasController()->setZoom(KoZoomMode::ZOOM_CONSTANT, 0.5);
+        else view->canvasController()->rotateCanvas(23);
+        const auto preserve = qScopeGuard([&] {
+            if (directory.isEmpty()) return;
+            actualPreview.save(QDir(directory).filePath(QStringLiteral("crop-operation-%1-actual.png").arg(stage)));
+            expectedPreview.save(QDir(directory).filePath(QStringLiteral("crop-operation-%1-expected.png").arg(stage)));
+        });
+        native->refresh();
+        QTRY_VERIFY_WITH_TIMEOUT(previewMatches(), 10000);
+        QCOMPARE(owner->operations().snapshot(), snapshot);
+        QCOMPARE(owner->operations().undoCount(), 0);
+        QVERIFY(owner->operations().recoveryData() == recovery);
+        if (stage == 0) {
+            snapGuide->enableSnapStrategies(KoSnapGuide::DocumentBoundsSnapping);
+            snapGuide->setSnapDistance(10);
+            snapGuide->enableSnapping(true);
+            const QPoint nearRight = point({128, 100}) - QPoint(2, 0);
+            QVERIFY(safeInput.contains(nearRight));
+            const auto image = view->canvasBase()->image();
+            const auto cursorImage = converter->widgetToImage(QPointF(nearRight));
+            QCOMPARE(image->documentToPixel(snapGuide->snap(image->pixelToDocument(cursorImage), Qt::NoModifier)),
+                     QPointF(128, 100));
+            QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, point({102, 100}));
+            QTest::mouseMove(native.data(), nearRight, 30);
+            QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, nearRight);
+            QCOMPARE(tool->property("cropX").toInt(), 38);
+            QCOMPARE(tool->property("cropWidth").toInt(), 90);
+            QCOMPARE(tool->property("cropHeight").toInt(), 64);
+            const auto preserveSnap = qScopeGuard([&] {
+                if (directory.isEmpty()) return;
+                actualPreview.save(QDir(directory).filePath(QStringLiteral("crop-snapped-actual.png")));
+                expectedPreview.save(QDir(directory).filePath(QStringLiteral("crop-snapped-expected.png")));
+            });
+            native->refresh();
+            QTRY_VERIFY_WITH_TIMEOUT(previewMatches(), 10000);
+            QCOMPARE(owner->operations().snapshot(), snapshot);
+            QCOMPARE(owner->operations().undoCount(), 0);
+            QVERIFY(owner->operations().recoveryData() == recovery);
+            snapGuide->enableSnapping(false);
+            QVERIFY(tool->setProperty("cropWidth", 64));
+        }
+    }
+    QCOMPARE(owner->operations().snapshot(), snapshot);
+    QCOMPARE(owner->operations().undoCount(), 0);
+    QVERIFY(QMetaObject::invokeMethod(tool, "requestStrokeCancellation", Qt::DirectConnection));
+    native->refresh();
+    QTRY_VERIFY(capture() == base());
+    const auto after = owner->readRgbaPixels(owner->operations().activeLayer(), QRect(0, 0, 128, 128), pixels.size());
+    QCOMPARE(after.code, Gpu::ExecutionCode::Success);
+    QCOMPARE(after.bytes, pixels);
+    QVERIFY(!lifetime->isModified());
+    view->canvasController()->resetCanvasRotation();
+    view->zoomManager()->zoomTo100();
+    centerImage();
+    QVERIFY(safeInput.contains(point({16, 16})));
+    QVERIFY(safeInput.contains(point({112, 96})));
+    QTest::mousePress(native.data(), Qt::LeftButton, Qt::NoModifier, point({16, 16}));
+    QTest::mouseMove(native.data(), point({112, 96}), 30);
+    QTest::mouseRelease(native.data(), Qt::LeftButton, Qt::NoModifier, point({112, 96}));
+    QCOMPARE(tool->property("cropX").toInt(), 16);
+    QCOMPARE(tool->property("cropY").toInt(), 16);
+    QCOMPARE(tool->property("cropWidth").toInt(), 96);
+    QCOMPARE(tool->property("cropHeight").toInt(), 80);
+    QCOMPARE(owner->operations().snapshot(), snapshot);
+    QVERIFY(QMetaObject::invokeMethod(tool, "crop", Qt::DirectConnection));
+    QTRY_COMPARE(owner->operations().snapshot()->size, QSize(96, 80));
+    QCOMPARE(owner->operations().undoCount(), 1);
+    QCOMPARE(lifetime->undoStack()->count(), 1);
+    const auto croppedPixels = QByteArray::fromHex("506478ff").repeated(96 * 80);
+    const auto readCrop = [&] { return owner->readRgbaPixels(owner->operations().activeLayer(), QRect(0, 0, 96, 80), croppedPixels.size()).bytes; };
+    QCOMPARE(readCrop(), croppedPixels);
+    lifetime->undoStack()->undo();
+    QTRY_COMPARE(owner->operations().snapshot()->size, QSize(128, 128));
+    QCOMPARE(owner->operations().undoCount(), 0);
+    QCOMPARE(owner->readRgbaPixels(owner->operations().activeLayer(), QRect(0, 0, 128, 128), pixels.size()).bytes, pixels);
+    lifetime->undoStack()->redo();
+    QTRY_COMPARE(owner->operations().snapshot()->size, QSize(96, 80));
+    QCOMPARE(readCrop(), croppedPixels);
+    QTemporaryDir saved;
+    QVERIFY(saved.isValid());
+    const auto preserveSavedFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            saved.setAutoRemove(false);
+            qInfo() << "Crop save failure artifacts at" << saved.path();
+        }
+    });
+    lifetime->setFileBatchMode(true);
+    const auto path = saved.filePath(QStringLiteral("crop.kra"));
+    QVERIFY2(lifetime->saveAs(path, KisDocument::nativeFormatMimeType(), false), qPrintable(lifetime->errorMessage()));
+    QTRY_VERIFY(!lifetime->isModified());
+    QFile file(path);
+    QVERIFY(file.open(QIODevice::ReadOnly));
+    const auto loaded = LibrePaint::ImportExport::Kra::RasterCodec::read(file);
+    QVERIFY2(loaded.code == LibrePaint::ImportExport::Kra::Status::Success, qPrintable(loaded.diagnostic));
+    QCOMPARE(loaded.document.image.size, QSize(96, 80));
+    Gpu::PaintImage reopened(execution, loaded.document.image);
+    QCOMPARE(reopened.readRgbaPixels(reopened.operations().activeLayer(), QRect(0, 0, 96, 80), croppedPixels.size()).bytes, croppedPixels);
+    KisPropertiesConfigurationSP configuration(new KisPropertiesConfiguration);
+    configuration->setProperty("alpha", true);
+    configuration->setProperty("interlaced", false);
+    configuration->setProperty("compression", 3);
+    configuration->setProperty("saveSRGBProfile", true);
+    configuration->setProperty("forceSRGB", false);
+    configuration->setProperty("storeAuthor", false);
+    configuration->setProperty("storeMetaData", false);
+    const auto pngPath = saved.filePath(QStringLiteral("crop.png"));
+    QVERIFY2(lifetime->exportDocumentSync(pngPath, QByteArrayLiteral("image/png"), configuration), qPrintable(lifetime->errorMessage()));
+    const auto png = QImage(pngPath).convertToFormat(QImage::Format_RGBA8888);
+    QCOMPARE(png.size(), QSize(96, 80));
+    QCOMPARE(QByteArray::fromRawData(reinterpret_cast<const char*>(png.constBits()), png.sizeInBytes()), croppedPixels);
+    if (!directory.isEmpty()) {
+        QVERIFY(QFile::copy(path, QDir(directory).filePath(QStringLiteral("crop-edited.kra"))));
+        QVERIFY(QFile::copy(pngPath, QDir(directory).filePath(QStringLiteral("crop-edited.png"))));
+    }
 }
 
 KISTEST_MAIN(KisGpuDocumentViewTest)

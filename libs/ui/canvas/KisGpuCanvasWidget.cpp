@@ -89,7 +89,7 @@ void KisGpuCanvasWidget::disconnectImage()
 
 void KisGpuCanvasWidget::refresh()
 {
-    if (!m_window || m_collectingToolOutline) return;
+    if (!m_window || m_collectingToolDecorations) return;
     const auto image = canvas()->image()->gpuImage();
     if (image && image != m_image) {
         KIS_SAFE_ASSERT_RECOVER_RETURN(&image->execution() == &m_image->execution());
@@ -101,7 +101,7 @@ void KisGpuCanvasWidget::refresh()
     }
     m_window->setDocumentToWindow(coordinatesConverter()->imageToWidgetTransform());
     updateBackground();
-    if (!updateToolOutline()) return;
+    if (!updateToolDecorations()) return;
     m_window->refresh();
 }
 
@@ -121,9 +121,10 @@ void KisGpuCanvasWidget::updateBackground()
     KIS_SAFE_ASSERT_RECOVER_RETURN(m_window->setBackground(config.canvasBorderColor(), std::move(pattern)));
 }
 
-bool KisGpuCanvasWidget::updateToolOutline()
+bool KisGpuCanvasWidget::updateToolDecorations()
 {
     m_toolOutline = {};
+    m_cropPreview.reset();
     if (canvas()->viewManager()->canvasBase() == canvas() && toolProxy()) {
         const KisConfig config(true);
         const bool eraser = config.separateEraserCursor() &&
@@ -138,21 +139,30 @@ bool KisGpuCanvasWidget::updateToolOutline()
         QPainter painter(&commands);
         painter.setTransform(coordinatesConverter()->flakeToWidgetTransform());
         QPointer<KisGpuCanvasWidget> guard(this);
-        m_collectingToolOutline = true;
+        m_collectingToolDecorations = true;
         const auto finishCollection = qScopeGuard([guard] {
-            if (guard) guard->m_collectingToolOutline = false;
+            if (guard) guard->m_collectingToolDecorations = false;
         });
         toolProxy()->paint(painter, *canvas()->viewConverter());
         painter.end();
         if (!guard || !m_window) return false;
     }
     m_window->setToolOutline(std::move(m_toolOutline));
+    m_window->setCropPreview(std::move(m_cropPreview));
+    return true;
+}
+
+bool KisGpuCanvasWidget::collectCropPreview(LibrePaint::Canvas::Gpu::CropPreview crop)
+{
+    if (!m_collectingToolDecorations) return false;
+    crop.toTarget *= coordinatesConverter()->flakeToWidgetTransform();
+    m_cropPreview = std::move(crop);
     return true;
 }
 
 void KisGpuCanvasWidget::collectToolOutline(const KisOptimizedBrushOutline &path, int thickness)
 {
-    if (!m_collectingToolOutline) return;
+    if (!m_collectingToolDecorations) return;
     m_toolOutline.thickness = thickness;
     const auto transform = coordinatesConverter()->flakeToWidgetTransform();
     for (auto it = path.begin(); it != path.end(); ++it)
