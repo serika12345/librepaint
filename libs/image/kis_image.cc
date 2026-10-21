@@ -1155,7 +1155,9 @@ void KisImage::cropNode(KisNodeSP node, const QRect& newRect, const bool activeF
 {
     if (const auto owner = m_d->gpuImage) {
         const KisImageSP retained = this;
-        if (!node || node->parent() != root()) throw std::invalid_argument("GPU layer crop requires an attached paint layer");
+        KisNodeSP ancestor = node ? node->parent() : KisNodeSP();
+        while (ancestor && ancestor != root()) ancestor = ancestor->parent();
+        if (!ancestor) throw std::invalid_argument("GPU layer crop requires an attached paint layer");
         const auto version = owner->operations().snapshot();
         const auto layer = std::find_if(version->layers.cbegin(), version->layers.cend(),
                                        [&node](const auto &value) { return value.uuid == node->uuid(); });

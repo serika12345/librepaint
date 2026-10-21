@@ -78,6 +78,7 @@
 #include <kis_fill_painter.h>
 #include <kis_paint_layer.h>
 #include <kis_group_layer.h>
+#include <kis_layer_utils.h>
 #include <kis_transaction.h>
 #include <kis_properties_configuration.h>
 #include <commands/kis_node_opacity_command.h>
@@ -254,16 +255,18 @@ void TestNode::testLayerCropPreservesPublicPixelsAndHistory_data()
     QTest::addColumn<QRect>("crop");
     QTest::addColumn<QByteArray>("defaultBgra");
     QTest::addColumn<bool>("locked");
+    QTest::addColumn<bool>("nested");
     for (const bool gpu : {false, true}) {
         const auto prefix = gpu ? QByteArrayLiteral("gpu-") : QByteArrayLiteral("ordinary-");
         const QRect bounds(-3, 5, 260, 12);
-        QTest::newRow(QByteArray(prefix + "boundary").constData()) << gpu << bounds << QByteArray::fromHex("00000000") << false;
-        QTest::newRow(QByteArray(prefix + "default").constData()) << gpu << bounds << QByteArray::fromHex("33221149") << false;
-        QTest::newRow(QByteArray(prefix + "transparent-default-rgb").constData()) << gpu << bounds << QByteArray::fromHex("33221100") << false;
-        QTest::newRow(QByteArray(prefix + "locked").constData()) << gpu << bounds << QByteArray::fromHex("00000000") << true;
-        QTest::newRow(QByteArray(prefix + "reversed").constData()) << gpu << QRect(256, 16, -259, -11) << QByteArray::fromHex("00000000") << false;
-        QTest::newRow(QByteArray(prefix + "empty").constData()) << gpu << QRect(50, 10, 0, 5) << QByteArray::fromHex("00000000") << false;
-        QTest::newRow(QByteArray(prefix + "containing").constData()) << gpu << QRect(-1024, -1024, 2048, 2048) << QByteArray::fromHex("00000000") << false;
+        QTest::newRow(QByteArray(prefix + "boundary").constData()) << gpu << bounds << QByteArray::fromHex("00000000") << false << false;
+        QTest::newRow(QByteArray(prefix + "default").constData()) << gpu << bounds << QByteArray::fromHex("33221149") << false << false;
+        QTest::newRow(QByteArray(prefix + "transparent-default-rgb").constData()) << gpu << bounds << QByteArray::fromHex("33221100") << false << false;
+        QTest::newRow(QByteArray(prefix + "locked").constData()) << gpu << bounds << QByteArray::fromHex("00000000") << true << false;
+        QTest::newRow(QByteArray(prefix + "reversed").constData()) << gpu << QRect(256, 16, -259, -11) << QByteArray::fromHex("00000000") << false << false;
+        QTest::newRow(QByteArray(prefix + "empty").constData()) << gpu << QRect(50, 10, 0, 5) << QByteArray::fromHex("00000000") << false << false;
+        QTest::newRow(QByteArray(prefix + "containing").constData()) << gpu << QRect(-1024, -1024, 2048, 2048) << QByteArray::fromHex("00000000") << false << false;
+        QTest::newRow(QByteArray(prefix + "nested").constData()) << gpu << bounds << QByteArray::fromHex("33221149") << false << true;
     }
 }
 
@@ -274,6 +277,7 @@ try
     QFETCH(QRect, crop);
     QFETCH(QByteArray, defaultBgra);
     QFETCH(bool, locked);
+    QFETCH(bool, nested);
     namespace Gpu = LibrePaint::Image::Gpu;
     KisImageConfig configuration(false);
     const int previousThreads = configuration.maxNumberOfThreads();
@@ -281,6 +285,10 @@ try
     configuration.setMaxNumberOfThreads(1);
     const auto cs = KoColorSpaceRegistry::instance()->rgb8();
     const QPoint position(17, -9);
+    const QUuid targetUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa0}"));
+    const QUuid innerUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa1}"));
+    const QUuid outerUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa2}"));
+    const QUuid siblingUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa3}"));
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
     document->setFileBatchMode(true);
     Gpu::PaintImageSP owner;
@@ -292,8 +300,19 @@ try
         raster.size = {512, 64};
         raster.layers = {{QStringLiteral("Crop target"), true, {}, {}}};
         raster.layers.first().position = position;
-        raster.layers.first().uuid = QUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa0}"));
+        raster.layers.first().uuid = targetUuid;
         raster.layers.first().defaultPixel = {quint8(defaultBgra[2]), quint8(defaultBgra[1]), quint8(defaultBgra[0]), quint8(defaultBgra[3])};
+        if (nested) {
+            raster.layers.first().parentUuid = innerUuid;
+            Gpu::RasterLayer sibling{QStringLiteral("Uncropped sibling"), true, siblingUuid, {}};
+            sibling.parentUuid = innerUuid;
+            Gpu::RasterLayer inner{QStringLiteral("Inner"), true, innerUuid, {}};
+            inner.kind = Gpu::LayerKind::Group;
+            inner.parentUuid = outerUuid;
+            Gpu::RasterLayer outer{QStringLiteral("Outer"), true, outerUuid, {}};
+            outer.kind = Gpu::LayerKind::Group;
+            raster.layers.append({sibling, inner, outer});
+        }
         owner = Gpu::PaintImageSP::create(execution, raster);
         document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Public layer crop")));
     } else {
@@ -302,9 +321,41 @@ try
         document->image()->waitForDone();
         document->image()->root()->firstChild()->paintDevice()->setDefaultPixel(
             KoColor(reinterpret_cast<const quint8*>(defaultBgra.constData()), cs));
-        document->image()->root()->firstChild()->setUuid(QUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa0}")));
+        KisNodeSP target = document->image()->root()->firstChild();
+        target->setUuid(targetUuid);
+        if (nested) {
+            KisImageSP image = document->image();
+            KisGroupLayerSP outer = new KisGroupLayer(image, QStringLiteral("Outer"), 255);
+            outer->setUuid(outerUuid);
+            QVERIFY(image->addNode(outer));
+            KisGroupLayerSP inner = new KisGroupLayer(image, QStringLiteral("Inner"), 255);
+            inner->setUuid(innerUuid);
+            QVERIFY(image->addNode(inner, outer));
+            QVERIFY(image->moveNode(target, inner, KisNodeSP()));
+            KisPaintLayerSP sibling = new KisPaintLayer(image, QStringLiteral("Uncropped sibling"), 255);
+            sibling->setUuid(siblingUuid);
+            QVERIFY(image->addNode(sibling, inner));
+        }
     }
-    const auto layer = document->image()->root()->firstChild();
+    const auto layer = KisLayerUtils::findNodeByUuid(document->image()->root(), targetUuid);
+    QVERIFY(layer);
+    const auto siblingPixel = QByteArray::fromHex("887766ff");
+    if (nested) {
+        const auto sibling = KisLayerUtils::findNodeByUuid(document->image()->root(), siblingUuid);
+        QVERIFY(sibling);
+        sibling->paintDevice()->writeBytes(reinterpret_cast<const quint8*>(siblingPixel.constData()), 450, 40, 1, 1);
+    }
+    const auto hierarchyPreserved = [&](KisImageSP image) {
+        if (!nested) return true;
+        const auto target = KisLayerUtils::findNodeByUuid(image->root(), targetUuid);
+        const auto sibling = KisLayerUtils::findNodeByUuid(image->root(), siblingUuid);
+        if (!target || !sibling || !target->parent() || !target->parent()->parent()) return false;
+        const auto inner = target->parent(), outer = inner->parent();
+        QByteArray actual(4, '\0');
+        sibling->paintDevice()->readBytes(reinterpret_cast<quint8*>(actual.data()), 450, 40, 1, 1);
+        return inner->uuid() == innerUuid && outer->uuid() == outerUuid && outer->parent() == image->root() &&
+            sibling->parent() == inner && inner->childCount() == 2 && actual == siblingPixel;
+    };
     QScopedPointer<Node> node(Node::createNode(document->image(), layer));
     node->move(position.x(), position.y());
     const QList<QPoint> points{{-260, 6}, {-3, 5}, {0, 5}, {256, 16}, {257, 16}, {9, 17}, {14, -20}, {450, 40}};
@@ -338,6 +389,7 @@ try
     QCOMPARE(node->locked(), locked);
     QCOMPARE(document->image()->size(), QSize(512, 64));
     QCOMPARE(document->undoStack()->index(), history + 1);
+    QVERIFY2(hierarchyPreserved(document->image()), "Cropping a nested paint layer must preserve its parents and sibling pixels");
     const auto *extra = dynamic_cast<const KisCropSavedExtraData*>(document->undoStack()->command(history)->extraData());
     QVERIFY(extra);
     QCOMPARE(extra->cropRect(), crop);
@@ -354,21 +406,26 @@ try
         QCOMPARE(recoveredOwner->restoreRecovery(owner->operations().recoveryData()), Gpu::Result::Success);
         QScopedPointer<KisDocument> recoveredDocument(KisPart::instance()->createDocument());
         recoveredDocument->setCurrentImage(KisImage::fromGpuImage(recoveredOwner, QStringLiteral("Recovered crop")));
-        QScopedPointer<Node> recoveredNode(Node::createNode(recoveredDocument->image(), recoveredDocument->image()->root()->firstChild()));
+        const auto recoveredLayer = KisLayerUtils::findNodeByUuid(recoveredDocument->image()->root(), uuid);
+        QScopedPointer<Node> recoveredNode(Node::createNode(recoveredDocument->image(), recoveredLayer));
         QCOMPARE(recoveredNode->pixelData(region.x(), region.y(), region.width(), region.height()), expected);
         const auto *recoveredExtra = dynamic_cast<const KisCropSavedExtraData*>(recoveredDocument->undoStack()->command(0)->extraData());
         QVERIFY(recoveredExtra);
         QCOMPARE(recoveredExtra->cropRect(), crop);
-        QCOMPARE(recoveredExtra->cropNode(), recoveredDocument->image()->root()->firstChild());
+        QCOMPARE(recoveredExtra->cropNode(), recoveredLayer);
+        QVERIFY(hierarchyPreserved(recoveredDocument->image()));
         recoveredDocument->undoStack()->undo();
         QCOMPARE(recoveredNode->pixelData(region.x(), region.y(), region.width(), region.height()), before);
+        QVERIFY(hierarchyPreserved(recoveredDocument->image()));
     }
     document->undoStack()->undo();
     document->image()->waitForDone();
     QCOMPARE(node->pixelData(region.x(), region.y(), region.width(), region.height()), before);
+    QVERIFY(hierarchyPreserved(document->image()));
     document->undoStack()->redo();
     document->image()->waitForDone();
     QCOMPARE(node->pixelData(region.x(), region.y(), region.width(), region.height()), expected);
+    QVERIFY(hierarchyPreserved(document->image()));
     QTemporaryDir output;
     QVERIFY(output.isValid());
     const auto preserveFailure = qScopeGuard([&] {
@@ -387,10 +444,11 @@ try
     QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
     reopened->setFileBatchMode(true);
     QVERIFY(reopened->openPath(kra, KisDocument::DontAddToRecent));
-    QScopedPointer<Node> loaded(Node::createNode(reopened->image(), reopened->image()->root()->firstChild()));
+    QScopedPointer<Node> loaded(Node::createNode(reopened->image(), KisLayerUtils::findNodeByUuid(reopened->image()->root(), uuid)));
     QCOMPARE(loaded->position(), position);
     QCOMPARE(loaded->uniqueId(), uuid);
     QCOMPARE(loaded->pixelData(region.x(), region.y(), region.width(), region.height()), expected);
+    QVERIFY(hierarchyPreserved(reopened->image()));
     InfoObject pngSettings;
     pngSettings.setProperty("alpha", true);
     pngSettings.setProperty("interlaced", false);
@@ -478,20 +536,27 @@ void TestNode::testLayerCropToolPreservesConfirmationResumptionAndCancellation_d
     QTest::addColumn<bool>("gpu");
     QTest::addColumn<QString>("mode");
     QTest::addColumn<int>("cropType");
+    QTest::addColumn<bool>("nested");
     for (const bool gpu : {false, true}) for (const int type : {2, 0, 1}) {
         const QByteArray scope = type == 2 ? QByteArray() : type == 0 ? QByteArrayLiteral("image-") : QByteArrayLiteral("canvas-");
         for (const auto *mode : {"confirm", "cancel", "resume-cancel", "resume-reapply", "locked"}) {
             const QByteArray name = (gpu ? QByteArrayLiteral("gpu-") : QByteArrayLiteral("ordinary-")) + scope + mode;
-            QTest::newRow(name.constData()) << gpu << QString::fromLatin1(mode) << type;
+            QTest::newRow(name.constData()) << gpu << QString::fromLatin1(mode) << type << false;
         }
         if (gpu) for (const auto *mode : {"close-confirm", "close-resume"}) {
             const QByteArray name = QByteArrayLiteral("gpu-") + scope + mode;
-            QTest::newRow(name.constData()) << true << QString::fromLatin1(mode) << type;
+            QTest::newRow(name.constData()) << true << QString::fromLatin1(mode) << type << false;
         }
     }
     for (const auto *mode : {"reject-retry", "close-reject"}) {
         const QByteArray name = QByteArrayLiteral("gpu-canvas-") + mode;
-        QTest::newRow(name.constData()) << true << QString::fromLatin1(mode) << 1;
+        QTest::newRow(name.constData()) << true << QString::fromLatin1(mode) << 1 << false;
+    }
+    for (const bool gpu : {false, true}) {
+        for (const auto *mode : {"confirm", "resume-cancel", "resume-reapply", "locked"}) {
+            const QByteArray name = (gpu ? QByteArrayLiteral("gpu-nested-") : QByteArrayLiteral("ordinary-nested-")) + mode;
+            QTest::newRow(name.constData()) << gpu << QString::fromLatin1(mode) << 2 << true;
+        }
     }
 }
 
@@ -508,6 +573,11 @@ void TestNode::testLayerCropCanReleaseItsPublicCallerDuringNotification()
     QVERIFY(node->setPixelData(QByteArray::fromHex("112233ff"), 3, 4, 1, 1));
     const auto unchanged = owner->operations().recoveryData();
     const auto requested = execution->requested(owner->handle());
+    KisImageSP foreign = new KisImage(nullptr, 64, 64, document->image()->colorSpace(), QStringLiteral("Other image"));
+    KisPaintLayerSP foreignLayer = new KisPaintLayer(foreign, QStringLiteral("Same UUID, different image"), 255);
+    foreignLayer->setUuid(node->uniqueId());
+    QVERIFY(foreign->addNode(foreignLayer));
+    QVERIFY_THROWS_EXCEPTION(std::invalid_argument, document->image()->cropNode(foreignLayer, QRect(10, 10, 20, 20)));
     QVERIFY_EXCEPTION_THROWN(node->cropNode(std::numeric_limits<int>::max(), 0, 1, 1), std::invalid_argument);
     QVERIFY_EXCEPTION_THROWN(node->cropNode(0, 0, std::numeric_limits<int>::min(), 1), std::invalid_argument);
     QCOMPARE(owner->operations().recoveryData(), unchanged);
@@ -533,6 +603,7 @@ try
     QFETCH(bool, gpu);
     QFETCH(QString, mode);
     QFETCH(int, cropType);
+    QFETCH(bool, nested);
     namespace Gpu = LibrePaint::Image::Gpu;
     KisImageConfig configuration(false);
     const int previousThreads = configuration.maxNumberOfThreads();
@@ -545,7 +616,24 @@ try
         QString diagnostic;
         const auto execution = KisPart::instance()->gpuExecution(diagnostic);
         QVERIFY2(execution, qPrintable(diagnostic));
-        owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+        if (nested) {
+            const QUuid innerUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa1}"));
+            const QUuid outerUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa2}"));
+            Gpu::RasterImage raster;
+            raster.size = {64, 64};
+            raster.layers = {{QStringLiteral("Crop target"), true,
+                              QUuid(QStringLiteral("{91929394-9596-9798-999a-9b9c9d9e9fa0}")), {}}};
+            raster.layers.first().parentUuid = innerUuid;
+            Gpu::RasterLayer inner{QStringLiteral("Inner"), true, innerUuid, {}};
+            inner.kind = Gpu::LayerKind::Group;
+            inner.parentUuid = outerUuid;
+            Gpu::RasterLayer outer{QStringLiteral("Outer"), true, outerUuid, {}};
+            outer.kind = Gpu::LayerKind::Group;
+            raster.layers.append({inner, outer});
+            owner = Gpu::PaintImageSP::create(execution, raster);
+        } else {
+            owner = Gpu::PaintImageSP::create(execution, QSize(64, 64));
+        }
         document->setCurrentImage(KisImage::fromGpuImage(owner, QStringLiteral("Layer crop tool")));
     } else {
         const auto cs = KoColorSpaceRegistry::instance()->rgb8();
@@ -553,7 +641,20 @@ try
                                   KoColor(QColor(Qt::transparent), cs), KisConfig::CANVAS_COLOR, 1, {}, 1));
     }
     KisImageSP image = document->image();
-    const auto layer = image->root()->firstChild();
+    KisNodeSP layer = image->root()->firstChild();
+    if (nested) {
+        if (gpu) {
+            layer = layer->firstChild()->firstChild();
+        } else {
+            KisGroupLayerSP outer = new KisGroupLayer(image, QStringLiteral("Outer"), 255);
+            QVERIFY(image->addNode(outer));
+            KisGroupLayerSP inner = new KisGroupLayer(image, QStringLiteral("Inner"), 255);
+            QVERIFY(image->addNode(inner, outer));
+            QVERIFY(image->moveNode(layer, inner, KisNodeSP()));
+        }
+    }
+    const auto parent = layer->parent();
+    const auto grandparent = parent->parent();
     QScopedPointer<Node> node(Node::createNode(image, layer));
     const auto pixels = QByteArray::fromHex("332211ff").repeated(64 * 64);
     QVERIFY(node->setPixelData(pixels, 0, 0, 64, 64));
@@ -578,6 +679,7 @@ try
         QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
     });
     window->viewManager()->setCurrentView(view);
+    if (nested) window->viewManager()->nodeManager()->slotNonUiActivatedNode(layer);
     window->show();
     window->activateWindow();
     QVERIFY(QTest::qWaitForWindowExposed(window.get()));
@@ -668,6 +770,8 @@ try
     QCOMPARE(node->pixelData(4, 4, 1, 1), cropType == 2 ? QByteArray(4, '\0') : QByteArray::fromHex("332211ff"));
     QCOMPARE(node->pixelData(-4, -4, 1, 1), cropType == 1 ? QByteArray::fromHex("332211ff") : QByteArray(4, '\0'));
     QCOMPARE(node->pixelData(12, 12, 1, 1), QByteArray::fromHex("332211ff"));
+    QCOMPARE(layer->parent(), parent);
+    QCOMPARE(parent->parent(), grandparent);
     if (mode.startsWith(QLatin1String("resume")) || mode == QLatin1String("close-resume")) {
         if (mode == QLatin1String("close-resume")) closeOnChange();
         if (cropType == 1) QVERIFY(QMetaObject::invokeMethod(tool, "setCropTypeLegacy", Q_ARG(int, 0)));
@@ -717,6 +821,8 @@ try
     lifetime->undoStack()->redo();
     image->waitForDone();
     QCOMPARE(node->pixelData(4, 4, 1, 1), cropType == 2 ? QByteArray(4, '\0') : QByteArray::fromHex("332211ff"));
+    QCOMPARE(layer->parent(), parent);
+    QCOMPARE(parent->parent(), grandparent);
 }
 catch (const std::exception &error)
 {

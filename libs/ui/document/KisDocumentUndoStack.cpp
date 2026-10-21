@@ -7,6 +7,7 @@
 #include "KisDocument.h"
 #include <kis_image.h>
 #include <kis_node.h>
+#include <kis_layer_utils.h>
 #include <kis_crop_saved_extra_data.h>
 #include <QApplication>
 #include <QPointer>
@@ -126,10 +127,9 @@ void KisDocumentUndoStack::synchronizeGpuHistory()
                 for (const auto &layer : versions[index]->layers)
                     if (layer.id == crop->layer) uuid = layer.uuid;
                 const auto currentImage = image();
-                for (auto node = currentImage ? currentImage->root()->firstChild() : KisNodeSP(); node; node = node->nextSibling()) {
-                    if (node->uuid() != uuid) continue;
+                const auto node = currentImage ? KisLayerUtils::findNodeByUuid(currentImage->root(), uuid) : KisNodeSP();
+                if (node) {
                     command->setExtraData(new KisCropSavedExtraData(KisCropSavedExtraData::CROP_LAYER, crop->rect, node));
-                    break;
                 }
             }
         }
