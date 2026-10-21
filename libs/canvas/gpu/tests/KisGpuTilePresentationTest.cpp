@@ -5,6 +5,7 @@
 
 #include <QGuiApplication>
 #include <QImage>
+#include <QPainter>
 #include <QTest>
 #include <QTransform>
 #include <QDir>
@@ -28,6 +29,8 @@ class KisGpuTilePresentationTest : public QObject
 private Q_SLOTS:
     void initTestCase();
     void panZoomAndTransparencyUseThePaintingQueue();
+    void tileOverBackgroundMatchesEightBitSourceOver_data();
+    void tileOverBackgroundMatchesEightBitSourceOver();
     void clippedTilesKeepTheirIndependentTransforms();
     void displayChannelsPreserveDocumentPixels_data();
     void displayChannelsPreserveDocumentPixels();
@@ -50,19 +53,19 @@ struct Surface
     LibrePaint::Canvas::Gpu::Detail::TextureView view;
     PresentationTarget target;
     bool ready = false;
-    Surface(DevicePtr device, QSize size)
+    Surface(DevicePtr device, QSize size, quint32 format = WGPUTextureFormat_RGBA8Unorm)
     {
         WGPUTextureDescriptor descriptor{};
         descriptor.usage = WGPUTextureUsage_RenderAttachment | WGPUTextureUsage_CopySrc;
         descriptor.dimension = WGPUTextureDimension_2D;
         descriptor.size = {quint32(size.width()), quint32(size.height()), 1};
-        descriptor.format = WGPUTextureFormat_RGBA8Unorm;
+        descriptor.format = WGPUTextureFormat(format);
         descriptor.mipLevelCount = 1;
         descriptor.sampleCount = 1;
         texture.reset(wgpuDeviceCreateTexture(device->nativeDevice(), &descriptor));
         if (!texture) return;
         view.reset(wgpuTextureCreateView(texture.get(), nullptr));
-        target = {std::move(device), view.get(), size, WGPUTextureFormat_RGBA8Unorm};
+        target = {std::move(device), view.get(), size, format};
         ready = bool(view);
     }
 };
@@ -214,6 +217,92 @@ void KisGpuTilePresentationTest::panZoomAndTransparencyUseThePaintingQueue()
     QVERIFY(readback->finish(*m_device));
     QCOMPARE(pixel(48, 48), QByteArray::fromHex("004080c0"));
     QCOMPARE(pixel(8, 12), QByteArray::fromHex("00800080"));
+}
+
+
+void KisGpuTilePresentationTest::tileOverBackgroundMatchesEightBitSourceOver_data()
+{
+    QTest::addColumn<QColor>("backgroundColor");
+    QTest::addColumn<quint32>("format");
+    const QList<QPair<QString, QColor>> backgrounds{
+        {QStringLiteral("opaque"), QColor(64, 96, 128)},
+        {QStringLiteral("translucent"), QColor(64, 96, 128, 128)},
+        {QStringLiteral("transparent"), QColor(64, 96, 128, 0)},
+        {QStringLiteral("fractional"), QColor::fromRgba64(13000, 25000, 48000, 32800)}};
+    for (auto format : {WGPUTextureFormat_RGBA8Unorm, WGPUTextureFormat_BGRA8Unorm})
+        for (const auto &background : backgrounds) {
+            const auto name = (format == WGPUTextureFormat_RGBA8Unorm ? QStringLiteral("rgba8-") : QStringLiteral("bgra8-")) + background.first;
+            QTest::newRow(qPrintable(name)) << background.second << quint32(format);
+        }
+}
+
+void KisGpuTilePresentationTest::tileOverBackgroundMatchesEightBitSourceOver()
+{
+    QFETCH(QColor, backgroundColor);
+    QFETCH(quint32, format);
+    QByteArray raw(RgbaTile::ByteCount, char(0));
+    for (int alpha = 1; alpha < 256; ++alpha) for (int color = 0; color < 256; ++color) {
+        const int i = (alpha * 256 + color) * 4;
+        raw[i] = char(color);
+        raw[i + 1] = char((color * 149 + 37) & 255);
+        raw[i + 2] = char((color * 73 + 113) & 255);
+        raw[i + 3] = char(alpha);
+    }
+    raw.replace(0, 4, QByteArray::fromHex("c0114080"));
+    RasterImage input;
+    input.size = {256, 256};
+    input.layers = {{QStringLiteral("Matte source"), true,
+                     QUuid(QStringLiteral("d4a7d91c-9a48-4c74-a269-7df471371520")), {{{0, 0}, raw}}}};
+    OperationDocument document(input);
+    const auto before = document.snapshot();
+    const auto recovery = document.recoveryData();
+    TileRenderer renderer(m_device);
+    TilePresentation presentation(m_device);
+    Surface surface(m_device, {512, 512}, format);
+    QVERIFY(surface.ready);
+    const auto commands = m_device->beginCommands();
+    QVERIFY(commands);
+    const auto layers = renderer.record(commands, before);
+    QCOMPARE(layers.code, RenderOutcome::Recorded);
+    const auto projection = renderer.compose(commands, layers.version, {0, 0, 256, 256});
+    QCOMPARE(projection.code, RenderOutcome::Recorded);
+    const auto drawn = presentation.record(commands, projection.version, surface.target, {}, backgroundColor);
+    QVERIFY2(drawn.recorded, qPrintable(drawn.diagnostic));
+    auto readback = readTexture(*m_device, commands, surface, layers.version->tiles(document.activeLayer()).first().pixels);
+    QVERIFY2(m_device->submitCommands(true), qPrintable(m_device->diagnostic()));
+    QVERIFY(readback->finish(*m_device));
+    const auto actual = readback->results.front()->data;
+    const auto sourceBytes = raw;
+    const QImage straight(reinterpret_cast<const uchar *>(sourceBytes.constData()), 256, 256, 256 * 4, QImage::Format_RGBA8888);
+    const auto source = straight.convertToFormat(QImage::Format_RGBA8888_Premultiplied);
+    QImage reference(512, 512, QImage::Format_RGBA8888_Premultiplied);
+    reference.fill(backgroundColor);
+    QPainter painter(&reference);
+    painter.drawImage(0, 0, source);
+    painter.end();
+    QByteArray expected(reinterpret_cast<const char *>(reference.constBits()), reference.sizeInBytes());
+    if (format == WGPUTextureFormat_BGRA8Unorm)
+        for (qsizetype i = 0; i < expected.size(); i += 4) std::swap(expected[i], expected[i + 2]);
+    QTemporaryDir temporary;
+    QVERIFY(temporary.isValid());
+    const auto directory = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", temporary.path());
+    QVERIFY(QDir().mkpath(directory));
+    const auto preserveFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            temporary.setAutoRemove(false);
+            qInfo() << "Matte actual/expected artifacts at" << directory;
+        }
+    });
+    const auto stem = QDir(directory).filePath(QStringLiteral("matte-palette-") + QString::fromLatin1(QTest::currentDataTag()));
+    for (const auto &entry : {qMakePair(QStringLiteral("-actual.rgba"), actual), qMakePair(QStringLiteral("-expected.rgba"), expected)}) {
+        QFile file(stem + entry.first);
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(entry.second), entry.second.size());
+    }
+    QCOMPARE(actual, expected);
+    QCOMPARE(readback->results.back()->data, raw);
+    QCOMPARE(document.snapshot(), before);
+    QCOMPARE(document.recoveryData(), recovery);
 }
 
 void KisGpuTilePresentationTest::toolOutlinesMoveAndClearWithoutChangingDocumentPixels_data()

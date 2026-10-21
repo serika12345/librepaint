@@ -1022,6 +1022,13 @@ KRAの付属情報は解像度、ICC、文書情報、注釈と対称軸を照�
 Linuxの実行にはVulkanに対応するQt画面プラグインを使う。画面を持たない検証は
 独立したXvfbのX11画面を用意して`QT_QPA_PLATFORM=xcb`で実行する。
 
+`KisGpuTilePresentationTest::tileOverBackgroundMatchesEightBitSourceOver`は、RGBA8とBGRA8の表示先で、
+各色成分とアルファの8ビット値の組合せを、不透明・半透明・透明・小数精度の背景色へ合成する。
+入力は色成分を0〜255、アルファを1〜255として、緑を`(149 * red + 37) & 255`、
+青を`(73 * red + 113) & 255`で固定し、アルファ0の行と既知の半透明画素も含める。
+Qtの8ビット乗算済みアルファ合成との全画素一致と、元のGPU画素・文書版・復旧記録の保持を要求する。
+`LIBREPAINT_GPU_RESULT_DIR`へ`matte-palette-<format>-<background>-actual.rgba`と`-expected.rgba`を保存する。
+
 `KisGpuTilePresentationTest`は、輪郭の移動・線幅・消去と不透明・半透明・透明背景の全RGBA画素を照合する。
 不正な座標・線幅・色と頂点数の上限超過では、表示先の全画素が維持されることを検査する。
 `KisGpuDocumentViewTest::brushOutlineFollowsTheOrdinaryPointerWithoutEditing`は、通常画面のブラシとポインターから

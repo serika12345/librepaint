@@ -17,7 +17,7 @@
 
 namespace LibrePaint::Canvas::Gpu {
 namespace {
-struct Uniforms { float matrix[16]; float clip[4]; quint32 channels[4]; };
+struct Uniforms { float matrix[16]; float clip[4]; quint32 channels[4]; quint32 background[4]; };
 struct Draw { Detail::Buffer uniform; Detail::Bindings bindings; Uniforms values; };
 struct OutlineVertex { float x, y; };
 struct OutlineUniforms { float viewport[4]; float color[4]; };
@@ -113,12 +113,8 @@ struct TilePresentation::Private
     bool preparePipeline(quint32 targetFormat)
     {
         if (pipeline && format == targetFormat) return true;
-        WGPUBlendState blend{};
-        blend.color = {WGPUBlendOperation_Add, WGPUBlendFactor_One, WGPUBlendFactor_OneMinusSrcAlpha};
-        blend.alpha = blend.color;
         WGPUColorTargetState color{};
         color.format = WGPUTextureFormat(targetFormat);
-        color.blend = &blend;
         color.writeMask = WGPUColorWriteMask_All;
         WGPUFragmentState fragment{};
         fragment.module = shader.get();
@@ -264,6 +260,9 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
     if (visible.size() > d.maximumTiles) return {false, QStringLiteral("Visible GPU tile limit exceeded"), 0};
     if (!visible.isEmpty() && !d.preparePipeline(target.format))
         return {false, QStringLiteral("GPU presentation pipeline could not be created: %1").arg(d.device->diagnostic()), 0};
+    const QRgb premultipliedBackground = qPremultiply(clearColor.rgba());
+    const quint32 background[] = {quint32(qRed(premultipliedBackground)), quint32(qGreen(premultipliedBackground)),
+                                  quint32(qBlue(premultipliedBackground)), quint32(qAlpha(premultipliedBackground))};
     QMatrix4x4 view;
     view.ortho(0, target.size.width(), target.size.height(), 0, -1, 1);
     view = view * QMatrix4x4(transform);
@@ -287,6 +286,7 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
         draw.values.channels[0] = channels.rgbaMask;
         draw.values.channels[1] = channels.showSingleChannelAsColor;
         draw.values.channels[2] = draw.values.channels[3] = 0;
+        std::copy_n(background, 4, draw.values.background);
         if (!draw.uniform) return {false, QStringLiteral("GPU presentation uniform allocation failed"), 0};
         WGPUBindGroupEntry entries[2]{};
         entries[0].binding = 0;
@@ -315,8 +315,8 @@ PresentationOutcome TilePresentation::record(WGPUCommandEncoder commands,
     attachment.depthSlice = WGPU_DEPTH_SLICE_UNDEFINED;
     attachment.loadOp = WGPULoadOp_Clear;
     attachment.storeOp = WGPUStoreOp_Store;
-    attachment.clearValue = {clearColor.redF() * clearColor.alphaF(), clearColor.greenF() * clearColor.alphaF(),
-        clearColor.blueF() * clearColor.alphaF(), clearColor.alphaF()};
+    attachment.clearValue = {background[0] / 255.0, background[1] / 255.0,
+                             background[2] / 255.0, background[3] / 255.0};
     WGPURenderPassDescriptor passDescriptor{};
     passDescriptor.colorAttachmentCount = 1;
     passDescriptor.colorAttachments = &attachment;
