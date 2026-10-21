@@ -762,6 +762,17 @@ HDRの別名処理も同じ試験対象で維持する。
 PQプロファイルに線形プロファイルと同じ名前を与え、既存の名前参照と、元のPQプロファイルと
 ビット単位で等しい浮動小数点の変換結果を検査する。
 LCMSの4試験対象は、実際のレジストリーが読み込む色管理プラグインへ直接依存する。
+`TestKoLcmsColorProfile`は、sRGB・Lab・Gray・XYZの同じ定義へ異なる日時とOS情報を与え、
+内蔵生成のICCと識別値の完全一致、色を定めるタグ、ICC表現による16bit変換画素を照合する。
+識別値はICCのチェックサム規則で検査する。外部から渡したICCは、日時と実データを保持し、
+同名の内蔵定義を保ったまま色空間として利用できることを検査する。
+`LIBREPAINT_GPU_RESULT_DIR`へ`builtin-<rgb|lab|gray|xyz>.icc`と
+`imported-<rgb|lab|gray|xyz>.icc`を出力し、環境間でファイル全体を照合する。
+
+```sh
+./scripts/run-shared-test-env ./scripts/run-test TestKoLcmsColorProfile
+```
+
 `TestColorSpaceRegistry`はレジストリーの公開APIとLCMSを利用し、プラグイン実装の静的リンクを介さず検査する。
 未対応の色モデル、不正・空のICC、異なる色モデルのICCと入力データを扱えない形式は、
 登録済みプロファイルと色空間を保持したまま拒否することを検査する。

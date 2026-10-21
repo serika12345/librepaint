@@ -13,6 +13,8 @@ class TestKoLcmsColorProfile : public QObject
 private Q_SLOTS:
     void testConversion();
     void testProofingConversion();
+    void builtInDefinitionsKeepCanonicalBytesColorsAndImportedProfiles_data();
+    void builtInDefinitionsKeepCanonicalBytesColorsAndImportedProfiles();
 
 };
 

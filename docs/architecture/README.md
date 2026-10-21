@@ -1256,6 +1256,14 @@ GPU実行所有者の交換でも、同じ公開文書と画面を利用する�
 `KoColorConversionTransformationFactory.*`は具体的な接続元・接続先の名前と実データを値として保持する。
 LCMSのRGB変換接続はPQと線形の同名プロファイルも区別し、登録解除後も保持済みの色空間から変換する。
 KRAの画像と各レイヤーの埋込ICCはこの入口を使い、旧HDRの互換変換は形式所有者が明示する別名表を使う。
+`plugins/color/lcms2engine/colorprofiles/BuiltinLcmsProfile.cpp`は、LCMSプラグインが登録する
+sRGB・Lab・Gray・XYZの内蔵標準プロファイルを生成する。定義の生成日時は
+2000-01-01 00:00:00 UTC、優先OSは指定なしとして、起動時刻と実行OSによらず同じICCを提供する。
+ヘッダーを設定した後にLCMSでICC識別値を計算し、符号化したプロファイルの内容と対応させる
+（[ICC.1:2022 §7.2](https://archive.color.org/specification/ICC.1-2022-05.pdf)）。
+色を定めるタグとICC表現の精度は、LCMSの標準定義から保持する。
+読込用の`LcmsColorProfileContainer::createFromLcmsProfile()`と明示したICCの登録は、
+渡された定義の日時と実データを保持する。
 `libs/ui/widgets/kis_color_space_selector.cc`と`kis_advanced_color_space_selector.cc`は、
 選択行がプロファイルの複製を所有し、表示名と既定値の接尾辞を選択値から分離する。
 画像プロパティから渡された色空間の実データを保持し、名前による明示選択は登録済みの値を選ぶ。
