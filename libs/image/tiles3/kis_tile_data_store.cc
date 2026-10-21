@@ -218,9 +218,10 @@ void KisTileDataStore::freeTileData(KisTileData *td)
     }
 
     td->m_swapLock.unlock();
-    m_iteratorLock.unlock();
 
+    // Returning cached pixels remains protected against whole-pool reclamation.
     delete td;
+    m_iteratorLock.unlock();
 }
 
 void KisTileDataStore::ensureTileDataLoaded(KisTileData *td)
