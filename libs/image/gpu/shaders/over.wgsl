@@ -175,6 +175,29 @@ fn projectionOver(base: u32, layer: u32, values: CompositeParameters) -> u32 {
     if (values.channelMask == 15u && source.w == 255u && values.opacityBits == 0x3f800000u) {
         return packPixel(source);
     }
+    // Full-opacity byte colors have binary32 error below 2^-14. The odd
+    // divisor 255 of an opaque base stays farther from every half-byte.
+    if (values.opacityBits == 0x3f800000u && destination.w == 255u) {
+        for (var channel = 0u; channel < 3u; channel += 1u) {
+            if ((values.channelMask & (1u << channel)) != 0u) {
+                destination[channel] = (source[channel] * source.w + destination[channel] * (255u - source.w) + 127u) / 255u;
+            }
+        }
+        return packPixel(destination);
+    }
+    if (values.opacityBits == 0x3f800000u && values.channelMask == 15u && destination.w != 0u) {
+        let denominator = source.w * 255u + destination.w * (255u - source.w);
+        let numerator = source.xyz * (source.w * 255u) + destination.xyz * (destination.w * (255u - source.w));
+        let quotient = numerator / vec3<u32>(denominator);
+        let doubledRemainder = (numerator - quotient * denominator) * 2u;
+        let gap = abs(vec3<i32>(doubledRemainder) - vec3<i32>(i32(denominator)));
+        // Rounding boundaries retain the precise calculation below.
+        if (all(gap > vec3<i32>(16))) {
+            // The distance exceeds 8/65025 in color units, beyond the error.
+            let rounded = quotient + select(vec3<u32>(0u), vec3<u32>(1u), doubledRemainder > vec3<u32>(denominator));
+            return packPixel(vec4<u32>(rounded, (denominator + 127u) / 255u));
+        }
+    }
     let sourceAlpha = projectionScaleByte(values.opacityBits, source.w);
     var alpha = destination.w;
     var blend: u32;

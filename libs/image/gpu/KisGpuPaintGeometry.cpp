@@ -464,6 +464,7 @@ std::optional<QList<quint64>> paintSegmentTiles(const PaintSegment &input, quint
     const int size = tileSize;
     const qint64 radius = (diameter + 31) / 32;
     QSet<quint64> result;
+    QList<quint64> direct;
     const int mirrorMode = int(brush.mirrorHorizontal) | (int(brush.mirrorVertical) << 1);
     for (int reflection = 0; reflection < 4; ++reflection) {
         if ((reflection & mirrorMode) != reflection) continue;
@@ -501,12 +502,13 @@ std::optional<QList<quint64>> paintSegmentTiles(const PaintSegment &input, quint
             const int rowLeft = std::max(left, int(std::floor(std::min(a, b) - radius - 1)));
             const int rowRight = std::min(right, int(std::ceil(std::max(a, b) + radius + 1)));
             for (int x = pixelTileIndex(rowLeft, size); x <= pixelTileIndex(rowRight, size); ++x) {
-                result.insert(key(x, y));
-                if (result.size() > maximumCoordinates) return std::nullopt;
+                if (mirrorMode) result.insert(key(x, y));
+                else direct.append(key(x, y));
+                if ((mirrorMode ? result.size() : direct.size()) > maximumCoordinates) return std::nullopt;
             }
         }
     }
-    return result.values();
+    return mirrorMode ? result.values() : direct;
 }
 
 }

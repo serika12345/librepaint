@@ -252,10 +252,15 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
             if (job.samples) wgpuQueueWriteBuffer(d.device->queue(), job.samples.get(), 0,
                                                   job.geometry.constData(), size_t(job.geometry.size()) * sizeof(PaintSegment));
             wgpuQueueWriteBuffer(d.device->queue(), job.parameters.get(), 0, &job.values, sizeof(job.values));
+        }
+        if (recordedJobs < jobs.size()) {
             const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
+            if (!pass) return RenderOutcome{RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint commands failed")};
             wgpuComputePassEncoderSetPipeline(pass, d.pipeline.get());
-            wgpuComputePassEncoderSetBindGroup(pass, 0, job.bindings.get(), 0, nullptr);
-            wgpuComputePassEncoderDispatchWorkgroups(pass, TileSize / 8, TileSize / 8, 1);
+            for (size_t i = recordedJobs; i < jobs.size(); ++i) {
+                wgpuComputePassEncoderSetBindGroup(pass, 0, jobs[i].bindings.get(), 0, nullptr);
+                wgpuComputePassEncoderDispatchWorkgroups(pass, TileSize / 8, TileSize / 8, 1);
+            }
             wgpuComputePassEncoderEnd(pass);
             wgpuComputePassEncoderRelease(pass);
         }
@@ -450,10 +455,32 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                 const auto geometry = paintGeometry(operation, step);
                 if (!geometry) return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU derived geometry limit exceeded")};
                 const auto &segments = geometry->outline;
+                bool appendedOnly = extending && retainCoverage && preserveCoverage &&
+                    d.coverageVersion.toStrongRef() == base && d.coverageLayer == layer.id &&
+                    base->m_data->selected == selected && base->m_data->defaultPixels == data->defaultPixels &&
+                    (!base->m_data->region || base->m_data->region->contains(paintRegion));
+                if (appendedOnly) {
+                    const qint64 regionTiles =
+                        (qint64(pixelTileIndex(paintRegion.right(), TileSize)) - pixelTileIndex(paintRegion.left(), TileSize) + 1) *
+                        (qint64(pixelTileIndex(paintRegion.bottom(), TileSize)) - pixelTileIndex(paintRegion.top(), TileSize) + 1);
+                    appendedOnly = regionTiles <= (d.budget->limit - d.budget->used) / TileBytes / 2;
+                    for (auto input = strokeInputs.cbegin(); appendedOnly && input != strokeInputs.cend(); ++input)
+                        appendedOnly = bool(d.coverage.value(input.key()));
+                    for (const auto &other : document->layers) {
+                        if (!appendedOnly) break;
+                        if (other.id == layer.id || !selected.contains(other.id)) continue;
+                        const auto &oldLayers = base->document()->layers;
+                        const auto old = std::find_if(oldLayers.cbegin(), oldLayers.cend(),
+                                                      [&](const auto &candidate) { return candidate.id == other.id; });
+                        appendedOnly = old != oldLayers.cend() && old->defaultPixel == other.defaultPixel &&
+                            old->operations == other.operations;
+                    }
+                }
                 QMap<quint64, QList<PaintSegment>> affected;
                 QSet<quint64> changedCoordinates;
                 QMap<quint64, QList<PaintSegment>> appendedGeometry;
-                for (qsizetype index = 0; operation.figureStyle.outline && index < segments.size(); ++index) {
+                for (qsizetype index = appendedOnly ? *appendedFrom : 0;
+                     operation.figureStyle.outline && index < segments.size(); ++index) {
                     const auto &segment = segments[index];
                     const auto coordinates = paintSegmentTiles(segment, diameter, operation.brush, paintRegion,
                                                                  d.budget->limit / TileBytes);
@@ -543,6 +570,9 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                         (job.input && job.input->mayContainHiddenRgb);
                     tiles[tile.key()] = job.output;
                     jobs.push_back(std::move(job));
+                }
+                if (appendedOnly) {
+                    if (const auto failure = flushPaint()) return *failure;
                 }
             }
             if (end == layer.operations.size()) break;

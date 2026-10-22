@@ -17,12 +17,15 @@ namespace LibrePaint::Image::Gpu {
 using namespace Detail;
 namespace {
 struct CompositeParameters { quint32 opacityBits = 0x3f800000; quint32 normalizeBase = 0; quint32 channelMask = 15; quint32 blendModeOpacity = 0; };
+struct CompositeUniform
+{
+    CompositeParameters values[2]{};
+    NativeBuffer buffer;
+};
 struct CompositeJob
 {
     std::shared_ptr<Tile> base, output;
     std::shared_ptr<Tile> layers[2];
-    CompositeParameters values[2]{};
-    NativeBuffer parameters;
     NativeBindings bindings;
 };
 }
@@ -262,6 +265,8 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
     if (!d.ensureTileCapacity(required)) {
         return {RenderOutcome::CapacityExceeded, {}, QStringLiteral("GPU projection tile budget exhausted")};
     }
+    std::vector<CompositeUniform> uniforms;
+    QHash<QByteArray, WGPUBuffer> parameterBuffers;
     std::vector<CompositeJob> jobs;
     for (auto tile = data->inputs.cbegin(); tile != data->inputs.cend(); ++tile) {
         if (data->tiles.contains(tile.key())) continue;
@@ -286,23 +291,33 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
             job.base = input;
             job.output = passIndex % 2 ? b : a;
             bool hiddenRgb = job.base && job.base->mayContainHiddenRgb;
+            CompositeParameters values[2]{};
             for (int layer = 0; layer < count; ++layer) {
                 const auto &source = tile.value()[i + layer];
                 job.layers[layer] = source.pixels;
                 const float opacity = float(source.opacity) / 255.0f;
-                std::memcpy(&job.values[layer].opacityBits, &opacity, sizeof(opacity));
-                job.values[layer].channelMask = source.channelMask;
-                job.values[layer].blendModeOpacity = quint32(source.blendMode) | (quint32(source.opacity) << 8);
-                job.values[layer].normalizeBase = !background && !data->directLayerProjection && firstJob == 1 && i + layer == firstJob;
+                std::memcpy(&values[layer].opacityBits, &opacity, sizeof(opacity));
+                values[layer].channelMask = source.channelMask;
+                values[layer].blendModeOpacity = quint32(source.blendMode) | (quint32(source.opacity) << 8);
+                values[layer].normalizeBase = !background && !data->directLayerProjection && firstJob == 1 && i + layer == firstJob;
                 hiddenRgb = !(source.channelMask & 8u) || source.opacity < 128 ||
-                    (hiddenRgb && !job.values[layer].normalizeBase);
+                    (hiddenRgb && !values[layer].normalizeBase);
             }
             job.output->mayContainHiddenRgb = hiddenRgb;
-            job.parameters = createBuffer(d.device->nativeDevice(), sizeof(job.values),
-                                           WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
-            if (!job.parameters) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection parameters failed")};
+            const QByteArray parameterKey(reinterpret_cast<const char *>(values), sizeof(values));
+            auto parameters = parameterBuffers.value(parameterKey);
+            if (!parameters) {
+                CompositeUniform uniform;
+                std::copy(std::begin(values), std::end(values), std::begin(uniform.values));
+                uniform.buffer = createBuffer(d.device->nativeDevice(), sizeof(values),
+                                              WGPUBufferUsage_Uniform | WGPUBufferUsage_CopyDst);
+                if (!uniform.buffer) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection parameters failed")};
+                parameters = uniform.buffer.get();
+                parameterBuffers.insert(parameterKey, parameters);
+                uniforms.push_back(std::move(uniform));
+            }
             WGPUBuffer buffers[] = {job.base ? job.base->pixels.get() : d.zero.get(), job.layers[0]->pixels.get(),
-                                    job.output->pixels.get(), paired ? job.layers[1]->pixels.get() : job.parameters.get(), job.parameters.get()};
+                                    job.output->pixels.get(), paired ? job.layers[1]->pixels.get() : parameters, parameters};
             WGPUBindGroupEntry entries[5]{};
             const quint32 bindingCount = paired ? 5 : 4;
             for (quint32 index = 0; index < bindingCount; ++index) {
@@ -323,12 +338,16 @@ ProjectionOutcome TileRenderer::composeImpl(WGPUCommandEncoder commands, const R
         }
         data->tiles[tile.key()] = input;
     }
-    for (const auto &job : jobs) {
-        wgpuQueueWriteBuffer(d.device->queue(), job.parameters.get(), 0, &job.values, sizeof(job.values));
+    for (const auto &uniform : uniforms)
+        wgpuQueueWriteBuffer(d.device->queue(), uniform.buffer.get(), 0, &uniform.values, sizeof(uniform.values));
+    if (!jobs.empty()) {
         const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);
-        wgpuComputePassEncoderSetPipeline(pass, job.layers[1] ? d.pairedProjectionPipeline.get() : d.projectionPipeline.get());
-        wgpuComputePassEncoderSetBindGroup(pass, 0, job.bindings.get(), 0, nullptr);
-        wgpuComputePassEncoderDispatchWorkgroups(pass, TileSize / 8, TileSize / 8, 1);
+        if (!pass) return {RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU projection commands failed")};
+        for (const auto &job : jobs) {
+            wgpuComputePassEncoderSetPipeline(pass, job.layers[1] ? d.pairedProjectionPipeline.get() : d.projectionPipeline.get());
+            wgpuComputePassEncoderSetBindGroup(pass, 0, job.bindings.get(), 0, nullptr);
+            wgpuComputePassEncoderDispatchWorkgroups(pass, TileSize / 8, TileSize / 8, 1);
+        }
         wgpuComputePassEncoderEnd(pass);
         wgpuComputePassEncoderRelease(pass);
     }
