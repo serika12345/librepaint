@@ -48,6 +48,12 @@ struct ImageMetadata
      */
     QByteArray colorHistory;
     QByteArray assistantsGlobalColor;
+    /** Inline legacy timing and the current animation-metadata sidecar.
+     * Nonempty values replace the corresponding representation; empty values
+     * preserve retained settings for callers that update other metadata.
+     */
+    QByteArray animation;
+    QByteArray animationMetadata;
     /** Nonempty values replace the saved profile label; empty retains its current label. */
     QString profileName;
 };

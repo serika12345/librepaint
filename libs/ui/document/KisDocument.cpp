@@ -28,6 +28,8 @@
 #include <memory>
 #include <functional>
 #include <stdexcept>
+#include <limits>
+#include <optional>
 #include <metadata/KoDocumentInfo.h>
 #include <KoUnit.h>
 #include <KoID.h>
@@ -100,6 +102,7 @@
 
 // Krita Image
 #include <kis_image_animation_interface.h>
+#include <kis_time_span.h>
 #include <application/kis_config.h>
 #include <flake/kis_shape_layer.h>
 #include <kis_group_layer.h>
@@ -203,6 +206,99 @@ KisImportExportErrorCode gpuFileStatus(LibrePaint::Document::Gpu::FileCode code)
     }
 }
 
+struct StaticKraSettings
+{
+    std::optional<int> framerate, time, initialFrame;
+    std::optional<KisTimeSpan> range;
+    std::optional<QString> sequencePath, sequenceName;
+};
+
+KisImportExportErrorCode readStaticKraSettings(const QByteArray &bytes, StaticKraSettings &settings, QString &diagnostic)
+{
+    if (bytes.isEmpty()) return ImportExportCodes::OK;
+    QDomDocument xml;
+    if (!xml.setContent(bytes)) {
+        diagnostic = i18n("Invalid KRA animation settings.");
+        return ImportExportCodes::FileFormatIncorrect;
+    }
+    const auto root = xml.documentElement();
+    const auto unsupported = [&](const QString &feature) -> KisImportExportErrorCode {
+        diagnostic = i18n("The new painting engine cannot edit the KRA feature '%1'.", root.tagName() + QLatin1Char('/') + feature);
+        return ImportExportCodes::FormatFeaturesUnsupported;
+    };
+    const auto invalid = [&](const QString &field) -> KisImportExportErrorCode {
+        diagnostic = i18n("Invalid KRA timing value '%1'.", field);
+        return ImportExportCodes::FileFormatIncorrect;
+    };
+    for (int i = 0; i < root.attributes().size(); ++i)
+        if (root.attributes().item(i).nodeName() != QLatin1String("xmlns"))
+            return unsupported(root.attributes().item(i).nodeName());
+    QSet<QString> seen;
+    std::optional<QString> exportPath, exportName;
+    for (auto value = root.firstChildElement(); !value.isNull(); value = value.nextSiblingElement()) {
+        const auto tag = value.tagName();
+        if (seen.contains(tag)) return invalid(tag);
+        seen.insert(tag);
+        const bool exports = tag == QLatin1String("export-settings");
+        const bool range = tag == QLatin1String("range");
+        if (!exports && !range && tag != QLatin1String("framerate") && tag != QLatin1String("currentTime"))
+            return unsupported(tag);
+        const QSet<QString> attributes = exports ? QSet<QString>{} : range ?
+            QSet<QString>{QStringLiteral("type"), QStringLiteral("from"), QStringLiteral("to")} :
+            QSet<QString>{QStringLiteral("type"), QStringLiteral("value")};
+        for (int i = 0; i < value.attributes().size(); ++i)
+            if (!attributes.contains(value.attributes().item(i).nodeName()))
+                return unsupported(tag + QLatin1Char('/') + value.attributes().item(i).nodeName());
+        if (exports) {
+            QSet<QString> exportFields;
+            for (auto item = value.firstChildElement(); !item.isNull(); item = item.nextSiblingElement()) {
+                const auto name = item.tagName();
+                if (exportFields.contains(name)) return invalid(name);
+                exportFields.insert(name);
+                if (name != QLatin1String("sequenceFilePath") && name != QLatin1String("sequenceBaseName") &&
+                    name != QLatin1String("sequenceInitialFrameNumber")) return unsupported(name);
+                for (int i = 0; i < item.attributes().size(); ++i) {
+                    const auto attribute = item.attributes().item(i).nodeName();
+                    if (attribute != QLatin1String("type") && attribute != QLatin1String("value")) return unsupported(name + QLatin1Char('/') + attribute);
+                }
+                if (!item.firstChildElement().isNull()) return unsupported(name);
+                if (item.attribute(QStringLiteral("type")) != QLatin1String("value") || !item.hasAttribute(QStringLiteral("value"))) return invalid(name);
+                if (name == QLatin1String("sequenceInitialFrameNumber")) {
+                    bool ok = false;
+                    const int number = item.attribute(QStringLiteral("value")).toInt(&ok);
+                    if (!ok) return invalid(name);
+                    settings.initialFrame = number;
+                } else if (name == QLatin1String("sequenceFilePath")) exportPath = item.attribute(QStringLiteral("value"));
+                else exportName = item.attribute(QStringLiteral("value"));
+            }
+        } else {
+            if (!value.firstChildElement().isNull()) return unsupported(tag);
+            if (range) {
+                bool firstOk = false, lastOk = false;
+                value.attribute(QStringLiteral("from")).toInt(&firstOk);
+                value.attribute(QStringLiteral("to")).toInt(&lastOk);
+                KisTimeSpan span;
+                if (!firstOk || !lastOk || !KisDomUtils::loadValue(root, tag, &span) || !span.isValid() || span.isInfinite()) return invalid(tag);
+                settings.range = span;
+            } else if (tag == QLatin1String("framerate")) {
+                float fps = 0;
+                if (!KisDomUtils::loadValue(value, &fps) || !qIsFinite(fps) || fps < 1 ||
+                    double(fps) > std::numeric_limits<int>::max()) return invalid(tag);
+                settings.framerate = int(fps);
+            } else {
+                bool ok = false;
+                const int time = value.attribute(QStringLiteral("value")).toInt(&ok);
+                if (!ok || value.attribute(QStringLiteral("type")) != QLatin1String("value")) return invalid(tag);
+                settings.time = time;
+            }
+        }
+    }
+    if (exportPath) settings.sequencePath = *exportPath;
+    // The native loader uses the last provided export string as the base-name fallback.
+    settings.sequenceName = exportName.value_or(exportPath.value_or(QString()));
+    return ImportExportCodes::OK;
+}
+
 LibrePaint::ImportExport::Kra::ImageMetadata gpuKraMetadata(KisDocument &document,
                                                         const QDateTime &saveTime = QDateTime::currentDateTime())
 {
@@ -223,6 +319,24 @@ LibrePaint::ImportExport::Kra::ImageMetadata gpuKraMetadata(KisDocument &documen
     assistantsColor.setAttribute(QStringLiteral("SimpleColorData"), KisDomUtils::qColorToQString(document.assistantsGlobalColor()));
     assistants.appendChild(assistantsColor);
     metadata.assistantsGlobalColor = assistants.toByteArray();
+    auto *animation = image->animationInterface();
+    QDomDocument timing;
+    auto timingRoot = timing.createElement(QStringLiteral("animation"));
+    timing.appendChild(timingRoot);
+    KisDomUtils::saveValue(&timingRoot, QStringLiteral("framerate"), animation->framerate());
+    KisDomUtils::saveValue(&timingRoot, QStringLiteral("range"), animation->documentPlaybackRange());
+    KisDomUtils::saveValue(&timingRoot, QStringLiteral("currentTime"), animation->currentUITime());
+    metadata.animation = timing.toByteArray();
+    auto animationIndex = document.createDomDocument(QStringLiteral("animation-metadata"), QStringLiteral("1.1"));
+    auto indexRoot = animationIndex.documentElement();
+    for (auto child = timingRoot.firstChild(); !child.isNull(); child = child.nextSibling())
+        indexRoot.appendChild(animationIndex.importNode(child, true));
+    auto exports = animationIndex.createElement(QStringLiteral("export-settings"));
+    KisDomUtils::saveValue(&exports, QStringLiteral("sequenceFilePath"), animation->exportSequenceFilePath());
+    KisDomUtils::saveValue(&exports, QStringLiteral("sequenceBaseName"), animation->exportSequenceBaseName());
+    KisDomUtils::saveValue(&exports, QStringLiteral("sequenceInitialFrameNumber"), animation->exportInitialFrameNumber());
+    indexRoot.appendChild(exports);
+    metadata.animationMetadata = animationIndex.toByteArray();
     const auto &mirror = document.mirrorAxisConfig();
     if (!mirror.isDefault()) {
         QDomDocument axes;
@@ -243,7 +357,8 @@ QString gpuKraEditingError(const QDomElement &image)
         QStringLiteral("description"), QStringLiteral("x-res"), QStringLiteral("y-res")};
     const QSet<QString> imageChildren{QStringLiteral("layers"), QStringLiteral("ProjectionBackgroundColor"),
         QStringLiteral("MirrorAxis"), QStringLiteral("Annotations"), QStringLiteral("ColorHistory"),
-        QStringLiteral("GlobalAssistantsColor")};
+        QStringLiteral("GlobalAssistantsColor"), QStringLiteral("Palettes"), QStringLiteral("resources"),
+        QStringLiteral("animation")};
     const QSet<QString> layerAttributes{QStringLiteral("name"), QStringLiteral("uuid"), QStringLiteral("filename"),
         QStringLiteral("x"), QStringLiteral("y"), QStringLiteral("visible"), QStringLiteral("selected"),
         QStringLiteral("nodetype"), QStringLiteral("compositeop"), QStringLiteral("opacity"),
@@ -266,6 +381,9 @@ QString gpuKraEditingError(const QDomElement &image)
             return i18n("The new painting engine cannot yet restore onion skins or collapsed groups.");
         for (auto child = element.firstChildElement(); !child.isNull(); child = child.nextSiblingElement()) {
             if (element == image && !imageChildren.contains(child.tagName()))
+                return i18n("The new painting engine cannot edit the KRA feature '%1'.", child.tagName());
+            if (element == image && (child.tagName() == QLatin1String("Palettes") || child.tagName() == QLatin1String("resources")) &&
+                (child.hasAttributes() || !child.firstChildElement().isNull()))
                 return i18n("The new painting engine cannot edit the KRA feature '%1'.", child.tagName());
             if (child.tagName() == QLatin1String("layers"))
                 for (auto layer = child.firstChildElement(); !layer.isNull(); layer = layer.nextSiblingElement()) pending.append(layer);
@@ -2992,6 +3110,12 @@ KisImportExportErrorCode KisDocument::importGpuKra(QIODevice &source)
     const auto imageElement = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
     const auto unsupported = gpuKraEditingError(imageElement);
     if (!unsupported.isEmpty()) return reject(unsupported);
+    StaticKraSettings timing;
+    QString timingDiagnostic;
+    for (const auto &bytes : {metadata.metadata.animation, metadata.metadata.animationMetadata}) {
+        const auto status = readStaticKraSettings(bytes, timing, timingDiagnostic);
+        if (!status.isOk()) return reject(timingDiagnostic, status);
+    }
     QDomDocument info;
     QList<QPair<QString, QString>> infoUpdates;
     KoDocumentInfo checkedInfo;
@@ -3033,6 +3157,14 @@ KisImportExportErrorCode KisDocument::importGpuKra(QIODevice &source)
     const std::shared_ptr<Files::PaintDocument> fileDocument = std::move(opened.document);
     auto image = KisImage::fromGpuImage(fileDocument->image(), imageElement.attribute(QStringLiteral("name")), cs);
     image->setResolution(metadata.metadata.resolution.x() / 72, metadata.metadata.resolution.y() / 72);
+    auto *animation = image->animationInterface();
+    if (timing.framerate) animation->setFramerate(*timing.framerate);
+    if (timing.range) animation->setDocumentRange(*timing.range);
+    if (timing.sequencePath) animation->setExportSequenceFilePath(*timing.sequencePath);
+    if (timing.sequenceName) animation->setExportSequenceBaseName(*timing.sequenceName);
+    if (timing.initialFrame) animation->setExportInitialFrameNumber(*timing.initialFrame);
+    if (timing.time && !animation->initializeStaticTime(*timing.time))
+        return reject(i18n("The KRA requires animated frame regeneration."));
     for (const auto &annotation : metadata.metadata.annotations)
         image->addAnnotation(new KisAnnotation(annotation.type, annotation.description, annotation.bytes));
     if (!localFilePath().isEmpty()) {

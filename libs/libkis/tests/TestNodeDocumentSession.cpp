@@ -22,8 +22,13 @@
 #include <canvas/kis_canvas_resource_provider.h>
 #include <canvas/kis_coordinates_converter.h>
 #include <document/KisDocument.h>
+#include <metadata/KoDocumentInfo.h>
 #include <gpu/KisGpuPaintImage.h>
 #include <kis_image.h>
+#include <kis_config.h>
+#include <kis_image_animation_interface.h>
+#include <kis_time_span.h>
+#include <kis_properties_configuration.h>
 #include <kis_node.h>
 #include <kis_tool.h>
 #include <kis_canvas2.h>
@@ -33,6 +38,7 @@
 #include <QAbstractButton>
 #include <QDialogButtonBox>
 #include <QDir>
+#include <QDateTime>
 #include <QFile>
 #include <QLineEdit>
 #include <QMessageBox>
@@ -70,8 +76,16 @@ void configureNewDocument(QWidget *widget)
 }
 }
 
+void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen_data()
+{
+    QTest::addColumn<bool>("existingStaticDocument");
+    QTest::newRow("new-document") << false;
+    QTest::newRow("existing-static-native") << true;
+}
+
 void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
 {
+    QFETCH(bool, existingStaticDocument);
     const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
     const auto restore = qScopeGuard([&] {
         if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE"); else qputenv("LIBREPAINT_GPU_ENGINE", previous);
@@ -79,7 +93,8 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
     qputenv("LIBREPAINT_GPU_ENGINE", "1");
     QTemporaryDir directory;
     QVERIFY(directory.isValid());
-    const auto destination = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", directory.path());
+    const auto destination = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", directory.path()) +
+        (existingStaticDocument ? QStringLiteral("/existing-static") : QString());
     QVERIFY(QDir().mkpath(destination));
     const auto retainFailure = qScopeGuard([&] {
         if (QTest::currentTestFailed()) { directory.setAutoRemove(false); qInfo() << "Ordinary GPU session artifacts at" << destination; }
@@ -99,24 +114,64 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
         QApplication::sendPostedEvents(nullptr, QEvent::DeferredDelete);
     });
     window->show();
-    bool created = false;
-    QTimer::singleShot(0, window.get(), [&] {
-        auto *pane = qobject_cast<QDialog *>(QApplication::activeModalWidget());
-        QVERIFY(pane);
-        const auto dismiss = qScopeGuard([&] { pane->reject(); });
-        auto *widget = pane->findChild<QWidget *>(QStringLiteral("KisCustomImageWidget"));
-        QVERIFY(widget);
-        configureNewDocument(widget);
-        created = QMetaObject::invokeMethod(widget, "createImage", Qt::DirectConnection);
-    });
-    window->slotFileNew();
-    QVERIFY(created);
+    if (existingStaticDocument) {
+        qputenv("LIBREPAINT_GPU_ENGINE", "0");
+        std::unique_ptr<KisDocument> source(KisPart::instance()->createDocument());
+        source->setFileBatchMode(true);
+        const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+        QVERIFY(source->newImage(QStringLiteral("Ordinary GPU session"), 64, 64, cs, KoColor(QColor(255, 255, 255, 0), cs),
+                                 KisConfig::CANVAS_COLOR, 2, {}, 1));
+        int identity = 1;
+        for (KisNodeSP layer = KisImageSP(source->image())->root()->firstChild(); layer; layer = layer->nextSibling()) {
+            layer->setUuid(QUuid(QStringLiteral("{5a08000%1-1122-3344-5566-778899aabbcc}").arg(identity++)));
+            layer->setPinnedToTimeline(false);
+        }
+        source->setColorHistoryColors({});
+        source->setAssistantsGlobalColor(QColor(17, 63, 129, 201));
+        source->documentInfo()->setAboutInfo("initial-creator", QStringLiteral("LibrePaint fixture"));
+        source->documentInfo()->setAboutInfo("language", QStringLiteral("en"));
+        source->documentInfo()->setAboutInfo("creation-date", QStringLiteral("2000-01-02T03:04:05Z"));
+        auto *animation = source->image()->animationInterface();
+        animation->setFramerate(30);
+        animation->setDocumentRange(KisTimeSpan::fromTimeToTime(5, 125));
+        animation->switchCurrentTimeAsync(17);
+        source->image()->waitForDone();
+        const auto native = QDir(destination).filePath(QStringLiteral("existing-static-source.kra"));
+        KisPropertiesConfigurationSP settings(new KisPropertiesConfiguration);
+        settings->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));
+        QVERIFY2(source->saveAs(native, KisDocument::nativeFormatMimeType(), false, settings), qPrintable(source->errorMessage()));
+        source->waitForSavingToComplete();
+        qputenv("LIBREPAINT_GPU_ENGINE", "1");
+        QTimer dismissError;
+        connect(&dismissError, &QTimer::timeout, window.get(), [] {
+            if (auto *message = qobject_cast<QMessageBox *>(QApplication::activeModalWidget())) message->accept();
+        });
+        dismissError.start(10);
+        QVERIFY(window->openDocument(native, KisMainWindow::None));
+    } else {
+        bool created = false;
+        QTimer::singleShot(0, window.get(), [&] {
+            auto *pane = qobject_cast<QDialog *>(QApplication::activeModalWidget());
+            QVERIFY(pane);
+            const auto dismiss = qScopeGuard([&] { pane->reject(); });
+            auto *widget = pane->findChild<QWidget *>(QStringLiteral("KisCustomImageWidget"));
+            QVERIFY(widget);
+            configureNewDocument(widget);
+            created = QMetaObject::invokeMethod(widget, "createImage", Qt::DirectConnection);
+        });
+        window->slotFileNew();
+        QVERIFY(created);
+    }
     auto *document = window->viewManager()->document();
     QVERIFY(document);
     auto image = KisImageSP(document->image());
     QVERIFY(image->gpuImage());
     QCOMPARE(image->size(), QSize(64, 64));
     QCOMPARE(image->root()->childCount(), 2U);
+    if (existingStaticDocument) {
+        QCOMPARE(image->animationInterface()->framerate(), 30);
+        QCOMPARE(image->animationInterface()->currentUITime(), 17);
+    }
     QTRY_VERIFY(window->viewManager()->activeNode());
     QVERIFY(!window->viewManager()->activeNode()->userLocked());
     Document api(document, false);
@@ -185,6 +240,10 @@ void TestNode::testGpuSessionUsesOrdinaryCreationPaintingAndReopen()
     document = window->viewManager()->document();
     QVERIFY(document);
     QVERIFY(document->image()->gpuImage());
+    if (existingStaticDocument) {
+        QCOMPARE(document->image()->animationInterface()->framerate(), 30);
+        QCOMPARE(document->image()->animationInterface()->currentUITime(), 17);
+    }
     Document reopened(document, false);
     QCOMPARE(reopened.pixelData(0, 0, 64, 64), pixels);
     paint(document, {12, 40}, {52, 40});

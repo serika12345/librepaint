@@ -9,6 +9,7 @@
 #include "commands_new/KisImageAnimSettingCommandAnimationAccess_p.h"
 
 #include <QMutex>
+#include <QThread>
 
 #include "kis_assert.h"
 #include "kis_global.h"
@@ -297,6 +298,15 @@ void KisImageAnimationInterface::requestTimeSwitchNonGUI(int time, bool useUndo)
 void KisImageAnimationInterface::explicitlySetCurrentTime(int frameId)
 {
     m_d->setCurrentTime(frameId);
+}
+
+bool KisImageAnimationInterface::initializeStaticTime(int frameId)
+{
+    if (QThread::currentThread() != thread() || hasAnimation() || externalFrameActive() || m_d->image->hasOpenStrokes())
+        return false;
+    m_d->setCurrentTime(frameId);
+    m_d->setCurrentUITime(frameId);
+    return true;
 }
 
 void KisImageAnimationInterface::switchCurrentTimeAsync(int frameId, SwitchTimeAsyncFlags options)

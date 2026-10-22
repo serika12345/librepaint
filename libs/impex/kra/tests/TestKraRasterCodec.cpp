@@ -1209,7 +1209,19 @@ void TestKraRasterCodec::offsetsAndDescriptionMetadataSurviveEditing()
     auto image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
     image.setAttribute(QStringLiteral("x-res"), QStringLiteral("144"));
     image.setAttribute(QStringLiteral("description"), QStringLiteral("Retained metadata"));
+    QDomDocument timing;
+    QVERIFY(timing.setContent(QByteArrayLiteral("<animation><framerate type=\"value\" value=\"24\"/>"
+        "<range type=\"timerange\" from=\"0\" to=\"100\"/><currentTime type=\"value\" value=\"17\"/></animation>")));
+    image.appendChild(xml.importNode(timing.documentElement(), true));
     source.description = xml.toByteArray();
+    const auto timingPath = image.attribute(QStringLiteral("name")) + QStringLiteral("/animation/index.xml");
+    const auto timingBytes = QByteArrayLiteral("<animation-metadata><framerate type=\"value\" value=\"30\"/>"
+        "<range type=\"timerange\" from=\"5\" to=\"125\"/><currentTime type=\"value\" value=\"23\"/></animation-metadata>");
+    source.files.insert(timingPath, timingBytes);
+    // File-owner metadata updates retain settings that their caller has not replaced.
+    Kra::ImageMetadata updated;
+    updated.resolution = {144, 72};
+    QCOMPARE(Kra::RasterCodec::updateImageMetadata(source, updated).code, Kra::Status::Success);
     source.image.layers[1].position = {17, -9};
     source.image.layers[1].name = QStringLiteral("Renamed");
     QByteArray saved;
@@ -1226,6 +1238,12 @@ void TestKraRasterCodec::offsetsAndDescriptionMetadataSurviveEditing()
     image = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
     QCOMPARE(image.attribute(QStringLiteral("x-res")), QStringLiteral("144"));
     QCOMPARE(image.attribute(QStringLiteral("description")), QStringLiteral("Retained metadata"));
+    const auto retainedTiming = image.firstChildElement(QStringLiteral("animation"));
+    QCOMPARE(retainedTiming.firstChildElement(QStringLiteral("framerate")).attribute(QStringLiteral("value")), QStringLiteral("24"));
+    QCOMPARE(retainedTiming.firstChildElement(QStringLiteral("range")).attribute(QStringLiteral("from")), QStringLiteral("0"));
+    QCOMPARE(retainedTiming.firstChildElement(QStringLiteral("range")).attribute(QStringLiteral("to")), QStringLiteral("100"));
+    QCOMPARE(retainedTiming.firstChildElement(QStringLiteral("currentTime")).attribute(QStringLiteral("value")), QStringLiteral("17"));
+    QCOMPARE(result.document.files.value(timingPath), timingBytes);
     QCOMPARE(image.firstChildElement(QStringLiteral("layers")).firstChildElement(QStringLiteral("layer")).attribute(QStringLiteral("x")), QStringLiteral("17"));
 }
 

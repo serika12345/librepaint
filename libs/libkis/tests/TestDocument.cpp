@@ -50,6 +50,8 @@
 #include <document/KisDocument.h>
 #include <canvas/KisMirrorAxisConfig.h>
 #include <kis_image.h>
+#include <kis_image_animation_interface.h>
+#include <kis_time_span.h>
 #include <KisBusyWaitBroker.h>
 #include <KisRunnableBasedStrokeStrategy.h>
 #include <KisRunnableStrokeJobData.h>
@@ -930,14 +932,20 @@ void TestDocument::testGpuSessionNativeImportRetainsFormatDataAndRejectsUnsuppor
     QVERIFY(invalidStatus == KisImportExportErrorCode(ImportExportCodes::FileFormatIncorrect));
     QCOMPARE(document->image(), image);
     QCOMPARE(image->gpuImage()->operations().recoveryData(), unchanged);
-    for (const auto feature : {QStringLiteral("layerstyle"), QStringLiteral("grid")}) {
+    for (const auto &feature : {QStringLiteral("layerstyle"), QStringLiteral("grid"),
+                               QStringLiteral("Palettes"), QStringLiteral("resources"), QStringLiteral("animation")}) {
         auto unsupported = original.document;
         QDomDocument xml;
         QVERIFY(xml.setContent(unsupported.description));
         auto imageElement = xml.documentElement().firstChildElement(QStringLiteral("IMAGE"));
-        if (feature == QLatin1String("grid")) imageElement.appendChild(xml.createElement(feature));
-        else imageElement.firstChildElement(QStringLiteral("layers")).firstChildElement().setAttribute(feature,
-            QStringLiteral("{10203040-5060-7080-90a0-b0c0d0e0f000}"));
+        if (feature == QLatin1String("layerstyle"))
+            imageElement.firstChildElement(QStringLiteral("layers")).firstChildElement().setAttribute(feature,
+                QStringLiteral("{10203040-5060-7080-90a0-b0c0d0e0f000}"));
+        else {
+            auto container = xml.createElement(feature);
+            if (feature != QLatin1String("grid")) container.appendChild(xml.createElement(QStringLiteral("resource")));
+            imageElement.appendChild(container);
+        }
         unsupported.description = xml.toByteArray();
         const auto badPath = directory.filePath(feature + QStringLiteral(".kra"));
         QFile bad(badPath);
@@ -951,6 +959,38 @@ void TestDocument::testGpuSessionNativeImportRetainsFormatDataAndRejectsUnsuppor
         QCOMPARE(document->localFilePath(), saved);
         QCOMPARE(image->gpuImage()->operations().recoveryData(), unchanged);
         QVERIFY(!document->isModified());
+    }
+    QSignalSpy timingImageChanges(document.data(), &KisDocument::sigCurrentImageChanged);
+    for (const auto &field : {QStringLiteral("framerate"), QStringLiteral("range"), QStringLiteral("currentTime"),
+                              QStringLiteral("sequenceInitialFrameNumber")}) {
+        auto invalid = original.document;
+        QDomDocument xml;
+        QVERIFY(xml.setContent(invalid.description));
+        auto timing = xml.createElement(QStringLiteral("animation"));
+        auto value = xml.createElement(field);
+        value.setAttribute(QStringLiteral("type"), field == QLatin1String("range") ? QStringLiteral("timerange") : QStringLiteral("value"));
+        if (field == QLatin1String("range")) {
+            value.setAttribute(QStringLiteral("from"), QStringLiteral("invalid"));
+            value.setAttribute(QStringLiteral("to"), 100);
+        } else value.setAttribute(QStringLiteral("value"), QStringLiteral("invalid"));
+        if (field == QLatin1String("sequenceInitialFrameNumber")) {
+            auto exports = xml.createElement(QStringLiteral("export-settings"));
+            exports.appendChild(value);
+            timing.appendChild(exports);
+        } else timing.appendChild(value);
+        xml.documentElement().firstChildElement(QStringLiteral("IMAGE")).appendChild(timing);
+        invalid.description = xml.toByteArray();
+        QBuffer archive;
+        QVERIFY(archive.open(QIODevice::ReadWrite));
+        QCOMPARE(Kra::RasterCodec::write(archive, invalid, projection).code, Kra::Status::Success);
+        QVERIFY(archive.seek(0));
+        QVERIFY(document->importGpuKra(archive) == KisImportExportErrorCode(ImportExportCodes::FileFormatIncorrect));
+        QVERIFY2(document->errorMessage().contains(field), qPrintable(document->errorMessage()));
+        QCOMPARE(document->image(), image);
+        QCOMPARE(document->localFilePath(), saved);
+        QCOMPARE(image->gpuImage()->operations().recoveryData(), unchanged);
+        QVERIFY(!document->isModified());
+        QVERIFY(timingImageChanges.isEmpty());
     }
     QScopedPointer<KisDocument> closing(KisPart::instance()->createDocument());
     closing->setFileBatchMode(true);
@@ -968,6 +1008,175 @@ void TestDocument::testGpuSessionNativeImportRetainsFormatDataAndRejectsUnsuppor
     QVERIFY2(!metadataBeforeImage, "Native metadata notifications must observe the adopted GPU image and file owner");
     QVERIFY(closed);
     QVERIFY(!closing);
+}
+
+void TestDocument::testGpuSessionOpensExistingStaticNativeDocuments_data()
+{
+    QTest::addColumn<QString>("settingsSource");
+    for (const auto &mode : {QStringLiteral("default"), QStringLiteral("body-only"),
+                            QStringLiteral("sidecar-priority"), QStringLiteral("partial-sidecar"),
+                            QStringLiteral("export-path-fallback"), QStringLiteral("export-empty-fallback")})
+        QTest::newRow(qPrintable(mode)) << mode;
+}
+
+void TestDocument::testGpuSessionOpensExistingStaticNativeDocuments()
+{
+    QFETCH(QString, settingsSource);
+    const auto previous = qgetenv("LIBREPAINT_GPU_ENGINE");
+    const auto restore = qScopeGuard([&] {
+        if (previous.isNull()) qunsetenv("LIBREPAINT_GPU_ENGINE"); else qputenv("LIBREPAINT_GPU_ENGINE", previous);
+    });
+    QTemporaryDir directory;
+    QVERIFY(directory.isValid());
+    const auto destination = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR", directory.path());
+    QVERIFY(QDir().mkpath(destination));
+    const auto retainFailure = qScopeGuard([&] {
+        if (QTest::currentTestFailed()) {
+            directory.setAutoRemove(false);
+            qInfo() << "Static native document artifacts at" << directory.path() << "and" << destination;
+        }
+    });
+    KisPropertiesConfigurationSP settings(new KisPropertiesConfiguration);
+    settings->setProperty("documentSaveTime", QDateTime::fromString(QStringLiteral("2001-02-03T04:05:06Z"), Qt::ISODate));
+    qputenv("LIBREPAINT_GPU_ENGINE", "0");
+    QScopedPointer<KisDocument> source(KisPart::instance()->createDocument());
+    source->setFileBatchMode(true);
+    const auto cs = KoColorSpaceRegistry::instance()->rgb8();
+    QVERIFY(source->newImage(QStringLiteral("Static native document"), 16, 8, cs, KoColor(QColor(255, 255, 255, 0), cs),
+                             KisConfig::CANVAS_COLOR, 1, QStringLiteral("Retained static settings"), 1));
+    KisNodeSP sourceLayer = KisImageSP(source->image())->root()->firstChild();
+    sourceLayer->setUuid(QUuid(QStringLiteral("{5a080001-1122-3344-5566-778899aabbcc}")));
+    sourceLayer->setPinnedToTimeline(false);
+    source->setColorHistoryColors({});
+    source->setAssistantsGlobalColor(QColor(17, 63, 129, 201));
+    source->documentInfo()->setAboutInfo("initial-creator", QStringLiteral("LibrePaint fixture"));
+    source->documentInfo()->setAboutInfo("language", QStringLiteral("en"));
+    source->documentInfo()->setAboutInfo("creation-date", QStringLiteral("2000-01-02T03:04:05Z"));
+    QScopedPointer<Node> sourceNode(Node::createNode(source->image(), sourceLayer));
+    QVERIFY(sourceNode->setPixelData(QByteArray::fromHex("33221180"), 3, 2, 1, 1));
+    const auto native = directory.filePath(QStringLiteral("native.kra"));
+    QVERIFY2(source->saveAs(native, KisDocument::nativeFormatMimeType(), false, settings), qPrintable(source->errorMessage()));
+    source->waitForSavingToComplete();
+    QMap<QString, QByteArray> files;
+    // Preserve the ordinary writer's entries; variants change only timing metadata.
+    {
+        QScopedPointer<KoStore> store(KoStore::createStore(native, KoStore::Read));
+        QVERIFY(store && !store->bad());
+        for (const auto &name : store->directoryList()) {
+            if (name.endsWith(QLatin1Char('/'))) continue;
+            QVERIFY(store->open(name));
+            files.insert(name, store->read(store->size()));
+            QVERIFY(store->close());
+        }
+    }
+    QDomDocument body;
+    QVERIFY(body.setContent(files.value(QStringLiteral("maindoc.xml"))));
+    auto imageElement = body.documentElement().firstChildElement(QStringLiteral("IMAGE"));
+    QVERIFY(!imageElement.firstChildElement(QStringLiteral("Palettes")).isNull());
+    QVERIFY(!imageElement.firstChildElement(QStringLiteral("resources")).isNull());
+    const auto index = imageElement.attribute(QStringLiteral("name")) + QStringLiteral("/animation/index.xml");
+    QVERIFY(files.contains(index));
+    const auto setTiming = [](QDomElement root, int fps, int first, int last, int time) {
+        root.firstChildElement(QStringLiteral("framerate")).setAttribute(QStringLiteral("value"), fps);
+        auto range = root.firstChildElement(QStringLiteral("range"));
+        range.setAttribute(QStringLiteral("from"), first);
+        range.setAttribute(QStringLiteral("to"), last);
+        root.firstChildElement(QStringLiteral("currentTime")).setAttribute(QStringLiteral("value"), time);
+    };
+    if (settingsSource != QLatin1String("default")) {
+        setTiming(imageElement.firstChildElement(QStringLiteral("animation")), 12, 2, 42, 3);
+        files[QStringLiteral("maindoc.xml")] = body.toByteArray();
+        if (settingsSource == QLatin1String("body-only")) files.remove(index);
+        else {
+            QDomDocument sidecar;
+            QVERIFY(sidecar.setContent(files.value(index)));
+            setTiming(sidecar.documentElement(), 30, 5, 125, 17);
+            auto exports = sidecar.documentElement().firstChildElement(QStringLiteral("export-settings"));
+            exports.firstChildElement(QStringLiteral("sequenceFilePath")).setAttribute(QStringLiteral("value"), QStringLiteral("frames"));
+            exports.firstChildElement(QStringLiteral("sequenceBaseName")).setAttribute(QStringLiteral("value"), QStringLiteral("pose"));
+            exports.firstChildElement(QStringLiteral("sequenceInitialFrameNumber")).setAttribute(QStringLiteral("value"), 7);
+            if (settingsSource == QLatin1String("partial-sidecar")) {
+                auto root = sidecar.documentElement();
+                root.removeChild(root.firstChildElement(QStringLiteral("range")));
+                root.removeChild(root.firstChildElement(QStringLiteral("currentTime")));
+            }
+            if (settingsSource == QLatin1String("export-path-fallback") || settingsSource == QLatin1String("export-empty-fallback"))
+                exports.removeChild(exports.firstChildElement(QStringLiteral("sequenceBaseName")));
+            if (settingsSource == QLatin1String("export-empty-fallback"))
+                exports.removeChild(exports.firstChildElement(QStringLiteral("sequenceFilePath")));
+            files[index] = sidecar.toByteArray();
+        }
+    }
+    const auto fixture = QDir(destination).filePath(QStringLiteral("static-native-") + settingsSource + QStringLiteral("-source.kra"));
+    {
+        QScopedPointer<KoStore> store(KoStore::createStore(fixture, KoStore::Write,
+                                                        KisDocument::nativeFormatMimeType(), KoStore::Zip, false));
+        QVERIFY(store && !store->bad());
+        for (auto entry = files.cbegin(); entry != files.cend(); ++entry) {
+            QVERIFY(store->open(entry.key()));
+            QCOMPARE(store->write(entry.value()), qint64(entry.value().size()));
+            QVERIFY(store->close());
+        }
+        QVERIFY(store->finalize());
+    }
+    QScopedPointer<KisDocument> reference(KisPart::instance()->createDocument());
+    reference->setFileBatchMode(true);
+    QVERIFY2(reference->openPath(fixture, KisDocument::DontAddToRecent), qPrintable(reference->errorMessage()));
+    const auto matchesSettings = [&](KisDocument *document) {
+        auto *actual = document->image()->animationInterface();
+        auto *expected = reference->image()->animationInterface();
+        QVERIFY(!actual->hasAnimation());
+        QCOMPARE(actual->framerate(), expected->framerate());
+        QCOMPARE(actual->documentPlaybackRange(), expected->documentPlaybackRange());
+        QCOMPARE(actual->currentTime(), expected->currentTime());
+        QCOMPARE(actual->currentUITime(), expected->currentUITime());
+        QCOMPARE(actual->exportSequenceFilePath(), expected->exportSequenceFilePath());
+        QCOMPARE(actual->exportSequenceBaseName(), expected->exportSequenceBaseName());
+        QCOMPARE(actual->exportInitialFrameNumber(), expected->exportInitialFrameNumber());
+    };
+    const bool defaults = settingsSource == QLatin1String("default");
+    const bool partialSidecar = settingsSource == QLatin1String("partial-sidecar");
+    const bool fullSidecar = !defaults && !partialSidecar && settingsSource != QLatin1String("body-only");
+    const bool sidecar = fullSidecar || partialSidecar;
+    auto *expected = reference->image()->animationInterface();
+    QCOMPARE(expected->framerate(), sidecar ? 30 : defaults ? 24 : 12);
+    QCOMPARE(expected->currentUITime(), fullSidecar ? 17 : defaults ? 0 : 3);
+    QCOMPARE(expected->documentPlaybackRange(), KisTimeSpan::fromTimeToTime(fullSidecar ? 5 : defaults ? 0 : 2,
+                                                                          fullSidecar ? 125 : defaults ? 100 : 42));
+    if (settingsSource == QLatin1String("export-path-fallback")) QCOMPARE(expected->exportSequenceBaseName(), QStringLiteral("frames"));
+    if (settingsSource == QLatin1String("export-empty-fallback")) QCOMPARE(expected->exportSequenceBaseName(), QString());
+    qputenv("LIBREPAINT_GPU_ENGINE", "1");
+    QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
+    document->setFileBatchMode(true);
+    QVERIFY2(document->openPath(fixture, KisDocument::DontAddToRecent), qPrintable(document->errorMessage()));
+    QVERIFY(document->image()->gpuImage());
+    matchesSettings(document.data());
+    Document api(document.data(), false), referenceApi(reference.data(), false);
+    QCOMPARE(api.pixelData(0, 0, 16, 8), referenceApi.pixelData(0, 0, 16, 8));
+    QCOMPARE(document->image()->profile()->rawData(), reference->image()->profile()->rawData());
+    const auto saved = QDir(destination).filePath(QStringLiteral("static-native-") + settingsSource + QStringLiteral(".kra"));
+    document->setModified(true);
+    QVERIFY2(document->saveAs(saved, KisDocument::nativeFormatMimeType(), false, settings), qPrintable(document->errorMessage()));
+    document->waitForSavingToComplete();
+    QScopedPointer<KisDocument> reopened(KisPart::instance()->createDocument());
+    reopened->setFileBatchMode(true);
+    QVERIFY2(reopened->openPath(saved, KisDocument::DontAddToRecent), qPrintable(reopened->errorMessage()));
+    QVERIFY(reopened->image()->gpuImage());
+    matchesSettings(reopened.data());
+    Document reopenedApi(reopened.data(), false);
+    QCOMPARE(reopenedApi.pixelData(0, 0, 16, 8), api.pixelData(0, 0, 16, 8));
+    QScopedPointer<Node> edited(Node::createNode(reopened->image(), reopened->image()->root()->firstChild()));
+    QVERIFY(edited->setPixelData(QByteArray::fromHex("a1b2c3ff"), 4, 5, 1, 1));
+    QCOMPARE(reopenedApi.pixelData(4, 5, 1, 1), QByteArray::fromHex("a1b2c3ff"));
+    const auto resaved = QDir(destination).filePath(QStringLiteral("static-native-") + settingsSource + QStringLiteral("-edited.kra"));
+    QVERIFY2(reopened->saveAs(resaved, KisDocument::nativeFormatMimeType(), false, settings), qPrintable(reopened->errorMessage()));
+    reopened->waitForSavingToComplete();
+    QScopedPointer<KisDocument> final(KisPart::instance()->createDocument());
+    final->setFileBatchMode(true);
+    QVERIFY2(final->openPath(resaved, KisDocument::DontAddToRecent), qPrintable(final->errorMessage()));
+    matchesSettings(final.data());
+    Document finalApi(final.data(), false);
+    QCOMPARE(finalApi.pixelData(0, 0, 16, 8), reopenedApi.pixelData(0, 0, 16, 8));
 }
 
 void TestDocument::testBackgroundApiKeepsHistoryAndPinnedPixels()
@@ -2284,6 +2493,13 @@ void TestDocument::testGpuSnapshotKeepsIndependentPixelsAndDocumentMetadata()
     QCOMPARE(owner->setLayerVisible(hidden, false), Gpu::Result::Success);
     QScopedPointer<KisDocument> document(KisPart::instance()->createDocument());
     auto image = KisImage::fromGpuImage(owner, QStringLiteral("Snapshot source"));
+    auto *timing = image->animationInterface();
+    timing->setFramerate(30);
+    timing->setDocumentRange(KisTimeSpan::fromTimeToTime(5, 125));
+    timing->setExportSequenceFilePath(QStringLiteral("frames"));
+    timing->setExportSequenceBaseName(QStringLiteral("pose"));
+    timing->setExportInitialFrameNumber(7);
+    QVERIFY(timing->initializeStaticTime(17));
     image->setResolution(300.0 / 72, 150.0 / 72);
     image->addAnnotation(new KisAnnotation(QStringLiteral("snapshot-data"), QStringLiteral("Snapshot annotation"), QByteArrayLiteral("annotation value")));
     image->root()->firstChild()->setUserLocked(true);
@@ -2312,6 +2528,19 @@ void TestDocument::testGpuSnapshotKeepsIndependentPixelsAndDocumentMetadata()
     QCOMPARE(snapshot->image()->annotation(QStringLiteral("snapshot-data"))->annotation(), QByteArrayLiteral("annotation value"));
     QVERIFY(snapshot->image()->root()->firstChild()->userLocked());
     QCOMPARE(snapshot->image()->root()->firstChild()->colorLabelIndex(), 3);
+    auto *copiedTiming = snapshot->image()->animationInterface();
+    QCOMPARE(copiedTiming->currentTime(), 17);
+    QCOMPARE(copiedTiming->currentUITime(), 17);
+    timing->setFramerate(48);
+    timing->setDocumentRange(KisTimeSpan::fromTimeToTime(0, 48));
+    timing->setExportSequenceFilePath(QStringLiteral("later"));
+    timing->setExportSequenceBaseName(QStringLiteral("after"));
+    timing->setExportInitialFrameNumber(9);
+    QCOMPARE(copiedTiming->framerate(), 30);
+    QCOMPARE(copiedTiming->documentPlaybackRange(), KisTimeSpan::fromTimeToTime(5, 125));
+    QCOMPARE(copiedTiming->exportSequenceFilePath(), QStringLiteral("frames"));
+    QCOMPARE(copiedTiming->exportSequenceBaseName(), QStringLiteral("pose"));
+    QCOMPARE(copiedTiming->exportInitialFrameNumber(), 7);
     QCOMPARE(copied->operations().snapshot()->layers.size(), before->layers.size());
     for (int index = 0; index < before->layers.size(); ++index) {
         const auto &original = before->layers[index];

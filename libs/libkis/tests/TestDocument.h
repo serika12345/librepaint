@@ -30,6 +30,8 @@ private Q_SLOTS:
     void testOrdinaryCreationPreservesInitialDocumentState_data();
     void testOrdinaryCreationPreservesInitialDocumentState();
     void testGpuSessionNativeImportRetainsFormatDataAndRejectsUnsupportedEdits();
+    void testGpuSessionOpensExistingStaticNativeDocuments_data();
+    void testGpuSessionOpensExistingStaticNativeDocuments();
     void testCanvasBackgroundReferencePixels_data();
     void testCanvasBackgroundReferencePixels();
     void testGpuDocumentPreviewsTransferOnlyRequestedPixels_data();

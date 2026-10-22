@@ -278,6 +278,22 @@ Outcome extractMetadata(const QDomElement &image, const QMap<QString, QByteArray
             (tag == QLatin1String("ColorHistory") ? metadata.colorHistory : metadata.assistantsGlobalColor) = value.toByteArray();
         }
     }
+    const auto animation = image.firstChildElement(QStringLiteral("animation"));
+    if (!animation.nextSiblingElement(QStringLiteral("animation")).isNull())
+        return invalid(QStringLiteral("Duplicate KRA animation settings"));
+    if (!animation.isNull()) {
+        QDomDocument value;
+        value.appendChild(value.importNode(animation, true));
+        metadata.animation = value.toByteArray();
+    }
+    const auto animationPath = image.attribute(QStringLiteral("name")) + QStringLiteral("/animation/index.xml");
+    if (files.contains(animationPath)) {
+        metadata.animationMetadata = files.value(animationPath);
+        if (metadata.animationMetadata.size() > limits.xmlBytes) return capacity();
+        QDomDocument value;
+        if (!value.setContent(metadata.animationMetadata) || value.documentElement().tagName() != QLatin1String("animation-metadata"))
+            return invalid(QStringLiteral("Invalid KRA animation metadata"));
+    }
     metadata.documentInfo = files.value(QStringLiteral("documentinfo.xml"));
     if (metadata.documentInfo.size() > limits.xmlBytes) return capacity();
     if (files.contains(QStringLiteral("documentinfo.xml"))) {
@@ -367,6 +383,14 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
         if (!info.setContent(metadata.documentInfo) || info.documentElement().tagName() != QLatin1String("document-info"))
             return invalid(QStringLiteral("Invalid KRA document information"));
     }
+    if (metadata.animation.size() > limits.xmlBytes || metadata.animationMetadata.size() > limits.xmlBytes) return capacity();
+    QDomDocument animation, animationMetadata;
+    if ((!metadata.animation.isEmpty() &&
+         (!animation.setContent(metadata.animation) || animation.documentElement().tagName() != QLatin1String("animation"))) ||
+        (!metadata.animationMetadata.isEmpty() &&
+         (!animationMetadata.setContent(metadata.animationMetadata) ||
+          animationMetadata.documentElement().tagName() != QLatin1String("animation-metadata"))))
+        return invalid(QStringLiteral("Invalid KRA animation settings"));
     QDomDocument xml;
     QDomElement image;
     if (document.description.isEmpty()) image = createDescription(xml);
@@ -392,6 +416,11 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
             old = next;
         }
         if (!bytes.isEmpty()) image.appendChild(xml.importNode(value.documentElement(), true));
+    }
+    if (!metadata.animation.isEmpty()) {
+        const auto old = image.firstChildElement(QStringLiteral("animation"));
+        if (!old.isNull()) image.removeChild(old);
+        image.appendChild(xml.importNode(animation.documentElement(), true));
     }
     auto files = document.files;
     auto folder = image.attribute(QStringLiteral("name"));
@@ -419,6 +448,8 @@ Outcome RasterCodec::updateImageMetadata(Document &document, const ImageMetadata
         folder = title;
         image.setAttribute(QStringLiteral("name"), folder);
     }
+    if (!metadata.animationMetadata.isEmpty())
+        files.insert(folder + QStringLiteral("/animation/index.xml"), metadata.animationMetadata);
     const auto prefix = folder + QStringLiteral("/annotations/");
     auto annotations = image.firstChildElement(QStringLiteral("Annotations"));
     for (auto entry = annotations.firstChildElement(); !entry.isNull(); entry = entry.nextSiblingElement())
