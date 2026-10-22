@@ -356,6 +356,9 @@ CPU合成の演算時間は`KoCompositeOpsBenchmark benchmarkCompositeOver -iter
 文書のdpiから最近接丸めし、Qtの`QT_FONT_DPI=72`／`96`の各起動条件で固定成果物を照合する。
 出力先を`LIBREPAINT_GPU_RESULT_DIR`で指定すると、`document-density-<描画所有者>-<解像度>`の
 KRAとPNGを保存する。PNGの全バイトと、同じ描画所有者のKRA全バイトを起動条件間で比較する。
+`testPngWithoutPhysicalResolutionKeepsImageDefault`は、通常のPNG読込でpHYs未指定時の画像の既定解像度を検査する。
+固定した2×1 RGBA8のPNGを単独、および単位未指定・メートル指定のPNGの後に読み込み、
+CPU／GPUの各セッション設定で同じ解像度と画素を照合する。
 `TestDocumentKraPreview.cpp`は、3画素、整数・端数倍率の拡大、面積縮小と細長い文書について、
 同じRGBA8入力から通常保存したCPU／GPUの統合画素と保存プレビューの全RGBA成分を比較する。
 同じ保存に含まれる`mergedimage.png`と`preview.png`も、それぞれ全バイトで照合する。
