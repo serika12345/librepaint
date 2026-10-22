@@ -27,5 +27,6 @@ qt6_add_resources(kritacanvasgputilepresentation krita_gpu_tile_presentation
     PREFIX "/librepaint/canvas"
     FILES shaders/tile.wgsl shaders/tool_outline.wgsl shaders/crop_preview.wgsl
 )
+krita_ios_add_static_resource(krita_gpu_tile_presentation)
 
 add_subdirectory(tests)

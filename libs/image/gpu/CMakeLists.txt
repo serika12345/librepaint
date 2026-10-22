@@ -47,6 +47,7 @@ qt6_add_resources(kritaimagegputiles krita_gpu_tiles
     PREFIX "/librepaint/gpu"
     FILES shaders/rgba.wgsl shaders/paint.wgsl shaders/over.wgsl shaders/transparency.wgsl shaders/bounds.wgsl shaders/translate.wgsl shaders/crop.wgsl shaders/thumbnail.wgsl shaders/resize.wgsl shaders/sample-color.wgsl
 )
+krita_ios_add_static_resource(krita_gpu_tiles)
 
 add_library(kritaimagegpupaint OBJECT KisGpuPaintImage.cpp KisGpuPaintImage.h KisGpuExternalPixels.cpp)
 target_compile_definitions(kritaimagegpupaint PRIVATE kritagpuimage_EXPORTS)

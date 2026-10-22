@@ -1112,6 +1112,10 @@ CMakeはファクトリー名をターゲットごとに一意化し、実行形
 
 [krita/krita.qrc](../../krita/krita.qrc)は、`kritarc`と`krita5.xmlgui`をQtリソースへ割り当てる小さな目録です。アプリ全体のQtリソース一覧は[krita/CMakeLists.txt](../../krita/CMakeLists.txt)の`krita_QRCS`にあります。アイコン、シェーダー、カーソル、スプラッシュ、既定プリセットなどはそこから実行形式へ組み込まれます。
 
+GPUの描画・合成シェーダーは`libs/image/gpu`、表示・操作案内のシェーダーは`libs/canvas/gpu`が所有する。
+各所有者のCMake定義が資源を宣言し、iOSではアプリ起動時の静的資源登録へ渡す。
+最終実行形式の検査は両方の初期化・解放関数を要求し、不要コード除去後もGPUの資源URLを利用できる状態を保つ。
+
 `install(FILES|DIRECTORY ...)`で配置する資産はQtリソースとは別です。特に`krita/data`、`pics`、`po`、プラグインJSON、バンドル資産を変更するときは、実行時参照方法がリソースURLかインストール先パスかを先に確認します。
 
 iOSのインストール資産と静的依存資源は[資産の採用・帰属資料](../ios/non-code-assets.md)に従います。
