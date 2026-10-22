@@ -726,7 +726,8 @@ bool KisDocument::exportDocumentImpl(const KritaUtils::ExportFileJob &job, KisPr
         exportConfiguration = KisPropertiesConfigurationSP(new KisPropertiesConfiguration(*exportConfiguration));
         exportConfiguration->setPropertyNotSaved("documentSaveTime");
     }
-    if (d->gpuDocument && job.mimeType != nativeFormatMimeType() && job.mimeType != QByteArrayLiteral("image/png"))
+    if (d->gpuDocument && job.mimeType != nativeFormatMimeType() &&
+        job.mimeType != QByteArrayLiteral("image/png") && job.mimeType != QByteArrayLiteral("image/jpeg"))
         return exportGpuDocument(job, true, exportConfiguration, isAdvancedExporting);
     // ANDROID NOTES (other comments in this file reference this one!)
     //
@@ -906,26 +907,27 @@ bool KisDocument::exportGpuDocument(const KritaUtils::ExportFileJob &job, bool n
     KisImportExportErrorCode status = ImportExportCodes::Failure;
     QString diagnostic;
     QString warning;
-    const bool pngExport = job.mimeType == QByteArrayLiteral("image/png");
+    const bool rasterExport = job.mimeType == QByteArrayLiteral("image/png") ||
+        job.mimeType == QByteArrayLiteral("image/jpeg");
     const bool exporting = job.flags & KritaUtils::SaveIsExporting;
     const auto saveTime = exportConfiguration && exportConfiguration->hasProperty("documentSaveTime")
         ? exportConfiguration->getProperty("documentSaveTime").toDateTime() : QDateTime::currentDateTime();
     if (job.mimeType == nativeFormatMimeType() && !saveTime.isValid()) {
         status = ImportExportCodes::FormatFeaturesUnsupported;
         diagnostic = i18n("The document save time is invalid.");
-    } else if (pngExport && isAdvancedExporting) {
+    } else if (rasterExport && isAdvancedExporting) {
         status = ImportExportCodes::FormatFeaturesUnsupported;
         diagnostic = i18n("Resizing during export requires GPU document support.");
-    } else if (job.mimeType != nativeFormatMimeType() && !pngExport) {
+    } else if (job.mimeType != nativeFormatMimeType() && !rasterExport) {
         status = ImportExportCodes::FileFormatNotSupported;
-        diagnostic = i18n("This document supports saving and exporting in KRA and PNG. Other formats require GPU document support.");
+        diagnostic = i18n("This document supports saving and exporting in KRA, PNG and JPEG. Other formats require GPU document support.");
     } else if (isSaving()) {
         status = ImportExportCodes::Busy;
         diagnostic = i18n("Another save operation is in progress.");
-    } else if (pngExport && !exporting && !fileDocument->image()->operations().snapshot()->isCommitted()) {
+    } else if (rasterExport && !exporting && !fileDocument->image()->operations().snapshot()->isCommitted()) {
         status = ImportExportCodes::Busy;
         diagnostic = i18n("Finish the active painting operation before saving.");
-    } else if (pngExport) {
+    } else if (rasterExport) {
         QPointer<KisDocument> guard(this);
         const auto pinned = fileDocument->image()->operations().snapshot();
         d->gpuSaving = true;

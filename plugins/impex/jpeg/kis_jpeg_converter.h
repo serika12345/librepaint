@@ -19,6 +19,7 @@ extern "C" {
 #include "kis_annotation.h"
 #include <KisImportExportErrorCode.h>
 class KisDocument;
+struct KisExportRasterRows;
 
 namespace KisMetaData
 {
@@ -57,6 +58,8 @@ public:
 public:
     KisImportExportErrorCode buildImage(QIODevice *io);
     KisImportExportErrorCode buildFile(QIODevice *io, KisPaintLayerSP layer, KisJPEGOptions options, KisMetaData::Store* metaData);
+    KisImportExportErrorCode buildFile(QIODevice *io, const KisExportRasterRows &rows,
+        qreal xRes, qreal yRes, KisJPEGOptions options, KisMetaData::Store *metaData);
     /** Retrieve the constructed image
     */
     KisImageSP image();
@@ -64,6 +67,8 @@ public Q_SLOTS:
     virtual void cancel();
 private:
     KisImportExportErrorCode decode(QIODevice *io);
+    KisImportExportErrorCode encodeRows(QIODevice *io, const KisExportRasterRows &rows,
+        qreal xRes, qreal yRes, const KisJPEGOptions &options, KisMetaData::Store *metaData);
 private:
     struct Private;
     QScopedPointer<Private> m_d;

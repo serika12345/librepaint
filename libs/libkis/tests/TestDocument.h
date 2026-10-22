@@ -49,6 +49,12 @@ private Q_SLOTS:
     void testGpuPngSaveAsPreservesHistoryAndAdoptsTheSavedFile();
     void testGpuPngExportPreservesPixelsAndDocument_data();
     void testGpuPngExportPreservesPixelsAndDocument();
+    void testGpuJpegExportPreservesOptionsAndDocument_data();
+    void testGpuJpegExportPreservesOptionsAndDocument();
+    void testGpuJpegExportDialogLifetimes_data();
+    void testGpuJpegExportDialogLifetimes();
+    void testGpuJpegExportStreamsLargeFixedDocuments_data();
+    void testGpuJpegExportStreamsLargeFixedDocuments();
     void testGpuPngExportDialogLifetimes_data();
     void testGpuPngExportDialogLifetimes();
     void testGpuExportRowsRespectMemoryBudgetAndRetainTheirVersion();

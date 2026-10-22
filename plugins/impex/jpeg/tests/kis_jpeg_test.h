@@ -17,6 +17,10 @@ private Q_SLOTS:
     void testImportFromWriteonly();
     void testExportToReadonly();
     void testImportIncorrectFormat();
+    void testRowsKeepExistingColorAndPrecision_data();
+    void testRowsKeepExistingColorAndPrecision();
+    void testRowsPropagateReadCancellationAndWriteFailure_data();
+    void testRowsPropagateReadCancellationAndWriteFailure();
 };
 
 #endif

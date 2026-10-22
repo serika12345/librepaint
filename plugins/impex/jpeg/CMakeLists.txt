@@ -1,5 +1,3 @@
-add_subdirectory(tests)
-
 set(ICCJPEG_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/3rdparty/lcms")
 
 include_directories(
@@ -31,9 +29,10 @@ else()
 endif()
 
 set(libkritaconverter_LIB_SRCS
-    kis_jpeg_converter.cc
-    kis_jpeg_source.cpp
-    kis_jpeg_destination.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/KisJpegCoefficientStore.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/kis_jpeg_converter.cc
+    ${CMAKE_CURRENT_SOURCE_DIR}/kis_jpeg_source.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/kis_jpeg_destination.cpp
     ${ICCJPEG_SOURCE_DIR}/iccjpeg.c
     )
 
@@ -79,3 +78,5 @@ endif()
 install(TARGETS kritajpegexport  DESTINATION ${KRITA_PLUGIN_INSTALL_DIR})
 
 install(FILES krita_jpeg.desktop DESTINATION ${KDE_INSTALL_APPDIR})
+
+add_subdirectory(tests)

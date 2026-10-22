@@ -21,6 +21,7 @@
 #include <KoColorSpaceRegistry.h>
 
 #include <KisImportExportManager.h>
+#include <KisExportRasterRows.h>
 #include <kis_slider_spin_box.h>
 #include <document/KisDocument.h>
 #include <metadata/KoDocumentInfo.h>
@@ -72,7 +73,9 @@ KisImportExportErrorCode KisJPEGExport::convert(KisDocument *document, QIODevice
     Q_CHECK_PTR(image);
 
     // An extra option to pass to the config widget to set the state correctly, this isn't saved
-    const KoColorSpace* cs = image->projection()->colorSpace();
+    const auto rows = document->importExportManager()->exportRows();
+    if (image->gpuImage() && !rows) return ImportExportCodes::FormatFeaturesUnsupported;
+    const KoColorSpace* cs = rows ? rows->colorSpace : image->projection()->colorSpace();
     bool sRGB = cs->profile()->name().contains(QLatin1String("srgb"), Qt::CaseInsensitive);
     configuration->setProperty("is_sRGB", sRGB);
 
@@ -97,10 +100,12 @@ KisImportExportErrorCode KisJPEGExport::convert(KisDocument *document, QIODevice
     options.storeAuthor = configuration->getBool("storeAuthor", false);
     options.storeDocumentMetaData = configuration->getBool("storeMetaData", false);
 
-    KisPaintDeviceSP pd = new KisPaintDevice(*image->projection());
-
     KisJPEGConverter kpc(document, batchMode());
-    KisPaintLayerSP l = new KisPaintLayer(image, "projection", OPACITY_OPAQUE_U8, pd);
+    KisPaintLayerSP layer;
+    if (!rows) {
+        KisPaintDeviceSP pixels = new KisPaintDevice(*image->projection());
+        layer = new KisPaintLayer(image, "projection", OPACITY_OPAQUE_U8, pixels);
+    }
 
     KisExifInfoVisitor exivInfoVisitor;
     exivInfoVisitor.visit(image->rootLayer().data());
@@ -166,7 +171,9 @@ KisImportExportErrorCode KisJPEGExport::convert(KisDocument *document, QIODevice
         }
     }
 
-    KisImportExportErrorCode res = kpc.buildFile(io, l, options, metaDataStore.data());
+    KisImportExportErrorCode res = rows ?
+        kpc.buildFile(io, *rows, image->xRes(), image->yRes(), options, metaDataStore.data()) :
+        kpc.buildFile(io, layer, options, metaDataStore.data());
     return res;
 }
 

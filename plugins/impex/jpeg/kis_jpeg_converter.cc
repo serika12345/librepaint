@@ -4,7 +4,9 @@
  *  SPDX-License-Identifier: GPL-2.0-or-later
  */
 #include "kis_jpeg_converter.h"
+#include "KisJpegCoefficientStore_p.h"
 #include "KisImportExportErrorCode.h"
+#include <KisExportRasterRows.h>
 #include "KoID.h"
 #include "KoIntegerMaths.h"
 #include "kis_assert.h"
@@ -21,6 +23,9 @@
 #include <QtGlobal>
 #include <qstringview.h>
 #include <stdexcept>
+#include <memory>
+#include <optional>
+#include <vector>
 #include <stdint.h>
 
 #include <KoConfig.h>
@@ -41,6 +46,8 @@ extern "C" {
 #include <QFile>
 #include <QBuffer>
 #include <QApplication>
+#include <QScopeGuard>
+#include <QTemporaryFile>
 
 #include <klocalizedstring.h>
 
@@ -48,6 +55,7 @@ extern "C" {
 #include <KoColorSpaceRegistry.h>
 #include <KoColorProfile.h>
 #include <KoColor.h>
+#include <KoCompositeOp.h>
 #include <KoUnit.h>
 #include "KoColorModelStandardIds.h"
 
@@ -465,6 +473,92 @@ KisImageSP KisJPEGConverter::image()
 }
 
 
+KisImportExportErrorCode KisJPEGConverter::buildFile(QIODevice *io, const KisExportRasterRows &rows,
+    qreal xRes, qreal yRes, KisJPEGOptions options, KisMetaData::Store *metaData)
+{
+    if (m_d->stop) return ImportExportCodes::Cancelled;
+    if (!rows.colorSpace || !rows.readRow || rows.size.isEmpty()) return ImportExportCodes::InternalError;
+    if (qint64(rows.size.width()) * rows.colorSpace->pixelSize() > INT_MAX)
+        return ImportExportCodes::InsufficientMemory;
+    const KoColorSpace *destination = rows.colorSpace;
+    if (getColorTypeforColorSpace(destination) == JCS_UNKNOWN)
+        destination = KoColorSpaceRegistry::instance()->rgb8();
+    if (!destination) return ImportExportCodes::FormatColorSpaceUnsupported;
+    const auto intermediate = destination;
+    if (options.forceSRGB) {
+        destination = KoColorSpaceRegistry::instance()->colorSpace(RGBAColorModelID.id(),
+            destination->colorDepthId().id(), "sRGB built-in - (lcms internal)");
+    }
+    if (!destination) return ImportExportCodes::FormatColorSpaceUnsupported;
+    if (qint64(rows.size.width()) * destination->pixelSize() > INT_MAX)
+        return ImportExportCodes::InsufficientMemory;
+    struct Conversion {
+        KisExportRasterRows source;
+        const KoColorSpace *intermediate;
+        const KoColorSpace *destination;
+        KoColor background;
+        QByteArray input, converted, profiled, filled;
+        std::unique_ptr<KoColorConversionTransformation> modelTransform, profileTransform;
+        Conversion(const KisExportRasterRows &source, const KoColorSpace *intermediate,
+                   const KoColorSpace *destination, const QColor &fill)
+            : source(source), intermediate(intermediate), destination(destination), background(fill, destination)
+        {
+            if (source.colorSpace != intermediate)
+                modelTransform.reset(source.colorSpace->createColorConverter(intermediate,
+                    KoColorConversionTransformation::internalRenderingIntent(),
+                    KoColorConversionTransformation::internalConversionFlags()));
+            if (intermediate != destination)
+                profileTransform.reset(intermediate->createColorConverter(destination,
+                    KoColorConversionTransformation::internalRenderingIntent(),
+                    KoColorConversionTransformation::internalConversionFlags()));
+        }
+        KisImportExportErrorCode read(int row, QByteArray &output)
+        {
+            auto result = source.readRow(row, input);
+            if (!result.isOk()) return result;
+            if (input.size() != qsizetype(source.size.width()) * source.colorSpace->pixelSize())
+                return ImportExportCodes::InternalError;
+            const quint8 *pixels = reinterpret_cast<const quint8 *>(input.constData());
+            const auto size = qsizetype(source.size.width()) * destination->pixelSize();
+            if (modelTransform) {
+                converted.resize(qsizetype(source.size.width()) * intermediate->pixelSize());
+                modelTransform->transform(pixels, reinterpret_cast<quint8 *>(converted.data()), source.size.width());
+                pixels = reinterpret_cast<const quint8 *>(converted.constData());
+            }
+            if (profileTransform) {
+                profiled.resize(size);
+                profileTransform->transform(pixels, reinterpret_cast<quint8 *>(profiled.data()), source.size.width());
+                pixels = reinterpret_cast<const quint8 *>(profiled.constData());
+            }
+            filled.resize(size);
+            for (int x = 0; x < source.size.width(); ++x)
+                std::memcpy(filled.data() + qsizetype(x) * destination->pixelSize(), background.data(), destination->pixelSize());
+            KoCompositeOp::ParameterInfo parameters;
+            parameters.dstRowStart = reinterpret_cast<quint8 *>(filled.data());
+            parameters.dstRowStride = int(size);
+            parameters.srcRowStart = pixels;
+            parameters.srcRowStride = int(size);
+            parameters.rows = 1;
+            parameters.cols = source.size.width();
+            parameters.setOpacityAndAverage(1.0f, 1.0f);
+            parameters.flow = 1.0f;
+            destination->bitBlt(destination, parameters, destination->compositeOp(QStringLiteral("normal")),
+                KoColorConversionTransformation::internalRenderingIntent(),
+                KoColorConversionTransformation::internalConversionFlags());
+            output = filled;
+            return ImportExportCodes::OK;
+        }
+    };
+    const auto conversion = std::make_shared<Conversion>(rows, intermediate, destination, options.transparencyFillColor);
+    if ((rows.colorSpace != intermediate && !conversion->modelTransform) ||
+        (intermediate != destination && !conversion->profileTransform)) return ImportExportCodes::FormatColorSpaceUnsupported;
+    KisExportRasterRows prepared;
+    prepared.colorSpace = destination;
+    prepared.size = rows.size;
+    prepared.readRow = [conversion](int row, QByteArray &bytes) { return conversion->read(row, bytes); };
+    return encodeRows(io, prepared, xRes, yRes, options, metaData);
+}
+
 KisImportExportErrorCode KisJPEGConverter::buildFile(QIODevice *io, KisPaintLayerSP layer, KisJPEGOptions options, KisMetaData::Store* metaData)
 {
     KIS_ASSERT_RECOVER_RETURN_VALUE(layer, ImportExportCodes::InternalError);
@@ -490,20 +584,45 @@ KisImportExportErrorCode KisJPEGConverter::buildFile(QIODevice *io, KisPaintLaye
 
     uint height = image->height();
     uint width = image->width();
-    // Initialize structure
-    struct jpeg_compress_struct cinfo;
-    // Initialize error output
+    KisPaintDeviceSP dev = new KisPaintDevice(layer->colorSpace());
+    KoColor background(options.transparencyFillColor, layer->colorSpace());
+    dev->fill(QRect(0, 0, width, height), background);
+    KisPainter painter(dev);
+    painter.bitBlt(QPoint(0, 0), layer->paintDevice(), QRect(0, 0, width, height));
+    painter.end();
+    KisExportRasterRows rows;
+    rows.colorSpace = dev->colorSpace();
+    rows.size = image->size();
+    rows.readRow = [dev, width](int row, QByteArray &bytes) {
+        bytes.resize(qsizetype(width) * dev->pixelSize());
+        dev->readBytes(reinterpret_cast<quint8 *>(bytes.data()), 0, row, width, 1);
+        return KisImportExportErrorCode(ImportExportCodes::OK);
+    };
+    return encodeRows(io, rows, image->xRes(), image->yRes(), options, metaData);
+}
+
+KisImportExportErrorCode KisJPEGConverter::encodeRows(QIODevice *io, const KisExportRasterRows &rows,
+    qreal xRes, qreal yRes, const KisJPEGOptions &options, KisMetaData::Store *metaData)
+{
+    if (m_d->stop) return ImportExportCodes::Cancelled;
+    if (!io || !rows.colorSpace || !rows.readRow || rows.size.isEmpty()) return ImportExportCodes::InternalError;
+    const auto cs = rows.colorSpace;
+    const auto color_type = getColorTypeforColorSpace(cs);
+    if (color_type == JCS_UNKNOWN) return ImportExportCodes::FormatColorSpaceUnsupported;
+    const uint width = rows.size.width(), height = rows.size.height();
+    const qint64 rowBytes = qint64(width) * cs->pixelSize();
+    if (rowBytes > INT_MAX) return ImportExportCodes::InsufficientMemory;
+    struct jpeg_compress_struct cinfo{};
     struct jpeg_error_mgr jerr;
     cinfo.err = jpeg_std_error(&jerr);
     jerr.error_exit = jpegErrorExit;
-
+    QTemporaryFile coefficientBacking;
+    std::optional<KisJpegCoefficientStore> coefficients;
+    const auto destroy = qScopeGuard([&] { jpeg_destroy_compress(&cinfo); });
     try {
-
-
         jpeg_create_compress(&cinfo);
-        // Initialize output stream
+        coefficients.emplace(&cinfo, coefficientBacking, 8 * 1024 * 1024);
         KisJPEGDestination::setDestination(&cinfo, io);
-
         cinfo.image_width = width;  // image width and height, in pixels
         cinfo.image_height = height;
         cinfo.input_components = cs->colorChannelCount(); // number of color channels per pixel */
@@ -566,8 +685,8 @@ KisImportExportErrorCode KisJPEGConverter::buildFile(QIODevice *io, KisPaintLaye
         }
 
         // Save resolution
-        cinfo.X_density = INCH_TO_POINT(image->xRes()); // It is the "invert" macro because we convert from pointer-per-inch to points
-        cinfo.Y_density = INCH_TO_POINT(image->yRes()); // It is the "invert" macro because we convert from pointer-per-inch to points
+        cinfo.X_density = INCH_TO_POINT(xRes); // It is the "invert" macro because we convert from pointer-per-inch to points
+        cinfo.Y_density = INCH_TO_POINT(yRes); // It is the "invert" macro because we convert from pointer-per-inch to points
         cinfo.density_unit = 1;
         cinfo.write_JFIF_header = (boolean)true;
 
@@ -632,110 +751,44 @@ KisImportExportErrorCode KisJPEGConverter::buildFile(QIODevice *io, KisPaintLaye
         }
 
 
-        KisPaintDeviceSP dev = new KisPaintDevice(layer->colorSpace());
-        KoColor c(options.transparencyFillColor, layer->colorSpace());
-        dev->fill(QRect(0, 0, width, height), c);
-        KisPainter gc(dev);
-        gc.bitBlt(QPoint(0, 0), layer->paintDevice(), QRect(0, 0, width, height));
-        gc.end();
-
 
         if (options.saveProfile) {
-            const KoColorProfile* colorProfile = layer->colorSpace()->profile();
-            QByteArray colorProfileData = colorProfile->rawData();
-            write_icc_profile(& cinfo, (uchar*) colorProfileData.data(), colorProfileData.size());
+            const auto data = cs->profile()->rawData();
+            write_icc_profile(&cinfo, reinterpret_cast<const uchar *>(data.constData()), data.size());
         }
-
-        // Write data information
-
-        JSAMPROW row_pointer = new JSAMPLE[width*cinfo.input_components];
-        int color_nb_bits = 8 * layer->paintDevice()->pixelSize() / layer->paintDevice()->channelCount();
-
-        for (; cinfo.next_scanline < height;) {
-            KisHLineConstIteratorSP it = dev->createHLineConstIteratorNG(0, cinfo.next_scanline, width);
-            quint8 *dst = row_pointer;
-            switch (color_type) {
-            case JCS_GRAYSCALE:
-                if (color_nb_bits == 16) {
-                    do {
-                        //const quint16 *d = reinterpret_cast<const quint16 *>(it->oldRawData());
-                        const quint8 *d = it->oldRawData();
-                        *(dst++) = cs->scaleToU8(d, 0);//d[0] / quint8_MAX;
-
-                    } while (it->nextPixel());
+        std::vector<JSAMPLE> encoded(qsizetype(width) * cinfo.input_components);
+        QByteArray input;
+        const int channelBits = 8 * cs->pixelSize() / cs->channelCount();
+        while (cinfo.next_scanline < height) {
+            if (m_d->stop) return ImportExportCodes::Cancelled;
+            auto result = rows.readRow(int(cinfo.next_scanline), input);
+            if (!result.isOk()) return result;
+            if (input.size() != rowBytes) return ImportExportCodes::InternalError;
+            if (m_d->stop) return ImportExportCodes::Cancelled;
+            auto *destination = encoded.data();
+            for (uint x = 0; x < width; ++x) {
+                const auto *pixel = reinterpret_cast<const quint8 *>(input.constData()) + qsizetype(x) * cs->pixelSize();
+                const auto channel = [&](int index) { return channelBits == 16 ? cs->scaleToU8(pixel, index) : pixel[index]; };
+                if (color_type == JCS_GRAYSCALE) *destination++ = channel(0);
+                else if (color_type == JCS_RGB) {
+                    *destination++ = channel(2);
+                    *destination++ = channel(1);
+                    *destination++ = channel(0);
                 } else {
-                    do {
-                        const quint8 *d = it->oldRawData();
-                        *(dst++) = d[0];
-
-                    } while (it->nextPixel());
+                    for (int index = 0; index < 4; ++index) *destination++ = quint8_MAX - channel(index);
                 }
-                break;
-            case JCS_RGB:
-                if (color_nb_bits == 16) {
-                    do {
-                        //const quint16 *d = reinterpret_cast<const quint16 *>(it->oldRawData());
-                        const quint8 *d = it->oldRawData();
-                        *(dst++) = cs->scaleToU8(d, 2); //d[2] / quint8_MAX;
-                        *(dst++) = cs->scaleToU8(d, 1); //d[1] / quint8_MAX;
-                        *(dst++) = cs->scaleToU8(d, 0); //d[0] / quint8_MAX;
-
-                    } while (it->nextPixel());
-                } else {
-                    do {
-                        const quint8 *d = it->oldRawData();
-                        *(dst++) = d[2];
-                        *(dst++) = d[1];
-                        *(dst++) = d[0];
-
-                    } while (it->nextPixel());
-                }
-                break;
-            case JCS_CMYK:
-                if (color_nb_bits == 16) {
-                    do {
-                        //const quint16 *d = reinterpret_cast<const quint16 *>(it->oldRawData());
-                        const quint8 *d = it->oldRawData();
-                        *(dst++) = quint8_MAX - cs->scaleToU8(d, 0);//quint8_MAX - d[0] / quint8_MAX;
-                        *(dst++) = quint8_MAX - cs->scaleToU8(d, 1);//quint8_MAX - d[1] / quint8_MAX;
-                        *(dst++) = quint8_MAX - cs->scaleToU8(d, 2);//quint8_MAX - d[2] / quint8_MAX;
-                        *(dst++) = quint8_MAX - cs->scaleToU8(d, 3);//quint8_MAX - d[3] / quint8_MAX;
-
-                    } while (it->nextPixel());
-                } else {
-                    do {
-                        const quint8 *d = it->oldRawData();
-                        *(dst++) = quint8_MAX - d[0];
-                        *(dst++) = quint8_MAX - d[1];
-                        *(dst++) = quint8_MAX - d[2];
-                        *(dst++) = quint8_MAX - d[3];
-
-                    } while (it->nextPixel());
-                }
-                break;
-            default:
-                delete [] row_pointer;
-                jpeg_destroy_compress(&cinfo);
-                return ImportExportCodes::FormatFeaturesUnsupported;
             }
-            jpeg_write_scanlines(&cinfo, &row_pointer, 1);
+            JSAMPROW scanline = encoded.data();
+            jpeg_write_scanlines(&cinfo, &scanline, 1);
         }
-
-
-        // Writing is over
+        if (m_d->stop) return ImportExportCodes::Cancelled;
         jpeg_finish_compress(&cinfo);
-
-        delete [] row_pointer;
-        // Free memory
-        jpeg_destroy_compress(&cinfo);
-
         return ImportExportCodes::OK;
-
-    } catch( std::runtime_error &) {
-        jpeg_destroy_compress(&cinfo);
+    } catch (const std::bad_alloc &) {
+        return ImportExportCodes::InsufficientMemory;
+    } catch (const std::runtime_error &) {
         return ImportExportCodes::ErrorWhileWriting;
     }
-
 }
 
 

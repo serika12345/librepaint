@@ -739,6 +739,34 @@ CTestの資源ロックで相互の実行を順序付ける。
 ファイル名を指定する変換は、取消し・変換拒否・成功と保存先の有無を組み合わせ、元ファイルと
 正常な符号化結果を検査する。POSIXでは一時ファイルを作成できないディレクトリー、Windowsでは
 他の利用者が置換を許可していないファイルを用いて、置換失敗後の元ファイルの保持を検査する。
+`kis_jpeg_test`はRGBA・Gray・CMYKの8/16 bitとLab16について、描画面入力と行入力の
+JPEG全体を比較する。固定した色とアルファ、Lab16からRGB8を経由するsRGB変換の量子化境界、
+行の読取順、読取り中の取消し、入力不足と書込み失敗を検査する。
+`KisJpegCoefficientStoreTest`は、32KiBの係数バッファー予算で一時領域を使用し、標準libjpegの
+メモリー上の係数処理とJPEG全体を比較する。RGB・Gray・CMYK、最適化、プログレッシブと
+色差の間引きを検査する。短い読書きの継続、作成・読書き位置の変更・書込み・読込み・途中終端による
+失敗と、後続の符号化の成功を照合する。
+`TestDocument`のJPEG試験は33×17画素、300×150dpi、文書情報と著者を固定する。
+公開APIと通常の書出し操作から、品質、色差の間引き、プログレッシブ、基準形式、最適化、
+平滑化、sRGB、ICC、背景色、Exif・IPTC・XMPと匿名化の21条件を既存CPU文書の出力と完全比較する。
+設定画面の取消し、追加編集、文書終了、画像交換とKRA併記保存を検査する。
+JPEGでの保存は書き込んだ版を保存済みとして採用し、後続編集の通常保存とUndo／Redoによる
+変更状態の切替を照合する。書出しの失敗は元のKRA、保存先と履歴を保持することを検査する。
+16384×16384のGPU文書は、最適化とプログレッシブのJPEG書出しで、寸法、終端、
+縮小した白背景、元の版・履歴・保存済み位置とGPU保持量を検査する。
+係数の作業領域はJPEG所有者の割当量で照合し、実メモリーの計測では符号化と読込みを
+独立して計上する。
+`LIBREPAINT_GPU_RESULT_DIR`へ`<api|menu>-<設定>.jpg`、`dialog-<条件>.jpg`、
+`dialog-resaved.jpg`と`<色・精度>-<legacy|rows>.jpg`を出力し、環境間でファイル全体を比較する。
+係数の比較結果は`coefficient-<条件>-<expected|actual>.jpg`、大きな文書は
+`large-<optimized|progressive>.jpg`へ出力する。
+
+```sh
+./scripts/run-shared-test-env ./scripts/run-test kis_jpeg_test
+./scripts/run-shared-test-env ./scripts/run-test KisJpegCoefficientStoreTest
+./scripts/run-shared-test-env ./scripts/run-test TestDocument
+```
+
 `KisImportExportAsyncFeedbackTest`は、背景スレッドの完了待ち中のGUIイベント処理、バッチ保存での進捗画面の抑制と、
 既存の操作を遮る進捗表示および固定版用の操作を許可する進捗表示を検査する。
 `kis_tiff_test`の`testFiles`は、実際の形式プラグインで8種類の向きを含むTIFFを読み込み、

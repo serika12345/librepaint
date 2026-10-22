@@ -13,10 +13,11 @@ kis_add_tests(
     )
 
 target_sources(TestNode PRIVATE TestNodeHierarchy.cpp TestNodeClipboard.cpp TestNodeLayerProperties.cpp)
-target_sources(TestDocument PRIVATE TestDocumentKraPreview.cpp)
+target_sources(TestDocument PRIVATE TestDocumentKraPreview.cpp TestDocumentJpegExport.cpp)
 
 add_dependencies(TestDocument
-    kritakraimport kritakraexport kritapngimport kritapngexport kritalcmsengine
+    kritakraimport kritakraexport kritapngimport kritapngexport kritajpegexport kritalcmsengine
+    kritaexif kritaiptc kritaxmp
     kritapatterngenerator kritacolorgenerator)
 add_dependencies(TestNode kritakraimport kritakraexport kritapngexport kritalcmsengine)
 add_dependencies(TestNode kritaroundmarkerpaintop)
