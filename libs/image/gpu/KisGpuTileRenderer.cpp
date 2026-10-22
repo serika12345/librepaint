@@ -231,9 +231,9 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
                     nextCoverage[job.coverageCoordinate] = job.coverageOutput;
                 }
             }
-            if (!preparePaintJob(*d.device, d.layout.get(), job, d.zero.get(), d.unusedCoverage.get()))
-                return RenderOutcome{RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
         }
+        if (!preparePaintJobs(*d.device, d.layout.get(), jobs, recordedJobs, d.zero.get(), d.unusedCoverage.get()))
+            return RenderOutcome{RenderOutcome::DeviceFailure, {}, QStringLiteral("GPU paint allocation failed")};
         if (!d.zeroUploaded) {
             wgpuCommandEncoderClearBuffer(commands, d.zero.get(), 0, TileBytes);
             d.zeroUploaded = true;
@@ -246,12 +246,6 @@ RenderOutcome TileRenderer::recordImpl(WGPUCommandEncoder commands, const Snapsh
         for (size_t i = recordedUploads; i < uploads.size(); ++i) {
             const auto &upload = uploads[i];
             wgpuQueueWriteBuffer(d.device->queue(), upload.tile->pixels.get(), 0, upload.rgba.constData(), size_t(upload.rgba.size()));
-        }
-        for (size_t i = recordedJobs; i < jobs.size(); ++i) {
-            const auto &job = jobs[i];
-            if (job.samples) wgpuQueueWriteBuffer(d.device->queue(), job.samples.get(), 0,
-                                                  job.geometry.constData(), size_t(job.geometry.size()) * sizeof(PaintSegment));
-            wgpuQueueWriteBuffer(d.device->queue(), job.parameters.get(), 0, &job.values, sizeof(job.values));
         }
         if (recordedJobs < jobs.size()) {
             const auto pass = wgpuCommandEncoderBeginComputePass(commands, nullptr);

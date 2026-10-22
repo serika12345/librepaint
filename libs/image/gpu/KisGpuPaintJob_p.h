@@ -9,6 +9,7 @@
 #include "KisGpuTileStorage_p.h"
 #include "KisGpuPaintGeometry_p.h"
 #include <array>
+#include <vector>
 
 namespace LibrePaint::Image::Gpu::Detail {
 struct PaintParameters
@@ -25,7 +26,7 @@ struct PaintJob
 {
     std::shared_ptr<Tile> input, output;
     std::shared_ptr<Tile> coverageInput, coverageOutput;
-    NativeBuffer samples, parameters;
+    NativeBuffer inputs;
     std::shared_ptr<NativeBuffer> fillEdges;
     NativeBindings bindings;
     QList<PaintSegment> geometry;
@@ -37,7 +38,7 @@ struct PaintJob
 };
 
 quint32 packedPixel(const std::array<quint8, 4> &rgba);
-bool preparePaintJob(Device &device, WGPUBindGroupLayout layout, PaintJob &job,
-                     WGPUBuffer zero, WGPUBuffer unusedCoverage);
+bool preparePaintJobs(Device &device, WGPUBindGroupLayout layout, std::vector<PaintJob> &jobs,
+                      std::size_t first, WGPUBuffer zero, WGPUBuffer unusedCoverage);
 }
 #endif

@@ -1279,6 +1279,9 @@ JSONの`paintLayerIndex`とともに保持量、処理時間、最終画像を�
 `regionalInputKeepsPixelsAcrossViewportAndCapacityChanges`は、表示領域への入力追加、
 領域の移動・縮小とタイル容量の変更を、全文書の再生成と照合する。
 保持した版とUndo／Redoの画素を維持し、描画器のタイル予算に収まることを確認する。
+`longStrokeRebuildKeepsPixelsAndHistory`は、長い一本の筆跡を一括入力と分割入力で照合し、
+固定した不透明色、Undo／Redo、保持した版と復旧後の画素を確認する。
+`longDocumentRebuildUsesBoundedTileStorage`は、多数の操作を含む文書の再生成を固定画素と照合する。
 公開文書の同じ入力は、既存画像との画素比較、KRA統合画像、PNG、両所有者による再読込みを検査する。
 
 ```sh

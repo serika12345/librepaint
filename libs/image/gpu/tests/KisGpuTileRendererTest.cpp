@@ -91,6 +91,7 @@ private Q_SLOTS:
     void compositionPreservesOrderAlphaAndExistingVersionsAtCapacity();
     void paintingAndCompositionShareOneSubmission();
     void longDocumentRebuildUsesBoundedTileStorage();
+    void longStrokeRebuildKeepsPixelsAndHistory();
     void retainedPixelsOwnTheNativeDeviceUntilTheirLastReader();
     void nativeDeviceCreationRequiresTheApplicationThread();
     void rasterCheckpointsPreservePixelsThroughPaintingUndoAndRecovery();
@@ -2255,6 +2256,68 @@ void KisGpuTileRendererTest::longDocumentRebuildUsesBoundedTileStorage()
     QVERIFY2(rebuilt, "A retained 250-operation document must rebuild with two writable tiles per coordinate");
     QCOMPARE(readTile(rebuilt, restored.activeLayer(), {0, 0}), pixels);
     QCOMPARE(bounded.residentBytes(), TileRenderer::TileBytes);
+}
+
+void KisGpuTileRendererTest::longStrokeRebuildKeepsPixelsAndHistory()
+{
+    Brush brush;
+    brush.diameter = 8;
+    brush.spacing = 0.25;
+    brush.rgba = {71, 139, 211, 255};
+    QList<InputSample> samples{{{32, 32}, 1}};
+    for (int i = 0; i < 2304; ++i)
+        samples.append({{qreal(4 + i % 56), qreal(4 + (i * 7) % 56)}, 1});
+
+    OperationDocument partitioned({64, 64});
+    const auto referenceStroke = partitioned.beginStroke(partitioned.activeLayer(), brush, 97);
+    TileRenderer reference(m_device);
+    RenderedSnapshot incremental;
+    for (qsizetype first = 0; first < samples.size(); first += 128) {
+        QCOMPARE(partitioned.appendSamples(referenceStroke, samples.mid(first, 128)), Result::Success);
+        incremental = render(reference, partitioned.preview(), incremental);
+        QVERIFY(incremental);
+    }
+    QCOMPARE(partitioned.commitStroke(referenceStroke), Result::Success);
+    incremental = render(reference, partitioned.snapshot(), incremental);
+    QVERIFY(incremental);
+    const auto expected = readTile(incremental, partitioned.activeLayer(), {0, 0});
+
+    OperationDocument document({64, 64});
+    const auto layer = document.activeLayer();
+    const auto stroke = document.beginStroke(layer, brush, 97);
+    QCOMPARE(document.appendSamples(stroke, samples), Result::Success);
+    QCOMPARE(document.commitStroke(stroke), Result::Success);
+    QCOMPARE(document.snapshot()->sampleCount, samples.size());
+    TileRenderer bounded(m_device, 2 * TileRenderer::TileBytes);
+    const auto original = render(bounded, document.snapshot());
+    QVERIFY(original);
+    const auto pixels = readTile(original, layer, {0, 0});
+    QCOMPARE(pixels, expected);
+    QCOMPARE(pixels.mid((32 * TileRenderer::TileSize + 32) * 4, 4), QByteArray::fromHex("478bd3ff"));
+    QCOMPARE(pixels.right(4), QByteArray(4, char(0)));
+    QCOMPARE(document.undo(), Result::Success);
+    const auto undone = render(bounded, document.snapshot(), original);
+    QVERIFY(undone);
+    QVERIFY(undone->tiles(layer).isEmpty());
+    QCOMPARE(document.redo(), Result::Success);
+    const auto redone = render(bounded, document.snapshot(), undone);
+    QVERIFY(redone);
+    QCOMPARE(readTile(redone, layer, {0, 0}), pixels);
+    QCOMPARE(readTile(original, layer, {0, 0}), pixels);
+    QVERIFY(bounded.residentBytes() <= 2 * TileRenderer::TileBytes);
+    OperationDocument recovered({1, 1});
+    QCOMPARE(recovered.restoreRecovery(document.recoveryData()), Result::Success);
+    TileRenderer recovery(m_device, TileRenderer::TileBytes);
+    const auto restored = render(recovery, recovered.snapshot());
+    QVERIFY(restored);
+    QCOMPARE(readTile(restored, recovered.activeLayer(), {0, 0}), pixels);
+    const auto results = qEnvironmentVariable("LIBREPAINT_GPU_RESULT_DIR");
+    if (!results.isEmpty()) {
+        QVERIFY(QDir().mkpath(results));
+        QFile file(QDir(results).filePath(QStringLiteral("long-stroke-rebuild.rgba")));
+        QVERIFY(file.open(QIODevice::WriteOnly));
+        QCOMPARE(file.write(pixels), qint64(pixels.size()));
+    }
 }
 
 void KisGpuTileRendererTest::retainedPixelsOwnTheNativeDeviceUntilTheirLastReader()
